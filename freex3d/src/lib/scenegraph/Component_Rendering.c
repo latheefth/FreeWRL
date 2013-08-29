@@ -384,7 +384,7 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
             // draw. Note the casting of the last param - it is ok, because we tell that
             // we are sending in ushorts; it gets around a compiler warning.
             
-            FW_GL_DRAWELEMENTS(GL_LINE_STRIP,count[i],GL_UNSIGNED_SHORT,(int *)indxStartPtr[i]);
+            sendElementsToGPU(GL_LINE_STRIP,count[i],indxStartPtr[i]);
 		}
 
 
@@ -484,7 +484,7 @@ OLDCODE	GET_COLOUR_POINTER
 	FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 
 	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(float *)points);
-	FW_GL_DRAWARRAYS(GL_POINTS,0,npoints);
+	sendArraysToGPU(GL_POINTS,0,npoints);
 
 	/* put things back to normal */
 	FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
@@ -496,7 +496,7 @@ OLDCODE	GET_COLOUR_POINTER
 void render_LineSet (struct X3D_LineSet *node) {
 
 	struct X3D_Color *cc;
-	GLvoid **indices;
+	GLushort **indices;
 	GLsizei *count;
 	int i;
 	struct Multi_Vec3f* points;
@@ -524,30 +524,28 @@ void render_LineSet (struct X3D_LineSet *node) {
 			} else {
 				FW_GL_COLOR_POINTER (4,GL_FLOAT,0,(float *)cc->color.p);
 			}
-#ifdef OLDCODE
-OLDCODE - now with shaders, the line colour will come from the appearance field,
-OLDCODE not from a specific shader variable. Yes, an "appearance" field will be present,
-OLDCODE even if one does not exist in the VRML/X3D file. 
-OLDCODE 		} else {
-OLDCODE 			DO_COLOUR_POINTER
-#endif //OLDCODE
 		}
 		points = getCoordinate(node->coord, "LineSet");
 
 		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(float *)points->p);
 
-		/* aqua crashes on glMultiDrawElements and LINE_STRIPS */
-		indices = node->__vertIndx;
+		indices = (ushort **)node->__vertIndx;
 		/* note the cast below - casting an int* to a GLsizei* seems to be ok on 32 and 64 bit systems */
 		count  = (GLsizei*) node->vertexCount.p;
+
 		for (i=0; i<node->__segCount; i++) {
-			FW_GL_DRAWELEMENTS(GL_LINE_STRIP,count[i],GL_UNSIGNED_INT,indices[i]);
+            /*
+            printf ("rendering segment %d of %d, count %d, have starting index of %hu\n",i,node->__segCount, count[i], *indices[i]);
+            {int j; ushort *pt = indices[i];
+                for (j=0; j<count[i]; j++) {
+                    printf ("line segment %d, index %hu\n",i,*pt);
+                    pt++;
+                }
+            }
+             */
+			sendElementsToGPU(GL_LINE_STRIP,count[i],indices[i]);
 		}
 
-		/* otherwise we could use 
-		glMultiDrawElements ( GL_LINE_STRIP, node->vertexCount.p, GL_UNSIGNED_INT,
-			node->__vertIndx, node->__segCount);  */
-		
 		FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		if (node->color) {
 			FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
@@ -565,8 +563,8 @@ void compile_LineSet (struct X3D_LineSet *node) {
 	int totVertexRequired;
 
 	struct X3D_Color *cc;
-	GLuint *pt;
-	uintptr_t *vpt;
+	GLushort *pt;
+	ushort **vpt;
 
 	MARK_NODE_COMPILED
 	node->__segCount = 0; /* assume this for now */
@@ -576,6 +574,8 @@ void compile_LineSet (struct X3D_LineSet *node) {
 	if (nvertexc==0) return;
 	totVertexRequired = 0;
 
+    //printf ("compile_LineSet, nvertexc %d\n",nvertexc);
+    
 
 	/* sanity check vertex counts */
 	for  (c=0; c<nvertexc; c++) {
@@ -627,7 +627,7 @@ void compile_LineSet (struct X3D_LineSet *node) {
 	   coordinates 0, 1, and 2 */
 	FREE_IF_NZ (node->__vertArr);
 	node->__vertArr = MALLOC (GLuint *, sizeof(GLuint)*(ncoord));
-	pt = (GLuint *)node->__vertArr;
+	pt = (GLushort *)node->__vertArr;
 	for (vtc = 0; vtc < ncoord; vtc++) {
 		*pt=vtc; pt++; /* ie, index n contains the number n */
 	}
@@ -638,13 +638,13 @@ void compile_LineSet (struct X3D_LineSet *node) {
 	   segment The LENGTH of each segment (good question) comes from the
 	   vertexCount parameter of the LineSet node */
 	FREE_IF_NZ (node->__vertIndx);
-	node->__vertIndx = MALLOC (uintptr_t *, sizeof(uintptr_t)*(nvertexc));
+	node->__vertIndx = MALLOC (ushort **, sizeof(ushort)*(nvertexc));
 	c = 0;
-	pt = (GLuint *)node->__vertArr;
-	vpt = (uintptr_t*) node->__vertIndx;
+	pt = (GLushort *)node->__vertArr;
+	vpt = (ushort**) node->__vertIndx;
 	for (vtc=0; vtc<nvertexc; vtc++) {
-		*vpt =  (uintptr_t) pt;
-		vpt++;
+        //printf ("in position %d of __vertIndx, we have put pointer to %u\n",vtc,*pt);
+		vpt[vtc] =  (ushort*) pt;
 		pt += vertexC[vtc];
 	}
 

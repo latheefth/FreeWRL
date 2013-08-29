@@ -84,7 +84,8 @@ void fwl_update_boundingBox(struct X3D_IndexedLineSet* node);
         startingString="/Users/john/Desktop/GeoSpatialTesting/7_levels_plus/globe.x3d";
         //startingString="/Users/john/Desktop/GeoSpatialTesting/freewrl/freewrl/tests/13.wrl";
         //startingString="/Users/john/Desktop/Stuff/OpenCL/GPU_Collide/kebne2.wrl";
-        //startingString="/Users/john/Desktop/GeoSpatialTesting/freewrl/freewrl/tests/21.wrl";
+        startingString="/Users/john/Desktop/GeoSpatialTesting/freewrl/freewrl/tests/12.wrl";
+                startingString="/Users/john/Desktop/LineSet.x3d";
     }
     
     while ([FreeWRLAppDelegate applicationHasLaunched]) {

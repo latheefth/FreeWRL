@@ -173,23 +173,9 @@ void setLightState(GLint light, int status) {
 	if (p->lightOnOff[light] != status) {
 		if (status) {
 			/* printf ("light %d on\n",light); */
-            
-#ifdef OLDCODE
-OLDCODE#ifndef GL_ES_VERSION_2_0
-OLDCODE			glEnable(GL_LIGHT0+light);
-OLDCODE#endif /* GL_ES_VERSION_2_0 */
-#endif //OLDCODE
-            
 			p->lightStatusDirty = TRUE;
 		} else {
 			/* printf ("light %d off\n",light);  */
-            
-#ifdef OLDCODE
-OLDCODE #ifndef GL_ES_VERSION_2_0
-OLDCODE			glDisable(GL_LIGHT0+light);
-OLDCODE#endif /* GL_ES_VERSION_2_0 */
-#endif //OLDCODE
-            
 			p->lightStatusDirty = TRUE;
 		}
 		p->lightOnOff[light]=status;
@@ -512,15 +498,6 @@ if (p->shaderColourArray) printf ("enabling Colour\n"); else printf ("disabling 
 if (p->shaderTextureArray) printf ("enabling Texture\n"); else printf ("disabling Texture\n");
 #endif
 
-#ifdef OLDCODE
-OLDCODE	} else {
-OLDCODE		#ifndef GL_ES_VERSION_2_0
-OLDCODE			if (enable) glEnableClientState(cap);
-OLDCODE			else glDisableClientState(cap);
-OLDCODE		#else
-OLDCODE			//printf ("sendClientStateToGPU - currentShaderProperties not set\n");
-OLDCODE		#endif
-#endif //OLDCODE
 	}
 }
 
@@ -625,13 +602,13 @@ void sendArraysToGPU (int mode, int first, int count) {
 
 
 
-void sendElementsToGPU (int mode, int count, int type, int *indices) {
+void sendElementsToGPU (int mode, int count, ushort *indices) {
     #ifdef RENDERVERBOSE
 	printf ("sendElementsToGPU start\n"); 
     #endif
     
     if (setupShader())
-        glDrawElements(mode,count,type,indices);
+        glDrawElements(mode,count,GL_UNSIGNED_SHORT,indices);
 
 	#ifdef RENDERVERBOSE
 	printf ("sendElementsToGPU finish\n"); 
@@ -670,15 +647,17 @@ void initializeLightTables() {
         }
         setLightState(HEADLIGHT_LIGHT, TRUE);
 
-	#ifndef GL_ES_VERSION_2_0
-        FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
-        FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-        FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_FALSE);
-        FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-        FW_GL_LIGHTMODELFV(GL_LIGHT_MODEL_AMBIENT,As);
-	#else
-	//printf ("skipping light setups\n");
-	#endif
+#ifdef OLDCODE
+OLDCODE	#ifndef GL_ES_VERSION_2_0
+OLDCODE        FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
+OLDCODE        FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+OLDCODE        FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_FALSE);
+OLDCODE        FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+OLDCODE        FW_GL_LIGHTMODELFV(GL_LIGHT_MODEL_AMBIENT,As);
+OLDCODE	#else
+OLDCODE	//printf ("skipping light setups\n");
+OLDCODE	#endif
+#endif //OLDCODE
 
     LIGHTING_INITIALIZE
 	

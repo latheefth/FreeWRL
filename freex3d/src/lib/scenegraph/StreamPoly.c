@@ -246,8 +246,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 		} else { normals = nc->vector.p; nnormals = nc->vector.n; }
 	}
 
-
-	if (r->tcoordtype) {
+    	if (r->tcoordtype) {
 		if ((r->tcoordtype != NODE_TextureCoordinate) && 
 			(r->tcoordtype != NODE_MultiTextureCoordinate) &&
             (r->tcoordtype != NODE_TextureCoordinateGenerator )) {
@@ -284,7 +283,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 	/* Do we have any colours? Are textures, if present, not RGB? */
 	hasc = ((ncolors || r->color) && (gglobal()->RenderFuncs.last_texture_type!=TEXTURE_NO_ALPHA));
 
-        
+
     // if (r->GeneratedTexCoords) for (i=0; i<10; i++) printf ("start stream, tc %d gt[i] %f\n",i,r->GeneratedTexCoords[i]);
         
     #ifdef STREAM_POLY_VERBOSE
@@ -353,6 +352,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 	}
     
     if (NO_TEXCOORD_NODE) {
+        
         defaultTextureMap(node, r);
     }
     
@@ -526,34 +526,34 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
         //printf ("textureCoordPoint %p\n",textureCoordPoint);
         
         if (!r->GeneratedTexCoords) {
-		if (textureCoordPoint != NULL) {
-            int j = newtcindex[i];
-            struct SFVec2f me;
+            if (textureCoordPoint != NULL) {
+                int j = newtcindex[i];
+                struct SFVec2f me;
             
-            // bounds checking
-            if (j>=(textureCoordPoint->n)) {
-                ConsoleMessage ("stream_polyrep, have tcindex %d, tex coords %d, overflow",j,textureCoordPoint->n);
-                j=0;
-            }
+                // bounds checking
+                if (j>=(textureCoordPoint->n)) {
+                    ConsoleMessage ("stream_polyrep, have tcindex %d, tex coords %d, overflow",j,textureCoordPoint->n);
+                    j=0;
+                }
                         
-            // textureCoordPoint is a pointer to struct Multi_Vec2f;
-            // struct Multi_Vec2f is struct Multi_Vec2f { int n; struct SFVec2f  *p; };
-            // struct SFVec2f is struct SFVec2f { float c[2]; };
+                // textureCoordPoint is a pointer to struct Multi_Vec2f;
+                // struct Multi_Vec2f is struct Multi_Vec2f { int n; struct SFVec2f  *p; };
+                // struct SFVec2f is struct SFVec2f { float c[2]; };
  
-            // get the 2 tex coords from here, and copy them over to newTexCoords
-            me = textureCoordPoint->p[j];
-            newTexCoords[i*2] = me.c[0];
-            newTexCoords[i*2+1] = me.c[1];
-        } else {
-			/* default textures */
-			/* we want the S values to range from 0..1, and the
-			   T values to range from 0...S/T */
-			ppStreamPoly p = (ppStreamPoly)gglobal()->StreamPoly.prv;
+                // get the 2 tex coords from here, and copy them over to newTexCoords
+                me = textureCoordPoint->p[j];
+                newTexCoords[i*2] = me.c[0];
+                newTexCoords[i*2+1] = me.c[1];
+            } else {
+                /* default textures */
+                /* we want the S values to range from 0..1, and the
+                 T values to range from 0...S/T */
+                ppStreamPoly p = (ppStreamPoly)gglobal()->StreamPoly.prv;
 
 
-			newTexCoords[i*2]   = (newpoints[i].c[p->Sindex] - p->minVals[p->Sindex])/p->Ssize;
-			newTexCoords[i*2+1] = (newpoints[i].c[p->Tindex] - p->minVals[p->Tindex])/p->Ssize;
-		}
+                newTexCoords[i*2]   = (newpoints[i].c[p->Sindex] - p->minVals[p->Sindex])/p->Ssize;
+                newTexCoords[i*2+1] = (newpoints[i].c[p->Tindex] - p->minVals[p->Tindex])/p->Ssize;
+            }
         }
 
 		/* calculate maxextents */
@@ -635,24 +635,21 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER,r->VBO_buffers[INDEX_VBO]);
 
-		#ifdef GL_ES_VERSION_2_0
-		{
-			GLushort *myindicies = MALLOC(GLushort *, sizeof(GLushort) * r->ntri*3);
-
-			int i;
-			GLushort *to = myindicies;
-			unsigned int *from = r->cindex;
-
-			for (i=0; i<r->ntri*3; i++) {
-				*to = (GLushort) *from; to++; from++;
-			}
-
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof (GLushort)*r->ntri*3,myindicies,GL_STATIC_DRAW); /* OpenGL-ES */
-            		FREE_IF_NZ(myindicies);
-		}
-		#else
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof (int)*r->ntri*3,r->cindex,GL_STATIC_DRAW); /* regular OpenGL */
-		#endif
+		// OpenGL ES can use GL_UNSIGNED_SHORT or GL_UNSIGNED_BYTE for glDrawElements; force the indices to be this way.
+ 		{
+ 			GLushort *myindicies = MALLOC(GLushort *, sizeof(GLushort) * r->ntri*3);
+ 
+ 			int i;
+ 			GLushort *to = myindicies;
+ 			unsigned int *from = r->cindex;
+ 
+ 			for (i=0; i<r->ntri*3; i++) {
+ 				*to = (GLushort) *from; to++; from++;
+ 			}
+ 
+ 			glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof (GLushort)*r->ntri*3,myindicies,GL_STATIC_DRAW); /* OpenGL-ES */
+             		FREE_IF_NZ(myindicies);
+ 		}
         	// Can we free this here, or do we need it later? FREE_IF_NZ(r->cindex);
 
 		if (r->GeneratedTexCoords) {

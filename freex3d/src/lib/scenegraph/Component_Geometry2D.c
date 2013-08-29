@@ -127,7 +127,7 @@ void render_Arc2D (struct X3D_Arc2D *node) {
 
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->__points.p);
-        	FW_GL_DRAWARRAYS (GL_LINE_STRIP, 0, node->__numPoints);
+        	sendArraysToGPU (GL_LINE_STRIP, 0, node->__numPoints);
 		FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		gglobal()->Mainloop.trisThisLoop += node->__numPoints;
 	}
@@ -184,7 +184,7 @@ void render_ArcClose2D (struct X3D_ArcClose2D *node) {
 
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->__points.p);
-        	FW_GL_DRAWARRAYS (GL_LINE_STRIP, 0, node->__numPoints);
+        	sendArraysToGPU (GL_LINE_STRIP, 0, node->__numPoints);
 		FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		gglobal()->Mainloop.trisThisLoop += node->__numPoints;
 	}
@@ -226,7 +226,7 @@ void render_Circle2D (struct X3D_Circle2D *node) {
 		
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->__points.p);
-        	FW_GL_DRAWARRAYS (GL_LINE_STRIP, 0, node->__numPoints);
+        	sendArraysToGPU (GL_LINE_STRIP, 0, node->__numPoints);
 		FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		gglobal()->Mainloop.trisThisLoop += node->__numPoints;
 	}
@@ -253,7 +253,7 @@ void render_Polyline2D (struct X3D_Polyline2D *node){
 
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->lineSegments.p);
-        	FW_GL_DRAWARRAYS (GL_LINE_STRIP, 0, node->lineSegments.n);
+        	sendArraysToGPU (GL_LINE_STRIP, 0, node->lineSegments.n);
 		FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		gglobal()->Mainloop.trisThisLoop += node->lineSegments.n;
 	}
@@ -281,7 +281,7 @@ void render_Polypoint2D (struct X3D_Polypoint2D *node){
 
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->point.p);
-        	FW_GL_DRAWARRAYS (GL_POINTS, 0, node->point.n);
+        	sendArraysToGPU (GL_POINTS, 0, node->point.n);
 		FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		gglobal()->Mainloop.trisThisLoop += node->point.n;
 	}
@@ -391,7 +391,7 @@ void render_Disk2D (struct X3D_Disk2D *node){
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 
 		/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
-		if (node->__simpleDisk) {FW_GL_DRAWARRAYS (GL_TRIANGLE_FAN, 0, node->__numPoints);}
+		if (node->__simpleDisk) {sendArraysToGPU (GL_TRIANGLE_FAN, 0, node->__numPoints);}
 
 		textureDraw_end();
 		FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
@@ -472,7 +472,7 @@ void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
 
 printf ("render_TriangleSet2D, this should be VBOd\n");
 
-		FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, node->vertices.n);
+		sendArraysToGPU (GL_TRIANGLES, 0, node->vertices.n);
 
 		textureDraw_end();
 		FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
@@ -540,7 +540,7 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	FW_GL_NORMAL_POINTER (GL_FLOAT,0,boxnorms);
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
-	FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, 6);
+	sendArraysToGPU (GL_TRIANGLES, 0, 6);
 	textureDraw_end();
 	gglobal()->Mainloop.trisThisLoop += 2;
 }

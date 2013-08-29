@@ -332,7 +332,6 @@ void cursorDraw(int ID, int x, int y, float angle)
 		loc =  glGetAttribLocation ( shader, "fw_ProjectionMatrix" );
 		glUniformMatrix4fv(loc, 1, GL_FALSE, cursIdentity);
 	}
-	//FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, 6);
 	glDrawArrays(GL_TRIANGLES,0,6);
 	#endif /* GL_ES_VERSION_2_0 */
 

@@ -579,7 +579,7 @@ void loadBackgroundTextures (struct X3D_Background *node) {
         		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,BackgroundVert);
         		FW_GL_NORMAL_POINTER(GL_FLOAT,0,Backnorms);
 
-        		FW_GL_DRAWARRAYS (GL_TRIANGLES, count*6, 6);
+        		sendArraysToGPU (GL_TRIANGLES, count*6, 6);
         		textureDraw_end();
 		}
 	}
@@ -644,7 +644,7 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
         			FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,BackgroundVert);
         			FW_GL_NORMAL_POINTER(GL_FLOAT,0,Backnorms);
 
-        			FW_GL_DRAWARRAYS (GL_TRIANGLES, count*6, 6);
+        			sendArraysToGPU (GL_TRIANGLES, count*6, 6);
         			textureDraw_end();
 			} 
 		}
@@ -1328,6 +1328,8 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 /* JAS still to implement
 	struct X3D_GeneratedCubeMapTexture *gct;
 */
+    
+
 
 	textureTableIndexStruct_s *myTableIndex;
 	//float dcol[] = {0.8f, 0.8f, 0.8f, 1.0f};

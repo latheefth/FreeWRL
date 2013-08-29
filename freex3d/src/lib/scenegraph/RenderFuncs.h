@@ -34,16 +34,6 @@ void enableGlobalShader(s_shader_capabilities_t *);
 
 void turnGlobalShaderOff(void);
 
-/* done in display.h now 
-#ifdef GL_ES_VERSION_2_0
-	#define MAX_LIGHTS 2
-	#define HEADLIGHT_LIGHT (MAX_LIGHTS-1)
-#else
-	#define MAX_LIGHTS 8
-	#define HEADLIGHT_LIGHT (MAX_LIGHTS-1)
-#endif
-*/
-
 /* trat: test if a ratio is reasonable */
 #define TRAT(a) ((a) > 0 && ((a) < gglobal()->RenderFuncs.hitPointDist || gglobal()->RenderFuncs.hitPointDist < 0))
 
@@ -75,7 +65,7 @@ void sendAttribToGPU(int myType, int mySize, int  xtype, int normalized, int str
 void sendClientStateToGPU(int enable, int cap);
 void sendArraysToGPU (int mode, int first, int count);
 void sendBindBufferToGPU (GLenum target, GLuint buffer,char *, int);
-void sendElementsToGPU (int mode, int count, int type, int *indices);
+void sendElementsToGPU (int mode, int count, ushort *indices);
 void render_hier(struct X3D_Group *p, int rwhat);
 void sendLightInfo (s_shader_capabilities_t *me);
 

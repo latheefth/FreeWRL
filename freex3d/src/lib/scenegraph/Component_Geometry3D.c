@@ -179,7 +179,7 @@ void render_Box (struct X3D_Box *node) {
 	FW_GL_NORMAL_POINTER (GL_FLOAT,0,boxnorms);
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
-	FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, 36);
+	sendArraysToGPU (GL_TRIANGLES, 0, 36);
 	textureDraw_end();
 	gglobal()->Mainloop.trisThisLoop += 24;
 }
@@ -422,7 +422,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 		mtf.TC_pointer = BUFFER_OFFSET(24);
 		textureDraw_start(&mtf);
 		/* FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, ConeIndxVBO); */
-		FW_GL_DRAWARRAYS(GL_TRIANGLES,0,node->__cylinderTriangles);
+		sendArraysToGPU(GL_TRIANGLES,0,node->__cylinderTriangles);
 
 		/* turn off */
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
@@ -597,7 +597,7 @@ void render_Cone (struct X3D_Cone *node) {
 		mtf.TC_pointer = BUFFER_OFFSET(24);
 		textureDraw_start(&mtf);
 PRINT_GL_ERROR_IF_ANY("END1 render_geom");
-		FW_GL_DRAWARRAYS(GL_TRIANGLES,0,node->__coneTriangles);
+		sendArraysToGPU(GL_TRIANGLES,0,node->__coneTriangles);
 PRINT_GL_ERROR_IF_ANY("END2 render_geom");
 		/* turn off */
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
@@ -732,7 +732,7 @@ void compile_Sphere (struct X3D_Sphere *node) {
 				}
 			}
  			FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, node->__SphereIndxVBO);
- 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ushort)*TRISINSPHERE*2, pindices, GL_STATIC_DRAW);
+ 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort)*TRISINSPHERE*2, pindices, GL_STATIC_DRAW);
 		}
 
 
@@ -784,7 +784,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, node->__SphereIndxVBO);
 		
-		FW_GL_DRAWELEMENTS (GL_TRIANGLES, TRISINSPHERE, GL_UNSIGNED_SHORT, (int *)BUFFER_OFFSET(0));   //The starting point of the IBO
+		sendElementsToGPU (GL_TRIANGLES, TRISINSPHERE, (ushort *)BUFFER_OFFSET(0));   //The starting point of the IBO
 
 		/* turn off */
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
@@ -1500,7 +1500,7 @@ static void collisionCone_init(struct X3D_Cone *node)
 		memcpy (&pt[CONEDIV+2].c[0],&pt[CONEDIV].c[0],sizeof (struct SFVec3f));
 
 #ifdef fwIGNORE
-		/*  side triangles. Make 3 seperate points per triangle... makes FW_GL_DRAWARRAYS with normals*/
+		/*  side triangles. Make 3 seperate points per triangle... makes sendArraysToGPU with normals*/
 		/*  easier to handle.*/
 		/*  rearrange bottom points into this array; top, bottom, left.*/
 		spt = sidepoints.p;

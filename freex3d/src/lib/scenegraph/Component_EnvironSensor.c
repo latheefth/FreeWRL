@@ -181,7 +181,7 @@ static void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 	FW_GL_NORMAL_POINTER(GL_FLOAT,0,boxnorms);
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
-	FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, 36);
+	sendArraysToGPU (GL_TRIANGLES, 0, 36);
 	FW_GL_DEPTHMASK(TRUE);
 #endif// HAVE_TO_REIMPLEMENT
 }

@@ -53,6 +53,8 @@ OLDCODE #include <limits.h>		/* LONG_MAX */
 #if defined (_ANDROID) || (IPHONE) || (QNX)
 	#include <GLES2/gl2.h>
 	#define GLdouble double
+#else
+    #include <GL/gl.h>
 #endif
 
 

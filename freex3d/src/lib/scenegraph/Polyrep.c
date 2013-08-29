@@ -858,7 +858,7 @@ void render_polyrep(void *node) {
 	FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY); // should already be enabled
 	FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,0);
 
-	FW_GL_DRAWARRAYS(GL_TRIANGLES,0,pr->ntri*3);
+	sendArraysToGPU(GL_TRIANGLES,0,pr->ntri*3);
 
 	/* turn VBOs off for now */
 	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
