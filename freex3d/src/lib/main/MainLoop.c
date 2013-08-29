@@ -1510,7 +1510,7 @@ void handle(const int mev, const unsigned int button, const float x, const float
 	handle0(mev, button, x, y);
 }
 
-#if !defined( AQUA ) && !defined( _MSC_VER )
+#if !defined( AQUA ) && !defined( _MSC_VER ) &&!defined (_ANDROID)
 //XK_ constants from /usr/include/X11/keysymdef.h
 #define PHOME_KEY XK_Home //80
 #define PPGDN_KEY XK_Page_Down //86

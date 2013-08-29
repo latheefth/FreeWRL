@@ -44,8 +44,17 @@ OLDCODE    #include <limits.h>		/* LONG_MAX */
 OLDCODE#endif //GLES2
 #endif //OLDCODE
 
-#include <GL/gl.h>
-#include <limits.h>		/* LONG_MAX */
+#ifdef OLDCODE
+OLDCODE #include <GL/gl.h>
+OLDCODE #include <limits.h>		/* LONG_MAX */
+#endif //OLDCODE
+
+
+#if defined (_ANDROID) || (IPHONE) || (QNX)
+	#include <GLES2/gl2.h>
+	#define GLdouble double
+#endif
+
 
 #ifndef GLAPIENTRY
 #if defined(_MSC_VER) || defined(__MINGW32__)
