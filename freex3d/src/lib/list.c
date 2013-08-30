@@ -141,7 +141,6 @@ s_list_t* ml_insert(s_list_t *list, s_list_t *point, s_list_t *item)
     }
     return item;
 }
-
 /**
  * ml_append: appends 'item' after last item of 'list'
  */
@@ -168,6 +167,29 @@ void ml_delete(s_list_t *list, s_list_t *item)
     } else {
 	ERROR_MSG("ml_delete: trying to destroy first element in a list\n");
     }
+}
+
+s_list_t *ml_remove(s_list_t *list, s_list_t *item)
+{
+    s_list_t *prev, *newlist;
+	newlist = list;
+    prev = ml_prev(list, item);
+    if (prev) {
+		ml_next(prev) = ml_next(item);
+    } else {
+		newlist = NULL;
+    }
+	return newlist;
+}
+void ml_enqueue(s_list_t **list, s_list_t *item)
+{
+	*list = ml_insert(*list,*list,item);
+}
+s_list_t* ml_dequeue(s_list_t **list){
+	s_list_t* item = NULL;
+	item = ml_last(*list);
+	*list = ml_remove(*list,item);
+	return item;
 }
 
 

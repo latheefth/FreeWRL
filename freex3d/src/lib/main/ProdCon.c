@@ -79,6 +79,8 @@
 #include "MainLoop.h"
 #include "ProdCon.h"
 
+//#define NEWQUEUE 1
+
 /* used by the paser to call back the lexer for EXTERNPROTO */
 void embedEXTERNPROTO(struct VRMLLexer *me, char *myName, char *buffer, char *pound);
 
@@ -436,7 +438,9 @@ void EAI_killBindables (void) {
 	ttglobal tg = gglobal();
 	ppProdCon p = (ppProdCon)tg->ProdCon.prv;
 
+#ifndef NEWQUEUE
 	WAIT_WHILE_PARSER_BUSY;
+#endif
 
 	complete=0;
 	p->psp.comp = &complete;
@@ -449,6 +453,7 @@ void EAI_killBindables (void) {
 	p->psp.inp = NULL;
 	p->psp.fieldname = NULL;
 
+#ifndef NEWQUEUE
 	/* send data to a parser */
 	SEND_TO_PARSER;
 
@@ -459,6 +464,7 @@ void EAI_killBindables (void) {
 
 	/* grab data */
 	UNLOCK;
+#endif
 }
 
 /* interface for creating VRML for EAI */
@@ -544,98 +550,102 @@ int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Group *whe
 	return (res->status == ress_parsed);
 }
 
+void new_root(){
+	//clean up before loading a new scene
+	int i;
+	//ConsoleMessage ("SHOULD CALL KILL_OLDWORLD HERE\n");
+
+	//struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
+
+	/* get rid of sensor events */
+	resetSensorEvents();
+
+
+	/* close the Console Message system, if required. */
+	closeConsoleMessage();
+
+	/* occlusion testing - zero total count, but keep MALLOC'd memory around */
+	zeroOcclusion();
+
+	/* clock events - stop them from ticking */
+	kill_clockEvents();
+
+
+	/* kill DEFS, handles */
+	EAI_killBindables();
+	kill_bindables();
+	killKeySensorNodeList();
+
+
+	/* stop routing */
+	kill_routing();
+
+	/* tell the statusbar that it needs to reinitialize */
+	kill_status();
+
+	/* free textures */
+/*
+	kill_openGLTextures();
+*/
+	
+	/* free scripts */
+	#ifdef HAVE_JAVASCRIPT
+	kill_javascript();
+	#endif
+
+
+#ifdef DO_NOT_KNOW
+	/* free EAI */
+	if (kill_EAI) {
+	       	/* shutdown_EAI(); */
+		fwlio_RxTx_control(CHANNEL_EAI, RxTx_STOP) ;
+	}
+#endif
+
+	/* reset any VRML Parser data */
+/*
+	if (globalParser != NULL) {
+		parser_destroyData(globalParser);
+		//globalParser = NULL;
+		gglobal()->CParse.globalParser = NULL;
+	}
+*/
+	kill_X3DDefs();
+
+	/* tell statusbar that we have none */
+	viewer_default();
+	setMenuStatus("NONE");
+
+	//ConsoleMessage ("new_root, right now rootNode has %d children\n",rootNode()->children.n);
+
+	//ConsoleMessage("send_resource_to_parser, new_root\n");
+    	/* mark all rootNode children for Dispose */
+    	for (i=0; i<rootNode()->children.n; i++) {
+            	markForDispose(rootNode()->children.p[i], TRUE);
+    	}
+
+	// force rootNode to have 0 children, compile_Group will make
+	// the _sortedChildren field mimic the children field.
+	rootNode()->children.n = 0; rootNode()->_change ++;
+
+	// set the extents back to initial
+	{ struct X3D_Group *node = rootNode();
+		INITIALIZE_EXTENT;
+	}
+
+	//printf ("send_resource_to_parser, rootnode children count set to 0\n");
+
+}
+void resitem_enqueue(s_list_t* item);
 
 void send_resource_to_parser(resource_item_t *res,char *fi, int li)
 {
-	int i;
 	ppProdCon p;
+	ttglobal tg;
 	// ConsoleMessage ("send_resource_to_parser from %s:%d",fi,li);
 
 	if (res->new_root) {
-
-		//ConsoleMessage ("SHOULD CALL KILL_OLDWORLD HERE\n");
-
-
-		//struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
-	
-		/* get rid of sensor events */
-		resetSensorEvents();
-	
-	
-		/* close the Console Message system, if required. */
-		closeConsoleMessage();
-	
-		/* occlusion testing - zero total count, but keep MALLOC'd memory around */
-		zeroOcclusion();
-	
-		/* clock events - stop them from ticking */
-		kill_clockEvents();
-	
-	
-		/* kill DEFS, handles */
-		EAI_killBindables();
-		kill_bindables();
-		killKeySensorNodeList();
-	
-	
-		/* stop routing */
-		kill_routing();
-	
-		/* tell the statusbar that it needs to reinitialize */
-		kill_status();
-	
-		/* free textures */
-	/*
-		kill_openGLTextures();
-	*/
-		
-		/* free scripts */
-		#ifdef HAVE_JAVASCRIPT
-		kill_javascript();
-		#endif
-	
-	
-	#ifdef DO_NOT_KNOW
-		/* free EAI */
-		if (kill_EAI) {
-		       	/* shutdown_EAI(); */
-			fwlio_RxTx_control(CHANNEL_EAI, RxTx_STOP) ;
-		}
-	#endif
-	
-		/* reset any VRML Parser data */
-	/*
-		if (globalParser != NULL) {
-			parser_destroyData(globalParser);
-			//globalParser = NULL;
-			gglobal()->CParse.globalParser = NULL;
-		}
-	*/
-		kill_X3DDefs();
-	
-		/* tell statusbar that we have none */
-		viewer_default();
-		setMenuStatus("NONE");
-	
-		//ConsoleMessage ("new_root, right now rootNode has %d children\n",rootNode()->children.n);
-
-		//ConsoleMessage("send_resource_to_parser, new_root\n");
-        	/* mark all rootNode children for Dispose */
-        	for (i=0; i<rootNode()->children.n; i++) {
-                	markForDispose(rootNode()->children.p[i], TRUE);
-        	}
-
-		// force rootNode to have 0 children, compile_Group will make
-		// the _sortedChildren field mimic the children field.
-		rootNode()->children.n = 0; rootNode()->_change ++;
-
-		// set the extents back to initial
-		{ struct X3D_Group *node = rootNode();
-			INITIALIZE_EXTENT;
-		}
-
-		//printf ("send_resource_to_parser, rootnode children count set to 0\n");
-
+		new_root();
 	}
 
 
@@ -645,7 +655,8 @@ void send_resource_to_parser(resource_item_t *res,char *fi, int li)
 
 	   We send it to parser.
 	*/
-	p = gglobal()->ProdCon.prv;
+	tg = gglobal();
+	p = tg->ProdCon.prv;
 
 	/* Wait for display thread to be fully initialized */
 	while (IS_DISPLAY_INITIALIZED == FALSE) {
@@ -655,14 +666,15 @@ void send_resource_to_parser(resource_item_t *res,char *fi, int li)
 	/* wait for the parser thread to come up to speed */
 	while (!p->inputParseInitialized) usleep(50);
 
+#ifdef NEWQUEUE
+	resitem_enqueue(ml_new(res));
+#else //NEWQUEUE
 	/* Lock access to the resource list */
 	WAIT_WHILE_PARSER_BUSY;
  
 	/* Add our resource item */
 	p->resource_list_to_parse = ml_append(p->resource_list_to_parse, ml_new(res));
-
 	/* signal that we have data on resource list */
-
 	SEND_TO_PARSER;
 	/* Unlock the resource list */
 	UNLOCK;
@@ -672,11 +684,12 @@ void send_resource_to_parser(resource_item_t *res,char *fi, int li)
 	
 	/* grab any data we want */
 	UNLOCK;
+#endif //NEWQUEUE
+
 }
 
 
 
-//void send_resource_to_parser_async(resource_item_t *res,char *fi, int li)
 bool send_resource_to_parser_if_available(resource_item_t *res,char *fi, int li)
 {
 	/* We are not in parser thread, most likely
@@ -685,7 +698,9 @@ bool send_resource_to_parser_if_available(resource_item_t *res,char *fi, int li)
 
 	   We send it to parser.
 	*/
-	ppProdCon p = (ppProdCon)gglobal()->ProdCon.prv;
+	ppProdCon p;
+	ttglobal tg = gglobal();
+	p = (ppProdCon)tg->ProdCon.prv;
 
 	/* Wait for display thread to be fully initialized */
 	/* dug9 Aug 24, 2013 - don't wait (it seems to hang apartment-threaded apps) and see what happens.
@@ -699,6 +714,9 @@ bool send_resource_to_parser_if_available(resource_item_t *res,char *fi, int li)
 	/* wait for the parser thread to come up to speed */
 	while (!p->inputParseInitialized) usleep(50);
 
+#ifdef NEWQUEUE
+	resitem_enqueue(ml_new(res));
+#else //NEWQUEUE
     if (p->_P_LOCK_VAR == 1) return FALSE;
     
 	/* Lock access to the resource list */
@@ -706,7 +724,6 @@ bool send_resource_to_parser_if_available(resource_item_t *res,char *fi, int li)
  
 	/* Add our resource item */
 	p->resource_list_to_parse = ml_append(p->resource_list_to_parse, ml_new(res));
-
 	/* signal that we have data on resource list */
 
 	SEND_TO_PARSER;
@@ -718,6 +735,7 @@ bool send_resource_to_parser_if_available(resource_item_t *res,char *fi, int li)
 	
 	/* grab any data we want */
 	//UNLOCK;
+#endif //NEWQUEUE
     return TRUE;
 }
 
@@ -728,6 +746,16 @@ void dump_resource_waiting(resource_item_t* res)
 #endif
 }
 
+void send_resource_to_parser_async(resource_item_t *res,char *fi, int li){
+	ppProdCon p;
+	ttglobal tg = gglobal();
+	p = (ppProdCon)tg->ProdCon.prv;
+#ifdef NEWQUEUE
+	resitem_enqueue(ml_new(res));
+#else //NEWQUEUE
+	send_resource_to_parser_if_available(res,fi,li);
+#endif //NEWQUEUE
+}
 
 
 void dump_parser_wait_queue()
@@ -946,15 +974,78 @@ static bool parser_process_res_SHADER(resource_item_t *res)
 	return script_initCode(ss, buffer);
 }
 
+
+#if !defined(HAVE_PTHREAD_CANCEL)
+void Parser_thread_exit_handler(int sig)
+{
+    ConsoleMessage("Parser_thread_exit_handler: parserThread exiting");
+    pthread_exit(0);
+}
+#endif //HAVE_PTHREAD_CANCEL
+
+
+/**
+ *   _inputParseThread: parser (loader) thread.
+ */
+
+
+/*
+	This version does CommandPattern + ThreadsafeQueue + SingleThread
+	so it doesn't block the queue while processing. That allows the involked
+	commands to chain new commands into the queue without deadlocking.
+
+*/
+
+//void ml_enqueue(s_list_t **list, s_list_t *item);
+//s_list_t *ml_dequeue(s_list_t **list);
+
+void threadsafe_enqueue_item(s_list_t *item, s_list_t** queue, pthread_mutex_t* queue_lock, pthread_cond_t *queue_nonzero)
+{
+	pthread_mutex_lock(queue_lock);
+	if (*queue == NULL)
+		pthread_cond_signal(queue_nonzero);
+	ml_enqueue(queue,item);
+	pthread_mutex_unlock(queue_lock);
+}
+
+s_list_t* threadsafe_dequeue_item_wait(s_list_t** queue, pthread_mutex_t *queue_lock, pthread_cond_t *queue_nonzero )
+{
+	s_list_t *item = NULL;
+	pthread_mutex_lock(queue_lock);
+	while (*queue == NULL)
+		pthread_cond_wait(queue_nonzero, queue_lock);
+	item = ml_dequeue(queue);
+	pthread_mutex_unlock(queue_lock);
+	return item;
+}
+
+void resitem_enqueue(s_list_t *item){
+	ppProdCon p;
+	ttglobal tg = gglobal();
+	p = (ppProdCon)tg->ProdCon.prv;
+
+	threadsafe_enqueue_item(item,&p->resource_list_to_parse, &tg->threads.mutex_resource_list, &tg->threads.resource_list_condition );
+}
+s_list_t *resitem_dequeue(){
+	ppProdCon p;
+	ttglobal tg = gglobal();
+	p = (ppProdCon)tg->ProdCon.prv;
+
+	return threadsafe_dequeue_item_wait(&p->resource_list_to_parse, &tg->threads.mutex_resource_list, &tg->threads.resource_list_condition );
+}
 /**
  *   parser_process_res: for each resource state, advance the process of loading.
+ *   this version assumes the item has been dequeued for processing,
+ *   and if it needs another step in the processing it will enqueue it in here
  */
 static bool parser_process_res(s_list_t *item)
 {
 	bool remove_it = FALSE;
-	resource_item_t *res;
-	ppProdCon p = (ppProdCon)gglobal()->ProdCon.prv;
     bool retval = TRUE;
+	resource_item_t *res;
+	ppProdCon p;
+	ttglobal tg = gglobal();
+	p = (ppProdCon)tg->ProdCon.prv;
 
 	if (!item || !item->elem)
 		return retval;
@@ -1047,6 +1138,16 @@ static bool parser_process_res(s_list_t *item)
 		break;		
 	}
 
+#ifdef NEWQUEUE
+	if (remove_it) {
+		/* Remove the parsed resource from the list */
+		//q. do I need to free the resource struct?
+		FREE_IF_NZ(item);
+	}else{
+		// chain command by adding it back into the queue
+		resitem_enqueue(item);
+	}
+#else //NEWQUEUE
 	if (remove_it) {
 		/* Remove the parsed resource from the list */
 		p->resource_list_to_parse = ml_delete_self(p->resource_list_to_parse, item);
@@ -1054,26 +1155,13 @@ static bool parser_process_res(s_list_t *item)
 		/* What next ? */
 //		dump_parser_wait_queue();
 	}
-
+#endif //NEWQUEUE
 	dump_parser_wait_queue();
     
 	// printf ("end of process resource\n");
 
     return retval;
 }
-
-#if !defined(HAVE_PTHREAD_CANCEL)
-void Parser_thread_exit_handler(int sig)
-{
-    ConsoleMessage("Parser_thread_exit_handler: parserThread exiting");
-    pthread_exit(0);
-}
-#endif //HAVE_PTHREAD_CANCEL
-
-
-/**
- *   _inputParseThread: parser (loader) thread.
- */
 
 void _inputParseThread(void *globalcontext)
 {
@@ -1103,7 +1191,18 @@ void _inputParseThread(void *globalcontext)
 		viewer_default();
 
 		/* now, loop here forever, waiting for instructions and obeying them */
-
+#ifdef NEWQUEUE
+		for (;;) {
+			s_list_t* __l = resitem_dequeue();
+            result = TRUE;
+			p->inputThreadParsing = TRUE;
+			result = parser_process_res(__l); //,&p->resource_list_to_parse);
+			p->inputThreadParsing = FALSE;
+#if defined (IPHONE) || defined (_ANDROID)
+            if (result) setMenuStatus ("ok"); else setMenuStatus("not ok");
+#endif
+		}
+#else //NEWQUEUE
 		for (;;) {
 			WAIT_WHILE_NO_DATA;
 
@@ -1127,8 +1226,10 @@ void _inputParseThread(void *globalcontext)
 
 			UNLOCK;
 		}
+#endif //NEWQUEUE
 	}
 }
+
 
 static void unbind_node(struct X3D_Node* node) {
 	switch (node->_nodeType) {

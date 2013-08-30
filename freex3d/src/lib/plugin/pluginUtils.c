@@ -371,7 +371,7 @@ static int checkIfX3DVRMLFile(char *fn) {
 	return FALSE;
 }
 
-
+void new_root();
 /* we are an Anchor, and we are not running in a browser, and we are
  * trying to do an external VRML or X3D world.
  */
@@ -383,7 +383,8 @@ bool Anchor_ReplaceWorld(const char *name)
 	//ConsoleMessage ("Anchor_ReplaceWorld called\n");
 
 	AR_res = resource_create_single(name);
-	AR_res->new_root = TRUE;
+	//AR_res->new_root = TRUE;
+	new_root();
 	send_resource_to_parser(AR_res,__FILE__,__LINE__);
 	resource_wait(AR_res);
 

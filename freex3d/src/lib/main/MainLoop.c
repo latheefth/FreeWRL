@@ -4177,30 +4177,24 @@ void outOfMemory(const char *msg) {
 
 void fwl_doQuitInstance()
 {
-
 #if !defined(FRONTEND_HANDLES_DISPLAY_THREAD)
     	stopDisplayThread();
 #endif
-
     kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__); //must be done from this thread
 	stopLoadThread();
 	stopPCThread();
-
     /* set geometry to normal size from fullscreen */
 #ifndef AQUA
     if (newResetGeometry != NULL) newResetGeometry();
 #endif
-
     /* kill any remaining children */
     killErrantChildren();
-    
 #ifdef DEBUG_MALLOC
     void scanMallocTableOnQuit(void);
     scanMallocTableOnQuit();
 #endif
 	/* tested on win32 console program July9,2011 seems OK */
 	iglobal_destructor(gglobal());
-
 }
 
 //OLDCODE #endif //ANDROID
@@ -4645,9 +4639,9 @@ void fwl_replaceWorldNeeded(char* str)
 {
 
 	resource_item_t* plugin_res = resource_create_single (str);
-	//send_resource_to_parser_async(plugin_res,__FILE__,__LINE__);
-	if(!send_resource_to_parser_if_available(plugin_res,__FILE__,__LINE__))
-		printf("Ouch parser busy, file not loaded %s\n",str);
+	send_resource_to_parser_async(plugin_res,__FILE__,__LINE__);
+	//if(!send_resource_to_parser_if_available(plugin_res,__FILE__,__LINE__))
+	//	printf("Ouch parser busy, file not loaded %s\n",str);
 }
 
 
