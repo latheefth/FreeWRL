@@ -182,6 +182,8 @@ typedef struct pProdCon{
 		/* thread synchronization issues */
 		int _P_LOCK_VAR;// = 0;
 		s_list_t *resource_list_to_parse;// = NULL;
+		s_list_t *frontend_list_to_get;// = NULL;
+		int frontend_gets_files;
 		/* psp is the data structure that holds parameters for the parsing thread */
 		struct PSStruct psp;
 		/* is the inputParse thread created? */
@@ -226,6 +228,8 @@ void ProdCon_init(struct tProdCon *t)
 		/* thread synchronization issues */
 		p->_P_LOCK_VAR = 0;
 		p->resource_list_to_parse = NULL;
+		p->frontend_list_to_get = NULL;
+		p->frontend_gets_files = 0;
 		/* psp is the data structure that holds parameters for the parsing thread */
 		//p->psp;
 		/* is the inputParse thread created? */
@@ -999,7 +1003,7 @@ void Parser_thread_exit_handler(int sig)
 //void ml_enqueue(s_list_t **list, s_list_t *item);
 //s_list_t *ml_dequeue(s_list_t **list);
 
-void threadsafe_enqueue_item(s_list_t *item, s_list_t** queue, pthread_mutex_t* queue_lock, pthread_cond_t *queue_nonzero)
+void threadsafe_enqueue_item_signal(s_list_t *item, s_list_t** queue, pthread_mutex_t* queue_lock, pthread_cond_t *queue_nonzero)
 {
 	pthread_mutex_lock(queue_lock);
 	if (*queue == NULL)
@@ -1024,7 +1028,7 @@ void resitem_enqueue(s_list_t *item){
 	ttglobal tg = gglobal();
 	p = (ppProdCon)tg->ProdCon.prv;
 
-	threadsafe_enqueue_item(item,&p->resource_list_to_parse, &tg->threads.mutex_resource_list, &tg->threads.resource_list_condition );
+	threadsafe_enqueue_item_signal(item,&p->resource_list_to_parse, &tg->threads.mutex_resource_list, &tg->threads.resource_list_condition );
 }
 s_list_t *resitem_dequeue(){
 	ppProdCon p;
@@ -1033,6 +1037,52 @@ s_list_t *resitem_dequeue(){
 
 	return threadsafe_dequeue_item_wait(&p->resource_list_to_parse, &tg->threads.mutex_resource_list, &tg->threads.resource_list_condition );
 }
+
+
+
+void threadsafe_enqueue_item(s_list_t *item, s_list_t** queue, pthread_mutex_t* queue_lock)
+{
+	pthread_mutex_lock(queue_lock);
+	ml_enqueue(queue,item);
+	pthread_mutex_unlock(queue_lock);
+}
+
+s_list_t* threadsafe_dequeue_item(s_list_t** queue, pthread_mutex_t *queue_lock )
+{
+	s_list_t *item = NULL;
+	pthread_mutex_lock(queue_lock);
+	item = ml_dequeue(queue);
+	pthread_mutex_unlock(queue_lock);
+	return item;
+}
+
+void frontenditem_enqueue(s_list_t *item){
+	ppProdCon p;
+	ttglobal tg = gglobal();
+	p = (ppProdCon)tg->ProdCon.prv;
+
+	threadsafe_enqueue_item(item,&p->frontend_list_to_get, &tg->threads.mutex_frontend_list );
+}
+s_list_t *frontenditem_dequeue(){
+	ppProdCon p;
+	ttglobal tg = gglobal();
+	p = (ppProdCon)tg->ProdCon.prv;
+
+	return threadsafe_dequeue_item(&p->frontend_list_to_get, &tg->threads.mutex_frontend_list );
+}
+//this is for simualting frontend_gets_files
+void frontend_dequeue_get_enqueue(){
+	s_list_t *item = NULL;
+	while( (item = frontenditem_dequeue()) != NULL ){
+		download_url((resource_item_t *) item->elem);
+		resitem_enqueue(item);
+	}
+}
+int frontendGetsFiles(){
+	return ((ppProdCon)(gglobal()->ProdCon.prv))->frontend_gets_files;
+}
+
+
 /**
  *   parser_process_res: for each resource state, advance the process of loading.
  *   this version assumes the item has been dequeued for processing,
@@ -1065,7 +1115,12 @@ static bool parser_process_res(s_list_t *item)
 		break;
 
 	case ress_starts_good:
-		resource_fetch(res);
+		if(p->frontend_gets_files){
+			frontenditem_enqueue(ml_new(res));
+			remove_it = TRUE;
+		}else{
+			resource_fetch(res);
+		}
 		break;
 
 	case ress_downloaded:

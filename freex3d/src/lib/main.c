@@ -409,6 +409,15 @@ void fwl_startFreeWRL(const char *url)
 	} else {
 		DEBUG_MSG("no request for parser thread, main thread joining display thread...\n");
 	}
+	//this is for simulating frontend_gets_files for testing. Do not set FRONTEND_GETS_FILES. 
+	//this tests an alternate method. You need to #define NEWQUEUE in prodcon.c L.82.
+	// you need to put an http:// file on the command line (this is hardwired for io_http gets only, not local
+	if(frontendGetsFiles()){
+		for(;;){
+			frontend_dequeue_get_enqueue();
+			sleep(200);
+		}
+	}
 #ifdef HAVE_GLEW_H
 	/* now wait around until something kills this thread. */
 	pthread_join(gglobal()->threads.DispThrd, NULL);

@@ -119,6 +119,7 @@ void threads_init(struct tthreads* t)
 	pthread_mutex_init (&t->mutex_texture_list,NULL); // = PTHREAD_MUTEX_INITIALIZER;
 	pthread_cond_init(&t->texture_list_condition,NULL); // = PTHREAD_COND_INITIALIZER;
 
+	pthread_mutex_init(&t->mutex_frontend_list,NULL);
 	//private
 }
 
@@ -145,6 +146,7 @@ void fwl_initializeDisplayThread()
 	pthread_mutex_init( &tg->threads.mutex_texture_list, NULL );
 	pthread_cond_init( &tg->threads.resource_list_condition, NULL );
 	pthread_cond_init( &tg->threads.texture_list_condition, NULL );
+	pthread_mutex_init(&tg->threads.mutex_frontend_list,NULL);
 
 
 	ret = pthread_create(&tg->threads.DispThrd, NULL, (void *) _displayThread, tg);

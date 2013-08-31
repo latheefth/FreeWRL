@@ -125,6 +125,8 @@ typedef struct iiglobal //InstanceGlobal
 		pthread_mutex_t mutex_resource_list; // = PTHREAD_MUTEX_INITIALIZER;
 		pthread_cond_t resource_list_condition; // = PTHREAD_COND_INITIALIZER;
 
+		pthread_mutex_t mutex_frontend_list; // = PTHREAD_MUTEX_INITIALIZER;
+
 		/* Synchronize / exclusion (main<=>texture) */
 		pthread_mutex_t mutex_texture_list; // = PTHREAD_MUTEX_INITIALIZER;
 		pthread_cond_t texture_list_condition; // = PTHREAD_COND_INITIALIZER;
