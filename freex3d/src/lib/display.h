@@ -82,30 +82,34 @@ GLEWContext * glewGetContext();
 #define ERROR 0
 #endif /* TARGET_WIN32 */
 
-#if !defined (_MSC_VER) && !defined (TARGET_AQUA)  /* not aqua and not win32, ie linux */
+#if !defined (_MSC_VER) && !defined (TARGET_AQUA) && !defined(IPHONE) && !defined(_ANDROID) && !defined(QNX)  /* not aqua and not win32, ie linux */
 	#ifdef HAVE_GLEW_H
 		#include <GL/glew.h>
 		#ifdef GLEW_MX
 			GLEWContext * glewGetContext();
 		#endif
 	#else
-		#ifndef AQUA
-			#if !defined(GLES2)
+//JAS		#ifndef AQUA
+//JAS			#if !defined(GLES2)
 				#include <GL/gl.h>
 				#include <GL/glu.h>
 				#include <GL/glext.h>
 				#include <GL/glx.h>
-			#else
-				/* GLES2 */
-				#include <GLES2/gl2.h>
-				#include <GLES2/gl2ext.h>
-
-				//JAS typedef char GLchar;
-
-			#endif /*ANDROID_NDK*/
-		#endif
+//JAS			#else
+//JAS				/* GLES2 */
+//JAS				#include <GLES2/gl2.h>
+//JAS				#include <GLES2/gl2ext.h>
+//JAS			#endif /*ANDROID_NDK*/
+//JAS		#endif
 	#endif
 #endif
+
+#if defined (IPHONE) || defined (_ANDROID) || defined (QNX)
+	#include <GLES2/gl2.h>
+	#include <GLES2/gl2ext.h>
+#endif
+
+
 
 
 /* generic - OpenGL ES 2.0 does not have doubles */
@@ -260,7 +264,6 @@ GLEWContext * glewGetContext();
 	#define DELETE_SHADER glDeleteShader
 	#define DELETE_PROGRAM glDeleteProgram
 	#define USE_SHADER(aaa) glUseProgram(aaa)
-	#define VERBOSE_USE_SHADER(aaa) {printf ("glUseShader %d %s:%d\n",aaa,__FILE__,__LINE__); glUseProgram(aaa);}
 	#define GET_SHADER_INFO glGetShaderiv
 	#define LINK_STATUS GL_LINK_STATUS
 	#define COMPILE_STATUS GL_COMPILE_STATUS
@@ -280,7 +283,7 @@ GLEWContext * glewGetContext();
 	#define GLUNIFORMMATRIX3FV glUniformMatrix3fv
 #endif
 
-	#if defined(GLES2) 
+	#if defined(GL_ES_VERSION_2_0) 
 		#include <libtess2.h>
 	#endif
 
@@ -376,6 +379,18 @@ typedef struct s_shader_capabilities{
     /* TextureCoordinateGenerator type */
     GLint texCoordGenType;
 
+/* attributes - reduce redundant state chage calls on GPU */
+/*
+	need to ensure that all calls to glEnableVertexAttribArray
+	are tagged for redundancy - eg, in statusbarHud.c, etc.
+	before trying to reduce the glEnableVertexAttribArray and
+	glDisableVertexAttribArray calls.
+
+	bool vertexAttribEnabled;
+	bool texCoordAttribEnabled;
+	bool colourAttribEnabled;
+	bool normalAttribEnabled;
+*/
 	
 } s_shader_capabilities_t;
 
@@ -584,7 +599,6 @@ void resetGeometry();
 	#define DELETE_SHADER glDeleteShader
 	#define DELETE_PROGRAM glDeleteProgram
 	#define USE_SHADER(aaa) glUseProgram(aaa)
-	#define VERBOSE_USE_SHADER(aaa) {printf ("glUseShader %d\n",aaa); glUseProgram(aaa);}
 	#define GET_SHADER_INFO glGetShaderiv
 	#define LINK_STATUS GL_LINK_STATUS
 	#define COMPILE_STATUS GL_COMPILE_STATUS

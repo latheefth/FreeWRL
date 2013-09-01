@@ -1706,7 +1706,7 @@ if (backFacing) { \n \
 static const GLchar *fragHighPrecision = "\n#ifdef GL_ES\nprecision highp float;\n#endif\n ";
 static const GLchar *fragMediumPrecision = "\n#ifdef GL_ES\nprecision mediump float;\n#endif\n ";
 #endif
-static const GLchar *maxLights = "\n#ifdef GL_ES\nconst int MAX_LIGHTS = 2;\n#else\nconst int MAX_LIGHTS=8;\n#endif\n ";
+static const GLchar *maxLights = "\n#ifdef GL_ES\n#define MAX_LIGHTS 2\n#else\n#define MAX_LIGHTS 8\n#endif\n ";
 
 
 /* NOTE that we write to the vec4 "finalFrag", and at the end we assign
@@ -2441,39 +2441,60 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
             uniformName[15] = '0' + i;
         
             strcpy(&uniformName[18],"ambient");
+            
             //ConsoleMessage ("have uniform name request :%s:",uniformName);
             me->lightAmbient[i] = GET_UNIFORM(myProg,uniformName);
         
+            //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightAmbient[i]);
+
             strcpy(&uniformName[18],"diffuse");
             me->lightDiffuse[i] = GET_UNIFORM(myProg,uniformName);
-        
+            //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightDiffuse[i]);
+            
+
             strcpy(&uniformName[18],"specular");
             me->lightSpecular[i] = GET_UNIFORM(myProg,uniformName);
-        
+            //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpecular[i]);
+            
+
             strcpy(&uniformName[18],"position");
             me->lightPosition[i] = GET_UNIFORM(myProg,uniformName);
+            //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightPosition[i]);
             
+
             // flag used to determine if we have to send light position info to this shader
             if (me->lightPosition[i] != -1) me->haveLightInShader = true;
         
             strcpy(&uniformName[18],"spotDirection");
             me->lightSpotDir[i] = GET_UNIFORM(myProg,uniformName);
-        
+            //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpotDir[i]);
+            
+
             strcpy(&uniformName[18],"spotExponent");   
             me->lightSpotBeamWidth[i] = GET_UNIFORM(myProg,uniformName);
-        
+            //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpotBeamWidth[i]);
+            
+
             strcpy(&uniformName[18],"spotCutoff");  
             me->lightSpotCutoffAngle[i] = GET_UNIFORM(myProg,uniformName);
-                        
+            //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpotCutoffAngle[i]);
+            
+
             strcpy(&uniformName[18],"constantAttenuation"); 
             me->lightConstAtten[i] = GET_UNIFORM(myProg,uniformName);
-        
+            //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightConstAtten[i]);
+            
+
             strcpy(&uniformName[18],"linearAttenuation");
             me->lightLinAtten[i] = GET_UNIFORM(myProg,uniformName);
-        
+            //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightLinAtten[i]);
+            
+
             strcpy(&uniformName[18],"quadraticAttenuation"); 
             me->lightQuadAtten[i] = GET_UNIFORM(myProg,uniformName);
-        
+            //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightQuadAtten[i]);
+            
+
         }
     }
 

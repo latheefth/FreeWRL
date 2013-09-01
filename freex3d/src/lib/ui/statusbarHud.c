@@ -2090,6 +2090,9 @@ M       void toggle_collision()                             //"
 
    if(p->programObject == 0) initProgramObject();
    glUseProgram ( p->programObject );
+   
+    // tell the geometry renderer that the shader status is dirty.
+    finishedWithGlobalShader();
 
 	if(p->showButtons)
 	{

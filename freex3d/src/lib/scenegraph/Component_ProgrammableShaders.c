@@ -652,7 +652,7 @@ void getField_ToShader(struct X3D_Node *node, int num) {
 			}
 		}
     }
-        turnGlobalShaderOff();
+        finishedWithGlobalShader();
 	
 	}
 }

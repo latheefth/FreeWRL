@@ -665,7 +665,7 @@ void child_Shape (struct X3D_Shape *node) {
 
 	/* any shader turned on? if so, turn it off */
     //ConsoleMessage("turning shader off");
-	turnGlobalShaderOff();
+	finishedWithGlobalShader();
 	p->material_twoSided = NULL;
 	p->material_oneSided = NULL;
     p->userShaderNode = NULL;

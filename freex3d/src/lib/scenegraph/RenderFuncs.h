@@ -32,7 +32,7 @@ Proximity sensor macro.
 
 void enableGlobalShader(s_shader_capabilities_t *);
 
-void turnGlobalShaderOff(void);
+void finishedWithGlobalShader(void);
 
 /* trat: test if a ratio is reasonable */
 #define TRAT(a) ((a) > 0 && ((a) < gglobal()->RenderFuncs.hitPointDist || gglobal()->RenderFuncs.hitPointDist < 0))

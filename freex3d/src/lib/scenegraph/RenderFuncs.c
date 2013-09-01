@@ -80,9 +80,6 @@ typedef struct pRenderFuncs{
 	/* lights status. Light HEADLIGHT_LIGHT is the headlight */
 	GLint lightOnOff[MAX_LIGHTS];
 
-	/* should we send light changes along? */
-	bool lightStatusDirty;// = FALSE;
-	bool lightParamsDirty;// = FALSE;
 	int cur_hits;//=0;
 	void *empty_group;//=0;
 	//struct point_XYZ ht1, ht2; not used
@@ -93,6 +90,10 @@ typedef struct pRenderFuncs{
 	struct currayhit rayHit,rayHitHyper;
 	struct trenderstate renderstate;
 	int renderLevel;
+
+	// which Shader is currently in use?
+	GLint currentShader;
+
 }* ppRenderFuncs;
 void *RenderFuncs_constructor(){
 	void *v = malloc(sizeof(struct pRenderFuncs));
@@ -129,9 +130,6 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 		p->nextFreeLight = 0;
 
 
-		/* should we send light changes along? */
-		p->lightStatusDirty = FALSE;
-		p->lightParamsDirty = FALSE;
 		p->cur_hits=0;
 		p->empty_group=0;
 		p->rootNode=NULL;	/* scene graph root node */
@@ -164,22 +162,13 @@ void setLightType(GLint light, int type) {
 /* keep track of lighting */
 void setLightState(GLint light, int status) {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-    //printf ("start lightState, light %d, status %d\n",light,status);
+    //ConsoleMessage ("start lightState, light %d, status %d\n",light,status);
+
     
     PRINT_GL_ERROR_IF_ANY("start lightState");
-    
-    
+
 	if (light<0) return; /* nextlight will return -1 if too many lights */
-	if (p->lightOnOff[light] != status) {
-		if (status) {
-			/* printf ("light %d on\n",light); */
-			p->lightStatusDirty = TRUE;
-		} else {
-			/* printf ("light %d off\n",light);  */
-			p->lightStatusDirty = TRUE;
-		}
-		p->lightOnOff[light]=status;
-	}
+	p->lightOnOff[light] = status;
     PRINT_GL_ERROR_IF_ANY("end lightState");
 }
 
@@ -187,18 +176,16 @@ void setLightState(GLint light, int status) {
 void saveLightState(int *ls) {
 	int i;
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-	for (i=0; i<HEADLIGHT_LIGHT; i++) ls[i] = p->lightOnOff[i];
+	memcpy (ls,p->lightOnOff,sizeof(int)*HEADLIGHT_LIGHT);
 } 
 
 void restoreLightState(int *ls) {
 	int i;
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-	for (i=0; i<HEADLIGHT_LIGHT; i++) {
-		if (ls[i] != p->lightOnOff[i]) {
-			setLightState(i,ls[i]);
-		}
-	}
+
+	memcpy (p->lightOnOff,ls,sizeof(int)*HEADLIGHT_LIGHT);
 }
+
 void transformLightToEye(float *pos, float* dir)
 {
 	int i;
@@ -294,7 +281,6 @@ ConsoleMessage("fwglLightfv - NOT transforming pos %3.2f %3.2f %3.2f %3.2f spd %
 			break;
 		default: {printf ("help, unknown fwgllightfv param %d\n",pname);}
 	}
-	p->lightParamsDirty=TRUE;
 }
 
 void fwglLightf (int light, int pname, GLfloat param) {
@@ -338,7 +324,6 @@ void fwglLightf (int light, int pname, GLfloat param) {
 
 		default: {printf ("help, unknown fwgllightfv param %d\n",pname);}
 	}
-	p->lightParamsDirty = TRUE;
 }
 
 
@@ -347,6 +332,7 @@ void sendLightInfo (s_shader_capabilities_t *me) {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
     int i;
     		
+
 	// in case we are trying to render a node that has just been killed...
 	if (me==NULL) return;
 
@@ -359,7 +345,8 @@ void sendLightInfo (s_shader_capabilities_t *me) {
     
     // send in lighting info, but only for lights that are "on"
     for (i=0; i<MAX_LIGHTS; i++) {
-        if (p->lightOnOff[i]) {
+        // this causes initial screen on Android to fail.
+	if (p->lightOnOff[i]) {
             GLUNIFORM1F (me->lightConstAtten[i], p->light_constAtten[i]);
             GLUNIFORM1F (me->lightLinAtten[i], p->light_linAtten[i]);
             GLUNIFORM1F(me->lightQuadAtten[i], p->light_quadAtten[i]);
@@ -376,13 +363,16 @@ void sendLightInfo (s_shader_capabilities_t *me) {
 }
 
 /* finished rendering thisshape. */
-void turnGlobalShaderOff(void) {
-    //printf ("turnGlobalShaderOff\n");
+void finishedWithGlobalShader(void) {
+    //printf ("finishedWithGlobalShader\n");
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 
     /* get rid of the shader */
     getAppearanceProperties()->currentShaderProperties = NULL;
-    USE_SHADER(0);
+
+#ifdef OLDCODE
+OLDCODE    USE_SHADER(0);
+#endif//OLDCODE
 
 	/* set array booleans back to defaults */
 	p->shaderNormalArray = TRUE;
@@ -396,15 +386,20 @@ void turnGlobalShaderOff(void) {
 /* choose and turn on a shader for this geometry */
 
 void enableGlobalShader(s_shader_capabilities_t *myShader) {
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+
     //ConsoleMessage ("enableGlobalShader, have myShader %d",myShader->myShaderProgram);
     if (myShader == NULL) {
-        turnGlobalShaderOff(); 
+        finishedWithGlobalShader(); 
         return;
     };
     
     
     getAppearanceProperties()->currentShaderProperties = myShader;
-	USE_SHADER(myShader->myShaderProgram);
+    if (myShader->myShaderProgram != p->currentShader) {
+		USE_SHADER(myShader->myShaderProgram);
+		p->currentShader = myShader->myShaderProgram;
+	}
 }
 
 
@@ -628,7 +623,7 @@ void initializeLightTables() {
       PRINT_GL_ERROR_IF_ANY("start of initializeightTables");
 
 	for(i=0; i<MAX_LIGHTS; i++) {
-                p->lightOnOff[i] = 9999;
+                p->lightOnOff[i] = TRUE;
                 setLightState(i,FALSE);
             
 		FW_GL_LIGHTFV(i, GL_SPOT_DIRECTION, pos);
