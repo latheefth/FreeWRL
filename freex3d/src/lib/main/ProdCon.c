@@ -229,7 +229,7 @@ void ProdCon_init(struct tProdCon *t)
 		p->_P_LOCK_VAR = 0;
 		p->resource_list_to_parse = NULL;
 		p->frontend_list_to_get = NULL;
-		p->frontend_gets_files = 0;
+		p->frontend_gets_files = 0; //dug9 Sep 1, 2013 used to test new fgf method in win32
 		/* psp is the data structure that holds parameters for the parsing thread */
 		//p->psp;
 		/* is the inputParse thread created? */
@@ -994,12 +994,12 @@ void Parser_thread_exit_handler(int sig)
 
 
 /*
-	This version does CommandPattern + ThreadsafeQueue + SingleThread
-	so it doesn't block the queue while processing. That allows the involked
+	NEWQUEUE method uses DesignPatterns: CommandPattern + ThreadsafeQueue + SingleThread_ThreadPool/MonoThreading
+	It doesn't block the queue while processing/doing_work. That allows the involked
 	commands to chain new commands into the queue without deadlocking.
 
 */
-
+//recently added list functions:
 //void ml_enqueue(s_list_t **list, s_list_t *item);
 //s_list_t *ml_dequeue(s_list_t **list);
 
@@ -1070,11 +1070,12 @@ s_list_t *frontenditem_dequeue(){
 
 	return threadsafe_dequeue_item(&p->frontend_list_to_get, &tg->threads.mutex_frontend_list );
 }
-//this is for simualting frontend_gets_files
+//this is for simulating frontend_gets_files in win32 - called from lib/main.c
 void frontend_dequeue_get_enqueue(){
 	s_list_t *item = NULL;
 	while( (item = frontenditem_dequeue()) != NULL ){
-		download_url((resource_item_t *) item->elem);
+		//download_url((resource_item_t *) item->elem);
+		resource_fetch((resource_item_t *) item->elem);
 		resitem_enqueue(item);
 	}
 }
