@@ -283,7 +283,7 @@ GLEWContext * glewGetContext();
 	#define GLUNIFORMMATRIX3FV glUniformMatrix3fv
 #endif
 
-	#if defined(GL_ES_VERSION_2_0) 
+	#if defined(GL_ES_VERSION_2_0) || defined(GLEW_NO_GLU)
 		#include <libtess2.h>
 	#endif
 

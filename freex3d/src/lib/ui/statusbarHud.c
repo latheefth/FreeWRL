@@ -2086,13 +2086,9 @@ M       void toggle_collision()                             //"
 		glDisable(GL_DEPTH_TEST);
 		p->posType = 1; // use RasterPos2i instead of WindowPos2i
 	}
-
-
    if(p->programObject == 0) initProgramObject();
    glUseProgram ( p->programObject );
    
-    // tell the geometry renderer that the shader status is dirty.
-    finishedWithGlobalShader();
 
 	if(p->showButtons)
 	{

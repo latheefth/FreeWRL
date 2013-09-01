@@ -382,7 +382,11 @@ OLDCODE    USE_SHADER(0);
 }
 
 
-
+void restoreGlobalShader(){
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+    if (p->currentShader)
+		USE_SHADER(p->currentShader);
+}
 /* choose and turn on a shader for this geometry */
 
 void enableGlobalShader(s_shader_capabilities_t *myShader) {

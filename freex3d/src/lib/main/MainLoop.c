@@ -4090,8 +4090,9 @@ void _displayThread(void *globalcontext)
 #endif
 		checkFileLoadRequest();
 		/* status bar, if we have one */
+		finishedWithGlobalShader();
 		drawStatusBar();  // UI/View 
-
+		restoreGlobalShader();
 		/* swap the rendering area */
 		FW_GL_SWAPBUFFERS;
 			PRINT_GL_ERROR_IF_ANY("XEvents::render");
