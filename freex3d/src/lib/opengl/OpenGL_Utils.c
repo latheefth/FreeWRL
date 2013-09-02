@@ -3389,7 +3389,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 			resource_dump(gglobal()->resources.root_res);
 		}else {printf ("root_res is null, no need to dump\n");}
 	*/
-
+	resource_tree_destroy();  //dug9 sep2,2013 added this call. just comment out if giving trouble before a release
 	gglobal()->resources.root_res = NULL;
 
 	/* mark all rootNode children for Dispose */

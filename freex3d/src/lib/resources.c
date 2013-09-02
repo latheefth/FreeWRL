@@ -56,14 +56,16 @@ static void possiblyUnzip (openned_file_t *of);
 /* move Michel Briand's initialization code to one place to ensure consistency
    when fields are added/removed */
 
-static resource_item_t *newResourceItem() {
+resource_item_t *newResourceItem() {
 	resource_item_t *item = XALLOC(resource_item_t);
 	
 	/* item is NULL for every byte; some of the enums might not work out to 0 */
 	item->media_type = resm_unknown;
 	item->type = rest_invalid;
 	item->status = ress_invalid;
-
+	item->parent = NULL;
+	item->actual_file = NULL;
+	item->cached_files = NULL;
 	return item;
 }
 
@@ -81,14 +83,7 @@ static resource_item_t *newResourceItem() {
 /**
  *   resource_create_single: create the resource object and add it to the root list.
  */
-resource_item_t* resource_create_single(const char *request)
-{
-	resource_item_t *item;
-	DEBUG_RES("creating resource: SINGLE: %s\n", request);
-
-	item = newResourceItem();
-	item->request = STRDUP(request);
-
+static resource_tree_append(resource_item_t *item){
 	/* Lock access to the resource tree */
 	pthread_mutex_lock( &gglobal()->threads.mutex_resource_tree );
 
@@ -104,7 +99,21 @@ resource_item_t* resource_create_single(const char *request)
 
 	/* Unlock the resource tree mutex */
 	pthread_mutex_unlock( &gglobal()->threads.mutex_resource_tree );
+}
+resource_item_t* resource_create_single0(const char *request)
+{
+	resource_item_t *item;
+	DEBUG_RES("creating resource: SINGLE: %s\n", request);
 
+	item = newResourceItem();
+	item->request = STRDUP(request);
+	return item;
+}
+
+resource_item_t* resource_create_single(const char *request)
+{
+	resource_item_t *item = resource_create_single0(request);
+	resource_tree_append(item);
 	return item;
 }
 
@@ -113,8 +122,9 @@ resource_item_t* resource_create_single(const char *request)
  *
  *   TODO: finish the multi implementation.
  */
-resource_item_t* resource_create_multi(s_Multi_String_t *request)
+resource_item_t* resource_create_multi0(s_Multi_String_t *request)
 {
+	/* anchor to new scene might use the multi0 directly, so plugin_res isn't deleted in killOldWorld */
 	int i;
 	resource_item_t *item;
 	DEBUG_RES("creating resource: MULTI: %d, %s ...\n", request->n, request->p[0]->strptr);
@@ -130,23 +140,12 @@ resource_item_t* resource_create_multi(s_Multi_String_t *request)
 		/* printf ("putting %s on the list\n",url); */
 		item->m_request = ml_append(item->m_request, ml_new(url));
 	}
-
-	/* Lock access to the resource tree */
-	pthread_mutex_lock( &gglobal()->threads.mutex_resource_tree );
-
-	if (!gglobal()->resources.root_res) {
-		/* This is the first resource we try to load */
-		gglobal()->resources.root_res = item;
-		DEBUG_RES ("setting root_res in resource_create_multi\n");
-	} else {
-		/* Not the first, so keep it in the main list */
-		gglobal()->resources.root_res->children = ml_append(gglobal()->resources.root_res->children, ml_new(item));
-		item->parent = gglobal()->resources.root_res;
-	}
-
-	/* Unlock the resource tree mutex */
-	pthread_mutex_unlock( &gglobal()->threads.mutex_resource_tree );
-
+	return item;
+}
+resource_item_t* resource_create_multi(s_Multi_String_t *request)
+{
+	resource_item_t *item = resource_create_multi0(request);
+	resource_tree_append(item);
 	return item;
 }
 
@@ -166,22 +165,7 @@ resource_item_t* resource_create_from_string(const char *string)
 	item->type = rest_string;
 	item->status = ress_loaded;
 
-	/* Lock access to the resource tree */
-	pthread_mutex_lock( &gglobal()->threads.mutex_resource_tree );
-
-	if (!gglobal()->resources.root_res) {
-		/* This is the first resource we try to load */
-		gglobal()->resources.root_res = item;
-		printf ("setting root_res in resource_create_from_string\n");
-	} else {
-		/* Not the first, so keep it in the main list */
-		gglobal()->resources.root_res->children = ml_append(gglobal()->resources.root_res->children, ml_new(item));
-		item->parent = gglobal()->resources.root_res;
-	}
-
-	/* Unlock the resource tree mutex */
-	pthread_mutex_unlock( &gglobal()->threads.mutex_resource_tree );
-
+	resource_tree_append(item);
 	return item;
 }
 
@@ -686,6 +670,7 @@ void resource_destroy(resource_item_t *res)
 {
 	s_list_t *of, *cf;
 
+	if(!res) return;
 	DEBUG_RES("destroying resource: %d, %d\n", res->type, res->status);
 
 	ASSERT(res);
@@ -712,6 +697,7 @@ void resource_destroy(resource_item_t *res)
 			of = (s_list_t *) res->openned_files;
 			if (of) {
 				/* close any openned file */
+				close( ((openned_file_t*)of->elem)->fileDescriptor );
 			}
 
 			/* Remove cached file ? */
@@ -777,14 +763,14 @@ void resource_destroy(resource_item_t *res)
 		FREE_IF_NZ(res->base);
 	} else {
 		/* We used parent's base, so remove us from parent's childs */
-		resource_remove_child(res->parent, res);
+		//resource_remove_child(res->parent, res);
 	}
 	FREE_IF_NZ(res->request);
 	FREE_IF_NZ(res);
 }
 
 /**
- *   resource_remove_child: remove given child from the parent's list of cached files.
+ *   resource_remove_child: remove given child from the parent's list of _children_ // cached files.
  */
 void resource_remove_child(resource_item_t *parent, resource_item_t *child)
 {
@@ -793,9 +779,11 @@ void resource_remove_child(resource_item_t *parent, resource_item_t *child)
 	ASSERT(parent);
 	ASSERT(child);
 
-	cf = ml_find_elem(parent->cached_files, child);
+	//cf = ml_find_elem(parent->cached_files, child);
+	cf = ml_find_elem(parent->children, child);
 	if (cf) {
-		ml_delete(parent->cached_files, cf);
+		//ml_delete(parent->cached_files, cf);
+		ml_delete(parent->children, cf);
 	}
 }
 
@@ -808,6 +796,16 @@ void destroy_root_res()
 	gglobal()->resources.root_res = NULL;
 }
 
+void resource_tree_destroy()
+{
+	resource_item_t* root;
+	root = gglobal()->resources.root_res;
+	if(root){
+		ml_foreach(root->children,resource_destroy((resource_item_t*)ml_elem(__l)));
+		ml_foreach(root->children,resource_remove_child(root,(resource_item_t*)ml_elem(__l)));
+	}
+	destroy_root_res();
+}
 /**
  *   resource_dump: debug function.
  */

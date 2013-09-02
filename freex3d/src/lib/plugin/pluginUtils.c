@@ -259,7 +259,7 @@ int doBrowserAction()
 		/* We have a url, lets go and get the first one of them */
                 parentPath = (resource_item_t *)AnchorsAnchor()->_parentResource;
 
-		p->plugin_res = resource_create_multi(&AnchorsAnchor()->url);
+		p->plugin_res = resource_create_multi0(&AnchorsAnchor()->url);
 
 #ifdef TEXVERBOSE
 		PRINTF("url: ");

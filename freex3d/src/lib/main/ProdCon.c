@@ -79,7 +79,7 @@
 #include "MainLoop.h"
 #include "ProdCon.h"
 
-//#define NEWQUEUE 1
+#define NEWQUEUE 1
 
 /* used by the paser to call back the lexer for EXTERNPROTO */
 void embedEXTERNPROTO(struct VRMLLexer *me, char *myName, char *buffer, char *pound);
@@ -1197,7 +1197,6 @@ static bool parser_process_res(s_list_t *item)
 #ifdef NEWQUEUE
 	if (remove_it) {
 		/* Remove the parsed resource from the list */
-		//q. do I need to free the resource struct?
 		FREE_IF_NZ(item);
 	}else{
 		// chain command by adding it back into the queue

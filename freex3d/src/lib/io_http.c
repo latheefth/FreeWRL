@@ -460,6 +460,10 @@ void download_url(resource_item_t *res)
 	if (res->actual_file) {
 		/* download succeeded */
 		res->status = ress_downloaded;
+		if(strcmp(res->actual_file,res->parsed_request)){
+			//it's a temp file 
+			res->cached_files = ml_append(res->cached_files,ml_new(res->actual_file));
+		}
 	} else {
 		/* download failed */
 		res->status = ress_failed;
