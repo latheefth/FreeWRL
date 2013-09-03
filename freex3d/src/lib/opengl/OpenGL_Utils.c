@@ -1604,7 +1604,7 @@ if (backFacing) { \n \
 \n\
   /* apply the lights to this material */\n\
   for (i=0; i<MAX_LIGHTS; i++) {\n\
-    if (lightState[i] == 1) {\n\
+    if (lightState[i] !=0) {\n\
       vec4 myLightDiffuse = fw_LightSource[i].diffuse;\n\
       vec4 myLightAmbient = fw_LightSource[i].ambient;\n\
       vec4 myLightSpecular = fw_LightSource[i].specular;\n\
@@ -1703,10 +1703,12 @@ if (backFacing) { \n \
 
 /* GL_ES and Desktop GL are different... */
 #if defined (GL_ES_VERSION_2_0)
-static const GLchar *fragHighPrecision = "\n#ifdef GL_ES\nprecision highp float;\n#endif\n ";
-static const GLchar *fragMediumPrecision = "\n#ifdef GL_ES\nprecision mediump float;\n#endif\n ";
+	static const GLchar *fragHighPrecision = "precision highp float;\n ";
+	static const GLchar *fragMediumPrecision = "precision mediump float;\n ";
+	static const GLchar *maxLights = "\n#define MAX_LIGHTS 2\n ";
+#else
+	static const GLchar *maxLights = "\n#define MAX_LIGHTS 8\n ";
 #endif
-static const GLchar *maxLights = "\n#ifdef GL_ES\n#define MAX_LIGHTS 2\n#else\n#define MAX_LIGHTS 8\n#endif\n ";
 
 
 /* NOTE that we write to the vec4 "finalFrag", and at the end we assign
@@ -1931,9 +1933,14 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 
 #if defined (GL_ES_VERSION_2_0)
     bool haveHighPrecisionFragmentShaders = false;
+
+#ifdef VARY_VERTEX_PRECISION
+    bool haveHighPrecisionVertexShaders = false;
+#endif
+
     GLint range[2]; GLint precision;
 
-	// see if we can use high precision fragment shaders for Phong shading
+	// see where we are doing the lighting. Use highest precision there, if we can.
 	if (usePhongShading) {
         	glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_HIGH_FLOAT, range, &precision);
         	if (precision!=0) {
@@ -1942,9 +1949,24 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         	    haveHighPrecisionFragmentShaders=false;
         	    glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_MEDIUM_FLOAT, range, &precision);
         	    if (precision == 0) {
-        	        ConsoleMessage("low precision shaders only available - view may not work so well");
+        	        ConsoleMessage("low precision Fragment shaders only available - view may not work so well");
         	    }
         	}
+#ifdef VARY_VERTEX_PRECISION
+	// if we do lighting on the Vertex shader side, do we have to worry about precision?
+	} else {
+        	glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_HIGH_FLOAT, range, &precision);
+        	if (precision!=0) {
+        	    haveHighPrecisionVertexShaders=true;
+        	} else {
+        	    haveHighPrecisionVertexShaders=false;
+        	    glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_MEDIUM_FLOAT, range, &precision);
+        	    if (precision == 0) {
+        	        ConsoleMessage("low precision Vertex shaders only available - view may not work so well");
+        	    }
+        	}
+#endif //VARY_VERTEX_PRECISION
+
 	}
 #else
     // ConsoleMessage ("seem to not have GL_MEDIUM_FLOAT or GL_HIGH_FLOAT");
@@ -2015,6 +2037,18 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 		fragmentSource[fragmentPrecisionDeclare] = fragMediumPrecision;
 		//ConsoleMessage("have medium precision fragment shaders");
 	}
+
+#ifdef VARY_VERTEX_PRECISION
+	// if we do lighting on the Vertex shader side, do we have to worry about precision?
+	if (haveHighPrecisionVertexShaders)  {
+		vertexSource[vertexPrecisionDeclare] = fragHighPrecision;
+		ConsoleMessage("have high precision vertex shaders");
+	} else {
+		vertexSource[vertexPrecisionDeclare] = fragMediumPrecision;
+		ConsoleMessage("have medium precision vertex shaders");
+	}
+#endif //VARY_VERTEX_PRECISION
+
 #else
 	fragmentSource[fragmentGLSLVersion] = "#version 120\n";
 	vertexSource[vertexGLSLVersion] = "#version 120\n";
@@ -3466,7 +3500,12 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 void fwl_Android_reloadAssets(void) {
         int tc;
 	struct X3D_Node *node;
-	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+	ppOpenGL_Utils p;
+
+	p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+
+	/* reset the RenderFuncs cache */
+	resetGlobalShader();
 
 	//ConsoleMessage("fwl_Android_reloadAssets called");
 
@@ -3538,7 +3577,6 @@ void fwl_Android_reloadAssets(void) {
 	        }
 	        UNLOCK_MEMORYTABLE
 	}
-
 }
 #endif
 

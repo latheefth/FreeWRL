@@ -31,7 +31,7 @@ Proximity sensor macro.
 #define __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__
 
 void enableGlobalShader(s_shader_capabilities_t *);
-
+void resetGlobalShader(void);
 void finishedWithGlobalShader(void);
 
 /* trat: test if a ratio is reasonable */

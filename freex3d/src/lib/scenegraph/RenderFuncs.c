@@ -138,6 +138,8 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 		t->rayHitHyper = (void *)&p->rayHitHyper;
 		p->renderLevel = 0;
 	}
+
+	//setLightType(HEADLIGHT_LIGHT,2); // ensure that this is a DirectionalLight.
 }
 //	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 
@@ -346,7 +348,7 @@ void sendLightInfo (s_shader_capabilities_t *me) {
     // send in lighting info, but only for lights that are "on"
     for (i=0; i<MAX_LIGHTS; i++) {
         // this causes initial screen on Android to fail.
-	if (p->lightOnOff[i]) {
+	//if (p->lightOnOff[i]) {
             GLUNIFORM1F (me->lightConstAtten[i], p->light_constAtten[i]);
             GLUNIFORM1F (me->lightLinAtten[i], p->light_linAtten[i]);
             GLUNIFORM1F(me->lightQuadAtten[i], p->light_quadAtten[i]);
@@ -357,7 +359,7 @@ void sendLightInfo (s_shader_capabilities_t *me) {
             GLUNIFORM4FV(me->lightPosition[i],1,p->light_pos[i]);
             GLUNIFORM4FV(me->lightSpotDir[i],1, p->light_spotDir[i]);
             GLUNIFORM4FV(me->lightSpecular[i],1,p->light_spec[i]);
-        }
+        //}
     }
     PRINT_GL_ERROR_IF_ANY("END sendLightInfo");
 }
@@ -370,10 +372,6 @@ void finishedWithGlobalShader(void) {
     /* get rid of the shader */
     getAppearanceProperties()->currentShaderProperties = NULL;
 
-#ifdef OLDCODE
-OLDCODE    USE_SHADER(0);
-#endif//OLDCODE
-
 	/* set array booleans back to defaults */
 	p->shaderNormalArray = TRUE;
 	p->shaderVertexArray = TRUE;
@@ -381,6 +379,24 @@ OLDCODE    USE_SHADER(0);
 	p->shaderTextureArray = FALSE;
 }
 
+
+/* should the system need to rebuild the OpenGL system (eg, Android, 
+on restore of screen, iPhone?? Blackberry???) we ensure that the system
+state is such that new information will get cached */
+
+void resetGlobalShader() {
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+
+	//ConsoleMessage ("resetGlobalShader called");
+
+	/* no shader currently active */
+	p->currentShader = 0;
+	/* set array booleans back to defaults */
+	p->shaderNormalArray = TRUE;
+	p->shaderVertexArray = TRUE;
+	p->shaderColourArray = FALSE;
+	p->shaderTextureArray = FALSE;
+}
 
 void restoreGlobalShader(){
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;

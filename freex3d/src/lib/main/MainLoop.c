@@ -1843,7 +1843,10 @@ static void render_pre() {
         FIXME: position of light sould actually be offset a little (towards the center)
         when in stereo mode. */
 
-        if (fwl_get_headlight()) setLightState(HEADLIGHT_LIGHT,TRUE);
+        if (fwl_get_headlight()) {
+		setLightState(HEADLIGHT_LIGHT,TRUE);
+		setLightType(HEADLIGHT_LIGHT,2); // DirectionalLight
+	}
 
 
         /* 3. Viewpoint */
@@ -2079,6 +2082,7 @@ static void render()
 	/*  turn light #0 off only if it is not a headlight.*/
 	if (!fwl_get_headlight()) {
 		setLightState(HEADLIGHT_LIGHT,FALSE);
+		setLightType(HEADLIGHT_LIGHT,2); // DirectionalLight
 	}
 
 	/*  Other lights*/
