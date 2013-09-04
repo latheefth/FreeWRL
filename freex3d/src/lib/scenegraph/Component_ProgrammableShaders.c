@@ -125,6 +125,12 @@ static void shaderErrorLog(GLuint myShader) {
 }
 
 
+// local structure for passing args to threaded shader compiler functions.
+struct myArgs {
+	struct X3D_Node *node;
+	ttglobal tg;
+};
+
 
 
 #define LOCATE_SHADER_PARTS(myNodeType, myField) \
@@ -843,7 +849,7 @@ static void tellShapeNodeToRecompile (struct X3D_Node *node) {
 }
 
 /*********************************************************************/
-static void *thread_compile_ComposedShader(void **args) {
+static void *thread_compile_ComposedShader(void *args) {
 
 	struct X3D_ComposedShader *node;
 	ttglobal tg;
@@ -851,16 +857,20 @@ static void *thread_compile_ComposedShader(void **args) {
 	GLchar **vertShaderSource;
 	GLchar **fragShaderSource;
 	int i;
+	struct myArgs *inArgs;
 
 	/* do we have anything to compile? */
 	int haveVertShaderText; 
 	int haveFragShaderText; 
-	node = (struct X3D_ComposedShader*)args[0];
-	tg = (ttglobal)args[1];
-	
+
+	inArgs = (struct myArgs *) args;
+
+	node = X3D_COMPOSEDSHADER(inArgs->node);
+	tg = inArgs->tg;
+	FREE_IF_NZ(args);
+
 	fwl_setCurrentHandle(tg,__FILE__,__LINE__);
-	node = X3D_COMPOSEDSHADER(node);
-	free(args);
+
 	/* initialization */
 	haveVertShaderText = FALSE;
 	haveFragShaderText = FALSE;
@@ -924,37 +934,38 @@ static void *thread_compile_ComposedShader(void **args) {
 
 
 void compile_ComposedShader (struct X3D_ComposedShader *node) {
-	void **args;
+	struct myArgs *args;
 	ttglobal tg = gglobal();
-	args = (void**)malloc(2*sizeof(void*));
-	args[0] = (void*)node;
-	args[1] = (void*)tg;
+	args = MALLOC(struct myArgs *, sizeof (struct myArgs));
+	args->node  = X3D_NODE(node);
+	args->tg  = tg;
     if (TEST_NULL_THREAD(node->_shaderLoadThread)) {
 	pthread_create (&(node->_shaderLoadThread), NULL,
-		&thread_compile_ComposedShader, args); //node);
-	
-
+		&thread_compile_ComposedShader, (void *)args); //node);
     }
 }
 
 
-    
-static void *thread_compile_ProgramShader (void **args){ //void *nod) {
+static void *thread_compile_ProgramShader (void *args){
     ttglobal tg;
-    struct X3D_ProgramShader *node = X3D_PROGRAMSHADER(args[0]);
+    struct X3D_ProgramShader *node;
     
     /* an array of text pointers, should contain shader source */
     GLchar **vertShaderSource;
     GLchar **fragShaderSource;
     int i;
+    struct myArgs *inArgs;
 
     /* do we have anything to compile? */
     int haveVertShaderText; 
     int haveFragShaderText; 
 
-	tg = args[1];
+	inArgs = (struct myArgs *) args;
+	node = X3D_PROGRAMSHADER(inArgs->node);
+	tg = inArgs->tg;
+	FREE_IF_NZ(args);
+	
 	fwl_setCurrentHandle(tg,__FILE__,__LINE__);
-	free(args);
     /* initialization */
     haveVertShaderText = FALSE;
     haveFragShaderText = FALSE;
@@ -997,17 +1008,16 @@ static void *thread_compile_ProgramShader (void **args){ //void *nod) {
 }
 
 void compile_ProgramShader (struct X3D_ProgramShader *node) {
-	void **args;
+	struct myArgs *args;
 	ttglobal tg = gglobal();
-	args = (void**)malloc(2*sizeof(void*));
-	args[0] = (void*)node;
-	args[1] = (void*)tg;
+
+	args = MALLOC(struct myArgs *, sizeof (struct myArgs));
+	args->node  = X3D_NODE(node);
+	args->tg  = tg;
 	
     if (TEST_NULL_THREAD(node->_shaderLoadThread)) {
         pthread_create (&(node->_shaderLoadThread), NULL,
-                        &thread_compile_ProgramShader, args); //(void *) node);
-        
-        
+                        &thread_compile_ProgramShader, (void *)args);
     }
 }
 

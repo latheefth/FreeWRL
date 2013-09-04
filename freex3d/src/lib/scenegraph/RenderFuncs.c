@@ -52,6 +52,13 @@
 #include "../scenegraph/Component_Shape.h"
 #include "RenderFuncs.h"
 
+#define SET_SHADER_ARRAYS_TO_DEFAULT \
+p->shaderNormalArray = TRUE; \
+p->shaderVertexArray = TRUE; \
+p->shaderColourArray = FALSE; \
+p->shaderTextureArray = FALSE; \
+
+
 typedef float shaderVec4[4];
 
 
@@ -120,12 +127,8 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 	{
 		ppRenderFuncs p = (ppRenderFuncs)t->prv;
 		/* which arrays are enabled, and defaults for each array */
-		p->shaderNormalArray = TRUE;
-		p->shaderVertexArray = TRUE;
-		p->shaderColourArray = FALSE;
-		p->shaderTextureArray = FALSE;
-
-
+        SET_SHADER_ARRAYS_TO_DEFAULT
+        
 		/* Rearrange to take advantage of headlight when off */
 		p->nextFreeLight = 0;
 
@@ -373,10 +376,7 @@ void finishedWithGlobalShader(void) {
     getAppearanceProperties()->currentShaderProperties = NULL;
 
 	/* set array booleans back to defaults */
-	p->shaderNormalArray = TRUE;
-	p->shaderVertexArray = TRUE;
-	p->shaderColourArray = FALSE;
-	p->shaderTextureArray = FALSE;
+    SET_SHADER_ARRAYS_TO_DEFAULT
 }
 
 
@@ -392,10 +392,7 @@ void resetGlobalShader() {
 	/* no shader currently active */
 	p->currentShader = 0;
 	/* set array booleans back to defaults */
-	p->shaderNormalArray = TRUE;
-	p->shaderVertexArray = TRUE;
-	p->shaderColourArray = FALSE;
-	p->shaderTextureArray = FALSE;
+    SET_SHADER_ARRAYS_TO_DEFAULT
 }
 
 void restoreGlobalShader(){
@@ -459,25 +456,25 @@ ConsoleMessage ("myType %d, dataSize %d, dataType %d, stride %d\n",myType,dataSi
 	switch (myType) {
 		case FW_NORMAL_POINTER_TYPE:
 		if (me->Normals != -1) {
-			glEnableVertexAttribArray(me->Normals);
+			//glEnableVertexAttribArray(me->Normals);
 			glVertexAttribPointer(me->Normals, 3, dataType, normalized, stride, pointer);
 		}
 			break;
 		case FW_VERTEX_POINTER_TYPE:
 		if (me->Vertices != -1) {
-			glEnableVertexAttribArray(me->Vertices);
+			//glEnableVertexAttribArray(me->Vertices);
 			glVertexAttribPointer(me->Vertices, dataSize, dataType, normalized, stride, pointer);
 		}
 			break;
 		case FW_COLOR_POINTER_TYPE:
 		if (me->Colours != -1) {
-			glEnableVertexAttribArray(me->Colours);
+			//glEnableVertexAttribArray(me->Colours);
 			glVertexAttribPointer(me->Colours, dataSize, dataType, normalized, stride, pointer);
 		}
 			break;
 		case FW_TEXCOORD_POINTER_TYPE:
 		if (me->TexCoords != -1) {
-			glEnableVertexAttribArray(me->TexCoords);
+			//glEnableVertexAttribArray(me->TexCoords);
 			glVertexAttribPointer(me->TexCoords, dataSize, dataType, normalized, stride, pointer);
 		}
 			break;
@@ -548,9 +545,9 @@ PRINT_GL_ERROR_IF_ANY("BEGIN setupShader");
 			PRINT_GL_ERROR_IF_ANY("EXIT(false) setupShader");
 			return false;
 		}
-        
+       
 #ifdef RENDERVERBOSE
-        printf ("we have Normals %d Vertices %d Colours %d TexCoords %d \n",
+        printf ("setupShader, we have Normals %d Vertices %d Colours %d TexCoords %d \n",
                 mysp->Normals,
                 mysp->Vertices,
                 mysp->Colours,
@@ -560,6 +557,7 @@ PRINT_GL_ERROR_IF_ANY("BEGIN setupShader");
         if (p->shaderColourArray) printf ("shaderColourArray TRUE\n"); else printf ("shaderColourArray FALSE\n");
 		if (p->shaderTextureArray) printf ("shaderTextureArray TRUE\n"); else printf ("shaderTextureArray FALSE\n");               
 #endif
+
         
         /* send along lighting, material, other visible properties */
         sendMaterialsToShader(mysp);
@@ -567,8 +565,8 @@ PRINT_GL_ERROR_IF_ANY("BEGIN setupShader");
         
 		if (mysp->Normals != -1) {
 			if (p->shaderNormalArray) glEnableVertexAttribArray(mysp->Normals);
+        }
 			else glDisableVertexAttribArray(mysp->Normals);
-		}
         
 		if (mysp->Vertices != -1) {
 			if (p->shaderVertexArray) glEnableVertexAttribArray(mysp->Vertices);
