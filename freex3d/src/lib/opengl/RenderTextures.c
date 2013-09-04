@@ -154,28 +154,30 @@ void textureDraw_start(struct textureVertexInfo* genTex) {
 
 /* lets disable textures here */
 void textureDraw_end(void) {
-	int c;
-	ppRenderTextures p;
+//OLDCODE	int c;
+//OLDCODE	ppRenderTextures p;
 	ttglobal tg = gglobal();
-	p = (ppRenderTextures)tg->RenderTextures.prv;
+//OLDCODE	p = (ppRenderTextures)tg->RenderTextures.prv;
     
 #ifdef TEXVERBOSE
 	printf ("start of textureDraw_end\n");
 #endif
 
-	if (tg->display.rdr_caps.av_multitexture) { // test the availability at runtime of multi textures
-
-	    for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
-
-		FW_GL_DISABLECLIENTSTATE(GL_TEXTURE_COORD_ARRAY);
-
-	    }
-
-	} else {
-
-		FW_GL_DISABLECLIENTSTATE(GL_TEXTURE_COORD_ARRAY);
-
-	}
+#ifdef OLDCODE
+OLDCODE	if (tg->display.rdr_caps.av_multitexture) { // test the availability at runtime of multi textures
+OLDCODE
+OLDCODE	    for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
+OLDCODE
+OLDCODE		FW_GL_DISABLECLIENTSTATE(GL_TEXTURE_COORD_ARRAY);
+OLDCODE
+OLDCODE	    }
+OLDCODE
+OLDCODE	} else {
+OLDCODE
+OLDCODE		FW_GL_DISABLECLIENTSTATE(GL_TEXTURE_COORD_ARRAY);
+OLDCODE
+OLDCODE	}
+#endif //OLDCODE
 
 	/* DISABLE_TEXTURES */
 	/* setting this ENSURES that items, like the HUD, that are not within the normal
@@ -216,8 +218,7 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
                     SET_TEXTURE_UNIT_AND_BIND(getAppearanceProperties()->cubeFace,c,tg->RenderFuncs.boundTextureStack[c]);
                    
                     FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,genTex->pre_canned_textureCoords);
-                    sendClientStateToGPU(TRUE,GL_TEXTURE_COORD_ARRAY);
-				}
+                }
 			}
 }
 	} else {
@@ -237,7 +238,6 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 						genTex->TC_type,
 						genTex->TC_stride,
 						genTex->TC_pointer);
-					sendClientStateToGPU(TRUE,GL_TEXTURE_COORD_ARRAY);
 				}
 			}
 		}

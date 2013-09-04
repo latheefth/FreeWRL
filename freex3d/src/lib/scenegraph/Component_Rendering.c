@@ -368,13 +368,10 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 
 	/* If we have segments... */
 	if (node->__segCount > 0) {
-		FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
-		FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
 		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,node->__vertices);
 
 		if (node->__colours) {
 			FW_GL_COLOR_POINTER (4,GL_FLOAT,0,node->__colours);
-			FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
 		}
 
         indxStartPtr = (ushort **)node->__vertIndx;
@@ -385,12 +382,6 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
             // we are sending in ushorts; it gets around a compiler warning.
             
             sendElementsToGPU(GL_LINE_STRIP,count[i],indxStartPtr[i]);
-		}
-
-
-		FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
-		if (node->__colours) {
-		//	FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
 		}
 	}
 }
@@ -469,7 +460,6 @@ OLDCODE	GET_COLOUR_POINTER
 	#endif
 
 	if (ncolors>0) {
-		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
                 cc = (struct X3D_Color *) node->color;
 		/* is this a Color or ColorRGBA color node? */
                	if (cc->_nodeType == NODE_Color) {
@@ -479,18 +469,8 @@ OLDCODE	GET_COLOUR_POINTER
 		}
 	}
 
-
-	/* draw the shape */
-	FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-
 	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(float *)points);
 	sendArraysToGPU(GL_POINTS,0,npoints);
-
-	/* put things back to normal */
-	FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
-	if (ncolors>0) {
-		FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
-	}
 }
 
 void render_LineSet (struct X3D_LineSet *node) {
@@ -512,11 +492,7 @@ void render_LineSet (struct X3D_LineSet *node) {
 
 	/* now, actually draw array */
 	if (node->__segCount > 0) {
-		FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
-		FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
-
 		if (node->color) {
-			FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
                 	cc = (struct X3D_Color *) node->color;
 			/* is this a Color or ColorRGBA color node? */
                 	if (cc->_nodeType == NODE_Color) {
@@ -544,11 +520,6 @@ void render_LineSet (struct X3D_LineSet *node) {
             }
              */
 			sendElementsToGPU(GL_LINE_STRIP,count[i],indices[i]);
-		}
-
-		FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
-		if (node->color) {
-			FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
 		}
 	}
 }

@@ -52,23 +52,11 @@
 #include "../scenegraph/Component_Shape.h"
 #include "RenderFuncs.h"
 
-#define SET_SHADER_ARRAYS_TO_DEFAULT \
-p->shaderNormalArray = TRUE; \
-p->shaderVertexArray = TRUE; \
-p->shaderColourArray = FALSE; \
-p->shaderTextureArray = FALSE; \
-
 
 typedef float shaderVec4[4];
 
 
 typedef struct pRenderFuncs{
-	/* which arrays are enabled, and defaults for each array */
-	int shaderNormalArray;// = TRUE;
-	int shaderVertexArray;// = TRUE;
-	int shaderColourArray;// = FALSE;
-	int shaderTextureArray;// = FALSE;
-
 	float light_linAtten[MAX_LIGHTS];
 	float light_constAtten[MAX_LIGHTS];
 	float light_quadAtten[MAX_LIGHTS];
@@ -127,11 +115,9 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 	{
 		ppRenderFuncs p = (ppRenderFuncs)t->prv;
 		/* which arrays are enabled, and defaults for each array */
-        SET_SHADER_ARRAYS_TO_DEFAULT
         
 		/* Rearrange to take advantage of headlight when off */
 		p->nextFreeLight = 0;
-
 
 		p->cur_hits=0;
 		p->empty_group=0;
@@ -144,9 +130,6 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 
 	//setLightType(HEADLIGHT_LIGHT,2); // ensure that this is a DirectionalLight.
 }
-//	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-
-
 
 
 /* we assume max MAX_LIGHTS lights. The max light is the Headlight, so we go through 0-HEADLIGHT_LIGHT for Lights */
@@ -179,15 +162,12 @@ void setLightState(GLint light, int status) {
 
 /* for local lights, we keep track of what is on and off */
 void saveLightState(int *ls) {
-	int i;
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 	memcpy (ls,p->lightOnOff,sizeof(int)*HEADLIGHT_LIGHT);
 } 
 
 void restoreLightState(int *ls) {
-	int i;
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-
 	memcpy (p->lightOnOff,ls,sizeof(int)*HEADLIGHT_LIGHT);
 }
 
@@ -370,13 +350,10 @@ void sendLightInfo (s_shader_capabilities_t *me) {
 /* finished rendering thisshape. */
 void finishedWithGlobalShader(void) {
     //printf ("finishedWithGlobalShader\n");
-	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+
 
     /* get rid of the shader */
     getAppearanceProperties()->currentShaderProperties = NULL;
-
-	/* set array booleans back to defaults */
-    SET_SHADER_ARRAYS_TO_DEFAULT
 }
 
 
@@ -391,8 +368,6 @@ void resetGlobalShader() {
 
 	/* no shader currently active */
 	p->currentShader = 0;
-	/* set array booleans back to defaults */
-    SET_SHADER_ARRAYS_TO_DEFAULT
 }
 
 void restoreGlobalShader(){
@@ -456,25 +431,25 @@ ConsoleMessage ("myType %d, dataSize %d, dataType %d, stride %d\n",myType,dataSi
 	switch (myType) {
 		case FW_NORMAL_POINTER_TYPE:
 		if (me->Normals != -1) {
-			//glEnableVertexAttribArray(me->Normals);
+			glEnableVertexAttribArray(me->Normals);
 			glVertexAttribPointer(me->Normals, 3, dataType, normalized, stride, pointer);
 		}
 			break;
 		case FW_VERTEX_POINTER_TYPE:
 		if (me->Vertices != -1) {
-			//glEnableVertexAttribArray(me->Vertices);
+			glEnableVertexAttribArray(me->Vertices);
 			glVertexAttribPointer(me->Vertices, dataSize, dataType, normalized, stride, pointer);
 		}
 			break;
 		case FW_COLOR_POINTER_TYPE:
 		if (me->Colours != -1) {
-			//glEnableVertexAttribArray(me->Colours);
+			glEnableVertexAttribArray(me->Colours);
 			glVertexAttribPointer(me->Colours, dataSize, dataType, normalized, stride, pointer);
 		}
 			break;
 		case FW_TEXCOORD_POINTER_TYPE:
 		if (me->TexCoords != -1) {
-			//glEnableVertexAttribArray(me->TexCoords);
+			glEnableVertexAttribArray(me->TexCoords);
 			glVertexAttribPointer(me->TexCoords, dataSize, dataType, normalized, stride, pointer);
 		}
 			break;
@@ -483,35 +458,6 @@ ConsoleMessage ("myType %d, dataSize %d, dataType %d, stride %d\n",myType,dataSi
 	}
 }
 
-void sendClientStateToGPU(int enable, int cap) {
-	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-	if (getAppearanceProperties()->currentShaderProperties != NULL) {
-		switch (cap) {
-			case GL_NORMAL_ARRAY:
-				p->shaderNormalArray = enable;
-				break;
-			case GL_VERTEX_ARRAY:
-				p->shaderVertexArray = enable;
-				break;
-			case GL_COLOR_ARRAY:
-				p->shaderColourArray = enable;
-				break;
-			case GL_TEXTURE_COORD_ARRAY:
-				p->shaderTextureArray = enable;
-				break;
-
-			default : {printf ("sendClientStateToGPU, unknown type in shader\n");}
-		}
-#ifdef RENDERVERBOSE
-printf ("sendClientStateToGPU: getAppearanceProperties()->currentShaderProperties %p \n",getAppearanceProperties()->currentShaderProperties);
-if (p->shaderNormalArray) printf ("enabling Normal\n"); else printf ("disabling Normal\n");
-if (p->shaderVertexArray) printf ("enabling Vertex\n"); else printf ("disabling Vertex\n");
-if (p->shaderColourArray) printf ("enabling Colour\n"); else printf ("disabling Colour\n");
-if (p->shaderTextureArray) printf ("enabling Texture\n"); else printf ("disabling Texture\n");
-#endif
-
-	}
-}
 
 void sendBindBufferToGPU (GLenum target, GLuint buffer, char *file, int line) {
 
@@ -530,7 +476,7 @@ void sendBindBufferToGPU (GLenum target, GLuint buffer, char *file, int line) {
 
 
 static bool setupShader() {
-    ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+
     s_shader_capabilities_t *mysp = getAppearanceProperties()->currentShaderProperties;
 
 PRINT_GL_ERROR_IF_ANY("BEGIN setupShader");
@@ -552,38 +498,14 @@ PRINT_GL_ERROR_IF_ANY("BEGIN setupShader");
                 mysp->Vertices,
                 mysp->Colours,
                 mysp->TexCoords);
-		if (p->shaderNormalArray) printf ("p->shaderNormalArray TRUE\n"); else printf ("p->shaderNormalArray FALSE\n");        
-        if (p->shaderVertexArray) printf ("shaderVertexArray TRUE\n"); else printf ("shaderVertexArray FALSE\n");
-        if (p->shaderColourArray) printf ("shaderColourArray TRUE\n"); else printf ("shaderColourArray FALSE\n");
-		if (p->shaderTextureArray) printf ("shaderTextureArray TRUE\n"); else printf ("shaderTextureArray FALSE\n");               
+           
 #endif
 
         
         /* send along lighting, material, other visible properties */
         sendMaterialsToShader(mysp);
         sendMatriciesToShader(mysp);
-        
-		if (mysp->Normals != -1) {
-			if (p->shaderNormalArray) glEnableVertexAttribArray(mysp->Normals);
-        }
-			else glDisableVertexAttribArray(mysp->Normals);
-        
-		if (mysp->Vertices != -1) {
-			if (p->shaderVertexArray) glEnableVertexAttribArray(mysp->Vertices);
-			else glDisableVertexAttribArray(mysp->Vertices);
-		}
-        
-		if (mysp->Colours != -1) {
-			if (p->shaderColourArray) glEnableVertexAttribArray(mysp->Colours);
-			else glDisableVertexAttribArray(mysp->Colours);
-		}
-        
-		if (mysp->TexCoords != -1) {
-			if (p->shaderTextureArray) glEnableVertexAttribArray(mysp->TexCoords);
-			else glDisableVertexAttribArray(mysp->TexCoords);
-		}
-        
-	PRINT_GL_ERROR_IF_ANY("EXIT(true) setupShader");
+    
     return true;
     
 }
@@ -635,7 +557,6 @@ void initializeLightTables() {
         float dif[] = { 1.0f, 1.0f, 1.0f, 1.0f };
         float shin[] = { 0.0f, 0.0f, 0.0f, 1.0f }; /* light defaults - headlight is here, too */
         float As[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-        float zeroes[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 
       PRINT_GL_ERROR_IF_ANY("start of initializeightTables");

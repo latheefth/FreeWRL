@@ -832,16 +832,15 @@ void render_polyrep(void *node) {
 	if (pr->VBO_buffers[NORMAL_VBO]!=0) {
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, pr->VBO_buffers[NORMAL_VBO]);
 		FW_GL_NORMAL_POINTER(GL_FLOAT,0,0);
-            	FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
-	} else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
+    } 
 
 
 	/* colours? */
 	if (hasc) {
-		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
+		
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,pr->VBO_buffers[COLOR_VBO]);
 		FW_GL_COLOR_POINTER(4,GL_FLOAT,0,0);
-	} else FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
+	}
 
         
 	/*  textures?*/
@@ -855,7 +854,6 @@ void render_polyrep(void *node) {
 
 	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, pr->VBO_buffers[VERTEX_VBO]);
 	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER,pr->VBO_buffers[INDEX_VBO]);
-	FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY); // should already be enabled
 	FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,0);
 
 	sendArraysToGPU(GL_TRIANGLES,0,pr->ntri*3);
@@ -863,14 +861,6 @@ void render_polyrep(void *node) {
 	/* turn VBOs off for now */
 	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	/*  put things back to the way they were;*/
-	if (pr->VBO_buffers[NORMAL_VBO] == 0) FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
-
-
-    if (hasc) {
-		FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
-	}
 
 	gglobal()->Mainloop.trisThisLoop += pr->ntri;
 

@@ -858,10 +858,6 @@ void render_Background (struct X3D_Background *node) {
 
 		enableGlobalShader(getMyShader(COLOUR_MATERIAL_SHADER));
 
-		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
-		FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
-		FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
-
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, node->__VBO);
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 
@@ -884,7 +880,7 @@ void render_Background (struct X3D_Background *node) {
 			((node->bottomUrl).n>0)) {
 
         	glEnable(GL_TEXTURE_2D);
-        	FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
+
         	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,BackgroundVert);
         	FW_GL_NORMAL_POINTER (GL_FLOAT,0,Backnorms);
         	FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,boxtex);
@@ -893,8 +889,6 @@ void render_Background (struct X3D_Background *node) {
 
 
 		loadBackgroundTextures(node);
-
-        	FW_GL_DISABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
 
 		finishedWithGlobalShader();
 	}
@@ -939,10 +933,6 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 
 		enableGlobalShader(getMyShader(COLOUR_MATERIAL_SHADER));
 
-		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
-		FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
-		FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
-
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, node->__VBO);
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 
@@ -970,8 +960,6 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 
 
 		loadTextureBackgroundTextures(node);
-        	FW_GL_DISABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
-
 
 		finishedWithGlobalShader();
 	}

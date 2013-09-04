@@ -305,10 +305,7 @@ void cursorDraw(int ID, int x, int y, float angle)
 
 	glEnableVertexAttribArray ( loc );
 
-	//FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
-	//FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
-	//FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,cursorVert);
-	//FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,cursorTex);
+
 
 // JAS, trying this GL_POP_MATRIX();
 
