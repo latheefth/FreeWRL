@@ -21,7 +21,7 @@ NSMutableData *receivedData;
 void *drawRectconcurrencyHandle = NULL;
 char* startingString = NULL;
 
-static int displayBoundingBox = TRUE;
+static int displayBoundingBox = FALSE;
 static int myBBShowerCompiled = FALSE;
 static struct X3D_IndexedLineSet *bbILS = NULL;
 
@@ -31,8 +31,8 @@ void fwl_update_boundingBox(struct X3D_IndexedLineSet* node);
 //void* initializerConcurrencyHandle = NULL;
 #define TOP_BAR_HEIGHT 0.0
 
-// wait for loading until loopCount != 0, so things "can get set up"
-//int mainloopCount = 0;
+int mainloopCount = 0;
+int whichOne=0;
 
 
 // ===================================
@@ -86,6 +86,7 @@ void fwl_update_boundingBox(struct X3D_IndexedLineSet* node);
         //startingString="/Users/john/Desktop/Stuff/OpenCL/GPU_Collide/kebne2.wrl";
         startingString="/Users/john/Desktop/GeoSpatialTesting/freewrl/freewrl/tests/12.wrl";
                 startingString="/Users/john/Desktop/LineSet.x3d";
+        startingString="/Users/johns/Desktop/Android-freewrl-fullbuild/freewrl/freewrl/tests/1.wrl";
     }
     
     while ([FreeWRLAppDelegate applicationHasLaunched]) {
@@ -377,11 +378,6 @@ mouseDisplaySensitive = mouseOverSensitive; \
 {
     if (drawRectconcurrencyHandle==NULL) {
         drawRectconcurrencyHandle = fwl_init_instance();
-        
-        //fwl_initializeRenderSceneUpdateScene();
-        //fwl_OSX_initializeParameters("/Users/john/Desktop/freewrl/freewrl/tests/1.wrl");
-        //fwl_initializeRenderSceneUpdateScene();     
-
     }
     
     
@@ -430,8 +426,43 @@ mouseDisplaySensitive = mouseOverSensitive; \
         }
     }
 
-    //mainloopCount ++;
+    mainloopCount ++;
     
+    //replaceWorldNeeded
+    //FreeX3DLib.initialFile(myNewX3DFile);
+    //fwl_OSX_initializeParameters((const char*)startingString);
+    //fwl_Android_replaceWorldNeeded();
+    if (mainloopCount == 100) {
+        mainloopCount = 0;
+        
+
+        switch (whichOne) {
+            case 0:
+                fwl_replaceWorldNeeded("/Users/johns/Desktop/demos/TwoCylinders.wrl");
+                whichOne++;
+                break;
+            case 1:
+                fwl_replaceWorldNeeded("/Users/johns/Desktop/demos/flutter2-ProgramShader.wrl");
+                whichOne++;
+                break;
+            case 2:
+                fwl_replaceWorldNeeded("/Users/johns/Desktop/demos/sobel-ComposedShader.wrl");
+                whichOne++;
+                break;
+            case 3:  
+                fwl_replaceWorldNeeded("/Users/johns/Desktop/demos/teapot-Toon.wrl");
+                whichOne++;
+                break;
+            case 4:
+                fwl_replaceWorldNeeded("/Users/johns/Desktop/demos/sobel-ComposedShader.x3dv");
+                whichOne=0;
+
+                break;
+        }
+        //fwl_OSX_initializeParameters("");
+        printf ("replacing world\n");
+        //fwl_replaceWorldNeeded("/Users/johns/Desktop/Android-freewrl-fullbuild/freewrl/freewrl/tests/2.wrl");
+    }
     
     [[self openGLContext] flushBuffer];
 }

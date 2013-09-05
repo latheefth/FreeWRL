@@ -231,7 +231,8 @@ void kill_userDefinedShaders() {
 
 	// free the strings for the shader source, if they exist    
 	for (i=0; i<MAX_USER_DEFINED_SHADERS; i++) {
-		//ConsoleMessage ("udf shader source is %p %p",p->userDefinedVertexShader[i], p->userDefinedFragmentShader[i]);
+        
+		//ConsoleMessage ("udf shader %d source is %p %p",i,p->userDefinedVertexShader[i], p->userDefinedFragmentShader[i]);
 		FREE_IF_NZ (p->userDefinedFragmentShader[i]);
 		FREE_IF_NZ (p->userDefinedVertexShader[i]);
 	}
@@ -279,6 +280,7 @@ void sendShaderTextToEngine(int ste, int parts, char ** vertSource, char ** frag
         if (vertSource[i] != NULL) vs=vertSource[i];
         if (fragSource[i] != NULL) fs=fragSource[i];
     }
+    //ConsoleMessage ("sendShaderTextToEngine, saving in %d",ste);
     
     p->userDefinedFragmentShader[ste] = fs;
     p->userDefinedVertexShader[ste] = vs; 
@@ -2246,8 +2248,15 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
                     #define gl_NormalMatrix fw_NormalMatrix\n \
                     #define gl_ProjectionMatrix fw_ProjectionMatrix \n\
                     #define gl_ModelViewMatrix fw_ModelViewMatrix \n\
+                    #define gl_TextureMatrix fw_TextureMatrix \n\
                     #define gl_Vertex fw_Vertex \n \
                     #define gl_Normal fw_Normal\n \
+                #define gl_Texture_unit0 fw_Texture_unit0\n \
+        #define gl_MultiTexCoord0 fw_MultiTexCoord0\n \
+        #define gl_Texture_unit1 fw_Texture_unit1\n \
+        #define gl_MultiTexCoord1 fw_MultiTexCoord1\n \
+        #define gl_Texture_unit2 fw_Texture_unit2\n \
+        #define gl_MultiTexCoord2 fw_MultiTexCoord2\n \
                     #define gl_LightSource fw_LightSource\n ";    
 
 	// copy over the same defines, but for the fragment shader.
@@ -2272,7 +2281,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 
         vertexSource[vertexNormalDeclare] = vertNormDec;
         fragmentSource[fragmentLightDefines] = lightDefines;
-        //ConsoleMessage ("sources here are %p and %p", p->userDefinedVertexShader[me], p->userDefinedFragmentShader[me]);
+        //ConsoleMessage ("sources here for %d are %p and %p", me, p->userDefinedVertexShader[me], p->userDefinedFragmentShader[me]);
         
         if ((p->userDefinedVertexShader[me] == NULL) || (p->userDefinedFragmentShader[me]==NULL)) {
             ConsoleMessage ("no Shader Source found for user defined shaders...");
@@ -3358,6 +3367,9 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	/* tell the statusbar that it needs to reinitialize */
 	kill_status();
 
+    /* any user defined Shader nodes - ComposedShader, PackagedShader, ProgramShader?? */
+    kill_userDefinedShaders();
+
 	/* free scripts */
 	#ifdef HAVE_JAVASCRIPT
 	kill_javascript();
@@ -3454,6 +3466,9 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 
 	/* tell the statusbar that it needs to reinitialize */
 	kill_status();
+
+        /* any user defined Shader nodes - ComposedShader, PackagedShader, ProgramShader?? */
+        kill_userDefinedShaders();
 
 	/* free textures */
 /*
