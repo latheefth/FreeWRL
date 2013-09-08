@@ -1,0 +1,5 @@
+freewrlians - please #define NOCRYPT 1
+minizip is from zlib source code /contrib/minizip
+This is a 'stripped' / minimum minizip:
+- I left out crypt.h and win32 64bit extra .c/.h files
+minizip #includes zlib header and needs zlib to work
