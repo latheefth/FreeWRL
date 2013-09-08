@@ -609,6 +609,15 @@ void resource_identify_type(resource_item_t *res)
 				/* error */
 				return;
 			}
+			/* maybe .x3z (.zip) archive? */
+			{
+				char *sourcename = of->fileFileName;
+				if(res->type == rest_url) sourcename = res->request;
+				if(!strcmp(&sourcename[strlen(sourcename)-4],".x3z")){
+					res->media_type = resm_x3z;
+					return;
+				}
+			}
 			/* might this be a gzipped input file? */
 			possiblyUnzip(of);
 			test_it = of->fileData;
@@ -653,13 +662,16 @@ void resource_identify_type(resource_item_t *res)
 /**
  *   resource_remove_cached_file: TODO.
  */
+void remove_file_or_folder(const char *path);
+
 static void resource_remove_cached_file(s_list_t *cfe)
 {
 	const char *cached_file;
 	cached_file = (const char *) cfe->elem;
 	ASSERT(cached_file);
 	/* TODO: reference counter on cached files... */
-	UNLINK(cached_file);
+	remove_file_or_folder(cached_file);
+	//UNLINK(cached_file);
 }
 
 /**
@@ -693,6 +705,7 @@ void resource_destroy(resource_item_t *res)
 		case ress_not_loaded:
 		case ress_parsed:
 		case ress_not_parsed:
+		if(0){
 			/* Remove openned file ? */
 			of = (s_list_t *) res->openned_files;
 			if (of) {
@@ -708,7 +721,7 @@ void resource_destroy(resource_item_t *res)
 				 */
 				ml_foreach(cf, resource_remove_cached_file(__l));
 			}
-
+		}
 			/* free the actual file  */
 			FREE(res->actual_file);
 			break;
@@ -769,6 +782,45 @@ void resource_destroy(resource_item_t *res)
 	FREE_IF_NZ(res);
 }
 
+void resource_unlink_cachedfiles(resource_item_t *res)
+{
+	s_list_t *of, *cf;
+
+	if(!res) return;
+	DEBUG_RES("destroying resource: %d, %d\n", res->type, res->status);
+
+	ASSERT(res);
+
+	/* Remove cached file ? */
+	cf = (s_list_t *) res->cached_files;
+	if (cf) {
+		/* remove any cached file:
+		   TODO: reference counter on cached files...
+		 */
+		ml_foreach(cf, resource_remove_cached_file(__l));
+	}
+
+}
+
+void resource_close_files(resource_item_t *res)
+{
+	s_list_t *of;
+
+	if(!res) return;
+	DEBUG_RES("closing resource file: %d, %d\n", res->type, res->status);
+
+	ASSERT(res);
+
+	/* Remove openned file ? */
+	of = (s_list_t *) res->openned_files;
+	if (of) {
+		/* close any openned file */
+		close( ((openned_file_t*)of->elem)->fileDescriptor );
+	}
+
+}
+
+
 /**
  *   resource_remove_child: remove given child from the parent's list of _children_ // cached files.
  */
@@ -801,10 +853,15 @@ void resource_tree_destroy()
 	resource_item_t* root;
 	root = gglobal()->resources.root_res;
 	if(root){
+		ml_foreach(root->children,resource_close_files((resource_item_t*)ml_elem(__l)));
+		ml_foreach(root->children,resource_unlink_cachedfiles((resource_item_t*)ml_elem(__l)));
 		ml_foreach(root->children,resource_destroy((resource_item_t*)ml_elem(__l)));
 		ml_foreach(root->children,resource_remove_child(root,(resource_item_t*)ml_elem(__l)));
+		resource_close_files(root);
+		resource_unlink_cachedfiles(root);
+		destroy_root_res();
 	}
-	destroy_root_res();
+
 }
 /**
  *   resource_dump: debug function.
@@ -1005,6 +1062,7 @@ char *resourceMediaTypeToString (int mt) {
 		case  resm_movie: return " resm_movie";
 		case  resm_pshader: return " resm_pshader";
 		case  resm_fshader: return " resm_fshader";
+		case  resm_x3z: return " resm_x3z";
 		default: return "resource OUT OF RANGE";
 	}
 }

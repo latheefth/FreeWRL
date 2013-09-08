@@ -737,3 +737,393 @@ int freewrlSystem (const char *sysline)
 	return -1; /* should we return FALSE or -1 ??? */
 #endif
 }
+
+//goal: remove a directory and its contents - used for removing the temp unzip folder for .z3z / .zip file processing
+#ifdef _MSC_VER
+//http://msdn.microsoft.com/en-us/windows/desktop/aa365488
+#undef _UNICODE
+#undef UNICODE
+#include <windows.h>
+#undef _UNICODE
+//#undef _MBCS
+#undef UNICODE
+
+#include <TCHAR.H>
+#ifdef UNICODE
+static TCHAR *singleDot = L".";
+static TCHAR *doubleDot = L"..";
+	backslash = L"\\";
+	star = L"*";
+
+#else
+static TCHAR *singleDot = ".";
+static TCHAR *doubleDot = "..";
+static TCHAR *backslash = "\\";
+static TCHAR *star = "*";
+#endif
+
+// http://www.codeproject.com/Articles/9089/Deleting-a-directory-along-with-sub-folders
+BOOL IsDots(const TCHAR* str) {
+	if(_tcscmp(str,singleDot) && _tcscmp(str,doubleDot))
+		return FALSE;
+	return TRUE;
+}
+BOOL DeleteDirectory0(const TCHAR* sPath) {
+	HANDLE hFind;  // file handle
+	WIN32_FIND_DATA FindFileData;
+	TCHAR DirPath[MAX_PATH];
+	TCHAR FileName[MAX_PATH];
+	BOOL bSearch;
+
+	_tcscpy(DirPath,sPath);
+	_tcscat(DirPath,backslash);    // searching all files
+	_tcscat(DirPath,star);
+	_tcscpy(FileName,sPath);
+	_tcscat(FileName,backslash);
+
+	hFind = FindFirstFile(DirPath,&FindFileData); // find the first file
+	if(hFind == INVALID_HANDLE_VALUE) 
+		return FALSE;
+	_tcscpy(DirPath,FileName);
+        
+	bSearch = TRUE;
+	while(bSearch) { // until we finds an entry
+		if(FindNextFile(hFind,&FindFileData)) {
+			if(IsDots(FindFileData.cFileName)) continue;
+			_tcscat(FileName,FindFileData.cFileName);
+			if((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+				// we have found a directory, recurse
+				if(!DeleteDirectory0(FileName)) { 
+					FindClose(hFind); 
+					return FALSE; // directory couldn't be deleted
+				}
+				RemoveDirectory(FileName); // remove the empty directory
+				_tcscpy(FileName,DirPath);
+			}
+			else {
+				if(FindFileData.dwFileAttributes & FILE_ATTRIBUTE_READONLY)
+					_chmod(FileName, 777); //_S_IWRITE); // change read-only file mode
+				if(!DeleteFile(FileName)) {  // delete the file
+					FindClose(hFind); 
+					return FALSE; 
+				}                 
+				_tcscpy(FileName,DirPath);
+			}
+		}
+		else {
+			if(GetLastError() == ERROR_NO_MORE_FILES) // no more files there
+				bSearch = FALSE;
+			else {
+				// some error occured, close the handle and return FALSE
+				FindClose(hFind); 
+				return FALSE;
+			}
+		}
+	}
+	FindClose(hFind);  // closing file handle
+	return RemoveDirectory(sPath); // remove the empty directory
+}
+BOOL directory_remove_all(const char* sPath) {
+    const size_t newsize;
+	int jj;
+    size_t convertedChars = 0;
+    TCHAR wcstring[MAX_PATH];
+	char fname2[MAX_PATH];
+	size_t origsize; //= strlen(fname) + 1;
+	BOOL retval;
+	origsize = strlen(sPath) + 1;
+	strcpy(fname2,sPath);
+	for(jj=0;jj<strlen(fname2);jj++)
+		if(fname2[jj] == '/' ) fname2[jj] = '\\';
+
+#ifdef _UNICODE
+#if _MSC_VER >= 1500
+	mbstowcs_s(&convertedChars, wcstring, origsize, fname2, _TRUNCATE);
+#else
+	mbstowcs(wcstring, fname2, MB_CUR_MAX);
+#endif
+#else
+	_tcscpy(wcstring,fname2);
+#endif
+	retval = DeleteDirectory0(wcstring);
+	return retval;
+}
+void remove_file_or_folder(const char *path){
+	DWORD finfo;
+	// http://msdn.microsoft.com/en-us/library/windows/desktop/aa364944%28v=vs.85%29.aspx
+	// http://msdn.microsoft.com/en-us/library/windows/desktop/gg258117%28v=vs.85%29.aspx
+	finfo = GetFileAttributes(path);
+	if(FILE_ATTRIBUTE_DIRECTORY & finfo)
+		directory_remove_all(path);
+	else
+		DeleteFile(path);
+}
+#else // POSIX and OSX - WARNING UNTESTED as of Sept 7, 2013
+//according to boost, unlike posix OSX must do separate rmdir for directory and unlink for file
+//goal: remove a directory and its contents - used for removing the temp unzip folder for .z3z / .zip file processing
+int directory_remove_all(const char *path)
+{
+	DIR *d = opendir(path);
+	size_t path_len = strlen(path);
+	int r = -1;
+
+	if (d)
+	{
+		struct dirent *p;
+		r = 0;
+
+		while (!r && (p=readdir(d)))
+		{
+			int r2 = -1;
+			char *buf;
+			size_t len;
+
+			/* Skip the names "." and ".." as we don't want to recurse on them. */
+			if (!strcmp(p->d_name, ".") || !strcmp(p->d_name, ".."))
+			{
+				continue;
+			}
+			len = path_len + strlen(p->d_name) + 2; 
+			buf = malloc(len);
+			if (buf)
+			{
+				struct stat statbuf;
+				snprintf(buf, len, "%s/%s", path, p->d_name);
+				if (!stat(buf, &statbuf))
+				{
+					if (S_ISDIR(statbuf.st_mode))
+					{
+						r2 = directory_remove_all(buf);
+					}
+					else
+					{
+						r2 = unlink(buf);
+					}
+				}
+				free(buf);
+			}
+			r = r2;
+		}
+		closedir(d);
+	}
+	if (!r)
+	{
+		r = rmdir(path);
+	}
+	return r;
+}
+void remove_file_or_folder(const char * path){
+	struct stat statbuf;
+	if (!stat(path, &statbuf))
+	{
+		if (S_ISDIR(statbuf.st_mode))
+		{
+			r2 = directory_remove_all(path);
+		}
+		else
+		{
+			r2 = unlink(path);
+		}
+	}
+}
+#endif
+
+
+
+//could maybe be in a separate C file?
+#ifdef HAVE_UNZIP_H
+#include <unzip.h>
+#define WRITEBUFFERSIZE (8192)
+
+
+int unzip_archive_to_temp_folder(const char *zipfilename, const char* tempfolderpath)
+{
+
+    const char *filename_to_extract=NULL;
+    int i;
+    int ret_value=0;
+    const char *dirname=NULL;
+	char temppath[256];
+	char *fullpath = NULL;
+    unzFile uf=NULL;
+
+    uf = unzOpen(zipfilename);
+    if (uf==NULL)
+    {
+        printf("Cannot open %s \n",zipfilename);
+        return 1;
+    }
+    printf("%s opened\n",zipfilename);
+	temppath[0] = '\0';
+	if(tempfolderpath){
+		mkdir(tempfolderpath);
+	}
+
+	{
+		uLong i;
+		unz_global_info gi;
+		int err;
+		FILE* fout=NULL;
+
+		err = unzGetGlobalInfo(uf,&gi);
+		if (err!=UNZ_OK){
+			printf("error %d with zipfile in unzGetGlobalInfo \n",err);
+			return err;
+		}
+
+		for (i=0;i<gi.number_entry;i++)
+		{
+			{
+				char filename_inzip[256];
+				char* filename_withoutpath;
+				char* p;
+				int err=UNZ_OK;
+				FILE *fout=NULL;
+				void* buf;
+				uInt size_buf;
+
+				unz_file_info file_info;
+				uLong ratio=0;
+				err = unzGetCurrentFileInfo(uf,&file_info,filename_inzip,sizeof(filename_inzip),NULL,0,NULL,0);
+
+				if (err!=UNZ_OK)
+				{
+					printf("error %d with zipfile in unzGetCurrentFileInfo\n",err);
+					return err;
+				}
+
+				size_buf = WRITEBUFFERSIZE;
+				buf = (void*)malloc(size_buf);
+				if (buf==NULL)
+				{
+					printf("Error allocating memory\n");
+					return UNZ_INTERNALERROR;
+				}
+
+				p = filename_withoutpath = filename_inzip;
+				while ((*p) != '\0')
+				{
+					if (((*p)=='/') || ((*p)=='\\'))
+						filename_withoutpath = p+1;
+					p++;
+				}
+
+				if ((*filename_withoutpath)=='\0')
+				{
+					printf("creating directory: %s\n",filename_inzip);
+					strcpy(temppath,tempfolderpath);
+					strcat(temppath,"/");
+					strcat(temppath,filename_inzip);
+					//mkdir(filename_inzip);
+					mkdir(temppath);
+				}
+				else
+				{
+					const char* write_filename;
+					int skip=0;
+
+					write_filename = filename_inzip;
+
+					err = unzOpenCurrentFile(uf);
+					if (err!=UNZ_OK)
+					{
+						printf("error %d with zipfile in unzOpenCurrentFile\n",err);
+					}
+
+					if (err==UNZ_OK)
+					{
+						strcpy(temppath,tempfolderpath);
+						strcat(temppath,"/");
+						strcat(temppath,write_filename);
+						//fout=fopen(write_filename,"wb");
+						fout=fopen(temppath,"wb");
+					}
+
+					if (fout!=NULL)
+					{
+						printf(" extracting: %s\n",write_filename);
+
+						do
+						{
+							err = unzReadCurrentFile(uf,buf,size_buf);
+							if (err<0)
+							{
+								printf("error %d with zipfile in unzReadCurrentFile\n",err);
+								break;
+							}
+							if (err>0)
+								if (fwrite(buf,err,1,fout)!=1)
+								{
+									printf("error in writing extracted file\n");
+									err=UNZ_ERRNO;
+									break;
+								}
+						}
+						while (err>0);
+						if (fout)
+								fclose(fout);
+
+					}
+
+					if (err==UNZ_OK)
+					{
+						err = unzCloseCurrentFile (uf);
+						if (err!=UNZ_OK)
+						{
+							printf("error %d with zipfile in unzCloseCurrentFile\n",err);
+						}
+					}
+					else
+						unzCloseCurrentFile(uf); /* don't lose the error */
+				}
+
+				free(buf);
+			}
+			if(err) break;
+
+			if ((i+1)<gi.number_entry)
+			{
+				err = unzGoToNextFile(uf);
+				if (err!=UNZ_OK)
+				{
+					printf("error %d with zipfile in unzGoToNextFile\n",err);
+					break;
+				}
+			}
+		}
+
+	}
+
+    unzClose(uf);
+    return ret_value;
+}
+
+
+void resitem_enqueue(s_list_t *item);
+void process_x3z(resource_item_t *res){
+	int err;
+	char request[256];
+	char* tempfolderpath = tempnam(gglobal()->Mainloop.tmpFileLocation, "freewrl_download_XXXXXXXX");
+	err = unzip_archive_to_temp_folder(res->actual_file, tempfolderpath);
+	if(!err){
+		resource_item_t *docx3d, *tempdir;
+		openned_file_t *of;
+		//I need a resource just for cleaning up the temp folder in one shot
+		strcpy(request,tempfolderpath);
+		strcat(request,"/doc.x3d");
+		docx3d = resource_create_single(request);
+		docx3d->parent = NULL; //divorce so it doesn't inherit rest_url
+		docx3d->type = rest_file;
+		docx3d->media_type = resm_x3d;
+		//docx3d->temp_dir = tempfolderpath;
+		resitem_enqueue(ml_new(docx3d));
+		// clean up temp folder via resource with opennedfile entry
+		res->cached_files = ml_append(res->cached_files,ml_new(tempfolderpath));
+	
+	}
+}
+
+#else
+void process_x3z(res){
+}
+#endif

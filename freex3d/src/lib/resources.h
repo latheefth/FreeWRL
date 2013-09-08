@@ -67,7 +67,8 @@ typedef enum resource_media_type {
 	resm_image,
 	resm_movie,
 	resm_pshader,
-	resm_fshader
+	resm_fshader,
+	resm_x3z
 } resource_media_type_t;
 
 typedef struct resource_item {
