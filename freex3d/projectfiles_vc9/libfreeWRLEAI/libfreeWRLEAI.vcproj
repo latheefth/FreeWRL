@@ -106,12 +106,12 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\..\..\lib_windows\js185\include;..\..\src\Lib;..\..\src\Lib\Input;..\;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\zlib\include;..\..\..\..\lib_windows\jpeg\include;..\..\..\..\lib_windows\freetype2\include;..\..\..\..\lib_windows\png\include;..\..\..\..\lib_windows\glew\include;..\..\..\..\lib_windows\libxml2\include"
+				AdditionalIncludeDirectories="..\..\..\..\lib_windows\js185\include;..\..\src\Lib;../../src/libtess;..\..\src\Lib\Input;..\;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\zlib\include;..\..\..\..\lib_windows\jpeg\include;..\..\..\..\lib_windows\freetype2\include;..\..\..\..\lib_windows\png\include;..\..\..\..\lib_windows\glew\include;..\..\..\..\lib_windows\libxml2\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB; XP_WIN"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
-				WarningLevel="3"
+				WarningLevel="2"
 				DebugInformationFormat="3"
 			/>
 			<Tool

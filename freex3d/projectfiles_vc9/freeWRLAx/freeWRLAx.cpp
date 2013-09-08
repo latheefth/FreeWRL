@@ -63,16 +63,19 @@ STDAPI DllRegisterServer(void)
     const char* pszMTExt1 = ".wrl";
     const char* pszMTExt2 = ".x3dv";
     const char* pszMTExt3 = ".x3d";
+    const char* pszMTExt4 = ".x3z";
     // text for new mime content type
     const char* pszMTContent0 = "x-world/x-vrml";
     const char* pszMTContent1 = "model/vrml";
     const char* pszMTContent2 = "model/x3d+vrml";
     const char* pszMTContent3 = "model/x3d+xml";
+    const char* pszMTContent4 = "model/x3d+zip";
     // text for mimetype subkey
     const char* pszMTSubKey0 = "MIME\\DataBase\\Content Type\\x-world/x-vrml";
     const char* pszMTSubKey1 = "MIME\\DataBase\\Content Type\\model/vrml";
     const char* pszMTSubKey2 = "MIME\\DataBase\\Content Type\\model/x3d+vrml";
     const char* pszMTSubKey3 = "MIME\\DataBase\\Content Type\\model/x3d+xml";
+    const char* pszMTSubKey4 = "MIME\\DataBase\\Content Type\\model/x3d+zip";
     // extension named value
     const char* pszMTExtVal = "Extension";
     // clsid
@@ -168,6 +171,25 @@ STDAPI DllRegisterServer(void)
 
         RegCloseKey(hkey);
 
+	//HKCR/MIME/DataBase/Content Type/model/x3d+zip .x3z
+        // create new mime type key for our new mimetype.  Only necessary for new mime types
+        if ( ERROR_SUCCESS != RegCreateKey(HKEY_CLASSES_ROOT, pszMTSubKey4, &hkey) )
+            break;
+
+        // add extension value to that mime type key to associate .xxx files with the 
+        //  mime type
+        if ( ERROR_SUCCESS != RegSetValueEx(hkey, pszMTExtVal, 0, REG_SZ, 
+            (const BYTE *)pszMTExt4, strlen(pszMTExt4)) )
+            break;
+
+        // Add class id to associate this object with the mime type
+        if ( ERROR_SUCCESS != RegSetValueEx(hkey, pszMTCLSIDVal, 0, REG_SZ,
+            (const BYTE *)pszMTCLSID, strlen(pszMTCLSID)) )
+            break;
+
+        RegCloseKey(hkey);
+
+
 //For object/embed IE uses the type="content type" field of the tag to get the mime type directly.
 //For href links (which show FullPage), IE uses the .xxx extension to get the Content Type, 
 //and uses that mime type. So for the hrefs we need to register our prefered mime type with the .xxx 
@@ -212,6 +234,19 @@ STDAPI DllRegisterServer(void)
             break;
 
         RegCloseKey(hkey);
+	//HKCR/.x3z
+        // Register .xxx as a file extension this is only necessary for new file extensions, addimg
+        // a new player for .avi files for instance would not require this
+        if ( ERROR_SUCCESS != RegCreateKey(HKEY_CLASSES_ROOT, pszMTExt4, &hkey) )
+            break;
+
+        // Add content type to associate this extension with the content type.  This is required
+        // and is used when the mime type is unknown and IE looks up associations by extension
+        if ( ERROR_SUCCESS != RegSetValueEx(hkey, pszMTContentVal, 0, REG_SZ,
+            (const BYTE *)pszMTContent4, strlen(pszMTContent4)) )
+            break;
+
+        RegCloseKey(hkey);
 	}
 //<<<<<<<<<<<<<<<<<
 //I can start here for my first tests
@@ -231,6 +266,10 @@ STDAPI DllRegisterServer(void)
             break;
         RegCloseKey(hkey1);
         wsprintf(szSubKey, "%s\\%s", pszMTFullPage, pszMTExt3);
+        if ( ERROR_SUCCESS != RegCreateKey(hkey, szSubKey, &hkey1) )
+            break;
+        RegCloseKey(hkey1);
+        wsprintf(szSubKey, "%s\\%s", pszMTFullPage, pszMTExt4);
         if ( ERROR_SUCCESS != RegCreateKey(hkey, szSubKey, &hkey1) )
             break;
         RegCloseKey(hkey1);

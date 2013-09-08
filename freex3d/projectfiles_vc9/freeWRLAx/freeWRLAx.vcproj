@@ -29,7 +29,7 @@
 				UsePrecompiledHeader="3"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="4"/>
+				DebugInformationFormat="3"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
@@ -83,6 +83,7 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="..\..\src\dllFreeWRL"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG;_USRDLL"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -100,10 +101,10 @@
 				AdditionalLibraryDirectories="..\Release"
 				IgnoreDefaultLibraryNames="mfcs71.lib;MSVCRT.lib"
 				ModuleDefinitionFile=".\freeWRLAx.def"
-				GenerateDebugInformation="TRUE"
+				GenerateDebugInformation="FALSE"
 				SubSystem="2"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
+				OptimizeReferences="0"
+				EnableCOMDATFolding="0"
 				ImportLibrary="../Release/freeWRLAx.lib"
 				TargetMachine="1"/>
 			<Tool

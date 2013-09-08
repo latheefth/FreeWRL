@@ -119,7 +119,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\;..\..\src\bin;..\..\src\lib;..\dllFreeWRL;..\..\..\..\lib_windows\pthreads.2"
+				AdditionalIncludeDirectories="..\;..\..\src\bin;..\..\src\lib;..\..\src\dllFreeWRL;..\..\..\..\lib_windows\pthreads.2"
 				PreprocessorDefinitions="WIN32;NDEBUG"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="2"

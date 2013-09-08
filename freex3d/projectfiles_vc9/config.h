@@ -275,3 +275,5 @@ char *getWgetPath();
 #define HAVE_GLEW_H 1
 #define FREEWRL_STEREO_RENDERING 1
 //#endif
+#define NEWQUEUE 1
+#define HAVE_UNZIP_H 1
