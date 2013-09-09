@@ -43,6 +43,10 @@
 
 #include <threads.h> /* for freewrlSystem */
 
+#if HAVE_DIRENT_H
+# include <dirent.h>
+#endif
+
 #ifndef _MSC_VER
 #include <sys/mman.h> /* mmap */
 #endif
@@ -916,6 +920,7 @@ void remove_file_or_folder(const char * path){
 	struct stat statbuf;
 	if (!stat(path, &statbuf))
 	{
+        int r2;
 		if (S_ISDIR(statbuf.st_mode))
 		{
 			r2 = directory_remove_all(path);

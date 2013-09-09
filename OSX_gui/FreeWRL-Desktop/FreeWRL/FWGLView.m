@@ -82,11 +82,6 @@ int whichOne=0;
     } else {
 
         startingString="/Users/john/Desktop/GeoSpatialTesting/7_levels_plus/globe.x3d";
-        //startingString="/Users/john/Desktop/GeoSpatialTesting/freewrl/freewrl/tests/13.wrl";
-        //startingString="/Users/john/Desktop/Stuff/OpenCL/GPU_Collide/kebne2.wrl";
-        startingString="/Users/john/Desktop/GeoSpatialTesting/freewrl/freewrl/tests/12.wrl";
-                startingString="/Users/john/Desktop/LineSet.x3d";
-        startingString="/Users/johns/Desktop/Android-freewrl-fullbuild/freewrl/freewrl/tests/1.wrl";
     }
     
     while ([FreeWRLAppDelegate applicationHasLaunched]) {
@@ -428,6 +423,7 @@ mouseDisplaySensitive = mouseOverSensitive; \
 
     mainloopCount ++;
     
+#ifdef TESTING_LOADING_WORLDS
     //replaceWorldNeeded
     //FreeX3DLib.initialFile(myNewX3DFile);
     //fwl_OSX_initializeParameters((const char*)startingString);
@@ -463,6 +459,7 @@ mouseDisplaySensitive = mouseOverSensitive; \
         printf ("replacing world\n");
         //fwl_replaceWorldNeeded("/Users/johns/Desktop/Android-freewrl-fullbuild/freewrl/freewrl/tests/2.wrl");
     }
+#endif //TESTING_LOADING_WORLDS
     
     [[self openGLContext] flushBuffer];
 }

@@ -14,7 +14,7 @@
 
 #define FONTS_DIR "/Applications/FreeWRL/fonts"
 
-
+#define HAVE_DIRENT_H 1
 #define HAVE_STDARG_H 1
 #define HAVE_ERRNO_H 1
 #define HAVE_MEMCPY 1
