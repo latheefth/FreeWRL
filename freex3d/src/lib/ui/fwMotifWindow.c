@@ -188,20 +188,17 @@ void fv_DrawArea_events (Widget w, XtPointer unused, XEvent *event, Boolean *con
 /**
  *   create_main_window: (virtual) create the window with Motif.
  */
-int fv_create_main_window(int argc, char *argv[])
+int fv_create_main_window(freewrl_params_t * params) //int argc, char *argv[])
 {
 	int argc_out = 0;
 	char *argv_out[1] = { NULL };
 	Dimension width, height;
 	Arg initArgs[10]; int initArgc = 0;
 
-/* 	argc_out = argc; */
-/* 	argv_out = argv; */
-
 	/* XtVaAppInitialize ??? */
 	XtSetArg(initArgs[initArgc], XmNlabelString, XmStringCreate(getWindowTitle(), XmSTRING_DEFAULT_CHARSET)); initArgc++;
-	XtSetArg(initArgs[initArgc], XmNheight, fwl_params.height); initArgc++;
-	XtSetArg(initArgs[initArgc], XmNwidth, fwl_params.width); initArgc++;
+	XtSetArg(initArgs[initArgc], XmNheight, fwl_params->height); initArgc++;
+	XtSetArg(initArgs[initArgc], XmNwidth, fwl_params->width); initArgc++;
 	XtSetArg(initArgs[initArgc], XmNmappedWhenManaged, False); initArgc++;
 
 	/**
