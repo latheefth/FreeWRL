@@ -288,7 +288,7 @@ OLDCODE //JAS		#endif
 	#define GLUNIFORMMATRIX3FV glUniformMatrix3fv
 #endif
 
-#if !defined (_MSC_VER) && !defined (TARGET_AQUA) && !defined(IPHONE) && !defined(_ANDROID) && !defined(QNX)  /* not aqua and not win32, ie linux */
+#if defined (_MSC_VER) || defined (TARGET_AQUA) || defined(IPHONE) || defined(_ANDROID) || defined(QNX)  /* not aqua and not win32, ie linux */
 	#include <libtess2.h>
 #endif // linux spefcific for now
 
