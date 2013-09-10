@@ -144,19 +144,17 @@ int fv_display_initialize()
 	//d->height = fwl_getp_height();
 	//d->winToEmbedInto = fwl_getp_winToEmbedInto();
 
-#ifdef OLDCODE
-OLDCODE 	/* make the window, get the OpenGL context */
-OLDCODE #if !defined(_MSC_VER) && !defined(GLES2)
-OLDCODE	if (!fv_open_display()) {
-OLDCODE		return FALSE;
-OLDCODE	}
-OLDCODE
-OLDCODE	if (!fv_create_GLcontext()) {
-OLDCODE		return FALSE;
-OLDCODE	}
-OLDCODE
-OLDCODE #endif //!MSC_VER && !GLES2
-#endif //OLDCODE
+ 	/* make the window, get the OpenGL context */
+ #if !defined(_MSC_VER) && !defined(_ANDROID) && !defined(QNX) && !defined(IPHONE)
+	if (!fv_open_display()) {
+		return FALSE;
+	}
+
+	if (!fv_create_GLcontext()) {
+		return FALSE;
+	}
+
+ #endif //!MSC_VER && ! any OpenGL ES 2.0 device
 
 	if (0 != d->screenWidth)  d->width  = d->screenWidth;
 	if (0 != d->screenHeight) d->height = d->screenHeight;

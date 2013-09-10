@@ -418,10 +418,8 @@ void fwl_startFreeWRL(const char *url)
 			sleep(200);
 		}
 	}
-#ifdef HAVE_GLEW_H
 	/* now wait around until something kills this thread. */
 	pthread_join(gglobal()->threads.DispThrd, NULL);
-#endif
 }
 
 /**
