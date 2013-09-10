@@ -73,35 +73,40 @@ Functions:
 #endif /* defined IPHONE */
 #endif /* defined TARGET_AQUA */
 #include <libFreeWRL.h>
-#ifdef HAVE_GLEW_H
-#define GLEW_NO_GLU 1
-#include <GL/glew.h>
-#ifdef GLEW_MX
-GLEWContext * glewGetContext();
-#endif
-#define ERROR 0
-#endif /* TARGET_WIN32 */
+
+#ifdef OLDCODE
+OLDCODE#ifdef HAVE_GLEW_H
+OLDCODE#define GLEW_NO_GLU 1
+OLDCODE#include <GL/glew.h>
+OLDCODE#ifdef GLEW_MX
+OLDCODEGLEWContext * glewGetContext();
+OLDCODE#endif
+OLDCODE#define ERROR 0
+OLDCODE#endif /* TARGET_WIN32 */
+#endif //OLDCODE
 
 #if !defined (_MSC_VER) && !defined (TARGET_AQUA) && !defined(IPHONE) && !defined(_ANDROID) && !defined(QNX)  /* not aqua and not win32, ie linux */
-	#ifdef HAVE_GLEW_H
-		#include <GL/glew.h>
-		#ifdef GLEW_MX
-			GLEWContext * glewGetContext();
-		#endif
-	#else
-//JAS		#ifndef AQUA
-//JAS			#if !defined(GLES2)
+#ifdef OLDCODE	
+OLDCODE #ifdef HAVE_GLEW_H
+OLDCODE		#include <GL/glew.h>
+OLDCODE		#ifdef GLEW_MX
+OLDCODE			GLEWContext * glewGetContext();
+OLDCODE		#endif
+OLDCODE	#else
+OLDCODE //JAS		#ifndef AQUA
+OLDCODE //JAS			#if !defined(GLES2)
+#endif //OLDCODE
 				#include <GL/gl.h>
 				#include <GL/glu.h>
 				#include <GL/glext.h>
 				#include <GL/glx.h>
-//JAS			#else
-//JAS				/* GLES2 */
-//JAS				#include <GLES2/gl2.h>
-//JAS				#include <GLES2/gl2ext.h>
-//JAS			#endif /*ANDROID_NDK*/
-//JAS		#endif
-	#endif
+#ifdef OLDCODE //JAS			#else
+OLDCODE //JAS				/* GLES2 */
+OLDCODE //JAS				#include <GLES2/gl2.h>
+OLDCODE //JAS				#include <GLES2/gl2ext.h>
+OLDCODE //JAS			#endif /*ANDROID_NDK*/
+OLDCODE //JAS		#endif
+	#endif //OLDCODE
 #endif
 
 #if defined (IPHONE) || defined (_ANDROID) || defined (QNX)
@@ -283,9 +288,9 @@ GLEWContext * glewGetContext();
 	#define GLUNIFORMMATRIX3FV glUniformMatrix3fv
 #endif
 
-	#if defined(GL_ES_VERSION_2_0) || defined(GLEW_NO_GLU)
-		#include <libtess2.h>
-	#endif
+#if !defined (_MSC_VER) && !defined (TARGET_AQUA) && !defined(IPHONE) && !defined(_ANDROID) && !defined(QNX)  /* not aqua and not win32, ie linux */
+	#include <libtess2.h>
+#endif // linux spefcific for now
 
 /* Main initialization function */
 /* int display_initialize(); */

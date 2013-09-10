@@ -274,21 +274,23 @@ bool initialize_rdr_caps()
 	/* Max texture size */
 	GLint tmp;  /* ensures that we pass pointers of same size across all platforms */
 		
+#ifdef OLDCODE
+OLDCODE#ifdef HAVE_GLEW_H
+OLDCODE
+OLDCODE	/* Initialize GLEW */
+OLDCODE	{
+OLDCODE	GLenum err;
+OLDCODE	err = glewInit();
+OLDCODE	if (GLEW_OK != err) {
+OLDCODE		/* Problem: glewInit failed, something is seriously wrong. */
+OLDCODE		ERROR_MSG("GLEW initialization error: %s\n", glewGetErrorString(err));
+OLDCODE		return FALSE;
+OLDCODE	}
+OLDCODE	TRACE_MSG("GLEW initialization: version %s\n", glewGetString(GLEW_VERSION));
+OLDCODE	}
+OLDCODE#endif
+#endif //OLDCODE
 
-#ifdef HAVE_GLEW_H
-
-	/* Initialize GLEW */
-	{
-	GLenum err;
-	err = glewInit();
-	if (GLEW_OK != err) {
-		/* Problem: glewInit failed, something is seriously wrong. */
-		ERROR_MSG("GLEW initialization error: %s\n", glewGetErrorString(err));
-		return FALSE;
-	}
-	TRACE_MSG("GLEW initialization: version %s\n", glewGetString(GLEW_VERSION));
-	}
-#endif
 	/* OpenGL is initialized, context is created,
 	   get some info, for later use ...*/
         rdr_caps.renderer   = (char *) FW_GL_GETSTRING(GL_RENDERER);
@@ -311,26 +313,30 @@ bool initialize_rdr_caps()
     rdr_caps.have_GL_VERSION_2_1 = rdr_caps.versionf >= 2.1f;
     rdr_caps.have_GL_VERSION_3_0 = rdr_caps.versionf >= 3.0f;
 
-#ifdef HAVE_GLEW_H
 
-	{
-    printf("opengl version=%s\n",rdr_caps.version);
-	if(!rdr_caps.have_GL_VERSION_2_0)
-	{
-		printf("please upgrade to opengl version 2+\n see http://www.opengl.org/wiki/Getting_Started  for details\n");
-		printf("press enter to exit\n");
-		getchar();
-		exit(-1);
-	}
+#ifdef OLDCODE
+OLDCODE#ifdef HAVE_GLEW_H
+OLDCODE
+OLDCODE	{
+OLDCODE    printf("opengl version=%s\n",rdr_caps.version);
+OLDCODE	if(!rdr_caps.have_GL_VERSION_2_0)
+OLDCODE	{
+OLDCODE		printf("please upgrade to opengl version 2+\n see http://www.opengl.org/wiki/Getting_Started  for details\n");
+OLDCODE		printf("press enter to exit\n");
+OLDCODE		getchar();
+OLDCODE		exit(-1);
+OLDCODE	}
+OLDCODE
+OLDCODE
+OLDCODE	rdr_caps.av_multitexture = GLEW_ARB_multitexture;
+OLDCODE	rdr_caps.av_occlusion_q = GLEW_ARB_occlusion_query;
+OLDCODE	rdr_caps.av_npot_texture = GLEW_ARB_texture_non_power_of_two;
+OLDCODE	rdr_caps.av_texture_rect = GLEW_ARB_texture_rectangle;
+OLDCODE	}
+OLDCODE
+OLDCODE#else
+#endif //OLDCODE
 
-
-	rdr_caps.av_multitexture = GLEW_ARB_multitexture;
-	rdr_caps.av_occlusion_q = GLEW_ARB_occlusion_query;
-	rdr_caps.av_npot_texture = GLEW_ARB_texture_non_power_of_two;
-	rdr_caps.av_texture_rect = GLEW_ARB_texture_rectangle;
-	}
-
-#else
 	/* Initialize renderer capabilities without GLEW */
 
 	/* Multitexturing */
@@ -344,7 +350,9 @@ bool initialize_rdr_caps()
 
 	/* Texture rectangle (x != y) */
 	rdr_caps.av_texture_rect = (strstr (rdr_caps.extensions, "GL_ARB_texture_rectangle") !=0);
-#endif
+#ifdef OLDCODE
+OLDCODE #endif
+#endif //OLDCODE
 
 	/* if we are doing our own shading, force the powers of 2, because otherwise mipmaps are not possible. */
 	rdr_caps.av_npot_texture=FALSE;
