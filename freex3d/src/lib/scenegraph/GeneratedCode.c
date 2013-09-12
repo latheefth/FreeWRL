@@ -242,6 +242,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"extra",
 	"horizontal",
 	"enabled",
+	"_colourSize",
 	"pickedPoint",
 	"fanCount",
 	"__child2Node",
@@ -252,6 +253,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"collide",
 	"specularColor",
 	"transitionTime",
+	"_coloursVBO",
 	"siteID",
 	"color",
 	"axisOfRotation",
@@ -347,6 +349,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"visibilityRange",
 	"textBounds",
 	"munitionStartPoint",
+	"_npoints",
 	"skinCoordIndex",
 	"_retrievedURLData",
 	"_coordIndex",
@@ -478,6 +481,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"articulationParameterValue0_changed",
 	"__rightTexture",
 	"__protoFlags",
+	"_pointsVBO",
 	"geoCenter",
 	"emissiveColor",
 	"antennaPatternLength",
@@ -4436,11 +4440,15 @@ const int OFFSETS_PointPickSensor[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_PointSet[] = {
+	(int) FIELDNAMES__colourSize, (int) offsetof (struct X3D_PointSet, _colourSize),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__coloursVBO, (int) offsetof (struct X3D_PointSet, _coloursVBO),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_color, (int) offsetof (struct X3D_PointSet, color),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_fogCoord, (int) offsetof (struct X3D_PointSet, fogCoord),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__pointsVBO, (int) offsetof (struct X3D_PointSet, _pointsVBO),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_attrib, (int) offsetof (struct X3D_PointSet, attrib),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_coord, (int) offsetof (struct X3D_PointSet, coord),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_PointSet, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__npoints, (int) offsetof (struct X3D_PointSet, _npoints),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Polyline2D[] = {
@@ -8297,11 +8305,15 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_PointSet * tmp2;
 			tmp2 = (struct X3D_PointSet *) tmp;
 		/* ttmp2->v = &virt_PointSet;*/ 
+			tmp2->_colourSize = 0;
+			tmp2->_coloursVBO = 0;
 			tmp2->color = NULL;
 			tmp2->fogCoord = NULL;
+			tmp2->_pointsVBO = 0;
 			tmp2->attrib.n=0; tmp2->attrib.p=0;
 			tmp2->coord = NULL;
 			tmp2->metadata = NULL;
+			tmp2->_npoints = 0;
 			tmp2->_defaultContainer = FIELDNAMES_geometry;
 		break;
 		}

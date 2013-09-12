@@ -381,96 +381,96 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
             // draw. Note the casting of the last param - it is ok, because we tell that
             // we are sending in ushorts; it gets around a compiler warning.
             
-            sendElementsToGPU(GL_LINE_STRIP,count[i],indxStartPtr[i]);
+            		sendElementsToGPU(GL_LINE_STRIP,count[i],indxStartPtr[i]);
 		}
 	}
 }
 
-
 void compile_PointSet (struct X3D_PointSet *node) {
+	struct SFColor *colors=0; int ncolors=0;
+	struct X3D_Color *cc;
+
+    if (node->_pointsVBO == 0) {
+        glGenBuffers(1,(GLuint *) &node->_pointsVBO);
+    }
+
 	/* do nothing, except get the extents here */
 	MARK_NODE_COMPILED
 
+    node->_npoints = 0;
+    
 	if (node->coord) {
 		struct Multi_Vec3f *dtmp;
-		dtmp = getCoordinate (node->coord, "IndexedLineSet");
+		dtmp = getCoordinate (node->coord, "PointSet");
 
 		/* find the extents */
 		findExtentInCoord(X3D_NODE(node), dtmp->n, dtmp->p);
+        
+        if (dtmp->n == 0) return;
+    
+        
+        FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, (GLuint) node->_pointsVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(struct SFVec3f)*dtmp->n, dtmp->p, GL_STATIC_DRAW);
+        FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,0);
+        node->_npoints = dtmp->n;
 	}
+    
+    if (node->color) {
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Color *, node->color,cc)
+        if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
+            ConsoleMessage ("make_PointSet, expected %d got %d\n", NODE_Color, cc->_nodeType);
+        } else {
+            ncolors = cc->color.n;
+			colors = cc->color.p;
+        }
+    
+    
+        if(ncolors && ncolors < node->_npoints) {
+            ConsoleMessage ("PointSet has less colors than points - removing color\n");
+            ncolors = 0;
+        } else {
+            if (node->_coloursVBO == 0) {
+                glGenBuffers(1,(GLuint *)&node->_coloursVBO);
+            }
+        
+            /* RGB or RGBA? */
+            FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, (GLuint) node->_coloursVBO);
+            if (cc->_nodeType == NODE_Color) {
+                glBufferData(GL_ARRAY_BUFFER, sizeof(struct SFColor)*ncolors, colors, GL_STATIC_DRAW);
+                node->_colourSize = 3;
+            } else {
+                glBufferData(GL_ARRAY_BUFFER, sizeof(struct SFColorRGBA)*ncolors, colors, GL_STATIC_DRAW);
+                node->_colourSize = 4;
+            }
+            FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,0);
+        }
+    }
 }
 
 
 void render_PointSet (struct X3D_PointSet *node) {
-	struct SFVec3f *points=0; int npoints=0;
-	struct SFColor *colors=0; int ncolors=0;
-	struct X3D_Color *cc;
-
-#ifdef OLDCODE
-OLDCODE	DEFAULT_COLOUR_POINTER
-#endif //OLDCODE
-
         COMPILE_IF_REQUIRED
 
         setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, node->EXTENT_MAX_Y,
                 node->EXTENT_MIN_Y, node->EXTENT_MAX_Z, node->EXTENT_MIN_Z,
                 X3D_NODE(node));
-
-#ifdef OLDCODE
-OLDCODE	/* is there an emissiveColor here??? */
-OLDCODE	GET_COLOUR_POINTER
-#endif //OLDCODE
-
-	if (node->coord) {
-		struct Multi_Vec3f *dtmp;
-		dtmp = getCoordinate (node->coord, "IndexedLineSet");
-		npoints = dtmp->n;
-		points = dtmp->p;
-
-		/* find the extents */
-		findExtentInCoord(X3D_NODE(node), npoints, points);
-	} else {
-		return; /* no coordinates - nothing to do */
-	}
-
-	if (npoints <=0 ) return; /* nothing to do */
- 
-
-       	if (node->color) {
-               	/* cc = (struct X3D_Color *) node->color; */
-		POSSIBLE_PROTO_EXPANSION(struct X3D_Color *, node->color,cc)
-               	if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
-               	        ConsoleMessage ("make_PointSet, expected %d got %d\n", NODE_Color, cc->_nodeType);
-               	} else {
-               	        ncolors = cc->color.n;
-			colors = cc->color.p;
-               	}
-       	}
-
-	if(ncolors && ncolors < npoints) {
-		printf ("PointSet has less colors than points - removing color\n");
-		ncolors = 0;
-	}
-
+    
 	LIGHTING_OFF
 	DISABLE_CULL_FACE
 
-	#ifdef RENDERVERBOSE
-	printf("PointSet: %d %d\n", npoints, ncolors);
-	#endif
-
-	if (ncolors>0) {
-                cc = (struct X3D_Color *) node->color;
-		/* is this a Color or ColorRGBA color node? */
-               	if (cc->_nodeType == NODE_Color) {
-			FW_GL_COLOR_POINTER (3,GL_FLOAT,0,(float *)colors);
-		} else {
-			FW_GL_COLOR_POINTER (4,GL_FLOAT,0,(float *)colors);
-		}
-	}
-
-	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(float *)points);
-	sendArraysToGPU(GL_POINTS,0,npoints);
+    if (node->_pointsVBO == 0) return;
+    
+    FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, node->_pointsVBO);
+    FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,0);
+    
+    // do we have colours?
+    if (node->_coloursVBO != 0) {
+        FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, node->_coloursVBO);
+        FW_GL_COLOR_POINTER(node->_colourSize,GL_FLOAT,0,0);
+    }
+    //printf ("ps is %d, vbo %d\n",node->_npoints, node->_pointsVBO);
+    
+	sendArraysToGPU(GL_POINTS,0,node->_npoints);
 }
 
 void render_LineSet (struct X3D_LineSet *node) {

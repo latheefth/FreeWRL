@@ -341,7 +341,7 @@ typedef struct s_shader_capabilities{
 	GLint myMaterialBackShininess;
 	GLint myMaterialBackEmission;
 
-	GLint pointSize;
+	GLint myPointSize;
     
     // do we need to send down light information?
     bool  haveLightInShader; 
@@ -730,9 +730,7 @@ void resetGeometry();
 	#define FW_GL_COLOR_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_COLOR_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd,__FILE__,__LINE__); }
 	#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) {sendAttribToGPU(FW_NORMAL_POINTER_TYPE, 0, aaa, GL_FALSE, bbb, ccc,__FILE__,__LINE__); }
 	#define FW_GL_TEXCOORD_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_TEXCOORD_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd,__FILE__,__LINE__); }
-	#define FW_GL_DRAWARRAYS(xxx,yyy,zzz) { sendArraysToGPU(xxx,yyy,zzz); }
 	#define FW_GL_BINDBUFFER(xxx,yyy) {sendBindBufferToGPU(xxx,yyy,__FILE__,__LINE__); }
-	#define FW_GL_DRAWELEMENTS(aaa,bbb,ccc,ddd) {sendElementsToGPU(aaa,bbb,ccc,ddd); }
 
 
 

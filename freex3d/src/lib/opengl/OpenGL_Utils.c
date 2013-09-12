@@ -2156,8 +2156,12 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             vertexSource[vertexLightDefines] = lightDefines;
             vertexSource[vertFrontColourDeclare] = varyingFrontColour;
             vertexSource[vertexOneMaterialDeclare] = vertOneMatDec;
+
+    		#if defined  (AQUA) || defined (GL_ES_VERSION_2_0)
 	    vertexSource[vertexPointSizeDeclare] = pointSizeDeclare;
 	    vertexSource[vertexPointSizeAssign] = pointSizeAss;
+		#endif
+
             vertexSource[vertexOneMaterialCalculation] = vertEmissionOnlyColourAss;
             fragmentSource[fragmentSimpleColourDeclare] = varyingFrontColour;
             fragmentSource[fragmentSimpleColourAssign] = fragSimColAss;
@@ -2570,7 +2574,7 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
     
     
 	/* for FillProperties */
-	me->pointSize = GET_UNIFORM(myProg, "pointSize");
+	me->myPointSize = GET_UNIFORM(myProg, "pointSize");
 	me->hatchColour = GET_UNIFORM(myProg,"HatchColour");
 	me->hatchPercent = GET_UNIFORM(myProg,"HatchPct");
 	me->hatchScale = GET_UNIFORM(myProg,"HatchScale");
@@ -2950,12 +2954,19 @@ bool fwl_initialize_GL()
     
 	gl_linewidth = gglobal()->Mainloop.gl_linewidth;
    
-    // dp pointSize in shaders
-    #if defined (GL_PROGRAM_POINT_SIZE) 
-    glEnable(GL_PROGRAM_POINT_SIZE);
-    #endif
-    #if defined (GL_PROGRAM_POINT_SIZE_EXT)
-    glEnable(GL_PROGRAM_POINT_SIZE_EXT);
+    // dp pointSize in shaders on more modern OpenGL renderings
+    // keep Windows and Linux doing old way, as we have failures
+    // circa 2013 in this.
+
+    #if defined  (AQUA) || defined (GL_ES_VERSION_2_0)
+    	#if defined (GL_PROGRAM_POINT_SIZE) 
+    	glEnable(GL_PROGRAM_POINT_SIZE);
+    	#endif
+    	#if defined (GL_PROGRAM_POINT_SIZE_EXT)
+    	glEnable(GL_PROGRAM_POINT_SIZE_EXT);
+    	#endif
+    #else
+	glPointSize (gl_linewidth);
     #endif
 
 	glLineWidth(gl_linewidth);
@@ -5468,9 +5479,12 @@ PRINT_GL_ERROR_IF_ANY("BEGIN sendMaterialsToShader");
 	if (me->haveLightInShader) sendLightInfo(me);
     
     /* FillProperties, LineProperty lineType */
+    #if defined  (AQUA) || defined (GL_ES_VERSION_2_0)
+	SEND_FLOAT(myPointSize,myap->pointSize);
+    #else 
+	glPointSize(myap->pointSize);
+    #endif
 
-	SEND_FLOAT(pointSize,myap->pointSize);
-    
     //ConsoleMessage ("rlp %d %d %d %d",me->hatchPercent,me->filledBool,me->hatchedBool,me->algorithm,me->hatchColour);
     SEND_INT(filledBool,myap->filledBool);
     SEND_INT(hatchedBool,myap->hatchedBool);
@@ -5481,7 +5495,7 @@ PRINT_GL_ERROR_IF_ANY("BEGIN sendMaterialsToShader");
 
     //TextureCoordinateGenerator
     SEND_INT(texCoordGenType,myap->texCoordGeneratorType);
-PRINT_GL_ERROR_IF_ANY("END sendMaterialsToShader");
+	PRINT_GL_ERROR_IF_ANY("END sendMaterialsToShader");
 }
 
 static void __gluMultMatrixVecd(const GLDOUBLE matrix[16], const GLDOUBLE in[4],
