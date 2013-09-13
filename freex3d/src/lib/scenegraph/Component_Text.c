@@ -506,7 +506,7 @@ void FW_make_fontname(int num) {
 }
 
 /* initialize the freetype library */
-int FW_init_face() 
+static int FW_init_face() 
 {
     int err;
 	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
@@ -918,6 +918,12 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
 
     /* is this font opened */
     p->myff = (fsparam >> 3) & 0x1F;
+
+#if defined (ANDROID)
+// Android - for now, all fonts are identical
+p->myff = 4;
+#endif
+
     if (p->myff <4) {
         /* we dont yet allow externally specified fonts, so one of
            the font style bits HAS to be set. If there was no FontStyle
