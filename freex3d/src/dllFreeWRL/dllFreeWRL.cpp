@@ -117,7 +117,8 @@ void CdllFreeWRL::onInit(int width, int height, void* windowhandle, bool bEai)
 	params->height = height; //400;
 	params->eai = bEai;
 	params->fullscreen = 0;
-	params->winToEmbedInto = (long int)windowhandle;
+	params->winToEmbedInto = windowhandle;
+	params->frontend_handles_display_thread = false;
 	swDebugf("just before fwl_initFreeWRL\n");
 	fwl_ConsoleSetup(MC_DEF_AQUA , MC_TARGET_AQUA , MC_HAVE_MOTIF , MC_TARGET_MOTIF , MC_MSC_HAVE_VER , 0);
 #ifdef CONSOLE

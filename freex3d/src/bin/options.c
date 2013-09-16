@@ -177,7 +177,7 @@ int fv_parseCommandLine (int argc, char **argv)
 {
     int c;
     float ftmp;
-    long int ldtmp;
+    void* ldtmp;
     int option_index = 0;
     int real_option_index;
     const char *real_option_name;
