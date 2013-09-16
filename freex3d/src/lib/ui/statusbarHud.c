@@ -1831,7 +1831,7 @@ void renderButtons()
 	ppstatusbar p;
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
-
+	
 
 	// get rid of compiler warning
 	loaded = 0;
@@ -1887,6 +1887,8 @@ void renderButtons()
 				glEnableVertexAttribArray ( p->positionLoc );
 				glEnableVertexAttribArray ( p->texCoordLoc );
 				glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, p->pmenu.ind ); //first 6 should be 0 1 3 0 3 2
+			//glDisableVertexAttribArray(p->texCoordLoc);
+			//glDisableVertexAttribArray(p->positionLoc);
 			}
 		}
 	}
@@ -1913,7 +1915,13 @@ void renderButtons()
 			// Set the base map sampler to texture unit to 0
 			glUniform1i ( p->textureLoc, 0 );
 			glDrawElements ( GL_TRIANGLES, p->pmenu.nactive*3*2, GL_UNSIGNED_SHORT, p->pmenu.ind ); //just render the active ones
+		//glDisableVertexAttribArray ( p->positionLoc );
+		//glDisableVertexAttribArray ( p->texCoordLoc );
+
 	}
+FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
+
+FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 	p->hadString = 1;
 }
 void setArrowCursor(); //from ui/common.h
@@ -2070,19 +2078,25 @@ M       void toggle_collision()                             //"
 		//p.306 redbook - glwindowpos2i is ogl 1.4, older is glrasterpos2i, and for that
 		//you must set up orthomatrix
 		glViewport(0, 0, tg->display.screenWidth, tg->display.screenHeight);
+//#define OLDGL
+#ifdef OLDGL
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
+#endif
 		//gluOrtho2D(0.0,tg->display.screenWidth,0.0,tg->display.screenHeight);
 		//FW_GL_ORTHO(0.0,tg->display.screenWidth,0.0,tg->display.screenHeight,Viewer()->nearPlane,Viewer()->farPlane);
 		//glFrustum(-1.0,1.0,-1.0,1.0,.1,1000.0);
 
 		//might not need this for gles2 either
+//#ifdef OLDGL
 		FW_GL_ORTHO(-1.0,1.0,-1.0,1.0,Viewer()->nearPlane,Viewer()->farPlane);
-
+//#endif
 		//glOrtho(-1.0,1.0,-1.0,1.0,Viewer()->nearPlane,Viewer()->farPlane);
 		//glOrtho(-100.0,100.0,-100.0,100.0,Viewer()->nearPlane,Viewer()->farPlane);
+#ifdef OLDGL
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
+#endif
 		glDisable(GL_DEPTH_TEST);
 		p->posType = 1; // use RasterPos2i instead of WindowPos2i
 	}

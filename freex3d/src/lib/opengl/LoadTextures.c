@@ -457,7 +457,7 @@ ConsoleMessage(me);}
     if (!ret) {
 		ERROR_MSG("load_texture_from_file: failed to load image: %s\n", fname);
 	}else{
-#ifdef UNNECESSARY_EXPERIMENT
+#ifdef GL_ES_VERSION_2_0
 			//swap red and blue
 			//search for GL_RGBA in textures.c
 			int x,y,i,j,k,m;

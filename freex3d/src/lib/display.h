@@ -74,16 +74,14 @@ Functions:
 #endif /* defined TARGET_AQUA */
 #include <libFreeWRL.h>
 
-#ifdef OLDCODE
-OLDCODE#ifdef HAVE_GLEW_H
-OLDCODE#define GLEW_NO_GLU 1
-OLDCODE#include <GL/glew.h>
-OLDCODE#ifdef GLEW_MX
-OLDCODEGLEWContext * glewGetContext();
-OLDCODE#endif
-OLDCODE#define ERROR 0
-OLDCODE#endif /* TARGET_WIN32 */
-#endif //OLDCODE
+#if defined(HAVE_GLEW_H) && !defined(ANGLEPROJECT)
+#define GLEW_NO_GLU 1
+#include <GL/glew.h>
+#ifdef GLEW_MX
+GLEWContext * glewGetContext();
+#endif
+#define ERROR 0
+#endif /* TARGET_WIN32 */
 
 #if !defined (_MSC_VER) && !defined (TARGET_AQUA) && !defined(IPHONE) && !defined(_ANDROID) && !defined(QNX)  /* not aqua and not win32, ie linux */
 #ifdef OLDCODE	
@@ -109,7 +107,7 @@ OLDCODE //JAS		#endif
 	#endif //OLDCODE
 #endif
 
-#if defined (IPHONE) || defined (_ANDROID) || defined (QNX)
+#if defined (IPHONE) || defined (_ANDROID) || defined (QNX) || defined(ANGLEPROJECT)
 	#include <GLES2/gl2.h>
 	#include <GLES2/gl2ext.h>
 #endif
@@ -662,7 +660,7 @@ void resetGeometry();
 	/****************************************************************/
 
 	#if defined(_MSC_VER) 
-		#define FW_GL_SWAPBUFFERS SwapBuffers(wglGetCurrentDC());
+		#define FW_GL_SWAPBUFFERS fwSwapBuffers((freewrl_params_t *)&gglobal()->display); //SwapBuffers(wglGetCurrentDC());
 	#endif
 
 #if KEEP_X11_INLIB

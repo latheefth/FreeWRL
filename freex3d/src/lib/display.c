@@ -88,6 +88,7 @@ d->shutterGlasses = 0; /* stereo shutter glasses */
 d->quadbuff_stereo_mode = 0;
 memset(&d->rdr_caps,0,sizeof(d->rdr_caps));
 d->myFps = (float) 0.0;
+d->frontend_handles_display_thread = FALSE;
 
 //private
 } 
@@ -169,8 +170,10 @@ int fv_display_initialize()
 	setWindowTitle0();
 
 #if ! ( defined(_MSC_VER) || defined(FRONTEND_HANDLES_DISPLAY_THREAD) )
+	
 	fv_bind_GLcontext();
 #endif
+
 
 	if (!fwl_initialize_GL()) {
 		return FALSE;
@@ -274,22 +277,19 @@ bool initialize_rdr_caps()
 	/* Max texture size */
 	GLint tmp;  /* ensures that we pass pointers of same size across all platforms */
 		
-#ifdef OLDCODE
-OLDCODE#ifdef HAVE_GLEW_H
-OLDCODE
-OLDCODE	/* Initialize GLEW */
-OLDCODE	{
-OLDCODE	GLenum err;
-OLDCODE	err = glewInit();
-OLDCODE	if (GLEW_OK != err) {
-OLDCODE		/* Problem: glewInit failed, something is seriously wrong. */
-OLDCODE		ERROR_MSG("GLEW initialization error: %s\n", glewGetErrorString(err));
-OLDCODE		return FALSE;
-OLDCODE	}
-OLDCODE	TRACE_MSG("GLEW initialization: version %s\n", glewGetString(GLEW_VERSION));
-OLDCODE	}
-OLDCODE#endif
-#endif //OLDCODE
+#if defined(HAVE_GLEW_H) && !defined(ANGLEPROJECT)
+	/* Initialize GLEW */
+	{
+	GLenum err;
+	err = glewInit();
+	if (GLEW_OK != err) {
+		/* Problem: glewInit failed, something is seriously wrong. */
+		ERROR_MSG("GLEW initialization error: %s\n", glewGetErrorString(err));
+		return FALSE;
+	}
+	TRACE_MSG("GLEW initialization: version %s\n", glewGetString(GLEW_VERSION));
+	}
+#endif
 
 	/* OpenGL is initialized, context is created,
 	   get some info, for later use ...*/

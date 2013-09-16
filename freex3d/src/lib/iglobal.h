@@ -57,6 +57,7 @@ typedef struct iiglobal //InstanceGlobal
 	bool multithreading;
 	bool eai;
 	bool verbose;
+	bool frontend_handles_display_thread;
 	//int collision;	/* do collision detection? moved to x3d_viewer struct july 7, 2012*/
 
 //} freewrl_params_t;

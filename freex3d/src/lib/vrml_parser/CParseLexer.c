@@ -146,7 +146,14 @@ static int setLexerNextIn(struct VRMLLexer *me) {
 		printf ("setlexerNextIn, decrementing; deleting %x, setting nextIn to %x\n", me->startOfStringPtr[me->lexerInputLevel], me->oldNextIn[me->lexerInputLevel]); 
 		#endif
 
-		FREE_IF_NZ (me->startOfStringPtr[me->lexerInputLevel]);
+		//FREE_IF_NZ (me->startOfStringPtr[me->lexerInputLevel]);
+		if(me->startOfStringPtr[me->lexerInputLevel]){
+			if(strlen(me->startOfStringPtr[me->lexerInputLevel])){
+				FREE_IF_NZ(me->startOfStringPtr[me->lexerInputLevel]);
+			}else{
+				me->startOfStringPtr[me->lexerInputLevel] = NULL;
+			}
+		}
 		me->nextIn = me->oldNextIn[me->lexerInputLevel];
 		me->lexerInputLevel--;
 		/* printf ("setlexerNextIn, level now is %d, and nextIn is :%s:\n",me->lexerInputLevel,me->nextIn); */

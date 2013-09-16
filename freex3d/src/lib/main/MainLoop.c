@@ -1039,16 +1039,18 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
 		/* NOTE: front ends now sync with the monitor, meaning, this sleep is no longer needed unless
 		   something goes totally wrong */
 #ifndef FRONTEND_HANDLES_DISPLAY_THREAD
-		/* we see how long it took to do the last loop; now that the frame rate is synced to the
-		   vertical retrace of the screens, we should not get more than 60-70fps. We calculate the
-		   time here, if it is more than 200fps, we sleep for 1/100th of a second - we should NOT
-		   need this, but in case something goes pear-shaped (british expression, there!) we do not
-		   consume thousands of frames per second */
+			if(!tg->display.frontend_handles_display_thread){
+				/* we see how long it took to do the last loop; now that the frame rate is synced to the
+				   vertical retrace of the screens, we should not get more than 60-70fps. We calculate the
+				   time here, if it is more than 200fps, we sleep for 1/100th of a second - we should NOT
+				   need this, but in case something goes pear-shaped (british expression, there!) we do not
+				   consume thousands of frames per second */
 
-               p->waitsec = TickTime() - lastTime();
-               if (p->waitsec < 0.005) {
-                       usleep(10000);
-		}
+				p->waitsec = TickTime() - lastTime();
+				if (p->waitsec < 0.005) {
+					usleep(10000);
+				}
+			}
 #endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
         }
 
@@ -1188,14 +1190,14 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
 #endif /* TARGET_MOTIF */
 #endif /* KEEP_X11_INLIB */
 
-#if defined(_MSC_VER) 
-	/**
-	 *   Win32 event loop
-	 *   gives windows message handler a time slice and 
-	 *   it calls fwl_handle_aqua and do_keypress from fwWindow32.c 
-	 */
-	doEventsWin32A(); 
-#endif /* _MSC_VER */
+//#if defined(_MSC_VER) 
+//	/**
+//	 *   Win32 event loop
+//	 *   gives windows message handler a time slice and 
+//	 *   it calls fwl_handle_aqua and do_keypress from fwWindow32.c 
+//	 */
+//	doEventsWin32A(); 
+//#endif /* _MSC_VER */
 
         /* Viewer move viewpoint */
         handle_tick();
@@ -4085,6 +4087,9 @@ void _displayThread(void *globalcontext)
 	/* loop and loop, and loop... */
 	while (!((ppMainloop)(tg->Mainloop.prv))->quitThread) {
 		//PRINTF("event loop\n");
+#ifdef _MSC_VER
+		fwMessageLoop((freewrl_params_t *)&gglobal()->display);
+#endif
 		fwl_RenderSceneUpdateScene();
 		//Controller code
 		//-MVC - Model-View-Controller design pattern: do the Controller poll-model-and-update-UI here
@@ -4186,6 +4191,7 @@ void outOfMemory(const char *msg) {
 void fwl_doQuitInstance()
 {
 #if !defined(FRONTEND_HANDLES_DISPLAY_THREAD)
+	if(!gglobal()->display.frontend_handles_display_thread)
     	stopDisplayThread();
 #endif
     kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__); //must be done from this thread
@@ -4666,6 +4672,7 @@ void stopRenderingLoop(void) {
 	//printf ("stopRenderingLoop called\n");
 
 #if !defined(FRONTEND_HANDLES_DISPLAY_THREAD)
+	if(!tg->display.frontend_handles_display_thread)
     	stopDisplayThread();
 #endif
 

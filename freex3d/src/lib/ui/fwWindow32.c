@@ -11,7 +11,7 @@
 
 #include <config.h>
 
-#if !(defined(IPHONE) || defined(_ANDROID) || defined(AQUA))
+#if defined(_MSC_VER)
 
 #include <system.h>
 #include <display.h>
@@ -24,6 +24,288 @@
 #include <libFreeWRL.h>
 #include <float.h>
 #include "common.h"
+
+void fwSwapBuffers(freewrl_params_t * d);
+bool fv_create_and_bind_GLcontext(HWND hWnd);
+BOOL fwDisplayChange();
+void fwCloseContext();
+
+
+#ifdef ANGLEPROJECT
+//gles2 and egl
+#include <GLES2/gl2.h>
+#include <EGL/egl.h>
+/// esCreateWindow flag - RGB color buffer
+#define ES_WINDOW_RGB           0
+/// esCreateWindow flag - ALPHA color buffer
+#define ES_WINDOW_ALPHA         1 
+/// esCreateWindow flag - depth buffer
+#define ES_WINDOW_DEPTH         2 
+/// esCreateWindow flag - stencil buffer
+#define ES_WINDOW_STENCIL       4
+/// esCreateWindow flat - multi-sample buffer
+#define ES_WINDOW_MULTISAMPLE   8
+
+static EGLDisplay eglDisplay;
+static EGLContext eglContext;
+static EGLSurface eglSurface;
+void fwSwapBuffers(freewrl_params_t * d){
+	eglSwapBuffers(eglDisplay,eglSurface);
+}
+EGLBoolean fwCreateEGLContext ( EGLNativeWindowType hWnd, EGLDisplay* eglDisplay,
+                              EGLContext* eglContext, EGLSurface* eglSurface,
+                              EGLint attribList[])
+{
+   EGLint numConfigs;
+   EGLint majorVersion;
+   EGLint minorVersion;
+   EGLDisplay display;
+   EGLContext context;
+   EGLSurface surface;
+   EGLConfig config;
+   EGLint contextAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE, EGL_NONE };
+
+   // Get Display
+   
+   display = eglGetDisplay(GetDC(hWnd));
+   if ( display == EGL_NO_DISPLAY )
+      display = eglGetDisplay(EGL_DEFAULT_DISPLAY); //win32 goes in here
+   if ( display == EGL_NO_DISPLAY )
+   {
+	   printf("Ouch - EGL_NO_DISPLAY\n");
+      return EGL_FALSE;
+   }
+   // Initialize EGL
+   if ( !eglInitialize(display, &majorVersion, &minorVersion) )
+   {
+	   printf("Ouch no eglInitialize\n");
+      return EGL_FALSE;
+   }
+   // Get configs
+   if ( !eglGetConfigs(display, NULL, 0, &numConfigs) )
+   {
+      return EGL_FALSE;
+	  printf("Ouch no eglGetConfigs\n");
+   }
+
+   // Choose config
+   if ( !eglChooseConfig(display, attribList, &config, 1, &numConfigs) )
+   {
+      return EGL_FALSE;
+   }
+
+   // Create a surface
+   surface = eglCreateWindowSurface(display, config, (EGLNativeWindowType)hWnd, NULL);
+   if ( surface == EGL_NO_SURFACE )
+   {
+      return EGL_FALSE;
+   }
+
+   // Create a GL context
+   context = eglCreateContext(display, config, EGL_NO_CONTEXT, contextAttribs );
+   if ( context == EGL_NO_CONTEXT )
+   {
+      return EGL_FALSE;
+   }   
+   
+   // Make the context current
+   if ( !eglMakeCurrent(display, surface, surface, context) )
+   {
+      return EGL_FALSE;
+   }
+   
+   *eglDisplay = display;
+   *eglSurface = surface;
+   *eglContext = context;
+   return EGL_TRUE;
+} 
+
+bool fv_create_and_bind_GLcontext(HWND hWnd){
+	//modified
+	//EGLDisplay eglDisplay;
+	//EGLContext eglContext;
+	//EGLSurface eglSurface;
+	GLuint flags = ES_WINDOW_RGB | ES_WINDOW_DEPTH | ES_WINDOW_STENCIL;
+	EGLint attribList[] =
+	{
+		EGL_RED_SIZE,       8,
+		EGL_GREEN_SIZE,     8,
+		EGL_BLUE_SIZE,      8,
+		EGL_ALPHA_SIZE,     (flags & ES_WINDOW_ALPHA) ? 8 : EGL_DONT_CARE,
+		EGL_DEPTH_SIZE,     (flags & ES_WINDOW_DEPTH) ? 24 : EGL_DONT_CARE,
+		EGL_STENCIL_SIZE,   (flags & ES_WINDOW_STENCIL) ? 8 : EGL_DONT_CARE,
+		EGL_SAMPLE_BUFFERS, (flags & ES_WINDOW_MULTISAMPLE) ? 1 : 0,
+		EGL_NONE
+	};
+   
+   //if ( esContext == NULL )
+   //{
+   //   return GL_FALSE;
+   //}
+
+   //esContext->width = width;
+   //esContext->height = height;
+
+   //if ( !WinCreate ( esContext, title) )
+   //{
+   //   return GL_FALSE;
+   //}
+
+   if ( !fwCreateEGLContext ( hWnd,
+                            &eglDisplay,
+                            &eglContext,
+                            &eglSurface,
+                            attribList) )
+   {
+	  printf("Ouch CreateEGLContext returns FALSE\n");
+      return GL_FALSE;
+   }
+   
+   return GL_TRUE;
+
+
+}
+BOOL fwDisplayChange(){
+	return GL_FALSE;
+}
+void fwCloseContext(){
+}
+
+
+#else //ANGLEPROJECT
+//desktop GL and wgl functions
+#include <display.h>
+#include <main/headers.h>
+#include <shlwapi.h>
+
+#include <internal.h>
+
+#include <float.h>
+#include "common.h"
+
+
+void fwSwapBuffers(freewrl_params_t * d)
+{
+	HDC   ghDC; 
+	ghDC = wglGetCurrentDC();
+	SwapBuffers(ghDC); 
+}
+
+BOOL bSetupPixelFormat(HDC hdc) 
+{ 
+	/* http://msdn.microsoft.com/en-us/library/dd318284(VS.85).aspx */
+    PIXELFORMATDESCRIPTOR pfd, *ppfd; 
+    int pixelformat; 
+	int more;
+
+	ppfd = &pfd; 
+
+	memset(ppfd,0,sizeof(PIXELFORMATDESCRIPTOR));
+ 
+    ppfd->nSize = sizeof(PIXELFORMATDESCRIPTOR); 
+    ppfd->nVersion = 1; 
+    ppfd->dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER; 
+	if(gglobal()->display.shutterGlasses ==1)
+		ppfd->dwFlags |= PFD_STEREO;
+	ppfd->iLayerType = PFD_MAIN_PLANE;
+    ppfd->iPixelType = PFD_TYPE_RGBA; /* PFD_TYPE_COLORINDEX; */
+    ppfd->cColorBits = 24; 
+	ppfd->cAlphaBits = 8;
+    ppfd->cDepthBits = 32; 
+    //not using accum now, using color masks ppfd->cAccumBits = 64; /*need accum buffer for shader anaglyph - 8 bits per channel OK*/
+    ppfd->cStencilBits = 8; 
+	ppfd->cAuxBuffers = 0;
+	ppfd->cAccumBits = 0;
+ 
+    /* pixelformat = ChoosePixelFormat(hdc, ppfd); */
+	if ( (pixelformat = ChoosePixelFormat(hdc, ppfd)) == 0 ) 
+	{ 
+		MessageBox(NULL, "ChoosePixelFormat failed", "Error", MB_OK); 
+		return FALSE; 
+	} 
+ 
+	/*  seems to fail stereo gracefully/quietly, allowing you to detect with glGetbooleanv(GL_STEREO,) in shared code
+	*/
+	DescribePixelFormat(hdc, pixelformat, sizeof(PIXELFORMATDESCRIPTOR), ppfd);
+	printf("Depth Bits = %d\n",(int)(ppfd->cDepthBits));
+	if(gglobal()->display.shutterGlasses > 0)
+		printf("got stereo? = %d\n",(int)(ppfd->dwFlags & PFD_STEREO));
+	/**/
+    if (SetPixelFormat(hdc, pixelformat, ppfd) == FALSE) 
+    { 
+        MessageBox(NULL, "SetPixelFormat failed", "Error", MB_OK); 
+        return FALSE; 
+    } 
+ 
+    return TRUE; 
+} 
+
+bool fv_create_and_bind_GLcontext(HWND hWnd)
+{
+
+	RECT rect;
+	HDC hDC;
+	HGLRC hRC;
+	int width, height;
+
+	/* create GL context */
+	//fwl_thread_dump();
+	printf("starting createcontext32b\n");
+	hDC = GetDC(hWnd); 
+	printf("got hdc\n");
+	if (!bSetupPixelFormat(hDC))
+		printf("ouch - bSetupPixelFormat failed\n");
+	hRC = wglCreateContext(hDC); 
+	printf("created context\n");
+	/* bind GL context */
+
+	//fwl_thread_dump();
+	//width = tg->display.screenWidth;
+	//height = tg->display.screenHeight;
+	if (wglMakeCurrent(hDC, hRC)) {
+		//GetClientRect(hWnd, &rect); 
+		//gglobal()->display.screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
+		//gglobal()->display.screenHeight = rect.bottom;
+		return TRUE;
+	}
+	return FALSE;
+
+}
+BOOL fwDisplayChange(){
+	BOOL ret;
+	HWND hWnd;
+	HGLRC ghRC;
+	HDC ghDC;
+	ttglobal tg = gglobal();
+	hWnd = (HWND)tg->display.winToEmbedInto;
+
+	ghDC = GetDC(hWnd); 
+	ret = bSetupPixelFormat(ghDC);
+	printf("WM_DISPLAYCHANGE happening now\n");
+
+	/* ???? do we have to recreate an OpenGL context 
+	   when display mode changed ? */
+	if(ret){
+		ghRC = wglCreateContext(ghDC); 
+		wglMakeCurrent(ghDC, ghRC); 
+	}
+	return ret;
+}
+
+void fwCloseContext(){
+	HWND hWnd;
+	HGLRC ghRC;
+	HDC ghDC;
+	ttglobal tg = gglobal();
+	hWnd = (HWND)tg->display.winToEmbedInto;
+	ghRC = wglGetCurrentContext();
+	if (ghRC) 
+	    wglDeleteContext(ghRC); 
+	ghDC = GetDC(hWnd); 
+	if (ghDC) 
+	    ReleaseDC(hWnd, ghDC); 
+}
+#endif //ANGLEPROJECT
 
 
 
@@ -89,12 +371,6 @@ int mouseX, mouseY;
 
 static short gcWheelDelta = 0;
 
-void swapbuffers32()
-{
-	HDC   ghDC; 
-	ghDC = wglGetCurrentDC();
-	SwapBuffers(ghDC); 
-}
 
 
 static bool m_fullscreen = false;
@@ -103,7 +379,7 @@ static RECT smallrect;
 void setLastCursor();
 bool EnableFullscreen(int w, int h, int bpp)
 {
-#if defined(_MSC_VER)
+#if defined(ENABLEFULLSCREEN)
     /* adapted from http://www.gamedev.net/community/forums/topic.asp?topic_id=418397 */
     /* normally I pass in bpp=32. If you set debugit=true below and do a run, you'll see the modes available */
     /* CDS_FULLSCREEN
@@ -210,7 +486,7 @@ bool EnableFullscreen(int w, int h, int bpp)
 
 void DisableFullscreen()
 {
-#if defined(_MSC_VER)
+#if defined(ENABLEFULLSCREEN)
     if(m_fullscreen) {
 
         /* Find out the name of the device this window
@@ -251,121 +527,6 @@ void DisableFullscreen()
 #endif
 }
 
-BOOL bSetupPixelFormat(HDC hdc) 
-{ 
-	/* http://msdn.microsoft.com/en-us/library/dd318284(VS.85).aspx */
-    PIXELFORMATDESCRIPTOR pfd, *ppfd; 
-    int pixelformat; 
-	int more;
-
-	ppfd = &pfd; 
-
-	memset(ppfd,0,sizeof(PIXELFORMATDESCRIPTOR));
- 
-    ppfd->nSize = sizeof(PIXELFORMATDESCRIPTOR); 
-    ppfd->nVersion = 1; 
-    ppfd->dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER; 
-	if(gglobal()->display.shutterGlasses ==1)
-		ppfd->dwFlags |= PFD_STEREO;
-	ppfd->iLayerType = PFD_MAIN_PLANE;
-    ppfd->iPixelType = PFD_TYPE_RGBA; /* PFD_TYPE_COLORINDEX; */
-    ppfd->cColorBits = 24; 
-	ppfd->cAlphaBits = 8;
-    ppfd->cDepthBits = 32; 
-    //not using accum now, using color masks ppfd->cAccumBits = 64; /*need accum buffer for shader anaglyph - 8 bits per channel OK*/
-    ppfd->cStencilBits = 8; 
-	ppfd->cAuxBuffers = 0;
-	ppfd->cAccumBits = 0;
- 
-    /* pixelformat = ChoosePixelFormat(hdc, ppfd); */
-	if ( (pixelformat = ChoosePixelFormat(hdc, ppfd)) == 0 ) 
-	{ 
-		MessageBox(NULL, "ChoosePixelFormat failed", "Error", MB_OK); 
-		return FALSE; 
-	} 
- 
-	/*  seems to fail stereo gracefully/quietly, allowing you to detect with glGetbooleanv(GL_STEREO,) in shared code
-	*/
-	DescribePixelFormat(hdc, pixelformat, sizeof(PIXELFORMATDESCRIPTOR), ppfd);
-	printf("Depth Bits = %d\n",(int)(ppfd->cDepthBits));
-	if(gglobal()->display.shutterGlasses > 0)
-		printf("got stereo? = %d\n",(int)(ppfd->dwFlags & PFD_STEREO));
-	/**/
-    if (SetPixelFormat(hdc, pixelformat, ppfd) == FALSE) 
-    { 
-        MessageBox(NULL, "SetPixelFormat failed", "Error", MB_OK); 
-        return FALSE; 
-    } 
- 
-    return TRUE; 
-} 
-
-/**
- *   fv_create_GLcontext: create the main OpenGL context.
- *                     TODO: finish implementation for Mac and Windows.
- */
-//bool fv_create_GLcontext1(HWND  ghWnd)
-//{	
-//	//fwl_thread_dump();
-//	printf("starting createcontext32a\n");
-//	ghDC = GetDC(ghWnd); 
-//	printf("got hdc\n");
-//	if (!bSetupPixelFormat(ghDC))
-//		printf("ouch - bSetupPixelFormat failed\n");
-//	ghRC = wglCreateContext(ghDC); 
-//	printf("created context\n");
-//	return TRUE;
-//}
-
-/**
- *   fv_bind_GLcontext: attache the OpenGL context to the main window.
- *                   TODO: finish implementation for Mac and Windows.
- */
-//bool fv_bind_GLcontext()
-//{
-//	RECT rect;
-//	fwl_thread_dump();
-//
-//	if (wglMakeCurrent(ghDC, ghRC)) {
-//		GetClientRect(ghWnd, &rect); 
-//		gglobal()->display.screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
-//		gglobal()->display.screenHeight = rect.bottom;
-//		return TRUE;
-//	}
-//
-//	return FALSE;
-//}
-bool fv_create_and_bind_GLcontext(HWND hWnd)
-{
-
-	RECT rect;
-	HDC hDC;
-	HGLRC hRC;
-	int width, height;
-
-	/* create GL context */
-	//fwl_thread_dump();
-	printf("starting createcontext32b\n");
-	hDC = GetDC(hWnd); 
-	printf("got hdc\n");
-	if (!bSetupPixelFormat(hDC))
-		printf("ouch - bSetupPixelFormat failed\n");
-	hRC = wglCreateContext(hDC); 
-	printf("created context\n");
-	/* bind GL context */
-
-	//fwl_thread_dump();
-	//width = tg->display.screenWidth;
-	//height = tg->display.screenHeight;
-	if (wglMakeCurrent(hDC, hRC)) {
-		//GetClientRect(hWnd, &rect); 
-		//gglobal()->display.screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
-		//gglobal()->display.screenHeight = rect.bottom;
-		return TRUE;
-	}
-	return FALSE;
-
-}
 
 static HCURSOR hSensor, hArrow;
 static HCURSOR cursor;
@@ -572,7 +733,7 @@ static int shiftState = 0;
 	//fv_create_GLcontext();
 	//fv_bind_GLcontext();
 	//((*LPCREATESTRUCT)lParam)->lpCreateParams;
-	fv_create_and_bind_GLcontext(hWnd);
+//  fv_create_and_bind_GLcontext(hWnd);
 	break; 
  
     case WM_SIZE: 
@@ -587,29 +748,14 @@ static int shiftState = 0;
 	/*triggred when the display mode is changed ie changedisplaysettings window <> fullscreen 
 	  or how about if you drag a window onto a second monitor?
 	*/
-	ghDC = GetDC(hWnd); 
-	if (!bSetupPixelFormat(ghDC)) 
-		PostQuitMessage (0); 
-	printf("WM_DISPLAYCHANGE happening now\n");
-
-	/* ???? do we have to recreate an OpenGL context 
-	   when display mode changed ? */
-	ghRC = wglCreateContext(ghDC); 
-	wglMakeCurrent(ghDC, ghRC); 
-	GetClientRect(hWnd, &rect); 
+	if(!fwDisplayChange())
+		PostQuitMessage(0);
+	//GetClientRect(hWnd, &rect); 
 
 	break; 
 
     case WM_CLOSE: 
-		ghRC = wglGetCurrentContext();
-		if (ghRC) 
-			wglDeleteContext(ghRC); 
-		ghDC = GetDC(hWnd); 
-		if (ghDC) 
-			ReleaseDC(hWnd, ghDC); 
-		ghRC = 0; 
-		ghDC = 0; 
-		 
+		fwCloseContext();
 		DestroyWindow (hWnd);
 		fwl_doQuit();
 	break; 
@@ -651,12 +797,7 @@ static int shiftState = 0;
 \**************************************************************/
 
     case WM_DESTROY: 
-	ghRC = wglGetCurrentContext();
-	if (ghRC) 
-	    wglDeleteContext(ghRC); 
-	ghDC = GetDC(hWnd); 
-	if (ghDC) 
-	    ReleaseDC(hWnd, ghDC); 
+		fwCloseContext();
 	 
 	PostQuitMessage (0); 
 	break; 
@@ -869,6 +1010,9 @@ int doEventsWin32A()
     eventcount = 0;
     return FALSE;
 }
+void fwMessageLoop(freewrl_params_t * d){
+	doEventsWin32A();
+}
 /*
 //bool lastCursorArrow = true;
 void setSensorCursor()
@@ -914,7 +1058,7 @@ void fv_setGeometry_from_cmdline(const char *gstring)
 		if(str[i] == 'x' || str[i] == 'X')
 		{
 			str[i] = '\0';
-			tok[1] = i+1;
+			tok[1] = &str[i+1];
 			break;
 		}
 	sscanf(tok[0],"%d",&w);
@@ -981,10 +1125,11 @@ char *getWgetPath()
 /**
  *   create_main_window: setup up Win32 main window and TODO query fullscreen capabilities.
  */
-int create_main_window0(freewrl_params_t * d) //int argc, char *argv[])
+HWND create_main_window0(freewrl_params_t * d) //int argc, char *argv[])
 {
     HINSTANCE hInstance; 
     WNDCLASS wc;
+	DWORD wStyle   = 0;
     MSG msg;
 	HWND  ghWnd;   
     //RECT rect; 
@@ -1023,9 +1168,11 @@ int create_main_window0(freewrl_params_t * d) //int argc, char *argv[])
 	//hSensor = LoadCursor(NULL,IDC_HAND); /* prepare sensor_cursor */
 	//hArrow = LoadCursor( NULL, IDC_ARROW );
 	//loadCursors();
+
     wc.lpszClassName = "FreeWrlAppClass";
     wc.lpfnWndProc = PopupWndProc; //MainWndProc;
-    wc.style = CS_VREDRAW | CS_HREDRAW; /* 0 CS_OWNDC |  */
+    //wc.style = CS_VREDRAW | CS_HREDRAW; /* 0 CS_OWNDC |  */
+    wc.style = CS_OWNDC;
     wc.hInstance = hInstance;
     wc.hIcon = LoadIcon(wc.hInstance, "APPICON");
     if (!wc.hIcon) {
@@ -1042,10 +1189,13 @@ int create_main_window0(freewrl_params_t * d) //int argc, char *argv[])
 	//height = gglobal()->display.height + 34;  // and 26 for the menu bar
 	width  = d->width + 8;  //windows gui eats 4 on each side
 	height = d->height + 34;  // and 26 for the menu bar
+	wStyle = WS_VISIBLE | WS_POPUP | WS_BORDER | WS_SYSMENU | WS_CAPTION;
+	wStyle |= WS_SIZEBOX; //makes it resizable 
+	wStyle = WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
 
-	ghWnd = CreateWindowEx( WS_EX_APPWINDOW, "FreeWrlAppClass", "freeWrl win32 rev 0.0", 
+	ghWnd = CreateWindowEx( WS_EX_APPWINDOW, "FreeWrlAppClass", "freeWrl win32 rev 1.22.13", 
 			    /* ghWnd = CreateWindow( "GenericAppClass", "Generic Application", */
-			    WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 
+			    wStyle, //WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 
 			    CW_USEDEFAULT, 
 			    CW_USEDEFAULT, 
 			    width, 
@@ -1057,7 +1207,7 @@ int create_main_window0(freewrl_params_t * d) //int argc, char *argv[])
     /* make sure window was created */ 
 
     if (!ghWnd) 
-        return FALSE; 
+        return NULL; 
 
     printf("made a window\n");
 
@@ -1065,7 +1215,7 @@ int create_main_window0(freewrl_params_t * d) //int argc, char *argv[])
    
     ShowWindow( ghWnd, SW_SHOW); /* SW_SHOWNORMAL); /*nCmdShow );*/
     printf("showed window\n");
-	d->winToEmbedInto = (long int)ghWnd;
+	//d->winToEmbedInto = (long int)ghWnd;
 
 
     UpdateWindow(ghWnd); 
@@ -1073,24 +1223,29 @@ int create_main_window0(freewrl_params_t * d) //int argc, char *argv[])
 	//setWindowTitle00();
 	//ShowCursor(0); //turns off hArrow, hHand cursors
 	setArrowCursor();
-    return TRUE;
+    return ghWnd;
 }
 
 int fv_create_main_window(freewrl_params_t * d) //int argc, char *argv[])
 {
 	loadCursors();
-	if( d->winToEmbedInto > 0 )
-	{
-		HWND hWnd;
-		//if defined(FRONTEND_HANDLES_DISPLAY_THREAD) || defined(command line option with window handle)
-		hWnd = (HWND)d->winToEmbedInto;
-		//fv_create_GLcontext();
-		//fv_bind_GLcontext();
-		fv_create_and_bind_GLcontext(hWnd);
-		return TRUE;
+	if(!d->frontend_handles_display_thread){
+		if( d->winToEmbedInto < 1)
+			d->winToEmbedInto = (long)create_main_window0(d); //argc, argv);
+
+		if( d->winToEmbedInto > 0 )
+		{
+			//HWND hWnd;
+			////if defined(FRONTEND_HANDLES_DISPLAY_THREAD) || defined(command line option with window handle)
+			//hWnd = (HWND)d->winToEmbedInto;
+			//fv_create_GLcontext();
+			//fv_bind_GLcontext();
+			fv_create_and_bind_GLcontext((HWND)d->winToEmbedInto);
+			return TRUE;
+		}
+		return FALSE;
 	}
-	else
-		return create_main_window0(d); //argc, argv);
+	return TRUE;
 }
 
-#endif /* IPHONE */
+#endif /* _MSC_VER */

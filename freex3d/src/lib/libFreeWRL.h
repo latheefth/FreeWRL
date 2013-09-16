@@ -82,7 +82,7 @@ typedef struct freewrl_params {
 	bool eai;
 	bool verbose;
 	//int collision;	/* do collision detection? moved to x3d_viewer struct july 7, 2012*/
-
+	bool frontend_handles_display_thread;
 } freewrl_params_t;
 
 extern freewrl_params_t fwl_params;

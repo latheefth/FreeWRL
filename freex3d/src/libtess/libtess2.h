@@ -50,7 +50,7 @@ OLDCODE #include <limits.h>		/* LONG_MAX */
 #endif //OLDCODE
 
 
-#if defined (_ANDROID) || (IPHONE) || (QNX)
+#if defined (_ANDROID) || (IPHONE) || (QNX) || (ANGLEPROJECT)
 	#include <GLES2/gl2.h>
 	#define GLdouble double
 #else

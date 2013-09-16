@@ -840,7 +840,8 @@ void AddRemoveChildren (
 			if (oldlen > 0) memcpy (newmal,tn->p,oldlen*sizeof(void *));
 
 			/* set up the C structures for this new MFNode addition */
-			FREE_IF_NZ (tn->p);
+			if(oldlen > 0)
+				FREE_IF_NZ (tn->p);
 			tn->n = oldlen;
 			tn->p = newmal;
 			//startcounter = 0;

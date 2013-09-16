@@ -294,13 +294,15 @@ bool fwl_initFreeWRL(freewrl_params_t *params){
 	//myMenuStatus[0] = '\0';
 
 #ifndef FRONTEND_HANDLES_DISPLAY_THREAD
-	/* OK the display is now initialized,
-	   create the display thread and wait for it
-	   to complete initialization */
-	fwl_initializeDisplayThread();
+	if(!params->frontend_handles_display_thread){
+		/* OK the display is now initialized,
+		   create the display thread and wait for it
+		   to complete initialization */
+		fwl_initializeDisplayThread();
 
-	//usleep(50);
-	//set_thread2global(tg,tg->threads.DispThrd ,"display thread");
+		//usleep(50);
+		//set_thread2global(tg,tg->threads.DispThrd ,"display thread");
+	}
 
 #endif //FRONTEND_HANDLES_DISPLAY_THREAD
 

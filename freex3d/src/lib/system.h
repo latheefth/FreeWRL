@@ -259,6 +259,9 @@ int __fw_gettimeofday(struct timeval *tv, struct timezone *tz);
 
 #define snprintf _snprintf
 
+#define fmin min
+#define fmax max
+
 #endif /* _MSC_VER */
 
 

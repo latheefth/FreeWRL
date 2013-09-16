@@ -354,6 +354,10 @@ void finishedWithGlobalShader(void) {
 
     /* get rid of the shader */
     getAppearanceProperties()->currentShaderProperties = NULL;
+FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
+
+FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
+
 }
 
 
@@ -542,7 +546,7 @@ void sendElementsToGPU (int mode, int count, ushort *indices) {
 	printf ("sendElementsToGPU start\n"); 
     #endif
     
-    if (setupShader())
+	if (setupShader())
         glDrawElements(mode,count,GL_UNSIGNED_SHORT,indices);
 
 	#ifdef RENDERVERBOSE
