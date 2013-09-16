@@ -269,10 +269,16 @@ char *getWgetPath();
 #undef HAVE_DIRECT_H
 #define HAVE_DIRECT_H 1
 
-//#ifndef GLES2
-#define GLES2
-//#define HAVE_LIBGLEW 1
+#define GLES2 1
+//#define ANGLEPROJECT 1
+#ifndef ANGLEPROJECT
 #define HAVE_GLEW_H 1
+#define GLEW 1
+#define GLEW_MX 1
+#else
+#define GL_ES_VERSION_2_0 1  //to get max_lights 2 at top of display.h
+#endif
+
 #define FREEWRL_STEREO_RENDERING 1
 //#endif
 #define NEWQUEUE 1

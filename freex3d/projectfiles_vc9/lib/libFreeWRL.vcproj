@@ -40,12 +40,12 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\src\libminizip;..\..\..\..\lib_windows\js185\include;..\..\src\libtess;..\..\src\Lib;..\;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\zlib\include;..\..\..\..\lib_windows\jpeg\include;..\..\..\..\lib_windows\freetype2\include;..\..\..\..\lib_windows\png\include;..\..\..\..\lib_windows\glew\include;..\..\..\..\lib_windows\libxml2\include"
-				PreprocessorDefinitions="W_DEBUG;WIN32;GLEW;GLEW_MX;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;DO_COLLISION_GPU_no;STATIC_EXPORTABLE_JS_API;HAVE_PTHREAD_CANCEL"
+				AdditionalIncludeDirectories="..\..\src\libminizip;..\..\..\..\lib_windows\js185\include;..\..\src\libtess;..\..\src\Lib;..\;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\zlib\include;..\..\..\..\lib_windows\jpeg\include;..\..\..\..\lib_windows\freetype2\include;..\..\..\..\lib_windows\png\include;..\..\..\..\lib_windows\glew\include;..\..\..\..\lib_windows\angleproject\include;..\..\..\..\lib_windows\libxml2\include"
+				PreprocessorDefinitions="ANGLEPROJECT;W_DEBUG;WIN32;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;DO_COLLISION_GPU_no;STATIC_EXPORTABLE_JS_API;HAVE_PTHREAD_CANCEL"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				ProgramDataBaseFileName="$(OutDir)\vc90.pdb"
+				ProgramDataBaseFileName="$(IntDir)\vc90.pdb"
 				WarningLevel="1"
 				DebugInformationFormat="4"
 			/>
@@ -141,7 +141,7 @@
 			/>
 		</Configuration>
 		<Configuration
-			Name="Debug_openCL|Win32"
+			Name="Debug_glew|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
@@ -165,8 +165,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib_windows\js185\include;..\..\src\Lib;..\;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\zlib\include;..\..\..\..\lib_windows\expat\source\lib_hide;..\..\..\..\lib_windows\jpeg\include;..\..\..\..\lib_windows\freetype2\include;..\..\..\..\lib_windows\png\include;..\..\..\..\lib_windows\glew\include;..\..\..\..\lib_windows\libxml2\include;C:\CUDA\NVIDIA_GPU_Computing_SDK_3_2\OpenCL\common\inc"
-				PreprocessorDefinitions="W_DEBUG;WIN32;GLEW;GLEW_MX;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;DO_COLLISION_GPU_no"
+				AdditionalIncludeDirectories="..\..\src\libminizip;..\..\..\..\lib_windows\js185\include;..\..\src\libtess;..\..\src\Lib;..\;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\zlib\include;..\..\..\..\lib_windows\jpeg\include;..\..\..\..\lib_windows\freetype2\include;..\..\..\..\lib_windows\png\include;..\..\..\..\lib_windows\glew\include;..\..\..\..\lib_windows\angleproject\include;..\..\..\..\lib_windows\libxml2\include"
+				PreprocessorDefinitions="W_DEBUG;WIN32;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;DO_COLLISION_GPU_no;STATIC_EXPORTABLE_JS_API;HAVE_PTHREAD_CANCEL"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -356,7 +356,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_openCL|Win32"
+					Name="Debug_glew|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -612,7 +612,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_openCL|Win32"
+					Name="Debug_glew|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
