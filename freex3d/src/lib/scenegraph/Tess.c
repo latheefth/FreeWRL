@@ -38,10 +38,6 @@ $Id$
 
 
 
-/* JAS */
-#ifdef AQUA
-typedef GLvoid (*_GLUfuncptr)(GLvoid);
-#endif
 #if defined(_MSC_VER)
 typedef  void (__stdcall *_GLUfuncptr)();
 #endif
