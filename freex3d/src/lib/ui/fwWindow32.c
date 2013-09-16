@@ -26,7 +26,7 @@
 #include "common.h"
 
 void fwSwapBuffers(freewrl_params_t * d);
-bool fv_create_and_bind_GLcontext(HWND hWnd);
+bool fv_create_and_bind_GLcontext(freewrl_params_t * d);
 BOOL fwDisplayChange();
 void fwCloseContext();
 
@@ -46,11 +46,11 @@ void fwCloseContext();
 /// esCreateWindow flat - multi-sample buffer
 #define ES_WINDOW_MULTISAMPLE   8
 
-static EGLDisplay eglDisplay;
-static EGLContext eglContext;
-static EGLSurface eglSurface;
+//static EGLDisplay eglDisplay;
+//static EGLContext eglContext;
+//static EGLSurface eglSurface;
 void fwSwapBuffers(freewrl_params_t * d){
-	eglSwapBuffers(eglDisplay,eglSurface);
+	eglSwapBuffers((EGLDisplay)d->display,(EGLSurface)d->surface);
 }
 EGLBoolean fwCreateEGLContext ( EGLNativeWindowType hWnd, EGLDisplay* eglDisplay,
                               EGLContext* eglContext, EGLSurface* eglSurface,
@@ -120,11 +120,11 @@ EGLBoolean fwCreateEGLContext ( EGLNativeWindowType hWnd, EGLDisplay* eglDisplay
    return EGL_TRUE;
 } 
 
-bool fv_create_and_bind_GLcontext(HWND hWnd){
+bool fv_create_and_bind_GLcontext(freewrl_params_t * d){
 	//modified
-	//EGLDisplay eglDisplay;
-	//EGLContext eglContext;
-	//EGLSurface eglSurface;
+	EGLDisplay eglDisplay;
+	EGLContext eglContext;
+	EGLSurface eglSurface;
 	GLuint flags = ES_WINDOW_RGB | ES_WINDOW_DEPTH | ES_WINDOW_STENCIL;
 	EGLint attribList[] =
 	{
@@ -151,7 +151,7 @@ bool fv_create_and_bind_GLcontext(HWND hWnd){
    //   return GL_FALSE;
    //}
 
-   if ( !fwCreateEGLContext ( hWnd,
+   if ( !fwCreateEGLContext ( d->winToEmbedInto,
                             &eglDisplay,
                             &eglContext,
                             &eglSurface,
@@ -160,7 +160,9 @@ bool fv_create_and_bind_GLcontext(HWND hWnd){
 	  printf("Ouch CreateEGLContext returns FALSE\n");
       return GL_FALSE;
    }
-   
+   d->context = (void*)eglContext;
+   d->display = (void*)eglDisplay;
+   d->surface = (void*)eglSurface;
    return GL_TRUE;
 
 
@@ -186,9 +188,10 @@ void fwCloseContext(){
 
 void fwSwapBuffers(freewrl_params_t * d)
 {
-	HDC   ghDC; 
-	ghDC = wglGetCurrentDC();
-	SwapBuffers(ghDC); 
+	//HDC   ghDC; 
+	//ghDC = wglGetCurrentDC();
+	//SwapBuffers(ghDC); 
+	SwapBuffers((HDC)d->display);
 }
 
 BOOL bSetupPixelFormat(HDC hdc) 
@@ -240,17 +243,19 @@ BOOL bSetupPixelFormat(HDC hdc)
     return TRUE; 
 } 
 
-bool fv_create_and_bind_GLcontext(HWND hWnd)
+bool fv_create_and_bind_GLcontext(freewrl_params_t* d)
 {
 
 	RECT rect;
 	HDC hDC;
 	HGLRC hRC;
+	HWND hWnd;
 	int width, height;
 
 	/* create GL context */
 	//fwl_thread_dump();
 	printf("starting createcontext32b\n");
+	hWnd = d->winToEmbedInto;
 	hDC = GetDC(hWnd); 
 	printf("got hdc\n");
 	if (!bSetupPixelFormat(hDC))
@@ -266,6 +271,9 @@ bool fv_create_and_bind_GLcontext(HWND hWnd)
 		//GetClientRect(hWnd, &rect); 
 		//gglobal()->display.screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
 		//gglobal()->display.screenHeight = rect.bottom;
+		d->display = (void*)hDC;
+		d->context = (void*)hRC;
+		d->surface = hWnd;
 		return TRUE;
 	}
 	return FALSE;
@@ -277,7 +285,7 @@ BOOL fwDisplayChange(){
 	HGLRC ghRC;
 	HDC ghDC;
 	ttglobal tg = gglobal();
-	hWnd = (HWND)tg->display.winToEmbedInto;
+	hWnd = (HWND)tg->display.params.winToEmbedInto;
 
 	ghDC = GetDC(hWnd); 
 	ret = bSetupPixelFormat(ghDC);
@@ -297,7 +305,7 @@ void fwCloseContext(){
 	HGLRC ghRC;
 	HDC ghDC;
 	ttglobal tg = gglobal();
-	hWnd = (HWND)tg->display.winToEmbedInto;
+	hWnd = (HWND)tg->display.params.winToEmbedInto;
 	ghRC = wglGetCurrentContext();
 	if (ghRC) 
 	    wglDeleteContext(ghRC); 
@@ -319,7 +327,7 @@ void fwCloseContext(){
 //}
 HWND fw_window32_hwnd(){
 	ttglobal tg = (ttglobal)gglobal();
-	return (HWND)tg->display.winToEmbedInto;
+	return (HWND)tg->display.params.winToEmbedInto;
 }
 
 void fwl_do_keyPress(const char kp, int type);
@@ -1063,8 +1071,8 @@ void fv_setGeometry_from_cmdline(const char *gstring)
 		}
 	sscanf(tok[0],"%d",&w);
 	sscanf(tok[1],"%d",&h);
-	gglobal()->display.width = w; 
-    gglobal()->display.height = h; 
+	gglobal()->display.params.width = w; 
+    gglobal()->display.params.height = h; 
 	free(str);
 
 }
@@ -1080,7 +1088,7 @@ void setWindowTitle() //char *window_title)
 	 // __in_opt  LPCTSTR lpString);
 	HWND  ghWnd;   
 	//SetWindowText(ghWnd,fwl_getWindowTitle());
-	ghWnd = (void*)gglobal()->display.winToEmbedInto;
+	ghWnd = (void*)gglobal()->display.params.winToEmbedInto;
 	if(ghWnd)
 		SetWindowText(ghWnd,getWindowTitle()); //window_title);
 }
@@ -1230,17 +1238,17 @@ int fv_create_main_window(freewrl_params_t * d) //int argc, char *argv[])
 {
 	loadCursors();
 	if(!d->frontend_handles_display_thread){
-		if( d->winToEmbedInto < 1)
-			d->winToEmbedInto = (long)create_main_window0(d); //argc, argv);
+		if( d->winToEmbedInto == NULL)
+			d->winToEmbedInto = create_main_window0(d); //argc, argv);
 
-		if( d->winToEmbedInto > 0 )
+		if( d->winToEmbedInto )
 		{
 			//HWND hWnd;
 			////if defined(FRONTEND_HANDLES_DISPLAY_THREAD) || defined(command line option with window handle)
 			//hWnd = (HWND)d->winToEmbedInto;
 			//fv_create_GLcontext();
 			//fv_bind_GLcontext();
-			fv_create_and_bind_GLcontext((HWND)d->winToEmbedInto);
+			fv_create_and_bind_GLcontext(d);
 			return TRUE;
 		}
 		return FALSE;

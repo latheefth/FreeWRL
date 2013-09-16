@@ -48,20 +48,20 @@ typedef struct iiglobal //InstanceGlobal
 	   and needed to initialize libFreeWRL
 	   example: width, height, fullscreen, multithreading, eai...
 	*/
-	int width;
-	int height;
-	int xpos;
-	int ypos;
-	long int winToEmbedInto;
-	bool fullscreen;
-	bool multithreading;
-	bool eai;
-	bool verbose;
-	bool frontend_handles_display_thread;
+	//int width;
+	//int height;
+	//int xpos;
+	//int ypos;
+	//long int winToEmbedInto;
+	//bool fullscreen;
+	//bool multithreading;
+	//bool eai;
+	//bool verbose;
+	//bool frontend_handles_display_thread;
 	//int collision;	/* do collision detection? moved to x3d_viewer struct july 7, 2012*/
 
 //} freewrl_params_t;
-
+		freewrl_params_t params;
 		GLenum _global_gl_err;
 		bool display_initialized;// = FALSE;
 

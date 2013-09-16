@@ -1039,7 +1039,7 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
 		/* NOTE: front ends now sync with the monitor, meaning, this sleep is no longer needed unless
 		   something goes totally wrong */
 #ifndef FRONTEND_HANDLES_DISPLAY_THREAD
-			if(!tg->display.frontend_handles_display_thread){
+			if(!tg->display.params.frontend_handles_display_thread){
 				/* we see how long it took to do the last loop; now that the frame rate is synced to the
 				   vertical retrace of the screens, we should not get more than 60-70fps. We calculate the
 				   time here, if it is more than 200fps, we sleep for 1/100th of a second - we should NOT
@@ -3957,7 +3957,7 @@ void fwl_initializeRenderSceneUpdateScene() {
 	viewer_postGLinit_init();
 
 #ifndef AQUA
-	if (tg->display.fullscreen && newResetGeometry != NULL) newResetGeometry();
+	if (tg->display.params.fullscreen && newResetGeometry != NULL) newResetGeometry();
 	#endif
 
 	/* printf ("fwl_initializeRenderSceneUpdateScene finish\n"); */
@@ -4191,7 +4191,7 @@ void outOfMemory(const char *msg) {
 void fwl_doQuitInstance()
 {
 #if !defined(FRONTEND_HANDLES_DISPLAY_THREAD)
-	if(!gglobal()->display.frontend_handles_display_thread)
+	if(!gglobal()->display.params.frontend_handles_display_thread)
     	stopDisplayThread();
 #endif
     kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__); //must be done from this thread
@@ -4672,7 +4672,7 @@ void stopRenderingLoop(void) {
 	//printf ("stopRenderingLoop called\n");
 
 #if !defined(FRONTEND_HANDLES_DISPLAY_THREAD)
-	if(!tg->display.frontend_handles_display_thread)
+	if(!tg->display.params.frontend_handles_display_thread)
     	stopDisplayThread();
 #endif
 

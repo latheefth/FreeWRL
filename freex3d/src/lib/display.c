@@ -68,27 +68,31 @@ int PaneClipChanged = FALSE;
 void display_init(struct tdisplay* d) 
 {
 	//public
+	freewrl_params_t p = d->params;
 d->display_initialized = FALSE;
-d->height = 0; /* window */
-d->width = 0;
-d->winToEmbedInto = -1;
-d->fullscreen = FALSE;
+p.height = 0; /* window */
+p.width = 0;
+p.winToEmbedInto = NULL;
+p.fullscreen = FALSE;
+p.xpos = 0;
+p.ypos = 0;
+
+p.frontend_handles_display_thread = FALSE;
+
 d->view_height = 0; /* viewport */
 d->view_width = 0;
 d->screenWidth = 0; /* screen */
 d->screenHeight = 0;
 d->screenRatio = 1.5;
 d->window_title = NULL;
+
 d->mouse_x = 0;
 d->mouse_y = 0;
 d->show_mouse = 0;
-d->xpos = 0;
-d->ypos = 0;
 d->shutterGlasses = 0; /* stereo shutter glasses */
 d->quadbuff_stereo_mode = 0;
 memset(&d->rdr_caps,0,sizeof(d->rdr_caps));
 d->myFps = (float) 0.0;
-d->frontend_handles_display_thread = FALSE;
 
 //private
 } 
@@ -157,9 +161,9 @@ int fv_display_initialize()
 
  #endif //!MSC_VER && ! any OpenGL ES 2.0 device
 
-	if (0 != d->screenWidth)  d->width  = d->screenWidth;
-	if (0 != d->screenHeight) d->height = d->screenHeight;
-	fv_setScreenDim(d->width,d->height); /* recompute screenRatio */
+	if (0 != d->screenWidth)  d->params.width  = d->screenWidth;
+	if (0 != d->screenHeight) d->params.height = d->screenHeight;
+	fv_setScreenDim(d->params.width,d->params.height); /* recompute screenRatio */
 
 	//snprintf(window_title, sizeof(window_title), "FreeWRL");
 

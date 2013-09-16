@@ -211,7 +211,7 @@ char *strForeslash2back(char *str)
 
 void fwl_setp_width		(int foo)	{ fwl_params.width = foo; }
 void fwl_setp_height		(int foo)	{ fwl_params.height = foo; }
-void fwl_setp_winToEmbedInto	(long int foo)	{ fwl_params.winToEmbedInto = foo; }
+void fwl_setp_winToEmbedInto	(void* foo)	{ fwl_params.winToEmbedInto = foo; }
 void fwl_setp_fullscreen	(bool foo)	{ fwl_params.fullscreen = foo; }
 void fwl_setp_multithreading	(bool foo)	{ fwl_params.multithreading = foo; }
 void fwl_setp_eai		(bool foo)	{ fwl_params.eai = foo; }
@@ -272,7 +272,7 @@ bool fwl_initFreeWRL(freewrl_params_t *params){
 	if (params) {
 		DEBUG_MSG("copying application supplied params...\n");
 		//memcpy(&fwl_params, params, sizeof(freewrl_params_t));
-		memcpy(&tg->display, params, sizeof(freewrl_params_t));
+		memcpy(&tg->display.params, params, sizeof(freewrl_params_t));
 		//tg->display.win_height = params->height;// = 0; /* window */
 		//tg->display.win_width = params->width;// = 0;
 		//tg->display.winToEmbedInto = params->winToEmbedInto;// = -1;

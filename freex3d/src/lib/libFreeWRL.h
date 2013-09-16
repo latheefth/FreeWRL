@@ -76,13 +76,18 @@ typedef struct freewrl_params {
 	int height;
 	int xpos;
 	int ypos;
-	long int winToEmbedInto;
+	void* winToEmbedInto;
 	bool fullscreen;
 	bool multithreading;
 	bool eai;
 	bool verbose;
 	//int collision;	/* do collision detection? moved to x3d_viewer struct july 7, 2012*/
 	bool frontend_handles_display_thread;
+	//for multiple-context applications such as 2+ fw instances on a web page,
+	//or a window app with 2+ fw windows - swapbuffers needs to know which one
+	void *display;
+	void *context;
+	void *surface;
 } freewrl_params_t;
 
 extern freewrl_params_t fwl_params;
@@ -100,7 +105,7 @@ void fwl_initParams( freewrl_params_t *params) ;
 
 void fwl_setp_width		(int foo);
 void fwl_setp_height		(int foo);
-void fwl_setp_winToEmbedInto	(long int);
+void fwl_setp_winToEmbedInto	(void *);
 void fwl_setp_fullscreen	(bool foo);
 void fwl_setp_multithreading	(bool foo);
 void fwl_setp_eai		(bool foo);

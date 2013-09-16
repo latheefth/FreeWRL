@@ -660,7 +660,7 @@ void resetGeometry();
 	/****************************************************************/
 
 	#if defined(_MSC_VER) 
-		#define FW_GL_SWAPBUFFERS fwSwapBuffers((freewrl_params_t *)&gglobal()->display); //SwapBuffers(wglGetCurrentDC());
+		#define FW_GL_SWAPBUFFERS fwSwapBuffers(&gglobal()->display.params); //SwapBuffers(wglGetCurrentDC());
 	#endif
 
 #if KEEP_X11_INLIB
