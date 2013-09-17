@@ -361,6 +361,7 @@ static int checkIfX3DVRMLFile(char *fn) {
 	if ((strstr(fn,".wrl") > 0) ||
 		(strstr(fn,".WRL") > 0) ||
 		(strstr(fn,".x3d") > 0) ||
+		(strstr(fn,".x3z") > 0) ||
 		(strstr(fn,".x3dv") > 0) ||
 		(strstr(fn,".x3db") > 0) ||
 		(strstr(fn,".X3DV") > 0) ||
