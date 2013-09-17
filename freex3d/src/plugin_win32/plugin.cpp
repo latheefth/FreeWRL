@@ -153,10 +153,12 @@ NPBool CPlugin::init(NPWindow* pNPWindow)
   m_hWnd = (long int*) pNPWindow->window;
     
 #endif
+  m_pfreeWRLPlayer = new CdllFreeWRL(pNPWindow->width,pNPWindow->height,pNPWindow->window,m_EAIflag);
+  //m_pfreeWRLPlayer->onInit(pNPWindow->window,pNPWindow->width,pNPWindow->height, m_EAIflag);
+  
 
-  m_pfreeWRLPlayer->onInit(pNPWindow->window,pNPWindow->width,pNPWindow->height, m_EAIflag);
-
-  m_pfreeWRLPlayer->onLoad(pNPWindow->window,m_sceneUrl);
+  //m_pfreeWRLPlayer->onLoad(pNPWindow->window,m_sceneUrl);
+  m_pfreeWRLPlayer->onLoad(m_sceneUrl);
     
 
   m_bInitialized = TRUE;
@@ -165,7 +167,7 @@ NPBool CPlugin::init(NPWindow* pNPWindow)
 
 void CPlugin::shut()
 {
-	m_pfreeWRLPlayer->onClose(m_Window->window);
+	m_pfreeWRLPlayer->onClose(); //(m_Window->window);
 	//TODO: since we are closing a bunch of threads, maybe should be better to set a check on them.
 
 #ifdef XP_WIN
@@ -268,52 +270,52 @@ LRESULT CPlugin::handleWindowEvents(HWND hWnd, UINT eventmsg, WPARAM wParam, LPA
 	{
 	case WM_LBUTTONDOWN:
 		{
-			m_pfreeWRLPlayer->onMouse(hWnd, 4, 1,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
+			m_pfreeWRLPlayer->onMouse(4, 1,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
 			return 0;
 		}
 	case WM_LBUTTONUP:
 		{
-			m_pfreeWRLPlayer->onMouse(hWnd, 5, 1,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
+			m_pfreeWRLPlayer->onMouse(5, 1,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
 			return 0;
 		}
 	case WM_MBUTTONDOWN:
 		{
-			m_pfreeWRLPlayer->onMouse(hWnd, 4, 2,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
+			m_pfreeWRLPlayer->onMouse(4, 2,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
 			return 0;
 		}
 	case WM_MBUTTONUP:
 		{
-			m_pfreeWRLPlayer->onMouse(hWnd, 5, 2,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
+			m_pfreeWRLPlayer->onMouse(5, 2,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
 			return 0;
 		}
 	case WM_RBUTTONDOWN:
 		{
-			m_pfreeWRLPlayer->onMouse(hWnd, 4, 3,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
+			m_pfreeWRLPlayer->onMouse(4, 3,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
 			return 0;
 		}
 	case WM_RBUTTONUP:
 		{
-			m_pfreeWRLPlayer->onMouse(hWnd, 5, 3,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
+			m_pfreeWRLPlayer->onMouse(5, 3,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
 			return 0;
 		}
 	case WM_MOUSEMOVE:
 		{
-			m_pfreeWRLPlayer->onMouse(hWnd, 6, 0,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
+			m_pfreeWRLPlayer->onMouse(6, 0,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
 			return 0;
 		}
 	case WM_KEYDOWN:
 		{
-			m_pfreeWRLPlayer->onKey(hWnd,CdllFreeWRL::KEYDOWN,wParam);
+			m_pfreeWRLPlayer->onKey(CdllFreeWRL::KEYDOWN,wParam);
 			return 0;
 		}
 	case WM_KEYUP:
 		{
-			m_pfreeWRLPlayer->onKey(hWnd,CdllFreeWRL::KEYUP,wParam);
+			m_pfreeWRLPlayer->onKey(CdllFreeWRL::KEYUP,wParam);
 			return 0;
 		}
 	case WM_CHAR:
 		{
-			m_pfreeWRLPlayer->onKey(hWnd,CdllFreeWRL::KEYPRESS,wParam);
+			m_pfreeWRLPlayer->onKey(CdllFreeWRL::KEYPRESS,wParam);
 			return 0;
 		}
 	case WM_DESTROY:

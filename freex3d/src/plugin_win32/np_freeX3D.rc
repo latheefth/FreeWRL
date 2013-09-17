@@ -41,17 +41,17 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "Luca Cerutti (luca.ceruttimtsATgmail.com)"
+            VALUE "CompanyName", "Luca Cerutti (luca.ceruttimtsATgmail.com) | freewrl.sourceforge.net"
             VALUE "FileDescription", "np_freeX3D"
-            VALUE "FileExtents", "x3d|wrl|x3dv|x3db"
+            VALUE "FileExtents", "x3d|wrl|x3dv|x3db|x3z"
             VALUE "FileOpenName", "np_freeX3D"
             VALUE "FileVersion", "1, 0, 0, 1"
             VALUE "InternalName", "np_freeX3D"
             VALUE "LegalCopyright", "Licensed under LGPL V2"
-            VALUE "MIMEType", "x-world/x-vrml|model/vrml|model/x3d|model/x3d+xml|model/x3d+vrml|model/x3d+binary"
+            VALUE "MIMEType", "x-world/x-vrml|model/vrml|model/x3d|model/x3d+xml|model/x3d+vrml|model/x3d+binary|model/x3d+zip"
             VALUE "OriginalFilename", "np_freeX3D"
             VALUE "ProductName", "NPAPI freeX3D plugin adapter"
-            VALUE "ProductVersion", "1, 0, 0, 1"
+            VALUE "ProductVersion", "1, 0, 0, 2"
         END
     END
     BLOCK "VarFileInfo"
