@@ -103,7 +103,7 @@ void fwl_OSX_initializeParameters(const char* initialURL) {
         myParams.winToEmbedInto = 0;
         myParams.fullscreen = FALSE;
         myParams.multithreading = TRUE;
-        myParams.eai = FALSE;
+        myParams.enableEAI = FALSE;
         myParams.verbose = FALSE;
         
     	/* Default values */
@@ -131,7 +131,7 @@ void fwl_OSX_initializeParameters(const char* initialURL) {
 
     //res->new_root = TRUE;
 	new_root();
-    send_resource_to_parser(res,__FILE__,__LINE__);
+    send_resource_to_parser(res);
 
     while ((!res->complete) && (res->status != ress_failed) && (res->status != ress_not_loaded)) {
             usleep(100);
@@ -140,13 +140,13 @@ void fwl_OSX_initializeParameters(const char* initialURL) {
 
     /* did this load correctly? */
     if (res->status == ress_not_loaded) {
-	sprintf(consoleBuffer , "FreeWRL: Problem loading file \"%s\"", res->request);
+	sprintf(consoleBuffer , "FreeWRL: Problem loading file \"%s\"", res->URLrequest);
 	fwl_StringConsoleMessage(consoleBuffer);
     }
 
     if (res->status == ress_failed) {
 	printf("load failed %s\n", initialURL);
-	sprintf(consoleBuffer , "FreeWRL: unknown data on command line: \"%s\"", res->request);
+	sprintf(consoleBuffer , "FreeWRL: unknown data on command line: \"%s\"", res->URLrequest);
 	fwl_StringConsoleMessage(consoleBuffer);
     } else {
 
@@ -214,7 +214,7 @@ void fwl_setp_height		(int foo)	{ fwl_params.height = foo; }
 void fwl_setp_winToEmbedInto	(void* foo)	{ fwl_params.winToEmbedInto = foo; }
 void fwl_setp_fullscreen	(bool foo)	{ fwl_params.fullscreen = foo; }
 void fwl_setp_multithreading	(bool foo)	{ fwl_params.multithreading = foo; }
-void fwl_setp_eai		(bool foo)	{ fwl_params.eai = foo; }
+void fwl_setp_eai		(bool foo)	{ fwl_params.enableEAI = foo; }
 void fwl_setp_verbose		(bool foo)	{ fwl_params.verbose = foo; }
 //void fwl_setp_collision		(int foo)	{ fwl_params.collision = foo; }
 
@@ -223,7 +223,7 @@ int	fwl_getp_height		(void)	{ return fwl_params.height; }
 long int fwl_getp_winToEmbedInto (void)	{ return fwl_params.winToEmbedInto; }
 bool	fwl_getp_fullscreen	(void)	{ return fwl_params.fullscreen; }
 bool	fwl_getp_multithreading	(void)	{ return fwl_params.multithreading; }
-bool	fwl_getp_eai		(void)	{ return fwl_params.eai; }
+bool	fwl_getp_eai		(void)	{ return fwl_params.enableEAI; }
 bool	fwl_getp_verbose	(void)	{ return fwl_params.verbose; }
 //int	fwl_getp_collision	(void)	{ return fwl_params.collision; }
 
@@ -281,7 +281,7 @@ bool fwl_initFreeWRL(freewrl_params_t *params){
 
 #if !defined(EXCLUDE_EAI)
 	/* do we require EAI? */
-	if (params->eai){ //fwl_getp_eai()) {
+	if (params->enableEAI){ 
 		fwlio_RxTx_control(CHANNEL_EAI, RxTx_START);
 		//	set_thread2global(tglobal* fwl, pthread_t any );
 

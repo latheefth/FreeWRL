@@ -76,6 +76,7 @@
 #include "../opengl/Textures.h"
 #include "../opengl/LoadTextures.h"
 
+
 #include "MainLoop.h"
 #include "ProdCon.h"
 
@@ -85,7 +86,7 @@
 void embedEXTERNPROTO(struct VRMLLexer *me, char *myName, char *buffer, char *pound);
 
 //true statics:
-static char *EAI_Flag = "From the EAI bootcamp of life ";
+char *EAI_Flag = "From the EAI bootcamp of life ";
 char* PluginPath = "/private/tmp";
 int PluginLength = 12;
 
@@ -507,7 +508,7 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *wh
 		res->offsetFromWhere = (int) offsetof (struct X3D_Group, children);
 	}
 
-	send_resource_to_parser(res,__FILE__,__LINE__);
+	send_resource_to_parser(res);
 	resource_wait(res);
 	FREE_IF_NZ(newString);
 	return (res->status == ress_parsed);
@@ -548,7 +549,7 @@ int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Group *whe
 		res->offsetFromWhere = (int) offsetof (struct X3D_Group, children);
 	}
 
-	send_resource_to_parser(res,__FILE__,__LINE__);
+	send_resource_to_parser(res);
 	resource_wait(res);
 	FREE_IF_NZ(newString);
 	return (res->status == ress_parsed);
@@ -642,12 +643,13 @@ void new_root(){
 }
 void resitem_enqueue(s_list_t* item);
 
-void send_resource_to_parser(resource_item_t *res,char *fi, int li)
+void send_resource_to_parser(resource_item_t *res)
 {
 	ppProdCon p;
 	ttglobal tg;
-	// ConsoleMessage ("send_resource_to_parser from %s:%d",fi,li);
-
+	
+    //ConsoleMessage ("send_resource_to_parser, res->new_root %s",BOOL_STR(res->new_root));
+    
 	if (res->new_root) {
 		new_root();
 	}
@@ -694,7 +696,7 @@ void send_resource_to_parser(resource_item_t *res,char *fi, int li)
 
 
 
-bool send_resource_to_parser_if_available(resource_item_t *res,char *fi, int li)
+bool send_resource_to_parser_if_available(resource_item_t *res)
 {
 	/* We are not in parser thread, most likely
 	   in main or display thread, and we successfully
@@ -750,14 +752,14 @@ void dump_resource_waiting(resource_item_t* res)
 #endif
 }
 
-void send_resource_to_parser_async(resource_item_t *res,char *fi, int li){
+void send_resource_to_parser_async(resource_item_t *res){
 	ppProdCon p;
 	ttglobal tg = gglobal();
 	p = (ppProdCon)tg->ProdCon.prv;
 #ifdef NEWQUEUE
 	resitem_enqueue(ml_new(res));
 #else //NEWQUEUE
-	send_resource_to_parser_if_available(res,fi,li);
+	send_resource_to_parser_if_available(res);
 #endif //NEWQUEUE
 }
 
@@ -794,6 +796,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	ttglobal tg = gglobal();
 	t = &tg->ProdCon;
 	p = (ppProdCon)t->prv;
+    bool fromEAI_SAI = FALSE;
 
 
 	/* printf("processing VRML/X3D resource: %s\n", res->request);  */
@@ -804,8 +807,15 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	origNavigationNodes = vectorSize(p->navigationNodes);
 	origViewpointNodes = vectorSize(t->viewpointNodes);
 
+    //ConsoleMessage ("parser_process_res_VRML_X3D, url %s",res->parsed_request);
 	/* save the current URL so that any local-url gets are relative to this */
-	pushInputResource(res);
+    if (res->parsed_request != NULL)
+        if (strncmp(res->parsed_request,EAI_Flag,strlen(EAI_Flag)) == 0) {
+            //ConsoleMessage("parser_process_res_VRML_X3D, from EAI, ignoring");
+            fromEAI_SAI = TRUE;
+        }
+
+    if (!fromEAI_SAI) pushInputResource(res);
 
 
 	/* OK Boyz - here we go... if this if from the EAI, just parse it, as it will be a simple string */
@@ -819,7 +829,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		insert_node = X3D_GROUP(res->where); /* casting here for compiler */
 		offsetInNode = res->offsetFromWhere;
 
-		parsedOk = PARSE_STRING((const unsigned char *)res->request,(const int)strlen(res->request), nRn);
+		parsedOk = PARSE_STRING((const unsigned char *)res->URLrequest,(const int)strlen(res->URLrequest), nRn);
 		//printf("after parse_string in EAI/SAI parsing\n");
 	} else {
 		/* standard file parsing */
@@ -929,7 +939,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	
 
 	/* remove this resource from the stack */
-	popInputResource();
+	if (!fromEAI_SAI) popInputResource();
 
 	return TRUE;
 }
@@ -952,7 +962,7 @@ static bool parser_process_res_SHADER(resource_item_t *res)
 		break;
 
 	case rest_string:
-		buffer = res->request;
+		buffer = res->URLrequest;
 		break;
 	case rest_url:
 	case rest_file:
@@ -1127,7 +1137,7 @@ static bool parser_process_res(s_list_t *item)
 	case ress_downloaded:
 		/* Here we may want to delegate loading into another thread ... */
 		if (!resource_load(res)) {
-			ERROR_MSG("failure when trying to load resource: %s\n", res->request);
+			ERROR_MSG("failure when trying to load resource: %s\n", res->URLrequest);
 			remove_it = TRUE;
 			retval = FALSE;
 		}
@@ -1154,7 +1164,7 @@ static bool parser_process_res(s_list_t *item)
 				res->status = ress_parsed;
                 
 			} else {
-				ERROR_MSG("parser failed for resource: %s\n", res->request);
+				ERROR_MSG("parser failed for resource: %s\n", res->URLrequest);
                 retval = FALSE;
 			}
 			break;
@@ -1165,7 +1175,7 @@ static bool parser_process_res(s_list_t *item)
 				res->status = ress_parsed;
 			} else {
                 retval = FALSE;
-				ERROR_MSG("parser failed for resource: %s\n", res->request);
+				ERROR_MSG("parser failed for resource: %s\n", res->URLrequest);
 			}
 			break;
 		case resm_image:

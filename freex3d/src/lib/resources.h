@@ -93,7 +93,7 @@ typedef struct resource_item {
 	s_list_t *m_request;
 
 	/* Verbatim request : requested path/url */
-	char *request;
+	char *URLrequest;
 
 	/* Base:
 	   (base url or base path of the main world)
@@ -109,7 +109,7 @@ typedef struct resource_item {
 	   parse the main url and extract that 'base'.
 	   Is there a 'base' declaration in X3D spec ?
 	*/
-	char *base; 
+	char *URLbase; 
 
 	/* Temporary directory:
 	   (each main file/world has its own temp dir)
@@ -169,7 +169,7 @@ resource_item_t* resource_create_multi0(s_Multi_String_t *request);
 resource_item_t* resource_create_from_string(const char *string);
 
 void push_resource_request(const char *request);
-void resource_identify(resource_item_t *base, resource_item_t *res);
+void resource_identify(resource_item_t *base, resource_item_t *res, char *tag);
 bool resource_fetch(resource_item_t *res);
 bool resource_load(resource_item_t *res);
 void resource_identify_type(resource_item_t *res);
@@ -178,10 +178,10 @@ void destroy_root_res();
 
 void resource_remove_child(resource_item_t *parent, resource_item_t *child);
 
-void send_resource_to_parser(resource_item_t *res,char *,int);
-void send_resource_to_parser_async(resource_item_t *res, char*, int);
+void send_resource_to_parser(resource_item_t *res);
+void send_resource_to_parser_async(resource_item_t *res);
 
-bool send_resource_to_parser_if_available(resource_item_t *res, char*, int);
+bool send_resource_to_parser_if_available(resource_item_t *res);
 
 /*
 void resource_push_single_request(const char *request);

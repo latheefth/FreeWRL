@@ -1425,7 +1425,7 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
 
 	if (res->type != rest_invalid) {
 		if (resource_fetch(res)) {
- 			pound = strchr(res->request, '#'); 
+ 			pound = strchr(res->URLrequest, '#'); 
 			if (resource_load(res)) {
 				s_list_t *l;
 				openned_file_t *of;

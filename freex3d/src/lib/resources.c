@@ -83,7 +83,7 @@ resource_item_t *newResourceItem() {
 /**
  *   resource_create_single: create the resource object and add it to the root list.
  */
-static resource_tree_append(resource_item_t *item){
+static void resource_tree_append(resource_item_t *item){
 	/* Lock access to the resource tree */
 	pthread_mutex_lock( &gglobal()->threads.mutex_resource_tree );
 
@@ -100,13 +100,14 @@ static resource_tree_append(resource_item_t *item){
 	/* Unlock the resource tree mutex */
 	pthread_mutex_unlock( &gglobal()->threads.mutex_resource_tree );
 }
+
 resource_item_t* resource_create_single0(const char *request)
 {
 	resource_item_t *item;
 	DEBUG_RES("creating resource: SINGLE: %s\n", request);
 
 	item = newResourceItem();
-	item->request = STRDUP(request);
+	item->URLrequest = STRDUP(request);
 	return item;
 }
 
@@ -137,8 +138,8 @@ resource_item_t* resource_create_multi0(s_Multi_String_t *request)
 	/* Convert Mutli_String to a list string */
 	for (i = 0; i < request->n; i++) {
 		char *url = STRDUP(request->p[i]->strptr);
-		/* printf ("putting %s on the list\n",url); */
-		item->m_request = ml_append(item->m_request, ml_new(url));
+		 //ConsoleMessage ("putting %s on the list\n",url); 
+		 item->m_request = ml_append(item->m_request, ml_new(url));
 	}
 	return item;
 }
@@ -161,7 +162,7 @@ resource_item_t* resource_create_from_string(const char *string)
 	item = newResourceItem();
 
 
-	item->request = STRDUP(string);
+	item->URLrequest = STRDUP(string);
 	item->type = rest_string;
 	item->status = ress_loaded;
 
@@ -179,6 +180,7 @@ resource_item_t* resource_create_from_string(const char *string)
  *   try to be idempotent
  *   parse status: res->type
  */
+
 void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 {
 	bool network;
@@ -187,10 +189,10 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 	resource_item_t *defaults = NULL;
 
 	ASSERT(res);
-	DEBUG_RES("resource_identify, we have resource %s ptrs %lu and %lx\n",res->request,baseResource,baseResource);
+	DEBUG_RES("resource_identify, we have resource %s ptrs %p and %p\n",res->URLrequest,baseResource,baseResource);
 
 	if (baseResource) {
-		DEBUG_RES(" base specified, taking base's values.\n");
+		DEBUG_RES(" base specified, taking the base values.\n");
 		defaults = baseResource;
 		res->parent = baseResource;
 	} else {
@@ -204,11 +206,11 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 
 	if (defaults) {
 		DEBUG_RES(" default values: network=%s type=%s status=%s"
-			  " request=<%s> base=<%s> url=<%s> [parent %p, %s]\n",
+			  " URLrequest=<%s> URLbase=<%s>parsed_request=<%s> [parent %p, %s]\n",
 			  BOOL_STR(defaults->network), resourceTypeToString(defaults->type), 
-			  resourceStatusToString(defaults->status), defaults->request, 
-			  defaults->base, defaults->parsed_request,
-			  defaults->parent, (defaults->parent ? defaults->parent->base : "N/A")
+			  resourceStatusToString(defaults->status), defaults->URLrequest, 
+			  defaults->URLbase, defaults->parsed_request,
+			  defaults->parent, (defaults->parent ? defaults->parent->URLbase : "N/A")
 			);
 	}
 
@@ -218,7 +220,7 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 			s_list_t *l;
 			l = res->m_request;
 			/* Pick up next request in our list */			
-			res->request = (char *) l->elem;
+			res->URLrequest = (char *) l->elem;
 			/* Point to the next... */
 			res->m_request = res->m_request->next;
 		} else {
@@ -235,7 +237,7 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 
 
 	/* URI specifier at the beginning ? */
-	res->network = checkNetworkFile(res->request);
+	res->network = checkNetworkFile(res->URLrequest);
 
 	DEBUG_RES("resource_identify: base network / resource network: %s/%s\n", 
 		  BOOL_STR(network),
@@ -249,7 +251,7 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 			/* We have an absolute url for this resource */
 			res->type = rest_url;
 			res->status = ress_starts_good;
-			url = STRDUP(res->request);
+			url = STRDUP(res->URLrequest);
 
 		} else {
 			/* We have an absolute url for main world,
@@ -261,7 +263,7 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 				   this, here. */
 
 				char *cleanedURL;
-				cleanedURL = stripLocalFileName(res->request);
+				cleanedURL = stripLocalFileName(res->URLrequest);
 
 				/* Relative to base */
 				IF_cleanedURL_IS_ABSOLUTE {
@@ -270,7 +272,7 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 					url = STRDUP(cleanedURL);
 				} else {
 					char *cwd;
-					cwd = STRDUP(defaults->base);
+					cwd = STRDUP(defaults->URLbase);
 					url = concat_path(cwd, cleanedURL);
 					FREE_IF_NZ(cwd);
 				}
@@ -279,28 +281,28 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 				res->status = ress_starts_good;
 			} else {
 				res->type = rest_invalid;
-				ERROR_MSG("resource_identify: can't handle relative url without base: %s\n", res->request);
+				ERROR_MSG("resource_identify: can't handle relative url without base: %s\n", res->URLrequest);
 			}
 		}		
 			
 	} else {
 		/* We may have a local file */
-		DEBUG_RES("resource_identify, we may have a local file for resource %s\n", res->request);
+		DEBUG_RES("resource_identify, we may have a local file for resource %s\n", res->URLrequest);
 
 		/* We do not want to have system error */
-		len = strlen(res->request);
+		len = strlen(res->URLrequest);
 		if (len > PATH_MAX) {
 
 			res->type = rest_invalid;
 			url="invalid URL";
-			ERROR_MSG("resource_identify: path too long: %s\n", res->request);
+			ERROR_MSG("resource_identify: path too long: %s\n", res->URLrequest);
 
 		} else {
 			char *cleanedURL = NULL;
 			/* remove any possible file:// off of the front of the name */
 			/* NOTE: this is NOT a new string, possibly just incremented res->request */
 
-			cleanedURL = stripLocalFileName(res->request);
+			cleanedURL = stripLocalFileName(res->URLrequest);
 
 			/* We are relative to current dir or base */
 			if (defaults) {
@@ -313,7 +315,7 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 					url = STRDUP(cleanedURL);
 				} else {
 					char *cwd;
-					cwd = STRDUP(defaults->base);
+					cwd = STRDUP(defaults->URLbase);
 					res->type = rest_file;
 					res->status = ress_starts_good;
 					url = concat_path(cwd, cleanedURL);
@@ -341,7 +343,7 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 					/* Make full path from current dir and relative filename */
 
 					/* printf("about to join :%s: and :%s: resource.c L299\n",cwd,res->request);*/
-					url = concat_path(cwd, res->request);
+					url = concat_path(cwd, res->URLrequest);
 					/* resource_fetch will test that filename */
 					res->type = rest_file;
 					res->status = ress_starts_good;
@@ -352,8 +354,8 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 
 	/* record the url, and the path to the url */
 	res->parsed_request = url;
-	res->base = STRDUP(url);
-	removeFilenameFromPath(res->base);
+	res->URLbase = STRDUP(url);
+	removeFilenameFromPath(res->URLbase);
 
 #ifdef FRONTEND_GETS_FILES
         DEBUG_RES ("FRONTEND_GETS_FILES set to true, always assume that the file is of network ty pe\n");
@@ -368,9 +370,9 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 	DEBUG_RES("resource_identify (end): network=%s type=%s status=%s"
 		  " request=<%s> base=<%s> url=<%s> [parent %p, %s]\n", 
 		  BOOL_STR(res->network), resourceTypeToString(res->type), 
-		  resourceStatusToString(res->status), res->request, 
-		  res->base, res->parsed_request,
-		  res->parent, (res->parent ? res->parent->base : "N/A"));
+		  resourceStatusToString(res->status), res->URLrequest, 
+		  res->URLbase, res->parsed_request,
+		  res->parent, (res->parent ? res->parent->URLbase : "N/A"));
 }
 
 /**
@@ -379,7 +381,7 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 bool resource_fetch(resource_item_t *res)
 {
 	char* pound;
-	DEBUG_RES("fetching resource: %s, %s resource %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status) ,res->request);
+	DEBUG_RES("fetching resource: %s, %s resource %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status) ,res->URLrequest);
 
 	ASSERT(res);
 
@@ -387,7 +389,7 @@ bool resource_fetch(resource_item_t *res)
 
 	case rest_invalid:
 		res->status = ress_invalid;
-		ERROR_MSG("resource_fetch: can't fetch an invalid resource: %s\n", res->request);
+		ERROR_MSG("resource_fetch: can't fetch an invalid resource: %s\n", res->URLrequest);
 		break;
 
 	case rest_url:
@@ -452,9 +454,9 @@ ConsoleMessage ("ERROR, should not be here in rest_file");
 	DEBUG_RES ("resource_fetch (end): network=%s type=%s status=%s"
 		  " request=<%s> base=<%s> url=<%s> [parent %p, %s]\n", 
 		  BOOL_STR(res->network), resourceTypeToString(res->type), 
-		  resourceStatusToString(res->status), res->request, 
-		  res->base, res->parsed_request,
-		  res->parent, (res->parent ? res->parent->base : "N/A"));
+		  resourceStatusToString(res->status), res->URLrequest, 
+		  res->URLbase, res->parsed_request,
+		  res->parent, (res->parent ? res->parent->URLbase : "N/A"));
 	return (res->status == ress_downloaded);
 }
 
@@ -474,7 +476,7 @@ bool resource_load(resource_item_t *res)
 	case ress_starts_good:
 	case ress_invalid:
 	case ress_failed:
-		ERROR_MSG("resource_load: can't load not available resource: %s\n", res->request);
+		ERROR_MSG("resource_load: can't load not available resource: %s\n", res->URLrequest);
 		break;
 
 #ifdef FRONTEND_GETS_FILES
@@ -548,19 +550,19 @@ bool resource_load(resource_item_t *res)
 
 	
 	case ress_loaded:
-		ERROR_MSG("resource_load: MISTAKE: can't load already loaded resource: %s\n", res->request);
+		ERROR_MSG("resource_load: MISTAKE: can't load already loaded resource: %s\n", res->URLrequest);
 		break;
 
 	case ress_not_loaded:
-		ERROR_MSG("resource_load: loader already failed for this resource: %s\n", res->request);
+		ERROR_MSG("resource_load: loader already failed for this resource: %s\n", res->URLrequest);
 		break;
 
 	case ress_parsed:
-		ERROR_MSG("resource_load: MISTAKE: can't load resource already parsed: %s\n", res->request);
+		ERROR_MSG("resource_load: MISTAKE: can't load resource already parsed: %s\n", res->URLrequest);
 		break;
 
 	case ress_not_parsed:
-		ERROR_MSG("resource_load: MISTAKE: can't load resource already parsed (and failed): %s\n", res->request);
+		ERROR_MSG("resource_load: MISTAKE: can't load resource already parsed (and failed): %s\n", res->URLrequest);
 		break;
 	}
 
@@ -587,13 +589,13 @@ void resource_identify_type(resource_item_t *res)
 	case ress_loaded:
 		switch (res->type) {
 		case rest_invalid:
-			ERROR_MSG("can't identify type for invalid resource: %s\n", res->request);
+			ERROR_MSG("can't identify type for invalid resource: %s\n", res->URLrequest);
 			return;
 			break;
 		case rest_string:
-			test_it = (unsigned char*)res->request;
+			test_it = (unsigned char*)res->URLrequest;
                 ConsoleMessage ("test_it is :%s:",test_it);
-            test_it_len = (int)strlen(res->request);
+            test_it_len = (int)strlen(res->URLrequest);
 			break;
 		case rest_url:
 		case rest_file:
@@ -611,8 +613,8 @@ void resource_identify_type(resource_item_t *res)
 			}
 			/* maybe .x3z (.zip) archive? */
 			{
-				char *sourcename = of->fileFileName;
-				if(res->type == rest_url) sourcename = res->request;
+				char *sourcename = (char *)of->fileFileName;
+				if(res->type == rest_url) sourcename = res->URLrequest;
 				if(!strcmp(&sourcename[strlen(sourcename)-4],".x3z")){
 					res->media_type = resm_x3z;
 					return;
@@ -773,18 +775,18 @@ void resource_destroy(resource_item_t *res)
 
 	if (!res->parent) {
 		/* Remove base */
-		FREE_IF_NZ(res->base);
+		FREE_IF_NZ(res->URLbase);
 	} else {
 		/* We used parent's base, so remove us from parent's childs */
 		//resource_remove_child(res->parent, res);
 	}
-	FREE_IF_NZ(res->request);
+	FREE_IF_NZ(res->URLrequest);
 	FREE_IF_NZ(res);
 }
 
 void resource_unlink_cachedfiles(resource_item_t *res)
 {
-	s_list_t *of, *cf;
+	s_list_t *cf;
 
 	if(!res) return;
 	DEBUG_RES("destroying resource: %d, %d\n", res->type, res->status);
@@ -876,7 +878,7 @@ void resource_dump(resource_item_t *res)
 		  "parsed request: %s\n"
 		  "actual file: %s\n"
 		  "cached files: ",
-		  res, res->request, res->parsed_request, res->actual_file);
+		  res, res->URLrequest, res->parsed_request, res->actual_file);
 
 	cf = (s_list_t *) res->cached_files;
 	if (cf) {
@@ -906,7 +908,7 @@ void fwl_resource_push_single_request(const char *request)
 		return;
 
 	res = resource_create_single(request);
-	send_resource_to_parser(res,__FILE__,__LINE__);
+	send_resource_to_parser(res);
 }
 
 /**
@@ -920,7 +922,7 @@ void resource_push_multi_request(struct Multi_String *request)
 		return;
 
 	res = resource_create_multi(request);
-	send_resource_to_parser(res,__FILE__,__LINE__);
+	send_resource_to_parser(res);
 }
 
 /**
@@ -979,7 +981,7 @@ void resource_tree_dump(int level, resource_item_t *root)
 	if (level == 0) printf("\nResource tree:\n\n");
 	else printf("\n");
 
-	spacer printf("==> request:\t %s\n\n", root->request);
+	spacer printf("==> request:\t %s\n\n", root->URLrequest);
 	spacer printf("this:\t %p\n", root);
 	spacer printf("parent:\t %p\n", root->parent);
 	spacer printf("network:\t %s\n", BOOL_STR(root->network));
@@ -990,7 +992,7 @@ void resource_tree_dump(int level, resource_item_t *root)
 	spacer printf("where:\t %p\n", root->where);
 	spacer printf("offsetFromWhere:\t %d\n", root->offsetFromWhere);
 	spacer printf("m_request:\t %p\n", root->m_request);
-	spacer printf("base:\t %s\n", root->base);
+	spacer printf("base:\t %s\n", root->URLbase);
 	spacer printf("temp_dir:\t %s\n", root->temp_dir);
 	spacer printf("parsed_request:\t %s\n", root->parsed_request);
 	spacer printf("actual_file:\t %s\n", root->actual_file);

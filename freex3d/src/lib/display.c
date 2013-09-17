@@ -318,45 +318,21 @@ bool initialize_rdr_caps()
     rdr_caps.have_GL_VERSION_3_0 = rdr_caps.versionf >= 3.0f;
 
 
-#ifdef OLDCODE
-OLDCODE#ifdef HAVE_GLEW_H
-OLDCODE
-OLDCODE	{
-OLDCODE    printf("opengl version=%s\n",rdr_caps.version);
-OLDCODE	if(!rdr_caps.have_GL_VERSION_2_0)
-OLDCODE	{
-OLDCODE		printf("please upgrade to opengl version 2+\n see http://www.opengl.org/wiki/Getting_Started  for details\n");
-OLDCODE		printf("press enter to exit\n");
-OLDCODE		getchar();
-OLDCODE		exit(-1);
-OLDCODE	}
-OLDCODE
-OLDCODE
-OLDCODE	rdr_caps.av_multitexture = GLEW_ARB_multitexture;
-OLDCODE	rdr_caps.av_occlusion_q = GLEW_ARB_occlusion_query;
-OLDCODE	rdr_caps.av_npot_texture = GLEW_ARB_texture_non_power_of_two;
-OLDCODE	rdr_caps.av_texture_rect = GLEW_ARB_texture_rectangle;
-OLDCODE	}
-OLDCODE
-OLDCODE#else
-#endif //OLDCODE
-
 	/* Initialize renderer capabilities without GLEW */
 
 	/* Multitexturing */
 	rdr_caps.av_multitexture = (strstr (rdr_caps.extensions, "GL_ARB_multitexture")!=0);
 
 	/* Occlusion Queries */
-	rdr_caps.av_occlusion_q = (strstr (rdr_caps.extensions, "GL_ARB_occlusion_query") !=0);
+	rdr_caps.av_occlusion_q = ((strstr (rdr_caps.extensions, "GL_ARB_occlusion_query") !=0) ||
+                             (strstr(rdr_caps.extensions, "GL_EXT_occlusion_query_boolean") != 0));
+
 
 	/* Non-power-of-two textures */
 	rdr_caps.av_npot_texture = (strstr (rdr_caps.extensions, "GL_ARB_texture_non_power_of_two") !=0);
 
 	/* Texture rectangle (x != y) */
 	rdr_caps.av_texture_rect = (strstr (rdr_caps.extensions, "GL_ARB_texture_rectangle") !=0);
-#ifdef OLDCODE
-OLDCODE #endif
-#endif //OLDCODE
 
 	/* if we are doing our own shading, force the powers of 2, because otherwise mipmaps are not possible. */
 	rdr_caps.av_npot_texture=FALSE;
@@ -447,7 +423,3 @@ void rdr_caps_dump(s_renderer_capabilities_t *rdr_caps)
 	DEBUG_MSG ("Max texture size      %d\n", rdr_caps->system_max_texture_size);
 	DEBUG_MSG ("Texture units         %d\n", rdr_caps->texture_units);
 }
-
-/* Local Variables: */
-/* c-basic-offset: 8 */
-/* End: */

@@ -3733,10 +3733,10 @@ static BOOL parser_interfaceDeclarationB(struct VRMLParser* me, struct ProtoDefi
 	DECLAREUP
     union anyVrml defaultVal;
     struct ProtoFieldDecl* pdecl=NULL;
-    struct ProtoFieldDecl* pField=NULL;
+    //struct ProtoFieldDecl* pField=NULL;
     struct ScriptFieldDecl* sdecl=NULL;
-    char *startOfField = NULL;
-    int startOfFieldLexerLevel = INT_ID_UNDEFINED;
+    //char *startOfField = NULL;
+    //int startOfFieldLexerLevel = INT_ID_UNDEFINED;
 
 
 #ifdef CPARSERVERBOSE

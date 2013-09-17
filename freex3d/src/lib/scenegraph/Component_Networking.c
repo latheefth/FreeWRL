@@ -556,7 +556,7 @@ static void loadInline(struct X3D_Inline *me)
 				res->where = X3D_NODE(me);
 				res->offsetFromWhere = (float) offsetof (struct X3D_Inline, __children);
                 //printf ("going to send resource to parser async for res %p\n",res);
-				if (send_resource_to_parser_if_available(res,__FILE__,__LINE__)) {
+				if (send_resource_to_parser_if_available(res)) {
 				me->__loadstatus = INLINE_PARSING; /* a "do-nothing" approach */
 			} else {
                     //printf ("have to wait here for parser to finish\n");
@@ -631,12 +631,6 @@ void load_Inline (struct X3D_Inline *node) {
 			if (node->url.n == 0) {
 				node->__loadstatus = INLINE_STABLE; /* a "do-nothing" approach */
 			} else {
-				resource_item_t *myres;
-				resource_item_t *parentResource;
-
-				myres = (resource_item_t*)(node->_parentResource);
-				parentResource = (resource_item_t *)(node->_parentResource);
-
 				res = resource_create_multi(&(node->url));
 				res->media_type = resm_unknown;
 				node->__loadstatus = INLINE_FETCHING_RESOURCE;
@@ -668,7 +662,7 @@ void load_Inline (struct X3D_Inline *node) {
 				res->media_type = resm_unknown;
 				res->where = X3D_NODE(node);
 				res->offsetFromWhere = (float) offsetof (struct X3D_Inline, __children);
-				send_resource_to_parser(res,__FILE__,__LINE__);
+				send_resource_to_parser(res);
 				node->__loadstatus = INLINE_PARSING; /* a "do-nothing" approach */
 			} else {
 				if ((res->status == ress_failed) || (res->status == ress_invalid)) {

@@ -4654,7 +4654,7 @@ void fwl_replaceWorldNeeded(char* str)
 	resource_item_t* plugin_res;
 	kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 	plugin_res = resource_create_single(str);
-	send_resource_to_parser_async(plugin_res,__FILE__,__LINE__);
+	send_resource_to_parser_async(plugin_res);
 }
 
 

@@ -79,7 +79,7 @@ typedef struct freewrl_params {
 	void* winToEmbedInto;
 	bool fullscreen;
 	bool multithreading;
-	bool eai;
+	bool enableEAI;
 	bool verbose;
 	//int collision;	/* do collision detection? moved to x3d_viewer struct july 7, 2012*/
 	bool frontend_handles_display_thread;

@@ -2918,9 +2918,6 @@ bool fwl_initialize_GL()
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 1");
 	initialize_rdr_caps();
 
-	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 2");
-	initialize_rdr_functions();
-
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 3");
 
 	/* lets make sure everything is sync'd up */

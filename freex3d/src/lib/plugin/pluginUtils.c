@@ -298,7 +298,7 @@ int doBrowserAction()
 					resToLoad = resource_create_single(p->plugin_res->actual_file);
 
 					/* in with the new... */
-					send_resource_to_parser(resToLoad,__FILE__,__LINE__);
+					send_resource_to_parser(resToLoad);
 					p->waitingForURLtoLoad = TRUE;
 					return TRUE; /* keep the browser ticking along here */
 				} else {
@@ -313,7 +313,7 @@ int doBrowserAction()
 						/* we want to clean out the old world AND load a new one in */
 						p->plugin_res = resource_create_single (p->plugin_res->parsed_request);
 
-						send_resource_to_parser(p->plugin_res,__FILE__,__LINE__);
+						send_resource_to_parser(p->plugin_res);
 
 						p->waitingForURLtoLoad = TRUE;
 						return TRUE; /* keep the browser ticking along here */
@@ -386,7 +386,7 @@ bool Anchor_ReplaceWorld(const char *name)
 	AR_res = resource_create_single(name);
 	//AR_res->new_root = TRUE;
 	new_root();
-	send_resource_to_parser(AR_res,__FILE__,__LINE__);
+	send_resource_to_parser(AR_res);
 	resource_wait(AR_res);
 
 	if (AR_res->status != ress_loaded) {

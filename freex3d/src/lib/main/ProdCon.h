@@ -32,5 +32,6 @@ General functions declarations.
 
 
 void registerBindable(struct X3D_Node *);
+extern char *EAI_Flag;
 
 #endif /* __FREEWRL_PRODCON_MAIN_H__ */

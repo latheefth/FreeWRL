@@ -40,6 +40,8 @@
 #include <io_http.h>
 #include <threads.h>
 #include "scenegraph/Vector.h"
+#include "main/ProdCon.h"
+
 #if defined(_MSC_VER)
  #include <WinInet.h>
 #endif
@@ -477,24 +479,31 @@ void download_url(resource_item_t *res)
  * this is a Vector; we keep track of n depths.
  */
 
-//static struct Vector *resStack = NULL;
-
 /* keep the last base resource around, for times when we are making nodes during runtime, eg
    textures in Background nodes */
-
-//static resource_item_t *lastBaseResource = NULL;
 
 void pushInputResource(resource_item_t *url) 
 {
 	ppio_http p = gglobal()->io_http.prv;
-	DEBUG_MSG("pushInputResource current Resource is %s\n", url->parsed_request);
+	DEBUG_MSG("pushInputResource current Resource is %s", url->parsed_request);
 
+            
+        
 	/* push this one */
 	if (p->resStack==NULL) {
 		p->resStack = newStack (resource_item_t *);
 	}
 
+    /* is this an EAI/SAI request? If not, we don't push this one on the stack */
+    /*
+    if (url->parsed_request != NULL)
+        if (strncmp(url->parsed_request,EAI_Flag,strlen(EAI_Flag)) == 0) {
+            DEBUG_MSG("pushInputResource, from EAI, ignoring");
+            return;
+        }
+*/
 	stack_push (resource_item_t*, p->resStack, url);
+    DEBUG_MSG("pushInputResource, after push, stack size %d",vectorSize(p->resStack));
 }
 
 void popInputResource() {
@@ -502,6 +511,8 @@ void popInputResource() {
 	ppio_http p = gglobal()->io_http.prv;
 
 	/* lets just keep this one around, to see if it is really the bottom of the stack */
+    DEBUG_MSG("popInputResource, stack size %d",vectorSize(p->resStack));
+    
 	cwu = stack_top(resource_item_t *, p->resStack);
 
 	/* pop the stack, and if we are at "nothing" keep the pointer to the last resource */
@@ -512,6 +523,7 @@ void popInputResource() {
 		p->lastBaseResource = cwu;
 	} else {
 		cwu = stack_top(resource_item_t *, p->resStack);
+        DEBUG_MSG("popInputResource, cwu = %p",cwu);
 		DEBUG_MSG("popInputResource before pop, current Resource is %s\n", cwu->parsed_request);
 	}
 }
@@ -521,6 +533,7 @@ resource_item_t *getInputResource()
 	resource_item_t *cwu;
 	ppio_http p = gglobal()->io_http.prv;
 
+    
 	DEBUG_MSG("getInputResource \n");
 	if (p->resStack==NULL) {
 		DEBUG_MSG("getInputResource, stack NULL\n");
