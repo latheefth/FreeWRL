@@ -113,7 +113,7 @@ void fwl_OSX_initializeParameters(const char* initialURL) {
     	fwl_setp_fullscreen(FALSE);
 
         ConsoleMessage ("forcing EAI");
-        fwl_setp_eai(TRUE); myParams.eai = TRUE;
+        fwl_setp_eai(TRUE); myParams.enableEAI = TRUE;
 
     /* start threads, parse initial scene, etc */
 

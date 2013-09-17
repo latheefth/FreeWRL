@@ -81,7 +81,7 @@ int whichOne=0;
         startingString = (char *)[fileToOpen UTF8String];
     } else {
 
-        startingString="/Users/john/Desktop/GeoSpatialTesting/7_levels_plus/globe.x3d";
+        startingString="/Users/john/Desktop/GeoSpatialTesting/7_levels_plus/globe_with_ROOTNODE.x3d";
     }
     
     while ([FreeWRLAppDelegate applicationHasLaunched]) {
