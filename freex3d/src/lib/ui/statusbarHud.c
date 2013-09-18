@@ -1073,13 +1073,23 @@ char * keyboardShortcutHelp[27] = {
 "  q Quit browser"
 #endif
 };
+const char *libFreeWRL_get_version();
 void printKeyboardHelp(ppstatusbar p)
 {
 	int j; 
+	XY xy;
+	FXY fxy;
+	static const char *versionInfo = "libfreeWRL version ";
+	xy = text2screen(0,0);
+	fxy = screen2normalizedScreen((GLfloat)xy.x,(GLfloat)xy.y);
+	printString2(fxy.x,fxy.y,(char *)versionInfo);
+	xy = text2screen(strlen(versionInfo),0);
+	fxy = screen2normalizedScreen((GLfloat)xy.x,(GLfloat)xy.y);
+	printString2(fxy.x,fxy.y,(char*)libFreeWRL_get_version());
+
 	for(j=0;j<lenhelp;j++)
 	{
-		FXY fxy;
-		XY xy = text2screen(0,j);
+		xy = text2screen(0,j+1);
 		fxy = screen2normalizedScreen((GLfloat)xy.x,(GLfloat)xy.y);
 		printString2(fxy.x,fxy.y,keyboardShortcutHelp[j]);
 	}
