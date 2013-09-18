@@ -81,7 +81,7 @@ int fwInit ( ESContext *esContext )
     /* Default values */
     fv_params->width = esContext->width; //600;
     fv_params->height = esContext->height; //400;
-    fv_params->eai = FALSE;
+    //fv_params->eai = FALSE;
     fv_params->fullscreen = FALSE;
     fv_params->winToEmbedInto = -1;
     fv_params->verbose = FALSE;
