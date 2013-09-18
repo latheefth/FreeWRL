@@ -21,6 +21,8 @@
 int ccurse = ACURSE;
 int ocurse = ACURSE;
 
+const char *libFreeWRL_get_version(void) {return "2.0";}
+
 /* typedef struct pcommon{
 	float myFps; // = (float) 0.0;
 	char myMenuStatus[MAXSTAT];
