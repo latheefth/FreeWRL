@@ -1,4 +1,4 @@
-//Microsoft Visual C++ generated resource script.
+// Microsoft Visual C++ generated resource script.
 //
 #include "resource.h"
 
@@ -12,6 +12,15 @@
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
+/////////////////////////////////////////////////////////////////////////////
+// English (Canada) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENC)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_CAN
+#pragma code_page(1252)
+#endif //_WIN32
+
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -20,22 +29,21 @@
 
 1 TEXTINCLUDE 
 BEGIN
-	"resource.h\0"
+    "resource.h\0"
 END
 
 2 TEXTINCLUDE 
 BEGIN
-	"#include ""afxres.h""\r\n"
-	"\0"
-END
-
-3 TEXTINCLUDE  
-BEGIN
-	"1 TYPELIB ""freeWRLAx.tlb""\r\n"
+    "#include ""afxres.h""\r\n"
     "\0"
 END
 
-/////////////////////////////////////////////////////////////////////////////
+3 TEXTINCLUDE 
+BEGIN
+    "1 TYPELIB ""freeWRLAx.tlb""\r\n"
+    "\0"
+END
+
 #endif    // APSTUDIO_INVOKED
 
 
@@ -45,8 +53,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
+ FILEVERSION 2,0,0,0
+ PRODUCTVERSION 2,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -63,36 +71,35 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "freewrl.sourceforge.net"
             VALUE "FileDescription", "freeWRL ActiveX control"
-            VALUE "FileVersion", "1.0.0.1"
+            VALUE "FileVersion", "2.0.0.0"
             VALUE "InternalName", "freeWRLAx.ocx"
             VALUE "LegalCopyright", "(c) freeWRL. distributed under LGPL."
             VALUE "OriginalFilename", "freeWRLAx.ocx"
             VALUE "ProductName", "freeWRLAx"
-            VALUE "ProductVersion", "1.0.0.1"
-            VALUE "OLESelfRegister", ""
+            VALUE "ProductVersion", "2.0.0.0"
         END
     END
     BLOCK "VarFileInfo"
     BEGIN
-		VALUE "Translation", 0x0409, 1252
+        VALUE "Translation", 0x409, 1252
     END
 END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Bitmap
 //
 
-IDB_FREEWRLAX   BITMAP   "freeWRLCtrl.bmp"
+IDB_FREEWRLAX           BITMAP                  "freeWRLCtrl.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Dialog
 //
 
-
-IDD_PROPPAGE_FREEWRLAX DIALOG   0, 0, 250, 62
-STYLE WS_CHILD
+IDD_PROPPAGE_FREEWRLAX DIALOG  0, 0, 250, 62
+STYLE DS_SETFONT | WS_CHILD
 FONT 8, "MS Sans Serif"
 BEGIN
     LTEXT           "TODO: Place controls to manipulate properties of freeWRL Control on this dialog.",
@@ -106,7 +113,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO  
+GUIDELINES DESIGNINFO 
 BEGIN
     IDD_PROPPAGE_FREEWRLAX, DIALOG
     BEGIN
@@ -118,6 +125,7 @@ BEGIN
 END
 #endif    // APSTUDIO_INVOKED
 
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // String Table
@@ -125,11 +133,18 @@ END
 
 STRINGTABLE 
 BEGIN
-	IDS_FREEWRLAX               "freeWRL Control"
-	IDS_FREEWRLAX_PPG           "freeWRL Property Page"
-	IDS_FREEWRLAX_PPG_CAPTION   "General"
-
+    IDS_FREEWRLAX           "freeWRL Control"
+    IDS_FREEWRLAX_PPG       "freeWRL Property Page"
 END
+
+STRINGTABLE 
+BEGIN
+    IDS_FREEWRLAX_PPG_CAPTION "General"
+END
+
+#endif    // English (Canada) resources
+/////////////////////////////////////////////////////////////////////////////
+
 
 
 #ifndef APSTUDIO_INVOKED

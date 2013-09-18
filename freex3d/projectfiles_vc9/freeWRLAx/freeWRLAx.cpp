@@ -12,8 +12,10 @@
 CfreeWRLAxApp NEAR theApp;
 
 const GUID CDECL BASED_CODE _tlid =
-		{ 0x656FC6F3, 0x9CF2, 0x4674, { 0xB3, 0x32, 0xB2, 0x55, 0x8, 0x52, 0xE6, 0x44 } };
-const WORD _wVerMajor = 1;
+	{ 0x7e8586c1, 0x3869, 0x453d, { 0x82, 0x30, 0x62, 0x68, 0x7, 0x87, 0x6f, 0x82 } }; //version 2.0
+	//{ 0x656FC6F3, 0x9CF2, 0x4674, { 0xB3, 0x32, 0xB2, 0x55, 0x8, 0x52, 0xE6, 0x44 } }; //version 1.22.12_pre2
+
+const WORD _wVerMajor = 2;
 const WORD _wVerMinor = 0;
 
       const CATID CATID_SafeForScripting     =
@@ -64,24 +66,34 @@ STDAPI DllRegisterServer(void)
     const char* pszMTExt2 = ".x3dv";
     const char* pszMTExt3 = ".x3d";
     const char* pszMTExt4 = ".x3z";
+    const char* pszMTExt5 = ".x3z";
+    const char* pszMTExt6 = ".x3d";
+
     // text for new mime content type
     const char* pszMTContent0 = "x-world/x-vrml";
     const char* pszMTContent1 = "model/vrml";
     const char* pszMTContent2 = "model/x3d+vrml";
     const char* pszMTContent3 = "model/x3d+xml";
     const char* pszMTContent4 = "model/x3d+zip";
+    const char* pszMTContent5 = "model/x-x3d+zip";
+    const char* pszMTContent6 = "model/x3d";
+
     // text for mimetype subkey
     const char* pszMTSubKey0 = "MIME\\DataBase\\Content Type\\x-world/x-vrml";
     const char* pszMTSubKey1 = "MIME\\DataBase\\Content Type\\model/vrml";
     const char* pszMTSubKey2 = "MIME\\DataBase\\Content Type\\model/x3d+vrml";
     const char* pszMTSubKey3 = "MIME\\DataBase\\Content Type\\model/x3d+xml";
     const char* pszMTSubKey4 = "MIME\\DataBase\\Content Type\\model/x3d+zip";
+    const char* pszMTSubKey5 = "MIME\\DataBase\\Content Type\\model/x-x3d+zip";
+    const char* pszMTSubKey6 = "MIME\\DataBase\\Content Type\\model/x3d";
     // extension named value
     const char* pszMTExtVal = "Extension";
     // clsid
-	const char* pszMTCLSID = "{582C9301-A2C8-45FC-831B-654DE7F3AF11}";
+	const char* pszMTCLSID = "{4E814FCE-B546-4d91-8EA8-358264E5D423}"; //version 2.0
+	// "{582C9301-A2C8-45FC-831B-654DE7F3AF11}"; //version 1.22.12_pre2
     const GUID CDECL BASED_CODE _ctlid =
-	{ 0x582c9301, 0xa2c8, 0x45fc, {0x83, 0x1b, 0x65, 0x4d, 0xe7, 0xf3, 0xaf, 0x11}};
+	{ 0x4e814fce, 0xb546, 0x4d91, { 0x8e, 0xa8, 0x35, 0x82, 0x64, 0xe5, 0xd4, 0x23 } }; //version 2.0
+	// { 0x582c9301, 0xa2c8, 0x45fc, {0x83, 0x1b, 0x65, 0x4d, 0xe7, 0xf3, 0xaf, 0x11}}; //version 1.22.12_pre2
 
     // clsid named value name
     const char* pszMTCLSIDVal = "CLSID";
@@ -109,12 +121,12 @@ STDAPI DllRegisterServer(void)
         // add extension value to that mime type key to associate .xxx files with the 
         //  mime type
         if ( ERROR_SUCCESS != RegSetValueEx(hkey, pszMTExtVal, 0, REG_SZ, 
-            (const BYTE *)pszMTExt0, strlen(pszMTExt0)) )
+            (const BYTE *)pszMTExt0, (DWORD)strlen(pszMTExt0)) )
             break;
 
         // Add class id to associate this object with the mime type
         if ( ERROR_SUCCESS != RegSetValueEx(hkey, pszMTCLSIDVal, 0, REG_SZ,
-            (const BYTE *)pszMTCLSID, strlen(pszMTCLSID)) )
+            (const BYTE *)pszMTCLSID, (DWORD)strlen(pszMTCLSID)) )
             break;
 
         RegCloseKey(hkey);
@@ -127,12 +139,12 @@ STDAPI DllRegisterServer(void)
         // add extension value to that mime type key to associate .xxx files with the 
         //  mime type
         if ( ERROR_SUCCESS != RegSetValueEx(hkey, pszMTExtVal, 0, REG_SZ, 
-            (const BYTE *)pszMTExt1, strlen(pszMTExt1)) )
+            (const BYTE *)pszMTExt1, (DWORD)strlen(pszMTExt1)) )
             break;
 
         // Add class id to associate this object with the mime type
         if ( ERROR_SUCCESS != RegSetValueEx(hkey, pszMTCLSIDVal, 0, REG_SZ,
-            (const BYTE *)pszMTCLSID, strlen(pszMTCLSID)) )
+            (const BYTE *)pszMTCLSID, (DWORD)strlen(pszMTCLSID)) )
             break;
 
         RegCloseKey(hkey);
@@ -144,12 +156,12 @@ STDAPI DllRegisterServer(void)
         // add extension value to that mime type key to associate .xxx files with the 
         //  mime type
         if ( ERROR_SUCCESS != RegSetValueEx(hkey, pszMTExtVal, 0, REG_SZ, 
-            (const BYTE *)pszMTExt2, strlen(pszMTExt2)) )
+            (const BYTE *)pszMTExt2, (DWORD)strlen(pszMTExt2)) )
             break;
 
         // Add class id to associate this object with the mime type
         if ( ERROR_SUCCESS != RegSetValueEx(hkey, pszMTCLSIDVal, 0, REG_SZ,
-            (const BYTE *)pszMTCLSID, strlen(pszMTCLSID)) )
+            (const BYTE *)pszMTCLSID, (DWORD)strlen(pszMTCLSID)) )
             break;
 
         RegCloseKey(hkey);
@@ -161,12 +173,12 @@ STDAPI DllRegisterServer(void)
         // add extension value to that mime type key to associate .xxx files with the 
         //  mime type
         if ( ERROR_SUCCESS != RegSetValueEx(hkey, pszMTExtVal, 0, REG_SZ, 
-            (const BYTE *)pszMTExt3, strlen(pszMTExt3)) )
+            (const BYTE *)pszMTExt3, (DWORD)strlen(pszMTExt3)) )
             break;
 
         // Add class id to associate this object with the mime type
         if ( ERROR_SUCCESS != RegSetValueEx(hkey, pszMTCLSIDVal, 0, REG_SZ,
-            (const BYTE *)pszMTCLSID, strlen(pszMTCLSID)) )
+            (const BYTE *)pszMTCLSID, (DWORD)strlen(pszMTCLSID)) )
             break;
 
         RegCloseKey(hkey);
@@ -179,12 +191,48 @@ STDAPI DllRegisterServer(void)
         // add extension value to that mime type key to associate .xxx files with the 
         //  mime type
         if ( ERROR_SUCCESS != RegSetValueEx(hkey, pszMTExtVal, 0, REG_SZ, 
-            (const BYTE *)pszMTExt4, strlen(pszMTExt4)) )
+            (const BYTE *)pszMTExt4, (DWORD)strlen(pszMTExt4)) )
             break;
 
         // Add class id to associate this object with the mime type
         if ( ERROR_SUCCESS != RegSetValueEx(hkey, pszMTCLSIDVal, 0, REG_SZ,
-            (const BYTE *)pszMTCLSID, strlen(pszMTCLSID)) )
+            (const BYTE *)pszMTCLSID, (DWORD)strlen(pszMTCLSID)) )
+            break;
+
+        RegCloseKey(hkey);
+
+	//HKCR/MIME/DataBase/Content Type/model/x-x3d+zip .x3z
+        // create new mime type key for our new mimetype.  Only necessary for new mime types
+        if ( ERROR_SUCCESS != RegCreateKey(HKEY_CLASSES_ROOT, pszMTSubKey5, &hkey) )
+            break;
+
+        // add extension value to that mime type key to associate .xxx files with the 
+        //  mime type
+        if ( ERROR_SUCCESS != RegSetValueEx(hkey, pszMTExtVal, 0, REG_SZ, 
+            (const BYTE *)pszMTExt5, (DWORD)strlen(pszMTExt5)) )
+            break;
+
+        // Add class id to associate this object with the mime type
+        if ( ERROR_SUCCESS != RegSetValueEx(hkey, pszMTCLSIDVal, 0, REG_SZ,
+            (const BYTE *)pszMTCLSID, (DWORD)strlen(pszMTCLSID)) )
+            break;
+
+        RegCloseKey(hkey);
+
+	//HKCR/MIME/DataBase/Content Type/model/x3d
+        // create new mime type key for our new mimetype.  Only necessary for new mime types
+        if ( ERROR_SUCCESS != RegCreateKey(HKEY_CLASSES_ROOT, pszMTSubKey6, &hkey) )
+            break;
+
+        // add extension value to that mime type key to associate .xxx files with the 
+        //  mime type
+        if ( ERROR_SUCCESS != RegSetValueEx(hkey, pszMTExtVal, 0, REG_SZ, 
+            (const BYTE *)pszMTExt6, (DWORD)strlen(pszMTExt6)) )
+            break;
+
+        // Add class id to associate this object with the mime type
+        if ( ERROR_SUCCESS != RegSetValueEx(hkey, pszMTCLSIDVal, 0, REG_SZ,
+            (const BYTE *)pszMTCLSID, (DWORD)strlen(pszMTCLSID)) )
             break;
 
         RegCloseKey(hkey);
@@ -204,7 +252,7 @@ STDAPI DllRegisterServer(void)
         // Add content type to associate this extension with the content type.  This is required
         // and is used when the mime type is unknown and IE looks up associations by extension
         if ( ERROR_SUCCESS != RegSetValueEx(hkey, pszMTContentVal, 0, REG_SZ,
-            (const BYTE *)pszMTContent1, strlen(pszMTContent1)) )
+            (const BYTE *)pszMTContent1, (DWORD)strlen(pszMTContent1)) )
             break;
 
         RegCloseKey(hkey);
@@ -217,7 +265,7 @@ STDAPI DllRegisterServer(void)
         // Add content type to associate this extension with the content type.  This is required
         // and is used when the mime type is unknown and IE looks up associations by extension
         if ( ERROR_SUCCESS != RegSetValueEx(hkey, pszMTContentVal, 0, REG_SZ,
-            (const BYTE *)pszMTContent2, strlen(pszMTContent2)) )
+            (const BYTE *)pszMTContent2, (DWORD)strlen(pszMTContent2)) )
             break;
 
         RegCloseKey(hkey);
@@ -230,7 +278,7 @@ STDAPI DllRegisterServer(void)
         // Add content type to associate this extension with the content type.  This is required
         // and is used when the mime type is unknown and IE looks up associations by extension
         if ( ERROR_SUCCESS != RegSetValueEx(hkey, pszMTContentVal, 0, REG_SZ,
-            (const BYTE *)pszMTContent3, strlen(pszMTContent3)) )
+            (const BYTE *)pszMTContent3, (DWORD)strlen(pszMTContent3)) )
             break;
 
         RegCloseKey(hkey);
@@ -243,7 +291,7 @@ STDAPI DllRegisterServer(void)
         // Add content type to associate this extension with the content type.  This is required
         // and is used when the mime type is unknown and IE looks up associations by extension
         if ( ERROR_SUCCESS != RegSetValueEx(hkey, pszMTContentVal, 0, REG_SZ,
-            (const BYTE *)pszMTContent4, strlen(pszMTContent4)) )
+            (const BYTE *)pszMTContent4, (DWORD)strlen(pszMTContent4)) )
             break;
 
         RegCloseKey(hkey);
@@ -281,6 +329,7 @@ STDAPI DllRegisterServer(void)
 		//  HKEY_LOCAL_MACHINE/SOFTWARE/Microsoft/Windows/CurrentVersion/Ext/PreApproved"
 		if ( ERROR_SUCCESS != RegCreateKey(HKEY_LOCAL_MACHINE,
 			"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Ext\\PreApproved\\{582C9301-A2C8-45FC-831B-654DE7F3AF11}",&hkey) )
+			//"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Ext\\PreApproved\\{582C9301-A2C8-45FC-831B-654DE7F3AF11}",&hkey) ) //version 1.22.12_pre2
             break;
 
          RegCloseKey(hkey);

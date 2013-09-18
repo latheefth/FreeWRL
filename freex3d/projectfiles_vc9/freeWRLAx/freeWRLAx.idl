@@ -7,7 +7,7 @@
 #include <olectl.h>
 #include <idispids.h>
 
-[ uuid(656FC6F3-9CF2-4674-B332-B2550852E644), version(1.0),
+[ uuid(7E8586C1-3869-453d-8230-626807876F82), version(2.0), //version 2.0 //uuid(656FC6F3-9CF2-4674-B332-B2550852E644), version(1.0), //version 1.22.12_pre2
   helpfile("freeWRLAx.hlp"),
   helpstring("freeWRLAx ActiveX Control module"),
   control ]
@@ -17,7 +17,7 @@ library freeWRLAxLib
 
 	//  Primary dispatch interface for CfreeWRLCtrl
 
-	[ uuid(C3C32307-89C2-4C1A-B7F1-D561AA0653A3),
+	[ uuid(B066822F-ED4C-4cf0-8E83-103B729A3803), //version 2.0 //uuid(C3C32307-89C2-4C1A-B7F1-D561AA0653A3), //version 1.22.12_pre2
 	  helpstring("Dispatch interface for freeWRL Control")]
 	dispinterface _DfreeWRLAx
 	{
@@ -27,7 +27,7 @@ library freeWRLAxLib
 
 	//  Event dispatch interface for CfreeWRLCtrl
 
-	[ uuid(91DEB0AA-9E7D-43F4-80C4-125C535B30EC),
+	[ uuid(637CAF03-A846-4eb1-A7A6-C6562688DFF7), //version 2.0 //uuid(91DEB0AA-9E7D-43F4-80C4-125C535B30EC),//version 1.22.12_pre2
 	  helpstring("Event interface for freeWRL Control") ]
 	dispinterface _DfreeWRLAxEvents
 	{
@@ -39,7 +39,7 @@ library freeWRLAxLib
 
 	//  Class information for CfreeWRLCtrl
 
-	[ uuid(582C9301-A2C8-45FC-831B-654DE7F3AF11),
+	[ uuid(4E814FCE-B546-4d91-8EA8-358264E5D423),//version 2 //(582C9301-A2C8-45FC-831B-654DE7F3AF11), //version 1.22.12_pre2
 	  helpstring("freeWRL Control"), control ]
 	coclass freeWRLAx
 	{

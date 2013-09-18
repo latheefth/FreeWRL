@@ -4,7 +4,7 @@
 
 
  /* File created by MIDL compiler version 6.00.0361 */
-/* at Mon Sep 16 15:28:07 2013
+/* at Wed Sep 18 11:20:06 2013
  */
 /* Compiler settings for .\freeWRLAx.idl:
     Oicf, W1, Zp8, env=Win32 (32b run)
@@ -93,7 +93,7 @@ EXTERN_C const IID DIID__DfreeWRLAx;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
 
-    MIDL_INTERFACE("C3C32307-89C2-4C1A-B7F1-D561AA0653A3")
+    MIDL_INTERFACE("B066822F-ED4C-4cf0-8E83-103B729A3803")
     _DfreeWRLAx : public IDispatch
     {
     };
@@ -199,7 +199,7 @@ EXTERN_C const IID DIID__DfreeWRLAxEvents;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
 
-    MIDL_INTERFACE("91DEB0AA-9E7D-43F4-80C4-125C535B30EC")
+    MIDL_INTERFACE("637CAF03-A846-4eb1-A7A6-C6562688DFF7")
     _DfreeWRLAxEvents : public IDispatch
     {
     };
@@ -298,7 +298,7 @@ EXTERN_C const CLSID CLSID_freeWRLAx;
 
 #ifdef __cplusplus
 
-class DECLSPEC_UUID("582C9301-A2C8-45FC-831B-654DE7F3AF11")
+class DECLSPEC_UUID("4E814FCE-B546-4d91-8EA8-358264E5D423")
 freeWRLAx;
 #endif
 #endif /* __freeWRLAxLib_LIBRARY_DEFINED__ */
