@@ -151,7 +151,7 @@ int main (int argc, char **argv)
     /* Default values */
     fv_params->width = 600;
     fv_params->height = 400;
-    fv_params->eai = FALSE;
+    //fv_params->eai = FALSE;
     fv_params->fullscreen = FALSE;
     fv_params->winToEmbedInto = NULL; //-1
     fv_params->verbose = FALSE;

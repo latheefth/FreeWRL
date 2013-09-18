@@ -115,7 +115,7 @@ void CdllFreeWRL::onInit(int width, int height, void* windowhandle, bool bEai)
 	/* Default values */
 	params->width = width; //600;
 	params->height = height; //400;
-	params->eai = bEai;
+	//params->eai = bEai;
 	params->fullscreen = 0;
 	params->winToEmbedInto = windowhandle;
 	params->frontend_handles_display_thread = false;

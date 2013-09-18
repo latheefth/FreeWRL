@@ -304,7 +304,7 @@ int fv_parseCommandLine (int argc, char **argv)
 
 	case 'e': /* --eai, no argument */
 	    fwl_setp_eai(TRUE);
-	    fv_params->eai = TRUE;
+	    //fv_params->eai = TRUE;
 	    break;
 
 	case 'f': /* --fast, no argument */

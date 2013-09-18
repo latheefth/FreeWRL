@@ -789,6 +789,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	int offsetInNode;
 	int shouldBind;
     int parsedOk = FALSE; // results from parser
+    bool fromEAI_SAI = FALSE;
 	/* we only bind to new nodes, if we are adding via Inlines, etc */
 	int origFogNodes, origBackgroundNodes, origNavigationNodes, origViewpointNodes;
 	ppProdCon p;
@@ -796,7 +797,6 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	ttglobal tg = gglobal();
 	t = &tg->ProdCon;
 	p = (ppProdCon)t->prv;
-    bool fromEAI_SAI = FALSE;
 
 
 	/* printf("processing VRML/X3D resource: %s\n", res->request);  */

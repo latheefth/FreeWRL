@@ -1,4 +1,4 @@
-LIBRARY   np_freeX3D
+LIBRARY   np_freeWRL
 
 EXPORTS
 	NP_GetEntryPoints   @1

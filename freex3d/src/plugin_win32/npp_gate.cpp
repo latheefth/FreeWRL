@@ -85,7 +85,7 @@ NPError NPP_New(NPMIMEType pluginType,
   NPError rv = NPERR_NO_ERROR;
 
 #ifdef _DEBUG
-  ::MessageBoxA(NULL,"You may now attach a debugger.\n Press OK when you want to proceed.","np_freeX3D plugin process(1)",MB_OK);
+  ::MessageBoxA(NULL,"You may now attach a debugger.\n Press OK when you want to proceed.","np_freeWRL plugin process(1)",MB_OK);
 #endif
 
   CPlugin * pPlugin = new CPlugin(instance);
