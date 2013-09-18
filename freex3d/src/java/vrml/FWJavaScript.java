@@ -248,4 +248,36 @@ public final class FWJavaScript {
 	    throw new InternalError("Communication error: "+e);
 	}
     }
+
+
+    public static BaseNode[] createX3DFromString(String vrmlSyntax)
+	throws InvalidX3DSyntaxException
+    {
+	try {
+	    FWJavaScript.EAIout.println("CREATEX3D");
+	    FWJavaScript.EAIout.println(vrmlSyntax);
+	    FWJavaScript.EAIout.println("EOT");
+	    FWJavaScript.EAIout.flush();
+	    String intstring = FWJavaScript.EAIin.readLine();
+	    int number = Integer.parseInt(intstring);
+	    if (number == -1)
+		throw new InvalidX3DSyntaxException(EAIin.readLine());
+
+	    if (number == 0)
+		    return null;
+
+	    Node[] nodes = new Node[number];
+
+	    // remember, nodes have a frontend:backend; one is known in Perl, the
+	    //System.out.println ("Java: Create, reading in " + number + " nodes");
+	    // other is the C pointer to memory.
+	    for (int i = 0; i < number; i++)
+		nodes[i] = new Node(""+EAIin.readLine()+":"+EAIin.readLine());
+	    //System.out.println ("returning from Java Create");
+	    return nodes;
+	} catch (IOException e) {
+	    throw new InternalError("Communication error: "+e);
+	}
+    }
+
 }

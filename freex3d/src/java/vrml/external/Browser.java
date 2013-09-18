@@ -436,6 +436,52 @@ public class Browser implements BrowserInterface, IBrowser
     }
 
 
+    // Parse STRING into a X3D scene and return the list of root
+    // nodes for the resulting scene
+    public Node[]        createX3DFromString(String vrmlSyntax)
+			throws InvalidVrmlException {
+
+      Node[]  x = new Node[100];
+      StringTokenizer tokens;
+      String retval;
+      String temp;
+      int count;
+
+      synchronized (FreeWRLToken) {
+        EAIoutSender.send ("" +queryno + "o \n"+vrmlSyntax+"\nEOT\n");
+        retval = getVRMLreply(queryno);
+
+	//System.out.println ("Browser.java - got " + retval);
+
+        tokens = new StringTokenizer (retval);
+
+	// We return a (node-index C-pointer) pair, so we have to divide by two
+	x = new Node[tokens.countTokens()];
+        count = 0;
+
+	// Lets go through the output, and temporarily store it
+	// XXX - is there a better way? ie, using a vector?
+        while (tokens.hasMoreTokens()) {
+          x[count] = new Node();
+          x[count].nodeptr = Integer.parseInt(tokens.nextToken());
+          x[count].offset = 0;
+          x[count].datasize = 4;
+          x[count].datatype = "h"; // see CFuncs/EAIServ.c for a complete desc.
+
+	  //System.out.println ("CVS - for this one, we have NODE" +
+	  //	" pointer:" + x[count].nodeptr + " offset:" + x[count].offset +
+	  //	" datasize: " + x[count].datasize + " datatype:" + x[count].datatype);
+
+          count ++;
+	  if (count == 100) {
+		count = 99;
+		System.out.println ("EAI: createX3DFromString - warning, tied to 100 nodes");
+	  }
+        }
+        queryno += 1;
+      }
+      return x;
+    }
     // Parse STRING into a VRML scene and return the list of root
     // nodes for the resulting scene
     public Node[]        createVrmlFromString(String vrmlSyntax)

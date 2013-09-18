@@ -19,6 +19,12 @@ public class Browser
    // public String getWorldURL();
    // public void replaceWorld(BaseNode[] nodes);
 
+    public BaseNode[] createX3DFromString(String x3dSyntax)
+	throws InvalidX3DSyntaxException
+    {
+	return FWJavaScript.createX3DFromString(x3dSyntax);
+    }
+
     public BaseNode[] createVrmlFromString(String vrmlSyntax)
 	throws InvalidVRMLSyntaxException
     {
