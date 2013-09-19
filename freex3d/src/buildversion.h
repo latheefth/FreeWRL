@@ -1,0 +1,3 @@
+#define FW_BUILD_VERSION_STR "2.0"
+#define FW_BUILD_VERSION_NUM 2,0,0,0
+
