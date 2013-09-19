@@ -782,9 +782,7 @@ void resetGeometry();
 	#define FW_GL_TEXPARAMETERI(aaa,bbb,ccc) glTexParameteri(aaa,bbb,ccc)
 	#define FW_GL_TEXPARAMETERFV(aaa,bbb,ccc) glTexParameterfv(aaa,bbb,ccc)
         #define FW_GL_GETQUERYOBJECTIV(aaa,bbb,ccc) glGetQueryObjectiv(aaa,bbb,ccc)
-	#define FW_GL_GENQUERIES(aaa,bbb) glGenQueries(aaa,bbb)
-	#define FW_GL_DELETE_QUERIES(aaa,bbb) glDeleteQueries(aaa,bbb)
-	
+		
 	/*apr 6 2010 checkout win32 was missing the following macros */
 	#define FW_GL_DRAWBUFFER(aaa) glDrawBuffer(aaa)
 	#define FW_GL_ENDLIST() glEndList()
