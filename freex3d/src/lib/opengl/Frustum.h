@@ -46,21 +46,15 @@ Global includes.
 	#undef OCCLUSION
 	#undef VISIBILITYOCCLUSION
 	#undef SHAPEOCCLUSION
-//JAS#else
-//JAS	#define OCCLUSION
-//JAS	#define VISIBILITYOCCLUSION
-//JAS	#define SHAPEOCCLUSION
-//JAS#endif
+#if defined (AQUA)
+#define OCCLUSION
+#define VISIBILITYOCCLUSION
+#define SHAPEOCCLUSION
+#endif
 
-//extern GLuint OccQuerySize;
-//extern GLint OccResultsAvailable;
-//extern int OccFailed;
-//extern int *OccCheckCount;
-//extern GLuint *OccQueries;
-//extern void * *OccNodes;
+
 int newOcclude(void);
-//extern GLuint potentialOccluderCount;
-//extern void* *occluderNodePointer;
+
 
 #ifdef OCCLUSION
 #define OCCLUSIONTEST \
