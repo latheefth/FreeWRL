@@ -45,7 +45,7 @@
 #include "ui/common.h"
 
 char consoleBuffer[200];
-freewrl_params_t fwl_params;
+//JAS freewrl_params_t fwl_params;
 
 /**
  * library initialization
@@ -107,13 +107,14 @@ void fwl_OSX_initializeParameters(const char* initialURL) {
         myParams.verbose = FALSE;
         
     	/* Default values */
-    	fwl_setp_width(600);
-    	fwl_setp_height(400);
-    	fwl_setp_eai(FALSE);
-    	fwl_setp_fullscreen(FALSE);
+#ifdef OLDCODE
+ OLDCODE   	fwl_setp_height(400);
+ OLDCODE   	fwl_setp_eai(FALSE);
+ OLDCODE fwl_setp_fullscreen(FALSE);
 
+#endif //OLDCODE
         ConsoleMessage ("forcing EAI");
-        fwl_setp_eai(TRUE); myParams.enableEAI = TRUE;
+	myParams.enableEAI = TRUE;
 
     /* start threads, parse initial scene, etc */
 
@@ -198,36 +199,32 @@ char *strForeslash2back(char *str)
 	return str;
 }
 
-//void fwl_initParams(freewrl_params_t *params)
-//{
-//	if (params) {
-//		DEBUG_MSG("copying application supplied params...\n");
-//		memcpy(&fwl_params, params, sizeof(freewrl_params_t));
-//		memcpy(
-//	} else {
-//		memset(&fwl_params, 0, sizeof(freewrl_params_t));
-//	}
-//}
+#ifdef OLDCODE
 
-void fwl_setp_width		(int foo)	{ fwl_params.width = foo; }
-void fwl_setp_height		(int foo)	{ fwl_params.height = foo; }
-void fwl_setp_winToEmbedInto	(void* foo)	{ fwl_params.winToEmbedInto = foo; }
-void fwl_setp_fullscreen	(bool foo)	{ fwl_params.fullscreen = foo; }
-void fwl_setp_multithreading	(bool foo)	{ fwl_params.multithreading = foo; }
-void fwl_setp_eai		(bool foo)	{ fwl_params.enableEAI = foo; }
-void fwl_setp_verbose		(bool foo)	{ fwl_params.verbose = foo; }
-//void fwl_setp_collision		(int foo)	{ fwl_params.collision = foo; }
+Sept 23 2013
+With Doug Sanden (correctly) moving FreeWRL to multi-invocation, the global parameter "fwl_params"
+is now local, and options are set within this. 
 
-int	fwl_getp_width		(void)	{ return fwl_params.width; }
-int	fwl_getp_height		(void)	{ return fwl_params.height; }
-long int fwl_getp_winToEmbedInto (void)	{ return fwl_params.winToEmbedInto; }
-bool	fwl_getp_fullscreen	(void)	{ return fwl_params.fullscreen; }
-bool	fwl_getp_multithreading	(void)	{ return fwl_params.multithreading; }
-bool	fwl_getp_eai		(void)	{ return fwl_params.enableEAI; }
-bool	fwl_getp_verbose	(void)	{ return fwl_params.verbose; }
-//int	fwl_getp_collision	(void)	{ return fwl_params.collision; }
-
-//static ttglobal fwl_instance_parameters = NULL;
+OLDCODEvoid fwl_setp_width		(int foo)	{ fwl_params.width = foo; }
+OLDCODEvoid fwl_setp_height		(int foo)	{ fwl_params.height = foo; }
+OLDCODEvoid fwl_setp_winToEmbedInto	(void* foo)	{ fwl_params.winToEmbedInto = foo; }
+OLDCODEvoid fwl_setp_fullscreen	(bool foo)	{ fwl_params.fullscreen = foo; }
+OLDCODEvoid fwl_setp_multithreading	(bool foo)	{ fwl_params.multithreading = foo; }
+OLDCODEvoid fwl_setp_eai		(bool foo)	{ fwl_params.enableEAI = foo; }
+OLDCODEvoid fwl_setp_verbose		(bool foo)	{ fwl_params.verbose = foo; }
+OLDCODE//void fwl_setp_collision		(int foo)	{ fwl_params.collision = foo; }
+OLDCODE
+OLDCODEint	fwl_getp_width		(void)	{ return fwl_params.width; }
+OLDCODEint	fwl_getp_height		(void)	{ return fwl_params.height; }
+OLDCODElong int fwl_getp_winToEmbedInto (void)	{ return fwl_params.winToEmbedInto; }
+OLDCODEbool	fwl_getp_fullscreen	(void)	{ return fwl_params.fullscreen; }
+OLDCODEbool	fwl_getp_multithreading	(void)	{ return fwl_params.multithreading; }
+OLDCODEbool	fwl_getp_eai		(void)	{ return fwl_params.enableEAI; }
+OLDCODEbool	fwl_getp_verbose	(void)	{ return fwl_params.verbose; }
+OLDCODE//int	fwl_getp_collision	(void)	{ return fwl_params.collision; }
+OLDCODE
+OLDCODE//static ttglobal fwl_instance_parameters = NULL;
+#endif //OLDCODE
 
 
 void* fwl_init_instance()
@@ -243,7 +240,7 @@ void* fwl_init_instance()
 bool fwl_initFreeWRL(freewrl_params_t *params){
 	ttglobal tg;
 	tg = (ttglobal)fwl_getCurrentHandle(__FILE__,__LINE__);
-	//ConsoleMessage ("fwl_initFreeWRL, tg %p",tg);
+	//ConsoleMessage ("fwl_initFreeWRL, tg %p params %p where %s\n",tg,params,where);
 
 	if(tg == NULL) tg = fwl_init_instance();
 	TRACE_MSG("FreeWRL: initializing...\n");
@@ -271,7 +268,7 @@ bool fwl_initFreeWRL(freewrl_params_t *params){
 	/* Check parameters */
 	if (params) {
 		DEBUG_MSG("copying application supplied params...\n");
-		//memcpy(&fwl_params, params, sizeof(freewrl_params_t));
+		ConsoleMessage("copying application supplied params...\n");
 		memcpy(&tg->display.params, params, sizeof(freewrl_params_t));
 		//tg->display.win_height = params->height;// = 0; /* window */
 		//tg->display.win_width = params->width;// = 0;
@@ -282,15 +279,16 @@ bool fwl_initFreeWRL(freewrl_params_t *params){
 #if !defined(EXCLUDE_EAI)
 	/* do we require EAI? */
 	if (params->enableEAI){ 
+printf ("starting EAI in main.c\n");
 		fwlio_RxTx_control(CHANNEL_EAI, RxTx_START);
 		//	set_thread2global(tglobal* fwl, pthread_t any );
 
 	}
 #endif
 
-
 	/* Initialize parser */
 	fwl_initialize_parser();
+
 
 	///* Initialize common UI variables */ - done in common.c
 	//myMenuStatus[0] = '\0';

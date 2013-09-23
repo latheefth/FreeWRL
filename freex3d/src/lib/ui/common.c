@@ -14,7 +14,7 @@
 #include "../ui/common.h"
 
 #include "../../buildversion.h"
-const char *libFreeWRL_get_version(void) {return FW_BUILD_VERSION_STR;}
+//JAS const char *libFreeWRL_get_version(void) {return FW_BUILD_VERSION_STR;}
 
 /* Status variables */
 /* cursors are a 'shared resource' meanng you only need one cursor for n windows,

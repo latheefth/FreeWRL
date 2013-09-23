@@ -103,23 +103,25 @@ extern freewrl_params_t fwl_params;
 void *fwl_init_instance();
 void fwl_initParams( freewrl_params_t *params) ;
 
-void fwl_setp_width		(int foo);
-void fwl_setp_height		(int foo);
-void fwl_setp_winToEmbedInto	(void *);
-void fwl_setp_fullscreen	(bool foo);
-void fwl_setp_multithreading	(bool foo);
-void fwl_setp_eai		(bool foo);
-void fwl_setp_verbose		(bool foo);
-//void fwl_setp_collision		(int foo);
-
-int	fwl_getp_width		(void);
-int	fwl_getp_height		(void);
-long int fwl_getp_winToEmbedInto (void);
-bool	fwl_getp_fullscreen	(void);
-bool	fwl_getp_multithreading	(void);
-bool	fwl_getp_eai		(void);
-bool	fwl_getp_verbose	(void);
-//int	fwl_getp_collision	(void);
+#ifdef OLDCODE
+OLDCODEvoid fwl_setp_width		(int foo);
+OLDCODEvoid fwl_setp_height		(int foo);
+OLDCODEvoid fwl_setp_winToEmbedInto	(void *);
+OLDCODEvoid fwl_setp_fullscreen	(bool foo);
+OLDCODEvoid fwl_setp_multithreading	(bool foo);
+OLDCODEvoid fwl_setp_eai		(bool foo);
+OLDCODEvoid fwl_setp_verbose		(bool foo);
+OLDCODE//void fwl_setp_collision		(int foo);
+OLDCODE
+OLDCODEint	fwl_getp_width		(void);
+OLDCODEint	fwl_getp_height		(void);
+OLDCODElong int fwl_getp_winToEmbedInto (void);
+OLDCODEbool	fwl_getp_fullscreen	(void);
+OLDCODEbool	fwl_getp_multithreading	(void);
+OLDCODEbool	fwl_getp_eai		(void);
+OLDCODEbool	fwl_getp_verbose	(void);
+OLDCODE//int	fwl_getp_collision	(void);
+#endif //OLDCODE
 
 bool fwl_initFreeWRL(freewrl_params_t *params);
 void closeFreeWRL();

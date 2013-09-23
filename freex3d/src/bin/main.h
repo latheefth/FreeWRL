@@ -29,9 +29,6 @@
 #ifndef __FREEWRL_MAIN_H__
 #define __FREEWRL_MAIN_H__
 
-
-extern freewrl_params_t *fv_params;
 extern char *start_url;
-
 
 #endif /* __FREEWRL_MAIN_H__ */

@@ -30,7 +30,7 @@
 #define __FREEWRL_MAIN_OPTIONS_H__
 
 
-extern int fv_parseCommandLine (int argc, char **argv);
+extern int fv_parseCommandLine (int argc, char **argv, freewrl_params_t *);
 void fv_parseEnvVars(void);
 
 
