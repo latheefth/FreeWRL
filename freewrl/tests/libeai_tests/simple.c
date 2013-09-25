@@ -16,16 +16,10 @@ X3DEventIn *addChildren;
 X3DNode *makeSimpleShape (char * shape, char *colour, char *posn) {
         char myline[2000];
 
-        sprintf (myline, "Transform{translation %s children Shape{" \
-                         "  appearance Appearance { \n" \
-                         "    material Material {" \
-                         "      diffuseColor %s" \
-                         "    }" \
-                         "  }" \
-                         "  geometry %s {}" \
-                         "}}",posn,colour,shape);
+        sprintf (myline, " <Shape> <Appearance> <Material/> </Appearance> <Sphere/> </Shape>");
 
-        return X3D_createVrmlFromString(myline);
+
+        return X3D_createX3DFromString(myline);
 }
 
 int main() {
@@ -33,7 +27,7 @@ int main() {
 
     X3D_initialize("");
     /* Get a pointer to the node called "ROOT" in the current scenegraph */
-    myRoot = X3D_getNode("ROOT");
+    myRoot = X3D_getNode("ROOTNODE");
 
     if (myRoot == 0) {
         printf("ERROR: node not found!\n");

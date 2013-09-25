@@ -773,8 +773,9 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 	
 	/* sanity check */
 	if (dest->datatype != node->X3D_SFNode.type) {
-		printf ("X3D_setValue mismatch: event type %s, value type %s\n", 
-				FIELDTYPES[(int)dest->datatype], FIELDTYPES[node->X3D_SFNode.type]);
+		printf ("X3D_setValue mismatch: event type %s, value type %s (%d, %d)\n", 
+				FIELDTYPES[(int)dest->datatype], FIELDTYPES[node->X3D_SFNode.type],
+					dest->datatype,node->X3D_SFNode.type);
 		return;
 	}
 
@@ -783,6 +784,17 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 		default:
 		printf ("XXX - setValue, not implemented yet for type '%s'\n",FIELDTYPES[dest->datatype]);
 		return;
+
+		case FIELDTYPE_SFVec3d:
+			sprintf (myline, "%c %d %d %d %f %f %f\n",
+				mapFieldTypeToEAItype(dest->datatype),
+				dest->nodeptr, dest->offset, dest->scripttype,
+				node->X3D_SFVec3d.c[0],
+				node->X3D_SFVec3d.c[1],
+				node->X3D_SFVec3d.c[2]);
+			_X3D_sendEvent (SENDEVENT,myline);
+		break;
+
 
 		case FIELDTYPE_SFVec3f:
 		case FIELDTYPE_SFColor:

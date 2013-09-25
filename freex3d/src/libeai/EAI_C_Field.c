@@ -43,6 +43,7 @@ void X3D_freeNode(X3DNode* node) {
 
 	switch (node->type) {
 		case FIELDTYPE_SFVec3f:
+		case FIELDTYPE_SFVec3d:
 		case FIELDTYPE_SFVec2f:
 		case FIELDTYPE_SFColor:
 		case FIELDTYPE_SFFloat:
@@ -105,6 +106,24 @@ void X3D_getSFVec3f(X3DNode* node, float* value) {
 	value[1] = node->X3D_SFVec3f.c[1];
 	value[2] = node->X3D_SFVec3f.c[2];
 
+}
+
+X3DNode *X3D_newSFVec3d (double a, double b, double c) {
+	X3DNode *retval;
+	retval = malloc (sizeof(X3DNode));
+	retval->X3D_SFVec3d.type = FIELDTYPE_SFVec3d;
+	retval->X3D_SFVec3d.c[0] = a;
+	retval->X3D_SFVec3d.c[1] = b;
+	retval->X3D_SFVec3d.c[2] = c;
+	return retval;
+}
+
+void X3D_getSFVec3d(X3DNode* node, double* value) {
+	if (node->X3D_SFVec3d.type != FIELDTYPE_SFVec3d) 
+		return;
+	value[0] = node->X3D_SFVec3d.c[0];
+	value[1] = node->X3D_SFVec3d.c[1];
+	value[2] = node->X3D_SFVec3d.c[2];
 }
 
 X3DNode *X3D_newSFColor (float a, float b, float c) {
@@ -622,7 +641,6 @@ X3DNode *X3D_newMFNode(){printf ("New node not implemented yet for this type\n")
 X3DNode *X3D_newMFVec2d(int num){printf ("New node not implemented yet for this type\n");return NULL;}
 X3DNode *X3D_newMFTime(int num){printf ("New node not implemented yet for this type\n");return NULL;}
 X3DNode *X3D_newSFVec2d (double a, double b){printf ("New node not implemented yet for this type\n");return NULL;}
-X3DNode *X3D_newSFVec3d (double a, double b,double c){printf ("New node not implemented yet for this type\n");return NULL;}
 char *fieldTypeName(char type){printf ("New node not implemented yet for this type\n");return NULL;}
 
 
