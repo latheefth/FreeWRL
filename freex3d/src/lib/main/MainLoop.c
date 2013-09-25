@@ -4124,8 +4124,6 @@ void fwl_setLastMouseEvent(int etype) {
 
 void fwl_initialize_parser()
 {
-ConsoleMessage ("fwl_initialze_parser\n");
-
 	/* JAS 
 		if (gglobal() == NULL) ConsoleMessage ("fwl_initialize_parser, gglobal() NULL");
 		if ((gglobal()->Mainloop.prv) == NULL) ConsoleMessage ("fwl_initialize_parser, gglobal()->Mainloop.prv NULL");

@@ -86,6 +86,7 @@ int X3D_getParentNodes(X3DNode* child, X3DNode** outParentArray)
 		adr = child->X3D_SFNode.adr;
 	} else {
 		if (child->X3D_MFNode.n != 1) {
+			int i;
 			printf ("warning - will only get event for first child = have %d nodes\n",child->X3D_MFNode.n);
 		}
 		/* get the first address in the list */
@@ -194,7 +195,11 @@ X3DEventIn *_X3D_getEvent(X3DNode *node, char *name, int into) {
 		adr = node->X3D_SFNode.adr;
 	} else {
 		if (node->X3D_MFNode.n != 1) {
+			int i;
 			printf ("warning - will only get event for first node = have %d nodes\n",node->X3D_MFNode.n);
+			for (i=0; i<node->X3D_MFNode.n; i++) {
+				printf ("... node %d nodetype %d\n",i,node->X3D_MFNode.p[i].adr);
+			}
 		}
 		/* get the first address in the list */
 		adr = node->X3D_MFNode.p[0].adr; 
@@ -1228,6 +1233,7 @@ X3DNode *X3D_createX3DFromString(char *str) {
 	}
 	printf ("(end oflist)\n");
 	#endif
+#undef VERBOSE
 	return retval;	
 }
 

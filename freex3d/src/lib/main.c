@@ -268,7 +268,6 @@ bool fwl_initFreeWRL(freewrl_params_t *params){
 	/* Check parameters */
 	if (params) {
 		DEBUG_MSG("copying application supplied params...\n");
-		ConsoleMessage("copying application supplied params...\n");
 		memcpy(&tg->display.params, params, sizeof(freewrl_params_t));
 		//tg->display.win_height = params->height;// = 0; /* window */
 		//tg->display.win_width = params->width;// = 0;
@@ -279,7 +278,6 @@ bool fwl_initFreeWRL(freewrl_params_t *params){
 #if !defined(EXCLUDE_EAI)
 	/* do we require EAI? */
 	if (params->enableEAI){ 
-printf ("starting EAI in main.c\n");
 		fwlio_RxTx_control(CHANNEL_EAI, RxTx_START);
 		//	set_thread2global(tglobal* fwl, pthread_t any );
 
