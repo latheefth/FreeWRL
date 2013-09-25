@@ -472,9 +472,7 @@ char *_X3D_make2StringCommand (char command, char *str1, char *str2) {
 	EAILOCK
 	verifySendBufferSize ( strlen(str1) + strlen(str2));
 	sprintf (sendBuffer, "%d %c %s%s\n",_X3D_queryno,command,str1,str2);
-	printf("before sendToFreeWRL\n");
 	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),WAIT_FOR_RETVAL);
-	printf("after sendToFreeWRL myptr=%s\n",myptr);
 	EAIUNLOCK
 
 	#ifdef VERBOSE
