@@ -279,8 +279,7 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 		viewer->backgroundPlane = DEFAULT_BACKGROUNDPLANE;       /* where Background and TextureBackground nodes go */
 		viewer->fieldofview=45.0;
 		viewer->fovZoom = 1.0;
-		viewer->calculatedNearPlane = 0.0;
-		viewer->calculatedFarPlane = 0.0;
+
 		viewer->wasBound = FALSE;
 	}
 

@@ -82,7 +82,7 @@ int whichOne=0;
     } else {
 
         startingString="/Users/john/Desktop/GeoSpatialTesting/7_levels_plus/globe_with_ROOTNODE.x3d";
-         startingString="/Users/john/Desktop/GeoSpatialTesting/occtest.x3dv";
+         //startingString="/Users/john/Desktop/GeoSpatialTesting/occtest.x3dv";
     }
     
     while ([FreeWRLAppDelegate applicationHasLaunched]) {

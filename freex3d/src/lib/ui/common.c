@@ -14,7 +14,14 @@
 #include "../ui/common.h"
 
 #include "../../buildversion.h"
-//JAS const char *libFreeWRL_get_version(void) {return FW_BUILD_VERSION_STR;}
+
+// Linux builds, thanks to our very own Ian, creates this function for us.
+// on other platforms, we have to have this defined, as we don't have Ian's
+// talents to help us out.
+
+#if defined (AQUA) 
+const char *libFreeWRL_get_version(void) {return FW_BUILD_VERSION_STR;}
+#endif //OSX
 
 /* Status variables */
 /* cursors are a 'shared resource' meanng you only need one cursor for n windows,

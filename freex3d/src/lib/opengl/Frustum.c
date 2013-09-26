@@ -1096,7 +1096,7 @@ void OcclusionCulling ()  {
 				#ifdef OCCLUSIONVERBOSE
 				printf ("OcclusionCulling, found Shape %d, fragments %d active %d\n",i,samples,checkCount);
 				#endif
-                if (samples == 0) ConsoleMessage ("invisible shape %d, fragments %d",i,samples);
+                //if (samples == 0) ConsoleMessage ("invisible shape %d, fragments %d",i,samples);
                 
 				/* if this is a DEF/USE, we might already have done this one, as we have same
 				   node pointer used in other places. */
@@ -1104,12 +1104,12 @@ void OcclusionCulling ()  {
 	
 					/* is this node visible? If so, tell the parents! */
 					if (samples > OCCSHAPESAMPLESIZE) {
-						printf ("Shape %p is VISIBLE\n",shapePtr);
+						//printf ("Shape %p is VISIBLE\n",shapePtr);
 						shapePtr->__visible = TRUE;
 						shapePtr->__occludeCheckCount= OCCWAIT; /* wait a little while before checking again */
 						shapePtr->__Samples = samples;
 					} else {
-						printf ("Shape %p is NOT VISIBLE\n",shapePtr);
+						//printf ("Shape %p is NOT VISIBLE\n",shapePtr);
 						shapePtr->__visible=FALSE;
 						shapePtr->__occludeCheckCount = OCCCHECKSOON; /* check again soon */
 						shapePtr->__Samples = 0; 

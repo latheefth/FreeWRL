@@ -2605,11 +2605,13 @@ static void handle_GeoLODRange(struct X3D_GeoLOD *node) {
 	cy = Viewer()->currentPosInModel.y - node->__movedCoords.c[1];
 	cz = Viewer()->currentPosInModel.z - node->__movedCoords.c[2];
 
-	/* printf ("geoLOD, distance between me and center is %lf\n", sqrt (cx*cx + cy*cy + cz*cz)); */
+	 //printf ("geoLOD, distance between me and center is %lf\n", sqrt (cx*cx + cy*cy + cz*cz));
 
 	/* try to see if we are closer than the range */
 	oldInRange = node->__inRange;
-	if((cx*cx+cy*cy+cz*cz) > (node->range*X3D_GEOLOD(node)->range)) {
+    
+    /* handle squares, as it is faster than doing square roots */
+	if((cx*cx+cy*cy+cz*cz) > (node->range * node->range)) {
 		node->__inRange = FALSE;
 	} else {
 		node->__inRange = TRUE;
@@ -2743,15 +2745,26 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 	GLDOUBLE cfp = -DBL_MAX;
 	GLDOUBLE cnp = DBL_MAX;
 	GLDOUBLE MM[16];
-
+    bool doingGeoSpatial = false;
+    double bboxMovedCentreZ = 0.0;
+    double bboxSphereRadius = 0.0;
+    
+#ifdef VERBOSE
+    int smooger = 0;
+#endif
+    
 	int ci;
+    struct X3D_Group* rn = rootNode();
 	ttglobal tg = gglobal();
 	X3D_Viewer *viewer = Viewer();
 
 
+
 	#ifdef VERBOSE
+    if (smooger == 0) {
 	printf ("have a bound viewpoint... lets calculate our near/far planes from it \n");
 	printf ("we are currently at %4.2f %4.2f %4.2f\n",Viewer()->currentPosInModel.x, Viewer()->currentPosInModel.y, Viewer()->currentPosInModel.z);
+    }
 	#endif
 
 
@@ -2766,35 +2779,80 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 		return;
 	}	
 
-	if (rootNode() == NULL) {
+    if (vpnode->_nodeType == NODE_GeoViewpoint) {
+        doingGeoSpatial = true;
+    }
+    
+	if (rn == NULL) {
 		return; /* nothing to display yet */
 	}
 
+    /* if doing GeoSpatial, use radius to view model, rather than a rotated bounding box */
+    if (doingGeoSpatial) {
+        if ((rn->EXTENT_MAX_X - rn->EXTENT_MIN_X) > bboxSphereRadius) {
+            bboxSphereRadius = rn->EXTENT_MAX_X - rn->EXTENT_MIN_X;
+        }
+        if ((rn->EXTENT_MAX_Y - rn->EXTENT_MIN_Y) > bboxSphereRadius) {
+            bboxSphereRadius = rn->EXTENT_MAX_Y - rn->EXTENT_MIN_Y;
+        }
+        if ((rn->EXTENT_MAX_Z - rn->EXTENT_MIN_Z) > bboxSphereRadius) {
+            bboxSphereRadius = rn->EXTENT_MAX_Z - rn->EXTENT_MIN_Z;
+        }
+        bboxSphereRadius /=2.0; // diameter to radius
+        
+#ifdef VERBOSE
+        if (smooger == 0) {
+            ConsoleMessage ("bboxSphereRadius %lf",bboxSphereRadius);
+        }
+#endif
+        
+    }
+    
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, MM);
 
 		#ifdef VERBOSE
 		printf ("rootNode extents x: %4.2f %4.2f  y:%4.2f %4.2f z: %4.2f %4.2f\n",rootNode()->EXTENT_MAX_X, rootNode()->EXTENT_MIN_X,rootNode()->EXTENT_MAX_Y, rootNode()->EXTENT_MIN_Y,rootNode()->EXTENT_MAX_Z, rootNode()->EXTENT_MIN_Z);
 		#endif
+    
 		/* make up 8 vertices for our bounding box, and place them within our view */
-		{
-			struct X3D_Group* rn = rootNode();
-			moveAndRotateThisPoint(&bboxPoints[0], rn->EXTENT_MIN_X, rn->EXTENT_MIN_Y, rn->EXTENT_MIN_Z,MM);
-			moveAndRotateThisPoint(&bboxPoints[1], rn->EXTENT_MIN_X, rn->EXTENT_MIN_Y, rn->EXTENT_MAX_Z,MM);
-			moveAndRotateThisPoint(&bboxPoints[2], rn->EXTENT_MIN_X, rn->EXTENT_MAX_Y, rn->EXTENT_MIN_Z,MM);
-			moveAndRotateThisPoint(&bboxPoints[3], rn->EXTENT_MIN_X, rn->EXTENT_MAX_Y, rn->EXTENT_MAX_Z,MM);
-			moveAndRotateThisPoint(&bboxPoints[4], rn->EXTENT_MAX_X, rn->EXTENT_MIN_Y, rn->EXTENT_MIN_Z,MM);
-			moveAndRotateThisPoint(&bboxPoints[5], rn->EXTENT_MAX_X, rn->EXTENT_MIN_Y, rn->EXTENT_MAX_Z,MM);
-			moveAndRotateThisPoint(&bboxPoints[6], rn->EXTENT_MAX_X, rn->EXTENT_MAX_Y, rn->EXTENT_MIN_Z,MM);
-			moveAndRotateThisPoint(&bboxPoints[7], rn->EXTENT_MAX_X, rn->EXTENT_MAX_Y, rn->EXTENT_MAX_Z,MM);
-		}
+        moveAndRotateThisPoint(&bboxPoints[0], rn->EXTENT_MIN_X, rn->EXTENT_MIN_Y, rn->EXTENT_MIN_Z,MM);
+        moveAndRotateThisPoint(&bboxPoints[1], rn->EXTENT_MIN_X, rn->EXTENT_MIN_Y, rn->EXTENT_MAX_Z,MM);
+        moveAndRotateThisPoint(&bboxPoints[2], rn->EXTENT_MIN_X, rn->EXTENT_MAX_Y, rn->EXTENT_MIN_Z,MM);
+        moveAndRotateThisPoint(&bboxPoints[3], rn->EXTENT_MIN_X, rn->EXTENT_MAX_Y, rn->EXTENT_MAX_Z,MM);
+        moveAndRotateThisPoint(&bboxPoints[4], rn->EXTENT_MAX_X, rn->EXTENT_MIN_Y, rn->EXTENT_MIN_Z,MM);
+        moveAndRotateThisPoint(&bboxPoints[5], rn->EXTENT_MAX_X, rn->EXTENT_MIN_Y, rn->EXTENT_MAX_Z,MM);
+        moveAndRotateThisPoint(&bboxPoints[6], rn->EXTENT_MAX_X, rn->EXTENT_MAX_Y, rn->EXTENT_MIN_Z,MM);
+        moveAndRotateThisPoint(&bboxPoints[7], rn->EXTENT_MAX_X, rn->EXTENT_MAX_Y, rn->EXTENT_MAX_Z,MM);
+		
+    
+                
 		for (ci=0; ci<8; ci++) {
-			#ifdef VERBOSE
+            bboxMovedCentreZ += bboxPoints[ci].z;
+        
+			#ifdef XXVERBOSE
+            if (smooger == 0) 
 			printf ("moved bbox node %d is %4.2f %4.2f %4.2f\n",ci,bboxPoints[ci].x, bboxPoints[ci].y, bboxPoints[ci].z);
 			#endif
 	
-			if (-(bboxPoints[ci].z) > cfp) cfp = -(bboxPoints[ci].z);
-			if (-(bboxPoints[ci].z) < cnp) cnp = -(bboxPoints[ci].z);
+            if (!doingGeoSpatial) {
+                if (-(bboxPoints[ci].z) > cfp) cfp = -(bboxPoints[ci].z);
+                if (-(bboxPoints[ci].z) < cnp) cnp = -(bboxPoints[ci].z);
+            }
 		}
+    
+    bboxMovedCentreZ /= 8.0; // average of 8 z values from bbox
+    
+    if (doingGeoSpatial) {
+        cnp = -bboxMovedCentreZ - bboxSphereRadius;
+        cfp = -bboxMovedCentreZ; // + bboxSphereRadius;
+    }
+    
+#ifdef VERBOSE
+    if (smooger==0) {
+        ConsoleMessage ("centre of bbox is %lf Z away",bboxMovedCentreZ);
+        ConsoleMessage ("bboxMovedCentreZ minus bboxRadius %lf",-bboxMovedCentreZ - bboxSphereRadius);
+    }
+#endif
 
 	/* lets bound check here, both must be positive, and farPlane more than DEFAULT_NEARPLANE */
 	/* because we may be navigating towards the shapes, we give the nearPlane a bit of room, otherwise
@@ -2810,11 +2868,31 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 
 
 	#ifdef VERBOSE
-	printf ("cnp %lf cfp before leaving room for Background %lf\n",cnp,cfp);
-    cnp = 0.1; cfp = 75345215.0 * 2.0;
-	#endif
+	if (smooger == 0) {
+        
+        printf ("cnp %lf cfp before leaving room for Background %lf\n",cnp,cfp);
+        //cnp = 0.1; cfp = 75345215.0 * 2.0;
+    } 
+#endif
+
+    /* do we have a GeoViewpoint, and is the near plane about zero?                     */
+    /* we CAN have the issue if we have the world in an AABB, and we have one of the    */
+    /* corners of the AABB behind us; the near plane will be <1, but the surface        */
+    /* will still be really far away                                                    */
+    /*      In this case, we try and use the elevation to give us a hand                */
+    if ((cnp<1.0) && (vpnode->_nodeType == NODE_GeoViewpoint)) {
+#ifdef VERBOSE
+        cnp = Viewer()->currentPosInModel.z/16.0;
+        if (smooger == 0) {
+            ConsoleMessage ("vp height %lf moved height %lf posinModel %f",X3D_GEOVIEWPOINT(vpnode)->position.c[2],
+                                    X3D_GEOVIEWPOINT(vpnode)->__movedPosition.c[2],Viewer()->currentPosInModel.z);
+            smooger ++; if (smooger == 100) smooger = 0;
+        }
+#endif
 #undef VERBOSE 
 
+    }
+    
 	/* lets use these values; leave room for a Background or TextureBackground node here */
 	viewer->nearPlane = cnp; 
 	/* backgroundPlane goes between the farthest geometry, and the farPlane */
