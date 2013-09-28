@@ -171,19 +171,31 @@ void CfreeWRLCtrl::OnDraw(CDC* pdc, const CRect& rcBounds, const CRect& rcInvali
 		m_Hwnd = (void*)this->GetHwnd(); //we just need the real hWnd for onInit -gl / DC stuff
 		// after that it's just an instance ID
 		m_dllfreewrl = new CdllFreeWRL(m_rcBounds.right-rcBounds.left,rcBounds.bottom-rcBounds.top,m_Hwnd,false);
-		if(m_initialized / 10 == 1)
-			m_dllfreewrl->onLoad(m_cstrFileName.GetBuffer());
 		m_initialized += 1;
 		this->Invalidate();
 	}
-
-	//m_dllfreewrl->onResize(rcBounds.right-rcBounds.left,rcBounds.bottom-rcBounds.top);//,m_Hwnd
+	if(m_initialized % 10 == 1 && m_initialized / 10 == 1){
+		m_dllfreewrl->onLoad(m_cstrFileName.GetBuffer());
+		m_initialized += 1;
+	}
+	if(m_initialized % 10 == 2){
+		m_dllfreewrl->onResize(rcBounds.right-rcBounds.left,rcBounds.bottom-rcBounds.top);//,m_Hwnd
+	}
 }
 
 void CfreeWRLCtrl::DoPropExchange(CPropExchange* pPX)
 {
+#define MESSBOX 1
+#undef MESSBOX
+#ifdef MESSBOX //_DEBUGn
+		AfxMessageBox("doPropExchange m_initialized="+m_initialized); //"DoPropExchange");
+#endif
 	ExchangeVersion(pPX, MAKELONG(_wVerMinor, _wVerMajor));
 	COleControl::DoPropExchange(pPX);
+	USES_CONVERSION;
+
+
+	//PX_String(pPX, "SRC", m_cstrFileName); 
 
 	// TODO: Call PX_ functions for each persistent custom property.
 	//HTML <OBJECT> tends to generate two DoPropExchanges, HREF and EMBED just one, 
@@ -193,7 +205,9 @@ void CfreeWRLCtrl::DoPropExchange(CPropExchange* pPX)
 
 		// MimeType sample program says SRC property is where Mime handler 
 		//   passes in URL
-		PX_String(pPX, "SRC", m_cstrFileName); 
+	  if(PX_String(pPX, "SRC", m_cstrFileName)){
+		//AfxMessageBox(m_cstrFileName);
+
 		// http://support.microsoft.com/kb/181678 How to Retrieve the URL of a Web Page from an ActiveX Control
 		//m_cstrContainerURL = NULL; //C++ initializes these I think.
 		LPOLECLIENTSITE pClientSite = this->GetClientSite();
@@ -211,13 +225,12 @@ void CfreeWRLCtrl::DoPropExchange(CPropExchange* pPX)
 				if (SUCCEEDED(spmk->GetDisplayName(
 										NULL, NULL, &pszDisplayName)))
 				{
-					USES_CONVERSION;
 
 					CComBSTR bstrURL;
 					bstrURL = pszDisplayName;
 					//AfxMessageBox(OLE2T(bstrURL));
 					m_cstrContainerURL = OLE2T(bstrURL);
-					ATLTRACE("The current URL is %s\n", OLE2T(bstrURL));
+					//ATLTRACE("The current URL is %s\n", OLE2T(bstrURL));
 					CoTaskMemFree((LPVOID)pszDisplayName);
 				}
 			}
@@ -229,16 +242,19 @@ void CfreeWRLCtrl::DoPropExchange(CPropExchange* pPX)
 			//they are different, so concatonate
 			int lastSlash = m_cstrContainerURL.ReverseFind('/');
 			m_cstrContainerURL = m_cstrContainerURL.Left(lastSlash);
-			m_cstrFileName = m_cstrContainerURL + "/" + m_cstrFileName;
+			if(m_cstrContainerURL.GetLength() > 0)
+				m_cstrFileName = m_cstrContainerURL + "/" + m_cstrFileName;
 		}
 #define MESSBOX 1
 #undef MESSBOX
 #ifdef MESSBOX //_DEBUGn
-		AfxMessageBox("AxVer=12d fullURL="+m_cstrFileName); //"DoPropExchange");
+		AfxMessageBox(m_cstrFileName); //"DoPropExchange");
 #endif
 		//m_Hwnd = (void *)0; //an unlikely real handle value, and not null either 
 		m_initialized += 10; //10 means we have a filename
-
+	 // }else{
+		//AfxMessageBox("get SRC failed");
+	  }
 	}
 }
 

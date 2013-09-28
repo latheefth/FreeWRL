@@ -66,7 +66,6 @@ STDAPI DllRegisterServer(void)
     const char* pszMTExt2 = ".x3dv";
     const char* pszMTExt3 = ".x3d";
     const char* pszMTExt4 = ".x3z";
-    const char* pszMTExt5 = ".x3z";
     const char* pszMTExt6 = ".x3d";
 
     // text for new mime content type
@@ -75,7 +74,6 @@ STDAPI DllRegisterServer(void)
     const char* pszMTContent2 = "model/x3d+vrml";
     const char* pszMTContent3 = "model/x3d+xml";
     const char* pszMTContent4 = "model/x3d+zip";
-    const char* pszMTContent5 = "model/x-x3d+zip";
     const char* pszMTContent6 = "model/x3d";
 
     // text for mimetype subkey
@@ -84,7 +82,6 @@ STDAPI DllRegisterServer(void)
     const char* pszMTSubKey2 = "MIME\\DataBase\\Content Type\\model/x3d+vrml";
     const char* pszMTSubKey3 = "MIME\\DataBase\\Content Type\\model/x3d+xml";
     const char* pszMTSubKey4 = "MIME\\DataBase\\Content Type\\model/x3d+zip";
-    const char* pszMTSubKey5 = "MIME\\DataBase\\Content Type\\model/x-x3d+zip";
     const char* pszMTSubKey6 = "MIME\\DataBase\\Content Type\\model/x3d";
     // extension named value
     const char* pszMTExtVal = "Extension";
@@ -201,23 +198,6 @@ STDAPI DllRegisterServer(void)
 
         RegCloseKey(hkey);
 
-	//HKCR/MIME/DataBase/Content Type/model/x-x3d+zip .x3z
-        // create new mime type key for our new mimetype.  Only necessary for new mime types
-        if ( ERROR_SUCCESS != RegCreateKey(HKEY_CLASSES_ROOT, pszMTSubKey5, &hkey) )
-            break;
-
-        // add extension value to that mime type key to associate .xxx files with the 
-        //  mime type
-        if ( ERROR_SUCCESS != RegSetValueEx(hkey, pszMTExtVal, 0, REG_SZ, 
-            (const BYTE *)pszMTExt5, (DWORD)strlen(pszMTExt5)) )
-            break;
-
-        // Add class id to associate this object with the mime type
-        if ( ERROR_SUCCESS != RegSetValueEx(hkey, pszMTCLSIDVal, 0, REG_SZ,
-            (const BYTE *)pszMTCLSID, (DWORD)strlen(pszMTCLSID)) )
-            break;
-
-        RegCloseKey(hkey);
 
 	//HKCR/MIME/DataBase/Content Type/model/x3d
         // create new mime type key for our new mimetype.  Only necessary for new mime types
@@ -328,7 +308,7 @@ STDAPI DllRegisterServer(void)
 		// "To put your control on the pre-approved list, you need to write the CLSID of the control to the following registry location.
 		//  HKEY_LOCAL_MACHINE/SOFTWARE/Microsoft/Windows/CurrentVersion/Ext/PreApproved"
 		if ( ERROR_SUCCESS != RegCreateKey(HKEY_LOCAL_MACHINE,
-			"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Ext\\PreApproved\\{582C9301-A2C8-45FC-831B-654DE7F3AF11}",&hkey) )
+			"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Ext\\PreApproved\\{4E814FCE-B546-4D91-8EA8-358264E5D423}",&hkey) ) //version 2.0
 			//"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Ext\\PreApproved\\{582C9301-A2C8-45FC-831B-654DE7F3AF11}",&hkey) ) //version 1.22.12_pre2
             break;
 
