@@ -1934,6 +1934,83 @@ FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 	p->hadString = 1;
 }
+void statusbarHud_DrawCursor(GLint textureID,int x,int y){
+GLfloat cursorVert[] = {
+	-.05f, -.05f, 0.0f,
+	-.05f,  .05f, 0.0f,
+	 .05f,  .05f, 0.0f,
+	-.05f, -.05f, 0.0f,
+	 .05f,  .05f, 0.0f,
+	 .05f, -.05f, 0.0f};
+GLfloat cursorTex[] = {
+	0.0f, 0.0f,
+	0.0f, 1.0f,
+	1.0f, 1.0f,
+	0.0f, 0.0f,
+	1.0f, 1.0f,
+	1.0f, 0.0f};
+	GLushort ind[] = {0,1,2,3,4,5};
+	GLint pos, tex;
+	FXY fxy;
+	XY xy;
+	int i,j;
+	GLfloat cursorVert2[18];
+
+	ppstatusbar p;
+	ttglobal tg = gglobal();
+	p = (ppstatusbar)tg->statusbar.prv;
+
+	FW_GL_DEPTHMASK(GL_FALSE);
+	glDisable(GL_DEPTH_TEST);
+	if(p->programObject == 0) initProgramObject();
+	glUseProgram ( p->programObject );
+
+	xy = mouse2screen(x,y);
+	FW_GL_VIEWPORT(0, 0, tg->display.screenWidth, tg->display.screenHeight);
+	fxy = screen2normalizedScreenScale((GLfloat)xy.x,(GLfloat)xy.y);
+	fxy.y -= 1.0;
+	fxy.x -= 1.0;
+	//fxy.y *= .5;
+	//fxy.x *= .5;
+	for(i=0;i<6;i++){
+		for(j=0;j<3;j++)
+			cursorVert2[i*3 + j] = cursorVert[i*3 +j];
+		cursorVert2[i*3 +0] += fxy.x;
+		cursorVert2[i*3 +1] += fxy.y;
+	}
+	// Load the vertex position
+   //p->positionLoc = glGetAttribLocation ( p->programObject, "a_position" );
+   //p->texCoordLoc = glGetAttribLocation ( p->programObject, "a_texCoord" );
+   // Get the sampler location
+   //p->textureLoc = glGetUniformLocation ( p->programObject, "Texture0" );
+   //p->color4fLoc = glGetUniformLocation ( p->programObject, "Color4f" );
+
+	glVertexAttribPointer (p->positionLoc, 3, GL_FLOAT, 
+						   GL_FALSE, 0, cursorVert2 );
+	// Load the texture coordinate
+	glVertexAttribPointer ( p->texCoordLoc, 2, GL_FLOAT,
+						   GL_FALSE, 0, cursorTex );  //fails - p->texCoordLoc is 429xxxxx - garbage
+	glUniform4f(p->color4fLoc,0.7f,0.7f,0.9f,1.0f);
+	glEnableVertexAttribArray (p->positionLoc );
+	glEnableVertexAttribArray ( p->texCoordLoc);
+
+	//// Bind the base map - see above
+	glActiveTexture ( GL_TEXTURE0 );
+	glBindTexture ( GL_TEXTURE_2D, textureID );
+
+	// Set the base map sampler to texture unit to 0
+	glUniform1i ( p->textureLoc, 0 );
+	glDrawElements ( GL_TRIANGLES, 3*2, GL_UNSIGNED_SHORT, ind ); //just render the active ones
+
+	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
+	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+
+	glEnable(GL_DEPTH_TEST);
+	FW_GL_DEPTHMASK(GL_TRUE);
+	restoreGlobalShader();
+
+}
 void setArrowCursor(); //from ui/common.h
 void updateCursorStyle();
 bool showAction(ppstatusbar p, int action)
@@ -2098,9 +2175,9 @@ M       void toggle_collision()                             //"
 		//glFrustum(-1.0,1.0,-1.0,1.0,.1,1000.0);
 
 		//might not need this for gles2 either
-//#ifdef OLDGL
+#ifdef OLDGL
 		FW_GL_ORTHO(-1.0,1.0,-1.0,1.0,Viewer()->nearPlane,Viewer()->farPlane);
-//#endif
+#endif
 		//glOrtho(-1.0,1.0,-1.0,1.0,Viewer()->nearPlane,Viewer()->farPlane);
 		//glOrtho(-100.0,100.0,-100.0,100.0,Viewer()->nearPlane,Viewer()->farPlane);
 #ifdef OLDGL

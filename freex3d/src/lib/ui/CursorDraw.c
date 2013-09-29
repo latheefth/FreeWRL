@@ -236,8 +236,13 @@ void cursorDraw(int ID, int x, int y, float angle)
 {
 	XY xy;
 	FXY fxy;
-	GLint shader, loc;
+	int i,j;
+	GLint shader, positionLoc, texCoordLoc, textureLoc;
 	ppCursorDraw p;
+	GLfloat cursorVert2[18];
+	GLushort ind[] = {0,1,2,3,4,5};
+	GLint pos, tex;
+	s_shader_capabilities_t *scap;
 	ttglobal tg = gglobal();
 	p = (ppCursorDraw)tg->CursorDraw.prv;
 
@@ -246,25 +251,8 @@ void cursorDraw(int ID, int x, int y, float angle)
 #ifdef GL_ES_VERSION_2_0
     // There is an issue here where Anaglyph rendering gets dinked - see 
     // fwl_RenderSceneUpdateScene() for comments.
-    return;
+    //return;
 #endif //GL_ES_VERSION_2_0
-
-
-
-
-	FW_GL_DEPTHMASK(GL_FALSE);
-
-    #ifndef GL_ES_VERSION_2_0
-	FW_GL_SHADEMODEL(GL_FLAT);
-	y += 10;
-	#else
-
-    // There is an issue here where Anaglyph rendering gets dinked - see 
-    // fwl_RenderSceneUpdateScene() for comments.
-    return;
-    
-
-// JAS, trying this GL_PUSH_MATRIX();
 
 	if(!p->done)
 	{
@@ -275,16 +263,92 @@ void cursorDraw(int ID, int x, int y, float angle)
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, circleCursor.width, circleCursor.height, 0, GL_RGBA , GL_UNSIGNED_BYTE, circleCursor.pixel_data);
 		p->done = 1; 
 	}
+#ifdef STATUSBAR_HUD
+	statusbarHud_DrawCursor(p->textureID,x,y);
+	return;
+#endif
+#ifdef NEWWAY_COPIED_FROM_STATUSBARHUD_CURSORDRAW
+	FW_GL_DEPTHMASK(GL_FALSE);
+	glDisable(GL_DEPTH_TEST);
+	//if(p->programObject == 0) initProgramObject();
+	//glUseProgram ( p->programObject );
+	scap = getMyShader(ONE_TEX_APPEARANCE_SHADER);
+	enableGlobalShader(scap);
+	shader = getAppearanceProperties()->currentShaderProperties->myShaderProgram;
+
+	xy = mouse2screen2(x,y);
+	//FW_GL_VIEWPORT(0, 0, tg->display.screenWidth, tg->display.screenHeight);
+	fxy = screen2normalized((GLfloat)xy.x,(GLfloat)xy.y);
+	//fxy.y -= 1.0;
+	//fxy.x -= 1.0;
+	//fxy.y *= .5;
+	//fxy.x *= .5;
+	for(i=0;i<6;i++){
+		for(j=0;j<3;j++)
+			cursorVert2[i*3 + j] = cursorVert[i*3 +j];
+		cursorVert2[i*3 +0] *= 100.0; //fxy.x;
+		cursorVert2[i*3 +1] *= 100.0;// fxy.y;
+	}
+	positionLoc =  glGetAttribLocation ( shader, "fw_Vertex" );
+	glVertexAttribPointer (positionLoc, 3, GL_FLOAT, 
+						   GL_FALSE, 0, cursorVert );
+	// Load the texture coordinate
+	texCoordLoc =  glGetAttribLocation ( shader, "fw_TexCoords" );
+	glVertexAttribPointer ( texCoordLoc, 2, GL_FLOAT,
+						   GL_FALSE, 0, cursorTex );  //fails - p->texCoordLoc is 429xxxxx - garbage
+	//glUniform4f(p->color4fLoc,0.7f,0.7f,0.9f,1.0f);
+	glEnableVertexAttribArray (positionLoc );
+	glEnableVertexAttribArray ( texCoordLoc);
+
+	//// Bind the base map - see above
+	glActiveTexture ( GL_TEXTURE0 );
+	glBindTexture ( GL_TEXTURE_2D, p->textureID );
+
+	// Set the base map sampler to texture unit to 0
+	textureLoc =  glGetAttribLocation ( shader, "fw_Texture0" );
+
+	glUniform1i ( textureLoc, 0 );
+	glDrawElements ( GL_TRIANGLES, 3*2, GL_UNSIGNED_SHORT, ind ); //just render the active ones
+
+	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
+	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+
+	glEnable(GL_DEPTH_TEST);
+	FW_GL_DEPTHMASK(GL_TRUE);
+	restoreGlobalShader();
+
+#endif //NEWWAY_COPIED_FROM_STATUSBARHUD_CURSORDRAW
+
+#ifdef OLDWAY
+
+	FW_GL_DEPTHMASK(GL_FALSE);
+
+    #ifndef GL_ES_VERSION_2_0
+	FW_GL_SHADEMODEL(GL_FLAT);
+	y += 10;
+	#else
+
+    // There is an issue here where Anaglyph rendering gets dinked - see 
+    // fwl_RenderSceneUpdateScene() for comments.
+    //return;
+    
+
+// JAS, trying this GL_PUSH_MATRIX();
+
 	{
-		ttglobal tg = gglobal();
 		xy = mouse2screen2(x,y);
-		FW_GL_VIEWPORT(0, 0, tg->display.screenWidth, tg->display.screenHeight);
+		//FW_GL_VIEWPORT(0, 0, tg->display.screenWidth, tg->display.screenHeight);
+#ifdef OLDGL
 		FW_GL_MATRIX_MODE(GL_PROJECTION); //glMatrixMode(GL_PROJECTION);
 		FW_GL_LOAD_IDENTITY(); //glLoadIdentity();
 		FW_GL_MATRIX_MODE(GL_MODELVIEW); //glMatrixMode(GL_MODELVIEW);
 		FW_GL_LOAD_IDENTITY(); //glLoadIdentity();
+#endif
 		fxy = screen2normalized((GLfloat)xy.x,(GLfloat)xy.y);
+#ifdef OLDGL
 		FW_GL_TRANSLATE_F((float)fxy.x,(float)fxy.y,0.0f);
+#endif
 	}
 	enableGlobalShader(getMyShader(ONE_TEX_APPEARANCE_SHADER));
 	shader = getAppearanceProperties()->currentShaderProperties->myShaderProgram;
@@ -297,7 +361,15 @@ void cursorDraw(int ID, int x, int y, float angle)
 	loc =  glGetAttribLocation ( shader, "fw_Texture0" );
 	glUniform1i(loc,0);
 	loc =  glGetAttribLocation ( shader, "fw_Vertex" );
-	glVertexAttribPointer ( loc, 3, GL_FLOAT, GL_FALSE, 0, cursorVert );
+	xy = mouse2screen2(x,y);
+	for(i=0;i<6;i++){
+		for(j=0;j<3;j++)
+			cursorVert2[i*3 + j] = cursorVert[i*3 +j];
+		cursorVert2[i*3 +0] += fxy.x;
+		cursorVert2[i*3 +1] += fxy.y;
+
+	}
+	glVertexAttribPointer ( loc, 3, GL_FLOAT, GL_FALSE, 0, cursorVert2 );
 	// Load the texture coordinate
 	loc =  glGetAttribLocation ( shader, "fw_TexCoords" );
 	glEnableVertexAttribArray ( loc );
@@ -312,7 +384,7 @@ void cursorDraw(int ID, int x, int y, float angle)
 	#endif /* GL_ES_VERSION_2_0 */
 	glDisable(GL_DEPTH_TEST);
 	
-	xy = mouse2screen2(x,y);
+	//xy = mouse2screen2(x,y);
 	/* please note that OpenGL ES and OpenGL-3.x does not have the following; here is
 	   a hint for future work:
 		"If you are using OpenGL ES 2.0, you can use framebuffer objects to render to 
@@ -339,6 +411,8 @@ void cursorDraw(int ID, int x, int y, float angle)
 	#endif /* GL_ES_VERSION_2_0 */
 	FW_GL_DEPTHMASK(GL_TRUE);
 	//FW_GL_FLUSH();
+#endif //OLDWAY
+
 	return;
 }
 
