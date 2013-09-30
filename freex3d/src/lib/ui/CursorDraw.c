@@ -237,7 +237,7 @@ void cursorDraw(int ID, int x, int y, float angle)
 	XY xy;
 	FXY fxy;
 	int i,j;
-	GLint shader, positionLoc, texCoordLoc, textureLoc;
+	GLint shader, positionLoc, texCoordLoc, textureLoc, textureCount, textureMatrix;
 	ppCursorDraw p;
 	GLfloat cursorVert2[18];
 	GLushort ind[] = {0,1,2,3,4,5};
@@ -277,23 +277,22 @@ void cursorDraw(int ID, int x, int y, float angle)
 	shader = getAppearanceProperties()->currentShaderProperties->myShaderProgram;
 
 	xy = mouse2screen2(x,y);
-	//FW_GL_VIEWPORT(0, 0, tg->display.screenWidth, tg->display.screenHeight);
+	FW_GL_VIEWPORT(0, 0, tg->display.screenWidth, tg->display.screenHeight);
 	fxy = screen2normalized((GLfloat)xy.x,(GLfloat)xy.y);
 	//fxy.y -= 1.0;
 	//fxy.x -= 1.0;
-	//fxy.y *= .5;
-	//fxy.x *= .5;
 	for(i=0;i<6;i++){
 		for(j=0;j<3;j++)
 			cursorVert2[i*3 + j] = cursorVert[i*3 +j];
-		cursorVert2[i*3 +0] *= 100.0; //fxy.x;
-		cursorVert2[i*3 +1] *= 100.0;// fxy.y;
+		cursorVert2[i*3 +0] += fxy.x;
+		cursorVert2[i*3 +1] += fxy.y;
 	}
-	positionLoc =  glGetAttribLocation ( shader, "fw_Vertex" );
+	positionLoc =  scap->Vertices; //glGetAttribLocation ( shader, "fw_Vertex" );
 	glVertexAttribPointer (positionLoc, 3, GL_FLOAT, 
-						   GL_FALSE, 0, cursorVert );
+						   GL_FALSE, 0, cursorVert2 );
 	// Load the texture coordinate
-	texCoordLoc =  glGetAttribLocation ( shader, "fw_TexCoords" );
+	//texCoordLoc =  glGetAttribLocation ( shader, "fw_MultiTexCoord0"); //"fw_TexCoords" );
+	texCoordLoc = scap->TexCoords;
 	glVertexAttribPointer ( texCoordLoc, 2, GL_FLOAT,
 						   GL_FALSE, 0, cursorTex );  //fails - p->texCoordLoc is 429xxxxx - garbage
 	//glUniform4f(p->color4fLoc,0.7f,0.7f,0.9f,1.0f);
@@ -305,10 +304,16 @@ void cursorDraw(int ID, int x, int y, float angle)
 	glBindTexture ( GL_TEXTURE_2D, p->textureID );
 
 	// Set the base map sampler to texture unit to 0
-	textureLoc =  glGetAttribLocation ( shader, "fw_Texture0" );
+	//textureLoc =  glGetAttribLocation ( shader, "fw_Texture_unit0"); //"fw_Texture0" );
+	textureLoc = scap->TextureUnit[0];
+	//textureCount = scap->textureCount;
+	//glUniform1i(textureCount,(GLint)1);
+	textureMatrix = scap->TextureMatrix;
+	glUniformMatrix4fv(textureMatrix, 1, GL_FALSE, cursIdentity);
 
 	glUniform1i ( textureLoc, 0 );
-	glDrawElements ( GL_TRIANGLES, 3*2, GL_UNSIGNED_SHORT, ind ); //just render the active ones
+	//glDrawElements ( GL_TRIANGLES, 3*2, GL_UNSIGNED_SHORT, ind ); //just render the active ones
+	glDrawArrays(GL_TRIANGLES,0,6);
 
 	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);

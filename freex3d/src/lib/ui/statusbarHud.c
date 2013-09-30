@@ -704,8 +704,8 @@ char *get_status(){
 }
 
 /* start cheapskate widgets >>>> */
-int lenOptions = 12;
-char * optionsText[12] = {
+int lenOptions = 13;
+char * optionsText[13] = {
 "stereovision:",
 "  side-by-side",
 "  anaglyph",
@@ -715,9 +715,10 @@ char * optionsText[12] = {
 "Your Eyebase = fiducials",
 "\36       \37",
 "Anaglyph",
-" RGBACM",
-"        left",
-"        right"
+" RGB",
+"     left",
+"     right",
+"     neither"
 };
 //int optionsLoaded = 0;
 //char * optionsVal[15];
@@ -727,7 +728,7 @@ void setOptionsVal()
 static char * RGBACM = "RGBACM";
 void initOptionsVal()
 {
-	int i,j;
+	int i,j,k;
 	X3D_Viewer *viewer;
 	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
 	viewer = Viewer();
@@ -751,8 +752,12 @@ void initOptionsVal()
 	sprintf(p->optionsVal[5],"  %4.3f",viewer->eyedist); //.eyebase); //.060f);
 	sprintf(p->optionsVal[7],"  %4.3f",viewer->screendist); //.6f);
 	//sprintf(p->optionsVal[7],"  %4.3f",viewer->stereoParameter); //.toein.4f);
-	p->optionsVal[10][viewer->iprog[0]+1] = RGBACM[viewer->iprog[0]]; //'R';
-	p->optionsVal[11][viewer->iprog[1]+1] = RGBACM[viewer->iprog[1]]; //'G';
+	for(i=0;i<3;i++){
+		for(j=0;j<3;j++){
+			k = getAnaglyphPrimarySide(j,i);
+			p->optionsVal[10+i][j+1] = (k ? 035 : ' ');
+		}
+	}
 
 	p->optionsLoaded = 1;
 }
@@ -763,7 +768,7 @@ void updateOptionsVal()
 	initOptionsVal();
 }
 /* the optionsCase char is used in a switch case later to involk the appropriate function */
-char * optionsCase[12] = {
+char * optionsCase[13] = {
 "             ",
 "22222222222222",
 "33333333",
@@ -774,8 +779,9 @@ char * optionsCase[12] = {
 "DDEEEEEFF",
 "        ",
 "       ",
-" rgbacm     ",
-" RGBACM      "
+" rst     ",
+" uvw      ",
+" xyz      "
 };
 
 XY mouse2screen(int x, int y)
@@ -902,20 +908,20 @@ int handleOptionPress()
 		toggleOrSetStereo(opt-'0');
 		break;
 	case 'r': 
-	case 'g': 
-	case 'b': 
-	case 'a': 
-	case 'c': 
-	case 'm': 
-		setAnaglyphSideColor(toupper(opt),0);
+	case 's': 
+	case 't': 
+		setAnaglyphPrimarySide(opt-'r',0); //L,R,N
 		break;
-	case 'R': 
-	case 'G': 
-	case 'B': 
-	case 'A': 
-	case 'C': 
-	case 'M': 
-		setAnaglyphSideColor(opt,1);
+	case 'u': 
+	case 'v': 
+	case 'w': 
+		setAnaglyphPrimarySide(opt-'u',1); //L,R,N
+		break;
+	case 'x': 
+	case 'y': 
+	case 'z': 
+		setAnaglyphPrimarySide(opt-'x',2); //L,R,N
+		//setAnaglyphSideColor(opt,1);
 		break;
 	case '5': {
 		/* eyebase */

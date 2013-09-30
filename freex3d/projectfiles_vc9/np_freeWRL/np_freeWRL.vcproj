@@ -210,7 +210,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dllFreeWRLd.lib libFreeWRLd.lib Glu32.lib glew32mx.lib Opengl32.lib pthreadVC2d.lib zlib.lib mozjs185-1.0.lib ws2_32.lib freetype239.lib shlwapi.lib gdiplus.lib libxml2_a.lib Wininet.lib Winmm.lib %(AdditionalDependencies)"
+				AdditionalDependencies="dllFreeWRLd.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\..\..\lib_windows\MSopenGL\lib;..\..\..\..\lib_windows\glew\lib;..\..\..\..\lib_windows\js185\lib;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\zlib\lib;..\..\..\..\lib_windows\libxml2\lib;..\Debug;&quot;%(AdditionalLibraryDirectories)&quot;"
 				ModuleDefinitionFile="..\..\src\plugin_win32\np_BasePlugin.def"

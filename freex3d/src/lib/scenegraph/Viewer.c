@@ -88,7 +88,7 @@ typedef struct pViewer{
 	struct point_XYZ viewer_lastP;
 	int exflyMethod; //0 or 1;  /* could be a user settable option, which kind of exfly to do */
 	int StereoInitializedOnce;//. = 0;
-	GLboolean acMask[2][3]; //anaglyphChannelMask
+	GLboolean acMask[3][3]; //anaglyphChannelMask
 	X3D_Viewer Viewer; /* has to be defined somewhere, so it found itself stuck here */
 
 	/* viewpoint slerping */
@@ -1753,6 +1753,32 @@ static int indexRGBACM(int a)
 {
 	return (int) (strchr(RGBACM,a)-RGBACM);
 }
+int getAnaglyphPrimarySide(int primary, int iside){
+	//primary red=0, green=1, blue=2
+	//iside left=0, right=1, neither=2
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	return (int)p->acMask[iside][primary];
+}
+
+void setAnaglyphPrimarySide(int primary, int iside){
+	//primary red=0, green=1, blue=2
+	//iside left=0, right=1, neither=2
+	//it assumes you are setting it to true, 
+	//and turns other sides off the primary automatically
+	//the user interface should look like this:
+	//R G B
+	//*     Left
+	//    * Right
+	//  *   Neither
+	//the neither is side=2, and allows the user to turn a primary off all sides
+	int i;
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	for(i=0;i<3;i++)
+		if(iside == i)
+			p->acMask[i][primary] = (GLboolean)1;
+		else
+			p->acMask[i][primary] = (GLboolean)0;
+}
 void setAnaglyphSideColor(char val, int iside)
 {
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
@@ -1789,16 +1815,32 @@ void fwl_set_AnaglyphParameter(const char *optArg) {
   NOTE: "const char" means that you wont modify it in the function :)
  */
 	const char* glasses;
+	int len;
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
 	glasses = optArg;
-	if(strlen(glasses)!=2)
+	len = strlen(optArg);
+	if(len !=2 && len != 3)
 	{
-	  printf ("warning, command line anaglyph parameter incorrect - was %s need something like RC\n",optArg);
-	  glasses ="RC";
+	  printf ("warning, command line anaglyph parameter incorrect - was %s need something like RC or LRN\n",optArg);
+	  glasses ="RC"; len = 2;
 	}
-	setAnaglyphSideColor(glasses[0],0);
-	setAnaglyphSideColor(glasses[1],1);
+	if(len == 2){
+		setAnaglyphSideColor(glasses[0],0);
+		setAnaglyphSideColor(glasses[1],1);
+	}else if(len == 3){
+		int i, iside;
+		for(i=0;i<3;i++){
+			switch(optArg[i]){
+				case 'L': iside = 0;break;
+				case 'R': iside = 1;break;
+				case 'N': iside = 2;break;
+				default:
+					iside = 2;
+			}
+			setAnaglyphPrimarySide(i,iside);
+		}
+	}
 	//Viewer.iprog[0] = indexRGBACM(glasses[0]);
 	//Viewer.iprog[1] = indexRGBACM(glasses[1]);
 	//if(Viewer.iprog[0] == -1 || Viewer.iprog[1] == -1)
