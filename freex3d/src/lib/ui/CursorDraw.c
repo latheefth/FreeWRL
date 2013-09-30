@@ -263,11 +263,11 @@ void cursorDraw(int ID, int x, int y, float angle)
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, circleCursor.width, circleCursor.height, 0, GL_RGBA , GL_UNSIGNED_BYTE, circleCursor.pixel_data);
 		p->done = 1; 
 	}
-#ifdef STATUSBAR_HUD
+#ifndef STATUSBAR_HUD
 	statusbarHud_DrawCursor(p->textureID,x,y);
 	return;
 #endif
-#ifdef NEWWAY_COPIED_FROM_STATUSBARHUD_CURSORDRAW
+#ifndef NEWWAY_COPIED_FROM_STATUSBARHUD_CURSORDRAW
 	FW_GL_DEPTHMASK(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
 	//if(p->programObject == 0) initProgramObject();
@@ -313,6 +313,13 @@ void cursorDraw(int ID, int x, int y, float angle)
 
 	glUniform1i ( textureLoc, 0 );
 	//glDrawElements ( GL_TRIANGLES, 3*2, GL_UNSIGNED_SHORT, ind ); //just render the active ones
+
+	// this more direct hacking also works
+	//loc =  glGetAttribLocation ( shader, "fw_ModelViewMatrix" );
+	glUniformMatrix4fv(scap->ModelViewMatrix, 1, GL_FALSE, cursIdentity);
+	//loc =  glGetAttribLocation ( shader, "fw_ProjectionMatrix" );
+	glUniformMatrix4fv(scap->ProjectionMatrix, 1, GL_FALSE, cursIdentity);
+
 	glDrawArrays(GL_TRIANGLES,0,6);
 
 	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
