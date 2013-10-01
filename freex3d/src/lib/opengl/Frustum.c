@@ -898,7 +898,7 @@ void OcclusionStartofRenderSceneUpdateScene() {
 				p->occluderNodePointer = MALLOC (void **, sizeof (void *) * p->OccQuerySize);
 				p->OccQueries = MALLOC (GLuint *, sizeof(GLuint) * p->OccQuerySize);
                 glGenQueries(p->OccQuerySize,p->OccQueries);
-                ConsoleMessage ("generated %d queries, pointer %p",p->OccQuerySize,p->OccQueries);
+                //ConsoleMessage ("generated %d queries, pointer %p",p->OccQuerySize,p->OccQueries);
 				p->OccInitialized = TRUE;
 				for (i=0; i<p->OccQuerySize; i++) {
 					p->occluderNodePointer[i] = 0;
@@ -1165,9 +1165,9 @@ void zeroOcclusion(void) {
 	p->QueryCount = 0;
     
     // debugging
-    if (p->OccQueries) {
-        ConsoleMessage ("p->OccQueries exists, p->OccQuerySize %p, p->OccQueries %p",p->OccQuerySize, p->OccQueries);
-    }
+    //if (p->OccQueries) {
+      //  ConsoleMessage ("p->OccQueries exists, p->OccQuerySize %p, p->OccQueries %p",p->OccQuerySize, p->OccQueries);
+    //}
 	//if(p->OccQueries)
 		//glDeleteQueries (p->OccQuerySize, p->OccQueries);
 	//FW_GL_FLUSH();
@@ -1176,7 +1176,7 @@ void zeroOcclusion(void) {
 	p->maxOccludersFound = 0;
 	p->OccInitialized = FALSE;
 	p->potentialOccluderCount = 0;
-    ConsoleMessage ("freeing OccQueries %p",p->OccQueries);
+    //ConsoleMessage ("freeing OccQueries %p",p->OccQueries);
 	FREE_IF_NZ(p->OccQueries);
 	FREE_IF_NZ(p->occluderNodePointer);
 #endif /* OCCLUSION */

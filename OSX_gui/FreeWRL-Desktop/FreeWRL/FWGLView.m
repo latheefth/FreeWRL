@@ -81,8 +81,8 @@ int whichOne=0;
         startingString = (char *)[fileToOpen UTF8String];
     } else {
 
-        startingString="/Users/john/Desktop/GeoSpatialTesting/7_levels_plus/globe_with_ROOTNODE.x3d";
-         //startingString="/Users/john/Desktop/GeoSpatialTesting/occtest.x3dv";
+        //startingString="/Users/john/Desktop/GeoSpatialTesting/7_levels_plus/globe_with_ROOTNODE.x3d";
+         startingString="/Users/john/Desktop/GeoSpatialTesting/occtest.x3dv";
     }
     
     while ([FreeWRLAppDelegate applicationHasLaunched]) {
@@ -424,40 +424,41 @@ mouseDisplaySensitive = mouseOverSensitive; \
 
     mainloopCount ++;
     
+#define TESTING_LOADING_WORLDS
 #ifdef TESTING_LOADING_WORLDS
     //replaceWorldNeeded
     //FreeX3DLib.initialFile(myNewX3DFile);
     //fwl_OSX_initializeParameters((const char*)startingString);
     //fwl_Android_replaceWorldNeeded();
-    if (mainloopCount == 100) {
+    if (mainloopCount == 200) {
         mainloopCount = 0;
         
 
         switch (whichOne) {
             case 0:
-                fwl_replaceWorldNeeded("/Users/johns/Desktop/demos/TwoCylinders.wrl");
+                fwl_replaceWorldNeeded("/Users/johns/Desktop/Android-tests-current/demos/TwoCylinders.wrl");
                 whichOne++;
                 break;
             case 1:
-                fwl_replaceWorldNeeded("/Users/johns/Desktop/demos/flutter2-ProgramShader.wrl");
-                whichOne++;
-                break;
             case 2:
-                fwl_replaceWorldNeeded("/Users/johns/Desktop/demos/sobel-ComposedShader.wrl");
-                whichOne++;
-                break;
-            case 3:  
-                fwl_replaceWorldNeeded("/Users/johns/Desktop/demos/teapot-Toon.wrl");
-                whichOne++;
-                break;
+                    case 3:  
+  
             case 4:
-                fwl_replaceWorldNeeded("/Users/johns/Desktop/demos/sobel-ComposedShader.x3dv");
+              case 5:
+            case 6:
+                case 7:
+                fwl_replaceWorldNeeded("/Users/johns/Desktop/GeoSpatialTesting/Roelfs/unzipped/43487-galaxies-noInlines.wrl");
+                //fwl_replaceWorldNeeded("/Users/johns/Desktop/GeoSpatialTesting/freewrl/freewrl/tests/33.wrl");
+                //fwl_replaceWorldNeeded("/Users/johns/Desktop/textOnly.x3dv");
+                whichOne++;
+                break;
+            case 8:
                 whichOne=0;
 
                 break;
         }
         //fwl_OSX_initializeParameters("");
-        printf ("replacing world\n");
+        //printf ("replacing world\n");
         //fwl_replaceWorldNeeded("/Users/johns/Desktop/Android-freewrl-fullbuild/freewrl/freewrl/tests/2.wrl");
     }
 #endif //TESTING_LOADING_WORLDS

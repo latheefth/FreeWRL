@@ -86,8 +86,8 @@ typedef struct resource_item {
 
 	/* Resource has passed all the steps */
 	bool complete;
-	void *where;
-	int offsetFromWhere;
+	void *whereToPlaceData;
+	int offsetFromWhereToPlaceData;
 
 	/* We can be feed with a Multi_String list of requests */
 	s_list_t *m_request;

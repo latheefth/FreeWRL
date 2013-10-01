@@ -153,8 +153,6 @@ uintptr_t _fw_instance = 0;
 
 /*******************************/
 
-//static s_list_t *resource_list_to_parse = NULL;
-
 #define PARSE_STRING(input,len,where) parser_do_parse_string(input,len,where)
 
 struct PSStruct {
@@ -225,6 +223,8 @@ void ProdCon_init(struct tProdCon *t)
 		p->fogNodes = newVector(struct X3D_Node *, 2);
 		p->backgroundNodes = newVector(struct X3D_Node *, 2);
 		p->navigationNodes = newVector(struct X3D_Node *, 2);
+        printf ("created new navigationNodes of %p, at A\n",p->navigationNodes);
+        
 
 		/* thread synchronization issues */
 		p->_P_LOCK_VAR = 0;
@@ -483,8 +483,8 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *wh
 	if (strncmp(tp, "URL", 3) == 0) {
 
 		res = resource_create_single(inputstring);
-		res->where = where;
-		res->offsetFromWhere = (int) offsetof (struct X3D_Group, children);
+		res->whereToPlaceData = where;
+		res->offsetFromWhereToPlaceData = (int) offsetof (struct X3D_Group, children);
 		/* printf ("EAI_CreateVrml, res->where is %u, root is %u parameter where %u\n",res->where, rootNode, where); */
 
 	} else { // all other cases are inline code to parse... let the parser do the job ;P...
@@ -504,8 +504,8 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *wh
 		res = resource_create_from_string(sendIn);
 		res->media_type=resm_vrml;
 		res->parsed_request = EAI_Flag;
-		res->where = where;
-		res->offsetFromWhere = (int) offsetof (struct X3D_Group, children);
+		res->whereToPlaceData = where;
+		res->offsetFromWhereToPlaceData = (int) offsetof (struct X3D_Group, children);
 	}
 
 	send_resource_to_parser(res);
@@ -525,8 +525,8 @@ int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Group *whe
 	if (strncmp(tp, "URL", 3) == 0) {
 
 		res = resource_create_single(inputstring);
-		res->where = where;
-		res->offsetFromWhere = (int) offsetof (struct X3D_Group, children);
+		res->whereToPlaceData = where;
+		res->offsetFromWhereToPlaceData = (int) offsetof (struct X3D_Group, children);
 		/* printf ("EAI_CreateVrml, res->where is %u, root is %u parameter where %u\n",res->where, rootNode, where); */
 
 	} else { // all other cases are inline code to parse... let the parser do the job ;P...
@@ -545,8 +545,8 @@ int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Group *whe
 		res = resource_create_from_string(sendIn);
 		res->media_type=resm_x3d; //**different than vrml
 		res->parsed_request = EAI_Flag;
-		res->where = where;
-		res->offsetFromWhere = (int) offsetof (struct X3D_Group, children);
+		res->whereToPlaceData = where;
+		res->offsetFromWhereToPlaceData = (int) offsetof (struct X3D_Group, children);
 	}
 
 	send_resource_to_parser(res);
@@ -798,6 +798,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	t = &tg->ProdCon;
 	p = (ppProdCon)t->prv;
 
+    //printf ("entering parser_process_res_VRML_X3D\n");
 
 	/* printf("processing VRML/X3D resource: %s\n", res->request);  */
 	
@@ -826,8 +827,8 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		/* create a container so that the parser has a place to put the nodes */
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 	
-		insert_node = X3D_GROUP(res->where); /* casting here for compiler */
-		offsetInNode = res->offsetFromWhere;
+		insert_node = X3D_GROUP(res->whereToPlaceData); /* casting here for compiler */
+		offsetInNode = res->offsetFromWhereToPlaceData;
 
 		parsedOk = PARSE_STRING((const unsigned char *)res->URLrequest,(const int)strlen(res->URLrequest), nRn);
 		//printf("after parse_string in EAI/SAI parsing\n");
@@ -909,13 +910,13 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		}
 	
 		/* we either put things at the rootNode (ie, a new world) or we put them as a children to another node */
-		if (res->where == NULL) {
+		if (res->whereToPlaceData == NULL) {
 			ASSERT(rootNode());
 			insert_node = rootNode();
 			offsetInNode = (int) offsetof(struct X3D_Group, children);
 		} else {
-			insert_node = X3D_GROUP(res->where); /* casting here for compiler */
-			offsetInNode = res->offsetFromWhere;
+			insert_node = X3D_GROUP(res->whereToPlaceData); /* casting here for compiler */
+			offsetInNode = res->offsetFromWhereToPlaceData;
 		}
 	}
 	
@@ -940,6 +941,9 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 
 	/* remove this resource from the stack */
 	if (!fromEAI_SAI) popInputResource();
+
+    
+    //printf ("exiting praser_process_res_VRML_X3D\n");
 
 	return TRUE;
 }
@@ -983,7 +987,7 @@ static bool parser_process_res_SHADER(resource_item_t *res)
 		break;
 	}
 
-	ss = (struct Shader_Script *) res->where;
+	ss = (struct Shader_Script *) res->whereToPlaceData;
 	
 	return script_initCode(ss, buffer);
 }
@@ -1012,6 +1016,18 @@ void Parser_thread_exit_handler(int sig)
 //recently added list functions:
 //void ml_enqueue(s_list_t **list, s_list_t *item);
 //s_list_t *ml_dequeue(s_list_t **list);
+
+
+void *getProdConQueueContentStatus() {
+    
+/*void resitem_enqueue(s_list_t *item){ */
+ ppProdCon p;
+ ttglobal tg = gglobal();
+ p = (ppProdCon)tg->ProdCon.prv;
+ 
+return (p->resource_list_to_parse);
+  }
+
 
 void threadsafe_enqueue_item_signal(s_list_t *item, s_list_t** queue, pthread_mutex_t* queue_lock, pthread_cond_t *queue_nonzero)
 {
@@ -1330,26 +1346,66 @@ static void unbind_node(struct X3D_Node* node) {
 }
 /* for ReplaceWorld (or, just, on start up) forget about previous bindables */
 #define KILL_BINDABLE(zzz) \
+    printf("KILL_BINDABLE, stack %p size %d\n",zzz,vectorSize(zzz)); \
 	{ int i; for (i=0; i<vectorSize(zzz); i++) { \
+        printf ("KILL_BINDABLE %d of %d\n",i,vectorSize(zzz)); \
 		struct X3D_Node* me = vector_get(struct X3D_Node*,zzz,i); \
 		unbind_node(me); \
 	} \
 	deleteVector(struct X3D_Node *,zzz); \
-	zzz = newVector(struct X3D_Node *,8); \
+	zzz = newVector(struct X3D_Node *,8);\
+    printf ("KILL_BINDABLE, new stack is %p\n",zzz); \
 	/*causes segfault, do not do this zzz = NULL;*/ \
 	}
 
 
 void kill_bindables (void) {
 	ppProdCon p;
+    ttglobal tg = gglobal();
+    
 	struct tProdCon *t = &gglobal()->ProdCon;
 	p = (ppProdCon)t->prv;
 
-
+    //printf ("kill_bindables called\n");
+    t->viewpointNodes->n=0;
+    p->backgroundNodes->n=0;
+    p->navigationNodes->n=0;
+    p->fogNodes->n=0;
+    tg->Bindable.navigation_stack->n=0;
+    tg->Bindable.background_stack->n=0;
+    tg->Bindable.viewpoint_stack->n=0;
+    tg->Bindable.fog_stack->n=0;
+    return;
+    
+    printf ("before tvp %p ",t->viewpointNodes);
 	KILL_BINDABLE(t->viewpointNodes);
+    printf ("after, tvp %p\n",t->viewpointNodes);
+    
 	KILL_BINDABLE(p->backgroundNodes);
+    printf ("calling KILL_BINDABLE on navigationNodes %p at B\n",p->navigationNodes);
+    
 	KILL_BINDABLE(p->navigationNodes);
 	KILL_BINDABLE(p->fogNodes);
+    
+    printf ("calling KILL_BINDABLE on the global navigation stack\n");
+    KILL_BINDABLE(tg->Bindable.navigation_stack);
+    KILL_BINDABLE(tg->Bindable.background_stack);
+    KILL_BINDABLE(tg->Bindable.viewpoint_stack);
+    KILL_BINDABLE(tg->Bindable.fog_stack);
+    
+    /*
+     struct Vector *background_stack;
+     struct Vector *viewpoint_stack;
+     struct Vector *navigation_stack;
+     struct Vector *fog_stack;
+
+     ttglobal tg = gglobal();
+     if (node->set_bind < 100) {
+     if (node->set_bind == 1) set_naviinfo(node);
+     bind_node (X3D_NODE(node), tg->Bindable.navigation_stack,"Component_Navigation");
+*/
+    
+    
 }
 
 
@@ -1386,6 +1442,8 @@ void registerBindable (struct X3D_Node *node) {
 			vector_pushBack (struct X3D_Node*,p->backgroundNodes, node);
 			break;
 		case NODE_NavigationInfo:
+            printf ("register_bindable, navigationNodes is %p at C\n",p->navigationNodes);
+            
 			X3D_NAVIGATIONINFO(node)->set_bind = 100;
 			X3D_NAVIGATIONINFO(node)->isBound = 0;
 			vector_pushBack (struct X3D_Node*,p->navigationNodes, node);

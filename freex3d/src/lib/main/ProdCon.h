@@ -33,5 +33,8 @@ General functions declarations.
 
 void registerBindable(struct X3D_Node *);
 extern char *EAI_Flag;
+void frontend_dequeue_get_enqueue();
+int frontendGetsFiles();
+
 
 #endif /* __FREEWRL_PRODCON_MAIN_H__ */

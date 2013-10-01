@@ -553,8 +553,8 @@ static void loadInline(struct X3D_Inline *me)
 			/* did we get this one? */
 			} else if (res->status == ress_downloaded) {
 				res->media_type = resm_unknown;
-				res->where = X3D_NODE(me);
-				res->offsetFromWhere = (float) offsetof (struct X3D_Inline, __children);
+				res->whereToPlaceData = X3D_NODE(me);
+				res->offsetFromWhereToPlaceData = (float) offsetof (struct X3D_Inline, __children);
                 //printf ("going to send resource to parser async for res %p\n",res);
 				if (send_resource_to_parser_if_available(res)) {
 				me->__loadstatus = INLINE_PARSING; /* a "do-nothing" approach */
