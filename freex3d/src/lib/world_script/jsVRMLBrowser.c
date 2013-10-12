@@ -2111,7 +2111,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, uintN argc, jsval *vp) {
 
 	/* find a file name that exists. If not, return JS_FALSE */
 	res = resource_create_multi(&url);
-	res->where = myptr;
+	res->whereToPlaceData = myptr;
 
 
 	/* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
@@ -2129,7 +2129,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, uintN argc, jsval *vp) {
 	}
 
 	/* printf ("type of field %s, accessType %s\n",stringFieldtypeType(type),stringKeywordType(accessType)); */
-	res->offsetFromWhere = offs;
+	res->offsetFromWhereToPlaceData = offs;
 
 	send_resource_to_parser(res);
 	resource_wait(res);

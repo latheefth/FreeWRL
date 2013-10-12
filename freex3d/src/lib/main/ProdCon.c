@@ -1377,6 +1377,7 @@ void kill_bindables (void) {
     tg->Bindable.fog_stack->n=0;
     return;
     
+	/*
     printf ("before tvp %p ",t->viewpointNodes);
 	KILL_BINDABLE(t->viewpointNodes);
     printf ("after, tvp %p\n",t->viewpointNodes);
@@ -1392,7 +1393,7 @@ void kill_bindables (void) {
     KILL_BINDABLE(tg->Bindable.background_stack);
     KILL_BINDABLE(tg->Bindable.viewpoint_stack);
     KILL_BINDABLE(tg->Bindable.fog_stack);
-    
+    */
     /*
      struct Vector *background_stack;
      struct Vector *viewpoint_stack;
