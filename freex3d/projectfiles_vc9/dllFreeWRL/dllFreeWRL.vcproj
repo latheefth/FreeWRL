@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libFreeWRLd.lib libGLESv2.lib libEGL.lib glew32mx.lib Opengl32.lib pthreadVC2d.lib zlib.lib libminizip.lib mozjs185-1.0.lib ws2_32.lib freetype239.lib shlwapi.lib gdiplus.lib libxml2_a.lib Wininet.lib Winmm.lib"
+				AdditionalDependencies="libFreeWRLd.lib libGLESv2.lib libEGL.lib pthreadVC2d.lib zlib.lib libminizip.lib mozjs185-1.0.lib ws2_32.lib freetype239.lib shlwapi.lib gdiplus.lib libxml2_a.lib Wininet.lib Winmm.lib"
 				OutputFile="$(OutDir)\$(ProjectName)d.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\..\..\lib_windows\angleproject\lib\Release;..\..\..\..\lib_windows\MSopenGL\lib;&quot;..\..\..\..\lib_windows\glew\lib\Release MX\Win32&quot;;..\..\..\..\lib_windows\js185\lib;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\zlib\lib;..\..\..\..\lib_windows\libxml2\lib;..\Debug"
@@ -140,9 +140,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libFreeWRL.lib glew32mx.lib Opengl32.lib pthreadVC2.lib zlib.lib libminizip.lib mozjs185-1.0.lib ws2_32.lib freetype239.lib shlwapi.lib gdiplus.lib libxml2_a.lib Wininet.lib Winmm.lib"
+				AdditionalDependencies="libFreeWRL.lib libGLESv2.lib libEGL.lib pthreadVC2.lib zlib.lib libminizip.lib mozjs185-1.0.lib ws2_32.lib freetype239.lib shlwapi.lib gdiplus.lib libxml2_a.lib Winmm.lib Wininet.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\..\..\lib_windows\MSopenGL\lib;&quot;..\..\..\..\lib_windows\glew\lib\Release MX\Win32&quot;;..\..\..\..\lib_windows\js185\lib;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\zlib\lib;..\..\..\..\lib_windows\libxml2\lib;..\Release"
+				AdditionalLibraryDirectories="..\..\..\..\lib_windows\angleproject\lib\Release;..\..\..\..\lib_windows\MSopenGL\lib;..\..\..\..\lib_windows\js185\lib;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\zlib\lib;..\..\..\..\lib_windows\libxml2\lib;..\Release"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
 				SubSystem="2"

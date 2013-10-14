@@ -114,6 +114,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="../main;../../../../../lib_windows/angleproject/include;../../;..\..\..\src\lib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -132,9 +133,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libGLES20.lib libFreeWRLGLES2.lib pthreadVC2.lib zlib.lib mozjs185-1.0.lib ws2_32.lib freetype239.lib shlwapi.lib gdiplus.lib libxml2_a.lib Wininet.lib Winmm.lib libtess.lib"
+				AdditionalDependencies="libFreeWRL.lib libGLESv2.lib libEGL.lib pthreadVC2.lib zlib.lib libminizip.lib mozjs185-1.0.lib ws2_32.lib freetype239.lib shlwapi.lib gdiplus.lib libxml2_a.lib Wininet.lib Winmm.lib libtess.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories=".\Release;&quot;$(NV_WINGL_X86_PLAT)/lib/release&quot;;..\..\..\lib_windows\js185\lib;..\..\..\lib_windows\pthreads.2;..\..\..\lib_windows\freetype2\lib;..\..\freex3d\src\libtess\win32\Release;..\..\..\lib_windows\zlib\lib;..\..\..\lib_windows\libxml2\lib"
+				AdditionalLibraryDirectories=".\Release;..\..\..\..\..\lib_windows\angleproject\lib\Release;..\..\..\..\..\lib_windows\js185\lib;..\..\..\..\..\lib_windows\pthreads.2;..\..\..\..\..\lib_windows\freetype2\lib;..\..\src\libtess\win32\Release;..\..\..\..\..\lib_windows\zlib\lib;..\..\Release;..\..\..\..\..\lib_windows\libxml2\lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"

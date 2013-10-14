@@ -61,9 +61,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libfreeWRLEAI.lib libfreeWRLd.lib libGLESv2.lib libEGL.lib glew32mx.lib libtessd.lib Opengl32.lib pthreadVC2d.lib zlib.lib libminizip.lib ws2_32.lib freetype239.lib shlwapi.lib gdiplus.lib libxml2_a.lib Wininet.lib Winmm.lib mozjs185-1.0.lib"
+				AdditionalDependencies="libfreeWRLEAI.lib libfreeWRLd.lib libGLESv2.lib libEGL.lib libtessd.lib pthreadVC2d.lib zlib.lib libminizip.lib ws2_32.lib freetype239.lib shlwapi.lib gdiplus.lib libxml2_a.lib Wininet.lib Winmm.lib mozjs185-1.0.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\..\..\..\lib_windows\angleproject\lib\Release;&quot;$(SolutionDir)\$(ConfigurationName)&quot;;..\..\..\..\lib_windows\MSopenGL\lib;&quot;..\..\..\..\lib_windows\glew\lib\Release MX\Win32&quot;;..\..\..\..\lib_windows\js185\lib;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\zlib\lib;..\..\..\..\lib_windows\libxml2\lib"
+				AdditionalLibraryDirectories="..\..\..\..\lib_windows\angleproject\lib\Release;&quot;$(SolutionDir)\$(ConfigurationName)&quot;;..\..\..\..\lib_windows\js185\lib;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\zlib\lib;..\..\..\..\lib_windows\libxml2\lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -136,9 +136,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libfreeWRLEAI.lib libfreeWRL.lib glew32mx.lib libtess.lib Opengl32.lib pthreadVC2.lib zlib.lib libminizip.lib mozjs185-1.0.lib ws2_32.lib freetype239.lib shlwapi.lib gdiplus.lib libxml2_a.lib Wininet.lib Winmm.lib"
+				AdditionalDependencies="libfreeWRLEAI.lib libfreeWRL.lib libGLESv2.lib libEGL.lib libtess.lib pthreadVC2.lib zlib.lib libminizip.lib mozjs185-1.0.lib ws2_32.lib freetype239.lib shlwapi.lib gdiplus.lib libxml2_a.lib Wininet.lib Winmm.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)\$(ConfigurationName)&quot;;..\..\..\..\lib_windows\MSopenGL\lib;&quot;..\..\..\..\lib_windows\glew\lib\Release MX\Win32&quot;;..\..\..\..\lib_windows\js185\lib;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\zlib\lib;..\..\..\..\lib_windows\libxml2\lib"
+				AdditionalLibraryDirectories="..\..\..\..\lib_windows\angleproject\lib\Release;&quot;$(SolutionDir)\$(ConfigurationName)&quot;;..\..\..\..\lib_windows\js185\lib;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\zlib\lib;..\..\..\..\lib_windows\libxml2\lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"

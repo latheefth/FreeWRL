@@ -64,7 +64,7 @@ END_PROPPAGEIDS(CfreeWRLCtrl)
 
 // Initialize class factory and guid
 
-IMPLEMENT_OLECREATE_EX(CfreeWRLCtrl, "FREEWRLAX.freeWRLCtrl.2", //version 2  //"FREEWRLAX.freeWRLCtrl.1", //version 1.22.12_pre2
+IMPLEMENT_OLECREATE_EX(CfreeWRLCtrl, "freewrl.freewrl.2", //FREEWRLAX.freeWRLCtrl.2", //version 2  //"FREEWRLAX.freeWRLCtrl.1", //version 1.22.12_pre2
 	0x4e814fce, 0xb546, 0x4d91, 0x8e, 0xa8, 0x35, 0x82, 0x64, 0xe5, 0xd4, 0x23)
 	//0x582c9301, 0xa2c8, 0x45fc, 0x83, 0x1b, 0x65, 0x4d, 0xe7, 0xf3, 0xaf, 0x11) //version 1.22.12_pre2
 
@@ -144,6 +144,10 @@ CfreeWRLCtrl::CfreeWRLCtrl()
 	//m_Hwnd = (void *)this->GetHwnd();
 	//m_dllfreewrl = new CdllFreeWRL(100,100,m_Hwnd,false);
 	//m_initialized = 0;
+#ifdef _DEBUG
+  ::MessageBoxA(NULL,"You may now attach a debugger.\n Press OK when you want to proceed.","freeWRLAx plugin process(1)",MB_OK);
+#endif
+
 }
 
 // CfreeWRLCtrl::~CfreeWRLCtrl - Destructor

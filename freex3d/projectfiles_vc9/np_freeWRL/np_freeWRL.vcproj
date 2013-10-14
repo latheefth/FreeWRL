@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\src\dllFreeWRL;..\..\src\Lib;..\..\src\plugin_win32;..\..\src\plugin_win32\include;&quot;%(AdditionalIncludeDirectories)&quot;"
+				AdditionalIncludeDirectories="..\..\src\dllFreeWRL;..\..\src\plugin_win32;..\..\src\plugin_win32\include;&quot;%(AdditionalIncludeDirectories)&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;NP_FREEWRL_EXPORTS;NP_BASEPLUGIN_EXPORTS;XP_WIN32;MOZILLA_STRICT_API;XPCOM_GLUE;XP_WIN;_X86_"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -63,7 +63,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="dllFreeWRLd.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\..\..\..\lib_windows\MSopenGL\lib;..\..\..\..\lib_windows\glew\lib;..\..\..\..\lib_windows\js185\lib;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\zlib\lib;..\..\..\..\lib_windows\libxml2\lib;..\Debug"
+				AdditionalLibraryDirectories="..\Debug"
 				ModuleDefinitionFile="..\..\src\plugin_win32\np_BasePlugin.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -118,10 +118,11 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;NP_FREEX3D_EXPORTS"
+				AdditionalIncludeDirectories="..\..\src\dllFreeWRL;..\..\src\plugin_win32;..\..\src\plugin_win32\include;&quot;%(AdditionalIncludeDirectories)&quot;"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;NP_FREEWRL_EXPORTS;NP_BASEPLUGIN_EXPORTS;XP_WIN32;MOZILLA_STRICT_API;XPCOM_GLUE;XP_WIN;_X86_"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>
@@ -136,7 +137,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="dllFreeWRL.lib"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\Release"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
