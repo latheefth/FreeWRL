@@ -84,8 +84,8 @@ EGLBoolean fwCreateEGLContext ( EGLNativeWindowType hWnd, EGLDisplay* eglDisplay
    // Get configs
    if ( !eglGetConfigs(display, NULL, 0, &numConfigs) )
    {
-      return EGL_FALSE;
 	  printf("Ouch no eglGetConfigs\n");
+      return EGL_FALSE;
    }
 
    // Choose config
@@ -125,6 +125,7 @@ bool fv_create_and_bind_GLcontext(freewrl_params_t * d){
 	EGLDisplay eglDisplay;
 	EGLContext eglContext;
 	EGLSurface eglSurface;
+	EGLNativeWindowType eglWindow;
 	GLuint flags = ES_WINDOW_RGB | ES_WINDOW_DEPTH | ES_WINDOW_STENCIL;
 	EGLint attribList[] =
 	{
@@ -138,33 +139,32 @@ bool fv_create_and_bind_GLcontext(freewrl_params_t * d){
 		EGL_NONE
 	};
    
-   //if ( esContext == NULL )
-   //{
-   //   return GL_FALSE;
-   //}
+	//if ( esContext == NULL )
+	//{
+	//   return GL_FALSE;
+	//}
 
-   //esContext->width = width;
-   //esContext->height = height;
+	//esContext->width = width;
+	//esContext->height = height;
 
-   //if ( !WinCreate ( esContext, title) )
-   //{
-   //   return GL_FALSE;
-   //}
-
-   if ( !fwCreateEGLContext ( d->winToEmbedInto,
-                            &eglDisplay,
-                            &eglContext,
-                            &eglSurface,
-                            attribList) )
-   {
-	  printf("Ouch CreateEGLContext returns FALSE\n");
-      return GL_FALSE;
-   }
-   d->context = (void*)eglContext;
-   d->display = (void*)eglDisplay;
-   d->surface = (void*)eglSurface;
-   return GL_TRUE;
-
+	//if ( !WinCreate ( esContext, title) )
+	//{
+	//   return GL_FALSE;
+	//}
+	eglWindow = (EGLNativeWindowType) d->winToEmbedInto;
+	if ( !fwCreateEGLContext (eglWindow, // d->winToEmbedInto,
+							&eglDisplay,
+							&eglContext,
+							&eglSurface,
+							attribList) )
+	{
+		printf("Ouch CreateEGLContext returns FALSE\n");
+		return GL_FALSE;
+	}
+	d->context = (void*)eglContext;
+	d->display = (void*)eglDisplay;
+	d->surface = (void*)eglSurface;
+	return GL_TRUE;
 
 }
 BOOL fwDisplayChange(){
@@ -1201,7 +1201,7 @@ HWND create_main_window0(freewrl_params_t * d) //int argc, char *argv[])
 	wStyle |= WS_SIZEBOX; //makes it resizable 
 	wStyle = WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
 
-	ghWnd = CreateWindowEx( WS_EX_APPWINDOW, "FreeWrlAppClass", "freeWrl win32 rev 1.22.13", 
+	ghWnd = CreateWindowEx( WS_EX_APPWINDOW, "FreeWrlAppClass", "freeWRL", 
 			    /* ghWnd = CreateWindow( "GenericAppClass", "Generic Application", */
 			    wStyle, //WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 
 			    CW_USEDEFAULT, 

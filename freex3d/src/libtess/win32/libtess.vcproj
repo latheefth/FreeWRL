@@ -106,7 +106,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="$(NV_WINGL_X86_PLAT)/include"
+				AdditionalIncludeDirectories="../../../\projectfiles_vc9;../../../../../lib_windows/angleproject/include;&quot;$(NV_WINGL_X86_PLAT)/include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"

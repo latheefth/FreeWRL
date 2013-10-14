@@ -112,6 +112,7 @@ void CdllFreeWRL::onInit(int width, int height, void* windowhandle, bool bEai)
 	fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__);
 	/* Before we parse the command line, setup the FreeWRL default parameters */
 	params = (freewrl_params_t*) malloc( sizeof(freewrl_params_t));
+	memset(params,0,sizeof(freewrl_params_t));
 	/* Default values */
 	params->width = width; //600;
 	params->height = height; //400;

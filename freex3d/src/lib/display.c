@@ -167,7 +167,8 @@ int fv_display_initialize()
 
 	//snprintf(window_title, sizeof(window_title), "FreeWRL");
 
-	if (!fv_create_main_window((freewrl_params_t *)d)){ //0 /*argc*/, NULL /*argv*/)) {
+	if (!fv_create_main_window(&d->params)){ //0 /*argc*/, NULL /*argv*/)) {
+	//if (!fv_create_main_window((freewrl_params_t *)d)){ //0 /*argc*/, NULL /*argv*/)) {
 		return FALSE;
 	}
 
