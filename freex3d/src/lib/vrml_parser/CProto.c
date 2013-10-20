@@ -1522,7 +1522,6 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	CLOSE_PROTO_EXPAND_FILE;
 	UNLINK_PROTO_EXPAND_FILE;
 
-
 	#ifdef CPROTOVERBOSE
 	printf ("so, newProtoText \n%s\n",newProtoText);
 	#endif

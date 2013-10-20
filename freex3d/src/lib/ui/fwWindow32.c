@@ -56,68 +56,72 @@ EGLBoolean fwCreateEGLContext ( EGLNativeWindowType hWnd, EGLDisplay* eglDisplay
                               EGLContext* eglContext, EGLSurface* eglSurface,
                               EGLint attribList[])
 {
-   EGLint numConfigs;
-   EGLint majorVersion;
-   EGLint minorVersion;
-   EGLDisplay display;
-   EGLContext context;
-   EGLSurface surface;
-   EGLConfig config;
-   EGLint contextAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE, EGL_NONE };
+	EGLint numConfigs;
+	EGLint majorVersion;
+	EGLint minorVersion;
+	EGLDisplay display;
+	EGLContext context;
+	EGLSurface surface;
+	EGLConfig config;
+	HDC dc;
+	EGLint contextAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE, EGL_NONE };
 
-   // Get Display
-   
-   display = eglGetDisplay(GetDC(hWnd));
-   if ( display == EGL_NO_DISPLAY )
-      display = eglGetDisplay(EGL_DEFAULT_DISPLAY); //win32 goes in here
-   if ( display == EGL_NO_DISPLAY )
-   {
-	   printf("Ouch - EGL_NO_DISPLAY\n");
-      return EGL_FALSE;
-   }
-   // Initialize EGL
-   if ( !eglInitialize(display, &majorVersion, &minorVersion) )
-   {
-	   printf("Ouch no eglInitialize\n");
-      return EGL_FALSE;
-   }
-   // Get configs
-   if ( !eglGetConfigs(display, NULL, 0, &numConfigs) )
-   {
+	// Get Display
+	dc = GetDC(hWnd);
+	display = eglGetDisplay(dc); //GetDC(hWnd));
+	if ( display == EGL_NO_DISPLAY )
+	  display = eglGetDisplay(EGL_DEFAULT_DISPLAY); //win32 goes in here
+	if ( display == EGL_NO_DISPLAY )
+	{
+		printf("Ouch - EGL_NO_DISPLAY\n");
+		return EGL_FALSE;
+	}
+	// Initialize EGL
+	if ( !eglInitialize(display, &majorVersion, &minorVersion) )
+	{
+		char errbuf[64];
+		int ierr = eglGetError();
+		sprintf(errbuf,"%x",ierr); //0x3001 EGL_NOT_INITIALIZED
+		printf("Ouch no eglInitialize %d %s\n",ierr,errbuf);
+		return EGL_FALSE;
+	}
+	// Get configs
+	if ( !eglGetConfigs(display, NULL, 0, &numConfigs) )
+	{
 	  printf("Ouch no eglGetConfigs\n");
-      return EGL_FALSE;
-   }
+	  return EGL_FALSE;
+	}
 
-   // Choose config
-   if ( !eglChooseConfig(display, attribList, &config, 1, &numConfigs) )
-   {
-      return EGL_FALSE;
-   }
+	// Choose config
+	if ( !eglChooseConfig(display, attribList, &config, 1, &numConfigs) )
+	{
+		return EGL_FALSE;
+	}
 
-   // Create a surface
-   surface = eglCreateWindowSurface(display, config, (EGLNativeWindowType)hWnd, NULL);
-   if ( surface == EGL_NO_SURFACE )
-   {
-      return EGL_FALSE;
-   }
+	// Create a surface
+	surface = eglCreateWindowSurface(display, config, (EGLNativeWindowType)hWnd, NULL);
+	if ( surface == EGL_NO_SURFACE )
+	{
+		return EGL_FALSE;
+	}
 
-   // Create a GL context
-   context = eglCreateContext(display, config, EGL_NO_CONTEXT, contextAttribs );
-   if ( context == EGL_NO_CONTEXT )
-   {
-      return EGL_FALSE;
-   }   
-   
-   // Make the context current
-   if ( !eglMakeCurrent(display, surface, surface, context) )
-   {
-      return EGL_FALSE;
-   }
-   
-   *eglDisplay = display;
-   *eglSurface = surface;
-   *eglContext = context;
-   return EGL_TRUE;
+	// Create a GL context
+	context = eglCreateContext(display, config, EGL_NO_CONTEXT, contextAttribs );
+	if ( context == EGL_NO_CONTEXT )
+	{
+		return EGL_FALSE;
+	}   
+
+	// Make the context current
+	if ( !eglMakeCurrent(display, surface, surface, context) )
+	{
+		return EGL_FALSE;
+	}
+
+	*eglDisplay = display;
+	*eglSurface = surface;
+	*eglContext = context;
+	return EGL_TRUE;
 } 
 
 bool fv_create_and_bind_GLcontext(freewrl_params_t * d){
@@ -1237,6 +1241,9 @@ HWND create_main_window0(freewrl_params_t * d) //int argc, char *argv[])
 int fv_create_main_window(freewrl_params_t * d) //int argc, char *argv[])
 {
 	loadCursors();
+#ifdef _DEBUG
+  MessageBoxA(d->winToEmbedInto,"You may now attach a debugger.1\n Press OK when you want to proceed.","dllfreeWRL plugin process(1)",MB_OK);
+#endif
 	if(!d->frontend_handles_display_thread){
 		if( d->winToEmbedInto == NULL)
 			d->winToEmbedInto = create_main_window0(d); //argc, argv);

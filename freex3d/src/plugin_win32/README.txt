@@ -13,7 +13,7 @@ So let's just say that this code is released under LGPL 2.1, that you can apply 
 
 SOFTWARE REQUIREMENTS
 - MicroSoft Windows XP(tm) Service Pack 3 or more recent Windows Operating Systems
-- Visual Studio 2010 Express Edition or higher
+- Visual Studio 2008 Express Edition or higher
 
 
 XULRUNNER COMPLIANCE
@@ -25,13 +25,18 @@ Everyone is free to change the inclusion to a folder containing an updated versi
 HOW TO BUILD
 You obviously have to build the solution. np_freeWRL does not compile without having dllfreeWRL and libfreeWRL compiled.
 To build the solution, see the short but clear page at: http://freewrl.sourceforge.net/windowsBuild.html
+- for new configurations of np_freeWRL project ensure Properties > Linker > Input > Module Definition File is set to np_BasePlugin.def 
+-- for ANGLEPROJECT gl: note firefox and chrome have ANGLEPROJECT dlls which are slightly different, load first, and break freewrl
+---- so you will need to build ANGLEPROJECT and set the Project Properties > General > TargetName = fw$(ProjectName) for libEGL and libGLESv2 and link
+---- to the fw lib versions in dllFreeWRL (as we did here) or use the fw versions we prebuilt in our 
+---- lib_windows.zip (folder with all the non-windows binary libs and includes we build with)
 
 
 HOW TO INSTALL
 First the dll library containing the plugin interface must have the prefix "np_" (in our case is "np_freeX3D.dll")
 Then the dll library containing the plugin must go with each and any of the dll it links. In our case:
 - dllfreeWRL.dll
-- glew32mx.dll
+- glew32mx.dll (for desktop GL via opengl32.dll) or fwlibEGL.dll and fwlibGLESv2.dll (for ANGLEPROJECT/GL_ES_2 via D3D9.dll)
 - mozjs185-1.0.dll
 - pthreadVC2.dll (or pthreadVC2d.dll if you wish to install the debug version)
 

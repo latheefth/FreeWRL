@@ -2362,7 +2362,7 @@ static void makeAndCompileShader(struct shaderTableEntry *me, bool phongShading)
 	if (!getSpecificShaderSource(vertexSource, fragmentSource, me->whichOne, phongShading)) {
 		return;
 	}
-    
+
     
 	myVertexShader = CREATE_SHADER (VERTEX_SHADER);
 	SHADER_SOURCE(myVertexShader, vertexEndMarker, ((const GLchar **)vertexSource), NULL);
@@ -2385,8 +2385,9 @@ static void makeAndCompileShader(struct shaderTableEntry *me, bool phongShading)
 	} else {
 		ATTACH_SHADER(myProg, myFragmentShader);
 	}
-    
+
 	LINK_SHADER(myProg);
+
 	glGetProgramiv(myProg,GL_LINK_STATUS, &success); 
 	(*myShader).compiledOK = (success == GL_TRUE);
     
