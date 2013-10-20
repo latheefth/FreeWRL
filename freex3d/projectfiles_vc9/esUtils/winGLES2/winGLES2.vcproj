@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libFreeWRLd.lib libGLESv2.lib libEGL.lib pthreadVC2d.lib zlib.lib libminizip.lib mozjs185-1.0.lib ws2_32.lib freetype239.lib shlwapi.lib gdiplus.lib libxml2_a.lib Wininet.lib Winmm.lib libtessd.lib"
+				AdditionalDependencies="libFreeWRLd.lib fwlibGLESv2.lib fwlibEGL.lib pthreadVC2d.lib zlib.lib libminizip.lib mozjs185-1.0.lib ws2_32.lib freetype239.lib shlwapi.lib gdiplus.lib libxml2_a.lib Wininet.lib Winmm.lib libtessd.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories=".\Debug;..\..\..\..\..\lib_windows\angleproject\lib\Release;..\..\..\..\..\lib_windows\js185\lib;..\..\..\..\..\lib_windows\pthreads.2;..\..\..\..\..\lib_windows\freetype2\lib;..\..\src\libtess\win32\Debug;..\..\..\..\..\lib_windows\zlib\lib;..\..\Debug;..\..\..\..\..\lib_windows\libxml2\lib"
 				GenerateDebugInformation="true"
@@ -133,7 +133,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libFreeWRL.lib libGLESv2.lib libEGL.lib pthreadVC2.lib zlib.lib libminizip.lib mozjs185-1.0.lib ws2_32.lib freetype239.lib shlwapi.lib gdiplus.lib libxml2_a.lib Wininet.lib Winmm.lib libtess.lib"
+				AdditionalDependencies="libFreeWRL.lib fwlibGLESv2.lib fwlibEGL.lib pthreadVC2.lib zlib.lib libminizip.lib mozjs185-1.0.lib ws2_32.lib freetype239.lib shlwapi.lib gdiplus.lib libxml2_a.lib Wininet.lib Winmm.lib libtess.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories=".\Release;..\..\..\..\..\lib_windows\angleproject\lib\Release;..\..\..\..\..\lib_windows\js185\lib;..\..\..\..\..\lib_windows\pthreads.2;..\..\..\..\..\lib_windows\freetype2\lib;..\..\src\libtess\win32\Release;..\..\..\..\..\lib_windows\zlib\lib;..\..\Release;..\..\..\..\..\lib_windows\libxml2\lib"
 				GenerateDebugInformation="true"
