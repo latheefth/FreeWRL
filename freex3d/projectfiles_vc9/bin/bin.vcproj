@@ -196,7 +196,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\;..\..\src\bin;..\..\src\lib;..\..\..\..\lib_windows\glew\include;..\..\..\..\lib_windows\pthreads.2"
+				AdditionalIncludeDirectories="..\;..\..\src\bin;..\..\src\lib;..\..\..\..\lib_windows\pthreads.2"
 				PreprocessorDefinitions="W_DEBUG;WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;STATUSBAR_HUD"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -225,6 +225,83 @@
 				IgnoreDefaultLibraryNames="MSVCRT"
 				GenerateDebugInformation="true"
 				SubSystem="1"
+				TargetMachine="1"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release_glew|Win32"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			CharacterSet="1"
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="..\;..\..\src\bin;..\..\src\lib;..\..\..\..\lib_windows\pthreads.2"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;CRT_SECURE_NO_WARNINGS"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="true"
+				UsePrecompiledHeader="0"
+				WarningLevel="1"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="libFreeWRL.lib glew32mx.lib Opengl32.lib pthreadVC2.lib zlib.lib libminizip.lib mozjs185-1.0.lib ws2_32.lib freetype239.lib shlwapi.lib gdiplus.lib libxml2_a.lib Wininet.lib Winmm.lib"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\..\..\lib_windows\MSopenGL\lib;&quot;..\..\..\..\lib_windows\glew\lib\Release MX\Win32&quot;;..\..\..\..\lib_windows\js185\lib;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\zlib\lib;..\..\..\..\lib_windows\libxml2\lib;..\Release_glew;..\Release"
+				GenerateDebugInformation="true"
+				SubSystem="1"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
 				TargetMachine="1"
 			/>
 			<Tool

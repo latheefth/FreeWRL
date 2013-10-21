@@ -193,7 +193,7 @@
 		/>
 		<AssemblyReference
 			RelativePath="..\Debug\libFreeWRL_dotNetwrapperd.dll"
-			AssemblyName="libFreeWRL_dotNetwrapperd, Version=1.0.4208.20072, processorArchitecture=x86"
+			AssemblyName="libFreeWRL_dotNetwrapperd, Version=1.0.5041.15546, processorArchitecture=x86"
 			MinFrameworkVersion="131072"
 		/>
 	</References>
