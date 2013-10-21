@@ -223,7 +223,7 @@ void ProdCon_init(struct tProdCon *t)
 		p->fogNodes = newVector(struct X3D_Node *, 2);
 		p->backgroundNodes = newVector(struct X3D_Node *, 2);
 		p->navigationNodes = newVector(struct X3D_Node *, 2);
-        printf ("created new navigationNodes of %p, at A\n",p->navigationNodes);
+        	//printf ("created new navigationNodes of %p, at A\n",p->navigationNodes);
         
 
 		/* thread synchronization issues */

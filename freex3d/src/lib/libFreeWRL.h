@@ -90,7 +90,6 @@ typedef struct freewrl_params {
 	void *surface;
 } freewrl_params_t;
 
-extern freewrl_params_t fwl_params;
 
 /* FreeWRL parameters */
 /*
@@ -98,7 +97,6 @@ extern freewrl_params_t fwl_params;
  * At at Fri Apr 29 09:38:26 BST 2011 I expect lots of compiler messages.
  */
 /* extern freewrl_params_t fv_params; */
-/* extern freewrl_params_t fwl_params; */
 /* extern freewrl_params_t OSX_params; */
 void *fwl_init_instance();
 void fwl_initParams( freewrl_params_t *params) ;
