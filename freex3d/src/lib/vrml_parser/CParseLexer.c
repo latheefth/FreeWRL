@@ -36,7 +36,7 @@ $Id$
 #include <libFreeWRL.h>
 #include <list.h>
 #include <io_files.h>
-#include <resources.h>
+
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"

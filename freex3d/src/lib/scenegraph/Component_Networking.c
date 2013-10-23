@@ -48,7 +48,6 @@ X3D Networking Component
 
 #include <libFreeWRL.h>
 #include <list.h>
-#include <resources.h>
 #include <io_http.h>
 #ifdef WANT_OSC
 	#include <lo/lo.h>

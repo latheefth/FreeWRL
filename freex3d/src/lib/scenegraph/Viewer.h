@@ -366,4 +366,7 @@ void setAnaglyphSideColor(char val, int iside);
 void updateEyehalf(void);
 void viewer_level_to_bound(void);
 
+int getAnaglyphPrimarySide(int primary, int iside);
+void setAnaglyphPrimarySide(int primary, int iside);
+
 #endif /* __FREEWRL_VIEWER_H__ */

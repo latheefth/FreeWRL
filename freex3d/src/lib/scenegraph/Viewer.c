@@ -1790,7 +1790,7 @@ void fwl_set_AnaglyphParameter(const char *optArg) {
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
 	glasses = optArg;
-	len = strlen(optArg);
+	len = (int) strlen(optArg);
 	if(len !=2 && len != 3)
 	{
 	  printf ("warning, command line anaglyph parameter incorrect - was %s need something like RC or LRN\n",optArg);
@@ -2163,7 +2163,11 @@ void slerp_viewpoint()
 		if(p->Viewer.SLERPing2justStarted)
 		{
 			//rn rootnode space, vpo/vpn old and new viewpoint space
-			double vpo2rn[16], rn2vpo[16],vpn2rn[16],rn2vpn[16],rn2rn[16],diffrn[16];
+			double vpo2rn[16];
+            //double rn2vpo[16];
+            double vpn2rn[16],rn2vpn[16];
+            //double rn2rn[16];
+            double diffrn[16];
 			memcpy(vpo2rn,p->viewpoint2rootnode,sizeof(double)*16);
 			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, p->viewpoint2rootnode);
 			memcpy(vpn2rn,p->viewpoint2rootnode,sizeof(double)*16);

@@ -1541,8 +1541,10 @@ static void saveAttributes(int myNodeType, const xmlChar *name, char** atts) {
 	}
 }
 
-static char* fixAmp(char *fieldValue)
+static xmlChar* fixAmp(const unsigned char *InFieldValue)
 {
+    char *fieldValue = (char *)InFieldValue;
+    
 	//for x3d string '"&amp;"' libxml2 gives us &#38; 
 	//we want & like other browsers get
 	//we do it by left-shifting over the #38;
@@ -1550,7 +1552,7 @@ static char* fixAmp(char *fieldValue)
 	//except that libxml2 will wrongly give you ["you &#38; me" "John &#38; Ian"\0]
 	if(fieldValue)
 	{
-		char *pp = strstr(fieldValue,"&#38;");
+		char *pp = strstr((char *)fieldValue,"&#38;");
 		while(pp){
 			memmove(pp+1,pp+5,strlen(fieldValue) - (pp+1 - fieldValue));
 			pp = strstr(pp,"&#38;");
@@ -1566,7 +1568,7 @@ static char* fixAmp(char *fieldValue)
 			*/
 		}
 	}
-	return fieldValue;
+	return (xmlChar *)fieldValue;
 }
 
 static void parseAttributes() {
@@ -1833,7 +1835,7 @@ static void XMLCALL X3DstartElement(void *unused, const xmlChar *iname, const xm
 
 	if(atts)
 		for (i = 0; atts[i]; i += 2) {
-			atts[i+1] = fixAmp((char *)atts[i+1]);
+			atts[i+1] = fixAmp(atts[i+1]);
 		}
 	
 	/* are we storing a PROTO body?? */
@@ -1957,7 +1959,7 @@ static void XMLCALL X3DendElement(void *unused, const xmlChar *iname) {
 			initScriptWithScript();
 			#endif
 		}
-		parseAttributes(myNodeIndex);
+		parseAttributes();
 		linkNodeIn(__FILE__,__LINE__);
 
 #ifdef OLDCODE

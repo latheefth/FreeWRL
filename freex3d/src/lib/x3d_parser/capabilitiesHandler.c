@@ -33,7 +33,6 @@
 #include <internal.h>
 
 #include <libFreeWRL.h>
-
 #include <io_files.h>
 
 #include "../vrml_parser/Structs.h"

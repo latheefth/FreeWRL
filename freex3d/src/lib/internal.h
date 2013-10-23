@@ -30,12 +30,12 @@ $Id$
 #include <config.h>
 #include <system.h>
 #include <display.h>
-//#include <internal.h>
 
 #include <libFreeWRL.h>
 #include <list.h>
-#include <io_files.h>
 #include <resources.h>
+#include <io_files.h>
+
 
 #include "vrml_parser/Structs.h"
 #include "main/headers.h"

@@ -33,7 +33,6 @@
 #include <internal.h>
 
 #include <libFreeWRL.h>
-
 #include <io_files.h>
 
 #include "../vrml_parser/Structs.h"
@@ -155,8 +154,6 @@ void setField_fromJavascript (struct X3D_Node *node, char *field, char *value, i
 	int ctype;
 	int ctmp;
 
-	struct X3D_Group *group;
-
 	#ifdef SETFIELDVERBOSE
 	printf ("\nsetField_fromJavascript, node %p field %s value %s\n", (char*) node, field, value);
 	#endif
@@ -187,7 +184,7 @@ void setField_fromJavascript (struct X3D_Node *node, char *field, char *value, i
 		/*
 		printf ("is this maybe a PROTO?? if so, it will be a Group node with FreeWRL__protoDef set to an index\n");
 		if (node->_nodeType == NODE_Group) {
-			group = (struct X3D_Group *)node;
+			struct X3D_Group *group = (struct X3D_Group *)node;
 			printf ("it IS a group...\n");
 			if (group->FreeWRL__protoDef!= INT_ID_UNDEFINED) {
 				printf ("and, this is a PROTO...have to go through PROTO defs to get to it\n");

@@ -58,7 +58,7 @@ $Id$
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
 
-#include <resources.h>
+
 #include <limits.h>
 
 

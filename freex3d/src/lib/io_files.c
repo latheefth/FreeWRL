@@ -1129,6 +1129,6 @@ void process_x3z(resource_item_t *res){
 }
 
 #else
-void process_x3z(res){
+void process_x3z(resource_item_t *res){
 }
 #endif

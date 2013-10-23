@@ -184,7 +184,7 @@ GLfloat cursorTex[] = {
 	1.0f, 0.0f};
 
 typedef struct pCursorDraw{
-	GLint textureID;
+	GLuint textureID;
 	int done;
 }* ppCursorDraw;
 void *CursorDraw_constructor(){
@@ -237,22 +237,18 @@ void cursorDraw(int ID, int x, int y, float angle)
 	XY xy;
 	FXY fxy;
 	int i,j;
-	GLint shader, positionLoc, texCoordLoc, textureLoc, textureCount, textureMatrix;
+	GLint shader, positionLoc, texCoordLoc, textureLoc;
+    //GLint textureCount;
+    GLint textureMatrix;
 	ppCursorDraw p;
 	GLfloat cursorVert2[18];
-	GLushort ind[] = {0,1,2,3,4,5};
-	GLint pos, tex;
+	//GLushort ind[] = {0,1,2,3,4,5};
+	//GLint pos, tex;
 	s_shader_capabilities_t *scap;
 	ttglobal tg = gglobal();
 	p = (ppCursorDraw)tg->CursorDraw.prv;
 
 	//if( ID == 0 )return;
-
-#ifdef GL_ES_VERSION_2_0
-    // There is an issue here where Anaglyph rendering gets dinked - see 
-    // fwl_RenderSceneUpdateScene() for comments.
-    //return;
-#endif //GL_ES_VERSION_2_0
 
 	if(!p->done)
 	{

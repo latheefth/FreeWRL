@@ -2609,7 +2609,7 @@ static BOOL parser_field_B(struct VRMLParser* me, struct X3D_Node* node)
 {
     int fieldO;
     int fieldE;
-	BOOL retval;
+	//BOOL retval;
 	DECLAREUP
     ASSERT(me->lexer);
 
@@ -3879,7 +3879,7 @@ void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, int num);
 static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
     int mode;
     int type;
-	int user;
+	//int user;
 	int source;
 	int ifield;
 	char *nodeFieldName;
@@ -4431,7 +4431,8 @@ struct X3D_Node* inPointerTable(struct X3D_Node* source,struct Vector *p2p)
 }
 struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep)
 {
-	int i,iProtoDeclarationLevel;
+	int i;
+    //int iProtoDeclarationLevel;
     struct ProtoDefinition *pobj,*nobj;
 	struct ProtoFieldDecl *pdecl,*ndecl;
 	struct X3D_Proto *p;
@@ -4908,11 +4909,6 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 	vector_pushBack(struct pointer2pointer*, p2p, pair);
 	//copy fields
 	{
-		int lc;
-		int i;
-		int isDefed;
-		char *nodeName;
-		//(int) FIELDNAMES_children, (int) offsetof (struct X3D_Group, children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 		typedef struct field_info{
 			int nameIndex;
 			int offset;
@@ -4935,7 +4931,8 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 			//printf(" (%s)",FIELDTYPES[field->typeIndex]); //field[2]]);
 			isrecord = NULL;
 			is_source = 0; 	//field isource: 0=builtin 1=script user field 2=shader_program user field 3=Proto/Broto user field 4=group __protoDef
-			if( isrecord = in_IStable(*source,ifield,(Stack *)ctx->__IS, is_source)  )
+            isrecord = in_IStable(*source,ifield,(Stack *)ctx->__IS, is_source);
+            if (isrecord != NULL)
 			{
 				//do something to change from:
 				// copy *source to *dest, to 
@@ -4961,7 +4958,7 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 			else if((*source)->_nodeType == NODE_Proto && !strcmp(FIELDNAMES[field->nameIndex],"__protoDef") )
 			{
 				int k;
-				struct X3D_Proto *prototype, *p;
+				//struct X3D_Proto *prototype, *p;
 				struct ProtoDefinition *sp, *dp; 
 				struct ProtoFieldDecl *sdecl,*ddecl;
 				struct X3D_Proto *s, *d;
@@ -4986,8 +4983,9 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 
 						is_source = 3; 	//field isource: 0=builtin 1=script user field 2=shader_program user field 3=Proto/Broto user field 4=group __protoDef
 
-						isrecord = NULL;
-						if( isrecord = in_IStable(*source,k,(Stack *)ctx->__IS, is_source)  )
+						
+						isrecord = in_IStable(*source,k,(Stack *)ctx->__IS, is_source); 
+                        if (isrecord != NULL)
 						{
 							//do something to change from:
 							// copy *source to *dest, to 
@@ -5030,11 +5028,10 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 			{
 				/*deep copy script user fields */
 				int k;
-				struct Vector *sfields, *dfields;
+				struct Vector *sfields;
 				struct ScriptFieldDecl *sfield, *dfield;
 				struct Shader_Script *sp, *dp;
 				struct X3D_Script *s, *d;
-				//struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
 				s = (struct X3D_Script*)*source;
 				d = (struct X3D_Script*)*dest;
@@ -5150,19 +5147,25 @@ void initialize_scripts(Stack *instancedScripts)
 		1)get a script num  2)init each field  3)init from URI  (like the above 3)
 
 	*/
-	int n, i,j;
-	struct X3D_Node* p;
-	struct X3D_Script* sn;
-	struct Shader_Script* ss; //)X3D_SCRIPT(node)->__scriptObj)->num
-	struct ScriptFieldDecl* field;
+	//int n, i,j;
+	//struct X3D_Node* p;
+	//struct X3D_Script* sn;
+	//struct Shader_Script* ss; //)X3D_SCRIPT(node)->__scriptObj)->num
+	//struct ScriptFieldDecl* field;
 	struct CRjsnameStruct *JSparamnames; // = getJSparamnames();
-	JSObject *eventInFunction;
+	//JSObject *eventInFunction;
 	JSparamnames = getJSparamnames();
 
 	#ifdef HAVE_JAVASCRIPT
 
 	if(instancedScripts)
 	{
+        int n, i,j;
+        struct X3D_Node* p;
+        struct X3D_Script* sn;
+        struct Shader_Script* ss; //)X3D_SCRIPT(node)->__scriptObj)->num
+        struct ScriptFieldDecl* field;
+
 
 		n = instancedScripts->n;
 		for(i=0;i<n;i++)
@@ -5640,7 +5643,7 @@ BOOL found_IS_field(struct VRMLParser* me, struct X3D_Node *node)
 	//a) copy the value if it's an initializeOnly or inputOutput
 	if(X3DMODE(f->mode) == PKW_initializeOnly || X3DMODE(f->mode) == PKW_inputOutput)
 	{
-		int isMF, sftype, isize;
+
 		//Q. how do I do this? Just a memcpy on anyVrml or ???
 		//printf("size of anyVrml=%d\n",sizeof(union anyVrml));
 		//printf("f->mode=%d  f->type=%d fieldptr mode=%d type=%d\n",f->mode,f->type,mode,type);
