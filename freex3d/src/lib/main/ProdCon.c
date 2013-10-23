@@ -1443,8 +1443,6 @@ void registerBindable (struct X3D_Node *node) {
 			vector_pushBack (struct X3D_Node*,p->backgroundNodes, node);
 			break;
 		case NODE_NavigationInfo:
-            printf ("register_bindable, navigationNodes is %p at C\n",p->navigationNodes);
-            
 			X3D_NAVIGATIONINFO(node)->set_bind = 100;
 			X3D_NAVIGATIONINFO(node)->isBound = 0;
 			vector_pushBack (struct X3D_Node*,p->navigationNodes, node);
