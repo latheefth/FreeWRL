@@ -1241,37 +1241,7 @@ struct point_XYZ viewer_get_lastP()
 }
 
 
-static void
-handle_tick_walk_old()
-{
-	X3D_Viewer_Walk *walk; 
-	Quaternion q, nq;
-	struct point_XYZ pp;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
-	walk = &p->Viewer.walk;
 
-
-	pp.x = 0.15 * walk->XD;
-	pp.y = 0.15 * walk->YD;
-	pp.z = 0.15 * walk->ZD;
-	q.w = (p->Viewer.Quat).w;
-	q.x = (p->Viewer.Quat).x;
-	q.y = (p->Viewer.Quat).y;
-	q.z = (p->Viewer.Quat).z;
-	nq.w = 1 - 0.2 * walk->RD;
-	nq.x = 0.0l;
-	nq.y = 0.2 * walk->RD;
-	nq.z = 0.0;
-
-	increment_pos(&pp);
-
-	quaternion_normalize(&nq);
-	viewer_lastQ_set(&nq);
-	quaternion_multiply(&(p->Viewer.Quat), &nq, &q);
-
-	/* make sure Viewer.Dist is configured properly for Examine mode */
-	CALCULATE_EXAMINE_DISTANCE
-}
 /*
  * handle_tick_walk: called once per frame.
  *
@@ -1351,7 +1321,8 @@ static void handle_tick_walk()
 	quaternion_multiply(&(p->Viewer.Quat), &q, &nq); //Quat = walk->RD * Quat
 	{
 		double angle;
-		struct point_XYZ tilted, rotaxis;
+		struct point_XYZ tilted;
+		struct point_XYZ rotaxis = {0.0, 1.0, 0.0};
 		Quaternion qlevel,qplanar;
 		struct point_XYZ down = {0.0, -1.0, 0.0};
 
@@ -2242,7 +2213,6 @@ void slerp_viewpoint()
 			}
 		}
 	}
-
 }
 /* We have a Viewpoint node being bound. (not a GeoViewpoint node) */
 void bind_Viewpoint (struct X3D_Viewpoint *vp) {
