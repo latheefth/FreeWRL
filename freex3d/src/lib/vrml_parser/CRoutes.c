@@ -2246,8 +2246,12 @@ union anyVrml* get_anyVrml(struct X3D_Node* node, int offset, int *type, int *mo
 	union anyVrml* fromAny;
 	struct X3D_Node* fromNode;
 	int fromMode, fromType, fromOffset;
+
+	fromType = INT_ID_UNDEFINED;
+	fromMode = INT_ID_UNDEFINED;
 	fromOffset = offset;
 	fromNode = node;
+
 	switch(node->_nodeType)
 	{
 		case NODE_ShaderProgram:
@@ -2423,6 +2427,7 @@ void propagate_events_B() {
 		printf ("\npropagate_events start\n");
 		#endif
 	nRoutesDone = 0; //debug diagnosis
+	type = INT_ID_UNDEFINED;
 
 	/* increment the "timestamp" for this entry */
 	p->thisIntTimeStamp ++; 
@@ -2717,13 +2722,15 @@ void propagate_events_B() {
 						case NODE_ComposedShader:
 						case NODE_PackagedShader:
 							{
-								struct Shader_Script* shader;
+								struct Shader_Script* shader = NULL;
 								switch(toNode->_nodeType) 
 								{ 
   									case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(toNode)->_shaderUserDefinedFields); break;
   									case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(toNode)->_shaderUserDefinedFields); break;
   									case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(toNode)->_shaderUserDefinedFields); break;
 								}
+								// note, "shader" can not be NULL here...
+								// otherwise we'd never be here in this switch
 								getField_ToShader(toNode, shader->num);
 								havinterp = TRUE;
 							}

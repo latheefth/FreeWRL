@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.83  2013/10/23 21:19:04  crc_canada
+# trying to remove compiler warnings on Linux; should be ok for other platforms
+#
 # Revision 1.82  2013/08/17 19:57:43  dug9
 # dug9 - touch ups for win32 pthreads struct initialization
 #
@@ -794,7 +797,6 @@ sub gen {
 		"#include \"Component_Networking.h\" \n".
 		"#include \"Component_Picking.h\" \n".
 		"#include \"../list.h\" \n".
-		"#include \"../resources.h\" \n".
 		"#include \"../io_http.h\" \n".
 		" \n".
 		" \n".

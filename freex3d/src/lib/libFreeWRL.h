@@ -253,7 +253,7 @@ void fwl_set_modeFixture();
 void fwl_set_modePlayback();
 
 #define CHANNEL_EAI 0
-#define CHANNEL_MIDI 1
+//OLDCODE #define CHANNEL_MIDI 1
 
 #define RxTx_STOP 0		/* Shutdown */
 #define RxTx_START 1	/* Start */
@@ -278,7 +278,7 @@ void	fwl_EAI_clearListenerNode(void);
 char *	fwl_EAI_handleBuffer(char *tempEAIdata);
 int	fwl_EAI_allDone();
 char *	fwl_EAI_handleRest();
-char *	fwl_MIDI_handleBuffer(char *tempEAIdata);
+//OLDCODE char *	fwl_MIDI_handleBuffer(char *tempEAIdata);
 
 void fwl_set_ScreenDist(const char *optArg);
 void fwl_init_StereoDefaults(void); //don't need to call now March 2012

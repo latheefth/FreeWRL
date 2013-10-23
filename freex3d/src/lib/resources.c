@@ -41,7 +41,6 @@
 
 #include <list.h>
 #include <io_files.h>
-#include <resources.h>
 #include <io_http.h>
 #include <threads.h>
 

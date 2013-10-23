@@ -35,7 +35,6 @@
 
 #include <libFreeWRL.h>
 
-#include <resources.h>
 #include <io_files.h>
 #include <threads.h>
 

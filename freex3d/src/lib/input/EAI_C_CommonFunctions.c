@@ -368,7 +368,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, indexT c
 	} else if (ctype == FIELDTYPE_SFString) {
 		if(isXML){
 			/* double quotes " are unique to x3d values and must be \" to pass javascript compiling */
-			int ii, nq = 0;
+			int nq = 0;
 			char *mv, *pv, *v = value;
 			while (*v && *v != '\0')
 			{	
@@ -379,7 +379,6 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, indexT c
 			v = value;
 			pv = NULL;
 			mv = mfstringtmp;
-			ii = 0;
 			while(*v && *v != '\0')
 			{
 				if(*v == '"'){
@@ -585,7 +584,7 @@ void Parser_scanStringValueToMem_B(union anyVrml* any, indexT ctype, char *value
 	} else if (ctype == FIELDTYPE_SFString) {
 		if(isXML){
 			/* double quotes " are unique to x3d values and must be \" to pass javascript compiling */
-			int ii, nq = 0;
+			int nq = 0;
 			char *mv, *pv, *v = value;
 			while (*v && *v != '\0')
 			{	
@@ -596,7 +595,6 @@ void Parser_scanStringValueToMem_B(union anyVrml* any, indexT ctype, char *value
 			v = value;
 			pv = NULL;
 			mv = mfstringtmp;
-			ii = 0;
 			while(*v && *v != '\0')
 			{
 				if(*v == '"'){
@@ -800,7 +798,7 @@ void Parser_scanStringValueToMem_C0(struct VRMLParser *parser, union anyVrml* an
 	} else if (ctype == FIELDTYPE_SFString) {
 		if(isXML){
 			/* double quotes " are unique to x3d values and must be \" to pass javascript compiling */
-			int ii, nq = 0;
+			int nq = 0;
 			char *mv, *pv, *v = value;
 			while (*v && *v != '\0')
 			{	
@@ -811,7 +809,6 @@ void Parser_scanStringValueToMem_C0(struct VRMLParser *parser, union anyVrml* an
 			v = value;
 			pv = NULL;
 			mv = mfstringtmp;
-			ii = 0;
 			while(*v && *v != '\0')
 			{
 				if(*v == '"'){

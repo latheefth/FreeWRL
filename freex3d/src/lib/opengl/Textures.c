@@ -44,7 +44,6 @@
 #include "../scenegraph/readpng.h"
 #include "../input/InputFunctions.h"
 #include "Textures.h"
-#include <resources.h>
 #include "../opengl/Material.h"
 #include "../opengl/OpenGL_Utils.h"
 #include "../world_script/fieldSet.h"
@@ -67,19 +66,21 @@
 # endif
 #endif
 
+
+
 #ifndef GL_EXT_texture_cube_map
-# define GL_NORMAL_MAP_EXT                   0x8511
-# define GL_REFLECTION_MAP_EXT               0x8512
+//OLDCODE # define GL_NORMAL_MAP_EXT                   0x8511
+//OLDCODE # define GL_REFLECTION_MAP_EXT               0x8512
 # define GL_TEXTURE_CUBE_MAP_EXT             0x8513
-# define GL_TEXTURE_BINDING_CUBE_MAP_EXT     0x8514
+//OLDCODE # define GL_TEXTURE_BINDING_CUBE_MAP_EXT     0x8514
 # define GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT  0x8515
-# define GL_TEXTURE_CUBE_MAP_NEGATIVE_X_EXT  0x8516
-# define GL_TEXTURE_CUBE_MAP_POSITIVE_Y_EXT  0x8517
-# define GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_EXT  0x8518
-# define GL_TEXTURE_CUBE_MAP_POSITIVE_Z_EXT  0x8519
-# define GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_EXT  0x851A
-# define GL_PROXY_TEXTURE_CUBE_MAP_EXT       0x851B
-# define GL_MAX_CUBE_MAP_TEXTURE_SIZE_EXT    0x851C
+//OLDCODE # define GL_TEXTURE_CUBE_MAP_NEGATIVE_X_EXT  0x8516
+//OLDCODE # define GL_TEXTURE_CUBE_MAP_POSITIVE_Y_EXT  0x8517
+//OLDCODE # define GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_EXT  0x8518
+//OLDCODE # define GL_TEXTURE_CUBE_MAP_POSITIVE_Z_EXT  0x8519
+//OLDCODE # define GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_EXT  0x851A
+//OLDCODE # define GL_PROXY_TEXTURE_CUBE_MAP_EXT       0x851B
+//OLDCODE # define GL_MAX_CUBE_MAP_TEXTURE_SIZE_EXT    0x851C
 #endif
 
 

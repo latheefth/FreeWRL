@@ -45,8 +45,6 @@ Interps are the "EventsProcessed" fields of interpolators.
 #include "../opengl/LoadTextures.h"        /* for finding a texture url in a multi url */
 
 
-#include <resources.h>
-
 #include "../main/headers.h"
 #include "../opengl/OpenGL_Utils.h"
 #include "../scenegraph/RenderFuncs.h"

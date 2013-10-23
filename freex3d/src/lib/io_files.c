@@ -35,7 +35,6 @@
 #include <errno.h>
 
 #include <list.h> /* internal use only */
-#include <resources.h>
 #include <io_files.h>
 #include <io_http.h>
 

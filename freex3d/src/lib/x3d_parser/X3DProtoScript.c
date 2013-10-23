@@ -35,7 +35,6 @@ $Id$
 
 #include <libFreeWRL.h>
 #include <list.h>
-#include <resources.h>
 #include <io_files.h>
 
 
@@ -660,24 +659,27 @@ void parseProtoInstanceFields(const char *name, char **atts) {
 		p->ProtoInstanceTable[p->curProtoInsStackInd].value[INDEX] = NULL;\
 		p->ProtoInstanceTable[p->curProtoInsStackInd].type[INDEX] = 0;\
 
-	#define VERIFY_PCAT_LEN(myLen) \
-		if ((myLen + 10) >= picatmalloc) { \
-			if (picatmalloc == 0) { \
-				picatmalloc = 1024; \
-				picatindex = 0; \
-			} \
-			while ((picatmalloc + 20) < myLen) picatmalloc *= 2; \
-			ProtoInstanceTable[curProtoInsStackInd].value[INDEX] = REALLOC(ProtoInstanceTable[curProtoInsStackInd].value[INDEX], picatmalloc); \
-		} \
+#ifdef OLDCODE
+OLDCODE 	#define VERIFY_PCAT_LEN(myLen) \
+OLDCODE 		if ((myLen + 10) >= picatmalloc) { \
+OLDCODE 			if (picatmalloc == 0) { \
+OLDCODE 				picatmalloc = 1024; \
+OLDCODE 				picatindex = 0; \
+OLDCODE 			} \
+OLDCODE 			while ((picatmalloc + 20) < myLen) picatmalloc *= 2; \
+OLDCODE 			ProtoInstanceTable[curProtoInsStackInd].value[INDEX] = REALLOC(ProtoInstanceTable[curProtoInsStackInd].value[INDEX], picatmalloc); \
+OLDCODE 		} \
+OLDCODE 
+OLDCODE 	#define PICAT_CAT(myStr,myLen) \
+OLDCODE 		memcpy(&ProtoInstanceTable[curProtoInsStackInd].value[INDEX][picatindex], myStr,myLen); \
+OLDCODE 		picatindex += myLen; \
+OLDCODE 		ProtoInstanceTable[curProtoInsStackInd].value[INDEX][picatindex+1] = '\0'; 
+OLDCODE 		
+OLDCODE 	#define PICAT(myStr,myLen) \
+OLDCODE 		VERIFY_PCAT_LEN(myLen) \
+OLDCODE 		PICAT_CAT(myStr,myLen)
+#endif //OLDCODE
 
-	#define PICAT_CAT(myStr,myLen) \
-		memcpy(&ProtoInstanceTable[curProtoInsStackInd].value[INDEX][picatindex], myStr,myLen); \
-		picatindex += myLen; \
-		ProtoInstanceTable[curProtoInsStackInd].value[INDEX][picatindex+1] = '\0'; 
-		
-	#define PICAT(myStr,myLen) \
-		VERIFY_PCAT_LEN(myLen) \
-		PICAT_CAT(myStr,myLen)
 
 	#ifdef X3DPARSERVERBOSE
 	printf ("parsing PRotoInstanceFields for %s at level %d\n",name,curProtoInsStackInd);
@@ -1187,36 +1189,39 @@ void parseProtoInstance (char **atts) {
 		fdl += fprintf (fileDescriptor, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<X3D><Scene><Group FreeWRL__protoDef='%d'> <!-- INITIATE SCENE -->\n",CPI.uniqueNumber); \
 	}
 
-	#define MAKE_PROTO_COPY_FIELDS \
-	myObj = PROTONames[currentProtoInstance[curProtoInsStackInd]].fieldDefs; \
-	fdl += fprintf (fileDescriptor, "<!--\nProtoInterface fields has %d fields -->\n",vectorSize(myObj->fields)); \
-	for (ind=0; ind<vectorSize(myObj->fields); ind++) { \
-		int i; struct ScriptFieldDecl* field; char *fv; \
-		field = vector_get(struct ScriptFieldDecl*, myObj->fields, ind); \
-		fv = field->ASCIIvalue;   /* pointer to ProtoDef value - might be replaced in loop below */ \
-		for (i=0; i<CPI.paircount; i++) { \
-			/* printf ("CPI has %s and %s\n",CPI.name[i],CPI.value[i]); */ \
-			if (CPI.name[i] && strcmp(CPI.name[i],fieldDecl_getShaderScriptName(field->fieldDecl))==0) {\
-				/* use the value passed in on invocation */ \
-				fv=CPI.value[i];} \
-		} \
-		/* JAS if (field->fieldDecl->mode != PKW_initializeOnly) { */ \
-		if (fv != NULL) { \
-		fdl += fprintf (fileDescriptor,"\t<Metadata%s DEF='%s_%s_%d' value='%s'/>\n", \
-			stringFieldtypeType(fieldDecl_getType(field->fieldDecl)), \
-			fieldDecl_getShaderScriptName(field->fieldDecl),  \
-			FREEWRL_SPECIFIC,  \
-			CPI.uniqueNumber, \
-			fv); \
-		} else { \
-		fdl += fprintf (fileDescriptor,"\t<Metadata%s DEF='%s_%s_%d' />\n", \
-			stringFieldtypeType(fieldDecl_getType(field->fieldDecl)), \
-			fieldDecl_getShaderScriptName(field->fieldDecl),  \
-			FREEWRL_SPECIFIC,  \
-			CPI.uniqueNumber); \
-		/* }  */  } \
-	} \
-	fdl += fprintf (fileDescriptor, "<!-- end of MAKE_PROTO_COPY_FIELDS --> \n");
+#ifdef OLDCODE
+//OLDCODE JAS - text of macro is embedded in actual code - grep for "MAKE_PROTO_COPY_FIELDS" to find it.
+OLDCODE 	#define MAKE_PROTO_COPY_FIELDS \
+OLDCODE 	myObj = PROTONames[currentProtoInstance[curProtoInsStackInd]].fieldDefs; \
+OLDCODE 	fdl += fprintf (fileDescriptor, "<!--\nProtoInterface fields has %d fields -->\n",vectorSize(myObj->fields)); \
+OLDCODE 	for (ind=0; ind<vectorSize(myObj->fields); ind++) { \
+OLDCODE 		int i; struct ScriptFieldDecl* field; char *fv; \
+OLDCODE 		field = vector_get(struct ScriptFieldDecl*, myObj->fields, ind); \
+OLDCODE 		fv = field->ASCIIvalue;   /* pointer to ProtoDef value - might be replaced in loop below */ \
+OLDCODE 		for (i=0; i<CPI.paircount; i++) { \
+OLDCODE 			/* printf ("CPI has %s and %s\n",CPI.name[i],CPI.value[i]); */ \
+OLDCODE 			if (CPI.name[i] && strcmp(CPI.name[i],fieldDecl_getShaderScriptName(field->fieldDecl))==0) {\
+OLDCODE 				/* use the value passed in on invocation */ \
+OLDCODE 				fv=CPI.value[i];} \
+OLDCODE 		} \
+OLDCODE 		/* JAS if (field->fieldDecl->mode != PKW_initializeOnly) { */ \
+OLDCODE 		if (fv != NULL) { \
+OLDCODE 		fdl += fprintf (fileDescriptor,"\t<Metadata%s DEF='%s_%s_%d' value='%s'/>\n", \
+OLDCODE 			stringFieldtypeType(fieldDecl_getType(field->fieldDecl)), \
+OLDCODE 			fieldDecl_getShaderScriptName(field->fieldDecl),  \
+OLDCODE 			FREEWRL_SPECIFIC,  \
+OLDCODE 			CPI.uniqueNumber, \
+OLDCODE 			fv); \
+OLDCODE 		} else { \
+OLDCODE 		fdl += fprintf (fileDescriptor,"\t<Metadata%s DEF='%s_%s_%d' />\n", \
+OLDCODE 			stringFieldtypeType(fieldDecl_getType(field->fieldDecl)), \
+OLDCODE 			fieldDecl_getShaderScriptName(field->fieldDecl),  \
+OLDCODE 			FREEWRL_SPECIFIC,  \
+OLDCODE 			CPI.uniqueNumber); \
+OLDCODE 		/* }  */  } \
+OLDCODE 	} \
+OLDCODE 	fdl += fprintf (fileDescriptor, "<!-- end of MAKE_PROTO_COPY_FIELDS --> \n");
+#endif //OLDCODE 
 
 static char fixchar [] = {'\'', '"', '&', '<', '>'};
 static char* fixtable [] = {"&apos;", "&quot;", "&amp;", "&lt;", "&gt;"};

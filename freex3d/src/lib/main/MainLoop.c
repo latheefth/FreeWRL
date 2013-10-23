@@ -35,7 +35,6 @@
 #include <libFreeWRL.h>
 #include <list.h>
 #include <threads.h>
-#include <resources.h>
 #if HAVE_SYS_TIME_H
 # include <sys/time.h>
 #endif
@@ -1428,48 +1427,50 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
 					}
 				}
 			}
-			/* handle_MIDI(); */
-			//socketVerbose = fwlio_RxTx_control(CHANNEL_MIDI, RxTx_GET_VERBOSITY)  ;
-			if(fwlio_RxTx_control(CHANNEL_MIDI, RxTx_REFRESH) == 0) {
-				/* Nothing to be done, maybe not even running */
-				if ( socketVerbose > 1 ) {
-					printf("%s:%d Nothing to be done\n",__FILE__,__LINE__) ;
-				}
-			} else {
-				if ( socketVerbose > 1 ) {
-					printf("%s:%d Test RxTx_PENDING\n",__FILE__,__LINE__) ;
-				}
-				if(fwlio_RxTx_control(CHANNEL_MIDI, RxTx_PENDING) > 0) {
-					char *tempMIDIdata;
-					if ( socketVerbose != 0 ) {
-						printf("%s:%d Something pending\n",__FILE__,__LINE__) ;
-					}
-					tempMIDIdata = fwlio_RxTx_getbuffer(CHANNEL_MIDI) ;
-					if(tempMIDIdata != (char *)NULL) {
-						char * replyData;
-						int EAI_StillToDo;
-						if ( socketVerbose != 0 ) {
-							printf("%s:%d Something for MIDI to do with buffer addr %p\n",__FILE__,__LINE__,tempMIDIdata ) ;
-						}
-						replyData = fwl_MIDI_handleBuffer(tempMIDIdata);
-						free(tempMIDIdata) ;
-						EAI_StillToDo = 1;
-						do {
-							if(replyData != NULL && strlen(replyData) != 0) {
-								fwlio_RxTx_sendbuffer(__FILE__,__LINE__,CHANNEL_MIDI, replyData) ;
-								free(replyData) ;
-							}
-							EAI_StillToDo = fwl_EAI_allDone();
-							if(EAI_StillToDo) {
-								if ( socketVerbose != 0 ) {
-									printf("%s:%d Something still in EAI buffer? %d\n",__FILE__,__LINE__,EAI_StillToDo ) ;
-								}
-								replyData = fwl_EAI_handleRest();
-							}
-						} while(EAI_StillToDo) ;
-					}
-				}
-			}
+#ifdef OLDCODE
+OLDCODE			/* handle_MIDI(); */
+OLDCODE			//socketVerbose = fwlio_RxTx_control(CHANNEL_MIDI, RxTx_GET_VERBOSITY)  ;
+OLDCODE			if(fwlio_RxTx_control(CHANNEL_MIDI, RxTx_REFRESH) == 0) {
+OLDCODE				/* Nothing to be done, maybe not even running */
+OLDCODE				if ( socketVerbose > 1 ) {
+OLDCODE					printf("%s:%d Nothing to be done\n",__FILE__,__LINE__) ;
+OLDCODE				}
+OLDCODE			} else {
+OLDCODE				if ( socketVerbose > 1 ) {
+OLDCODE					printf("%s:%d Test RxTx_PENDING\n",__FILE__,__LINE__) ;
+OLDCODE				}
+OLDCODE				if(fwlio_RxTx_control(CHANNEL_MIDI, RxTx_PENDING) > 0) {
+OLDCODE					char *tempMIDIdata;
+OLDCODE					if ( socketVerbose != 0 ) {
+OLDCODE						printf("%s:%d Something pending\n",__FILE__,__LINE__) ;
+OLDCODE					}
+OLDCODE					tempMIDIdata = fwlio_RxTx_getbuffer(CHANNEL_MIDI) ;
+OLDCODE					if(tempMIDIdata != (char *)NULL) {
+OLDCODE						char * replyData;
+OLDCODE						int EAI_StillToDo;
+OLDCODE						if ( socketVerbose != 0 ) {
+OLDCODE							printf("%s:%d Something for MIDI to do with buffer addr %p\n",__FILE__,__LINE__,tempMIDIdata ) ;
+OLDCODE						}
+OLDCODE						replyData = fwl_MIDI_handleBuffer(tempMIDIdata);
+OLDCODE						free(tempMIDIdata) ;
+OLDCODE						EAI_StillToDo = 1;
+OLDCODE						do {
+OLDCODE							if(replyData != NULL && strlen(replyData) != 0) {
+OLDCODE								fwlio_RxTx_sendbuffer(__FILE__,__LINE__,CHANNEL_MIDI, replyData) ;
+OLDCODE								free(replyData) ;
+OLDCODE							}
+OLDCODE							EAI_StillToDo = fwl_EAI_allDone();
+OLDCODE							if(EAI_StillToDo) {
+OLDCODE								if ( socketVerbose != 0 ) {
+OLDCODE									printf("%s:%d Something still in EAI buffer? %d\n",__FILE__,__LINE__,EAI_StillToDo ) ;
+OLDCODE								}
+OLDCODE								replyData = fwl_EAI_handleRest();
+OLDCODE							}
+OLDCODE						} while(EAI_StillToDo) ;
+OLDCODE					}
+OLDCODE				}
+OLDCODE			}
+#endif //OLDCODE
 		}
 		}
   		#endif //EXCLUDE_EAI
@@ -1512,6 +1513,8 @@ void handle(const int mev, const unsigned int button, const float x, const float
 	handle0(mev, button, x, y);
 }
 
+
+
 #if !defined( AQUA ) && !defined( _MSC_VER ) &&!defined (_ANDROID)
 //XK_ constants from /usr/include/X11/keysymdef.h
 #define PHOME_KEY XK_Home //80
@@ -1523,16 +1526,16 @@ void handle(const int mev, const unsigned int button, const float x, const float
 #define PPGUP_KEY XK_Page_Up //85
 #define PDOWN_KEY XK_Down //59
 #define PF1_KEY  XK_F1 //0xFFBE
-#define PF2_KEY  XK_F2 //0xFFBF
-#define PF3_KEY  XK_F3 //0XFFC0
-#define PF4_KEY  XK_F4 //0XFFC1
-#define PF5_KEY  XK_F5 //0XFFC2
-#define PF6_KEY  XK_F6 //0XFFC3
-#define PF7_KEY  XK_F7 //0XFFC4
-#define PF8_KEY  XK_F8 //0XFFC5
-#define PF9_KEY  XK_F9 //0XFFC6
-#define PF10_KEY XK_F10 //0XFFC7
-#define PF11_KEY XK_F11 //0XFFC8
+//OLDCODE #define PF2_KEY  XK_F2 //0xFFBF
+//OLDCODE #define PF3_KEY  XK_F3 //0XFFC0
+//OLDCODE #define PF4_KEY  XK_F4 //0XFFC1
+//OLDCODE #define PF5_KEY  XK_F5 //0XFFC2
+//OLDCODE #define PF6_KEY  XK_F6 //0XFFC3
+//OLDCODE #define PF7_KEY  XK_F7 //0XFFC4
+//OLDCODE #define PF8_KEY  XK_F8 //0XFFC5
+//OLDCODE #define PF9_KEY  XK_F9 //0XFFC6
+//OLDCODE #define PF10_KEY XK_F10 //0XFFC7
+//OLDCODE #define PF11_KEY XK_F11 //0XFFC8
 #define PF12_KEY XK_F12 //0XFFC9
 #define PALT_KEY XK_Alt_L //0XFFE9 //left, and 0XFFEA   //0XFFE7
 #define PALT_KEYR XK_Alt_R //0XFFE9 //left, and 0XFFEA   //0XFFE7
@@ -1541,7 +1544,7 @@ void handle(const int mev, const unsigned int button, const float x, const float
 #define PSFT_KEY XK_Shift_L //0XFFE1 //left, and 0XFFE2 on right
 #define PSFT_KEYR XK_Shift_R //0XFFE1 //left, and 0XFFE2 on right
 #define PDEL_KEY XK_Delete //0XFF9F //on numpad, and 0XFFFF near Insert //0x08  
-#define PRTN_KEY XK_Return //XK_KP_Enter //0xff0d 13
+//OLDCODE #define PRTN_KEY XK_Return //XK_KP_Enter //0xff0d 13
 #define PNUM0 XK_KP_Insert    //XK_KP_0
 #define PNUM1 XK_KP_End       //XK_KP_1
 #define PNUM2 XK_KP_Down      //XK_KP_2
@@ -1554,9 +1557,9 @@ void handle(const int mev, const unsigned int button, const float x, const float
 #define PNUM9 XK_KP_Page_Up   //XK_KP_9
 #define PNUMDEC XK_KP_Delete //XK_KP_Decimal
 
-#define KEYPRESS 1
-#define KEYDOWN 2
-#define KEYUP	3
+//OLDCODE #define KEYPRESS 1
+//OLDCODE #define KEYDOWN 2
+//OLDCODE #define KEYUP	3
 
 ///* from http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/index.html
 //section 21.4.1 
@@ -3214,12 +3217,10 @@ int consoleMenuActive()
 {
 	return ConsoleMenuState.active;
 }
-#define KEYDOWN 2
-#define KEYUP 3
-#ifdef AQUA
-#define KEYPRESS 2
-#else
+#ifdef _MSC_VER
 #define KEYPRESS 1
+#else 
+#define KEYDOWN 2
 #endif
 
 void addMenuChar(kp,type)

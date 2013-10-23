@@ -9,6 +9,7 @@
 
 #include <config.h>
 #include <system.h>
+#include <internal.h>
 #include <libFreeWRL.h>
 #include <iglobal.h>
 #include "../ui/common.h"

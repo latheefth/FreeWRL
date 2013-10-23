@@ -78,16 +78,16 @@ int ctrlPressed = 0;
 #define PPGUP_KEY 0x21
 #define PDOWN_KEY 0x28
 #define PF1_KEY  0x70
-#define PF2_KEY  0x71
-#define PF3_KEY  0x72
-#define PF4_KEY  0x73
-#define PF5_KEY  0x74
-#define PF6_KEY  0x75
-#define PF7_KEY  0x76
-#define PF8_KEY  0x77
-#define PF9_KEY  0x78
-#define PF10_KEY 0x79
-#define PF11_KEY 0x7a
+//OLDCODE #define PF2_KEY  0x71
+//OLDCODE #define PF3_KEY  0x72
+//OLDCODE #define PF4_KEY  0x73
+//OLDCODE #define PF5_KEY  0x74
+//OLDCODE #define PF6_KEY  0x75
+//OLDCODE #define PF7_KEY  0x76
+//OLDCODE #define PF8_KEY  0x77
+//OLDCODE #define PF9_KEY  0x78
+//OLDCODE #define PF10_KEY 0x79
+//OLDCODE #define PF11_KEY 0x7a
 #define PF12_KEY 0x7b
 #define PALT_KEY 0x12
 #define PCTL_KEY 0x11
@@ -116,16 +116,16 @@ int ctrlPressed = 0;
 /* on my aluminum apple keyboard, there is a key labelled "fn" that must be pushed to get the
 function mappings - like a "shift" key */
 #define PF1_KEY  0x4
-#define PF2_KEY  0x5
-#define PF3_KEY  0X6
-#define PF4_KEY  0X7
-#define PF5_KEY  0X8
-#define PF6_KEY  0X9
-#define PF7_KEY  0X10
-#define PF8_KEY  0X11
-#define PF9_KEY  0X12	/* these did not work with the "fn" key modifier */
-#define PF10_KEY 0X13	/* these did not work with the "fn" key modifier */
-#define PF11_KEY 0X14	/* these did not work with the "fn" key modifier */
+//OLDCODE #define PF2_KEY  0x5
+//OLDCODE #define PF3_KEY  0X6
+//OLDCODE #define PF4_KEY  0X7
+//OLDCODE #define PF5_KEY  0X8
+//OLDCODE #define PF6_KEY  0X9
+//OLDCODE #define PF7_KEY  0X10
+//OLDCODE #define PF8_KEY  0X11
+//OLDCODE #define PF9_KEY  0X12	/* these did not work with the "fn" key modifier */
+//OLDCODE #define PF10_KEY 0X13	/* these did not work with the "fn" key modifier */
+//OLDCODE #define PF11_KEY 0X14	/* these did not work with the "fn" key modifier */
 #define PF12_KEY 0X15	/* these did not work with the "fn" key modifier */
 
 /* these keys are not found on the Apple keyboard (please correct if you disagree!) 
@@ -141,6 +141,7 @@ function mappings - like a "shift" key */
 #define KEYUP	3
 
 #else
+
 #define PHOME_KEY 80
 #define PPGDN_KEY 86
 #define PLEFT_KEY 106
@@ -150,22 +151,22 @@ function mappings - like a "shift" key */
 #define PPGUP_KEY 85
 #define PDOWN_KEY 59
 #define PF1_KEY  0xFFBE
-#define PF2_KEY  0xFFBF
-#define PF3_KEY  0XFFC0
-#define PF4_KEY  0XFFC1
-#define PF5_KEY  0XFFC2
-#define PF6_KEY  0XFFC3
-#define PF7_KEY  0XFFC4
-#define PF8_KEY  0XFFC5
-#define PF9_KEY  0XFFC6
-#define PF10_KEY 0XFFC7
-#define PF11_KEY 0XFFC8
+//OLDCODE #define PF2_KEY  0xFFBF
+//OLDCODE #define PF3_KEY  0XFFC0
+//OLDCODE #define PF4_KEY  0XFFC1
+//OLDCODE #define PF5_KEY  0XFFC2
+//OLDCODE #define PF6_KEY  0XFFC3
+//OLDCODE #define PF7_KEY  0XFFC4
+//OLDCODE #define PF8_KEY  0XFFC5
+//OLDCODE #define PF9_KEY  0XFFC6
+//OLDCODE #define PF10_KEY 0XFFC7
+//OLDCODE #define PF11_KEY 0XFFC8
 #define PF12_KEY 0XFFC9
 #define PALT_KEY 0XFFE9 //left, and 0XFFEA   //0XFFE7
 #define PCTL_KEY 0XFFE3 //left, and 0XFFE4 on right
 #define PSFT_KEY 0XFFE1 //left, and 0XFFE2 on right
 #define PDEL_KEY 0XFF9F //on numpad, and 0XFFFF near Insert //0x08  
-#define PRTN_KEY 13
+//OLDCODE #define PRTN_KEY 13
 #define KEYPRESS 1
 #define KEYDOWN 2
 #define KEYUP	3

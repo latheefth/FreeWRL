@@ -35,7 +35,7 @@
 #include <display.h> 
 #include <internal.h> 
  
-#include <libFreeWRL.h>
+#include <libFreeWRL.h> 
 #include <io_files.h> 
  
 #include "../vrml_parser/Structs.h" 
@@ -43,7 +43,8 @@
 #include "../main/ProdCon.h" 
 #include "Component_Networking.h" 
 #include "Component_Picking.h" 
-#include "../list.h"  
+#include "../list.h" 
+#include "../io_http.h" 
  
  
 /**********************************************************************************************/ 

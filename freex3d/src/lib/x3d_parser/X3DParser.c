@@ -62,8 +62,8 @@ typedef xmlSAXHandler* XML_Parser;
 #define XML_ParserFree(aaa) FREE_IF_NZ(aaa)
 #define XML_SetUserData(aaa,bbb)
 #define XML_STATUS_ERROR -1
-#define XML_GetErrorCode(aaa)
-#define XML_ErrorString(aaa) "errors not currently being reported by libxml port"
+//OLDCODE #define XML_GetErrorCode(aaa)
+//OLDCODE #define XML_ErrorString(aaa) "errors not currently being reported by libxml port"
 
 
 static int XML_ParseFile(xmlSAXHandler *me, const char *myinput, int myinputlen, int recovery) {
@@ -110,28 +110,18 @@ static int XML_ParseFile(xmlSAXHandler *me, const char *myinput, int myinputlen,
 //static int in3_3_fieldValue = FALSE;
 //static int in3_3_fieldIndex = INT_ID_UNDEFINED;
 
-/* this ifdef sequence is kept around, for a possible Microsoft Vista port */
-#ifdef XML_LARGE_SIZE
-#if defined(XML_USE_MSC_EXTENSIONS) && _MSC_VER < 1400
-#define XML_FMT_INT_MOD "I64"
-#else
-#define XML_FMT_INT_MOD "ll"
-#endif
-#else
-#define XML_FMT_INT_MOD "l"
-#endif
-
-//static int _parentIndex = -1;
-//int gglobal()->X3DParser.parentIndex
-//{
-//	return _parentIndex;
-//}
-//int setParentIndex(int newParentIndex)
-//{
-//	_parentIndex = newParentIndex;
-//	return _parentIndex;
-//}
-//struct X3D_Node *parentStack[PARENTSTACKSIZE];
+#ifdef OLDCODE
+OLDCODE /* this ifdef sequence is kept around, for a possible Microsoft Vista port */
+OLDCODE #ifdef XML_LARGE_SIZE
+OLDCODE #if defined(XML_USE_MSC_EXTENSIONS) && _MSC_VER < 1400
+OLDCODE #define XML_FMT_INT_MOD "I64"
+OLDCODE #else
+OLDCODE #define XML_FMT_INT_MOD "ll"
+OLDCODE #endif
+OLDCODE #else
+OLDCODE #define XML_FMT_INT_MOD "l"
+OLDCODE #endif
+#endif //OLDCODE
 
 
 typedef struct pX3DParser{

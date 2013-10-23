@@ -1563,7 +1563,9 @@ static BOOL parser_routeStatement_A(struct VRMLParser* me)
         /* Ignore the fields. */
 #define FIELD(n, f, t, v, realType)
 
-#define END_NODE(n) EVENT_END_NODE(n,XFIELD[fromFieldE])
+#ifdef OLDCODE
+OLDCODE #define END_NODE(n) EVENT_END_NODE(n,XFIELD[fromFieldE])
+#endif //OLDCODE
 
         /* potentially rename the Event_From and Event_To */
 
@@ -1691,7 +1693,10 @@ static BOOL parser_routeStatement_A(struct VRMLParser* me)
         toFieldE = tempTE;
         toFieldO = tempTO;
 
-#undef END_NODE 
+#ifdef OLDCODE
+OLDCODE #undef END_NODE 
+#endif //OLDCODE
+
 #define END_NODE(n) EVENT_END_NODE(n,EXPOSED_FIELD[fromFieldE])
 
         /* Process from outputOnly */
@@ -2647,53 +2652,6 @@ static BOOL parser_field_B(struct VRMLParser* me, struct X3D_Node* node)
    } \
   } \
   break;
-
-/* The init codes used. */
-#define INIT_CODE_sfnode(var) \
-  ADD_PARENT(node2->var, X3D_NODE(node2));
-#define INIT_CODE_mfnode(var) \
-  mfnode_add_parent(&node2->var, X3D_NODE(node2));
-#define INIT_CODE_sfbool(var)
-#define INIT_CODE_sfcolor(var)
-#define INIT_CODE_sfcolorrgba(var)
-#define INIT_CODE_sffloat(var)
-#define INIT_CODE_sfimage(var)
-#define INIT_CODE_sfint32(var)
-#define INIT_CODE_sfrotation(var)
-#define INIT_CODE_sfstring(var)
-#define INIT_CODE_sftime(var)
-#define INIT_CODE_sfvec2f(var)
-#define INIT_CODE_sfvec3f(var)
-#define INIT_CODE_sfvec3d(var)
-#define INIT_CODE_mfbool(var)
-#define INIT_CODE_mfcolor(var)
-#define INIT_CODE_mfcolorrgba(var)
-#define INIT_CODE_mffloat(var)
-#define INIT_CODE_mfint32(var)
-#define INIT_CODE_mfrotation(var)
-#define INIT_CODE_mfstring(var)
-#define INIT_CODE_mftime(var)
-#define INIT_CODE_mfvec2f(var)
-#define INIT_CODE_mfvec3f(var)
-#define INIT_CODE_mfvec3d(var)
-#define INIT_CODE_sfdouble(var)
-#define INIT_CODE_mfdouble(var)
-#define INIT_CODE_sfvec4d(var)
-#define INIT_CODE_mfmatrix3f(var)
-#define INIT_CODE_mfmatrix4f(var)
-
-#define INIT_CODE_mfmatrix3d(var)
-#define INIT_CODE_mfmatrix4d(var)
-#define INIT_CODE_mfvec2d(var)
-#define INIT_CODE_mfvec4d(var)
-#define INIT_CODE_mfvec4f(var)
-#define INIT_CODE_sfmatrix3d(var)
-#define INIT_CODE_sfmatrix3f(var)
-#define INIT_CODE_sfmatrix4d(var)
-#define INIT_CODE_sfmatrix4f(var)
-#define INIT_CODE_sfvec2d(var)
-#define INIT_CODE_sfvec4f(var)
-
 
 /* The field type indices */
 #define FTIND_sfnode    FIELDTYPE_SFNode
@@ -4184,6 +4142,8 @@ BOOL route_parse_nodefield(struct VRMLParser* me, int *NodeIndex, struct X3D_Nod
 	*Ofs = 0;
 	//Node = NULL; 
 	*ScriptField=NULL; 
+	cerror1 = "";
+	cerror2 = "";
 
 	if(KW_eventType == KW_outputOnly){
 		PKW_eventType = PKW_outputOnly;
@@ -5366,7 +5326,8 @@ BOOL fieldSynonymCompare(const char *routeFieldName, const char* nodeFieldName) 
 }
 
 
-#define WRLMODE(val) (((val) % 4)+4) //jan 2013 codegen PROTOKEYWORDS[] was ordered with x3d synonyms first, wrl last
+//#define WRLMODE(val) (((val) % 4)+4) //jan 2013 codegen PROTOKEYWORDS[] was ordered with x3d synonyms first, wrl last
+
 #define X3DMODE(val)  ((val) % 4)
 BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackData);
 typedef struct cbDataExactName {

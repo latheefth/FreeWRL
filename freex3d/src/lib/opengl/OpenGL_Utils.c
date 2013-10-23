@@ -36,7 +36,6 @@
 #include <libFreeWRL.h>
 #include <list.h>
 #include <io_files.h>
-#include <resources.h>
 
 
 #include "../vrml_parser/Structs.h"
@@ -71,9 +70,6 @@
 #include "../ui/common.h"
 
 void kill_rendering(void);
-
-static void createdMemoryTable();
-static void increaseMemoryTable();
 
 static void killNode (int index);
 
@@ -1244,37 +1240,6 @@ near plane is thus farPlane - highestPeak.
 
 **************************************************************************************/
 
-#if USE_JS_EXPERIMENTAL_CODE
-/* read a file, put it into memory. */
-static char * readInputString(char *fn) {
-        char *buffer;
-        FILE *infile;
-        size_t justread;
-
-	#define MAXREADSIZE 4000
-
-        /* ok, now, really read this one. */
-        infile = fopen(fn,"r");
-
-        if (infile == NULL){
-                ConsoleMessage("problem reading file '%s' \n",fn);
-                return NULL;
-        }
-
-
-        buffer =MALLOC(char *, MAXREADSIZE * sizeof (char));
-        justread = fread (buffer,1,MAXREADSIZE,infile);
-	if (justread >= MAXREADSIZE) {
-		ConsoleMessage ("Shader too large for buffer\n");
-		return NULL;
-	}
-
-	fclose (infile);
-
-	buffer[justread] = '\0';
-        return (buffer);
-}
-#endif
 #undef MAXREADSIZE
 
 
@@ -2598,9 +2563,8 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 
 
 static void handle_GeoLODRange(struct X3D_GeoLOD *node) {
-	int oldInRange, handled;
+	int oldInRange;
 	GLDOUBLE cx,cy,cz;
-	handled = 0;
 	/* find the length of the line between the moved center and our current viewer position */
 	cx = Viewer()->currentPosInModel.x - node->__movedCoords.c[0];
 	cy = Viewer()->currentPosInModel.y - node->__movedCoords.c[1];
@@ -3774,12 +3738,8 @@ a->_dist, b->_dist); */
 void zeroVisibilityFlag(void) {
 	struct X3D_Node* node;
 	int i;
-	int ocnum;
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
-	ocnum=-1;
-
-	
 	/* do not bother doing this if the inputThread is active. */
 	if (fwl_isinputThreadParsing()) return;
  	LOCK_MEMORYTABLE
@@ -4254,7 +4214,6 @@ void startOfLoopNodeUpdates(void) {
 					sortChildren (__LINE__,&X3D_PICKABLEGROUP(node)->children,&X3D_PICKABLEGROUP(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
 					TURN_OFF_SHOULDSORTCHILDREN
 
-E_JS_EXPERIMENTAL_CODE
 					CHILDREN_NODE(PickableGroup) 
 				END_NODE
 				/* PointPickSensor needs its own flag sent up the chain */
@@ -4545,10 +4504,6 @@ E_JS_EXPERIMENTAL_CODE
 //#define VERBOSE 1
 void markForDispose(struct X3D_Node *node, int recursive){
 
-	#if USE_JS_EXPERIMENTAL_CODE
-	struct X3D_Node sfnode;
-	#endif
-
 	int *fieldOffsetsPtr;
 	char * fieldPtr;
 
@@ -4751,7 +4706,6 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 		if(user) 
 		{
 			//lexer_stringUser_fieldName(me->lexer, name, mode);
-			struct Shader_Script* shader;
 			struct VRMLParser* parser;
 			struct VRMLLexer* lexer;
 			ttglobal tg = gglobal();
@@ -4761,7 +4715,6 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 				lexer = parser->lexer;
 
 			//user fields on user-field-capable nodes
-			shader=NULL;
 			switch(node->_nodeType)
 			{
 				case NODE_Script:
@@ -5806,7 +5759,6 @@ mesa_Frustum(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOU
    GLDOUBLE d = -(2.0F*farZ*nearZ) / (farZ-nearZ);
 
 	/* printf ("mesa_Frustum (%lf, %lf, %lf, %lf, %lf, %lf)\n",left,right,bottom,top,nearZ, farZ); */
-#define M(row,col)  m[col*4+row]
 	m[0] = x;
 	m[1] = 0.0;
 	m[2] = a;
@@ -5828,6 +5780,7 @@ mesa_Frustum(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOU
 	m[15] = 0.0;
 /*
 	
+#define M(row,col)  m[col*4+row]
    M(0,0) = x;     M(0,1) = 0.0F;  M(0,2) = a;      M(0,3) = 0.0F;
    M(1,0) = 0.0F;  M(1,1) = y;     M(1,2) = b;      M(1,3) = 0.0F;
    M(2,0) = 0.0F;  M(2,1) = 0.0F;  M(2,2) = c;      M(2,3) = d;

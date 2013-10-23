@@ -33,11 +33,10 @@
 #define MAXEAIHOSTNAME	255		/* length of hostname on command line */
 #define EAIREADSIZE	8192		/* maximum we are allowed to read in from socket */
 #define EAIBASESOCKET   9877		/* socket number to start at */
-#define MIDIPORTOFFSET	5		/* offset for midi EAI port to start at */
 
 #define MAX_SERVICE_CHANNELS 8
 /*
  * But please notice that as Jun 2012, only 2 are actually in use
- * CHANNEL_EAI and CHANNEL_MIDI and have proper full definitions.
+ * CHANNEL_EAI and (obsolete) CHANNEL_MIDI and have proper full definitions.
  */
 #define SOCKET_SERVICE_DEFAULT_VERBOSE 0

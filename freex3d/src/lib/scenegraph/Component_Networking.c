@@ -71,7 +71,7 @@ X3D Networking Component
 #include "../vrml_parser/CParse.h"
 #endif
 
-#define BUTTON_PRESS_STRING "use_for_buttonPresses"
+//OLDCODE #define BUTTON_PRESS_STRING "use_for_buttonPresses"
 
 #if USE_OSC
 /**************** START OF OSC node **************************/

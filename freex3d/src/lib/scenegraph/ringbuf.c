@@ -48,9 +48,7 @@ X3D Networking Component
 
 #include <libFreeWRL.h>
 #include <list.h>
-#include <resources.h>
 #include <io_http.h>
-/* #include <stdlib.h> */
 #include "../scenegraph/ringbuf.h"
 
 RingBuffer * NewRingBuffer (int elCount) {

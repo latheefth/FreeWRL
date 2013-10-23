@@ -114,7 +114,6 @@ extern void dump_scene (FILE *fp, int level, struct X3D_Node* node); // in Gener
 *
 * EAI_core_commands should only be called from
 * fwl_EAI_handleBuffer(..) or
-* fwl_MIDI_handleBuffer(..)
 *
 * there can be many commands waiting, so we loop through commands, and return
 * a status of EACH command
@@ -355,41 +354,6 @@ char * fwl_EAI_handleBuffer(char *fromFront) {
 	//	return "";
 	//}
 }
-char * fwl_MIDI_handleBuffer(char *fromFront) {
-	/* memcp from fromFront to &EAI_BUFFER_CUR */
-	int eaiverbose;
-	int len = (int) strlen(fromFront) ;
-	ttglobal tg = gglobal();
-	struct tEAIHelpers *th;
-	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
-
-	if(NULL == tg->EAICore.EAIbuffer) {
-		tg->EAICore.EAIbuffer = MALLOC(char *, tg->EAICore.EAIbufsize * sizeof (char));
-		if(eaiverbose) {
-			printf("fwl_MIDI_handleBuffer() did not have a buffer, so create one at %p\n",tg->EAICore.EAIbuffer) ;
-		}
-	}
-	if(eaiverbose) {
-		printf("%s:%d fwl_MIDI_handleBuffer: Buffer at %p is %d chars,",__FILE__,__LINE__,fromFront,len);
-		printf("Copy to buffer at %p\n", tg->EAICore.EAIbuffer);
-	}
-
-	if(len <= EAIREADSIZE) {
-		tg->EAICore.EAIbuffer[len] = '\0';
-		memcpy(tg->EAICore.EAIbuffer, fromFront, len);
-
-		tg->EAICore.EAIbufpos = 0;
-                tg->EAICore.EAIbufcount = 0;
-
-		EAI_core_commands() ;
-
-		th = &tg->EAIHelpers;
-		return th->outBuffer ;
-	} else {
-		fwlio_RxTx_control(CHANNEL_MIDI,RxTx_STOP) ;
-		return "";
-	}
-}
 
 void EAI_core_commands () {
 	/* char buf[EAIREADSIZE];*/
@@ -422,6 +386,9 @@ void EAI_core_commands () {
 	ppEAIEventsIn p;
 	//ppEAICore ps;
 	struct tEAIHelpers *th;
+
+	UNUSED(retint); // for compiler warnings
+
 	ttglobal tg = gglobal();
 	p = (ppEAIEventsIn)tg->EAIEventsIn.prv;
 	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
@@ -603,56 +570,7 @@ void EAI_core_commands () {
 				}
 				break;
 				}
-			case MIDIINFO: {
-/* if we do not have a string yet, we have to do this...
-This is a problem. We cannot create the VRML until we have a whole stanza
-which means we may have to block, because we cannot respond to the original request.
 
-However, nowadays we do not read any sockets directly....
-*/
-				int topWaitLimit=16;
-				int currentWaitCount=0;
-				EOT = strstr(&EAI_BUFFER_CUR,"\nEOT\n");
-
-				while (EOT == NULL && topWaitLimit >= currentWaitCount) {
-					if(fwlio_RxTx_control(CHANNEL_MIDI,RxTx_REFRESH) == 0) {
-						/* Nothing to be done, maybe not even running */
-						usleep(10000);
-						currentWaitCount++;
-					} else {
-						if(fwlio_RxTx_waitfor(CHANNEL_MIDI,"\nEOT\n") != (char *)NULL) {
-							char *tempEAIdata = fwlio_RxTx_getbuffer(CHANNEL_MIDI) ;
-							if(tempEAIdata != (char *)NULL) {
-								strcat(&EAI_BUFFER_CUR,tempEAIdata) ;
-								/* tg->EAICore.EAIbuffer = ....*/
-								free(tempEAIdata) ;
-							}
-						} else {
-							usleep(10000);
-							currentWaitCount++;
-						}
-					}
-					EOT = strstr(&EAI_BUFFER_CUR,"\nEOT\n");
-				}
-
-				if (topWaitLimit <= currentWaitCount) {
-					/* Abandon Ship */
-					sprintf (th->outBuffer,"RE\n%f\n%d\n-1",TickTime(),count);
-				} else {
-					*EOT = 0; /* take off the EOT marker*/
-					/* MIDICODE ReWireRegisterMIDI(&EAI_BUFFER_CUR); */
-
-					/* finish this, note the pointer maths */
-					bufPtr = (int) (EOT+3-tg->EAICore.EAIbuffer);
-					sprintf (th->outBuffer,"RE\n%f\n%d\n0",TickTime(),count);
-				}
-				break;
-				}
-			case MIDICONTROL: {
-				/* sprintf (th->outBuffer,"RE\n%f\n%d\n%d",TickTime(),count, ReWireMIDIControl(&EAI_BUFFER_CUR)); */
-				/* MIDICODE ReWireMIDIControl(&EAI_BUFFER_CUR); */
-				break;
-				}
 			case CREATEVU:
 			case CREATEXS:
 			case CREATEVS: {
@@ -1036,7 +954,7 @@ However, nowadays we do not read any sockets directly....
 #endif
 
 		}
-		if (command == SENDEVENT || (command == MIDICONTROL))  {
+		if (command == SENDEVENT )  {
 			/* events don't send a reply as such so your code has to check for zerolength strings*/
 			th->outBuffer[0] = 0;
 		} else {
@@ -1097,6 +1015,8 @@ static void handleGETNODE (char *bufptr, int repno) {
 	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
 	th = &tg->EAIHelpers;
 	/*format int seq# COMMAND    string nodename*/
+
+	UNUSED(retint); // for compiler warnings
 
 	retint=sscanf (bufptr," %s",ctmp);
 	mystrlen = (int) strlen(ctmp);
@@ -1469,7 +1389,8 @@ void createLoadURL(char *bufptr) {
 	int count;
 	char *spbrk;
 	int retint;		/* used to get retval from sscanf */
-	//struct tEAIEventsIn *t = &gglobal()->EAIEventsIn;
+	UNUSED(retint); // for compiler warnings 
+
 	ppEAIEventsIn p = (ppEAIEventsIn)gglobal()->EAIEventsIn.prv;
 
 	/* fill in Anchor parameters */

@@ -24,7 +24,7 @@ Variable use:
 #ifndef INSTANCEGLOBAL
 #include "display.h" //for opengl_utils.h which is for rdr_caps
 #include "opengl/OpenGL_Utils.h"  //for rdr_caps
-#include "list.h" //for resources.h which is for root_res
+#include "list.h" 
 #include <threads.h> //for threads
 #include "vrml_parser/Structs.h" //for SFColor
 #include "world_script/JScript.h" //for jsval

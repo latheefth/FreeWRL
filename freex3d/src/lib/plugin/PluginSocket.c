@@ -46,9 +46,11 @@ Common functions used by Mozilla and Netscape plugins...(maybe PluginGlue too?)
 #include "PluginSocket.h"
 
 
-#ifdef F_SETSIG
-#define FSIGOK
-#endif
+#ifdef OLDCODE
+OLDCODE #ifdef F_SETSIG
+OLDCODE #define FSIGOK
+OLDCODE #endif
+#endif //OLDCODE
 
 //pthread_mutex_t mylocker = PTHREAD_MUTEX_INITIALIZER;
 

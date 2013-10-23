@@ -561,11 +561,7 @@ void compile_Cone (struct X3D_Cone *node) {
 }
 
 void render_Cone (struct X3D_Cone *node) {
-    extern float tribottex[];		/*  in CFuncs/statics.c*/
-    
-	/*  DO NOT change this define, unless you want to recalculate statics below....*/
-	#define  CONEDIV 20
-
+	extern float tribottex[];		/*  in CFuncs/statics.c*/
 	struct textureVertexInfo mtf = {tribottex,2,GL_FLOAT,0,NULL};
 				
 	float h = (node->height)/2;

@@ -35,7 +35,6 @@
 #include <libFreeWRL.h>
 #include <list.h>
 #include <io_files.h>
-#include <resources.h>
 #include <signal.h>
 
 #include "../vrml_parser/Structs.h"

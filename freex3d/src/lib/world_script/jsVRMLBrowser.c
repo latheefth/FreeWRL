@@ -34,7 +34,6 @@ Javascript C language binding.
 
 #include <libFreeWRL.h>
 #include <list.h>
-#include <resources.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../vrml_parser/CRoutes.h"

@@ -102,11 +102,6 @@ char *privSocketRead(int channel, char *bf, int *bfct, int *bfsz, int *listenfd)
  * Public top level interface
  * ************************************************************** */
 
-void create_MIDIEAI() {
-	int result ;
-	result = fwlio_RxTx_control(CHANNEL_MIDI, RxTx_START) ;
-}
-
 int fwlio_RxTx_control(int channel, int action) {
 	static int first_time = 1 ;
 	static int service_status[MAX_SERVICE_CHANNELS] ;
@@ -139,7 +134,6 @@ int fwlio_RxTx_control(int channel, int action) {
 			SCK_port[i] = -1 ;
 		}
 		SCK_port[CHANNEL_EAI] = EAIBASESOCKET ;
-		SCK_port[CHANNEL_MIDI] = EAIBASESOCKET + MIDIPORTOFFSET ;
 	}
 	first_time = 0 ;
 

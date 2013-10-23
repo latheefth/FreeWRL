@@ -36,7 +36,6 @@
 #include <libFreeWRL.h>
 #include <list.h>
 #include <io_files.h>
-#include <resources.h>
 #include <threads.h>
 #include "vrml_parser/Structs.h"
 #include "main/ProdCon.h"

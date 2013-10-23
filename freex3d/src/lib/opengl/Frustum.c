@@ -67,21 +67,24 @@ static void multiply_in_scale(struct point_XYZ *arr, float x, float y, float z, 
 
 #undef  OCCLUSIONVERBOSE
 
-/* if we have a visible Shape node, how long should we wait until we try to determine
-   if it is still visible? */
-#define OCCWAIT 		20 
+#ifdef OCCLUSION
 
-/* we have a visibility sensor, we want to really see when it becomes invis. */
-#define OCCCHECKNEXTLOOP	1
+	/* if we have a visible Shape node, how long should we wait until we try to determine
+	   if it is still visible? */
+	#define OCCWAIT 		20 
 
-/* we are invisible - don't let it go too long before we try to see visibility */
-#define OCCCHECKSOON		4
+	/* we have a visibility sensor, we want to really see when it becomes invis. */
+	#define OCCCHECKNEXTLOOP	1
 
-/* how many samples of a Shape are needed before it becomes visible? If it is too
-   small, don't worry about displaying it If this number is too large, "flashing" 
-   will occur, as the shape is dropped, while still displaying (the number) of pixels
-   on the screen */
-#define OCCSHAPESAMPLESIZE	1	
+	/* we are invisible - don't let it go too long before we try to see visibility */
+	#define OCCCHECKSOON		4
+
+	/* how many samples of a Shape are needed before it becomes visible? If it is too
+	   small, don't worry about displaying it If this number is too large, "flashing" 
+	   will occur, as the shape is dropped, while still displaying (the number) of pixels
+	   on the screen */
+	#define OCCSHAPESAMPLESIZE	1	
+#endif //OCCLUSION
 
 typedef struct pFrustum{
 	/* Occlusion VisibilitySensor code */
@@ -190,7 +193,6 @@ void endOcclusionQuery(struct X3D_VisibilitySensor* node, int render_geometry)
  \
 		if (!APPROX(me->EXTENT_MAX_X,-10000.0)) { \
 			struct X3D_##myNodeType *node; \
-			float my_scaleO; \
 			Quaternion rq; \
 			struct point_XYZ inxyz[8]; struct point_XYZ outxyz[8]; \
 			node = (struct X3D_##myNodeType *)me; \
@@ -212,7 +214,6 @@ void endOcclusionQuery(struct X3D_VisibilitySensor* node, int render_geometry)
 	 \
 	                /* 2: REVERSE SCALE ORIENTATION */ \
 	                if (node->__do_scaleO) { \
-				my_scaleO = node->scaleOrientation.c[3]/(float) (3.1415926536*180); \
 				vrmlrot_to_quaternion(&rq,node->scaleOrientation.c[0], node->scaleOrientation.c[1], node->scaleOrientation.c[2], -node->scaleOrientation.c[3]); \
 				quaternion_multi_rotation(outxyz,&rq,inxyz,8); \
 	 \
@@ -340,7 +341,6 @@ void endOcclusionQuery(struct X3D_VisibilitySensor* node, int render_geometry)
  \
 		if (!APPROX(me->EXTENT_MAX_X,-10000.0)) { \
 			struct X3D_GeoTransform *node; \
-			float my_scaleO; \
 			Quaternion rq; \
 			struct point_XYZ inxyz[8]; struct point_XYZ outxyz[8]; \
 			node = (struct X3D_GeoTransform *)me; \
@@ -362,7 +362,6 @@ void endOcclusionQuery(struct X3D_VisibilitySensor* node, int render_geometry)
 	 \
 	                /* 2: REVERSE SCALE ORIENTATION */ \
 	                if (node->__do_scaleO) { \
-				my_scaleO = node->scaleOrientation.c[3]/(float) (3.1415926536*180); \
 				vrmlrot_to_quaternion(&rq,node->scaleOrientation.c[0], node->scaleOrientation.c[1], node->scaleOrientation.c[2], -node->scaleOrientation.c[3]); \
 				quaternion_multi_rotation(outxyz,&rq,inxyz,8); \
 				memcpy (inxyz,outxyz,8*sizeof(struct point_XYZ)); \

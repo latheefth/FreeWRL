@@ -114,20 +114,9 @@ char *eaiPrintCommand (char command);
 #define GETNODEDEFNAME	'i'
 #define GETROUTES	'j'
 #define GETNODETYPE	'k'
-#define MIDIINFO  	'l'
-#define MIDICONTROL  	'm'
 #define DUMPSCENE  	'n'
 #define CREATEXS	'o'
 #define GETNODEPARENTS 'p'
-
-//extern int EAIMIDIlistenfd;
-//extern int EAIMIDIsockfd;
-//extern int EAIMIDIwanted;
-#define MIDI_CONTROLLER_UNUSED 4
-#define MIDI_CONTROLLER_FADER 1
-#define MIDI_CONTROLLER_KEYPRESS 2
-#define MIDI_CONTROLLER_UNKNOWN 999
-
 
 
 /* command string to get the rootNode - this is a special match... */
@@ -183,25 +172,8 @@ char *eaiPrintCommand (char command);
 
 
 
-/* Function Prototype for plugins, Java Class Invocation */
-//	int createUDPSocket();
-//	int privSocketSetup(int socketincrement, int *sockfd, int *listenfd);
-//	* void EAI_send_string (char *str, int listenfd); */
-//	char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd);
-//	extern int EAIlistenfd;
-//	extern int EAIsockfd;
-//	extern int EAIport;
-//	extern int EAIwanted;
-//	extern int EAIMIDIlistenfd;
-//	extern int EAIMIDIsockfd;
-//	extern int EAIMIDIwanted;
 extern int E_SOCK_bufsize;
-//	extern char *E_SOCK_buffer;
 extern int E_SOCK_bufcount;
-//int EAIbufsize;
-//char *EAIbuffer;
-//	int EAIbufcount;
 #define EAIREADSIZE 8192
-//	extern char EAIListenerData[EAIREADSIZE];
 
 #endif /* __FREEWRL_EAI_H__ */

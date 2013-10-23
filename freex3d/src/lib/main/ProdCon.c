@@ -33,12 +33,10 @@
 
 #include <libFreeWRL.h>
 #include <list.h>
-#include <resources.h>
 
 #include <io_files.h>
 #include <io_http.h>
 
-#include <resources.h>
 
 #include <threads.h>
 
@@ -1344,19 +1342,22 @@ static void unbind_node(struct X3D_Node* node) {
 		}                                                
 	}
 }
-/* for ReplaceWorld (or, just, on start up) forget about previous bindables */
-#define KILL_BINDABLE(zzz) \
-    printf("KILL_BINDABLE, stack %p size %d\n",zzz,vectorSize(zzz)); \
-	{ int i; for (i=0; i<vectorSize(zzz); i++) { \
-        printf ("KILL_BINDABLE %d of %d\n",i,vectorSize(zzz)); \
-		struct X3D_Node* me = vector_get(struct X3D_Node*,zzz,i); \
-		unbind_node(me); \
-	} \
-	deleteVector(struct X3D_Node *,zzz); \
-	zzz = newVector(struct X3D_Node *,8);\
-    printf ("KILL_BINDABLE, new stack is %p\n",zzz); \
-	/*causes segfault, do not do this zzz = NULL;*/ \
-	}
+
+#ifdef OLDCODE
+OLDCODE /* for ReplaceWorld (or, just, on start up) forget about previous bindables */
+OLDCODE #define KILL_BINDABLE(zzz) \
+OLDCODE     printf("KILL_BINDABLE, stack %p size %d\n",zzz,vectorSize(zzz)); \
+OLDCODE 	{ int i; for (i=0; i<vectorSize(zzz); i++) { \
+OLDCODE         printf ("KILL_BINDABLE %d of %d\n",i,vectorSize(zzz)); \
+OLDCODE 		struct X3D_Node* me = vector_get(struct X3D_Node*,zzz,i); \
+OLDCODE 		unbind_node(me); \
+OLDCODE 	} \
+OLDCODE 	deleteVector(struct X3D_Node *,zzz); \
+OLDCODE 	zzz = newVector(struct X3D_Node *,8);\
+OLDCODE     printf ("KILL_BINDABLE, new stack is %p\n",zzz); \
+OLDCODE 	/*causes segfault, do not do this zzz = NULL;*/ \
+OLDCODE 	}
+#endif //OLDCODE
 
 
 void kill_bindables (void) {
