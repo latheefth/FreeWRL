@@ -597,7 +597,7 @@ int fw_mkdir(char* path){
 int fw_exit(int val)
 {
 	if(1){
-		printf("exiting with value=%d hit Enter:");
+		printf("exiting with value=%d hit Enter:",val);
 		getchar();
 	}
 	exit(val);
@@ -2339,13 +2339,12 @@ void print_field_value(FILE *fp, int typeIndex, union anyVrml* value)
 		}
 		case FIELDTYPE_SFNode:
 		{
-			int dore;
 			fprintf(fp," %p \n",(void *)value);
 			break;
 		}
 		case FIELDTYPE_MFNode:
 		{
-			int j, dore;
+			int j;
 			struct Multi_Node* mfnode;
 			mfnode = (struct Multi_Node*)value;
 			fprintf(fp,"{ ");
@@ -2416,8 +2415,7 @@ void print_field_value(FILE *fp, int typeIndex, union anyVrml* value)
 		case FIELDTYPE_SFVec2f:
 		{
 			struct SFVec2f * sfvec2f = (struct SFVec2f *)value;
-			fprintf (fp,"");
-			for (i=0; i<2; i++) { fprintf (fp,"%4.3f  ",sfvec2f->c[i]); }
+            for (i=0; i<2; i++) { fprintf (fp,"%4.3f  ",sfvec2f->c[i]); }
 			break;
 		}
 		case FIELDTYPE_MFVec2f:
@@ -2904,7 +2902,6 @@ and recurse if a field is an SFNode or MFNode, tabbing in and out to show the re
 void dump_scene2(FILE *fp, int level, struct X3D_Node* node, int recurse, Stack *DEFedNodes) {
 	#define spacer	for (lc=0; lc<level; lc++) fprintf (fp," ");
 	int lc;
-	int i;
 	int isDefed;
 	char *nodeName;
 	//(int) FIELDNAMES_children, (int) offsetof (struct X3D_Group, children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -3119,7 +3116,7 @@ char *findFIELDNAMESfromNodeOffset0(struct X3D_Node *node, int offset)
 	{
 		if( node->_nodeType == NODE_Proto )
 		{
-			int k, mode;
+			int mode;
 			struct Vector* usernames[4];
 			char **userArr;
 			struct ProtoFieldDecl* pfield;
@@ -3137,7 +3134,7 @@ char *findFIELDNAMESfromNodeOffset0(struct X3D_Node *node, int offset)
 				if(pstruct->iface)
 				if(offset < vectorSize(pstruct->iface))
 				{
-					const char *fieldName;
+					//JAS const char *fieldName;
 					pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, offset);
 					mode = pfield->mode;
 					#define X3DMODE(val)  ((val) % 4)
@@ -4745,9 +4742,6 @@ void resetSensorEvents(void) {
 
 #if defined (_ANDROID) || defined (AQUA)
 
-static struct X3D_IndexedLineSet *mys = NULL;
-
-
 struct X3D_IndexedLineSet *fwl_makeRootBoundingBox() {
 	struct X3D_Node *shape, *app, *mat, *ils = NULL;
 	struct X3D_Node *bbCoord = NULL;
@@ -4821,7 +4815,6 @@ struct X3D_IndexedLineSet *fwl_makeRootBoundingBox() {
 	return NULL;
 }
 
-static int counter = 0;
 void fwl_update_boundingBox(struct X3D_IndexedLineSet* node) {
 
 	struct X3D_Group *rn = rootNode();

@@ -501,7 +501,6 @@ void parse_proto_body(struct VRMLParser* me)
 #endif
             if(parser_nodeStatement(me, &node))
             {
-				struct X3D_Proto* pp = (struct X3D_Proto*)me->ptr;
                 /* Add the node just parsed to the ROOT node for this scene */
                 if (node != NULL) 
                 	AddRemoveChildren(me->ptr,  offsetPointer_deref(void *,me->ptr,me->ofs), &node, 1, 1,__FILE__,__LINE__);
@@ -3880,7 +3879,6 @@ void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, int num);
 static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
     int mode;
     int type;
-    int name;
 	int user;
 	int source;
 	int ifield;
@@ -3984,10 +3982,10 @@ static BOOL parser_brotoStatement(struct VRMLParser* me)
 {
     int name;
     struct ProtoDefinition* obj;
-    char *startOfBody;
-    char *endOfBody;
-    char *initCP;
-    uintptr_t bodyLen;
+    //char *startOfBody;
+    //char *endOfBody;
+    //char *initCP;
+    //uintptr_t bodyLen;
 	struct X3D_Proto *proto, *parent;
 	void *ptr;
 	DECLAREUP
@@ -4093,12 +4091,9 @@ static BOOL parser_brotoStatement(struct VRMLParser* me)
 
     /* Parse body */
     {
-        /* Store the previous currentProto for future reference, and set the PROTO we are now parsing to the currentProto */
-        struct ProtoDefinition* oldCurPROTO=me->curPROTO;
-        char *protoBody;
 
 #ifdef CPARSERVERBOSE
-        printf ("about to parse PROTO body; curPROTO = %u, new proto def %u\n",oldCurPROTO,obj);
+        printf ("about to parse PROTO body; new proto def %p\n",obj);
 #endif
 
         //me->curPROTO=obj;
@@ -4273,7 +4268,6 @@ BOOL route_parse_nodefield(struct VRMLParser* me, int *NodeIndex, struct X3D_Nod
 static BOOL parser_routeStatement_B(struct VRMLParser* me)
 {
 	struct X3D_Node* fromNode;
-	struct ProtoDefinition* fromProto;
 	int fromOfs;
 	int fromType;
 	int fromNodeIndex;
@@ -4522,7 +4516,7 @@ struct brotoIS
 //copy broto IS to old-style global scene routes
 void copy_IS(Stack *istable, struct X3D_Proto* target, struct Vector *p2p)
 {
-	int i, idir;
+	int i;
 	struct brotoIS *is;
 	struct X3D_Node *node, *pnode;
 	if(istable == NULL) return;
@@ -4645,7 +4639,7 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 void copy_field(int typeIndex, union anyVrml* source, union anyVrml* dest, struct Vector *p2p, 
 				Stack *instancedScripts, struct X3D_Proto *ctx, struct X3D_Node *parent)
 {
-	int lc, i, isize;
+	int i, isize;
 	int sftype, isMF;
 	struct Multi_Node *mfs,*mfd;
 
@@ -4661,7 +4655,7 @@ void copy_field(int typeIndex, union anyVrml* source, union anyVrml* dest, struc
 		mfd = (struct Multi_Node*)dest;
 		//we need to malloc and do more copying
 		nele = mfs->n;
-		if( sftype == FIELDTYPE_SFNode ) nele = upper_power_of_two(nele);
+		if( sftype == FIELDTYPE_SFNode ) nele = (int) upper_power_of_two(nele);
 		mfd->p = MALLOC (struct X3D_Node **, isize*nele);
 		mfd->n = mfs->n;
 		ps = (char *)mfs->p;
@@ -4734,7 +4728,7 @@ void deep_copy_broto_body(struct X3D_Proto** proto, struct X3D_Proto** dest, Sta
 	//3. copy IS table, looking up new_pointers in pointer lookup table
 	//4. copy DEFname table, looking up new pointers in pointer lookup table
 	//
-	int i;
+
 	struct X3D_Proto *prototype, *p;
 	struct X3D_Node *parent;
 	struct Vector *p2p = newVector(struct pointer2pointer*,10);
@@ -4774,7 +4768,7 @@ void deep_copy_broto_body(struct X3D_Proto** proto, struct X3D_Proto** dest, Sta
 */
 void shallow_copy_field(int typeIndex, union anyVrml* source, union anyVrml* dest)
 {
-	int lc, i, isize;
+	int i, isize;
 	int sftype, isMF;
 	struct Multi_Node *mfs,*mfd;
 
@@ -4790,7 +4784,7 @@ void shallow_copy_field(int typeIndex, union anyVrml* source, union anyVrml* des
 		mfd = (struct Multi_Node*)dest;
 		//we need to malloc and do more copying
 		nele = mfs->n;
-		if( sftype == FIELDTYPE_SFNode ) nele = upper_power_of_two(nele);
+		if( sftype == FIELDTYPE_SFNode ) nele = (int) upper_power_of_two(nele);
 		mfd->p = MALLOC (struct X3D_Node **, isize*nele);
 		mfd->n = mfs->n;
 		ps = (char *)mfs->p;
@@ -4864,7 +4858,7 @@ void registerParentIfManagedField(int type, int mode, int isPublic, union anyVrm
 	//isManagedField = isManagedField && (mode == PKW_initializeOnly || mode == PKW_inputOutput);
 	if(isManagedField(mode,type,isPublic))
 	{
-		int n,k,m,haveSomething;
+		int n,k,haveSomething;
 		struct X3D_Node **plist, *sfn;
 		haveSomething = (type==FIELDTYPE_SFNode && any->sfnode) || (type==FIELDTYPE_MFNode && any->mfnode.n);
 		haveSomething = haveSomething && parent;
@@ -5067,7 +5061,7 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 						union anyVrml *source_field, *dest_field;
 						struct ProtoDefinition *sp; 
 						struct ProtoFieldDecl *sdecl;
-						struct FieldDecl *ddecl;
+
 						sp = ctx->__protoDef;
 						sdecl = protoDefinition_getFieldByNum(sp, isrecord->iprotofield);
 						dfield->ASCIIvalue = STRDUP(sdecl->fieldString);
@@ -5229,7 +5223,7 @@ void sceneInstance(struct X3D_Proto* sceneProto, struct X3D_Group *sceneInstance
 	//4. copy DEFname table, looking up new pointers in pointer lookup table
 	//
 
-	struct X3D_Proto *prototype;
+	
 	struct X3D_Proto *scenePlaceholderProto;
 	struct X3D_Node *parent;
 	struct Vector *p2p = newVector(struct pointer2pointer*,10);
@@ -5325,14 +5319,14 @@ const char *rootFieldName(const char* fieldname, int* len, int *has_changed, int
 	you can use s and len in strncmp to test against the rootname
 	*/
 	static char* str_changed = "_changed";
-	static char* str_set = "set_";
+
 	static int len_changed = 8;
 	static int len_set = 4;
 
 	int ln;
 	const char* s;
 
-	ln = strlen(fieldname);
+	ln = (int) strlen(fieldname);
 
 	*has_changed = ln > len_changed ? !strncmp(&fieldname[ln-len_changed],str_changed,len_changed) : FALSE;
 	*has_set     = ln > len_set ? !strncmp(fieldname,"set_",len_set) : FALSE;

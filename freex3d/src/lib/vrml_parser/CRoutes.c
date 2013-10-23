@@ -807,7 +807,6 @@ void AddRemoveChildren (
 
 	if (ar == 1) {
 		/* addChildren - now we know how many SFNodes are in this MFNode, lets MALLOC and add */
-		int startcounter;
 		unsigned long p2new, p2old;
 		unsigned long old_len = (unsigned)(oldlen);
 		unsigned long new_len = (unsigned)(oldlen+len);
@@ -844,17 +843,14 @@ void AddRemoveChildren (
 				FREE_IF_NZ (tn->p);
 			tn->n = oldlen;
 			tn->p = newmal;
-			//startcounter = 0;
 		}else{
 			/*already alloced - just add to end*/
 			newmal = tn->p;
-			//startcounter = oldlen-1;
 			tn->n = oldlen;
 		}
 
 		/* copy the new stuff over - note, tmpptr changes what it points to */
 		tmpptr  = offsetPointer_deref(struct X3D_Node * *,newmal, sizeof(struct X3D_Node *) * oldlen);
-		//tmpptr  = offsetPointer_deref(struct X3D_Node * *,tn->p, sizeof(struct X3D_Node *) * (oldlen-startcounter+1));
 
 		/* tell each node in the nodelist that it has a new parent */
 		for (counter = 0; counter < len; counter++) {
@@ -2050,9 +2046,9 @@ static void sendScriptEventIn(int num) {
             to_ptr = &(p->CRoutes[num].tonodes[to_counter]);
             
 			if (to_ptr->routeToNode->_nodeType == NODE_Script) {
-                struct Shader_Script *myObj;
-
                 #ifdef HAVE_JAVASCRIPT
+                struct Shader_Script *myObj;
+                
 				/* this script initialized yet? We make sure that on initialization that the Parse Thread
 				   does the initialization, once it is finished parsing. */
 
@@ -2259,7 +2255,6 @@ union anyVrml* get_anyVrml(struct X3D_Node* node, int offset, int *type, int *mo
 		case NODE_PackagedShader:
 		case NODE_Script:
 			{
-				struct X3D_Script* scr = (struct X3D_Script*)fromNode;
 				struct Shader_Script* shader = NULL;
 				struct ScriptFieldDecl* sfield;
 				switch(fromNode->_nodeType) 
@@ -2290,7 +2285,7 @@ union anyVrml* get_anyVrml(struct X3D_Node* node, int offset, int *type, int *mo
 		default: //builtin
 			{
 				const int * offsets;
-				int jk;
+
 				fromAny = (union anyVrml*)offsetPointer_deref(void *,fromNode , fromOffset);
 				//I wish we had stored fromType when registering the route
 				offsets = NODE_OFFSETS[fromNode->_nodeType];
@@ -2329,7 +2324,7 @@ void cleanFieldIfManaged(int type,int mode,int isPublic, struct X3D_Node* parent
 	//if(isManagedField)
 	if(isManagedField(mode,type,isPublic))
 	{
-		int n,k,m,haveSomething,fromType,fromMode;
+		int n,k,haveSomething,fromType,fromMode;
 		struct X3D_Node **plist, *sfn;
 		union anyVrml* any;
 		any = get_anyVrml(parent,offset,&fromType,&fromMode);
@@ -2412,7 +2407,11 @@ void propagate_events_B() {
 
 	union anyVrml *fromAny, *toAny; //dug9
 	struct X3D_Node *fromNode, *toNode, *lastFromNode;
-	int fromOffset, toOffset, lastFromOffset, markme, last_markme;
+	int fromOffset, toOffset, lastFromOffset, last_markme;
+#ifdef HAVE_JAVASCRIPT
+    int markme;
+#endif
+    
 	int len, isize, type, sftype, isMF, extra, itime, nRoutesDone, modeFrom, modeTo, debugRoutes;
 
 	CRnodeStruct *to_ptr = NULL;
@@ -2439,7 +2438,7 @@ void propagate_events_B() {
 
 		for (counter = 1; counter < p->CRoutes_Count-1; counter++) {
 			//dug9 >> fromAny
-			union anyVrml tempAny;
+			//JAS union anyVrml tempAny;
 			fromNode = p->CRoutes[counter].routeFromNode;
 			fromOffset = p->CRoutes[counter].fnptr;
 			extra = p->CRoutes[counter].extra;
@@ -2452,7 +2451,7 @@ void propagate_events_B() {
 				case NODE_PackagedShader:
 				case NODE_Script:
 					{
-						struct X3D_Script* scr = (struct X3D_Script*)fromNode;
+						//JAS struct X3D_Script* scr = (struct X3D_Script*)fromNode;
 						struct Shader_Script* shader = NULL;
 						struct ScriptFieldDecl* sfield;
 						switch(fromNode->_nodeType) 
@@ -2512,7 +2511,7 @@ void propagate_events_B() {
 				default: //builtin
 					{
 						const int * offsets;
-						int jk;
+                    
 						fromAny = (union anyVrml*)offsetPointer_deref(void *,fromNode , fromOffset);
 						//I wish we had stored fromType when registering the route
 						offsets = NODE_OFFSETS[fromNode->_nodeType];
@@ -3080,7 +3079,7 @@ void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, 
 		int nele = fromcount;
 		FREE_IF_NZ (mv3ftn->p);
 		/* MALLOC the toptr */
-		if( multitype == ROUTING_MFNODE ) nele = upper_power_of_two(nele);
+		if( multitype == ROUTING_MFNODE ) nele = (int) upper_power_of_two(nele);
 		mv3ftn->p = MALLOC (struct SFVec3f *, structlen*nele); //fromcount);
 		toptr = (void *)mv3ftn->p;
 

@@ -4603,7 +4603,7 @@ void markForDispose(struct X3D_Node *node, int recursive){
 		}
 
 		if (*fieldOffsetsPtr == FIELDNAMES__shaderUserDefinedFields) 
-			break; /* have to get rid of the fields of a shader here....
+			break; /* have to get rid of the fields of a shader here....*/
 	
 		/* nope, not a special field, lets just get rid of it as best we can */
 		switch(*(fieldOffsetsPtr+2)){
