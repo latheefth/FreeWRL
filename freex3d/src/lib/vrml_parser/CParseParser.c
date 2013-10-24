@@ -5294,7 +5294,7 @@ const char *rootFieldName(const char* fieldname, int* len, int *has_changed, int
 	*has_changed = ln > len_changed ? !strncmp(&fieldname[ln-len_changed],str_changed,len_changed) : FALSE;
 	*has_set     = ln > len_set ? !strncmp(fieldname,"set_",len_set) : FALSE;
 	s = *has_set ? &fieldname[len_set] : fieldname;
-	*len = *has_changed? &fieldname[ln - len_changed] - s : &fieldname[ln] - s;
+	*len = *has_changed? (int)(&fieldname[ln - len_changed] - s) : (int)(&fieldname[ln] - s);
 	return s;
 }
 BOOL fieldSynonymCompare(const char *routeFieldName, const char* nodeFieldName) //, int nodeFieldMode)
