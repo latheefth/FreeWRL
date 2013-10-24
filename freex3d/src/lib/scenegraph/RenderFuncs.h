@@ -67,5 +67,6 @@ void sendBindBufferToGPU (GLenum target, GLuint buffer,char *, int);
 void sendElementsToGPU (int mode, int count, ushort *indices);
 void render_hier(struct X3D_Group *p, int rwhat);
 void sendLightInfo (s_shader_capabilities_t *me);
+void restoreGlobalShader();
 
 #endif /* __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__ */

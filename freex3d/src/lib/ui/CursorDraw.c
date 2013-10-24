@@ -32,6 +32,8 @@
 #include "opengl/Textures.h"
 #include "opengl/LoadTextures.h"
 #include "main/MainLoop.h"
+#include "scenegraph/RenderFuncs.h"
+#include "statusbar.h"
 
 
 /* I made a 32x32 image in Gimp, and exported to C Struct format */

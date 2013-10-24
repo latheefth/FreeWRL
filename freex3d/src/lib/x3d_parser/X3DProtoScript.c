@@ -1236,7 +1236,7 @@ static void fixXmlString(char *fvout, char* fvin)
 	//Then our job is to search for &,\',\",<,> and substitute &amp; \&apos; \&quot; &lt; &gt;
 	int i,j,k,len,translated,nadd;
 	char *c = fvout;
-	len = strlen(fvin);
+	len = (int)strlen(fvin);
 	nadd = 0;
 	for(i=0;i<len;i++)
 	{
@@ -2219,7 +2219,7 @@ void endExternProtoDeclare(void) {
 					openned_file_t *of;
 					l = res->openned_files;
 					of = ml_elem(l);
-					buffer = of->fileData;
+					buffer = (char *)of->fileData;
 /* 				pound = strchr(buffer, '#'); */
 /* 				embedEXTERNPROTO(me, myName, buffer, pound); */
 				/*	printf("**** X3D EXTERNPROTO:\n%s\n", buffer); */

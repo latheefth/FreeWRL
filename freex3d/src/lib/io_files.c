@@ -960,7 +960,7 @@ int unzip_archive_to_temp_folder(const char *zipfilename, const char* tempfolder
     printf("%s opened\n",zipfilename);
 	temppath[0] = '\0';
 	if(tempfolderpath){
-		mkdir(tempfolderpath);
+		fw_mkdir(tempfolderpath);
 	}
 
 	{
@@ -1018,8 +1018,8 @@ int unzip_archive_to_temp_folder(const char *zipfilename, const char* tempfolder
 					strcpy(temppath,tempfolderpath);
 					strcat(temppath,"/");
 					strcat(temppath,filename_inzip);
-					//mkdir(filename_inzip);
-					mkdir(temppath);
+					//fw_mkdir(filename_inzip);
+					fw_mkdir(temppath);
 				}
 				else
 				{

@@ -42,6 +42,9 @@
 # include <time.h>
 #endif
 
+#include <sys/stat.h>  // for mkdir
+
+
 #include "../vrml_parser/Structs.h"
 #include "../vrml_parser/CRoutes.h"
 #include "headers.h"

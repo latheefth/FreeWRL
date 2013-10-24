@@ -37,7 +37,7 @@ extern "C" {
 
 void drawStatusBar();
 int handleStatusbarHud(int mev, int* clipplane);
-
+void statusbarHud_DrawCursor(GLint textureID,int x,int y);
 #ifdef __cplusplus
 }
 #endif
