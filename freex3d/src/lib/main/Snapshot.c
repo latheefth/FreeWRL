@@ -237,6 +237,7 @@ void fwl_set_SnapTmp(const char* file)
 
 
 
+#ifdef _MSC_VER
 static char * grabScreen(int bytesPerPixel, int x, int y, int width, int height)
 {
 	/* copies opengl window pixels into a buffer */
@@ -253,6 +254,7 @@ static char * grabScreen(int bytesPerPixel, int x, int y, int width, int height)
 	FW_GL_READPIXELS (x,y,width,height,pixelType,GL_UNSIGNED_BYTE, buffer);
 	return buffer;
 }
+#endif //_MSC_VER
 
 #if defined( _MSC_VER) || defined (IPHONE)
 /* stubbs for now */
@@ -342,14 +344,13 @@ void saveSnapshotBMP(char *pathname, char *buffer,int bytesPerPixel,int width, i
 {
 	//tested for bytesPerPixel == 3 and incoming alignment 1 only
 	//(outgoing/written is byte-aligned 4)
-	int rowlength, extra, alignedwidth, i,j;
+	int rowlength, extra, alignedwidth, i;
 
 	FWBITMAPINFOHEADER bi; 
 	FWORD    bfType;
 	FWBITMAPFILEHEADER bmph;
 	char filler[3] = {'\0','\0','\0'};
 	FILE *fout;
-	ppSnapshot p = (ppSnapshot)gglobal()->Snapshot.prv;
 
 	//fname = "freewrl_snapshot.bmp";
 	//if(p->snapsnapB) fname = p->snapsnapB;
@@ -509,9 +510,10 @@ void fwl_init_PrintShot() {
 /* turn snapshotting on; if sequenced; possibly turn off an convert sequence */
 void fwl_toggleSnapshot() {
 	struct tSnapshot* t = &gglobal()->Snapshot;
-	struct pSnapshot* p = (struct pSnapshot*)t->prv;
 
 #ifdef DOSNAPSEQUENCE
+	struct pSnapshot* p = (struct pSnapshot*)t->prv;
+
 /* need to re-implement this for OSX generating QTVR */
 	if (!t->doSnapshot) {
 		t->doSnapshot = TRUE;

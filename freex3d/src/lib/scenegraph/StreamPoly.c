@@ -590,8 +590,9 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 	FREE_IF_NZ(r->color);
 	FREE_IF_NZ(r->colindex);
 
-	if(temp_points)
+	if(temp_points) {
 		FREE_IF_NZ(points);
+	}
 
 	r->color = (float *)newcolors;
 
@@ -693,6 +694,8 @@ static void defaultTextureMap(struct X3D_Node *p, struct X3D_PolyRep * r) { //, 
 	#ifdef STREAM_POLY_VERBOSE
 	printf ("have to gen default textures\n");
 	#endif
+
+	UNUSED(Tsize); // compiler warnings mitigation
 
 	if ((p->_nodeType == NODE_IndexedFaceSet) ||(p->_nodeType == NODE_ElevationGrid) 
         

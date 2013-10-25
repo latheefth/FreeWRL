@@ -64,13 +64,19 @@ Javascript C language binding.
 #include "jsVRMLBrowser.h"
 
 #ifdef HAVE_JAVASCRIPT
+
+#define X3DBROWSER 1
+
+
+
+#ifndef X3DBROWSER
 #if JS_VERSION < 185
 #define SetPropertyStub JS_PropertyStub
 #else
 #define SetPropertyStub JS_StrictPropertyStub
 #endif
+#endif // ndef X3DBROWSER
 
-#define X3DBROWSER 1
 #ifdef X3DBROWSER
 JSBool
 #if JS_VERSION < 185
@@ -171,9 +177,9 @@ ComponentInfoGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 {
 	IntTableIndex ptr;
 	int _index, *_table, _nameIndex;
-	jsdouble d;
-	JSString *_str;
 	jsval rval;
+
+	UNUSED(rval); // compiler warning mitigation
 
 #if JS_VERSION >= 185
 	jsval id;
@@ -283,9 +289,9 @@ ComponentInfoArrayGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 #endif
 {
 	int *_table;
-	jsdouble d;
-	JSString *_str;
 	jsval rval;
+
+	UNUSED(rval); // compiler warning mitigation
 
 #if JS_VERSION >= 185
 	jsval id;
@@ -387,9 +393,9 @@ ProfileInfoGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 {
 	int *ptr;
 	int _index;
-	jsdouble d;
-	JSString *_str;
 	jsval rval;
+
+	UNUSED(rval); // compiler warning mitigation
 
 #if JS_VERSION >= 185
 	jsval id;
@@ -507,10 +513,9 @@ ProfileInfoArrayGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 ProfileInfoArrayGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 #endif
 {
-	void *ptr;
-	jsdouble d;
-	JSString *_str;
 	jsval rval;
+
+	UNUSED(rval); // compiler warning mitigation
 
 #if JS_VERSION >= 185
 	jsval id;
@@ -608,13 +613,14 @@ X3DRouteGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 {
 	int *ptr;
 	int _index;
-	jsdouble d;
 	JSString *_str;
 	jsval rval;
 	struct X3D_Node *fromNode, *toNode;
 	int fromOffset, toOffset;
 	const char *fieldname;
-	//struct CRStruct *routes, route; 
+
+	UNUSED(rval); // compiler warning mitigation
+
 #if JS_VERSION >= 185
 	jsval id;
 	if (!JS_IdToValue(cx,iid,&id)) {
@@ -747,10 +753,9 @@ RouteArrayGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 RouteArrayGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 #endif
 {
-	void *ptr;
-	jsdouble d;
-	JSString *_str;
 	jsval rval;
+
+	UNUSED(rval); //compiler warning mitigation
 
 #if JS_VERSION >= 185
 	jsval id;
@@ -882,9 +887,10 @@ ExecutionContextGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 #endif
 {
 	ExecutionContextNative *ptr;
-	jsdouble d;
 	JSString *_str;
 	jsval rval;
+
+	UNUSED(rval); //compiler warning mitigation
 
 #if JS_VERSION >= 185
 	jsval id;
@@ -984,7 +990,7 @@ ExecutionContextGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 				JSObject *_obj;
 				//MFNodeNative *mfn;
 
-				struct X3D_Group* scene = (struct X3D_Group*)(struct X3D_Node*)ptr; //->handle;
+				//struct X3D_Group* scene = (struct X3D_Group*)(struct X3D_Node*)ptr; //->handle;
 				return JS_FALSE;
 
 				//scene->children;
@@ -1094,6 +1100,8 @@ BrowserGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 	jsdouble d;
 	JSString *_str;
 	jsval rval;
+
+	UNUSED(rval); // compiler warning mitigation
 
 #if JS_VERSION >= 185
 	jsval id;
@@ -1265,7 +1273,6 @@ BrowserSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval 
 	jsval _val;
 	JSString *ss;
 	char *cs;
-	size_t len;
 #if JS_VERSION >= 185
 	jsval id;
 	if (!JS_IdToValue(cx,iid,&id)) {
@@ -1326,9 +1333,6 @@ void jsVRMLBrowser_init(struct tjsVRMLBrowser *t){
 	//public
 	//private
 	t->prv = jsVRMLBrowser_constructor();
-	{
-		ppjsVRMLBrowser p = (ppjsVRMLBrowser)t->prv;
-	}
 }
 //	ppjsVRMLBrowser p = (ppjsVRMLBrowser)gglobal()->jsVRMLBrowser.prv;
 /* we add/remove routes with this call */
@@ -1377,7 +1381,6 @@ void createLoadUrlString(char *out, int outLen, char *url, char *param) {
 	int commacount1;
 	int commacount2;
 	char *tptr;
-	char *orig;
 
 	/* mimic the EAI loadURL, java code is:
         // send along sizes of the Strings
@@ -1392,9 +1395,6 @@ void createLoadUrlString(char *out, int outLen, char *url, char *param) {
         }
 	*/
 
-	/* keep an original copy of the pointer */
-	orig = out;
-	
 	/* find out how many elements there are */
 
 	commacount1 = 0; commacount2 = 0;
@@ -1726,6 +1726,8 @@ VrmlBrowserSetDescription(JSContext *context, uintN argc, jsval *vp) {
 #endif
 	char *_c, *_c_args = "SFString description";
 
+	UNUSED(_c); // compiler warning mitigation
+
 	if (argc == 1 &&
 #if JS_VERSION < 185
 		JS_ConvertArguments(context, argc, argv, _c_format, &_c)) {
@@ -1776,6 +1778,7 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, uintN argc, jsval *vp) {
 	ttglobal tg = gglobal();
 	struct VRMLParser *globalParser = (struct VRMLParser *)tg->CParse.globalParser;
 	
+	UNUSED(ra); //compiler warning mitigation
 
 	/* make this a default value */
 	*rval = INT_TO_JSVAL(0);
@@ -1874,6 +1877,7 @@ VrmlBrowserCreateX3DFromString(JSContext *context, uintN argc, jsval *vp) {
 	//ttglobal tg = gglobal();
 	//struct VRMLParser *globalParser = (struct VRMLParser *)tg->CParse.globalParser;
 	
+	UNUSED(ra); //compiler warning mitigation
 
 	/* make this a default value */
 	*rval = INT_TO_JSVAL(0);

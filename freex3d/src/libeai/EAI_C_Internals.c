@@ -22,6 +22,8 @@
 #include "config.h"
 #include "system.h"
 
+#define UNUSED(v) ((void) v)
+
 #define WAIT_FOR_RETVAL (command!=SENDEVENT)
 
 static pthread_mutex_t eailock = PTHREAD_MUTEX_INITIALIZER;
@@ -416,6 +418,7 @@ RE_EOT
 
 void _X3D_sendEvent (char command, char *string) {
         char *myptr;
+	UNUSED (myptr); // mitigate compiler warnings
 	EAILOCK
 	verifySendBufferSize (strlen(string));
         sprintf (sendBuffer, "%d %c %s\n",_X3D_queryno,command,string);

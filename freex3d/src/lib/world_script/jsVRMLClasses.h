@@ -61,8 +61,16 @@ of garbage collection
 	{jsval zimbo = INT_TO_JSVAL(this_length);\
 	/* printf ("defining length to %d for %d %d\n",this_length,this_context,this_object);*/ \
 	if (!JS_DefineProperty(this_context, this_object, MF_LENGTH_FIELD, zimbo, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB2, JSPROP_PERMANENT)) { \
-		printf( "JS_DefineProperty failed for \"%s\" at %s:%d.\n",MF_LENGTH_FIELD,__FILE__,__LINE__); \
+		ConsoleMessage( "JS_DefineProperty failed for \"%s\" at %s:%d.\n",MF_LENGTH_FIELD,__FILE__,__LINE__); \
 		return JS_FALSE;\
+	}}
+
+#define DEFINE_LENGTH_NORV(this_context,this_object,this_length) \
+	{jsval zimbo = INT_TO_JSVAL(this_length);\
+	/* printf ("defining length to %d for %d %d\n",this_length,this_context,this_object);*/ \
+	if (!JS_DefineProperty(this_context, this_object, MF_LENGTH_FIELD, zimbo, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB2, JSPROP_PERMANENT)) { \
+		ConsoleMessage( "JS_DefineProperty failed for \"%s\" at %s:%d.\n",MF_LENGTH_FIELD,__FILE__,__LINE__); \
+		return;\
 	}}
 
 #define DEFINE_MF_ECMA_HAS_CHANGED \
@@ -83,14 +91,7 @@ of garbage collection
                         }}
 
 
-#define SET_JS_TICKTIME_RV(possibleRetVal) { jsval zimbo; \
-        JS_NewNumberValue(cx, TickTime(), &zimbo);  \
-        if (!JS_DefineProperty(cx,obj, "__eventInTickTime", zimbo, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB2, JSPROP_PERMANENT)) {  \
-                printf( "JS_DefineProperty failed for \"__eventInTickTime\" at %s:%d.\n",__FILE__,__LINE__); \
-                return possibleRetVal; \
-        }}
-
-#define SET_JS_TICKTIME() { jsval zimbo; \
+#define SET_JS_TICKTIME { jsval zimbo; \
         JS_NewNumberValue(cx, TickTime(), &zimbo);  \
         if (!JS_DefineProperty(cx,obj, "__eventInTickTime", zimbo, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB2, JSPROP_PERMANENT)) {  \
                 printf( "JS_DefineProperty failed for \"__eventInTickTime\" at %s:%d.\n",__FILE__,__LINE__); \
@@ -131,7 +132,7 @@ of garbage collection
                 lenval = INT_TO_JSVAL(length); \
                 if (!JS_SetProperty(cx, newMFObject,  MF_LENGTH_FIELD, &lenval)) { \
                         printf( "JS_SetProperty failed for \"%s\" at %s:%d\n", MF_LENGTH_FIELD,__FILE__,__LINE__); \
-                        return JS_FALSE; \
+                        return; \
                 }} 
 
 #define SET_EVENTIN_VALUE(cx,obj,nameIndex,newObj) \
@@ -140,7 +141,7 @@ of garbage collection
         	if (!JS_DefineProperty(cx,obj, scriptline, OBJECT_TO_JSVAL(newObj), JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB2, JSPROP_PERMANENT)) {  \
         	        printf( "JS_DefineProperty failed for \"ECMA in\" at %s:%d.\n",__FILE__,__LINE__);  \
 		/* printf ("myThread is %u\n",pthread_self()); */ \
-        	        return JS_FALSE; \
+        	        return; \
         }	}
 	
 

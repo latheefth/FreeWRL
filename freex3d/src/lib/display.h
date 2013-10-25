@@ -83,28 +83,11 @@ GLEWContext * glewGetContext();
 #define ERROR 0
 #endif /* TARGET_WIN32 */
 
-#if !defined (_MSC_VER) && !defined (TARGET_AQUA) && !defined(IPHONE) && !defined(_ANDROID) && !defined(QNX)  /* not aqua and not win32, ie linux */
-#ifdef OLDCODE	
-OLDCODE #ifdef HAVE_GLEW_H
-OLDCODE		#include <GL/glew.h>
-OLDCODE		#ifdef GLEW_MX
-OLDCODE			GLEWContext * glewGetContext();
-OLDCODE		#endif
-OLDCODE	#else
-OLDCODE //JAS		#ifndef AQUA
-OLDCODE //JAS			#if !defined(GLES2)
-#endif //OLDCODE
-				#include <GL/gl.h>
-				#include <GL/glu.h>
-				#include <GL/glext.h>
-				#include <GL/glx.h>
-#ifdef OLDCODE //JAS			#else
-OLDCODE //JAS				/* GLES2 */
-OLDCODE //JAS				#include <GLES2/gl2.h>
-OLDCODE //JAS				#include <GLES2/gl2ext.h>
-OLDCODE //JAS			#endif /*ANDROID_NDK*/
-OLDCODE //JAS		#endif
-	#endif //OLDCODE
+#ifdef __linux__
+	#define GL_GLEXT_PROTOTYPES 1
+	#include <GL/gl.h>
+	#include <GL/glext.h>
+	#include <GL/glx.h>
 #endif
 
 #if defined (IPHONE) || defined (_ANDROID) || defined (QNX) || defined(ANGLEPROJECT)

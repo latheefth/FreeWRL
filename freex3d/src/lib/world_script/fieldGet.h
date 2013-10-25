@@ -36,7 +36,7 @@ void getField_ToJavascript_B(int shader_num, int fieldOffset, int type, union an
 void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int datalen);
 void setScriptECMAtype (int num);
 int setMFElementtype (int num);
-int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int datalen);
+void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int datalen);
 void set_EAI_MFElementtype (int num, int offset, char *pptr, int len);
 void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen);
 void setScriptMultiElementtype (int num);

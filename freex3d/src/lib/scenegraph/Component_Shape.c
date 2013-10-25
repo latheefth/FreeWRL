@@ -516,8 +516,13 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 
 
 void render_LineProperties (struct X3D_LineProperties *node) {
-	GLint	factor;
+	#ifdef NEED_TO_ADD_TO_SHADER
+	much of this was working in older versions of FreeWRL,
+	before we went to 100% shader based code. Check FreeWRL
+	from (say) 2011 to see what the shader code looked like
+
 	GLushort pat;
+	#endif
 
 	if (node->applied) {
 		//ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
@@ -530,8 +535,8 @@ void render_LineProperties (struct X3D_LineProperties *node) {
 		}
 
 
+		#ifdef NEED_TO_ADD_TO_SHADER
 		if (node->linetype > 1) {
-			factor = 2;
 			pat = 0xffff; /* can not support fancy line types - this is the default */
 			switch (node->linetype) {
 				case 2: pat = 0xff00; break; /* dashed */
@@ -547,6 +552,7 @@ void render_LineProperties (struct X3D_LineProperties *node) {
 				default: {}
 			}
 		}
+		#endif 
 	}
 }
 

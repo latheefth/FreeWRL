@@ -85,13 +85,6 @@ void  setAquaCursor(int ctype) { };
 
 #endif // _ANDROID
 
-#ifdef IPHONE
-void  setAquaCursor(int ctype) { };
-
-#include <OpenGLES/ES2/gl.h>
-#include <OpenGLES/ES2/glext.h>
-#endif
-
 #include "MainLoop.h"
 
 double TickTime()
@@ -380,7 +373,6 @@ int isBrowserPlugin = FALSE; //I can't think of a scenario where sharing this ac
 
 
 static void setup_viewpoint();
-static void get_collisionoffset(double *x, double *y, double *z);
 
 /* Function protos */
 static void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive);
@@ -704,7 +696,7 @@ void fwl_RenderSceneUpdateScene() {
 						char window_widthxheight[100], equals[50];
 						int width, height;
 						//window_wxh = 600,400
-						if( sscanf(buff,"%s %s %d, %d\n",&window_widthxheight,&equals, &width,&height) == 4) {
+						if( sscanf(buff,"%s %s %d, %d\n",window_widthxheight,equals, &width,&height) == 4) {
 							if(width != tg->display.screenWidth || height != tg->display.screenHeight){
 								if(1){ //right now all we can do is passively complain
 									printf("Ouch - the test playback window size is different than recording:\n");
@@ -722,7 +714,7 @@ void fwl_RenderSceneUpdateScene() {
 					if( fgets(buff, 1000, p->recordingFile) != NULL){
 						char scenefile[100], equals[50];
 						//scenefile = 1.wrl
-						if( sscanf(buff,"%s %s %s \n",&scenefile,&equals, &sceneName) == 3) {
+						if( sscanf(buff,"%s %s %s \n",scenefile,equals, sceneName) == 3) {
 							if(!tg->Mainloop.scene_name){
 								char* suff = NULL;
 								char* local_name = NULL;
@@ -837,7 +829,6 @@ void fwl_RenderSceneUpdateScene() {
 		//for all 3 - read the keyboard string and the mouse string
 		if(p->modeRecord || p->modeFixture || p->modePlayback){
 			if(strlen(keystrokes)>2){ // "x,1," == 6
-				int i; //,n;
 				char *next,*curr;
 				//count the number of ',' 
 				//for(i=0,n=0;i<strlen(keystrokes);i++) if(keystrokes[i] == ',') n++; //(strlen(keystrokes) -2)/4;
@@ -949,7 +940,6 @@ void fwl_RenderSceneUpdateScene() {
 								//   then fixture/1_wrl.0001.rgb or .bmp
 								char snappath[100];
 								char *sep = "_"; // "." or "_" or "/"
-								int j, k;
 								set_snapshotModeTesting(TRUE);
 								//if(isSnapshotModeTesting())
 								//	printf("testing\n");
@@ -981,7 +971,7 @@ void fwl_RenderSceneUpdateScene() {
 				}
 			}
 			if(strlen(mouseStr)>2){
-				int i,ii,jj,len;
+				int i,ii,len;
 				int mev;
 				unsigned int button;
 				float x,y;
@@ -1160,11 +1150,8 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
 	
 	/* do the Xt events here. */
 	while (XtAppPending(Xtcx)!= 0) {
-	    XAnyEvent *aev;
 	    
 	    XtAppNextEvent(Xtcx, &event);
-	    
-	    aev = &event.xany;
 	    
 #ifdef XEVENT_VERBOSE
 	    XButtonEvent *bev;
@@ -2234,7 +2221,8 @@ void toggleLogfile()
 #ifdef _MSC_VER
 		freopen("CON","w",stdout);
 #else
-		freopen("/dev/tty", "w", stdout);
+		//JAS - this does nothing, correct?  
+		// freopen("/dev/tty", "w", stdout);
 #endif
 		//save p->logfname for reopening
 		printf("logging off\n");
@@ -2936,11 +2924,12 @@ void dump_scene2(FILE *fp, int level, struct X3D_Node* node, int recurse, Stack 
 	nodeName = parser_getNameFromNode(node) ;
 	isDefed = isNodeDEFedYet(node,DEFedNodes);
 	spacer fprintf (fp,"L%d: node (%p) (",level,node);
-	if(nodeName != NULL)
+	if(nodeName != NULL) {
 		if(isDefed)
 			fprintf(fp,"USE %s",nodeName);
 		else
 			fprintf(fp,"DEF %s",nodeName);
+	}
 	fprintf(fp,") type %s\n",stringNodeType(node->_nodeType));
 	//fprintf(fp,"recurse=%d ",recurse);
 	if(recurse && !isDefed)
@@ -3137,16 +3126,17 @@ char *findFIELDNAMESfromNodeOffset0(struct X3D_Node *node, int offset)
 				usernames[1] = lexer->user_inputOnly;
 				usernames[2] = lexer->user_outputOnly;
 				usernames[3] = lexer->user_inputOutput;
-				if(pstruct->iface)
-				if(offset < vectorSize(pstruct->iface))
-				{
+				if(pstruct->iface) {
+				    if(offset < vectorSize(pstruct->iface))
+				    {
 					//JAS const char *fieldName;
 					pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, offset);
 					mode = pfield->mode;
 					#define X3DMODE(val)  ((val) % 4)
 					userArr = (char **)&vector_get(const char*, usernames[X3DMODE(mode)], 0);
 					return userArr[pfield->name];
-				} else return NULL;
+				    } else return NULL;
+				}
 			}else return NULL;
 		}
 		else
@@ -3232,11 +3222,11 @@ void addMenuChar(kp,type)
 	void (*callback)(void*,char*);
 	void *yourData;
 #ifdef _MSC_VER
-	if(type == KEYPRESS)
+	if(type == KEYPRESS) {
 #else
-	if(type == KEYDOWN)
+	if(type == KEYDOWN) {
 #endif
-	if(kp == '\n' || kp == '\r')
+	if((kp == '\n') || (kp == '\r'))
 	{
 		ConsoleMessage("\n");
 		if(ConsoleMenuState.len == 0) 
@@ -3256,6 +3246,7 @@ void addMenuChar(kp,type)
 		ConsoleMenuState.buf[ConsoleMenuState.len] = kp;
 		ConsoleMenuState.len++;
 		ConsoleMenuState.buf[ConsoleMenuState.len] = '\0';
+	}
 	}
 }
 void setConsoleMenu(void *yourData, char *prompt, void (*callback), char* dfault)
@@ -3368,7 +3359,7 @@ void fwl_do_keyPress0(int key, int type) {
                                 case '=': { dump_scenegraph(3); break; }
                                 case '+': { dump_scenegraph(4); break; }
                                 case '-': { dump_scenegraph(5); break; }
-								case '`': { toggleLogfile(); break; }
+				case '`': { toggleLogfile(); break; }
 
                                 case '$': resource_tree_dump(0, tg->resources.root_res); break;
                                 case '*': resource_tree_list_files(0, tg->resources.root_res); break;
@@ -4031,7 +4022,6 @@ void checkFileLoadRequest()
 	*/
 
 	char *fname;
-	ttglobal tg = gglobal();
 	fname = NULL;
 
 	//poll state:
@@ -4061,12 +4051,10 @@ void checkFileLoadRequest()
 }
 void _displayThread(void *globalcontext)
 {
-	ttglobal testg;
 	ttglobal tg = (ttglobal)globalcontext;
 	//tg->threads.DispThrd = pthread_self();
 	//set_thread2global(tg, tg->threads.DispThrd ,"display thread");
 	fwl_setCurrentHandle(tg,__FILE__,__LINE__);
-	testg = gglobal();
 
 	ENTER_THREAD("display");
 

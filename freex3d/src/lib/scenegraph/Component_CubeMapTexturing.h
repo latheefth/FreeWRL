@@ -72,23 +72,23 @@ bool textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename);
 #define DDSCAPS2_CUBEMAP_NEGATIVEZ  0x00008000 
 #define DDSCAPS2_VOLUME             0x00200000 
 
-#define D3DFMT_DXT1     '1TXD'    //  DXT1 compression texture format 
-#define D3DFMT_DXT2     '2TXD'    //  DXT2 compression texture format 
-#define D3DFMT_DXT3     '3TXD'    //  DXT3 compression texture format 
-#define D3DFMT_DXT4     '4TXD'    //  DXT4 compression texture format 
-#define D3DFMT_DXT5     '5TXD'    //  DXT5 compression texture format 
+#define D3DFMT_DXT1     "1TXD"    //  DXT1 compression texture format 
+#define D3DFMT_DXT2     "2TXD"    //  DXT2 compression texture format 
+#define D3DFMT_DXT3     "3TXD"    //  DXT3 compression texture format 
+#define D3DFMT_DXT4     "4TXD"    //  DXT4 compression texture format 
+#define D3DFMT_DXT5     "5TXD"    //  DXT5 compression texture format 
 
 #define PF_IS_DXT1(pf) \
   ((pf.dwFlags & DDPF_FOURCC) && \
-   (pf.dwFourCC == D3DFMT_DXT1))
+   (pf.dwFourCC == (unsigned int) D3DFMT_DXT1))
 
 #define PF_IS_DXT3(pf) \
   ((pf.dwFlags & DDPF_FOURCC) && \
-   (pf.dwFourCC == D3DFMT_DXT3))
+   (pf.dwFourCC == (unsigned int) D3DFMT_DXT3))
 
 #define PF_IS_DXT5(pf) \
   ((pf.dwFlags & DDPF_FOURCC) && \
-   (pf.dwFourCC == D3DFMT_DXT5))
+   (pf.dwFourCC == (unsigned int) D3DFMT_DXT5))
 
 #define PF_IS_BGRA8(pf) \
   ((pf.dwFlags & DDPF_RGB) && \

@@ -55,6 +55,8 @@
 #include "plugin/pluginUtils.h"
 #include "plugin/PluginSocket.h"
 
+#define UNUSED(v) ((void) v)
+
 /* Internal function prototypes */
 void append_openned_file(s_list_t *list, const char *filename, int fd, char *text);
 
@@ -137,8 +139,6 @@ char *strBackslash2fore(char *str)
 char *get_current_dir()
 {
 	char *cwd , *retvar;
-	char *consoleBuffer;
-	consoleBuffer = MALLOC(char *, 200+PATH_MAX);
 	cwd = MALLOC(char *, PATH_MAX);
 	retvar = getcwd(cwd, PATH_MAX);
 	if (NULL != retvar) {
@@ -151,8 +151,6 @@ char *get_current_dir()
 		printf("Unable to establish current working directory in %s,%d errno=%d",__FILE__,__LINE__,errno) ;
 		cwd = "/tmp/" ;
 	}
-	//sprintf(consoleBuffer ,"get_current_dir returns[%s]\n",cwd);
-	//fwl_StringConsoleMessage(consoleBuffer);
 	return cwd;
 }
 
@@ -295,7 +293,7 @@ static openned_file_t* load_file_read(const char *filename)
 {
 	struct stat ss;
 	int fd;
-	char *text, *current;
+	unsigned char *text, *current;
 
 #ifdef _MSC_VER
 	size_t blocksz, readsz, left2read;
@@ -322,7 +320,7 @@ static openned_file_t* load_file_read(const char *filename)
 		return NULL;
 	}
 
-	text = current = MALLOC(char *, ss.st_size +1); /* include space for a null terminating character */
+	text = current = MALLOC(unsigned char *, ss.st_size +1); /* include space for a null terminating character */
 	if (!text) {
 		ERROR_MSG("load_file_read: cannot allocate memory to read file %s\n", filename);
 		close(fd);
@@ -920,6 +918,8 @@ void remove_file_or_folder(const char * path){
 	if (!stat(path, &statbuf))
 	{
         int r2;
+	UNUSED (r2);
+
 		if (S_ISDIR(statbuf.st_mode))
 		{
 			r2 = directory_remove_all(path);

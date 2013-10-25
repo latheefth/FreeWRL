@@ -896,8 +896,6 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
         GLint compression;
         int generateMipMaps;
 
-	int nurls;
-
 	unsigned char *mytexdata;
 
 	
@@ -919,7 +917,6 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	borderColour.c[0]=0.0f;borderColour.c[1]=0.0f;borderColour.c[2]=0.0f;borderColour.c[3]=0.0f;
 	compression = GL_FALSE;
 	borderWidth = 0;
-	nurls=1;
 	mytexdata = NULL;
 
     /* did this node get killed on the way here? */

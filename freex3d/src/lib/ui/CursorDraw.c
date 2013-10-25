@@ -24,6 +24,8 @@
 #include <internal.h>
 
 #include <libFreeWRL.h>
+#include <display.h>
+
 #include "../vrml_parser/Structs.h"
 #include "main/headers.h"
 #include "vrml_parser/Structs.h"
@@ -239,7 +241,8 @@ void cursorDraw(int ID, int x, int y, float angle)
 	XY xy;
 	FXY fxy;
 	int i,j;
-	GLint shader, positionLoc, texCoordLoc, textureLoc;
+	//GLint shader;
+	GLint  positionLoc, texCoordLoc, textureLoc;
     //GLint textureCount;
     GLint textureMatrix;
 	ppCursorDraw p;
@@ -272,7 +275,7 @@ void cursorDraw(int ID, int x, int y, float angle)
 	//glUseProgram ( p->programObject );
 	scap = getMyShader(ONE_TEX_APPEARANCE_SHADER);
 	enableGlobalShader(scap);
-	shader = getAppearanceProperties()->currentShaderProperties->myShaderProgram;
+	//shader = getAppearanceProperties()->currentShaderProperties->myShaderProgram;
 
 	xy = mouse2screen2(x,y);
 	FW_GL_VIEWPORT(0, 0, tg->display.screenWidth, tg->display.screenHeight);

@@ -674,7 +674,8 @@ void Extru_ST_map(
 	 */
 
 	for(x=start; x<end; x++) {
-		int tci, ci;
+		int tci; 
+		// int ci;
 
 		/*
 		printf ("Extru_ST_Map: triangle has tex vertices:%d %d %d ",
@@ -689,7 +690,7 @@ void Extru_ST_map(
 
 		/* for first vertex */
 		tci = tcindex[triind_start*3];
-		ci = cindex[triind_start*3];
+		//ci = cindex[triind_start*3];
 		Point_Zero = tci;
 
 		if ((tci*3+2) >= tcoordsize) {
@@ -709,7 +710,7 @@ void Extru_ST_map(
 
 		/* for second vertex */
 		tci = tcindex[triind_start*3+1];
-		ci = cindex[triind_start*3+1];
+		//ci = cindex[triind_start*3+1];
 
 		if ((tci*3+2) >= tcoordsize) {
 			printf ("INTERNAL ERROR: Extru_ST_map(2), index %d greater than %d \n",(tci*3+2),tcoordsize);
@@ -728,7 +729,6 @@ void Extru_ST_map(
 
 		/* for third vertex */
 		tci = tcindex[triind_start*3+2];
-		ci = cindex[triind_start*3+2];
 
 		if ((tci*3+2) >= tcoordsize) {
 			printf ("INTERNAL ERROR: Extru_ST_map(3), index %d greater than %d \n",(tci*3+2),tcoordsize);
@@ -773,7 +773,7 @@ void do_glNormal3fv(struct SFVec3f *dest, GLfloat *param) {
  ********************************************************************/
 
 void render_polyrep(void *node) {
-	struct X3D_Virt *virt;
+	//struct X3D_Virt *virt;
 	struct X3D_Node *renderedNodePtr;
 	struct X3D_PolyRep *pr;
 	int hasc;
@@ -782,7 +782,7 @@ void render_polyrep(void *node) {
 	ttglobal tg = gglobal();
 
 	renderedNodePtr = X3D_NODE(node);
-	virt = virtTable[renderedNodePtr->_nodeType];
+	//virt = virtTable[renderedNodePtr->_nodeType];
 	pr = renderedNodePtr->_intern;
     
 	#ifdef TEXVERBOSE
@@ -924,20 +924,20 @@ PRINT_GL_ERROR_IF_ANY("");
  */
 
 void render_ray_polyrep(void *node) {
-	struct X3D_Virt *virt;
+	//struct X3D_Virt *virt;
 	struct X3D_Node *genericNodePtr;
 	struct X3D_PolyRep *polyRep;
 	int i;
 	int pt;
 	float *point[3];
 	struct point_XYZ v1, v2, v3;
-	struct point_XYZ ray;
+	//struct point_XYZ ray;
 	float pt1, pt2, pt3;
 	struct point_XYZ hitpoint;
 	float tmp1,tmp2;
 	float v1len, v2len, v3len;
 	float v12pt;
-	struct point_XYZ t_r1,t_r2,t_r3;
+	struct point_XYZ t_r1,t_r2;
 	ttglobal tg;
 
 	/* is this structure still loading? */
@@ -945,14 +945,14 @@ void render_ray_polyrep(void *node) {
 	tg = gglobal();
 	VECCOPY(t_r1,tg->RenderFuncs.t_r1);
 	VECCOPY(t_r2,tg->RenderFuncs.t_r2);
-	VECCOPY(t_r3,tg->RenderFuncs.t_r3);
+	//VECCOPY(t_r3,tg->RenderFuncs.t_r3);
 
-	ray.x = t_r2.x - t_r1.x;
-	ray.y = t_r2.y - t_r1.y;
-	ray.z = t_r2.z - t_r1.z;
+	//ray.x = t_r2.x - t_r1.x;
+	//ray.y = t_r2.y - t_r1.y;
+	//ray.z = t_r2.z - t_r1.z;
 
 	genericNodePtr = X3D_NODE(node);
-	virt = virtTable[genericNodePtr->_nodeType];
+	//virt = virtTable[genericNodePtr->_nodeType];
 	
 	/* is this structure still loading? */
 	if (!(genericNodePtr->_intern)) {

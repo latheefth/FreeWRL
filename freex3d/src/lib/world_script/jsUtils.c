@@ -119,6 +119,9 @@ static JSBool setSF_in_MF (JSContext *cx, JSObject *obj, jsid iid, JSBool strict
 #if JS_VERSION >= 185
 	char *tmp;
 	jsval id;
+
+	UNUSED(tmp); // compiler warning mitigation
+
 	if (!JS_IdToValue(cx,iid,&id)) {
 		printf("setSF_in_MF: JS_IdToValue failed.\n");
 		return JS_FALSE;
@@ -897,6 +900,8 @@ static int *getFOP (struct X3D_Node *node, const char *str) {
 				char *name, *str1, *token;
 				char *saveptr1 = NULL;
 
+				UNUSED (token); // compiler warning mitigation
+
 				for (i=0; i < X3D_GROUP(node)->FreeWRL_PROTOInterfaceNodes.n; i++) {
 	       				name = parser_getNameFromNode(X3D_GROUP(node)->FreeWRL_PROTOInterfaceNodes.p[i]);
 					
@@ -922,7 +927,7 @@ static int *getFOP (struct X3D_Node *node, const char *str) {
 							,X3D_GROUP(node)->FreeWRL_PROTOInterfaceNodes.p[i]
 							,X3D_GROUP(node)->FreeWRL_PROTOInterfaceNodes.p[i]) ;
 						#endif
-						return X3D_GROUP(node)->FreeWRL_PROTOInterfaceNodes.p[i] ;
+						return (int *)X3D_GROUP(node)->FreeWRL_PROTOInterfaceNodes.p[i] ;
 					}
 				}
 			} else {
@@ -955,7 +960,7 @@ static int *getFOP (struct X3D_Node *node, const char *str) {
 
 /* getter for SFNode accesses */
 static JSBool getSFNodeField (JSContext *context, JSObject *obj, jsid id, jsval *vp) {
-	JSString *_idStr;
+	//JSString *_idStr;
 	char *_id_c;
         SFNodeNative *ptr;
 	int *fieldOffsetsPtr;
@@ -1366,6 +1371,8 @@ int JS_DefineSFNodeSpecificProperties (JSContext *context, JSObject *object, str
 				int i ;
 				char *str1, *token;
 				char *saveptr1 = NULL;
+
+				UNUSED(token); // compiler warning mitigation
 
 				for (i=0; i < X3D_GROUP(ptr)->FreeWRL_PROTOInterfaceNodes.n; i++) {
 					rval = INT_TO_JSVAL(*fieldOffsetsPtr);

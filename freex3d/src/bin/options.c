@@ -184,7 +184,7 @@ int fv_parseCommandLine (int argc, char **argv, freewrl_params_t *fv_params)
     int real_option_index;
     const char *real_option_name;
     //char *logFileName = NULL;
-    FILE *fp;
+    //FILE *fp;
 
 #if defined(DOSNAPSEQUENCE)
 	static const char optstring[] = "efg:hi:j:k:vVlpq:m:n:o:bsQW:K:Xcr:y:utCL:d:RFPN:";
@@ -293,7 +293,7 @@ int fv_parseCommandLine (int argc, char **argv, freewrl_params_t *fv_params)
 
 	case 'd': /* --display, required argument int */
 		printf ("Parameter --display = %s\n", optarg);
-		sscanf(optarg,"%ld", &ldtmp);
+		sscanf(optarg,"%ld", (long int *)&ldtmp);
 		fv_params->winToEmbedInto = ldtmp;
 		break;
 

@@ -6,6 +6,8 @@
 #define LOCK_ADVISE_TABLE printf ("locking advise table\n");
 #define UNLOCK_ADVISE_TABLE printf ("unlocking advise table\n");
 
+#define UNUSED(v) ((void) v)  // compiler mitigation
+
 struct EAI_ListenerStruct {
 	int FreeWRL_RegisterNumber;
 	int type;
@@ -66,6 +68,9 @@ void _handleFreeWRLcallback (char *line) {
 	double evTime;
 	int evIndex;
 	int count;
+	size_t wc;
+
+	UNUSED(wc);
 
 	/* something funny at the beginning of time? */
 	if (AdviseIndex < 0) return;
@@ -117,8 +122,8 @@ void _handleFreeWRLcallback (char *line) {
 				send(_X3D_FreeWRL_Swig_FD, (const char *) EAI_ListenerTable[count].FreeWRL_RegisterNumber, sizeof(EAI_ListenerTable[count].FreeWRL_RegisterNumber),0);
                 send(_X3D_FreeWRL_Swig_FD, (const char *) EAI_ListenerTable[count].dataArea, sizeof(EAI_ListenerTable[count].dataArea),0);
 #else
-                write(_X3D_FreeWRL_Swig_FD, EAI_ListenerTable[count].FreeWRL_RegisterNumber, sizeof(EAI_ListenerTable[count].FreeWRL_RegisterNumber));
-                write(_X3D_FreeWRL_Swig_FD, EAI_ListenerTable[count].dataArea, sizeof(EAI_ListenerTable[count].dataArea));
+                wc = write(_X3D_FreeWRL_Swig_FD, (const void *)EAI_ListenerTable[count].FreeWRL_RegisterNumber, sizeof(EAI_ListenerTable[count].FreeWRL_RegisterNumber));
+                wc = write(_X3D_FreeWRL_Swig_FD, EAI_ListenerTable[count].dataArea, sizeof(EAI_ListenerTable[count].dataArea));
 #endif
 			} else {
 				printf("no socket connected for callbacks!");

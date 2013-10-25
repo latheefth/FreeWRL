@@ -118,7 +118,6 @@ void getField_ToJavascript (int num, int fromoffset) {
 
 //void getField_ToJavascript_B(int num, int fromoffset) {
 void getField_ToJavascript_B(int shader_num, int fieldOffset, int type, union anyVrml *any, int len) {
-	int ignored;
 
 	#ifdef SETFIELDVERBOSE 
 		printf ("getField_ToJavascript, from offset %d type %d num=%d\n",
@@ -160,7 +159,7 @@ void getField_ToJavascript_B(int shader_num, int fieldOffset, int type, union an
 	case FIELDTYPE_SFImage:
 
 		//ignored = setMFElementtype(num);
-		ignored = set_one_MFElementType(shader_num, fieldOffset, type, (void *)any,len);
+		set_one_MFElementType(shader_num, fieldOffset, type, (void *)any,len);
 
 		break;
 	default : {
@@ -194,7 +193,7 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 	JS_BeginRequest(cx);
 #endif
 	/* set the time for this script */
-	SET_JS_TICKTIME()
+	SET_JS_TICKTIME
 
 	X3D_ECMA_TO_JS(cx, Data, datalen, dataType, &newval);
 
@@ -258,7 +257,7 @@ void setScriptECMAtype (int num) {
 
 
 /* use Javascript to send in one element of an MF. datalen is in number of elements in type. */
-int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int datalen) {
+void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int datalen) {
 	JSContext *cx;
 	JSObject *obj;
 	int elementlen;
@@ -285,7 +284,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 	JS_BeginRequest(cx);
 #endif
 	/* set the TickTime (possibly again) for this context */
-	SET_JS_TICKTIME_RV(FALSE)
+	SET_JS_TICKTIME
 
 	/* make up the name */
 	switch (dataType) {
@@ -300,7 +299,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject,datalen)
+			DEFINE_LENGTH_NORV(cx,newMFObject,datalen)
 
 			/* fill in private pointer area */
 			elementlen = (int) sizeof (float);
@@ -308,11 +307,11 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 				/* create a new SFRotation object */
 				newSFObject = JS_ConstructObject(cx,&SFRotationClass,NULL, newMFObject);
 				if ((SFRPptr = (SFRotationNative *)JS_GetPrivate(cx, newSFObject)) == NULL) {
-					printf ("failure in getting SF class at %s:%d\n",__FILE__,__LINE__);
+					ConsoleMessage ("failure in getting SF class at %s:%d\n",__FILE__,__LINE__);
 #if defined(JS_THREADSAFE)
 					JS_EndRequest(cx);
 #endif
-					return FALSE;
+					return;
 				}
 
 				/* fill the private pointer area */
@@ -351,7 +350,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject,datalen)
+			DEFINE_LENGTH_NORV(cx,newMFObject,datalen)
 
 			/* fill in private pointer area */
 			elementlen = (int) sizeof (float);
@@ -359,11 +358,11 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 				/* create a new SFVec3f object */
 				newSFObject = JS_ConstructObject(cx,&SFVec3fClass,NULL, newMFObject);
 				if ((SFRPptr = (SFVec3fNative *)JS_GetPrivate(cx, newSFObject)) == NULL) {
-					printf ("failure in getting SF class at %s:%d\n",__FILE__,__LINE__);
+					 ConsoleMessage ("failure in getting SF class at %s:%d\n",__FILE__,__LINE__);
 #if defined(JS_THREADSAFE)
 					JS_EndRequest(cx);
 #endif
-					return FALSE;
+					return;
 				}
 
 				/* fill the private pointer area */
@@ -401,7 +400,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject,datalen)
+			DEFINE_LENGTH_NORV(cx,newMFObject,datalen)
 
 			/* fill in private pointer area */
 			elementlen = (int) sizeof (float);
@@ -409,11 +408,11 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 				/* create a new SFColor object */
 				newSFObject = JS_ConstructObject(cx,&SFColorClass,NULL, newMFObject);
 				if ((SFRPptr = (SFColorNative *)JS_GetPrivate(cx, newSFObject)) == NULL) {
-					printf ("failure in getting SF class at %s:%d\n",__FILE__,__LINE__);
+					ConsoleMessage ("failure in getting SF class at %s:%d\n",__FILE__,__LINE__);
 #if defined(JS_THREADSAFE)
 					JS_EndRequest(cx);
 #endif
-					return FALSE;
+					return;
 				}
 
 				/* fill the private pointer area */
@@ -451,7 +450,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject,datalen)
+			DEFINE_LENGTH_NORV(cx,newMFObject,datalen)
 
 			/* fill in private pointer area */
 			elementlen = (int) sizeof (float);
@@ -459,11 +458,11 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 				/* create a new SFVec2f object */
 				newSFObject = JS_ConstructObject(cx,&SFVec2fClass,NULL, newMFObject);
 				if ((SFRPptr = (SFVec2fNative *)JS_GetPrivate(cx, newSFObject)) == NULL) {
-					printf ("failure in getting SF class at %s:%d\n",__FILE__,__LINE__);
+					ConsoleMessage ("failure in getting SF class at %s:%d\n",__FILE__,__LINE__);
 #if defined(JS_THREADSAFE)
 					JS_EndRequest(cx);
 #endif
-					return FALSE;
+					return;
 				}
 
 				/* fill the private pointer area */
@@ -473,7 +472,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),
 					JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
-						printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
+						ConsoleMessage("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
 				}
 			}
 
@@ -499,7 +498,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject,datalen)
+			DEFINE_LENGTH_NORV(cx,newMFObject,datalen)
 
 			/* fill in private pointer area */
 			elementlen = (int) sizeof (float);
@@ -538,7 +537,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject,datalen)
+			DEFINE_LENGTH_NORV(cx,newMFObject,datalen)
 
 			/* fill in private pointer area */
 			elementlen = (int) sizeof (double);
@@ -577,7 +576,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject,datalen)
+			DEFINE_LENGTH_NORV(cx,newMFObject,datalen)
 
 			/* fill in private pointer area */
 			elementlen = (int) sizeof (float);
@@ -619,7 +618,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			uniptr = (struct Uni_String **) ip_in;
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject,datalen)
+			DEFINE_LENGTH_NORV(cx,newMFObject,datalen)
 
 			/* fill in private pointer area */
 			for (x=0; x<datalen; x++) {
@@ -655,7 +654,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject,datalen)
+			DEFINE_LENGTH_NORV(cx,newMFObject,datalen)
 
 			/* fill in private pointer area */
 			elementlen = (int) sizeof (void *);
@@ -686,14 +685,14 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 		case FIELDTYPE_SFImage:	{
 			JSObject *newMFObject;
 			jsval newjsval;
-			double *ip, *ip_in=(double *)Data;
+			double *ip_in=(double *)Data;
 
 			/* create a new MFNode object... */
 			newMFObject = JS_ConstructObject(cx, &SFImageClass, NULL ,JS_GetParent(cx, obj));
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject,datalen)
+			DEFINE_LENGTH_NORV(cx,newMFObject,datalen)
 
 			/* fill in private pointer area */
 			mePix = (struct X3D_PixelTexture *) ip_in;
@@ -756,7 +755,6 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 #if defined(JS_THREADSAFE)
 	JS_EndRequest(cx);
 #endif
-	return TRUE;
 }
 
 
@@ -772,7 +770,6 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
         case FIELDTYPE_MFRotation:
         case FIELDTYPE_SFImage:
 */
-
 
 
 int setMFElementtype (int num) {
@@ -929,7 +926,7 @@ void **getInternalDataPointerForJavascriptObject(JSContext *cx, JSObject *obj, i
 		//JAS return (void **) &me->v;
 		
         } else if (JS_InstanceOf(cx, sfObj, &SFImageClass, NULL)) { 
-		SFImageNative *me = (SFImageNative *)_privPtr;
+		//SFImageNative *me = (SFImageNative *)_privPtr;
 		//JAS return (void **) &me->v;
 		
         }
@@ -958,7 +955,7 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen 
 	JS_BeginRequest(cx);
 #endif
 	/* set the time for this script */
-	SET_JS_TICKTIME()
+	SET_JS_TICKTIME
 
 	/* copy over the data from the VRML side into the script variable. */
 	pp = getInternalDataPointerForJavascriptObject(cx,obj,tnfield);
@@ -1000,12 +997,8 @@ void setScriptMultiElementtype (int num)
 	int to_counter;
 	void *fn;
 
-	JSContext *cx;
-	JSObject *obj;
-
 	CRnodeStruct *to_ptr = NULL;
 	struct CRStruct *CRoutes = getCRoutes();
-	struct CRscriptStruct *ScriptControl = getScriptControl();
 
 
 	fn = (void *)CRoutes[num].routeFromNode;
@@ -1034,10 +1027,6 @@ void setScriptMultiElementtype (int num)
 			printf ("\tdata length %d\n",len);
 			printf ("setScriptMultiElementtype here script number  %d tptr %d len %d\n",myObj->num, tptr,len);
 		#endif
-
-		/* get context and global object for this script */
-		cx =  ScriptControl[myObj->num].cx;
-		obj = ScriptControl[myObj->num].glob;
 
 		fn = offsetPointer_deref(void*,fn,fptr); /*fn += fptr;*/
 
@@ -1311,7 +1300,6 @@ int UtilEAI_Convert_mem_to_ASCII (int type, char *memptr, char *buf) { /* Return
 		}
 
 
-/*XXX	case EAI_MFTIME:	{handleptr = &handleEAI_MFTIME_Listener;break;}*/
 	}
 	return errcount ;
 }

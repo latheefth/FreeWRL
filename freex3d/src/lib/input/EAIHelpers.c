@@ -505,7 +505,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 	char *invokedValPtr = NULL;  /* for PROTOs - invocation value */
 	int myScriptType = EAI_NODETYPE_STANDARD;
 	int direction;
-	struct X3D_Node* protoBaseNode;
+	// struct X3D_Node* protoBaseNode;
 	int isProtoExpansion = FALSE;
 	int eaiverbose;
 	ppEAIHelpers p;
@@ -549,12 +549,14 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 	/* did not find the field as an ISd field - is this a field of the actual X3D base node?? */
 	/* mimic POSSIBLE_PROTO_EXPANSION(nodePtr,protoBaseNode); */
 
+/* unused 
         if (nodePtr == NULL) protoBaseNode = NULL; 
         else {if (X3D_NODE(nodePtr)->_nodeType == NODE_Group) { 
                 if (X3D_GROUP(nodePtr)->children.n>0) { 
                         protoBaseNode = X3D_GROUP(nodePtr)->children.p[0]; 
                 } else protoBaseNode = NULL; 
         } else protoBaseNode = nodePtr; };
+*/
 
 	/* is this a proto expansion? */
 	//if (X3D_NODE(nodePtr)->_nodeType == NODE_Group) {
@@ -746,6 +748,9 @@ void handleEAIGetValue (char command, char *bufptr, int repno) {
 	struct EAINodeParams *myParam;
 	int eaiverbose;
 	ppEAIHelpers p;
+
+	UNUSED(retint); // compiler warning mitigation
+
 	ttglobal tg = gglobal();
 	eaiverbose = gglobal()->EAI_C_CommonFunctions.eaiverbose;
 	p = (ppEAIHelpers)gglobal()->EAIHelpers.prv;

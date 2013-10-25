@@ -302,7 +302,7 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 	struct X3D_MovieTexture *mnode;
 #endif /* HAVE_TO_REIMPLEMENT_MOVIETEXTURES */
 	struct X3D_AudioClip *anode;
-	struct X3D_Inline *inode;
+	//struct X3D_Inline *inode;
 	
 	/* if not enabled, do nothing */
 	if (!node) return;
@@ -368,7 +368,7 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 			break;
 
 		case NODE_Inline:
-			inode = (struct X3D_Inline *) tnode; /* change type to Inline */
+			//inode = (struct X3D_Inline *) tnode; /* change type to Inline */
 			/* printf ("LoadSensor, Inline %d, type %d loadstatus %d at %d\n",inode,inode->_nodeType,inode->__loadstatus, &inode->__loadstatus); */
 			break;
 

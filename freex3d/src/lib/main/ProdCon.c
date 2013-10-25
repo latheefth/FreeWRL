@@ -751,9 +751,8 @@ void dump_resource_waiting(resource_item_t* res)
 }
 
 void send_resource_to_parser_async(resource_item_t *res){
-	ppProdCon p;
 	ttglobal tg = gglobal();
-	p = (ppProdCon)tg->ProdCon.prv;
+
 #ifdef NEWQUEUE
 	resitem_enqueue(ml_new(res));
 #else //NEWQUEUE
@@ -795,6 +794,8 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	ttglobal tg = gglobal();
 	t = &tg->ProdCon;
 	p = (ppProdCon)t->prv;
+
+	UNUSED(parsedOk); // compiler warning mitigation
 
     //printf ("entering parser_process_res_VRML_X3D\n");
 
@@ -1262,7 +1263,6 @@ void _inputParseThread(void *globalcontext)
 
 	{
 		ppProdCon p = (ppProdCon)tg->ProdCon.prv;
-        bool result;
 		tg->threads.PCthread = pthread_self();
 		//set_thread2global(tg, tg->threads.PCthread ,"parse thread");
 		fwl_setCurrentHandle(tg,__FILE__,__LINE__);
@@ -1275,20 +1275,26 @@ void _inputParseThread(void *globalcontext)
 		/* now, loop here forever, waiting for instructions and obeying them */
 #ifdef NEWQUEUE
 		for (;;) {
+			#if defined (IPHONE) || defined (_ANDROID)
+        		bool result = TRUE;
+			#endif
+
 			s_list_t* __l = resitem_dequeue();
-            result = TRUE;
 			p->inputThreadParsing = TRUE;
 			result = parser_process_res(__l); //,&p->resource_list_to_parse);
 			p->inputThreadParsing = FALSE;
-#if defined (IPHONE) || defined (_ANDROID)
-            if (result) setMenuStatus ("ok"); else setMenuStatus("not ok");
-#endif
+			#if defined (IPHONE) || defined (_ANDROID)
+            		if (result) setMenuStatus ("ok"); else setMenuStatus("not ok");
+			#endif
 		}
 #else //NEWQUEUE
 		for (;;) {
+        		bool result = TRUE;
+
+			UNUSED(result); // compiler warning mitigation
+
 			WAIT_WHILE_NO_DATA;
 
-            result = TRUE;
 			p->inputThreadParsing = TRUE;
 
 			/* go through the resource list until it is empty */
@@ -1298,10 +1304,10 @@ void _inputParseThread(void *globalcontext)
 			}
 			p->inputThreadParsing = FALSE;
 
-#if defined (IPHONE) || defined (_ANDROID)
+			#if defined (IPHONE) || defined (_ANDROID)
             
-            if (result) setMenuStatus ("ok"); else setMenuStatus("not ok");
-#endif
+            		if (result) setMenuStatus ("ok"); else setMenuStatus("not ok");
+			#endif
 
 			/* Unlock the resource list */
 			PARSER_FINISHING;
@@ -1313,37 +1319,37 @@ void _inputParseThread(void *globalcontext)
 }
 
 
-static void unbind_node(struct X3D_Node* node) {
-	switch (node->_nodeType) {
-		case NODE_Viewpoint:
-			X3D_VIEWPOINT(node)->isBound = 0;
-			break;
-		case NODE_OrthoViewpoint:
-			X3D_ORTHOVIEWPOINT(node)->isBound = 0;
-			break;
-		case NODE_GeoViewpoint:
-			X3D_GEOVIEWPOINT(node)->isBound = 0;
-			break;
-		case NODE_Background:
-			X3D_BACKGROUND(node)->isBound = 0;
-			break;
-		case NODE_TextureBackground:
-			X3D_TEXTUREBACKGROUND(node)->isBound = 0;
-			break;
-		case NODE_NavigationInfo:
-			X3D_NAVIGATIONINFO(node)->isBound = 0;
-			break;
-		case NODE_Fog:
-			X3D_FOG(node)->isBound = 0;
-			break;
-		default: {
-			/* do nothing with this node */
-			return;
-		}                                                
-	}
-}
-
 #ifdef OLDCODE
+OLDCODEstatic void unbind_node(struct X3D_Node* node) {
+OLDCODE	switch (node->_nodeType) {
+OLDCODE		case NODE_Viewpoint:
+OLDCODE			X3D_VIEWPOINT(node)->isBound = 0;
+OLDCODE			break;
+OLDCODE		case NODE_OrthoViewpoint:
+OLDCODE			X3D_ORTHOVIEWPOINT(node)->isBound = 0;
+OLDCODE			break;
+OLDCODE		case NODE_GeoViewpoint:
+OLDCODE			X3D_GEOVIEWPOINT(node)->isBound = 0;
+OLDCODE			break;
+OLDCODE		case NODE_Background:
+OLDCODE			X3D_BACKGROUND(node)->isBound = 0;
+OLDCODE			break;
+OLDCODE		case NODE_TextureBackground:
+OLDCODE			X3D_TEXTUREBACKGROUND(node)->isBound = 0;
+OLDCODE			break;
+OLDCODE		case NODE_NavigationInfo:
+OLDCODE			X3D_NAVIGATIONINFO(node)->isBound = 0;
+OLDCODE			break;
+OLDCODE		case NODE_Fog:
+OLDCODE			X3D_FOG(node)->isBound = 0;
+OLDCODE			break;
+OLDCODE		default: {
+OLDCODE			/* do nothing with this node */
+OLDCODE			return;
+OLDCODE		}                                                
+OLDCODE	}
+OLDCODE}
+OLDCODE
 OLDCODE /* for ReplaceWorld (or, just, on start up) forget about previous bindables */
 OLDCODE #define KILL_BINDABLE(zzz) \
 OLDCODE     printf("KILL_BINDABLE, stack %p size %d\n",zzz,vectorSize(zzz)); \

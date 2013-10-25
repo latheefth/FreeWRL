@@ -96,7 +96,7 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	//2. add 3 items to the thread2global[] list
 	//3. for each of those 3 items:
 	//   - set thread2global[threadID] = global
-	pthread_t uiThread;
+	// pthread_t uiThread;
 	ttglobal iglobal = malloc(sizeof(struct iiglobal));
 	memset(iglobal,0,sizeof(struct iiglobal)); //set to zero/null by default
 
@@ -177,7 +177,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 	common_init(&iglobal->common);
 	CursorDraw_init(&iglobal->CursorDraw);
 
-	uiThread = pthread_self();
+	//uiThread = pthread_self();
 	//set_thread2global(iglobal, uiThread ,"UI thread");
         
 	if(!done_main_UI_thread_once){
@@ -292,7 +292,7 @@ ttglobal gglobal(char *fi, int *li){
 	tg = (ttglobal)pthread_getspecific(threadSpecificKey); 
 	if(!tg){
 		printf("Ouch - no state for this thread -- hit a key to exit\n");
-        printf ("more info - thread %p\n\n",pthread_self());
+        	printf ("more info - thread %p\n\n",(void *)pthread_self());
                 
 		getchar();
 		exit(-1);

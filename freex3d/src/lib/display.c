@@ -69,32 +69,31 @@ void display_init(struct tdisplay* d)
 {
 	//public
 	freewrl_params_t p = d->params;
-d->display_initialized = FALSE;
-p.height = 0; /* window */
-p.width = 0;
-p.winToEmbedInto = NULL;
-p.fullscreen = FALSE;
-p.xpos = 0;
-p.ypos = 0;
 
-p.frontend_handles_display_thread = FALSE;
+	d->display_initialized = FALSE;
+	p.height = 0; /* window */
+	p.width = 0;
+	p.winToEmbedInto = NULL;
+	p.fullscreen = FALSE;
+	p.xpos = 0;
+	p.ypos = 0;
 
-d->view_height = 0; /* viewport */
-d->view_width = 0;
-d->screenWidth = 0; /* screen */
-d->screenHeight = 0;
-d->screenRatio = 1.5;
-d->window_title = NULL;
+	p.frontend_handles_display_thread = FALSE;
 
-d->mouse_x = 0;
-d->mouse_y = 0;
-d->show_mouse = 0;
-d->shutterGlasses = 0; /* stereo shutter glasses */
-d->quadbuff_stereo_mode = 0;
-memset(&d->rdr_caps,0,sizeof(d->rdr_caps));
-d->myFps = (float) 0.0;
+	d->view_height = 0; /* viewport */
+	d->view_width = 0;
+	d->screenWidth = 0; /* screen */
+	d->screenHeight = 0;
+	d->screenRatio = 1.5;
+	d->window_title = NULL;
 
-//private
+	d->mouse_x = 0;
+	d->mouse_y = 0;
+	d->show_mouse = 0;
+	d->shutterGlasses = 0; /* stereo shutter glasses */
+	d->quadbuff_stereo_mode = 0;
+	memset(&d->rdr_caps,0,sizeof(d->rdr_caps));
+	d->myFps = (float) 0.0;
 } 
 
 

@@ -241,6 +241,7 @@ static void texture_load_from_MovieTexture (textureTableIndexStruct_s* this_tex)
 {
 }
 
+#if defined(_ANDROID)
 // sometimes (usually?) we have to flip an image vertically. 
 static unsigned char *flipImageVertically(unsigned char *input, int height, int width) {
 	int i,ii,rowcount;
@@ -258,6 +259,7 @@ static unsigned char *flipImageVertically(unsigned char *input, int height, int 
 	//FREE_IF_NZ(input);
 	return blob;
 }
+#endif //ANDROID - for flipImageVertically
 
 
 

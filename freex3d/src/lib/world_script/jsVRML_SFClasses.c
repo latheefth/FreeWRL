@@ -267,6 +267,9 @@ SFColorAssign(JSContext *cx, uintN argc, jsval *vp) {
     SFColorNative *ptr, *fptr;
     char *_id_str;
 
+	UNUSED(_id_str); // compiler warning mitigation
+
+
 	if ((ptr = (SFColorNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed for obj in SFColorAssign.\n");
         return JS_FALSE;
@@ -611,6 +614,9 @@ SFColorRGBAAssign(JSContext *cx, uintN argc, jsval *vp) {
     JSObject *_from_obj;
     SFColorRGBANative *ptr, *fptr;
     char *_id_str;
+
+	UNUSED(_id_str); // compiler warning mitigation
+
 
 	if ((ptr = (SFColorRGBANative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed for obj in SFColorRGBAAssign.\n");
@@ -1150,6 +1156,9 @@ SFNodeAssign(JSContext *cx, uintN argc, jsval *vp) {
 	JSObject *_from_obj;
 	SFNodeNative *fptr, *ptr;
 	char *_id_str;
+
+	UNUSED(_id_str); // compiler warning mitigation
+
 
 	/* unsigned int toptr; */
 	#ifdef JSVRMLCLASSESVERBOSE
@@ -1704,15 +1713,15 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 			*/
 			char scriptline[100];
 			JSObject *eventInFunction;
-			struct ScriptFieldDecl* myfield, *infield;
+			struct ScriptFieldDecl* myfield; 
 			struct CRjsnameStruct *JSparamnames; // = getJSparamnames();
 			struct Shader_Script *myObj;
 			JSContext *cx2;
 			JSObject *obj2;
 			jsval newval;
-			indexT myfieldType;
-			union anyVrml vrmlField;
-			bool deepcopy;
+			//indexT myfieldType;
+			//union anyVrml vrmlField;
+			//bool deepcopy;
 			struct CRscriptStruct *ScriptControl = getScriptControl(); 
 			myObj = X3D_SCRIPT(ptr->handle)->__scriptObj;
 			/* is the script ok and initialized? */
@@ -2095,7 +2104,10 @@ SFRotationMultVec(JSContext *cx, uintN argc, jsval *vp) {
 	JSObject *_multObj, *_retObj, *_proto;
 	SFRotationNative *_rot;
 	SFVec3fNative *_vec, *_retNative;
-	float rl, vl, rlpt, s, c, angle;
+	float rl;
+	//float vl;
+	//float rlpt;
+	float s, c, angle;
 	struct point_XYZ r, v, c1, c2;
 
 	#ifdef JSVRMLCLASSESVERBOSE
@@ -2143,8 +2155,8 @@ SFRotationMultVec(JSContext *cx, uintN argc, jsval *vp) {
 	}
 
 	rl = veclength(r);
-	vl = veclength(v);
-	rlpt = (float) VECPT(r, v) / rl / vl;
+	//vl = veclength(v);
+	// unused rlpt = (float) VECPT(r, v) / rl / vl;
 	s = (float) sin(angle);
 	c = (float) cos(angle);
 	VECCP(r, v, c1);
@@ -2357,6 +2369,9 @@ SFRotationAssign(JSContext *cx, uintN argc, jsval *vp) {
     JSObject *_from_obj;
     SFRotationNative *fptr, *ptr;
     char *_id_str;
+
+	UNUSED(_id_str); // compiler warning mitigation
+
 
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("start of SFRotationAssign\n");
@@ -3015,6 +3030,9 @@ SFVec2fAssign(JSContext *cx, uintN argc, jsval *vp) {
     SFVec2fNative *fptr, *ptr;
     char *_id_str;
 
+	UNUSED(_id_str); // compiler warning mitigation
+
+
 	if ((ptr = (SFVec2fNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed for obj in SFVec2fAssign.\n");
         return JS_FALSE;
@@ -3625,6 +3643,9 @@ SFVec3fAssign(JSContext *cx, uintN argc, jsval *vp) {
     JSObject *_from_obj;
     SFVec3fNative *fptr, *ptr;
     char *_id_str;
+
+
+	UNUSED(_id_str); // compiler warning mitigation
 
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf ("start of SFVec3fAssign\n");
@@ -4279,6 +4300,9 @@ SFVec3dAssign(JSContext *cx, uintN argc, jsval *vp) {
     SFVec3dNative *fptr, *ptr;
     char *_id_str;
 
+	UNUSED(_id_str); // compiler warning mitigation
+
+
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf ("start of SFVec3dAssign\n");
 	#endif
@@ -4575,6 +4599,9 @@ SFVec4fAssign(JSContext *cx, uintN argc, jsval *vp) {
     JSObject *_from_obj;
     SFVec4fNative *fptr, *ptr;
     char *_id_str;
+
+	UNUSED(_id_str); // compiler warning mitigation
+
 
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf ("start of SFVec4fAssign\n");
@@ -4894,6 +4921,8 @@ SFVec4dAssign(JSContext *cx, uintN argc, jsval *vp) {
     JSObject *_from_obj;
     SFVec4dNative *fptr, *ptr;
     char *_id_str;
+
+	UNUSED(_id_str); // compiler warning mitigation
 
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf ("start of SFVec4dAssign\n");

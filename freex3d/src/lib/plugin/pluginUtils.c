@@ -48,6 +48,7 @@
 #include "pluginUtils.h"
 #include "PluginSocket.h"
 
+#define UNUSED(v) ((void) v)
 
 static int checkIfX3DVRMLFile(char *fn);
 
@@ -233,6 +234,8 @@ int doBrowserAction()
 	/* are we in the process of polling for a new X3D URL to load? */
 	if (p->waitingForURLtoLoad) return urlLoadingStatus();
 #endif //FRONTEND_GETS_FILES
+
+	UNUSED(description);  // compiler warning mitigation
 
 	if (AnchorsAnchor() != NULL) {
 
@@ -504,6 +507,7 @@ void URLencod (char *dest, const char *src, int maxlen) {
 void sendXwinToPlugin()
 {
 	int writeSizeThrowAway ;
+	UNUSED(writeSizeThrowAway); // compiler warning mitigation
 
 	/* send the window id back to the plugin parent */
 	DEBUG_MSG("Executing sendXwinToPlugin...\n");

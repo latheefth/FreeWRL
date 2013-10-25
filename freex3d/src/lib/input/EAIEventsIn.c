@@ -450,8 +450,11 @@ void EAI_core_commands () {
 
 		switch (command) {
 			case DUMPSCENE: {
-				int throwAway = 0 ;
+				int throwAway;
 				int sendNameNotFile = 1 ;
+
+				UNUSED(throwAway); // for compiler warnings
+
 				dumpname = TEMPNAM(gglobal()->Mainloop.tmpFileLocation,"fwtmp");
 				dumpfd = fopen(dumpname,"w+");
 				dump_scene(dumpfd, 0, (struct X3D_Node*) rootNode());
@@ -1009,7 +1012,6 @@ static void handleGETROUTES (char *bufptr, int repno) {
 static void handleGETNODE (char *bufptr, int repno) {
 	int retint;
 	char ctmp[200];
-	int mystrlen;
 	struct tEAIHelpers* th;
 	int eaiverbose;
 	ttglobal tg = gglobal();
@@ -1020,7 +1022,6 @@ static void handleGETNODE (char *bufptr, int repno) {
 	UNUSED(retint); // for compiler warnings
 
 	retint=sscanf (bufptr," %s",ctmp);
-	mystrlen = (int) strlen(ctmp);
 
 	if (eaiverbose) {	
 		printf ("GETNODE %s\n",ctmp); 
@@ -1102,7 +1103,7 @@ static void handleGETNODEPARENTS (char *bufptr, int repno)
 
 /* get the actual node type, whether Group, IndexedFaceSet, etc, and its DEF name, if applicapable */
 static void handleGETEAINODETYPE (char *bufptr, int repno) {
-	int retint;
+	int wlen;
 	int nodeHandle;
 	struct X3D_Node * myNode;
 	char *cptr;
@@ -1110,7 +1111,9 @@ static void handleGETEAINODETYPE (char *bufptr, int repno) {
 	struct tEAIHelpers *th = &gglobal()->EAIHelpers;
 	/*format int seq# COMMAND    string nodename*/
 
-	retint=sscanf (bufptr," %d",&nodeHandle);
+	wlen=sscanf (bufptr," %d",&nodeHandle);
+	if (wlen != 1) ConsoleMessage ("handleGETEAINODETYPE - expected to handle 1 number, got %d",wlen);
+
 	myNode = getEAINodeFromTable(nodeHandle,-1);
 
 	if (myNode == NULL) {
@@ -1168,7 +1171,6 @@ static void handleRoute (char command, char *bufptr, int repno) {
 	struct X3D_Node *toNode;
 	char fieldTemp[2000];
 	int fromOffset, toOffset;
-	int adrem;
 	int fromfieldType, fromfieldNode, fromretNode, fromretField, fromdataLen;
 	int fromscripttype;
 	int fromxxx;
@@ -1242,9 +1244,6 @@ static void handleRoute (char command, char *bufptr, int repno) {
 
 	/* ------- if we are ok, call the routing code  -------- */
 	if (rv) {
-		if (command == ADDROUTE) adrem = 1;
-		else adrem = 0;
-
 		/* get the C node and field offset for the nodes now */
 		fromNode = (struct X3D_Node*) getEAINodeFromTable(fromretNode,fromretField);
 		toNode = (struct X3D_Node*) getEAINodeFromTable(toretNode,toretField);

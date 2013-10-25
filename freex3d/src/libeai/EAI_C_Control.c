@@ -26,6 +26,8 @@
 #include <sys/errno.h>
 #endif
 
+#define UNUSED(v) ((void) v) // compiler warning mitigation
+
 pthread_t readThread;
 pthread_t EVcallbackThread;
 pthread_t swigThread;
@@ -44,6 +46,9 @@ void X3D_initialize(char *hostname) {
 	int loopCount;
 	int constat;
 		
+	UNUSED(iret1);  //compiler warning mitigation
+	UNUSED(iret2);  //compiler warning mitigation
+	
 #ifdef WIN32
 	wVersionRequested = MAKEWORD( 2, 2 );
 	 
