@@ -3508,8 +3508,6 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 		#define SPLIT_SCRIPTUSERFIELD_CREATION_FROM_VALUEPARSING 1
         while(TRUE)
         {
-			char* nextIn = NULL;
-			char* curID = NULL;
             /* Try to parse the next statement as a field.  For normal "field value" statements 
 			   (i.e. position 1 0 1) this gets the value of the field from the lexer (next token(s)
                to be processed) and stores it as the appropriate type in the node.
@@ -3519,22 +3517,15 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 #ifdef CPARSERVERBOSE
             printf("parser_node: try parsing field ... \n");
 #endif
-			nextIn = me->lexer->nextIn;
-			curID = me->lexer->curID;
 			/* check for IS - can be any mode, and builtin or user field on builtin node or usernode/protoInstance */
 			if( found_IS_field(me,node) ){
 				continue;
 			}
-			nextIn = me->lexer->nextIn;
-			curID = me->lexer->curID;
-
 
 			if(SPLIT_SCRIPTUSERFIELD_CREATION_FROM_VALUEPARSING)
 			if(parser_field_user(me,node)) {
 				continue;
 			}
-			nextIn = me->lexer->nextIn;
-			curID = me->lexer->curID;
 
 			/*check for builtin field value on builtin node or usernode/protoInstance*/
             if(parser_field(me, node)) {
@@ -3543,8 +3534,6 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 #endif
                 continue;
             }
-			nextIn = me->lexer->nextIn;
-			curID = me->lexer->curID;
 
 
             /* Try to parse the next statement as a ROUTE (i.e. statement starts with ROUTE).  This checks that the ROUTE statement is valid (i.e. that the referenced node and field combinations  
@@ -3570,8 +3559,6 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
                 printf("parser_node: try parsing PROTO ... \n");
 #endif
 			BACKUP
-			nextIn = me->lexer->nextIn;
-			curID = me->lexer->curID;
 
             if(parser_protoStatement(me)) {
 #ifdef CPARSERVERBOSE
@@ -3579,8 +3566,6 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 #endif
                 continue;
             }
-			nextIn = me->lexer->nextIn;
-			curID = me->lexer->curID;
 
             if(parser_brotoStatement(me)) {
 #ifdef CPARSERVERBOSE
@@ -3588,8 +3573,6 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 #endif
                 continue;
             }
-			nextIn = me->lexer->nextIn;
-			curID = me->lexer->curID;
 
 #ifdef CPARSERVERBOSE
             printf("parser_node: try parsing Script or Shader field\n");
@@ -3607,8 +3590,6 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 			if(script && parser_interfaceDeclarationB(me, NULL, script)){
 				continue;
 			}
-			nextIn = me->lexer->nextIn;
-			curID = me->lexer->curID;
 			if(!SPLIT_SCRIPTUSERFIELD_CREATION_FROM_VALUEPARSING)
             if(script && parser_interfaceDeclaration(me, NULL, script)) {
 #ifdef CPARSERVERBOSE
@@ -3616,8 +3597,6 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 #endif
                 continue;
             }
-			nextIn = me->lexer->nextIn;
-			curID = me->lexer->curID;
 
 	    #endif
 
@@ -3627,8 +3606,6 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 #endif
                 continue;
             }
-			nextIn = me->lexer->nextIn;
-			curID = me->lexer->curID;
 
             break;
         }
@@ -3849,8 +3826,6 @@ static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
     //struct ProtoFieldDecl* pdecl=NULL;
     //struct ProtoFieldDecl* pField=NULL;
     //struct ScriptFieldDecl* sdecl=NULL;
-    char *startOfField = NULL;
-    int startOfFieldLexerLevel = INT_ID_UNDEFINED;
 
 
 #ifdef CPARSERVERBOSE
@@ -3886,10 +3861,6 @@ static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
 #ifdef CPARSERVERBOSE
 		printf ("parser_field_user, mode==PKW_initializeOnly || mode==PKW_inputOutput\n");
 #endif
-
-		/* IS are handled elsewhere in found_IS_field, so this is likely constants */
-		startOfField = (char *)me->lexer->nextIn;
-		startOfFieldLexerLevel = me->lexer->lexerInputLevel;
 
 		/* set the defaultVal to something - we might have a problem if the parser expects this to be
 		a MF*, and there is "garbage" in there, as it will expect to free it. */
@@ -4123,37 +4094,30 @@ void broto_store_route(struct X3D_Proto* proto,
 BOOL route_parse_nodefield(struct VRMLParser* me, int *NodeIndex, struct X3D_Node** Node, int KW_eventType, 
 						   int *Ofs, int *fieldType, struct ScriptFieldDecl** ScriptField)
 {
-	int PKW_eventType;
-	char* cEventType;
-	char *cerror1, *cerror2;
+	int PKW_eventType = PKW_outputOnly;
+	char *cerror1;
 
 	int mode;
 	int type;
 	int source;
 	int ifield; //, iprotofield;
-	union anyVrml *defaultVal;
 	char *nodeFieldName;
 	//DECLAREUP
 	int foundField;
 	union anyVrml *fieldPtr;
 	void *fdecl = NULL;
-	defaultVal = NULL;
 
 	*Ofs = 0;
 	//Node = NULL; 
 	*ScriptField=NULL; 
 	cerror1 = "";
-	cerror2 = "";
 
 	if(KW_eventType == KW_outputOnly){
 		PKW_eventType = PKW_outputOnly;
-		cEventType = "outputOnly";
 		cerror1 = "Expected an event of type : outputOnly :";
-		cerror2 = "ERROR:Expected built-in event outputOnly after .";
 	}else if(KW_eventType == KW_inputOnly)  {
 		PKW_eventType = PKW_inputOnly;
 		cerror1 = "Expected an event of type : inputOnly :";
-		cerror2 = "ERROR:Expected built-in event inputOnly after .";
 	}
 
 	/* Target-node */ 
@@ -5112,9 +5076,7 @@ void initialize_scripts(Stack *instancedScripts)
 	//struct X3D_Script* sn;
 	//struct Shader_Script* ss; //)X3D_SCRIPT(node)->__scriptObj)->num
 	//struct ScriptFieldDecl* field;
-	struct CRjsnameStruct *JSparamnames; // = getJSparamnames();
 	//JSObject *eventInFunction;
-	JSparamnames = getJSparamnames();
 
 	#ifdef HAVE_JAVASCRIPT
 
