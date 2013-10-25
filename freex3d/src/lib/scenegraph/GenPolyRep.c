@@ -64,10 +64,9 @@ extern void Extru_check_normal(struct point_XYZ *facenormals,int this_face,int d
 	IndexedTriangleStripSets */
 static int returnIndexedFanStripIndexSize (struct Multi_Int32 index ) {
 	int IndexSize;
-	int xx, yy,zz;
+	int xx, zz;
 	IndexSize = 0;
 	xx = 0;
-	yy = 0;
 	zz = 0;
 
 	for (xx=0; xx<index.n; xx++) {
@@ -499,16 +498,14 @@ static void checkIndexedQuadSetFields (struct X3D_IndexedQuadSet *node) {
 }
 
 static void checkQuadSetFields(struct X3D_QuadSet *node) {
- 	struct SFVec3f *points;
 	int npoints = 0;
 	int IndexSize = 0;
-	int xx,yy,zz; /* temporary variables */
+	int xx; /* temporary variables */
     
     if(node->coord) {
 		struct Multi_Vec3f *dtmp;
 		dtmp = getCoordinate (node->coord, "QuadSet");
 		npoints = dtmp->n;
-		points = dtmp->p;
     }
     
 	/* verify whether we have an incorrect number of coords or not */
@@ -529,7 +526,6 @@ static void checkQuadSetFields(struct X3D_QuadSet *node) {
 	IndexSize = 0; /* for assigning the indexes */
     
 	/* now calculate the indexes */
-	yy=0; zz=0;
 	for (xx=0; xx<npoints; xx+=4) {
 		/* printf ("index %d tris %d %d %d -1\n", xx/3, xx, xx+1, xx+2);  */
 		node->_coordIndex.p[IndexSize++] = xx;
@@ -605,16 +601,14 @@ static void checkTriangleStripSetFields (struct X3D_TriangleStripSet *node) {
 
 
 static void checkTriangleSetFields (struct X3D_TriangleSet *node) {
-	struct SFVec3f *points;
 	int npoints = 0;
 	int IndexSize = 0;
-	int xx,yy,zz; /* temporary variables */
+	int xx; /* temporary variables */
 
         if(node->coord) {
 		struct Multi_Vec3f *dtmp;
 		dtmp = getCoordinate (node->coord, "TriangleSet");
 		npoints = dtmp->n;
-		points = dtmp->p;
         }
 
 	/* verify whether we have an incorrect number of coords or not */
@@ -635,7 +629,6 @@ static void checkTriangleSetFields (struct X3D_TriangleSet *node) {
 	IndexSize = 0; /* for assigning the indexes */
 			
 	/* now calculate the indexes */
-	yy=0; zz=0;
 	for (xx=0; xx<npoints; xx+=3) {
 		/* printf ("index %d tris %d %d %d -1\n", xx/3, xx, xx+1, xx+2);  */
 		node->_coordIndex.p[IndexSize++] = xx;
@@ -669,7 +662,6 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
     
 	struct SFVec3f *points;
 	struct X3D_PolyRep *rep_ = node->_intern;
-	struct SFVec3f *normals;
 
 	struct Multi_Int32 *orig_coordIndex = NULL;
 	struct Multi_Int32 *orig_texCoordIndex = NULL;
@@ -679,7 +671,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	GLuint *cindex;		/* Coordinate Index	*/
 	GLuint *colindex;		/* Color Index		*/
 	GLuint *tcindex=0;		/* Tex Coord Index	*/
-	GLuint *norindex;		/* Normals Index	*/
+	GLuint *norindex;               /* Normals Index        */
 
 	int normalArraySize = INT_ID_UNDEFINED;	/* bounds checking on normals generated */
 
@@ -695,7 +687,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 
 
 	int i;				/* general purpose counters */
-	int this_face, this_coord, this_normal, this_normalindex;
+	int this_face, this_coord;
 
 	struct X3D_Color *cc = NULL;
 	struct X3D_Normal *nc = NULL;
@@ -989,7 +981,6 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 		if (nc->_nodeType != NODE_Normal) {
 			printf ("make_IFS, normal expected %d, got %d\n",NODE_Normal, nc->_nodeType);
 		} else {
-			normals = nc->vector.p;
 			nnormals = nc->vector.n;
 		}
 	}
@@ -1080,8 +1071,6 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	tess_vs=MALLOC(int *, sizeof(*(tess_vs))*(ntri)*3);
 
 	this_coord = 0;
-	this_normal = 0;
-	this_normalindex = 0;
 	i = 0;
 
 	for (this_face=0; this_face<faces; this_face++) {
@@ -1346,11 +1335,13 @@ double getGamma(double alpha, double minor) {
 
 void compute_spy_spz(struct point_XYZ *spy, struct point_XYZ *spz, struct SFVec3f *spine, int nspi) {
 	int majorX = FALSE;
-	int majorY = FALSE;
 	int majorZ = FALSE;
-	int minorX = FALSE;
 	int minorY = FALSE;
+	int minorX = FALSE;
+	#ifdef VERBOSE
+	int majorY = FALSE;
 	int minorZ = FALSE;
+	#endif 
 	double alpha,gamma;	/* angles for the rotation	*/
 	int spi;
 	float spylen;
@@ -1377,12 +1368,12 @@ void compute_spy_spz(struct point_XYZ *spy, struct point_XYZ *spz, struct SFVec3
 
 
 	/* find the major and minor axes */
-	if ((fabs(spp1.x) >= fabs(spp1.y)) && (fabs(spp1.x) >= fabs(spp1.z))) majorX = TRUE;
-	else if ((fabs(spp1.y) >= fabs(spp1.x)) && (fabs(spp1.y) >= fabs(spp1.z))) majorY = TRUE;
+	if ((fabs(spp1.x) >= fabs(spp1.y)) && (fabs(spp1.x) >= fabs(spp1.z))) {majorX = TRUE;}
+	else if ((fabs(spp1.y) >= fabs(spp1.x)) && (fabs(spp1.y) >= fabs(spp1.z))) {/* majorY = TRUE;*/ }
 	else majorZ = TRUE;
-	if ((fabs(spp1.x) <= fabs(spp1.y)) && (fabs(spp1.x) <= fabs(spp1.z))) minorX = TRUE;
+	if ((fabs(spp1.x) <= fabs(spp1.y)) && (fabs(spp1.x) <= fabs(spp1.z))) {minorX = TRUE;}
 	else if ((fabs(spp1.y) <= fabs(spp1.x)) && (fabs(spp1.y) <= fabs(spp1.z))) minorY = TRUE;
-	else minorZ = TRUE;
+	else { /*minorZ = TRUE; */}
 
 	#ifdef VERBOSE
 	printf ("major axis %d %d %d\n",majorX, majorY, majorZ);
@@ -1529,10 +1520,6 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 
 	GLuint	*tcindex;			/* field containing texture indices
 						   for the vertex. 		*/
-
-	GLuint   *norindex; 			/* indices into *normal		*/
-	float *normal; 				/* (filled in a different function)*/
-
 
 	int ntri = 0;			 	/* no. of triangles to be used
 						   to represent all, but the caps */
@@ -1753,8 +1740,6 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 	/* get some memory							*/
 	cindex  = rep_->cindex   = MALLOC(GLuint *, sizeof(*(rep_->cindex))*3*(rep_->ntri));
 	coord   = rep_->actualCoord    = MALLOC(float *, sizeof(*(rep_->actualCoord))*(nspi*nsec+max_ncoord_add)*3);
-	normal  = rep_->normal   = MALLOC(float *, sizeof(*(rep_->normal))*3*(rep_->ntri)*3);
-	norindex= rep_->norindex = MALLOC(GLuint *, sizeof(*(rep_->norindex))*3*(rep_->ntri));
 
 	/* face normals - one face per quad (ie, 2 triangles) 			*/
 	/* have to make sure that if nctri is odd, that we increment by one	*/

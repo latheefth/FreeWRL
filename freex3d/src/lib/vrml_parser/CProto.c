@@ -53,7 +53,9 @@ CProto ???
 
 #define DJ_KEEP_COMPILER_WARNING 0
 
+#define UNUSED(v) ((void) v)
 #define PROTO_CAT(newString) { char *pt = (char *)newString; int len=0; int wlen = 0;\
+		UNUSED(wlen); \
 		while ((*pt)) {len++; pt++;}; \
 		wlen = (int) fwrite (newString,len,1,pexfile); \
 		curstringlen += len; } 
@@ -524,11 +526,11 @@ static struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer* lex, struct 
 
   /* Copy scriptfield dests */
   for (i=0; i!=vectorSize(me->scriptDests); ++i) {
-   	struct ScriptFieldInstanceInfo* temp;
-   	struct ScriptFieldInstanceInfo* temp2;
+   	//OLDCODE struct ScriptFieldInstanceInfo* temp;
+   	//OLDCODE struct ScriptFieldInstanceInfo* temp2;
 	vector_pushBack(struct ScriptFieldInstanceInfo*, ret->scriptDests, scriptFieldInstanceInfo_copy(vector_get(struct ScriptFieldInstanceInfo*, me->scriptDests, i)));
-   	temp = vector_get(struct ScriptFieldInstanceInfo*, me->scriptDests, i);
-   	temp2 = vector_get(struct ScriptFieldInstanceInfo*, ret->scriptDests, i);
+   	//OLDCODE temp = vector_get(struct ScriptFieldInstanceInfo*, me->scriptDests, i);
+   	//OLDCODE temp2 = vector_get(struct ScriptFieldInstanceInfo*, ret->scriptDests, i);
   }
 
  /* Copy default value */
@@ -1011,6 +1013,8 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 				int ignore;
 				char *endone; char *endtwo;
 				int length;
+
+				UNUSED(ignore); //mitigate compiler warnings
 
 				/* see which of float, int32 gobbles up more of the string */
 				cur = (char *) lex->nextIn;

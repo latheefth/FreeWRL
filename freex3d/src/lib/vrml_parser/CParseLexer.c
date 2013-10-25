@@ -1368,12 +1368,9 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
         int type;
         struct Multi_String url;
         unsigned char *buffer;
-        char *testname;
 		char *pound;
 
 	resource_item_t *res;
-
-        testname = MALLOC (char *, 1000);
 
         /* expect the EXTERNPROTO proto name */
         if (lexer_setCurID(me)) {

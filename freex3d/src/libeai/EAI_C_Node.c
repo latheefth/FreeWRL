@@ -18,12 +18,18 @@
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
+
+// for compiler warning mitigation, we require the following few lines.
+#define UNUSED(v) ((void) v)
+
+
 /* function protos */
 #ifndef WIN32
 #include "config.h"
 #include "system.h"
 #endif
 #include "EAI_C.h"
+
 
 /* get a node pointer */
 X3DNode *X3D_getNode (char *name) {
@@ -86,7 +92,6 @@ int X3D_getParentNodes(X3DNode* child, X3DNode** outParentArray)
 		adr = child->X3D_SFNode.adr;
 	} else {
 		if (child->X3D_MFNode.n != 1) {
-			int i;
 			printf ("warning - will only get event for first child = have %d nodes\n",child->X3D_MFNode.n);
 		}
 		/* get the first address in the list */
@@ -355,6 +360,8 @@ char* X3D_getFieldDefs(int nodeAdr)
 void X3D_addRoute (X3DEventOut *from, X3DEventIn *to) {
 	char myline[200];
 	char *ptr;
+	UNUSED(ptr); // for compiler warning mitigation
+
 	sprintf (myline,"%d %s %d %s",from->nodeptr,from->field,to->nodeptr,to->field);
 	ptr = _X3D_make1StringCommand(ADDROUTE,myline);
 }
@@ -362,6 +369,8 @@ void X3D_addRoute (X3DEventOut *from, X3DEventIn *to) {
 void X3D_deleteRoute (X3DEventOut *from, X3DEventIn *to) {
 	char myline[200];
 	char *ptr;
+	UNUSED(ptr); // for compiler warning mitigation
+
 	sprintf (myline,"%d %s %d %s",from->nodeptr,from->field,to->nodeptr,to->field);
 	ptr = _X3D_make1StringCommand(DELETEROUTE,myline);
 }

@@ -839,8 +839,9 @@ void AddRemoveChildren (
 			if (oldlen > 0) memcpy (newmal,tn->p,oldlen*sizeof(void *));
 
 			/* set up the C structures for this new MFNode addition */
-			if(oldlen > 0)
+			if(oldlen > 0) {
 				FREE_IF_NZ (tn->p);
+			}
 			tn->n = oldlen;
 			tn->p = newmal;
 		}else{
@@ -1739,7 +1740,7 @@ static void gatherScriptEventOuts(void) {
 	size_t tptr;
 	size_t len;
  	struct X3D_Node* tn;
-	struct X3D_Node* fn;
+	//OLDCODE struct X3D_Node* fn;
 
 	int fromalready=FALSE;	 /* we have already got the from value string */
 	int touched_flag=FALSE;
@@ -1800,7 +1801,7 @@ static void gatherScriptEventOuts(void) {
 		}
 
 		fptr = p->CRoutes[route].fnptr;
-		fn = p->CRoutes[route].routeFromNode;
+		//OLDCODE fn = p->CRoutes[route].routeFromNode;
 		len = p->CRoutes[route].len;
 
 		#ifdef CRVERBOSE
@@ -1880,14 +1881,18 @@ static BOOL gatherScriptEventOut_B(union anyVrml* any, struct Shader_Script *sha
 	//struct X3D_Node* fn;
 	//struct anyVrml* any;
 
-	int fromalready=FALSE;	 /* we have already got the from value string */
+	//int fromalready=FALSE;	 /* we have already got the from value string */
 	int touched_flag=FALSE;
 	int actualscript;
 	//unsigned int to_counter;
 	//CRnodeStruct *to_ptr = NULL;
 	ppCRoutes p;
 	ttglobal tg = gglobal();
+	
+	#ifdef CRVERBOSE
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
+	#endif
+
 	p = (ppCRoutes)tg->CRoutes.prv;
 
 	/* NOTE - parts of things in here might need to be wrapped by BeginRequest ??? */
@@ -2349,8 +2354,9 @@ void cleanFieldIfManaged(int type,int mode,int isPublic, struct X3D_Node* parent
 				//remove parent should return a bool if found, so we know if we can/should decrement referenceCount
 				sfn->referenceCount--;
 			}
-			if(type==FIELDTYPE_MFNode)
+			if(type==FIELDTYPE_MFNode) {
 				FREE_IF_NZ(plist);
+			}
 		}
 	}
 }
@@ -2646,7 +2652,7 @@ void propagate_events_B() {
 
 					//#ifdef CRVERBOSE
 					if(debugRoutes){
-						char *fromName, *toName, *fromFieldName, *toFieldName, *fromModeName, *toModeName, *typeName, *fromNodeType, *toNodeType;
+						char *fromName, *toName, *fromFieldName, *toFieldName, *fromModeName, *toModeName, *fromNodeType, *toNodeType;
 						char fromNameP[100], toNameP[100];
 						sprintf(fromNameP,"%p",fromNode);
 						sprintf(toNameP,"%p",toNode);
@@ -2663,7 +2669,6 @@ void propagate_events_B() {
 						toNodeType = (char *)stringNodeType(toNode->_nodeType);
 						if(toNode->_nodeType == NODE_Proto)
 							toNodeType = ((struct ProtoDefinition*)(X3D_PROTO(toNode)->__protoDef))->protoName;
-						typeName = (char*)stringFieldtypeType(type);
 						fromModeName = (char *)stringMode(modeFrom,1);
 						toModeName = (char *)stringMode(modeTo, 1);
 						printf(" %s %s.%s %s TO %s %s.%s %s %d ",fromNodeType,fromName,fromFieldName,fromModeName,
@@ -2680,7 +2685,7 @@ void propagate_events_B() {
 						case NODE_Script:
 							{
 #ifdef HAVE_JAVASCRIPT
-								struct X3D_Script* scr = (struct X3D_Script*)toNode;
+								//OLDCODE struct X3D_Script* scr = (struct X3D_Script*)toNode;
 								struct Shader_Script* shader;
 								struct ScriptFieldDecl* sfield;
 								shader =(struct Shader_Script *)(X3D_SCRIPT(toNode)->__scriptObj);
@@ -2986,7 +2991,12 @@ void kill_routing (void) {
 /* internal variable to copy a C structure's Multi* field */
 void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, size_t multitype) {
 	size_t structlen;
-	int fromcount, tocount;
+	int fromcount;
+
+	#ifdef CRVERBOSE
+	int tocount;
+	#endif
+
 	void *fromptr, *toptr;
 
 	struct Multi_Vec3f *mv3ffn, *mv3ftn;
@@ -3015,9 +3025,9 @@ void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, 
 	/* and the from and to sizes */
 	fromcount = mv3ffn->n;
 	//printf("fn = %u value *fn = %u fromcount = %u\n",(unsigned int)fn, *(unsigned int *)fn, (unsigned int) fromcount);
-	tocount = mv3ftn->n;
 
 	#ifdef CRVERBOSE 
+		tocount = mv3ftn->n;
 		printf ("Multimemcpy, fromcount %d\n",fromcount);
 	#endif
 

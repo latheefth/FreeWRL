@@ -1745,7 +1745,7 @@ static void collisionCylinder_init(struct X3D_Cylinder *node)
 	if(!APPROX(h,0.0)) inverseh = 1.0/h;
 	if(!APPROX(r,0.0)) inverser = 1.0/r;
 	{
-		float a1, a2;
+		float a1;
 		/* ok - we copy the non-VBO code here so that Doug Sandens Cylinder Collision code
 		   uses the same algorithm whether running in VBO mode or not */
 		pts = MALLOC(struct SFVec3f *,sizeof(struct SFVec3f)*2*(CYLDIV+4));
@@ -1753,7 +1753,6 @@ static void collisionCylinder_init(struct X3D_Cylinder *node)
 		/*  now, create the vertices; this is a quad, so each face = 4 points*/
 		for (i=0; i<CYLDIV; i++) {
 			a1 = (float) (PI*2*i)/(float)CYLDIV;
-			a2 = (float) (PI*2*(i+1))/(float)CYLDIV;
 			pts[i*2+0].c[0] = (float) (r* sin(a1));
 			pts[i*2+0].c[1] = (float) h;
 			pts[i*2+0].c[2] = (float) (r* cos(a1));
@@ -2052,7 +2051,7 @@ void collide_Extrusion (struct X3D_Extrusion *node) {
 
 
 void rendray_Sphere (struct X3D_Sphere *node) {
-	struct point_XYZ t_r1,t_r2,t_r3;
+	struct point_XYZ t_r1,t_r2;
         float r = node->radius;
         /* Center is at zero. t_r1 to t_r2 and t_r1 to zero are the vecs */
 		ttglobal tg = gglobal();
@@ -2062,7 +2061,6 @@ void rendray_Sphere (struct X3D_Sphere *node) {
         float a,b,c,disc;
 		VECCOPY(t_r1,tg->RenderFuncs.t_r1);
 		VECCOPY(t_r2,tg->RenderFuncs.t_r2);
-		VECCOPY(t_r3,tg->RenderFuncs.t_r3);
         tr1sq = (float) VECSQ(t_r1);
 
         VECDIFF(t_r2,t_r1,dr2r1);
@@ -2104,11 +2102,10 @@ void rendray_Sphere (struct X3D_Sphere *node) {
 
 void rendray_Box (struct X3D_Box *node) {
 	float x,y,z;
-	struct point_XYZ t_r1,t_r2,t_r3;
+	struct point_XYZ t_r1,t_r2;
 	ttglobal tg = gglobal();
 	VECCOPY(t_r1,tg->RenderFuncs.t_r1);
 	VECCOPY(t_r2,tg->RenderFuncs.t_r2);
-	VECCOPY(t_r3,tg->RenderFuncs.t_r3);
 
 	x = ((node->size).c[0])/2;
 	y = ((node->size).c[1])/2;
@@ -2202,11 +2199,10 @@ void rendray_Box (struct X3D_Box *node) {
 void rendray_Cylinder (struct X3D_Cylinder *node) {
 
 	float h,r,y;
-	struct point_XYZ t_r1,t_r2,t_r3;
+	struct point_XYZ t_r1,t_r2;
 	ttglobal tg = gglobal();
 	VECCOPY(t_r1,tg->RenderFuncs.t_r1);
 	VECCOPY(t_r2,tg->RenderFuncs.t_r2);
-	VECCOPY(t_r3,tg->RenderFuncs.t_r3);
 
         h = (node->height) /*cget*//2; /* pos and neg dir. */
         r = (node->radius) /*cget*/;
@@ -2263,11 +2259,10 @@ void rendray_Cylinder (struct X3D_Cylinder *node) {
 void rendray_Cone (struct X3D_Cone *node) {
 
 	float h,y,r,dx,dy,dz,a,b,c,tmp,und;
-	struct point_XYZ t_r1,t_r2,t_r3;
+	struct point_XYZ t_r1,t_r2;
 	ttglobal tg = gglobal();
 	VECCOPY(t_r1,tg->RenderFuncs.t_r1);
 	VECCOPY(t_r2,tg->RenderFuncs.t_r2);
-	VECCOPY(t_r3,tg->RenderFuncs.t_r3);
 
 	h = (node->height) /*cget*//2; /* pos and neg dir. */
 	y = h;
@@ -2294,7 +2289,6 @@ void rendray_Cone (struct X3D_Cone *node) {
 		float sol1 = (-b+(float)sqrt(und))/2;
 		float sol2 = (-b-(float)sqrt(und))/2;
 		float cy,cx,cz;
-		float cy0;
 		cy = (float)MRATY(sol1);
 		if(cy > -h && cy < h) {
 			cx = (float)MRATX(sol1);
@@ -2302,7 +2296,6 @@ void rendray_Cone (struct X3D_Cone *node) {
 			/* XXX Normal */
 			rayhit(sol1, cx,cy,cz, cx/r,0,cz/r, -1,-1, "conside 1");
 		}
-		cy0 = cy;
 		cy = (float) MRATY(sol2);
 		if(cy > -h && cy < h) {
 			cx = (float) MRATX(sol2);
