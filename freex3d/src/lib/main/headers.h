@@ -87,8 +87,6 @@ void Multi_String_print(struct Multi_String *url);
                         return; \
                 } \
 
-#define INT_ID_UNDEFINED -1
-
 /* Size of static array */
 #define ARR_SIZE(arr) (int)(sizeof(arr)/sizeof((arr)[0]))
 

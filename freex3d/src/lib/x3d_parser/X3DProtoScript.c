@@ -266,15 +266,15 @@ static void registerProto(const char *name, const char *url) {
 static int getFieldAccessMethodFromProtoInterface (struct VRMLLexer *myLexer, char *fieldName, int protono) {
 	const char** userArr;
 	size_t userCnt;
-	struct Shader_Script* myObj;
+	//struct Shader_Script* myObj;
 	indexT retUO;
-	ppX3DProtoScript p = (ppX3DProtoScript)gglobal()->X3DProtoScript.prv;
+	//ppX3DProtoScript p = (ppX3DProtoScript)gglobal()->X3DProtoScript.prv;
 
 	#ifdef X3DPARSERVERBOSE
 	printf ("getFieldAccessMethodFromProtoInterface, lexer %u looking for :%s: in proto %d\n",myLexer, fieldName, protono);
 	#endif
 	
-	myObj = p->PROTONames[protono].fieldDefs;
+	//myObj = p->PROTONames[protono].fieldDefs;
 
         
 #define LOOK_FOR_FIELD_IN(whicharr) \
@@ -645,40 +645,13 @@ void endConnect() {
 
 void parseProtoInstanceFields(const char *name, char **atts) {
 	int count;
-	size_t picatindex;
-	size_t picatmalloc;
 	ppX3DProtoScript p = (ppX3DProtoScript)gglobal()->X3DProtoScript.prv;
-
-	/* initialization */
-	picatindex = 0;
-	picatmalloc = 0;
 
 	#define INDEX p->ProtoInstanceTable[p->curProtoInsStackInd].paircount	
 	#define ZERO_NAME_VALUE_PAIR \
 		p->ProtoInstanceTable[p->curProtoInsStackInd].name[INDEX] = NULL; \
 		p->ProtoInstanceTable[p->curProtoInsStackInd].value[INDEX] = NULL;\
 		p->ProtoInstanceTable[p->curProtoInsStackInd].type[INDEX] = 0;\
-
-#ifdef OLDCODE
-OLDCODE 	#define VERIFY_PCAT_LEN(myLen) \
-OLDCODE 		if ((myLen + 10) >= picatmalloc) { \
-OLDCODE 			if (picatmalloc == 0) { \
-OLDCODE 				picatmalloc = 1024; \
-OLDCODE 				picatindex = 0; \
-OLDCODE 			} \
-OLDCODE 			while ((picatmalloc + 20) < myLen) picatmalloc *= 2; \
-OLDCODE 			ProtoInstanceTable[curProtoInsStackInd].value[INDEX] = REALLOC(ProtoInstanceTable[curProtoInsStackInd].value[INDEX], picatmalloc); \
-OLDCODE 		} \
-OLDCODE 
-OLDCODE 	#define PICAT_CAT(myStr,myLen) \
-OLDCODE 		memcpy(&ProtoInstanceTable[curProtoInsStackInd].value[INDEX][picatindex], myStr,myLen); \
-OLDCODE 		picatindex += myLen; \
-OLDCODE 		ProtoInstanceTable[curProtoInsStackInd].value[INDEX][picatindex+1] = '\0'; 
-OLDCODE 		
-OLDCODE 	#define PICAT(myStr,myLen) \
-OLDCODE 		VERIFY_PCAT_LEN(myLen) \
-OLDCODE 		PICAT_CAT(myStr,myLen)
-#endif //OLDCODE
 
 
 	#ifdef X3DPARSERVERBOSE
@@ -1273,8 +1246,6 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	char *protoInString;
 	int psSize;
 	int rs;
-	char *IS;
-	char *endIS;
 	int pf;
 	char *curProtoPtr;
 	struct Shader_Script *myObj;
@@ -1287,10 +1258,9 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 	ppX3DProtoScript p = (ppX3DProtoScript)gglobal()->X3DProtoScript.prv;
 
+	UNUSED(readSizeThrowAway); // compiler warning mitigation
 
 	/* initialization */
-	IS = NULL;
-	endIS = NULL;
 	curProtoPtr=  NULL;
 	myObj = NULL;
 	tmpf = TEMPNAM(gglobal()->Mainloop.tmpFileLocation,"freewrl_proto");
@@ -1318,13 +1288,13 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 
 	/* step 0. Does this one contain a DEF? */
 	if (p->ProtoInstanceTable[p->curProtoInsStackInd].defName != NULL) {
-		struct X3D_Node * me; 
+		//struct X3D_Node * me; 
 		#ifdef X3DPARSERVERBOSE
 			printf ("ProtoInstance, have a DEF, defining :%s: for node %u\n",
 			ProtoInstanceTable[curProtoInsStackInd].defName,(unsigned int) myGroup);
 		#endif
 
-		me = DEFNameIndex(p->ProtoInstanceTable[p->curProtoInsStackInd].defName,X3D_NODE(myGroup),FALSE);
+		//me = DEFNameIndex(p->ProtoInstanceTable[p->curProtoInsStackInd].defName,X3D_NODE(myGroup),FALSE);
 		FREE_IF_NZ(p->ProtoInstanceTable[p->curProtoInsStackInd].defName);
 	}
 
@@ -1744,9 +1714,6 @@ static char *getDefaultValuePointer(int type) {
 /* parse a script or proto field. Note that they are in essence the same, just used differently */
 void parseScriptProtoField(struct VRMLLexer* myLexer, char **atts) {
 	int i;
-	/*
-	uintptr_t myScriptNumber;
-	*/
 	int myparams[MPFIELDS];
 	int which;
 	int myFieldNumber;
@@ -1761,7 +1728,6 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, char **atts) {
 	ppX3DProtoScript p = (ppX3DProtoScript)tg->X3DProtoScript.prv;
 
 	/* initialization */
-	/* myScriptNumber = 0; */
 	myValueString = NULL;
 	myObj = NULL;
 	sdecl = NULL;
@@ -1804,7 +1770,6 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, char **atts) {
 				struct X3D_Script* myScr = NULL;
 				myScr = X3D_SCRIPT(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]);
 				myObj = (struct Shader_Script *) myScr->__scriptObj;
-				/* myScriptNumber = myObj->num; */
 				break; }
 			case NODE_ComposedShader: {
 				struct X3D_ComposedShader* myScr = NULL;
@@ -1899,6 +1864,8 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, char **atts) {
 
 	/* register this field with the Javascript Field Indexer */
 	myFieldNumber = JSparamIndex(atts[myparams[MP_NAME]],atts[myparams[MP_TYPE]]);
+	UNUSED(myFieldNumber); // compiler warning mitigation- JSparamIndex call actually does something
+
 
 
 	/* convert eventIn, eventOut, field, and exposedField to new names */
@@ -2120,7 +2087,6 @@ void endScriptProtoField()
    pointed to by the URL field, etc... handle the data in one place */
 
 void initScriptWithScript() {
-	uintptr_t myScriptNumber;
 	struct X3D_Script * me;
 	char *myText;
 	struct Shader_Script *myObj;
@@ -2141,8 +2107,6 @@ void initScriptWithScript() {
 	#ifdef X3DPARSERVERBOSE
 	printf ("endElement: CDATA_Text is %s\n",CDATA_Text);
 	#endif
-
-	myScriptNumber = myObj->num;
 
 	/* did the script text come from a CDATA node?? */
 	if (tg->X3DParser.CDATA_Text != NULL) if (tg->X3DParser.CDATA_Text[0] != '\0') myText = tg->X3DParser.CDATA_Text;
@@ -2199,12 +2163,9 @@ void endExternProtoDeclare(void) {
 	/* printf ("externProtoName %s\nexternProtoName.url %s \n",CPD.definedProtoName,CPD.url); */
 	if (CPD.url != NULL) {
 		struct Multi_String url;
-		char *testname;
 
 		pound = NULL;
 		buffer = NULL;
-		testname = MALLOC (char *, 1000);
-
 
 		/* change the string of strings into an array of strings */
 		Parser_scanStringValueToMem(X3D_NODE(&url),0,FIELDTYPE_MFString,CPD.url,TRUE);

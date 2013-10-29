@@ -76,7 +76,7 @@ typedef struct freewrl_params {
 	int height;
 	int xpos;
 	int ypos;
-	void* winToEmbedInto;
+	long int winToEmbedInto;
 	bool fullscreen;
 	bool multithreading;
 	bool enableEAI;
@@ -154,6 +154,9 @@ void setStereoBufferStyle(int);
 /**
  * General variables
  */
+
+#define INT_ID_UNDEFINED -1
+
 
 #define RUNNINGASPLUGIN (isBrowserPlugin)
 

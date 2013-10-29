@@ -9239,6 +9239,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Anchor : {
 			struct X3D_Anchor *tmp;
 			tmp = (struct X3D_Anchor *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 			spacer fprintf (fp," description (SFString) \t%s\n",tmp->description->strptr);
@@ -9254,6 +9255,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Appearance : {
 			struct X3D_Appearance *tmp;
 			tmp = (struct X3D_Appearance *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," lineProperties (SFNode):\n"); dump_scene(fp,level+1,tmp->lineProperties); 
 			spacer fprintf (fp," shaders (MFNode):\n");
 			for (i=0; i<tmp->shaders.n; i++) { dump_scene(fp,level+1,tmp->shaders.p[i]); }
@@ -9269,6 +9271,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Arc2D : {
 			struct X3D_Arc2D *tmp;
 			tmp = (struct X3D_Arc2D *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," radius (SFFloat) \t%4.3f\n",tmp->radius);
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
@@ -9278,6 +9281,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_ArcClose2D : {
 			struct X3D_ArcClose2D *tmp;
 			tmp = (struct X3D_ArcClose2D *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," radius (SFFloat) \t%4.3f\n",tmp->radius);
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
@@ -9287,6 +9291,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_AudioClip : {
 			struct X3D_AudioClip *tmp;
 			tmp = (struct X3D_AudioClip *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," loop (SFBool) \t%d\n",tmp->loop);
 			spacer fprintf (fp," resumeTime (SFTime) \t%4.3f\n",tmp->resumeTime);
 			spacer fprintf (fp," pauseTime (SFTime) \t%4.3f\n",tmp->pauseTime);
@@ -9304,6 +9309,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Background : {
 			struct X3D_Background *tmp;
 			tmp = (struct X3D_Background *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," rightUrl (MFString): \n");
 			for (i=0; i<tmp->rightUrl.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->rightUrl.p[i]->strptr); }
 			spacer fprintf (fp," topUrl (MFString): \n");
@@ -9354,6 +9360,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Billboard : {
 			struct X3D_Billboard *tmp;
 			tmp = (struct X3D_Billboard *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 			spacer fprintf (fp," axisOfRotation (SFVec3f): \t");
@@ -9367,6 +9374,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_BooleanFilter : {
 			struct X3D_BooleanFilter *tmp;
 			tmp = (struct X3D_BooleanFilter *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
@@ -9375,6 +9383,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_BooleanSequencer : {
 			struct X3D_BooleanSequencer *tmp;
 			tmp = (struct X3D_BooleanSequencer *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," keyValue (MFBool):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->keyValue.p[i]); }
 		    if(allFields) {
@@ -9387,6 +9396,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_BooleanToggle : {
 			struct X3D_BooleanToggle *tmp;
 			tmp = (struct X3D_BooleanToggle *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
@@ -9395,6 +9405,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_BooleanTrigger : {
 			struct X3D_BooleanTrigger *tmp;
 			tmp = (struct X3D_BooleanTrigger *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
@@ -9403,6 +9414,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Box : {
 			struct X3D_Box *tmp;
 			tmp = (struct X3D_Box *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
@@ -9414,6 +9426,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_CADAssembly : {
 			struct X3D_CADAssembly *tmp;
 			tmp = (struct X3D_CADAssembly *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
@@ -9429,6 +9442,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_CADFace : {
 			struct X3D_CADFace *tmp;
 			tmp = (struct X3D_CADFace *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
@@ -9439,6 +9453,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_CADLayer : {
 			struct X3D_CADLayer *tmp;
 			tmp = (struct X3D_CADLayer *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," visible (MFBool):\n");
 			for (i=0; i<tmp->visible.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->visible.p[i]); }
 			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
@@ -9452,6 +9467,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_CADPart : {
 			struct X3D_CADPart *tmp;
 			tmp = (struct X3D_CADPart *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 			spacer fprintf (fp," center (SFVec3f): \t");
@@ -9482,6 +9498,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Circle2D : {
 			struct X3D_Circle2D *tmp;
 			tmp = (struct X3D_Circle2D *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," radius (SFFloat) \t%4.3f\n",tmp->radius);
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
@@ -9491,6 +9508,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_ClipPlane : {
 			struct X3D_ClipPlane *tmp;
 			tmp = (struct X3D_ClipPlane *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," plane (SFVec4f): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->plane.c[i]); }
 			fprintf (fp,"\n");
@@ -9503,6 +9521,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Collision : {
 			struct X3D_Collision *tmp;
 			tmp = (struct X3D_Collision *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 		    if(allFields) {
@@ -9518,6 +9537,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Color : {
 			struct X3D_Color *tmp;
 			tmp = (struct X3D_Color *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," color (MFColor):\n");
 			for (i=0; i<tmp->color.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->color.p[i]).c[0], (tmp->color.p[i]).c[1],(tmp->color.p[i]).c[2]); }
 		    if(allFields) {
@@ -9528,6 +9548,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_ColorInterpolator : {
 			struct X3D_ColorInterpolator *tmp;
 			tmp = (struct X3D_ColorInterpolator *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," keyValue (MFColor):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->keyValue.p[i]).c[0], (tmp->keyValue.p[i]).c[1],(tmp->keyValue.p[i]).c[2]); }
 		    if(allFields) {
@@ -9540,6 +9561,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_ColorRGBA : {
 			struct X3D_ColorRGBA *tmp;
 			tmp = (struct X3D_ColorRGBA *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," color (MFColorRGBA):\n");
 			for (i=0; i<tmp->color.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->color.p[i]).c[0], (tmp->color.p[i]).c[1],(tmp->color.p[i]).c[2],(tmp->color.p[i]).c[3]); }
 		    if(allFields) {
@@ -9550,6 +9572,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_ComposedCubeMapTexture : {
 			struct X3D_ComposedCubeMapTexture *tmp;
 			tmp = (struct X3D_ComposedCubeMapTexture *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," left (SFNode):\n"); dump_scene(fp,level+1,tmp->left); 
 			spacer fprintf (fp," right (SFNode):\n"); dump_scene(fp,level+1,tmp->right); 
 			spacer fprintf (fp," top (SFNode):\n"); dump_scene(fp,level+1,tmp->top); 
@@ -9564,6 +9587,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_ComposedShader : {
 			struct X3D_ComposedShader *tmp;
 			tmp = (struct X3D_ComposedShader *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," parts (MFNode):\n");
 			for (i=0; i<tmp->parts.n; i++) { dump_scene(fp,level+1,tmp->parts.p[i]); }
 		    if(allFields) {
@@ -9574,6 +9598,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Cone : {
 			struct X3D_Cone *tmp;
 			tmp = (struct X3D_Cone *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," bottom (SFBool) \t%d\n",tmp->bottom);
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
@@ -9583,6 +9608,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Contour2D : {
 			struct X3D_Contour2D *tmp;
 			tmp = (struct X3D_Contour2D *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 		    if(allFields) {
@@ -9593,6 +9619,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_ContourPolyLine2D : {
 			struct X3D_ContourPolyLine2D *tmp;
 			tmp = (struct X3D_ContourPolyLine2D *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
@@ -9603,6 +9630,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Coordinate : {
 			struct X3D_Coordinate *tmp;
 			tmp = (struct X3D_Coordinate *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," point (MFVec3f):\n");
 			for (i=0; i<tmp->point.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->point.p[i]).c[0], (tmp->point.p[i]).c[1],(tmp->point.p[i]).c[2]); }
 		    if(allFields) {
@@ -9613,6 +9641,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_CoordinateDouble : {
 			struct X3D_CoordinateDouble *tmp;
 			tmp = (struct X3D_CoordinateDouble *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
@@ -9623,6 +9652,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_CoordinateInterpolator : {
 			struct X3D_CoordinateInterpolator *tmp;
 			tmp = (struct X3D_CoordinateInterpolator *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," keyValue (MFVec3f):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->keyValue.p[i]).c[0], (tmp->keyValue.p[i]).c[1],(tmp->keyValue.p[i]).c[2]); }
 		    if(allFields) {
@@ -9635,6 +9665,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_CoordinateInterpolator2D : {
 			struct X3D_CoordinateInterpolator2D *tmp;
 			tmp = (struct X3D_CoordinateInterpolator2D *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," keyValue (MFVec2f):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->keyValue.p[i]).c[0], (tmp->keyValue.p[i]).c[1]); }
 		    if(allFields) {
@@ -9647,6 +9678,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Cylinder : {
 			struct X3D_Cylinder *tmp;
 			tmp = (struct X3D_Cylinder *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," radius (SFFloat) \t%4.3f\n",tmp->radius);
 			spacer fprintf (fp," bottom (SFBool) \t%d\n",tmp->bottom);
 			spacer fprintf (fp," top (SFBool) \t%d\n",tmp->top);
@@ -9658,6 +9690,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_CylinderSensor : {
 			struct X3D_CylinderSensor *tmp;
 			tmp = (struct X3D_CylinderSensor *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," autoOffset (SFBool) \t%d\n",tmp->autoOffset);
 			spacer fprintf (fp," minAngle (SFFloat) \t%4.3f\n",tmp->minAngle);
 		    if(allFields) {
@@ -9676,6 +9709,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_DISEntityManager : {
 			struct X3D_DISEntityManager *tmp;
 			tmp = (struct X3D_DISEntityManager *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," applicationID (SFInt32) \t%d\n",tmp->applicationID);
 			spacer fprintf (fp," mapping (MFNode):\n");
 			for (i=0; i<tmp->mapping.n; i++) { dump_scene(fp,level+1,tmp->mapping.p[i]); }
@@ -9690,6 +9724,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_DISEntityTypeMapping : {
 			struct X3D_DISEntityTypeMapping *tmp;
 			tmp = (struct X3D_DISEntityTypeMapping *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," url (MFString): \n");
 			for (i=0; i<tmp->url.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
 		    if(allFields) {
@@ -9700,6 +9735,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_DirectionalLight : {
 			struct X3D_DirectionalLight *tmp;
 			tmp = (struct X3D_DirectionalLight *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," global (SFBool) \t%d\n",tmp->global);
 			spacer fprintf (fp," ambientIntensity (SFFloat) \t%4.3f\n",tmp->ambientIntensity);
 			spacer fprintf (fp," direction (SFVec3f): \t");
@@ -9718,6 +9754,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Disk2D : {
 			struct X3D_Disk2D *tmp;
 			tmp = (struct X3D_Disk2D *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
@@ -9726,6 +9763,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_EaseInEaseOut : {
 			struct X3D_EaseInEaseOut *tmp;
 			tmp = (struct X3D_EaseInEaseOut *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," easeInEaseOut (MFVec2f):\n");
 			for (i=0; i<tmp->easeInEaseOut.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->easeInEaseOut.p[i]).c[0], (tmp->easeInEaseOut.p[i]).c[1]); }
 		    if(allFields) {
@@ -9738,6 +9776,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_ElevationGrid : {
 			struct X3D_ElevationGrid *tmp;
 			tmp = (struct X3D_ElevationGrid *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," normal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
 			spacer fprintf (fp," color (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
 			spacer fprintf (fp," fogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
@@ -9752,6 +9791,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_EspduTransform : {
 			struct X3D_EspduTransform *tmp;
 			tmp = (struct X3D_EspduTransform *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," articulationParameterChangeIndicatorArr (MFInt32):\n");
 			for (i=0; i<tmp->articulationParameterChangeIndicatorArr.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->articulationParameterChangeIndicatorArr.p[i]); }
 			spacer fprintf (fp," firingRate (SFInt32) \t%d\n",tmp->firingRate);
@@ -9844,6 +9884,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Extrusion : {
 			struct X3D_Extrusion *tmp;
 			tmp = (struct X3D_Extrusion *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," orientation (MFRotation):\n");
 			for (i=0; i<tmp->orientation.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->orientation.p[i]).c[0], (tmp->orientation.p[i]).c[1],(tmp->orientation.p[i]).c[2],(tmp->orientation.p[i]).c[3]); }
 			spacer fprintf (fp," scale (MFVec2f):\n");
@@ -9856,6 +9897,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_FillProperties : {
 			struct X3D_FillProperties *tmp;
 			tmp = (struct X3D_FillProperties *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," _enabled (SFBool) \t%d\n",tmp->_enabled);
 		    }
@@ -9878,6 +9920,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_FloatVertexAttribute : {
 			struct X3D_FloatVertexAttribute *tmp;
 			tmp = (struct X3D_FloatVertexAttribute *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFFloat):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->value.p[i]); }
 			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
@@ -9889,6 +9932,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Fog : {
 			struct X3D_Fog *tmp;
 			tmp = (struct X3D_Fog *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," color (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->color.c[i]); }
 			fprintf (fp,"\n");
@@ -9902,6 +9946,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_FogCoordinate : {
 			struct X3D_FogCoordinate *tmp;
 			tmp = (struct X3D_FogCoordinate *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
@@ -9912,6 +9957,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_FontStyle : {
 			struct X3D_FontStyle *tmp;
 			tmp = (struct X3D_FontStyle *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," size (SFFloat) \t%4.3f\n",tmp->size);
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
@@ -9921,6 +9967,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_GeneratedCubeMapTexture : {
 			struct X3D_GeneratedCubeMapTexture *tmp;
 			tmp = (struct X3D_GeneratedCubeMapTexture *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
@@ -9931,6 +9978,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_GeoCoordinate : {
 			struct X3D_GeoCoordinate *tmp;
 			tmp = (struct X3D_GeoCoordinate *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," point (MFVec3d):\n");
 			for (i=0; i<tmp->point.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->point.p[i]).c[0], (tmp->point.p[i]).c[1],(tmp->point.p[i]).c[2]); }
 		    if(allFields) {
@@ -9945,6 +9993,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_GeoElevationGrid : {
 			struct X3D_GeoElevationGrid *tmp;
 			tmp = (struct X3D_GeoElevationGrid *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," normal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
 			spacer fprintf (fp," color (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
 		    if(allFields) {
@@ -9956,6 +10005,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_GeoLOD : {
 			struct X3D_GeoLOD *tmp;
 			tmp = (struct X3D_GeoLOD *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," __movedCoords (SFVec3d): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->__movedCoords.c[i]); }
@@ -10001,6 +10051,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_GeoLocation : {
 			struct X3D_GeoLocation *tmp;
 			tmp = (struct X3D_GeoLocation *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," __movedCoords (SFVec3d): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->__movedCoords.c[i]); }
@@ -10037,6 +10088,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_GeoMetadata : {
 			struct X3D_GeoMetadata *tmp;
 			tmp = (struct X3D_GeoMetadata *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," summary (MFString): \n");
 			for (i=0; i<tmp->summary.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->summary.p[i]->strptr); }
 			spacer fprintf (fp," url (MFString): \n");
@@ -10051,6 +10103,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_GeoOrigin : {
 			struct X3D_GeoOrigin *tmp;
 			tmp = (struct X3D_GeoOrigin *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," __movedCoords (SFVec3d): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->__movedCoords.c[i]); }
@@ -10081,6 +10134,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_GeoPositionInterpolator : {
 			struct X3D_GeoPositionInterpolator *tmp;
 			tmp = (struct X3D_GeoPositionInterpolator *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," __movedValue (MFVec3d):\n");
 			for (i=0; i<tmp->__movedValue.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->__movedValue.p[i]).c[0], (tmp->__movedValue.p[i]).c[1],(tmp->__movedValue.p[i]).c[2]); }
@@ -10097,6 +10151,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_GeoProximitySensor : {
 			struct X3D_GeoProximitySensor *tmp;
 			tmp = (struct X3D_GeoProximitySensor *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," __movedCoords (SFVec3d): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->__movedCoords.c[i]); }
@@ -10148,6 +10203,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_GeoTouchSensor : {
 			struct X3D_GeoTouchSensor *tmp;
 			tmp = (struct X3D_GeoTouchSensor *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
@@ -10161,6 +10217,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_GeoTransform : {
 			struct X3D_GeoTransform *tmp;
 			tmp = (struct X3D_GeoTransform *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," __movedCoords (SFVec3d): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->__movedCoords.c[i]); }
@@ -10209,6 +10266,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_GeoViewpoint : {
 			struct X3D_GeoViewpoint *tmp;
 			tmp = (struct X3D_GeoViewpoint *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," headlight (SFBool) \t%d\n",tmp->headlight);
 			spacer fprintf (fp," orientation (SFRotation): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->orientation.c[i]); }
@@ -10250,6 +10308,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Group : {
 			struct X3D_Group *tmp;
 			tmp = (struct X3D_Group *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 		    if(allFields) {
@@ -10266,6 +10325,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_HAnimDisplacer : {
 			struct X3D_HAnimDisplacer *tmp;
 			tmp = (struct X3D_HAnimDisplacer *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," displacements (MFVec3f):\n");
 			for (i=0; i<tmp->displacements.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->displacements.p[i]).c[0], (tmp->displacements.p[i]).c[1],(tmp->displacements.p[i]).c[2]); }
 			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
@@ -10278,6 +10338,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_HAnimHumanoid : {
 			struct X3D_HAnimHumanoid *tmp;
 			tmp = (struct X3D_HAnimHumanoid *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," skinNormal (SFNode):\n"); dump_scene(fp,level+1,tmp->skinNormal); 
 			spacer fprintf (fp," segments (MFNode):\n");
 			for (i=0; i<tmp->segments.n; i++) { dump_scene(fp,level+1,tmp->segments.p[i]); }
@@ -10317,6 +10378,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_HAnimJoint : {
 			struct X3D_HAnimJoint *tmp;
 			tmp = (struct X3D_HAnimJoint *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," llimit (MFFloat):\n");
 			for (i=0; i<tmp->llimit.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->llimit.p[i]); }
 			spacer fprintf (fp," children (MFNode):\n");
@@ -10358,6 +10420,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_HAnimSegment : {
 			struct X3D_HAnimSegment *tmp;
 			tmp = (struct X3D_HAnimSegment *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," displacers (MFNode):\n");
 			for (i=0; i<tmp->displacers.n; i++) { dump_scene(fp,level+1,tmp->displacers.p[i]); }
 			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
@@ -10378,6 +10441,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_HAnimSite : {
 			struct X3D_HAnimSite *tmp;
 			tmp = (struct X3D_HAnimSite *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 			spacer fprintf (fp," center (SFVec3f): \t");
@@ -10404,6 +10468,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_ImageCubeMapTexture : {
 			struct X3D_ImageCubeMapTexture *tmp;
 			tmp = (struct X3D_ImageCubeMapTexture *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," url (MFString): \n");
 			for (i=0; i<tmp->url.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
 		    if(allFields) {
@@ -10414,6 +10479,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_ImageTexture : {
 			struct X3D_ImageTexture *tmp;
 			tmp = (struct X3D_ImageTexture *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," url (MFString): \n");
 			for (i=0; i<tmp->url.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
 		    if(allFields) {
@@ -10424,6 +10490,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_IndexedFaceSet : {
 			struct X3D_IndexedFaceSet *tmp;
 			tmp = (struct X3D_IndexedFaceSet *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," normal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
 			spacer fprintf (fp," color (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
 			spacer fprintf (fp," fogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
@@ -10439,6 +10506,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_IndexedLineSet : {
 			struct X3D_IndexedLineSet *tmp;
 			tmp = (struct X3D_IndexedLineSet *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," color (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
 			spacer fprintf (fp," fogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
 			spacer fprintf (fp," coord (SFNode):\n"); dump_scene(fp,level+1,tmp->coord); 
@@ -10452,6 +10520,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_IndexedQuadSet : {
 			struct X3D_IndexedQuadSet *tmp;
 			tmp = (struct X3D_IndexedQuadSet *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," normal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
 			spacer fprintf (fp," texCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
 			spacer fprintf (fp," fogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
@@ -10467,6 +10536,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_IndexedTriangleFanSet : {
 			struct X3D_IndexedTriangleFanSet *tmp;
 			tmp = (struct X3D_IndexedTriangleFanSet *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," normal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
 			spacer fprintf (fp," texCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
 			spacer fprintf (fp," fogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
@@ -10484,6 +10554,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_IndexedTriangleSet : {
 			struct X3D_IndexedTriangleSet *tmp;
 			tmp = (struct X3D_IndexedTriangleSet *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," normal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
 			spacer fprintf (fp," texCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
 			spacer fprintf (fp," fogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
@@ -10501,6 +10572,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_IndexedTriangleStripSet : {
 			struct X3D_IndexedTriangleStripSet *tmp;
 			tmp = (struct X3D_IndexedTriangleStripSet *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," normal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
 			spacer fprintf (fp," texCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
 			spacer fprintf (fp," fogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
@@ -10518,6 +10590,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Inline : {
 			struct X3D_Inline *tmp;
 			tmp = (struct X3D_Inline *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," url (MFString): \n");
 			for (i=0; i<tmp->url.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
 		    if(allFields) {
@@ -10532,6 +10605,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_IntegerSequencer : {
 			struct X3D_IntegerSequencer *tmp;
 			tmp = (struct X3D_IntegerSequencer *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," keyValue (MFInt32):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->keyValue.p[i]); }
 		    if(allFields) {
@@ -10544,6 +10618,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_IntegerTrigger : {
 			struct X3D_IntegerTrigger *tmp;
 			tmp = (struct X3D_IntegerTrigger *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
@@ -10553,6 +10628,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_KeySensor : {
 			struct X3D_KeySensor *tmp;
 			tmp = (struct X3D_KeySensor *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
 		    }
@@ -10565,6 +10641,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_LOD : {
 			struct X3D_LOD *tmp;
 			tmp = (struct X3D_LOD *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 			spacer fprintf (fp," center (SFVec3f): \t");
@@ -10580,6 +10657,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_LineProperties : {
 			struct X3D_LineProperties *tmp;
 			tmp = (struct X3D_LineProperties *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," linetype (SFInt32) \t%d\n",tmp->linetype);
 			spacer fprintf (fp," linewidthScaleFactor (SFFloat) \t%4.3f\n",tmp->linewidthScaleFactor);
 			spacer fprintf (fp," applied (SFBool) \t%d\n",tmp->applied);
@@ -10591,6 +10669,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_LineSet : {
 			struct X3D_LineSet *tmp;
 			tmp = (struct X3D_LineSet *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," color (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
 			spacer fprintf (fp," fogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
 			spacer fprintf (fp," vertexCount (MFInt32):\n");
@@ -10606,6 +10685,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_LoadSensor : {
 			struct X3D_LoadSensor *tmp;
 			tmp = (struct X3D_LoadSensor *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
 		    }
@@ -10621,6 +10701,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_LocalFog : {
 			struct X3D_LocalFog *tmp;
 			tmp = (struct X3D_LocalFog *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," color (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->color.c[i]); }
 			fprintf (fp,"\n");
@@ -10635,6 +10716,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Material : {
 			struct X3D_Material *tmp;
 			tmp = (struct X3D_Material *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," transparency (SFFloat) \t%4.3f\n",tmp->transparency);
 			spacer fprintf (fp," specularColor (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->specularColor.c[i]); }
@@ -10655,6 +10737,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Matrix3VertexAttribute : {
 			struct X3D_Matrix3VertexAttribute *tmp;
 			tmp = (struct X3D_Matrix3VertexAttribute *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFMatrix3f):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3],(tmp->value.p[i]).c[4],(tmp->value.p[i]).c[5],(tmp->value.p[i]).c[6],(tmp->value.p[i]).c[7],(tmp->value.p[i]).c[8]); }
 			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
@@ -10666,6 +10749,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Matrix4VertexAttribute : {
 			struct X3D_Matrix4VertexAttribute *tmp;
 			tmp = (struct X3D_Matrix4VertexAttribute *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFMatrix4f):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f ]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3],(tmp->value.p[i]).c[4],(tmp->value.p[i]).c[5],(tmp->value.p[i]).c[6],(tmp->value.p[i]).c[7],(tmp->value.p[i]).c[8],(tmp->value.p[i]).c[9],(tmp->value.p[i]).c[10],(tmp->value.p[i]).c[11],(tmp->value.p[i]).c[12],(tmp->value.p[i]).c[13],(tmp->value.p[i]).c[14],(tmp->value.p[i]).c[15]); }
 			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
@@ -10677,6 +10761,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataDouble : {
 			struct X3D_MetadataDouble *tmp;
 			tmp = (struct X3D_MetadataDouble *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFDouble):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->value.p[i]); }
 			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
@@ -10688,6 +10773,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataFloat : {
 			struct X3D_MetadataFloat *tmp;
 			tmp = (struct X3D_MetadataFloat *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFFloat):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->value.p[i]); }
 			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
@@ -10699,6 +10785,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataInteger : {
 			struct X3D_MetadataInteger *tmp;
 			tmp = (struct X3D_MetadataInteger *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFInt32):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->value.p[i]); }
 			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
@@ -10710,6 +10797,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataMFBool : {
 			struct X3D_MetadataMFBool *tmp;
 			tmp = (struct X3D_MetadataMFBool *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFBool):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->value.p[i]); }
 		    break;
@@ -10717,6 +10805,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataMFColor : {
 			struct X3D_MetadataMFColor *tmp;
 			tmp = (struct X3D_MetadataMFColor *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFColor):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2]); }
 		    break;
@@ -10724,6 +10813,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataMFColorRGBA : {
 			struct X3D_MetadataMFColorRGBA *tmp;
 			tmp = (struct X3D_MetadataMFColorRGBA *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFColorRGBA):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3]); }
 		    break;
@@ -10731,6 +10821,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataMFDouble : {
 			struct X3D_MetadataMFDouble *tmp;
 			tmp = (struct X3D_MetadataMFDouble *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFDouble):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->value.p[i]); }
 		    break;
@@ -10738,6 +10829,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataMFFloat : {
 			struct X3D_MetadataMFFloat *tmp;
 			tmp = (struct X3D_MetadataMFFloat *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFFloat):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->value.p[i]); }
 		    break;
@@ -10745,6 +10837,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataMFInt32 : {
 			struct X3D_MetadataMFInt32 *tmp;
 			tmp = (struct X3D_MetadataMFInt32 *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFInt32):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->value.p[i]); }
 		    break;
@@ -10752,6 +10845,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataMFMatrix3d : {
 			struct X3D_MetadataMFMatrix3d *tmp;
 			tmp = (struct X3D_MetadataMFMatrix3d *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFMatrix3d):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3],(tmp->value.p[i]).c[4],(tmp->value.p[i]).c[5],(tmp->value.p[i]).c[6],(tmp->value.p[i]).c[7],(tmp->value.p[i]).c[8]); }
 		    break;
@@ -10759,6 +10853,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataMFMatrix3f : {
 			struct X3D_MetadataMFMatrix3f *tmp;
 			tmp = (struct X3D_MetadataMFMatrix3f *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFMatrix3f):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3],(tmp->value.p[i]).c[4],(tmp->value.p[i]).c[5],(tmp->value.p[i]).c[6],(tmp->value.p[i]).c[7],(tmp->value.p[i]).c[8]); }
 		    break;
@@ -10766,6 +10861,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataMFMatrix4d : {
 			struct X3D_MetadataMFMatrix4d *tmp;
 			tmp = (struct X3D_MetadataMFMatrix4d *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFMatrix4d):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f ]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3],(tmp->value.p[i]).c[4],(tmp->value.p[i]).c[5],(tmp->value.p[i]).c[6],(tmp->value.p[i]).c[7],(tmp->value.p[i]).c[8],(tmp->value.p[i]).c[9],(tmp->value.p[i]).c[10],(tmp->value.p[i]).c[11],(tmp->value.p[i]).c[12],(tmp->value.p[i]).c[13],(tmp->value.p[i]).c[14],(tmp->value.p[i]).c[15]); }
 		    break;
@@ -10773,6 +10869,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataMFMatrix4f : {
 			struct X3D_MetadataMFMatrix4f *tmp;
 			tmp = (struct X3D_MetadataMFMatrix4f *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFMatrix4f):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f ]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3],(tmp->value.p[i]).c[4],(tmp->value.p[i]).c[5],(tmp->value.p[i]).c[6],(tmp->value.p[i]).c[7],(tmp->value.p[i]).c[8],(tmp->value.p[i]).c[9],(tmp->value.p[i]).c[10],(tmp->value.p[i]).c[11],(tmp->value.p[i]).c[12],(tmp->value.p[i]).c[13],(tmp->value.p[i]).c[14],(tmp->value.p[i]).c[15]); }
 		    break;
@@ -10780,6 +10877,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataMFNode : {
 			struct X3D_MetadataMFNode *tmp;
 			tmp = (struct X3D_MetadataMFNode *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFNode):\n");
 			for (i=0; i<tmp->value.n; i++) { dump_scene(fp,level+1,tmp->value.p[i]); }
 		    break;
@@ -10787,6 +10885,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataMFRotation : {
 			struct X3D_MetadataMFRotation *tmp;
 			tmp = (struct X3D_MetadataMFRotation *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFRotation):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3]); }
 		    break;
@@ -10794,6 +10893,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataMFString : {
 			struct X3D_MetadataMFString *tmp;
 			tmp = (struct X3D_MetadataMFString *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFString): \n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->value.p[i]->strptr); }
 		    break;
@@ -10801,6 +10901,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataMFTime : {
 			struct X3D_MetadataMFTime *tmp;
 			tmp = (struct X3D_MetadataMFTime *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFTime):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->value.p[i]); }
 		    break;
@@ -10808,6 +10909,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataMFVec2d : {
 			struct X3D_MetadataMFVec2d *tmp;
 			tmp = (struct X3D_MetadataMFVec2d *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFVec2d):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1]); }
 		    break;
@@ -10815,6 +10917,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataMFVec2f : {
 			struct X3D_MetadataMFVec2f *tmp;
 			tmp = (struct X3D_MetadataMFVec2f *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFVec2f):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1]); }
 		    break;
@@ -10822,6 +10925,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataMFVec3d : {
 			struct X3D_MetadataMFVec3d *tmp;
 			tmp = (struct X3D_MetadataMFVec3d *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFVec3d):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2]); }
 		    break;
@@ -10829,6 +10933,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataMFVec3f : {
 			struct X3D_MetadataMFVec3f *tmp;
 			tmp = (struct X3D_MetadataMFVec3f *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFVec3f):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2]); }
 		    break;
@@ -10836,6 +10941,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataMFVec4d : {
 			struct X3D_MetadataMFVec4d *tmp;
 			tmp = (struct X3D_MetadataMFVec4d *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFVec4d):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3]); }
 		    break;
@@ -10843,6 +10949,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataMFVec4f : {
 			struct X3D_MetadataMFVec4f *tmp;
 			tmp = (struct X3D_MetadataMFVec4f *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFVec4f):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3]); }
 		    break;
@@ -10850,12 +10957,14 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFBool : {
 			struct X3D_MetadataSFBool *tmp;
 			tmp = (struct X3D_MetadataSFBool *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (SFBool) \t%d\n",tmp->value);
 		    break;
 		}
 		case NODE_MetadataSFColor : {
 			struct X3D_MetadataSFColor *tmp;
 			tmp = (struct X3D_MetadataSFColor *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
@@ -10864,6 +10973,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFColorRGBA : {
 			struct X3D_MetadataSFColorRGBA *tmp;
 			tmp = (struct X3D_MetadataSFColorRGBA *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (SFColorRGBA): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
@@ -10872,18 +10982,21 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFDouble : {
 			struct X3D_MetadataSFDouble *tmp;
 			tmp = (struct X3D_MetadataSFDouble *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (SFDouble) \t%4.3f\n",tmp->value);
 		    break;
 		}
 		case NODE_MetadataSFFloat : {
 			struct X3D_MetadataSFFloat *tmp;
 			tmp = (struct X3D_MetadataSFFloat *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (SFFloat) \t%4.3f\n",tmp->value);
 		    break;
 		}
 		case NODE_MetadataSFImage : {
 			struct X3D_MetadataSFImage *tmp;
 			tmp = (struct X3D_MetadataSFImage *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (SFImage): (not dumped)\t");
 			fprintf (fp,"\n");
 		    break;
@@ -10891,12 +11004,14 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFInt32 : {
 			struct X3D_MetadataSFInt32 *tmp;
 			tmp = (struct X3D_MetadataSFInt32 *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (SFInt32) \t%d\n",tmp->value);
 		    break;
 		}
 		case NODE_MetadataSFMatrix3d : {
 			struct X3D_MetadataSFMatrix3d *tmp;
 			tmp = (struct X3D_MetadataSFMatrix3d *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (SFMatrix3d): \t");
 			for (i=0; i<9; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
@@ -10905,6 +11020,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFMatrix3f : {
 			struct X3D_MetadataSFMatrix3f *tmp;
 			tmp = (struct X3D_MetadataSFMatrix3f *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (SFMatrix3f): \t");
 			for (i=0; i<9; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
@@ -10913,6 +11029,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFMatrix4d : {
 			struct X3D_MetadataSFMatrix4d *tmp;
 			tmp = (struct X3D_MetadataSFMatrix4d *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (SFMatrix4d): \t");
 			for (i=0; i<16; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
@@ -10921,6 +11038,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFMatrix4f : {
 			struct X3D_MetadataSFMatrix4f *tmp;
 			tmp = (struct X3D_MetadataSFMatrix4f *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (SFMatrix4f): \t");
 			for (i=0; i<16; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
@@ -10929,12 +11047,14 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFNode : {
 			struct X3D_MetadataSFNode *tmp;
 			tmp = (struct X3D_MetadataSFNode *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (SFNode):\n"); dump_scene(fp,level+1,tmp->value); 
 		    break;
 		}
 		case NODE_MetadataSFRotation : {
 			struct X3D_MetadataSFRotation *tmp;
 			tmp = (struct X3D_MetadataSFRotation *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (SFRotation): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
@@ -10943,18 +11063,21 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFString : {
 			struct X3D_MetadataSFString *tmp;
 			tmp = (struct X3D_MetadataSFString *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (SFString) \t%s\n",tmp->value->strptr);
 		    break;
 		}
 		case NODE_MetadataSFTime : {
 			struct X3D_MetadataSFTime *tmp;
 			tmp = (struct X3D_MetadataSFTime *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (SFTime) \t%4.3f\n",tmp->value);
 		    break;
 		}
 		case NODE_MetadataSFVec2d : {
 			struct X3D_MetadataSFVec2d *tmp;
 			tmp = (struct X3D_MetadataSFVec2d *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (SFVec2d): \t");
 			for (i=0; i<2; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
@@ -10963,6 +11086,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFVec2f : {
 			struct X3D_MetadataSFVec2f *tmp;
 			tmp = (struct X3D_MetadataSFVec2f *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (SFVec2f): \t");
 			for (i=0; i<2; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
@@ -10971,6 +11095,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFVec3d : {
 			struct X3D_MetadataSFVec3d *tmp;
 			tmp = (struct X3D_MetadataSFVec3d *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (SFVec3d): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
@@ -10979,6 +11104,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFVec3f : {
 			struct X3D_MetadataSFVec3f *tmp;
 			tmp = (struct X3D_MetadataSFVec3f *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
@@ -10987,6 +11113,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFVec4d : {
 			struct X3D_MetadataSFVec4d *tmp;
 			tmp = (struct X3D_MetadataSFVec4d *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (SFVec4d): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
@@ -10995,6 +11122,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFVec4f : {
 			struct X3D_MetadataSFVec4f *tmp;
 			tmp = (struct X3D_MetadataSFVec4f *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (SFVec4f): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
@@ -11003,6 +11131,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSet : {
 			struct X3D_MetadataSet *tmp;
 			tmp = (struct X3D_MetadataSet *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFNode):\n");
 			for (i=0; i<tmp->value.n; i++) { dump_scene(fp,level+1,tmp->value.p[i]); }
 			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
@@ -11014,6 +11143,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataString : {
 			struct X3D_MetadataString *tmp;
 			tmp = (struct X3D_MetadataString *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," value (MFString): \n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->value.p[i]->strptr); }
 			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
@@ -11025,6 +11155,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MovieTexture : {
 			struct X3D_MovieTexture *tmp;
 			tmp = (struct X3D_MovieTexture *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," loop (SFBool) \t%d\n",tmp->loop);
 			spacer fprintf (fp," resumeTime (SFTime) \t%4.3f\n",tmp->resumeTime);
 			spacer fprintf (fp," pauseTime (SFTime) \t%4.3f\n",tmp->pauseTime);
@@ -11042,6 +11173,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MultiTexture : {
 			struct X3D_MultiTexture *tmp;
 			tmp = (struct X3D_MultiTexture *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," source (MFString): \n");
 			for (i=0; i<tmp->source.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->source.p[i]->strptr); }
 			spacer fprintf (fp," color (SFColor): \t");
@@ -11062,6 +11194,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MultiTextureCoordinate : {
 			struct X3D_MultiTextureCoordinate *tmp;
 			tmp = (struct X3D_MultiTextureCoordinate *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
@@ -11072,6 +11205,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MultiTextureTransform : {
 			struct X3D_MultiTextureTransform *tmp;
 			tmp = (struct X3D_MultiTextureTransform *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," textureTransform (MFNode):\n");
 			for (i=0; i<tmp->textureTransform.n; i++) { dump_scene(fp,level+1,tmp->textureTransform.p[i]); }
 		    if(allFields) {
@@ -11082,6 +11216,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_NavigationInfo : {
 			struct X3D_NavigationInfo *tmp;
 			tmp = (struct X3D_NavigationInfo *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," transitionTime (SFTime) \t%4.3f\n",tmp->transitionTime);
 			spacer fprintf (fp," headlight (SFBool) \t%d\n",tmp->headlight);
 			spacer fprintf (fp," speed (SFFloat) \t%4.3f\n",tmp->speed);
@@ -11100,6 +11235,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Normal : {
 			struct X3D_Normal *tmp;
 			tmp = (struct X3D_Normal *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
@@ -11110,6 +11246,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_NormalInterpolator : {
 			struct X3D_NormalInterpolator *tmp;
 			tmp = (struct X3D_NormalInterpolator *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," keyValue (MFVec3f):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->keyValue.p[i]).c[0], (tmp->keyValue.p[i]).c[1],(tmp->keyValue.p[i]).c[2]); }
 		    if(allFields) {
@@ -11122,6 +11259,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_NurbsCurve : {
 			struct X3D_NurbsCurve *tmp;
 			tmp = (struct X3D_NurbsCurve *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," tessellation (SFInt32) \t%d\n",tmp->tessellation);
 			spacer fprintf (fp," order (SFInt32) \t%d\n",tmp->order);
 			spacer fprintf (fp," weight (MFDouble):\n");
@@ -11135,6 +11273,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_NurbsCurve2D : {
 			struct X3D_NurbsCurve2D *tmp;
 			tmp = (struct X3D_NurbsCurve2D *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," tessellation (SFInt32) \t%d\n",tmp->tessellation);
 			spacer fprintf (fp," order (SFInt32) \t%d\n",tmp->order);
 			spacer fprintf (fp," weight (MFDouble):\n");
@@ -11149,6 +11288,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_NurbsOrientationInterpolator : {
 			struct X3D_NurbsOrientationInterpolator *tmp;
 			tmp = (struct X3D_NurbsOrientationInterpolator *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," knot (MFDouble):\n");
 			for (i=0; i<tmp->knot.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->knot.p[i]); }
 			spacer fprintf (fp," order (SFInt32) \t%d\n",tmp->order);
@@ -11163,6 +11303,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_NurbsPatchSurface : {
 			struct X3D_NurbsPatchSurface *tmp;
 			tmp = (struct X3D_NurbsPatchSurface *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," vDimension (SFInt32) \t%d\n",tmp->vDimension);
 			spacer fprintf (fp," vOrder (SFInt32) \t%d\n",tmp->vOrder);
 			spacer fprintf (fp," vTessellation (SFInt32) \t%d\n",tmp->vTessellation);
@@ -11181,6 +11322,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_NurbsPositionInterpolator : {
 			struct X3D_NurbsPositionInterpolator *tmp;
 			tmp = (struct X3D_NurbsPositionInterpolator *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," knot (MFDouble):\n");
 			for (i=0; i<tmp->knot.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->knot.p[i]); }
 			spacer fprintf (fp," order (SFInt32) \t%d\n",tmp->order);
@@ -11195,6 +11337,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_NurbsSet : {
 			struct X3D_NurbsSet *tmp;
 			tmp = (struct X3D_NurbsSet *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," geometry (MFNode):\n");
 			for (i=0; i<tmp->geometry.n; i++) { dump_scene(fp,level+1,tmp->geometry.p[i]); }
 		    if(allFields) {
@@ -11206,6 +11349,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_NurbsSurfaceInterpolator : {
 			struct X3D_NurbsSurfaceInterpolator *tmp;
 			tmp = (struct X3D_NurbsSurfaceInterpolator *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," vDimension (SFInt32) \t%d\n",tmp->vDimension);
 			spacer fprintf (fp," vOrder (SFInt32) \t%d\n",tmp->vOrder);
 			spacer fprintf (fp," uDimension (SFInt32) \t%d\n",tmp->uDimension);
@@ -11219,6 +11363,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_NurbsSweptSurface : {
 			struct X3D_NurbsSweptSurface *tmp;
 			tmp = (struct X3D_NurbsSweptSurface *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," trajectoryCurve (SFNode):\n"); dump_scene(fp,level+1,tmp->trajectoryCurve); 
 			spacer fprintf (fp," crossSectionCurve (SFNode):\n"); dump_scene(fp,level+1,tmp->crossSectionCurve); 
 		    if(allFields) {
@@ -11229,6 +11374,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_NurbsSwungSurface : {
 			struct X3D_NurbsSwungSurface *tmp;
 			tmp = (struct X3D_NurbsSwungSurface *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," trajectoryCurve (SFNode):\n"); dump_scene(fp,level+1,tmp->trajectoryCurve); 
 			spacer fprintf (fp," profileCurve (SFNode):\n"); dump_scene(fp,level+1,tmp->profileCurve); 
 		    if(allFields) {
@@ -11239,6 +11385,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_NurbsTextureCoordinate : {
 			struct X3D_NurbsTextureCoordinate *tmp;
 			tmp = (struct X3D_NurbsTextureCoordinate *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," vDimension (SFInt32) \t%d\n",tmp->vDimension);
 			spacer fprintf (fp," vOrder (SFInt32) \t%d\n",tmp->vOrder);
 			spacer fprintf (fp," uDimension (SFInt32) \t%d\n",tmp->uDimension);
@@ -11255,6 +11402,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_NurbsTrimmedSurface : {
 			struct X3D_NurbsTrimmedSurface *tmp;
 			tmp = (struct X3D_NurbsTrimmedSurface *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," vDimension (SFInt32) \t%d\n",tmp->vDimension);
 			spacer fprintf (fp," vTesselation (SFInt32) \t%d\n",tmp->vTesselation);
 			spacer fprintf (fp," weight (MFDouble):\n");
@@ -11275,6 +11423,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_OSC_Sensor : {
 			struct X3D_OSC_Sensor *tmp;
 			tmp = (struct X3D_OSC_Sensor *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," protocol (SFString) \t%s\n",tmp->protocol->strptr);
 			spacer fprintf (fp," listenfor (SFString) \t%s\n",tmp->listenfor->strptr);
 		    if(allFields) {
@@ -11307,6 +11456,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_OrientationInterpolator : {
 			struct X3D_OrientationInterpolator *tmp;
 			tmp = (struct X3D_OrientationInterpolator *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," keyValue (MFRotation):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->keyValue.p[i]).c[0], (tmp->keyValue.p[i]).c[1],(tmp->keyValue.p[i]).c[2],(tmp->keyValue.p[i]).c[3]); }
 		    if(allFields) {
@@ -11319,6 +11469,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_OrthoViewpoint : {
 			struct X3D_OrthoViewpoint *tmp;
 			tmp = (struct X3D_OrthoViewpoint *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," orientation (SFRotation): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->orientation.c[i]); }
 			fprintf (fp,"\n");
@@ -11341,6 +11492,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_PackagedShader : {
 			struct X3D_PackagedShader *tmp;
 			tmp = (struct X3D_PackagedShader *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," url (MFString): \n");
 			for (i=0; i<tmp->url.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
 		    if(allFields) {
@@ -11351,6 +11503,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_PickableGroup : {
 			struct X3D_PickableGroup *tmp;
 			tmp = (struct X3D_PickableGroup *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 			spacer fprintf (fp," pickable (SFBool) \t%d\n",tmp->pickable);
@@ -11366,6 +11519,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_PixelTexture : {
 			struct X3D_PixelTexture *tmp;
 			tmp = (struct X3D_PixelTexture *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
@@ -11376,6 +11530,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_PlaneSensor : {
 			struct X3D_PlaneSensor *tmp;
 			tmp = (struct X3D_PlaneSensor *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," minPosition (SFVec2f): \t");
 			for (i=0; i<2; i++) { fprintf (fp,"%4.3f  ",tmp->minPosition.c[i]); }
 			fprintf (fp,"\n");
@@ -11399,6 +11554,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_PointLight : {
 			struct X3D_PointLight *tmp;
 			tmp = (struct X3D_PointLight *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," global (SFBool) \t%d\n",tmp->global);
 			spacer fprintf (fp," location (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->location.c[i]); }
@@ -11421,6 +11577,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_PointPickSensor : {
 			struct X3D_PointPickSensor *tmp;
 			tmp = (struct X3D_PointPickSensor *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," _nparents (int) %d\n",vectorSize(tmp->_parentVector)); /* DJTRACK_PICKSENSORS */
 			for (i=0; i<vectorSize(tmp->_parentVector); i++) { spacer fprintf (fp,"    %d: %p\n",i, vector_get(struct X3D_Node *, tmp->_parentVector,i)); }
 			spacer fprintf (fp," objectType (MFString): \n");
@@ -11441,6 +11598,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_PointSet : {
 			struct X3D_PointSet *tmp;
 			tmp = (struct X3D_PointSet *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," color (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
 			spacer fprintf (fp," fogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
 			spacer fprintf (fp," attrib (MFNode):\n");
@@ -11454,6 +11612,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Polyline2D : {
 			struct X3D_Polyline2D *tmp;
 			tmp = (struct X3D_Polyline2D *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
@@ -11462,6 +11621,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Polypoint2D : {
 			struct X3D_Polypoint2D *tmp;
 			tmp = (struct X3D_Polypoint2D *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," point (MFVec2f):\n");
 			for (i=0; i<tmp->point.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->point.p[i]).c[0], (tmp->point.p[i]).c[1]); }
 		    if(allFields) {
@@ -11472,6 +11632,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_PositionInterpolator : {
 			struct X3D_PositionInterpolator *tmp;
 			tmp = (struct X3D_PositionInterpolator *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," keyValue (MFVec3f):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->keyValue.p[i]).c[0], (tmp->keyValue.p[i]).c[1],(tmp->keyValue.p[i]).c[2]); }
 		    if(allFields) {
@@ -11484,6 +11645,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_PositionInterpolator2D : {
 			struct X3D_PositionInterpolator2D *tmp;
 			tmp = (struct X3D_PositionInterpolator2D *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," keyValue (MFVec2f):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->keyValue.p[i]).c[0], (tmp->keyValue.p[i]).c[1]); }
 		    if(allFields) {
@@ -11496,6 +11658,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_ProgramShader : {
 			struct X3D_ProgramShader *tmp;
 			tmp = (struct X3D_ProgramShader *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," programs (MFNode):\n");
 			for (i=0; i<tmp->programs.n; i++) { dump_scene(fp,level+1,tmp->programs.p[i]); }
 		    if(allFields) {
@@ -11506,6 +11669,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Proto : {
 			struct X3D_Proto *tmp;
 			tmp = (struct X3D_Proto *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," _children (MFNode):\n");
 			for (i=0; i<tmp->_children.n; i++) { dump_scene(fp,level+1,tmp->_children.p[i]); }
@@ -11526,6 +11690,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_ProximitySensor : {
 			struct X3D_ProximitySensor *tmp;
 			tmp = (struct X3D_ProximitySensor *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
 		    }
@@ -11557,6 +11722,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_QuadSet : {
 			struct X3D_QuadSet *tmp;
 			tmp = (struct X3D_QuadSet *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," normal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
 			spacer fprintf (fp," texCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
 			spacer fprintf (fp," color (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
@@ -11572,6 +11738,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_ReceiverPdu : {
 			struct X3D_ReceiverPdu *tmp;
 			tmp = (struct X3D_ReceiverPdu *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," receiverState (SFInt32) \t%d\n",tmp->receiverState);
 			spacer fprintf (fp," transmitterApplicationID (SFInt32) \t%d\n",tmp->transmitterApplicationID);
 			spacer fprintf (fp," siteID (SFInt32) \t%d\n",tmp->siteID);
@@ -11600,6 +11767,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Rectangle2D : {
 			struct X3D_Rectangle2D *tmp;
 			tmp = (struct X3D_Rectangle2D *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
@@ -11611,6 +11779,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_ScalarInterpolator : {
 			struct X3D_ScalarInterpolator *tmp;
 			tmp = (struct X3D_ScalarInterpolator *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," keyValue (MFFloat):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->keyValue.p[i]); }
 		    if(allFields) {
@@ -11623,6 +11792,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Script : {
 			struct X3D_Script *tmp;
 			tmp = (struct X3D_Script *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," url (MFString): \n");
 			for (i=0; i<tmp->url.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
 		    if(allFields) {
@@ -11633,6 +11803,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_ShaderPart : {
 			struct X3D_ShaderPart *tmp;
 			tmp = (struct X3D_ShaderPart *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," url (MFString): \n");
 			for (i=0; i<tmp->url.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
 		    if(allFields) {
@@ -11644,6 +11815,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_ShaderProgram : {
 			struct X3D_ShaderProgram *tmp;
 			tmp = (struct X3D_ShaderProgram *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," url (MFString): \n");
 			for (i=0; i<tmp->url.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
 		    if(allFields) {
@@ -11655,6 +11827,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Shape : {
 			struct X3D_Shape *tmp;
 			tmp = (struct X3D_Shape *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," appearance (SFNode):\n"); dump_scene(fp,level+1,tmp->appearance); 
 			spacer fprintf (fp," geometry (SFNode):\n"); dump_scene(fp,level+1,tmp->geometry); 
 		    if(allFields) {
@@ -11665,6 +11838,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_SignalPdu : {
 			struct X3D_SignalPdu *tmp;
 			tmp = (struct X3D_SignalPdu *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," siteID (SFInt32) \t%d\n",tmp->siteID);
 			spacer fprintf (fp," rtpHeaderExpected (SFBool) \t%d\n",tmp->rtpHeaderExpected);
 			spacer fprintf (fp," networkMode (SFString) \t%s\n",tmp->networkMode->strptr);
@@ -11694,6 +11868,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Sound : {
 			struct X3D_Sound *tmp;
 			tmp = (struct X3D_Sound *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," priority (SFFloat) \t%4.3f\n",tmp->priority);
 			spacer fprintf (fp," source (SFNode):\n"); dump_scene(fp,level+1,tmp->source); 
 			spacer fprintf (fp," minFront (SFFloat) \t%4.3f\n",tmp->minFront);
@@ -11715,6 +11890,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Sphere : {
 			struct X3D_Sphere *tmp;
 			tmp = (struct X3D_Sphere *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," radius (SFFloat) \t%4.3f\n",tmp->radius);
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
@@ -11724,6 +11900,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_SphereSensor : {
 			struct X3D_SphereSensor *tmp;
 			tmp = (struct X3D_SphereSensor *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
 		    }
@@ -11741,6 +11918,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_SplinePositionInterpolator : {
 			struct X3D_SplinePositionInterpolator *tmp;
 			tmp = (struct X3D_SplinePositionInterpolator *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," closed (SFBool) \t%d\n",tmp->closed);
 			spacer fprintf (fp," keyValue (MFVec3f):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->keyValue.p[i]).c[0], (tmp->keyValue.p[i]).c[1],(tmp->keyValue.p[i]).c[2]); }
@@ -11757,6 +11935,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_SplinePositionInterpolator2D : {
 			struct X3D_SplinePositionInterpolator2D *tmp;
 			tmp = (struct X3D_SplinePositionInterpolator2D *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," closed (SFBool) \t%d\n",tmp->closed);
 			spacer fprintf (fp," keyValue (MFVec2f):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->keyValue.p[i]).c[0], (tmp->keyValue.p[i]).c[1]); }
@@ -11773,6 +11952,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_SplineScalarInterpolator : {
 			struct X3D_SplineScalarInterpolator *tmp;
 			tmp = (struct X3D_SplineScalarInterpolator *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," closed (SFBool) \t%d\n",tmp->closed);
 			spacer fprintf (fp," keyValue (MFFloat):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->keyValue.p[i]); }
@@ -11789,6 +11969,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_SpotLight : {
 			struct X3D_SpotLight *tmp;
 			tmp = (struct X3D_SpotLight *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," on (SFBool) \t%d\n",tmp->on);
 			spacer fprintf (fp," direction (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->direction.c[i]); }
@@ -11816,6 +11997,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_SquadOrientationInterpolator : {
 			struct X3D_SquadOrientationInterpolator *tmp;
 			tmp = (struct X3D_SquadOrientationInterpolator *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," keyValue (MFRotation):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->keyValue.p[i]).c[0], (tmp->keyValue.p[i]).c[1],(tmp->keyValue.p[i]).c[2],(tmp->keyValue.p[i]).c[3]); }
 		    if(allFields) {
@@ -11829,6 +12011,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_StaticGroup : {
 			struct X3D_StaticGroup *tmp;
 			tmp = (struct X3D_StaticGroup *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
@@ -11843,6 +12026,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_StringSensor : {
 			struct X3D_StringSensor *tmp;
 			tmp = (struct X3D_StringSensor *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
 		    }
@@ -11856,6 +12040,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Switch : {
 			struct X3D_Switch *tmp;
 			tmp = (struct X3D_Switch *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 		    if(allFields) {
@@ -11869,6 +12054,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Text : {
 			struct X3D_Text *tmp;
 			tmp = (struct X3D_Text *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," fontStyle (SFNode):\n"); dump_scene(fp,level+1,tmp->fontStyle); 
 		    if(allFields) {
 			spacer fprintf (fp," __rendersub (SFInt32) \t%d\n",tmp->__rendersub);
@@ -11886,6 +12072,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_TextureBackground : {
 			struct X3D_TextureBackground *tmp;
 			tmp = (struct X3D_TextureBackground *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," topTexture (SFNode):\n"); dump_scene(fp,level+1,tmp->topTexture); 
 			spacer fprintf (fp," groundColor (MFColor):\n");
 			for (i=0; i<tmp->groundColor.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->groundColor.p[i]).c[0], (tmp->groundColor.p[i]).c[1],(tmp->groundColor.p[i]).c[2]); }
@@ -11910,6 +12097,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_TextureCoordinate : {
 			struct X3D_TextureCoordinate *tmp;
 			tmp = (struct X3D_TextureCoordinate *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," point (MFVec2f):\n");
 			for (i=0; i<tmp->point.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->point.p[i]).c[0], (tmp->point.p[i]).c[1]); }
 		    if(allFields) {
@@ -11920,6 +12108,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_TextureCoordinateGenerator : {
 			struct X3D_TextureCoordinateGenerator *tmp;
 			tmp = (struct X3D_TextureCoordinateGenerator *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," parameter (MFFloat):\n");
 			for (i=0; i<tmp->parameter.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->parameter.p[i]); }
 			spacer fprintf (fp," mode (SFString) \t%s\n",tmp->mode->strptr);
@@ -11931,6 +12120,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_TextureProperties : {
 			struct X3D_TextureProperties *tmp;
 			tmp = (struct X3D_TextureProperties *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," borderColor (SFColorRGBA): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->borderColor.c[i]); }
 			fprintf (fp,"\n");
@@ -11951,6 +12141,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_TextureTransform : {
 			struct X3D_TextureTransform *tmp;
 			tmp = (struct X3D_TextureTransform *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," rotation (SFFloat) \t%4.3f\n",tmp->rotation);
 			spacer fprintf (fp," scale (SFVec2f): \t");
 			for (i=0; i<2; i++) { fprintf (fp,"%4.3f  ",tmp->scale.c[i]); }
@@ -11969,6 +12160,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_TimeSensor : {
 			struct X3D_TimeSensor *tmp;
 			tmp = (struct X3D_TimeSensor *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," loop (SFBool) \t%d\n",tmp->loop);
 			spacer fprintf (fp," resumeTime (SFTime) \t%4.3f\n",tmp->resumeTime);
 			spacer fprintf (fp," cycleInterval (SFTime) \t%4.3f\n",tmp->cycleInterval);
@@ -11990,6 +12182,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_TimeTrigger : {
 			struct X3D_TimeTrigger *tmp;
 			tmp = (struct X3D_TimeTrigger *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
@@ -11998,6 +12191,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_TouchSensor : {
 			struct X3D_TouchSensor *tmp;
 			tmp = (struct X3D_TouchSensor *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
 		    }
@@ -12011,6 +12205,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Transform : {
 			struct X3D_Transform *tmp;
 			tmp = (struct X3D_Transform *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 			spacer fprintf (fp," center (SFVec3f): \t");
@@ -12040,6 +12235,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_TransmitterPdu : {
 			struct X3D_TransmitterPdu *tmp;
 			tmp = (struct X3D_TransmitterPdu *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," antennaPatternType (SFInt32) \t%d\n",tmp->antennaPatternType);
 			spacer fprintf (fp," frequency (SFInt32) \t%d\n",tmp->frequency);
 			spacer fprintf (fp," rtpHeaderExpected (SFBool) \t%d\n",tmp->rtpHeaderExpected);
@@ -12088,6 +12284,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_TriangleFanSet : {
 			struct X3D_TriangleFanSet *tmp;
 			tmp = (struct X3D_TriangleFanSet *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," normal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
 			spacer fprintf (fp," texCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
 			spacer fprintf (fp," color (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
@@ -12103,6 +12300,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_TriangleSet : {
 			struct X3D_TriangleSet *tmp;
 			tmp = (struct X3D_TriangleSet *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," normal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
 			spacer fprintf (fp," texCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
 			spacer fprintf (fp," color (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
@@ -12118,6 +12316,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_TriangleSet2D : {
 			struct X3D_TriangleSet2D *tmp;
 			tmp = (struct X3D_TriangleSet2D *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," vertices (MFVec2f):\n");
 			for (i=0; i<tmp->vertices.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->vertices.p[i]).c[0], (tmp->vertices.p[i]).c[1]); }
 		    if(allFields) {
@@ -12128,6 +12327,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_TriangleStripSet : {
 			struct X3D_TriangleStripSet *tmp;
 			tmp = (struct X3D_TriangleStripSet *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," normal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
 			spacer fprintf (fp," texCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
 			spacer fprintf (fp," color (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
@@ -12143,6 +12343,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_TwoSidedMaterial : {
 			struct X3D_TwoSidedMaterial *tmp;
 			tmp = (struct X3D_TwoSidedMaterial *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," specularColor (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->specularColor.c[i]); }
 			fprintf (fp,"\n");
@@ -12176,6 +12377,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Viewpoint : {
 			struct X3D_Viewpoint *tmp;
 			tmp = (struct X3D_Viewpoint *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," orientation (SFRotation): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->orientation.c[i]); }
 			fprintf (fp,"\n");
@@ -12197,6 +12399,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_ViewpointGroup : {
 			struct X3D_ViewpointGroup *tmp;
 			tmp = (struct X3D_ViewpointGroup *) node;
+			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," displayed (SFBool) \t%d\n",tmp->displayed);
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
@@ -12219,6 +12422,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_VisibilitySensor : {
 			struct X3D_VisibilitySensor *tmp;
 			tmp = (struct X3D_VisibilitySensor *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
 		    }
@@ -12237,6 +12441,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_WorldInfo : {
 			struct X3D_WorldInfo *tmp;
 			tmp = (struct X3D_WorldInfo *) node;
+			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }

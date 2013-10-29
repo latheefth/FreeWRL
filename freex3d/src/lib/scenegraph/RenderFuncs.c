@@ -909,7 +909,7 @@ void render_node(struct X3D_Node *node) {
 
 	if(renderstate()->render_other && virt->other )
 	{
-#if DJTRACK_PICKSENSORS
+#ifdef DJTRACK_PICKSENSORS
 		DEBUG_RENDER("rs 4a\n");
 		virt->other(node); //other() is responsible for push_renderingState(VF_inPickableGroup);
 		PRINT_GL_ERROR_IF_ANY("render_other"); PRINT_NODE(node,virt);
@@ -954,7 +954,7 @@ void render_node(struct X3D_Node *node) {
 
 	if(renderstate()->render_other && virt->other)
 	{
-#if DJTRACK_PICKSENSORS
+#ifdef DJTRACK_PICKSENSORS
 		//pop_renderingState(VF_inPickableGroup);
 #endif
 	}

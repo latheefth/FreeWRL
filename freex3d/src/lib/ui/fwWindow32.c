@@ -1245,7 +1245,7 @@ int fv_create_main_window(freewrl_params_t * d) //int argc, char *argv[])
   MessageBoxA(d->winToEmbedInto,"You may now attach a debugger.1\n Press OK when you want to proceed.","dllfreeWRL plugin process(1)",MB_OK);
 #endif
 	if(!d->frontend_handles_display_thread){
-		if( d->winToEmbedInto == NULL)
+		if( d->winToEmbedInto == INT_ID_UNDEFINED)
 			d->winToEmbedInto = create_main_window0(d); //argc, argv);
 
 		if( d->winToEmbedInto )

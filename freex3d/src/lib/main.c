@@ -37,6 +37,8 @@
 #include <list.h>
 #include <io_files.h>
 #include <threads.h>
+#include <libFreeWRL.h>
+
 #include "vrml_parser/Structs.h"
 #include "main/ProdCon.h"
 #include "input/InputFunctions.h"
@@ -99,7 +101,7 @@ void fwl_OSX_initializeParameters(const char* initialURL) {
         myParams.height = 400;
         myParams.xpos = 0;
         myParams.ypos = 0;
-        myParams.winToEmbedInto = NULL;
+        myParams.winToEmbedInto = INT_ID_UNDEFINED;
         myParams.fullscreen = FALSE;
         myParams.multithreading = TRUE;
         myParams.enableEAI = FALSE;

@@ -751,7 +751,6 @@ void dump_resource_waiting(resource_item_t* res)
 }
 
 void send_resource_to_parser_async(resource_item_t *res){
-	ttglobal tg = gglobal();
 
 #ifdef NEWQUEUE
 	resitem_enqueue(ml_new(res));

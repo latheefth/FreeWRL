@@ -104,7 +104,6 @@ FIELDTYPE_MFVec4d
 #include "Component_ProgrammableShaders.h"
 #include "../scenegraph/RenderFuncs.h"
 
-#define MAX_INFO_LOG_SIZE 512
 /* we do support older versions of shaders; but not all info logs are printed if we
    have OpenGL prior to 2.0 */
 
@@ -114,15 +113,18 @@ FIELDTYPE_MFVec4d
 		node->isValid = FALSE; \
 	}
 
-static void shaderErrorLog(GLuint myShader) {
-	#ifdef GL_VERSION_2_0 
-		GLchar infoLog[MAX_INFO_LOG_SIZE]; 
-		glGetShaderInfoLog(myShader, MAX_INFO_LOG_SIZE, NULL, infoLog); 
-		ConsoleMessage ("problem with VERTEX shader: %s",infoLog); 
-	#else 
-		ConsoleMessage ("Problem compiling shader"); 
-	#endif 
-}
+#ifdef OLDCODE
+OLDCODE #define MAX_INFO_LOG_SIZE 512
+OLDCODE static void shaderErrorLog(GLuint myShader) {
+OLDCODE 	#ifdef GL_VERSION_2_0 
+OLDCODE 		GLchar infoLog[MAX_INFO_LOG_SIZE]; 
+OLDCODE 		glGetShaderInfoLog(myShader, MAX_INFO_LOG_SIZE, NULL, infoLog); 
+OLDCODE 		ConsoleMessage ("problem with VERTEX shader: %s",infoLog); 
+OLDCODE 	#else 
+OLDCODE 		ConsoleMessage ("Problem compiling shader"); 
+OLDCODE 	#endif 
+OLDCODE }
+#endif //OLDCODE
 
 
 // local structure for passing args to threaded shader compiler functions.

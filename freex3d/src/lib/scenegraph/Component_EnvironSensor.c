@@ -71,7 +71,6 @@ void Component_EnvironSensor_init(struct tComponent_EnvironSensor *t){
 
 	}
 }
-static void rendVisibilityBox (struct X3D_VisibilitySensor *node);
 
 PROXIMITYSENSOR(ProximitySensor,center,,);
 
@@ -117,6 +116,8 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 		}
 
 }
+
+#ifdef VISIBILITYOCCLUSION
 
 static void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 #ifdef HAVE_TO_REIMPLEMENT
@@ -184,7 +185,8 @@ static void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 	sendArraysToGPU (GL_TRIANGLES, 0, 36);
 	FW_GL_DEPTHMASK(TRUE);
 #endif// HAVE_TO_REIMPLEMENT
-}
+}                        
+#endif // VISIBILITYOCCLUSION
 
 
 void do_VisibilitySensorTick (void *ptr) {

@@ -998,9 +998,10 @@ JSBool _standardMFAssign(JSContext *cx,
 	JSObject *_from_obj;
 	jsval val;
 	int32 len;
-	char *_id_str;
         SFImageNative *ptr;
-#if JS_VERSION >= 185
+#if JS_VERSION < 185
+	char *_id_str;
+#else
 	JSString *_id_jsstr;
 #endif
 
@@ -1197,7 +1198,7 @@ JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *
 	char *_buff, *_tmp_valStr, *_tmp_buff;
 	const char *_empty_array = "[]";
     int len = 0, i;
-	size_t buff_size = 0, tmp_valStr_len = 0, tmp_buff_len = 0, className_len = 0;
+	size_t buff_size = 0, tmp_valStr_len = 0, tmp_buff_len = 0;
 	JSBool isString = JS_FALSE;
 	JSBool isImage = JS_FALSE;
 #if JS_VERSION >= 185
@@ -1225,7 +1226,6 @@ JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *
 		return JS_TRUE;
 	}
 
-	className_len = strlen(className);
 	if (!strcmp(className, "MFString")) {
 		isString = JS_TRUE;
 	}
@@ -1366,9 +1366,7 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp, char *name) {
 #endif
 	JSString *str;
 	jsval v;
-	jsval myv;
 	char *p;
-	size_t p_len = 0;
 	int len, ind;
 #if JS_VERSION >= 185
 	jsval id;
@@ -1395,7 +1393,6 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp, char *name) {
 		printf("\tid string  %s\n ",p);
 	#endif
 
-	p_len = strlen(p);
 	if (!strcmp(p, MF_LENGTH_FIELD) ||
 		!strcmp(p, "MF_ECMA_has_changed") ||
 		!strcmp(p, "_parentField") ||
@@ -1456,7 +1453,6 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp, char *name) {
 		printf("index = %d, length = %d\n", ind, len);
 	#endif
 
-	myv = INT_TO_JSVAL(1);
 	return JS_TRUE;
 }
 

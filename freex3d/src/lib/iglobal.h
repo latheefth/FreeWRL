@@ -40,36 +40,10 @@ typedef struct pRenderTextures{
 typedef struct iiglobal //InstanceGlobal
 {
 	struct tdisplay{
-
-
-//typedef struct freewrl_params {
-	/* Put here global parameters, parsed in main program
-	   and needed to initialize libFreeWRL
-	   example: width, height, fullscreen, multithreading, eai...
-	*/
-	//int width;
-	//int height;
-	//int xpos;
-	//int ypos;
-	//long int winToEmbedInto;
-	//bool fullscreen;
-	//bool multithreading;
-	//bool eai;
-	//bool verbose;
-	//bool frontend_handles_display_thread;
-	//int collision;	/* do collision detection? moved to x3d_viewer struct july 7, 2012*/
-
-//} freewrl_params_t;
 		freewrl_params_t params;
 		GLenum _global_gl_err;
 		bool display_initialized;// = FALSE;
 
-
-
-		//int win_height;// = 0; /* window */
-		//int win_width;// = 0;
-		//long int winToEmbedInto;// = -1;
-		//int fullscreen;// = FALSE;
 		int view_height;// = 0; /* viewport */
 		int view_width;// = 0;
 
@@ -84,9 +58,6 @@ typedef struct iiglobal //InstanceGlobal
 		int mouse_y;
 
 		int show_mouse;
-
-		//int xPos;// = 0;
-		//int yPos;// = 0;
 
 		int shutterGlasses;// = 0; /* stereo shutter glasses */
 		int quadbuff_stereo_mode;// = 0;

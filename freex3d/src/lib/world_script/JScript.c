@@ -56,27 +56,31 @@ Javascript C language binding.
 
 #ifdef HAVE_JAVASCRIPT
 
-//int JSMaxScript = 0;
-///* Script name/type table */
-//struct CRjsnameStruct *JSparamnames = NULL;
 #ifndef JSCLASS_GLOBAL_FLAGS
 //spidermonkey < 1.7 doesn't have so define here
 #define JSCLASS_GLOBAL_FLAGS 0
 #endif
-//int jsnameindex = -1;
-//int MAXJSparamNames = 0;
-//static JSRuntime *runtime = NULL;
+
+
 static JSClass staticGlobalClass = {
-	"global",
-	JSCLASS_GLOBAL_FLAGS,
-	JS_PropertyStub,
-	JS_PropertyStub,
-	JS_PropertyStub,
-	JS_PropertyStub,
-	JS_EnumerateStub,
-	globalResolve,
-	JS_ConvertStub,
-	JS_FinalizeStub
+	"global",		// char *name
+	JSCLASS_GLOBAL_FLAGS,	// uint32 flags
+	JS_PropertyStub,	// JSPropertyOp addProperty
+	JS_PropertyStub,	// JSPropertyOp delProperty
+	JS_PropertyStub,	// JSPropertyOp getProperty
+	JS_StrictPropertyStub,	// JSStrictPropertyOp setProperty
+	JS_EnumerateStub,	// JSEnumerateOp enumerate
+	globalResolve,		// JSResolveOp resolve
+	JS_ConvertStub,		// JSConvertOp convert
+	// following are optional and can be NULL
+	JS_FinalizeStub,	// JSFinalizeOp finalize
+	NULL,			// JSClassInternal reserved
+	NULL,			// JSCheckAccessOp checkAccess
+	NULL,			// JSNative call
+	NULL,			// JSNative construct
+	NULL,			// JSXDRObjectOp xdrObject
+	NULL,			// JSJasInstanceOp hasInstance
+	NULL			// JSTraceOp trace
 };
 
 
@@ -150,7 +154,7 @@ void SaveScriptText(int num, const char *text) {
 	if (ScriptControl[num].eventsProcessed != NULL) {
 #if JS_VERSION >= 185
 		if (ScriptControl[num].cx != NULL) {
-			JS_RemoveObjectRoot(ScriptControl[num].cx,ScriptControl[num].eventsProcessed);
+			JS_RemoveObjectRoot(ScriptControl[num].cx,&ScriptControl[num].eventsProcessed);
 		}
 #endif
 		ScriptControl[num].eventsProcessed = NULL;
@@ -229,21 +233,6 @@ static char *DefaultScriptMethods = "function initialize() {}; " \
 			" function deleteRoute(a,b,c,d) {Browser.deleteRoute(a,b,c,d)}; "
 			"";
 
-//static JSRuntime *runtime = NULL;
-//static JSClass globalClass = {
-//	"global",
-//	0,
-//	JS_PropertyStub,
-//	JS_PropertyStub,
-//	JS_PropertyStub,
-//	JS_PropertyStub,
-//	JS_EnumerateStub,
-//	globalResolve,
-//	JS_ConvertStub,
-//	JS_FinalizeStub
-//};
-
-
 /* housekeeping routines */
 void kill_javascript(void) {
 	int i;
@@ -259,9 +248,8 @@ void kill_javascript(void) {
 			if (ScriptControl[i].cx != 0) {
 				/* printf ("kill_javascript, context is %p\n",ScriptControl[i].cx); */
 #if JS_VERSION >= 185
-/* currently causes assertion failure (segfault), unsure why ... */
 				if (ScriptControl[i].eventsProcessed != NULL) {
-					JS_RemoveObjectRoot(ScriptControl[i].cx,ScriptControl[i].eventsProcessed);
+					JS_RemoveObjectRoot(ScriptControl[i].cx,&ScriptControl[i].eventsProcessed);
 				}
 #endif
 				JS_DestroyContextMaybeGC(ScriptControl[i].cx);
@@ -1213,6 +1201,8 @@ static void InitScriptField(int num, indexT kind, indexT type, const char* field
 	if (kind == PKW_outputOnly) {
 		int fptr;
 		int touched;
+
+		UNUSED(touched); // compiler warning mitigation
 
 		/* get the number representing this type */
 		fptr = JSparamIndex (field, FIELDTYPES[type]);

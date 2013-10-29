@@ -179,7 +179,7 @@ int fv_parseCommandLine (int argc, char **argv, freewrl_params_t *fv_params)
 {
     int c;
     float ftmp;
-    void* ldtmp;
+    long int ldtmp;
     int option_index = 0;
     int real_option_index;
     const char *real_option_name;

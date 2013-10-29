@@ -1074,13 +1074,13 @@ static void handleGETNODEPARENTS (char *bufptr, int repno)
 		for(index = 0; index < result; index++)
 		{			
 			snprintf(parentAdr,10,"%d ",parentArray[index]);
-			strncat(buffer,parentAdr,EAIREADSIZE);
+			strncat(buffer,parentAdr,strlen(parentAdr));
 		}
 	}
 	else
 	{
 		snprintf(parentAdr,10,"%d ",result);
-		strncat(buffer,parentAdr,EAIREADSIZE);
+		strncat(buffer,parentAdr,strlen(parentAdr));
 	}
 
 	outBufferCat(buffer);

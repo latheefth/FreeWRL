@@ -255,6 +255,8 @@ void handleVersion(const char *versionString) {
 	int xb=0;
 	int xc=0;
 	int rt;
+
+	UNUSED(rt); // compiler warning mitigation
 	
 	/* printf ("handleVersion - x3d version :%s:\n", versionString); */
 	rt = sscanf (versionString,"%d.%d.%d",&xa, &xb,&xc);

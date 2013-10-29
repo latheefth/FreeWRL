@@ -153,7 +153,7 @@ int main (int argc, char **argv)
     fv_params->height = 400;
 
     fv_params->fullscreen = FALSE;
-    fv_params->winToEmbedInto = NULL; //-1
+    fv_params->winToEmbedInto = INT_ID_UNDEFINED;
     fv_params->verbose = FALSE;
  //   fv_params->collision = 1; // if you set it, you need to update ui button with a call
 	//setMenuButton_collision(fv_params->collision);

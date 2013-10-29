@@ -529,7 +529,8 @@ void compile_LineSet (struct X3D_LineSet *node) {
 	int vtc;		/* which vertexCount[] we should be using for this line segment */
 	int c;			/* temp variable */
 	struct SFVec3f *coord=0; int ncoord;
-	struct SFColor *color=0; int ncolor=0;
+	//struct SFColor *color=0; 
+	int ncolor=0;
 	int *vertexC; int nvertexc;
 	int totVertexRequired;
 
@@ -583,7 +584,7 @@ void compile_LineSet (struct X3D_LineSet *node) {
                	        ConsoleMessage ("make_LineSet, expected %d got %d\n", NODE_Color, cc->_nodeType);
                	} else {
                	        ncolor = cc->color.n;
-		color = cc->color.p;
+		//color = cc->color.p;
                	}
 		/* check that we have enough verticies for the Colors */
 		if (totVertexRequired > ncolor) {

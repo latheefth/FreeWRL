@@ -256,7 +256,8 @@ static struct point_XYZ closest_point_of_plane_to_origin(struct point_XYZ b, str
 /* nowtice point p2 is NOT included, (for simplification elsewhere) */
 
 static int intersect_segment_with_line_on_yplane(struct point_XYZ* pk, struct point_XYZ p1, struct point_XYZ p2, struct point_XYZ q1, struct point_XYZ q2) {
-    double k,l,quotient;
+    double k,quotient;
+    //double l;
 
     /* p2 becomes offset */
     VECDIFF(p2,p1,p2);
@@ -277,7 +278,7 @@ static int intersect_segment_with_line_on_yplane(struct point_XYZ* pk, struct po
     if(APPROX(quotient, 0)) return 0;
 
     k = (p1.z*q2.x - q1.z*q2.x - p1.x*q2.z + q1.x*q2.z)/quotient;
-    l = (p1.z*p2.x - p1.x*p2.z + p2.z*q1.x - p2.x*q1.z)/quotient;
+    //l = (p1.z*p2.x - p1.x*p2.z + p2.z*q1.x - p2.x*q1.z)/quotient;
 
     if((k >= 0.) && (k < 1.)) {
 	vecscale(pk,&p2,k);
@@ -1330,7 +1331,7 @@ struct point_XYZ cone_disp(double y1, double y2, double ystep, double r, struct 
     struct point_XYZ normalbase; /* collision normal of base (points downwards)*/
     struct point_XYZ normalside; /* collision normal of side (points outside)*/
     struct point_XYZ normaltop; /* collision normal of top (points up)*/
-    struct point_XYZ bn_normal; /* bn, normalized;*/
+    //struct point_XYZ bn_normal; /* bn, normalized;*/
     struct point_XYZ mindispv= {0,0,0};
     double mindisp = 1E99;
 
@@ -1349,7 +1350,7 @@ struct point_XYZ cone_disp(double y1, double y2, double ystep, double r, struct 
 	struct point_XYZ tmpj;
 	vecnormal(&tmpn,&tmpn);
 	make_orthogonal_vector_space(&bn,&tmpj,tmpn);
-	bn_normal = bn;
+	//bn_normal = bn;
     }
     vecscale(&side,&bn,baseradius);
     VECADD(side,base);
@@ -1403,7 +1404,7 @@ struct point_XYZ cone_disp(double y1, double y2, double ystep, double r, struct 
 struct point_XYZ cylinder_disp(double y1, double y2, double ystep, double r, struct point_XYZ base, struct point_XYZ top, double baseradius) {
 
     struct point_XYZ i; /* cone axis vector*/
-    double h; /* height of cone*/
+    //double h; /* height of cone*/
     struct point_XYZ tmp;
     struct point_XYZ bn; /* direction from cone to cylinder*/
     struct point_XYZ sidetop; /* side of top in direction of origin*/
@@ -1436,7 +1437,7 @@ struct point_XYZ cylinder_disp(double y1, double y2, double ystep, double r, str
     VECADD(sidebase,base);
 
     /* find normals ;*/
-    h = vecnormal(&i,&i);
+    //h = vecnormal(&i,&i);
     normaltop = i;
     vecscale(&normalbase,&normaltop,-1.0);
     normalside = bn;

@@ -89,7 +89,7 @@ int fv_create_main_window(freewrl_params_t * params) //int argc, char *argv[])
     /* FIXME: Caller / front-end should reparent FreeWRL window itself */
     /* Roberto Gerson */
     /* If -d is setted, so reparent the window */
-    if (params->winToEmbedInto > 0) {
+    if (params->winToEmbedInto != INT_ID_UNDEFINED) {
 	    DEBUG_MSG("create_main_window: reparent %ld to %ld\n",
 		      Xwin,
 		      params->winToEmbedInto);

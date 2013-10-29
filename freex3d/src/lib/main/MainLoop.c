@@ -1663,6 +1663,10 @@ void handle_Xevents(XEvent event) {
         XEvent nextevent;
         char buf[10];
         KeySym ks, ksraw, ksupper, kslower;
+	KeySym *keysym;
+
+	int keysyms_per_keycode_return;
+
         int count;
 		int actionKey;
 		ppMainloop p;
@@ -1745,8 +1749,17 @@ void handle_Xevents(XEvent event) {
 			DEBUG_XEV("Key type = %s\n", (event.type == KeyPress ? "KEY PRESS" : "KEY  RELEASE"));
                         //fwl_do_keyPress((char)ks,event.type);
                         //ksraw = (char)buf[0];
-                        ksraw = XKeycodeToKeysym(event.xkey.display, event.xkey.keycode, 0);
+
+
+                        // deprecated:  ksraw = XKeycodeToKeysym(event.xkey.display, event.xkey.keycode, 0);
+
+			keysym = XGetKeyboardMapping(event.xkey.display, 
+				event.xkey.keycode, 1, &keysyms_per_keycode_return);
+			ksraw = *keysym;
+			XFree(keysym);
+
                         XConvertCase(ksraw,&kslower,&ksupper);
+
                         ksraw = ksupper;
                         if(event.type == KeyRelease && !IsModifierKey(ks) 
                         	&& !IsFunctionKey(ks) && !IsMiscFunctionKey(ks) && !IsCursorKey(ks)){

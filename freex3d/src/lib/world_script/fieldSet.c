@@ -56,6 +56,12 @@
 #include "fieldSet.h"
 #include "fieldGet.h"
 
+/* although this is external, lets define it here because if it is 
+   defined in globally read includes, the definition for anyVrml
+   might not be found, and then will give us compiler warnings */
+void Parser_scanStringValueToMem_B(union anyVrml* any, indexT ctype, char *value, int isXML);
+
+
 /* Useful dump routines defined in world_script/field[GS]et.c */
 void dumpOneNode(int myptr);
 void dumpOne_X3D_Node(struct X3D_Node * boxptr);

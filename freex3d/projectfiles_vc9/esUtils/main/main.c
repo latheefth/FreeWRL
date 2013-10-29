@@ -83,7 +83,7 @@ int fwInit ( ESContext *esContext )
     fv_params->height = esContext->height; //400;
     //fv_params->eai = FALSE;
     fv_params->fullscreen = FALSE;
-    fv_params->winToEmbedInto = -1;
+    fv_params->winToEmbedInto = INT_ID_UNDEFINED;
     fv_params->verbose = FALSE;
 	fv_params->frontend_handles_display_thread = TRUE;
     //fv_params->collision = 1; // if you set it, you need to update ui button with a call

@@ -71,6 +71,8 @@ void getField_ToJavascript (int num, int fromoffset) {
 	int ignored;
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
+	UNUSED(ignored); // compiler warning mitigation
+
 	#ifdef SETFIELDVERBOSE 
 		printf ("getField_ToJavascript, from offset %d type %d num=%d\n",
 			fromoffset,JSparamnames[fromoffset].type,num);
@@ -143,7 +145,6 @@ void getField_ToJavascript_B(int shader_num, int fieldOffset, int type, union an
 	case FIELDTYPE_SFVec3f:
 	case FIELDTYPE_SFVec3d:
 	case FIELDTYPE_SFRotation:
-		//setScriptMultiElementtype(num);
 		set_one_MultiElementType(shader_num, fieldOffset, any, len);
 		break;
 	case FIELDTYPE_MFColor:
@@ -158,7 +159,6 @@ void getField_ToJavascript_B(int shader_num, int fieldOffset, int type, union an
 	case FIELDTYPE_MFRotation:
 	case FIELDTYPE_SFImage:
 
-		//ignored = setMFElementtype(num);
 		set_one_MFElementType(shader_num, fieldOffset, type, (void *)any,len);
 
 		break;
@@ -584,7 +584,7 @@ void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int
 				/* create a new SFInt32 object */
 				
 				ip = (int *)ip_in; 
-				newjsval = INT_TO_JSVAL(ip); /* NOTE--this is assigning the pointer itself as an int, not its content */
+				newjsval = INT_TO_JSVAL((int)ip); /* NOTE--this is assigning the pointer itself as an int, not its content */
 				ip_in = offsetPointer_deref(int *,ip_in,elementlen);
 
 				/* put this object into the MF class */
@@ -660,7 +660,7 @@ void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int
 			elementlen = (int) sizeof (void *);
 			for (x=0; x<datalen; x++) {
 				ip = ip_in; 
-				newjsval = INT_TO_JSVAL(ip); /* NOTE--assigning pointer itself as int, not its content */
+				newjsval = INT_TO_JSVAL((int)ip); /* NOTE--assigning pointer itself as int, not its content */
 				ip_in = offsetPointer_deref(double *,ip_in,elementlen);
 
 				/* put this object into the MF class */

@@ -66,7 +66,6 @@ void normalize_ifs_face (float *point_normal,
 	*/
 	int tmp_a;
 	int tmp_b;
-	int facecount;
 	float zz;
 	struct point_XYZ temp;
     bool foundInOtherFaces = false;
@@ -86,7 +85,6 @@ void normalize_ifs_face (float *point_normal,
 	}
 
 	/* ok, calculate normal */
-	facecount = 0;
 	for (tmp_b=0; tmp_b<pointfaces[mypoint*POINT_FACES]; tmp_b++) {
 		tmp_a = pointfaces[mypoint*POINT_FACES+tmp_b+1];
 		 //printf ("comparing myface %d to %d\n",curpoly,tmp_a); 

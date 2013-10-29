@@ -102,6 +102,7 @@ int readpng_init(FILE *infile, ulg *pWidth, ulg *pHeight)
     uch sig[8];
 	size_t rv;
 
+	UNUSED(rv); // compiler warning mitigation
 
     /* first do a quick check that the file really is a PNG image; could
      * have used slightly more general png_sig_cmp() function instead */

@@ -3197,7 +3197,7 @@ static BOOL parser_sfnodeValue(struct VRMLParser* me, void* ret) {
         return parser_nodeStatement(me, rv);
     } else {
         /* expect something like a number (memory pointer) to be here */
-        if (sscanf(me->lexer->startOfStringPtr[me->lexer->lexerInputLevel], "%lu",  &tmp) != 1) {
+        if (sscanf(me->lexer->startOfStringPtr[me->lexer->lexerInputLevel], "%u",  &tmp) != 1) {
             CPARSE_ERROR_FIELDSTRING ("error finding SFNode id on line :%s:",me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]);
             *rv=NULL;
             return FALSE;

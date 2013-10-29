@@ -218,10 +218,6 @@ void viewer_default() {
 	/* assume we are not bound to a GeoViewpoint */
 	p->Viewer.GeoSpatialNode = NULL;
 
-//#ifndef AQUA
-//	if (Viewer.shutterGlasses)
-//	    setStereoBufferStyle(0);/* setXEventStereo();*/
-//#endif
 }
 
 
@@ -452,7 +448,7 @@ void resolve_pos() {
 	/* my($this) = @_; */
 	struct point_XYZ rot, z_axis = { 0, 0, 1 };
 	Quaternion q_inv;
-	double dist = 0;
+	//double dist = 0;
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
 	X3D_Viewer_Examine *examine = &p->Viewer.examine;
@@ -464,7 +460,7 @@ void resolve_pos() {
 		quaternion_rotation(&rot, &q_inv, &z_axis);
 
 		/* my $d = 0; for(0..2) {$d += $this->{Pos}[$_] * $z->[$_]} */
-		dist = VECPT(p->Viewer.Pos, rot);
+		//dist = VECPT(p->Viewer.Pos, rot);
 
 		/* $this->{Origin} = [ map {$this->{Pos}[$_] - $d * $z->[$_]} 0..2 ]; */
 /*
@@ -1404,6 +1400,8 @@ handle_tick_exfly()
 	size_t rv; /* unused, but here for compile warnings */
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
+	UNUSED(rv);  // mitigate compiler warnings
+
 	memset(string, 0, STRING_SIZE * sizeof(char));
 
 	/*
@@ -1890,7 +1888,14 @@ void setMono()
 	tg->display.shutterGlasses = 0;
 }
 
-void setStereo(int type)
+/*
+#define VIEWER_STEREO_OFF 0
+#define VIEWER_STEREO_SHUTTERGLASSES 1
+#define VIEWER_STEREO_SIDEBYSIDE 2
+#define VIEWER_STEREO_ANAGLYPH 3
+*/
+
+static void setStereo(int type)
 {
 	/* type: 0 off  1 shutterglasses 2 sidebyside 3 analgyph */
 	/* can only be called after opengl is initialized */
@@ -1898,10 +1903,10 @@ void setStereo(int type)
 	setMono();
 	switch(type)
 	{
-	case 0: {/*setMono()*/;break;}
-	case 1: {fwl_init_Shutter(); break;}
-	case 2: {fwl_init_SideBySide(); break;}
-	case 3: {setAnaglyph(); break;}
+	case VIEWER_STEREO_OFF: {/*setMono()*/;break;}
+	case VIEWER_STEREO_SHUTTERGLASSES: {fwl_init_Shutter(); break;}
+	case VIEWER_STEREO_SIDEBYSIDE: {fwl_init_SideBySide(); break;}
+	case VIEWER_STEREO_ANAGLYPH: {setAnaglyph(); break;}
 	default: break;
 	}
 }
@@ -1950,9 +1955,9 @@ void updateEyehalf()
 
 void viewer_postGLinit_init(void)
 {
-	int type;
 
 #if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
+	int type;
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
     
     // see if we can use quad buffer here or not.
@@ -1962,12 +1967,12 @@ void viewer_postGLinit_init(void)
     
 	updateEyehalf();
 
-	type = 0;
-	if( p->Viewer.shutterGlasses ) type = 1;
-	if( p->Viewer.sidebyside ) type = 2;
-	if( p->Viewer.anaglyph ==1 ) type = 3;
+	type = VIEWER_STEREO_OFF;
+	if( p->Viewer.shutterGlasses ) type = VIEWER_STEREO_SHUTTERGLASSES;
+	if( p->Viewer.sidebyside ) type = VIEWER_STEREO_SIDEBYSIDE;
+	if( p->Viewer.anaglyph ==1 ) type = VIEWER_STEREO_ANAGLYPH;
 
-	if(p->Viewer.shutterGlasses)
+	if(type==VIEWER_STEREO_SHUTTERGLASSES)
 	{
 		// does this opengl driver/hardware support GL_STEREO? p.469, p.729 RedBook and
 		//   WhiteDune > swt.c L1306
@@ -1979,7 +1984,7 @@ void viewer_postGLinit_init(void)
 	setStereo(type);
 
 #else
-setStereo(0);
+setStereo(VIEWER_STEREO_OFF);
 #endif
 
 }

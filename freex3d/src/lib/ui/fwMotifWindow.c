@@ -256,14 +256,14 @@ int fv_create_main_window(freewrl_params_t * params) //int argc, char *argv[])
 	/* FIXME: see fwBareWindow.c */
 	/* Roberto Gerson */
 	/* If -d is setted, so reparent the window */
-	if (params->winToEmbedInto != NULL){
+	if (params->winToEmbedInto != INT_ID_UNDEFINED){
 		printf("fwMotifWindow::Trying to reparent window: %ld, to new parent: %ld\n",
 			XtWindow(freewrlTopWidget),
 			params->winToEmbedInto);
 
 		XReparentWindow(XtDisplay(freewrlTopWidget),
 				XtWindow(freewrlTopWidget),
-				params->winToEmbedInto, 0, 0);
+				(Window) params->winToEmbedInto, 0, 0);
 
 		XMapWindow(XtDisplay(freewrlTopWidget), XtWindow(freewrlTopWidget));
 	}
@@ -351,8 +351,8 @@ void fv_aboutFreeWRLpopUp (Widget w, XtPointer data, XtPointer callData)
 
     ver = libFreeWRL_get_version();
 
-    rdr = gglobal()->display.rdr_caps.renderer;
-    vendor = gglobal()->display.rdr_caps.vendor;
+    rdr = (char *)gglobal()->display.rdr_caps.renderer;
+    vendor = (char *)gglobal()->display.rdr_caps.vendor;
 
     msg = malloc(strlen(ABOUT_FREEWRL) + strlen(ver) 
 		 + strlen(rdr) + strlen(vendor));

@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.84  2013/10/29 16:59:41  crc_canada
+# more linux compiler warning changes
+#
 # Revision 1.83  2013/10/23 21:19:04  crc_canada
 # trying to remove compiler warnings on Linux; should be ok for other platforms
 #
@@ -1754,6 +1757,7 @@ sub gen {
 		push @genFuncs2, "		case NODE_$node : {\n";
 		push @genFuncs2, "			struct X3D_$node *tmp;\n";
 		push @genFuncs2, "			tmp = (struct X3D_$node *) node;\n";
+		push @genFuncs2, "			UNUSED(tmp); // compiler warning mitigation\n";
 		if($node eq "PointPickSensor") {
 			push @genFuncs2, "\t\t\tspacer fprintf (fp,\" _nparents (int) %d\\n\",vectorSize(tmp->_parentVector)); /* DJTRACK_PICKSENSORS */\n";
 			push @genFuncs2, "\t\t\tfor (i=0; i<vectorSize(tmp->_parentVector); i++) { spacer fprintf (fp,\"    %d: %p\\n\",i, vector_get(struct X3D_Node *, tmp->_parentVector,i)); }\n";
