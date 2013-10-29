@@ -72,6 +72,11 @@ void Component_EnvironSensor_init(struct tComponent_EnvironSensor *t){
 	}
 }
 
+#ifdef VISIBILITYOCCLUSION
+
+static void rendVisibilityBox (struct X3D_VisibilitySensor *node);
+#endif
+
 PROXIMITYSENSOR(ProximitySensor,center,,);
 
 

@@ -72,6 +72,11 @@
 
 #include "../ui/common.h"
 
+// for getting time of day
+#if !defined(_MSC_VER)
+#include <sys/time.h>
+#endif
+
 void (*newResetGeometry) (void) = NULL;
 
 #ifdef WANT_OSC
@@ -473,8 +478,6 @@ static void stopPCThread()
 //static double waitsec;
 
 #if !defined(_MSC_VER)
-
-//static struct timeval mytime;
 
 /* Doug Sandens windows function; lets make it static here for non-windows */
 static double Time1970sec(void) {
