@@ -748,10 +748,10 @@ void handleEAIGetValue (char command, char *bufptr, int repno) {
 	struct EAINodeParams *myParam;
 	int eaiverbose;
 	ppEAIHelpers p;
-
+	ttglobal tg;
 	UNUSED(retint); // compiler warning mitigation
 
-	ttglobal tg = gglobal();
+	tg = gglobal();
 	eaiverbose = gglobal()->EAI_C_CommonFunctions.eaiverbose;
 	p = (ppEAIHelpers)gglobal()->EAIHelpers.prv;
 

@@ -292,8 +292,11 @@ ttglobal gglobal(char *fi, int *li){
 	tg = (ttglobal)pthread_getspecific(threadSpecificKey); 
 	if(!tg){
 		printf("Ouch - no state for this thread -- hit a key to exit\n");
+#ifdef _MSC_VER
+        	printf ("more info - thread %p\n\n",(void *)pthread_self().p);
+#else
         	printf ("more info - thread %p\n\n",(void *)pthread_self());
-                
+#endif                
 		getchar();
 		exit(-1);
 	}

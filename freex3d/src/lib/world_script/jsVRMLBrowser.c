@@ -178,11 +178,11 @@ ComponentInfoGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 	IntTableIndex ptr;
 	int _index, *_table, _nameIndex;
 	jsval rval;
+	jsval id;
 
 	UNUSED(rval); // compiler warning mitigation
 
 #if JS_VERSION >= 185
-	jsval id;
 	if (!JS_IdToValue(cx,iid,&id)) {
 		printf("JS_IdToValue failed in ComponentInfoGetProperty.\n");
 		return JS_FALSE;
@@ -290,11 +290,11 @@ ComponentInfoArrayGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 {
 	int *_table;
 	jsval rval;
+	jsval id;
 
 	UNUSED(rval); // compiler warning mitigation
 
 #if JS_VERSION >= 185
-	jsval id;
 	if (!JS_IdToValue(cx,iid,&id)) {
 		printf("JS_IdToValue failed in ComponentInfoArrayGetProperty.\n");
 		return JS_FALSE;
@@ -394,11 +394,11 @@ ProfileInfoGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 	int *ptr;
 	int _index;
 	jsval rval;
+	jsval id;
 
 	UNUSED(rval); // compiler warning mitigation
 
 #if JS_VERSION >= 185
-	jsval id;
 	if (!JS_IdToValue(cx,iid,&id)) {
 		printf("JS_IdToValue failed in ProfileInfoGetProperty.\n");
 		return JS_FALSE;
@@ -514,11 +514,11 @@ ProfileInfoArrayGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 #endif
 {
 	jsval rval;
+	jsval id;
 
 	UNUSED(rval); // compiler warning mitigation
 
 #if JS_VERSION >= 185
-	jsval id;
 	if (!JS_IdToValue(cx,iid,&id)) {
 		printf("JS_IdToValue failed in ProfileInfoArrayGetProperty.\n");
 		return JS_FALSE;
@@ -618,11 +618,11 @@ X3DRouteGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 	struct X3D_Node *fromNode, *toNode;
 	int fromOffset, toOffset;
 	const char *fieldname;
+	jsval id;
 
 	UNUSED(rval); // compiler warning mitigation
 
 #if JS_VERSION >= 185
-	jsval id;
 	if (!JS_IdToValue(cx,iid,&id)) {
 		printf("JS_IdToValue failed in ProfileInfoGetProperty.\n");
 		return JS_FALSE;
@@ -754,11 +754,11 @@ RouteArrayGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 #endif
 {
 	jsval rval;
+	jsval id;
 
 	UNUSED(rval); //compiler warning mitigation
 
 #if JS_VERSION >= 185
-	jsval id;
 	if (!JS_IdToValue(cx,iid,&id)) {
 		printf("JS_IdToValue failed in RouteArrayGetProperty.\n");
 		return JS_FALSE;
@@ -889,11 +889,11 @@ ExecutionContextGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 	ExecutionContextNative *ptr;
 	JSString *_str;
 	jsval rval;
+	jsval id;
 
 	UNUSED(rval); //compiler warning mitigation
 
 #if JS_VERSION >= 185
-	jsval id;
 	if (!JS_IdToValue(cx,iid,&id)) {
 		printf("JS_IdToValue failed in ExecutionContextGetProperty.\n");
 		return JS_FALSE;
@@ -1100,11 +1100,11 @@ BrowserGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 	jsdouble d;
 	JSString *_str;
 	jsval rval;
+	jsval id;
 
 	UNUSED(rval); // compiler warning mitigation
 
 #if JS_VERSION >= 185
-	jsval id;
 	if (!JS_IdToValue(cx,iid,&id)) {
 		printf("JS_IdToValue failed in BrowserGetProperty.\n");
 		return JS_FALSE;
