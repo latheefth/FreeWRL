@@ -349,8 +349,6 @@ typedef struct {
 } FXY;
 #include <list.h>
 
-#define STATUS_LEN 2000
-
 typedef struct pstatusbar{
 	int loopcount;// = 0;
 	int hadString;// = 0;
@@ -823,9 +821,7 @@ XY text2screen( int col, int row)
 FXY screen2normalizedScreenScale( GLfloat x, GLfloat y)
 {
 	FXY xy;
-	ppstatusbar p;
 	ttglobal tg = gglobal();
-	p = (ppstatusbar)tg->statusbar.prv;
 
 	//convert to -1 to 1 range
 	xy.x = ((GLfloat)x/(GLfloat)tg->display.screenWidth * 2.0);
@@ -1166,7 +1162,6 @@ void printConsoleText()
 {
 	/* ConsoleMessage() comes out as a multi-line history rendered over the scene */
 	int jstart;
-	char* buf;
 	int j = 0;
 	XY xybottom;
 	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
@@ -1187,7 +1182,6 @@ void printConsoleText()
 				FXY fxy;
 				XY xy = text2screen(0,j-jstart);
 				fxy = screen2normalizedScreen((GLfloat)xy.x,(GLfloat)xy.y);
-				buf = __l->elem;
 				printString2(fxy.x,fxy.y,__l->elem); 
 			}
 			j++;
@@ -1282,14 +1276,13 @@ void convertPng2hexAlpha()
 				//this method writes only the alpha channel, and does it in octal strings
 				//(to reconstruct luminance later, copy alpha to lum)
 				//this makes a nice compact header file.
-				char lastchar, str[5];
+				char str[5];
 				unsigned char *data;
 				int i,m,n,lastlen;
 				bool lastoct;
 
 				fprintf(out,"\"");
 				n = 0;
-				lastchar = '*';
 				lastoct = false;
 				lastlen = 0;
 				data = &butts.texdata[0]; //start on the alpha [3]
@@ -1309,7 +1302,6 @@ void convertPng2hexAlpha()
 					fprintf(out,"%s",str);
 					m = (int) strlen(str);
 					n += m;
-					lastchar = str[m-1];
 					lastlen = m;
 					if(n > 71)
 					{
@@ -1357,7 +1349,8 @@ void initButtons()
 		p->pmenu.nitems = 17; //leave file for now
 		p->pmenu.top = true;
 
-#elif KIOSK
+#elif defined(KIOSK)
+
 		static GLubyte * buttonlist [] = { walk, fly, tilt, tplane, rplane,  examine, level, headlight, 
 			collision, prev, next, help, messages, options, blank };
 		static int actionlist [] = { ACTION_WALK, ACTION_FLY2, ACTION_TILT, ACTION_TPLANE, ACTION_RPLANE, ACTION_EXAMINE, 
@@ -1370,7 +1363,9 @@ void initButtons()
 			ACTION_HELP,ACTION_MESSAGES,ACTION_OPTIONS,0}; 
 		p->pmenu.nitems = 15; //leave file for now
 		p->pmenu.top = true;
-#elif _MSC_VER
+
+#elif defined(_MSC_VER)
+
 		static GLubyte * buttonlist [] = { walk, fly, examine, level, headlight,
 			collision, prev, next, help, messages, options, reload, url, file, blank };
 		static int actionlist [] = { ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
@@ -1417,7 +1412,7 @@ void initButtons()
 		{
 			int j,k,irow,icol;
 			int mv,mt,mi,kv,kt;
-			GLfloat x,y,dx;
+			GLfloat dx;
 			FXY xyxy[2];
 			p->pmenu.items[i].action = actionlist[i];
 			p->pmenu.items[i].isToggle = false;
@@ -1493,8 +1488,6 @@ void initButtons()
 			mi = i*3*2;
 			kv = 0;
 			kt = 0;
-			x = -1.0f;
-			y = -1.0f;
 			// 1 3   vertex order
 			// 0 2
 			/* normalized coords moved to draw function for resize
@@ -1877,9 +1870,9 @@ void renderButtons()
 		if(p->buttonType==1) loaded = p->butsLoaded;
 		if( loaded) // butts[i][0].status == 2)
 		{
-			GLfloat rgba[4];
+			GLfloat rgba[4] = {1.0, 1.0, 1.0, 1.0};
 			bool highlightIt = p->pmenu.items[i].butStatus;
-			rgba[0] = .922f; rgba[1] = .91f; rgba[2] = .844f, rgba[3] = 1.0f; //windowing gray
+
 #if !defined(QNX) && !defined(TOUCH)
 			// touch screens don't benefit from isOver highlighting because
 			// your finger is blocking your view of the button anyway
@@ -1912,8 +1905,6 @@ void renderButtons()
 		}
 	}
 	{
-			GLfloat rgba[4];
-			rgba[0] = .7f; rgba[1] = .7f; rgba[2] = .9f, rgba[3] = 1.0f; //windowing gray
 			// render triangles
 
 

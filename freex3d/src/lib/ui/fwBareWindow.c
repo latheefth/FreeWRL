@@ -38,7 +38,6 @@
 
 XTextProperty windowName;
 Window Pwin;
-static XSetWindowAttributes Swa;
 
 /* we have no buttons; just make these functions do nothing */
 void frontendUpdateButtons() {}

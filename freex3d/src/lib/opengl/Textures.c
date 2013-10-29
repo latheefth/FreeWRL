@@ -770,7 +770,9 @@ static void compileMultiTexture (struct X3D_MultiTexture *node) {
             paramPtr->multitex_function = findFieldInMULTITEXTUREFUNCTION(param);
         }
 
+#ifdef TEXVERBOSE
 printf ("compile_MultiTexture, %d of %d, string %s mode %d function %d\n",count,max,param,paramPtr->multitex_mode,paramPtr->multitex_function);
+#endif //TEXVERBOSE
 
         paramPtr++;
     }
