@@ -83,6 +83,7 @@ int whichOne=0;
 
         //startingString="/Users/john/Desktop/GeoSpatialTesting/7_levels_plus/globe_with_ROOTNODE.x3d";
          startingString="/Users/john/Desktop/GeoSpatialTesting/occtest.x3dv";
+        //startingString="/Users/john/Desktop/GeoSpatialTesting/freewrl/freewrl/tests/33.wrl";
     }
     
     while ([FreeWRLAppDelegate applicationHasLaunched]) {
@@ -424,7 +425,7 @@ mouseDisplaySensitive = mouseOverSensitive; \
 
     mainloopCount ++;
     
-#define TESTING_LOADING_WORLDS
+//#define TESTING_LOADING_WORLDS
 #ifdef TESTING_LOADING_WORLDS
     //replaceWorldNeeded
     //FreeX3DLib.initialFile(myNewX3DFile);

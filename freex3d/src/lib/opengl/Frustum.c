@@ -147,9 +147,9 @@ void beginOcclusionQuery(struct X3D_VisibilitySensor* node, int render_geometry)
 	ppFrustum p = (ppFrustum)gglobal()->Frustum.prv;
 	if (render_geometry) { 
 		if (p->potentialOccluderCount < p->OccQuerySize) { 
-            /* printf ("beginOcclusionQuery, potoc %d occQ %d\n",p->potentialOccluderCount, p->OccQuerySize, node->__occludeCheckCount); */
+            TRACE_MSG ("beginOcclusionQuery, potoc %d occQ %d\n",p->potentialOccluderCount, p->OccQuerySize, node->__occludeCheckCount); 
 			if (node->__occludeCheckCount < 0) { 
-				 //printf ("beginOcclusionQuery, query %u, node %s\n",p->potentialOccluderCount, stringNodeType(node->_nodeType)); 
+				 TRACE_MSG ("beginOcclusionQuery, query %u, node %s\n",p->potentialOccluderCount, stringNodeType(node->_nodeType)); 
 #if !defined(GL_ES_VERSION_2_0)
 //void glBeginQuery(GLenum, GLuint);
 
@@ -167,7 +167,7 @@ void endOcclusionQuery(struct X3D_VisibilitySensor* node, int render_geometry)
 	if (render_geometry) { 
 		if (p->potentialOccluderCount < p->OccQuerySize) { 
 			if (node->__occludeCheckCount < 0) { 
-				/* printf ("glEndQuery node %u\n",node); */ 
+				TRACE_MSG ("glEndQuery node %u\n",node); 
 #if !defined( GL_ES_VERSION_2_0 )
 				FW_GL_END_QUERY(GL_SAMPLES_PASSED); 
 #endif
@@ -1107,12 +1107,12 @@ void OcclusionCulling ()  {
 	
 					/* is this node visible? If so, tell the parents! */
 					if (samples > OCCSHAPESAMPLESIZE) {
-						//printf ("Shape %p is VISIBLE\n",shapePtr);
+						TRACE_MSG ("Shape %p is VISIBLE\n",shapePtr);
 						shapePtr->__visible = TRUE;
 						shapePtr->__occludeCheckCount= OCCWAIT; /* wait a little while before checking again */
 						shapePtr->__Samples = samples;
 					} else {
-						//printf ("Shape %p is NOT VISIBLE\n",shapePtr);
+						TRACE_MSG ("Shape %p is NOT VISIBLE\n",shapePtr);
 						shapePtr->__visible=FALSE;
 						shapePtr->__occludeCheckCount = OCCCHECKSOON; /* check again soon */
 						shapePtr->__Samples = 0; 

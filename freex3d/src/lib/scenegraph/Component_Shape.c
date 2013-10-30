@@ -618,10 +618,6 @@ void child_Shape (struct X3D_Shape *node) {
         enableGlobalShader (getMyShader(node->_shaderTableEntry));
 
 
-		#ifdef SHAPEOCCLUSION
-		beginOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //BEGINOCCLUSIONQUERY;
-		#endif
-
         if (p->userShaderNode != NULL) {
             //ConsoleMessage ("have a shader of type %s",stringNodeType(p->userShaderNode->_nodeType));
             switch (p->userShaderNode->_nodeType) {
@@ -661,6 +657,11 @@ void child_Shape (struct X3D_Shape *node) {
                 //ConsoleMessage("shape, matprop val %d, geom val %d",getAppearanceProperties()->texCoordGeneratorType, node->geometry->_intern->texgentype);
             }
         }
+        
+        #ifdef SHAPEOCCLUSION
+		beginOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //BEGINOCCLUSIONQUERY;
+        #endif
+
 		render_node(tmpN);
 
 		#ifdef SHAPEOCCLUSION

@@ -746,7 +746,7 @@ bool send_resource_to_parser_if_available(resource_item_t *res)
 void dump_resource_waiting(resource_item_t* res)
 {
 #ifdef FW_DEBUG
-	printf("%s\t%s\n",( res->complete ? "<finished>" : "<waiting>" ), res->request);
+	printf("%s\t%s\n",( res->complete ? "<finished>" : "<waiting>" ), res->URLrequest);
 #endif
 }
 
@@ -798,7 +798,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 
     //printf ("entering parser_process_res_VRML_X3D\n");
 
-	/* printf("processing VRML/X3D resource: %s\n", res->request);  */
+	/* printf("processing VRML/X3D resource: %s\n", res->URLrequest);  */
 	
 	shouldBind = FALSE;
 	origFogNodes = vectorSize(p->fogNodes);
@@ -1174,7 +1174,7 @@ static bool parser_process_res(s_list_t *item)
 		case resm_vrml:
 		case resm_x3d:
 			if (parser_process_res_VRML_X3D(res)) {
-				DEBUG_MSG("parser successfull: %s\n", res->request);
+				DEBUG_MSG("parser successfull: %s\n", res->URLrequest);
 				res->status = ress_parsed;
                 
 			} else {
@@ -1185,7 +1185,7 @@ static bool parser_process_res(s_list_t *item)
 		case resm_pshader:
 		case resm_fshader:
 			if (parser_process_res_SHADER(res)) {
-				DEBUG_MSG("parser successfull: %s\n", res->request);
+				DEBUG_MSG("parser successfull: %s\n", res->URLrequest);
 				res->status = ress_parsed;
 			} else {
                 retval = FALSE;

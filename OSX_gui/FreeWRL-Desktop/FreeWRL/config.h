@@ -1,7 +1,7 @@
 
 #define FWVER "1.22.13"
 
-
+#define FW_DEBUG
 
 #define FREEWRL_STEREO_RENDERING 1
 
