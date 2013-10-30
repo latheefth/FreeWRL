@@ -21,7 +21,7 @@ NSMutableData *receivedData;
 void *drawRectconcurrencyHandle = NULL;
 char* startingString = NULL;
 
-static int displayBoundingBox = FALSE;
+static int displayBoundingBox = TRUE;
 static int myBBShowerCompiled = FALSE;
 static struct X3D_IndexedLineSet *bbILS = NULL;
 

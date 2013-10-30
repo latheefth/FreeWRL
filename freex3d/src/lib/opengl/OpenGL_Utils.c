@@ -3992,6 +3992,8 @@ void startOfLoopNodeUpdates(void) {
 
 	LOCK_MEMORYTABLE
 
+    //printf ("\n******************************************\nstartOfLoopNodeUpdates\n");
+    
 	/* go through the node table, and zero any bits of interest */
 
 	for (i=0; i<vectorSize(p->linearNodeTable); i++){		

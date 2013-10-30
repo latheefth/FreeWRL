@@ -48,6 +48,7 @@ $Id$
 #include "Textures.h"
 #include <float.h>
 
+//#define FRUSTUMVERBOSE
 
 static void quaternion_multi_rotation(struct point_XYZ *ret, const Quaternion *quat, const struct point_XYZ * v, int count);
 static void add_translation (struct point_XYZ *arr,  float x, float y, float z, int count);
@@ -147,7 +148,7 @@ void beginOcclusionQuery(struct X3D_VisibilitySensor* node, int render_geometry)
 	ppFrustum p = (ppFrustum)gglobal()->Frustum.prv;
 	if (render_geometry) { 
 		if (p->potentialOccluderCount < p->OccQuerySize) { 
-            TRACE_MSG ("beginOcclusionQuery, potoc %d occQ %d\n",p->potentialOccluderCount, p->OccQuerySize, node->__occludeCheckCount); 
+            TRACE_MSG ("beginOcclusionQuery, potoc %d occQ %d\n",p->potentialOccluderCount, p->OccQuerySize); 
 			if (node->__occludeCheckCount < 0) { 
 				 TRACE_MSG ("beginOcclusionQuery, query %u, node %s\n",p->potentialOccluderCount, stringNodeType(node->_nodeType)); 
 #if !defined(GL_ES_VERSION_2_0)
@@ -167,7 +168,7 @@ void endOcclusionQuery(struct X3D_VisibilitySensor* node, int render_geometry)
 	if (render_geometry) { 
 		if (p->potentialOccluderCount < p->OccQuerySize) { 
 			if (node->__occludeCheckCount < 0) { 
-				TRACE_MSG ("glEndQuery node %u\n",node); 
+				TRACE_MSG ("glEndQuery node %p\n",node); 
 #if !defined( GL_ES_VERSION_2_0 )
 				FW_GL_END_QUERY(GL_SAMPLES_PASSED); 
 #endif
@@ -502,9 +503,9 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 	int touched;
 
 	UNUSED(touched); //compiler warning mitigation
-
+    
 	#ifdef FRUSTUMVERBOSE
-	printf ("setExtent maxx %f minx %f maxy %f miny %f maxz %f minz %f me %u nt %s\n",
+	printf ("setExtent maxx %f minx %f maxy %f miny %f maxz %f minz %f me %p nt %s\n",
 			maxx, minx, maxy, miny, maxz, minz, me, stringNodeType(me->_nodeType));
 	#endif
 
@@ -531,9 +532,9 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 	
 		#ifdef FRUSTUMVERBOSE
 		if (shapeParent == NULL)
-		printf ("parent %u of %u is %u, is null\n",c,me,me->_parents[c]); 
+		printf ("parent %u of %u is %p, is null\n",c,vectorSize(me->_parentVector),shapeParent); 
 		else
-		printf ("parent %u of %u is %u, type %s\n",c,me,me->_parents[c],stringNodeType(shapeParent->_nodeType)); 
+		printf ("parent %u of %u is %p, type %s\n",c,vectorSize(me->_parentVector),shapeParent,stringNodeType(shapeParent->_nodeType)); 
 		#endif
 
 		for (d=0; d<vectorSize(shapeParent->_parentVector); d++) {
@@ -555,7 +556,7 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 			PROP_EXTENT_CHECK;
 	
 			#ifdef FRUSTUMVERBOSE
-			printf ("setExtent - now I am %u (%s) has extent maxx %f minx %f maxy %f miny %f maxz %f minz %f\n",
+			printf ("setExtent - now I am %p (%s) has extent maxx %f minx %f maxy %f miny %f maxz %f minz %f\n",
 					me, stringNodeType(me->_nodeType),
 					me->EXTENT_MAX_X ,
 					me->EXTENT_MIN_X ,
@@ -563,7 +564,7 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 					me->EXTENT_MIN_Y ,
 					me->EXTENT_MAX_Z ,
 					me->EXTENT_MIN_Z);
-			printf ("setExtent - now parent %u (%s) has extent maxx %f minx %f maxy %f miny %f maxz %f minz %f\n",
+			printf ("setExtent - now parent %p (%s) has extent maxx %f minx %f maxy %f miny %f maxz %f minz %f\n",
 					geomParent, stringNodeType(geomParent->_nodeType),
 					geomParent->EXTENT_MAX_X ,
 					geomParent->EXTENT_MIN_X ,
@@ -633,13 +634,14 @@ void propagateExtent(struct X3D_Node *me) {
 
 	if (me==NULL) return;
 
+
 	#ifdef FRUSTUMVERBOSE
-	printf ("propextent Iam %s, myExtent (%4.2f %4.2f) (%4.2f %4.2f) (%4.2f %4.2f) me %u parents %d\n",
+	printf ("propextent Iam %s, myExtent (%4.2f %4.2f) (%4.2f %4.2f) (%4.2f %4.2f) me %p parents %d\n",
 			stringNodeType(me->_nodeType),
 			me->EXTENT_MAX_X, me->EXTENT_MIN_X,
 			me->EXTENT_MAX_Y, me->EXTENT_MIN_Y,
 			me->EXTENT_MAX_Z, me->EXTENT_MIN_Z,
-			me, vectorSize(me->parentVector));
+			me, vectorSize(me->_parentVector));
 	#endif
 
 
@@ -701,7 +703,7 @@ void propagateExtent(struct X3D_Node *me) {
             
                 
 		#ifdef FRUSTUMVERBOSE
-		printf ("after calcs me (%u %s) my parent %d is (%u %s) ext %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f\n",
+		printf ("after transform calcs me (%p %s) my parent %d is (%p %s) ext %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f\n",
 			me, stringNodeType(me->_nodeType),i,geomParent, stringNodeType(geomParent->_nodeType),
 			geomParent->EXTENT_MAX_X, geomParent->EXTENT_MIN_X,
 			geomParent->EXTENT_MAX_Y, geomParent->EXTENT_MIN_Y,
@@ -749,12 +751,11 @@ void record_ZBufferDistance(struct X3D_Node *node) {
 	minMovedDist = -1000000000;
 
 	#ifdef FRUSTUMVERBOSE
-	printf ("\nrecordDistance for node %u nodeType %s size %4.2f %4.2f %4.2f ",node, stringNodeType (node->_nodeType),
+	printf ("\nrecordDistance for node %p nodeType %s size %4.2f %4.2f %4.2f ",node, stringNodeType (node->_nodeType),
 	node->EXTENT_MAX_X - node->EXTENT_MIN_X,
 	node->EXTENT_MAX_Y - node->EXTENT_MIN_Y,
 	node->EXTENT_MAX_Z - node->EXTENT_MIN_Z
 	); 
-printf ("render_geom %d, render_blend %d\n",render_geom, render_blend);
 
 	if (APPROX(node->EXTENT_MAX_X,-10000.0)) printf ("EXTENT NOT INIT");
 
@@ -851,7 +852,7 @@ printf ("render_geom %d, render_blend %d\n",render_geom, render_blend);
 	node->_dist = minMovedDist;
 
 #ifdef FRUSTUMVERBOSE
-	printf ("I am at %lf %lf %lf\n",Viewer.currentPosInModel.x, Viewer.currentPosInModel.y, Viewer.currentPosInModel.z);
+	printf ("I am at %lf %lf %lf\n",Viewer()->currentPosInModel.x, Viewer()->currentPosInModel.y, Viewer()->currentPosInModel.z);
 	printf ("and distance to the nearest corner of the BB for this node is %lf\n", node->_dist);
 #endif
 
