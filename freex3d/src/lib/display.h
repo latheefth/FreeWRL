@@ -74,7 +74,8 @@ Functions:
 #endif /* defined TARGET_AQUA */
 #include <libFreeWRL.h>
 
-#if defined(HAVE_GLEW_H) && !defined(ANGLEPROJECT)
+/* Some Windows-specific stuff */
+#if defined(_MSC_VER) && defined(HAVE_GLEW_H) && !defined(ANGLEPROJECT)
 #define GLEW_NO_GLU 1
 #include <GL/glew.h>
 #ifdef GLEW_MX
