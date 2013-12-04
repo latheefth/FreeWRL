@@ -84,13 +84,26 @@ GLEWContext * glewGetContext();
 #define ERROR 0
 #endif /* TARGET_WIN32 */
 
-/* skip for now, this gets done later
- ifdef __linux__
+#ifdef __linux__
+# ifdef HAVE_LIBGLEW
+#  include <GL/glew.h> /* will include GL/gl.h, GL/glu.h and GL/glext.h */
+#  ifdef GLEW_MX
+GLEWContext * glewGetContext();
+#  endif
+# else
+#  define GL_GLEXT_PROTOTYPES 1
+#  include <GL/gl.h>
+#  include <GL/glu.h>
+#  include <GL/glext.h>
+# endif
+
+# include <GL/glx.h>
+/* original bits that were here; the above was moved from linux-specific section below 
 	 define GL_GLEXT_PROTOTYPES 1
 	 include <GL/gl.h>
 	 include <GL/glext.h>
-	 include <GL/glx.h>
- endif */
+	 include <GL/glx.h> */
+#endif
 
 #if defined (IPHONE) || defined (_ANDROID) || defined (QNX) || defined(ANGLEPROJECT)
 	#include <GLES2/gl2.h>
@@ -460,20 +473,6 @@ extern int PaneClipChanged;
 # include <X11/Xutil.h>
 # include <X11/keysym.h>
 
-# ifdef HAVE_LIBGLEW
-# include <GL/glew.h> /* will include GL/gl.h, GL/glu.h and GL/glext.h */
-#ifdef GLEW_MX
-GLEWContext * glewGetContext();
-#endif
-# else
-#  define GL_GLEXT_PROTOTYPES 1
-#  include <GL/gl.h>
-#  include <GL/glu.h>
-#  include <GL/glext.h>
-
-# endif
-
-# include <GL/glx.h>
 
 extern GLXContext GLcx;
 
