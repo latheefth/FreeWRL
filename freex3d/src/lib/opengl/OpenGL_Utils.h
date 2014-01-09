@@ -99,7 +99,6 @@ typedef enum fragmenShaderResources {
     fragmentBackColourDeclare,
     fragmentNormPosDeclare,
     fragmentHatchPositionDeclare,
-    
     fragmentADSLLightModel,
     fragmentMultiTexModel,
     fragmentFillPropModel,

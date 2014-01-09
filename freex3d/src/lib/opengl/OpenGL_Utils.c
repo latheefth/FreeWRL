@@ -1543,7 +1543,7 @@ uniform fw_LightSourceParameters fw_LightSource[MAX_LIGHTS] /* gl_MaxLights */ ;
 
 static const GLchar *ADSLLightModel = "\n\
 /* use ADSLightModel here the ADS colour is returned from the function.  */\n\
-vec4 ADSLightModel(in vec3 myNormal, in vec4 myPosition) {\n\
+vec4 ADSLightModel(in vec3 myNormal, in vec4 myPosition, in bool useMatDiffuse) {\n\
   int i;\n\
   vec4 diffuse = vec4(0., 0., 0., 0.);\n\
   vec4 ambient = vec4(0., 0., 0., 0.);\n\
@@ -1554,6 +1554,7 @@ vec4 ADSLightModel(in vec3 myNormal, in vec4 myPosition) {\n\
 /* JAS */ bool backFacing = (dot(normal,viewv) < 0.0); \n \
 /* JAS */ \
   vec4 emissive;\n\
+  vec4 matdiffuse = vec4(1.0,1.0,1.0,1.0);\n\
   float myAlph = 0.0;\n\
 \n\
   fw_MaterialParameters myMat = fw_FrontMaterial;\n\
@@ -1568,6 +1569,8 @@ if (backFacing) { \n \
 \n\
   emissive = myMat.emission;\n\
   myAlph = myMat.diffuse.a;\n\
+  if(useMatDiffuse)\n\
+    matdiffuse = myMat.diffuse;\n\
 \n\
   /* apply the lights to this material */\n\
   for (i=0; i<MAX_LIGHTS; i++) {\n\
@@ -1612,7 +1615,7 @@ if (backFacing) { \n \
         }\n\
         attenuation *= spotAttenuation;\n\
         /* diffuse light computation */\n\
-		diffuse += nDotL* myMat.diffuse*myLightDiffuse * attenuation;\n\
+		diffuse += nDotL* matdiffuse*myLightDiffuse * attenuation;\n\
         /* ambient light computation */\n\
         ambient += myMat.ambient*myLightAmbient;\n\
         /* specular light computation */\n\
@@ -1631,7 +1634,7 @@ if (backFacing) { \n \
         /* Specular light computation */\n\
         specular += myMat.specular *myLightSpecular*powerFactor;\n\
         /* diffuse light computation */\n\
-		diffuse += nDotL*myMat.diffuse*myLightDiffuse;\n\
+		diffuse += nDotL*matdiffuse*myLightDiffuse;\n\
         /* ambient light computation */\n\
         ambient += myMat.ambient*myLightAmbient; \n\
       } else {\n\
@@ -1648,7 +1651,7 @@ if (backFacing) { \n \
           /* this is actually the SFVec3f attenuation field */\n\
           attenuation = 1.0/(fw_LightSource[i].constantAttenuation + fw_LightSource[i].linearAttenuation * d* fw_LightSource[i].quadraticAttenuation *d *d);\n\
           /* diffuse light computation */\n\
-          diffuse += nDotL* myMat.diffuse*myLightDiffuse * attenuation;\n\
+          diffuse += nDotL* matdiffuse*myLightDiffuse * attenuation;\n\
           /* ambient light computation */\n\
           ambient += myMat.ambient*myLightAmbient;\n\
           /* specular light computation */\n\
@@ -1679,9 +1682,22 @@ if (backFacing) { \n \
 
 
 /* NOTE that we write to the vec4 "finalFrag", and at the end we assign
-    the gl_FragColor, because we might have textures, fill properties, etc*/
+    the gl_FragColor, because we might have textures, fill properties, etc
+   dug9 Jan 5, 2014 change of strategy to accommodate ONE_MAT + ONE_TEX = 0x2 + 0x8 = 0x10
+    - in frag main change to 'cascade of v4*v4' so it's easier to combine MAT with TEX
+	- frag main:
+		void main() { 
+			vec4 finalFrag = vec4(1.0,1.0,1.0,1.0); 
+			finalFrag = v_front_color * finalFrag; //material
+			finalFrag = texture2D(fw_Texture_unit0, v_texC.st) * finalFrag; //texture
+			gl_FragColor = finalFrag;
+		}
 
-static const GLchar *fragMainStart = "void main() { vec4 finalFrag = vec4(0.,0.,0.,0.);\n";
+   
+*/
+
+//dug9 Jan 5, 2014 static const GLchar *fragMainStart = "void main() { vec4 finalFrag = vec4(0.,0.,0.,0.);\n";
+static const GLchar *fragMainStart = "void main() { vec4 finalFrag = vec4(1.,1.,1.,1.);\n";
 static const GLchar *anaglyphGrayFragEnd =	"float gray = dot(finalFrag.rgb, vec3(0.299, 0.587, 0.114)); \n \
                                               gl_FragColor = vec4(gray, gray, gray, finalFrag.a);}";
 
@@ -1696,14 +1712,18 @@ static const GLchar *fragEnd = "gl_FragColor = finalFrag;}";
 static const GLchar *fragTex0Dec = "uniform sampler2D fw_Texture_unit0; \n";
 static const GLchar *fragTex0CubeDec = "uniform samplerCube fw_Texture_unit0; \n";
 
-static const GLchar *fragSimColAss = "finalFrag = v_front_colour;\n ";
-static const GLchar *fragNoAppAss = "finalFrag = vec4(1.0, 1.0, 1.0, 1.0);\n";
-static const GLchar *fragFrontColAss=    " finalFrag = v_front_colour;";
-const static GLchar *fragADSLAss = "finalFrag = ADSLightModel(vertexNorm,vertexPos);";
-const static GLchar *vertADSLCalc = "v_front_colour = ADSLightModel(vertexNorm,vertexPos);";
 
-const static GLchar *fragSingTexAss = "finalFrag = texture2D(fw_Texture_unit0, v_texC.st);\n";
-const static GLchar *fragSingTexCubeAss = "finalFrag = textureCube(fw_Texture_unit0, v_texC);\n";
+//dug9 Jan 5,2014 change to 'cascade of v4*v4' in frag main
+static const GLchar *fragSimColAss = "finalFrag = v_front_colour * finalFrag;\n ";
+static const GLchar *fragNoAppAss = "finalFrag = vec4(1.0, 1.0, 1.0, 1.0);\n";
+static const GLchar *fragFrontColAss=    " finalFrag = v_front_colour * finalFrag;";
+const static GLchar *fragADSLAss = "finalFrag = ADSLightModel(vertexNorm,vertexPos,true) * finalFrag;";
+const static GLchar *vertADSLCalc = "v_front_colour = ADSLightModel(vertexNorm,vertexPos,true);";
+const static GLchar *vertADSLCalc0 = "v_front_colour = ADSLightModel(vertexNorm,vertexPos,false);";
+
+const static GLchar *fragSingTexAss = "finalFrag = texture2D(fw_Texture_unit0, v_texC.st) * finalFrag;\n";
+const static GLchar *fragSingTexCubeAss = "finalFrag = textureCube(fw_Texture_unit0, v_texC) * finalFrag;\n";
+
 
 /* MultiTexture stuff */
 /* still to do:
@@ -1892,8 +1912,7 @@ const static GLchar *pointSizeAss="gl_PointSize = pointSize; \n";
 static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker], const GLchar *fragmentSource[fragmentEndMarker], unsigned int whichOne, int usePhongShading) {
 
     bool doThis;
-    
-    
+	bool didADSLmaterial;    
 	/* GL_ES - do we have medium precision, or just low precision?? */
     /* Phong shading - use the highest we have */
     /* GL_ES_VERSION_2_0 has these definitions */
@@ -2100,7 +2119,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 
         /* TWO_MATERIAL_APPEARANCE_SHADER - this does not crop up
          that often, so just use the PHONG shader. */
-        
+	didADSLmaterial = false;        
     if((DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER)) && (!usePhongShading)) {
         vertexSource[vertexNormalDeclare] = vertNormDec;
         vertexSource[vertexLightDefines] = lightDefines;
@@ -2111,7 +2130,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 	vertexSource[vertexLightingEquation] = ADSLLightModel;
         vertexSource[vertexBackMaterialDeclare] = vertBackMatDec;
 	vertexSource[vertexADSLCalculation] = vertADSLCalc;
-
+		didADSLmaterial = true;
         fragmentSource[fragmentOneColourDeclare] = varyingFrontColour;
         fragmentSource[fragmentOneColourAssign] = fragFrontColAss;    
     }
@@ -2142,7 +2161,9 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             vertexSource[vertexTexCoordOutputDeclare] = varyingTexCoord;
             vertexSource[vertexTextureMatrixDeclare] = vertTexMatrixDec;
             vertexSource[vertexSingleTextureCalculation] = vertSingTexCalc;
-            
+			if(didADSLmaterial)
+				vertexSource[vertexADSLCalculation] = vertADSLCalc0; //over-ride material diffuseColor with texture
+
           fragmentSource[fragmentTexCoordDeclare] = varyingTexCoord; 
             fragmentSource[fragmentTex0Declare] = fragTex0Dec;
             fragmentSource[fragmentTextureAssign] = fragSingTexAss;

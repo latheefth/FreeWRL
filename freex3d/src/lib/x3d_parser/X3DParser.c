@@ -1943,7 +1943,9 @@ static void XMLCALL X3DendElement(void *unused, const xmlChar *iname) {
 	myNodeIndex = findFieldInNODES(name);
 	if (myNodeIndex != INT_ID_UNDEFINED) {
 		/* printf ("endElement - normalNode :%s:\n",name); */
-
+//#define OLDCODELINKEDIN 1
+#define NEWCODELINKEDIN 1
+#ifdef NEWCODELINKEDIN
 		if (myNodeIndex == NODE_Script) {
 			#ifdef HAVE_JAVASCRIPT
 			initScriptWithScript();
@@ -1951,8 +1953,8 @@ static void XMLCALL X3DendElement(void *unused, const xmlChar *iname) {
 		}
 		parseAttributes();
 		linkNodeIn(__FILE__,__LINE__);
-
-#ifdef OLDCODE
+#endif
+#ifdef OLDCODELINKEDIN
 		switch (myNodeIndex) {
 			#ifdef HAVE_JAVASCRIPT
 			case NODE_Script: initScriptWithScript(); break;
