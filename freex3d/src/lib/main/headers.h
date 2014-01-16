@@ -74,18 +74,21 @@ void Multi_String_print(struct Multi_String *url);
         if (nc==0) return;      \
         /* should we go down here? */ \
         /* printf ("Group, rb %x VF_B %x, rg  %x VF_G %x\n",render_blend, VF_Blend, render_geom, VF_Geom); */ \
-        if (renderstate()->render_blend == VF_Blend) \
+		{\
+		ttrenderstate rs = renderstate(); \
+        if (rs->render_blend == VF_Blend) \
                 if ((node->_renderFlags & VF_Blend) != VF_Blend) { \
                         return; \
                 } \
-        if (renderstate()->render_proximity == VF_Proximity) \
+        if (rs->render_proximity == VF_Proximity) \
                 if ((node->_renderFlags & VF_Proximity) != VF_Proximity)  { \
                         return; \
                 } \
-        if (renderstate()->render_light == VF_globalLight) \
+        if (rs->render_light == VF_globalLight) \
                 if ((node->_renderFlags & VF_globalLight) != VF_globalLight)  { \
                         return; \
                 } \
+		}
 
 /* Size of static array */
 #define ARR_SIZE(arr) (int)(sizeof(arr)/sizeof((arr)[0]))
@@ -803,8 +806,8 @@ void do_TimeTrigger (void *node);
 //#define NODE_REMOVE_PARENT(a) ADD_PARENT(a,X3D_NODE(ptr)) //dug9 looks wrong, but not used
 
 
-#define LIGHTING_ON if (!gglobal()->RenderFuncs.lightingOn) {gglobal()->RenderFuncs.lightingOn=TRUE;} 
-#define LIGHTING_OFF if(gglobal()->RenderFuncs.lightingOn) {gglobal()->RenderFuncs.lightingOn=FALSE;}
+#define LIGHTING_ON if (!tg->RenderFuncs.lightingOn) {tg->RenderFuncs.lightingOn=TRUE;} 
+#define LIGHTING_OFF if(tg->RenderFuncs.lightingOn) {tg->RenderFuncs.lightingOn=FALSE;}
 
 #define LIGHTING_INITIALIZE gglobal()->RenderFuncs.lightingOn=TRUE;
 
@@ -887,5 +890,8 @@ void print_routes(FILE* fp);
 void print_DEFed_node_names_and_pointers(FILE* fp);
 
 //updateStatusBar(void);
+void profile_start(char *);
+void profile_end(char *);
+void profile_print_all();
 
 #endif /* __FREEWRL_HEADERS_H__ */

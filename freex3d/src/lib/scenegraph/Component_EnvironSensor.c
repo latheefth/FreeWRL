@@ -84,25 +84,26 @@ PROXIMITYSENSOR(ProximitySensor,center,,);
 
 
 void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
-	
+	ttrenderstate rs;
+	ttglobal tg = gglobal();
 	/* if not enabled, do nothing */
 	if (!node) return;
 	if (!node->enabled) return;
 	{
-		ppComponent_EnvironSensor p = (ppComponent_EnvironSensor)gglobal()->Component_EnvironSensor.prv;
+		ppComponent_EnvironSensor p = (ppComponent_EnvironSensor)tg->Component_EnvironSensor.prv;
 		if (!p->candoVisibility) return;
 		/* first time through, if we have a visibility sensor, but do not have the OpenGL ability to
 		   use it, we print up a console message */
-		if (gglobal()->Frustum.OccFailed) {
+		if (tg->Frustum.OccFailed) {
 			p->candoVisibility = FALSE;
 			ConsoleMessage("VisibilitySensor: OpenGL on this machine does not support GL_ARB_occlusion_query");
 			return;
 		}
 	}
-
+	rs = renderstate();
 		RECORD_DISTANCE
 
-		if (renderstate()->render_blend) { 
+		if (rs->render_blend) { 
                         #ifdef VISIBILITYOCCLUSION
 
 			//BEGINOCCLUSIONQUERY

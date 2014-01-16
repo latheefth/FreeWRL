@@ -52,7 +52,7 @@ Functions:
 #define MAX_LIGHTS 2
 #define HEADLIGHT_LIGHT (MAX_LIGHTS-1)
 #else
-#define MAX_LIGHTS 8
+#define MAX_LIGHTS 8 //8 lights is 1152bytes transfered to GPU shader per shape draw - 11% of mainloop load on pentium class PC with card in old-style 32bit PCI expansion slot
 #define HEADLIGHT_LIGHT (MAX_LIGHTS-1)
 #endif
 
@@ -342,19 +342,23 @@ typedef struct s_shader_capabilities{
     // do we need to send down light information?
     bool  haveLightInShader; 
     
-	GLint lightState;
-	GLint lightType;
+	GLint lightcount;
+	//GLint lightState;
+	//GLint lightType;
+	GLint lightType[MAX_LIGHTS];
     GLint lightAmbient[MAX_LIGHTS];
     GLint lightDiffuse[MAX_LIGHTS];
     GLint lightSpecular[MAX_LIGHTS];
     GLint lightPosition[MAX_LIGHTS];
 	GLint lightSpotDir[MAX_LIGHTS];
-	GLint lightConstAtten[MAX_LIGHTS];
-	GLint lightLinAtten[MAX_LIGHTS];
-	GLint lightQuadAtten[MAX_LIGHTS];
+	GLint lightAtten[MAX_LIGHTS];
+	//GLint lightConstAtten[MAX_LIGHTS];
+	//GLint lightLinAtten[MAX_LIGHTS];
+	//GLint lightQuadAtten[MAX_LIGHTS];
 	GLint lightSpotCutoffAngle[MAX_LIGHTS];
 	GLint lightSpotBeamWidth[MAX_LIGHTS];
-    GLint lightRadius;
+    //GLint lightRadius;
+	GLint lightRadius[MAX_LIGHTS];
 
 	GLint ModelViewMatrix;
 	GLint ProjectionMatrix;

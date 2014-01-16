@@ -104,9 +104,9 @@ void render_DirectionalLight (struct X3D_DirectionalLight *node) {
 			FW_GL_LIGHTFV(light, GL_SPECULAR, node->_col.c);
 			FW_GL_LIGHTFV(light, GL_AMBIENT, node->_amb.c);
             /* used to test if a PointLight, SpotLight or DirectionalLight in shader  */
-			FW_GL_LIGHTF(light, GL_SPOT_CUTOFF, 0);
+			// was used, using lightType now //FW_GL_LIGHTF(light, GL_SPOT_CUTOFF, 0);
             
-            FW_GL_LIGHTF(light,GL_LIGHT_RADIUS,100000.0); /* make it very large */
+            // not used in directionlight calc //FW_GL_LIGHTF(light,GL_LIGHT_RADIUS,100000.0); /* make it very large */
 		}
 	}
 }
@@ -188,7 +188,7 @@ void render_PointLight (struct X3D_PointLight *node) {
 			FW_GL_LIGHTFV(light, GL_AMBIENT, node->_amb.c);
 
 			/* used to test if a PointLight, SpotLight or DirectionalLight in shader  */
-			FW_GL_LIGHTF(light, GL_SPOT_CUTOFF, 0);
+			// was used, using lightType now //FW_GL_LIGHTF(light, GL_SPOT_CUTOFF, 0);
             
             FW_GL_LIGHTF(light,GL_LIGHT_RADIUS,node->radius);
 		}
@@ -272,7 +272,7 @@ void render_SpotLight(struct X3D_SpotLight *node) {
             ft = cos(node->cutOffAngle/2.0); /* / (PI/4.0); */ 
 			FW_GL_LIGHTF(light, GL_SPOT_CUTOFF, ft);
             
-            FW_GL_LIGHTF(light,GL_LIGHT_RADIUS,node->radius);
+            //not used in spotlight calculation FW_GL_LIGHTF(light,GL_LIGHT_RADIUS,node->radius);
 		}
 	}
 }

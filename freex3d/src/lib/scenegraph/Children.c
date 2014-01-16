@@ -93,7 +93,8 @@ void normalChildren(struct Multi_Node ch) {
  * through it all when rendering only for nodes. */
 
 /* void update_renderFlag (struct X3D_Node *p, int flag) { */
-void  UPDATE_RENDERFLAG (struct X3D_Node *p, int flag, char *fi, int li) {
+//void  update_renderFlagB (struct X3D_Node *p, int flag, char *fi, int li) {
+void  update_renderFlagB (struct X3D_Node *p, int flag) {
 	int i;
 
 	/* send notification up the chain */
@@ -101,16 +102,17 @@ void  UPDATE_RENDERFLAG (struct X3D_Node *p, int flag, char *fi, int li) {
 	/* printf ("start of update_RenderFlag for %d (%s) flag %x parents %d\n",p, stringNodeType(p->_nodeType),
 			flag, vectorSize(p->_parentVector); */
 	
-
-	if (p==NULL) {
-		ConsoleMessage ("update_renderFlag, p NULL from %s:%d\n",fi,li);
-		return;
-	}
+	
+	//if (p==NULL) {
+	//	ConsoleMessage ("update_renderFlag, p NULL from %s:%d\n",fi,li);
+	//	return;
+	//}
 
 	p->_renderFlags = p->_renderFlags | flag;
 
 	if (p->_parentVector == NULL) {
-		ConsoleMessage ("update_renderFlag, %p->parentVector NULL  refcount %d (%s) from %s:%d\n",p,p->referenceCount,stringNodeType(p->_nodeType),fi,li);
+		//ConsoleMessage ("update_renderFlag, %p->parentVector NULL  refcount %d (%s) from %s:%d\n",p,p->referenceCount,stringNodeType(p->_nodeType),fi,li);
+		ConsoleMessage ("update_renderFlag, %p->parentVector NULL  refcount %d (%s) from %s:%d\n",p,p->referenceCount,stringNodeType(p->_nodeType));
 		return;
 	}
 
@@ -135,34 +137,45 @@ void  UPDATE_RENDERFLAG (struct X3D_Node *p, int flag, char *fi, int li) {
 			case NODE_Switch:
 				if (is_Switchchild_inrange(X3D_SWITCH(me),p)) {
 					/* printf ("switch, this is the chosen node\n"); */
-					update_renderFlag(me,flag);
+					update_renderFlagB(me,flag);
 				}
 				break;
 
 			case NODE_LOD:
 				/* works for both X3D and VRML syntax; compare with the "_selected" field */
 				if (p == X3D_LODNODE(me)->_selected) {
-					update_renderFlag(me,flag);
+					update_renderFlagB(me,flag);
 				}
 				break;
 
 			case NODE_GeoLOD:
 				if (is_GeoLODchild_inrange(X3D_GEOLOD(me),p)) {
 					/* printf ("switch, this is the chosen node\n"); */
-					update_renderFlag(me,flag);
+					update_renderFlagB(me,flag);
 				}
 				break;
 
 			case NODE_CADLayer:
                 if (is_CADLayerchild_inrange(X3D_CADLAYER(me),p)) {
-                    update_renderFlag(me,flag);
+                    update_renderFlagB(me,flag);
 				}
                 break;
 
 			default:
 
-				update_renderFlag(me,flag);
+				update_renderFlagB(me,flag);
 		}
 	}
 	/* printf ("finished update_RenderFlag for %d\n",p); */
 }
+void  UPDATE_RENDERFLAG (struct X3D_Node *p, int flag, char *fi, int li){ 
+	if (p==NULL) {
+		ConsoleMessage ("update_renderFlag, p NULL from %s:%d\n",fi,li);
+		return;
+	}
+	//profile_start("update_rendrflg");
+	update_renderFlagB (p, flag);
+	//profile_end("update_rendrflg");
+	return;
+}
+

@@ -668,7 +668,8 @@ void send_resource_to_parser(resource_item_t *res)
 	}
 
 	/* wait for the parser thread to come up to speed */
-	while (!p->inputParseInitialized) usleep(50);
+	while (!p->inputParseInitialized) 
+		usleep(50);
 
 #ifdef NEWQUEUE
 	resitem_enqueue(ml_new(res));

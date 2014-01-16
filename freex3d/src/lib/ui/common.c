@@ -112,7 +112,7 @@ void setMessageBar()
 {
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 
-	snprintf(&p->messagebar[0], 10, "%10.0f", p->myFps);
+	snprintf(&p->messagebar[0], 10, " %8.2f ", p->myFps);
 	snprintf(&p->messagebar[15], sizeof(p->myMenuStatus)-15, "%s", p->myMenuStatus);
 }
 char *getMessageBar()

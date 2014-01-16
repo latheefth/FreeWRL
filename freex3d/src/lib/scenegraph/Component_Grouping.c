@@ -159,6 +159,7 @@ void prep_Transform (struct X3D_Transform *node) {
 		} 
 
 		RECORD_DISTANCE
+
         }
 }
 
@@ -233,6 +234,7 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 }
 
 void child_Group (struct X3D_Group *node) {
+	int renderFirstProtoChildOnlyAsPerSpecs = 1;
 	CHILDREN_COUNT
 	LOCAL_LIGHT_SAVE
 /*
@@ -292,7 +294,9 @@ printf ("child_Group,  children.n %d sortedChildren.n %d\n",node->children.n, no
 	/* printf ("chld_Group, for %u, protodef %d and FreeWRL_PROTOInterfaceNodes.n %d\n",
 		node, node->FreeWRL__protoDef, node->FreeWRL_PROTOInterfaceNodes.n); */
 	/* now, just render the non-directionalLight children */
-	if ((node->FreeWRL__protoDef!=INT_ID_UNDEFINED) && renderstate()->render_geom) {
+	renderFirstProtoChildOnlyAsPerSpecs = 0; //flux/vivaty render all children
+	if ((node->FreeWRL__protoDef!=INT_ID_UNDEFINED) && renderstate()->render_geom 
+		&& renderFirstProtoChildOnlyAsPerSpecs) {
 		(node->children).n = 1;
 		normalChildren(node->children);
 		(node->children).n = nc;
@@ -314,9 +318,10 @@ void child_Transform (struct X3D_Transform *node) {
 	/* any children at all? */
 	if (nc==0) return;
 
+	//profile_start("local_light_kids");
 	/* do we have a local light for a child? */
 	LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
-
+	//profile_end("local_light_kids");
 	/* now, just render the non-directionalLight children */
 
 	/* printf ("Transform %d, flags %d, render_sensitive %d\n",

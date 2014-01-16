@@ -780,7 +780,7 @@ void render_polyrep(void *node) {
 
 
 	ttglobal tg = gglobal();
-
+	
 	renderedNodePtr = X3D_NODE(node);
 	//virt = virtTable[renderedNodePtr->_nodeType];
 	pr = renderedNodePtr->_intern;
@@ -862,7 +862,7 @@ void render_polyrep(void *node) {
 	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	gglobal()->Mainloop.trisThisLoop += pr->ntri;
+	tg->Mainloop.trisThisLoop += pr->ntri;
 
 
 	textureDraw_end();
@@ -939,7 +939,7 @@ void render_ray_polyrep(void *node) {
 	float v12pt;
 	struct point_XYZ t_r1,t_r2;
 	ttglobal tg;
-
+	
 	/* is this structure still loading? */
 	if (!node) return;
 	tg = gglobal();

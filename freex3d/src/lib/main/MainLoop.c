@@ -1865,7 +1865,9 @@ static void render_pre() {
 
         /* 4. Collisions */
         if (fwl_getCollision() == 1) {
+			profile_start("collision");
                 render_collisions(Viewer()->type);
+				profile_end("collision");
                 setup_viewpoint(); /*  update viewer position after collision, to*/
                                    /*  give accurate info to Proximity sensors.*/
         }
@@ -1873,7 +1875,9 @@ static void render_pre() {
         /* 5. render hierarchy - proximity */
         if (p->doEvents) 
 		{
+			profile_start("hier_prox");
 			render_hier(rootNode(), VF_Proximity);
+			profile_end("hier_prox");
 #ifdef DJTRACK_PICKSENSORS
 			{
 				/* find pickingSensors, record their world transform and picktargets */
@@ -2042,7 +2046,7 @@ static void render()
     /* struct timeval mytime;*/
     /* struct timezone tz; unused see man gettimeofday */
 
-    for (count = 0; count < p->maxbuffers; count++) {
+	for (count = 0; count < p->maxbuffers; count++) {
 
         /*set_buffer((unsigned)bufferarray[count],count); */              /*  in Viewer.c*/
 
@@ -2106,7 +2110,9 @@ OLDCODE#endif
 	PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_globalLight)");
 	
 	/*  4. Nodes (not the blended ones)*/
+	profile_start("hier_geom");
 	render_hier(rootNode(), VF_Geom);
+	profile_end("hier_geom");
 	PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_Geom)");
 	
 	/*  5. Blended Nodes*/
@@ -2207,7 +2213,9 @@ static void setup_viewpoint() {
 
     
         viewer_togl(Viewer()->fieldofview);
+		profile_start("vp_hier");
         render_hier(rootNode(), VF_Viewpoint);
+		profile_end("vp_hier");
         PRINT_GL_ERROR_IF_ANY("XEvents::setup_viewpoint");
 
 	/* 
@@ -3375,7 +3383,7 @@ void fwl_do_keyPress0(int key, int type) {
                                 case '=': { dump_scenegraph(3); break; }
                                 case '+': { dump_scenegraph(4); break; }
                                 case '-': { dump_scenegraph(5); break; }
-				case '`': { toggleLogfile(); break; }
+                                case '`': { toggleLogfile(); break; }
 
                                 case '$': resource_tree_dump(0, tg->resources.root_res); break;
                                 case '*': resource_tree_list_files(0, tg->resources.root_res); break;
@@ -3387,6 +3395,7 @@ void fwl_do_keyPress0(int key, int type) {
                                 case 'c': { toggle_collision(); break;}
                                 case 'v': {fwl_Next_ViewPoint(); break;}
                                 case 'b': {fwl_Prev_ViewPoint(); break;}
+								case '.': {profile_print_all(); break;}
 
 #if !defined(FRONTEND_DOES_SNAPSHOTS)
                                 case 's': {fwl_toggleSnapshot(); break;}
@@ -4095,7 +4104,9 @@ void _displayThread(void *globalcontext)
 #ifdef _MSC_VER
 		fwMessageLoop((freewrl_params_t *)&gglobal()->display);
 #endif
+		profile_start("mainloop");
 		fwl_RenderSceneUpdateScene();
+		profile_end("mainloop");
 		//Controller code
 		//-MVC - Model-View-Controller design pattern: do the Controller poll-model-and-update-UI here
 		//-reason for MVC: put controller in UI(view) technology so no callbacks are needed from Model to UI(View)

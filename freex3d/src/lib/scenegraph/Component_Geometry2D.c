@@ -114,6 +114,7 @@ void compile_Arc2D (struct X3D_Arc2D *node) {
 
 void render_Arc2D (struct X3D_Arc2D *node) {
 	//OLDCODE DEFAULT_COLOUR_POINTER
+	ttglobal tg = gglobal();
 	COMPILE_IF_REQUIRED
 	if (node->__numPoints>0) {	
 		/* for BoundingBox calculations */
@@ -127,7 +128,7 @@ void render_Arc2D (struct X3D_Arc2D *node) {
 
 		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->__points.p);
         	sendArraysToGPU (GL_LINE_STRIP, 0, node->__numPoints);
-		gglobal()->Mainloop.trisThisLoop += node->__numPoints;
+		tg->Mainloop.trisThisLoop += node->__numPoints;
 	}
 }
 
@@ -168,6 +169,7 @@ void compile_ArcClose2D (struct X3D_ArcClose2D *node) {
 
 
 void render_ArcClose2D (struct X3D_ArcClose2D *node) {
+	ttglobal tg = gglobal();
 	//OLDCODE DEFAULT_COLOUR_POINTER
 	COMPILE_IF_REQUIRED
 	if (node->__numPoints>0) {	
@@ -209,6 +211,7 @@ void compile_Circle2D (struct X3D_Circle2D *node) {
 }
 
 void render_Circle2D (struct X3D_Circle2D *node) {
+	ttglobal tg = gglobal();
 	//OLDCODE DEFAULT_COLOUR_POINTER
 	COMPILE_IF_REQUIRED
 	if (node->__numPoints>0) {	
@@ -233,6 +236,7 @@ void render_Circle2D (struct X3D_Circle2D *node) {
 COMPILE_AND_GET_BOUNDS(Polyline2D,lineSegments)
 
 void render_Polyline2D (struct X3D_Polyline2D *node){
+	ttglobal tg = gglobal();
 	//OLDCODE DEFAULT_COLOUR_POINTER
 
 	COMPILE_IF_REQUIRED
@@ -258,6 +262,7 @@ void render_Polyline2D (struct X3D_Polyline2D *node){
 COMPILE_AND_GET_BOUNDS(Polypoint2D,point)
 
 void render_Polypoint2D (struct X3D_Polypoint2D *node){
+	ttglobal tg = gglobal();
 	//OLDCODE DEFAULT_COLOUR_POINTER
 
 	COMPILE_IF_REQUIRED

@@ -1498,6 +1498,9 @@ uniform vec4 HatchColour; \n\
 uniform bool hatched; uniform bool filled;\n\
 uniform vec2 HatchScale; uniform vec2 HatchPct; uniform int algorithm; ";
 
+// cut: uniform int lightState[MAX_LIGHTS];\n\
+
+
 static const GLchar *lightDefines = "\
 struct fw_MaterialParameters {\n\
   vec4 emission;\n\
@@ -1506,9 +1509,9 @@ struct fw_MaterialParameters {\n\
   vec4 specular;\n\
   float shininess;\n\
 };\n\
-uniform float lightRadius[MAX_LIGHTS];\n\
-uniform int lightState[MAX_LIGHTS];\n\
-uniform int lightType[MAX_LIGHTS];\n\
+uniform int lightcount;\n\
+//uniform float lightRadius[MAX_LIGHTS];\n\
+//uniform int lightType[MAX_LIGHTS];\n\
 struct fw_LightSourceParameters { \n\
   vec4 ambient;  \n\
   vec4 diffuse;   \n\
@@ -1519,10 +1522,13 @@ struct fw_LightSourceParameters { \n\
   float spotExponent; \n\
   float spotCutoff; \n\
   float spotCosCutoff; \n\
-  float constantAttenuation; \n\
-  float linearAttenuation;  \n\
- float quadraticAttenuation; };\n\
-\n\
+  vec3 Attenuations; \n\
+  //float constantAttenuation; \n\
+  //float linearAttenuation;  \n\
+  //float quadraticAttenuation; \n\
+  float lightRadius; \n\
+  int lightType; \n\
+}; \n\
 \n\
 uniform fw_LightSourceParameters fw_LightSource[MAX_LIGHTS] /* gl_MaxLights */ ;\n\
 ";
@@ -1549,23 +1555,20 @@ vec4 ADSLightModel(in vec3 myNormal, in vec4 myPosition, in bool useMatDiffuse) 
   vec4 ambient = vec4(0., 0., 0., 0.);\n\
   vec4 specular = vec4(0., 0., 0., 1.);\n\
   vec3 normal = normalize (myNormal);\n\
-\
-/* JAS */ vec3 viewv = -normalize(myPosition.xyz); \n \
-/* JAS */ bool backFacing = (dot(normal,viewv) < 0.0); \n \
-/* JAS */ \
+\n\
+  vec3 viewv = -normalize(myPosition.xyz); \n \
+  bool backFacing = (dot(normal,viewv) < 0.0); \n \
   vec4 emissive;\n\
   vec4 matdiffuse = vec4(1.0,1.0,1.0,1.0);\n\
   float myAlph = 0.0;\n\
 \n\
   fw_MaterialParameters myMat = fw_FrontMaterial;\n\
-\
-/* JAS */ \n \
+\n\
 /* back Facing materials - flip the normal and grab back materials */ \n \
 if (backFacing) { \n \
 	normal = -normal; \n \
 	myMat = fw_BackMaterial; \n \
 } \n \
-\
 \n\
   emissive = myMat.emission;\n\
   myAlph = myMat.diffuse.a;\n\
@@ -1573,41 +1576,40 @@ if (backFacing) { \n \
     matdiffuse = myMat.diffuse;\n\
 \n\
   /* apply the lights to this material */\n\
-  for (i=0; i<MAX_LIGHTS; i++) {\n\
-    if (lightState[i] !=0) {\n\
+  for (i=0; i<lightcount; i++) {\n\
       vec4 myLightDiffuse = fw_LightSource[i].diffuse;\n\
       vec4 myLightAmbient = fw_LightSource[i].ambient;\n\
       vec4 myLightSpecular = fw_LightSource[i].specular;\n\
       vec4 myLightPosition = fw_LightSource[i].position; \n\
 	  vec3 myLightDir = fw_LightSource[i].spotDirection.xyz; \n\
-	  int myLightType = lightType[i]; \n\
       vec3 eyeVector = normalize(myPosition.xyz);\n\
       vec3  VP;     /* vector of light direction and distance */\n\
 	  VP = myLightPosition.xyz - myPosition.xyz;\n\
 	  vec3 L = myLightDir; /*directional light*/ \n\
-	  if(myLightType == 0 || myLightType == 1) /*point and spot*/ \n\
+	  if(fw_LightSource[i].lightType < 2) /*point and spot*/ \n\
 	    L = normalize(VP); \n\
       float nDotL = max(dot(normal, L), 0.0);\n\
       vec3 halfVector = normalize(L - eyeVector);\n\
       /* normal dot light half vector */\n\
       float nDotHV = max(dot(normal,halfVector),0.0);\n\
-      /*if (fw_LightSource[i].spotCutoff!=0.0) {*/\n\
-      if (myLightType==1) {\n\
+      \n\
+      if (fw_LightSource[i].lightType==1) {\n\
         /* SpotLight */\n\
-        float spotDot;\n\
-        float spotAttenuation = 0.0;\n\
-        float powerFactor = 0.0; /* for light dropoff */\n\
+        float spotDot; \n\
+        float spotAttenuation = 0.0; \n\
+        float powerFactor = 0.0; /* for light dropoff */ \n\
         float attenuation; /* computed attenuation factor */\n\
-        float d;            /* distance to verted */            \n\
+        float d;            /* distance to vertex */            \n\
         d = length(VP);\n\
 		if (nDotL > 0.0) {\n\
-          powerFactor = pow(nDotL, myMat.shininess);\n\
+		  powerFactor = pow(nDotL,myMat.shininess); \n\
           /* tone down the power factor if myMat.shininess borders 0 */\n\
           if (myMat.shininess < 1.0) {\n\
-            powerFactor *= myMat.shininess;\n\
-          }\n\
-        }\n\
-        attenuation = 1.0/(fw_LightSource[i].constantAttenuation + fw_LightSource[i].linearAttenuation * d * fw_LightSource[i].quadraticAttenuation *d *d);\n\
+		    powerFactor *= myMat.shininess; \n\
+          } \n\
+        } \n\
+		//attenuation = 1.0/(fw_LightSource[i].constantAttenuation + fw_LightSource[i].linearAttenuation * d * fw_LightSource[i].quadraticAttenuation *d *d);\n\
+		attenuation = 1.0/(fw_LightSource[i].Attenuations.x + fw_LightSource[i].Attenuations.y * d * fw_LightSource[i].Attenuations.z *d *d);\n\
         spotDot = dot (-L,myLightDir);\n\
         /* check against spotCosCutoff */\n\
 		if (spotDot > fw_LightSource[i].spotCutoff) {\n\
@@ -1620,15 +1622,15 @@ if (backFacing) { \n \
         ambient += myMat.ambient*myLightAmbient;\n\
         /* specular light computation */\n\
         specular += myLightSpecular * powerFactor * attenuation;\n\
-      /*} else if (myLightPosition.w == 0.0) {*/ \n\
-	  } else if (myLightType == 2) {\n\
-        /* DirectionalLight */\n\
+        \n\
+	  } else if (fw_LightSource[i].lightType == 2) { \n\
+        /* DirectionalLight */ \n\
         float powerFactor = 0.0; /* for light dropoff */\n\
 		if (nDotL > 0.0) {\n\
-          powerFactor = pow(nDotHV, myMat.shininess);\n\
+		  powerFactor = pow(nDotHV, myMat.shininess);\n\
           /* tone down the power factor if myMat.shininess borders 0 */\n\
           if (myMat.shininess < 1.0) {\n\
-            powerFactor *= myMat.shininess;\n\
+		    powerFactor *= myMat.shininess;\n\
           }\n\
         }\n\
         /* Specular light computation */\n\
@@ -1643,13 +1645,14 @@ if (backFacing) { \n \
         float attenuation = 0.0; /* computed attenuation factor */\n\
         float d = length(VP);  /* distance to vertex */ \n\
         /* are we within range? */\n\
-        if (d <= lightRadius[i]) {\n\
+        if (d <= fw_LightSource[i].lightRadius) {\n\
           if (nDotL > 0.0) {\n\
-            powerFactor = pow(nDotL, myMat.shininess);\n\
-            attenuation = (myMat.shininess-128.0);\n\
+		    powerFactor = pow(nDotL, myMat.shininess);\n\
+            //attenuation = (myMat.shininess-128.0);\n\
           }\n\
           /* this is actually the SFVec3f attenuation field */\n\
-          attenuation = 1.0/(fw_LightSource[i].constantAttenuation + fw_LightSource[i].linearAttenuation * d* fw_LightSource[i].quadraticAttenuation *d *d);\n\
+          //attenuation = 1.0/(fw_LightSource[i].constantAttenuation + fw_LightSource[i].linearAttenuation * d* fw_LightSource[i].quadraticAttenuation *d *d);\n\
+		  attenuation = 1.0/(fw_LightSource[i].Attenuations.x + fw_LightSource[i].Attenuations.y * d * fw_LightSource[i].Attenuations.z *d *d);\n\
           /* diffuse light computation */\n\
           diffuse += nDotL* matdiffuse*myLightDiffuse * attenuation;\n\
           /* ambient light computation */\n\
@@ -1659,7 +1662,6 @@ if (backFacing) { \n \
           specular += myLightSpecular * powerFactor * attenuation;\n\
         }\n\
       }\n\
-    }\n\
   }\n\
   return clamp(vec4(vec3(ambient+diffuse+specular+emissive),myAlph), 0.0, 1.0);\n\
 }\n\
@@ -2127,9 +2129,9 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         vertexSource[vertFrontColourDeclare] = varyingFrontColour;
         vertexSource[vertexNormPosCalculation] = vertNormPosCalc;
         vertexSource[vertexNormPosOutput] = vecNormPos;
-	vertexSource[vertexLightingEquation] = ADSLLightModel;
+        vertexSource[vertexLightingEquation] = ADSLLightModel;
         vertexSource[vertexBackMaterialDeclare] = vertBackMatDec;
-	vertexSource[vertexADSLCalculation] = vertADSLCalc;
+        vertexSource[vertexADSLCalculation] = vertADSLCalc;
 		didADSLmaterial = true;
         fragmentSource[fragmentOneColourDeclare] = varyingFrontColour;
         fragmentSource[fragmentOneColourAssign] = fragFrontColAss;    
@@ -2161,10 +2163,10 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             vertexSource[vertexTexCoordOutputDeclare] = varyingTexCoord;
             vertexSource[vertexTextureMatrixDeclare] = vertTexMatrixDec;
             vertexSource[vertexSingleTextureCalculation] = vertSingTexCalc;
-			if(didADSLmaterial)
-				vertexSource[vertexADSLCalculation] = vertADSLCalc0; //over-ride material diffuseColor with texture
+            if(didADSLmaterial)
+            	vertexSource[vertexADSLCalculation] = vertADSLCalc0; //over-ride material diffuseColor with texture
 
-          fragmentSource[fragmentTexCoordDeclare] = varyingTexCoord; 
+            fragmentSource[fragmentTexCoordDeclare] = varyingTexCoord; 
             fragmentSource[fragmentTex0Declare] = fragTex0Dec;
             fragmentSource[fragmentTextureAssign] = fragSingTexAss;
         }
@@ -2184,10 +2186,10 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             
             vertexSource[vertexOneMaterialDeclare] = vertOneMatDec;
             vertexSource[vertexLightDefines] = lightDefines;
-        vertexSource[vertexNormPosCalculation] = vertNormPosCalc;
-        vertexSource[vertexNormPosOutput] = vecNormPos;
-	vertexSource[vertexLightingEquation] = ADSLLightModel;
-        vertexSource[vertexBackMaterialDeclare] = vertBackMatDec;
+            vertexSource[vertexNormPosCalculation] = vertNormPosCalc;
+            vertexSource[vertexNormPosOutput] = vecNormPos;
+            vertexSource[vertexLightingEquation] = ADSLLightModel;
+            vertexSource[vertexBackMaterialDeclare] = vertBackMatDec;
 
             fragmentSource[fragmentMultiTexDefines]= fragMultiTexUniforms;
             fragmentSource[fragmentMultiTexDeclare] = fragMulTexDef;
@@ -2241,12 +2243,12 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
                     #define gl_TextureMatrix fw_TextureMatrix \n\
                     #define gl_Vertex fw_Vertex \n \
                     #define gl_Normal fw_Normal\n \
-                #define gl_Texture_unit0 fw_Texture_unit0\n \
-        #define gl_MultiTexCoord0 fw_MultiTexCoord0\n \
-        #define gl_Texture_unit1 fw_Texture_unit1\n \
-        #define gl_MultiTexCoord1 fw_MultiTexCoord1\n \
-        #define gl_Texture_unit2 fw_Texture_unit2\n \
-        #define gl_MultiTexCoord2 fw_MultiTexCoord2\n \
+                    #define gl_Texture_unit0 fw_Texture_unit0\n \
+                    #define gl_MultiTexCoord0 fw_MultiTexCoord0\n \
+                    #define gl_Texture_unit1 fw_Texture_unit1\n \
+                    #define gl_MultiTexCoord1 fw_MultiTexCoord1\n \
+                    #define gl_Texture_unit2 fw_Texture_unit2\n \
+                    #define gl_MultiTexCoord2 fw_MultiTexCoord2\n \
                     #define gl_LightSource fw_LightSource\n ";    
 
 	// copy over the same defines, but for the fragment shader.
@@ -2437,10 +2439,10 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->myMaterialBackAmbient = GET_UNIFORM(myProg,"fw_BackMaterial.ambient");
 	me->myMaterialBackSpecular = GET_UNIFORM(myProg,"fw_BackMaterial.specular");
 
-        me->lightState = GET_UNIFORM(myProg,"lightState");
-        me->lightType = GET_UNIFORM(myProg,"lightType");
-        me->lightRadius = GET_UNIFORM(myProg,"lightRadius");
-  
+        //me->lightState = GET_UNIFORM(myProg,"lightState");
+        //me->lightType = GET_UNIFORM(myProg,"lightType");
+        //me->lightRadius = GET_UNIFORM(myProg,"lightRadius");
+	me->lightcount = GET_UNIFORM(myProg,"lightcount");
     
     /* get lights in a more normal OpenGL GLSL format */
     
@@ -2456,9 +2458,12 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
         float spotExponent;        // Srli   
         float spotCutoff;          // Crli                                
         float spotCosCutoff;       // Derived: cos(Crli)                   
-        float constantAttenuation; // K0   
-        float linearAttenuation;   // K1   
-        float quadraticAttenuation;// K2  
+		vec3 Attenuations (const,lin,quad)
+        //float constantAttenuation; // K0   
+        //float linearAttenuation;   // K1   
+        //float quadraticAttenuation;// K2  
+		float lightRadius;
+		int lightType;
      };    
      
      
@@ -2514,20 +2519,30 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
             //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpotCutoffAngle[i]);
             
 
-            strcpy(&uniformName[18],"constantAttenuation"); 
-            me->lightConstAtten[i] = GET_UNIFORM(myProg,uniformName);
-            //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightConstAtten[i]);
-            
+            strcpy(&uniformName[18],"Attenuations"); 
+            me->lightAtten[i] = GET_UNIFORM(myProg,uniformName);
 
-            strcpy(&uniformName[18],"linearAttenuation");
-            me->lightLinAtten[i] = GET_UNIFORM(myProg,uniformName);
-            //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightLinAtten[i]);
+	//strcpy(&uniformName[18],"constantAttenuation"); 
+            //me->lightConstAtten[i] = GET_UNIFORM(myProg,uniformName);
+            ////ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightConstAtten[i]);
+            //
             
+            //strcpy(&uniformName[18],"linearAttenuation");
+            //me->lightLinAtten[i] = GET_UNIFORM(myProg,uniformName);
+            ////ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightLinAtten[i]);
+            //
 
-            strcpy(&uniformName[18],"quadraticAttenuation"); 
-            me->lightQuadAtten[i] = GET_UNIFORM(myProg,uniformName);
+            //strcpy(&uniformName[18],"quadraticAttenuation"); 
+            //me->lightQuadAtten[i] = GET_UNIFORM(myProg,uniformName);
+            ////ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightQuadAtten[i]);
+            
+            strcpy(&uniformName[18],"lightRadius"); 
+            me->lightRadius[i] = GET_UNIFORM(myProg,uniformName);
             //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightQuadAtten[i]);
-            
+
+			strcpy(&uniformName[18],"lightType"); 
+            me->lightType[i] = GET_UNIFORM(myProg,uniformName);
+            //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightQuadAtten[i]);
 
         }
     }
@@ -3150,8 +3165,13 @@ void fw_glLoadIdentity(void) {
 	FW_GL_LOADMATRIX(p->currentMatrix); 
 }
 
-#define PUSHMAT(a,b,c,d) case a: b++; if (b>=c) {b=c-1; printf ("stack overflow, whichmode %d\n",p->whichMode); } \
-		memcpy ((void *)d[b], (void *)d[b-1],sizeof(GLDOUBLE)*16); p->currentMatrix = d[b]; break;
+#define PUSHMAT(a,b,c,d) case a: \
+	b++;\
+	if (b>=c) {b=c-1; printf ("stack overflow, whichmode %d\n",p->whichMode); } \
+	memcpy ((void *)d[b], (void *)d[b-1],sizeof(GLDOUBLE)*16);\
+	p->currentMatrix = d[b];\
+	break;
+
 
 void fw_glPushMatrix(void) {
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
@@ -3825,7 +3845,7 @@ void zeroVisibilityFlag(void) {
 #endif
 #define VIEWPOINT(thistype) \
 			setBindPtr = (int *)(((char*)(node))+offsetof (struct X3D_##thistype, set_bind)); \
-			if ((*setBindPtr) == 100) {setBindPtr = NULL; } else {printf ("OpenGL, BINDING %d\n",*setBindPtr);}/* already done */ 
+			if ((*setBindPtr) == 100) {setBindPtr = NULL; } //else {printf ("OpenGL, BINDING %d\n",*setBindPtr);}/* already done */ 
 
 #define CHILDREN_NODE(thistype) \
 			addChildren = NULL; removeChildren = NULL; \
@@ -4010,7 +4030,7 @@ void startOfLoopNodeUpdates(void) {
 
 	/* do not bother doing this if the inputparsing thread is active */
 	if (fwl_isinputThreadParsing()) return;
-
+	profile_start("loopnodeupdt");
 	LOCK_MEMORYTABLE
 
     //printf ("\n******************************************\nstartOfLoopNodeUpdates\n");
@@ -4520,6 +4540,8 @@ void startOfLoopNodeUpdates(void) {
 		Viewer()->farPlane = DEFAULT_FARPLANE;
 		Viewer()->backgroundPlane = DEFAULT_BACKGROUNDPLANE;
 	}
+	profile_end("loopnodeupdt");
+
 }
 
 
@@ -5281,13 +5303,14 @@ static void killNode (int index) {
 	glLoadMatrixd(val);
 	#endif
 }
+BOOL matrix3x3_inverse_float(float *inn, float *outt);
 
 static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint ProjectionMatrix, GLint NormalMatrix, GLint TextureMatrix) 
 
 {
 
 	float spval[16];
-	int i;
+	int i,j;
 	float *sp; 
 	GLDOUBLE *dp;
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
@@ -5302,8 +5325,9 @@ static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint Projecti
 		*sp = (float) *dp; 	
 		sp ++; dp ++;
 	}
+	profile_start("sendmtx");
 	GLUNIFORMMATRIX4FV(ModelViewMatrix,1,GL_FALSE,spval);
-
+	profile_end("sendmtx");
 	/* ProjectionMatrix */
 	sp = spval;
 	dp = p->FW_ProjectionView[p->projectionviewTOS];
@@ -5313,8 +5337,9 @@ static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint Projecti
 		*sp = (float) *dp; 	
 		sp ++; dp ++;
 	}
+	profile_start("sendmtx");
 	GLUNIFORMMATRIX4FV(ProjectionMatrix,1,GL_FALSE,spval);
-
+	profile_end("sendmtx");
 	/* TextureMatrix */
 	if (TextureMatrix != -1) {
 		sp = spval;
@@ -5326,8 +5351,9 @@ static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint Projecti
 			*sp = (float) *dp;
 			sp ++; dp ++;
 		}
-        
+        profile_start("sendmtx");
 		GLUNIFORMMATRIX4FV(TextureMatrix,1,GL_FALSE,spval);
+		profile_end("sendmtx");
 	}
 
 
@@ -5335,11 +5361,29 @@ static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint Projecti
 	/* Uniform mat3  gl_NormalMatrix;  transpose of the inverse of the upper
                                		  leftmost 3x3 of gl_ModelViewMatrix */
 	if (NormalMatrix != -1) {
+		float normMat[9];
+		dp = p->FW_ModelView[p->modelviewTOS];
+
+		if(1){
+			//trying to find another .01 FPS 
+			//switch from 4x4 double to 3x3 float inverse
+			float ftemp[9];
+			/* convert GLDOUBLE to float */
+			for (i=0; i<3; i++)
+				for(j=0;j<3;j++)
+					spval[i*3 +j] = (float) dp[i*4 + j]; 	
+			
+			matrix3x3_inverse_float(spval, ftemp);
+			//transpose
+			for (i = 0; i < 3; i++)
+				for (j = 0; j < 3; j++)
+					normMat[i*3 +j] = ftemp[j*3 + i]; 	
+
+		}
+		if(0){
 		GLDOUBLE inverseMV[16];
 		GLDOUBLE transInverseMV[16];
 		GLDOUBLE MV[16];
-		float normMat[9];
-		dp = p->FW_ModelView[p->modelviewTOS];
 		memcpy(MV,dp,sizeof(GLDOUBLE)*16);
 
 		matinverse (inverseMV,MV);
@@ -5356,15 +5400,16 @@ static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint Projecti
 		normMat[6] = (float) transInverseMV[8];
 		normMat[7] = (float) transInverseMV[9];
 		normMat[8] = (float) transInverseMV[10];
-
+		}
 /* 
 printf ("NormalMatrix: \n \t%4.3f %4.3f %4.3f\n \t%4.3f %4.3f %4.3f\n \t%4.3f %4.3f %4.3f\n",
 normMat[0],normMat[1],normMat[2],
 normMat[3],normMat[4],normMat[5],
 normMat[6],normMat[7],normMat[8]);
 */
-
+		profile_start("sendmtx");
 		GLUNIFORMMATRIX3FV(NormalMatrix,1,GL_FALSE,normMat);
+		profile_end("sendmtx");
 	}
 
 }
@@ -5392,12 +5437,12 @@ if (me->myMat != -1) { GLUNIFORM1I(me->myMat,myVal);}
 
 void sendMaterialsToShader(s_shader_capabilities_t *me) {
     struct matpropstruct *myap = getAppearanceProperties();
-    struct fw_MaterialParameters fw_FrontMaterial;
-	struct fw_MaterialParameters fw_BackMaterial;
+    struct fw_MaterialParameters *fw_FrontMaterial;
+	struct fw_MaterialParameters *fw_BackMaterial;
 
     if (!myap) return;
-    fw_FrontMaterial = myap->fw_FrontMaterial;
-    fw_BackMaterial = myap->fw_BackMaterial;
+    fw_FrontMaterial = &myap->fw_FrontMaterial;
+    fw_BackMaterial = &myap->fw_BackMaterial;
     
     
 	/* go through all of the Uniforms for this shader */
@@ -5420,17 +5465,19 @@ ConsoleMessage ("sending in back diffuse %f %f %f %f ambient %f %f %f %f spec %f
 PRINT_GL_ERROR_IF_ANY("BEGIN sendMaterialsToShader");
 
 /* eventually do this with code blocks in glsl */
-	SEND_VEC4(myMaterialAmbient,fw_FrontMaterial.ambient);
-	SEND_VEC4(myMaterialDiffuse,fw_FrontMaterial.diffuse);
-	SEND_VEC4(myMaterialSpecular,fw_FrontMaterial.specular);
-	SEND_VEC4(myMaterialEmission,fw_FrontMaterial.emission);
-	SEND_FLOAT(myMaterialShininess,fw_FrontMaterial.shininess);
+	profile_start("sendvec");
+	SEND_VEC4(myMaterialAmbient,fw_FrontMaterial->ambient);
+	SEND_VEC4(myMaterialDiffuse,fw_FrontMaterial->diffuse);
+	SEND_VEC4(myMaterialSpecular,fw_FrontMaterial->specular);
+	SEND_VEC4(myMaterialEmission,fw_FrontMaterial->emission);
+	SEND_FLOAT(myMaterialShininess,fw_FrontMaterial->shininess);
     
-	SEND_VEC4(myMaterialBackAmbient,fw_BackMaterial.ambient);
-	SEND_VEC4(myMaterialBackDiffuse,fw_BackMaterial.diffuse);
-	SEND_VEC4(myMaterialBackSpecular,fw_BackMaterial.specular);
-	SEND_VEC4(myMaterialBackEmission,fw_BackMaterial.emission);
-	SEND_FLOAT(myMaterialBackShininess,fw_BackMaterial.shininess);
+	SEND_VEC4(myMaterialBackAmbient,fw_BackMaterial->ambient);
+	SEND_VEC4(myMaterialBackDiffuse,fw_BackMaterial->diffuse);
+	SEND_VEC4(myMaterialBackSpecular,fw_BackMaterial->specular);
+	SEND_VEC4(myMaterialBackEmission,fw_BackMaterial->emission);
+	SEND_FLOAT(myMaterialBackShininess,fw_BackMaterial->shininess);
+	profile_end("sendvec");
 
 	if (me->haveLightInShader) sendLightInfo(me);
     
@@ -5441,6 +5488,7 @@ PRINT_GL_ERROR_IF_ANY("BEGIN sendMaterialsToShader");
 	glPointSize(myap->pointSize);
     #endif
 
+	profile_start("sendmat");
     //ConsoleMessage ("rlp %d %d %d %d",me->hatchPercent,me->filledBool,me->hatchedBool,me->algorithm,me->hatchColour);
     SEND_INT(filledBool,myap->filledBool);
     SEND_INT(hatchedBool,myap->hatchedBool);
@@ -5451,6 +5499,7 @@ PRINT_GL_ERROR_IF_ANY("BEGIN sendMaterialsToShader");
 
     //TextureCoordinateGenerator
     SEND_INT(texCoordGenType,myap->texCoordGeneratorType);
+	profile_end("sendmat");
 	PRINT_GL_ERROR_IF_ANY("END sendMaterialsToShader");
 }
 

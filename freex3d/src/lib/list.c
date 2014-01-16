@@ -162,10 +162,10 @@ void ml_delete(s_list_t *list, s_list_t *item)
     s_list_t *prev;
     prev = ml_prev(list, item);
     if (prev) {
-	ml_next(prev) = ml_next(item);
-	XFREE(item);
+		ml_next(prev) = ml_next(item);
+		XFREE(item);
     } else {
-	ERROR_MSG("ml_delete: trying to destroy first element in a list\n");
+		//ERROR_MSG("ml_delete: trying to destroy first element in a list\n");
     }
 }
 

@@ -368,26 +368,27 @@ GLDOUBLE* matinverse(GLDOUBLE* res, GLDOUBLE* mm)
     }
 
     Deta = det3x3(m);
+	Deta = 1.0 / Deta;
 
-    res[0] = (-m[9]*m[6] +m[5]*m[10])/Deta;
-    res[4] = (+m[8]*m[6] -m[4]*m[10])/Deta;
-    res[8] = (-m[8]*m[5] +m[4]*m[9])/Deta;
-    res[12] = ( m[12]*m[9]*m[6] -m[8]*m[13]*m[6] -m[12]*m[5]*m[10] +m[4]*m[13]*m[10] +m[8]*m[5]*m[14] -m[4]*m[9]*m[14])/Deta;
+    res[0] = (-m[9]*m[6] +m[5]*m[10])*Deta;
+    res[4] = (+m[8]*m[6] -m[4]*m[10])*Deta;
+    res[8] = (-m[8]*m[5] +m[4]*m[9])*Deta;
+    res[12] = ( m[12]*m[9]*m[6] -m[8]*m[13]*m[6] -m[12]*m[5]*m[10] +m[4]*m[13]*m[10] +m[8]*m[5]*m[14] -m[4]*m[9]*m[14])*Deta;
 
-    res[1] = (+m[9]*m[2] -m[1]*m[10])/Deta;
-    res[5] = (-m[8]*m[2] +m[0]*m[10])/Deta;
-    res[9] = (+m[8]*m[1] -m[0]*m[9])/Deta;
-    res[13] = (-m[12]*m[9]*m[2] +m[8]*m[13]*m[2] +m[12]*m[1]*m[10] -m[0]*m[13]*m[10] -m[8]*m[1]*m[14] +m[0]*m[9]*m[14])/Deta;
+    res[1] = (+m[9]*m[2] -m[1]*m[10])*Deta;
+    res[5] = (-m[8]*m[2] +m[0]*m[10])*Deta;
+    res[9] = (+m[8]*m[1] -m[0]*m[9])*Deta;
+    res[13] = (-m[12]*m[9]*m[2] +m[8]*m[13]*m[2] +m[12]*m[1]*m[10] -m[0]*m[13]*m[10] -m[8]*m[1]*m[14] +m[0]*m[9]*m[14])*Deta;
 
-    res[2] = (-m[5]*m[2] +m[1]*m[6])/Deta;
-    res[6] = (+m[4]*m[2] -m[0]*m[6])/Deta;
-    res[10] = (-m[4]*m[1] +m[0]*m[5])/Deta;
-    res[14] = ( m[12]*m[5]*m[2] -m[4]*m[13]*m[2] -m[12]*m[1]*m[6] +m[0]*m[13]*m[6] +m[4]*m[1]*m[14] -m[0]*m[5]*m[14])/Deta;
+    res[2] = (-m[5]*m[2] +m[1]*m[6])*Deta;
+    res[6] = (+m[4]*m[2] -m[0]*m[6])*Deta;
+    res[10] = (-m[4]*m[1] +m[0]*m[5])*Deta;
+    res[14] = ( m[12]*m[5]*m[2] -m[4]*m[13]*m[2] -m[12]*m[1]*m[6] +m[0]*m[13]*m[6] +m[4]*m[1]*m[14] -m[0]*m[5]*m[14])*Deta;
 
-    res[3] = (+m[5]*m[2]*m[11] -m[1]*m[6]*m[11])/Deta;
-    res[7] = (-m[4]*m[2]*m[11] +m[0]*m[6]*m[11])/Deta;
-    res[11] = (+m[4]*m[1]*m[11] -m[0]*m[5]*m[11])/Deta;
-    res[15] = (-m[8]*m[5]*m[2] +m[4]*m[9]*m[2] +m[8]*m[1]*m[6] -m[0]*m[9]*m[6] -m[4]*m[1]*m[10] +m[0]*m[5]*m[10])/Deta;
+    res[3] = (+m[5]*m[2]*m[11] -m[1]*m[6]*m[11])*Deta;
+    res[7] = (-m[4]*m[2]*m[11] +m[0]*m[6]*m[11])*Deta;
+    res[11] = (+m[4]*m[1]*m[11] -m[0]*m[5]*m[11])*Deta;
+    res[15] = (-m[8]*m[5]*m[2] +m[4]*m[9]*m[2] +m[8]*m[1]*m[6] -m[0]*m[9]*m[6] -m[4]*m[1]*m[10] +m[0]*m[5]*m[10])*Deta;
 
     return res;
 }
@@ -543,6 +544,83 @@ double matrotate2v(GLDOUBLE* res, struct point_XYZ iv/*original*/, struct point_
 }
 
 
+
+/****
+ * hacked from a graphics gem
+ * Returned value:
+ *   TRUE   if input matrix is nonsingular
+ *   FALSE  otherwise
+ *
+ ***/
+
+BOOL matrix3x3_inverse_float(float *inn, float *outt)
+{
+	
+    float    det_1;
+    float    pos, neg, temp;
+	float *in[3], *out[3];
+
+//#define ACCUMULATE    \
+//    if (temp >= 0.0)  \
+//        pos += temp;  \
+//    else              \
+//        neg += temp;
+#define ACCUMULATE pos += temp;
+
+//#define PRECISION_LIMIT 1.0e-7 //(1.0e-15)
+	in[0] = &inn[0];
+	in[1] = &inn[3];
+	in[2] = &inn[6];
+	out[0] = &outt[0];
+	out[1] = &outt[3];
+	out[2] = &outt[6];
+
+    /*
+     * Calculate the determinant of submatrix A and determine if the
+     * the matrix is singular as limited by the double precision
+     * floating-point data representation.
+     */
+    pos = 0.0f; //neg = 0.0;
+    temp =  in[0][0] * in[1][1] * in[2][2];
+    ACCUMULATE
+    temp =  in[0][1] * in[1][2] * in[2][0];
+    ACCUMULATE
+    temp =  in[0][2] * in[1][0] * in[2][1];
+    ACCUMULATE
+    temp = -in[0][2] * in[1][1] * in[2][0];
+    ACCUMULATE
+    temp = -in[0][1] * in[1][0] * in[2][2];
+    ACCUMULATE
+    temp = -in[0][0] * in[1][2] * in[2][1];
+    ACCUMULATE
+    det_1 = pos; // + neg;
+
+    /* Is the submatrix A singular? */
+    //if ((det_1 == 0.0) || (abs(det_1 / (pos - neg)) < PRECISION_LIMIT)) {
+	if(APPROX(det_1,0.0f)){
+
+        /* Matrix M has no inverse */
+        fprintf (stderr, "affine_matrix4_inverse: singular matrix\n");
+        return FALSE;
+    }
+
+    else {
+
+        /* Calculate inverse(A) = adj(A) / det(A) */
+        det_1 = 1.0 / det_1;
+        out[0][0] =  (in[1][1] * in[2][2] - in[1][2] * in[2][1] ) * det_1;
+        out[1][0] = -(in[1][0] * in[2][2] - in[1][2] * in[2][0] ) * det_1;
+        out[2][0] =  (in[1][0] * in[2][1] - in[1][1] * in[2][0] ) * det_1;
+        out[0][1] = -(in[0][1] * in[2][2] - in[0][2] * in[2][1] ) * det_1;
+        out[1][1] =  (in[0][0] * in[2][2] - in[0][2] * in[2][0] ) * det_1;
+        out[2][1] = -(in[0][0] * in[2][1] - in[0][1] * in[2][0] ) * det_1;
+        out[0][2] =  (in[0][1] * in[1][2] - in[0][2] * in[1][1] ) * det_1;
+        out[1][2] = -(in[0][0] * in[1][2] - in[0][2] * in[1][0] ) * det_1;
+        out[2][2] =  (in[0][0] * in[1][1] - in[0][1] * in[1][0] ) * det_1;
+
+        return TRUE;
+    }
+}
 
 
 #ifdef COMMENT

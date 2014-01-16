@@ -74,7 +74,8 @@ typedef struct pRenderFuncs{
 
 	/* lights status. Light HEADLIGHT_LIGHT is the headlight */
 	GLint lightOnOff[MAX_LIGHTS];
-
+	GLint last_lightOnOff[MAX_LIGHTS]; //optimization
+	GLint lastShader;
 	int cur_hits;//=0;
 	void *empty_group;//=0;
 	//struct point_XYZ ht1, ht2; not used
@@ -126,6 +127,7 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 		t->rayHit = (void *)&p->rayHit;
 		t->rayHitHyper = (void *)&p->rayHitHyper;
 		p->renderLevel = 0;
+		p->lastShader = -1;
 	}
 
 	//setLightType(HEADLIGHT_LIGHT,2); // ensure that this is a DirectionalLight.
@@ -262,6 +264,7 @@ ConsoleMessage("fwglLightfv - NOT transforming pos %3.2f %3.2f %3.2f %3.2f spd %
 			memcpy ((void *)p->light_spec[light],(void *)params,sizeof(shaderVec4));
 			break;
 		case GL_SPOT_DIRECTION:
+			//call spot_direction before spot_position, so direction gets transformed above in spot position
 			memcpy ((void *)p->light_spotDir[light],(void *)params,sizeof(shaderVec4));
 			break;
 		default: {printf ("help, unknown fwgllightfv param %d\n",pname);}
@@ -312,38 +315,89 @@ void fwglLightf (int light, int pname, GLfloat param) {
 }
 
 
-/* send light info into Shader. if OSX gets glGetUniformBlockIndex calls, we can do this with 1 call */
+/* send light info into Shader. if OSX gets glGetUniformBlockIndex calls, we can do this with 1 call 
+	On old pentium with old board in old PCI slot, 8 lights take 1050bytes and 12% of mainloop load
+	3 optimizations reduce the light sending traffic:
+	1. send only active lights 
+		-Android had a problem on startup with this, I changed the flavor a bit - lets see if it works now
+		-cuts from 12% of loop to 4%
+	2. for an active light, send only parameters that light type needs in the shader calc
+		-cuts from 4% of loop to 3%
+	3. if the active light set and shader haven't changed since last shape, don't resend any lights.
+		(active light sets can change during scene graph traversal. But a light itself doesn't change
+		settings during traversal. Just during routing and scripting. So in render_heir 
+		lastShader is set to -1 to trigger a fresh send.
+		- cuts from 3% of loop to .5%
+
+*/
 void sendLightInfo (s_shader_capabilities_t *me) {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-    int i;
+    int i,j, lightcount, lightsChanged;
     		
-
 	// in case we are trying to render a node that has just been killed...
 	if (me==NULL) return;
 
 	PRINT_GL_ERROR_IF_ANY("BEGIN sendLightInfo");
 	/* if one of these are equal to -1, we had an error in the shaders... */
-	GLUNIFORM1IV(me->lightState,MAX_LIGHTS,p->lightOnOff);
-	GLUNIFORM1IV(me->lightType,MAX_LIGHTS,p->lightType);
-    GLUNIFORM1FV(me->lightRadius,MAX_LIGHTS,p->light_radius);
+	lightcount = 0;
+	//Optimization 3>> if the shader and lights haven't changed since the last shape,
+	//then don't resend the lights to the shader
+	lightsChanged = FALSE;
+	for(i=0;i<MAX_LIGHTS;i++){
+		if(p->lightOnOff[i]) lightcount++;
+		if(p->lightOnOff[i] != p->last_lightOnOff[i]) lightsChanged = TRUE;
+		p->last_lightOnOff[i] = p->lightOnOff[i];
+	}
+	if(!lightsChanged && (p->currentShader == p->lastShader)) return;
+	p->lastShader = p->currentShader;
+	//<<end optimization 3
+	profile_start("sendlight");
+	GLUNIFORM1I(me->lightcount,lightcount);
+	//GLUNIFORM1IV(me->lightState,MAX_LIGHTS,p->lightOnOff); //don't need with lightcount
+	//GLUNIFORM1IV(me->lightType,MAX_LIGHTS,p->lightType); //need to pack into light struct
+    //GLUNIFORM1FV(me->lightRadius,MAX_LIGHTS,p->light_radius); //need to pack into lightstruct
 	PRINT_GL_ERROR_IF_ANY("MIDDLE1 sendLightInfo");
     
     // send in lighting info, but only for lights that are "on"
-    for (i=0; i<MAX_LIGHTS; i++) {
-        // this causes initial screen on Android to fail.
-	//if (p->lightOnOff[i]) {
-            GLUNIFORM1F (me->lightConstAtten[i], p->light_constAtten[i]);
-            GLUNIFORM1F (me->lightLinAtten[i], p->light_linAtten[i]);
-            GLUNIFORM1F(me->lightQuadAtten[i], p->light_quadAtten[i]);
-            GLUNIFORM1F(me->lightSpotCutoffAngle[i], p->light_spotCutoffAngle[i]);
-            GLUNIFORM1F(me->lightSpotBeamWidth[i], p->light_spotBeamWidth[i]);
-            GLUNIFORM4FV(me->lightAmbient[i],1,p->light_amb[i]);
-            GLUNIFORM4FV(me->lightDiffuse[i],1,p->light_dif[i]);
-            GLUNIFORM4FV(me->lightPosition[i],1,p->light_pos[i]);
-            GLUNIFORM4FV(me->lightSpotDir[i],1, p->light_spotDir[i]);
-            GLUNIFORM4FV(me->lightSpecular[i],1,p->light_spec[i]);
-        //}
+	// reason: at 1100+ bytes per shape for 8 lights, it takes up 11.2% of mainloop activity on an old pentium
+	// so this cuts it down to about 200 bytes per shape if you have a headlight and another light.
+    for (i=0,j=0; i<MAX_LIGHTS; i++) {
+		if (p->lightOnOff[i]) { // this causes initial screen on Android to fail.
+								// dug9 - I added another parameter lightcount above and in ADSL shader
+								// and pack the lights ie. moving headlight up here so its at 
+								// lightcount-1 instead of MAX_LIGHTS-1 on the GPU.
+								// LMK if breaks android
+            //0 - pointlight
+            //1 - spotlight
+            //2 - directionlight
+			//save a bit of bandwidth by not sending unused parameters for a light type
+			if(p->lightType[i]<2 ){ //not direction
+				shaderVec4 light_Attenuations;
+				light_Attenuations[0] = p->light_constAtten[i];
+				light_Attenuations[1] = p->light_linAtten[i];
+				light_Attenuations[2] = p->light_quadAtten[i];
+				GLUNIFORM3FV(me->lightAtten[j],1,light_Attenuations);
+				//GLUNIFORM1F (me->lightConstAtten[j], p->light_constAtten[i]);
+				//GLUNIFORM1F (me->lightLinAtten[j], p->light_linAtten[i]);
+				//GLUNIFORM1F(me->lightQuadAtten[j], p->light_quadAtten[i]);
+			}
+			if(p->lightType[i]==1 ){ //spot
+				GLUNIFORM1F(me->lightSpotCutoffAngle[j], p->light_spotCutoffAngle[i]);
+				GLUNIFORM1F(me->lightSpotBeamWidth[j], p->light_spotBeamWidth[i]);
+			}
+			if(p->lightType[i]==0){ //point
+	            GLUNIFORM1F(me->lightRadius[j],p->light_radius[i]);
+			}
+			GLUNIFORM4FV(me->lightSpotDir[j],1, p->light_spotDir[i]);
+            GLUNIFORM4FV(me->lightPosition[j],1,p->light_pos[i]);
+            GLUNIFORM4FV(me->lightAmbient[j],1,p->light_amb[i]);
+            GLUNIFORM4FV(me->lightDiffuse[j],1,p->light_dif[i]);
+            GLUNIFORM4FV(me->lightSpecular[j],1,p->light_spec[i]);
+			GLUNIFORM1I(me->lightType[j],p->lightType[i]);
+			j++;
+        }
     }
+	profile_end("sendlight");
     PRINT_GL_ERROR_IF_ANY("END sendLightInfo");
 }
 
@@ -519,7 +573,7 @@ void sendArraysToGPU (int mode, int first, int count) {
 #ifdef RENDERVERBOSE
 	printf ("sendArraysToGPU start\n"); 
 #endif
-    
+
 
 	// when glDrawArrays bombs it's usually some function left an array
 	// enabled that's not supposed to be - try disabling something
@@ -532,8 +586,11 @@ void sendArraysToGPU (int mode, int first, int count) {
 //glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 //glDisableClientState(GL_EDGE_FLAG_ARRAY);
 
-	if (setupShader())	
+	if (setupShader()){
+		profile_start("draw_arr");
 		glDrawArrays(mode,first,count);
+		profile_end("draw_arr");
+	}
     #ifdef RENDERVERBOSE
 	printf ("sendArraysToGPU end\n"); 
     #endif
@@ -546,8 +603,11 @@ void sendElementsToGPU (int mode, int count, ushort *indices) {
 	printf ("sendElementsToGPU start\n"); 
     #endif
     
-	if (setupShader())
+	if (setupShader()){
+		profile_start("draw_el");
         glDrawElements(mode,count,GL_UNSIGNED_SHORT,indices);
+		profile_end("draw_el");
+	}
 
 	#ifdef RENDERVERBOSE
 	printf ("sendElementsToGPU finish\n"); 
@@ -800,12 +860,79 @@ void update_node(struct X3D_Node *node) {
 
 //static int renderLevel = 0;
 //#define RENDERVERBOSE
+
+
+/* poor-man's performance profiler:
+   wrap a section of code like this
+     profile_start("section1");
+	 ...code...
+	 profile_end("section1");
+	then let the browser loop for 10 seconds 
+	and hit period '.' on the keyboard to get a printout
+*/
+
+static double Time1970sec(void) {
+		static struct timeval mytime;
+        gettimeofday(&mytime, NULL);
+        return (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+}
+
+static int profile_entry_count = 0;
+struct profile_entry {
+	char *name;
+	double start;
+	double accum;
+	int hits;
+};
+static struct profile_entry profile_entries[100];
+
+void profile_start(char *name){
+	int ifound, i;
+	double sec = Time1970sec();
+	ifound = -1;
+	for(i=0;i<profile_entry_count;i++){
+		if(!strcmp(name,profile_entries[i].name)){
+			ifound = i;
+			break;
+		}
+	}
+	if(ifound == -1){
+		profile_entries[profile_entry_count].name = name;
+		profile_entries[profile_entry_count].hits = 0;
+		ifound = profile_entry_count;
+		profile_entry_count++;
+	}
+	profile_entries[ifound].start = Time1970sec();
+}
+void profile_end(char *name){
+	int i, ifound = -1;
+	for(i=0;i<profile_entry_count;i++){
+		if(!strcmp(name,profile_entries[i].name)){
+			ifound = i;
+			break;
+		}
+	}
+	if(ifound > -1){
+		profile_entries[ifound].accum += Time1970sec() - profile_entries[ifound].start;
+		profile_entries[ifound].hits++;
+	}
+}
+void profile_print_all(){
+	//hit '.' in the graphics window 
+	int i;
+	printf("frame rate: %9.3f  number of items tracked: %d\n",gglobal()->Mainloop.BrowserFPS, profile_entry_count);
+	printf("%15s %10s %15s %10s\n","profile name","hits","time(sec)","% of 1st");
+	for(i=0;i<profile_entry_count;i++){
+		printf("%15s %10d %15.3lf %10.2lf\n",profile_entries[i].name,profile_entries[i].hits,profile_entries[i].accum,profile_entries[i].accum/profile_entries[0].accum*100.0);
+	}
+}
 void render_node(struct X3D_Node *node) {
 	struct X3D_Virt *virt;
 
 	int srg = 0;
 	int sch = 0;
-	struct currayhit srh;
+	int justGeom = 0;
+	struct currayhit *srh;
 	ppRenderFuncs p;
 	ttglobal tg = gglobal();
 	p = (ppRenderFuncs)tg->RenderFuncs.prv;
@@ -859,7 +986,8 @@ void render_node(struct X3D_Node *node) {
 #endif
 
         /* if we are doing Viewpoints, and we don't have a Viewpoint, don't bother doing anything here */ 
-        if (renderstate()->render_vp == VF_Viewpoint) { 
+        //if (renderstate()->render_vp == VF_Viewpoint) { 
+        if (p->renderstate.render_vp == VF_Viewpoint) { 
                 if ((node->_renderFlags & VF_Viewpoint) != VF_Viewpoint) { 
 #ifdef RENDERVERBOSE
                         printf ("doing Viewpoint, but this  node is not for us - just returning\n"); 
@@ -870,7 +998,7 @@ void render_node(struct X3D_Node *node) {
         }
 
 	/* are we working through global PointLights, DirectionalLights or SpotLights, but none exist from here on down? */
-        if (renderstate()->render_light == VF_globalLight) { 
+        if (p->renderstate.render_light == VF_globalLight) { 
                 if ((node->_renderFlags & VF_globalLight) != VF_globalLight) { 
 #ifdef RENDERVERBOSE
                         printf ("doing globalLight, but this  node is not for us - just returning\n"); 
@@ -879,35 +1007,47 @@ void render_node(struct X3D_Node *node) {
                         return; 
                 }
         }
-
+	justGeom = p->renderstate.render_geom && !p->renderstate.render_sensitive && !p->renderstate.render_blend;
 	if(virt->prep) {
 		DEBUG_RENDER("rs 2\n");
+		profile_start("prep");
+		if(justGeom)
+			profile_start("prepgeom");
 		virt->prep(node);
-		if(renderstate()->render_sensitive && !tg->RenderFuncs.hypersensitive) {
+		profile_end("prep");
+		if(justGeom)
+			profile_end("prepgeom");
+		if(p->renderstate.render_sensitive && !tg->RenderFuncs.hypersensitive) {
 			upd_ray();
 		}
 		PRINT_GL_ERROR_IF_ANY("prep"); PRINT_NODE(node,virt);
 	}
-	if(renderstate()->render_proximity && virt->proximity) {
+	if(p->renderstate.render_proximity && virt->proximity) {
 		DEBUG_RENDER("rs 2a\n");
+		profile_start("proximity");
 		virt->proximity(node);
+		profile_end("proximity");
 		PRINT_GL_ERROR_IF_ANY("render_proximity"); PRINT_NODE(node,virt);
 	}
 	
-	if(renderstate()->render_collision && virt->collision) {
+	if(p->renderstate.render_collision && virt->collision) {
 		DEBUG_RENDER("rs 2b\n");
+		profile_start("collision");
 		virt->collision(node);
+		profile_end("collision");
 		PRINT_GL_ERROR_IF_ANY("render_collision"); PRINT_NODE(node,virt);
 	}
 
-	if(renderstate()->render_geom && !renderstate()->render_sensitive && virt->rend) {
+	if(p->renderstate.render_geom && !p->renderstate.render_sensitive && virt->rend) {
 		DEBUG_RENDER("rs 3\n");
 		PRINT_GL_ERROR_IF_ANY("BEFORE render_geom"); PRINT_NODE(node,virt);
+		profile_start("rend");
 		virt->rend(node);
+		profile_end("rend");
 		PRINT_GL_ERROR_IF_ANY("render_geom"); PRINT_NODE(node,virt);
 	}
 
-	if(renderstate()->render_other && virt->other )
+	if(p->renderstate.render_other && virt->other )
 	{
 #ifdef DJTRACK_PICKSENSORS
 		DEBUG_RENDER("rs 4a\n");
@@ -916,28 +1056,34 @@ void render_node(struct X3D_Node *node) {
 #endif
 	} //other
 
-	if(renderstate()->render_sensitive && (node->_renderFlags & VF_Sensitive)) {
+	if(p->renderstate.render_sensitive && (node->_renderFlags & VF_Sensitive)) {
 		DEBUG_RENDER("rs 5\n");
-		srg = renderstate()->render_geom;
-		renderstate()->render_geom = 1;
+		profile_start("sensitive");
+		srg = p->renderstate.render_geom;
+		p->renderstate.render_geom = 1;
 		DEBUG_RENDER("CH1 %d: %d\n",node, p->cur_hits, node->_hit);
 		sch = p->cur_hits;
 		p->cur_hits = 0;
 		/* HP */
-		srh = p->rayph;
+		srh = malloc(sizeof(struct currayhit));
+		//srh = p->rayph;
+		memcpy(srh,&p->rayph,sizeof(struct currayhit));
 		p->rayph.hitNode = node;
 		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, p->rayph.modelMatrix);
 		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, p->rayph.projMatrix);
 		PRINT_GL_ERROR_IF_ANY("render_sensitive"); PRINT_NODE(node,virt);
+		profile_end("sensitive");
 	}
 
-	if(renderstate()->render_geom && renderstate()->render_sensitive && !tg->RenderFuncs.hypersensitive && virt->rendray) {
+	if(p->renderstate.render_geom && p->renderstate.render_sensitive && !tg->RenderFuncs.hypersensitive && virt->rendray) {
 		DEBUG_RENDER("rs 6\n");
+		profile_start("rendray");
 		virt->rendray(node);
+		profile_end("rendray");
 		PRINT_GL_ERROR_IF_ANY("rs 6"); PRINT_NODE(node,virt);
 	}
 
-    if((renderstate()->render_sensitive) && (tg->RenderFuncs.hypersensitive == node)) {
+    if((p->renderstate.render_sensitive) && (tg->RenderFuncs.hypersensitive == node)) {
 		DEBUG_RENDER("rs 7\n");
 		p->hyper_r1 = tg->RenderFuncs.t_r1;
 		p->hyper_r2 = tg->RenderFuncs.t_r2;
@@ -952,26 +1098,38 @@ void render_node(struct X3D_Node *node) {
     }
 	/* end recursive section */
 
-	if(renderstate()->render_other && virt->other)
+	if(p->renderstate.render_other && virt->other)
 	{
 #ifdef DJTRACK_PICKSENSORS
 		//pop_renderingState(VF_inPickableGroup);
 #endif
 	}
 
-	if(renderstate()->render_sensitive && (node->_renderFlags & VF_Sensitive)) {
+	if(p->renderstate.render_sensitive && (node->_renderFlags & VF_Sensitive)) {
 		DEBUG_RENDER("rs 9\n");
-		renderstate()->render_geom = srg;
+		profile_start("sensitive2");
+
+		p->renderstate.render_geom = srg;
 		p->cur_hits = sch;
 		DEBUG_RENDER("CH3: %d %d\n",p->cur_hits, node->_hit);
 		/* HP */
-		p->rayph = srh;
+		//p->rayph = srh;
+		memcpy(&p->rayph,srh,sizeof(struct currayhit));
+		free(srh);
+		profile_end("sensitive2");
 	}
 
 	if(virt->fin) {
 		DEBUG_RENDER("rs A\n");
+		profile_start("fin");
+		if(justGeom)
+			profile_start("fingeom");
+
 		virt->fin(node);
-		if(renderstate()->render_sensitive && virt == &virt_Transform) {
+		profile_end("fin");
+		if(justGeom)
+			profile_end("fingeom");
+		if(p->renderstate.render_sensitive && virt == &virt_Transform) {
 			upd_ray();
 		}
 		PRINT_GL_ERROR_IF_ANY("fin"); PRINT_NODE(node,virt);
@@ -1082,6 +1240,7 @@ render_hier(struct X3D_Group *g, int rwhat) {
 	rs->render_pickables = rwhat & VF_inPickableGroup;
 #endif
 	p->nextFreeLight = 0;
+	p->lastShader = -1; //in sendLights,and optimization
 	tg->RenderFuncs.hitPointDist = -1;
 
 
@@ -1123,9 +1282,14 @@ render_hier(struct X3D_Group *g, int rwhat) {
 		cc = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
 	}
 #endif
-
+	//if(!rs->render_geom || rs->render_blend || rs->render_sensitive)
+	//if(!rs->render_geom || rs->render_blend )
+	//if(!rs->render_geom || rs->render_sensitive)
+	//if(!rs->render_geom || rs->render_blend || rs->render_sensitive)
+	//if(!rs->render_blend && !rs->render_sensitive)
+	profile_start("render_hier");
 	render_node(X3D_NODE(g));
-
+	profile_end("render_hier");
 #ifdef render_pre_profile
 	if (rs->render_geom) {
 		gettimeofday (&mytime,&tz);
