@@ -278,7 +278,7 @@ char *getWgetPath();
 #else
 #define GL_ES_VERSION_2_0 1  //to get max_lights 2 at top of display.h
 #endif
-
+//#define EXCLUDE_EAI 1
 #define FREEWRL_STEREO_RENDERING 1
 //#endif
 #define NEWQUEUE 1
