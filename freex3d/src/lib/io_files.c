@@ -1119,6 +1119,7 @@ void process_x3z(resource_item_t *res){
 		docx3d->parent = NULL; //divorce so it doesn't inherit rest_url
 		docx3d->type = rest_file;
 		docx3d->media_type = resm_x3d;
+		docx3d->treat_as_root = 1;
 		//docx3d->temp_dir = tempfolderpath;
 		resitem_enqueue(ml_new(docx3d));
 		// clean up temp folder via resource with opennedfile entry

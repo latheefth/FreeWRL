@@ -152,6 +152,7 @@ typedef struct resource_item {
 	char four_first_bytes[4];
 
 	resource_media_type_t media_type;
+	int treat_as_root; //bandaid for .x3z doc.x3d to be seen as root res equivalent
 
 } resource_item_t;
 

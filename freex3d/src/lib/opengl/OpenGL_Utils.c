@@ -3476,11 +3476,13 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	kill_javascript();
 	#endif
 
+#if !defined(EXCLUDE_EAI)
 	/* free EAI */
 	if (kill_EAI) {
 	       	/* shutdown_EAI(); */
 		fwlio_RxTx_control(CHANNEL_EAI, RxTx_STOP) ;
 	}
+#endif
 
 	#ifndef AQUA
 		sprintf (mystring, "QUIT");

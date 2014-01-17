@@ -857,7 +857,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		*/
 
 		/* bind ONLY in main - do not bind for Inlines, etc */
-		if (res == gglobal()->resources.root_res) {
+		if (res->treat_as_root || res == gglobal()->resources.root_res) {
 			kill_bindables();
 			shouldBind = TRUE;
 			//ConsoleMessage ("pc - shouldBind");

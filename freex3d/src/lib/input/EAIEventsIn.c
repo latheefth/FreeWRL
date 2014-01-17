@@ -1441,7 +1441,6 @@ void createLoadURL(char *bufptr) {
 }
 
 
-
 /* if we have a LOADURL command (loadURL in java-speak) we call Anchor code to do this.
    here we tell the EAI code of the success/fail of an anchor call, IF the EAI is 
    expecting such a call */
