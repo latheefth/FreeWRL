@@ -216,7 +216,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="dllFreeWRLd.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\..\..\..\lib_windows\MSopenGL\lib;..\..\..\..\lib_windows\glew\lib;..\..\..\..\lib_windows\js185\lib;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\zlib\lib;..\..\..\..\lib_windows\libxml2\lib;..\Debug;&quot;%(AdditionalLibraryDirectories)&quot;"
+				AdditionalLibraryDirectories="..\..\..\..\lib_windows\MSopenGL\lib;..\..\..\..\lib_windows\glew\lib;..\..\..\..\lib_windows\js185\lib;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\zlib\lib;..\..\..\..\lib_windows\libxml2\lib;..\Debug_glew;&quot;%(AdditionalLibraryDirectories)&quot;"
 				ModuleDefinitionFile="..\..\src\plugin_win32\np_BasePlugin.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
