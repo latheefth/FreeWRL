@@ -239,19 +239,19 @@ int fv_parseCommandLine (int argc, char **argv, freewrl_params_t *fv_params)
 	case '?': /* getopt error: unknown option or missing argument */
 	    ERROR_MSG("ERROR: unknown option or missing argument to option: %c (%s)\n", 
 		     c, real_option_name);
-	    exit(1);
+	    fwExit(1);
 	    break;
 
 	    /* Options handling */
 
 	case 'h': /* --help, no argument */
 	    fv_usage();
-	    exit(0);
+	    fwExit(0);
 	    break;
 
 	case 'v': /* --version, no argument */
 	    fv_print_version();
-	    exit(0);
+	    fwExit(0);
 	    break;
 
 /* Window options */
@@ -275,7 +275,7 @@ int fv_parseCommandLine (int argc, char **argv, freewrl_params_t *fv_params)
 	case 'g': /* --geometry, required argument: string (ex: 1024x768+100+50) */
 	    if (!optarg) {
 		ERROR_MSG("Argument missing for option -g/--geometry\n");
-		exit(1);
+		fwExit(1);
 	    } else {
 		    if (!fwl_parse_geometry_string(optarg, 
 						   &fv_params->width, &fv_params->height,
@@ -433,7 +433,7 @@ int fv_parseCommandLine (int argc, char **argv, freewrl_params_t *fv_params)
 
 	default:
 	    ERROR_MSG("ERROR: getopt returned character code 0%o, unknown error.\n", c);
-	    exit(1);
+	    fwExit(1);
 	    break;
 	}
     }

@@ -66,6 +66,13 @@ char *strBackslash2fore(char *str);
 
 #endif
 
+void fwExit(int iret){
+	//printf("press Enter to exit:");
+	//getchar();
+	//exit(iret);
+	fw_exit(iret); //in libfreewrl
+}
+
 /**
  * Main
  */
@@ -184,14 +191,14 @@ int main (int argc, char **argv)
 	/* give control to the library */
 	if (!fwl_initFreeWRL(fv_params)) {
 	    ERROR_MSG("main: aborting during initialization.\n");
-	    exit(1);
+	    fwExit(1);
 	}
 	fwl_startFreeWRL(start_url);
     } else {
 	/* keep control
 	if (!fv_initFreeWRL(fv_params)) {
 	    ERROR_MSG("main: aborting during initialization.\n");
-	    exit(1);
+	    fwExit(1);
 	}
 	fv_startFreeWRL(start_url); */
     }
@@ -215,7 +222,7 @@ void fv_catch_SIGSEGV()
         fwl_StringConsoleMessage("FreeWRL got a SIGSEGV - please feel free to report this - http://freewrl.sf.net.\n");
 	CaughtSEGV = TRUE;
     }
-    exit(1);
+    fwExit(1);
 }
 
 #if !defined(CYGWIN)
