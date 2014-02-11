@@ -244,6 +244,7 @@ char *fieldTypeName(char type);
 
 char * _RegisterListener (X3DEventOut *node, int adin);
 int X3DAdvise (X3DEventOut *node, void *fn);
+int X3DAdviseArg (X3DEventOut *node, void *fn, void* arg);
 void _handleReWireCallback(char *buf);
 char mapFieldTypeToEAItype (int st);
 int mapEAItypeToFieldType (char st);

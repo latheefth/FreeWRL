@@ -13,14 +13,23 @@ struct EAI_ListenerStruct {
 	int type;
 	int datasize;
 	void *dataArea;
-	void    (*functionHandler)(X3DNode*, double);
+	//void    (*functionHandler)(X3DNode*, double);
+	void *arg;
+	void    (*functionHandler)(X3DNode*, double, void *arg);
 };
 
 struct EAI_ListenerStruct *EAI_ListenerTable = 0;
 int MaxEAIListeners = 0;
 int AdviseIndex = -1;
 
-int X3DAdvise (X3DEventOut *node, void *fn) {
+//int X3DAdvise (X3DEventOut *node, void *fn) {
+int X3DAdvise (X3DEventOut *node, void *fn)
+{
+	return X3DAdviseArg(node, fn, NULL);
+}
+
+int X3DAdviseArg (X3DEventOut *node, void *fn, void *arg) {
+
 
 	AdviseIndex ++;
 	/* Browser.RegisterListener (f, userData, nodeptr,offset,datatype , datasize, EventType); */
@@ -56,6 +65,7 @@ int X3DAdvise (X3DEventOut *node, void *fn) {
 	else 
 		EAI_ListenerTable[AdviseIndex].dataArea = malloc (sizeof(int)); //NULL;
 	EAI_ListenerTable[AdviseIndex].functionHandler = fn;
+	EAI_ListenerTable[AdviseIndex].arg = arg;
 
 	/* and, tell FreeWRL about this one */
 	_RegisterListener (node,AdviseIndex);
@@ -115,7 +125,8 @@ void _handleFreeWRLcallback (char *line) {
 			X3DNode *pnode;
 			pnode = (X3DNode *)EAI_ListenerTable[count].dataArea;
 			pnode->type = EAI_ListenerTable[count].type;
-			EAI_ListenerTable[count].functionHandler(pnode,evTime);
+			//EAI_ListenerTable[count].functionHandler(pnode,evTime);
+			EAI_ListenerTable[count].functionHandler(pnode,evTime,EAI_ListenerTable[count].arg);
 		} else {
 			if (_X3D_FreeWRL_Swig_FD) {
 #ifdef WIN32
