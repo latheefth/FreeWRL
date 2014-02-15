@@ -139,15 +139,15 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 	//setLightType(HEADLIGHT_LIGHT,2); // ensure that this is a DirectionalLight.
 }
 
-void clearLightTable(unsigned int loop_count){
+void clearLightTable(){ //unsigned int loop_count){
 	int i;
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 	p->nextFreeLight = 0;
-	p->currentLoop = loop_count;
+	//p->currentLoop = loop_count;
 	p->sendCount = 0;
-	for(i=0;i<MAX_LIGHT_STACK;i++){
-		p->lightChanged[i] = 0;
-	}
+	//for(i=0;i<MAX_LIGHT_STACK;i++){
+	//	p->lightChanged[i] = 0;
+	//}
 }
 /* we assume max MAX_LIGHTS lights. The max light is the Headlight, so we go through 0-HEADLIGHT_LIGHT for Lights */
 int nextlight() {
@@ -364,15 +364,17 @@ void sendLightInfo (s_shader_capabilities_t *me) {
 	/* if one of these are equal to -1, we had an error in the shaders... */
 	//Optimization 3>> if the shader and lights haven't changed since the last shape,
 	//then don't resend the lights to the shader
-	lightsChanged = p->lastLoop != p->currentLoop;//FALSE;
-	for(i=0;i<MAX_LIGHT_STACK;i++){
-		if(p->lightChanged[i] != p->sendCount) lightsChanged = TRUE;
+	if(0){
+		lightsChanged = p->lastLoop != p->currentLoop;//FALSE;
+		for(i=0;i<MAX_LIGHT_STACK;i++){
+			if(p->lightChanged[i] != p->sendCount) lightsChanged = TRUE;
+		}
+		if(!lightsChanged && (p->currentShader == p->lastShader)) 
+			return;
+		p->lastShader = p->currentShader;
+		p->lastLoop = p->currentLoop;
+		p->sendCount++;
 	}
-	if(!lightsChanged && (p->currentShader == p->lastShader)) 
-		return;
-	p->lastShader = p->currentShader;
-	p->lastLoop = p->currentLoop;
-	p->sendCount++;
 	//<<end optimization 3
 	profile_start("sendlight");
 	//GLUNIFORM1I(me->lightcount,lightcount);

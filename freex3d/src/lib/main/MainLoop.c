@@ -1074,7 +1074,7 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
         OcclusionStartofRenderSceneUpdateScene();
         startOfLoopNodeUpdates();
 
-        if (!(p->loop_count % 25)) {
+		if (p->loop_count == 25) {
                 tg->Mainloop.BrowserFPS = 25.0 / (TickTime()-p->BrowserStartTime);
                 setMenuFps((float)tg->Mainloop.BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
                 /* printf ("fps %f tris %d, rootnode children %d \n",p->BrowserFPS,p->trisThisLoop, X3D_GROUP(rootNode)->children.n);  */
@@ -1085,7 +1085,7 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
 		 //printf ("MainLoop, nearPlane %lf farPlane %lf\n",Viewer.nearPlane, Viewer.farPlane);  
 
                 p->BrowserStartTime = TickTime();
-               // p->loop_count = 1;
+                p->loop_count = 1;
         } else {
                 p->loop_count++;
         }
