@@ -156,6 +156,7 @@ int nextlight() {
 	if(rv == HEADLIGHT_LIGHT) { 
 		return -1; 
 	}
+	p->lightChanged[rv] = 0;
 	p->nextFreeLight ++;
 	return rv;
 }
@@ -167,7 +168,7 @@ void setLightType(GLint light, int type) {
 }
 void setLightChangedFlag(GLint light) {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-    p->lightChanged[light] = p->sendCount+1;
+    p->lightChanged[light] = 1;
 }
 
 /* keep track of lighting */
@@ -365,15 +366,15 @@ void sendLightInfo (s_shader_capabilities_t *me) {
 	//Optimization 3>> if the shader and lights haven't changed since the last shape,
 	//then don't resend the lights to the shader
 	if(0){
-		lightsChanged = p->lastLoop != p->currentLoop;//FALSE;
+		lightsChanged = FALSE;
 		for(i=0;i<MAX_LIGHT_STACK;i++){
-			if(p->lightChanged[i] != p->sendCount) lightsChanged = TRUE;
+			if(p->lightChanged[i]) lightsChanged = TRUE;
 		}
 		if(!lightsChanged && (p->currentShader == p->lastShader)) 
 			return;
 		p->lastShader = p->currentShader;
-		p->lastLoop = p->currentLoop;
-		p->sendCount++;
+		//p->lastLoop = p->currentLoop;
+		//p->sendCount++;
 	}
 	//<<end optimization 3
 	profile_start("sendlight");
@@ -388,6 +389,7 @@ void sendLightInfo (s_shader_capabilities_t *me) {
 	// so this cuts it down to about 200 bytes per shape if you have a headlight and another light.
 
 	lightcount = 0;
+	lightsChanged = FALSE;
 	//by looping from the top down, we'll give headlight first chance,
 	//then local lights pushed onto the stack
 	//then global lights last chance
@@ -396,12 +398,17 @@ void sendLightInfo (s_shader_capabilities_t *me) {
 			if (p->lightOnOff[i]){
 				lightIndexesToSend[lightcount] = i;
 				lightcount++;
+				lightsChanged = lightsChanged || p->lightChanged[i];
 				if(lightcount >= MAX_LIGHTS) break;
 			}
 		}
 	}
+	if(!lightsChanged && (p->currentShader == p->lastShader)) 
+			return;
+	p->lastShader = p->currentShader;
     for (j=0;j<lightcount; j++) {
 		i = lightIndexesToSend[j];
+		p->lightChanged[i] = 0;
 		// this causes initial screen on Android to fail.
 		// dug9 - I added another parameter lightcount above and in ADSL shader
 		// and pack the lights ie. moving headlight up here so its at 
