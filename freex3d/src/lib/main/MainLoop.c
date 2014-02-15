@@ -181,8 +181,8 @@ typedef struct pMainloop{
 
 	struct SensStruct *SensorEvents;// = 0;
 
-    int loop_count;// = 0;
-    int slowloop_count;// = 0;
+    unsigned int loop_count;// = 0;
+    unsigned int slowloop_count;// = 0;
 	double waitsec;
 
 	//scene
@@ -1074,7 +1074,7 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
         OcclusionStartofRenderSceneUpdateScene();
         startOfLoopNodeUpdates();
 
-        if (p->loop_count == 25) {
+        if (!(p->loop_count % 25)) {
                 tg->Mainloop.BrowserFPS = 25.0 / (TickTime()-p->BrowserStartTime);
                 setMenuFps((float)tg->Mainloop.BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
                 /* printf ("fps %f tris %d, rootnode children %d \n",p->BrowserFPS,p->trisThisLoop, X3D_GROUP(rootNode)->children.n);  */
@@ -1085,7 +1085,7 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
 		 //printf ("MainLoop, nearPlane %lf farPlane %lf\n",Viewer.nearPlane, Viewer.farPlane);  
 
                 p->BrowserStartTime = TickTime();
-                p->loop_count = 1;
+               // p->loop_count = 1;
         } else {
                 p->loop_count++;
         }
@@ -2089,7 +2089,8 @@ OLDCODE#endif
 		}
 		else 
 			BackEndClearBuffer(2);
-		BackEndLightsOff();
+		//BackEndLightsOff(); 
+		clearLightTable(p->loop_count);//turns all lights off- will turn them on for VF_globalLight and scope-wise for non-global in VF_geom
 
 //#else
 //
@@ -2108,7 +2109,7 @@ OLDCODE#endif
 	
 	render_hier(rootNode(), VF_globalLight);
 	PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_globalLight)");
-	
+
 	/*  4. Nodes (not the blended ones)*/
 	profile_start("hier_geom");
 	render_hier(rootNode(), VF_Geom);
@@ -2121,7 +2122,6 @@ OLDCODE#endif
 		render_hier(rootNode(), VF_Geom | VF_Blend);
 		PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_Geom)");
 	}
-        
 
 //#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
 		if (Viewer()->isStereo) {

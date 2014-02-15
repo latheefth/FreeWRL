@@ -89,7 +89,23 @@ void compile_DirectionalLight (struct X3D_DirectionalLight *node) {
 void render_DirectionalLight (struct X3D_DirectionalLight *node) {
 	/* if we are doing global lighting, is this one for us? */
 	RETURN_IF_LIGHT_STATE_NOT_US
-
+	/*
+		if (renderstate()->render_light== VF_globalLight) { 
+			if (!node->global){ 
+				printf("x local dir,we want global %u\n",node);
+				return;
+			}
+			 printf ("* global dir, we want global %u\n",node); 
+		} else {
+			if (node->global){
+			  printf("x global dir, we want local %u\n",node);
+			  return; 
+			}
+			else {
+			   printf ("* local dir, we want local %u\n",node); 
+			}
+		}
+	*/
     COMPILE_IF_REQUIRED;
 
 	if(node->on) {
@@ -105,7 +121,7 @@ void render_DirectionalLight (struct X3D_DirectionalLight *node) {
 			FW_GL_LIGHTFV(light, GL_AMBIENT, node->_amb.c);
             /* used to test if a PointLight, SpotLight or DirectionalLight in shader  */
 			// was used, using lightType now //FW_GL_LIGHTF(light, GL_SPOT_CUTOFF, 0);
-            
+            setLightChangedFlag(light);
             // not used in directionlight calc //FW_GL_LIGHTF(light,GL_LIGHT_RADIUS,100000.0); /* make it very large */
 		}
 	}
@@ -162,7 +178,22 @@ void render_PointLight (struct X3D_PointLight *node) {
 
 	/* if we are doing global lighting, is this one for us? */
 	RETURN_IF_LIGHT_STATE_NOT_US
-
+	/*
+		if (renderstate()->render_light== VF_globalLight) { 
+			if (!node->global) {
+				printf("x local point, we want global %u\n", node);
+				return;
+			}
+			 printf ("* global point,  we want global %u\n", node);
+		} else {
+			if (node->global){ 
+				printf("x global point, we want local %u\n", node);
+			  return; 
+			}else {
+			   printf ("* local point, we want local %u\n", node);
+			}
+		}
+	*/
     COMPILE_IF_REQUIRED;
 
 	if(node->on) {
@@ -191,6 +222,7 @@ void render_PointLight (struct X3D_PointLight *node) {
 			// was used, using lightType now //FW_GL_LIGHTF(light, GL_SPOT_CUTOFF, 0);
             
             FW_GL_LIGHTF(light,GL_LIGHT_RADIUS,node->radius);
+            setLightChangedFlag(light);
 		}
 	}
 }
@@ -271,7 +303,7 @@ void render_SpotLight(struct X3D_SpotLight *node) {
             /* create a ratio of light in relation to PI/4.0 */
             ft = cos(node->cutOffAngle/2.0); /* / (PI/4.0); */ 
 			FW_GL_LIGHTF(light, GL_SPOT_CUTOFF, ft);
-            
+            setLightChangedFlag(light);
             //not used in spotlight calculation FW_GL_LIGHTF(light,GL_LIGHT_RADIUS,node->radius);
 		}
 	}

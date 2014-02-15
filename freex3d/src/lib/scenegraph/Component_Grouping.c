@@ -237,7 +237,8 @@ void child_Group (struct X3D_Group *node) {
 	int renderFirstProtoChildOnlyAsPerSpecs = 1;
 	CHILDREN_COUNT
 	LOCAL_LIGHT_SAVE
-/*
+
+	/*
 printf ("chldGroup %p (root %p), flags %x children %d ",node,rootNode,node->_renderFlags,node->children.n);
 if ((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) printf ("VF_Viewpoint ");
 if ((node->_renderFlags & VF_Geom) == VF_Geom) printf ("VF_Geom ");

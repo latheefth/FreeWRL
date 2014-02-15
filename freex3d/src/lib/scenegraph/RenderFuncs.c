@@ -57,24 +57,27 @@ typedef float shaderVec4[4];
 
 
 typedef struct pRenderFuncs{
-	float light_linAtten[MAX_LIGHTS];
-	float light_constAtten[MAX_LIGHTS];
-	float light_quadAtten[MAX_LIGHTS];
-	float light_spotCutoffAngle[MAX_LIGHTS];
-	float light_spotBeamWidth[MAX_LIGHTS];
-	shaderVec4 light_amb[MAX_LIGHTS];
-	shaderVec4 light_dif[MAX_LIGHTS];
-	shaderVec4 light_pos[MAX_LIGHTS];
-	shaderVec4 light_spec[MAX_LIGHTS];
-	shaderVec4 light_spotDir[MAX_LIGHTS];
-    float light_radius[MAX_LIGHTS];
-	GLint lightType[MAX_LIGHTS]; //0=point 1=spot 2=directional
+	float light_linAtten[MAX_LIGHT_STACK];
+	float light_constAtten[MAX_LIGHT_STACK];
+	float light_quadAtten[MAX_LIGHT_STACK];
+	float light_spotCutoffAngle[MAX_LIGHT_STACK];
+	float light_spotBeamWidth[MAX_LIGHT_STACK];
+	shaderVec4 light_amb[MAX_LIGHT_STACK];
+	shaderVec4 light_dif[MAX_LIGHT_STACK];
+	shaderVec4 light_pos[MAX_LIGHT_STACK];
+	shaderVec4 light_spec[MAX_LIGHT_STACK];
+	shaderVec4 light_spotDir[MAX_LIGHT_STACK];
+    float light_radius[MAX_LIGHT_STACK];
+	GLint lightType[MAX_LIGHT_STACK]; //0=point 1=spot 2=directional
 	/* Rearrange to take advantage of headlight when off */
 	int nextFreeLight;// = 0;
-
+	unsigned int currentLoop;
+	unsigned int lastLoop;
+	unsigned int sendCount;
+	//int firstLight;//=0;
 	/* lights status. Light HEADLIGHT_LIGHT is the headlight */
-	GLint lightOnOff[MAX_LIGHTS];
-	GLint last_lightOnOff[MAX_LIGHTS]; //optimization
+	GLint lightOnOff[MAX_LIGHT_STACK];
+	GLint lightChanged[MAX_LIGHT_STACK]; //optimization
 	GLint lastShader;
 	int cur_hits;//=0;
 	void *empty_group;//=0;
@@ -119,7 +122,7 @@ void RenderFuncs_init(struct tRenderFuncs *t){
         
 		/* Rearrange to take advantage of headlight when off */
 		p->nextFreeLight = 0;
-
+		//p->firstLight = 0;
 		p->cur_hits=0;
 		p->empty_group=0;
 		p->rootNode=NULL;	/* scene graph root node */
@@ -128,17 +131,31 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 		t->rayHitHyper = (void *)&p->rayHitHyper;
 		p->renderLevel = 0;
 		p->lastShader = -1;
+		p->currentLoop = 0;
+		p->lastLoop = 10000000;
+		p->sendCount = 0;
 	}
 
 	//setLightType(HEADLIGHT_LIGHT,2); // ensure that this is a DirectionalLight.
 }
 
-
+void clearLightTable(unsigned int loop_count){
+	int i;
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	p->nextFreeLight = 0;
+	p->currentLoop = loop_count;
+	p->sendCount = 0;
+	for(i=0;i<MAX_LIGHT_STACK;i++){
+		p->lightChanged[i] = 0;
+	}
+}
 /* we assume max MAX_LIGHTS lights. The max light is the Headlight, so we go through 0-HEADLIGHT_LIGHT for Lights */
 int nextlight() {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 	int rv = p->nextFreeLight;
-	if(p->nextFreeLight == HEADLIGHT_LIGHT) { return -1; }
+	if(rv == HEADLIGHT_LIGHT) { 
+		return -1; 
+	}
 	p->nextFreeLight ++;
 	return rv;
 }
@@ -147,6 +164,10 @@ int nextlight() {
 void setLightType(GLint light, int type) {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
     p->lightType[light] = type;
+}
+void setLightChangedFlag(GLint light) {
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+    p->lightChanged[light] = p->sendCount+1;
 }
 
 /* keep track of lighting */
@@ -163,15 +184,16 @@ void setLightState(GLint light, int status) {
 }
 
 /* for local lights, we keep track of what is on and off */
-void saveLightState(int *ls) {
+void saveLightState2(int *last) {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-	memcpy (ls,p->lightOnOff,sizeof(int)*HEADLIGHT_LIGHT);
+	*last = p->nextFreeLight;
 } 
 
-void restoreLightState(int *ls) {
+void restoreLightState2(int last) {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-	memcpy (p->lightOnOff,ls,sizeof(int)*HEADLIGHT_LIGHT);
+	p->nextFreeLight = last;
 }
+
 
 void transformLightToEye(float *pos, float* dir)
 {
@@ -333,26 +355,27 @@ void fwglLightf (int light, int pname, GLfloat param) {
 void sendLightInfo (s_shader_capabilities_t *me) {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
     int i,j, lightcount, lightsChanged;
+	int lightIndexesToSend[MAX_LIGHTS];
     		
 	// in case we are trying to render a node that has just been killed...
 	if (me==NULL) return;
 
 	PRINT_GL_ERROR_IF_ANY("BEGIN sendLightInfo");
 	/* if one of these are equal to -1, we had an error in the shaders... */
-	lightcount = 0;
 	//Optimization 3>> if the shader and lights haven't changed since the last shape,
 	//then don't resend the lights to the shader
-	lightsChanged = FALSE;
-	for(i=0;i<MAX_LIGHTS;i++){
-		if(p->lightOnOff[i]) lightcount++;
-		if(p->lightOnOff[i] != p->last_lightOnOff[i]) lightsChanged = TRUE;
-		p->last_lightOnOff[i] = p->lightOnOff[i];
+	lightsChanged = p->lastLoop != p->currentLoop;//FALSE;
+	for(i=0;i<MAX_LIGHT_STACK;i++){
+		if(p->lightChanged[i] != p->sendCount) lightsChanged = TRUE;
 	}
-	if(!lightsChanged && (p->currentShader == p->lastShader)) return;
+	if(!lightsChanged && (p->currentShader == p->lastShader)) 
+		return;
 	p->lastShader = p->currentShader;
+	p->lastLoop = p->currentLoop;
+	p->sendCount++;
 	//<<end optimization 3
 	profile_start("sendlight");
-	GLUNIFORM1I(me->lightcount,lightcount);
+	//GLUNIFORM1I(me->lightcount,lightcount);
 	//GLUNIFORM1IV(me->lightState,MAX_LIGHTS,p->lightOnOff); //don't need with lightcount
 	//GLUNIFORM1IV(me->lightType,MAX_LIGHTS,p->lightType); //need to pack into light struct
     //GLUNIFORM1FV(me->lightRadius,MAX_LIGHTS,p->light_radius); //need to pack into lightstruct
@@ -361,42 +384,57 @@ void sendLightInfo (s_shader_capabilities_t *me) {
     // send in lighting info, but only for lights that are "on"
 	// reason: at 1100+ bytes per shape for 8 lights, it takes up 11.2% of mainloop activity on an old pentium
 	// so this cuts it down to about 200 bytes per shape if you have a headlight and another light.
-    for (i=0,j=0; i<MAX_LIGHTS; i++) {
-		if (p->lightOnOff[i]) { // this causes initial screen on Android to fail.
-								// dug9 - I added another parameter lightcount above and in ADSL shader
-								// and pack the lights ie. moving headlight up here so its at 
-								// lightcount-1 instead of MAX_LIGHTS-1 on the GPU.
-								// LMK if breaks android
-            //0 - pointlight
-            //1 - spotlight
-            //2 - directionlight
-			//save a bit of bandwidth by not sending unused parameters for a light type
-			if(p->lightType[i]<2 ){ //not direction
-				shaderVec4 light_Attenuations;
-				light_Attenuations[0] = p->light_constAtten[i];
-				light_Attenuations[1] = p->light_linAtten[i];
-				light_Attenuations[2] = p->light_quadAtten[i];
-				GLUNIFORM3FV(me->lightAtten[j],1,light_Attenuations);
-				//GLUNIFORM1F (me->lightConstAtten[j], p->light_constAtten[i]);
-				//GLUNIFORM1F (me->lightLinAtten[j], p->light_linAtten[i]);
-				//GLUNIFORM1F(me->lightQuadAtten[j], p->light_quadAtten[i]);
+
+	lightcount = 0;
+	//by looping from the top down, we'll give headlight first chance,
+	//then local lights pushed onto the stack
+	//then global lights last chance
+	for(i=MAX_LIGHT_STACK-1;i>-1;i--){
+		if(i==HEADLIGHT_LIGHT || i<p->nextFreeLight){
+			if (p->lightOnOff[i]){
+				lightIndexesToSend[lightcount] = i;
+				lightcount++;
+				if(lightcount >= MAX_LIGHTS) break;
 			}
-			if(p->lightType[i]==1 ){ //spot
-				GLUNIFORM1F(me->lightSpotCutoffAngle[j], p->light_spotCutoffAngle[i]);
-				GLUNIFORM1F(me->lightSpotBeamWidth[j], p->light_spotBeamWidth[i]);
-			}
-			if(p->lightType[i]==0){ //point
-	            GLUNIFORM1F(me->lightRadius[j],p->light_radius[i]);
-			}
-			GLUNIFORM4FV(me->lightSpotDir[j],1, p->light_spotDir[i]);
-            GLUNIFORM4FV(me->lightPosition[j],1,p->light_pos[i]);
-            GLUNIFORM4FV(me->lightAmbient[j],1,p->light_amb[i]);
-            GLUNIFORM4FV(me->lightDiffuse[j],1,p->light_dif[i]);
-            GLUNIFORM4FV(me->lightSpecular[j],1,p->light_spec[i]);
-			GLUNIFORM1I(me->lightType[j],p->lightType[i]);
-			j++;
-        }
+		}
+	}
+    for (j=0;j<lightcount; j++) {
+		i = lightIndexesToSend[j];
+		// this causes initial screen on Android to fail.
+		// dug9 - I added another parameter lightcount above and in ADSL shader
+		// and pack the lights ie. moving headlight up here so its at 
+		// lightcount-1 instead of MAX_LIGHTS-1 on the GPU.
+		// LMK if breaks android
+		//0 - pointlight
+		//1 - spotlight
+		//2 - directionlight
+		//save a bit of bandwidth by not sending unused parameters for a light type
+		if(p->lightType[i]<2 ){ //not direction
+			shaderVec4 light_Attenuations;
+			light_Attenuations[0] = p->light_constAtten[i];
+			light_Attenuations[1] = p->light_linAtten[i];
+			light_Attenuations[2] = p->light_quadAtten[i];
+			GLUNIFORM3FV(me->lightAtten[j],1,light_Attenuations);
+			//GLUNIFORM1F (me->lightConstAtten[j], p->light_constAtten[i]);
+			//GLUNIFORM1F (me->lightLinAtten[j], p->light_linAtten[i]);
+			//GLUNIFORM1F(me->lightQuadAtten[j], p->light_quadAtten[i]);
+		}
+		if(p->lightType[i]==1 ){ //spot
+			GLUNIFORM1F(me->lightSpotCutoffAngle[j], p->light_spotCutoffAngle[i]);
+			GLUNIFORM1F(me->lightSpotBeamWidth[j], p->light_spotBeamWidth[i]);
+		}
+		if(p->lightType[i]==0){ //point
+			GLUNIFORM1F(me->lightRadius[j],p->light_radius[i]);
+		}
+		GLUNIFORM4FV(me->lightSpotDir[j],1, p->light_spotDir[i]);
+		GLUNIFORM4FV(me->lightPosition[j],1,p->light_pos[i]);
+		GLUNIFORM4FV(me->lightAmbient[j],1,p->light_amb[i]);
+		GLUNIFORM4FV(me->lightDiffuse[j],1,p->light_dif[i]);
+		GLUNIFORM4FV(me->lightSpecular[j],1,p->light_spec[i]);
+		GLUNIFORM1I(me->lightType[j],p->lightType[i]);
     }
+	GLUNIFORM1I(me->lightcount,lightcount);
+
 	profile_end("sendlight");
     PRINT_GL_ERROR_IF_ANY("END sendLightInfo");
 }
@@ -625,7 +663,7 @@ void initializeLightTables() {
 
       PRINT_GL_ERROR_IF_ANY("start of initializeightTables");
 
-	for(i=0; i<MAX_LIGHTS; i++) {
+	for(i=0; i<MAX_LIGHT_STACK; i++) {
                 p->lightOnOff[i] = TRUE;
                 setLightState(i,FALSE);
             
@@ -1239,7 +1277,7 @@ render_hier(struct X3D_Group *g, int rwhat) {
 	rs->render_picksensors = rwhat & VF_PickingSensor;
 	rs->render_pickables = rwhat & VF_inPickableGroup;
 #endif
-	p->nextFreeLight = 0;
+	//p->nextFreeLight = 0;
 	p->lastShader = -1; //in sendLights,and optimization
 	tg->RenderFuncs.hitPointDist = -1;
 

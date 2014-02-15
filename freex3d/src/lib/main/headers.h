@@ -440,12 +440,22 @@ unsigned char  *readpng_get_image(double display_exponent, int *pChannels,
 void LocalLight_Rend(void *nod_);
 void saveLightState(int *);
 void restoreLightState(int *);
-#define LOCAL_LIGHT_SAVE int savedlight[8];
-#define LOCAL_LIGHT_CHILDREN(a) \
-	if ((node->_renderFlags & VF_localLight)==VF_localLight){saveLightState(savedlight); localLightChildren(a);}
+#define LOCAL_LIGHT_SAVE int lastlight; //savedlight[8];
+//#define LOCAL_LIGHT_CHILDREN(a) \
+//	if ((node->_renderFlags & VF_localLight)==VF_localLight){saveLightState(savedlight); localLightChildren(a);}
+//
+//#define LOCAL_LIGHT_OFF if ((node->_renderFlags & VF_localLight)==VF_localLight) { \
+//		restoreLightState(savedlight); }
 
-#define LOCAL_LIGHT_OFF if ((node->_renderFlags & VF_localLight)==VF_localLight) { \
-		restoreLightState(savedlight); }
+#define LOCAL_LIGHT_CHILDREN(a) \
+	if ((node->_renderFlags & VF_localLight)==VF_localLight && renderstate()->render_light != VF_globalLight){ \
+	  saveLightState2(&lastlight);\
+	  localLightChildren(a);}
+
+#define LOCAL_LIGHT_OFF \
+	if ((node->_renderFlags & VF_localLight)==VF_localLight && renderstate()->render_light != VF_globalLight) { \
+		restoreLightState2(lastlight); }
+
 
 void normalize_ifs_face (float *point_normal,
                          struct point_XYZ *facenormals,
