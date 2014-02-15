@@ -1576,7 +1576,8 @@ if (backFacing) { \n \
     matdiffuse = myMat.diffuse;\n\
 \n\
   /* apply the lights to this material */\n\
-  for (i=0; i<lightcount; i++) {\n\
+  for (i=0; i<MAX_LIGHTS; i++) {\n\
+    if(i<lightcount) { /*weird but ANGLE needs constant loop*/ \n\
       vec4 myLightDiffuse = fw_LightSource[i].diffuse;\n\
       vec4 myLightAmbient = fw_LightSource[i].ambient;\n\
       vec4 myLightSpecular = fw_LightSource[i].specular;\n\
@@ -1662,6 +1663,7 @@ if (backFacing) { \n \
           specular += myLightSpecular * powerFactor * attenuation;\n\
         }\n\
       }\n\
+	 }\n\
   }\n\
   return clamp(vec4(vec3(ambient+diffuse+specular+emissive),myAlph), 0.0, 1.0);\n\
 }\n\
