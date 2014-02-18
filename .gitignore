@@ -1,0 +1,8 @@
+#windows ignore:
+**/Debug*
+**/Release*
+*.ncb
+*.user
+*.suo
+#make ignore:
+#eclipseCDT ignore:
