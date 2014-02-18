@@ -2132,6 +2132,7 @@ OLDCODE#endif
 			if (Viewer()->anaglyph)
 				glColorMask(1,1,1,1); /*restore, for statusbarHud etc*/
 		}
+		glDisable(GL_SCISSOR_TEST);
 	} /* for loop */
 
 	if (Viewer()->isStereo) {
