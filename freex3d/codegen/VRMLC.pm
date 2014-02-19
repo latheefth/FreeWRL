@@ -551,7 +551,7 @@ sub open_possible_cvs_file(*;$)
 	}
     }
 
-    open $handle, ">$filename" or 
+    open $handle, ">$filename" or
 	die("Can't open: $filename\n");
 
     print <STDERR>, "Generating: $filename\n";
@@ -575,7 +575,7 @@ require 'VRMLRend.pm';
 #
 # gen_struct - Generate a node structure, adding fields for
 # internal use
-my $interalNodeCommonFields = 
+my $interalNodeCommonFields =
                "       int _renderFlags; /*sensitive, etc */ \n"                  	.
                "       int _hit; \n"                   	.
                "       int _change; \n"                	.
@@ -626,7 +626,7 @@ sub get_rendfunc {
 
 		# does this function exist?
 		if (exists ${$_."C"}{$n}) {
-			# it exists in the specified hash; now is the function in CFuncs, 
+			# it exists in the specified hash; now is the function in CFuncs,
 			# or generated here? (different names)
 			if ($_ eq "Rend") {
 				$v .= $comma."void render_".${n}."(struct X3D_".${n}." *);\n";
@@ -692,7 +692,7 @@ sub get_rendfunc {
 				}
 			} elsif ($_ eq "Compile") {
 				$v .= $comma."void compile_".${n}."(struct X3D_".${n}." *);\n";
-			}	
+			}
 		}
 	}
 
@@ -703,7 +703,7 @@ sub get_rendfunc {
 	for (@f) {
 		# does this function exist?
 		if (exists ${$_."C"}{$n}) {
-			# it exists in the specified hash; now is the function in CFuncs, 
+			# it exists in the specified hash; now is the function in CFuncs,
 			# or generated here? (different names)
 			if ($_ eq "Rend") {
 				$v .= $comma."(void *)render_".${n};
@@ -727,7 +727,7 @@ sub get_rendfunc {
 				$v .= $comma."(void *)compile_".${n};
 			} else {
 				$v .= $comma."${n}_$_";
-			}	
+			}
 		} else {
 			$v .= $comma."NULL";
 		}
@@ -760,12 +760,12 @@ sub gen {
 	#	@genFuncs2,	../src/lib/scenegraph/GeneratedCode.c (printed second)
 	#	@str,		../src/lib/vrml_parser/Structs.h
 	#	@nodeField,	../src/lib/vrml_parser/NodeFields.h
-	#	@EAICommon,	../src/libeai/GeneratedCode.c 
+	#	@EAICommon,	../src/libeai/GeneratedCode.c
 
 	my $nodeIntegerType = 0; # make sure this maps to the same numbers in VRMLCU.pm
-	my $fieldTypeCount = 0; 
+	my $fieldTypeCount = 0;
 	my $fieldNameCount = 0;
-	my $keywordIntegerType = 0; 
+	my $keywordIntegerType = 0;
 	my %totalfields = ();
 	my %allfields = ();
 	my %allinputOutputs = ();
@@ -839,7 +839,7 @@ sub gen {
 		"		((*value >='a') && (*value <='f')) || \\\n".
 		"		((*value >='A') && (*value <='F')) || \\\n".
 		"		(*value == '-') || (*value == '+')) value++; \n";
-	push @str, $st; 
+	push @str, $st;
 
 	push @EAICommon,
 		"#include <config.h>\n".
@@ -852,7 +852,7 @@ sub gen {
 		"\n";
 
 	#####################
-	
+
 
         push @str, "/* Data type for index into ID-table. */\ntypedef int indexT;\n\n";
 
@@ -872,7 +872,7 @@ sub gen {
 		$nodeIntegerType ++;
 
 
-		#{ use Devel::Peek 'Dump'; print "start of dump\n"; Dump $VRML::Nodes{$_}{FieldKinds}, 30; print "end of dump\n"; } 
+		#{ use Devel::Peek 'Dump'; print "start of dump\n"; Dump $VRML::Nodes{$_}{FieldKinds}, 30; print "end of dump\n"; }
 
  		#foreach my $field (keys %{$VRML::Nodes{$_}{FieldKinds}}) {print "field1 $field ". $VRML::Nodes{$_}{FieldKinds}{$field}."\n";}
  		#foreach my $field (keys %{$VRML::Nodes{$_}{FieldKinds}}) {print "field2 $field ". $VRML::Nodes{$_}{Fields}."\n";}
@@ -905,13 +905,14 @@ sub gen {
 
 
 	#####################
-	# we have a list of fields from ALL nodes. 
+	# we have a list of fields from ALL nodes.
+
 	push @str, "\n/* Table of built-in fieldIds */\nextern const char *FIELDNAMES[];\n";
 	push @str, "extern const int FIELDNAMES_COUNT;\n";
 
 	push @genFuncs1, "\n/* Table of built-in fieldIds */\n       const char *FIELDNAMES[] = {\n";
 
-	foreach (keys %totalfields) { 
+	foreach (keys %totalfields) {
 		#print "totalfields $_\n";
 		push @str, "#define FIELDNAMES_".$_."	$fieldNameCount\n";
 		$fieldNameCount ++;
@@ -919,9 +920,9 @@ sub gen {
 	}
 	push @str, "\n";
 	push @genFuncs1, "};\nconst int FIELDNAMES_COUNT = ARR_SIZE(FIELDNAMES);\n\n";
-	
+
 	# make a function to print field name from an integer type.
-	push @genFuncs2, "/* Return a pointer to a string representation of the field type */\n". 
+	push @genFuncs2, "/* Return a pointer to a string representation of the field type */\n".
 		"const char *stringFieldType (int st) {\n".
 		"	if ((st < 0) || (st >= FIELDNAMES_COUNT)) return \"(fieldName invalid)\"; \n".
 		"	return FIELDNAMES[st];\n}\n\n";
@@ -935,7 +936,7 @@ sub gen {
 	push @genFuncs1, "\n/* Table of EVENT_OUTs */\n       const char *EVENT_OUT[] = {\n";
 
 	$nodeIntegerType = 0;
-	foreach (keys %alloutputOnlys) { 
+	foreach (keys %alloutputOnlys) {
 		if (index($_,"_") !=0) {
 			push @genFuncs1, "	\"$_\",\n";
 			push @str, "#define EVENT_OUT_$_	$nodeIntegerType\n";
@@ -944,14 +945,14 @@ sub gen {
 	}
 	push @str, "\n";
 	push @genFuncs1, "};\nconst int EVENT_OUT_COUNT = ARR_SIZE(EVENT_OUT);\n\n";
-	
+
 	push @str, "\n/* Table of built-in fieldIds */\nextern const char *EVENT_IN[];\n";
 	push @str, "extern const int EVENT_IN_COUNT;\n";
 
 	push @genFuncs1, "\n/* Table of EVENT_INs */\n       const char *EVENT_IN[] = {\n";
 
 	$nodeIntegerType = 0;
-	foreach (keys %allinputOnlys) { 
+	foreach (keys %allinputOnlys) {
 		if (index($_,"_") !=0) {
 			push @genFuncs1, "	\"$_\",\n";
 			push @str, "#define EVENT_IN_$_	$nodeIntegerType\n";
@@ -960,14 +961,14 @@ sub gen {
 	}
 	push @str, "\n";
 	push @genFuncs1, "};\nconst int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);\n\n";
-	
+
 	push @str, "\n/* Table of built-in fieldIds */\nextern const char *EXPOSED_FIELD[];\n";
 	push @str, "extern const int EXPOSED_FIELD_COUNT;\n";
 
 	push @genFuncs1, "\n/* Table of EXPOSED_FIELDs */\n       const char *EXPOSED_FIELD[] = {\n";
 
 	$nodeIntegerType = 0;
-	foreach (keys %allinputOutputs) { 
+	foreach (keys %allinputOutputs) {
 		if (index($_,"_") !=0) {
 			push @genFuncs1, "	\"$_\",\n";
 			push @str, "#define EXPOSED_FIELD_$_	$nodeIntegerType\n";
@@ -976,14 +977,14 @@ sub gen {
 	}
 	push @str, "\n";
 	push @genFuncs1, "};\nconst int EXPOSED_FIELD_COUNT = ARR_SIZE(EXPOSED_FIELD);\n\n";
-	
+
 	push @str, "\n/* Table of built-in fieldIds */\nextern const char *FIELD[];\n";
 	push @str, "extern const int FIELD_COUNT;\n";
 
 	push @genFuncs1, "\n/* Table of FIELDs */\n       const char *FIELD[] = {\n";
 
 	$nodeIntegerType = 0;
-	foreach (keys %allfields) { 
+	foreach (keys %allfields) {
 		if (index($_,"_") !=0) {
 			push @genFuncs1, "	\"$_\",\n";
 			push @str, "#define FIELD_$_	$nodeIntegerType\n";
@@ -992,11 +993,11 @@ sub gen {
 	}
 	push @str, "\n";
 	push @genFuncs1, "};\nconst int FIELD_COUNT = ARR_SIZE(FIELD);\n\n";
-	
+
 
 
 	#####################
-	# process keywords 
+	# process keywords
 	push @str, "\n/* Table of built-in keywords */\nextern const char *KEYWORDS[];\n";
 	push @str, "extern const int KEYWORDS_COUNT;\n";
 
@@ -1017,7 +1018,7 @@ sub gen {
 	push @genFuncs1, "};\nconst int KEYWORDS_COUNT = ARR_SIZE(KEYWORDS);\n\n";
 
 	# make a function to print Keyword name from an integer type.
-	push @genFuncs2, "/* Return a pointer to a string representation of the keyword type */\n". 
+	push @genFuncs2, "/* Return a pointer to a string representation of the keyword type */\n".
 		"const char *stringKeywordType (int st) {\n".
 		"	if ((st < 0) || (st >= KEYWORDS_COUNT)) return \"(keyword invalid)\"; \n".
 		"	return KEYWORDS[st];\n}\n\n";
@@ -1048,14 +1049,14 @@ sub gen {
 	push @genFuncs1, "};\nconst int PROFILES_COUNT = ARR_SIZE(PROFILES);\n\n";
 
 	# make a function to print Profile name from an integer type.
-	push @genFuncs2, "/* Return a pointer to a string representation of the profile type */\n". 
+	push @genFuncs2, "/* Return a pointer to a string representation of the profile type */\n".
 		"const char *stringProfileType (int st) {\n".
 		"	if ((st < 0) || (st >= PROFILES_COUNT)) return \"(profile invalid)\"; \n".
 		"	return PROFILES[st];\n}\n\n";
 	push @str, "const char *stringProfileType(int st);\n";
 
 	#####################
-	# process components 
+	# process components
 	push @str, "\n/* Table of built-in components */\nextern const char *COMPONENTS[];\n";
 	push @str, "extern const int COMPONENTS_COUNT;\n";
 
@@ -1078,7 +1079,7 @@ sub gen {
 	push @genFuncs1, "};\nconst int COMPONENTS_COUNT = ARR_SIZE(COMPONENTS);\n\n";
 
 	# make a function to print Component name from an integer type.
-	push @genFuncs2, "/* Return a pointer to a string representation of the component type */\n". 
+	push @genFuncs2, "/* Return a pointer to a string representation of the component type */\n".
 		"const char *stringComponentType (int st) {\n".
 		"	if ((st < 0) || (st >= COMPONENTS_COUNT)) return \"(component invalid)\"; \n".
 		"	return COMPONENTS[st];\n}\n\n";
@@ -1086,7 +1087,7 @@ sub gen {
 
 
 	#####################
-	# process PROTO keywords 
+	# process PROTO keywords
 	push @str, "\n/* Table of built-in PROTO keywords */\nextern const char *PROTOKEYWORDS[];\n";
 	push @str, "extern const int PROTOKEYWORDS_COUNT;\n";
 
@@ -1111,7 +1112,7 @@ sub gen {
 	push @genFuncs1, "};\nconst int PROTOKEYWORDS_COUNT = ARR_SIZE(PROTOKEYWORDS);\n\n";
 
 	# make a function to print Keyword name from an integer type.
-	push @genFuncs2, "/* Return a pointer to a string representation of the PROTO keyword type */\n". 
+	push @genFuncs2, "/* Return a pointer to a string representation of the PROTO keyword type */\n".
 		"const char *stringPROTOKeywordType (int st) {\n".
 		"	if ((st < 0) || (st >= PROTOKEYWORDS_COUNT)) return \"(proto keyword invalid)\"; \n".
 		"	return PROTOKEYWORDS[st];\n}\n\n";
@@ -1119,7 +1120,7 @@ sub gen {
 
 
 	#####################
-	# process MULTITEXTUREMODE keywords 
+	# process MULTITEXTUREMODE keywords
 	push @str, "\n/* Table of built-in MULTITEXTUREMODE keywords */\nextern const char *MULTITEXTUREMODE[];\n";
 	push @str, "extern const int MULTITEXTUREMODE_COUNT;\n";
 
@@ -1138,7 +1139,7 @@ sub gen {
 	push @genFuncs1, "};\nconst int MULTITEXTUREMODE_COUNT = ARR_SIZE(MULTITEXTUREMODE);\n\n";
 
 	# make a function to print Keyword name from an integer type.
-	push @genFuncs2, "/* Return a pointer to a string representation of the MULTITEXTUREMODE keyword type */\n". 
+	push @genFuncs2, "/* Return a pointer to a string representation of the MULTITEXTUREMODE keyword type */\n".
 		"const char *stringMULTITEXTUREMODEType (int st) {\n".
 		"	if ((st < 0) || (st >= MULTITEXTUREMODE_COUNT)) return \"(special keyword invalid)\"; \n".
 		"	return MULTITEXTUREMODE[st];\n}\n\n";
@@ -1146,7 +1147,7 @@ sub gen {
 
 
 	#####################
-	# process MULTITEXTURESOURCE keywords 
+	# process MULTITEXTURESOURCE keywords
 	push @str, "\n/* Table of built-in MULTITEXTURESOURCE keywords */\nextern const char *MULTITEXTURESOURCE[];\n";
 	push @str, "extern const int MULTITEXTURESOURCE_COUNT;\n";
 
@@ -1166,7 +1167,7 @@ sub gen {
 
 
 	#####################
-	# process TextureCoordinateGenerator keywords 
+	# process TextureCoordinateGenerator keywords
 	push @str, "\n/* Table of built-in TEXTURECOORDINATEGENERATOR keywords */\nextern const char *TEXTURECOORDINATEGENERATOR[];\n";
 	push @str, "extern const int TEXTURECOORDINATEGENERATOR_COUNT;\n";
 
@@ -1190,7 +1191,7 @@ sub gen {
 
 	####################
 	# make a function to print Keyword name from an integer type.
-	push @genFuncs2, "/* Return a pointer to a string representation of the MULTITEXTURESOURCE keyword type */\n". 
+	push @genFuncs2, "/* Return a pointer to a string representation of the MULTITEXTURESOURCE keyword type */\n".
 		"const char *stringMULTITEXTURESOURCEType (int st) {\n".
 		"	if ((st < 0) || (st >= MULTITEXTURESOURCE_COUNT)) return \"(special keyword invalid)\"; \n".
 		"	return MULTITEXTURESOURCE[st];\n}\n\n";
@@ -1198,7 +1199,7 @@ sub gen {
 
 
 	#####################
-	# process MULTITEXTUREFUNCTION keywords 
+	# process MULTITEXTUREFUNCTION keywords
 	push @str, "\n/* Table of built-in MULTITEXTUREFUNCTION keywords */\nextern const char *MULTITEXTUREFUNCTION[];\n";
 	push @str, "extern const int MULTITEXTUREFUNCTION_COUNT;\n";
 
@@ -1217,7 +1218,7 @@ sub gen {
 	push @genFuncs1, "};\nconst int MULTITEXTUREFUNCTION_COUNT = ARR_SIZE(MULTITEXTUREFUNCTION);\n\n";
 
 	# make a function to print Keyword name from an integer type.
-	push @genFuncs2, "/* Return a pointer to a string representation of the MULTITEXTUREFUNCTION keyword type */\n". 
+	push @genFuncs2, "/* Return a pointer to a string representation of the MULTITEXTUREFUNCTION keyword type */\n".
 		"const char *stringMULTITEXTUREFUNCTIONType (int st) {\n".
 		"	if ((st < 0) || (st >= MULTITEXTUREFUNCTION_COUNT)) return \"(special keyword invalid)\"; \n".
 		"	return MULTITEXTUREFUNCTION[st];\n}\n\n";
@@ -1225,7 +1226,7 @@ sub gen {
 
 
 	#####################
-	# process X3DSPECIAL keywords 
+	# process X3DSPECIAL keywords
 	push @str, "\n/* Table of built-in X3DSPECIAL keywords */\nextern const char *X3DSPECIAL[];\n";
 	push @str, "extern const int X3DSPECIAL_COUNT;\n";
 
@@ -1244,7 +1245,7 @@ sub gen {
 	push @genFuncs1, "};\nconst int X3DSPECIAL_COUNT = ARR_SIZE(X3DSPECIAL);\n\n";
 
 	# make a function to print Keyword name from an integer type.
-	push @genFuncs2, "/* Return a pointer to a string representation of the X3DSPECIAL keyword type */\n". 
+	push @genFuncs2, "/* Return a pointer to a string representation of the X3DSPECIAL keyword type */\n".
 		"const char *stringX3DSPECIALType (int st) {\n".
 		"	if ((st < 0) || (st >= X3DSPECIAL_COUNT)) return \"(special keyword invalid)\"; \n".
 		"	return X3DSPECIAL[st];\n}\n\n";
@@ -1252,7 +1253,7 @@ sub gen {
 
 
 	#####################
-	# process TEXTUREBOUNDARY keywords 
+	# process TEXTUREBOUNDARY keywords
 	push @str, "\n/* Table of built-in TEXTUREBOUNDARY keywords */\nextern const char *TEXTUREBOUNDARYKEYWORDS[];\n";
 	push @str, "extern const int TEXTUREBOUNDARYKEYWORDS_COUNT;\n";
 
@@ -1271,14 +1272,14 @@ sub gen {
 	push @genFuncs1, "};\nconst int TEXTUREBOUNDARYKEYWORDS_COUNT = ARR_SIZE(TEXTUREBOUNDARYKEYWORDS);\n\n";
 
 	# make a function to print Keyword name from an integer type.
-	push @genFuncs2, "/* Return a pointer to a string representation of the TEXTUREBOUNDARY keyword type */\n". 
+	push @genFuncs2, "/* Return a pointer to a string representation of the TEXTUREBOUNDARY keyword type */\n".
 		"const char *stringTEXTUREBOUNDARYKeywordType (int st) {\n".
 		"	if ((st < 0) || (st >= TEXTUREBOUNDARYKEYWORDS_COUNT)) return \"(texture param keyword invalid)\"; \n".
 		"	return TEXTUREBOUNDARYKEYWORDS[st];\n}\n\n";
 	push @str, "const char *stringTEXTUREBOUNDARYKeywordType(int st);\n";
 
 	#####################
-	# process TEXTUREMAGNIFICATION keywords 
+	# process TEXTUREMAGNIFICATION keywords
 	push @str, "\n/* Table of built-in TEXTUREMAGNIFICATION keywords */\nextern const char *TEXTUREMAGNIFICATIONKEYWORDS[];\n";
 	push @str, "extern const int TEXTUREMAGNIFICATIONKEYWORDS_COUNT;\n";
 
@@ -1297,7 +1298,7 @@ sub gen {
 	push @genFuncs1, "};\nconst int TEXTUREMAGNIFICATIONKEYWORDS_COUNT = ARR_SIZE(TEXTUREMAGNIFICATIONKEYWORDS);\n\n";
 
 	# make a function to print Keyword name from an integer type.
-	push @genFuncs2, "/* Return a pointer to a string representation of the TEXTUREMAGNIFICATION keyword type */\n". 
+	push @genFuncs2, "/* Return a pointer to a string representation of the TEXTUREMAGNIFICATION keyword type */\n".
 		"const char *stringTEXTUREMAGNIFICATIONKeywordType (int st) {\n".
 		"	if ((st < 0) || (st >= TEXTUREMAGNIFICATIONKEYWORDS_COUNT)) return \"(texture param keyword invalid)\"; \n".
 		"	return TEXTUREMAGNIFICATIONKEYWORDS[st];\n}\n\n";
@@ -1305,7 +1306,7 @@ sub gen {
 
 
 	#####################
-	# process TEXTUREMINIFICATION keywords 
+	# process TEXTUREMINIFICATION keywords
 	push @str, "\n/* Table of built-in TEXTUREMINIFICATION keywords */\nextern const char *TEXTUREMINIFICATIONKEYWORDS[];\n";
 	push @str, "extern const int TEXTUREMINIFICATIONKEYWORDS_COUNT;\n";
 
@@ -1324,14 +1325,14 @@ sub gen {
 	push @genFuncs1, "};\nconst int TEXTUREMINIFICATIONKEYWORDS_COUNT = ARR_SIZE(TEXTUREMINIFICATIONKEYWORDS);\n\n";
 
 	# make a function to print Keyword name from an integer type.
-	push @genFuncs2, "/* Return a pointer to a string representation of the TEXTUREMINIFICATION keyword type */\n". 
+	push @genFuncs2, "/* Return a pointer to a string representation of the TEXTUREMINIFICATION keyword type */\n".
 		"const char *stringTEXTUREMINIFICATIONKeywordType (int st) {\n".
 		"	if ((st < 0) || (st >= TEXTUREMINIFICATIONKEYWORDS_COUNT)) return \"(texture param keyword invalid)\"; \n".
 		"	return TEXTUREMINIFICATIONKEYWORDS[st];\n}\n\n";
 	push @str, "const char *stringTEXTUREMINIFICATIONKeywordType(int st);\n";
 
 	#####################
-	# process TEXTURECOMPRESSION keywords 
+	# process TEXTURECOMPRESSION keywords
 	push @str, "\n/* Table of built-in TEXTURECOMPRESSION keywords */\nextern const char *TEXTURECOMPRESSIONKEYWORDS[];\n";
 	push @str, "extern const int TEXTURECOMPRESSIONKEYWORDS_COUNT;\n";
 
@@ -1350,7 +1351,7 @@ sub gen {
 	push @genFuncs1, "};\nconst int TEXTURECOMPRESSIONKEYWORDS_COUNT = ARR_SIZE(TEXTURECOMPRESSIONKEYWORDS);\n\n";
 
 	# make a function to print Keyword name from an integer type.
-	push @genFuncs2, "/* Return a pointer to a string representation of the TEXTURECOMPRESSION keyword type */\n". 
+	push @genFuncs2, "/* Return a pointer to a string representation of the TEXTURECOMPRESSION keyword type */\n".
 		"const char *stringTEXTURECOMPRESSIONKeywordType (int st) {\n".
 		"	if ((st < 0) || (st >= TEXTURECOMPRESSIONKEYWORDS_COUNT)) return \"(texture param keyword invalid)\"; \n".
 		"	return TEXTURECOMPRESSIONKEYWORDS[st];\n}\n\n";
@@ -1358,7 +1359,7 @@ sub gen {
 
 
 	#####################
-	# process GEOSPATIAL keywords 
+	# process GEOSPATIAL keywords
 	push @str, "\n/* Table of built-in GEOSPATIAL keywords */\nextern const char *GEOSPATIAL[];\n";
 	push @str, "extern const int GEOSPATIAL_COUNT;\n";
 
@@ -1377,7 +1378,7 @@ sub gen {
 	push @genFuncs1, "};\nconst int GEOSPATIAL_COUNT = ARR_SIZE(GEOSPATIAL);\n\n";
 
 	# make a function to print Keyword name from an integer type.
-	push @genFuncs2, "/* Return a pointer to a string representation of the GEOSPATIAL keyword type */\n". 
+	push @genFuncs2, "/* Return a pointer to a string representation of the GEOSPATIAL keyword type */\n".
 		"const char *stringGEOSPATIALType (int st) {\n".
 		"	if ((st < 0) || (st >= GEOSPATIAL_COUNT)) return \"(keyword invalid)\"; \n".
 		"	return GEOSPATIAL[st];\n}\n\n";
@@ -1403,7 +1404,7 @@ sub gen {
 
 
 	####################
-	my $st = "/* convert an EAI type to an internal type */\n". 
+	my $st = "/* convert an EAI type to an internal type */\n".
 		"int mapEAItypeToFieldType (char st) {\n".
 		"	switch (st) { \n";
 	push @genFuncs2, $st; push @EAICommon, $st;
@@ -1420,7 +1421,7 @@ sub gen {
 	push @str, "int mapEAItypeToFieldType (char st);\n";
 
 	####################
-	push @genFuncs2, "/* convert an MF type to an SF type */\n". 
+	push @genFuncs2, "/* convert an MF type to an SF type */\n".
 		"int convertToSFType (int st) {\n".
 		"	switch (st) { \n";
 
@@ -1454,7 +1455,7 @@ sub gen {
 		# print "node $_ is tagged as $fieldTypeCount\n";
 		# tag each node type with a integer key.
 		my $defstr = "#define FIELDTYPE_".$_."	$fieldTypeCount\n";
-		push @str, $defstr; 
+		push @str, $defstr;
 		$fieldTypeCount ++;
 		$printNodeStr = "	\"$_\",\n";
 		push @genFuncs1, $printNodeStr;
@@ -1469,7 +1470,7 @@ sub gen {
 		push @str, ("VRML::Field::$_")->cstruct . "\n";
 	}
 	# make a function to print fieldtype name from an integer type.
-	push @genFuncs2, "/* Return a pointer to a string representation of the fieldtype type */\n". 
+	push @genFuncs2, "/* Return a pointer to a string representation of the fieldtype type */\n".
 		"const char *stringFieldtypeType (int st) {\n".
 		"	if ((st < 0) || (st >= FIELDTYPES_COUNT)) return \"(fieldType invalid)\"; \n".
 		"	return FIELDTYPES[st];\n}\n\n";
@@ -1492,7 +1493,7 @@ sub gen {
 	push @genFuncs1, "};\nconst int NODES_COUNT = ARR_SIZE(NODES);\n\n";
 
 	# make a function to print node name from an integer type.
-	push @genFuncs2, "/* Return a pointer to a string representation of the node type */\n". 
+	push @genFuncs2, "/* Return a pointer to a string representation of the node type */\n".
 		"const char *stringNodeType (int st) {\n".
 		"	if ((st < 0) || (st >= NODES_COUNT)) return \"(node invalid)\"; \n".
 		"	return NODES[st];\n}\n\n";
@@ -1546,14 +1547,14 @@ sub gen {
 	"#define X3D_INDEXEDFACESET(node) ((struct X3D_IndexedFaceSet*)node)\n".
 	"#define X3D_INDEXEDLINESET(node) ((struct X3D_IndexedLineSet*)node)\n".
 	"#define X3D_ELEVATIONGRID(node) ((struct X3D_ElevationGrid*)node)\n".
-	"#define X3D_INDEXEDTRIANGLEFANSET(node) ((struct X3D_IndexedTriangleFanSet*)node)\n". 
-	"#define X3D_INDEXEDTRIANGLESET(node) ((struct X3D_IndexedTriangleSet*)node)\n". 
-	"#define X3D_INDEXEDTRIANGLESTRIPSET(node) ((struct X3D_IndexedTriangleStripSet*)node)\n". 
-	"#define X3D_TRIANGLEFANSET(node) ((struct X3D_TriangleFanSet*)node)\n". 
-	"#define X3D_TRIANGLESET(node) ((struct X3D_TriangleSet*)node)\n". 
-	"#define X3D_TRIANGLESTRIPSET(node) ((struct X3D_TriangleStripSet*)node)\n". 
-	"#define X3D_QUADSET(node) ((struct X3D_QuadSet*)node)\n". 
-	"#define X3D_INDEXEDQUADSET(node) ((struct X3D_IndexedQuadSet*)node)\n". 
+	"#define X3D_INDEXEDTRIANGLEFANSET(node) ((struct X3D_IndexedTriangleFanSet*)node)\n".
+	"#define X3D_INDEXEDTRIANGLESET(node) ((struct X3D_IndexedTriangleSet*)node)\n".
+	"#define X3D_INDEXEDTRIANGLESTRIPSET(node) ((struct X3D_IndexedTriangleStripSet*)node)\n".
+	"#define X3D_TRIANGLEFANSET(node) ((struct X3D_TriangleFanSet*)node)\n".
+	"#define X3D_TRIANGLESET(node) ((struct X3D_TriangleSet*)node)\n".
+	"#define X3D_TRIANGLESTRIPSET(node) ((struct X3D_TriangleStripSet*)node)\n".
+	"#define X3D_QUADSET(node) ((struct X3D_QuadSet*)node)\n".
+	"#define X3D_INDEXEDQUADSET(node) ((struct X3D_IndexedQuadSet*)node)\n".
 
 
 	"#define X3D_GEOORIGIN(node) ((struct X3D_GeoOrigin*)node)\n".
@@ -1630,7 +1631,7 @@ sub gen {
 			"		case NODE_$_ : {tmp = MALLOC (struct X3D_$_ *, sizeof (struct X3D_$_)); break;}\n";
 	}
 	push @genFuncs2, "		default: {printf (\"createNewX3DNode = unknown type %d, this will fail\\n\",nt); return NULL;}\n";
-	
+
 	push @genFuncs2,
 	"	}\n\n".
 	"	/* now, fill in the node to DEFAULT values This mimics \"alloc_struct\" in the Perl code. */\n".
@@ -1657,7 +1658,7 @@ sub gen {
 	for my $node (@sortedNodeList) {
 		push @genFuncs2,
 			"\t\tcase NODE_$node : {\n\t\t\tstruct X3D_$node * tmp2;\n";
-		
+
 		push @genFuncs2, "\t\t\ttmp2 = (struct X3D_$node *) tmp;\n\t\t\/* ttmp2->v = &virt_$node;*/ \n";
 
 
@@ -1692,7 +1693,7 @@ sub gen {
 	} else {
 		print "defaultContainerType for $node missing\n";
 	}
-		
+
 		push @genFuncs2,"\t\tbreak;\n\t\t}\n";
 	}
 	push @genFuncs2, "\t};\n";
@@ -1728,7 +1729,7 @@ sub gen {
 
 
 	#####################################################################
-	# create a routine to dump scene graph. 
+	# create a routine to dump scene graph.
 
 	push @genFuncs2,
 	"/* Dump the scene graph.  */\n".
@@ -1892,7 +1893,7 @@ sub gen {
 	push @genFuncs2, "		default: {}\n";
 
 	push @genFuncs2, " }\n fflush(fp) ;\n spacer fprintf (fp,\"L%d end\\n\",level);\n if (level == 0) fprintf (fp,\"ending dump_scene\\n\");\n}\n";
-	
+
 	#####################
 	# create an array for each node. The array contains the following:
 	# const int OFFSETS_Text[
@@ -1902,7 +1903,7 @@ sub gen {
 	# 	-1, -1, -1, -1];
 	# NOTES:
 	# 1) we skip any field starting with an "_" (underscore)
-	# 
+	#
 	for my $node (@sortedNodeList) {
 		#print "node $_ is tagged as $nodeIntegerType\n";
 		# tag each node type with a integer key.
@@ -1943,7 +1944,7 @@ sub gen {
 	#####################
 	# make the NodeFields.h for the C VRML parser.
 
-	
+
 	for my $node (@sortedNodeList) {
 		#print "node $_ is tagged as $nodeIntegerType\n";
 		# tag each node type with a integer key.
@@ -2039,7 +2040,7 @@ sub gen {
 
 	print FIELDNODES '
 /*
-Information for all the fields of all the nodes.  
+Information for all the fields of all the nodes.
 
 Format is as follows:
 BEGIN_NODE(NodeName)
@@ -2152,5 +2153,3 @@ struct sNaviInfo {
 
 
 gen();
-
-
