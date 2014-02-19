@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="libtess"
-	ProjectGUID="{DAC8249B-F01F-4B67-939A-4FA6B3D4B50C}"
-	RootNamespace="libtess"
+	Name="libminizip"
+	ProjectGUID="{E072AF87-2CB8-4BE3-A8FE-BEBE683DED5F}"
+	RootNamespace="minizip"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -41,13 +41,13 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../\projectfiles_vc9;../../../../../lib_windows/angleproject/include;&quot;$(NV_WINGL_X86_PLAT)/include&quot;"
-				PreprocessorDefinitions="ANGLEPROJECT;WIN32;_DEBUG;_LIB"
+				AdditionalIncludeDirectories="../../../../lib_windows/zlib/include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;NOCRYPT"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
-				WarningLevel="3"
+				WarningLevel="2"
 				DebugInformationFormat="4"
 			/>
 			<Tool
@@ -61,7 +61,6 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)\$(ProjectName)d.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -106,12 +105,13 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../../\projectfiles_vc9;../../../../../lib_windows/angleproject/include;&quot;$(NV_WINGL_X86_PLAT)/include&quot;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				WholeProgramOptimization="false"
+				AdditionalIncludeDirectories="../../../../lib_windows/zlib/include"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;NOCRYPT"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
-				WarningLevel="3"
+				WarningLevel="2"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -142,69 +142,6 @@
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
-		<Configuration
-			Name="Debug_glew|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="4"
-			CharacterSet="1"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="0"
-				AdditionalIncludeDirectories="../../../\projectfiles_vc9;../../../../../lib_windows/angleproject/include;&quot;$(NV_WINGL_X86_PLAT)/include&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
-				MinimalRebuild="true"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
-				UsePrecompiledHeader="0"
-				WarningLevel="3"
-				DebugInformationFormat="4"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)\$(ProjectName)d.lib"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
 	</Configurations>
 	<References>
 	</References>
@@ -215,43 +152,15 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\dict.c"
+				RelativePath="..\..\src\libminizip\ioapi.c"
 				>
 			</File>
 			<File
-				RelativePath="..\geom.c"
+				RelativePath="..\..\src\libminizip\unzip.c"
 				>
 			</File>
 			<File
-				RelativePath="..\memalloc.c"
-				>
-			</File>
-			<File
-				RelativePath="..\mesh.c"
-				>
-			</File>
-			<File
-				RelativePath="..\normal.c"
-				>
-			</File>
-			<File
-				RelativePath="..\priorityq.c"
-				>
-			</File>
-			<File
-				RelativePath="..\render.c"
-				>
-			</File>
-			<File
-				RelativePath="..\sweep.c"
-				>
-			</File>
-			<File
-				RelativePath="..\tess.c"
-				>
-			</File>
-			<File
-				RelativePath="..\tessmono.c"
+				RelativePath="..\..\src\libminizip\zip.c"
 				>
 			</File>
 		</Filter>
@@ -261,63 +170,15 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\dict-list.h"
+				RelativePath="..\..\src\libminizip\ioapi.h"
 				>
 			</File>
 			<File
-				RelativePath="..\dict.h"
+				RelativePath="..\..\src\libminizip\unzip.h"
 				>
 			</File>
 			<File
-				RelativePath="..\geom.h"
-				>
-			</File>
-			<File
-				RelativePath="..\gluos.h"
-				>
-			</File>
-			<File
-				RelativePath="..\libtess2.h"
-				>
-			</File>
-			<File
-				RelativePath="..\memalloc.h"
-				>
-			</File>
-			<File
-				RelativePath="..\mesh.h"
-				>
-			</File>
-			<File
-				RelativePath="..\normal.h"
-				>
-			</File>
-			<File
-				RelativePath="..\priorityq-heap.h"
-				>
-			</File>
-			<File
-				RelativePath="..\priorityq-sort.h"
-				>
-			</File>
-			<File
-				RelativePath="..\priorityq.h"
-				>
-			</File>
-			<File
-				RelativePath="..\render.h"
-				>
-			</File>
-			<File
-				RelativePath="..\sweep.h"
-				>
-			</File>
-			<File
-				RelativePath="..\tess.h"
-				>
-			</File>
-			<File
-				RelativePath="..\tessmono.h"
+				RelativePath="..\..\src\libminizip\zip.h"
 				>
 			</File>
 		</Filter>
