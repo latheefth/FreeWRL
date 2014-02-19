@@ -912,7 +912,7 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of built-in fieldIds */\n       const char *FIELDNAMES[] = {\n";
 
-	foreach (keys %totalfields) {
+	foreach (sort keys %totalfields) {
 		#print "totalfields $_\n";
 		push @str, "#define FIELDNAMES_".$_."	$fieldNameCount\n";
 		$fieldNameCount ++;
@@ -936,7 +936,7 @@ sub gen {
 	push @genFuncs1, "\n/* Table of EVENT_OUTs */\n       const char *EVENT_OUT[] = {\n";
 
 	$nodeIntegerType = 0;
-	foreach (keys %alloutputOnlys) {
+	foreach (sort keys %alloutputOnlys) {
 		if (index($_,"_") !=0) {
 			push @genFuncs1, "	\"$_\",\n";
 			push @str, "#define EVENT_OUT_$_	$nodeIntegerType\n";
@@ -952,7 +952,7 @@ sub gen {
 	push @genFuncs1, "\n/* Table of EVENT_INs */\n       const char *EVENT_IN[] = {\n";
 
 	$nodeIntegerType = 0;
-	foreach (keys %allinputOnlys) {
+	foreach (sort keys %allinputOnlys) {
 		if (index($_,"_") !=0) {
 			push @genFuncs1, "	\"$_\",\n";
 			push @str, "#define EVENT_IN_$_	$nodeIntegerType\n";
@@ -968,7 +968,7 @@ sub gen {
 	push @genFuncs1, "\n/* Table of EXPOSED_FIELDs */\n       const char *EXPOSED_FIELD[] = {\n";
 
 	$nodeIntegerType = 0;
-	foreach (keys %allinputOutputs) {
+	foreach (sort keys %allinputOutputs) {
 		if (index($_,"_") !=0) {
 			push @genFuncs1, "	\"$_\",\n";
 			push @str, "#define EXPOSED_FIELD_$_	$nodeIntegerType\n";
@@ -984,7 +984,7 @@ sub gen {
 	push @genFuncs1, "\n/* Table of FIELDs */\n       const char *FIELD[] = {\n";
 
 	$nodeIntegerType = 0;
-	foreach (keys %allfields) {
+	foreach (sort keys %allfields) {
 		if (index($_,"_") !=0) {
 			push @genFuncs1, "	\"$_\",\n";
 			push @str, "#define FIELD_$_	$nodeIntegerType\n";
@@ -1004,7 +1004,7 @@ sub gen {
 	push @genFuncs1, "\n/* Table of keywords */\n       const char *KEYWORDS[] = {\n";
 
 	$keywordIntegerType = 0;
-        my @sf = keys %KeywordC;
+        my @sf = sort keys %KeywordC;
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
 		# tag each node type with a integer key.
@@ -1033,7 +1033,7 @@ sub gen {
 	push @genFuncs1, "\n/* Table of profiles */\n       const char *PROFILES[] = {\n";
 
 	my $profileIntegerType = 0;
-        my @sf = keys %ProfileC;
+        my @sf = sort keys %ProfileC;
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
 		# tag each node type with a integer key.
@@ -1063,7 +1063,7 @@ sub gen {
 	push @genFuncs1, "\n/* Table of components */\nconst char *COMPONENTS[] = {\n";
 
 	my $componentIntegerType = 0;
-        my @sf = keys %ComponentC;
+        my @sf = sort keys %ComponentC;
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
 		# tag each node type with a integer key.
@@ -1093,7 +1093,7 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of PROTO keywords */\nconst char *PROTOKEYWORDS[] = {\n";
 
-      # my @sf = keys %PROTOKeywordC;
+      # my @sf = sort keys %PROTOKeywordC;
       $nums = @PROTOKeywordC;
 	$keywordIntegerType = 0;
 	#for (@sf) {
@@ -1126,7 +1126,7 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of MULTITEXTUREMODE keywords */\n       const char *MULTITEXTUREMODE[] = {\n";
 
-        my @sf = keys %MultiTextureModeC;
+        my @sf = sort keys %MultiTextureModeC;
 	$keywordIntegerType = 0;
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
@@ -1153,7 +1153,7 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of MULTITEXTURESOURCE keywords */\n       const char *MULTITEXTURESOURCE[] = {\n";
 
-        my @sf = keys %MultiTextureSourceC;
+        my @sf = sort keys %MultiTextureSourceC;
 	$keywordIntegerType = 0;
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
@@ -1173,7 +1173,7 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of TEXTURECOORDINATEGENERATOR keywords */\n       const char *TEXTURECOORDINATEGENERATOR[] = {\n";
 
-        my @sf = keys %TextureCoordGenModeC;
+        my @sf = sort keys %TextureCoordGenModeC;
 	$keywordIntegerType = 0;
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
@@ -1205,7 +1205,7 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of MULTITEXTUREFUNCTION keywords */\n       const char *MULTITEXTUREFUNCTION[] = {\n";
 
-        my @sf = keys %MultiTextureFunctionC;
+        my @sf = sort keys %MultiTextureFunctionC;
 	$keywordIntegerType = 0;
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
@@ -1232,7 +1232,7 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of X3DSPECIAL keywords */\n       const char *X3DSPECIAL[] = {\n";
 
-        my @sf = keys %X3DSpecialC;
+        my @sf = sort keys %X3DSpecialC;
 	$keywordIntegerType = 0;
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
@@ -1259,7 +1259,7 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of TEXTUREBOUNDARY keywords */\n       const char *TEXTUREBOUNDARYKEYWORDS[] = {\n";
 
-        my @sf = keys %TextureBoundaryC;
+        my @sf = sort keys %TextureBoundaryC;
 	$keywordIntegerType = 0;
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
@@ -1285,7 +1285,7 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of TEXTUREMAGNIFICATION keywords */\n       const char *TEXTUREMAGNIFICATIONKEYWORDS[] = {\n";
 
-        my @sf = keys %TextureMagnificationC;
+        my @sf = sort keys %TextureMagnificationC;
 	$keywordIntegerType = 0;
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
@@ -1312,7 +1312,7 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of TEXTUREMINIFICATION keywords */\n       const char *TEXTUREMINIFICATIONKEYWORDS[] = {\n";
 
-        my @sf = keys %TextureMinificationC;
+        my @sf = sort keys %TextureMinificationC;
 	$keywordIntegerType = 0;
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
@@ -1338,7 +1338,7 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of TEXTURECOMPRESSION keywords */\n       const char *TEXTURECOMPRESSIONKEYWORDS[] = {\n";
 
-        my @sf = keys %TextureCompressionC;
+        my @sf = sort keys %TextureCompressionC;
 	$keywordIntegerType = 0;
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
@@ -1365,7 +1365,7 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of GEOSPATIAL keywords */\n       const char *GEOSPATIAL[] = {\n";
 
-        my @sf = keys %GEOSpatialKeywordC;
+        my @sf = sort keys %GEOSpatialKeywordC;
 	$keywordIntegerType = 0;
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
@@ -1663,7 +1663,7 @@ sub gen {
 
 
 		#print "\nnode $node:\n";
- 		foreach my $field (keys %{$VRML::Nodes{$node}{Defaults}}) {
+ 		foreach my $field (sort keys %{$VRML::Nodes{$node}{Defaults}}) {
 			my $ft = $VRML::Nodes{$node}{FieldTypes}{$field};
 			my $fk = $VRML::Nodes{$node}{FieldKinds}{$field};
 			my $def = $VRML::Nodes{$node}{Defaults}{$field};
@@ -1763,7 +1763,7 @@ sub gen {
 			push @genFuncs2, "\t\t\tspacer fprintf (fp,\" _nparents (int) %d\\n\",vectorSize(tmp->_parentVector)); /* DJTRACK_PICKSENSORS */\n";
 			push @genFuncs2, "\t\t\tfor (i=0; i<vectorSize(tmp->_parentVector); i++) { spacer fprintf (fp,\"    %d: %p\\n\",i, vector_get(struct X3D_Node *, tmp->_parentVector,i)); }\n";
 		}
- 		foreach my $field (keys %{$VRML::Nodes{$node}{Defaults}}) {
+ 		foreach my $field (sort keys %{$VRML::Nodes{$node}{Defaults}}) {
 
 			my $ft = $VRML::Nodes{$node}{FieldTypes}{$field};
 			my $fk = $VRML::Nodes{$node}{FieldKinds}{$field};
@@ -1910,7 +1910,7 @@ sub gen {
 
 		push @genFuncs1, "\nconst int OFFSETS_".$node."[] = {\n";
 
- 		foreach my $field (keys %{$VRML::Nodes{$node}{Defaults}}) {
+ 		foreach my $field (sort keys %{$VRML::Nodes{$node}{Defaults}}) {
 			#if (index($field,"_") !=0) {
 				my $ft = $VRML::Nodes{$node}{FieldTypes}{$field};
 				#$ft =~ tr/a-z/A-Z/; # convert to uppercase
@@ -1952,7 +1952,7 @@ sub gen {
 		push @fieldNodes, "\n/* $node node */\n";
 		push @fieldNodes, "BEGIN_NODE($node)\n";
 
- 		foreach my $field (keys %{$VRML::Nodes{$node}{Defaults}}) {
+ 		foreach my $field (sort keys %{$VRML::Nodes{$node}{Defaults}}) {
 			if (index($field,"_") !=0) {
 				my $fk = "";
 				my $ofk = $VRML::Nodes{$node}{FieldKinds}{$field};
