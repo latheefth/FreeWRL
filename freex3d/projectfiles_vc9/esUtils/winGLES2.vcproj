@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../main;../../../../../lib_windows/angleproject/include;../../;..\..\..\src\lib"
+				AdditionalIncludeDirectories="../main;../../../../lib_windows/angleproject/include;../../src_windows;..\..\src\lib"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;GLES2;FRONTEND_HANDLES_DISPLAY_THREAD"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -64,7 +64,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="libFreeWRLd.lib fwlibGLESv2.lib fwlibEGL.lib pthreadVC2d.lib zlib.lib libminizip.lib mozjs185-1.0.lib ws2_32.lib freetype239.lib shlwapi.lib gdiplus.lib libxml2_a.lib Wininet.lib Winmm.lib libtessd.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories=".\Debug;..\..\..\..\..\lib_windows\angleproject\lib\Release;..\..\..\..\..\lib_windows\js185\lib;..\..\..\..\..\lib_windows\pthreads.2;..\..\..\..\..\lib_windows\freetype2\lib;..\..\src\libtess\win32\Debug;..\..\..\..\..\lib_windows\zlib\lib;..\..\Debug;..\..\..\..\..\lib_windows\libxml2\lib"
+				AdditionalLibraryDirectories=".\Debug;..\..\..\..\lib_windows\angleproject\lib\Debug;..\..\..\..\lib_windows\js185\lib;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\zlib\lib;..\Debug;..\..\..\..\lib_windows\libxml2\lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -93,7 +93,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="Release"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="Release"
 			ConfigurationType="1"
 			>
@@ -114,7 +114,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../main;../../../../../lib_windows/angleproject/include;../../;..\..\..\src\lib"
+				AdditionalIncludeDirectories="../main;../../../../lib_windows/angleproject/include;../../src_windows;..\..\src\lib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -135,7 +135,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="libFreeWRL.lib fwlibGLESv2.lib fwlibEGL.lib pthreadVC2.lib zlib.lib libminizip.lib mozjs185-1.0.lib ws2_32.lib freetype239.lib shlwapi.lib gdiplus.lib libxml2_a.lib Wininet.lib Winmm.lib libtess.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories=".\Release;..\..\..\..\..\lib_windows\angleproject\lib\Release;..\..\..\..\..\lib_windows\js185\lib;..\..\..\..\..\lib_windows\pthreads.2;..\..\..\..\..\lib_windows\freetype2\lib;..\..\src\libtess\win32\Release;..\..\..\..\..\lib_windows\zlib\lib;..\..\Release;..\..\..\..\..\lib_windows\libxml2\lib"
+				AdditionalLibraryDirectories=".\Release;..\..\..\..\lib_windows\angleproject\lib\Release;..\..\..\..\lib_windows\js185\lib;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\zlib\lib;..\Release;..\..\..\..\lib_windows\libxml2\lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -189,7 +189,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../main;../../../../../lib_windows/angleproject/include;../../;..\..\..\src\lib"
+				AdditionalIncludeDirectories="../main;../../../../lib_windows/angleproject/include;../../src_windows;..\..\src\lib"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;GLES2;FRONTEND_HANDLES_DISPLAY_THREAD"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -212,7 +212,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="libFreeWRLd.lib fwlibGLESv2.lib fwlibEGL.lib pthreadVC2d.lib zlib.lib libminizip.lib mozjs185-1.0.lib ws2_32.lib freetype239.lib shlwapi.lib gdiplus.lib libxml2_a.lib Wininet.lib Winmm.lib libtessd.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories=".\Debug;..\..\..\..\..\lib_windows\angleproject\lib\Release;..\..\..\..\..\lib_windows\js185\lib;..\..\..\..\..\lib_windows\pthreads.2;..\..\..\..\..\lib_windows\freetype2\lib;..\..\src\libtess\win32\Debug;..\..\..\..\..\lib_windows\zlib\lib;..\..\Debug;..\..\..\..\..\lib_windows\libxml2\lib"
+				AdditionalLibraryDirectories=".\Debug;..\..\..\..\lib_windows\angleproject\lib\Release;..\..\..\..\lib_windows\js185\lib;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\zlib\lib;..\Debug;..\..\..\..\lib_windows\libxml2\lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -249,11 +249,11 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\main\esUtil.h"
+				RelativePath="..\..\src_windows\esUtils\main\esUtil.h"
 				>
 			</File>
 			<File
-				RelativePath=".\esUtil_win.h"
+				RelativePath="..\..\src_windows\esUtils\winGLES2\esUtil_win.h"
 				>
 			</File>
 			<File
@@ -273,15 +273,15 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\esUtil.c"
+				RelativePath="..\..\src_windows\esUtils\winGLES2\esUtil.c"
 				>
 			</File>
 			<File
-				RelativePath=".\esUtil_win32.c"
+				RelativePath="..\..\src_windows\esUtils\winGLES2\esUtil_win32.c"
 				>
 			</File>
 			<File
-				RelativePath="..\main\main.c"
+				RelativePath="..\..\src_windows\esUtils\main\main.c"
 				>
 			</File>
 		</Filter>

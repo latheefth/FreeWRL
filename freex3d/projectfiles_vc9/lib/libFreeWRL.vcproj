@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\src\libminizip;..\..\..\..\lib_windows\js185\include;..\..\src\libtess;..\..\src\Lib;..\;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\zlib\include;..\..\..\..\lib_windows\jpeg\include;..\..\..\..\lib_windows\freetype2\include;..\..\..\..\lib_windows\png\include;..\..\..\..\lib_windows\angleproject\include;..\..\..\..\lib_windows\libxml2\include"
+				AdditionalIncludeDirectories="..\..\src\libminizip;..\..\..\..\lib_windows\js185\include;..\..\src\libtess;..\..\src\Lib;..\..\src_windows;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\zlib\include;..\..\..\..\lib_windows\jpeg\include;..\..\..\..\lib_windows\freetype2\include;..\..\..\..\lib_windows\png\include;..\..\..\..\lib_windows\angleproject\include;..\..\..\..\lib_windows\libxml2\include"
 				PreprocessorDefinitions="ANGLEPROJECT;W_DEBUG;WIN32;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;DO_COLLISION_GPU_no;STATIC_EXPORTABLE_JS_API;HAVE_PTHREAD_CANCEL"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -105,7 +105,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\src\libminizip;..\..\..\..\lib_windows\js185\include;..\..\src\libtess;..\..\src\Lib;..\;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\zlib\include;..\..\..\..\lib_windows\jpeg\include;..\..\..\..\lib_windows\freetype2\include;..\..\..\..\lib_windows\png\include;..\..\..\..\lib_windows\angleproject\include;..\..\..\..\lib_windows\libxml2\include"
+				AdditionalIncludeDirectories="..\..\src\libminizip;..\..\..\..\lib_windows\js185\include;..\..\src\libtess;..\..\src\Lib;..\..\src_windows;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\zlib\include;..\..\..\..\lib_windows\jpeg\include;..\..\..\..\lib_windows\freetype2\include;..\..\..\..\lib_windows\png\include;..\..\..\..\lib_windows\angleproject\include;..\..\..\..\lib_windows\libxml2\include"
 				PreprocessorDefinitions="WIN32;ANGLEPROJECT;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;STATIC_EXPORTABLE_JS_API;HAVE_PTHREAD_CANCEL"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -165,7 +165,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\src\libminizip;..\..\..\..\lib_windows\js185\include;..\..\src\libtess;..\..\src\Lib;..\;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\zlib\include;..\..\..\..\lib_windows\jpeg\include;..\..\..\..\lib_windows\freetype2\include;..\..\..\..\lib_windows\png\include;..\..\..\..\lib_windows\glew\include;..\..\..\..\lib_windows\libxml2\include"
+				AdditionalIncludeDirectories="..\..\src\libminizip;..\..\..\..\lib_windows\js185\include;..\..\src\libtess;..\..\src\Lib;..\..\src_windows;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\zlib\include;..\..\..\..\lib_windows\jpeg\include;..\..\..\..\lib_windows\freetype2\include;..\..\..\..\lib_windows\png\include;..\..\..\..\lib_windows\glew\include;..\..\..\..\lib_windows\libxml2\include"
 				PreprocessorDefinitions="W_DEBUG;WIN32;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;DO_COLLISION_GPU_no;STATIC_EXPORTABLE_JS_API;HAVE_PTHREAD_CANCEL"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -230,7 +230,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\src\libminizip;..\..\..\..\lib_windows\js185\include;..\..\src\libtess;..\..\src\Lib;..\;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\zlib\include;..\..\..\..\lib_windows\jpeg\include;..\..\..\..\lib_windows\freetype2\include;..\..\..\..\lib_windows\png\include;..\..\..\..\lib_windows\glew\include;..\..\..\..\lib_windows\libxml2\include"
+				AdditionalIncludeDirectories="..\..\src\libminizip;..\..\..\..\lib_windows\js185\include;..\..\src\libtess;..\..\src\Lib;..\..\src_windows;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\zlib\include;..\..\..\..\lib_windows\jpeg\include;..\..\..\..\lib_windows\freetype2\include;..\..\..\..\lib_windows\png\include;..\..\..\..\lib_windows\glew\include;..\..\..\..\lib_windows\libxml2\include"
 				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;STATIC_EXPORTABLE_JS_API;HAVE_PTHREAD_CANCEL"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -475,7 +475,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\dialogs.c"
+				RelativePath="..\..\src_windows\dialogs.c"
 				>
 			</File>
 			<File
@@ -515,7 +515,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\fwVersion.c"
+				RelativePath="..\..\src_windows\fwVersion.c"
 				>
 			</File>
 			<File
@@ -523,7 +523,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\gdiPlusImageLoader.cpp"
+				RelativePath="..\..\src_windows\gdiPlusImageLoader.cpp"
 				>
 			</File>
 			<File
@@ -733,7 +733,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\config.h"
+				RelativePath="..\..\src_windows\config.h"
 				>
 			</File>
 			<File

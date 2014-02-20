@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <GLES2/gl2.h>
 #include <EGL/egl.h>
-#include "esUtil.h"
+#include "../main/esUtil.h"
 #include "esUtil_win.h"
 
 /* Errors / GetError return values */

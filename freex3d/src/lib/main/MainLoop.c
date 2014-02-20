@@ -4092,7 +4092,7 @@ void _displayThread(void *globalcontext)
 	/* Initialize display */
 	if (!fv_display_initialize()) {
 		ERROR_MSG("initFreeWRL: error in display initialization.\n");
-		exit(1);
+		fw_exit(1);
 	}
 #endif /* KEEP_FV_INLIB */
 

@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\;..\..\src\bin;..\..\src\lib;..\..\..\..\lib_windows\glew\include;..\..\..\..\lib_windows\pthreads.2"
+				AdditionalIncludeDirectories="..\..\src_windows;..\..\src\bin;..\..\src\lib;..\..\..\..\lib_windows\glew\include;..\..\..\..\lib_windows\pthreads.2"
 				PreprocessorDefinitions="W_DEBUG;WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;STATUSBAR_HUD"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -121,7 +121,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\;..\..\src\bin;..\..\src\lib;..\..\..\..\lib_windows\pthreads.2"
+				AdditionalIncludeDirectories="..\..\src_windows;..\..\src\bin;..\..\src\lib;..\..\..\..\lib_windows\pthreads.2"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -196,7 +196,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\;..\..\src\bin;..\..\src\lib;..\..\..\..\lib_windows\pthreads.2"
+				AdditionalIncludeDirectories="..\..\src_windows;..\..\src\bin;..\..\src\lib;..\..\..\..\lib_windows\pthreads.2"
 				PreprocessorDefinitions="W_DEBUG;WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;STATUSBAR_HUD"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -276,7 +276,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\;..\..\src\bin;..\..\src\lib;..\..\..\..\lib_windows\pthreads.2"
+				AdditionalIncludeDirectories="..\..\src_windows;..\..\src\bin;..\..\src\lib;..\..\..\..\lib_windows\pthreads.2"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -336,7 +336,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\getopt.c"
+				RelativePath="..\..\src_windows\getopt.c"
 				>
 			</File>
 			<File
@@ -354,11 +354,11 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\config.h"
+				RelativePath="..\..\src_windows\config.h"
 				>
 			</File>
 			<File
-				RelativePath="..\getopt.h"
+				RelativePath="..\..\src_windows\getopt.h"
 				>
 			</File>
 			<File
@@ -376,14 +376,10 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
-				RelativePath="..\wnfreewrl.rc"
+				RelativePath="..\..\src_windows\wnfreewrl.rc"
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\ReadMe.txt"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

@@ -68,9 +68,14 @@ EGLBoolean fwCreateEGLContext ( EGLNativeWindowType hWnd, EGLDisplay* eglDisplay
 
 	// Get Display
 	dc = GetDC(hWnd);
+	//printf("hWnd=%d\n",hWnd);
+	//printf("dc=%d\n",dc);
 	display = eglGetDisplay(dc); //GetDC(hWnd));
-	if ( display == EGL_NO_DISPLAY )
+//	printf("display=%d\n",display);
+	if ( display == EGL_NO_DISPLAY ){
 	  display = eglGetDisplay(EGL_DEFAULT_DISPLAY); //win32 goes in here
+//	  printf("display2=%d\n",display);
+	}
 	if ( display == EGL_NO_DISPLAY )
 	{
 		printf("Ouch - EGL_NO_DISPLAY\n");
@@ -82,6 +87,7 @@ EGLBoolean fwCreateEGLContext ( EGLNativeWindowType hWnd, EGLDisplay* eglDisplay
 		char errbuf[64];
 		int ierr = eglGetError();
 		sprintf(errbuf,"%x",ierr); //0x3001 EGL_NOT_INITIALIZED
+		//note to developer: have you compiled fwlibEGL.lib/dll and fwlibGLES2.lib/dll with a compatible compiler
 		printf("Ouch no eglInitialize %d %s\n",ierr,errbuf);
 		return EGL_FALSE;
 	}
@@ -1245,9 +1251,10 @@ int fv_create_main_window(freewrl_params_t * d) //int argc, char *argv[])
   MessageBoxA(d->winToEmbedInto,"You may now attach a debugger.1\n Press OK when you want to proceed.","dllfreeWRL plugin process(1)",MB_OK);
 #endif
 	if(!d->frontend_handles_display_thread){
-		if( d->winToEmbedInto == INT_ID_UNDEFINED)
-			d->winToEmbedInto = create_main_window0(d); //argc, argv);
-
+		//printf("wintoembedinto 1=%d\n",d->winToEmbedInto);
+		if( d->winToEmbedInto < 1) //INT_ID_UNDEFINED) sometimes 0 or -1
+			d->winToEmbedInto = (long)create_main_window0(d); //argc, argv);
+		//printf("wintoembedinto 2=%d\n",d->winToEmbedInto);
 		if( d->winToEmbedInto )
 		{
 			//HWND hWnd;

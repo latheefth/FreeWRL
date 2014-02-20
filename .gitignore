@@ -1,3 +1,5 @@
+#all 
+*.hide
 #windows ignore:
 **/Debug*
 **/Release*
