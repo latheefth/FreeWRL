@@ -126,9 +126,6 @@
     <ClInclude Include="..\..\src\libeai\X3DNode.h" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\lib\libFreeWRL.vcxproj">
       <Project>{d35384ef-4b8a-4256-9729-d6a94ccb88b8}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

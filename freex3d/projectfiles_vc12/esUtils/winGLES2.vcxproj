@@ -127,7 +127,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\src_windows\esUtils\main\esUtil.h" />
     <ClInclude Include="..\..\src_windows\esUtils\winGLES2\esUtil_win.h" />
-    <ClInclude Include="resource.h" />
+    <ClInclude Include="..\..\src_windows\resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src_windows\esUtils\winGLES2\esUtil.c" />

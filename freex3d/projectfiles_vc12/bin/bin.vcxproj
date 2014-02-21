@@ -103,7 +103,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>libtess.lib;libFreeWRL.lib;fwlibGLESv2.lib;fwlibEGL.lib;pthreadVC2d.lib;zlib.lib;libminizip.lib;ws2_32.lib;freetype239.lib;shlwapi.lib;gdiplus.lib;libxml2_a.lib;Wininet.lib;Winmm.lib;mozjs185-1.0.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)$(ProjectName)d.exe</OutputFile>
+      <OutputFile>$(OutDir)$(ProjectName).exe</OutputFile>
       <AdditionalLibraryDirectories>..\..\..\..\lib_windows\angleproject\lib\Release;..\..\..\..\lib_windows\js185\lib;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\zlib\lib;..\..\..\..\lib_windows\libxml2\lib;..\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>MSVCRT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>

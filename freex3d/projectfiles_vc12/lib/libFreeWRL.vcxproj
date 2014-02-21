@@ -253,13 +253,11 @@
     <ClInclude Include="..\..\src\lib\scenegraph\Component_Picking.h" />
     <ClInclude Include="..\..\src_windows\config.h" />
     <ClInclude Include="..\..\src\lib\display.h" />
-    <ClInclude Include="..\..\src\lib\world_script\FWTYPE.h" />
     <ClInclude Include="..\..\src\lib\main\headers.h" />
     <ClInclude Include="..\..\src\lib\iglobal.h" />
     <ClInclude Include="..\..\src\lib\internal.h" />
     <ClInclude Include="..\..\src\lib\io_files.h" />
     <ClInclude Include="..\..\src\lib\libFreeWRL.h" />
-    <ClInclude Include="..\libversion.h" />
     <ClInclude Include="..\..\src\lib\list.h" />
     <ClInclude Include="..\..\src\lib\opengl\OpenGL_Utils.h" />
     <ClInclude Include="..\..\src\lib\vrml_parser\Structs.h" />
