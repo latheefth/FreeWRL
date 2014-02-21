@@ -182,6 +182,7 @@
 
 /* Define to 1 if the system has the type `_Bool'. */
 #undef HAVE__BOOL
+#define HAVE__BOOL 1
 
 /* Path to image converter. set to NULL if none */
 #undef IMAGECONVERT

@@ -6,5 +6,6 @@
 *.ncb
 *.user
 *.suo
+*.sdf
 #make ignore:
 #eclipseCDT ignore:
