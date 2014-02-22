@@ -42,10 +42,10 @@ typedef enum vertexShaderResources {
 
     vertexPrecisionDeclare,
 	vertMaxLightsDeclare,
-    
+
     vertexLightDefines,
-    
- 
+        vertexTCGTDefines,
+
     vertexNormalDeclare,
 	vertexPositionDeclare,
 	vertexSimpleColourDeclare,
@@ -57,13 +57,13 @@ typedef enum vertexShaderResources {
     vertexTexCoordOutputDeclare,
     vertexHatchPositionDeclare,
     vertexPointSizeDeclare,
-    
+
     vertexNormPosOutput,
-    
+
     vertexLightingEquation,
-    
+
 	vertexMainStart,
-    
+
     vertexPointSizeAssign,
 	vertexPositionCalculation,
 
@@ -73,9 +73,9 @@ typedef enum vertexShaderResources {
     vertexADSLCalculation,
 	vertexSimpleColourCalculation,
     vertexHatchPositionCalculation,
-    
+
     vertexUserDefinedInput,
-    
+
 	vertexMainEnd,
 	vertexEndMarker
 } vertexShaderResources_t;
@@ -84,13 +84,13 @@ typedef enum fragmenShaderResources {
 	fragmentGLSLVersion,
 	fragmentPrecisionDeclare,
 	fragMaxLightsDeclare,
-    
+
     fragmentMultiTexDefines,
     fragmentLightDefines,
     fragmentFillPropDefines,
-    
+
     fragmentNormalColorDefs,
-    
+
     fragmentTexCoordDeclare,
     fragmentTex0Declare,
     fragmentMultiTexDeclare,
@@ -102,17 +102,17 @@ typedef enum fragmenShaderResources {
     fragmentADSLLightModel,
     fragmentMultiTexModel,
     fragmentFillPropModel,
-    
+
 	fragmentMainStart,
-    
+
     fragmentUserDefinedInput,
-    
+
 	fragmentSimpleColourAssign,
     fragmentOneColourAssign,
     fragmentADSLAssign,
     fragmentTextureAssign,
     fragmentFillPropAssign,
-    
+
 	fragmentMainEnd,
 	fragmentEndMarker
 } fragmentShaderResources_t;

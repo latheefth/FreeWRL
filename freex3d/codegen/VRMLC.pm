@@ -1180,19 +1180,24 @@ sub gen {
 
         my @sf = sort keys %TextureCoordGenModeC;
 	$keywordIntegerType = 0;
+	my $TextCoordGen_defs = '#define TEXTURECOORDINATEGENERATORDefs " \\' . "\n";
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
 		# tag each node type with a integer key.
 		# C defines can not have minus signs in it, make it an underscore
 		my $nous = $_;
 		$nous=~ s/-/_/g;
-		push @str, "#define TCGT_".$nous."	$keywordIntegerType\n";
+		my $new_str = "#define TCGT_".$nous."    $keywordIntegerType";
+		push @str, $new_str . "\n";
+		$TextCoordGen_defs .= $new_str . '\n \\' . "\n";
 		$keywordIntegerType ++;
 		push @genFuncs1, "	\"$_\",\n";
 	}
 	push @str, "\n";
 	push @genFuncs1, "};\nconst int TEXTURECOORDINATEGENERATOR_COUNT = ARR_SIZE(TEXTURECOORDINATEGENERATOR);\n\n";
 
+	$TextCoordGen_defs .="\";\n" ;
+	push @str, $TextCoordGen_defs;
 
 	####################
 	# make a function to print Keyword name from an integer type.

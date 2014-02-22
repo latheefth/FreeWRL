@@ -1456,33 +1456,23 @@ static const GLchar *vertSingTexCubeCalc = "\
     v_texC = reflect(u,vertexNorm);\n";
 
 
-/* TextureCoordinateGenerator mapping - eventually handle the following:
-#define TCGT_NOISE      0
-#define TCGT_CAMERASPACENORMAL  1
-#define TCGT_NOISE_EYE  2
-#define TCGT_SPHERE     3
-#define TCGT_SPHERE_REFLECT_LOCAL       4
-#define TCGT_SPHERE_REFLECT     5
-#define TCGT_CAMERASPACEREFLECTION      6
-#define TCGT_SPHERE_LOCAL       7
-#define TCGT_COORD_EYE  8
-#define TCGT_COORD      9
-#define TCGT_CAMERASPACEPOSITION        10
+/* TextureCoordinateGenerator mapping  */
+const static GLchar *fragTCGTDefs = TEXTURECOORDINATEGENERATORDefs;
 
+/*
 Good hints for code here: http://www.opengl.org/wiki/Mathematics_of_glTexGen
 */
-
-static const GLchar *sphEnvMapCalc = " \n\
+static const GLchar *sphEnvMapCalc = " \n     \
 /* sphereEnvironMapping Calculation */ \
 /* vec3 u=normalize(vec3(fw_ModelViewMatrix * fw_Vertex));  (myEyeVertex)  \
 vec3 n=normalize(vec3(fw_NormalMatrix*fw_Normal)); \
 vec3 r = reflect(u,n);  (myEyeNormal) */ \n\
 vec3 u=normalize(vec3(vertexPos)); /* u is normalized position, used below more than once */ \n \
 vec3 r= reflect(u,vertexNorm); \n\
-if (fw_textureCoordGenType==3) { /* TCGT_SPHERE  GL_SPHERE_MAP OpenGL Equiv */ \n\
+if (fw_textureCoordGenType==TCGT_SPHERE) { /* TCGT_SPHERE  GL_SPHERE_MAP OpenGL Equiv */ \n\
     float m=2.0 * sqrt(r.x*r.x + r.y*r.y + (r.z*1.0)*(r.z*1.0)); \n\
     v_texC = vec3(r.x/m+0.5,r.y/m+0.5,0.0); \n \
-}else if (fw_textureCoordGenType==0) /* GL_REFLECTION_MAP used for sampling cubemaps */ {\n \
+}else if (fw_textureCoordGenType==TCGT_CAMERASPACENORMAL) /* GL_REFLECTION_MAP used for sampling cubemaps */ {\n \
 	float dotResult = 2.0 * dot(u,r); \n\
 	v_texC = vec3(u-r)*dotResult;\n\
 } else { /* default usage - like default CubeMaps */ \n\
@@ -2185,6 +2175,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         vertexSource[vertexTextureMatrixDeclare] = vertTexCoordGenDec;
         vertexSource[vertexSingleTextureCalculation] = sphEnvMapCalc;
 
+        vertexSource[vertexTCGTDefines] = fragTCGTDefs;
 
     }
 
