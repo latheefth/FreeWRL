@@ -1128,10 +1128,13 @@ sub gen {
 
         my @sf = sort keys %MultiTextureModeC;
 	$keywordIntegerType = 0;
+	my $MultiText_defs = '#define MULTITEXTUREDefs " \\' . "\n";
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
 		# tag each node type with a integer key.
-		push @str, "#define MTMODE_".$_."	$keywordIntegerType\n";
+		my $new_str = "#define MTMODE_".$_."	$keywordIntegerType";
+		push @str, $new_str . "\n";
+		$MultiText_defs .= $new_str . '\n \\' . "\n";
 		$keywordIntegerType ++;
 		push @genFuncs1, "	\"$_\",\n";
 	}
@@ -1145,6 +1148,8 @@ sub gen {
 		"	return MULTITEXTUREMODE[st];\n}\n\n";
 	push @str, "const char *stringMULTITEXTUREMODEType(int st);\n";
 
+	$MultiText_defs .="\";\n" ;
+	push @str, $MultiText_defs;
 
 	#####################
 	# process MULTITEXTURESOURCE keywords

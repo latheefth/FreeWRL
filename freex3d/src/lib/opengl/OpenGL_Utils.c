@@ -88,7 +88,7 @@ static void fw_glLoadMatrixd(GLDOUBLE *val);
 struct shaderTableEntry {
     unsigned int whichOne;
     s_shader_capabilities_t *myCapabilities;
-    
+
 };
 
 static void mesa_Ortho(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ, GLDOUBLE *m);
@@ -118,7 +118,7 @@ typedef GLDOUBLE MATRIX4[MATRIX_SIZE];
 
 
 typedef struct pOpenGL_Utils{
-	// list of all X3D nodes in this system. 
+	// list of all X3D nodes in this system.
 	// scene graph is tree-structured. this is a linear list.
 	struct Vector *linearNodeTable;
 	// how many holes might we have in this table, due to killing nodes, etc?
@@ -129,7 +129,7 @@ typedef struct pOpenGL_Utils{
 	MATRIX4 FW_ModelView[MAX_LARGE_MATRIX_STACK];
 	MATRIX4 FW_ProjectionView[MAX_SMALL_MATRIX_STACK];
 	MATRIX4 FW_TextureView[MAX_SMALL_MATRIX_STACK];
-	 
+
 	int modelviewTOS;// = 0;
 	int projectionviewTOS;// = 0;
 	int textureviewTOS;// = 0;
@@ -139,12 +139,12 @@ typedef struct pOpenGL_Utils{
 #ifdef GLEW_MX
 	GLEWContext glewC;
 #endif
-    
+
     struct Vector *myShaderTable; /* list of all active shaders requested by input */
 	int userDefinedShaderCount;	/* if the user actually has a Shader node */
     char *userDefinedFragmentShader[MAX_USER_DEFINED_SHADERS];
     char *userDefinedVertexShader[MAX_USER_DEFINED_SHADERS];
-    
+
     bool usePhongShaders; /* phong shaders == better rendering, but slower */
 }* ppOpenGL_Utils;
 
@@ -179,26 +179,26 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
 		//p->memtablelock = PTHREAD_MUTEX_INITIALIZER;
 		pthread_mutex_init(&(p->memtablelock), NULL);
 		// LoadIdentity will initialize these
-		 
+
 		p->modelviewTOS = 0;
 		p->projectionviewTOS = 0;
 		p->textureviewTOS = 0;
 
 		p->whichMode = GL_MODELVIEW;
 		p->currentMatrix = p->FW_ModelView[0];
-        
+
         // load identity matricies in here
         loadIdentityMatrix(p->FW_ModelView[0]);
         loadIdentityMatrix(p->FW_ProjectionView[0]);
         loadIdentityMatrix(p->FW_TextureView[0]);
-        
+
         // create room for some shaders. The order in this table is
         // the order in which they are first referenced.
         p->myShaderTable = newVector(struct shaderTableEntry *, 8);
 
         // userDefinedShaders - assume 0, unless the user is a geek.
         p->userDefinedShaderCount = 0;
-                
+
         // usePhongShaders set to false for now. Can be changed
         // during runtime, then re-build shaders.
         p->usePhongShaders = false;
@@ -225,9 +225,9 @@ void kill_userDefinedShaders() {
 	p->userDefinedShaderCount = 0;
 
 
-	// free the strings for the shader source, if they exist    
+	// free the strings for the shader source, if they exist
 	for (i=0; i<MAX_USER_DEFINED_SHADERS; i++) {
-        
+
 		//ConsoleMessage ("udf shader %d source is %p %p",i,p->userDefinedVertexShader[i], p->userDefinedFragmentShader[i]);
 		FREE_IF_NZ (p->userDefinedFragmentShader[i]);
 		FREE_IF_NZ (p->userDefinedVertexShader[i]);
@@ -253,10 +253,10 @@ int getNextFreeUserDefinedShaderSlot() {
 	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
 
     if (p->userDefinedShaderCount == MAX_USER_DEFINED_SHADERS) return -1;
-    
+
     rv = p->userDefinedShaderCount;
     p->userDefinedShaderCount++;
-    
+
     return rv;
 }
 
@@ -265,11 +265,11 @@ void sendShaderTextToEngine(int ste, int parts, char ** vertSource, char ** frag
     char *fs = NULL;
     char *vs = NULL;
     int i;
-    
+
     ppOpenGL_Utils p;
 	ttglobal tg = gglobal();
 	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
-    
+
     // find the non-null for each shader text.
     for (i=0; i<parts; i++) {
         //ConsoleMessage ("for ptr ind %d, :%s: :%s:",i,vertSource[i],fragSource[i]);
@@ -277,9 +277,9 @@ void sendShaderTextToEngine(int ste, int parts, char ** vertSource, char ** frag
         if (fragSource[i] != NULL) fs=fragSource[i];
     }
     //ConsoleMessage ("sendShaderTextToEngine, saving in %d",ste);
-    
+
     p->userDefinedFragmentShader[ste] = fs;
-    p->userDefinedVertexShader[ste] = vs; 
+    p->userDefinedVertexShader[ste] = vs;
     //printf ("so for shaderTableEntry %d, we have %d %d\n",ste,strlen(fs),strlen(vs));
 }
 
@@ -351,18 +351,18 @@ int fwl_android_get_valid_shapeNodes(struct Vector **shapeNodes) {
 	if (*shapeNodes == NULL) {
 		*shapeNodes = newVector (struct X3D_Shape *, 16);
 	}
-	
+
 	// are we running yet?
 	if (p==NULL) return 0;
 	if (p->linearNodeTable==NULL) return 0;
 
-	// ease of use of this vector - 
+	// ease of use of this vector -
 	me = *shapeNodes;
 	vectorSize(me) = 0;
 
 	LOCK_MEMORYTABLE
-	for (tc=0; tc<vectorSize(p->linearNodeTable); tc++){		
-		struct X3D_Node *node = vector_get(struct X3D_Node *,p->linearNodeTable, tc);	
+	for (tc=0; tc<vectorSize(p->linearNodeTable); tc++){
+		struct X3D_Node *node = vector_get(struct X3D_Node *,p->linearNodeTable, tc);
 
 		// do we have a valid node?
 		if (node != NULL) {
@@ -380,7 +380,7 @@ int fwl_android_get_valid_shapeNodes(struct Vector **shapeNodes) {
 					if ((geom->_nodeType != NODE_IndexedLineSet) &&
 						(geom->_nodeType != NODE_LineSet) &&
 						(geom->_nodeType != NODE_PointSet)) {
-						
+
 						// yep! return this one!
 						vector_pushBack(struct X3D_Node *,me, node);
 					}
@@ -401,7 +401,7 @@ uncomment to print out the shape nodes found
 		struct X3D_TextureTransform *tt;
 		struct X3D_Node *geom;
 
-		struct X3D_Node *node = vector_get(struct X3D_Node *,me, tc);	
+		struct X3D_Node *node = vector_get(struct X3D_Node *,me, tc);
 		ConsoleMessage ("node %d is a %s",tc,stringNodeType(node->_nodeType));
 		fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
 
@@ -434,7 +434,7 @@ void fwl_android_zero_shapeNodeTable(struct Vector **shapeNodes) {
 
 
 /* returns TRUE if the shape node actually has a fillProperties node,
-   and the FillProperties field "_enabled" is TRUE, 
+   and the FillProperties field "_enabled" is TRUE,
    returns FALSE if the node does not exist or does not have a FillProperty,
    or the FillProperties field "_enabled" is FALSE */
 int fwl_get_FillPropStatus(struct Vector **shapeNodes, int whichEntry) {
@@ -456,7 +456,7 @@ int fwl_get_FillPropStatus(struct Vector **shapeNodes, int whichEntry) {
 
 	// if we are here, we really do have at least one Shape node.
 
-	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);
 	//ConsoleMessage ("node %d is a %s",whichEntry,stringNodeType(node->_nodeType));
 	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
 	//ConsoleMessage ("and the fp field is %p",fp);
@@ -484,7 +484,7 @@ void fwl_set_FillPropStatus (struct Vector **shapeNodes, int whichEntry, int yes
 
 	// if we are here, we really do have at least one Shape node.
 
-	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);
 
 	//ConsoleMessage ("node %d is a %s",whichEntry,stringNodeType(node->_nodeType));
 	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
@@ -504,7 +504,7 @@ void fwl_set_FillPropStatus (struct Vector **shapeNodes, int whichEntry, int yes
 			AddRemoveSFNodeFieldChild(ap,
 				offsetPointer_deref(struct X3D_Node **,ap,offsetof (struct X3D_Appearance, material)),
 				mat,0,__FILE__,__LINE__);
-		
+
 		}
 
 		ap = X3D_SHAPE(node)->appearance;
@@ -530,7 +530,7 @@ void fwl_set_FillPropStatus (struct Vector **shapeNodes, int whichEntry, int yes
 		fp->_hatchScale.c[1] = fillScale;
 	} else {
 		//ConsoleMessage ("fwl_set_FillPropStatus, removing a FillProperties");
-		/* do not bother removing it - keep it around in case we re-enable and want original settings 
+		/* do not bother removing it - keep it around in case we re-enable and want original settings
 		AddRemoveSFNodeFieldChild(X3D_NODE(X3D_SHAPE(node)->appearance),
 			offsetPointer_deref(struct X3D_Node **,X3D_NODE(X3D_SHAPE(node)->appearance),offsetof (struct X3D_Appearance, fillProperties)),
 			X3D_NODE(fp),2,__FILE__,__LINE__);
@@ -561,9 +561,9 @@ int fwl_get_FillPropHatched(struct Vector **shapeNodes, int whichEntry) {
 	if (vectorSize(*shapeNodes) == 0 ) {
 		return FALSE;
 	}
-	
+
 	// if we are here, we really do have at least one Shape node.
-	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);
 	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
 
 	return (fp->hatched);
@@ -585,7 +585,7 @@ void fwl_set_FillPropHatched (struct Vector **shapeNodes, int whichEntry, int ye
 	}
 
 	// if we are here, we really do have at least one Shape node.
-	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);
 	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
 
 	if (fp!=NULL) fp->hatched = yesNo;
@@ -604,9 +604,9 @@ int fwl_get_FillPropFilled(struct Vector **shapeNodes, int whichEntry) {
 	if (vectorSize(*shapeNodes) == 0 ) {
 		return FALSE;
 	}
-	
+
 	// if we are here, we really do have at least one Shape node.
-	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);
 	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
 
 	return (fp->filled);
@@ -628,7 +628,7 @@ void fwl_set_FillPropFilled (struct Vector **shapeNodes, int whichEntry, int yes
 	}
 
 	// if we are here, we really do have at least one Shape node.
-	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);
 	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
 
 	if (fp!=NULL) fp->filled = yesNo;
@@ -648,9 +648,9 @@ int fwl_get_FillPropStyle(struct Vector **shapeNodes, int whichEntry) {
 	if (vectorSize(*shapeNodes) == 0 ) {
 		return 0;
 	}
-	
+
 	// if we are here, we really do have at least one Shape node.
-	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);
 	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
 
 	if (fp==NULL) return 0;
@@ -673,7 +673,7 @@ void fwl_set_FillPropStyle (struct Vector **shapeNodes, int whichEntry, int whic
 	}
 
 	// if we are here, we really do have at least one Shape node.
-	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);
 	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
 
 	if (fp!=NULL) fp->hatchStyle = which;
@@ -694,9 +694,9 @@ int fwl_get_FillPropColour(struct Vector **shapeNodes, int whichEntry) {
 	if (vectorSize(*shapeNodes) == 0 ) {
 		return 0;
 	}
-	
+
 	// if we are here, we really do have at least one Shape node.
-	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);
 	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
 
 	#define CLAMP(value, min, max) (((value) >(max)) ? (max) : (((value) <(min)) ? (min) : (value)))
@@ -705,8 +705,8 @@ int fwl_get_FillPropColour(struct Vector **shapeNodes, int whichEntry) {
 	integer_colour = 0xFF000000 + (
 		((uint8_t)(255.0f *CLAMP(fp->hatchColor.c[0], 0.0, 1.0)) <<16) |
                ((uint8_t)(255.0f *CLAMP(fp->hatchColor.c[1], 0.0, 1.0)) <<8) |
-               ((uint8_t)(255.0f *CLAMP(fp->hatchColor.c[2], 0.0, 1.0)))); 
-	
+               ((uint8_t)(255.0f *CLAMP(fp->hatchColor.c[2], 0.0, 1.0))));
+
 	//ConsoleMessage ("fwl_get_fp, is %x",integer_colour);
 	return (integer_colour);
 }
@@ -727,7 +727,7 @@ void fwl_set_FillPropColour (struct Vector **shapeNodes, int whichEntry, int arg
 	}
 
 	// if we are here, we really do have at least one Shape node.
-	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);
 	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
 
 	if (fp!=NULL) {
@@ -739,7 +739,7 @@ void fwl_set_FillPropColour (struct Vector **shapeNodes, int whichEntry, int arg
 }
 
 
-// MAterial - we need to ensure that this is node has a Material; we make it a TwoSidedMaterial 
+// MAterial - we need to ensure that this is node has a Material; we make it a TwoSidedMaterial
 // even if it was a normal Material node.
 // returns whether two-sided is true or not.
 //JNIEXPORT jboolean JNICALL Java_org_freex3d_FreeX3DLib_setMaterialExisting(JNIEnv *env, jobject obj) {
@@ -766,7 +766,7 @@ int fwl_set_MaterialExisting(struct Vector **shapeNodes, int whichEntry) {
 
 	// if we are here, we really do have at least one Shape node.
 
-	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);
 
 	//ConsoleMessage ("node %d is a %s",whichEntry,stringNodeType(node->_nodeType));
 	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
@@ -798,7 +798,7 @@ int fwl_set_MaterialExisting(struct Vector **shapeNodes, int whichEntry) {
 		AddRemoveSFNodeFieldChild(ap,
 			offsetPointer_deref(struct X3D_Node **,X3D_NODE(ap),offsetof (struct X3D_Appearance, material)),
 			X3D_NODE(fp),0,__FILE__,__LINE__);
-	} 
+	}
 
 	tsm = X3D_TWOSIDEDMATERIAL(ap->material);
 	// ok, we have a node here, if it is a FillProperties, set the enabled flag
@@ -826,7 +826,7 @@ int fwl_set_MaterialExisting(struct Vector **shapeNodes, int whichEntry) {
 			ConsoleMessage ("somehow the Material is not a node of Material type for this node");
 		}
 
-		// now, make the child our TwoSidedMaterial node 
+		// now, make the child our TwoSidedMaterial node
 		AddRemoveSFNodeFieldChild(ap,
 			offsetPointer_deref(struct X3D_Node **,ap,offsetof (struct X3D_Appearance, material)),
 			ntsm,0,__FILE__,__LINE__);
@@ -834,11 +834,11 @@ int fwl_set_MaterialExisting(struct Vector **shapeNodes, int whichEntry) {
 		// We DO have a TwoSidedMaterial...
 		twoSided = X3D_TWOSIDEDMATERIAL(tsm)->separateBackColor;
 	}
-	
+
 	// tell the Shape node that we need to check the shaders it uses...
 	node->_change ++;
 
-	return twoSided; 
+	return twoSided;
 }
 
 /* fwl_get_MaterialColourValue(xx) - example usage:
@@ -900,10 +900,10 @@ int fwl_get_MaterialColourValue(struct Vector **shapeNodes, int whichEntry, int 
 			integer_colour = 0xFF000000 + (
 				((uint8_t)(255.0f *CLAMP(col->c[0], 0.0, 1.0)) <<16) |
                			((uint8_t)(255.0f *CLAMP(col->c[1], 0.0, 1.0)) <<8) |
-               			((uint8_t)(255.0f *CLAMP(col->c[2], 0.0, 1.0)))); 
+               			((uint8_t)(255.0f *CLAMP(col->c[2], 0.0, 1.0))));
 			//ConsoleMessage ("getMaterialValue, returning colour %d\n",integer_colour);
 			return integer_colour;
-		} 
+		}
 	} else {
 		ConsoleMessage ("getMaterialValue, expected a TwoSidedMaterial, not a %s\n",stringNodeType(mat->_nodeType));
 	}
@@ -926,7 +926,7 @@ void fwl_set_TwoSidedMaterialStatus( struct Vector **shapeNodes, int whichEntry,
 	}
 
 	// if we are here, we really do have at least one Shape node.
-	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);
 	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
 
 	if (mat == NULL) return;
@@ -936,7 +936,7 @@ void fwl_set_TwoSidedMaterialStatus( struct Vector **shapeNodes, int whichEntry,
 		mat->_change++; // signal that this node has changed
 	}
 }
-		
+
 /* set current colour */
 void fwl_set_MaterialColourValue (struct Vector **shapeNodes, int whichEntry, int whichValue, int argbColour) {
 	struct X3D_FillProperties *fp;
@@ -953,7 +953,7 @@ void fwl_set_MaterialColourValue (struct Vector **shapeNodes, int whichEntry, in
 	}
 
 	// if we are here, we really do have at least one Shape node.
-	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);
 	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
 
 	if (mat == NULL) return;
@@ -980,7 +980,7 @@ void fwl_set_MaterialColourValue (struct Vector **shapeNodes, int whichEntry, in
 
 
 
-/* for a SeekBar, get a field, for a side, and return it as a % 0-100 
+/* for a SeekBar, get a field, for a side, and return it as a % 0-100
 	whichSide - 0->2 front side,
 		  - 3-n, back side,
 	whichField - 1 - shininess, 2 transparency, 3- Ambient Intensity
@@ -1021,7 +1021,7 @@ int fwl_get_MaterialFloatValue(struct Vector **shapeNodes, int whichEntry, int w
 				case 2: fcol = tmat->transparency; break;
 				case 3: fcol = tmat->ambientIntensity; break;
 				default: {
-					ConsoleMessage ("hmmm - expect 1-3, got %d",whichField); 
+					ConsoleMessage ("hmmm - expect 1-3, got %d",whichField);
 					return 0;
 				}
 			}
@@ -1031,7 +1031,7 @@ int fwl_get_MaterialFloatValue(struct Vector **shapeNodes, int whichEntry, int w
 				case 2: fcol = tmat->backTransparency; break;
 				case 3: fcol = tmat->backAmbientIntensity; break;
 				default: {
-					ConsoleMessage ("hmmm - expect 1-3, got %d",whichField); 
+					ConsoleMessage ("hmmm - expect 1-3, got %d",whichField);
 					return 0;
 				}
 			}
@@ -1082,7 +1082,7 @@ void fwl_set_MaterialFloatValue(struct Vector **shapeNodes, int whichEntry, int 
 				case 2: tmat->transparency=nnv; break;
 				case 3: tmat->ambientIntensity=nnv; break;
 				default: {
-					ConsoleMessage ("hmmm - expect 1-3, got %d",whichField); 
+					ConsoleMessage ("hmmm - expect 1-3, got %d",whichField);
 				}
 			}
 		} else {
@@ -1091,11 +1091,11 @@ void fwl_set_MaterialFloatValue(struct Vector **shapeNodes, int whichEntry, int 
 				case 2: tmat->backTransparency=nnv; break;
 				case 3: tmat->backAmbientIntensity=nnv; break;
 				default: {
-					ConsoleMessage ("hmmm - expect 1-3, got %d",whichField); 
+					ConsoleMessage ("hmmm - expect 1-3, got %d",whichField);
 				}
 			}
 		}
-	  	tmat->_change++; // signal that this node has changed	
+	  	tmat->_change++; // signal that this node has changed
 	} else {
 		ConsoleMessage ("getMaterialValue, expected a TwoSidedMaterial, not a %s\n",stringNodeType(mat->_nodeType));
 	}
@@ -1115,8 +1115,8 @@ void printNodeMemoryTable(void) {
 	int foundHoleCount = 0;
 
 LOCK_MEMORYTABLE
-	for (tc=0; tc<vectorSize(p->linearNodeTable); tc++){		
-		struct X3D_Node *node = vector_get(struct X3D_Node *,p->linearNodeTable,tc);	
+	for (tc=0; tc<vectorSize(p->linearNodeTable); tc++){
+		struct X3D_Node *node = vector_get(struct X3D_Node *,p->linearNodeTable,tc);
 
 		if (node != NULL) {
 		if (node->_nodeType == NODE_Shape)  {
@@ -1141,7 +1141,7 @@ LOCK_MEMORYTABLE
 				if (mt->transparency > 1.0) mt->transparency=0.0;
 				mt->_change ++;
 			}
-				
+
 		}
 
 /*
@@ -1195,7 +1195,7 @@ void setglClearColor (float *val) {
 	p->cc_alpha = *val;
 #endif
 	tg->OpenGL_Utils.cc_changed = TRUE;
-}        
+}
 
 // use phong shading - better light reflectivity if set to true
 void fwl_set_phongShading (int val) {
@@ -1223,7 +1223,7 @@ We have 2 choices; normal geometry, or we have a Geospatial sphere.
 
 If we have normal geometry (normal Viewpoint, or GeoViewpoint with GC coordinates)
 then, we take our AABB (axis alligned bounding box), rotate the 8 Vertices, and
-find the min/max Z distance, and just use this. 
+find the min/max Z distance, and just use this.
 
 This works very well for examine objects, or when we are within a virtual world.
 ----
@@ -1236,7 +1236,7 @@ going to see things past the origin, so we assume far plane is height above the 
 
 Second, we know our AABB contains the Geospatial sphere, and it ALSO contains the highest
 mountain peak, so we just go and find the value representing the highest peak. Our
-near plane is thus farPlane - highestPeak. 
+near plane is thus farPlane - highestPeak.
 
 **************************************************************************************/
 
@@ -1277,7 +1277,7 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
     ppOpenGL_Utils p = gglobal()->OpenGL_Utils.prv;
     struct Vector *myShaderTable = p->myShaderTable;
     struct shaderTableEntry *new = NULL;
-    
+
     for (i=0; i<vectorSize(myShaderTable); i++) {
         struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,myShaderTable, i);
         if (me->whichOne == rq_cap) {
@@ -1285,19 +1285,19 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
         }
     }
 
-    
+
     // if here, we did not find the shader already compiled for us.
-    
+
     //ConsoleMessage ("getMyShader, looking for %x",rq_cap);
-    
+
     //ConsoleMessage ("getMyShader, not found, have to create");
     //for (i=0; i<vectorSize(myShaderTable); i++) {
         //struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,myShaderTable, i);
         //ConsoleMessage ("getMyShader, i %d, rq_cap %x, me->whichOne %x myCap %p\n",i,rq_cap,me->whichOne,me->myCapabilities);
      //}
-     
 
-        
+
+
 
 
     /* GL_ES_VERSION_2_0 has GL_SHADER_COMPILER */
@@ -1313,7 +1313,7 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
 #endif
 
     // ConsoleMessage ("getMyShader, here now");
-    
+
 
 #ifdef VERBOSE
 #if defined (GL_SHADER_COMPILER) && defined (GL_HIGH_FLOAT)
@@ -1363,15 +1363,15 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
 #endif //VERBOSE
 
     new = MALLOC(struct shaderTableEntry *, sizeof (struct shaderTableEntry));
-        
+
     new ->whichOne = rq_cap;
     new->myCapabilities = MALLOC(s_shader_capabilities_t*, sizeof (s_shader_capabilities_t));
 
     //ConsoleMessage ("going to compile new shader for %x",rq_cap);
     makeAndCompileShader(new,p->usePhongShaders);
-        
+
     vector_pushBack(struct shaderTableEntry*, myShaderTable, new);
-    
+
     //ConsoleMessage ("going to return new %p",new);
     //ConsoleMessage ("... myCapabilities is %p",new->myCapabilities);
     return new->myCapabilities;
@@ -1687,14 +1687,14 @@ if (backFacing) { \n \
    dug9 Jan 5, 2014 change of strategy to accommodate ONE_MAT + ONE_TEX = 0x2 + 0x8 = 0x10
     - in frag main change to 'cascade of v4*v4' so it's easier to combine MAT with TEX
 	- frag main:
-		void main() { 
-			vec4 finalFrag = vec4(1.0,1.0,1.0,1.0); 
+		void main() {
+			vec4 finalFrag = vec4(1.0,1.0,1.0,1.0);
 			finalFrag = v_front_color * finalFrag; //material
 			finalFrag = texture2D(fw_Texture_unit0, v_texC.st) * finalFrag; //texture
 			gl_FragColor = finalFrag;
 		}
 
-   
+
 */
 
 //dug9 Jan 5, 2014 static const GLchar *fragMainStart = "void main() { vec4 finalFrag = vec4(0.,0.,0.,0.);\n";
@@ -1737,26 +1737,7 @@ const static GLchar *fragSingTexCubeAss = "finalFrag = textureCube(fw_Texture_un
  #define MTMODE_MODULATEINVALPHA_ADDCOLOR       15
  #define MTMODE_MODULATEALPHA_ADDCOLOR  16
  */
-const static GLchar *fragMulTexDef = " \
-#define MTMODE_ADDSIGNED2X    0\n \
-#define MTMODE_REPLACE        1\n \
-#define MTMODE_BLENDCURRENTALPHA      2\n \
-#define MTMODE_MODULATE       3\n \
-#define MTMODE_DOTPRODUCT3    4\n \
-#define MTMODE_SELECTARG2     5\n \
-#define MTMODE_SELECTARG1     6\n \
-#define MTMODE_BLENDDIFFUSEALPHA      7\n \
-#define MTMODE_SUBTRACT       8\n \
-#define MTMODE_ADD    9\n \
-#define MTMODE_MODULATEINVCOLOR_ADDALPHA      10\n \
-#define MTMODE_ADDSMOOTH      11\n \
-#define MTMODE_MODULATE2X     12\n \
-#define MTMODE_MODULATE4X     13\n \
-#define MTMODE_OFF    14\n \
-#define MTMODE_MODULATEINVALPHA_ADDCOLOR      15\n \
-#define MTMODE_MODULATEALPHA_ADDCOLOR 16\n \
-#define MTMODE_ADDSIGNED      17\n \
-";
+const static GLchar *fragMultiTexDef = MULTITEXTUREDefs;
 
 static const GLchar *fragMultiTexUniforms = " \
 /* defined for single textures... uniform sampler2D fw_Texture_unit0; */\
@@ -1913,7 +1894,7 @@ const static GLchar *pointSizeAss="gl_PointSize = pointSize; \n";
 static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker], const GLchar *fragmentSource[fragmentEndMarker], unsigned int whichOne, int usePhongShading) {
 
     bool doThis;
-	bool didADSLmaterial;    
+	bool didADSLmaterial;
 	/* GL_ES - do we have medium precision, or just low precision?? */
     /* Phong shading - use the highest we have */
     /* GL_ES_VERSION_2_0 has these definitions */
@@ -2012,7 +1993,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     #endif //VERBOSE
 #undef VERBOSE
 
-    
+
     /* Cross shader Fragment bits - GL_ES_VERSION_2_0 has this */
 #if defined(GL_ES_VERSION_2_0)
 	fragmentSource[fragmentGLSLVersion] = "#version 100\n";
@@ -2040,27 +2021,27 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 	fragmentSource[fragmentGLSLVersion] = "#version 120\n";
 	vertexSource[vertexGLSLVersion] = "#version 120\n";
 #endif
-    
+
     fragmentSource[fragMaxLightsDeclare] = maxLights;
     vertexSource[vertMaxLightsDeclare] = maxLights;
     vertexSource[vertexPositionDeclare] = vertPosDec;
-    
-    
+
+
 
     /* User defined shaders - only give the defines, let the user do the rest */
-    
+
     if ((whichOne & USER_DEFINED_SHADER_MASK) == 0) {
 	/* initialize */
-    
+
     /* Generic things first */
 
     /* Cross shader Vertex bits */
-        
+
     vertexSource[vertexMainStart] = vertMainStart;
     vertexSource[vertexPositionCalculation] = vertPos;
     vertexSource[vertexMainEnd] = vertEnd;
-    
- 
+
+
     fragmentSource[fragmentMainStart] = fragMainStart;
 	if(Viewer()->anaglyph)
 		fragmentSource[fragmentMainEnd] = anaglyphGrayFragEnd;
@@ -2069,10 +2050,10 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         else fragmentSource[fragmentMainEnd] = fragEnd;
         //fragmentSource[fragmentMainEnd] = discardInFragEnd;
     }
-    
+
     //ConsoleMessage ("whichOne %x mask %x",whichOne,~whichOne);
-    
-    
+
+
     /* specific strings for specific shader capabilities */
 
     if DESIRE(whichOne,COLOUR_MATERIAL_SHADER) {
@@ -2084,18 +2065,18 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         fragmentSource[fragmentSimpleColourDeclare] = varyingFrontColour;
         fragmentSource[fragmentSimpleColourAssign] = fragSimColAss;
     }
-    
+
     if DESIRE(whichOne,NO_APPEARANCE_SHADER) {
         fragmentSource[fragmentSimpleColourAssign] = fragNoAppAss;
 	    vertexSource[vertexPointSizeDeclare] = pointSizeDeclare;
 	    vertexSource[vertexPointSizeAssign] = pointSizeAss;
 
     }
-    
 
-    /* One or TWO material no texture shaders - one material, choose between 
+
+    /* One or TWO material no texture shaders - one material, choose between
      Phong shading (slower) or Gouraud shading (faster). */
-    
+
     if (usePhongShading) {
         doThis = (DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER)) ||
             (DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER));
@@ -2107,7 +2088,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         vertexSource[vertexNormPosOutput] = varyingNormPos;
         vertexSource[vertexNormalDeclare] = vertNormDec;
         vertexSource[vertexNormPosCalculation] = vertNormPosCalc;
-        
+
         fragmentSource[fragmentLightDefines] = lightDefines;
         fragmentSource[fragmentOneColourDeclare] = vertOneMatDec;
         fragmentSource[fragmentBackColourDeclare] = vertBackMatDec;
@@ -2116,11 +2097,11 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         fragmentSource[fragmentADSLAssign] = fragADSLAss;
 
     }
-        
+
 
         /* TWO_MATERIAL_APPEARANCE_SHADER - this does not crop up
          that often, so just use the PHONG shader. */
-	didADSLmaterial = false;        
+	didADSLmaterial = false;
     if((DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER)) && (!usePhongShading)) {
         vertexSource[vertexNormalDeclare] = vertNormDec;
         vertexSource[vertexLightDefines] = lightDefines;
@@ -2133,9 +2114,9 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         vertexSource[vertexADSLCalculation] = vertADSLCalc;
 		didADSLmaterial = true;
         fragmentSource[fragmentOneColourDeclare] = varyingFrontColour;
-        fragmentSource[fragmentOneColourAssign] = fragFrontColAss;    
+        fragmentSource[fragmentOneColourAssign] = fragFrontColAss;
     }
-    
+
 
         if DESIRE(whichOne,HAVE_LINEPOINTS_APPEARANCE) {
             vertexSource[vertexLightDefines] = lightDefines;
@@ -2165,11 +2146,11 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             if(didADSLmaterial)
             	vertexSource[vertexADSLCalculation] = vertADSLCalc0; //over-ride material diffuseColor with texture
 
-            fragmentSource[fragmentTexCoordDeclare] = varyingTexCoord; 
+            fragmentSource[fragmentTexCoordDeclare] = varyingTexCoord;
             fragmentSource[fragmentTex0Declare] = fragTex0Dec;
             fragmentSource[fragmentTextureAssign] = fragSingTexAss;
         }
-    
+
         /* Cubemaps - do not multi-texture these yet */
     if (DESIRE(whichOne,HAVE_CUBEMAP_TEXTURE)) {
         vertexSource[vertexSingleTextureCalculation] = vertSingTexCubeCalc;
@@ -2182,7 +2163,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         if DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER) {
             /* we have to do the material params, in case we need to
                 modulate/play with this. */
-            
+
             vertexSource[vertexOneMaterialDeclare] = vertOneMatDec;
             vertexSource[vertexLightDefines] = lightDefines;
             vertexSource[vertexNormPosCalculation] = vertNormPosCalc;
@@ -2191,34 +2172,34 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             vertexSource[vertexBackMaterialDeclare] = vertBackMatDec;
 
             fragmentSource[fragmentMultiTexDefines]= fragMultiTexUniforms;
-            fragmentSource[fragmentMultiTexDeclare] = fragMulTexDef;
+            fragmentSource[fragmentMultiTexDeclare] = fragMultiTexDef;
             fragmentSource[fragmentTex0Declare] = fragTex0Dec;
             fragmentSource[fragmentMultiTexModel] = fragMulTexFunc;
             fragmentSource[fragmentTextureAssign] = fragMulTexCalc;
         }
-    
+
     /* TextureCoordinateGenerator - do calcs in Vertex, fragment like one texture */
     if DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) {
         /* the vertex single texture calculation is different from normal single texture */
         /* pass in the type of generator, and do the calculations */
         vertexSource[vertexTextureMatrixDeclare] = vertTexCoordGenDec;
         vertexSource[vertexSingleTextureCalculation] = sphEnvMapCalc;
-        
-        
+
+
     }
-        
+
         if DESIRE(whichOne,FILL_PROPERTIES_SHADER) {
             /* just add on top of the other shaders the fill properties "stuff" */
 
             vertexSource[vertexHatchPositionDeclare] = varyingHatchPosition;
             vertexSource[vertexHatchPositionCalculation] = vertHatchPosCalc;
-            
+
             fragmentSource[fragmentFillPropDefines] = fillPropDefines;
             fragmentSource[fragmentHatchPositionDeclare] = varyingHatchPosition;
             fragmentSource[fragmentFillPropModel] = fragFillPropFunc;
             fragmentSource[fragmentFillPropAssign] = fragFillPropCalc;
-        } 
-    
+        }
+
     } else {
     // user defined shaders
     if (whichOne >= USER_DEFINED_SHADER_START) {
@@ -2226,14 +2207,14 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         ppOpenGL_Utils p;
         ttglobal tg = gglobal();
         p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
-        
-        me = (whichOne / USER_DEFINED_SHADER_START) -1; 
+
+        me = (whichOne / USER_DEFINED_SHADER_START) -1;
         //ConsoleMessage ("HAVE USER DEFINED SHADER %x",whichOne);
-        
+
         // add the following:
         // this has both Vertex manipulations, and lighting, etc.
-//                    #define HEADLIGHT_LIGHT (MAX_LIGHTS-1)\n 
-        vertexSource[vertexMainStart] = 
+//                    #define HEADLIGHT_LIGHT (MAX_LIGHTS-1)\n
+        vertexSource[vertexMainStart] =
                     "vec4 ftransform() {return vec4 (fw_ProjectionMatrix*fw_ModelViewMatrix*fw_Vertex);}\n \
                     #define gl_ModelViewProjectionMatrix (fw_ProjectionMatrix*fw_ModelViewMatrix)\n \
                     #define gl_NormalMatrix fw_NormalMatrix\n \
@@ -2248,62 +2229,62 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
                     #define gl_MultiTexCoord1 fw_MultiTexCoord1\n \
                     #define gl_Texture_unit2 fw_Texture_unit2\n \
                     #define gl_MultiTexCoord2 fw_MultiTexCoord2\n \
-                    #define gl_LightSource fw_LightSource\n ";    
+                    #define gl_LightSource fw_LightSource\n ";
 
 	// copy over the same defines, but for the fragment shader.
     // Some GLSL compilers will complain about the "fttransform()"
     // definition if defined in a Fragment shader, so we judiciously
     // copy over things that are fragment-only.
-        
-//                   #define HEADLIGHT_LIGHT (MAX_LIGHTS-1)\n 
+
+//                   #define HEADLIGHT_LIGHT (MAX_LIGHTS-1)\n
 	fragmentSource[fragmentMainStart] = " \
                     #define gl_NormalMatrix fw_NormalMatrix\n \
                     #define gl_Normal fw_Normal\n \
-                    #define gl_LightSource fw_LightSource\n ";    
+                    #define gl_LightSource fw_LightSource\n ";
 
-        
-        
+
+
 
         vertexSource[vertexLightDefines] = lightDefines;
         vertexSource[vertexSimpleColourDeclare] = vertSimColDec;
         vertexSource[vertFrontColourDeclare] = varyingFrontColour;
 
-        
+
 
         vertexSource[vertexNormalDeclare] = vertNormDec;
         fragmentSource[fragmentLightDefines] = lightDefines;
         //ConsoleMessage ("sources here for %d are %p and %p", me, p->userDefinedVertexShader[me], p->userDefinedFragmentShader[me]);
-        
+
         if ((p->userDefinedVertexShader[me] == NULL) || (p->userDefinedFragmentShader[me]==NULL)) {
             ConsoleMessage ("no Shader Source found for user defined shaders...");
             return false;
-            
+
         }
         fragmentSource[fragmentUserDefinedInput] = p->userDefinedFragmentShader[me];
-        vertexSource[vertexUserDefinedInput] = p->userDefinedVertexShader[me];    
+        vertexSource[vertexUserDefinedInput] = p->userDefinedVertexShader[me];
 
-        
+
     }
     }
-    
+
 //#define VERBOSE
     #ifdef VERBOSE
 	/* print out the vertex source here */
 		{
 			vertexShaderResources_t x1;
-			fragmentShaderResources_t x2; 
+			fragmentShaderResources_t x2;
             int i;
 
 			ConsoleMessage ("Vertex source:\n");
 			for (x1=vertexGLSLVersion; x1<vertexEndMarker; x1++) {
                     if (strlen(vertexSource[x1])>0)
-				ConsoleMessage(vertexSource[x1]); 
+				ConsoleMessage(vertexSource[x1]);
         }
 			ConsoleMessage("Fragment Source:\n");
             i=0;
 			for (x2=fragmentGLSLVersion; x2<fragmentEndMarker; x2++) {
 				if (strlen(fragmentSource[x2])>0)
-                ConsoleMessage(fragmentSource[x2]); 
+                ConsoleMessage(fragmentSource[x2]);
             }
 		}
 	#endif //VERBOSE
@@ -2313,35 +2294,35 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 
 
 static void makeAndCompileShader(struct shaderTableEntry *me, bool phongShading) {
-   
+
     GLint success;
 	GLuint myVertexShader = 0;
 	GLuint myFragmentShader= 0;
-    
+
 	GLuint myProg = 0;
 	s_shader_capabilities_t *myShader = me->myCapabilities;
 	const GLchar *vertexSource[vertexEndMarker];
 	const GLchar  *fragmentSource[fragmentEndMarker];
    	vertexShaderResources_t x1;
-	fragmentShaderResources_t x2; 
-  
+	fragmentShaderResources_t x2;
+
 
 #ifdef VERBOSE
         ConsoleMessage ("makeAndCompileShader called");
 #endif //VERBOSE
-#undef VERBOSE 
+#undef VERBOSE
 
    	/* initialize shader sources to blank strings, later we'll fill it in */
-	for (x1=vertexGLSLVersion; x1<vertexEndMarker; x1++) 
-		vertexSource[x1] = ""; 
-	for (x2=fragmentGLSLVersion; x2<fragmentEndMarker; x2++) 
-		fragmentSource[x2] = ""; 
+	for (x1=vertexGLSLVersion; x1<vertexEndMarker; x1++)
+		vertexSource[x1] = "";
+	for (x2=fragmentGLSLVersion; x2<fragmentEndMarker; x2++)
+		fragmentSource[x2] = "";
 
 
 	/* pointerize this */
 	myProg = glCreateProgram(); /* CREATE_PROGRAM */
 	(*myShader).myShaderProgram = myProg;
-    
+
 	/* assume the worst... */
 	(*myShader).compiledOK = FALSE;
 
@@ -2350,7 +2331,7 @@ static void makeAndCompileShader(struct shaderTableEntry *me, bool phongShading)
 		return;
 	}
 
-    
+
 	myVertexShader = CREATE_SHADER (VERTEX_SHADER);
 	SHADER_SOURCE(myVertexShader, vertexEndMarker, ((const GLchar **)vertexSource), NULL);
 	COMPILE_SHADER(myVertexShader);
@@ -2358,10 +2339,10 @@ static void makeAndCompileShader(struct shaderTableEntry *me, bool phongShading)
 	if (!success) {
 		shaderErrorLog(myVertexShader,"VERTEX");
 	} else {
-        
+
 		ATTACH_SHADER(myProg, myVertexShader);
 	}
-    
+
 	/* get Fragment shader */
 	myFragmentShader = CREATE_SHADER (FRAGMENT_SHADER);
 	SHADER_SOURCE(myFragmentShader, fragmentEndMarker, (const GLchar **) fragmentSource, NULL);
@@ -2375,15 +2356,15 @@ static void makeAndCompileShader(struct shaderTableEntry *me, bool phongShading)
 
 	LINK_SHADER(myProg);
 
-	glGetProgramiv(myProg,GL_LINK_STATUS, &success); 
+	glGetProgramiv(myProg,GL_LINK_STATUS, &success);
 	(*myShader).compiledOK = (success == GL_TRUE);
-    
+
 	getShaderCommonInterfaces(myShader);
 }
 static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	GLuint myProg = me->myShaderProgram;
     int i;
-    
+
 
 	#ifdef SHADERVERBOSE
 	{
@@ -2393,7 +2374,7 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	int i;
 	GLchar sl[3000];
 
-	
+
 	printf ("getShaderCommonInterfaces, I am program %d\n",myProg);
 
 	if (glIsProgram(myProg)) printf ("getShaderCommonInterfaces, %d is a program\n",myProg); else printf ("hmmm - it is not a program!\n");
@@ -2442,104 +2423,104 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
         //me->lightType = GET_UNIFORM(myProg,"lightType");
         //me->lightRadius = GET_UNIFORM(myProg,"lightRadius");
 	me->lightcount = GET_UNIFORM(myProg,"lightcount");
-    
+
     /* get lights in a more normal OpenGL GLSL format */
-    
+
     /*
-     struct gl_LightSourceParameters 
-     {   
-        vec4 ambient;              // Aclarri   
-        vec4 diffuse;              // Dcli   
-        vec4 specular;             // Scli   
-        vec4 position;             // Ppli   
-        vec4 halfVector;           // Derived: Hi   
-        vec4 spotDirection;        // Sdli   
-        float spotExponent;        // Srli   
-        float spotCutoff;          // Crli                                
-        float spotCosCutoff;       // Derived: cos(Crli)                   
+     struct gl_LightSourceParameters
+     {
+        vec4 ambient;              // Aclarri
+        vec4 diffuse;              // Dcli
+        vec4 specular;             // Scli
+        vec4 position;             // Ppli
+        vec4 halfVector;           // Derived: Hi
+        vec4 spotDirection;        // Sdli
+        float spotExponent;        // Srli
+        float spotCutoff;          // Crli
+        float spotCosCutoff;       // Derived: cos(Crli)
 		vec3 Attenuations (const,lin,quad)
-        //float constantAttenuation; // K0   
-        //float linearAttenuation;   // K1   
-        //float quadraticAttenuation;// K2  
+        //float constantAttenuation; // K0
+        //float linearAttenuation;   // K1
+        //float quadraticAttenuation;// K2
 		float lightRadius;
 		int lightType;
-     };    
-     
-     
+     };
+
+
      uniform gl_LightSourceParameters gl_LightSource[gl_MaxLights];
      */
 
     {
         char uniformName[100];
-        me->haveLightInShader = false; 
-        
+        me->haveLightInShader = false;
+
         strcpy(uniformName,"fw_LightSource[0].");
         for (i=0; i<MAX_LIGHTS; i++) {
             /* go through and modify the array for each variable */
             uniformName[15] = '0' + i;
-        
+
             strcpy(&uniformName[18],"ambient");
-            
+
             //ConsoleMessage ("have uniform name request :%s:",uniformName);
             me->lightAmbient[i] = GET_UNIFORM(myProg,uniformName);
-        
+
             //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightAmbient[i]);
 
             strcpy(&uniformName[18],"diffuse");
             me->lightDiffuse[i] = GET_UNIFORM(myProg,uniformName);
             //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightDiffuse[i]);
-            
+
 
             strcpy(&uniformName[18],"specular");
             me->lightSpecular[i] = GET_UNIFORM(myProg,uniformName);
             //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpecular[i]);
-            
+
 
             strcpy(&uniformName[18],"position");
             me->lightPosition[i] = GET_UNIFORM(myProg,uniformName);
             //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightPosition[i]);
-            
+
 
             // flag used to determine if we have to send light position info to this shader
             if (me->lightPosition[i] != -1) me->haveLightInShader = true;
-        
+
             strcpy(&uniformName[18],"spotDirection");
             me->lightSpotDir[i] = GET_UNIFORM(myProg,uniformName);
             //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpotDir[i]);
-            
 
-            strcpy(&uniformName[18],"spotExponent");   
+
+            strcpy(&uniformName[18],"spotExponent");
             me->lightSpotBeamWidth[i] = GET_UNIFORM(myProg,uniformName);
             //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpotBeamWidth[i]);
-            
 
-            strcpy(&uniformName[18],"spotCutoff");  
+
+            strcpy(&uniformName[18],"spotCutoff");
             me->lightSpotCutoffAngle[i] = GET_UNIFORM(myProg,uniformName);
             //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpotCutoffAngle[i]);
-            
 
-            strcpy(&uniformName[18],"Attenuations"); 
+
+            strcpy(&uniformName[18],"Attenuations");
             me->lightAtten[i] = GET_UNIFORM(myProg,uniformName);
 
-	//strcpy(&uniformName[18],"constantAttenuation"); 
+	//strcpy(&uniformName[18],"constantAttenuation");
             //me->lightConstAtten[i] = GET_UNIFORM(myProg,uniformName);
             ////ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightConstAtten[i]);
             //
-            
+
             //strcpy(&uniformName[18],"linearAttenuation");
             //me->lightLinAtten[i] = GET_UNIFORM(myProg,uniformName);
             ////ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightLinAtten[i]);
             //
 
-            //strcpy(&uniformName[18],"quadraticAttenuation"); 
+            //strcpy(&uniformName[18],"quadraticAttenuation");
             //me->lightQuadAtten[i] = GET_UNIFORM(myProg,uniformName);
             ////ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightQuadAtten[i]);
-            
-            strcpy(&uniformName[18],"lightRadius"); 
+
+            strcpy(&uniformName[18],"lightRadius");
             me->lightRadius[i] = GET_UNIFORM(myProg,uniformName);
             //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightQuadAtten[i]);
 
-			strcpy(&uniformName[18],"lightType"); 
+			strcpy(&uniformName[18],"lightType");
             me->lightType[i] = GET_UNIFORM(myProg,uniformName);
             //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightQuadAtten[i]);
 
@@ -2547,13 +2528,13 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
     }
 
     //if (me->haveLightInShader) ConsoleMessage ("this shader HAS lightfields");
-    
+
 	me->ModelViewMatrix = GET_UNIFORM(myProg,"fw_ModelViewMatrix");
 	me->ProjectionMatrix = GET_UNIFORM(myProg,"fw_ProjectionMatrix");
 	me->NormalMatrix = GET_UNIFORM(myProg,"fw_NormalMatrix");
 	me->TextureMatrix = GET_UNIFORM(myProg,"fw_TextureMatrix");
 	me->Vertices = GET_ATTRIB(myProg,"fw_Vertex");
-    
+
 	me->Normals = GET_ATTRIB(myProg,"fw_Normal");
 	me->Colours = GET_ATTRIB(myProg,"fw_Color");
 
@@ -2567,13 +2548,13 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
         sprintf (line,"fw_Texture_mode%d",i);
         me->TextureMode[i] = GET_UNIFORM(myProg,line);
         //printf ("   i %d tu %d mode %d\n",i,me->TextureUnit[i],me->TextureMode[i]);
-        
+
     }
-    
+
     me->textureCount = GET_UNIFORM(myProg,"textureCount");
     //printf ("GETUNIFORM for textureCount is %d\n",me->textureCount);
-    
-    
+
+
 	/* for FillProperties */
 	me->myPointSize = GET_UNIFORM(myProg, "pointSize");
 	me->hatchColour = GET_UNIFORM(myProg,"HatchColour");
@@ -2582,18 +2563,18 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->filledBool = GET_UNIFORM(myProg,"filled");
 	me->hatchedBool = GET_UNIFORM(myProg,"hatched");
 	me->algorithm = GET_UNIFORM(myProg,"algorithm");
-    
+
     /* TextureCoordinateGenerator */
     me->texCoordGenType = GET_UNIFORM(myProg,"fw_textureCoordGenType");
 
 
 	#ifdef VERBOSE
 	printf ("shader uniforms: vertex %d normal %d modelview %d projection %d\n",
-		me->Vertices, me->Normals, me->ModelViewMatrix, me->ProjectionMatrix); 
+		me->Vertices, me->Normals, me->ModelViewMatrix, me->ProjectionMatrix);
         printf ("hatchColour %d, hatchPercent %d",me->hatchColour, me->hatchPercent);
 	#endif
 
-    
+
 }
 
 
@@ -2609,7 +2590,7 @@ static void handle_GeoLODRange(struct X3D_GeoLOD *node) {
 
 	/* try to see if we are closer than the range */
 	oldInRange = node->__inRange;
-    
+
     /* handle squares, as it is faster than doing square roots */
 	if((cx*cx+cy*cy+cz*cz) > (node->range * node->range)) {
 		node->__inRange = FALSE;
@@ -2617,7 +2598,7 @@ static void handle_GeoLODRange(struct X3D_GeoLOD *node) {
 		node->__inRange = TRUE;
 	}
 
-	
+
 	if (oldInRange != node->__inRange) {
 
 		#ifdef VERBOSE
@@ -2632,12 +2613,12 @@ static void handle_GeoLODRange(struct X3D_GeoLOD *node) {
 		if (node->__inRange == TRUE) { //dug9 FALSE) {
 			#ifdef VERBOSE
 			printf ("GeoLOD %u level %d, inRange set to FALSE, range %lf\n",node, node->__level, node->range);
-			#endif		
+			#endif
 			node->level_changed = 1;
-			node->children.p[0] = node->__child1Node; 
-			node->children.p[1] = node->__child2Node; 
-			node->children.p[2] = node->__child3Node; 
-			node->children.p[3] = node->__child4Node; 
+			node->children.p[0] = node->__child1Node;
+			node->children.p[1] = node->__child2Node;
+			node->children.p[2] = node->__child3Node;
+			node->children.p[3] = node->__child4Node;
 			node->children.n = 4;
 		} else {
 			#ifdef VERBOSE
@@ -2652,7 +2633,7 @@ static void handle_GeoLODRange(struct X3D_GeoLOD *node) {
 			}
 			else if( node->rootNode.p && node->rootNode.p[0] )
 			{
-				node->children.p[0] = node->rootNode.p[0]; 
+				node->children.p[0] = node->rootNode.p[0];
 				node->children.n = 1;
 			}
 		}
@@ -2679,59 +2660,59 @@ void drawBBOX(struct X3D_Node *node) {
 /* debugging */	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
 /* debugging */	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
 /* debugging */	glEnd();
-/* debugging */	
+/* debugging */
 /* debugging */	glBegin (GL_LINES);
 /* debugging */	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
 /* debugging */	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
 /* debugging */	glEnd();
-/* debugging */	
+/* debugging */
 /* debugging */	glBegin (GL_LINES);
 /* debugging */	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
 /* debugging */	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
 /* debugging */	glEnd();
-/* debugging */	
+/* debugging */
 /* debugging */	glBegin (GL_LINES);
 /* debugging */	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
 /* debugging */	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
 /* debugging */	glEnd();
-/* debugging */	
+/* debugging */
 /* debugging */	/* right group */
 /* debugging */	glBegin (GL_LINES);
 /* debugging */	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
 /* debugging */	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
 /* debugging */	glEnd();
-/* debugging */	
+/* debugging */
 /* debugging */	glBegin (GL_LINES);
 /* debugging */	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
 /* debugging */	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
 /* debugging */	glEnd();
-/* debugging */	
+/* debugging */
 /* debugging */	glBegin (GL_LINES);
 /* debugging */	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
 /* debugging */	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
 /* debugging */	glEnd();
-/* debugging */	
+/* debugging */
 /* debugging */	glBegin (GL_LINES);
 /* debugging */	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
 /* debugging */	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
 /* debugging */	glEnd();
-/* debugging */	
+/* debugging */
 /* debugging */	/* joiners */
 /* debugging */	glBegin (GL_LINES);
 /* debugging */	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
 /* debugging */	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
 /* debugging */	glEnd();
-/* debugging */	
+/* debugging */
 /* debugging */	glBegin (GL_LINES);
 /* debugging */	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
 /* debugging */	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
 /* debugging */	glEnd();
-/* debugging */	
+/* debugging */
 /* debugging */	glBegin (GL_LINES);
 /* debugging */	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
 /* debugging */	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
 /* debugging */	glEnd();
-/* debugging */	
+/* debugging */
 /* debugging */	glBegin (GL_LINES);
 /* debugging */	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
 /* debugging */	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
@@ -2748,11 +2729,11 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
     bool doingGeoSpatial = false;
     double bboxMovedCentreZ = 0.0;
     double bboxSphereRadius = 0.0;
-    
+
 #ifdef VERBOSE
     int smooger = 0;
 #endif
-    
+
 	int ci;
     struct X3D_Group* rn = rootNode();
 	ttglobal tg = gglobal();
@@ -2769,7 +2750,7 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 
 
 	/* verify parameters here */
-	if ((vpnode->_nodeType != NODE_Viewpoint) && 
+	if ((vpnode->_nodeType != NODE_Viewpoint) &&
 		(vpnode->_nodeType != NODE_OrthoViewpoint) &&
 		(vpnode->_nodeType != NODE_GeoViewpoint)) {
 		printf ("can not do this node type yet %s, for cpf\n",stringNodeType(vpnode->_nodeType));
@@ -2777,12 +2758,12 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 		viewer->farPlane = DEFAULT_FARPLANE;
 		viewer->backgroundPlane = DEFAULT_BACKGROUNDPLANE;
 		return;
-	}	
+	}
 
     if (vpnode->_nodeType == NODE_GeoViewpoint) {
         doingGeoSpatial = true;
     }
-    
+
 	if (rn == NULL) {
 		return; /* nothing to display yet */
 	}
@@ -2799,21 +2780,21 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
             bboxSphereRadius = rn->EXTENT_MAX_Z - rn->EXTENT_MIN_Z;
         }
         bboxSphereRadius /=2.0; // diameter to radius
-        
+
 #ifdef VERBOSE
         if (smooger == 0) {
             ConsoleMessage ("bboxSphereRadius %lf",bboxSphereRadius);
         }
 #endif
-        
+
     }
-    
+
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, MM);
 
 		#ifdef VERBOSE
 		printf ("rootNode extents x: %4.2f %4.2f  y:%4.2f %4.2f z: %4.2f %4.2f\n",rootNode()->EXTENT_MAX_X, rootNode()->EXTENT_MIN_X,rootNode()->EXTENT_MAX_Y, rootNode()->EXTENT_MIN_Y,rootNode()->EXTENT_MAX_Z, rootNode()->EXTENT_MIN_Z);
 		#endif
-    
+
 		/* make up 8 vertices for our bounding box, and place them within our view */
         moveAndRotateThisPoint(&bboxPoints[0], rn->EXTENT_MIN_X, rn->EXTENT_MIN_Y, rn->EXTENT_MIN_Z,MM);
         moveAndRotateThisPoint(&bboxPoints[1], rn->EXTENT_MIN_X, rn->EXTENT_MIN_Y, rn->EXTENT_MAX_Z,MM);
@@ -2823,30 +2804,30 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
         moveAndRotateThisPoint(&bboxPoints[5], rn->EXTENT_MAX_X, rn->EXTENT_MIN_Y, rn->EXTENT_MAX_Z,MM);
         moveAndRotateThisPoint(&bboxPoints[6], rn->EXTENT_MAX_X, rn->EXTENT_MAX_Y, rn->EXTENT_MIN_Z,MM);
         moveAndRotateThisPoint(&bboxPoints[7], rn->EXTENT_MAX_X, rn->EXTENT_MAX_Y, rn->EXTENT_MAX_Z,MM);
-		
-    
-                
+
+
+
 		for (ci=0; ci<8; ci++) {
             bboxMovedCentreZ += bboxPoints[ci].z;
-        
+
 			#ifdef XXVERBOSE
-            if (smooger == 0) 
+            if (smooger == 0)
 			printf ("moved bbox node %d is %4.2f %4.2f %4.2f\n",ci,bboxPoints[ci].x, bboxPoints[ci].y, bboxPoints[ci].z);
 			#endif
-	
+
             if (!doingGeoSpatial) {
                 if (-(bboxPoints[ci].z) > cfp) cfp = -(bboxPoints[ci].z);
                 if (-(bboxPoints[ci].z) < cnp) cnp = -(bboxPoints[ci].z);
             }
 		}
-    
+
     bboxMovedCentreZ /= 8.0; // average of 8 z values from bbox
-    
+
     if (doingGeoSpatial) {
         cnp = -bboxMovedCentreZ - bboxSphereRadius;
         cfp = -bboxMovedCentreZ; // + bboxSphereRadius;
     }
-    
+
 #ifdef VERBOSE
     if (smooger==0) {
         ConsoleMessage ("centre of bbox is %lf Z away",bboxMovedCentreZ);
@@ -2860,7 +2841,7 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 	cnp = cnp/2.0;
 	if (cnp<DEFAULT_NEARPLANE) cnp = DEFAULT_NEARPLANE;
 
-	if (cfp<1.0) cfp = 1.0;	
+	if (cfp<1.0) cfp = 1.0;
 	/* if we are moving, or if we have something with zero depth, floating point calculation errors could
 	   give us a geometry that is at (or, over) the far plane. Eg, tests/49.wrl, where we have Text nodes,
 	   can give us this issue; so lets give us a bit of leeway here, too */
@@ -2869,10 +2850,10 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 
 	#ifdef VERBOSE
 	if (smooger == 0) {
-        
+
         printf ("cnp %lf cfp before leaving room for Background %lf\n",cnp,cfp);
         //cnp = 0.1; cfp = 75345215.0 * 2.0;
-    } 
+    }
 #endif
 
     /* do we have a GeoViewpoint, and is the near plane about zero?                     */
@@ -2889,12 +2870,12 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
             smooger ++; if (smooger == 100) smooger = 0;
         }
 #endif
-#undef VERBOSE 
+#undef VERBOSE
 
     }
-    
+
 	/* lets use these values; leave room for a Background or TextureBackground node here */
-	viewer->nearPlane = cnp; 
+	viewer->nearPlane = cnp;
 	/* backgroundPlane goes between the farthest geometry, and the farPlane */
 	if (vectorSize(tg->Bindable.background_stack)!= 0) {
 		viewer->farPlane = cfp * 10.0;
@@ -3008,33 +2989,33 @@ bool fwl_initialize_GL()
 
 
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 4");
-        
+
 	FW_GL_MATRIX_MODE(GL_PROJECTION);
 	FW_GL_LOAD_IDENTITY();
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
-    
+
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 6");
-    
+
 	FW_GL_CLEAR_COLOR(p->cc_red, p->cc_green, p->cc_blue, p->cc_alpha);
 
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 7");
-    
+
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 8");
-    
+
 
 	FW_GL_DEPTHFUNC(GL_LEQUAL);
 	glEnable(GL_DEPTH_TEST);
-    
+
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 9");
-    
+
 	gl_linewidth = gglobal()->Mainloop.gl_linewidth;
-   
+
     // dp pointSize in shaders on more modern OpenGL renderings
     // keep Windows and Linux doing old way, as we have failures
     // circa 2013 in this.
 
     #if defined  (AQUA) || defined (GL_ES_VERSION_2_0)
-    	#if defined (GL_PROGRAM_POINT_SIZE) 
+    	#if defined (GL_PROGRAM_POINT_SIZE)
     	glEnable(GL_PROGRAM_POINT_SIZE);
     	#endif
     	#if defined (GL_PROGRAM_POINT_SIZE_EXT)
@@ -3045,9 +3026,9 @@ bool fwl_initialize_GL()
     #endif
 
 	glLineWidth(gl_linewidth);
-    
+
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start a");
-    
+
 
 
 	/*
@@ -3059,32 +3040,32 @@ bool fwl_initialize_GL()
 	glEnable(GL_BLEND);
 	FW_GL_BLENDFUNC(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	FW_GL_CLEAR(GL_COLOR_BUFFER_BIT);
-    
+
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start b");
-    
+
 	/* for textured appearance add specular highlights as a separate secondary color
 	   redbook p.270, p.455 and http://www.gamedev.net/reference/programming/features/oglch9excerpt/
 
 	   if we don't have texture we can disable this (less computation)...
 	   but putting this here is already a saving ;)...
 	*/
-    
+
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start c0");
-    
+
 	/* keep track of light states; initial turn all lights off except for headlight */
 	initializeLightTables();
-   
+
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start c1");
-    
+
 
 	/* ensure state of GL_CULL_FACE */
 	CULL_FACE_INITIALIZE;
 
 	FW_GL_PIXELSTOREI(GL_UNPACK_ALIGNMENT,1);
 	FW_GL_PIXELSTOREI(GL_PACK_ALIGNMENT,1);
-    
+
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start c");
-    
+
 
         /* create an empty texture, defaultBlankTexture, to be used when a texture is loading, or if it fails */
         FW_GL_GENTEXTURES (1,&tg->Textures.defaultBlankTexture);
@@ -3092,9 +3073,9 @@ bool fwl_initialize_GL()
         FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         FW_GL_TEXIMAGE2D(GL_TEXTURE_2D, 0, GL_RGBA,  1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, blankTexture);
-        
+
         PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start d");
-        
+
 	/* remove entries in the shader table, if they exist. Android, on "bring to front" will
 	   call this routine, and shaders will be re-created as they are needed to display geometry.
 	*/
@@ -3118,7 +3099,7 @@ bool fwl_initialize_GL()
 void BackEndClearBuffer(int which) {
 	if(which == 2) {
 		FW_GL_CLEAR(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	} else { 
+	} else {
 		if(which==1) {
 			FW_GL_CLEAR(GL_DEPTH_BUFFER_BIT);
 		}
@@ -3161,7 +3142,7 @@ void fw_glLoadIdentity(void) {
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
     //ConsoleMessage ("fw_glLoadIdentity, whichMode %d, tex %d",p->whichMode,GL_TEXTURE);
 	loadIdentityMatrix(p->currentMatrix);
-	FW_GL_LOADMATRIX(p->currentMatrix); 
+	FW_GL_LOADMATRIX(p->currentMatrix);
 }
 
 #define PUSHMAT(a,b,c,d) case a: \
@@ -3182,7 +3163,7 @@ void fw_glPushMatrix(void) {
 		default :printf ("wrong mode in popMatrix\n");
 	}
 
- 	FW_GL_LOADMATRIX(p->currentMatrix); 
+ 	FW_GL_LOADMATRIX(p->currentMatrix);
 #undef PUSHMAT
 }
 
@@ -3198,7 +3179,7 @@ void fw_glPopMatrix(void) {
 		default :printf ("wrong mode in popMatrix\n");
 	}
 
- 	FW_GL_LOADMATRIX(p->currentMatrix); 
+ 	FW_GL_LOADMATRIX(p->currentMatrix);
 }
 #undef POPMAT
 
@@ -3214,7 +3195,7 @@ void fw_glTranslated(GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
 	p->currentMatrix[14] = p->currentMatrix[2] * x + p->currentMatrix[6] * y + p->currentMatrix[10] * z + p->currentMatrix[14];
 	p->currentMatrix[15] = p->currentMatrix[3] * x + p->currentMatrix[7] * y + p->currentMatrix[11] * z + p->currentMatrix[15];
 
- 	FW_GL_LOADMATRIX(p->currentMatrix); 
+ 	FW_GL_LOADMATRIX(p->currentMatrix);
 }
 
 void fw_glTranslatef(float x, float y, float z) {
@@ -3226,7 +3207,7 @@ void fw_glTranslatef(float x, float y, float z) {
 	p->currentMatrix[14] = p->currentMatrix[2] * x + p->currentMatrix[6] * y + p->currentMatrix[10] * z + p->currentMatrix[14];
 	p->currentMatrix[15] = p->currentMatrix[3] * x + p->currentMatrix[7] * y + p->currentMatrix[11] * z + p->currentMatrix[15];
 
-	FW_GL_LOADMATRIX(p->currentMatrix); 
+	FW_GL_LOADMATRIX(p->currentMatrix);
 }
 
 /* perform rotation, assuming that the angle is in radians. */
@@ -3240,7 +3221,7 @@ void fw_glRotateRad (GLDOUBLE angle, GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
 	loadIdentityMatrix (myMat);
 
 	/* FIXME - any way we can ensure that the angles are normalized? */
-	mag =  x*x + y*y + z*z; 
+	mag =  x*x + y*y + z*z;
 
 	/* bounds check - the axis is invalid. */
 	if (APPROX(mag,0.00)) {
@@ -3261,14 +3242,14 @@ void fw_glRotateRad (GLDOUBLE angle, GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
 	//printf ("rad, normalized axis %lf %lf %lf\n",x,y,z);
 
 
-	matrotate(myMat,angle,x,y,z); 
+	matrotate(myMat,angle,x,y,z);
 
 	//printmatrix2 (myMat, "rotation matrix");
-	matmultiply(p->currentMatrix,myMat,p->currentMatrix); 
+	matmultiply(p->currentMatrix,myMat,p->currentMatrix);
 
 	//printmatrix2 (p->currentMatrix,"currentMatrix after rotate");
 
-	FW_GL_LOADMATRIX(p->currentMatrix); 
+	FW_GL_LOADMATRIX(p->currentMatrix);
 }
 
 /* perform the rotation, assuming that the angle is in degrees */
@@ -3285,7 +3266,7 @@ void fw_glRotated (GLDOUBLE angle, GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
 	loadIdentityMatrix (myMat);
 
 	/* FIXME - any way we can ensure that the angles are normalized? */
-	mag =  x*x + y*y + z*z; 
+	mag =  x*x + y*y + z*z;
 
 	/* bounds check - the axis is invalid. */
 	if (APPROX(mag,0.00)) {
@@ -3309,10 +3290,10 @@ void fw_glRotated (GLDOUBLE angle, GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
 	if (mag < 0.001) {
 		return;
 	}
-	matrotate(myMat,radAng,x,y,z); 
-	matmultiply(p->currentMatrix,p->currentMatrix,myMat); 
+	matrotate(myMat,radAng,x,y,z);
+	matmultiply(p->currentMatrix,p->currentMatrix,myMat);
 
-	FW_GL_LOADMATRIX(p->currentMatrix); 
+	FW_GL_LOADMATRIX(p->currentMatrix);
 }
 
 void fw_glRotatef (float a, float x, float y, float z) {
@@ -3329,7 +3310,7 @@ void fw_glScaled (GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
 	p->currentMatrix[2] *= x;   p->currentMatrix[6] *= y;   p->currentMatrix[10] *= z;
 	p->currentMatrix[3] *= x;   p->currentMatrix[7] *= y;   p->currentMatrix[11] *= z;
 
-	FW_GL_LOADMATRIX(p->currentMatrix); 
+	FW_GL_LOADMATRIX(p->currentMatrix);
 }
 
 void fw_glScalef (float x, float y, float z) {
@@ -3362,8 +3343,8 @@ void fw_glGetDoublev (int ty, GLDOUBLE *mat) {
 		case GL_PROJECTION_MATRIX: dp = p->FW_ProjectionView[p->projectionviewTOS]; break;
 		case GL_MODELVIEW_MATRIX: dp = p->FW_ModelView[p->modelviewTOS]; break;
 		case GL_TEXTURE_MATRIX: dp = p->FW_TextureView[p->textureviewTOS]; break;
-		default: { 
-			loadIdentityMatrix(mat); 
+		default: {
+			loadIdentityMatrix(mat);
 		printf ("invalid mode sent in it is %d, expected one of %d %d %d\n",ty,GL_PROJECTION_MATRIX,GL_MODELVIEW_MATRIX,GL_TEXTURE_MATRIX);
 			return;}
 	}
@@ -3394,8 +3375,8 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 
     //printf ("kill_oldWorld called...\n");
-    
-    
+
+
 #ifdef VERBOSE
 	printf ("kill 1 myThread %u displayThread %u\n",pthread_self(), gglobal()->threads.DispThrd);
 #ifdef _MSC_VER
@@ -3420,14 +3401,14 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 		}else {printf ("root_res is null, no need to dump\n");}
 	*/
 	resource_tree_destroy();  //dug9 sep2,2013 added this call. just comment out if giving trouble before a release
-        
-        
+
+
 	gglobal()->resources.root_res = NULL;
 
-        
-        
-        
-        
+
+
+
+
     /* mark all rootNode children for Dispose */
     if (rootNode() != NULL) {
         if ((rootNode()->children.p) != NULL) {
@@ -3435,8 +3416,8 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
                 markForDispose(rootNode()->children.p[i], TRUE);
             }
         }
-            
-            
+
+
         /* stop rendering */
         rootNode()->children.n = 0;
     }
@@ -3469,7 +3450,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 /*
 	kill_openGLTextures();
 */
-	
+
 	/* free scripts */
 	#ifdef HAVE_JAVASCRIPT
 	kill_javascript();
@@ -3527,13 +3508,13 @@ void fwl_Android_reloadAssets(void) {
 
 	if (p->linearNodeTable != NULL) {
 	        LOCK_MEMORYTABLE
-		for (tc=0; tc<vectorSize(p->linearNodeTable); tc++){		
-			node = vector_get(struct X3D_Node *,p->linearNodeTable,tc);	
-	
+		for (tc=0; tc<vectorSize(p->linearNodeTable); tc++){
+			node = vector_get(struct X3D_Node *,p->linearNodeTable,tc);
+
 			//ConsoleMessage ("rla, node %p\n",node);
-	
+
 			if (node!=NULL) {
-		
+
 				/* tell each node to update itself */
 				node->_change ++;
 				switch (node->_nodeType) {
@@ -3547,7 +3528,7 @@ void fwl_Android_reloadAssets(void) {
 						me->__points.n = 0;
 						node->_change ++;
 						break;
-		
+
 					}
 					case NODE_Cone: {
 						struct X3D_Cone *me = (struct X3D_Cone *)node;
@@ -3571,9 +3552,9 @@ void fwl_Android_reloadAssets(void) {
 					default: {
 						struct X3D_PolyRep *pr = node->_intern;
 						int i;
-		
+
 						//ConsoleMessage ("node Type %s, intern %p",stringNodeType(node->_nodeType),pr);
-		
+
 						// get rid of the PolyRep VBOs.
 						if (pr!=NULL) {
 							for (i=0; i<VBO_COUNT; i++) pr->VBO_buffers[i] = 0;
@@ -3581,10 +3562,10 @@ void fwl_Android_reloadAssets(void) {
 							node->_change ++;
 						}
 					}
-				
+
 				}
 			}
-	
+
 	        }
 	        UNLOCK_MEMORYTABLE
 	}
@@ -3605,7 +3586,7 @@ int checkNode(struct X3D_Node *node, char *fn, int line) {
 
 	LOCK_MEMORYTABLE;
 
-	for (tc=0; tc<vectorSize(p->linearNodeTable); tc++){		
+	for (tc=0; tc<vectorSize(p->linearNodeTable); tc++){
 		if (vector_get(struct X3D_Node *,p->linearNodeTable,tc) == node) {
 			if (node->referenceCount > 0) {
 			UNLOCK_MEMORYTABLE;
@@ -3613,7 +3594,7 @@ int checkNode(struct X3D_Node *node, char *fn, int line) {
 			}
 		}
 	}
-	
+
 
 
 	//printf ("checkNode: did not find %p in memory table at i%s %d\n",node,fn,line);
@@ -3630,7 +3611,7 @@ static void createMemoryTable(){
 
 	p->linearNodeTable = newVector(struct X3D_Node*, 128);
 
-	
+
 }
 
 /*keep track of node created*/
@@ -3647,7 +3628,7 @@ void registerX3DNode(struct X3D_Node * tmp){
 
 	// fill in a hole, or just tack it on the end?
 	if (p->potentialHoleCount > 0) {
-		for (tc=0; tc<vectorSize(p->linearNodeTable); tc++){		
+		for (tc=0; tc<vectorSize(p->linearNodeTable); tc++){
 			if (!filledHole) {
 				if (vector_get(struct X3D_Node *,p->linearNodeTable,tc) == NULL) {
 					vector_set(struct X3D_Node *, p->linearNodeTable, tc, tmp);
@@ -3666,7 +3647,7 @@ if (!filledHole) ConsoleMessage ("registerX3DNode, no hole, phc %d for type %s",
 */
 
 	if (!filledHole) vector_pushBack(struct X3D_Node *, p->linearNodeTable, tmp);
-		
+
 	UNLOCK_MEMORYTABLE
 }
 
@@ -3697,7 +3678,7 @@ void doNotRegisterThisNodeForDestroy(struct X3D_Node * nodePtr){
 	1) the node has changed - this is the "needsCompiling" field;
 	2) the number of children has changed - again, the "needsCompiling" flag should be set,
 		but we enforce it;
-	3) the first pass shows that nodes are out of order 
+	3) the first pass shows that nodes are out of order
 */
 
 static void sortChildren (int line, struct Multi_Node *ch, struct Multi_Node *sortedCh, int sortForDistance) {
@@ -3746,22 +3727,22 @@ static void sortChildren (int line, struct Multi_Node *ch, struct Multi_Node *so
 			/* check to see if a child is NULL - if so, skip it */
 			if (a && b) {
 				if (a->_dist > b->_dist) {
-					/* printf ("sortChildren at %lf, have to switch %d %d dists %lf %lf\n",TickTime(),i,j, 
-a->_dist, b->_dist); */ 
+					/* printf ("sortChildren at %lf, have to switch %d %d dists %lf %lf\n",TickTime(),i,j,
+a->_dist, b->_dist); */
 					c = a;
 					sortedCh->p[j-1] = b;
 					sortedCh->p[j] = c;
 					noswitch = FALSE;
 
 				}
-			}	
+			}
 		}
 		/* did we have a clean run? */
 		if (noswitch) {
 			break;
 		}
 	}
-	
+
 	#ifdef VERBOSE
 	printf ("sortChildren returning.\n");
 	for(i=0; i<nc; i++) {
@@ -3790,31 +3771,31 @@ void zeroVisibilityFlag(void) {
 	if ((gglobal()->Frustum.OccFailed) || fwl_isTextureParsing()) {
 		/* if we have textures still loading, display all the nodes, so that the textures actually
 		   get put into OpenGL-land. If we are not texture parsing... */
-		/* no, we do not have GL_ARB_occlusion_query, just tell every node that it has visible children 
+		/* no, we do not have GL_ARB_occlusion_query, just tell every node that it has visible children
 		   and hope that, sometime, the user gets a good computer graphics card */
-		for (i=0; i<vectorSize(p->linearNodeTable); i++){		
-			node = vector_get(struct X3D_Node *,p->linearNodeTable,i);	
+		for (i=0; i<vectorSize(p->linearNodeTable); i++){
+			node = vector_get(struct X3D_Node *,p->linearNodeTable,i);
 			if (node != NULL) {
 				node->_renderFlags = node->_renderFlags | VF_hasVisibleChildren;
 			}
-		}	
+		}
 	} else {
 		/* we do... lets zero the hasVisibleChildren flag */
-		for (i=0; i<vectorSize(p->linearNodeTable); i++){		
-			node = vector_get(struct X3D_Node *,p->linearNodeTable,i);	
+		for (i=0; i<vectorSize(p->linearNodeTable); i++){
+			node = vector_get(struct X3D_Node *,p->linearNodeTable,i);
 
 			if (node != NULL) {
-		
+
 			#ifdef OCCLUSIONVERBOSE
 			if (((node->_renderFlags) & VF_hasVisibleChildren) != 0) {
-			printf ("%lf, zeroVisibility - %d is a %s, flags %x\n",TickTime(), i,stringNodeType(node->_nodeType), (node->_renderFlags) & VF_hasVisibleChildren); 
+			printf ("%lf, zeroVisibility - %d is a %s, flags %x\n",TickTime(), i,stringNodeType(node->_nodeType), (node->_renderFlags) & VF_hasVisibleChildren);
 			}
 			#endif
 
 			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_hasVisibleChildren);
 			}
-	
-		}		
+
+		}
 	}
 
 	UNLOCK_MEMORYTABLE
@@ -3835,7 +3816,7 @@ void zeroVisibilityFlag(void) {
 			if (((struct X3D_##thistype *)node)->enabled) { \
 				nParents = vectorSize((struct X3D_##thistype *)pnode->_parentVector); \
 				parentVector = (((struct X3D_##thistype *)pnode)->_parentVector); \
-			}  
+			}
 
 #define ANCHOR_SENSITIVE(thistype) \
 			/* make THIS Sensitive - most nodes make the parents sensitive, Anchors have children...*/ \
@@ -3846,7 +3827,7 @@ void zeroVisibilityFlag(void) {
 #endif
 #define VIEWPOINT(thistype) \
 			setBindPtr = (int *)(((char*)(node))+offsetof (struct X3D_##thistype, set_bind)); \
-			if ((*setBindPtr) == 100) {setBindPtr = NULL; } //else {printf ("OpenGL, BINDING %d\n",*setBindPtr);}/* already done */ 
+			if ((*setBindPtr) == 100) {setBindPtr = NULL; } //else {printf ("OpenGL, BINDING %d\n",*setBindPtr);}/* already done */
 
 #define CHILDREN_NODE(thistype) \
 			addChildren = NULL; removeChildren = NULL; \
@@ -3858,7 +3839,7 @@ void zeroVisibilityFlag(void) {
 			if (((struct X3D_##thistype *)node)->removeChildren.n > 0) { \
 				removeChildren = &((struct X3D_##thistype *)node)->removeChildren; \
 				childrenPtr = &((struct X3D_##thistype *)node)->children; \
-			} 
+			}
 
 #define CHILDREN_SWITCH_NODE(thistype) \
 			addChildren = NULL; removeChildren = NULL; \
@@ -3870,7 +3851,7 @@ void zeroVisibilityFlag(void) {
 			if (((struct X3D_##thistype *)node)->removeChildren.n > 0) { \
 				removeChildren = &((struct X3D_##thistype *)node)->removeChildren; \
 				childrenPtr = &((struct X3D_##thistype *)node)->choice; \
-			} 
+			}
 
 #define CHILDREN_LOD_NODE \
 			addChildren = NULL; removeChildren = NULL; \
@@ -3894,7 +3875,7 @@ void zeroVisibilityFlag(void) {
 				((struct X3D_##thistype *)node)->thisfield.n = ((struct X3D_##thistype *)node)->set_##thisfield.n; \
 				((struct X3D_##thistype *)node)->set_##thisfield.n = 0; \
 				((struct X3D_##thistype *)node)->set_##thisfield.p = NULL; \
-			} 
+			}
 
 /* just tell the parent (a grouping node) that there is a locally scoped light as a child */
 /* do NOT send this up the scenegraph! */
@@ -3926,7 +3907,7 @@ gglobal()->RenderFuncs.have_transparency = TRUE; \
 		update_renderFlag(X3D_NODE(pnode),VF_Blend | VF_shouldSortChildren);\
 		gglobal()->RenderFuncs.have_transparency = TRUE; \
 	}
- 
+
 #define CHECK_IMAGETEXTURE_TRANSPARENCY \
 	if (isTextureAlpha(((struct X3D_ImageTexture *)node)->__textureTableIndex)) { \
 		/* printf ("node %d IMAGETEXTURE HAS TRANSPARENCY\n", node); */ \
@@ -4035,15 +4016,15 @@ void startOfLoopNodeUpdates(void) {
 	LOCK_MEMORYTABLE
 
     //printf ("\n******************************************\nstartOfLoopNodeUpdates\n");
-    
+
 	/* go through the node table, and zero any bits of interest */
 
-	for (i=0; i<vectorSize(p->linearNodeTable); i++){		
-		node = vector_get(struct X3D_Node *,p->linearNodeTable,i);	
+	for (i=0; i<vectorSize(p->linearNodeTable); i++){
+		node = vector_get(struct X3D_Node *,p->linearNodeTable,i);
 		if (node != NULL) {
 			if (node->referenceCount <= 0) {
 				//ConsoleMessage ("%d ref %d\n",i,node->referenceCount);
-				killNode(i); 
+				killNode(i);
 			} else {
 				/* turn OFF these flags */
 				node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Sensitive);
@@ -4094,9 +4075,9 @@ void startOfLoopNodeUpdates(void) {
 	anchorPtr = NULL;
 
 
-	for (i=0; i<vectorSize(p->linearNodeTable); i++){		
-		node = vector_get(struct X3D_Node *,p->linearNodeTable,i);	
-		if (node != NULL) 
+	for (i=0; i<vectorSize(p->linearNodeTable); i++){
+		node = vector_get(struct X3D_Node *,p->linearNodeTable,i);
+		if (node != NULL)
 		if (node->referenceCount > 0) {
 			pnode = node;
 			node = getTypeNode(node); //+ dug9 dec 13
@@ -4120,7 +4101,7 @@ void startOfLoopNodeUpdates(void) {
 
 				BEGIN_NODE(DirectionalLight)
 					if (X3D_DIRECTIONALLIGHT(node)->on) {
-						if (X3D_DIRECTIONALLIGHT(node)->global) 
+						if (X3D_DIRECTIONALLIGHT(node)->global)
 							update_renderFlag(pnode,VF_globalLight);
 						else
 							LOCAL_LIGHT_PARENT_FLAG
@@ -4128,7 +4109,7 @@ void startOfLoopNodeUpdates(void) {
 				END_NODE
 				BEGIN_NODE(SpotLight)
 					if (X3D_SPOTLIGHT(node)->on) {
-						if (X3D_SPOTLIGHT(node)->global) 
+						if (X3D_SPOTLIGHT(node)->global)
 							update_renderFlag(pnode,VF_globalLight);
 						else
 							LOCAL_LIGHT_PARENT_FLAG
@@ -4136,7 +4117,7 @@ void startOfLoopNodeUpdates(void) {
 				END_NODE
 				BEGIN_NODE(PointLight)
 					if (X3D_POINTLIGHT(node)->on) {
-						if (X3D_POINTLIGHT(node)->global) 
+						if (X3D_POINTLIGHT(node)->global)
 							update_renderFlag(pnode,VF_globalLight);
 						else
 							LOCAL_LIGHT_PARENT_FLAG
@@ -4181,25 +4162,25 @@ void startOfLoopNodeUpdates(void) {
 				END_NODE
 /* GeoViewpoint works differently than other nodes - see compile_GeoViewpoint for manipulation of these fields
 				BEGIN_NODE(GeoViewpoint)
-					EVIN_AND_FIELD_SAME(orientation,GeoViewpoint) 
+					EVIN_AND_FIELD_SAME(orientation,GeoViewpoint)
 					EVIN_AND_FIELD_SAME(position,GeoViewpoint)
 				END_NODE
 */
-	
+
 				/* get ready to mark these nodes as Mouse Sensitive */
 				BEGIN_NODE(PlaneSensor) SIBLING_SENSITIVE(PlaneSensor) END_NODE
 				BEGIN_NODE(SphereSensor) SIBLING_SENSITIVE(SphereSensor) END_NODE
 				BEGIN_NODE(CylinderSensor) SIBLING_SENSITIVE(CylinderSensor) END_NODE
 				BEGIN_NODE(TouchSensor) SIBLING_SENSITIVE(TouchSensor) END_NODE
 				BEGIN_NODE(GeoTouchSensor) SIBLING_SENSITIVE(GeoTouchSensor) END_NODE
-	
+
 				/* Anchor is Mouse Sensitive, AND has Children nodes */
 				BEGIN_NODE(Anchor)
 					propagateExtent(X3D_NODE(node));
 					ANCHOR_SENSITIVE(Anchor)
 					CHILDREN_NODE(Anchor)
 				END_NODE
-				
+
 				BEGIN_NODE(CADFace)
 					// the attached Shape node will do the occlusion testing, if enabled.
 					update_renderFlag (X3D_NODE(pnode),VF_hasVisibleChildren);
@@ -4230,8 +4211,8 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE(Viewpoint) VIEWPOINT(Viewpoint) END_NODE
 				BEGIN_NODE(OrthoViewpoint) VIEWPOINT(OrthoViewpoint) END_NODE
 				BEGIN_NODE(GeoViewpoint) VIEWPOINT(GeoViewpoint) END_NODE
-	
-				BEGIN_NODE(NavigationInfo) 
+
+				BEGIN_NODE(NavigationInfo)
 					render_NavigationInfo ((struct X3D_NavigationInfo *)node);
 				END_NODE
 
@@ -4244,21 +4225,21 @@ void startOfLoopNodeUpdates(void) {
 
 
 				/* does this one possibly have add/removeChildren? */
-				BEGIN_NODE(Group) 
+				BEGIN_NODE(Group)
 					sortChildren (__LINE__,&X3D_GROUP(node)->children,&X3D_GROUP(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
 					TURN_OFF_SHOULDSORTCHILDREN
 
 					propagateExtent(X3D_NODE(node));
-					CHILDREN_NODE(Group) 
+					CHILDREN_NODE(Group)
 				END_NODE
 
 #ifdef DJTRACK_PICKSENSORS
 				/* DJTRACK_PICKSENSORS */
-				BEGIN_NODE(PickableGroup) 
+				BEGIN_NODE(PickableGroup)
 					sortChildren (__LINE__,&X3D_PICKABLEGROUP(node)->children,&X3D_PICKABLEGROUP(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
 					TURN_OFF_SHOULDSORTCHILDREN
 
-					CHILDREN_NODE(PickableGroup) 
+					CHILDREN_NODE(PickableGroup)
 				END_NODE
 				/* PointPickSensor needs its own flag sent up the chain */
 				BEGIN_NODE (PointPickSensor)
@@ -4267,7 +4248,7 @@ void startOfLoopNodeUpdates(void) {
 
 #endif
 
-				BEGIN_NODE(Inline) 
+				BEGIN_NODE(Inline)
                     //printf ("node inline - status %d for node %p\n",X3D_INLINE(node)->__loadstatus, node);
 					if (X3D_INLINE(node)->__loadstatus != INLINE_STABLE) {
 						/* schedule this after we have unlocked the memory table */
@@ -4276,56 +4257,56 @@ void startOfLoopNodeUpdates(void) {
 						}
 						vector_pushBack(struct X3D_Inline *, loadInlines, X3D_INLINE(node));
 					}
-					
+
 					propagateExtent(X3D_NODE(node));
 				END_NODE
 
-				BEGIN_NODE(Transform) 
+				BEGIN_NODE(Transform)
 					sortChildren (__LINE__,&X3D_TRANSFORM(node)->children,&X3D_TRANSFORM(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
 					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
-					CHILDREN_NODE(Transform) 
+					CHILDREN_NODE(Transform)
 				END_NODE
 
-/*              BEGIN_NODE(NurbsGroup) 
-					CHILDREN_NODE(NurbsGroup) 
+/*              BEGIN_NODE(NurbsGroup)
+					CHILDREN_NODE(NurbsGroup)
 				END_NODE
 */
-				BEGIN_NODE(Contour2D) 
-					CHILDREN_NODE(Contour2D) 
+				BEGIN_NODE(Contour2D)
+					CHILDREN_NODE(Contour2D)
 				END_NODE
 
-				BEGIN_NODE(HAnimSite) 
-					CHILDREN_NODE(HAnimSite) 
+				BEGIN_NODE(HAnimSite)
+					CHILDREN_NODE(HAnimSite)
 				END_NODE
 
-				BEGIN_NODE(HAnimSegment) 
-					CHILDREN_NODE(HAnimSegment) 
+				BEGIN_NODE(HAnimSegment)
+					CHILDREN_NODE(HAnimSegment)
 				END_NODE
 
-				BEGIN_NODE(HAnimJoint) 
-					CHILDREN_NODE(HAnimJoint) 
+				BEGIN_NODE(HAnimJoint)
+					CHILDREN_NODE(HAnimJoint)
 				END_NODE
 
-				BEGIN_NODE(Billboard) 
+				BEGIN_NODE(Billboard)
 					propagateExtent(X3D_NODE(node));
-					CHILDREN_NODE(Billboard) 
+					CHILDREN_NODE(Billboard)
                 			update_renderFlag(pnode,VF_Proximity);
 				END_NODE
 
-				BEGIN_NODE(Collision) 
+				BEGIN_NODE(Collision)
 					propagateExtent(X3D_NODE(node));
-					CHILDREN_NODE(Collision) 
+					CHILDREN_NODE(Collision)
 				END_NODE
 
-				BEGIN_NODE(Switch) 
+				BEGIN_NODE(Switch)
 					propagateExtent(X3D_NODE(node));
-					CHILDREN_SWITCH_NODE(Switch) 
+					CHILDREN_SWITCH_NODE(Switch)
 				END_NODE
 
-				BEGIN_NODE(LOD) 
+				BEGIN_NODE(LOD)
 					propagateExtent(X3D_NODE(node));
-					CHILDREN_LOD_NODE 
+					CHILDREN_LOD_NODE
                 			update_renderFlag(pnode,VF_Proximity);
 				END_NODE
 
@@ -4333,7 +4314,7 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE(Material) CHECK_MATERIAL_TRANSPARENCY END_NODE
                 BEGIN_NODE(TwoSidedMaterial) CHECK_TWOSIDED_MATERIAL_TRANSPARENCY END_NODE
                 BEGIN_NODE(FillProperties) CHECK_FILL_PROPERTY_FILLED END_NODE
-                    
+
 				/* Textures - check transparency  */
 				BEGIN_NODE(ImageTexture) CHECK_IMAGETEXTURE_TRANSPARENCY END_NODE
 				BEGIN_NODE(PixelTexture) CHECK_PIXELTEXTURE_TRANSPARENCY END_NODE
@@ -4392,14 +4373,14 @@ void startOfLoopNodeUpdates(void) {
 					sortChildren (__LINE__,&X3D_GEOTRANSFORM(node)->children,&X3D_GEOTRANSFORM(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
 					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
-					CHILDREN_NODE(GeoTransform) 
+					CHILDREN_NODE(GeoTransform)
 				END_NODE
 
 				BEGIN_NODE (GeoLocation)
 					sortChildren (__LINE__,&X3D_GEOLOCATION(node)->children,&X3D_GEOLOCATION(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
 					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
-					CHILDREN_NODE(GeoLocation) 
+					CHILDREN_NODE(GeoLocation)
 				END_NODE
 
 				BEGIN_NODE(MetadataSFBool) CMD(SFBool,node); END_NODE
@@ -4474,12 +4455,12 @@ void startOfLoopNodeUpdates(void) {
 				//if (*setBindPtr==1) reset_upvector();
 				bind_node (node, tg->Bindable.viewpoint_stack);
 
-				//dug9 added July 24, 2009: when you bind, it should set the 
-				//avatar to the newly bound viewpoint pose and forget any 
+				//dug9 added July 24, 2009: when you bind, it should set the
+				//avatar to the newly bound viewpoint pose and forget any
 				// cumulative avatar navigation from the last viewpoint parent
 				if (node->_nodeType==NODE_Viewpoint) {
 					struct X3D_Viewpoint* vp = (struct X3D_Viewpoint *) node;
-					bind_Viewpoint(vp); 
+					bind_Viewpoint(vp);
 					setMenuStatus (vp->description->strptr);
 				} else if (node->_nodeType==NODE_OrthoViewpoint) {
 					struct X3D_OrthoViewpoint *ovp = (struct X3D_OrthoViewpoint *) node;
@@ -4532,7 +4513,7 @@ void startOfLoopNodeUpdates(void) {
 		//ConsoleMessage ("going to updateRF on viewpoint, stack is %d in size\n", vectorSize(tg->Bindable.viewpoint_stack));
 
 
-		update_renderFlag(vector_back(struct X3D_Node*, 
+		update_renderFlag(vector_back(struct X3D_Node*,
 			tg->Bindable.viewpoint_stack), VF_Viewpoint);
 		calculateNearFarplanes(vector_back(struct X3D_Node*, tg->Bindable.viewpoint_stack));
 	} else {
@@ -4559,43 +4540,43 @@ void markForDispose(struct X3D_Node *node, int recursive){
 		return;
 	}
 
-	 
+
 	#ifdef VERBOSE
 	ConsoleMessage ("\nmarkingForDispose %p (%s) currently at %d",node,
 		stringNodeType(node->_nodeType),node->referenceCount);
 	#endif
 
-	
+
 	if (node->referenceCount > 0) node->referenceCount --;
 
 	if (recursive) {
 
 	/* cast a "const int" to an "int" */
 	fieldOffsetsPtr = (int*) NODE_OFFSETS[node->_nodeType];
-	/*go thru all field*/				
+	/*go thru all field*/
 	while (*fieldOffsetsPtr != -1) {
 		fieldPtr = offsetPointer_deref(char *, node,*(fieldOffsetsPtr+1));
 		#ifdef VERBOSE
-		ConsoleMessage ("looking at field %s type %s",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]); 
+		ConsoleMessage ("looking at field %s type %s",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]);
 		#endif
 
 		/* some fields we skip, as the pointers are duplicated, and we CAN NOT free both */
-		if (*fieldOffsetsPtr == FIELDNAMES_setValue) 
+		if (*fieldOffsetsPtr == FIELDNAMES_setValue)
 			break; /* can be a duplicate SF/MFNode pointer */
-	
-		if (*fieldOffsetsPtr == FIELDNAMES_valueChanged) 
+
+		if (*fieldOffsetsPtr == FIELDNAMES_valueChanged)
 			break; /* can be a duplicate SF/MFNode pointer */
-	
-		if (*fieldOffsetsPtr == FIELDNAMES__selected) 
+
+		if (*fieldOffsetsPtr == FIELDNAMES__selected)
 			break; /* can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD */
 
-		if (*fieldOffsetsPtr == FIELDNAMES___oldChildren) 
+		if (*fieldOffsetsPtr == FIELDNAMES___oldChildren)
 			break; /* can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD */
 
-		if (*fieldOffsetsPtr == FIELDNAMES___oldKeyPtr) 
+		if (*fieldOffsetsPtr == FIELDNAMES___oldKeyPtr)
 			break; /* used for seeing if interpolator values change */
 
-		if (*fieldOffsetsPtr == FIELDNAMES___oldKeyValuePtr) 
+		if (*fieldOffsetsPtr == FIELDNAMES___oldKeyValuePtr)
 			break; /* used for seeing if interpolator values change */
 
 		/* GeoLOD nodes, the children field exports either the rootNode, or the list of child nodes */
@@ -4603,9 +4584,9 @@ void markForDispose(struct X3D_Node *node, int recursive){
 			if (*fieldOffsetsPtr == FIELDNAMES_children) break;
 		}
 
-		if (*fieldOffsetsPtr == FIELDNAMES__shaderUserDefinedFields) 
+		if (*fieldOffsetsPtr == FIELDNAMES__shaderUserDefinedFields)
 			break; /* have to get rid of the fields of a shader here....*/
-	
+
 		/* nope, not a special field, lets just get rid of it as best we can */
 		switch(*(fieldOffsetsPtr+2)){
 			case FIELDTYPE_MFNode: {
@@ -4618,7 +4599,7 @@ void markForDispose(struct X3D_Node *node, int recursive){
 
 				for (i=0; i<MNode->n; i++) {
 					tp = MNode->p[i];
-					 
+
 					if (tp!=NULL) {
 						#ifdef VERBOSE
 						ConsoleMessage ("calling markForDispose on node %p as it is an element of an MFNode",tp);
@@ -4628,7 +4609,7 @@ void markForDispose(struct X3D_Node *node, int recursive){
 				}
 				// MNode->n=0;  unlink_node needs this in order to properly unlink children.
 				break;
-				}	
+				}
 			case FIELDTYPE_SFNode: {
 				struct X3D_Node *SNode;
 
@@ -4638,7 +4619,7 @@ void markForDispose(struct X3D_Node *node, int recursive){
 				ConsoleMessage ("SFNode, field is %p...",SNode);
 				if (SNode != NULL) {
 					ConsoleMessage ("SFNode, .... and it is of type %s",stringNodeType(SNode->_nodeType));
-					ConsoleMessage (" ... field SFNode, %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]); 
+					ConsoleMessage (" ... field SFNode, %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]);
 				}
 				#endif
 
@@ -4649,12 +4630,12 @@ void markForDispose(struct X3D_Node *node, int recursive){
 					markForDispose(SNode, TRUE);
 				}
 				break;
-				
 
-			}	
+
+			}
 			default:; /* do nothing - field not malloc'd */
 		}
-		fieldOffsetsPtr+=5;	
+		fieldOffsetsPtr+=5;
 	}
 
 
@@ -4719,7 +4700,7 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 	union anyVrml *fieldPtr;
 	const char* fname;
 	int	foundField = 0;
-	
+
 	source = -1;
 	mode = 0;
 	type = 0;
@@ -4727,11 +4708,11 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 	jfield = -1;
 	// field/event exists on the node?
 	fieldOffsetsPtr = (int *)NODE_OFFSETS[node->_nodeType];
-	/*go thru all builtin fields (borrowed from OpenGL_Utils killNode() L.3705*/	
+	/*go thru all builtin fields (borrowed from OpenGL_Utils killNode() L.3705*/
 	while (*fieldOffsetsPtr != -1) {
 		fname = FIELDNAMES[fieldOffsetsPtr[0]];
 		//skip private fields which scene authors shouldn't be routing or ISing to
-		publicfield = fname && (fname[0] != '_') ? TRUE : FALSE;  
+		publicfield = fname && (fname[0] != '_') ? TRUE : FALSE;
 		mode = PKW_from_KW(fieldOffsetsPtr[3]);
 		type = fieldOffsetsPtr[2];
 		//retrieve nodeinstance values
@@ -4740,7 +4721,7 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 		jfield++;
 		foundField = callbackFunc(callbackData,node,jfield,fieldPtr,fname,mode,type,source,publicfield);
 		if( foundField )break;
-		fieldOffsetsPtr+=5;	
+		fieldOffsetsPtr+=5;
 	}
 	if(!foundField)
 	{
@@ -4749,7 +4730,7 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 		user = nodeTypeSupportsUserFields(node);
 		jfield = -1;
 		publicfield = 1; //assume all user fields are public
-		if(user) 
+		if(user)
 		{
 			//lexer_stringUser_fieldName(me->lexer, name, mode);
 			struct VRMLParser* parser;
@@ -4764,17 +4745,17 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 			switch(node->_nodeType)
 			{
 				case NODE_Script:
-				case NODE_ComposedShader: 
-				case NODE_ShaderProgram : 
-				case NODE_PackagedShader: 
+				case NODE_ComposedShader:
+				case NODE_ShaderProgram :
+				case NODE_PackagedShader:
 					{
 						int j, nameIndex;
 						struct Vector* usernames[4];
 						struct ScriptFieldDecl* sfield;
 						struct Shader_Script* shader = NULL;
 
-						switch(node->_nodeType) 
-						{ 
+						switch(node->_nodeType)
+						{
   							case NODE_Script:         shader =(struct Shader_Script *)(X3D_SCRIPT(node)->__scriptObj); break;
   							case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields); break;
   							case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields); break;
@@ -4788,7 +4769,7 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 						}else{
 							usernames[0] = usernames[1] = usernames[2] = usernames[3] = NULL;
 						}
-					
+
 						for(j=0; j!=vectorSize(shader->fields); ++j)
 						{
 							sfield= vector_get(struct ScriptFieldDecl*, shader->fields, j);
@@ -4803,7 +4784,7 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 							type = sfield->fieldDecl->fieldType;
 							fieldPtr = &sfield->value;
 							source = node->_nodeType == NODE_Script ? 1 : 2;
-							jfield = j; 
+							jfield = j;
 							foundField = callbackFunc(callbackData,node,jfield,fieldPtr,fname,mode,type,source,publicfield);
 							if( foundField)
 								break;
@@ -4857,58 +4838,58 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 }
 
 
-/* 
+/*
 	memory management policy, Feb 22, 2013, dug9 after adding unlink_node() call to killNode()
 	Background: we aren't using any smart pointers / garbage collection library in freewrl. Just old fashioned
-	malloc and free, with one exception: 
-	
+	malloc and free, with one exception:
+
 	We register malloced nodes in linearNodeTable, and when their reference
 	count goes to zero we call killNode (which calls unlink_node()) and deallocate their memory.
 
 	There's one place -startofloopnodeupdates- and one function -killNode- where they get deleted. But there's
-	two basic scenarios: 
-		a) a node is markForDispose() during the freewrl session. tests/46.wrl 
+	two basic scenarios:
+		a) a node is markForDispose() during the freewrl session. tests/46.wrl
 		b) you anchor or File > Open another scene. The old scene -in kill_OldWorld() markForDispose() calls
-			referenceCount-- and then when the new scene comes into startofloopnodeupdates() all the old 
-			nodes trigger a call for killNode(). 
+			referenceCount-- and then when the new scene comes into startofloopnodeupdates() all the old
+			nodes trigger a call for killNode().
 	So to test, I used 46.wrl and File>Open from the statusbar, and that would trigger some killNode activity
 	(for FileOpen you can open an empty scene with just the vrml header, to simplify debugging)
-	
+
 	As I started to do this, freewrl bombed here and there with different data sets. One thing that will
-	help is to be consistent about what we manage. For that have a policy: what malloced things we are 
-	managing now, so as programmers we are clear on what gets linked, and deleted. We'll call the carefully 
+	help is to be consistent about what we manage. For that have a policy: what malloced things we are
+	managing now, so as programmers we are clear on what gets linked, and deleted. We'll call the carefully
 	linked and unlinked and deallocated nodes 'managed nodes' and the fields we manage 'managed fields'.
 
-	Examples, 
+	Examples,
 	a) a node hold pointers to other nodes in its SFNode and MFNode fields such as 'children' and
 		'material'. We'll call all those children.
-	b) a node holds pointers to other nodes that have it as a child, in its parentVector. 
-		A DEF/USE pair of parent nodes mean the child's parentVector will have 2 entries, one for each 
+	b) a node holds pointers to other nodes that have it as a child, in its parentVector.
+		A DEF/USE pair of parent nodes mean the child's parentVector will have 2 entries, one for each
 		of the DEF and USE.
 
 	Here's the rule (I used) for managing nodes:
 	- Definitions:
 		public field: a field with no _ prefix on the name, or else its a user field in a Script/shader or Proto
-		value holding field: initializeOnly/field or inputOutput/exposedField 
+		value holding field: initializeOnly/field or inputOutput/exposedField
 		event field: inputOnly/eventIn or outputOnly/eventOut
 		node field: SFNode or MFNode type
 		managed field: value holding public node field, plus prescribed fields, minus exempted fields
 		prescribed fields: fields we decided to also manage: (none)
 		exempted fields: fields we decided not to manage: (none)
 
-	- if a node is in a managed field of another node -a parent- then it 
+	- if a node is in a managed field of another node -a parent- then it
 		registers/adds that parent in its own parentVector.
-	- when the node is taken out/removed from a managed field, it removes the parent 
+	- when the node is taken out/removed from a managed field, it removes the parent
 		from its parentVector (if it's in just one managed field. If in 2, and removed from one, then parent stays)
 	- when a node deletes itself, it:
-		a) goes through all its managed fields and it tells those  nodes -called children- to delete it 
-			from their parentVector. Then it clears/zeros that field in itself to zero so its not 
-			pointing at those children. And 
+		a) goes through all its managed fields and it tells those  nodes -called children- to delete it
+			from their parentVector. Then it clears/zeros that field in itself to zero so its not
+			pointing at those children. And
 		b) it goes through its parentVector and tells each parent to remove it from any managed fields.
 	- if a node is in an event field or private field then it does not register that node in its parent field
 	- if a node gets routed to an event field of a target node, no parent is registered.
-	- if a node gets routed from an event field of a source node, the source node is not 
-		registerd in its parentVector (example: script node generates a node in an eventOut field, 
+	- if a node gets routed from an event field of a source node, the source node is not
+		registerd in its parentVector (example: script node generates a node in an eventOut field,
 		and whether or not it's routed anywhere, the script is not put into the nodes' parent list)
 	HTH
 */
@@ -4923,7 +4904,7 @@ int isManagedField(int mode, int type, int isPublic)
 
 /* print the parent vector and and SFNode and MFNode subfield entry pointers
    for debugging unlink_node (and any linking code)
-   -needs generalization for FILE* 
+   -needs generalization for FILE*
    -maybe a dumpscreen option to get all rootnodes
 */
 void indentf(int indent){
@@ -5084,12 +5065,12 @@ static void killNode (int index) {
 	ttglobal tg = gglobal();
 	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
 
-	structptr = vector_get(struct X3D_Node *,p->linearNodeTable,index);	
+	structptr = vector_get(struct X3D_Node *,p->linearNodeTable,index);
 	//ConsoleMessage("killNode - looking for node %p of type %s in one of the stacks\n", structptr,stringNodeType(structptr->_nodeType));
 
 	if( structptr->referenceCount > -1 ){
 		/* unlinking the node from special arrays, parents and children
-		   we just need to do this once, and early in the kill process 
+		   we just need to do this once, and early in the kill process
 		   - I wish we had a sentinal value for 'unlinked' */
 		DELETE_IF_IN_STACK(viewpoint_stack);
 		DELETE_IF_IN_STACK(background_stack);
@@ -5103,12 +5084,12 @@ static void killNode (int index) {
 		//print_node_links(structptr);
 	}
 
-	/* give this time for things to "settle" in terms of rendering, etc 
-	JAS: "OpenGL - old code called flush() or finish(), but when the front-end does the actual rendering, 
-	what happens is that the GL calls get queued up for the GPU, then run when possible. So, there 
-	is a "hidden" multi-threading going on there. IIRC, I gave it 10 rendering loops for an unused 
-	node before deleting any of the items in it; really 1 or 2 loops should be fine. (1, but don't 
-	know about double buffering; 10 is a safe overkill) Without that, having OpenGL issues was a 
+	/* give this time for things to "settle" in terms of rendering, etc
+	JAS: "OpenGL - old code called flush() or finish(), but when the front-end does the actual rendering,
+	what happens is that the GL calls get queued up for the GPU, then run when possible. So, there
+	is a "hidden" multi-threading going on there. IIRC, I gave it 10 rendering loops for an unused
+	node before deleting any of the items in it; really 1 or 2 loops should be fine. (1, but don't
+	know about double buffering; 10 is a safe overkill) Without that, having OpenGL issues was a
 	random certainty when removing nodes, and data from these nodes."
 	*/
 	structptr->referenceCount --;
@@ -5123,7 +5104,7 @@ static void killNode (int index) {
 	if (structptr) {
 	if (structptr->_parentVector)
 	printf (" number of parents %d ", vectorSize(structptr->_parentVector));
-	printf("Node Type	= %s",stringNodeType(structptr->_nodeType));  
+	printf("Node Type	= %s",stringNodeType(structptr->_nodeType));
 	} printf ("\n");
 	#endif
 	/* node must be already unlinked with unlink_node() when we get here */
@@ -5132,46 +5113,46 @@ static void killNode (int index) {
 	/* clear child vector - done below */
 
 	fieldOffsetsPtr = (int *)NODE_OFFSETS[structptr->_nodeType];
-	/*go thru all field*/				
+	/*go thru all field*/
 	while (*fieldOffsetsPtr != -1) {
 		fieldPtr = offsetPointer_deref(char *, structptr,*(fieldOffsetsPtr+1));
 		#ifdef VERBOSE
-		printf ("looking at field %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]); 
+		printf ("looking at field %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]);
 		#endif
 
 		/* some fields we skip, as the pointers are duplicated, and we CAN NOT free both */
-		if (*fieldOffsetsPtr == FIELDNAMES_setValue) 
+		if (*fieldOffsetsPtr == FIELDNAMES_setValue)
 			break; /* can be a duplicate SF/MFNode pointer */
-	
-		if (*fieldOffsetsPtr == FIELDNAMES_valueChanged) 
-			break; /* can be a duplicate SF/MFNode pointer */
-	
-		if (*fieldOffsetsPtr == FIELDNAMES__parentResource) 
-			break; /* can be a duplicate SF/MFNode pointer */
-	
 
-		if (*fieldOffsetsPtr == FIELDNAMES___oldmetadata) 
+		if (*fieldOffsetsPtr == FIELDNAMES_valueChanged)
+			break; /* can be a duplicate SF/MFNode pointer */
+
+		if (*fieldOffsetsPtr == FIELDNAMES__parentResource)
+			break; /* can be a duplicate SF/MFNode pointer */
+
+
+		if (*fieldOffsetsPtr == FIELDNAMES___oldmetadata)
 			break; /* can be a duplicate SFNode pointer */
-	
-		if (*fieldOffsetsPtr == FIELDNAMES__selected) 
+
+		if (*fieldOffsetsPtr == FIELDNAMES__selected)
 			break; /* can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD */
 
-		if (*fieldOffsetsPtr == FIELDNAMES___oldChildren) 
+		if (*fieldOffsetsPtr == FIELDNAMES___oldChildren)
 			break; /* can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD */
 
-		if (*fieldOffsetsPtr == FIELDNAMES___oldMFString) 
-			break; 
+		if (*fieldOffsetsPtr == FIELDNAMES___oldMFString)
+			break;
 
-		if (*fieldOffsetsPtr == FIELDNAMES___scriptObj) 
-			break; 
+		if (*fieldOffsetsPtr == FIELDNAMES___scriptObj)
+			break;
 
-		if (*fieldOffsetsPtr == FIELDNAMES___oldSFString) 
-			break; 
+		if (*fieldOffsetsPtr == FIELDNAMES___oldSFString)
+			break;
 
-		if (*fieldOffsetsPtr == FIELDNAMES___oldKeyPtr) 
+		if (*fieldOffsetsPtr == FIELDNAMES___oldKeyPtr)
 			break; /* used for seeing if interpolator values change */
 
-		if (*fieldOffsetsPtr == FIELDNAMES___oldKeyValuePtr) 
+		if (*fieldOffsetsPtr == FIELDNAMES___oldKeyValuePtr)
 			break; /* used for seeing if interpolator values change */
 
 
@@ -5179,7 +5160,7 @@ static void killNode (int index) {
 		if (structptr->_nodeType == NODE_GeoLOD) {
 			if (*fieldOffsetsPtr == FIELDNAMES_children) break;
 		}
-	
+
 		/* nope, not a special field, lets just get rid of it as best we can */
 		switch(*(fieldOffsetsPtr+2)){
 			case FIELDTYPE_MFFloat:
@@ -5220,7 +5201,7 @@ static void killNode (int index) {
 						if (tp!=NULL)
 						printf ("	ct %s\n",stringNodeType(tp->_nodeType));
 					}
-				}	
+				}
 				#endif
 				MNode->n=0;
 				FREE_IF_NZ(MNode->p);
@@ -5241,7 +5222,7 @@ static void killNode (int index) {
 				MTime->n=0;
 				FREE_IF_NZ(MTime->p);
 				break;
-			case FIELDTYPE_MFString: 
+			case FIELDTYPE_MFString:
 				MString=(struct Multi_String *)fieldPtr;
 				{
 				struct Uni_String* ustr;
@@ -5274,10 +5255,10 @@ static void killNode (int index) {
 				FREE_IF_NZ(MyS->strptr);
 				FREE_IF_NZ(MyS);
 				break;
-				
+
 			default:; /* do nothing - field not malloc'd */
 		}
-		fieldOffsetsPtr+=5;	
+		fieldOffsetsPtr+=5;
 	}
 
 	FREE_IF_NZ(structptr);
@@ -5306,13 +5287,13 @@ static void killNode (int index) {
 }
 BOOL matrix3x3_inverse_float(float *inn, float *outt);
 
-static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint ProjectionMatrix, GLint NormalMatrix, GLint TextureMatrix) 
+static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint ProjectionMatrix, GLint NormalMatrix, GLint TextureMatrix)
 
 {
 
 	float spval[16];
 	int i,j;
-	float *sp; 
+	float *sp;
 	GLDOUBLE *dp;
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
@@ -5323,7 +5304,7 @@ static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint Projecti
 
 	/* convert GLDOUBLE to float */
 	for (i=0; i<16; i++) {
-		*sp = (float) *dp; 	
+		*sp = (float) *dp;
 		sp ++; dp ++;
 	}
 	profile_start("sendmtx");
@@ -5335,7 +5316,7 @@ static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint Projecti
 
 	/* convert GLDOUBLE to float */
 	for (i=0; i<16; i++) {
-		*sp = (float) *dp; 	
+		*sp = (float) *dp;
 		sp ++; dp ++;
 	}
 	profile_start("sendmtx");
@@ -5366,19 +5347,19 @@ static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint Projecti
 		dp = p->FW_ModelView[p->modelviewTOS];
 
 		if(1){
-			//trying to find another .01 FPS 
+			//trying to find another .01 FPS
 			//switch from 4x4 double to 3x3 float inverse
 			float ftemp[9];
 			/* convert GLDOUBLE to float */
 			for (i=0; i<3; i++)
 				for(j=0;j<3;j++)
-					spval[i*3 +j] = (float) dp[i*4 + j]; 	
-			
+					spval[i*3 +j] = (float) dp[i*4 + j];
+
 			matrix3x3_inverse_float(spval, ftemp);
 			//transpose
 			for (i = 0; i < 3; i++)
 				for (j = 0; j < 3; j++)
-					normMat[i*3 +j] = ftemp[j*3 + i]; 	
+					normMat[i*3 +j] = ftemp[j*3 + i];
 
 		}
 		if(0){
@@ -5393,16 +5374,16 @@ static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint Projecti
 		normMat[0] = (float) transInverseMV[0];
 		normMat[1] = (float) transInverseMV[1];
 		normMat[2] = (float) transInverseMV[2];
-		
+
 		normMat[3] = (float) transInverseMV[4];
 		normMat[4] = (float) transInverseMV[5];
 		normMat[5] = (float) transInverseMV[6];
-		
+
 		normMat[6] = (float) transInverseMV[8];
 		normMat[7] = (float) transInverseMV[9];
 		normMat[8] = (float) transInverseMV[10];
 		}
-/* 
+/*
 printf ("NormalMatrix: \n \t%4.3f %4.3f %4.3f\n \t%4.3f %4.3f %4.3f\n \t%4.3f %4.3f %4.3f\n",
 normMat[0],normMat[1],normMat[2],
 normMat[3],normMat[4],normMat[5],
@@ -5420,20 +5401,20 @@ normMat[6],normMat[7],normMat[8]);
 
 void sendMatriciesToShader(s_shader_capabilities_t *me) {
 	sendExplicitMatriciesToShader (me->ModelViewMatrix, me->ProjectionMatrix, me->NormalMatrix,me->TextureMatrix);
-    
+
 }
 #define SEND_VEC2(myMat,myVal) \
 if (me->myMat != -1) { GLUNIFORM2FV(me->myMat,1,myVal);}
 
 #define SEND_VEC4(myMat,myVal) \
 if (me->myMat != -1) { GLUNIFORM4FV(me->myMat,1,myVal);}
-        
+
 #define SEND_FLOAT(myMat,myVal) \
 if (me->myMat != -1) { GLUNIFORM1F(me->myMat,myVal);}
-        
+
 #define SEND_INT(myMat,myVal) \
 if (me->myMat != -1) { GLUNIFORM1I(me->myMat,myVal);}
-        
+
 
 
 void sendMaterialsToShader(s_shader_capabilities_t *me) {
@@ -5444,10 +5425,10 @@ void sendMaterialsToShader(s_shader_capabilities_t *me) {
     if (!myap) return;
     fw_FrontMaterial = &myap->fw_FrontMaterial;
     fw_BackMaterial = &myap->fw_BackMaterial;
-    
-    
+
+
 	/* go through all of the Uniforms for this shader */
-    
+
     /* ConsoleMessage ("sending in front diffuse %f %f %f %f ambient %f %f %f %f spec %f %f %f %f emission %f %f %f %f, shin %f",
                     fw_FrontMaterial.diffuse[0],fw_FrontMaterial.diffuse[1],fw_FrontMaterial.diffuse[2],fw_FrontMaterial.diffuse[3],
                     fw_FrontMaterial.ambient[0],fw_FrontMaterial.ambient[1],fw_FrontMaterial.ambient[2],fw_FrontMaterial.ambient[3],
@@ -5462,7 +5443,7 @@ ConsoleMessage ("sending in back diffuse %f %f %f %f ambient %f %f %f %f spec %f
                 fw_BackMaterial.emission[0],fw_BackMaterial.emission[1],fw_BackMaterial.emission[2],fw_BackMaterial.emission[3],
                 fw_BackMaterial.shininess);
 */
-      
+
 PRINT_GL_ERROR_IF_ANY("BEGIN sendMaterialsToShader");
 
 /* eventually do this with code blocks in glsl */
@@ -5472,7 +5453,7 @@ PRINT_GL_ERROR_IF_ANY("BEGIN sendMaterialsToShader");
 	SEND_VEC4(myMaterialSpecular,fw_FrontMaterial->specular);
 	SEND_VEC4(myMaterialEmission,fw_FrontMaterial->emission);
 	SEND_FLOAT(myMaterialShininess,fw_FrontMaterial->shininess);
-    
+
 	SEND_VEC4(myMaterialBackAmbient,fw_BackMaterial->ambient);
 	SEND_VEC4(myMaterialBackDiffuse,fw_BackMaterial->diffuse);
 	SEND_VEC4(myMaterialBackSpecular,fw_BackMaterial->specular);
@@ -5481,11 +5462,11 @@ PRINT_GL_ERROR_IF_ANY("BEGIN sendMaterialsToShader");
 	profile_end("sendvec");
 
 	if (me->haveLightInShader) sendLightInfo(me);
-    
+
     /* FillProperties, LineProperty lineType */
     #if defined  (AQUA) || defined (GL_ES_VERSION_2_0)
 	SEND_FLOAT(myPointSize,myap->pointSize);
-    #else 
+    #else
 	glPointSize(myap->pointSize);
     #endif
 
@@ -5520,8 +5501,8 @@ static void __gluMultMatrixVecd(const GLDOUBLE matrix[16], const GLDOUBLE in[4],
 
 
 void fw_gluProject
-(GLDOUBLE objx, GLDOUBLE objy, GLDOUBLE objz, 
-	      const GLDOUBLE modelMatrix[16], 
+(GLDOUBLE objx, GLDOUBLE objy, GLDOUBLE objz,
+	      const GLDOUBLE modelMatrix[16],
 	      const GLDOUBLE projMatrix[16],
               const GLint viewport[4],
 	      GLDOUBLE *winx, GLDOUBLE *winy, GLDOUBLE *winz)
@@ -5627,7 +5608,7 @@ static int __gluInvertMatrixd(const GLDOUBLE m[16], GLDOUBLE invOut[16])
 
 
 void fw_gluUnProject(GLDOUBLE winx, GLDOUBLE winy, GLDOUBLE winz,
-		const GLDOUBLE modelMatrix[16], 
+		const GLDOUBLE modelMatrix[16],
 		const GLDOUBLE projMatrix[16],
                 const GLint viewport[4],
 	        GLDOUBLE *objx, GLDOUBLE *objy, GLDOUBLE *objz)
@@ -5689,7 +5670,7 @@ void printmatrix2(GLDOUBLE* mat,char* description ) {
     printf("mat %s {\n",description);
     for(i = 0; i< 4; i++) {
 		printf("mat [%2d-%2d] = ",i*4,(i*4)+3);
-		for(j=0;j<4;j++) 
+		for(j=0;j<4;j++)
 			printf(" %f ",mat[(i*4)+j]);
 			//printf("mat[%d] = %f%s;\n",i,mat[i],i==12 ? " +disp.x" : i==13? " +disp.y" : i==14? " +disp.z" : "");
 		printf("\n");
@@ -5784,7 +5765,7 @@ void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE 
 	//JAS printmatrix2(yyy,"yyy gluP");
 	//JAS printmatrix2(m,"m mesa");
 	//for (i=0; i<16;i++) {printf ("%d orig: %5.2lf myPup: %5.2lf gluP: %5.2lf mesa %5.2lf\n",i,dp[i],
-	//	ndp[i],yyy[i],m[i]); 
+	//	ndp[i],yyy[i],m[i]);
 	//}
 	}
 	#endif
@@ -5853,7 +5834,7 @@ mesa_Frustum(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOU
 	m[14] = -1.0;
 	m[15] = 0.0;
 /*
-	
+
 #define M(row,col)  m[col*4+row]
    M(0,0) = x;     M(0,1) = 0.0F;  M(0,2) = a;      M(0,3) = 0.0F;
    M(1,0) = 0.0F;  M(1,1) = y;     M(1,2) = b;      M(1,3) = 0.0F;
