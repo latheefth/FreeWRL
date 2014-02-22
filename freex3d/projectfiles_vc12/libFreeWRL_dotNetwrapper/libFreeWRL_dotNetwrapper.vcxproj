@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_glew|Win32">
@@ -183,9 +183,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src_windows\libFreeWRL_dotNetwrapper\AssemblyInfo.cpp" />
-    <ClCompile Include="..\..\src_windows\libFreeWRL_dotNetwrapper\libFreeWRL_dotNetwrapper.cpp" />
-    <ClCompile Include="..\..\src_windows\libFreeWRL_dotNetwrapper\Stdafx.cpp">
+    <ClCompile Include="$(SRCWIN)\libFreeWRL_dotNetwrapper\AssemblyInfo.cpp" />
+    <ClCompile Include="$(SRCWIN)\libFreeWRL_dotNetwrapper\libFreeWRL_dotNetwrapper.cpp" />
+    <ClCompile Include="$(SRCWIN)\libFreeWRL_dotNetwrapper\Stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_glew|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_glew|Win32'">Create</PrecompiledHeader>
@@ -193,15 +193,15 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src_windows\libFreeWRL_dotNetwrapper\libFreeWRL_dotNetwrapper.h" />
-    <ClInclude Include="..\..\src_windows\libFreeWRL_dotNetwrapper\resource.h" />
-    <ClInclude Include="..\..\src_windows\libFreeWRL_dotNetwrapper\Stdafx.h" />
+    <ClInclude Include="$(SRCWIN)\libFreeWRL_dotNetwrapper\libFreeWRL_dotNetwrapper.h" />
+    <ClInclude Include="$(SRCWIN)\libFreeWRL_dotNetwrapper\resource.h" />
+    <ClInclude Include="$(SRCWIN)\libFreeWRL_dotNetwrapper\Stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\src_windows\libFreeWRL_dotNetwrapper\app.ico" />
+    <Image Include="$(SRCWIN)\libFreeWRL_dotNetwrapper\app.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\..\src_windows\libFreeWRL_dotNetwrapper\app.rc" />
+    <ResourceCompile Include="$(SRCWIN)\libFreeWRL_dotNetwrapper\app.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

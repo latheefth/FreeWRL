@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_glew|Win32">
@@ -186,18 +186,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src_windows\getopt.c" />
-    <ClCompile Include="..\..\src\bin\main.c" />
-    <ClCompile Include="..\..\src\bin\options.c" />
+    <ClCompile Include="$(SRCWIN)\getopt.c" />
+    <ClCompile Include="$(SRC)\bin\main.c" />
+    <ClCompile Include="$(SRC)\bin\options.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src_windows\config.h" />
-    <ClInclude Include="..\..\src_windows\getopt.h" />
-    <ClInclude Include="..\..\src\bin\main.h" />
-    <ClInclude Include="..\..\src\bin\options.h" />
+    <ClInclude Include="$(SRCWIN)\config.h" />
+    <ClInclude Include="$(SRCWIN)\getopt.h" />
+    <ClInclude Include="$(SRC)\bin\main.h" />
+    <ClInclude Include="$(SRC)\bin\options.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\..\src_windows\wnfreewrl.rc" />
+    <ResourceCompile Include="$(SRCWIN)\wnfreewrl.rc" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libminizip\libminizip.vcxproj">

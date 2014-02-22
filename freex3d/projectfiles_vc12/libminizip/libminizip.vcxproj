@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -81,14 +81,14 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\libminizip\ioapi.c" />
-    <ClCompile Include="..\..\src\libminizip\unzip.c" />
-    <ClCompile Include="..\..\src\libminizip\zip.c" />
+    <ClCompile Include="$(SRC)\libminizip\ioapi.c" />
+    <ClCompile Include="$(SRC)\libminizip\unzip.c" />
+    <ClCompile Include="$(SRC)\libminizip\zip.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\libminizip\ioapi.h" />
-    <ClInclude Include="..\..\src\libminizip\unzip.h" />
-    <ClInclude Include="..\..\src\libminizip\zip.h" />
+    <ClInclude Include="$(SRC)\libminizip\ioapi.h" />
+    <ClInclude Include="$(SRC)\libminizip\unzip.h" />
+    <ClInclude Include="$(SRC)\libminizip\zip.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

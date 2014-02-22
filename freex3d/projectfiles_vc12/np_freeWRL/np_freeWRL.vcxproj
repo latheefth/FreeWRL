@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_glew|Win32">
@@ -105,7 +105,7 @@
     <Link>
       <AdditionalDependencies>dllFreeWRL.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <ModuleDefinitionFile>..\..\src\plugin_win32\np_BasePlugin.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>$(SRC)\plugin_win32\np_BasePlugin.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
@@ -126,7 +126,7 @@
     <Link>
       <AdditionalDependencies>dllFreeWRL.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <ModuleDefinitionFile>..\..\src\plugin_win32\np_BasePlugin.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>$(SRC)\plugin_win32\np_BasePlugin.def</ModuleDefinitionFile>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -149,7 +149,7 @@
     <Link>
       <AdditionalDependencies>dllFreeWRL.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(LIBWIN)\MSopenGL\lib;$(LIBWIN)\glew\lib;$(LIBWIN)\js185\lib;$(LIBWIN)\pthreads.2;$(LIBWIN)\freetype2\lib;$(LIBWIN)\zlib\lib;$(LIBWIN)\libxml2\lib;..\Debug_glew;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <ModuleDefinitionFile>..\..\src\plugin_win32\np_BasePlugin.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>$(SRC)\plugin_win32\np_BasePlugin.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
@@ -170,7 +170,7 @@
     <Link>
       <AdditionalDependencies>dllFreeWRL.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\Release_glew;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <ModuleDefinitionFile>..\..\src\plugin_win32\np_BasePlugin.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>$(SRC)\plugin_win32\np_BasePlugin.def</ModuleDefinitionFile>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -179,24 +179,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\plugin_win32\BasePlugin.cpp" />
-    <ClCompile Include="..\..\src\plugin_win32\np_entry.cpp" />
-    <ClCompile Include="..\..\src\plugin_win32\npn_gate.cpp" />
-    <ClCompile Include="..\..\src\plugin_win32\npp_gate.cpp" />
-    <ClCompile Include="..\..\src\plugin_win32\plugin.cpp" />
-    <ClCompile Include="..\..\src\plugin_win32\ScriptablePluginObjectBase.cpp" />
+    <ClCompile Include="$(SRC)\plugin_win32\BasePlugin.cpp" />
+    <ClCompile Include="$(SRC)\plugin_win32\np_entry.cpp" />
+    <ClCompile Include="$(SRC)\plugin_win32\npn_gate.cpp" />
+    <ClCompile Include="$(SRC)\plugin_win32\npp_gate.cpp" />
+    <ClCompile Include="$(SRC)\plugin_win32\plugin.cpp" />
+    <ClCompile Include="$(SRC)\plugin_win32\ScriptablePluginObjectBase.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\plugin_win32\BasePlugin.h" />
-    <ClInclude Include="..\..\src\plugin_win32\plugin.h" />
-    <ClInclude Include="..\..\src\plugin_win32\resource.h" />
-    <ClInclude Include="..\..\src\plugin_win32\ScriptablePluginObjectBase.h" />
+    <ClInclude Include="$(SRC)\plugin_win32\BasePlugin.h" />
+    <ClInclude Include="$(SRC)\plugin_win32\plugin.h" />
+    <ClInclude Include="$(SRC)\plugin_win32\resource.h" />
+    <ClInclude Include="$(SRC)\plugin_win32\ScriptablePluginObjectBase.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\..\src\plugin_win32\np_freeWRL.rc" />
+    <ResourceCompile Include="$(SRC)\plugin_win32\np_freeWRL.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\src\plugin_win32\README.txt" />
+    <Text Include="$(SRC)\plugin_win32\README.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

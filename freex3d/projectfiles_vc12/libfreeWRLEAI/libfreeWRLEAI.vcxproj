@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_glew|Win32">
@@ -116,20 +116,20 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\libeai\EAI_C_Advise.c" />
-    <ClCompile Include="..\..\src\lib\input\EAI_C_CommonFunctions.c" />
-    <ClCompile Include="..\..\src\libeai\EAI_C_Control.c" />
-    <ClCompile Include="..\..\src\libeai\EAI_C_Field.c" />
-    <ClCompile Include="..\..\src\libeai\EAI_C_Internals.c" />
-    <ClCompile Include="..\..\src\libeai\EAI_C_Node.c" />
-    <ClCompile Include="..\..\src\libeai\EAI_C_ReWire.c" />
-    <ClCompile Include="..\..\src\libeai\EAI_C_swigExtras.c" />
+    <ClCompile Include="$(SRC)\libeai\EAI_C_Advise.c" />
+    <ClCompile Include="$(SRC)\lib\input\EAI_C_CommonFunctions.c" />
+    <ClCompile Include="$(SRC)\libeai\EAI_C_Control.c" />
+    <ClCompile Include="$(SRC)\libeai\EAI_C_Field.c" />
+    <ClCompile Include="$(SRC)\libeai\EAI_C_Internals.c" />
+    <ClCompile Include="$(SRC)\libeai\EAI_C_Node.c" />
+    <ClCompile Include="$(SRC)\libeai\EAI_C_ReWire.c" />
+    <ClCompile Include="$(SRC)\libeai\EAI_C_swigExtras.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\libeai\EAI_C.h" />
-    <ClInclude Include="..\..\src\libeai\EAI_swigMe.h" />
-    <ClInclude Include="..\..\src\libeai\GeneratedHeaders.h" />
-    <ClInclude Include="..\..\src\libeai\X3DNode.h" />
+    <ClInclude Include="$(SRC)\libeai\EAI_C.h" />
+    <ClInclude Include="$(SRC)\libeai\EAI_swigMe.h" />
+    <ClInclude Include="$(SRC)\libeai\GeneratedHeaders.h" />
+    <ClInclude Include="$(SRC)\libeai\X3DNode.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\lib\libFreeWRL.vcxproj">

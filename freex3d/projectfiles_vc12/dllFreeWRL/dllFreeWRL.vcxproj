@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_glew|Win32">
@@ -187,9 +187,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\dllFreeWRL\dllFreeWRL.cpp" />
-    <ClCompile Include="..\..\src\dllFreeWRL\dllmain.cpp" />
-    <ClCompile Include="..\..\src\dllFreeWRL\stdafx.cpp">
+    <ClCompile Include="$(SRC)\dllFreeWRL\dllFreeWRL.cpp" />
+    <ClCompile Include="$(SRC)\dllFreeWRL\dllmain.cpp" />
+    <ClCompile Include="$(SRC)\dllFreeWRL\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_glew|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_glew|Win32'">Create</PrecompiledHeader>
@@ -197,12 +197,12 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\dllFreeWRL\dllFreeWRL.h" />
-    <ClInclude Include="..\..\src\dllFreeWRL\stdafx.h" />
-    <ClInclude Include="..\..\src\dllFreeWRL\targetver.h" />
+    <ClInclude Include="$(SRC)\dllFreeWRL\dllFreeWRL.h" />
+    <ClInclude Include="$(SRC)\dllFreeWRL\stdafx.h" />
+    <ClInclude Include="$(SRC)\dllFreeWRL\targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\src\dllFreeWRL\ReadMe.txt" />
+    <Text Include="$(SRC)\dllFreeWRL\ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libminizip\libminizip.vcxproj">
