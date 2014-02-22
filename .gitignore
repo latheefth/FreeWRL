@@ -3,6 +3,8 @@
 #windows ignore:
 **/Debug*
 **/Release*
+**/ipch/*
+**/Template
 *.ncb
 *.user
 *.suo
