@@ -14,6 +14,11 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <PropertyGroup Label="fwCustom">
+    <SRC>../../src</SRC>
+    <SRCWIN>../../src_windows</SRCWIN>
+    <LIBWIN>../../../../lib_windows</LIBWIN>
+  </PropertyGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A6255F79-AC96-4224-891F-EEFE6B8CFD21}</ProjectGuid>
     <RootNamespace>winGLES2</RootNamespace>
@@ -68,7 +73,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../main;../../../../lib_windows/angleproject/include;../../src_windows;..\..\src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../main;$(LIBWIN)/angleproject/include;$(SRCWIN);$(SRC)\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;GLES2;FRONTEND_HANDLES_DISPLAY_THREAD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -79,7 +84,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>libFreeWRL.lib;fwlibGLESv2.lib;fwlibEGL.lib;pthreadVC2d.lib;zlib.lib;libminizip.lib;mozjs185-1.0.lib;ws2_32.lib;freetype239.lib;shlwapi.lib;gdiplus.lib;libxml2_a.lib;Wininet.lib;Winmm.lib;libtess.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>.\Debug;..\..\..\..\lib_windows\angleproject\lib\Debug;..\..\..\..\lib_windows\js185\lib;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\zlib\lib;..\Debug;..\..\..\..\lib_windows\libxml2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>.\Debug;$(LIBWIN)\angleproject\lib\Debug;$(LIBWIN)\js185\lib;$(LIBWIN)\pthreads.2;$(LIBWIN)\freetype2\lib;$(LIBWIN)\zlib\lib;..\Debug;$(LIBWIN)\libxml2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
@@ -87,7 +92,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>../main;../../../../lib_windows/angleproject/include;../../src_windows;..\..\src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../main;$(LIBWIN)/angleproject/include;$(SRCWIN);$(SRC)\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader />
@@ -96,7 +101,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>libFreeWRL.lib;fwlibGLESv2.lib;fwlibEGL.lib;pthreadVC2.lib;zlib.lib;libminizip.lib;mozjs185-1.0.lib;ws2_32.lib;freetype239.lib;shlwapi.lib;gdiplus.lib;libxml2_a.lib;Wininet.lib;Winmm.lib;libtess.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>.\Release;..\..\..\..\lib_windows\angleproject\lib\Release;..\..\..\..\lib_windows\js185\lib;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\zlib\lib;..\Release;..\..\..\..\lib_windows\libxml2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>.\Release;$(LIBWIN)\angleproject\lib\Release;$(LIBWIN)\js185\lib;$(LIBWIN)\pthreads.2;$(LIBWIN)\freetype2\lib;$(LIBWIN)\zlib\lib;..\Release;$(LIBWIN)\libxml2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -107,7 +112,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_glew|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../main;../../../../lib_windows/angleproject/include;../../src_windows;..\..\src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../main;$(LIBWIN)\angleproject\include;$(SRCWIN);$(SRC)\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;GLES2;FRONTEND_HANDLES_DISPLAY_THREAD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -117,8 +122,8 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libFreeWRLd.lib;fwlibGLESv2.lib;fwlibEGL.lib;pthreadVC2d.lib;zlib.lib;libminizip.lib;mozjs185-1.0.lib;ws2_32.lib;freetype239.lib;shlwapi.lib;gdiplus.lib;libxml2_a.lib;Wininet.lib;Winmm.lib;libtessd.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>.\Debug;..\..\..\..\lib_windows\angleproject\lib\Release;..\..\..\..\lib_windows\js185\lib;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\zlib\lib;..\Debug;..\..\..\..\lib_windows\libxml2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libFreeWRL.lib;fwlibGLESv2.lib;fwlibEGL.lib;pthreadVC2d.lib;zlib.lib;libminizip.lib;mozjs185-1.0.lib;ws2_32.lib;freetype239.lib;shlwapi.lib;gdiplus.lib;libxml2_a.lib;Wininet.lib;Winmm.lib;libtess.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>.\Debug;$(LIBWIN)\angleproject\lib\Release;$(LIBWIN)\js185\lib;$(LIBWIN)\pthreads.2;$(LIBWIN)\freetype2\lib;$(LIBWIN)\zlib\lib;..\Debug;$(LIBWIN)\libxml2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>

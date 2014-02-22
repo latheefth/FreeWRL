@@ -18,6 +18,11 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <PropertyGroup Label="fwCustom">
+    <SRC>../../src</SRC>
+    <SRCWIN>../../src_windows</SRCWIN>
+    <LIBWIN>../../../../lib_windows</LIBWIN>
+  </PropertyGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{611A8A80-5428-4B0D-80A2-EEEE3F99996B}</ProjectGuid>
     <RootNamespace>np_freeX3D</RootNamespace>
@@ -88,7 +93,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\src\dllFreeWRL;..\..\src\plugin_win32;..\..\src\plugin_win32\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SRC)\dllFreeWRL;$(SRC)\plugin_win32;$(SRC)\plugin_win32\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;NP_FREEWRL_EXPORTS;NP_BASEPLUGIN_EXPORTS;XP_WIN32;MOZILLA_STRICT_API;XPCOM_GLUE;XP_WIN;_X86_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -110,7 +115,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\src\dllFreeWRL;..\..\src\plugin_win32;..\..\src\plugin_win32\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SRC)\dllFreeWRL;$(SRC)\plugin_win32;$(SRC)\plugin_win32\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;NP_FREEWRL_EXPORTS;NP_BASEPLUGIN_EXPORTS;XP_WIN32;MOZILLA_STRICT_API;XPCOM_GLUE;XP_WIN;_X86_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -132,7 +137,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_glew|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\src\dllFreeWRL;..\..\src\Lib;..\..\src\plugin_win32;..\..\src\plugin_win32\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SRC)\dllFreeWRL;$(SRC)\lib;$(SRC)\plugin_win32;$(SRC)\plugin_win32\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;NP_FREEX3D_EXPORTS;NP_BASEPLUGIN_EXPORTS;XP_WIN32;MOZILLA_STRICT_API;XPCOM_GLUE;XP_WIN;_X86_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -143,7 +148,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>dllFreeWRLd.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\..\lib_windows\MSopenGL\lib;..\..\..\..\lib_windows\glew\lib;..\..\..\..\lib_windows\js185\lib;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\zlib\lib;..\..\..\..\lib_windows\libxml2\lib;..\Debug_glew;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(LIBWIN)\MSopenGL\lib;$(LIBWIN)\glew\lib;$(LIBWIN)\js185\lib;$(LIBWIN)\pthreads.2;$(LIBWIN)\freetype2\lib;$(LIBWIN)\zlib\lib;$(LIBWIN)\libxml2\lib;..\Debug_glew;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>..\..\src\plugin_win32\np_BasePlugin.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -154,7 +159,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\src\dllFreeWRL;..\..\src\plugin_win32;..\..\src\plugin_win32\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SRC)\dllFreeWRL;$(SRC)\plugin_win32;$(SRC)\plugin_win32\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;NP_FREEWRL_EXPORTS;NP_BASEPLUGIN_EXPORTS;XP_WIN32;MOZILLA_STRICT_API;XPCOM_GLUE;XP_WIN;_X86_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
