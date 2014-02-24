@@ -182,7 +182,11 @@
 
 /* Define to 1 if the system has the type `_Bool'. */
 #undef HAVE__BOOL
+//vc9 == 1500 (2008) - doesn't have bool
+//vc12 == 1800 (2013 desktop) - has bool
+#if _MSC_VER > 1500
 #define HAVE__BOOL 1
+#endif
 
 /* Path to image converter. set to NULL if none */
 #undef IMAGECONVERT
