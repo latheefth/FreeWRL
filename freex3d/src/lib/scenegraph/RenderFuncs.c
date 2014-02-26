@@ -140,7 +140,7 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 }
 
 void clearLightTable(){ //unsigned int loop_count){
-	int i;
+	//int i;
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 	p->nextFreeLight = 0;
 	//p->currentLoop = loop_count;
@@ -935,7 +935,6 @@ static struct profile_entry profile_entries[100];
 
 void profile_start(char *name){
 	int ifound, i;
-	double sec = Time1970sec();
 	ifound = -1;
 	for(i=0;i<profile_entry_count;i++){
 		if(!strcmp(name,profile_entries[i].name)){
@@ -979,7 +978,7 @@ void render_node(struct X3D_Node *node) {
 	int srg = 0;
 	int sch = 0;
 	int justGeom = 0;
-	struct currayhit *srh;
+	struct currayhit *srh = NULL;
 	ppRenderFuncs p;
 	ttglobal tg = gglobal();
 	p = (ppRenderFuncs)tg->RenderFuncs.prv;
@@ -1112,7 +1111,7 @@ void render_node(struct X3D_Node *node) {
 		sch = p->cur_hits;
 		p->cur_hits = 0;
 		/* HP */
-		srh = malloc(sizeof(struct currayhit));
+		srh = MALLOC(struct currayhit *,sizeof(struct currayhit));
 		//srh = p->rayph;
 		memcpy(srh,&p->rayph,sizeof(struct currayhit));
 		p->rayph.hitNode = node;
@@ -1162,7 +1161,7 @@ void render_node(struct X3D_Node *node) {
 		/* HP */
 		//p->rayph = srh;
 		memcpy(&p->rayph,srh,sizeof(struct currayhit));
-		free(srh);
+		FREE_IF_NZ(srh);
 		profile_end("sensitive2");
 	}
 

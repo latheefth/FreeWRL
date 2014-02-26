@@ -345,7 +345,6 @@ typedef struct s_shader_capabilities{
     bool  haveLightInShader; 
     
 	GLint lightcount;
-	//GLint lightState;
 	//GLint lightType;
 	GLint lightType[MAX_LIGHTS];
     GLint lightAmbient[MAX_LIGHTS];

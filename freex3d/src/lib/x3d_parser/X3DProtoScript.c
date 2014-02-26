@@ -1288,13 +1288,14 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 
 	/* step 0. Does this one contain a DEF? */
 	if (p->ProtoInstanceTable[p->curProtoInsStackInd].defName != NULL) {
-		struct X3D_Node * me; 
 		#ifdef X3DPARSERVERBOSE
 			printf ("ProtoInstance, have a DEF, defining :%s: for node %u\n",
 			ProtoInstanceTable[curProtoInsStackInd].defName,(unsigned int) myGroup);
 		#endif
 		//DEFNameIndex is not idempotent: it changes the table of defnames if the given name isn't found
-		me = DEFNameIndex(p->ProtoInstanceTable[p->curProtoInsStackInd].defName,X3D_NODE(myGroup),FALSE);
+		struct X3D_Node *me
+		 = DEFNameIndex(p->ProtoInstanceTable[p->curProtoInsStackInd].defName,X3D_NODE(myGroup),FALSE);
+
 		FREE_IF_NZ(p->ProtoInstanceTable[p->curProtoInsStackInd].defName);
 	}
 

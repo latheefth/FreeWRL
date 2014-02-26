@@ -54,10 +54,12 @@ void render_node(struct X3D_Node *node);
 struct X3D_Anchor *AnchorsAnchor();
 void setAnchorsAnchor(struct X3D_Anchor* anchor);
 
+void clearLightTable();
+
 void setLightState(GLint light, int status);
 void setLightType(GLint light, int type);
-void saveLightState2(int *ls);
-void restoreLightState2(int ls);
+//JAS void saveLightState2(int *ls);
+//JAS void restoreLightState2(int ls);
 void setLightChangedFlag(GLint light);
 void fwglLightfv (int light, int pname, GLfloat *params);
 void fwglLightf (int light, int pname, GLfloat param);

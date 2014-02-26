@@ -557,14 +557,16 @@ BOOL matrix3x3_inverse_float(float *inn, float *outt)
 {
 	
     float    det_1;
-    float    pos, neg, temp;
+    float    pos, /* neg, */ temp;
 	float *in[3], *out[3];
 
-//#define ACCUMULATE    \
+/*#define ACCUMULATE    \
 //    if (temp >= 0.0)  \
 //        pos += temp;  \
 //    else              \
-//        neg += temp;
+        neg += temp;
+*/
+
 #define ACCUMULATE pos += temp;
 
 //#define PRECISION_LIMIT 1.0e-7 //(1.0e-15)

@@ -34,6 +34,8 @@
 
 #include <libFreeWRL.h>
 
+#include "../lib/main/MainLoop.h"
+
 #include "main.h"
 #include "options.h"
 #ifdef _MSC_VER

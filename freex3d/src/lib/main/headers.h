@@ -31,20 +31,6 @@ Global includes.
 #ifndef __FREEWRL_HEADERS_H__
 #define __FREEWRL_HEADERS_H__
 
-/* NO INCLUDE IN INCLUDE: this prevent us from doing real
-   include separation :)...
-*/
-   
-/* for lightState() */
-/* #include "../opengl/OpenGL_Utils.h" */
-
-/* for localLightChildren */
-/* #include "../scenegraph/Children.h" */
-
-/**
- * in utils.c
- */
-
 #define int_t intptr_t
 
 extern char *BrowserName;
@@ -438,14 +424,21 @@ unsigned char  *readpng_get_image(double display_exponent, int *pChannels,
 
 /* Used to determine in Group, etc, if a child is a local light; do comparison with this */
 void LocalLight_Rend(void *nod_);
+
+void saveLightState2(int *ls);
+void restoreLightState2(int ls);
+
+#define LOCAL_LIGHT_SAVE int lastlight; //savedlight[8];
+/* 
+Saved version by Doug Sanden(?) 
 void saveLightState(int *);
 void restoreLightState(int *);
-#define LOCAL_LIGHT_SAVE int lastlight; //savedlight[8];
-//#define LOCAL_LIGHT_CHILDREN(a) \
-//	if ((node->_renderFlags & VF_localLight)==VF_localLight){saveLightState(savedlight); localLightChildren(a);}
-//
-//#define LOCAL_LIGHT_OFF if ((node->_renderFlags & VF_localLight)==VF_localLight) { \
-//		restoreLightState(savedlight); }
+#define LOCAL_LIGHT_CHILDREN(a) \
+	if ((node->_renderFlags & VF_localLight)==VF_localLight){saveLightState(savedlight); localLightChildren(a);}
+
+#define LOCAL_LIGHT_OFF if ((node->_renderFlags & VF_localLight)==VF_localLight) { \
+		restoreLightState(savedlight); }
+*/
 
 #define LOCAL_LIGHT_CHILDREN(a) \
 	if ((node->_renderFlags & VF_localLight)==VF_localLight && renderstate()->render_light != VF_globalLight){ \

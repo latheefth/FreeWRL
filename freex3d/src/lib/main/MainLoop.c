@@ -2090,7 +2090,7 @@ OLDCODE#endif
 		else 
 			BackEndClearBuffer(2);
 		//BackEndLightsOff(); 
-		clearLightTable(p->loop_count);//turns all lights off- will turn them on for VF_globalLight and scope-wise for non-global in VF_geom
+		clearLightTable();//turns all lights off- will turn them on for VF_globalLight and scope-wise for non-global in VF_geom
 
 //#else
 //

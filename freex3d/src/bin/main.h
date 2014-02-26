@@ -30,5 +30,6 @@
 #define __FREEWRL_MAIN_H__
 
 extern char *start_url;
+void fwExit(int iret);
 
 #endif /* __FREEWRL_MAIN_H__ */

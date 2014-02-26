@@ -1498,9 +1498,6 @@ uniform vec4 HatchColour; \n\
 uniform bool hatched; uniform bool filled;\n\
 uniform vec2 HatchScale; uniform vec2 HatchPct; uniform int algorithm; ";
 
-// cut: uniform int lightState[MAX_LIGHTS];\n\
-
-
 static const GLchar *lightDefines = "\
 struct fw_MaterialParameters {\n\
   vec4 emission;\n\
