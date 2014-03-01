@@ -1574,7 +1574,7 @@ if (backFacing) { \n \
 \n\
   /* apply the lights to this material */\n\
   for (i=0; i<MAX_LIGHTS; i++) {\n\
-    if(i<lightcount) { /*weird but ANGLE needs constant loop*/ \n\
+	if(i<lightcount) { /*weird but ANGLE needs constant loop*/ \n\
       vec4 myLightDiffuse = fw_LightSource[i].diffuse;\n\
       vec4 myLightAmbient = fw_LightSource[i].ambient;\n\
       vec4 myLightSpecular = fw_LightSource[i].specular;\n\
@@ -1676,9 +1676,9 @@ if (backFacing) { \n \
 #if defined (GL_ES_VERSION_2_0)
 	static const GLchar *fragHighPrecision = "precision highp float;\n ";
 	static const GLchar *fragMediumPrecision = "precision mediump float;\n ";
-	static const GLchar *maxLights = "\n#define MAX_LIGHTS 2\n ";
+	static const GLchar *maxLights = STR_MAX_LIGHTS; //"\n#define MAX_LIGHTS 2\n ";
 #else
-	static const GLchar *maxLights = "\n#define MAX_LIGHTS 8\n ";
+	static const GLchar *maxLights = STR_MAX_LIGHTS; //"\n#define MAX_LIGHTS 8\n ";
 #endif
 
 
