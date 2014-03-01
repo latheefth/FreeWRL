@@ -5434,13 +5434,29 @@ if (me->myMat != -1) { GLUNIFORM1F(me->myMat,myVal);}
 #define SEND_INT(myMat,myVal) \
 if (me->myMat != -1) { GLUNIFORM1I(me->myMat,myVal);}
         
-
-
+static int lookupTexCoordGenType(GLint structsTexCoordGenType){
+	GLint iret = 0;
+	switch (structsTexCoordGenType){
+	case TCGT_NOISE: iret = 0; break;
+	case TCGT_CAMERASPACENORMAL: iret = 1; break;
+	case TCGT_NOISE_EYE: iret = 2; break;
+	case TCGT_SPHERE: iret = 3; break;
+	case TCGT_SPHERE_REFLECT_LOCAL: iret = 4; break;
+	case TCGT_SPHERE_REFLECT: iret = 5; break;
+	case TCGT_CAMERASPACEREFLECTION: iret = 6; break;
+	case TCGT_SPHERE_LOCAL: iret = 7; break;
+	case TCGT_COORD_EYE: iret = 8; break;
+	case TCGT_COORD: iret = 9; break;
+	case TCGT_CAMERASPACEPOSITION: iret = 10; break;
+	default: iret = 0;
+	}
+	return iret;
+}
 void sendMaterialsToShader(s_shader_capabilities_t *me) {
     struct matpropstruct *myap = getAppearanceProperties();
     struct fw_MaterialParameters *fw_FrontMaterial;
 	struct fw_MaterialParameters *fw_BackMaterial;
-
+	GLint fw_texCoordGenType;
     if (!myap) return;
     fw_FrontMaterial = &myap->fw_FrontMaterial;
     fw_BackMaterial = &myap->fw_BackMaterial;
@@ -5499,7 +5515,7 @@ PRINT_GL_ERROR_IF_ANY("BEGIN sendMaterialsToShader");
     SEND_VEC2(hatchPercent,myap->hatchPercent);
 
     //TextureCoordinateGenerator
-    SEND_INT(texCoordGenType,myap->texCoordGeneratorType);
+	SEND_INT(texCoordGenType, lookupTexCoordGenType(myap->texCoordGeneratorType));
 	profile_end("sendmat");
 	PRINT_GL_ERROR_IF_ANY("END sendMaterialsToShader");
 }
