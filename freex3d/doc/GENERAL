@@ -1,3 +1,27 @@
+2014/03/03
+
+Here are some unadvertised key commands for freewrl:
+
+ case '/': { print_viewer(); break; }
+ case '\\': { dump_scenegraph(1); break; }
+ case '|': { dump_scenegraph(2); break; }
+ case '=': { dump_scenegraph(3); break; }
+ case '+': { dump_scenegraph(4); break; }
+ case '-': { dump_scenegraph(5); break; }
+ case '`': { toggleLogfile(); break; }
+ case '$': resource_tree_dump(0, tg->resources.root_res); break;
+ case '*': resource_tree_list_files(0, tg->resources.root_res); break;
+
+/ - prints the pose of the avatar/viewer in the scene
+\ - prints the scenegraph to the console
+| - prints the scenegraph to the console, fancier
+= - hangs the program (supposed to print DEF node name list)
++ - prints the ROUTES to the console
+- - asks a question requiring a numeric response you can't give (I think it was a developers tool for deep-copying a node)
+` - toggles logfile - the one used by the built-in testing system
+$ - prints resources list
+* - prints files used
+
 2013/04/22
 
 - FreeWRL follows www.web3d.org specs, and in general vrml browsers work like game engines:
@@ -14,7 +38,7 @@ end loop
 
 - Directory layout
 
-freewrl/freex3d/codegen - perl files to generate GeneratedCode.c and Structs.h node and field plumbing - only run perl after an infrequent change to the node or field structs, check in the GeneratedCode.c and Structs.h.
+freewrl/freex3d/codegen - perl files to generate GeneratedCode.c and Structs.h node and field plumbing; only run perl after an infrequent change to the node or field structs, check in the GeneratedCode.c and Structs.h.
 freewrl/freex3d/projectfiles_vc9 and _vc10 - win32 MSVC .proj and .sln build files
 freewrl/freex3d/src - cross platform source code files for:
 /libeai - in web3d.org specs there's something called External Authoring Interface EAI that allows scripting via port communications
@@ -27,13 +51,17 @@ within /lib - the directories are fuzzy categories, not strict, and I have only 
 
 - The codegen folder, it's contents and purpose
 
-VRML has 2 main entity types: nodes and fields. There's a lot of repetitive plumbing for each of those types, and for each specific node and field type. When changing the system occasionally -very infrequently- if a generic field struct or node struct needs to be changed, instead of changing it repetitively in hundreds of node or field structs, it's changed on one line in a codegen/ perl file, and the perl is re-run to generate all the repetitive plumbing code.
+VRML has 2 main entity types: nodes and fields.
+There's a lot of repetitive plumbing for each of those types, and for each specific node and field type.
+When changing the system occasionally -very infrequently- if a generic field struct or node struct needs to be changed, instead of changing it repetitively in hundreds of node or field structs, it's changed on one line in a codegen/ perl file, and the perl is re-run to generate all the repetitive plumbing code.
 To re-run the perl, in windows I put it in a .bat file in /codegen, install perl somewhere, then run the .bat, which looks like this:
 E:/Perl/bin/perl.exe VRMLC.pm
 pause
 That's it. It does it's own running of the other perl .pm files.
 It outputs
+
 freex3d/lib/scenegraph/generatedCode.c and
 freex3d/lib/vrml/structs.h and
 freex3d/libeai/GeneratedCode.c and GeneratedHeaders.c
-So these output files should never be edited directly (although I have for a throw-away proof-of-concept test before editing the perl)
+
+So these output files should never be edited directly.
