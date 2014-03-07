@@ -15,32 +15,32 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src_windows\getopt.c">
+    <ClCompile Include="$(SRCWIN)\getopt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\bin\main.c">
+    <ClCompile Include="$(SRC)\bin\main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\bin\options.c">
+    <ClCompile Include="$(SRC)\bin\options.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src_windows\config.h">
+    <ClInclude Include="$(SRCWIN)\config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src_windows\getopt.h">
+    <ClInclude Include="$(SRCWIN)\getopt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\bin\main.h">
+    <ClInclude Include="$(SRC)\bin\main.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\bin\options.h">
+    <ClInclude Include="$(SRC)\bin\options.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\..\src_windows\wnfreewrl.rc">
+    <ResourceCompile Include="$(SRCWIN)\wnfreewrl.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

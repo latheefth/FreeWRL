@@ -175,7 +175,7 @@ typedef struct pMainloop{
 
 	double BrowserStartTime;        /* start of calculating FPS     */
 
-	int quitThread;// = FALSE;
+	//int quitThread;// = FALSE;
 	int keypress_wait_for_settle;// = 100;     /* JAS - change keypress to wait, then do 1 per loop */
 	char * keypress_string;//=NULL;            /* Robert Sim - command line key sequence */
 
@@ -281,7 +281,7 @@ void Mainloop_init(struct tMainloop *t){
 		/* current time and other time related stuff */
 		//p->BrowserStartTime;        /* start of calculating FPS     */
 
-		p->quitThread = FALSE;
+		//p->quitThread = FALSE;
 		p->keypress_wait_for_settle = 100;     /* JAS - change keypress to wait, then do 1 per loop */
 		p->keypress_string=NULL;            /* Robert Sim - command line key sequence */
 
@@ -408,9 +408,10 @@ static void stopDisplayThread()
 {
 	ttglobal tg = gglobal();
 	if (!TEST_NULL_THREAD(tg->threads.DispThrd)) {
-		((ppMainloop)(tg->Mainloop.prv))->quitThread = TRUE;
-		pthread_join(tg->threads.DispThrd,NULL);
-		ZERO_THREAD(tg->threads.DispThrd);
+		//((ppMainloop)(tg->Mainloop.prv))->quitThread = TRUE;
+		tg->threads.MainLoopQuit = TRUE;
+		//pthread_join(tg->threads.DispThrd,NULL);
+		//ZERO_THREAD(tg->threads.DispThrd);
 	}
 }
 #ifndef SIGTERM
@@ -418,6 +419,10 @@ static void stopDisplayThread()
 #endif
 
 
+
+
+
+#ifdef OLDSTOPCODE
 // stops the Texture loading thread - will either pthread_cancel or will send SIGUSR2 to 
 // the thread, depending on platform.
 
@@ -427,7 +432,7 @@ static void stopLoadThread()
 	if (!TEST_NULL_THREAD(tg->threads.loadThread)) {
 
 		#if defined(HAVE_PTHREAD_CANCEL)
-			pthread_cancel(tg->threads.loadThread);
+			//pthread_cancel(tg->threads.loadThread);
 	 	#else
 
 		{	
@@ -456,7 +461,7 @@ static void stopPCThread()
 
 	if (!TEST_NULL_THREAD(tg->threads.PCthread)) {
 		#if defined(HAVE_PTHREAD_CANCEL)
-			pthread_cancel(tg->threads.PCthread);
+			//pthread_cancel(tg->threads.PCthread);
 	 	#else
 
 		{	
@@ -474,7 +479,16 @@ static void stopPCThread()
 		ZERO_THREAD(tg->threads.PCthread);
 	}
 }
-
+#else
+static void stopLoadThread(){
+	texitem_queue_flush();
+	texitem_queue_exit();
+}
+static void stopPCThread(){
+	resitem_queue_flush();
+	resitem_queue_exit();
+}
+#endif
 //static double waitsec;
 
 #if !defined(_MSC_VER)
@@ -1208,7 +1222,7 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
 #endif
 
         /* first events (clock ticks, etc) if we have other things to do, yield */
-        if (p->doEvents) do_first (); else sched_yield();
+        if (p->doEvents) do_first (); //else sched_yield();
 
 	/* ensure depth mask turned on here */
 	FW_GL_DEPTHMASK(GL_TRUE);
@@ -3988,9 +4002,37 @@ void fwl_initializeRenderSceneUpdateScene() {
 }
 
 void finalizeRenderSceneUpdateScene() {
-printf ("finalizeRenderSceneUpdateScene\n");
+	/* 3 phases to shutdown:
+	1. stop mainthread from looping. If we are in here, we aren't looping
+	2. worker threads > flush and stop
+	3. clean up scene data
+	4. delete instance
+	5. exit here and let the display thread die a peaceful death
+	*/
+	ttglobal tg = gglobal();
+	BOOL more;
+	printf ("finalizeRenderSceneUpdateScene\n");
 
-    	kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+	stopLoadThread();
+	stopPCThread();
+
+	do{
+		more = tg->threads.ResourceThreadRunning || tg->threads.TextureThreadRunning; 
+		usleep(1000);
+	} while (more);
+    kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+	/* set geometry to normal size from fullscreen */
+#ifndef AQUA
+	if (newResetGeometry != NULL) newResetGeometry();
+#endif
+	/* kill any remaining children processes like sound processes or consoles */
+	killErrantChildren();
+#ifdef DEBUG_MALLOC
+	void scanMallocTableOnQuit(void);
+	scanMallocTableOnQuit();
+#endif
+	/* tested on win32 console program July9,2011 seems OK */
+	iglobal_destructor(gglobal());
 }
 
 
@@ -4081,7 +4123,7 @@ void _displayThread(void *globalcontext)
 	//tg->threads.DispThrd = pthread_self();
 	//set_thread2global(tg, tg->threads.DispThrd ,"display thread");
 	fwl_setCurrentHandle(tg,__FILE__,__LINE__);
-
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 	ENTER_THREAD("display");
 
 #if KEEP_FV_INLIB
@@ -4100,7 +4142,8 @@ void _displayThread(void *globalcontext)
 	//sleep(1500);
 
 	/* loop and loop, and loop... */
-	while (!((ppMainloop)(tg->Mainloop.prv))->quitThread) {
+	//while (!((ppMainloop)(tg->Mainloop.prv))->quitThread) {
+	while (!tg->threads.MainLoopQuit) {
 		//PRINTF("event loop\n");
 #ifdef _MSC_VER
 		fwMessageLoop((freewrl_params_t *)&gglobal()->display);
@@ -4146,7 +4189,7 @@ void fwl_initialize_parser()
 		if ((gglobal()->Mainloop.prv) == NULL) ConsoleMessage ("fwl_initialize_parser, gglobal()->Mainloop.prv NULL");
 	*/
 
-        ((ppMainloop)(gglobal()->Mainloop.prv))->quitThread = FALSE;
+   //     ((ppMainloop)(gglobal()->Mainloop.prv))->quitThread = FALSE;
 
 	/* create the root node */
 	if (rootNode() == NULL) {
@@ -4214,7 +4257,8 @@ void fwl_doQuitInstance()
     kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__); //must be done from this thread
 	stopLoadThread();
 	stopPCThread();
-    /* set geometry to normal size from fullscreen */
+
+	/* set geometry to normal size from fullscreen */
 #ifndef AQUA
     if (newResetGeometry != NULL) newResetGeometry();
 #endif
@@ -4237,9 +4281,10 @@ void fwl_doQuit()
 //OLDCODE #if defined(_ANDROID)
 //OLDCODE 	fwl_Android_doQuitInstance();
 //OLDCODE #else //ANDROID
-	fwl_doQuitInstance();
+	//fwl_doQuitInstance();
 //OLDCODE #endif //ANDROID
-    exit(EXIT_SUCCESS);
+    //exit(EXIT_SUCCESS);
+	gglobal()->threads.MainLoopQuit = TRUE;
 }
 
 // tmp files are on a per-invocation basis on Android, and possibly other locations.

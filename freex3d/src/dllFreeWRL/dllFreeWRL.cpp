@@ -238,7 +238,8 @@ void CdllFreeWRL::onClose()
 	/* when finished: */
 	if(fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
 		//swDebugf("onClose before -fwl_doQuitInstance being called\n");
-		fwl_doQuitInstance();
+		//fwl_doQuitInstance();
+		fwl_doQuit();
 		//swDebugf("onClose after\n");
 	}
 	fwl_clearCurrentHandle();

@@ -184,7 +184,7 @@ typedef struct pProdCon{
 		/* psp is the data structure that holds parameters for the parsing thread */
 		struct PSStruct psp;
 		/* is the inputParse thread created? */
-		int inputParseInitialized; //=FALSE;
+		//int inputParseInitialized; //=FALSE;
 
 		/* is the parsing thread active? this is read-only, used as a "flag" by other tasks */
 		int inputThreadParsing; //=FALSE;
@@ -232,7 +232,7 @@ void ProdCon_init(struct tProdCon *t)
 		/* psp is the data structure that holds parameters for the parsing thread */
 		//p->psp;
 		/* is the inputParse thread created? */
-		p->inputParseInitialized=FALSE;
+		//p->inputParseInitialized=FALSE;
 		/* is the parsing thread active? this is read-only, used as a "flag" by other tasks */
 		p->inputThreadParsing=FALSE;
 		p->haveParsedCParsed = FALSE; 	/* used to tell when we need to call destroyCParserData 
@@ -276,8 +276,9 @@ float fwl_getLastSTLScaling() {
 /* is a parser running? this is a function, because if we need to mutex lock, we
    can do all locking in this file */
 int fwl_isInputThreadInitialized() {
-	ppProdCon p = (ppProdCon)gglobal()->ProdCon.prv;
-	return p->inputParseInitialized;
+	//ppProdCon p = (ppProdCon)gglobal()->ProdCon.prv;
+	//return p->inputParseInitialized;
+	gglobal()->threads.ResourceThreadRunning;
 }
 
 /* statusbar uses this to tell user that we are still loading */
@@ -667,9 +668,9 @@ void send_resource_to_parser(resource_item_t *res)
 		usleep(50);
 	}
 
-	/* wait for the parser thread to come up to speed */
-	while (!p->inputParseInitialized) 
-		usleep(50);
+	///* wait for the parser thread to come up to speed */
+	//while (!p->inputParseInitialized) 
+	//	usleep(50);
 
 #ifdef NEWQUEUE
 	resitem_enqueue(ml_new(res));
@@ -717,7 +718,7 @@ bool send_resource_to_parser_if_available(resource_item_t *res)
 	//}
 
 	/* wait for the parser thread to come up to speed */
-	while (!p->inputParseInitialized) usleep(50);
+	//while (!p->inputParseInitialized) usleep(50);
 
 #ifdef NEWQUEUE
 	resitem_enqueue(ml_new(res));
@@ -1028,6 +1029,14 @@ return (p->resource_list_to_parse);
   }
 
 
+void threadsafe_append_item_signal(s_list_t *item, s_list_t** queue, pthread_mutex_t* queue_lock, pthread_cond_t *queue_nonzero)
+{
+	pthread_mutex_lock(queue_lock);
+	if (*queue == NULL)
+		pthread_cond_signal(queue_nonzero);
+	*queue = ml_append(*queue, item);
+	pthread_mutex_unlock(queue_lock);
+}
 void threadsafe_enqueue_item_signal(s_list_t *item, s_list_t** queue, pthread_mutex_t* queue_lock, pthread_cond_t *queue_nonzero)
 {
 	pthread_mutex_lock(queue_lock);
@@ -1047,7 +1056,13 @@ s_list_t* threadsafe_dequeue_item_wait(s_list_t** queue, pthread_mutex_t *queue_
 	pthread_mutex_unlock(queue_lock);
 	return item;
 }
+void resitem_append(s_list_t *item){
+	ppProdCon p;
+	ttglobal tg = gglobal();
+	p = (ppProdCon)tg->ProdCon.prv;
 
+	threadsafe_append_item_signal(item, &p->resource_list_to_parse, &tg->threads.mutex_resource_list, &tg->threads.resource_list_condition);
+}
 void resitem_enqueue(s_list_t *item){
 	ppProdCon p;
 	ttglobal tg = gglobal();
@@ -1245,7 +1260,18 @@ static bool parser_process_res(s_list_t *item)
 
     return retval;
 }
-
+//we want the void* addresses of the following, so the int value doesn't matter
+static const int res_command_exit;
+static const int res_command_flush_queue;
+static const int res_command_stop_flush;
+void resitem_queue_flush()
+{
+	resitem_enqueue(ml_new(&res_command_flush_queue));
+	resitem_enqueue(ml_new(&res_command_stop_flush));
+}
+void resitem_queue_exit(){
+	resitem_enqueue(ml_new(&res_command_exit));
+}
 void _inputParseThread(void *globalcontext)
 {
 	ttglobal tg = (ttglobal)globalcontext;
@@ -1267,7 +1293,8 @@ void _inputParseThread(void *globalcontext)
 		//set_thread2global(tg, tg->threads.PCthread ,"parse thread");
 		fwl_setCurrentHandle(tg,__FILE__,__LINE__);
 
-		p->inputParseInitialized = TRUE;
+		//p->inputParseInitialized = TRUE;
+		tg->threads.ResourceThreadRunning = TRUE;
 		ENTER_THREAD("input parser");
 
 		viewer_default();
@@ -1275,15 +1302,30 @@ void _inputParseThread(void *globalcontext)
 		/* now, loop here forever, waiting for instructions and obeying them */
 #ifdef NEWQUEUE
 		for (;;) {
+			void *elem;
        		bool result = TRUE;
-			s_list_t* __l = resitem_dequeue();
+			s_list_t* item = resitem_dequeue();
+			elem = ml_elem(item);
+			if (elem == &res_command_exit){
+				FREE_IF_NZ(item);
+				break;
+			}
+			if (elem == &res_command_flush_queue){
+				do{
+					FREE_IF_NZ(item);
+					item = resitem_dequeue();
+					elem = ml_elem(item);
+				} while (elem != &res_command_stop_flush);
+				continue;
+			}
 			p->inputThreadParsing = TRUE;
-			result = parser_process_res(__l); //,&p->resource_list_to_parse);
+			result = parser_process_res(item); //,&p->resource_list_to_parse);
 			p->inputThreadParsing = FALSE;
 			#if defined (IPHONE) || defined (_ANDROID)
             		if (result) setMenuStatus ("ok"); else setMenuStatus("not ok");
 			#endif
 		}
+		printf("Hi - ending resitem queue gracefully\n");
 #else //NEWQUEUE
 		for (;;) {
         		bool result = TRUE;
@@ -1312,6 +1354,9 @@ void _inputParseThread(void *globalcontext)
 			UNLOCK;
 		}
 #endif //NEWQUEUE
+		tg->threads.ResourceThreadRunning = FALSE;
+
+
 	}
 }
 

@@ -101,6 +101,9 @@ typedef struct iiglobal //InstanceGlobal
 		/* Synchronize / exclusion (main<=>texture) */
 		pthread_mutex_t mutex_texture_list; // = PTHREAD_MUTEX_INITIALIZER;
 		pthread_cond_t texture_list_condition; // = PTHREAD_COND_INITIALIZER;
+		BOOL ResourceThreadRunning;
+		BOOL TextureThreadRunning;
+		BOOL MainLoopQuit;
 		void *prv;
 	} threads;
     
@@ -181,7 +184,7 @@ typedef struct iiglobal //InstanceGlobal
 	} Frustum;
 	struct tLoadTextures{
 		/* is the texture thread up and running yet? */
-		int TextureThreadInitialized;// = FALSE;
+		//int TextureThreadInitialized;// = FALSE;
 		void *prv;
 	}LoadTextures;
 	struct tOpenGL_Utils{

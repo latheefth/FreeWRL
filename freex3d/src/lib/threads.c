@@ -92,6 +92,14 @@ DEF_THREAD(_THREAD_NULL_); //used to initialize thread members in generatedcode.
 //pthread_mutex_t mutex_texture_list = PTHREAD_MUTEX_INITIALIZER;
 //pthread_cond_t texture_list_condition = PTHREAD_COND_INITIALIZER;
 
+//typedef struct pthreads{
+//}*ppthreads;
+//void *threads_constructor(){
+//	void *v = malloc(sizeof(struct pthreads));
+//	memset(v, 0, sizeof(struct pthreads));
+//	return v;
+//}
+
 void threads_init(struct tthreads* t)
 {
 	//public
@@ -110,6 +118,7 @@ void threads_init(struct tthreads* t)
 //t->mutex_texture_list = PTHREAD_MUTEX_INITIALIZER;
 //t->texture_list_condition = PTHREAD_COND_INITIALIZER;
 
+#ifdef DOWEREALYNEEDTHIS
 /* Synchronize / exclusion root_res and below */
 	pthread_mutex_init (&t->mutex_resource_tree,NULL); 	// = PTHREAD_MUTEX_INITIALIZER;
 /* Synchronize / exclusion : resource queue for parser */
@@ -120,8 +129,19 @@ void threads_init(struct tthreads* t)
 	pthread_cond_init(&t->texture_list_condition,NULL); // = PTHREAD_COND_INITIALIZER;
 
 	pthread_mutex_init(&t->mutex_frontend_list,NULL);
+#endif
+
+	t->ResourceThreadRunning = FALSE;
+	t->TextureThreadRunning = FALSE;
+	t->MainLoopQuit = FALSE;
 	//private
+	//t->prv = threads_constructor();
+	//{
+	//	ppthreads p = (ppthreads)t->prv;
+	//}
+
 }
+
 
 
 #ifdef _MSC_VER

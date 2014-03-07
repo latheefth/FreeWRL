@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_glew|Win32">
@@ -96,7 +96,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SRCWIN);$(SRC)\bin;$(SRC)\lib;$(LIBWIN)\glew\include;$(LIBWIN)\pthreads.2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SRCWIN);$(SRC)\bin;$(SRC)\lib;$(LIBWIN)\glew\include;..\..\..\..\lib_windowsStore\GThread\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>W_DEBUG;WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;STATUSBAR_HUD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -107,9 +107,9 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libtess.lib;libFreeWRL.lib;fwlibGLESv2.lib;fwlibEGL.lib;pthreadVC2d.lib;zlib.lib;libminizip.lib;ws2_32.lib;freetype239.lib;shlwapi.lib;gdiplus.lib;libxml2_a.lib;Wininet.lib;Winmm.lib;mozjs185-1.0.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libtess.lib;libFreeWRL.lib;fwlibGLESv2.lib;fwlibEGL.lib;pthread.lib;zlib.lib;libminizip.lib;ws2_32.lib;freetype239.lib;shlwapi.lib;gdiplus.lib;libxml2_a.lib;Wininet.lib;Winmm.lib;mozjs185-1.0.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>$(LIBWIN)\angleproject\lib\Release;$(LIBWIN)\js185\lib;$(LIBWIN)\pthreads.2;$(LIBWIN)\freetype2\lib;$(LIBWIN)\zlib\lib;$(LIBWIN)\libxml2\lib;..\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(LIBWIN)\angleproject\lib\Release;$(LIBWIN)\js185\lib;..\..\..\..\lib_windowsStore\GThread\vc12\Debug;$(LIBWIN)\freetype2\lib;$(LIBWIN)\zlib\lib;$(LIBWIN)\libxml2\lib;..\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>MSVCRT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>

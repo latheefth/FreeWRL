@@ -97,7 +97,7 @@ void LoadTextures_init(struct tLoadTextures *t)
 {
 	//public
 	/* is the texture thread up and running yet? */
-	t->TextureThreadInitialized = FALSE;
+	//t->TextureThreadInitialized = FALSE;
 
 	//private
 	t->prv = LoadTextures_constructor();
@@ -854,23 +854,67 @@ static void texture_process_list(s_list_t *item)
 		p->texture_list = ml_delete_self(p->texture_list, item);
 	}
 }
+void texitem_append(s_list_t *item){
+	ppLoadTextures p;
+	ttglobal tg = gglobal();
+	p = (ppLoadTextures)gglobal()->LoadTextures.prv;
+
+	threadsafe_append_item_signal(item, &p->texture_request_list, &tg->threads.mutex_texture_list, &tg->threads.texture_list_condition);
+}
+void texitem_enqueue(s_list_t *item){
+	ppLoadTextures p;
+	ttglobal tg = gglobal();
+	p = (ppLoadTextures)gglobal()->LoadTextures.prv;
+
+	threadsafe_enqueue_item_signal(item, &p->texture_request_list, &tg->threads.mutex_texture_list, &tg->threads.texture_list_condition);
+}
+s_list_t *texitem_dequeue(){
+	ppLoadTextures p;
+	ttglobal tg = gglobal();
+	p = (ppLoadTextures)gglobal()->LoadTextures.prv;
+
+	return threadsafe_dequeue_item_wait(&p->texture_request_list, &tg->threads.mutex_texture_list, &tg->threads.texture_list_condition);
+}
+//we want the void* addresses of the following, so the int value doesn't matter
+static const int tex_command_exit;
+static const int tex_command_flush_queue;
+static const int tex_command_stop_flush;
+void texitem_queue_flush()
+{
+	texitem_enqueue(ml_new(&tex_command_flush_queue));
+	texitem_enqueue(ml_new(&tex_command_stop_flush));
+}
+void texitem_queue_exit(){
+	texitem_enqueue(ml_new(&tex_command_exit));
+}
+
+//#define OLDTEXCODE 1
+#ifdef OLDTEXCODE
 void send_texture_to_loader(textureTableIndexStruct_s *entry)
 {
 	ppLoadTextures p = (ppLoadTextures)gglobal()->LoadTextures.prv;
 
 	/* Lock access to the texture_request_list and loader_waiting variables*/
-	pthread_mutex_lock( &gglobal()->threads.mutex_texture_list );
-	
+	pthread_mutex_lock(&gglobal()->threads.mutex_texture_list);
+
 	/* Add our texture entry */
 	p->texture_request_list = ml_append(p->texture_request_list, ml_new(entry));
 
-	if(p->loader_waiting)
-        /* signal that we have data on resource list */
-        pthread_cond_signal(&gglobal()->threads.texture_list_condition);
-	
+	if (p->loader_waiting)
+		/* signal that we have data on resource list */
+		pthread_cond_signal(&gglobal()->threads.texture_list_condition);
+
 	/* Unlock */
-	pthread_mutex_unlock( &gglobal()->threads.mutex_texture_list );
+	pthread_mutex_unlock(&gglobal()->threads.mutex_texture_list);
 }
+#else
+
+
+void send_texture_to_loader(textureTableIndexStruct_s *entry)
+{
+	texitem_enqueue(ml_new(entry));
+}
+#endif
 
 /**
  *   _textureThread: work on textures, until the end of time.
@@ -885,6 +929,7 @@ void Texture_thread_exit_handler(int sig)
 }
 #endif //HAVE_PTHREAD_CANCEL
 
+#ifdef OLDTEXCODE
 void _textureThread(void *globalcontext)
 {
 	ttglobal tg = (ttglobal)globalcontext;
@@ -941,3 +986,47 @@ void _textureThread(void *globalcontext)
 		}
 	}
 }
+#else
+
+void _textureThread(void *globalcontext)
+{
+	ttglobal tg = (ttglobal)globalcontext;
+	tg->threads.loadThread = pthread_self();
+	fwl_setCurrentHandle(tg, __FILE__, __LINE__);
+	//ENTER_THREAD("texture loading");
+	{
+		ppLoadTextures p;
+		//ttglobal tg = gglobal();
+		p = (ppLoadTextures)tg->LoadTextures.prv;
+
+		//tg->LoadTextures.TextureThreadInitialized = TRUE;
+		tg->threads.TextureThreadRunning = TRUE;
+
+		/* we wait forever for the data signal to be sent */
+		for (;;) {
+			void* elem;
+			s_list_t *item = texitem_dequeue();
+			elem = ml_elem(item);
+			if (elem == &tex_command_exit){
+				FREE_IF_NZ(item);
+				break;
+			}
+			if (elem == &tex_command_flush_queue){
+				do{
+					FREE_IF_NZ(item);
+					item = texitem_dequeue();
+					elem = ml_elem(item);
+				} while (elem != &tex_command_stop_flush);
+				continue;
+			}
+
+			p->TextureParsing = TRUE;
+			texture_process_list(item);
+			p->TextureParsing = FALSE;
+		}
+	}
+	printf("hi exiting texture thread gracefully\n");
+	tg->threads.TextureThreadRunning = FALSE;
+
+}
+#endif

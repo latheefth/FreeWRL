@@ -225,7 +225,7 @@ void fw_assert (char *file, int line) {
 	
 	for (looper=1; looper<60; looper++) {
 	    usleep(1000);
-	    sched_yield();
+	    // sched_yield();
 	}
 	printf ("FreeWRL exiting...\n");
 	exit(1);

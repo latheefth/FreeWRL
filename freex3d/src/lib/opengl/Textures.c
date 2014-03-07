@@ -328,7 +328,7 @@ int isTextureAlpha(int texno) {
 
 /* is the texture thread initialized yet? */
 int fwl_isTextureinitialized() {
-	return gglobal()->LoadTextures.TextureThreadInitialized;
+	return gglobal()->threads.TextureThreadRunning; // gglobal()->LoadTextures.TextureThreadInitialized;
 }
 
 /* is this texture loaded? used in LoadSensor */
