@@ -32,29 +32,16 @@ Functions:
 extern int ccurse;
 extern int ocurse;
 
-//extern float myFps;
-#define MAXSTAT 200
-//extern char myMenuStatus[MAXSTAT];
-//extern char messagebar[MAXSTAT];
-#define MAXTITLE 200
-//extern char window_title[MAXTITLE];
 
-/* textual status messages */
-typedef struct pcommon{
-        float myFps; // = (float) 0.0;
-        char myMenuStatus[MAXSTAT];
-        char messagebar[MAXSTAT];
-        char window_title[MAXTITLE];
-        int cursorStyle;
-		int promptForURL;
-		int promptForFile;
-}* ppcommon;
 
 /* Status update functions */
 
 void setMenuFps(float fps);
-void setMenuStatus(char *stat);
+void setMenuStatus(char *stat); 
+void setMenuStatusVP(char *stat); 
+char* getMenuStatus();
 void setMessageBar();
+
 
 /* Generic (virtual) update functions */
 

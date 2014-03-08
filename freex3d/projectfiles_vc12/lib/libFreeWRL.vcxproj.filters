@@ -297,9 +297,6 @@
     <ClCompile Include="$(SRC)\lib\scenegraph\statics.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SRC)\lib\ui\statusbarHud.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SRC)\lib\scenegraph\StreamPoly.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -371,5 +368,10 @@
     <ClInclude Include="$(SRC)\lib\scenegraph\Viewer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\src_windows\winGLES2.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

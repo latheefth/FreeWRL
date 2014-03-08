@@ -368,9 +368,9 @@ typedef struct pstatusbar{
 	int fontInitialized;// = 0;
 	//GLuint fwFontOffset[3];
 	//XY fwFontSize[3];
-	int sb_hasString;// = FALSE;
+	//int sb_hasString;// = FALSE;
 	struct Uni_String *myline;
-	char buffer[200];
+	//char buffer[200];
 	char messagebar[200];
 	int bmfontsize;// = 2; /* 0,1 or 2 */
 	int optionsLoaded;// = 0;
@@ -418,7 +418,7 @@ void statusbar_init(struct tstatusbar *t){
 		p->showOptions =0;
 		p->showHelp = 0;
 		p->fontInitialized = 0;
-		p->sb_hasString = FALSE;
+		//p->sb_hasString = FALSE;
 		p->initDone = FALSE;
 		p->optionsLoaded = 0;
 		p->osystem = 3; //mac 1btn = 0, mac nbutton = 1, linux game descent = 2, windows =3
@@ -675,32 +675,32 @@ void printString2(GLfloat sx, GLfloat sy, char *s)
 
 void render_init(void);
 
-/* make sure that on a re-load that we re-init */
-void kill_status (void) {
-	/* hopefully, by this time, rendering has been stopped */
-	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
-
-	p->sb_hasString = FALSE;
-	p->buffer[0] = '\0';
-}
-
-
-/* trigger a update */
-void update_status(char* msg) {
-	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
-
-	if (msg==NULL){
-		p->sb_hasString = FALSE;
-		p->buffer[0] = '\0';
-	}else {
-		p->sb_hasString = TRUE;
-		strcpy (p->buffer,msg);
-	}
-}
-char *get_status(){
-	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
-	return p->buffer;
-}
+///* make sure that on a re-load that we re-init */
+//void kill_status (void) {
+//	/* hopefully, by this time, rendering has been stopped */
+//	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
+//
+//	p->sb_hasString = FALSE;
+//	p->buffer[0] = '\0';
+//}
+//
+//
+///* trigger a update */
+//void update_status(char* msg) {
+//	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
+//
+//	if (msg==NULL){
+//		p->sb_hasString = FALSE;
+//		p->buffer[0] = '\0';
+//	}else {
+//		p->sb_hasString = TRUE;
+//		strcpy (p->buffer,msg);
+//	}
+//}
+//char *get_status(){
+//	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
+//	return p->buffer;
+//}
 
 /* start cheapskate widgets >>>> */
 int lenOptions = 13;
@@ -1642,6 +1642,42 @@ void setMenuButton_navModes(int type)
 	}
 return;
 }
+
+/* handle all the displaying and event loop stuff. */
+void updateButtonStatus()
+{
+	//checks collision, headlight and navmode 
+	//-these can be set by either the UI (this statusbar), keyboard hits, or from 
+	// events inside vrml. 
+	// Here we take our UI current state from the scene state. 
+	// For FRONTEND_HANDLES_DISPLAY_THREAD configurations, the frontend should do 
+	// the equivalent of the following once per frame (poll state and set UI)
+	int headlight, collision, navmode;
+	//poll model state:
+	headlight = fwl_get_headlight();
+	collision = fwl_getCollision();
+	navmode = fwl_getNavMode();
+	//update UI(view):
+	setMenuButton_navModes(navmode);
+	setMenuButton_headlight(headlight);
+	setMenuButton_collision(collision);
+}
+void hudSetConsoleMessage(char *buffer);
+
+void updateConsoleStatus()
+{
+	//polls ConsoleMessage.c for accumulated messages and updates statusbarHud.c via hudSetConsoleMessage
+	int nlines, i;
+	char *buffer;
+	nlines = fwg_get_unread_message_count(); //poll model
+	for (i = 0; i<nlines; i++)
+	{
+		buffer = fwg_get_last_message(nlines - i - 1); //poll model
+		hudSetConsoleMessage(buffer); //update UI(view)
+		free(buffer);
+	}
+}
+
 int handleButtonOver()
 {
 	/* called from mainloop > fwl_handle_aqua to 
@@ -1747,10 +1783,8 @@ int handleButtonPress()
 				case ACTION_URL:
 					//load URL
 #ifndef KIOSK
-					fwl_setPromptForURL(1);
-#endif
-					/*
-					#if defined(_MSC_VER0) || defined(QNX)
+					//fwl_setPromptForURL(1);
+					#if defined(_MSC_VER) || defined(QNX)
 					{
 						char *fname = frontend_pick_URL();
 						if(fname)
@@ -1760,15 +1794,15 @@ int handleButtonPress()
 						}
 					}
 					#endif
-					*/
+#endif
+
 					break;
 				case ACTION_FILE:
 					//load file
 #ifndef KIOSK
-					fwl_setPromptForFile(1);
-#endif
-					/*
-					#if defined(_MSC_VER0) || defined(QNX)
+					//fwl_setPromptForFile(1);
+
+					#if defined(_MSC_VER) || defined(QNX)
 					{
 						char *fname = frontend_pick_file();
 						if(fname)
@@ -1778,7 +1812,8 @@ int handleButtonPress()
 						}
 					}
 					#endif
-					*/
+
+#endif
 					break;
 				default:
 					break;
@@ -1821,21 +1856,7 @@ void updateButtonVertices()
 			}
 	}
 }
-/* moved to mainloop.c 
-void updateButtonStatus()
-{
-	//checks collision, headlight and navmode 
-	//-these can be set by either the UI (this statusbar), keyboard hits, or from 
-	// events inside vrml. We take our UI current state from the scene state.
-	int headlight, collision, navmode;
-	headlight = fwl_get_headlight();
-	collision = fwl_getCollision();
-	navmode = fwl_getNavMode();
-	setMenuButton_navModes(navmode);
-	setMenuButton_headlight(headlight);
-	setMenuButton_collision(collision);
-}
-*/
+
 void renderButtons()
 {
 	/* called from drawStatusBar() to render the user buttons like walk/fly, headlight, collision etc. */
@@ -2156,6 +2177,12 @@ M       void toggle_collision()                             //"
 	p = (ppstatusbar)tg->statusbar.prv;
 
 	tg->ConsoleMessage.Console_writeToHud = 1;
+
+	//MVC statusbarHud is in View and Controller just called us and told us 
+	//..to poll the Model to update and draw ourself
+	updateButtonStatus();  //poll Model for some button state
+	updateConsoleStatus(); //poll Model for console text
+
 	//Console_writeToCRT = 1;
 	//Console_writeToFile = 0;
 	glDepthMask(GL_FALSE);
@@ -2265,7 +2292,7 @@ M       void toggle_collision()                             //"
 	{
 		FXY xy;
 		xy = screen2normalizedScreenScale( (GLfloat)p->bmWH.x, (GLfloat)p->bmWH.y);
-		pp = p->buffer;
+		pp = get_status(); // p->buffer;
 		/* print status bar text - things like PLANESENSOR */
 		//printString(pp); 
 		//printString2(xy.x,xy.y,pp);

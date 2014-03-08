@@ -241,7 +241,7 @@ void Mainloop_init(struct tMainloop *t){
 
 	t->tmpFileLocation = MALLOC (char *,5);
 	strcpy(t->tmpFileLocation,"/tmp");
-
+	t->replaceWorldRequest = NULL;
 	//private
 	t->prv = Mainloop_constructor();
 	{
@@ -4011,6 +4011,7 @@ C. delete instance data
 */
 void finalizeRenderSceneUpdateSceneA() {
 	//A.worker threads > tell them to flush and stop
+	kill_oldWorld(TRUE, TRUE, FALSE, __FILE__, __LINE__);
 	stopLoadThread();
 	stopPCThread();
 	gglobal()->threads.MainLoopQuit = 2;
@@ -4027,7 +4028,6 @@ void finalizeRenderSceneUpdateSceneC() {
 	ttglobal tg = gglobal();
 	printf ("finalizeRenderSceneUpdateScene\n");
 
-    kill_oldWorld(TRUE,TRUE,FALSE,__FILE__,__LINE__);
 	/* set geometry to normal size from fullscreen */
 #ifndef AQUA
 	if (newResetGeometry != NULL) newResetGeometry();
@@ -4053,84 +4053,22 @@ void finalizeRenderSceneUpdateScene(){
 
 /* iphone front end handles the displayThread internally */
 #ifndef FRONTEND_HANDLES_DISPLAY_THREAD
-/* handle all the displaying and event loop stuff. */
-void updateButtonStatus()
+
+
+
+void checkReplaceWorldRequest()
 {
-	//checks collision, headlight and navmode 
-	//-these can be set by either the UI (this statusbar), keyboard hits, or from 
-	// events inside vrml. 
-	// Here we take our UI current state from the scene state. 
-	// For FRONTEND_HANDLES_DISPLAY_THREAD configurations, the frontend should do 
-	// the equivalent of the following once per frame (poll state and set UI)
-	int headlight, collision, navmode;
-	//poll model state:
-	headlight = fwl_get_headlight();
-	collision = fwl_getCollision();
-	navmode = fwl_getNavMode();
-	//update UI(view):
-	setMenuButton_navModes(navmode);
-	setMenuButton_headlight(headlight);
-	setMenuButton_collision(collision);
-}
+	resource_item_t* res;
+	char * req;
+	ttglobal tg = gglobal();
 
-void hudSetConsoleMessage(char *buffer);
-#if defined(STATUSBAR_HUD)
-void updateConsoleStatus()
-{
-	//polls ConsoleMessage.c for accumulated messages and updates statusbarHud.c via hudSetConsoleMessage
-	int nlines,i;
-	char *buffer;
-	nlines = fwg_get_unread_message_count(); //poll model
-	for(i=0;i<nlines;i++)
-	{
-		buffer = fwg_get_last_message(nlines-i-1); //poll model
-		hudSetConsoleMessage(buffer); //update UI(view)
-		free(buffer);
+	req = tg->Mainloop.replaceWorldRequest;
+	tg->Mainloop.replaceWorldRequest = NULL;
+	if (req){
+		kill_oldWorld(TRUE, TRUE, TRUE, __FILE__, __LINE__);
+		res = resource_create_single(req);
+		send_resource_to_parser_async(res);
 	}
-}
-#endif
-void checkFileLoadRequest()
-{
-	/* Checks flags and pops up a dialog for the user to enter a new 
-	   scene URL or File path.
-		I heard Android calls from UI thread:
-		fwl_Android_replaceWorldNeeded();
-	   then calls from render thread:
-	    fwl_initializeRenderSceneUpdateScene();
-		pthread_create(&loadFileThread, NULL, (void*)fileLoadThread, (void*)currentFile) 
-		fv_display_initialize();
-	   In this native case for statusbarHud UI (which is in the rendering thread)
-	   the UI flags that it wants the dialog box to come up in the rendering thread. 
-	   Then the dialog and replaceworld are called from rendering thread here.
-	*/
-
-	char *fname;
-	fname = NULL;
-
-	//poll state:
-	if(fwl_pollPromptForURL())
-	{
-		fwl_setPromptForURL(0);
-		#if defined(_MSC_VER) || defined(QNX)
-			fname = frontend_pick_URL();
-		#endif
-	}
-	else if(fwl_pollPromptForFile())
-	{
-		fwl_setPromptForFile(0);
-		#if defined(_MSC_VER) || defined(QNX)
-			fname = frontend_pick_file();
-		#endif
-	}
-	// update 
-	if(fname)
-	{
-		//dump_scenegraph(2);
-		kill_oldWorld(TRUE,TRUE,TRUE,__FILE__,__LINE__);
-		Anchor_ReplaceWorld(fname);
-		free(fname);
-	}
-
 }
 void _displayThread(void *globalcontext)
 {
@@ -4147,6 +4085,13 @@ void _displayThread(void *globalcontext)
 	   Except: the swapbuffers and display_init need to be in the same worker thread 
 	   - swapbuffers gets the 'current device context' likely with a thread lookup technique
 	*/
+	//-MVC - Model-View-Controller design pattern: do the Controller activities here:
+	// 1) tell Model (scenegraph, most of libfreewrl) to update itself
+	// 2) tell View to poll-model-and-update-itself (View: GUI UI/statusbarHud/Console)
+	//-reason for MVC: no callbacks are needed from Model to UI(View), so easy to change View
+	//-here everything is in C so we don't absolutely need MVC style, but we are preparing MVC in C
+	// to harmonize with Android, IOS etc where the UI(View) and Controller are in Objective-C or Java and Model(state) in C
+
 	/* Initialize display */
 	if (!fv_display_initialize()) {
 		ERROR_MSG("initFreeWRL: error in display initialization.\n");
@@ -4168,26 +4113,24 @@ void _displayThread(void *globalcontext)
 			fwMessageLoop((freewrl_params_t *)&gglobal()->display);
 #endif
 			profile_start("mainloop");
+			//model: udate yourself
 			fwl_RenderSceneUpdateScene();
 			profile_end("mainloop");
-			//Controller code
-			//-MVC - Model-View-Controller design pattern: do the Controller poll-model-and-update-UI here
-			//-reason for MVC: put controller in UI(view) technology so no callbacks are needed from Model to UI(View)
-			//-here everything is in C so we don't need MVC style, but we are preparing MVC in C
-			// to harmonize with Android, IOS etc where the UI(View) and Controller are in Objective-C or Java and Model(state) in C
-			updateButtonStatus(); //poll Model & update UI(View)
+
+			//view: poll model and update yourself >>
 #if defined(STATUSBAR_HUD)
-			updateConsoleStatus(); //poll Model & update UI(View)
-#endif
-			checkFileLoadRequest();
-			
 			/* status bar, if we have one */
 			finishedWithGlobalShader();
 			drawStatusBar();  // UI/View 
 			restoreGlobalShader();
+#endif
+			//<< view: update yourself
+
 			/* swap the rendering area */
 			FW_GL_SWAPBUFFERS;
 			PRINT_GL_ERROR_IF_ANY("XEvents::render");
+			checkReplaceWorldRequest();
+
 			break;
 		case 1:
 			//tell worker threads to flush and quit gracefully
@@ -4700,7 +4643,8 @@ void fwl_Android_replaceWorldNeeded() {
 	kill_routing();
 
 	/* tell the statusbar that it needs to reinitialize */
-	kill_status();
+	//kill_status();
+	setMenuStatus(NULL);
 
 	/* any user defined Shader nodes - ComposedShader, PackagedShader, ProgramShader?? */
 	kill_userDefinedShaders();
@@ -4746,10 +4690,7 @@ void fwl_Android_replaceWorldNeeded() {
 /* called from the standalone OSX front end and the OSX plugin */
 void fwl_replaceWorldNeeded(char* str)
 {
-	resource_item_t* plugin_res;
-	kill_oldWorld(TRUE,TRUE,TRUE,__FILE__,__LINE__);
-	plugin_res = resource_create_single(str);
-	send_resource_to_parser_async(plugin_res);
+	gglobal()->Mainloop.replaceWorldRequest = STRDUP(str);
 }
 void fwl_replaceWorldNeededMultiStr(struct Multi_String *urls){
 	resource_item_t* plugin_res;
@@ -4796,7 +4737,7 @@ void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive) {
         char *ns;
 		ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 
-        if (CursorOverSensitive == NULL) update_status (NULL);
+		if (CursorOverSensitive == NULL) update_status(NULL);
         else {
 
                 ns = NULL;
@@ -4816,7 +4757,7 @@ void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive) {
                                 else if (ns[0] == '\0') ns = (char *)stringNodeType(p->SensorEvents[tmp].datanode->_nodeType);
         
                                 /* send this string to the screen */
-                                update_status(ns);
+								update_status(ns);
                         }
                 }
         }

@@ -264,7 +264,7 @@ void cursorDraw(int ID, int x, int y, float angle)
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, circleCursor.width, circleCursor.height, 0, GL_RGBA , GL_UNSIGNED_BYTE, circleCursor.pixel_data);
 		p->done = 1; 
 	}
-#ifdef STATUSBAR_HUD
+#ifdef STATUSBAR_HUD_HIDE
 	statusbarHud_DrawCursor(p->textureID,x,y);
 	return;
 #endif

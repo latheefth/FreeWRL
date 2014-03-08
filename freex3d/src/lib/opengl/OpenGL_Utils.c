@@ -3437,7 +3437,8 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int flush_workers, char *f
 	kill_routing();
 
 	/* tell the statusbar that it needs to reinitialize */
-	kill_status();
+	//kill_status();
+	setMenuStatus(NULL);
 
         /* any user defined Shader nodes - ComposedShader, PackagedShader, ProgramShader?? */
         kill_userDefinedShaders();
@@ -4457,15 +4458,15 @@ void startOfLoopNodeUpdates(void) {
 				if (node->_nodeType==NODE_Viewpoint) {
 					struct X3D_Viewpoint* vp = (struct X3D_Viewpoint *) node;
 					bind_Viewpoint(vp);
-					setMenuStatus (vp->description->strptr);
+					setMenuStatusVP (vp->description->strptr);
 				} else if (node->_nodeType==NODE_OrthoViewpoint) {
 					struct X3D_OrthoViewpoint *ovp = (struct X3D_OrthoViewpoint *) node;
 					bind_OrthoViewpoint(ovp);
-					setMenuStatus (ovp->description->strptr);
+					setMenuStatusVP (ovp->description->strptr);
 				} else {
 					struct X3D_GeoViewpoint *gvp = (struct X3D_GeoViewpoint *) node;
 					bind_GeoViewpoint(gvp);
-					setMenuStatus (gvp->description->strptr);
+					setMenuStatusVP (gvp->description->strptr);
 				}
 			}
 			setBindPtr = NULL;

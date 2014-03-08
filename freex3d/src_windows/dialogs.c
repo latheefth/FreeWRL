@@ -113,5 +113,5 @@ char *frontend_pick_file()
 }
 char *frontend_pick_URL()
 {
-	return esPickURL(fw_window32_hwnd());
+	return esPickURL(fw_window32_hwnd()); //un-reliable
 }

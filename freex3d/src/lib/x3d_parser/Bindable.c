@@ -195,7 +195,7 @@ void send_bind_to(struct X3D_Node *node, int value) {
 	case NODE_OrthoViewpoint: {
 		struct X3D_OrthoViewpoint *ovp = (struct X3D_OrthoViewpoint *) node;
 		ovp->set_bind = value;
-		setMenuStatus(ovp->description->strptr);
+		setMenuStatusVP(ovp->description->strptr);
 		bind_node (node, tg->Bindable.viewpoint_stack);
 		if (value==1) {
 			bind_OrthoViewpoint (ovp);
@@ -206,7 +206,7 @@ void send_bind_to(struct X3D_Node *node, int value) {
 	case NODE_Viewpoint:  {
 		struct X3D_Viewpoint* vp = (struct X3D_Viewpoint *) node;
 		vp->set_bind = value;
-		setMenuStatus (vp->description->strptr);
+		setMenuStatusVP (vp->description->strptr);
 		bind_node (node, tg->Bindable.viewpoint_stack);
 		if (value==1) {
 			bind_Viewpoint (vp);
@@ -217,7 +217,7 @@ void send_bind_to(struct X3D_Node *node, int value) {
 	case NODE_GeoViewpoint:  {
 		struct X3D_GeoViewpoint *gvp = (struct X3D_GeoViewpoint *) node;
 		gvp->set_bind = value;
-		setMenuStatus (gvp->description->strptr);
+		setMenuStatusVP (gvp->description->strptr);
 		bind_node (node, tg->Bindable.viewpoint_stack);
 		if (value==1) {
 			bind_GeoViewpoint (gvp);

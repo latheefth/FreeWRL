@@ -14,12 +14,9 @@
 void finalizeRenderSceneUpdateScene();
 #include <stdlib.h>
 #include <stdio.h>
-//void drawStatusBarFE();
 
-	void updateButtonStatus(); //poll Model & update UI(View)
 	void updateConsoleStatus(); //poll Model & update UI(View)
 
-	void checkFileLoadRequest();
 	/* status bar, if we have one */
 	void finishedWithGlobalShader();
 	void drawStatusBar();  // UI/View 
@@ -30,9 +27,9 @@ void fwDraw ( ESContext *esContext )
 //void fwUpdate ( ESContext *esContext, float delta )
 {
 	fwl_RenderSceneUpdateScene();
-	updateButtonStatus(); //poll Model & update UI(View)
+	//updateButtonStatus(); //poll Model & update UI(View)
 	updateConsoleStatus(); //poll Model & update UI(View)
-	checkFileLoadRequest();
+	//checkFileLoadRequest();
 	/* status bar, if we have one */
 	finishedWithGlobalShader();
 	drawStatusBar();  // UI/View 

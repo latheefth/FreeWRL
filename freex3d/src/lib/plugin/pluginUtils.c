@@ -395,20 +395,21 @@ void new_root();
 /* void Anchor_ReplaceWorld (char *name) */
 bool Anchor_ReplaceWorld(const char *name)
 {
-	resource_item_t *AR_res;
+	gglobal()->Mainloop.replaceWorldRequest = STRDUP(name);
+	//resource_item_t *AR_res;
 
-	//ConsoleMessage ("Anchor_ReplaceWorld called\n");
+	////ConsoleMessage ("Anchor_ReplaceWorld called\n");
 
-	AR_res = resource_create_single(name);
-	//AR_res->new_root = TRUE;
-	new_root();
-	send_resource_to_parser(AR_res);
-	resource_wait(AR_res);
+	//AR_res = resource_create_single(name);
+	////AR_res->new_root = TRUE;
+	//new_root();
+	//send_resource_to_parser(AR_res);
+	//resource_wait(AR_res);
 
-	if (AR_res->status != ress_loaded) {
-		/* FIXME: destroy this new node tree */
-		return FALSE;
-	}
+	//if (AR_res->status != ress_loaded) {
+	//	/* FIXME: destroy this new node tree */
+	//	return FALSE;
+	//}
 	return TRUE;
 }
 

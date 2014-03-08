@@ -585,7 +585,8 @@ void new_root(){
 	kill_routing();
 
 	/* tell the statusbar that it needs to reinitialize */
-	kill_status();
+	//kill_status();
+	setMenuStatus(NULL);
 
 	/* free textures */
 /*
