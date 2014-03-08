@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_glew|Win32">
@@ -192,7 +192,10 @@
     <ClCompile Include="$(SRC)\lib\vrml_parser\CRoutes.c" />
     <ClCompile Include="$(SRC)\lib\world_script\CScripts.c" />
     <ClCompile Include="$(SRC)\lib\ui\CursorDraw.c" />
-    <ClCompile Include="$(SRC)\lib\ui\statusbarHud.c" />
+    <ClCompile Include="$(SRC)\lib\ui\statusbarHud.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="$(SRCWIN)\dialogs.c" />
     <ClCompile Include="$(SRC)\lib\display.c" />
     <ClCompile Include="$(SRC)\lib\input\EAI_C_CommonFunctions.c" />

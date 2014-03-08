@@ -756,10 +756,14 @@ static int shiftState = 0;
  
     case WM_SIZE: 
 	GetClientRect(hWnd, &rect); 
-	gglobal()->display.screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
-	gglobal()->display.screenHeight = rect.bottom;
-	resize_GL(rect.right, rect.bottom); 
-	fwl_setScreenDim(rect.right,rect.bottom);
+	//gglobal()->display.screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
+	//gglobal()->display.screenHeight = rect.bottom;
+	//resize_GL(rect.right, rect.bottom); 
+#ifdef STATUSBAR_HUD
+	statusbarHud_set_window_size(rect.right, rect.bottom);
+#else
+	fwl_setScreenDim(rect.right, rect.bottom);
+#endif
 	break; 
 
     case WM_DISPLAYCHANGE:
@@ -1001,7 +1005,11 @@ static int shiftState = 0;
 	//	SetCursor(hSensor);
 	//if(cstyle == ACURSE)
 	//	SetCursor(hArrow);
-	fwl_handle_aqua(mev,butnum,mouseX,mouseY); /* ,gcWheelDelta); */
+#ifdef STATUSBAR_HUD
+		statusbarHud_handle_mouse(mev, butnum, mouseX, mouseY);
+#else
+		fwl_handle_aqua(mev, butnum, mouseX, mouseY); /* ,gcWheelDelta); */
+#endif
     }
     return 0;
 }
@@ -1028,7 +1036,7 @@ int doEventsWin32A()
     eventcount = 0;
     return FALSE;
 }
-void fwMessageLoop(freewrl_params_t * d){
+void fwMessageLoop(){
 	doEventsWin32A();
 }
 /*

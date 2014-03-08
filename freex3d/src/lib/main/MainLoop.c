@@ -4070,81 +4070,101 @@ void checkReplaceWorldRequest()
 		send_resource_to_parser_async(res);
 	}
 }
+static int(*view_initialize)() = NULL;
+static void(*view_update)() = NULL;
+#if KEEP_FV_INLIB
+int view_initialize0(void){
+	/* Initialize display - View initialize*/
+	if (!fv_display_initialize()) {
+		ERROR_MSG("initFreeWRL: error in display initialization.\n");
+		return FALSE; //exit(1);
+	}
+	return TRUE;
+}
+#endif /* KEEP_FV_INLIB */
+
+void view_update0(void){
+	#ifdef _MSC_VER
+		fwMessageLoop(); //message pump 
+	#endif
+	#if defined(STATUSBAR_HUD)
+		/* status bar, if we have one */
+		finishedWithGlobalShader();
+		drawStatusBar();  // View update
+		restoreGlobalShader();
+	#endif
+}
+
 void _displayThread(void *globalcontext)
 {
+	/*
+	MVC - Model-View-Controller design pattern: do the Controller activities here:
+	 1) tell Model (scenegraph, most of libfreewrl) to update itself
+	 2) tell View to poll-model-and-update-itself (View: GUI UI/statusbarHud/Console)
+	-reason for MVC: no callbacks are needed from Model to UI(View), so easy to change View
+	-here everything is in C so we don't absolutely need MVC style, but we are preparing MVC in C
+	 to harmonize with Android, IOS etc where the UI(View) and Controller are in Objective-C or Java and Model(state) in C
+	*/
 	int more;
 	ttglobal tg = (ttglobal)globalcontext;
-	//tg->threads.DispThrd = pthread_self();
-	//set_thread2global(tg, tg->threads.DispThrd ,"display thread");
 	fwl_setCurrentHandle(tg,__FILE__,__LINE__);
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 	ENTER_THREAD("display");
 
+	more = TRUE;
 #if KEEP_FV_INLIB
 	/* Hmm. display_initialize is really a frontend function. The frontend should call it before calling _displayThread 
-	   Except: the swapbuffers and display_init need to be in the same worker thread 
+	   Except: remember to keep the swapbuffers and display_init in the same thread 
 	   - swapbuffers gets the 'current device context' likely with a thread lookup technique
+	  dug9 Mar2014: callbacks from the Controller to the View are allowed if they are in the same technology,
+	   so some callbacks could be registered in gglobal and assigned here, to minimize #ifdefs
 	*/
-	//-MVC - Model-View-Controller design pattern: do the Controller activities here:
-	// 1) tell Model (scenegraph, most of libfreewrl) to update itself
-	// 2) tell View to poll-model-and-update-itself (View: GUI UI/statusbarHud/Console)
-	//-reason for MVC: no callbacks are needed from Model to UI(View), so easy to change View
-	//-here everything is in C so we don't absolutely need MVC style, but we are preparing MVC in C
-	// to harmonize with Android, IOS etc where the UI(View) and Controller are in Objective-C or Java and Model(state) in C
-
-	/* Initialize display */
-	if (!fv_display_initialize()) {
-		ERROR_MSG("initFreeWRL: error in display initialization.\n");
-		fw_exit(1);
-	}
+	view_initialize = view_initialize0; //defined above, with ifdefs
+	view_update = view_update0; //defined above with ifdefs
 #endif /* KEEP_FV_INLIB */
+	if (view_initialize)
+		more = view_initialize();
 
-	fwl_initializeRenderSceneUpdateScene();
-	//sleep(1500);
+	if (more){
+		fwl_initializeRenderSceneUpdateScene();  //Model initialize
+		//sleep(1500);
 
-	/* loop and loop, and loop... */
-	//while (!((ppMainloop)(tg->Mainloop.prv))->quitThread) {
-	more = TRUE;
-	while (more) {
-		switch (tg->threads.MainLoopQuit){
-		case 0:
-			//PRINTF("event loop\n");
-#ifdef _MSC_VER
-			fwMessageLoop((freewrl_params_t *)&gglobal()->display);
-#endif
-			profile_start("mainloop");
-			//model: udate yourself
-			fwl_RenderSceneUpdateScene();
-			profile_end("mainloop");
+		/* loop and loop, and loop... */
+		//while (!((ppMainloop)(tg->Mainloop.prv))->quitThread) {
+		while (more) 
+		{
+			switch (tg->threads.MainLoopQuit){
+			case 0:
+				//PRINTF("event loop\n");
 
-			//view: poll model and update yourself >>
-#if defined(STATUSBAR_HUD)
-			/* status bar, if we have one */
-			finishedWithGlobalShader();
-			drawStatusBar();  // UI/View 
-			restoreGlobalShader();
-#endif
-			//<< view: update yourself
+				profile_start("mainloop");
+				//model: udate yourself
+				fwl_RenderSceneUpdateScene(); //Model update
+				profile_end("mainloop");
 
-			/* swap the rendering area */
-			FW_GL_SWAPBUFFERS;
-			PRINT_GL_ERROR_IF_ANY("XEvents::render");
-			checkReplaceWorldRequest();
+				//view: poll model and update yourself >>
+				if (view_update) view_update();
 
-			break;
-		case 1:
-			//tell worker threads to flush and quit gracefully
-			finalizeRenderSceneUpdateSceneA();
-			break;
-		case 2:
-			//check if worker threads have exited
-			more = finalizeRenderSceneUpdateSceneB();
-			break;
+				/* swap the rendering area */
+				FW_GL_SWAPBUFFERS;
+				PRINT_GL_ERROR_IF_ANY("XEvents::render");
+				checkReplaceWorldRequest(); //Model update
+
+				break;
+			case 1:
+				//tell worker threads to flush and quit gracefully
+				finalizeRenderSceneUpdateSceneA();
+				break;
+			case 2:
+				//check if worker threads have exited
+				more = finalizeRenderSceneUpdateSceneB();
+				break;
+			}
 		}
-	} 
-	/* when finished: */
-	//clean up scenegraph, resource and gglobal mallocs, a few other things
-	finalizeRenderSceneUpdateSceneC();
+		/* when finished: */
+		//clean up scenegraph, resource and gglobal mallocs, a few other things
+		finalizeRenderSceneUpdateSceneC(); //Model end
+	}
 	printf("Ending display thread gracefully\n");
 }
 #endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
@@ -4351,7 +4371,7 @@ void fwl_handle_aqua_multi0(const int mev, const unsigned int button, int x, int
 		p->currentTouch = ID;
 
 
-		if( handleStatusbarHud(mev, &tg->Mainloop.clipPlane) )return; /* statusbarHud options screen should swallow mouse clicks */
+		//if( handleStatusbarHud(mev, &tg->Mainloop.clipPlane) )return; /* statusbarHud options screen should swallow mouse clicks */
 
         if ((mev == ButtonPress) || (mev == ButtonRelease)) {
                 /* record which button is down */

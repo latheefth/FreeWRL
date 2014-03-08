@@ -57,6 +57,8 @@ extern "C"
 void initConsoleH(DWORD pid);
 //char *strBackslash2fore(char *str);
 void fwl_setConsole_writePrimitive(int ibool);
+void statusbarHud_set_window_size(int width, int height);
+void statusbarHud_handle_mouse(int mev, int butnum, int mouseX, int mouseY);
 
 }
 
@@ -174,7 +176,11 @@ void CdllFreeWRL::onLoad(char* scene_url)
 void CdllFreeWRL::onResize(int width,int height){
 	if(fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
 		//swDebugf("onResize before\n");
+#ifdef STATUSBAR_HUD
+		statusbarHud_set_window_size(width,height);
+#else
 		fwl_setScreenDim(width,height);
+#endif
 		//swDebugf("onResize after\n");
 	}
 	fwl_clearCurrentHandle();
@@ -196,7 +202,11 @@ void CdllFreeWRL::onMouse(int mouseAction,int mouseButton,int x, int y){
 	//fwl_handle_aqua(mev,butnum,mouseX,mouseY); 
 	if(fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
 		//swDebugf("onMouse before\n");
+#ifdef STATUSBAR_HUD
+		statusbarHud_handle_mouse(mouseAction,mouseButton,x,y);
+#else
 		fwl_handle_aqua(mouseAction,mouseButton,x,y); 
+#endif
 		//swDebugf("onMouse after\n");
 	}
 	fwl_clearCurrentHandle();
