@@ -393,12 +393,13 @@ void fwl_startFreeWRL(const char *url)
 		//	gglobal()->Mainloop.scene_name = local_name;
 		//	gglobal()->Mainloop.scene_suff = suff;
 		//}
+		ttglobal tg = gglobal();
 		char* suff = NULL;
 		char* local_name = NULL;
 		splitpath_local_suffix(url, &local_name, &suff);
-		if(url) gglobal()->Mainloop.url = strdup(url);
-		gglobal()->Mainloop.scene_name = local_name;
-		gglobal()->Mainloop.scene_suff = suff;
+		if(url) tg->Mainloop.url = strdup(url);
+		tg->Mainloop.scene_name = local_name;
+		tg->Mainloop.scene_suff = suff;
 
 
 		//file = stripLocalFileName ((char *)file);

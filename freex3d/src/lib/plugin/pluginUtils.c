@@ -107,7 +107,7 @@ void killErrantChildren(void) {
 
 /* implement Anchor/Browser actions */
 
-static void goToViewpoint(char *vp) {
+void goToViewpoint(char *vp) {
 	struct X3D_Node *localNode;
 	/* unused int tableIndex; */
 	int flen;
@@ -222,6 +222,7 @@ static int urlLoadingStatus() {
 
 int doBrowserAction()
 {
+	int i;
 	struct Multi_String Anchor_url;
 	char *description;
 	resource_item_t * parentPath;
@@ -254,14 +255,24 @@ int doBrowserAction()
 		/* first test case - url is ONLY a viewpoint change */
 		if (Anchor_url.p[0]->strptr[0] == '#') {
 			setAnchorsAnchor( NULL );
-			goToViewpoint (&(Anchor_url.p[0]->strptr[1]));
+			fwl_gotoViewpoint(&(Anchor_url.p[0]->strptr[1]));
 			return TRUE;
 		}
-
-		/* We have a url, lets go and get the first one of them */
+			/* We have a url, lets go and get the first one of them */
                 parentPath = (resource_item_t *)AnchorsAnchor()->_parentResource;
-
 		p->plugin_res = resource_create_multi0(&AnchorsAnchor()->url);
+#ifdef EXPERIMENT_FAILED
+		{
+			BOOL isScene = FALSE;
+			for (i = 0; i < Anchor_url.n; i++)
+				isScene = isScene || checkIfX3DVRMLFile(Anchor_url.p[i]->strptr);
+			if (isScene){
+				resource_identify(parentPath, p->plugin_res);
+				fwl_replaceWorldNeededMultiStr(&Anchor_url);
+				return FALSE;
+			}
+		}
+#endif
 
 #ifdef TEXVERBOSE
 		PRINTF("url: ");
@@ -293,29 +304,32 @@ int doBrowserAction()
 					resource_item_t *resToLoad;
 
 					/* out with the old... */
-					kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+					kill_oldWorld(TRUE,TRUE,TRUE,__FILE__,__LINE__);
 
 					/* tell the new world which viewpoint to go to */
-					fwl_gotoViewpoint (p->plugin_res->afterPoundCharacters);
+					//fwl_gotoViewpoint (p->plugin_res->afterPoundCharacters);
 					resToLoad = resource_create_single(p->plugin_res->actual_file);
-
+					resToLoad->afterPoundCharacters = p->plugin_res->afterPoundCharacters;
 					/* in with the new... */
 					send_resource_to_parser(resToLoad);
 					p->waitingForURLtoLoad = TRUE;
 					return TRUE; /* keep the browser ticking along here */
 				} else {
 #ifdef _MSC_VER				
+					resource_item_t *resToLoad;
 						//we don't want to launch a new IE browser or IE tab, 
 						//just load a new scene in freewrl
 						//analogous to what happens when we have file://...AnchorA.x3d 
 						//the following is the only way I know to do that right now, same as 
 						//below several lines:
-						kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+						kill_oldWorld(TRUE,TRUE,TRUE,__FILE__,__LINE__);
 
 						/* we want to clean out the old world AND load a new one in */
-						p->plugin_res = resource_create_single (p->plugin_res->parsed_request);
 
-						send_resource_to_parser(p->plugin_res);
+						resToLoad = resource_create_single(p->plugin_res->parsed_request);
+						resToLoad->afterPoundCharacters = p->plugin_res->afterPoundCharacters;
+
+						send_resource_to_parser(resToLoad);
 
 						p->waitingForURLtoLoad = TRUE;
 						return TRUE; /* keep the browser ticking along here */

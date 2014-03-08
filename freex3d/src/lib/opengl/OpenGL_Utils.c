@@ -3358,7 +3358,7 @@ void kill_rendering() {
 
 
 
-void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
+void kill_oldWorld(int kill_EAI, int kill_JavaScript, int flush_workers, char *file, int line) {
 	int i;
 	#ifndef AQUA
         char mystring[20];
@@ -3379,6 +3379,11 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 		return;
 	}
 #endif
+	if (flush_workers){
+		//dont flush when exiting, because the worker threads are already flushed and stopped
+		texitem_queue_flush();
+		resitem_queue_flush();
+	}
 
 	/* get rid of sensor events */
 	resetSensorEvents();

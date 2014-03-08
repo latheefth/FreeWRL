@@ -278,7 +278,7 @@ float fwl_getLastSTLScaling() {
 int fwl_isInputThreadInitialized() {
 	//ppProdCon p = (ppProdCon)gglobal()->ProdCon.prv;
 	//return p->inputParseInitialized;
-	gglobal()->threads.ResourceThreadRunning;
+	return gglobal()->threads.ResourceThreadRunning;
 }
 
 /* statusbar uses this to tell user that we are still loading */
@@ -860,7 +860,9 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		/* bind ONLY in main - do not bind for Inlines, etc */
 		if (res->treat_as_root || res == gglobal()->resources.root_res) {
 			kill_bindables();
+			//kill_oldWorld(TRUE, TRUE, TRUE, __FILE__, __LINE__);
 			shouldBind = TRUE;
+			origFogNodes = origBackgroundNodes = origNavigationNodes = origViewpointNodes = 0;
 			//ConsoleMessage ("pc - shouldBind");
 		} else {
 			if (!tg->resources.root_res->complete) {
@@ -902,10 +904,13 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 				t->setNavigationBindInRender = vector_get(struct X3D_Node*, p->navigationNodes,0);
 			}
 			if (vectorSize(t->viewpointNodes) > 0) {
-				for (i=origViewpointNodes; i < vectorSize(t->viewpointNodes); ++i) 
-					send_bind_to(vector_get(struct X3D_Node*,t->viewpointNodes,i), 0); 
+				for (i = origViewpointNodes; i < vectorSize(t->viewpointNodes); ++i) 
+					send_bind_to(vector_get(struct X3D_Node*, t->viewpointNodes, i), 0);
+				
 					/* Initialize binding info */
 				t->setViewpointBindInRender = vector_get(struct X3D_Node*, t->viewpointNodes,0);
+				if (res->afterPoundCharacters)
+					fwl_gotoViewpoint(res->afterPoundCharacters);
 			}
 		}
 	
@@ -1266,7 +1271,9 @@ static const int res_command_flush_queue;
 static const int res_command_stop_flush;
 void resitem_queue_flush()
 {
-	resitem_enqueue(ml_new(&res_command_flush_queue));
+	resitem_append(ml_new(&res_command_flush_queue));
+	//doesn't seem very healthy - resitems can re-queue themselves for tidying themselves up,
+	//..and so fluxhing leaves some things abandoned mid-process
 	resitem_enqueue(ml_new(&res_command_stop_flush));
 }
 void resitem_queue_exit(){
@@ -1325,7 +1332,7 @@ void _inputParseThread(void *globalcontext)
             		if (result) setMenuStatus ("ok"); else setMenuStatus("not ok");
 			#endif
 		}
-		printf("Hi - ending resitem queue gracefully\n");
+		printf("Ending resource thread gracefully\n");
 #else //NEWQUEUE
 		for (;;) {
         		bool result = TRUE;

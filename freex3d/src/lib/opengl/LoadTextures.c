@@ -854,6 +854,9 @@ static void texture_process_list(s_list_t *item)
 		p->texture_list = ml_delete_self(p->texture_list, item);
 	}
 }
+void threadsafe_append_item_signal(s_list_t *item, s_list_t** queue, pthread_mutex_t* queue_lock, pthread_cond_t *queue_nonzero);
+void threadsafe_enqueue_item_signal(s_list_t *item, s_list_t** queue, pthread_mutex_t* queue_lock, pthread_cond_t *queue_nonzero);
+s_list_t* threadsafe_dequeue_item_wait(s_list_t** queue, pthread_mutex_t *queue_lock, pthread_cond_t *queue_nonzero);
 void texitem_append(s_list_t *item){
 	ppLoadTextures p;
 	ttglobal tg = gglobal();
@@ -881,7 +884,7 @@ static const int tex_command_flush_queue;
 static const int tex_command_stop_flush;
 void texitem_queue_flush()
 {
-	texitem_enqueue(ml_new(&tex_command_flush_queue));
+	texitem_append(ml_new(&tex_command_flush_queue));
 	texitem_enqueue(ml_new(&tex_command_stop_flush));
 }
 void texitem_queue_exit(){
@@ -1025,7 +1028,7 @@ void _textureThread(void *globalcontext)
 			p->TextureParsing = FALSE;
 		}
 	}
-	printf("hi exiting texture thread gracefully\n");
+	printf("Ending texture load thread gracefully\n");
 	tg->threads.TextureThreadRunning = FALSE;
 
 }

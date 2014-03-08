@@ -396,6 +396,15 @@ bool resource_fetch(resource_item_t *res)
 		case ress_none:
 		case ress_starts_good:
 			DEBUG_RES ("resource_fetch, calling download_url\n");
+			pound = NULL;
+			pound = strchr(res->parsed_request, '#');
+			if (pound != NULL) {
+				*pound = '\0';
+				/* copy the name out, so that Anchors can go to correct Viewpoint */
+				pound++;
+				res->afterPoundCharacters = STRDUP(pound);
+			}
+
 			download_url(res);
 			break;
 		default:

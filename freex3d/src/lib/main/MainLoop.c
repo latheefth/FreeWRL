@@ -409,7 +409,7 @@ static void stopDisplayThread()
 	ttglobal tg = gglobal();
 	if (!TEST_NULL_THREAD(tg->threads.DispThrd)) {
 		//((ppMainloop)(tg->Mainloop.prv))->quitThread = TRUE;
-		tg->threads.MainLoopQuit = TRUE;
+		tg->threads.MainLoopQuit = max(1, tg->threads.MainLoopQuit); //make sure we don't go backwards in the quit process with a double 'q'
 		//pthread_join(tg->threads.DispThrd,NULL);
 		//ZERO_THREAD(tg->threads.DispThrd);
 	}
@@ -1048,7 +1048,7 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
 		/* NOTE: front ends now sync with the monitor, meaning, this sleep is no longer needed unless
 		   something goes totally wrong */
 #ifndef FRONTEND_HANDLES_DISPLAY_THREAD
-			if(!tg->display.params.frontend_handles_display_thread){
+			if(0) if(!tg->display.params.frontend_handles_display_thread){
 				/* we see how long it took to do the last loop; now that the frame rate is synced to the
 				   vertical retrace of the screens, we should not get more than 60-70fps. We calculate the
 				   time here, if it is more than 200fps, we sleep for 1/100th of a second - we should NOT
@@ -4001,26 +4001,33 @@ void fwl_initializeRenderSceneUpdateScene() {
 #endif
 }
 
-void finalizeRenderSceneUpdateScene() {
-	/* 3 phases to shutdown:
-	1. stop mainthread from looping. If we are in here, we aren't looping
-	2. worker threads > flush and stop
-	3. clean up scene data
-	4. delete instance
-	5. exit here and let the display thread die a peaceful death
-	*/
-	ttglobal tg = gglobal();
-	BOOL more;
-	printf ("finalizeRenderSceneUpdateScene\n");
-
+/* phases to shutdown:
+- stop mainthread from rendering - someone presses 'q'. If we are in here, we aren't rendering
+A. worker threads > tell them to flush and stop
+B. check if both worker threads have stopped
+- exit loop
+C. delete instance data
+- let the display thread die a peaceful death
+*/
+void finalizeRenderSceneUpdateSceneA() {
+	//A.worker threads > tell them to flush and stop
 	stopLoadThread();
 	stopPCThread();
+	gglobal()->threads.MainLoopQuit = 2;
+}
+int finalizeRenderSceneUpdateSceneB() {
+	//B.check if both worker threads have stopped
+	BOOL more;
+	ttglobal tg = gglobal();
+	more = tg->threads.ResourceThreadRunning || tg->threads.TextureThreadRunning;
+	return more;
+}
+void finalizeRenderSceneUpdateSceneC() {
+	//C. delete instance data
+	ttglobal tg = gglobal();
+	printf ("finalizeRenderSceneUpdateScene\n");
 
-	do{
-		more = tg->threads.ResourceThreadRunning || tg->threads.TextureThreadRunning; 
-		usleep(1000);
-	} while (more);
-    kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+    kill_oldWorld(TRUE,TRUE,FALSE,__FILE__,__LINE__);
 	/* set geometry to normal size from fullscreen */
 #ifndef AQUA
 	if (newResetGeometry != NULL) newResetGeometry();
@@ -4032,7 +4039,15 @@ void finalizeRenderSceneUpdateScene() {
 	scanMallocTableOnQuit();
 #endif
 	/* tested on win32 console program July9,2011 seems OK */
-	iglobal_destructor(gglobal());
+	iglobal_destructor(tg);
+}
+//here for historical reasons, but this one blocks the UI thread 
+// with a sleep loop which some platforms don't allow.
+// for those its better to use the switch case approach in the UI thread
+void finalizeRenderSceneUpdateScene(){
+	finalizeRenderSceneUpdateSceneA();
+	while (finalizeRenderSceneUpdateSceneB() ) usleep(1000);
+	finalizeRenderSceneUpdateSceneC();
 }
 
 
@@ -4111,7 +4126,7 @@ void checkFileLoadRequest()
 	if(fname)
 	{
 		//dump_scenegraph(2);
-		kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+		kill_oldWorld(TRUE,TRUE,TRUE,__FILE__,__LINE__);
 		Anchor_ReplaceWorld(fname);
 		free(fname);
 	}
@@ -4119,6 +4134,7 @@ void checkFileLoadRequest()
 }
 void _displayThread(void *globalcontext)
 {
+	int more;
 	ttglobal tg = (ttglobal)globalcontext;
 	//tg->threads.DispThrd = pthread_self();
 	//set_thread2global(tg, tg->threads.DispThrd ,"display thread");
@@ -4143,35 +4159,50 @@ void _displayThread(void *globalcontext)
 
 	/* loop and loop, and loop... */
 	//while (!((ppMainloop)(tg->Mainloop.prv))->quitThread) {
-	while (!tg->threads.MainLoopQuit) {
-		//PRINTF("event loop\n");
+	more = TRUE;
+	while (more) {
+		switch (tg->threads.MainLoopQuit){
+		case 0:
+			//PRINTF("event loop\n");
 #ifdef _MSC_VER
-		fwMessageLoop((freewrl_params_t *)&gglobal()->display);
+			fwMessageLoop((freewrl_params_t *)&gglobal()->display);
 #endif
-		profile_start("mainloop");
-		fwl_RenderSceneUpdateScene();
-		profile_end("mainloop");
-		//Controller code
-		//-MVC - Model-View-Controller design pattern: do the Controller poll-model-and-update-UI here
-		//-reason for MVC: put controller in UI(view) technology so no callbacks are needed from Model to UI(View)
-		//-here everything is in C so we don't need MVC style, but we are preparing MVC in C
-		// to harmonize with Android, IOS etc where the UI(View) and Controller are in Objective-C or Java and Model(state) in C
-		updateButtonStatus(); //poll Model & update UI(View)
+			profile_start("mainloop");
+			fwl_RenderSceneUpdateScene();
+			profile_end("mainloop");
+			//Controller code
+			//-MVC - Model-View-Controller design pattern: do the Controller poll-model-and-update-UI here
+			//-reason for MVC: put controller in UI(view) technology so no callbacks are needed from Model to UI(View)
+			//-here everything is in C so we don't need MVC style, but we are preparing MVC in C
+			// to harmonize with Android, IOS etc where the UI(View) and Controller are in Objective-C or Java and Model(state) in C
+			updateButtonStatus(); //poll Model & update UI(View)
 #if defined(STATUSBAR_HUD)
-		updateConsoleStatus(); //poll Model & update UI(View)
+			updateConsoleStatus(); //poll Model & update UI(View)
 #endif
-		checkFileLoadRequest();
-		/* status bar, if we have one */
-		finishedWithGlobalShader();
-		drawStatusBar();  // UI/View 
-		restoreGlobalShader();
-		/* swap the rendering area */
-		FW_GL_SWAPBUFFERS;
+			checkFileLoadRequest();
+			
+			/* status bar, if we have one */
+			finishedWithGlobalShader();
+			drawStatusBar();  // UI/View 
+			restoreGlobalShader();
+			/* swap the rendering area */
+			FW_GL_SWAPBUFFERS;
 			PRINT_GL_ERROR_IF_ANY("XEvents::render");
+			break;
+		case 1:
+			//tell worker threads to flush and quit gracefully
+			finalizeRenderSceneUpdateSceneA();
+			break;
+		case 2:
+			//check if worker threads have exited
+			more = finalizeRenderSceneUpdateSceneB();
+			break;
+		}
 	} 
 	/* when finished: */
-	finalizeRenderSceneUpdateScene();
-
+	//clean up scenegraph, resource and gglobal mallocs, a few other things
+	finalizeRenderSceneUpdateSceneC();
+	printf("Ending display thread gracefully\n");
 }
 #endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 
@@ -4248,6 +4279,7 @@ void outOfMemory(const char *msg) {
         exit(EXIT_FAILURE);
 }
 
+#ifdef OLDCODE
 void fwl_doQuitInstance()
 {
 #if !defined(FRONTEND_HANDLES_DISPLAY_THREAD)
@@ -4271,20 +4303,21 @@ void fwl_doQuitInstance()
 	/* tested on win32 console program July9,2011 seems OK */
 	iglobal_destructor(gglobal());
 }
-
+#endif
 //OLDCODE #endif //ANDROID
 
 
 /* quit key pressed, or Plugin sends SIGQUIT */
 void fwl_doQuit()
 {
+	ttglobal tg = gglobal();
 //OLDCODE #if defined(_ANDROID)
 //OLDCODE 	fwl_Android_doQuitInstance();
 //OLDCODE #else //ANDROID
 	//fwl_doQuitInstance();
 //OLDCODE #endif //ANDROID
     //exit(EXIT_SUCCESS);
-	gglobal()->threads.MainLoopQuit = TRUE;
+	tg->threads.MainLoopQuit = max(1,tg->threads.MainLoopQuit); //make sure we don't go backwards in the quit process with a double 'q'
 }
 
 // tmp files are on a per-invocation basis on Android, and possibly other locations.
@@ -4714,8 +4747,15 @@ void fwl_Android_replaceWorldNeeded() {
 void fwl_replaceWorldNeeded(char* str)
 {
 	resource_item_t* plugin_res;
-	kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+	kill_oldWorld(TRUE,TRUE,TRUE,__FILE__,__LINE__);
 	plugin_res = resource_create_single(str);
+	send_resource_to_parser_async(plugin_res);
+}
+void fwl_replaceWorldNeededMultiStr(struct Multi_String *urls){
+	resource_item_t* plugin_res;
+	kill_oldWorld(TRUE, TRUE, TRUE, __FILE__, __LINE__);
+	plugin_res = resource_create_multi(urls);
+	//resource_identify(NULL, plugin_res);
 	send_resource_to_parser_async(plugin_res);
 }
 

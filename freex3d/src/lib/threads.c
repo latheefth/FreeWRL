@@ -133,7 +133,7 @@ void threads_init(struct tthreads* t)
 
 	t->ResourceThreadRunning = FALSE;
 	t->TextureThreadRunning = FALSE;
-	t->MainLoopQuit = FALSE;
+	t->MainLoopQuit = 0;
 	//private
 	//t->prv = threads_constructor();
 	//{
