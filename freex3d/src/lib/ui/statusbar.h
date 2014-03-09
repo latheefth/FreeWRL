@@ -36,8 +36,11 @@ extern "C" {
 #endif
 
 void drawStatusBar();
-int handleStatusbarHud(int mev, int* clipplane);
-void statusbarHud_DrawCursor(GLint textureID,int x,int y);
+//int handleStatusbarHud(int mev, int* clipplane);
+//void statusbarHud_DrawCursor(GLint textureID,int x,int y);
+void statusbar_set_window_size(int width, int height);
+void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY);
+
 #ifdef __cplusplus
 }
 #endif

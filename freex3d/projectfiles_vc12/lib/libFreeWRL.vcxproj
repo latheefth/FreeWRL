@@ -272,6 +272,7 @@
     <ClInclude Include="$(SRC)\lib\system.h" />
     <ClInclude Include="$(SRC)\lib\scenegraph\Vector.h" />
     <ClInclude Include="$(SRC)\lib\scenegraph\Viewer.h" />
+    <ClInclude Include="..\..\src\lib\ui\statusbar.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libminizip\libminizip.vcxproj">

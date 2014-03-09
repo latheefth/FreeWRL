@@ -760,7 +760,7 @@ static int shiftState = 0;
 	//gglobal()->display.screenHeight = rect.bottom;
 	//resize_GL(rect.right, rect.bottom); 
 #ifdef STATUSBAR_HUD
-	statusbarHud_set_window_size(rect.right, rect.bottom);
+	statusbar_set_window_size(rect.right, rect.bottom);
 #else
 	fwl_setScreenDim(rect.right, rect.bottom);
 #endif
@@ -1006,7 +1006,7 @@ static int shiftState = 0;
 	//if(cstyle == ACURSE)
 	//	SetCursor(hArrow);
 #ifdef STATUSBAR_HUD
-		statusbarHud_handle_mouse(mev, butnum, mouseX, mouseY);
+		statusbar_handle_mouse(mev, butnum, mouseX, mouseY);
 #else
 		fwl_handle_aqua(mev, butnum, mouseX, mouseY); /* ,gcWheelDelta); */
 #endif

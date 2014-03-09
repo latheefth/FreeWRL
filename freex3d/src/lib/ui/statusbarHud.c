@@ -2135,7 +2135,7 @@ int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY, int* clippla
 	return 0;
 }
 // call a few functions from the display event handlers, such as resize
-void statusbarHud_set_window_size(int width, int height)
+void statusbar_set_window_size(int width, int height)
 {
 	ttglobal tg = gglobal();
 	ppstatusbar p = (ppstatusbar)tg->statusbar.prv;
@@ -2143,7 +2143,7 @@ void statusbarHud_set_window_size(int width, int height)
 	p->screenWidth = width;
 	fwl_setScreenDim(width, height);
 }
-void statusbarHud_handle_mouse(int mev, int butnum, int mouseX, int mouseY)
+void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY)
 {
 	ttglobal tg = gglobal();
 	ppstatusbar p = (ppstatusbar)tg->statusbar.prv;

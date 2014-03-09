@@ -242,6 +242,7 @@ void Mainloop_init(struct tMainloop *t){
 	t->tmpFileLocation = MALLOC (char *,5);
 	strcpy(t->tmpFileLocation,"/tmp");
 	t->replaceWorldRequest = NULL;
+	t->replaceWorldRequestMulti = NULL;
 	//private
 	t->prv = Mainloop_constructor();
 	{
@@ -1712,7 +1713,7 @@ void handle_Xevents(XEvent event) {
 		case ConfigureNotify:
 			/*  printf("%s,%d ConfigureNotify  %d %d\n",__FILE__,__LINE__,event.xconfigure.width,event.xconfigure.height); */
 #ifdef STATUSBAR_HUD
-			statusbarHud_set_window_size(event.xconfigure.width,event.xconfigure.height);
+			statusbar_set_window_size(event.xconfigure.width,event.xconfigure.height);
 #else
 			fwl_setScreenDim (event.xconfigure.width,event.xconfigure.height);
 #endif
@@ -1798,7 +1799,7 @@ void handle_Xevents(XEvent event) {
 		case ButtonPress:
 		case ButtonRelease:
 #ifdef STATUSBAR_HUD
-			handleStatusbarHud(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y);
+			statusbar_handle_mouse(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y);
 #else
 			fwl_handle_aqua(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y);
 #endif			
@@ -1833,7 +1834,7 @@ void handle_Xevents(XEvent event) {
 			}
 #endif /* KEEP_X11_INLIB */
 #ifdef STATUSBAR_HUD
-			handleStatusbarHud(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y);
+			statusbar_handle_mouse(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y);
 #else
 			fwl_handle_aqua(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y);
 #endif
@@ -4067,8 +4068,9 @@ void finalizeRenderSceneUpdateScene(){
 
 void checkReplaceWorldRequest()
 {
-	resource_item_t* res;
+	resource_item_t *res,*resm;
 	char * req;
+
 	ttglobal tg = gglobal();
 
 	req = tg->Mainloop.replaceWorldRequest;
@@ -4077,6 +4079,14 @@ void checkReplaceWorldRequest()
 		kill_oldWorld(TRUE, TRUE, TRUE, __FILE__, __LINE__);
 		res = resource_create_single(req);
 		send_resource_to_parser_async(res);
+	}
+	resm = (resource_item_t *)tg->Mainloop.replaceWorldRequestMulti;
+	if (resm){
+		tg->Mainloop.replaceWorldRequestMulti = NULL;
+		kill_oldWorld(TRUE, TRUE, TRUE, __FILE__, __LINE__);
+		resm->new_root = true;
+		gglobal()->resources.root_res = resm;
+		send_resource_to_parser_async(resm);
 	}
 }
 static int(*view_initialize)() = NULL;
@@ -4721,12 +4731,13 @@ void fwl_replaceWorldNeeded(char* str)
 {
 	gglobal()->Mainloop.replaceWorldRequest = STRDUP(str);
 }
-void fwl_replaceWorldNeededMultiStr(struct Multi_String *urls){
-	resource_item_t* plugin_res;
-	kill_oldWorld(TRUE, TRUE, TRUE, __FILE__, __LINE__);
-	plugin_res = resource_create_multi(urls);
-	//resource_identify(NULL, plugin_res);
-	send_resource_to_parser_async(plugin_res);
+void fwl_replaceWorldNeededRes(resource_item_t *multiResWithParent){
+	//resource_item_t* plugin_res;
+	//kill_oldWorld(TRUE, TRUE, TRUE, __FILE__, __LINE__);
+	//plugin_res = resource_create_multi(urls);
+	////resource_identify(NULL, plugin_res);
+	//send_resource_to_parser_async(plugin_res);
+	gglobal()->Mainloop.replaceWorldRequestMulti = (void*)(multiResWithParent);
 }
 
 

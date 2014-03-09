@@ -110,7 +110,7 @@ static void makeAndCompileShader(struct shaderTableEntry *,bool);
 */
 
 /* OpenGL perform matrix state here */
-#define MAX_LARGE_MATRIX_STACK 32	/* depth of stacks */
+#define MAX_LARGE_MATRIX_STACK 256	/* depth of stacks */
 #define MAX_SMALL_MATRIX_STACK 2	/* depth of stacks */
 #define MATRIX_SIZE 16		/* 4 x 4 matrix */
 typedef GLDOUBLE MATRIX4[MATRIX_SIZE];
@@ -146,6 +146,7 @@ typedef struct pOpenGL_Utils{
     char *userDefinedVertexShader[MAX_USER_DEFINED_SHADERS];
 
     bool usePhongShaders; /* phong shaders == better rendering, but slower */
+	int maxStackUsed;
 }* ppOpenGL_Utils;
 
 
@@ -203,6 +204,7 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
         // during runtime, then re-build shaders.
         p->usePhongShaders = false;
         //ConsoleMessage ("setting usePhongShaders to true"); p->usePhongShaders=true;
+		p->maxStackUsed = 0;
 	}
 }
 
@@ -3138,40 +3140,86 @@ void fw_glLoadIdentity(void) {
 
 #define PUSHMAT(a,b,c,d) case a: \
 	b++;\
-	if (b>=c) {b=c-1; printf ("stack overflow, whichmode %d\n",p->whichMode); } \
+	if (b>=c) {b=c-1; \
+		printf ("stack overflow, whichmode %d\n",p->whichMode); } \
 	memcpy ((void *)d[b], (void *)d[b-1],sizeof(GLDOUBLE)*16);\
 	p->currentMatrix = d[b];\
 	break;
 
+MATRIX4* PushMat( int a, int *b, int c, MATRIX4 *d){
+	(*b)++; 
+	if (*b >= c) {
+		printf("stack overflow, depth %d whichmode %d\n", *b, a);
+		*b = c - 1;
+	} 
+	memcpy((void *)d[*b], (void *)d[*b - 1], sizeof(GLDOUBLE)* 16);
+	return &d[*b];
+}
 
+
+void printMaxStackUsed(){
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+	ConsoleMessage("max modelview stack used= %d\n", p->maxStackUsed);
+}
 void fw_glPushMatrix(void) {
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
 	switch (p->whichMode) {
-		PUSHMAT (GL_PROJECTION,p->projectionviewTOS,MAX_SMALL_MATRIX_STACK,p->FW_ProjectionView)
-		PUSHMAT (GL_MODELVIEW,p->modelviewTOS,MAX_LARGE_MATRIX_STACK,p->FW_ModelView)
-		PUSHMAT (GL_TEXTURE,p->textureviewTOS,MAX_SMALL_MATRIX_STACK,p->FW_TextureView)
-		default :printf ("wrong mode in popMatrix\n");
+	case GL_PROJECTION: p->currentMatrix = *PushMat(GL_PROJECTION, &p->projectionviewTOS, MAX_SMALL_MATRIX_STACK, p->FW_ProjectionView); break;
+	case GL_MODELVIEW:  p->currentMatrix = *PushMat(GL_MODELVIEW, &p->modelviewTOS, MAX_LARGE_MATRIX_STACK, p->FW_ModelView); break;
+	case GL_TEXTURE:	p->currentMatrix = *PushMat(GL_TEXTURE, &p->textureviewTOS, MAX_SMALL_MATRIX_STACK, p->FW_TextureView); break;
+	default:printf("wrong mode in popMatrix\n");
 	}
-
- 	FW_GL_LOADMATRIX(p->currentMatrix);
-#undef PUSHMAT
+	p->maxStackUsed = max(p->maxStackUsed, p->modelviewTOS);
+	FW_GL_LOADMATRIX(p->currentMatrix);
 }
+//void fw_glPushMatrix(void) {
+//	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+//
+//	switch (p->whichMode) {
+//		PUSHMAT (GL_PROJECTION,p->projectionviewTOS,MAX_SMALL_MATRIX_STACK,p->FW_ProjectionView)
+//		PUSHMAT (GL_MODELVIEW,p->modelviewTOS,MAX_LARGE_MATRIX_STACK,p->FW_ModelView)
+//		PUSHMAT (GL_TEXTURE,p->textureviewTOS,MAX_SMALL_MATRIX_STACK,p->FW_TextureView)
+//		default :printf ("wrong mode in popMatrix\n");
+//	}
+//
+// 	FW_GL_LOADMATRIX(p->currentMatrix);
+//}
+#undef PUSHMAT
 
 #define POPMAT(a,b,c) case a: b--; if (b<0) {b=0;printf ("popMatrix, stack underflow, whichMode %d\n",p->whichMode);} p->currentMatrix = c[b]; break;
-
+MATRIX4 *PopMat(int a, int *b, MATRIX4 *c){
+	(*b)--;
+	if (*b < 0) {
+		*b = 0;
+		printf("popMatrix, stack underflow, whichMode %d\n", a);
+	}
+	return &c[*b];
+}
 void fw_glPopMatrix(void) {
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
 	switch (p->whichMode) {
-		POPMAT(GL_PROJECTION,p->projectionviewTOS,p->FW_ProjectionView)
-		POPMAT(GL_MODELVIEW,p->modelviewTOS,p->FW_ModelView)
-		POPMAT (GL_TEXTURE,p->textureviewTOS,p->FW_TextureView)
-		default :printf ("wrong mode in popMatrix\n");
+	case GL_PROJECTION: p->currentMatrix = *PopMat(GL_PROJECTION, &p->projectionviewTOS, p->FW_ProjectionView); break;
+	case GL_MODELVIEW:  p->currentMatrix = *PopMat(GL_MODELVIEW, &p->modelviewTOS, p->FW_ModelView); break;
+	case GL_TEXTURE:   p->currentMatrix = *PopMat(GL_TEXTURE, &p->textureviewTOS, p->FW_TextureView); break;
+	default: printf ("wrong mode in popMatrix\n");
 	}
 
  	FW_GL_LOADMATRIX(p->currentMatrix);
 }
+//void fw_glPopMatrix(void) {
+//	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+//
+//	switch (p->whichMode) {
+//		POPMAT(GL_PROJECTION, p->projectionviewTOS, p->FW_ProjectionView)
+//			POPMAT(GL_MODELVIEW, p->modelviewTOS, p->FW_ModelView)
+//			POPMAT(GL_TEXTURE, p->textureviewTOS, p->FW_TextureView)
+//	default:printf("wrong mode in popMatrix\n");
+//	}
+//
+//	FW_GL_LOADMATRIX(p->currentMatrix);
+//}
 #undef POPMAT
 
 

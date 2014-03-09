@@ -296,6 +296,7 @@ print_viewer()
 	ConsoleMessage("\tQuaternion[%.4f, %.4f, %.4f, %.4f]\n", (p->Viewer.Quat).w, (p->Viewer.Quat).x, (p->Viewer.Quat).y, (p->Viewer.Quat).z);
 	ConsoleMessage("\tOrientation[%.4f, %.4f, %.4f, %.4f]\n", ori.x, ori.y, ori.z, ori.a);
 	ConsoleMessage("}\n");
+	printMaxStackUsed();
 
 }
 

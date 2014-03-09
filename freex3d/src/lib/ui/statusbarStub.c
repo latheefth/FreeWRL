@@ -25,6 +25,7 @@
 #include <config.h>
 
 #if !defined(AQUA)
+#ifdef OLDCODE
 void kill_status (void) {
 }
 void update_status(char* msg)
@@ -41,6 +42,18 @@ void setMenuButton_headlight(int val){}
 void setMenuButton_navModes(int type){}
 int handleStatusbarHud(int mev, int* clipplane)
 {return 0;}
+#endif
+void statusbar_init(struct tstatusbar *t){
+}
+void statusbar_set_window_size(int width, int height)
+{
+	fwl_setScreenDim(width, height);
+}
+void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY)
+{
+	fwl_handle_aqua(mev, butnum, mouseX, mouseY); /* ,gcWheelDelta); */
+}
+
 void drawStatusBar()
 {
 }

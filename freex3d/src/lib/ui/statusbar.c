@@ -65,6 +65,8 @@ void render_init(void);
 
 typedef struct pstatusbar{
 	int initDone;
+	int screenWidth, screenHeight;
+	double screenRatio;
 }* ppstatusbar;
 
 void *statusbar_constructor(){
@@ -79,10 +81,15 @@ void statusbar_init(struct tstatusbar *t){
 	{
 		ppstatusbar p = (ppstatusbar)t->prv;
 		p->initDone = FALSE;
+		p->screenHeight = 200;
+		p->screenWidth = 300;
+		p->screenRatio = 1.5;
+
 	}
 }
 //ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
 
+#ifdef OLDCODE  //statusbar polls Model
 /* make sure that on a re-load that we re-init */
 void kill_status (void) {
 	/* hopefully, by this time, rendering has been stopped */
@@ -114,8 +121,33 @@ void setMenuButton_texSize(int size){}
 void setMenuButton_headlight(int val){}
 void setMenuButton_navModes(int type){}
 
+
 int handleStatusbarHud(int mev, int* clipplane)
 { return 0; }
+#endif
+
+void statusbar_set_window_size(int width, int height)
+{
+	ttglobal tg = gglobal();
+	ppstatusbar p = (ppstatusbar)tg->statusbar.prv;
+	p->screenHeight = height;
+	p->screenWidth = width;
+	p->screenRatio = 1.5;
+	if (height != 0) 
+		p->screenRatio = (double)width / (double)height;
+	else
+		p->screenRatio = 1.5;
+
+	fwl_setScreenDim(width, height);
+}
+void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY)
+{
+	//ttglobal tg = gglobal();
+	//ppstatusbar p = (ppstatusbar)tg->statusbar.prv;
+	//if (!handleStatusbarHud(mev, butnum, mouseX, mouseY, &p->clipPlane))
+	fwl_handle_aqua(mev, butnum, mouseX, mouseY); /* ,gcWheelDelta); */
+}
+
 void setup_projection(int pick, int x, int y) 
 {
 	ttglobal tg = gglobal();
@@ -150,10 +182,10 @@ void drawStatusBar()
 {
     // DJ
     if(1) {
-	if(buffer[0] != '\0') {
-		printf("%s:%d drawStatusBar NON-FUNCTIONAL %s\n",__FILE__,__LINE__,buffer);
-		buffer[0] = '\0';
-	}
+		if(buffer[0] != '\0') {
+			printf("%s:%d drawStatusBar NON-FUNCTIONAL %s\n",__FILE__,__LINE__,buffer);
+			buffer[0] = '\0';
+		}
     } else {
 	#if !(defined(IPHONE) || defined(_ANDROID))
 		ttglobal tg = gglobal();

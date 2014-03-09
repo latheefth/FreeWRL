@@ -54,11 +54,12 @@ int swDebugf(LPCSTR formatstring, ...) {return 0;}
 extern "C"
 {
 #include "libFreeWRL.h"
+#include "ui/statusbar.h"
 void initConsoleH(DWORD pid);
 //char *strBackslash2fore(char *str);
 void fwl_setConsole_writePrimitive(int ibool);
-void statusbarHud_set_window_size(int width, int height);
-void statusbarHud_handle_mouse(int mev, int butnum, int mouseX, int mouseY);
+void statusbar_set_window_size(int width, int height);
+void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY);
 
 }
 
@@ -177,7 +178,7 @@ void CdllFreeWRL::onResize(int width,int height){
 	if(fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
 		//swDebugf("onResize before\n");
 #ifdef STATUSBAR_HUD
-		statusbarHud_set_window_size(width,height);
+		statusbar_set_window_size(width,height);
 #else
 		fwl_setScreenDim(width,height);
 #endif
@@ -203,7 +204,7 @@ void CdllFreeWRL::onMouse(int mouseAction,int mouseButton,int x, int y){
 	if(fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
 		//swDebugf("onMouse before\n");
 #ifdef STATUSBAR_HUD
-		statusbarHud_handle_mouse(mouseAction,mouseButton,x,y);
+		statusbar_handle_mouse(mouseAction,mouseButton,x,y);
 #else
 		fwl_handle_aqua(mouseAction,mouseButton,x,y); 
 #endif

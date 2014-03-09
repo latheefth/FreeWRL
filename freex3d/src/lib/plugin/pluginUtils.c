@@ -261,14 +261,19 @@ int doBrowserAction()
 			/* We have a url, lets go and get the first one of them */
                 parentPath = (resource_item_t *)AnchorsAnchor()->_parentResource;
 		p->plugin_res = resource_create_multi0(&AnchorsAnchor()->url);
-#ifdef EXPERIMENT_FAILED
+#ifdef TRUE //EXPERIMENT_FAILED
 		{
+			/*Goal: avoid blocking UI thread: a resource_fetch (below) which includes a wait loop
+			  Method: schedule a scene change whereby the file part gets sent to the resource worker thread
+			  while the UI thread keeps looping
+			  - first, make sure it's a scene file (not .html, .img which are handled in the html browser in new window)
+			*/
 			BOOL isScene = FALSE;
 			for (i = 0; i < Anchor_url.n; i++)
 				isScene = isScene || checkIfX3DVRMLFile(Anchor_url.p[i]->strptr);
 			if (isScene){
 				resource_identify(parentPath, p->plugin_res);
-				fwl_replaceWorldNeededMultiStr(&Anchor_url);
+				fwl_replaceWorldNeededRes(p->plugin_res);
 				return FALSE;
 			}
 		}

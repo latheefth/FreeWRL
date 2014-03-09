@@ -162,6 +162,7 @@ typedef struct iiglobal //InstanceGlobal
 		int  scene_profile; //from parser (or capabilities handler) used in js scene.profile
 		int *scene_components;
 		char *replaceWorldRequest;
+		void *replaceWorldRequestMulti; //will be struct multi-string
 	} Mainloop;
 	struct tProdCon{
 		struct Vector *viewpointNodes;// = NULL;
