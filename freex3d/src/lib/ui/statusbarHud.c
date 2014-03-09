@@ -621,6 +621,7 @@ void printString2(GLfloat sx, GLfloat sy, char *s)
 	for(j=0;j<len;j++)
 	{
 		ichar = (int)s[i];
+		if (ichar == '\t') ichar = ' '; //trouble with tabs, quick hack
 		if(p->pfont.have[ichar])
 		{
 			charScreenSize = screen2normalizedScreenScale(p->pfont.owh[0][1][ichar]*p->bmScale,p->pfont.owh[1][1][ichar]*p->bmScale);

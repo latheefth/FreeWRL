@@ -418,7 +418,6 @@ int fwvsnprintf(char *buffer,int buffer_length, const char *fmt, va_list ap)
 //int consolefileOpened = 0;
 //FILE* consolefile;
 
-
 #if defined (_ANDROID) || defined (STATUSBAR_HUD)
 static void android_save_log(char *thislog) {
 	ttglobal tg = gglobal();

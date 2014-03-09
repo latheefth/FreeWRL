@@ -291,7 +291,11 @@ print_viewer()
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
 	quaternion_to_vrmlrot(&(p->Viewer.Quat), &(ori.x),&(ori.y),&(ori.z), &(ori.a));
-	printf("Viewer {\n\tPosition [ %.4g, %.4g, %.4g ]\n\tQuaternion [ %.4g, %.4g, %.4g, %.4g ]\n\tOrientation [ %.4g, %.4g, %.4g, %.4g ]\n}\n", (p->Viewer.Pos).x, (p->Viewer.Pos).y, (p->Viewer.Pos).z, (p->Viewer.Quat).w, (p->Viewer.Quat).x, (p->Viewer.Quat).y, (p->Viewer.Quat).z, ori.x, ori.y, ori.z, ori.a);
+	ConsoleMessage("Viewer {\n");
+	ConsoleMessage("\tPosition[%.4f, %.4f, %.4f]\n", (p->Viewer.Pos).x, (p->Viewer.Pos).y, (p->Viewer.Pos).z);
+	ConsoleMessage("\tQuaternion[%.4f, %.4f, %.4f, %.4f]\n", (p->Viewer.Quat).w, (p->Viewer.Quat).x, (p->Viewer.Quat).y, (p->Viewer.Quat).z);
+	ConsoleMessage("\tOrientation[%.4f, %.4f, %.4f, %.4f]\n", ori.x, ori.y, ori.z, ori.a);
+	ConsoleMessage("}\n");
 
 }
 
