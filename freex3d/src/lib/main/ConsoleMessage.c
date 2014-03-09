@@ -157,7 +157,9 @@ void fwl_ConsoleSetup(int DefAqua , int TargetAqua , int HaveMotif , int TargetM
 	tg->ConsoleMessage.Console_writeToHud = 1;
 #endif
 }
-int fwl_StringConsoleMessage(char* consoleBuffer) { return ConsoleMessage(consoleBuffer); }
+int fwl_StringConsoleMessage(char* consoleBuffer) { 
+	return ConsoleMessage(consoleBuffer); 
+}
 
 #ifdef AQUA
 	#include <syslog.h> //TODO: configure check

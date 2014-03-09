@@ -99,9 +99,12 @@ int main (int argc, char **argv)
     libver = libFreeWRL_get_version();
     progver = freewrl_get_version();
     if (strcmp(progver, libver)) {
-	sprintf(consoleBuffer ,"FreeWRL expected library version %s, got %s...\n",progver, libver);
-	fwl_StringConsoleMessage(consoleBuffer);
-    }
+		sprintf(consoleBuffer ,"FreeWRL expected library version %s, got %s...\n",progver, libver);
+		fwl_StringConsoleMessage(consoleBuffer);
+	}else{
+		sprintf(consoleBuffer, "library version %s\n", libver);
+		fwl_StringConsoleMessage(consoleBuffer);
+	}
 
 #ifdef _MSC_VER
 	/*

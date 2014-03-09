@@ -1677,44 +1677,48 @@ int platform2web3dActionKeyLINUX(int platformKey)
 
 void handle_Xevents(XEvent event) {
 
-        XEvent nextevent;
-        char buf[10];
-        KeySym ks, ksraw, ksupper, kslower;
+	XEvent nextevent;
+	char buf[10];
+	KeySym ks, ksraw, ksupper, kslower;
 	KeySym *keysym;
 
 	int keysyms_per_keycode_return;
 
-        int count;
-		int actionKey;
-		ppMainloop p;
-		ttglobal tg = gglobal();
-		p = (ppMainloop)tg->Mainloop.prv;
-        p->lastMouseEvent=event.type;
+	int count;
+	int actionKey;
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+	p->lastMouseEvent=event.type;
 		
-        #ifdef VERBOSE
-        switch (event.type) {
-                case ConfigureNotify: printf ("Event: ConfigureNotify\n"); break;
-                case ClientMessage: printf ("Event: ClientMessage\n"); break;
-                case KeyPress: printf ("Event: KeyPress\n"); break;
-                case KeyRelease: printf ("Event: KeyRelease\n"); break;
-                case ButtonPress: printf ("Event: ButtonPress\n"); break;
-                case ButtonRelease: printf ("Event: ButtonRelease\n"); break;
-                case MotionNotify: printf ("Event: MotionNotify\n"); break;
-                case MapNotify: printf ("Event: MapNotify\n"); break;
-                case UnmapNotify: printf ("Event: *****UnmapNotify\n"); break;
-                default: printf ("event, unknown %d\n", event.type);
-        }
-        #endif
+#ifdef VERBOSE
+	switch (event.type) {
+		case ConfigureNotify: printf ("Event: ConfigureNotify\n"); break;
+		case ClientMessage: printf ("Event: ClientMessage\n"); break;
+		case KeyPress: printf ("Event: KeyPress\n"); break;
+		case KeyRelease: printf ("Event: KeyRelease\n"); break;
+		case ButtonPress: printf ("Event: ButtonPress\n"); break;
+		case ButtonRelease: printf ("Event: ButtonRelease\n"); break;
+		case MotionNotify: printf ("Event: MotionNotify\n"); break;
+		case MapNotify: printf ("Event: MapNotify\n"); break;
+		case UnmapNotify: printf ("Event: *****UnmapNotify\n"); break;
+		default: printf ("event, unknown %d\n", event.type);
+	}
+#endif
 
-        switch(event.type) {
+	switch(event.type) {
 //#ifdef HAVE_NOTOOLKIT
-                /* Motif, etc, usually handles this. */
-                case ConfigureNotify:
+		/* Motif, etc, usually handles this. */
+		case ConfigureNotify:
 			/*  printf("%s,%d ConfigureNotify  %d %d\n",__FILE__,__LINE__,event.xconfigure.width,event.xconfigure.height); */
-                        fwl_setScreenDim (event.xconfigure.width,event.xconfigure.height);
-                        break;
+#ifdef STATUSBAR_HUD
+			statusbarHud_set_window_size(event.xconfigure.width,event.xconfigure.height);
+#else
+			fwl_setScreenDim (event.xconfigure.width,event.xconfigure.height);
+#endif
+			break;
 //#endif
-                case ClientMessage:
+		case ClientMessage:
 			if (event.xclient.data.l[0] == WM_DELETE_WINDOW && !RUNNINGASPLUGIN) {
 				#ifdef VERBOSE
 				printf("---XClient sent wmDeleteMessage, quitting freewrl\n");
@@ -1722,132 +1726,137 @@ void handle_Xevents(XEvent event) {
 				fwl_doQuit();
 			}
 			break;
-                case KeyPress:
-                case KeyRelease:
-                        XLookupString(&event.xkey,buf,sizeof(buf),&ks,0);
-                        /*  Map keypad keys in - thanks to Aubrey Jaffer.*/
-                        if(0) switch(ks) {
-                           /*  the non-keyboard arrow keys*/
-                           case XK_Left: ks = XK_j; break;
-                           case XK_Right: ks = XK_l; break;
-                           case XK_Up: ks = XK_p; break;
-                           case XK_Down: ks = XK_semicolon; break;
-                           case XK_KP_0:
-                           case XK_KP_Insert:
-                                ks = XK_a; break;
-                           case XK_KP_Decimal:
-                           case XK_KP_Delete:
-                                ks = XK_z; break;
-                           case XK_KP_7:
-                           case XK_KP_Home:
-                                 ks = XK_7; break;
-                           case XK_KP_9:
-                           case XK_KP_Page_Up:
-                                ks = XK_9; break;
-                           case XK_KP_8:
-                           case XK_KP_Up:
-                                ks = XK_k; break;
-                           case XK_KP_2:
-                           case XK_KP_Down:
-                                ks = XK_8; break;
-                           case XK_KP_4:
-                           case XK_KP_Left:
-                                ks = XK_u; break;
-                           case XK_KP_6:
-                           case XK_KP_Right:
-                                ks = XK_o; break;
-                           case XK_Num_Lock: ks = XK_h; break;
-                           default: break;
-                           }
+		case KeyPress:
+		case KeyRelease:
+			XLookupString(&event.xkey,buf,sizeof(buf),&ks,0);
+			///*  Map keypad keys in - thanks to Aubrey Jaffer.*/
+			//if(0) switch(ks) {
+			//	/*  the non-keyboard arrow keys*/
+			//	case XK_Left: ks = XK_j; break;
+			//	case XK_Right: ks = XK_l; break;
+			//	case XK_Up: ks = XK_p; break;
+			//	case XK_Down: ks = XK_semicolon; break;
+			//	case XK_KP_0:
+			//	case XK_KP_Insert:
+			//		ks = XK_a; break;
+			//	case XK_KP_Decimal:
+			//	case XK_KP_Delete:
+			//		ks = XK_z; break;
+			//	case XK_KP_7:
+			//	case XK_KP_Home:
+			//		ks = XK_7; break;
+			//	case XK_KP_9:
+			//	case XK_KP_Page_Up:
+			//		ks = XK_9; break;
+			//	case XK_KP_8:
+			//	case XK_KP_Up:
+			//		ks = XK_k; break;
+			//	case XK_KP_2:
+			//	case XK_KP_Down:
+			//		ks = XK_8; break;
+			//	case XK_KP_4:
+			//	case XK_KP_Left:
+			//		ks = XK_u; break;
+			//	case XK_KP_6:
+			//	case XK_KP_Right:
+			//		ks = XK_o; break;
+			//	case XK_Num_Lock: ks = XK_h; break;
+			//		default: break;
+			//}
 
-                        /* doubt that this is necessary */
-                        buf[0]=(char)ks;buf[1]='\0';
+			/* doubt that this is necessary */
+			buf[0]=(char)ks;buf[1]='\0';
 
 			DEBUG_XEV("Key type = %s\n", (event.type == KeyPress ? "KEY PRESS" : "KEY  RELEASE"));
-                        //fwl_do_keyPress((char)ks,event.type);
-                        //ksraw = (char)buf[0];
+			//fwl_do_keyPress((char)ks,event.type);
+			//ksraw = (char)buf[0];
 
 
-                        // deprecated:  ksraw = XKeycodeToKeysym(event.xkey.display, event.xkey.keycode, 0);
+			// deprecated:  ksraw = XKeycodeToKeysym(event.xkey.display, event.xkey.keycode, 0);
 
 			keysym = XGetKeyboardMapping(event.xkey.display, 
 				event.xkey.keycode, 1, &keysyms_per_keycode_return);
 			ksraw = *keysym;
 			XFree(keysym);
 
-                        XConvertCase(ksraw,&kslower,&ksupper);
+			XConvertCase(ksraw,&kslower,&ksupper);
 
-                        ksraw = ksupper;
-                        if(event.type == KeyRelease && !IsModifierKey(ks) 
-                        	&& !IsFunctionKey(ks) && !IsMiscFunctionKey(ks) && !IsCursorKey(ks)){
-                             fwl_do_rawKeyPress((int)ks,1);
-                             //printf("ks=%c %d %o %x\n",ks,(int)ks,(int)ks,(int)ks);
-                        }
-                        //printf("ksraw=%c %d %o %x\n",ksraw,(int)ksraw,(int)ksraw,(int)ksraw);
-                        actionKey = platform2web3dActionKeyLINUX(ksraw);
-                        if(actionKey)
-                        	fwl_do_rawKeyPress(actionKey,event.type+10);
-                        else
-                        	fwl_do_rawKeyPress(ksraw,event.type);
-						
-                        break;
+			ksraw = ksupper;
+			if(event.type == KeyRelease && !IsModifierKey(ks) 
+				&& !IsFunctionKey(ks) && !IsMiscFunctionKey(ks) && !IsCursorKey(ks)){
+				fwl_do_rawKeyPress((int)ks,1);
+				//printf("ks=%c %d %o %x\n",ks,(int)ks,(int)ks,(int)ks);
+			}
+			//printf("ksraw=%c %d %o %x\n",ksraw,(int)ksraw,(int)ksraw,(int)ksraw);
+			actionKey = platform2web3dActionKeyLINUX(ksraw);
+			if(actionKey)
+				fwl_do_rawKeyPress(actionKey,event.type+10);
+			else
+				fwl_do_rawKeyPress(ksraw,event.type);
+			break;
 
-                case ButtonPress:
-                case ButtonRelease:
-					if(1)
-					fwl_handle_aqua_multi(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y,0);
-					if(0){
-                        /* printf("got a button press or button release\n"); */
-                        /*  if a button is pressed, we should not change state,*/
-                        /*  so keep a record.*/
-						if(handleStatusbarHud(event.type, &tg->Mainloop.clipPlane))break;
-                        if (event.xbutton.button>=5) break;  /* bounds check*/
-                        p->ButDown[p->currentCursor][event.xbutton.button] = (event.type == ButtonPress);
+		case ButtonPress:
+		case ButtonRelease:
+#ifdef STATUSBAR_HUD
+			handleStatusbarHud(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y);
+#else
+			fwl_handle_aqua(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y);
+#endif			
+			//if(0){
+			//	/* printf("got a button press or button release\n"); */
+			//	/*  if a button is pressed, we should not change state,*/
+			//	/*  so keep a record.*/
+			//	if(handleStatusbarHud(event.type, &tg->Mainloop.clipPlane))break;
+			//	if (event.xbutton.button>=5) break;  /* bounds check*/
+			//	p->ButDown[p->currentCursor][event.xbutton.button] = (event.type == ButtonPress);
 
-                        /* if we are Not over an enabled sensitive node, and we do NOT
-                           already have a button down from a sensitive node... */
-						/* printf("cursoroversensitive is %u lastPressedOver %u\n", p->CursorOverSensitive,p->lastPressedOver); */
-                        if ((p->CursorOverSensitive==NULL) && (p->lastPressedOver==NULL))  {
-                                p->NavigationMode=p->ButDown[p->currentCursor][1] || p->ButDown[p->currentCursor][3];
-                                handle (event.type,event.xbutton.button,
-                                        (float) ((float)event.xbutton.x/tg->display.screenWidth),
-                                        (float) ((float)event.xbutton.y/tg->display.screenHeight));
-                        }
-					}
-                    break;
+			//	/* if we are Not over an enabled sensitive node, and we do NOT
+			//		already have a button down from a sensitive node... */
+			//	/* printf("cursoroversensitive is %u lastPressedOver %u\n", p->CursorOverSensitive,p->lastPressedOver); */
+			//	if ((p->CursorOverSensitive==NULL) && (p->lastPressedOver==NULL))  {
+			//			p->NavigationMode=p->ButDown[p->currentCursor][1] || p->ButDown[p->currentCursor][3];
+			//			handle (event.type,event.xbutton.button,
+			//					(float) ((float)event.xbutton.x/tg->display.screenWidth),
+			//					(float) ((float)event.xbutton.y/tg->display.screenHeight));
+			//	}
+			//}
+			break;
 
-                case MotionNotify:
+		case MotionNotify:
 #if KEEP_X11_INLIB
-                        /* printf("got a motion notify\n"); */
-                        /*  do we have more motion notify events queued?*/
-                        if (XPending(Xdpy)) {
-                                XPeekEvent(Xdpy,&nextevent);
-                                if (nextevent.type==MotionNotify) { break;
-                                }
-                        }
-#endif /* KEEP_X11_INLIB */
-					if(1)
-					fwl_handle_aqua_multi(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y,0);
-					if(0){
-
-                        /*  save the current x and y positions for picking.*/
-                        tg->Mainloop.currentX[p->currentCursor] = event.xbutton.x;
-                        tg->Mainloop.currentY[p->currentCursor] = event.xbutton.y;
-                        /* printf("navigationMode is %d\n", NavigationMode); */
-						if(handleStatusbarHud(6, &tg->Mainloop.clipPlane))break;
-                        if (p->NavigationMode) {
-                                /*  find out what the first button down is*/
-                                count = 0;
-                                while ((count < 5) && (!p->ButDown[p->currentCursor][count])) count++;
-                                if (count == 5) return; /*  no buttons down???*/
-
-                                handle (event.type,(unsigned)count,
-                                        (float)((float)event.xbutton.x/tg->display.screenWidth),
-                                        (float)((float)event.xbutton.y/tg->display.screenHeight));
-                        }
+			/* printf("got a motion notify\n"); */
+			/*  do we have more motion notify events queued?*/
+			if (XPending(Xdpy)) {
+					XPeekEvent(Xdpy,&nextevent);
+					if (nextevent.type==MotionNotify) { break;
 					}
-                    break;
-        }
+			}
+#endif /* KEEP_X11_INLIB */
+#ifdef STATUSBAR_HUD
+			handleStatusbarHud(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y);
+#else
+			fwl_handle_aqua(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y);
+#endif
+			//if(0){
+
+			//	/*  save the current x and y positions for picking.*/
+			//	tg->Mainloop.currentX[p->currentCursor] = event.xbutton.x;
+			//	tg->Mainloop.currentY[p->currentCursor] = event.xbutton.y;
+			//	/* printf("navigationMode is %d\n", NavigationMode); */
+			//	if(handleStatusbarHud(6, &tg->Mainloop.clipPlane))break;
+			//	if (p->NavigationMode) {
+			//			/*  find out what the first button down is*/
+			//			count = 0;
+			//			while ((count < 5) && (!p->ButDown[p->currentCursor][count])) count++;
+			//			if (count == 5) return; /*  no buttons down???*/
+
+			//			handle (event.type,(unsigned)count,
+			//					(float)((float)event.xbutton.x/tg->display.screenWidth),
+			//					(float)((float)event.xbutton.y/tg->display.screenHeight));
+			//	}
+			//}
+			break;
+	}
 }
 #endif
 
