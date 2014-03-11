@@ -4006,9 +4006,9 @@ void fwl_initializeRenderSceneUpdateScene() {
 	// on OSX, this function is not called by the thread that holds the OpenGL
 	// context. Unsure if only Windows can do this one, but for now,
 	// do NOT do this on OSX. 
-#ifndef TARGET_AQUA
-	drawStatusBar(); //just to get it initialized
-#endif
+//#ifndef TARGET_AQUA
+//	drawStatusBar(); //just to get it initialized
+//#endif
 }
 
 /* phases to shutdown:
@@ -4022,18 +4022,21 @@ C. delete instance data
 void finalizeRenderSceneUpdateSceneA() {
 	//A.worker threads > tell them to flush and stop
 	kill_oldWorld(TRUE, TRUE, FALSE, __FILE__, __LINE__);
-	stopLoadThread();
-	stopPCThread();
 	gglobal()->threads.MainLoopQuit = 2;
 }
-int finalizeRenderSceneUpdateSceneB() {
+void finalizeRenderSceneUpdateSceneB() {
+	stopLoadThread();
+	stopPCThread();
+	gglobal()->threads.MainLoopQuit = 3;
+}
+int finalizeRenderSceneUpdateSceneC() {
 	//B.check if both worker threads have stopped
 	BOOL more;
 	ttglobal tg = gglobal();
 	more = tg->threads.ResourceThreadRunning || tg->threads.TextureThreadRunning;
 	return more;
 }
-void finalizeRenderSceneUpdateSceneC() {
+void finalizeRenderSceneUpdateSceneD() {
 	//C. delete instance data
 	ttglobal tg = gglobal();
 	printf ("finalizeRenderSceneUpdateScene\n");
@@ -4056,8 +4059,9 @@ void finalizeRenderSceneUpdateSceneC() {
 // for those its better to use the switch case approach in the UI thread
 void finalizeRenderSceneUpdateScene(){
 	finalizeRenderSceneUpdateSceneA();
-	while (finalizeRenderSceneUpdateSceneB() ) usleep(1000);
-	finalizeRenderSceneUpdateSceneC();
+	finalizeRenderSceneUpdateSceneB();
+	while (finalizeRenderSceneUpdateSceneC()) usleep(1000);
+	finalizeRenderSceneUpdateSceneD();
 }
 
 
@@ -4172,17 +4176,22 @@ void _displayThread(void *globalcontext)
 				break;
 			case 1:
 				//tell worker threads to flush and quit gracefully
-				finalizeRenderSceneUpdateSceneA();
+				finalizeRenderSceneUpdateSceneA(); //kill_oldworld > MarkForDispose
+				fwl_RenderSceneUpdateScene(); //startofloopnodeupdates > killNode
 				break;
 			case 2:
+				//tell worker threads to flush and quit gracefully
+				finalizeRenderSceneUpdateSceneB();
+				break;
+			case 3:
 				//check if worker threads have exited
-				more = finalizeRenderSceneUpdateSceneB();
+				more = finalizeRenderSceneUpdateSceneC();
 				break;
 			}
 		}
 		/* when finished: */
 		//clean up scenegraph, resource and gglobal mallocs, a few other things
-		finalizeRenderSceneUpdateSceneC(); //Model end
+		finalizeRenderSceneUpdateSceneD(); //Model end
 	}
 	printf("Ending display thread gracefully\n");
 }

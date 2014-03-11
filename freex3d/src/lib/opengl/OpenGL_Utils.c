@@ -4592,7 +4592,10 @@ void markForDispose(struct X3D_Node *node, int recursive){
 	#endif
 
 
-	if (node->referenceCount > 0) node->referenceCount --;
+	if (node->referenceCount > 0)
+		node->referenceCount--;
+	else
+		return; //already marked
 
 	if (recursive) {
 
