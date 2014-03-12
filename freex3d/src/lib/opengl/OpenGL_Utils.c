@@ -3732,13 +3732,13 @@ static void sortChildren (int line, struct Multi_Node *ch, struct Multi_Node *so
 	int noswitch;
 	struct X3D_Node *a, *b, *c;
 
-	/* simple, inefficient bubble sort */
-	/* this is a fast sort when nodes are already sorted;
-	   may wish to go and "QuickSort" or so on, when nodes
-	   move around a lot. (Bubblesort is bad when nodes
-	   have to be totally reversed) */
 
-	nc = ch->n;
+	/* Thread Race Warning: the (non-broto) parser can still be 
+	  adding children in its thread, while we are rendering in this thread.
+	  We don't have mutex locks, so we are relying on 'atomic operations'
+	  if it bombs in here check also REINITIALIZE_SORTED_NODES_FIELD macro which does the same thing
+	*/
+	nc = ch->n; //ATOMIC OP - saves the instantaneous size of ch, which may keep growing
 
 	#ifdef VERBOSE
 	printf ("sortChildren line %d nc %d ",line,nc);
@@ -3748,10 +3748,10 @@ static void sortChildren (int line, struct Multi_Node *ch, struct Multi_Node *so
 
 
 	/* has this changed size? */
-	if (ch->n != sortedCh->n) {
-		FREE_IF_NZ(sortedCh->p);
-		sortedCh->p = MALLOC (void *, sizeof (struct X3DNode *) * ch->n);
-		memcpy(sortedCh->p,ch->p,(ch->n)*sizeof(struct X3DNode *));
+	if (nc != sortedCh->n) {
+		FREE_IF_NZ(sortedCh->p); //Mar 11, 2014: 
+		sortedCh->p = MALLOC(void *, sizeof (struct X3DNode *) * nc); 
+		memcpy(sortedCh->p, ch->p, sizeof(struct X3DNode *) * nc); //ATOMIC-OP - ch->p gets realloced frequently, we need a snapshot which may be bigger than nc above
 	}
 
 	#ifdef VERBOSE
@@ -3759,8 +3759,14 @@ static void sortChildren (int line, struct Multi_Node *ch, struct Multi_Node *so
 	#endif
 
 	/* do we care about rendering order? */
+
 	if (!sortForDistance) return;
 	if (nc < 2) return;
+	/* simple, inefficient bubble sort */
+	/* this is a fast sort when nodes are already sorted;
+	may wish to go and "QuickSort" or so on, when nodes
+	move around a lot. (Bubblesort is bad when nodes
+	have to be totally reversed) */
 
 	for(i=0; i<nc; i++) {
 		noswitch = TRUE;
