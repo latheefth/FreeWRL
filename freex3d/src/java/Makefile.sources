@@ -309,6 +309,7 @@ noinst_JAVA = \
 	vrml/InvalidFieldException.java \
 	vrml/InvalidRouteException.java \
 	vrml/InvalidVRMLSyntaxException.java \
+	vrml/InvalidX3DSyntaxException.java \
 	vrml/MField.java \
 	vrml/field/ConstMFColor.java \
 	vrml/field/ConstMFFloat.java \
