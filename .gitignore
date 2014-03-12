@@ -1,4 +1,4 @@
-#all 
+#all
 *.hide
 #windows ignore:
 **/Debug*
@@ -12,3 +12,33 @@ ipch
 *.opensdf
 #make ignore:
 #eclipseCDT ignore:
+#Linux ignore
+*.o
+*.m4
+*.lo
+*.la
+*.pc
+.deps/
+.dirstamp
+.libs/
+Makefile
+Makefile.in
+config.h
+config.in
+config.h.in
+config.log
+config.status
+stamp-h1
+vtempl
+configure
+libtool
+autom4te.cache/
+config/
+freex3d/src/bin/freewrl
+freex3d/src/bin/internal_version.c
+freex3d/src/lib/internal_version.c
+freex3d/src/libeai/internal_version.c
+freex3d/src/message/freewrl_msg
+freex3d/src/message/internal_version.c
+freex3d/src/sound/freewrl_snd
+freex3d/src/sound/internal_version.c
