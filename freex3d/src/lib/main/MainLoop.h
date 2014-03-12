@@ -29,9 +29,12 @@
 
 #ifndef __FREEWRL_MAINLOOP_MAIN_H__
 #define __FREEWRL_MAINLOOP_MAIN_H__
+#include <resources.h>
 
 int fw_exit(int val);
 void setDisplayed(int);
 void resetSensorEvents(void);
+
+void fwl_replaceWorldNeededRes(resource_item_t *multiResWithParent);
 
 #endif /* __FREEWRL_MAINLOOP_MAIN_H__ */

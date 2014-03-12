@@ -192,4 +192,6 @@ void fw_gluUnProject( GLDOUBLE winX,
 void fw_gluPickMatrix(GLDOUBLE x, GLDOUBLE y, GLDOUBLE deltax, GLDOUBLE deltay,
                   GLint viewport[4]);
 
+void printMaxStackUsed();
+
 #endif /* __FREEWRL_OPENGL_UTILS_H__ */

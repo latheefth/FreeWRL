@@ -28,6 +28,7 @@
 #ifndef __LIBFREEWRL_RESOURCES_H__
 #define __LIBFREEWRL_RESOURCES_H__
 
+#include "list.h"
 
 /* is this file name relative to another path, or is it really, really, a direct file name? */
 #if defined(_MSC_VER)

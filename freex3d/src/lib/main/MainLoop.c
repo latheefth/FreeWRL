@@ -65,12 +65,15 @@
 #include "../opengl/Frustum.h"
 #include "../input/InputFunctions.h"
 
+#include "../opengl/LoadTextures.h"
 #include "../opengl/OpenGL_Utils.h"
 #include "../ui/statusbar.h"
 #include "../ui/CursorDraw.h"
 #include "../scenegraph/RenderFuncs.h"
 
 #include "../ui/common.h"
+
+#include "ProdCon.h"
 
 // for getting time of day
 #if !defined(_MSC_VER)

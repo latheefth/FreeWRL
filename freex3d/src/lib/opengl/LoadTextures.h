@@ -27,9 +27,12 @@ $Id$
 
 #ifndef __FREEWRL_LOAD_TEXTURES_H__
 #define __FREEWRL_LOAD_TEXTURES_H__
-
+#include "Textures.h"
 
 void send_texture_to_loader(textureTableIndexStruct_s *entry);
 bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename);
+void texitem_queue_flush();
+void texitem_queue_exit();
+
 
 #endif /* __FREEWRL_LOAD_TEXTURES_H__ */
