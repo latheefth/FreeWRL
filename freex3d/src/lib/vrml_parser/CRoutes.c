@@ -1964,14 +1964,14 @@ static BOOL gatherScriptEventOut_B(union anyVrml* any, struct Shader_Script *sha
 		//len = p->CRoutes[route].len;
 
 		#ifdef CRVERBOSE
-			printf ("\ngatherSentEvents, script %d from %s type %d len %d\n",actualscript, JSparamnames[fptr].name,
-				JSparamnames[fptr].type, len);
+			//printf ("\ngatherSentEvents, script %d from %s type %d len %d\n",actualscript, JSparamnames[fptr].name,
+			//	JSparamnames[fptr].type, len);
 		#endif
 
 		/* now, set the actual properties - switch as documented above */
 		//if (!fromalready) {
 			#ifdef CRVERBOSE 
-				printf ("Not found yet, getting touched flag fptr %d script %d \n",fptr,actualscript);
+				//printf ("Not found yet, getting touched flag fptr %d script %d \n",fptr,actualscript);
 			#endif
 			touched_flag = get_valueChanged_flag((int)JSparamNameIndex,actualscript);
 		//}
@@ -1984,7 +1984,7 @@ static BOOL gatherScriptEventOut_B(union anyVrml* any, struct Shader_Script *sha
 			//	tptr = to_ptr->foffset;
 
 				#ifdef CRVERBOSE 
-					printf ("%s script %d VALUE CHANGED! copy value and update %p\n",JSparamnames[fptr].name,actualscript,tn);
+					//printf ("%s script %d VALUE CHANGED! copy value and update %p\n",JSparamnames[fptr].name,actualscript,tn);
 				#endif
 
 				/* eventOuts go to VRML data structures */
@@ -2005,7 +2005,7 @@ static BOOL gatherScriptEventOut_B(union anyVrml* any, struct Shader_Script *sha
 				//MARK_EVENT (tn,tptr);
 
 				#ifdef CRVERBOSE 
-					printf ("%s script %d has successfully updated  %u\n",JSparamnames[fptr].name,actualscript,tn);
+					//printf ("%s script %d has successfully updated  %u\n",JSparamnames[fptr].name,actualscript,tn);
 				#endif
 
 			//}
