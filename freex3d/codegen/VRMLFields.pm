@@ -389,7 +389,7 @@ sub cInitialize {
 			$retstr = $retstr .  "\t\t\t$field.p[$tmp] = $av;\n";
 		}
 		$retstr = $retstr . "\t\t\t$field.n=$count;";
-		
+
 	} else {
 		$retstr =  "$field.n=0; $field.p=0";
 	}
@@ -688,7 +688,7 @@ sub cInitialize {
 ###########################################################
 package VRML::Field::SFNode;
 
-sub ctype {"struct X3D_Node *$_[1]"} 
+sub ctype {"struct X3D_Node *$_[1]"}
 sub cstruct {""}
 
 sub cInitialize {
@@ -798,7 +798,7 @@ sub cInitialize {
 			$retstr = $retstr .  "$field.p[$tmp] = newASCIIString(\"".@{$val}[$tmp]."\");";
 		}
 		$retstr = $retstr . "$field.n=$count; ";
-		
+
 	} else {
 		$retstr = "$field.n=0; $field.p=0";
 	}
@@ -885,13 +885,13 @@ sub cstruct {return "struct SFVec2f { float c[2]; };"}
 sub ctype {return "struct SFVec2f $_[1]"}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	if (!defined $val) {$count=0} # inputOnlys, set it to any value
-	if ($count > 0) {
+	if (!defined $val) {$count=0} else {$count=1} # inputOnlys, set it to any value
+	if ($count eq 1) {
 		# get the actual value and ensure that it is a float
 		my $av0 = "@{$val}[0]";
 		my $av1 = "@{$val}[1]";
 		my $pv = index $av0, "."; if ($pv < 0) { $av0 = $av0.".0f"; } else { $av0 = $av0."f"; }
-		my $pv = index $av1, "."; if ($pv < 0) { $av1 = $av1.".0f"; } else { $av1 = $av1."f"; }
+		$pv = index $av1, "."; if ($pv < 0) { $av1 = $av1.".0f"; } else { $av1 = $av1."f"; }
 		# print "SFVec2f, field value now is $av0 $av1\n";
 
 		return 	"$field.c[0] = $av0;".
@@ -1185,4 +1185,3 @@ sub cstruct {
 
 
 1;
-

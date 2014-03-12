@@ -6512,7 +6512,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_FillProperties *) tmp;
 		/* ttmp2->v = &virt_FillProperties;*/ 
 			tmp2->_enabled = TRUE;
-			tmp2->_hatchScale.c[0] = 0; tmp2->_hatchScale.c[1] = 1;;
+			tmp2->_hatchScale.c[0] = 0.1f;tmp2->_hatchScale.c[1] = 0.1f;;
 			tmp2->filled = TRUE;
 			tmp2->hatchColor.c[0] = 1.0f;tmp2->hatchColor.c[1] = 1.0f;tmp2->hatchColor.c[2] = 1.0f;;
 			tmp2->hatchStyle = 1;
@@ -6766,7 +6766,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__oldEnabled = TRUE;
 			tmp2->_oldhitNormal.c[0] = 0.0f;tmp2->_oldhitNormal.c[1] = 0.0f;tmp2->_oldhitNormal.c[2] = 0.0f;;
 			tmp2->_oldhitPoint.c[0] = 0.0f;tmp2->_oldhitPoint.c[1] = 0.0f;tmp2->_oldhitPoint.c[2] = 0.0f;;
-			tmp2->_oldhitTexCoord.c[0] = 0; tmp2->_oldhitTexCoord.c[1] = 1;;
+			tmp2->_oldhitTexCoord.c[0] = 0.0f;tmp2->_oldhitTexCoord.c[1] = 0.0f;;
 			tmp2->description = newASCIIString("");
 			tmp2->enabled = FALSE;
 			tmp2->geoOrigin = NULL;
@@ -6774,7 +6774,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->hitGeoCoord_changed.c[0] = 0;tmp2->hitGeoCoord_changed.c[1] = 0;tmp2->hitGeoCoord_changed.c[2] = 0;;
 			tmp2->hitNormal_changed.c[0] = 0.0f;tmp2->hitNormal_changed.c[1] = 0.0f;tmp2->hitNormal_changed.c[2] = 0.0f;;
 			tmp2->hitPoint_changed.c[0] = 0.0f;tmp2->hitPoint_changed.c[1] = 0.0f;tmp2->hitPoint_changed.c[2] = 0.0f;;
-			tmp2->hitTexCoord_changed.c[0] = 0; tmp2->hitTexCoord_changed.c[1] = 1;;
+			tmp2->hitTexCoord_changed.c[0] = 0.0f;tmp2->hitTexCoord_changed.c[1] = 0.0f;;
 			tmp2->isActive = FALSE;
 			tmp2->isOver = FALSE;
 			tmp2->metadata = NULL;
@@ -7772,10 +7772,10 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_MetadataSFVec2f * tmp2;
 			tmp2 = (struct X3D_MetadataSFVec2f *) tmp;
 		/* ttmp2->v = &virt_MetadataSFVec2f;*/ 
-			tmp2->setValue.c[0] = 0; tmp2->setValue.c[1] = 1;;
+			tmp2->setValue.c[0] = 0.0f;tmp2->setValue.c[1] = 0.0f;;
 			tmp2->tickTime = 0;
-			tmp2->value.c[0] = 0; tmp2->value.c[1] = 1;;
-			tmp2->valueChanged.c[0] = 0; tmp2->valueChanged.c[1] = 1;;
+			tmp2->value.c[0] = 0.0f;tmp2->value.c[1] = 0.0f;;
+			tmp2->valueChanged.c[0] = 0.0f;tmp2->valueChanged.c[1] = 0.0f;;
 			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
 		break;
 		}
@@ -8247,9 +8247,9 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->enabled = TRUE;
 			tmp2->isActive = FALSE;
 			tmp2->isOver = FALSE;
-			tmp2->maxPosition.c[0] = 0; tmp2->maxPosition.c[1] = 1;;
+			tmp2->maxPosition.c[0] = -1.0f;tmp2->maxPosition.c[1] = -1.0f;;
 			tmp2->metadata = NULL;
-			tmp2->minPosition.c[0] = 0; tmp2->minPosition.c[1] = 1;;
+			tmp2->minPosition.c[0] = 0.0f;tmp2->minPosition.c[1] = 0.0f;;
 			tmp2->offset.c[0] = 0.0f;tmp2->offset.c[1] = 0.0f;tmp2->offset.c[2] = 0.0f;;
 			tmp2->trackPoint_changed.c[0] = 0.0f;tmp2->trackPoint_changed.c[1] = 0.0f;tmp2->trackPoint_changed.c[2] = 0.0f;;
 			tmp2->translation_changed.c[0] = 0.0f;tmp2->translation_changed.c[1] = 0.0f;tmp2->translation_changed.c[2] = 0.0f;;
@@ -8354,7 +8354,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->keyValue.n=0; tmp2->keyValue.p=0;
 			tmp2->metadata = NULL;
 			tmp2->set_fraction = 0.0f;
-			tmp2->value_changed.c[0] = 0; tmp2->value_changed.c[1] = 1;;
+			tmp2->value_changed.c[0] = 0.0f;tmp2->value_changed.c[1] = 0.0f;;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -8478,7 +8478,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__numPoints = 0;
 			tmp2->__points.n=0; tmp2->__points.p=0;
 			tmp2->metadata = NULL;
-			tmp2->size.c[0] = 0; tmp2->size.c[1] = 1;;
+			tmp2->size.c[0] = 2.0f;tmp2->size.c[1] = 2.0f;;
 			tmp2->solid = FALSE;
 			tmp2->_defaultContainer = FIELDNAMES_geometry;
 		break;
@@ -8662,7 +8662,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->metadata = NULL;
 			tmp2->normalizeVelocity = FALSE;
 			tmp2->set_fraction = 0.0f;
-			tmp2->value_changed.c[0] = 0; tmp2->value_changed.c[1] = 1;;
+			tmp2->value_changed.c[0] = 0.0f;tmp2->value_changed.c[1] = 0.0f;;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -8775,7 +8775,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->origin.c[0] = 0.0f;tmp2->origin.c[1] = 0.0f;tmp2->origin.c[2] = 0.0f;;
 			tmp2->solid = TRUE;
 			tmp2->string.n=0; tmp2->string.p=0;
-			tmp2->textBounds.c[0] = 0; tmp2->textBounds.c[1] = 1;;
+			tmp2->textBounds.c[0] = 0.0f;tmp2->textBounds.c[1] = 0.0f;;
 			tmp2->_defaultContainer = FIELDNAMES_geometry;
 		break;
 		}
@@ -8855,11 +8855,11 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_TextureTransform * tmp2;
 			tmp2 = (struct X3D_TextureTransform *) tmp;
 		/* ttmp2->v = &virt_TextureTransform;*/ 
-			tmp2->center.c[0] = 0; tmp2->center.c[1] = 1;;
+			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;;
 			tmp2->metadata = NULL;
 			tmp2->rotation = 0.0f;
-			tmp2->scale.c[0] = 0; tmp2->scale.c[1] = 1;;
-			tmp2->translation.c[0] = 0; tmp2->translation.c[1] = 1;;
+			tmp2->scale.c[0] = 1.0f;tmp2->scale.c[1] = 1.0f;;
+			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;;
 			tmp2->_defaultContainer = FIELDNAMES_textureTransform;
 		break;
 		}
@@ -8904,12 +8904,12 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__oldEnabled = TRUE;
 			tmp2->_oldhitNormal.c[0] = 0.0f;tmp2->_oldhitNormal.c[1] = 0.0f;tmp2->_oldhitNormal.c[2] = 0.0f;;
 			tmp2->_oldhitPoint.c[0] = 0.0f;tmp2->_oldhitPoint.c[1] = 0.0f;tmp2->_oldhitPoint.c[2] = 0.0f;;
-			tmp2->_oldhitTexCoord.c[0] = 0; tmp2->_oldhitTexCoord.c[1] = 1;;
+			tmp2->_oldhitTexCoord.c[0] = 0.0f;tmp2->_oldhitTexCoord.c[1] = 0.0f;;
 			tmp2->description = newASCIIString("");
 			tmp2->enabled = TRUE;
 			tmp2->hitNormal_changed.c[0] = 0.0f;tmp2->hitNormal_changed.c[1] = 0.0f;tmp2->hitNormal_changed.c[2] = 0.0f;;
 			tmp2->hitPoint_changed.c[0] = 0.0f;tmp2->hitPoint_changed.c[1] = 0.0f;tmp2->hitPoint_changed.c[2] = 0.0f;;
-			tmp2->hitTexCoord_changed.c[0] = 0; tmp2->hitTexCoord_changed.c[1] = 1;;
+			tmp2->hitTexCoord_changed.c[0] = 0.0f;tmp2->hitTexCoord_changed.c[1] = 0.0f;;
 			tmp2->isActive = FALSE;
 			tmp2->isOver = FALSE;
 			tmp2->metadata = NULL;
