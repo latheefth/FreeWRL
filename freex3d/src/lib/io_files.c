@@ -596,6 +596,7 @@ int determineFileType(const unsigned char *buffer, const int len)
 	rv = buffer;	
 	while(rv && *rv != '\0'){
 		if(*rv == '<') return IS_TYPE_XML_X3D;
+		if (*rv == '{') return IS_TYPE_VRML;
 		rv++;
 	}
 
