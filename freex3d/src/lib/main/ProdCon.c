@@ -78,7 +78,7 @@
 #include "MainLoop.h"
 #include "ProdCon.h"
 
-//#define NEWQUEUE 1
+
 
 /* used by the paser to call back the lexer for EXTERNPROTO */
 void embedEXTERNPROTO(struct VRMLLexer *me, char *myName, char *buffer, char *pound);
@@ -442,10 +442,6 @@ void EAI_killBindables (void) {
 	ttglobal tg = gglobal();
 	ppProdCon p = (ppProdCon)tg->ProdCon.prv;
 
-#ifndef NEWQUEUE
-	WAIT_WHILE_PARSER_BUSY;
-#endif
-
 	complete=0;
 	p->psp.comp = &complete;
 	p->psp.type = ZEROBINDABLES;
@@ -457,18 +453,6 @@ void EAI_killBindables (void) {
 	p->psp.inp = NULL;
 	p->psp.fieldname = NULL;
 
-#ifndef NEWQUEUE
-	/* send data to a parser */
-	SEND_TO_PARSER;
-
-	UNLOCK;
-
-	/* wait for data */
-	WAIT_WHILE_PARSER_BUSY;
-
-	/* grab data */
-	UNLOCK;
-#endif
 }
 
 /* interface for creating VRML for EAI */
@@ -673,26 +657,7 @@ void send_resource_to_parser(resource_item_t *res)
 	//while (!p->inputParseInitialized) 
 	//	usleep(50);
 
-#ifdef NEWQUEUE
 	resitem_enqueue(ml_new(res));
-#else //NEWQUEUE
-	/* Lock access to the resource list */
-	WAIT_WHILE_PARSER_BUSY;
- 
-	/* Add our resource item */
-	p->resource_list_to_parse = ml_append(p->resource_list_to_parse, ml_new(res));
-	/* signal that we have data on resource list */
-	SEND_TO_PARSER;
-	/* Unlock the resource list */
-	UNLOCK;
-
-	/* wait for the parser to finish */
-	WAIT_WHILE_PARSER_BUSY;
-	
-	/* grab any data we want */
-	UNLOCK;
-#endif //NEWQUEUE
-
 }
 
 
@@ -721,28 +686,7 @@ bool send_resource_to_parser_if_available(resource_item_t *res)
 	/* wait for the parser thread to come up to speed */
 	//while (!p->inputParseInitialized) usleep(50);
 
-#ifdef NEWQUEUE
 	resitem_enqueue(ml_new(res));
-#else //NEWQUEUE
-    if (p->_P_LOCK_VAR == 1) return FALSE;
-    
-	/* Lock access to the resource list */
-	WAIT_WHILE_PARSER_BUSY;
- 
-	/* Add our resource item */
-	p->resource_list_to_parse = ml_append(p->resource_list_to_parse, ml_new(res));
-	/* signal that we have data on resource list */
-
-	SEND_TO_PARSER;
-	/* Unlock the resource list */
-	UNLOCK;
-
-	/* wait for the parser to finish */
-	//WAIT_WHILE_PARSER_BUSY;
-	
-	/* grab any data we want */
-	//UNLOCK;
-#endif //NEWQUEUE
     return TRUE;
 }
 
@@ -755,11 +699,7 @@ void dump_resource_waiting(resource_item_t* res)
 
 void send_resource_to_parser_async(resource_item_t *res){
 
-#ifdef NEWQUEUE
 	resitem_enqueue(ml_new(res));
-#else //NEWQUEUE
-	send_resource_to_parser_if_available(res);
-#endif //NEWQUEUE
 }
 
 
@@ -1014,7 +954,7 @@ void Parser_thread_exit_handler(int sig)
 
 
 /*
-	NEWQUEUE method uses DesignPatterns: CommandPattern + ThreadsafeQueue + SingleThread_ThreadPool/MonoThreading
+	QUEUE method uses DesignPatterns: CommandPattern + ThreadsafeQueue + SingleThread_ThreadPool/MonoThreading
 	It doesn't block the queue while processing/doing_work. That allows the involked
 	commands to chain new commands into the queue without deadlocking.
 
@@ -1243,7 +1183,6 @@ static bool parser_process_res(s_list_t *item)
 		break;		
 	}
 
-#ifdef NEWQUEUE
 	if (remove_it) {
 		/* Remove the parsed resource from the list */
 		FREE_IF_NZ(item);
@@ -1251,15 +1190,6 @@ static bool parser_process_res(s_list_t *item)
 		// chain command by adding it back into the queue
 		resitem_enqueue(item);
 	}
-#else //NEWQUEUE
-	if (remove_it) {
-		/* Remove the parsed resource from the list */
-		p->resource_list_to_parse = ml_delete_self(p->resource_list_to_parse, item);
-
-		/* What next ? */
-//		dump_parser_wait_queue();
-	}
-#endif //NEWQUEUE
 	dump_parser_wait_queue();
     
 	// printf ("end of process resource\n");
@@ -1308,7 +1238,7 @@ void _inputParseThread(void *globalcontext)
 		viewer_default();
 
 		/* now, loop here forever, waiting for instructions and obeying them */
-#ifdef NEWQUEUE
+
 		for (;;) {
 			void *elem;
        		bool result = TRUE;
@@ -1316,6 +1246,7 @@ void _inputParseThread(void *globalcontext)
 			elem = ml_elem(item);
 			if (elem == &res_command_exit){
 				FREE_IF_NZ(item);
+				printf("res exiting\n");
 				break;
 			}
 			if (elem == &res_command_flush_queue){
@@ -1323,7 +1254,9 @@ void _inputParseThread(void *globalcontext)
 					FREE_IF_NZ(item);
 					item = resitem_dequeue();
 					elem = ml_elem(item);
+					printf("res flushing\n");
 				} while (elem != &res_command_stop_flush);
+				printf("res end flushing\n");
 				continue;
 			}
 			p->inputThreadParsing = TRUE;
@@ -1334,34 +1267,7 @@ void _inputParseThread(void *globalcontext)
 			#endif
 		}
 		printf("Ending resource thread gracefully\n");
-#else //NEWQUEUE
-		for (;;) {
-        		bool result = TRUE;
 
-			UNUSED(result); // compiler warning mitigation
-
-			WAIT_WHILE_NO_DATA;
-
-			p->inputThreadParsing = TRUE;
-
-			/* go through the resource list until it is empty */
-			while (p->resource_list_to_parse != NULL) {
-				ml_foreach(p->resource_list_to_parse, result=parser_process_res(__l));
-                //printf ("ml_foreach, result %d, TRUE %d, false %d\n",result,TRUE,FALSE);
-			}
-			p->inputThreadParsing = FALSE;
-
-			#if defined (IPHONE) || defined (_ANDROID)
-            
-            		if (result) setMenuStatus ("ok"); else setMenuStatus("not ok");
-			#endif
-
-			/* Unlock the resource list */
-			PARSER_FINISHING;
-
-			UNLOCK;
-		}
-#endif //NEWQUEUE
 		tg->threads.ResourceThreadRunning = FALSE;
 
 

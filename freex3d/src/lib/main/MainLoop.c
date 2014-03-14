@@ -4179,19 +4179,27 @@ void _displayThread(void *globalcontext)
 				break;
 			case 1:
 				//tell worker threads to flush and quit gracefully
+				printf("case1a\n");
 				finalizeRenderSceneUpdateSceneA(); //kill_oldworld > MarkForDispose
+				printf("case1b\n");
 				fwl_RenderSceneUpdateScene(); //startofloopnodeupdates > killNode
+				printf("case1c\n");
 				break;
 			case 2:
 				//tell worker threads to flush and quit gracefully
+				printf("case2a\n");
 				finalizeRenderSceneUpdateSceneB();
+				printf("case2b\n");
 				break;
 			case 3:
 				//check if worker threads have exited
+				//printf("case3a\n");
 				more = finalizeRenderSceneUpdateSceneC();
+				//printf("case3b\n");
 				break;
 			}
 		}
+		printf("endloop\n");
 		/* when finished: */
 		//clean up scenegraph, resource and gglobal mallocs, a few other things
 		finalizeRenderSceneUpdateSceneD(); //Model end

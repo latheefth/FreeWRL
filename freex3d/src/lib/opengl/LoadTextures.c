@@ -1011,6 +1011,7 @@ void _textureThread(void *globalcontext)
 			s_list_t *item = texitem_dequeue();
 			elem = ml_elem(item);
 			if (elem == &tex_command_exit){
+				printf("tex exiting\n");
 				FREE_IF_NZ(item);
 				break;
 			}
@@ -1019,7 +1020,9 @@ void _textureThread(void *globalcontext)
 					FREE_IF_NZ(item);
 					item = texitem_dequeue();
 					elem = ml_elem(item);
+					printf("tex flushing ..\n");
 				} while (elem != &tex_command_stop_flush);
+				printf("tex stop flushing\n");
 				continue;
 			}
 
