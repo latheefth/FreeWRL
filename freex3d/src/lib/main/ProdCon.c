@@ -102,7 +102,7 @@ uintptr_t _fw_instance = 0;
    Explanations for this horrible modification :P
    ==============================================
 
-   There is no reason to stop the main neither the display 
+   There is no reason to stop the main neither the display
    while parser is parsing ;)... No reason I see with my little
    knowledge of the code...
 
@@ -131,16 +131,16 @@ uintptr_t _fw_instance = 0;
 	else ConsoleMessage ("PARSER_FINISHING - flag wrong!\n");
 
 #define UNLOCK \
-	pthread_cond_signal(&gglobal()->threads.resource_list_condition); pthread_mutex_unlock(&gglobal()->threads.mutex_resource_list); 
+	pthread_cond_signal(&gglobal()->threads.resource_list_condition); pthread_mutex_unlock(&gglobal()->threads.mutex_resource_list);
 
 #define WAIT_WHILE_PARSER_BUSY \
 	pthread_mutex_lock(&gglobal()->threads.mutex_resource_list); \
-     	while (p->_P_LOCK_VAR==1) { pthread_cond_wait(&gglobal()->threads.resource_list_condition, &gglobal()->threads.mutex_resource_list);} 
+     	while (p->_P_LOCK_VAR==1) { pthread_cond_wait(&gglobal()->threads.resource_list_condition, &gglobal()->threads.mutex_resource_list);}
 
 
 #define WAIT_WHILE_NO_DATA \
 	pthread_mutex_lock(&gglobal()->threads.mutex_resource_list); \
-     	while (p->_P_LOCK_VAR==0) { pthread_cond_wait(&gglobal()->threads.resource_list_condition, &gglobal()->threads.mutex_resource_list);} 
+     	while (p->_P_LOCK_VAR==0) { pthread_cond_wait(&gglobal()->threads.resource_list_condition, &gglobal()->threads.mutex_resource_list);}
 
 
 
@@ -222,7 +222,7 @@ void ProdCon_init(struct tProdCon *t)
 		p->backgroundNodes = newVector(struct X3D_Node *, 2);
 		p->navigationNodes = newVector(struct X3D_Node *, 2);
         	//printf ("created new navigationNodes of %p, at A\n",p->navigationNodes);
-        
+
 
 		/* thread synchronization issues */
 		p->_P_LOCK_VAR = 0;
@@ -235,7 +235,7 @@ void ProdCon_init(struct tProdCon *t)
 		//p->inputParseInitialized=FALSE;
 		/* is the parsing thread active? this is read-only, used as a "flag" by other tasks */
 		p->inputThreadParsing=FALSE;
-		p->haveParsedCParsed = FALSE; 	/* used to tell when we need to call destroyCParserData 
+		p->haveParsedCParsed = FALSE; 	/* used to tell when we need to call destroyCParserData
 				   as destroyCParserData can segfault otherwise */
 
 #if defined (INCLUDE_STL_FILES)
@@ -258,7 +258,7 @@ void ProdCon_init(struct tProdCon *t)
 ///* psp is the data structure that holds parameters for the parsing thread */
 //struct PSStruct psp;
 
-//static int haveParsedCParsed = FALSE; 	/* used to tell when we need to call destroyCParserData 
+//static int haveParsedCParsed = FALSE; 	/* used to tell when we need to call destroyCParserData
 //				   as destroyCParserData can segfault otherwise */
 
 
@@ -319,8 +319,8 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 	case IS_TYPE_VRML:
 		if(usingBrotos()){
 			struct X3D_Proto *sceneProto = createNewX3DNode0(NODE_Proto);
-			sceneProto->__prototype = X3D_NODE(sceneProto); 
-			sceneProto->__protoFlags = 1; // bit flags: 1=scene 
+			sceneProto->__prototype = X3D_NODE(sceneProto);
+			sceneProto->__protoFlags = 1; // bit flags: 1=scene
 			//sceneProto->__protoFlags |= 2; //2=oldway (0 new way) set to 2 for oldway, 0 for new way
 			ret = cParse(sceneProto,(int) offsetof (struct X3D_Proto, _children), (const char*)input);
 			p->haveParsedCParsed = TRUE;
@@ -359,7 +359,7 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
         ");
 		if(usingBrotos()){
 			struct X3D_Proto *sceneProto = createNewX3DNode0(NODE_Proto);
-			sceneProto->__prototype = X3D_NODE(sceneProto); 
+			sceneProto->__prototype = X3D_NODE(sceneProto);
 			ret = cParse (sceneProto,(int) offsetof (struct X3D_Proto, _children), newData);
 			p->haveParsedCParsed = TRUE;
 			if (ret) {
@@ -376,7 +376,7 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 		FREE_IF_NZ(newData);
 		break;
     }
-            
+
 #if defined (INCLUDE_NON_WEB3D_FORMATS)
 	case IS_TYPE_COLLADA:
 		ConsoleMessage ("Collada not supported yet");
@@ -395,7 +395,7 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
             char *convertAsciiSTL(const unsigned char*);
 	    float getLastSTLScale(void);
 
-	
+
 
             char *newData = convertAsciiSTL(input);
             p->lastSTLScaling = getLastSTLScale();
@@ -428,7 +428,7 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 	}
 	}
 
-    
+
 	if (!ret) {
 		ConsoleMessage ("Parser Unsuccessful");
 	}
@@ -517,7 +517,7 @@ int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Group *whe
 		const char *sendIn;
 		// the x3dparser doesn't like multiple root xml elements
 		// and it doesn't seem to hurt to give it an extra wrapping in <x3d>
-		// that way you can have multiple root elements and they all get 
+		// that way you can have multiple root elements and they all get
 	    // put into the target children[] field
 		newString = MALLOC (char *, strlen(inputstring) + strlen ("<X3D>\n\n</X3D>\n") + 3);
 		strcpy(newString,"<X3D>\n");
@@ -576,7 +576,7 @@ void new_root(){
 /*
 	kill_openGLTextures();
 */
-	
+
 	/* free scripts */
 	#ifdef HAVE_JAVASCRIPT
 	kill_javascript();
@@ -631,9 +631,9 @@ void send_resource_to_parser(resource_item_t *res)
 {
 	ppProdCon p;
 	ttglobal tg;
-	
+
     //ConsoleMessage ("send_resource_to_parser, res->new_root %s",BOOL_STR(res->new_root));
-    
+
 	if (res->new_root) {
 		new_root();
 	}
@@ -654,7 +654,7 @@ void send_resource_to_parser(resource_item_t *res)
 	}
 
 	///* wait for the parser thread to come up to speed */
-	//while (!p->inputParseInitialized) 
+	//while (!p->inputParseInitialized)
 	//	usleep(50);
 
 	resitem_enqueue(ml_new(res));
@@ -742,7 +742,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
     //printf ("entering parser_process_res_VRML_X3D\n");
 
 	/* printf("processing VRML/X3D resource: %s\n", res->URLrequest);  */
-	
+
 	shouldBind = FALSE;
 	origFogNodes = vectorSize(p->fogNodes);
 	origBackgroundNodes = vectorSize(p->backgroundNodes);
@@ -767,7 +767,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		/* printf ("have the actual text here \n"); */
 		/* create a container so that the parser has a place to put the nodes */
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
-	
+
 		insert_node = X3D_GROUP(res->whereToPlaceData); /* casting here for compiler */
 		offsetInNode = res->offsetFromWhereToPlaceData;
 
@@ -780,22 +780,22 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 			/* error */
 			return FALSE;
 		}
-	
+
 		of = ml_elem(l);
 		if (!of) {
 			/* error */
 			return FALSE;
 		}
 
-	
+
 		if (!of->fileData) {
 			/* error */
 			return FALSE;
 		}
 
-		/* 
-		printf ("res %p root_res %p\n",res,gglobal()->resources.root_res); 
-		ConsoleMessage ("pc - res %p root_res %p\n",res,gglobal()->resources.root_res); 
+		/*
+		printf ("res %p root_res %p\n",res,gglobal()->resources.root_res);
+		ConsoleMessage ("pc - res %p root_res %p\n",res,gglobal()->resources.root_res);
 		*/
 
 		/* bind ONLY in main - do not bind for Inlines, etc */
@@ -816,45 +816,45 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 
 		/* create a container so that the parser has a place to put the nodes */
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
-	
+
 		/* ACTUALLY CALLS THE PARSER */
 		parsedOk = PARSE_STRING(of->fileData, of->fileDataSize, nRn);
 		//printf("after parse_string in standard file parsing\n");
-	
+
 		if ((res != tg->resources.root_res) && ((!tg->resources.root_res) ||(!tg->resources.root_res->complete))) {
 			tg->CParse.globalParser = t->savedParser;
 		}
-	
+
 		if (shouldBind) {
 			if (vectorSize(p->fogNodes) > 0) {
-				for (i=origFogNodes; i < vectorSize(p->fogNodes); ++i) 
-					send_bind_to(vector_get(struct X3D_Node*,p->fogNodes,i), 0); 
+				for (i=origFogNodes; i < vectorSize(p->fogNodes); ++i)
+					send_bind_to(vector_get(struct X3D_Node*,p->fogNodes,i), 0);
 					/* Initialize binding info */
 				t->setFogBindInRender = vector_get(struct X3D_Node*, p->fogNodes,0);
 			}
 			if (vectorSize(p->backgroundNodes) > 0) {
-				for (i=origBackgroundNodes; i < vectorSize(p->backgroundNodes); ++i) 
-					send_bind_to(vector_get(struct X3D_Node*,p->backgroundNodes,i), 0); 
+				for (i=origBackgroundNodes; i < vectorSize(p->backgroundNodes); ++i)
+					send_bind_to(vector_get(struct X3D_Node*,p->backgroundNodes,i), 0);
 					/* Initialize binding info */
 				t->setBackgroundBindInRender = vector_get(struct X3D_Node*, p->backgroundNodes,0);
 			}
 			if (vectorSize(p->navigationNodes) > 0) {
-				for (i=origNavigationNodes; i < vectorSize(p->navigationNodes); ++i) 
-					send_bind_to(vector_get(struct X3D_Node*,p->navigationNodes,i), 0); 
+				for (i=origNavigationNodes; i < vectorSize(p->navigationNodes); ++i)
+					send_bind_to(vector_get(struct X3D_Node*,p->navigationNodes,i), 0);
 					/* Initialize binding info */
 				t->setNavigationBindInRender = vector_get(struct X3D_Node*, p->navigationNodes,0);
 			}
 			if (vectorSize(t->viewpointNodes) > 0) {
-				for (i = origViewpointNodes; i < vectorSize(t->viewpointNodes); ++i) 
+				for (i = origViewpointNodes; i < vectorSize(t->viewpointNodes); ++i)
 					send_bind_to(vector_get(struct X3D_Node*, t->viewpointNodes, i), 0);
-				
+
 					/* Initialize binding info */
 				t->setViewpointBindInRender = vector_get(struct X3D_Node*, t->viewpointNodes,0);
 				if (res->afterPoundCharacters)
 					fwl_gotoViewpoint(res->afterPoundCharacters);
 			}
 		}
-	
+
 		/* we either put things at the rootNode (ie, a new world) or we put them as a children to another node */
 		if (res->whereToPlaceData == NULL) {
 			ASSERT(rootNode());
@@ -865,7 +865,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 			offsetInNode = res->offsetFromWhereToPlaceData;
 		}
 	}
-	
+
 	/* printf ("parser_process_res_VRML_X3D, res->where %u, insert_node %u, rootNode %u\n",res->where, insert_node, rootNode); */
 
 	/* now that we have the VRML/X3D file, load it into the scene. */
@@ -873,22 +873,22 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 
 	/* take the nodes from the nRn node, and put them into the place where we have decided to put them */
 	AddRemoveChildren(X3D_NODE(insert_node),
-			  offsetPointer_deref(void*, insert_node, offsetInNode), 
+			  offsetPointer_deref(void*, insert_node, offsetInNode),
 			  (struct X3D_Node * *)nRn->children.p,
 			  nRn->children.n, 1, __FILE__,__LINE__);
-	
+
 	/* and, remove them from this nRn node, so that they are not multi-parented */
 	AddRemoveChildren(X3D_NODE(nRn),
 			  (struct Multi_Node *)((char *)nRn + offsetof (struct X3D_Group, children)),
-			  (struct X3D_Node* *)nRn->children.p,nRn->children.n,2,__FILE__,__LINE__);	
+			  (struct X3D_Node* *)nRn->children.p,nRn->children.n,2,__FILE__,__LINE__);
 
 	res->complete = TRUE;
-	
+
 
 	/* remove this resource from the stack */
 	if (!fromEAI_SAI) popInputResource();
 
-    
+
     //printf ("exiting praser_process_res_VRML_X3D\n");
 
 	return TRUE;
@@ -922,7 +922,7 @@ static bool parser_process_res_SHADER(resource_item_t *res)
 			/* error */
 			return FALSE;
 		}
-		
+
 		of = ml_elem(l);
 		if (!of) {
 			/* error */
@@ -934,7 +934,7 @@ static bool parser_process_res_SHADER(resource_item_t *res)
 	}
 
 	ss = (struct Shader_Script *) res->whereToPlaceData;
-	
+
 	return script_initCode(ss, buffer);
 }
 
@@ -965,12 +965,12 @@ void Parser_thread_exit_handler(int sig)
 
 
 void *getProdConQueueContentStatus() {
-    
+
 /*void resitem_enqueue(s_list_t *item){ */
  ppProdCon p;
  ttglobal tg = gglobal();
  p = (ppProdCon)tg->ProdCon.prv;
- 
+
 return (p->resource_list_to_parse);
   }
 
@@ -1089,7 +1089,7 @@ static bool parser_process_res(s_list_t *item)
 
 	res = ml_elem(item);
 
-	//printf("\nprocessing resource: type %s, status %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status)); 
+	//printf("\nprocessing resource: type %s, status %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status));
 	switch (res->status) {
 
 	case ress_invalid:
@@ -1125,7 +1125,7 @@ static bool parser_process_res(s_list_t *item)
 		break;
 
 	case ress_loaded:
-		// printf("processing resource, media_type %s\n",resourceMediaTypeToString(res->media_type)); 
+		// printf("processing resource, media_type %s\n",resourceMediaTypeToString(res->media_type));
 		switch (res->media_type) {
 		case resm_unknown:
 			ConsoleMessage ("deciphering file: 404 file not found or unknown file type encountered.");
@@ -1138,7 +1138,7 @@ static bool parser_process_res(s_list_t *item)
 			if (parser_process_res_VRML_X3D(res)) {
 				DEBUG_MSG("parser successfull: %s\n", res->URLrequest);
 				res->status = ress_parsed;
-                
+
 			} else {
 				ERROR_MSG("parser failed for resource: %s\n", res->URLrequest);
                 retval = FALSE;
@@ -1180,7 +1180,7 @@ static bool parser_process_res(s_list_t *item)
 	case ress_not_parsed:
             retval = FALSE;
 		remove_it = TRUE;
-		break;		
+		break;
 	}
 
 	if (remove_it) {
@@ -1191,7 +1191,7 @@ static bool parser_process_res(s_list_t *item)
 		resitem_enqueue(item);
 	}
 	dump_parser_wait_queue();
-    
+
 	// printf ("end of process resource\n");
 
     return retval;
@@ -1246,7 +1246,6 @@ void _inputParseThread(void *globalcontext)
 			elem = ml_elem(item);
 			if (elem == &res_command_exit){
 				FREE_IF_NZ(item);
-				printf("res exiting\n");
 				break;
 			}
 			if (elem == &res_command_flush_queue){
@@ -1254,9 +1253,7 @@ void _inputParseThread(void *globalcontext)
 					FREE_IF_NZ(item);
 					item = resitem_dequeue();
 					elem = ml_elem(item);
-					printf("res flushing\n");
 				} while (elem != &res_command_stop_flush);
-				printf("res end flushing\n");
 				continue;
 			}
 			p->inputThreadParsing = TRUE;
@@ -1266,7 +1263,6 @@ void _inputParseThread(void *globalcontext)
             		if (result) setMenuStatus ("ok"); else setMenuStatus("not ok");
 			#endif
 		}
-		printf("Ending resource thread gracefully\n");
 
 		tg->threads.ResourceThreadRunning = FALSE;
 
@@ -1302,7 +1298,7 @@ OLDCODE			break;
 OLDCODE		default: {
 OLDCODE			/* do nothing with this node */
 OLDCODE			return;
-OLDCODE		}                                                
+OLDCODE		}
 OLDCODE	}
 OLDCODE}
 OLDCODE
@@ -1325,7 +1321,7 @@ OLDCODE 	}
 void kill_bindables (void) {
 	ppProdCon p;
     ttglobal tg = gglobal();
-    
+
 	struct tProdCon *t = &gglobal()->ProdCon;
 	p = (ppProdCon)t->prv;
 
@@ -1339,18 +1335,18 @@ void kill_bindables (void) {
     tg->Bindable.viewpoint_stack->n=0;
     tg->Bindable.fog_stack->n=0;
     return;
-    
+
 	/*
     printf ("before tvp %p ",t->viewpointNodes);
 	KILL_BINDABLE(t->viewpointNodes);
     printf ("after, tvp %p\n",t->viewpointNodes);
-    
+
 	KILL_BINDABLE(p->backgroundNodes);
     printf ("calling KILL_BINDABLE on navigationNodes %p at B\n",p->navigationNodes);
-    
+
 	KILL_BINDABLE(p->navigationNodes);
 	KILL_BINDABLE(p->fogNodes);
-    
+
     printf ("calling KILL_BINDABLE on the global navigation stack\n");
     KILL_BINDABLE(tg->Bindable.navigation_stack);
     KILL_BINDABLE(tg->Bindable.background_stack);
@@ -1368,8 +1364,8 @@ void kill_bindables (void) {
      if (node->set_bind == 1) set_naviinfo(node);
      bind_node (X3D_NODE(node), tg->Bindable.navigation_stack,"Component_Navigation");
 */
-    
-    
+
+
 }
 
 
@@ -1378,7 +1374,7 @@ void registerBindable (struct X3D_Node *node) {
 	struct tProdCon *t = &gglobal()->ProdCon;
 	p = (ppProdCon)t->prv;
 
-	
+
 	switch (node->_nodeType) {
 		case NODE_Viewpoint:
 			X3D_VIEWPOINT(node)->set_bind = 100;
@@ -1421,8 +1417,7 @@ void registerBindable (struct X3D_Node *node) {
 					stringNodeType(node->_nodeType));
 			*/
 			return;
-		}                                                
+		}
 
 	}
 }
-
