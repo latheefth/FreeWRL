@@ -366,6 +366,7 @@ typedef struct pCRoutes{
 	/* ClockTick structure and counter */
 	struct FirstStruct *ClockEvents;// = NULL;
 	int num_ClockEvents;// = 0;
+	int size_ClockEvents;
 	int CRoutes_Initiated;// = FALSE;
 	int CRoutes_Count;
 	int CRoutes_MAX;
@@ -401,8 +402,9 @@ void CRoutes_init(struct tCRoutes *t){
 	{
 		ppCRoutes p = (ppCRoutes)t->prv;
 		/* ClockTick structure and counter */
-		p->ClockEvents = NULL;
-		p->num_ClockEvents = 0;
+		p->size_ClockEvents = 1; //pre-allocated size (will be power of 2)
+		p->ClockEvents = MALLOC(struct FirstStruct*, p->size_ClockEvents * sizeof(struct FirstStruct));
+		p->num_ClockEvents = 0;  
 		p->CRoutes_Initiated = FALSE;
 		//p->CRoutes_Count;
 		//p->CRoutes_MAX;
@@ -1006,7 +1008,21 @@ void add_first(struct X3D_Node * node) {
 		return;
 	}
 
-	p->ClockEvents = (struct FirstStruct *)REALLOC(p->ClockEvents,sizeof (struct FirstStruct) * (p->num_ClockEvents+1));
+	if (p->num_ClockEvents + 1 > p->size_ClockEvents){
+		//ATOMIC OPS - realloc in parsing thread (here) while display thread is in do_first() 
+		//can cause do_first to bomb as it points to abandoned p->
+		//we don't have mutexes here (yet)
+		//so we break realloc into more atomic steps (and reduce frequency of reallocs with pre-allocated size_ )
+		struct FirstStruct *old_ce, *ce;
+		ce = MALLOC(struct FirstStruct *, sizeof (struct FirstStruct) * p->size_ClockEvents * 2);
+		memcpy(ce, p->ClockEvents, sizeof (struct FirstStruct) * p->num_ClockEvents);
+		p->size_ClockEvents *= 2; //power-of-two resizing means less memory fragmentation for large counts
+		old_ce = p->ClockEvents;
+		p->ClockEvents = ce;
+		FREE_IF_NZ(old_ce);
+	}
+	//	p->ClockEvents = (struct FirstStruct *)REALLOC(p->ClockEvents, sizeof (struct FirstStruct) * (p->num_ClockEvents + 1));
+
 	if (p->ClockEvents == 0) {
 		printf ("can not allocate memory for add_first call\n");
 		p->num_ClockEvents = 0;
@@ -2876,15 +2892,22 @@ the first thing in the event loop.
 ********************************************************************/
 
 void do_first() {
-	int counter;
+	int counter, ne;
+	struct FirstStruct ce;
 	/* go through the array; add_first will NOT add a null pointer
 	   to either field, so we don't need to bounds check here */
 	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
 
-	for (counter =0; counter < p->num_ClockEvents; counter ++) {
-		if (p->ClockEvents[counter].tonode)
-			p->ClockEvents[counter].interpptr(p->ClockEvents[counter].tonode);
+	ne = p->num_ClockEvents;
+	for (counter =0; counter < ne; counter ++) {
+		ce = p->ClockEvents[counter]; 
+		if (ce.tonode)
+			ce.interpptr(ce.tonode);
 	}
+	//for (counter = 0; counter < p->num_ClockEvents; counter++) {
+	//	if (p->ClockEvents[counter].tonode)
+	//		p->ClockEvents[counter].interpptr(p->ClockEvents[counter].tonode);
+	//}
 
 	/* now, propagate these events */
 	propagate_events();
