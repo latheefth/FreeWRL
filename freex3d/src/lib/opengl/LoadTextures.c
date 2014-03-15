@@ -854,16 +854,10 @@ static void texture_process_list(s_list_t *item)
 		p->texture_list = ml_delete_self(p->texture_list, item);
 	}
 }
-void threadsafe_append_item_signal(s_list_t *item, s_list_t** queue, pthread_mutex_t* queue_lock, pthread_cond_t *queue_nonzero);
+
 void threadsafe_enqueue_item_signal(s_list_t *item, s_list_t** queue, pthread_mutex_t* queue_lock, pthread_cond_t *queue_nonzero);
 s_list_t* threadsafe_dequeue_item_wait(s_list_t** queue, pthread_mutex_t *queue_lock, pthread_cond_t *queue_nonzero, int* wait);
-void texitem_append(s_list_t *item){
-	ppLoadTextures p;
-	ttglobal tg = gglobal();
-	p = (ppLoadTextures)gglobal()->LoadTextures.prv;
 
-	threadsafe_append_item_signal(item, &p->texture_request_list, &tg->threads.mutex_texture_list, &tg->threads.texture_list_condition);
-}
 void texitem_enqueue(s_list_t *item){
 	ppLoadTextures p;
 	ttglobal tg = gglobal();
@@ -880,13 +874,7 @@ s_list_t *texitem_dequeue(){
 }
 //we want the void* addresses of the following, so the int value doesn't matter
 static const int tex_command_exit;
-static const int tex_command_flush_queue;
-static const int tex_command_stop_flush;
-void texitem_queue_flush()
-{
-	texitem_append(ml_new(&tex_command_flush_queue));
-	texitem_enqueue(ml_new(&tex_command_stop_flush));
-}
+
 void texitem_queue_exit(){
 	texitem_enqueue(ml_new(&tex_command_exit));
 }
@@ -935,15 +923,10 @@ void _textureThread(void *globalcontext)
 				FREE_IF_NZ(item);
 				break;
 			}
-			if (elem == &tex_command_flush_queue){
-				do{
-					FREE_IF_NZ(item);
-					item = texitem_dequeue();
-					elem = ml_elem(item);
-				} while (elem != &tex_command_stop_flush);
+			if (tg->threads.flushing){
+				FREE_IF_NZ(item);
 				continue;
 			}
-
 			p->TextureParsing = TRUE;
 			texture_process_list(item);
 			p->TextureParsing = FALSE;

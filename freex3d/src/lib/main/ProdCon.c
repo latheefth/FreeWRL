@@ -975,14 +975,6 @@ return (p->resource_list_to_parse);
   }
 
 
-void threadsafe_append_item_signal(s_list_t *item, s_list_t** queue, pthread_mutex_t* queue_lock, pthread_cond_t *queue_nonzero)
-{
-	pthread_mutex_lock(queue_lock);
-	if (*queue == NULL)
-		pthread_cond_signal(queue_nonzero);
-	*queue = ml_append(*queue, item);
-	pthread_mutex_unlock(queue_lock);
-}
 void threadsafe_enqueue_item_signal(s_list_t *item, s_list_t** queue, pthread_mutex_t* queue_lock, pthread_cond_t *queue_nonzero)
 {
 	pthread_mutex_lock(queue_lock);
@@ -1004,13 +996,6 @@ s_list_t* threadsafe_dequeue_item_wait(s_list_t** queue, pthread_mutex_t *queue_
 	item = ml_dequeue(queue);
 	pthread_mutex_unlock(queue_lock);
 	return item;
-}
-void resitem_append(s_list_t *item){
-	ppProdCon p;
-	ttglobal tg = gglobal();
-	p = (ppProdCon)tg->ProdCon.prv;
-
-	threadsafe_append_item_signal(item, &p->resource_list_to_parse, &tg->threads.mutex_resource_list, &tg->threads.resource_list_condition);
 }
 void resitem_enqueue(s_list_t *item){
 	ppProdCon p;
@@ -1201,15 +1186,7 @@ static bool parser_process_res(s_list_t *item)
 }
 //we want the void* addresses of the following, so the int value doesn't matter
 static const int res_command_exit;
-static const int res_command_flush_queue;
-static const int res_command_stop_flush;
-void resitem_queue_flush()
-{
-	resitem_append(ml_new(&res_command_flush_queue));
-	//doesn't seem very healthy - resitems can re-queue themselves for tidying themselves up,
-	//..and so fluxhing leaves some things abandoned mid-process
-	resitem_enqueue(ml_new(&res_command_stop_flush));
-}
+
 void resitem_queue_exit(){
 	resitem_enqueue(ml_new(&res_command_exit));
 }
@@ -1251,12 +1228,8 @@ void _inputParseThread(void *globalcontext)
 				FREE_IF_NZ(item);
 				break;
 			}
-			if (elem == &res_command_flush_queue){
-				do{
-					FREE_IF_NZ(item);
-					item = resitem_dequeue();
-					elem = ml_elem(item);
-				} while (elem != &res_command_stop_flush);
+			if (tg->threads.flushing){
+				FREE_IF_NZ(item);
 				continue;
 			}
 			p->inputThreadParsing = TRUE;

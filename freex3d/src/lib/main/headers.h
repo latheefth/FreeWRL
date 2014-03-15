@@ -844,7 +844,7 @@ void killErrantChildren(void);
 void kill_routing(void);
 void kill_bindables(void);
 void kill_javascript(void);
-void kill_oldWorld(int kill_EAI, int kill_JavaScript, int flush_workers, char *file, int line);
+void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line);
 void kill_clockEvents(void);
 void kill_openGLTextures(void);
 void kill_X3DDefs(void);

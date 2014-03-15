@@ -483,15 +483,6 @@ static void stopPCThread()
 		ZERO_THREAD(tg->threads.PCthread);
 	}
 }
-#else
-//static void stopLoadThread(){
-//	texitem_queue_flush();
-//	texitem_queue_exit();
-//}
-//static void stopPCThread(){
-//	resitem_queue_flush();
-//	resitem_queue_exit();
-//}
 #endif
 //static double waitsec;
 
@@ -4023,10 +4014,7 @@ C. delete instance data
 - let the display thread die a peaceful death
 */
 
-void workers_flush(){
-	texitem_queue_flush();
-	resitem_queue_flush();
-}
+
 int workers_waiting(){
 	BOOL waiting;
 	ttglobal tg = gglobal();
@@ -4044,9 +4032,6 @@ int workers_running(){
 	more = tg->threads.ResourceThreadRunning || tg->threads.TextureThreadRunning;
 	return more;
 }
-
-
-
 
 void finalizeRenderSceneUpdateScene() {
 	//C. delete instance data
@@ -4094,14 +4079,14 @@ void doReplaceWorldRequest()
 	req = tg->Mainloop.replaceWorldRequest;
 	tg->Mainloop.replaceWorldRequest = NULL;
 	if (req){
-		kill_oldWorld(TRUE, TRUE, TRUE, __FILE__, __LINE__);
+		kill_oldWorld(TRUE, TRUE, __FILE__, __LINE__);
 		res = resource_create_single(req);
 		send_resource_to_parser_async(res);
 	}
 	resm = (resource_item_t *)tg->Mainloop.replaceWorldRequestMulti;
 	if (resm){
 		tg->Mainloop.replaceWorldRequestMulti = NULL;
-		kill_oldWorld(TRUE, TRUE, TRUE, __FILE__, __LINE__);
+		kill_oldWorld(TRUE, TRUE, __FILE__, __LINE__);
 		resm->new_root = true;
 		gglobal()->resources.root_res = resm;
 		send_resource_to_parser_async(resm);
@@ -4194,20 +4179,18 @@ void _displayThread(void *globalcontext)
 						/* swap the rendering area */
 						FW_GL_SWAPBUFFERS;
 						PRINT_GL_ERROR_IF_ANY("XEvents::render");
-						checkReplaceWorldRequest(); 
-						checkExitRequest();
-						if (tg->threads.flushing)
-							workers_flush(); //tell workers to flush their queues. They could be busy, so it may take a while.
+						checkReplaceWorldRequest(); //will set flushing=1
+						checkExitRequest(); //will set flushing=1
 						break;
 					case 1:
 						if(workers_waiting()) //one way to tell if workers finished flushing is if their queues are empty, and they are not busy
 						{
-							kill_oldWorld(TRUE, TRUE, FALSE, __FILE__, __LINE__); //does a MarkForDispose on nodes, wipes out binding stacks and route table, javascript
+							kill_oldWorld(TRUE, TRUE, __FILE__, __LINE__); //does a MarkForDispose on nodes, wipes out binding stacks and route table, javascript
+							tg->threads.flushing = 0;
 							if (tg->threads.MainLoopQuit)
 								tg->threads.MainLoopQuit++; //quiting takes priority over replacing
 							else
 								doReplaceWorldRequest();
-							tg->threads.flushing = 0;
 						}
 				}
 				break;
@@ -4774,11 +4757,6 @@ void fwl_replaceWorldNeeded(char* str)
 	gglobal()->Mainloop.replaceWorldRequest = STRDUP(str);
 }
 void fwl_replaceWorldNeededRes(resource_item_t *multiResWithParent){
-	//resource_item_t* plugin_res;
-	//kill_oldWorld(TRUE, TRUE, TRUE, __FILE__, __LINE__);
-	//plugin_res = resource_create_multi(urls);
-	////resource_identify(NULL, plugin_res);
-	//send_resource_to_parser_async(plugin_res);
 	gglobal()->Mainloop.replaceWorldRequestMulti = (void*)(multiResWithParent);
 }
 

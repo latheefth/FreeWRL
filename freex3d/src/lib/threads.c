@@ -133,8 +133,8 @@ void threads_init(struct tthreads* t)
 
 	t->ResourceThreadRunning = FALSE;
 	t->TextureThreadRunning = FALSE;
-	//t->ResourceThreadWaiting = FALSE; //not sure about when this is initialized relative to starting the thread(s)
-	//t->TextureThreadWaiting = FALSE;
+	t->ResourceThreadWaiting = FALSE;
+	t->TextureThreadWaiting = FALSE;
 
 	t->MainLoopQuit = 0;
 	t->flushing = 0;

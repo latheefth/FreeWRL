@@ -310,7 +310,7 @@ int doBrowserAction()
 					resource_item_t *resToLoad;
 
 					/* out with the old... */
-					kill_oldWorld(TRUE,TRUE,TRUE,__FILE__,__LINE__);
+					kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 
 					/* tell the new world which viewpoint to go to */
 					//fwl_gotoViewpoint (p->plugin_res->afterPoundCharacters);
@@ -328,7 +328,7 @@ int doBrowserAction()
 						//analogous to what happens when we have file://...AnchorA.x3d 
 						//the following is the only way I know to do that right now, same as 
 						//below several lines:
-						kill_oldWorld(TRUE,TRUE,TRUE,__FILE__,__LINE__);
+						kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 
 						/* we want to clean out the old world AND load a new one in */
 
