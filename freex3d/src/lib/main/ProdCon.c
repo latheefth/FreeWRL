@@ -992,12 +992,15 @@ void threadsafe_enqueue_item_signal(s_list_t *item, s_list_t** queue, pthread_mu
 	pthread_mutex_unlock(queue_lock);
 }
 
-s_list_t* threadsafe_dequeue_item_wait(s_list_t** queue, pthread_mutex_t *queue_lock, pthread_cond_t *queue_nonzero )
+s_list_t* threadsafe_dequeue_item_wait(s_list_t** queue, pthread_mutex_t *queue_lock, pthread_cond_t *queue_nonzero, int *waiting )
 {
 	s_list_t *item = NULL;
 	pthread_mutex_lock(queue_lock);
-	while (*queue == NULL)
+	while (*queue == NULL){
+		*waiting = TRUE;
 		pthread_cond_wait(queue_nonzero, queue_lock);
+		*waiting = FALSE;
+	}
 	item = ml_dequeue(queue);
 	pthread_mutex_unlock(queue_lock);
 	return item;
@@ -1021,7 +1024,7 @@ s_list_t *resitem_dequeue(){
 	ttglobal tg = gglobal();
 	p = (ppProdCon)tg->ProdCon.prv;
 
-	return threadsafe_dequeue_item_wait(&p->resource_list_to_parse, &tg->threads.mutex_resource_list, &tg->threads.resource_list_condition );
+	return threadsafe_dequeue_item_wait(&p->resource_list_to_parse, &tg->threads.mutex_resource_list, &tg->threads.resource_list_condition, &tg->threads.ResourceThreadWaiting );
 }
 
 

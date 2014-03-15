@@ -484,14 +484,14 @@ static void stopPCThread()
 	}
 }
 #else
-static void stopLoadThread(){
-	texitem_queue_flush();
-	texitem_queue_exit();
-}
-static void stopPCThread(){
-	resitem_queue_flush();
-	resitem_queue_exit();
-}
+//static void stopLoadThread(){
+//	texitem_queue_flush();
+//	texitem_queue_exit();
+//}
+//static void stopPCThread(){
+//	resitem_queue_flush();
+//	resitem_queue_exit();
+//}
 #endif
 //static double waitsec;
 
@@ -4022,24 +4022,33 @@ B. check if both worker threads have stopped
 C. delete instance data
 - let the display thread die a peaceful death
 */
-void finalizeRenderSceneUpdateSceneA() {
-	//A.worker threads > tell them to flush and stop
-	kill_oldWorld(TRUE, TRUE, FALSE, __FILE__, __LINE__);
-	gglobal()->threads.MainLoopQuit = 2;
+
+void workers_flush(){
+	texitem_queue_flush();
+	resitem_queue_flush();
 }
-void finalizeRenderSceneUpdateSceneB() {
-	stopLoadThread();
-	stopPCThread();
-	gglobal()->threads.MainLoopQuit = 3;
+int workers_waiting(){
+	BOOL waiting;
+	ttglobal tg = gglobal();
+	waiting = tg->threads.ResourceThreadWaiting && tg->threads.TextureThreadWaiting;
+	return waiting;
 }
-int finalizeRenderSceneUpdateSceneC() {
-	//B.check if both worker threads have stopped
+void workers_stop()
+{
+	resitem_queue_exit();
+	texitem_queue_exit();
+}
+int workers_running(){
 	BOOL more;
 	ttglobal tg = gglobal();
 	more = tg->threads.ResourceThreadRunning || tg->threads.TextureThreadRunning;
 	return more;
 }
-void finalizeRenderSceneUpdateSceneD() {
+
+
+
+
+void finalizeRenderSceneUpdateScene() {
 	//C. delete instance data
 	ttglobal tg = gglobal();
 	printf ("finalizeRenderSceneUpdateScene\n");
@@ -4057,23 +4066,25 @@ void finalizeRenderSceneUpdateSceneD() {
 	/* tested on win32 console program July9,2011 seems OK */
 	iglobal_destructor(tg);
 }
-//here for historical reasons, but this one blocks the UI thread 
-// with a sleep loop which some platforms don't allow.
-// for those its better to use the switch case approach in the UI thread
-void finalizeRenderSceneUpdateScene(){
-	finalizeRenderSceneUpdateSceneA();
-	finalizeRenderSceneUpdateSceneB();
-	while (finalizeRenderSceneUpdateSceneC()) usleep(1000);
-	finalizeRenderSceneUpdateSceneD();
-}
 
 
 /* iphone front end handles the displayThread internally */
 #ifndef FRONTEND_HANDLES_DISPLAY_THREAD
 
 
-
-void checkReplaceWorldRequest()
+void checkReplaceWorldRequest(){
+	ttglobal tg = gglobal();
+	if (tg->Mainloop.replaceWorldRequest || tg->Mainloop.replaceWorldRequestMulti){
+		tg->threads.flushing = 1;
+	}
+}
+void checkExitRequest(){
+	ttglobal tg = gglobal();
+	if (tg->threads.MainLoopQuit == 1){
+		tg->threads.flushing = 1;
+	}
+}
+void doReplaceWorldRequest()
 {
 	resource_item_t *res,*resm;
 	char * req;
@@ -4095,6 +4106,7 @@ void checkReplaceWorldRequest()
 		gglobal()->resources.root_res = resm;
 		send_resource_to_parser_async(resm);
 	}
+	tg->threads.flushing = 0;
 }
 static int(*view_initialize)() = NULL;
 static void(*view_update)() = NULL;
@@ -4130,6 +4142,11 @@ void _displayThread(void *globalcontext)
 	-reason for MVC: no callbacks are needed from Model to UI(View), so easy to change View
 	-here everything is in C so we don't absolutely need MVC style, but we are preparing MVC in C
 	 to harmonize with Android, IOS etc where the UI(View) and Controller are in Objective-C or Java and Model(state) in C
+
+	 Non-blocking UI thread - some frontends don't allow you to block the display thread. They will be in
+	 different code like objectiveC, java, C#, but here we try and honor the idea by allowing
+	 looping to continue while waiting for worker threads to flush and/or exit by polling the status of the workers
+	 rather than using mutex conditions.
 	*/
 	int more;
 	ttglobal tg = (ttglobal)globalcontext;
@@ -4161,42 +4178,55 @@ void _displayThread(void *globalcontext)
 		{
 			switch (tg->threads.MainLoopQuit){
 			case 0:
-				//PRINTF("event loop\n");
-
-				profile_start("mainloop");
-				//model: udate yourself
-				fwl_RenderSceneUpdateScene(); //Model update
-				profile_end("mainloop");
-
-				//view: poll model and update yourself >>
-				if (view_update) view_update();
-
-				/* swap the rendering area */
-				FW_GL_SWAPBUFFERS;
-				PRINT_GL_ERROR_IF_ANY("XEvents::render");
-				checkReplaceWorldRequest(); //Model update
-
-				break;
 			case 1:
-				//tell worker threads to flush and quit gracefully
-				finalizeRenderSceneUpdateSceneA(); //kill_oldworld > MarkForDispose
-				fwl_RenderSceneUpdateScene(); //startofloopnodeupdates > killNode
+				//PRINTF("event loop\n");
+				switch (tg->threads.flushing)
+				{
+					case 0:
+						profile_start("mainloop");
+						//model: udate yourself
+						fwl_RenderSceneUpdateScene(); //Model update
+						profile_end("mainloop");
+
+						//view: poll model and update yourself >>
+						if (view_update) view_update();
+
+						/* swap the rendering area */
+						FW_GL_SWAPBUFFERS;
+						PRINT_GL_ERROR_IF_ANY("XEvents::render");
+						checkReplaceWorldRequest(); 
+						checkExitRequest();
+						if (tg->threads.flushing)
+							workers_flush(); //tell workers to flush their queues. They could be busy, so it may take a while.
+						break;
+					case 1:
+						if(workers_waiting()) //one way to tell if workers finished flushing is if their queues are empty, and they are not busy
+						{
+							kill_oldWorld(TRUE, TRUE, FALSE, __FILE__, __LINE__); //does a MarkForDispose on nodes, wipes out binding stacks and route table, javascript
+							if (tg->threads.MainLoopQuit)
+								tg->threads.MainLoopQuit++; //quiting takes priority over replacing
+							else
+								doReplaceWorldRequest();
+							tg->threads.flushing = 0;
+						}
+				}
 				break;
 			case 2:
-				//tell worker threads to flush and quit gracefully
-				finalizeRenderSceneUpdateSceneB();
+				//tell worker threads to stop gracefully
+				workers_stop();
+				killNodes(); //deallocates nodes MarkForDisposed
+				tg->threads.MainLoopQuit++;
 				break;
 			case 3:
 				//check if worker threads have exited
-				more = finalizeRenderSceneUpdateSceneC();
+				more = workers_running();
 				break;
 			}
 		}
 		/* when finished: */
-		//clean up scenegraph, resource and gglobal mallocs, a few other things
-		finalizeRenderSceneUpdateSceneD(); //Model end
+		finalizeRenderSceneUpdateScene(); //Model end
 	}
-	printf("Ending display thread gracefully\n");
+	//printf("Ending display thread gracefully\n");
 }
 #endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 

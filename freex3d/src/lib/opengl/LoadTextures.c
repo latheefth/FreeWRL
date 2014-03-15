@@ -856,7 +856,7 @@ static void texture_process_list(s_list_t *item)
 }
 void threadsafe_append_item_signal(s_list_t *item, s_list_t** queue, pthread_mutex_t* queue_lock, pthread_cond_t *queue_nonzero);
 void threadsafe_enqueue_item_signal(s_list_t *item, s_list_t** queue, pthread_mutex_t* queue_lock, pthread_cond_t *queue_nonzero);
-s_list_t* threadsafe_dequeue_item_wait(s_list_t** queue, pthread_mutex_t *queue_lock, pthread_cond_t *queue_nonzero);
+s_list_t* threadsafe_dequeue_item_wait(s_list_t** queue, pthread_mutex_t *queue_lock, pthread_cond_t *queue_nonzero, int* wait);
 void texitem_append(s_list_t *item){
 	ppLoadTextures p;
 	ttglobal tg = gglobal();
@@ -876,7 +876,7 @@ s_list_t *texitem_dequeue(){
 	ttglobal tg = gglobal();
 	p = (ppLoadTextures)gglobal()->LoadTextures.prv;
 
-	return threadsafe_dequeue_item_wait(&p->texture_request_list, &tg->threads.mutex_texture_list, &tg->threads.texture_list_condition);
+	return threadsafe_dequeue_item_wait(&p->texture_request_list, &tg->threads.mutex_texture_list, &tg->threads.texture_list_condition, &tg->threads.TextureThreadWaiting);
 }
 //we want the void* addresses of the following, so the int value doesn't matter
 static const int tex_command_exit;
@@ -891,33 +891,11 @@ void texitem_queue_exit(){
 	texitem_enqueue(ml_new(&tex_command_exit));
 }
 
-//#define OLDTEXCODE 1
-#ifdef OLDTEXCODE
-void send_texture_to_loader(textureTableIndexStruct_s *entry)
-{
-	ppLoadTextures p = (ppLoadTextures)gglobal()->LoadTextures.prv;
-
-	/* Lock access to the texture_request_list and loader_waiting variables*/
-	pthread_mutex_lock(&gglobal()->threads.mutex_texture_list);
-
-	/* Add our texture entry */
-	p->texture_request_list = ml_append(p->texture_request_list, ml_new(entry));
-
-	if (p->loader_waiting)
-		/* signal that we have data on resource list */
-		pthread_cond_signal(&gglobal()->threads.texture_list_condition);
-
-	/* Unlock */
-	pthread_mutex_unlock(&gglobal()->threads.mutex_texture_list);
-}
-#else
-
-
 void send_texture_to_loader(textureTableIndexStruct_s *entry)
 {
 	texitem_enqueue(ml_new(entry));
 }
-#endif
+
 
 /**
  *   _textureThread: work on textures, until the end of time.
@@ -932,64 +910,7 @@ void Texture_thread_exit_handler(int sig)
 }
 #endif //HAVE_PTHREAD_CANCEL
 
-#ifdef OLDTEXCODE
-void _textureThread(void *globalcontext)
-{
-	ttglobal tg = (ttglobal)globalcontext;
-	tg->threads.loadThread = pthread_self();
-	fwl_setCurrentHandle(tg,__FILE__,__LINE__);
 
-	//set_thread2global(tg, tg->threads.loadThread ,"texture loading thread");
-	//ENTER_THREAD("texture loading");
-
-	#if !defined (HAVE_PTHREAD_CANCEL)
-	struct sigaction actions;
-	int rc;
-	memset(&actions, 0, sizeof(actions)); 
-	sigemptyset(&actions.sa_mask);
-	actions.sa_flags = 0; 
-	actions.sa_handler = Texture_thread_exit_handler;
-	rc = sigaction(SIGUSR2,&actions,NULL);
-	//ConsoleMessage ("for textureThread, have defined exit handler");
-	#endif //HAVE_PTHREAD_CANCEL
-
-	{
-
-		ppLoadTextures p;
-		//ttglobal tg = gglobal();
-		p = (ppLoadTextures)tg->LoadTextures.prv;
-
-		tg->LoadTextures.TextureThreadInitialized = TRUE;
-
-		/* we wait forever for the data signal to be sent */
-		for (;;) {
-			/* Lock access to the texture_request_list and loader_waiting variables*/
-			pthread_mutex_lock( &gglobal()->threads.mutex_texture_list );
-			if(p->texture_request_list == NULL)
-			{
-				p->loader_waiting = true;
-				/*block and wait*/
-				pthread_cond_wait (&gglobal()->threads.texture_list_condition, &gglobal()->threads.mutex_texture_list);
-			}
-			p->texture_list = p->texture_request_list;
-			p->texture_request_list = NULL;
-			p->loader_waiting = false;
-			/* Unlock  */
-			pthread_mutex_unlock( &gglobal()->threads.mutex_texture_list );
-
-
-			p->TextureParsing = TRUE;
-			
-			/* Process all resource list items, whatever status they may have */
-			while (p->texture_list != NULL) {
-	//printf ("textureThread running\n");
-				ml_foreach(p->texture_list, texture_process_list(__l));
-			}
-			p->TextureParsing = FALSE;
-		}
-	}
-}
-#else
 
 void _textureThread(void *globalcontext)
 {
@@ -1032,4 +953,3 @@ void _textureThread(void *globalcontext)
 	tg->threads.TextureThreadRunning = FALSE;
 
 }
-#endif

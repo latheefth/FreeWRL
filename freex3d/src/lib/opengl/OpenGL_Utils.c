@@ -4025,6 +4025,26 @@ struct X3D_Node* getTypeNode(struct X3D_Node *node)
 	}
 	return dnode;
 }
+void killNodes(){
+	int i;
+	struct X3D_Node* node;
+	ppOpenGL_Utils p;
+	ttglobal tg = gglobal();
+	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
+
+	for (i = 0; i < vectorSize(p->linearNodeTable); i++){
+		node = vector_get(struct X3D_Node *, p->linearNodeTable, i);
+		if (node != NULL) {
+			if (node->referenceCount <= 0) {
+				//ConsoleMessage ("%d ref %d\n",i,node->referenceCount);
+				killNode(i);
+			}
+			//else{
+			//	printf("%d ", i);
+			//}
+		}
+	}
+}
 //dug9 dec 13 <<
 // Dec 14, 2012 new proto IS-A version (see below for older version)
 void startOfLoopNodeUpdates(void) {

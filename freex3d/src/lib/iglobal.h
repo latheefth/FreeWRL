@@ -103,7 +103,10 @@ typedef struct iiglobal //InstanceGlobal
 		pthread_cond_t texture_list_condition; // = PTHREAD_COND_INITIALIZER;
 		BOOL ResourceThreadRunning;
 		BOOL TextureThreadRunning;
+		BOOL ResourceThreadWaiting;
+		BOOL TextureThreadWaiting;
 		int MainLoopQuit;
+		int flushing;
 		void *prv;
 	} threads;
     
