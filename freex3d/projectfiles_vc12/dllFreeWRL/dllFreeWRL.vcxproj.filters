@@ -15,28 +15,28 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\dllFreeWRL\dllFreeWRL.cpp">
+    <ClCompile Include="$(SRC)\dllFreeWRL\dllFreeWRL.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\dllFreeWRL\dllmain.cpp">
+    <ClCompile Include="$(SRC)\dllFreeWRL\dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\dllFreeWRL\stdafx.cpp">
+    <ClCompile Include="$(SRC)\dllFreeWRL\stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\dllFreeWRL\dllFreeWRL.h">
+    <ClInclude Include="$(SRC)\dllFreeWRL\dllFreeWRL.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\dllFreeWRL\stdafx.h">
+    <ClInclude Include="$(SRC)\dllFreeWRL\stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\dllFreeWRL\targetver.h">
+    <ClInclude Include="$(SRC)\dllFreeWRL\targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\src\dllFreeWRL\ReadMe.txt" />
+    <Text Include="$(SRC)\dllFreeWRL\ReadMe.txt" />
   </ItemGroup>
 </Project>

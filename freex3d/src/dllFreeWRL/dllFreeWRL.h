@@ -36,7 +36,7 @@ public:
 
 	void onInit(int width, int height, void* windowhandle=0, bool bEai = false);
 	void onLoad(char* scene_url);
-    void onResize(int height,int width);
+    void onResize(int width, int height);
     void onMouse(int mouseAction,int mouseButton,int x, int y);
     void onKey(int keyAction,int keyValue);
 	void onClose();

@@ -136,6 +136,11 @@ void CdllFreeWRL::onInit(int width, int height, void* windowhandle, bool bEai)
 		//exit(1);
 	}
 	setFontPath();
+#ifdef STATUSBAR_HUD
+	statusbar_set_window_size(width, height);
+#else
+	fwl_setScreenDim(width, height);
+#endif
 	//printf("press key to continue..:");
 	//getchar();
 	fwl_clearCurrentHandle();

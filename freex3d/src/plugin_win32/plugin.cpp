@@ -268,6 +268,20 @@ LRESULT CPlugin::handleWindowEvents(HWND hWnd, UINT eventmsg, WPARAM wParam, LPA
 {
 	switch(eventmsg)
 	{
+		//resize is bombing in FF and Chrome, but not IE, whether or not I have any of the below uncommented.
+	//case WM_SIZE:
+	//	{
+	//		if(wParam == SIZE_RESTORED)
+	//			m_pfreeWRLPlayer->onResize(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+	//		return 0;
+	//	}
+	//case WM_PAINT:
+	//	{
+	//		RECT rc;
+	//		GetClientRect(hWnd, &rc);
+	//		m_pfreeWRLPlayer->onResize(rc.right, rc.bottom);
+	//		return 0;
+	//	}
 	case WM_LBUTTONDOWN:
 		{
 			m_pfreeWRLPlayer->onMouse(4, 1,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
