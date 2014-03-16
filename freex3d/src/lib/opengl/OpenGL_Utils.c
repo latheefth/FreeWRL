@@ -4020,6 +4020,13 @@ struct X3D_Node* getTypeNode(struct X3D_Node *node)
 	}
 	return dnode;
 }
+void printStatsNodes(){
+	ppOpenGL_Utils p;
+	ttglobal tg = gglobal();
+	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
+
+	ConsoleMessage("Nodes count = %d\n", p->linearNodeTable->n);
+}
 void killNodes(){
 	int i;
 	struct X3D_Node* node;

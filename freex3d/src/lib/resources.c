@@ -1020,6 +1020,19 @@ void resource_tree_dump(int level, resource_item_t *root)
 	printf("\n");
 }
 
+void resource_tree_count_files(int *count, resource_item_t *root)
+{
+	if (root == NULL) return;
+	(*count)++;
+	ml_foreach(root->children, resource_tree_count_files(count, ml_elem(__l)));
+}
+void printStatsResources()
+{
+	int count = 0;
+	resource_tree_count_files(&count, gglobal()->resources.root_res);
+	ConsoleMessage("resource file count = %d\n", count);
+}
+
 /**
  * resource_tree_list_files: print all the files loaded via resources
  * (local files or URL resources cached as temporary files).

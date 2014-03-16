@@ -283,6 +283,31 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 }
 
 
+
+void printStatsRoutes()
+{
+	ConsoleMessage("Routes count = %d\n", getCRouteCount());
+}
+
+void printStatsBindingStacks()
+{
+	ttglobal tg = gglobal();
+	ConsoleMessage("Background stack count %d\n", tg->Bindable.background_stack->n);
+	ConsoleMessage("Fog stack count %d\n", tg->Bindable.fog_stack->n);
+	ConsoleMessage("Navigation stack count %d\n", tg->Bindable.navigation_stack->n);	
+	ConsoleMessage("Viewpoint stack count %d\n", tg->Bindable.viewpoint_stack->n);	
+}
+
+void printStats()
+{
+	printMaxStackUsed();
+	printStatsResources();
+	printStatsEvents();
+	printStatsNodes();
+	printStatsRoutes();
+	printStatsBindingStacks();
+}
+
 void
 print_viewer()
 {
@@ -296,7 +321,7 @@ print_viewer()
 	ConsoleMessage("\tQuaternion[%.4f, %.4f, %.4f, %.4f]\n", (p->Viewer.Quat).w, (p->Viewer.Quat).x, (p->Viewer.Quat).y, (p->Viewer.Quat).z);
 	ConsoleMessage("\tOrientation[%.4f, %.4f, %.4f, %.4f]\n", ori.x, ori.y, ori.z, ori.a);
 	ConsoleMessage("}\n");
-	printMaxStackUsed();
+	printStats();
 
 }
 

@@ -426,7 +426,6 @@ void CRoutes_init(struct tCRoutes *t){
 	}
 }
 //	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
-
 struct CRStruct *getCRoutes()
 {
 	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
@@ -2890,7 +2889,9 @@ Call the sensor nodes to get the results of the clock ticks; this is
 the first thing in the event loop.
 
 ********************************************************************/
-
+void printStatsEvents(){
+	ConsoleMessage("ClockEvent count = %d\n", ((ppCRoutes)gglobal()->CRoutes.prv)->num_ClockEvents);
+}
 void do_first() {
 	int counter, ne;
 	struct FirstStruct ce;
