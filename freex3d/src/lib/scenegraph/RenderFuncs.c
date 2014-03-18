@@ -918,12 +918,6 @@ void update_node(struct X3D_Node *node) {
 	and hit period '.' on the keyboard to get a printout
 */
 
-static double Time1970sec(void) {
-		static struct timeval mytime;
-        gettimeofday(&mytime, NULL);
-        return (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
-}
-
 static int profile_entry_count = 0;
 struct profile_entry {
 	char *name;
@@ -1264,8 +1258,6 @@ render_hier(struct X3D_Group *g, int rwhat) {
 #ifdef render_pre_profile
 	/*  profile */
 	double xx,yy,zz,aa,bb,cc,dd,ee,ff;
-	struct timeval mytime;
-	struct timezone tz; /* unused see man gettimeofday */
 #endif
 	ppRenderFuncs p;
 	ttglobal tg = gglobal();
@@ -1292,8 +1284,7 @@ render_hier(struct X3D_Group *g, int rwhat) {
 
 #ifdef render_pre_profile
 	if (rs->render_geom) {
-		gettimeofday (&mytime,&tz);
-		aa = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
+		aa = Time1970sec();
 	}
 #endif
 #ifdef RENDERVERBOSE
@@ -1314,7 +1305,7 @@ render_hier(struct X3D_Group *g, int rwhat) {
 #ifdef render_pre_profile
 	if (rs->render_geom) {
 		gettimeofday (&mytime,&tz);
-		bb = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
+		bb = Time1970sec();
 	}
 #endif
 
@@ -1325,7 +1316,7 @@ render_hier(struct X3D_Group *g, int rwhat) {
 #ifdef render_pre_profile
 	if (rs->render_geom) {
 		gettimeofday (&mytime,&tz);
-		cc = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
+		cc = Time1970sec();
 	}
 #endif
 	//if(!rs->render_geom || rs->render_blend || rs->render_sensitive)
@@ -1338,8 +1329,7 @@ render_hier(struct X3D_Group *g, int rwhat) {
 	profile_end("render_hier");
 #ifdef render_pre_profile
 	if (rs->render_geom) {
-		gettimeofday (&mytime,&tz);
-		dd = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
+		dd = Time1970sec();
 		printf ("render_geom status %f ray %f geom %f\n",bb-aa, cc-bb, dd-cc);
 	}
 #endif

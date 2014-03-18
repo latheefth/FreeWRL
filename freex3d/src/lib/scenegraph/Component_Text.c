@@ -619,7 +619,7 @@ double FW_extent (int start, int length)
 */
 FT_Error  FW_Load_Char(unsigned int idx)
 {
-    FT_Glyph  glyph;
+    FT_Glyph  glyph = NULL;
     FT_UInt glyph_index;
     int error;
 	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;

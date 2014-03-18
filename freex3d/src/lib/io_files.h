@@ -103,5 +103,8 @@ int determineFileType(const unsigned char *buffer, const int len);
 #define X_OK 4
 #define O_NONBLOCK 0
 #define SSIZE_MAX 100000000L
+#define close _close
+#define open _open
+#define read _read
 #endif
 #endif /* __LIBFREEWRL_IO_FILES_H__ */

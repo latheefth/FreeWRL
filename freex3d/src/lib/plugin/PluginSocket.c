@@ -90,20 +90,6 @@ void PluginSocket_init(struct tPluginSocket *t){
 //extern double TickTime;
 double TickTime();
 
-/* Doug Sandens windows function; lets make it static here for non-windows */
-#if defined(_MSC_VER)
-#else
-#ifdef PLUGINSOCKETVERBOSE
-//static struct timeval mytime;
-
-static double Time1970sec(void) {
-		struct timeval mytime;
-        gettimeofday(&mytime, NULL);
-        return (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
-}
-#endif
-#endif
-
 #ifdef PLUGINSOCKETVERBOSE
 /* prints to a log file if we are running as a plugin */
 static void pluginprint (const char *m, const char *p)

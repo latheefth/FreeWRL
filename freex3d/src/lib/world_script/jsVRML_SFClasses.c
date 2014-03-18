@@ -2440,7 +2440,7 @@ SFRotationConstr(JSContext *cx, uintN argc, jsval *vp) {
 #endif
 
 	SFVec3fNative *_vec = NULL;
-	SFVec3fNative *_vec2;
+	SFVec3fNative *_vec2 = NULL;
 	SFRotationNative *ptr;
 	JSObject *_ob1, *_ob2;
 	jsdouble pars[4];

@@ -1461,6 +1461,7 @@ VrmlMatrixmultVecMatrix(JSContext *cx, uintN argc, jsval *vp) {
         double matrix1[16];
         int error = FALSE;
 	struct point_XYZ inp, outp;
+	outp.x = outp.y = outp.z = 0.0;
 
 	if (argc == 1) {
 		error = !JS_ConvertArguments(cx, argc, argv, "o", &transObj);
@@ -1519,6 +1520,7 @@ VrmlMatrixmultMatrixVec(JSContext *cx, uintN argc, jsval *vp) {
         double matrix1[16];
         int error = FALSE;
 	struct point_XYZ inp, outp;
+	outp.x = outp.y = outp.z = 0.0;
 
 	if (argc == 1) {
 		error = !JS_ConvertArguments(cx, argc, argv, "o", &transObj);

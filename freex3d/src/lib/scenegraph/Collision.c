@@ -1711,11 +1711,7 @@ static struct point_XYZ polyrep_disp_rec2(struct X3D_PolyRep* pr, struct point_X
 
 #undef POLYREP_DISP2_PERFORMANCE
 #ifdef POLYREP_DISP2_PERFORMANCE
-static double Time1970sec(void) {
-                struct timeval mytime;
-        gettimeofday(&mytime, NULL);
-        return (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
-}
+
 static bool timing = FALSE;
 static double startTime = 0.0;
 static double stopTime = 0.0;
