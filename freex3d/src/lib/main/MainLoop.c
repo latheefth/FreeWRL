@@ -4134,9 +4134,10 @@ void _displayThread(void *globalcontext)
 	 rather than using mutex conditions.
 	*/
 	int more;
+	ppMainloop p;
 	ttglobal tg = (ttglobal)globalcontext;
 	fwl_setCurrentHandle(tg,__FILE__,__LINE__);
-	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+	p = (ppMainloop)tg->Mainloop.prv;
 	ENTER_THREAD("display");
 
 	more = TRUE;

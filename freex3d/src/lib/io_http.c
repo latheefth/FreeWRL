@@ -307,12 +307,13 @@ char* download_url_WinInet(resource_item_t *res)
 	else
 	{
 		DWORD dataLength, len;
+		HINTERNET hOpenUrl;
 		if(0){
-			static int fp = 0;
+			static FILE* fp = NULL;
 			if (!fp) fp = fopen("http_log.txt", "w+");
 			fprintf(fp,"[%s]\n", res->parsed_request);
 		}
-		HINTERNET hOpenUrl=InternetOpenUrl(p->hWinInet,res->parsed_request,NULL,0,0,0); //INTERNET_FLAG_NO_UI|INTERNET_FLAG_RELOAD/*|INTERNET_FLAG_IGNORE_CERT_CN_INVALID install the cert instead*/,0);
+		hOpenUrl=InternetOpenUrl(p->hWinInet,res->parsed_request,NULL,0,0,0); //INTERNET_FLAG_NO_UI|INTERNET_FLAG_RELOAD/*|INTERNET_FLAG_IGNORE_CERT_CN_INVALID install the cert instead*/,0);
 		if (!(hOpenUrl))
 		{
 			ERROR_MSG("Download failed for url %s\n", res->parsed_request);

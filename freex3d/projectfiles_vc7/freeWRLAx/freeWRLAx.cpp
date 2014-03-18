@@ -52,7 +52,7 @@ int CfreeWRLAxApp::ExitInstance()
 
 
 // DllRegisterServer - Adds entries to the system registry
-
+//#include <olectl.h>  //included indirectly, but has the dllregisterserver error codes
 STDAPI DllRegisterServer(void)
 {
     HKEY        hkey = NULL;
@@ -101,11 +101,16 @@ STDAPI DllRegisterServer(void)
 
 	AFX_MANAGE_STATE(_afxModuleAddrThis);
 
-	if (!AfxOleRegisterTypeLib(AfxGetInstanceHandle(), _tlid))
-		return ResultFromScode(SELFREG_E_TYPELIB);
-
-	if (!COleObjectFactoryEx::UpdateRegistryAll(TRUE))
+	if (!COleObjectFactoryEx::UpdateRegistryAll(TRUE)){
+		MessageBox(0, "Cannot update registry", "Registration Error", MB_OK);
 		return ResultFromScode(SELFREG_E_CLASS);
+	}
+
+	if (!AfxOleRegisterTypeLib(AfxGetInstanceHandle(), _tlid)){
+		MessageBox(0, "Cannot register typelib", "Registration Error", MB_OK);
+		return ResultFromScode(SELFREG_E_TYPELIB);
+	}
+
 
 
     do 
