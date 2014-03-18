@@ -1,6 +1,4 @@
 #
-# $Id$
-#
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
 # See the GNU Library General Public License (file COPYING in the distribution)
@@ -9,7 +7,7 @@
 package VRML::NodeType;
 
 
-# see note top of file - the VRML Parser REQUIRES for routing that 
+# see note top of file - the VRML Parser REQUIRES for routing that
 # each field name exists in only one table- eg, "inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)", "initializeOnly, (SPEC_VRML | SPEC_X3D30)",
 # etc. So, in order to do this, we make sure that each field name follows this, even
 # though we may, for instance, change "value" to an "inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)" when the spec
@@ -82,10 +80,10 @@ package VRML::NodeType;
 		metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		_sortedChildren => [MFNode, [], inputOutput, 0], 
-		__protoDeclares => [MFNode,[],inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+		_sortedChildren => [MFNode, [], inputOutput, 0],
+		__protoDeclares => [MFNode,[],inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__protoDef => [FreeWRLPTR, 0, initializeOnly, 0], #user fields
-		__protoFlags => [SFInt32, INT_ID_UNDEFINED, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+		__protoFlags => [SFInt32, INT_ID_UNDEFINED, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__prototype => [SFNode, NULL, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], #first node in protobody
 		__parentProto => [SFNode, NULL, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], #first node in protobody
 		__ROUTES => [FreeWRLPTR, 0, initializeOnly, 0],
@@ -99,28 +97,28 @@ package VRML::NodeType;
 			reference => [SFString,"",initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			value => [MFInt32,[],inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],  # see note top of file
 	}, "X3DChildNode"),
-	
+
 	MetadataDouble => new VRML::NodeType("MetadataDouble", {
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			name => [SFString,"",inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],# see note top of file:
 			reference => [SFString,"",initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			value => [MFDouble,[],inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
 	}, "X3DChildNode"),
-	
+
 	MetadataFloat => new VRML::NodeType("MetadataFloat", {
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			name => [SFString,"",inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
 			reference => [SFString,"",initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			value => [MFFloat,[],inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
 	}, "X3DChildNode"),
-	
+
 	MetadataString => new VRML::NodeType("MetadataString", {
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			name => [SFString,"",inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			reference => [SFString,"",initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			value => [MFString,[],inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
 	}, "X3DChildNode"),
-	
+
 	MetadataSet => new VRML::NodeType("MetadataSet", {
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			name => [SFString,"",inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
@@ -273,7 +271,7 @@ package VRML::NodeType;
 		__do_anything => [SFInt32, FALSE, initializeOnly, 0],
 		_sortedChildren => [MFNode, [], inputOutput, 0],
 	},"X3DGroupingNode"),
-	
+
 
 	###################################################################################
 
@@ -281,26 +279,26 @@ package VRML::NodeType;
 
 	###################################################################################
 
-	ClipPlane => new VRML::NodeType("ClipPlane", { 
+	ClipPlane => new VRML::NodeType("ClipPlane", {
 		enabled => [SFBool, TRUE, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		plane => [SFVec4f, [0, 1, 0, 0], inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+		plane => [SFVec4f, [0, 1, 0, 0], inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 
 	},"X3DChildNode"),
 
-	Color => new VRML::NodeType("Color", { 
-		color => [MFColor, [], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	Color => new VRML::NodeType("Color", {
+		color => [MFColor, [], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 
 	},"X3DColorNode"),
 
-	ColorRGBA => new VRML::NodeType("ColorRGBA", { 
-		color => [MFColorRGBA, [], inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	ColorRGBA => new VRML::NodeType("ColorRGBA", {
+		color => [MFColorRGBA, [], inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 
 	},"X3DColorNode"),
 
-	Coordinate => new VRML::NodeType("Coordinate", { 
+	Coordinate => new VRML::NodeType("Coordinate", {
 		point => [MFVec3f, [], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 
@@ -391,7 +389,7 @@ package VRML::NodeType;
 		__segCount =>[SFInt32,0,initializeOnly, 0],
 	},"X3DGeometryNode"),
 
-	Normal => new VRML::NodeType("Normal", { 
+	Normal => new VRML::NodeType("Normal", {
 		metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		vector => [MFVec3f, [], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"] ,
 	},"X3DNormalNode"),
@@ -402,10 +400,10 @@ package VRML::NodeType;
 		coord => [SFNode, NULL, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		fogCoord => [SFNode, NULL, inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		_pointsVBO =>[SFInt32, 0, initializeOnly, 0], 
-		_coloursVBO =>[SFInt32, 0, initializeOnly, 0], 
-		_npoints =>[SFInt32, 0, initializeOnly, 0], 
-		_colourSize =>[SFInt32, 0, initializeOnly, 0], 
+		_pointsVBO =>[SFInt32, 0, initializeOnly, 0],
+		_coloursVBO =>[SFInt32, 0, initializeOnly, 0],
+		_npoints =>[SFInt32, 0, initializeOnly, 0],
+		_colourSize =>[SFInt32, 0, initializeOnly, 0],
 	},"X3DGeometryNode"),
 
 	TriangleFanSet => new VRML::NodeType("TriangleFanSet", {
@@ -521,7 +519,7 @@ package VRML::NodeType;
 
 		_shaderTableEntry =>[SFInt32,0,initializeOnly,0], # shaders
 
-		
+
 	},"X3DBoundedObject"),
 
 	TwoSidedMaterial => new VRML::NodeType ("TwoSidedMaterial", {
@@ -561,7 +559,7 @@ package VRML::NodeType;
 
 	###################################################################################
 
-	Box => new VRML::NodeType("Box", { 	
+	Box => new VRML::NodeType("Box", {
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		size => [SFVec3f, [2, 2, 2], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
 		solid => [SFBool, TRUE, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -660,13 +658,13 @@ package VRML::NodeType;
 		texCoordIndex => [MFInt32, [], initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 	},"X3DGeometryNode"),
 
-	Sphere => new VRML::NodeType("Sphere", { 	
+	Sphere => new VRML::NodeType("Sphere", {
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		radius => [SFFloat, 1.0, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
 		solid => [SFBool, TRUE, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__points =>[MFVec3f,[],initializeOnly, 0],
-		_sideVBO =>[SFInt32, 0, initializeOnly, 0], 
-		__SphereIndxVBO =>[SFInt32, 0, initializeOnly, 0], 
+		_sideVBO =>[SFInt32, 0, initializeOnly, 0],
+		__SphereIndxVBO =>[SFInt32, 0, initializeOnly, 0],
  	},"X3DGeometryNode"),
 
 
@@ -771,7 +769,7 @@ package VRML::NodeType;
 		spacing => [SFFloat, 1.0, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		style => [SFString, "PLAIN", initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		topToBottom => [SFBool, TRUE, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-	},"X3DFontStyleNode"), 
+	},"X3DFontStyleNode"),
 
 	###################################################################################
 
@@ -815,7 +813,7 @@ package VRML::NodeType;
 		source => [SFNode, NULL, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		spatialize => [SFBool, FALSE, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 	},"X3DSoundSourceNode"),
-	
+
 
 	###################################################################################
 
@@ -881,7 +879,7 @@ package VRML::NodeType;
 		url => [MFString, [], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		repeatS => [SFBool, TRUE, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		repeatT => [SFBool, TRUE, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		textureProperties => [SFNode, 0, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+		textureProperties => [SFNode, 0, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__textureTableIndex => [SFInt32, 0, initializeOnly, 0],
 		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
 	},"X3DTextureNode"),
@@ -902,7 +900,7 @@ package VRML::NodeType;
 		isPaused => [SFTime,0,outputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		repeatS => [SFBool, TRUE, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		repeatT => [SFBool, TRUE, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		textureProperties => [SFNode, 0, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+		textureProperties => [SFNode, 0, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__textureTableIndex => [SFInt32, 0, initializeOnly, 0],
 		 # which texture number is used
 		 #__ctex => [SFInt32, 0, initializeOnly, 0],
@@ -940,17 +938,17 @@ package VRML::NodeType;
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		repeatS => [SFBool, TRUE, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		repeatT => [SFBool, TRUE, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		textureProperties => [SFNode, 0, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+		textureProperties => [SFNode, 0, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
 		__textureTableIndex => [SFInt32, 0, initializeOnly, 0],
 	},"X3DTextureNode"),
 
-	TextureCoordinate => new VRML::NodeType("TextureCoordinate", { 
+	TextureCoordinate => new VRML::NodeType("TextureCoordinate", {
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		point => [MFVec2f, [], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 	},"X3DTextureCoordinateNode"),
 
-	TextureCoordinateGenerator => new VRML::NodeType("TextureCoordinateGenerator", { 
+	TextureCoordinateGenerator => new VRML::NodeType("TextureCoordinateGenerator", {
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		mode => [SFString,"SPHERE",inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		parameter => [MFFloat, [], inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -958,7 +956,7 @@ package VRML::NodeType;
 
 	TextureProperties => new VRML::NodeType("TextureProperties", {
 		anisotropicDegree => [SFFloat, 1.0, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		borderColor=>[SFColorRGBA,[0,0,0,0],inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+		borderColor=>[SFColorRGBA,[0,0,0,0],inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		borderWidth => [SFInt32, 0, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		boundaryModeS => [SFString, "REPEAT", inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		boundaryModeT => [SFString, "REPEAT", inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -969,7 +967,7 @@ package VRML::NodeType;
 		textureCompression => [SFString, "FASTEST", inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		texturePriority => [SFFloat, 0.0, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		generateMipMaps => [SFBool, FALSE, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		
+
 	}, "X3DSFNode"),
 
 	TextureTransform => new VRML::NodeType ("TextureTransform", {
@@ -1727,7 +1725,7 @@ package VRML::NodeType;
 			__oldJump => [SFBool, TRUE, inputOutput, 0],
 			__oldMFString => [MFString, [],inputOutput, 0], # the navType
 
-					
+
 					   },"X3DBindableNode"),
 
 	GeoOrigin => new VRML::NodeType("GeoOrigin", {
@@ -1743,7 +1741,7 @@ package VRML::NodeType;
 			__oldgeoCoords => [SFVec3d, [0, 0, 0], inputOutput, 0],
 			__oldMFString => [MFString, [],inputOutput, 0], # the navType
 			__rotyup => [SFVec4d, [0, 1, 0, 0], inputOutput, 0],
-			
+
 					},"X3DChildNode"),
 
 	GeoLocation => new VRML::NodeType("GeoLocation", {
@@ -1938,11 +1936,11 @@ package VRML::NodeType;
 
 			solid => [SFBool, TRUE,initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			uClosed => [SFBool, FALSE,initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-			uDimension => [SFInt32,0,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			uDimension => [SFInt32,0,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			uKnot => [MFDouble,[],initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			uOrder => [SFInt32,3,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			vClosed => [SFBool, FALSE,initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-			vDimension => [SFInt32,0,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			vDimension => [SFInt32,0,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			vKnot => [MFDouble,[],initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			vOrder => [SFInt32,3,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		},"X3DNurbsSurfaceGeometryNode"),
@@ -1973,10 +1971,10 @@ package VRML::NodeType;
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			position_changed => [SFVec3f,[0,0,0],outputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			normal_changed => [SFVec3f,[0,0,0],outputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-			uDimension => [SFInt32,0,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			uDimension => [SFInt32,0,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			uKnot => [MFDouble,[],initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-			uOrder => [SFInt32,3,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			vDimension => [SFInt32,0,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			uOrder => [SFInt32,3,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			vDimension => [SFInt32,0,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			vKnot => [MFDouble,[],initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			vOrder => [SFInt32,3,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		},"X3DChildNode"),
@@ -1988,7 +1986,7 @@ package VRML::NodeType;
 			ccw => [SFBool, TRUE, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			solid => [SFBool, TRUE, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		},"X3DParametricGeometryNode"),
-			
+
 	NurbsSwungSurface => new VRML::NodeType("NurbsSwungSurface", {
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			profileCurve =>[SFNode,NULL,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -1996,15 +1994,15 @@ package VRML::NodeType;
 			ccw => [SFBool, TRUE, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			solid => [SFBool, TRUE, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		},"X3DParametricGeometryNode"),
-			
+
 	NurbsTextureCoordinate => new VRML::NodeType("NurbsTextureCoordinate", {
 			controlPoint =>[MFVec2f,[],inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			weight => [MFFloat,[],inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-			uDimension => [SFInt32,0,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			uDimension => [SFInt32,0,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			uKnot => [MFDouble,[],initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-			uOrder => [SFInt32,3,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			vDimension => [SFInt32,0,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			uOrder => [SFInt32,3,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			vDimension => [SFInt32,0,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			vKnot => [MFDouble,[],initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			vOrder => [SFInt32,3,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		}, "X3DSFNode"),
@@ -2021,11 +2019,11 @@ package VRML::NodeType;
 			weight => [MFDouble,[],inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			solid => [SFBool, TRUE, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			uClosed => [SFBool, FALSE,initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-			uDimension => [SFInt32,0,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			uDimension => [SFInt32,0,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			uKnot => [MFDouble,[],initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			uOrder => [SFInt32,3,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			vClosed => [SFBool, FALSE,initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-			vDimension => [SFInt32,0,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			vDimension => [SFInt32,0,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			vKnot => [MFDouble,[],initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			vOrder => [SFInt32,3,inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		}, "X3DNurbsSurfaceGeometryNode"),
@@ -2059,7 +2057,7 @@ package VRML::NodeType;
 		kind => [SFInt32, 0, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		specific => [SFInt32, 0, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		subcategory => [SFInt32, 0, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		
+
 	},"X3DInfoNode"),
 
 
@@ -2400,7 +2398,7 @@ package VRML::NodeType;
 
 	###################################################################################
 
-	BooleanFilter => 
+	BooleanFilter =>
 	new VRML::NodeType("BooleanFilter", {
 			set_boolean =>[SFBool,undef,inputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			inputFalse => [SFBool, FALSE, outputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -2410,7 +2408,7 @@ package VRML::NodeType;
 	},"X3DChildNode"),
 
 
-	BooleanSequencer => 
+	BooleanSequencer =>
 	new VRML::NodeType("BooleanSequencer", {
 			next =>[SFBool,undef,inputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			previous =>[SFBool,undef,inputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -2422,7 +2420,7 @@ package VRML::NodeType;
 	},"X3DSequencerNode"),
 
 
-	BooleanToggle => 
+	BooleanToggle =>
 	new VRML::NodeType("BooleanToggle", {
 			set_boolean =>[SFBool,undef,inputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			toggle => [SFBool, FALSE, outputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -2430,7 +2428,7 @@ package VRML::NodeType;
 	},"X3DChildNode"),
 
 
-	BooleanTrigger => 
+	BooleanTrigger =>
 	new VRML::NodeType("BooleanTrigger", {
 			set_triggerTime => [SFTime,undef ,inputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			triggerTrue => [SFBool, FALSE, outputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -2438,7 +2436,7 @@ package VRML::NodeType;
 	},"X3DTriggerNode"),
 
 
-	IntegerSequencer => 
+	IntegerSequencer =>
 	new VRML::NodeType("IntegerSequencer", {
 			next =>[SFBool,undef,inputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			previous =>[SFBool,undef,inputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -2449,7 +2447,7 @@ package VRML::NodeType;
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 	},"X3DSequencerNode"),
 
-	IntegerTrigger => 
+	IntegerTrigger =>
 	new VRML::NodeType("IntegerTrigger", {
 			set_boolean =>[SFBool,undef,inputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			integerKey => [SFInt32, 0, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -2457,7 +2455,7 @@ package VRML::NodeType;
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 	},"X3DTriggerNode"),
 
-	TimeTrigger => 
+	TimeTrigger =>
 	new VRML::NodeType("TimeTrigger", {
 			set_boolean =>[SFBool,undef,inputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			triggerTime => [SFTime, 0, outputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -2565,331 +2563,331 @@ package VRML::NodeType;
 
 
 
-	#used mainly for PROTO invocation parameters 
-	MetadataSFFloat => new VRML::NodeType("MetadataSFFloat", { 
-			value => [SFFloat,0.0,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[SFFloat,0.0,outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[SFFloat,0.0,inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataSFFloat => new VRML::NodeType("MetadataSFFloat", {
+			value => [SFFloat,0.0,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[SFFloat,0.0,outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[SFFloat,0.0,inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataMFFloat => new VRML::NodeType("MetadataMFFloat", { 
-			value => [MFFloat,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[MFFloat,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[MFFloat,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataMFFloat => new VRML::NodeType("MetadataMFFloat", {
+			value => [MFFloat,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[MFFloat,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[MFFloat,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataSFRotation => new VRML::NodeType("MetadataSFRotation", { 
-			value => [SFRotation,[0,0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[SFRotation,[0,0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[SFRotation,[0,0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataSFRotation => new VRML::NodeType("MetadataSFRotation", {
+			value => [SFRotation,[0,0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[SFRotation,[0,0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[SFRotation,[0,0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataMFRotation => new VRML::NodeType("MetadataMFRotation", { 
-			value => [MFRotation,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[MFRotation,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[MFRotation,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataMFRotation => new VRML::NodeType("MetadataMFRotation", {
+			value => [MFRotation,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[MFRotation,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[MFRotation,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataSFVec3f => new VRML::NodeType("MetadataSFVec3f", { 
-			value => [SFVec3f,[0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[SFVec3f,[0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[SFVec3f,[0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataSFVec3f => new VRML::NodeType("MetadataSFVec3f", {
+			value => [SFVec3f,[0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[SFVec3f,[0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[SFVec3f,[0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataMFVec3f => new VRML::NodeType("MetadataMFVec3f", { 
-			value => [MFVec3f,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[MFVec3f,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[MFVec3f,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataMFVec3f => new VRML::NodeType("MetadataMFVec3f", {
+			value => [MFVec3f,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[MFVec3f,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[MFVec3f,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataSFBool => new VRML::NodeType("MetadataSFBool", { 
-			value => [SFBool,FALSE,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[SFBool,FALSE,outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[SFBool,FALSE,inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataSFBool => new VRML::NodeType("MetadataSFBool", {
+			value => [SFBool,FALSE,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[SFBool,FALSE,outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[SFBool,FALSE,inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataMFBool => new VRML::NodeType("MetadataMFBool", { 
-			value => [MFBool,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[MFBool,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[MFBool,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataMFBool => new VRML::NodeType("MetadataMFBool", {
+			value => [MFBool,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[MFBool,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[MFBool,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataSFInt32 => new VRML::NodeType("MetadataSFInt32", { 
-			value => [SFInt32,0,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[SFInt32,0,outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[SFInt32,0,inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataSFInt32 => new VRML::NodeType("MetadataSFInt32", {
+			value => [SFInt32,0,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[SFInt32,0,outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[SFInt32,0,inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataMFInt32 => new VRML::NodeType("MetadataMFInt32", { 
-			value => [MFInt32,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[MFInt32,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[MFInt32,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataMFInt32 => new VRML::NodeType("MetadataMFInt32", {
+			value => [MFInt32,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[MFInt32,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[MFInt32,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataSFNode => new VRML::NodeType("MetadataSFNode", { 
-			value => [SFNode,0,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[SFNode,0,outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[SFNode,0,inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataSFNode => new VRML::NodeType("MetadataSFNode", {
+			value => [SFNode,0,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[SFNode,0,outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[SFNode,0,inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataMFNode => new VRML::NodeType("MetadataMFNode", { 
-			value => [MFNode,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[MFNode,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[MFNode,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataMFNode => new VRML::NodeType("MetadataMFNode", {
+			value => [MFNode,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[MFNode,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[MFNode,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataSFColor => new VRML::NodeType("MetadataSFColor", { 
-			value => [SFColor,[0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[SFColor,[0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[SFColor,[0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataSFColor => new VRML::NodeType("MetadataSFColor", {
+			value => [SFColor,[0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[SFColor,[0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[SFColor,[0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataMFColor => new VRML::NodeType("MetadataMFColor", { 
-			value => [MFColor,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[MFColor,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[MFColor,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataMFColor => new VRML::NodeType("MetadataMFColor", {
+			value => [MFColor,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[MFColor,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[MFColor,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataSFColorRGBA => new VRML::NodeType("MetadataSFColorRGBA", { 
-			value => [SFColorRGBA,[0,0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[SFColorRGBA,[0,0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[SFColorRGBA,[0,0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataSFColorRGBA => new VRML::NodeType("MetadataSFColorRGBA", {
+			value => [SFColorRGBA,[0,0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[SFColorRGBA,[0,0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[SFColorRGBA,[0,0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataMFColorRGBA => new VRML::NodeType("MetadataMFColorRGBA", { 
-			value => [MFColorRGBA,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[MFColorRGBA,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[MFColorRGBA,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataMFColorRGBA => new VRML::NodeType("MetadataMFColorRGBA", {
+			value => [MFColorRGBA,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[MFColorRGBA,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[MFColorRGBA,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataSFTime => new VRML::NodeType("MetadataSFTime", { 
-			value => [SFTime,0,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[SFTime,0,outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[SFTime,0,inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataSFTime => new VRML::NodeType("MetadataSFTime", {
+			value => [SFTime,0,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[SFTime,0,outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[SFTime,0,inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataMFTime => new VRML::NodeType("MetadataMFTime", { 
-			value => [MFTime,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[MFTime,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[MFTime,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataMFTime => new VRML::NodeType("MetadataMFTime", {
+			value => [MFTime,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[MFTime,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[MFTime,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataSFString => new VRML::NodeType("MetadataSFString", { 
-			value => [SFString,"",inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[SFString,"",outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[SFString,"",inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataSFString => new VRML::NodeType("MetadataSFString", {
+			value => [SFString,"",inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[SFString,"",outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[SFString,"",inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataMFString => new VRML::NodeType("MetadataMFString", { 
-			value => [MFString,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[MFString,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[MFString,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataMFString => new VRML::NodeType("MetadataMFString", {
+			value => [MFString,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[MFString,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[MFString,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataSFVec2f => new VRML::NodeType("MetadataSFVec2f", { 
-			value => [SFVec2f,[0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[SFVec2f,[0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[SFVec2f,[0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataSFVec2f => new VRML::NodeType("MetadataSFVec2f", {
+			value => [SFVec2f,[0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[SFVec2f,[0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[SFVec2f,[0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataMFVec2f => new VRML::NodeType("MetadataMFVec2f", { 
-			value => [MFVec2f,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[MFVec2f,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[MFVec2f,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataMFVec2f => new VRML::NodeType("MetadataMFVec2f", {
+			value => [MFVec2f,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[MFVec2f,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[MFVec2f,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataSFImage => new VRML::NodeType("MetadataSFImage", { 
-			value => [SFImage,[0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[SFImage,[0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[SFImage,[0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataSFImage => new VRML::NodeType("MetadataSFImage", {
+			value => [SFImage,[0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[SFImage,[0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[SFImage,[0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataSFVec3d => new VRML::NodeType("MetadataSFVec3d", { 
-			value => [SFVec3d,[0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[SFVec3d,[0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[SFVec3d,[0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataSFVec3d => new VRML::NodeType("MetadataSFVec3d", {
+			value => [SFVec3d,[0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[SFVec3d,[0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[SFVec3d,[0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataMFVec3d => new VRML::NodeType("MetadataMFVec3d", { 
-			value => [MFVec3d,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[MFVec3d,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[MFVec3d,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataMFVec3d => new VRML::NodeType("MetadataMFVec3d", {
+			value => [MFVec3d,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[MFVec3d,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[MFVec3d,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataSFDouble => new VRML::NodeType("MetadataSFDouble", { 
-			value => [SFDouble,0,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[SFDouble,0,outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[SFDouble,0,inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataSFDouble => new VRML::NodeType("MetadataSFDouble", {
+			value => [SFDouble,0,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[SFDouble,0,outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[SFDouble,0,inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataMFDouble => new VRML::NodeType("MetadataMFDouble", { 
-			value => [MFDouble,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[MFDouble,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[MFDouble,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataMFDouble => new VRML::NodeType("MetadataMFDouble", {
+			value => [MFDouble,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[MFDouble,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[MFDouble,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataSFMatrix3f => new VRML::NodeType("MetadataSFMatrix3f", { 
-			value => [SFMatrix3f,[0,0,0,0,0,0,0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[SFMatrix3f,[0,0,0,0,0,0,0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[SFMatrix3f,[0,0,0,0,0,0,0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataSFMatrix3f => new VRML::NodeType("MetadataSFMatrix3f", {
+			value => [SFMatrix3f,[0,0,0,0,0,0,0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[SFMatrix3f,[0,0,0,0,0,0,0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[SFMatrix3f,[0,0,0,0,0,0,0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataMFMatrix3f => new VRML::NodeType("MetadataMFMatrix3f", { 
-			value => [MFMatrix3f,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[MFMatrix3f,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[MFMatrix3f,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataMFMatrix3f => new VRML::NodeType("MetadataMFMatrix3f", {
+			value => [MFMatrix3f,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[MFMatrix3f,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[MFMatrix3f,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataSFMatrix3d => new VRML::NodeType("MetadataSFMatrix3d", { 
-			value => [SFMatrix3d,[0,0,0,0,0,0,0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[SFMatrix3d,[0,0,0,0,0,0,0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[SFMatrix3d,[0,0,0,0,0,0,0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataSFMatrix3d => new VRML::NodeType("MetadataSFMatrix3d", {
+			value => [SFMatrix3d,[0,0,0,0,0,0,0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[SFMatrix3d,[0,0,0,0,0,0,0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[SFMatrix3d,[0,0,0,0,0,0,0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataMFMatrix3d => new VRML::NodeType("MetadataMFMatrix3d", { 
-			value => [MFMatrix3d,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[MFMatrix3d,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[MFMatrix3d,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataMFMatrix3d => new VRML::NodeType("MetadataMFMatrix3d", {
+			value => [MFMatrix3d,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[MFMatrix3d,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[MFMatrix3d,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataSFMatrix4f => new VRML::NodeType("MetadataSFMatrix4f", { 
-			value => [SFMatrix4f,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[SFMatrix4f,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[SFMatrix4f,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataSFMatrix4f => new VRML::NodeType("MetadataSFMatrix4f", {
+			value => [SFMatrix4f,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[SFMatrix4f,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[SFMatrix4f,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataMFMatrix4f => new VRML::NodeType("MetadataMFMatrix4f", { 
-			value => [MFMatrix4f,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[MFMatrix4f,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[MFMatrix4f,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataMFMatrix4f => new VRML::NodeType("MetadataMFMatrix4f", {
+			value => [MFMatrix4f,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[MFMatrix4f,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[MFMatrix4f,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataSFMatrix4d => new VRML::NodeType("MetadataSFMatrix4d", { 
-			value => [SFMatrix4d,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[SFMatrix4d,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[SFMatrix4d,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataSFMatrix4d => new VRML::NodeType("MetadataSFMatrix4d", {
+			value => [SFMatrix4d,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[SFMatrix4d,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[SFMatrix4d,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataMFMatrix4d => new VRML::NodeType("MetadataMFMatrix4d", { 
-			value => [MFMatrix4d,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[MFMatrix4d,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[MFMatrix4d,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataMFMatrix4d => new VRML::NodeType("MetadataMFMatrix4d", {
+			value => [MFMatrix4d,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[MFMatrix4d,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[MFMatrix4d,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataSFVec2d => new VRML::NodeType("MetadataSFVec2d", { 
-			value => [SFVec2d,[0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[SFVec2d,[0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[SFVec2d,[0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataSFVec2d => new VRML::NodeType("MetadataSFVec2d", {
+			value => [SFVec2d,[0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[SFVec2d,[0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[SFVec2d,[0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataMFVec2d => new VRML::NodeType("MetadataMFVec2d", { 
-			value => [MFVec2d,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[MFVec2d,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[MFVec2d,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataMFVec2d => new VRML::NodeType("MetadataMFVec2d", {
+			value => [MFVec2d,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[MFVec2d,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[MFVec2d,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataSFVec4f => new VRML::NodeType("MetadataSFVec4f", { 
-			value => [SFVec4f,[0,0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[SFVec4f,[0,0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[SFVec4f,[0,0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataSFVec4f => new VRML::NodeType("MetadataSFVec4f", {
+			value => [SFVec4f,[0,0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[SFVec4f,[0,0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[SFVec4f,[0,0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataMFVec4f => new VRML::NodeType("MetadataMFVec4f", { 
-			value => [MFVec4f,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[MFVec4f,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[MFVec4f,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataMFVec4f => new VRML::NodeType("MetadataMFVec4f", {
+			value => [MFVec4f,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[MFVec4f,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[MFVec4f,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataSFVec4d => new VRML::NodeType("MetadataSFVec4d", { 
-			value => [SFVec4d,[0,0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[SFVec4d,[0,0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[SFVec4d,[0,0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataSFVec4d => new VRML::NodeType("MetadataSFVec4d", {
+			value => [SFVec4d,[0,0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[SFVec4d,[0,0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[SFVec4d,[0,0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
-	#used mainly for PROTO invocation parameters 
-	MetadataMFVec4d => new VRML::NodeType("MetadataMFVec4d", { 
-			value => [MFVec4d,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			valueChanged=>[MFVec4d,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-			setValue =>[MFVec4d,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+	#used mainly for PROTO invocation parameters
+	MetadataMFVec4d => new VRML::NodeType("MetadataMFVec4d", {
+			value => [MFVec4d,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			valueChanged=>[MFVec4d,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			setValue =>[MFVec4d,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
@@ -3006,8 +3004,7 @@ package VRML::NodeType;
 		_bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 	},"X3DSensorNode"),
 
-); 
+);
 
 
 1;
-

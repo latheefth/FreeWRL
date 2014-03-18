@@ -1,6 +1,4 @@
 #
-# $Id$
-#
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
 # See the GNU Library General Public License (file COPYING in the distribution)
@@ -9,94 +7,6 @@
 # Field types, parsing and printing, Perl, C and Java.
 #
 # SFNode is in Parse.pm
-#
-# $Log$
-# Revision 1.14  2013/08/17 19:57:43  dug9
-# dug9 - touch ups for win32 pthreads struct initialization
-#
-# Revision 1.13  2013/08/16 15:43:48  crc_canada
-# more user definable shader component work. It should be complete, or close
-# to.
-#
-# Revision 1.12  2013/07/15 21:07:47  crc_canada
-# Component_CAD, initial Component_NURBS rework.
-#
-# Revision 1.11  2010/12/07 18:27:49  crc_canada
-# MALLOC changes;
-# some hidden fields now have real types, not FreeWRLPTR;
-# SFVec3f data type made.
-#
-# Revision 1.10  2010/12/03 19:55:21  crc_canada
-# changing from "void *" to more specific types.
-#
-# Revision 1.9  2010/02/28 17:22:55  crc_canada
-# more 64 bit conversions
-#
-# Revision 1.7  2010/02/19 21:23:21  crc_canada
-# more 64 bit changes....
-#
-# Revision 1.6  2010/02/03 21:20:33  crc_canada
-# More resource loading work.
-#
-# Revision 1.5  2010/02/02 20:53:18  crc_canada
-# removed JAS char string hack for resource_identify; changed nodes __parenturl field to _parentResource
-#
-# Revision 1.4  2009/06/12 20:13:00  crc_canada
-# Verifying Triangle nodes.
-#
-# Revision 1.3  2009/05/06 20:35:46  crc_canada
-# Modify SFColorRGBA and SFRotation to have array named c, not r for ease of code generation
-#
-# Revision 1.2  2009/03/10 21:00:34  crc_canada
-# checking in some ongoing PROTO support work in the Classic parser.
-#
-# Revision 1.1  2009/03/05 21:33:39  istakenv
-# Added code-generator perl scripts to new freewrl tree.  Initial commit, still need to patch them to make them work.
-#
-# Revision 1.83  2008/09/22 16:06:48  crc_canada
-# all fieldtypes now defined in freewrl code; some not parsed yet, though, as there are no supported
-# nodes that use them.
-#
-# Revision 1.82  2008/07/07 15:43:04  crc_canada
-# SFDouble, MFDouble, some compiler warnings reduced.
-#
-# Revision 1.81  2008/07/04 18:19:44  crc_canada
-# GeoPositionInterpolator, and start on GeoElevationGrid
-#
-# Revision 1.80  2008/06/24 19:37:48  crc_canada
-# Geospatial, June 24 2008 checkin
-#
-# Revision 1.79  2008/06/13 13:50:48  crc_canada
-# Geospatial, SF/MFVec3d support.
-#
-# Revision 1.78  2007/12/13 14:54:13  crc_canada
-# code cleanup and change to inputOnly, outputOnly, initializeOnly, inputOutput
-# ----------------------------------------------------------------------
-#
-# Revision 1.77  2007/03/20 20:36:10  crc_canada
-# MALLOC/REALLOC macros to check mallocs for errors.
-#
-# Revision 1.76  2007/02/27 13:32:15  crc_canada
-# initialize inputOnly fields to a zero value.
-#
-# Revision 1.75  2007/02/13 22:45:24  crc_canada
-# PixelTexture default image should now be ok
-#
-# Revision 1.74  2006/12/19 19:05:01  crc_canada
-# Memory leaks and corruptions being worked on.
-#
-# Revision 1.73  2006/10/23 18:28:11  crc_canada
-# More changes and code cleanups.
-#
-# Revision 1.72  2006/10/19 18:28:46  crc_canada
-# More changes for removing Perl from the runtime
-#
-# Revision 1.71  2006/10/18 20:22:43  crc_canada
-# More removal of Perl code
-#
-# Revision 1.70  2006/08/18 17:47:37  crc_canada
-# Javascript initialization
-#
 #
 
 # Field types. NOTE: Keep this order correct in the PARSE_TYPE in CFuncs/CParseParser.c file
