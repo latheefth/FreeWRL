@@ -72,11 +72,20 @@ bool textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename);
 #define DDSCAPS2_CUBEMAP_NEGATIVEZ  0x00008000 
 #define DDSCAPS2_VOLUME             0x00200000 
 
+/* old way - use 4-char string and cast later, not a good idea 
 #define D3DFMT_DXT1     "1TXD"    //  DXT1 compression texture format 
 #define D3DFMT_DXT2     "2TXD"    //  DXT2 compression texture format 
 #define D3DFMT_DXT3     "3TXD"    //  DXT3 compression texture format 
 #define D3DFMT_DXT4     "4TXD"    //  DXT4 compression texture format 
 #define D3DFMT_DXT5     "5TXD"    //  DXT5 compression texture format 
+*/
+/* new way - use actual four-byte unsigned integer value */
+#define D3DFMT_DXT1	0x31545844
+#define D3DFMT_DXT2	0x32545844
+#define D3DFMT_DXT3	0x33545844
+#define D3DFMT_DXT4	0x34545844
+#define D3DFMT_DXT5	0x35545844
+
 
 #define PF_IS_DXT1(pf) \
   ((pf.dwFlags & DDPF_FOURCC) && \
