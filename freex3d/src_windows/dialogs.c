@@ -5,6 +5,7 @@
 #include <Commdlg.h>
 #include <Cderr.h>
 #include <malloc.h>
+#include <stdio.h>
 char *strBackslash2fore(char *str);
 char* esPickFile(HWND hwnd)
 {

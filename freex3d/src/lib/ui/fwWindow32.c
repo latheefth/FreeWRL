@@ -209,7 +209,6 @@ BOOL bSetupPixelFormat(HDC hdc)
 	/* http://msdn.microsoft.com/en-us/library/dd318284(VS.85).aspx */
     PIXELFORMATDESCRIPTOR pfd, *ppfd; 
     int pixelformat; 
-	int more;
 
 	ppfd = &pfd; 
 
@@ -256,11 +255,9 @@ BOOL bSetupPixelFormat(HDC hdc)
 bool fv_create_and_bind_GLcontext(freewrl_params_t* d)
 {
 
-	RECT rect;
 	HDC hDC;
 	HGLRC hRC;
 	HWND hWnd;
-	int width, height;
 
 	/* create GL context */
 	//fwl_thread_dump();
@@ -718,6 +715,9 @@ void printbitssimple(int n) {
 		if(j%8 == 0) printf(" ");
 	}
 }
+void statusbar_set_window_size(int width, int height);
+void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY);
+
 //void setArrowCursor0();
 LRESULT CALLBACK PopupWndProc( 
     HWND hWnd, 
@@ -728,18 +728,15 @@ LRESULT CALLBACK PopupWndProc(
     PAINTSTRUCT ps;
     LONG lRet = 1; 
     RECT rect; 
-    char kp;
 	int keyraw;
-    int mev,err;
+    int mev;
     int butnum;
 	int updown;
 	int actionKey;
 static int altState = 0;
-	int altDown;
 	int lkeydata;
 static int shiftState = 0;
 	HDC   ghDC; 
-	HGLRC ghRC; 
     mev = 0;
     butnum = 0;
 
@@ -1134,7 +1131,6 @@ char *getWgetPath()
 		}
 		else
 		{
-			int len;
 			wgetpath = &szPath[1];
 			PathRemoveFileSpec(wgetpath);
 			PathAppend(wgetpath,"wget.exe"); 
@@ -1156,7 +1152,6 @@ HWND create_main_window0(freewrl_params_t * d) //int argc, char *argv[])
     HINSTANCE hInstance; 
     WNDCLASS wc;
 	DWORD wStyle   = 0;
-    MSG msg;
 	HWND  ghWnd;   
     //RECT rect; 
 	int width, height;

@@ -171,7 +171,7 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				ProgramDataBaseFileName="$(OutDir)\vc90.pdb"
-				WarningLevel="2"
+				WarningLevel="3"
 				DebugInformationFormat="4"
 			/>
 			<Tool

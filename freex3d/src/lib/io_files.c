@@ -51,6 +51,7 @@
 #else
 #include <direct.h> //for getcwd
 #define getcwd _getcwd
+#define mkdir _mkdir
 #endif
 #include <limits.h>   /* SSIZE_MAX */
 
@@ -66,6 +67,14 @@ void append_openned_file(s_list_t *list, const char *filename, int fd, char *tex
 int inputFileType = IS_TYPE_UNKNOWN;
 int inputFileVersion[3] = {0,0,0};
 
+
+int fw_mkdir(const char* path){
+#ifdef _MSC_VER
+	return mkdir(path);
+#else
+	return mkdir(path,0755);
+#endif
+}
 
 /**
  *   concat_path: concat two string with a / in between
@@ -830,7 +839,6 @@ BOOL DeleteDirectory0(const TCHAR* sPath) {
 	return RemoveDirectory(sPath); // remove the empty directory
 }
 BOOL directory_remove_all(const char* sPath) {
-    const size_t newsize;
 	int jj;
     size_t convertedChars = 0;
     TCHAR wcstring[MAX_PATH];
@@ -949,7 +957,6 @@ int unzip_archive_to_temp_folder(const char *zipfilename, const char* tempfolder
 {
 
     const char *filename_to_extract=NULL;
-    int i;
     int ret_value=0;
     const char *dirname=NULL;
 	char temppath[256];
@@ -1115,8 +1122,7 @@ void process_x3z(resource_item_t *res){
 	char* tempfolderpath = tempnam(gglobal()->Mainloop.tmpFileLocation, "freewrl_download_XXXXXXXX");
 	err = unzip_archive_to_temp_folder(res->actual_file, tempfolderpath);
 	if(!err){
-		resource_item_t *docx3d, *tempdir;
-		openned_file_t *of;
+		resource_item_t *docx3d;
 		//I need a resource just for cleaning up the temp folder in one shot
 		strcpy(request,tempfolderpath);
 		strcat(request,"/doc.x3d");

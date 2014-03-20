@@ -2152,7 +2152,7 @@ void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY)
 }
 char *getMessageBar(); //in common.c
 
-
+void fwl_setClipPlane(int height);
 void drawStatusBar() 
 {
 	/* drawStatusBar() is called just before swapbuffers in mainloop so anything that you want to render 2D

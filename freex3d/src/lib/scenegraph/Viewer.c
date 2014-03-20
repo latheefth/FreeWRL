@@ -283,7 +283,7 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 }
 
 
-
+int getCRouteCount();
 void printStatsRoutes()
 {
 	ConsoleMessage("Routes count = %d\n", getCRouteCount());
@@ -297,7 +297,9 @@ void printStatsBindingStacks()
 	ConsoleMessage("Navigation stack count %d\n", tg->Bindable.navigation_stack->n);	
 	ConsoleMessage("Viewpoint stack count %d\n", tg->Bindable.viewpoint_stack->n);	
 }
-
+void printStatsResources();
+void printStatsEvents();
+void printStatsNodes();
 void printStats()
 {
 	printMaxStackUsed();

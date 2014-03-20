@@ -651,6 +651,8 @@ void resetGeometry();
 	/****************************************************************/
 
 	#if defined(_MSC_VER) 
+		void fwMessageLoop();
+		void fwSwapBuffers(freewrl_params_t * d);
 		#define FW_GL_SWAPBUFFERS fwSwapBuffers(&gglobal()->display.params); //SwapBuffers(wglGetCurrentDC());
 	#endif
 

@@ -106,5 +106,6 @@ int determineFileType(const unsigned char *buffer, const int len);
 #define close _close
 #define open _open
 #define read _read
+#define write _write
 #endif
 #endif /* __LIBFREEWRL_IO_FILES_H__ */

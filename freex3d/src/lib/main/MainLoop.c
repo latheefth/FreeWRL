@@ -601,13 +601,7 @@ void splitpath_local_suffix(const char *url, char **local_name, char **suff);
 #endif //FRONTEND_DOES_SNAPSHOTS
 
 
-int fw_mkdir(char* path){
-#ifdef _MSC_VER
-	return mkdir(path);
-#else
-	return mkdir(path,0755);
-#endif
-}
+
 int fw_exit(int val)
 {
 	if(1){
@@ -618,7 +612,7 @@ int fw_exit(int val)
 }
 
 #if !defined(FRONTEND_DOES_SNAPSHOTS)
-
+int fw_mkdir(char* path);
 void fwl_RenderSceneUpdateScene() {
 	double dtime;
 	ttglobal tg = gglobal();
@@ -4123,7 +4117,7 @@ void view_update0(void){
 		restoreGlobalShader();
 	#endif
 }
-
+void killNodes();
 void _displayThread(void *globalcontext)
 {
 	/*

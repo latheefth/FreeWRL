@@ -261,7 +261,7 @@ void fwl_setScreenDim(int wi, int he)
     if (gglobal()->display.screenHeight != 0) gglobal()->display.screenRatio = (double) gglobal()->display.screenWidth/(double) gglobal()->display.screenHeight;
     else gglobal()->display.screenRatio =  gglobal()->display.screenWidth;
 }
-fwl_setClipPlane(int height)
+void fwl_setClipPlane(int height)
 {
 	//this should be 2 numbers, one for top and bottom
 	//right now the statusbarHud -which shares the opengl window with the scene- takes 16 pixels on the bottom
