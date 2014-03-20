@@ -48,6 +48,9 @@
 
 #ifndef _MSC_VER
 #include <sys/mman.h> /* mmap */
+#else
+#include <direct.h> //for getcwd
+#define getcwd _getcwd
 #endif
 #include <limits.h>   /* SSIZE_MAX */
 
@@ -136,6 +139,7 @@ char *strBackslash2fore(char *str)
 #endif
 	return str;
 }
+
 char *get_current_dir()
 {
 	char *cwd , *retvar;

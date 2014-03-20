@@ -342,7 +342,7 @@ quaternion_multiply(Quaternion *ret, const Quaternion *q1, const Quaternion *q2)
 }
 
 void
-quaternion_scalar_multiply(Quaternion *quat, double s)
+quaternion_scalar_multiply(Quaternion *quat, const double s)
 {
 	quat->w *= s;
 	quat->x *= s;

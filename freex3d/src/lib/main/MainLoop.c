@@ -518,7 +518,7 @@ double Time1970sec()
 	GetSystemTimeAsFileTime(&ft); //higher resolution 100nanosec but systemtime can change with internet updates
 	ul.LowPart = ft.dwLowDateTime;
 	ul.HighPart = ft.dwHighDateTime;
-	return ((double)(ul.QuadPart))*.0001; //100 nanosecond resolution
+	return ((double)(ul.QuadPart))*.0000001; //they say 100 nanosecond resolution, but .1 nanoseconds seems to work
 		
 	//return ((double)(GetTickCount64())) * .001; //in millisec with 10 to 16ms resolution, lower resolution but no internet updates
 }
@@ -1949,7 +1949,7 @@ void setup_projection(int pick, int x, int y)
 		bool expand = viewer->screendist > .5f;
 		expansion = viewer->screendist - .5;
 		expansion = fabs(expansion);
-		iexpand = expansion * screenwidth2;
+		iexpand = (GLint)(expansion * screenwidth2);
 		//assume: the viewpoint is centered in the viewport
 		//there are 2 viewports, one for left and one for right
 		//so if you want to spread the screen eyebase out, 

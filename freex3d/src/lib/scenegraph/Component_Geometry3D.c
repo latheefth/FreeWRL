@@ -411,14 +411,14 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, node->__cylinderVBO);
 
-		FW_GL_VERTEX_POINTER(3, GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
-		FW_GL_NORMAL_POINTER(GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
+		FW_GL_VERTEX_POINTER(3, GL_FLOAT, (GLsizei)sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
+		FW_GL_NORMAL_POINTER(GL_FLOAT, (GLsizei) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
 
 		/* set up texture drawing for this guy */
         mtf.pre_canned_textureCoords = NULL;
 		mtf.TC_size = 2;
 		mtf.TC_type = GL_FLOAT;
-		mtf.TC_stride = (GLfloat) sizeof(struct MyVertex);
+		mtf.TC_stride = sizeof(struct MyVertex);
 		mtf.TC_pointer = BUFFER_OFFSET(24);
 		textureDraw_start(&mtf);
 		/* FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, ConeIndxVBO); */
@@ -582,14 +582,14 @@ void render_Cone (struct X3D_Cone *node) {
 
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, node->__coneVBO);
 
-		FW_GL_VERTEX_POINTER(3, GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
-		FW_GL_NORMAL_POINTER(GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
+		FW_GL_VERTEX_POINTER(3, GL_FLOAT, (GLsizei) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
+		FW_GL_NORMAL_POINTER(GL_FLOAT, (GLsizei) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
 
 		/* set up texture drawing for this guy */
         mtf.pre_canned_textureCoords = NULL;
 		mtf.TC_size = 2;
 		mtf.TC_type = GL_FLOAT;
-		mtf.TC_stride = (GLfloat) sizeof(struct MyVertex);
+		mtf.TC_stride = sizeof(struct MyVertex);
 		mtf.TC_pointer = BUFFER_OFFSET(24);
 		textureDraw_start(&mtf);
 PRINT_GL_ERROR_IF_ANY("END1 render_geom");
@@ -769,12 +769,12 @@ void render_Sphere (struct X3D_Sphere *node) {
 
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, (GLuint) node->_sideVBO);
 
-		FW_GL_VERTEX_POINTER(3, GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
-		FW_GL_NORMAL_POINTER(GL_FLOAT, (GLfloat)  sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
+		FW_GL_VERTEX_POINTER(3, GL_FLOAT, sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
+		FW_GL_NORMAL_POINTER(GL_FLOAT, sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
                 mtf.pre_canned_textureCoords = NULL;
                 mtf.TC_size = 2;
                 mtf.TC_type = GL_FLOAT;
-                mtf.TC_stride = (GLfloat) sizeof(struct MyVertex);
+                mtf.TC_stride = sizeof(struct MyVertex);
                 mtf.TC_pointer = BUFFER_OFFSET(24);
 		textureDraw_start(&mtf);
 

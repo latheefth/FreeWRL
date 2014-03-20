@@ -390,7 +390,7 @@ typedef struct pstatusbar{
 	GLuint textureLoc;
 	GLuint color4fLoc;
 	pmenu_t pmenu;
-	float buttonSize; //size of menu buttons, in pixels - default 32
+	int buttonSize; //size of menu buttons, in pixels - default 32
 	GLfloat textColor[4];
 	int screenWidth, screenHeight, clipPlane;
 }* ppstatusbar;
@@ -1295,7 +1295,7 @@ void convertPng2hexAlpha()
 				{
 					int datai;
 					// value = Red * Alpha (if I don't do this, the reconstructed lumalpha icons will look fat/ swollen/ smudged
-					datai = (int)((float) data[i] * (float)data[i+3])/255.0f;
+					datai = (int)(((float) data[i] * (float)data[i+3])/255.0f);
 					//this octal string writing method matches how Gimp write images to C 
 					//weird part: if an octal /xxx has less than 3 digits, and the next
 					//thing is a '0' to '9' then you need to break the string with 
@@ -1412,7 +1412,7 @@ void initButtons()
 		p->pmenu.tex = (GLfloat*)malloc(2*4*buttonAtlasSquared*sizeof(GLfloat));
 		p->pmenu.ind = (GLushort*)malloc(3*2*buttonAtlasSquared*sizeof(GLushort));
 		p->pmenu.yoffset = 0.0f;
-		if(p->pmenu.top) p->pmenu.yoffset = p->screenHeight - p->buttonSize; //32.0f;
+		if(p->pmenu.top) p->pmenu.yoffset = (float)(p->screenHeight - p->buttonSize); //32.0f;
 		for(i=0;i<p->pmenu.nitems;i++)
 		{
 			int j,k,irow,icol;
@@ -1502,8 +1502,8 @@ void initButtons()
 			*/
 			xyxy[0].x = 0.0f;
 			xyxy[0].y = 0.0f; //we'll need to compute yoffset in draw
-			xyxy[1].x = p->buttonSize;
-			xyxy[1].y = p->buttonSize;
+			xyxy[1].x = (GLfloat)p->buttonSize;
+			xyxy[1].y = (GLfloat)p->buttonSize;
 			dx = xyxy[1].x - xyxy[0].x;
 			for(j=0;j<2;j++) //row 
 			{
@@ -1541,7 +1541,7 @@ void initButtons()
 	}
 	for(i=0;i<p->pmenu.nitems;i++)
 	{
-		float bz = p->buttonSize;
+		int bz = p->buttonSize;
 //		p->pmenu.items[i].butrect[0] = 5+(i*32);			/* lower left  x */
 //		p->pmenu.items[i].butrect[1] = 0 + p->pmenu.yoffset;/* lower left  y */
 //		p->pmenu.items[i].butrect[2] = 5+(i*32)+32;			/* upper right x */
@@ -1844,7 +1844,7 @@ void updateButtonVertices()
 	p = (ppstatusbar)tg->statusbar.prv;
 
 	p->pmenu.yoffset = 0.0f;
-	if(p->pmenu.top) p->pmenu.yoffset = p->screenHeight - p->buttonSize; //32.0f;
+	if(p->pmenu.top) p->pmenu.yoffset = (float)(p->screenHeight - p->buttonSize); //32.0f;
 
 	for(i=0;i<p->pmenu.nitems;i++)
 	{

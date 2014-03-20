@@ -112,6 +112,7 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
 #endif
 #undef verbose
    bool flipVertically = true;
+
    Rect rect(0,0,bitmap->GetWidth(),bitmap->GetHeight());
    if(flipVertically)
 		bitmapData->Stride = -bitmap->GetWidth()*4;
