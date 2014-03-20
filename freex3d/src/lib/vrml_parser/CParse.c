@@ -78,11 +78,7 @@ BOOL cParse(void* ptr, unsigned ofs, const char* data) {
 
 	#ifdef TIMING
 	double startt, endt;
-	struct timeval mytime;
-	struct timezone tz; /* unused see man gettimeofday */
-
-	gettimeofday (&mytime,&tz);
-	startt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+	startt = Time1970sec();
 	#endif
  	if (!tg->CParse.globalParser) {
 		/* printf ("cParse, new parser\n"); */
@@ -123,8 +119,7 @@ BOOL cParse(void* ptr, unsigned ofs, const char* data) {
 	lexer_forceStringCleanup(parser->lexer);
 
 	#ifdef TIMING
-	gettimeofday (&mytime,&tz);
-	endt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+	endt = Time1970sec();
 	printf ("time taken %lf\n",endt-startt);
 	#endif
 

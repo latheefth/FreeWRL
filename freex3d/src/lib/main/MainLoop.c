@@ -2069,8 +2069,6 @@ static void render()
 //#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
 	/*  profile*/
     /* double xx,yy,zz,aa,bb,cc,dd,ee,ff;*/
-    /* struct timeval mytime;*/
-    /* struct timezone tz; unused see man gettimeofday */
 
 	for (count = 0; count < p->maxbuffers; count++) {
 

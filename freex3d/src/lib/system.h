@@ -252,10 +252,6 @@ char *__fw_strndup(const char *s, size_t n);
 #define sleep(us) Sleep(us)
 #endif
 
-#if !defined(HAVE_GETTIMEOFDAY) 
-#define gettimeofday __fw_gettimeofday
-int __fw_gettimeofday(struct timeval *tv, struct timezone *tz);
-#endif
 double Time1970sec(void);
 
 #define snprintf _snprintf

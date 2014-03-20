@@ -1304,7 +1304,6 @@ render_hier(struct X3D_Group *g, int rwhat) {
 
 #ifdef render_pre_profile
 	if (rs->render_geom) {
-		gettimeofday (&mytime,&tz);
 		bb = Time1970sec();
 	}
 #endif
@@ -1315,7 +1314,6 @@ render_hier(struct X3D_Group *g, int rwhat) {
 
 #ifdef render_pre_profile
 	if (rs->render_geom) {
-		gettimeofday (&mytime,&tz);
 		cc = Time1970sec();
 	}
 #endif
