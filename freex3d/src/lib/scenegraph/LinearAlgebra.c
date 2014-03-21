@@ -609,7 +609,7 @@ BOOL matrix3x3_inverse_float(float *inn, float *outt)
     else {
 
         /* Calculate inverse(A) = adj(A) / det(A) */
-        det_1 = 1.0 / det_1;
+        det_1 = 1.0f / det_1;
         out[0][0] =  (in[1][1] * in[2][2] - in[1][2] * in[2][1] ) * det_1;
         out[1][0] = -(in[1][0] * in[2][2] - in[1][2] * in[2][0] ) * det_1;
         out[2][0] =  (in[1][0] * in[2][1] - in[1][1] * in[2][0] ) * det_1;

@@ -326,10 +326,10 @@ typedef struct {
 
 static void fromLong(unsigned long  myword, char *buffer)
 {
-  buffer[0] = (myword & 0x000000ff) >> 0;
-  buffer[1] = (myword & 0x0000ff00) >> 8;
-  buffer[2] = (myword & 0x00ff0000) >> 16;
-  buffer[3] = (myword & 0xff000000) >> 24;
+  buffer[0] = (unsigned char)((myword & 0x000000ff) >> 0);
+  buffer[1] = (unsigned char)((myword & 0x0000ff00) >> 8);
+  buffer[2] = (unsigned char)((myword & 0x00ff0000) >> 16);
+  buffer[3] = (unsigned char)((myword & 0xff000000) >> 24);
 }
 
 static void fromShort(unsigned short  myword, char *buffer)
