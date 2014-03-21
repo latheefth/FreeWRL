@@ -252,14 +252,14 @@ char *__fw_strndup(const char *s, size_t n);
 #define sleep(us) Sleep(us)
 #endif
 
-double Time1970sec(void);
-
 #define snprintf _snprintf
 
 #define fmin min
 #define fmax max
 
 #endif /* _MSC_VER */
+
+double Time1970sec(void);
 
 
 #endif /* __LIBFREEWRL_SYSTEM_H__ */
