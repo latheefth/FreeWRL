@@ -10,7 +10,7 @@
 
 /* Directory for fonts. C:/Program Files/CRC/fonts */
 #undef FONTS_DIR
-#define FONTS_DIR "E:/fonts"
+#define FONTS_DIR "C:\\Windows\\Fonts"
 
 /* The FreeWRL message wrapper program name. */
 #undef FREEWRL_MESSAGE_WRAPPER
