@@ -520,7 +520,8 @@ double Time1970sec()
 	//ul.HighPart = ft.dwHighDateTime;
 	//return ((double)(ul.QuadPart))*.0000001; //they say 100 nanosecond resolution, but .1 nanoseconds seems to work
 		
-	return ((double)(GetTickCount64())) * .001; //in millisec with 10 to 16ms resolution, lower resolution but no internet updates
+	//return ((double)(GetTickCount64())) * .001; //winxp doesn't have this in millisec with 10 to 16ms resolution, lower resolution but no internet updates
+	return ((double)(GetTickCount())) * .001; //
 }
 
 /* #endif */
