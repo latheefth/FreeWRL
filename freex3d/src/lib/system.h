@@ -48,7 +48,7 @@ Internal header: system dependencies.
 
 
 /* do we have JavaScript? */
-#if defined(IPHONE) || defined(_ANDROID) || defined (AQUA)
+#if defined(IPHONE) || defined(_ANDROID) || defined (AQUA) || defined(NO_JAVASCRIPT)
 	#undef HAVE_JAVASCRIPT
 #else
 	/* Everything has JavaScript */
