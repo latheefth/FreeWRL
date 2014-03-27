@@ -38,21 +38,10 @@
 const char *libFreeWRL_get_version(void) {return FW_BUILD_VERSION_STR;}
 #endif //OSX
 
-/* Status variables */
-/* cursors are a 'shared resource' meanng you only need one cursor for n windows,
-  not per-instance cursors (except multi-touch multi-cursors)
-  However cursor style choice could/should be per-window/instance
-*/
-int ccurse = ACURSE;
-int ocurse = ACURSE;
 
-
-//extern float myFps;
 #define MAXSTAT 200
-//extern char myMenuStatus[MAXSTAT];
-//extern char messagebar[MAXSTAT];
+
 #define MAXTITLE 200
-//extern char window_title[MAXTITLE];
 
 /* textual status messages */
 typedef struct pcommon{
@@ -195,31 +184,9 @@ void setSensorCursor()
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 	p->cursorStyle = SCURSE;
 }
-void updateCursorStyle0(int cstyle);
-void updateCursorStyle()
+int getCursorStyle()
 {
-	/* Multi-window apps - there's only one mouse cursor -it's a shared resource.
-	   But the cursor style is owned by each window/freewrl iglobal instance.
-	   How does a window know which global instance to ask for style?
-	   Simple: when a window gets mouse events, that means the mouse is in 
-	   that window. So get the iglobal that goes with that window, and ask 
-	   it for the cursor style.
-		So a good place to call this updateCursorStyle is near/after 
-		freewrl gets a mouse event, like handle_aqua or handle_mev.
-	 */
-	int cstyle;
 	ppcommon p = (ppcommon)gglobal()->common.prv;
-
-	cstyle = p->cursorStyle;
-#ifdef _MSC_VER
-	updateCursorStyle0(cstyle); /* in fwWindow32 where cursors are loaded */
-#else
-
-	ccurse = ocurse = cstyle;
-
-#if !defined (_ANDROID) 
-	/* ANDROID - no cursor style right now */
-	setCursor(); /*updateCursorStyle0(cstyle); // in fwWindow32 where cursors are loaded */
-#endif //ANDROID
-#endif
+	return p->cursorStyle;
 }
+

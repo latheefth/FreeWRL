@@ -123,6 +123,7 @@ int fwg_get_unread_message_count();
 char *fwg_get_last_message();
 int fwl_StringConsoleMessage(char* consoleBuffer);
 void fwg_updateConsoleStatus(); //for console programs only - sent to printf
+void fwg_register_consolemessage_callback(void(*callback)(char *));
 
 void fwg_setConsoleParam_maxLines(int maxLines)
 {

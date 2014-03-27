@@ -718,7 +718,6 @@ void printbitssimple(int n) {
 void statusbar_set_window_size(int width, int height);
 void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY);
 
-//void setArrowCursor0();
 LRESULT CALLBACK PopupWndProc( 
     HWND hWnd, 
     UINT msg, 
@@ -779,11 +778,6 @@ static int shiftState = 0;
 		fwl_doQuit();
 	break; 
 
-  //  case WM_SETCURSOR:
-	 //  //setLastCursor();
-		//printf("_");
-	 //  //setArrowCursor0();
-	 //  break;
 
 /**************************************************************\
  *     WM_PAINT:                                                *
@@ -997,11 +991,6 @@ static int shiftState = 0;
     {
 	/*void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);*/
 	/* butnum=1 left butnum=3 right (butnum=2 middle, not used by freewrl) */
-	//int cstyle = getCursorStyle(hWnd);
-	//if(cstyle == SCURSE)
-	//	SetCursor(hSensor);
-	//if(cstyle == ACURSE)
-	//	SetCursor(hArrow);
 #ifdef STATUSBAR_HUD
 		statusbar_handle_mouse(mev, butnum, mouseX, mouseY);
 #else
@@ -1036,40 +1025,7 @@ int doEventsWin32A()
 void fwMessageLoop(){
 	doEventsWin32A();
 }
-/*
-//bool lastCursorArrow = true;
-void setSensorCursor()
-{
-	//lastCursorArrow = false;
-	SetCursor(hSensor);
-	printf("S");
-}
-void setArrowCursor()
-{
-	//lastCursorArrow = true;
-	SetCursor(hArrow);
-	printf("^");
-}
-*/
-//void setLastCursor()
-//{
-//	printf("_");
-//	if(lastCursorArrow)
-//		setArrowCursor();
-//	else
-//		setSensorCursor();
-//}
 
-//void setCursor()
-//{
-//	switch (ccurse) {
-//	case SCURSE: cursor = hSensor;
-//	case ACURSE: cursor = hArrow;
-//	default:
-//		DEBUG_MSG("setCursor: invalid value for ccurse: %d\n", ccurse);
-//	}
-//	SetCursor(cursor);
-//}
 void fv_setGeometry_from_cmdline(const char *gstring)
 {
 	int w,h,i;

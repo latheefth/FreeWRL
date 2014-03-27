@@ -24,15 +24,6 @@ Functions:
 #define SCURSE 1
 #define ACURSE 0
 
-#define SENSOR_CURSOR ccurse = SCURSE
-#define ARROW_CURSOR  ccurse = ACURSE
-
-/* Status variables */
-
-extern int ccurse;
-extern int ocurse;
-
-
 
 /* Status update functions */
 

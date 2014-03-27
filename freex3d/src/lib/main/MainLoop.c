@@ -1273,7 +1273,6 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
                 /* do we need to re-define cursor style?        */
                 /* do we need to send an isOver event?          */
                 if (p->CursorOverSensitive!= NULL) {
-					//SENSOR_CURSOR;
 					setSensorCursor();
 
                         /* is this a new node that we are now over?
@@ -1288,10 +1287,8 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
                 } else {
                         /* hold off on cursor change if dragging a sensor */
                         if (p->lastPressedOver!=NULL) {
-							//SENSOR_CURSOR;
 							setSensorCursor();
                         } else {
-							//ARROW_CURSOR;
 							setArrowCursor();
                         }
 
@@ -4077,6 +4074,38 @@ int view_initialize0(void){
 }
 #endif /* KEEP_FV_INLIB */
 
+#ifdef _MSC_VER
+void updateCursorStyle0(int cstyle);
+void updateViewCursorStyle(int cstyle)
+{
+	updateCursorStyle0(cstyle);
+}
+#else
+/* Status variables */
+/* cursors are a 'shared resource' meanng you only need one cursor for n windows,
+not per-instance cursors (except multi-touch multi-cursors)
+However cursor style choice could/should be per-window/instance
+*/
+int ccurse = ACURSE;
+int ocurse = ACURSE;
+
+void updateViewCursorStyle(int cstyle)
+{
+	ccurse = ocurse = cstyle;
+#if !defined (_ANDROID) 
+	/* ANDROID - no cursor style right now */
+	setCursor(); /*updateCursorStyle0(cstyle); // in fwWindow32 where cursors are loaded */
+#endif //ANDROID
+}
+#endif
+
+static int frontend_using_cursor = 0;
+void fwl_set_frontend_using_cursor(int on)
+{
+	//used by statusbarHud to shut off cursor settings coming from sensitive nodes
+	//while the mouse is over the statusbar or menu buttons.
+	frontend_using_cursor = on;
+}
 void view_update0(void){
 	#ifdef _MSC_VER
 		fwMessageLoop(); //message pump 
@@ -4087,6 +4116,8 @@ void view_update0(void){
 		drawStatusBar();  // View update
 		restoreGlobalShader();
 	#endif
+		if (!frontend_using_cursor)
+			updateViewCursorStyle(getCursorStyle()); /* in fwWindow32 where cursors are loaded */
 }
 void killNodes();
 void _displayThread(void *globalcontext)
@@ -4522,7 +4553,7 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
 	{
 		fwl_handle_aqua_multi(mev,button,x,y,0);
 
-		updateCursorStyle(); 
+		//updateCursorStyle(); 
 	}
 }
 
@@ -4814,8 +4845,7 @@ void resetSensorEvents(void) {
 	p->num_SensorEvents = 0;
 	gglobal()->RenderFuncs.hypersensitive = NULL;
 	gglobal()->RenderFuncs.hyperhit = 0;
-	/* Cursor - ensure it is not the "sensitive" cursor */
-/*	ARROW_CURSOR; */
+
 }
 
 #if defined (_ANDROID) || defined (AQUA)

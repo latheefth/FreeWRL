@@ -445,11 +445,8 @@ void rdr_caps_dump(s_renderer_capabilities_t *rdr_caps);
 extern int ccurse;
 extern int ocurse;
 
-#define SCURSE 1
-#define ACURSE 0
-
-#define SENSOR_CURSOR ccurse = SCURSE
-#define ARROW_CURSOR  ccurse = ACURSE
+//#define SCURSE 1
+//#define ACURSE 0
 
 /* for handling Safari window changes at the top of the display event loop */
 extern int PaneClipnpx;

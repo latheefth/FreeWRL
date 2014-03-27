@@ -2009,8 +2009,8 @@ GLfloat cursorTex[] = {
 	restoreGlobalShader();
 
 }
-void setArrowCursor(); //from ui/common.h
-void updateCursorStyle();
+void updateViewCursorStyle(int cstyle);
+void fwl_set_frontend_using_cursor(int on);
 bool showAction(ppstatusbar p, int action)
 {
 	int item = getMenuItemByAction(action);
@@ -2070,7 +2070,8 @@ int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY, int* clippla
 #endif
 			if (p->showButtons == 1){
 				int ihit;
-				setArrowCursor();
+				updateViewCursorStyle(ACURSE);
+				//setArrowCursor();
 				ihit = handleButtonOver(mouseX,mouseY);
 				if (ihit) return 1;
 				//return 1; /* don't process for navigation */
@@ -2086,7 +2087,8 @@ int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY, int* clippla
 			if (p->screenHeight - mouseY < clipline)
 			{
 				p->showButtons = 1;
-				setArrowCursor();
+				updateViewCursorStyle(ACURSE);
+				//setArrowCursor();
 				handleButtonOver(mouseX,mouseY);
 				return 1; /* don't process for navigation */
 			}
@@ -2118,8 +2120,12 @@ void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY)
 {
 	ttglobal tg = gglobal();
 	ppstatusbar p = (ppstatusbar)tg->statusbar.prv;
-	if (!handleStatusbarHud(mev, butnum, mouseX, mouseY, &p->clipPlane))
+	if (!handleStatusbarHud(mev, butnum, mouseX, mouseY, &p->clipPlane)){
+		fwl_set_frontend_using_cursor(FALSE);
 		fwl_handle_aqua(mev, butnum, mouseX, mouseY); /* ,gcWheelDelta); */
+	}else{
+		fwl_set_frontend_using_cursor(TRUE);
+	}
 }
 char *getMessageBar(); //in common.c
 
