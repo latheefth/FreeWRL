@@ -825,17 +825,8 @@ void destroyCParserData();
 
 void getMovieTextureOpenGLFrames(int *highest, int *lowest,int myIndex);
 int ConsoleMessage(const char *fmt, ...);
-/* >>> statusbar hud change */
-#define NEW_CONSOLEMESSAGE_VERSION 1
-#ifdef NEW_CONSOLEMESSAGE_VERSION
-int BrowserPrintConsoleMessage(const char *fmt, ...);
-//extern int Console_writeToCRT;
-//extern int Console_writeToFile;
-//extern int Console_writeToHud;
-#endif
-/* <<< statusbar hud changes */
 void closeConsoleMessage(void);
-//extern int consMsgCount;
+
 
 void outOfMemory(const char *message);
 

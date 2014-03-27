@@ -185,7 +185,7 @@ void fwl_set_texture_size(unsigned int texture_size);
 void fwl_set_glClearColor (float red , float green , float blue , float alpha);
 void fwl_thread_dump(void);
 int fwg_get_unread_message_count(void);
-char *fwg_get_last_message(int whichOne);
+char *fwg_get_last_message();
 void fwl_set_logfile(char *);
 void fwl_set_nameTest(char *);
 
@@ -227,13 +227,7 @@ void PRINTF_ALL( const char*pFmtStr, ...);
 	#define MC_MSC_HAVE_VER 0
 #endif
 
-/*
-#ifdef NEW_CONSOLEMESSAGE_VERSION
-#ifdef OLD_CONSOLEMESSAGE_VERSION
-#ifdef HAVE_VSCPRINTF
-*/
 
-void fwl_ConsoleSetup(int setDefAqua , int setTargetAqua , int setHaveMotif , int setTargetMotif , int setHaveMscVer, int setTargetAndroid);
 int fwl_StringConsoleMessage(char* message);
 
 void fwl_init_SnapGif(void);

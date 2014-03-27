@@ -102,13 +102,6 @@ void CdllFreeWRL::onInit(int width, int height, void* windowhandle, bool bEai)
 	params->winToEmbedInto = (long)windowhandle;
 	params->frontend_handles_display_thread = false;
 	swDebugf("just before fwl_initFreeWRL\n");
-	fwl_ConsoleSetup(MC_DEF_AQUA , MC_TARGET_AQUA , MC_HAVE_MOTIF , MC_TARGET_MOTIF , MC_MSC_HAVE_VER , 0);
-#ifdef CONSOLE
-	fwl_setConsole_writePrimitive( 1 );
-	DWORD pid = GetCurrentProcessId() ;
-	initConsoleH(pid);
-	swDebugf("after fwl_initFreeWRL\n");
-#endif
 	if (!fwl_initFreeWRL(params)) {
 		//ERROR_MSG("main: aborting during initialization.\n");
 		//exit(1);
@@ -144,7 +137,6 @@ void CdllFreeWRL::onLoad(char* scene_url)
 {
 	//char * url;
 	url = _strdup(scene_url);
-	//while(!this->globalcontexthandle) Sleep(50);
 	if(fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
 		//url = strBackslash2fore(url);
 		//swDebugf("onLoad have url=[%s]\n",url);

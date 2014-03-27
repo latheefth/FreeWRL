@@ -256,6 +256,8 @@
     <ClCompile Include="$(SRC)\lib\scenegraph\Viewer.c" />
     <ClCompile Include="$(SRC)\lib\x3d_parser\X3DParser.c" />
     <ClCompile Include="$(SRC)\lib\x3d_parser\X3DProtoScript.c" />
+    <ClCompile Include="$(SRCWIN)\model_platform_win32.c" />
+    <ClCompile Include="..\..\src_windows\view_platform_win32.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(SRC)\lib\scenegraph\Component_Picking.h" />

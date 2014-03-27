@@ -327,6 +327,12 @@
     <ClCompile Include="$(SRC)\lib\ui\statusbarHud.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(SRCWIN)\model_platform_win32.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src_windows\view_platform_win32.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(SRC)\lib\scenegraph\Component_Picking.h">

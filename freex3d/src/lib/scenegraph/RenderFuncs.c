@@ -960,10 +960,10 @@ void profile_end(char *name){
 void profile_print_all(){
 	//hit '.' in the graphics window 
 	int i;
-	printf("frame rate: %9.3f  number of items tracked: %d\n",gglobal()->Mainloop.BrowserFPS, profile_entry_count);
-	printf("%15s %10s %15s %10s\n","profile name","hits","time(sec)","% of 1st");
+	ConsoleMessage("frame rate: %9.3f  number of items tracked: %d\n",gglobal()->Mainloop.BrowserFPS, profile_entry_count);
+	ConsoleMessage("%15s %10s %15s %10s\n","profile name","hits","time(sec)","% of 1st");
 	for(i=0;i<profile_entry_count;i++){
-		printf("%15s %10d %15.3lf %10.2lf\n",profile_entries[i].name,profile_entries[i].hits,profile_entries[i].accum,profile_entries[i].accum/profile_entries[0].accum*100.0);
+		ConsoleMessage("%15s %10d %15.3f %10.2f\n",profile_entries[i].name,profile_entries[i].hits,profile_entries[i].accum,profile_entries[i].accum/profile_entries[0].accum*100.0);
 	}
 }
 void render_node(struct X3D_Node *node) {

@@ -1106,61 +1106,33 @@ void printKeyboardHelp(ppstatusbar p)
 void hudSetConsoleMessage(char *buffer)
 {
 	s_list_t* last;
-	/*calling program keeps ownership of buffer and deletes or recycles buffer*/
-	char *buffer2, *line, *ln, *buf;
+	/*calling program passes ownership of buffer here, where we free when scrolling off */
+	char *ln;
 	int linelen;
 	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
 
-	int len = (int) strlen(buffer)+1;
-	buffer2 = malloc(len);
-	strncpy(buffer2,buffer,len);
-	/* rule: if you have a \n at the end of your buffer, 
-	then leave here on a new line, else we'll append to your last line*/
+	//printf("+%s\n", buffer);
 	if(!p->conlist)
 	{
+		char * line;
 		line = malloc(2);
 		line[0] = '\0';
-		last = ml_new(line);
-		p->conlist = last;
+		p->conlist = ml_new(line);
 		p->concount = 1;
 	}
+	last = ml_new(buffer);
+	if (!p->conlist)
+		p->conlist = last;
 	else
-		last = ml_last(p->conlist);
-	line = last->elem;
-	linelen = (int) strlen(line);
-	buf = buffer2;
-	do
+		ml_append(p->conlist,last);
+	p->concount++;
+	if( p->concount > 50 ) // > MAXMESSAGES number of scrolling lines
 	{
-		ln = strchr(buf,'\n');
-		if(ln)
-		{ 
-			*ln = '\0';
-		}
-		len = (int) strlen(buf);
-		linelen += len + 1;
-		line = realloc(line,linelen);
-		line = strcat(line,buf); 
-		last->elem = line; /* new address from realloc */
-		if(ln)
-		{	
-			*ln = '\n'; /* restore, in case we need it \n */
-			buf = &ln[1];
-			line = malloc(2);
-			line[0] = '\0';
-			linelen = (int) strlen(line);
-			last = ml_new(line);
-			ml_append(p->conlist,last);
-			p->concount++;
-			if( p->concount > 50 ) // > MAXMESSAGES number of scrolling lines
-			{
-				//s_list_t* temp;
-				free((char*)p->conlist->elem);
-				p->conlist = ml_delete_self(p->conlist, p->conlist); /*delete from top*/
-				p->concount--;
-			}
-		}
-	}while(ln);
-	free(buffer2);
+		//printf("-%s\n", (char*)p->conlist->elem);
+		free((char*)p->conlist->elem); //free a previous buffer now scrolled up off the screen
+		p->conlist = ml_delete_self(p->conlist, p->conlist); /*delete from top*/
+		p->concount--;
+	}
 }
 
 void printConsoleText()
@@ -1667,7 +1639,6 @@ void updateButtonStatus()
 	setMenuButton_headlight(headlight);
 	setMenuButton_collision(collision);
 }
-void hudSetConsoleMessage(char *buffer);
 
 void updateConsoleStatus()
 {
@@ -1677,9 +1648,9 @@ void updateConsoleStatus()
 	nlines = fwg_get_unread_message_count(); //poll model
 	for (i = 0; i<nlines; i++)
 	{
-		buffer = fwg_get_last_message(nlines - i - 1); //poll model
+		buffer = fwg_get_last_message(); // poll model
 		hudSetConsoleMessage(buffer); //update UI(view)
-		free(buffer);
+		//free(buffer);
 	}
 }
 

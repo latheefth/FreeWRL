@@ -74,7 +74,7 @@ void fwExit(int iret){
 	//exit(iret);
 	fw_exit(iret); //in libfreewrl
 }
-
+void fwg_register_consolemessage_callback(void(*callback)(char *));
 /**
  * Main
  */
@@ -93,7 +93,10 @@ int main (int argc, char **argv)
 
     char consoleBuffer[200];
 	fwl_init_instance(); //before setting any structs we need a struct allocated
-    fwl_ConsoleSetup(MC_DEF_AQUA , MC_TARGET_AQUA , MC_HAVE_MOTIF , MC_TARGET_MOTIF , MC_MSC_HAVE_VER , tempIsAndroid);
+	fwg_register_consolemessage_callback(printf);
+	fwg_setConsoleParam_maxLines(30);
+	fwg_setConsoleParam_maxLineLength(70);
+	fwg_setConsoleParam_replaceTabs(1);
 
     /* first, get the FreeWRL shared lib, and verify the version. */
     libver = libFreeWRL_get_version();
@@ -190,22 +193,21 @@ int main (int argc, char **argv)
 
     /* Put env parse here, because this gives systems that do not have env vars the chance to do it their own way. */
     fv_parseEnvVars();
-
     /* start threads, parse initial scene, etc */
-    if ( 1 == 1) {
-	/* give control to the library */
-	if (!fwl_initFreeWRL(fv_params)) {
-	    ERROR_MSG("main: aborting during initialization.\n");
-	    fwExit(1);
-	}
-	fwl_startFreeWRL(start_url);
+    if ( 1 ) {
+		/* give control to the library */
+		if (!fwl_initFreeWRL(fv_params)) {
+			ERROR_MSG("main: aborting during initialization.\n");
+			fwExit(1);
+		}
+		fwl_startFreeWRL(start_url);
     } else {
-	/* keep control
-	if (!fv_initFreeWRL(fv_params)) {
-	    ERROR_MSG("main: aborting during initialization.\n");
-	    fwExit(1);
-	}
-	fv_startFreeWRL(start_url); */
+		/* keep control
+		if (!fv_initFreeWRL(fv_params)) {
+			ERROR_MSG("main: aborting during initialization.\n");
+			fwExit(1);
+		}
+		fv_startFreeWRL(start_url); */
     }
     return 0;
 }

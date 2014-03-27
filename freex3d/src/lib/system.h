@@ -197,7 +197,7 @@ char *__fw_strndup(const char *s, size_t n);
  * Misc
  */
 #if defined(_MSC_VER)
-
+#include <Windows.h>
 /* FIXME: those calls to bzero & bcopy shall be remove from libeai ;)... */
 
 /*  http://www.opengroup.org/onlinepubs/000095399/functions/bzero.html */
@@ -246,11 +246,6 @@ char *__fw_strndup(const char *s, size_t n);
    and errno will be set to ENOENT. 
 */
 
-#if !defined(HAVE_USLEEP)
-#include <windows.h>
-#define usleep(us) Sleep((us)/1000)
-#define sleep(us) Sleep(us)
-#endif
 
 #define snprintf _snprintf
 

@@ -26,8 +26,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtess", "libtess\libtess.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "winGLES2", "esUtils\winGLES2.vcxproj", "{A6255F79-AC96-4224-891F-EEFE6B8CFD21}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pthread", "..\..\..\lib_windowsStore\GThread\vc12\pthread.vcxproj", "{6A678602-5112-4815-9CEC-1505B29B3136}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug_glew|Win32 = Debug_glew|Win32
@@ -130,14 +128,6 @@ Global
 		{A6255F79-AC96-4224-891F-EEFE6B8CFD21}.Release_glew|Win32.ActiveCfg = Release|Win32
 		{A6255F79-AC96-4224-891F-EEFE6B8CFD21}.Release|Win32.ActiveCfg = Release|Win32
 		{A6255F79-AC96-4224-891F-EEFE6B8CFD21}.Release|Win32.Build.0 = Release|Win32
-		{6A678602-5112-4815-9CEC-1505B29B3136}.Debug_glew|Win32.ActiveCfg = Debug|Win32
-		{6A678602-5112-4815-9CEC-1505B29B3136}.Debug_glew|Win32.Build.0 = Debug|Win32
-		{6A678602-5112-4815-9CEC-1505B29B3136}.Debug|Win32.ActiveCfg = Debug|Win32
-		{6A678602-5112-4815-9CEC-1505B29B3136}.Debug|Win32.Build.0 = Debug|Win32
-		{6A678602-5112-4815-9CEC-1505B29B3136}.Release_glew|Win32.ActiveCfg = Release|Win32
-		{6A678602-5112-4815-9CEC-1505B29B3136}.Release_glew|Win32.Build.0 = Release|Win32
-		{6A678602-5112-4815-9CEC-1505B29B3136}.Release|Win32.ActiveCfg = Release|Win32
-		{6A678602-5112-4815-9CEC-1505B29B3136}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

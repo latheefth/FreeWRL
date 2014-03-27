@@ -2170,10 +2170,7 @@ VrmlBrowserAddRoute(JSContext *context, uintN argc, jsval *vp) {
 #endif
 	return JS_TRUE;
 }
-//#define OLD_CONSOLEMESSAGE_VERSION 1
-#ifdef OLD_CONSOLEMESSAGE_VERSION
-#define BrowserPrintConsoleMessage ConsoleMessage
-#endif
+
 JSBool
 #if JS_VERSION < 185
 VrmlBrowserPrint(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
@@ -2198,14 +2195,14 @@ VrmlBrowserPrint(JSContext *context, uintN argc, jsval *vp) {
 			_id_c = JS_EncodeString(context,_str);
 #endif
 			#if defined(AQUA) || defined(_MSC_VER)
-			BrowserPrintConsoleMessage(_id_c); /* statusbar hud */
+			ConsoleMessage(_id_c); /* statusbar hud */
 			gglobal()->ConsoleMessage.consMsgCount = 0; /* reset the "Maximum" count */
 			#else
 				#ifdef HAVE_NOTOOLKIT 
 					printf ("%s", _id_c);
 				#else
 					printf ("%s\n", _id_c);
-					BrowserPrintConsoleMessage(_id_c); /* statusbar hud */
+					ConsoleMessage(_id_c); /* statusbar hud */
 					gglobal()->ConsoleMessage.consMsgCount = 0; /* reset the "Maximum" count */
 				#endif
 			#endif
@@ -2219,7 +2216,7 @@ VrmlBrowserPrint(JSContext *context, uintN argc, jsval *vp) {
 	/* the \n should be done with println below, or in javascript print("\n"); 
 	  except web3d V3 specs don't have Browser.println so print will do \n like the old days*/
 	#if defined(AQUA)  || defined(_MSC_VER)
-	BrowserPrintConsoleMessage("\n"); /* statusbar hud */
+	ConsoleMessage("\n"); /* statusbar hud */
 	gglobal()->ConsoleMessage.consMsgCount = 0; /* reset the "Maximum" count */
 	#elif !defined(_MSC_VER)
 		#ifdef HAVE_NOTOOLKIT
@@ -2244,7 +2241,7 @@ VrmlBrowserPrintln(JSContext *context, uintN argc, jsval *vp) {
 	VrmlBrowserPrint(context,argc,vp); 
 #endif
 	#if defined(AQUA) || defined(_MSC_VER)
-		//BrowserPrintConsoleMessage("\n"); /* statusbar hud */
+		//ConsoleMessage("\n"); /* statusbar hud */
 		gglobal()->ConsoleMessage.consMsgCount = 0; /* reset the "Maximum" count */
 	#else
 		#ifdef HAVE_NOTOOLKIT
