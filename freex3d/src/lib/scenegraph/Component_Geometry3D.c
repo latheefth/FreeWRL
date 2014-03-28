@@ -1710,10 +1710,7 @@ static void collisionCylinder_init(struct X3D_Cylinder *node)
 	double h,r,inverseh,inverser;
 	struct SFVec3f *pts;// = node->__botpoints;
 	
-	/* not initialized yet - wait for next pass */
-
-    if (!node->__points.p) return;
-	/*  re-using the compile_cylinder node->__points data which is organized into GL_TRAIANGLE_FAN (bottom and top) 
+	/*  re-using the compile_cylinder node->__points data which is organized into GL_TRAIANGLE_FAN (bottom and top)
 	    and GL_QUADS (side)
 
 		my understanding: 
@@ -1897,7 +1894,8 @@ void collide_Cylinder (struct X3D_Cylinder *node) {
 				struct point_XYZ a,b, dispv, radscale, maxdispv = {0,0,0};
 				double maxdisp = 0;
 
-				if(!collisionCylinder.npts) collisionCylinder_init(node);
+				if(!collisionCylinder.npts) 
+					collisionCylinder_init(node);
 				radscale.x = radscale.z = node->radius;
 				radscale.y = node->height;
 				scale_to_matrix (modelMatrix, &radscale);
