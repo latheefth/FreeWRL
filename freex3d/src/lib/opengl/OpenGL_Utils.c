@@ -4242,6 +4242,9 @@ void startOfLoopNodeUpdates(void) {
 */
 
 				/* get ready to mark these nodes as Mouse Sensitive */
+#ifdef LINESENSOR
+				BEGIN_NODE(LineSensor) SIBLING_SENSITIVE(LineSensor) END_NODE
+#endif
 				BEGIN_NODE(PlaneSensor) SIBLING_SENSITIVE(PlaneSensor) END_NODE
 				BEGIN_NODE(SphereSensor) SIBLING_SENSITIVE(SphereSensor) END_NODE
 				BEGIN_NODE(CylinderSensor) SIBLING_SENSITIVE(CylinderSensor) END_NODE

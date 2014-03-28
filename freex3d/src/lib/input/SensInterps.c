@@ -1279,7 +1279,10 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 			MARK_EVENT(ptr, offsetof (struct X3D_TouchSensor, hitNormal_changed));
 		}
 }
-
+#ifdef LINESENSOR
+void do_LineSensor(void *ptr, int ev, int but1, int over) {
+}
+#endif
 /* void do_PlaneSensor (struct X3D_PlaneSensor *node, int ev, int over) {*/
 void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 	struct X3D_PlaneSensor *node;
