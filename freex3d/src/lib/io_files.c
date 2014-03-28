@@ -162,7 +162,7 @@ char *get_current_dir()
 			cwd[ll+1] = '\0';
 	} else {
 		printf("Unable to establish current working directory in %s,%d errno=%d",__FILE__,__LINE__,errno) ;
-		cwd = "/tmp/" ;
+		cwd = strdup("./"); // "/tmp/";
 	}
 	return cwd;
 }
@@ -626,12 +626,13 @@ int determineFileType(const unsigned char *buffer, const int len)
  * FIXME: refactor this function, too :)
  *
  */
+#ifndef _MSC_VER
 int freewrlSystem (const char *sysline)
 {
 
-#ifdef _MSC_VER
-	return system(sysline);
-#else
+//#ifdef _MSC_VER
+//	return system(sysline);
+//#else
 #define MAXEXECPARAMS 10
 #define EXECBUFSIZE	2000
 	char *paramline[MAXEXECPARAMS];
@@ -750,9 +751,9 @@ int freewrlSystem (const char *sysline)
 		printf ("System call failed :%s:\n",sysline);
 	}
 	return -1; /* should we return FALSE or -1 ??? */
-#endif
+//#endif
 }
-
+#endif
 //goal: remove a directory and its contents - used for removing the temp unzip folder for .z3z / .zip file processing
 #ifdef _MSC_VER
 //http://msdn.microsoft.com/en-us/windows/desktop/aa365488
@@ -796,7 +797,12 @@ BOOL DeleteDirectory0(const TCHAR* sPath) {
 	_tcscpy(FileName,sPath);
 	_tcscat(FileName,backslash);
 
+#if _MSC_VER > 1500
+	hFind = FindFirstFileEx(DirPath, FindExInfoStandard, &FindFileData, FindExSearchNameMatch, NULL, 0); // find the first file - requires windows XP or later
+#else
+	//
 	hFind = FindFirstFile(DirPath,&FindFileData); // find the first file
+#endif
 	if(hFind == INVALID_HANDLE_VALUE) 
 		return FALSE;
 	_tcscpy(DirPath,FileName);
@@ -863,11 +869,20 @@ BOOL directory_remove_all(const char* sPath) {
 	return retval;
 }
 void remove_file_or_folder(const char *path){
+	int iret, isDir; 
 	DWORD finfo;
+#if _MSC_VER > 1500
+	// http://msdn.microsoft.com/en-us/library/windows/desktop/aa364946(v=vs.85).aspx
+	WIN32_FILE_ATTRIBUTE_DATA fad;
+	finfo = GetFileAttributesEx(path, GetFileExInfoStandard, &fad);
+	isDir = finfo && (fad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
+#else
 	// http://msdn.microsoft.com/en-us/library/windows/desktop/aa364944%28v=vs.85%29.aspx
 	// http://msdn.microsoft.com/en-us/library/windows/desktop/gg258117%28v=vs.85%29.aspx
-	finfo = GetFileAttributes(path);
-	if(FILE_ATTRIBUTE_DIRECTORY & finfo)
+	finfo = GetFileAttributesEx(path, GetFileExInfoStandard);
+	isDir = FILE_ATTRIBUTE_DIRECTORY & finfo;
+#endif
+	if(isDir)
 		directory_remove_all(path);
 	else
 		DeleteFile(path);

@@ -132,6 +132,7 @@ void goToViewpoint(char *vp) {
 	/* printf ("goToViewpoint - failed to match local Viewpoint\n"); */
 }
 
+#ifndef _MSC_VER
 static void startNewHTMLWindow(char *url) {
 	const char *browser;
 #define LINELEN 4000
@@ -184,7 +185,7 @@ static void startNewHTMLWindow(char *url) {
 	}
 #endif
 }
-
+#endif
 
 
 ///* we keep polling here, if we are loading a url...*/
