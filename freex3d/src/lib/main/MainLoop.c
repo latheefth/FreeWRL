@@ -584,6 +584,26 @@ int fw_exit(int val)
 
 #if !defined(FRONTEND_DOES_SNAPSHOTS)
 int fw_mkdir(char* path);
+
+/**
+ * Simple routine to replace single char in a string
+ *
+ * Operates on the string.
+ *
+ * @param str string to change
+ * @param old char to be substituted
+ * @param new char to substitute
+ * @return returns the new string
+ */
+char *replace_char_str (char *str, char old, char new)  {
+
+  for (str; *str; str++)
+    if (*str == old)
+      *str = new;
+
+  return str;
+}
+
 void fwl_RenderSceneUpdateScene() {
 	double dtime;
 	ttglobal tg = gglobal();
@@ -936,7 +956,11 @@ void fwl_RenderSceneUpdateScene() {
 
 								snappath[0] = '\0';
 								if(p->nameTest){
-									strcat(snappath,p->nameTest);
+									// Name the fixture as the full url to avoid duplicates like
+									// ./freewrl/tests/1.wrl and ./freewrl/tests/SAIColor/1.wrl
+									strcat(snappath,tg->Mainloop.url);
+									replace_char_str(snappath,'/','_');
+									replace_char_str(snappath,':','_');
 								}else{
 									if(tg->Mainloop.scene_name){
 										strcat(snappath,tg->Mainloop.scene_name); // /fixture/1
