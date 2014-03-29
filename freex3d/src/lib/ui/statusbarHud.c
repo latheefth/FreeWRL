@@ -1175,6 +1175,8 @@ ACTION_TPLANE,
 ACTION_RPLANE,
 ACTION_FLY,
 ACTION_EXAMINE,
+ACTION_YAWPITCHZOOM,
+ACTION_TURNTABLE,
 ACTION_LEVEL,
 ACTION_HEADLIGHT,
 ACTION_COLLISION,
@@ -1739,10 +1741,14 @@ int handleButtonPress(int mouseX, int mouseY)
 				case ACTION_RPLANE:	
 					fwl_set_viewer_type (VIEWER_RPLANE); break; 
 				case ACTION_FLY:	
-					fwl_set_viewer_type (VIEWER_FLY); break;
+					fwl_set_viewer_type(VIEWER_FLY); break;
 				case ACTION_EXAMINE:
 					fwl_set_viewer_type (VIEWER_EXAMINE); break; 
-				case ACTION_LEVEL:	 viewer_level_to_bound(); break; 
+				case ACTION_YAWPITCHZOOM:
+					fwl_set_viewer_type(VIEWER_YAWPITCHZOOM); break;
+				case ACTION_TURNTABLE:
+					fwl_set_viewer_type(VIEWER_TURNTABLE); break;
+				case ACTION_LEVEL:	 viewer_level_to_bound(); break;
 				case ACTION_HEADLIGHT: fwl_toggle_headlight(); break;
 				case ACTION_COLLISION: toggle_collision(); break; 
 				case ACTION_PREV:	fwl_Prev_ViewPoint(); break;

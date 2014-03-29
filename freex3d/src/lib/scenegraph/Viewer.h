@@ -38,6 +38,7 @@ Viewer ???
 	type == VIEWER_WALK ? "WALK" : ( \
 	type == VIEWER_EXFLY ? "EXFLY" : ( \
 	type == VIEWER_YAWPITCHZOOM ? "YAWPITCHZOOM" : (\
+	type == VIEWER_TURNTABLE ? "TURNTABLE" : (\
 	type == VIEWER_FLY ? "FLY" : "UNKNOWN"))))))
 void fwl_set_viewer_type(const int type);
 

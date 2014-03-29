@@ -139,7 +139,11 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 			viewer->oktypes[VIEWER_YAWPITCHZOOM] = TRUE;
 			if (i==0) fwl_set_viewer_type(VIEWER_YAWPITCHZOOM);
 		}
-		if (strcmp(typeptr,"ANY") == 0) {
+		if (strcmp(typeptr, "TURNTABLE") == 0) {
+			viewer->oktypes[VIEWER_TURNTABLE] = TRUE;
+			if (i == 0) fwl_set_viewer_type(VIEWER_TURNTABLE);
+		}
+		if (strcmp(typeptr, "ANY") == 0) {
 			viewer->oktypes[VIEWER_EXAMINE] = TRUE;
 			viewer->oktypes[VIEWER_WALK] = TRUE;
 			viewer->oktypes[VIEWER_EXFLY] = TRUE;

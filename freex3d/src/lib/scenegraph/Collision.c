@@ -2000,7 +2000,7 @@ void render_collisions(int Viewer_type) {
         struct point_XYZ v;
 		struct sCollisionInfo *ci;
 		struct sFallInfo *fi;
-		if(Viewer_type == VIEWER_YAWPITCHZOOM) return; //no collisions
+		if(Viewer_type != VIEWER_WALK) return; //no collisions
 		ci = CollisionInfo();
 		fi = FallInfo();
         ci->Offset.x = 0;

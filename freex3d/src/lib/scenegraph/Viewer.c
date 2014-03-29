@@ -80,7 +80,6 @@ typedef struct pViewer{
 	X3D_Viewer_Examine viewer_examine;// = { {0, 0, 0}, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0 };
 	X3D_Viewer_Fly viewer_fly;// = { { 0, 0, 0 }, { 0, 0, 0 }, KEYMAP, KEYMAP, -1 };
 	X3D_Viewer_YawPitchZoom viewer_ypz;// = { {0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, 0.0f, 0.0f };
-
 	int translate[COORD_SYS];// = { 0, 0, 0 };
 	int rotate[COORD_SYS];// = { 0, 0, 0 };
 
@@ -402,6 +401,7 @@ void fwl_set_viewer_type(const int type) {
 	case VIEWER_TILT:
 	case VIEWER_FLY2:
 	case VIEWER_YAWPITCHZOOM:
+	case VIEWER_TURNTABLE:
 	case VIEWER_FLY:
 		p->Viewer.type = type;
 		break;
@@ -451,6 +451,8 @@ char* fwl_getNavModeStr()
 		return "FLY2";
 	case VIEWER_YAWPITCHZOOM:
 		return "YAWPITCHZOOM";
+	case VIEWER_TURNTABLE:
+		return "TURNTABLE";
 	case VIEWER_FLY:
 		return "FLY";
 	default:
@@ -908,6 +910,79 @@ printf ("examine->origin %4.3f %4.3f %4.3f\n",examine->Origin.x, examine->Origin
 */
 }
 
+
+void handle_turntable(const int mev, const unsigned int button, float x, float y) {
+	/*
+	Like handle_yawpitchzoom, except:
+	move the viewer.Pos in the opposite direction from where we are looking
+	*/
+	X3D_Viewer_YawPitchZoom *ypz;
+	ppViewer p;
+	ttglobal tg = gglobal();
+	p = (ppViewer)gglobal()->Viewer.prv;
+	ypz = &p->Viewer.ypz; //just a place to store last mouse xy during drag
+
+	if (mev == ButtonPress) {
+		if (button == 1 || button == 3) {
+			ypz->x = x;
+			ypz->y = y;
+		}
+	}
+	else if (mev == MotionNotify) 
+	{
+		Quaternion qyaw, qpitch;
+		double dyaw, dpitch;
+		struct point_XYZ pp, yaxis;
+		double dist, yaw, pitch;
+		Quaternion quat;
+
+		if (button == 1 || button == 3){
+			yaxis.x = yaxis.z = 0.0;
+			yaxis.y = 1.0;
+			pp = p->Viewer.Pos;
+			dist = veclength(pp);
+			vecnormal(&pp, &pp);
+			yaw = -atan2(pp.x, pp.z);
+			pitch = -(acos(vecdot(&pp, &yaxis)) - PI*.5);
+		}
+		if (button == 1) {
+			dyaw = -(ypz->x - x) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom * tg->display.screenRatio;
+			dpitch = -(ypz->y - y) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom;
+			yaw += dyaw;
+			pitch += dpitch;
+		}else if (button == 3) {
+			double d, fac;
+			d = (y - ypz->y)*.5; // .25;
+			if (d > 0.0)
+				fac = ((d *  2.0) + (1.0 - d) * 1.0);
+			else
+			{
+				d = fabs(d);
+				fac = ((d * .5) + (1.0 - d) * 1.0);
+			}
+			dist *= fac;
+		}
+		if (button == 1 || button == 3)
+		{
+			vrmlrot_to_quaternion(&qyaw, 0.0, 1.0, 0.0, yaw);
+			vrmlrot_to_quaternion(&qpitch, 1.0, 0.0, 0.0, pitch);
+			quaternion_multiply(&quat, &qpitch, &qyaw);
+			quaternion_normalize(&quat);
+			quaternion_set(&(p->Viewer.Quat), &quat);
+			//move the viewer.pos in the opposite direction that we are looking
+			quaternion_inverse(&quat, &quat);
+			pp.x = 0.0;
+			pp.y = 0.0;
+			pp.z = dist;
+			quaternion_rotation(&(p->Viewer.Pos), &quat, &pp);
+			//remember the last drag coords for next motion
+			ypz->x = x;
+			ypz->y = y;
+
+		}
+	}
+}
+
 void handle_yawpitchzoom(const int mev, const unsigned int button, float x, float y) {
 	/* handle_examine almost works except we don't want roll-tilt, and we want to zoom */
 	Quaternion qyaw, qpitch;
@@ -952,6 +1027,9 @@ void handle_yawpitchzoom(const int mev, const unsigned int button, float x, floa
 		}
  	}
 }
+
+
+
 /* fly2, tilt, tplane, rplane form a set that replaces keyboard fly for 
 	touch devices. Collision / gravity only differentiates WALK, and treats all 
 	other modes the same as fly.
@@ -1161,6 +1239,8 @@ void handle0(const int mev, const unsigned int button, const float x, const floa
 		break;
 	case VIEWER_YAWPITCHZOOM:
 		handle_yawpitchzoom(mev,button,((float) x),((float)y));
+	case VIEWER_TURNTABLE:
+		handle_turntable(mev, button, ((float)x), ((float)y));
 	default:
 		break;
 	}
@@ -1673,6 +1753,8 @@ handle_tick()
 		handle_tick_fly2();
 		break;
 	case VIEWER_YAWPITCHZOOM:
+	case VIEWER_TURNTABLE:
+		//do nothing special on tick
 		break;
 	default:
 		break;

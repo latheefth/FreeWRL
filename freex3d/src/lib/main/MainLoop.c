@@ -3362,7 +3362,8 @@ void fwl_do_keyPress0(int key, int type) {
                                 case 'd': { fwl_set_viewer_type (VIEWER_FLY); break; }
                                 case 'f': { fwl_set_viewer_type (VIEWER_EXFLY); break; }
                                 case 'y': { fwl_set_viewer_type (VIEWER_YAWPITCHZOOM); break; }
-                                case 'h': { fwl_toggle_headlight(); break;}
+								case 't': { fwl_set_viewer_type(VIEWER_TURNTABLE); break; }
+								case 'h': { fwl_toggle_headlight(); break; }
                                 case '/': { print_viewer(); break; }
                                 //case '\\': { dump_scenegraph(); break; }
                                 case '\\': { dump_scenegraph(1); break; }
