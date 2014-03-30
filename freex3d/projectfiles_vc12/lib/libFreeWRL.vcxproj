@@ -208,7 +208,7 @@
     <ClCompile Include="$(SRC)\lib\opengl\Frustum.c" />
     <ClCompile Include="$(SRCWIN)\fwVersion.c" />
     <ClCompile Include="$(SRC)\lib\ui\fwWindow32.c" />
-    <ClCompile Include="$(SRCWIN)\gdiPlusImageLoader.cpp" />
+    <ClCompile Include="$(SRCWIN)\WICImageLoader.cpp" />
     <ClCompile Include="$(SRC)\lib\scenegraph\GeneratedCode.c" />
     <ClCompile Include="$(SRC)\lib\scenegraph\GenPolyRep.c" />
     <ClCompile Include="$(SRC)\lib\iglobal.c" />

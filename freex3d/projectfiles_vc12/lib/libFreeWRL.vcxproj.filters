@@ -189,9 +189,6 @@
     <ClCompile Include="$(SRC)\lib\ui\fwWindow32.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SRCWIN)\gdiPlusImageLoader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SRC)\lib\scenegraph\GeneratedCode.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -331,6 +328,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src_windows\view_platform_win32.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SRCWIN)\WICImageLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

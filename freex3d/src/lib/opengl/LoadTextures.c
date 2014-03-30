@@ -53,7 +53,7 @@ typedef struct _Multi_String Multi_String;
 void Multi_String_print(struct Multi_String *url);
 
 #ifdef _MSC_VER
-#include "gdiPlusImageLoader.h"
+#include "ImageLoader.h"
 #else
 #if !(defined(TARGET_AQUA) || defined(IPHONE) || defined(_ANDROID))
 		#include <Imlib2.h>

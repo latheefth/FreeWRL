@@ -1,3 +1,8 @@
+
+/*
+this version is for windows XP and lower (see WICImageLoader.cpp for vista,7,8...)
+*/
+
 #include <windows.h>
 #include <gdiplus.h>
 #include <stdio.h>
@@ -6,7 +11,7 @@ using namespace Gdiplus;
 
 extern "C"
 {
-#include "gdiPlusImageLoader.h"
+#include "ImageLoader.h"
 //#include <GL/glew.h>
 //#ifdef GLEW_MX
 //GLEWContext * glewGetContext();

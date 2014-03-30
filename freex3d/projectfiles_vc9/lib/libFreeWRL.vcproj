@@ -603,6 +603,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src_windows\model_platform_win32.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\lib\scenegraph\MPEG_Utils.c"
 				>
 			</File>

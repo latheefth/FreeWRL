@@ -879,7 +879,7 @@ void remove_file_or_folder(const char *path){
 #else
 	// http://msdn.microsoft.com/en-us/library/windows/desktop/aa364944%28v=vs.85%29.aspx
 	// http://msdn.microsoft.com/en-us/library/windows/desktop/gg258117%28v=vs.85%29.aspx
-	finfo = GetFileAttributesEx(path, GetFileExInfoStandard);
+	finfo = GetFileAttributes(path);
 	isDir = FILE_ATTRIBUTE_DIRECTORY & finfo;
 #endif
 	if(isDir)

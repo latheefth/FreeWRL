@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src_windows\freeWRLEAItest\Ctest_libeai_Teardown.c">
+    <ClCompile Include="$(SRCWIN)\freeWRLEAItest\Ctest_libeai_Teardown.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
