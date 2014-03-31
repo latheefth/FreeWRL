@@ -204,7 +204,7 @@ int scriptFieldDecl_getRoutingOffset(struct ScriptFieldDecl* me)
 
 
 
-#ifdef HAVE_JAVASCRIPT
+#if defined(HAVE_JAVASCRIPT)
 /* Initialize JSField */
 void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, int num) {
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();

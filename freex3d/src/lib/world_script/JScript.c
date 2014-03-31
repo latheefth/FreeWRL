@@ -54,7 +54,7 @@ Javascript C language binding.
 #include "jsVRMLBrowser.h"
 
 
-#ifdef HAVE_JAVASCRIPT
+#if defined(HAVE_JAVASCRIPT)
 
 #ifndef JSCLASS_GLOBAL_FLAGS
 //spidermonkey < 1.7 doesn't have so define here

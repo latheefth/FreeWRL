@@ -41,11 +41,11 @@
 #include "scenegraph/Vector.h"
 #include "main/ProdCon.h"
 
-#if defined(_MSC_VER)
+#if defined(HAVE_WININET)
  #include <WinInet.h>
 #endif
 typedef struct pio_http{
-#ifdef _MSC_VER
+#ifdef HAVE_WININET
 		HINTERNET hWinInet;
 #else
 		void* filler; //=NULL;
@@ -261,7 +261,7 @@ char* download_url_curl(resource_item_t *res)
 #endif /* HAVE_LIBCURL */
 
 
-#if defined(_MSC_VER)
+#if defined(HAVE_WININET)
 
 /*
 ms windows native methods WinInet - for clients (like freewrl) 
@@ -437,7 +437,7 @@ char* download_url_wget(resource_item_t *res)
 */
 void close_internetHandles()
 {
-#ifdef _MSC_VER
+#ifdef HAVE_WININET
 	closeWinInetHandle();
 #endif
 }
@@ -458,7 +458,7 @@ void download_url(resource_item_t *res)
 	res->actual_file = download_url_wget(res);
 
 
-#elif defined (_MSC_VER)
+#elif defined (HAVE_WININET)
 	res->actual_file = download_url_WinInet(res);
 #endif 
 

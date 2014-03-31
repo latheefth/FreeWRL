@@ -3878,10 +3878,10 @@ static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
 			//((struct ScriptFieldDecl*) fdecl)->valueSet=TRUE;
 			//((struct ScriptFieldDecl*) fdecl)->value = *targetVal;
 			//X3D_SCRIPT(node)->__scriptObj
-			if(0) //don't do this during parsing, do it during scene instancing.
-			scriptFieldDecl_jsFieldInit(
-				(struct ScriptFieldDecl*) fdecl, 
-				((struct Shader_Script*)X3D_SCRIPT(node)->__scriptObj)->num);
+			//if(0) //don't do this during parsing, do it during scene instancing.
+			//scriptFieldDecl_jsFieldInit(
+			//	(struct ScriptFieldDecl*) fdecl, 
+			//	((struct Shader_Script*)X3D_SCRIPT(node)->__scriptObj)->num);
 		}
 		//printf("n=%f\n",targetVal->sfcolor.c[0]);
 		///* Store the default field value in the protoFieldDeclaration or scriptFieldDecl structure */
@@ -5578,13 +5578,13 @@ BOOL found_IS_field(struct VRMLParser* me, struct X3D_Node *node)
 		shallow_copy_field(type, &(f->defaultVal) , fieldPtr);
 		//memcpy(fieldPtr,&(f->defaultVal),isize); //sizeof(union anyVrml));
 		//heapdump();
-		if(0)//should probably only do this for the final deep_copy sceneInstance, not here during parsing
-		if(source==1) 
-		{
-			scriptFieldDecl_jsFieldInit(
-				(struct ScriptFieldDecl*) fdecl, 
-				((struct Shader_Script*)X3D_SCRIPT(node)->__scriptObj)->num);
-		}
+		//if(0)//should probably only do this for the final deep_copy sceneInstance, not here during parsing
+		//if(source==1) 
+		//{
+		//	scriptFieldDecl_jsFieldInit(
+		//		(struct ScriptFieldDecl*) fdecl, 
+		//		((struct Shader_Script*)X3D_SCRIPT(node)->__scriptObj)->num);
+		//}
 
 	}
 	//b) register it in the IS-table for our context

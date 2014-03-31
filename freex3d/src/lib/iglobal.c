@@ -134,7 +134,9 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	RasterFont_init(&iglobal->RasterFont);
 	RenderTextures_init(&iglobal->RenderTextures);
 	Textures_init(&iglobal->Textures);
+#ifndef NO_PLUGINSOCKET
 	PluginSocket_init(&iglobal->PluginSocket);
+#endif
 	pluginUtils_init(&iglobal->pluginUtils);
 	collision_init(&iglobal->collision);
 	Component_EnvironSensor_init(&iglobal->Component_EnvironSensor);

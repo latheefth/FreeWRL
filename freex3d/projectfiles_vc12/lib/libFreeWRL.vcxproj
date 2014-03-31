@@ -231,7 +231,10 @@
     <ClCompile Include="$(SRC)\lib\scenegraph\MPEG_Utils.c" />
     <ClCompile Include="$(SRC)\lib\scenegraph\NormalCalcs.c" />
     <ClCompile Include="$(SRC)\lib\opengl\OpenGL_Utils.c" />
-    <ClCompile Include="$(SRC)\lib\plugin\PluginSocket.c" />
+    <ClCompile Include="$(SRC)\lib\plugin\PluginSocket.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_glew|Win32'">
+      </ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="$(SRC)\lib\plugin\pluginUtils.c" />
     <ClCompile Include="$(SRC)\lib\scenegraph\Polyrep.c" />
     <ClCompile Include="$(SRC)\lib\main\ProdCon.c" />

@@ -272,6 +272,7 @@ static void android_save_log(char *thislog) {
 				len1 = strlen(p->androidMessageSlot[p->androidFreeSlot]);
 				len2 = len+1;
 				//will need a string buffer to hold combined last line and current continuation line
+				//(there is a re_strcat() function in JScript.c about line 808 that might work here -no time to try it)
 				catsize = (char*)malloc(len1 + len2 + 1);
 				memcpy(catsize, p->androidMessageSlot[p->androidFreeSlot], len1 + 1);
 				oldsize = p->androidMessageSlot[p->androidFreeSlot];
