@@ -102,7 +102,7 @@ void fv_switch_to_mode(int i)
 
     win_width = vmode_modes[i]->hdisplay;
     win_height = vmode_modes[i]->vdisplay;
-    TRACE_MSG("fv_switch_to_mode: mode selected: %d (%d,%d).\n", 
+    TRACE_MSG("fv_switch_to_mode: mode selected: %d (%d,%d).\n",
 	  vmode_mode_selected, win_width, win_height);
     XF86VidModeSwitchToMode(Xdpy, Xscreen, vmode_modes[i]);
     XF86VidModeSetViewPort(Xdpy, Xscreen, 0, 0);
@@ -163,9 +163,9 @@ static int fv_catch_XLIB(Display *disp, XErrorEvent *err)
 		  "   Error code: %d\n"
 		  "   Error msg:  %s\n"
 		  "   Request:    %d\n",
-		  XDisplayName(NULL), disp, err->error_code, 
+		  XDisplayName(NULL), disp, err->error_code,
 		  error_msg, err->request_code);
-	
+
 	XLIB_errors++;
 	if (XLIB_errors > 20) {
 		ERROR_MSG("FreeWRL - too many XLib errors (%d>20), exiting...\n", XLIB_errors);
@@ -194,14 +194,14 @@ void fv_resetGeometry()
     if (fullscreen) {
 	XF86VidModeGetAllModeLines(Xdpy, Xscreen, &vmode_nb_modes, &vmode_modes);
 	oldMode = 0;
-	
+
 	for (i=0; i < vmode_nb_modes; i++) {
 	    if ((vmode_modes[i]->hdisplay == oldx) && (vmode_modes[i]->vdisplay==oldy)) {
 		oldMode = i;
 		break;
 	    }
 	}
-	
+
 	XF86VidModeSwitchToMode(Xdpy, Xscreen, vmode_modes[oldMode]);
 	XF86VidModeSetViewPort(Xdpy, Xscreen, 0, 0);
 	XFlush(Xdpy);
@@ -233,7 +233,7 @@ int fv_open_display()
     /* start up a XLib error handler to catch issues with FreeWRL. There
        should not be any issues, but, if there are, we'll most likely just
        throw our hands up, and continue */
-    XSetErrorHandler(fv_catch_XLIB); 
+    XSetErrorHandler(fv_catch_XLIB);
 
     Xscreen = DefaultScreen(Xdpy);
     Xroot_window = RootWindow(Xdpy,Xscreen);
@@ -241,7 +241,7 @@ int fv_open_display()
     /* Visual */
 
     Xvi = fv_find_best_visual();
-    if(!Xvi) { 
+    if(!Xvi) {
 	    ERROR_MSG("FreeWRL can not find an appropriate visual from GLX\n");
 	    return FALSE;
     }
@@ -281,7 +281,7 @@ int fv_open_display()
  *                     TODO: finish implementation for Mac and Windows.
  */
 bool fv_create_GLcontext()
-{	
+{
 	int direct_rendering = TRUE;
 
 	fwl_thread_dump();
@@ -339,7 +339,7 @@ bool fv_bind_GLcontext()
  * setCursor() declared as generic in common.h
  * specific X11 implementation
  */
-void setCursor()
+void setCursor(int ccurse)
 {
 	switch (ccurse) {
 	case SCURSE: cursor = sensorc;
