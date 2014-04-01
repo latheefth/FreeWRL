@@ -1001,6 +1001,12 @@ package VRML::NodeType;
 		keyValue => [MFVec3f, [], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		value_changed => [MFVec3f, [], outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_GPU_Routes_out => [SFInt32, 0, initializeOnly, 0],
+		_CPU_Routes_out => [SFInt32, 0, initializeOnly, 0],
+
+		# GPU running only - run the interpolator on the GPU, use these...
+		_keyVBO =>[SFInt32, 0, initializeOnly, 0], 
+		_keyValueVBO =>[SFInt32, 0, initializeOnly, 0], 
 	},"X3DInterpolatorNode"),
 
 	CoordinateInterpolator2D => new VRML::NodeType("CoordinateInterpolator2D", {

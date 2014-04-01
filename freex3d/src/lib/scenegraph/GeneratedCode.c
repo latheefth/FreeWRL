@@ -73,6 +73,8 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"FIFOsize",
 	"FreeWRL_PROTOInterfaceNodes",
 	"FreeWRL__protoDef",
+	"_CPU_Routes_out",
+	"_GPU_Routes_out",
 	"__DEFnames",
 	"__IS",
 	"__ROUTES",
@@ -186,6 +188,8 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_initialized",
 	"_int32InpFIFO",
 	"_int32OutFIFO",
+	"_keyVBO",
+	"_keyValueVBO",
 	"_loc",
 	"_npoints",
 	"_oldhitNormal",
@@ -2917,6 +2921,10 @@ const int OFFSETS_CoordinateDouble[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_CoordinateInterpolator[] = {
+	(int) FIELDNAMES__CPU_Routes_out, (int) offsetof (struct X3D_CoordinateInterpolator, _CPU_Routes_out),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__GPU_Routes_out, (int) offsetof (struct X3D_CoordinateInterpolator, _GPU_Routes_out),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__keyVBO, (int) offsetof (struct X3D_CoordinateInterpolator, _keyVBO),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__keyValueVBO, (int) offsetof (struct X3D_CoordinateInterpolator, _keyValueVBO),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_key, (int) offsetof (struct X3D_CoordinateInterpolator, key),  (int) FIELDTYPE_MFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_keyValue, (int) offsetof (struct X3D_CoordinateInterpolator, keyValue),  (int) FIELDTYPE_MFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_CoordinateInterpolator, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6195,6 +6203,10 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_CoordinateInterpolator * tmp2;
 			tmp2 = (struct X3D_CoordinateInterpolator *) tmp;
 		/* ttmp2->v = &virt_CoordinateInterpolator;*/ 
+			tmp2->_CPU_Routes_out = 0;
+			tmp2->_GPU_Routes_out = 0;
+			tmp2->_keyVBO = 0;
+			tmp2->_keyValueVBO = 0;
 			tmp2->key.n=0; tmp2->key.p=0;
 			tmp2->keyValue.n=0; tmp2->keyValue.p=0;
 			tmp2->metadata = NULL;

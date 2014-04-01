@@ -1578,6 +1578,7 @@ sub gen {
 
 	"#define X3D_COLOR(node) ((struct X3D_Color*)node)\n".
 	"#define X3D_COORDINATE(node) ((struct X3D_Coordinate*)node)\n".
+	"#define X3D_COORDINATEINTERPOLATOR(node) ((struct X3D_CoordinateInterpolator*)node)\n".
 	"#define X3D_NORMAL(node) ((struct X3D_Normal*)node)\n".
 	"#define X3D_TEXTURECOORDINATE(node) ((struct X3D_TextureCoordinate*)node)\n".
 	"#define X3D_IMAGETEXTURE(node) ((struct X3D_ImageTexture*)node)\n".
