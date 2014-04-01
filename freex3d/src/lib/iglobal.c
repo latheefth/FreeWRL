@@ -29,6 +29,7 @@ void ColladaParser_init(struct tColladaParser *t);
 void Frustum_init(struct tFrustum *t);
 void LoadTextures_init(struct tLoadTextures *t);
 void OpenGL_Utils_init(struct tOpenGL_Utils *t);
+void OpenCL_Utils_init(struct tOpenCL_Utils *t);
 void RasterFont_init(struct tRasterFont *t);
 void RenderTextures_init(struct tRenderTextures *t);
 void Textures_init(struct tTextures *t);
@@ -131,6 +132,10 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	Frustum_init(&iglobal->Frustum);
 	LoadTextures_init(&iglobal->LoadTextures);
 	OpenGL_Utils_init(&iglobal->OpenGL_Utils);
+#ifdef HAVE_OPENCL
+        OpenCL_Utils_init(&iglobal->OpenCL_Utils);
+#endif
+
 	RasterFont_init(&iglobal->RasterFont);
 	RenderTextures_init(&iglobal->RenderTextures);
 	Textures_init(&iglobal->Textures);

@@ -30,7 +30,7 @@ Collision ???
 #ifndef __FREEWRL_COLLISION_H__
 #define __FREEWRL_COLLISION_H__
 
-#ifdef DO_COLLISION_GPU
+#ifdef HAVE_OPENCL
 #if defined (__APPLE__) || defined(MACOSX) || defined(TARGET_AQUA)
         #include <OpenCL/opencl.h>
         #include <OpenGL/CGLDevice.h>
@@ -41,7 +41,7 @@ Collision ???
 #else  //LINUX
     #include <CL/opencl.h>
 #endif
-#endif // DO_COLLISION_GPU
+#endif // HAVE_OPENCL
 
 
 
@@ -114,21 +114,18 @@ void printmatrix(GLDOUBLE* mat);
 #endif
 
 
-#ifdef DO_COLLISION_GPU
+#ifdef HAVE_OPENCL
 // GPU Collision info
 struct sCollisionGPU {
-	cl_program program;
-	cl_kernel kernel;
-	cl_context context;
-	cl_command_queue queue;
-	cl_device_id device_id;
-	size_t workgroup_size;
-	int output_size;
-	cl_mem output_buffer;
-	cl_mem matrix_buffer;
-	cl_mem vertex_buffer;
-	cl_mem index_buffer;
-	struct Multi_ColorRGBA collide_rvs;
+	cl_program CollideGPU_program;
+	cl_kernel CollideGPU_kernel;
+	size_t CollideGPU_workgroup_size;
+	int CollideGPU_output_size;
+	cl_mem CollideGPU_output_buffer;
+	cl_mem CollideGPU_matrix_buffer;
+	cl_mem CollideGPU_vertex_buffer;
+	cl_mem CollideGPU_index_buffer;
+	struct Multi_ColorRGBA CollideGPU_returnValues;
 };
 #endif 
 
@@ -174,13 +171,12 @@ int fast_sphere_MBB_intersect_collisionSpace(double r, GLDOUBLE *shape2collision
 int overlapMBBs(GLDOUBLE *MBBmin1, GLDOUBLE *MBBmax1, GLDOUBLE *MBBmin2, GLDOUBLE* MBBmax2);
 int fast_ycylinder_polyrep_intersect2(double y1, double y2, double AVr,struct point_XYZ pcenter, double scale, double *minVals, double *maxVals);
 
-#ifdef DO_COLLISION_GPU
+#ifdef HAVE_OPENCL
 struct sCollisionGPU* GPUCollisionInfo();
 struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vbo, float *modelMat,int ntri,
                 int face_ccw, int face_flags, float avatar_radius);
-bool init_GPU_collide(struct sCollisionGPU*);
-void collision_initGPUCollide();
-
+bool collision_initGPUCollide (struct sCollisionGPU*);
+void createGPUCollisionProgram();
 #endif
 
 

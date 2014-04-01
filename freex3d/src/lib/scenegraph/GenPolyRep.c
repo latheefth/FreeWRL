@@ -660,7 +660,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 
 	struct SFVec3f *c1;
     
-	struct SFVec3f *points = NULL;
+	struct SFVec3f *points;
 	struct X3D_PolyRep *rep_ = node->_intern;
 
 	struct Multi_Int32 *orig_coordIndex = NULL;

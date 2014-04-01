@@ -41,6 +41,9 @@ Render the children of nodes.
 #include "../main/headers.h"
 
 #include "LinearAlgebra.h"
+#ifdef HAVE_OPENCL
+#include "../opencl/OpenCL_Utils.h"
+#endif //HAVE_OPENCL
 #include "Collision.h"
 
 static struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, int num, struct point_XYZ n);
@@ -93,7 +96,7 @@ typedef struct pcollision{
 
 
 	/* JAS - make return val global, not local for polyrep-disp */
-	#ifdef DO_COLLISION_GPU
+	#ifdef HAVE_OPENCL
 	struct sCollisionGPU CollisionGPU; 
 	#endif
 
@@ -105,7 +108,7 @@ typedef struct pcollision{
 	struct sFallInfo FallInfo; /* = {100.0,1.0,0.0,0.0, 0,1,0,0}; ... too many to initialize here */
 
 	/* did the OpenCL GPU Collision compile ok? */
-	bool openCL_initialized;
+	bool OpenCL_Collision_Program_initialized;
 
 }* ppcollision;
 void *collision_constructor(){
@@ -144,19 +147,17 @@ void collision_init(struct tcollision *t){
 		p->CollisionInfo.Offset.z = 0.0;
 		//p->FallInfo; /* = {100.0,1.0,0.0,0.0, 0,1,0,0}; ... too many to initialize here */
 
-		#ifdef DO_COLLISION_GPU
-		p->CollisionGPU.program = NULL;
-		p->CollisionGPU.kernel = NULL;
-		p->CollisionGPU.context = NULL;
-		p->CollisionGPU.queue = NULL;
-		p->CollisionGPU.output_buffer = NULL;
-		p->CollisionGPU.matrix_buffer = NULL;
-		p->CollisionGPU.vertex_buffer = NULL;
-		p->CollisionGPU.index_buffer = NULL;
-		p->CollisionGPU.collide_rvs.n = 0;
-		p->CollisionGPU.collide_rvs.p = NULL;
+		#ifdef HAVE_OPENCL
+		p->CollisionGPU.CollideGPU_program = NULL;
+		p->CollisionGPU.CollideGPU_kernel = NULL;
+		p->CollisionGPU.CollideGPU_output_buffer = NULL;
+		p->CollisionGPU.CollideGPU_matrix_buffer = NULL;
+		p->CollisionGPU.CollideGPU_vertex_buffer = NULL;
+		p->CollisionGPU.CollideGPU_index_buffer = NULL;
+		p->CollisionGPU.CollideGPU_returnValues.n = 0;
+		p->CollisionGPU.CollideGPU_returnValues.p = NULL;
 
-		p->openCL_initialized = FALSE; //do after opengl init  init_GPU_collide(&p->CollisionGPU);
+		p->OpenCL_Collision_Program_initialized = FALSE;
 
 		#endif
 	}
@@ -176,20 +177,21 @@ struct sFallInfo* FallInfo()
 }
 
 
-#ifdef DO_COLLISION_GPU
+
+#ifdef HAVE_OPENCL
+// compile the collision gpu program here, with the local structures.
+void createGPUCollisionProgram () {
+
+	ppcollision p = (ppcollision)gglobal()->collision.prv;
+	p->OpenCL_Collision_Program_initialized = collision_initGPUCollide(&p->CollisionGPU);
+}
+
 struct sCollisionGPU* GPUCollisionInfo()
 {
         ppcollision p = (ppcollision)gglobal()->collision.prv;
         return &p->CollisionGPU;
 }
-void collision_initGPUCollide()
-{
-	ppcollision p = (ppcollision)gglobal()->collision.prv;
-	p->openCL_initialized = init_GPU_collide(&p->CollisionGPU);
-	//return p->openCL_initialized ? 1 : 0;
-}
-#endif // DO_COLLISION_GPU
-
+#endif // HAVE_OPENCL
 
 /*a constructor */
 #define make_pt(p,xc,yc,zc) { p.x = (xc); p.y = (yc); p.z = (zc); }
@@ -1742,9 +1744,9 @@ struct point_XYZ polyrep_disp2(struct X3D_PolyRep pr, GLDOUBLE* mat, prflags fla
 #endif
 
 
-#ifdef DO_COLLISION_GPU
+#ifdef HAVE_OPENCL
 
-	if ((pr.VBO_buffers[VERTEX_VBO] != 0) && pp->openCL_initialized) {
+	if ((pr.VBO_buffers[VERTEX_VBO] != 0) && pp->OpenCL_Collision_Program_initialized) {
 	        ttglobal tg = gglobal();
 	        float awidth = (float) tg->Bindable.naviinfo.width; /*avatar width*/
 

@@ -53,6 +53,10 @@ $Id$
 #include "../scenegraph/Component_ProgrammableShaders.h"
 #include "../input/EAIHeaders.h"
 #include "../input/EAIHelpers.h"		/* for verify_Uni_String */
+#ifdef HAVE_OPENCL
+#include "../opencl/OpenCL_Utils.h"
+#endif //HAVE_OPENCL
+
 
 #include "CRoutes.h"
 //#define CRVERBOSE 1
@@ -336,7 +340,12 @@ struct CR_RegStruct {
 		int fieldType;
 		void *intptr;
 		int scrdir;
-		int extra; };
+		int extra;
+#ifdef HAVE_OPENCL
+    cl_kernel CL_Interpolator;
+#endif //HAVE_OPENCL
+};
+
 
 //static struct Vector* routesToRegister = NULL;
 
@@ -1268,6 +1277,62 @@ void CRoutes_Register(
 	struct CR_RegStruct *newEntry;
 	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
 
+#ifdef HAVE_OPENCL
+    cl_kernel CL_Interpolator = NULL;
+        ConsoleMessage ("CRoutes_Register, being run on :%s:\n",__DATE__);
+
+#endif //HAVE_OPENCL
+
+/*    
+ConsoleMessage ("CRoutes_Register - adrem %d, from %p (%s) fromoffset %d to %p (%s) toOfs %d type %d intptr %p scrdir %d extra %d\n",
+                        adrem, from,
+                        stringNodeType(from->_nodeType),
+                        fromoffset, to,
+                        stringNodeType(to->_nodeType),
+                        toOfs, type, intptr, scrdir, extra);
+*/
+
+	// do we have an Interpolator running on the GPU?
+	if (from->_nodeType == NODE_CoordinateInterpolator) {
+
+		int incr = adrem;
+		struct X3D_CoordinateInterpolator *px = (struct X3D_CoordinateInterpolator *) from;
+		if (incr == 0) incr = -1; // makes easy addition
+        
+		if (to->_nodeType == NODE_Coordinate) {
+		#ifdef HAVE_OPENCL
+	
+			if (canRouteOnGPUTo(to) ) {
+				ppOpenCL_Utils p;
+				ttglobal tg = gglobal();
+				p = (ppOpenCL_Utils)tg->OpenCL_Utils.prv;
+
+				px ->_GPU_Routes_out += incr;
+
+				if (tg->OpenCL_Utils.OpenCL_Initialized) { 
+					printf ("OpenCL initialized in routes\n");
+				} else {
+					printf("OPENCL NOT INITIALIZED YET\n");
+				}
+
+				while (!tg->OpenCL_Utils.OpenCL_Initialized) {
+					usleep (100000);
+					printf ("sleeping, waiting for CL to be initialized\n");
+				}
+
+
+		
+				CL_Interpolator = p->coordinateInterpolatorKernel;
+			} else {
+				printf ("CRoutes Register, have a CoordinateInterpolator to Coordinate, but dest node type not supported yet\n");
+					px->_CPU_Routes_out+= incr;
+			}
+		} else {
+		#endif //HAVE_OPENCL
+            
+			px->_CPU_Routes_out += incr;
+		}
+	}
 
 /* Script to Script - we actually put a small node in, and route to/from this node so routing is a 2 step process */
 	if (scrdir == SCRIPT_TO_SCRIPT) {
@@ -1300,6 +1365,10 @@ void CRoutes_Register(
 	newEntry->intptr = intptr;
 	newEntry->scrdir = scrdir;
 	newEntry->extra = extra;
+	#ifdef HAVE_OPENCL
+	newEntry->CL_Interpolator = CL_Interpolator;
+	#endif
+
 	vector_pushBack(struct CR_RegStruct *, p->routesToRegister, newEntry);
 
 	MUTEX_FREE_LOCK_ROUTING_UPDATES
@@ -1393,6 +1462,11 @@ static void actually_do_CRoutes_Register() {
 			p->CRoutes[1].intTimeStamp = 0;
 			p->CRoutes_Count = 2;
 			p->CRoutes_Initiated = TRUE;
+
+			#if HAVE_OPENCL
+			p->CRoutes[0].CL_Interpolator = NULL;
+			p->CRoutes[1].CL_Interpolator = NULL;
+			#endif
 		}
 	
 		insert_here = 1;
@@ -1501,6 +1575,10 @@ static void actually_do_CRoutes_Register() {
 			p->CRoutes[insert_here].direction_flag = newEntry->scrdir;
 			p->CRoutes[insert_here].extra = newEntry->extra;
 			p->CRoutes[insert_here].intTimeStamp = 0;
+			#ifdef HAVE_OPENCL
+			p->CRoutes[insert_here].CL_Interpolator = newEntry->CL_Interpolator;
+			#endif
+
 		
 			if ((p->CRoutes[insert_here].tonodes =
 				 MALLOC(CRnodeStruct *, sizeof(CRnodeStruct))) == NULL) {
@@ -2172,7 +2250,7 @@ void propagate_events_A() {
 						#endif
 					/* to get routing to/from exposedFields, lets
 					 * mark this to/offset as an event */
-					MARK_EVENT (to_ptr->routeToNode, to_ptr->foffset);
+					// JAS MARK_EVENT (to_ptr->routeToNode, to_ptr->foffset);
 					//printf(",");
 					if (p->CRoutes[counter].direction_flag != 0) {
 						/* scripts are a bit complex, so break this out */
@@ -2180,6 +2258,21 @@ void propagate_events_A() {
 						havinterp = TRUE;
 					} else {
 						/* copy the value over */
+
+						#ifdef HAVE_OPENCL
+/*
+                         printf ("CRoutes, wondering if the clInterpolator is here...%p toNode %s interp %p\n",
+                                p->CRoutes[counter].CL_Interpolator, stringNodeType(to_ptr->routeToNode->_nodeType),
+                                p->CRoutes[counter].interpptr);
+ */
+
+						if (p->CRoutes[counter].CL_Interpolator != NULL) {
+							void runOpenCLInterpolator(struct CRStruct *route, struct X3D_Node * toNode, int toOffset);
+
+							runOpenCLInterpolator(&p->CRoutes[counter], to_ptr->routeToNode, to_ptr->foffset);
+						} else
+						#endif // HAVE_OPENCL
+
 						if (p->CRoutes[counter].len > 0) {
 						/* simple, fixed length copy */
 							memcpy( offsetPointer_deref(void *,to_ptr->routeToNode ,to_ptr->foffset),
@@ -2212,15 +2305,40 @@ void propagate_events_A() {
 							tg->CRoutes.CRoutesExtra = p->CRoutes[counter].extra;
 							p->CRoutes[counter].interpptr((void *)(to_ptr->routeToNode));
 						} else {
-							/* just an eventIn node. signal to the reciever to update */
-							MARK_EVENT(to_ptr->routeToNode, to_ptr->foffset);
+							bool doItOnTheCPU = FALSE;
 
-							/* make sure that this is pointing to a real node,
-							 * not to a block of memory created by
-							 * EAI - extra memory - if it has an offset of
-							 * zero, it is most certainly made. */
-							if ((to_ptr->foffset) != 0)
-								update_node(to_ptr->routeToNode);
+							if (p->CRoutes[counter].routeFromNode->_nodeType == NODE_CoordinateInterpolator) {
+								if (X3D_COORDINATEINTERPOLATOR(p->CRoutes[counter].routeFromNode)->_CPU_Routes_out != 0) {
+									doItOnTheCPU = TRUE;
+								}
+							}else {
+
+								doItOnTheCPU = TRUE;
+							}
+
+
+							if (doItOnTheCPU) {
+								#ifdef CRVERBOSE
+								printf ("doing this route on the CPU (from a %s)\n",stringNodeType(p->CRoutes[counter].routeFromNode->_nodeType));
+								#endif
+
+
+								/* just an eventIn node. signal to the reciever to update */
+								MARK_EVENT(to_ptr->routeToNode, to_ptr->foffset);
+
+								/* make sure that this is pointing to a real node,
+								 * not to a block of memory created by
+								 * EAI - extra memory - if it has an offset of
+								 * zero, it is most certainly made. */
+								if ((to_ptr->foffset) != 0) {
+									update_node(to_ptr->routeToNode);
+								}
+							} else {
+								#ifdef CRVERBOSE
+                        				       printf ("yep! doing this on the GPU!\n");
+                                				#endif
+                            				}
+
 						}
 					}
 				}
@@ -3253,3 +3371,25 @@ static struct X3D_Node *returnSpecificTypeNode(int requestedType, int *offsetOfs
 	return rv;
 }
 
+#ifdef HAVE_OPENCL
+static bool canRouteOnGPUTo(struct X3D_Node *me) {
+    int i;
+    
+    if (me == NULL) return FALSE;
+    printf ("canRouteOnGPUTo = %s\n",stringNodeType(me->_nodeType));
+    for (i=0; i< vectorSize(me->_parentVector); i++) {
+        struct X3D_Node *par = vector_get(struct X3D_Node *,me->_parentVector,i);
+        printf ("parent %d is a %s\n",i,stringNodeType(par->_nodeType));
+        switch (par->_nodeType) {
+            case NODE_TriangleSet :
+            case NODE_IndexedTriangleSet:
+                return TRUE;
+                break;
+            default: return FALSE;
+        }
+    }
+    
+    return TRUE;
+    
+}
+#endif //HAVE_OPENCL
