@@ -65,6 +65,11 @@ $Id$
 static void sendScriptEventIn(int num);
 static struct X3D_Node *returnSpecificTypeNode(int requestedType, int *offsetOfsetValue, int *offsetOfvalueChanged);
 
+/* fix usage-before-definition for this function */
+#ifdef HAVE_OPENCL
+static bool canRouteOnGPUTo(struct X3D_Node *me);
+#endif
+
 ///* we count times through the scenegraph; helps to break routing loops */
 //static int thisIntTimeStamp = 1;
 
@@ -1463,7 +1468,7 @@ static void actually_do_CRoutes_Register() {
 			p->CRoutes_Count = 2;
 			p->CRoutes_Initiated = TRUE;
 
-			#if HAVE_OPENCL
+			#ifdef HAVE_OPENCL
 			p->CRoutes[0].CL_Interpolator = NULL;
 			p->CRoutes[1].CL_Interpolator = NULL;
 			#endif

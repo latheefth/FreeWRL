@@ -323,8 +323,13 @@ typedef CL_API_ENTRY cl_int
 
 clGetGLContextInfoKHR_fn clGetGLContextInfoKHR = NULL;
 
+#ifdef CL_VERSION_1_2
 clGetGLContextInfoKHR = (clGetGLContextInfoKHR_fn)clGetExtensionFunctionAddressForPlatform(platforms[0],"clGetGLContextInfoKHR");
-
+#else
+#ifdef CL_VERSION_1_1
+clGetGLContextInfoKHR = (clGetGLContextInfoKHR_fn)clGetExtensionFunctionAddress("clGetGLContextInfoKHR");
+#endif
+#endif
 	// find CL capable devices in the current GL context
 	cl_device_id devices[32]; size_t size;
 	err = clGetGLContextInfoKHR(properties, CL_DEVICES_FOR_GL_CONTEXT_KHR,
