@@ -7921,8 +7921,8 @@ void *createNewX3DNode0 (int nt) {
 		/* ttmp2->v = &virt_NavigationInfo;*/ 
 			tmp2->avatarSize.p = MALLOC (float *, sizeof(float)*3);
 			tmp2->avatarSize.p[0] = 0.25f;
-			tmp2->avatarSize.p[1] = 0.25f;
-			tmp2->avatarSize.p[2] = 0.25f;
+			tmp2->avatarSize.p[1] = 1.6f;
+			tmp2->avatarSize.p[2] = 0.75f;
 			tmp2->avatarSize.n=3;;
 			tmp2->bindTime = -1;
 			tmp2->headlight = TRUE;
@@ -8184,8 +8184,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->fieldOfView.p = MALLOC (float *, sizeof(float)*4);
 			tmp2->fieldOfView.p[0] = -1.0f;
 			tmp2->fieldOfView.p[1] = -1.0f;
-			tmp2->fieldOfView.p[2] = -1.0f;
-			tmp2->fieldOfView.p[3] = -1.0f;
+			tmp2->fieldOfView.p[2] = 1.0f;
+			tmp2->fieldOfView.p[3] = 1.0f;
 			tmp2->fieldOfView.n=4;;
 			tmp2->isBound = FALSE;
 			tmp2->jump = TRUE;

@@ -338,7 +338,7 @@ sub cInitialize {
 		#print "MALLOC MFDouble field $field val @{$val} has $count INIT\n";
 		$retstr = $restsr . "$field.p = MALLOC (double *, sizeof(double)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
-			$retstr = $retstr .  "\t\t\t$field.p[$tmp] = @{$val}[tmp];\n";
+			$retstr = $retstr .  "\t\t\t$field.p[$tmp] = @{$val}[$tmp];\n";
 		}
 		$retstr = $retstr . "\t\t\t$field.n=$count;";
 	} else {
@@ -382,7 +382,7 @@ sub cInitialize {
 		$retstr = $restsr . "$field.p = MALLOC (float *, sizeof(float)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			# get the actual value and ensure that it is a float
-			my $av = "@{$val}[tmp]";
+			my $av = "@{$val}[$tmp]";
 			my $pv = index $av, ".";
 			if ($pv < 0) { $av = $av.".0f"; } else { $av = $av."f"; }
 			# print "MFFloat, field value now is $av for orig value $pv\n";
@@ -448,7 +448,7 @@ sub cInitialize {
                 #print "MALLOC MFINT32 field $field val @{$val} has $count INIT\n";
                 $retstr = $restsr . "$field.p = MALLOC (int *, sizeof(int)*$count);\n";
                 for ($tmp=0; $tmp<$count; $tmp++) {
-                        $retstr = $retstr .  "\t\t\t$field.p[$tmp] = @{$val}[tmp];\n";
+                        $retstr = $retstr .  "\t\t\t$field.p[$tmp] = @{$val}[$tmp];\n";
                 }
                 $retstr = $retstr . "\t\t\t$field.n=$count;";
 	} else {
