@@ -329,7 +329,7 @@ sub gen {
 	#	- create a "case NODE_Shape: printf ("Shape")" for CFuncs/GeneratedCode.c;
 	#	- create a definitive list of all fieldnames.
 
-        my @unsortedNodeList = keys %VRML::Nodes;
+        my @unsortedNodeList = keys %VRML::NodeType::Nodes;
         my @sortedNodeList = sort(@unsortedNodeList);
 	for (@sortedNodeList) {
 
@@ -340,7 +340,7 @@ sub gen {
 		# also check for metadata here
 		my $mdf = 0;
 		my $omdf = 0;
- 		foreach my $field (keys %{$VRML::Nodes{$_}{FieldTypes}}) {
+ 		foreach my $field (keys %{$VRML::NodeType::Nodes{$_}{FieldTypes}}) {
 			$totalfields{$field} = "recorded";
 			if ($field eq "metadata") {$mdf = $mdf + 1;}
 			if ($field eq "__oldmetadata") {$omdf = $omdf + 1;}
@@ -348,8 +348,8 @@ sub gen {
 
 		# now, tell what kind of field it is. Hopefully, all fields will
 		# have  a valid fieldtype, if not, there is an error somewhere.
- 		foreach my $field (keys %{$VRML::Nodes{$_}{FieldKinds}}) {
-			my $fk = $VRML::Nodes{$_}{FieldKinds}{$field};
+ 		foreach my $field (keys %{$VRML::NodeType::Nodes{$_}{FieldKinds}}) {
+			my $fk = $VRML::NodeType::Nodes{$_}{FieldKinds}{$field};
 			if ($fk eq "initializeOnly") { $allfields{$field} = $fk;}
 			elsif ($fk eq "inputOnly") { $allinputOnlys{$field} = $fk;}
 			elsif ($fk eq "outputOnly") { $alloutputOnlys{$field} = $fk;}
@@ -1054,7 +1054,7 @@ sub gen {
 
 	for(@sortedNodeList) {
 		# print "working on node $_\n";
-		my $no = $VRML::Nodes{$_};
+		my $no = $VRML::NodeType::Nodes{$_};
 		my($strret) = gen_struct($_, $no);
 		push @str, $strret;
 
@@ -1121,10 +1121,10 @@ sub gen {
 
 		push @genFuncs2, "\t\t\ttmp2 = (struct X3D_$node *) tmp;\n\t\t\/* ttmp2->v = &virt_$node;*/ \n";
 
- 		foreach my $field (sort keys %{$VRML::Nodes{$node}{Defaults}}) {
-			my $ft = $VRML::Nodes{$node}{FieldTypes}{$field};
-			my $fk = $VRML::Nodes{$node}{FieldKinds}{$field};
-			my $def = $VRML::Nodes{$node}{Defaults}{$field};
+ 		foreach my $field (sort keys %{$VRML::NodeType::Nodes{$node}{Defaults}}) {
+			my $ft = $VRML::NodeType::Nodes{$node}{FieldTypes}{$field};
+			my $fk = $VRML::NodeType::Nodes{$node}{FieldKinds}{$field};
+			my $def = $VRML::NodeType::Nodes{$node}{Defaults}{$field};
 
 			# do we need to initialize the occlusion number for fields?
 			my $cf;
@@ -1211,10 +1211,10 @@ sub gen {
 			push @genFuncs2, "\t\t\tspacer fprintf (fp,\" _nparents (int) %d\\n\",vectorSize(tmp->_parentVector)); /* DJTRACK_PICKSENSORS */\n";
 			push @genFuncs2, "\t\t\tfor (i=0; i<vectorSize(tmp->_parentVector); i++) { spacer fprintf (fp,\"    %d: %p\\n\",i, vector_get(struct X3D_Node *, tmp->_parentVector,i)); }\n";
 		}
- 		foreach my $field (sort keys %{$VRML::Nodes{$node}{Defaults}}) {
+ 		foreach my $field (sort keys %{$VRML::NodeType::Nodes{$node}{Defaults}}) {
 
-			my $ft = $VRML::Nodes{$node}{FieldTypes}{$field};
-			my $fk = $VRML::Nodes{$node}{FieldKinds}{$field};
+			my $ft = $VRML::NodeType::Nodes{$node}{FieldTypes}{$field};
+			my $fk = $VRML::NodeType::Nodes{$node}{FieldKinds}{$field};
 			if ( ($fk eq "field") || ($fk eq "inputOutput") ) {
 				#
 				# This is effectively a double_conditional,
@@ -1356,11 +1356,11 @@ sub gen {
 
 		push @genFuncs1, "\nconst int OFFSETS_".$node."[] = {\n";
 
- 		foreach my $field (sort keys %{$VRML::Nodes{$node}{Defaults}}) {
-		    my $ft = $VRML::Nodes{$node}{FieldTypes}{$field};
+ 		foreach my $field (sort keys %{$VRML::NodeType::Nodes{$node}{Defaults}}) {
+		    my $ft = $VRML::NodeType::Nodes{$node}{FieldTypes}{$field};
 		    #$ft =~ tr/a-z/A-Z/; # convert to uppercase
-		    my $fk = $VRML::Nodes{$node}{FieldKinds}{$field};
-		    my $specVersion = $VRML::Nodes{$node}{SpecLevel}{$field};
+		    my $fk = $VRML::NodeType::Nodes{$node}{FieldKinds}{$field};
+		    my $specVersion = $VRML::NodeType::Nodes{$node}{SpecLevel}{$field};
 		    push @genFuncs1, "	(int) FIELDNAMES_$field, (int) offsetof (struct X3D_$node, $field), ".
 			" (int) FIELDTYPE_$ft, (int) KW_$fk, (int) $specVersion,\n";
 		};
@@ -1396,10 +1396,10 @@ sub gen {
 		push @fieldNodes, "\n/* $node node */\n";
 		push @fieldNodes, "BEGIN_NODE($node)\n";
 
- 		foreach my $field (sort keys %{$VRML::Nodes{$node}{Defaults}}) {
+ 		foreach my $field (sort keys %{$VRML::NodeType::Nodes{$node}{Defaults}}) {
 			if (index($field,"_") !=0) {
 				my $fk = "";
-				my $ofk = $VRML::Nodes{$node}{FieldKinds}{$field};
+				my $ofk = $VRML::NodeType::Nodes{$node}{FieldKinds}{$field};
 				if ("outputOnly" eq $ofk)     {$fk = "EVENT_OUT";}
 				if ("inputOnly" eq $ofk)      {$fk = "EVENT_IN";}
 				if ("inputOutput" eq $ofk) {$fk = "EXPOSED_FIELD";}
@@ -1409,8 +1409,8 @@ sub gen {
 					print "error in fieldKind for node $node, was $ofk\n";
 				}
 
-				my $ft = $VRML::Nodes{$node}{FieldTypes}{$field};
-				my $origFt = "FIELDTYPE_".$VRML::Nodes{$node}{FieldTypes}{$field};
+				my $ft = $VRML::NodeType::Nodes{$node}{FieldTypes}{$field};
+				my $origFt = "FIELDTYPE_".$VRML::NodeType::Nodes{$node}{FieldTypes}{$field};
 				$ft =~ tr/A-Z/a-z/; # convert to lowercase
 
 				push @fieldNodes, "$fk($node,$field,$ft,$field,$origFt)\n";
@@ -1427,7 +1427,7 @@ sub gen {
 	push @genFuncs2, "\nint getSAI_X3DNodeType (int FreeWRLNodeType) {\n\tswitch (FreeWRLNodeType) {\n";
 	for my $node (@sortedNodeList) {
 		push @genFuncs2, "	case NODE_$node: return ".
-				$VRML::Nodes{$node}{X3DNodeType}."; break;\n";
+		    $VRML::NodeType::Nodes{$node}{X3DNodeType}."; break;\n";
 	}
 	push @genFuncs2,"\tdefault:return -1;\n\t}\n}\n";
 
