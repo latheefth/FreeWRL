@@ -187,6 +187,8 @@ opengl/LoadTextures.c \
 opengl/RasterFont.h \
 opengl/RasterFont.c \
  \
+opencl/OpenCL_Utils.c \
+ \
 ui/common.h \
 ui/common.c \
 ui/aquaInt.h \
