@@ -45,6 +45,7 @@ void setWindowTitle();
 char *getMessageBar();
 char *getWindowTitle();
 void updateCursorStyle();
+int getCursorStyle();
 
 #ifdef _MSC_VER
 #define snprintf _snprintf

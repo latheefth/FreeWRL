@@ -324,6 +324,12 @@ void fwl_resource_push_single_request_IE_main_scene(const char *request);
 
 void fwg_frontEndReturningData(unsigned char* fileData,int length,int width,int height,bool hasAlpha);
 
+/* from main/ConsoleMessage.c */
+void fwg_setConsoleParam_maxLines(int);
+void fwg_setConsoleParam_maxLineLength(int);
+void fwg_setConsoleParam_replaceTabs(int);
+
+
 void fwg_frontEndReturningLocalFile(char *localfile, int iret);
 void fwl_RenderSceneUpdateScene(void);
 void fwl_setScreenDim(int wi, int he);
