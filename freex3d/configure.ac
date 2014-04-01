@@ -383,44 +383,45 @@ case "$TARGET" in
         ;;
 esac
 
-# Glew
-AC_ARG_WITH([glew],AS_HELP_STRING([--with-glew=<dir>],[Use glew from here]),[],[with_glew=check])
+# OpenCL
+AC_ARG_WITH([OpenCL],AS_HELP_STRING([--with-OpenCL=<dir>],[Use OpenCL from here]),[],[with_OpenCL=no])
 
-case "$with_glew" in
-     no) # Do not use GLEW
-	AC_MSG_NOTICE([glew disabled.])
+case "$with_OpenCL" in
+     no) # Do not use OPENCL
+	AC_MSG_NOTICE([OpenCL disabled.])
 	;;
-     *)  # Search for GLEW
-	if test "x$with_glew" = xcheck; then
-		# do nothing, glew must be found in the regular path
-		GLEW_CFLAGS=""
-		GLEW_LIBS="-lGLEW"
+     *)  # Search for OPENCL
+	if test "x$with_OpenCL" = xcheck; then
+		# do nothing, OpenCL must be found in the regular path
+		OPENCL_CFLAGS="-DGPU_DEBUG"
+		OPENCL_LIBS="-lOpenCL"
 	else
-	if test "x$with_glew" = xyes; then
-		# do nothing, glew must be found in the regular path
-		GLEW_CFLAGS=""
-		GLEW_LIBS="-lGLEW"
+	if test "x$with_OpenCL" = xyes; then
+		# do nothing, OpenCL must be found in the regular path
+		OPENCL_CFLAGS="-DGPU_DEBUG"
+		OPENCL_LIBS="-lOpenCL"
 	else
-		# assign the path specified via --with-glew
-                GLEW_CFLAGS="-I$with_glew/include"
-                GLEW_LIBS="-L$with_glew/lib -lGLEW"
+		# assign the path specified via --with-OpenCL
+                OPENCL_CFLAGS="-I$with_OpenCL/include -DGPU_DEBUG"
+                OPENCL_LIBS="-L$with_OpenCL/lib -lOpenCL"
 	fi; fi
 
 	# save global cflags/libs
 	oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS;oCPPFLAGS=$CPPFLAGS;oLIBS=$LIBS
 	# set cflags/libs for this case
-	CPPFLAGS="$CPPFLAGS $GLEW_CFLAGS $GL_CFLAGS"
-	LDFLAGS="$LDFLAGS $GLEW_LIBS $GL_LIBS"
-	AC_CHECK_HEADERS([GL/glew.h], [
-		AC_DEFINE([HAVE_GLEW_H], [], [We have the glew library.])
-		AC_CHECK_LIB([GLEW], [glewInit], [],
-     	  		[AC_MSG_ERROR([glew headers found but glew library not found. Please correct this.])])
-		],[AC_MSG_RESULT([glew not found. FreeWRL will not use it.])])
+	CPPFLAGS="$CPPFLAGS $OPENCL_CFLAGS $GL_CFLAGS"
+	LDFLAGS="$LDFLAGS $OPENCL_LIBS $GL_LIBS"
+	AC_CHECK_HEADERS([CL/cl.h], [
+		AC_DEFINE([HAVE_OPENCL], [], [We have the OpenCL library headers.])
+			AC_SEARCH_LIBS(clGetPlatformIDs,OpenCL, [],
+     	  			[AC_MSG_ERROR([OpenCL headers found but OpenCL library not found. Please correct this.])])
+				],[AC_MSG_RESULT([OpenCL not found. FreeWRL will not use it.])
+		])
 
 	# restore global cflags/libs
 	CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS;CFLAGS=$oCFLAGS;LIBS=$oLIBS
-	AC_SUBST(GLEW_CFLAGS)
-	AC_SUBST(GLEW_LIBS)
+	AC_SUBST(OPENCL_CFLAGS)
+	AC_SUBST(OPENCL_LIBS)
 	;;
 esac
 
