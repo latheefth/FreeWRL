@@ -1301,10 +1301,6 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
                         }
                 }
 
-                //if (ccurse != ocurse) {
-                //        ocurse = ccurse;
-                //        setCursor();
-                //}
         } /* (!NavigationMode && HaveSensitive) */
 		else
 			setArrowCursor();
@@ -4090,15 +4086,12 @@ void updateViewCursorStyle(int cstyle)
 not per-instance cursors (except multi-touch multi-cursors)
 However cursor style choice could/should be per-window/instance
 */
-int ccurse = ACURSE;
-int ocurse = ACURSE;
 
 void updateViewCursorStyle(int cstyle)
 {
-	ccurse = ocurse = cstyle;
 #if !defined (_ANDROID)
 	/* ANDROID - no cursor style right now */
-	setCursor(); /*updateCursorStyle0(cstyle); // in fwWindow32 where cursors are loaded */
+	setCursor(cstyle);
 #endif //ANDROID
 }
 #endif

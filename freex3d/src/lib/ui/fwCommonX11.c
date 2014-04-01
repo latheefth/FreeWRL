@@ -38,6 +38,7 @@
 #include <libFreeWRL.h>
 
 #include "ui/common.h"
+#include  <X11/cursorfont.h>
 
 static Cursor arrowc;
 static Cursor sensorc;
@@ -271,6 +272,9 @@ int fv_open_display()
     /* Color map */
     fv_create_colormap();
 
+    /* Initialize cursors */
+    loadCursors();
+
     return TRUE;
 }
 
@@ -334,16 +338,24 @@ bool fv_bind_GLcontext()
 }
 #endif /* KEEP_FV_INLIB */
 
+/**
+ *  Initialize cursor types for X11
+ *
+ */
+void loadCursors() {
+	arrowc = XCreateFontCursor(Xdpy,XC_arrow);
+	sensorc = XCreateFontCursor(Xdpy,XC_hand1);
+}
 
-/*
+/**
  * setCursor() declared as generic in common.h
  * specific X11 implementation
  */
 void setCursor(int ccurse)
 {
 	switch (ccurse) {
-	case SCURSE: cursor = sensorc;
-	case ACURSE: cursor = arrowc;
+	case SCURSE: cursor = sensorc; break;
+	case ACURSE: cursor = arrowc; break;
 	default:
 		DEBUG_MSG("setCursor: invalid value for ccurse: %d\n", ccurse);
 	}
