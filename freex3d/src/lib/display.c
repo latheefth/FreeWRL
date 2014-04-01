@@ -37,7 +37,7 @@
 #include "opengl/Textures.h"
 #include "opengl/RasterFont.h"
 #include "opengl/OpenGL_Utils.h"
-#include "scenegraph/Collision.h"
+//JAS #include "scenegraph/Collision.h"
 
 #include "ui/common.h"
 
@@ -107,6 +107,10 @@ void display_init(struct tdisplay* d)
 int fv_display_initialize()
 {
     struct tdisplay* d = &gglobal()->display;
+#ifdef HAVE_OPENCL
+	struct tOpenCL_Utils *cl = &gglobal()->OpenCL_Utils;
+#endif //HAVE_OPENCL
+
     
     //printf ("fv_display_initialize called\n");
     if (d->display_initialized) {
@@ -121,11 +125,16 @@ int fv_display_initialize()
     /* Display full initialized :P cool ! */
     d->display_initialized = TRUE;
    
-    PRINT_GL_ERROR_IF_ANY ("end of fv_display_initialize");
-    
-#ifdef DO_COLLISION_GPU
-    collision_initGPUCollide();
+#ifdef HAVE_OPENCL
+
+    if (!cl->OpenCL_Initialized) {
+	printf ("doing fwl_OpenCL_startup here in fv_display_inintialize\n");
+	fwl_OpenCL_startup(cl);
+    }
+
 #endif
+
+    PRINT_GL_ERROR_IF_ANY ("end of fv_display_initialize");
     
     return TRUE;
 }
@@ -138,6 +147,10 @@ int fv_display_initialize()
 int fv_display_initialize()
 {
 	struct tdisplay* d = &gglobal()->display;
+#ifdef HAVE_OPENCL
+	struct tOpenCL_Utils *cl = &gglobal()->OpenCL_Utils;
+#endif //HAVE_OPENCL
+
 	if (d->display_initialized) return TRUE;
 
 	//memset(&d->rdr_caps, 0, sizeof(d->rdr_caps));
@@ -149,7 +162,9 @@ int fv_display_initialize()
 	//d->winToEmbedInto = fwl_getp_winToEmbedInto();
 
  	/* make the window, get the OpenGL context */
- #if !defined(_MSC_VER) && !defined(_ANDROID) && !defined(QNX) && !defined(IPHONE)
+// #if !defined(_MSC_VER) && !defined(_ANDROID) && !defined(QNX) && !defined(IPHONE)
+#if defined (__linux__)
+
 	if (!fv_open_display()) {
 		return FALSE;
 	}
@@ -212,10 +227,15 @@ int fv_display_initialize()
 		XMapWindow(Xdpy, Xwin);
 	}
 #endif /* IPHONE */
-#ifdef DO_COLLISION_GPU
-		collision_initGPUCollide();
-#endif
 
+#ifdef HAVE_OPENCL
+
+    if (!cl->OpenCL_Initialized) {
+	printf ("doing fwl_OpenCL_startup here in fv_display_inintialize\n");
+	fwl_OpenCL_startup(cl);
+    }
+
+#endif
 	return TRUE;
 }
 #endif //ANDROID
