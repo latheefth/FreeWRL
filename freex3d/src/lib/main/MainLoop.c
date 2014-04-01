@@ -119,7 +119,7 @@ struct Touch
 	float angle; /*some multitouch -like smarttech- track the angle of the finger */
 	int x;
 	int y;
-}; 
+};
 struct keypressTuple{
 	int key;
 	int type;
@@ -198,7 +198,7 @@ typedef struct pMainloop{
 	int ntouch;// =0;
 	int currentTouch;// = -1;
 	struct Touch touchlist[20];
-	int EMULATE_MULTITOUCH;// = 1; 
+	int EMULATE_MULTITOUCH;// = 1;
 	FILE* recordingFile;
 	char* recordingFName;
 	int modeRecord;
@@ -305,7 +305,7 @@ void Mainloop_init(struct tMainloop *t){
 		p->ntouch =0;
 		p->currentTouch = -1;
 		//p->touchlist[20];
-		p->EMULATE_MULTITOUCH = 0; 
+		p->EMULATE_MULTITOUCH = 0;
 		p->recordingFile = NULL;
 		p->recordingFName = NULL;
 		p->modeRecord = FALSE;
@@ -427,7 +427,7 @@ static void stopDisplayThread()
 
 
 #ifdef OLDSTOPCODE
-// stops the Texture loading thread - will either pthread_cancel or will send SIGUSR2 to 
+// stops the Texture loading thread - will either pthread_cancel or will send SIGUSR2 to
 // the thread, depending on platform.
 
 static void stopLoadThread()
@@ -439,15 +439,15 @@ static void stopLoadThread()
 			//pthread_cancel(tg->threads.loadThread);
 	 	#else
 
-		{	
-			int status; 
-			char me[200]; 
-			sprintf(me,"faking pthread cancel on thread %p",tg->threads.loadThread); 
-			//ConsoleMessage(me); 
+		{
+			int status;
+			char me[200];
+			sprintf(me,"faking pthread cancel on thread %p",tg->threads.loadThread);
+			//ConsoleMessage(me);
 			if ((status = pthread_kill(tg->threads.loadThread, SIGUSR2)) != 0) {
 				ConsoleMessage("issue stopping thread");
 			}
-		} 
+		}
 		#endif //HAVE_PTHREAD_CANCEL
 
 		pthread_join(tg->threads.loadThread,NULL);
@@ -456,7 +456,7 @@ static void stopLoadThread()
 }
 
 
-// stops the source parsing thread - will either pthread_cancel or will send SIGUSR2 to 
+// stops the source parsing thread - will either pthread_cancel or will send SIGUSR2 to
 // the thread, depending on platform.
 
 static void stopPCThread()
@@ -468,15 +468,15 @@ static void stopPCThread()
 			//pthread_cancel(tg->threads.PCthread);
 	 	#else
 
-		{	
-			int status; 
-			char me[200]; 
-			sprintf(me,"faking pthread cancel on thread %p",tg->threads.PCthread); 
-			//ConsoleMessage(me); 
+		{
+			int status;
+			char me[200];
+			sprintf(me,"faking pthread cancel on thread %p",tg->threads.PCthread);
+			//ConsoleMessage(me);
 			if ((status = pthread_kill(tg->threads.PCthread, SIGUSR2)) != 0) {
 				ConsoleMessage("issue stopping thread");
 			}
-		} 
+		}
 	#endif //HAVE_PTHREAD_CANCEL
 
 		pthread_join(tg->threads.PCthread,NULL);
@@ -598,9 +598,9 @@ void fwl_RenderSceneUpdateScene() {
 		//copy the .fwplay between platforms
 		//before starting refactoring, run scenes with -F or --fixture option,
 		//  and hit the 'x' key to save a snapshot one or more times per fixture run
-		//after each refactoring step, run scenes with -P or --playback option, 
+		//after each refactoring step, run scenes with -P or --playback option,
 		//  and (with perl script) do a file compare(fixture_snapshot,playback_snapshot)
-		// 
+		//
 		//on the command line use:
 		//-R to just record the .fwplay file
 		//-F to play recording and save as fixture
@@ -612,7 +612,7 @@ void fwl_RenderSceneUpdateScene() {
 		int mev,ix,iy,ID;
 		unsigned int button;
 		float x,y;
-		char buff[1000], keystrokes[200], mouseStr[1000]; 
+		char buff[1000], keystrokes[200], mouseStr[1000];
 		int namingMethod;
 		char *folder;
 		char sceneName[1000];
@@ -624,8 +624,8 @@ void fwl_RenderSceneUpdateScene() {
 		//4=groupfolders: /tests, /recordings/*.fwplay, /fixtures/1_wrl_17.bmp /playbacks/1_wrl_17.bmp
 		//  - 4 same as 3, except done to harmonize with linux/aqua naming approach:
 		//  - fwl_set_SnapFile(path = {"fixture" | "playback" }); to set mytmp
-		//  - 
-		namingMethod = 4; 
+		//  -
+		namingMethod = 4;
 		//if(p->frameNum == 1){
 		if(!p->fwplayOpened){
 			char recordingName[1000];
@@ -762,10 +762,10 @@ void fwl_RenderSceneUpdateScene() {
 				}
 			}
 			strcat(mouseStr,"\"");
-			fprintf(p->recordingFile,"%d %.6lf %s %s\n",p->frameNum,dtime,keystrokes,mouseStr); 
-			//in case we are -R -F together, 
+			fprintf(p->recordingFile,"%d %.6lf %s %s\n",p->frameNum,dtime,keystrokes,mouseStr);
+			//in case we are -R -F together,
 			//we need to round dtime for -F like it will be coming out of .fwplay for -P
-			sprintf(temp,"%.6lf",dtime); 
+			sprintf(temp,"%.6lf",dtime);
 			sscanf(temp,"%lf",&dtime);
 			//folder = "fixture";
 			folder = NULL;
@@ -804,7 +804,7 @@ void fwl_RenderSceneUpdateScene() {
 				// playback[i] = {iframe, dtime, keystrokes or NULL, mouse (xy,button sequence) or NULL, snapshot URL or NULL, scenegraph_dump URL or NULL, ?other?}
 				if( fgets( buff, 1000, p->recordingFile ) != NULL ) {
 					if(sscanf(buff,"%d %lf %s %s\n",&p->frameNum,&dtime,keystrokes,mouseStr) == 4){ //,snapshotURL,scenegraphURL) == 6){
-						if(0) printf("%d %lf %s %s\n",p->frameNum,dtime,keystrokes,mouseStr); 
+						if(0) printf("%d %lf %s %s\n",p->frameNum,dtime,keystrokes,mouseStr);
 					}
 				}
 			}
@@ -815,7 +815,7 @@ void fwl_RenderSceneUpdateScene() {
 		if(p->modeRecord || p->modeFixture || p->modePlayback){
 			if(strlen(keystrokes)>2){ // "x,1," == 6
 				char *next,*curr;
-				//count the number of ',' 
+				//count the number of ','
 				//for(i=0,n=0;i<strlen(keystrokes);i++) if(keystrokes[i] == ',') n++; //(strlen(keystrokes) -2)/4;
 				//n /= 2; //each keystroke has 2 commas: (char),(type),
 				curr = &keystrokes[1]; //skip leading "
@@ -829,11 +829,11 @@ void fwl_RenderSceneUpdateScene() {
 					sscanf(curr,"%d",&type);
 					next = strchr(curr,',');
 					curr = &next[1];
-					if(p->modeFixture || p->modePlayback){  
+					if(p->modeFixture || p->modePlayback){
 						//we will catch the snapshot keybaord command and prepare the
 						//snapshot filename and folder/directory for fixture and playback
 						if(key == 'x'){
-							//prepare snapshot folder(scene/ + fixture ||playback) 
+							//prepare snapshot folder(scene/ + fixture ||playback)
 							// and file name(frame#)
 							char snapfile[5];
 #ifdef _MSC_VER
@@ -850,7 +850,7 @@ void fwl_RenderSceneUpdateScene() {
 								fwl_set_SnapFile(snappath);
 							}
 							if(namingMethod==1){
-								//nested folder approach 
+								//nested folder approach
 								//1=folders: 1_wrl/recording.fwplay, 1_wrl/fixture/17.bmp, 1_wrl/playback/17.bmp
 								int k,j;
 								char snappath[100];
@@ -933,7 +933,7 @@ void fwl_RenderSceneUpdateScene() {
 								strcpy(snappath,folder);
 								fw_mkdir(snappath); // /fixture
 								fwl_set_SnapTmp(snappath);
-								
+
 								snappath[0] = '\0';
 								if(p->nameTest){
 									strcat(snappath,p->nameTest);
@@ -994,15 +994,15 @@ void fwl_RenderSceneUpdateScene() {
 		ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
 /* HAd an issue with Anaglyph rendering on Android; the cursorDraw routine caused the MODELVIEW matrix
-to have the Identity matrix loaded, which caused near/far plane calculations to be dinked.  
+to have the Identity matrix loaded, which caused near/far plane calculations to be dinked.
  should be set     FW_GL_MATRIX_MODE(GL_MODELVIEW);
     FW_GL_LOAD_IDENTITY(); DO NOT LOAD IDENTITY HERE, ELSE near/Far planes screwed up.
  if you want to see what happened, load identity matrix here! (uncomment above line)
 */
 
     PRINT_GL_ERROR_IF_ANY("start of renderSceneUpdateScene");
-    
-        DEBUG_RENDER("start of MainLoop (parsing=%s) (url loaded=%s)\n", 
+
+        DEBUG_RENDER("start of MainLoop (parsing=%s) (url loaded=%s)\n",
 		     BOOL_STR(fwl_isinputThreadParsing()), BOOL_STR(resource_is_root_loaded()));
 
         /* should we do events, or maybe a parser is parsing? */
@@ -1061,10 +1061,10 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
                 setMenuFps((float)tg->Mainloop.BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
                 /* printf ("fps %f tris %d, rootnode children %d \n",p->BrowserFPS,p->trisThisLoop, X3D_GROUP(rootNode)->children.n);  */
 
-                //ConsoleMessage("fps %f tris %d\n",tg->Mainloop.BrowserFPS,tg->Mainloop.trisThisLoop); 
+                //ConsoleMessage("fps %f tris %d\n",tg->Mainloop.BrowserFPS,tg->Mainloop.trisThisLoop);
 
 
-		 //printf ("MainLoop, nearPlane %lf farPlane %lf\n",Viewer.nearPlane, Viewer.farPlane);  
+		 //printf ("MainLoop, nearPlane %lf farPlane %lf\n",Viewer.nearPlane, Viewer.farPlane);
 
                 p->BrowserStartTime = TickTime();
                 p->loop_count = 1;
@@ -1126,22 +1126,22 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
 	}
 #endif /* TARGET_X11 */
 
-    
+
     PRINT_GL_ERROR_IF_ANY("before xtdispatch");
 #if defined(TARGET_MOTIF)
 	/* any updates to the menu buttons? Because of Linux threading
 	   issues, we try to make all updates come from 1 thread */
 	frontendUpdateButtons();
-	
+
 	/* do the Xt events here. */
 	while (XtAppPending(Xtcx)!= 0) {
-	    
+
 	    XtAppNextEvent(Xtcx, &event);
-	    
+
 #ifdef XEVENT_VERBOSE
 	    XButtonEvent *bev;
 	    XMotionEvent *mev;
-	    
+
 	    switch (event.type) {
 	    case MotionNotify:
 		mev = &event.xmotion;
@@ -1164,28 +1164,28 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
 #endif /* TARGET_MOTIF */
 #endif /* KEEP_X11_INLIB */
 
-//#if defined(_MSC_VER) 
+//#if defined(_MSC_VER)
 //	/**
 //	 *   Win32 event loop
-//	 *   gives windows message handler a time slice and 
-//	 *   it calls fwl_handle_aqua and do_keypress from fwWindow32.c 
+//	 *   gives windows message handler a time slice and
+//	 *   it calls fwl_handle_aqua and do_keypress from fwWindow32.c
 //	 */
-//	doEventsWin32A(); 
+//	doEventsWin32A();
 //#endif /* _MSC_VER */
 
         /* Viewer move viewpoint */
         handle_tick();
 
     PRINT_GL_ERROR_IF_ANY("after handle_tick")
-    
+
         /* setup Projection and activate ProximitySensors */
-        if (p->onScreen) 
+        if (p->onScreen)
 		{
-			render_pre(); 
+			render_pre();
 			slerp_viewpoint();
 		}
 
-#ifdef RENDERVERBOSE		
+#ifdef RENDERVERBOSE
     printf("RENDER STEP----------\n");
 #endif
 
@@ -1202,12 +1202,12 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
 	}
 
         /* handle_mouse events if clicked on a sensitive node */
-	 //printf("nav mode =%d sensitive= %d\n",p->NavigationMode, tg->Mainloop.HaveSensitive);  
+	 //printf("nav mode =%d sensitive= %d\n",p->NavigationMode, tg->Mainloop.HaveSensitive);
         if (!p->NavigationMode && tg->Mainloop.HaveSensitive) {
                 p->currentCursor = 0;
                 setup_projection(TRUE,tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
                 setup_viewpoint();
-                render_hier(rootNode(),VF_Sensitive  | VF_Geom); 
+                render_hier(rootNode(),VF_Sensitive  | VF_Geom);
                 p->CursorOverSensitive = getRayHit();
 
                 /* for nodes that use an "isOver" eventOut... */
@@ -1221,7 +1221,7 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
                         if (p->ButDown[p->currentCursor][1]==0) {
 
                                 /* ok, when the user releases a button, cursorOverSensitive WILL BE NULL
-                                   until it gets sensed again. So, we use the lastOverButtonPressed flag to delay 
+                                   until it gets sensed again. So, we use the lastOverButtonPressed flag to delay
                                    sending this flag by one event loop loop. */
                                 if (!p->lastOverButtonPressed) {
                                         sendSensorEvents(p->lastOver, overMark, 0, FALSE);
@@ -1235,7 +1235,7 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
 
                 }
                 #ifdef VERBOSE
-                if (p->CursorOverSensitive != NULL) 
+                if (p->CursorOverSensitive != NULL)
 			printf("COS %d (%s)\n",
 			       (unsigned int) p->CursorOverSensitive,
 			       stringNodeType(p->CursorOverSensitive->_nodeType));
@@ -1319,7 +1319,7 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
 
         /* do OcclusionCulling, etc */
         OcclusionCulling();
-        
+
         if (p->doEvents) {
                 /* and just parsed nodes needing binding? */
                 SEND_BIND_IF_REQUIRED(tg->ProdCon.setViewpointBindInRender)
@@ -1515,7 +1515,7 @@ void handle(const int mev, const unsigned int button, const float x, const float
 #define PCTL_KEYR XK_Control_R //0XFFE3 //left, and 0XFFE4 on right
 #define PSFT_KEY XK_Shift_L //0XFFE1 //left, and 0XFFE2 on right
 #define PSFT_KEYR XK_Shift_R //0XFFE1 //left, and 0XFFE2 on right
-#define PDEL_KEY XK_Delete //0XFF9F //on numpad, and 0XFFFF near Insert //0x08  
+#define PDEL_KEY XK_Delete //0XFF9F //on numpad, and 0XFFFF near Insert //0x08
 //OLDCODE #define PRTN_KEY XK_Return //XK_KP_Enter //0xff0d 13
 #define PNUM0 XK_KP_Insert    //XK_KP_0
 #define PNUM1 XK_KP_End       //XK_KP_1
@@ -1534,7 +1534,7 @@ void handle(const int mev, const unsigned int button, const float x, const float
 //OLDCODE #define KEYUP	3
 
 ///* from http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/index.html
-//section 21.4.1 
+//section 21.4.1
 //Key Value
 //Home 13
 //End 14
@@ -1581,7 +1581,7 @@ int platform2web3dActionKeyLINUX(int platformKey)
 	key = 0; //platformKey;
 	if(platformKey >= PF1_KEY && platformKey <= PF12_KEY)
 		key = platformKey - PF1_KEY + F1_KEY;
-	else 
+	else
 		switch(platformKey)
 		{
 		case PHOME_KEY:
@@ -1600,7 +1600,7 @@ int platform2web3dActionKeyLINUX(int platformKey)
 			key = LEFT_KEY; break;
 		case PRIGHT_KEY:
 			key = RIGHT_KEY; break;
-		case PDEL_KEY:  
+		case PDEL_KEY:
 			key = DEL_KEY; break;
 		case PALT_KEY:
 		case PALT_KEYR:
@@ -1655,7 +1655,7 @@ void handle_Xevents(XEvent event) {
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 	p->lastMouseEvent=event.type;
-		
+
 #ifdef VERBOSE
 	switch (event.type) {
 		case ConfigureNotify: printf ("Event: ConfigureNotify\n"); break;
@@ -1739,7 +1739,7 @@ void handle_Xevents(XEvent event) {
 
 			// deprecated:  ksraw = XKeycodeToKeysym(event.xkey.display, event.xkey.keycode, 0);
 
-			keysym = XGetKeyboardMapping(event.xkey.display, 
+			keysym = XGetKeyboardMapping(event.xkey.display,
 				event.xkey.keycode, 1, &keysyms_per_keycode_return);
 			ksraw = *keysym;
 			XFree(keysym);
@@ -1747,7 +1747,7 @@ void handle_Xevents(XEvent event) {
 			XConvertCase(ksraw,&kslower,&ksupper);
 
 			ksraw = ksupper;
-			if(event.type == KeyRelease && !IsModifierKey(ks) 
+			if(event.type == KeyRelease && !IsModifierKey(ks)
 				&& !IsFunctionKey(ks) && !IsMiscFunctionKey(ks) && !IsCursorKey(ks)){
 				fwl_do_rawKeyPress((int)ks,1);
 				//printf("ks=%c %d %o %x\n",ks,(int)ks,(int)ks,(int)ks);
@@ -1766,7 +1766,7 @@ void handle_Xevents(XEvent event) {
 			statusbar_handle_mouse(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y);
 #else
 			fwl_handle_aqua(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y);
-#endif			
+#endif
 			//if(0){
 			//	/* printf("got a button press or button release\n"); */
 			//	/*  if a button is pressed, we should not change state,*/
@@ -1861,7 +1861,7 @@ static void render_pre() {
         }
 
         /* 5. render hierarchy - proximity */
-        if (p->doEvents) 
+        if (p->doEvents)
 		{
 			profile_start("hier_prox");
 			render_hier(rootNode(), VF_Proximity);
@@ -1884,7 +1884,7 @@ static void render_pre() {
 		//drawStatusBar();
 		PRINT_GL_ERROR_IF_ANY("GLBackend::render_pre");
 }
-void setup_projection(int pick, int x, int y) 
+void setup_projection(int pick, int x, int y)
 {
 	GLDOUBLE fieldofview2;
 	GLint xvp = 0;
@@ -1914,8 +1914,8 @@ void setup_projection(int pick, int x, int y)
 		iexpand = (GLint)(expansion * screenwidth2);
 		//assume: the viewpoint is centered in the viewport
 		//there are 2 viewports, one for left and one for right
-		//so if you want to spread the screen eyebase out, 
-		//you need to expand the viewport(s) horizontally by 2x 
+		//so if you want to spread the screen eyebase out,
+		//you need to expand the viewport(s) horizontally by 2x
 		// in the direction you want it to move
 		//for example to move the left viewpoint left, you expand the left viewport
 		//on the left side by 2x (and move the right side of the right viewport to the right)
@@ -1923,7 +1923,7 @@ void setup_projection(int pick, int x, int y)
 		//to the right by 2x.
 		//except in sidebyside, that would cause an over-write in the middle, and changes
 		//to aspect2 ratio can change the field of view
-		//so for sidebyside, we make the viewports normal screenwidth2 wide and 
+		//so for sidebyside, we make the viewports normal screenwidth2 wide and
 		//use scissor test to crop to the viewports
 		xl = 0;
 		xr = screenwidth2;
@@ -1995,20 +1995,20 @@ void setup_projection(int pick, int x, int y)
 
 		if (tg->display.screenHeight != 0) {
 			numerator = (maxY - minY) * ((float) tg->display.screenWidth) / ((float) tg->display.screenHeight);
-			maxX = numerator/2.0f; 
+			maxX = numerator/2.0f;
 			minX = -(numerator/2.0f);
 		}
 
 		FW_GL_ORTHO (minX, maxX, minY, maxY,
 			viewer->nearPlane,viewer->farPlane);
-		
+
 	} else {
 		/* bounds check */
-		if ((fieldofview2 <= 0.0) || (fieldofview2 > 180.0)) 
+		if ((fieldofview2 <= 0.0) || (fieldofview2 > 180.0))
 			fieldofview2=45.0;
 		/* glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);  */
         //printf ("Before FW_GLU_PERSPECTIVE, np %f fp %f\n",viewer->nearPlane, viewer->farPlane);
-		FW_GLU_PERSPECTIVE(fieldofview2, aspect2, viewer->nearPlane,viewer->farPlane); 
+		FW_GLU_PERSPECTIVE(fieldofview2, aspect2, viewer->nearPlane,viewer->farPlane);
 	}
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 	PRINT_GL_ERROR_IF_ANY("XEvents::setup_projection");
@@ -2016,7 +2016,7 @@ void setup_projection(int pick, int x, int y)
 }
 
 /* Render the scene */
-static void render() 
+static void render()
 {
 //#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
     int count;
@@ -2036,7 +2036,7 @@ static void render()
 
         /*set_buffer((unsigned)bufferarray[count],count); */              /*  in Viewer.c*/
 
-		Viewer()->buffer = (unsigned)p->bufferarray[count]; 
+		Viewer()->buffer = (unsigned)p->bufferarray[count];
 		Viewer()->iside = count;
 #ifdef OLDCODE
 OLDCODE#ifdef HAVE_GLEW_H //#ifndef GLES2
@@ -2048,7 +2048,7 @@ OLDCODE#endif
 
 		if(Viewer()->isStereo)
 		{
-            
+
 			if(Viewer()->shutterGlasses == 2) /* flutter mode - like --shutter but no GL_STEREO so alternates */
 			{
 				if(TickTime() - shuttertime > 2.0)
@@ -2063,26 +2063,26 @@ OLDCODE#endif
 			{
 				//set the channels for backbuffer clearing
 				if(count == 0)
-					Viewer_anaglyph_clearSides(); //clear all channels 
+					Viewer_anaglyph_clearSides(); //clear all channels
 				else
 					Viewer_anaglyph_setSide(count); //clear just the channels we're going to draw to
 			}
 			setup_projection(0, 0, 0);
 			BackEndClearBuffer(2);
-			if(Viewer()->anaglyph) 
+			if(Viewer()->anaglyph)
 				Viewer_anaglyph_setSide(count); //set the channels for scenegraph drawing
-			setup_viewpoint(); 
+			setup_viewpoint();
 		}
-		else 
+		else
 			BackEndClearBuffer(2);
-		//BackEndLightsOff(); 
+		//BackEndLightsOff();
 		clearLightTable();//turns all lights off- will turn them on for VF_globalLight and scope-wise for non-global in VF_geom
 
 //#else
 //
 //	BackEndClearBuffer(2); // no stereo, no shutter glasses: simple clear
 //
-//#endif // SHUTTER GLASSES or STEREO	
+//#endif // SHUTTER GLASSES or STEREO
 
 	/*  turn light #0 off only if it is not a headlight.*/
 	if (!fwl_get_headlight()) {
@@ -2092,7 +2092,7 @@ OLDCODE#endif
 
 	/*  Other lights*/
 	PRINT_GL_ERROR_IF_ANY("XEvents::render, before render_hier");
-	
+
 	render_hier(rootNode(), VF_globalLight);
 	PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_globalLight)");
 
@@ -2101,7 +2101,7 @@ OLDCODE#endif
 	render_hier(rootNode(), VF_Geom);
 	profile_end("hier_geom");
 	PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_Geom)");
-	
+
 	/*  5. Blended Nodes*/
 	if (tg->RenderFuncs.have_transparency) {
 		/*  render the blended nodes*/
@@ -2111,7 +2111,7 @@ OLDCODE#endif
 
 //#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
 		if (Viewer()->isStereo) {
-            
+
 
             cursorDraw(1,p->viewpointScreenX[count],0,0.0f); //draw a fiducial mark where centre of viewpoint is
 
@@ -2126,13 +2126,13 @@ OLDCODE#endif
 	}
 
 //#endif
-    
+
 	if(p->EMULATE_MULTITOUCH) {
         int i;
-    
+
 		for(i=0;i<20;i++)
 			if(p->touchlist[i].isDown > 0)
-				cursorDraw(p->touchlist[i].ID,p->touchlist[i].x,p->touchlist[i].y,p->touchlist[i].angle); 
+				cursorDraw(p->touchlist[i].ID,p->touchlist[i].x,p->touchlist[i].y,p->touchlist[i].angle);
     }
 }
 
@@ -2142,16 +2142,16 @@ static double currentViewerAngle = 0.0;
 static double requestedViewerAngle = 0.0;
 
 static void setup_viewpoint() {
-	
+
 
         FW_GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
         FW_GL_LOAD_IDENTITY();
 
-    // has a change happened? 
+    // has a change happened?
     if (Viewer()->screenOrientation != currentViewerLandPort) {
         // 4 possible values; 0, 90, 180, 270
-        // 
-        rotatingCCW = FALSE; // assume, unless told otherwise 
+        //
+        rotatingCCW = FALSE; // assume, unless told otherwise
         switch (currentViewerLandPort) {
             case 0: {
                 rotatingCCW= (Viewer()->screenOrientation == 270);
@@ -2161,28 +2161,28 @@ static void setup_viewpoint() {
                 rotatingCCW = (Viewer()->screenOrientation == 0);
                 break;
             }
-                
+
             case 180: {
                 rotatingCCW = (Viewer()->screenOrientation != 270);
                 break;
             }
-                
+
             case 270: {
                 rotatingCCW = (Viewer()->screenOrientation != 0);
                 break;
-                
+
             }
-                
-                
+
+
         }
-        
+
         currentViewerLandPort = Viewer()->screenOrientation;
         requestedViewerAngle = (double)Viewer()->screenOrientation;
-        
+
     }
-    
+
     if (!(APPROX(currentViewerAngle,requestedViewerAngle))) {
-        
+
         if (rotatingCCW) {
             //printf ("ccw, cva %lf req %lf\n",currentViewerAngle, requestedViewerAngle);
             currentViewerAngle -= 10.0;
@@ -2190,34 +2190,34 @@ static void setup_viewpoint() {
         } else {
             //printf ("cw, cva %lf req %lf\n",currentViewerAngle, requestedViewerAngle);
             currentViewerAngle +=10.0;
-            if (currentViewerAngle > 365.0) currentViewerAngle = 0.0; 
+            if (currentViewerAngle > 365.0) currentViewerAngle = 0.0;
         }
-        
+
     }
         FW_GL_ROTATE_D (currentViewerAngle,0.0,0.0,1.0);
-        
-            
 
-    
+
+
+
         viewer_togl(Viewer()->fieldofview);
 		profile_start("vp_hier");
         render_hier(rootNode(), VF_Viewpoint);
 		profile_end("vp_hier");
         PRINT_GL_ERROR_IF_ANY("XEvents::setup_viewpoint");
 
-	/* 
-	{ GLDOUBLE projMatrix[16]; 
+	/*
+	{ GLDOUBLE projMatrix[16];
 	fw_glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
 	printf ("\n");
 	printf ("setup_viewpoint, proj  %lf %lf %lf\n",projMatrix[12],projMatrix[13],projMatrix[14]);
 	fw_glGetDoublev(GL_MODELVIEW_MATRIX, projMatrix);
 	printf ("setup_viewpoint, model %lf %lf %lf\n",projMatrix[12],projMatrix[13],projMatrix[14]);
-	printf ("setup_viewpoint, currentPos %lf %lf %lf\n",        Viewer.currentPosInModel.x, 
+	printf ("setup_viewpoint, currentPos %lf %lf %lf\n",        Viewer.currentPosInModel.x,
 	        Viewer.currentPosInModel.y ,
 	        Viewer.currentPosInModel.z);
 	}
 	*/
-	
+
 
 }
 void toggleLogfile()
@@ -2232,7 +2232,7 @@ void toggleLogfile()
 #ifdef _MSC_VER
 		freopen("CON","w",stdout);
 #else
-		//JAS - this does nothing, correct?  
+		//JAS - this does nothing, correct?
 		// freopen("/dev/tty", "w", stdout);
 #endif
 		//save p->logfname for reopening
@@ -2288,7 +2288,7 @@ void fwl_set_logfile(char *lname){
 	} else {
 		p->logfname = strdup(lname);
 		toggleLogfile();
-	 //   printf ("FreeWRL: redirect stdout and stderr to %s\n", logFileName);	
+	 //   printf ("FreeWRL: redirect stdout and stderr to %s\n", logFileName);
 	 //   fp = freopen(logFileName, "a", stdout);
 	 //   if (NULL == fp) {
 		//WARN_MSG("WARNING: Unable to reopen stdout to %s\n", logFileName) ;
@@ -2318,7 +2318,7 @@ int isNodeDEFedYet(struct X3D_Node *node, Stack *DEFedNodes)
 }
 
 char * dontRecurseList [] = {
-	"_sortedChildren", 
+	"_sortedChildren",
 	NULL,
 };
 int doRecurse(const char *fieldname){
@@ -2427,7 +2427,7 @@ void print_field_value(FILE *fp, int typeIndex, union anyVrml* value)
 		{
 			struct Multi_Vec2f *mfvec2f = (struct Multi_Vec2f*)value;
 			fprintf (fp,"{");
-			for (i=0; i<mfvec2f->n; i++) 
+			for (i=0; i<mfvec2f->n; i++)
 				{ fprintf (fp,"[%4.3f, %4.3f],",mfvec2f->p[i].c[0], mfvec2f->p[i].c[1]); }
 			fprintf(fp,"}");
 			break;
@@ -2442,7 +2442,7 @@ void print_field_value(FILE *fp, int typeIndex, union anyVrml* value)
 		{
 			struct Multi_Vec2d *mfvec2d = (struct Multi_Vec2d*)value;
 			fprintf (fp,"{");
-			for (i=0; i<mfvec2d->n; i++) 
+			for (i=0; i<mfvec2d->n; i++)
 				{ fprintf (fp,"[%4.3f, %4.3f], ",mfvec2d->p[i].c[0], mfvec2d->p[i].c[1]); }
 			fprintf(fp,"}");
 			break;
@@ -2459,7 +2459,7 @@ void print_field_value(FILE *fp, int typeIndex, union anyVrml* value)
 		{
 			struct Multi_Vec3f *mfvec3f = (struct Multi_Vec3f*)value;
 			fprintf (fp,"{");
-			for (i=0; i<mfvec3f->n; i++) 
+			for (i=0; i<mfvec3f->n; i++)
 				{ fprintf (fp,"[%4.3f, %4.3f, %4.3f],",mfvec3f->p[i].c[0], mfvec3f->p[i].c[1],mfvec3f->p[i].c[2]); }
 			fprintf(fp,"}");
 			break;
@@ -2474,7 +2474,7 @@ void print_field_value(FILE *fp, int typeIndex, union anyVrml* value)
 		{
 			struct Multi_Vec3d *mfvec3d = (struct Multi_Vec3d*)value;
 			fprintf (fp,"{");
-			for (i=0; i<mfvec3d->n; i++) 
+			for (i=0; i<mfvec3d->n; i++)
 				{ fprintf (fp,"[%4.3f, %4.3f, %4.3f],",mfvec3d->p[i].c[0], mfvec3d->p[i].c[1],mfvec3d->p[i].c[2]); }
 			fprintf(fp,"}");
 			break;
@@ -2493,7 +2493,7 @@ void print_field_value(FILE *fp, int typeIndex, union anyVrml* value)
 		{
 			struct Multi_ColorRGBA *mfrgba = (struct Multi_ColorRGBA*)value;
 			fprintf (fp,"{");
-			for (i=0; i<mfrgba->n; i++) 
+			for (i=0; i<mfrgba->n; i++)
 				{ fprintf (fp,"[%4.3f, %4.3f, %4.3f, %4.3f]\n",mfrgba->p[i].c[0], mfrgba->p[i].c[1],mfrgba->p[i].c[2],mfrgba->p[i].c[3]); }
 			fprintf(fp,"}");
 			break;
@@ -2508,7 +2508,7 @@ void print_field_value(FILE *fp, int typeIndex, union anyVrml* value)
 		{
 			struct Multi_Vec4d *mfvec4d = (struct Multi_Vec4d*)value;
 			fprintf (fp,"{");
-			for (i=0; i<mfvec4d->n; i++) 
+			for (i=0; i<mfvec4d->n; i++)
 				{ fprintf (fp,"[%4.3f, %4.3f, %4.3f, %4.3f],",mfvec4d->p[i].c[0], mfvec4d->p[i].c[1],mfvec4d->p[i].c[2],mfvec4d->p[i].c[3]); }
 			fprintf(fp,"}");
 			break;
@@ -2516,7 +2516,7 @@ void print_field_value(FILE *fp, int typeIndex, union anyVrml* value)
 		case FIELDTYPE_SFMatrix3f:
 		{
 			struct SFMatrix3f *sfmat3f = (struct SFMatrix3f*)value;
-			fprintf (fp," [%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\n",			
+			fprintf (fp," [%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\n",
 			sfmat3f->c[0],sfmat3f->c[1],sfmat3f->c[2],
 			sfmat3f->c[3],sfmat3f->c[4],sfmat3f->c[5],
 			sfmat3f->c[6],sfmat3f->c[7],sfmat3f->c[8]);
@@ -2526,7 +2526,7 @@ void print_field_value(FILE *fp, int typeIndex, union anyVrml* value)
 		{
 			struct Multi_Matrix3f *mfmat3f = (struct Multi_Matrix3f*)value;
 			fprintf (fp,"{");
-			for (i=0; i<mfmat3f->n; i++) { 
+			for (i=0; i<mfmat3f->n; i++) {
 				fprintf (fp,"[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ],",
 				mfmat3f->p[i].c[0],mfmat3f->p[i].c[1],mfmat3f->p[i].c[2],
 				mfmat3f->p[i].c[3],mfmat3f->p[i].c[4],mfmat3f->p[i].c[5],
@@ -2534,10 +2534,10 @@ void print_field_value(FILE *fp, int typeIndex, union anyVrml* value)
 			fprintf(fp,"}");
 			break;
 		}
-		case FIELDTYPE_SFMatrix3d:	
+		case FIELDTYPE_SFMatrix3d:
 		{
 			struct SFMatrix3d *sfmat3d = (struct SFMatrix3d*)value;
-			fprintf (fp," [%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]",			
+			fprintf (fp," [%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]",
 			sfmat3d->c[0],sfmat3d->c[1],sfmat3d->c[2],
 			sfmat3d->c[3],sfmat3d->c[4],sfmat3d->c[5],
 			sfmat3d->c[6],sfmat3d->c[7],sfmat3d->c[8]);
@@ -2547,7 +2547,7 @@ void print_field_value(FILE *fp, int typeIndex, union anyVrml* value)
 		{
 			struct Multi_Matrix3d *mfmat3d = (struct Multi_Matrix3d*)value;
 			fprintf (fp,"{");
-			for (i=0; i<mfmat3d->n; i++) { 
+			for (i=0; i<mfmat3d->n; i++) {
 				fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\n",i,
 				mfmat3d->p[i].c[0],mfmat3d->p[i].c[1],mfmat3d->p[i].c[2],
 				mfmat3d->p[i].c[3],mfmat3d->p[i].c[4],mfmat3d->p[i].c[5],
@@ -2561,14 +2561,14 @@ void print_field_value(FILE *fp, int typeIndex, union anyVrml* value)
 			sfmat4f->c[0],sfmat4f->c[1],sfmat4f->c[2],sfmat4f->c[3],
 			sfmat4f->c[4],sfmat4f->c[5],sfmat4f->c[6],sfmat4f->c[7],
 			sfmat4f->c[8],sfmat4f->c[9],sfmat4f->c[10],sfmat4f->c[11],
-			sfmat4f->c[12],sfmat4f->c[13],sfmat4f->c[14],sfmat4f->c[15]); 
+			sfmat4f->c[12],sfmat4f->c[13],sfmat4f->c[14],sfmat4f->c[15]);
 			break;
 		}
 		case FIELDTYPE_MFMatrix4f:
 		{
 			struct Multi_Matrix4f *mfmat4f = (struct Multi_Matrix4f*)value;
 			fprintf (fp,"{");
-			for (i=0; i<mfmat4f->n; i++) { 
+			for (i=0; i<mfmat4f->n; i++) {
 				fprintf (fp,"[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f ],",
 				mfmat4f->p[i].c[0],mfmat4f->p[i].c[1],mfmat4f->p[i].c[2],mfmat4f->p[i].c[3],
 				mfmat4f->p[i].c[4],mfmat4f->p[i].c[5],mfmat4f->p[i].c[6],mfmat4f->p[i].c[7],
@@ -2584,14 +2584,14 @@ void print_field_value(FILE *fp, int typeIndex, union anyVrml* value)
 			sfmat4d->c[0],sfmat4d->c[1],sfmat4d->c[2],sfmat4d->c[3],
 			sfmat4d->c[4],sfmat4d->c[5],sfmat4d->c[6],sfmat4d->c[7],
 			sfmat4d->c[8],sfmat4d->c[9],sfmat4d->c[10],sfmat4d->c[11],
-			sfmat4d->c[12],sfmat4d->c[13],sfmat4d->c[14],sfmat4d->c[15]); 
+			sfmat4d->c[12],sfmat4d->c[13],sfmat4d->c[14],sfmat4d->c[15]);
 			break;
 		}
 		case FIELDTYPE_MFMatrix4d:	break;
 		{
 			struct Multi_Matrix4d *mfmat4d = (struct Multi_Matrix4d*)value;
 			fprintf (fp,"{");
-			for (i=0; i<mfmat4d->n; i++) { 
+			for (i=0; i<mfmat4d->n; i++) {
 				fprintf (fp,"[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f ],",
 				mfmat4d->p[i].c[0],mfmat4d->p[i].c[1],mfmat4d->p[i].c[2],mfmat4d->p[i].c[3],
 				mfmat4d->p[i].c[4],mfmat4d->p[i].c[5],mfmat4d->p[i].c[6],mfmat4d->p[i].c[7],
@@ -2601,7 +2601,7 @@ void print_field_value(FILE *fp, int typeIndex, union anyVrml* value)
 			break;
 		}
 
-		case FIELDTYPE_SFImage: 
+		case FIELDTYPE_SFImage:
 		{
 			fprintf(fp," %p ",(void *)value); //no SFImage struct defined
 			break;
@@ -2629,7 +2629,7 @@ void print_field(FILE *fp,int level, int typeIndex, const char* fieldName, union
 			int dore;
 			struct X3D_Node** sfnode = (struct X3D_Node**)value;
 			dore = doRecurse(fieldName);
-			fprintf (fp,":\n"); dump_scene2(fp,level+1,*sfnode,dore,DEFedNodes); 
+			fprintf (fp,":\n"); dump_scene2(fp,level+1,*sfnode,dore,DEFedNodes);
 			break;
 		}
 		case FIELDTYPE_MFNode:
@@ -2711,7 +2711,7 @@ void print_field(FILE *fp,int level, int typeIndex, const char* fieldName, union
 		{
 			struct Multi_Vec2f *mfvec2f = (struct Multi_Vec2f*)value;
 			fprintf (fp," :\n");
-			for (i=0; i<mfvec2f->n; i++) 
+			for (i=0; i<mfvec2f->n; i++)
 				{ spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,mfvec2f->p[i].c[0], mfvec2f->p[i].c[1]); }
 			break;
 		}
@@ -2727,7 +2727,7 @@ void print_field(FILE *fp,int level, int typeIndex, const char* fieldName, union
 		{
 			struct Multi_Vec2d *mfvec2d = (struct Multi_Vec2d*)value;
 			fprintf (fp," :\n");
-			for (i=0; i<mfvec2d->n; i++) 
+			for (i=0; i<mfvec2d->n; i++)
 				{ spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,mfvec2d->p[i].c[0], mfvec2d->p[i].c[1]); }
 			break;
 		}
@@ -2745,7 +2745,7 @@ void print_field(FILE *fp,int level, int typeIndex, const char* fieldName, union
 		{
 			struct Multi_Vec3f *mfvec3f = (struct Multi_Vec3f*)value;
 			fprintf (fp," :\n");
-			for (i=0; i<mfvec3f->n; i++) 
+			for (i=0; i<mfvec3f->n; i++)
 				{ spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,mfvec3f->p[i].c[0], mfvec3f->p[i].c[1],mfvec3f->p[i].c[2]); }
 			break;
 		}
@@ -2761,7 +2761,7 @@ void print_field(FILE *fp,int level, int typeIndex, const char* fieldName, union
 		{
 			struct Multi_Vec3d *mfvec3d = (struct Multi_Vec3d*)value;
 			fprintf (fp," :\n");
-			for (i=0; i<mfvec3d->n; i++) 
+			for (i=0; i<mfvec3d->n; i++)
 				{ spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,mfvec3d->p[i].c[0], mfvec3d->p[i].c[1],mfvec3d->p[i].c[2]); }
 			break;
 		}
@@ -2781,7 +2781,7 @@ void print_field(FILE *fp,int level, int typeIndex, const char* fieldName, union
 		{
 			struct Multi_ColorRGBA *mfrgba = (struct Multi_ColorRGBA*)value;
 			fprintf (fp," :\n");
-			for (i=0; i<mfrgba->n; i++) 
+			for (i=0; i<mfrgba->n; i++)
 				{ spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,mfrgba->p[i].c[0], mfrgba->p[i].c[1],mfrgba->p[i].c[2],mfrgba->p[i].c[3]); }
 			break;
 		}
@@ -2797,14 +2797,14 @@ void print_field(FILE *fp,int level, int typeIndex, const char* fieldName, union
 		{
 			struct Multi_Vec4d *mfvec4d = (struct Multi_Vec4d*)value;
 			fprintf (fp," :\n");
-			for (i=0; i<mfvec4d->n; i++) 
+			for (i=0; i<mfvec4d->n; i++)
 				{ spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,mfvec4d->p[i].c[0], mfvec4d->p[i].c[1],mfvec4d->p[i].c[2],mfvec4d->p[i].c[3]); }
 			break;
 		}
 		case FIELDTYPE_SFMatrix3f:
 		{
 			struct SFMatrix3f *sfmat3f = (struct SFMatrix3f*)value;
-			spacer fprintf (fp," \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\n",			
+			spacer fprintf (fp," \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\n",
 			sfmat3f->c[0],sfmat3f->c[1],sfmat3f->c[2],
 			sfmat3f->c[3],sfmat3f->c[4],sfmat3f->c[5],
 			sfmat3f->c[6],sfmat3f->c[7],sfmat3f->c[8]);
@@ -2814,17 +2814,17 @@ void print_field(FILE *fp,int level, int typeIndex, const char* fieldName, union
 		{
 			struct Multi_Matrix3f *mfmat3f = (struct Multi_Matrix3f*)value;
 			fprintf (fp," :\n");
-			for (i=0; i<mfmat3f->n; i++) { 
+			for (i=0; i<mfmat3f->n; i++) {
 				spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\n",i,
 				mfmat3f->p[i].c[0],mfmat3f->p[i].c[1],mfmat3f->p[i].c[2],
 				mfmat3f->p[i].c[3],mfmat3f->p[i].c[4],mfmat3f->p[i].c[5],
 				mfmat3f->p[i].c[6],mfmat3f->p[i].c[7],mfmat3f->p[i].c[8]); }
 			break;
 		}
-		case FIELDTYPE_SFMatrix3d:	
+		case FIELDTYPE_SFMatrix3d:
 		{
 			struct SFMatrix3d *sfmat3d = (struct SFMatrix3d*)value;
-			spacer fprintf (fp," \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\n",			
+			spacer fprintf (fp," \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\n",
 			sfmat3d->c[0],sfmat3d->c[1],sfmat3d->c[2],
 			sfmat3d->c[3],sfmat3d->c[4],sfmat3d->c[5],
 			sfmat3d->c[6],sfmat3d->c[7],sfmat3d->c[8]);
@@ -2834,7 +2834,7 @@ void print_field(FILE *fp,int level, int typeIndex, const char* fieldName, union
 		{
 			struct Multi_Matrix3d *mfmat3d = (struct Multi_Matrix3d*)value;
 			fprintf (fp," :\n");
-			for (i=0; i<mfmat3d->n; i++) { 
+			for (i=0; i<mfmat3d->n; i++) {
 				spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\n",i,
 				mfmat3d->p[i].c[0],mfmat3d->p[i].c[1],mfmat3d->p[i].c[2],
 				mfmat3d->p[i].c[3],mfmat3d->p[i].c[4],mfmat3d->p[i].c[5],
@@ -2848,15 +2848,15 @@ void print_field(FILE *fp,int level, int typeIndex, const char* fieldName, union
 			sfmat4f->c[0],sfmat4f->c[1],sfmat4f->c[2],sfmat4f->c[3],
 			sfmat4f->c[4],sfmat4f->c[5],sfmat4f->c[6],sfmat4f->c[7],
 			sfmat4f->c[8],sfmat4f->c[9],sfmat4f->c[10],sfmat4f->c[11],
-			sfmat4f->c[12],sfmat4f->c[13],sfmat4f->c[14],sfmat4f->c[15]); 
+			sfmat4f->c[12],sfmat4f->c[13],sfmat4f->c[14],sfmat4f->c[15]);
 			break;
 		}
 		case FIELDTYPE_MFMatrix4f:
 		{
 			struct Multi_Matrix4f *mfmat4f = (struct Multi_Matrix4f*)value;
 			fprintf (fp," :\n");
-			for (i=0; i<mfmat4f->n; i++) { 
-				spacer 
+			for (i=0; i<mfmat4f->n; i++) {
+				spacer
 				fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f ]\n",i,
 				mfmat4f->p[i].c[0],mfmat4f->p[i].c[1],mfmat4f->p[i].c[2],mfmat4f->p[i].c[3],
 				mfmat4f->p[i].c[4],mfmat4f->p[i].c[5],mfmat4f->p[i].c[6],mfmat4f->p[i].c[7],
@@ -2871,15 +2871,15 @@ void print_field(FILE *fp,int level, int typeIndex, const char* fieldName, union
 			sfmat4d->c[0],sfmat4d->c[1],sfmat4d->c[2],sfmat4d->c[3],
 			sfmat4d->c[4],sfmat4d->c[5],sfmat4d->c[6],sfmat4d->c[7],
 			sfmat4d->c[8],sfmat4d->c[9],sfmat4d->c[10],sfmat4d->c[11],
-			sfmat4d->c[12],sfmat4d->c[13],sfmat4d->c[14],sfmat4d->c[15]); 
+			sfmat4d->c[12],sfmat4d->c[13],sfmat4d->c[14],sfmat4d->c[15]);
 			break;
 		}
 		case FIELDTYPE_MFMatrix4d:	break;
 		{
 			struct Multi_Matrix4d *mfmat4d = (struct Multi_Matrix4d*)value;
 			fprintf (fp," :\n");
-			for (i=0; i<mfmat4d->n; i++) { 
-				spacer 
+			for (i=0; i<mfmat4d->n; i++) {
+				spacer
 				fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f ]\n",i,
 				mfmat4d->p[i].c[0],mfmat4d->p[i].c[1],mfmat4d->p[i].c[2],mfmat4d->p[i].c[3],
 				mfmat4d->p[i].c[4],mfmat4d->p[i].c[5],mfmat4d->p[i].c[6],mfmat4d->p[i].c[7],
@@ -2888,7 +2888,7 @@ void print_field(FILE *fp,int level, int typeIndex, const char* fieldName, union
 			break;
 		}
 
-		case FIELDTYPE_SFImage: 
+		case FIELDTYPE_SFImage:
 		{
 			fprintf(fp," %p \n",(void *)value); //no SFImage struct defined
 			break;
@@ -2928,7 +2928,7 @@ void dump_scene2(FILE *fp, int level, struct X3D_Node* node, int recurse, Stack 
 		Boolean allFields = FALSE;
 	#endif
 	/* See vi +/double_conditional codegen/VRMLC.pm */
-	if (node==NULL) return; 
+	if (node==NULL) return;
 
 	fflush(fp);
 	if (level == 0) fprintf (fp,"starting dump_scene2\n");
@@ -2984,7 +2984,7 @@ void dump_scene2(FILE *fp, int level, struct X3D_Node* node, int recurse, Stack 
 						//fprintf(fp," (%s)",FIELDTYPES[field->typeIndex]); //field[2]]);
 						fprintf(fp," (%s)", stringFieldtypeType(fdecl->fieldType)); //fdecl->fieldType)
 						fprintf(fp," %s ",stringPROTOKeywordType(fdecl->PKWmode));
-						
+
 						if(fdecl->PKWmode == PKW_initializeOnly)
 							print_field(fp,level,fdecl->fieldType,fieldName,&(sfield->value),DEFedNodes);
 						else
@@ -3025,7 +3025,7 @@ void dump_scene2(FILE *fp, int level, struct X3D_Node* node, int recurse, Stack 
 							fprintf(fp,"  %s",fieldName);
 							fprintf(fp," (%s)", stringFieldtypeType(pfield->type)); //fdecl->fieldType)
 							fprintf(fp," %s ",stringPROTOKeywordType(pfield->mode));
-							
+
 							if(pfield->mode == PKW_initializeOnly || pfield->mode == PKW_inputOutput)
 								print_field(fp,level,pfield->type,fieldName,&(pfield->defaultVal),DEFedNodes);
 							else
@@ -3088,7 +3088,7 @@ void print_DEFed_node_names_and_pointers(FILE* fp)
 	struct Vector *curNameStackTop;
 	struct Vector *curNodeStackTop;
 	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
-	
+
 	fprintf(fp,"DEFedNodes ");
 	if(globalParser->DEFedNodes == NULL)
 	{
@@ -3106,7 +3106,7 @@ void print_DEFed_node_names_and_pointers(FILE* fp)
 			nvector = vectorSize(curNodeStackTop);
 			for(jj=0;jj<j;jj++) fprintf(fp,"  ");
 			fprintf(fp,"vector %d name count = %d\n",j,nvector);
-			for (ind=0; ind < nvector; ind++) 
+			for (ind=0; ind < nvector; ind++)
 			{
 				for(jj=0;jj<j;jj++) fprintf(fp,"  ");
 				node = vector_get(struct X3D_Node*,curNodeStackTop, ind);
@@ -3151,7 +3151,7 @@ char *findFIELDNAMESfromNodeOffset0(struct X3D_Node *node, int offset)
 			}else return NULL;
 		}
 		else
-		  //return (char *)FIELDNAMES[NODE_OFFSETS[node->_nodeType][offset*5]]; 
+		  //return (char *)FIELDNAMES[NODE_OFFSETS[node->_nodeType][offset*5]];
 		  return (char *)findFIELDNAMESfromNodeOffset(node,offset);
 	}
   #ifdef HAVE_JAVASCRIPT
@@ -3223,7 +3223,7 @@ int consoleMenuActive()
 }
 #ifdef _MSC_VER
 #define KEYPRESS 1
-#else 
+#else
 #define KEYDOWN 2
 #endif
 
@@ -3240,7 +3240,7 @@ void addMenuChar(kp,type)
 	if((kp == '\n') || (kp == '\r'))
 	{
 		ConsoleMessage("\n");
-		if(ConsoleMenuState.len == 0) 
+		if(ConsoleMenuState.len == 0)
 			strcpy(str,ConsoleMenuState.dfault);
 		else
 			strcpy(str,ConsoleMenuState.buf);
@@ -3342,7 +3342,7 @@ void fwl_do_keyPress0(int key, int type) {
 	p = (ppMainloop)tg->Mainloop.prv;
 
         /* does this X3D file have a KeyDevice node? if so, send it to it */
-	//printf("fwl_do_keyPress: %c%d\n",kp,type); 
+	//printf("fwl_do_keyPress: %c%d\n",kp,type);
 		if(key == 27 && type == 1)
 		{
 			//ESC key to toggle back to freewrl command use of keyboard
@@ -3352,7 +3352,7 @@ void fwl_do_keyPress0(int key, int type) {
 				sendKeyToKeySensor(key,type); //some keysensor test files show no opengl graphics, so we need a logfile
         } else {
 			int handled = isAQUA;
-			if(type == KEYPRESS) 
+			if(type == KEYPRESS)
 			{
 						lkp = key;
 						//if(kp>='A' && kp <='Z') lkp = tolower(kp);
@@ -3390,19 +3390,19 @@ void fwl_do_keyPress0(int key, int type) {
                                 case 'x': {Snapshot(); break;} /* thanks to luis dias mas dec16,09 */
 #endif //FRONTEND_DOES_SNAPSHOTS
 
-                                default: 
+                                default:
 									handled = 0;
 									break;
                         }
-                } 
+                }
 				if(!handled) {
 					char kp;
-					if(type/10 == 0) 
+					if(type/10 == 0)
 						kp = (char)key; //normal keyboard key
 					else
 						kp = lookup_fly_key(key); //actionKey possibly numpad or arrows, convert to a/z
 					if(kp){
-						if(type%10 == KEYDOWN) 
+						if(type%10 == KEYDOWN)
 							handle_key(kp);  //keydown for fly
 						if(type%10 == KEYUP)
 							handle_keyrelease(kp); //keyup for fly
@@ -3426,7 +3426,7 @@ int platform2web3dActionKey(int platformKey);
 //
 //	//for testing mode -R --record:
 //	//we need to translate non-ascii keys before saving to ascii file
-//	//so the .fwplay file can be replayed on any system (the action and control keys 
+//	//so the .fwplay file can be replayed on any system (the action and control keys
 //	//will be already in web3d format)
 //	if(type>1){ //just the raw keys (the fully translated keys are already in ascii form)
 //		int actionKey = platform2web3dActionKey(key);
@@ -3443,7 +3443,7 @@ int platform2web3dActionKey(int platformKey);
 //	}
 //	if(type==13 && isWeb3dDeleteKey(key))
 //	{
-//		//StringSensor likes DEL as a single char int the char stream, 
+//		//StringSensor likes DEL as a single char int the char stream,
 //		//but OSes usually only do the raw key so
 //		//here we add a DEL to the stream.
 //		type = 1;
@@ -3468,8 +3468,8 @@ void fwl_do_rawKeyPress(int key, int type) {
 
 void fwl_do_keyPress(char kp, int type) {
 	//call this from AQUA, ANDROID, QNX, IPHONE as always
-	//it will do the old-style action-key lookup 
-	//(desktop win32 and linux can get finer tuning on the keyboard 
+	//it will do the old-style action-key lookup
+	//(desktop win32 and linux can get finer tuning on the keyboard
 	// with per-platform platform2web3dActionKeyLINUX and WIN32 functions
 	int actionKey;
 	int key = (int) kp;
@@ -3514,16 +3514,16 @@ void fwl_gotoViewpoint (char *findThisOne) {
 					break;
 
 
-			}	
+			}
 		}
 
-		
+
 		/* were we successful at finding this one? */
 		if (whichnode != -1) {
 			/* set the initial viewpoint for this file */
 			t->setViewpointBindInRender = vector_get(struct X3D_Node *,t->viewpointNodes,whichnode);
 		}
-    	}	
+    	}
 }
 
 struct X3D_Node* getRayHit() {
@@ -3545,14 +3545,14 @@ struct X3D_Node* getRayHit() {
 
                 /* is the sensitive node not NULL? */
                 if (rh->hitNode == NULL) return NULL;
-        
-                
+
+
 		/*
                 printf ("rayhit, we are over a node, have node %p (%s), posn %lf %lf %lf",
                         rayHit.hitNode,stringNodeType(rayHit.hitNode->_nodeType), x,y,z);
                 printf (" dist %f \n",rayHit.hitNode->_dist);
 		*/
-                
+
 
                 for (i=0; i<p->num_SensorEvents; i++) {
                         if (p->SensorEvents[i].fromnode == rh->hitNode) {
@@ -3766,7 +3766,7 @@ void fwl_Last_ViewPoint() {
 		/* go to the next viewpoint. Possibly, quite possibly, we might
 		   have to skip one or more if they are in a ViewpointGroup that is
 		   out of proxy */
-		vp_to_go_to = vectorSize(t->viewpointNodes);	
+		vp_to_go_to = vectorSize(t->viewpointNodes);
 		for (ind = 0; ind < vectorSize(t->viewpointNodes); ind--) {
 			struct X3D_Node *cn;
 
@@ -3789,7 +3789,7 @@ void fwl_Last_ViewPoint() {
 					/* dug9 - using the display-thread-synchronous gotoViewpoint style
 						to help order-senstive slerp_viewpoint() process */
 					/* set the initial viewpoint for this file */
-					t->setViewpointBindInRender = vector_get(struct X3D_Node*, 
+					t->setViewpointBindInRender = vector_get(struct X3D_Node*,
 						t->viewpointNodes,vp_to_go_to);
 					t->currboundvpno = vp_to_go_to;
 					if (t->currboundvpno>=vectorSize(t->viewpointNodes)) t->currboundvpno=0;
@@ -3813,7 +3813,7 @@ void fwl_First_ViewPoint() {
 		/* go to the next viewpoint. Possibly, quite possibly, we might
 		   have to skip one or more if they are in a ViewpointGroup that is
 		   out of proxy */
-		vp_to_go_to = -1;	
+		vp_to_go_to = -1;
 		for (ind = 0; ind < vectorSize(t->viewpointNodes); ind++) {
 			struct X3D_Node *cn;
 
@@ -3858,7 +3858,7 @@ void fwl_Prev_ViewPoint() {
 		/* go to the next viewpoint. Possibly, quite possibly, we might
 		   have to skip one or more if they are in a ViewpointGroup that is
 		   out of proxy */
-		vp_to_go_to = t->currboundvpno;	
+		vp_to_go_to = t->currboundvpno;
 		for (ind = 0; ind < vectorSize(t->viewpointNodes); ind--) {
 			struct X3D_Node *cn;
 
@@ -3905,7 +3905,7 @@ void fwl_Next_ViewPoint() {
 		/* go to the next viewpoint. Possibly, quite possibly, we might
 		   have to skip one or more if they are in a ViewpointGroup that is
 		   out of proxy */
-		vp_to_go_to = t->currboundvpno;	
+		vp_to_go_to = t->currboundvpno;
 		for (ind = 0; ind < vectorSize(t->viewpointNodes); ind++) {
 			struct X3D_Node *cn;
 
@@ -3935,17 +3935,17 @@ void fwl_Next_ViewPoint() {
 
 /* initialization for the OpenGL render, event processing sequence. Should be done in threat that has the OpenGL context */
 void fwl_initializeRenderSceneUpdateScene() {
-    
+
 #ifndef AQUA
 	ttglobal tg = gglobal();
 #endif
-    
+
 	/*
-	ConsoleMessage("fwl_initializeRenderSceneUpdateScene start\n"); 
+	ConsoleMessage("fwl_initializeRenderSceneUpdateScene start\n");
 	if (rootNode()==NULL) {
-		ConsoleMessage("fwl_initializeRenderSceneUpdateScene rootNode NULL\n"); 
+		ConsoleMessage("fwl_initializeRenderSceneUpdateScene rootNode NULL\n");
 	} else {
-		ConsoleMessage("fwl_initializeRenderSceneUpdateScene rootNode %d children \n",rootNode()->children.n); 
+		ConsoleMessage("fwl_initializeRenderSceneUpdateScene rootNode %d children \n",rootNode()->children.n);
 	}
 	*/
 
@@ -3961,7 +3961,7 @@ void fwl_initializeRenderSceneUpdateScene() {
 	new_tessellation();
 
 	fwl_set_viewer_type(VIEWER_EXAMINE);
-	
+
 	viewer_postGLinit_init();
 
 #ifndef AQUA
@@ -3971,7 +3971,7 @@ void fwl_initializeRenderSceneUpdateScene() {
 	/* printf ("fwl_initializeRenderSceneUpdateScene finish\n"); */
 	// on OSX, this function is not called by the thread that holds the OpenGL
 	// context. Unsure if only Windows can do this one, but for now,
-	// do NOT do this on OSX. 
+	// do NOT do this on OSX.
 //#ifndef TARGET_AQUA
 //	drawStatusBar(); //just to get it initialized
 //#endif
@@ -4096,7 +4096,7 @@ int ocurse = ACURSE;
 void updateViewCursorStyle(int cstyle)
 {
 	ccurse = ocurse = cstyle;
-#if !defined (_ANDROID) 
+#if !defined (_ANDROID)
 	/* ANDROID - no cursor style right now */
 	setCursor(); /*updateCursorStyle0(cstyle); // in fwWindow32 where cursors are loaded */
 #endif //ANDROID
@@ -4112,7 +4112,7 @@ void fwl_set_frontend_using_cursor(int on)
 }
 void view_update0(void){
 	#ifdef _MSC_VER
-		fwMessageLoop(); //message pump 
+		fwMessageLoop(); //message pump
 	#endif
 	#if defined(STATUSBAR_HUD)
 		/* status bar, if we have one */
@@ -4148,8 +4148,8 @@ void _displayThread(void *globalcontext)
 
 	more = TRUE;
 #if KEEP_FV_INLIB
-	/* Hmm. display_initialize is really a frontend function. The frontend should call it before calling _displayThread 
-	   Except: remember to keep the swapbuffers and display_init in the same thread 
+	/* Hmm. display_initialize is really a frontend function. The frontend should call it before calling _displayThread
+	   Except: remember to keep the swapbuffers and display_init in the same thread
 	   - swapbuffers gets the 'current device context' likely with a thread lookup technique
 	  dug9 Mar2014: callbacks from the Controller to the View are allowed if they are in the same technology,
 	   so some callbacks could be registered in gglobal and assigned here, to minimize #ifdefs
@@ -4166,7 +4166,7 @@ void _displayThread(void *globalcontext)
 
 		/* loop and loop, and loop... */
 		//while (!((ppMainloop)(tg->Mainloop.prv))->quitThread) {
-		while (more) 
+		while (more)
 		{
 			switch (tg->threads.MainLoopQuit){
 			case 0:
@@ -4229,7 +4229,7 @@ void fwl_setLastMouseEvent(int etype) {
 
 void fwl_initialize_parser()
 {
-	/* JAS 
+	/* JAS
 		if (gglobal() == NULL) ConsoleMessage ("fwl_initialize_parser, gglobal() NULL");
 		if ((gglobal()->Mainloop.prv) == NULL) ConsoleMessage ("fwl_initialize_parser, gglobal()->Mainloop.prv NULL");
 	*/
@@ -4355,8 +4355,8 @@ void close_internetHandles();
 //	//down anything that's of per-process / per-application / static-global-shared
 //	//dug9 - not used yet as of Aug 3, 2011
 //	//if you call from the application main thread / message pump ie on_key > doQuit
-//	//then in theory there should be a way to iterate through all 
-//	//instances, quitting each one in a nice way, say on freewrlDie or 
+//	//then in theory there should be a way to iterate through all
+//	//instances, quitting each one in a nice way, say on freewrlDie or
 //	//(non-existant yet) doQuitAll or doQuitInstanceOrAllIfNoneLeft
 //	//for i = 1 to iglobal_instance_count
 //	//  set instance through window handle or index (no function yet to
@@ -4401,7 +4401,7 @@ void fwl_handle_aqua_multi0(const int mev, const unsigned int button, int x, int
 		p = (ppMainloop)tg->Mainloop.prv;
 
   /* printf ("fwl_handle_aqua in MainLoop; but %d x %d y %d screenWidth %d screenHeight %d",
-                button, x,y,tg->display.screenWidth,tg->display.screenHeight);  
+                button, x,y,tg->display.screenWidth,tg->display.screenHeight);
         if (mev == ButtonPress) printf ("ButtonPress\n");
         else if (mev == ButtonRelease) printf ("ButtonRelease\n");
         else if (mev == MotionNotify) printf ("MotionNotify\n");
@@ -4427,7 +4427,7 @@ void fwl_handle_aqua_multi0(const int mev, const unsigned int button, int x, int
         if ((mev == ButtonPress) || (mev == ButtonRelease)) {
                 /* record which button is down */
                 p->ButDown[p->currentCursor][button] = (mev == ButtonPress);
-                /* if we are Not over an enabled sensitive node, and we do NOT already have a 
+                /* if we are Not over an enabled sensitive node, and we do NOT already have a
                    button down from a sensitive node... */
 
                 if ((p->CursorOverSensitive ==NULL) && (p->lastPressedOver ==NULL)) {
@@ -4457,13 +4457,13 @@ void fwl_handle_aqua_multi0(const int mev, const unsigned int button, int x, int
 //int lastyy;
 void emulate_multitouch(const int mev, const unsigned int button, int x, int y)
 {
-	/* goal: when MMB draw a slave cursor pinned to last_distance,last_angle from real cursor 
+	/* goal: when MMB draw a slave cursor pinned to last_distance,last_angle from real cursor
 		Note: if using a RMB+LMB = MMB chord with 2 button mice, you need to emulate in your code
 			and pass in button 2 here, after releasing your single button first ie:
-			fwl_handle_aqua(ButtonRelease, 1, x, y); 
-			fwl_handle_aqua(ButtonRelease, 3, x, y); 
+			fwl_handle_aqua(ButtonRelease, 1, x, y);
+			fwl_handle_aqua(ButtonRelease, 3, x, y);
 	*/
-	if( button == 2 ) 
+	if( button == 2 )
 	{
 		ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 		if( mev == ButtonPress )
@@ -4489,11 +4489,11 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
             mev,tg->display.screenWidth, tg->display.screenHeight,x,y); */
 
 	// do we have to worry about screen orientations (think mobile devices)
-	#if defined (IPHONE) || defined (_ANDROID) 
-	{ 
+	#if defined (IPHONE) || defined (_ANDROID)
+	{
 
-        // iPhone - with home button on bottom, in portrait mode, 
-        // top left hand corner is x=0, y=0; 
+        // iPhone - with home button on bottom, in portrait mode,
+        // top left hand corner is x=0, y=0;
         // bottom left, 0, 468)
         // while standard opengl is (0,0) in lower left hand corner...
 		int ox = x;
@@ -4502,11 +4502,11 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
 		// these make sense for walk navigation
 		if (Viewer()->type == VIEWER_WALK) {
 			switch (Viewer()->screenOrientation) {
-				case 0: 
+				case 0:
 					x = tg->display.screenHeight-x;
-	                
+
 					break;
-				case 90: 
+				case 90:
 					x = oy;
 					y = ox;
 					break;
@@ -4524,9 +4524,9 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
 		// these make sense for examine navigation
 		} else if (Viewer()->type == VIEWER_EXAMINE) {
 			switch (Viewer()->screenOrientation) {
-				case 0: 
+				case 0:
 					break;
-				case 90: 
+				case 90:
 					x = tg->display.screenWidth - oy;
 					y = ox;
 					break;
@@ -4557,7 +4557,7 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
 	{
 		fwl_handle_aqua_multi(mev,button,x,y,0);
 
-		//updateCursorStyle(); 
+		//updateCursorStyle();
 	}
 }
 
@@ -4579,12 +4579,12 @@ void fwl_setButDown(int button, int value) {
 
 
 /* mobile devices - set screen orientation */
-/* "0" is "normal" orientation; degrees clockwise; note that face up and face down not 
+/* "0" is "normal" orientation; degrees clockwise; note that face up and face down not
    coded; assume only landscape/portrait style orientations */
 
 void fwl_setOrientation (int orient) {
 	switch (orient) {
-		case 0: 
+		case 0:
 		case 90:
 		case 180:
 		case 270:
@@ -4599,12 +4599,12 @@ void fwl_setOrientation (int orient) {
 	}
 }
 
-	
+
 
 void setIsPlugin() {
 
         RUNNINGASPLUGIN = TRUE;
-                
+
         // Save local working directory
         /*
         {
@@ -4612,13 +4612,13 @@ void setIsPlugin() {
         char tmppath[512];
         system("pwd > /tmp/freewrl_filename");
         tmpfile = fopen("/tmp/freewrl_filename", "r");
-        
+
         if (tmpfile) {
                 fgets(tmppath, 512, tmpfile);
         }
-        BrowserFullPath = STRDUP(tmppath);      
+        BrowserFullPath = STRDUP(tmppath);
         fclose(tmpfile);
-        //system("rm /tmp/freewrl_filename");   
+        //system("rm /tmp/freewrl_filename");
         tmpfile = fopen("/tmp/after", "w");
         if (tmpfile) {
                 fprintf(tmpfile, "%s\n", BrowserFullPath);
@@ -4626,13 +4626,13 @@ void setIsPlugin() {
         fclose(tmpfile);
         }
         */
-        
+
 }
 
 #ifdef AQUA
 
 int aquaPrintVersion() {
-	printf ("FreeWRL version: %s\n", libFreeWRL_get_version()); 
+	printf ("FreeWRL version: %s\n", libFreeWRL_get_version());
 	exit(EXIT_SUCCESS);
 }
 
@@ -4690,7 +4690,7 @@ void fwl_Android_replaceWorldNeeded() {
 
 		/* stop rendering. This should be done when the new resource is loaded, and new_root is set,
 		but lets do it here just to make sure */
-		rootNode()->children.n = 0; // no children, but _sortedChildren not made; 
+		rootNode()->children.n = 0; // no children, but _sortedChildren not made;
 		rootNode()->_change ++; // force the rootNode()->_sortedChildren to be made
 	}
 
@@ -4825,7 +4825,7 @@ void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive) {
                                 /* if there is no description, put the node type on the screen */
                                 if (ns == NULL) {ns = "(over sensitive)";}
                                 else if (ns[0] == '\0') ns = (char *)stringNodeType(p->SensorEvents[tmp].datanode->_nodeType);
-        
+
                                 /* send this string to the screen */
 								update_status(ns);
                         }
@@ -4838,11 +4838,11 @@ void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive) {
 void resetSensorEvents(void) {
 	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 
-	if (p->oldCOS != NULL) 	
+	if (p->oldCOS != NULL)
 		sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
        /* remove any display on-screen */
        sendDescriptionToStatusBar(NULL);
-	p->CursorOverSensitive=NULL; 
+	p->CursorOverSensitive=NULL;
 
 	p->oldCOS=NULL;
 	p->lastMouseEvent = 0;
@@ -4924,7 +4924,7 @@ struct X3D_IndexedLineSet *fwl_makeRootBoundingBox() {
 
 		X3D_APPEARANCE(app)->material = mat;
 		ADD_PARENT(mat,app);
-		
+
 		return X3D_INDEXEDLINESET(ils);
 	}
 	return NULL;

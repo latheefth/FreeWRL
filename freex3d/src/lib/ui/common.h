@@ -28,8 +28,8 @@ Functions:
 /* Status update functions */
 
 void setMenuFps(float fps);
-void setMenuStatus(char *stat); 
-void setMenuStatusVP(char *stat); 
+void setMenuStatus(char *stat);
+void setMenuStatusVP(char *stat);
 char* getMenuStatus();
 void setMessageBar();
 
@@ -56,7 +56,7 @@ platform-specific int platform2web3dActionKeyPLATFORM_NAME(int platformKey)
 function can refer to them, to send in web3d key equivalents, or at least FW neutral keys.
 If a platform key, after lookup, is in this list, then call:
 fwl_do_rawKeypress(actionKey,updown+10);
-section 21.4.1 
+section 21.4.1
 Key Value
 Home 13
 End 14
