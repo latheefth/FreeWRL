@@ -199,6 +199,15 @@ typedef struct iiglobal //InstanceGlobal
 		int cc_changed;// = FALSE;
 		void *prv;
 	}OpenGL_Utils;
+
+#ifdef HAVE_OPENCL
+        struct tOpenCL_Utils{
+                bool OpenCL_Initialized; // = FALSE;
+                bool OpenCL_OK; // = FALSE
+                void *prv;
+        }OpenCL_Utils;
+#endif //HAVE_OPENCL
+
 	struct tRasterFont{
 		void *prv;
 	}RasterFont;

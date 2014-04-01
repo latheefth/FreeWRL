@@ -142,7 +142,7 @@ static void do_glColor4fv(struct SFColorRGBA *dest, GLfloat *param, int isRGBA, 
 
 
 void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct X3D_TextureCoordinate *texCoordNode) {
-
+    
 	struct X3D_Node *node;
 	struct X3D_PolyRep *r;
 	int i, j;
@@ -173,9 +173,9 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 	/* get internal structures */
 	node = X3D_NODE(innode);
 	r = node->_intern;
-
+    
 	#ifdef STREAM_POLY_VERBOSE
-	printf ("start spv for %u extents %lf %lf, %lf %lf, %lf %lf\n",node,
+	printf ("start spv for %p extents %lf %lf, %lf %lf, %lf %lf\n",node,
 		node->EXTENT_MIN_X,
 		node->EXTENT_MAX_X,
 		node->EXTENT_MIN_Y,
@@ -221,7 +221,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 	}
 
 	#ifdef STREAM_POLY_VERBOSE
-	printf ("so, points is %u, npoints is %d ntri %d\n",points, npoints,r->ntri);
+	printf ("so, points is %p, npoints is %d ntri %d\n",points, npoints,r->ntri);
 	#endif
 
 	if (color) {
@@ -276,7 +276,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 
 
 	#ifdef STREAM_POLY_VERBOSE
-	printf ("stream polyrep, have an intern type of %d GeneratedTexCoords %p tcindex %u\n",r->tcoordtype, r->GeneratedTexCoords,r->tcindex);
+	printf ("stream polyrep, have an intern type of %d GeneratedTexCoords %p tcindex %p\n",r->tcoordtype, r->GeneratedTexCoords,r->tcindex);
 	printf ("polyv, points %p coord %p ntri %d rnormal %p nnormal %d\n",points,r->actualCoord,r->ntri,r->normal, nnormals);
 	#endif
 
@@ -398,7 +398,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 	   put it in a stream format */
 
 	#ifdef STREAM_POLY_VERBOSE
-	printf ("before streaming for %u, extents %f %f, %f %f, %f %f\n",
+	printf ("before streaming for %p, extents %f %f, %f %f, %f %f\n",
 		node,
 		node->EXTENT_MAX_X,
 		node->EXTENT_MIN_X,
@@ -494,12 +494,13 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 
 		/* Coordinate points	*/
 		if(points) {
+            //printf ("... hav points, ind %d npoints %d\n",ind,npoints);
 			if (ind>=npoints) {
 				/* bounds checking */
 				newpoints[i].c[0] = 0.0f;
 				newpoints[i].c[1] = 0.0f;
 				newpoints[i].c[2] = 0.0f;
-				printf ("spv, warning, index %d >= npoints %d\n",ind,npoints);
+				//printf ("spv, warning, index %d >= npoints %d\n",ind,npoints);
 			} else {
 				memcpy (&newpoints[i], &points[ind].c[0],sizeof (struct SFColor));
 				#ifdef STREAM_POLY_VERBOSE
@@ -630,9 +631,8 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 			glBufferData(GL_ARRAY_BUFFER,r->ntri*sizeof(struct SFColorRGBA)*3,r->color, GL_STATIC_DRAW);
             		// needed by recalculateColorField ... FREE_IF_NZ(r->color);
 		}
-
-		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,r->VBO_buffers[VERTEX_VBO]);
-		glBufferData(GL_ARRAY_BUFFER,r->ntri*sizeof(struct SFColor)*3,r->actualCoord, GL_STATIC_DRAW);
+        FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,r->VBO_buffers[VERTEX_VBO]);
+        glBufferData(GL_ARRAY_BUFFER,r->ntri*sizeof(struct SFColor)*3,r->actualCoord, GL_STATIC_DRAW);
 
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER,r->VBO_buffers[INDEX_VBO]);
 
@@ -645,6 +645,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
  			unsigned int *from = r->cindex;
  
  			for (i=0; i<r->ntri*3; i++) {
+                //printf ("and, index %d is %d\n",i,*from);
  				*to = (GLushort) *from; to++; from++;
  			}
  
@@ -663,7 +664,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 
 
 	#ifdef STREAM_POLY_VERBOSE
-	printf ("end spv for %u, extents %f %f, %f %f, %f %f\n",
+	printf ("end spv for %p, extents %f %f, %f %f, %f %f\n",
 		node,
 		node->EXTENT_MAX_X,
 		node->EXTENT_MIN_X,

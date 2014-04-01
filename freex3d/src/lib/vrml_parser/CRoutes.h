@@ -30,6 +30,12 @@ VRML-parsing routines in C.
 #ifndef __FREEWRL_CROUTES_H__
 #define __FREEWRL_CROUTES_H__
 
+/* grab the OpenCL defines here - not many will use it,but the CRStruct needs it */
+/* we could do the include in all the referencing files, which would be cleaner... */
+#ifdef HAVE_OPENCL
+#include "../opencl/OpenCL_Utils.h"
+#endif
+
 /* C routes */
 typedef struct _CRnodeStruct {
         struct X3D_Node *routeToNode;
@@ -49,6 +55,10 @@ struct CRStruct {
                                                    proto in/out */
         int     extra;          /* used to pass a parameter (eg, 1 = addChildren..) */
 	int 	intTimeStamp;	/* used for ROUTE loop breaking */
+#ifdef HAVE_OPENCL
+    cl_kernel CL_Interpolator;
+#endif //HAVE_OPENCL
+
 };
 
 

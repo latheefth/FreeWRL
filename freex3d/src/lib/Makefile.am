@@ -53,7 +53,7 @@ EXTERNAL_LIBS += \
 				$(X_PRE_LIBS) \
 				$(X_LIBS) $(X_EXTRA_LIBS) \
 				$(XAW_LIBS) \
-				$(GLEW_LIBS)
+				$(OPENCL_LIBS)
 endif
 
 # Motif flags specific to motif target (only on Linux at the moment)
@@ -68,7 +68,7 @@ EXTERNAL_LIBS += \
 				$(MOTIF_LIBS) \
 				$(X_LIBS) $(X_EXTRA_LIBS) \
 				$(XAW_LIBS) \
-				$(GLEW_LIBS)
+				$(OPENCL_LIBS)
 endif
 
 if OS_MAC

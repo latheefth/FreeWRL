@@ -435,6 +435,9 @@ void do_OintNormal(void *node) {
 	#endif
 }
 
+
+static bool printOnce = FALSE;
+
 void do_OintCoord(void *node) {
 	struct X3D_CoordinateInterpolator *px;
 	int kin, kvin/* , counter */;
@@ -451,13 +454,49 @@ void do_OintCoord(void *node) {
 	if (!node) return;
 	px = (struct X3D_CoordinateInterpolator *) node;
 
-
-	#ifdef SEVERBOSE
+    if (!printOnce) {
+        printf ("do_OintCoord, frac %f toGPU %d toCPU %d\n",px->set_fraction,px->_GPU_Routes_out, px->_CPU_Routes_out);
+		printf ("2: debugging OintCoord keys %d kv %d vc %d\n",px->keyValue.n, px->key.n,px->value_changed.n);
+        printOnce = TRUE;
+    }
+    
+    
+    
+#ifdef SEVERBOSE
+        printf ("do_OintCoord, frac %f toGPU %d toCPU %d\n",px->set_fraction,px->_GPU_Routes_out, px->_CPU_Routes_out);
 		printf ("debugging OintCoord keys %d kv %d vc %d\n",px->keyValue.n, px->key.n,px->value_changed.n);
 	#endif
 
 	MARK_EVENT (node, offsetof (struct X3D_CoordinateInterpolator, value_changed));
 
+    // create the VBOs if required, for running on the GPU
+    if (px->_GPU_Routes_out > 0) {
+        if (px->_keyVBO==0) {
+            glGenBuffers(1,(GLuint *)&px->_keyValueVBO);
+            glGenBuffers(1,(GLuint *)&px->_keyVBO);
+            FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,px->_keyValueVBO);
+            printf ("genning buffer data for %d keyValues, total floats %d\n",px->keyValue.n, px->keyValue.n*3);
+            glBufferData(GL_ARRAY_BUFFER,px->keyValue.n *sizeof(float)*3,px->keyValue.p, GL_STATIC_DRAW);
+            
+            FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,px->_keyVBO);
+            glBufferData(GL_ARRAY_BUFFER,px->key.n *sizeof(float),px->key.p, GL_STATIC_DRAW);
+            printf ("created VBOs for the CoordinateInterpolator, they are %d and %d\n",
+                    px->_keyValueVBO, px->_keyVBO);
+        }
+    }
+    
+
+    
+    if (px->_CPU_Routes_out == 0) {
+        #ifdef SEVERBOSE
+        printf ("do_OintCoord, no CPU routes out, no need to do this work\n");
+        #endif
+        return;
+    }
+
+    //MARK_EVENT (node, offsetof (struct X3D_CoordinateInterpolator, value_changed));
+
+    
 	kin = px->key.n;
 	kvin = px->keyValue.n;
 	kVs = px->keyValue.p;
