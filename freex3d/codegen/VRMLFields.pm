@@ -91,11 +91,9 @@ sub cInitialize {
 	my $tmp;
 
 	if (!defined $val) {$count=0} # inputOnlys, set it to any value
-	#print "MFBOOL field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
-		#print "MALLOC MFBOOL field $field val @{$val} has $count INIT\n";
 
-		$retstr = $restsr . "$field.p = MALLOC (int *, sizeof(int)*$count);\n";
+		$retstr = $retstr . "$field.p = MALLOC (int *, sizeof(int)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			$retstr = $retstr. "\n\t\t\t$field.p[$tmp] = $arline; ";
@@ -122,9 +120,10 @@ sub cInitialize {
         my $av0 = "@{$val}[0]";
         my $av1 = "@{$val}[1]";
         my $av2 = "@{$val}[2]";
-        my $pv = index $av0, "."; if ($pv < 0) { $av0 = $av0.".0f"; } else { $av0 = $av0."f"; }
-        my $pv = index $av1, "."; if ($pv < 0) { $av1 = $av1.".0f"; } else { $av1 = $av1."f"; }
-        my $pv = index $av2, "."; if ($pv < 0) { $av2 = $av2.".0f"; } else { $av2 = $av2."f"; }
+        my $pv;
+        $pv = index $av0, "."; if ($pv < 0) { $av0 = $av0.".0f"; } else { $av0 = $av0."f"; }
+        $pv = index $av1, "."; if ($pv < 0) { $av1 = $av1.".0f"; } else { $av1 = $av1."f"; }
+        $pv = index $av2, "."; if ($pv < 0) { $av2 = $av2.".0f"; } else { $av2 = $av2."f"; }
         # print "SFColor, field value now is $av0 $av1 $av2\n";
 
         return  "$field.c[0] = $av0;".
@@ -246,7 +245,7 @@ sub cInitialize {
 	if (!defined $val) {$count=0} # inputOnlys, set it to any value
 	if ($count > 0) {
 		#print "MALLOC MFDouble field $field val @{$val} has $count INIT\n";
-		$retstr = $restsr . "$field.p = MALLOC (double *, sizeof(double)*$count);\n";
+		$retstr = $retstr . "$field.p = MALLOC (double *, sizeof(double)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			$retstr = $retstr .  "\t\t\t$field.p[$tmp] = @{$val}[$tmp];\n";
 		}
@@ -289,7 +288,7 @@ sub cInitialize {
 	#print "MFFLOAT field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
 		#print "MALLOC MFFLOAT field $field val @{$val} has $count INIT\n";
-		$retstr = $restsr . "$field.p = MALLOC (float *, sizeof(float)*$count);\n";
+		$retstr = $retstr . "$field.p = MALLOC (float *, sizeof(float)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			# get the actual value and ensure that it is a float
 			my $av = "@{$val}[$tmp]";
@@ -356,7 +355,7 @@ sub cInitialize {
 	if (!defined $val) {$count=0} # inputOnlys, set it to any value
 	if ($count > 0) {
                 #print "MALLOC MFINT32 field $field val @{$val} has $count INIT\n";
-                $retstr = $restsr . "$field.p = MALLOC (int *, sizeof(int)*$count);\n";
+                $retstr = $retstr . "$field.p = MALLOC (int *, sizeof(int)*$count);\n";
                 for ($tmp=0; $tmp<$count; $tmp++) {
                         $retstr = $retstr .  "\t\t\t$field.p[$tmp] = @{$val}[$tmp];\n";
                 }
@@ -703,7 +702,7 @@ sub cInitialize {
 	#print "MFSTRING field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
 		#print "MALLOC MFSTRING field $field val @{$val} has $count INIT\n";
-		$retstr = $restsr . "$field.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*$count);";
+		$retstr = $retstr . "$field.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*$count);";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			$retstr = $retstr .  "$field.p[$tmp] = newASCIIString(\"".@{$val}[$tmp]."\");";
 		}
@@ -902,9 +901,10 @@ sub cInitialize {
         my $av0 = "@{$val}[0]";
         my $av1 = "@{$val}[1]";
         my $av2 = "@{$val}[2]";
-        my $pv = index $av0, "."; if ($pv < 0) { $av0 = $av0.".0f"; } else { $av0 = $av0."f"; }
-        my $pv = index $av1, "."; if ($pv < 0) { $av1 = $av1.".0f"; } else { $av1 = $av1."f"; }
-        my $pv = index $av2, "."; if ($pv < 0) { $av2 = $av2.".0f"; } else { $av2 = $av2."f"; }
+        my $pv;
+        $pv = index $av0, "."; if ($pv < 0) { $av0 = $av0.".0f"; } else { $av0 = $av0."f"; }
+        $pv = index $av1, "."; if ($pv < 0) { $av1 = $av1.".0f"; } else { $av1 = $av1."f"; }
+        $pv = index $av2, "."; if ($pv < 0) { $av2 = $av2.".0f"; } else { $av2 = $av2."f"; }
         # print "SFVec3f, field value now is $av0 $av1 $av2\n";
 
         return  "$field.c[0] = $av0;".
