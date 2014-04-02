@@ -155,6 +155,7 @@ static char *getCLErrorString(cl_int err) {
 		case CL_INVALID_MIP_LEVEL: return "CL_INVALID_MIP_LEVEL"; break;
 		case CL_INVALID_GLOBAL_WORK_SIZE: return "CL_INVALID_GLOBAL_WORK_SIZE"; break;
 		case CL_INVALID_PROPERTY: return "CL_INVALID_PROPERTY"; break;
+		case CL_INVALID_GL_SHAREGROUP_REFERENCE_KHR: return "CL_INVALID_GL_SHAREGROUP_REFERENCE_KHR"; break;
 		default :{return "hmmm - error message makes no sense";}
 	}
 
@@ -334,6 +335,8 @@ clGetGLContextInfoKHR = (clGetGLContextInfoKHR_fn)clGetExtensionFunctionAddress(
 	cl_device_id devices[32]; size_t size;
 	err = clGetGLContextInfoKHR(properties, CL_DEVICES_FOR_GL_CONTEXT_KHR,
 		32*sizeof(cl_device_id), devices, &size);
+
+	TEST_ERR("clGetGLContextInfoKHR",err);
 
 	// printf ("clGetGLContextInfoKHR returns size of %d\n",size);
 
