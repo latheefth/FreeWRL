@@ -354,6 +354,7 @@ END_NODE(Cylinder)
 /* CylinderSensor node */
 BEGIN_NODE(CylinderSensor)
 EXPOSED_FIELD(CylinderSensor,autoOffset,sfbool,autoOffset,FIELDTYPE_SFBool)
+EXPOSED_FIELD(CylinderSensor,axisRotation,sfrotation,axisRotation,FIELDTYPE_SFRotation)
 EXPOSED_FIELD(CylinderSensor,description,sfstring,description,FIELDTYPE_SFString)
 EXPOSED_FIELD(CylinderSensor,diskAngle,sffloat,diskAngle,FIELDTYPE_SFFloat)
 EXPOSED_FIELD(CylinderSensor,enabled,sfbool,enabled,FIELDTYPE_SFBool)

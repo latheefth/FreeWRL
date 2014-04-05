@@ -2962,6 +2962,7 @@ const int OFFSETS_CylinderSensor[] = {
 	(int) FIELDNAMES__origPoint, (int) offsetof (struct X3D_CylinderSensor, _origPoint),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__radius, (int) offsetof (struct X3D_CylinderSensor, _radius),  (int) FIELDTYPE_SFFloat, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_autoOffset, (int) offsetof (struct X3D_CylinderSensor, autoOffset),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_axisRotation, (int) offsetof (struct X3D_CylinderSensor, axisRotation),  (int) FIELDTYPE_SFRotation, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_description, (int) offsetof (struct X3D_CylinderSensor, description),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_diskAngle, (int) offsetof (struct X3D_CylinderSensor, diskAngle),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_CylinderSensor, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6260,6 +6261,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_origPoint.c[0] = 0.0f;tmp2->_origPoint.c[1] = 0.0f;tmp2->_origPoint.c[2] = 0.0f;;
 			tmp2->_radius = 0.0f;
 			tmp2->autoOffset = TRUE;
+			tmp2->axisRotation.c[0] = 0;tmp2->axisRotation.c[1] = 1;tmp2->axisRotation.c[2] = 0;tmp2->axisRotation.c[3] = 0;;
 			tmp2->description = newASCIIString("");
 			tmp2->diskAngle = 0.262f;
 			tmp2->enabled = TRUE;
@@ -9709,6 +9711,9 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
 		    }
 			spacer fprintf (fp," autoOffset (SFBool) \t%d\n",tmp->autoOffset);
+			spacer fprintf (fp," axisRotation (SFRotation): \t");
+			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->axisRotation.c[i]); }
+			fprintf (fp,"\n");
 			spacer fprintf (fp," description (SFString) \t%s\n",tmp->description->strptr);
 			spacer fprintf (fp," diskAngle (SFFloat) \t%4.3f\n",tmp->diskAngle);
 			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);

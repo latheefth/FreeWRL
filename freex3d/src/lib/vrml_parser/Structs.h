@@ -2804,6 +2804,7 @@ struct X3D_CylinderSensor {
 	struct SFVec3f _origPoint;
 	float _radius;
 	int autoOffset;
+	struct SFRotation axisRotation;
 	struct Uni_String *description;
 	float diskAngle;
 	int enabled;
