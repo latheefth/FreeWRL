@@ -6,12 +6,20 @@
 #
 # Field types, parsing and printing, Perl, C and Java.
 #
-# SFNode is in Parse.pm
-#
+
+
+###########################################################
+package VRML::Field;
+VRML::Error->import();
+
+# The C type interface for the field type, encapsulated
+# By encapsulating things well enough, we'll be able to completely
+# change the interface later, e.g. to fit together with javascript etc.
+sub ctype ($) {my ($type) = @_; die "VRML::Field::ctype - fori $type abstract function called"}
+sub cstruct () {"/*cstruct*/"}
 
 # Field types. NOTE: Keep this order correct in the PARSE_TYPE in CFuncs/CParseParser.c file
-
-@VRML::Fields = qw/
+our @Fields = qw/
 	SFFloat
 	MFFloat
 	SFRotation
@@ -56,16 +64,6 @@
 	SFVec4d
 	MFVec4d
 /;
-
-###########################################################
-package VRML::Field;
-VRML::Error->import();
-
-# The C type interface for the field type, encapsulated
-# By encapsulating things well enough, we'll be able to completely
-# change the interface later, e.g. to fit together with javascript etc.
-sub ctype ($) {my ($type) = @_; die "VRML::Field::ctype - fori $type abstract function called"}
-sub cstruct () {"/*cstruct*/"}
 
 
 ###########################################################

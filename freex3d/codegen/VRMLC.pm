@@ -851,7 +851,7 @@ sub gen {
 	push @genFuncs2, $st; push @EAICommon, $st;
 
 
-	for(@VRML::Fields) {
+	for(@VRML::Field::Fields) {
 		# print "node $_ is tagged as $fieldTypeCount\n";
 		# tag each node type with a integer key.
 		my $st = "\t\tcase FIELDTYPE_".$_.":	return EAI_$_;\n";
@@ -869,7 +869,7 @@ sub gen {
 	push @genFuncs2, $st; push @EAICommon, $st;
 
 
-	for(@VRML::Fields) {
+	for(@VRML::Field::Fields) {
 		# print "node $_ is tagged as $fieldTypeCount\n";
 		# tag each node type with a integer key.
 		my $st = "\t\tcase EAI_".$_.":	return FIELDTYPE_$_;\n";
@@ -885,7 +885,7 @@ sub gen {
 		"	switch (st) { \n";
 
 
-	for(@VRML::Fields) {
+	for(@VRML::Field::Fields) {
 		# print "node $_ is tagged as $fieldTypeCount\n";
 		# tag each node type with a integer key.
 		my $sftype = $_;
@@ -910,7 +910,7 @@ sub gen {
 	push @EAICommon, $ts;
 
 	$fieldTypeCount = 0;
-	for(@VRML::Fields) {
+	for(@VRML::Field::Fields) {
 		# print "node $_ is tagged as $fieldTypeCount\n";
 		# tag each node type with a integer key.
 		my $defstr = "#define FIELDTYPE_".$_."	$fieldTypeCount\n";
@@ -925,7 +925,7 @@ sub gen {
 	push @genFuncs1, $ts;
 	push @EAICommon, $ts;
 
-	for(@VRML::Fields) {
+	for(@VRML::Field::Fields) {
 		push @str, ("VRML::Field::$_")->cstruct . "\n";
 	}
 	# make a function to print fieldtype name from an integer type.
