@@ -11,6 +11,9 @@
 ###########################################################
 package VRML::Field;
 
+use strict;
+use warnings;
+
 # The C type interface for the field type, encapsulated
 # By encapsulating things well enough, we'll be able to completely
 # change the interface later, e.g. to fit together with javascript etc.
@@ -68,10 +71,10 @@ our @Fields = qw/
 ###########################################################
 
 package VRML::Field::SFBool;
-@ISA=VRML::Field;
+our @ISA="VRML::Field";
 
 
-sub ctype {return "int $_[1]"}
+sub ctype {return "int " . ($_[1] || "")}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	if (!defined $val) {$val = 0} # inputOnlys, set it to any value
@@ -79,7 +82,7 @@ sub cInitialize {
 }
 
 package VRML::Field::MFBool;
-@ISA=VRML::Field::Multi;
+our @ISA="VRML::Field::Multi";
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
@@ -105,10 +108,10 @@ sub cInitialize {
 
 ###########################################################
 package VRML::Field::SFColor;
-@ISA=VRML::Field;
+our @ISA="VRML::Field";
 
 sub cstruct {return "struct SFColor { float c[3]; };"}
-sub ctype {return "struct SFColor $_[1]"}
+sub ctype {return "struct SFColor " . ($_[1] || "")}
 sub cInitialize {
         my ($this,$field,$val) = @_;
         if (!defined $val) {print "undefined in SFColor\n"} # inputOnlys, set it to any value
@@ -128,7 +131,7 @@ sub cInitialize {
 }
 
 package VRML::Field::MFColor;
-@ISA=VRML::Field::Multi;
+our @ISA="VRML::Field::Multi";
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
@@ -163,11 +166,11 @@ sub cInitialize {
 
 ###########################################################
 package VRML::Field::SFColorRGBA;
-@ISA=VRML::Field;
+our @ISA="VRML::Field";
 
 
 sub cstruct {return "struct SFColorRGBA { float c[4]; };"}
-sub ctype {return "struct SFColorRGBA $_[1]"}
+sub ctype {return "struct SFColorRGBA " . ($_[1] || "")}
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
@@ -181,7 +184,7 @@ sub cInitialize {
 
 
 package VRML::Field::MFColorRGBA;
-@ISA=VRML::Field::Multi;
+our @ISA="VRML::Field::Multi";
 
 
 sub cInitialize {
@@ -198,6 +201,7 @@ sub cInitialize {
 		$retstr = "$field.p = MALLOC (struct SFColorRGBA *, sizeof(struct SFColorRGBA)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
+			my $whichVal;
 			for ($whichVal = 0; $whichVal < 4; $whichVal++) {
                                 # get the actual value and ensure that it is a float
                                 my $av = "@{$arline}[$whichVal]";
@@ -216,9 +220,9 @@ sub cInitialize {
 
 ###########################################################
 package VRML::Field::SFDouble;
-@ISA=VRML::Field;
+our @ISA="VRML::Field";
 
-sub ctype {return "double $_[1]"}
+sub ctype {return "double " . ($_[1] || "")}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	if (!defined $val) {$val = 0} # inputOnlys, set it to any value
@@ -227,16 +231,15 @@ sub cInitialize {
 
 
 package VRML::Field::MFDouble;
-@ISA=VRML::Field::Multi;
+our @ISA="VRML::Field::Multi";
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	my $count = @{$val};
+	my $count = ref $val eq "ARRAY" ? @{$val} : 0;
 	my $retstr;
 	my $tmp;
 
 	#print "MFDouble field $field val @{$val} has $count INIT\n";
-	if (!defined $val) {$count=0} # inputOnlys, set it to any value
 	if ($count > 0) {
 		#print "MALLOC MFDouble field $field val @{$val} has $count INIT\n";
 		$retstr = $retstr . "$field.p = MALLOC (double *, sizeof(double)*$count);\n";
@@ -253,9 +256,9 @@ sub cInitialize {
 
 ###########################################################
 package VRML::Field::SFFloat;
-@ISA=VRML::Field;
+our @ISA="VRML::Field";
 
-sub ctype {"float $_[1]"}
+sub ctype {"float " . ($_[1] || "")}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	if (!defined $val) {$val = "0.0"} # inputOnlys, set it to any value
@@ -269,16 +272,14 @@ sub cInitialize {
 }
 
 package VRML::Field::MFFloat;
-@ISA=VRML::Field::Multi;
+our @ISA="VRML::Field::Multi";
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	my $count = @{$val};
+	my $count = ref $val eq "ARRAY" ? @{$val} : 0;
 	my $retstr;
 	my $tmp;
 
-	if (!defined $val) {$count = 0;} # inputOnlys, set it to any value
-	#print "MFFLOAT field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
 		#print "MALLOC MFFLOAT field $field val @{$val} has $count INIT\n";
 		$retstr = $retstr . "$field.p = MALLOC (float *, sizeof(float)*$count);\n";
@@ -301,22 +302,22 @@ sub cInitialize {
 
 ###########################################################
 package VRML::Field::SFImage;
-@ISA=VRML::Field;
+our @ISA="VRML::Field";
 
 
-sub ctype {return "struct Multi_Int32 $_[1]"}
+sub ctype {return "struct Multi_Int32 " . ($_[1] || "")}
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	if (!defined $val) {print "undefined in SFImage\n"} # inputOnlys, set it to any value
-	my $count = @{$val};
+	my $count = ref $val eq "ARRAY" ? @{$val} : 0;
 	#SFImage defaults to 0,0,0\n";
 	return "$field.n=3; $field.p=MALLOC (int *, sizeof(int)*3); $field.p[0] = 0; $field.p[1] = 0; $field.p[2] = 0;";
 }
 
 
 package VRML::Field::MFImage;
-@ISA=VRML::Field::Multi;
+our @ISA="VRML::Field::Multi";
 
 sub cInitialize {
 	print "MFImage not coded yet\n";
@@ -325,9 +326,9 @@ sub cInitialize {
 
 ###########################################################
 package VRML::Field::SFInt32;
-@ISA=VRML::Field;
+our @ISA="VRML::Field";
 
-sub ctype {return "int $_[1]"}
+sub ctype {return "int " . ($_[1] || "")}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	if (!defined $val) {$val = 0} # inputOnlys, set it to any value
@@ -337,11 +338,13 @@ sub cInitialize {
 
 
 package VRML::Field::MFInt32;
-@ISA=VRML::Field::Multi;
+our @ISA="VRML::Field::Multi";
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	my $count = @{$val};
+	my $count = ref $val eq "ARRAY" ? @{$val} : 0;
+	my $retstr;
+	my $tmp;
 	#print "MFINT32 field $field val @{$val} has $count INIT\n";
 	if (!defined $val) {$count=0} # inputOnlys, set it to any value
 	if ($count > 0) {
@@ -360,10 +363,10 @@ sub cInitialize {
 
 ###########################################################
 package VRML::Field::SFMatrix3d;
-@ISA=VRML::Field;
+our @ISA="VRML::Field";
 
 sub cstruct {return "struct SFMatrix3d { double c[9]; };"}
-sub ctype {return "struct SFMatrix3d $_[1]"}
+sub ctype {return "struct SFMatrix3d " . ($_[1] || "")}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	if (!defined $val) {print "undefined in SFColor\n"} # inputOnlys, set it to any value
@@ -379,7 +382,7 @@ sub cInitialize {
 }
 
 package VRML::Field::MFMatrix3d;
-@ISA=VRML::Field::Multi;
+our @ISA="VRML::Field::Multi";
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
@@ -410,10 +413,10 @@ sub cInitialize {
 
 ###########################################################
 package VRML::Field::SFMatrix3f;
-@ISA=VRML::Field;
+our @ISA="VRML::Field";
 
 sub cstruct {return "struct SFMatrix3f { float c[9]; };"}
-sub ctype {return "struct SFMatrix3f $_[1]"}
+sub ctype {return "struct SFMatrix3f " . ($_[1] || "")}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	if (!defined $val) {print "undefined in SFColor\n"} # inputOnlys, set it to any value
@@ -430,7 +433,7 @@ sub cInitialize {
 
 
 package VRML::Field::MFMatrix3f;
-@ISA=VRML::Field::Multi;
+our @ISA="VRML::Field::Multi";
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
@@ -464,10 +467,10 @@ sub cInitialize {
 
 ###########################################################
 package VRML::Field::SFMatrix4d;
-@ISA=VRML::Field;
+our @ISA="VRML::Field";
 
 sub cstruct {return "struct SFMatrix4d { double c[16]; };"}
-sub ctype {return "struct SFMatrix4d $_[1]"}
+sub ctype {return "struct SFMatrix4d " . ($_[1] || "")}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	if (!defined $val) {print "undefined in SFColor\n"} # inputOnlys, set it to any value
@@ -490,7 +493,7 @@ sub cInitialize {
 }
 
 package VRML::Field::MFMatrix4d;
-@ISA=VRML::Field::Multi;
+our @ISA="VRML::Field::Multi";
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
@@ -520,10 +523,10 @@ sub cInitialize {
 
 ###########################################################
 package VRML::Field::SFMatrix4f;
-@ISA=VRML::Field;
+our @ISA="VRML::Field";
 
 sub cstruct {return "struct SFMatrix4f { float c[16]; };"}
-sub ctype {return "struct SFMatrix4f $_[1]"}
+sub ctype {return "struct SFMatrix4f " . ($_[1] || "")}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	if (!defined $val) {print "undefined in SFColor\n"} # inputOnlys, set it to any value
@@ -547,7 +550,7 @@ sub cInitialize {
 
 
 package VRML::Field::MFMatrix4f;
-@ISA=VRML::Field::Multi;
+our @ISA="VRML::Field::Multi";
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
@@ -584,7 +587,7 @@ sub cInitialize {
 ###########################################################
 package VRML::Field::SFNode;
 
-sub ctype {"struct X3D_Node *$_[1]"}
+sub ctype {"struct X3D_Node *" . ($_[1] || "")}
 sub cstruct {""}
 
 sub cInitialize {
@@ -595,13 +598,12 @@ sub cInitialize {
 
 
 package VRML::Field::MFNode;
-@ISA=VRML::Field::Multi;
+our @ISA="VRML::Field::Multi";
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	my $count = @{$val};
-	if (!defined $val) {$count=0;} # inputOnlys, set it to any value
-	#print "MFNODE field $field val @{$val} has $count INIT\n";
+	my $count = ref $val eq "ARRAY" ? @{$val} : 0;
+
 	if ($count > 0) {
 		print "MFNODE HAVE TO MALLOC HERE\n";
 	} else {
@@ -613,12 +615,12 @@ sub cInitialize {
 
 ###########################################################
 package VRML::Field::SFRotation;
-@ISA=VRML::Field;
+our @ISA="VRML::Field";
 
 
 sub cstruct {return "struct SFRotation { float c[4]; };"}
 
-sub ctype {return "struct SFRotation $_[1]"}
+sub ctype {return "struct SFRotation " . ($_[1] || "")}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	if (!defined $val) {print "undefined in SFRotation\n"} # inputOnlys, set it to any value
@@ -630,16 +632,15 @@ sub cInitialize {
 
 
 package VRML::Field::MFRotation;
-@ISA=VRML::Field::Multi;
+our @ISA="VRML::Field::Multi";
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	my $count = @{$val};
+	my $count = ref $val eq "ARRAY" ? @{$val} : 0;
 	my $retstr;
 	my $tmp;
 	my $whichVal;
 
-	if (!defined $val) {$count=0} # inputOnlys, set it to any value
 	#print "MFROTATION field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
 		#print "MALLOC MFROTATION field $field val @{$val} has $count INIT\n";
@@ -665,9 +666,9 @@ sub cInitialize {
 
 ###########################################################
 package VRML::Field::SFString;
-@ISA=VRML::Field;
+our @ISA="VRML::Field";
 
-sub ctype {return "struct Uni_String *$_[1]"}
+sub ctype {return "struct Uni_String *" . ($_[1] || "")}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 
@@ -676,7 +677,7 @@ sub cInitialize {
 }
 
 package VRML::Field::MFString;
-@ISA=VRML::Field::Multi;
+our @ISA="VRML::Field::Multi";
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
@@ -703,9 +704,9 @@ sub cInitialize {
 
 ###########################################################
 package VRML::Field::SFTime;
-@ISA=VRML::Field::SFFloat;
+our @ISA="VRML::Field::SFFloat";
 
-sub ctype {"double $_[1]"}
+sub ctype {"double " . ($_[1] || "")}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	if (!defined $val) {$val = 0.0} # inputOnlys, set it to any value
@@ -713,7 +714,7 @@ sub cInitialize {
 }
 
 package VRML::Field::MFTime;
-@ISA=VRML::Field::MFFloat;
+our @ISA="VRML::Field::MFFloat";
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
@@ -729,10 +730,10 @@ sub cInitialize {
 
 ###########################################################
 package VRML::Field::SFVec2d;
-@ISA=VRML::Field;
+our @ISA="VRML::Field";
 
 sub cstruct {return "struct SFVec2d { double c[2]; };"}
-sub ctype {return "struct SFVec2d $_[1]"}
+sub ctype {return "struct SFVec2d " . ($_[1] || "")}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	if (!defined $val) {print "undefined in SFVec2d\n"} # inputOnlys, set it to any value
@@ -742,7 +743,7 @@ sub cInitialize {
 
 
 package VRML::Field::MFVec2d;
-@ISA=VRML::Field::Multi;
+our @ISA="VRML::Field::Multi";
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
@@ -772,12 +773,13 @@ sub cInitialize {
 
 ###########################################################
 package VRML::Field::SFVec2f;
-@ISA=VRML::Field;
+our @ISA="VRML::Field";
 
 sub cstruct {return "struct SFVec2f { float c[2]; };"}
-sub ctype {return "struct SFVec2f $_[1]"}
+sub ctype {return "struct SFVec2f " . ($_[1] || "")}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
+	my $count;
 	if (!defined $val) {$count=0} else {$count=1} # inputOnlys, set it to any value
 	if ($count eq 1) {
 		# get the actual value and ensure that it is a float
@@ -796,17 +798,16 @@ sub cInitialize {
 
 
 package VRML::Field::MFVec2f;
-@ISA=VRML::Field::Multi;
+our @ISA="VRML::Field::Multi";
 
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	my $count = @{$val};
+	my $count = ref $val eq "ARRAY" ? @{$val} : 0;
 	my $retstr;
 	my $tmp;
 	my $whichVal;
 
-	if (!defined $val) {$count=0} # inputOnlys, set it to any value
 	#print "MFVec2F field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
 		#print "MALLOC MFVec2F field $field val @{$val} has $count INIT\n";
@@ -833,9 +834,9 @@ sub cInitialize {
 
 ###########################################################
 package VRML::Field::SFVec3d;
-@ISA=VRML::Field;
+our @ISA="VRML::Field";
 sub cstruct {return "struct SFVec3d { double c[3]; };"}
-sub ctype {return "struct SFVec3d $_[1]";}
+sub ctype {return "struct SFVec3d " . ($_[1] || "");}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	if (!defined $val) {print "undefined in SFVec3d\n"} # inputOnlys, set it to any value
@@ -846,14 +847,14 @@ sub cInitialize {
 
 
 package VRML::Field::MFVec3d;
-@ISA=VRML::Field::Multi;
+our @ISA="VRML::Field::Multi";
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	my $count = @{$val};
+	my $count = ref $val eq "ARRAY" ? @{$val} : 0;
 	my $retstr;
 	my $tmp;
-
+	my $whichVal;
 	if (!defined $val) {$count = 0;} # inputOnlys, set it to any value
 	#print "MFVEC3F field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
@@ -877,7 +878,7 @@ sub cInitialize {
 ###########################################################
 package VRML::Field::SFVec3f;
 sub cstruct {return "struct SFVec3f { float c[3]; };"}
-sub ctype {return "struct SFVec3f $_[1]"}
+sub ctype {return "struct SFVec3f " . ($_[1] || "")}
 sub cInitialize {
         my ($this,$field,$val) = @_;
         if (!defined $val) {print "undefined in SFVec3f\n"} # inputOnlys, set it to any value
@@ -898,16 +899,15 @@ sub cInitialize {
 
 
 package VRML::Field::MFVec3f;
-@ISA=VRML::Field::Multi;
+our @ISA="VRML::Field::Multi";
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	my $count = @{$val};
+	my $count = ref $val eq "ARRAY" ? @{$val} : 0;
 	my $retstr;
 	my $tmp;
 	my $whichVal;
 
-	if (!defined $val) {$count = 0;} # inputOnlys, set it to any value
 	#print "MFVEC3F field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
 		#print "MALLOC MFVEC3F field $field val @{$val} has $count INIT\n";
@@ -939,9 +939,9 @@ sub cInitialize {
 
 ###########################################################
 package VRML::Field::SFVec4d;
-@ISA=VRML::Field;
+our @ISA="VRML::Field";
 sub cstruct {return "struct SFVec4d { double c[4]; };"}
-sub ctype {return "struct SFVec4d $_[1]";}
+sub ctype {return "struct SFVec4d " . ($_[1] || "");}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	if (!defined $val) {print "undefined in SFVec4d\n"} # inputOnlys, set it to any value
@@ -952,14 +952,14 @@ sub cInitialize {
 
 
 package VRML::Field::MFVec4d;
-@ISA=VRML::Field::Multi;
+our @ISA="VRML::Field::Multi";
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	my $count = @{$val};
 	my $retstr;
 	my $tmp;
-
+	my $whichVal;
 	if (!defined $val) {$count = 0;} # inputOnlys, set it to any value
 	#print "MFVEC3F field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
@@ -982,9 +982,9 @@ sub cInitialize {
 
 ###########################################################
 package VRML::Field::SFVec4f;
-@ISA=VRML::Field;
+our @ISA="VRML::Field";
 sub cstruct {return "struct SFVec4f { float c[4]; };"}
-sub ctype {return "struct SFVec4f $_[1]";}
+sub ctype {return "struct SFVec4f " . ($_[1] || "");}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	if (!defined $val) {print "undefined in SFVec4f\n"} # inputOnlys, set it to any value
@@ -996,14 +996,14 @@ sub cInitialize {
 
 
 package VRML::Field::MFVec4f;
-@ISA=VRML::Field::Multi;
+our @ISA="VRML::Field::Multi";
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	my $count = @{$val};
 	my $retstr;
 	my $tmp;
-
+	my $whichVal;
 	if (!defined $val) {$count = 0;} # inputOnlys, set it to any value
 	#print "MFVEC3F field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
@@ -1029,9 +1029,9 @@ sub cInitialize {
 
 ###########################################################
 package VRML::Field::FreeWRLPTR;
-@ISA=VRML::Field;
+our @ISA="VRML::Field";
 
-sub ctype {return "void * $_[1]"}
+sub ctype {return "void * " . ($_[1] || "")}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	if (!defined $val) {$val = 0} # inputOnlys, set it to any value
@@ -1044,9 +1044,9 @@ sub cInitialize {
 
 ###########################################################
 package VRML::Field::FreeWRLThread;
-@ISA=VRML::Field;
+our @ISA="VRML::Field";
 
-sub ctype {return "pthread_t $_[1]"}
+sub ctype {return "pthread_t " . ($_[1] || "")}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 		return "$field = _THREAD_NULL_";
@@ -1058,13 +1058,13 @@ sub cInitialize {
 ###########################################################
 ###########################################################
 package VRML::Field::Multi;
-@ISA=VRML::Field;
+our @ISA="VRML::Field";
 
 
 sub ctype {
 	my $r = (ref $_[0] or $_[0]);
 	$r =~ s/VRML::Field::MF//;
-	return "struct Multi_$r $_[1]";
+	return "struct Multi_$r " . ($_[1] || "");
 }
 sub cstruct {
 	my $r = (ref $_[0] or $_[0]);
