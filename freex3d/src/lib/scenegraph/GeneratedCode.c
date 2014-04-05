@@ -1655,6 +1655,7 @@ const int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 	"KeySensor",
 	"LOD",
 	"LineProperties",
+	"LineSensor",
 	"LineSet",
 	"LoadSensor",
 	"LocalFog",
@@ -2042,6 +2043,8 @@ struct X3D_Virt virt_LOD = { NULL,NULL,(void *)child_LOD,NULL,NULL,NULL,(void *)
 
 void render_LineProperties(struct X3D_LineProperties *);
 struct X3D_Virt virt_LineProperties = { NULL,(void *)render_LineProperties,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+struct X3D_Virt virt_LineSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 void render_LineSet(struct X3D_LineSet *);
 void compile_LineSet(struct X3D_LineSet *);
@@ -2491,6 +2494,7 @@ struct X3D_Virt* virtTable[] = {
 	 &virt_KeySensor,
 	 &virt_LOD,
 	 &virt_LineProperties,
+	 &virt_LineSensor,
 	 &virt_LineSet,
 	 &virt_LoadSensor,
 	 &virt_LocalFog,
@@ -3727,6 +3731,25 @@ const int OFFSETS_LineProperties[] = {
 	(int) FIELDNAMES_linetype, (int) offsetof (struct X3D_LineProperties, linetype),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_linewidthScaleFactor, (int) offsetof (struct X3D_LineProperties, linewidthScaleFactor),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_LineProperties, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	-1, -1, -1, -1, -1};
+
+const int OFFSETS_LineSensor[] = {
+	(int) FIELDNAMES___oldEnabled, (int) offsetof (struct X3D_LineSensor, __oldEnabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) 0,
+	(int) FIELDNAMES__oldtrackPoint, (int) offsetof (struct X3D_LineSensor, _oldtrackPoint),  (int) FIELDTYPE_SFVec3f, (int) KW_outputOnly, (int) 0,
+	(int) FIELDNAMES__oldtranslation, (int) offsetof (struct X3D_LineSensor, _oldtranslation),  (int) FIELDTYPE_SFVec3f, (int) KW_outputOnly, (int) 0,
+	(int) FIELDNAMES__origPoint, (int) offsetof (struct X3D_LineSensor, _origPoint),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES_autoOffset, (int) offsetof (struct X3D_LineSensor, autoOffset),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_description, (int) offsetof (struct X3D_LineSensor, description),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_direction, (int) offsetof (struct X3D_LineSensor, direction),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_LineSensor, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_isActive, (int) offsetof (struct X3D_LineSensor, isActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_isOver, (int) offsetof (struct X3D_LineSensor, isOver),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_maxPosition, (int) offsetof (struct X3D_LineSensor, maxPosition),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_LineSensor, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_minPosition, (int) offsetof (struct X3D_LineSensor, minPosition),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_offset, (int) offsetof (struct X3D_LineSensor, offset),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_trackPoint_changed, (int) offsetof (struct X3D_LineSensor, trackPoint_changed),  (int) FIELDTYPE_SFVec3f, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_translation_changed, (int) offsetof (struct X3D_LineSensor, translation_changed),  (int) FIELDTYPE_SFVec3f, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_LineSet[] = {
@@ -5177,6 +5200,7 @@ const int *NODE_OFFSETS[] = {
 	OFFSETS_KeySensor,
 	OFFSETS_LOD,
 	OFFSETS_LineProperties,
+	OFFSETS_LineSensor,
 	OFFSETS_LineSet,
 	OFFSETS_LoadSensor,
 	OFFSETS_LocalFog,
@@ -5634,6 +5658,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_KeySensor : {tmp = MALLOC (struct X3D_KeySensor *, sizeof (struct X3D_KeySensor)); break;}
 		case NODE_LOD : {tmp = MALLOC (struct X3D_LOD *, sizeof (struct X3D_LOD)); break;}
 		case NODE_LineProperties : {tmp = MALLOC (struct X3D_LineProperties *, sizeof (struct X3D_LineProperties)); break;}
+		case NODE_LineSensor : {tmp = MALLOC (struct X3D_LineSensor *, sizeof (struct X3D_LineSensor)); break;}
 		case NODE_LineSet : {tmp = MALLOC (struct X3D_LineSet *, sizeof (struct X3D_LineSet)); break;}
 		case NODE_LoadSensor : {tmp = MALLOC (struct X3D_LoadSensor *, sizeof (struct X3D_LoadSensor)); break;}
 		case NODE_LocalFog : {tmp = MALLOC (struct X3D_LocalFog *, sizeof (struct X3D_LocalFog)); break;}
@@ -7252,6 +7277,29 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->linewidthScaleFactor = 0.0f;
 			tmp2->metadata = NULL;
 			tmp2->_defaultContainer = FIELDNAMES_lineProperties;
+		break;
+		}
+		case NODE_LineSensor : {
+			struct X3D_LineSensor * tmp2;
+			tmp2 = (struct X3D_LineSensor *) tmp;
+		/* ttmp2->v = &virt_LineSensor;*/ 
+			tmp2->__oldEnabled = TRUE;
+			tmp2->_oldtrackPoint.c[0] = 0.0f;tmp2->_oldtrackPoint.c[1] = 0.0f;tmp2->_oldtrackPoint.c[2] = 0.0f;;
+			tmp2->_oldtranslation.c[0] = 0.0f;tmp2->_oldtranslation.c[1] = 0.0f;tmp2->_oldtranslation.c[2] = 0.0f;;
+			tmp2->_origPoint.c[0] = 0.0f;tmp2->_origPoint.c[1] = 0.0f;tmp2->_origPoint.c[2] = 0.0f;;
+			tmp2->autoOffset = TRUE;
+			tmp2->description = newASCIIString("");
+			tmp2->direction.c[0] = 1.0f;tmp2->direction.c[1] = 0.0f;tmp2->direction.c[2] = 0.0f;;
+			tmp2->enabled = TRUE;
+			tmp2->isActive = FALSE;
+			tmp2->isOver = FALSE;
+			tmp2->maxPosition = -1.0f;
+			tmp2->metadata = NULL;
+			tmp2->minPosition = 0.0f;
+			tmp2->offset.c[0] = 0.0f;tmp2->offset.c[1] = 0.0f;tmp2->offset.c[2] = 0.0f;;
+			tmp2->trackPoint_changed.c[0] = 0.0f;tmp2->trackPoint_changed.c[1] = 0.0f;tmp2->trackPoint_changed.c[2] = 0.0f;;
+			tmp2->translation_changed.c[0] = 0.0f;tmp2->translation_changed.c[1] = 0.0f;tmp2->translation_changed.c[2] = 0.0f;;
+			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
 		case NODE_LineSet : {
@@ -10685,6 +10733,29 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		    }
 		    break;
 		}
+		case NODE_LineSensor : {
+			struct X3D_LineSensor *tmp;
+			tmp = (struct X3D_LineSensor *) node;
+			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
+		    }
+			spacer fprintf (fp," autoOffset (SFBool) \t%d\n",tmp->autoOffset);
+			spacer fprintf (fp," description (SFString) \t%s\n",tmp->description->strptr);
+			spacer fprintf (fp," direction (SFVec3f): \t");
+			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->direction.c[i]); }
+			fprintf (fp,"\n");
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," maxPosition (SFFloat) \t%4.3f\n",tmp->maxPosition);
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
+			spacer fprintf (fp," minPosition (SFFloat) \t%4.3f\n",tmp->minPosition);
+			spacer fprintf (fp," offset (SFVec3f): \t");
+			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->offset.c[i]); }
+			fprintf (fp,"\n");
+		    break;
+		}
 		case NODE_LineSet : {
 			struct X3D_LineSet *tmp;
 			tmp = (struct X3D_LineSet *) node;
@@ -12556,6 +12627,7 @@ int getSAI_X3DNodeType (int FreeWRLNodeType) {
 	case NODE_KeySensor: return X3DKeyDeviceSensorNode; break;
 	case NODE_LOD: return X3DGroupingNode; break;
 	case NODE_LineProperties: return X3DAppearanceChildNode; break;
+	case NODE_LineSensor: return X3DPointingDeviceSensorNode; break;
 	case NODE_LineSet: return X3DGeometryNode; break;
 	case NODE_LoadSensor: return X3DNetworkSensorNode; break;
 	case NODE_LocalFog: return X3DChildNode; break;

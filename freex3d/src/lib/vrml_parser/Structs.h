@@ -186,133 +186,134 @@ typedef int indexT;
 #define NODE_KeySensor	75
 #define NODE_LOD	76
 #define NODE_LineProperties	77
-#define NODE_LineSet	78
-#define NODE_LoadSensor	79
-#define NODE_LocalFog	80
-#define NODE_Material	81
-#define NODE_Matrix3VertexAttribute	82
-#define NODE_Matrix4VertexAttribute	83
-#define NODE_MetadataDouble	84
-#define NODE_MetadataFloat	85
-#define NODE_MetadataInteger	86
-#define NODE_MetadataMFBool	87
-#define NODE_MetadataMFColor	88
-#define NODE_MetadataMFColorRGBA	89
-#define NODE_MetadataMFDouble	90
-#define NODE_MetadataMFFloat	91
-#define NODE_MetadataMFInt32	92
-#define NODE_MetadataMFMatrix3d	93
-#define NODE_MetadataMFMatrix3f	94
-#define NODE_MetadataMFMatrix4d	95
-#define NODE_MetadataMFMatrix4f	96
-#define NODE_MetadataMFNode	97
-#define NODE_MetadataMFRotation	98
-#define NODE_MetadataMFString	99
-#define NODE_MetadataMFTime	100
-#define NODE_MetadataMFVec2d	101
-#define NODE_MetadataMFVec2f	102
-#define NODE_MetadataMFVec3d	103
-#define NODE_MetadataMFVec3f	104
-#define NODE_MetadataMFVec4d	105
-#define NODE_MetadataMFVec4f	106
-#define NODE_MetadataSFBool	107
-#define NODE_MetadataSFColor	108
-#define NODE_MetadataSFColorRGBA	109
-#define NODE_MetadataSFDouble	110
-#define NODE_MetadataSFFloat	111
-#define NODE_MetadataSFImage	112
-#define NODE_MetadataSFInt32	113
-#define NODE_MetadataSFMatrix3d	114
-#define NODE_MetadataSFMatrix3f	115
-#define NODE_MetadataSFMatrix4d	116
-#define NODE_MetadataSFMatrix4f	117
-#define NODE_MetadataSFNode	118
-#define NODE_MetadataSFRotation	119
-#define NODE_MetadataSFString	120
-#define NODE_MetadataSFTime	121
-#define NODE_MetadataSFVec2d	122
-#define NODE_MetadataSFVec2f	123
-#define NODE_MetadataSFVec3d	124
-#define NODE_MetadataSFVec3f	125
-#define NODE_MetadataSFVec4d	126
-#define NODE_MetadataSFVec4f	127
-#define NODE_MetadataSet	128
-#define NODE_MetadataString	129
-#define NODE_MovieTexture	130
-#define NODE_MultiTexture	131
-#define NODE_MultiTextureCoordinate	132
-#define NODE_MultiTextureTransform	133
-#define NODE_NavigationInfo	134
-#define NODE_Normal	135
-#define NODE_NormalInterpolator	136
-#define NODE_NurbsCurve	137
-#define NODE_NurbsCurve2D	138
-#define NODE_NurbsOrientationInterpolator	139
-#define NODE_NurbsPatchSurface	140
-#define NODE_NurbsPositionInterpolator	141
-#define NODE_NurbsSet	142
-#define NODE_NurbsSurfaceInterpolator	143
-#define NODE_NurbsSweptSurface	144
-#define NODE_NurbsSwungSurface	145
-#define NODE_NurbsTextureCoordinate	146
-#define NODE_NurbsTrimmedSurface	147
-#define NODE_OSC_Sensor	148
-#define NODE_OrientationInterpolator	149
-#define NODE_OrthoViewpoint	150
-#define NODE_PackagedShader	151
-#define NODE_PickableGroup	152
-#define NODE_PixelTexture	153
-#define NODE_PlaneSensor	154
-#define NODE_PointLight	155
-#define NODE_PointPickSensor	156
-#define NODE_PointSet	157
-#define NODE_Polyline2D	158
-#define NODE_Polypoint2D	159
-#define NODE_PositionInterpolator	160
-#define NODE_PositionInterpolator2D	161
-#define NODE_ProgramShader	162
-#define NODE_Proto	163
-#define NODE_ProximitySensor	164
-#define NODE_QuadSet	165
-#define NODE_ReceiverPdu	166
-#define NODE_Rectangle2D	167
-#define NODE_ScalarInterpolator	168
-#define NODE_Script	169
-#define NODE_ShaderPart	170
-#define NODE_ShaderProgram	171
-#define NODE_Shape	172
-#define NODE_SignalPdu	173
-#define NODE_Sound	174
-#define NODE_Sphere	175
-#define NODE_SphereSensor	176
-#define NODE_SplinePositionInterpolator	177
-#define NODE_SplinePositionInterpolator2D	178
-#define NODE_SplineScalarInterpolator	179
-#define NODE_SpotLight	180
-#define NODE_SquadOrientationInterpolator	181
-#define NODE_StaticGroup	182
-#define NODE_StringSensor	183
-#define NODE_Switch	184
-#define NODE_Text	185
-#define NODE_TextureBackground	186
-#define NODE_TextureCoordinate	187
-#define NODE_TextureCoordinateGenerator	188
-#define NODE_TextureProperties	189
-#define NODE_TextureTransform	190
-#define NODE_TimeSensor	191
-#define NODE_TimeTrigger	192
-#define NODE_TouchSensor	193
-#define NODE_Transform	194
-#define NODE_TransmitterPdu	195
-#define NODE_TriangleFanSet	196
-#define NODE_TriangleSet	197
-#define NODE_TriangleSet2D	198
-#define NODE_TriangleStripSet	199
-#define NODE_TwoSidedMaterial	200
-#define NODE_Viewpoint	201
-#define NODE_ViewpointGroup	202
-#define NODE_VisibilitySensor	203
-#define NODE_WorldInfo	204
+#define NODE_LineSensor	78
+#define NODE_LineSet	79
+#define NODE_LoadSensor	80
+#define NODE_LocalFog	81
+#define NODE_Material	82
+#define NODE_Matrix3VertexAttribute	83
+#define NODE_Matrix4VertexAttribute	84
+#define NODE_MetadataDouble	85
+#define NODE_MetadataFloat	86
+#define NODE_MetadataInteger	87
+#define NODE_MetadataMFBool	88
+#define NODE_MetadataMFColor	89
+#define NODE_MetadataMFColorRGBA	90
+#define NODE_MetadataMFDouble	91
+#define NODE_MetadataMFFloat	92
+#define NODE_MetadataMFInt32	93
+#define NODE_MetadataMFMatrix3d	94
+#define NODE_MetadataMFMatrix3f	95
+#define NODE_MetadataMFMatrix4d	96
+#define NODE_MetadataMFMatrix4f	97
+#define NODE_MetadataMFNode	98
+#define NODE_MetadataMFRotation	99
+#define NODE_MetadataMFString	100
+#define NODE_MetadataMFTime	101
+#define NODE_MetadataMFVec2d	102
+#define NODE_MetadataMFVec2f	103
+#define NODE_MetadataMFVec3d	104
+#define NODE_MetadataMFVec3f	105
+#define NODE_MetadataMFVec4d	106
+#define NODE_MetadataMFVec4f	107
+#define NODE_MetadataSFBool	108
+#define NODE_MetadataSFColor	109
+#define NODE_MetadataSFColorRGBA	110
+#define NODE_MetadataSFDouble	111
+#define NODE_MetadataSFFloat	112
+#define NODE_MetadataSFImage	113
+#define NODE_MetadataSFInt32	114
+#define NODE_MetadataSFMatrix3d	115
+#define NODE_MetadataSFMatrix3f	116
+#define NODE_MetadataSFMatrix4d	117
+#define NODE_MetadataSFMatrix4f	118
+#define NODE_MetadataSFNode	119
+#define NODE_MetadataSFRotation	120
+#define NODE_MetadataSFString	121
+#define NODE_MetadataSFTime	122
+#define NODE_MetadataSFVec2d	123
+#define NODE_MetadataSFVec2f	124
+#define NODE_MetadataSFVec3d	125
+#define NODE_MetadataSFVec3f	126
+#define NODE_MetadataSFVec4d	127
+#define NODE_MetadataSFVec4f	128
+#define NODE_MetadataSet	129
+#define NODE_MetadataString	130
+#define NODE_MovieTexture	131
+#define NODE_MultiTexture	132
+#define NODE_MultiTextureCoordinate	133
+#define NODE_MultiTextureTransform	134
+#define NODE_NavigationInfo	135
+#define NODE_Normal	136
+#define NODE_NormalInterpolator	137
+#define NODE_NurbsCurve	138
+#define NODE_NurbsCurve2D	139
+#define NODE_NurbsOrientationInterpolator	140
+#define NODE_NurbsPatchSurface	141
+#define NODE_NurbsPositionInterpolator	142
+#define NODE_NurbsSet	143
+#define NODE_NurbsSurfaceInterpolator	144
+#define NODE_NurbsSweptSurface	145
+#define NODE_NurbsSwungSurface	146
+#define NODE_NurbsTextureCoordinate	147
+#define NODE_NurbsTrimmedSurface	148
+#define NODE_OSC_Sensor	149
+#define NODE_OrientationInterpolator	150
+#define NODE_OrthoViewpoint	151
+#define NODE_PackagedShader	152
+#define NODE_PickableGroup	153
+#define NODE_PixelTexture	154
+#define NODE_PlaneSensor	155
+#define NODE_PointLight	156
+#define NODE_PointPickSensor	157
+#define NODE_PointSet	158
+#define NODE_Polyline2D	159
+#define NODE_Polypoint2D	160
+#define NODE_PositionInterpolator	161
+#define NODE_PositionInterpolator2D	162
+#define NODE_ProgramShader	163
+#define NODE_Proto	164
+#define NODE_ProximitySensor	165
+#define NODE_QuadSet	166
+#define NODE_ReceiverPdu	167
+#define NODE_Rectangle2D	168
+#define NODE_ScalarInterpolator	169
+#define NODE_Script	170
+#define NODE_ShaderPart	171
+#define NODE_ShaderProgram	172
+#define NODE_Shape	173
+#define NODE_SignalPdu	174
+#define NODE_Sound	175
+#define NODE_Sphere	176
+#define NODE_SphereSensor	177
+#define NODE_SplinePositionInterpolator	178
+#define NODE_SplinePositionInterpolator2D	179
+#define NODE_SplineScalarInterpolator	180
+#define NODE_SpotLight	181
+#define NODE_SquadOrientationInterpolator	182
+#define NODE_StaticGroup	183
+#define NODE_StringSensor	184
+#define NODE_Switch	185
+#define NODE_Text	186
+#define NODE_TextureBackground	187
+#define NODE_TextureCoordinate	188
+#define NODE_TextureCoordinateGenerator	189
+#define NODE_TextureProperties	190
+#define NODE_TextureTransform	191
+#define NODE_TimeSensor	192
+#define NODE_TimeTrigger	193
+#define NODE_TouchSensor	194
+#define NODE_Transform	195
+#define NODE_TransmitterPdu	196
+#define NODE_TriangleFanSet	197
+#define NODE_TriangleSet	198
+#define NODE_TriangleSet2D	199
+#define NODE_TriangleStripSet	200
+#define NODE_TwoSidedMaterial	201
+#define NODE_Viewpoint	202
+#define NODE_ViewpointGroup	203
+#define NODE_VisibilitySensor	204
+#define NODE_WorldInfo	205
 
 
 /* Table of built-in fieldIds */
@@ -4201,6 +4202,39 @@ struct X3D_LineProperties {
 	struct X3D_Node *metadata;
 };
 extern struct X3D_Virt virt_LineProperties;
+/***********************/
+struct X3D_LineSensor {
+       int _renderFlags; /*sensitive, etc */ 
+       int _hit; 
+       int _change; 
+       int _ichange; 
+       struct Vector* _parentVector; 
+       double _dist; /*sorting for blending */ 
+       float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
+       struct X3D_PolyRep *_intern; 
+       int _nodeType; /* unique integer for each type */ 
+       int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
+       int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
+ 	/*** node specific data: *****/
+	int __oldEnabled;
+	struct SFVec3f _oldtrackPoint;
+	struct SFVec3f _oldtranslation;
+	struct SFVec3f _origPoint;
+	int autoOffset;
+	struct Uni_String *description;
+	struct SFVec3f direction;
+	int enabled;
+	int isActive;
+	int isOver;
+	float maxPosition;
+	struct X3D_Node *metadata;
+	float minPosition;
+	struct SFVec3f offset;
+	struct SFVec3f trackPoint_changed;
+	struct SFVec3f translation_changed;
+};
+extern struct X3D_Virt virt_LineSensor;
 /***********************/
 struct X3D_LineSet {
        int _renderFlags; /*sensitive, etc */ 

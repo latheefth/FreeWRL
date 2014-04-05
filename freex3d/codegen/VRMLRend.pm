@@ -119,6 +119,7 @@ our %defaultContainerType = (
 	KeySensor		=>"children",
 	LineSet 		=>"geometry",
 	LineProperties		=>"lineProperties",
+	LineSensor 		=>"children",
 	LoadSensor		=>"children",
 	LOD 			=>"children",
 	Material 		=>"material",
