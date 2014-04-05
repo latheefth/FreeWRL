@@ -258,6 +258,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"autoOffset",
 	"avatarSize",
 	"axisOfRotation",
+	"axisRotation",
 	"back",
 	"backAmbientIntensity",
 	"backDiffuseColor",
@@ -872,6 +873,7 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"autoOffset",
 	"avatarSize",
 	"axisOfRotation",
+	"axisRotation",
 	"back",
 	"backAmbientIntensity",
 	"backDiffuseColor",
@@ -4396,6 +4398,7 @@ const int OFFSETS_PlaneSensor[] = {
 	(int) FIELDNAMES__oldtranslation, (int) offsetof (struct X3D_PlaneSensor, _oldtranslation),  (int) FIELDTYPE_SFVec3f, (int) KW_outputOnly, (int) 0,
 	(int) FIELDNAMES__origPoint, (int) offsetof (struct X3D_PlaneSensor, _origPoint),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_autoOffset, (int) offsetof (struct X3D_PlaneSensor, autoOffset),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_axisRotation, (int) offsetof (struct X3D_PlaneSensor, axisRotation),  (int) FIELDTYPE_SFRotation, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_description, (int) offsetof (struct X3D_PlaneSensor, description),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_PlaneSensor, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isActive, (int) offsetof (struct X3D_PlaneSensor, isActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -8253,6 +8256,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_oldtranslation.c[0] = 0.0f;tmp2->_oldtranslation.c[1] = 0.0f;tmp2->_oldtranslation.c[2] = 0.0f;;
 			tmp2->_origPoint.c[0] = 0.0f;tmp2->_origPoint.c[1] = 0.0f;tmp2->_origPoint.c[2] = 0.0f;;
 			tmp2->autoOffset = TRUE;
+			tmp2->axisRotation.c[0] = 0;tmp2->axisRotation.c[1] = 0;tmp2->axisRotation.c[2] = 1;tmp2->axisRotation.c[3] = 0;;
 			tmp2->description = newASCIIString("");
 			tmp2->enabled = TRUE;
 			tmp2->isActive = FALSE;
@@ -11545,6 +11549,9 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
 		    }
 			spacer fprintf (fp," autoOffset (SFBool) \t%d\n",tmp->autoOffset);
+			spacer fprintf (fp," axisRotation (SFRotation): \t");
+			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->axisRotation.c[i]); }
+			fprintf (fp,"\n");
 			spacer fprintf (fp," description (SFString) \t%s\n",tmp->description->strptr);
 			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
 			spacer fprintf (fp," maxPosition (SFVec2f): \t");
