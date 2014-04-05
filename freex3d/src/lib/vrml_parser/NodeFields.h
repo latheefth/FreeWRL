@@ -1773,6 +1773,7 @@ END_NODE(PixelTexture)
 /* PlaneSensor node */
 BEGIN_NODE(PlaneSensor)
 EXPOSED_FIELD(PlaneSensor,autoOffset,sfbool,autoOffset,FIELDTYPE_SFBool)
+EXPOSED_FIELD(PlaneSensor,axisRotation,sfrotation,axisRotation,FIELDTYPE_SFRotation)
 EXPOSED_FIELD(PlaneSensor,description,sfstring,description,FIELDTYPE_SFString)
 EXPOSED_FIELD(PlaneSensor,enabled,sfbool,enabled,FIELDTYPE_SFBool)
 EVENT_OUT(PlaneSensor,isActive,sfbool,isActive,FIELDTYPE_SFBool)
