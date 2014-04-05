@@ -10,7 +10,6 @@
 
 ###########################################################
 package VRML::Field;
-VRML::Error->import();
 
 # The C type interface for the field type, encapsulated
 # By encapsulating things well enough, we'll be able to completely
@@ -107,7 +106,6 @@ sub cInitialize {
 ###########################################################
 package VRML::Field::SFColor;
 @ISA=VRML::Field;
-VRML::Error->import;
 
 sub cstruct {return "struct SFColor { float c[3]; };"}
 sub ctype {return "struct SFColor $_[1]"}
@@ -166,7 +164,6 @@ sub cInitialize {
 ###########################################################
 package VRML::Field::SFColorRGBA;
 @ISA=VRML::Field;
-VRML::Error->import();
 
 
 sub cstruct {return "struct SFColorRGBA { float c[4]; };"}
@@ -220,7 +217,6 @@ sub cInitialize {
 ###########################################################
 package VRML::Field::SFDouble;
 @ISA=VRML::Field;
-VRML::Error->import;
 
 sub ctype {return "double $_[1]"}
 sub cInitialize {
@@ -258,7 +254,6 @@ sub cInitialize {
 ###########################################################
 package VRML::Field::SFFloat;
 @ISA=VRML::Field;
-VRML::Error->import();
 
 sub ctype {"float $_[1]"}
 sub cInitialize {
@@ -307,7 +302,6 @@ sub cInitialize {
 ###########################################################
 package VRML::Field::SFImage;
 @ISA=VRML::Field;
-VRML::Error->import;
 
 
 sub ctype {return "struct Multi_Int32 $_[1]"}
@@ -332,7 +326,6 @@ sub cInitialize {
 ###########################################################
 package VRML::Field::SFInt32;
 @ISA=VRML::Field;
-VRML::Error->import;
 
 sub ctype {return "int $_[1]"}
 sub cInitialize {
@@ -368,7 +361,6 @@ sub cInitialize {
 ###########################################################
 package VRML::Field::SFMatrix3d;
 @ISA=VRML::Field;
-VRML::Error->import;
 
 sub cstruct {return "struct SFMatrix3d { double c[9]; };"}
 sub ctype {return "struct SFMatrix3d $_[1]"}
@@ -419,7 +411,6 @@ sub cInitialize {
 ###########################################################
 package VRML::Field::SFMatrix3f;
 @ISA=VRML::Field;
-VRML::Error->import;
 
 sub cstruct {return "struct SFMatrix3f { float c[9]; };"}
 sub ctype {return "struct SFMatrix3f $_[1]"}
@@ -474,7 +465,6 @@ sub cInitialize {
 ###########################################################
 package VRML::Field::SFMatrix4d;
 @ISA=VRML::Field;
-VRML::Error->import;
 
 sub cstruct {return "struct SFMatrix4d { double c[16]; };"}
 sub ctype {return "struct SFMatrix4d $_[1]"}
@@ -531,7 +521,6 @@ sub cInitialize {
 ###########################################################
 package VRML::Field::SFMatrix4f;
 @ISA=VRML::Field;
-VRML::Error->import;
 
 sub cstruct {return "struct SFMatrix4f { float c[16]; };"}
 sub ctype {return "struct SFMatrix4f $_[1]"}
@@ -625,7 +614,6 @@ sub cInitialize {
 ###########################################################
 package VRML::Field::SFRotation;
 @ISA=VRML::Field;
-VRML::Error->import();
 
 
 sub cstruct {return "struct SFRotation { float c[4]; };"}
@@ -742,7 +730,6 @@ sub cInitialize {
 ###########################################################
 package VRML::Field::SFVec2d;
 @ISA=VRML::Field;
-VRML::Error->import();
 
 sub cstruct {return "struct SFVec2d { double c[2]; };"}
 sub ctype {return "struct SFVec2d $_[1]"}
@@ -786,7 +773,6 @@ sub cInitialize {
 ###########################################################
 package VRML::Field::SFVec2f;
 @ISA=VRML::Field;
-VRML::Error->import();
 
 sub cstruct {return "struct SFVec2f { float c[2]; };"}
 sub ctype {return "struct SFVec2f $_[1]"}
@@ -1044,7 +1030,6 @@ sub cInitialize {
 ###########################################################
 package VRML::Field::FreeWRLPTR;
 @ISA=VRML::Field;
-VRML::Error->import;
 
 sub ctype {return "void * $_[1]"}
 sub cInitialize {
@@ -1060,7 +1045,6 @@ sub cInitialize {
 ###########################################################
 package VRML::Field::FreeWRLThread;
 @ISA=VRML::Field;
-VRML::Error->import;
 
 sub ctype {return "pthread_t $_[1]"}
 sub cInitialize {
