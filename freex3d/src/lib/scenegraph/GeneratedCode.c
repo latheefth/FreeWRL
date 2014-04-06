@@ -5811,8 +5811,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_Anchor *) tmp;
 			tmp2->_parentResource = getInputResource();
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->description = newASCIIString("");
 			tmp2->metadata = NULL;
@@ -5927,9 +5927,9 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_Billboard *) tmp;
 			tmp2->_rotationAngle = 0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
-			tmp2->axisOfRotation.c[0] = 0.0f;tmp2->axisOfRotation.c[1] = 1.0f;tmp2->axisOfRotation.c[2] = 0.0f;;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
+			tmp2->axisOfRotation.c[0] = 0.0f;tmp2->axisOfRotation.c[1] = 1.0f;tmp2->axisOfRotation.c[2] = 0.0f;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->metadata = NULL;
 			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
@@ -5983,7 +5983,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_Box *) tmp;
 			tmp2->__points.n=0; tmp2->__points.p=0;
 			tmp2->metadata = NULL;
-			tmp2->size.c[0] = 2.0f;tmp2->size.c[1] = 2.0f;tmp2->size.c[2] = 2.0f;;
+			tmp2->size.c[0] = 2.0f;tmp2->size.c[1] = 2.0f;tmp2->size.c[2] = 2.0f;
 			tmp2->solid = TRUE;
 			tmp2->_defaultContainer = FIELDNAMES_geometry;
 		break;
@@ -5993,8 +5993,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_CADAssembly *) tmp;
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->metadata = NULL;
 			tmp2->name = newASCIIString("");
@@ -6005,8 +6005,8 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_CADFace : {
 			struct X3D_CADFace * tmp2;
 			tmp2 = (struct X3D_CADFace *) tmp;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->metadata = NULL;
 			tmp2->name = newASCIIString("");
 			tmp2->shape = NULL;
@@ -6017,8 +6017,8 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_CADLayer * tmp2;
 			tmp2 = (struct X3D_CADLayer *) tmp;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->metadata = NULL;
 			tmp2->name = newASCIIString("");
@@ -6038,17 +6038,17 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__do_trans = FALSE;
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
-			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
+			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->metadata = NULL;
 			tmp2->name = newASCIIString("");
 			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
 			tmp2->rotation.c[0] = 0;tmp2->rotation.c[1] = 0;tmp2->rotation.c[2] = 1;tmp2->rotation.c[3] = 0;;
-			tmp2->scale.c[0] = 1.0f;tmp2->scale.c[1] = 1.0f;tmp2->scale.c[2] = 1.0f;;
+			tmp2->scale.c[0] = 1.0f;tmp2->scale.c[1] = 1.0f;tmp2->scale.c[2] = 1.0f;
 			tmp2->scaleOrientation.c[0] = 0;tmp2->scaleOrientation.c[1] = 0;tmp2->scaleOrientation.c[2] = 1;tmp2->scaleOrientation.c[3] = 0;;
-			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;tmp2->translation.c[2] = 0.0f;;
+			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;tmp2->translation.c[2] = 0.0f;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -6076,8 +6076,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_Collision *) tmp;
 			tmp2->__hit = 0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->collide = TRUE;
 			tmp2->collideTime = -1;
@@ -6249,8 +6249,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__oldEnabled = TRUE;
 			tmp2->_dlchange = 0;
 			tmp2->_oldrotation.c[0] = 0;tmp2->_oldrotation.c[1] = 0;tmp2->_oldrotation.c[2] = 1;tmp2->_oldrotation.c[3] = 0;;
-			tmp2->_oldtrackPoint.c[0] = 0.0f;tmp2->_oldtrackPoint.c[1] = 0.0f;tmp2->_oldtrackPoint.c[2] = 0.0f;;
-			tmp2->_origPoint.c[0] = 0.0f;tmp2->_origPoint.c[1] = 0.0f;tmp2->_origPoint.c[2] = 0.0f;;
+			tmp2->_oldtrackPoint.c[0] = 0.0f;tmp2->_oldtrackPoint.c[1] = 0.0f;tmp2->_oldtrackPoint.c[2] = 0.0f;
+			tmp2->_origPoint.c[0] = 0.0f;tmp2->_origPoint.c[1] = 0.0f;tmp2->_origPoint.c[2] = 0.0f;
 			tmp2->_radius = 0.0f;
 			tmp2->autoOffset = TRUE;
 			tmp2->axisRotation.c[0] = 0;tmp2->axisRotation.c[1] = 1;tmp2->axisRotation.c[2] = 0;tmp2->axisRotation.c[3] = 0;;
@@ -6264,7 +6264,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->minAngle = 0.0f;
 			tmp2->offset = 0.0f;
 			tmp2->rotation_changed.c[0] = 0;tmp2->rotation_changed.c[1] = 0;tmp2->rotation_changed.c[2] = 1;tmp2->rotation_changed.c[3] = 0;;
-			tmp2->trackPoint_changed.c[0] = 0.0f;tmp2->trackPoint_changed.c[1] = 0.0f;tmp2->trackPoint_changed.c[2] = 0.0f;;
+			tmp2->trackPoint_changed.c[0] = 0.0f;tmp2->trackPoint_changed.c[1] = 0.0f;tmp2->trackPoint_changed.c[2] = 0.0f;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -6305,7 +6305,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_dir.c[0] = 0;tmp2->_dir.c[1] = 0;tmp2->_dir.c[2] = 0;tmp2->_dir.c[3] = 0;;
 			tmp2->ambientIntensity = 0.0f;
 			tmp2->color.c[0] = 1.0f;tmp2->color.c[1] = 1.0f;tmp2->color.c[2] = 1.0f;;
-			tmp2->direction.c[0] = 0.0f;tmp2->direction.c[1] = 0.0f;tmp2->direction.c[2] = -1.0f;;
+			tmp2->direction.c[0] = 0.0f;tmp2->direction.c[1] = 0.0f;tmp2->direction.c[2] = -1.0f;
 			tmp2->global = FALSE;
 			tmp2->intensity = 1.0f;
 			tmp2->metadata = NULL;
@@ -6382,16 +6382,16 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->articulationParameterValue5_changed = 0.0f;
 			tmp2->articulationParameterValue6_changed = 0.0f;
 			tmp2->articulationParameterValue7_changed = 0.0f;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
-			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
+			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->collideTime = 0;
 			tmp2->collisionType = 0;
 			tmp2->deadReckoning = 0;
 			tmp2->detonateTime = 0;
-			tmp2->detonationLocation.c[0] = 0.0f;tmp2->detonationLocation.c[1] = 0.0f;tmp2->detonationLocation.c[2] = 0.0f;;
-			tmp2->detonationRelativeLocation.c[0] = 0.0f;tmp2->detonationRelativeLocation.c[1] = 0.0f;tmp2->detonationRelativeLocation.c[2] = 0.0f;;
+			tmp2->detonationLocation.c[0] = 0.0f;tmp2->detonationLocation.c[1] = 0.0f;tmp2->detonationLocation.c[2] = 0.0f;
+			tmp2->detonationRelativeLocation.c[0] = 0.0f;tmp2->detonationRelativeLocation.c[1] = 0.0f;tmp2->detonationRelativeLocation.c[2] = 0.0f;
 			tmp2->detonationResult = 0;
 			tmp2->enabled = TRUE;
 			tmp2->entityCategory = 0;
@@ -6421,25 +6421,25 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->isNetworkWriter = FALSE;
 			tmp2->isRtpHeaderHeard = FALSE;
 			tmp2->isStandAlone = FALSE;
-			tmp2->linearAcceleration.c[0] = 0.0f;tmp2->linearAcceleration.c[1] = 0.0f;tmp2->linearAcceleration.c[2] = 0.0f;;
-			tmp2->linearVelocity.c[0] = 0.0f;tmp2->linearVelocity.c[1] = 0.0f;tmp2->linearVelocity.c[2] = 0.0f;;
+			tmp2->linearAcceleration.c[0] = 0.0f;tmp2->linearAcceleration.c[1] = 0.0f;tmp2->linearAcceleration.c[2] = 0.0f;
+			tmp2->linearVelocity.c[0] = 0.0f;tmp2->linearVelocity.c[1] = 0.0f;tmp2->linearVelocity.c[2] = 0.0f;
 			tmp2->marking = newASCIIString("");
 			tmp2->metadata = NULL;
 			tmp2->multicastRelayHost = newASCIIString("");
 			tmp2->multicastRelayPort = 0;
 			tmp2->munitionApplicationID = 1;
-			tmp2->munitionEndPoint.c[0] = 0.0f;tmp2->munitionEndPoint.c[1] = 0.0f;tmp2->munitionEndPoint.c[2] = 0.0f;;
+			tmp2->munitionEndPoint.c[0] = 0.0f;tmp2->munitionEndPoint.c[1] = 0.0f;tmp2->munitionEndPoint.c[2] = 0.0f;
 			tmp2->munitionEntityID = 0;
 			tmp2->munitionQuantity = 0;
 			tmp2->munitionSiteID = 0;
-			tmp2->munitionStartPoint.c[0] = 0.0f;tmp2->munitionStartPoint.c[1] = 0.0f;tmp2->munitionStartPoint.c[2] = 0.0f;;
+			tmp2->munitionStartPoint.c[0] = 0.0f;tmp2->munitionStartPoint.c[1] = 0.0f;tmp2->munitionStartPoint.c[2] = 0.0f;
 			tmp2->networkMode = newASCIIString("standAlone");
 			tmp2->port = 0;
 			tmp2->readInterval = 0.1;
 			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
 			tmp2->rotation.c[0] = 0;tmp2->rotation.c[1] = 0;tmp2->rotation.c[2] = 1;tmp2->rotation.c[3] = 0;;
 			tmp2->rtpHeaderExpected = FALSE;
-			tmp2->scale.c[0] = 1.0f;tmp2->scale.c[1] = 1.0f;tmp2->scale.c[2] = 1.0f;;
+			tmp2->scale.c[0] = 1.0f;tmp2->scale.c[1] = 1.0f;tmp2->scale.c[2] = 1.0f;
 			tmp2->scaleOrientation.c[0] = 0;tmp2->scaleOrientation.c[1] = 0;tmp2->scaleOrientation.c[2] = 1;tmp2->scaleOrientation.c[3] = 0;;
 			tmp2->set_articulationParameterValue0 = 0.0f;
 			tmp2->set_articulationParameterValue1 = 0.0f;
@@ -6451,7 +6451,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->set_articulationParameterValue7 = 0.0f;
 			tmp2->siteID = 0;
 			tmp2->timestamp = 0;
-			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;tmp2->translation.c[2] = 0.0f;;
+			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;tmp2->translation.c[2] = 0.0f;
 			tmp2->warhead = 0;
 			tmp2->writeInterval = 1;
 			tmp2->_defaultContainer = FIELDNAMES_children;
@@ -6633,8 +6633,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__movedCoords.c[0] = 0;tmp2->__movedCoords.c[1] = 0;tmp2->__movedCoords.c[2] = 0;;
 			tmp2->__rootUrl = NULL;
 			tmp2->__rooturlloadstatus = 0;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->center.c[0] = 0;tmp2->center.c[1] = 0;tmp2->center.c[2] = 0;;
 			tmp2->child1Url.n=0; tmp2->child1Url.p=0;
 			tmp2->child2Url.n=0; tmp2->child2Url.p=0;
@@ -6661,8 +6661,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__oldgeoCoords.c[0] = 0;tmp2->__oldgeoCoords.c[1] = 0;tmp2->__oldgeoCoords.c[2] = 0;;
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->geoCoords.c[0] = 0;tmp2->geoCoords.c[1] = 0;tmp2->geoCoords.c[2] = 0;;
 			tmp2->geoOrigin = NULL;
@@ -6711,7 +6711,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->keyValue.n=0; tmp2->keyValue.p=0;
 			tmp2->metadata = NULL;
 			tmp2->set_fraction = 0.0f;
-			tmp2->value_changed.c[0] = 0.0f;tmp2->value_changed.c[1] = 0.0f;tmp2->value_changed.c[2] = 0.0f;;
+			tmp2->value_changed.c[0] = 0.0f;tmp2->value_changed.c[1] = 0.0f;tmp2->value_changed.c[2] = 0.0f;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -6724,10 +6724,10 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__movedCoords.c[0] = 0;tmp2->__movedCoords.c[1] = 0;tmp2->__movedCoords.c[2] = 0;;
 			tmp2->__oldEnabled = TRUE;
 			tmp2->__oldGeoCenter.c[0] = 0;tmp2->__oldGeoCenter.c[1] = 0;tmp2->__oldGeoCenter.c[2] = 0;;
-			tmp2->__oldSize.c[0] = 0.0f;tmp2->__oldSize.c[1] = 0.0f;tmp2->__oldSize.c[2] = 0.0f;;
-			tmp2->__t1.c[0] = 10000000.0f;tmp2->__t1.c[1] = 0.0f;tmp2->__t1.c[2] = 0.0f;;
+			tmp2->__oldSize.c[0] = 0.0f;tmp2->__oldSize.c[1] = 0.0f;tmp2->__oldSize.c[2] = 0.0f;
+			tmp2->__t1.c[0] = 10000000.0f;tmp2->__t1.c[1] = 0.0f;tmp2->__t1.c[2] = 0.0f;
 			tmp2->__t2.c[0] = 0;tmp2->__t2.c[1] = 1;tmp2->__t2.c[2] = 0;tmp2->__t2.c[3] = 0;;
-			tmp2->centerOfRotation_changed.c[0] = 0.0f;tmp2->centerOfRotation_changed.c[1] = 0.0f;tmp2->centerOfRotation_changed.c[2] = 0.0f;;
+			tmp2->centerOfRotation_changed.c[0] = 0.0f;tmp2->centerOfRotation_changed.c[1] = 0.0f;tmp2->centerOfRotation_changed.c[2] = 0.0f;
 			tmp2->enabled = TRUE;
 			tmp2->enterTime = -1;
 			tmp2->exitTime = -1;
@@ -6738,8 +6738,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->isActive = FALSE;
 			tmp2->metadata = NULL;
 			tmp2->orientation_changed.c[0] = 0;tmp2->orientation_changed.c[1] = 0;tmp2->orientation_changed.c[2] = 1;tmp2->orientation_changed.c[3] = 0;;
-			tmp2->position_changed.c[0] = 0.0f;tmp2->position_changed.c[1] = 0.0f;tmp2->position_changed.c[2] = 0.0f;;
-			tmp2->size.c[0] = 0.0f;tmp2->size.c[1] = 0.0f;tmp2->size.c[2] = 0.0f;;
+			tmp2->position_changed.c[0] = 0.0f;tmp2->position_changed.c[1] = 0.0f;tmp2->position_changed.c[2] = 0.0f;
+			tmp2->size.c[0] = 0.0f;tmp2->size.c[1] = 0.0f;tmp2->size.c[2] = 0.0f;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -6748,16 +6748,16 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_GeoTouchSensor *) tmp;
 			tmp2->__geoSystem.n=0; tmp2->__geoSystem.p=0;
 			tmp2->__oldEnabled = TRUE;
-			tmp2->_oldhitNormal.c[0] = 0.0f;tmp2->_oldhitNormal.c[1] = 0.0f;tmp2->_oldhitNormal.c[2] = 0.0f;;
-			tmp2->_oldhitPoint.c[0] = 0.0f;tmp2->_oldhitPoint.c[1] = 0.0f;tmp2->_oldhitPoint.c[2] = 0.0f;;
+			tmp2->_oldhitNormal.c[0] = 0.0f;tmp2->_oldhitNormal.c[1] = 0.0f;tmp2->_oldhitNormal.c[2] = 0.0f;
+			tmp2->_oldhitPoint.c[0] = 0.0f;tmp2->_oldhitPoint.c[1] = 0.0f;tmp2->_oldhitPoint.c[2] = 0.0f;
 			tmp2->_oldhitTexCoord.c[0] = 0.0f;tmp2->_oldhitTexCoord.c[1] = 0.0f;;
 			tmp2->description = newASCIIString("");
 			tmp2->enabled = FALSE;
 			tmp2->geoOrigin = NULL;
 			tmp2->geoSystem.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*2);tmp2->geoSystem.p[0] = newASCIIString("GD");tmp2->geoSystem.p[1] = newASCIIString("WE");tmp2->geoSystem.n=2; ;
 			tmp2->hitGeoCoord_changed.c[0] = 0;tmp2->hitGeoCoord_changed.c[1] = 0;tmp2->hitGeoCoord_changed.c[2] = 0;;
-			tmp2->hitNormal_changed.c[0] = 0.0f;tmp2->hitNormal_changed.c[1] = 0.0f;tmp2->hitNormal_changed.c[2] = 0.0f;;
-			tmp2->hitPoint_changed.c[0] = 0.0f;tmp2->hitPoint_changed.c[1] = 0.0f;tmp2->hitPoint_changed.c[2] = 0.0f;;
+			tmp2->hitNormal_changed.c[0] = 0.0f;tmp2->hitNormal_changed.c[1] = 0.0f;tmp2->hitNormal_changed.c[2] = 0.0f;
+			tmp2->hitPoint_changed.c[0] = 0.0f;tmp2->hitPoint_changed.c[1] = 0.0f;tmp2->hitPoint_changed.c[2] = 0.0f;
 			tmp2->hitTexCoord_changed.c[0] = 0.0f;tmp2->hitTexCoord_changed.c[1] = 0.0f;;
 			tmp2->isActive = FALSE;
 			tmp2->isOver = FALSE;
@@ -6781,8 +6781,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__oldGeoCenter.c[0] = 0;tmp2->__oldGeoCenter.c[1] = 0;tmp2->__oldGeoCenter.c[2] = 0;;
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->geoCenter.c[0] = 0;tmp2->geoCenter.c[1] = 0;tmp2->geoCenter.c[2] = 0;;
 			tmp2->geoOrigin = NULL;
@@ -6790,9 +6790,9 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->metadata = NULL;
 			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
 			tmp2->rotation.c[0] = 0;tmp2->rotation.c[1] = 0;tmp2->rotation.c[2] = 1;tmp2->rotation.c[3] = 0;;
-			tmp2->scale.c[0] = 1.0f;tmp2->scale.c[1] = 1.0f;tmp2->scale.c[2] = 1.0f;;
+			tmp2->scale.c[0] = 1.0f;tmp2->scale.c[1] = 1.0f;tmp2->scale.c[2] = 1.0f;
 			tmp2->scaleOrientation.c[0] = 0;tmp2->scaleOrientation.c[1] = 0;tmp2->scaleOrientation.c[2] = 1;tmp2->scaleOrientation.c[3] = 0;;
-			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;tmp2->translation.c[2] = 0.0f;;
+			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;tmp2->translation.c[2] = 0.0f;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -6833,8 +6833,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->FreeWRL__protoDef = INT_ID_UNDEFINED;
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->metadata = NULL;
 			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
@@ -6855,15 +6855,15 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_HAnimHumanoid : {
 			struct X3D_HAnimHumanoid * tmp2;
 			tmp2 = (struct X3D_HAnimHumanoid *) tmp;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
-			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
+			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;
 			tmp2->info.n=0; tmp2->info.p=0;
 			tmp2->joints.n=0; tmp2->joints.p=0;
 			tmp2->metadata = NULL;
 			tmp2->name = newASCIIString("");
 			tmp2->rotation.c[0] = 0;tmp2->rotation.c[1] = 0;tmp2->rotation.c[2] = 1;tmp2->rotation.c[3] = 0;;
-			tmp2->scale.c[0] = 1.0f;tmp2->scale.c[1] = 1.0f;tmp2->scale.c[2] = 1.0f;;
+			tmp2->scale.c[0] = 1.0f;tmp2->scale.c[1] = 1.0f;tmp2->scale.c[2] = 1.0f;
 			tmp2->scaleOrientation.c[0] = 0;tmp2->scaleOrientation.c[1] = 0;tmp2->scaleOrientation.c[2] = 1;tmp2->scaleOrientation.c[3] = 0;;
 			tmp2->segments.n=0; tmp2->segments.p=0;
 			tmp2->sites.n=0; tmp2->sites.p=0;
@@ -6871,7 +6871,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->skin.n=0; tmp2->skin.p=0;
 			tmp2->skinCoord = NULL;
 			tmp2->skinNormal = NULL;
-			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;tmp2->translation.c[2] = 0.0f;;
+			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;tmp2->translation.c[2] = 0.0f;
 			tmp2->version = newASCIIString("");
 			tmp2->viewpoints.n=0; tmp2->viewpoints.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_children;
@@ -6886,9 +6886,9 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__do_scaleO = 0;
 			tmp2->__do_trans = 0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
-			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
+			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->displacers.n=0; tmp2->displacers.p=0;
 			tmp2->limitOrientation.c[0] = 0;tmp2->limitOrientation.c[1] = 0;tmp2->limitOrientation.c[2] = 1;tmp2->limitOrientation.c[3] = 0;;
@@ -6897,7 +6897,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->name = newASCIIString("");
 			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
 			tmp2->rotation.c[0] = 0;tmp2->rotation.c[1] = 0;tmp2->rotation.c[2] = 1;tmp2->rotation.c[3] = 0;;
-			tmp2->scale.c[0] = 1.0f;tmp2->scale.c[1] = 1.0f;tmp2->scale.c[2] = 1.0f;;
+			tmp2->scale.c[0] = 1.0f;tmp2->scale.c[1] = 1.0f;tmp2->scale.c[2] = 1.0f;
 			tmp2->scaleOrientation.c[0] = 0;tmp2->scaleOrientation.c[1] = 0;tmp2->scaleOrientation.c[2] = 1;tmp2->scaleOrientation.c[3] = 0;;
 			tmp2->skinCoordIndex.n=0; tmp2->skinCoordIndex.p=0;
 			tmp2->skinCoordWeight.n=0; tmp2->skinCoordWeight.p=0;
@@ -6906,7 +6906,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->stiffness.p[1] = 0.0f;
 			tmp2->stiffness.p[2] = 0.0f;
 			tmp2->stiffness.n=3;;
-			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;tmp2->translation.c[2] = 0.0f;;
+			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;tmp2->translation.c[2] = 0.0f;
 			tmp2->ulimit.n=0; tmp2->ulimit.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_joints;
 		break;
@@ -6915,9 +6915,9 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_HAnimSegment * tmp2;
 			tmp2 = (struct X3D_HAnimSegment *) tmp;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
-			tmp2->centerOfMass.c[0] = 0.0f;tmp2->centerOfMass.c[1] = 0.0f;tmp2->centerOfMass.c[2] = 0.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
+			tmp2->centerOfMass.c[0] = 0.0f;tmp2->centerOfMass.c[1] = 0.0f;tmp2->centerOfMass.c[2] = 0.0f;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->coord = NULL;
 			tmp2->displacers.n=0; tmp2->displacers.p=0;
@@ -6948,17 +6948,17 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__do_scaleO = 0;
 			tmp2->__do_trans = 0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
-			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
+			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->metadata = NULL;
 			tmp2->name = newASCIIString("");
 			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
 			tmp2->rotation.c[0] = 0;tmp2->rotation.c[1] = 0;tmp2->rotation.c[2] = 1;tmp2->rotation.c[3] = 0;;
-			tmp2->scale.c[0] = 1.0f;tmp2->scale.c[1] = 1.0f;tmp2->scale.c[2] = 1.0f;;
+			tmp2->scale.c[0] = 1.0f;tmp2->scale.c[1] = 1.0f;tmp2->scale.c[2] = 1.0f;
 			tmp2->scaleOrientation.c[0] = 0;tmp2->scaleOrientation.c[1] = 0;tmp2->scaleOrientation.c[2] = 1;tmp2->scaleOrientation.c[3] = 0;;
-			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;tmp2->translation.c[2] = 0.0f;;
+			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;tmp2->translation.c[2] = 0.0f;
 			tmp2->_defaultContainer = FIELDNAMES_sites;
 		break;
 		}
@@ -7124,8 +7124,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__loadResource = 0;
 			tmp2->__loadstatus = 0;
 			tmp2->_parentResource = getInputResource();
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->load = TRUE;
 			tmp2->metadata = NULL;
 			tmp2->url.n=0; tmp2->url.p=0;
@@ -7178,9 +7178,9 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__isX3D = (inputFileVersion[0]==3);
 			tmp2->_selected = 0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
-			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
+			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->forceTransitions = FALSE;
 			tmp2->level.n=0; tmp2->level.p=0;
@@ -7204,23 +7204,22 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_LineSensor : {
 			struct X3D_LineSensor * tmp2;
 			tmp2 = (struct X3D_LineSensor *) tmp;
-		/* ttmp2->v = &virt_LineSensor;*/ 
 			tmp2->__oldEnabled = TRUE;
-			tmp2->_oldtrackPoint.c[0] = 0.0f;tmp2->_oldtrackPoint.c[1] = 0.0f;tmp2->_oldtrackPoint.c[2] = 0.0f;;
-			tmp2->_oldtranslation.c[0] = 0.0f;tmp2->_oldtranslation.c[1] = 0.0f;tmp2->_oldtranslation.c[2] = 0.0f;;
-			tmp2->_origPoint.c[0] = 0.0f;tmp2->_origPoint.c[1] = 0.0f;tmp2->_origPoint.c[2] = 0.0f;;
+			tmp2->_oldtrackPoint.c[0] = 0.0f;tmp2->_oldtrackPoint.c[1] = 0.0f;tmp2->_oldtrackPoint.c[2] = 0.0f;
+			tmp2->_oldtranslation.c[0] = 0.0f;tmp2->_oldtranslation.c[1] = 0.0f;tmp2->_oldtranslation.c[2] = 0.0f;
+			tmp2->_origPoint.c[0] = 0.0f;tmp2->_origPoint.c[1] = 0.0f;tmp2->_origPoint.c[2] = 0.0f;
 			tmp2->autoOffset = TRUE;
 			tmp2->description = newASCIIString("");
-			tmp2->direction.c[0] = 1.0f;tmp2->direction.c[1] = 0.0f;tmp2->direction.c[2] = 0.0f;;
+			tmp2->direction.c[0] = 1.0f;tmp2->direction.c[1] = 0.0f;tmp2->direction.c[2] = 0.0f;
 			tmp2->enabled = TRUE;
 			tmp2->isActive = FALSE;
 			tmp2->isOver = FALSE;
 			tmp2->maxPosition = -1.0f;
 			tmp2->metadata = NULL;
 			tmp2->minPosition = 0.0f;
-			tmp2->offset.c[0] = 0.0f;tmp2->offset.c[1] = 0.0f;tmp2->offset.c[2] = 0.0f;;
-			tmp2->trackPoint_changed.c[0] = 0.0f;tmp2->trackPoint_changed.c[1] = 0.0f;tmp2->trackPoint_changed.c[2] = 0.0f;;
-			tmp2->translation_changed.c[0] = 0.0f;tmp2->translation_changed.c[1] = 0.0f;tmp2->translation_changed.c[2] = 0.0f;;
+			tmp2->offset.c[0] = 0.0f;tmp2->offset.c[1] = 0.0f;tmp2->offset.c[2] = 0.0f;
+			tmp2->trackPoint_changed.c[0] = 0.0f;tmp2->trackPoint_changed.c[1] = 0.0f;tmp2->trackPoint_changed.c[2] = 0.0f;
+			tmp2->translation_changed.c[0] = 0.0f;tmp2->translation_changed.c[1] = 0.0f;tmp2->translation_changed.c[2] = 0.0f;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -7731,10 +7730,10 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataSFVec3f : {
 			struct X3D_MetadataSFVec3f * tmp2;
 			tmp2 = (struct X3D_MetadataSFVec3f *) tmp;
-			tmp2->setValue.c[0] = 0.0f;tmp2->setValue.c[1] = 0.0f;tmp2->setValue.c[2] = 0.0f;;
+			tmp2->setValue.c[0] = 0.0f;tmp2->setValue.c[1] = 0.0f;tmp2->setValue.c[2] = 0.0f;
 			tmp2->tickTime = 0;
-			tmp2->value.c[0] = 0.0f;tmp2->value.c[1] = 0.0f;tmp2->value.c[2] = 0.0f;;
-			tmp2->valueChanged.c[0] = 0.0f;tmp2->valueChanged.c[1] = 0.0f;tmp2->valueChanged.c[2] = 0.0f;;
+			tmp2->value.c[0] = 0.0f;tmp2->value.c[1] = 0.0f;tmp2->value.c[2] = 0.0f;
+			tmp2->valueChanged.c[0] = 0.0f;tmp2->valueChanged.c[1] = 0.0f;tmp2->valueChanged.c[2] = 0.0f;
 			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
 		break;
 		}
@@ -7939,7 +7938,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->metadata = NULL;
 			tmp2->order = 3;
 			tmp2->set_fraction = 0.0f;
-			tmp2->value_changed.c[0] = 0.0f;tmp2->value_changed.c[1] = 0.0f;tmp2->value_changed.c[2] = 0.0f;;
+			tmp2->value_changed.c[0] = 0.0f;tmp2->value_changed.c[1] = 0.0f;tmp2->value_changed.c[2] = 0.0f;
 			tmp2->weight.n=0; tmp2->weight.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
@@ -7948,8 +7947,8 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_NurbsSet * tmp2;
 			tmp2 = (struct X3D_NurbsSet *) tmp;
 			tmp2->addGeometry.n=0; tmp2->addGeometry.p=0;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->geometry.n=0; tmp2->geometry.p=0;
 			tmp2->metadata = NULL;
 			tmp2->removeGeometry.n=0; tmp2->removeGeometry.p=0;
@@ -7962,8 +7961,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_NurbsSurfaceInterpolator *) tmp;
 			tmp2->controlPoint = NULL;
 			tmp2->metadata = NULL;
-			tmp2->normal_changed.c[0] = 0.0f;tmp2->normal_changed.c[1] = 0.0f;tmp2->normal_changed.c[2] = 0.0f;;
-			tmp2->position_changed.c[0] = 0.0f;tmp2->position_changed.c[1] = 0.0f;tmp2->position_changed.c[2] = 0.0f;;
+			tmp2->normal_changed.c[0] = 0.0f;tmp2->normal_changed.c[1] = 0.0f;tmp2->normal_changed.c[2] = 0.0f;
+			tmp2->position_changed.c[0] = 0.0f;tmp2->position_changed.c[1] = 0.0f;tmp2->position_changed.c[2] = 0.0f;
 			tmp2->set_fraction.c[0] = 0; tmp2->set_fraction.c[1] = 1;;
 			tmp2->uDimension = 0;
 			tmp2->uKnot.n=0; tmp2->uKnot.p=0;
@@ -8079,7 +8078,7 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_OrthoViewpoint * tmp2;
 			tmp2 = (struct X3D_OrthoViewpoint *) tmp;
 			tmp2->bindTime = -1;
-			tmp2->centerOfRotation.c[0] = 0.0f;tmp2->centerOfRotation.c[1] = 0.0f;tmp2->centerOfRotation.c[2] = 0.0f;;
+			tmp2->centerOfRotation.c[0] = 0.0f;tmp2->centerOfRotation.c[1] = 0.0f;tmp2->centerOfRotation.c[2] = 0.0f;
 			tmp2->description = newASCIIString("");
 			tmp2->fieldOfView.p = MALLOC (float *, sizeof(float)*4);
 			tmp2->fieldOfView.p[0] = -1.0f;
@@ -8091,7 +8090,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->jump = TRUE;
 			tmp2->metadata = NULL;
 			tmp2->orientation.c[0] = 0;tmp2->orientation.c[1] = 0;tmp2->orientation.c[2] = 1;tmp2->orientation.c[3] = 0;;
-			tmp2->position.c[0] = 0.0f;tmp2->position.c[1] = 0.0f;tmp2->position.c[2] = 10.0f;;
+			tmp2->position.c[0] = 0.0f;tmp2->position.c[1] = 0.0f;tmp2->position.c[2] = 10.0f;
 			tmp2->retainUserOffsets = FALSE;
 			tmp2->set_bind = 0;
 			tmp2->_defaultContainer = FIELDNAMES_children;
@@ -8120,8 +8119,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->FreeWRL_PROTOInterfaceNodes.n=0; tmp2->FreeWRL_PROTOInterfaceNodes.p=0;
 			tmp2->FreeWRL__protoDef = INT_ID_UNDEFINED;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->metadata = NULL;
 			tmp2->objectType.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*3);tmp2->objectType.p[0] = newASCIIString("ALL");tmp2->objectType.p[1] = newASCIIString("NONE");tmp2->objectType.p[2] = newASCIIString("TERRAIN");tmp2->objectType.n=3; ;
@@ -8147,9 +8146,9 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_PlaneSensor * tmp2;
 			tmp2 = (struct X3D_PlaneSensor *) tmp;
 			tmp2->__oldEnabled = TRUE;
-			tmp2->_oldtrackPoint.c[0] = 0.0f;tmp2->_oldtrackPoint.c[1] = 0.0f;tmp2->_oldtrackPoint.c[2] = 0.0f;;
-			tmp2->_oldtranslation.c[0] = 0.0f;tmp2->_oldtranslation.c[1] = 0.0f;tmp2->_oldtranslation.c[2] = 0.0f;;
-			tmp2->_origPoint.c[0] = 0.0f;tmp2->_origPoint.c[1] = 0.0f;tmp2->_origPoint.c[2] = 0.0f;;
+			tmp2->_oldtrackPoint.c[0] = 0.0f;tmp2->_oldtrackPoint.c[1] = 0.0f;tmp2->_oldtrackPoint.c[2] = 0.0f;
+			tmp2->_oldtranslation.c[0] = 0.0f;tmp2->_oldtranslation.c[1] = 0.0f;tmp2->_oldtranslation.c[2] = 0.0f;
+			tmp2->_origPoint.c[0] = 0.0f;tmp2->_origPoint.c[1] = 0.0f;tmp2->_origPoint.c[2] = 0.0f;
 			tmp2->autoOffset = TRUE;
 			tmp2->axisRotation.c[0] = 0;tmp2->axisRotation.c[1] = 0;tmp2->axisRotation.c[2] = 1;tmp2->axisRotation.c[3] = 0;;
 			tmp2->description = newASCIIString("");
@@ -8159,9 +8158,9 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->maxPosition.c[0] = -1.0f;tmp2->maxPosition.c[1] = -1.0f;;
 			tmp2->metadata = NULL;
 			tmp2->minPosition.c[0] = 0.0f;tmp2->minPosition.c[1] = 0.0f;;
-			tmp2->offset.c[0] = 0.0f;tmp2->offset.c[1] = 0.0f;tmp2->offset.c[2] = 0.0f;;
-			tmp2->trackPoint_changed.c[0] = 0.0f;tmp2->trackPoint_changed.c[1] = 0.0f;tmp2->trackPoint_changed.c[2] = 0.0f;;
-			tmp2->translation_changed.c[0] = 0.0f;tmp2->translation_changed.c[1] = 0.0f;tmp2->translation_changed.c[2] = 0.0f;;
+			tmp2->offset.c[0] = 0.0f;tmp2->offset.c[1] = 0.0f;tmp2->offset.c[2] = 0.0f;
+			tmp2->trackPoint_changed.c[0] = 0.0f;tmp2->trackPoint_changed.c[1] = 0.0f;tmp2->trackPoint_changed.c[2] = 0.0f;
+			tmp2->translation_changed.c[0] = 0.0f;tmp2->translation_changed.c[1] = 0.0f;tmp2->translation_changed.c[2] = 0.0f;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -8172,11 +8171,11 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_col.c[0] = 0;tmp2->_col.c[1] = 0;tmp2->_col.c[2] = 0;tmp2->_col.c[3] = 0;;
 			tmp2->_loc.c[0] = 0;tmp2->_loc.c[1] = 0;tmp2->_loc.c[2] = 0;tmp2->_loc.c[3] = 0;;
 			tmp2->ambientIntensity = 0.0f;
-			tmp2->attenuation.c[0] = 1.0f;tmp2->attenuation.c[1] = 0.0f;tmp2->attenuation.c[2] = 0.0f;;
+			tmp2->attenuation.c[0] = 1.0f;tmp2->attenuation.c[1] = 0.0f;tmp2->attenuation.c[2] = 0.0f;
 			tmp2->color.c[0] = 1.0f;tmp2->color.c[1] = 1.0f;tmp2->color.c[2] = 1.0f;;
 			tmp2->global = TRUE;
 			tmp2->intensity = 1.0f;
-			tmp2->location.c[0] = 0.0f;tmp2->location.c[1] = 0.0f;tmp2->location.c[2] = 0.0f;;
+			tmp2->location.c[0] = 0.0f;tmp2->location.c[1] = 0.0f;tmp2->location.c[2] = 0.0f;
 			tmp2->metadata = NULL;
 			tmp2->on = TRUE;
 			tmp2->radius = 100.0f;
@@ -8186,8 +8185,8 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_PointPickSensor : {
 			struct X3D_PointPickSensor * tmp2;
 			tmp2 = (struct X3D_PointPickSensor *) tmp;
-			tmp2->_bboxCenter.c[0] = 0.0f;tmp2->_bboxCenter.c[1] = 0.0f;tmp2->_bboxCenter.c[2] = 0.0f;;
-			tmp2->_bboxSize.c[0] = -1.0f;tmp2->_bboxSize.c[1] = -1.0f;tmp2->_bboxSize.c[2] = -1.0f;;
+			tmp2->_bboxCenter.c[0] = 0.0f;tmp2->_bboxCenter.c[1] = 0.0f;tmp2->_bboxCenter.c[2] = 0.0f;
+			tmp2->_bboxSize.c[0] = -1.0f;tmp2->_bboxSize.c[1] = -1.0f;tmp2->_bboxSize.c[2] = -1.0f;
 			tmp2->_oldisActive = FALSE;
 			tmp2->_oldpickTarget.n=0; tmp2->_oldpickTarget.p=0;
 			tmp2->_oldpickedGeometry.n=0; tmp2->_oldpickedGeometry.p=0;
@@ -8245,7 +8244,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->keyValue.n=0; tmp2->keyValue.p=0;
 			tmp2->metadata = NULL;
 			tmp2->set_fraction = 0.0f;
-			tmp2->value_changed.c[0] = 0.0f;tmp2->value_changed.c[1] = 0.0f;tmp2->value_changed.c[2] = 0.0f;;
+			tmp2->value_changed.c[0] = 0.0f;tmp2->value_changed.c[1] = 0.0f;tmp2->value_changed.c[2] = 0.0f;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -8289,8 +8288,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__prototype = NULL;
 			tmp2->_children.n=0; tmp2->_children.p=0;
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->metadata = NULL;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
@@ -8300,18 +8299,18 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_ProximitySensor *) tmp;
 			tmp2->__hit = 0;
 			tmp2->__oldEnabled = TRUE;
-			tmp2->__t1.c[0] = 10000000.0f;tmp2->__t1.c[1] = 0.0f;tmp2->__t1.c[2] = 0.0f;;
+			tmp2->__t1.c[0] = 10000000.0f;tmp2->__t1.c[1] = 0.0f;tmp2->__t1.c[2] = 0.0f;
 			tmp2->__t2.c[0] = 0;tmp2->__t2.c[1] = 1;tmp2->__t2.c[2] = 0;tmp2->__t2.c[3] = 0;;
-			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;;
-			tmp2->centerOfRotation_changed.c[0] = 0.0f;tmp2->centerOfRotation_changed.c[1] = 0.0f;tmp2->centerOfRotation_changed.c[2] = 0.0f;;
+			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;
+			tmp2->centerOfRotation_changed.c[0] = 0.0f;tmp2->centerOfRotation_changed.c[1] = 0.0f;tmp2->centerOfRotation_changed.c[2] = 0.0f;
 			tmp2->enabled = TRUE;
 			tmp2->enterTime = -1;
 			tmp2->exitTime = -1;
 			tmp2->isActive = FALSE;
 			tmp2->metadata = NULL;
 			tmp2->orientation_changed.c[0] = 0;tmp2->orientation_changed.c[1] = 0;tmp2->orientation_changed.c[2] = 1;tmp2->orientation_changed.c[3] = 0;;
-			tmp2->position_changed.c[0] = 0.0f;tmp2->position_changed.c[1] = 0.0f;tmp2->position_changed.c[2] = 0.0f;;
-			tmp2->size.c[0] = 0.0f;tmp2->size.c[1] = 0.0f;tmp2->size.c[2] = 0.0f;;
+			tmp2->position_changed.c[0] = 0.0f;tmp2->position_changed.c[1] = 0.0f;tmp2->position_changed.c[2] = 0.0f;
+			tmp2->size.c[0] = 0.0f;tmp2->size.c[1] = 0.0f;tmp2->size.c[2] = 0.0f;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -8338,8 +8337,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_ReceiverPdu *) tmp;
 			tmp2->address = newASCIIString("localhost");
 			tmp2->applicationID = 1;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->enabled = TRUE;
 			tmp2->entityID = 0;
 			tmp2->isActive = FALSE;
@@ -8431,8 +8430,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__visible = 0;
 			tmp2->_shaderTableEntry = 0;
 			tmp2->appearance = NULL;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->geometry = NULL;
 			tmp2->metadata = NULL;
 			tmp2->_defaultContainer = FIELDNAMES_children;
@@ -8443,8 +8442,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_SignalPdu *) tmp;
 			tmp2->address = newASCIIString("localhost");
 			tmp2->applicationID = 1;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->data.n=0; tmp2->data.p=0;
 			tmp2->dataLength = 0;
 			tmp2->enabled = TRUE;
@@ -8476,9 +8475,9 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Sound : {
 			struct X3D_Sound * tmp2;
 			tmp2 = (struct X3D_Sound *) tmp;
-			tmp2->direction.c[0] = 0.0f;tmp2->direction.c[1] = 0.0f;tmp2->direction.c[2] = 1.0f;;
+			tmp2->direction.c[0] = 0.0f;tmp2->direction.c[1] = 0.0f;tmp2->direction.c[2] = 1.0f;
 			tmp2->intensity = 1.0f;
-			tmp2->location.c[0] = 0.0f;tmp2->location.c[1] = 0.0f;tmp2->location.c[2] = 0.0f;;
+			tmp2->location.c[0] = 0.0f;tmp2->location.c[1] = 0.0f;tmp2->location.c[2] = 0.0f;
 			tmp2->maxBack = 10.0f;
 			tmp2->maxFront = 10.0f;
 			tmp2->metadata = NULL;
@@ -8507,9 +8506,9 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_SphereSensor *) tmp;
 			tmp2->__oldEnabled = TRUE;
 			tmp2->_oldrotation.c[0] = 0;tmp2->_oldrotation.c[1] = 0;tmp2->_oldrotation.c[2] = 1;tmp2->_oldrotation.c[3] = 0;;
-			tmp2->_oldtrackPoint.c[0] = 0.0f;tmp2->_oldtrackPoint.c[1] = 0.0f;tmp2->_oldtrackPoint.c[2] = 0.0f;;
-			tmp2->_origNormalizedPoint.c[0] = 0.0f;tmp2->_origNormalizedPoint.c[1] = 0.0f;tmp2->_origNormalizedPoint.c[2] = 0.0f;;
-			tmp2->_origPoint.c[0] = 0.0f;tmp2->_origPoint.c[1] = 0.0f;tmp2->_origPoint.c[2] = 0.0f;;
+			tmp2->_oldtrackPoint.c[0] = 0.0f;tmp2->_oldtrackPoint.c[1] = 0.0f;tmp2->_oldtrackPoint.c[2] = 0.0f;
+			tmp2->_origNormalizedPoint.c[0] = 0.0f;tmp2->_origNormalizedPoint.c[1] = 0.0f;tmp2->_origNormalizedPoint.c[2] = 0.0f;
+			tmp2->_origPoint.c[0] = 0.0f;tmp2->_origPoint.c[1] = 0.0f;tmp2->_origPoint.c[2] = 0.0f;
 			tmp2->_radius = 0.0f;
 			tmp2->autoOffset = TRUE;
 			tmp2->description = newASCIIString("");
@@ -8519,7 +8518,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->metadata = NULL;
 			tmp2->offset.c[0] = 0;tmp2->offset.c[1] = 1;tmp2->offset.c[2] = 0;tmp2->offset.c[3] = 0;;
 			tmp2->rotation_changed.c[0] = 0;tmp2->rotation_changed.c[1] = 0;tmp2->rotation_changed.c[2] = 1;tmp2->rotation_changed.c[3] = 0;;
-			tmp2->trackPoint_changed.c[0] = 0.0f;tmp2->trackPoint_changed.c[1] = 0.0f;tmp2->trackPoint_changed.c[2] = 0.0f;;
+			tmp2->trackPoint_changed.c[0] = 0.0f;tmp2->trackPoint_changed.c[1] = 0.0f;tmp2->trackPoint_changed.c[2] = 0.0f;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -8533,7 +8532,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->metadata = NULL;
 			tmp2->normalizeVelocity = FALSE;
 			tmp2->set_fraction = 0.0f;
-			tmp2->value_changed.c[0] = 0.0f;tmp2->value_changed.c[1] = 0.0f;tmp2->value_changed.c[2] = 0.0f;;
+			tmp2->value_changed.c[0] = 0.0f;tmp2->value_changed.c[1] = 0.0f;tmp2->value_changed.c[2] = 0.0f;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -8573,14 +8572,14 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_dir.c[0] = 0;tmp2->_dir.c[1] = 0;tmp2->_dir.c[2] = 0;tmp2->_dir.c[3] = 0;;
 			tmp2->_loc.c[0] = 0;tmp2->_loc.c[1] = 0;tmp2->_loc.c[2] = 0;tmp2->_loc.c[3] = 0;;
 			tmp2->ambientIntensity = 0.0f;
-			tmp2->attenuation.c[0] = 1.0f;tmp2->attenuation.c[1] = 0.0f;tmp2->attenuation.c[2] = 0.0f;;
+			tmp2->attenuation.c[0] = 1.0f;tmp2->attenuation.c[1] = 0.0f;tmp2->attenuation.c[2] = 0.0f;
 			tmp2->beamWidth = 1.570796f;
 			tmp2->color.c[0] = 1.0f;tmp2->color.c[1] = 1.0f;tmp2->color.c[2] = 1.0f;;
 			tmp2->cutOffAngle = 0.785398f;
-			tmp2->direction.c[0] = 0.0f;tmp2->direction.c[1] = 0.0f;tmp2->direction.c[2] = -1.0f;;
+			tmp2->direction.c[0] = 0.0f;tmp2->direction.c[1] = 0.0f;tmp2->direction.c[2] = -1.0f;
 			tmp2->global = TRUE;
 			tmp2->intensity = 1.0f;
-			tmp2->location.c[0] = 0.0f;tmp2->location.c[1] = 0.0f;tmp2->location.c[2] = 0.0f;;
+			tmp2->location.c[0] = 0.0f;tmp2->location.c[1] = 0.0f;tmp2->location.c[2] = 0.0f;
 			tmp2->metadata = NULL;
 			tmp2->on = TRUE;
 			tmp2->radius = 100.0f;
@@ -8605,8 +8604,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__solid = -1;
 			tmp2->__transparency = -1;
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->metadata = NULL;
 			tmp2->_defaultContainer = FIELDNAMES_children;
@@ -8631,8 +8630,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_Switch *) tmp;
 			tmp2->__isX3D = (inputFileVersion[0]==3);
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->choice.n=0; tmp2->choice.p=0;
 			tmp2->metadata = NULL;
@@ -8650,7 +8649,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->lineBounds.n=0; tmp2->lineBounds.p=0;
 			tmp2->maxExtent = 0.0f;
 			tmp2->metadata = NULL;
-			tmp2->origin.c[0] = 0.0f;tmp2->origin.c[1] = 0.0f;tmp2->origin.c[2] = 0.0f;;
+			tmp2->origin.c[0] = 0.0f;tmp2->origin.c[1] = 0.0f;tmp2->origin.c[2] = 0.0f;
 			tmp2->solid = TRUE;
 			tmp2->string.n=0; tmp2->string.p=0;
 			tmp2->textBounds.c[0] = 0.0f;tmp2->textBounds.c[1] = 0.0f;;
@@ -8772,13 +8771,13 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_TouchSensor * tmp2;
 			tmp2 = (struct X3D_TouchSensor *) tmp;
 			tmp2->__oldEnabled = TRUE;
-			tmp2->_oldhitNormal.c[0] = 0.0f;tmp2->_oldhitNormal.c[1] = 0.0f;tmp2->_oldhitNormal.c[2] = 0.0f;;
-			tmp2->_oldhitPoint.c[0] = 0.0f;tmp2->_oldhitPoint.c[1] = 0.0f;tmp2->_oldhitPoint.c[2] = 0.0f;;
+			tmp2->_oldhitNormal.c[0] = 0.0f;tmp2->_oldhitNormal.c[1] = 0.0f;tmp2->_oldhitNormal.c[2] = 0.0f;
+			tmp2->_oldhitPoint.c[0] = 0.0f;tmp2->_oldhitPoint.c[1] = 0.0f;tmp2->_oldhitPoint.c[2] = 0.0f;
 			tmp2->_oldhitTexCoord.c[0] = 0.0f;tmp2->_oldhitTexCoord.c[1] = 0.0f;;
 			tmp2->description = newASCIIString("");
 			tmp2->enabled = TRUE;
-			tmp2->hitNormal_changed.c[0] = 0.0f;tmp2->hitNormal_changed.c[1] = 0.0f;tmp2->hitNormal_changed.c[2] = 0.0f;;
-			tmp2->hitPoint_changed.c[0] = 0.0f;tmp2->hitPoint_changed.c[1] = 0.0f;tmp2->hitPoint_changed.c[2] = 0.0f;;
+			tmp2->hitNormal_changed.c[0] = 0.0f;tmp2->hitNormal_changed.c[1] = 0.0f;tmp2->hitNormal_changed.c[2] = 0.0f;
+			tmp2->hitPoint_changed.c[0] = 0.0f;tmp2->hitPoint_changed.c[1] = 0.0f;tmp2->hitPoint_changed.c[2] = 0.0f;
 			tmp2->hitTexCoord_changed.c[0] = 0.0f;tmp2->hitTexCoord_changed.c[1] = 0.0f;;
 			tmp2->isActive = FALSE;
 			tmp2->isOver = FALSE;
@@ -8798,16 +8797,16 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__do_trans = FALSE;
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
-			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
+			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->metadata = NULL;
 			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
 			tmp2->rotation.c[0] = 0;tmp2->rotation.c[1] = 0;tmp2->rotation.c[2] = 1;tmp2->rotation.c[3] = 0;;
-			tmp2->scale.c[0] = 1.0f;tmp2->scale.c[1] = 1.0f;tmp2->scale.c[2] = 1.0f;;
+			tmp2->scale.c[0] = 1.0f;tmp2->scale.c[1] = 1.0f;tmp2->scale.c[2] = 1.0f;
 			tmp2->scaleOrientation.c[0] = 0;tmp2->scaleOrientation.c[1] = 0;tmp2->scaleOrientation.c[2] = 1;tmp2->scaleOrientation.c[3] = 0;;
-			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;tmp2->translation.c[2] = 0.0f;;
+			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;tmp2->translation.c[2] = 0.0f;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -8815,12 +8814,12 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_TransmitterPdu * tmp2;
 			tmp2 = (struct X3D_TransmitterPdu *) tmp;
 			tmp2->address = newASCIIString("localhost");
-			tmp2->antennaLocation.c[0] = 0.0f;tmp2->antennaLocation.c[1] = 0.0f;tmp2->antennaLocation.c[2] = 0.0f;;
+			tmp2->antennaLocation.c[0] = 0.0f;tmp2->antennaLocation.c[1] = 0.0f;tmp2->antennaLocation.c[2] = 0.0f;
 			tmp2->antennaPatternLength = 0;
 			tmp2->antennaPatternType = 0;
 			tmp2->applicationID = 1;
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->cryptoKeyID = 0;
 			tmp2->cryptoSystem = 0;
 			tmp2->enabled = TRUE;
@@ -8851,7 +8850,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->radioEntityTypeNomenclatureVersion = 0;
 			tmp2->radioID = 0;
 			tmp2->readInterval = 0.1f;
-			tmp2->relativeAntennaLocation.c[0] = 0.0f;tmp2->relativeAntennaLocation.c[1] = 0.0f;tmp2->relativeAntennaLocation.c[2] = 0.0f;;
+			tmp2->relativeAntennaLocation.c[0] = 0.0f;tmp2->relativeAntennaLocation.c[1] = 0.0f;tmp2->relativeAntennaLocation.c[2] = 0.0f;
 			tmp2->rtpHeaderExpected = FALSE;
 			tmp2->siteID = 0;
 			tmp2->timestamp = 0;
@@ -8992,14 +8991,14 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_Viewpoint * tmp2;
 			tmp2 = (struct X3D_Viewpoint *) tmp;
 			tmp2->bindTime = -1;
-			tmp2->centerOfRotation.c[0] = 0.0f;tmp2->centerOfRotation.c[1] = 0.0f;tmp2->centerOfRotation.c[2] = 0.0f;;
+			tmp2->centerOfRotation.c[0] = 0.0f;tmp2->centerOfRotation.c[1] = 0.0f;tmp2->centerOfRotation.c[2] = 0.0f;
 			tmp2->description = newASCIIString("");
 			tmp2->fieldOfView = 0.785398f;
 			tmp2->isBound = FALSE;
 			tmp2->jump = TRUE;
 			tmp2->metadata = NULL;
 			tmp2->orientation.c[0] = 0;tmp2->orientation.c[1] = 0;tmp2->orientation.c[2] = 1;tmp2->orientation.c[3] = 0;;
-			tmp2->position.c[0] = 0.0f;tmp2->position.c[1] = 0.0f;tmp2->position.c[2] = 10.0f;;
+			tmp2->position.c[0] = 0.0f;tmp2->position.c[1] = 0.0f;tmp2->position.c[2] = 10.0f;
 			tmp2->retainUserOffsets = FALSE;
 			tmp2->set_bind = 0;
 			tmp2->_defaultContainer = FIELDNAMES_children;
@@ -9009,13 +9008,13 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_ViewpointGroup * tmp2;
 			tmp2 = (struct X3D_ViewpointGroup *) tmp;
 			tmp2->__proxNode = NULL;
-			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;;
+			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->description = newASCIIString("");
 			tmp2->displayed = TRUE;
 			tmp2->metadata = NULL;
 			tmp2->retainUserOffsets = FALSE;
-			tmp2->size.c[0] = 0.0f;tmp2->size.c[1] = 0.0f;tmp2->size.c[2] = 0.0f;;
+			tmp2->size.c[0] = 0.0f;tmp2->size.c[1] = 0.0f;tmp2->size.c[2] = 0.0f;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -9027,13 +9026,13 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__oldEnabled = TRUE;
 			tmp2->__points.n=0; tmp2->__points.p=0;
 			tmp2->__visible = 0;
-			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;;
+			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;
 			tmp2->enabled = TRUE;
 			tmp2->enterTime = -1;
 			tmp2->exitTime = -1;
 			tmp2->isActive = FALSE;
 			tmp2->metadata = NULL;
-			tmp2->size.c[0] = 0.0f;tmp2->size.c[1] = 0.0f;tmp2->size.c[2] = 0.0f;;
+			tmp2->size.c[0] = 0.0f;tmp2->size.c[1] = 0.0f;tmp2->size.c[2] = 0.0f;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}

@@ -1155,7 +1155,6 @@ sub gen {
 			} else {
 			    $cf = ("VRML::Field::$ft")->cInitialize("tmp2->".$field,$def);
 			}
-
 			push @genFuncs2, "\t\t\t$cf;\n";
 		}
 

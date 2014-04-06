@@ -894,7 +894,7 @@ sub cInitialize {
 
         return  "$field.c[0] = $av0;".
                 "$field.c[1] = $av1;".
-		"$field.c[2] = $av2;";
+		"$field.c[2] = $av2";
 }
 
 
