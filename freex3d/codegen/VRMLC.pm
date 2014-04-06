@@ -491,7 +491,7 @@ sub gen {
 	push @genFuncs1, "\n/* Table of profiles */\n       const char *PROFILES[] = {\n";
 
 	my $profileIntegerType = 0;
-        my @sf = sort keys %ProfileC;
+        @sf = sort keys %ProfileC;
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
 		# tag each node type with a integer key.
@@ -552,7 +552,7 @@ sub gen {
 	push @genFuncs1, "\n/* Table of PROTO keywords */\nconst char *PROTOKEYWORDS[] = {\n";
 
 	$keywordIntegerType = 0;
-	for my $node (@PROTOKeywordC) {
+	for my $node (sort keys %PROTOKeywordC) {
 		push @str, "#define PKW_".$node."	$keywordIntegerType\n";
 		$keywordIntegerType ++;
 		push @genFuncs1, "	\"$node\",\n";

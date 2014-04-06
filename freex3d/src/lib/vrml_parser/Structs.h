@@ -1578,14 +1578,14 @@ const char *stringComponentType(int st);
 /* Table of built-in PROTO keywords */
 extern const char *PROTOKEYWORDS[];
 extern const int PROTOKEYWORDS_COUNT;
-#define PKW_initializeOnly	0
-#define PKW_inputOnly	1
-#define PKW_outputOnly	2
-#define PKW_inputOutput	3
-#define PKW_field	4
-#define PKW_eventIn	5
-#define PKW_eventOut	6
-#define PKW_exposedField	7
+#define PKW_eventIn	0
+#define PKW_eventOut	1
+#define PKW_exposedField	2
+#define PKW_field	3
+#define PKW_initializeOnly	4
+#define PKW_inputOnly	5
+#define PKW_inputOutput	6
+#define PKW_outputOnly	7
 
 const char *stringPROTOKeywordType(int st);
 

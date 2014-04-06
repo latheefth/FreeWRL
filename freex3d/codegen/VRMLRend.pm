@@ -880,25 +880,15 @@ our %GEOSpatialKeywordC = map {($_=>1)} qw/
 #
 #
 
-#%PROTOKeywordC = map {($_=>1)} qw/
-#	exposedField
-#	field
-#	eventIn
-#	eventOut
-#	inputOnly
-#	outputOnly
-#	inputOutput
-#	initializeOnly
-
-our @PROTOKeywordC = qw/
-	initializeOnly
-	inputOnly
-	outputOnly
-	inputOutput
+our %PROTOKeywordC = map {($_=>1)} qw/
+	exposedField
 	field
 	eventIn
 	eventOut
-	exposedField
+	inputOnly
+	outputOnly
+	inputOutput
+	initializeOnly
 /;
 
 #######################################################################
