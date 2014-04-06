@@ -1320,6 +1320,128 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 }
 #ifdef LINESENSOR
 void do_LineSensor(void *ptr, int ev, int but1, int over) {
+	struct X3D_LineSensor *node;
+	float mult, nx, ny, scale;
+	struct SFColor tr;
+	int tmp;
+	ttglobal tg;
+	UNUSED(over);
+	node = (struct X3D_LineSensor *)ptr;
+#ifdef SENSVERBOSE
+	printf("%lf: TS ", TickTime());
+	if (ev == ButtonPress) printf("ButtonPress ");
+	else if (ev == ButtonRelease) printf("ButtonRelease ");
+	else if (ev == KeyPress) printf("KeyPress ");
+	else if (ev == KeyRelease) printf("KeyRelease ");
+	else if (ev == MotionNotify) printf("%lf MotionNotify ");
+	else printf("ev %d ", ev);
+
+	if (but1) printf("but1 TRUE "); else printf("but1 FALSE ");
+	if (over) printf("over TRUE "); else printf("over FALSE ");
+	printf("\n");
+#endif
+
+	/* if not enabled, do nothing */
+	if (!node) return;
+
+	if (node->__oldEnabled != node->enabled) {
+		node->__oldEnabled = node->enabled;
+		MARK_EVENT(X3D_NODE(node), offsetof(struct X3D_LineSensor, enabled));
+	}
+	if (!node->enabled) return;
+	tg = gglobal();
+
+	/* only do something when button pressed */
+	/* if (!but1) return; */
+
+	if ((ev == ButtonPress) && but1) {
+		/* record the current position from the saved position */
+		memcpy((void *)&node->_origPoint,
+			(void *)&tg->RenderFuncs.ray_save_posn, sizeof(struct SFColor));
+
+		/* set isActive true */
+		node->isActive = TRUE;
+		MARK_EVENT(ptr, offsetof(struct X3D_LineSensor, isActive));
+
+	}
+	else if ((ev == MotionNotify) && (node->isActive) && but1) {
+		/* hyperhit saved in render_hypersensitive phase */
+		mult = (node->_origPoint.c[2] - tg->RenderFuncs.hyp_save_posn.c[2]) /
+			(tg->RenderFuncs.hyp_save_norm.c[2] - tg->RenderFuncs.hyp_save_posn.c[2]);
+		nx = tg->RenderFuncs.hyp_save_posn.c[0] + mult * (tg->RenderFuncs.hyp_save_norm.c[0] - tg->RenderFuncs.hyp_save_posn.c[0]);
+		ny = tg->RenderFuncs.hyp_save_posn.c[1] + mult * (tg->RenderFuncs.hyp_save_norm.c[1] - tg->RenderFuncs.hyp_save_posn.c[1]);
+
+#ifdef SEVERBOSE
+		printf("now, mult %f nx %f ny %f op %f %f %f\n", mult, nx, ny,
+			node->_origPoint.c[0], node->_origPoint.c[1],
+			node->_origPoint.c[2]);
+#endif
+
+		/* trackpoint changed */
+		node->_oldtrackPoint.c[0] = nx;
+		node->_oldtrackPoint.c[1] = ny;
+		node->_oldtrackPoint.c[2] = node->_origPoint.c[2];
+		/*printf(">%f %f %f\n",nx,ny,node->_oldtrackPoint.c[2]); */
+		if ((APPROX(node->_oldtrackPoint.c[0], node->trackPoint_changed.c[0]) != TRUE) ||
+			(APPROX(node->_oldtrackPoint.c[1], node->trackPoint_changed.c[1]) != TRUE) ||
+			(APPROX(node->_oldtrackPoint.c[2], node->trackPoint_changed.c[2]) != TRUE)) {
+
+			memcpy((void *)&node->trackPoint_changed, (void *)&node->_oldtrackPoint, sizeof(struct SFColor));
+			MARK_EVENT(ptr, offsetof(struct X3D_LineSensor, trackPoint_changed));
+
+		}
+
+		/*apr6,2014 transform node-aligned (local) xyz drag to sensor coordinate system*/
+		//direction *= dot(direction,drag)
+		scale = node->direction.c[0] * nx + node->direction.c[1] * ny + node->direction.c[1] * node->_origPoint.c[2];
+		tr.c[0] = scale*node->direction.c[0];
+		tr.c[1] = scale*node->direction.c[1];
+		tr.c[2] = scale*node->direction.c[2];
+
+
+		/* clamp translation to max/min position */
+		tr.c[0] = nx - node->_origPoint.c[0] + node->offset.c[0];
+		tr.c[1] = ny - node->_origPoint.c[1] + node->offset.c[1];
+		tr.c[2] = node->offset.c[2];
+
+		tmp = 0;
+		if (node->maxPosition >= node->minPosition) {
+			if (tr.c[tmp] < node->minPosition) {
+				tr.c[tmp] = node->minPosition;
+			}
+			else if (tr.c[tmp] > node->maxPosition) {
+				tr.c[tmp] = node->maxPosition;
+			}
+		}
+
+		node->_oldtranslation.c[0] = tr.c[0];
+		node->_oldtranslation.c[1] = tr.c[1];
+		node->_oldtranslation.c[2] = tr.c[2];
+
+		if ((APPROX(node->_oldtranslation.c[0], node->translation_changed.c[0]) != TRUE) ||
+			(APPROX(node->_oldtranslation.c[1], node->translation_changed.c[1]) != TRUE) ||
+			(APPROX(node->_oldtranslation.c[2], node->translation_changed.c[2]) != TRUE)) {
+
+			memcpy((void *)&node->translation_changed, (void *)&node->_oldtranslation, sizeof(struct SFColor));
+			MARK_EVENT(ptr, offsetof(struct X3D_LineSensor, translation_changed));
+		}
+
+	}
+	else if (ev == ButtonRelease) {
+		/* set isActive false */
+		node->isActive = FALSE;
+		MARK_EVENT(ptr, offsetof(struct X3D_LineSensor, isActive));
+
+		/* autoOffset? */
+		if (node->autoOffset) {
+			node->offset.c[0] = node->translation_changed.c[0];
+			node->offset.c[1] = node->translation_changed.c[1];
+			node->offset.c[2] = node->translation_changed.c[2];
+
+			MARK_EVENT(ptr, offsetof(struct X3D_LineSensor, offset));
+		}
+	}
+
 }
 #endif
 /* void do_PlaneSensor (struct X3D_PlaneSensor *node, int ev, int over) {*/
@@ -1331,7 +1453,7 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 	ttglobal tg;
 	UNUSED(over);
 	node = (struct X3D_PlaneSensor *)ptr;
-	#ifdef SENSVERBOSE
+	//#ifdef SENSVERBOSE
 	printf ("%lf: TS ",TickTime());
 	if (ev==ButtonPress) printf ("ButtonPress ");
 	else if (ev==ButtonRelease) printf ("ButtonRelease ");
@@ -1343,7 +1465,7 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 	if (but1) printf ("but1 TRUE "); else printf ("but1 FALSE ");
 	if (over) printf ("over TRUE "); else printf ("over FALSE ");
 	printf ("\n");
-	#endif
+	//#endif
 
 	/* if not enabled, do nothing */
 	if (!node) return;
