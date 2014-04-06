@@ -4,8 +4,6 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id$
-#
 # Name:        VRMLRend.c
 # Description:
 #              Fills Hash Variables with "C" Code. They are used by VRMLC.pm
@@ -16,359 +14,11 @@
 #              Others are "C-#defines".
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
-# $Log$
-# Revision 1.55  2013/08/08 16:33:06  crc_canada
-# more User Defined Shader changes
-#
-# Revision 1.54  2013/07/15 21:07:47  crc_canada
-# Component_CAD, initial Component_NURBS rework.
-#
-# Revision 1.53  2013/07/15 10:43:56  crc_canada
-# CADPart outline in place.
-#
-# Revision 1.52  2013/07/15 02:37:11  crc_canada
-# initial layering of Component_CAD grouping nodes.
-#
-# Revision 1.51  2013/07/10 13:48:56  crc_canada
-# more Component_CAD work.
-#
-# Revision 1.50  2013/07/09 23:25:45  crc_canada
-# CAD profile definitions.
-#
-# Revision 1.49  2013/07/09 23:21:46  crc_canada
-# Initial definitions for QuadSet and IndexedQuadSet
-#
-# Revision 1.48  2013/04/01 13:36:55  crc_canada
-# remove VRML1 code; it was commented out, and I don't think we are going
-# to ever move the old vrml1 code to shader based rendering
-#
-# Revision 1.47  2013/02/11 21:43:45  dug9
-# dug9 - BROTOs Phase I, Rev1
-#
-# Revision 1.46  2012/10/25 15:02:30  crc_canada
-# Shader code DirectionalLight incorrect. Fixed. SpotLight and PointLight
-# are next on the list.
-#
-# Revision 1.45  2012/09/19 13:41:00  crc_canada
-# comment out VRML1 support, as it is not working with the shader based
-# rendering currently in use. In the C files, look for DO_VRML1, in the
-# perl generator files, look for the #OLDCODE directive, and note that
-# some strings must be put in the associated structure - comments in
-# code hopefully make it apparent.
-#
-# Revision 1.44  2012/09/17 16:11:02  crc_canada
-# ImageCubeMap compile now working. Have not tried a DDS file yet, but the "cross" 4:3 maps appear to render
-# without errors or warnings. Hopefully the math is ok; will verify as the week progresses.
-#
-# Revision 1.43  2012/09/07 19:30:52  crc_canada
-# TextureCoordinateGenerator - works for type "SPHERE" now; other types should
-# be soon and easy.
-#
-# Revision 1.42  2012/07/10 18:40:26  crc_canada
-# changing TextureCoordinate handling for shaders; remove "precision" for non-GLES shaders.
-#
-# Revision 1.41  2012/04/26 16:36:23  crc_canada
-# Android changes - preparing for MultiTexturing
-#
-# Revision 1.40  2011/06/04 19:05:42  crc_canada
-# comment out MIDI code
-#
-# Revision 1.39  2011/05/14 23:00:00  dug9
-# dug9 - touch up to get a proximity_GeoProximitySensor virtual table function
-#
-# Revision 1.38  2010/12/21 20:10:33  crc_canada
-# some code changes for Geometry Shaders.
-#
-# Revision 1.37  2010/12/10 17:17:19  davejoubert
-# Add OSC capability to FreeWRL. This update is spread across several files,
-# but the two post important changed are in codegen/VRMLNodes.pm and
-# src/lib/scenegraph/Component_Networking.c
-# Modified Files:
-# 	configure.ac codegen/VRMLC.pm codegen/VRMLNodes.pm
-# 	codegen/VRMLRend.pm src/lib/Makefile.am
-# 	src/lib/Makefile.sources src/lib/main/MainLoop.c
-# 	src/lib/main/MainLoop.h
-# 	src/lib/scenegraph/Component_Networking.c
-# 	src/lib/scenegraph/Component_Networking.h
-# 	src/lib/scenegraph/GeneratedCode.c
-# 	src/lib/vrml_parser/NodeFields.h src/lib/vrml_parser/Structs.h
-# 	src/lib/world_script/jsUtils.c src/libeai/GeneratedCode.c
-# Added Files:
-# 	src/lib/scenegraph/OSCcallbacks.c src/lib/scenegraph/ringbuf.c
-# 	src/lib/scenegraph/ringbuf.h
-#
-# Revision 1.36  2010/10/12 00:34:12  dug9
-# dug9 - codegeneration - added *other() virtual function, and assigned pointpicksensor, pickablegroup and sphere to implement it, put stubs for these other() functions for those that don't implement it.
-#
-# Revision 1.35  2010/10/02 06:42:25  davejoubert
-# Pickables. Scan for DJTRACK_PICKSENSORS
-# Modified Files:
-#  	codegen/VRMLC.pm codegen/VRMLNodes.pm codegen/VRMLRend.pm
-#  	src/lib/main/MainLoop.c src/lib/main/headers.h
-#  	src/lib/scenegraph/Component_Geometry3D.c
-#  	src/lib/scenegraph/Component_Grouping.c
-#  	src/lib/scenegraph/Component_Shape.c
-#  	src/lib/scenegraph/GeneratedCode.c
-#  	src/lib/vrml_parser/CRoutes.c
-#
-# Revision 1.34  2010/09/30 16:21:53  crc_canada
-# only sort children if required.
-#
-# Revision 1.33  2010/09/16 18:32:58  crc_canada
-# finish removing of "changed_" routines.
-#
-# Revision 1.32  2010/09/16 15:48:42  crc_canada
-# deprecating the "changed_" functions. This does not work well with threading scene graph
-#
-# Revision 1.31  2010/08/10 21:15:59  crc_canada
-# ImageCubeMapTexture - now works - loads png, jpg, etc, NOT DDS yet.
-#
-# Revision 1.30  2010/07/29 14:32:27  crc_canada
-# OrthoViewpoint and ViewpointGroup now working
-#
-# Revision 1.29  2010/07/28 00:14:52  crc_canada
-# initial OrthoViewpoint code in place. Not activated; just compile framework.
-#
-# Revision 1.28  2010/06/29 22:13:36  davejoubert
-# Implement PickableGroup
-# Modified Files:
-# 	codegen/VRMLC.pm codegen/VRMLNodes.pm codegen/VRMLRend.pm
-# 	src/lib/internal.h src/lib/input/SensInterps.h
-# 	src/lib/scenegraph/Component_Grouping.c
-# 	src/lib/scenegraph/GeneratedCode.c
-# 	src/lib/vrml_parser/NodeFields.h src/lib/vrml_parser/Structs.h
-# 	src/lib/world_script/fieldSet.c src/libeai/GeneratedCode.c
-#
-# Revision 1.27  2010/03/26 18:16:29  crc_canada
-# DIS headers put in VRMLNodes.pm
-#
-# Revision 1.26  2009/12/28 15:57:46  crc_canada
-# TextureProperties node now active.
-#
-# Revision 1.25  2009/11/06 22:29:42  crc_canada
-# Shader Routing, and Metadata MARK_EVENT working.
-#
-# Revision 1.24  2009/10/21 19:18:30  crc_canada
-# Working on XML parsing and Material rendering. compile_TwoSidedMaterials added; XML parsing modified to clean up memory; and to better handle PROTO expansions. Still have a bit more work to do on SF/MFNode Proto/Script fields.
-#
-# Revision 1.23  2009/10/02 21:34:52  crc_canada
-# start gathering appearance properties together for eventual movement to OpenGL-ES and OpenGL-3.0
-#
-# Revision 1.22  2009/09/18 20:20:29  crc_canada
-# Starting ExternProtoDeclare for XML parsing.
-#
-# Revision 1.21  2009/08/27 18:34:32  crc_canada
-# More XML coded PROTO routing.
-#
-# Revision 1.20  2009/07/24 18:09:19  crc_canada
-# Geometry2D extent calculations now performed for all 2D shapes.
-#
-# Revision 1.19  2009/07/14 15:36:01  uid31638
-# More Geospatial code changes; GeoLOD in particular has been worked on.
-#
-# Revision 1.18  2009/07/02 15:45:36  crc_canada
-# setExtent for PointSet, LineSet and IndexedLineSet
-#
-# Revision 1.17  2009/06/26 14:54:15  crc_canada
-# GeoElevationGrid - no longer has ElevationGrid sub child, and triangle winding
-#
-# Revision 1.16  2009/06/22 19:40:41  crc_canada
-# more VRML1 work.
-#
-# Revision 1.15  2009/06/19 16:21:44  crc_canada
-# VRML1 work.
-#
-# Revision 1.14  2009/06/18 20:27:02  crc_canada
-# VRML1 code.
-#
-# Revision 1.13  2009/06/17 21:11:00  crc_canada
-# more VRML1 code.
-#
-# Revision 1.12  2009/06/17 18:50:42  crc_canada
-# More VRML1 code entered.
-#
-# Revision 1.11  2009/06/17 15:05:24  crc_canada
-# VRML1 nodes added to build process.
-#
-# Revision 1.10  2009/06/05 20:29:32  crc_canada
-# verifying fields of nodes against spec.
-#
-# Revision 1.9  2009/05/22 16:18:40  crc_canada
-# more XML formatted code script/shader programming.
-#
-# Revision 1.8  2009/05/21 20:30:08  crc_canada
-# XML parser - scripts and shaders now using common routing and maintenance routines.
-#
-# Revision 1.7  2009/05/12 19:53:14  crc_canada
-# Confirm current support levels, and verify that Components and Profiles are checked properly.
-#
-# Revision 1.6  2009/05/11 21:11:58  crc_canada
-# local/global lighting rules applied to SpotLight, DirectionalLight and PointLight.
-#
-# Revision 1.5  2009/04/02 18:48:28  crc_canada
-# PROTO Routing for MFNodes.
-#
-# Revision 1.4  2009/03/10 21:00:34  crc_canada
-# checking in some ongoing PROTO support work in the Classic parser.
-#
-# Revision 1.3  2009/03/09 21:32:30  crc_canada
-# initial handling of new PROTO parameter methodology
-#
-# Revision 1.2  2009/03/06 18:50:31  istakenv
-# fixed metadata variable names
-#
-# Revision 1.1  2009/03/05 21:33:39  istakenv
-# Added code-generator perl scripts to new freewrl tree.  Initial commit, still need to patch them to make them work.
-#
-# Revision 1.232  2009/03/03 16:59:14  crc_canada
-# Metadata fields now verified to be in every X3D node.
-#
-# Revision 1.231  2009/01/29 16:01:21  crc_canada
-# more node definitions.
-#
-# Revision 1.230  2008/10/29 21:07:05  crc_canada
-# Work on fillProperties and TwoSidedMaterial.
-#
-# Revision 1.229  2008/10/29 18:32:07  crc_canada
-# Add code to confirm Profiles and Components.
-#
-# Revision 1.228  2008/10/23 19:18:53  crc_canada
-# CubeMap texturing - start.
-#
-# Revision 1.227  2008/10/02 15:38:42  crc_canada
-# Shader support started; Geospatial eventOut verification.
-#
-# Revision 1.226  2008/09/24 19:23:01  crc_canada
-# GeoTouchSensor work.
-#
-# Revision 1.225  2008/09/23 16:45:02  crc_canada
-# initial GeoTransform code added.
-#
-# Revision 1.224  2008/09/22 16:06:48  crc_canada
-# all fieldtypes now defined in freewrl code; some not parsed yet, though, as there are no supported
-# nodes that use them.
-#
-# Revision 1.223  2008/09/05 17:46:49  crc_canada
-# reduce warnings counts when compiled with warnings=all
-#
-# Revision 1.222  2008/08/18 14:45:38  crc_canada
-# Billboard node Scene Graph changes.
-#
-# Revision 1.221  2008/08/14 05:02:32  crc_canada
-# Bindable threading issues, continued; EXAMINE mode default rotation distance, continued; LOD improvements.
-#
-# Revision 1.220  2008/08/04 19:14:36  crc_canada
-# August 4 GeoLOD  changes
-#
-# Revision 1.219  2008/07/30 18:08:34  crc_canada
-# GeoLOD, July 30 changes.
-#
-# Revision 1.218  2008/06/17 19:00:27  crc_canada
-# Geospatial work - June 17 2008
-#
-# Revision 1.217  2008/06/13 13:50:49  crc_canada
-# Geospatial, SF/MFVec3d support.
-#
-# Revision 1.216  2008/05/07 15:22:41  crc_canada
-# input function modified to better handle files without clear end of line on last line.
-#
-# Revision 1.215  2008/03/31 20:10:17  crc_canada
-# Review texture transparency, use node table to update scenegraph to allow for
-# node updating.
-#
-# Revision 1.214  2007/12/13 20:12:52  crc_canada
-# KeySensor and StringSensor
-#
-# Revision 1.213  2007/12/12 23:24:58  crc_canada
-# X3DParser work
-#
-# Revision 1.212  2007/12/10 19:13:53  crc_canada
-# Add parsing for x3dv COMPONENT, EXPORT, IMPORT, META, PROFILE
-#
-# Revision 1.211  2007/12/08 13:38:17  crc_canada
-# first changes for x3dv handling of META, COMPONENT, etc. taga.
-#
-# Revision 1.210  2007/12/06 21:50:57  crc_canada
-# Javascript X3D initializers
-#
-# Revision 1.209  2007/11/06 20:25:28  crc_canada
-# Lighting revisited - pointlights and spotlights should all now work ok
-#
-# Revision 1.208  2007/08/23 14:01:22  crc_canada
-# Initial AudioControl work
-#
-# Revision 1.207  2007/03/12 20:54:00  crc_canada
-# MidiKey started.
-#
-# Revision 1.206  2007/02/28 20:34:50  crc_canada
-# More MIDI work - channelPresent works!
-#
-# Revision 1.205  2007/01/17 21:29:28  crc_canada
-# more X3D XML parsing work.
-#
-# Revision 1.204  2007/01/12 17:55:27  crc_canada
-# more 1.18.11 changes
-#
-# Revision 1.203  2007/01/11 21:09:21  crc_canada
-# new files for X3D parsing
-#
-# Revision 1.201  2006/11/14 20:16:39  crc_canada
-# ReWire work.
-#
-# Revision 1.200  2006/07/10 14:24:11  crc_canada
-# add keywords for PROTO interface fields.
-#
-# Revision 1.199  2006/05/31 14:52:28  crc_canada
-# more changes to code for SAI.
-#
-# Revision 1.198  2006/05/23 16:15:10  crc_canada
-# remove print statements, add more defines for a VRML C parser.
-#
-# Revision 1.197  2006/05/15 14:05:59  crc_canada
-# Various fixes; CVS was down for a week. Multithreading for shape compile
-# is the main one.
-#
-# Revision 1.196  2006/03/01 15:16:57  crc_canada
-# Changed include file methodology and some Frustum work.
-#
-# Revision 1.195  2006/02/28 16:19:42  crc_canada
-# BoundingBox
-#
-# Revision 1.194  2006/01/06 22:05:15  crc_canada
-# VisibilitySensor
-#
-# Revision 1.193  2006/01/03 23:01:22  crc_canada
-# EXTERNPROTO and Group sorting bugs fixed.
-#
-# Revision 1.192  2005/12/21 18:16:40  crc_canada
-# Rework Generation code.
-#
-# Revision 1.191  2005/12/19 21:25:08  crc_canada
-# HAnim start
-#
-# Revision 1.190  2005/12/16 18:07:11  crc_canada
-# rearrange perl generation
-#
-# Revision 1.189  2005/12/16 13:49:23  crc_canada
-# updating generation functions.
-#
-# Revision 1.188  2005/12/15 20:42:01  crc_canada
-# CoordinateInterpolator2D PositionInterpolator2D
-#
-# Revision 1.187  2005/12/15 19:57:58  crc_canada
-# Geometry2D nodes complete.
-#
-# Revision 1.186  2005/12/14 13:51:32  crc_canada
-# More Geometry2D nodes.
-#
-# Revision 1.185  2005/12/13 17:00:29  crc_canada
-# Arc2D work.
-#.....
 
 # DJTRACK_PICKSENSORS See PointPickSensor
 # See WANT_OSC
 # used for the X3D Parser only. Return type of node.
-%defaultContainerType = (
+our %defaultContainerType = (
 	Proto			=>children,
 
 	ContourPolyLine2D	=>children,
@@ -405,7 +55,7 @@
 	CADAssembly		=>children,
 	CADPart			=>children,
 
-	
+
 	Anchor 			=>children,
 	Appearance 		=>appearance,
 	AudioClip 		=>source,
@@ -453,7 +103,7 @@
 	HAnimSite		=>sites,
 	ImageTexture 		=>texture,
 	ImageCubeMapTexture 	=>texture,
-	GeneratedCubeMapTexture	=>texture, 
+	GeneratedCubeMapTexture	=>texture,
 	ComposedCubeMapTexture	=>texture,
 	IndexedFaceSet 		=>geometry,
 	IndexedLineSet 		=>geometry,
@@ -536,7 +186,7 @@
 	MetadataFloat		=>metadata,
 	MetadataString		=>metadata,
 
-	
+
 	MetadataSFFloat		=>FreeWRL_PROTOInterfaceNodes,
 	MetadataMFFloat		=>FreeWRL_PROTOInterfaceNodes,
 	MetadataSFRotation	=>FreeWRL_PROTOInterfaceNodes,
@@ -613,51 +263,51 @@
 	Fog
 	Background
 	TextureBackground
-	Box 
-	Cylinder 
-	Cone 
-	Sphere 
-	IndexedFaceSet 
-	Extrusion 
-	ElevationGrid 
-	Arc2D 
-	ArcClose2D 
-	Circle2D 
-	Disk2D 
-	Polyline2D 
-	Polypoint2D 
-	Rectangle2D 
-	TriangleSet2D 
+	Box
+	Cylinder
+	Cone
+	Sphere
+	IndexedFaceSet
+	Extrusion
+	ElevationGrid
+	Arc2D
+	ArcClose2D
+	Circle2D
+	Disk2D
+	Polyline2D
+	Polypoint2D
+	Rectangle2D
+	TriangleSet2D
 	IndexedQuadSet
-	IndexedTriangleFanSet 
-	IndexedTriangleSet 
-	IndexedTriangleStripSet 
-	TriangleFanSet 
-	TriangleStripSet 
-	TriangleSet 
-	LineSet 
-	IndexedLineSet 
-	PointSet 
-	GeoElevationGrid 
-	LoadSensor 
-	Text 
-	LineProperties 
-	FillProperties 
-	Material 
-	TwoSidedMaterial 
+	IndexedTriangleFanSet
+	IndexedTriangleSet
+	IndexedTriangleStripSet
+	TriangleFanSet
+	TriangleStripSet
+	TriangleSet
+	LineSet
+	IndexedLineSet
+	PointSet
+	GeoElevationGrid
+	LoadSensor
+	Text
+	LineProperties
+	FillProperties
+	Material
+	TwoSidedMaterial
 	ProgramShader
 	PackagedShader
 	ComposedShader
-	PixelTexture 
-	ImageTexture 
-	MultiTexture 
-	MovieTexture 
+	PixelTexture
+	ImageTexture
+	MultiTexture
+	MovieTexture
 	ComposedCubeMapTexture
 	GeneratedCubeMapTexture
 	ImageCubeMapTexture
-	Sound 
-	AudioClip 
-	DirectionalLight 
+	Sound
+	AudioClip
+	DirectionalLight
 	SpotLight
 	PointLight
 	HAnimHumanoid
@@ -675,7 +325,7 @@
 #  code for generating internal polygonal representations
 #  of some nodes (ElevationGrid, Text, Extrusion and IndexedFaceSet)
 #
-# 
+#
 
 %GenPolyRepC = map {($_=>1)} qw/
 	ElevationGrid
@@ -824,7 +474,7 @@
 	GeoOrigin
 	GeoPositionInterpolator
 	GeoTouchSensor
-	GeoViewpoint	
+	GeoViewpoint
 	GeoProximitySensor
 	GeoTransform
 	ComposedShader
@@ -872,11 +522,11 @@
 	MetadataSFVec4f
 	MetadataSFVec4d
 	MetadataSet
-	MetadataInteger	
+	MetadataInteger
 	MetadataDouble
 	MetadataFloat
 	MetadataString
-	
+
 	SpotLight
 	PointLight
 	DirectionalLight
@@ -900,9 +550,9 @@
 
 #######################################################################
 #
-# OtherC = following code is run for miscalaneous tasks depending 
+# OtherC = following code is run for miscalaneous tasks depending
 # on what functions you define here and what VF flags you define and
-# check against in render_node() and/or switch on in your Other() 
+# check against in render_node() and/or switch on in your Other()
 #
 
 %OtherC = map {($_=>1)} qw/
@@ -1069,7 +719,7 @@
 # Keywords
 # a listing of keywords for use in the C VRML parser.
 #
-# 
+#
 
 %KeywordC = map {($_=>1)} qw/
 	COMPONENT
@@ -1102,10 +752,10 @@
 
 #######################################################################
 #
-# Components 
+# Components
 # a listing of Components for use in the C VRML parser.
 #
-# 
+#
 
 %ComponentC = map {($_=>1)} qw/
 	CADGeometry
@@ -1147,10 +797,10 @@
 
 #######################################################################
 #
-# Profiles 
+# Profiles
 # a listing of Profiles for use in the C VRML parser.
 #
-# 
+#
 
 %ProfileC = map {($_=>1)} qw/
 	CADInterchange
@@ -1170,7 +820,7 @@
 # GEOSpatialKeywords
 # a listing of Geospatial Elipsoid keywords.
 #
-# 
+#
 
 %GEOSpatialKeywordC = map {($_=>1)} qw/
 	AA
@@ -1228,7 +878,7 @@
 # PROTOKeywords
 # a listing of PROTO define keywords for use in the C VRML parser.
 #
-# 
+#
 
 #%PROTOKeywordC = map {($_=>1)} qw/
 #	exposedField
@@ -1257,7 +907,7 @@
 
 #
 # Texture Boundary Keywords
-# 
+#
 
 %TextureBoundaryC = map {($_=>1)} qw/
 	CLAMP
@@ -1273,7 +923,7 @@
 
 #
 # Texture MAgnifiation Keywords
-# 
+#
 
 %TextureMagnificationC = map {($_=>1)} qw/
 	AVG_PIXEL
@@ -1289,7 +939,7 @@
 
 #
 # Texture Minification Keywords
-# 
+#
 
 %TextureMinificationC = map {($_=>1)} qw/
 	AVG_PIXEL
@@ -1309,7 +959,7 @@
 
 #
 # Texture Compression Keywords
-# 
+#
 
 %TextureCompressionC = map {($_=>1)} qw/
 	DEFAULT
@@ -1375,7 +1025,7 @@
 # X3DSPECIAL Keywords
 # a listing of control keywords for use in the XML parser.
 #
-# 
+#
 
 %X3DSpecialC = map {($_=>1)} qw/
 	Scene

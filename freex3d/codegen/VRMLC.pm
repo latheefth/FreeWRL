@@ -1,4 +1,3 @@
-# $Id$
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -6,528 +5,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 
-#
-# $Log$
-# Revision 1.84  2013/10/29 16:59:41  crc_canada
-# more linux compiler warning changes
-#
-# Revision 1.83  2013/10/23 21:19:04  crc_canada
-# trying to remove compiler warnings on Linux; should be ok for other platforms
-#
-# Revision 1.82  2013/08/17 19:57:43  dug9
-# dug9 - touch ups for win32 pthreads struct initialization
-#
-# Revision 1.81  2013/08/16 15:43:48  crc_canada
-# more user definable shader component work. It should be complete, or close
-# to.
-#
-# Revision 1.80  2013/07/15 21:07:47  crc_canada
-# Component_CAD, initial Component_NURBS rework.
-#
-# Revision 1.79  2013/07/15 10:43:56  crc_canada
-# CADPart outline in place.
-#
-# Revision 1.78  2013/07/15 02:37:11  crc_canada
-# initial layering of Component_CAD grouping nodes.
-#
-# Revision 1.77  2013/07/10 18:38:22  crc_canada
-# QuadSet work
-#
-# Revision 1.75  2013/04/28 12:27:57  crc_canada
-# changes for adding ability to directly manipulate Material parameters from a dedicated UI.
-#
-# Revision 1.74  2013/04/14 20:39:26  dug9
-# dug9 - added executionContext pointer to node struct (but not used yet) seems to compile and run normally on tests.
-#
-# Revision 1.74 2013/04/14 dug9
-# added executionContext to node to test if everything still builds and runs
-# in anticipation of doing something to allow getNodeByName('name') separate
-# DEFname table for each executionContext={scene | protoInstanceBody}
-#
-# Revision 1.73  2013/04/01 13:36:55  crc_canada
-# remove VRML1 code; it was commented out, and I don't think we are going
-# to ever move the old vrml1 code to shader based rendering
-#
-# Revision 1.72  2013/03/21 15:57:04  crc_canada
-# FillProperties - filled FALSE sends a transparency update up the scene graph;
-# phongShading - uses OpenGL Fragment Shader "discard" operation if required;
-# Android - more accessor functions defined;
-# FillProperties hatchColour now sent in as a vec4, not a vec3 (vec3 not supported everywhere)
-#
-# Revision 1.71  2013/02/11 21:43:45  dug9
-# dug9 - BROTOs Phase I, Rev1
-#
-# Revision 1.70  2012/12/11 15:40:48  crc_canada
-# more casting macros
-#
-# Revision 1.69  2012/09/19 13:41:00  crc_canada
-# comment out VRML1 support, as it is not working with the shader based
-# rendering currently in use. In the C files, look for DO_VRML1, in the
-# perl generator files, look for the #OLDCODE directive, and note that
-# some strings must be put in the associated structure - comments in
-# code hopefully make it apparent.
-#
-# Revision 1.68  2012/09/07 19:30:52  crc_canada
-# TextureCoordinateGenerator - works for type "SPHERE" now; other types should
-# be soon and easy.
-#
-# Revision 1.67  2012/07/10 13:14:57  crc_canada
-# remove alloc_tri field from struct X3D_PolyRep
-#
-# Revision 1.66  2012/05/31 19:06:42  crc_canada
-# gcc on OSX issue - vector_size is in gcc; our code changed internal
-# vector_size to vectorSize in all files.
-#
-# Revision 1.65  2012/04/26 16:36:23  crc_canada
-# Android changes - preparing for MultiTexturing
-#
-# Revision 1.64  2011/10/27 18:51:32  crc_canada
-# bind_node, binding changed a bit; Inlines with Viewpoints were having bind_node called on them;
-# OpenGL Scnengraph with setBindPtr was a uintprt_t*, should have been an int*...
-#
-# Revision 1.63  2011/10/11 17:53:58  crc_canada
-# move the scenegraph Node parent structure to the Vector methodology.
-#
-# Revision 1.62  2011/06/11 01:14:25  couannette
-# A mistake that prevented VRMLC.pm to generate file when it didn't exist.
-#
-# Revision 1.61  2011/06/04 19:05:42  crc_canada
-# comment out MIDI code
-#
-# Revision 1.60  2011/03/23 18:26:02  crc_canada
-# PolyReps now use GLuints for indicies; some compiler warnings removed
-#
-# Revision 1.59  2010/12/10 17:17:19  davejoubert
-# Add OSC capability to FreeWRL. This update is spread across several files,
-# but the two post important changed are in codegen/VRMLNodes.pm and
-# src/lib/scenegraph/Component_Networking.c
-# Modified Files:
-# 	configure.ac codegen/VRMLC.pm codegen/VRMLNodes.pm
-# 	codegen/VRMLRend.pm src/lib/Makefile.am
-# 	src/lib/Makefile.sources src/lib/main/MainLoop.c
-# 	src/lib/main/MainLoop.h
-# 	src/lib/scenegraph/Component_Networking.c
-# 	src/lib/scenegraph/Component_Networking.h
-# 	src/lib/scenegraph/GeneratedCode.c
-# 	src/lib/vrml_parser/NodeFields.h src/lib/vrml_parser/Structs.h
-# 	src/lib/world_script/jsUtils.c src/libeai/GeneratedCode.c
-# Added Files:
-# 	src/lib/scenegraph/OSCcallbacks.c src/lib/scenegraph/ringbuf.c
-# 	src/lib/scenegraph/ringbuf.h
-#
-# Revision 1.58  2010/12/07 18:27:49  crc_canada
-# MALLOC changes;
-# some hidden fields now have real types, not FreeWRLPTR;
-# SFVec3f data type made.
-#
-# Revision 1.57  2010/12/03 19:55:21  crc_canada
-# changing from "void *" to more specific types.
-#
-# Revision 1.56  2010/10/13 19:23:47  crc_canada
-# X3D_Virt functions; make a table rather than keeping a list of pointers in EACH scenegraph node.
-#
-# Revision 1.55  2010/10/12 20:01:54  istakenv
-# Fixed implicit declaration of add_picksensor in GeneratedCode.c
-#
-# Revision 1.55
-# istakenv - codegeneration - added scenegraph/Component_Picking.h to GeneratedCode.c so that 'add_picksensor()' is not defined implicitly
-#
-# Revision 1.54  2010/10/12 00:34:12  dug9
-# dug9 - codegeneration - added *other() virtual function, and assigned pointpicksensor, pickablegroup and sphere to implement it, put stubs for these other() functions for those that don't implement it.
-#
-# Revision 1.53  2010/10/11 20:47:55  dug9
-# dug9 for Component_picking added X3D_POINTPICKSENSOR() macro to Structs.h
-#
-# Revision 1.52  2010/10/02 14:45:45  dug9
-# dug9 touchups to get msvc to compile
-#
-# Revision 1.51  2010/10/02 06:42:25  davejoubert
-# Pickables. Scan for DJTRACK_PICKSENSORS
-# Modified Files:
-#  	codegen/VRMLC.pm codegen/VRMLNodes.pm codegen/VRMLRend.pm
-#  	src/lib/main/MainLoop.c src/lib/main/headers.h
-#  	src/lib/scenegraph/Component_Geometry3D.c
-#  	src/lib/scenegraph/Component_Grouping.c
-#  	src/lib/scenegraph/Component_Shape.c
-#  	src/lib/scenegraph/GeneratedCode.c
-#  	src/lib/vrml_parser/CRoutes.c
-#
-# Revision 1.49  2010/09/30 18:58:19  davejoubert
-# Changes to make dump_scene function in GeneratedCode.c
-# accessible to the outside world via the EAI.
-# Modified Files:
-#  	codegen/VRMLC.pm src/lib/input/EAIEventsIn.c
-#  	src/lib/input/EAIHeaders.h src/lib/main/MainLoop.c
-#  	src/lib/main/ProdCon.c
-#  	src/lib/scenegraph/Component_Navigation.c
-#  	src/lib/scenegraph/GeneratedCode.c
-#  	src/lib/vrml_parser/NodeFields.h src/lib/vrml_parser/Structs.h
-#  	src/libeai/GeneratedCode.c
-#
-# Revision 1.49  2010/10/29 18:39:00  davejoubert
-# Made dump_scene filedescriptor friendly
-# This allows it to be called from the EAI via a new DUMPSCENE verb
-#
-# Revision 1.48  2010/09/16 18:32:58  crc_canada
-# finish removing of "changed_" routines.
-#
-# Revision 1.47  2010/08/31 15:45:34  crc_canada
-# 1) sortChildren - copy children to internal children field ONLY when required to reduce sorting.
-# 2) rootNode now an X3D_Group, not a void *
-#
-# Revision 1.46  2010/08/19 02:05:37  crc_canada
-# Work making Anchor load new files, including loading correct viewpoints.
-#
-# Revision 1.45  2010/08/10 21:15:59  crc_canada
-# ImageCubeMapTexture - now works - loads png, jpg, etc, NOT DDS yet.
-#
-# Revision 1.44  2010/07/05 15:07:08  crc_canada
-# add code to ensure that bound Backgrounds, Fog gets rendered when OcclusionCulling enabled, and nodes are within Transforms.
-#
-# Revision 1.43  2010/06/29 22:13:36  davejoubert
-# Implement PickableGroup
-# Modified Files:
-# 	codegen/VRMLC.pm codegen/VRMLNodes.pm codegen/VRMLRend.pm
-# 	src/lib/internal.h src/lib/input/SensInterps.h
-# 	src/lib/scenegraph/Component_Grouping.c
-# 	src/lib/scenegraph/GeneratedCode.c
-# 	src/lib/vrml_parser/NodeFields.h src/lib/vrml_parser/Structs.h
-# 	src/lib/world_script/fieldSet.c src/libeai/GeneratedCode.c
-#
-# Revision 1.42  2010/06/29 16:59:44  crc_canada
-# Initial VBO work.
-#
-# Revision 1.41  2010/04/14 19:03:32  crc_canada
-# backing out OpenGL-ES 2.0 changes.
-#
-# Revision 1.40  2010/04/03 20:11:05  crc_canada
-# More shader work for OpenGL-ES shaders.
-#
-# Revision 1.39  2010/03/10 21:29:52  sdumoulin
-# More IPHONE compile updates
-#
-# Revision 1.38  2010/03/01 22:39:48  crc_canada
-# more 64 bit changes - note that all "integer" data is now ints, not a combo of size_t, unsigned int, etc, just INT.
-#
-# Revision 1.37  2010/02/26 21:47:50  crc_canada
-# 64 bit conversion changes.
-#
-# Revision 1.36  2010/02/17 14:31:08  crc_canada
-# More 64/32 bit compile changes. Major one - getInputResource fixed.
-#
-# Revision 1.35  2010/02/16 21:21:47  crc_canada
-# more changes for 64 bit computing warning errors.
-#
-# Revision 1.34  2010/02/16 13:54:45  crc_canada
-# more 64 bit compiler warnings removal. Mainly items that will be of no operational
-# impact for FreeWRL.
-#
-# Revision 1.33  2009/12/28 15:57:46  crc_canada
-# TextureProperties node now active.
-#
-# Revision 1.32  2009/12/18 17:30:07  istakenv
-# fixed implicit declarations
-#
-# Revision 1.31  2009/12/09 22:19:11  crc_canada
-# Anchor - load URLs, add reference count for nodes, start worrying about disposing of nodes
-#
-# Revision 1.30  2009/11/18 08:47:09  couannette
-# Fix dump_scene generation. Activated with FW_DEBUG.
-#
-# Revision 1.29  2009/11/17 20:49:27  crc_canada
-# Change code to determine routing length
-#
-# Revision 1.28  2009/10/26 09:07:07  couannette
-# Fix a bizarre include of EAI_C.h
-#
-# Revision 1.27  2009/10/26 08:03:34  couannette
-# First set of modifications (configure build, main program).
-#
-# Revision 1.26  2009/10/22 20:47:51  sdumoulin
-# Fix for adding EAI_C.h
-#
-# Revision 1.25  2009/10/12 12:57:06  couannette
-# Small improvements:
-# - created a sub for the license block, together with a file in "templates"
-# - checked for read-only files, used 'cvs edit' to make them writable
-#
-# Revision 1.24  2009/10/05 15:07:23  crc_canada
-# changed license text in files to better indicate LGPL
-#
-# Revision 1.23  2009/10/01 19:35:36  crc_canada
-# License update to LGPL in all FreeWRL specific files.
-#
-# Revision 1.22  2009/09/16 22:48:24  couannette
-# Changed EAIheaders.h to EAIHeaders.h. And removed that include each time it was not required.
-# To enable (not working) MB textures, compile with -DTEXTURES_MB.
-#
-# Revision 1.21  2009/08/25 19:53:28  crc_canada
-# more XML PROTO parsing/routing. Still needs routing to/from PROTOS.
-#
-# Revision 1.20  2009/08/12 17:22:54  crc_canada
-# Moving defines out of headers.h and into perl-generated code.
-#
-# Revision 1.19  2009/07/22 14:36:19  crc_canada
-# make shadow copy of children fields in nodes that need to sort nodes; this keeps the node list in original order entry.
-#
-# Revision 1.18  2009/06/26 16:44:34  crc_canada
-# put text in libFreeWRLEAI header files to indicate that they are part of the FreeWRL project.
-#
-# Revision 1.17  2009/06/22 19:40:41  crc_canada
-# more VRML1 work.
-#
-# Revision 1.16  2009/06/19 16:21:44  crc_canada
-# VRML1 work.
-#
-# Revision 1.15  2009/06/17 15:05:24  crc_canada
-# VRML1 nodes added to build process.
-#
-# Revision 1.14  2009/06/12 20:13:00  crc_canada
-# Verifying Triangle nodes.
-#
-# Revision 1.13  2009/05/13 20:30:49  crc_canada
-# Shader fields in classic parser worked on, and javascript sfvec4f and sfvec4d support.
-#
-# Revision 1.12  2009/05/11 21:11:58  crc_canada
-# local/global lighting rules applied to SpotLight, DirectionalLight and PointLight.
-#
-# Revision 1.11  2009/05/07 20:03:20  crc_canada
-# Move node sorting out of scene graph traversal
-#
-# Revision 1.10  2009/05/07 17:01:24  crc_canada
-# compile cleanup - verifying and removing warnings.
-#
-# Revision 1.9  2009/05/06 20:35:46  crc_canada
-# Modify SFColorRGBA and SFRotation to have array named c, not r for ease of code generation
-#
-# Revision 1.8  2009/04/29 20:31:37  crc_canada
-# remove the writing of libeai/X3DHeader.h
-#
-# Revision 1.7  2009/04/29 20:20:25  crc_canada
-# Check X3D version and node fields, if running in strict_parsing mode.
-#
-# Revision 1.6  2009/04/03 18:21:57  crc_canada
-# PROTO handling of Multi_ types
-#
-# Revision 1.5  2009/04/02 18:48:28  crc_canada
-# PROTO Routing for MFNodes.
-#
-# Revision 1.4  2009/03/13 20:07:16  crc_canada
-# More PROTO work in classic parser.
-#
-# Revision 1.3  2009/03/10 21:00:34  crc_canada
-# checking in some ongoing PROTO support work in the Classic parser.
-#
-# Revision 1.2  2009/03/05 22:11:49  istakenv
-# Updated code generators to act upon the right files in the new source tree.  WARNING, does not produce identical results, use at own risk
-#
-# Revision 1.1  2009/03/05 21:33:39  istakenv
-# Added code-generator perl scripts to new freewrl tree.  Initial commit, still need to patch them to make them work.
-#
-# Revision 1.310  2009/03/03 16:59:14  crc_canada
-# Metadata fields now verified to be in every X3D node.
-#
-# Revision 1.309  2009/02/02 16:25:55  crc_canada
-# add mode defines
-#
-# Revision 1.308  2009/01/29 16:01:21  crc_canada
-# more node definitions.
-#
-# Revision 1.307  2008/12/12 20:29:12  crc_canada
-# change generated file contents (BUT NOT location) for freex3d compile
-# (files need copying over to final location by hand)
-#
-# Revision 1.306  2008/10/27 20:29:22  crc_canada
-# FaceSets with color field, and node transparency being worked on.
-#
-# Revision 1.305  2008/10/23 16:19:29  crc_canada
-# More shader work.
-#
-# Revision 1.304  2008/09/22 16:06:47  crc_canada
-# all fieldtypes now defined in freewrl code; some not parsed yet, though, as there are no supported
-# nodes that use them.
-#
-# Revision 1.303  2008/09/05 17:46:49  crc_canada
-# reduce warnings counts when compiled with warnings=all
-#
-# Revision 1.302  2008/08/27 19:24:45  crc_canada
-# Occlusion culling with DEF/USE shapes reworked.
-#
-# Revision 1.301  2008/08/18 14:45:38  crc_canada
-# Billboard node Scene Graph changes.
-#
-# Revision 1.300  2008/08/14 05:02:31  crc_canada
-# Bindable threading issues, continued; EXAMINE mode default rotation distance, continued; LOD improvements.
-#
-# Revision 1.299  2008/08/12 00:23:04  crc_canada
-# Switch mode X3D parsing changes.
-#
-# Revision 1.298  2008/08/11 22:51:53  crc_canada
-# Viewpoint binding problem (threading) and general comment cleanup
-#
-# Revision 1.297  2008/08/07 18:59:20  crc_canada
-# be more lax on MF number parsing with the SCANTONUMBER macro.
-#
-# Revision 1.296  2008/07/30 18:08:34  crc_canada
-# GeoLOD, July 30 changes.
-#
-# Revision 1.295  2008/07/21 20:13:13  crc_canada
-# For 1.20.5
-#
-# Revision 1.294  2008/07/21 16:19:59  crc_canada
-# July 19 2008 Geospatial updates
-#
-# Revision 1.293  2008/07/11 19:28:44  crc_canada
-# GeoElevationGrid node changes.
-#
-# Revision 1.292  2008/07/08 16:30:24  crc_canada
-# more GeoElevationGrid changes.
-#
-# Revision 1.291  2008/07/04 18:19:44  crc_canada
-# GeoPositionInterpolator, and start on GeoElevationGrid
-#
-# Revision 1.290  2008/07/03 20:01:29  crc_canada
-# GeoCoordinate work.
-#
-# Revision 1.289  2008/06/24 19:37:47  crc_canada
-# Geospatial, June 24 2008 checkin
-#
-# Revision 1.288  2008/06/13 18:33:21  crc_canada
-# float/double parsing with plus signs in exponents.
-#
-# Revision 1.287  2008/06/13 13:50:47  crc_canada
-# Geospatial, SF/MFVec3d support.
-#
-# Revision 1.286  2008/05/21 20:16:48  crc_canada
-# Standard defines for node rebuilding
-#
-# Revision 1.285  2008/03/31 20:10:16  crc_canada
-# Review texture transparency, use node table to update scenegraph to allow for
-# node updating.
-#
-# Revision 1.284  2008/01/24 18:33:13  crc_canada
-# Rendering speedups on large worlds via improved collision routines
-#
-# Revision 1.283  2007/12/13 20:12:52  crc_canada
-# KeySensor and StringSensor
-#
-# Revision 1.282  2007/12/13 14:54:13  crc_canada
-# code cleanup and change to inputOnly, outputOnly, initializeOnly, inputOutput
-# ----------------------------------------------------------------------
-#
-# Revision 1.281  2007/12/12 23:24:58  crc_canada
-# X3DParser work
-#
-# Revision 1.280  2007/12/10 19:13:53  crc_canada
-# Add parsing for x3dv COMPONENT, EXPORT, IMPORT, META, PROFILE
-#
-# Revision 1.279  2007/12/06 21:50:57  crc_canada
-# Javascript X3D initializers
-#
-# Revision 1.278  2007/11/06 20:25:27  crc_canada
-# Lighting revisited - pointlights and spotlights should all now work ok
-#
-# Revision 1.277  2007/10/26 16:35:38  crc_canada
-# XML encoded parsing changes
-#
-# Revision 1.276  2007/10/18 20:09:59  crc_canada
-# changes that affect warnings on compiling.
-#
-# Revision 1.275  2007/09/21 17:55:55  crc_canada
-# Routing changes - fixing a bug with MF* nodes (was fixed recently, but changes removed by accident)
-#
-# Revision 1.274  2007/08/24 15:13:42  crc_canada
-# Sensitive nodes now are dynamically pruned, and, if disabled, do not
-# change cursor shape
-#
-# Revision 1.273  2007/08/13 18:05:34  sdumoulin
-# Fixed nested protos
-#
-# Revision 1.272  2007/08/10 18:03:20  sdumoulin
-# Added function to parse a scene graph in search for a specific node in order to create an equivalent offset pointer in a protoexpansionn
-#
-# Revision 1.271  2007/07/24 14:30:22  crc_canada
-# add scene-graph dump (debug) and fix snapshot parameters
-#
-# Revision 1.270  2007/05/04 15:12:39  sdumoulin
-# Removed status bar code
-#
-# Revision 1.269  2007/03/21 18:07:34  dtrembla
-# Free memory on scene graph
-#
-# Revision 1.268  2007/03/20 20:36:10  crc_canada
-# MALLOC/REALLOC macros to check mallocs for errors.
-#
-# Revision 1.267  2007/02/27 13:32:14  crc_canada
-# initialize inputOnly fields to a zero value.
-#
-# Revision 1.266  2007/02/22 13:41:09  crc_canada
-# more ReWire work
-#
-# Revision 1.265  2007/02/13 22:45:24  crc_canada
-# PixelTexture default image should now be ok
-#
-# Revision 1.264  2007/02/12 15:18:16  crc_canada
-# ReWire work.
-#
-# Revision 1.263  2007/02/09 20:43:51  crc_canada
-# More ReWire work.
-#
-# Revision 1.262  2007/02/08 21:49:37  crc_canada
-# added Statusbar for OS X safari
-#
-# Revision 1.261  2007/02/07 16:03:44  crc_canada
-# ReWire work
-#
-# Revision 1.260  2007/01/30 18:16:39  crc_canada
-# PROTO transparent material; some EAI changes.
-#
-# Revision 1.259  2007/01/22 18:44:51  crc_canada
-# EAI conversion from "Ascii" type to internal FIELDTYPE happens as close to the
-# EAI interface as possible.
-#
-# Revision 1.258  2007/01/19 21:58:55  crc_canada
-# Initial for 1.18.13 - changing internal types to simplify the numbers of changes.
-#
-# Revision 1.257  2007/01/18 18:06:34  crc_canada
-# X3D Parser should parse Scripts now.
-#
-# Revision 1.256  2007/01/17 21:29:28  crc_canada
-# more X3D XML parsing work.
-#
-# Revision 1.255  2007/01/13 18:17:10  crc_canada
-# Makes ordering of fields in Uni_String same as other Multi_ fields
-#
-# Revision 1.254  2007/01/11 21:07:46  crc_canada
-# X3D Parser work.
-#
-# Revision 1.253  2007/01/10 15:20:09  crc_canada
-# reducing more perl code.
-#
-# Revision 1.252  2007/01/09 22:58:39  crc_canada
-# containerField created.
-#
-# Revision 1.251  2006/12/21 20:51:51  crc_canada
-# PROTO code added to make backlinks (parents).
-#
-# Revision 1.250  2006/11/22 21:50:56  crc_canada
-# Modified Texture registration
-#
-# Revision 1.249  2006/10/19 18:28:46  crc_canada
-# More changes for removing Perl from the runtime
-#
-# Revision 1.248  2006/10/18 20:22:43  crc_canada
-# More removal of Perl code
-#
-# Revision 1.247  2006/10/17 18:51:52  crc_canada
-# Step 1 in getting rid of PERL parsing.
-#
-# Revision 1.246  2006/09/21 08:24:54  domob
-# Script fields *should* be parsed correctly now.
-#
-#
-
-sub open_possible_cvs_file(*;$)
+sub open_codegen_file(*;$)
 {
     my $handle = shift;
     my $filename = shift;
@@ -538,17 +16,7 @@ sub open_possible_cvs_file(*;$)
     }
 
     if (! -w $filename) {
-	print <STDERR>, "warning: $filename not writable, will try cvs edit...\n";
-	my $top_srcdir = "..";
-
-	my $rel_filename = $filename;
-	$rel_filename =~ s/^\.\.\///;
-
-	print <STDERR>, "trying: cvs edit $rel_filename\n";
-	$r = `cd $top_srcdir;cvs edit $rel_filename`;
-	if ($? != 0) {
-	    die("cvs edit $filename failed\n");
-	}
+	die "warning: $filename not writable ...\n";
     }
 
     open $handle, ">$filename" or
@@ -782,7 +250,6 @@ sub gen {
 	# for scenegraph/GeneratedCode.c - create a header.
 	push @genFuncs1,
 		"/*\n".
-		"  $I"."d: $\n\n".
 		"  GeneratedCode.c: generated by VRMLC.pm. DO NOT MODIFY, MODIFY VRMLC.pm INSTEAD.\n".
 		"*/\n".
 		" \n".
@@ -862,36 +329,27 @@ sub gen {
 	#	- create a "case NODE_Shape: printf ("Shape")" for CFuncs/GeneratedCode.c;
 	#	- create a definitive list of all fieldnames.
 
-        my @unsortedNodeList = keys %VRML::Nodes;
+        my @unsortedNodeList = keys %VRML::NodeType::Nodes;
         my @sortedNodeList = sort(@unsortedNodeList);
 	for (@sortedNodeList) {
-		#print "node $_ is tagged as $nodeIntegerType\n";
-		# tag each node type with a integer key.
 
 		push @str, "#define NODE_".$_."	$nodeIntegerType\n";
 		$nodeIntegerType ++;
-
-
-		#{ use Devel::Peek 'Dump'; print "start of dump\n"; Dump $VRML::Nodes{$_}{FieldKinds}, 30; print "end of dump\n"; }
-
- 		#foreach my $field (keys %{$VRML::Nodes{$_}{FieldKinds}}) {print "field1 $field ". $VRML::Nodes{$_}{FieldKinds}{$field}."\n";}
- 		#foreach my $field (keys %{$VRML::Nodes{$_}{FieldKinds}}) {print "field2 $field ". $VRML::Nodes{$_}{Fields}."\n";}
 
 		# capture all fields.
 		# also check for metadata here
 		my $mdf = 0;
 		my $omdf = 0;
- 		foreach my $field (keys %{$VRML::Nodes{$_}{FieldTypes}}) {
+ 		foreach my $field (keys %{$VRML::NodeType::Nodes{$_}{FieldTypes}}) {
 			$totalfields{$field} = "recorded";
 			if ($field eq "metadata") {$mdf = $mdf + 1;}
 			if ($field eq "__oldmetadata") {$omdf = $omdf + 1;}
-			#print "field2 $field\n"
 		};
 
 		# now, tell what kind of field it is. Hopefully, all fields will
 		# have  a valid fieldtype, if not, there is an error somewhere.
- 		foreach my $field (keys %{$VRML::Nodes{$_}{FieldKinds}}) {
-			my $fk = $VRML::Nodes{$_}{FieldKinds}{$field};
+ 		foreach my $field (keys %{$VRML::NodeType::Nodes{$_}{FieldKinds}}) {
+			my $fk = $VRML::NodeType::Nodes{$_}{FieldKinds}{$field};
 			if ($fk eq "initializeOnly") { $allfields{$field} = $fk;}
 			elsif ($fk eq "inputOnly") { $allinputOnlys{$field} = $fk;}
 			elsif ($fk eq "outputOnly") { $alloutputOnlys{$field} = $fk;}
@@ -1093,20 +551,11 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of PROTO keywords */\nconst char *PROTOKEYWORDS[] = {\n";
 
-      # my @sf = sort keys %PROTOKeywordC;
-      $nums = @PROTOKeywordC;
 	$keywordIntegerType = 0;
-	#for (@sf) {
-      $counter = 0;
-      for my $node (@PROTOKeywordC) {
-		# print "node $_ is tagged as $nodeIntegerType\n";
-		# tag each node type with a integer key.
-		#push @str, "#define PKW_".$_."	$keywordIntegerType\n";
+	for my $node (@PROTOKeywordC) {
 		push @str, "#define PKW_".$node."	$keywordIntegerType\n";
 		$keywordIntegerType ++;
-		#push @genFuncs1, "	\"$_\",\n";
-            push @genFuncs1, "	\"$node\",\n";
-            $counter ++;
+		push @genFuncs1, "	\"$node\",\n";
 	}
 	push @str, "\n";
 	push @genFuncs1, "};\nconst int PROTOKEYWORDS_COUNT = ARR_SIZE(PROTOKEYWORDS);\n\n";
@@ -1397,36 +846,36 @@ sub gen {
 	##############################################################
 
 	# Convert TO/FROM EAI to Internal field types. (EAI types are ascii).
-		my $st = "char mapFieldTypeToEAItype (int st) {\n".
-		    "	switch (st) { \n";
+	$st = "char mapFieldTypeToEAItype (int st) {\n".
+	    "	switch (st) { \n";
 	push @genFuncs2, $st; push @EAICommon, $st;
 
 
-	for(@VRML::Fields) {
+	for(@VRML::Field::Fields) {
 		# print "node $_ is tagged as $fieldTypeCount\n";
 		# tag each node type with a integer key.
 		my $st = "\t\tcase FIELDTYPE_".$_.":	return EAI_$_;\n";
 		push @genFuncs2, $st; push @EAICommon, $st;
 	}
-	my $st = "\t\tdefault: return -1;\n\t}\n\treturn -1;\n}\n";
+	$st = "\t\tdefault: return -1;\n\t}\n\treturn -1;\n}\n";
 	push @genFuncs2, $st; push @EAICommon, $st;
 	push @str, "char mapFieldTypeToEAItype (int st);\n";
 
 
 	####################
-	my $st = "/* convert an EAI type to an internal type */\n".
+	$st = "/* convert an EAI type to an internal type */\n".
 		"int mapEAItypeToFieldType (char st) {\n".
 		"	switch (st) { \n";
 	push @genFuncs2, $st; push @EAICommon, $st;
 
 
-	for(@VRML::Fields) {
+	for(@VRML::Field::Fields) {
 		# print "node $_ is tagged as $fieldTypeCount\n";
 		# tag each node type with a integer key.
 		my $st = "\t\tcase EAI_".$_.":	return FIELDTYPE_$_;\n";
 		push @genFuncs2, $st; push @EAICommon, $st;
 	}
-	my $st = "\t\tdefault: return -1;\n\t}\n\treturn -1;\n}\n";
+	$st = "\t\tdefault: return -1;\n\t}\n\treturn -1;\n}\n";
 	push @genFuncs2, $st; push @EAICommon, $st;
 	push @str, "int mapEAItypeToFieldType (char st);\n";
 
@@ -1436,7 +885,7 @@ sub gen {
 		"	switch (st) { \n";
 
 
-	for(@VRML::Fields) {
+	for(@VRML::Field::Fields) {
 		# print "node $_ is tagged as $fieldTypeCount\n";
 		# tag each node type with a integer key.
 		my $sftype = $_;
@@ -1461,7 +910,7 @@ sub gen {
 	push @EAICommon, $ts;
 
 	$fieldTypeCount = 0;
-	for(@VRML::Fields) {
+	for(@VRML::Field::Fields) {
 		# print "node $_ is tagged as $fieldTypeCount\n";
 		# tag each node type with a integer key.
 		my $defstr = "#define FIELDTYPE_".$_."	$fieldTypeCount\n";
@@ -1472,11 +921,11 @@ sub gen {
 		push @EAICommon, $printNodeStr;
 	}
 	push @str, "\n";
-	my $ts = "};\nconst int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);\n\n";
+	$ts = "};\nconst int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);\n\n";
 	push @genFuncs1, $ts;
 	push @EAICommon, $ts;
 
-	for(@VRML::Fields) {
+	for(@VRML::Field::Fields) {
 		push @str, ("VRML::Field::$_")->cstruct . "\n";
 	}
 	# make a function to print fieldtype name from an integer type.
@@ -1605,7 +1054,7 @@ sub gen {
 
 	for(@sortedNodeList) {
 		# print "working on node $_\n";
-		my $no = $VRML::Nodes{$_};
+		my $no = $VRML::NodeType::Nodes{$_};
 		my($strret) = gen_struct($_, $no);
 		push @str, $strret;
 
@@ -1672,34 +1121,24 @@ sub gen {
 
 		push @genFuncs2, "\t\t\ttmp2 = (struct X3D_$node *) tmp;\n\t\t\/* ttmp2->v = &virt_$node;*/ \n";
 
+ 		foreach my $field (sort keys %{$VRML::NodeType::Nodes{$node}{Defaults}}) {
+			my $ft = $VRML::NodeType::Nodes{$node}{FieldTypes}{$field};
+			my $fk = $VRML::NodeType::Nodes{$node}{FieldKinds}{$field};
+			my $def = $VRML::NodeType::Nodes{$node}{Defaults}{$field};
 
-		#print "\nnode $node:\n";
- 		foreach my $field (sort keys %{$VRML::Nodes{$node}{Defaults}}) {
-			my $ft = $VRML::Nodes{$node}{FieldTypes}{$field};
-			my $fk = $VRML::Nodes{$node}{FieldKinds}{$field};
-			my $def = $VRML::Nodes{$node}{Defaults}{$field};
-			#print "	fieldX $field \n";
-			#print "		fieldDefaults ". $VRML::Nodes{$node}{Defaults}{$field}."\n";
-			#print "		fieldKinds ". $VRML::Nodes{$node}{FieldKinds}{$field}."\n";
-			#print "		fieldTypes ". $VRML::Nodes{$node}{FieldTypes}{$field}."\n";
-	#		if ($fk ne "inputOnly") {
-				#print "		do thisfield\n";
+			# do we need to initialize the occlusion number for fields?
+			my $cf;
+			if ($field eq "__OccludeNumber") {
+			    $cf = "tmp2->__OccludeNumber = newOcclude();";
+			} else {
+			    $cf = ("VRML::Field::$ft")->cInitialize("tmp2->".$field,$def);
+			}
 
-				# do we need to initialize the occlusion number for fields?
-				my $cf;
-				if ($field eq "__OccludeNumber") {
-					$cf = "tmp2->__OccludeNumber = newOcclude();";
-				} else {
-					$cf = ("VRML::Field::$ft")->cInitialize("tmp2->".$field,$def);
-				}
-
-				push @genFuncs2, "\t\t\t$cf;\n";
-	#		}
+			push @genFuncs2, "\t\t\t$cf;\n";
 		}
 
 	# rig in the default container for X3D parsing.
 	if (exists $defaultContainerType{$node}) {
-		#print "node $node, defaultContainer is " . $defaultContainerType{$node}."\n";
 		push @genFuncs2, "\t\t\ttmp2->_defaultContainer = FIELDNAMES_".$defaultContainerType{$node}.";\n";
 	} else {
 		print "defaultContainerType for $node missing\n";
@@ -1720,8 +1159,6 @@ sub gen {
 
 	push @genFuncs2,
 	"	\n".
-	#"	/* is this possibly the text node for the statusbar?? */ \n".
-	#"	if (nt == NODE_Text) lastTextNode = (struct X3D_Text *) tmp; \n".
 	"	/* is this a texture holding node? */\n".
 	"	registerTexture(tmp);\n".
 	"	/* Node Tracking */\n".
@@ -1774,10 +1211,10 @@ sub gen {
 			push @genFuncs2, "\t\t\tspacer fprintf (fp,\" _nparents (int) %d\\n\",vectorSize(tmp->_parentVector)); /* DJTRACK_PICKSENSORS */\n";
 			push @genFuncs2, "\t\t\tfor (i=0; i<vectorSize(tmp->_parentVector); i++) { spacer fprintf (fp,\"    %d: %p\\n\",i, vector_get(struct X3D_Node *, tmp->_parentVector,i)); }\n";
 		}
- 		foreach my $field (sort keys %{$VRML::Nodes{$node}{Defaults}}) {
+ 		foreach my $field (sort keys %{$VRML::NodeType::Nodes{$node}{Defaults}}) {
 
-			my $ft = $VRML::Nodes{$node}{FieldTypes}{$field};
-			my $fk = $VRML::Nodes{$node}{FieldKinds}{$field};
+			my $ft = $VRML::NodeType::Nodes{$node}{FieldTypes}{$field};
+			my $fk = $VRML::NodeType::Nodes{$node}{FieldKinds}{$field};
 			if ( ($fk eq "field") || ($fk eq "inputOutput") ) {
 				#
 				# This is effectively a double_conditional,
@@ -1916,20 +1353,16 @@ sub gen {
 	# 1) we skip any field starting with an "_" (underscore)
 	#
 	for my $node (@sortedNodeList) {
-		#print "node $_ is tagged as $nodeIntegerType\n";
-		# tag each node type with a integer key.
 
 		push @genFuncs1, "\nconst int OFFSETS_".$node."[] = {\n";
 
- 		foreach my $field (sort keys %{$VRML::Nodes{$node}{Defaults}}) {
-			#if (index($field,"_") !=0) {
-				my $ft = $VRML::Nodes{$node}{FieldTypes}{$field};
-				#$ft =~ tr/a-z/A-Z/; # convert to uppercase
-				my $fk = $VRML::Nodes{$node}{FieldKinds}{$field};
-				my $specVersion = $VRML::Nodes{$node}{SpecLevel}{$field};
-				push @genFuncs1, "	(int) FIELDNAMES_$field, (int) offsetof (struct X3D_$node, $field), ".
-					" (int) FIELDTYPE_$ft, (int) KW_$fk, (int) $specVersion,\n";
-			#}
+ 		foreach my $field (sort keys %{$VRML::NodeType::Nodes{$node}{Defaults}}) {
+		    my $ft = $VRML::NodeType::Nodes{$node}{FieldTypes}{$field};
+		    #$ft =~ tr/a-z/A-Z/; # convert to uppercase
+		    my $fk = $VRML::NodeType::Nodes{$node}{FieldKinds}{$field};
+		    my $specVersion = $VRML::NodeType::Nodes{$node}{SpecLevel}{$field};
+		    push @genFuncs1, "	(int) FIELDNAMES_$field, (int) offsetof (struct X3D_$node, $field), ".
+			" (int) FIELDTYPE_$ft, (int) KW_$fk, (int) $specVersion,\n";
 		};
 		push @genFuncs1, "	-1, -1, -1, -1, -1};\n";
 	}
@@ -1963,10 +1396,10 @@ sub gen {
 		push @fieldNodes, "\n/* $node node */\n";
 		push @fieldNodes, "BEGIN_NODE($node)\n";
 
- 		foreach my $field (sort keys %{$VRML::Nodes{$node}{Defaults}}) {
+ 		foreach my $field (sort keys %{$VRML::NodeType::Nodes{$node}{Defaults}}) {
 			if (index($field,"_") !=0) {
 				my $fk = "";
-				my $ofk = $VRML::Nodes{$node}{FieldKinds}{$field};
+				my $ofk = $VRML::NodeType::Nodes{$node}{FieldKinds}{$field};
 				if ("outputOnly" eq $ofk)     {$fk = "EVENT_OUT";}
 				if ("inputOnly" eq $ofk)      {$fk = "EVENT_IN";}
 				if ("inputOutput" eq $ofk) {$fk = "EXPOSED_FIELD";}
@@ -1976,8 +1409,8 @@ sub gen {
 					print "error in fieldKind for node $node, was $ofk\n";
 				}
 
-				my $ft = $VRML::Nodes{$node}{FieldTypes}{$field};
-				my $origFt = "FIELDTYPE_".$VRML::Nodes{$node}{FieldTypes}{$field};
+				my $ft = $VRML::NodeType::Nodes{$node}{FieldTypes}{$field};
+				my $origFt = "FIELDTYPE_".$VRML::NodeType::Nodes{$node}{FieldTypes}{$field};
 				$ft =~ tr/A-Z/a-z/; # convert to lowercase
 
 				push @fieldNodes, "$fk($node,$field,$ft,$field,$origFt)\n";
@@ -1994,7 +1427,7 @@ sub gen {
 	push @genFuncs2, "\nint getSAI_X3DNodeType (int FreeWRLNodeType) {\n\tswitch (FreeWRLNodeType) {\n";
 	for my $node (@sortedNodeList) {
 		push @genFuncs2, "	case NODE_$node: return ".
-				$VRML::Nodes{$node}{X3DNodeType}."; break;\n";
+		    $VRML::NodeType::Nodes{$node}{X3DNodeType}."; break;\n";
 	}
 	push @genFuncs2,"\tdefault:return -1;\n\t}\n}\n";
 
@@ -2002,9 +1435,8 @@ sub gen {
 	#####################
 	# Scenegraph/GeneratedCode.c
 	#
-	open_possible_cvs_file(GENFUNC, "../src/lib/scenegraph/GeneratedCode.c");
+	open_codegen_file(GENFUNC, "../src/lib/scenegraph/GeneratedCode.c");
 	print GENFUNC '/*
-  $I'.'d: $
 
   GeneratedCode.c: generated by VRMLC.pm. DO NOT MODIFY, MODIFY VRMLC.pm INSTEAD.
 
@@ -2020,9 +1452,8 @@ sub gen {
 	#####################
 	# libeai/GeneratedCode.c
 	#
-	open_possible_cvs_file(GENFUNC, "../src/libeai/GeneratedCode.c");
+	open_codegen_file(GENFUNC, "../src/libeai/GeneratedCode.c");
 	print GENFUNC '/*
-  $I'.'d: $
 
   GeneratedCode.c: generated by VRMLC.pm. DO NOT MODIFY, MODIFY VRMLC.pm INSTEAD.
 
@@ -2038,9 +1469,8 @@ sub gen {
 	#####################
 	# vrml_parser/NodeFields.h
 	#
-	open_possible_cvs_file(FIELDNODES, "../src/lib/vrml_parser/NodeFields.h");
+	open_codegen_file(FIELDNODES, "../src/lib/vrml_parser/NodeFields.h");
 	print FIELDNODES '/*
-  $I'.'d: $
 
   NodeFields.h: generated by VRMLC.pm. DO NOT MODIFY, MODIFY VRMLC.pm INSTEAD.
 
@@ -2072,9 +1502,8 @@ END_NODE(NodeName)
 	#####################
 	# vrml_parser/Structs.h
 	#
-	open_possible_cvs_file(STRUCTS, "../src/lib/vrml_parser/Structs.h");
+	open_codegen_file(STRUCTS, "../src/lib/vrml_parser/Structs.h");
 	print STRUCTS '/*
-  $I'.'d: $
 
   Structs.h: generated by VRMLC.pm. DO NOT MODIFY, MODIFY VRMLC.pm INSTEAD.
 
