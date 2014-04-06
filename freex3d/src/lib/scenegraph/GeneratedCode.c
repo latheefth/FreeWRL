@@ -5809,7 +5809,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Anchor : {
 			struct X3D_Anchor * tmp2;
 			tmp2 = (struct X3D_Anchor *) tmp;
-		/* ttmp2->v = &virt_Anchor;*/ 
 			tmp2->_parentResource = getInputResource();
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
@@ -5826,7 +5825,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Appearance : {
 			struct X3D_Appearance * tmp2;
 			tmp2 = (struct X3D_Appearance *) tmp;
-		/* ttmp2->v = &virt_Appearance;*/ 
 			tmp2->fillProperties = NULL;
 			tmp2->lineProperties = NULL;
 			tmp2->material = NULL;
@@ -5840,7 +5838,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Arc2D : {
 			struct X3D_Arc2D * tmp2;
 			tmp2 = (struct X3D_Arc2D *) tmp;
-		/* ttmp2->v = &virt_Arc2D;*/ 
 			tmp2->__numPoints = 0;
 			tmp2->__points.n=0; tmp2->__points.p=0;
 			tmp2->endAngle = 1.5707f;
@@ -5853,7 +5850,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ArcClose2D : {
 			struct X3D_ArcClose2D * tmp2;
 			tmp2 = (struct X3D_ArcClose2D *) tmp;
-		/* ttmp2->v = &virt_ArcClose2D;*/ 
 			tmp2->__numPoints = 0;
 			tmp2->__points.n=0; tmp2->__points.p=0;
 			tmp2->closureType = newASCIIString("PIE");
@@ -5868,7 +5864,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_AudioClip : {
 			struct X3D_AudioClip * tmp2;
 			tmp2 = (struct X3D_AudioClip *) tmp;
-		/* ttmp2->v = &virt_AudioClip;*/ 
 			tmp2->__inittime = 0;
 			tmp2->__localFileName = 0;
 			tmp2->__sourceNumber = -1;
@@ -5892,7 +5887,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Background : {
 			struct X3D_Background * tmp2;
 			tmp2 = (struct X3D_Background *) tmp;
-		/* ttmp2->v = &virt_Background;*/ 
 			tmp2->__VBO = 0;
 			tmp2->__backTexture = NULL;
 			tmp2->__bottomTexture = NULL;
@@ -5931,7 +5925,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Billboard : {
 			struct X3D_Billboard * tmp2;
 			tmp2 = (struct X3D_Billboard *) tmp;
-		/* ttmp2->v = &virt_Billboard;*/ 
 			tmp2->_rotationAngle = 0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->axisOfRotation.c[0] = 0.0f;tmp2->axisOfRotation.c[1] = 1.0f;tmp2->axisOfRotation.c[2] = 0.0f;;
@@ -5946,7 +5939,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_BooleanFilter : {
 			struct X3D_BooleanFilter * tmp2;
 			tmp2 = (struct X3D_BooleanFilter *) tmp;
-		/* ttmp2->v = &virt_BooleanFilter;*/ 
 			tmp2->inputFalse = FALSE;
 			tmp2->inputNegate = FALSE;
 			tmp2->inputTrue = TRUE;
@@ -5958,7 +5950,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_BooleanSequencer : {
 			struct X3D_BooleanSequencer * tmp2;
 			tmp2 = (struct X3D_BooleanSequencer *) tmp;
-		/* ttmp2->v = &virt_BooleanSequencer;*/ 
 			tmp2->key.n=0; tmp2->key.p=0;
 			tmp2->keyValue.n=0; tmp2->keyValue.p=0;
 			tmp2->metadata = NULL;
@@ -5972,7 +5963,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_BooleanToggle : {
 			struct X3D_BooleanToggle * tmp2;
 			tmp2 = (struct X3D_BooleanToggle *) tmp;
-		/* ttmp2->v = &virt_BooleanToggle;*/ 
 			tmp2->metadata = NULL;
 			tmp2->set_boolean = 0;
 			tmp2->toggle = FALSE;
@@ -5982,7 +5972,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_BooleanTrigger : {
 			struct X3D_BooleanTrigger * tmp2;
 			tmp2 = (struct X3D_BooleanTrigger *) tmp;
-		/* ttmp2->v = &virt_BooleanTrigger;*/ 
 			tmp2->metadata = NULL;
 			tmp2->set_triggerTime = 0;
 			tmp2->triggerTrue = FALSE;
@@ -5992,7 +5981,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Box : {
 			struct X3D_Box * tmp2;
 			tmp2 = (struct X3D_Box *) tmp;
-		/* ttmp2->v = &virt_Box;*/ 
 			tmp2->__points.n=0; tmp2->__points.p=0;
 			tmp2->metadata = NULL;
 			tmp2->size.c[0] = 2.0f;tmp2->size.c[1] = 2.0f;tmp2->size.c[2] = 2.0f;;
@@ -6003,7 +5991,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_CADAssembly : {
 			struct X3D_CADAssembly * tmp2;
 			tmp2 = (struct X3D_CADAssembly *) tmp;
-		/* ttmp2->v = &virt_CADAssembly;*/ 
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
@@ -6018,7 +6005,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_CADFace : {
 			struct X3D_CADFace * tmp2;
 			tmp2 = (struct X3D_CADFace *) tmp;
-		/* ttmp2->v = &virt_CADFace;*/ 
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
 			tmp2->metadata = NULL;
@@ -6030,7 +6016,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_CADLayer : {
 			struct X3D_CADLayer * tmp2;
 			tmp2 = (struct X3D_CADLayer *) tmp;
-		/* ttmp2->v = &virt_CADLayer;*/ 
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
@@ -6045,7 +6030,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_CADPart : {
 			struct X3D_CADPart * tmp2;
 			tmp2 = (struct X3D_CADPart *) tmp;
-		/* ttmp2->v = &virt_CADPart;*/ 
 			tmp2->__do_anything = FALSE;
 			tmp2->__do_center = FALSE;
 			tmp2->__do_rotation = FALSE;
@@ -6071,7 +6055,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Circle2D : {
 			struct X3D_Circle2D * tmp2;
 			tmp2 = (struct X3D_Circle2D *) tmp;
-		/* ttmp2->v = &virt_Circle2D;*/ 
 			tmp2->__numPoints = 0;
 			tmp2->__points.n=0; tmp2->__points.p=0;
 			tmp2->metadata = NULL;
@@ -6082,7 +6065,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ClipPlane : {
 			struct X3D_ClipPlane * tmp2;
 			tmp2 = (struct X3D_ClipPlane *) tmp;
-		/* ttmp2->v = &virt_ClipPlane;*/ 
 			tmp2->enabled = TRUE;
 			tmp2->metadata = NULL;
 			tmp2->plane.c[0] = 0;tmp2->plane.c[1] = 1;tmp2->plane.c[2] = 0;tmp2->plane.c[3] = 0;;
@@ -6092,7 +6074,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Collision : {
 			struct X3D_Collision * tmp2;
 			tmp2 = (struct X3D_Collision *) tmp;
-		/* ttmp2->v = &virt_Collision;*/ 
 			tmp2->__hit = 0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
@@ -6110,7 +6091,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Color : {
 			struct X3D_Color * tmp2;
 			tmp2 = (struct X3D_Color *) tmp;
-		/* ttmp2->v = &virt_Color;*/ 
 			tmp2->color.n=0; tmp2->color.p=0;
 			tmp2->metadata = NULL;
 			tmp2->_defaultContainer = FIELDNAMES_color;
@@ -6119,7 +6099,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ColorInterpolator : {
 			struct X3D_ColorInterpolator * tmp2;
 			tmp2 = (struct X3D_ColorInterpolator *) tmp;
-		/* ttmp2->v = &virt_ColorInterpolator;*/ 
 			tmp2->key.n=0; tmp2->key.p=0;
 			tmp2->keyValue.n=0; tmp2->keyValue.p=0;
 			tmp2->metadata = NULL;
@@ -6131,7 +6110,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ColorRGBA : {
 			struct X3D_ColorRGBA * tmp2;
 			tmp2 = (struct X3D_ColorRGBA *) tmp;
-		/* ttmp2->v = &virt_ColorRGBA;*/ 
 			tmp2->color.n=0; tmp2->color.p=0;
 			tmp2->metadata = NULL;
 			tmp2->_defaultContainer = FIELDNAMES_color;
@@ -6140,7 +6118,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ComposedCubeMapTexture : {
 			struct X3D_ComposedCubeMapTexture * tmp2;
 			tmp2 = (struct X3D_ComposedCubeMapTexture *) tmp;
-		/* ttmp2->v = &virt_ComposedCubeMapTexture;*/ 
 			tmp2->_parentResource = getInputResource();
 			tmp2->back = NULL;
 			tmp2->bottom = NULL;
@@ -6155,7 +6132,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ComposedShader : {
 			struct X3D_ComposedShader * tmp2;
 			tmp2 = (struct X3D_ComposedShader *) tmp;
-		/* ttmp2->v = &virt_ComposedShader;*/ 
 			tmp2->_initialized = FALSE;
 			tmp2->_retrievedURLData = FALSE;
 			tmp2->_shaderLoadThread = _THREAD_NULL_;
@@ -6173,7 +6149,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Cone : {
 			struct X3D_Cone * tmp2;
 			tmp2 = (struct X3D_Cone *) tmp;
-		/* ttmp2->v = &virt_Cone;*/ 
 			tmp2->__botpoints.n=0; tmp2->__botpoints.p=0;
 			tmp2->__coneTriangles = 0;
 			tmp2->__coneVBO = 0;
@@ -6191,7 +6166,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Contour2D : {
 			struct X3D_Contour2D * tmp2;
 			tmp2 = (struct X3D_Contour2D *) tmp;
-		/* ttmp2->v = &virt_Contour2D;*/ 
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->metadata = NULL;
@@ -6202,7 +6176,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ContourPolyLine2D : {
 			struct X3D_ContourPolyLine2D * tmp2;
 			tmp2 = (struct X3D_ContourPolyLine2D *) tmp;
-		/* ttmp2->v = &virt_ContourPolyLine2D;*/ 
 			tmp2->controlPoint.n=0; tmp2->controlPoint.p=0;
 			tmp2->metadata = NULL;
 			tmp2->_defaultContainer = FIELDNAMES_children;
@@ -6211,7 +6184,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Coordinate : {
 			struct X3D_Coordinate * tmp2;
 			tmp2 = (struct X3D_Coordinate *) tmp;
-		/* ttmp2->v = &virt_Coordinate;*/ 
 			tmp2->metadata = NULL;
 			tmp2->point.n=0; tmp2->point.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_coord;
@@ -6220,7 +6192,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_CoordinateDouble : {
 			struct X3D_CoordinateDouble * tmp2;
 			tmp2 = (struct X3D_CoordinateDouble *) tmp;
-		/* ttmp2->v = &virt_CoordinateDouble;*/ 
 			tmp2->controlPoint.n=0; tmp2->controlPoint.p=0;
 			tmp2->metadata = NULL;
 			tmp2->_defaultContainer = FIELDNAMES_children;
@@ -6229,7 +6200,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_CoordinateInterpolator : {
 			struct X3D_CoordinateInterpolator * tmp2;
 			tmp2 = (struct X3D_CoordinateInterpolator *) tmp;
-		/* ttmp2->v = &virt_CoordinateInterpolator;*/ 
 			tmp2->_CPU_Routes_out = 0;
 			tmp2->_GPU_Routes_out = 0;
 			tmp2->_keyVBO = 0;
@@ -6245,7 +6215,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_CoordinateInterpolator2D : {
 			struct X3D_CoordinateInterpolator2D * tmp2;
 			tmp2 = (struct X3D_CoordinateInterpolator2D *) tmp;
-		/* ttmp2->v = &virt_CoordinateInterpolator2D;*/ 
 			tmp2->key.n=0; tmp2->key.p=0;
 			tmp2->keyValue.n=0; tmp2->keyValue.p=0;
 			tmp2->metadata = NULL;
@@ -6260,7 +6229,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Cylinder : {
 			struct X3D_Cylinder * tmp2;
 			tmp2 = (struct X3D_Cylinder *) tmp;
-		/* ttmp2->v = &virt_Cylinder;*/ 
 			tmp2->__cylinderTriangles = 0;
 			tmp2->__cylinderVBO = 0;
 			tmp2->__normals.n=0; tmp2->__normals.p=0;
@@ -6278,7 +6246,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_CylinderSensor : {
 			struct X3D_CylinderSensor * tmp2;
 			tmp2 = (struct X3D_CylinderSensor *) tmp;
-		/* ttmp2->v = &virt_CylinderSensor;*/ 
 			tmp2->__oldEnabled = TRUE;
 			tmp2->_dlchange = 0;
 			tmp2->_oldrotation.c[0] = 0;tmp2->_oldrotation.c[1] = 0;tmp2->_oldrotation.c[2] = 1;tmp2->_oldrotation.c[3] = 0;;
@@ -6304,7 +6271,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_DISEntityManager : {
 			struct X3D_DISEntityManager * tmp2;
 			tmp2 = (struct X3D_DISEntityManager *) tmp;
-		/* ttmp2->v = &virt_DISEntityManager;*/ 
 			tmp2->addedEntities.n=0; tmp2->addedEntities.p=0;
 			tmp2->address = newASCIIString("localhost");
 			tmp2->applicationID = 1;
@@ -6319,7 +6285,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_DISEntityTypeMapping : {
 			struct X3D_DISEntityTypeMapping * tmp2;
 			tmp2 = (struct X3D_DISEntityTypeMapping *) tmp;
-		/* ttmp2->v = &virt_DISEntityTypeMapping;*/ 
 			tmp2->category = 0;
 			tmp2->country = 0;
 			tmp2->domain = 0;
@@ -6335,7 +6300,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_DirectionalLight : {
 			struct X3D_DirectionalLight * tmp2;
 			tmp2 = (struct X3D_DirectionalLight *) tmp;
-		/* ttmp2->v = &virt_DirectionalLight;*/ 
 			tmp2->_amb.c[0] = 0;tmp2->_amb.c[1] = 0;tmp2->_amb.c[2] = 0;tmp2->_amb.c[3] = 0;;
 			tmp2->_col.c[0] = 0;tmp2->_col.c[1] = 0;tmp2->_col.c[2] = 0;tmp2->_col.c[3] = 0;;
 			tmp2->_dir.c[0] = 0;tmp2->_dir.c[1] = 0;tmp2->_dir.c[2] = 0;tmp2->_dir.c[3] = 0;;
@@ -6352,7 +6316,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Disk2D : {
 			struct X3D_Disk2D * tmp2;
 			tmp2 = (struct X3D_Disk2D *) tmp;
-		/* ttmp2->v = &virt_Disk2D;*/ 
 			tmp2->__numPoints = 0;
 			tmp2->__points.n=0; tmp2->__points.p=0;
 			tmp2->__simpleDisk = TRUE;
@@ -6367,7 +6330,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_EaseInEaseOut : {
 			struct X3D_EaseInEaseOut * tmp2;
 			tmp2 = (struct X3D_EaseInEaseOut *) tmp;
-		/* ttmp2->v = &virt_EaseInEaseOut;*/ 
 			tmp2->easeInEaseOut.n=0; tmp2->easeInEaseOut.p=0;
 			tmp2->key.n=0; tmp2->key.p=0;
 			tmp2->metadata = NULL;
@@ -6379,7 +6341,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ElevationGrid : {
 			struct X3D_ElevationGrid * tmp2;
 			tmp2 = (struct X3D_ElevationGrid *) tmp;
-		/* ttmp2->v = &virt_ElevationGrid;*/ 
 			tmp2->_coordIndex.n=0; tmp2->_coordIndex.p=0;
 			tmp2->attrib.n=0; tmp2->attrib.p=0;
 			tmp2->ccw = TRUE;
@@ -6404,7 +6365,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_EspduTransform : {
 			struct X3D_EspduTransform * tmp2;
 			tmp2 = (struct X3D_EspduTransform *) tmp;
-		/* ttmp2->v = &virt_EspduTransform;*/ 
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->address = newASCIIString("localhost");
 			tmp2->applicationID = 1;
@@ -6500,7 +6460,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Extrusion : {
 			struct X3D_Extrusion * tmp2;
 			tmp2 = (struct X3D_Extrusion *) tmp;
-		/* ttmp2->v = &virt_Extrusion;*/ 
 			tmp2->beginCap = TRUE;
 			tmp2->ccw = TRUE;
 			tmp2->convex = TRUE;
@@ -6550,7 +6509,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_FillProperties : {
 			struct X3D_FillProperties * tmp2;
 			tmp2 = (struct X3D_FillProperties *) tmp;
-		/* ttmp2->v = &virt_FillProperties;*/ 
 			tmp2->_enabled = TRUE;
 			tmp2->_hatchScale.c[0] = 0.1f;tmp2->_hatchScale.c[1] = 0.1f;;
 			tmp2->filled = TRUE;
@@ -6564,7 +6522,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_FloatVertexAttribute : {
 			struct X3D_FloatVertexAttribute * tmp2;
 			tmp2 = (struct X3D_FloatVertexAttribute *) tmp;
-		/* ttmp2->v = &virt_FloatVertexAttribute;*/ 
 			tmp2->metadata = NULL;
 			tmp2->name = newASCIIString("");
 			tmp2->numComponents = 4;
@@ -6575,7 +6532,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Fog : {
 			struct X3D_Fog * tmp2;
 			tmp2 = (struct X3D_Fog *) tmp;
-		/* ttmp2->v = &virt_Fog;*/ 
 			tmp2->bindTime = -1;
 			tmp2->color.c[0] = 1.0f;tmp2->color.c[1] = 1.0f;tmp2->color.c[2] = 1.0f;;
 			tmp2->fogType = newASCIIString("LINEAR");
@@ -6589,7 +6545,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_FogCoordinate : {
 			struct X3D_FogCoordinate * tmp2;
 			tmp2 = (struct X3D_FogCoordinate *) tmp;
-		/* ttmp2->v = &virt_FogCoordinate;*/ 
 			tmp2->depth.n=0; tmp2->depth.p=0;
 			tmp2->metadata = NULL;
 			tmp2->_defaultContainer = FIELDNAMES_coord;
@@ -6598,7 +6553,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_FontStyle : {
 			struct X3D_FontStyle * tmp2;
 			tmp2 = (struct X3D_FontStyle *) tmp;
-		/* ttmp2->v = &virt_FontStyle;*/ 
 			tmp2->family.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);tmp2->family.p[0] = newASCIIString("SERIF");tmp2->family.n=1; ;
 			tmp2->horizontal = TRUE;
 			tmp2->justify.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);tmp2->justify.p[0] = newASCIIString("BEGIN");tmp2->justify.n=1; ;
@@ -6615,7 +6569,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_GeneratedCubeMapTexture : {
 			struct X3D_GeneratedCubeMapTexture * tmp2;
 			tmp2 = (struct X3D_GeneratedCubeMapTexture *) tmp;
-		/* ttmp2->v = &virt_GeneratedCubeMapTexture;*/ 
 			tmp2->__textureTableIndex = 0;
 			tmp2->metadata = NULL;
 			tmp2->size = 128;
@@ -6627,7 +6580,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_GeoCoordinate : {
 			struct X3D_GeoCoordinate * tmp2;
 			tmp2 = (struct X3D_GeoCoordinate *) tmp;
-		/* ttmp2->v = &virt_GeoCoordinate;*/ 
 			tmp2->__geoSystem.n=0; tmp2->__geoSystem.p=0;
 			tmp2->__movedCoords.n=0; tmp2->__movedCoords.p=0;
 			tmp2->geoOrigin = NULL;
@@ -6640,7 +6592,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_GeoElevationGrid : {
 			struct X3D_GeoElevationGrid * tmp2;
 			tmp2 = (struct X3D_GeoElevationGrid *) tmp;
-		/* ttmp2->v = &virt_GeoElevationGrid;*/ 
 			tmp2->__geoSystem.n=0; tmp2->__geoSystem.p=0;
 			tmp2->_coordIndex.n=0; tmp2->_coordIndex.p=0;
 			tmp2->ccw = FALSE;
@@ -6671,7 +6622,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_GeoLOD : {
 			struct X3D_GeoLOD * tmp2;
 			tmp2 = (struct X3D_GeoLOD *) tmp;
-		/* ttmp2->v = &virt_GeoLOD;*/ 
 			tmp2->__child1Node = NULL;
 			tmp2->__child2Node = NULL;
 			tmp2->__child3Node = NULL;
@@ -6704,7 +6654,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_GeoLocation : {
 			struct X3D_GeoLocation * tmp2;
 			tmp2 = (struct X3D_GeoLocation *) tmp;
-		/* ttmp2->v = &virt_GeoLocation;*/ 
 			tmp2->__geoSystem.n=0; tmp2->__geoSystem.p=0;
 			tmp2->__localOrient.c[0] = 0;tmp2->__localOrient.c[1] = 0;tmp2->__localOrient.c[2] = 1;;
 			tmp2->__movedCoords.c[0] = 0;tmp2->__movedCoords.c[1] = 0;tmp2->__movedCoords.c[2] = 0;;
@@ -6726,7 +6675,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_GeoMetadata : {
 			struct X3D_GeoMetadata * tmp2;
 			tmp2 = (struct X3D_GeoMetadata *) tmp;
-		/* ttmp2->v = &virt_GeoMetadata;*/ 
 			tmp2->data.n=0; tmp2->data.p=0;
 			tmp2->metadata = NULL;
 			tmp2->summary.n=0; tmp2->summary.p=0;
@@ -6737,7 +6685,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_GeoOrigin : {
 			struct X3D_GeoOrigin * tmp2;
 			tmp2 = (struct X3D_GeoOrigin *) tmp;
-		/* ttmp2->v = &virt_GeoOrigin;*/ 
 			tmp2->__geoSystem.n=0; tmp2->__geoSystem.p=0;
 			tmp2->__movedCoords.c[0] = 0;tmp2->__movedCoords.c[1] = 0;tmp2->__movedCoords.c[2] = 0;;
 			tmp2->__oldMFString.n=0; tmp2->__oldMFString.p=0;
@@ -6753,7 +6700,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_GeoPositionInterpolator : {
 			struct X3D_GeoPositionInterpolator * tmp2;
 			tmp2 = (struct X3D_GeoPositionInterpolator *) tmp;
-		/* ttmp2->v = &virt_GeoPositionInterpolator;*/ 
 			tmp2->__geoSystem.n=0; tmp2->__geoSystem.p=0;
 			tmp2->__movedValue.n=0; tmp2->__movedValue.p=0;
 			tmp2->__oldKeyPtr.n=0; tmp2->__oldKeyPtr.p=0;
@@ -6772,7 +6718,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_GeoProximitySensor : {
 			struct X3D_GeoProximitySensor * tmp2;
 			tmp2 = (struct X3D_GeoProximitySensor *) tmp;
-		/* ttmp2->v = &virt_GeoProximitySensor;*/ 
 			tmp2->__geoSystem.n=0; tmp2->__geoSystem.p=0;
 			tmp2->__hit = 0;
 			tmp2->__localOrient.c[0] = 0;tmp2->__localOrient.c[1] = 0;tmp2->__localOrient.c[2] = 1;;
@@ -6801,7 +6746,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_GeoTouchSensor : {
 			struct X3D_GeoTouchSensor * tmp2;
 			tmp2 = (struct X3D_GeoTouchSensor *) tmp;
-		/* ttmp2->v = &virt_GeoTouchSensor;*/ 
 			tmp2->__geoSystem.n=0; tmp2->__geoSystem.p=0;
 			tmp2->__oldEnabled = TRUE;
 			tmp2->_oldhitNormal.c[0] = 0.0f;tmp2->_oldhitNormal.c[1] = 0.0f;tmp2->_oldhitNormal.c[2] = 0.0f;;
@@ -6825,7 +6769,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_GeoTransform : {
 			struct X3D_GeoTransform * tmp2;
 			tmp2 = (struct X3D_GeoTransform *) tmp;
-		/* ttmp2->v = &virt_GeoTransform;*/ 
 			tmp2->__do_center = 0;
 			tmp2->__do_rotation = 0;
 			tmp2->__do_scale = 0;
@@ -6856,7 +6799,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_GeoViewpoint : {
 			struct X3D_GeoViewpoint * tmp2;
 			tmp2 = (struct X3D_GeoViewpoint *) tmp;
-		/* ttmp2->v = &virt_GeoViewpoint;*/ 
 			tmp2->__geoSystem.n=0; tmp2->__geoSystem.p=0;
 			tmp2->__movedOrientation.c[0] = 0;tmp2->__movedOrientation.c[1] = 0;tmp2->__movedOrientation.c[2] = 1;tmp2->__movedOrientation.c[3] = 0;;
 			tmp2->__movedPosition.c[0] = 0;tmp2->__movedPosition.c[1] = 0;tmp2->__movedPosition.c[2] = 0;;
@@ -6887,7 +6829,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Group : {
 			struct X3D_Group * tmp2;
 			tmp2 = (struct X3D_Group *) tmp;
-		/* ttmp2->v = &virt_Group;*/ 
 			tmp2->FreeWRL_PROTOInterfaceNodes.n=0; tmp2->FreeWRL_PROTOInterfaceNodes.p=0;
 			tmp2->FreeWRL__protoDef = INT_ID_UNDEFINED;
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
@@ -6903,7 +6844,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_HAnimDisplacer : {
 			struct X3D_HAnimDisplacer * tmp2;
 			tmp2 = (struct X3D_HAnimDisplacer *) tmp;
-		/* ttmp2->v = &virt_HAnimDisplacer;*/ 
 			tmp2->coordIndex.n=0; tmp2->coordIndex.p=0;
 			tmp2->displacements.n=0; tmp2->displacements.p=0;
 			tmp2->metadata = NULL;
@@ -6915,7 +6855,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_HAnimHumanoid : {
 			struct X3D_HAnimHumanoid * tmp2;
 			tmp2 = (struct X3D_HAnimHumanoid *) tmp;
-		/* ttmp2->v = &virt_HAnimHumanoid;*/ 
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
 			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;;
@@ -6941,7 +6880,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_HAnimJoint : {
 			struct X3D_HAnimJoint * tmp2;
 			tmp2 = (struct X3D_HAnimJoint *) tmp;
-		/* ttmp2->v = &virt_HAnimJoint;*/ 
 			tmp2->__do_center = 0;
 			tmp2->__do_rotation = 0;
 			tmp2->__do_scale = 0;
@@ -6976,7 +6914,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_HAnimSegment : {
 			struct X3D_HAnimSegment * tmp2;
 			tmp2 = (struct X3D_HAnimSegment *) tmp;
-		/* ttmp2->v = &virt_HAnimSegment;*/ 
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
@@ -7005,7 +6942,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_HAnimSite : {
 			struct X3D_HAnimSite * tmp2;
 			tmp2 = (struct X3D_HAnimSite *) tmp;
-		/* ttmp2->v = &virt_HAnimSite;*/ 
 			tmp2->__do_center = 0;
 			tmp2->__do_rotation = 0;
 			tmp2->__do_scale = 0;
@@ -7029,7 +6965,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ImageCubeMapTexture : {
 			struct X3D_ImageCubeMapTexture * tmp2;
 			tmp2 = (struct X3D_ImageCubeMapTexture *) tmp;
-		/* ttmp2->v = &virt_ImageCubeMapTexture;*/ 
 			tmp2->__regenSubTextures = FALSE;
 			tmp2->__subTextures.n=0; tmp2->__subTextures.p=0;
 			tmp2->__textureTableIndex = 0;
@@ -7043,7 +6978,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ImageTexture : {
 			struct X3D_ImageTexture * tmp2;
 			tmp2 = (struct X3D_ImageTexture *) tmp;
-		/* ttmp2->v = &virt_ImageTexture;*/ 
 			tmp2->__textureTableIndex = 0;
 			tmp2->_parentResource = getInputResource();
 			tmp2->metadata = NULL;
@@ -7057,7 +6991,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_IndexedFaceSet : {
 			struct X3D_IndexedFaceSet * tmp2;
 			tmp2 = (struct X3D_IndexedFaceSet *) tmp;
-		/* ttmp2->v = &virt_IndexedFaceSet;*/ 
 			tmp2->attrib.n=0; tmp2->attrib.p=0;
 			tmp2->ccw = TRUE;
 			tmp2->color = NULL;
@@ -7085,7 +7018,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_IndexedLineSet : {
 			struct X3D_IndexedLineSet * tmp2;
 			tmp2 = (struct X3D_IndexedLineSet *) tmp;
-		/* ttmp2->v = &virt_IndexedLineSet;*/ 
 			tmp2->__colours = 0;
 			tmp2->__segCount = 0;
 			tmp2->__vertArr = 0;
@@ -7108,7 +7040,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_IndexedQuadSet : {
 			struct X3D_IndexedQuadSet * tmp2;
 			tmp2 = (struct X3D_IndexedQuadSet *) tmp;
-		/* ttmp2->v = &virt_IndexedQuadSet;*/ 
 			tmp2->_coordIndex.n=0; tmp2->_coordIndex.p=0;
 			tmp2->attrib.n=0; tmp2->attrib.p=0;
 			tmp2->ccw = TRUE;
@@ -7129,7 +7060,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_IndexedTriangleFanSet : {
 			struct X3D_IndexedTriangleFanSet * tmp2;
 			tmp2 = (struct X3D_IndexedTriangleFanSet *) tmp;
-		/* ttmp2->v = &virt_IndexedTriangleFanSet;*/ 
 			tmp2->_coordIndex.n=0; tmp2->_coordIndex.p=0;
 			tmp2->attrib.n=0; tmp2->attrib.p=0;
 			tmp2->ccw = TRUE;
@@ -7150,7 +7080,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_IndexedTriangleSet : {
 			struct X3D_IndexedTriangleSet * tmp2;
 			tmp2 = (struct X3D_IndexedTriangleSet *) tmp;
-		/* ttmp2->v = &virt_IndexedTriangleSet;*/ 
 			tmp2->_coordIndex.n=0; tmp2->_coordIndex.p=0;
 			tmp2->attrib.n=0; tmp2->attrib.p=0;
 			tmp2->ccw = TRUE;
@@ -7171,7 +7100,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_IndexedTriangleStripSet : {
 			struct X3D_IndexedTriangleStripSet * tmp2;
 			tmp2 = (struct X3D_IndexedTriangleStripSet *) tmp;
-		/* ttmp2->v = &virt_IndexedTriangleStripSet;*/ 
 			tmp2->_coordIndex.n=0; tmp2->_coordIndex.p=0;
 			tmp2->attrib.n=0; tmp2->attrib.p=0;
 			tmp2->ccw = TRUE;
@@ -7192,7 +7120,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Inline : {
 			struct X3D_Inline * tmp2;
 			tmp2 = (struct X3D_Inline *) tmp;
-		/* ttmp2->v = &virt_Inline;*/ 
 			tmp2->__children.n=0; tmp2->__children.p=0;
 			tmp2->__loadResource = 0;
 			tmp2->__loadstatus = 0;
@@ -7208,7 +7135,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_IntegerSequencer : {
 			struct X3D_IntegerSequencer * tmp2;
 			tmp2 = (struct X3D_IntegerSequencer *) tmp;
-		/* ttmp2->v = &virt_IntegerSequencer;*/ 
 			tmp2->key.n=0; tmp2->key.p=0;
 			tmp2->keyValue.n=0; tmp2->keyValue.p=0;
 			tmp2->metadata = NULL;
@@ -7222,7 +7148,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_IntegerTrigger : {
 			struct X3D_IntegerTrigger * tmp2;
 			tmp2 = (struct X3D_IntegerTrigger *) tmp;
-		/* ttmp2->v = &virt_IntegerTrigger;*/ 
 			tmp2->integerKey = 0;
 			tmp2->metadata = NULL;
 			tmp2->set_boolean = 0;
@@ -7233,7 +7158,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_KeySensor : {
 			struct X3D_KeySensor * tmp2;
 			tmp2 = (struct X3D_KeySensor *) tmp;
-		/* ttmp2->v = &virt_KeySensor;*/ 
 			tmp2->__oldEnabled = TRUE;
 			tmp2->actionKeyPress = 0;
 			tmp2->actionKeyRelease = 0;
@@ -7251,7 +7175,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_LOD : {
 			struct X3D_LOD * tmp2;
 			tmp2 = (struct X3D_LOD *) tmp;
-		/* ttmp2->v = &virt_LOD;*/ 
 			tmp2->__isX3D = (inputFileVersion[0]==3);
 			tmp2->_selected = 0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
@@ -7271,7 +7194,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_LineProperties : {
 			struct X3D_LineProperties * tmp2;
 			tmp2 = (struct X3D_LineProperties *) tmp;
-		/* ttmp2->v = &virt_LineProperties;*/ 
 			tmp2->applied = TRUE;
 			tmp2->linetype = 1;
 			tmp2->linewidthScaleFactor = 0.0f;
@@ -7305,7 +7227,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_LineSet : {
 			struct X3D_LineSet * tmp2;
 			tmp2 = (struct X3D_LineSet *) tmp;
-		/* ttmp2->v = &virt_LineSet;*/ 
 			tmp2->__segCount = 0;
 			tmp2->__vertArr = 0;
 			tmp2->__vertIndx = 0;
@@ -7321,7 +7242,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_LoadSensor : {
 			struct X3D_LoadSensor * tmp2;
 			tmp2 = (struct X3D_LoadSensor *) tmp;
-		/* ttmp2->v = &virt_LoadSensor;*/ 
 			tmp2->__StartLoadTime = 0;
 			tmp2->__finishedloading = TRUE;
 			tmp2->__loading = TRUE;
@@ -7340,7 +7260,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_LocalFog : {
 			struct X3D_LocalFog * tmp2;
 			tmp2 = (struct X3D_LocalFog *) tmp;
-		/* ttmp2->v = &virt_LocalFog;*/ 
 			tmp2->color.c[0] = 1.0f;tmp2->color.c[1] = 1.0f;tmp2->color.c[2] = 1.0f;;
 			tmp2->enabled = TRUE;
 			tmp2->fogType = newASCIIString("LINEAR");
@@ -7352,7 +7271,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Material : {
 			struct X3D_Material * tmp2;
 			tmp2 = (struct X3D_Material *) tmp;
-		/* ttmp2->v = &virt_Material;*/ 
 			tmp2->_verifiedColor.p = MALLOC (float *, sizeof(float)*17);
 			tmp2->_verifiedColor.p[0] = 0.0f;
 			tmp2->_verifiedColor.p[1] = 0.0f;
@@ -7385,7 +7303,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Matrix3VertexAttribute : {
 			struct X3D_Matrix3VertexAttribute * tmp2;
 			tmp2 = (struct X3D_Matrix3VertexAttribute *) tmp;
-		/* ttmp2->v = &virt_Matrix3VertexAttribute;*/ 
 			tmp2->metadata = NULL;
 			tmp2->name = newASCIIString("");
 			tmp2->value.n=0; tmp2->value.p=0;
@@ -7395,7 +7312,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Matrix4VertexAttribute : {
 			struct X3D_Matrix4VertexAttribute * tmp2;
 			tmp2 = (struct X3D_Matrix4VertexAttribute *) tmp;
-		/* ttmp2->v = &virt_Matrix4VertexAttribute;*/ 
 			tmp2->metadata = NULL;
 			tmp2->name = newASCIIString("");
 			tmp2->value.n=0; tmp2->value.p=0;
@@ -7405,7 +7321,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataDouble : {
 			struct X3D_MetadataDouble * tmp2;
 			tmp2 = (struct X3D_MetadataDouble *) tmp;
-		/* ttmp2->v = &virt_MetadataDouble;*/ 
 			tmp2->metadata = NULL;
 			tmp2->name = newASCIIString("");
 			tmp2->reference = newASCIIString("");
@@ -7416,7 +7331,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataFloat : {
 			struct X3D_MetadataFloat * tmp2;
 			tmp2 = (struct X3D_MetadataFloat *) tmp;
-		/* ttmp2->v = &virt_MetadataFloat;*/ 
 			tmp2->metadata = NULL;
 			tmp2->name = newASCIIString("");
 			tmp2->reference = newASCIIString("");
@@ -7427,7 +7341,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataInteger : {
 			struct X3D_MetadataInteger * tmp2;
 			tmp2 = (struct X3D_MetadataInteger *) tmp;
-		/* ttmp2->v = &virt_MetadataInteger;*/ 
 			tmp2->metadata = NULL;
 			tmp2->name = newASCIIString("");
 			tmp2->reference = newASCIIString("");
@@ -7438,7 +7351,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataMFBool : {
 			struct X3D_MetadataMFBool * tmp2;
 			tmp2 = (struct X3D_MetadataMFBool *) tmp;
-		/* ttmp2->v = &virt_MetadataMFBool;*/ 
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
@@ -7449,7 +7361,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataMFColor : {
 			struct X3D_MetadataMFColor * tmp2;
 			tmp2 = (struct X3D_MetadataMFColor *) tmp;
-		/* ttmp2->v = &virt_MetadataMFColor;*/ 
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
@@ -7460,7 +7371,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataMFColorRGBA : {
 			struct X3D_MetadataMFColorRGBA * tmp2;
 			tmp2 = (struct X3D_MetadataMFColorRGBA *) tmp;
-		/* ttmp2->v = &virt_MetadataMFColorRGBA;*/ 
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
@@ -7471,7 +7381,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataMFDouble : {
 			struct X3D_MetadataMFDouble * tmp2;
 			tmp2 = (struct X3D_MetadataMFDouble *) tmp;
-		/* ttmp2->v = &virt_MetadataMFDouble;*/ 
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
@@ -7482,7 +7391,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataMFFloat : {
 			struct X3D_MetadataMFFloat * tmp2;
 			tmp2 = (struct X3D_MetadataMFFloat *) tmp;
-		/* ttmp2->v = &virt_MetadataMFFloat;*/ 
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
@@ -7493,7 +7401,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataMFInt32 : {
 			struct X3D_MetadataMFInt32 * tmp2;
 			tmp2 = (struct X3D_MetadataMFInt32 *) tmp;
-		/* ttmp2->v = &virt_MetadataMFInt32;*/ 
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
@@ -7504,7 +7411,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataMFMatrix3d : {
 			struct X3D_MetadataMFMatrix3d * tmp2;
 			tmp2 = (struct X3D_MetadataMFMatrix3d *) tmp;
-		/* ttmp2->v = &virt_MetadataMFMatrix3d;*/ 
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
@@ -7515,7 +7421,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataMFMatrix3f : {
 			struct X3D_MetadataMFMatrix3f * tmp2;
 			tmp2 = (struct X3D_MetadataMFMatrix3f *) tmp;
-		/* ttmp2->v = &virt_MetadataMFMatrix3f;*/ 
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
@@ -7526,7 +7431,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataMFMatrix4d : {
 			struct X3D_MetadataMFMatrix4d * tmp2;
 			tmp2 = (struct X3D_MetadataMFMatrix4d *) tmp;
-		/* ttmp2->v = &virt_MetadataMFMatrix4d;*/ 
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
@@ -7537,7 +7441,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataMFMatrix4f : {
 			struct X3D_MetadataMFMatrix4f * tmp2;
 			tmp2 = (struct X3D_MetadataMFMatrix4f *) tmp;
-		/* ttmp2->v = &virt_MetadataMFMatrix4f;*/ 
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
@@ -7548,7 +7451,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataMFNode : {
 			struct X3D_MetadataMFNode * tmp2;
 			tmp2 = (struct X3D_MetadataMFNode *) tmp;
-		/* ttmp2->v = &virt_MetadataMFNode;*/ 
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
@@ -7559,7 +7461,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataMFRotation : {
 			struct X3D_MetadataMFRotation * tmp2;
 			tmp2 = (struct X3D_MetadataMFRotation *) tmp;
-		/* ttmp2->v = &virt_MetadataMFRotation;*/ 
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
@@ -7570,7 +7471,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataMFString : {
 			struct X3D_MetadataMFString * tmp2;
 			tmp2 = (struct X3D_MetadataMFString *) tmp;
-		/* ttmp2->v = &virt_MetadataMFString;*/ 
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
@@ -7581,7 +7481,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataMFTime : {
 			struct X3D_MetadataMFTime * tmp2;
 			tmp2 = (struct X3D_MetadataMFTime *) tmp;
-		/* ttmp2->v = &virt_MetadataMFTime;*/ 
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
@@ -7592,7 +7491,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataMFVec2d : {
 			struct X3D_MetadataMFVec2d * tmp2;
 			tmp2 = (struct X3D_MetadataMFVec2d *) tmp;
-		/* ttmp2->v = &virt_MetadataMFVec2d;*/ 
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
@@ -7603,7 +7501,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataMFVec2f : {
 			struct X3D_MetadataMFVec2f * tmp2;
 			tmp2 = (struct X3D_MetadataMFVec2f *) tmp;
-		/* ttmp2->v = &virt_MetadataMFVec2f;*/ 
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
@@ -7614,7 +7511,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataMFVec3d : {
 			struct X3D_MetadataMFVec3d * tmp2;
 			tmp2 = (struct X3D_MetadataMFVec3d *) tmp;
-		/* ttmp2->v = &virt_MetadataMFVec3d;*/ 
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
@@ -7625,7 +7521,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataMFVec3f : {
 			struct X3D_MetadataMFVec3f * tmp2;
 			tmp2 = (struct X3D_MetadataMFVec3f *) tmp;
-		/* ttmp2->v = &virt_MetadataMFVec3f;*/ 
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
@@ -7636,7 +7531,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataMFVec4d : {
 			struct X3D_MetadataMFVec4d * tmp2;
 			tmp2 = (struct X3D_MetadataMFVec4d *) tmp;
-		/* ttmp2->v = &virt_MetadataMFVec4d;*/ 
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
@@ -7647,7 +7541,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataMFVec4f : {
 			struct X3D_MetadataMFVec4f * tmp2;
 			tmp2 = (struct X3D_MetadataMFVec4f *) tmp;
-		/* ttmp2->v = &virt_MetadataMFVec4f;*/ 
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
@@ -7658,7 +7551,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataSFBool : {
 			struct X3D_MetadataSFBool * tmp2;
 			tmp2 = (struct X3D_MetadataSFBool *) tmp;
-		/* ttmp2->v = &virt_MetadataSFBool;*/ 
 			tmp2->setValue = FALSE;
 			tmp2->tickTime = 0;
 			tmp2->value = FALSE;
@@ -7669,7 +7561,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataSFColor : {
 			struct X3D_MetadataSFColor * tmp2;
 			tmp2 = (struct X3D_MetadataSFColor *) tmp;
-		/* ttmp2->v = &virt_MetadataSFColor;*/ 
 			tmp2->setValue.c[0] = 0.0f;tmp2->setValue.c[1] = 0.0f;tmp2->setValue.c[2] = 0.0f;;
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0.0f;tmp2->value.c[1] = 0.0f;tmp2->value.c[2] = 0.0f;;
@@ -7680,7 +7571,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataSFColorRGBA : {
 			struct X3D_MetadataSFColorRGBA * tmp2;
 			tmp2 = (struct X3D_MetadataSFColorRGBA *) tmp;
-		/* ttmp2->v = &virt_MetadataSFColorRGBA;*/ 
 			tmp2->setValue.c[0] = 0;tmp2->setValue.c[1] = 0;tmp2->setValue.c[2] = 0;tmp2->setValue.c[3] = 0;;
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;tmp2->value.c[3] = 0;;
@@ -7691,7 +7581,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataSFDouble : {
 			struct X3D_MetadataSFDouble * tmp2;
 			tmp2 = (struct X3D_MetadataSFDouble *) tmp;
-		/* ttmp2->v = &virt_MetadataSFDouble;*/ 
 			tmp2->setValue = 0;
 			tmp2->tickTime = 0;
 			tmp2->value = 0;
@@ -7702,7 +7591,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataSFFloat : {
 			struct X3D_MetadataSFFloat * tmp2;
 			tmp2 = (struct X3D_MetadataSFFloat *) tmp;
-		/* ttmp2->v = &virt_MetadataSFFloat;*/ 
 			tmp2->setValue = 0.0f;
 			tmp2->tickTime = 0;
 			tmp2->value = 0.0f;
@@ -7713,7 +7601,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataSFImage : {
 			struct X3D_MetadataSFImage * tmp2;
 			tmp2 = (struct X3D_MetadataSFImage *) tmp;
-		/* ttmp2->v = &virt_MetadataSFImage;*/ 
 			tmp2->setValue.n=3; tmp2->setValue.p=MALLOC (int *, sizeof(int)*3); tmp2->setValue.p[0] = 0; tmp2->setValue.p[1] = 0; tmp2->setValue.p[2] = 0;;
 			tmp2->tickTime = 0;
 			tmp2->value.n=3; tmp2->value.p=MALLOC (int *, sizeof(int)*3); tmp2->value.p[0] = 0; tmp2->value.p[1] = 0; tmp2->value.p[2] = 0;;
@@ -7724,7 +7611,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataSFInt32 : {
 			struct X3D_MetadataSFInt32 * tmp2;
 			tmp2 = (struct X3D_MetadataSFInt32 *) tmp;
-		/* ttmp2->v = &virt_MetadataSFInt32;*/ 
 			tmp2->setValue = 0;
 			tmp2->tickTime = 0;
 			tmp2->value = 0;
@@ -7735,7 +7621,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataSFMatrix3d : {
 			struct X3D_MetadataSFMatrix3d * tmp2;
 			tmp2 = (struct X3D_MetadataSFMatrix3d *) tmp;
-		/* ttmp2->v = &virt_MetadataSFMatrix3d;*/ 
 			tmp2->setValue.c[0] = 0;tmp2->setValue.c[1] = 0;tmp2->setValue.c[2] = 0;tmp2->setValue.c[3] = 0;tmp2->setValue.c[4] = 0;tmp2->setValue.c[5] = 0;tmp2->setValue.c[6] = 0;tmp2->setValue.c[7] = 0;tmp2->setValue.c[8] = 0;;
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;tmp2->value.c[3] = 0;tmp2->value.c[4] = 0;tmp2->value.c[5] = 0;tmp2->value.c[6] = 0;tmp2->value.c[7] = 0;tmp2->value.c[8] = 0;;
@@ -7746,7 +7631,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataSFMatrix3f : {
 			struct X3D_MetadataSFMatrix3f * tmp2;
 			tmp2 = (struct X3D_MetadataSFMatrix3f *) tmp;
-		/* ttmp2->v = &virt_MetadataSFMatrix3f;*/ 
 			tmp2->setValue.c[0] = 0;tmp2->setValue.c[1] = 0;tmp2->setValue.c[2] = 0;tmp2->setValue.c[3] = 0;tmp2->setValue.c[4] = 0;tmp2->setValue.c[5] = 0;tmp2->setValue.c[6] = 0;tmp2->setValue.c[7] = 0;tmp2->setValue.c[8] = 0;;
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;tmp2->value.c[3] = 0;tmp2->value.c[4] = 0;tmp2->value.c[5] = 0;tmp2->value.c[6] = 0;tmp2->value.c[7] = 0;tmp2->value.c[8] = 0;;
@@ -7757,7 +7641,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataSFMatrix4d : {
 			struct X3D_MetadataSFMatrix4d * tmp2;
 			tmp2 = (struct X3D_MetadataSFMatrix4d *) tmp;
-		/* ttmp2->v = &virt_MetadataSFMatrix4d;*/ 
 			tmp2->setValue.c[0] = 0;tmp2->setValue.c[1] = 0;tmp2->setValue.c[2] = 0;tmp2->setValue.c[3] = 0;tmp2->setValue.c[4] = 0;tmp2->setValue.c[5] = 0;tmp2->setValue.c[6] = 0;tmp2->setValue.c[7] = 0;tmp2->setValue.c[8] = 0;tmp2->setValue.c[9] = 0;tmp2->setValue.c[10] = 0;tmp2->setValue.c[11] = 0;tmp2->setValue.c[12] = 0;tmp2->setValue.c[13] = 0;tmp2->setValue.c[14] = 0;tmp2->setValue.c[15] = 0;;
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;tmp2->value.c[3] = 0;tmp2->value.c[4] = 0;tmp2->value.c[5] = 0;tmp2->value.c[6] = 0;tmp2->value.c[7] = 0;tmp2->value.c[8] = 0;tmp2->value.c[9] = 0;tmp2->value.c[10] = 0;tmp2->value.c[11] = 0;tmp2->value.c[12] = 0;tmp2->value.c[13] = 0;tmp2->value.c[14] = 0;tmp2->value.c[15] = 0;;
@@ -7768,7 +7651,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataSFMatrix4f : {
 			struct X3D_MetadataSFMatrix4f * tmp2;
 			tmp2 = (struct X3D_MetadataSFMatrix4f *) tmp;
-		/* ttmp2->v = &virt_MetadataSFMatrix4f;*/ 
 			tmp2->setValue.c[0] = 0;tmp2->setValue.c[1] = 0;tmp2->setValue.c[2] = 0;tmp2->setValue.c[3] = 0;tmp2->setValue.c[4] = 0;tmp2->setValue.c[5] = 0;tmp2->setValue.c[6] = 0;tmp2->setValue.c[7] = 0;tmp2->setValue.c[8] = 0;tmp2->setValue.c[9] = 0;tmp2->setValue.c[10] = 0;tmp2->setValue.c[11] = 0;tmp2->setValue.c[12] = 0;tmp2->setValue.c[13] = 0;tmp2->setValue.c[14] = 0;tmp2->setValue.c[15] = 0;;
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;tmp2->value.c[3] = 0;tmp2->value.c[4] = 0;tmp2->value.c[5] = 0;tmp2->value.c[6] = 0;tmp2->value.c[7] = 0;tmp2->value.c[8] = 0;tmp2->value.c[9] = 0;tmp2->value.c[10] = 0;tmp2->value.c[11] = 0;tmp2->value.c[12] = 0;tmp2->value.c[13] = 0;tmp2->value.c[14] = 0;tmp2->value.c[15] = 0;;
@@ -7779,7 +7661,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataSFNode : {
 			struct X3D_MetadataSFNode * tmp2;
 			tmp2 = (struct X3D_MetadataSFNode *) tmp;
-		/* ttmp2->v = &virt_MetadataSFNode;*/ 
 			tmp2->setValue = 0;
 			tmp2->tickTime = 0;
 			tmp2->value = 0;
@@ -7790,7 +7671,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataSFRotation : {
 			struct X3D_MetadataSFRotation * tmp2;
 			tmp2 = (struct X3D_MetadataSFRotation *) tmp;
-		/* ttmp2->v = &virt_MetadataSFRotation;*/ 
 			tmp2->setValue.c[0] = 0;tmp2->setValue.c[1] = 0;tmp2->setValue.c[2] = 0;tmp2->setValue.c[3] = 0;;
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;tmp2->value.c[3] = 0;;
@@ -7801,7 +7681,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataSFString : {
 			struct X3D_MetadataSFString * tmp2;
 			tmp2 = (struct X3D_MetadataSFString *) tmp;
-		/* ttmp2->v = &virt_MetadataSFString;*/ 
 			tmp2->setValue = newASCIIString("");
 			tmp2->tickTime = 0;
 			tmp2->value = newASCIIString("");
@@ -7812,7 +7691,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataSFTime : {
 			struct X3D_MetadataSFTime * tmp2;
 			tmp2 = (struct X3D_MetadataSFTime *) tmp;
-		/* ttmp2->v = &virt_MetadataSFTime;*/ 
 			tmp2->setValue = 0;
 			tmp2->tickTime = 0;
 			tmp2->value = 0;
@@ -7823,7 +7701,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataSFVec2d : {
 			struct X3D_MetadataSFVec2d * tmp2;
 			tmp2 = (struct X3D_MetadataSFVec2d *) tmp;
-		/* ttmp2->v = &virt_MetadataSFVec2d;*/ 
 			tmp2->setValue.c[0] = 0;tmp2->setValue.c[1] = 0;;
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;;
@@ -7834,7 +7711,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataSFVec2f : {
 			struct X3D_MetadataSFVec2f * tmp2;
 			tmp2 = (struct X3D_MetadataSFVec2f *) tmp;
-		/* ttmp2->v = &virt_MetadataSFVec2f;*/ 
 			tmp2->setValue.c[0] = 0.0f;tmp2->setValue.c[1] = 0.0f;;
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0.0f;tmp2->value.c[1] = 0.0f;;
@@ -7845,7 +7721,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataSFVec3d : {
 			struct X3D_MetadataSFVec3d * tmp2;
 			tmp2 = (struct X3D_MetadataSFVec3d *) tmp;
-		/* ttmp2->v = &virt_MetadataSFVec3d;*/ 
 			tmp2->setValue.c[0] = 0;tmp2->setValue.c[1] = 0;tmp2->setValue.c[2] = 0;;
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;;
@@ -7856,7 +7731,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataSFVec3f : {
 			struct X3D_MetadataSFVec3f * tmp2;
 			tmp2 = (struct X3D_MetadataSFVec3f *) tmp;
-		/* ttmp2->v = &virt_MetadataSFVec3f;*/ 
 			tmp2->setValue.c[0] = 0.0f;tmp2->setValue.c[1] = 0.0f;tmp2->setValue.c[2] = 0.0f;;
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0.0f;tmp2->value.c[1] = 0.0f;tmp2->value.c[2] = 0.0f;;
@@ -7867,7 +7741,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataSFVec4d : {
 			struct X3D_MetadataSFVec4d * tmp2;
 			tmp2 = (struct X3D_MetadataSFVec4d *) tmp;
-		/* ttmp2->v = &virt_MetadataSFVec4d;*/ 
 			tmp2->setValue.c[0] = 0;tmp2->setValue.c[1] = 0;tmp2->setValue.c[2] = 0;;
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;;
@@ -7878,7 +7751,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataSFVec4f : {
 			struct X3D_MetadataSFVec4f * tmp2;
 			tmp2 = (struct X3D_MetadataSFVec4f *) tmp;
-		/* ttmp2->v = &virt_MetadataSFVec4f;*/ 
 			tmp2->setValue.c[0] = 0;tmp2->setValue.c[1] = 0;tmp2->setValue.c[2] = 0;tmp2->setValue.c[3] = 0;;
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;tmp2->value.c[3] = 0;;
@@ -7889,7 +7761,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataSet : {
 			struct X3D_MetadataSet * tmp2;
 			tmp2 = (struct X3D_MetadataSet *) tmp;
-		/* ttmp2->v = &virt_MetadataSet;*/ 
 			tmp2->metadata = NULL;
 			tmp2->name = newASCIIString("");
 			tmp2->reference = newASCIIString("");
@@ -7900,7 +7771,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MetadataString : {
 			struct X3D_MetadataString * tmp2;
 			tmp2 = (struct X3D_MetadataString *) tmp;
-		/* ttmp2->v = &virt_MetadataString;*/ 
 			tmp2->metadata = NULL;
 			tmp2->name = newASCIIString("");
 			tmp2->reference = newASCIIString("");
@@ -7911,7 +7781,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MovieTexture : {
 			struct X3D_MovieTexture * tmp2;
 			tmp2 = (struct X3D_MovieTexture *) tmp;
-		/* ttmp2->v = &virt_MovieTexture;*/ 
 			tmp2->__textureTableIndex = 0;
 			tmp2->_parentResource = getInputResource();
 			tmp2->description = newASCIIString("");
@@ -7936,7 +7805,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MultiTexture : {
 			struct X3D_MultiTexture * tmp2;
 			tmp2 = (struct X3D_MultiTexture *) tmp;
-		/* ttmp2->v = &virt_MultiTexture;*/ 
 			tmp2->__params = 0;
 			tmp2->alpha = 1.0f;
 			tmp2->color.c[0] = 1.0f;tmp2->color.c[1] = 1.0f;tmp2->color.c[2] = 1.0f;;
@@ -7951,7 +7819,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MultiTextureCoordinate : {
 			struct X3D_MultiTextureCoordinate * tmp2;
 			tmp2 = (struct X3D_MultiTextureCoordinate *) tmp;
-		/* ttmp2->v = &virt_MultiTextureCoordinate;*/ 
 			tmp2->metadata = NULL;
 			tmp2->texCoord.n=0; tmp2->texCoord.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_texCoord;
@@ -7960,7 +7827,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MultiTextureTransform : {
 			struct X3D_MultiTextureTransform * tmp2;
 			tmp2 = (struct X3D_MultiTextureTransform *) tmp;
-		/* ttmp2->v = &virt_MultiTextureTransform;*/ 
 			tmp2->metadata = NULL;
 			tmp2->textureTransform.n=0; tmp2->textureTransform.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_textureTransform;
@@ -7969,7 +7835,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_NavigationInfo : {
 			struct X3D_NavigationInfo * tmp2;
 			tmp2 = (struct X3D_NavigationInfo *) tmp;
-		/* ttmp2->v = &virt_NavigationInfo;*/ 
 			tmp2->avatarSize.p = MALLOC (float *, sizeof(float)*3);
 			tmp2->avatarSize.p[0] = 0.25f;
 			tmp2->avatarSize.p[1] = 1.6f;
@@ -7992,7 +7857,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Normal : {
 			struct X3D_Normal * tmp2;
 			tmp2 = (struct X3D_Normal *) tmp;
-		/* ttmp2->v = &virt_Normal;*/ 
 			tmp2->metadata = NULL;
 			tmp2->vector.n=0; tmp2->vector.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_normal;
@@ -8001,7 +7865,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_NormalInterpolator : {
 			struct X3D_NormalInterpolator * tmp2;
 			tmp2 = (struct X3D_NormalInterpolator *) tmp;
-		/* ttmp2->v = &virt_NormalInterpolator;*/ 
 			tmp2->key.n=0; tmp2->key.p=0;
 			tmp2->keyValue.n=0; tmp2->keyValue.p=0;
 			tmp2->metadata = NULL;
@@ -8013,7 +7876,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_NurbsCurve : {
 			struct X3D_NurbsCurve * tmp2;
 			tmp2 = (struct X3D_NurbsCurve *) tmp;
-		/* ttmp2->v = &virt_NurbsCurve;*/ 
 			tmp2->controlPoint = NULL;
 			tmp2->knot.n=0; tmp2->knot.p=0;
 			tmp2->metadata = NULL;
@@ -8026,7 +7888,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_NurbsCurve2D : {
 			struct X3D_NurbsCurve2D * tmp2;
 			tmp2 = (struct X3D_NurbsCurve2D *) tmp;
-		/* ttmp2->v = &virt_NurbsCurve2D;*/ 
 			tmp2->controlPoint.n=0; tmp2->controlPoint.p=0;
 			tmp2->knot.n=0; tmp2->knot.p=0;
 			tmp2->metadata = NULL;
@@ -8039,7 +7900,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_NurbsOrientationInterpolator : {
 			struct X3D_NurbsOrientationInterpolator * tmp2;
 			tmp2 = (struct X3D_NurbsOrientationInterpolator *) tmp;
-		/* ttmp2->v = &virt_NurbsOrientationInterpolator;*/ 
 			tmp2->controlPoint = NULL;
 			tmp2->knot.n=0; tmp2->knot.p=0;
 			tmp2->metadata = NULL;
@@ -8053,7 +7913,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_NurbsPatchSurface : {
 			struct X3D_NurbsPatchSurface * tmp2;
 			tmp2 = (struct X3D_NurbsPatchSurface *) tmp;
-		/* ttmp2->v = &virt_NurbsPatchSurface;*/ 
 			tmp2->controlPoint = NULL;
 			tmp2->metadata = NULL;
 			tmp2->solid = TRUE;
@@ -8075,7 +7934,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_NurbsPositionInterpolator : {
 			struct X3D_NurbsPositionInterpolator * tmp2;
 			tmp2 = (struct X3D_NurbsPositionInterpolator *) tmp;
-		/* ttmp2->v = &virt_NurbsPositionInterpolator;*/ 
 			tmp2->controlPoint = NULL;
 			tmp2->knot.n=0; tmp2->knot.p=0;
 			tmp2->metadata = NULL;
@@ -8089,7 +7947,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_NurbsSet : {
 			struct X3D_NurbsSet * tmp2;
 			tmp2 = (struct X3D_NurbsSet *) tmp;
-		/* ttmp2->v = &virt_NurbsSet;*/ 
 			tmp2->addGeometry.n=0; tmp2->addGeometry.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
@@ -8103,7 +7960,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_NurbsSurfaceInterpolator : {
 			struct X3D_NurbsSurfaceInterpolator * tmp2;
 			tmp2 = (struct X3D_NurbsSurfaceInterpolator *) tmp;
-		/* ttmp2->v = &virt_NurbsSurfaceInterpolator;*/ 
 			tmp2->controlPoint = NULL;
 			tmp2->metadata = NULL;
 			tmp2->normal_changed.c[0] = 0.0f;tmp2->normal_changed.c[1] = 0.0f;tmp2->normal_changed.c[2] = 0.0f;;
@@ -8121,7 +7977,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_NurbsSweptSurface : {
 			struct X3D_NurbsSweptSurface * tmp2;
 			tmp2 = (struct X3D_NurbsSweptSurface *) tmp;
-		/* ttmp2->v = &virt_NurbsSweptSurface;*/ 
 			tmp2->ccw = TRUE;
 			tmp2->crossSectionCurve = NULL;
 			tmp2->metadata = NULL;
@@ -8133,7 +7988,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_NurbsSwungSurface : {
 			struct X3D_NurbsSwungSurface * tmp2;
 			tmp2 = (struct X3D_NurbsSwungSurface *) tmp;
-		/* ttmp2->v = &virt_NurbsSwungSurface;*/ 
 			tmp2->ccw = TRUE;
 			tmp2->metadata = NULL;
 			tmp2->profileCurve = NULL;
@@ -8145,7 +7999,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_NurbsTextureCoordinate : {
 			struct X3D_NurbsTextureCoordinate * tmp2;
 			tmp2 = (struct X3D_NurbsTextureCoordinate *) tmp;
-		/* ttmp2->v = &virt_NurbsTextureCoordinate;*/ 
 			tmp2->controlPoint.n=0; tmp2->controlPoint.p=0;
 			tmp2->metadata = NULL;
 			tmp2->uDimension = 0;
@@ -8161,7 +8014,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_NurbsTrimmedSurface : {
 			struct X3D_NurbsTrimmedSurface * tmp2;
 			tmp2 = (struct X3D_NurbsTrimmedSurface *) tmp;
-		/* ttmp2->v = &virt_NurbsTrimmedSurface;*/ 
 			tmp2->addTrimmingContour.n=0; tmp2->addTrimmingContour.p=0;
 			tmp2->controlPoint = NULL;
 			tmp2->metadata = NULL;
@@ -8186,7 +8038,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_OSC_Sensor : {
 			struct X3D_OSC_Sensor * tmp2;
 			tmp2 = (struct X3D_OSC_Sensor *) tmp;
-		/* ttmp2->v = &virt_OSC_Sensor;*/ 
 			tmp2->FIFOsize = 64;
 			tmp2->__oldmetadata = 0;
 			tmp2->_floatInpFIFO = 0;
@@ -8216,7 +8067,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_OrientationInterpolator : {
 			struct X3D_OrientationInterpolator * tmp2;
 			tmp2 = (struct X3D_OrientationInterpolator *) tmp;
-		/* ttmp2->v = &virt_OrientationInterpolator;*/ 
 			tmp2->key.n=0; tmp2->key.p=0;
 			tmp2->keyValue.n=0; tmp2->keyValue.p=0;
 			tmp2->metadata = NULL;
@@ -8228,7 +8078,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_OrthoViewpoint : {
 			struct X3D_OrthoViewpoint * tmp2;
 			tmp2 = (struct X3D_OrthoViewpoint *) tmp;
-		/* ttmp2->v = &virt_OrthoViewpoint;*/ 
 			tmp2->bindTime = -1;
 			tmp2->centerOfRotation.c[0] = 0.0f;tmp2->centerOfRotation.c[1] = 0.0f;tmp2->centerOfRotation.c[2] = 0.0f;;
 			tmp2->description = newASCIIString("");
@@ -8251,7 +8100,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_PackagedShader : {
 			struct X3D_PackagedShader * tmp2;
 			tmp2 = (struct X3D_PackagedShader *) tmp;
-		/* ttmp2->v = &virt_PackagedShader;*/ 
 			tmp2->_initialized = FALSE;
 			tmp2->_retrievedURLData = FALSE;
 			tmp2->_shaderLoadThread = _THREAD_NULL_;
@@ -8269,7 +8117,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_PickableGroup : {
 			struct X3D_PickableGroup * tmp2;
 			tmp2 = (struct X3D_PickableGroup *) tmp;
-		/* ttmp2->v = &virt_PickableGroup;*/ 
 			tmp2->FreeWRL_PROTOInterfaceNodes.n=0; tmp2->FreeWRL_PROTOInterfaceNodes.p=0;
 			tmp2->FreeWRL__protoDef = INT_ID_UNDEFINED;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
@@ -8286,7 +8133,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_PixelTexture : {
 			struct X3D_PixelTexture * tmp2;
 			tmp2 = (struct X3D_PixelTexture *) tmp;
-		/* ttmp2->v = &virt_PixelTexture;*/ 
 			tmp2->__textureTableIndex = 0;
 			tmp2->_parentResource = getInputResource();
 			tmp2->image.n=3; tmp2->image.p=MALLOC (int *, sizeof(int)*3); tmp2->image.p[0] = 0; tmp2->image.p[1] = 0; tmp2->image.p[2] = 0;;
@@ -8300,7 +8146,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_PlaneSensor : {
 			struct X3D_PlaneSensor * tmp2;
 			tmp2 = (struct X3D_PlaneSensor *) tmp;
-		/* ttmp2->v = &virt_PlaneSensor;*/ 
 			tmp2->__oldEnabled = TRUE;
 			tmp2->_oldtrackPoint.c[0] = 0.0f;tmp2->_oldtrackPoint.c[1] = 0.0f;tmp2->_oldtrackPoint.c[2] = 0.0f;;
 			tmp2->_oldtranslation.c[0] = 0.0f;tmp2->_oldtranslation.c[1] = 0.0f;tmp2->_oldtranslation.c[2] = 0.0f;;
@@ -8323,7 +8168,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_PointLight : {
 			struct X3D_PointLight * tmp2;
 			tmp2 = (struct X3D_PointLight *) tmp;
-		/* ttmp2->v = &virt_PointLight;*/ 
 			tmp2->_amb.c[0] = 0;tmp2->_amb.c[1] = 0;tmp2->_amb.c[2] = 0;tmp2->_amb.c[3] = 0;;
 			tmp2->_col.c[0] = 0;tmp2->_col.c[1] = 0;tmp2->_col.c[2] = 0;tmp2->_col.c[3] = 0;;
 			tmp2->_loc.c[0] = 0;tmp2->_loc.c[1] = 0;tmp2->_loc.c[2] = 0;tmp2->_loc.c[3] = 0;;
@@ -8342,7 +8186,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_PointPickSensor : {
 			struct X3D_PointPickSensor * tmp2;
 			tmp2 = (struct X3D_PointPickSensor *) tmp;
-		/* ttmp2->v = &virt_PointPickSensor;*/ 
 			tmp2->_bboxCenter.c[0] = 0.0f;tmp2->_bboxCenter.c[1] = 0.0f;tmp2->_bboxCenter.c[2] = 0.0f;;
 			tmp2->_bboxSize.c[0] = -1.0f;tmp2->_bboxSize.c[1] = -1.0f;tmp2->_bboxSize.c[2] = -1.0f;;
 			tmp2->_oldisActive = FALSE;
@@ -8367,7 +8210,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_PointSet : {
 			struct X3D_PointSet * tmp2;
 			tmp2 = (struct X3D_PointSet *) tmp;
-		/* ttmp2->v = &virt_PointSet;*/ 
 			tmp2->_colourSize = 0;
 			tmp2->_coloursVBO = 0;
 			tmp2->_npoints = 0;
@@ -8383,7 +8225,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Polyline2D : {
 			struct X3D_Polyline2D * tmp2;
 			tmp2 = (struct X3D_Polyline2D *) tmp;
-		/* ttmp2->v = &virt_Polyline2D;*/ 
 			tmp2->lineSegments.n=0; tmp2->lineSegments.p=0;
 			tmp2->metadata = NULL;
 			tmp2->_defaultContainer = FIELDNAMES_geometry;
@@ -8392,7 +8233,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Polypoint2D : {
 			struct X3D_Polypoint2D * tmp2;
 			tmp2 = (struct X3D_Polypoint2D *) tmp;
-		/* ttmp2->v = &virt_Polypoint2D;*/ 
 			tmp2->metadata = NULL;
 			tmp2->point.n=0; tmp2->point.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_geometry;
@@ -8401,7 +8241,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_PositionInterpolator : {
 			struct X3D_PositionInterpolator * tmp2;
 			tmp2 = (struct X3D_PositionInterpolator *) tmp;
-		/* ttmp2->v = &virt_PositionInterpolator;*/ 
 			tmp2->key.n=0; tmp2->key.p=0;
 			tmp2->keyValue.n=0; tmp2->keyValue.p=0;
 			tmp2->metadata = NULL;
@@ -8413,7 +8252,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_PositionInterpolator2D : {
 			struct X3D_PositionInterpolator2D * tmp2;
 			tmp2 = (struct X3D_PositionInterpolator2D *) tmp;
-		/* ttmp2->v = &virt_PositionInterpolator2D;*/ 
 			tmp2->key.n=0; tmp2->key.p=0;
 			tmp2->keyValue.n=0; tmp2->keyValue.p=0;
 			tmp2->metadata = NULL;
@@ -8425,7 +8263,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ProgramShader : {
 			struct X3D_ProgramShader * tmp2;
 			tmp2 = (struct X3D_ProgramShader *) tmp;
-		/* ttmp2->v = &virt_ProgramShader;*/ 
 			tmp2->_initialized = FALSE;
 			tmp2->_retrievedURLData = FALSE;
 			tmp2->_shaderLoadThread = _THREAD_NULL_;
@@ -8442,7 +8279,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Proto : {
 			struct X3D_Proto * tmp2;
 			tmp2 = (struct X3D_Proto *) tmp;
-		/* ttmp2->v = &virt_Proto;*/ 
 			tmp2->__DEFnames = 0;
 			tmp2->__IS = 0;
 			tmp2->__ROUTES = 0;
@@ -8462,7 +8298,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ProximitySensor : {
 			struct X3D_ProximitySensor * tmp2;
 			tmp2 = (struct X3D_ProximitySensor *) tmp;
-		/* ttmp2->v = &virt_ProximitySensor;*/ 
 			tmp2->__hit = 0;
 			tmp2->__oldEnabled = TRUE;
 			tmp2->__t1.c[0] = 10000000.0f;tmp2->__t1.c[1] = 0.0f;tmp2->__t1.c[2] = 0.0f;;
@@ -8483,7 +8318,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_QuadSet : {
 			struct X3D_QuadSet * tmp2;
 			tmp2 = (struct X3D_QuadSet *) tmp;
-		/* ttmp2->v = &virt_QuadSet;*/ 
 			tmp2->_coordIndex.n=0; tmp2->_coordIndex.p=0;
 			tmp2->attrib.n=0; tmp2->attrib.p=0;
 			tmp2->ccw = TRUE;
@@ -8502,7 +8336,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ReceiverPdu : {
 			struct X3D_ReceiverPdu * tmp2;
 			tmp2 = (struct X3D_ReceiverPdu *) tmp;
-		/* ttmp2->v = &virt_ReceiverPdu;*/ 
 			tmp2->address = newASCIIString("localhost");
 			tmp2->applicationID = 1;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
@@ -8538,7 +8371,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Rectangle2D : {
 			struct X3D_Rectangle2D * tmp2;
 			tmp2 = (struct X3D_Rectangle2D *) tmp;
-		/* ttmp2->v = &virt_Rectangle2D;*/ 
 			tmp2->__numPoints = 0;
 			tmp2->__points.n=0; tmp2->__points.p=0;
 			tmp2->metadata = NULL;
@@ -8550,7 +8382,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ScalarInterpolator : {
 			struct X3D_ScalarInterpolator * tmp2;
 			tmp2 = (struct X3D_ScalarInterpolator *) tmp;
-		/* ttmp2->v = &virt_ScalarInterpolator;*/ 
 			tmp2->key.n=0; tmp2->key.p=0;
 			tmp2->keyValue.n=0; tmp2->keyValue.p=0;
 			tmp2->metadata = NULL;
@@ -8562,7 +8393,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Script : {
 			struct X3D_Script * tmp2;
 			tmp2 = (struct X3D_Script *) tmp;
-		/* ttmp2->v = &virt_Script;*/ 
 			tmp2->__scriptObj = 0;
 			tmp2->_parentResource = getInputResource();
 			tmp2->directOutput = FALSE;
@@ -8575,7 +8405,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ShaderPart : {
 			struct X3D_ShaderPart * tmp2;
 			tmp2 = (struct X3D_ShaderPart *) tmp;
-		/* ttmp2->v = &virt_ShaderPart;*/ 
 			tmp2->_parentResource = getInputResource();
 			tmp2->metadata = NULL;
 			tmp2->type = newASCIIString("VERTEX");
@@ -8586,7 +8415,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ShaderProgram : {
 			struct X3D_ShaderProgram * tmp2;
 			tmp2 = (struct X3D_ShaderProgram *) tmp;
-		/* ttmp2->v = &virt_ShaderProgram;*/ 
 			tmp2->_parentResource = getInputResource();
 			tmp2->_shaderUserDefinedFields = NULL;
 			tmp2->metadata = NULL;
@@ -8598,7 +8426,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Shape : {
 			struct X3D_Shape * tmp2;
 			tmp2 = (struct X3D_Shape *) tmp;
-		/* ttmp2->v = &virt_Shape;*/ 
 			tmp2->__Samples = -1;
 			tmp2->__occludeCheckCount = -1;
 			tmp2->__visible = 0;
@@ -8614,7 +8441,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_SignalPdu : {
 			struct X3D_SignalPdu * tmp2;
 			tmp2 = (struct X3D_SignalPdu *) tmp;
-		/* ttmp2->v = &virt_SignalPdu;*/ 
 			tmp2->address = newASCIIString("localhost");
 			tmp2->applicationID = 1;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
@@ -8650,7 +8476,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Sound : {
 			struct X3D_Sound * tmp2;
 			tmp2 = (struct X3D_Sound *) tmp;
-		/* ttmp2->v = &virt_Sound;*/ 
 			tmp2->direction.c[0] = 0.0f;tmp2->direction.c[1] = 0.0f;tmp2->direction.c[2] = 1.0f;;
 			tmp2->intensity = 1.0f;
 			tmp2->location.c[0] = 0.0f;tmp2->location.c[1] = 0.0f;tmp2->location.c[2] = 0.0f;;
@@ -8668,7 +8493,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Sphere : {
 			struct X3D_Sphere * tmp2;
 			tmp2 = (struct X3D_Sphere *) tmp;
-		/* ttmp2->v = &virt_Sphere;*/ 
 			tmp2->__SphereIndxVBO = 0;
 			tmp2->__points.n=0; tmp2->__points.p=0;
 			tmp2->_sideVBO = 0;
@@ -8681,7 +8505,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_SphereSensor : {
 			struct X3D_SphereSensor * tmp2;
 			tmp2 = (struct X3D_SphereSensor *) tmp;
-		/* ttmp2->v = &virt_SphereSensor;*/ 
 			tmp2->__oldEnabled = TRUE;
 			tmp2->_oldrotation.c[0] = 0;tmp2->_oldrotation.c[1] = 0;tmp2->_oldrotation.c[2] = 1;tmp2->_oldrotation.c[3] = 0;;
 			tmp2->_oldtrackPoint.c[0] = 0.0f;tmp2->_oldtrackPoint.c[1] = 0.0f;tmp2->_oldtrackPoint.c[2] = 0.0f;;
@@ -8703,7 +8526,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_SplinePositionInterpolator : {
 			struct X3D_SplinePositionInterpolator * tmp2;
 			tmp2 = (struct X3D_SplinePositionInterpolator *) tmp;
-		/* ttmp2->v = &virt_SplinePositionInterpolator;*/ 
 			tmp2->closed = FALSE;
 			tmp2->key.n=0; tmp2->key.p=0;
 			tmp2->keyValue.n=0; tmp2->keyValue.p=0;
@@ -8718,7 +8540,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_SplinePositionInterpolator2D : {
 			struct X3D_SplinePositionInterpolator2D * tmp2;
 			tmp2 = (struct X3D_SplinePositionInterpolator2D *) tmp;
-		/* ttmp2->v = &virt_SplinePositionInterpolator2D;*/ 
 			tmp2->closed = FALSE;
 			tmp2->key.n=0; tmp2->key.p=0;
 			tmp2->keyValue.n=0; tmp2->keyValue.p=0;
@@ -8733,7 +8554,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_SplineScalarInterpolator : {
 			struct X3D_SplineScalarInterpolator * tmp2;
 			tmp2 = (struct X3D_SplineScalarInterpolator *) tmp;
-		/* ttmp2->v = &virt_SplineScalarInterpolator;*/ 
 			tmp2->closed = FALSE;
 			tmp2->key.n=0; tmp2->key.p=0;
 			tmp2->keyValue.n=0; tmp2->keyValue.p=0;
@@ -8748,7 +8568,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_SpotLight : {
 			struct X3D_SpotLight * tmp2;
 			tmp2 = (struct X3D_SpotLight *) tmp;
-		/* ttmp2->v = &virt_SpotLight;*/ 
 			tmp2->_amb.c[0] = 0;tmp2->_amb.c[1] = 0;tmp2->_amb.c[2] = 0;tmp2->_amb.c[3] = 0;;
 			tmp2->_col.c[0] = 0;tmp2->_col.c[1] = 0;tmp2->_col.c[2] = 0;tmp2->_col.c[3] = 0;;
 			tmp2->_dir.c[0] = 0;tmp2->_dir.c[1] = 0;tmp2->_dir.c[2] = 0;tmp2->_dir.c[3] = 0;;
@@ -8771,7 +8590,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_SquadOrientationInterpolator : {
 			struct X3D_SquadOrientationInterpolator * tmp2;
 			tmp2 = (struct X3D_SquadOrientationInterpolator *) tmp;
-		/* ttmp2->v = &virt_SquadOrientationInterpolator;*/ 
 			tmp2->key.n=0; tmp2->key.p=0;
 			tmp2->keyValue.n=0; tmp2->keyValue.p=0;
 			tmp2->metadata = NULL;
@@ -8784,7 +8602,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_StaticGroup : {
 			struct X3D_StaticGroup * tmp2;
 			tmp2 = (struct X3D_StaticGroup *) tmp;
-		/* ttmp2->v = &virt_StaticGroup;*/ 
 			tmp2->__solid = -1;
 			tmp2->__transparency = -1;
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
@@ -8798,7 +8615,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_StringSensor : {
 			struct X3D_StringSensor * tmp2;
 			tmp2 = (struct X3D_StringSensor *) tmp;
-		/* ttmp2->v = &virt_StringSensor;*/ 
 			tmp2->__oldEnabled = TRUE;
 			tmp2->_initialized = FALSE;
 			tmp2->deletionAllowed = TRUE;
@@ -8813,7 +8629,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Switch : {
 			struct X3D_Switch * tmp2;
 			tmp2 = (struct X3D_Switch *) tmp;
-		/* ttmp2->v = &virt_Switch;*/ 
 			tmp2->__isX3D = (inputFileVersion[0]==3);
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
@@ -8829,7 +8644,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Text : {
 			struct X3D_Text * tmp2;
 			tmp2 = (struct X3D_Text *) tmp;
-		/* ttmp2->v = &virt_Text;*/ 
 			tmp2->__rendersub = 0;
 			tmp2->fontStyle = NULL;
 			tmp2->length.n=0; tmp2->length.p=0;
@@ -8846,7 +8660,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_TextureBackground : {
 			struct X3D_TextureBackground * tmp2;
 			tmp2 = (struct X3D_TextureBackground *) tmp;
-		/* ttmp2->v = &virt_TextureBackground;*/ 
 			tmp2->__VBO = 0;
 			tmp2->__colours.n=0; tmp2->__colours.p=0;
 			tmp2->__points.n=0; tmp2->__points.p=0;
@@ -8880,7 +8693,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_TextureCoordinate : {
 			struct X3D_TextureCoordinate * tmp2;
 			tmp2 = (struct X3D_TextureCoordinate *) tmp;
-		/* ttmp2->v = &virt_TextureCoordinate;*/ 
 			tmp2->metadata = NULL;
 			tmp2->point.n=0; tmp2->point.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_texCoord;
@@ -8889,7 +8701,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_TextureCoordinateGenerator : {
 			struct X3D_TextureCoordinateGenerator * tmp2;
 			tmp2 = (struct X3D_TextureCoordinateGenerator *) tmp;
-		/* ttmp2->v = &virt_TextureCoordinateGenerator;*/ 
 			tmp2->metadata = NULL;
 			tmp2->mode = newASCIIString("SPHERE");
 			tmp2->parameter.n=0; tmp2->parameter.p=0;
@@ -8899,7 +8710,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_TextureProperties : {
 			struct X3D_TextureProperties * tmp2;
 			tmp2 = (struct X3D_TextureProperties *) tmp;
-		/* ttmp2->v = &virt_TextureProperties;*/ 
 			tmp2->anisotropicDegree = 1.0f;
 			tmp2->borderColor.c[0] = 0;tmp2->borderColor.c[1] = 0;tmp2->borderColor.c[2] = 0;tmp2->borderColor.c[3] = 0;;
 			tmp2->borderWidth = 0;
@@ -8918,7 +8728,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_TextureTransform : {
 			struct X3D_TextureTransform * tmp2;
 			tmp2 = (struct X3D_TextureTransform *) tmp;
-		/* ttmp2->v = &virt_TextureTransform;*/ 
 			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;;
 			tmp2->metadata = NULL;
 			tmp2->rotation = 0.0f;
@@ -8930,7 +8739,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_TimeSensor : {
 			struct X3D_TimeSensor * tmp2;
 			tmp2 = (struct X3D_TimeSensor *) tmp;
-		/* ttmp2->v = &virt_TimeSensor;*/ 
 			tmp2->__ctflag = 10;
 			tmp2->__inittime = 0;
 			tmp2->__oldEnabled = TRUE;
@@ -8954,7 +8762,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_TimeTrigger : {
 			struct X3D_TimeTrigger * tmp2;
 			tmp2 = (struct X3D_TimeTrigger *) tmp;
-		/* ttmp2->v = &virt_TimeTrigger;*/ 
 			tmp2->metadata = NULL;
 			tmp2->set_boolean = 0;
 			tmp2->triggerTime = 0;
@@ -8964,7 +8771,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_TouchSensor : {
 			struct X3D_TouchSensor * tmp2;
 			tmp2 = (struct X3D_TouchSensor *) tmp;
-		/* ttmp2->v = &virt_TouchSensor;*/ 
 			tmp2->__oldEnabled = TRUE;
 			tmp2->_oldhitNormal.c[0] = 0.0f;tmp2->_oldhitNormal.c[1] = 0.0f;tmp2->_oldhitNormal.c[2] = 0.0f;;
 			tmp2->_oldhitPoint.c[0] = 0.0f;tmp2->_oldhitPoint.c[1] = 0.0f;tmp2->_oldhitPoint.c[2] = 0.0f;;
@@ -8984,7 +8790,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Transform : {
 			struct X3D_Transform * tmp2;
 			tmp2 = (struct X3D_Transform *) tmp;
-		/* ttmp2->v = &virt_Transform;*/ 
 			tmp2->__do_anything = FALSE;
 			tmp2->__do_center = FALSE;
 			tmp2->__do_rotation = FALSE;
@@ -9009,7 +8814,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_TransmitterPdu : {
 			struct X3D_TransmitterPdu * tmp2;
 			tmp2 = (struct X3D_TransmitterPdu *) tmp;
-		/* ttmp2->v = &virt_TransmitterPdu;*/ 
 			tmp2->address = newASCIIString("localhost");
 			tmp2->antennaLocation.c[0] = 0.0f;tmp2->antennaLocation.c[1] = 0.0f;tmp2->antennaLocation.c[2] = 0.0f;;
 			tmp2->antennaPatternLength = 0;
@@ -9061,7 +8865,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_TriangleFanSet : {
 			struct X3D_TriangleFanSet * tmp2;
 			tmp2 = (struct X3D_TriangleFanSet *) tmp;
-		/* ttmp2->v = &virt_TriangleFanSet;*/ 
 			tmp2->_coordIndex.n=0; tmp2->_coordIndex.p=0;
 			tmp2->attrib.n=0; tmp2->attrib.p=0;
 			tmp2->ccw = TRUE;
@@ -9083,7 +8886,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_TriangleSet : {
 			struct X3D_TriangleSet * tmp2;
 			tmp2 = (struct X3D_TriangleSet *) tmp;
-		/* ttmp2->v = &virt_TriangleSet;*/ 
 			tmp2->_coordIndex.n=0; tmp2->_coordIndex.p=0;
 			tmp2->attrib.n=0; tmp2->attrib.p=0;
 			tmp2->ccw = TRUE;
@@ -9102,7 +8904,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_TriangleSet2D : {
 			struct X3D_TriangleSet2D * tmp2;
 			tmp2 = (struct X3D_TriangleSet2D *) tmp;
-		/* ttmp2->v = &virt_TriangleSet2D;*/ 
 			tmp2->__texCoords = 0;
 			tmp2->metadata = NULL;
 			tmp2->solid = FALSE;
@@ -9113,7 +8914,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_TriangleStripSet : {
 			struct X3D_TriangleStripSet * tmp2;
 			tmp2 = (struct X3D_TriangleStripSet *) tmp;
-		/* ttmp2->v = &virt_TriangleStripSet;*/ 
 			tmp2->_coordIndex.n=0; tmp2->_coordIndex.p=0;
 			tmp2->attrib.n=0; tmp2->attrib.p=0;
 			tmp2->ccw = TRUE;
@@ -9133,7 +8933,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_TwoSidedMaterial : {
 			struct X3D_TwoSidedMaterial * tmp2;
 			tmp2 = (struct X3D_TwoSidedMaterial *) tmp;
-		/* ttmp2->v = &virt_TwoSidedMaterial;*/ 
 			tmp2->_verifiedBackColor.p = MALLOC (float *, sizeof(float)*17);
 			tmp2->_verifiedBackColor.p[0] = 0.0f;
 			tmp2->_verifiedBackColor.p[1] = 0.0f;
@@ -9192,7 +8991,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Viewpoint : {
 			struct X3D_Viewpoint * tmp2;
 			tmp2 = (struct X3D_Viewpoint *) tmp;
-		/* ttmp2->v = &virt_Viewpoint;*/ 
 			tmp2->bindTime = -1;
 			tmp2->centerOfRotation.c[0] = 0.0f;tmp2->centerOfRotation.c[1] = 0.0f;tmp2->centerOfRotation.c[2] = 0.0f;;
 			tmp2->description = newASCIIString("");
@@ -9210,7 +9008,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ViewpointGroup : {
 			struct X3D_ViewpointGroup * tmp2;
 			tmp2 = (struct X3D_ViewpointGroup *) tmp;
-		/* ttmp2->v = &virt_ViewpointGroup;*/ 
 			tmp2->__proxNode = NULL;
 			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;;
 			tmp2->children.n=0; tmp2->children.p=0;
@@ -9225,7 +9022,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_VisibilitySensor : {
 			struct X3D_VisibilitySensor * tmp2;
 			tmp2 = (struct X3D_VisibilitySensor *) tmp;
-		/* ttmp2->v = &virt_VisibilitySensor;*/ 
 			tmp2->__Samples = 0;
 			tmp2->__occludeCheckCount = -1;
 			tmp2->__oldEnabled = TRUE;
@@ -9244,7 +9040,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_WorldInfo : {
 			struct X3D_WorldInfo * tmp2;
 			tmp2 = (struct X3D_WorldInfo *) tmp;
-		/* ttmp2->v = &virt_WorldInfo;*/ 
 			tmp2->info.n=0; tmp2->info.p=0;
 			tmp2->metadata = NULL;
 			tmp2->title = newASCIIString("");

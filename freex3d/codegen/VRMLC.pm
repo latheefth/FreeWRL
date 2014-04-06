@@ -1141,7 +1141,7 @@ sub gen {
 		push @genFuncs2,
 			"\t\tcase NODE_$node : {\n\t\t\tstruct X3D_$node * tmp2;\n";
 
-		push @genFuncs2, "\t\t\ttmp2 = (struct X3D_$node *) tmp;\n\t\t\/* ttmp2->v = &virt_$node;*/ \n";
+		push @genFuncs2, "\t\t\ttmp2 = (struct X3D_$node *) tmp;\n";
 
  		foreach my $field (sort keys %{$VRML::NodeType::Nodes{$node}{Defaults}}) {
 			my $ft = $VRML::NodeType::Nodes{$node}{FieldTypes}{$field};
