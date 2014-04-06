@@ -13,6 +13,9 @@
 #include "dllFreeWRL.h"
 
 #include <windows.h>
+#if _MSC_VER > 1700
+#include "winapifamily.h"
+#endif
 #include <stdio.h>
 #include <stdarg.h>
 #include <wtypes.h>
