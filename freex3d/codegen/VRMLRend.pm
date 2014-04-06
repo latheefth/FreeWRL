@@ -14,10 +14,15 @@
 #              Others are "C-#defines".
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
+package VRML::Rend;
+
+use strict;
+use warnings;
 
 # DJTRACK_PICKSENSORS See PointPickSensor
 # See WANT_OSC
 # used for the X3D Parser only. Return type of node.
+
 our %defaultContainerType = (
 	Proto			=>"children",
 
@@ -1037,4 +1042,5 @@ our %X3DSpecialC = map {($_=>1)} qw/
 	import
 	export
 /;
+
 1;
