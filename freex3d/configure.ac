@@ -365,7 +365,11 @@ AM_CONDITIONAL([WINDOW_USE_WIN32], [test "$TARGET" = win32])
 
 AC_MSG_RESULT([Target windowing system selected: $TARGET])
 
+
+# ======
 # OpenGL
+# ======
+
 case "$TARGET" in
      aqua) # OpenGL framework should be installed
         if ! test -d /System/Library/Frameworks/OpenGL.framework ; then
@@ -389,7 +393,10 @@ case "$TARGET" in
         ;;
 esac
 
+# ======
 # OpenCL
+# ======
+
 AC_ARG_WITH([OpenCL],AS_HELP_STRING([--with-OpenCL=<dir>],[Use OpenCL from here]),[],[with_OpenCL=no])
 
 case "$with_OpenCL" in
@@ -654,6 +661,14 @@ fi
 AC_MY_SWITCH(twodee,[enable building of 2D overlay support],off)
 if test x$sw_twodee = xyes; then
 	AC_DEFINE(WANT_2D_OVER,1,[Install 2D overlay])
+fi
+
+# =======================
+# STL file format support
+# =======================
+AC_MY_SWITCH(STL,[enable building of STL parse support],off)
+if test x$sw_STL = xyes; then
+	AC_DEFINE(INCLUDE_STL_FILES,1,[Parse STL Files])
 fi
 
 # ======================================
