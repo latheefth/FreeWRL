@@ -3148,11 +3148,11 @@ void fw_glLoadIdentity(void) {
 	break;
 
 MATRIX4* PushMat( int a, int *b, int c, MATRIX4 *d){
-	(*b)++; 
+	(*b)++;
 	if (*b >= c) {
 		printf("stack overflow, depth %d whichmode %d\n", *b, a);
 		*b = c - 1;
-	} 
+	}
 	memcpy((void *)d[*b], (void *)d[*b - 1], sizeof(GLDOUBLE)* 16);
 	return &d[*b];
 }
@@ -3729,7 +3729,7 @@ static void sortChildren (int line, struct Multi_Node *ch, struct Multi_Node *so
 	struct X3D_Node *a, *b, *c;
 
 
-	/* Thread Race Warning: the (non-broto) parser can still be 
+	/* Thread Race Warning: the (non-broto) parser can still be
 	  adding children in its thread, while we are rendering in this thread.
 	  We don't have mutex locks, so we are relying on 'atomic operations'
 	  if it bombs in here check also REINITIALIZE_SORTED_NODES_FIELD macro which does the same thing
@@ -3745,8 +3745,8 @@ static void sortChildren (int line, struct Multi_Node *ch, struct Multi_Node *so
 
 	/* has this changed size? */
 	if (nc != sortedCh->n) {
-		FREE_IF_NZ(sortedCh->p); //Mar 11, 2014: 
-		sortedCh->p = MALLOC(void *, sizeof (struct X3DNode *) * nc); 
+		FREE_IF_NZ(sortedCh->p); //Mar 11, 2014:
+		sortedCh->p = MALLOC(void *, sizeof (struct X3DNode *) * nc);
 		memcpy(sortedCh->p, ch->p, sizeof(struct X3DNode *) * nc); //ATOMIC-OP - ch->p gets realloced frequently, we need a snapshot which may be bigger than nc above
 	}
 
@@ -5547,7 +5547,7 @@ PRINT_GL_ERROR_IF_ANY("BEGIN sendMaterialsToShader");
     #if defined  (AQUA) || defined (GL_ES_VERSION_2_0)
 	SEND_FLOAT(myPointSize,myap->pointSize);
     #else
-	glPointSize(myap->pointSize);
+	glPointSize(myap->pointSize > 0 ? myap->pointSize : 1);
     #endif
 
 	profile_start("sendmat");

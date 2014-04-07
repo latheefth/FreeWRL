@@ -1810,8 +1810,10 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, uintN argc, jsval *vp) {
 		for (count=0; count<retGroup->children.n; count ++) {
 			tmpstr = MALLOC(char *, strlen(_c) + 100);
 			sprintf (tmpstr,"%s new SFNode('%s','%p')",separator, _c, (void*) retGroup->children.p[count]);
-			wantedsize = (int) (strlen(tmpstr) + strlen(xstr));
-			if (wantedsize > MallocdSize) {
+			// +1 to account for the ")" being added later ...
+			wantedsize = (int) (strlen(tmpstr) + strlen(xstr) + 1);
+			// sometimes wantedsize is borderline so alloc some more if it's equal
+			if (wantedsize >= MallocdSize) {
 				MallocdSize = wantedsize +200;
 				xstr = REALLOC (xstr,MallocdSize);
 			}
