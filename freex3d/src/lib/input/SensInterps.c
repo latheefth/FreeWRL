@@ -1366,16 +1366,17 @@ void do_LineSensor(void *ptr, int ev, int but1, int over) {
 	}
 	else if ((ev == MotionNotify) && (node->isActive) && but1) {
 		/* hyperhit saved in render_hypersensitive phase */
+
 		mult = (node->_origPoint.c[2] - tg->RenderFuncs.hyp_save_posn.c[2]) /
 			(tg->RenderFuncs.hyp_save_norm.c[2] - tg->RenderFuncs.hyp_save_posn.c[2]);
 		nx = tg->RenderFuncs.hyp_save_posn.c[0] + mult * (tg->RenderFuncs.hyp_save_norm.c[0] - tg->RenderFuncs.hyp_save_posn.c[0]);
 		ny = tg->RenderFuncs.hyp_save_posn.c[1] + mult * (tg->RenderFuncs.hyp_save_norm.c[1] - tg->RenderFuncs.hyp_save_posn.c[1]);
 
-#ifdef SEVERBOSE
+//#ifdef SEVERBOSE
 		printf("now, mult %f nx %f ny %f op %f %f %f\n", mult, nx, ny,
 			node->_origPoint.c[0], node->_origPoint.c[1],
 			node->_origPoint.c[2]);
-#endif
+//#endif
 
 		/* trackpoint changed */
 		node->_oldtrackPoint.c[0] = nx;
@@ -1400,9 +1401,9 @@ void do_LineSensor(void *ptr, int ev, int but1, int over) {
 
 
 		/* clamp translation to max/min position */
-		tr.c[0] = nx - node->_origPoint.c[0] + node->offset.c[0];
-		tr.c[1] = ny - node->_origPoint.c[1] + node->offset.c[1];
-		tr.c[2] = node->offset.c[2];
+		tr.c[0] = tr.c[0] - node->_origPoint.c[0] + node->offset.c[0];
+		tr.c[1] = tr.c[1] - node->_origPoint.c[1] + node->offset.c[1];
+		tr.c[2] = tr.c[2] - node->_origPoint.c[2] + node->offset.c[2];
 
 		tmp = 0;
 		if (node->maxPosition >= node->minPosition) {
@@ -1425,7 +1426,6 @@ void do_LineSensor(void *ptr, int ev, int but1, int over) {
 			memcpy((void *)&node->translation_changed, (void *)&node->_oldtranslation, sizeof(struct SFColor));
 			MARK_EVENT(ptr, offsetof(struct X3D_LineSensor, translation_changed));
 		}
-
 	}
 	else if (ev == ButtonRelease) {
 		/* set isActive false */
@@ -1453,7 +1453,7 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 	ttglobal tg;
 	UNUSED(over);
 	node = (struct X3D_PlaneSensor *)ptr;
-	//#ifdef SENSVERBOSE
+#ifdef SENSVERBOSE
 	printf ("%lf: TS ",TickTime());
 	if (ev==ButtonPress) printf ("ButtonPress ");
 	else if (ev==ButtonRelease) printf ("ButtonRelease ");
@@ -1465,7 +1465,7 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 	if (but1) printf ("but1 TRUE "); else printf ("but1 FALSE ");
 	if (over) printf ("over TRUE "); else printf ("over FALSE ");
 	printf ("\n");
-	//#endif
+#endif
 
 	/* if not enabled, do nothing */
 	if (!node) return;

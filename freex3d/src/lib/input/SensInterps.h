@@ -78,6 +78,7 @@ void do_Anchor( void *ptr, int typ, int but1, int over);
 void do_TouchSensor( void *ptr, int typ, int but1, int over);
 void do_GeoTouchSensor(void *ptr, int typ, int but1, int over);
 void do_PlaneSensor(void *ptr, int typ, int but1, int over);
+void do_LineSensor(void *ptr, int typ, int but1, int over);
 void do_CylinderSensor(void *ptr, int typ, int but1, int over);
 void do_SphereSensor(void *ptr, int typ, int but1, int over);
 
