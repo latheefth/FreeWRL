@@ -29,6 +29,8 @@
 
 #include <libFreeWRL.h>
 
+#include "input/convertSTL.h"
+
 #if defined (INCLUDE_STL_FILES)
  
 // the STL_FLOAT_TOLERANCE is chosen to be small enough
@@ -70,57 +72,80 @@ struct tstlVertexStruct {
 	double	dist;			// distance from origin - used in sorting verticies
 }stlVertexStruct;
 
-// stats for us to display, should we wish.
-static int degenerateCount=0;
-static int triangleInCount=0;
-static int finalCoordsWritten=0;
+
+/****************************************************************/
+typedef struct pSTLHandler{
+	// stats for us to display, should we wish.
+	int degenerateCount; //=0;
+	int triangleInCount; //=0;
+	int finalCoordsWritten; //=0;
  
-static float scaleFactor = 1.0;
+	float scaleFactor; // = 1.0;
 
-// do we generate our own normals, or just use what's given?
-// if true, we just use the normals as supplied by the author
-static int analyzeSTL = true;
+	// do we generate our own normals, or just use what's given?
+	// if true, we just use the normals as supplied by the author
+	int analyzeSTL; // = true;
 
-// do we check and display edge errors and 2-manifold errors?
-static int checkSTL_for_3Dprinting = false;
+	// do we check and display edge errors and 2-manifold errors?
+	int checkSTL_for_3Dprinting; // = false;
 
-static unsigned char *vectorArray =NULL;
+	unsigned char *vectorArray; // =NULL;
+}* ppSTLHandler;
 
+
+void *STLHandler_constructor(){
+	void *v = malloc(sizeof(struct pSTLHandler));
+	memset(v,0,sizeof(struct pSTLHandler));
+	return v;
+}
+
+void STL_Handler_init(struct tSTLHandler *t){
+	//public
+	//private
+	t->prv = STLHandler_constructor();
+	{
+		ppSTLHandler p = (ppSTLHandler)t->prv;
+		p->scaleFactor=1.0;
+		p->analyzeSTL = TRUE;
+		p->checkSTL_for_3Dprinting = FALSE;
+	}
+}
+/****************************************************************/
 
 /* if looking for bad things in STL rendering for 3D printing */
 /* shove 4 vertexes into 1 byte, as we only care about 0, 1, 2, 3 for
    vector uses */
-static void recordVector(int size, int a, int b) {
+static void recordVector(int a, int b, ppSTLHandler p) {
 	int ind;
 	int box,bits;
     	if (a>b) { int x; x=a; a=b; b=x;}
 	//ConsoleMessage ("a %d b %d size %d ind %d\n", a,b,size,a*size+b);
-	ind = a*size+b;
+	ind = a*p->finalCoordsWritten +b;
 	box = ind/4, bits = ind %4;
 
 	//ConsoleMessage ("ori: ind %d box %d bits %d content %x\n",ind, box, bits,vectorArray[box]);
 	switch (bits) {
-		case 0: { int z = vectorArray[box] & 0x03;
-			if (z !=0x03) vectorArray[box]+= 0x01;
+		case 0: { int z = p->vectorArray[box] & 0x03;
+			if (z !=0x03) p->vectorArray[box]+= 0x01;
 			 break; }
 		case 1: {
-			int z = vectorArray[box] & 0x0C;
-			if (z !=0x0C) vectorArray[box]+=0x04;
+			int z = p->vectorArray[box] & 0x0C;
+			if (z !=0x0C) p->vectorArray[box]+=0x04;
 			 break; }
 		case 2: {
-			int z= vectorArray[box] & 0x30;
-			if (z !=0x30) vectorArray[box]+= 0x10;
+			int z= p->vectorArray[box] & 0x30;
+			if (z !=0x30) p->vectorArray[box]+= 0x10;
 			break; }
 		case 3:{
-			int z= vectorArray[box] & 0xC0;
-			if (z !=0xC0) vectorArray[box]+= 0x40;
+			int z= p->vectorArray[box] & 0xC0;
+			if (z !=0xC0) p->vectorArray[box]+= 0x40;
 			break; }
 		default: {}// should never get here
 	}
-	//ConsoleMessage ("now: ind %d box %d bits %d content %x\n\n",ind, box, bits,vectorArray[box]);
+	//ConsoleMessage ("now: ind %d box %d bits %d content %x\n\n",ind, box, bits,p->vectorArray[box]);
 }
 
-static char returnIndex (int size, int a, int b) {
+static char returnIndex (int size, int a, int b, ppSTLHandler p) {
 	int ind;
 	int box,bits;
     	if (a>b) { int x; x=a; a=b; b=x;}
@@ -128,10 +153,10 @@ static char returnIndex (int size, int a, int b) {
 	box = ind/4, bits = ind %4;
 
 	switch (bits) {
-		case 0: return vectorArray[box] & 0x03; break;
-		case 1: return (vectorArray[box] & 0x0C) >> 2; break;
-		case 2: return (vectorArray[box] & 0x30) >> 4; break;
-		case 3: return (vectorArray[box] & 0xC0) >> 6; break;
+		case 0: return p->vectorArray[box] & 0x03; break;
+		case 1: return (p->vectorArray[box] & 0x0C) >> 2; break;
+		case 2: return (p->vectorArray[box] & 0x30) >> 4; break;
+		case 3: return (p->vectorArray[box] & 0xC0) >> 6; break;
 		default: {}// should never get here
 	}
 	return 0;
@@ -375,13 +400,13 @@ void analyzeSTLdata(struct Vector* vertices) {
 }
 
 
-char *finishThisX3DFile (FILE *fp, int cp, char *tfn, float* _extent, int vertexCount,int coordCount) {
+static char *finishThisX3DFile (FILE *fp, int cp, char *tfn, float* _extent, int vertexCount,int coordCount, ppSTLHandler p) {
     char *retval = NULL;
     int fread_val = 0;
-    scaleFactor = -1000.0f;
     float extentX = EXTENT_MAX_X - EXTENT_MIN_X;
     float extentY = EXTENT_MAX_Y - EXTENT_MIN_Y;
     float extentZ = EXTENT_MAX_Z - EXTENT_MIN_Z;
+    p->scaleFactor = -1000.0f;
 
     
     //ConsoleMessage ("extentX %f extentY %f extentZ %f",extentX,extentY,extentZ);
@@ -395,9 +420,9 @@ char *finishThisX3DFile (FILE *fp, int cp, char *tfn, float* _extent, int vertex
         float midX, midY, midZ;
         
         //ConsoleMessage ("Extent, %f %f %f\n",extentX, extentY, extentZ);
-        if (extentX > scaleFactor) scaleFactor = extentX;
-        if (extentY > scaleFactor) scaleFactor = extentY;
-        if (extentZ > scaleFactor) scaleFactor = extentZ;
+        if (extentX > p->scaleFactor) p->scaleFactor = extentX;
+        if (extentY > p->scaleFactor) p->scaleFactor = extentY;
+        if (extentZ > p->scaleFactor) p->scaleFactor = extentZ;
         
         //ConsoleMessage ("scaling is %f",10.0f/scaleFactor);
         
@@ -409,14 +434,14 @@ char *finishThisX3DFile (FILE *fp, int cp, char *tfn, float* _extent, int vertex
         // make the shape fit within a 10x10x10 X3D box.
         cp += fprintf (fp,"}} \n");
   
-        if (checkSTL_for_3Dprinting && (coordCount>0) && (vectorArray)) {
+        if (p->checkSTL_for_3Dprinting && (coordCount>0) && (p->vectorArray)) {
             int x;
 	    int edgesFound = 0; int manifoldErrorsFound = 0;
 	    bool issuesFound = false;
 
 	    /* quick check - any issues? */
             for (x=0; x<(coordCount * coordCount/4);x++) {
-		if ((vectorArray[x]& 0x55) != 0x00) {
+		if ((p->vectorArray[x]& 0x55) != 0x00) {
 			issuesFound = TRUE;
 			break;
 		}
@@ -442,7 +467,7 @@ char *finishThisX3DFile (FILE *fp, int cp, char *tfn, float* _extent, int vertex
 
 		for (a=0; a<coordCount; a++) {
 			for (b=a; b<coordCount; b++) {
-				unsigned char vc = returnIndex(coordCount,a,b);
+				unsigned char vc = returnIndex(coordCount,a,b,p);
 				//ConsoleMessage ("count for %d,%d is %d\n",a,b,vc);
 				if ((vc & 0x01) == 0x01) {
                     			cp += fprintf (fp, "%d, %d, -1,\n",a,b);
@@ -460,8 +485,8 @@ char *finishThisX3DFile (FILE *fp, int cp, char *tfn, float* _extent, int vertex
             }
         }
         
-        cp += fprintf (fp,"  ] translation %f %f %f}] scale %f %f %f}\n",midX, midY, midZ,10.0f/scaleFactor,
-                       10.0f/scaleFactor, 10.0f/scaleFactor);
+        cp += fprintf (fp,"  ] translation %f %f %f}] scale %f %f %f}\n",midX, midY, midZ,10.0f/p->scaleFactor,
+                       10.0f/p->scaleFactor, 10.0f/p->scaleFactor);
                 
         midX = EXTENT_MAX_X-EXTENT_MIN_X;
         midY = EXTENT_MAX_Y-EXTENT_MIN_Y;
@@ -499,13 +524,13 @@ char *finishThisX3DFile (FILE *fp, int cp, char *tfn, float* _extent, int vertex
 	retval = MALLOC (char *, cp+10);
 	fp = fopen(tfn,"r"); 
 	fread_val = fread(retval,cp,1,fp);
-	ConsoleMessage ("fread is %d\n");
+	ConsoleMessage ("fread is %d\n",fread_val);
 	retval[cp]='\0';
 	fclose (fp);
 	unlink(tfn);
 
 	FREE_IF_NZ(tfn);
-    	FREE_IF_NZ(vectorArray);
+    	FREE_IF_NZ(p->vectorArray);
     
     //printf ("file is\n%s",retval);
     return retval;
@@ -521,6 +546,8 @@ static char *makeX3D_orig_STL_File(struct Vector* vertices,
     	ttglobal tg = gglobal();
     int cp = 0;
     int i;
+
+    ppSTLHandler p = tg->STLHandler.prv;
 
     tfn=MALLOC(char *,strlen(tg->Mainloop.tmpFileLocation) +strlen (tmpFile) + 10);
 	strcpy(tfn,tg->Mainloop.tmpFileLocation);
@@ -566,9 +593,9 @@ static char *makeX3D_orig_STL_File(struct Vector* vertices,
     
     
     // 3 vertices makes for 1 triangle, but we keep track of vertices here
-    finalCoordsWritten = vectorSize(vertices);
+    p->finalCoordsWritten = vectorSize(vertices);
     
-    return finishThisX3DFile (fp, cp, tfn, _extent,vectorSize(vertices),0);
+    return finishThisX3DFile (fp, cp, tfn, _extent,vectorSize(vertices),0,p);
 }
 
 
@@ -581,6 +608,8 @@ static char *makeX3D_analyzed_STL_File(struct Vector* vertices,
     ttglobal tg = gglobal();
     int cp = 0;
     int i;
+
+    ppSTLHandler p = tg->STLHandler.prv;
     
     
     tfn=MALLOC(char *,strlen(tg->Mainloop.tmpFileLocation) +strlen (tmpFile) + 10);
@@ -612,7 +641,7 @@ static char *makeX3D_analyzed_STL_File(struct Vector* vertices,
         if (thisVertex->replacementVertex == -1) {
             // this one did NOT get replaced
             //calcExtent_dist(_extent,thisVertex);
-            finalCoordsWritten++;
+            p->finalCoordsWritten++;
             cp += fprintf (fp,"%f %f %f, #%d\n",thisVertex->vertex.c[0],thisVertex->vertex.c[1],thisVertex->vertex.c[2],
                            thisVertex->condensedVertexNo);
         }
@@ -623,14 +652,14 @@ static char *makeX3D_analyzed_STL_File(struct Vector* vertices,
     
     
 
-    int size=finalCoordsWritten;
-    if (checkSTL_for_3Dprinting) {
+    int size=p->finalCoordsWritten;
+    if (p->checkSTL_for_3Dprinting) {
 	/* we need an array to hold vectors to see how often they are used,
 	   but we can pack 4 vector indexes into 1 byte, to save memory space
    	   on Android device (at the expense of speed) */
 
-    	vectorArray = MALLOC(unsigned char *,(size*size/4));
-    	if (vectorArray) bzero(vectorArray,(size_t)size*size/4);
+    	p->vectorArray = MALLOC(unsigned char *,(size*size/4));
+    	if (p->vectorArray) bzero(p->vectorArray,(size_t)size*size/4);
     }
 
     // Now do the coordIndex
@@ -659,10 +688,10 @@ static char *makeX3D_analyzed_STL_File(struct Vector* vertices,
             if (j==3) {
                 j=0;
                 cp += fprintf (fp,"-1, #face %d\n",face);
-                if (vectorArray) {
-                    recordVector(finalCoordsWritten,tv[1],tv[2]);
-                    recordVector(finalCoordsWritten,tv[1],tv[3]);
-                    recordVector(finalCoordsWritten,tv[2],tv[3]);
+                if (p->vectorArray) {
+                    recordVector(tv[1],tv[2],p);
+                    recordVector(tv[1],tv[3],p);
+                    recordVector(tv[2],tv[3],p);
                 }
                 
                 face ++;
@@ -672,7 +701,7 @@ static char *makeX3D_analyzed_STL_File(struct Vector* vertices,
     cp += fprintf (fp,"]\n");
     }
     
-    return finishThisX3DFile (fp, cp, tfn, _extent,vectorSize(vertices),finalCoordsWritten);
+    return finishThisX3DFile (fp, cp, tfn, _extent,vectorSize(vertices),p->finalCoordsWritten,p);
 }
 
 #define calc_vector_length(pt) veclength(pt)
@@ -708,21 +737,23 @@ static bool degenerate (struct SFVec3f *c1, struct SFVec3f *c2,
 
 
 void fwl_stl_set_rendering_type(int nv) {
+    ppSTLHandler p = gglobal()->STLHandler.prv;
+	
 	switch (nv) {
 		case 1:
 			// original
-			analyzeSTL = FALSE;
-			checkSTL_for_3Dprinting = FALSE;
+			p->analyzeSTL = FALSE;
+			p->checkSTL_for_3Dprinting = FALSE;
 			break;
 		case 2:
 			// Checked for 2-Manifold and Watertight
-			analyzeSTL = TRUE;
-			checkSTL_for_3Dprinting = TRUE;
+			p->analyzeSTL = TRUE;
+			p->checkSTL_for_3Dprinting = TRUE;
 			break;
 		case 3:
 			// zippy and nice rendering.
-			analyzeSTL = TRUE;
-			checkSTL_for_3Dprinting = FALSE;
+			p->analyzeSTL = TRUE;
+			p->checkSTL_for_3Dprinting = FALSE;
 			break;
 		default: {}
 	}
@@ -732,7 +763,7 @@ void fwl_stl_set_rendering_type(int nv) {
 
 //-------------------------------
 
-static char *analyzeAndGenerate (float *_extent, struct Vector *vertices, struct Vector *normals) {
+static char *analyzeAndGenerate (float *_extent, struct Vector *vertices, struct Vector *normals,ppSTLHandler p) {
     char *retval = NULL;
     int i;
     
@@ -745,7 +776,7 @@ static char *analyzeAndGenerate (float *_extent, struct Vector *vertices, struct
     }
     
     // get the VRML file from this.
-    if (analyzeSTL)
+    if (p->analyzeSTL)
         retval = makeX3D_analyzed_STL_File (vertices,normals,NULL,_extent);
     else
         retval = makeX3D_orig_STL_File(vertices,normals,NULL,_extent);
@@ -753,13 +784,13 @@ static char *analyzeAndGenerate (float *_extent, struct Vector *vertices, struct
     //ConsoleMessage ("we have a file now of :%s:",retval);
     
     ConsoleMessage ("generating - degenerateTriangleCount %d, Triangles In %d Vertices out %d\n",
-                    degenerateCount,triangleInCount,finalCoordsWritten);
+                    p->degenerateCount,p->triangleInCount,p->finalCoordsWritten);
     // final coords are vertices; we read in triangles (binary STL has 3 vertices per "record", but we write vertices out and 
     // index them for analyzed IndexedFaceSets, or just write them out for TriangleSets.
     {
         // stats - work in vertex counts
-        float fcw = (float) finalCoordsWritten;
-        float fcin = (float) triangleInCount * 3;
+        float fcw = (float) p->finalCoordsWritten;
+        float fcin = (float) p->triangleInCount * 3;
         if (fcin < 0.5) fcin = 1; // do not want to divide by zero here
         
         ConsoleMessage ("Vertex memory savings %4.1f %% \n", (1-(fcw/fcin))*100.0);
@@ -800,7 +831,6 @@ char *convertAsciiSTL (const char *inp) {
 
 	int haveNormalHere = false;
     int haveValidNormals = true;
-	int haveVertexHere = false;
 	float NX,NY,NZ; // last read normal
 
 
@@ -817,12 +847,14 @@ char *convertAsciiSTL (const char *inp) {
 
 	int messCount = 0;
 
+    ppSTLHandler p = gglobal()->STLHandler.prv;
+
 	ConsoleMessage ("start reading AsciiSTL - this can take a while");
 
     //global stats
-    degenerateCount=0;
-    triangleInCount = 0;
-    finalCoordsWritten = 0;
+    p->degenerateCount=0;
+    p->triangleInCount = 0;
+    p->finalCoordsWritten = 0;
 	
     
 	// set these up to defaults
@@ -834,7 +866,7 @@ char *convertAsciiSTL (const char *inp) {
     EXTENT_MIN_X = FLT_MAX; EXTENT_MIN_Y = FLT_MAX; EXTENT_MIN_Z = FLT_MAX;
     
 
-    if (!analyzeSTL) {
+    if (!p->analyzeSTL) {
         // use supplied normals
         normals = newVector(sizeof(struct SFVec3f), 1024);
     }
@@ -849,14 +881,12 @@ char *convertAsciiSTL (const char *inp) {
 		haveNormalHere = true;
 	} else {
 		tptr = vertexPtr;
-		haveVertexHere = true;
 	}
 	if (tptr!=NULL) tptr += strlen("vertex "); // same length as "normal "
 #else
 
 	while ((*tptr != '\0') && (*tptr != 'm') && (*tptr != 'x')) tptr++;
 	if (*tptr == 'x') {
-		haveVertexHere = true;
 		tptr++; // skip past the 'x' 
 		//if (*tptr != ' ') 
 	} else if (*tptr == 'm') {
@@ -923,7 +953,7 @@ char *convertAsciiSTL (const char *inp) {
                 		// next vertex, or is the end of a triangle?
                 		i++;
                 		if (i==3) {
-                    			triangleInCount++;
+                    			p->triangleInCount++;
                     
 					// valid triangle? if so, push this all, including normal
                     			if (degenerate(&thisVertex[0]->vertex, 
@@ -947,7 +977,7 @@ char *convertAsciiSTL (const char *inp) {
 						
                      			} else {
                         			//ConsoleMessage ("degenerate, skipping %d",i);
-                        			degenerateCount++;
+                        			p->degenerateCount++;
                     			}
 
                     			i=0;
@@ -963,15 +993,13 @@ char *convertAsciiSTL (const char *inp) {
 
 			tptr = normalPtr; 
 			haveNormalHere = true;
-			haveVertexHere = false;
 		} else {
 			tptr = vertexPtr;
-			haveVertexHere = true;
 			haveNormalHere = false;
             
             messCount ++;
             if (messCount >750) {
-                ConsoleMessage("still parsing ASCII STL file... %d triangles, %d degenerates",triangleInCount,degenerateCount);
+                ConsoleMessage("still parsing ASCII STL file... %d triangles, %d degenerates",p->triangleInCount,p->degenerateCount);
                 messCount = 0;
             }
 
@@ -979,13 +1007,12 @@ char *convertAsciiSTL (const char *inp) {
 		if (tptr!=NULL) tptr += strlen("vertex "); // same length as "normal "
         //ConsoleMessage ("currently here: %s",tptr);
 #else
-	haveVertexHere = false; haveNormalHere = false;
+	haveNormalHere = false;
 	while ((*tptr != '\0') && (*tptr != 'm') && (*tptr != 'x')) tptr++;
 	if (*tptr == 'x') {
-		haveVertexHere = true;
             messCount ++;
             if (messCount >750) {
-                ConsoleMessage("still parsing ASCII STL file... %d triangles, %d degenerates",triangleInCount,degenerateCount);
+                ConsoleMessage("still parsing ASCII STL file... %d triangles, %d degenerates",p->triangleInCount,p->degenerateCount);
                 messCount = 0;
             }
 		tptr++; // skip past the 'x' 
@@ -1014,7 +1041,7 @@ char *convertAsciiSTL (const char *inp) {
 
     //ConsoleMessage ("asciiSTL, degenerateCount %d",degenerateCount);
     
-    return analyzeAndGenerate(_extent,vertices,normals);
+    return analyzeAndGenerate(_extent,vertices,normals,p);
 }
 
 char *convertBinarySTL (const unsigned char *buffer) {
@@ -1026,11 +1053,13 @@ char *convertBinarySTL (const unsigned char *buffer) {
     bool haveAttributeInfo = false;
     
     unsigned char *tmp = (unsigned char *)buffer;
+
+    ppSTLHandler p = gglobal()->STLHandler.prv;
     
     //global stats
-    degenerateCount=0;
-    triangleInCount = 0;
-    finalCoordsWritten = 0;
+    p->degenerateCount=0;
+    p->triangleInCount = 0;
+    p->finalCoordsWritten = 0;
 
     
     // create pointers to length and data areas
@@ -1048,7 +1077,7 @@ char *convertBinarySTL (const unsigned char *buffer) {
 	vertices = newVector(sizeof (stlVertexStruct),(*stllen)*3);
     
     // if we want to use the supplied normals
-    if (!analyzeSTL) {
+    if (!p->analyzeSTL) {
         // use supplied normals
         normals = newVector(sizeof(struct SFVec3f), (*stllen));
         //ConsoleMessage ("binary STL - SFVec3f is %d",sizeof (struct SFVec3f));
@@ -1064,7 +1093,7 @@ char *convertBinarySTL (const unsigned char *buffer) {
         
     for (i=0; i<*stllen; i++) {
  
-        triangleInCount++;
+        p->triangleInCount++;
         
         struct tstlVertexStruct *vertex1 = MALLOC (struct tstlVertexStruct *, sizeof (stlVertexStruct));
         struct tstlVertexStruct *vertex2 = MALLOC (struct tstlVertexStruct *, sizeof (stlVertexStruct));
@@ -1111,7 +1140,7 @@ char *convertBinarySTL (const unsigned char *buffer) {
             }
         } else {
             //ConsoleMessage ("degenerate, skipping %d",i);
-            degenerateCount++;
+            p->degenerateCount++;
         }
         
         tmp = offsetPointer_deref(unsigned char*, tmp, STL_BINARY_VERTEX_SIZE);
@@ -1121,8 +1150,8 @@ char *convertBinarySTL (const unsigned char *buffer) {
         //ConsoleMessage ("BINARY STL with Colour info");
     }
     
-    //ConsoleMessage ("Triangles in %d, degenerates %d",*stllen,degenerateCount);
-    return analyzeAndGenerate(_extent,vertices,normals);
+    //ConsoleMessage ("Triangles in %d, degenerates %d",*stllen,p->degenerateCount);
+    return analyzeAndGenerate(_extent,vertices,normals,p);
 }
 
 /* STL files will get scaled to fit into a good-sized box. Return this for
@@ -1130,8 +1159,10 @@ char *convertBinarySTL (const unsigned char *buffer) {
 float getLastSTLScale(void) {
 	// force it to 10 per meter, not 1 per meter.
 	//ConsoleMessage ("getLastSTLScale, in convertSTL.c - sf %f",scaleFactor/10.0);
-	if (scaleFactor < 0.0) return 1.0;
-	return scaleFactor/10.0;
+	ppSTLHandler p = gglobal()->STLHandler.prv;
+
+	if (p->scaleFactor < 0.0) return 1.0;
+	return p->scaleFactor/10.0;
 }
 
 #endif //INCLUDE_STL_FILES

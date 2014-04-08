@@ -59,6 +59,10 @@
 #include "plugin/pluginUtils.h"
 #include "plugin/PluginSocket.h"
 
+#if defined (INCLUDE_STL_FILES)
+#include "input/convertSTL.h"
+#endif //INCLUDE_STL_FILES
+
 #define UNUSED(v) ((void) v)
 
 /* Internal function prototypes */
@@ -614,7 +618,7 @@ int determineFileType(const unsigned char *buffer, const int len)
 	}
 
     #if defined (INCLUDE_STL_FILES)
-    int stlDTFT(const unsigned char*, int); return stlDTFT(buffer,len);
+	return stlDTFT(buffer,len);
     #endif //INCLUDE_STL_FILES
     
 	return IS_TYPE_UNKNOWN;

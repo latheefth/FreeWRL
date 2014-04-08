@@ -183,6 +183,14 @@ typedef struct iiglobal //InstanceGlobal
 		void *prv;
 	}ColladaParser;
        #endif //INCLUDE_NON_WEB3D_FORMATS
+
+	#if defined (INCLUDE_STL_FILES)
+	struct tSTLHandler {
+		void *prv;
+	}STLHandler;
+	#endif // INCLUDE_STL_FILES
+
+
 	struct tFrustum{
 		int OccFailed;//. = FALSE;
 		void *prv;
