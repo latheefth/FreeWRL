@@ -1288,7 +1288,8 @@ void CRoutes_Register(
 
 #endif //HAVE_OPENCL
 
-/*    
+    
+/*
 ConsoleMessage ("CRoutes_Register - adrem %d, from %p (%s) fromoffset %d to %p (%s) toOfs %d type %d intptr %p scrdir %d extra %d\n",
                         adrem, from,
                         stringNodeType(from->_nodeType),
@@ -1297,6 +1298,7 @@ ConsoleMessage ("CRoutes_Register - adrem %d, from %p (%s) fromoffset %d to %p (
                         toOfs, type, intptr, scrdir, extra);
 */
 
+
 	// do we have an Interpolator running on the GPU?
 	if (from->_nodeType == NODE_CoordinateInterpolator) {
 
@@ -1304,8 +1306,8 @@ ConsoleMessage ("CRoutes_Register - adrem %d, from %p (%s) fromoffset %d to %p (
 		struct X3D_CoordinateInterpolator *px = (struct X3D_CoordinateInterpolator *) from;
 		if (incr == 0) incr = -1; // makes easy addition
         
-		if (to->_nodeType == NODE_Coordinate) {
 		#ifdef HAVE_OPENCL
+		if (to->_nodeType == NODE_Coordinate) {
 	
 			if (canRouteOnGPUTo(to) ) {
 				ppOpenCL_Utils p;
@@ -1333,10 +1335,12 @@ ConsoleMessage ("CRoutes_Register - adrem %d, from %p (%s) fromoffset %d to %p (
 					px->_CPU_Routes_out+= incr;
 			}
 		} else {
-		#endif //HAVE_OPENCL
             
 			px->_CPU_Routes_out += incr;
 		}
+		#else
+		px->_CPU_Routes_out += incr;
+		#endif //HAVE_OPENCL
 	}
 
 /* Script to Script - we actually put a small node in, and route to/from this node so routing is a 2 step process */
