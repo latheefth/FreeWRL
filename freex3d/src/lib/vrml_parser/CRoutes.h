@@ -60,18 +60,6 @@ struct CRStruct {
 };
 
 
-
-//#define REINITIALIZE_SORTED_NODES_FIELD(aaa,bbb) \
-//       /* has this changed size? */ \
-//        if (aaa.n != bbb.n) { \
-//                FREE_IF_NZ(bbb.p); \
-//                bbb.p = MALLOC (void *, sizeof (struct X3DNode *) * aaa.n); \
-//        } \
-// \
-//        /* copy the nodes over; we will sort the sorted list */ \
-//        memcpy (bbb.p,aaa.p,sizeof (struct X3DNode *) * aaa.n); \
-//        bbb.n = aaa.n; 
-
 #define REINITIALIZE_SORTED_NODES_FIELD(aaa,bbb) \
 	/* has this changed size? */ \
 	{\

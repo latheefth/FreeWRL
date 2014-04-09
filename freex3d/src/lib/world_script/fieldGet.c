@@ -261,8 +261,6 @@ void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int
 	int elementlen;
 	int x;
 	char scriptline[20000];
-	//float *fp, *fp_in=(float *)Data;
-	//int *ip;
 
 	/* for PixelTextures we have: */
 	struct X3D_PixelTexture *mePix;

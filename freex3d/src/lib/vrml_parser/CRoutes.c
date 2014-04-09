@@ -2173,7 +2173,7 @@ static void sendScriptEventIn(int num) {
 
 				/* mark that this script has been active SCRIPTS ARE INTEGER NUMBERS */
 				mark_script(myObj->num);
-				getField_ToJavascript((int)num,to_ptr->foffset);
+				getField_ToJavascript(num,to_ptr->foffset);
                 #endif /* HAVE_JAVASCRIPT */
 			} else {
 				getField_ToShader(to_ptr->routeToNode, num);

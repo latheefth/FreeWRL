@@ -574,10 +574,8 @@ void splitpath_local_suffix(const char *url, char **local_name, char **suff);
 
 int fw_exit(int val)
 {
-	if(1){
-		printf("exiting with value=%d hit Enter:",val);
-		getchar();
-	}
+	printf("exiting with value=%d hit Enter:",val);
+	getchar();
 	exit(val);
 }
 
