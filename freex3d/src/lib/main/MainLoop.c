@@ -3651,6 +3651,140 @@ static void sendSensorEvents(struct X3D_Node* COS,int ev, int butStatus, int sta
         }
 }
 
+/* POINTING DEVICE SENSORS
+http://www.web3d.org/files/specifications/19775-1/V3.3/Part01/components/pointingsensor.html
+- this describes how the pointing device sensors:
+ TouchSensor, DragSensors: CylinderSensor, SphereSensor, PlaneSensor, [LineSensor]
+ work as seen by the user. 
+
+ As seen by the developer, here's how I (dug9 Apr 2014) think they should work internally, on each frame:
+ 1. for each sensor node, flag its immediate Group/Transform parent with the sensor's ID 
+	so when traversing the scenegraph, this 'sensitivity' can be pushed onto a state stack to affect descendent geometry nodes
+ 2. from the scene root, traverse to the viewpoint to get the view part of the modelview matrix
+	Set up 2 points in viewpoint space: A=0,0,0 (the viewpoint) and B=(mouse x, mouse y, z=-1) to represent the pick ray
+ 3. from the scene root, tranverse the scenegraph looking for sensitive geometry nodes,
+	accumulating the model part of the modelview matrix. 
+	When we find a sensitive parent: 
+		push the sensor node ID onto a stack, and zero a sensor modelmatrix
+		when we descend from the parent, push transforms onto the sensor_modelpatrix as well as the modelview matrix
+	When we find descendent geometry to a sensitive [grand]parent:
+	a) invert the cumulative modelview matrix, and use it to transform A,B into local geometry coords A',B'
+		-so we have a pick ray in geometry-local (this requires fewer math ops than transforming geometry into viewpoint space)
+	b) intersect the infinite line passing through A' and B' 
+		with the geometry to get a list of intersection points n,xyz[n] in geometry-local space
+	c) for the intersection points:
+		- transform using modelview matrix into viewpoint-local coordinates
+		- filter the intersection points to elliminate if in the -B direction from A (behind the viewpoint)
+		- sort the remaining intersection points by distance from A, and take just the closest one 	(the others are 'occluded')
+		- if there is an intersection point, compare its distance from A(0,0,0) with
+			any previous hit on this frame, and if it is closer than the current best one, replace the current best one 
+			(the other is occluded)
+	d) if there was a hit, record some details needed by the particular type of sensor node, (but don't
+		generate events yet - we have to search for even closer hits):
+		- Sensor node ID
+		- xyz of the hit point, transformed into sensor-local system 
+		  (the geometry node may be in descendant transform groups from the sensor's parent, so needs to be transformed up to the Sensor-local system 
+		  using the sensor_modelmatrix we saved)
+		- TouchSensor: normal to the surface at the hitpoint transformed into Sensor-local system
+						texture coordinates at the hitpoint
+		- DragSensors (Sphere,Cylinder,Plane,[Line]) - on mouseDown, store hit xyz as drag-start, in sensor-local
+  4. once finished searching for sensor nodes, and back in mainloop at the root level, see if there 
+		was a hit, and if so call a function to generate events from the winning sensor node
+
+What's not shown above: 
+5. how regular geometry occludes sensitive geometry
+	we could intersect all geometry, put node=0 for unsensitive hits, and in step 4 if the winning hit isn't sensitive do nothing
+6. what happens when 2+ sensor nodes apply to the same geometry:
+	the specs say it's the sensor that's the nearest co-descendent (sibling or higher) to the geometry
+	(it doesn't say what happens in a tie ie 2 different sensor nodes are siblings)
+	(it doesn't say what happens if you DEF a sensornode and USE it in various places)
+7. what happens on each frame during a Drag:
+	the successful dragsensor node is 'chosen' on the mouse-down
+	on mouse-move intersections with other geometry, and geometry sensitive to other sensor nodes, are ignored, 
+	- but intersection with the same dragsensor's geometry node(s) are updated
+8. where things are stored
+	a geometry node can be DEF'd in an unsensitive parent, and USEd in a sensitive parent
+	So the hit details are stored in the Sensor node, and in a global singleton for the one successful hit
+	- because a Sensor could be DEFd in one place and USEd in another, don't store the details in the SensorNode
+		until after you have determined it is the closest so far on the current frame (otherwise you could be overwriting
+		details of a closer hit)
+	The sensor_ID and sensor_modelMatrix would need to be stored in global stacks for use when tranversing the scenegraph
+	- for sensor_ID a stack
+	- for sensor_modelMatrix either:
+		a) a stack-of matrix-stacks (so it's easy to pop back one transform level, and pop back to a different Sensor) OR
+		b) a stack-of modelviewMatrix snapshots, each snapshot at a sensor-level, so to compute the sensor_modelmatrix
+			from the geometry-level modelview matrix:
+			sensor_modelMatrix =  modelviewMatrix * sensor_snapshot_modelviewmatrix.inverse() 
+			(or something like this, where the sensor-to-geometry matrix is computed as the difference between the
+			current geometry modelview matrix, and the modelviewmatrix at the sensor, if they aren't siblings. If they
+			are siblings then sensor_modelMatrix = Identity and hit xyz in geometry-local is same in sensor-local)
+
+9. any special conditions for touch devices (I suspect touch-up leaves the last mousexy as the active pick-ray)
+
+HOW I (dug9) THINK THE ABOVE IS IMPLEMENTED IN FREEWRL, ON APRIL 8, 2014
+Keywords:
+	Sensitive - all pointingdevice sensors
+	HyperSensitive - drag sensors in the middle of a drag (ignor other pointing sensors during drag)
+Storage types:
+struct currayhit {
+struct X3D_Node *hitNode; // What node hit at that distance? 
+- Usually it's the parent Group or Transform to the Sensor node
+GLDOUBLE modelMatrix[16]; // What the matrices were at that node
+- a snapshot at the sensornode or more precisely it's immediate parent Group or Transform
+- it's the whole modelview matrix
+GLDOUBLE projMatrix[16]; 
+- snapshot of the project matrix at the same spot
+- don't know if I need it other than to allow a easy call to glu_unproject rather than working hard to take the difference between
+	the the sensor's modelview matrix and the geometry's modelview matrix (so as to transform the geometry's hit into the sensor-local system)
+};
+Storage variables:
+	hyp_save_posn, t_r1 - A' (viewpoint 0,0,0 transformed by modelviewMatrix.inverse() to geometry-local space)
+	hyp_save_norm, t_r2 - (along the axis of the viewpoint, at -1 in viewpoint space, transformed to geometry-local space)
+	ray_save_posn, t_r3 - B' (viewpoint mousex,mousey,-1 transformed by modelviewMatrix.inverse() to geometry-local space)
+	Renderfuncs.hp.xyz - current closest hit, in viewpoint-local system
+	RenderFuncs.hitPointDist - current distance to closest hit from viewpoint 0,0,0 to geometry intersection (in viewpoint scale)
+	render_node(): - a few variables acting as a stack by using automatic/local C variables in recursive calling
+		int srg - saves current renderstate.render_geom
+		int sch - saves current count of the hits from a single geometry node before trying to to intersect another geometry
+		struct currayhit *srh - saves the current best hit rayph on the call stack
+		rayph.modelMatrix,rayph.viewMatrix - sensor snapshot modelview matrix 
+		-- this could have been a stack, with a push for each direct parent of a pointingdevice sensor
+Functionality:
+	SIBLING_SENSITIVE(node) - macro that checks if a node is VF_Sensitive and if so, sets up a parent vector
+	n->_renderFlags = n->_renderFlags  | VF_Sensitive; - for each parent n, sets the parent sensitive (which indirectly sensitizes the siblings)
+	Q. instead of just setting a flag, could a parent be flagged with the SensorNode ID/*node?
+	Q. how do we currently get the sensor node* when we detect a VF_sensitive group node during render_hier()?
+	geometry nodes have virt->rendray_<shapenodetype>() functions called unconditionally ie rendray_Box, rendray_Sphere, rendray_Circle2D
+		on render_hier(VF_sensitive) pass of scengraph traversal
+		- called whether or not they are sensitized, to find an intersection and determine if they a) occlude 
+			or b) succeed other sensitized geometry along the pick ray
+	upd_ray() - keeps A,B transformed to A',B' - called after a push or pop to the modelview matrix stack.
+	rayhit() - 3.c above: accepts intersection of A',B' line with geometry in geometry-local space, 
+		- filters if behind viewpoint,
+		- sees if it's closer to A' than current, if so transforms into viewpoint-local with modelview.inverse()
+			and stores as hp.xyz
+	get_hyperhit() updates some variables in the middle of a drag, for use in the do_<sensor_type> function(s):
+		- ray_save_posn, hyp_save_posn, hyp_save_norm
+	sendSensorEvents(node,event,button,status) - called from mainloop if there was a any pointing sensor hits
+		- calls the do_<sensortype> function ie do_PlaneSensor(,,,)
+	do_TouchSensor, do_<dragSensorType>: do_CylinderSensor, do_SphereSensor, do_PlaneSensor, [do_LineSensor not in specs, fw exclusive]
+		- compute output events and update any carryover sensor state variables
+		- these are called from mainloop ie mainloop > sendSensorEvents > do_PlaneSensor
+		- because its not called from the scenegraph where the SensorNode is, and because the Sensor evenouts need to be
+			in LocalSensor coordinates, the inbound variables need to already be in local-sensor coordinates, and that means
+			they need to be calculated when we are at the sensor place in the scenegraph when traversing the scenegraph in render_node()
+
+Where I think we could make the code a bit clearer:
+- instead of using C local variables on the call stack when recursing in render_node(), 
+-- do an explicit sensor stack
+--- when hit a sensitive parent, push a) the modelview matrix onto a sensor_modelview stack b) sensor node* onto sensor_node stack
+--- so descendent geometry -> rendray_<shapetype> knows what sensor, and can compute the intersection points in sensor_local as well as [viewpoint-local or global]
+--- only push and pop if/when you get a VF_sensitive Group/Transform node during the VF_Sensitive pass.
+- after setup_viewpoint and before render_hier(VF_Sensitive), transform the pick ray (A,B) from viewpoint to global coordinates
+-- that way if you have a 3D joystick you are using to define a pick ray you can do it in global coordinates
+-- and then when checking to see which point is closer, you just use the model part of modelview matrix to transform all intersections back to global
+- 
+*/
 
 /* If we have a sensitive node, that is clicked and moved, get the posn
    for use later                                                                */
