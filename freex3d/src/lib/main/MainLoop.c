@@ -3655,7 +3655,12 @@ static void sendSensorEvents(struct X3D_Node* COS,int ev, int butStatus, int sta
 http://www.web3d.org/files/specifications/19775-1/V3.3/Part01/components/pointingsensor.html
 - this describes how the pointing device sensors:
  TouchSensor, DragSensors: CylinderSensor, SphereSensor, PlaneSensor, [LineSensor]
- work as seen by the user. 
+ work as seen by the user. A few quirks:
+ - dragsensor - the parent's descendent geometry is used only to identify and activate the dragsensor node. 
+	After that it's the dragsensor's geometry (Cylinder/Sphere/Plane/Line) (not the parent's descendent geometry) 
+	that's intersected with the pointing device bearing/ray to generate trackpoint_changed 
+	and translation_ or rotation_changed events
+	
 
  As seen by the developer, here's how I (dug9 Apr 2014) think they should work internally, on each frame:
  1. for each sensor node, flag its immediate Group/Transform parent with the sensor's ID 
@@ -3682,12 +3687,14 @@ http://www.web3d.org/files/specifications/19775-1/V3.3/Part01/components/pointin
 	d) if there was a hit, record some details needed by the particular type of sensor node, (but don't
 		generate events yet - we have to search for even closer hits):
 		- Sensor node ID
-		- xyz of the hit point, transformed into sensor-local system 
-		  (the geometry node may be in descendant transform groups from the sensor's parent, so needs to be transformed up to the Sensor-local system 
-		  using the sensor_modelmatrix we saved)
-		- TouchSensor: normal to the surface at the hitpoint transformed into Sensor-local system
-						texture coordinates at the hitpoint
-		- DragSensors (Sphere,Cylinder,Plane,[Line]) - on mouseDown, store hit xyz as drag-start, in sensor-local
+		- TouchSensor: 
+			a) texture coordinates at the hitpoint
+			b) normal to surface at hitpoint, transformed into sensor-local system
+			c) hitpoint on descendant geometry surface, transformed into sensor-local system
+			(the geometry node may be in descendant transform groups from the sensor's parent, so needs to be 
+			transformed up to the Sensor-local system using the sensor_modelmatrix we saved)
+		- DragSensors (Sphere,Cylinder,Plane,[Line]) 
+			- intersect the bearing/ray with the Sensor's geometry to get sensor hit point in sensor-local system
   4. once finished searching for sensor nodes, and back in mainloop at the root level, see if there 
 		was a hit, and if so call a function to generate events from the winning sensor node
 
@@ -3700,8 +3707,14 @@ What's not shown above:
 	(it doesn't say what happens if you DEF a sensornode and USE it in various places)
 7. what happens on each frame during a Drag:
 	the successful dragsensor node is 'chosen' on the mouse-down
-	on mouse-move intersections with other geometry, and geometry sensitive to other sensor nodes, are ignored, 
-	- but intersection with the same dragsensor's geometry node(s) are updated
+	on mouse-move: intersections with other geometry, and geometry sensitive to other sensor nodes, are ignored, 
+	- but intersection with the same dragsensor's geometry are updated for trackpoint_changed eventout
+	- but because typically you move the geometry you are dragging, it and the dragsensor are 
+		moved on each drag/mousemove, so you can't intersect the bearing with the updated sensor geometry position
+		because that would produce net zero movement. Rather you need to 'freeze' the pose of the dragsensor geometry in the scene
+		on mousdown, then on each mousemove/drag frame, intersect the new pointer bearing with 
+		the original/frozen/mousedown dragsensor geometry pose. Then on mouse-up you unfreeze so next mousedown 
+		you are starting fresh on the tranlated sensor geometry.
 8. where things are stored
 	a geometry node can be DEF'd in an unsensitive parent, and USEd in a sensitive parent
 	So the hit details are stored in the Sensor node, and in a global singleton for the one successful hit
@@ -3774,16 +3787,38 @@ Functionality:
 			in LocalSensor coordinates, the inbound variables need to already be in local-sensor coordinates, and that means
 			they need to be calculated when we are at the sensor place in the scenegraph when traversing the scenegraph in render_node()
 
-Where I think we could make the code a bit clearer:
-- instead of using C local variables on the call stack when recursing in render_node(), 
--- do an explicit sensor stack
---- when hit a sensitive parent, push a) the modelview matrix onto a sensor_modelview stack b) sensor node* onto sensor_node stack
---- so descendent geometry -> rendray_<shapetype> knows what sensor, and can compute the intersection points in sensor_local as well as [viewpoint-local or global]
---- only push and pop if/when you get a VF_sensitive Group/Transform node during the VF_Sensitive pass.
-- after setup_viewpoint and before render_hier(VF_Sensitive), transform the pick ray (A,B) from viewpoint to global coordinates
--- that way if you have a 3D joystick you are using to define a pick ray you can do it in global coordinates
--- and then when checking to see which point is closer, you just use the model part of modelview matrix to transform all intersections back to global
-- 
+What I think we could do better:
+1. global bearing/ray coords: 
+	after setup_viewpoint and before render_hier(VF_Sensitive), transform the pick ray (A,B) 
+	from viewpoint to global coordinates using the view matrix. That way if you have 
+	a 3D joystick you are using to define a pick ray you can do it in global coordinates 
+	and then when checking to see which point is closer, you just use the model part of 
+	modelview matrix to transform all intersections back to global
+2. explicit sensor stack:
+	instead of using C local variables on the call stack when recursing in render_node(),
+	do an explicit sensor stack
+	a) matrix stack: when hit a sensitive parent, push a) the modelview matrix onto 
+		a sensor_modelview stack b) sensor node* onto sensor_node stack
+	b) sensorID stack: so descendent geometry -> rendray_<shapetype> knows what sensor, and can
+	  compute the intersection points in sensor_local as well as [viewpoint-local or global]
+	only push and pop if/when you get a VF_sensitive Group/Transform node during the VF_Sensitive pass.
+3. avoid glu_unproject
+	we are using glu_unproject to generate pseudo viewport coordinates, then doing a funny scaling
+		in do_<dragsensor> to get them approximately back into sensor-local coordinates
+	we need the following transform capabilities:
+	a) bearing/ray: transform A,B bearing from viewpoint to global space (using view matrix)
+	   if pointing device is screen/2D type (if 3D type pointing device, leave in global coords)
+	b) TouchSensor: transform descendent-geometry hit xyz and surface normal vector up 
+		a few levels to the Sensor-local system, using geometry_model*sensor_model.inverse()
+	c) DragSensor: snapshot/freeze the Sensor_model transform on mousedown 
+		for use during a drag/mousemove
+	d) Both: transform sensor-local hit xyz to global-bearing using sensor_model
+	e) Neither/Non-Sensitized geom nodes: transform geometry xyz hits to global
+		using geometry_model
+	d and e are for sorting bearing-scene intersections by distance from A (on B side of A), 
+		to determine if/which sensor is closest
+	no viewport coordinates are needed, except at the very beginning if the pointing device
+		is 2D screen based.
 */
 
 /* If we have a sensitive node, that is clicked and moved, get the posn

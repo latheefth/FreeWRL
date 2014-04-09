@@ -1367,8 +1367,9 @@ void do_LineSensor(void *ptr, int ev, int but1, int over) {
 	else if ((ev == MotionNotify) && (node->isActive) && but1) {
 		/* hyperhit saved in render_hypersensitive phase */
 
-		mult = (node->_origPoint.c[2] - tg->RenderFuncs.hyp_save_posn.c[2]) /
-			(tg->RenderFuncs.hyp_save_norm.c[2] - tg->RenderFuncs.hyp_save_posn.c[2]);
+		mult = (node->_origPoint.c[2] - tg->RenderFuncs.hyp_save_posn.c[2]) /			//(butdown hit Z - viewpoint Z=0, in viewpoint coords
+			(tg->RenderFuncs.hyp_save_norm.c[2] - tg->RenderFuncs.hyp_save_posn.c[2]);  //(viewpoint Z=-1  - viewpoint Z=0) == 1, in viewpoint coords
+		//mult is a scale, which when applied to x=1,y=0 will give the viewport x,y
 		nx = tg->RenderFuncs.hyp_save_posn.c[0] + mult * (tg->RenderFuncs.hyp_save_norm.c[0] - tg->RenderFuncs.hyp_save_posn.c[0]);
 		ny = tg->RenderFuncs.hyp_save_posn.c[1] + mult * (tg->RenderFuncs.hyp_save_norm.c[1] - tg->RenderFuncs.hyp_save_posn.c[1]);
 
