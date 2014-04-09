@@ -2259,7 +2259,14 @@ void propagate_events_A() {
 						#endif
 					/* to get routing to/from exposedFields, lets
 					 * mark this to/offset as an event */
-					// JAS MARK_EVENT (to_ptr->routeToNode, to_ptr->foffset);
+
+					#ifdef HAVE_OPENCL
+					ConsoleMessage (" - JAS - bringing this event back into the fray\n");
+					ConsoleMessage (" as leaving it out gives us routing problems for, eg, MFRotation.wrl\n");
+					ConsoleMessage (" but leaving it in is a problem for CL routing\n");
+					#endif //HAVE_OPENCL
+
+					MARK_EVENT (to_ptr->routeToNode, to_ptr->foffset);
 					//printf(",");
 					if (p->CRoutes[counter].direction_flag != 0) {
 						/* scripts are a bit complex, so break this out */
