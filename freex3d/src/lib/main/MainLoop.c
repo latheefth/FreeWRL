@@ -3543,11 +3543,11 @@ struct X3D_Node* getRayHit() {
                 if (rh->hitNode == NULL) return NULL;
 
 
-		/*
+		
                 printf ("rayhit, we are over a node, have node %p (%s), posn %lf %lf %lf",
-                        rayHit.hitNode,stringNodeType(rayHit.hitNode->_nodeType), x,y,z);
-                printf (" dist %f \n",rayHit.hitNode->_dist);
-		*/
+					rh->hitNode, stringNodeType(rh->hitNode->_nodeType), x, y, z);
+				printf(" dist %f \n", rh->hitNode->_dist);
+		
 
 
                 for (i=0; i<p->num_SensorEvents; i++) {
@@ -3651,202 +3651,254 @@ static void sendSensorEvents(struct X3D_Node* COS,int ev, int butStatus, int sta
         }
 }
 
-/* POINTING DEVICE SENSORS
+/* POINTING DEVICE SENSOR CONMPONENT
 http://www.web3d.org/files/specifications/19775-1/V3.3/Part01/components/pointingsensor.html
 - this describes how the pointing device sensors:
  TouchSensor, DragSensors: CylinderSensor, SphereSensor, PlaneSensor, [LineSensor]
- work as seen by the user. A few quirks:
+ work as seen by the user:
  - dragsensor - the parent's descendent geometry is used only to identify and activate the dragsensor node. 
 	After that it's the dragsensor's geometry (Cylinder/Sphere/Plane/Line) (not the parent's descendent geometry) 
 	that's intersected with the pointing device bearing/ray to generate trackpoint_changed 
-	and translation_ or rotation_changed events
-	
+	and translation_ or rotation_changed events in sensor-local coordinates
+- touchsensor - generates events in touchsensor-local coordinates
 
- As seen by the developer, here's how I (dug9 Apr 2014) think they should work internally, on each frame:
- 1. for each sensor node, flag its immediate Group/Transform parent with the sensor's ID 
+Terminology ([] denotes alternative design, not yet implemented as of April 2014):
+<node>-local - coordinates relative to a given node
+modelview matrix - transforms coords from the current node-local into the current viewpoint-local
+proj matrix - projects points from viewpoint-local 3D to 2D normalized screen viewport (with Z in 0 to 1 range)
+view matrix - the view part of the modelview matrix, generated during setup_viewpoint()
+model matrix - the model part of the world modelview matrix, generated during
+	traversing the scenegraph in render_node()
+world - coordinates at the root node level ie with no transforms applied
+	viewport-local -[proj] - viewpoint-local - [view] - world - [model] - node-local
+modelview matrix: combined model * view matrices
+place - position in the scenegraph transform hierarchy (with DEF/USE, a node can be in multiple places)
+geometry_model: the model part of the modelview matrix at a geometry node's place
+sensor_model: the model part of the modelview matrix at a sensor node's place
+bearing: 2 points (A,B) defining a ray in 3D space going from A in the direction of B
+	1. For 2D screen-based pointing devices	like mouse, A is the viewpoint position 0,0,0 
+		in viewpoint-local, and for B mousexy is converted in setup_projection(pick=TRUE,,) 
+		to a special pick-proj matrix that centers the viewport on the mousexy, so B is 0,0,-1 in
+			pick-viewport-local coordinates	(glu_unproject produces pick-viewport-local)
+		[using normal projection matrix for the bearing, then B= mousex,mousey,-1 in 
+		normal viewport-local coordinates, and glu_unproject is used to get this bearing
+		into world coordinates for the remainder of PointingDeviceSensor activity]
+	[2.for a 3D pointing device, it would have its own A,B in world. And then that world bearing 
+		can be transformed into geometry-local and sensor-local and intersections with 
+		shape-geometry and sensor-geometry calculated.]
+hit: an intersection between the bearing and geometry that is closer to A (supercedes previous cloest)
+
+As seen by the developer, here's how I (dug9 Apr 2014) think they should work internally, on each frame 
+ 0. during parsing, when adding a parent to a node, check the node type and if a sensor type, 
+		create a SensorEvent (by calling setSensitive(node,parent)) and set the SensorEvent[i].datanode=sensor
+		and SensorEvent[i].fromNode = parent
+ 1. for each sensor node, flag its immediate Group/Transform parent with VF_Sensitive [the sensor's ID]
 	so when traversing the scenegraph, this 'sensitivity' can be pushed onto a state stack to affect descendent geometry nodes
  2. from the scene root, traverse to the viewpoint to get the view part of the modelview matrix
-	Set up 2 points in viewpoint space: A=0,0,0 (the viewpoint) and B=(mouse x, mouse y, z=-1) to represent the pick ray
- 3. from the scene root, tranverse the scenegraph looking for sensitive geometry nodes,
-	accumulating the model part of the modelview matrix. 
+	-Set up 2 points in viewpoint space: A=0,0,0 (the viewpoint) and B=(mouse x, mouse y, z=-1) to represent the bearing
+	-apply a special pick-projection matrix, in setup_projection(pick=TRUE,,), so that glu_unproject 
+		is with respect to the mouse-xy bearing B point being at the center of the viewport 
+		[use normal projection, and minimize the use of glu_unproject by transforming viewport-local bearing
+		to world during setup, and use world for bearing for all subsequent PointingDeviceSensor activities]
+ 3. from the scene root, in in render_hier(VF_Sensitive) pass, tranverse the scenegraph looking for sensitive 
+	group/transform parent nodes, accumulating the model part of the modelview matrix as normal.
 	When we find a sensitive parent: 
-		push the sensor node ID onto a stack, and zero a sensor modelmatrix
-		when we descend from the parent, push transforms onto the sensor_modelpatrix as well as the modelview matrix
-	When we find descendent geometry to a sensitive [grand]parent:
-	a) invert the cumulative modelview matrix, and use it to transform A,B into local geometry coords A',B'
-		-so we have a pick ray in geometry-local (this requires fewer math ops than transforming geometry into viewpoint space)
+	a) save the current best-hit parent-node* to a C local variable, and set the current best node* to the current parent
+		[push the parent's sensor node ID onto a sensor_stack]
+	b) save the current hit modelview matrix to a C local variable, and set it to the parent's modelview matrix 
+		[snapshot the current modelview matrix, and push onto a sensor_model stack]
+	When we find descendent geometry to a sensitive (grand)parent:
+	a) use glu_unproject with the pick-proj and current modelview matrix to re-transform the bearing 
+		into geometry-local space [invert the cumulative model matrix, and use it to transform 
+		world bearing (A,B) into geometry-local]
+		-so we have a bearing (A',B') in geometry-local (this requires fewer math ops than 
+		transforming all geometry vertices into pick-viewport-local [bearing-world])
 	b) intersect the infinite line passing through A' and B' 
-		with the geometry to get a list of intersection points n,xyz[n] in geometry-local space
-	c) for the intersection points:
-		- transform using modelview matrix into viewpoint-local coordinates
-		- filter the intersection points to elliminate if in the -B direction from A (behind the viewpoint)
-		- sort the remaining intersection points by distance from A, and take just the closest one 	(the others are 'occluded')
-		- if there is an intersection point, compare its distance from A(0,0,0) with
-			any previous hit on this frame, and if it is closer than the current best one, replace the current best one 
-			(the other is occluded)
-	d) if there was a hit, record some details needed by the particular type of sensor node, (but don't
+		with the geometry to get a list of intersection points n,xyz[n] in geometry-local space, or for 
+		well-known geometry sphere,box,cylinder,rectangle2D... compute and test intersections one by one
+	c) for each intersection point:
+		- filter the intersection point to elliminate if in the -B direction from A (behind the viewpoint)
+		- transform using modelview and pick-proj matrix into pick-viewport-local coordinates 
+		  [transform using model into bearing-world coordinates]
+		- compare the remaining intersection point by distance from A, and chose it over 
+			the current one if closer to A (the other is 'occluded') to produce a new hit
+	d) if there was a new hit, record some details needed by the particular type of sensor node, (but don't
 		generate events yet - we have to search for even closer hits):
-		- Sensor node ID
+		- sensor's parent (Group/Transform) node* [+ Sensor node* ]
+		- sensor's parent modelview and pick-proj matrices [sensor's parent model matrix]
+		- hit point on decendent geometry surface, in pick-viewport-local [sensor-local]
+			(the geometry node may be in descendant transform groups from the sensor's parent, so needs to be 
+			transformed up to the Sensor-local system at some point, using 
+			the sensor's modelview and pick-proj matrices [sensor_model matrix] we saved)
 		- TouchSensor: 
 			a) texture coordinates at the hitpoint
-			b) normal to surface at hitpoint, transformed into sensor-local system
-			c) hitpoint on descendant geometry surface, transformed into sensor-local system
-			(the geometry node may be in descendant transform groups from the sensor's parent, so needs to be 
-			transformed up to the Sensor-local system using the sensor_modelmatrix we saved)
-		- DragSensors (Sphere,Cylinder,Plane,[Line]) 
-			- intersect the bearing/ray with the Sensor's geometry to get sensor hit point in sensor-local system
-  4. once finished searching for sensor nodes, and back in mainloop at the root level, see if there 
-		was a hit, and if so call a function to generate events from the winning sensor node
+			b) normal to surface at hitpoint [transformed into sensor-local system]
+  4. once finished searching for sensor nodes, and back in mainloop at the root level, if there 
+		was a hit, and the hit is on sensitive geometry, call a function to look up the sensor node* given
+		the parent node* in SensorEvents array, and generate events from the sensor node
 
 What's not shown above: 
-5. how regular geometry occludes sensitive geometry
-	we could intersect all geometry, put node=0 for unsensitive hits, and in step 4 if the winning hit isn't sensitive do nothing
 6. what happens when 2+ sensor nodes apply to the same geometry:
 	the specs say it's the sensor that's the nearest co-descendent (sibling or higher) to the geometry
 	(it doesn't say what happens in a tie ie 2 different sensor nodes are siblings)
 	(it doesn't say what happens if you DEF a sensornode and USE it in various places)
 7. what happens on each frame during a Drag:
 	the successful dragsensor node is 'chosen' on the mouse-down
-	on mouse-move: intersections with other geometry, and geometry sensitive to other sensor nodes, are ignored, 
+	on mouse-move: intersections with other occluding geometry, and geometry sensitive to other sensor nodes, are ignored, 
 	- but intersection with the same dragsensor's geometry are updated for trackpoint_changed eventout
 	- but because typically you move the geometry you are dragging, it and the dragsensor are 
 		moved on each drag/mousemove, so you can't intersect the bearing with the updated sensor geometry position
 		because that would produce net zero movement. Rather you need to 'freeze' the pose of the dragsensor geometry in the scene
 		on mousdown, then on each mousemove/drag frame, intersect the new pointer bearing with 
 		the original/frozen/mousedown dragsensor geometry pose. Then on mouse-up you unfreeze so next mousedown 
-		you are starting fresh on the tranlated sensor geometry.
+		you are starting fresh on the translated sensor geometry.
 8. where things are stored
-	a geometry node can be DEF'd in an unsensitive parent, and USEd in a sensitive parent
-	So the hit details are stored in the Sensor node, and in a global singleton for the one successful hit
-	- because a Sensor could be DEFd in one place and USEd in another, don't store the details in the SensorNode
-		until after you have determined it is the closest so far on the current frame (otherwise you could be overwriting
-		details of a closer hit)
-	The sensor_ID and sensor_modelMatrix would need to be stored in global stacks for use when tranversing the scenegraph
-	- for sensor_ID a stack
-	- for sensor_modelMatrix either:
-		a) a stack-of matrix-stacks (so it's easy to pop back one transform level, and pop back to a different Sensor) OR
-		b) a stack-of modelviewMatrix snapshots, each snapshot at a sensor-level, so to compute the sensor_modelmatrix
-			from the geometry-level modelview matrix:
-			sensor_modelMatrix =  modelviewMatrix * sensor_snapshot_modelviewmatrix.inverse() 
-			(or something like this, where the sensor-to-geometry matrix is computed as the difference between the
-			current geometry modelview matrix, and the modelviewmatrix at the sensor, if they aren't siblings. If they
-			are siblings then sensor_modelMatrix = Identity and hit xyz in geometry-local is same in sensor-local)
+	The details for the hit are stored in a global hitCursor struct [struct array]
+	render_node() has some C local variables which get pushed onto the C call stack when recursing
+	[render_node() uses an explicit stack for sensor_model and sensor_parent_node* to apply to descendent geometry]
+9. any special conditions for touch devices: none [multiple bearings processed on the same pass, for multi-touch, 
+	PlaneSensor.rotation_changed, PlaneSensor.scale_changed, LineSensor.scale_changed events added to specs]
 
-9. any special conditions for touch devices (I suspect onTouchUp leaves the last mousexy as the active pick-ray)
-
-HOW I (dug9) THINK THE ABOVE IS IMPLEMENTED IN FREEWRL, ON APRIL 8, 2014
+More implemnetation details - these may change, a snapshot April 2014
 Keywords:
 	Sensitive - all pointingdevice sensors
-	HyperSensitive - drag sensors in the middle of a drag (ignor other pointing sensors during drag)
+	HyperSensitive - drag sensors in the middle of a drag
 Storage types:
 struct currayhit {
 	struct X3D_Node *hitNode; // What node hit at that distance? 
-	- Usually it's the parent Group or Transform to the Sensor node
+	- It's the parent Group or Transform to the Sensor node (the sensor node* gets looked up from parent node*
+		in SensorEvents[] array, later in sendSensorEvents())
 	GLDOUBLE modelMatrix[16]; // What the matrices were at that node
-	- a snapshot at the sensornode or more precisely it's immediate parent Group or Transform
+	- a snapshot of modelview at the sensornode or more precisely it's immediate parent Group or Transform
 	- it's the whole modelview matrix
 	GLDOUBLE projMatrix[16]; 
-	- snapshot of the project matrix at the same spot
-	- don't know if I need it other than to allow a easy call to glu_unproject rather than working hard to take the difference between
-		the the sensor's modelview matrix and the geometry's modelview matrix (so as to transform the geometry's hit into the sensor-local system)
+	- snapshot of the project matrix at the same spot, it will include the pick-specific projection matrix aligned to the mousexy
 };
-Storage variables:
-	hyp_save_posn, t_r1 - A' (viewpoint 0,0,0 transformed by modelviewMatrix.inverse() to geometry-local space)
-	hyp_save_norm, t_r2 - (along the axis of the viewpoint, at -1 in viewpoint space, transformed to geometry-local space)
-	ray_save_posn, t_r3 - B' (viewpoint mousex,mousey,-1 transformed by modelviewMatrix.inverse() to geometry-local space)
-	Renderfuncs.hp.xyz - current closest hit, in viewpoint-local system
+global variables:
+	struct point_XYZ r1 = {0,0,-1},r2 = {0,0,0},r3 = {0,1,0}; 
+		pick-viewport-local axes: r1- along pick-proj axis, r2 viewpoint, r3 y-up axis in case needed
+	hyp_save_norm, t_r1 - B - bearing (viewport 0,0,-1 used with pick-proj bearing-specific projection matrix)
+	hyp_save_posn, t_r2 - A - (viewpoint 0,0,0 transformed by modelviewMatrix.inverse() to geometry-local space)
+	ray_save_posn, t_r3 - 
+rayhit()
+	Renderfuncs.hp.xyz - current closest hit, in bearing-local system
 	RenderFuncs.hitPointDist - current distance to closest hit from viewpoint 0,0,0 to geometry intersection (in viewpoint scale)
-	render_node(): - a few variables acting as a stack by using automatic/local C variables in recursive calling
-		int srg - saves current renderstate.render_geom
-		int sch - saves current count of the hits from a single geometry node before trying to to intersect another geometry
-		struct currayhit *srh - saves the current best hit rayph on the call stack
-		rayph.modelMatrix,rayph.viewMatrix - sensor snapshot modelview matrix 
+	rayHit - snapshot of sensor's modelview matrix to go with closest-hit-so-far
+	rayHitHyper - "
+render_node(): - a few variables acting as a stack by using automatic/local C variables in recursive calling
+	int srg - saves current renderstate.render_geom
+	int sch - saves current count of the hits from a single geometry node before trying to to intersect another geometry
+	struct currayhit *srh - saves the current best hit rayph on the call stack
+	rayph.modelMatrix- sensor-local snapshot of modelview matrix 
+	rayph.viewMatrix - " proj "
 		-- this could have been a stack, with a push for each direct parent of a pointingdevice sensor
-Functionality:
-	SIBLING_SENSITIVE(node) - macro that checks if a node is VF_Sensitive and if so, sets up a parent vector
+SIBLING_SENSITIVE(node) - macro that checks if a node is VF_Sensitive and if so, sets up a parent vector
 	n->_renderFlags = n->_renderFlags  | VF_Sensitive; - for each parent n, sets the parent sensitive
 		(which indirectly sensitizes the siblings)
-	Q. instead of just setting a flag, could a parent be flagged with the SensorNode ID/*node?
-	Q. how do we currently get the sensor node* when we detect a VF_sensitive group node during render_hier()?
-	geometry nodes have virt->rendray_<shapenodetype>() functions called unconditionally ie rendray_Box, rendray_Sphere, rendray_Circle2D
-		on render_hier(VF_sensitive) pass of scengraph traversal
-		- called whether or not they are sensitized, to find an intersection and determine if they a) occlude 
-			or b) succeed other sensitized geometry along the pick ray
-	upd_ray() - keeps A,B transformed to A',B' - called after a push or pop to the modelview matrix stack.
-	rayhit() - 3.c above: accepts intersection of A',B' line with geometry in geometry-local space, 
-		- filters if behind viewpoint,
-		- sees if it's closer to A' than current, if so transforms into viewpoint-local with modelview.inverse()
-			and stores as hp.xyz
-	get_hyperhit() updates some variables in the middle of a drag, for use in the do_<sensor_type> function(s):
+geometry nodes have virt->rendray_<shapenodetype>() functions called unconditionally on VF_Sensitive pass
+	- ie rendray_Box, rendray_Sphere, rendray_Circle2D
+	- called whether or not they are sensitized, to find an intersection and determine if they a) occlude 
+			or b) succeed other sensitized geometry along the bearing
+upd_ray() - keeps bearing A,B transformed to geometry-local A',B' - called after a push or pop to the modelview matrix stack.
+rayhit() - accepts intersection of A',B' line with geometry in geometry-local space, 
+	- filters if behind viewpoint,
+	- sees if it's closer to A' than current, if so 
+		- transforms hit xyz from geometry-local into bearing-local (pick-viewport-local) [model] and stores as hp.xyz
+		- snapshots the sensor-local modelview and stores as .rayHit, for possible use in get_hyperhit()
+get_hyperhit() for DragSensors: transforms the current-frame bearing from bearing-local 
+		into the sensor-local coordinate system of the winning sensor, in a generic way that works 
+		for all the DragSensor types in their do_<Drag>Sensor function. 
 		- ray_save_posn, hyp_save_posn, hyp_save_norm
-	sendSensorEvents(node,event,button,status) - called from mainloop if there was a any pointing sensor hits
-		- calls the do_<sensortype> function ie do_PlaneSensor(,,,)
-	do_TouchSensor, do_<dragSensorType>: do_CylinderSensor, do_SphereSensor, do_PlaneSensor, [do_LineSensor not in specs, fw exclusive]
-		- compute output events and update any carryover sensor state variables
+sendSensorEvents(node,event,button,status) - called from mainloop if there was a any pointing sensor hits
+	- looks up the sensor node* from the parent node*
+	- calls the do_<sensortype> function ie do_PlaneSensor(,,,)
+do_TouchSensor, do_<dragSensorType>: do_CylinderSensor, do_SphereSensor, do_PlaneSensor, [do_LineSensor not in specs, fw exclusive]
+	- compute output events and update any carryover sensor state variables
 		- these are called from mainloop ie mainloop > sendSensorEvents > do_PlaneSensor
 		- because its not called from the scenegraph where the SensorNode is, and because 
 			the Sensor evenouts need to be in sensor-local coordinates, the inbound variables
-			need to already be in sensor-local coordinates, and that means
-			they need to be transformed when we are at the sensor place in the scenegraph
-			when traversing the scenegraph in render_node() or else save that transform
+			need to already be in sensor-local coordinates or there needs to be a transform 
+			from world to sensor-local available, and that means they need to be transformed and/or 
+			matrix snapshotted when we are at the sensor place in the scenegraph when traversing in render_node()
+
 
 What I think we could do better:
-definitions:
-	<node>-local - coordinates relative to a given node instance/placement
-	modelview matrix - transforms coords from the current node-local into the current viewpoint-local
-	view matrix - the view part of the global modelview matrix, generated during setup_viewpoint()
-	model matrix - the model part of the global modelview matrix, generated during
-		traversing the scenegraph in render_node()
-	global - coordinates at the root node level ie with no transforms applied
-		viewpoint-local - [view] - global - [model] - node-local
-	geometry_model: the model part of the global modelview matrix at a geometry node
-	sensor_model: the model part of the global modelview matrix at a sensor node
-	pointing-device bearing/ray: a ray consisting of 2 points A and B,
-		or a point A and direction vector B. For 2D screen-based pointing devices
-		like mouse, A is the viewpoint position 0,0,0, and B is mousex,mousey,-1 (pointing
-		toward the scene away fro the viewer) in viewpiont-local coordinates. They can then
-		be transformed into global. Or 3D joystick controller would have its own A,B already
-		in global. And then that global bearing can be transformed into	geometry-local
-		and sensor-local and intersections with geometry calculated.
-1. global bearing/ray coords: 
-	after setup_viewpoint and before render_hier(VF_Sensitive), transform the pick ray (A,B) 
-	from viewpoint to global coordinates using the view matrix. That way if you have 
-	a 3D joystick you are using to define a pick ray you can do it in global coordinates 
-	and then when checking to see which point is closer, you just use the model part of 
-	modelview matrix to transform all intersections back to global, for both 2D and 3D pointing devices
-2. explicit sensor stack:
-	instead of using C local variables on the call stack when recursing in render_node(),
-	do an explicit sensor stack
-	a) matrix stack: when hit a sensitive parent, push a) the modelview matrix onto 
-		a sensor_modelview stack b) sensor node* onto sensor_node stack
-	b) sensorID stack: so descendent geometry -> rendray_<shapetype> knows what sensor, and can
-	  compute the intersection points in sensor_local as well as [viewpoint-local or global]
-	only push and pop if/when you get a VF_sensitive Group/Transform node during the VF_Sensitive pass.
-	(up to Feb 2014 it was creating a whole 16x16 on every recurse level. I changed this to malloc 
-	 only when VF_sensitive. But mallocs and frees on every frame can fragment memory. 
-	 A pre-allocated stack (resizeable?) like modelview matrix with explicit push and pop
-	 would minimize fragmentation and calling stack size.
-3. avoid glu_unproject
-	we are using glu_unproject to generate pseudo viewport coordinates, then doing a funny scaling
-		in do_<dragsensor> to get them approximately back into sensor-local coordinates
+1. world bearing coords:
+	Benefits of converting mousexy into world bearing(A,B) once per frame before sensitive pass:
+	a) 3D PointingDevices generate bearing(A,B) in world coordinates
+	b) separate PickingComponent (not yet fully implemented) works in world coordinates
+	- so these two can share code if PointingDevice bearing from mouse is in world
+	c) minimizes the use of glu_unproject (a compound convenience function with expensive 
+		matrix inverse)
+	How:
+	after setup_viewpoint and before render_hier(VF_Sensitive), transform the mouse bearing (A,B) 
+	from viewpoint to world coordinates using the view matrix. 
+2. normal proj matrix (vs glu_pick modified proj matrix)
+	Benefits of using normal proj matrix for PointingDeviceSensor:
+	a) allows multiple bearings to be processed on the same pass for future multi-touch devices (no 
+		competition for the bearing-specific pick-proj matrix)
+	b) allows VF_Sensitive pass to be combined with other passes for optimization, if using
+		the same transform matrices
+	c) allows setup_viewpoint() and setup_projection() to be computed once for multiple passes
+	d) allows using world coordinates for the bearing because then bearing doesn't depend 
+		on a special proj matrix which only glu_project and glu_unproject can make use of,
+		and those functions transform to/from viewport space
+	How:
+	in setup_projection(pick=FALSE,,), and glu_unproject with the mousexy to get B in 
+	viewpoint-local, then use view to transform A,B from viewpoint-local to world. View is 
+	computed with setup_viewpoint()
+3. explicit sensor stack:
+	Benefits of an explicit sensor stack in render_node():
+	a) code will be easier to read (vs. current 'shuffling' on recusion)
+	b) minimizes C call stack size and minimizes memory fragmentation from malloc/free
+		by using a pre-allocaed (or infrequently realloced) heap stack
+	How: 
+	when visiting a VF_sensitive parent (Group/Transform), push parent's modelview [model] transform
+	onto a special sensor_viewmodel [sensor_model] stack that works like modelview matrix push and pop stack,
+	and push the parents node* onto a sensor_parent stack (and pop them both going back)
+3. minimize use of glu_unproject
+	glu_unproject is a compound convenience function doing an expensive 4x4 matrix inversion
+	Benefits of avoiding glu_unproject:
+	a) allows speed optimization by computing inverse once, and using it many times for a given
+		modelview [model] matrix
+	b) avoids reliance on any projection matrix
+	How:
+	a) implement: 
+		FW_GL_GETDOUBLEV(GL_MODEL_MATRIX_INVERSE, modelMatrix);
+		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX_INVSERSE, modelviewMatrix);
+		and during modelview_push and _pop clear a state flag. Then when we call the above
+		we would test if !flag invert & set flag, else: re-use
+	b) for bearing, use world coordinates, which elliminates the dependency on pick-bearing-specific projmatrix
+		so we don't rely on glu_project/glu_unproject which are the only functions that can use the projMatrix.
+
 	we need the following transform capabilities:
-	a) bearing/ray: transform A,B bearing from viewpoint-local to global (using view matrix)
-	   if pointing device is screen/2D type (if 3D type pointing device, leave in global coords)
-	b) TouchSensor: transform descendent-geometry-local hit xyz and surface normal vector up 
-		a few levels to the Sensor-local system, using geometry_model*sensor_model.inverse()
+	a) bearing: transform A,B bearing from PointingDevice-local to world. If pointing device is:
+		- 2D mouse use pick-proj [normal proj] and view matrix
+		- 3D, leave in world coords, or do some uniform scale to world
+	b) sensor hits: 
+		- transform bearing from bearing-local (pick-viewport-local [world]) to geometry-local
+		- transform geometry-local hit xyz and surface normal vector to sensor-local 
+			for generating events, DragSensor: for intersecting with sensor geometry,
+				using modelview+pick-proj [using model]
 	c) DragSensor: snapshot/freeze the Sensor_model transform on mousedown 
 		for use during a drag/mousemove
-	d) Both: transform sensor-local hit xyz to global using sensor_model
-	e) Neither/Non-Sensitized geom nodes: transform geometry xyz hits to global
-		using geometry_model
-	d and e are for sorting bearing-scene intersections by distance from A (on B side of A), 
-		to determine if/which sensor is closest
-	no viewport coordinates are needed, except at the very beginning if the pointing device
-		is 2D screen based. So only need glu_unproject there, in that one spot.
+	d) Neither/Non-Sensitized geom nodes: transform geometry xyz hits to bearing-local
+		using modelview+pick-proj [model]
+	[viewport coordinates are only needed once per frame to project the mouse into bearing-world]
 */
 
-/* If we have a sensitive node, that is clicked and moved, get the posn
-   for use later                                                                */
+/*	get_hyperhit()
+	If we have successfully picked a DragSensor sensitive node, and we are on mousedown
+	or mousemove(drag) events:
+   - transform the bearing/pick-ray from bearing-local^  to sensor-local coordinates
+   - in a way that is generic for all DragSensor nodes in their do_<Drag>Sensor function
+   - so they can intersect the bearing/pick-ray with their sensor geometry (Cylinder,Sphere,Plane[,Line])
+   - and emit events in sensor-local coordinates
+   - ^bearing-local: currently == pick-viewport-local 
+   -- unproject is used because to go from geometry-local to bearing-local, because
+		it's convenient, and includes the pick-viewport in the transform - see setup_projection(pick=TRUE,,) for details
+	  But it may be overkill if bearing-local is made to == world, for compatibility with 3D pointing devices
+*/
 static void get_hyperhit() {
         double x1,y1,z1,x2,y2,z2,x3,y3,z3;
         GLDOUBLE projMatrix[16];
