@@ -3660,10 +3660,12 @@ http://www.web3d.org/files/specifications/19775-1/V3.3/Part01/components/pointin
 	and translation_ or rotation_changed events in sensor-local coordinates
 - touchsensor - generates events in touchsensor-local coordinates
 
-Terminology ([] denotes alternative design, not yet implemented as of April 2014):
+Terminology ([] denotes alternative design not yet implemented April 2014):
 <node>-local - coordinates relative to a given node
 modelview matrix - transforms coords from the current node-local into the current viewpoint-local
 proj matrix - projects points from viewpoint-local 3D to 2D normalized screen viewport (with Z in 0 to 1 range)
+pick-proj matrix - special projection matrix that aligns the mousexy (pickpoint) on the viewport center
+	- formed in setup_projection(pick=TRUE,,)
 view matrix - the view part of the modelview matrix, generated during setup_viewpoint()
 model matrix - the model part of the world modelview matrix, generated during
 	traversing the scenegraph in render_node()
@@ -3690,8 +3692,9 @@ As seen by the developer, here's how I (dug9 Apr 2014) think they should work in
  0. during parsing, when adding a parent to a node, check the node type and if a sensor type, 
 		create a SensorEvent (by calling setSensitive(node,parent)) and set the SensorEvent[i].datanode=sensor
 		and SensorEvent[i].fromNode = parent
- 1. for each sensor node, flag its immediate Group/Transform parent with VF_Sensitive [the sensor's ID]
-	so when traversing the scenegraph, this 'sensitivity' can be pushed onto a state stack to affect descendent geometry nodes
+ 1. in startofloopnodeupdates() for each sensor node, flag its immediate Group/Transform parent 
+	with VF_Sensitive [the sensor's ID]	so when traversing the scenegraph, this 'sensitivity' 
+	can be pushed onto a state stack to affect descendent geometry nodes
  2. from the scene root, traverse to the viewpoint to get the view part of the modelview matrix
 	-Set up 2 points in viewpoint space: A=0,0,0 (the viewpoint) and B=(mouse x, mouse y, z=-1) to represent the bearing
 	-apply a special pick-projection matrix, in setup_projection(pick=TRUE,,), so that glu_unproject 
@@ -3701,8 +3704,8 @@ As seen by the developer, here's how I (dug9 Apr 2014) think they should work in
  3. from the scene root, in in render_hier(VF_Sensitive) pass, tranverse the scenegraph looking for sensitive 
 	group/transform parent nodes, accumulating the model part of the modelview matrix as normal.
 	When we find a sensitive parent: 
-	a) save the current best-hit parent-node* to a C local variable, and set the current best node* to the current parent
-		[push the parent's sensor node ID onto a sensor_stack]
+	a) save the current best-hit parent-node* to a C local variable, and set the current best node* to the 
+		current parent	[push the parent's sensor node ID onto a sensor_stack]
 	b) save the current hit modelview matrix to a C local variable, and set it to the parent's modelview matrix 
 		[snapshot the current modelview matrix, and push onto a sensor_model stack]
 	When we find descendent geometry to a sensitive (grand)parent:
@@ -3770,14 +3773,22 @@ struct currayhit {
 	- a snapshot of modelview at the sensornode or more precisely it's immediate parent Group or Transform
 	- it's the whole modelview matrix
 	GLDOUBLE projMatrix[16]; 
-	- snapshot of the project matrix at the same spot, it will include the pick-specific projection matrix aligned to the mousexy
+	- snapshot of the pick-projection matrix at the same spot
+	-- it will include the pick-specific projection matrix aligned to the mousexy in setup_projection(pick=TRUE,,)
 };
 global variables:
 	struct point_XYZ r1 = {0,0,-1},r2 = {0,0,0},r3 = {0,1,0}; 
 		pick-viewport-local axes: r1- along pick-proj axis, r2 viewpoint, r3 y-up axis in case needed
-	hyp_save_norm, t_r1 - B - bearing (viewport 0,0,-1 used with pick-proj bearing-specific projection matrix)
 	hyp_save_posn, t_r2 - A - (viewpoint 0,0,0 transformed by modelviewMatrix.inverse() to geometry-local space)
-	ray_save_posn, t_r3 - 
+	hyp_save_norm, t_r1 - B - bearing point (viewport 0,0,-1 used with pick-proj bearing-specific projection matrix)
+		- norm is not a direction vector, its a point. To get a direction vector: v = (B - A) = (norm - posn)
+	ray_save_posn, t_r3 - viewport y-up in case needed
+call stacks:
+resource thread > parsing > setParent > setSensitive
+mainloop > setup_projection > glu_pick
+mainloop > render_hier(VF_Sensitive) > render_Node() > upd_ray(), (node)->rendray_<geom> > rayhit()
+mainloop > sendSensorEvent > get_hyperHit(), .interptr()={do_TouchSensor / do_<Drag>Sensor /..}
+funcion-specific variables:
 rayhit()
 	Renderfuncs.hp.xyz - current closest hit, in bearing-local system
 	RenderFuncs.hitPointDist - current distance to closest hit from viewpoint 0,0,0 to geometry intersection (in viewpoint scale)
@@ -3815,9 +3826,7 @@ do_TouchSensor, do_<dragSensorType>: do_CylinderSensor, do_SphereSensor, do_Plan
 		- these are called from mainloop ie mainloop > sendSensorEvents > do_PlaneSensor
 		- because its not called from the scenegraph where the SensorNode is, and because 
 			the Sensor evenouts need to be in sensor-local coordinates, the inbound variables
-			need to already be in sensor-local coordinates or there needs to be a transform 
-			from world to sensor-local available, and that means they need to be transformed and/or 
-			matrix snapshotted when we are at the sensor place in the scenegraph when traversing in render_node()
+			need to already be in sensor-local coordinates ie posn,norm are in sensor-local
 
 
 What I think we could do better:

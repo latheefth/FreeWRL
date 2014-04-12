@@ -1321,6 +1321,16 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 
 
 void do_LineSensor(void *ptr, int ev, int but1, int over) {
+	/* There is no LineSensor node in the specs in April 2014. X3Dom guru Max Limper complained
+		on X3DPublic about how PlaneSensor fails as an axis mover in the degenerate case of
+		looking edge-on at the planeSensor. The solution we (dug9) came up with was LineSensor, 
+		which also has a degenerate case (when looking end-on at the Line), but that degerate
+		case is more normal for users - more intuitive.
+		LineSensor is the same as PlaneSensor, except minPosition and maxPosition are floats,
+		and LineSensor uses a SFVec3f .direction field to say which way the Line is oriented
+		in local-sensor coordinates. In April 2014, Paulo added LineSensor to the perl generator,
+		and dug9 implemented it here.
+	*/
 	struct X3D_LineSensor *node;
 	float trackpoint[3], translation[3], xxx;
 	struct SFColor tr;

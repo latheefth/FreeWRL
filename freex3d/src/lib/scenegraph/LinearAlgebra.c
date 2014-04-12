@@ -361,6 +361,28 @@ BOOL line_intersect_line_3f(float *p1, float *v1, float *p2, float *v2, float *t
 	return TRUE; //success we have 2 footpoints.
 }
 
+BOOL line_intersect_planed_3f(float *p, float *v, float *N, float d, float *pi, float *t)
+{
+	//from graphics gems I, p.391 http://inis.jinr.ru/sl/vol1/CMC/Graphics_Gems_1,ed_A.Glassner.pdf
+	// V dot N = d = const for points on a plane, or N dot P + d = 0
+	// line/ray P1 + v1*t = P2 (intersection point)
+	// combining t = -(d + N dot P1)/(N dot v1)
+	float t1[3], t2[3], nd, tt;
+	nd = vecdot3f(N, p);
+	if (APPROX(nd, 0.0f)) return FALSE;
+	tt = -(d + vecdot3f(N, p)) / nd;
+	vecadd3f(t2, p, vecscale3f(t1, v, tt));
+	if (t) *t = tt;
+	if (pi) veccopy3f(pi, t2);
+	return TRUE;
+}
+BOOL line_intersect_plane_3f(float *p, float *v, float *N, float *pp, float *pi, float *t)
+{
+	float d;
+	d = vecdot3f(N, pp);
+	return line_intersect_planed_3f(p, v, N, d, pi, t);
+}
+
 struct point_XYZ* vecadd(struct point_XYZ* r, struct point_XYZ* v, struct point_XYZ* v2)
 {
     r->x = v->x + v2->x;
