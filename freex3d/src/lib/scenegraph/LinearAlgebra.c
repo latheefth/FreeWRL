@@ -50,7 +50,21 @@ double *vecaddd(double *c, double* a, double *b)
 	c[2] = a[2] + b[2];
 	return c;
 }
+float *vecadd3f(float *c, float *a, float *b)
+{
+	c[0] = a[0] + b[0];
+	c[1] = a[1] + b[1];
+	c[2] = a[2] + b[2];
+	return c;
+}
 double *vecdifd(double *c, double* a, double *b)
+{
+	c[0] = a[0] - b[0];
+	c[1] = a[1] - b[1];
+	c[2] = a[2] - b[2];
+	return c;
+}
+float *vecdif3f(float *c, float *a, float *b)
 {
 	c[0] = a[0] - b[0];
 	c[1] = a[1] - b[1];
@@ -63,6 +77,13 @@ double *veccopyd(double *c, double *a)
 	c[1] = a[1];
 	c[2] = a[2];
 	return c;
+}
+float *veccopy3f(float *b, float *a)
+{
+	b[0] = a[0];
+	b[1] = a[1];
+	b[2] = a[2];
+	return b;
 }
 double * veccrossd(double *c, double *a, double *b)
 {
@@ -102,12 +123,24 @@ void veccross(struct point_XYZ *c, struct point_XYZ a, struct point_XYZ b)
     c->y = a.z * b.x - a.x * b.z;
     c->z = a.x * b.y - a.y * b.x;
 }
-
+float *veccross3f(float *c, float *a, float *b)
+{
+    c[0] = a[1]*b[2] - a[2]*b[1];
+    c[1] = a[2]*b[0] - a[0]*b[2];
+    c[2] = a[0]*b[1] - a[1]*b[0];
+	return c;
+}
 float veclength( struct point_XYZ p )
 {
     return (float) sqrt(p.x*p.x + p.y*p.y + p.z*p.z);
 }
-
+float vecdot3f( float *a, float *b )
+{
+    return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+}
+float veclength3f(float *a){
+	return sqrt(vecdot3f(a, a));
+}
 
 double vecangle(struct point_XYZ* V1, struct point_XYZ* V2) {
     return acos((V1->x*V2->x + V1->y*V2->y +V1->z*V2->z) /
@@ -155,13 +188,36 @@ GLDOUBLE vecnormal(struct point_XYZ*r, struct point_XYZ* v)
     vecscale(r,v,1./ret);
     return ret;
 }
+float vecnormsquared3f(float *a){
+	return a[0] * a[0] + a[1] * a[1] + a[2] * a[2];
+}
+float *vecscale3f(float *b, float *a, float scale){
+	b[0] = a[0] * scale;
+	b[1] = a[1] * scale;
+	b[2] = a[2] * scale;
+	return b;
+}
 
-
+float *vecnormalize3f(float *b, float *a)
+{
+	float norm = veclength3f(a);
+	if (APPROX(norm, 0.0f)){
+		b[0] = 1.0f; b[1] = 0.0f; b[2] = 0.0f;
+	}else{
+		vecscale3f(b, a, 1.0f / norm);
+	}
+	return b;
+}
 /*will add functions here as needed. */
 
 GLDOUBLE det3x3(GLDOUBLE* data)
 {
     return -data[1]*data[10]*data[4] +data[0]*data[10]*data[5] -data[2]*data[5]*data[8] +data[1]*data[6]*data[8] +data[2]*data[4]*data[9] -data[0]*data[6]*data[9];
+}
+float det3f(float *a, float *b, float *c)
+{
+	float temp[3];
+	return vecdot3f(a,veccross3f(temp,b, c));
 }
 
 struct point_XYZ* transform(struct point_XYZ* r, const struct point_XYZ* a, const GLDOUBLE* b)
@@ -224,7 +280,6 @@ struct point_XYZ* vecscale(struct point_XYZ* r, struct point_XYZ* v, GLDOUBLE s)
     r->z = v->z * s;
     return r;
 }
-
 double vecdot(struct point_XYZ* a, struct point_XYZ* b)
 {
     return (a->x*b->x) + (a->y*b->y) + (a->z*b->z);
@@ -278,6 +333,32 @@ double closest_point_of_segment_to_y_axis_segment(double y1, double y2, struct p
     if(i > imax) i = imax;
     return i;
 
+}
+BOOL line_intersect_line_3f(float *p1, float *v1, float *p2, float *v2, float *t, float *s, float *x1, float *x2)
+{
+	//from Graphics Gems I, p.304 http://inis.jinr.ru/sl/vol1/CMC/Graphics_Gems_1,ed_A.Glassner.pdf
+	//L1: P1 + V1*t
+	//L2: P2 + V2*s
+	//t and s are at the footpoint/point of closest passing
+	//t = det(P2-P1,V2,V1xV2) / |V1 x V2|**2
+	//s = det(P2-P1,V1,V1xV2) / |V1 x V2|**2
+	float t1[3], t2[3], cross[3]; //temp intermediate variables
+	float crosslength2, det, ss, tt;
+	veccross3f(cross, v1, v2);
+	crosslength2 = vecnormsquared3f(cross);
+	if (APPROX(crosslength2, 0.0f)) return FALSE; //lines are parallel, no intersection
+	crosslength2 = 1.0f / crosslength2;
+	tt = det3f(vecdif3f(t1, p2, p1), v2, cross) * crosslength2;
+	ss = det3f(vecdif3f(t1, p2, p1), v1, cross) * crosslength2;
+	if (x1)
+		vecadd3f(x1, p1, vecscale3f(t1, v1, tt));
+	if (x2)
+		vecadd3f(x2, p2, vecscale3f(t1, v2, ss));
+	if (t)
+		*t = tt;
+	if (s)
+		*s = ss;
+	return TRUE; //success we have 2 footpoints.
 }
 
 struct point_XYZ* vecadd(struct point_XYZ* r, struct point_XYZ* v, struct point_XYZ* v2)

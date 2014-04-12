@@ -171,6 +171,17 @@ double vecdotd(double *a, double *b);
 double* vecscaled(double* r, double* v, double s);
 double vecnormald(double *r, double *v);
 
+float *veccopy3f(float *b, float *a);
+float *vecadd3f(float *c, float *a, float *b);
+float *vecdif3f(float *c, float *a, float *b);
+float vecdot3f(float *a, float *b);
+float *veccross3f(float *c, float *a, float *b);
+float *vecscale3f(float *b, float *a, float scale);
+float veclength3f(float *a);
+float *vecnormalize3f(float *b, float *a);
+float det3f(float *a, float *b, float *c);
+
+BOOL line_intersect_line_3f(float *p1, float *v1, float *p2, float *v2, float *t, float *s, float *x1, float *x2);
 
 GLDOUBLE det3x3(GLDOUBLE* data);
 

@@ -3543,11 +3543,11 @@ struct X3D_Node* getRayHit() {
                 if (rh->hitNode == NULL) return NULL;
 
 
-		
+				/*
                 printf ("rayhit, we are over a node, have node %p (%s), posn %lf %lf %lf",
 					rh->hitNode, stringNodeType(rh->hitNode->_nodeType), x, y, z);
 				printf(" dist %f \n", rh->hitNode->_dist);
-		
+				*/
 
 
                 for (i=0; i<p->num_SensorEvents; i++) {
@@ -3573,9 +3573,7 @@ void setSensitive(struct X3D_Node *parentNode, struct X3D_Node *datanode) {
                 /* sibling sensitive nodes - we have a parent node, and we use it! */
                 case NODE_TouchSensor: myp = (void *)do_TouchSensor; break;
                 case NODE_GeoTouchSensor: myp = (void *)do_GeoTouchSensor; break;
-#ifdef LINESENSOR
 				case NODE_LineSensor: myp = (void *)do_LineSensor; break;
-#endif
                 case NODE_PlaneSensor: myp = (void *)do_PlaneSensor; break;
                 case NODE_CylinderSensor: myp = (void *)do_CylinderSensor; break;
                 case NODE_SphereSensor: myp = (void *)do_SphereSensor; break;
@@ -3907,9 +3905,11 @@ static void get_hyperhit() {
 		rhh = (struct currayhit *)tg->RenderFuncs.rayHitHyper;
 		rh = (struct currayhit *)tg->RenderFuncs.rayHit;
 
+		/*
 		printf ("hy %.2f %.2f %.2f, %.2f %.2f %.2f, %.2f %.2f %.2f\n",
 			r1.x, r1.y, r1.z, r2.x, r2.y, r2.z, 
 			tg->RenderFuncs.hp.x, tg->RenderFuncs.hp.y, tg->RenderFuncs.hp.z);
+		*/
 
         FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
         FW_GLU_UNPROJECT(r1.x, r1.y, r1.z, rhh->modelMatrix,
@@ -5054,9 +5054,7 @@ void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive) {
                         if (p->SensorEvents[tmp].fromnode == CursorOverSensitive) {
                                 switch (p->SensorEvents[tmp].datanode->_nodeType) {
                                         case NODE_Anchor: ns = ((struct X3D_Anchor *)p->SensorEvents[tmp].datanode)->description->strptr; break;
-#ifdef LINESENSOR
 										case NODE_LineSensor: ns = ((struct X3D_LineSensor *)p->SensorEvents[tmp].datanode)->description->strptr; break;
-#endif
                                         case NODE_PlaneSensor: ns = ((struct X3D_PlaneSensor *)p->SensorEvents[tmp].datanode)->description->strptr; break;
                                         case NODE_SphereSensor: ns = ((struct X3D_SphereSensor *)p->SensorEvents[tmp].datanode)->description->strptr; break;
                                         case NODE_TouchSensor: ns = ((struct X3D_TouchSensor *)p->SensorEvents[tmp].datanode)->description->strptr; break;
