@@ -48,7 +48,7 @@ fi
     exec AC_FD_MSG>/dev/null
 
     AC_SEARCH_LIBS(glAccum,         $GL_search_list,  have_GL=yes,   have_GL=no)
-    AC_SEARCH_LIBS(gluBeginCurve,   $GLU_search_list, have_GLU=yes,  have_GLU=no)
+    # JAS AC_SEARCH_LIBS(gluBeginCurve,   $GLU_search_list, have_GLU=yes,  have_GLU=no)
     AC_SEARCH_LIBS(glXChooseVisual, $GLX_search_list, have_GLX=yes,  have_GLX=no)
 
     if test -n "$LIBS"; then

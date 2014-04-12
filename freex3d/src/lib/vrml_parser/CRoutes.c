@@ -1288,7 +1288,8 @@ void CRoutes_Register(
 
 #endif //HAVE_OPENCL
 
-/*    
+    
+/*
 ConsoleMessage ("CRoutes_Register - adrem %d, from %p (%s) fromoffset %d to %p (%s) toOfs %d type %d intptr %p scrdir %d extra %d\n",
                         adrem, from,
                         stringNodeType(from->_nodeType),
@@ -1297,6 +1298,7 @@ ConsoleMessage ("CRoutes_Register - adrem %d, from %p (%s) fromoffset %d to %p (
                         toOfs, type, intptr, scrdir, extra);
 */
 
+
 	// do we have an Interpolator running on the GPU?
 	if (from->_nodeType == NODE_CoordinateInterpolator) {
 
@@ -1304,8 +1306,8 @@ ConsoleMessage ("CRoutes_Register - adrem %d, from %p (%s) fromoffset %d to %p (
 		struct X3D_CoordinateInterpolator *px = (struct X3D_CoordinateInterpolator *) from;
 		if (incr == 0) incr = -1; // makes easy addition
         
-		if (to->_nodeType == NODE_Coordinate) {
 		#ifdef HAVE_OPENCL
+		if (to->_nodeType == NODE_Coordinate) {
 	
 			if (canRouteOnGPUTo(to) ) {
 				ppOpenCL_Utils p;
@@ -1333,10 +1335,12 @@ ConsoleMessage ("CRoutes_Register - adrem %d, from %p (%s) fromoffset %d to %p (
 					px->_CPU_Routes_out+= incr;
 			}
 		} else {
-		#endif //HAVE_OPENCL
             
 			px->_CPU_Routes_out += incr;
 		}
+		#else
+		px->_CPU_Routes_out += incr;
+		#endif //HAVE_OPENCL
 	}
 
 /* Script to Script - we actually put a small node in, and route to/from this node so routing is a 2 step process */
@@ -2255,7 +2259,14 @@ void propagate_events_A() {
 						#endif
 					/* to get routing to/from exposedFields, lets
 					 * mark this to/offset as an event */
-					// JAS MARK_EVENT (to_ptr->routeToNode, to_ptr->foffset);
+
+					#ifdef HAVE_OPENCL
+					ConsoleMessage (" - JAS - bringing this event back into the fray\n");
+					ConsoleMessage (" as leaving it out gives us routing problems for, eg, MFRotation.wrl\n");
+					ConsoleMessage (" but leaving it in is a problem for CL routing\n");
+					#endif //HAVE_OPENCL
+
+					MARK_EVENT (to_ptr->routeToNode, to_ptr->foffset);
 					//printf(",");
 					if (p->CRoutes[counter].direction_flag != 0) {
 						/* scripts are a bit complex, so break this out */

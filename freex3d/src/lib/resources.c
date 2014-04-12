@@ -637,7 +637,6 @@ void resource_identify_type(resource_item_t *res)
 
 
 		/* Test it */
-        //ConsoleMessage("going to call determindFileType here");
 		t = determineFileType(test_it,test_it_len);
 		switch (t) {
 		case IS_TYPE_VRML:

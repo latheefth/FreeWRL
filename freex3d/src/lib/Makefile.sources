@@ -172,6 +172,7 @@ input/InputFunctions.h \
 input/SensInterps.c \
 input/SensInterps.h \
 input/convert1To2.c \
+input/convertSTL.c \
  \
 opengl/RenderTextures.c \
 opengl/Textures.h \
@@ -199,4 +200,17 @@ ui/CursorDraw.h \
 plugin/pluginUtils.c \
 plugin/pluginUtils.h \
 plugin/PluginSocket.c \
-plugin/PluginSocket.h
+plugin/PluginSocket.h  \
+ \
+../libtess/dict.c \
+../libtess/geom.c \
+../libtess/memalloc.c \
+../libtess/mesh.c \
+../libtess/normal.c \
+../libtess/priorityq.c \
+../libtess/priorityq-heap.c \
+../libtess/render.c \
+../libtess/sweep.c \
+../libtess/tess.c \
+../libtess/tessmono.c 
+

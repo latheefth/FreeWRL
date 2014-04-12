@@ -60,6 +60,10 @@
 #include "../non_web3d_formats/ColladaParser.h"
 #endif //INCLUDE_NON_WEB3D_FORMATS
 
+#if defined (INCLUDE_STL_FILES)
+#include "../input/convertSTL.h"
+#endif //INCLUDE_STL_FILES
+
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
 #include "../input/SensInterps.h"
@@ -392,11 +396,6 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 
 #if defined (INCLUDE_STL_FILES)
         case IS_TYPE_ASCII_STL: {
-            char *convertAsciiSTL(const unsigned char*);
-	    float getLastSTLScale(void);
-
-
-
             char *newData = convertAsciiSTL(input);
             p->lastSTLScaling = getLastSTLScale();
 
@@ -407,9 +406,6 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
             break;
         }
         case IS_TYPE_BINARY_STL: {
-            char *convertBinarySTL(const unsigned char*);
-	    float getLastSTLScale(void);
-
             char *newData = convertBinarySTL(input);
             p->lastSTLScaling = getLastSTLScale();
 

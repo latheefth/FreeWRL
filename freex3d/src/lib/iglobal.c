@@ -23,9 +23,17 @@ void SensInterps_init(struct tSensInterps *t);
 void ConsoleMessage_init(struct tConsoleMessage *t);
 void Mainloop_init(struct tMainloop *t);
 void ProdCon_init(struct tProdCon *t);
+
 #if defined (INCLUDE_NON_WEB3D_FORMATS)
 void ColladaParser_init(struct tColladaParser *t);
 #endif //INCLUDE_NON_WEB3D_FORMATS
+
+#if defined (INCLUDE_STL_FILES)
+void STL_Handler_init (struct tSTLHandler *t);
+#endif // INCLUDE_STL_FILES
+
+
+
 void Frustum_init(struct tFrustum *t);
 void LoadTextures_init(struct tLoadTextures *t);
 void OpenGL_Utils_init(struct tOpenGL_Utils *t);
@@ -125,10 +133,15 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	ConsoleMessage_init(&iglobal->ConsoleMessage);
 	Mainloop_init(&iglobal->Mainloop);
 	ProdCon_init(&iglobal->ProdCon);
+
 #if defined (INCLUDE_NON_WEB3D_FORMATS)
 	ColladaParser_init(&iglobal->ColladaParser);
 #endif //INCLUDE_NON_WEB3D_FORMATS
-    
+
+#if defined (INCLUDE_STL_FILES)
+	STL_Handler_init (&iglobal->STLHandler);
+#endif // INCLUDE_STL_FILES    
+
 	Frustum_init(&iglobal->Frustum);
 	LoadTextures_init(&iglobal->LoadTextures);
 	OpenGL_Utils_init(&iglobal->OpenGL_Utils);
@@ -249,6 +262,10 @@ OLDCODE	FREE_IF_NZ(tg->Component_Networking.prv);
 #if defined (INCLUDE_NON_WEB3D_FORMATS)
 	FREE_IF_NZ(tg->ColladaParser.prv);
 #endif //INCLUDE_NON_WEB3D_FORMATS
+
+#if defined (INCLUDE_STL_FILES)
+	FREE_IF_NZ(tg->STLHandler.prv);
+#endif // INCLUDE_STL_FILES
     
 	FREE_IF_NZ(tg->ProdCon.prv);
 	FREE_IF_NZ(tg->Mainloop.prv);

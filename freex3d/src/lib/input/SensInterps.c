@@ -436,8 +436,6 @@ void do_OintNormal(void *node) {
 }
 
 
-static bool printOnce = FALSE;
-
 void do_OintCoord(void *node) {
 	struct X3D_CoordinateInterpolator *px;
 	int kin, kvin/* , counter */;
@@ -454,14 +452,6 @@ void do_OintCoord(void *node) {
 	if (!node) return;
 	px = (struct X3D_CoordinateInterpolator *) node;
 
-    if (!printOnce) {
-        printf ("do_OintCoord, frac %f toGPU %d toCPU %d\n",px->set_fraction,px->_GPU_Routes_out, px->_CPU_Routes_out);
-		printf ("2: debugging OintCoord keys %d kv %d vc %d\n",px->keyValue.n, px->key.n,px->value_changed.n);
-        printOnce = TRUE;
-    }
-    
-    
-    
 #ifdef SEVERBOSE
         printf ("do_OintCoord, frac %f toGPU %d toCPU %d\n",px->set_fraction,px->_GPU_Routes_out, px->_CPU_Routes_out);
 		printf ("debugging OintCoord keys %d kv %d vc %d\n",px->keyValue.n, px->key.n,px->value_changed.n);

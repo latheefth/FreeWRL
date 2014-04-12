@@ -76,6 +76,7 @@ Functions:
 #include <AGL/AGL.h> 
 #endif /* defined IPHONE */
 #endif /* defined TARGET_AQUA */
+
 #include <libFreeWRL.h>
 
 /* Some Windows-specific stuff */
@@ -89,17 +90,11 @@ GLEWContext * glewGetContext();
 #endif /* TARGET_WIN32 */
 
 #ifdef __linux__
-# ifdef HAVE_LIBGLEW
-#  include <GL/glew.h> /* will include GL/gl.h, GL/glu.h and GL/glext.h */
-#  ifdef GLEW_MX
-GLEWContext * glewGetContext();
-#  endif
-# else
 #  define GL_GLEXT_PROTOTYPES 1
 #  include <GL/gl.h>
-#  include <GL/glu.h>
-#  include <GL/glext.h>
-# endif
+//JAS #  include <GL/glu.h>
+//JAS #  include <GL/glext.h>
+#include <../libtess/libtess2.h>
 
 # include <GL/glx.h>
 /* original bits that were here; the above was moved from linux-specific section below 

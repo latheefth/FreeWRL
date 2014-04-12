@@ -633,7 +633,7 @@ void fv_createFilePulldown()
     /* Create the FileSelectionDialog */     
     memset(args, 0, sizeof(args));
     ac = 0;
-    mask  = XmStringCreateLocalized("*.wrl");
+    mask  = XmStringCreateLocalized("*.x3d");
     XtSetArg(args[ac], XmNdirMask, mask); ac++;
 
     /* newFileWidget = XmCreateFileSelectionDialog(menubar, "select", args, 1); */
