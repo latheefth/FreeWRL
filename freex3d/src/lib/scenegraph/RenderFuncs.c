@@ -719,9 +719,14 @@ ttrenderstate renderstate()
 
 
 //true statics:
-GLint viewport[4] = {-1,-1,2,2};  //doesn't change, used in glu unprojects
-/* These two points define a ray in window coordinates */
-struct point_XYZ r1 = {0,0,-1},r2 = {0,0,0},r3 = {0,1,0};
+GLint viewport[4] = {-1,-1,2,2};  //pseudo-viewport - doesn't change, used in glu unprojects
+/* These two points (r2,r1) define a ray in pick-veiwport window coordinates 
+	r2=viewpoint 
+	r1=ray from center of pick-viewport in viewport coordinates
+	- in setup_projection(pick=TRUE,,) the projMatrix is modified for the pick-ray-viewport
+	- when unprojecting geometry-local xyz to bearing-local/pick-viewport-local, use pseudo-viewport defined above
+*/
+struct point_XYZ r1 = {0,0,-1}, r2 = {0,0,0}, r3 = {0,1,0}; //r3 y direction in case needed for testing
 
 
 struct X3D_Anchor *AnchorsAnchor()
@@ -762,7 +767,25 @@ void setRootNode(struct X3D_Group *rn)
 
 /*******************************************************************************/
 
-/* Sub, rather than big macro... */
+/* rayhit
+	For PointingDeviceSensor component work, called from virt->rendray_<Shape> on VF_Sensitive pass
+	- tests if this ray-geometry intersection is closer to the viewpoint than the closest one so far
+	- if not it means it is occluded, do nothing
+	- if so
+	-- updates the closest distance to intersection of pick-ray/bearing with scene geometry so far
+	How:
+	- the calling rendray_<geometry> function already has the pickray/bearing in its geometry-local
+		coordinates, and computes the distance from A as rat and passes it in here.
+	- this makes sure its on the B side of A (otherwise its behind the pickray/viewpoint)
+	- if its the closest intersection of pickray with scene geometry so far:
+		1.records the point, in bearing-local coordinates
+		a) for non-sensitive geometry: the point is used to occlude picksensors by being closer to the viewpoint/bearing A
+		b) for <Drag>Sensor and TouchSensor, if the point succeeds as the closest point 
+			at end of VF_Sensitive pass, the point will be transformed from bearing-local to sensor-local
+			to generate eventOuts in do_<>Sensor in sensor-local coordinates
+		2.snapshots the sensor's modelview matrix for later use
+
+ */
 void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 	    float tx,float ty, char *descr)  {
 	GLDOUBLE modelMatrix[16];
@@ -783,7 +806,7 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 	if(rat<0 || (rat>tg->RenderFuncs.hitPointDist && tg->RenderFuncs.hitPointDist >= 0)) {
 		return;
 	}
-	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix); //snapshot of geometry's modelview matrix
 	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
 	FW_GLU_PROJECT(cx,cy,cz, modelMatrix, projMatrix, viewport, &tg->RenderFuncs.hp.x, &tg->RenderFuncs.hp.y, &tg->RenderFuncs.hp.z);
 	tg->RenderFuncs.hitPointDist = rat;
@@ -795,7 +818,11 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 }
 
 
-/* Call this when modelview and projection modified */
+/* Call this when modelview and projection modified
+	keeps bearing/pick-ray transformed into current geometry-local
+	for use in virt->rendray_<geometry> calculations, on VF_Sensitive pass
+	bearing-local == pick-viewport-local
+*/
 void upd_ray() {
 	struct point_XYZ t_r1,t_r2,t_r3;
 	GLDOUBLE modelMatrix[16];
@@ -812,11 +839,14 @@ for (i=0; i<16; i++) printf ("%4.3lf ",projMatrix[i]); printf ("\n");
 } 
 */
 
-
-	FW_GLU_UNPROJECT(r1.x,r1.y,r1.z,modelMatrix,projMatrix,viewport,
+	// the projMatrix used here contains the GLU_PICK_MATRIX translation and scale
+	//transform pick-ray (0,0,-1) B from pick-viewport-local to geometry-local
+	FW_GLU_UNPROJECT(r1.x, r1.y, r1.z, modelMatrix, projMatrix, viewport,
 		     &t_r1.x,&t_r1.y,&t_r1.z);
-	FW_GLU_UNPROJECT(r2.x,r2.y,r2.z,modelMatrix,projMatrix,viewport,
+	//transform viewpoint A (0,0,0) in pick-ray-viewport-local to geometry-local
+	FW_GLU_UNPROJECT(r2.x, r2.y, r2.z, modelMatrix, projMatrix, viewport,
 		     &t_r2.x,&t_r2.y,&t_r2.z);
+	//in case we need a viewpoint-y-up vector transform viewpoint y to geometry-local 
 	FW_GLU_UNPROJECT(r3.x,r3.y,r3.z,modelMatrix,projMatrix,viewport,
 		     &t_r3.x,&t_r3.y,&t_r3.z);
 
@@ -1108,8 +1138,8 @@ void render_node(struct X3D_Node *node) {
 		srh = MALLOC(struct currayhit *,sizeof(struct currayhit));
 		//srh = p->rayph;
 		memcpy(srh,&p->rayph,sizeof(struct currayhit));
-		p->rayph.hitNode = node;
-		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, p->rayph.modelMatrix);
+		p->rayph.hitNode = node; //will be the parent Transform or Group to a PointingDevice (Touch,Drag) Sensor node
+		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, p->rayph.modelMatrix); //snapshot of sensor's modelview matrix
 		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, p->rayph.projMatrix);
 		PRINT_GL_ERROR_IF_ANY("render_sensitive"); PRINT_NODE(node,virt);
 		profile_end("sensitive");

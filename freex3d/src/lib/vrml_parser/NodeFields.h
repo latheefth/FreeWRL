@@ -1058,6 +1058,22 @@ EXPOSED_FIELD(LineProperties,linewidthScaleFactor,sffloat,linewidthScaleFactor,F
 EXPOSED_FIELD(LineProperties,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 END_NODE(LineProperties)
 
+/* LineSensor node */
+BEGIN_NODE(LineSensor)
+EXPOSED_FIELD(LineSensor,autoOffset,sfbool,autoOffset,FIELDTYPE_SFBool)
+EXPOSED_FIELD(LineSensor,description,sfstring,description,FIELDTYPE_SFString)
+EXPOSED_FIELD(LineSensor,direction,sfvec3f,direction,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(LineSensor,enabled,sfbool,enabled,FIELDTYPE_SFBool)
+EVENT_OUT(LineSensor,isActive,sfbool,isActive,FIELDTYPE_SFBool)
+EVENT_OUT(LineSensor,isOver,sfbool,isOver,FIELDTYPE_SFBool)
+EXPOSED_FIELD(LineSensor,maxPosition,sffloat,maxPosition,FIELDTYPE_SFFloat)
+EXPOSED_FIELD(LineSensor,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(LineSensor,minPosition,sffloat,minPosition,FIELDTYPE_SFFloat)
+EXPOSED_FIELD(LineSensor,offset,sfvec3f,offset,FIELDTYPE_SFVec3f)
+EVENT_OUT(LineSensor,trackPoint_changed,sfvec3f,trackPoint_changed,FIELDTYPE_SFVec3f)
+EVENT_OUT(LineSensor,translation_changed,sfvec3f,translation_changed,FIELDTYPE_SFVec3f)
+END_NODE(LineSensor)
+
 /* LineSet node */
 BEGIN_NODE(LineSet)
 EXPOSED_FIELD(LineSet,attrib,mfnode,attrib,FIELDTYPE_MFNode)

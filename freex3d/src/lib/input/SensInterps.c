@@ -1308,10 +1308,156 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 			MARK_EVENT(ptr, offsetof (struct X3D_TouchSensor, hitNormal_changed));
 		}
 }
-#ifdef LINESENSOR
+
+
 void do_LineSensor(void *ptr, int ev, int but1, int over) {
-}
+	/* There is no LineSensor node in the specs in April 2014. X3Dom guru Max Limper complained
+		on X3DPublic about how PlaneSensor fails as an axis mover in the degenerate case of
+		looking edge-on at the planeSensor. The solution we (dug9) came up with was LineSensor, 
+		which also has a degenerate case (when looking end-on at the Line), but that degerate
+		case is more normal for users - more intuitive.
+		LineSensor is the same as PlaneSensor, except minPosition and maxPosition are floats,
+		and LineSensor uses a SFVec3f .direction field to say which way the Line is oriented
+		in local-sensor coordinates. In April 2014, Paulo added LineSensor to the perl generator,
+		and dug9 implemented it here.
+	*/
+	struct X3D_LineSensor *node;
+	float trackpoint[3], translation[3], xxx;
+	struct SFColor tr;
+	int tmp;
+	ttglobal tg;
+	UNUSED(over);
+	node = (struct X3D_LineSensor *)ptr;
+#ifdef SENSVERBOSE
+	printf("%lf: TS ", TickTime());
+	if (ev == ButtonPress) printf("ButtonPress ");
+	else if (ev == ButtonRelease) printf("ButtonRelease ");
+	else if (ev == KeyPress) printf("KeyPress ");
+	else if (ev == KeyRelease) printf("KeyRelease ");
+	else if (ev == MotionNotify) printf("%lf MotionNotify ");
+	else printf("ev %d ", ev);
+
+	if (but1) printf("but1 TRUE "); else printf("but1 FALSE ");
+	if (over) printf("over TRUE "); else printf("over FALSE ");
+	printf("\n");
 #endif
+
+	/* if not enabled, do nothing */
+	if (!node) return;
+
+	if (node->__oldEnabled != node->enabled) {
+		node->__oldEnabled = node->enabled;
+		MARK_EVENT(X3D_NODE(node), offsetof(struct X3D_LineSensor, enabled));
+	}
+	if (!node->enabled) return;
+	tg = gglobal();
+
+	/* only do something when button pressed */
+	/* if (!but1) return; */
+	if (but1){
+		//pre-calculate for Press and Move
+		/* hyperhit saved in render_hypersensitive phase */
+		// bearing in sensor-local coordinates: (A=posn,B=norm) 
+		// B/norm is a point, so to get a direction vector: v = B - A
+		float tt;
+		float origin [] = { 0.0f, 0.0f, 0.0f };
+		float footpoint2[3], footpoint1[3], v1[3], temp[3], temp2[3];
+		vecdif3f(v1, tg->RenderFuncs.hyp_save_norm.c, tg->RenderFuncs.hyp_save_posn.c);
+		vecnormalize3f(v1, v1);
+		if (!line_intersect_line_3f(tg->RenderFuncs.hyp_save_posn.c, v1,
+			origin, node->direction.c, NULL, &tt, footpoint1, footpoint2)) 
+			return; //no intersection, lines are parallel
+		//footpoint1 - closest point of intersection on the A'B' bearing
+		//footpoint2 - closest point of intersection on the Line (0,0,0)(LineSensor.direction)
+		//tt is scale of unit vector from origin to footpoint2
+		xxx = tt;
+		veccopy3f(trackpoint,footpoint2); //unclamped intersection with Sensor geometry, for trackpoint
+	}
+	if ((ev == ButtonPress) && but1) {
+		/* record the current position from the saved position */
+		struct SFColor op;
+		veccopy3f(op.c, trackpoint);
+		memcpy((void *)&node->_origPoint, (void *)&op,sizeof(struct SFColor));
+		//	(void *)&tg->RenderFuncs.ray_save_posn, sizeof(struct SFColor));
+
+		/* set isActive true */
+		node->isActive = TRUE;
+		MARK_EVENT(ptr, offsetof(struct X3D_LineSensor, isActive));
+
+	}
+	else if ((ev == MotionNotify) && (node->isActive) && but1) {
+		float xxxoffset, xxxorigin;
+		float diroffset[3], nondiroffset[3];
+		/* trackpoint changed */
+		node->_oldtrackPoint.c[0] = trackpoint[0];
+		node->_oldtrackPoint.c[1] = trackpoint[1];
+		node->_oldtrackPoint.c[2] = trackpoint[2];
+		
+		if ((APPROX(node->_oldtrackPoint.c[0], node->trackPoint_changed.c[0]) != TRUE) ||
+			(APPROX(node->_oldtrackPoint.c[1], node->trackPoint_changed.c[1]) != TRUE) ||
+			(APPROX(node->_oldtrackPoint.c[2], node->trackPoint_changed.c[2]) != TRUE)) {
+
+			memcpy((void *)&node->trackPoint_changed, (void *)&node->_oldtrackPoint, sizeof(struct SFColor));
+			MARK_EVENT(ptr, offsetof(struct X3D_LineSensor, trackPoint_changed));
+
+		}
+
+		//clamp to min,max 
+		//in theory the user can set a non-autoOffset sfvec3f offset that's not along .direction
+		//- we accomodate that below^, so here we just use the part going along .direction
+		xxxoffset = vecdot3f(node->direction.c,node->offset.c); //xxxoffset - like web3d specs offset, except just along direction vector
+		xxxorigin = vecdot3f(node->direction.c,node->_origPoint.c); //mouse-down origin
+		//xxx before: unclamped position from line origin
+		xxx -= xxxorigin; //xxx after: net drag/delta along line since mouse-down
+		xxx += xxxoffset; //xxx after: cumulative position along line (from line 0) after any/all mousedown/drag sequences
+		if (node->maxPosition >= node->minPosition) {
+			if (xxx < node->minPosition) {
+				xxx = node->minPosition;
+			}
+			else if (xxx > node->maxPosition) {
+				xxx = node->maxPosition;
+			}
+		}
+		//translation clamped to LineSensor.minPosition/.maxPosition
+		vecscale3f(translation, node->direction.c, xxx);
+		
+		//^add on any non-autoOffset non-.direction offset 
+		//a) part of offset going along direction
+		vecscale3f(diroffset, node->direction.c, xxxoffset);
+		//b) part of offset not going along direction
+		vecdif3f(nondiroffset, node->offset.c, diroffset);
+		//add non-direction part of offset
+		vecadd3f(translation, translation, nondiroffset);
+
+		node->_oldtranslation.c[0] = translation[0];
+		node->_oldtranslation.c[1] = translation[1];
+		node->_oldtranslation.c[2] = translation[2];
+
+		if ((APPROX(node->_oldtranslation.c[0], node->translation_changed.c[0]) != TRUE) ||
+			(APPROX(node->_oldtranslation.c[1], node->translation_changed.c[1]) != TRUE) ||
+			(APPROX(node->_oldtranslation.c[2], node->translation_changed.c[2]) != TRUE)) {
+
+			memcpy((void *)&node->translation_changed, (void *)&node->_oldtranslation, sizeof(struct SFColor));
+			MARK_EVENT(ptr, offsetof(struct X3D_LineSensor, translation_changed));
+		}
+	}
+	else if (ev == ButtonRelease) {
+		/* set isActive false */
+		node->isActive = FALSE;
+		MARK_EVENT(ptr, offsetof(struct X3D_LineSensor, isActive));
+
+		/* autoOffset? */
+		if (node->autoOffset) {
+			node->offset.c[0] = node->translation_changed.c[0];
+			node->offset.c[1] = node->translation_changed.c[1];
+			node->offset.c[2] = node->translation_changed.c[2];
+
+			MARK_EVENT(ptr, offsetof(struct X3D_LineSensor, offset));
+		}
+	}
+
+}
+
 /* void do_PlaneSensor (struct X3D_PlaneSensor *node, int ev, int over) {*/
 void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 	struct X3D_PlaneSensor *node;
@@ -1321,7 +1467,7 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 	ttglobal tg;
 	UNUSED(over);
 	node = (struct X3D_PlaneSensor *)ptr;
-	#ifdef SENSVERBOSE
+#ifdef SENSVERBOSE
 	printf ("%lf: TS ",TickTime());
 	if (ev==ButtonPress) printf ("ButtonPress ");
 	else if (ev==ButtonRelease) printf ("ButtonRelease ");
@@ -1333,7 +1479,7 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 	if (but1) printf ("but1 TRUE "); else printf ("but1 FALSE ");
 	if (over) printf ("over TRUE "); else printf ("over FALSE ");
 	printf ("\n");
-	#endif
+#endif
 
 	/* if not enabled, do nothing */
 	if (!node) return;

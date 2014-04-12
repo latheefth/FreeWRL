@@ -90,7 +90,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(SRC)\libminizip;$(LIBWIN)\js185\include;$(SRC)\libtess;$(SRC)\lib;$(SRCWIN);..\..\..\..\lib_windowsStore\pthreads.2;$(LIBWIN)\zlib\include;$(LIBWIN)\jpeg\include;$(LIBWIN)\freetype2\include;$(LIBWIN)\png\include;$(LIBWIN)\angleproject\include;$(LIBWIN)\libxml2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>ANGLEPROJECT;W_DEBUG;WIN32;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;DO_COLLISION_GPU_no;STATIC_EXPORTABLE_JS_API;HAVE_PTHREAD_CANCEL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>LINESENSOR;ANGLEPROJECT;W_DEBUG;WIN32;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;DO_COLLISION_GPU_no;STATIC_EXPORTABLE_JS_API;HAVE_PTHREAD_CANCEL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>

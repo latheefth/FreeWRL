@@ -14,233 +14,239 @@
 #              Others are "C-#defines".
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
+package VRML::Rend;
+
+use strict;
+use warnings;
 
 # DJTRACK_PICKSENSORS See PointPickSensor
 # See WANT_OSC
 # used for the X3D Parser only. Return type of node.
+
 our %defaultContainerType = (
-	Proto			=>children,
+	Proto			=>"children",
 
-	ContourPolyLine2D	=>children,
-	NurbsCurve		=>children,
-	NurbsCurve2D		=>children,
-	NurbsPositionInterpolator	=>children,
-	NurbsTrimmedSurface	=>children,
-	CoordinateDouble	=>children,
-	NurbsOrientationInterpolator	=>children,
-	NurbsPatchSurface	=>children,
-	NurbsSet		=>children,
-	NurbsSurfaceInterpolator	=>children,
-	NurbsSweptSurface	=>children,
-	NurbsSwungSurface	=>children,
-	NurbsTextureCoordinate	=>children,
-
-
-	PointPickSensor		=>children,
-	OSC_Sensor		=>children,
-
-	Arc2D			=>geometry,
-	ArcClose2D		=>geometry,
-	Circle2D		=>geometry,
-	Disk2D			=>geometry,
-	Polyline2D		=>geometry,
-	Polypoint2D		=>geometry,
-	Rectangle2D		=>geometry,
-	TriangleSet2D		=>geometry,
-
-	IndexedQuadSet		=>geometry,
-	QuadSet			=>geometry,
-	CADLayer		=>children,
-	CADFace			=>children,
-	CADAssembly		=>children,
-	CADPart			=>children,
+	ContourPolyLine2D	=>"children",
+	NurbsCurve		=>"children",
+	NurbsCurve2D		=>"children",
+	NurbsPositionInterpolator	=>"children",
+	NurbsTrimmedSurface	=>"children",
+	CoordinateDouble	=>"children",
+	NurbsOrientationInterpolator	=>"children",
+	NurbsPatchSurface	=>"children",
+	NurbsSet		=>"children",
+	NurbsSurfaceInterpolator	=>"children",
+	NurbsSweptSurface	=>"children",
+	NurbsSwungSurface	=>"children",
+	NurbsTextureCoordinate	=>"children",
 
 
-	Anchor 			=>children,
-	Appearance 		=>appearance,
-	AudioClip 		=>source,
-	Background 		=>children,
-	Billboard 		=>children,
-	Box 			=>geometry,
-	ClipPlane 		=>children,
-	Collision 		=>children,
-	Color 			=>color,
-	ColorInterpolator 	=>children,
-	ColorRGBA 		=>color,
-	Cone 			=>geometry,
-	Contour2D 		=>geometry,
-	Coordinate 		=>coord,
-	FogCoordinate 		=>coord,
-	CoordinateDeformer 	=>children,
-	CoordinateInterpolator 	=>children,
-	CoordinateInterpolator2D 	=>children,
-	Cylinder 		=>geometry,
-	CylinderSensor 		=>children,
-	DirectionalLight 	=>children,
-	ElevationGrid 		=>geometry,
-	Extrusion 		=>geometry,
-	FillProperties		=>fillProperties,
-	Fog 			=>children,
-	LocalFog 		=>children,
-	FontStyle 		=>fontStyle,
-	GeoCoordinate 		=>coord,
-	GeoElevationGrid 	=>geometry,
-	GeoLocation 		=>children,
-	GeoLOD 			=>children,
-	GeoMetadata		=>children,
-	GeoOrigin 		=>geoOrigin,
-	GeoPositionInterpolator	=>children,
-	GeoProximitySensor 	=>children,
-	GeoTouchSensor		=>children,
-	GeoTransform		=>children,
-	GeoViewpoint 		=>children,
-	Group 			=>children,
-	ViewpointGroup		=>children,
-	HAnimDisplacer		=>children,
-	HAnimHumanoid		=>children,
-	HAnimJoint		=>joints,
-	HAnimSegment		=>segments,
-	HAnimSite		=>sites,
-	ImageTexture 		=>texture,
-	ImageCubeMapTexture 	=>texture,
-	GeneratedCubeMapTexture	=>texture,
-	ComposedCubeMapTexture	=>texture,
-	IndexedFaceSet 		=>geometry,
-	IndexedLineSet 		=>geometry,
-	IndexedTriangleFanSet 	=>geometry,
-	IndexedTriangleSet 	=>geometry,
-	IndexedTriangleStripSet	=>geometry,
-	Inline 			=>children,
-	KeySensor		=>children,
-	LineSet 		=>geometry,
-	LineProperties		=>lineProperties,
-	LoadSensor		=>children,
-	LOD 			=>children,
-	Material 		=>material,
-	TwoSidedMaterial	=>material,
-	MultiTexture		=>texture,
-	MultiTextureCoordinate  =>texCoord,
-	MultiTextureTransform	=>textureTransform,
-	MovieTexture 		=>texture,
-	NavigationInfo 		=>children,
-	Normal 			=>normal,
-	NormalInterpolator 	=>children,
-	OrientationInterpolator	=>children,
-	PickableGroup 		=>children,
-	PixelTexture 		=>texture,
-	PlaneSensor 		=>children,
-	PointLight 		=>children,
-	PointSet 		=>geometry,
-	PositionInterpolator 	=>children,
-	PositionInterpolator2D 	=>children,
-	ProximitySensor 	=>children,
-	ScalarInterpolator 	=>children,
-	Scene 			=>children,
-	Script 			=>children,
-	Shape 			=>children,
-	Sound 			=>children,
-	Sphere 			=>geometry,
-	SphereSensor 		=>children,
-	SpotLight 		=>children,
-	StaticGroup		=>children,
-	StringSensor		=>children,
-	Switch 			=>children,
-	Text 			=>geometry,
-	TextureBackground 	=>children,
-	TextureCoordinate 	=>texCoord,
-	TextureCoordinateGenerator  =>texCoord,
-	TextureTransform 	=>textureTransform,
-	TextureProperties	=>children,
-	TimeSensor 		=>children,
-	TouchSensor 		=>children,
-	Transform 		=>children,
-	TriangleFanSet 		=>geometry,
-	TriangleSet 		=>geometry,
-	TriangleStripSet 	=>geometry,
-	TrimmedSurface 		=>children,
-	Viewpoint 		=>children,
-	OrthoViewpoint 		=>children,
-	VisibilitySensor 	=>children,
-	WorldInfo 		=>children,
+	PointPickSensor		=>"children",
+	OSC_Sensor		=>"children",
 
-	BooleanFilter		=>children,
-	BooleanSequencer	=>children,
-	BooleanToggle		=>children,
-	BooleanTrigger		=>children,
-	IntegerSequencer	=>children,
-	IntegerTrigger		=>children,
-	TimeTrigger		=>children,
+	Arc2D			=>"geometry",
+	ArcClose2D		=>"geometry",
+	Circle2D		=>"geometry",
+	Disk2D			=>"geometry",
+	Polyline2D		=>"geometry",
+	Polypoint2D		=>"geometry",
+	Rectangle2D		=>"geometry",
+	TriangleSet2D		=>"geometry",
 
-	ComposedShader		=>shaders,
-	ProgramShader		=>shaders,
-	PackagedShader		=>shaders,
-	FloatVertexAttribute	=>children,
-	Matrix3VertexAttribute	=>children,
-	Matrix4VertexAttribute	=>children,
-	ShaderPart		=>parts,
-	ShaderProgram		=>programs,
-
-	MetadataSet		=>metadata,
-	MetadataInteger		=>metadata,
-	MetadataDouble		=>metadata,
-	MetadataFloat		=>metadata,
-	MetadataString		=>metadata,
+	IndexedQuadSet		=>"geometry",
+	QuadSet			=>"geometry",
+	CADLayer		=>"children",
+	CADFace			=>"children",
+	CADAssembly		=>"children",
+	CADPart			=>"children",
 
 
-	MetadataSFFloat		=>FreeWRL_PROTOInterfaceNodes,
-	MetadataMFFloat		=>FreeWRL_PROTOInterfaceNodes,
-	MetadataSFRotation	=>FreeWRL_PROTOInterfaceNodes,
-	MetadataMFRotation	=>FreeWRL_PROTOInterfaceNodes,
-	MetadataSFVec3f		=>FreeWRL_PROTOInterfaceNodes,
-	MetadataMFVec3f		=>FreeWRL_PROTOInterfaceNodes,
-	MetadataSFBool		=>FreeWRL_PROTOInterfaceNodes,
-	MetadataMFBool		=>FreeWRL_PROTOInterfaceNodes,
-	MetadataSFInt32		=>FreeWRL_PROTOInterfaceNodes,
-	MetadataMFInt32		=>FreeWRL_PROTOInterfaceNodes,
-	MetadataSFNode		=>FreeWRL_PROTOInterfaceNodes,
-	MetadataMFNode		=>FreeWRL_PROTOInterfaceNodes,
-	MetadataSFColor		=>FreeWRL_PROTOInterfaceNodes,
-	MetadataMFColor		=>FreeWRL_PROTOInterfaceNodes,
-	MetadataSFColorRGBA	=>FreeWRL_PROTOInterfaceNodes,
-	MetadataMFColorRGBA	=>FreeWRL_PROTOInterfaceNodes,
-	MetadataSFTime		=>FreeWRL_PROTOInterfaceNodes,
-	MetadataMFTime		=>FreeWRL_PROTOInterfaceNodes,
-	MetadataSFString	=>FreeWRL_PROTOInterfaceNodes,
-	MetadataMFString	=>FreeWRL_PROTOInterfaceNodes,
-	MetadataSFVec2f		=>FreeWRL_PROTOInterfaceNodes,
-	MetadataMFVec2f		=>FreeWRL_PROTOInterfaceNodes,
-	MetadataSFImage		=>FreeWRL_PROTOInterfaceNodes,
-	MetadataFreeWRLPTR	=>FreeWRL_PROTOInterfaceNodes,
-	MetadataSFVec3d		=>FreeWRL_PROTOInterfaceNodes,
-	MetadataMFVec3d		=>FreeWRL_PROTOInterfaceNodes,
-	MetadataSFDouble	=>FreeWRL_PROTOInterfaceNodes,
-	MetadataMFDouble	=>FreeWRL_PROTOInterfaceNodes,
-	MetadataSFMatrix3f	=>FreeWRL_PROTOInterfaceNodes,
-	MetadataMFMatrix3f	=>FreeWRL_PROTOInterfaceNodes,
-	MetadataSFMatrix3d	=>FreeWRL_PROTOInterfaceNodes,
-	MetadataMFMatrix3d	=>FreeWRL_PROTOInterfaceNodes,
-	MetadataSFMatrix4f	=>FreeWRL_PROTOInterfaceNodes,
-	MetadataMFMatrix4f	=>FreeWRL_PROTOInterfaceNodes,
-	MetadataSFMatrix4d	=>FreeWRL_PROTOInterfaceNodes,
-	MetadataMFMatrix4d	=>FreeWRL_PROTOInterfaceNodes,
-	MetadataSFVec2d		=>FreeWRL_PROTOInterfaceNodes,
-	MetadataMFVec2d		=>FreeWRL_PROTOInterfaceNodes,
-	MetadataSFVec4f		=>FreeWRL_PROTOInterfaceNodes,
-	MetadataMFVec4f		=>FreeWRL_PROTOInterfaceNodes,
-	MetadataSFVec4d		=>FreeWRL_PROTOInterfaceNodes,
-	MetadataMFVec4d		=>FreeWRL_PROTOInterfaceNodes,
+	Anchor 			=>"children",
+	Appearance 		=>"appearance",
+	AudioClip 		=>"source",
+	Background 		=>"children",
+	Billboard 		=>"children",
+	Box 			=>"geometry",
+	ClipPlane 		=>"children",
+	Collision 		=>"children",
+	Color 			=>"color",
+	ColorInterpolator 	=>"children",
+	ColorRGBA 		=>"color",
+	Cone 			=>"geometry",
+	Contour2D 		=>"geometry",
+	Coordinate 		=>"coord",
+	FogCoordinate 		=>"coord",
+	CoordinateDeformer 	=>"children",
+	CoordinateInterpolator 	=>"children",
+	CoordinateInterpolator2D 	=>"children",
+	Cylinder 		=>"geometry",
+	CylinderSensor 		=>"children",
+	DirectionalLight 	=>"children",
+	ElevationGrid 		=>"geometry",
+	Extrusion 		=>"geometry",
+	FillProperties		=>"fillProperties",
+	Fog 			=>"children",
+	LocalFog 		=>"children",
+	FontStyle 		=>"fontStyle",
+	GeoCoordinate 		=>"coord",
+	GeoElevationGrid 	=>"geometry",
+	GeoLocation 		=>"children",
+	GeoLOD 			=>"children",
+	GeoMetadata		=>"children",
+	GeoOrigin 		=>"geoOrigin",
+	GeoPositionInterpolator	=>"children",
+	GeoProximitySensor 	=>"children",
+	GeoTouchSensor		=>"children",
+	GeoTransform		=>"children",
+	GeoViewpoint 		=>"children",
+	Group 			=>"children",
+	ViewpointGroup		=>"children",
+	HAnimDisplacer		=>"children",
+	HAnimHumanoid		=>"children",
+	HAnimJoint		=>"joints",
+	HAnimSegment		=>"segments",
+	HAnimSite		=>"sites",
+	ImageTexture 		=>"texture",
+	ImageCubeMapTexture 	=>"texture",
+	GeneratedCubeMapTexture	=>"texture",
+	ComposedCubeMapTexture	=>"texture",
+	IndexedFaceSet 		=>"geometry",
+	IndexedLineSet 		=>"geometry",
+	IndexedTriangleFanSet 	=>"geometry",
+	IndexedTriangleSet 	=>"geometry",
+	IndexedTriangleStripSet	=>"geometry",
+	Inline 			=>"children",
+	KeySensor		=>"children",
+	LineSet 		=>"geometry",
+	LineProperties		=>"lineProperties",
+	LineSensor 		=>"children",
+	LoadSensor		=>"children",
+	LOD 			=>"children",
+	Material 		=>"material",
+	TwoSidedMaterial	=>"material",
+	MultiTexture		=>"texture",
+	MultiTextureCoordinate  =>"texCoord",
+	MultiTextureTransform	=>"textureTransform",
+	MovieTexture 		=>"texture",
+	NavigationInfo 		=>"children",
+	Normal 			=>"normal",
+	NormalInterpolator 	=>"children",
+	OrientationInterpolator	=>"children",
+	PickableGroup 		=>"children",
+	PixelTexture 		=>"texture",
+	PlaneSensor 		=>"children",
+	PointLight 		=>"children",
+	PointSet 		=>"geometry",
+	PositionInterpolator 	=>"children",
+	PositionInterpolator2D 	=>"children",
+	ProximitySensor 	=>"children",
+	ScalarInterpolator 	=>"children",
+	Scene 			=>"children",
+	Script 			=>"children",
+	Shape 			=>"children",
+	Sound 			=>"children",
+	Sphere 			=>"geometry",
+	SphereSensor 		=>"children",
+	SpotLight 		=>"children",
+	StaticGroup		=>"children",
+	StringSensor		=>"children",
+	Switch 			=>"children",
+	Text 			=>"geometry",
+	TextureBackground 	=>"children",
+	TextureCoordinate 	=>"texCoord",
+	TextureCoordinateGenerator  =>"texCoord",
+	TextureTransform 	=>"textureTransform",
+	TextureProperties	=>"children",
+	TimeSensor 		=>"children",
+	TouchSensor 		=>"children",
+	Transform 		=>"children",
+	TriangleFanSet 		=>"geometry",
+	TriangleSet 		=>"geometry",
+	TriangleStripSet 	=>"geometry",
+	TrimmedSurface 		=>"children",
+	Viewpoint 		=>"children",
+	OrthoViewpoint 		=>"children",
+	VisibilitySensor 	=>"children",
+	WorldInfo 		=>"children",
 
-	EaseInEaseOut 	=>children,
-	SplinePositionInterpolator 	=>children,
-	SplinePositionInterpolator2D 	=>children,
-	SplineScalarInterpolator 	=>children,
-	SquadOrientationInterpolator 	=>children,
-	DISEntityManager	=>children,
-	DISEntityTypeMapping	=>children,
-	EspduTransform		=>children,
-	ReceiverPdu		=>children,
-	SignalPdu		=>children,
-	TransmitterPdu		=>children,
+	BooleanFilter		=>"children",
+	BooleanSequencer	=>"children",
+	BooleanToggle		=>"children",
+	BooleanTrigger		=>"children",
+	IntegerSequencer	=>"children",
+	IntegerTrigger		=>"children",
+	TimeTrigger		=>"children",
+
+	ComposedShader		=>"shaders",
+	ProgramShader		=>"shaders",
+	PackagedShader		=>"shaders",
+	FloatVertexAttribute	=>"children",
+	Matrix3VertexAttribute	=>"children",
+	Matrix4VertexAttribute	=>"children",
+	ShaderPart		=>"parts",
+	ShaderProgram		=>"programs",
+
+	MetadataSet		=>"metadata",
+	MetadataInteger		=>"metadata",
+	MetadataDouble		=>"metadata",
+	MetadataFloat		=>"metadata",
+	MetadataString		=>"metadata",
+
+
+	MetadataSFFloat		=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataMFFloat		=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataSFRotation	=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataMFRotation	=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataSFVec3f		=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataMFVec3f		=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataSFBool		=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataMFBool		=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataSFInt32		=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataMFInt32		=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataSFNode		=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataMFNode		=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataSFColor		=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataMFColor		=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataSFColorRGBA	=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataMFColorRGBA	=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataSFTime		=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataMFTime		=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataSFString	=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataMFString	=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataSFVec2f		=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataMFVec2f		=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataSFImage		=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataFreeWRLPTR	=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataSFVec3d		=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataMFVec3d		=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataSFDouble	=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataMFDouble	=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataSFMatrix3f	=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataMFMatrix3f	=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataSFMatrix3d	=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataMFMatrix3d	=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataSFMatrix4f	=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataMFMatrix4f	=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataSFMatrix4d	=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataMFMatrix4d	=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataSFVec2d		=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataMFVec2d		=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataSFVec4f		=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataMFVec4f		=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataSFVec4d		=>"FreeWRL_PROTOInterfaceNodes",
+	MetadataMFVec4d		=>"FreeWRL_PROTOInterfaceNodes",
+
+	EaseInEaseOut 	=>"children",
+	SplinePositionInterpolator 	=>"children",
+	SplinePositionInterpolator2D 	=>"children",
+	SplineScalarInterpolator 	=>"children",
+	SquadOrientationInterpolator 	=>"children",
+	DISEntityManager	=>"children",
+	DISEntityTypeMapping	=>"children",
+	EspduTransform		=>"children",
+	ReceiverPdu		=>"children",
+	SignalPdu		=>"children",
+	TransmitterPdu		=>"children",
 );
 
 
@@ -258,7 +264,7 @@ our %defaultContainerType = (
 #
 # All of these will have a render_xxx name associated with them.
 
-%RendC = map {($_=>1)} qw/
+our %RendC = map {($_=>1)} qw/
 	NavigationInfo
 	Fog
 	Background
@@ -327,7 +333,7 @@ our %defaultContainerType = (
 #
 #
 
-%GenPolyRepC = map {($_=>1)} qw/
+our %GenPolyRepC = map {($_=>1)} qw/
 	ElevationGrid
 	Extrusion
 	IndexedFaceSet
@@ -351,7 +357,7 @@ our %defaultContainerType = (
 #  Prepare for rendering a node - e.g. for transforms, do the transform
 #  but not the children.
 
-%PrepC = map {($_=>1)} qw/
+our %PrepC = map {($_=>1)} qw/
 	HAnimJoint
 	HAnimSite
 	Viewpoint
@@ -381,7 +387,7 @@ our %defaultContainerType = (
 #
 #
 
-%FinC = map {($_=>1)} qw/
+our %FinC = map {($_=>1)} qw/
 	GeoLocation
 	Transform
 	Billboard
@@ -403,7 +409,7 @@ our %defaultContainerType = (
 
 # Render children (real child nodes, not e.g. appearance/geometry)
 
-%ChildC = map {($_=>1)} qw/
+our %ChildC = map {($_=>1)} qw/
 	HAnimHumanoid
 	HAnimJoint
 	HAnimSegment
@@ -439,7 +445,7 @@ our %defaultContainerType = (
 #
 # Compile --
 #
-%CompileC = map {($_=>1)} qw/
+our %CompileC = map {($_=>1)} qw/
 	Shape
 	ImageCubeMapTexture
 	Transform
@@ -541,7 +547,7 @@ our %defaultContainerType = (
 # modelview transformation matrix.
 #
 
-%ProximityC = map {($_=>1)} qw/
+our %ProximityC = map {($_=>1)} qw/
 	ProximitySensor
 	LOD
 	Billboard
@@ -555,7 +561,7 @@ our %defaultContainerType = (
 # check against in render_node() and/or switch on in your Other()
 #
 
-%OtherC = map {($_=>1)} qw/
+our %OtherC = map {($_=>1)} qw/
 	PointPickSensor
 	PickableGroup
 	Sphere
@@ -598,7 +604,7 @@ our %defaultContainerType = (
 #	       /*           x,z=0                           */
 
 
-%CollisionC = map {($_=>1)} qw/
+our %CollisionC = map {($_=>1)} qw/
 	Disk2D
 	Rectangle2D
 	TriangleSet2D
@@ -692,7 +698,7 @@ our %defaultContainerType = (
 #
 # Other side: r*r*(
 
-%RendRayC = map {($_=>1)} qw/
+our %RendRayC = map {($_=>1)} qw/
 	Box
 	Sphere
 	Cylinder
@@ -721,7 +727,7 @@ our %defaultContainerType = (
 #
 #
 
-%KeywordC = map {($_=>1)} qw/
+our %KeywordC = map {($_=>1)} qw/
 	COMPONENT
 	DEF
 	EXPORT
@@ -757,7 +763,7 @@ our %defaultContainerType = (
 #
 #
 
-%ComponentC = map {($_=>1)} qw/
+our %ComponentC = map {($_=>1)} qw/
 	CADGeometry
 	Core
 	CubeMapTexturing
@@ -802,7 +808,7 @@ our %defaultContainerType = (
 #
 #
 
-%ProfileC = map {($_=>1)} qw/
+our %ProfileC = map {($_=>1)} qw/
 	CADInterchange
 	Core
 	Full
@@ -822,7 +828,7 @@ our %defaultContainerType = (
 #
 #
 
-%GEOSpatialKeywordC = map {($_=>1)} qw/
+our %GEOSpatialKeywordC = map {($_=>1)} qw/
 	AA
 	AM
 	AN
@@ -880,25 +886,15 @@ our %defaultContainerType = (
 #
 #
 
-#%PROTOKeywordC = map {($_=>1)} qw/
-#	exposedField
-#	field
-#	eventIn
-#	eventOut
-#	inputOnly
-#	outputOnly
-#	inputOutput
-#	initializeOnly
-
-@PROTOKeywordC = qw/
-	initializeOnly
-	inputOnly
-	outputOnly
-	inputOutput
+our %PROTOKeywordC = map {($_=>1)} qw/
+	exposedField
 	field
 	eventIn
 	eventOut
-	exposedField
+	inputOnly
+	outputOnly
+	inputOutput
+	initializeOnly
 /;
 
 #######################################################################
@@ -909,7 +905,7 @@ our %defaultContainerType = (
 # Texture Boundary Keywords
 #
 
-%TextureBoundaryC = map {($_=>1)} qw/
+our %TextureBoundaryC = map {($_=>1)} qw/
 	CLAMP
 	CLAMP_TO_EDGE
 	CLAMP_TO_BOUNDARY
@@ -925,7 +921,7 @@ our %defaultContainerType = (
 # Texture MAgnifiation Keywords
 #
 
-%TextureMagnificationC = map {($_=>1)} qw/
+our %TextureMagnificationC = map {($_=>1)} qw/
 	AVG_PIXEL
 	DEFAULT
 	FASTEST
@@ -941,7 +937,7 @@ our %defaultContainerType = (
 # Texture Minification Keywords
 #
 
-%TextureMinificationC = map {($_=>1)} qw/
+our %TextureMinificationC = map {($_=>1)} qw/
 	AVG_PIXEL
 	AVG_PIXEL_AVG_MIPMAP
 	AVG_PIXEL_NEAREST_MIPMAP
@@ -961,7 +957,7 @@ our %defaultContainerType = (
 # Texture Compression Keywords
 #
 
-%TextureCompressionC = map {($_=>1)} qw/
+our %TextureCompressionC = map {($_=>1)} qw/
 	DEFAULT
 	FASTEST
 	HIGH
@@ -974,18 +970,18 @@ our %defaultContainerType = (
 #######################################################################
 #######################################################################
 
-%MultiTextureSourceC = map {($_=>1)} qw/
+our %MultiTextureSourceC = map {($_=>1)} qw/
 	DIFFUSE
 	SPECULAR
 	FACTOR
 /;
-%MultiTextureFunctionC = map {($_=>1)} qw/
+our %MultiTextureFunctionC = map {($_=>1)} qw/
 	COMPLEMENT
 	ALPHAREPLICATE
 /;
 
 
-%MultiTextureModeC = map {($_=>1)} qw/
+our %MultiTextureModeC = map {($_=>1)} qw/
 	MODULATE2X
 	MODULATE4X
 	ADDSMOOTH
@@ -1006,7 +1002,7 @@ our %defaultContainerType = (
 	OFF
 /;
 
-%TextureCoordGenModeC = map {($_=>1)} qw/
+our %TextureCoordGenModeC = map {($_=>1)} qw/
 	SPHERE-REFLECT-LOCAL
 	SPHERE-REFLECT
 	SPHERE-LOCAL
@@ -1027,7 +1023,7 @@ our %defaultContainerType = (
 #
 #
 
-%X3DSpecialC = map {($_=>1)} qw/
+our %X3DSpecialC = map {($_=>1)} qw/
 	Scene
 	Header
 	head
@@ -1047,4 +1043,5 @@ our %defaultContainerType = (
 	import
 	export
 /;
+
 1;
