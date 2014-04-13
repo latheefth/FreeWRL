@@ -55,7 +55,7 @@
 #include "fieldSet.h"
 #include "fieldGet.h"
 
-/* although this is external, lets define it here because if it is 
+/* although this is external, lets define it here because if it is
    defined in globally read includes, the definition for anyVrml
    might not be found, and then will give us compiler warnings */
 void Parser_scanStringValueToMem_B(union anyVrml* any, indexT ctype, char *value, int isXML);
@@ -69,7 +69,7 @@ void fudgeIfNeeded(int myptr,int myoffset);
 /*******************************************************************
 
 A group of routines to SET a field in memory - in the FreeWRL
-scene graph. 
+scene graph.
 
 Different methods are used, depending on the format of the call.
 
@@ -123,10 +123,10 @@ static int returnNumberOfRows(int datatype,union anyVrml *memptr) {
 	switch (datatype) {
 
   #define SF_TYPE(fttype, type, ttype) \
-   case FIELDTYPE_##fttype: return 1; break; 
+   case FIELDTYPE_##fttype: return 1; break;
 
   #define MF_TYPE(fttype, type, ttype) \
-   case FIELDTYPE_##fttype: return memptr->type.n; break; 
+   case FIELDTYPE_##fttype: return memptr->type.n; break;
 
 #include "../vrml_parser/VrmlTypeList.h"
 
@@ -144,7 +144,7 @@ static int returnNumberOfRows(int datatype,union anyVrml *memptr) {
 
 
 
-/* set a field; used in JavaScript, and in the Parser VRML parser 
+/* set a field; used in JavaScript, and in the Parser VRML parser
 
 	fields are:
 		ptr:		pointer to a node (eg, X3D_Box)
@@ -162,9 +162,9 @@ void setField_fromJavascript (struct X3D_Node *node, char *field, char *value, i
 	#ifdef SETFIELDVERBOSE
 	printf ("\nsetField_fromJavascript, node %p field %s value %s\n", (char*) node, field, value);
 	#endif
-	
+
 	/* is this a valid field? */
-	foffset = findRoutedFieldInFIELDNAMES(node,field,1);	
+	foffset = findRoutedFieldInFIELDNAMES(node,field,1);
 	if (foffset < 0) {
 		ConsoleMessage ("field %s is not a valid field of a node %s",field,stringNodeType(node->_nodeType));
 		printf ("field %s is not a valid field of a node %s\n",field,stringNodeType(node->_nodeType));
@@ -173,7 +173,7 @@ void setField_fromJavascript (struct X3D_Node *node, char *field, char *value, i
 
 	/* get offsets for this field in this nodeType */
 	#ifdef SETFIELDVERBOSE
-	printf ("getting nodeOffsets for type %s field %s value %s\n",stringNodeType(node->_nodeType),field,value); 
+	printf ("getting nodeOffsets for type %s field %s value %s\n",stringNodeType(node->_nodeType),field,value);
 	#endif
 
 	findFieldInOFFSETS(node->_nodeType, foffset, &coffset, &ctype, &ctmp);
@@ -279,7 +279,7 @@ static int setField_FromEAI_ToScript(int tonode, int toname,
 			stringFieldtypeType(datatype));
                 }
         }
-	
+
 
 	return TRUE;
 	#else
@@ -361,7 +361,7 @@ void fudgeIfNeeded(int myptr,int myoffset){
 			}
 			scanning = FALSE;
 		}
-		myc ++; 
+		myc ++;
 		np +=5;
 	}
 
@@ -416,7 +416,7 @@ void fudgeIfNeeded(int myptr,int myoffset){
 				#endif
 			}
 		}
-		myc ++; 
+		myc ++;
 		np +=5;
 	}
 	if (!foundAlt) return;
@@ -471,7 +471,7 @@ void dumpOne_X3D_Node(struct X3D_Node * boxptr) {
 	}
 
 	printf ("node type is %s\n",stringNodeType(boxptr->_nodeType));
-	
+
 	/* Iterate over all the fields in the node */
 	np = (int *) NODE_OFFSETS[boxptr->_nodeType];
 	myc = 0;
@@ -488,7 +488,7 @@ void dumpOne_X3D_Node(struct X3D_Node * boxptr) {
 /*
 			printf("field_type= %c (%d) , ", ctmp , dtmp);
 			printf("Routing=%s , ", stringKeywordType(np[3]));
-			printf("Spec=%d , ", np[4]) ;	
+			printf("Spec=%d , ", np[4]) ;
 */
 			errcount = UtilEAI_Convert_mem_to_ASCII (dtmp,tmpptr, utilBuf);
 			if (0 == errcount) {
@@ -496,7 +496,7 @@ void dumpOne_X3D_Node(struct X3D_Node * boxptr) {
 			} else {
 				printf ("\t\tValue = indeterminate....\n");
 			}
-			myc ++; 
+			myc ++;
 		}
 		np +=5;
 	}
@@ -527,7 +527,7 @@ unsigned int setField_FromEAI (char *ptr) {
 	#ifdef SETFIELDVERBOSE
 	printf ("%s,%d setField_FromEAI, string :%s:\n",__FILE__,__LINE__,ptr);
 	#endif
-	
+
 	/* we have an event, get the data properly scanned in from the ASCII string. */
 
 	/* node type */
@@ -595,14 +595,14 @@ unsigned int setField_FromEAI (char *ptr) {
 	/* lets go to the first non-blank character in the string */
 	while (*ptr == ' ') ptr++;
 
-	#ifdef SETFIELDVERBOSE 
+	#ifdef SETFIELDVERBOSE
 	printf ("setField_FromEAI EAI_SendEvent, event string now is :%s:\n",ptr);
 	#endif
 
 	/* is this a MF node, that has floats or ints, and the set1Value method is called? 	*/
 	/* check out the java external/field/MF*java files for the string "ONEVAL "		*/
 	if (strncmp("ONEVAL ",ptr, strlen("ONEVAL ")) == 0) {
-		#ifdef SETFIELDVERBOSE 
+		#ifdef SETFIELDVERBOSE
 		printf ("%s,%d This is a ONEVAL operation\n",__FILE__,__LINE__);
 		#endif
 
@@ -613,7 +613,7 @@ unsigned int setField_FromEAI (char *ptr) {
 		/* find out which element the user wants to set - that should be the next number */
 		while (*ptr==' ')ptr++;
 		retint=sscanf (ptr,"%d",&valIndex);
-		#ifdef SETFIELDVERBOSE 
+		#ifdef SETFIELDVERBOSE
 		printf ("%s,%d Request to set element %d\n",__FILE__,__LINE__,valIndex);
 		#endif
 
@@ -623,7 +623,7 @@ unsigned int setField_FromEAI (char *ptr) {
 
 		/* lets do some bounds checking here. */
 		tcol = (struct Multi_Color *) memptr;
-		#ifdef SETFIELDVERBOSE 
+		#ifdef SETFIELDVERBOSE
 		printf ("%s,%d now, we have valIndex %d, tcol->n %d\n",__FILE__,__LINE__,valIndex,tcol->n);
 		#endif
 
@@ -632,13 +632,13 @@ unsigned int setField_FromEAI (char *ptr) {
 			int malSize;
 
 			/* expand this array so that we can put the value in */
-			/* 
+			/*
 			printf ("have to expand MF value, had %d, wanted %d\n",tcol->n, valIndex);
 			printf ("and we have elementLength %d and rowSize %d\n",returnElementLength(datatype) ,returnElementRowSize(datatype));
 			*/
 
 			/* if we want index "5", say, we make it "5+1" long because we are zero based */
-			malSize = (valIndex+1) * returnElementLength(datatype) * returnElementRowSize(datatype); 
+			malSize = (valIndex+1) * returnElementLength(datatype) * returnElementRowSize(datatype);
 			nmemptr = MALLOC(void *, malSize);
 
 			/* zero the new array - this will give us null holes, maybe */
@@ -666,11 +666,11 @@ unsigned int setField_FromEAI (char *ptr) {
 			tcol->n = 0;
 			FREE_IF_NZ(tcol->p);
 			tcol->p = nmemptr;
-			tcol->n = valIndex+1;	
+			tcol->n = valIndex+1;
 
 			/* printf ("now, we have valIndex %d, tcol->n %d\n",valIndex,tcol->n); */
 		} else {
-			#ifdef SETFIELDVERBOSE 
+			#ifdef SETFIELDVERBOSE
 			printf ("%s,%d Size OK, replacing element %d in %d elements\n",__FILE__,__LINE__,valIndex,tcol->n);
 			#endif
 		}
@@ -689,7 +689,7 @@ unsigned int setField_FromEAI (char *ptr) {
 		myptr = X3D_NODE(memptr);
 		myoffset = 0;
 	} else {
-		#ifdef SETFIELDVERBOSE 
+		#ifdef SETFIELDVERBOSE
 		printf ("%s,%d Not a ONEVAL operation\n",__FILE__,__LINE__);
 		#endif
 	}
@@ -698,7 +698,7 @@ unsigned int setField_FromEAI (char *ptr) {
 	eol = strchr (ptr,'\n'); if (eol != NULL) *eol = '\0';
 
 	/* at this point, we have:
-		memptr = pointer to memory location to start scanning; 
+		memptr = pointer to memory location to start scanning;
 		offset = actual offset in node, or 0 if ONEVAL invoked;
 		nodeptr = actual memory pointer of X3D_Node* */
 
@@ -717,7 +717,7 @@ unsigned int setField_FromEAI (char *ptr) {
 
 		/* now, send the number of rows along; SFs return 1, MFS return rows */
 		rowCount = returnNumberOfRows(datatype,(union anyVrml *) memptr);
-		#ifdef SETFIELDVERBOSE 
+		#ifdef SETFIELDVERBOSE
 		printf("%s,%d rowCount=%d\n",__FILE__,__LINE__,rowCount);
 		#endif
 
@@ -790,7 +790,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 			/* printf ("doing TYPEA memcpy to %u, from %u, len %d\n",(void *)memptr, (void *) &(((thistype##Native *)JSSFpointer)->field),len); */ \
 			memcpy ((void *)memptr, (void *) &(((thistype##Native *)tg->CRoutes.JSSFpointer)->field),len); \
 			break; \
-		} 
+		}
 
 #define GETJSVAL_TYPE_MF_A(MFtype,SFtype) \
 		case FIELDTYPE_##MFtype: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_##SFtype); break;}
@@ -818,7 +818,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
                         GETJSVAL_TYPE_MF_A(MFColorRGBA,SFColorRGBA)
 
 
-		case FIELDTYPE_SFInt32: 
+		case FIELDTYPE_SFInt32:
 		case FIELDTYPE_SFBool:	{	/* SFBool */
 			if (!JS_ValueToInt32(scriptContext, tg->CRoutes.JSglobal_return_val,&ival)) {
 				printf ("error\n");
@@ -897,7 +897,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 #else
 				strp = strpp = JS_EncodeString(scriptContext,strval);
 #endif
-				
+
 				/* we will have at least one node here, in an ascii string */
 				while ((*strp > '\0') && (*strp <= ' ')) strp ++;
 				/* are we at a bracket? */
@@ -920,7 +920,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 		}
 		case FIELDTYPE_MFString: {
 			getMFStringtype (
-				scriptContext, 
+				scriptContext,
 				(jsval *)&tg->CRoutes.JSglobal_return_val,
 				(struct Multi_String *)memptr);
 			break;
@@ -930,7 +930,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 			//unsigned int valuecopied;
 			//unsigned int *ptr2value;
 				/* printf ("doing TYPEA memcpy to %u, from %u, len %d\n",(void *)memptr, (void *) &(((SFNodeNative *)JSSFpointer)->handle),returnElementLength(FIELDTYPE_SFNode));*/
-			memcpy ((void *)memptr, (void *) &(((SFNodeNative *)tg->CRoutes.JSSFpointer)->handle),returnElementLength(FIELDTYPE_SFNode)); 
+			memcpy ((void *)memptr, (void *) &(((SFNodeNative *)tg->CRoutes.JSSFpointer)->handle),returnElementLength(FIELDTYPE_SFNode));
 				//ptr2value = (unsigned int*)memptr;
 				//valuecopied = *ptr2value;
 				//printf("value of memptr %u after memcpy in script route= %u\n",(void*)memptr,valuecopied);
@@ -952,11 +952,11 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 		printf ("setField_javascriptEventOut, checking the pointers...\n");
 		printf ("node type is %s\n",stringNodeType(X3D_NODE(tn)->_nodeType));
 	}
-	
+
 	#endif
 }
-void setField_javascriptEventOut_B(union anyVrml* any,  
-			int fieldType, unsigned len, int extraData, JSContext *scriptContext) 
+void setField_javascriptEventOut_B(union anyVrml* any,
+			int fieldType, unsigned len, int extraData, JSContext *scriptContext)
 {
 	//dug9 Feb 2013 for new propagate_events - like setField_javascriptEventout except:
 	// writes to *anyVrml instead of (toNode,toOffset) combo (which doesn't work for Proto fields)
@@ -984,7 +984,7 @@ void setField_javascriptEventOut_B(union anyVrml* any,
 #else
 	strp = strpp = JS_EncodeString(scriptContext,strval);
 #endif
-	printf ("start of setField_javascriptEventOut, to %ld:%d = %p, fieldtype %d string %s\n",(long)tn, tptr, memptr, fieldType, strp);
+	printf ("start of setField_javascriptEventOut, to %ld:%d = %p, fieldtype %d string %s\n",(long)any, fieldType, memptr, fieldType, strp);
 #if JS_VERSION >= 185
 	JS_free(scriptContext,strpp);
 #endif
@@ -995,7 +995,7 @@ void setField_javascriptEventOut_B(union anyVrml* any,
 			/* printf ("doing TYPEA memcpy to %u, from %u, len %d\n",(void *)memptr, (void *) &(((thistype##Native *)JSSFpointer)->field),len); */ \
 			memcpy ((void *)memptr, (void *) &(((thistype##Native *)tg->CRoutes.JSSFpointer)->field),len); \
 			break; \
-		} 
+		}
 
 #define GETJSVAL_TYPE_MF_A(MFtype,SFtype) \
 		case FIELDTYPE_##MFtype: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_##SFtype); break;}
@@ -1023,7 +1023,7 @@ void setField_javascriptEventOut_B(union anyVrml* any,
                         GETJSVAL_TYPE_MF_A(MFColorRGBA,SFColorRGBA)
 
 
-		case FIELDTYPE_SFInt32: 
+		case FIELDTYPE_SFInt32:
 		case FIELDTYPE_SFBool:	{	/* SFBool */
 			if (!JS_ValueToInt32(scriptContext, tg->CRoutes.JSglobal_return_val,&ival)) {
 				printf ("error\n");
@@ -1102,7 +1102,7 @@ void setField_javascriptEventOut_B(union anyVrml* any,
 #else
 				strp = strpp = JS_EncodeString(scriptContext,strval);
 #endif
-				
+
 				/* we will have at least one node here, in an ascii string */
 				while ((*strp > '\0') && (*strp <= ' ')) strp ++;
 				/* are we at a bracket? */
@@ -1121,7 +1121,7 @@ void setField_javascriptEventOut_B(union anyVrml* any,
 				printf ("calling getMFNodeType now\n"); */
 
 
-				//getMFNodetype (mynode,(struct Multi_Node *)memptr,X3D_NODE(tn),extraData); 
+				//getMFNodetype (mynode,(struct Multi_Node *)memptr,X3D_NODE(tn),extraData);
 				any->mfnode.n = 1;
 				any->mfnode.p = MALLOC(struct X3D_Node **, sizeof(struct X3D_Node *));
 				any->mfnode.p[0] = mynode;
@@ -1130,7 +1130,7 @@ void setField_javascriptEventOut_B(union anyVrml* any,
 		}
 		case FIELDTYPE_MFString: {
 			getMFStringtype (
-				scriptContext, 
+				scriptContext,
 				(jsval *)&tg->CRoutes.JSglobal_return_val,
 				(struct Multi_String *)memptr);
 			break;
@@ -1140,7 +1140,7 @@ void setField_javascriptEventOut_B(union anyVrml* any,
 			//unsigned int valuecopied;
 			//unsigned int *ptr2value;
 				/* printf ("doing TYPEA memcpy to %u, from %u, len %d\n",(void *)memptr, (void *) &(((SFNodeNative *)JSSFpointer)->handle),returnElementLength(FIELDTYPE_SFNode));*/
-			memcpy ((void *)memptr, (void *) &(((SFNodeNative *)tg->CRoutes.JSSFpointer)->handle),returnElementLength(FIELDTYPE_SFNode)); 
+			memcpy ((void *)memptr, (void *) &(((SFNodeNative *)tg->CRoutes.JSSFpointer)->handle),returnElementLength(FIELDTYPE_SFNode));
 				//ptr2value = (unsigned int*)memptr;
 				//valuecopied = *ptr2value;
 				//printf("value of memptr %u after memcpy in script route= %u\n",(void*)memptr,valuecopied);
@@ -1156,13 +1156,13 @@ void setField_javascriptEventOut_B(union anyVrml* any,
 	printf ("done setField_javascriptEventOut\n");
 	if (fieldType == FIELDTYPE_MFInt32) {
 		printf ("setField_javascriptEventOut, checking the pointers...\n");
-		printf ("node type is %s\n",stringNodeType(X3D_NODE(tn)->_nodeType));
+		printf ("node type is %s\n",stringNodeType(X3D_NODE(any)->_nodeType));
 	}
 	if (fieldType == FIELDTYPE_SFNode) {
 		printf ("setField_javascriptEventOut, checking the pointers...\n");
-		printf ("node type is %s\n",stringNodeType(X3D_NODE(tn)->_nodeType));
+		printf ("node type is %s\n",stringNodeType(X3D_NODE(any)->_nodeType));
 	}
-	
+
 	#endif
 }
 
@@ -1177,21 +1177,21 @@ char *findFIELDNAMESfromNodeOffset(struct X3D_Node *node, int offset) {
 	np++;  /* go to the offset field */
 
 	while ((*np != -1) && (*np != offset)) np +=5;
-	
+
 	if (*np == -1) return "fieldNotFound";
-	
+
 	/* go back to the field name */
 	np --;
 	return ((char *) FIELDNAMES[*np]);
 }
 
-/* go through the generated table FIELDTYPES, and find the int of this string, returning it, or -1 on error 
+/* go through the generated table FIELDTYPES, and find the int of this string, returning it, or -1 on error
 	or if it is an "internal" field */
 int findFieldInARR(const char* field, const char** arr, size_t cnt)
 {
 	int x;
 	size_t mystrlen;
-	
+
 	if (field == NULL) return -1;
 
 	#ifdef SETFIELDVERBOSE
@@ -1199,12 +1199,12 @@ int findFieldInARR(const char* field, const char** arr, size_t cnt)
 		printf ("findFieldInFIELDNAMES - internal field %s\n",field);
 	}
 	#endif
-	
+
 	mystrlen = strlen(field);
 	for (x=0; x!=cnt; ++x) {
 		if (strlen(arr[x]) == mystrlen) {
 			if (strcmp(field, arr[x])==0) return x;
-		} 
+		}
 	}
 	return -1;
 
@@ -1239,7 +1239,7 @@ int findRoutedFieldInARR (struct X3D_Node * node, const char *field, int fromTo,
 	int retval;
 	char mychar[200];
 	int a,b,c;
-	
+
 	retval = -1;
 
 #define FIELDCHECK(fld) \
@@ -1253,7 +1253,7 @@ int findRoutedFieldInARR (struct X3D_Node * node, const char *field, int fromTo,
 	    /* printf ("     findRoutedField for field %s, nodetype %s is %d\n",  fld,stringNodeType(node->_nodeType),a); */ \
 	    if (a >= 0) return retval;  /* found it! */ \
 	  }} \
-	} 
+	}
 
 
 	/* step try the field as is. */
@@ -1313,7 +1313,7 @@ void findFieldInOFFSETS(int nodeType, const int field, int *coffset, int *ctype,
 
 	#ifdef SETFIELDVERBOSE
 	printf ("findFieldInOFFSETS, nodeType %s\n",stringNodeType(nodeType));
-	printf ("findFieldInOffsets, comparing %d to %d\n",*x, field); 
+	printf ("findFieldInOffsets, comparing %d to %d\n",*x, field);
 	#endif
 
 	while ((*x != field) && (*x != -1)) {
@@ -1323,7 +1323,7 @@ void findFieldInOFFSETS(int nodeType, const int field, int *coffset, int *ctype,
 		x++; *coffset = (int)*x; x++; *ctype = (int)*x; x++; *ckind = (int)*x; x++; X3DLevel = (int)*x;
 
 		#ifdef SETFIELDVERBOSE
-		printf ("found field, coffset %d ctype %d ckind %d X3DLevel %x\n",*coffset, *ctype, *ckind, X3DLevel); 
+		printf ("found field, coffset %d ctype %d ckind %d X3DLevel %x\n",*coffset, *ctype, *ckind, X3DLevel);
 		#endif
 
 		/* do we care if, maybe, this field is not correct for requested version of FreeWRL? */
@@ -1406,7 +1406,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	/* where did this come from? Was it from a script execution, or from an assignment from within a script?? */
 	#ifdef SETFIELDVERBOSE
 	printf ("getJSMultiNumType, JSCreate_global_return_val %u, JSglobal_return_val %u\n",
-		(unsigned int) JSVAL_TO_INT(tg->jsVRMLBrowser.JSCreate_global_return_val), 
+		(unsigned int) JSVAL_TO_INT(tg->jsVRMLBrowser.JSCreate_global_return_val),
 		(unsigned int) JSVAL_TO_INT(tg->CRoutes.JSglobal_return_val));
 	#endif
 
@@ -1431,7 +1431,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	}
 
 	#ifdef SETFIELDVERBOSE
-	printf ("getJSMultiNumType, tn %p dest has  %s size %d\n",tn,stringFieldtypeType(eletype), elesize); 
+	printf ("getJSMultiNumType, tn %p dest has  %s size %d\n",tn,stringFieldtypeType(eletype), elesize);
 
 	printf("getJSMulitNumType, node type of myJSVal is :");
 	printJSNodeType (cx,myJSVal);
@@ -1455,7 +1455,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 		FREE_IF_NZ (tn->p);
 		tn->p = MALLOC (struct SFVec3f *, (unsigned)(elesize*len));
 
-		#ifdef SETFIELDVERBOSE 
+		#ifdef SETFIELDVERBOSE
 		printf ("MALLOCing memory for elesize %d len %d new pointer now is %p\n",elesize,len,tn->p);
 		#endif
 
@@ -1487,23 +1487,23 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 			switch (eletype) {
 			case FIELDTYPE_SFNode:
 				*nl = 0; nl++; break;
-			case FIELDTYPE_SFInt32: 
+			case FIELDTYPE_SFInt32:
 				*il=0; il++; break;
 			case FIELDTYPE_SFDouble:
-			case FIELDTYPE_SFTime: 
+			case FIELDTYPE_SFTime:
 				*dl=0.0; dl++; break;
-			case FIELDTYPE_SFFloat: 
-				*fl = (float) 0.0;  fl++; break; 
-			case FIELDTYPE_SFVec2f: 
-				*fl = (float) 0.0;  fl++; *fl = (float) 0.0;  fl++; break; 
+			case FIELDTYPE_SFFloat:
+				*fl = (float) 0.0;  fl++; break;
+			case FIELDTYPE_SFVec2f:
+				*fl = (float) 0.0;  fl++; *fl = (float) 0.0;  fl++; break;
 			case FIELDTYPE_SFVec3f:
-	                case FIELDTYPE_SFColor: 
-				*fl = (float) 0.0;  fl++; *fl = (float) 0.0;  fl++; *fl = (float) 0.0;  fl++; break; 
-			case FIELDTYPE_SFRotation: 
-				*fl = (float) 0.0;  fl++; *fl = (float) 0.0;  fl++; *fl = (float) 0.0;  fl++; *fl = (float) 0.0;  fl++; break; 
-			case FIELDTYPE_SFString: 
+	                case FIELDTYPE_SFColor:
+				*fl = (float) 0.0;  fl++; *fl = (float) 0.0;  fl++; *fl = (float) 0.0;  fl++; break;
+			case FIELDTYPE_SFRotation:
+				*fl = (float) 0.0;  fl++; *fl = (float) 0.0;  fl++; *fl = (float) 0.0;  fl++; *fl = (float) 0.0;  fl++; break;
+			case FIELDTYPE_SFString:
 	                        verify_Uni_String (*ms,"(empty value)"); ms++; break;
-	
+
 			default : {printf ("getJSMultiNumType unhandled eletype: %d\n",
 					eletype);
 				   return;
@@ -1519,7 +1519,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 #else
 			strp = strpp = JS_EncodeString(cx,_tmpStr);
 #endif
-	                printf ("sub element %d is \"%s\" \n",i,strp);  
+	                printf ("sub element %d is \"%s\" \n",i,strp);
 #if JS_VERSION >= 185
 			JS_free(cx,strpp);
 #endif
@@ -1527,7 +1527,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 			if (JSVAL_IS_OBJECT(mainElement)) printf ("sub element %d is an OBJECT\n",i);
 			if (JSVAL_IS_PRIMITIVE(mainElement)) printf ("sub element %d is an PRIMITIVE\n",i);
 			#endif
-	
+
 			/* code is pretty much same as SF* values in setField_javascriptEventOut */
 			switch (eletype) {
 			case FIELDTYPE_SFNode: {
@@ -1545,7 +1545,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 						*nl = _vec->handle;
 					}
 				} else {
-					printf ("hmm - not an SFNode class\n"); 
+					printf ("hmm - not an SFNode class\n");
 					*nl = NULL;
 				}
 
@@ -1583,7 +1583,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 					fl += 2;
 				} else {
 					/* we are working in a value that kind of exists, but is undefined */
-					*fl = (float) 0.0; fl++; *fl = (float) 0.0; fl++;	
+					*fl = (float) 0.0; fl++; *fl = (float) 0.0; fl++;
 				}
 	                        break;
 			}
@@ -1598,9 +1598,9 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 					fl += 3;
 				} else {
 					/* we are working in a value that kind of exists, but is undefined */
-					*fl = (float) 0.0; fl++;	
-					*fl = (float) 0.0; fl++;	
-					*fl = (float) 0.0; fl++;	
+					*fl = (float) 0.0; fl++;
+					*fl = (float) 0.0; fl++;
+					*fl = (float) 0.0; fl++;
 				}
 	                        break;
 			}
@@ -1614,15 +1614,15 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 					fl += 4;
 				} else {
 					/* we are working in a value that kind of exists, but is undefined */
-					*fl = (float) 0.0; fl++;	*fl = (float) 0.0; fl++;	
-					*fl = (float) 0.0; fl++;	*fl = (float) 0.0; fl++;	
+					*fl = (float) 0.0; fl++;	*fl = (float) 0.0; fl++;
+					*fl = (float) 0.0; fl++;	*fl = (float) 0.0; fl++;
 				}
 	                        break;
 			}
-	
+
 			case FIELDTYPE_SFString: {
 				JSString *strval;
-	
+
 	                        strval = JS_ValueToString(cx, mainElement);
 #if JS_VERSION < 185
 	                        strp = JS_GetStringBytes(strval);
@@ -1630,11 +1630,11 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 				strp = strpp = JS_EncodeString(cx,strval);
 #endif
 
-	
+
 				#ifdef SETFIELDVERBOSE
-				printf ("getJSMultiNumType, got string %s\n",strp); 
+				printf ("getJSMultiNumType, got string %s\n",strp);
 				#endif
-	
+
 	                        /* copy the string over, delete the old one, if need be */
 	                        verify_Uni_String (*ms,strp);
 				ms++;
@@ -1643,7 +1643,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 #endif
 	                        break;
 			}
-	
+
 			default : {printf ("getJSMultiNumType unhandled eletype: %d\n",
 					eletype);
 				   return;
@@ -1710,7 +1710,7 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 		for (count = oldlen; count < newlen; count ++) {
 			/* make the new SV */
 			*newp = MALLOC (struct Uni_String *, sizeof (struct Uni_String));
-			
+
 
 			/* now, make it point to a blank string */
 			*newp = newASCIIString("");
@@ -1768,7 +1768,7 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 				mypv->xpv_pv, mypv->xpv_cur,mypv->xpv_len);
 	}
 	*/
-	
+
 }
 #endif /* HAVE_JAVASCRIPT */
 
