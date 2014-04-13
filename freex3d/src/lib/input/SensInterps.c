@@ -1403,9 +1403,13 @@ void do_LineSensor(void *ptr, int ev, int but1, int over) {
 		}
 
 		//clamp to min,max 
+#ifdef LINESENSOR_FLOAT_OFFSET
+		xxxoffset = node->offset;
+#else
 		//in theory the user can set a non-autoOffset sfvec3f offset that's not along .direction
 		//- we accomodate that below^, so here we just use the part going along .direction
 		xxxoffset = vecdot3f(node->direction.c,node->offset.c); //xxxoffset - like web3d specs offset, except just along direction vector
+#endif
 		xxxorigin = vecdot3f(node->direction.c,node->_origPoint.c); //mouse-down origin
 		//xxx before: unclamped position from line origin
 		xxx -= xxxorigin; //xxx after: net drag/delta along line since mouse-down
@@ -1420,7 +1424,8 @@ void do_LineSensor(void *ptr, int ev, int but1, int over) {
 		}
 		//translation clamped to LineSensor.minPosition/.maxPosition
 		vecscale3f(translation, node->direction.c, xxx);
-		
+
+#ifndef LINESENSOR_FLOAT_OFFSET		
 		//^add on any non-autoOffset non-.direction offset 
 		//a) part of offset going along direction
 		vecscale3f(diroffset, node->direction.c, xxxoffset);
@@ -1428,6 +1433,7 @@ void do_LineSensor(void *ptr, int ev, int but1, int over) {
 		vecdif3f(nondiroffset, node->offset.c, diroffset);
 		//add non-direction part of offset
 		vecadd3f(translation, translation, nondiroffset);
+#endif
 
 		node->_oldtranslation.c[0] = translation[0];
 		node->_oldtranslation.c[1] = translation[1];
@@ -1448,10 +1454,13 @@ void do_LineSensor(void *ptr, int ev, int but1, int over) {
 
 		/* autoOffset? */
 		if (node->autoOffset) {
+#ifdef LINESENSOR_FLOAT_OFFSET
+			node->offset = xxx;
+#else
 			node->offset.c[0] = node->translation_changed.c[0];
 			node->offset.c[1] = node->translation_changed.c[1];
 			node->offset.c[2] = node->translation_changed.c[2];
-
+#endif
 			MARK_EVENT(ptr, offsetof(struct X3D_LineSensor, offset));
 		}
 	}
