@@ -1470,9 +1470,9 @@ void do_LineSensor(void *ptr, int ev, int but1, int over) {
 /* void do_PlaneSensor (struct X3D_PlaneSensor *node, int ev, int over) {*/
 void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 	struct X3D_PlaneSensor *node;
-	float mult, nx, ny;
+	float mult, nx, ny, trackpoint[3];
 	struct SFColor tr;
-	int tmp;
+	int tmp, imethod;
 	ttglobal tg;
 	UNUSED(over);
 	node = (struct X3D_PlaneSensor *)ptr;
@@ -1500,13 +1500,33 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 	if (!node->enabled) return;
 	tg = gglobal();
 
+	imethod = 1; //0 = old pre-April-2014, 1=April 2014
 	/* only do something when button pressed */
 	/* if (!but1) return; */
-
+	if (but1){
+		float v[3], t1[3];
+		float N[3] = { 0.0f, 0.0f, 1.0f }; //plane normal, in plane-local
+		float NS[3]; //plane normal, in sensor-local after axisRotation
+		//bearing (A,B) in sensor-local
+		// A=posn, B=norm - norm is a point. To get a direction vector v = (B - A)
+		vecnormalize3f(v, vecdif3f(t1, tg->RenderFuncs.hyp_save_norm.c, tg->RenderFuncs.hyp_save_posn.c));
+		//rotate plane normal N, in plane-local to plane normal NS in sensor-local using axisRotation
+		axisangle_rotate3f(NS,N, node->axisRotation.c);
+		//a plane P dot N = d = const, for any point P on plane. Our plane is in plane-local coords, 
+		// so we could use P={0,0,0} and P dot N = d = 0
+		if (!line_intersect_planed_3f(tg->RenderFuncs.hyp_save_posn.c, v, NS, 0.0f, trackpoint, NULL))
+			return; //looking at plane edge-on / parallel, no intersection
+		axisangle_rotate3f(trackpoint, trackpoint, node->axisRotation.c);
+	}
 	if ((ev==ButtonPress) && but1) {
 		/* record the current position from the saved position */
-		memcpy ((void *) &node->_origPoint,
-			(void *) &tg->RenderFuncs.ray_save_posn,sizeof(struct SFColor));
+		struct SFColor op;
+		veccopy3f(op.c, trackpoint);
+		if (imethod==1)
+			memcpy((void *)&node->_origPoint, (void *)&op,sizeof(struct SFColor));
+		if (imethod==0)
+			memcpy ((void *) &node->_origPoint,
+				(void *) &tg->RenderFuncs.ray_save_posn,sizeof(struct SFColor));
 
 		/* set isActive true */
 		node->isActive=TRUE;
@@ -1514,11 +1534,16 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 
 	} else if ((ev==MotionNotify) && (node->isActive) && but1) {
 		/* hyperhit saved in render_hypersensitive phase */
-		mult = (node->_origPoint.c[2] - tg->RenderFuncs.hyp_save_posn.c[2]) /
-			(tg->RenderFuncs.hyp_save_norm.c[2]-tg->RenderFuncs.hyp_save_posn.c[2]);
-		nx = tg->RenderFuncs.hyp_save_posn.c[0] + mult * (tg->RenderFuncs.hyp_save_norm.c[0] - tg->RenderFuncs.hyp_save_posn.c[0]);
-		ny = tg->RenderFuncs.hyp_save_posn.c[1] + mult * (tg->RenderFuncs.hyp_save_norm.c[1] - tg->RenderFuncs.hyp_save_posn.c[1]);
-
+		if (imethod==0){
+			//this is ray intersect plane code, for plane Z=0
+			mult = (node->_origPoint.c[2] - tg->RenderFuncs.hyp_save_posn.c[2]) /
+				(tg->RenderFuncs.hyp_save_norm.c[2] - tg->RenderFuncs.hyp_save_posn.c[2]);
+			nx = tg->RenderFuncs.hyp_save_posn.c[0] + mult * (tg->RenderFuncs.hyp_save_norm.c[0] - tg->RenderFuncs.hyp_save_posn.c[0]);
+			ny = tg->RenderFuncs.hyp_save_posn.c[1] + mult * (tg->RenderFuncs.hyp_save_norm.c[1] - tg->RenderFuncs.hyp_save_posn.c[1]);
+		}
+		if (imethod==1){
+			nx = trackpoint[0]; ny = trackpoint[1];
+		}
 		#ifdef SEVERBOSE
 		printf ("now, mult %f nx %f ny %f op %f %f %f\n",mult,nx,ny,
 			node->_origPoint.c[0],node->_origPoint.c[1],
@@ -1526,9 +1551,14 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 		#endif
 
 		/* trackpoint changed */
-		node->_oldtrackPoint.c[0] = nx;
-		node->_oldtrackPoint.c[1] = ny;
-		node->_oldtrackPoint.c[2] = node->_origPoint.c[2];
+		if (imethod == 0){
+			node->_oldtrackPoint.c[0] = nx;
+			node->_oldtrackPoint.c[1] = ny;
+			node->_oldtrackPoint.c[2] = node->_origPoint.c[2];
+		}
+		if (imethod == 1){
+			veccopy3f(node->_oldtrackPoint.c, trackpoint);
+		}
 		/*printf(">%f %f %f\n",nx,ny,node->_oldtrackPoint.c[2]); */
 		if ((APPROX(node->_oldtrackPoint.c[0],node->trackPoint_changed.c[0])!= TRUE) ||
 			(APPROX(node->_oldtrackPoint.c[1],node->trackPoint_changed.c[1])!= TRUE) ||

@@ -180,6 +180,7 @@ float *vecscale3f(float *b, float *a, float scale);
 float veclength3f(float *a);
 float *vecnormalize3f(float *b, float *a);
 float det3f(float *a, float *b, float *c);
+float *axisangle_rotate3f(float* b, float *a, float *axisangle);
 BOOL line_intersect_line_3f(float *p1, float *v1, float *p2, float *v2, float *t, float *s, float *x1, float *x2);
 BOOL line_intersect_planed_3f(float *p, float *v, float *N, float d, float *pi, float *t);
 BOOL line_intersect_plane_3f(float *p, float *v, float *N, float *pp, float *pi, float *t);

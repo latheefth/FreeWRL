@@ -368,7 +368,7 @@ BOOL line_intersect_planed_3f(float *p, float *v, float *N, float d, float *pi, 
 	// line/ray P1 + v1*t = P2 (intersection point)
 	// combining t = -(d + N dot P1)/(N dot v1)
 	float t1[3], t2[3], nd, tt;
-	nd = vecdot3f(N, p);
+	nd = vecdot3f(N, v);
 	if (APPROX(nd, 0.0f)) return FALSE;
 	tt = -(d + vecdot3f(N, p)) / nd;
 	vecadd3f(t2, p, vecscale3f(t1, v, tt));
@@ -601,6 +601,22 @@ GLDOUBLE* matmultiply(GLDOUBLE* r, GLDOUBLE* mm , GLDOUBLE* nn)
     r[14]= m[2]*n[12]+m[6]*n[13]+m[10]*n[14]+m[14];
 
     return r;
+}
+float *axisangle_rotate3f(float* b, float *a, float *axisangle)
+{
+	/*	http://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation
+	uses Rodrigues formula axisangle (axis,angle)
+	b = a*cos(angle) + (axis cross a)*sin(theta) + axis*(axis dot a)*(1 - cos(theta))
+	*/
+	float cosine, sine, cross[3], dot, theta, *axis, t1[3], t2[3],t3[3],t4[3];
+	theta = axisangle[3];
+	axis = axisangle;
+	cosine = cos(theta);
+	sine = sin(theta);
+	veccross3f(cross,axis, a);
+	dot = vecdot3f(axis, a);
+	vecadd3f(b,vecscale3f(t1, a, cosine), vecadd3f(t2, vecscale3f(t3, cross, sine), vecscale3f(t4, axis, dot*(1.0f - cosine))));
+	return b;
 }
 void rotate_v2v_axisAngled(double* axis, double* angle, double *orig, double *result)
 {
