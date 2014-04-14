@@ -138,6 +138,11 @@ float vecdot3f( float *a, float *b )
 {
     return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
 }
+float *vecset3f(float *b, float x, float y, float z)
+{
+	b[0] = x; b[1] = y; b[2] = z;
+	return b;
+}
 float veclength3f(float *a){
 	return sqrt(vecdot3f(a, a));
 }
@@ -383,6 +388,35 @@ BOOL line_intersect_plane_3f(float *p, float *v, float *N, float *pp, float *pi,
 	return line_intersect_planed_3f(p, v, N, d, pi, t);
 }
 
+BOOL line_intersect_cylinder_3f(float *p, float *v, float radius, float *pi)
+{
+	//from rendray_Cylinder
+	//intersects arbitrary ray (p,v) with cylinder of radius, origiin 0,0,0 and axis 0,1,0
+	//april 2014: NOT TESTED, NOT USED - just hacked in and compiled
+    //    if((!XEQ) && (!ZEQ)) {
+	float t2[3], pp[3];
+	float dx = v[0]; 
+	float dz = v[2];
+	float a = dx*dx + dz*dz;
+	float b = 2.0f*(dx * p[0] + dz * p[2]);
+	float c = p[0] * p[0] + p[2] * p[2] - radius*radius;
+	float und;
+	if (APPROX(a, 0.0f))return FALSE;
+	b /= a; c /= a;
+	und = b*b - 4*c;
+	if(und > 0) { /* HITS the infinite cylinder */
+		float t2[3];
+		float sol1 = (-b+(float) sqrt(und))/2;
+		float sol2 = (-b-(float) sqrt(und))/2;
+		float sol = sol2;// sol1 < sol2 ? sol1 : sol2; //take the one closest to p (but should these be abs? what about direction 
+		vecadd3f(pp, p, vecscale3f(t2, v, sol));
+		if (pi) veccopy3f(pi, pp);
+		return TRUE;
+	}
+     // }
+	return FALSE;
+}
+
 struct point_XYZ* vecadd(struct point_XYZ* r, struct point_XYZ* v, struct point_XYZ* v2)
 {
     r->x = v->x + v2->x;
@@ -606,6 +640,8 @@ float *axisangle_rotate3f(float* b, float *a, float *axisangle)
 {
 	/*	http://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation
 	uses Rodrigues formula axisangle (axis,angle)
+	somewhat expensive, so if tranforming many points with the same rotation, 
+		it might be more efficient to use another method (like axisangle -> matrix, then matrix transforms)
 	b = a*cos(angle) + (axis cross a)*sin(theta) + axis*(axis dot a)*(1 - cos(theta))
 	*/
 	float cosine, sine, cross[3], dot, theta, *axis, t1[3], t2[3],t3[3],t4[3];

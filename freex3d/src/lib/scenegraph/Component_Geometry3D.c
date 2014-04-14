@@ -2227,7 +2227,7 @@ void rendray_Cylinder (struct X3D_Cylinder *node) {
         /* Body -- do same as for sphere, except no y axis in distance */
         if((!XEQ) && (!ZEQ)) {
                 float dx = (float)(t_r2.x-t_r1.x); 
-		float dz = (float)(t_r2.z-t_r1.z);
+                float dz = (float)(t_r2.z-t_r1.z);
                 float a = (float)(dx*dx + dz*dz);
                 float b = (float) (2*(dx * t_r1.x + dz * t_r1.z));
                 float c = (float) (t_r1.x * t_r1.x + t_r1.z * t_r1.z - r*r);

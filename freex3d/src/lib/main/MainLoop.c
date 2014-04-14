@@ -3782,7 +3782,9 @@ global variables:
 	hyp_save_posn, t_r2 - A - (viewpoint 0,0,0 transformed by modelviewMatrix.inverse() to geometry-local space)
 	hyp_save_norm, t_r1 - B - bearing point (viewport 0,0,-1 used with pick-proj bearing-specific projection matrix)
 		- norm is not a direction vector, its a point. To get a direction vector: v = (B - A) = (norm - posn)
-	ray_save_posn, t_r3 - viewport y-up in case needed
+	ray_save_posn - intersection with scene geometry, in sensor-local coordinates 
+		- used in do_CyclinderSensor, do_SphereSensor for computing a radius  on mouse-down
+	t_r3 - viewport y-up in case needed
 call stacks:
 resource thread > parsing > setParent > setSensitive
 mainloop > setup_projection > glu_pick

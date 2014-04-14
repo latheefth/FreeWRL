@@ -172,6 +172,7 @@ double* vecscaled(double* r, double* v, double s);
 double vecnormald(double *r, double *v);
 
 float *veccopy3f(float *b, float *a);
+float *vecset3f(float *b, float x, float y, float z);
 float *vecadd3f(float *c, float *a, float *b);
 float *vecdif3f(float *c, float *a, float *b);
 float vecdot3f(float *a, float *b);
@@ -184,6 +185,7 @@ float *axisangle_rotate3f(float* b, float *a, float *axisangle);
 BOOL line_intersect_line_3f(float *p1, float *v1, float *p2, float *v2, float *t, float *s, float *x1, float *x2);
 BOOL line_intersect_planed_3f(float *p, float *v, float *N, float d, float *pi, float *t);
 BOOL line_intersect_plane_3f(float *p, float *v, float *N, float *pp, float *pi, float *t);
+BOOL line_intersect_cylinder_3f(float *p, float *v, float radius, float *pi);
 
 GLDOUBLE det3x3(GLDOUBLE* data);
 
