@@ -682,7 +682,7 @@ void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int
 		case FIELDTYPE_SFImage:	{
 			JSObject *newMFObject;
 			jsval newjsval;
-			double *ip_in=(double *)Data;
+			int *ip_in=(int *)Data;
 
 			/* create a new MFNode object... */
 			newMFObject = JS_ConstructObject(cx, &SFImageClass, NULL ,JS_GetParent(cx, obj));
@@ -692,43 +692,13 @@ void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int
 			DEFINE_LENGTH_NORV(cx,newMFObject,datalen)
 
 			/* fill in private pointer area */
-			mePix = (struct X3D_PixelTexture *) ip_in;
-			if (mePix->_nodeType == NODE_PixelTexture) {
-				image = mePix->image;
-				if (image.n > 2) {
-					datalen = image.n;
-					/* copy over the image */
-					for (x=0; x<datalen; x++) {
-						newjsval = INT_TO_JSVAL(image.p[x]);
-						/* put this object into the MF class */
-						if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
-						JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
-							printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
-						}
-					}
-				} else {
-					datalen = 3;
-					for (x=0; x<datalen; x++) {
-						newjsval = INT_TO_JSVAL(0);
-						/* put this object into the MF class */
-						if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
-						JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
-							printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
-						}
-					}
+			for (x=0; x<datalen; x++) {
+				newjsval = INT_TO_JSVAL(ip_in[x]);
+				/* put this object into the MF class */
+				if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
+				                      JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
+					printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
 				}
-
-			} else {
-				/* make up a "zero" Pixeltexture */
-					datalen = 3;
-					for (x=0; x<datalen; x++) {
-						newjsval = INT_TO_JSVAL(0);
-						/* put this object into the MF class */
-						if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
-						JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
-							printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
-						}
-					}
 			}
 
 			/* set the length of this MF */
