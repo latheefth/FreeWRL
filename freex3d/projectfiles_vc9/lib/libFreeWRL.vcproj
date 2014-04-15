@@ -769,10 +769,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\libversion.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\lib\list.h"
 				>
 			</File>

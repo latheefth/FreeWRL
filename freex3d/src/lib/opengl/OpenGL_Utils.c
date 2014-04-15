@@ -2011,8 +2011,9 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 #endif //VARY_VERTEX_PRECISION
 
 #else
-	fragmentSource[fragmentGLSLVersion] = "#version 120\n";
-	vertexSource[vertexGLSLVersion] = "#version 120\n";
+	//changed from 120 to 110 Apr2014: main shaders still seem to work the same, openGL 2.0 now compiles them, and 2.1 (by specs) compiles 110
+	fragmentSource[fragmentGLSLVersion] = "#version 110\n";//"#version 120\n";
+	vertexSource[vertexGLSLVersion] = "#version 110\n"; //"#version 120\n";
 #endif
 
     fragmentSource[fragMaxLightsDeclare] = maxLights;

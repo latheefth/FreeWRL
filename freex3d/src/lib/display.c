@@ -328,7 +328,7 @@ bool initialize_rdr_caps()
 	rdr_caps.extensions = (char *) FW_GL_GETSTRING(GL_EXTENSIONS);
     FW_GL_GETBOOLEANV(GL_STEREO,&(rdr_caps.quadBuffer));
     //if (rdr_caps.quadBuffer) ConsoleMessage("INIT HAVE QUADBUFFER"); else ConsoleMessage("INIT_ NO QUADBUFFER");
-    
+    ConsoleMessage("openGL version %s\n",rdr_caps.version);
 
 	/* rdr_caps.version = "1.5.7"; //"1.4.1"; //for testing */
     rdr_caps.versionf = (float) atof(rdr_caps.version); 
