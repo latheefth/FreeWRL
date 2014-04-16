@@ -1,7 +1,5 @@
 /*
-=INSERT_TEMPLATE_HERE=
 
-$Id$
 
 Read PNG images.
 

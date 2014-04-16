@@ -1,5 +1,4 @@
 /*
-  $Id$
 
   FreeWRL command line arguments.
 

@@ -1,7 +1,5 @@
 /*
-=INSERT_TEMPLATE_HERE=
 
-$Id$
 
 X3D Texturing Component
 

@@ -1,5 +1,4 @@
 /*
-  $Id$
 
   FreeWRL support library.
   New implementation of texture loading.

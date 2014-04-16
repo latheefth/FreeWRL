@@ -1,5 +1,4 @@
 /*
-  $Id$
 
   FreeWRL support library.
   Create Motif window, widget, menu. Manage events.

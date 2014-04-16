@@ -1,7 +1,5 @@
 /*
-=INSERT_TEMPLATE_HERE=
 
-$Id$
 
 Proximity sensor macro.
 

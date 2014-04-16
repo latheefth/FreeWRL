@@ -1,5 +1,4 @@
 /*
-  $Id$
 
   FreeWRL/X3D main program.
   Internal header: helper macros.

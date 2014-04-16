@@ -1,7 +1,5 @@
 /* 
-=INSERT_TEMPLATE_HERE=
 
-$Id$
 
 Parser (input of non-terminal symbols) for CParse
 

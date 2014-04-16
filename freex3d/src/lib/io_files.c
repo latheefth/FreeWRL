@@ -1,6 +1,5 @@
 //[s release];
 /*
-  $Id$
 
   FreeWRL support library.
   IO with files.

@@ -1,5 +1,4 @@
 /*
-  $Id$
 
   FreeWRL support library.
   VRML/X3D fields manipulation.

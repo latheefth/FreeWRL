@@ -1,7 +1,5 @@
 /*
-=INSERT_TEMPLATE_HERE=
 
-$Id$
 
 A header simply containing all VRML types; this is needed sometimes.
 

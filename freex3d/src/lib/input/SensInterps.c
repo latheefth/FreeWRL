@@ -1,7 +1,5 @@
 /*
-=INSERT_TEMPLATE_HERE=
 
-$Id$
 
 Do Sensors and Interpolators in C, not in perl.
 

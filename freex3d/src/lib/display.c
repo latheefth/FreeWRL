@@ -1,5 +1,4 @@
 /*
-  $Id$
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.

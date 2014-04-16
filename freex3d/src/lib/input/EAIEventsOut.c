@@ -1,7 +1,5 @@
 /*
-=INSERT_TEMPLATE_HERE=
 
-$Id$
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 

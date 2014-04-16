@@ -1,5 +1,4 @@
 /*
-  $Id$
 
   Main functions II (how to define the purpose of this file?).
 */

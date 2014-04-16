@@ -1,7 +1,5 @@
 /*
-=INSERT_TEMPLATE_HERE=
 
-$Id$
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no

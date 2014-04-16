@@ -1,6 +1,5 @@
 # src dir Makefile.am
 #
-# $Id$
 #
 # Conditional build of sub-directories
 

@@ -1,5 +1,4 @@
 /*
-  $Id$
 
   FreeWRL support library.
   Resources handling: URL, files, ...

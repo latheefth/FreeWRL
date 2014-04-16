@@ -1,7 +1,5 @@
 /*
-=INSERT_TEMPLATE_HERE=
 
-$Id$
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint.
 

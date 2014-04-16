@@ -1,5 +1,4 @@
 /*
-  $Id$
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.

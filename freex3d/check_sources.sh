@@ -1,6 +1,5 @@
 #!/bin/sh
 #
-# $Id$
 #
 # Helper for automake new comers.
 # All sources files that are mandatory

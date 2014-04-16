@@ -1,5 +1,4 @@
 /*
-=INSERT_TEMPLATE_HERE=
 
 */
 

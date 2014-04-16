@@ -1,5 +1,4 @@
 /*
-  $Id$
 
   Create X11 window. Manage events.
 

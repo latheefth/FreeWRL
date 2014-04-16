@@ -1,7 +1,5 @@
 /*
-=INSERT_TEMPLATE_HERE=
 
-$Id$
 
 Implement Socket server functionality for FreeWRL.
 This is currently (Jun 2012) used by the EAI and the MIDI routines

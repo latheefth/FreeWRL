@@ -1,7 +1,5 @@
 /*
-=INSERT_TEMPLATE_HERE=
 
-$Id$
 
 This is a common base class for FieldDeclarations on PROTOs and Scripts
 

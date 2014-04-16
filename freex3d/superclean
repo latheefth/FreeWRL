@@ -1,6 +1,5 @@
 #!/bin/sh
 #
-# $Id$
 #
 # Clean all autotools files
 # Clean all Makefiles

@@ -1,6 +1,5 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*-
 
-   $Id$
    
    FreeWRL plugin for Mozilla compatible browsers.
    Works in Firefox 1.x - 3.0 on Linux.

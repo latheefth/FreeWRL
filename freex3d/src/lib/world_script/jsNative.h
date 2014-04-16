@@ -1,7 +1,5 @@
 /*
-=INSERT_TEMPLATE_HERE=
 
-$Id$
 
 CProto.h - this is the object representing a PROTO definition and being
 capable of instantiating it.

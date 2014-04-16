@@ -1,5 +1,4 @@
 /*
-  $Id$
 
   FreeWRL support library.
   Input functions (EAI, mouse, keyboard, ...).

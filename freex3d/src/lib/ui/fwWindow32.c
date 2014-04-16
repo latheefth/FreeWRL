@@ -1,5 +1,4 @@
 /*
-  $Id$
 
   FreeWRL support library.
   FreeWRL main window : win32 code.

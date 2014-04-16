@@ -1,6 +1,5 @@
 # Toplevel Makefile.am
 #
-# $Id$
 #
 # Defines build subdirectories.
 # Defines all files distributed by this package.

@@ -1,5 +1,4 @@
 /*
-  $Id$
 
   General utility functions.
 

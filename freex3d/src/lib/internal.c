@@ -1,5 +1,4 @@
 /*
-  $Id$
 
   FreeWRL support library.
   Internal functions: some very usefull functions are not always

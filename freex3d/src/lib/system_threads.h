@@ -1,7 +1,5 @@
 /*
-=INSERT_TEMPLATE_HERE=
 
-$Id$
 
 FreeWRL support library.
 Internal header: threading library, and processor control (sched).

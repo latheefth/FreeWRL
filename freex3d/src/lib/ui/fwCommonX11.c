@@ -1,5 +1,4 @@
 /*
-  $Id$
 
   FreeWRL support library.
   X11 common functions.

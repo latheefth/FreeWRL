@@ -1,7 +1,5 @@
 /*
-=INSERT_TEMPLATE_HERE=
 
-$Id$
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 

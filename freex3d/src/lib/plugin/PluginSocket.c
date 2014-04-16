@@ -1,7 +1,5 @@
 /*
-=INSERT_TEMPLATE_HERE=
 
-$Id$
 
 Common functions used by Mozilla and Netscape plugins...(maybe PluginGlue too?)
 

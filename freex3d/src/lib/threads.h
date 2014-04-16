@@ -1,5 +1,4 @@
 /*
-  $Id$
 
   FreeWRL support library.
   Threads & process (fork).

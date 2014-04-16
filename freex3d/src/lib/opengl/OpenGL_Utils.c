@@ -1,6 +1,5 @@
 
 /*
-  $Id$
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
