@@ -13,7 +13,7 @@
   <PropertyGroup Label="fwCustom">
     <SRC>../../src</SRC>
     <SRCWIN>../../src_windows</SRCWIN>
-    <LIBWIN>../../../../lib_windows</LIBWIN>
+    <LIBWIN>../../../../lib_windows_vc12</LIBWIN>
   </PropertyGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E072AF87-2CB8-4BE3-A8FE-BEBE683DED5F}</ProjectGuid>
