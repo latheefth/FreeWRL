@@ -34,6 +34,7 @@ configure
 libtool
 autom4te.cache/
 config/
+freex3d/config.h
 freex3d/src/bin/freewrl
 freex3d/src/bin/internal_version.c
 freex3d/src/lib/internal_version.c
