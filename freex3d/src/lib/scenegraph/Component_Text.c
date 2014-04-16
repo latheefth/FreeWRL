@@ -939,7 +939,7 @@ p->myff = 4;
             FW_init_face();
         }
     }
-
+	if(!p->font_face[p->myff]) return; //couldn't load fonts
     /* type 1 fonts different than truetype fonts */
     if (p->font_face[p->myff]->units_per_EM != 1000)
         p->x_size = p->x_size * p->font_face[p->myff]->units_per_EM/1000.0;

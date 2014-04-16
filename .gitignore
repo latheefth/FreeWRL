@@ -23,7 +23,7 @@ ipch
 .libs/
 Makefile
 Makefile.in
-config.h
+# need for win32 config.h
 config.in
 config.h.in
 config.log
