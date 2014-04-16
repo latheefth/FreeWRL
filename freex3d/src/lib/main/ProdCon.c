@@ -97,61 +97,6 @@ int _fw_browser_plugin = 0;
 int _fw_pipe = 0;
 uintptr_t _fw_instance = 0;
 
-/* make up a new parser for parsing from createVrmlFromURL and createVrmlFromString */
-//struct VRMLParser* savedParser;
-
-
-/*
-   ==============================================
-   Explanations for this horrible modification :P
-   ==============================================
-
-   There is no reason to stop the main neither the display
-   while parser is parsing ;)... No reason I see with my little
-   knowledge of the code...
-
-   However, shared data access should be protected via mutex. I
-   protect access to the download list (resource_list_to_parse).
-
-   Root tree should also be protected when about to be modified.
-
-*/
-
-/*******************************/
-
-///* thread synchronization issues */
-//int _P_LOCK_VAR = 0;
-
-#define SEND_TO_PARSER \
-	if (p->_P_LOCK_VAR==0) { \
-		p->_P_LOCK_VAR=1; \
-	} \
-	else ConsoleMessage ("SEND_TO_PARSER = flag wrong!\n");
-
-#define PARSER_FINISHING \
-	if (p->_P_LOCK_VAR==1) { \
-		p->_P_LOCK_VAR=0; \
-	} \
-	else ConsoleMessage ("PARSER_FINISHING - flag wrong!\n");
-
-#define UNLOCK \
-	pthread_cond_signal(&gglobal()->threads.resource_list_condition); pthread_mutex_unlock(&gglobal()->threads.mutex_resource_list);
-
-#define WAIT_WHILE_PARSER_BUSY \
-	pthread_mutex_lock(&gglobal()->threads.mutex_resource_list); \
-     	while (p->_P_LOCK_VAR==1) { pthread_cond_wait(&gglobal()->threads.resource_list_condition, &gglobal()->threads.mutex_resource_list);}
-
-
-#define WAIT_WHILE_NO_DATA \
-	pthread_mutex_lock(&gglobal()->threads.mutex_resource_list); \
-     	while (p->_P_LOCK_VAR==0) { pthread_cond_wait(&gglobal()->threads.resource_list_condition, &gglobal()->threads.mutex_resource_list);}
-
-
-
-
-
-
-
 
 /*******************************/
 
@@ -216,6 +161,7 @@ void ProdCon_init(struct tProdCon *t)
 	t->setFogBindInRender = NULL;
 	t->setBackgroundBindInRender = NULL;
 	t->setNavigationBindInRender = NULL;
+	/* make up a new parser for parsing from createVrmlFromURL and createVrmlFromString */
 	t->savedParser = NULL; //struct VRMLParser* savedParser;
 
 	//private
@@ -805,7 +751,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 			if (!tg->resources.root_res->complete) {
 				/* Push the parser state : re-entrance here */
 				/* "save" the old classic parser state, so that names do not cross-pollute */
-				t->savedParser = (void *)tg->CParse.globalParser;
+				t->savedParse r= (void *)tg->CParse.globalParser;
 				tg->CParse.globalParser = NULL;
 			}
 		}
