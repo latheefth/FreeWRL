@@ -750,7 +750,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 			if (!tg->resources.root_res->complete) {
 				/* Push the parser state : re-entrance here */
 				/* "save" the old classic parser state, so that names do not cross-pollute */
-				t->savedParse r= (void *)tg->CParse.globalParser;
+				t->savedParser = (void *)tg->CParse.globalParser;
 				tg->CParse.globalParser = NULL;
 			}
 		}
