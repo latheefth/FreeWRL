@@ -350,7 +350,7 @@ int fwvsnprintf(char *buffer, int buffer_length, const char *fmt, va_list ap)
 
 		if (j) {
 			format[j] = '\0';
-			count += sprintf(tempbuf, format);/* printf it verbatim				*/
+			count += sprintf(tempbuf, "%s", format);/* printf it verbatim				*/
 			fmt += j;
 		}
 		else {
