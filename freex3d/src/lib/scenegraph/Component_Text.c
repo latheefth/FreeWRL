@@ -70,7 +70,7 @@ X3D Text Component
 
 #define OUT2GL(a) (p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES))
 
-/* now defined in system_fonts.h 
+/* now defined in system_fonts.h
 include <ft2build.h>
 ** include <ftoutln.h>
 include FT_FREETYPE_H
@@ -238,7 +238,7 @@ void FW_NewVertexPoint (double Vertex_x, double Vertex_y)
 
     if (p->FW_pointctr >= p->coordmaxsize) {
         p->coordmaxsize+=800;
-        p->FW_rep_->actualCoord = (float *)REALLOC(p->FW_rep_->actualCoord, 
+        p->FW_rep_->actualCoord = (float *)REALLOC(p->FW_rep_->actualCoord,
                                                 sizeof(*(p->FW_rep_->actualCoord))*p->coordmaxsize*3);
 		printf("realloc actualCoord=%p\n",p->FW_rep_->actualCoord);
     }
@@ -342,7 +342,7 @@ void FW_make_fontname(int num) {
     bit:    2       SERIF
     bit:    3       SANS
     bit:    4       TYPEWRITER
-    
+
     JAS - May 2005 - The Vera freely distributable ttf files
     are:
 
@@ -356,7 +356,7 @@ void FW_make_fontname(int num) {
     VeraMoBd.ttf
     VeraBd.ttf
     VeraBI.ttf
-    
+
     The files that were included were copyright Bitstream;
     the Vera files are also from Bitstream, but are
     freely distributable. See the copyright file in the
@@ -366,9 +366,33 @@ void FW_make_fontname(int num) {
     ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
     #ifdef HAVE_FONTCONFIG
     FcPattern *FW_fp=NULL;
-    FcPattern *FW_fm=NULL;
     FcChar8 *FW_file=NULL;
-    FcResult fcjunkresult;
+    FcResult result;
+
+    // check whether we have a config file
+    char* configfile = (char*)FcConfigFilename(0);
+    int configexists = 0;
+    FILE*fi = fopen(configfile, "rb");
+    if(fi) {
+        configexists = 1;fclose(fi);
+	//printf("<debug> Initializing FontConfig (configfile=%s)\n", configfile);
+    } else {
+	//printf("<debug> Initializing FontConfig (no configfile)\n");
+    }
+
+    if(!FcInit()) {
+        printf("<debug> FontConfig Initialization failed.\n");
+    }
+    FcConfig * config = FcConfigGetCurrent();
+    if(!config) {
+        printf("<debug> FontConfig Config Initialization failed.\n");
+    }
+
+    FcFontSet *set =  FcConfigGetFonts(config, FcSetSystem);
+    //printf("<verbose> FontConfig initialized. Found %d fonts\n", set?set->nfont:0);
+    if(!set || !set->nfont) {
+        printf("<debug> FontConfig has found zero fonts. This is probably a bad thing.\n");
+    }
     #else
 
     if (!p->font_directory) {
@@ -385,7 +409,7 @@ void FW_make_fontname(int num) {
 	#else
 	strcat (p->thisfontname,"/VeraSe.ttf");
 	#endif
-	break; 
+	break;
     case 0x05: 			/* Serif Bold */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"serif",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
@@ -393,7 +417,7 @@ void FW_make_fontname(int num) {
 	#else
 	strcat (p->thisfontname,"/VeraSeBd.ttf");
 	#endif
-	break; 
+	break;
     case 0x06:			/* Serif Ital */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"serif",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
@@ -426,58 +450,58 @@ void FW_make_fontname(int num) {
 	#else
 	strcat (p->thisfontname,"/VeraBd.ttf");
 	#endif
-	break; 
+	break;
     case 0x0a: 			/* Sans Ital */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"sans",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	FcPatternAddString(FW_fp,FC_STYLE,"italic");
 	FcPatternAddString(FW_fp,FC_STYLE,"oblique");
 	#else
-	strcat (p->thisfontname,"/VeraIt.ttf"); 
+	strcat (p->thisfontname,"/VeraIt.ttf");
 	#endif
-	break; 
+	break;
     case 0x0b: 			/* Sans Bold Ital */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"sans",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	FcPatternAddString(FW_fp,FC_STYLE,"bold italic");
 	FcPatternAddString(FW_fp,FC_STYLE,"bold oblique");
 	#else
-	strcat (p->thisfontname,"/VeraBI.ttf"); 
+	strcat (p->thisfontname,"/VeraBI.ttf");
 	#endif
-	break; 
+	break;
     case 0x10:			/* Monospace */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	#else
 	strcat (p->thisfontname,"/VeraMono.ttf");
 	#endif
-	break; 
+	break;
     case 0x11: 			/* Monospace Bold */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	FcPatternAddString(FW_fp,FC_STYLE,"bold");
 	#else
-	strcat (p->thisfontname,"/VeraMoBd.ttf"); 
+	strcat (p->thisfontname,"/VeraMoBd.ttf");
 	#endif
-	break; 
+	break;
     case 0x12: /* Monospace Ital */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	FcPatternAddString(FW_fp,FC_STYLE,"italic");
 	FcPatternAddString(FW_fp,FC_STYLE,"oblique");
 	#else
-	strcat (p->thisfontname,"/VeraMoIt.ttf"); 
+	strcat (p->thisfontname,"/VeraMoIt.ttf");
 	#endif
-	break; 
+	break;
     case 0x13: /* Monospace Bold Ital */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	FcPatternAddString(FW_fp,FC_STYLE,"bold italic");
 	FcPatternAddString(FW_fp,FC_STYLE,"bold oblique");
 	#else
-	strcat (p->thisfontname,"/VeraMoBI.ttf"); 
+	strcat (p->thisfontname,"/VeraMoBI.ttf");
 	#endif
-	break; 
+	break;
     default:
 	printf ("dont know how to handle font id %x\n",num);
 	return;
@@ -486,25 +510,35 @@ void FW_make_fontname(int num) {
     #ifdef HAVE_FONTCONFIG
     FcConfigSubstitute(0,FW_fp,FcMatchPattern);
     FcDefaultSubstitute(FW_fp);
-    if (!(FW_fm = FcFontMatch(0,FW_fp,&fcjunkresult))) {
-	/* do whatever is done when no match found */
-	printf ("could not find font for id %x\n",num);
-    } else {
-	if (FcPatternGetString(FW_fm,FC_FILE,0,&FW_file) != FcResultMatch) {
-	    printf ("could not find font for id %x\n",num);
-	} else {
-	    /* strcpy didn't work, use strncpy and set the null character by hand */
-	    strncpy(p->thisfontname,(char *)FW_file,strlen((char *)FW_file));
-	    p->thisfontname[strlen((char *)FW_file)] = NULL;
+    set = FcFontSort(0, FW_fp, 1, 0, &result);
+
+    /* This isn't very smart, but we just go with the first match in the set that we can find a valid file for. */
+    if(set) {
+	// printf("<debug> okay, found a set with %d fonts\n", set?set->nfont:0);
+	int t;
+        for(t=0;t<set->nfont;t++) {
+           FcPattern *match = set->fonts[t];
+           if (FcPatternGetString(match,FC_FILE,0,&FW_file) != FcResultMatch) {
+              printf("<debug> FontConfig: Couldn't get fontconfig's filename for font id %x\n", num);
+              FW_file=0;
+           } else {
+              // printf("<debug> setting p->thisfontname to %s\n", FW_file);
+	      /* strcpy didn't work, use strncpy and set the null character by hand */
+              strncpy(p->thisfontname,(char *)FW_file,strlen((char *)FW_file));
+              p->thisfontname[strlen((char *)FW_file)] = NULL;
+              break;
+           }
 	}
-	FcPatternDestroy(FW_fm);
+    } else {
+        printf("<debug> no set? wha?\n");
     }
     FcPatternDestroy(FW_fp);
+    FcPatternDestroy(set);
     #endif
 }
 
 /* initialize the freetype library */
-static int FW_init_face() 
+static int FW_init_face()
 {
     int err;
 	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
@@ -529,19 +563,19 @@ ConsoleMessage ("TEXT INITIALIZATION - checking on the font file before doing an
       ConsoleMessage("TEXT INITIALIZATION time modified is %s\n", ctime(&buf.st_atime));
    }
 
-    } 
+    }
 #endif //ANDROID_DEBUG
 
 
     // ConsoleMessage("FT_Open_Face looks ok to go");
-	
+
     unsigned char *myFileData = malloc (p->fileLen+1);
     size_t frv;
     frv = fread (myFileData, (size_t)p->fileLen, (size_t)1, p->androidFontFile);
     myArgs.flags  = FT_OPEN_MEMORY;
     myArgs.memory_base = myFileData;
     myArgs.memory_size = p->fileLen;
-  
+
     err = FT_Open_Face(p->library, &myArgs, 0, &p->font_face[p->myff]);
         if (err) {
             char line[2000];
@@ -675,7 +709,7 @@ static void FW_draw_character (FT_Glyph glyph)
     if (p->TextVerbose) printf ("done character\n");
 }
 
-/* UTF-8 to UTF-32 conversion - 
+/* UTF-8 to UTF-32 conversion -
 // x3d and wrl strings are supposed to be in UTF-8
 // when drawing strings, FreeType will take a UTF-32"
 // http://en.wikipedia.org/wiki/UTF-32/UCS-4
@@ -683,17 +717,17 @@ static void FW_draw_character (FT_Glyph glyph)
 // libicu
 //    - not used - looks big
 //    - http://site.icu-project.org/   LIBICU  - opensource, C/C++ and java.
-// mbstocws 
+// mbstocws
 //    - win32 version didn't seem to do any converting
-// iconv - gnu libiconv 
-//    - http://gnuwin32.sourceforge.net/packages/libiconv.htm 
+// iconv - gnu libiconv
+//    - http://gnuwin32.sourceforge.net/packages/libiconv.htm
 //    - the win32 version didn't run - bombs on open
 // guru code:
 //    - adopted - or at least the simplest parts
-//    - not rigourous checking though - should draw bad characters if 
+//    - not rigourous checking though - should draw bad characters if
 //      if you have it wrong in the file
 //    - http://floodyberry.wordpress.com/2007/04/14/utf-8-conversion-tricks/
-//    - not declared opensource, so we are using the general idea 
+//    - not declared opensource, so we are using the general idea
 //      in our own code
 */
 const unsigned int Replacement = ( 0xfffd );
@@ -812,8 +846,8 @@ int len_utf8(unsigned char *utf8string)
    Note that the text comes EITHER from a SV (ie, from perl) or from a directstring,
    eg, for placing text on the screen from within FreeWRL itself */
 
-void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstring, 
-                   unsigned int nl, double *length, double maxext, 
+void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstring,
+                   unsigned int nl, double *length, double maxext,
                    double spacing, double mysize, unsigned int fsparam,
                    struct X3D_PolyRep *rp)
 {
@@ -898,7 +932,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
         }
     }
 
-    if (p->TextVerbose) 
+    if (p->TextVerbose)
         printf ("entering FW_Render_text \n");
 
 
@@ -947,7 +981,7 @@ p->myff = 4;
 
     /* load all of the characters first... */
     for (row=0; row<numrows; row++) {
-        if (directstring == 0) 
+        if (directstring == 0)
             str = (unsigned char *)ptr[row]->strptr;
 		if(0){
 			for(i=0; i<strlen((const char *)str); i++) {
@@ -1026,7 +1060,7 @@ p->myff = 4;
 		if(0)
 			lenchars = (int)strlen((const char *)str);
 		else
-			lenchars = len_utf8(str); 
+			lenchars = len_utf8(str);
         rowlen = FW_extent(counter,lenchars);
         if((row < nl) && (APPROX(length[row],0.0))) {
             rshrink = length[row] / OUT2GL(rowlen);
@@ -1074,9 +1108,9 @@ p->myff = 4;
                 if ((tg->Tess.global_IFS_Coords[x] >= p->cindexmaxsize) ||
                     (p->indx_count >= p->cindexmaxsize) ||
                     (tg->Tess.global_IFS_Coords[x] < 0)) {
-                     if (p->TextVerbose)  
-                     printf ("Tesselated index %d out of range; skipping indx_count, %d cindexmaxsize %d global_IFS_Coord_count %d\n", 
-                     tg->Tess.global_IFS_Coords[x],p->indx_count,p->cindexmaxsize,tg->Tess.global_IFS_Coord_count); 
+                     if (p->TextVerbose)
+                     printf ("Tesselated index %d out of range; skipping indx_count, %d cindexmaxsize %d global_IFS_Coord_count %d\n",
+                     tg->Tess.global_IFS_Coords[x],p->indx_count,p->cindexmaxsize,tg->Tess.global_IFS_Coord_count);
                     /* just use last point - this sometimes happens when */
                     /* we have intersecting lines. Lets hope first point is */
                     /* not invalid... JAS */
@@ -1084,8 +1118,8 @@ p->myff = 4;
                     if (p->indx_count < (p->cindexmaxsize-1)) p->indx_count ++;
                 } else {
 					/*
-                    printf("global_ifs_coords is %d indx_count is %d \n",global_IFS_Coords[x],p->indx_count); 
-                    printf("filling up cindex; index %d now points to %d\n",p->indx_count,global_IFS_Coords[x]); 
+                    printf("global_ifs_coords is %d indx_count is %d \n",global_IFS_Coords[x],p->indx_count);
+                    printf("filling up cindex; index %d now points to %d\n",p->indx_count,global_IFS_Coords[x]);
 					*/
                     p->FW_rep_->cindex[p->indx_count++] = tg->Tess.global_IFS_Coords[x];
                 }
@@ -1140,7 +1174,7 @@ p->myff = 4;
     if (p->TextVerbose) printf ("exiting FW_Render_text\n");
 }
 
-int open_font() 
+int open_font()
 {
     int len;
     int err;
@@ -1236,11 +1270,11 @@ void collide_Text (struct X3D_Text *node)
 
     FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-	matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
-	//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
+	matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision);
+	//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix);
 
 	if(!avatarCollisionVolumeIntersectMBBf(modelMatrix,pr.minVals,pr.maxVals) )return;
-    delta = planar_polyrep_disp(abottom,atop,astep,awidth,pr,modelMatrix,PR_DOUBLESIDED,delta); 
+    delta = planar_polyrep_disp(abottom,atop,astep,awidth,pr,modelMatrix,PR_DOUBLESIDED,delta);
     /* delta used as zero */
 
     vecscale(&delta,&delta,-1);
@@ -1256,7 +1290,7 @@ void collide_Text (struct X3D_Text *node)
 #endif
 }
 
-void make_Text (struct X3D_Text *node) 
+void make_Text (struct X3D_Text *node)
 {
     struct X3D_PolyRep *rep_ = node->_intern;
     double spacing = 1.0;
@@ -1270,7 +1304,7 @@ void make_Text (struct X3D_Text *node)
         /* We have a FontStyle. Parse params (except size and spacing) and
            make up an unsigned int with bits indicating params, to be
            passed to the Text Renderer
-           
+
            bit:    0       horizontal  (boolean)
            bit:    1       leftToRight (boolean)
            bit:    2       topToBottom (boolean)
@@ -1390,9 +1424,9 @@ void make_Text (struct X3D_Text *node)
     /*  do the Text parameters, guess at the number of triangles required*/
     rep_->ntri = 0;
 
-    /* 
+    /*
        printf ("Text, calling FW_rendertext\n");
-       call render text - NULL means get the text from the string 
+       call render text - NULL means get the text from the string
     */
 
     FW_rendertext(((node->string).n),((node->string).p),NULL,
