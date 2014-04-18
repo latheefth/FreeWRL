@@ -15,42 +15,42 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\libeai\EAI_C_Advise.c">
+    <ClCompile Include="$(SRC)\libeai\EAI_C_Advise.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\input\EAI_C_CommonFunctions.c">
+    <ClCompile Include="$(SRC)\lib\input\EAI_C_CommonFunctions.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libeai\EAI_C_Control.c">
+    <ClCompile Include="$(SRC)\libeai\EAI_C_Control.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libeai\EAI_C_Field.c">
+    <ClCompile Include="$(SRC)\libeai\EAI_C_Field.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libeai\EAI_C_Internals.c">
+    <ClCompile Include="$(SRC)\libeai\EAI_C_Internals.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libeai\EAI_C_Node.c">
+    <ClCompile Include="$(SRC)\libeai\EAI_C_Node.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libeai\EAI_C_ReWire.c">
+    <ClCompile Include="$(SRC)\libeai\EAI_C_ReWire.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libeai\EAI_C_swigExtras.c">
+    <ClCompile Include="$(SRC)\libeai\EAI_C_swigExtras.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\libeai\EAI_C.h">
+    <ClInclude Include="$(SRC)\libeai\EAI_C.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\libeai\EAI_swigMe.h">
+    <ClInclude Include="$(SRC)\libeai\EAI_swigMe.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\libeai\GeneratedHeaders.h">
+    <ClInclude Include="$(SRC)\libeai\GeneratedHeaders.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\libeai\X3DNode.h">
+    <ClInclude Include="$(SRC)\libeai\X3DNode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

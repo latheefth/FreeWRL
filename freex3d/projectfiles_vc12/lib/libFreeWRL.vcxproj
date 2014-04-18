@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_glew|Win32">
@@ -89,7 +89,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SRC)\libminizip;$(LIBWIN)\js185\include;$(SRC)\libtess;$(SRC)\lib;$(SRCWIN);..\..\..\..\lib_windowsStore\pthreads.2;$(LIBWIN)\zlib\include;$(LIBWIN)\jpeg\include;$(LIBWIN)\freetype2\include;$(LIBWIN)\png\include;$(LIBWIN)\angleproject\include;$(LIBWIN)\libxml2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SRC)\libminizip;$(LIBWIN)\js185\include;$(SRC)\libtess;$(SRC)\lib;$(SRCWIN);$(LIBWIN)\pthread\include;$(LIBWIN)\zlib\include;$(LIBWIN)\jpeg\include;$(LIBWIN)\freetype2\include;$(LIBWIN)\png\include;$(LIBWIN)\angleproject\include;$(LIBWIN)\libxml2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>LINESENSOR;ANGLEPROJECT;W_DEBUG;WIN32;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;DO_COLLISION_GPU_no;STATIC_EXPORTABLE_JS_API;HAVE_PTHREAD_CANCEL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -106,7 +106,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SRC)\libminizip;$(LIBWIN)\js185\include;$(SRC)\libtess;$(SRC)\lib;$(SRCWIN);$(LIBWIN)\pthreads.2;$(LIBWIN)\zlib\include;$(LIBWIN)\jpeg\include;$(LIBWIN)\freetype2\include;$(LIBWIN)\png\include;$(LIBWIN)\angleproject\include;$(LIBWIN)\libxml2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SRC)\libminizip;$(LIBWIN)\js185\include;$(SRC)\libtess;$(SRC)\lib;$(SRCWIN);$(LIBWIN)\pthread\include;$(LIBWIN)\zlib\include;$(LIBWIN)\jpeg\include;$(LIBWIN)\freetype2\include;$(LIBWIN)\png\include;$(LIBWIN)\angleproject\include;$(LIBWIN)\libxml2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;ANGLEPROJECT;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;STATIC_EXPORTABLE_JS_API;HAVE_PTHREAD_CANCEL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -117,7 +117,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_glew|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SRC)\libminizip;$(LIBWIN)\js185\include;$(SRC)\libtess;$(SRC)\Lib;$(SRCWIN);$(LIBWIN)\pthreads.2;$(LIBWIN)\zlib\include;$(LIBWIN)\jpeg\include;$(LIBWIN)\freetype2\include;$(LIBWIN)\png\include;$(LIBWIN)\glew\include;$(LIBWIN)\libxml2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SRC)\libminizip;$(LIBWIN)\js185\include;$(SRC)\libtess;$(SRC)\Lib;$(SRCWIN);$(LIBWIN)\pthread\include;$(LIBWIN)\zlib\include;$(LIBWIN)\jpeg\include;$(LIBWIN)\freetype2\include;$(LIBWIN)\png\include;$(LIBWIN)\glew\include;$(LIBWIN)\libxml2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>W_DEBUG;WIN32;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;DO_COLLISION_GPU_no;STATIC_EXPORTABLE_JS_API;HAVE_PTHREAD_CANCEL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -134,7 +134,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SRC)\libminizip;$(LIBWIN)\js185\include;$(SRC)\libtess;$(SRC)\lib;$(SRCWIN);$(LIBWIN)\pthreads.2;$(LIBWIN)\zlib\include;$(LIBWIN)\jpeg\include;$(LIBWIN)\freetype2\include;$(LIBWIN)\png\include;$(LIBWIN)\glew\include;$(LIBWIN)\libxml2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SRC)\libminizip;$(LIBWIN)\js185\include;$(SRC)\libtess;$(SRC)\lib;$(SRCWIN);$(LIBWIN)\pthread\include;$(LIBWIN)\zlib\include;$(LIBWIN)\jpeg\include;$(LIBWIN)\freetype2\include;$(LIBWIN)\png\include;$(LIBWIN)\glew\include;$(LIBWIN)\libxml2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;STATIC_EXPORTABLE_JS_API;HAVE_PTHREAD_CANCEL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
