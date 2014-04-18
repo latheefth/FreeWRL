@@ -4230,7 +4230,7 @@ struct X3D_LineSensor {
 	float maxPosition;
 	struct X3D_Node *metadata;
 	float minPosition;
-	struct SFVec3f offset;
+	float offset;
 	struct SFVec3f trackPoint_changed;
 	struct SFVec3f translation_changed;
 };

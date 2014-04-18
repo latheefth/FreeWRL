@@ -3747,7 +3747,7 @@ const int OFFSETS_LineSensor[] = {
 	(int) FIELDNAMES_maxPosition, (int) offsetof (struct X3D_LineSensor, maxPosition),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_LineSensor, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_minPosition, (int) offsetof (struct X3D_LineSensor, minPosition),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_offset, (int) offsetof (struct X3D_LineSensor, offset),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_offset, (int) offsetof (struct X3D_LineSensor, offset),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_trackPoint_changed, (int) offsetof (struct X3D_LineSensor, trackPoint_changed),  (int) FIELDTYPE_SFVec3f, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_translation_changed, (int) offsetof (struct X3D_LineSensor, translation_changed),  (int) FIELDTYPE_SFVec3f, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
@@ -7217,7 +7217,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->maxPosition = -1.0f;
 			tmp2->metadata = NULL;
 			tmp2->minPosition = 0.0f;
-			tmp2->offset.c[0] = 0.0f;tmp2->offset.c[1] = 0.0f;tmp2->offset.c[2] = 0.0f;
+			tmp2->offset = 0.0f;
 			tmp2->trackPoint_changed.c[0] = 0.0f;tmp2->trackPoint_changed.c[1] = 0.0f;tmp2->trackPoint_changed.c[2] = 0.0f;
 			tmp2->translation_changed.c[0] = 0.0f;tmp2->translation_changed.c[1] = 0.0f;tmp2->translation_changed.c[2] = 0.0f;
 			tmp2->_defaultContainer = FIELDNAMES_children;
@@ -10545,9 +10545,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 			spacer fprintf (fp," minPosition (SFFloat) \t%4.3f\n",tmp->minPosition);
-			spacer fprintf (fp," offset (SFVec3f): \t");
-			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->offset.c[i]); }
-			fprintf (fp,"\n");
+			spacer fprintf (fp," offset (SFFloat) \t%4.3f\n",tmp->offset);
 		    break;
 		}
 		case NODE_LineSet : {

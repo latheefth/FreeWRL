@@ -1373,11 +1373,20 @@ void do_LineSensor(void *ptr, int ev, int but1, int over) {
 	}
 	if ((ev == ButtonPress) && but1) {
 		/* record the current position from the saved position */
+#define LINESENSOR_FLOAT_OFFSET 1
+#ifndef LINESENSOR_FLOAT_OFFSET
 		struct SFColor op;
 		veccopy3f(op.c, trackpoint);
 		memcpy((void *)&node->_origPoint, (void *)&op,sizeof(struct SFColor));
 		//	(void *)&tg->RenderFuncs.ray_save_posn, sizeof(struct SFColor));
-
+#else
+		node->_origPoint.c[0] = xxx;
+		//in case we go from mousedown to mouseup without mousemove:
+		if (node->autoOffset)
+			node->_origPoint.c[1] = node->offset; 
+		else
+			node->_origPoint.c[1] = 0.0f;
+#endif
 		/* set isActive true */
 		node->isActive = TRUE;
 		MARK_EVENT(ptr, offsetof(struct X3D_LineSensor, isActive));
@@ -1403,12 +1412,13 @@ void do_LineSensor(void *ptr, int ev, int but1, int over) {
 		//clamp to min,max 
 #ifdef LINESENSOR_FLOAT_OFFSET
 		xxxoffset = node->offset;
+		xxxorigin = node->_origPoint.c[0];
 #else
 		//in theory the user can set a non-autoOffset sfvec3f offset that's not along .direction
 		//- we accomodate that below^, so here we just use the part going along .direction
 		xxxoffset = vecdot3f(node->direction.c,node->offset.c); //xxxoffset - like web3d specs offset, except just along direction vector
-#endif
 		xxxorigin = vecdot3f(node->direction.c,node->_origPoint.c); //mouse-down origin
+#endif
 		//xxx before: unclamped position from line origin
 		xxx -= xxxorigin; //xxx after: net drag/delta along line since mouse-down
 		xxx += xxxoffset; //xxx after: cumulative position along line (from line 0) after any/all mousedown/drag sequences
@@ -1444,6 +1454,8 @@ void do_LineSensor(void *ptr, int ev, int but1, int over) {
 			memcpy((void *)&node->translation_changed, (void *)&node->_oldtranslation, sizeof(struct SFColor));
 			MARK_EVENT(ptr, offsetof(struct X3D_LineSensor, translation_changed));
 		}
+		//save current for use in mouse-up auto-offset
+		node->_origPoint.c[1] = xxx;
 	}
 	else if (ev == ButtonRelease) {
 		/* set isActive false */
@@ -1453,7 +1465,7 @@ void do_LineSensor(void *ptr, int ev, int but1, int over) {
 		/* autoOffset? */
 		if (node->autoOffset) {
 #ifdef LINESENSOR_FLOAT_OFFSET
-			node->offset = xxx;
+			node->offset = node->_origPoint.c[1];
 #else
 			node->offset.c[0] = node->translation_changed.c[0];
 			node->offset.c[1] = node->translation_changed.c[1];
