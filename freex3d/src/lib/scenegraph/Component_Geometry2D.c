@@ -385,7 +385,12 @@ void render_Disk2D (struct X3D_Disk2D *node){
 
 
 		/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
-		if (node->__simpleDisk) {sendArraysToGPU (GL_TRIANGLE_FAN, 0, node->__numPoints);}
+		if (node->__simpleDisk) {
+			sendArraysToGPU (GL_TRIANGLE_FAN, 0, node->__numPoints);
+		}
+		else{
+			sendArraysToGPU (GL_TRIANGLE_STRIP, 0, node->__numPoints);
+		}
 
 		textureDraw_end();
 
