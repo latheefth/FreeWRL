@@ -468,7 +468,6 @@ void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
 		textureDraw_start(&mtf);
 		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->vertices.p);
 
-printf ("render_TriangleSet2D, this should be VBOd\n");
 
 		sendArraysToGPU (GL_TRIANGLES, 0, node->vertices.n);
 
