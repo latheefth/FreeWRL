@@ -55,7 +55,17 @@
 typedef float shaderVec4[4];
 
 
+struct profile_entry {
+	char *name;
+	double start;
+	double accum;
+	int hits;
+};
+
 typedef struct pRenderFuncs{
+	int profile_entry_count;
+	struct profile_entry profile_entries[100];
+	int profiling_on;
 	float light_linAtten[MAX_LIGHT_STACK];
 	float light_constAtten[MAX_LIGHT_STACK];
 	float light_quadAtten[MAX_LIGHT_STACK];
@@ -117,8 +127,9 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 	t->prv = RenderFuncs_constructor();
 	{
 		ppRenderFuncs p = (ppRenderFuncs)t->prv;
+		p->profile_entry_count = 0;
+		p->profiling_on = 0; //toggle on with '.' on keyboard
 		/* which arrays are enabled, and defaults for each array */
-        
 		/* Rearrange to take advantage of headlight when off */
 		p->nextFreeLight = 0;
 		//p->firstLight = 0;
@@ -947,52 +958,67 @@ void update_node(struct X3D_Node *node) {
 	and hit period '.' on the keyboard to get a printout
 */
 
-static int profile_entry_count = 0;
-struct profile_entry {
-	char *name;
-	double start;
-	double accum;
-	int hits;
-};
-static struct profile_entry profile_entries[100];
-
 void profile_start(char *name){
-	int ifound, i;
-	ifound = -1;
-	for(i=0;i<profile_entry_count;i++){
-		if(!strcmp(name,profile_entries[i].name)){
+	ppRenderFuncs p;
+	struct profile_entry *pe;
+	ttglobal tg = gglobal();
+	p = (ppRenderFuncs)tg->RenderFuncs.prv;
+
+	int i, ifound = -1;
+	if (!p->profiling_on) return;
+	pe = p->profile_entries;
+
+	for(i=0;i<p->profile_entry_count;i++){
+		if(!strcmp(name,pe[i].name)){
 			ifound = i;
 			break;
 		}
 	}
 	if(ifound == -1){
-		profile_entries[profile_entry_count].name = name;
-		profile_entries[profile_entry_count].hits = 0;
-		ifound = profile_entry_count;
-		profile_entry_count++;
+		pe[p->profile_entry_count].name = name;
+		pe[p->profile_entry_count].hits = 0;
+		ifound = p->profile_entry_count;
+		p->profile_entry_count++;
 	}
-	profile_entries[ifound].start = Time1970sec();
+	pe[ifound].start = Time1970sec();
 }
 void profile_end(char *name){
+	ppRenderFuncs p;
+	struct profile_entry *pe;
+	ttglobal tg = gglobal();
+	p = (ppRenderFuncs)tg->RenderFuncs.prv;
+
 	int i, ifound = -1;
-	for(i=0;i<profile_entry_count;i++){
-		if(!strcmp(name,profile_entries[i].name)){
+	if (!p->profiling_on) return;
+	pe = p->profile_entries;
+	for(i=0;i<p->profile_entry_count;i++){
+		if(!strcmp(name,pe[i].name)){
 			ifound = i;
 			break;
 		}
 	}
 	if(ifound > -1){
-		profile_entries[ifound].accum += Time1970sec() - profile_entries[ifound].start;
-		profile_entries[ifound].hits++;
+		pe[ifound].accum += Time1970sec() - pe[ifound].start;
+		pe[ifound].hits++;
 	}
 }
 void profile_print_all(){
-	//hit '.' in the graphics window 
-	int i;
-	ConsoleMessage("frame rate: %9.3f  number of items tracked: %d\n",gglobal()->Mainloop.BrowserFPS, profile_entry_count);
-	ConsoleMessage("%15s %10s %15s %10s\n","profile name","hits","time(sec)","% of 1st");
-	for(i=0;i<profile_entry_count;i++){
-		ConsoleMessage("%15s %10d %15.3f %10.2f\n",profile_entries[i].name,profile_entries[i].hits,profile_entries[i].accum,profile_entries[i].accum/profile_entries[0].accum*100.0);
+	//hit '.' in the graphics window to get here
+	ppRenderFuncs p;
+	struct profile_entry *pe;
+	ttglobal tg = gglobal();
+	p = (ppRenderFuncs)tg->RenderFuncs.prv;
+	if (!p->profiling_on){
+		p->profiling_on = 1;
+		ConsoleMessage("turning profiling on\n");
+	}else{
+		int i;
+		pe = p->profile_entries;
+		ConsoleMessage("frame rate: %9.3f  number of items tracked: %d\n", gglobal()->Mainloop.BrowserFPS,p->profile_entry_count);
+		ConsoleMessage("%15s %10s %15s %10s\n", "profile name", "hits", "time(sec)", "% of 1st");
+		for (i = 0; i < p->profile_entry_count; i++){
+			ConsoleMessage("%15s %10d %15.3f %10.2f\n", pe[i].name, pe[i].hits, pe[i].accum, pe[i].accum / pe[0].accum*100.0);
+		}
 	}
 }
 void render_node(struct X3D_Node *node) {
