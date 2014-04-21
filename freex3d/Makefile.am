@@ -22,6 +22,7 @@ NEWS \
 vtempl.in \
 Makefile.globals \
 spidermonkey.pc \
+codegen \
 data \
 doc/AUTOCONF \
 doc/AUTOMAKE \
@@ -32,6 +33,8 @@ versions/FREEWRL \
 versions/JAVACLASSES \
 versions/LIBFREEWRL \
 versions/LIBFREEWRL_LTVERSION \
+versions/LIBFREEWRLEAI \
+versions/LIBFREEWRLEAI_LTVERSION \
 versions/MESSAGEMGR \
 versions/PLUGIN \
 versions/SOUNDMGR \

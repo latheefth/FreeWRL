@@ -9,13 +9,13 @@
 /*
 	MVC - the setter functions here in common.c are called from the Model (libfreewrl),
 	- the getter functions you call from your View (UI), typically once per frame, in a style called 'polling'
-	- once per Controller loop (_DisplayThread) you can have the controller notify your View that 
+	- once per Controller loop (_DisplayThread) you can have the controller notify your View that
 	  it's time to poll the Model for updates
 	- benefit of MVC: the Model never calls back into the View, so isn't dependent on it, so
 		a) the View is easier to change (for different platforms and windowing technology), and
 		b) the Model is UI-technology-agnostic, so it's easier to maintain across platforms.
 	- Polling vs callbacks: the reason we poll the model, instead of registering callbacks:
-		the Controller is usually in the same language/technology as the UI, which often isn't C, 
+		the Controller is usually in the same language/technology as the UI, which often isn't C,
 		and calling into C is usually much easier then calling back from C into python, ObjectiveC, Java, C#
 		or whatever other technology/language your View/UI and Controller is in
 */
@@ -27,7 +27,10 @@
 #include <iglobal.h>
 #include "../ui/common.h"
 
+#if defined (_MSC_VER)
 #include "../../buildversion.h"
+#endif
+
 
 // Linux builds, thanks to our very own Ian, creates this function for us.
 // on other platforms, we have to have this defined, as we don't have Ian's
@@ -114,8 +117,8 @@ void setMenuStatus2(char* prefix, char *suffix)
 	char *pp, *ss;
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 
- //       if (fwl_isinputThreadParsing() || 
-	//    fwl_isTextureParsing() || 
+ //       if (fwl_isinputThreadParsing() ||
+	//    fwl_isTextureParsing() ||
 	//    (!fwl_isInputThreadInitialized())) loading = TRUE;
 
 	//if (loading) {
@@ -188,4 +191,3 @@ int getCursorStyle()
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 	return p->cursorStyle;
 }
-
