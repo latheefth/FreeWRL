@@ -3,6 +3,7 @@ freewrl_snd_SOURCES = \
 			mixer.c \
 			wavmaker.c \
 			system.h \
-			soundheader.h
+			soundheader.h \
+			internal.h
 
 
