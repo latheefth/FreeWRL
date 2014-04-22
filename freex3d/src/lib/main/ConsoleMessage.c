@@ -108,7 +108,7 @@ void fwg_updateConsoleStatus()
 	for (i = 0; i<nlines; i++)
 	{
 		buffer = fwg_get_last_message(); //poll model for state handover - View now owns buffer
-		printf(buffer); //update UI(view)
+		printf("%s",buffer); //update UI(view)
 		free(buffer);
 	}
 }

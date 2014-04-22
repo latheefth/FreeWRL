@@ -158,6 +158,7 @@ scenegraph/Component_Picking.h \
 scenegraph/statics.c \
 scenegraph/GenPolyRep.c \
 scenegraph/Component_VRML1.c \
+scenegraph/OSCcallbacks.c \
  \
 input/EAI_C_CommonFunctions.c \
 input/EAIEventsIn.c \
@@ -198,6 +199,7 @@ ui/aquaInt.h \
 ui/statusbar.h \
 ui/CursorDraw.c \
 ui/CursorDraw.h \
+ui/hudIcons_octalpha.h \
  \
 plugin/pluginUtils.c \
 plugin/pluginUtils.h \
