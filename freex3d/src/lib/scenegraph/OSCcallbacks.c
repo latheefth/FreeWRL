@@ -4,6 +4,14 @@
 
 /* DJTRACK_OSCSENSORS */
 
+/* 
+ * NOTE -- this file is #include'd into Component_Networking.c , it exists solely to separate out the handler code
+ * in order to make it easier to override with custom implementations and not muddle Component_Networking.c itself.
+ *
+ * Do not add this file into a Makefile or build system's source list.
+ */
+
+
 typedef int (*functions)(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data) ;
 
 int nullOSC_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data) ;
