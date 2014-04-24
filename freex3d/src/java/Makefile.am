@@ -8,18 +8,27 @@
 # Get global variables for Makefile defined by toplevel Makefile.globals
 include $(top_srcdir)/Makefile.globals
 
-JAVAROOT=$(top_builddir)/src/java
-CLASSPATH_ENV = CLASSPATH=$(JAVAROOT):$(top_srcdir)/src/java:$$CLASSPATH
+JAVAROOT=.build
+CLASSPATH_ENV = CLASSPATH=$(JAVAROOT):$(srcdir):$$CLASSPATH
+
+# ensure JAVAROOT exists, since it is a custom dir
+$(JAVAROOT):
+	$(MKDIR_P) $@
+
+$(noinst_JAVA): | $(JAVAROOT)
 
 jarfile = vrml.jar
 jardir = $(JAVA_DIR)
 
-$(jarfile): $(noinst_JAVA) manifest.extras classnoinst.stamp
-	$(JAR) cmf $(JAVAROOT)/manifest.extras $@ -C $(JAVAROOT) $$(echo $(noinst_JAVA:.java=.class))
+$(jarfile): $(noinst_JAVA) $(srcdir)/manifest.extras classnoinst.stamp
+	$(JAR) cmf $(srcdir)/manifest.extras $@ -C $(JAVAROOT) .
 
 jar_DATA = $(jarfile)	
 
-CLEANFILES = $(jarfile) $$(echo $(noinst_JAVA:.java=.class))
 EXTRA_DIST = $(noinst_JAVA) java.policy manifest.extras
+CLEANFILES = $(jarfile)
+
+clean-local:
+	-rm -rf $(JAVAROOT)
 
 include Makefile.sources
