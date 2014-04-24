@@ -283,16 +283,16 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 int getCRouteCount();
 void printStatsRoutes()
 {
-	ConsoleMessage("Routes count = %d\n", getCRouteCount());
+	ConsoleMessage("%25s %d\n","Routes count", getCRouteCount());
 }
 
 void printStatsBindingStacks()
 {
 	ttglobal tg = gglobal();
-	ConsoleMessage("Background stack count %d\n", tg->Bindable.background_stack->n);
-	ConsoleMessage("Fog stack count %d\n", tg->Bindable.fog_stack->n);
-	ConsoleMessage("Navigation stack count %d\n", tg->Bindable.navigation_stack->n);	
-	ConsoleMessage("Viewpoint stack count %d\n", tg->Bindable.viewpoint_stack->n);	
+	ConsoleMessage("%25s %d\n","Background stack count", tg->Bindable.background_stack->n);
+	ConsoleMessage("%25s %d\n","Fog stack count", tg->Bindable.fog_stack->n);
+	ConsoleMessage("%25s %d\n","Navigation stack count", tg->Bindable.navigation_stack->n);	
+	ConsoleMessage("%25s %d\n","Viewpoint stack count", tg->Bindable.viewpoint_stack->n);	
 }
 void printStatsResources();
 void printStatsEvents();

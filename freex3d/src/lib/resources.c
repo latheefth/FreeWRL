@@ -1028,7 +1028,7 @@ void printStatsResources()
 {
 	int count = 0;
 	resource_tree_count_files(&count, gglobal()->resources.root_res);
-	ConsoleMessage("resource file count = %d\n", count);
+	ConsoleMessage("%25s %d\n","resource file count", count);
 }
 
 /**

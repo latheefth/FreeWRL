@@ -3160,7 +3160,7 @@ MATRIX4* PushMat( int a, int *b, int c, MATRIX4 *d){
 
 void printMaxStackUsed(){
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
-	ConsoleMessage("max modelview stack used= %d\n", p->maxStackUsed);
+	ConsoleMessage("%25s %d\n","max modelview stack used", p->maxStackUsed);
 }
 void fw_glPushMatrix(void) {
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
@@ -4025,7 +4025,7 @@ void printStatsNodes(){
 	ttglobal tg = gglobal();
 	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
 
-	ConsoleMessage("Nodes count = %d\n", p->linearNodeTable->n);
+	ConsoleMessage("%25s %d\n","Nodes count", p->linearNodeTable->n);
 }
 void killNodes(){
 	int i;

@@ -3022,7 +3022,7 @@ the first thing in the event loop.
 
 ********************************************************************/
 void printStatsEvents(){
-	ConsoleMessage("ClockEvent count = %d\n", ((ppCRoutes)gglobal()->CRoutes.prv)->num_ClockEvents);
+	ConsoleMessage("%25s %d\n","ClockEvent count", ((ppCRoutes)gglobal()->CRoutes.prv)->num_ClockEvents);
 }
 void do_first() {
 	int counter, ne;

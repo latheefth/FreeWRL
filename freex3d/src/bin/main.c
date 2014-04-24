@@ -74,6 +74,9 @@ void fwExit(int iret){
 	fw_exit(iret); //in libfreewrl
 }
 void fwg_register_consolemessage_callback(void(*callback)(char *));
+void fw_printstring(char *str){
+	printf("%s",str);
+}
 /**
  * Main
  */
@@ -92,7 +95,7 @@ int main (int argc, char **argv)
 
     char consoleBuffer[200];
 	fwl_init_instance(); //before setting any structs we need a struct allocated
-	fwg_register_consolemessage_callback(printf);
+	fwg_register_consolemessage_callback(fw_printstring);
 	fwg_setConsoleParam_maxLines(30);
 	fwg_setConsoleParam_maxLineLength(70);
 	fwg_setConsoleParam_replaceTabs(1);
