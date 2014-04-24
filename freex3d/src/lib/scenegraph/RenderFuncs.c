@@ -961,10 +961,10 @@ void update_node(struct X3D_Node *node) {
 void profile_start(char *name){
 	ppRenderFuncs p;
 	struct profile_entry *pe;
+	int i, ifound = -1;
 	ttglobal tg = gglobal();
 	p = (ppRenderFuncs)tg->RenderFuncs.prv;
 
-	int i, ifound = -1;
 	if (!p->profiling_on) return;
 	pe = p->profile_entries;
 
@@ -985,10 +985,10 @@ void profile_start(char *name){
 void profile_end(char *name){
 	ppRenderFuncs p;
 	struct profile_entry *pe;
+	int i, ifound = -1;
 	ttglobal tg = gglobal();
 	p = (ppRenderFuncs)tg->RenderFuncs.prv;
 
-	int i, ifound = -1;
 	if (!p->profiling_on) return;
 	pe = p->profile_entries;
 	for(i=0;i<p->profile_entry_count;i++){
