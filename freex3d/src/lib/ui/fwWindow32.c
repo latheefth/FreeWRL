@@ -86,7 +86,14 @@ EGLBoolean fwCreateEGLContext ( EGLNativeWindowType hWnd, EGLDisplay* eglDisplay
 		char errbuf[64];
 		int ierr = eglGetError();
 		sprintf(errbuf,"%x",ierr); //0x3001 EGL_NOT_INITIALIZED
-		//note to developer: have you compiled fwlibEGL.lib/dll and fwlibGLES2.lib/dll with a compatible compiler
+		//note to developer: 1) have you compiled fwlibEGL.lib/dll and fwlibGLES2.lib/dll with same/compatible compiler (egl calls glesv2 for renderer)
+		//2) do you have d3dcompiler_47+.dll in your .exe directory? (or d3dcompiler_46.dll, _43, installed to system32 via SetupDirect.exe?)
+		//3) are you using an angleproject hacked by dug9 in Renderer.cpp L.56 to do a LoadLibrary loop after the GetModuleHandleEx loop:
+		//if (!mD3dCompilerModule){
+		//	//OK not preloaded. So lets try and load one
+		//	for (size_t i = 0; i < ArraySize(d3dCompilerNames); ++i){
+		//		if( mD3dCompilerModule = LoadLibrary(d3dCompilerNames[i])){
+		//			break;
 		printf("Ouch no eglInitialize %d %s\n",ierr,errbuf);
 		return EGL_FALSE;
 	}
