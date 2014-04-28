@@ -39,7 +39,7 @@ Internal header: Javascript engine dependencies.
 
 #define JS_HAS_FILE_OBJECT 1 /* workaround warning=>error */
 
-#if defined(IPHONE) || defined(_ANDROID)
+#if defined(IPHONE) || defined(_ANDROID) || defined(NO_JAVASCRIPT)
 typedef int JSContext;
 typedef int JSObject;
 typedef int JSScript;
