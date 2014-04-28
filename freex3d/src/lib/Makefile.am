@@ -40,7 +40,8 @@ EXTERNAL_LIBS = \
 				$(PNG_LIBS) \
 				$(LIBCURL_LIBS) \
 				$(IMLIB2_LIBS) \
-				$(LIBLO_LIBS)
+				$(LIBLO_LIBS) \
+				$(LIBM)
 
 
 # X11 flags specific to x11 target (default on Linux -- optional on Mac)

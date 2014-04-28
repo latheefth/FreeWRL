@@ -73,6 +73,8 @@ AC_PROG_GCC_TRADITIONAL
 dnl AC_FUNC_MALLOC
 AC_CHECK_FUNCS([strchr strrchr strdup strndup strerror getopt getopt_long getopt_long_only malloc calloc realloc usleep gettimeofday])
 
+# Check for math
+AC_CHECK_LIBM
 
 # ====================================================
 # FreeWRL specific configuration: target system
