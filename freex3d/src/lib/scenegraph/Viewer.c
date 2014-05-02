@@ -48,6 +48,7 @@ static void init_stereodefaults(X3D_Viewer *Viewer)
 	Viewer->shutterGlasses = 0;
 	Viewer->anaglyph = 0;
 	Viewer->sidebyside = 0;
+	Viewer->updown = 0;
 	Viewer->isStereo = 0;
 		Viewer->eyedist = 0.065;
 		//For sidebyside: average human eyebase 2.4inches/65mm. 
@@ -1933,6 +1934,7 @@ void fwl_set_AnaglyphParameter(const char *optArg) {
 	p->Viewer.anaglyph = 1; /*0=none 1=active */
 	p->Viewer.shutterGlasses = 0;
 	p->Viewer.sidebyside = 0;
+	p->Viewer.updown = 0;
 	p->Viewer.isStereo = 1;
 	setStereoBufferStyle(1);
 }
@@ -1971,6 +1973,17 @@ void fwl_init_SideBySide()
 	p->Viewer.screendist = min(p->Viewer.screendist,.375);
 	p->Viewer.stereoParameter = min(p->Viewer.stereoParameter,.01);
 }
+void fwl_init_UpDown()
+{
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+
+	setStereoBufferStyle(1); 
+	p->Viewer.isStereo = 1;
+	p->Viewer.updown = 1;
+	p->Viewer.screendist = min(p->Viewer.screendist,.375);
+	p->Viewer.stereoParameter = min(p->Viewer.stereoParameter,.01);
+}
+
 void clear_shader_table();
 void setAnaglyph()
 {
@@ -1996,6 +2009,7 @@ void setMono()
 	}
 	p->Viewer.anaglyph = 0;
 	p->Viewer.sidebyside = 0;
+	p->Viewer.updown = 0;
 	p->Viewer.shutterGlasses = 0;
 	tg->display.shutterGlasses = 0;
 }
@@ -2005,6 +2019,7 @@ void setMono()
 #define VIEWER_STEREO_SHUTTERGLASSES 1
 #define VIEWER_STEREO_SIDEBYSIDE 2
 #define VIEWER_STEREO_ANAGLYPH 3
+#define VIEWER_STEREO_UPDOWN 4
 */
 
 static void setStereo(int type)
@@ -2018,6 +2033,7 @@ static void setStereo(int type)
 	case VIEWER_STEREO_OFF: {/*setMono()*/;break;}
 	case VIEWER_STEREO_SHUTTERGLASSES: {fwl_init_Shutter(); break;}
 	case VIEWER_STEREO_SIDEBYSIDE: {fwl_init_SideBySide(); break;}
+	case VIEWER_STEREO_UPDOWN: {fwl_init_UpDown(); break;}
 	case VIEWER_STEREO_ANAGLYPH: {setAnaglyph(); break;}
 	default: break;
 	}
@@ -2030,7 +2046,7 @@ void toggleOrSetStereo(int type)
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
 	shut = p->Viewer.shutterGlasses ? 1 : 0;
-	curtype = p->Viewer.isStereo*( (shut)*1 + p->Viewer.sidebyside*2 + p->Viewer.anaglyph*3);
+	curtype = p->Viewer.isStereo*( (shut)*1 + p->Viewer.sidebyside*2 + p->Viewer.anaglyph*3 + p->Viewer.updown*4);
 	if(type != curtype) 
 		setStereo(type);
 	else
@@ -2082,6 +2098,7 @@ void viewer_postGLinit_init(void)
 	type = VIEWER_STEREO_OFF;
 	if( p->Viewer.shutterGlasses ) type = VIEWER_STEREO_SHUTTERGLASSES;
 	if( p->Viewer.sidebyside ) type = VIEWER_STEREO_SIDEBYSIDE;
+	if( p->Viewer.updown ) type = VIEWER_STEREO_UPDOWN;
 	if( p->Viewer.anaglyph ==1 ) type = VIEWER_STEREO_ANAGLYPH;
 
 	if(type==VIEWER_STEREO_SHUTTERGLASSES)

@@ -159,7 +159,7 @@ typedef struct pMainloop{
 
 	/* Viewport data */
 	GLint viewPort2[10];
-	GLint viewpointScreenX[2]; /*for stereo where we can adjust the viewpoint position on the screen */
+	GLint viewpointScreenX[2], viewpointScreenY[2]; /*for stereo where we can adjust the viewpoint position on the screen */
 	/* screen width and height. */
 	struct X3D_Node* CursorOverSensitive;//=NULL;      /*  is Cursor over a Sensitive node?*/
 	struct X3D_Node* oldCOS;//=NULL;                   /*  which node was cursor over before this node?*/
@@ -1886,6 +1886,7 @@ void setup_projection(int pick, int x, int y)
 	X3D_Viewer *viewer;
 	ttglobal tg = gglobal();
 	GLsizei screenwidth2 = tg->display.screenWidth;
+	GLsizei screenheight, bottom, top;
 	GLDOUBLE aspect2 = tg->display.screenRatio;
 	p = (ppMainloop)tg->Mainloop.prv;
 	viewer = Viewer();
@@ -1895,6 +1896,9 @@ void setup_projection(int pick, int x, int y)
 	scissorxl = 0;
 	scissorxr = screenwidth2;
 	fieldofview2 = viewer->fieldofview;
+	bottom = tg->Mainloop.clipPlane;
+	top = 0;
+	screenheight = tg->display.screenHeight - bottom;
 	if(viewer->type==VIEWER_YAWPITCHZOOM)
 		fieldofview2*=viewer->fovZoom;
 	if(viewer->isStereo)
@@ -1933,6 +1937,17 @@ void setup_projection(int pick, int x, int y)
 				scissorxr += screenwidth2/2;
 			}
 		}
+		if(viewer->updown) //overunder
+		{
+			screenheight /= 2;
+			if (viewer->iside == 0){
+				bottom += screenheight;
+			}else{
+				top += screenheight;
+			}
+			scissorxl = xl;
+			scissorxr = xr;
+		}
 		if(expand)
 		{
 			if(viewer->iside ==1)
@@ -1945,7 +1960,7 @@ void setup_projection(int pick, int x, int y)
 			else
 				xr = xr + iexpand;
 		}
-		aspect2 = (double)(xr - xl)/(double)(tg->display.screenHeight - tg->Mainloop.clipPlane);
+		aspect2 = (double)(xr - xl)/(double)(screenheight);
 		xvp = xl;
 		screenwidth2 = xr-xl;
 	}
@@ -1962,18 +1977,20 @@ void setup_projection(int pick, int x, int y)
 	{   /* scissor used to prevent mainloop from glClear()ing the statusbar area
 		 which is updated only every 10-25 loops */
 		//FW_GL_SCISSOR(0,tg->Mainloop.clipPlane,tg->display.screenWidth,tg->display.screenHeight);
-		FW_GL_SCISSOR(scissorxl,tg->Mainloop.clipPlane,scissorxr-scissorxl,tg->display.screenHeight-tg->Mainloop.clipPlane);
+		FW_GL_SCISSOR(scissorxl,bottom,scissorxr-scissorxl,screenheight);
 		glEnable(GL_SCISSOR_TEST);
 	}
 	/* <<< statusbar hud */
 	p->viewpointScreenX[viewer->iside] = xvp + screenwidth2/2;
-	FW_GL_VIEWPORT(xvp, tg->Mainloop.clipPlane, screenwidth2, tg->display.screenHeight-tg->Mainloop.clipPlane);
+	p->viewpointScreenY[viewer->iside] = top;
+	FW_GL_VIEWPORT(xvp, bottom, screenwidth2, screenheight);
 
 	FW_GL_LOAD_IDENTITY();
 	if(pick) {
 		/* picking for mouse events */
 		FW_GL_GETINTEGERV(GL_VIEWPORT,p->viewPort2);
-		FW_GLU_PICK_MATRIX((float)x,(float)p->viewPort2[3]-y + tg->Mainloop.clipPlane, (float)100,(float)100,p->viewPort2);
+		//FW_GLU_PICK_MATRIX((float)x,(float)p->viewPort2[3]-y + bottom, (float)100,(float)100,p->viewPort2);
+		FW_GLU_PICK_MATRIX((float)x,(float)p->viewPort2[3]  -y + bottom +top, (float)100,(float)100,p->viewPort2);
 	}
 
 	/* ortho projection or perspective projection? */
@@ -2106,7 +2123,7 @@ OLDCODE#endif
 		if (Viewer()->isStereo) {
 
 
-            cursorDraw(1,p->viewpointScreenX[count],0,0.0f); //draw a fiducial mark where centre of viewpoint is
+            cursorDraw(1,p->viewpointScreenX[count],p->viewpointScreenY[count],0.0f); //draw a fiducial mark where centre of viewpoint is
 
 			if (Viewer()->anaglyph)
 				glColorMask(1,1,1,1); /*restore, for statusbarHud etc*/

@@ -83,6 +83,7 @@ void fv_usage()
 	    "  -t|--stereo <float>     Set stereo parameter (angle factor).\n"
 	    "  -A|--anaglyph <string>  Set anaglyph color pair ie: RB for left red, right blue. any of RGBCAM.\n"
 	    "  -B|--sidebyside         Set side-by-side stereo.\n"
+	    "  -U|--updown			   Set updown stereo.\n"
 	    "  -K|--keypress <string>  Set immediate key pressed when ready.\n"
 		"  -R|--record             Record to /recording/<scene>.fwplay.\n"
 		"  -F|--fixture            Playback from /recording/<scene>.fwplay to /fixture.\n"
@@ -137,6 +138,7 @@ const char * fv_validate_string_arg(const char *optarg)
 	{"stereo", required_argument, 0, 't'},
 	{"anaglyph", required_argument, 0, 'A'},
 	{"sidebyside", no_argument, 0, 'B'},
+	{"updown", no_argument, 0, 'U'},
 	{"keypress", required_argument, 0, 'K'},
 	{"plugin", required_argument, 0, 'i'},
 	{"fd", required_argument, 0, 'j'},
@@ -378,6 +380,9 @@ int fv_parseCommandLine (int argc, char **argv, freewrl_params_t *fv_params)
 
 	case 'B': /* --sidebyside, no argument */
 	    fwl_init_SideBySide();
+	    break;
+	case 'U': /* --updown, no argument */
+	    fwl_init_UpDown();
 	    break;
 
 	case 'K': /* --keypress, required argument: string */

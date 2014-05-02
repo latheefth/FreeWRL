@@ -707,10 +707,11 @@ void render_init(void);
 //}
 
 /* start cheapskate widgets >>>> */
-int lenOptions = 13;
-char * optionsText[13] = {
+int lenOptions = 14;
+char * optionsText[14] = {
 "stereovision:",
 "  side-by-side",
+"  up-down",
 "  anaglyph",
 "  shutter",
 "Eyebase - object space",
@@ -745,20 +746,23 @@ void initOptionsVal()
 	p->optionsVal[1][0] = 034; //[]
 	p->optionsVal[2][0] = 034; //[]
 	p->optionsVal[3][0] = 034; //[]
+	p->optionsVal[4][0] = 034; //[]
 
 	if(viewer->sidebyside)
 		p->optionsVal[1][0] = 035; //[*] '*';
-	if(viewer->anaglyph)
+	if(viewer->updown)
 		p->optionsVal[2][0] = 035; //[*] '*';
-	if(viewer->shutterGlasses)
+	if(viewer->anaglyph)
 		p->optionsVal[3][0] = 035; //[*] '*';
-	sprintf(p->optionsVal[5],"  %4.3f",viewer->eyedist); //.eyebase); //.060f);
-	sprintf(p->optionsVal[7],"  %4.3f",viewer->screendist); //.6f);
+	if(viewer->shutterGlasses)
+		p->optionsVal[4][0] = 035; //[*] '*';
+	sprintf(p->optionsVal[6],"  %4.3f",viewer->eyedist); //.eyebase); //.060f);
+	sprintf(p->optionsVal[8],"  %4.3f",viewer->screendist); //.6f);
 	//sprintf(p->optionsVal[7],"  %4.3f",viewer->stereoParameter); //.toein.4f);
 	for(i=0;i<3;i++){
 		for(j=0;j<3;j++){
 			k = getAnaglyphPrimarySide(j,i);
-			p->optionsVal[10+i][j+1] = (k ? 035 : ' ');
+			p->optionsVal[11+i][j+1] = (k ? 035 : ' ');
 		}
 	}
 
@@ -771,9 +775,10 @@ void updateOptionsVal()
 	initOptionsVal();
 }
 /* the optionsCase char is used in a switch case later to involk the appropriate function */
-char * optionsCase[13] = {
+char * optionsCase[14] = {
 "             ",
 "22222222222222",
+"44444444",
 "33333333",
 "11111111",
 "       ",
@@ -906,6 +911,7 @@ int handleOptionPress(int mouseX, int mouseY)
 	case '1': 
 	case '2': 
 	case '3': 
+	case '4': 
 		toggleOrSetStereo(opt-'0');
 		break;
 	case 'r': 

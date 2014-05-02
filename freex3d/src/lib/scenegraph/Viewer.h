@@ -72,6 +72,7 @@ void fwl_set_viewer_type(const int type);
 #define VIEWER_STEREO_SHUTTERGLASSES 1
 #define VIEWER_STEREO_SIDEBYSIDE 2
 #define VIEWER_STEREO_ANAGLYPH 3
+#define VIEWER_STEREO_UPDOWN 4
 
 
 #define COORD_SYS 3
@@ -225,6 +226,7 @@ typedef struct viewer {
 	int isStereo; /*=1 stereovision of any type (all types require viewpoint to shift left and right in scene) */
 	int iside;    /* rendering buffer index Left=0 Right=1 */
 	int sidebyside; /*=1 if 2 viewport method*/
+	int updown; /*=1 if 2 viewport method*/
 	int shutterGlasses;
 	int haveQuadbuffer;
 	int anaglyph; /* = 1 if analglyph is turned on */

@@ -282,6 +282,7 @@ void fwl_init_StereoDefaults(void); //don't need to call now March 2012
 void fwl_set_EyeDist(const char *optArg);
 void fwl_init_Shutter(void);
 void fwl_init_SideBySide(void);
+void fwl_init_UpDown(void);
 void fwl_set_AnaglyphParameter(const char *optArg);
 void fwl_set_StereoParameter(const char *optArg);
 
