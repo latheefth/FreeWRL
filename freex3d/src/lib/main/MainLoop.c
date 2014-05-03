@@ -2121,10 +2121,10 @@ OLDCODE#endif
 //#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
 		if (Viewer()->isStereo) {
 
-			if (Viewer()->sidebyside)
-				cursorDraw(1,p->viewpointScreenX[count],p->viewpointScreenY[count],0.0f); //draw a fiducial mark where centre of viewpoint is
-				//fiducialDraw(1,p->viewpointScreenX[count],p->viewpointScreenY[count],0.0f); //draw a fiducial mark where centre of viewpoint is
-
+			if (Viewer()->sidebyside){
+				//cursorDraw(1, p->viewpointScreenX[count], p->viewpointScreenY[count], 0.0f); //draw a fiducial mark where centre of viewpoint is
+				fiducialDraw(1,p->viewpointScreenX[count],p->viewpointScreenY[count],0.0f); //draw a fiducial mark where centre of viewpoint is
+			}
 			if (Viewer()->anaglyph)
 				glColorMask(1,1,1,1); /*restore, for statusbarHud etc*/
 		}
