@@ -2084,7 +2084,7 @@ void updateEyehalf()
 void viewer_postGLinit_init(void)
 {
 
-#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
+//#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
 	int type;
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
     
@@ -2112,9 +2112,9 @@ void viewer_postGLinit_init(void)
 
 	setStereo(type);
 
-#else
-setStereo(VIEWER_STEREO_OFF);
-#endif
+//#else
+//setStereo(VIEWER_STEREO_OFF);
+//#endif
 
 }
 

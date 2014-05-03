@@ -229,7 +229,36 @@ static GLfloat cursIdentity[] = {
 	0.0f, 0.0f, 1.0f, 0.0f,
 	0.0f, 0.0f, 0.0f, 1.0f
 };
+/* attempt to draw fiducials with lines - draws wrong place */
+void fiducialDraw(int ID, int x, int y, float angle)
+{
+	XY xy;
+	FXY fxy;
+	GLfloat p[3][2];
+	s_shader_capabilities_t *scap;
+	ttglobal tg = gglobal();
 
+	xy = mouse2screen2(x,y);
+	FW_GL_VIEWPORT(0, 0, tg->display.screenWidth, tg->display.screenHeight);
+	fxy = screen2normalized((GLfloat)xy.x,(GLfloat)xy.y);
+
+	p[0][0] = fxy.x - .1;
+	p[0][1] = fxy.y;
+	p[1][0] = fxy.x ;
+	p[1][1] = fxy.y + .1;
+	p[2][0] = fxy.x + .1;
+	p[2][1] = fxy.y;
+	FW_GL_DEPTHMASK(GL_FALSE);
+	glDisable(GL_DEPTH_TEST);
+	scap = getMyShader(NO_APPEARANCE_SHADER);
+	enableGlobalShader(scap);
+	glUniformMatrix4fv(scap->ModelViewMatrix, 1, GL_FALSE, cursIdentity);
+	glUniformMatrix4fv(scap->ProjectionMatrix, 1, GL_FALSE, cursIdentity);
+
+
+	FW_GL_VERTEX_POINTER(2, GL_FLOAT, 0, (GLfloat *)p);
+	sendArraysToGPU(GL_LINE_STRIP, 0, 3);
+}
 /* the slave cursor method emulates a multitouch, but doesn't suppress 
    the regular mouse cursor, so don't draw ID=0 
    currently no use of angle

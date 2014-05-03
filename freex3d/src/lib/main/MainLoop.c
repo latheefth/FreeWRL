@@ -1903,29 +1903,34 @@ void setup_projection(int pick, int x, int y)
 		fieldofview2*=viewer->fovZoom;
 	if(viewer->isStereo)
 	{
-		double expansion;
-		GLint xl,xr,iexpand;
-		bool expand = viewer->screendist > .5f;
-		expansion = viewer->screendist - .5;
-		expansion = fabs(expansion);
-		iexpand = (GLint)(expansion * screenwidth2);
-		//assume: the viewpoint is centered in the viewport
-		//there are 2 viewports, one for left and one for right
-		//so if you want to spread the screen eyebase out,
-		//you need to expand the viewport(s) horizontally by 2x
-		// in the direction you want it to move
-		//for example to move the left viewpoint left, you expand the left viewport
-		//on the left side by 2x (and move the right side of the right viewport to the right)
-		//to move the left viewpoint right, move the right side of the left viewport
-		//to the right by 2x.
-		//except in sidebyside, that would cause an over-write in the middle, and changes
-		//to aspect2 ratio can change the field of view
-		//so for sidebyside, we make the viewports normal screenwidth2 wide and
-		//use scissor test to crop to the viewports
+		GLint xl,xr;
 		xl = 0;
 		xr = screenwidth2;
-		if(viewer->sidebyside)
-		{
+
+		if (viewer->sidebyside){
+			GLint iexpand;
+			bool expand;
+			double expansion;
+			//its just sidebyside that needs the screen distance adjusted to be slightly less than human eyebase
+			//(the others can center their viewpoints in the viewports, and center the viewports on the screen)
+			//assume: the viewpoint is centered in the viewport
+			//there are 2 viewports, one for left and one for right
+			//so if you want to spread the screen eyebase out,
+			//you need to expand the viewport(s) horizontally by 2x
+			// in the direction you want it to move
+			//for example to move the left viewpoint left, you expand the left viewport
+			//on the left side by 2x (and move the right side of the right viewport to the right)
+			//to move the left viewpoint right, move the right side of the left viewport
+			//to the right by 2x.
+			//except in sidebyside, that would cause an over-write in the middle, and changes
+			//to aspect2 ratio can change the field of view
+			//so for sidebyside, we make the viewports normal screenwidth2 wide and
+			//use scissor test to crop to the viewports
+			expand = viewer->screendist > .5f;
+			expansion = viewer->screendist - .5;
+			expansion = fabs(expansion);
+			iexpand = (GLint)(expansion * screenwidth2);
+
 			xr -= screenwidth2/4;
 			xl -= screenwidth2/4;
 			scissorxr = screenwidth2/2;
@@ -1935,6 +1940,18 @@ void setup_projection(int pick, int x, int y)
 				xr += screenwidth2/2;
 				scissorxl += screenwidth2/2;
 				scissorxr += screenwidth2/2;
+			}
+			if(expand)
+			{
+				if(viewer->iside ==1)
+					xr = xr + iexpand;
+				else
+					xl = xl - iexpand;
+			}else{
+				if(viewer->iside ==1)
+					xl = xl - iexpand;
+				else
+					xr = xr + iexpand;
 			}
 		}
 		if(viewer->updown) //overunder
@@ -1948,27 +1965,9 @@ void setup_projection(int pick, int x, int y)
 			scissorxl = xl;
 			scissorxr = xr;
 		}
-		if(expand)
-		{
-			if(viewer->iside ==1)
-				xr = xr + iexpand;
-			else
-				xl = xl - iexpand;
-		}else{
-			if(viewer->iside ==1)
-				xl = xl - iexpand;
-			else
-				xr = xr + iexpand;
-		}
 		aspect2 = (double)(xr - xl)/(double)(screenheight);
 		xvp = xl;
 		screenwidth2 = xr-xl;
-	}
-	if(0) //if(viewer->sidebyside) //old method
-	{
-		screenwidth2 = (int)((screenwidth2 * .5)+.5);
-		aspect2 = aspect2 * .5;
-		if(viewer->iside == 1) xvp = (GLint)screenwidth2;
 	}
 
 	FW_GL_MATRIX_MODE(GL_PROJECTION);
@@ -2122,8 +2121,9 @@ OLDCODE#endif
 //#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
 		if (Viewer()->isStereo) {
 
-
-            cursorDraw(1,p->viewpointScreenX[count],p->viewpointScreenY[count],0.0f); //draw a fiducial mark where centre of viewpoint is
+			if (Viewer()->sidebyside)
+				cursorDraw(1,p->viewpointScreenX[count],p->viewpointScreenY[count],0.0f); //draw a fiducial mark where centre of viewpoint is
+				//fiducialDraw(1,p->viewpointScreenX[count],p->viewpointScreenY[count],0.0f); //draw a fiducial mark where centre of viewpoint is
 
 			if (Viewer()->anaglyph)
 				glColorMask(1,1,1,1); /*restore, for statusbarHud etc*/
