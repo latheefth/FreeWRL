@@ -392,6 +392,7 @@ typedef struct pstatusbar{
 	int buttonSize; //size of menu buttons, in pixels - default 32
 	GLfloat textColor[4];
 	int screenWidth, screenHeight, clipPlane;
+	int side_top, side_bottom;
 }* ppstatusbar;
 void *statusbar_constructor(){
 	void *v = malloc(sizeof(struct pstatusbar));
@@ -807,8 +808,8 @@ XY screen2text(int x, int y)
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
 
-	topOffset = 0;
-	if(p->pmenu.top) topOffset = p->buttonSize;
+	topOffset = p->side_top;
+	if(p->pmenu.top) topOffset += p->buttonSize;
 	rc.x = x/(p->bmWH.x*p->bmScale) -1; //10; 
 	rc.y = (int)((p->screenHeight -y - topOffset)/(p->bmWH.y*p->bmScale)); //15.0 ); 
 	rc.y -= 1;
@@ -821,8 +822,8 @@ XY text2screen( int col, int row)
 	ppstatusbar p; 
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
-	topOffset = 0;
-	if(p->pmenu.top) topOffset = p->buttonSize;
+	topOffset = p->side_top;
+	if(p->pmenu.top) topOffset += p->buttonSize;
 	xy.x = (col+1)*p->bmWH.x*p->bmScale; //10; 
 	xy.y = p->screenHeight - topOffset - (row+2)*p->bmWH.y*p->bmScale; //15;
 	return xy;
@@ -885,6 +886,8 @@ int handleOptionPress(int mouseX, int mouseY)
 
 	p->bmScale = p->bmScaleForOptions;
 	xys = mouse2screen(mouseX,mouseY);
+	p->side_top = 0;
+	if (Viewer()->updown) p->side_top = p->screenHeight / 2;
 	xyt = screen2text(xys.x,xys.y);
 	opt = ' ';
 	if( 0 <= xyt.y && xyt.y < lenOptions )
@@ -1154,7 +1157,7 @@ void printConsoleText()
 		s_list_t *next;
 		s_list_t *_list = p->conlist;
 		/* lets keep the scrolling text from touching the bottom of the screen */
-		xybottom = screen2text(0,0); 
+		xybottom = screen2text(0,p->side_bottom); 
 		jstart = max(0,p->concount-(xybottom.y - 3)); /* keep it 3 lines off the bottom */
 		for(__l=_list;__l!=NULL;) 
 		{
@@ -1836,7 +1839,7 @@ void updateButtonVertices()
 			{
 				xx = p->pmenu.items[i].vert[kv +0];
 				yy = p->pmenu.items[i].vert[kv +1];
-				xy = screen2normalizedScreen(xx,yy + p->pmenu.yoffset);
+				xy = screen2normalizedScreen(xx,yy + p->pmenu.yoffset + p->side_bottom);
 				mv = i*3*4;
 				p->pmenu.vert[mv+kv +0] = xy.x;
 				p->pmenu.vert[mv+kv +1] = xy.y;
@@ -1861,7 +1864,7 @@ void renderButtons()
 		initButtons();
 	updateButtonVertices();
 	//updateButtonStatus();
-	glScissor(0,(int)p->pmenu.yoffset,p->screenWidth,p->buttonSize); //tg->Mainloop.clipPlane*2);
+	glScissor(0,(int)p->pmenu.yoffset+p->side_bottom,p->screenWidth,p->buttonSize); //tg->Mainloop.clipPlane*2);
 
 	glEnable(GL_SCISSOR_TEST);
 	glClearColor(.922f,.91f,.844f,1.0f); //windowing gray
@@ -2141,10 +2144,13 @@ void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY)
 char *getMessageBar(); //in common.c
 
 void fwl_setClipPlane(int height);
+void drawStatusBarSide()
+{
+}
 void drawStatusBar() 
 {
 	/* drawStatusBar() is called just before swapbuffers in mainloop so anything that you want to render 2D
-	   (non-scene things like browser status messages (like FPS), 
+	   (non-scene things like browser status messages FPS, 
 	   browser control option buttons (menu bar) and checkboxes, console error messages)
 	   you can put in here.
 	   Ideally things like buttons and status could be hidden/optional/configurable, since some
@@ -2153,21 +2159,7 @@ void drawStatusBar()
 	
 	The interface that statusbarHud implements
 	let S be statusbar, M be menubar, C be console and H be options+help
-	//previously defined interfaces implemented here
-S	int sb_hasString;
-SM	int screenWidth,clipPlane;
 S	drawStatusBar() - call before swapbuffers in mainloop
-S	void update_status(char* msg); //when cursor over sensitive
-S	void kill_status (void); //not sure - called from Mainloop L1331 and OpenGL_Utils L770
-S	void setMenuFps (float fps);
-M	void setMenuButton_collision(int val); //called from mainloop do_KeyPress
-M	void setMenuButton_headlight(int val); // "
-M	void setMenuButton_navModes(int type); // "
-M	void setMenuButton_texSize(int size);  // not called or used in my current config
-
-	//new interfaces for statusbarHud you will need to implement stubs for when not using hud:
-C	void setHudConsoleMessage(char *buffer); //call from ConsoleMessageHud.c
-H	int handleStatusbarHud(int mev, int* clipplane); //called from fwl_handle_aqua or handle_xevent in mainloop
 
 	The interface statusbarHud requires other modules to implement to serve it:
 	//already implemented
@@ -2183,166 +2175,99 @@ M	viewer_level_to_bound();							//"
 M       void toggle_collision()                             //"
     */
 	char *pp; 
-	//float c[4];
-	//int ic[4];
+	int i,nsides;
+	GLfloat side_bottom_f;
 	ppstatusbar p;
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
 
-	//tg->ConsoleMessage.Console_writeToHud = 1; //doesn't seem to work
-	//if (tg->Mainloop.clipPlane == 0) tg->Mainloop.clipPlane = p->statusBarSize; //16;
+	//init-once things are done everytime for convenience
 	fwl_setClipPlane(p->statusBarSize);
+	if(!p->fontInitialized) initFont();
+	if(p->programObject == 0) initProgramObject();
+
 	//MVC statusbarHud is in View and Controller just called us and told us 
 	//..to poll the Model to update and draw ourself
 	updateButtonStatus();  //poll Model for some button state
 	updateConsoleStatus(); //poll Model for console text
 
-	//Console_writeToCRT = 1;
-	//Console_writeToFile = 0;
 	glDepthMask(GL_FALSE);
-	//if(true) //for testing ogl 1.1 and rasterpos (vs 1.4 and windowpos)
-	if(true) //!tg->display.rdr_caps.have_GL_VERSION_1_4)
-	{
-		//p.306 redbook - glwindowpos2i is ogl 1.4, older is glrasterpos2i, and for that
-		//you must set up orthomatrix
-		glViewport(0, 0, p->screenWidth, p->screenHeight);
-//#define OLDGL
-#ifdef OLDGL
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-#endif
-		//gluOrtho2D(0.0,tg->display.screenWidth,0.0,tg->display.screenHeight);
-		//FW_GL_ORTHO(0.0,tg->display.screenWidth,0.0,tg->display.screenHeight,Viewer()->nearPlane,Viewer()->farPlane);
-		//glFrustum(-1.0,1.0,-1.0,1.0,.1,1000.0);
-
-		//might not need this for gles2 either
-#ifdef OLDGL
-		FW_GL_ORTHO(-1.0,1.0,-1.0,1.0,Viewer()->nearPlane,Viewer()->farPlane);
-#endif
-		//glOrtho(-1.0,1.0,-1.0,1.0,Viewer()->nearPlane,Viewer()->farPlane);
-		//glOrtho(-100.0,100.0,-100.0,100.0,Viewer()->nearPlane,Viewer()->farPlane);
-#ifdef OLDGL
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-#endif
-		glDisable(GL_DEPTH_TEST);
-		p->posType = 1; // use RasterPos2i instead of WindowPos2i
-	}
-   if(p->programObject == 0) initProgramObject();
-   glUseProgram ( p->programObject );
-   
-
-	if(p->showButtons)
-	{
-		renderButtons();
-#ifndef KIOSK
-		glDepthMask(GL_TRUE);
-		if(p->posType==1) { 
-			glEnable(GL_DEPTH_TEST); 
-		}
-		return;
-#endif
-	}
-
-	//if (!p->sb_hasString && !p->showConText &&!p->butStatus[8] &&!p->butStatus[9] && !p->butStatus[10]) {
-//	if(0)
-//	if (!p->sb_hasString && !p->showConText &&!p->pmenu.items[8].butStatus &&!p->pmenu.items[9].butStatus && !p->pmenu.items[10].butStatus) {
-//		if(p->hadString || !p->initDone || true)
-//		{
-//			/* clear the status bar because there's nothing to show */
-//			if(tg->Mainloop.clipPlane == 0) tg->Mainloop.clipPlane = 16;
-//			FW_GL_SCISSOR(0,0,tg->display.screenWidth,tg->Mainloop.clipPlane);
-//			glEnable(GL_SCISSOR_TEST);
-//			FW_GL_CLEAR_COLOR(.922f,.91f,.844f,1.0f); //windowing gray
-//			FW_GL_CLEAR(GL_COLOR_BUFFER_BIT);
-//			glDisable(GL_SCISSOR_TEST);
-//			p->hadString = 0;
-//			p->initDone = TRUE;
-//		}
-//		FW_GL_CLEAR_COLOR(0.0f,0.0f,0.0f,1.0f);
-//		FW_GL_DEPTHMASK(GL_TRUE);
-//		if(p->posType==1) {
-//			glEnable(GL_DEPTH_TEST);
-//		}
-//		return;
-//	}
-
-	/* to improve frame rates we don't need to update the status bar every loop,
-	because the mainloop scene rendering should be using a scissor test to avoid glClear()ing 
-	the statusbar area. 
-	*/
-//	p->loopcount++;
-//	if(false) //(p->loopcount < 15 && !p->hadString)
-//	{
-//		FW_GL_DEPTHMASK(GL_TRUE);
-//		if(p->posType==1) {
-//			glEnable(GL_DEPTH_TEST);
-//		}
-//		return;
-//	}
-//	p->loopcount = 0;
-
-	/* OK time to update the status bar */
-	if(!p->fontInitialized) initFont();
-	/* unconditionally clear the statusbar area */
-	glScissor(0,0,p->screenWidth,p->clipPlane);
-	glEnable(GL_SCISSOR_TEST);
-	glClearColor(.922f,.91f,.844f,1.0f); //windowing gray
-	glClear(GL_COLOR_BUFFER_BIT);
-	glDisable(GL_SCISSOR_TEST);
-
-	// you must call drawStatusBar() from render() just before swapbuffers 
-	glDepthMask(FALSE);
 	glDisable(GL_DEPTH_TEST);
-	//FW_GL_COLOR3F(0.2f,0.2f,0.5f);
-	//glWindowPos seems to set the bitmap color correctly in windows
-
-
-	glUniform4f(p->color4fLoc,.2f,.2f,.2f,1.0f);
-
-
-	if(1) //if(p->sb_hasString)
+	p->posType = 1; // use RasterPos2i instead of WindowPos2i
+	glUseProgram ( p->programObject );
+	glViewport(0, 0, p->screenWidth, p->screenHeight);
+   
+	nsides = 1;
+	if (Viewer()->updown) nsides = 2; //one stereo mode updown draws the menubar and/or statusbar twice, once for each stereo side
+	for (i = 0; i < nsides; i++)
 	{
-		FXY xy;
-		xy = screen2normalizedScreenScale( (GLfloat)p->bmWH.x, (GLfloat)p->bmWH.y);
-		pp = get_status(); // p->buffer;
-		/* print status bar text - things like PLANESENSOR */
-		//printString(pp); 
-		//printString2(xy.x,xy.y,pp);
-		printString2(-1.0f + xy.x*5.0f,-1.0f,pp);
-		p->hadString = 1;
+		p->side_top = 0;
+		p->side_bottom = 0;
+		side_bottom_f = -1.0f;
+		if (Viewer()->updown){
+			//the upper viewport is the left stereo side is i==0
+			p->side_top = i*(p->screenHeight / 2);
+			p->side_bottom = (1 -i) *(p->screenHeight /2);
+			if(i == 0) side_bottom_f = 0.0f;
+		}
+
+		if (p->showButtons)
+		{
+			renderButtons();
+#ifndef KIOSK
+			glDepthMask(GL_TRUE);
+			if (p->posType == 1) {
+				glEnable(GL_DEPTH_TEST);
+			}
+			continue;
+#endif
+		}
+
+
+		/* OK time to update the status bar */
+		/* unconditionally clear the statusbar area */
+		glScissor(0, p->side_bottom, p->screenWidth, p->clipPlane);
+		glEnable(GL_SCISSOR_TEST);
+		glClearColor(.922f, .91f, .844f, 1.0f); //windowing gray
+		glClear(GL_COLOR_BUFFER_BIT);
+		glDisable(GL_SCISSOR_TEST);
+
+		// you must call drawStatusBar() from render() just before swapbuffers 
+		glDepthMask(FALSE);
+		glDisable(GL_DEPTH_TEST);
+
+		glUniform4f(p->color4fLoc, .2f, .2f, .2f, 1.0f);
+
+		{
+			FXY xy;
+			xy = screen2normalizedScreenScale((GLfloat)p->bmWH.x, (GLfloat)p->bmWH.y);
+			pp = get_status(); // p->buffer;
+			/* print status bar text - things like PLANESENSOR */
+			printString2(-1.0f + xy.x*5.0f, side_bottom_f, pp);
+			p->hadString = 1;
+		}
+		{
+			char *strfps, *strstatus;
+			FXY xy;
+			xy = screen2normalizedScreenScale((GLfloat)p->bmWH.x, (GLfloat)p->bmWH.y);
+			strfps = getMessageBar();
+			strstatus = &strfps[15];
+			printString2(-1.0f + xy.x*25.0f, side_bottom_f, strfps);
+			printString2(-1.0f + xy.x*35.0f, side_bottom_f, strstatus);
+		}
+
+
+		glUniform4f(p->color4fLoc, 1.0f, 1.0f, 1.0f, 1.0f);
+
+		if (showAction(p, ACTION_HELP))
+			printKeyboardHelp(p);
+		if (showAction(p, ACTION_MESSAGES))
+			printConsoleText();
+		if (showAction(p, ACTION_OPTIONS))
+			printOptions();
 	}
-	//else
-	if(1){
-		char *strfps,*strstatus;
-		FXY xy;
-		xy = screen2normalizedScreenScale( (GLfloat)p->bmWH.x, (GLfloat)p->bmWH.y);
-		strfps = getMessageBar();
-		strstatus = &strfps[15];
-		printString2(-1.0f + xy.x*25.0f,-1.0f ,strfps);
-		printString2(-1.0f + xy.x*35.0f,-1.0f,strstatus);
-	}
-
-
-	glUniform4f(p->color4fLoc,1.0f,1.0f,1.0f,1.0f);
-
-	if(showAction(p,ACTION_HELP))
-		printKeyboardHelp(p);
-	if(showAction(p,ACTION_MESSAGES)) 
-		printConsoleText();
-	if(showAction(p,ACTION_OPTIONS))
-		printOptions();
-	//if(p->showHelp) printKeyboardHelp(p);
-	//if(p->showConText) printConsoleText();
-	//if(p->showOptions) printOptions();
-
 	glClearColor(0.0f,0.0f,0.0f,1.0f); 
 	glDepthMask(TRUE);
 	glEnable(GL_DEPTH_TEST);
-	//FW_GL_FLUSH();
-
-	//if(p->posType==1) { 
-	//	glEnable(GL_DEPTH_TEST); 
-	//}
 }
 #endif

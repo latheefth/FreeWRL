@@ -1956,12 +1956,15 @@ void setup_projection(int pick, int x, int y)
 		}
 		if(viewer->updown) //overunder
 		{
+			//if there's statusabarHud statusbar to be drawn, reserve space in both viewports
+			screenheight = tg->display.screenHeight;
 			screenheight /= 2;
 			if (viewer->iside == 0){
 				bottom += screenheight;
 			}else{
 				top += screenheight;
 			}
+			screenheight -= tg->Mainloop.clipPlane;
 			scissorxl = xl;
 			scissorxr = xr;
 		}
