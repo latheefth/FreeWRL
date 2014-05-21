@@ -104,6 +104,8 @@ void CdllFreeWRL::onInit(int width, int height, void* windowhandle, bool bEai)
 	params->fullscreen = 0;
 	params->winToEmbedInto = (long)windowhandle;
 	params->frontend_handles_display_thread = false;
+	if (windowhandle == NULL)
+		params->frontend_handles_display_thread = true;
 	swDebugf("just before fwl_initFreeWRL\n");
 	if (!fwl_initFreeWRL(params)) {
 		//ERROR_MSG("main: aborting during initialization.\n");
@@ -239,7 +241,13 @@ void CdllFreeWRL::print(char *str)
 	}
 	fwl_clearCurrentHandle();
 }
-
+void CdllFreeWRL::onDraw()
+{
+	if (fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
+		int more = fwl_draw();
+	}
+	fwl_clearCurrentHandle();
+}
 //void __stdcall CdllFreeWRL::setProcessingAICommandsCallback(OnProcessingAICommands func)
 //{
 //	fwl_setCallBack(func, FWL_CB_ONAICOMMANDSPROCESSING);

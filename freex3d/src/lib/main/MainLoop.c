@@ -217,6 +217,7 @@ typedef struct pMainloop{
 	char* logfname;
 	int logging;
 	int keySensorMode;
+	int draw_initialized;
 }* ppMainloop;
 void *Mainloop_constructor(){
 	void *v = malloc(sizeof(struct pMainloop));
@@ -322,6 +323,7 @@ void Mainloop_init(struct tMainloop *t){
 		p->logfname = NULL;
 		p->logging = 0;
 		p->keySensorMode = 1; //by default on, so it works 'out of the gate' if Key or StringSensor in scene, then ESC to toggle off
+		p->draw_initialized = FALSE;
 	}
 }
 
@@ -4490,6 +4492,75 @@ void _displayThread(void *globalcontext)
 }
 #endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 
+/* fwl_draw() call from frontend when frontend_handles_display_thread */
+int fwl_draw()
+{
+	int more;
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	fwl_setCurrentHandle(tg, __FILE__, __LINE__);
+	p = (ppMainloop)tg->Mainloop.prv;
+
+	if (!p->draw_initialized){
+		view_initialize = view_initialize0; //defined above, with ifdefs
+		view_update = view_update0; //defined above with ifdefs
+		if (view_initialize)
+			more = view_initialize();
+
+		if (more){
+			fwl_initializeRenderSceneUpdateScene();  //Model initialize
+		}
+		p->draw_initialized = TRUE;
+	}
+	more = TRUE;
+	switch (tg->threads.MainLoopQuit){
+	case 0:
+	case 1:
+		//PRINTF("event loop\n");
+		switch (tg->threads.flushing)
+		{
+		case 0:
+			profile_start("mainloop");
+			//model: udate yourself
+			fwl_RenderSceneUpdateScene(); //Model update
+			profile_end("mainloop");
+
+			//view: poll model and update yourself >>
+			if (view_update) view_update();
+
+			if (!tg->display.params.frontend_handles_display_thread){
+				/* swap the rendering area */
+				FW_GL_SWAPBUFFERS;
+			}
+			PRINT_GL_ERROR_IF_ANY("XEvents::render");
+			checkReplaceWorldRequest(); //will set flushing=1
+			checkExitRequest(); //will set flushing=1
+			break;
+		case 1:
+			if (workers_waiting()) //one way to tell if workers finished flushing is if their queues are empty, and they are not busy
+			{
+				kill_oldWorld(TRUE, TRUE, __FILE__, __LINE__); //does a MarkForDispose on nodes, wipes out binding stacks and route table, javascript
+				tg->threads.flushing = 0;
+				if (tg->threads.MainLoopQuit)
+					tg->threads.MainLoopQuit++; //quiting takes priority over replacing
+				else
+					doReplaceWorldRequest();
+			}
+		}
+		break;
+	case 2:
+		//tell worker threads to stop gracefully
+		workers_stop();
+		killNodes(); //deallocates nodes MarkForDisposed
+		tg->threads.MainLoopQuit++;
+		break;
+	case 3:
+		//check if worker threads have exited
+		more = workers_running();
+		break;
+	}
+	return more;
+}
 
 void fwl_setLastMouseEvent(int etype) {
 	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;

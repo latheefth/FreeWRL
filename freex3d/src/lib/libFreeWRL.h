@@ -361,5 +361,6 @@ int fwl_getNavMode();
 int	fwl_getCollision();
 void fwl_setCollision(int state);
 int fwl_getAnaglyphSide(int whichSide);
+int fwl_draw(); //use when frontend_handles_display_thread
 
 #endif /* __LIBFREEWRL_API_H__ */

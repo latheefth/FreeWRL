@@ -226,11 +226,19 @@ OLDCODE
 OLDCODE//static ttglobal fwl_instance_parameters = NULL;
 #endif //OLDCODE
 
-
+static int fw_once = 0;
 void* fwl_init_instance()
 {
 	ttglobal tg; 
 	//ConsoleMessage ("called fwl_init_instance");
+	if (fw_once == 0){
+		//once per process
+#ifdef _MSC_VER
+		pthread_win32_process_attach_np();
+#endif
+		fw_once = 1;
+	}
+
 	tg = iglobal_constructor();
     
     fwl_setCurrentHandle(tg,__FILE__,__LINE__);
