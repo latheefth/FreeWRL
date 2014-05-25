@@ -48,7 +48,7 @@ for loosing the reference. Also, most if it is found in
 
 
 #define STRING_LENGTH 2000	/* something 'safe'	*/
-#define MAX_ANDROID_CONSOLE_MESSAGE_SLOTS 5 //max number of message lines per frame
+#define MAX_ANDROID_CONSOLE_MESSAGE_SLOTS 100 //5 max number of message lines per frame
 #define MAX_LINE_LENGTH 80  //wrap text here to make it easy for GUI frontends
 #define TAB_SPACES 1
 

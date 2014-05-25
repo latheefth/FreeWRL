@@ -3486,9 +3486,10 @@ void fwl_do_keyPress(char kp, int type) {
 	//it will do the old-style action-key lookup
 	//(desktop win32 and linux can get finer tuning on the keyboard
 	// with per-platform platform2web3dActionKeyLINUX and WIN32 functions
-	int actionKey;
+	int actionKey=0;
 	int key = (int) kp;
-	actionKey = platform2web3dActionKey(key);
+	if (type != KEYPRESS) //May 2014 added this if (I think just the raw keys would need virtual key lookup, I have a problem with '.')
+		actionKey = platform2web3dActionKey(key);
 	if(actionKey)
 		fwl_do_rawKeyPress(actionKey,type+10);
 	else

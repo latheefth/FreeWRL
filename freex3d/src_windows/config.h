@@ -286,6 +286,6 @@ char *getWgetPath();
 #define FREEWRL_STEREO_RENDERING 1
 //#endif
 #define HAVE_UNZIP_H 1
-#ifndef FRONTEND_GETS_FILES
+#ifndef FRONTEND_GETS_URLS
 #define HAVE_WININET 1
 #endif
