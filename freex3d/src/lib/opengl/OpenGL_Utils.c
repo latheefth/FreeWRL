@@ -1264,14 +1264,14 @@ static void shaderErrorLog(GLuint myShader, char *which) {
 
 
 /* find a shader that matches the capabilities requested. If no match, recreate it */
-s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
+s_shader_capabilities_t *getMyShader(unsigned int rq_cap0) {
 
     /* GL_ES_VERSION_2_0 has GL_SHADER_COMPILER */
     #ifdef GL_SHADER_COMPILER
     GLboolean b;
     static bool haveDoneThis = false;
     #endif
-
+	unsigned int rq_cap;
     int i;
 
 
@@ -1279,6 +1279,9 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
     ppOpenGL_Utils p = gglobal()->OpenGL_Utils.prv;
     struct Vector *myShaderTable = p->myShaderTable;
     struct shaderTableEntry *new = NULL;
+
+	rq_cap = rq_cap0;
+	//rq_cap = NO_APPEARANCE_SHADER; //for thunking to simplest when debugging
 
     for (i=0; i<vectorSize(myShaderTable); i++) {
         struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,myShaderTable, i);
@@ -1315,7 +1318,6 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
 #endif
 
     // ConsoleMessage ("getMyShader, here now");
-
 
 #ifdef VERBOSE
 #if defined (GL_SHADER_COMPILER) && defined (GL_HIGH_FLOAT)
