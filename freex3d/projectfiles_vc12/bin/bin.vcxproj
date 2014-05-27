@@ -22,8 +22,8 @@
     <SRC>../../src</SRC>
     <SRCWIN>../../src_windows</SRCWIN>
     <LIBWIN>../../../../lib_windows_vc12</LIBWIN>
-    <ANGLELIB_HIDE>$(LIBWIN)/angleproject/lib</ANGLELIB_HIDE>
-    <ANGLELIB>../../../../lib_windowsStore/angleproject_MSOpenTech_RT/src_desktopVC12</ANGLELIB>
+    <ANGLELIB>$(LIBWIN)/angleproject/lib</ANGLELIB>
+    <ANGLELIB_HIDE>../../../../lib_windowsStore/angleproject_MSOpenTech_RT/src_desktopVC12</ANGLELIB_HIDE>
   </PropertyGroup>
   <PropertyGroup Label="Globals">
     <ProjectName>freeWRL</ProjectName>
@@ -109,7 +109,7 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libtess.lib;libFreeWRL.lib;libGLESv2.lib;libEGL.lib;pthreadd.lib;zlib.lib;libminizip.lib;ws2_32.lib;freetype252MT_D.lib;shlwapi.lib;windowscodecs.lib;libxml2d.lib;Wininet.lib;Winmm.lib;mozjs185-1.0.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libtess.lib;libFreeWRL.lib;fwlibGLESv2.lib;fwlibEGL.lib;pthreadd.lib;zlib.lib;libminizip.lib;ws2_32.lib;freetype252MT_D.lib;shlwapi.lib;windowscodecs.lib;libxml2d.lib;Wininet.lib;Winmm.lib;mozjs185-1.0.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName).exe</OutputFile>
       <AdditionalLibraryDirectories>$(ANGLELIB)/Debug;$(LIBWIN)\js185\lib;$(LIBWIN)\pthread\lib;$(LIBWIN)\freetype2\lib;$(LIBWIN)\zlib\lib;$(LIBWIN)\libxml2\lib;..\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
