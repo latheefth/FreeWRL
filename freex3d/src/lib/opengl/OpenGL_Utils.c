@@ -1502,7 +1502,7 @@ struct fw_MaterialParameters {\n\
 };\n\
 uniform int lightcount;\n\
 //uniform float lightRadius[MAX_LIGHTS];\n\
-//uniform int lightType[MAX_LIGHTS];\n\
+uniform int lightType[MAX_LIGHTS];//ANGLE like this\n\
 struct fw_LightSourceParameters { \n\
   vec4 ambient;  \n\
   vec4 diffuse;   \n\
@@ -1518,7 +1518,7 @@ struct fw_LightSourceParameters { \n\
   //float linearAttenuation;  \n\
   //float quadraticAttenuation; \n\
   float lightRadius; \n\
-  int lightType; \n\
+  //int lightType; ANGLE doesnt like int in struct array \n\
 }; \n\
 \n\
 uniform fw_LightSourceParameters fw_LightSource[MAX_LIGHTS] /* gl_MaxLights */ ;\n\
@@ -1573,19 +1573,20 @@ if (backFacing) { \n \
       vec4 myLightAmbient = fw_LightSource[i].ambient;\n\
       vec4 myLightSpecular = fw_LightSource[i].specular;\n\
       vec4 myLightPosition = fw_LightSource[i].position; \n\
+	  int myLightType = lightType[i]; //fw_LightSource[i].lightType;\n\
 	  vec3 myLightDir = fw_LightSource[i].spotDirection.xyz; \n\
       vec3 eyeVector = normalize(myPosition.xyz);\n\
       vec3  VP;     /* vector of light direction and distance */\n\
 	  VP = myLightPosition.xyz - myPosition.xyz;\n\
 	  vec3 L = myLightDir; /*directional light*/ \n\
-	  if(fw_LightSource[i].lightType < 2) /*point and spot*/ \n\
+	  if(myLightType < 2) /*point and spot*/ \n\
 	    L = normalize(VP); \n\
       float nDotL = max(dot(normal, L), 0.0);\n\
       vec3 halfVector = normalize(L - eyeVector);\n\
       /* normal dot light half vector */\n\
       float nDotHV = max(dot(normal,halfVector),0.0);\n\
       \n\
-      if (fw_LightSource[i].lightType==1) {\n\
+      if (myLightType==1) {\n\
         /* SpotLight */\n\
         float spotDot; \n\
         float spotAttenuation = 0.0; \n\
@@ -1615,7 +1616,7 @@ if (backFacing) { \n \
         /* specular light computation */\n\
         specular += myLightSpecular * powerFactor * attenuation;\n\
         \n\
-	  } else if (fw_LightSource[i].lightType == 2) { \n\
+	  } else if (myLightType == 2) { \n\
         /* DirectionalLight */ \n\
         float powerFactor = 0.0; /* for light dropoff */\n\
 		if (nDotL > 0.0) {\n\
@@ -2516,11 +2517,17 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
             me->lightRadius[i] = GET_UNIFORM(myProg,uniformName);
             //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightQuadAtten[i]);
 
-			strcpy(&uniformName[18],"lightType");
-            me->lightType[i] = GET_UNIFORM(myProg,uniformName);
+			//strcpy(&uniformName[18],"lightType");
+            //me->lightType[i] = GET_UNIFORM(myProg,uniformName);
             //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightQuadAtten[i]);
 
         }
+		strcpy(uniformName,"lightType[0]");
+		for (i = 0; i < MAX_LIGHTS; i++) {
+			/* go through and modify the array for each variable */
+			uniformName[10] = '0' + i;
+			me->lightType[i] = GET_UNIFORM(myProg, uniformName);
+		}
     }
 
     //if (me->haveLightInShader) ConsoleMessage ("this shader HAS lightfields");
