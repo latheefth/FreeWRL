@@ -1132,12 +1132,21 @@ int unzip_archive_to_temp_folder(const char *zipfilename, const char* tempfolder
     return ret_value;
 }
 
-
+char* remove_filename_from_path(const char *path);
+char *strBackslash2fore(char *str);
 void resitem_enqueue(s_list_t *item);
 void process_x3z(resource_item_t *res){
 	int err;
 	char request[256];
-	char* tempfolderpath = tempnam(gglobal()->Mainloop.tmpFileLocation, "freewrl_download_XXXXXXXX");
+	char* tempfolderpath;
+	if (0){
+		tempfolderpath = tempnam(gglobal()->Mainloop.tmpFileLocation, "freewrl_download_XXXXXXXX");
+	}else{
+		tempfolderpath = STRDUP(res->URLrequest);
+		tempfolderpath = strBackslash2fore(tempfolderpath);
+		tempfolderpath = remove_filename_from_path(tempfolderpath);
+		tempfolderpath = tempnam(tempfolderpath, "freewrl_download_XXXXXXXX");
+	}
 	err = unzip_archive_to_temp_folder(res->actual_file, tempfolderpath);
 	if(!err){
 		resource_item_t *docx3d;
@@ -1153,7 +1162,10 @@ void process_x3z(resource_item_t *res){
 		resitem_enqueue(ml_new(docx3d));
 		// clean up temp folder via resource with opennedfile entry
 		res->cached_files = ml_append(res->cached_files,ml_new(tempfolderpath));
-	
+		ConsoleMessage("unzip folder:%s\n", tempfolderpath);
+	}
+	else{
+		ConsoleMessage("unzip failed to folder:%s\n", tempfolderpath);
 	}
 }
 

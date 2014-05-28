@@ -5103,6 +5103,8 @@ void fwl_Android_replaceWorldNeeded() {
 /* called from the standalone OSX front end and the OSX plugin */
 void fwl_replaceWorldNeeded(char* str)
 {
+	ConsoleMessage("file to load: %s\n",str);
+
 	gglobal()->Mainloop.replaceWorldRequest = STRDUP(str);
 }
 void fwl_replaceWorldNeededRes(resource_item_t *multiResWithParent){

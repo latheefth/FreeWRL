@@ -1,5 +1,12 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
+#define DESKTOP 1
+#if defined(WINAPI_FAMILY)
+#if WINAPI_FAMILY==WINAPI_FAMILY_APP
+#undef DESKTOP
+#endif
+#endif
+
 /*win32 - where do these go? */
 #define TARGET_WIN32
 #undef TARGET_AQUA
@@ -10,7 +17,11 @@
 
 /* Directory for fonts. C:/Program Files/CRC/fonts */
 #undef FONTS_DIR
+#ifdef DESKTOP
 #define FONTS_DIR "C:\\Windows\\Fonts"
+#else
+#define FONTS_DIR "Fonts"
+#endif
 
 /* The FreeWRL message wrapper program name. */
 #undef FREEWRL_MESSAGE_WRAPPER
