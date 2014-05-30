@@ -4856,26 +4856,26 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 						}else{
 							usernames[0] = usernames[1] = usernames[2] = usernames[3] = NULL;
 						}
-
-						for(j=0; j!=vectorSize(shader->fields); ++j)
-						{
-							sfield= vector_get(struct ScriptFieldDecl*, shader->fields, j);
-							mode = sfield->fieldDecl->PKWmode;
-							fname = NULL;
-							if(lexer){
-								struct Vector *unames = usernames[X3DMODE(mode)];
-                                nameIndex = sfield->fieldDecl->lexerNameIndex;
-								if(nameIndex < vectorSize(unames))
-									fname = vector_get(char *,unames,nameIndex);
+						if (shader)
+							for(j=0; j!=vectorSize(shader->fields); ++j)
+							{
+								sfield= vector_get(struct ScriptFieldDecl*, shader->fields, j);
+								mode = sfield->fieldDecl->PKWmode;
+								fname = NULL;
+								if(lexer){
+									struct Vector *unames = usernames[X3DMODE(mode)];
+									nameIndex = sfield->fieldDecl->lexerNameIndex;
+									if(nameIndex < vectorSize(unames))
+										fname = vector_get(char *,unames,nameIndex);
+								}
+								type = sfield->fieldDecl->fieldType;
+								fieldPtr = &sfield->value;
+								source = node->_nodeType == NODE_Script ? 1 : 2;
+								jfield = j;
+								foundField = callbackFunc(callbackData,node,jfield,fieldPtr,fname,mode,type,source,publicfield);
+								if( foundField)
+									break;
 							}
-							type = sfield->fieldDecl->fieldType;
-							fieldPtr = &sfield->value;
-							source = node->_nodeType == NODE_Script ? 1 : 2;
-							jfield = j;
-							foundField = callbackFunc(callbackData,node,jfield,fieldPtr,fname,mode,type,source,publicfield);
-							if( foundField)
-								break;
-						}
 					}
 					break;
 				case NODE_Proto:
