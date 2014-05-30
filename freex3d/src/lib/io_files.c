@@ -760,19 +760,19 @@ int freewrlSystem (const char *sysline)
 //goal: remove a directory and its contents - used for removing the temp unzip folder for .z3z / .zip file processing
 #ifdef _MSC_VER
 //http://msdn.microsoft.com/en-us/windows/desktop/aa365488
-#undef _UNICODE
-#undef UNICODE
-#include <windows.h>
-#undef _UNICODE
-//#undef _MBCS
-#undef UNICODE
+//#undef _UNICODE
+//#undef UNICODE
+//#include <windows.h>
+//#undef _UNICODE
+////#undef _MBCS
+//#undef UNICODE
 
 #include <TCHAR.H>
 #ifdef UNICODE
 static TCHAR *singleDot = L".";
 static TCHAR *doubleDot = L"..";
-	backslash = L"\\";
-	star = L"*";
+static TCHAR *backslash = L"\\";
+static TCHAR *star = L"*";
 
 #else
 static TCHAR *singleDot = ".";
@@ -826,8 +826,19 @@ BOOL DeleteDirectory0(const TCHAR* sPath) {
 			}
 			else {
 				if(FindFileData.dwFileAttributes & FILE_ATTRIBUTE_READONLY)
-					_chmod(FileName, 777); //_S_IWRITE); // change read-only file mode
+					_tchmod(FileName, 777); //_S_IWRITE); // change read-only file mode
 				if(!DeleteFile(FileName)) {  // delete the file
+					/*
+					DWORD err = GetLastError();
+					if (err == ERROR_FILE_NOT_FOUND)
+						printf("file not found\n");
+					else if (err == ERROR_ACCESS_DENIED)
+						printf("access denied\n");
+					else if (err == ERROR_SHARING_VIOLATION)
+						printf("sharing violation\n");
+					else
+						printf("other erro\n");
+					*/
 					FindClose(hFind); 
 					return FALSE; 
 				}                 
@@ -871,13 +882,24 @@ BOOL directory_remove_all(const char* sPath) {
 	retval = DeleteDirectory0(wcstring);
 	return retval;
 }
-void remove_file_or_folder(const char *path){
-	int iret, isDir; 
-	DWORD finfo;
+BOOL tdirectory_remove_all(TCHAR *sPath){
+	BOOL retval;
+	retval = DeleteDirectory0(sPath);
+	return retval;
+}
+void tremove_file_or_folder(TCHAR *path){
+	int iret, isDir;
+	DWORD finfo, err;
 #if _MSC_VER > 1500
 	// http://msdn.microsoft.com/en-us/library/windows/desktop/aa364946(v=vs.85).aspx
 	WIN32_FILE_ATTRIBUTE_DATA fad;
 	finfo = GetFileAttributesEx(path, GetFileExInfoStandard, &fad);
+	if (!finfo){
+		err = GetLastError();
+		//FormatMessage()
+		ConsoleMessage("GetFileAttribuesEx err=%d maxpath%d pathlen%d", (int)err,MAX_PATH,_tcslen(path)); //http://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx
+		isDir = ! _tcsstr(path, singleDot);
+	}else
 	isDir = finfo && (fad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
 #else
 	// http://msdn.microsoft.com/en-us/library/windows/desktop/aa364944%28v=vs.85%29.aspx
@@ -886,9 +908,36 @@ void remove_file_or_folder(const char *path){
 	isDir = FILE_ATTRIBUTE_DIRECTORY & finfo;
 #endif
 	if(isDir)
-		directory_remove_all(path);
+		tdirectory_remove_all(path);
 	else
 		DeleteFile(path);
+}
+void remove_file_or_folder(const char *path){
+	//libfreewrl uses ascii or multibyte string functions, like strcpy, that look for a '\0' as end of string
+	//when sending something into freewrl thats 2-byte wide string, first convert it to multibyte
+	//when coming out, if you want to go back to wide-string then you need to convert to wide string
+	//tchar functions are supposed to be agnostic -they compile either way
+	int jj;
+    size_t convertedChars = 0;
+    TCHAR wcstring[MAX_PATH];
+	char fname2[MAX_PATH];
+	size_t origsize; //= strlen(fname) + 1;
+	BOOL retval;
+	origsize = strlen(path) + 1;
+	strcpy(fname2,path);
+	for(jj=0;jj<strlen(fname2);jj++)
+		if(fname2[jj] == '/' ) fname2[jj] = '\\';
+
+#ifdef _UNICODE
+#if _MSC_VER >= 1500
+	mbstowcs_s(&convertedChars, wcstring, origsize, fname2, _TRUNCATE);
+#else
+	mbstowcs(wcstring, fname2, MB_CUR_MAX);
+#endif
+#else
+	_tcscpy(wcstring,fname2);
+#endif
+	tremove_file_or_folder(wcstring);
 }
 #else // POSIX and OSX - WARNING UNTESTED as of Sept 7, 2013
 //according to boost, unlike posix OSX must do separate rmdir for directory and unlink for file
