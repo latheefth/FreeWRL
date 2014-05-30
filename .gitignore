@@ -9,6 +9,7 @@ ipch
 *.user
 *.suo
 *.sdf
+Thumbs.db
 *.opensdf
 #make ignore:
 #eclipseCDT ignore:
