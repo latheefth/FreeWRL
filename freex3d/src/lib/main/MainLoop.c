@@ -242,7 +242,7 @@ void Mainloop_init(struct tMainloop *t){
 	//t->currentY[20];                 /*  current mouse position.*/
 	t->clipPlane = 0;
 
-	t->tmpFileLocation = MALLOC (char *,5);
+	t->tmpFileLocation = MALLOC(char *, 5);
 	strcpy(t->tmpFileLocation,"/tmp");
 	t->replaceWorldRequest = NULL;
 	t->replaceWorldRequestMulti = NULL;

@@ -121,6 +121,13 @@ void CdllFreeWRL::onInit(int width, int height, void* windowhandle, bool bEai)
 	fwl_clearCurrentHandle();
 	return;
 }
+void CdllFreeWRL::setTempFolder(char *tmpFolder)
+{
+	if (fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
+		fwl_tmpFileLocation(tmpFolder);
+	}
+	fwl_clearCurrentHandle();
+}
 CdllFreeWRL::CdllFreeWRL(int width, int height, void* windowhandle, bool bEai)
 {
 	this->onInit(width, height, windowhandle, bEai);

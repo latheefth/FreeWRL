@@ -42,7 +42,7 @@ public:
 	void onDraw(); //use when FRONTEND_HANDLES_DISPLAY_THREAD
 	void onClose();
 	void print(char *str);
-	
+	void setTempFolder(char *tmpFolder);
 	//void __stdcall setProcessingAICommandsCallback(OnProcessingAICommands func);
 	
 private:

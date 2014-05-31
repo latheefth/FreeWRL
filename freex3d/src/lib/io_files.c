@@ -376,7 +376,8 @@ static openned_file_t* load_file_read(const char *filename)
 	}
 	/* null terminate this string */
 	text[ss.st_size] = '\0';
-
+	close(fd);
+	fd = NULL;
 	return create_openned_file(filename, fd, ss.st_size+1, text,0,0,FALSE);
 }
 #endif //FRONTEND_GETS_FILES
@@ -895,7 +896,7 @@ void tremove_file_or_folder(TCHAR *path){
 		//FormatMessage()
 		ConsoleMessage("GetFileAttribuesEx err=%d maxpath%d pathlen%d", (int)err,MAX_PATH,_tcslen(path)); //http://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx
 		isDir = ! _tcsstr(path, singleDot);
-		return FALSE;
+		return;
 	}else
 	isDir = finfo && (fad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
 #else
@@ -1185,7 +1186,7 @@ void process_x3z(resource_item_t *res){
 	int err;
 	char request[256];
 	char* tempfolderpath;
-	if (0){
+	if (1){
 		tempfolderpath = tempnam(gglobal()->Mainloop.tmpFileLocation, "freewrl_download_XXXXXXXX");
 	}else{
 		tempfolderpath = STRDUP(res->URLrequest);

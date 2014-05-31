@@ -823,7 +823,9 @@ void resource_close_files(resource_item_t *res)
 	of = (s_list_t *) res->openned_files;
 	if (of) {
 		/* close any openned file */
-		close( ((openned_file_t*)of->elem)->fileDescriptor );
+		int fd = ((openned_file_t*)of->elem)->fileDescriptor;
+		if (fd)
+			close( fd );
 	}
 
 }
@@ -1150,10 +1152,11 @@ static void possiblyUnzip (openned_file_t *of) {
 		int num_read = 0;
 		openned_file_t *newFile;
 
-		char tempname[1000];
+		char *tempname; // [1000];
 
 		/* make a temporary name for the gunzipped file */
-                sprintf (tempname, "%s",tempnam(gglobal()->Mainloop.tmpFileLocation,"freewrl_tmp")); 
+        // sprintf (tempname, "%s",tempnam(gglobal()->Mainloop.tmpFileLocation,"freewrl_tmp")); 
+		tempname = tempnam(gglobal()->Mainloop.tmpFileLocation, "freewrl_tmp");
 
 		/* read in the text, unzip it, write it out again */
 		source = gzopen(of->fileFileName,"rb");
@@ -1173,6 +1176,7 @@ static void possiblyUnzip (openned_file_t *of) {
 
 		/* read in the unzipped text... */
 		newFile = load_file((const char *) tempname);
+		UNLINK(tempname);
 
 		if (newFile->fileData == NULL) {
 			ConsoleMessage ("problem re-reading gunzipped text file");
