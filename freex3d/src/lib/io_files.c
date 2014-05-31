@@ -760,12 +760,6 @@ int freewrlSystem (const char *sysline)
 //goal: remove a directory and its contents - used for removing the temp unzip folder for .z3z / .zip file processing
 #ifdef _MSC_VER
 //http://msdn.microsoft.com/en-us/windows/desktop/aa365488
-//#undef _UNICODE
-//#undef UNICODE
-//#include <windows.h>
-//#undef _UNICODE
-////#undef _MBCS
-//#undef UNICODE
 
 #include <TCHAR.H>
 #ifdef UNICODE
@@ -858,6 +852,7 @@ BOOL DeleteDirectory0(const TCHAR* sPath) {
 	FindClose(hFind);  // closing file handle
 	return RemoveDirectory(sPath); // remove the empty directory
 }
+/*
 BOOL directory_remove_all(const char* sPath) {
 	int jj;
     size_t convertedChars = 0;
@@ -882,6 +877,7 @@ BOOL directory_remove_all(const char* sPath) {
 	retval = DeleteDirectory0(wcstring);
 	return retval;
 }
+*/
 BOOL tdirectory_remove_all(TCHAR *sPath){
 	BOOL retval;
 	retval = DeleteDirectory0(sPath);
@@ -899,6 +895,7 @@ void tremove_file_or_folder(TCHAR *path){
 		//FormatMessage()
 		ConsoleMessage("GetFileAttribuesEx err=%d maxpath%d pathlen%d", (int)err,MAX_PATH,_tcslen(path)); //http://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx
 		isDir = ! _tcsstr(path, singleDot);
+		return FALSE;
 	}else
 	isDir = finfo && (fad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
 #else
