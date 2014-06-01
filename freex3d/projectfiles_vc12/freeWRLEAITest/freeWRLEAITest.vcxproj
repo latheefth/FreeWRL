@@ -127,7 +127,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libfreeWRLEAI.lib;libfreeWRL.lib;libtess.lib;pthreadd.lib;glew32mx.lib;Opengl32.lib;zlib.lib;libminizip.lib;ws2_32.lib;freetype252.lib;shlwapi.lib;windowscodecs.lib;libxml2_a.lib;Wininet.lib;Winmm.lib;mozjs185-1.0.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libfreeWRLEAI.lib;libfreeWRL.lib;libtess.lib;pthreadd.lib;glew32mx.lib;Opengl32.lib;zlib.lib;libminizip.lib;ws2_32.lib;freetype252.lib;shlwapi.lib;windowscodecs.lib;libxml2d.lib;Wininet.lib;Winmm.lib;mozjs185-1.0.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\$(Configuration);$(LIBWIN)\js185\lib;$(LIBWIN)\pthread\lib;$(LIBWIN)\freetype2\lib;$(LIBWIN)\zlib\lib;$(LIBWIN)\libxml2\lib;$(LIBWIN)\MSopenGL\lib;$(LIBWIN)\glew\lib\Release MX\Win32;..\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
