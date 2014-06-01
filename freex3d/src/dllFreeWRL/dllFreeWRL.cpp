@@ -143,7 +143,13 @@ void CdllFreeWRL::setTempFolder(char *tmpFolder)
 	}
 	fwl_clearCurrentHandle();
 }
-
+void CdllFreeWRL::setFontFolder(char *fontFolder)
+{
+	if (fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
+		fwl_fontFileLocation(fontFolder);
+	}
+	fwl_clearCurrentHandle();
+}
 CdllFreeWRL::CdllFreeWRL(int width, int height, void* windowhandle, bool bEai)
 {
 	this->globalcontexthandle = fwl_init_instance(); //before setting any structs we need a struct allocated
