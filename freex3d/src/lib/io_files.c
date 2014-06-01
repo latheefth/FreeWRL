@@ -1189,6 +1189,7 @@ void process_x3z(resource_item_t *res){
 	if (1){
 		tempfolderpath = tempnam(gglobal()->Mainloop.tmpFileLocation, "freewrl_download_XXXXXXXX");
 	}else{
+		//for debugging if you need to have the temp unzip files in your working folder where your data files are
 		tempfolderpath = STRDUP(res->URLrequest);
 		tempfolderpath = strBackslash2fore(tempfolderpath);
 		tempfolderpath = remove_filename_from_path(tempfolderpath);

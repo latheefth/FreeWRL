@@ -34,7 +34,7 @@ public:
 	static enum MouseButton {LEFT=1,MIDDLE=2,RIGHT=3,NONE=0}; 		
 	/* butnum=1 left butnum=3 right (butnum=2 middle, not used by freewrl) */
 
-	void onInit(int width, int height, void* windowhandle=0, bool bEai = false);
+	void onInit(int width, int height, void* windowhandle=0, bool bEai = false, bool frontend_handles_display_thread = false);
 	void onLoad(char* scene_url);
     void onResize(int width, int height);
     void onMouse(int mouseAction,int mouseButton,int x, int y);
