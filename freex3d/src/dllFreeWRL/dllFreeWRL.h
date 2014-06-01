@@ -43,6 +43,7 @@ public:
 	void onClose();
 	void print(char *str);
 	void setTempFolder(char *tmpFolder);
+	int getUpdatedCursorStyle();
 	//void __stdcall setProcessingAICommandsCallback(OnProcessingAICommands func);
 	
 private:

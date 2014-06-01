@@ -4376,13 +4376,6 @@ void updateViewCursorStyle(int cstyle)
 }
 #endif
 
-static int frontend_using_cursor = 0;
-void fwl_set_frontend_using_cursor(int on)
-{
-	//used by statusbarHud to shut off cursor settings coming from sensitive nodes
-	//while the mouse is over the statusbar or menu buttons.
-	frontend_using_cursor = on;
-}
 void view_update0(void){
 	#ifdef _MSC_VER
 		fwMessageLoop(); //message pump
@@ -4393,8 +4386,7 @@ void view_update0(void){
 		drawStatusBar();  // View update
 		restoreGlobalShader();
 	#endif
-		if (!frontend_using_cursor)
-			updateViewCursorStyle(getCursorStyle()); /* in fwWindow32 where cursors are loaded */
+	updateViewCursorStyle(getCursorStyle()); /* in fwWindow32 where cursors are loaded */
 }
 void killNodes();
 

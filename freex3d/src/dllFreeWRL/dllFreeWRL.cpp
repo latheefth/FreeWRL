@@ -63,7 +63,7 @@ void initConsoleH(DWORD pid);
 void fwl_setConsole_writePrimitive(int ibool);
 void statusbar_set_window_size(int width, int height);
 void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY);
-
+int getCursorStyle();
 }
 
 #include <malloc.h>
@@ -276,6 +276,17 @@ void CdllFreeWRL::onDraw()
 	}
 	fwl_clearCurrentHandle();
 }
+
+int CdllFreeWRL::getUpdatedCursorStyle()
+{
+	int cstyle = 0;
+	if (fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
+		cstyle = getCursorStyle();
+	}
+	fwl_clearCurrentHandle();
+	return cstyle;
+}
+
 //void __stdcall CdllFreeWRL::setProcessingAICommandsCallback(OnProcessingAICommands func)
 //{
 //	fwl_setCallBack(func, FWL_CB_ONAICOMMANDSPROCESSING);
