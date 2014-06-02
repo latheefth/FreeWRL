@@ -482,8 +482,8 @@ void Snapshot ()
 	
 	fw_mkdir(mytmp);
 	p->snapRawCount ++;
-	snprintf (thisRawFile, sizeof(thisRawFile),"%s/%s.%04d.bmp",mytmp,mysnapb,p->snapRawCount);
-	saveSnapshotBMP(thisRawFile,imgbuf,3,gglobal()->display.screenWidth,gglobal()->display.screenHeight);
+	snprintf(thisRawFile, sizeof(thisRawFile), "%s/%s.%04d.bmp", mytmp, mysnapb, p->snapRawCount);
+	saveSnapshotBMP(thisRawFile, imgbuf, 3, gglobal()->display.screenWidth, gglobal()->display.screenHeight);
 	FREE(imgbuf);
 }
 #endif /*ifdef win32*/

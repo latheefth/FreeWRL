@@ -1261,6 +1261,7 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	/* initialization */
 	curProtoPtr=  NULL;
 	myObj = NULL;
+	tmpf = gglobal()->Mainloop.tmpFileLocation;
 	tmpf = TEMPNAM(gglobal()->Mainloop.tmpFileLocation,"freewrl_proto");
 	fdl = 0;
 
@@ -1394,6 +1395,8 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	protoInString = MALLOC(char *, fdl+1);
 	readSizeThrowAway = fread(protoInString, 1, fdl, fileDescriptor);
 	protoInString[fdl] = '\0';
+	fclose(fileDescriptor);
+	UNLINK(tmpf);
 
 
 	#ifdef X3DPARSERVERBOSE

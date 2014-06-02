@@ -189,10 +189,12 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
 
 	HRESULT hr;
 	IWICBitmapDecoder *pDecoder = NULL;
+	HANDLE hfile;
 
 	// Step 2: Decode the source image to IWICBitmapSource
 
 	// Create a decoder
+	/* pathname method didn't seem to close the file handle, so couldn't delete unzipped image files
 	hr = m_pIWICFactory->CreateDecoderFromFilename(
 		wcstring,                      // Image to be decoded
 		NULL,                            // Do not prefer a particular vendor
@@ -200,7 +202,20 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
 		WICDecodeMetadataCacheOnDemand,  // Cache metadata when needed
 		&pDecoder                        // Pointer to the decoder
 		);
-
+	*/
+#if _MSC_VER >= 1500
+	// http://msdn.microsoft.com/en-us/library/windows/apps/hh449422.aspx
+	hfile = CreateFile2(wcstring, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING, NULL);
+#else
+	hfile = CreateFileW(wcstring, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, NULL, NULL);
+#endif
+	if (hfile)
+	hr = m_pIWICFactory->CreateDecoderFromFileHandle(
+		(ULONG_PTR)hfile,
+		NULL,
+		WICDecodeMetadataCacheOnDemand,
+		&pDecoder
+		);
 	IWICBitmapFrameDecode *pFrame = NULL;
 
 	// Retrieve the first frame of the image from the decoder
@@ -257,6 +272,7 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
 	SafeRelease(pToRenderBitmapSource);
 	SafeRelease(pDecoder);
 	SafeRelease(pFrame);
+	if(hfile) CloseHandle(hfile);
 
    //deep copy data so browser owns it (and does its FREE_IF_NZ) and we can delete our copy here and forget about it
    tti->x = width;

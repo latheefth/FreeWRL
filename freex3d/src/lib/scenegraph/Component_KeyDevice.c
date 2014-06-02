@@ -90,7 +90,7 @@ int ctrlPressed = 0;
 #define PALT_KEY 0x12
 #define PCTL_KEY 0x11
 #define PSFT_KEY 0x10
-#define PDEL_KEY 0x2E  //2E is DELETE 0x08 is backspace
+#define PDEL_KEY 0x2E  //2E is DELETE 0x08 is backspace. Problem '.' is ascii 2E.
 #define PRTN_KEY 13
 #define KEYPRESS 1
 #define KEYDOWN 2

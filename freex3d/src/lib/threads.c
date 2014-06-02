@@ -98,7 +98,9 @@ DEF_THREAD(_THREAD_NULL_); //used to initialize thread members in generatedcode.
 //	memset(v, 0, sizeof(struct pthreads));
 //	return v;
 //}
-
+#ifdef DOWEREALYNEEDTHIS
+static int fw_once = 0;
+#endif
 void threads_init(struct tthreads* t)
 {
 	//public
@@ -118,6 +120,15 @@ void threads_init(struct tthreads* t)
 //t->texture_list_condition = PTHREAD_COND_INITIALIZER;
 
 #ifdef DOWEREALYNEEDTHIS
+	//for windows I found a gthreads implementation of pthreads that does need this
+	if (fw_once == 0){
+		//once per process
+#ifdef _MSC_VER
+		pthread_win32_process_attach_np();
+#endif
+		fw_once = 1;
+	}
+
 /* Synchronize / exclusion root_res and below */
 	pthread_mutex_init (&t->mutex_resource_tree,NULL); 	// = PTHREAD_MUTEX_INITIALIZER;
 /* Synchronize / exclusion : resource queue for parser */

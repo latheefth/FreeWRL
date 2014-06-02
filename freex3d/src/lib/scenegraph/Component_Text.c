@@ -162,6 +162,17 @@ void Component_Text_init(struct tComponent_Text *t){
 }
 //	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
 
+void fwl_fontFileLocation(char *fontFileLocation) {
+	ppComponent_Text p;
+	ttglobal tg = gglobal();
+	p = (ppComponent_Text)tg->Component_Text.prv;
+	/* Check if dir exists */
+	if (fontFileLocation)
+	if (do_dir_exists(fontFileLocation)) {
+		FREE_IF_NZ(p->font_directory);
+		p->font_directory = STRDUP(fontFileLocation);
+	}
+}
 
 /* function prototypes */
 static void FW_NewVertexPoint(double Vertex_x, double Vertex_y);
@@ -1194,7 +1205,8 @@ int open_font()
 
 #ifndef HAVE_FONTCONFIG
     /* where are the fonts stored? */
-    p->font_directory = makeFontDirectory();
+	if(!p->font_directory)
+		p->font_directory = makeFontDirectory();
 	ConsoleMessage("font directory=%s\n",p->font_directory);
     /* were fonts not found? */
     if (p->font_directory == NULL) {

@@ -191,7 +191,7 @@ static void startNewHTMLWindow(char *url) {
 //static int waitingForURLtoLoad = FALSE;
 //static resource_item_t *plugin_res = NULL; 	/* If this res is valid, then we can replace root_res with it */
 
-#if !defined(FRONTEND_GETS_FILES)
+#if !defined(FRONTEND_GETS_FILES) && !defined(FRONTEND_GETS_URLS)
 static int urlLoadingStatus() {
 	pppluginUtils p = (pppluginUtils)gglobal()->pluginUtils.prv;
 
@@ -232,7 +232,7 @@ int doBrowserAction()
 	ttglobal tg = gglobal();
 	p = (pppluginUtils)tg->pluginUtils.prv;
 	
-#if !defined(FRONTEND_GETS_FILES)
+#if !defined(FRONTEND_GETS_FILES) && !defined(FRONTEND_GETS_URLS)
 	/* are we in the process of polling for a new X3D URL to load? */
 	if (p->waitingForURLtoLoad) return urlLoadingStatus();
 #endif //FRONTEND_GETS_FILES

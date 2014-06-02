@@ -217,6 +217,7 @@ typedef struct pMainloop{
 	char* logfname;
 	int logging;
 	int keySensorMode;
+	int draw_initialized;
 }* ppMainloop;
 void *Mainloop_constructor(){
 	void *v = malloc(sizeof(struct pMainloop));
@@ -241,7 +242,7 @@ void Mainloop_init(struct tMainloop *t){
 	//t->currentY[20];                 /*  current mouse position.*/
 	t->clipPlane = 0;
 
-	t->tmpFileLocation = MALLOC (char *,5);
+	t->tmpFileLocation = MALLOC(char *, 5);
 	strcpy(t->tmpFileLocation,"/tmp");
 	t->replaceWorldRequest = NULL;
 	t->replaceWorldRequestMulti = NULL;
@@ -322,6 +323,7 @@ void Mainloop_init(struct tMainloop *t){
 		p->logfname = NULL;
 		p->logging = 0;
 		p->keySensorMode = 1; //by default on, so it works 'out of the gate' if Key or StringSensor in scene, then ESC to toggle off
+		p->draw_initialized = FALSE;
 	}
 }
 
@@ -3484,9 +3486,10 @@ void fwl_do_keyPress(char kp, int type) {
 	//it will do the old-style action-key lookup
 	//(desktop win32 and linux can get finer tuning on the keyboard
 	// with per-platform platform2web3dActionKeyLINUX and WIN32 functions
-	int actionKey;
+	int actionKey=0;
 	int key = (int) kp;
-	actionKey = platform2web3dActionKey(key);
+	if (type != KEYPRESS) //May 2014 added this if (I think just the raw keys would need virtual key lookup, I have a problem with '.')
+		actionKey = platform2web3dActionKey(key);
 	if(actionKey)
 		fwl_do_rawKeyPress(actionKey,type+10);
 	else
@@ -4373,13 +4376,6 @@ void updateViewCursorStyle(int cstyle)
 }
 #endif
 
-static int frontend_using_cursor = 0;
-void fwl_set_frontend_using_cursor(int on)
-{
-	//used by statusbarHud to shut off cursor settings coming from sensitive nodes
-	//while the mouse is over the statusbar or menu buttons.
-	frontend_using_cursor = on;
-}
 void view_update0(void){
 	#ifdef _MSC_VER
 		fwMessageLoop(); //message pump
@@ -4390,11 +4386,115 @@ void view_update0(void){
 		drawStatusBar();  // View update
 		restoreGlobalShader();
 	#endif
-		if (!frontend_using_cursor)
-			updateViewCursorStyle(getCursorStyle()); /* in fwWindow32 where cursors are loaded */
+	updateViewCursorStyle(getCursorStyle()); /* in fwWindow32 where cursors are loaded */
 }
 void killNodes();
+
+/* fwl_draw() call from frontend when frontend_handles_display_thread */
+int fwl_draw()
+{
+	int more;
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	fwl_setCurrentHandle(tg, __FILE__, __LINE__);
+	p = (ppMainloop)tg->Mainloop.prv;
+
+	if (!p->draw_initialized){
+		view_initialize = view_initialize0; //defined above, with ifdefs
+		view_update = view_update0; //defined above with ifdefs
+		if (view_initialize)
+			more = view_initialize();
+
+		if (more){
+			fwl_initializeRenderSceneUpdateScene();  //Model initialize
+		}
+		p->draw_initialized = TRUE;
+	}
+	more = TRUE;
+	switch (tg->threads.MainLoopQuit){
+	case 0:
+	case 1:
+		//PRINTF("event loop\n");
+		switch (tg->threads.flushing)
+		{
+		case 0:
+			profile_start("mainloop");
+			//model: udate yourself
+			fwl_RenderSceneUpdateScene(); //Model update
+			profile_end("mainloop");
+
+			//view: poll model and update yourself >>
+			if (view_update) view_update();
+
+			//if (!tg->display.params.frontend_handles_display_thread){
+			//	/* swap the rendering area */
+			//	FW_GL_SWAPBUFFERS;
+			//}
+			PRINT_GL_ERROR_IF_ANY("XEvents::render");
+			checkReplaceWorldRequest(); //will set flushing=1
+			checkExitRequest(); //will set flushing=1
+			break;
+		case 1:
+			if (workers_waiting()) //one way to tell if workers finished flushing is if their queues are empty, and they are not busy
+			{
+				kill_oldWorld(TRUE, TRUE, __FILE__, __LINE__); //does a MarkForDispose on nodes, wipes out binding stacks and route table, javascript
+				tg->threads.flushing = 0;
+				if (tg->threads.MainLoopQuit)
+					tg->threads.MainLoopQuit++; //quiting takes priority over replacing
+				else
+					doReplaceWorldRequest();
+			}
+		}
+		break;
+	case 2:
+		//tell worker threads to stop gracefully
+		workers_stop();
+		killNodes(); //deallocates nodes MarkForDisposed
+		tg->threads.MainLoopQuit++;
+		break;
+	case 3:
+		//check if worker threads have exited
+		more = workers_running();
+		break;
+	}
+	return more;
+}
+
 void _displayThread(void *globalcontext)
+{
+	/* C CONTROLLER - used in configurations such as C main programs, and browser plugins with no loop of their own
+	- usually the loop, create gl context, and swapbuffers stay together in the same layer
+	MVC - Model-View-Controller design pattern: do the Controller activities here:
+	1) tell Model (scenegraph, most of libfreewrl) to update itself
+	2) tell View to poll-model-and-update-itself (View: GUI UI/statusbarHud/Console)
+	-reason for MVC: no callbacks are needed from Model to UI(View), so easy to change View
+	-here everything is in C so we don't absolutely need MVC style, but we are preparing MVC in C
+	to harmonize with Android, IOS etc where the UI(View) and Controller are in Objective-C or Java and Model(state) in C
+
+	Non-blocking UI thread - some frontends don't allow you to block the display thread. They will be in
+	different code like objectiveC, java, C#, but here we try and honor the idea by allowing
+	looping to continue while waiting for worker threads to flush and/or exit by polling the status of the workers
+	rather than using mutex conditions.
+	*/
+	int more;
+	ppMainloop p;
+	ttglobal tg = (ttglobal)globalcontext;
+	fwl_setCurrentHandle(tg, __FILE__, __LINE__);
+	p = (ppMainloop)tg->Mainloop.prv;
+	ENTER_THREAD("display");
+
+	do{
+		more = fwl_draw();
+		//if (!tg->display.params.frontend_handles_display_thread){
+			/* swap the rendering area */
+			FW_GL_SWAPBUFFERS;
+		//}
+	} while (more);
+	finalizeRenderSceneUpdateScene(); //Model end
+	//printf("Ending display thread gracefully\n");
+	return;
+}
+void _displayThread_old_hide(void *globalcontext)
 {
 	/*
 	MVC - Model-View-Controller design pattern: do the Controller activities here:
@@ -5031,6 +5131,8 @@ void fwl_Android_replaceWorldNeeded() {
 /* called from the standalone OSX front end and the OSX plugin */
 void fwl_replaceWorldNeeded(char* str)
 {
+	ConsoleMessage("file to load: %s\n",str);
+
 	gglobal()->Mainloop.replaceWorldRequest = STRDUP(str);
 }
 void fwl_replaceWorldNeededRes(resource_item_t *multiResWithParent){

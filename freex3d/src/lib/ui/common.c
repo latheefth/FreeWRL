@@ -175,6 +175,13 @@ char *getMessageBar()
 	return p->messagebar;
 }
 
+static int frontend_using_cursor = 0;
+void fwl_set_frontend_using_cursor(int on)
+{
+	//used by statusbarHud to shut off cursor settings coming from sensitive nodes
+	//while the mouse is over the statusbar or menu buttons.
+	frontend_using_cursor = on;
+}
 
 void setArrowCursor()
 {
@@ -186,8 +193,12 @@ void setSensorCursor()
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 	p->cursorStyle = SCURSE;
 }
+
 int getCursorStyle()
 {
 	ppcommon p = (ppcommon)gglobal()->common.prv;
-	return p->cursorStyle;
+	if (!frontend_using_cursor)
+		return p->cursorStyle;
+	else
+		return ACURSE;
 }

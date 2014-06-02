@@ -226,11 +226,11 @@ OLDCODE
 OLDCODE//static ttglobal fwl_instance_parameters = NULL;
 #endif //OLDCODE
 
-
 void* fwl_init_instance()
 {
 	ttglobal tg; 
 	//ConsoleMessage ("called fwl_init_instance");
+
 	tg = iglobal_constructor();
     
     fwl_setCurrentHandle(tg,__FILE__,__LINE__);

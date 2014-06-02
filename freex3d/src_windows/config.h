@@ -1,5 +1,7 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
+
+
 /*win32 - where do these go? */
 #define TARGET_WIN32
 #undef TARGET_AQUA
@@ -11,6 +13,7 @@
 /* Directory for fonts. C:/Program Files/CRC/fonts */
 #undef FONTS_DIR
 #define FONTS_DIR "C:\\Windows\\Fonts"
+
 
 /* The FreeWRL message wrapper program name. */
 #undef FREEWRL_MESSAGE_WRAPPER
@@ -286,6 +289,6 @@ char *getWgetPath();
 #define FREEWRL_STEREO_RENDERING 1
 //#endif
 #define HAVE_UNZIP_H 1
-#ifndef FRONTEND_GETS_FILES
+#ifndef FRONTEND_GETS_URLS
 #define HAVE_WININET 1
 #endif

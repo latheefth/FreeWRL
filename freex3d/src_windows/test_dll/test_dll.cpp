@@ -13,7 +13,9 @@ int main (int argc, char **argv)
 		"../../../../tests/ProgrammableShaders/models/sobel-ComposedShader.wrl",
 		"../../../../tests/ProgrammableShaders/models/flutter2-ComposedShader.x3d"};
 	printf("hi from test_dll main\n");
-	one = new CdllFreeWRL(450,300); //
+	//one = new CdllFreeWRL(450,300); //
+	one = new CdllFreeWRL();
+	one->onInit(450,300,NULL,false,false);
 #ifndef ANGLEPROJECT
 	printf("load 3 freewrl instances from the same dll process\n");
 	two = new CdllFreeWRL(450,300,0,false);
@@ -26,13 +28,14 @@ int main (int argc, char **argv)
 	two->onLoad(sfiles[1]); 
 	three->onLoad(sfiles[2]); 
 #endif
-	printf("press enter to exit:");
-	getchar();
 	
-	one->onClose();
-#ifndef ANGLEPROJECT
-	two->onClose();
-	three->onClose();
-#endif
+	//do a 'q' in each window
+	//one->onClose();
+//#ifndef ANGLEPROJECT
+//	two->onClose();
+//	three->onClose();
+//#endif
+	printf("do a 'q' in each window, then press enter in the console to exit:");
+	getchar();
 
 }

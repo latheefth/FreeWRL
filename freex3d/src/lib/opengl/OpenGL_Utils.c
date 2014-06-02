@@ -1264,14 +1264,14 @@ static void shaderErrorLog(GLuint myShader, char *which) {
 
 
 /* find a shader that matches the capabilities requested. If no match, recreate it */
-s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
+s_shader_capabilities_t *getMyShader(unsigned int rq_cap0) {
 
     /* GL_ES_VERSION_2_0 has GL_SHADER_COMPILER */
     #ifdef GL_SHADER_COMPILER
     GLboolean b;
     static bool haveDoneThis = false;
     #endif
-
+	unsigned int rq_cap;
     int i;
 
 
@@ -1279,6 +1279,9 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
     ppOpenGL_Utils p = gglobal()->OpenGL_Utils.prv;
     struct Vector *myShaderTable = p->myShaderTable;
     struct shaderTableEntry *new = NULL;
+
+	rq_cap = rq_cap0;
+	//rq_cap = NO_APPEARANCE_SHADER; //for thunking to simplest when debugging
 
     for (i=0; i<vectorSize(myShaderTable); i++) {
         struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,myShaderTable, i);
@@ -1315,7 +1318,6 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
 #endif
 
     // ConsoleMessage ("getMyShader, here now");
-
 
 #ifdef VERBOSE
 #if defined (GL_SHADER_COMPILER) && defined (GL_HIGH_FLOAT)
@@ -1500,7 +1502,7 @@ struct fw_MaterialParameters {\n\
 };\n\
 uniform int lightcount;\n\
 //uniform float lightRadius[MAX_LIGHTS];\n\
-//uniform int lightType[MAX_LIGHTS];\n\
+uniform int lightType[MAX_LIGHTS];//ANGLE like this\n\
 struct fw_LightSourceParameters { \n\
   vec4 ambient;  \n\
   vec4 diffuse;   \n\
@@ -1516,7 +1518,7 @@ struct fw_LightSourceParameters { \n\
   //float linearAttenuation;  \n\
   //float quadraticAttenuation; \n\
   float lightRadius; \n\
-  int lightType; \n\
+  //int lightType; ANGLE doesnt like int in struct array \n\
 }; \n\
 \n\
 uniform fw_LightSourceParameters fw_LightSource[MAX_LIGHTS] /* gl_MaxLights */ ;\n\
@@ -1571,19 +1573,20 @@ if (backFacing) { \n \
       vec4 myLightAmbient = fw_LightSource[i].ambient;\n\
       vec4 myLightSpecular = fw_LightSource[i].specular;\n\
       vec4 myLightPosition = fw_LightSource[i].position; \n\
+	  int myLightType = lightType[i]; //fw_LightSource[i].lightType;\n\
 	  vec3 myLightDir = fw_LightSource[i].spotDirection.xyz; \n\
       vec3 eyeVector = normalize(myPosition.xyz);\n\
       vec3  VP;     /* vector of light direction and distance */\n\
 	  VP = myLightPosition.xyz - myPosition.xyz;\n\
 	  vec3 L = myLightDir; /*directional light*/ \n\
-	  if(fw_LightSource[i].lightType < 2) /*point and spot*/ \n\
+	  if(myLightType < 2) /*point and spot*/ \n\
 	    L = normalize(VP); \n\
       float nDotL = max(dot(normal, L), 0.0);\n\
       vec3 halfVector = normalize(L - eyeVector);\n\
       /* normal dot light half vector */\n\
       float nDotHV = max(dot(normal,halfVector),0.0);\n\
       \n\
-      if (fw_LightSource[i].lightType==1) {\n\
+      if (myLightType==1) {\n\
         /* SpotLight */\n\
         float spotDot; \n\
         float spotAttenuation = 0.0; \n\
@@ -1613,7 +1616,7 @@ if (backFacing) { \n \
         /* specular light computation */\n\
         specular += myLightSpecular * powerFactor * attenuation;\n\
         \n\
-	  } else if (fw_LightSource[i].lightType == 2) { \n\
+	  } else if (myLightType == 2) { \n\
         /* DirectionalLight */ \n\
         float powerFactor = 0.0; /* for light dropoff */\n\
 		if (nDotL > 0.0) {\n\
@@ -2514,11 +2517,17 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
             me->lightRadius[i] = GET_UNIFORM(myProg,uniformName);
             //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightQuadAtten[i]);
 
-			strcpy(&uniformName[18],"lightType");
-            me->lightType[i] = GET_UNIFORM(myProg,uniformName);
+			//strcpy(&uniformName[18],"lightType");
+            //me->lightType[i] = GET_UNIFORM(myProg,uniformName);
             //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightQuadAtten[i]);
 
         }
+		strcpy(uniformName,"lightType[0]");
+		for (i = 0; i < MAX_LIGHTS; i++) {
+			/* go through and modify the array for each variable */
+			uniformName[10] = '0' + i;
+			me->lightType[i] = GET_UNIFORM(myProg, uniformName);
+		}
     }
 
     //if (me->haveLightInShader) ConsoleMessage ("this shader HAS lightfields");
@@ -4847,26 +4856,26 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 						}else{
 							usernames[0] = usernames[1] = usernames[2] = usernames[3] = NULL;
 						}
-
-						for(j=0; j!=vectorSize(shader->fields); ++j)
-						{
-							sfield= vector_get(struct ScriptFieldDecl*, shader->fields, j);
-							mode = sfield->fieldDecl->PKWmode;
-							fname = NULL;
-							if(lexer){
-								struct Vector *unames = usernames[X3DMODE(mode)];
-                                nameIndex = sfield->fieldDecl->lexerNameIndex;
-								if(nameIndex < vectorSize(unames))
-									fname = vector_get(char *,unames,nameIndex);
+						if (shader)
+							for(j=0; j!=vectorSize(shader->fields); ++j)
+							{
+								sfield= vector_get(struct ScriptFieldDecl*, shader->fields, j);
+								mode = sfield->fieldDecl->PKWmode;
+								fname = NULL;
+								if(lexer){
+									struct Vector *unames = usernames[X3DMODE(mode)];
+									nameIndex = sfield->fieldDecl->lexerNameIndex;
+									if(nameIndex < vectorSize(unames))
+										fname = vector_get(char *,unames,nameIndex);
+								}
+								type = sfield->fieldDecl->fieldType;
+								fieldPtr = &sfield->value;
+								source = node->_nodeType == NODE_Script ? 1 : 2;
+								jfield = j;
+								foundField = callbackFunc(callbackData,node,jfield,fieldPtr,fname,mode,type,source,publicfield);
+								if( foundField)
+									break;
 							}
-							type = sfield->fieldDecl->fieldType;
-							fieldPtr = &sfield->value;
-							source = node->_nodeType == NODE_Script ? 1 : 2;
-							jfield = j;
-							foundField = callbackFunc(callbackData,node,jfield,fieldPtr,fname,mode,type,source,publicfield);
-							if( foundField)
-								break;
-						}
 					}
 					break;
 				case NODE_Proto:

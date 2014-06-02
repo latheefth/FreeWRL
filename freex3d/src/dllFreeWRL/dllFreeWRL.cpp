@@ -63,7 +63,7 @@ void initConsoleH(DWORD pid);
 void fwl_setConsole_writePrimitive(int ibool);
 void statusbar_set_window_size(int width, int height);
 void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY);
-
+int getCursorStyle();
 }
 
 #include <malloc.h>
@@ -81,18 +81,35 @@ DLLFREEWRL_API int fndllFreeWRL(void)
 
 // This is the constructor of a class that has been exported.
 // see dllFreeWRL.h for the class definition
+CdllFreeWRL::CdllFreeWRL()
+{
+	/*STA -single threaded app- frontends -like web pages in a browser, .net forms, xaml apps-
+	can have multiple freewrl instances in different sub-windows, all running 
+	in the same frontend thread. But then we can't rely on thread-lookup
+	to find which freewrl instance. But the frontend developer will have
+	a pointer to each instance. Then we look up the freewrl instance from that,
+	using this->globalcontexthandle, fwl_setCurrentHandle(), fwl_clearCurrentHandle(),
+	for the frontend-thread-synchronized part (functions called from the STA), and then
+	worker threads within libfreewrl can use thread lookup to get the global instance
+	for the backend parts. No thread locking is needed in the frontend-thread-sync part 
+	-like here in dllfreewrl.cpp- because the frontend developer will program against 
+	one dllfreewrl instance at a time due to it being STA.
+	If converting this cdllfreewrl C++ to flat C interface, then add an extra
+	parameter void* fwglobal to all the functions, do fwl_init_instance in the constructor
+	and have it return the gglobal as void *, and the frontend programmer will hold
+	the fwglobal pointer between calls.
+	*/
+	//this->globalcontexthandle = 0;
+	this->globalcontexthandle = fwl_init_instance(); //before setting any structs we need a struct allocated
+}
 //	handle - window handle or null
 //		- if you have a window already created, you should pass in the handle, 
 //		- else pass null and a window will be created for you
-CdllFreeWRL::CdllFreeWRL()
-{
-	this->globalcontexthandle = 0;
-}
-void CdllFreeWRL::onInit(int width, int height, void* windowhandle, bool bEai)
+void CdllFreeWRL::onInit(int width, int height, void* windowhandle, bool bEai, bool frontend_handles_display_thread)
 {
 	struct freewrl_params *params;
 	//if( !fwl_setCurrentHandle(handle) ){
-	this->globalcontexthandle = fwl_init_instance(); //before setting any structs we need a struct allocated
+	//this->globalcontexthandle = fwl_init_instance(); //before setting any structs we need a struct allocated
 	fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__);
 	/* Before we parse the command line, setup the FreeWRL default parameters */
 	params = (freewrl_params_t*) malloc( sizeof(freewrl_params_t));
@@ -103,7 +120,7 @@ void CdllFreeWRL::onInit(int width, int height, void* windowhandle, bool bEai)
 	//params->eai = bEai;
 	params->fullscreen = 0;
 	params->winToEmbedInto = (long)windowhandle;
-	params->frontend_handles_display_thread = false;
+	params->frontend_handles_display_thread = frontend_handles_display_thread;
 	swDebugf("just before fwl_initFreeWRL\n");
 	if (!fwl_initFreeWRL(params)) {
 		//ERROR_MSG("main: aborting during initialization.\n");
@@ -119,12 +136,28 @@ void CdllFreeWRL::onInit(int width, int height, void* windowhandle, bool bEai)
 	fwl_clearCurrentHandle();
 	return;
 }
+void CdllFreeWRL::setTempFolder(char *tmpFolder)
+{
+	if (fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
+		fwl_tmpFileLocation(tmpFolder);
+	}
+	fwl_clearCurrentHandle();
+}
+void CdllFreeWRL::setFontFolder(char *fontFolder)
+{
+	if (fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
+		fwl_fontFileLocation(fontFolder);
+	}
+	fwl_clearCurrentHandle();
+}
 CdllFreeWRL::CdllFreeWRL(int width, int height, void* windowhandle, bool bEai)
 {
+	this->globalcontexthandle = fwl_init_instance(); //before setting any structs we need a struct allocated
 	this->onInit(width, height, windowhandle, bEai);
 }
 CdllFreeWRL::CdllFreeWRL(char* scene_url, int width, int height, void* windowhandle, bool bEai)
 {
+	this->globalcontexthandle = fwl_init_instance(); //before setting any structs we need a struct allocated
 	this->onInit(width, height, windowhandle, bEai);
 	this->onLoad(scene_url);
 }
@@ -223,7 +256,10 @@ void CdllFreeWRL::onKey(int keyAction,int keyValue){
 void CdllFreeWRL::onClose()
 {
     
-	/* when finished: */
+	/* when finished: as of early 2014 dug9 changed the _displayThread so now fwl_doQuit() is asynchronous meaning
+	   it returns here immediately, but it takes a while for libfreewrl to finish parking threads, deleting resources
+	   
+	   */
 	if(fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
 		//swDebugf("onClose before -fwl_doQuitInstance being called\n");
 		//fwl_doQuitInstance();
@@ -238,6 +274,23 @@ void CdllFreeWRL::print(char *str)
 		//swDebugf(str);
 	}
 	fwl_clearCurrentHandle();
+}
+void CdllFreeWRL::onDraw()
+{
+	if (fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
+		int more = fwl_draw();
+	}
+	fwl_clearCurrentHandle();
+}
+
+int CdllFreeWRL::getUpdatedCursorStyle()
+{
+	int cstyle = 0;
+	if (fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
+		cstyle = getCursorStyle();
+	}
+	fwl_clearCurrentHandle();
+	return cstyle;
 }
 
 //void __stdcall CdllFreeWRL::setProcessingAICommandsCallback(OnProcessingAICommands func)

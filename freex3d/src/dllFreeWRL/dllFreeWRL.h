@@ -34,14 +34,17 @@ public:
 	static enum MouseButton {LEFT=1,MIDDLE=2,RIGHT=3,NONE=0}; 		
 	/* butnum=1 left butnum=3 right (butnum=2 middle, not used by freewrl) */
 
-	void onInit(int width, int height, void* windowhandle=0, bool bEai = false);
+	void onInit(int width, int height, void* windowhandle=0, bool bEai = false, bool frontend_handles_display_thread = false);
 	void onLoad(char* scene_url);
     void onResize(int width, int height);
     void onMouse(int mouseAction,int mouseButton,int x, int y);
     void onKey(int keyAction,int keyValue);
+	void onDraw(); //use when FRONTEND_HANDLES_DISPLAY_THREAD
 	void onClose();
 	void print(char *str);
-	
+	void setTempFolder(char *tmpFolder);
+	void setFontFolder(char *fontFolder);
+	int getUpdatedCursorStyle();
 	//void __stdcall setProcessingAICommandsCallback(OnProcessingAICommands func);
 	
 private:
