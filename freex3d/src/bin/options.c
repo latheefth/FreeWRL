@@ -259,7 +259,10 @@ int fv_parseCommandLine (int argc, char **argv, freewrl_params_t *fv_params)
 
 	case 'c': /* --fullscreen, no argument */
 
-#if !defined(TARGET_AQUA)
+#if !defined(TARGET_AQUA) 
+#ifdef _MSC_VER
+		fv_params->fullscreen = TRUE; //win32 will look at this in its internal code
+#else
 #if defined(HAVE_XF86_VMODE)
 	    fv_params->fullscreen = TRUE;
 #else
@@ -270,7 +273,10 @@ int fv_parseCommandLine (int argc, char **argv, freewrl_params_t *fv_params)
 		   "this problem to\n\t " PACKAGE_BUGREPORT "\n");
 	    fv_params->fullscreen = FALSE;
 #endif /* HAVE_XF86_VMODE */
+#endif
 #endif /* TARGET_AQUA */
+
+
 	    break;
 
 	case 'g': /* --geometry, required argument: string (ex: 1024x768+100+50) */

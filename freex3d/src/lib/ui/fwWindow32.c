@@ -1170,8 +1170,12 @@ HWND create_main_window0(freewrl_params_t * d) //int argc, char *argv[])
     RegisterClass( &wc );
 	//width  = gglobal()->display.width + 8;  //windows gui eats 4 on each side
 	//height = gglobal()->display.height + 34;  // and 26 for the menu bar
-	width  = d->width + 8;  //windows gui eats 4 on each side
-	height = d->height + 34;  // and 26 for the menu bar
+	width = d->width;
+	height = d->height;
+	if (!d->fullscreen){
+		width += 8;  //windows gui eats 4 on each side
+		height += 34;  // and 26 for the menu bar
+	}
 	wStyle = WS_VISIBLE | WS_POPUP | WS_BORDER | WS_SYSMENU | WS_CAPTION;
 	wStyle |= WS_SIZEBOX; //makes it resizable 
 	wStyle = WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
@@ -1202,6 +1206,18 @@ HWND create_main_window0(freewrl_params_t * d) //int argc, char *argv[])
 
 
     UpdateWindow(ghWnd); 
+	if (d->fullscreen){ 
+		//stefan borderless, title-less
+		LONG lStyle = GetWindowLong(ghWnd, GWL_STYLE);
+		lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZE | WS_MAXIMIZE | WS_SYSMENU);
+		SetWindowLong(ghWnd, GWL_STYLE, lStyle);
+
+		LONG lExStyle = GetWindowLong(ghWnd, GWL_EXSTYLE);
+		lExStyle &= ~(WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE);
+		SetWindowLong(ghWnd, GWL_EXSTYLE, lExStyle);
+
+		SetWindowPos(ghWnd, HWND_TOP, d->xpos, d->ypos, 0, 0, SWP_FRAMECHANGED | SWP_NOSIZE);
+	}
     printf("updated window - leaving createwindow\n");
 	//setWindowTitle00();
 	//ShowCursor(0); //turns off hArrow, hHand cursors
