@@ -1988,7 +1988,12 @@ void setup_projection(int pick, int x, int y)
 	/* <<< statusbar hud */
 	p->viewpointScreenX[viewer->iside] = xvp + screenwidth2/2;
 	p->viewpointScreenY[viewer->iside] = top;
-	FW_GL_VIEWPORT(xvp, bottom, screenwidth2, screenheight);
+	if (viewer->updown){
+        FW_GL_VIEWPORT(xvp - screenwidth2 / 2, bottom, screenwidth2 * 2, screenheight);
+    }
+    else{
+        FW_GL_VIEWPORT(xvp, bottom, screenwidth2, screenheight);
+    }
 
 	FW_GL_LOAD_IDENTITY();
 	if(pick) {
