@@ -1977,8 +1977,9 @@ void setup_projection(int pick, int x, int y)
 
 	FW_GL_MATRIX_MODE(GL_PROJECTION);
 	/* >>> statusbar hud */
-	if(tg->Mainloop.clipPlane != 0)
-	{   /* scissor used to prevent mainloop from glClear()ing the statusbar area
+	if(tg->Mainloop.clipPlane != 0 || viewer->updown || viewer->sidebyside)
+	{   
+		/* scissor used to prevent mainloop from glClear()ing the wrong stereo side, and the statusbar area
 		 which is updated only every 10-25 loops */
 		//FW_GL_SCISSOR(0,tg->Mainloop.clipPlane,tg->display.screenWidth,tg->display.screenHeight);
 		FW_GL_SCISSOR(scissorxl,bottom,scissorxr-scissorxl,screenheight);
@@ -2081,7 +2082,7 @@ OLDCODE#endif
 				else
 					Viewer_anaglyph_setSide(count); //clear just the channels we're going to draw to
 			}
-			setup_projection(0, 0, 0);
+			setup_projection(0, 0, 0); //scissor test in here
 			BackEndClearBuffer(2);
 			if(Viewer()->anaglyph)
 				Viewer_anaglyph_setSide(count); //set the channels for scenegraph drawing
