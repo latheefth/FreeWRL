@@ -28,23 +28,18 @@
 #ifndef __FREEWRL_JS_JSCRIPT_H__
 #define __FREEWRL_JS_JSCRIPT_H__
 
-#include <system_js.h>
 
 void kill_javascript(void);
 void cleanupDie(int num, const char *msg);
+/*
 void JSMaxAlloc(void);
 void JSInit(int num);
+*/
 void SaveScriptText(int num, const char *text);
 void JSInitializeScriptAndFields (int num);
 void JSCreateScriptContext(int num);
-void process_eventsProcessed();
 
-int isScriptControlOK(int actualscript);
-int isScriptControlInitialized(int actualscript);
-void js_setField_javascriptEventOut_B(union anyVrml* any, int fieldType, unsigned len, int extraData, int actualscript);
-void js_setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fieldType, unsigned len, int extraData, int actualscript);
-void js_cleanup_script_context(int counter);
-
+/*
 #ifdef JAVASCRIPTVERBOSE
 int ActualrunScript(int num, char *script, jsval *rval, char *fn, int line);
 #else
@@ -52,6 +47,8 @@ int ActualrunScript(int num, char *script, jsval *rval);
 #endif
 
 int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval *rval);
+*/
+
 void * SFNodeNativeNew(void);
 int SFNodeNativeAssign(void *top, void *fromp);
 void * SFColorRGBANativeNew(void);

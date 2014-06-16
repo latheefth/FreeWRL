@@ -955,6 +955,8 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 
 	#endif
 }
+
+
 void setField_javascriptEventOut_B(union anyVrml* any,
 			int fieldType, unsigned len, int extraData, JSContext *scriptContext)
 {
