@@ -44,6 +44,7 @@ int isScriptControlInitialized(int actualscript);
 void js_setField_javascriptEventOut_B(union anyVrml* any, int fieldType, unsigned len, int extraData, int actualscript);
 void js_setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fieldType, unsigned len, int extraData, int actualscript);
 void js_cleanup_script_context(int counter);
+struct CRscriptStruct *getScriptControlIndex(int actualscript);
 
 #ifdef JAVASCRIPTVERBOSE
 int ActualrunScript(int num, char *script, jsval *rval, char *fn, int line);

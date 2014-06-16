@@ -243,6 +243,8 @@ typedef struct pCRoutes{
 	/* Routing table */
 	struct CRStruct *CRoutes;
 	/* Structure table */
+	struct CRscriptStruct *ScriptControl;// = 0; 	/* global objects and contexts for each script */
+
 
 }* ppCRoutes;
 void *CRoutes_constructor(){
@@ -281,6 +283,8 @@ void CRoutes_init(struct tCRoutes *t){
 		p->thisIntTimeStamp = 1;
 		/* Routing table */
 		//p->CRoutes;
+		/* Structure table */
+		p->ScriptControl = 0; 	/* global objects and contexts for each script */
 
 	}
 }
@@ -1383,6 +1387,50 @@ void mark_event_B (struct X3D_Node *lastFrom, int lastptr, struct X3D_Node *from
 		printf ("done mark_event\n");
 	#endif
 }
+
+struct CRscriptStruct *getScriptControl()
+{
+	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
+	return p->ScriptControl;
+}
+void setScriptControl(struct CRscriptStruct *ScriptControl)
+{
+	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
+	p->ScriptControl = ScriptControl;
+}
+struct CRscriptStruct *getScriptControlIndex(int actualscript)
+{
+	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
+	return &p->ScriptControl[actualscript];
+}
+int isScriptControlOK(int actualscript)
+{
+	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
+	return p->ScriptControl[actualscript].scriptOK;
+}
+int isScriptControlInitialized(int actualscript)
+{
+	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
+	return p->ScriptControl[actualscript]._initialized;
+}
+/*******************************************************************
+
+CRoutes_js_new;
+
+Register a new script for future routing
+
+********************************************************************/
+
+void CRoutes_js_new (int num, int scriptType) {
+	/* record whether this is a javascript, class invocation, ... */
+	ttglobal tg = gglobal();
+	ppCRoutes p = (ppCRoutes)tg->CRoutes.prv;
+	p->ScriptControl[num].thisScriptType = scriptType;
+
+	/* compare with a intptr_t, because we need to compare to -1 */
+	if (num > tg->CRoutes.max_script_found) tg->CRoutes.max_script_found = num;
+}
+
 
 
 #ifdef HAVE_JAVASCRIPT
