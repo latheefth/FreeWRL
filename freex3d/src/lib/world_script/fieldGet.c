@@ -185,8 +185,8 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 	#endif
 
 	/* get context and global object for this script */
-	cx =  ScriptControl[tonode].cx;
-	obj = ScriptControl[tonode].glob;
+	cx =  (JSContext*)ScriptControl[tonode].cx;
+	obj = (JSObject*)ScriptControl[tonode].glob;
 
 #if defined(JS_THREADSAFE)
 	JS_BeginRequest(cx);
@@ -274,8 +274,8 @@ void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
 	/* get context and global object for this script */
-	cx =  ScriptControl[tonode].cx;
-	obj = ScriptControl[tonode].glob;
+	cx =  (JSContext*)ScriptControl[tonode].cx;
+	obj = (JSObject*)ScriptControl[tonode].glob;
 
 #if defined(JS_THREADSAFE)
 	JS_BeginRequest(cx);
@@ -915,8 +915,8 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen 
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
 	/* get context and global object for this script */
-	cx =  ScriptControl[tonode].cx;
-	obj = ScriptControl[tonode].glob;
+	cx =  (JSContext*)ScriptControl[tonode].cx;
+	obj = (JSObject*)ScriptControl[tonode].glob;
 
 #if defined(JS_THREADSAFE)
 	JS_BeginRequest(cx);

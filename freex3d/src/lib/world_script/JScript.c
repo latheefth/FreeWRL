@@ -179,6 +179,11 @@ function - see section C.4.3 of the spec.
 
 ********************************************************************/
 /* run the script from within C */
+#if JS_VERSION >= 185
+#define JSSCRIPT JSObject
+#else
+#define JSSCRIPT JSScript
+#endif
 void process_eventsProcessed() {
 #ifdef HAVE_JAVASCRIPT
 
@@ -191,13 +196,13 @@ void process_eventsProcessed() {
 #if defined(JS_THREADSAFE)
 			JS_BeginRequest(p->ScriptControl[counter].cx);
 #endif
-			p->ScriptControl[counter].eventsProcessed = JS_CompileScript(
-				 p->ScriptControl[counter].cx,
-				 p->ScriptControl[counter].glob,
+			p->ScriptControl[counter].eventsProcessed = (void *)JS_CompileScript(
+				p->ScriptControl[counter].cx,
+				p->ScriptControl[counter].glob,
 				"eventsProcessed()", strlen ("eventsProcessed()"),
 				"compile eventsProcessed()", 1);
 #if JS_VERSION >= 185
-			if (!JS_AddObjectRoot(p->ScriptControl[counter].cx,&(p->ScriptControl[counter].eventsProcessed))) {
+			if (!JS_AddObjectRoot(p->ScriptControl[counter].cx,&((JSSCRIPT*)(p->ScriptControl[counter].eventsProcessed)))) {
 				printf ("can not add object root for compiled eventsProcessed() for script %d\n",counter);
 			}
 #endif
@@ -352,7 +357,7 @@ void SaveScriptText(int num, const char *text) {
 	if (ScriptControl[num].eventsProcessed != NULL) {
 #if JS_VERSION >= 185
 		if (ScriptControl[num].cx != NULL) {
-			JS_RemoveObjectRoot(ScriptControl[num].cx,&ScriptControl[num].eventsProcessed);
+			JS_RemoveObjectRoot(ScriptControl[num].cx,&((JSSCRIPT*)(ScriptControl[num].eventsProcessed)));
 		}
 #endif
 		ScriptControl[num].eventsProcessed = NULL;
@@ -447,7 +452,7 @@ void kill_javascript(void) {
 				/* printf ("kill_javascript, context is %p\n",ScriptControl[i].cx); */
 #if JS_VERSION >= 185
 				if (ScriptControl[i].eventsProcessed != NULL) {
-					JS_RemoveObjectRoot(ScriptControl[i].cx,&ScriptControl[i].eventsProcessed);
+					JS_RemoveObjectRoot(ScriptControl[i].cx,&((JSSCRIPT *)(ScriptControl[i].eventsProcessed)));
 				}
 #endif
 				JS_DestroyContextMaybeGC(ScriptControl[i].cx);
@@ -708,8 +713,8 @@ int ActualrunScript(int num, char *script, jsval *rval) {
 
 
 	/* get context and global object for this script */
-	_context = ScriptControl[num].cx;
-	_globalObj = ScriptControl[num].glob;
+	_context = (JSContext*)ScriptControl[num].cx;
+	_globalObj = (JSObject*)ScriptControl[num].glob;
 
 	#ifdef JAVASCRIPTVERBOSE
 		printf("ActualrunScript script called at %s:%d  num: %d cx %p \"%s\", \n", 
@@ -1435,8 +1440,8 @@ static int JSaddGlobalECMANativeProperty(int num, const char *name) {
 	struct CRscriptStruct *ScriptControl = getScriptControl();
 
 	/* get context and global object for this script */
-	_context =  ScriptControl[num].cx;
-	_globalObj = ScriptControl[num].glob;
+	_context =  (JSContext*)ScriptControl[num].cx;
+	_globalObj = (JSObject*)ScriptControl[num].glob;
 
 	#ifdef  JAVASCRIPTVERBOSE
 		printf("addGlobalECMANativeProperty: name \"%s\"\n", name);
@@ -1478,8 +1483,8 @@ static int JSaddGlobalAssignProperty(int num, const char *name, const char *str)
 	struct CRscriptStruct *ScriptControl = getScriptControl();
 
 	/* get context and global object for this script */
-	_context =  ScriptControl[num].cx;
-	_globalObj = ScriptControl[num].glob;
+	_context =  (JSContext*)ScriptControl[num].cx;
+	_globalObj = (JSObject*)ScriptControl[num].glob;
 
 	#ifdef JAVASCRIPTVERBOSE 
 		printf("addGlobalAssignProperty: cx: %p obj %p name \"%s\", evaluate script \"%s\"\n",
@@ -1729,8 +1734,8 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 	p = (ppJScript)tg->JScript.prv;
 
 	touched = FALSE;
-	interpobj = p->ScriptControl[actualscript].glob;
-	cx =  p->ScriptControl[actualscript].cx;
+	interpobj = (JSObject*)p->ScriptControl[actualscript].glob;
+	cx =  (JSContext*)p->ScriptControl[actualscript].cx;
 	fullname = JSparamnames[fptr].name;
 
 #if defined(JS_THREADSAFE)

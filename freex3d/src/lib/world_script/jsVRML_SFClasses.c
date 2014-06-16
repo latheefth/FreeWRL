@@ -1553,8 +1553,8 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 			struct CRscriptStruct *ScriptControl = getScriptControl(); 
 			myObj = X3D_SCRIPT(ptr->handle)->__scriptObj;
 			/* get context and global object for this script */
-			cx2 =  ScriptControl[myObj->num].cx;
-			obj2 = ScriptControl[myObj->num].glob;
+			cx2 =  (JSContext*)ScriptControl[myObj->num].cx;
+			obj2 = (JSObject*)ScriptControl[myObj->num].glob;
 			if (JS_GetProperty (cx2, obj2, _id_c, &rval)) {
 				if (JSVAL_IS_NULL(rval)) {
 					ConsoleMessage ("Script - field :%s: does not exist",_id_c);
@@ -1730,8 +1730,8 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 			}
 
 			/* get context and global object for this script */
-			cx2 =  ScriptControl[myObj->num].cx;
-			obj2 = ScriptControl[myObj->num].glob;
+			cx2 =  (JSContext*)ScriptControl[myObj->num].cx;
+			obj2 = (JSObject*)ScriptControl[myObj->num].glob;
 			//it doesn't seem to matter which cx/obj we use.
 			cx2 = cx;
 			obj2 = obj;
