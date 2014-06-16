@@ -1862,7 +1862,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 					//if (!JS_AddObjectRoot(cx2,&eventInFunction)) {
 					JSparamnames[myfield->fieldDecl->JSparamNameIndex].eventInFunction = eventInFunction;
 					#if JS_VERSION >= 185
-					if (!JS_AddObjectRoot(cx,&(JSparamnames[myfield->fieldDecl->JSparamNameIndex].eventInFunction))) {
+					if (!JS_AddObjectRoot(cx,&((JSSCRIPT*)(JSparamnames[myfield->fieldDecl->JSparamNameIndex].eventInFunction)))) {
 						printf( "JS_AddObjectRoot failed for compilation of script \"%s\" at %s:%d.\n",scriptline,__FILE__,__LINE__);
 						return JS_FALSE;
 					}

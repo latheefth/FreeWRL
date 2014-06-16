@@ -67,6 +67,14 @@ typedef int JSErrorReport;
 # include <jsdbgapi.h> /* JS debugger */
 #endif
 
+#if JS_VERSION >= 185
+#define JSSCRIPT JSObject
+#else
+#define JSSCRIPT JSScript
+#endif
+
+
+
 #endif /* IPHONE */
 
 #endif /* __LIBFREEWRL_SYSTEM_JS_H__ */

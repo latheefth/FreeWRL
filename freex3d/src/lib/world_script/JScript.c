@@ -140,11 +140,6 @@ function - see section C.4.3 of the spec.
 
 ********************************************************************/
 /* run the script from within C */
-#if JS_VERSION >= 185
-#define JSSCRIPT JSObject
-#else
-#define JSSCRIPT JSScript
-#endif
 void process_eventsProcessed() {
 #ifdef HAVE_JAVASCRIPT
 
