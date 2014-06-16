@@ -53,13 +53,6 @@ pointers there updated.
 #define FNAME_STUB "file"
 #define LINENO_STUB 0
 
-/* for keeping track of the ECMA values */
-struct ECMAValueStruct {
-	jsval	JS_address;
-	JSContext *context;
-	int	valueChanged;
-	char 	*name;
-};
 
 
 //extern struct ECMAValueStruct ECMAValues[];

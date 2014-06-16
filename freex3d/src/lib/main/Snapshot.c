@@ -39,7 +39,7 @@ CProto ???
 #include "../vrml_parser/Structs.h"
 #include "headers.h"
 #include "../vrml_parser/CParseGeneral.h"
-#include "../world_script/jsUtils.h"
+//#include "../world_script/jsUtils.h"
 #include "../world_script/CScripts.h"
 #include "Snapshot.h"
 #include "../scenegraph/Collision.h"

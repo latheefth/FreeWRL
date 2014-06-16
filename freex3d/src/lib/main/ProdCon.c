@@ -49,7 +49,7 @@
 #include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CParseLexer.h"
 #include "../vrml_parser/CParse.h"
-#include "../world_script/jsUtils.h"
+//#include "../world_script/jsUtils.h"
 #include "Snapshot.h"
 #include "../scenegraph/Collision.h"
 #include "../scenegraph/Component_KeyDevice.h"

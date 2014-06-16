@@ -35,7 +35,7 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 #include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h" 
-#include "../world_script/jsUtils.h"
+//#include "../world_script/jsUtils.h"
 /*
 #include "../world_script/jsNative.h"
 #include "../world_script/JScript.h"

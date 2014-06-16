@@ -63,6 +63,14 @@ void _set4f(double len, double *mat, int row);
 
 /* for keeping track of the ECMA values */
 #define ECMAValueTableSize 100
+/* for keeping track of the ECMA values */
+struct ECMAValueStruct {
+	jsval	JS_address;
+	JSContext *context;
+	int	valueChanged;
+	char 	*name;
+};
+
 //struct ECMAValueStruct ECMAValues[ECMAValueTableSize];
 //int maxECMAVal = 0;
 

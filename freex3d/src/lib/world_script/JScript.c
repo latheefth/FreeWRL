@@ -131,6 +131,39 @@ void js_cleanup_script_context(int counter){
 	CLEANUP_JAVASCRIPT(getScriptControlIndex(counter)->cx);
 }
 
+void initializeAnyScripts()
+{
+/*
+   we want to run initialize() from the calling thread. NOTE: if
+   initialize creates VRML/X3D nodes, it will call the ProdCon methods
+   to do this, and these methods will check to see if nodes, yada,
+   yada, yada, until we run out of stack. So, we check to see if we
+   are initializing; if so, don't worry about checking for new scripts
+   any scripts to initialize here? we do it here, because we may just
+   have created new scripts during  X3D/VRML parsing. Routing in the
+   Display thread may have noted new scripts, but will ignore them
+   until   we have told it that the scripts are initialized.  printf
+   ("have scripts to initialize in fwl_RenderSceneUpdateScene old %d new
+   %d\n",max_script_found, max_script_found_and_initialized);
+*/
+
+//#define INITIALIZE_ANY_SCRIPTS 
+	ttglobal tg = (ttglobal)gglobal();
+	if( tg->CRoutes.max_script_found != tg->CRoutes.max_script_found_and_initialized) 
+	{ 
+		struct CRscriptStruct *ScriptControl = getScriptControl(); 
+		int i; jsval retval; 
+		for (i=tg->CRoutes.max_script_found_and_initialized+1; i <= tg->CRoutes.max_script_found; i++) 
+		{ 
+			/* printf ("initializing script %d in thread %u\n",i,pthread_self());  */ 
+			JSCreateScriptContext(i); 
+			JSInitializeScriptAndFields(i); 
+			if (ScriptControl[i].scriptOK) ACTUALRUNSCRIPT(i, "initialize()" ,&retval); 
+			 /* printf ("initialized script %d\n",i);*/  
+		} 
+		tg->CRoutes.max_script_found_and_initialized = tg->CRoutes.max_script_found; 
+	}
+}
 /********************************************************************
 
 process_eventsProcessed()
@@ -685,6 +718,7 @@ int ActualrunScript(int num, char *script, jsval *rval) {
 
 	return JS_TRUE;
 }
+
 
 /* run the script from within Javascript  */
 int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval *rval) {

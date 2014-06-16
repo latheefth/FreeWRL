@@ -48,7 +48,7 @@
 #include "../vrml_parser/CRoutes.h"
 #include "headers.h"
 #include "../vrml_parser/CParseGeneral.h"
-#include "../world_script/jsUtils.h"
+//#include "../world_script/jsUtils.h"
 #include "../world_script/JScript.h"
 #include "../world_script/CScripts.h"
 #include "Snapshot.h"
@@ -361,20 +361,6 @@ int isBrowserPlugin = FALSE; //I can't think of a scenario where sharing this ac
    ("have scripts to initialize in fwl_RenderSceneUpdateScene old %d new
    %d\n",max_script_found, max_script_found_and_initialized);
 */
-
-#define INITIALIZE_ANY_SCRIPTS \
-        if (tg->CRoutes.max_script_found != tg->CRoutes.max_script_found_and_initialized) { \
-				struct CRscriptStruct *ScriptControl = getScriptControl(); \
-                int i; jsval retval; \
-                for (i=tg->CRoutes.max_script_found_and_initialized+1; i <= tg->CRoutes.max_script_found; i++) { \
-                        /* printf ("initializing script %d in thread %u\n",i,pthread_self());  */ \
-                        JSCreateScriptContext(i); \
-                        JSInitializeScriptAndFields(i); \
-			if (ScriptControl[i].scriptOK) ACTUALRUNSCRIPT(i, "initialize()" ,&retval); \
-                        /* printf ("initialized script %d\n",i);*/  \
-                } \
-                tg->CRoutes.max_script_found_and_initialized = tg->CRoutes.max_script_found; \
-        }
 
 /* we bind bindable nodes on parse in this thread */
 #define SEND_BIND_IF_REQUIRED(node) \
@@ -1040,7 +1026,7 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
 #endif /* _MSC_VER */
 
 	#ifdef HAVE_JAVASCRIPT
-        INITIALIZE_ANY_SCRIPTS;
+		initializeAnyScripts();
 	#endif
 
 
