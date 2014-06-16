@@ -66,6 +66,11 @@ void dumpOneNode(int myptr);
 void dumpOne_X3D_Node(struct X3D_Node * boxptr);
 void fudgeIfNeeded(int myptr,int myoffset);
 
+/* defined and used below */
+void getMFStringtype(JSContext *, jsval *, struct Multi_String *);
+void getJSMultiNumType(JSContext *, struct Multi_Vec3f *, int);
+
+
 /*******************************************************************
 
 A group of routines to SET a field in memory - in the FreeWRL
@@ -1167,6 +1172,34 @@ void setField_javascriptEventOut_B(union anyVrml* any,
 
 	#endif
 }
+
+void js_setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fieldType, unsigned len, int extraData, int actualscript) {
+	struct CRscriptStruct *scriptcontrol;
+
+	scriptcontrol = getScriptControlIndex(actualscript);
+#if defined(JS_THREADSAFE)
+		JS_BeginRequest(scriptcontrol->cx);
+#endif
+		setField_javascriptEventOut(tn,tptr,fieldType, len, extraData, scriptcontrol->cx);
+#if defined(JS_THREADSAFE)
+		JS_EndRequest(scriptcontrol->cx);
+#endif
+}
+
+void js_setField_javascriptEventOut_B(union anyVrml* any, int fieldType, unsigned len, int extraData, int actualscript){
+	struct CRscriptStruct *scriptcontrol;
+
+	scriptcontrol = getScriptControlIndex(actualscript);
+#if defined(JS_THREADSAFE)
+		JS_BeginRequest(scriptcontrol->cx);
+#endif
+		setField_javascriptEventOut_B(any,fieldType, len, extraData, scriptcontrol->cx);
+
+#if defined(JS_THREADSAFE)
+		JS_EndRequest(scriptcontrol->cx);
+#endif
+}
+
 
 #endif /* HAVE_JAVASCRIPT */
 

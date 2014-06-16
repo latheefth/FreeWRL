@@ -190,36 +190,6 @@ void process_eventsProcessed() {
 }
 
 
-void js_setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fieldType, unsigned len, int extraData, int actualscript) {
-	struct CRscriptStruct *scriptcontrol;
-	ttglobal tg = gglobal();
-	ppJScript p = (ppJScript)tg->JScript.prv;
-
-	scriptcontrol = getScriptControlIndex(actualscript);
-#if defined(JS_THREADSAFE)
-		JS_BeginRequest(scriptcontrol->cx);
-#endif
-		setField_javascriptEventOut(tn,tptr,fieldType, len, extraData, scriptcontrol->cx);
-#if defined(JS_THREADSAFE)
-		JS_EndRequest(scriptcontrol->cx);
-#endif
-}
-
-void js_setField_javascriptEventOut_B(union anyVrml* any, int fieldType, unsigned len, int extraData, int actualscript){
-	struct CRscriptStruct *scriptcontrol;
-	ttglobal tg = gglobal();
-	ppJScript p = (ppJScript)tg->JScript.prv;
-
-	scriptcontrol = getScriptControlIndex(actualscript);
-#if defined(JS_THREADSAFE)
-		JS_BeginRequest(scriptcontrol->cx);
-#endif
-		setField_javascriptEventOut_B(any,fieldType, len, extraData, scriptcontrol->cx);
-
-#if defined(JS_THREADSAFE)
-		JS_EndRequest(scriptcontrol->cx);
-#endif
-}
 
 struct CRjsnameStruct *getJSparamnames()
 {
