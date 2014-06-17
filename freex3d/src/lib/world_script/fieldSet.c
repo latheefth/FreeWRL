@@ -825,7 +825,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 
 		case FIELDTYPE_SFInt32:
 		case FIELDTYPE_SFBool:	{	/* SFBool */
-			if (!JS_ValueToInt32(scriptContext, tg->CRoutes.JSglobal_return_val,&ival)) {
+			if (!JS_ValueToInt32(scriptContext, *(jsval*)(tg->JScript.JSglobal_return_val),&ival)) {
 				printf ("error\n");
 				ival=0;
 			}
@@ -835,13 +835,13 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 
 		case FIELDTYPE_SFDouble:
 		case FIELDTYPE_SFTime: {
-			if (!JS_ValueToNumber(scriptContext, tg->CRoutes.JSglobal_return_val,&tval)) tval=0.0;
+			if (!JS_ValueToNumber(scriptContext, *(jsval*)(tg->JScript.JSglobal_return_val),&tval)) tval=0.0;
 			memcpy ((void *)memptr, (void *)&tval,len);
 			break;
 		}
 
 		case FIELDTYPE_SFFloat: {
-			if (!JS_ValueToNumber(scriptContext, tg->CRoutes.JSglobal_return_val,&tval)) tval=0.0;
+			if (!JS_ValueToNumber(scriptContext, *(jsval*)(tg->JScript.JSglobal_return_val),&tval)) tval=0.0;
 			/* convert double precision to single, for X3D */
 			fl[0] = (float) tval;
 			memcpy ((void *)memptr, (void *)fl,len);
@@ -850,7 +850,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 
 		case FIELDTYPE_SFImage: {
 			/* the string should be saved as an SFImage */
-			strval = JS_ValueToString(scriptContext, tg->CRoutes.JSglobal_return_val);
+			strval = JS_ValueToString(scriptContext, *(jsval*)(tg->JScript.JSglobal_return_val));
 #if JS_VERSION < 185
 	        	strp = JS_GetStringBytes(strval);
 #else
@@ -868,7 +868,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 			struct Uni_String *ms;
 			uintptr_t *newptr;
 
-			strval = JS_ValueToString(scriptContext, tg->CRoutes.JSglobal_return_val);
+			strval = JS_ValueToString(scriptContext, *(jsval*)(tg->JScript.JSglobal_return_val));
 #if JS_VERSION < 185
 			strp = JS_GetStringBytes(strval);
 #else
@@ -896,7 +896,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 		case FIELDTYPE_MFNode: {
 				struct X3D_Node *mynode;
 
-				strval = JS_ValueToString(scriptContext, tg->CRoutes.JSglobal_return_val);
+				strval = JS_ValueToString(scriptContext, *(jsval*)(tg->JScript.JSglobal_return_val));
 #if JS_VERSION < 185
 				strp = JS_GetStringBytes(strval);
 #else
@@ -926,7 +926,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 		case FIELDTYPE_MFString: {
 			getMFStringtype (
 				scriptContext,
-				(jsval *)&tg->CRoutes.JSglobal_return_val,
+				(jsval *)tg->JScript.JSglobal_return_val,
 				(struct Multi_String *)memptr);
 			break;
 		}
@@ -1032,7 +1032,7 @@ void setField_javascriptEventOut_B(union anyVrml* any,
 
 		case FIELDTYPE_SFInt32:
 		case FIELDTYPE_SFBool:	{	/* SFBool */
-			if (!JS_ValueToInt32(scriptContext, tg->CRoutes.JSglobal_return_val,&ival)) {
+			if (!JS_ValueToInt32(scriptContext, *(jsval*)(tg->JScript.JSglobal_return_val),&ival)) {
 				printf ("error\n");
 				ival=0;
 			}
@@ -1042,13 +1042,13 @@ void setField_javascriptEventOut_B(union anyVrml* any,
 
 		case FIELDTYPE_SFDouble:
 		case FIELDTYPE_SFTime: {
-			if (!JS_ValueToNumber(scriptContext, tg->CRoutes.JSglobal_return_val,&tval)) tval=0.0;
+			if (!JS_ValueToNumber(scriptContext, *(jsval*)(tg->JScript.JSglobal_return_val),&tval)) tval=0.0;
 			memcpy ((void *)memptr, (void *)&tval,len);
 			break;
 		}
 
 		case FIELDTYPE_SFFloat: {
-			if (!JS_ValueToNumber(scriptContext, tg->CRoutes.JSglobal_return_val,&tval)) tval=0.0;
+			if (!JS_ValueToNumber(scriptContext, *(jsval*)(tg->JScript.JSglobal_return_val),&tval)) tval=0.0;
 			/* convert double precision to single, for X3D */
 			fl[0] = (float) tval;
 			memcpy ((void *)memptr, (void *)fl,len);
@@ -1057,7 +1057,7 @@ void setField_javascriptEventOut_B(union anyVrml* any,
 
 		case FIELDTYPE_SFImage: {
 			/* the string should be saved as an SFImage */
-			strval = JS_ValueToString(scriptContext, tg->CRoutes.JSglobal_return_val);
+			strval = JS_ValueToString(scriptContext, *(jsval*)(tg->JScript.JSglobal_return_val));
 #if JS_VERSION < 185
 	        	strp = JS_GetStringBytes(strval);
 #else
@@ -1075,7 +1075,7 @@ void setField_javascriptEventOut_B(union anyVrml* any,
 			struct Uni_String *ms;
 			uintptr_t *newptr;
 
-			strval = JS_ValueToString(scriptContext, tg->CRoutes.JSglobal_return_val);
+			strval = JS_ValueToString(scriptContext, *(jsval*)(tg->JScript.JSglobal_return_val));
 #if JS_VERSION < 185
 			strp = JS_GetStringBytes(strval);
 #else
@@ -1103,7 +1103,7 @@ void setField_javascriptEventOut_B(union anyVrml* any,
 		case FIELDTYPE_MFNode: {
 				struct X3D_Node *mynode;
 
-				strval = JS_ValueToString(scriptContext, tg->CRoutes.JSglobal_return_val);
+				strval = JS_ValueToString(scriptContext, *(jsval*)(tg->JScript.JSglobal_return_val));
 #if JS_VERSION < 185
 				strp = JS_GetStringBytes(strval);
 #else
@@ -1138,7 +1138,7 @@ void setField_javascriptEventOut_B(union anyVrml* any,
 		case FIELDTYPE_MFString: {
 			getMFStringtype (
 				scriptContext,
-				(jsval *)&tg->CRoutes.JSglobal_return_val,
+				(jsval *)tg->JScript.JSglobal_return_val,
 				(struct Multi_String *)memptr);
 			break;
 		}
@@ -1457,7 +1457,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 		printf ("getJSMultiNumType: using JSglobal_return_val\n");
 		#endif
 
-		myJSVal = &tg->CRoutes.JSglobal_return_val;
+		myJSVal = tg->JScript.JSglobal_return_val;
 	}
 
 	if (!JSVAL_IS_OBJECT(*myJSVal)) {

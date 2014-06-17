@@ -94,6 +94,7 @@ typedef struct pJScript{
 #ifdef HAVE_JAVASCRIPT
 	JSRuntime *runtime;// = NULL;
 	JSClass globalClass;
+	jsval JSglobal_return_value;
 #endif // HAVE_JAVASCRIPT
 
 }* ppJScript;
@@ -108,7 +109,7 @@ void JScript_init(struct tJScript *t){
 	//public
 	t->jsnameindex = -1;
 	t->MAXJSparamNames = 0;
-
+	t->JSglobal_return_val = NULL;
 	//private
 	t->prv = JScript_constructor();
 	{
@@ -119,10 +120,17 @@ void JScript_init(struct tJScript *t){
 		p->JSMaxScript = 0;
 		p->runtime = NULL;
 		memcpy(&p->globalClass,&staticGlobalClass,sizeof(staticGlobalClass));
+		t->JSglobal_return_val = &p->JSglobal_return_value;
 #endif // HAVE_JAVASCRIPT
 	}
 }
 //	ppJScript p = (ppJScript)gglobal()->JScript.prv;
+
+jsval *getJSglobalRval()
+{
+	ppJScript p = (ppJScript)gglobal()->JScript.prv;
+	return &p->JSglobal_return_value;
+}
 
 void js_cleanup_script_context(int counter){
 	ttglobal tg = gglobal();
@@ -1505,7 +1513,7 @@ static int JSaddGlobalAssignProperty(int num, const char *name, const char *str)
 			 case FIELDTYPE_##thistype:  {  \
 				thistype##Native *ptr; \
 				/* printf ("getting private data in GETJSPTR for %p \n",JSglobal_return_val); */ \
-        			if ((ptr = (thistype##Native *)JS_GetPrivate(cx, JSVAL_TO_OBJECT(tg->CRoutes.JSglobal_return_val))) == NULL) { \
+        			if ((ptr = (thistype##Native *)JS_GetPrivate(cx, JSVAL_TO_OBJECT(*(jsval *)(tg->JScript.JSglobal_return_val)))) == NULL) { \
                 			printf( "JS_GetPrivate failed in get_valueChanged_flag\n"); \
 					JSENDREQUEST_SUBSTITUTION(cx) \
                 			return JS_FALSE; \
@@ -1528,7 +1536,7 @@ static int JSaddGlobalAssignProperty(int num, const char *name, const char *str)
 		jsval mainElement; \
 		int len; \
 		int i; \
-		if (!JS_GetProperty(cx, JSVAL_TO_OBJECT(tg->CRoutes.JSglobal_return_val), "length", &mainElement)) { \
+		if (!JS_GetProperty(cx, JSVAL_TO_OBJECT(*(jsval *)(tg->JScript.JSglobal_return_val)), "length", &mainElement)) { \
 			printf ("JS_GetProperty failed for \"length\" in get_valueChanged_flag\n"); \
 			JSENDREQUEST_SUBSTITUTION(cx) \
 			return FALSE; \
@@ -1536,7 +1544,7 @@ static int JSaddGlobalAssignProperty(int num, const char *name, const char *str)
 		len = JSVAL_TO_INT(mainElement); \
 		/* go through each element of the main array. */ \
 		for (i = 0; i < len; i++) { \
-			if (!JS_GetElement(cx, JSVAL_TO_OBJECT(tg->CRoutes.JSglobal_return_val), i, &mainElement)) { \
+			if (!JS_GetElement(cx, JSVAL_TO_OBJECT(*(jsval*)(tg->JScript.JSglobal_return_val)), i, &mainElement)) { \
 				printf ("JS_GetElement failed for %d in get_valueChanged_flag\n",i); \
 				JSENDREQUEST_SUBSTITUTION(cx) \
 				return FALSE; \
@@ -1561,7 +1569,7 @@ static int JSaddGlobalAssignProperty(int num, const char *name, const char *str)
 		JSContext *cx; \
 		cx = scriptcontrol->cx; \
 		JSBEGINREQUEST_SUBSTITUTION(cx) \
-		if (!JS_GetProperty(cx, JSVAL_TO_OBJECT(tg->CRoutes.JSglobal_return_val), "length", &mainElement)) { \
+		if (!JS_GetProperty(cx, JSVAL_TO_OBJECT(*(jsval*)(tg->JScript.JSglobal_return_val)), "length", &mainElement)) { \
 			printf ("JS_GetProperty failed for \"length\" in get_valueChanged_flag\n"); \
 			JSENDREQUEST_SUBSTITUTION(cx) \
 			break; \
@@ -1569,7 +1577,7 @@ static int JSaddGlobalAssignProperty(int num, const char *name, const char *str)
 		len = JSVAL_TO_INT(mainElement); \
 		/* go through each element of the main array. */ \
 		for (i = 0; i < len; i++) { \
-			if (!JS_GetElement(cx, JSVAL_TO_OBJECT(tg->CRoutes.JSglobal_return_val), i, &mainElement)) { \
+			if (!JS_GetElement(cx, JSVAL_TO_OBJECT(*(jsval*)(tg->JScript.JSglobal_return_val)), i, &mainElement)) { \
 				printf ("JS_GetElement failed for %d in get_valueChanged_flag\n",i); \
 				JSENDREQUEST_SUBSTITUTION(cx) \
 				break; \
@@ -1605,7 +1613,7 @@ static int JSaddGlobalAssignProperty(int num, const char *name, const char *str)
 	case FIELDTYPE_MF##thistype: {\
 		jsval mainElement; \
 		/* printf ("GET_ECMA_MF_TOUCHED called on %d\n",JSglobal_return_val);  */ \
-		if (!JS_GetProperty(cx, JSVAL_TO_OBJECT(tg->CRoutes.JSglobal_return_val), "MF_ECMA_has_changed", &mainElement)) { \
+		if (!JS_GetProperty(cx, JSVAL_TO_OBJECT(*(jsval*)(tg->JScript.JSglobal_return_val)), "MF_ECMA_has_changed", &mainElement)) { \
 			printf ("JS_GetProperty failed for \"MF_ECMA_HAS_changed\" in get_valueChanged_flag\n"); \
 		} /* else printf ("GET_ECMA_MF_TOUCHED MF_ECMA_has_changed is %d for %d %d\n",JSVAL_TO_INT(mainElement),cx,JSglobal_return_val); */  \
 		touched = JSVAL_TO_INT(mainElement);\
@@ -1617,7 +1625,7 @@ static int JSaddGlobalAssignProperty(int num, const char *name, const char *str)
 		jsval myv = INT_TO_JSVAL(0); \
 		/* printf ("RESET_ECMA_MF_TOUCHED called on %d ",JSglobal_return_val); */ \
 		JSBEGINREQUEST_SUBSTITUTION(p->ScriptControl[actualscript].cx) \
-        	if (!JS_SetProperty(scriptcontrol->cx, JSVAL_TO_OBJECT(tg->CRoutes.JSglobal_return_val), "MF_ECMA_has_changed", &myv)) { \
+        	if (!JS_SetProperty(scriptcontrol->cx, JSVAL_TO_OBJECT(*(jsval*)(tg->JScript.JSglobal_return_val)), "MF_ECMA_has_changed", &myv)) { \
         		printf( "JS_SetProperty failed for \"MF_ECMA_has_changed\" in RESET_ECMA_MF_TOUCHED.\n"); \
         	}\
                 /* if (!JS_GetProperty( p->ScriptControl[actualscript].cx, JSVAL_TO_OBJECT(JSglobal_return_val), "MF_ECMA_has_changed", &mainElement)) { \
@@ -1715,7 +1723,7 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 		JSparamnames[fptr].name, FIELDTYPES[JSparamnames[fptr].type]);
 	#endif
 
-	if (!JS_GetProperty(cx,  interpobj ,fullname,&tg->CRoutes.JSglobal_return_val)) {
+	if (!JS_GetProperty(cx,  interpobj ,fullname,tg->JScript.JSglobal_return_val)) {
                	printf ("cant get property for %s\n",fullname);
 #if defined(JS_THREADSAFE)
 		JS_EndRequest(cx);

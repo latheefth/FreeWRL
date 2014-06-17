@@ -358,7 +358,7 @@ static void JS_MF_TO_X3D(JSContext *cx, JSObject * obj, void *Data, int dataType
 	printf ("JS_MF_TO_X3D, vp is a "); printJSNodeType(cx,JSVAL_TO_OBJECT(*newval));
 	#endif
 
-	tg->CRoutes.JSglobal_return_val = *newval;
+	tg->JScript.JSglobal_return_val = newval;
 	getJSMultiNumType (cx, (struct Multi_Vec3f*) Data, convertToSFType(dataType));
 
 }

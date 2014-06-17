@@ -341,7 +341,7 @@ iOLDCODE	}Component_Networking;
 	struct tCRoutes{
 		/* EAI needs the extra parameter, so we put it globally when a RegisteredListener is clicked. */
 		int CRoutesExtra;// = 0;
-		jsval JSglobal_return_val;
+		//jsval JSglobal_return_val;
 		void *JSSFpointer;
 		int *scr_act;// = 0;				/* this script has been sent an eventIn */
 		int max_script_found;// = -1;			/* the maximum script number found */
@@ -355,7 +355,7 @@ iOLDCODE	}Component_Networking;
 	struct tJScript{
 		int jsnameindex; //= -1;
 		int MAXJSparamNames;// = 0;
-
+		void * JSglobal_return_val;
 		void *prv;
 	}JScript;
 	struct tjsUtils{
