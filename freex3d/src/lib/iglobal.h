@@ -27,7 +27,6 @@ Variable use:
 #include "list.h" 
 #include <threads.h> //for threads
 #include "vrml_parser/Structs.h" //for SFColor
-#include "world_script/JScript.h" //for jsval
 #include "x3d_parser/X3DParser.h" //for PARENTSTACKSIZE
 #include "ui/common.h" // for ppcommon
 
@@ -364,7 +363,7 @@ iOLDCODE	}Component_Networking;
 	struct tjsVRMLBrowser{
 		/* for setting field values to the output of a CreateVrml style of call */
 		/* it is kept at zero, unless it has been used. Then it is reset to zero */
-		jsval JSCreate_global_return_val;
+		void * JSCreate_global_return_val;
 		void *prv;
 	}jsVRMLBrowser;
 	struct tjsVRMLClasses{

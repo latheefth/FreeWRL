@@ -1445,9 +1445,9 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 		(unsigned int) JSVAL_TO_INT(tg->CRoutes.JSglobal_return_val));
 	#endif
 
-	if (JSVAL_TO_INT(tg->jsVRMLBrowser.JSCreate_global_return_val) != 0) {
-		myJSVal = &tg->jsVRMLBrowser.JSCreate_global_return_val;
-		tg->jsVRMLBrowser.JSCreate_global_return_val = INT_TO_JSVAL(0);
+	if (JSVAL_TO_INT(*(jsval*)(tg->jsVRMLBrowser.JSCreate_global_return_val)) != 0) {
+		myJSVal = (jsval *)tg->jsVRMLBrowser.JSCreate_global_return_val;
+		*(jsval *)(tg->jsVRMLBrowser.JSCreate_global_return_val) = INT_TO_JSVAL(0);
 
 		#ifdef SETFIELDVERBOSE
 		printf ("getJSMultiNumType: using JSCreate_global_return_val\n");

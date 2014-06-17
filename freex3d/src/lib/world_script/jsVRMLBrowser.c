@@ -1321,6 +1321,10 @@ BrowserSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval 
 //jsval JSCreate_global_return_val;
 typedef struct pjsVRMLBrowser{
 	int ijunk;
+#ifdef HAVE_JAVASCRIPT
+	jsval JSCreate_global_return_val;
+#endif // HAVE_JAVASCRIPT
+
 }* ppjsVRMLBrowser;
 void *jsVRMLBrowser_constructor(){
 	void *v = malloc(sizeof(struct pjsVRMLBrowser));
@@ -1331,6 +1335,14 @@ void jsVRMLBrowser_init(struct tjsVRMLBrowser *t){
 	//public
 	//private
 	t->prv = jsVRMLBrowser_constructor();
+	{
+		ppjsVRMLBrowser p = (ppjsVRMLBrowser)t->prv;
+		/* Script name/type table */
+#ifdef HAVE_JAVASCRIPT
+		t->JSCreate_global_return_val = &p->JSCreate_global_return_val;
+#endif // HAVE_JAVASCRIPT
+	}
+
 }
 //	ppjsVRMLBrowser p = (ppjsVRMLBrowser)gglobal()->jsVRMLBrowser.prv;
 /* we add/remove routes with this call */
@@ -1426,7 +1438,7 @@ VrmlBrowserInit(JSContext *context, JSObject *globalObj, BrowserNative *brow)
 {
 	JSObject *obj;
 	ttglobal tg = gglobal();
-	tg->jsVRMLBrowser.JSCreate_global_return_val = INT_TO_JSVAL(0);
+	*(jsval *)tg->jsVRMLBrowser.JSCreate_global_return_val = INT_TO_JSVAL(0);
 
 	#ifdef JSVERBOSE
 		printf("VrmlBrowserInit\n");
