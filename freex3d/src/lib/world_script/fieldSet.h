@@ -57,8 +57,6 @@ int findIndexInFIELDNAMES(int, const char**, size_t);
 char *findFIELDNAMESfromNodeOffset(struct X3D_Node *node, int offset);
 void getMFNodetype (struct X3D_Node *strp, struct Multi_Node *ch, struct X3D_Node *par, int ar);
 
-void js_setField_javascriptEventOut_B(union anyVrml* any, int fieldType, unsigned len, int extraData, int actualscript);
-void js_setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fieldType, unsigned len, int extraData, int actualscript);
 
 #define DEF_FINDROUTEDFIELDFP(arr) int findRoutedFieldIn##arr(struct X3D_Node* node, const char* field, int fromTo)
 DEF_FINDROUTEDFIELDFP(FIELDNAMES);

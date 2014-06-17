@@ -166,5 +166,25 @@ SFColorNativeAssign(void *top, void *fromp);
 extern void
 SFColorNativeSet(void *p, struct Uni_String *sv);
 
+void * SFNodeNativeNew(void);
+int SFNodeNativeAssign(void *top, void *fromp);
+void * SFColorRGBANativeNew(void);
+void SFColorRGBANativeAssign(void *top, void *fromp);
+void * SFColorNativeNew(void);
+void SFColorNativeAssign(void *top, void *fromp);
+void * SFImageNativeNew(void);
+void SFImageNativeAssign(void *top, void *fromp);
+void * SFRotationNativeNew(void);
+void SFRotationNativeAssign(void *top, void *fromp);
+void * SFVec2fNativeNew(void);
+void SFVec2fNativeAssign(void *top, void *fromp);
+void * SFVec3fNativeNew(void);
+void SFVec3fNativeAssign(void *top, void *fromp);
+void * SFVec3dNativeNew(void);
+void SFVec3dNativeAssign(void *top, void *fromp);
+void * SFVec4fNativeNew(void);
+void SFVec4fNativeAssign(void *top, void *fromp);
+void * SFVec4dNativeNew(void);
+void SFVec4dNativeAssign(void *top, void *fromp);
 
 #endif /* __FREEWRL_JS_NATIVE_H__ */

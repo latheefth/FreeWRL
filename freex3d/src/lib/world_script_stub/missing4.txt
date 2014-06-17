@@ -1,0 +1,35 @@
+MainLoop process_eventsProcessed  RIF fwl_RenderSceneUpdateScene0
+MainLoop initializeAnyScripts  RIF fwl_RenderSceneUpdateScene0
+X3DProtoScript getJSparamnames
+fieldGet getJSparamnames
+Component_ProgrammableShaders getJSparamnames
+MainLoop getJSparamnames  RIF dump_scene2
+CRoutes getJSparamnames
+CScripts getJSparamnames
+EAIHelpers getJSparamnames
+ProdCon kill_javascript  RIF new_root
+OpenGL_Utils kill_javascript
+iglobal JScript_init  RIF iglobal_constructor
+iglobal jsUtils_init  RIF iglobal_constructor
+iglobal jsVRMLBrowser_init  RIF iglobal_constructor
+iglobal jsVRMLClasses_init  RIF iglobal_constructor
+CRoutes js_cleanup_script_context  RIF propagate_events_A
+CRoutes js_setField_javascriptEventOut_B  RIF gatherScriptEventOut_B
+CRoutes js_setField_javascriptEventOut  RIF gatherScriptEventOuts
+CRoutes get_valueChanged_flag  RIF gatherScriptEventOut_B
+CRoutes resetScriptTouchedFlag  RIF gatherScriptEventOut_B
+fieldSet set_one_ECMAtype  RIF setField_FromEAI_ToScript
+fieldGet set_one_ECMAtype
+fieldSet set_one_MFElementType  RIF setField_FromEAI_ToScript
+fieldGet set_one_MFElementType
+fieldSet set_one_MultiElementType  RIF setField_FromEAI_ToScript
+fieldGet set_one_MultiElementType
+X3DParser JSInit  RIF saveAttributes
+CScripts JSInit
+CParseParser JSInit
+X3DParser JSparamIndex  RIF getFieldFromScript
+CScripts JSparamIndex
+X3DProtoScript JSparamIndex
+CScripts SaveScriptText  RIF script_initCode
+CScripts SaveScriptField  RIF scriptFieldDecl_jsFieldInit
+fieldGet setScriptECMAtype  RIF getField_ToJavascript

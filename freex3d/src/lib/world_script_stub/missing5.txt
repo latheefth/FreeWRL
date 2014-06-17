@@ -1,0 +1,27 @@
+//after agnosticizing setfield.c, getfield.c
+
+process_eventsProcessed  RIF fwl_RenderSceneUpdateScene0
+initializeAnyScripts  RIF fwl_RenderSceneUpdateScene0
+getJSparamnames  RIF dump_scene2
+kill_javascript  RIF new_root
+js_cleanup_script_context  RIF propagate_events_A
+js_setField_javascriptEventOut_B  RIF gatherScriptEventOut_B
+js_setField_javascriptEventOut  RIF gatherScriptEventOuts
+get_valueChanged_flag  RIF gatherScriptEventOut_B
+resetScriptTouchedFlag  RIF gatherScriptEventOut_B
+set_one_ECMAtype  RIF setField_FromEAI_ToScript
+set_one_MFElementType  RIF setField_FromEAI_ToScript
+set_one_MultiElementType  RIF setField_FromEAI_ToScript
+JSInit  RIF saveAttributes
+JSparamIndex  RIF getFieldFromScript
+CScripts SaveScriptText  RIF script_initCode
+CScripts SaveScriptField  RIF scriptFieldDecl_jsFieldInit
+fieldGet setScriptECMAtype  RIF getField_ToJavascript
+
+
+// global *_init
+JScript_init  RIF iglobal_constructor
+jsUtils_init  RIF iglobal_constructor
+jsVRMLBrowser_init  RIF iglobal_constructor
+jsVRMLClasses_init  RIF iglobal_constructor
+

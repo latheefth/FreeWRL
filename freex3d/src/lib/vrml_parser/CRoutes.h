@@ -79,7 +79,6 @@ struct CRStruct {
 struct CRStruct *getCRoutes();
 
 /* function protos */
-int get_valueChanged_flag (int, int);
 void getSpecificRoute (int routeNo, struct X3D_Node **fromNode, int *fromOffset, struct X3D_Node **toNode, int *toOffset);
 
 void do_first(void);
@@ -89,7 +88,6 @@ unsigned long upper_power_of_two(unsigned long v);
 
 void mark_event (struct X3D_Node *from, int fromoffset);
 void mark_event_check (struct X3D_Node *from, int fromoffset,char *fn, int line);
-void resetScriptTouchedFlag(int actualscript, int fptr);
 void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, size_t multitype);
 
 void CRoutes_js_new (int num,int scriptType);
@@ -101,4 +99,7 @@ void AddRemoveSFNodeFieldChild(
                 int ar,  //0=set,1=add,2=remove
                 char *file,
                 int line);
+
+struct CRscriptStruct *getScriptControlIndex(int actualscript);
+
 #endif /* __FREEWRL_CROUTES_H__ */

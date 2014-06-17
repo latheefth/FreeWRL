@@ -28,46 +28,29 @@
 #ifndef __FREEWRL_JS_JSCRIPT_H__
 #define __FREEWRL_JS_JSCRIPT_H__
 
-//#include <system_js.h>
-
 void kill_javascript(void);
-void cleanupDie(int num, const char *msg);
-void JSMaxAlloc(void);
 void JSInit(int num);
 void SaveScriptText(int num, const char *text);
-void JSInitializeScriptAndFields (int num);
-void JSCreateScriptContext(int num);
 void process_eventsProcessed();
-
-int isScriptControlOK(int actualscript);
-int isScriptControlInitialized(int actualscript);
 void js_cleanup_script_context(int counter);
-struct CRscriptStruct *getScriptControlIndex(int actualscript);
 void initializeAnyScripts();
-
-
-
-void * SFNodeNativeNew(void);
-int SFNodeNativeAssign(void *top, void *fromp);
-void * SFColorRGBANativeNew(void);
-void SFColorRGBANativeAssign(void *top, void *fromp);
-void * SFColorNativeNew(void);
-void SFColorNativeAssign(void *top, void *fromp);
-void * SFImageNativeNew(void);
-void SFImageNativeAssign(void *top, void *fromp);
-void * SFRotationNativeNew(void);
-void SFRotationNativeAssign(void *top, void *fromp);
-void * SFVec2fNativeNew(void);
-void SFVec2fNativeAssign(void *top, void *fromp);
-void * SFVec3fNativeNew(void);
-void SFVec3fNativeAssign(void *top, void *fromp);
-void * SFVec3dNativeNew(void);
-void SFVec3dNativeAssign(void *top, void *fromp);
-void * SFVec4fNativeNew(void);
-void SFVec4fNativeAssign(void *top, void *fromp);
-void * SFVec4dNativeNew(void);
-void SFVec4dNativeAssign(void *top, void *fromp);
 void SaveScriptField (int num, indexT kind, indexT type, const char* field, union anyVrml value);
+void js_setField_javascriptEventOut_B(union anyVrml* any, int fieldType, unsigned len, int extraData, int actualscript);
+void js_setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fieldType, unsigned len, int extraData, int actualscript);
 
+void setScriptECMAtype(int num);
+int get_valueChanged_flag (int fptr, int actualscript);
+void resetScriptTouchedFlag(int actualscript, int fptr);
+#define MAXJSVARIABLELENGTH 25  /* variable name length can be this long... */
+struct CRjsnameStruct {
+        int     	type;
+        char    	name[MAXJSVARIABLELENGTH];
+		void *eventInFunction; /* compiled javascript function... if it is required */
+};
+struct CRjsnameStruct *getJSparamnames();
+int JSparamIndex (const char *name, const char *type);
+void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int datalen);
+void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen);
+void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int datalen);
 
 #endif /* __FREEWRL_JS_JSCRIPT_H__ */

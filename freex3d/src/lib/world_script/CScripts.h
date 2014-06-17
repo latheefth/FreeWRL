@@ -31,32 +31,11 @@ Class to wrap a java script for CParser
 /* ************************************************************************** */
 /* ************************ Java function name to JSScript mapping  ********* */
 /* ************************************************************************** */
-#define MAXJSVARIABLELENGTH 25  /* variable name length can be this long... */
 /* Some stuff for routing */
 #define FROM_SCRIPT 1
 #define TO_SCRIPT 2
 #define SCRIPT_TO_SCRIPT 3
 
-struct CRjsnameStruct {
-        int     	type;
-        char    	name[MAXJSVARIABLELENGTH];
-		void *eventInFunction; /* compiled javascript function... if it is required */
-//#if JS_VERSION >= 185
-//	JSObject *	eventInFunction;		/* compiled javascript function... if it is required */
-//#else
-//	JSScript *	eventInFunction;		/* compiled javascript function... if it is required */
-//#endif
-};
-
-
-/* ************************************************************************** */
-/* ************************ Generic defines/function protos   *************** */
-/* ************************************************************************** */
-//extern struct CRjsnameStruct *JSparamnames;
-struct CRjsnameStruct *getJSparamnames();
-void setJSparamnames(struct CRjsnameStruct *);
-//extern int jsnameindex;
-//extern int MAXJSparamNames;
 
 
 /* ************************************************************************** */
@@ -190,7 +169,6 @@ void setScriptControl(struct CRscriptStruct *ScriptControl);
 struct ScriptFieldInstanceInfo* scriptFieldInstanceInfo_copy(struct ScriptFieldInstanceInfo*);
 void scriptFieldDecl_setFieldASCIIValue(struct ScriptFieldDecl *me, const char *val);
 
-int JSparamIndex (const char *name, const char *type);
 
 /* setting script eventIns from routing table or EAI */
 void Set_one_MultiElementtype (int tn, int tptr, void *fn, unsigned len);

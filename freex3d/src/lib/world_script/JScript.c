@@ -144,7 +144,8 @@ void js_cleanup_script_context(int counter){
 	//CLEANUP_JAVASCRIPT(p->ScriptControl[counter].cx);
 	CLEANUP_JAVASCRIPT(getScriptControlIndex(counter)->cx);
 }
-
+void JSInitializeScriptAndFields (int num);
+void JSCreateScriptContext(int num);
 void initializeAnyScripts()
 {
 /*
