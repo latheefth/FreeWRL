@@ -52,9 +52,6 @@
 
 #include "JScript.h"
 #include "CScripts.h"
-//#include "jsUtils.h"
-#include "jsNative.h"
-//#include "jsVRMLClasses.h"
 
 
 #include <limits.h>
