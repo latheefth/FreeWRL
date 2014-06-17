@@ -561,9 +561,6 @@ void update_node(struct X3D_Node *ptr);
 void UPDATE_RENDERFLAG(struct X3D_Node *ptr, int flag,char *fi, int li);
 #define update_renderFlag(aaa,bbb) UPDATE_RENDERFLAG(aaa,bbb,__FILE__,__LINE__)
 
-void JSMaxAlloc(void);
-
-
 int get_touched_flag(uintptr_t fptr, uintptr_t actualscript);
 void getMultiElementtype(char *strp, struct Multi_Vec3f *tn, int eletype);
 void CRoutes_RemoveSimple(struct X3D_Node* from, int fromOfs,

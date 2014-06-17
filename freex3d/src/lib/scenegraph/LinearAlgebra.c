@@ -142,7 +142,7 @@ float *vecset3f(float *b, float x, float y, float z)
 	return b;
 }
 float veclength3f(float *a){
-	return sqrt(vecdot3f(a, a));
+	return (float)sqrt(vecdot3f(a, a));
 }
 
 double vecangle(struct point_XYZ* V1, struct point_XYZ* V2) {
@@ -345,8 +345,8 @@ BOOL line_intersect_line_3f(float *p1, float *v1, float *p2, float *v2, float *t
 	//t and s are at the footpoint/point of closest passing
 	//t = det(P2-P1,V2,V1xV2) / |V1 x V2|**2
 	//s = det(P2-P1,V1,V1xV2) / |V1 x V2|**2
-	float t1[3], t2[3], cross[3]; //temp intermediate variables
-	float crosslength2, det, ss, tt;
+	float t1[3], cross[3]; //temp intermediate variables
+	float crosslength2, ss, tt;
 	veccross3f(cross, v1, v2);
 	crosslength2 = vecnormsquared3f(cross);
 	if (APPROX(crosslength2, 0.0f)) return FALSE; //lines are parallel, no intersection
@@ -392,7 +392,7 @@ BOOL line_intersect_cylinder_3f(float *p, float *v, float radius, float *pi)
 	//intersects arbitrary ray (p,v) with cylinder of radius, origiin 0,0,0 and axis 0,1,0
 	//april 2014: NOT TESTED, NOT USED - just hacked in and compiled
     //    if((!XEQ) && (!ZEQ)) {
-	float t2[3], pp[3];
+	float  pp[3];
 	float dx = v[0]; 
 	float dz = v[2];
 	float a = dx*dx + dz*dz;
@@ -645,8 +645,8 @@ float *axisangle_rotate3f(float* b, float *a, float *axisangle)
 	float cosine, sine, cross[3], dot, theta, *axis, t1[3], t2[3],t3[3],t4[3];
 	theta = axisangle[3];
 	axis = axisangle;
-	cosine = cos(theta);
-	sine = sin(theta);
+	cosine = (float)cos(theta);
+	sine = (float)sin(theta);
 	veccross3f(cross,axis, a);
 	dot = vecdot3f(axis, a);
 	vecadd3f(b,vecscale3f(t1, a, cosine), vecadd3f(t2, vecscale3f(t3, cross, sine), vecscale3f(t4, axis, dot*(1.0f - cosine))));

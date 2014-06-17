@@ -242,6 +242,7 @@ typedef struct pCRoutes{
 	struct CRStruct *CRoutes;
 	/* Structure table */
 	struct CRscriptStruct *ScriptControl;// = 0; 	/* global objects and contexts for each script */
+	int JSMaxScript;// = 0;
 
 
 }* ppCRoutes;
@@ -283,7 +284,7 @@ void CRoutes_init(struct tCRoutes *t){
 		//p->CRoutes;
 		/* Structure table */
 		p->ScriptControl = 0; 	/* global objects and contexts for each script */
-
+		p->JSMaxScript = 0;
 	}
 }
 //	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
@@ -1411,6 +1412,41 @@ int isScriptControlInitialized(int actualscript)
 	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
 	return p->ScriptControl[actualscript]._initialized;
 }
+void initializeAnyScripts()
+{
+/*
+   we want to run initialize() from the calling thread. NOTE: if
+   initialize creates VRML/X3D nodes, it will call the ProdCon methods
+   to do this, and these methods will check to see if nodes, yada,
+   yada, yada, until we run out of stack. So, we check to see if we
+   are initializing; if so, don't worry about checking for new scripts
+   any scripts to initialize here? we do it here, because we may just
+   have created new scripts during  X3D/VRML parsing. Routing in the
+   Display thread may have noted new scripts, but will ignore them
+   until   we have told it that the scripts are initialized.  printf
+   ("have scripts to initialize in fwl_RenderSceneUpdateScene old %d new
+   %d\n",max_script_found, max_script_found_and_initialized);
+*/
+
+//#define INITIALIZE_ANY_SCRIPTS 
+	ttglobal tg = (ttglobal)gglobal();
+	if( tg->CRoutes.max_script_found != tg->CRoutes.max_script_found_and_initialized) 
+	{ 
+		struct CRscriptStruct *ScriptControl = getScriptControl(); 
+		int i; //jsval retval; 
+		for (i=tg->CRoutes.max_script_found_and_initialized+1; i <= tg->CRoutes.max_script_found; i++) 
+		{ 
+			/* printf ("initializing script %d in thread %u\n",i,pthread_self());  */ 
+			JSCreateScriptContext(i); 
+			JSInitializeScriptAndFields(i); 
+			if (ScriptControl[i].scriptOK) 
+				jsActualrunScript(i, "initialize()");
+				//ACTUALRUNSCRIPT(i, "initialize()" ,&retval); 
+			 /* printf ("initialized script %d\n",i);*/  
+		} 
+		tg->CRoutes.max_script_found_and_initialized = tg->CRoutes.max_script_found; 
+	}
+}
 
 /*******************************************************************
 
@@ -1750,6 +1786,193 @@ static BOOL gatherScriptEventOut_B(union anyVrml* any, struct Shader_Script *sha
 	#endif
 	return FALSE;
 }
+
+void kill_javascript(void) {
+	int i;
+	ttglobal tg = gglobal();
+	ppCRoutes p = (ppCRoutes)tg->CRoutes.prv;
+	struct CRscriptStruct *ScriptControl = getScriptControl();
+
+	/* printf ("calling kill_javascript()\n"); */
+	zeroScriptHandles();
+	if (jsIsRunning() != 0) {
+		for (i=0; i<=tg->CRoutes.max_script_found_and_initialized; i++) {
+			/* printf ("kill_javascript, looking at %d\n",i); */
+			if (ScriptControl[i].cx != 0) {
+				JSDeleteScriptContext(i);
+			}
+		}
+	}
+	p->JSMaxScript = 0;
+	tg->CRoutes.max_script_found = -1;
+	tg->CRoutes.max_script_found_and_initialized = -1;
+	jsShutdown();
+	FREE_IF_NZ (ScriptControl);
+	setScriptControl(NULL);
+	FREE_IF_NZ(tg->CRoutes.scr_act);
+
+
+}
+
+void cleanupDie(int num, const char *msg) {
+	kill_javascript();
+	freewrlDie(msg);
+}
+
+void JSMaxAlloc() {
+	/* perform some REALLOCs on JavaScript database stuff for interfacing */
+	int count;
+	ttglobal tg = gglobal();
+	ppCRoutes p = (ppCRoutes)tg->CRoutes.prv;
+	/* printf ("start of JSMaxAlloc, JSMaxScript %d\n",JSMaxScript); */
+	struct CRscriptStruct *ScriptControl = getScriptControl();
+
+	p->JSMaxScript += 10;
+	setScriptControl( (struct CRscriptStruct*)REALLOC (ScriptControl, sizeof (*ScriptControl) * p->JSMaxScript));
+	ScriptControl = getScriptControl();
+	tg->CRoutes.scr_act = (int *)REALLOC (tg->CRoutes.scr_act, sizeof (*tg->CRoutes.scr_act) * p->JSMaxScript);
+
+	/* mark these scripts inactive */
+	for (count=p->JSMaxScript-10; count<p->JSMaxScript; count++) {
+		tg->CRoutes.scr_act[count]= FALSE;
+		ScriptControl[count].thisScriptType = NOSCRIPT;
+		ScriptControl[count].eventsProcessed = NULL;
+		ScriptControl[count].cx = 0;
+		ScriptControl[count].glob = 0;
+		ScriptControl[count]._initialized = FALSE;
+		ScriptControl[count].scriptOK = FALSE;
+		ScriptControl[count].scriptText = NULL;
+		ScriptControl[count].paramList = NULL;
+	}
+}
+
+/* set up table entry for this new script */
+void JSInit(int num) {
+	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
+	#ifdef JAVASCRIPTVERBOSE 
+	printf("JSinit: script %d\n",num);
+	#endif
+
+	/* more scripts than we can handle right now? */
+	if (num >= p->JSMaxScript)  {
+		JSMaxAlloc();
+	}
+}
+int jsActualrunScript(int num, char *script);
+void JSInitializeScriptAndFields (int num) {
+        struct ScriptParamList *thisEntry;
+        struct ScriptParamList *nextEntry;
+	//jsval rval;
+	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
+	struct CRscriptStruct *ScriptControl = getScriptControl();
+
+	/* printf ("JSInitializeScriptAndFields script %d, thread %u\n",num,pthread_self());   */
+	/* run through paramList, and run the script */
+	/* printf ("JSInitializeScriptAndFields, running through params and main script\n");  */
+	if (num >= p->JSMaxScript)  {
+		ConsoleMessage ("JSInitializeScriptAndFields: warning, script %d initialization out of order",num);
+		return;
+	}
+	/* run through fields in order of entry in the X3D file */
+        thisEntry = ScriptControl[num].paramList;
+        while (thisEntry != NULL) {
+		/* printf ("script field is %s\n",thisEntry->field);  */
+		InitScriptField(num, thisEntry->kind, thisEntry->type, thisEntry->field, thisEntry->value);
+
+		/* get the next block; free the current name, current block, and make current = next */
+		nextEntry = thisEntry->next;
+		FREE_IF_NZ (thisEntry->field);
+		FREE_IF_NZ (thisEntry);
+		thisEntry = nextEntry;
+	}
+	
+	/* we have freed each element, set list to NULL in case anyone else comes along */
+	ScriptControl[num].paramList = NULL;
+
+	if (!jsActualrunScript(num, ScriptControl[num].scriptText)) {
+		ConsoleMessage ("JSInitializeScriptAndFields, script failure");
+		ScriptControl[num].scriptOK = FALSE;
+		ScriptControl[num]._initialized = TRUE;
+		return;
+	}
+	FREE_IF_NZ(ScriptControl[num].scriptText);
+	ScriptControl[num]._initialized = TRUE;
+	ScriptControl[num].scriptOK = TRUE;
+
+}
+/* Save the text, so that when the script is initialized in the fwl_RenderSceneUpdateScene thread, it will be there */
+void SaveScriptText(int num, const char *text) {
+	ttglobal tg = gglobal();
+	ppCRoutes p = (ppCRoutes)tg->CRoutes.prv;
+	struct CRscriptStruct *ScriptControl = getScriptControl();
+
+	/* printf ("SaveScriptText, num %d, thread %u saving :%s:\n",num, pthread_self(),text); */
+	if (num >= p->JSMaxScript)  {
+		ConsoleMessage ("SaveScriptText: warning, script %d initialization out of order",num);
+		return;
+	}
+	FREE_IF_NZ(ScriptControl[num].scriptText);
+	ScriptControl[num].scriptText = STRDUP(text);
+/* NOTE - seems possible that a script could be overwritten; if so then fix eventsProcessed */
+	jsClearScriptControlEntries(&ScriptControl[num]);
+	if (ScriptControl[num].eventsProcessed != NULL) {
+#if JS_VERSION >= 185
+		if (ScriptControl[num].cx != NULL) {
+			JS_RemoveObjectRoot(ScriptControl[num].cx,&((JSSCRIPT*)(ScriptControl[num].eventsProcessed)));
+		}
+#endif
+		ScriptControl[num].eventsProcessed = NULL;
+	}
+
+	if (((int)num) > tg->CRoutes.max_script_found) tg->CRoutes.max_script_found = num;
+	/* printf ("SaveScriptText, for script %d scriptText %s\n",text);
+	printf ("SaveScriptText, max_script_found now %d\n",max_script_found); */
+}
+
+/* A new version of InitScriptField which takes "nicer" arguments; currently a
+ * simple and restricted wrapper, but it could replace it soon? */
+/* Parameters:
+	num:		Script number. Starts at 0. 
+	kind:		One of PKW_initializeOnly PKW_outputOnly PKW_inputOutput PKW_inputOnly
+	type:		One of the FIELDTYPE_ defines, eg, FIELDTYPE_MFFloat
+	field:		the field name as found in the VRML/X3D file. eg "set_myField"
+		
+*/
+
+/* save this field from the parser; initialize it when the fwl_RenderSceneUpdateScene wants to initialize it */
+void SaveScriptField (int num, indexT kind, indexT type, const char* field, union anyVrml value) {
+	struct ScriptParamList **nextInsert;
+	struct ScriptParamList *newEntry;
+	struct CRscriptStruct *ScriptControl = getScriptControl();
+	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
+
+	if (num >= p->JSMaxScript)  {
+		ConsoleMessage ("JSSaveScriptText: warning, script %d initialization out of order",num);
+		return;
+	}
+
+	/* generate a new ScriptParamList entry */
+	/* note that this is a linked list, and we put things on at the end. The END MUST
+	   have NULL termination */
+	nextInsert = &(ScriptControl[num].paramList);
+	while (*nextInsert != NULL) {
+		nextInsert = &(*nextInsert)->next;
+	}
+
+	/* create a new entry and link it in */
+	newEntry = MALLOC (struct ScriptParamList *, sizeof (struct ScriptParamList));
+	*nextInsert = newEntry;
+	
+	/* initialize the new entry */
+	newEntry->next = NULL;
+	newEntry->kind = kind;
+	newEntry->type = type;
+	newEntry->field = STRDUP(field);
+	newEntry->value = value;
+}
+
+
+
 
 
 #endif /* HAVE_JAVASCRIPT */
