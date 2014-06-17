@@ -779,7 +779,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 	memptr = offsetPointer_deref(char *, tn, tptr);
 
 	#ifdef SETFIELDVERBOSE
-	strval = JS_ValueToString(scriptContext, tg->CRoutes.JSglobal_return_val);
+	strval = JS_ValueToString(scriptContext, *(jsval *)tg->JScript.JSglobal_return_val);
 #if JS_VERSION < 185
        	strp = JS_GetStringBytes(strval);
 #else
@@ -986,7 +986,7 @@ void setField_javascriptEventOut_B(union anyVrml* any,
 	memptr = (char *)any; //offsetPointer_deref(char *, tn, tptr);
 
 	#ifdef SETFIELDVERBOSE
-	strval = JS_ValueToString(scriptContext, tg->CRoutes.JSglobal_return_val);
+	strval = JS_ValueToString(scriptContext, *(jsval *)tg->JScript.JSglobal_return_val);
 #if JS_VERSION < 185
        	strp = JS_GetStringBytes(strval);
 #else
@@ -1442,8 +1442,8 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	/* where did this come from? Was it from a script execution, or from an assignment from within a script?? */
 	#ifdef SETFIELDVERBOSE
 	printf ("getJSMultiNumType, JSCreate_global_return_val %u, JSglobal_return_val %u\n",
-		(unsigned int) JSVAL_TO_INT(tg->jsVRMLBrowser.JSCreate_global_return_val),
-		(unsigned int) JSVAL_TO_INT(tg->CRoutes.JSglobal_return_val));
+		(unsigned int) JSVAL_TO_INT(*(jsval *)tg->jsVRMLBrowser.JSCreate_global_return_val),
+		(unsigned int) JSVAL_TO_INT(*(jsval *)tg->JScript.JSglobal_return_val));
 	#endif
 
 	if (JSVAL_TO_INT(*(jsval*)(tg->jsVRMLBrowser.JSCreate_global_return_val)) != 0) {

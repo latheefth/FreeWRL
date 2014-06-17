@@ -1737,7 +1737,7 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 		return FALSE;
         } else {
 		#ifdef CRVERBOSE
-		printf ("so, property is %d (%p)\n",tg->CRoutes.JSglobal_return_val,tg->CRoutes.JSglobal_return_val);
+		printf ("so, property is %d (%p)\n",*(jsval*)tg->JScript.JSglobal_return_val,*(jsval *)tg->JScript.JSglobal_return_val);
 		printf("get_valueChanged_flag: node type: %s name %s\n",FIELDTYPES[JSparamnames[fptr].type],JSparamnames[fptr].name);
 		#endif
 
