@@ -59,6 +59,12 @@ Javascript C language binding.
 #define JSCLASS_GLOBAL_FLAGS 0
 #endif
 
+#ifdef JAVASCRIPTVERBOSE
+int ActualrunScript(int num, char *script, jsval *rval, char *fn, int line);
+#else
+int ActualrunScript(int num, char *script, jsval *rval);
+#endif
+
 
 static JSClass staticGlobalClass = {
 	"global",		// char *name

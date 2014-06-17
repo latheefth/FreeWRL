@@ -90,6 +90,7 @@ BrowserSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval 
 #endif
 
 #endif
+int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval *rval);
 
 
 //Q. is this a true sharable static?

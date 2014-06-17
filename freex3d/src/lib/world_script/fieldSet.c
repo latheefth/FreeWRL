@@ -47,6 +47,7 @@
 #include "../input/EAIHelpers.h"	/* resolving implicit declarations */
 #include "../x3d_parser/Bindable.h"
 
+#include <system_js.h>
 #include "JScript.h"
 #include "CScripts.h"
 //#include "jsUtils.h"

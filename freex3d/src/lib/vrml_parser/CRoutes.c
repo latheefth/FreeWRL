@@ -45,7 +45,6 @@
 #include "../world_script/fieldSet.h"
 #include "CParseParser.h"
 #include "CParseLexer.h"
-#include "../world_script/jsNative.h"
 #include "../input/SensInterps.h"
 #include "../scenegraph/Component_ProgrammableShaders.h"
 #include "../input/EAIHeaders.h"

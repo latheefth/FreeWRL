@@ -48,12 +48,13 @@
 #include "../x3d_parser/Bindable.h"
 #include "../input/InputFunctions.h"
 
+#include <system_js.h>
 #include "JScript.h"
 #include "CScripts.h"
 #include "jsUtils.h"
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
-#include "JScript.h"
+//#include "JScript.h"
 
 #ifdef HAVE_JAVASCRIPT
 
