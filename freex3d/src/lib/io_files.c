@@ -377,7 +377,7 @@ static openned_file_t* load_file_read(const char *filename)
 	/* null terminate this string */
 	text[ss.st_size] = '\0';
 	close(fd);
-	fd = NULL;
+	fd = 0; //NULL;
 	return create_openned_file(filename, fd, ss.st_size+1, text,0,0,FALSE);
 }
 #endif //FRONTEND_GETS_FILES

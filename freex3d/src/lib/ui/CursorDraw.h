@@ -32,6 +32,7 @@ extern "C" {
 #endif
 
 void cursorDraw(int ID, int x, int y, float angle);
+void fiducialDraw(int ID, int x, int y, float angle);
 
 #ifdef __cplusplus
 }

@@ -48,7 +48,6 @@
 #include "../vrml_parser/CRoutes.h"
 #include "headers.h"
 #include "../vrml_parser/CParseGeneral.h"
-//#include "../world_script/jsUtils.h"
 #include "../world_script/JScript.h"
 #include "../world_script/CScripts.h"
 #include "Snapshot.h"

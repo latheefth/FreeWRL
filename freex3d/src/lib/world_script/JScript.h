@@ -43,6 +43,8 @@ int isScriptControlOK(int actualscript);
 int isScriptControlInitialized(int actualscript);
 void js_cleanup_script_context(int counter);
 struct CRscriptStruct *getScriptControlIndex(int actualscript);
+void initializeAnyScripts();
+
 
 #ifdef JAVASCRIPTVERBOSE
 int ActualrunScript(int num, char *script, jsval *rval, char *fn, int line);

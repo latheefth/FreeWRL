@@ -42,9 +42,7 @@
 #include "vrml_parser/CFieldDecls.h"
 #include "world_script/JScript.h"
 #include "world_script/CScripts.h"
-//#ifdef WORLD_SCRIPT_SPIDERMONKEY
 #include "world_script/fieldSet.h"
-//#endif
 #include "vrml_parser/CParseParser.h"
 #include "vrml_parser/CParseLexer.h"
 #include "vrml_parser/CProto.h"
@@ -161,6 +159,8 @@ void fw_perror(FILE *f, const char *format, ...);
 
 /* To conform C99 ISO C (do not use GCC extension) */
 #if defined(_MSC_VER)
+void usleep(int);
+
 #if _MSC_VER < 1500
 //vc7 cant seem to do the ... thing or the __VAR_ARGS__ thing.
 int DEBUG_FPRINTF(const char *fmt, ...); //almost stubs it out - a function call and return
