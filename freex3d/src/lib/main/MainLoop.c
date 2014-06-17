@@ -27,7 +27,6 @@
 #include <config.h>
 #include <system.h>
 #include <system_threads.h>
-#include <system_js.h>
 #include <display.h>
 #include <internal.h>
 
