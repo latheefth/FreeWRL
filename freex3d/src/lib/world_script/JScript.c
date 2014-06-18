@@ -175,7 +175,7 @@ void process_eventsProcessed() {
 		}
 
 #if defined(JS_THREADSAFE)
-		JS_BeginRequest(p->ScriptControl[counter].cx);
+		JS_BeginRequest(scriptcontrol->cx);
 #endif
 		if (!JS_ExecuteScript( scriptcontrol->cx,
                                  scriptcontrol->glob,
@@ -1358,7 +1358,7 @@ static int JSaddGlobalAssignProperty(int num, const char *name, const char *str)
 	case FIELDTYPE_##thistype: {\
 		jsval myv = INT_TO_JSVAL(0); \
 		/* printf ("RESET_ECMA_MF_TOUCHED called on %d ",JSglobal_return_val); */ \
-		JSBEGINREQUEST_SUBSTITUTION(p->ScriptControl[actualscript].cx) \
+		JSBEGINREQUEST_SUBSTITUTION(scriptcontrol->cx) \
         	if (!JS_SetProperty(scriptcontrol->cx, JSVAL_TO_OBJECT(*(jsval*)(tg->JScript.JSglobal_return_val)), "MF_ECMA_has_changed", &myv)) { \
         		printf( "JS_SetProperty failed for \"MF_ECMA_has_changed\" in RESET_ECMA_MF_TOUCHED.\n"); \
         	}\
