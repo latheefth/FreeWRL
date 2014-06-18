@@ -345,6 +345,8 @@ iOLDCODE	}Component_Networking;
 		int *scr_act;// = 0;				/* this script has been sent an eventIn */
 		int max_script_found;// = -1;			/* the maximum script number found */
 		int max_script_found_and_initialized;// = -1;	/* the maximum script number found */
+		int jsnameindex; //= -1;
+		int MAXJSparamNames;// = 0;
 
 		void *prv;
 	}CRoutes;
@@ -352,8 +354,6 @@ iOLDCODE	}Component_Networking;
 		void *prv;
 	}CScripts;
 	struct tJScript{
-		int jsnameindex; //= -1;
-		int MAXJSparamNames;// = 0;
 		void * JSglobal_return_val;
 		void *prv;
 	}JScript;

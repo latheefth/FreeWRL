@@ -22,8 +22,6 @@ void js_setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int 
 void setScriptECMAtype(int num){return;}
 int get_valueChanged_flag (int fptr, int actualscript){return 0;}
 void resetScriptTouchedFlag(int actualscript, int fptr){return;}
-struct CRjsnameStruct *getJSparamnames(){return (void *)0;}
-int JSparamIndex (const char *name, const char *type){return 0;}
 void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int datalen){return;}
 void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen){return;}
 void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int datalen){return;}

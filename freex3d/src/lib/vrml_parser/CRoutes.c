@@ -243,6 +243,8 @@ typedef struct pCRoutes{
 	/* Structure table */
 	struct CRscriptStruct *ScriptControl;// = 0; 	/* global objects and contexts for each script */
 	int JSMaxScript;// = 0;
+	/* Script name/type table */
+	struct CRjsnameStruct *JSparamnames;// = NULL;
 
 
 }* ppCRoutes;
@@ -258,6 +260,8 @@ void CRoutes_init(struct tCRoutes *t){
 	t->scr_act = 0;				/* this script has been sent an eventIn */
 	t->max_script_found = -1;			/* the maximum script number found */
 	t->max_script_found_and_initialized = -1;	/* the maximum script number found */
+	t->jsnameindex = -1;
+	t->MAXJSparamNames = 0;
 
 	//private
 	t->prv = CRoutes_constructor();
@@ -285,6 +289,9 @@ void CRoutes_init(struct tCRoutes *t){
 		/* Structure table */
 		p->ScriptControl = 0; 	/* global objects and contexts for each script */
 		p->JSMaxScript = 0;
+		/* Script name/type table */
+		p->JSparamnames = NULL;
+
 	}
 }
 //	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
@@ -1787,6 +1794,15 @@ static BOOL gatherScriptEventOut_B(union anyVrml* any, struct Shader_Script *sha
 	return FALSE;
 }
 
+void JSparamnamesShutdown(){
+	ttglobal tg = gglobal();
+	ppCRoutes p = (ppCRoutes)tg->CRoutes.prv;
+	/* Script name/type table */
+	FREE_IF_NZ(p->JSparamnames);
+	tg->CRoutes.jsnameindex = -1;
+	tg->CRoutes.MAXJSparamNames = 0;
+}
+
 void kill_javascript(void) {
 	int i;
 	ttglobal tg = gglobal();
@@ -1807,6 +1823,7 @@ void kill_javascript(void) {
 	tg->CRoutes.max_script_found = -1;
 	tg->CRoutes.max_script_found_and_initialized = -1;
 	jsShutdown();
+	JSparamnamesShutdown();
 	FREE_IF_NZ (ScriptControl);
 	setScriptControl(NULL);
 	FREE_IF_NZ(tg->CRoutes.scr_act);
@@ -1971,6 +1988,85 @@ void SaveScriptField (int num, indexT kind, indexT type, const char* field, unio
 	newEntry->value = value;
 }
 
+struct CRjsnameStruct *getJSparamnames()
+{
+	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
+	return p->JSparamnames;
+}
+void setJSparamnames(struct CRjsnameStruct *JSparamnames)
+{
+	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
+	p->JSparamnames = JSparamnames;
+}
+
+/********************************************************************
+
+JSparamIndex.
+
+stores ascii names with types (see code for type equivalences).
+
+********************************************************************/
+
+int JSparamIndex (const char *name, const char *type) {
+	size_t len;
+	int ty;
+	int ctr;
+	ttglobal tg = gglobal();
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
+
+	#ifdef CRVERBOSE
+	printf ("start of JSparamIndex, name %s, type %s\n",name,type);
+	printf ("start of JSparamIndex, lengths name %d, type %d\n",
+			strlen(name),strlen(type)); 
+	#endif
+
+	ty = findFieldInFIELDTYPES(type);
+
+	#ifdef CRVERBOSE
+	printf ("JSparamIndex, type %d, %s\n",ty,type); 
+	#endif
+
+	len = strlen(name);
+
+	/* is this a duplicate name and type? types have to be same,
+	   name lengths have to be the same, and the strings have to be the same.
+	*/
+	for (ctr=0; ctr<=tg->CRoutes.jsnameindex; ctr++) {
+		if (ty==JSparamnames[ctr].type) {
+			if ((strlen(JSparamnames[ctr].name) == len) &&
+				(strncmp(name,JSparamnames[ctr].name,len)==0)) {
+				#ifdef CRVERBOSE
+				printf ("JSparamIndex, duplicate, returning %d\n",ctr);
+				#endif
+
+				return ctr;
+			}
+		}
+	}
+
+	/* nope, not duplicate */
+
+	tg->CRoutes.jsnameindex ++;
+
+	/* ok, we got a name and a type */
+	if (tg->CRoutes.jsnameindex >= tg->CRoutes.MAXJSparamNames) {
+		/* oooh! not enough room at the table */
+		tg->CRoutes.MAXJSparamNames += 100; /* arbitrary number */
+		setJSparamnames( (struct CRjsnameStruct*)REALLOC (JSparamnames, sizeof(*JSparamnames) * tg->CRoutes.MAXJSparamNames));
+		JSparamnames = getJSparamnames();
+	}
+
+	if (len > MAXJSVARIABLELENGTH-2) len = MAXJSVARIABLELENGTH-2;	/* concatenate names to this length */
+	strncpy (JSparamnames[tg->CRoutes.jsnameindex].name,name,len);
+	JSparamnames[tg->CRoutes.jsnameindex].name[len] = 0; /* make sure terminated */
+	JSparamnames[tg->CRoutes.jsnameindex].type = ty;
+	JSparamnames[tg->CRoutes.jsnameindex].eventInFunction = NULL;
+	#ifdef CRVERBOSE
+	printf ("JSparamIndex, returning %d\n",tg->JScript.jsnameindex); 
+	#endif
+
+	return tg->CRoutes.jsnameindex;
+}
 
 
 

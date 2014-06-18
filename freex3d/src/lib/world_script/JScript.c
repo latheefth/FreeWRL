@@ -92,8 +92,6 @@ static JSClass staticGlobalClass = {
 
 
 typedef struct pJScript{
-	/* Script name/type table */
-	struct CRjsnameStruct *JSparamnames;// = NULL;
 
 
 #ifdef HAVE_JAVASCRIPT
@@ -101,7 +99,7 @@ typedef struct pJScript{
 	JSClass globalClass;
 	jsval JSglobal_return_value;
 #endif // HAVE_JAVASCRIPT
-
+	int ijunk;
 }* ppJScript;
 
 
@@ -112,15 +110,11 @@ void *JScript_constructor(){
 }
 void JScript_init(struct tJScript *t){
 	//public
-	t->jsnameindex = -1;
-	t->MAXJSparamNames = 0;
 	t->JSglobal_return_val = NULL;
 	//private
 	t->prv = JScript_constructor();
 	{
 		ppJScript p = (ppJScript)t->prv;
-		/* Script name/type table */
-		p->JSparamnames = NULL;
 #ifdef HAVE_JAVASCRIPT
 		p->runtime = NULL;
 		memcpy(&p->globalClass,&staticGlobalClass,sizeof(staticGlobalClass));
@@ -202,85 +196,6 @@ void process_eventsProcessed() {
 
 
 
-struct CRjsnameStruct *getJSparamnames()
-{
-	ppJScript p = (ppJScript)gglobal()->JScript.prv;
-	return p->JSparamnames;
-}
-void setJSparamnames(struct CRjsnameStruct *JSparamnames)
-{
-	ppJScript p = (ppJScript)gglobal()->JScript.prv;
-	p->JSparamnames = JSparamnames;
-}
-
-/********************************************************************
-
-JSparamIndex.
-
-stores ascii names with types (see code for type equivalences).
-
-********************************************************************/
-
-int JSparamIndex (const char *name, const char *type) {
-	size_t len;
-	int ty;
-	int ctr;
-	ttglobal tg = gglobal();
-	struct CRjsnameStruct *JSparamnames = getJSparamnames();
-
-	#ifdef CRVERBOSE
-	printf ("start of JSparamIndex, name %s, type %s\n",name,type);
-	printf ("start of JSparamIndex, lengths name %d, type %d\n",
-			strlen(name),strlen(type)); 
-	#endif
-
-	ty = findFieldInFIELDTYPES(type);
-
-	#ifdef CRVERBOSE
-	printf ("JSparamIndex, type %d, %s\n",ty,type); 
-	#endif
-
-	len = strlen(name);
-
-	/* is this a duplicate name and type? types have to be same,
-	   name lengths have to be the same, and the strings have to be the same.
-	*/
-	for (ctr=0; ctr<=tg->JScript.jsnameindex; ctr++) {
-		if (ty==JSparamnames[ctr].type) {
-			if ((strlen(JSparamnames[ctr].name) == len) &&
-				(strncmp(name,JSparamnames[ctr].name,len)==0)) {
-				#ifdef CRVERBOSE
-				printf ("JSparamIndex, duplicate, returning %d\n",ctr);
-				#endif
-
-				return ctr;
-			}
-		}
-	}
-
-	/* nope, not duplicate */
-
-	tg->JScript.jsnameindex ++;
-
-	/* ok, we got a name and a type */
-	if (tg->JScript.jsnameindex >= tg->JScript.MAXJSparamNames) {
-		/* oooh! not enough room at the table */
-		tg->JScript.MAXJSparamNames += 100; /* arbitrary number */
-		setJSparamnames( (struct CRjsnameStruct*)REALLOC (JSparamnames, sizeof(*JSparamnames) * tg->JScript.MAXJSparamNames));
-		JSparamnames = getJSparamnames();
-	}
-
-	if (len > MAXJSVARIABLELENGTH-2) len = MAXJSVARIABLELENGTH-2;	/* concatenate names to this length */
-	strncpy (JSparamnames[tg->JScript.jsnameindex].name,name,len);
-	JSparamnames[tg->JScript.jsnameindex].name[len] = 0; /* make sure terminated */
-	JSparamnames[tg->JScript.jsnameindex].type = ty;
-	JSparamnames[tg->JScript.jsnameindex].eventInFunction = NULL;
-	#ifdef CRVERBOSE
-	printf ("JSparamIndex, returning %d\n",tg->JScript.jsnameindex); 
-	#endif
-
-	return tg->JScript.jsnameindex;
-}
 
 void jsClearScriptControlEntries(struct CRscriptStruct *ScriptControl)
 {
@@ -385,10 +300,6 @@ void jsShutdown(){
 	if(p->runtime)
 		JS_DestroyRuntime(p->runtime);
 	p->runtime = NULL;
-	/* Script name/type table */
-	FREE_IF_NZ(p->JSparamnames);
-	tg->JScript.jsnameindex = -1;
-	tg->JScript.MAXJSparamNames = 0;
 }
 //========================
 
