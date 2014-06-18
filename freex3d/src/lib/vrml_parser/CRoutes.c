@@ -1907,7 +1907,7 @@ void JSInitializeScriptAndFields (int num) {
 	ScriptControl[num].paramList = NULL;
 
 	if (!jsActualrunScript(num, ScriptControl[num].scriptText)) {
-		ConsoleMessage ("JSInitializeScriptAndFields, script failure");
+		ConsoleMessage ("JSInitializeScriptAndFields, script failure\n");
 		ScriptControl[num].scriptOK = FALSE;
 		ScriptControl[num]._initialized = TRUE;
 		return;
