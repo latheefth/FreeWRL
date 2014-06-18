@@ -44,16 +44,15 @@ void js_setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int 
 void setScriptECMAtype(int num);
 int get_valueChanged_flag (int fptr, int actualscript);
 void resetScriptTouchedFlag(int actualscript, int fptr);
-#define MAXJSVARIABLELENGTH 25  /* variable name length can be this long... */
-struct CRjsnameStruct {
-        int     	type;
-        char    	name[MAXJSVARIABLELENGTH];
-		void *eventInFunction; /* compiled javascript function... if it is required */
-};
-struct CRjsnameStruct *getJSparamnames();
-int JSparamIndex (const char *name, const char *type);
 void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int datalen);
 void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen);
 void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int datalen);
+
+int jsIsRunning();
+void jsShutdown();
+void JSDeleteScriptContext(int num);
+void InitScriptField(int num, indexT kind, indexT type, const char* field, union anyVrml value);
+void jsClearScriptControlEntries(struct CRscriptStruct *ScriptControl);
+
 
 #endif /* __FREEWRL_JS_JSCRIPT_H__ */

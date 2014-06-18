@@ -65,6 +65,30 @@ const char* JS_PROTOCOLS[]={
  "vrmlscript",
  "data:text/plain"};
 
+typedef struct pCScripts{
+	/* Next handle to be assinged */
+	int handleCnt;//=0;
+	//JAS - gives threading collision errors char *buffer;// = NULL;
+
+}* ppCScripts;
+void *CScripts_constructor(){
+	void *v = malloc(sizeof(struct pCScripts));
+	memset(v,0,sizeof(struct pCScripts));
+	return v;
+}
+void CScripts_init(struct tCScripts *t){
+	//public
+	//private
+	t->prv = CScripts_constructor();
+	{
+		ppCScripts p = (ppCScripts)t->prv;
+		/* Next handle to be assinged */
+		p->handleCnt=0;
+	}
+}
+//	ppCScripts p = (ppCScripts)gglobal()->CScripts.prv;
+
+
 /* ************************************************************************** */
 /* ****************************** ScriptFieldDecl *************************** */
 /* ************************************************************************** */
@@ -224,28 +248,6 @@ void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, int num) {
 
 ///* Next handle to be assinged */
 //static int handleCnt=0;
-typedef struct pCScripts{
-	/* Next handle to be assinged */
-	int handleCnt;//=0;
-	//JAS - gives threading collision errors char *buffer;// = NULL;
-
-}* ppCScripts;
-void *CScripts_constructor(){
-	void *v = malloc(sizeof(struct pCScripts));
-	memset(v,0,sizeof(struct pCScripts));
-	return v;
-}
-void CScripts_init(struct tCScripts *t){
-	//public
-	//private
-	t->prv = CScripts_constructor();
-	{
-		ppCScripts p = (ppCScripts)t->prv;
-		/* Next handle to be assinged */
-		p->handleCnt=0;
-	}
-}
-//	ppCScripts p = (ppCScripts)gglobal()->CScripts.prv;
 int nextScriptHandle (void) {
 	int retval; 
 	ppCScripts p = (ppCScripts)gglobal()->CScripts.prv;

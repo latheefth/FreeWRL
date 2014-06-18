@@ -100,6 +100,7 @@ void AddRemoveSFNodeFieldChild(
                 char *file,
                 int line);
 
-struct CRscriptStruct *getScriptControlIndex(int actualscript);
+void initializeAnyScripts();
+void cleanupDie(int num, const char *msg);
 
 #endif /* __FREEWRL_CROUTES_H__ */

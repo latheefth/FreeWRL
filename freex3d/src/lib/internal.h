@@ -160,7 +160,7 @@ void fw_perror(FILE *f, const char *format, ...);
 /* To conform C99 ISO C (do not use GCC extension) */
 #if defined(_MSC_VER)
 void usleep(int);
-
+void sleep(int ms);
 #if _MSC_VER < 1500
 //vc7 cant seem to do the ... thing or the __VAR_ARGS__ thing.
 int DEBUG_FPRINTF(const char *fmt, ...); //almost stubs it out - a function call and return

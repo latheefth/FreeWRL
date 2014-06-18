@@ -220,7 +220,6 @@ void jsClearScriptControlEntries(struct CRscriptStruct *ScriptControl)
 
 static int JSaddGlobalECMANativeProperty(int num, const char *name);
 static int JSaddGlobalAssignProperty(int num, const char *name, const char *str);
-void InitScriptField(int num, indexT kind, indexT type, const char* field, union anyVrml value);
 
 /*
  * Global JS variables (from Brendan Eichs short embedding tutorial):
@@ -2226,6 +2225,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 	#endif
 }
 
+void Parser_scanStringValueToMem_B(union anyVrml* any, indexT ctype, char *value, int isXML);
 
 void setField_javascriptEventOut_B(union anyVrml* any,
 			int fieldType, unsigned len, int extraData, JSContext *scriptContext)

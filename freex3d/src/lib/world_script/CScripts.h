@@ -174,6 +174,16 @@ void scriptFieldDecl_setFieldASCIIValue(struct ScriptFieldDecl *me, const char *
 void Set_one_MultiElementtype (int tn, int tptr, void *fn, unsigned len);
 void mark_script (int num);
 
+#define MAXJSVARIABLELENGTH 25  /* variable name length can be this long... */
+struct CRjsnameStruct {
+        int     	type;
+        char    	name[MAXJSVARIABLELENGTH];
+		void *eventInFunction; /* compiled javascript function... if it is required */
+};
+struct CRjsnameStruct *getJSparamnames();
+int JSparamIndex (const char *name, const char *type);
+struct CRscriptStruct *getScriptControlIndex(int actualscript);
+
 
 
 #endif /* __FREEWRL_CSCRIPTS_H__ */
