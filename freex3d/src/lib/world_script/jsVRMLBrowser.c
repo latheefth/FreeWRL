@@ -1955,7 +1955,7 @@ VrmlBrowserCreateX3DFromString(JSContext *context, uintN argc, jsval *vp) {
 
 	/* save this value, in case we need it */
 #if JS_VERSION < 185
-	tg->jsVRMLBrowser.JSCreate_global_return_val = *rval;
+	*(jsval*)(gglobal()->jsVRMLBrowser.JSCreate_global_return_val) = *rval;
 #else
 	JS_SET_RVAL(context,vp,*rval);
 #endif

@@ -30,5 +30,5 @@ void JSDeleteScriptContext(int num){return;}
 void jsShutdown(){return;}
 void InitScriptField(int num, indexT kind, indexT type, const char* field, union anyVrml value)
 {return;}
-void jsClearScriptControlEntries(struct CRscriptStruct *ScriptControl){return;}
+void jsClearScriptControlEntries(int num){return;}
 
