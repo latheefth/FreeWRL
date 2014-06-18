@@ -1922,14 +1922,6 @@ void SaveScriptText(int num, const char *text) {
 /* NOTE - seems possible that a script could be overwritten; if so then fix eventsProcessed */
 	//jsClearScriptControlEntries(&ScriptControl[num]);
 	jsClearScriptControlEntries(num);
-	if (ScriptControl[num].eventsProcessed != NULL) {
-#if JS_VERSION >= 185
-		if (ScriptControl[num].cx != NULL) {
-			JS_RemoveObjectRoot(ScriptControl[num].cx,&((JSSCRIPT*)(ScriptControl[num].eventsProcessed)));
-		}
-#endif
-		ScriptControl[num].eventsProcessed = NULL;
-	}
 
 	if (((int)num) > tg->CRoutes.max_script_found) tg->CRoutes.max_script_found = num;
 	/* printf ("SaveScriptText, for script %d scriptText %s\n",text);

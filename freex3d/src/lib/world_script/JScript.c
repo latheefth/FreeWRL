@@ -165,7 +165,7 @@ void process_eventsProcessed() {
 				"eventsProcessed()", strlen ("eventsProcessed()"),
 				"compile eventsProcessed()", 1);
 #if JS_VERSION >= 185
-			if (!JS_AddObjectRoot(scriptcontrol->cx,&((JSSCRIPT*)(scriptcontrol->eventsProcessed)))) {
+			if (!JS_AddObjectRoot(scriptcontrol->cx,(JSSCRIPT**)(&scriptcontrol->eventsProcessed))) {
 				printf ("can not add object root for compiled eventsProcessed() for script %d\n",counter);
 			}
 #endif
@@ -203,7 +203,7 @@ void jsClearScriptControlEntries(int num) //struct CRscriptStruct *ScriptControl
 	if (ScriptControl.eventsProcessed != NULL) {
 #if JS_VERSION >= 185
 		if (ScriptControl.cx != NULL) {
-			JS_RemoveObjectRoot(ScriptControl.cx,&((JSSCRIPT*)(ScriptControl.eventsProcessed)));
+			JS_RemoveObjectRoot(ScriptControl.cx,(JSSCRIPT**)(&ScriptControl.eventsProcessed));
 		}
 #endif
 		ScriptControl.eventsProcessed = NULL;
@@ -289,7 +289,7 @@ void JSDeleteScriptContext(int num){
 	ScriptControl = getScriptControlIndex(num);
 #if JS_VERSION >= 185
 	if (ScriptControl->eventsProcessed != NULL) {
-		JS_RemoveObjectRoot(ScriptControl->cx,&((JSSCRIPT *)(ScriptControl->eventsProcessed)));
+		JS_RemoveObjectRoot(ScriptControl->cx,(JSSCRIPT **)(&ScriptControl->eventsProcessed));
 	}
 #endif
 	JS_DestroyContextMaybeGC(ScriptControl->cx);

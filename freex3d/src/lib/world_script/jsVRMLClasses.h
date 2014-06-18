@@ -111,7 +111,7 @@ of garbage collection
 		/* printf ("compiling function %s\n",scriptline); */ \
 		JSparamnames[tnfield].eventInFunction = (void*)JS_CompileScript( \
 			cx, obj, scriptline, strlen(scriptline), "compile eventIn",1); \
-		if (!JS_AddObjectRoot(cx,&((JSObject*)(JSparamnames[tnfield].eventInFunction)))) { \
+		if (!JS_AddObjectRoot(cx,(JSObject**)(&JSparamnames[tnfield].eventInFunction))) { \
 			printf( "JS_AddObjectRoot failed for compilation of script \"%s\" at %s:%d.\n",scriptline,__FILE__,__LINE__); \
 			return; \
 		} \
