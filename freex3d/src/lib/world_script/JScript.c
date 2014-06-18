@@ -197,15 +197,16 @@ void process_eventsProcessed() {
 
 
 
-void jsClearScriptControlEntries(struct CRscriptStruct *ScriptControl)
+void jsClearScriptControlEntries(int num) //struct CRscriptStruct *ScriptControl)
 {
-	if (ScriptControl->eventsProcessed != NULL) {
+	struct CRscriptStruct ScriptControl = getScriptControl()[num];
+	if (ScriptControl.eventsProcessed != NULL) {
 #if JS_VERSION >= 185
-		if (ScriptControl->cx != NULL) {
-			JS_RemoveObjectRoot(ScriptControl->cx,&((JSSCRIPT*)(ScriptControl->eventsProcessed)));
+		if (ScriptControl.cx != NULL) {
+			JS_RemoveObjectRoot(ScriptControl.cx,&((JSSCRIPT*)(ScriptControl.eventsProcessed)));
 		}
 #endif
-		ScriptControl->eventsProcessed = NULL;
+		ScriptControl.eventsProcessed = NULL;
 	}
 }
 

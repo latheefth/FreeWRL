@@ -1598,15 +1598,10 @@ static void gatherScriptEventOuts(void) {
 				#endif
 
 				/* eventOuts go to VRML data structures */
-#if defined(JS_THREADSAFE)
-				JS_BeginRequest(p->ScriptControl[actualscript].cx);
-#endif
 				js_setField_javascriptEventOut(tn,(unsigned int) tptr,JSparamnames[fptr].type, (int) len, p->CRoutes[route].extra,
 					actualscript);
 					//p->ScriptControl[actualscript].cx);
-#if defined(JS_THREADSAFE)
-				JS_EndRequest(p->ScriptControl[actualscript].cx);
-#endif
+
 				/* tell this node now needs to redraw */
 				markScriptResults(tn, (int) tptr, route, to_ptr->routeToNode);
 
@@ -1744,18 +1739,12 @@ static BOOL gatherScriptEventOut_B(union anyVrml* any, struct Shader_Script *sha
 				#endif
 
 				/* eventOuts go to VRML data structures */
-#if defined(JS_THREADSAFE)
-				JS_BeginRequest(p->ScriptControl[actualscript].cx);
-#endif
 				
 				js_setField_javascriptEventOut_B(any,type, len, extra, 
 					actualscript);
 					//p->ScriptControl[actualscript].cx);
 			//	void setField_javascriptEventOut_B(union anyVrml* any,  
 			//int fieldType, unsigned len, int extraData, JSContext *scriptContext
-#if defined(JS_THREADSAFE)
-				JS_EndRequest(p->ScriptControl[actualscript].cx);
-#endif
 
 				/* tell this node now needs to redraw */
 				//markScriptResults(tn, (int) tptr, route, to_ptr->routeToNode);
@@ -1931,7 +1920,8 @@ void SaveScriptText(int num, const char *text) {
 	FREE_IF_NZ(ScriptControl[num].scriptText);
 	ScriptControl[num].scriptText = STRDUP(text);
 /* NOTE - seems possible that a script could be overwritten; if so then fix eventsProcessed */
-	jsClearScriptControlEntries(&ScriptControl[num]);
+	//jsClearScriptControlEntries(&ScriptControl[num]);
+	jsClearScriptControlEntries(num);
 	if (ScriptControl[num].eventsProcessed != NULL) {
 #if JS_VERSION >= 185
 		if (ScriptControl[num].cx != NULL) {
