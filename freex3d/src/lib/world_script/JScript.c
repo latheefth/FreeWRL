@@ -124,18 +124,14 @@ void JScript_init(struct tJScript *t){
 }
 //	ppJScript p = (ppJScript)gglobal()->JScript.prv;
 
-jsval *getJSglobalRval()
-{
-	ppJScript p = (ppJScript)gglobal()->JScript.prv;
-	return &p->JSglobal_return_value;
-}
-
+#ifdef HAVE_JAVASCRIPT
 void js_cleanup_script_context(int counter){
 	ttglobal tg = gglobal();
 	ppJScript p = (ppJScript)tg->JScript.prv;
 	//CLEANUP_JAVASCRIPT(p->ScriptControl[counter].cx);
 	CLEANUP_JAVASCRIPT(getScriptControlIndex(counter)->cx);
 }
+#endif // HAVE_JAVASCRIPT
 /********************************************************************
 
 process_eventsProcessed()

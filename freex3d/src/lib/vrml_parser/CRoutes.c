@@ -1436,6 +1436,7 @@ void initializeAnyScripts()
 */
 
 //#define INITIALIZE_ANY_SCRIPTS 
+#ifdef HAVE_JAVASCRIPT
 	ttglobal tg = (ttglobal)gglobal();
 	if( tg->CRoutes.max_script_found != tg->CRoutes.max_script_found_and_initialized) 
 	{ 
@@ -1453,6 +1454,7 @@ void initializeAnyScripts()
 		} 
 		tg->CRoutes.max_script_found_and_initialized = tg->CRoutes.max_script_found; 
 	}
+#endif /* HAVE_JAVASCRIPT */
 }
 
 /*******************************************************************
@@ -1906,27 +1908,6 @@ void JSInitializeScriptAndFields (int num) {
 	ScriptControl[num].scriptOK = TRUE;
 
 }
-/* Save the text, so that when the script is initialized in the fwl_RenderSceneUpdateScene thread, it will be there */
-void SaveScriptText(int num, const char *text) {
-	ttglobal tg = gglobal();
-	ppCRoutes p = (ppCRoutes)tg->CRoutes.prv;
-	struct CRscriptStruct *ScriptControl = getScriptControl();
-
-	/* printf ("SaveScriptText, num %d, thread %u saving :%s:\n",num, pthread_self(),text); */
-	if (num >= p->JSMaxScript)  {
-		ConsoleMessage ("SaveScriptText: warning, script %d initialization out of order",num);
-		return;
-	}
-	FREE_IF_NZ(ScriptControl[num].scriptText);
-	ScriptControl[num].scriptText = STRDUP(text);
-/* NOTE - seems possible that a script could be overwritten; if so then fix eventsProcessed */
-	//jsClearScriptControlEntries(&ScriptControl[num]);
-	jsClearScriptControlEntries(num);
-
-	if (((int)num) > tg->CRoutes.max_script_found) tg->CRoutes.max_script_found = num;
-	/* printf ("SaveScriptText, for script %d scriptText %s\n",text);
-	printf ("SaveScriptText, max_script_found now %d\n",max_script_found); */
-}
 
 /* A new version of InitScriptField which takes "nicer" arguments; currently a
  * simple and restricted wrapper, but it could replace it soon? */
@@ -1969,6 +1950,29 @@ void SaveScriptField (int num, indexT kind, indexT type, const char* field, unio
 	newEntry->field = STRDUP(field);
 	newEntry->value = value;
 }
+#endif /* HAVE_JAVASCRIPT */
+/* Save the text, so that when the script is initialized in the fwl_RenderSceneUpdateScene thread, it will be there */
+void SaveScriptText(int num, const char *text) {
+	ttglobal tg = gglobal();
+	ppCRoutes p = (ppCRoutes)tg->CRoutes.prv;
+	struct CRscriptStruct *ScriptControl = getScriptControl();
+
+	/* printf ("SaveScriptText, num %d, thread %u saving :%s:\n",num, pthread_self(),text); */
+	if (num >= p->JSMaxScript)  {
+		ConsoleMessage ("SaveScriptText: warning, script %d initialization out of order",num);
+		return;
+	}
+	FREE_IF_NZ(ScriptControl[num].scriptText);
+	ScriptControl[num].scriptText = STRDUP(text);
+/* NOTE - seems possible that a script could be overwritten; if so then fix eventsProcessed */
+	//jsClearScriptControlEntries(&ScriptControl[num]);
+	jsClearScriptControlEntries(num);
+
+	if (((int)num) > tg->CRoutes.max_script_found) tg->CRoutes.max_script_found = num;
+	/* printf ("SaveScriptText, for script %d scriptText %s\n",text);
+	printf ("SaveScriptText, max_script_found now %d\n",max_script_found); */
+}
+
 
 struct CRjsnameStruct *getJSparamnames()
 {
@@ -2052,8 +2056,6 @@ int JSparamIndex (const char *name, const char *type) {
 
 
 
-
-#endif /* HAVE_JAVASCRIPT */
 
 
 /* we have a Script/Shader at routing table element %d, send events to it */

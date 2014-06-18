@@ -341,7 +341,7 @@ static void JS_SF_TO_X3D(JSContext *cx, void *Data, unsigned datalen, int dataTy
 }
 
 void getJSMultiNumType(JSContext *, struct Multi_Vec3f *, int);
-jsval *getJSglobalRval();
+
 /* make an MF type from the X3D node. This can be fairly slow... */
 static void JS_MF_TO_X3D(JSContext *cx, JSObject * obj, void *Data, int dataType, jsval *newval) {
 	ttglobal tg = gglobal();

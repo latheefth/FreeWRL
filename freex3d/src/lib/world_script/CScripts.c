@@ -401,7 +401,6 @@ void script_addField(struct Shader_Script* me, struct ScriptFieldDecl* field)
  #endif /* HAVE_JAVASCRIPT */
 
 }
-
 /* save the script code, as found in the VRML/X3D URL for this script */
 BOOL script_initCode(struct Shader_Script* me, const char* code)
 {
@@ -411,6 +410,7 @@ BOOL script_initCode(struct Shader_Script* me, const char* code)
  	me->loaded=TRUE;
  	return TRUE;
 }
+
 
 /* get the script from this SFString. First checks to see if the string
    contains the script; if not, it goes and tries to see if the SFString 
