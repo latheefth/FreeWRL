@@ -286,7 +286,7 @@ OLDCODE	FREE_IF_NZ(tg->Component_Networking.prv);
 	//destroy iglobal
 	free(tg);
 	//remove_iglobal_from_table(tg);
-	fwl_clearCurrentHandle();
+	fwl_clearCurrentHandle(__FILE__,__LINE__);
 
 }
 

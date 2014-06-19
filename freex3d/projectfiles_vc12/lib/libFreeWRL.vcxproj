@@ -92,7 +92,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(SRC)\libminizip;$(LIBWIN)\js185\include;$(SRC)\libtess;$(SRC)\lib;$(SRCWIN);$(LIBWIN)\pthread\include;$(LIBWIN)\zlib\include;$(LIBWIN)\jpeg\include;$(LIBWIN)\freetype2\include;$(LIBWIN)\png\include;$(ANGLEINC);$(LIBWIN)\libxml2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>NO_JAVASCRIPT;JS_THREADSAFE;ANGLEPROJECT;W_DEBUG;WIN32;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;DO_COLLISION_GPU_no;STATIC_EXPORTABLE_JS_API;HAVE_PTHREAD_CANCEL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>JAVASCRIPT_DUK;JS_THREADSAFE;ANGLEPROJECT;W_DEBUG;WIN32;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;DO_COLLISION_GPU_no;STATIC_EXPORTABLE_JS_API;HAVE_PTHREAD_CANCEL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -219,12 +219,6 @@
     <ClCompile Include="$(SRC)\lib\internal.c" />
     <ClCompile Include="$(SRC)\lib\io_files.c" />
     <ClCompile Include="$(SRC)\lib\io_http.c" />
-    <ClCompile Include="$(SRC)\lib\world_script\JScript.c" />
-    <ClCompile Include="$(SRC)\lib\world_script\jsUtils.c" />
-    <ClCompile Include="$(SRC)\lib\world_script\jsVRML_MFClasses.c" />
-    <ClCompile Include="$(SRC)\lib\world_script\jsVRML_SFClasses.c" />
-    <ClCompile Include="$(SRC)\lib\world_script\jsVRMLBrowser.c" />
-    <ClCompile Include="$(SRC)\lib\world_script\jsVRMLClasses.c" />
     <ClCompile Include="$(SRC)\lib\scenegraph\LinearAlgebra.c" />
     <ClCompile Include="$(SRC)\lib\list.c" />
     <ClCompile Include="$(SRC)\lib\opengl\LoadTextures.c" />
@@ -263,6 +257,12 @@
     <ClCompile Include="$(SRC)\lib\x3d_parser\X3DParser.c" />
     <ClCompile Include="$(SRC)\lib\x3d_parser\X3DProtoScript.c" />
     <ClCompile Include="$(SRCWIN)\model_platform_win32.c" />
+    <ClCompile Include="..\..\src\lib\world_script_duk\JScriptA.c" />
+    <ClCompile Include="..\..\src\lib\world_script_duk\JScriptB.c" />
+    <ClCompile Include="..\..\src\lib\world_script_duk\JScriptC.c" />
+    <ClCompile Include="..\..\src\lib\world_script_duk\JScriptD.c" />
+    <ClCompile Include="..\..\src\lib\world_script_duk\JScriptE.c" />
+    <ClCompile Include="..\..\src\lib\world_script_duk\JScriptF.c" />
     <ClCompile Include="..\..\src_windows\view_platform_win32.c" />
   </ItemGroup>
   <ItemGroup>
