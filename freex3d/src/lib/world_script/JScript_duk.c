@@ -19,7 +19,7 @@
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
 
-#include "duktape.h"
+#include "duktape/duktape.h"
 
 typedef int indexT;
 
