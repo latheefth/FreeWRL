@@ -54,7 +54,9 @@ struct X3D_Script * protoScript_copy (struct X3D_Script *me);
 
 struct ScriptFieldDecl
 {
- /* subclass of FieldDecl */
+ /* subclass of FieldDecl, 
+   for 'dynamic fields': fields added by scene-author to qualifying node types such as Script, Proto, ShaderScript
+ */
  struct FieldDecl* fieldDecl;
 
  /* Stringified value, if required by a parser. */
@@ -63,12 +65,13 @@ struct ScriptFieldDecl
  /* For fields */
  union anyVrml value;
  BOOL valueSet;	/* Has the value been set? */
+ struct Shader_Script* script; //dug9 added here for duktape proxy 
 };
 
 /* Structure that holds information regarding script fields that are targets in PROTO IS statements */
 struct ScriptFieldInstanceInfo {
 	struct ScriptFieldDecl* decl;
-	struct Shader_Script* script;
+	struct Shader_Script* script; /* dug9_2014: Q by putting *script into ScriptFieldDecl, can *ScriptFieldInstanceInfo be replaced by *ScriptFieldDecl? */
 };
 
 /* Constructor and destructor */

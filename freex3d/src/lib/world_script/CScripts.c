@@ -378,7 +378,7 @@ void script_addField(struct Shader_Script* me, struct ScriptFieldDecl* field)
  #endif 
 
  vector_pushBack(struct ScriptFieldDecl*, me->fields, field);
-
+ field->script = me; //added for duktape proxy - so in handler we can find the field from private pointer, and from field we can find Script and any info we need about script
 #ifdef CPARSERVERBOSE
 	{
 		size_t i;

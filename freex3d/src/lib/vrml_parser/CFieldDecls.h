@@ -28,14 +28,14 @@ This is a common base class for FieldDeclarations on PROTOs and Scripts
 #ifndef __FREEWRL_FIELD_DECLS_H__
 #define __FREEWRL_FIELD_DECLS_H__
 
-
+/*for fixed fields built into nodes (vs dynamic fields - see ShaderFieldDecl)*/
 struct FieldDecl
 {
  indexT PKWmode; /* PKW_initializeOnly PKW_inputOutput, PKW_inputOnly, PKW_outputOnly */
  indexT fieldType; /* field type ,eg FIELDTYPE_MFInt32 */
  indexT lexerNameIndex; /* field "name" (its lexer-index) */
  indexT JSparamNameIndex; /* JSparamname - has index unique with fieldType */
- int shaderVariableID; 	/* glGetUniformLocation() cast to int */
+ int shaderVariableID; 	/* glGetUniformLocation() cast to int. dug9_2014 Q. could this be moved to ShaderFieldDecl? */
 };
 
 /* Constructor and destructor */
