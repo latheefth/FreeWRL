@@ -315,22 +315,31 @@
     <ClCompile Include="$(SRCWIN)\WICImageLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\world_script_duk\JScriptB.c">
+    <ClCompile Include="..\..\src\lib\world_script\JScript.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\world_script_duk\JScriptA.c">
+    <ClCompile Include="..\..\src\lib\world_script\jsUtils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\world_script_duk\JScriptC.c">
+    <ClCompile Include="..\..\src\lib\world_script\jsVRML_MFClasses.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\world_script_duk\JScriptD.c">
+    <ClCompile Include="..\..\src\lib\world_script\jsVRML_SFClasses.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\world_script_duk\JScriptE.c">
+    <ClCompile Include="..\..\src\lib\world_script\jsVRMLBrowser.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\world_script_duk\JScriptF.c">
+    <ClCompile Include="..\..\src\lib\world_script\jsVRMLClasses.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\lib\world_script\include_duktape.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\lib\world_script\JScript_duk.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\lib\world_script\JScript_stub.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -26,6 +26,7 @@ Javascript C language binding.
 
 
 #include <config.h>
+#if !(defined(JAVASCRIPT_STUB) || defined(JAVASCRIPT_DUK))
 #include <system.h>
 #include <display.h>
 #include <internal.h>
@@ -2557,3 +2558,4 @@ void println(Object or String);
 */
 
 #endif /* HAVE_JAVASCRIPT */
+#endif /* !(defined(JAVASCRIPT_STUB) || defined(JAVASCRIPT_DUK) */

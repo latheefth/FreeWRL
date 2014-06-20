@@ -26,6 +26,7 @@ Javascript C language binding.
 
 
 #include <config.h>
+#if !(defined(JAVASCRIPT_STUB) || defined(JAVASCRIPT_DUK))
 #include <system.h>
 #include <display.h>
 #include <internal.h>
@@ -3163,3 +3164,4 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen 
 
 
 #endif /* HAVE_JAVASCRIPT */
+#endif /* !(defined(JAVASCRIPT_STUB) || defined(JAVASCRIPT_DUK) */

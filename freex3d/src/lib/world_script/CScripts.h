@@ -152,13 +152,6 @@ struct CRscriptStruct {
 	void *glob;			/* JSGlobals		*/
 	void *eventsProcessed; 	/* eventsProcessed() compiled function parameter >=185 JSObject* <185 JSScript* */
 
-//	JSContext *	cx;			/* JSContext		*/
-//	JSObject *	glob;			/* JSGlobals		*/
-//#if JS_VERSION >= 185
-//	JSObject *eventsProcessed; 	/* eventsProcessed() compiled function parameter*/
-//#else
-//	JSScript *eventsProcessed; 	/* eventsProcessed() compiled function parameter*/
-//#endif
 	char *scriptText;
 	struct ScriptParamList *paramList;
 	int 		scriptOK;		/* set to TRUE if the script loads ok */

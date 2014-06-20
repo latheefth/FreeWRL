@@ -27,6 +27,7 @@ which is the sample application included with the javascript engine.
 
 
 #include <config.h>
+#if !(defined(JAVASCRIPT_STUB) || defined(JAVASCRIPT_DUK))
 #include <system.h>
 #include <display.h>
 #include <internal.h>
@@ -1737,3 +1738,4 @@ JSBool js_SetPropertyDebug9 (JSContext *context, JSObject *obj, jsid id, JSBool 
 }
 
 #endif /* HAVE_JAVASCRIPT */
+#endif /* !(defined(JAVASCRIPT_STUB) || defined(JAVASCRIPT_DUK) */

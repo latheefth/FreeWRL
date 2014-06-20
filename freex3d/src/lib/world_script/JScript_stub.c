@@ -1,9 +1,15 @@
+#include <config.h>
+#if defined(JAVASCRIPT_STUB)
+
 typedef int indexT;
 typedef union anyVrml{
 	int nothing;
 } anyVrml;
 #include "JScript.h"
 void JScript_init(void *t){}
+void jsVRMLBrowser_init(void *t){}
+void jsUtils_init(void *t){}
+void jsVRMLClasses_init(void *t){}
 
 /* stubs, when you don't have a javascript engine */
 //void kill_javascript(void){return;}
@@ -32,3 +38,4 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 {return;}
 void jsClearScriptControlEntries(int num){return;}
 
+#endif /* defined(JAVASCRIPT_STUB) */

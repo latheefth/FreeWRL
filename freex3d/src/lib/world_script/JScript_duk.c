@@ -1,5 +1,6 @@
 
 #include <config.h>
+#if defined(JAVASCRIPT_DUK)
 #include <system.h>
 #include <display.h>
 #include <internal.h>
@@ -54,6 +55,11 @@ void JScript_init(struct tJScript *t){
 	}
 }
 //	ppJScript p = (ppJScript)gglobal()->JScript.prv;
+
+//stubs the linker will be looking for
+void jsVRMLBrowser_init(void *t){}
+void jsUtils_init(void *t){}
+void jsVRMLClasses_init(void *t){}
 
 
 
@@ -487,3 +493,4 @@ void jsClearScriptControlEntries(int num){
 	return;
 }
 
+#endif /*  defined(JAVASCRIPT_DUK) */

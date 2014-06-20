@@ -26,6 +26,7 @@
 
 
 #include <config.h>
+#if !(defined(JAVASCRIPT_STUB) || defined(JAVASCRIPT_DUK))
 #include <system.h>
 #include <system_threads.h>
 #include <display.h>
@@ -5187,3 +5188,4 @@ SFVec4dSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval 
 	return JS_TRUE;
 }
 #endif /* HAVE_JAVASCRIPT */
+#endif /* !(defined(JAVASCRIPT_STUB) || defined(JAVASCRIPT_DUK) */
