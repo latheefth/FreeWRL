@@ -315,31 +315,31 @@
     <ClCompile Include="$(SRCWIN)\WICImageLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\world_script\JScript.c">
+    <ClCompile Include="$(SRC)\lib\world_script\include_duktape.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\world_script\jsUtils.c">
+    <ClCompile Include="$(SRC)\lib\world_script\JScript.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\world_script\jsVRML_MFClasses.c">
+    <ClCompile Include="$(SRC)\lib\world_script\JScript_duk.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\world_script\jsVRML_SFClasses.c">
+    <ClCompile Include="$(SRC)\lib\world_script\JScript_stub.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\world_script\jsVRMLBrowser.c">
+    <ClCompile Include="$(SRC)\lib\world_script\jsUtils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\world_script\jsVRMLClasses.c">
+    <ClCompile Include="$(SRC)\lib\world_script\jsVRMLBrowser.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\world_script\include_duktape.c">
+    <ClCompile Include="$(SRC)\lib\world_script\jsVRMLClasses.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\world_script\JScript_duk.c">
+    <ClCompile Include="$(SRC)\lib\world_script\jsVRML_MFClasses.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\world_script\JScript_stub.c">
+    <ClCompile Include="$(SRC)\lib\world_script\jsVRML_SFClasses.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
