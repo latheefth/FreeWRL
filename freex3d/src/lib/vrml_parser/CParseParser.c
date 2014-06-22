@@ -696,6 +696,7 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
     }
 
     /* Script can not take inputOutputs */
+	if(0) //if(version == VRML2 OR LESS)
     if (script != NULL) {
 		if(script->ShaderScriptNode->_nodeType==NODE_Script && mode==PKW_inputOutput)
 		{

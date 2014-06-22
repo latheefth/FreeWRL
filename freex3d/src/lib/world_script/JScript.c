@@ -804,7 +804,7 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 			/* do not care about eventIns */
 			if (kind != PKW_inputOnly)  {
 				JSaddGlobalECMANativeProperty(num, field);
-				if (kind == PKW_initializeOnly) {
+				if (kind == PKW_initializeOnly || kind == PKW_inputOutput) {
 					if  (type == FIELDTYPE_SFString) {
 						tlen = (int) strlen(value.sfstring->strptr) + strlen(field) + 20;
 					} else {
