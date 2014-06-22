@@ -69,6 +69,11 @@ struct ScriptFieldDecl
  struct Shader_Script* script; //dug9_2014 added here for duktape proxy 
 };
 
+int ScriptFieldDecl_getMode(struct ScriptFieldDecl* sfd);
+int ScriptFieldDecl_getType(struct ScriptFieldDecl* sfd);
+const char* ScriptFieldDecl_getName(struct ScriptFieldDecl* sfd);
+
+
 /* Structure that holds information regarding script fields that are targets in PROTO IS statements */
 struct ScriptFieldInstanceInfo {
 	struct ScriptFieldDecl* decl;
@@ -110,6 +115,8 @@ struct Shader_Script
  BOOL loaded;	/* Has the code been loaded into this script? */
  struct Vector* fields;
 };
+struct ScriptFieldDecl* Shader_Script_getScriptField(struct Shader_Script* script, int ifield);
+int Shader_Script_getScriptFieldCount();
 
 /* Constructor and destructor */
 /* ************************** */
@@ -162,6 +169,7 @@ struct CRscriptStruct {
 //extern struct CRscriptStruct *ScriptControl;
 struct CRscriptStruct *getScriptControl();
 void setScriptControl(struct CRscriptStruct *ScriptControl);
+
 
 /* function protos */
 

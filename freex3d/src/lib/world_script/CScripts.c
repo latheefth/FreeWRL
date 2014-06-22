@@ -206,6 +206,30 @@ void scriptFieldDecl_setFieldASCIIValue(struct ScriptFieldDecl *me, const char *
  me->ASCIIvalue=(char *)val;
 }
 
+/* dug9_2014 abstract away a few ugly details with functional wrappers, 
+so JScript_duk/duktape can use Shader_Script->fields ScriptFieldDecls instead of jsNative*/
+int ScriptFieldDecl_getMode(struct ScriptFieldDecl* sfd)
+{
+	return fieldDecl_getAccessType(sfd->fieldDecl);
+}
+int ScriptFieldDecl_getType(struct ScriptFieldDecl* sfd){
+	return fieldDecl_getType(sfd->fieldDecl);
+}
+const char* ScriptFieldDecl_getName(struct ScriptFieldDecl* sfd){
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
+	return fieldDecl_getShaderScriptName(sfd->fieldDecl);
+}
+
+struct ScriptFieldDecl* Shader_Script_getScriptField(struct Shader_Script* script, int ifield)
+{
+	return vector_get(struct ScriptFieldDecl*,script->fields,ifield);
+
+}
+int Shader_Script_getScriptFieldCount(struct Shader_Script* script)
+{
+	return script->fields->n;
+}
+
 
 /* Get "offset" data for routing. Return an error if we are passed an invalid pointer. */
 /* this is the field used for Scripts and Shaders; each number identifies a name AND data

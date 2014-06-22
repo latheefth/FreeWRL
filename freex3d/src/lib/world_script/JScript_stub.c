@@ -38,7 +38,7 @@ void js_cleanup_script_context(int counter){return;}
 int jsActualrunScript(int num, char *script){return 0;}
 //void JSInitializeScriptAndFields (int num){return;}
 void JSCreateScriptContext(int num){return;}
-
+void JSInitializeScriptAndFields (int num) {return;}
 //void SaveScriptField (int num, indexT kind, indexT type, const char* field, union anyVrml value){return;}
 void js_setField_javascriptEventOut_B(union anyVrml* any, int fieldType, unsigned len, int extraData, int actualscript){return;}
 void js_setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fieldType, unsigned len, int extraData, int actualscript){return;}
@@ -55,5 +55,6 @@ void jsShutdown(){return;}
 void InitScriptField(int num, indexT kind, indexT type, const char* field, union anyVrml value)
 {return;}
 void jsClearScriptControlEntries(int num){return;}
+void SaveScriptField (int num, indexT kind, indexT type, const char* field, union anyVrml value){return;}
 
 #endif /* defined(JAVASCRIPT_STUB) */

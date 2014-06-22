@@ -36,6 +36,7 @@ void js_cleanup_script_context(int counter);
 int jsActualrunScript(int num, char *script);
 void JSInitializeScriptAndFields (int num);
 void JSCreateScriptContext(int num);
+void SaveScriptField (int num, indexT kind, indexT type, const char* field, union anyVrml value);
 
 void SaveScriptField (int num, indexT kind, indexT type, const char* field, union anyVrml value);
 void js_setField_javascriptEventOut_B(union anyVrml* any, int fieldType, unsigned len, int extraData, int actualscript);

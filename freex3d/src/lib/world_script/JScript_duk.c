@@ -508,5 +508,11 @@ void jsClearScriptControlEntries(int num){
 	printf("in jsClearScriptControlEntries\n");
 	return;
 }
-
+void JSInitializeScriptAndFields (int num) {
+	//instead of jsNative, hook back into Script_Node->fields
+	return;
+}
+void SaveScriptField (int num, indexT kind, indexT type, const char* field, union anyVrml value){
+	return;
+}
 #endif /*  defined(JAVASCRIPT_DUK) */

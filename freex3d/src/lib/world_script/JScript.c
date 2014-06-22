@@ -1613,6 +1613,95 @@ void resetScriptTouchedFlag(int actualscript, int fptr) {
 }
 
 #ifdef HAVE_JAVASCRIPT
+
+int jsActualrunScript(int num, char *script);
+void JSInitializeScriptAndFields (int num) {
+        struct ScriptParamList *thisEntry;
+        struct ScriptParamList *nextEntry;
+	//jsval rval;
+	//ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
+	struct CRscriptStruct *ScriptControl = getScriptControl();
+
+	/* printf ("JSInitializeScriptAndFields script %d, thread %u\n",num,pthread_self());   */
+	/* run through paramList, and run the script */
+	/* printf ("JSInitializeScriptAndFields, running through params and main script\n");  */
+	//if (num >= p->JSMaxScript)  {
+	//	ConsoleMessage ("JSInitializeScriptAndFields: warning, script %d initialization out of order",num);
+	//	return;
+	//}
+	/* run through fields in order of entry in the X3D file */
+        thisEntry = ScriptControl[num].paramList;
+        while (thisEntry != NULL) {
+		/* printf ("script field is %s\n",thisEntry->field);  */
+		InitScriptField(num, thisEntry->kind, thisEntry->type, thisEntry->field, thisEntry->value);
+
+		/* get the next block; free the current name, current block, and make current = next */
+		nextEntry = thisEntry->next;
+		FREE_IF_NZ (thisEntry->field);
+		FREE_IF_NZ (thisEntry);
+		thisEntry = nextEntry;
+	}
+	
+	/* we have freed each element, set list to NULL in case anyone else comes along */
+	ScriptControl[num].paramList = NULL;
+
+	if (!jsActualrunScript(num, ScriptControl[num].scriptText)) {
+		ConsoleMessage ("JSInitializeScriptAndFields, script failure\n");
+		ScriptControl[num].scriptOK = FALSE;
+		ScriptControl[num]._initialized = TRUE;
+		return;
+	}
+	FREE_IF_NZ(ScriptControl[num].scriptText);
+	ScriptControl[num]._initialized = TRUE;
+	ScriptControl[num].scriptOK = TRUE;
+
+}
+
+/* A new version of InitScriptField which takes "nicer" arguments; currently a
+ * simple and restricted wrapper, but it could replace it soon? */
+/* Parameters:
+	num:		Script number. Starts at 0. 
+	kind:		One of PKW_initializeOnly PKW_outputOnly PKW_inputOutput PKW_inputOnly
+	type:		One of the FIELDTYPE_ defines, eg, FIELDTYPE_MFFloat
+	field:		the field name as found in the VRML/X3D file. eg "set_myField"
+		
+*/
+
+/* save this field from the parser; initialize it when the fwl_RenderSceneUpdateScene wants to initialize it */
+void SaveScriptField (int num, indexT kind, indexT type, const char* field, union anyVrml value) {
+	struct ScriptParamList **nextInsert;
+	struct ScriptParamList *newEntry;
+	struct CRscriptStruct *ScriptControl = getScriptControl();
+	//ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
+
+	//if (num >= p->JSMaxScript)  {
+	//	ConsoleMessage ("JSSaveScriptText: warning, script %d initialization out of order",num);
+	//	return;
+	//}
+
+	/* generate a new ScriptParamList entry */
+	/* note that this is a linked list, and we put things on at the end. The END MUST
+	   have NULL termination */
+	nextInsert = &(ScriptControl[num].paramList);
+	while (*nextInsert != NULL) {
+		nextInsert = &(*nextInsert)->next;
+	}
+
+	/* create a new entry and link it in */
+	newEntry = MALLOC (struct ScriptParamList *, sizeof (struct ScriptParamList));
+	*nextInsert = newEntry;
+	
+	/* initialize the new entry */
+	newEntry->next = NULL;
+	newEntry->kind = kind;
+	newEntry->type = type;
+	newEntry->field = STRDUP(field);
+	newEntry->value = value;
+}
+
+
+
+
 /****************************************************************/
 /* a Jscript is returning a Multi-number type; copy this from 	*/
 /* the Jscript return string to the data structure within the	*/
