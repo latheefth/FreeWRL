@@ -858,7 +858,7 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 			DoublePtr = NULL;
 			SVPtr = NULL;
 			VoidPtr = NULL;
-			if (kind == PKW_initializeOnly) {
+			if (kind == PKW_initializeOnly || kind == PKW_inputOutput) {
 				switch (type) {
 					case FIELDTYPE_SFImage:
 						VoidPtr = (struct X3D_Node **) (&(value.sfimage)); elements = 1;
