@@ -1851,6 +1851,7 @@ void JSMaxAlloc() {
 		ScriptControl[count].scriptOK = FALSE;
 		ScriptControl[count].scriptText = NULL;
 		ScriptControl[count].paramList = NULL;
+		ScriptControl[count].script = NULL;
 	}
 }
 

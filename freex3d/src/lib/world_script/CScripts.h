@@ -63,9 +63,10 @@ struct ScriptFieldDecl
  char* ASCIIvalue; 
 
  /* For fields */
+ int valueChanged; //dug9_2014 eventOut flag, added for JScript_duk.c / duktape, which will use this valueChanged,anyVrml instead of jsNative.h > sfNative.valueChanged,anyVrml
  union anyVrml value;
- BOOL valueSet;	/* Has the value been set? */
- struct Shader_Script* script; //dug9 added here for duktape proxy 
+ BOOL valueSet;	/* Has the value been set? used during parsing and construction*/
+ struct Shader_Script* script; //dug9_2014 added here for duktape proxy 
 };
 
 /* Structure that holds information regarding script fields that are targets in PROTO IS statements */
@@ -140,6 +141,7 @@ struct ScriptParamList {
         indexT type;
         char *field;
         union anyVrml value;
+		struct Shader_Script* script;
 };
 
 struct CRscriptStruct {
@@ -155,6 +157,7 @@ struct CRscriptStruct {
 	char *scriptText;
 	struct ScriptParamList *paramList;
 	int 		scriptOK;		/* set to TRUE if the script loads ok */
+	struct Shader_Script* script; //dug9_2014 added here for duktape proxy which will use script->field[i].valueChanged and anyVrml Value instead of scriptparamlist here
 };
 //extern struct CRscriptStruct *ScriptControl;
 struct CRscriptStruct *getScriptControl();
