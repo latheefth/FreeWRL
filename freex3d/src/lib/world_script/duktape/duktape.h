@@ -5,7 +5,7 @@
  *  include guard.  Other parts of the header are Duktape
  *  internal and related to platform/compiler/feature detection.
  *
- *  Git commit 669b9ee85567deb6a3c69a9b6fb85471f4045e2a (v0.10.0-455-g669b9ee).
+ *  Git commit 823ce037d83d8f209dd8c4232dcd4a85cd4fb23a (v0.10.0-587-g823ce03).
  *
  *  See Duktape AUTHORS.txt and LICENSE.txt for copyright and
  *  licensing information.
@@ -87,6 +87,7 @@
  *  * Rajaran Gaunker (https://github.com/zimbabao)
  *  * Andreas \u00d6man
  *  * Doug Sanden
+ *  * Remo Eichenberger (https://github.com/remoe)
  */
 
 #ifndef DUKTAPE_H_INCLUDED
@@ -435,10 +436,8 @@ static __inline__ unsigned long long duk_rdtsc(void) {
  * itself (must be defined before including Windows headers).  Don't define
  * for user code including duktape.h.
  */
-#if defined(DUK_COMPILING_DUKTAPE)
-#ifndef _CRT_SECURE_NO_WARNINGS
+#if defined(DUK_COMPILING_DUKTAPE) && !defined(_CRT_SECURE_NO_WARNINGS)
 #define _CRT_SECURE_NO_WARNINGS
-#endif
 #endif
 #endif  /* DUK_F_WINDOWS && _MSC_VER */
 
@@ -607,18 +606,20 @@ static __inline__ unsigned long long duk_rdtsc(void) {
  *
  *  C99 typedefs are quite good but not always available, and we want to avoid
  *  forcibly redefining the C99 typedefs.  So, there are Duktape wrappers for
- *  all C99 typedefs and Duktape code should only use these typedefs.  The
- *  Duktape public API is problematic from type detection perspective and must
- *  be taken into account here.
- *
- *  Type detection when C99 is not supported is best effort and may end up
- *  detecting some types incorrectly.
+ *  all C99 typedefs and Duktape code should only use these typedefs.  Type
+ *  detection when C99 is not supported is best effort and may end up detecting
+ *  some types incorrectly.
  *
  *  Pointer sizes are a portability problem: pointers to different types may
  *  have a different size and function pointers are very difficult to manage
  *  portably.
  *
  *  http://en.wikipedia.org/wiki/C_data_types#Fixed-width_integer_types
+ *
+ *  Note: there's an interesting corner case when trying to define minimum
+ *  signed integer value constants which leads to the current workaround of
+ *  defining e.g. -0x80000000 as (-0x7fffffffL - 1L).  See doc/code-issues.txt
+ *  for a longer discussion.
  *
  *  Note: avoid typecasts and computations in macro integer constants as they
  *  can then no longer be used in macro relational expressions (such as
@@ -872,6 +873,10 @@ typedef duk_uint64_t duk_uintptr_t;
 #error cannot determine intptr type
 #endif
 
+/* Note: the funny looking computations for signed minimum 16-bit, 32-bit, and
+ * 64-bit values are intentional as the obvious forms (e.g. -0x80000000L) are
+ * -not- portable.  See code-issues.txt for a detailed discussion.
+ */
 #define DUK_UINT8_MIN         0UL
 #define DUK_UINT8_MAX         0xffUL
 #define DUK_INT8_MIN          (-0x80L)
@@ -886,50 +891,61 @@ typedef duk_uint64_t duk_uintptr_t;
 #define DUK_INT_FAST8_MAX     0x7fL
 #define DUK_UINT16_MIN        0UL
 #define DUK_UINT16_MAX        0xffffUL
-#define DUK_INT16_MIN         (-0x8000L)
+#define DUK_INT16_MIN         (-0x7fffL - 1L)
 #define DUK_INT16_MAX         0x7fffL
 #define DUK_UINT_LEAST16_MIN  0UL
 #define DUK_UINT_LEAST16_MAX  0xffffUL
-#define DUK_INT_LEAST16_MIN   (-0x8000L)
+#define DUK_INT_LEAST16_MIN   (-0x7fffL - 1L)
 #define DUK_INT_LEAST16_MAX   0x7fffL
 #define DUK_UINT_FAST16_MIN   0UL
 #define DUK_UINT_FAST16_MAX   0xffffUL
-#define DUK_INT_FAST16_MIN    (-0x8000L)
+#define DUK_INT_FAST16_MIN    (-0x7fffL - 1L)
 #define DUK_INT_FAST16_MAX    0x7fffL
 #define DUK_UINT32_MIN        0UL
 #define DUK_UINT32_MAX        0xffffffffUL
-#define DUK_INT32_MIN         (-0x80000000L)
+#define DUK_INT32_MIN         (-0x7fffffffL - 1L)
 #define DUK_INT32_MAX         0x7fffffffL
 #define DUK_UINT_LEAST32_MIN  0UL
 #define DUK_UINT_LEAST32_MAX  0xffffffffUL
-#define DUK_INT_LEAST32_MIN   (-0x80000000L)
+#define DUK_INT_LEAST32_MIN   (-0x7fffffffL - 1L)
 #define DUK_INT_LEAST32_MAX   0x7fffffffL
 #define DUK_UINT_FAST32_MIN   0UL
 #define DUK_UINT_FAST32_MAX   0xffffffffUL
-#define DUK_INT_FAST32_MIN    (-0x80000000L)
+#define DUK_INT_FAST32_MIN    (-0x7fffffffL - 1L)
 #define DUK_INT_FAST32_MAX    0x7fffffffL
 #if defined(DUK_F_HAVE_64BIT)
 #define DUK_UINT64_MIN        0ULL
 #define DUK_UINT64_MAX        0xffffffffffffffffULL
-#define DUK_INT64_MIN         (-0x8000000000000000LL)
-#define DUK_INT64_MAX         0x7fffffffffffffffULL
+#define DUK_INT64_MIN         (-0x7fffffffffffffffLL - 1LL)
+#define DUK_INT64_MAX         0x7fffffffffffffffLL
 #define DUK_UINT_LEAST64_MIN  0ULL
 #define DUK_UINT_LEAST64_MAX  0xffffffffffffffffULL
-#define DUK_INT_LEAST64_MIN   (-0x8000000000000000LL)
-#define DUK_INT_LEAST64_MAX   0x7fffffffffffffffULL
+#define DUK_INT_LEAST64_MIN   (-0x7fffffffffffffffLL - 1LL)
+#define DUK_INT_LEAST64_MAX   0x7fffffffffffffffLL
 #define DUK_UINT_FAST64_MIN   0ULL
 #define DUK_UINT_FAST64_MAX   0xffffffffffffffffULL
-#define DUK_INT_FAST64_MIN    (-0x8000000000000000LL)
-#define DUK_INT_FAST64_MAX    0x7fffffffffffffffULL
-#endif
+#define DUK_INT_FAST64_MIN    (-0x7fffffffffffffffLL - 1LL)
+#define DUK_INT_FAST64_MAX    0x7fffffffffffffffLL
+#endif  /* DUK_F_HAVE_64BIT */
+#if defined(DUK_F_HAVE_64BIT)
+#define DUK_UINTPTR_MIN       0ULL
+#define DUK_UINTPTR_MAX       0xffffffffffffffffULL
+#define DUK_INTPTR_MIN        (-0x7fffffffffffffffLL - 1LL)
+#define DUK_INTPTR_MAX        0x7fffffffffffffffLL
+#define DUK_UINTMAX_MIN       0ULL
+#define DUK_UINTMAX_MAX       0xffffffffffffffffULL
+#define DUK_INTMAX_MIN        (-0x7fffffffffffffffLL - 1LL)
+#define DUK_INTMAX_MAX        0x7fffffffffffffffLL
+#else
 #define DUK_UINTPTR_MIN       0UL
 #define DUK_UINTPTR_MAX       0xffffffffUL
-#define DUK_INTPTR_MIN        (-0x80000000L)
+#define DUK_INTPTR_MIN        (-0x7fffffffL - 1L)
 #define DUK_INTPTR_MAX        0x7fffffffL
 #define DUK_UINTMAX_MIN       0UL
 #define DUK_UINTMAX_MAX       0xffffffffUL
-#define DUK_INTMAX_MIN        (-0x80000000L)
+#define DUK_INTMAX_MIN        (-0x7fffffffL - 1L)
 #define DUK_INTMAX_MAX        0x7fffffffL
+#endif  /* DUK_F_HAVE_64BIT */
 
 /* SIZE_MAX may be missing so use an approximate value for it. */
 #undef DUK_SIZE_MAX_COMPUTED
@@ -1315,26 +1331,50 @@ typedef double duk_double_t;
  *  Check whether or not a packed duk_tval representation is possible.
  *  What's basically required is that pointers are 32-bit values
  *  (sizeof(void *) == 4).  Best effort check, not always accurate.
+ *  If guess goes wrong, crashes may result; self tests also verify
+ *  the guess.
  */
 
 #undef DUK_USE_PACKED_TVAL_POSSIBLE
-#if defined(UINTPTR_MAX) && (UINTPTR_MAX <= 0xffffffffUL)
-/* strict C99 check */
+
+/* Strict C99 case: DUK_UINTPTR_MAX (= UINTPTR_MAX) should be very reliable */
+#if !defined(DUK_USE_PACKED_TVAL_POSSIBLE) && defined(DUK_F_HAVE_INTTYPES) && defined(DUK_UINTPTR_MAX)
+#if (DUK_UINTPTR_MAX <= 0xffffffffUL)
 #define DUK_USE_PACKED_TVAL_POSSIBLE
 #endif
+#endif
 
+/* Non-C99 case, still relying on DUK_UINTPTR_MAX */
+#if !defined(DUK_USE_PACKED_TVAL_POSSIBLE) && defined(DUK_UINTPTR_MAX)
+#if (DUK_UINTPTR_MAX <= 0xffffffffUL)
+#define DUK_USE_PACKED_TVAL_POSSIBLE
+#endif
+#endif
+
+/* DUK_SIZE_MAX (= SIZE_MAX) is often reliable */
 #if !defined(DUK_USE_PACKED_TVAL_POSSIBLE) && defined(DUK_SIZE_MAX) && !defined(DUK_SIZE_MAX_COMPUTED)
 #if DUK_SIZE_MAX <= 0xffffffffUL
 #define DUK_USE_PACKED_TVAL_POSSIBLE
 #endif
 #endif
 
+/* M68K: packed always possible */
 #if !defined(DUK_USE_PACKED_TVAL_POSSIBLE) && defined(DUK_F_M68K)
 #define DUK_USE_PACKED_TVAL_POSSIBLE
 #endif
 
-/* With Emscripten, force unpacked duk_tval just to be safe. */
-#if defined(DUK_F_EMSCRIPTEN) && defined(DUK_USE_PACKED_TVAL_POSSIBLE)
+/* With Emscripten, force unpacked duk_tval just to be safe, as it seems to
+ * break at least on Firefox (probably IEEE double arithmetic is not 100%
+ * supported, especially for NaNs).
+ */
+#if defined(DUK_USE_PACKED_TVAL_POSSIBLE) && defined(DUK_F_EMSCRIPTEN)
+#undef DUK_USE_PACKED_TVAL_POSSIBLE
+#endif
+
+/* Microsoft Visual Studio 2010 on x64 fails the above rules and tries to
+ * use a packed type.  Force unpacked on x64 in general.
+ */
+#if defined(DUK_USE_PACKED_TVAL_POSSIBLE) && defined(DUK_F_X64)
 #undef DUK_USE_PACKED_TVAL_POSSIBLE
 #endif
 
@@ -1535,6 +1575,29 @@ extern double duk_computed_nan;
  *  For instance, some platforms don't support zero-size memcpy correctly,
  *  some arcane uclibc versions have a buggy memcpy (but working memmove)
  *  and so on.  Such broken platforms can be dealt with here.
+ *
+ *  NOTE: ANSI C (various versions) and some implementations require that the
+ *  pointer arguments to memset(), memcpy(), and memmove() be valid values
+ *  even when byte size is 0 (even a NULL pointer is considered invalid in
+ *  this context).  Zero-size operations as such are allowed, as long as their
+ *  pointer arguments point to a valid memory area.  The DUK_MEMSET(),
+ *  DUK_MEMCPY(), and DUK_MEMMOVE() macros require this same behavior, i.e.:
+ *  (1) pointers must be valid and non-NULL, (2) zero size must otherwise be
+ *  allowed.  If these are not fulfilled, a macro wrapper is needed.
+ *
+ *    http://stackoverflow.com/questions/5243012/is-it-guaranteed-to-be-safe-to-perform-memcpy0-0-0
+ *    http://lists.cs.uiuc.edu/pipermail/llvmdev/2007-October/011065.html
+ *
+ *  Not sure what's the required behavior when a pointer points just past the
+ *  end of a buffer, which often happens in practice (e.g. zero size memmoves).
+ *  For example, if allocation size is 3, the following pointer would not
+ *  technically point to a valid memory byte:
+ *
+ *    <-- alloc -->
+ *    | 0 | 1 | 2 | .....
+ *                  ^-- p=3, points after last valid byte (2)
+ *
+ *  If this is a practical issue, wrappers are again needed.
  */
 
 typedef FILE duk_file;
@@ -1606,6 +1669,19 @@ typedef FILE duk_file;
 
 #define DUK_MEMZERO(p,n) \
 	DUK_MEMSET((p), 0, (n))
+
+/*
+ *  Avoiding platform function pointers.
+ *
+ *  On some platforms built-in functions may be implemented as macros or
+ *  inline functions, so they can't be necessarily addressed by function
+ *  pointers.  This is certainly the case with some platform "polyfills"
+ *  which provide missing C99/C++11 functions through macros, and may be
+ *  the case with VS2013 (see GH-17).
+ */
+
+/* This is now the default: the cost in footprint is negligible. */
+#define DUK_USE_AVOID_PLATFORM_FUNCPTRS
 
 /*
  *  Vararg macro wrappers.  We need va_copy() which is defined in C99 / C++11,
@@ -2013,6 +2089,9 @@ typedef FILE duk_file;
 #undef DUK_USE_SECTION_B
 #endif
 
+/* Non-standard regexp parsing features. */
+#define DUK_USE_NONSTD_REGEXP_DOLLAR_ESCAPE
+
 /* Treat function statements (function declarations outside top level of
  * Program or FunctionBody) same as normal function declarations.  This is
  * also V8 behavior.  See test-dev-func-decl-outside-top.js.
@@ -2076,6 +2155,17 @@ typedef FILE duk_file;
 #define DUK_USE_COMMONJS_MODULES
 #if defined(DUK_OPT_NO_COMMONJS_MODULES)
 #undef DUK_USE_COMMONJS_MODULES
+#endif
+
+/* Additional key argument to setter/getter calls when triggered by property
+ * accesses.
+ */
+
+#define DUK_USE_NONSTD_GETTER_KEY_ARGUMENT
+#define DUK_USE_NONSTD_SETTER_KEY_ARGUMENT
+#if defined(DUK_OPT_NO_NONSTD_ACCESSOR_KEY_ARGUMENT)
+#undef DUK_USE_NONSTD_GETTER_KEY_ARGUMENT
+#undef DUK_USE_NONSTD_SETTER_KEY_ARGUMENT
 #endif
 
 /*
@@ -2703,7 +2793,8 @@ int duk_is_primitive(duk_context *ctx, int index);
 
 int duk_get_boolean(duk_context *ctx, int index);
 double duk_get_number(duk_context *ctx, int index);
-int duk_get_int(duk_context *ctx, int index);
+duk_int_t duk_get_int(duk_context *ctx, duk_idx_t index);
+duk_uint_t duk_get_uint(duk_context *ctx, duk_idx_t index);
 const char *duk_get_string(duk_context *ctx, int index);
 const char *duk_get_lstring(duk_context *ctx, int index, duk_size_t *out_len);
 void *duk_get_buffer(duk_context *ctx, int index, duk_size_t *out_size);
@@ -2724,7 +2815,8 @@ void duk_require_undefined(duk_context *ctx, int index);
 void duk_require_null(duk_context *ctx, int index);
 int duk_require_boolean(duk_context *ctx, int index);
 double duk_require_number(duk_context *ctx, int index);
-int duk_require_int(duk_context *ctx, int index);
+duk_int_t duk_require_int(duk_context *ctx, duk_idx_t index);
+duk_uint_t duk_require_uint(duk_context *ctx, duk_idx_t index);
 const char *duk_require_string(duk_context *ctx, int index);
 const char *duk_require_lstring(duk_context *ctx, int index, duk_size_t *out_len);
 void *duk_require_buffer(duk_context *ctx, int index, duk_size_t *out_size);
@@ -2752,13 +2844,16 @@ void duk_to_undefined(duk_context *ctx, int index);
 void duk_to_null(duk_context *ctx, int index);
 int duk_to_boolean(duk_context *ctx, int index);
 double duk_to_number(duk_context *ctx, int index);
-int duk_to_int(duk_context *ctx, int index);
-int duk_to_int32(duk_context *ctx, int index);
-unsigned int duk_to_uint32(duk_context *ctx, int index);
-unsigned int duk_to_uint16(duk_context *ctx, int index);
+duk_int_t duk_to_int(duk_context *ctx, duk_idx_t index);
+duk_uint_t duk_to_uint(duk_context *ctx, duk_idx_t index);
+duk_int32_t duk_to_int32(duk_context *ctx, duk_idx_t index);
+duk_uint32_t duk_to_uint32(duk_context *ctx, duk_idx_t index);
+duk_uint16_t duk_to_uint16(duk_context *ctx, duk_idx_t index);
 const char *duk_to_string(duk_context *ctx, int index);
 const char *duk_to_lstring(duk_context *ctx, int index, duk_size_t *out_len);
-void *duk_to_buffer(duk_context *ctx, int index, duk_size_t *out_size);
+void *duk_to_buffer(duk_context *ctx, duk_idx_t index, duk_size_t *out_size);
+void *duk_to_fixed_buffer(duk_context *ctx, duk_idx_t index, duk_size_t *out_size);
+void *duk_to_dynamic_buffer(duk_context *ctx, duk_idx_t index, duk_size_t *out_size);
 void *duk_to_pointer(duk_context *ctx, int index);
 void duk_to_object(duk_context *ctx, int index);
 void duk_to_defaultvalue(duk_context *ctx, int index, int hint);
@@ -2785,7 +2880,6 @@ void duk_json_decode(duk_context *ctx, int index);
  */
 
 void *duk_resize_buffer(duk_context *ctx, duk_idx_t index, duk_size_t new_size);
-void duk_to_fixed_buffer(duk_context *ctx, duk_idx_t index);
 
 /*
  *  Property access
@@ -2807,6 +2901,8 @@ int duk_del_prop_index(duk_context *ctx, int obj_index, unsigned int arr_index);
 int duk_has_prop(duk_context *ctx, int obj_index);
 int duk_has_prop_string(duk_context *ctx, int obj_index, const char *key);
 int duk_has_prop_index(duk_context *ctx, int obj_index, unsigned int arr_index);
+
+int duk_get_global_string(duk_context *ctx, const char *key);
 
 /*
  *  Module helpers: put multiple function or constant properties

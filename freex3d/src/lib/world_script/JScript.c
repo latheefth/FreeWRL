@@ -746,6 +746,15 @@ static char* re_strcat(char *_Dest, char *_Source, int *destLen, int *destDim)
 	return _Dest;
 }
 /* the fwl_RenderSceneUpdateScene is initializing this field now */
+/* A new version of InitScriptField which takes "nicer" arguments; currently a
+ * simple and restricted wrapper, but it could replace it soon? */
+/* Parameters:
+	num:		Script number. Starts at 0. 
+	kind:		One of PKW_initializeOnly PKW_outputOnly PKW_inputOutput PKW_inputOnly
+	type:		One of the FIELDTYPE_ defines, eg, FIELDTYPE_MFFloat
+	field:		the field name as found in the VRML/X3D file. eg "set_myField"
+		
+*/
 void InitScriptField(int num, indexT kind, indexT type, const char* field, union anyVrml value) {
 	jsval rval;
 	char *smallfield = NULL;
@@ -1657,15 +1666,7 @@ void JSInitializeScriptAndFields (int num) {
 
 }
 
-/* A new version of InitScriptField which takes "nicer" arguments; currently a
- * simple and restricted wrapper, but it could replace it soon? */
-/* Parameters:
-	num:		Script number. Starts at 0. 
-	kind:		One of PKW_initializeOnly PKW_outputOnly PKW_inputOutput PKW_inputOnly
-	type:		One of the FIELDTYPE_ defines, eg, FIELDTYPE_MFFloat
-	field:		the field name as found in the VRML/X3D file. eg "set_myField"
-		
-*/
+
 
 /* save this field from the parser; initialize it when the fwl_RenderSceneUpdateScene wants to initialize it */
 void SaveScriptField (int num, indexT kind, indexT type, const char* field, union anyVrml value) {

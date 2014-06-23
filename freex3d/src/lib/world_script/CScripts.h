@@ -148,7 +148,6 @@ struct ScriptParamList {
         indexT type;
         char *field;
         union anyVrml value;
-		struct Shader_Script* script;
 };
 
 struct CRscriptStruct {

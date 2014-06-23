@@ -336,7 +336,7 @@ struct Shader_Script* new_Shader_Script(struct X3D_Node *node) {
 				printf("newScript: created new script nodePtr %u with num %d\n", node, ret->num);
 			#endif
 
-			JSInit(ret->num);
+			JSInit(ret); //->num);
 		}
 	}
 	#endif /* HAVE_JAVASCRIPT */

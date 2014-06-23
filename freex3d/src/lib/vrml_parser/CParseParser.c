@@ -5100,7 +5100,7 @@ void initialize_scripts(Stack *instancedScripts)
 			//printf("in initialize_scripts i=%d __scriptObj =%p ",i,ss);
 			ss->num = nextScriptHandle(); 
 			//printf(" num=%d \n",ss->num);
-			JSInit(ss->num);
+			JSInit(ss); //ss->num);
 			// 2)init each field
 			for(j=0;j<ss->fields->n;j++)
 			{

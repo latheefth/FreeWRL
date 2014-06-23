@@ -357,6 +357,15 @@ static char *DefaultScriptMethods = "function initialize() {}; " \
 			"";
 
 /* www.duktape.org javascript engine used here */
+//A DUK helper function
+static char *eval_string_defineAccessor = "\
+function defineAccessor(obj, key, set, get) { \
+    Object.defineProperty(obj, key, { \
+        enumerable: true, configurable: true, \
+        set: set, get: get \
+    }); \
+}";
+
 
 //void JSCreateScriptContext(int num){return;}
 /* create the script context for this script. This is called from the thread
@@ -365,17 +374,25 @@ void JSCreateScriptContext(int num) {
 	int iglobal, rc;
 	//jsval rval;
 	duk_context *ctx; 	/* these are set here */
+	struct Shader_Script *script;
 	//JSObject *_globalObj; 	/* these are set here */
 	//BrowserNative *br; 	/* these are set here */
 	ppJScript p = (ppJScript)gglobal()->JScript.prv;
 	struct CRscriptStruct *ScriptControl = getScriptControl();
-
+	script = ScriptControl[num].script;
 
 	//CREATE CONTEXT
 	//_context = JS_NewContext(p->runtime, STACK_CHUNK_SIZE);
 	//if (!_context) freewrlDie("JS_NewContext failed");
 	//JS_SetErrorReporter(_context, errorReporter);
 	ctx = duk_create_heap_default();
+
+	//ADD STANDARD JS GLOBAL OBJECT/CLASSES
+	//_globalObj = JS_NewObject(_context, &p->globalClass, NULL, NULL);
+	/* gets JS standard classes */
+	//if (!JS_InitStandardClasses(_context, _globalObj))
+	//	freewrlDie("JS_InitStandardClasses failed");
+    duk_push_global_object(ctx);
 	iglobal = duk_get_top(ctx) -1;
 
 	//SAVE OUR CONTEXT IN OUR PROGRAM'S SCRIPT NODE FOR LATER RE-USE
@@ -385,13 +402,14 @@ void JSCreateScriptContext(int num) {
 	ScriptControl[num].glob =  (void *)malloc(sizeof(int)); 
 	*((int *)ScriptControl[num].glob) = iglobal; //we'll be careful not to pop our global for this context (till context cleanup)
 
-	//ADD STANDARD JS GLOBAL OBJECT/CLASSES
-	//_globalObj = JS_NewObject(_context, &p->globalClass, NULL, NULL);
-	/* gets JS standard classes */
-	//if (!JS_InitStandardClasses(_context, _globalObj))
-	//	freewrlDie("JS_InitStandardClasses failed");
-    duk_push_global_object(ctx);
-	iglobal = duk_get_top(ctx) -1;
+	//ADD DUK HELPER PROPS AND FUNCTIONS
+	duk_push_pointer(ctx,script);
+	duk_put_prop_string(ctx,iglobal,"__script");
+
+	duk_push_string(ctx,eval_string_defineAccessor);
+	duk_eval(ctx);
+	//printf("result is: %s\n", duk_get_string(ctx, -1));
+	duk_pop(ctx);
 
 	//ADD CUSTOM TYPES
 	//* VRML Browser
@@ -408,7 +426,10 @@ void JSCreateScriptContext(int num) {
 	for(int i=0;i<FIELDTYPES_COUNT;i++)
 		addCustomProxyType(ctx, iglobal, FIELDTYPES[i]); //adds proxy constructor function (called typeName in js), and proxy handlers
 	addCustomProxyType(ctx, iglobal, "Browser"); 
- 
+	//add x3d v3.3 ecmascript constants table if you can find it _anywhere_ - I see snippents of X3DConstants.(modes, field types, error codes) etc
+	//	http://www.web3d.org/files/specifications/19777-1/V3.0/index.html
+	//  - see language bindings > ecmascript > examples/tables etc
+
 
 	//test
 	duk_eval_string(ctx,"var myvec3 = new SFVec3f(1.0,2.0,3.0);");
@@ -434,9 +455,10 @@ void JSCreateScriptContext(int num) {
 	CRoutes_js_new (num, JAVASCRIPT);
 	return;
 }
-
+static int duk_once = 0;
 void process_eventsProcessed(){
-	printf("in process_eventsProcessed\n");
+	if(!duk_once) printf("in process_eventsProcessed\n");
+	duk_once++;
 	return;
 }
 void js_cleanup_script_context(int counter){
@@ -493,23 +515,128 @@ void jsShutdown(){
 	printf("in jsShutdown\n");
 	return;
 }
-void InitScriptField(int num, indexT kind, indexT type, const char* field, union anyVrml value)
-{
-	/* 
-	*/
-	printf("in InitScriptField\n");
-	return;
-}
-
-
-
-
 void jsClearScriptControlEntries(int num){
 	printf("in jsClearScriptControlEntries\n");
 	return;
 }
+
+int mysetterNS(duk_context *ctx) {
+	show_stack(ctx,"in mysetter");
+    nativeValue = duk_require_string(ctx, 0);
+    //implicit key by setter C function //char *key = duk_require_string(ctx, 1);
+	const char *key = duk_require_string(ctx,1); //"myprop";
+	printf("\nmysetterNS, key=%s value=%s\n",key,nativeValue);
+	return 0;
+}
+int mygetterNS(duk_context *ctx) {
+	struct Shader_Script *script;
+	show_stack(ctx,"in mygetter");
+	const char *key = duk_require_string(ctx,0);
+	printf("\nmygetterNS key=%s\n",key);
+	duk_eval_string(ctx,"__script");
+	script = (struct Shader_Script*)duk_require_pointer(ctx,-1);
+	printf("script pointer=%x",script);
+	duk_push_string(ctx, nativeValue);
+    return 1;
+}
+
+void add_duk_global_property(duk_context *ctx, int iglobal, const char *fieldname, void *fieldptr){
+	int rc;
+	char *str;
+	show_stack(ctx,"starting");
+
+	duk_eval_string(ctx, "defineAccessor"); //defineAccessor(obj,propName,setter,getter)
+	//show_stack(ctx,"after eval");
+	/* push object */
+	duk_eval_string(ctx,"this"); //global object
+	//show_stack(ctx,"myobj?");
+	/* push key */
+	duk_push_string(ctx,fieldname); //"myprop");
+	/* push setter */
+	duk_push_c_function(ctx,mysetterNS,2); //1 extra parameter is nonstandard (NS) key
+	/* push getter */
+	duk_push_c_function(ctx,mygetterNS,1); //0 extra parameter is nonstandard (NS) key
+	//show_stack(ctx,"C");
+	duk_call(ctx, 4);
+	duk_pop(ctx);
+	//show_stack(ctx,"D");
+	//test evals:
+	//duk_eval_string(ctx,"myprop = 'halleluha!';");
+	//duk_pop(ctx);
+	//duk_eval_string(ctx,"print(myprop.toString());");
+	//duk_pop(ctx);
+	//show_stack(ctx,"E");
+
+
+}
+
+void InitScriptField2(struct CRscriptStruct *scriptcontrol, indexT kind, const char* fieldname, void* fieldptr)
+{
+	/* Creates a javascript-context twin of a Script node for fields of type:
+	 *  field/initializeOnly, eventOut/outputOnly, and the field/eventOut part of exposedField/inputOutput
+	 *  (not for eventIn/inputOnly, which linked elsewhere to scene author's javascript functions)
+	 * puts the twin as a property on the context's global object
+	 * should make the property 'strict' meaning the property can't be deleted by the script during execution
+	 * but get/set should work normally on the property
+	 * a set should cause a valueChanged flag to be set somewhere, so gatherScriptEventOuts 
+	 *   can route from eventOut/outputOnly or the eventOut part of exposedField/inputOutput
+	 * InitScriptField2 version: instead of jsNative, hook back into Script_Node->fields[i] for get/set storage
+	*/
+	duk_context *ctx;
+	int iglobal;
+	printf("in InitScriptField\n");
+
+	if (kind == PKW_inputOnly) return; //we'll hook input events to the author's functions elsewhere
+	//everything else -fields, eventOuts- needs a strict property twin created on the global object
+	// create twin property
+	ctx = scriptcontrol->cx;
+	iglobal = *(int*)scriptcontrol->glob; 
+	add_duk_global_property(ctx,iglobal,fieldname,fieldptr);
+	// add pointer reference to script field, so get/set handler can get value and valueChanged flag
+
+
+	return;
+}
+
+
+
+
+
 void JSInitializeScriptAndFields (int num) {
-	//instead of jsNative, hook back into Script_Node->fields
+	/*  1. creates javascript-context twins of Script node dynamic/authored fields
+		2. runs the script as written by the scene author, which has the effect of
+			declaring all the author's functions (and checking author's syntax)
+	*/
+	struct Shader_Script *script;
+	struct ScriptFieldDecl *field;
+	int i,nfields, kind;
+	const char *fieldname;
+	struct CRscriptStruct *ScriptControlArray, *scriptcontrol;
+	ScriptControlArray = getScriptControl();
+	scriptcontrol = &ScriptControlArray[num];
+
+
+	/* run through fields in order of entry in the X3D file */
+	script = scriptcontrol->script;
+	printf("adding fields from script %x\n",script);
+	nfields = Shader_Script_getScriptFieldCount(script);
+	for(i=0;i<nfields;i++){
+		field = Shader_Script_getScriptField(script,i);
+		fieldname = ScriptFieldDecl_getName(field);
+		kind = ScriptFieldDecl_getMode(field);
+		InitScriptField2(scriptcontrol, kind, fieldname, field);
+	}
+	
+	if (!jsActualrunScript(num, scriptcontrol->scriptText)) {
+		ConsoleMessage ("JSInitializeScriptAndFields, script failure\n");
+		scriptcontrol->scriptOK = FALSE;
+		scriptcontrol->_initialized = TRUE;
+		return;
+	}
+	FREE_IF_NZ(scriptcontrol->scriptText);
+	scriptcontrol->_initialized = TRUE;
+	scriptcontrol->scriptOK = TRUE;
+
 	return;
 }
 void SaveScriptField (int num, indexT kind, indexT type, const char* field, union anyVrml value){

@@ -29,7 +29,7 @@
 #define __FREEWRL_JS_JSCRIPT_H__
 
 void kill_javascript(void);
-void JSInit(int num);
+void JSInit(struct Shader_Script *script); //int num);
 void SaveScriptText(int num, const char *text);
 void process_eventsProcessed();
 void js_cleanup_script_context(int counter);
