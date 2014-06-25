@@ -174,7 +174,150 @@ void nativeSetS(const char *key, const char *val)
 }
 static char* nativeValue = NULL;
 
-void push_typed_proxy(duk_context *ctx, const char *fwType, void *fwpointer)
+
+struct string_int{
+	char *c;
+	int i;
+};
+
+struct string_int lookup_X3DConstants[] = {
+	{"INITIALIZED_EVENT",1},
+	{"SHUTDOWN_EVENT",1},
+	{"CONNECTION_ERROR",1},
+	{"INITIALIZED_ERROR",1},
+	{"NOT_STARTED_STATE",1},
+	{"IN_PROGRESS_STATE",1},
+	{"COMPLETE_STATE",1},
+	{"FAILED_STATE",0},
+	{"SFBool",FIELDTYPE_SFBool},
+	{"MFBool",FIELDTYPE_MFBool},
+	{"MFInt32",FIELDTYPE_MFInt32},
+	{"SFInt32",FIELDTYPE_SFInt32},
+	{"SFFloat",FIELDTYPE_SFFloat},
+	{"MFFloat",FIELDTYPE_MFFloat},
+	{"SFDouble",FIELDTYPE_SFDouble},
+	{"MFDouble",FIELDTYPE_MFDouble},
+	{"SFTime",FIELDTYPE_SFTime},
+	{"MFTime",FIELDTYPE_MFTime},
+	{"SFNode",FIELDTYPE_SFNode},
+	{"MFNode",FIELDTYPE_MFNode},
+	{"SFVec2f",FIELDTYPE_SFVec2f},
+	{"MFVec2f",FIELDTYPE_MFVec2f},
+	{"SFVec3f",FIELDTYPE_SFVec3f},
+	{"MFVec3f",FIELDTYPE_MFVec3f},
+	{"SFVec3d",FIELDTYPE_SFVec3d},
+	{"MFVec3d",FIELDTYPE_MFVec3d},
+	{"SFRotation",FIELDTYPE_SFRotation},
+	{"MFRotation",FIELDTYPE_MFRotation},
+	{"SFColor",FIELDTYPE_SFColor},
+	{"MFColor",FIELDTYPE_MFColor},
+	{"SFImage",FIELDTYPE_SFImage},
+//	{"MFImage",FIELDTYPE_MFImage},
+	{"SFColorRGBA",FIELDTYPE_SFColorRGBA},
+	{"MFColorRGBA",FIELDTYPE_MFColorRGBA},
+	{"SFString",FIELDTYPE_SFString},
+	{"MFString",FIELDTYPE_MFString},
+/*
+	{"X3DBoundedObject",},
+	{"X3DMetadataObject",},
+	{"X3DUrlObject",},
+	{"X3DTriggerNode",},
+	{"X3DInfoNode",},
+	{"X3DAppearanceNode",},
+	{"X3DAppearanceChildNode",},
+	{"X3DMaterialNode",},
+	{"X3DTextureNode",},
+	{"X3DTexture2DNode",},
+	{"X3DTexture3DNode",},
+	{"X3DTextureTransformNode",},
+	{"X3DGeometryNode",},
+	{"X3DGeometry3DNode",},
+	{"X3DCoordinateNode",},
+	{"X3DParametricGeometryNode",},
+	{"X3DGeometricPropertyNode",},
+	{"X3DColorNode",},
+	{"X3DProtoInstance",},
+	{"X3DNormalNode",},
+	{"X3DTextureCoordinateNode",},
+	{"X3DFontStyleNode",},
+	{"X3DGroupingNode ",},
+	{"X3DChildNode",},
+	{"X3DBindableNode",},
+	{"X3DBackgroundNode",},
+	{"X3DInterpolatorNode",},
+	{"X3DShapeNode",},
+	{"X3DScriptNode",},
+	{"X3DSensorNode",},
+	{"X3DEnvironmentalSensorNode",},
+	{"X3DLightNode",},
+	{"X3DNetworkSensorNode",},
+	{"X3DPointingDeviceSensorNode",},
+	{"X3DDragSensorNode",},
+	{"X3DKeyDeviceSensorNode",},
+	{"X3DSequencerNode",},
+	{"X3DTimeDependentNode",},
+	{"X3DSoundNode",},
+	{"X3DSoundSourceNode",},
+	{"X3DTouchSensorNode",},
+*/
+	{"inputOnly",PKW_inputOnly},
+	{"outputOnly",PKW_outputOnly},
+	{"inputOutput",PKW_inputOutput},
+	{"initializeOnly",PKW_initializeOnly},
+	{NULL,0}
+};
+
+#define X3D_Browser 1001
+#define X3D_Constants 1002
+
+struct string_int lookup_fieldType[] = {
+	{"Float", FIELDTYPE_SFFloat},
+	{"Rotation", FIELDTYPE_SFRotation},
+	{"Vec3f", FIELDTYPE_SFVec3f},
+	{"Bool", FIELDTYPE_SFBool},
+	{"Int32", FIELDTYPE_SFInt32},
+	{"Node", FIELDTYPE_SFNode},
+	{"Color", FIELDTYPE_SFColor},
+	{"ColorRGBA", FIELDTYPE_SFColorRGBA},
+	{"Time", FIELDTYPE_SFTime},
+	{"String", FIELDTYPE_SFString},
+	{"Vec2f", FIELDTYPE_SFVec2f},
+	{"Image", FIELDTYPE_SFImage},
+	{"Vec3d", FIELDTYPE_SFVec3d},
+	{"Double", FIELDTYPE_SFDouble},
+	{"Matrix3f", FIELDTYPE_SFMatrix3f},
+	{"Matrix3d", FIELDTYPE_SFMatrix3d},
+	{"Matrix4f", FIELDTYPE_SFMatrix4f},
+	{"Matrix4d", FIELDTYPE_SFMatrix4d},
+	{"Vec2d", FIELDTYPE_SFVec2d},
+	{"Vec4f", FIELDTYPE_SFVec4f},
+	{"Vec4d", FIELDTYPE_SFVec4d},
+	{NULL,0}
+};
+int fwType2itype(const char *fwType){
+	int isSF, isMF, ifield = -1;
+	const char *suffix;
+	isSF = !strncmp(fwType,"SF",2);
+	isMF = !strncmp(fwType,"MF",2);
+	if(isSF || isMF){
+		suffix = &fwType[2]; //skip SF/MF part
+		int i = 0;
+		while(lookup_fieldType[i].c){
+			if(!strcmp(suffix,lookup_fieldType[i].c)){
+				ifield = lookup_fieldType[i].i;
+				break;
+			}
+			i++;
+		}
+		if(ifield > -1 && isMF ) ifield++;
+	}else{
+		//browser and scene/executionContext shouldn't be going through cfwconstructor
+		if(!strcmp(fwType,"Browser")) ifield = X3D_Browser;
+		if(!strcmp(fwType,"X3DConstants")) ifield = X3D_Constants;
+	}
+	return ifield;
+}
+void push_typed_proxy(duk_context *ctx, const char *fwType, int itype, void *fwpointer, int* valueChanged)
 {
 	/*  called by both the cfwconstructor (for new Proxy) and fwgetter (for referenced script->fields)
 		1. please have the proxy object on the stack before calling
@@ -194,6 +337,11 @@ void push_typed_proxy(duk_context *ctx, const char *fwType, void *fwpointer)
 	//add native pointer to this
 	duk_push_pointer(ctx,fwpointer);
 	duk_put_prop_string(ctx,-2,"fwField");
+	duk_push_pointer(ctx,valueChanged);
+	duk_put_prop_string(ctx,-2,"fwChanged");
+	duk_push_int(ctx,itype);
+	duk_put_prop_string(ctx,-2,"fwItype");
+
 	duk_pop(ctx); //pop this
 
 	duk_push_global_object(ctx); //could I just push an object, or push nothing? then how to get global->handler?
@@ -210,18 +358,27 @@ void push_typed_proxy(duk_context *ctx, const char *fwType, void *fwpointer)
 int cfwconstructor(duk_context *ctx) {
 	int rc, nargs;
 	const char *fwType = NULL;
+	int *valueChanged = NULL; //so called 'internal' variables inside the script context don't point to a valueChanged
+	int itype = 0;
 	nargs = duk_get_top(ctx);
 
 	duk_push_current_function(ctx);
 	rc = duk_get_prop_string(ctx, -1, "fwType");
 	if(rc == 1) fwType = duk_to_string(ctx,-1);
+	if(rc == 1) itype = fwType2itype(fwType);
 	if(rc == 1) printf("in constructor fwType=%s\n",fwType);
 	duk_pop(ctx);
+
+	//some things we don't allow scene authors to construct in their javascript
+	if(!fwType) return 0; //not one of our types
+	if(!strcmp(fwType,"X3DBrowser") || !strcmp(fwType,"X3DConstants")) return 0; //this are static singletons
+	if(!strcmp(fwType,"X3DScene") || !strcmp(fwType,"X3DExecutionContext")) return 0; //Browser creates these internally
+
 
 	show_stack(ctx,"in C constructor before push this");
 	duk_push_this(ctx);
 	//add native pointer to this
-	void *fwpointer = malloc(sizeof(nativeStruct));
+	void *fwpointer = malloc(sizeof(union anyVrml));
 
 	if(0){
 		show_stack(ctx,"in C constructor");
@@ -255,7 +412,7 @@ int cfwconstructor(duk_context *ctx) {
 		}
 		duk_remove(ctx,-2); //remove global so just proxy on stack
 	}else{
-		push_typed_proxy(ctx, fwType, fwpointer);
+		push_typed_proxy(ctx, fwType, itype, fwpointer, valueChanged);
 	}
 	//put return value -a proxy object- on stack for return
 	//get the args passed to the constructor, and call the proxy properties with them
@@ -276,11 +433,27 @@ int cfwconstructor(duk_context *ctx) {
 	return 1;
 }
 int chas(duk_context *ctx) {
-	int rc;
+	int rc, itype, *valueChanged;
 	const char *fwType = NULL;
+	union anyVrml *parent;
+
+	/* get type of parent object for this property*/
 	rc = duk_get_prop_string(ctx,0,"fwType");
 	if(rc == 1) fwType = duk_to_string(ctx,-1);
 	duk_pop(ctx);
+	rc = duk_get_prop_string(ctx,0,"fwItype");
+	if(rc==1) itype = duk_get_int(ctx,-1);
+	duk_pop(ctx);
+	//if(fwType) printf("fwType in cget=%s\n",fwType);
+	/* get the pointer to the parent object */
+	rc = duk_get_prop_string(ctx,0,"fwField");
+	if(rc == 1) parent = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+	/* get the pointer to the changed flag */
+	rc = duk_get_prop_string(ctx,0,"fwChanged");
+	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+
 	if(fwType) printf("fwType in chas=%s\n",fwType);
 
 	show_stack(ctx,"in chas");
@@ -319,9 +492,10 @@ int push_duk_fieldvalueECMA(duk_context *ctx, int itype, union anyVrml *fieldval
 	//show_stack(ctx,"in fwgetterNS at end");
     return nr;
 }
-int push_duk_fieldvalueObject(duk_context *ctx, int itype, struct ScriptFieldDecl *field ){
+int push_duk_fieldvalueObject(duk_context *ctx, int itype, union anyVrml *field, int *valueChanged ){
 	//we need an object with our c handlers and pointer to our script->field[i]
-	push_typed_proxy(ctx, FIELDTYPES[itype], field);
+	push_typed_proxy(ctx, FIELDTYPES[itype], itype, field, valueChanged);
+	return 1;
 }
 int isECMAtype(int itype){
 	int isEcma;
@@ -377,22 +551,26 @@ int sizeofSF(int itype){
 }
 
 int cget(duk_context *ctx) {
-	int rc, nr;
+	int rc, nr, itype, *valueChanged;
 	//show_stack(ctx,"in cget");
 	const char *fwType = NULL;
-	struct ScriptFieldDecl* parent = NULL;
-	struct ScriptFieldDecl* field = NULL;
+	union anyVrml* parent = NULL;
+	union anyVrml* field = NULL;
 
 	/* get type of parent object for this property*/
 	rc = duk_get_prop_string(ctx,0,"fwType");
 	if(rc == 1) fwType = duk_to_string(ctx,-1);
 	duk_pop(ctx);
-	//if(fwType) printf("fwType in cget=%s\n",fwType);
-
-
+	rc = duk_get_prop_string(ctx,0,"fwItype");
+	if(rc==1) itype = duk_get_int(ctx,-1);
+	duk_pop(ctx);
 	/* get the pointer to the parent object */
 	rc = duk_get_prop_string(ctx,0,"fwField");
-	if(rc == 1) parent = duk_to_string(ctx,-1);
+	if(rc == 1) parent = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+	/* get the pointer to the changed flag */
+	rc = duk_get_prop_string(ctx,0,"fwChanged");
+	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
 	duk_pop(ctx);
 
 	nr = 0;
@@ -406,20 +584,20 @@ int cget(duk_context *ctx) {
 			//int ikey = round(key);
 			if(!strncmp(fwType,"MF",2)){
 				//its an MF field type, and we have an index to it.
-				if(ikey < parent->value.mfbool.n && ikey > -1){
+				if(ikey < parent->mfbool.n && ikey > -1){
 					// valid index range - figure out what type the SF is and return the element
 					int isize;
-					int iSFtype = ScriptFieldDecl_getType(parent);
+					int iSFtype;
 					//convert the parent's MF type to equivalent SF type for element
-					iSFtype = mf2sf(iSFtype);
+					iSFtype = mf2sf(itype);
 					isize = sizeofSF(iSFtype);
 					if(isECMAtype(iSFtype)){
 						union anyVrml *fieldvalue;
-						fieldvalue = (union anyVrml*)((char*)(parent->value.mfbool.p)+ ikey*isize);
+						fieldvalue = (union anyVrml*)((char*)(parent->mfbool.p)+ ikey*isize);
 						nr = push_duk_fieldvalueECMA(ctx, iSFtype, fieldvalue);
 					}else{
-						field = parent->value.mfbool.p[ikey];
-						nr = push_duk_fieldvalueObject(ctx, iSFtype, field);
+						field = (union anyVrml*)&parent->mfbool.p[ikey];
+						nr = push_duk_fieldvalueObject(ctx, iSFtype, field, valueChanged);
 					}
 				}
 			}
@@ -436,18 +614,34 @@ int cget(duk_context *ctx) {
 			else val = "None";
 			duk_push_string(ctx,val);
 		}
-	}else if(!strcmp(fwType,"Browser")){
+	}else if(!strcmp(fwType,"X3DBrowser")){
+		duk_push_string(ctx,"cget for browser");
+	}else if(!strcmp(fwType,"X3DConstants")){
 	}else if(!strcmp(fwType,"Scene") || !strcmp(fwType,"ExecutionContext")){
 	}
     return 1;
 }
 int cset(duk_context *ctx) {
-	int rc;
+	int rc, itype, *valueChanged;
 	const char *fwType = NULL;
+	union anyVrml *parent;
+
+	/* get type of parent object for this property*/
 	rc = duk_get_prop_string(ctx,0,"fwType");
 	if(rc == 1) fwType = duk_to_string(ctx,-1);
 	duk_pop(ctx);
-	if(fwType) printf("fwType in cset=%s\n",fwType);
+	rc = duk_get_prop_string(ctx,0,"fwItype");
+	if(rc==1) itype = duk_get_int(ctx,-1);
+	duk_pop(ctx);
+	/* get the pointer to the parent object */
+	rc = duk_get_prop_string(ctx,0,"fwField");
+	if(rc == 1) parent = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+	/* get the pointer to the changed flag */
+	rc = duk_get_prop_string(ctx,0,"fwChanged");
+	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+
 
 	show_stack(ctx,"in cset");
 	//char *val = duk_require_string(ctx,-2);
@@ -477,11 +671,27 @@ int cset(duk_context *ctx) {
     return 0;
 }
 int cdel(duk_context *ctx) {
-	int rc;
+	int rc, itype, *valueChanged;
 	const char *fwType = NULL;
+	union anyVrml *parent;
+
+	/* get type of parent object for this property*/
 	rc = duk_get_prop_string(ctx,0,"fwType");
 	if(rc == 1) fwType = duk_to_string(ctx,-1);
 	duk_pop(ctx);
+	rc = duk_get_prop_string(ctx,0,"fwItype");
+	if(rc==1) itype = duk_get_int(ctx,-1);
+	duk_pop(ctx);
+	//if(fwType) printf("fwType in cget=%s\n",fwType);
+	/* get the pointer to the parent object */
+	rc = duk_get_prop_string(ctx,0,"fwField");
+	if(rc == 1) parent = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+	/* get the pointer to the changed flag */
+	rc = duk_get_prop_string(ctx,0,"fwChanged");
+	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+
 	if(fwType) printf("fwType in cdel=%s\n",fwType);
 	show_stack(ctx,"in cdel");
 	duk_push_string(ctx, nativeValue);
@@ -520,13 +730,15 @@ void addCustomProxyType(duk_context *ctx, int iglobal, const char *typeName)
 	//put SFVec3f = c_fuction on global
 	duk_put_prop_string(ctx,iglobal,typeName);
 }
-
-
-static char *DefaultScriptMethods = "function initialize() {}; " \
+void add_duk_global_property(duk_context *ctx, int iglobal, const char *fieldname, int itype, const char *ctype, void *fieldptr /*anyVrml*/, int *valueChanged);
+static char *DefaultScriptMethodsA = "function initialize() {}; " \
 			" function shutdown() {}; " \
 			" function eventsProcessed() {}; " \
 			" TRUE=true; FALSE=false; " \
-			" function print(x) {Browser.print(x)}; " \
+			"";
+
+
+static char *DefaultScriptMethodsB = " function print(x) {Browser.print(x)}; " \
 			" function println(x) {Browser.println(x)}; " \
 			" function getName() {return Browser.getName()}; "\
 			" function getVersion() {return Browser.getVersion()}; "\
@@ -543,6 +755,13 @@ static char *DefaultScriptMethods = "function initialize() {}; " \
 			" function addRoute(a,b,c,d) {Browser.addRoute(a,b,c,d)}; "\
 			" function deleteRoute(a,b,c,d) {Browser.deleteRoute(a,b,c,d)}; "
 			"";
+
+/*add x3d v3.3 ecmascript X3DConstants table 
+// http://www.web3d.org/files/specifications/19777-1/V3.0/index.html
+// http://www.web3d.org/files/specifications/19777-1/V3.0/Part1/functions.html
+// 7.9.11
+*/
+
 
 /* www.duktape.org javascript engine used here */
 //A DUK helper function
@@ -613,13 +832,22 @@ void JSCreateScriptContext(int num) {
 	//from GeneratedCode.c const char *FIELDTYPES[]; const int FIELDTYPES_COUNT;
 	for(int i=0;i<FIELDTYPES_COUNT;i++)
 		addCustomProxyType(ctx, iglobal, FIELDTYPES[i]); //adds proxy constructor function (called typeName in js), and proxy handlers
-	addCustomProxyType(ctx, iglobal, "Browser"); 
-	//add x3d v3.3 ecmascript constants table if you can find it _anywhere_ - I see snippents of X3DConstants.(modes, field types, error codes) etc
-	//	http://www.web3d.org/files/specifications/19777-1/V3.0/index.html
-	//  - see language bindings > ecmascript > examples/tables etc
+	show_stack(ctx,"before adding Browser");
+	add_duk_global_property(ctx, iglobal, "Browser", X3D_Browser, "X3DBrowser", NULL, NULL);
+	//addCustomProxyType(ctx, iglobal, "Browser"); 
+	//add x3d X3DConstants table 
+	//addCustomProxyType(ctx,iglobal,"X3DConstants");
+	add_duk_global_property(ctx, iglobal, "X3DConstants", X3D_Constants, "X3DConstants", NULL, NULL);
 
 
 	//test
+	duk_eval_string(ctx,"Browser.yellow = 33;");
+	duk_pop(ctx);
+	duk_eval_string(ctx,"print(Browser.yellow);");
+	duk_pop(ctx);
+
+	duk_eval_string(ctx,"Browser.getSomething(33);");
+	duk_pop(ctx);
 	duk_eval_string(ctx,"var myvec3 = new SFVec3f(1.0,2.0,3.0);");
 	duk_pop(ctx);
 	duk_eval_string(ctx,"print(myvec3.x.toString());");
@@ -633,10 +861,10 @@ void JSCreateScriptContext(int num) {
 	//* Global methods and defines (some redirecting to the Browser object ie print = Browser.println)
 	//if (!ACTUALRUNSCRIPT(num,DefaultScriptMethods,&rval))
 	//	cleanupDie(num,"runScript failed in VRML::newJS DefaultScriptMethods");
-	if(0){
+	if(1){
 		/* I need these working, but print = Browser.print isn't hooked up, and bombs later*/
 		show_stack(ctx,"\nbefore eval DefaultScriptMethods");
-		duk_eval_string(ctx,DefaultScriptMethods);
+		duk_eval_string(ctx,DefaultScriptMethodsA);
 		duk_pop(ctx);
 	}
 	show_stack(ctx,"done initializeContext - should be 1 object (global)");
@@ -658,8 +886,30 @@ void js_cleanup_script_context(int counter){
 	return;
 }
 int jsActualrunScript(int num, char *script){
+	int len, rc;
+	duk_context *ctx;
+	int iglobal;
+	struct CRscriptStruct *ScriptControl = getScriptControl();
 	printf("in jsActualrunScript\n");
-	return 0;
+
+
+	/* get context and global object for this script */
+	ctx = (duk_context *)ScriptControl[num].cx;
+	iglobal = *((int *)ScriptControl[num].glob);
+
+	//CLEANUP_JAVASCRIPT(_context)
+
+	len = (int) strlen(script);
+	rc=0;
+	duk_eval_string(ctx, script);
+	if(rc<0){
+		printf ("ActualrunScript - JS_EvaluateScript failed for %s", script);
+		printf ("\n");
+		ConsoleMessage ("ActualrunScript - JS_EvaluateScript failed for %s", script);
+		return FALSE;
+	}
+	duk_pop(ctx);
+	return TRUE;
 }
 
 void js_setField_javascriptEventOut_B(union anyVrml* any, int fieldType, unsigned len, int extraData, int actualscript){
@@ -676,11 +926,24 @@ void setScriptECMAtype(int num){
 	return;
 }
 int get_valueChanged_flag (int fptr, int actualscript){
-	printf("in get_valueChanged_flag\n");
-	return 0;
+	struct Shader_Script *script;
+	struct ScriptFieldDecl *field;
+	struct CRscriptStruct *scriptcontrol, *ScriptControlArr = getScriptControl();
+	scriptcontrol = &ScriptControlArr[actualscript];
+	script = scriptcontrol->script;
+	field = Shader_Script_getScriptField(script, fptr);
+	return field->valueChanged;
+	//printf("in get_valueChanged_flag\n");
 }
 void resetScriptTouchedFlag(int actualscript, int fptr){
-	printf("in get_valueChanged_flag\n");
+	struct Shader_Script *script;
+	struct ScriptFieldDecl *field;
+	struct CRscriptStruct *scriptcontrol, *ScriptControlArr = getScriptControl();
+	scriptcontrol = &ScriptControlArr[actualscript];
+	script = scriptcontrol->script;
+	field = Shader_Script_getScriptField(script, fptr);
+	field->valueChanged = 0;
+	//printf("in get_valueChanged_flag\n");
 	return;
 }
 void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int datalen){
@@ -712,33 +975,49 @@ void jsClearScriptControlEntries(int num){
 	return;
 }
 
+/* fwsetterNS, fwgetterNS are for our Script node dynamic fields, or
+   more precisely, for the javascript property we create on the js>context>global object,
+   one global>property for each script field, with the name of the script field on the property
+*/
+
 int fwsetterNS(duk_context *ctx) {
 	/* myfield = new SFVec3f(1,2,3); 
 	 * if myfield is a property we set on the global object, and we've assigned this setter to it,
-	 * we'll come in here. We can set the script->fields[i].valueChanged and .value.
+	 * we'll come in here. We can set the *valueChanged and value on the LHS object, by copying, as per specs
+	 * terminology: LHS: left hand side of equation (ie myfield) RHS: right hand side of equation (ie result of new SFVec3f() )
 	 */
-	int nargs, rc;
-	struct Shader_Script *script;
-	struct ScriptFieldDecl *field = NULL;
+	int nargs, nr;
+	int rc, itype, *valueChanged;
+	const char *fwType = NULL;
+	union anyVrml *field;
 	nargs = duk_get_top(ctx);
 
 	/* retrieve key from nonstandard arg */
 	//show_stack(ctx,"in fwsetterNS");
-    nativeValue = duk_require_string(ctx, 0);
+   // nativeValue = duk_require_string(ctx, 0);
     //implicit key by setter C function //char *key = duk_require_string(ctx, 1);
 	const char *key = duk_require_string(ctx,1); //"myprop";
 	//printf("\nfwsetterNS, key=%s value=%s\n",key,nativeValue);
 
+	/* get details of LHS object */
 	/* retrieve field pointer from Cfunc */
 	duk_push_current_function(ctx);
-	rc = duk_get_prop_string(ctx, -1, "fwField");
-	if(rc == 1){
-		field = duk_to_pointer(ctx,-1);
-		script = field->script;
-		//printf("in fwsetterNS fwField=%x\n",field);
-	}
-	duk_pop(ctx); //Q. should this one be conditional on rc==1?
+	/* get type of parent object for this property*/
+	rc = duk_get_prop_string(ctx,-1,"fwType");
+	if(rc == 1) fwType = duk_to_string(ctx,-1);
 	duk_pop(ctx);
+	rc = duk_get_prop_string(ctx,-1,"fwItype");
+	if(rc==1) itype = duk_get_int(ctx,-1);
+	duk_pop(ctx);
+	/* get the pointer to the parent object */
+	rc = duk_get_prop_string(ctx,-1,"fwField");
+	if(rc == 1) field = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+	/* get the pointer to the changed flag */
+	rc = duk_get_prop_string(ctx,-1,"fwChanged");
+	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+	duk_pop(ctx); //pop current function
 
 	/*we have the field, and even the key name. 
 	  So we should be able to decide how to deal with the incoming set value type 
@@ -748,73 +1027,98 @@ int fwsetterNS(duk_context *ctx) {
 	  - if it's something else, return error, unknown conversion
 	  if succesful set valueChanged
 	*/
-	if(field){
-		int imode, itype, isOK = FALSE;
-		imode = ScriptFieldDecl_getMode(field);
-		itype = ScriptFieldDecl_getType(field);
-		if(duk_is_number(ctx,0)){
-			double val = duk_require_number(ctx,0);
-			isOK = TRUE;
-			switch(itype){
-				case FIELDTYPE_SFFloat:
-					field->value.sffloat = val; break;
-				case FIELDTYPE_SFTime:
-					field->value.sftime = val; break;
-				case FIELDTYPE_SFDouble:
-					field->value.sfdouble = val; break;
-				case FIELDTYPE_SFInt32:
-					field->value.sfint32 = round(val); break;
-				default:
-					isOK = FALSE;
-			}
-		}else if(duk_is_boolean(ctx,0)){
-			int ival = duk_require_boolean(ctx,0);
-			isOK = TRUE;
-			switch(itype){
-			case FIELDTYPE_SFBool:
-				field->value.sfbool = ival;
+	int isOK = FALSE;
+	double val;
+	int ival;
+	const char* sval;
+	/* get details of RHS ... then copy by value to LHS */
+	int RHS_duk_type = duk_get_type(ctx, 0);
+	switch(RHS_duk_type){
+	case DUK_TYPE_NUMBER: 
+		val = duk_require_number(ctx,0);
+		isOK = TRUE;
+		switch(itype){
+			case FIELDTYPE_SFFloat:
+				field->sffloat = val; break;
+			case FIELDTYPE_SFTime:
+				field->sftime = val; break;
+			case FIELDTYPE_SFDouble:
+				field->sfdouble = val; break;
+			case FIELDTYPE_SFInt32:
+				field->sfint32 = round(val); break;
 			default:
 				isOK = FALSE;
-			}
-		}else if(duk_is_string(ctx,0)){
-			const char* sval = duk_require_string(ctx,0);
-			isOK = TRUE;
-			switch(itype){
-			case FIELDTYPE_SFString:
-				field->value.sfstring->strptr = strdup(sval); //should strdup this?
-				field->value.sfstring->len = strlen(sval);
-			default:
-				isOK = FALSE;
-			}
-		}else if(duk_is_object(ctx,0)){
-			const char *fwType = NULL;
-			rc = duk_get_prop_string(ctx,0,"fwType");
-			if(rc == 1) fwType = duk_to_string(ctx,-1);
-			duk_pop(ctx);
-			if(rc && fwType){
-				/* its one of our proxy field types. But is it the type we need?*/
-				if(!strcmp(fwType,FIELDTYPES[itype])){
-					/* same proxy type - attempt to copy it  */
-					struct ScriptFieldDecl *other = NULL;
-					rc = duk_get_prop_string(ctx,0,"fwPointer");
-					if(rc == 1) other = duk_to_pointer(ctx,-1);
-					if(other){
-						/* copy one field to the other. I think it's just the anyVrml we need */
-						field->value = other->value;
-						//scriptFieldDecl_setFieldValue(field, union anyVrml v)
-						field->valueSet = TRUE;
-						isOK = TRUE;
-					}
-				}
+		}
+		break;
+	case DUK_TYPE_BOOLEAN: 
+		ival = duk_require_boolean(ctx,0);
+		isOK = TRUE;
+		switch(itype){
+		case FIELDTYPE_SFBool:
+			field->sfbool = ival;
+		default:
+			isOK = FALSE;
+		}
+		break;
+	case DUK_TYPE_STRING:
+		sval = duk_require_string(ctx,0);
+		isOK = TRUE;
+		switch(itype){
+		case FIELDTYPE_SFString:
+			field->sfstring->strptr = strdup(sval); //should strdup this?
+			field->sfstring->len = strlen(sval);
+		default:
+			isOK = FALSE;
+		}
+		break;
+	case DUK_TYPE_OBJECT:
+	{
+		int itypeRHS;
+		const char *fwTypeRHS = NULL;
+		union anyVrml *fieldRHS = NULL;
+		rc = duk_get_prop_string(ctx,0,"fwType");
+		if(rc == 1) fwType = duk_to_string(ctx,-1);
+		duk_pop(ctx);
+		rc = duk_get_prop_string(ctx,0,"fwItype");
+		if(rc == 1) itypeRHS = duk_to_int(ctx,-1);
+		duk_pop(ctx);
+		rc = duk_get_prop_string(ctx,0,"fwField");
+		if(rc == 1) fieldRHS = duk_to_pointer(ctx,-1);
+		duk_pop(ctx);
+		/*we don't need the RHS fwChanged=valueChanged* because we are only changing the LHS*/
+
+		if(fieldRHS){
+			/* its one of our proxy field types. But is it the type we need?*/
+			if(!strcmp(fwType,fwTypeRHS)){ //or if(itype == itypeRHS)
+				/* same proxy type - attempt to copy it's value from LHS to RHS  */
+				/* copy one anyVrml field to the other by value. 
+					Q. what about the p* from complex fields? deep copy or just the pointer?
+				*/
+				*field = *fieldRHS;
+				//*valueChanged = TRUE;
+				isOK = TRUE;
 			}
 		}
-		if(isOK){
-			field->valueChanged = 1;
-		}
+	}
+		break;
+	case DUK_TYPE_NONE: 
+	case DUK_TYPE_UNDEFINED: 
+	case DUK_TYPE_NULL: 
+		/* are we attempting to null out the field? we aren't allowed to change its type (to undefined) */
+		memset(field,0,sizeof(union anyVrml));
+		isOK = TRUE;
+		break;
+	case DUK_TYPE_POINTER: 
+		/* don't know what this would be for if anything */
+	default:
+		break;
+	}
+	if(isOK){
+		*valueChanged = TRUE; /*LHS valueChanged*/
 	}
 	return 0;
 }
-int push_duk_fieldvalue(duk_context *ctx, struct ScriptFieldDecl *field)
+int push_duk_fieldvalue(duk_context *ctx, int itype, union anyVrml *field, int *valueChanged)
 {
 	/*we have the field, and even the key name. 
 	  So we should be able to decide how to package the outgoing value type:
@@ -825,26 +1129,24 @@ int push_duk_fieldvalue(duk_context *ctx, struct ScriptFieldDecl *field)
 	int nr;
 	nr = 0;
 	if(field){
-		int imode, itype, isOK = FALSE;
-		imode = ScriptFieldDecl_getMode(field);
-		itype = ScriptFieldDecl_getType(field);
+		int isOK = FALSE;
 		nr = 1;
 		switch(itype){
         case FIELDTYPE_SFBool:
-			duk_push_boolean(ctx,field->value.sfbool); break;
+			duk_push_boolean(ctx,field->sfbool); break;
         case FIELDTYPE_SFFloat:
-			duk_push_number(ctx,field->value.sffloat); break;
+			duk_push_number(ctx,field->sffloat); break;
         case FIELDTYPE_SFTime:
-			duk_push_number(ctx,field->value.sftime); break;
+			duk_push_number(ctx,field->sftime); break;
         case FIELDTYPE_SFDouble:
-			duk_push_number(ctx,field->value.sfdouble); break;
+			duk_push_number(ctx,field->sfdouble); break;
         case FIELDTYPE_SFInt32:
-			duk_push_int(ctx,field->value.sfint32); break;
+			duk_push_int(ctx,field->sfint32); break;
         case FIELDTYPE_SFString:
-			duk_push_string(ctx,field->value.sfstring->strptr); break;
+			duk_push_string(ctx,field->sfstring->strptr); break;
 		default:
 			//we need an object with our c handlers and pointer to our script->field[i]
-			push_typed_proxy(ctx, FIELDTYPES[itype], field);
+			push_typed_proxy(ctx, FIELDTYPES[itype], itype, field, valueChanged);
 			break;
 		}
 	}
@@ -852,9 +1154,11 @@ int push_duk_fieldvalue(duk_context *ctx, struct ScriptFieldDecl *field)
     return nr;
 }
 int fwgetterNS(duk_context *ctx) {
-	int nargs, rc, nr;
-	struct Shader_Script *script;
-	struct ScriptFieldDecl *field = NULL;
+	int nargs, nr;
+	int rc, itype, *valueChanged;
+	const char *fwType = NULL;
+	union anyVrml *field;
+
 	nargs = duk_get_top(ctx);
 
 	/* retrieve key from nonstandard arg */
@@ -864,61 +1168,40 @@ int fwgetterNS(duk_context *ctx) {
 
 	/* retrieve field pointer from Cfunc */
 	duk_push_current_function(ctx);
-	rc = duk_get_prop_string(ctx, -1, "fwField");
-	if(rc == 1){
-		field = duk_to_pointer(ctx,-1);
-		script = field->script;
-		//printf("in fwgetterNS fwField=%x\n",field);
-	}
+	/* get type of parent object for this property*/
+	rc = duk_get_prop_string(ctx,-1,"fwType");
+	if(rc == 1) fwType = duk_to_string(ctx,-1);
 	duk_pop(ctx);
+	rc = duk_get_prop_string(ctx,-1,"fwItype");
+	if(rc==1) itype = duk_get_int(ctx,-1);
 	duk_pop(ctx);
+	/* get the pointer to the parent object */
+	rc = duk_get_prop_string(ctx,-1,"fwField");
+	if(rc == 1) field = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+	/* get the pointer to the changed flag */
+	rc = duk_get_prop_string(ctx,-1,"fwChanged");
+	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+	duk_pop(ctx); //pop current function
 
 	if(0){
 		duk_eval_string(ctx,"__script");
-		script = (struct Shader_Script*)duk_require_pointer(ctx,-1);
+		struct Shader_Script *script = (struct Shader_Script*)duk_require_pointer(ctx,-1);
 		//printf("script pointer=%x",script);
 	}
-	//duk_push_string(ctx, nativeValue);
-	if(0){
-		/*we have the field, and even the key name. 
-		  So we should be able to decide how to package the outgoing value type:
-		  according to specs:
-		  - return ecma primitive value type for SFBool, SFInt32, SFFloat, SFDouble, SFTime, SFString
-		  - return our field-type-specific object/proxy-wrapper, pointing to our global.field, for the others.
-		*/
-		nr = 0;
-		if(field){
-			int imode, itype, isOK = FALSE;
-			imode = ScriptFieldDecl_getMode(field);
-			itype = ScriptFieldDecl_getType(field);
-			nr = 1;
-			switch(itype){
-			case FIELDTYPE_SFBool:
-				duk_push_boolean(ctx,field->value.sfbool); break;
-			case FIELDTYPE_SFFloat:
-				duk_push_number(ctx,field->value.sffloat); break;
-			case FIELDTYPE_SFTime:
-				duk_push_number(ctx,field->value.sftime); break;
-			case FIELDTYPE_SFDouble:
-				duk_push_number(ctx,field->value.sfdouble); break;
-			case FIELDTYPE_SFInt32:
-				duk_push_int(ctx,field->value.sfint32); break;
-			case FIELDTYPE_SFString:
-				duk_push_string(ctx,field->value.sfstring->strptr); break;
-			default:
-				//we need an object with our c handlers and pointer to our script->field[i]
-				push_typed_proxy(ctx, FIELDTYPES[itype], field);
-				break;
-			}
-		}
+	if(itype == X3D_Browser || itype == X3D_Constants){
+		duk_push_object(ctx); //proxy object on which get/set handlers will be applied
+		push_typed_proxy(ctx, fwType, itype, NULL, NULL);
+		nr = 1;
 	}else{
-		nr = push_duk_fieldvalue(ctx, field);
+		nr = push_duk_fieldvalue(ctx, itype, field, valueChanged);
 	}
 	//show_stack(ctx,"in fwgetterNS at end");
     return nr;
 }
 
-void add_duk_global_property(duk_context *ctx, int iglobal, const char *fieldname, void *fieldptr){
+void add_duk_global_property(duk_context *ctx, int iglobal, const char *fieldname, int itype, const char *ctype, void *fieldptr /*anyVrml*/, int *valueChanged){
 	int rc;
 	char *str;
 	//show_stack(ctx,"starting add_duk_global_property");
@@ -934,10 +1217,23 @@ void add_duk_global_property(duk_context *ctx, int iglobal, const char *fieldnam
 	duk_push_c_function(ctx,fwsetterNS,2); //1 extra parameter is nonstandard (NS) key
 	duk_push_pointer(ctx,fieldptr);
 	duk_put_prop_string(ctx,-2,"fwField");
+	duk_push_pointer(ctx,valueChanged);
+	duk_put_prop_string(ctx,-2,"fwChanged");
+	duk_push_int(ctx,itype);
+	duk_put_prop_string(ctx,-2,"fwItype");
+	duk_push_string(ctx,ctype);
+	duk_put_prop_string(ctx,-2,"fwType");
 	/* push getter */
 	duk_push_c_function(ctx,fwgetterNS,1); //0 extra parameter is nonstandard (NS) key
 	duk_push_pointer(ctx,fieldptr);
 	duk_put_prop_string(ctx,-2,"fwField");
+	duk_push_pointer(ctx,valueChanged);
+	duk_put_prop_string(ctx,-2,"fwChanged");
+	duk_push_int(ctx,itype);
+	duk_put_prop_string(ctx,-2,"fwItype");
+	duk_push_string(ctx,ctype);
+	duk_put_prop_string(ctx,-2,"fwType");
+
 	//show_stack(ctx,"C");
 	duk_call(ctx, 4);
 	duk_pop(ctx);
@@ -960,11 +1256,9 @@ void add_duk_global_property(duk_context *ctx, int iglobal, const char *fieldnam
 		duk_pop(ctx);
 	}
 	//show_stack(ctx,"E");
-
-
 }
 
-void InitScriptField2(struct CRscriptStruct *scriptcontrol, indexT kind, const char* fieldname, struct ScriptFieldDecl *field)
+void InitScriptField2(struct CRscriptStruct *scriptcontrol, indexT kind, int itype, const char* fieldname, union anyVrml *fieldvalue, int *valueChanged)
 {
 	/* Creates a javascript-context twin of a Script node for fields of type:
 	 *  field/initializeOnly, eventOut/outputOnly, and the field/eventOut part of exposedField/inputOutput
@@ -985,15 +1279,11 @@ void InitScriptField2(struct CRscriptStruct *scriptcontrol, indexT kind, const c
 	// create twin property
 	ctx = scriptcontrol->cx;
 	iglobal = *(int*)scriptcontrol->glob; 
-	add_duk_global_property(ctx,iglobal,fieldname,field);
-	field->valueChanged = 0;
+	add_duk_global_property(ctx,iglobal,fieldname,itype, FIELDNAMES[itype], fieldvalue,valueChanged);
+	*valueChanged = 0;
 
 	return;
 }
-
-
-
-
 
 void JSInitializeScriptAndFields (int num) {
 	/*  1. creates javascript-context twins of Script node dynamic/authored fields
@@ -1002,7 +1292,7 @@ void JSInitializeScriptAndFields (int num) {
 	*/
 	struct Shader_Script *script;
 	struct ScriptFieldDecl *field;
-	int i,nfields, kind;
+	int i,nfields, kind, itype;
 	const char *fieldname;
 	struct CRscriptStruct *ScriptControlArray, *scriptcontrol;
 	ScriptControlArray = getScriptControl();
@@ -1017,7 +1307,8 @@ void JSInitializeScriptAndFields (int num) {
 		field = Shader_Script_getScriptField(script,i);
 		fieldname = ScriptFieldDecl_getName(field);
 		kind = ScriptFieldDecl_getMode(field);
-		InitScriptField2(scriptcontrol, kind, fieldname, field);
+		itype = ScriptFieldDecl_getType(field);
+		InitScriptField2(scriptcontrol, kind, itype, fieldname, &field->value, &field->valueChanged);
 	}
 	
 	if (!jsActualrunScript(num, scriptcontrol->scriptText)) {
