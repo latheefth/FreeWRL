@@ -80,7 +80,34 @@ void jsUtils_init(void *t){}
 void jsVRMLClasses_init(void *t){}
 
 
+#include <stdio.h>
+#include <memory.h>
+static char buf[2048];
+static int n = 0;
+int fwwrite(const void *buffer, int size, int count, FILE *target);
+int fwflush(FILE *target);
+int fwwrite(const void *addon, int size, int count, FILE *target)
+{
+	if(target == stdout || target == stderr){
+		memcpy(&buf[n], addon, size*count);
+		n += size*count;
+		return size*count;
+	}else{
+		return fwrite(addon,size,count,target);
+	}
+}
+int fwflush(FILE *target)
+{
+	if(target == stdout || target == stderr){
+		buf[n] = '\0';
+		printf("%s", buf);
+		n = 0;
+		return 0;
+	}else{
+		return fflush(target);
+	}
 
+}
 
 void show_stack(duk_context *ctx, char* comment)
 {
@@ -147,6 +174,38 @@ void nativeSetS(const char *key, const char *val)
 }
 static char* nativeValue = NULL;
 
+void push_typed_proxy(duk_context *ctx, const char *fwType, void *fwpointer)
+{
+	/*  called by both the cfwconstructor (for new Proxy) and fwgetter (for referenced script->fields)
+		1. please have the proxy object on the stack before calling
+		   cfwconstructor: push_this (from the 'new')
+		   fwgetter: push_object (fresh object)
+		2. nativePtr
+			cfwconstructor: malloc/construct a new field, set the values and give the pointer
+			fwgetter: reference to script->field[i]
+	*/
+	int rc;
+
+	//add fwtype to this
+	//- if I have one C constructor, and many named js constructors
+	//- I need to fetch the name of the constructor and use it here
+	duk_push_string(ctx,fwType); //"SFColor");
+	duk_put_prop_string(ctx,-2,"fwType");
+	//add native pointer to this
+	duk_push_pointer(ctx,fwpointer);
+	duk_put_prop_string(ctx,-2,"fwField");
+	duk_pop(ctx); //pop this
+
+	duk_push_global_object(ctx); //could I just push an object, or push nothing? then how to get global->handler?
+	int iglobal = duk_get_top(ctx) -1;
+	rc = duk_get_prop_string(ctx,iglobal,"Proxy");
+	//rc = duk_get_prop_string(ctx,iglobal,"this");
+		duk_push_this(ctx);
+	rc = duk_get_prop_string(ctx,iglobal,"handler");
+	duk_new(ctx,2); /* [ global Proxy target handler ] -> [ global result ] */
+	duk_remove(ctx,-2); //remove global so just proxy on stack
+}
+
 #include <math.h> //for int = round(numeric)
 int cfwconstructor(duk_context *ctx) {
 	int rc, nargs;
@@ -161,38 +220,43 @@ int cfwconstructor(duk_context *ctx) {
 
 	show_stack(ctx,"in C constructor before push this");
 	duk_push_this(ctx);
-	show_stack(ctx,"in C constructor");
-
-	//add fwtype to this
-	//- if I have one C constructor, and many named js constructors
-	//- I need to fetch the name of the constructor and use it here
-	duk_push_string(ctx,fwType); //"SFColor");
-	duk_put_prop_string(ctx,-2,"fwType");
 	//add native pointer to this
 	void *fwpointer = malloc(sizeof(nativeStruct));
-	duk_push_pointer(ctx,fwpointer);
-	duk_put_prop_string(ctx,-2,"fwPointer");
-	duk_pop(ctx); //pop this
 
-	duk_push_global_object(ctx); //could I just push an object, or push nothing? then how to get global->handler?
-	if(1){
-		int iglobal = duk_get_top(ctx) -1;
-		rc = duk_get_prop_string(ctx,iglobal,"Proxy");
-		//rc = duk_get_prop_string(ctx,iglobal,"this");
-			duk_push_this(ctx);
-		rc = duk_get_prop_string(ctx,iglobal,"handler");
-		duk_new(ctx,2); /* [ global Proxy target handler ] -> [ global result ] */
-		//duk_remove(ctx, -2); /* remove global -> [ result ] */
-		if(0){
-			duk_put_prop_string(ctx,iglobal,"proxy");
+	if(0){
+		show_stack(ctx,"in C constructor");
+
+		//add fwtype to this
+		//- if I have one C constructor, and many named js constructors
+		//- I need to fetch the name of the constructor and use it here
+		duk_push_string(ctx,fwType); //"SFColor");
+		duk_put_prop_string(ctx,-2,"fwType");
+		duk_push_pointer(ctx,fwpointer);
+		duk_put_prop_string(ctx,-2,"fwPointer");
+		duk_pop(ctx); //pop this
+
+		duk_push_global_object(ctx); //could I just push an object, or push nothing? then how to get global->handler?
+		if(1){
+			int iglobal = duk_get_top(ctx) -1;
+			rc = duk_get_prop_string(ctx,iglobal,"Proxy");
+			//rc = duk_get_prop_string(ctx,iglobal,"this");
+				duk_push_this(ctx);
+			rc = duk_get_prop_string(ctx,iglobal,"handler");
+			duk_new(ctx,2); /* [ global Proxy target handler ] -> [ global result ] */
+			//duk_remove(ctx, -2); /* remove global -> [ result ] */
+			if(0){
+				duk_put_prop_string(ctx,iglobal,"proxy");
+				duk_get_prop_string(ctx,-1,"proxy"); //get it from global
+			}
+		}else{
+			duk_eval_string(ctx,"var proxy = new Proxy(this,handler);");
+			duk_pop(ctx); //pop eval results
 			duk_get_prop_string(ctx,-1,"proxy"); //get it from global
 		}
+		duk_remove(ctx,-2); //remove global so just proxy on stack
 	}else{
-		duk_eval_string(ctx,"var proxy = new Proxy(this,handler);");
-		duk_pop(ctx); //pop eval results
-		duk_get_prop_string(ctx,-1,"proxy"); //get it from global
+		push_typed_proxy(ctx, fwType, fwpointer);
 	}
-	duk_remove(ctx,-2); //remove global so just proxy on stack
 	//put return value -a proxy object- on stack for return
 	//get the args passed to the constructor, and call the proxy properties with them
 	//or call a native constructor for the type and pass in args
@@ -224,32 +288,156 @@ int chas(duk_context *ctx) {
     return 1;
 }
 
+int push_duk_fieldvalueECMA(duk_context *ctx, int itype, union anyVrml *fieldvalue)
+{
+	/*we have the field, and even the key name. 
+	  So we should be able to decide how to package the outgoing value type:
+	  according to specs:
+	  - return ecma primitive value type for SFBool, SFInt32, SFFloat, SFDouble, SFTime, SFString
+	  - return our field-type-specific object/proxy-wrapper, pointing to our global.field, for the others.
+	*/
+	int nr;
+	int isOK = FALSE;
+	nr = 1;
+	switch(itype){
+    case FIELDTYPE_SFBool:
+		duk_push_boolean(ctx,fieldvalue->sfbool); break;
+    case FIELDTYPE_SFFloat:
+		duk_push_number(ctx,fieldvalue->sffloat); break;
+    case FIELDTYPE_SFTime:
+		duk_push_number(ctx,fieldvalue->sftime); break;
+    case FIELDTYPE_SFDouble:
+		duk_push_number(ctx,fieldvalue->sfdouble); break;
+    case FIELDTYPE_SFInt32:
+		duk_push_int(ctx,fieldvalue->sfint32); break;
+    case FIELDTYPE_SFString:
+		duk_push_string(ctx,fieldvalue->sfstring->strptr); break;
+	default:
+		nr = 0; 
+		break;
+	}
+	//show_stack(ctx,"in fwgetterNS at end");
+    return nr;
+}
+int push_duk_fieldvalueObject(duk_context *ctx, int itype, struct ScriptFieldDecl *field ){
+	//we need an object with our c handlers and pointer to our script->field[i]
+	push_typed_proxy(ctx, FIELDTYPES[itype], field);
+}
+int isECMAtype(int itype){
+	int isEcma;
+	switch(itype){
+    case FIELDTYPE_SFBool:
+    case FIELDTYPE_SFFloat:
+    case FIELDTYPE_SFTime:
+    case FIELDTYPE_SFDouble:
+    case FIELDTYPE_SFInt32:
+    case FIELDTYPE_SFString:
+		isEcma = TRUE;
+	default:
+		isEcma = FALSE;
+	}
+	return isEcma;
+}
+int mf2sf(int itype){
+	return itype -1;
+}
+/*we seem to be missing something in generated code/structs that would allow me to
+  look up how big something is. I suspect it's ##MACRO-ized elsewhere.
+*/
+int sizeofSF(int itype){
+	//goal get the offset for MF.p[i] in bytes
+	int iz;
+	switch(itype){
+	case FIELDTYPE_SFFloat: iz = sizeof(float); break;
+	case FIELDTYPE_SFRotation:	iz = sizeof(struct SFRotation); break;
+	case FIELDTYPE_SFVec3f:	iz = 3*sizeof(struct SFVec3f);break;
+	case FIELDTYPE_SFBool:	iz = sizeof(int); break;
+	case FIELDTYPE_SFInt32:	iz = sizeof(int); break;
+	case FIELDTYPE_SFNode:	iz = sizeof(void*); break;
+	case FIELDTYPE_SFColor:	iz = sizeof(struct SFColor); break;
+	case FIELDTYPE_SFColorRGBA:	iz = sizeof(struct SFColorRGBA); break;
+	case FIELDTYPE_SFTime:	iz = sizeof(double); break;
+	case FIELDTYPE_SFString: iz = sizeof(struct Uni_string *); break;
+	case FIELDTYPE_SFVec2f:	iz = sizeof(struct SFVec2f); break;
+	//case FIELDTYPE_SFImage:	iz = 
+	case FIELDTYPE_SFVec3d:	iz = sizeof(struct SFVec3d); break;
+	case FIELDTYPE_SFDouble: iz = sizeof(double); break;
+	case FIELDTYPE_SFMatrix3f: iz = sizeof(struct SFMatrix3f); break;
+	case FIELDTYPE_SFMatrix3d: iz = sizeof(struct SFMatrix3d); break;
+	case FIELDTYPE_SFMatrix4f: iz = sizeof(struct SFMatrix4f); break;
+	case FIELDTYPE_SFMatrix4d: iz = sizeof(struct SFMatrix4d); break;
+	case FIELDTYPE_SFVec2d: iz = sizeof(struct SFVec2d); break;
+	case FIELDTYPE_SFVec4f:	iz = sizeof(struct SFVec4f); break;
+	case FIELDTYPE_SFVec4d:	iz = sizeof(struct SFVec4d); break;
+	default:
+		//ouch
+		iz = sizeof(void*);
+	}
+	return iz;
+}
 
 int cget(duk_context *ctx) {
-	int rc;
-	show_stack(ctx,"in cget");
+	int rc, nr;
+	//show_stack(ctx,"in cget");
 	const char *fwType = NULL;
+	struct ScriptFieldDecl* parent = NULL;
+	struct ScriptFieldDecl* field = NULL;
+
+	/* get type of parent object for this property*/
 	rc = duk_get_prop_string(ctx,0,"fwType");
 	if(rc == 1) fwType = duk_to_string(ctx,-1);
 	duk_pop(ctx);
-	if(fwType) printf("fwType in cget=%s\n",fwType);
-	if(duk_is_number(ctx,-2)){
-		//indexer
-		double key = duk_require_number(ctx,-2);
-		int ikey = round(key);
-		printf("index =%d\n",ikey);
-		duk_push_string(ctx,nativeStruct.arr[ikey]);
-	}else{
-		//named property
-		int kval = -1;
-		char *val = NULL;
-		const char *key = duk_require_string(ctx,-2);
-		printf("key=%s\n",key);
-		for(int j=0;j<nativeStruct.nkey;j++)
-			if(!strcmp(nativeStruct.key[j],key)) kval = j;
-		if(kval > -1) val = nativeStruct.val[kval];
-		else val = "None";
-		duk_push_string(ctx,val);
+	//if(fwType) printf("fwType in cget=%s\n",fwType);
+
+
+	/* get the pointer to the parent object */
+	rc = duk_get_prop_string(ctx,0,"fwField");
+	if(rc == 1) parent = duk_to_string(ctx,-1);
+	duk_pop(ctx);
+
+	nr = 0;
+	if(!fwType || !parent) return nr;
+
+	/* figure out what field on the parent the get is referring to */
+	if(!strncmp(fwType,"MF",2) || !strncmp(fwType,"SF",2)){
+		if(duk_is_number(ctx,-2)){
+			//indexer
+			int ikey = duk_get_int(ctx,-2);
+			//int ikey = round(key);
+			if(!strncmp(fwType,"MF",2)){
+				//its an MF field type, and we have an index to it.
+				if(ikey < parent->value.mfbool.n && ikey > -1){
+					// valid index range - figure out what type the SF is and return the element
+					int isize;
+					int iSFtype = ScriptFieldDecl_getType(parent);
+					//convert the parent's MF type to equivalent SF type for element
+					iSFtype = mf2sf(iSFtype);
+					isize = sizeofSF(iSFtype);
+					if(isECMAtype(iSFtype)){
+						union anyVrml *fieldvalue;
+						fieldvalue = (union anyVrml*)((char*)(parent->value.mfbool.p)+ ikey*isize);
+						nr = push_duk_fieldvalueECMA(ctx, iSFtype, fieldvalue);
+					}else{
+						field = parent->value.mfbool.p[ikey];
+						nr = push_duk_fieldvalueObject(ctx, iSFtype, field);
+					}
+				}
+			}
+		}else{
+			//named property
+			int kval = -1;
+			char *val = NULL;
+			const char *key = duk_require_string(ctx,-2);
+			printf("key=%s\n",key);
+
+			for(int j=0;j<nativeStruct.nkey;j++)
+				if(!strcmp(nativeStruct.key[j],key)) kval = j;
+			if(kval > -1) val = nativeStruct.val[kval];
+			else val = "None";
+			duk_push_string(ctx,val);
+		}
+	}else if(!strcmp(fwType,"Browser")){
+	}else if(!strcmp(fwType,"Scene") || !strcmp(fwType,"ExecutionContext")){
 	}
     return 1;
 }
@@ -445,10 +633,14 @@ void JSCreateScriptContext(int num) {
 	//* Global methods and defines (some redirecting to the Browser object ie print = Browser.println)
 	//if (!ACTUALRUNSCRIPT(num,DefaultScriptMethods,&rval))
 	//	cleanupDie(num,"runScript failed in VRML::newJS DefaultScriptMethods");
-	show_stack(ctx,"\nbefore eval DefaultScriptMethods");
-	duk_eval_string(ctx,DefaultScriptMethods);
-	duk_pop(ctx);
+	if(0){
+		/* I need these working, but print = Browser.print isn't hooked up, and bombs later*/
+		show_stack(ctx,"\nbefore eval DefaultScriptMethods");
+		duk_eval_string(ctx,DefaultScriptMethods);
+		duk_pop(ctx);
+	}
 	show_stack(ctx,"done initializeContext - should be 1 object (global)");
+	//duk_eval_string(ctx,"print('hi there');"); duk_pop(ctx);
 
 
 	/* send this data over to the routing table functions. */
@@ -520,30 +712,216 @@ void jsClearScriptControlEntries(int num){
 	return;
 }
 
-int mysetterNS(duk_context *ctx) {
-	show_stack(ctx,"in mysetter");
+int fwsetterNS(duk_context *ctx) {
+	/* myfield = new SFVec3f(1,2,3); 
+	 * if myfield is a property we set on the global object, and we've assigned this setter to it,
+	 * we'll come in here. We can set the script->fields[i].valueChanged and .value.
+	 */
+	int nargs, rc;
+	struct Shader_Script *script;
+	struct ScriptFieldDecl *field = NULL;
+	nargs = duk_get_top(ctx);
+
+	/* retrieve key from nonstandard arg */
+	//show_stack(ctx,"in fwsetterNS");
     nativeValue = duk_require_string(ctx, 0);
     //implicit key by setter C function //char *key = duk_require_string(ctx, 1);
 	const char *key = duk_require_string(ctx,1); //"myprop";
-	printf("\nmysetterNS, key=%s value=%s\n",key,nativeValue);
+	//printf("\nfwsetterNS, key=%s value=%s\n",key,nativeValue);
+
+	/* retrieve field pointer from Cfunc */
+	duk_push_current_function(ctx);
+	rc = duk_get_prop_string(ctx, -1, "fwField");
+	if(rc == 1){
+		field = duk_to_pointer(ctx,-1);
+		script = field->script;
+		//printf("in fwsetterNS fwField=%x\n",field);
+	}
+	duk_pop(ctx); //Q. should this one be conditional on rc==1?
+	duk_pop(ctx);
+
+	/*we have the field, and even the key name. 
+	  So we should be able to decide how to deal with the incoming set value type 
+	  according to specs:
+	  - convert incoming ecma primitive value type for SFBool, SFInt32, SFFloat, SFDouble, SFTime, SFString
+	  - if it's one of our field-type-specific object/proxy-wrapper, copy the field values
+	  - if it's something else, return error, unknown conversion
+	  if succesful set valueChanged
+	*/
+	if(field){
+		int imode, itype, isOK = FALSE;
+		imode = ScriptFieldDecl_getMode(field);
+		itype = ScriptFieldDecl_getType(field);
+		if(duk_is_number(ctx,0)){
+			double val = duk_require_number(ctx,0);
+			isOK = TRUE;
+			switch(itype){
+				case FIELDTYPE_SFFloat:
+					field->value.sffloat = val; break;
+				case FIELDTYPE_SFTime:
+					field->value.sftime = val; break;
+				case FIELDTYPE_SFDouble:
+					field->value.sfdouble = val; break;
+				case FIELDTYPE_SFInt32:
+					field->value.sfint32 = round(val); break;
+				default:
+					isOK = FALSE;
+			}
+		}else if(duk_is_boolean(ctx,0)){
+			int ival = duk_require_boolean(ctx,0);
+			isOK = TRUE;
+			switch(itype){
+			case FIELDTYPE_SFBool:
+				field->value.sfbool = ival;
+			default:
+				isOK = FALSE;
+			}
+		}else if(duk_is_string(ctx,0)){
+			const char* sval = duk_require_string(ctx,0);
+			isOK = TRUE;
+			switch(itype){
+			case FIELDTYPE_SFString:
+				field->value.sfstring->strptr = strdup(sval); //should strdup this?
+				field->value.sfstring->len = strlen(sval);
+			default:
+				isOK = FALSE;
+			}
+		}else if(duk_is_object(ctx,0)){
+			const char *fwType = NULL;
+			rc = duk_get_prop_string(ctx,0,"fwType");
+			if(rc == 1) fwType = duk_to_string(ctx,-1);
+			duk_pop(ctx);
+			if(rc && fwType){
+				/* its one of our proxy field types. But is it the type we need?*/
+				if(!strcmp(fwType,FIELDTYPES[itype])){
+					/* same proxy type - attempt to copy it  */
+					struct ScriptFieldDecl *other = NULL;
+					rc = duk_get_prop_string(ctx,0,"fwPointer");
+					if(rc == 1) other = duk_to_pointer(ctx,-1);
+					if(other){
+						/* copy one field to the other. I think it's just the anyVrml we need */
+						field->value = other->value;
+						//scriptFieldDecl_setFieldValue(field, union anyVrml v)
+						field->valueSet = TRUE;
+						isOK = TRUE;
+					}
+				}
+			}
+		}
+		if(isOK){
+			field->valueChanged = 1;
+		}
+	}
 	return 0;
 }
-int mygetterNS(duk_context *ctx) {
+int push_duk_fieldvalue(duk_context *ctx, struct ScriptFieldDecl *field)
+{
+	/*we have the field, and even the key name. 
+	  So we should be able to decide how to package the outgoing value type:
+	  according to specs:
+	  - return ecma primitive value type for SFBool, SFInt32, SFFloat, SFDouble, SFTime, SFString
+	  - return our field-type-specific object/proxy-wrapper, pointing to our global.field, for the others.
+	*/
+	int nr;
+	nr = 0;
+	if(field){
+		int imode, itype, isOK = FALSE;
+		imode = ScriptFieldDecl_getMode(field);
+		itype = ScriptFieldDecl_getType(field);
+		nr = 1;
+		switch(itype){
+        case FIELDTYPE_SFBool:
+			duk_push_boolean(ctx,field->value.sfbool); break;
+        case FIELDTYPE_SFFloat:
+			duk_push_number(ctx,field->value.sffloat); break;
+        case FIELDTYPE_SFTime:
+			duk_push_number(ctx,field->value.sftime); break;
+        case FIELDTYPE_SFDouble:
+			duk_push_number(ctx,field->value.sfdouble); break;
+        case FIELDTYPE_SFInt32:
+			duk_push_int(ctx,field->value.sfint32); break;
+        case FIELDTYPE_SFString:
+			duk_push_string(ctx,field->value.sfstring->strptr); break;
+		default:
+			//we need an object with our c handlers and pointer to our script->field[i]
+			push_typed_proxy(ctx, FIELDTYPES[itype], field);
+			break;
+		}
+	}
+	//show_stack(ctx,"in fwgetterNS at end");
+    return nr;
+}
+int fwgetterNS(duk_context *ctx) {
+	int nargs, rc, nr;
 	struct Shader_Script *script;
-	show_stack(ctx,"in mygetter");
+	struct ScriptFieldDecl *field = NULL;
+	nargs = duk_get_top(ctx);
+
+	/* retrieve key from nonstandard arg */
+	//show_stack(ctx,"in fwgetterNS at start");
 	const char *key = duk_require_string(ctx,0);
-	printf("\nmygetterNS key=%s\n",key);
-	duk_eval_string(ctx,"__script");
-	script = (struct Shader_Script*)duk_require_pointer(ctx,-1);
-	printf("script pointer=%x",script);
-	duk_push_string(ctx, nativeValue);
-    return 1;
+	//printf("\nfwgetterNS key=%s\n",key);
+
+	/* retrieve field pointer from Cfunc */
+	duk_push_current_function(ctx);
+	rc = duk_get_prop_string(ctx, -1, "fwField");
+	if(rc == 1){
+		field = duk_to_pointer(ctx,-1);
+		script = field->script;
+		//printf("in fwgetterNS fwField=%x\n",field);
+	}
+	duk_pop(ctx);
+	duk_pop(ctx);
+
+	if(0){
+		duk_eval_string(ctx,"__script");
+		script = (struct Shader_Script*)duk_require_pointer(ctx,-1);
+		//printf("script pointer=%x",script);
+	}
+	//duk_push_string(ctx, nativeValue);
+	if(0){
+		/*we have the field, and even the key name. 
+		  So we should be able to decide how to package the outgoing value type:
+		  according to specs:
+		  - return ecma primitive value type for SFBool, SFInt32, SFFloat, SFDouble, SFTime, SFString
+		  - return our field-type-specific object/proxy-wrapper, pointing to our global.field, for the others.
+		*/
+		nr = 0;
+		if(field){
+			int imode, itype, isOK = FALSE;
+			imode = ScriptFieldDecl_getMode(field);
+			itype = ScriptFieldDecl_getType(field);
+			nr = 1;
+			switch(itype){
+			case FIELDTYPE_SFBool:
+				duk_push_boolean(ctx,field->value.sfbool); break;
+			case FIELDTYPE_SFFloat:
+				duk_push_number(ctx,field->value.sffloat); break;
+			case FIELDTYPE_SFTime:
+				duk_push_number(ctx,field->value.sftime); break;
+			case FIELDTYPE_SFDouble:
+				duk_push_number(ctx,field->value.sfdouble); break;
+			case FIELDTYPE_SFInt32:
+				duk_push_int(ctx,field->value.sfint32); break;
+			case FIELDTYPE_SFString:
+				duk_push_string(ctx,field->value.sfstring->strptr); break;
+			default:
+				//we need an object with our c handlers and pointer to our script->field[i]
+				push_typed_proxy(ctx, FIELDTYPES[itype], field);
+				break;
+			}
+		}
+	}else{
+		nr = push_duk_fieldvalue(ctx, field);
+	}
+	//show_stack(ctx,"in fwgetterNS at end");
+    return nr;
 }
 
 void add_duk_global_property(duk_context *ctx, int iglobal, const char *fieldname, void *fieldptr){
 	int rc;
 	char *str;
-	show_stack(ctx,"starting");
+	//show_stack(ctx,"starting add_duk_global_property");
 
 	duk_eval_string(ctx, "defineAccessor"); //defineAccessor(obj,propName,setter,getter)
 	//show_stack(ctx,"after eval");
@@ -553,24 +931,40 @@ void add_duk_global_property(duk_context *ctx, int iglobal, const char *fieldnam
 	/* push key */
 	duk_push_string(ctx,fieldname); //"myprop");
 	/* push setter */
-	duk_push_c_function(ctx,mysetterNS,2); //1 extra parameter is nonstandard (NS) key
+	duk_push_c_function(ctx,fwsetterNS,2); //1 extra parameter is nonstandard (NS) key
+	duk_push_pointer(ctx,fieldptr);
+	duk_put_prop_string(ctx,-2,"fwField");
 	/* push getter */
-	duk_push_c_function(ctx,mygetterNS,1); //0 extra parameter is nonstandard (NS) key
+	duk_push_c_function(ctx,fwgetterNS,1); //0 extra parameter is nonstandard (NS) key
+	duk_push_pointer(ctx,fieldptr);
+	duk_put_prop_string(ctx,-2,"fwField");
 	//show_stack(ctx,"C");
 	duk_call(ctx, 4);
 	duk_pop(ctx);
 	//show_stack(ctx,"D");
-	//test evals:
-	//duk_eval_string(ctx,"myprop = 'halleluha!';");
-	//duk_pop(ctx);
-	//duk_eval_string(ctx,"print(myprop.toString());");
-	//duk_pop(ctx);
+	if(0){
+		//test evals:
+		char teststring[1000];
+		strcpy(teststring,fieldname);
+		strcat(teststring," = 'halleluha!';");
+		//duk_eval_string(ctx,"myprop = 'halleluha!';");
+		duk_eval_string(ctx,teststring);
+		duk_pop(ctx);
+		show_stack(ctx,"before print");
+		duk_eval_string(ctx,"print('hi there');"); duk_pop(ctx);
+		strcpy(teststring,"print(");
+		strcat(teststring,fieldname);
+		strcat(teststring,".toString());");
+		//duk_eval_string(ctx,"print(myprop.toString());");
+		duk_eval_string(ctx,teststring);
+		duk_pop(ctx);
+	}
 	//show_stack(ctx,"E");
 
 
 }
 
-void InitScriptField2(struct CRscriptStruct *scriptcontrol, indexT kind, const char* fieldname, void* fieldptr)
+void InitScriptField2(struct CRscriptStruct *scriptcontrol, indexT kind, const char* fieldname, struct ScriptFieldDecl *field)
 {
 	/* Creates a javascript-context twin of a Script node for fields of type:
 	 *  field/initializeOnly, eventOut/outputOnly, and the field/eventOut part of exposedField/inputOutput
@@ -591,9 +985,8 @@ void InitScriptField2(struct CRscriptStruct *scriptcontrol, indexT kind, const c
 	// create twin property
 	ctx = scriptcontrol->cx;
 	iglobal = *(int*)scriptcontrol->glob; 
-	add_duk_global_property(ctx,iglobal,fieldname,fieldptr);
-	// add pointer reference to script field, so get/set handler can get value and valueChanged flag
-
+	add_duk_global_property(ctx,iglobal,fieldname,field);
+	field->valueChanged = 0;
 
 	return;
 }
