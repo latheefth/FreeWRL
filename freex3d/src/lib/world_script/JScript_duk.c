@@ -109,9 +109,9 @@ int fwflush(FILE *target)
 
 }
 
-void show_stack(duk_context *ctx, char* comment)
+void show_stack0(duk_context *ctx, char* comment, int dig)
 {
-	int itop = duk_get_top(ctx);
+	int rc, itop = duk_get_top(ctx);
 	if(comment) printf("%s top=%d\n",comment,itop);
 	//printf("%10s%10s%10s\n","position","type","more");
 	printf("%10s%10s\n","position","type");
@@ -119,14 +119,20 @@ void show_stack(duk_context *ctx, char* comment)
 		int ipos = -(i+1);
 		int t = duk_get_type(ctx, ipos);
 		char *stype = NULL;
-		char * amore = "";
+		const char * amore = "";
 		switch(t){
 			case DUK_TYPE_NUMBER: stype ="number"; break;
 			case DUK_TYPE_STRING: stype ="string"; 
-				amore = duk_get_string(ctx,ipos);
+				if(dig) amore = duk_get_string(ctx,ipos);
 				break;
 
-			case DUK_TYPE_OBJECT: stype ="object"; break;
+			case DUK_TYPE_OBJECT: stype ="object"; 
+				if(dig){
+				rc = duk_get_prop_string(ctx, ipos, "fwType");
+				if(rc == 1) amore = duk_to_string(ctx,-1);
+				duk_pop(ctx);
+				}
+				break;
 			case DUK_TYPE_NONE: stype ="none"; break;
 			case DUK_TYPE_UNDEFINED: stype ="undefined"; break;
 			case DUK_TYPE_BOOLEAN: stype ="boolean"; break;
@@ -148,9 +154,14 @@ void show_stack(duk_context *ctx, char* comment)
 		if(duk_is_object(ctx,ipos)){
 
 		}
-		printf("%10d%10s%20s\n",ipos,stype,amore);
+		printf("%10d%10s   %s\n",ipos,stype,amore);
 	}
 }
+void show_stack(duk_context *ctx, char* comment)
+{
+	show_stack0(ctx, comment, 1);
+}
+
 
 
 //OBJECT VIRTUALIZATION / PROXY HELPERS: constructor, handler (has,get,set,deleteProp)
@@ -336,9 +347,9 @@ void push_typed_proxy(duk_context *ctx, const char *fwType, int itype, void *fwp
 	//- if I have one C constructor, and many named js constructors
 	//- I need to fetch the name of the constructor and use it here
 	duk_push_string(ctx,fwType); //"SFColor");
-	show_stack(ctx,"just before putting prop string fwtype");
+	//show_stack(ctx,"just before putting prop string fwtype");
 	duk_put_prop_string(ctx,-2,"fwType");
-	show_stack(ctx,"just after putting prop string fwtype");
+	//show_stack(ctx,"just after putting prop string fwtype");
 	//add native pointer to this
 	duk_push_pointer(ctx,fwpointer);
 	duk_put_prop_string(ctx,-2,"fwField");
@@ -353,7 +364,7 @@ void push_typed_proxy(duk_context *ctx, const char *fwType, int itype, void *fwp
 	int iglobal = duk_get_top(ctx) -1;
 	rc = duk_get_prop_string(ctx,iglobal,"Proxy");
 	//rc = duk_get_prop_string(ctx,iglobal,"this");
-		duk_push_this(ctx);
+	duk_push_this(ctx);
 	rc = duk_get_prop_string(ctx,iglobal,"handler");
 	duk_new(ctx,2); /* [ global Proxy target handler ] -> [ global result ] */
 	duk_remove(ctx,-2); //remove global so just proxy on stack
@@ -554,7 +565,49 @@ int sizeofSF(int itype){
 	}
 	return iz;
 }
+int Browser_getSomething(double *dval,double A, double B, double C){
+	*dval = A + B + C;
+	return 1;
+}
+int cfunction(duk_context *ctx) {
+	int rc, nr, itype, *valueChanged;
+	//show_stack(ctx,"in cget");
+	const char *fwType = NULL;
+	const char *fwFunc = NULL;
+	union anyVrml* parent = NULL;
+	union anyVrml* field = NULL;
 
+	int nargs = duk_get_top(ctx);
+	show_stack0(ctx,"in cfuction",0);
+	duk_push_current_function(ctx);
+	/* get type of parent object for this property*/
+	rc = duk_get_prop_string(ctx,-1,"fwType");
+	if(rc == 1) fwType = duk_to_string(ctx,-1);
+	duk_pop(ctx);
+	rc = duk_get_prop_string(ctx,-1,"fwItype");
+	if(rc==1) itype = duk_get_int(ctx,-1);
+	duk_pop(ctx);
+	/* get the pointer to the parent object */
+	rc = duk_get_prop_string(ctx,-1,"fwField");
+	if(rc == 1) parent = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+	/* get the pointer to the changed flag */
+	rc = duk_get_prop_string(ctx,-1,"fwChanged");
+	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+	/* get the name of the function called */
+	rc = duk_get_prop_string(ctx,-1,"fwFunc");
+	if(rc == 1) fwFunc = duk_to_string(ctx,-1);
+	duk_pop(ctx);
+	duk_pop(ctx); //durrent function
+
+	printf("fwFunc=%s, fwType=%s\n",fwFunc,fwType);
+	double dval;
+	nr = Browser_getSomething(&dval,duk_get_number(ctx,-3),duk_get_number(ctx,-2), duk_get_number(ctx,-1));
+	duk_push_number(ctx,dval);
+	//duk_push_string(ctx,"B.gs_rval");
+	return nr;
+}
 int cget(duk_context *ctx) {
 	int rc, nr, itype, *valueChanged;
 	//show_stack(ctx,"in cget");
@@ -577,13 +630,14 @@ int cget(duk_context *ctx) {
 	rc = duk_get_prop_string(ctx,0,"fwChanged");
 	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
 	duk_pop(ctx);
-	show_stack(ctx,"in cget");
+	show_stack0(ctx,"in cget",0);
 
 	nr = 0;
-	if(!fwType || !parent) return nr;
+	if(!fwType ) return nr;
 
 	/* figure out what field on the parent the get is referring to */
 	if(!strncmp(fwType,"MF",2) || !strncmp(fwType,"SF",2)){
+		if(!parent) return nr;
 		if(duk_is_number(ctx,-2)){
 			//indexer
 			int ikey = duk_get_int(ctx,-2);
@@ -621,7 +675,23 @@ int cget(duk_context *ctx) {
 			duk_push_string(ctx,val);
 		}
 	}else if(!strcmp(fwType,"X3DBrowser")){
-		duk_push_string(ctx,"cget for browser");
+		const char *key = duk_require_string(ctx,-2);
+		printf("key=%s\n",key);
+		if(!strcmp(key,"getSomething")){
+			duk_push_c_function(ctx,cfunction,DUK_VARARGS);
+			duk_push_pointer(ctx,parent);
+			duk_put_prop_string(ctx,-2,"fwField");
+			duk_push_pointer(ctx,valueChanged);
+			duk_put_prop_string(ctx,-2,"fwChanged");
+			duk_push_int(ctx,itype);
+			duk_put_prop_string(ctx,-2,"fwItype");
+			duk_push_string(ctx,fwType);
+			duk_put_prop_string(ctx,-2,"fwType");
+			duk_push_string(ctx,key);
+			duk_put_prop_string(ctx,-2,"fwFunc");
+		}else{
+			duk_push_string(ctx,"cget for browser");
+		}
 	}else if(!strcmp(fwType,"X3DConstants")){
 	}else if(!strcmp(fwType,"Scene") || !strcmp(fwType,"ExecutionContext")){
 	}
@@ -649,7 +719,7 @@ int cset(duk_context *ctx) {
 	duk_pop(ctx);
 
 
-	show_stack(ctx,"in cset");
+	show_stack0(ctx,"in cset",0);
 	//char *val = duk_require_string(ctx,-2);
 	const char *val = duk_to_string(ctx,-2);
 	if(duk_is_number(ctx,-3)){
@@ -699,7 +769,7 @@ int cdel(duk_context *ctx) {
 	duk_pop(ctx);
 
 	if(fwType) printf("fwType in cdel=%s\n",fwType);
-	show_stack(ctx,"in cdel");
+	show_stack0(ctx,"in cdel",0);
 	duk_push_string(ctx, nativeValue);
     return 1;
 }
@@ -852,7 +922,7 @@ void JSCreateScriptContext(int num) {
 	duk_pop(ctx);
 	duk_eval_string(ctx,"Browser.yellow = 33;");
 	duk_pop(ctx);
-	duk_eval_string(ctx,"Browser.getSomething(33);");
+	duk_eval_string(ctx,"print(Browser.getSomething(33,44,55));");
 	duk_pop(ctx);
 	}
 	duk_eval_string(ctx,"var myvec3 = new SFVec3f(1.0,2.0,3.0);");
@@ -1160,6 +1230,48 @@ int push_duk_fieldvalue(duk_context *ctx, int itype, union anyVrml *field, int *
 	//show_stack(ctx,"in fwgetterNS at end");
     return nr;
 }
+void push_typed_proxy_fwgetter(duk_context *ctx, const char *fwType, int itype, void *fwpointer, int* valueChanged)
+{
+	/*  called by both the cfwconstructor (for new Proxy) and fwgetter (for referenced script->fields)
+		1. please have the proxy target on the stack before calling
+		   cfwconstructor: push_this (from the 'new')
+		   fwgetter: push_object (fresh object)
+		2. nativePtr
+			cfwconstructor: malloc/construct a new field, set the values and give the pointer
+			fwgetter: reference to script->field[i]
+	*/
+	int rc;
+
+	//add fwtype to this
+	//- if I have one C constructor, and many named js constructors
+	//- I need to fetch the name of the constructor and use it here
+
+	//duk_pop(ctx); //pop this
+
+	//duk_push_global_object(ctx); //could I just push an object, or push nothing? then how to get global->handler?
+	//int iglobal = duk_get_top(ctx) -1;
+	//rc = duk_get_prop_string(ctx,iglobal,"Proxy");
+	duk_eval_string(ctx,"Proxy");
+	//rc = duk_get_prop_string(ctx,iglobal,"this");
+	//duk_push_this(ctx);
+	duk_push_object(ctx);
+	duk_push_string(ctx,fwType); //"SFColor");
+	//show_stack(ctx,"just before putting prop string fwtype");
+	duk_put_prop_string(ctx,-2,"fwType");
+	//show_stack(ctx,"just after putting prop string fwtype");
+	//add native pointer to this
+	duk_push_pointer(ctx,fwpointer);
+	duk_put_prop_string(ctx,-2,"fwField");
+	duk_push_pointer(ctx,valueChanged);
+	duk_put_prop_string(ctx,-2,"fwChanged");
+	duk_push_int(ctx,itype);
+	duk_put_prop_string(ctx,-2,"fwItype");
+	//rc = duk_get_prop_string(ctx,iglobal,"handler");
+	duk_eval_string(ctx,"handler");
+	duk_new(ctx,2); /* [ global Proxy target handler ] -> [ global result ] */
+	//duk_remove(ctx,-2); //remove global so just proxy on stack
+}
+
 int fwgetterNS(duk_context *ctx) {
 	int nargs, nr;
 	int rc, itype, *valueChanged;
@@ -1198,8 +1310,8 @@ int fwgetterNS(duk_context *ctx) {
 		//printf("script pointer=%x",script);
 	}
 	if(itype == X3D_Browser || itype == X3D_Constants){
-		duk_push_object(ctx); //proxy object on which get/set handlers will be applied
-		push_typed_proxy(ctx, fwType, itype, NULL, NULL);
+		//duk_push_object(ctx); //proxy object on which get/set handlers will be applied
+		push_typed_proxy_fwgetter(ctx, fwType, itype, NULL, NULL);
 		nr = 1;
 	}else{
 		nr = push_duk_fieldvalue(ctx, itype, field, valueChanged);
