@@ -119,9 +119,13 @@ void show_stack(duk_context *ctx, char* comment)
 		int ipos = -(i+1);
 		int t = duk_get_type(ctx, ipos);
 		char *stype = NULL;
+		char * amore = "";
 		switch(t){
 			case DUK_TYPE_NUMBER: stype ="number"; break;
-			case DUK_TYPE_STRING: stype ="string"; break;
+			case DUK_TYPE_STRING: stype ="string"; 
+				amore = duk_get_string(ctx,ipos);
+				break;
+
 			case DUK_TYPE_OBJECT: stype ="object"; break;
 			case DUK_TYPE_NONE: stype ="none"; break;
 			case DUK_TYPE_UNDEFINED: stype ="undefined"; break;
@@ -131,7 +135,6 @@ void show_stack(duk_context *ctx, char* comment)
 			default:
 				stype = "unknown";
 		}
-		char * amore = "";
 		if(duk_is_function(ctx,ipos)){
 			char *afunc = "";
 			afunc = duk_is_c_function(ctx,ipos) ? "Cfunc" : afunc;
@@ -145,7 +148,7 @@ void show_stack(duk_context *ctx, char* comment)
 		if(duk_is_object(ctx,ipos)){
 
 		}
-		printf("%10d%10s%10s\n",ipos,stype,amore);
+		printf("%10d%10s%20s\n",ipos,stype,amore);
 	}
 }
 
@@ -333,7 +336,9 @@ void push_typed_proxy(duk_context *ctx, const char *fwType, int itype, void *fwp
 	//- if I have one C constructor, and many named js constructors
 	//- I need to fetch the name of the constructor and use it here
 	duk_push_string(ctx,fwType); //"SFColor");
+	show_stack(ctx,"just before putting prop string fwtype");
 	duk_put_prop_string(ctx,-2,"fwType");
+	show_stack(ctx,"just after putting prop string fwtype");
 	//add native pointer to this
 	duk_push_pointer(ctx,fwpointer);
 	duk_put_prop_string(ctx,-2,"fwField");
@@ -572,6 +577,7 @@ int cget(duk_context *ctx) {
 	rc = duk_get_prop_string(ctx,0,"fwChanged");
 	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
 	duk_pop(ctx);
+	show_stack(ctx,"in cget");
 
 	nr = 0;
 	if(!fwType || !parent) return nr;
@@ -841,13 +847,14 @@ void JSCreateScriptContext(int num) {
 
 
 	//test
+	if(1){
+	duk_eval_string(ctx,"var myc = Browser.yellow;");
+	duk_pop(ctx);
 	duk_eval_string(ctx,"Browser.yellow = 33;");
 	duk_pop(ctx);
-	duk_eval_string(ctx,"print(Browser.yellow);");
-	duk_pop(ctx);
-
 	duk_eval_string(ctx,"Browser.getSomething(33);");
 	duk_pop(ctx);
+	}
 	duk_eval_string(ctx,"var myvec3 = new SFVec3f(1.0,2.0,3.0);");
 	duk_pop(ctx);
 	duk_eval_string(ctx,"print(myvec3.x.toString());");
