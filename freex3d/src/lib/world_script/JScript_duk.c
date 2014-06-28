@@ -1198,6 +1198,202 @@ int push_duk_fieldvalue(duk_context *ctx, int itype, int mode, const char* field
 	//show_stack(ctx,"in fwgetterNS at end");
     return nr;
 }
+
+//convenience wrappers to get details for built-in fields and -on script and protoInstance- dynamic fields
+//ifield: for script/proto if >= 1000 then ifield-1000 is an index into dynamic fields array ie script->fields[i], else its treated as builtin ie to get URL on script
+//		  for builtin fields index 0,1,2 into fields (offset = index*5, index = offset/5)
+void getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *type, int *kind, int *iifield, union anyVrml **value){
+	*type = 0;
+	*kind = 0;
+	*iifield = -1;
+	*value = NULL;
+	if(node->_nodeType == NODE_Script) 
+	{
+		int k;
+		struct Vector *sfields;
+		struct ScriptFieldDecl *sfield;
+		struct FieldDecl *fdecl;
+		struct Shader_Script *sp;
+		struct CRjsnameStruct *JSparamnames = getJSparamnames();
+		struct X3D_Script *snode;
+
+		snode = (struct X3D_Script*)node;
+		sp = (struct Shader_Script *)snode->__scriptObj;
+		sfields = sp->fields;
+		//fprintf(fp,"sp->fields->n = %d\n",sp->fields->n);
+		for(k=0;k<sfields->n;k++)
+		{
+			char *fieldName;
+			sfield = vector_get(struct ScriptFieldDecl *,sfields,k);
+			//if(sfield->ASCIIvalue) printf("Ascii value=%s\n",sfield->ASCIIvalue);
+			fdecl = sfield->fieldDecl;
+			fieldName = fieldDecl_getShaderScriptName(fdecl);
+			if(!strcmp(fieldName,fieldname)){
+				*type = fdecl->fieldType;
+				*kind = fdecl->PKWmode;
+				*value = &(sfield->value);
+				*iifield = k + 1000; //1000 is sentinal value for dynamic/user fields on script/proto
+				return;
+			}
+		}
+	}else if(node->_nodeType == NODE_Proto) {
+		int k, mode;
+		struct Vector* usernames[4];
+		const char **userArr;
+		struct ProtoFieldDecl* pfield;
+		struct X3D_Proto* pnode = (struct X3D_Proto*)node;
+		struct VRMLLexer* lexer;
+		struct VRMLParser *globalParser;
+		struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
+		if(pstruct){
+			globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
+			lexer = (struct VRMLLexer*)globalParser->lexer;
+			usernames[0] = lexer->user_initializeOnly;
+			usernames[1] = lexer->user_inputOnly;
+			usernames[2] = lexer->user_outputOnly;
+			usernames[3] = lexer->user_inputOutput;
+			if(pstruct->iface)
+			for(k=0; k!=vectorSize(pstruct->iface); ++k)
+			{
+				const char *fieldName;
+				pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, k);
+				mode = pfield->mode;
+				#define X3DMODE(val)  ((val) % 4)
+				userArr =&vector_get(const char*, usernames[X3DMODE(mode)], 0);
+				fieldName = userArr[pfield->name];
+				if(!strcmp(fieldName,fieldname)){
+					*type = pfield->type;
+					*kind = pfield->mode;
+					if(pfield->mode == PKW_initializeOnly || pfield->mode == PKW_inputOutput)
+						*value = &(pfield->defaultVal);
+					*iifield = k + 1000; //1000 is sentinal value for dynamic/user fields on script/proto
+					return;
+				}
+			}
+		}
+	}
+	//builtins on non-script, non-proto nodes (and also builtin fields like url on Script)
+	{
+		typedef struct field_info{
+			int nameIndex;
+			int offset;
+			int typeIndex;
+			int ioType;
+			int version;
+		} *finfo;
+
+		finfo offsets;
+		finfo field;
+		int ifield;
+		offsets = (finfo)NODE_OFFSETS[node->_nodeType];
+		ifield = 0;
+		field = &offsets[ifield];
+		while( field->nameIndex > -1) //<< generalized for scripts and builtins?
+		{
+			if(!strcmp(FIELDNAMES[field->nameIndex],fieldname)){
+				*type = field->typeIndex;
+				*kind = field->ioType;
+				*iifield = ifield; //1000 is sentinal value for dynamic/user fields on script/proto
+				*value = (union anyVrml*)&((char*)node)[field->offset];
+				return;
+			}
+			ifield++;
+			field = &offsets[ifield];
+		}
+	}
+}
+void getFieldFromNodeAndIndex(struct X3D_Node* node, int iifield, const char **fieldname, int *type, int *kind, union anyVrml **value){
+	*type = 0;
+	*kind = 0;
+	*fieldname = NULL;
+	*value = NULL;
+	if(node->_nodeType == NODE_Script && iifield > 999) 
+	{
+		int k;
+		struct Vector *sfields;
+		struct ScriptFieldDecl *sfield;
+		struct FieldDecl *fdecl;
+		struct Shader_Script *sp;
+		struct CRjsnameStruct *JSparamnames = getJSparamnames();
+		struct X3D_Script *snode;
+
+		snode = (struct X3D_Script*)node;
+
+		//sp = *(struct Shader_Script **)&((char*)node)[field->offset];
+		sp = (struct Shader_Script *)snode->__scriptObj;
+		sfields = sp->fields;
+		//fprintf(fp,"sp->fields->n = %d\n",sp->fields->n);
+		k = iifield - 1000;
+		if(k > -1 && k < sfields->n)
+		{
+			char *fieldName;
+			sfield = vector_get(struct ScriptFieldDecl *,sfields,k);
+			//if(sfield->ASCIIvalue) printf("Ascii value=%s\n",sfield->ASCIIvalue);
+			fdecl = sfield->fieldDecl;
+			*fieldName = fieldDecl_getShaderScriptName(fdecl);
+			*type = fdecl->fieldType;
+			*kind = fdecl->PKWmode;
+			*value = &(sfield->value);
+		}
+		return;
+	}else if(node->_nodeType == NODE_Proto && iifield > 999) {
+		int k, mode;
+		struct Vector* usernames[4];
+		const char **userArr;
+		struct ProtoFieldDecl* pfield;
+		struct X3D_Proto* pnode = (struct X3D_Proto*)node;
+		struct VRMLLexer* lexer;
+		struct VRMLParser *globalParser;
+		struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
+		if(pstruct){
+			globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
+			lexer = (struct VRMLLexer*)globalParser->lexer;
+			usernames[0] = lexer->user_initializeOnly;
+			usernames[1] = lexer->user_inputOnly;
+			usernames[2] = lexer->user_outputOnly;
+			usernames[3] = lexer->user_inputOutput;
+			if(pstruct->iface){
+				k = iifield - 1000;
+				if(k > -1 && k < vectorSize(pstruct->iface))
+				{
+					pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, k);
+					mode = pfield->mode;
+					#define X3DMODE(val)  ((val) % 4)
+					userArr =&vector_get(const char*, usernames[X3DMODE(mode)], 0);
+					*fieldname = userArr[pfield->name];
+					*type = pfield->type;
+					*kind = pfield->mode;
+					if(pfield->mode == PKW_initializeOnly || pfield->mode == PKW_inputOutput)
+						*value = &(pfield->defaultVal);
+				}
+			}
+		}
+		return;
+	}
+	//builtins on non-script, non-proto nodes (and also builtin fields like url on Script)
+	{
+		typedef struct field_info{
+			int nameIndex;
+			int offset;
+			int typeIndex;
+			int ioType;
+			int version;
+		} *finfo;
+
+		finfo offsets;
+		finfo field;
+		offsets = (finfo)NODE_OFFSETS[node->_nodeType];
+		field = &offsets[iifield];
+		*fieldname = FIELDNAMES[field->nameIndex];
+		*type = field->typeIndex;
+		*kind = field->ioType;
+		*value = (union anyVrml*)&((char*)node)[field->offset];
+		return;
+	}
+}
+
+
+
 int fwgetterNS(duk_context *ctx) {
 	int nargs, nr;
 	int rc, itype, mode, *valueChanged;
@@ -1253,7 +1449,7 @@ int fwgetterNS(duk_context *ctx) {
     return nr;
 }
 
-void add_duk_global_property(duk_context *ctx, int iglobal, const char *fieldname, int itype, int mode, const char *ctype, void *fieldptr /*anyVrml*/, int *valueChanged){
+void add_duk_global_property(duk_context *ctx, int iglobal, int itype, const char *fieldname, const char *ctype, void *fieldptr /*anyVrml*/, int *valueChanged, struct X3D_Node *node, int ifield ){
 	int rc;
 	char *str;
 	//show_stack(ctx,"starting add_duk_global_property");
@@ -1275,10 +1471,10 @@ void add_duk_global_property(duk_context *ctx, int iglobal, const char *fieldnam
 	duk_put_prop_string(ctx,-2,"fwItype");
 	duk_push_string(ctx,ctype);
 	duk_put_prop_string(ctx,-2,"fwType");
-	duk_push_int(ctx,mode);
-	duk_put_prop_string(ctx,-2,"fwMode");
-	duk_push_string(ctx,fieldname); 
-	duk_put_prop_string(ctx,-2,"fwName");
+	duk_push_pointer(ctx,node);
+	duk_put_prop_string(ctx,-2,"fwNode");
+	duk_push_string(ctx,ifield); 
+	duk_put_prop_string(ctx,-2,"fwIfield");
 	/* push getter */
 	duk_push_c_function(ctx,fwgetterNS,1); //0 extra parameter is nonstandard (NS) key
 	duk_push_pointer(ctx,fieldptr);
@@ -1289,10 +1485,10 @@ void add_duk_global_property(duk_context *ctx, int iglobal, const char *fieldnam
 	duk_put_prop_string(ctx,-2,"fwItype");
 	duk_push_string(ctx,ctype);
 	duk_put_prop_string(ctx,-2,"fwType");
-	duk_push_int(ctx,mode);
-	duk_put_prop_string(ctx,-2,"fwMode");
-	duk_push_string(ctx,fieldname); 
-	duk_put_prop_string(ctx,-2,"fwName");
+	duk_push_pointer(ctx,node);
+	duk_put_prop_string(ctx,-2,"fwNode");
+	duk_push_string(ctx,ifield); 
+	duk_put_prop_string(ctx,-2,"fwIfield");
 
 	//show_stack(ctx,"C");
 	duk_call(ctx, 4);
