@@ -30,97 +30,66 @@ Local include for world_script directory.
 #ifndef __FWTYPE_H__
 #define __FWTYPE_H__
 
-//#define LARGESTRING 2048
-#define STRING 512
-//#define SMALLSTRING 128
-
 typedef struct FWPropertySpec {
-    const char            *name;
-    int                   index;
-    int                   type; //0 = ival, 1=dval, 2=cval, 3=fwnval 4=vrmlval 5=ptr
+    const char	*name; //NULL means index int: SFVec3f[0], MF[i]
+    char		index; //stable property index for switch/casing instead of strcmp on name
+    char		type; //0 = ival, 1=dval, 2=cval, 3=fwnval 4=vrmlval 5=ptr
+	char		isReadOnly; 
 } FWPropertySpec;
 
-//typedef struct ArgType {
-//	char *chartype;
-//	int valtype;
-//} ArgType;
-//typedef struct ConstructorScheme {
-//	int argc;
-//	ArgType *argTypes;
-//} constructorScheme;
-//typedef struct ConstructorSchemes {
-//	int n;
-//	constructorScheme *schemes;
-//} ConstructorSchemes;
-
-typedef struct FWConstructorSpec{
-	int argc;
-	int argtypes[5]; //or int * for indefinite number?
-} FWConstructorSpec;
+typedef struct ArgListType {
+	char nfixedArg;
+	char iVarArgStartsAt; //-1 no varargs
+	char fillMissingFixedWithZero; //T/F if F then complain if short
+	char argtypes[24]; //if varargs, then argtypes[nfixedArg] == type of varArg, and all varargs are assumed the same type
+} ArgListType;
 
 typedef int (* FWFunction)();
 typedef struct FWFunctionSpec {
     const char		*name;
     FWFunction		call;
 	int				retType;
-    int				nargs;
-    int				argtypes; //list of parameter types - should be array, but for now I'll assume homogenous arg types
+	struct ArgListType arglist;
 } FWFunctionSpec;
 
 typedef struct FWTYPE{
 	char *name;
-	int index; //index into an array of FWTYPES
+	//int index; //index into an array of FWTYPES
+	int size_of; //for mallocing in constructor
+	struct ArgListType *constructors;
 	FWPropertySpec *Properties;
-	int nprops;
-	FWFunctionSpec *Functions; //int *(* Functions)(); //void *Functions;
-	int nfuncs;
-	int (* constr)(); //void *constr;
-	//ConstructorSchemes constructorSchemes;
-	FWConstructorSpec *constructorSchemes;
-	int nschemes;
-	int (* getter)();
-	int (* setter)();
+	FWFunctionSpec *Functions;
 } FWTYPE;
 typedef struct FWTYPE *FWType;
 
-
-
-
-
 //wrapper around *native with a few extras 
-// (replaces old *NodeNative types with a generic one)
 typedef struct FWNATIVE {
-	FWType fwtype;        //declarative-boilerplate struct
-	void *native;		//pointer to freewrl type such as struct SFColor
-	int valueChanged; 	//instead of putting in a class-specific SFColorNative, it's in a generic fwNative
-	void *nativeParent; 	//to get to any parent valueChanged
-//OR	int *parentValueChanged;  //pointer directly to parent valueChanged
-	int wasMalloced; 	//(versus wrap-static/other-owned) if wasmalloced, free native in finalize
+	int fwItype;        //type of vrml field
+	void *native;		//pointer to anyVrml
+	int *valueChanged; 	//pointer to valueChanged != NULL if this FWNATIVe is a reference to a Script->Field
 } *FWNative;
 
 //our version of a variant, except in C types and our union anyVrml
 typedef struct FWVAL{
-	int itype; //0 = ival, 1=dval, 2=cval, 3=fwnval 4=vrmlval 5=ptr
+	int itype; //0 =bool, 1=num, 2=string, 3=ptr 4=object.fwnval 5=object.callback
 	union {
 		int ival;
 		double dval;
 		char* cval;
-		FWNative fwnval;
-		union anyVrml* vrmlval; //not needed here but analogous 'variant'
 		void* ptr;
+		FWNative fwnval;
+		//could / should be something for javascript callback objects?
+		//should there be a null/nil/undefined?
 	};
 } *FWval;
-
-
-//typedef struct *FWNative;
-//FWFunction used for both function and constructor:
-typedef int (* FWFunction)(FWType fwtype, FWNative fwn, int argc, FWval *fwpars, FWval *fwretval);
-typedef int (* FWGetter)(FWType fwtype, FWNative fwn, FWval *fwretval);
-typedef int (* FWSetter)(FWType fwtype, FWNative fwn, FWval *fwsetval);
-typedef void (* FWFinalizer)(FWType fwtype, FWNative fwn);
-
-FWNative *FWNativeNew();
 FWval FWvalsNew(int argc);
+
+
+typedef int (* FWConstructor)(FWType fwtype, FWNative fwn, int argc, FWval *fwpars);
+typedef int (* FWFunction)(FWType fwtype, FWNative fwn, int argc, FWval *fwpars, FWval *fwretval);
+typedef int (* FWGet)(FWType fwtype, FWNative fwn, FWval *fwretval);
+typedef int (* FWSet)(FWType fwtype, FWNative fwn, FWval *fwsetval);
+//typedef void (* FWFinalizer)(FWType fwtype, FWNative fwn);
 
 
 #endif /* __FWTYPE_H__ */

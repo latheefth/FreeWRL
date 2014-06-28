@@ -60,29 +60,16 @@ $Id: jsVRMLClasses.c,v 1.35 2012/03/18 15:41:35 dug9 Exp $
 	We'll create the fwtypes for FIELDS here
 */
 
-
-
-
-
-
-
 //declarative boilerplate struct in generic C, 
-//for generating javascript Classes using any javascript engine
+//for generating javascript Classes or virtual actions using any javascript engine
 
-FWNative *FWNativeNew(){
-	void *ptr = malloc(sizeof(struct FWNATIVE));
-	memset(ptr,0,sizeof(struct FWNATIVE));
-	return ptr;
-}
 FWval FWvalsNew(int n){
 	void *ptr = malloc(sizeof(struct FWVAL)*n);
 	memset(ptr,0,sizeof(struct FWVAL)*n);
 	return ptr;
 }
 
-
-
-int fwSFColorConstr(FWval fwvals, int arg_scheme, int argc, FWNative ptr){
+int fwSFColorConstr(FWval fwvals, int argc, struct ArgListType *, FWNative ptr){
  	struct SFColor * p = (struct SFColor*)malloc(sizeof(struct SFColor));
 	if (argc == 0) {
 		p->c[0] = (float) 0.0;
@@ -94,12 +81,11 @@ int fwSFColorConstr(FWval fwvals, int arg_scheme, int argc, FWNative ptr){
 		p->c[2] = (float) fwvals[2].dval;
 	}
 	ptr->native = p;
-	ptr->wasMalloced = true;
 	return TRUE;
 }
 
 //getter
-int fwSFColorGetter(int index, FWNative fwn, FWval fwval){
+int fwSFColorGet(int index, FWNative fwn, FWval fwval){
 	struct SFColor *ptr = (struct SFColor*)fwn->native;
 	fwval->itype = 1; //0 = ival, 1=dval, 2=cval, 3=fwnval 4=vrmlval
 	switch (index) {
@@ -115,7 +101,7 @@ int fwSFColorGetter(int index, FWNative fwn, FWval fwval){
 }
 
 //setter
-int fwSFColorSetter(int index, FWNative fwn, FWval fwval){
+int fwSFColorSet(int index, FWNative fwn, FWval fwval){
 	struct SFColor *ptr = (struct SFColor*)fwn->native;
 	switch (index) {
 		case 0:
@@ -191,62 +177,55 @@ int fwSFColorToString(FWType fwtype, FWNative fwn, int argc, FWval *fwpars, FWva
     return TRUE;
 }
 
-int fwSFColorAssign(FWType fwtype, FWNative fwn, int argc, FWval *fwpars, FWval *fwretval)
-{
-	FWNative from;
-	from = fwpars[0]->fwnval;
-	fwn->valueChanged++;
-	fwn->native = malloc(sizeof(struct SFColor));
-	memcpy(fwn->native,from->native,sizeof(struct SFColor));
-	fwn->wasMalloced = TRUE; //is the above on the heap?
-    return JS_TRUE;
-}
-
-
+/* from FWTypes.h
+typedef struct ArgListType {
+	char nfixedArg;
+	char iVarArgStartsAt; //-1 no varargs
+	char fillMissingFixedWithZero; //T/F if F then complain if short
+	char *argtypes; //if varargs, then argtypes[nfixedArg] == type of varArg, and all varargs are assumed the same type
+} ArgListType;
+*/
 
 FWFunctionSpec (FWFuncSFColor)[] = {
-	{"getHSV", fwSFColorGetHSV, 7,0,0},
-	{"setHSV", fwSFColorSetHSV, 0,3,1},
+	{"getHSV", fwSFColorGetHSV,3,{0,-1,0,NULL}},
+	{"setHSV", fwSFColorSetHSV,0,{2,3,1}},
 	{"toString", fwSFColorToString, 2,0,0},
-	{"assign", fwSFColorAssign, 5,1,5},
+	//{"assign", fwSFColorAssign, 5,1,5},
 	{0},
 };
 
 FWPropertySpec (FWPropSFColor)[] = {
-	{"r", 0, 1},
-	{"g", 1, 1},
-	{"b", 2, 1},
-	{0},
+	{"r", 0, 1, 0},
+	{"g", 1, 1, 0},
+	{"b", 2, 1, 0},
+	{NULL,0,0,0},
 };
 
+//typedef struct ArgListType {
+//	char nfixedArg;
+//	char iVarArgStartsAt; //-1 no varargs
+//	char fillMissingFixedWithZero; //T/F if F then complain if short
+//	char argtypes[24]; //if varargs, then argtypes[nfixedArg] == type of varArg, and all varargs are assumed the same type
+//} ArgListType;
 FWConstructorSpec (FWConSFColor)[] = {
-	{0,0},
-	{1,5},
-	{3,1,1,1},
+	{3,0,1,"NNN"},
+	{0,0,0,NULL},
 };
 
-//JSClass MFVec2fClass = {
+//typedef struct FWTYPE{
+//	char *name;
+//	//int index; //index into an array of FWTYPES
+//	int size_of; //for mallocing in constructor
+//	struct ArgListType *constructors;
+//	FWPropertySpec *Properties;
+//	FWFunctionSpec *Functions;
+//} FWTYPE;
 FWTYPE SFColorType = {
 	"SFColor",
-	0, //assigned later
-	FWPropSFColor,
-	3,
-	FWFuncSFColor,
-	4,
-	fwSFColorConstr,
+	sizeof(struct SFColor), 
 	FWConSFColor,
-	3,
-	fwSFColorGetter,
-	fwSFColorSetter,
-};
-//char SFColorType [] = { "SFColor" };
-//FWTYPE SFColorType [] = { "SFColor" };
-
-struct JSLoadPropElement {
-	JSClass *class;
-	void *constr;
-	void *Functions;
-	char *id;
+	FWPropSFColor,
+	FWFuncSFColor,
 };
 
 FWTYPE (FWTYPos) [] = {
@@ -258,8 +237,8 @@ FWTYPE (FWTYPos) [] = {
 int fwLoadVrmlClasses(void* opaque) {
 	int i;
 	i=0;
-	while (FWTYPEs[i] != NULL) {
-		if(!initializeClassInContext(i, opaque, FWTYPEs[i]) {
+	while (FWTYPos[i] != NULL) {
+		if(!initializeClassInContext(i, opaque, FWTYPos[i]) {
 			return FALSE;
 		}
 		i++;
