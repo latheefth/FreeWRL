@@ -49,6 +49,7 @@ sub open_codegen_file(*;$)
 # gen_struct - Generate a node structure, adding fields for
 # internal use
 my $interalNodeCommonFields =
+               "       int _nodeType; /* unique integer for each type */ \n".
                "       int _renderFlags; /*sensitive, etc */ \n"                  	.
                "       int _hit; \n"                   	.
                "       int _change; \n"                	.
@@ -57,7 +58,6 @@ my $interalNodeCommonFields =
 	       "       double _dist; /*sorting for blending */ \n".
 	       "       float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ \n" .
                "       struct X3D_PolyRep *_intern; \n"              	.
-               "       int _nodeType; /* unique integer for each type */ \n".
                "       int referenceCount; /* if this reaches zero, nobody wants it anymore */ \n".
 	       "       int _defaultContainer; /* holds the container */\n".
 	       "       struct X3D_Node* _executionContext; /* scene or protoInstance */\n".

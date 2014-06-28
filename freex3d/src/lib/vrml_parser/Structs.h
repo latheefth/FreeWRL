@@ -1908,6 +1908,7 @@ const char *stringNodeType(int st);
 
 /* First, a generic struct, contains only the common elements */
 struct X3D_Node {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -1916,7 +1917,6 @@ struct X3D_Node {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2004,6 +2004,7 @@ struct X3D_Node {
 /* now, generated structures for each VRML/X3D Node*/
 /***********************/
 struct X3D_Anchor {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2012,7 +2013,6 @@ struct X3D_Anchor {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2031,6 +2031,7 @@ struct X3D_Anchor {
 extern struct X3D_Virt virt_Anchor;
 /***********************/
 struct X3D_Appearance {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2039,7 +2040,6 @@ struct X3D_Appearance {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2055,6 +2055,7 @@ struct X3D_Appearance {
 extern struct X3D_Virt virt_Appearance;
 /***********************/
 struct X3D_Arc2D {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2063,7 +2064,6 @@ struct X3D_Arc2D {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2078,6 +2078,7 @@ struct X3D_Arc2D {
 extern struct X3D_Virt virt_Arc2D;
 /***********************/
 struct X3D_ArcClose2D {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2086,7 +2087,6 @@ struct X3D_ArcClose2D {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2103,6 +2103,7 @@ struct X3D_ArcClose2D {
 extern struct X3D_Virt virt_ArcClose2D;
 /***********************/
 struct X3D_AudioClip {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2111,7 +2112,6 @@ struct X3D_AudioClip {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2137,6 +2137,7 @@ struct X3D_AudioClip {
 extern struct X3D_Virt virt_AudioClip;
 /***********************/
 struct X3D_Background {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2145,7 +2146,6 @@ struct X3D_Background {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2181,6 +2181,7 @@ struct X3D_Background {
 extern struct X3D_Virt virt_Background;
 /***********************/
 struct X3D_Billboard {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2189,7 +2190,6 @@ struct X3D_Billboard {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2206,6 +2206,7 @@ struct X3D_Billboard {
 extern struct X3D_Virt virt_Billboard;
 /***********************/
 struct X3D_BooleanFilter {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2214,7 +2215,6 @@ struct X3D_BooleanFilter {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2228,6 +2228,7 @@ struct X3D_BooleanFilter {
 extern struct X3D_Virt virt_BooleanFilter;
 /***********************/
 struct X3D_BooleanSequencer {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2236,7 +2237,6 @@ struct X3D_BooleanSequencer {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2252,6 +2252,7 @@ struct X3D_BooleanSequencer {
 extern struct X3D_Virt virt_BooleanSequencer;
 /***********************/
 struct X3D_BooleanToggle {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2260,7 +2261,6 @@ struct X3D_BooleanToggle {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2272,6 +2272,7 @@ struct X3D_BooleanToggle {
 extern struct X3D_Virt virt_BooleanToggle;
 /***********************/
 struct X3D_BooleanTrigger {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2280,7 +2281,6 @@ struct X3D_BooleanTrigger {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2292,6 +2292,7 @@ struct X3D_BooleanTrigger {
 extern struct X3D_Virt virt_BooleanTrigger;
 /***********************/
 struct X3D_Box {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2300,7 +2301,6 @@ struct X3D_Box {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2313,6 +2313,7 @@ struct X3D_Box {
 extern struct X3D_Virt virt_Box;
 /***********************/
 struct X3D_CADAssembly {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2321,7 +2322,6 @@ struct X3D_CADAssembly {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2338,6 +2338,7 @@ struct X3D_CADAssembly {
 extern struct X3D_Virt virt_CADAssembly;
 /***********************/
 struct X3D_CADFace {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2346,7 +2347,6 @@ struct X3D_CADFace {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2360,6 +2360,7 @@ struct X3D_CADFace {
 extern struct X3D_Virt virt_CADFace;
 /***********************/
 struct X3D_CADLayer {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2368,7 +2369,6 @@ struct X3D_CADLayer {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2385,6 +2385,7 @@ struct X3D_CADLayer {
 extern struct X3D_Virt virt_CADLayer;
 /***********************/
 struct X3D_CADPart {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2393,7 +2394,6 @@ struct X3D_CADPart {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2421,6 +2421,7 @@ struct X3D_CADPart {
 extern struct X3D_Virt virt_CADPart;
 /***********************/
 struct X3D_Circle2D {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2429,7 +2430,6 @@ struct X3D_Circle2D {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2442,6 +2442,7 @@ struct X3D_Circle2D {
 extern struct X3D_Virt virt_Circle2D;
 /***********************/
 struct X3D_ClipPlane {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2450,7 +2451,6 @@ struct X3D_ClipPlane {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2462,6 +2462,7 @@ struct X3D_ClipPlane {
 extern struct X3D_Virt virt_ClipPlane;
 /***********************/
 struct X3D_Collision {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2470,7 +2471,6 @@ struct X3D_Collision {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2490,6 +2490,7 @@ struct X3D_Collision {
 extern struct X3D_Virt virt_Collision;
 /***********************/
 struct X3D_Color {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2498,7 +2499,6 @@ struct X3D_Color {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2509,6 +2509,7 @@ struct X3D_Color {
 extern struct X3D_Virt virt_Color;
 /***********************/
 struct X3D_ColorInterpolator {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2517,7 +2518,6 @@ struct X3D_ColorInterpolator {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2531,6 +2531,7 @@ struct X3D_ColorInterpolator {
 extern struct X3D_Virt virt_ColorInterpolator;
 /***********************/
 struct X3D_ColorRGBA {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2539,7 +2540,6 @@ struct X3D_ColorRGBA {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2550,6 +2550,7 @@ struct X3D_ColorRGBA {
 extern struct X3D_Virt virt_ColorRGBA;
 /***********************/
 struct X3D_ComposedCubeMapTexture {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2558,7 +2559,6 @@ struct X3D_ComposedCubeMapTexture {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2575,6 +2575,7 @@ struct X3D_ComposedCubeMapTexture {
 extern struct X3D_Virt virt_ComposedCubeMapTexture;
 /***********************/
 struct X3D_ComposedShader {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2583,7 +2584,6 @@ struct X3D_ComposedShader {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2603,6 +2603,7 @@ struct X3D_ComposedShader {
 extern struct X3D_Virt virt_ComposedShader;
 /***********************/
 struct X3D_Cone {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2611,7 +2612,6 @@ struct X3D_Cone {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2631,6 +2631,7 @@ struct X3D_Cone {
 extern struct X3D_Virt virt_Cone;
 /***********************/
 struct X3D_Contour2D {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2639,7 +2640,6 @@ struct X3D_Contour2D {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2652,6 +2652,7 @@ struct X3D_Contour2D {
 extern struct X3D_Virt virt_Contour2D;
 /***********************/
 struct X3D_ContourPolyLine2D {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2660,7 +2661,6 @@ struct X3D_ContourPolyLine2D {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2671,6 +2671,7 @@ struct X3D_ContourPolyLine2D {
 extern struct X3D_Virt virt_ContourPolyLine2D;
 /***********************/
 struct X3D_Coordinate {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2679,7 +2680,6 @@ struct X3D_Coordinate {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2690,6 +2690,7 @@ struct X3D_Coordinate {
 extern struct X3D_Virt virt_Coordinate;
 /***********************/
 struct X3D_CoordinateDouble {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2698,7 +2699,6 @@ struct X3D_CoordinateDouble {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2709,6 +2709,7 @@ struct X3D_CoordinateDouble {
 extern struct X3D_Virt virt_CoordinateDouble;
 /***********************/
 struct X3D_CoordinateInterpolator {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2717,7 +2718,6 @@ struct X3D_CoordinateInterpolator {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2735,6 +2735,7 @@ struct X3D_CoordinateInterpolator {
 extern struct X3D_Virt virt_CoordinateInterpolator;
 /***********************/
 struct X3D_CoordinateInterpolator2D {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2743,7 +2744,6 @@ struct X3D_CoordinateInterpolator2D {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2757,6 +2757,7 @@ struct X3D_CoordinateInterpolator2D {
 extern struct X3D_Virt virt_CoordinateInterpolator2D;
 /***********************/
 struct X3D_Cylinder {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2765,7 +2766,6 @@ struct X3D_Cylinder {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2785,6 +2785,7 @@ struct X3D_Cylinder {
 extern struct X3D_Virt virt_Cylinder;
 /***********************/
 struct X3D_CylinderSensor {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2793,7 +2794,6 @@ struct X3D_CylinderSensor {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2821,6 +2821,7 @@ struct X3D_CylinderSensor {
 extern struct X3D_Virt virt_CylinderSensor;
 /***********************/
 struct X3D_DISEntityManager {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2829,7 +2830,6 @@ struct X3D_DISEntityManager {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2846,6 +2846,7 @@ struct X3D_DISEntityManager {
 extern struct X3D_Virt virt_DISEntityManager;
 /***********************/
 struct X3D_DISEntityTypeMapping {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2854,7 +2855,6 @@ struct X3D_DISEntityTypeMapping {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2872,6 +2872,7 @@ struct X3D_DISEntityTypeMapping {
 extern struct X3D_Virt virt_DISEntityTypeMapping;
 /***********************/
 struct X3D_DirectionalLight {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2880,7 +2881,6 @@ struct X3D_DirectionalLight {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2899,6 +2899,7 @@ struct X3D_DirectionalLight {
 extern struct X3D_Virt virt_DirectionalLight;
 /***********************/
 struct X3D_Disk2D {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2907,7 +2908,6 @@ struct X3D_Disk2D {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2924,6 +2924,7 @@ struct X3D_Disk2D {
 extern struct X3D_Virt virt_Disk2D;
 /***********************/
 struct X3D_EaseInEaseOut {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2932,7 +2933,6 @@ struct X3D_EaseInEaseOut {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2946,6 +2946,7 @@ struct X3D_EaseInEaseOut {
 extern struct X3D_Virt virt_EaseInEaseOut;
 /***********************/
 struct X3D_ElevationGrid {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2954,7 +2955,6 @@ struct X3D_ElevationGrid {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -2981,6 +2981,7 @@ struct X3D_ElevationGrid {
 extern struct X3D_Virt virt_ElevationGrid;
 /***********************/
 struct X3D_EspduTransform {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -2989,7 +2990,6 @@ struct X3D_EspduTransform {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3087,6 +3087,7 @@ struct X3D_EspduTransform {
 extern struct X3D_Virt virt_EspduTransform;
 /***********************/
 struct X3D_Extrusion {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3095,7 +3096,6 @@ struct X3D_Extrusion {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3119,6 +3119,7 @@ struct X3D_Extrusion {
 extern struct X3D_Virt virt_Extrusion;
 /***********************/
 struct X3D_FillProperties {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3127,7 +3128,6 @@ struct X3D_FillProperties {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3143,6 +3143,7 @@ struct X3D_FillProperties {
 extern struct X3D_Virt virt_FillProperties;
 /***********************/
 struct X3D_FloatVertexAttribute {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3151,7 +3152,6 @@ struct X3D_FloatVertexAttribute {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3164,6 +3164,7 @@ struct X3D_FloatVertexAttribute {
 extern struct X3D_Virt virt_FloatVertexAttribute;
 /***********************/
 struct X3D_Fog {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3172,7 +3173,6 @@ struct X3D_Fog {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3188,6 +3188,7 @@ struct X3D_Fog {
 extern struct X3D_Virt virt_Fog;
 /***********************/
 struct X3D_FogCoordinate {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3196,7 +3197,6 @@ struct X3D_FogCoordinate {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3207,6 +3207,7 @@ struct X3D_FogCoordinate {
 extern struct X3D_Virt virt_FogCoordinate;
 /***********************/
 struct X3D_FontStyle {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3215,7 +3216,6 @@ struct X3D_FontStyle {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3234,6 +3234,7 @@ struct X3D_FontStyle {
 extern struct X3D_Virt virt_FontStyle;
 /***********************/
 struct X3D_GeneratedCubeMapTexture {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3242,7 +3243,6 @@ struct X3D_GeneratedCubeMapTexture {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3256,6 +3256,7 @@ struct X3D_GeneratedCubeMapTexture {
 extern struct X3D_Virt virt_GeneratedCubeMapTexture;
 /***********************/
 struct X3D_GeoCoordinate {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3264,7 +3265,6 @@ struct X3D_GeoCoordinate {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3279,6 +3279,7 @@ struct X3D_GeoCoordinate {
 extern struct X3D_Virt virt_GeoCoordinate;
 /***********************/
 struct X3D_GeoElevationGrid {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3287,7 +3288,6 @@ struct X3D_GeoElevationGrid {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3317,6 +3317,7 @@ struct X3D_GeoElevationGrid {
 extern struct X3D_Virt virt_GeoElevationGrid;
 /***********************/
 struct X3D_GeoLOD {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3325,7 +3326,6 @@ struct X3D_GeoLOD {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3360,6 +3360,7 @@ struct X3D_GeoLOD {
 extern struct X3D_Virt virt_GeoLOD;
 /***********************/
 struct X3D_GeoLocation {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3368,7 +3369,6 @@ struct X3D_GeoLocation {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3392,6 +3392,7 @@ struct X3D_GeoLocation {
 extern struct X3D_Virt virt_GeoLocation;
 /***********************/
 struct X3D_GeoMetadata {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3400,7 +3401,6 @@ struct X3D_GeoMetadata {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3413,6 +3413,7 @@ struct X3D_GeoMetadata {
 extern struct X3D_Virt virt_GeoMetadata;
 /***********************/
 struct X3D_GeoOrigin {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3421,7 +3422,6 @@ struct X3D_GeoOrigin {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3439,6 +3439,7 @@ struct X3D_GeoOrigin {
 extern struct X3D_Virt virt_GeoOrigin;
 /***********************/
 struct X3D_GeoPositionInterpolator {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3447,7 +3448,6 @@ struct X3D_GeoPositionInterpolator {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3468,6 +3468,7 @@ struct X3D_GeoPositionInterpolator {
 extern struct X3D_Virt virt_GeoPositionInterpolator;
 /***********************/
 struct X3D_GeoProximitySensor {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3476,7 +3477,6 @@ struct X3D_GeoProximitySensor {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3507,6 +3507,7 @@ struct X3D_GeoProximitySensor {
 extern struct X3D_Virt virt_GeoProximitySensor;
 /***********************/
 struct X3D_GeoTouchSensor {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3515,7 +3516,6 @@ struct X3D_GeoTouchSensor {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3541,6 +3541,7 @@ struct X3D_GeoTouchSensor {
 extern struct X3D_Virt virt_GeoTouchSensor;
 /***********************/
 struct X3D_GeoTransform {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3549,7 +3550,6 @@ struct X3D_GeoTransform {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3582,6 +3582,7 @@ struct X3D_GeoTransform {
 extern struct X3D_Virt virt_GeoTransform;
 /***********************/
 struct X3D_GeoViewpoint {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3590,7 +3591,6 @@ struct X3D_GeoViewpoint {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3623,6 +3623,7 @@ struct X3D_GeoViewpoint {
 extern struct X3D_Virt virt_GeoViewpoint;
 /***********************/
 struct X3D_Group {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3631,7 +3632,6 @@ struct X3D_Group {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3649,6 +3649,7 @@ struct X3D_Group {
 extern struct X3D_Virt virt_Group;
 /***********************/
 struct X3D_HAnimDisplacer {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3657,7 +3658,6 @@ struct X3D_HAnimDisplacer {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3671,6 +3671,7 @@ struct X3D_HAnimDisplacer {
 extern struct X3D_Virt virt_HAnimDisplacer;
 /***********************/
 struct X3D_HAnimHumanoid {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3679,7 +3680,6 @@ struct X3D_HAnimHumanoid {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3707,6 +3707,7 @@ struct X3D_HAnimHumanoid {
 extern struct X3D_Virt virt_HAnimHumanoid;
 /***********************/
 struct X3D_HAnimJoint {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3715,7 +3716,6 @@ struct X3D_HAnimJoint {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3748,6 +3748,7 @@ struct X3D_HAnimJoint {
 extern struct X3D_Virt virt_HAnimJoint;
 /***********************/
 struct X3D_HAnimSegment {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3756,7 +3757,6 @@ struct X3D_HAnimSegment {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3777,6 +3777,7 @@ struct X3D_HAnimSegment {
 extern struct X3D_Virt virt_HAnimSegment;
 /***********************/
 struct X3D_HAnimSite {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3785,7 +3786,6 @@ struct X3D_HAnimSite {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3811,6 +3811,7 @@ struct X3D_HAnimSite {
 extern struct X3D_Virt virt_HAnimSite;
 /***********************/
 struct X3D_ImageCubeMapTexture {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3819,7 +3820,6 @@ struct X3D_ImageCubeMapTexture {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3835,6 +3835,7 @@ struct X3D_ImageCubeMapTexture {
 extern struct X3D_Virt virt_ImageCubeMapTexture;
 /***********************/
 struct X3D_ImageTexture {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3843,7 +3844,6 @@ struct X3D_ImageTexture {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3859,6 +3859,7 @@ struct X3D_ImageTexture {
 extern struct X3D_Virt virt_ImageTexture;
 /***********************/
 struct X3D_IndexedFaceSet {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3867,7 +3868,6 @@ struct X3D_IndexedFaceSet {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3897,6 +3897,7 @@ struct X3D_IndexedFaceSet {
 extern struct X3D_Virt virt_IndexedFaceSet;
 /***********************/
 struct X3D_IndexedLineSet {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3905,7 +3906,6 @@ struct X3D_IndexedLineSet {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3930,6 +3930,7 @@ struct X3D_IndexedLineSet {
 extern struct X3D_Virt virt_IndexedLineSet;
 /***********************/
 struct X3D_IndexedQuadSet {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3938,7 +3939,6 @@ struct X3D_IndexedQuadSet {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3961,6 +3961,7 @@ struct X3D_IndexedQuadSet {
 extern struct X3D_Virt virt_IndexedQuadSet;
 /***********************/
 struct X3D_IndexedTriangleFanSet {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -3969,7 +3970,6 @@ struct X3D_IndexedTriangleFanSet {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -3992,6 +3992,7 @@ struct X3D_IndexedTriangleFanSet {
 extern struct X3D_Virt virt_IndexedTriangleFanSet;
 /***********************/
 struct X3D_IndexedTriangleSet {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4000,7 +4001,6 @@ struct X3D_IndexedTriangleSet {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4023,6 +4023,7 @@ struct X3D_IndexedTriangleSet {
 extern struct X3D_Virt virt_IndexedTriangleSet;
 /***********************/
 struct X3D_IndexedTriangleStripSet {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4031,7 +4032,6 @@ struct X3D_IndexedTriangleStripSet {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4054,6 +4054,7 @@ struct X3D_IndexedTriangleStripSet {
 extern struct X3D_Virt virt_IndexedTriangleStripSet;
 /***********************/
 struct X3D_Inline {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4062,7 +4063,6 @@ struct X3D_Inline {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4080,6 +4080,7 @@ struct X3D_Inline {
 extern struct X3D_Virt virt_Inline;
 /***********************/
 struct X3D_IntegerSequencer {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4088,7 +4089,6 @@ struct X3D_IntegerSequencer {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4104,6 +4104,7 @@ struct X3D_IntegerSequencer {
 extern struct X3D_Virt virt_IntegerSequencer;
 /***********************/
 struct X3D_IntegerTrigger {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4112,7 +4113,6 @@ struct X3D_IntegerTrigger {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4125,6 +4125,7 @@ struct X3D_IntegerTrigger {
 extern struct X3D_Virt virt_IntegerTrigger;
 /***********************/
 struct X3D_KeySensor {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4133,7 +4134,6 @@ struct X3D_KeySensor {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4153,6 +4153,7 @@ struct X3D_KeySensor {
 extern struct X3D_Virt virt_KeySensor;
 /***********************/
 struct X3D_LOD {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4161,7 +4162,6 @@ struct X3D_LOD {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4183,6 +4183,7 @@ struct X3D_LOD {
 extern struct X3D_Virt virt_LOD;
 /***********************/
 struct X3D_LineProperties {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4191,7 +4192,6 @@ struct X3D_LineProperties {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4204,6 +4204,7 @@ struct X3D_LineProperties {
 extern struct X3D_Virt virt_LineProperties;
 /***********************/
 struct X3D_LineSensor {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4212,7 +4213,6 @@ struct X3D_LineSensor {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4237,6 +4237,7 @@ struct X3D_LineSensor {
 extern struct X3D_Virt virt_LineSensor;
 /***********************/
 struct X3D_LineSet {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4245,7 +4246,6 @@ struct X3D_LineSet {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4263,6 +4263,7 @@ struct X3D_LineSet {
 extern struct X3D_Virt virt_LineSet;
 /***********************/
 struct X3D_LoadSensor {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4271,7 +4272,6 @@ struct X3D_LoadSensor {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4292,6 +4292,7 @@ struct X3D_LoadSensor {
 extern struct X3D_Virt virt_LoadSensor;
 /***********************/
 struct X3D_LocalFog {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4300,7 +4301,6 @@ struct X3D_LocalFog {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4314,6 +4314,7 @@ struct X3D_LocalFog {
 extern struct X3D_Virt virt_LocalFog;
 /***********************/
 struct X3D_Material {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4322,7 +4323,6 @@ struct X3D_Material {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4339,6 +4339,7 @@ struct X3D_Material {
 extern struct X3D_Virt virt_Material;
 /***********************/
 struct X3D_Matrix3VertexAttribute {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4347,7 +4348,6 @@ struct X3D_Matrix3VertexAttribute {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4359,6 +4359,7 @@ struct X3D_Matrix3VertexAttribute {
 extern struct X3D_Virt virt_Matrix3VertexAttribute;
 /***********************/
 struct X3D_Matrix4VertexAttribute {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4367,7 +4368,6 @@ struct X3D_Matrix4VertexAttribute {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4379,6 +4379,7 @@ struct X3D_Matrix4VertexAttribute {
 extern struct X3D_Virt virt_Matrix4VertexAttribute;
 /***********************/
 struct X3D_MetadataDouble {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4387,7 +4388,6 @@ struct X3D_MetadataDouble {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4400,6 +4400,7 @@ struct X3D_MetadataDouble {
 extern struct X3D_Virt virt_MetadataDouble;
 /***********************/
 struct X3D_MetadataFloat {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4408,7 +4409,6 @@ struct X3D_MetadataFloat {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4421,6 +4421,7 @@ struct X3D_MetadataFloat {
 extern struct X3D_Virt virt_MetadataFloat;
 /***********************/
 struct X3D_MetadataInteger {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4429,7 +4430,6 @@ struct X3D_MetadataInteger {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4442,6 +4442,7 @@ struct X3D_MetadataInteger {
 extern struct X3D_Virt virt_MetadataInteger;
 /***********************/
 struct X3D_MetadataMFBool {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4450,7 +4451,6 @@ struct X3D_MetadataMFBool {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4463,6 +4463,7 @@ struct X3D_MetadataMFBool {
 extern struct X3D_Virt virt_MetadataMFBool;
 /***********************/
 struct X3D_MetadataMFColor {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4471,7 +4472,6 @@ struct X3D_MetadataMFColor {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4484,6 +4484,7 @@ struct X3D_MetadataMFColor {
 extern struct X3D_Virt virt_MetadataMFColor;
 /***********************/
 struct X3D_MetadataMFColorRGBA {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4492,7 +4493,6 @@ struct X3D_MetadataMFColorRGBA {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4505,6 +4505,7 @@ struct X3D_MetadataMFColorRGBA {
 extern struct X3D_Virt virt_MetadataMFColorRGBA;
 /***********************/
 struct X3D_MetadataMFDouble {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4513,7 +4514,6 @@ struct X3D_MetadataMFDouble {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4526,6 +4526,7 @@ struct X3D_MetadataMFDouble {
 extern struct X3D_Virt virt_MetadataMFDouble;
 /***********************/
 struct X3D_MetadataMFFloat {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4534,7 +4535,6 @@ struct X3D_MetadataMFFloat {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4547,6 +4547,7 @@ struct X3D_MetadataMFFloat {
 extern struct X3D_Virt virt_MetadataMFFloat;
 /***********************/
 struct X3D_MetadataMFInt32 {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4555,7 +4556,6 @@ struct X3D_MetadataMFInt32 {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4568,6 +4568,7 @@ struct X3D_MetadataMFInt32 {
 extern struct X3D_Virt virt_MetadataMFInt32;
 /***********************/
 struct X3D_MetadataMFMatrix3d {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4576,7 +4577,6 @@ struct X3D_MetadataMFMatrix3d {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4589,6 +4589,7 @@ struct X3D_MetadataMFMatrix3d {
 extern struct X3D_Virt virt_MetadataMFMatrix3d;
 /***********************/
 struct X3D_MetadataMFMatrix3f {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4597,7 +4598,6 @@ struct X3D_MetadataMFMatrix3f {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4610,6 +4610,7 @@ struct X3D_MetadataMFMatrix3f {
 extern struct X3D_Virt virt_MetadataMFMatrix3f;
 /***********************/
 struct X3D_MetadataMFMatrix4d {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4618,7 +4619,6 @@ struct X3D_MetadataMFMatrix4d {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4631,6 +4631,7 @@ struct X3D_MetadataMFMatrix4d {
 extern struct X3D_Virt virt_MetadataMFMatrix4d;
 /***********************/
 struct X3D_MetadataMFMatrix4f {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4639,7 +4640,6 @@ struct X3D_MetadataMFMatrix4f {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4652,6 +4652,7 @@ struct X3D_MetadataMFMatrix4f {
 extern struct X3D_Virt virt_MetadataMFMatrix4f;
 /***********************/
 struct X3D_MetadataMFNode {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4660,7 +4661,6 @@ struct X3D_MetadataMFNode {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4673,6 +4673,7 @@ struct X3D_MetadataMFNode {
 extern struct X3D_Virt virt_MetadataMFNode;
 /***********************/
 struct X3D_MetadataMFRotation {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4681,7 +4682,6 @@ struct X3D_MetadataMFRotation {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4694,6 +4694,7 @@ struct X3D_MetadataMFRotation {
 extern struct X3D_Virt virt_MetadataMFRotation;
 /***********************/
 struct X3D_MetadataMFString {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4702,7 +4703,6 @@ struct X3D_MetadataMFString {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4715,6 +4715,7 @@ struct X3D_MetadataMFString {
 extern struct X3D_Virt virt_MetadataMFString;
 /***********************/
 struct X3D_MetadataMFTime {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4723,7 +4724,6 @@ struct X3D_MetadataMFTime {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4736,6 +4736,7 @@ struct X3D_MetadataMFTime {
 extern struct X3D_Virt virt_MetadataMFTime;
 /***********************/
 struct X3D_MetadataMFVec2d {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4744,7 +4745,6 @@ struct X3D_MetadataMFVec2d {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4757,6 +4757,7 @@ struct X3D_MetadataMFVec2d {
 extern struct X3D_Virt virt_MetadataMFVec2d;
 /***********************/
 struct X3D_MetadataMFVec2f {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4765,7 +4766,6 @@ struct X3D_MetadataMFVec2f {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4778,6 +4778,7 @@ struct X3D_MetadataMFVec2f {
 extern struct X3D_Virt virt_MetadataMFVec2f;
 /***********************/
 struct X3D_MetadataMFVec3d {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4786,7 +4787,6 @@ struct X3D_MetadataMFVec3d {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4799,6 +4799,7 @@ struct X3D_MetadataMFVec3d {
 extern struct X3D_Virt virt_MetadataMFVec3d;
 /***********************/
 struct X3D_MetadataMFVec3f {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4807,7 +4808,6 @@ struct X3D_MetadataMFVec3f {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4820,6 +4820,7 @@ struct X3D_MetadataMFVec3f {
 extern struct X3D_Virt virt_MetadataMFVec3f;
 /***********************/
 struct X3D_MetadataMFVec4d {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4828,7 +4829,6 @@ struct X3D_MetadataMFVec4d {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4841,6 +4841,7 @@ struct X3D_MetadataMFVec4d {
 extern struct X3D_Virt virt_MetadataMFVec4d;
 /***********************/
 struct X3D_MetadataMFVec4f {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4849,7 +4850,6 @@ struct X3D_MetadataMFVec4f {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4862,6 +4862,7 @@ struct X3D_MetadataMFVec4f {
 extern struct X3D_Virt virt_MetadataMFVec4f;
 /***********************/
 struct X3D_MetadataSFBool {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4870,7 +4871,6 @@ struct X3D_MetadataSFBool {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4883,6 +4883,7 @@ struct X3D_MetadataSFBool {
 extern struct X3D_Virt virt_MetadataSFBool;
 /***********************/
 struct X3D_MetadataSFColor {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4891,7 +4892,6 @@ struct X3D_MetadataSFColor {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4904,6 +4904,7 @@ struct X3D_MetadataSFColor {
 extern struct X3D_Virt virt_MetadataSFColor;
 /***********************/
 struct X3D_MetadataSFColorRGBA {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4912,7 +4913,6 @@ struct X3D_MetadataSFColorRGBA {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4925,6 +4925,7 @@ struct X3D_MetadataSFColorRGBA {
 extern struct X3D_Virt virt_MetadataSFColorRGBA;
 /***********************/
 struct X3D_MetadataSFDouble {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4933,7 +4934,6 @@ struct X3D_MetadataSFDouble {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4946,6 +4946,7 @@ struct X3D_MetadataSFDouble {
 extern struct X3D_Virt virt_MetadataSFDouble;
 /***********************/
 struct X3D_MetadataSFFloat {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4954,7 +4955,6 @@ struct X3D_MetadataSFFloat {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4967,6 +4967,7 @@ struct X3D_MetadataSFFloat {
 extern struct X3D_Virt virt_MetadataSFFloat;
 /***********************/
 struct X3D_MetadataSFImage {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4975,7 +4976,6 @@ struct X3D_MetadataSFImage {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -4988,6 +4988,7 @@ struct X3D_MetadataSFImage {
 extern struct X3D_Virt virt_MetadataSFImage;
 /***********************/
 struct X3D_MetadataSFInt32 {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -4996,7 +4997,6 @@ struct X3D_MetadataSFInt32 {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5009,6 +5009,7 @@ struct X3D_MetadataSFInt32 {
 extern struct X3D_Virt virt_MetadataSFInt32;
 /***********************/
 struct X3D_MetadataSFMatrix3d {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5017,7 +5018,6 @@ struct X3D_MetadataSFMatrix3d {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5030,6 +5030,7 @@ struct X3D_MetadataSFMatrix3d {
 extern struct X3D_Virt virt_MetadataSFMatrix3d;
 /***********************/
 struct X3D_MetadataSFMatrix3f {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5038,7 +5039,6 @@ struct X3D_MetadataSFMatrix3f {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5051,6 +5051,7 @@ struct X3D_MetadataSFMatrix3f {
 extern struct X3D_Virt virt_MetadataSFMatrix3f;
 /***********************/
 struct X3D_MetadataSFMatrix4d {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5059,7 +5060,6 @@ struct X3D_MetadataSFMatrix4d {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5072,6 +5072,7 @@ struct X3D_MetadataSFMatrix4d {
 extern struct X3D_Virt virt_MetadataSFMatrix4d;
 /***********************/
 struct X3D_MetadataSFMatrix4f {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5080,7 +5081,6 @@ struct X3D_MetadataSFMatrix4f {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5093,6 +5093,7 @@ struct X3D_MetadataSFMatrix4f {
 extern struct X3D_Virt virt_MetadataSFMatrix4f;
 /***********************/
 struct X3D_MetadataSFNode {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5101,7 +5102,6 @@ struct X3D_MetadataSFNode {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5114,6 +5114,7 @@ struct X3D_MetadataSFNode {
 extern struct X3D_Virt virt_MetadataSFNode;
 /***********************/
 struct X3D_MetadataSFRotation {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5122,7 +5123,6 @@ struct X3D_MetadataSFRotation {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5135,6 +5135,7 @@ struct X3D_MetadataSFRotation {
 extern struct X3D_Virt virt_MetadataSFRotation;
 /***********************/
 struct X3D_MetadataSFString {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5143,7 +5144,6 @@ struct X3D_MetadataSFString {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5156,6 +5156,7 @@ struct X3D_MetadataSFString {
 extern struct X3D_Virt virt_MetadataSFString;
 /***********************/
 struct X3D_MetadataSFTime {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5164,7 +5165,6 @@ struct X3D_MetadataSFTime {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5177,6 +5177,7 @@ struct X3D_MetadataSFTime {
 extern struct X3D_Virt virt_MetadataSFTime;
 /***********************/
 struct X3D_MetadataSFVec2d {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5185,7 +5186,6 @@ struct X3D_MetadataSFVec2d {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5198,6 +5198,7 @@ struct X3D_MetadataSFVec2d {
 extern struct X3D_Virt virt_MetadataSFVec2d;
 /***********************/
 struct X3D_MetadataSFVec2f {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5206,7 +5207,6 @@ struct X3D_MetadataSFVec2f {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5219,6 +5219,7 @@ struct X3D_MetadataSFVec2f {
 extern struct X3D_Virt virt_MetadataSFVec2f;
 /***********************/
 struct X3D_MetadataSFVec3d {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5227,7 +5228,6 @@ struct X3D_MetadataSFVec3d {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5240,6 +5240,7 @@ struct X3D_MetadataSFVec3d {
 extern struct X3D_Virt virt_MetadataSFVec3d;
 /***********************/
 struct X3D_MetadataSFVec3f {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5248,7 +5249,6 @@ struct X3D_MetadataSFVec3f {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5261,6 +5261,7 @@ struct X3D_MetadataSFVec3f {
 extern struct X3D_Virt virt_MetadataSFVec3f;
 /***********************/
 struct X3D_MetadataSFVec4d {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5269,7 +5270,6 @@ struct X3D_MetadataSFVec4d {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5282,6 +5282,7 @@ struct X3D_MetadataSFVec4d {
 extern struct X3D_Virt virt_MetadataSFVec4d;
 /***********************/
 struct X3D_MetadataSFVec4f {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5290,7 +5291,6 @@ struct X3D_MetadataSFVec4f {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5303,6 +5303,7 @@ struct X3D_MetadataSFVec4f {
 extern struct X3D_Virt virt_MetadataSFVec4f;
 /***********************/
 struct X3D_MetadataSet {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5311,7 +5312,6 @@ struct X3D_MetadataSet {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5324,6 +5324,7 @@ struct X3D_MetadataSet {
 extern struct X3D_Virt virt_MetadataSet;
 /***********************/
 struct X3D_MetadataString {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5332,7 +5333,6 @@ struct X3D_MetadataString {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5345,6 +5345,7 @@ struct X3D_MetadataString {
 extern struct X3D_Virt virt_MetadataString;
 /***********************/
 struct X3D_MovieTexture {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5353,7 +5354,6 @@ struct X3D_MovieTexture {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5380,6 +5380,7 @@ struct X3D_MovieTexture {
 extern struct X3D_Virt virt_MovieTexture;
 /***********************/
 struct X3D_MultiTexture {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5388,7 +5389,6 @@ struct X3D_MultiTexture {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5405,6 +5405,7 @@ struct X3D_MultiTexture {
 extern struct X3D_Virt virt_MultiTexture;
 /***********************/
 struct X3D_MultiTextureCoordinate {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5413,7 +5414,6 @@ struct X3D_MultiTextureCoordinate {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5424,6 +5424,7 @@ struct X3D_MultiTextureCoordinate {
 extern struct X3D_Virt virt_MultiTextureCoordinate;
 /***********************/
 struct X3D_MultiTextureTransform {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5432,7 +5433,6 @@ struct X3D_MultiTextureTransform {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5443,6 +5443,7 @@ struct X3D_MultiTextureTransform {
 extern struct X3D_Virt virt_MultiTextureTransform;
 /***********************/
 struct X3D_NavigationInfo {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5451,7 +5452,6 @@ struct X3D_NavigationInfo {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5472,6 +5472,7 @@ struct X3D_NavigationInfo {
 extern struct X3D_Virt virt_NavigationInfo;
 /***********************/
 struct X3D_Normal {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5480,7 +5481,6 @@ struct X3D_Normal {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5491,6 +5491,7 @@ struct X3D_Normal {
 extern struct X3D_Virt virt_Normal;
 /***********************/
 struct X3D_NormalInterpolator {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5499,7 +5500,6 @@ struct X3D_NormalInterpolator {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5513,6 +5513,7 @@ struct X3D_NormalInterpolator {
 extern struct X3D_Virt virt_NormalInterpolator;
 /***********************/
 struct X3D_NurbsCurve {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5521,7 +5522,6 @@ struct X3D_NurbsCurve {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5536,6 +5536,7 @@ struct X3D_NurbsCurve {
 extern struct X3D_Virt virt_NurbsCurve;
 /***********************/
 struct X3D_NurbsCurve2D {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5544,7 +5545,6 @@ struct X3D_NurbsCurve2D {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5559,6 +5559,7 @@ struct X3D_NurbsCurve2D {
 extern struct X3D_Virt virt_NurbsCurve2D;
 /***********************/
 struct X3D_NurbsOrientationInterpolator {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5567,7 +5568,6 @@ struct X3D_NurbsOrientationInterpolator {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5583,6 +5583,7 @@ struct X3D_NurbsOrientationInterpolator {
 extern struct X3D_Virt virt_NurbsOrientationInterpolator;
 /***********************/
 struct X3D_NurbsPatchSurface {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5591,7 +5592,6 @@ struct X3D_NurbsPatchSurface {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5615,6 +5615,7 @@ struct X3D_NurbsPatchSurface {
 extern struct X3D_Virt virt_NurbsPatchSurface;
 /***********************/
 struct X3D_NurbsPositionInterpolator {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5623,7 +5624,6 @@ struct X3D_NurbsPositionInterpolator {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5639,6 +5639,7 @@ struct X3D_NurbsPositionInterpolator {
 extern struct X3D_Virt virt_NurbsPositionInterpolator;
 /***********************/
 struct X3D_NurbsSet {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5647,7 +5648,6 @@ struct X3D_NurbsSet {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5663,6 +5663,7 @@ struct X3D_NurbsSet {
 extern struct X3D_Virt virt_NurbsSet;
 /***********************/
 struct X3D_NurbsSurfaceInterpolator {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5671,7 +5672,6 @@ struct X3D_NurbsSurfaceInterpolator {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5691,6 +5691,7 @@ struct X3D_NurbsSurfaceInterpolator {
 extern struct X3D_Virt virt_NurbsSurfaceInterpolator;
 /***********************/
 struct X3D_NurbsSweptSurface {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5699,7 +5700,6 @@ struct X3D_NurbsSweptSurface {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5713,6 +5713,7 @@ struct X3D_NurbsSweptSurface {
 extern struct X3D_Virt virt_NurbsSweptSurface;
 /***********************/
 struct X3D_NurbsSwungSurface {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5721,7 +5722,6 @@ struct X3D_NurbsSwungSurface {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5735,6 +5735,7 @@ struct X3D_NurbsSwungSurface {
 extern struct X3D_Virt virt_NurbsSwungSurface;
 /***********************/
 struct X3D_NurbsTextureCoordinate {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5743,7 +5744,6 @@ struct X3D_NurbsTextureCoordinate {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5761,6 +5761,7 @@ struct X3D_NurbsTextureCoordinate {
 extern struct X3D_Virt virt_NurbsTextureCoordinate;
 /***********************/
 struct X3D_NurbsTrimmedSurface {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5769,7 +5770,6 @@ struct X3D_NurbsTrimmedSurface {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5796,6 +5796,7 @@ struct X3D_NurbsTrimmedSurface {
 extern struct X3D_Virt virt_NurbsTrimmedSurface;
 /***********************/
 struct X3D_OSC_Sensor {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5804,7 +5805,6 @@ struct X3D_OSC_Sensor {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5836,6 +5836,7 @@ struct X3D_OSC_Sensor {
 extern struct X3D_Virt virt_OSC_Sensor;
 /***********************/
 struct X3D_OrientationInterpolator {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5844,7 +5845,6 @@ struct X3D_OrientationInterpolator {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5858,6 +5858,7 @@ struct X3D_OrientationInterpolator {
 extern struct X3D_Virt virt_OrientationInterpolator;
 /***********************/
 struct X3D_OrthoViewpoint {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5866,7 +5867,6 @@ struct X3D_OrthoViewpoint {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5886,6 +5886,7 @@ struct X3D_OrthoViewpoint {
 extern struct X3D_Virt virt_OrthoViewpoint;
 /***********************/
 struct X3D_PackagedShader {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5894,7 +5895,6 @@ struct X3D_PackagedShader {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5914,6 +5914,7 @@ struct X3D_PackagedShader {
 extern struct X3D_Virt virt_PackagedShader;
 /***********************/
 struct X3D_PickableGroup {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5922,7 +5923,6 @@ struct X3D_PickableGroup {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5941,6 +5941,7 @@ struct X3D_PickableGroup {
 extern struct X3D_Virt virt_PickableGroup;
 /***********************/
 struct X3D_PixelTexture {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5949,7 +5950,6 @@ struct X3D_PixelTexture {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5965,6 +5965,7 @@ struct X3D_PixelTexture {
 extern struct X3D_Virt virt_PixelTexture;
 /***********************/
 struct X3D_PlaneSensor {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -5973,7 +5974,6 @@ struct X3D_PlaneSensor {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -5998,6 +5998,7 @@ struct X3D_PlaneSensor {
 extern struct X3D_Virt virt_PlaneSensor;
 /***********************/
 struct X3D_PointLight {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6006,7 +6007,6 @@ struct X3D_PointLight {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6027,6 +6027,7 @@ struct X3D_PointLight {
 extern struct X3D_Virt virt_PointLight;
 /***********************/
 struct X3D_PointPickSensor {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6035,7 +6036,6 @@ struct X3D_PointPickSensor {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6062,6 +6062,7 @@ struct X3D_PointPickSensor {
 extern struct X3D_Virt virt_PointPickSensor;
 /***********************/
 struct X3D_PointSet {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6070,7 +6071,6 @@ struct X3D_PointSet {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6088,6 +6088,7 @@ struct X3D_PointSet {
 extern struct X3D_Virt virt_PointSet;
 /***********************/
 struct X3D_Polyline2D {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6096,7 +6097,6 @@ struct X3D_Polyline2D {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6107,6 +6107,7 @@ struct X3D_Polyline2D {
 extern struct X3D_Virt virt_Polyline2D;
 /***********************/
 struct X3D_Polypoint2D {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6115,7 +6116,6 @@ struct X3D_Polypoint2D {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6126,6 +6126,7 @@ struct X3D_Polypoint2D {
 extern struct X3D_Virt virt_Polypoint2D;
 /***********************/
 struct X3D_PositionInterpolator {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6134,7 +6135,6 @@ struct X3D_PositionInterpolator {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6148,6 +6148,7 @@ struct X3D_PositionInterpolator {
 extern struct X3D_Virt virt_PositionInterpolator;
 /***********************/
 struct X3D_PositionInterpolator2D {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6156,7 +6157,6 @@ struct X3D_PositionInterpolator2D {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6170,6 +6170,7 @@ struct X3D_PositionInterpolator2D {
 extern struct X3D_Virt virt_PositionInterpolator2D;
 /***********************/
 struct X3D_ProgramShader {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6178,7 +6179,6 @@ struct X3D_ProgramShader {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6197,6 +6197,7 @@ struct X3D_ProgramShader {
 extern struct X3D_Virt virt_ProgramShader;
 /***********************/
 struct X3D_Proto {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6205,7 +6206,6 @@ struct X3D_Proto {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6227,6 +6227,7 @@ struct X3D_Proto {
 extern struct X3D_Virt virt_Proto;
 /***********************/
 struct X3D_ProximitySensor {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6235,7 +6236,6 @@ struct X3D_ProximitySensor {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6258,6 +6258,7 @@ struct X3D_ProximitySensor {
 extern struct X3D_Virt virt_ProximitySensor;
 /***********************/
 struct X3D_QuadSet {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6266,7 +6267,6 @@ struct X3D_QuadSet {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6287,6 +6287,7 @@ struct X3D_QuadSet {
 extern struct X3D_Virt virt_QuadSet;
 /***********************/
 struct X3D_ReceiverPdu {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6295,7 +6296,6 @@ struct X3D_ReceiverPdu {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6333,6 +6333,7 @@ struct X3D_ReceiverPdu {
 extern struct X3D_Virt virt_ReceiverPdu;
 /***********************/
 struct X3D_Rectangle2D {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6341,7 +6342,6 @@ struct X3D_Rectangle2D {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6355,6 +6355,7 @@ struct X3D_Rectangle2D {
 extern struct X3D_Virt virt_Rectangle2D;
 /***********************/
 struct X3D_ScalarInterpolator {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6363,7 +6364,6 @@ struct X3D_ScalarInterpolator {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6377,6 +6377,7 @@ struct X3D_ScalarInterpolator {
 extern struct X3D_Virt virt_ScalarInterpolator;
 /***********************/
 struct X3D_Script {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6385,7 +6386,6 @@ struct X3D_Script {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6400,6 +6400,7 @@ struct X3D_Script {
 extern struct X3D_Virt virt_Script;
 /***********************/
 struct X3D_ShaderPart {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6408,7 +6409,6 @@ struct X3D_ShaderPart {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6421,6 +6421,7 @@ struct X3D_ShaderPart {
 extern struct X3D_Virt virt_ShaderPart;
 /***********************/
 struct X3D_ShaderProgram {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6429,7 +6430,6 @@ struct X3D_ShaderProgram {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6443,6 +6443,7 @@ struct X3D_ShaderProgram {
 extern struct X3D_Virt virt_ShaderProgram;
 /***********************/
 struct X3D_Shape {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6451,7 +6452,6 @@ struct X3D_Shape {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6469,6 +6469,7 @@ struct X3D_Shape {
 extern struct X3D_Virt virt_Shape;
 /***********************/
 struct X3D_SignalPdu {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6477,7 +6478,6 @@ struct X3D_SignalPdu {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6515,6 +6515,7 @@ struct X3D_SignalPdu {
 extern struct X3D_Virt virt_SignalPdu;
 /***********************/
 struct X3D_Sound {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6523,7 +6524,6 @@ struct X3D_Sound {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6543,6 +6543,7 @@ struct X3D_Sound {
 extern struct X3D_Virt virt_Sound;
 /***********************/
 struct X3D_Sphere {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6551,7 +6552,6 @@ struct X3D_Sphere {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6566,6 +6566,7 @@ struct X3D_Sphere {
 extern struct X3D_Virt virt_Sphere;
 /***********************/
 struct X3D_SphereSensor {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6574,7 +6575,6 @@ struct X3D_SphereSensor {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6598,6 +6598,7 @@ struct X3D_SphereSensor {
 extern struct X3D_Virt virt_SphereSensor;
 /***********************/
 struct X3D_SplinePositionInterpolator {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6606,7 +6607,6 @@ struct X3D_SplinePositionInterpolator {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6623,6 +6623,7 @@ struct X3D_SplinePositionInterpolator {
 extern struct X3D_Virt virt_SplinePositionInterpolator;
 /***********************/
 struct X3D_SplinePositionInterpolator2D {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6631,7 +6632,6 @@ struct X3D_SplinePositionInterpolator2D {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6648,6 +6648,7 @@ struct X3D_SplinePositionInterpolator2D {
 extern struct X3D_Virt virt_SplinePositionInterpolator2D;
 /***********************/
 struct X3D_SplineScalarInterpolator {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6656,7 +6657,6 @@ struct X3D_SplineScalarInterpolator {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6673,6 +6673,7 @@ struct X3D_SplineScalarInterpolator {
 extern struct X3D_Virt virt_SplineScalarInterpolator;
 /***********************/
 struct X3D_SpotLight {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6681,7 +6682,6 @@ struct X3D_SpotLight {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6706,6 +6706,7 @@ struct X3D_SpotLight {
 extern struct X3D_Virt virt_SpotLight;
 /***********************/
 struct X3D_SquadOrientationInterpolator {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6714,7 +6715,6 @@ struct X3D_SquadOrientationInterpolator {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6729,6 +6729,7 @@ struct X3D_SquadOrientationInterpolator {
 extern struct X3D_Virt virt_SquadOrientationInterpolator;
 /***********************/
 struct X3D_StaticGroup {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6737,7 +6738,6 @@ struct X3D_StaticGroup {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6753,6 +6753,7 @@ struct X3D_StaticGroup {
 extern struct X3D_Virt virt_StaticGroup;
 /***********************/
 struct X3D_StringSensor {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6761,7 +6762,6 @@ struct X3D_StringSensor {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6778,6 +6778,7 @@ struct X3D_StringSensor {
 extern struct X3D_Virt virt_StringSensor;
 /***********************/
 struct X3D_Switch {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6786,7 +6787,6 @@ struct X3D_Switch {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6804,6 +6804,7 @@ struct X3D_Switch {
 extern struct X3D_Virt virt_Switch;
 /***********************/
 struct X3D_Text {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6812,7 +6813,6 @@ struct X3D_Text {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6831,6 +6831,7 @@ struct X3D_Text {
 extern struct X3D_Virt virt_Text;
 /***********************/
 struct X3D_TextureBackground {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6839,7 +6840,6 @@ struct X3D_TextureBackground {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6868,6 +6868,7 @@ struct X3D_TextureBackground {
 extern struct X3D_Virt virt_TextureBackground;
 /***********************/
 struct X3D_TextureCoordinate {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6876,7 +6877,6 @@ struct X3D_TextureCoordinate {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6887,6 +6887,7 @@ struct X3D_TextureCoordinate {
 extern struct X3D_Virt virt_TextureCoordinate;
 /***********************/
 struct X3D_TextureCoordinateGenerator {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6895,7 +6896,6 @@ struct X3D_TextureCoordinateGenerator {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6907,6 +6907,7 @@ struct X3D_TextureCoordinateGenerator {
 extern struct X3D_Virt virt_TextureCoordinateGenerator;
 /***********************/
 struct X3D_TextureProperties {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6915,7 +6916,6 @@ struct X3D_TextureProperties {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6936,6 +6936,7 @@ struct X3D_TextureProperties {
 extern struct X3D_Virt virt_TextureProperties;
 /***********************/
 struct X3D_TextureTransform {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6944,7 +6945,6 @@ struct X3D_TextureTransform {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6958,6 +6958,7 @@ struct X3D_TextureTransform {
 extern struct X3D_Virt virt_TextureTransform;
 /***********************/
 struct X3D_TimeSensor {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -6966,7 +6967,6 @@ struct X3D_TimeSensor {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -6992,6 +6992,7 @@ struct X3D_TimeSensor {
 extern struct X3D_Virt virt_TimeSensor;
 /***********************/
 struct X3D_TimeTrigger {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -7000,7 +7001,6 @@ struct X3D_TimeTrigger {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -7012,6 +7012,7 @@ struct X3D_TimeTrigger {
 extern struct X3D_Virt virt_TimeTrigger;
 /***********************/
 struct X3D_TouchSensor {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -7020,7 +7021,6 @@ struct X3D_TouchSensor {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -7042,6 +7042,7 @@ struct X3D_TouchSensor {
 extern struct X3D_Virt virt_TouchSensor;
 /***********************/
 struct X3D_Transform {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -7050,7 +7051,6 @@ struct X3D_Transform {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -7077,6 +7077,7 @@ struct X3D_Transform {
 extern struct X3D_Virt virt_Transform;
 /***********************/
 struct X3D_TransmitterPdu {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -7085,7 +7086,6 @@ struct X3D_TransmitterPdu {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -7139,6 +7139,7 @@ struct X3D_TransmitterPdu {
 extern struct X3D_Virt virt_TransmitterPdu;
 /***********************/
 struct X3D_TriangleFanSet {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -7147,7 +7148,6 @@ struct X3D_TriangleFanSet {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -7169,6 +7169,7 @@ struct X3D_TriangleFanSet {
 extern struct X3D_Virt virt_TriangleFanSet;
 /***********************/
 struct X3D_TriangleSet {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -7177,7 +7178,6 @@ struct X3D_TriangleSet {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -7198,6 +7198,7 @@ struct X3D_TriangleSet {
 extern struct X3D_Virt virt_TriangleSet;
 /***********************/
 struct X3D_TriangleSet2D {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -7206,7 +7207,6 @@ struct X3D_TriangleSet2D {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -7219,6 +7219,7 @@ struct X3D_TriangleSet2D {
 extern struct X3D_Virt virt_TriangleSet2D;
 /***********************/
 struct X3D_TriangleStripSet {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -7227,7 +7228,6 @@ struct X3D_TriangleStripSet {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -7249,6 +7249,7 @@ struct X3D_TriangleStripSet {
 extern struct X3D_Virt virt_TriangleStripSet;
 /***********************/
 struct X3D_TwoSidedMaterial {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -7257,7 +7258,6 @@ struct X3D_TwoSidedMaterial {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -7282,6 +7282,7 @@ struct X3D_TwoSidedMaterial {
 extern struct X3D_Virt virt_TwoSidedMaterial;
 /***********************/
 struct X3D_Viewpoint {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -7290,7 +7291,6 @@ struct X3D_Viewpoint {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -7310,6 +7310,7 @@ struct X3D_Viewpoint {
 extern struct X3D_Virt virt_Viewpoint;
 /***********************/
 struct X3D_ViewpointGroup {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -7318,7 +7319,6 @@ struct X3D_ViewpointGroup {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -7335,6 +7335,7 @@ struct X3D_ViewpointGroup {
 extern struct X3D_Virt virt_ViewpointGroup;
 /***********************/
 struct X3D_VisibilitySensor {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -7343,7 +7344,6 @@ struct X3D_VisibilitySensor {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
@@ -7364,6 +7364,7 @@ struct X3D_VisibilitySensor {
 extern struct X3D_Virt virt_VisibilitySensor;
 /***********************/
 struct X3D_WorldInfo {
+       int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
        int _change; 
@@ -7372,7 +7373,6 @@ struct X3D_WorldInfo {
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
        struct X3D_PolyRep *_intern; 
-       int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
