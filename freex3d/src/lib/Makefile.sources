@@ -80,6 +80,7 @@ world_script/JScript.c \
 world_script/JScript_stub.c \
 world_script/JScript_duk.c \
 world_script/include_duktape.c \
+world_script/jsVRMLBrowser_duk.c \
 world_script/jsNative.h \
 world_script/jsUtils.h \
 world_script/jsUtils.c \
