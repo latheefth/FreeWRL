@@ -187,17 +187,17 @@ typedef struct ArgListType {
 */
 
 FWFunctionSpec (FWFuncSFColor)[] = {
-	{"getHSV", fwSFColorGetHSV,3,{0,-1,0,NULL}},
-	{"setHSV", fwSFColorSetHSV,0,{2,3,1}},
-	{"toString", fwSFColorToString, 2,0,0},
+	{"getHSV", fwSFColorGetHSV,'W',{0,0,0,NULL}},
+	{"setHSV", fwSFColorSetHSV,'0',{3,0,'T',"NNN"}},
+	{"toString", fwSFColorToString,'S',{0,0,0,NULL},
 	//{"assign", fwSFColorAssign, 5,1,5},
 	{0},
 };
 
 FWPropertySpec (FWPropSFColor)[] = {
-	{"r", 0, 1, 0},
-	{"g", 1, 1, 0},
-	{"b", 2, 1, 0},
+	{"r", 0, 'N', 'F'},
+	{"g", 1, 'N', 'F'},
+	{"b", 2, 'N', 'F'},
 	{NULL,0,0,0},
 };
 
@@ -208,7 +208,7 @@ FWPropertySpec (FWPropSFColor)[] = {
 //	char argtypes[24]; //if varargs, then argtypes[nfixedArg] == type of varArg, and all varargs are assumed the same type
 //} ArgListType;
 FWConstructorSpec (FWConSFColor)[] = {
-	{3,0,1,"NNN"},
+	{3,0,'T',"NNN"},
 	{0,0,0,NULL},
 };
 
@@ -225,6 +225,7 @@ FWTYPE SFColorType = {
 	sizeof(struct SFColor), 
 	FWConSFColor,
 	FWPropSFColor,
+	TRUE, //takes int index in prop
 	FWFuncSFColor,
 };
 

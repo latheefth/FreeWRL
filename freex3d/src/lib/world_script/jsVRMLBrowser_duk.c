@@ -187,7 +187,7 @@ Scene : ExecutionContext{
 
 //just createX3DFromString, createX3DFromURL and replaceWorld differ in signature between VRML and X3D browser classes
 X3DBrowser{
-	//properties
+//properties
 	String name;
 	String version;
 	numeric currentSpeed;
@@ -195,8 +195,8 @@ X3DBrowser{
 	String description; //R/W
 	CompnentInfoArray supportedComponents;
 	ProfileInfoArray supportedProfiles;
-	//functions
 	X3DScene currentScene;  //since X3DScene : X3DExecutionContext, use Scene w/flag
+//functions
 	void replaceWorld(X3DScene);
 	X3DScene createX3DFromString(String x3dsyntax);
 	X3DScene createX3DFromURL(MFString url, String callbackFunctionName, Object cbContextObject);
@@ -208,32 +208,239 @@ X3DBrowser{
 }
 */
 
+int VrmlBrowserGetName(FWType fwtype, Web3dNative fwn, int argc, FWval *fwpars, FWval *fwretval)
+{
+	(*fwretval)->_string = BrowserName;
+	(*fwretval)->itype = 'S';
+	return 1;
+}
+int VrmlBrowserGetVersion(FWType fwtype, Web3dNative fwn, int argc, FWval *fwpars, FWval *fwretval)
+{
+	(*fwretval)->_string = libFreeWRL_get_version();
+	(*fwretval)->itype = 'S';
+	return 1;
+}
+int VrmlBrowserGetCurrentSpeed(FWType fwtype, Web3dNative fwn, int argc, FWval *fwpars, FWval *fwretval)
+{
+	char string[1000];
+	sprintf (string,"%f",gglobal()->Mainloop.BrowserSpeed);
+	(*fwretval)->_string = strdup(string);
+	(*fwretval)->itype = 'S';
+	return 1;
+}
 
-FWFunctionSpec (FWFuncSFColor)[] = {
-	{"getHSV", fwSFColorGetHSV,3,{0,-1,0,NULL}},
-	{"setHSV", fwSFColorSetHSV,0,{2,3,1}},
-	{"toString", fwSFColorToString, 2,0,0},
-	//{"assign", fwSFColorAssign, 5,1,5},
-	{0},
-};
+int VrmlBrowserGetCurrentFrameRate(FWType fwtype, Web3dNative fwn, int argc, FWval *fwpars, FWval *fwretval)
+{
+	char string[1000];
+	sprintf (string,"%6.2f",gglobal()->Mainloop.BrowserFPS);
+	(*fwretval)->_string = strdup(string);
+	(*fwretval)->itype = 'S';
+	return 1;
+}
+int VrmlBrowserGetWorldURL(FWType fwtype, Web3dNative fwn, int argc, FWval *fwpars, FWval *fwretval)
+{
+	(*fwretval)->_string = BrowserFullPath;
+	(*fwretval)->itype = 'S';
+	return 1;
+}
+char *flexiString(FWval *fwpars, char *buffer)
+{
+	//allow MFString[0], SFString or ecma String
+	//if buffer is given: MF is converted to '["MF[0]"] ["MF[1]"] [...' format
+	//if buffer is NULL, MF[0] is returned
+	char *tptr, *_costr;
+	int lenbuf = 1000;
+	
+	_costr = NULL;
+	if(fwpars[0]->itype == 'S')
+		_costr = fwpars[0]->_string;
+	else if(fwpars[0]->itype == 'W'){
+		switch(fwpars[0]->_web3dval->fieldType){
+		case FIELDTYPE_SFString:
+			{
+				//Q. shoulD we ever get in here? SFString is supposed to be represented by an ECMA type in javascript
+				struct Uni_String *sfs = (struct Uni_String*)fwpars[0]->_web3dval->native;
+				_costr = sfs->strptr;
+			}
+			break;
+		case FIELDTYPE_MFString:
+			{
+				struct Multi_String *mfs = (struct Multi_String*)fwpars[0]->_web3dval->native;
+				if(buffer){
+					int i, l1, l2, l3, lt;
+					char *start = "[\"";
+					char *end = "\"] ";
+					l1 = strlen(start);
+					l2 = strlen(end);
+					buffer[0] = '\0';
+					lt = 1;
+					for(i=0;i<mfs->n;i++){
+						l3 = strlen(mfs->p[i]->strptr);
+						if(lt + l1 + l2 + l3 > lenbuf) break;
+						strcat(buffer,"[\"");
+						strcat(buffer,mfs->p[i]->strptr);
+						strcat(buffer,"\"] ");
+						lt += l1 + l2 + l3;
+					}
+					_costr = buffer;
+				}else{
+				_costr = mfs->p[0]->strptr;
+				}
+			}
+			break;
+		}
+	}
+	return _costr;
+}
+
+int VrmlBrowserReplaceWorld(FWType fwtype, Web3dNative fwn, int argc, FWval *fwpars, FWval *fwretval)
+{
+	char *tptr, *_costr;
+	
+	_costr = flexiString(&fwpars[0],NULL);
+	EAI_RW(_costr);
+	return 0;
+}
+int VrmlBrowserLoadURL(FWType fwtype, Web3dNative fwn, int argc, FWval *fwpars, FWval *fwretval)
+{
+	char *url, *parameter;
+	char *bufferUrl[1000];
+	char *bufferParam[1000];
+	char *myBuf[1000];
+
+	url = flexiString(&fwpars[0],bufferUrl);
+	parameter = flexiString(&fwpars[1],bufferParam);
+		/* we use the EAI code for this - so reformat this for the EAI format */
+		{
+			/* make up the URL from what we currently know */
+			createLoadUrlString(myBuf,1000,url, parameter);
+			createLoadURL(myBuf);
+
+			/* now tell the fwl_RenderSceneUpdateScene that BrowserAction is requested... */
+			setAnchorsAnchor( get_EAIEventsIn_AnchorNode()); //&gglobal()->EAIEventsIn.EAI_AnchorNode;
+		}
+		gglobal()->RenderFuncs.BrowserAction = TRUE;
+	return 0;
+}
+int VrmlBrowserSetDescription(FWType fwtype, Web3dNative fwn, int argc, FWval *fwpars, FWval *fwretval)
+{
+	char *_costr = NULL;
+	if(fwpars[0]->itype == 'S')
+		_costr = fwpars[0]->_string;
+	//we don't do anything with description
+	return 0;
+}
+int VrmlBrowserCreateX3DFromString(FWType fwtype, Web3dNative fwn, int argc, FWval *fwpars, FWval *fwretval)
+{
+	/* for the return of the nodes */
+	struct X3D_Group *retGroup;
+	char *xstr; 
+	char *tmpstr;
+	char *separator;
+	int ra;
+	int count;
+	int wantedsize;
+	int MallocdSize;
+	ttglobal tg = gglobal();
+	struct VRMLParser *globalParser = (struct VRMLParser *)tg->CParse.globalParser;
+	char *_c = fwpars[0]->_string;
+
+	/* do the call to make the VRML code  - create a new browser just for this string */
+	gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
+	retGroup = createNewX3DNode(NODE_Group);
+	ra = EAI_CreateVrml("String",_c,retGroup);
+	globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
+
+	(*fwretval)->_web3dval->native = (void *)retGroup;
+	(*fwretval)->_web3dval->fieldType = FIELDTYPE_SFNode; //Group
+	(*fwretval)->itype = 'W';
+	return 1;
+}
+int VrmlBrowserCreateVrmlFromString(FWType fwtype, Web3dNative fwn, int argc, FWval *fwpars, FWval *fwretval)
+{
+	//from x3dnode, from char*field, to x3dnode, to char*field
+	return 0;
+}
+int VrmlBrowserCreateVrmlFromURL(FWType fwtype, Web3dNative fwn, int argc, FWval *fwpars, FWval *fwretval)
+{
+	//from x3dnode, from char*field, to x3dnode, to char*field
+	return 0;
+}
+void getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *type, int *kind, int *iifield, union anyVrml **value);
+int addDeleteRoute(char* callingFunc, int argc, FWval *fwpars, FWval *fwretval){
+	struct X3D_Node *fromNode;
+	struct X3D_Node *toNode;
+	char *fromFieldString, *toFieldString;
+	int fromType,toType,fromKind,toKind,fromField,toField;
+	union anyVrml *fromValue, *toValue;
+	int myField;
+	int fromOfs, toOfs, len;
+
+	fromNode = X3D_NODE(fwpars[0]->_web3dval->native);
+	toNode   = X3D_NODE(fwpars[2]->_web3dval->native);
+	fromFieldString = fwpars[1]->_string;
+	toFieldString = fwpars[3]->_string;
+	getFieldFromNodeAndName(fromNode,fromFieldString,&fromType,&fromKind,&fromField,&fromValue);
+	getFieldFromNodeAndName(toNode,toFieldString,&toType,&toKind,&toField,&toValue);
+
+	/* do we have a mismatch here? */
+	if (fromType != toType) {
+		printf ("Javascript routing problem - can not route from %s to %s\n",
+			stringNodeType(fromNode->_nodeType), 
+			stringNodeType(toNode->_nodeType));
+		return 0;
+	}
+
+	len = returnRoutingElementLength(toType);
+	fromOfs = fromField > 999? fromField -1000 : fromField*5; // * sizeof(function list item)
+	toOfs = toField > 999? toField -1000 : toField*5;
+	jsRegisterRoute(fromNode, fromOfs, toNode, toOfs, len,callingFunc);
+	return 0;
+}
+int VrmlBrowserAddRoute(FWType fwtype, Web3dNative fwn, int argc, FWval *fwpars, FWval *fwretval){
+	int iret = addRemoveRoute("addRoute",argc,fwpars,fwretval);
+	return iret;
+}
+int VrmlBrowserDeleteRoute(FWType fwtype, Web3dNative fwn, int argc, FWval *fwpars, FWval *fwretval){
+	int iret = addRemoveRoute("deleteRoute",argc,fwpars,fwretval);
+	return iret;
+}
+int VrmlBrowserPrint(FWType fwtype, Web3dNative fwn, int argc, FWval *fwpars, FWval *fwretval)
+{
+	char *_costr = NULL;
+	if(fwpars[0]->itype == 'S'){
+		_costr = fwpars[0]->_string;
+		ConsoleMessage("%s",_costr);
+	}
+	return 0;
+}
+int VrmlBrowserPrintln(FWType fwtype, Web3dNative fwn, int argc, FWval *fwpars, FWval *fwretval)
+{
+	char *_costr = NULL;
+	if(fwpars[0]->itype == 'S'){
+		_costr = fwpars[0]->_string;
+		ConsoleMessage("%s\n",_costr);
+	}
+	return 0;
+}
 
 FWFunctionSpec (BrowserFunctions)[] = {
-	{"getName", VrmlBrowserGetName, 0,{0,-1,0,NULL}},
-	{"getVersion", VrmlBrowserGetVersion, 0,{0,-1,0,NULL}},
-	{"getCurrentSpeed", VrmlBrowserGetCurrentSpeed, 0,{0,-1,0,NULL}},
-	{"getCurrentFrameRate", VrmlBrowserGetCurrentFrameRate, 0,{0,-1,0,NULL}},
-	{"getWorldURL", VrmlBrowserGetWorldURL, 0,{0,-1,0,NULL}},
-	{"replaceWorld", VrmlBrowserReplaceWorld, 0,{0,-1,0,NULL}},
-	{"loadURL", VrmlBrowserLoadURL, 0,{0,-1,0,NULL}},
-	{"setDescription", VrmlBrowserSetDescription, 0,{0,-1,0,NULL}},
-	{"createVrmlFromString", VrmlBrowserCreateVrmlFromString, 0,{0,-1,0,NULL}},
-	{"createVrmlFromURL", VrmlBrowserCreateVrmlFromURL, 0,{0,-1,0,NULL}},
-	{"createX3DFromString", VrmlBrowserCreateX3DFromString, 0,{0,-1,0,NULL}},
-	{"createX3DFromURL", VrmlBrowserCreateVrmlFromURL, 0,{0,-1,0,NULL}},
-	{"addRoute", VrmlBrowserAddRoute, 0,{0,-1,0,NULL}},
-	{"deleteRoute", VrmlBrowserDeleteRoute, 0,{0,-1,0,NULL}},
-	{"print", VrmlBrowserPrint, 0,{0,-1,0,NULL}},
-	{"println", VrmlBrowserPrintln, 0,{0,-1,0,NULL}},
+	{"getName",	VrmlBrowserGetName, 'S',{0,0,0,NULL}},
+	{"getVersion", VrmlBrowserGetVersion, 'S',{0,0,0,NULL}},
+	{"getCurrentSpeed", VrmlBrowserGetCurrentSpeed, 'S',{0,0,0,NULL}},
+	{"getCurrentFrameRate", VrmlBrowserGetCurrentFrameRate, 'S',{0,0,0,NULL}},
+	{"getWorldURL", VrmlBrowserGetWorldURL, 'S',{0,0,0,NULL}},
+	{"replaceWorld", VrmlBrowserReplaceWorld, '0',{1,-1,'F',"F"}},
+	{"loadURL", VrmlBrowserLoadURL, '0',{2,1,'T',"FF"}},
+	{"setDescription", VrmlBrowserSetDescription, '0',{1,-1,'F',"S"}},
+	{"createVrmlFromString", VrmlBrowserCreateVrmlFromString, 'W',{1,-1,'F',"S"}},
+	{"createVrmlFromURL", VrmlBrowserCreateVrmlFromURL,'W',{3,2,'F',"WSO"}},
+	{"createX3DFromString", VrmlBrowserCreateX3DFromString, 'W',{1,-1,'F',"S"}},
+	{"createX3DFromURL", VrmlBrowserCreateVrmlFromURL, 'W',{3,2,'F',"WSO"}},
+	{"addRoute", VrmlBrowserAddRoute, 'W',{4,-1,'F',"WSWS"}},
+	{"deleteRoute", VrmlBrowserDeleteRoute, '0',{1,-1,'F',"W"}},
+	{"print", VrmlBrowserPrint, '0',{1,-1,'F',"S"}},
+	{"println", VrmlBrowserPrintln, '0',{1,-1,'F',"S"}},
 
 	//{"replaceWorld", X3dBrowserReplaceWorld, 0},  //conflicts - X3DScene vs MFNode parameter - could detect?
 	//{"createX3DFromString", X3dBrowserCreateX3DFromString, 0}, //conflicts but above verion shouldn't be above, or could detect?
@@ -245,20 +452,97 @@ FWFunctionSpec (BrowserFunctions)[] = {
 
 	{0}
 };
-FWFunctionSpec (FWFuncSFColor)[] = {
-	{"getHSV", fwSFColorGetHSV,3,{0,-1,0,NULL}},
-	{"setHSV", fwSFColorSetHSV,0,{2,3,1}},
-	{"toString", fwSFColorToString, 2,0,0},
-	//{"assign", fwSFColorAssign, 5,1,5},
-	{0},
-};
 
-FWPropertySpec (FWPropSFColor)[] = {
-	{"r", 0, 1, 0},
-	{"g", 1, 1, 0},
-	{"b", 2, 1, 0},
+
+//typedef struct FWPropertySpec {
+//    const char	*name; //NULL means index int: SFVec3f[0], MF[i]
+//    char		index; //stable property index for switch/casing instead of strcmp on name
+//    char		type; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr
+//	char		isReadOnly; //T/F
+//} FWPropertySpec;
+
+
+FWPropertySpec (BrowserProperties)[] = {
+	{"name", 0, 'S', 'T'},
+	{"version", 1, 'S', 'T'},
+	{"currentSpeed", 2, 'N', 'T'},
+	{"currentFameRate", 3, 'N', 'T'},
+	{"description", 4, 'S', 'F'},
+	{"supportedComponents", 5, 'W', 'T'},
+	{"supportedProfiles", 6, 'W', 'T'},
+	{"currentScene", 7, 'W', 'T'},
 	{NULL,0,0,0},
 };
+
+int BrowserGetter(int index, Web3dNative fwn, FWval *fwretval){
+	int nr = 1;
+	//(*fwretval)->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	switch (index) {
+		case 0: //name
+			(*fwretval)->_string = BrowserName;
+			(*fwretval)->itype = 'S';
+			break;
+		case 1: //version
+			(*fwretval)->_string = libFreeWRL_get_version();
+			(*fwretval)->itype = 'S';
+			break;
+		case 2: //currentSpeed
+			(*fwretval)->_numeric = gglobal()->Mainloop.BrowserSpeed;
+			(*fwretval)->itype = 'N';
+			break;
+		case 3: //currentFrameRate
+			(*fwretval)->_numeric = gglobal()->Mainloop.BrowserFPS;
+			(*fwretval)->itype = 'N';
+			break;
+		case 4: //description
+			(*fwretval)->_string = gglobal()->Mainloop.BrowserDescription; //this is settable
+			(*fwretval)->itype = 'S';
+			break;
+		case 5: //supportedComponents
+			(*fwretval)->_web3dval->fieldType = FIELDTYPE_SFNode;
+			(*fwretval)->_web3dval->native = NULL; //TO-DO something about component info array
+			(*fwretval)->itype = 'W';
+			break;
+		case 6: //supportedProfiles
+			(*fwretval)->_web3dval->fieldType = FIELDTYPE_SFNode;
+			(*fwretval)->_web3dval->native = NULL; //TO-DO something about profile info array
+			(*fwretval)->itype = 'W';
+			break;
+		case 7: //currentScene
+			(*fwretval)->_web3dval->fieldType = FIELDTYPE_SFNode;
+			(*fwretval)->_web3dval->native = NULL; //TO-DO something about X3DScene || X3DExecutionContext
+			(*fwretval)->itype = 'W';
+			break;
+		default:
+			nr = 0;
+		}
+	return nr;
+}
+int BrowserSetter(int index, Web3dNative fwn, FWval *fwval){
+	switch (index) {
+		case 7: //description is settable
+			gglobal()->Mainloop.BrowserDescription = (*fwval)->_string;
+			break;
+		default:
+			break;
+	}
+	return TRUE;
+}
+
+
+FWTYPE BrowserType = {
+	"X3DBrowser",
+	0, //sizeof(struct X3DBrowser), 
+	NULL, //no constructor for Browser
+	BrowserProperties,
+	BrowserGetter,
+	BrowserSetter,
+	FALSE, //takes int index in prop
+	BrowserFunctions,
+};
+
+
+
 
 /* ProfileInfo, ProfileInfoArray, ComponentInfo, ComponentInfoArray
    I decided to do these as thin getter wrappers on the bits and pieces defined
@@ -282,118 +566,100 @@ typedef struct intTableIndex{
 	int index;
 } *IntTableIndex;
 
-JSBool
-#if JS_VERSION < 185
-ComponentInfoGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
-#else
-ComponentInfoGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
-#endif
-{
-	IntTableIndex ptr;
-	int _index, *_table, _nameIndex;
-	jsval rval;
-	jsval id;
-
-	UNUSED(rval); // compiler warning mitigation
-
-#if JS_VERSION >= 185
-	if (!JS_IdToValue(cx,iid,&id)) {
-		printf("JS_IdToValue failed in ComponentInfoGetProperty.\n");
-		return JS_FALSE;
-	}
-#endif
-	if ((ptr = (IntTableIndex)JS_GetPrivate(cx, obj)) == NULL) {
-		printf( "JS_GetPrivate failed in ExecutionContextGetProperty.\n");
-		return JS_FALSE;
-	}
-	_index = ptr->index;
-	_table = ptr->table;
-//extern const char *COMPONENTS[];
-//extern const int COMPONENTS_COUNT;
-
-    if (JSVAL_IS_INT(id)) 
-	{
-		int index = JSVAL_TO_INT(id);
-		switch(index){
-			case 0://name
-			case 1://Title
-				_nameIndex = _table[2*_index];
-#if JS_VERSION < 185
-			*rval = STRING_TO_JSVAL(COMPONENTS[_index]);
-#else
-			JS_SET_RVAL(cx,vp,STRING_TO_JSVAL(JS_NewStringCopyZ(cx,COMPONENTS[_nameIndex])));
-#endif
-				break;
-			case 2://level
-				{
-				int level = capabilitiesHandler_getComponentLevel(_table,_index);
-#if JS_VERSION < 185
-			*rval = INT_TO_JSVAL(lev);
-#else
-			JS_SET_RVAL(cx,vp,INT_TO_JSVAL(level));
-#endif
-				}
-				break;
-			case 3://providerUrl
-#if JS_VERSION < 185
-				*rval = STRING_TO_JSVAL("freewrl.sourceforge.net");
-#else
-				JS_SET_RVAL(cx,vp,STRING_TO_JSVAL(JS_NewStringCopyZ(cx,"freewrl.sourceforge.net")));
-#endif
-				break;
-		}
-	}
-	return JS_TRUE;
-}
-JSBool
-#if JS_VERSION < 185
-ComponentInfoSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
-#else
-ComponentInfoSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *vp)
-#endif
-{
-	//can I, should I force it to read-only this way?
-	return JS_FALSE;
-}
-void
-ComponentInfoFinalize(JSContext *cx, JSObject *obj)
-{
-	IntTableIndex ptr;
-	if ((ptr = (IntTableIndex)JS_GetPrivate(cx, obj)) == NULL) {
-		return;
-	} else {
-		FREE_IF_NZ (ptr);
-	}
-}
-
-
-static JSClass ComponentInfoClass = {
-    "ComponentInfo",
-    JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub,
-    JS_PropertyStub,
-    ComponentInfoGetProperty, 
-	ComponentInfoSetProperty, 
-    JS_EnumerateStub,
-    JS_ResolveStub,
-    JS_ConvertStub,
-    ComponentInfoFinalize //JS_FinalizeStub
-};
-
-static JSPropertySpec (ComponentInfoProperties)[] = {
-	//executionContext
-	{"name", 0, JSPROP_ENUMERATE},  //"Core"
-	{"Title", 1, JSPROP_ENUMERATE}, //"Core"
-	{"level", 2, JSPROP_ENUMERATE},  //4
-	{"providerUrl", 3, JSPROP_ENUMERATE}, //"freewrl.sourceforge.net"
-	{0}
-};
 
 
 //ComponentInfoArray{
 //numeric length;
 //ComponentInfo [integer index];
 //}
+int ComponentInfoArrayGetter(int index, Web3dNative fwn, FWval *fwretval){
+	int *_table;
+	int nr = 1;
+	_table = (int *)fwn;
+	//(*fwretval)->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index == -1){
+//extern const char *COMPONENTS[];
+//extern const int COMPONENTS_COUNT;
+		int _length = capabilitiesHandler_getTableLength(_table); //COMPONENTS_COUNT;
+		(*fwretval)->_integer = _length;
+		(*fwretval)->itype = 'I';
+	}else if(index > -1 && index < COMPONENTS_COUNT ){
+		IntTableIndex tableindex = malloc(sizeof(struct intTableIndex));
+		(*fwretval)->_pointer = tableindex;
+		(*fwretval)->itype = 'P';
+	return nr;
+}
+FWPropertySpec (ComponentInfoArrayProperties)[] = {
+	{"length", -1, 'I', 'T'},
+	{NULL,0,0,0},
+};
+
+FWTYPE ComponentInfoArrayType = {
+	"ComponentInfoArray",
+	0, //sizeof(struct X3DBrowser), 
+	NULL, //no constructor for Browser
+	ComponentInfoArrayProperties,
+	ComponentInfoArrayGetter,
+	NULL,
+	TRUE, //takes int index in prop
+	NULL,
+};
+
+FWPropertySpec (ComponentInfoProperties)[] = {
+	{"name", 0, 'S', 'T'},
+	{"level", 1, 'N', 'T'},
+	{"Title", 0, 'S', 'T'},
+	{"providerUrl", 0, 'S', 'T'},
+	{NULL,0,0,0},
+};
+int ComponentInfoGetter(int index, Web3dNative fwn, FWval *fwretval){
+	IntTableIndex ptr;
+	int _index, *_table, _nameIndex, nr;
+	ptr = (IntTableIndex)fwn;
+
+	_index = ptr->index;
+	_table = ptr->table;
+
+	nr = 1;
+	//(*fwretval)->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	switch (index) {
+		case 0://name
+		case 1://Title
+			_nameIndex = _table[2*_index];
+			(*fwretval)->_string = COMPONENTS[_nameIndex]; //was _index
+			(*fwretval)->itype = 'S';
+			break;
+		case 2://level
+			(*fwretval)->_integer = capabilitiesHandler_getComponentLevel(_table,_index);
+			(*fwretval)->_itype = 'I';
+			break;
+		case 3://providerUrl
+			(*fwretval)->_string = "freewrl.sourceforge.net";
+			(*fwretval)->_itype = 'S';
+			break;
+		default:
+			nr = 0;
+			break;
+	}
+	return nr;
+}
+
+FWTYPE ComponentInfoType = {
+	"ComponentInfo",
+	0, //sizeof(struct X3DBrowser), 
+	NULL, //no constructor for Browser
+	ComponentInfoProperties,
+	ComponentInfoGetter,
+	NULL,
+	FALSE, //takes int index in prop
+	NULL,
+};
+
+
+
+
+
+
 
 JSBool
 #if JS_VERSION < 185

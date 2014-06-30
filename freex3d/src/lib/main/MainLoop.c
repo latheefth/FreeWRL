@@ -230,6 +230,7 @@ void Mainloop_init(struct tMainloop *t){
 	//t->lastTime;
 	t->BrowserFPS = 100.0;        /* calculated FPS               */
 	t->BrowserSpeed = 0.0;      /* calculated movement speed    */
+	t->BrowserDescription = "libfreewrl opensource virtual reality player library";
 	t->trisThisLoop = 0;
 
 	/* what kind of file was just parsed? */
