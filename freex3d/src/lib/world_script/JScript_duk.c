@@ -1346,11 +1346,12 @@ void getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *t
 	}
 }
 void getFieldFromNodeAndIndex(struct X3D_Node* node, int iifield, const char **fieldname, int *type, int *kind, union anyVrml **value){
+	int ifield = iifield % 1000;
 	*type = 0;
 	*kind = 0;
 	*fieldname = NULL;
 	*value = NULL;
-	if(node->_nodeType == NODE_Script && iifield > 999) 
+	if(node->_nodeType == NODE_Script ) 
 	{
 		int k;
 		struct Vector *sfields;
@@ -1366,7 +1367,7 @@ void getFieldFromNodeAndIndex(struct X3D_Node* node, int iifield, const char **f
 		sp = (struct Shader_Script *)snode->__scriptObj;
 		sfields = sp->fields;
 		//fprintf(fp,"sp->fields->n = %d\n",sp->fields->n);
-		k = iifield - 1000;
+		k = ifield;
 		if(k > -1 && k < sfields->n)
 		{
 			sfield = vector_get(struct ScriptFieldDecl *,sfields,k);
@@ -1378,7 +1379,7 @@ void getFieldFromNodeAndIndex(struct X3D_Node* node, int iifield, const char **f
 			*value = &(sfield->value);
 		}
 		return;
-	}else if(node->_nodeType == NODE_Proto && iifield > 999) {
+	}else if(node->_nodeType == NODE_Proto ) {
 		int k, mode;
 		struct Vector* usernames[4];
 		const char **userArr;
@@ -1395,7 +1396,7 @@ void getFieldFromNodeAndIndex(struct X3D_Node* node, int iifield, const char **f
 			usernames[2] = lexer->user_outputOnly;
 			usernames[3] = lexer->user_inputOutput;
 			if(pstruct->iface){
-				k = iifield - 1000;
+				k = ifield;
 				if(k > -1 && k < vectorSize(pstruct->iface))
 				{
 					pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, k);

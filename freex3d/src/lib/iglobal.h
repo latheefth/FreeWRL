@@ -152,7 +152,7 @@ typedef struct iiglobal //InstanceGlobal
 		double lastTime;
 		double BrowserFPS;// = 100.0;        /* calculated FPS               */
 		double BrowserSpeed;// = 0.0;      /* calculated movement speed    */
-		char *BrowserDescription;
+		const char *BrowserDescription;
 		int HaveSensitive;// = FALSE;
 		int trisThisLoop;
 		int clipPlane;// = 0;

@@ -45,6 +45,10 @@ typedef struct ArgListType {
 } ArgListType;
 
 typedef int (* FWFunction)();
+typedef int (* FWGet)();
+typedef int (* FWSet)();
+
+
 typedef struct FWFunctionSpec {
     const char		*name;
     FWFunction		call;
@@ -58,8 +62,8 @@ typedef struct FWTYPE{
 	int size_of; //for mallocing in constructor
 	struct ArgListType *Constructors;
 	FWPropertySpec *Properties;
-	FWFunction *Getter;
-	FWFunction *Setter;
+	FWGet Getter;
+	FWSet Setter;
 	int takesIndexer; //getter can take in integer index ie MF[33]
 	FWFunctionSpec *Functions;
 } FWTYPE;
@@ -70,8 +74,21 @@ typedef struct WEB3DNATIVE {
 	int fieldType;      //type of vrml field (use FIELDTYPE_SFNode for nodes, else ie FIELDTYPE_SFVec3f)
 	void *native;		//pointer to anyVrml
 	int *valueChanged; 	//pointer to valueChanged != NULL if this FWNATIVe is a reference to a Script->Field
-} *Web3dNative;
+} *Web3dNative, FWPointer;
 
+#define AUXTYPE_X3DBrowser 1001
+#define AUXTYPE_ComponentInfoArray 1010
+#define AUXTYPE_ProfileInfoArray 1011
+#define AUXTYPE_ComponentInfo 1012
+#define AUXTYPE_ProfileInfo 1013
+#define AUXTYPE_X3DRoute 1014
+#define AUXTYPE_X3DRouteArray 1015
+#define AUXTYPE_X3DScene 1016
+#define AUXTYPE_X3DExecutionContext 1017
+//typedef struct FWPointer{
+//	int auxtype; //gets asigned to fwItype, so cget can switch (instead of using sfnode and declaring a _nodeType in your auxiliary type struct)
+//	void *ptr;
+//} * FwPointer;
 //our version of a variant, except in C types and our union anyVrml
 typedef struct FWVAL{
 	char itype; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr
@@ -79,20 +96,21 @@ typedef struct FWVAL{
 		int _null;
 		double _numeric;
 		int _integer;
-		char* _string;
-		void* _pointer;
+		int _boolean;
+		const char* _string;
+		FWPointer _pointer;
 		Web3dNative _web3dval;
 		void* _jsobject; //placeholder for js function callback objects
 	};
 } *FWval;
 FWval FWvalsNew(int argc);
 
-
 typedef int (* FWConstructor)(FWType fwtype, Web3dNative fwn, int argc, FWval *fwpars);
 typedef int (* FWFunction)(FWType fwtype, Web3dNative fwn, int argc, FWval *fwpars, FWval *fwretval);
 typedef int (* FWGet)(FWType fwtype, Web3dNative fwn, FWval *fwretval);
 typedef int (* FWSet)(FWType fwtype, Web3dNative fwn, FWval *fwsetval);
 //typedef void (* FWFinalizer)(FWType fwtype, FWNative fwn);
+
 
 
 #endif /* __FWTYPE_H__ */

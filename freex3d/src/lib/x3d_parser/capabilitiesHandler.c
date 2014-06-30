@@ -325,6 +325,13 @@ int capabilitiesHandler_getTableLength(int* table){
 		len++;
 	return len;
 }
+//>>exported to jsVRMLBrowser_duk.c
+struct proftablestruct *getProfTable(){
+	return profTable;
+}
+int * getCapabilitiesTable(){
+	return capabilities;
+}
 
 void scene_addComponent(int myComponent, int mylevel){
 	//besides the static tables for freewrl, we need a table for scene (desired) components
