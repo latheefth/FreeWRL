@@ -642,6 +642,7 @@ int BrowserSetter(int index, Web3dNative fwn, FWval *fwval){
 
 
 FWTYPE BrowserType = {
+	AUXTYPE_X3DBrowser,
 	"X3DBrowser",
 	0, //sizeof(struct X3DBrowser), 
 	NULL, //no constructor for Browser
@@ -712,6 +713,7 @@ FWPropertySpec (ComponentInfoArrayProperties)[] = {
 };
 
 FWTYPE ComponentInfoArrayType = {
+	AUXTYPE_ComponentInfoArray,
 	"ComponentInfoArray",
 	0, //sizeof(struct X3DBrowser), 
 	NULL, //no constructor for Browser
@@ -759,6 +761,7 @@ int ComponentInfoGetter(int index, Web3dNative fwn, FWval *fwretval){
 }
 
 FWTYPE ComponentInfoType = {
+	AUXTYPE_ComponentInfo,
 	"ComponentInfo",
 	0, //sizeof(struct X3DBrowser), 
 	NULL, //no constructor for Browser
@@ -803,6 +806,7 @@ FWPropertySpec (ProfileInfoArrayProperties)[] = {
 };
 
 FWTYPE ProfileInfoArrayType = {
+	AUXTYPE_ProfileInfoArray,
 	"ProfileInfoArray",
 	0, //sizeof(struct X3DBrowser), 
 	NULL, //no constructor for Browser
@@ -866,6 +870,7 @@ int ProfileInfoGetter(int index, Web3dNative fwn, FWval *fwretval){
 }
 
 FWTYPE ProfileInfoType = {
+	AUXTYPE_ProfileInfo,
 	"ProfileInfo",
 	0, //sizeof(struct X3DBrowser), 
 	NULL, //no constructor for Browser
@@ -951,11 +956,6 @@ static FWPropertySpec (X3DExecutionContextProperties)[] = {
 	{0}
 };
 
-//typedef struct _ExecutionContextNative {
-//	struct X3D_Node *handle;
-//} ExecutionContextNative;
-typedef struct X3D_Node * ExecutionContextNative;
-
 int X3DExecutionContextGetter(int index, Web3dNative fwn, FWval *fwretval){
 	struct X3D_Node * ec;
 	int nr = 1;
@@ -1023,6 +1023,7 @@ int X3DExecutionContextGetter(int index, Web3dNative fwn, FWval *fwretval){
 }
 
 FWTYPE X3DExecutionContextType = {
+	AUXTYPE_X3DExecutionContext,
 	"X3DExecutionContext",
 	0, //sizeof(struct X3DBrowser), 
 	NULL, //no constructor
@@ -1060,6 +1061,7 @@ FWPropertySpec (X3DRouteArrayProperties)[] = {
 };
 
 FWTYPE X3DRouteArrayType = {
+	AUXTYPE_X3DRouteArray,
 	"X3DRouteArray",
 	0, //sizeof(struct X3DRoute), 
 	NULL, //no constructor for X3DRoute
@@ -1122,6 +1124,7 @@ int X3DRouteGetter(int index, Web3dNative fwn, FWval *fwretval){
 
 
 FWTYPE X3DRouteType = {
+	AUXTYPE_X3DRoute,
 	"X3DRoute",
 	0, //sizeof(struct X3DRoute), 
 	NULL, //no constructor for X3DRoute
@@ -1132,5 +1135,213 @@ FWTYPE X3DRouteType = {
 	NULL,
 };
 
+struct string_int{
+	char *c;
+	int i;
+};
 
+struct string_int lookup_X3DConstants[] = {
+	{"INITIALIZED_EVENT",1},
+	{"SHUTDOWN_EVENT",1},
+	{"CONNECTION_ERROR",1},
+	{"INITIALIZED_ERROR",1},
+	{"NOT_STARTED_STATE",1},
+	{"IN_PROGRESS_STATE",1},
+	{"COMPLETE_STATE",1},
+	{"FAILED_STATE",0},
+	{"SFBool",FIELDTYPE_SFBool},
+	{"MFBool",FIELDTYPE_MFBool},
+	{"MFInt32",FIELDTYPE_MFInt32},
+	{"SFInt32",FIELDTYPE_SFInt32},
+	{"SFFloat",FIELDTYPE_SFFloat},
+	{"MFFloat",FIELDTYPE_MFFloat},
+	{"SFDouble",FIELDTYPE_SFDouble},
+	{"MFDouble",FIELDTYPE_MFDouble},
+	{"SFTime",FIELDTYPE_SFTime},
+	{"MFTime",FIELDTYPE_MFTime},
+	{"SFNode",FIELDTYPE_SFNode},
+	{"MFNode",FIELDTYPE_MFNode},
+	{"SFVec2f",FIELDTYPE_SFVec2f},
+	{"MFVec2f",FIELDTYPE_MFVec2f},
+	{"SFVec3f",FIELDTYPE_SFVec3f},
+	{"MFVec3f",FIELDTYPE_MFVec3f},
+	{"SFVec3d",FIELDTYPE_SFVec3d},
+	{"MFVec3d",FIELDTYPE_MFVec3d},
+	{"SFRotation",FIELDTYPE_SFRotation},
+	{"MFRotation",FIELDTYPE_MFRotation},
+	{"SFColor",FIELDTYPE_SFColor},
+	{"MFColor",FIELDTYPE_MFColor},
+	{"SFImage",FIELDTYPE_SFImage},
+//	{"MFImage",FIELDTYPE_MFImage},
+	{"SFColorRGBA",FIELDTYPE_SFColorRGBA},
+	{"MFColorRGBA",FIELDTYPE_MFColorRGBA},
+	{"SFString",FIELDTYPE_SFString},
+	{"MFString",FIELDTYPE_MFString},
+/*
+	{"X3DBoundedObject",},
+	{"X3DMetadataObject",},
+	{"X3DUrlObject",},
+	{"X3DTriggerNode",},
+	{"X3DInfoNode",},
+	{"X3DAppearanceNode",},
+	{"X3DAppearanceChildNode",},
+	{"X3DMaterialNode",},
+	{"X3DTextureNode",},
+	{"X3DTexture2DNode",},
+	{"X3DTexture3DNode",},
+	{"X3DTextureTransformNode",},
+	{"X3DGeometryNode",},
+	{"X3DGeometry3DNode",},
+	{"X3DCoordinateNode",},
+	{"X3DParametricGeometryNode",},
+	{"X3DGeometricPropertyNode",},
+	{"X3DColorNode",},
+	{"X3DProtoInstance",},
+	{"X3DNormalNode",},
+	{"X3DTextureCoordinateNode",},
+	{"X3DFontStyleNode",},
+	{"X3DGroupingNode ",},
+	{"X3DChildNode",},
+	{"X3DBindableNode",},
+	{"X3DBackgroundNode",},
+	{"X3DInterpolatorNode",},
+	{"X3DShapeNode",},
+	{"X3DScriptNode",},
+	{"X3DSensorNode",},
+	{"X3DEnvironmentalSensorNode",},
+	{"X3DLightNode",},
+	{"X3DNetworkSensorNode",},
+	{"X3DPointingDeviceSensorNode",},
+	{"X3DDragSensorNode",},
+	{"X3DKeyDeviceSensorNode",},
+	{"X3DSequencerNode",},
+	{"X3DTimeDependentNode",},
+	{"X3DSoundNode",},
+	{"X3DSoundSourceNode",},
+	{"X3DTouchSensorNode",},
+*/
+	{"inputOnly",PKW_inputOnly},
+	{"outputOnly",PKW_outputOnly},
+	{"inputOutput",PKW_inputOutput},
+	{"initializeOnly",PKW_initializeOnly},
+	{NULL,0}
+};
+
+FWPropertySpec (X3DConstantsProperties)[] = {
+	{"INITIALIZED_EVENT",1,'I','T'},
+	{"SHUTDOWN_EVENT",2,'I','T'},
+	{"CONNECTION_ERROR",3,'I','T'},
+	{"INITIALIZED_ERROR",4,'I','T'},
+	{"NOT_STARTED_STATE",5,'I','T'},
+	{"IN_PROGRESS_STATE",6,'I','T'},
+	{"COMPLETE_STATE",7,'I','T'},
+	{"FAILED_STATE",8,'I','T'},
+	{"SFBool",9,'I','T'},
+	{"MFBool",10,'I','T'},
+	{"MFInt32",11,'I','T'},
+	{"SFInt32",12,'I','T'},
+	{"SFFloat",13,'I','T'},
+	{"MFFloat",14,'I','T'},
+	{"SFDouble",15,'I','T'},
+	{"MFDouble",16,'I','T'},
+	{"SFTime",17,'I','T'},
+	{"MFTime",18,'I','T'},
+	{"SFNode",19,'I','T'},
+	{"MFNode",20,'I','T'},
+	{"SFVec2f",21,'I','T'},
+	{"MFVec2f",22,'I','T'},
+	{"SFVec3f",23,'I','T'},
+	{"MFVec3f",24,'I','T'},
+	{"SFVec3d",25,'I','T'},
+	{"MFVec3d",26,'I','T'},
+	{"SFRotation",27,'I','T'},
+	{"MFRotation",28,'I','T'},
+	{"SFColor",29,'I','T'},
+	{"MFColor",30,'I','T'},
+	{"SFImage",31,'I','T'},
+//	{"MFImage",FIELDTYPE_MFImage},
+	{"SFColorRGBA",32,'I','T'},
+	{"MFColorRGBA",33,'I','T'},
+	{"SFString",34,'I','T'},
+	{"MFString",35,'I','T'},
+/*
+	{"X3DBoundedObject",0,'I','T'},
+	{"X3DMetadataObject",0,'I','T'},
+	{"X3DUrlObject",0,'I','T'},
+	{"X3DTriggerNode",0,'I','T'},
+	{"X3DInfoNode",0,'I','T'},
+	{"X3DAppearanceNode",0,'I','T'},
+	{"X3DAppearanceChildNode",0,'I','T'},
+	{"X3DMaterialNode",0,'I','T'},
+	{"X3DTextureNode",0,'I','T'},
+	{"X3DTexture2DNode",0,'I','T'},
+	{"X3DTexture3DNode",0,'I','T'},
+	{"X3DTextureTransformNode",0,'I','T'},
+	{"X3DGeometryNode",0,'I','T'},
+	{"X3DGeometry3DNode",0,'I','T'},
+	{"X3DCoordinateNode",0,'I','T'},
+	{"X3DParametricGeometryNode",0,'I','T'},
+	{"X3DGeometricPropertyNode",0,'I','T'},
+	{"X3DColorNode",0,'I','T'},
+	{"X3DProtoInstance",0,'I','T'},
+	{"X3DNormalNode",0,'I','T'},
+	{"X3DTextureCoordinateNode",0,'I','T'},
+	{"X3DFontStyleNode",0,'I','T'},
+	{"X3DGroupingNode ",0,'I','T'},
+	{"X3DChildNode",0,'I','T'},
+	{"X3DBindableNode",0,'I','T'},
+	{"X3DBackgroundNode",0,'I','T'},
+	{"X3DInterpolatorNode",0,'I','T'},
+	{"X3DShapeNode",0,'I','T'},
+	{"X3DScriptNode",0,'I','T'},
+	{"X3DSensorNode",0,'I','T'},
+	{"X3DEnvironmentalSensorNode",0,'I','T'},
+	{"X3DLightNode",0,'I','T'},
+	{"X3DNetworkSensorNode",},
+	{"X3DPointingDeviceSensorNode",0,'I','T'},
+	{"X3DDragSensorNode",0,'I','T'},
+	{"X3DKeyDeviceSensorNode",0,'I','T'},
+	{"X3DSequencerNode",0,'I','T'},
+	{"X3DTimeDependentNode",0,'I','T'},
+	{"X3DSoundNode",0,'I','T'},
+	{"X3DSoundSourceNode",0,'I','T'},
+	{"X3DTouchSensorNode",0,'I','T'},
+*/
+	{"inputOnly",36,'I','T'},
+	{"outputOnly",37,'I','T'},
+	{"inputOutput",38,'I','T'},
+	{"initializeOnly",39,'I','T'},
+	{NULL,0,0,0},
+};
+int X3DConstantsGetter(int index, Web3dNative fwn, FWval *fwretval){
+	int nr = 1;
+	(*fwretval)->_integer = lookup_X3DConstants[index].i;
+	(*fwretval)->itype = 'I';
+	return nr;
+}
+
+FWTYPE X3DConstantsType = {
+	AUXTYPE_X3DConstants,
+	"X3DConstants",
+	0, //sizeof(struct X3DRoute), 
+	NULL, //no constructor for X3DRoute
+	NULL,
+	X3DConstantsGetter,
+	NULL,
+	FALSE, //takes int index in prop
+	NULL,
+};
+
+
+void initVRMLBrowser(FWTYPE** typeArray, int *n){
+	typeArray[*n] = &X3DRouteType; (*n)++;
+	typeArray[*n] = &X3DRouteArrayType; (*n)++;
+	typeArray[*n] = &X3DExecutionContextType; (*n)++;
+	typeArray[*n] = &ProfileInfoType; (*n)++;
+	typeArray[*n] = &ProfileInfoArrayType; (*n)++;
+	typeArray[*n] = &ComponentInfoType; (*n)++;
+	typeArray[*n] = &ComponentInfoArrayType; (*n)++;
+	typeArray[*n] = &BrowserType; (*n)++;
+	typeArray[*n] = &X3DConstantsType; (*n)++;
+}
 #endif /* ifdef JAVASCRIPT_DUK */

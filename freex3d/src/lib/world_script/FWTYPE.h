@@ -57,12 +57,13 @@ typedef struct FWFunctionSpec {
 } FWFunctionSpec;
 
 typedef struct FWTYPE{
+	int itype; //AUXTYPE_ or FIELDTYPE_
 	char *name;
 	//int index; //index into an array of FWTYPES
 	int size_of; //for mallocing in constructor
 	struct ArgListType *Constructors;
 	FWPropertySpec *Properties;
-	FWGet Getter;
+	FWGet Getter; //Q should I have a virtual Getter that takes a char* key and does its own lookup?
 	FWSet Setter;
 	int takesIndexer; //getter can take in integer index ie MF[33]
 	FWFunctionSpec *Functions;
@@ -76,7 +77,8 @@ typedef struct WEB3DNATIVE {
 	int *valueChanged; 	//pointer to valueChanged != NULL if this FWNATIVe is a reference to a Script->Field
 } *Web3dNative, FWPointer;
 
-#define AUXTYPE_X3DBrowser 1001
+#define AUXTYPE_X3DConstants 1001
+#define AUXTYPE_X3DBrowser 1002
 #define AUXTYPE_ComponentInfoArray 1010
 #define AUXTYPE_ProfileInfoArray 1011
 #define AUXTYPE_ComponentInfo 1012

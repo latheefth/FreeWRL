@@ -45,11 +45,11 @@ typedef int indexT;
 
 
 
-#define NODE_Instance 1000
-#define NODE_Constants 1001
-#define NODE_Browser 1002
-#define NODE_Scene 1003
-#define NODE_ExecutionContext 1004
+//#define NODE_Instance 1000
+//#define NODE_Constants 1001
+//#define NODE_Browser 1002
+//#define NODE_Scene 1003
+//#define NODE_ExecutionContext 1004
 //const char *FIELDNAMESX3DCONSTANTS [] = {"",NULL};
 struct X3D_Constants {
 	int _nodeType; /* unique integer for each type */ 
@@ -64,11 +64,34 @@ struct X3D_Instance {
 	struct X3D_Browser *Browser;
 };
 
-//const int OFFSETS_Browser[] = {
-//	(int) FIELDNAMES___geoSystem, (int) offsetof (struct X3D_Browser, __geoSystem),  (int) FIELDTYPE_MFInt32, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-//	-1, -1, -1, -1, -1};
+FWTYPE *fwtypesArray[30];  //true statics - they only need to be defined once per process
+int FWTYPES_COUNT = 0;
 
-
+void initVRMLBrowser(FWTYPE** typeArray, int *n);
+void initFWTYPEs(){
+	initVRMLBrowser(fwtypesArray, &FWTYPES_COUNT);
+}
+FWTYPE *getFWTYPE(int itype){
+	int i;
+	for(i=0;i<FWTYPES_COUNT;i++){
+		if(itype == fwtypesArray[i]->itype)
+			return fwtypesArray[i];
+	}
+	return NULL;
+}
+FWFunctionSpec *getFWFunc(FWTYPE *fwt,const char *key){
+	int i = 0;
+	FWFunctionSpec *fs = fwt->Functions;
+	if(fs)
+	while(fs[i].name){
+		if(!strcmp(fs->name,key)){
+			//found it - its a function, return functionSpec
+			return fs;
+		}
+		i++;
+	}
+	return NULL;
+}
 typedef struct pJScript{
 	int ijunk;
 	struct X3D_Instance *Instance;
@@ -92,11 +115,12 @@ void JScript_init(struct tJScript *t){
 		ppJScript p = (ppJScript)t->prv;
 		//initialize statics
 		p->Instance = (struct X3D_Instance *)&p->m_Instance;
-		p->Instance->_nodeType = NODE_Instance;
+		//p->Instance->_nodeType = NODE_Instance;
 		p->Instance->Browser = &p->m_Browser;
 		p->Instance->X3DConstants = &X3DConstants; //p->m_Constants;
-		p->Instance->Browser->_nodeType = NODE_Browser;
-		p->Instance->X3DConstants->_nodeType = NODE_Constants;
+		//p->Instance->Browser->_nodeType = NODE_Browser;
+		//p->Instance->X3DConstants->_nodeType = NODE_Constants;
+		if(!FWTYPES_COUNT) initFWTYPEs();
 	}
 }
 //	ppJScript p = (ppJScript)gglobal()->JScript.prv;
@@ -216,97 +240,6 @@ void nativeSetS(const char *key, const char *val)
 static char* nativeValue = NULL;
 
 
-struct string_int{
-	char *c;
-	int i;
-};
-
-struct string_int lookup_X3DConstants[] = {
-	{"INITIALIZED_EVENT",1},
-	{"SHUTDOWN_EVENT",1},
-	{"CONNECTION_ERROR",1},
-	{"INITIALIZED_ERROR",1},
-	{"NOT_STARTED_STATE",1},
-	{"IN_PROGRESS_STATE",1},
-	{"COMPLETE_STATE",1},
-	{"FAILED_STATE",0},
-	{"SFBool",FIELDTYPE_SFBool},
-	{"MFBool",FIELDTYPE_MFBool},
-	{"MFInt32",FIELDTYPE_MFInt32},
-	{"SFInt32",FIELDTYPE_SFInt32},
-	{"SFFloat",FIELDTYPE_SFFloat},
-	{"MFFloat",FIELDTYPE_MFFloat},
-	{"SFDouble",FIELDTYPE_SFDouble},
-	{"MFDouble",FIELDTYPE_MFDouble},
-	{"SFTime",FIELDTYPE_SFTime},
-	{"MFTime",FIELDTYPE_MFTime},
-	{"SFNode",FIELDTYPE_SFNode},
-	{"MFNode",FIELDTYPE_MFNode},
-	{"SFVec2f",FIELDTYPE_SFVec2f},
-	{"MFVec2f",FIELDTYPE_MFVec2f},
-	{"SFVec3f",FIELDTYPE_SFVec3f},
-	{"MFVec3f",FIELDTYPE_MFVec3f},
-	{"SFVec3d",FIELDTYPE_SFVec3d},
-	{"MFVec3d",FIELDTYPE_MFVec3d},
-	{"SFRotation",FIELDTYPE_SFRotation},
-	{"MFRotation",FIELDTYPE_MFRotation},
-	{"SFColor",FIELDTYPE_SFColor},
-	{"MFColor",FIELDTYPE_MFColor},
-	{"SFImage",FIELDTYPE_SFImage},
-//	{"MFImage",FIELDTYPE_MFImage},
-	{"SFColorRGBA",FIELDTYPE_SFColorRGBA},
-	{"MFColorRGBA",FIELDTYPE_MFColorRGBA},
-	{"SFString",FIELDTYPE_SFString},
-	{"MFString",FIELDTYPE_MFString},
-/*
-	{"X3DBoundedObject",},
-	{"X3DMetadataObject",},
-	{"X3DUrlObject",},
-	{"X3DTriggerNode",},
-	{"X3DInfoNode",},
-	{"X3DAppearanceNode",},
-	{"X3DAppearanceChildNode",},
-	{"X3DMaterialNode",},
-	{"X3DTextureNode",},
-	{"X3DTexture2DNode",},
-	{"X3DTexture3DNode",},
-	{"X3DTextureTransformNode",},
-	{"X3DGeometryNode",},
-	{"X3DGeometry3DNode",},
-	{"X3DCoordinateNode",},
-	{"X3DParametricGeometryNode",},
-	{"X3DGeometricPropertyNode",},
-	{"X3DColorNode",},
-	{"X3DProtoInstance",},
-	{"X3DNormalNode",},
-	{"X3DTextureCoordinateNode",},
-	{"X3DFontStyleNode",},
-	{"X3DGroupingNode ",},
-	{"X3DChildNode",},
-	{"X3DBindableNode",},
-	{"X3DBackgroundNode",},
-	{"X3DInterpolatorNode",},
-	{"X3DShapeNode",},
-	{"X3DScriptNode",},
-	{"X3DSensorNode",},
-	{"X3DEnvironmentalSensorNode",},
-	{"X3DLightNode",},
-	{"X3DNetworkSensorNode",},
-	{"X3DPointingDeviceSensorNode",},
-	{"X3DDragSensorNode",},
-	{"X3DKeyDeviceSensorNode",},
-	{"X3DSequencerNode",},
-	{"X3DTimeDependentNode",},
-	{"X3DSoundNode",},
-	{"X3DSoundSourceNode",},
-	{"X3DTouchSensorNode",},
-*/
-	{"inputOnly",PKW_inputOnly},
-	{"outputOnly",PKW_outputOnly},
-	{"inputOutput",PKW_inputOutput},
-	{"initializeOnly",PKW_initializeOnly},
-	{NULL,0}
-};
 
 
 //struct Node_Scene {
@@ -315,7 +248,10 @@ struct string_int lookup_X3DConstants[] = {
 //struct Node_ExecutionContext {
 //       int _nodeType; /* unique integer for each type */ 
 //};
-
+struct string_int{
+	char *c;
+	int i;
+};
 
 struct string_int lookup_fieldType[] = {
 	{"Float", FIELDTYPE_SFFloat},
@@ -361,8 +297,8 @@ int fwType2itype(const char *fwType){
 		if(ifield > -1 && isMF ) ifield++;
 	}else{
 		//browser and scene/executionContext shouldn't be going through cfwconstructor
-		if(!strcmp(fwType,"Browser")) ifield = NODE_Browser;
-		if(!strcmp(fwType,"X3DConstants")) ifield = NODE_Constants;
+		if(!strcmp(fwType,"Browser")) ifield = AUXTYPE_X3DBrowser;
+		if(!strcmp(fwType,"X3DConstants")) ifield = AUXTYPE_X3DConstants;
 	}
 	return ifield;
 }
@@ -671,9 +607,10 @@ int cget(duk_context *ctx) {
 
 	nr = 0;
 	if(!fwType ) return nr;
-
-	/* figure out what field on the parent the get is referring to */
-	if(!strncmp(fwType,"MF",2) || !strncmp(fwType,"SF",2)){
+	if(itype < 1000){
+		//itype is in FIELDTYPE_ range
+		/* figure out what field on the parent the get is referring to */
+		//if(!strncmp(fwType,"MF",2) || !strncmp(fwType,"SF",2)){
 		if(!parent) return nr;
 		if(duk_is_number(ctx,-2)){
 			//indexer
@@ -711,26 +648,33 @@ int cget(duk_context *ctx) {
 			else val = "None";
 			duk_push_string(ctx,val);
 		}
-	}else if(!strcmp(fwType,"X3DBrowser")){
+	}else{ //itype < 1000
+		//itype is in AUXTYPE_ range
+		FWTYPE *fwt = getFWTYPE(itype);
 		const char *key = duk_require_string(ctx,-2);
 		printf("key=%s\n",key);
-		if(!strcmp(key,"getSomething")){
-			duk_push_c_function(ctx,cfunction,DUK_VARARGS);
-			duk_push_pointer(ctx,parent);
-			duk_put_prop_string(ctx,-2,"fwField");
-			duk_push_pointer(ctx,valueChanged);
-			duk_put_prop_string(ctx,-2,"fwChanged");
-			duk_push_int(ctx,itype);
-			duk_put_prop_string(ctx,-2,"fwItype");
-			duk_push_string(ctx,fwType);
-			duk_put_prop_string(ctx,-2,"fwType");
-			duk_push_string(ctx,key);
-			duk_put_prop_string(ctx,-2,"fwFunc");
-		}else{
-			duk_push_string(ctx,"cget for browser");
+		FWFunctionSpec *fw = getFWFunc(fwt,key);
+		if(fw){
+			//its a function
 		}
-	}else if(!strcmp(fwType,"X3DConstants")){
-	}else if(!strcmp(fwType,"Scene") || !strcmp(fwType,"ExecutionContext")){
+		//itype > 999 so its an auxiliary type ie Browser, X3DConstants, X3DRoute, X3DProfileInfo...
+			//check properties - if a property, call the type-specific getter
+			//check functions - if its a function push the type's specfic function
+				if(!strcmp(key,"getSomething")){
+					duk_push_c_function(ctx,cfunction,DUK_VARARGS);
+					duk_push_pointer(ctx,parent);
+					duk_put_prop_string(ctx,-2,"fwField");
+					duk_push_pointer(ctx,valueChanged);
+					duk_put_prop_string(ctx,-2,"fwChanged");
+					duk_push_int(ctx,itype);
+					duk_put_prop_string(ctx,-2,"fwItype");
+					duk_push_string(ctx,fwType);
+					duk_put_prop_string(ctx,-2,"fwType");
+					duk_push_string(ctx,key);
+					duk_put_prop_string(ctx,-2,"fwFunc");
+				}else{
+					duk_push_string(ctx,"cget for browser");
+				}
 	}
     return 1;
 }
@@ -948,11 +892,11 @@ void JSCreateScriptContext(int num) {
 	for(int i=0;i<FIELDTYPES_COUNT;i++)
 		addCustomProxyType(ctx, iglobal, FIELDTYPES[i]); //adds proxy constructor function (called typeName in js), and proxy handlers
 	show_stack(ctx,"before adding Browser");
-	add_duk_global_property(ctx, iglobal, NODE_Browser, "Browser", "X3DBrowser", p->Instance->Browser, NULL,(struct X3D_Node*)p->Instance,2);
+	add_duk_global_property(ctx, iglobal, AUXTYPE_X3DBrowser, "Browser", "X3DBrowser", p->Instance->Browser, NULL,(struct X3D_Node*)p->Instance,2);
 	//addCustomProxyType(ctx, iglobal, "Browser"); 
 	//add x3d X3DConstants table 
 	//addCustomProxyType(ctx,iglobal,"X3DConstants");
-	add_duk_global_property(ctx, iglobal,NODE_Constants,"X3DConstants", "X3DConstants", p->Instance->X3DConstants, NULL, (struct X3D_Node*) p->Instance,3);
+	add_duk_global_property(ctx, iglobal,AUXTYPE_X3DConstants,"X3DConstants", "X3DConstants", p->Instance->X3DConstants, NULL, (struct X3D_Node*) p->Instance,3);
 
 
 	//test
@@ -1310,10 +1254,6 @@ void getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *t
 				}
 			}
 		}
-	}else if(node->_nodeType == NODE_Constants) {
-		return;
-	}else if(node->_nodeType == NODE_Browser) {
-		return;
 	}
 	//builtins on non-script, non-proto nodes (and also builtin fields like url on Script)
 	{
@@ -1412,12 +1352,6 @@ void getFieldFromNodeAndIndex(struct X3D_Node* node, int iifield, const char **f
 			}
 		}
 		return;
-	}else if(node->_nodeType == NODE_Constants) {
-		return;
-	}else if(node->_nodeType == NODE_Browser) {
-		return;
-	}else if(node->_nodeType == NODE_Instance) {
-		return;
 	}
 	//builtins on non-script, non-proto nodes (and also builtin fields like url on Script)
 	{
@@ -1487,7 +1421,7 @@ int fwgetterNS(duk_context *ctx) {
 		struct Shader_Script *script = (struct Shader_Script*)duk_require_pointer(ctx,-1);
 		//printf("script pointer=%x",script);
 	}
-	if(itype == NODE_Browser || itype == NODE_Constants){
+	if(itype == AUXTYPE_X3DBrowser || itype == AUXTYPE_X3DConstants){
 		//duk_push_object(ctx); //proxy object on which get/set handlers will be applied
 		push_typed_proxy_fwgetter(ctx, fwType, itype, mode, fieldname, NULL, NULL);
 		nr = 1;
