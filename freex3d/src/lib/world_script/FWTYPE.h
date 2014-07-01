@@ -65,7 +65,7 @@ typedef struct FWTYPE{
 	FWPropertySpec *Properties;
 	FWGet Getter; //Q should I have a virtual Getter that takes a char* key and does its own lookup?
 	FWSet Setter;
-	int takesIndexer; //getter can take in integer index ie MF[33]
+	char takesIndexer; //getter can take in integer index ie MF[33]. put 0 or FALSE for no, else put the type the property takes/gives ie 'W' 'S' 'I' 'N' 'B' 'P'
 	FWFunctionSpec *Functions;
 } FWTYPE;
 typedef struct FWTYPE *FWType;
@@ -101,16 +101,16 @@ typedef struct FWVAL{
 		int _boolean;
 		const char* _string;
 		FWPointer _pointer;
-		Web3dNative _web3dval;
+		FWPointer _web3dval;
 		void* _jsobject; //placeholder for js function callback objects
 	};
-} *FWval;
+} FWVAL, *FWval;
 FWval FWvalsNew(int argc);
 
-typedef int (* FWConstructor)(FWType fwtype, Web3dNative fwn, int argc, FWval *fwpars);
-typedef int (* FWFunction)(FWType fwtype, Web3dNative fwn, int argc, FWval *fwpars, FWval *fwretval);
-typedef int (* FWGet)(FWType fwtype, Web3dNative fwn, FWval *fwretval);
-typedef int (* FWSet)(FWType fwtype, Web3dNative fwn, FWval *fwsetval);
+typedef int (* FWConstructor)(FWType fwtype, Web3dNative fwn, int argc, FWval fwpars);
+typedef int (* FWFunction)(FWType fwtype, Web3dNative fwn, int argc, FWval fwpars, FWval fwretval);
+typedef int (* FWGet)(int index, Web3dNative fwn, FWval fwretval);
+typedef int (* FWSet)(int index, Web3dNative fwn, FWval fwsetval);
 //typedef void (* FWFinalizer)(FWType fwtype, FWNative fwn);
 
 

@@ -43,27 +43,6 @@
 
 typedef int indexT;
 
-
-
-//#define NODE_Instance 1000
-//#define NODE_Constants 1001
-//#define NODE_Browser 1002
-//#define NODE_Scene 1003
-//#define NODE_ExecutionContext 1004
-//const char *FIELDNAMESX3DCONSTANTS [] = {"",NULL};
-struct X3D_Constants {
-	int _nodeType; /* unique integer for each type */ 
-} X3DConstants;
-//const char *FIELDNAMESX3DBROWSER [] = {"",NULL};
-struct X3D_Browser {
-	int _nodeType; /* unique integer for each type */ 
-};
-struct X3D_Instance {
-	int _nodeType; /* unique integer for each type */ 
-	struct X3D_Constants *X3DConstants;
-	struct X3D_Browser *Browser;
-};
-
 FWTYPE *fwtypesArray[30];  //true statics - they only need to be defined once per process
 int FWTYPES_COUNT = 0;
 
@@ -84,20 +63,33 @@ FWFunctionSpec *getFWFunc(FWTYPE *fwt,const char *key){
 	FWFunctionSpec *fs = fwt->Functions;
 	if(fs)
 	while(fs[i].name){
-		if(!strcmp(fs->name,key)){
+		if(!strcmp(fs[i].name,key)){
 			//found it - its a function, return functionSpec
-			return fs;
+			return &fs[i];
 		}
 		i++;
 	}
 	return NULL;
 }
+FWPropertySpec *getFWProp(FWTYPE *fwt,const char *key, int *index){
+	int i = 0;
+	FWPropertySpec *ps = fwt->Properties;
+	*index = 0;
+	if(ps)
+	while(ps[i].name){
+		if(!strcmp(ps[i].name,key)){
+			//found it - its a property, return propertySpec
+			(*index) = ps[i].index; //index can be any +- integer
+			return &ps[i];
+		}
+		i++;
+	}
+	return NULL;
+}
+
+
 typedef struct pJScript{
 	int ijunk;
-	struct X3D_Instance *Instance;
-	struct X3D_Instance m_Instance;
-	struct X3D_Browser m_Browser;
-	//struct X3D_Constants m_Constants;
 }* ppJScript;
 
 
@@ -114,12 +106,6 @@ void JScript_init(struct tJScript *t){
 	{
 		ppJScript p = (ppJScript)t->prv;
 		//initialize statics
-		p->Instance = (struct X3D_Instance *)&p->m_Instance;
-		//p->Instance->_nodeType = NODE_Instance;
-		p->Instance->Browser = &p->m_Browser;
-		p->Instance->X3DConstants = &X3DConstants; //p->m_Constants;
-		//p->Instance->Browser->_nodeType = NODE_Browser;
-		//p->Instance->X3DConstants->_nodeType = NODE_Constants;
 		if(!FWTYPES_COUNT) initFWTYPEs();
 	}
 }
@@ -542,6 +528,31 @@ int Browser_getSomething(double *dval,double A, double B, double C){
 	*dval = A + B + C;
 	return 1;
 }
+
+int fwval_duk_push(duk_context *ctx, FWval fwretval){
+	//converts engine-agnostic FWVAL return value to duk engine specific return values and pushes them onto the duk value stack
+	int nr = 1;
+	switch(fwretval->itype){
+	case 'B':
+		duk_push_boolean(ctx,fwretval->_boolean); break;
+	case 'I':
+		duk_push_int(ctx,fwretval->_integer); break;
+	case 'N':
+		duk_push_number(ctx,fwretval->_numeric); break;
+	case 'S':
+		duk_push_string(ctx,fwretval->_string); break;
+	case 'W':
+		duk_push_pointer(ctx,fwretval->_web3dval.native);
+		duk_push_int(ctx,fwretval->_web3dval.fieldType);
+		duk_put_prop_string(ctx,-2,"fwItype");
+		break;
+	case '0':
+	default:
+		nr = 0; break;
+	}
+	return nr;
+}
+
 int cfunction(duk_context *ctx) {
 	int rc, nr, itype, *valueChanged;
 	//show_stack(ctx,"in cget");
@@ -549,6 +560,8 @@ int cfunction(duk_context *ctx) {
 	const char *fwFunc = NULL;
 	union anyVrml* parent = NULL;
 	union anyVrml* field = NULL;
+	FWTYPE *fwt;
+	FWFunctionSpec *fs;
 
 	int nargs = duk_get_top(ctx);
 	show_stack0(ctx,"in cfuction",0);
@@ -575,10 +588,72 @@ int cfunction(duk_context *ctx) {
 	duk_pop(ctx); //durrent function
 
 	printf("fwFunc=%s, fwType=%s\n",fwFunc,fwType);
-	double dval;
-	nr = Browser_getSomething(&dval,duk_get_number(ctx,-3),duk_get_number(ctx,-2), duk_get_number(ctx,-1));
-	duk_push_number(ctx,dval);
-	//duk_push_string(ctx,"B.gs_rval");
+	nr = 0;
+	int i;
+	fwt = getFWTYPE(itype);
+	//check functions - if its a function push the type's specfic function
+	fs = getFWFunc(fwt,fwFunc);
+	if(fs){
+		FWVAL fwretval;
+		int nUsable,nNeeded;
+		nUsable = fs->arglist.iVarArgStartsAt > -1 ? nargs : fs->arglist.nfixedArg;
+		nNeeded = max(nUsable,fs->arglist.nfixedArg);
+		FWval pars = malloc(nNeeded*sizeof(FWVAL));
+		//QC and genericization of incoming parameters
+		for(i=0;i<nUsable;i++){
+			char ctype;
+			if(i < fs->arglist.nfixedArg) 
+				ctype = fs->arglist.argtypes[i];
+			else 
+				ctype = fs->arglist.argtypes[fs->arglist.iVarArgStartsAt];
+			pars[i].itype = ctype;
+			switch(ctype){
+			case 'B': pars[i]._boolean = duk_get_boolean(ctx,i); break;
+			case 'I': pars[i]._integer = duk_get_int(ctx,i); break;
+			case 'N': pars[i]._numeric = duk_get_number(ctx,i); break;
+			case 'S': pars[i]._string = duk_get_string(ctx,i); break;
+			case 'F': //flexi-string idea - allow either String or MFString (no such thing as SFString from ecma - it uses String for that)
+				if(duk_is_pointer(ctx,i)){
+					void *ptr = duk_get_pointer(ctx,i); 
+					pars[i]._web3dval.native = ptr;
+					pars[i]._web3dval.fieldType = FIELDTYPE_MFString; //type of the incoming arg[i]
+					pars[i].itype = 'W';
+				}else if(duk_is_string(ctx,i)){
+					pars[i]._string = duk_get_string(ctx,i); 
+					pars[i].itype = 'S';
+				}
+				break; 
+			case 'W': {
+				void *ptr = duk_get_pointer(ctx,i); 
+				pars[i]._web3dval.native = ptr;
+				pars[i]._web3dval.fieldType = FIELDTYPE_SFNode; //type of the incoming arg[i]
+				}
+				break;
+			case 'O': break; //object pointer ie to js function callback object
+			}
+		}
+		
+		for(i=nUsable;i<nNeeded;i++){
+			//fill
+			char ctype = fs->arglist.argtypes[i];
+			pars[i].itype = ctype;
+			switch(ctype){
+			case 'B': pars[i]._boolean = FALSE; break;
+			case 'I': pars[i]._integer = 0; break;
+			case 'N': pars[i]._numeric = 0.0; break;
+			case 'S': pars[i]._string = NULL; break;
+			case 'F': pars[i]._string = NULL; pars[i].itype = 'S'; break;
+			case 'W': pars[i]._web3dval.fieldType = FIELDTYPE_SFNode; pars[i]._web3dval.native = NULL; break;
+			case 'O': pars[i]._jsobject = NULL; break; 
+			}
+		}
+		//the object function call, using engine-agnostic parameters
+		nr = fs->call(fwt,parent,nNeeded,pars,&fwretval);
+		if(nr){
+			nr = fwval_duk_push(ctx,&fwretval);
+		}
+		free(pars);
+	}
 	return nr;
 }
 int cget(duk_context *ctx) {
@@ -653,30 +728,50 @@ int cget(duk_context *ctx) {
 		FWTYPE *fwt = getFWTYPE(itype);
 		const char *key = duk_require_string(ctx,-2);
 		printf("key=%s\n",key);
+		//check numeric indexer
+		if(duk_is_number(ctx,-2)){
+			//indexer
+			int ikey = duk_get_int(ctx,-2);
+			if(fwt->takesIndexer){
+				FWVAL fwretval;
+				nr = fwt->Getter(ikey,parent,&fwretval);
+				if(nr){
+					nr = fwval_duk_push(ctx,&fwretval);
+				}
+			}
+		}
+		//check functions - if its a function push the type's specfic function
 		FWFunctionSpec *fw = getFWFunc(fwt,key);
 		if(fw){
 			//its a function
-		}
-		//itype > 999 so its an auxiliary type ie Browser, X3DConstants, X3DRoute, X3DProfileInfo...
+			duk_push_c_function(ctx,cfunction,DUK_VARARGS);
+			duk_push_pointer(ctx,parent);
+			duk_put_prop_string(ctx,-2,"fwField");
+			duk_push_pointer(ctx,valueChanged);
+			duk_put_prop_string(ctx,-2,"fwChanged");
+			duk_push_int(ctx,itype);
+			duk_put_prop_string(ctx,-2,"fwItype");
+			duk_push_string(ctx,fwType);
+			duk_put_prop_string(ctx,-2,"fwType");
+			duk_push_string(ctx,key);
+			duk_put_prop_string(ctx,-2,"fwFunc");
+			nr = 1;
+		}else{
 			//check properties - if a property, call the type-specific getter
-			//check functions - if its a function push the type's specfic function
-				if(!strcmp(key,"getSomething")){
-					duk_push_c_function(ctx,cfunction,DUK_VARARGS);
-					duk_push_pointer(ctx,parent);
-					duk_put_prop_string(ctx,-2,"fwField");
-					duk_push_pointer(ctx,valueChanged);
-					duk_put_prop_string(ctx,-2,"fwChanged");
-					duk_push_int(ctx,itype);
-					duk_put_prop_string(ctx,-2,"fwItype");
-					duk_push_string(ctx,fwType);
-					duk_put_prop_string(ctx,-2,"fwType");
-					duk_push_string(ctx,key);
-					duk_put_prop_string(ctx,-2,"fwFunc");
-				}else{
-					duk_push_string(ctx,"cget for browser");
+			if(fwt->Properties){
+				int index;
+				FWPropertySpec *ps = getFWProp(fwt,key,&index);
+				if(ps){
+					FWVAL fwretval;
+					nr = fwt->Getter(index,parent,&fwretval);
+					if(nr){
+						nr = fwval_duk_push(ctx,&fwretval);
+					}
 				}
+			}
+		}
 	}
-    return 1;
+    return nr;
 }
 int cset(duk_context *ctx) {
 	int rc, itype, *valueChanged;
@@ -703,28 +798,74 @@ int cset(duk_context *ctx) {
 	show_stack0(ctx,"in cset",0);
 	//char *val = duk_require_string(ctx,-2);
 	const char *val = duk_to_string(ctx,-2);
-	if(duk_is_number(ctx,-3)){
-		//indexer
-		double key = duk_require_number(ctx,-3);
-		int ikey = round(key);
-		printf("index =%d\n",ikey);
-		nativeStruct.arr[ikey] = strdup(val);
-	}else{
-		//named property
-		int kval = -1;
-		const char *key = duk_require_string(ctx,-3);
-		for(int j=0;j<nativeStruct.nkey;j++)
-			if(!strcmp(nativeStruct.key[j],key))	kval = j;
-		if(kval < 0) {
-			kval = nativeStruct.nkey;
-			nativeStruct.key[kval] = strdup(key);
-			nativeStruct.nkey++;
-		}
-		nativeStruct.val[kval] = strdup(val);
+	const char *key = duk_require_string(ctx,-3);
+	printf("key=%s val=%s\n",key,val);
 
-		printf("key =%s\n",key);
+	if(itype < 1000){
+		if(duk_is_number(ctx,-3)){
+			//indexer
+			double key = duk_require_number(ctx,-3);
+			int ikey = round(key);
+			printf("index =%d\n",ikey);
+			nativeStruct.arr[ikey] = strdup(val);
+		}else{
+			//named property
+			int kval = -1;
+			const char *key = duk_require_string(ctx,-3);
+			for(int j=0;j<nativeStruct.nkey;j++)
+				if(!strcmp(nativeStruct.key[j],key))	kval = j;
+			if(kval < 0) {
+				kval = nativeStruct.nkey;
+				nativeStruct.key[kval] = strdup(key);
+				nativeStruct.nkey++;
+			}
+			nativeStruct.val[kval] = strdup(val);
+
+			printf("key =%s\n",key);
+		}
+	}else{
+		//itype is in AUXTYPE_ range
+		FWTYPE *fwt = getFWTYPE(itype);
+		//check numeric indexer
+		if(duk_is_number(ctx,-2)){
+			//indexer
+			int ikey = duk_get_int(ctx,-2);
+			if(fwt->takesIndexer){
+				FWVAL fwsetval;
+				fwsetval.itype = fwt->takesIndexer;
+				switch(fwt->takesIndexer){
+					case '0':break;
+					case 'I': fwsetval._integer = duk_get_int(ctx,-2); break;
+					case 'N': fwsetval._numeric = duk_get_number(ctx,-2); break;
+					case 'B': fwsetval._boolean = duk_get_boolean(ctx,-2); break;
+					case 'S': fwsetval._string = duk_get_string(ctx,-2); break;
+					case 'W': fwsetval._web3dval.native = duk_get_pointer(ctx,-2); fwsetval._web3dval.fieldType = itype; break;
+					case 'P': fwsetval._pointer.native = duk_get_pointer(ctx,-2); fwsetval._pointer.fieldType = itype; break;
+				}
+				fwt->Setter(ikey,parent,&fwsetval);
+			}
+		}else{
+			//check properties - if a property, call the type-specific getter
+			if(fwt->Properties){
+				int index;
+				FWPropertySpec *ps = getFWProp(fwt,key,&index);
+				if(ps){
+					FWVAL fwsetval;
+					fwsetval.itype = ps->type;
+					switch(ps->type){
+					case '0':break;
+					case 'I': fwsetval._integer = duk_get_int(ctx,-2); break;
+					case 'N': fwsetval._numeric = duk_get_number(ctx,-2); break;
+					case 'B': fwsetval._boolean = duk_get_boolean(ctx,-2); break;
+					case 'S': fwsetval._string = duk_get_string(ctx,-2); break;
+					case 'W': fwsetval._web3dval.native = duk_get_pointer(ctx,-2); fwsetval._web3dval.fieldType = itype; break;
+					case 'P': fwsetval._pointer.native = duk_get_pointer(ctx,-2); fwsetval._pointer.fieldType = itype; break;
+					}
+					fwt->Setter(index,parent,&fwsetval);
+				}
+			}
+		}
 	}
-	printf(" val=%s \n",val);
     return 0;
 }
 int cdel(duk_context *ctx) {
@@ -892,22 +1033,32 @@ void JSCreateScriptContext(int num) {
 	for(int i=0;i<FIELDTYPES_COUNT;i++)
 		addCustomProxyType(ctx, iglobal, FIELDTYPES[i]); //adds proxy constructor function (called typeName in js), and proxy handlers
 	show_stack(ctx,"before adding Browser");
-	add_duk_global_property(ctx, iglobal, AUXTYPE_X3DBrowser, "Browser", "X3DBrowser", p->Instance->Browser, NULL,(struct X3D_Node*)p->Instance,2);
+	add_duk_global_property(ctx, iglobal, AUXTYPE_X3DBrowser, "Browser", "X3DBrowser", NULL, NULL,NULL,0);
+	//add_duk_global_property(ctx, iglobal, AUXTYPE_X3DBrowser, "Browser", "X3DBrowser", p->Instance->Browser, NULL,(struct X3D_Node*)p->Instance,2);
 	//addCustomProxyType(ctx, iglobal, "Browser"); 
 	//add x3d X3DConstants table 
 	//addCustomProxyType(ctx,iglobal,"X3DConstants");
-	add_duk_global_property(ctx, iglobal,AUXTYPE_X3DConstants,"X3DConstants", "X3DConstants", p->Instance->X3DConstants, NULL, (struct X3D_Node*) p->Instance,3);
+	add_duk_global_property(ctx, iglobal,AUXTYPE_X3DConstants,"X3DConstants", "X3DConstants", NULL, NULL, NULL,0);
+	//add_duk_global_property(ctx, iglobal,AUXTYPE_X3DConstants,"X3DConstants", "X3DConstants", p->Instance->X3DConstants, NULL, (struct X3D_Node*) p->Instance,3);
 
 
 	//test
-	if(1){
-	duk_eval_string(ctx,"var myc = Browser.yellow;");
+	if(0){
+	duk_eval_string(ctx,"Browser.description = 'funny description happened on the way to ..';");
 	duk_pop(ctx);
-	duk_eval_string(ctx,"Browser.yellow = 33;");
+	duk_eval_string(ctx,"print('hi from print');");
 	duk_pop(ctx);
-	duk_eval_string(ctx,"print(Browser.getSomething(33,44,55));");
+	duk_eval_string(ctx,"print(Browser.version);");
 	duk_pop(ctx);
+	duk_eval_string(ctx,"Browser.println('hi from brwsr.println');");
+	duk_pop(ctx);
+	duk_eval_string(ctx,"Browser.println(Browser.description);");
+	duk_pop(ctx);
+
 	}
+
+
+	if(0){
 	duk_eval_string(ctx,"var myvec3 = new SFVec3f(1.0,2.0,3.0);");
 	duk_pop(ctx);
 	duk_eval_string(ctx,"print(myvec3.x.toString());");
@@ -916,6 +1067,7 @@ void JSCreateScriptContext(int num) {
 	duk_pop(ctx);
 	duk_eval_string(ctx,"print('sb45='+myvec3.y);");
 	duk_pop(ctx);
+	}
 
 
 	//* Global methods and defines (some redirecting to the Browser object ie print = Browser.println)
@@ -1423,7 +1575,7 @@ int fwgetterNS(duk_context *ctx) {
 	}
 	if(itype == AUXTYPE_X3DBrowser || itype == AUXTYPE_X3DConstants){
 		//duk_push_object(ctx); //proxy object on which get/set handlers will be applied
-		push_typed_proxy_fwgetter(ctx, fwType, itype, mode, fieldname, NULL, NULL);
+		push_typed_proxy_fwgetter(ctx, fwType, itype, PKW_initializeOnly, fieldname, NULL, NULL);
 		nr = 1;
 	}else{
 		nr = push_duk_fieldvalue(ctx, itype, mode, fieldname, field,  valueChanged);
