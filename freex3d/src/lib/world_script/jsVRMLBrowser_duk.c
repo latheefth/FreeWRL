@@ -646,6 +646,7 @@ FWTYPE BrowserType = {
 	0, //sizeof(struct X3DBrowser), 
 	NULL, //no constructor for Browser
 	BrowserProperties,
+	NULL, //no special has
 	BrowserGetter,
 	BrowserSetter,
 	FALSE, //takes int index in prop
@@ -717,6 +718,7 @@ FWTYPE ComponentInfoArrayType = {
 	0, //sizeof(struct X3DBrowser), 
 	NULL, //no constructor for Browser
 	ComponentInfoArrayProperties,
+	NULL, //no special has
 	ComponentInfoArrayGetter,
 	NULL,
 	'P', //takes int index in prop of this type 
@@ -765,6 +767,7 @@ FWTYPE ComponentInfoType = {
 	0, //sizeof(struct X3DBrowser), 
 	NULL, //no constructor for Browser
 	ComponentInfoProperties,
+	NULL, //no special has
 	ComponentInfoGetter,
 	NULL,
 	FALSE, //takes int index in prop
@@ -810,6 +813,7 @@ FWTYPE ProfileInfoArrayType = {
 	0, //sizeof(struct X3DBrowser), 
 	NULL, //no constructor for Browser
 	ProfileInfoArrayProperties,
+	NULL, //no special has
 	ProfileInfoArrayGetter,
 	NULL,
 	'P', //takes int index in prop
@@ -874,6 +878,7 @@ FWTYPE ProfileInfoType = {
 	0, //sizeof(struct X3DBrowser), 
 	NULL, //no constructor for Browser
 	ProfileInfoProperties,
+	NULL, //no special has
 	ProfileInfoGetter,
 	NULL,
 	FALSE, //takes int index in prop
@@ -1026,6 +1031,7 @@ FWTYPE X3DExecutionContextType = {
 	0, //sizeof(struct X3DBrowser), 
 	NULL, //no constructor
 	X3DExecutionContextProperties,
+	NULL, //no special has
 	X3DExecutionContextGetter,
 	NULL,
 	FALSE, //takes int index in prop
@@ -1064,6 +1070,7 @@ FWTYPE X3DRouteArrayType = {
 	0, //sizeof(struct X3DRoute), 
 	NULL, //no constructor for X3DRoute
 	X3DRouteArrayProperties,
+	NULL, //no special has
 	X3DRouteArrayGetter,
 	NULL,
 	'P', //takes int index in prop
@@ -1127,6 +1134,7 @@ FWTYPE X3DRouteType = {
 	0, //sizeof(struct X3DRoute), 
 	NULL, //no constructor for X3DRoute
 	X3DRouteProperties,
+	NULL, //no special has
 	X3DRouteGetter,
 	NULL,
 	FALSE, //takes int index in prop
@@ -1225,6 +1233,22 @@ struct string_int lookup_X3DConstants[] = {
 	{NULL,0}
 };
 
+struct string_int *lookup_string_int(struct string_int *table, char *searchkey, int *index){
+	int i;
+	struct string_int *retval = NULL;
+	*index = -1;
+	if(!table) return NULL;
+	i = 0;
+	while(table[i].c){
+		if(!strcmp(table[i].c,searchkey)){
+			//found it
+			(*index) = i;
+			return &table[i];
+		}
+		i++;
+	}
+	return NULL;
+}
 FWPropertySpec (X3DConstantsProperties)[] = {
 	{"INITIALIZED_EVENT",1,'I','T'},
 	{"SHUTDOWN_EVENT",2,'I','T'},
@@ -1317,13 +1341,24 @@ int X3DConstantsGetter(int index, Web3dNative fwn, FWval fwretval){
 	fwretval->itype = 'I';
 	return nr;
 }
-
+int X3DConstantsHas(FWType fwtype, char *key, int *index)
+{
+	int retval = 0;
+	int jndex;
+	struct string_int* si = lookup_string_int(lookup_X3DConstants,key,&jndex);
+	if(si){
+		(*index) = jndex;
+		retval = 1;
+	}
+	return retval;
+}
 FWTYPE X3DConstantsType = {
 	AUXTYPE_X3DConstants,
 	"X3DConstants",
 	0, //sizeof(struct X3DRoute), 
 	NULL, //no constructor for X3DRoute
-	NULL,
+	NULL, //X3DConstantsProperties - lets have fun and use the custom HAS function
+	X3DConstantsHas, //custom HAS function - returns the index used in the Getter
 	X3DConstantsGetter,
 	NULL,
 	FALSE, //takes int index in prop

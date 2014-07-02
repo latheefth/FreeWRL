@@ -768,6 +768,16 @@ int cget(duk_context *ctx) {
 						nr = fwval_duk_push(ctx,&fwretval);
 					}
 				}
+			}else if(fwt->has){
+				int index;
+				int ihas = fwt->has(fwt,key,&index);
+				if(ihas){
+					FWVAL fwretval;
+					nr = fwt->Getter(index,parent,&fwretval);
+					if(nr){
+						nr = fwval_duk_push(ctx,&fwretval);
+					}
+				}
 			}
 		}
 	}
@@ -1043,6 +1053,10 @@ void JSCreateScriptContext(int num) {
 
 
 	//test
+	if(1){
+		duk_eval_string(ctx,"print('X3DConstants.outputOnly='); print(X3DConstants.outputOnly);");
+		duk_pop(ctx);
+	}
 	if(0){
 	duk_eval_string(ctx,"Browser.description = 'funny description happened on the way to ..';");
 	duk_pop(ctx);

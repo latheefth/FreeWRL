@@ -47,6 +47,7 @@ typedef struct ArgListType {
 typedef int (* FWFunction)();
 typedef int (* FWGet)();
 typedef int (* FWSet)();
+typedef int (* FWHas)();
 
 
 typedef struct FWFunctionSpec {
@@ -63,6 +64,7 @@ typedef struct FWTYPE{
 	int size_of; //for mallocing in constructor
 	struct ArgListType *Constructors;
 	FWPropertySpec *Properties;
+	FWHas has; //if NULL and Properties, then will use generic function to has, else if !Properties and has, then will use has
 	FWGet Getter; //Q should I have a virtual Getter that takes a char* key and does its own lookup?
 	FWSet Setter;
 	char takesIndexer; //getter can take in integer index ie MF[33]. put 0 or FALSE for no, else put the type the property takes/gives ie 'W' 'S' 'I' 'N' 'B' 'P'
@@ -111,6 +113,7 @@ typedef int (* FWConstructor)(FWType fwtype, Web3dNative fwn, int argc, FWval fw
 typedef int (* FWFunction)(FWType fwtype, Web3dNative fwn, int argc, FWval fwpars, FWval fwretval);
 typedef int (* FWGet)(int index, Web3dNative fwn, FWval fwretval);
 typedef int (* FWSet)(int index, Web3dNative fwn, FWval fwsetval);
+typedef int (* FWHas)(FWType fwtype, char *key, int *index);
 //typedef void (* FWFinalizer)(FWType fwtype, FWNative fwn);
 
 
