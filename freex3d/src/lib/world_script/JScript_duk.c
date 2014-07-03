@@ -224,7 +224,7 @@ void show_stack0(duk_context *ctx, char* comment, int dig)
 
 			case DUK_TYPE_OBJECT: stype ="object"; 
 				if(dig){
-				rc = duk_get_prop_string(ctx, ipos, "fwType");
+				rc = duk_get_prop_string(ctx, ipos, "fwItype");
 				if(rc == 1) amore = duk_to_string(ctx,-1);
 				duk_pop(ctx);
 				}
@@ -322,6 +322,14 @@ struct string_int lookup_fieldType[] = {
 	{"Vec4d", FIELDTYPE_SFVec4d},
 	{NULL,0}
 };
+char * itype2string(int itype){
+	int i = 0;
+	while(lookup_fieldType[i].c){
+		if(lookup_fieldType[i].i == itype) return lookup_fieldType[i].c;
+		i++;
+	}
+	return NULL;
+}
 //const char *stringFieldtypeType (int st); //in generatedcode
 //const char *stringNodeType (int st);
 int fwType2itype(const char *fwType){
@@ -347,7 +355,7 @@ int fwType2itype(const char *fwType){
 	}
 	return ifield;
 }
-void push_typed_proxy(duk_context *ctx, const char *fwType, int itype, void *fwpointer, int* valueChanged)
+void push_typed_proxy(duk_context *ctx, int itype, void *fwpointer, int* valueChanged)
 {
 	/*  called by both the cfwconstructor (for new Proxy) and fwgetter (for referenced script->fields)
 		1. please have the proxy object on the stack before calling
@@ -362,9 +370,9 @@ void push_typed_proxy(duk_context *ctx, const char *fwType, int itype, void *fwp
 	//add fwtype to this
 	//- if I have one C constructor, and many named js constructors
 	//- I need to fetch the name of the constructor and use it here
-	duk_push_string(ctx,fwType); //"SFColor");
-	//show_stack(ctx,"just before putting prop string fwtype");
-	duk_put_prop_string(ctx,-2,"fwType");
+	//duk_push_string(ctx,fwType); //"SFColor");
+	////show_stack(ctx,"just before putting prop string fwtype");
+	//duk_put_prop_string(ctx,-2,"fwType");
 	//show_stack(ctx,"just after putting prop string fwtype");
 	//add native pointer to this
 	duk_push_pointer(ctx,fwpointer);
@@ -390,22 +398,17 @@ void push_typed_proxy(duk_context *ctx, const char *fwType, int itype, void *fwp
 #include <math.h> //for int = round(numeric)
 int cfwconstructor(duk_context *ctx) {
 	int rc, nargs;
-	const char *fwType = NULL;
 	int *valueChanged = NULL; //so called 'internal' variables inside the script context don't point to a valueChanged
 	int itype = 0;
 	nargs = duk_get_top(ctx);
 
 	duk_push_current_function(ctx);
-	rc = duk_get_prop_string(ctx, -1, "fwType");
-	if(rc == 1) fwType = duk_to_string(ctx,-1);
-	if(rc == 1) itype = fwType2itype(fwType);
-	if(rc == 1) printf("in constructor fwType=%s\n",fwType);
-	duk_pop(ctx);
+	rc = duk_get_prop_string(ctx,-1,"fwItype");
+	if(rc == 1) itype = duk_to_int(ctx,-1);
+	duk_pop(ctx); //current function
 
 	//some things we don't allow scene authors to construct in their javascript
-	if(!fwType) return 0; //not one of our types
-	if(!strcmp(fwType,"X3DBrowser") || !strcmp(fwType,"X3DConstants")) return 0; //this are static singletons
-	if(!strcmp(fwType,"X3DScene") || !strcmp(fwType,"X3DExecutionContext")) return 0; //Browser creates these internally
+	if(itype >= AUXTYPE_X3DConstants) return 0; //AUXTYPE_s not constructable (except route?)
 
 
 	show_stack(ctx,"in C constructor before push this");
@@ -419,10 +422,8 @@ int cfwconstructor(duk_context *ctx) {
 		//add fwtype to this
 		//- if I have one C constructor, and many named js constructors
 		//- I need to fetch the name of the constructor and use it here
-		duk_push_string(ctx,fwType); //"SFColor");
-		duk_put_prop_string(ctx,-2,"fwType");
 		duk_push_pointer(ctx,fwpointer);
-		duk_put_prop_string(ctx,-2,"fwPointer");
+		duk_put_prop_string(ctx,-2,"fwField");
 		duk_pop(ctx); //pop this
 
 		duk_push_global_object(ctx); //could I just push an object, or push nothing? then how to get global->handler?
@@ -445,7 +446,7 @@ int cfwconstructor(duk_context *ctx) {
 		}
 		duk_remove(ctx,-2); //remove global so just proxy on stack
 	}else{
-		push_typed_proxy(ctx, fwType, itype, fwpointer, valueChanged);
+		push_typed_proxy(ctx,itype, fwpointer, valueChanged);
 	}
 	//put return value -a proxy object- on stack for return
 	//get the args passed to the constructor, and call the proxy properties with them
@@ -467,13 +468,9 @@ int cfwconstructor(duk_context *ctx) {
 }
 int chas(duk_context *ctx) {
 	int rc, itype, *valueChanged;
-	const char *fwType = NULL;
 	union anyVrml *parent;
 
 	/* get type of parent object for this property*/
-	rc = duk_get_prop_string(ctx,0,"fwType");
-	if(rc == 1) fwType = duk_to_string(ctx,-1);
-	duk_pop(ctx);
 	rc = duk_get_prop_string(ctx,0,"fwItype");
 	if(rc==1) itype = duk_get_int(ctx,-1);
 	duk_pop(ctx);
@@ -489,7 +486,6 @@ int chas(duk_context *ctx) {
 	const char *key = duk_require_string(ctx,-1);
 	printf("key=%s\n",key);
 
-	if(fwType) printf("fwType in chas=%s\n",fwType);
 	int nr, index;
 	char type, readOnly;
 	nr = 1;
@@ -506,13 +502,9 @@ int chas(duk_context *ctx) {
 }
 int cownKeys(duk_context *ctx) {
 	int rc, itype, *valueChanged;
-	const char *fwType = NULL;
 	void *parent;
 
 	/* get type of parent object for this property*/
-	rc = duk_get_prop_string(ctx,0,"fwType");
-	if(rc == 1) fwType = duk_to_string(ctx,-1);
-	duk_pop(ctx);
 	rc = duk_get_prop_string(ctx,0,"fwItype");
 	if(rc==1) itype = duk_get_int(ctx,-1);
 	duk_pop(ctx);
@@ -526,7 +518,6 @@ int cownKeys(duk_context *ctx) {
 	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
 	duk_pop(ctx);
 
-	if(fwType) printf("fwType in cownKeys=%s\n",fwType);
 	int arr_idx = duk_push_array(ctx);
 	int i = -1;
 	char *fieldname;
@@ -544,13 +535,9 @@ int cownKeys(duk_context *ctx) {
 }
 int cenumerate(duk_context *ctx) {
 	int rc, itype, *valueChanged;
-	const char *fwType = NULL;
 	union anyVrml *parent;
 
 	/* get type of parent object for this property*/
-	rc = duk_get_prop_string(ctx,0,"fwType");
-	if(rc == 1) fwType = duk_to_string(ctx,-1);
-	duk_pop(ctx);
 	rc = duk_get_prop_string(ctx,0,"fwItype");
 	if(rc==1) itype = duk_get_int(ctx,-1);
 	duk_pop(ctx);
@@ -564,7 +551,6 @@ int cenumerate(duk_context *ctx) {
 	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
 	duk_pop(ctx);
 
-	if(fwType) printf("fwType in cenumerate=%s\n",fwType);
 	int arr_idx = duk_push_array(ctx);
 	int next, i = -1;
 	char *fieldname;
@@ -615,7 +601,7 @@ int push_duk_fieldvalueECMA(duk_context *ctx, int itype, union anyVrml *fieldval
 }
 int push_duk_fieldvalueObject(duk_context *ctx, int itype, union anyVrml *field, int *valueChanged ){
 	//we need an object with our c handlers and pointer to our script->field[i]
-	push_typed_proxy(ctx, FIELDTYPES[itype], itype, field, valueChanged);
+	push_typed_proxy(ctx, itype, field, valueChanged);
 	return 1;
 }
 int isECMAtype(int itype){
@@ -703,7 +689,6 @@ int fwval_duk_push(duk_context *ctx, FWval fwretval){
 int cfunction(duk_context *ctx) {
 	int rc, nr, itype, *valueChanged;
 	//show_stack(ctx,"in cget");
-	const char *fwType = NULL;
 	const char *fwFunc = NULL;
 	union anyVrml* parent = NULL;
 	union anyVrml* field = NULL;
@@ -714,9 +699,6 @@ int cfunction(duk_context *ctx) {
 	show_stack0(ctx,"in cfuction",0);
 	duk_push_current_function(ctx);
 	/* get type of parent object for this property*/
-	rc = duk_get_prop_string(ctx,-1,"fwType");
-	if(rc == 1) fwType = duk_to_string(ctx,-1);
-	duk_pop(ctx);
 	rc = duk_get_prop_string(ctx,-1,"fwItype");
 	if(rc==1) itype = duk_get_int(ctx,-1);
 	duk_pop(ctx);
@@ -734,7 +716,6 @@ int cfunction(duk_context *ctx) {
 	duk_pop(ctx);
 	duk_pop(ctx); //durrent function
 
-	printf("fwFunc=%s, fwType=%s\n",fwFunc,fwType);
 	nr = 0;
 	int i;
 	fwt = getFWTYPE(itype);
@@ -806,14 +787,11 @@ int cfunction(duk_context *ctx) {
 int cget(duk_context *ctx) {
 	int rc, nr, itype, *valueChanged;
 	//show_stack(ctx,"in cget");
-	const char *fwType = NULL;
 	union anyVrml* parent = NULL;
 	union anyVrml* field = NULL;
 
 	/* get type of parent object for this property*/
-	rc = duk_get_prop_string(ctx,0,"fwType");
-	if(rc == 1) fwType = duk_to_string(ctx,-1);
-	duk_pop(ctx);
+	itype = -1;
 	rc = duk_get_prop_string(ctx,0,"fwItype");
 	if(rc==1) itype = duk_get_int(ctx,-1);
 	duk_pop(ctx);
@@ -828,7 +806,7 @@ int cget(duk_context *ctx) {
 	show_stack0(ctx,"in cget",0);
 
 	nr = 0;
-	if(!fwType ) return nr;
+	if(itype < 0 ) return nr;
 	if(itype < 1000){
 		//itype is in FIELDTYPE_ range
 		/* figure out what field on the parent the get is referring to */
@@ -838,6 +816,7 @@ int cget(duk_context *ctx) {
 			//indexer
 			int ikey = duk_get_int(ctx,-2);
 			//int ikey = round(key);
+			char *fwType = itype2string(itype);
 			if(!strncmp(fwType,"MF",2)){
 				//its an MF field type, and we have an index to it.
 				if(ikey < parent->mfbool.n && ikey > -1){
@@ -901,8 +880,6 @@ int cget(duk_context *ctx) {
 				duk_put_prop_string(ctx,-2,"fwChanged");
 				duk_push_int(ctx,itype);
 				duk_put_prop_string(ctx,-2,"fwItype");
-				duk_push_string(ctx,fwType);
-				duk_put_prop_string(ctx,-2,"fwType");
 				duk_push_string(ctx,key);
 				duk_put_prop_string(ctx,-2,"fwFunc");
 				nr = 1;
@@ -919,13 +896,9 @@ int cget(duk_context *ctx) {
 }
 int cset(duk_context *ctx) {
 	int rc, itype, *valueChanged;
-	const char *fwType = NULL;
 	union anyVrml *parent;
 
 	/* get type of parent object for this property*/
-	rc = duk_get_prop_string(ctx,0,"fwType");
-	if(rc == 1) fwType = duk_to_string(ctx,-1);
-	duk_pop(ctx);
 	rc = duk_get_prop_string(ctx,0,"fwItype");
 	if(rc==1) itype = duk_get_int(ctx,-1);
 	duk_pop(ctx);
@@ -1003,13 +976,9 @@ int cset(duk_context *ctx) {
 }
 int cdel(duk_context *ctx) {
 	int rc, itype, *valueChanged;
-	const char *fwType = NULL;
 	union anyVrml *parent;
 
 	/* get type of parent object for this property*/
-	rc = duk_get_prop_string(ctx,0,"fwType");
-	if(rc == 1) fwType = duk_to_string(ctx,-1);
-	duk_pop(ctx);
 	rc = duk_get_prop_string(ctx,0,"fwItype");
 	if(rc==1) itype = duk_get_int(ctx,-1);
 	duk_pop(ctx);
@@ -1023,7 +992,6 @@ int cdel(duk_context *ctx) {
 	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
 	duk_pop(ctx);
 
-	if(fwType) printf("fwType in cdel=%s\n",fwType);
 	show_stack0(ctx,"in cdel",0);
 	duk_push_string(ctx, nativeValue);
     return 1;
@@ -1056,15 +1024,17 @@ void addHandler(duk_context *ctx){
 }
 void addCustomProxyType(duk_context *ctx, int iglobal, const char *typeName)
 {
+	int itype;
 	duk_push_c_function(ctx,cfwconstructor,DUK_VARARGS);
 	//put fname=SFVec3f on c_function, so in constructor we can tell what we are trying to construct
-	duk_push_string(ctx,typeName);
-	duk_put_prop_string(ctx,-2,"fwType");
+	itype = fwType2itype(typeName);
+	duk_push_int(ctx,itype);
+	duk_put_prop_string(ctx,-2,"fwItype");
 	//put SFVec3f = c_fuction on global
 	duk_put_prop_string(ctx,iglobal,typeName);
 }
 //void add_duk_global_property(duk_context *ctx, int iglobal, const char *fieldname, int itype, int mode, const char *ctype, void *fieldptr /*anyVrml*/, int *valueChanged);
-void add_duk_global_property(duk_context *ctx, int iglobal, int itype, const char *fieldname, const char *ctype, void *fieldptr /*anyVrml*/, int *valueChanged, struct X3D_Node *node, int ifield );
+void add_duk_global_property(duk_context *ctx, int iglobal, int itype, const char *fieldname, void *fieldptr /*anyVrml*/, int *valueChanged, struct X3D_Node *node, int ifield );
 
 static char *DefaultScriptMethodsA = "function initialize() {}; " \
 			" function shutdown() {}; " \
@@ -1168,12 +1138,12 @@ void JSCreateScriptContext(int num) {
 	for(int i=0;i<FIELDTYPES_COUNT;i++)
 		addCustomProxyType(ctx, iglobal, FIELDTYPES[i]); //adds proxy constructor function (called typeName in js), and proxy handlers
 	show_stack(ctx,"before adding Browser");
-	add_duk_global_property(ctx, iglobal, AUXTYPE_X3DBrowser, "Browser", "X3DBrowser", NULL, NULL,NULL,0);
+	add_duk_global_property(ctx, iglobal, AUXTYPE_X3DBrowser, "Browser", NULL, NULL,NULL,0);
 	//add_duk_global_property(ctx, iglobal, AUXTYPE_X3DBrowser, "Browser", "X3DBrowser", p->Instance->Browser, NULL,(struct X3D_Node*)p->Instance,2);
 	//addCustomProxyType(ctx, iglobal, "Browser"); 
 	//add x3d X3DConstants table 
 	//addCustomProxyType(ctx,iglobal,"X3DConstants");
-	add_duk_global_property(ctx, iglobal,AUXTYPE_X3DConstants,"X3DConstants", "X3DConstants", NULL, NULL, NULL,0);
+	add_duk_global_property(ctx, iglobal,AUXTYPE_X3DConstants,"X3DConstants", NULL, NULL, NULL,0);
 	//add_duk_global_property(ctx, iglobal,AUXTYPE_X3DConstants,"X3DConstants", "X3DConstants", p->Instance->X3DConstants, NULL, (struct X3D_Node*) p->Instance,3);
 
 
@@ -1272,7 +1242,6 @@ int fwsetterNS(duk_context *ctx) {
 	 */
 	int nargs, nr;
 	int rc, itype, *valueChanged;
-	const char *fwType = NULL;
 	union anyVrml *field;
 	nargs = duk_get_top(ctx);
 
@@ -1287,9 +1256,6 @@ int fwsetterNS(duk_context *ctx) {
 	/* retrieve field pointer from Cfunc */
 	duk_push_current_function(ctx);
 	/* get type of parent object for this property*/
-	rc = duk_get_prop_string(ctx,-1,"fwType");
-	if(rc == 1) fwType = duk_to_string(ctx,-1);
-	duk_pop(ctx);
 	rc = duk_get_prop_string(ctx,-1,"fwItype");
 	if(rc==1) itype = duk_get_int(ctx,-1);
 	duk_pop(ctx);
@@ -1358,11 +1324,7 @@ int fwsetterNS(duk_context *ctx) {
 	case DUK_TYPE_OBJECT:
 	{
 		int itypeRHS;
-		const char *fwTypeRHS = NULL;
 		union anyVrml *fieldRHS = NULL;
-		rc = duk_get_prop_string(ctx,0,"fwType");
-		if(rc == 1) fwType = duk_to_string(ctx,-1);
-		duk_pop(ctx);
 		rc = duk_get_prop_string(ctx,0,"fwItype");
 		if(rc == 1) itypeRHS = duk_to_int(ctx,-1);
 		duk_pop(ctx);
@@ -1373,7 +1335,7 @@ int fwsetterNS(duk_context *ctx) {
 
 		if(fieldRHS){
 			/* its one of our proxy field types. But is it the type we need?*/
-			if(!strcmp(fwType,fwTypeRHS)){ //or if(itype == itypeRHS)
+			if(itype == itypeRHS){
 				/* same proxy type - attempt to copy it's value from LHS to RHS  */
 				/* copy one anyVrml field to the other by value. 
 					Q. what about the p* from complex fields? deep copy or just the pointer?
@@ -1403,7 +1365,7 @@ int fwsetterNS(duk_context *ctx) {
 	return 0;
 }
 
-void push_typed_proxy_fwgetter(duk_context *ctx, const char *fwType, int itype, int mode, const char* fieldname, void *fwpointer,  int* valueChanged)
+void push_typed_proxy_fwgetter(duk_context *ctx, int itype, int mode, const char* fieldname, void *fwpointer,  int* valueChanged)
 {
 	/*  called by fwgetter (for referenced script->fields)
 		1. push_object (fresh object)
@@ -1424,9 +1386,6 @@ void push_typed_proxy_fwgetter(duk_context *ctx, const char *fwType, int itype, 
 	//rc = duk_get_prop_string(ctx,iglobal,"this");
 	//duk_push_this(ctx);
 	duk_push_object(ctx);
-	duk_push_string(ctx,fwType); //"SFColor");
-	//show_stack(ctx,"just before putting prop string fwtype");
-	duk_put_prop_string(ctx,-2,"fwType");
 	//show_stack(ctx,"just after putting prop string fwtype");
 	//add native pointer to this
 	duk_push_pointer(ctx,fwpointer);
@@ -1475,7 +1434,7 @@ int push_duk_fieldvalue(duk_context *ctx, int itype, int mode, const char* field
 			duk_push_string(ctx,field->sfstring->strptr); break;
 		default:
 			//we need an object with our c handlers and pointer to our script->field[i]
-			push_typed_proxy_fwgetter(ctx, FIELDTYPES[itype], itype, mode, fieldname, field,  valueChanged);
+			push_typed_proxy_fwgetter(ctx, itype, mode, fieldname, field,  valueChanged);
 			break;
 		}
 	}
@@ -1682,7 +1641,6 @@ int fwgetterNS(duk_context *ctx) {
 	int nargs, nr;
 	int rc, itype, mode, *valueChanged;
 	const char *fwName = NULL;
-	const char *fwType = NULL;
 	union anyVrml *field;
 
 	nargs = duk_get_top(ctx);
@@ -1695,9 +1653,6 @@ int fwgetterNS(duk_context *ctx) {
 	/* retrieve field pointer from Cfunc */
 	duk_push_current_function(ctx);
 	/* get type of parent object for this property*/
-	rc = duk_get_prop_string(ctx,-1,"fwType");
-	if(rc == 1) fwType = duk_to_string(ctx,-1);
-	duk_pop(ctx);
 	rc = duk_get_prop_string(ctx,-1,"fwItype");
 	if(rc==1) itype = duk_get_int(ctx,-1);
 	duk_pop(ctx);
@@ -1724,7 +1679,7 @@ int fwgetterNS(duk_context *ctx) {
 	}
 	if(itype == AUXTYPE_X3DBrowser || itype == AUXTYPE_X3DConstants){
 		//duk_push_object(ctx); //proxy object on which get/set handlers will be applied
-		push_typed_proxy_fwgetter(ctx, fwType, itype, PKW_initializeOnly, fieldname, NULL, NULL);
+		push_typed_proxy_fwgetter(ctx, itype, PKW_initializeOnly, fieldname, NULL, NULL);
 		nr = 1;
 	}else{
 		nr = push_duk_fieldvalue(ctx, itype, mode, fieldname, field,  valueChanged);
@@ -1733,7 +1688,7 @@ int fwgetterNS(duk_context *ctx) {
     return nr;
 }
 
-void add_duk_global_property(duk_context *ctx, int iglobal, int itype, const char *fieldname, const char *ctype, void *fieldptr /*anyVrml*/, int *valueChanged, struct X3D_Node *node, int ifield ){
+void add_duk_global_property(duk_context *ctx, int iglobal, int itype, const char *fieldname, void *fieldptr /*anyVrml*/, int *valueChanged, struct X3D_Node *node, int ifield ){
 	int rc;
 	char *str;
 	//show_stack(ctx,"starting add_duk_global_property");
@@ -1753,8 +1708,6 @@ void add_duk_global_property(duk_context *ctx, int iglobal, int itype, const cha
 	duk_put_prop_string(ctx,-2,"fwChanged");
 	duk_push_int(ctx,itype);
 	duk_put_prop_string(ctx,-2,"fwItype");
-	duk_push_string(ctx,ctype);
-	duk_put_prop_string(ctx,-2,"fwType");
 	duk_push_pointer(ctx,node);
 	duk_put_prop_string(ctx,-2,"fwNode");
 	duk_push_int(ctx,ifield); 
@@ -1767,8 +1720,6 @@ void add_duk_global_property(duk_context *ctx, int iglobal, int itype, const cha
 	duk_put_prop_string(ctx,-2,"fwChanged");
 	duk_push_int(ctx,itype);
 	duk_put_prop_string(ctx,-2,"fwItype");
-	duk_push_string(ctx,ctype);
-	duk_put_prop_string(ctx,-2,"fwType");
 	duk_push_pointer(ctx,node);
 	duk_put_prop_string(ctx,-2,"fwNode");
 	duk_push_int(ctx,ifield); 
@@ -1819,7 +1770,7 @@ void InitScriptField2(struct CRscriptStruct *scriptcontrol, indexT kind, int ity
 	// create twin property
 	ctx = scriptcontrol->cx;
 	iglobal = *(int*)scriptcontrol->glob; 
-	add_duk_global_property(ctx,iglobal,itype,fieldname, FIELDNAMES[itype], fieldvalue,valueChanged,parent,ifield);
+	add_duk_global_property(ctx,iglobal,itype,fieldname, fieldvalue,valueChanged,parent,ifield);
 	*valueChanged = 0;
 
 	return;
