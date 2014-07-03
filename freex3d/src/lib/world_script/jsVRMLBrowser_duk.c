@@ -628,10 +628,10 @@ int BrowserGetter(int index, Web3dNative fwn, FWval fwretval){
 		}
 	return nr;
 }
-int BrowserSetter(int index, Web3dNative fwn, FWval *fwval){
+int BrowserSetter(int index, Web3dNative fwn, FWval fwval){
 	switch (index) {
-		case 7: //description is settable
-			gglobal()->Mainloop.BrowserDescription = (*fwval)->_string;
+		case 4: //description is settable
+			gglobal()->Mainloop.BrowserDescription = fwval->_string;
 			break;
 		default:
 			break;

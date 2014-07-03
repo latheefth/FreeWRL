@@ -1204,7 +1204,7 @@ void JSCreateScriptContext(int num) {
 
 
 	//test
-	if(1){
+	if(0){
 		duk_eval_string(ctx,"print(Object.keys(Browser));"); //invokes ownKeys
 		duk_pop(ctx);
 		duk_eval_string(ctx,"print(Object.getOwnPropertyNames(Browser));"); //invokes ownKeys
@@ -1218,16 +1218,16 @@ void JSCreateScriptContext(int num) {
 		duk_eval_string(ctx,"print(Object.keys(X3DConstants));"); //invokes custom iterator in ownKeys
 		duk_pop(ctx);
 	}
-	if(0){
+	if(1){
 	duk_eval_string(ctx,"Browser.description = 'funny description happened on the way to ..';");
+	duk_pop(ctx);
+	duk_eval_string(ctx,"Browser.println(Browser.description);");
 	duk_pop(ctx);
 	duk_eval_string(ctx,"print('hi from print');");
 	duk_pop(ctx);
 	duk_eval_string(ctx,"print(Browser.version);");
 	duk_pop(ctx);
 	duk_eval_string(ctx,"Browser.println('hi from brwsr.println');");
-	duk_pop(ctx);
-	duk_eval_string(ctx,"Browser.println(Browser.description);");
 	duk_pop(ctx);
 
 	}
