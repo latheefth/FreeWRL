@@ -96,7 +96,7 @@ int len_functions(FWFunctionSpec *fs){
 	if(fs) while(fs[len].name) len++;
 	return len;
 }
-int fwiterator_generic(int index, FWTYPE *fwt, void *pointer, const char **name, int *lastProp, int *jndex){
+int fwiterator_generic(int index, FWTYPE *fwt, void *pointer, const char **name, int *lastProp, int *jndex, char *type, char *readOnly){
 	//start iterating by passing -1 for index. When you get -1 back, you are done.
 	//FWPointer is for SFNode: it will have an instance-specific result from its custom iterator
 	//next property
@@ -111,10 +111,12 @@ int fwiterator_generic(int index, FWTYPE *fwt, void *pointer, const char **name,
 			(*name) = ps[index].name;
 			(*jndex) = ps[index].index;
 			(*lastProp) = index;
+			(*type) = ps[index].type;
+			(*readOnly) = ps[index].readOnly;
 			return index;
 		}
 	}else if(iterator){
-		int iret = iterator(index, fwt, pointer, name, lastProp, jndex);
+		int iret = iterator(index, fwt, pointer, name, lastProp, jndex, type, readOnly);
 		if(iret > -1) return iret;
 		index++; //for functions below
 	}
@@ -124,14 +126,17 @@ int fwiterator_generic(int index, FWTYPE *fwt, void *pointer, const char **name,
 	int ifindex = index - 1 - (*lastProp);
 	if(ifindex < lenf){
 		(*name) = fs[ifindex].name;
+		(*type) = 'f';
+		(*readOnly) = 'T';
 		return index;
 	}
 	return -1;
 }
-int fwhas_generic(FWTYPE *fwt, void *pointer, const char *key, int *lastProp, int *jndex){
-	int index = -1;
+
+int fwhas_generic(FWTYPE *fwt, void *pointer, const char *key, int *jndex, char *type, char *readOnly){
+	int lastProp, index = -1;
 	char *name;
-	while( (index = fwiterator_generic(index,fwt,pointer,&name, lastProp, jndex)) > -1){
+	while( (index = fwiterator_generic(index,fwt,pointer,&name, &lastProp, jndex, type, readOnly)) > -1){
 		if(!strcmp(name,key)){
 			//found it
 			return TRUE;
@@ -485,15 +490,16 @@ int chas(duk_context *ctx) {
 	printf("key=%s\n",key);
 
 	if(fwType) printf("fwType in chas=%s\n",fwType);
-	int nr, lastProp, index, isFunc;
+	int nr, index;
+	char type, readOnly;
 	nr = 1;
 	FWTYPE *fwt = getFWTYPE(itype);
-	if(fwhas_generic(fwt,parent,key,&lastProp,&index)){
+	if(fwhas_generic(fwt,parent,key,&index,&type,&readOnly)){
 		duk_push_true(ctx);
 	}else{
 		duk_push_false(ctx);
 	}
-	isFunc = index - lastProp;
+	//isFunc = type == 'f';
 	show_stack(ctx,"in chas");
 
     return nr;
@@ -525,10 +531,11 @@ int cownKeys(duk_context *ctx) {
 	int i = -1;
 	char *fieldname;
 	int lastProp, isFunc, jndex;
+	char type, readOnly;
 	//FWTYPE *getFWTYPE(int itype)
 	FWTYPE *fwt = getFWTYPE(itype);
 	//fwiterator_generic(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex)
-	while( (i = fwiterator_generic(i,fwt,parent,&fieldname,&lastProp,&jndex)) > -1 ){
+	while( (i = fwiterator_generic(i,fwt,parent,&fieldname,&lastProp,&jndex,&type,&readOnly)) > -1 ){
 		duk_push_string(ctx, fieldname);
 		duk_put_prop_index(ctx, arr_idx, i);
 	}
@@ -562,10 +569,11 @@ int cenumerate(duk_context *ctx) {
 	int next, i = -1;
 	char *fieldname;
 	int isFunc, lastProp, jndex;
+	char type, readOnly;
 	//FWTYPE *getFWTYPE(int itype)
 	FWTYPE *fwt = getFWTYPE(itype);
 	//fwiterator_generic(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex)
-	while( (i = fwiterator_generic(i,fwt,parent,&fieldname,&lastProp,&jndex)) > -1 ){
+	while( (i = fwiterator_generic(i,fwt,parent,&fieldname,&lastProp,&jndex,&type,&readOnly)) > -1 ){
 		//isFunc = i > lastProp;
 		duk_push_string(ctx, fieldname);
 		duk_put_prop_index(ctx, arr_idx, i);
@@ -865,69 +873,46 @@ int cget(duk_context *ctx) {
 	}else{ //itype < 1000
 		//itype is in AUXTYPE_ range
 		FWTYPE *fwt = getFWTYPE(itype);
-		const char *key = duk_require_string(ctx,-2);
-		printf("key=%s\n",key);
+		int jndex, found;
+		char type, readOnly;
+		const char *key;// = duk_require_string(ctx,-2);
+
 		//check numeric indexer
-		if(duk_is_number(ctx,-2)){
+		if(duk_is_number(ctx,-2) && fwt->takesIndexer){
 			//indexer
-			int ikey = duk_get_int(ctx,-2);
-			if(fwt->takesIndexer){
-				FWVAL fwretval;
-				nr = fwt->Getter(ikey,parent,&fwretval);
-				if(nr){
-					nr = fwval_duk_push(ctx,&fwretval);
-				}
-			}
-		}
-		//check functions - if its a function push the type's specfic function
-		FWFunctionSpec *fw = getFWFunc(fwt,key);
-		if(fw){
-			//its a function
-			duk_push_c_function(ctx,cfunction,DUK_VARARGS);
-			duk_push_pointer(ctx,parent);
-			duk_put_prop_string(ctx,-2,"fwField");
-			duk_push_pointer(ctx,valueChanged);
-			duk_put_prop_string(ctx,-2,"fwChanged");
-			duk_push_int(ctx,itype);
-			duk_put_prop_string(ctx,-2,"fwItype");
-			duk_push_string(ctx,fwType);
-			duk_put_prop_string(ctx,-2,"fwType");
-			duk_push_string(ctx,key);
-			duk_put_prop_string(ctx,-2,"fwFunc");
-			nr = 1;
+			jndex = duk_get_int(ctx,-2);
+			type = fwt->takesIndexer;
+			readOnly = fwt->indexerReadOnly;
+			found = 1;
 		}else{
-			//check properties - if a property, call the type-specific getter
-			//int fwhas_generic(FWTYPE *fwt, FWPointer *pointer, char *key, int *isFunc){
-			int lastProp, isFunc, index;
-			if(fwhas_generic(fwt,parent,key,&lastProp,&index)){
-				FWVAL fwretval;
-				//isFunc = lastProp > index; //not correct - this is jindex being returned, but we already know its a property here
-				nr = fwt->Getter(index,parent,&fwretval);
-				if(nr){
-					nr = fwval_duk_push(ctx,&fwretval);
-				}
+			//check properties - if a property, call the type-specific setter
+			int lastProp;
+			key = duk_require_string(ctx,-2);
+			found = fwhas_generic(fwt,parent,key,&jndex,&type,&readOnly);
+		}
+		if(found && type=='f'){
+			FWFunctionSpec *fw = getFWFunc(fwt,key);
+			if(fw){
+				//its a function
+				duk_push_c_function(ctx,cfunction,DUK_VARARGS);
+				duk_push_pointer(ctx,parent);
+				duk_put_prop_string(ctx,-2,"fwField");
+				duk_push_pointer(ctx,valueChanged);
+				duk_put_prop_string(ctx,-2,"fwChanged");
+				duk_push_int(ctx,itype);
+				duk_put_prop_string(ctx,-2,"fwItype");
+				duk_push_string(ctx,fwType);
+				duk_put_prop_string(ctx,-2,"fwType");
+				duk_push_string(ctx,key);
+				duk_put_prop_string(ctx,-2,"fwFunc");
+				nr = 1;
 			}
-			//if(fwt->Properties){
-			//	int index;
-			//	FWPropertySpec *ps = getFWProp(fwt,key,&index);
-			//	if(ps){
-			//		FWVAL fwretval;
-			//		nr = fwt->Getter(index,parent,&fwretval);
-			//		if(nr){
-			//			nr = fwval_duk_push(ctx,&fwretval);
-			//		}
-			//	}
-			//}else if(fwt->has){
-			//	int index;
-			//	int ihas = fwt->has(fwt,key,&index);
-			//	if(ihas){
-			//		FWVAL fwretval;
-			//		nr = fwt->Getter(index,parent,&fwretval);
-			//		if(nr){
-			//			nr = fwval_duk_push(ctx,&fwretval);
-			//		}
-			//	}
-			//}
+		}else if(found && fwt->Getter){
+			FWVAL fwretval;
+			nr = fwt->Getter(jndex,parent,&fwretval);
+			if(nr){
+				nr = fwval_duk_push(ctx,&fwretval);
+			}
 		}
 	}
     return nr;
@@ -985,44 +970,33 @@ int cset(duk_context *ctx) {
 	}else{
 		//itype is in AUXTYPE_ range
 		FWTYPE *fwt = getFWTYPE(itype);
+		int jndex, found;
+		char type, readOnly;
 		//check numeric indexer
-		if(duk_is_number(ctx,-2)){
+		if(duk_is_number(ctx,-2) && fwt->takesIndexer){
 			//indexer
-			int ikey = duk_get_int(ctx,-2);
-			if(fwt->takesIndexer){
-				FWVAL fwsetval;
-				fwsetval.itype = fwt->takesIndexer;
-				switch(fwt->takesIndexer){
-					case '0':break;
-					case 'I': fwsetval._integer = duk_get_int(ctx,-2); break;
-					case 'N': fwsetval._numeric = duk_get_number(ctx,-2); break;
-					case 'B': fwsetval._boolean = duk_get_boolean(ctx,-2); break;
-					case 'S': fwsetval._string = duk_get_string(ctx,-2); break;
-					case 'W': fwsetval._web3dval.native = duk_get_pointer(ctx,-2); fwsetval._web3dval.fieldType = itype; break;
-					case 'P': fwsetval._pointer.native = duk_get_pointer(ctx,-2); fwsetval._pointer.fieldType = itype; break;
-				}
-				fwt->Setter(ikey,parent,&fwsetval);
-			}
+			jndex = duk_get_int(ctx,-2);
+			type = fwt->takesIndexer;
+			readOnly = fwt->indexerReadOnly;
+			found = 1;
 		}else{
-			//check properties - if a property, call the type-specific getter
-			if(fwt->Properties){
-				int index;
-				FWPropertySpec *ps = getFWProp(fwt,key,&index);
-				if(ps){
-					FWVAL fwsetval;
-					fwsetval.itype = ps->type;
-					switch(ps->type){
-					case '0':break;
-					case 'I': fwsetval._integer = duk_get_int(ctx,-2); break;
-					case 'N': fwsetval._numeric = duk_get_number(ctx,-2); break;
-					case 'B': fwsetval._boolean = duk_get_boolean(ctx,-2); break;
-					case 'S': fwsetval._string = duk_get_string(ctx,-2); break;
-					case 'W': fwsetval._web3dval.native = duk_get_pointer(ctx,-2); fwsetval._web3dval.fieldType = itype; break;
-					case 'P': fwsetval._pointer.native = duk_get_pointer(ctx,-2); fwsetval._pointer.fieldType = itype; break;
-					}
-					fwt->Setter(index,parent,&fwsetval);
-				}
+			//check properties - if a property, call the type-specific setter
+			int lastProp;
+			found = fwhas_generic(fwt,parent,key,&jndex,&type,&readOnly) && (type != 'f');
+		}
+		if(found && readOnly != 'T' && fwt->Setter){
+			FWVAL fwsetval;
+			//fwsetval.itype = ps->type;
+			switch(type){
+			case '0':break;
+			case 'I': fwsetval._integer = duk_get_int(ctx,-2); break;
+			case 'N': fwsetval._numeric = duk_get_number(ctx,-2); break;
+			case 'B': fwsetval._boolean = duk_get_boolean(ctx,-2); break;
+			case 'S': fwsetval._string = duk_get_string(ctx,-2); break;
+			case 'W': fwsetval._web3dval.native = duk_get_pointer(ctx,-2); fwsetval._web3dval.fieldType = itype; break;
+			case 'P': fwsetval._pointer.native = duk_get_pointer(ctx,-2); fwsetval._pointer.fieldType = itype; break;
 			}
+			fwt->Setter(jndex,parent,&fwsetval);
 		}
 	}
     return 0;
@@ -1219,6 +1193,8 @@ void JSCreateScriptContext(int num) {
 		duk_pop(ctx);
 	}
 	if(1){
+	duk_eval_string(ctx,"Browser.println('hi from brwsr.println');");
+	duk_pop(ctx);
 	duk_eval_string(ctx,"Browser.description = 'funny description happened on the way to ..';");
 	duk_pop(ctx);
 	duk_eval_string(ctx,"Browser.println(Browser.description);");
@@ -1226,8 +1202,6 @@ void JSCreateScriptContext(int num) {
 	duk_eval_string(ctx,"print('hi from print');");
 	duk_pop(ctx);
 	duk_eval_string(ctx,"print(Browser.version);");
-	duk_pop(ctx);
-	duk_eval_string(ctx,"Browser.println('hi from brwsr.println');");
 	duk_pop(ctx);
 
 	}

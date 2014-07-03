@@ -649,7 +649,7 @@ FWTYPE BrowserType = {
 	NULL, //no special has
 	BrowserGetter,
 	BrowserSetter,
-	FALSE, //takes int index in prop
+	0, 0, //takes int index in prop
 	BrowserFunctions,
 };
 
@@ -721,7 +721,7 @@ FWTYPE ComponentInfoArrayType = {
 	NULL, //no special has
 	ComponentInfoArrayGetter,
 	NULL,
-	'P', //takes int index in prop of this type 
+	'P', 'T', //takes int index in prop of this type 
 	NULL,
 };
 
@@ -770,7 +770,7 @@ FWTYPE ComponentInfoType = {
 	NULL, //no special has
 	ComponentInfoGetter,
 	NULL,
-	FALSE, //takes int index in prop
+	0,0, //takes int index in prop
 	NULL,
 };
 
@@ -816,7 +816,7 @@ FWTYPE ProfileInfoArrayType = {
 	NULL, //no special has
 	ProfileInfoArrayGetter,
 	NULL,
-	'P', //takes int index in prop
+	'P', 'T',//takes int index in prop, readOnly
 	NULL,
 };
 
@@ -881,7 +881,7 @@ FWTYPE ProfileInfoType = {
 	NULL, //no special has
 	ProfileInfoGetter,
 	NULL,
-	FALSE, //takes int index in prop
+	0,0, //takes int index in prop
 	NULL,
 };
 
@@ -1034,7 +1034,7 @@ FWTYPE X3DExecutionContextType = {
 	NULL, //no special has
 	X3DExecutionContextGetter,
 	NULL,
-	FALSE, //takes int index in prop
+	0,0, //takes int index in prop
 	NULL,
 };
 
@@ -1073,7 +1073,7 @@ FWTYPE X3DRouteArrayType = {
 	NULL, //no special has
 	X3DRouteArrayGetter,
 	NULL,
-	'P', //takes int index in prop
+	'P', 'T',//takes int index in prop, readonly
 	NULL,
 };
 
@@ -1137,7 +1137,7 @@ FWTYPE X3DRouteType = {
 	NULL, //no special has
 	X3DRouteGetter,
 	NULL,
-	FALSE, //takes int index in prop
+	0,0, //takes int index in prop
 	NULL,
 };
 
@@ -1356,13 +1356,15 @@ int len_constants(){
 	int len = (sizeof(lookup_X3DConstants) / sizeof(struct string_int)) -1;
 	return len;
 }
-int X3DConstantsIterator(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex){
+int X3DConstantsIterator(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex, char *type, char *readOnly){
 	index ++;
 	(*jndex) = 0;
 	if(index < len_constants()){
 		(*name) = lookup_X3DConstants[index].c;
 		(*jndex) = index;
 		(*lastProp) = index;
+		(*type) = 'I';
+		(*readOnly) = 'T';
 		return index;
 	}
 	return -1;
@@ -1376,7 +1378,7 @@ FWTYPE X3DConstantsType = {
 	X3DConstantsIterator, //custom Iterator function - returns the index used in the Getter and has
 	X3DConstantsGetter,
 	NULL,
-	FALSE, //takes int index in prop
+	0,0, //takes int index in prop
 	NULL,
 };
 

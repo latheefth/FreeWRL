@@ -34,7 +34,7 @@ typedef struct FWPropertySpec {
     const char	*name; //NULL means index int: SFVec3f[0], MF[i]
     char		index; //stable property index for switch/casing instead of strcmp on name
     char		type; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
-	char		isReadOnly; //T/F
+	char		readOnly; //T/F
 } FWPropertySpec;
 
 typedef struct ArgListType {
@@ -68,7 +68,7 @@ typedef struct FWTYPE{
 	FWIterator iterator; //if NULL and Properties, then will use generic function to has, else if !Properties and iterator, then will iterator in has
 	FWGet Getter; //Q should I have a virtual Getter that takes a char* key and does its own lookup?
 	FWSet Setter;
-	char takesIndexer; //getter can take in integer index ie MF[33]. put 0 or FALSE for no, else put the type the property takes/gives ie 'W' 'S' 'I' 'N' 'B' 'P'
+	char takesIndexer; char indexerReadOnly;//getter can take in integer index ie MF[33]. put 0 or FALSE for no, else put the type the property takes/gives ie 'W' 'S' 'I' 'N' 'B' 'P'
 	FWFunctionSpec *Functions;
 } FWTYPE;
 typedef struct FWTYPE *FWType;
@@ -115,7 +115,7 @@ typedef int (* FWFunction)(FWType fwtype, Web3dNative fwn, int argc, FWval fwpar
 typedef int (* FWGet)(int index, Web3dNative fwn, FWval fwretval);
 typedef int (* FWSet)(int index, Web3dNative fwn, FWval fwsetval);
 typedef int (* FWHas)(FWType fwtype, char *key, int *index);
-typedef int (* FWIterator)(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex);
+typedef int (* FWIterator)(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex, char *type, char *readOnly);
 //typedef void (* FWFinalizer)(FWType fwtype, FWNative fwn);
 
 
