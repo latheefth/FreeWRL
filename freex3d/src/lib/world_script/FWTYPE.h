@@ -78,7 +78,7 @@ typedef struct WEB3DNATIVE {
 	int fieldType;      //type of vrml field (use FIELDTYPE_SFNode for nodes, else ie FIELDTYPE_SFVec3f)
 	void *native;		//pointer to anyVrml
 	int *valueChanged; 	//pointer to valueChanged != NULL if this FWNATIVe is a reference to a Script->Field
-} *Web3dNative, FWPointer;
+} FWPointer;// *Web3dNative, 
 
 #define AUXTYPE_X3DConstants 1001
 #define AUXTYPE_X3DBrowser 1002
@@ -110,10 +110,10 @@ typedef struct FWVAL{
 } FWVAL, *FWval;
 FWval FWvalsNew(int argc);
 
-typedef int (* FWConstructor)(FWType fwtype, Web3dNative fwn, int argc, FWval fwpars);
-typedef int (* FWFunction)(FWType fwtype, Web3dNative fwn, int argc, FWval fwpars, FWval fwretval);
-typedef int (* FWGet)(int index, Web3dNative fwn, FWval fwretval);
-typedef int (* FWSet)(int index, Web3dNative fwn, FWval fwsetval);
+typedef int (* FWConstructor)(FWType fwtype, void * fwn, int argc, FWval fwpars);
+typedef int (* FWFunction)(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval);
+typedef int (* FWGet)(int index, void * fwn, FWval fwretval);
+typedef int (* FWSet)(int index, void * fwn, FWval fwsetval);
 typedef int (* FWHas)(FWType fwtype, char *key, int *index);
 typedef int (* FWIterator)(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex, char *type, char *readOnly);
 //typedef void (* FWFinalizer)(FWType fwtype, FWNative fwn);

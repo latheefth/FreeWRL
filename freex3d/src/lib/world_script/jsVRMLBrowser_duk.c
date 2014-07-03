@@ -207,19 +207,19 @@ X3DBrowser{
 }
 */
 
-int VrmlBrowserGetName(FWType fwtype, Web3dNative fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserGetName(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	fwretval->_string = BrowserName;
 	fwretval->itype = 'S';
 	return 1;
 }
-int VrmlBrowserGetVersion(FWType fwtype, Web3dNative fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserGetVersion(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	fwretval->_string = libFreeWRL_get_version();
 	fwretval->itype = 'S';
 	return 1;
 }
-int VrmlBrowserGetCurrentSpeed(FWType fwtype, Web3dNative fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserGetCurrentSpeed(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	char string[1000];
 	sprintf (string,"%f",gglobal()->Mainloop.BrowserSpeed);
@@ -228,7 +228,7 @@ int VrmlBrowserGetCurrentSpeed(FWType fwtype, Web3dNative fwn, int argc, FWval f
 	return 1;
 }
 
-int VrmlBrowserGetCurrentFrameRate(FWType fwtype, Web3dNative fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserGetCurrentFrameRate(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	char string[1000];
 	sprintf (string,"%6.2f",gglobal()->Mainloop.BrowserFPS);
@@ -236,7 +236,7 @@ int VrmlBrowserGetCurrentFrameRate(FWType fwtype, Web3dNative fwn, int argc, FWv
 	fwretval->itype = 'S';
 	return 1;
 }
-int VrmlBrowserGetWorldURL(FWType fwtype, Web3dNative fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserGetWorldURL(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	fwretval->_string = BrowserFullPath;
 	fwretval->itype = 'S';
@@ -293,7 +293,7 @@ const char *flexiString(FWval fwpars, char *buffer)
 	return _costr;
 }
 
-int VrmlBrowserReplaceWorld(FWType fwtype, Web3dNative fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserReplaceWorld(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	char *tptr;
 	char*_costr;
@@ -373,7 +373,7 @@ void createLoadUrlString(char *out, int outLen, char *url, char *param) {
 	conCat (out,param);
 }
 struct X3D_Anchor* get_EAIEventsIn_AnchorNode();
-int VrmlBrowserLoadURL(FWType fwtype, Web3dNative fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserLoadURL(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	char *url, *parameter;
 	char bufferUrl[1000];
@@ -394,14 +394,14 @@ int VrmlBrowserLoadURL(FWType fwtype, Web3dNative fwn, int argc, FWval fwpars, F
 		gglobal()->RenderFuncs.BrowserAction = TRUE;
 	return 0;
 }
-int VrmlBrowserSetDescription(FWType fwtype, Web3dNative fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserSetDescription(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	const char *_costr = NULL;
 	if(fwpars[0].itype == 'S')
 		gglobal()->Mainloop.BrowserDescription = fwpars[0]._string;
 	return 0;
 }
-int VrmlBrowserCreateX3DFromString(FWType fwtype, Web3dNative fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserCreateX3DFromString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	/* for the return of the nodes */
 	struct X3D_Group *retGroup;
@@ -427,12 +427,12 @@ int VrmlBrowserCreateX3DFromString(FWType fwtype, Web3dNative fwn, int argc, FWv
 	fwretval->itype = 'W';
 	return 1;
 }
-int VrmlBrowserCreateVrmlFromString(FWType fwtype, Web3dNative fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserCreateVrmlFromString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	//from x3dnode, from char*field, to x3dnode, to char*field
 	return 0;
 }
-int VrmlBrowserCreateVrmlFromURL(FWType fwtype, Web3dNative fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserCreateVrmlFromURL(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	//from x3dnode, from char*field, to x3dnode, to char*field
 	return 0;
@@ -500,15 +500,15 @@ int addDeleteRoute(char* callingFunc, int argc, FWval fwpars, FWval fwretval){
 	fwretval->itype = 'P';
 	return 1;
 }
-int VrmlBrowserAddRoute(FWType fwtype, Web3dNative fwn, int argc, FWval fwpars, FWval fwretval){
+int VrmlBrowserAddRoute(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
 	int iret = addDeleteRoute("addRoute",argc,fwpars,fwretval);
 	return iret;
 }
-int VrmlBrowserDeleteRoute(FWType fwtype, Web3dNative fwn, int argc, FWval fwpars, FWval fwretval){
+int VrmlBrowserDeleteRoute(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
 	int iret = addDeleteRoute("deleteRoute",argc,fwpars,fwretval);
 	return iret;
 }
-int VrmlBrowserPrint(FWType fwtype, Web3dNative fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserPrint(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	const char *_costr = NULL;
 	if(fwpars[0].itype == 'S'){
@@ -517,7 +517,7 @@ int VrmlBrowserPrint(FWType fwtype, Web3dNative fwn, int argc, FWval fwpars, FWv
 	}
 	return 0;
 }
-int VrmlBrowserPrintln(FWType fwtype, Web3dNative fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserPrintln(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	const char *_costr = NULL;
 	if(fwpars[0].itype == 'S'){
@@ -583,7 +583,7 @@ struct proftablestruct {
 };
 struct proftablestruct *getProfTable();
 int * getCapabilitiesTable();
-int BrowserGetter(int index, Web3dNative fwn, FWval fwretval){
+int BrowserGetter(int index, void * fwn, FWval fwretval){
 	int nr = 1;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	switch (index) {
@@ -628,7 +628,7 @@ int BrowserGetter(int index, Web3dNative fwn, FWval fwretval){
 		}
 	return nr;
 }
-int BrowserSetter(int index, Web3dNative fwn, FWval fwval){
+int BrowserSetter(int index, void * fwn, FWval fwval){
 	switch (index) {
 		case 4: //description is settable
 			gglobal()->Mainloop.BrowserDescription = fwval->_string;
@@ -687,7 +687,7 @@ typedef struct intTableIndex{
 //ComponentInfo [integer index];
 //}
 
-int ComponentInfoArrayGetter(int index, Web3dNative fwn, FWval fwretval){
+int ComponentInfoArrayGetter(int index, void * fwn, FWval fwretval){
 	int *_table;
 	int nr = 1;
 	_table = (int *)fwn;
@@ -727,16 +727,16 @@ FWTYPE ComponentInfoArrayType = {
 
 FWPropertySpec (ComponentInfoProperties)[] = {
 	{"name", 0, 'S', 'T'},
-	{"level", 1, 'N', 'T'},
-	{"Title", 0, 'S', 'T'},
-	{"providerUrl", 0, 'S', 'T'},
+	{"Title", 1, 'S', 'T'},
+	{"level", 2, 'N', 'T'},
+	{"providerUrl", 3, 'S', 'T'},
 	{NULL,0,0,0},
 };
 
 
-int ComponentInfoGetter(int index, Web3dNative fwn, FWval fwretval){
+int ComponentInfoGetter(int index, void * fwn, FWval fwretval){
 	int nr, *tableEntry, nameIndex;
-	tableEntry = (int *)fwn->native;
+	tableEntry = (int *)fwn;
 	nr = 1;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	switch (index) {
@@ -782,10 +782,10 @@ FWTYPE ComponentInfoType = {
 //}
 
 
-int ProfileInfoArrayGetter(int index, Web3dNative fwn, FWval fwretval){
+int ProfileInfoArrayGetter(int index, void * fwn, FWval fwretval){
 	struct proftablestruct *_table;
 	int nr = 1;
-	_table = (struct proftablestruct *)fwn->native;
+	_table = (struct proftablestruct *)fwn;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index == -1){
 //extern const char *COMPONENTS[];
@@ -839,10 +839,10 @@ FWPropertySpec (ProfileInfoProperties)[] = {
 };
 
 
-int ProfileInfoGetter(int index, Web3dNative fwn, FWval fwretval){
+int ProfileInfoGetter(int index, void * fwn, FWval fwretval){
 	int nr, nameIndex;
 	struct proftablestruct *tableEntry;
-	tableEntry = (struct proftablestruct *)fwn->native;
+	tableEntry = (struct proftablestruct *)fwn;
 	nr = 1;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	switch (index) {
@@ -886,7 +886,7 @@ FWTYPE ProfileInfoType = {
 };
 
 
-int X3DExecutionContext_deleteRoute(FWType fwtype, Web3dNative fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DExecutionContext_deleteRoute(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
 	//we're expecting an X3DRoute struct parameter.
 	int iret;
 	struct FWVAL fwpars2[4];
@@ -905,7 +905,7 @@ int X3DExecutionContext_deleteRoute(FWType fwtype, Web3dNative fwn, int argc, FW
 	iret = addDeleteRoute("deleteRoute",4,fwpars2,fwretval);
 	return 0;
 }
-int X3DExecutionContext_getNamedNode(FWType fwtype, Web3dNative fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DExecutionContext_getNamedNode(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
 	int nr = 0;
 	//broto warning - DEF name list should be per-executionContext
 	struct X3D_Node* node = parser_getNodeFromName(fwpars[0]._string);
@@ -959,10 +959,10 @@ static FWPropertySpec (X3DExecutionContextProperties)[] = {
 	{0}
 };
 
-int X3DExecutionContextGetter(int index, Web3dNative fwn, FWval fwretval){
+int X3DExecutionContextGetter(int index, void * fwn, FWval fwretval){
 	struct X3D_Node * ec;
 	int nr = 1;
-	ec = (struct X3D_Node*)fwn->native;
+	ec = (struct X3D_Node*)fwn;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	switch (index) {
 		case 0: //specificationVersion
@@ -1040,7 +1040,7 @@ FWTYPE X3DExecutionContextType = {
 
 struct CRStruct *getCRoutes();
 int getCRouteCount();
-int X3DRouteArrayGetter(int index, Web3dNative fwn, FWval fwretval){
+int X3DRouteArrayGetter(int index, void * fwn, FWval fwretval){
 	int nr = 0;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index == -1){
@@ -1092,13 +1092,13 @@ FWPropertySpec (X3DRouteProperties)[] = {
 	{NULL,0,0,0},
 };
 void getFieldFromNodeAndIndex(struct X3D_Node* node, int iifield, const char **fieldname, int *type, int *kind, union anyVrml **value);
-int X3DRouteGetter(int index, Web3dNative fwn, FWval fwretval){
+int X3DRouteGetter(int index, void * fwn, FWval fwretval){
 	union anyVrml *value;
 	int type, kind;
 	char *fieldname;
 	struct CRStruct *route;
 	int nr = 1;
-	route = (struct CRStruct *)fwn->native;
+	route = (struct CRStruct *)fwn;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	switch(index){
 	case 0: //fromNode
@@ -1250,7 +1250,7 @@ struct string_int *lookup_string_int(struct string_int *table, char *searchkey, 
 	return NULL;
 }
 
-int X3DConstantsGetter(int index, Web3dNative fwn, FWval fwretval){
+int X3DConstantsGetter(int index, void * fwn, FWval fwretval){
 	int nr = 1;
 	fwretval->_integer = lookup_X3DConstants[index].i;
 	fwretval->itype = 'I';

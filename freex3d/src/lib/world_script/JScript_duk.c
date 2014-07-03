@@ -393,7 +393,30 @@ void push_typed_proxy(duk_context *ctx, int itype, void *fwpointer, int* valueCh
 	rc = duk_get_prop_string(ctx,iglobal,"handler");
 	duk_new(ctx,2); /* [ global Proxy target handler ] -> [ global result ] */
 	duk_remove(ctx,-2); //remove global so just proxy on stack
+
 }
+
+int push_typed_proxy2(duk_context *ctx, int itype, void *fwpointer, int* valueChanged)
+{
+	/*  like fwgetter version, except with no fieldname or mode, for temp proxies
+		nativePtr
+	*/
+	int rc;
+
+	duk_eval_string(ctx,"Proxy");
+	duk_push_object(ctx);
+	duk_push_pointer(ctx,fwpointer);
+	duk_put_prop_string(ctx,-2,"fwField");
+	duk_push_pointer(ctx,valueChanged);
+	duk_put_prop_string(ctx,-2,"fwChanged");
+	duk_push_int(ctx,itype);
+	duk_put_prop_string(ctx,-2,"fwItype");
+
+	duk_eval_string(ctx,"handler");
+	duk_new(ctx,2); /* [ global Proxy target handler ] -> [ global result ] */
+	return 1;
+}
+
 
 #include <math.h> //for int = round(numeric)
 int cfwconstructor(duk_context *ctx) {
@@ -599,11 +622,11 @@ int push_duk_fieldvalueECMA(duk_context *ctx, int itype, union anyVrml *fieldval
 	//show_stack(ctx,"in fwgetterNS at end");
     return nr;
 }
-int push_duk_fieldvalueObject(duk_context *ctx, int itype, union anyVrml *field, int *valueChanged ){
-	//we need an object with our c handlers and pointer to our script->field[i]
-	push_typed_proxy(ctx, itype, field, valueChanged);
-	return 1;
-}
+//int push_duk_fieldvalueObject(duk_context *ctx, int itype, union anyVrml *field, int *valueChanged ){
+//	//we need an object with our c handlers and pointer to our script->field[i]
+//	push_typed_proxy2(ctx, itype, field, valueChanged);
+//	return 1;
+//}
 int isECMAtype(int itype){
 	int isEcma;
 	switch(itype){
@@ -662,7 +685,7 @@ int Browser_getSomething(double *dval,double A, double B, double C){
 	return 1;
 }
 
-int fwval_duk_push(duk_context *ctx, FWval fwretval){
+int fwval_duk_push(duk_context *ctx, FWval fwretval, int *valueChanged){
 	//converts engine-agnostic FWVAL return value to duk engine specific return values and pushes them onto the duk value stack
 	int nr = 1;
 	switch(fwretval->itype){
@@ -675,9 +698,12 @@ int fwval_duk_push(duk_context *ctx, FWval fwretval){
 	case 'S':
 		duk_push_string(ctx,fwretval->_string); break;
 	case 'W':
-		duk_push_pointer(ctx,fwretval->_web3dval.native);
-		duk_push_int(ctx,fwretval->_web3dval.fieldType);
-		duk_put_prop_string(ctx,-2,"fwItype");
+		//for web3d field types
+		push_typed_proxy2(ctx,fwretval->_web3dval.fieldType,fwretval->_web3dval.native,valueChanged);
+		break;
+	case 'P':
+		//for web3d auxiliary types Browser, X3DFieldDefinitionArray, X3DRoute ...
+		push_typed_proxy2(ctx,fwretval->_pointer.fieldType,fwretval->_pointer.native,valueChanged);
 		break;
 	case '0':
 	default:
@@ -778,7 +804,7 @@ int cfunction(duk_context *ctx) {
 		//the object function call, using engine-agnostic parameters
 		nr = fs->call(fwt,parent,nNeeded,pars,&fwretval);
 		if(nr){
-			nr = fwval_duk_push(ctx,&fwretval);
+			nr = fwval_duk_push(ctx,&fwretval,valueChanged);
 		}
 		free(pars);
 	}
@@ -803,7 +829,7 @@ int cget(duk_context *ctx) {
 	rc = duk_get_prop_string(ctx,0,"fwChanged");
 	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
 	duk_pop(ctx);
-	show_stack0(ctx,"in cget",0);
+	//show_stack0(ctx,"in cget",0);
 
 	nr = 0;
 	if(itype < 0 ) return nr;
@@ -832,7 +858,8 @@ int cget(duk_context *ctx) {
 						nr = push_duk_fieldvalueECMA(ctx, iSFtype, fieldvalue);
 					}else{
 						field = (union anyVrml*)&parent->mfbool.p[ikey];
-						nr = push_duk_fieldvalueObject(ctx, iSFtype, field, valueChanged);
+						nr = push_typed_proxy2(ctx,iSFtype,field,valueChanged); 
+						//push_duk_fieldvalueObject(ctx, iSFtype, field, valueChanged);
 					}
 				}
 			}
@@ -888,7 +915,7 @@ int cget(duk_context *ctx) {
 			FWVAL fwretval;
 			nr = fwt->Getter(jndex,parent,&fwretval);
 			if(nr){
-				nr = fwval_duk_push(ctx,&fwretval);
+				nr = fwval_duk_push(ctx,&fwretval,valueChanged);
 			}
 		}
 	}
@@ -957,7 +984,7 @@ int cset(duk_context *ctx) {
 			int lastProp;
 			found = fwhas_generic(fwt,parent,key,&jndex,&type,&readOnly) && (type != 'f');
 		}
-		if(found && readOnly != 'T' && fwt->Setter){
+		if(found && (readOnly != 'T') && fwt->Setter){
 			FWVAL fwsetval;
 			//fwsetval.itype = ps->type;
 			switch(type){
@@ -1162,7 +1189,7 @@ void JSCreateScriptContext(int num) {
 		duk_eval_string(ctx,"print(Object.keys(X3DConstants));"); //invokes custom iterator in ownKeys
 		duk_pop(ctx);
 	}
-	if(1){
+	if(0){
 	duk_eval_string(ctx,"Browser.println('hi from brwsr.println');");
 	duk_pop(ctx);
 	duk_eval_string(ctx,"Browser.description = 'funny description happened on the way to ..';");
@@ -1174,6 +1201,12 @@ void JSCreateScriptContext(int num) {
 	duk_eval_string(ctx,"print(Browser.version);");
 	duk_pop(ctx);
 
+	}
+	if(1){
+		duk_eval_string(ctx,"print('Browser.supportedComponents.length = ');");duk_pop(ctx);
+		duk_eval_string(ctx,"print(Browser.supportedComponents.length);"); duk_pop(ctx);
+		duk_eval_string(ctx,"for(var i=0;i<Browser.supportedComponents.length;i++) {print(Browser.supportedComponents[i].name + ' '+Browser.supportedComponents[i].level);}"); duk_pop(ctx);
+		
 	}
 
 
