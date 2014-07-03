@@ -86,6 +86,59 @@ FWPropertySpec *getFWProp(FWTYPE *fwt,const char *key, int *index){
 	}
 	return NULL;
 }
+int len_properties(FWPropertySpec *ps){
+	int len = 0;
+	if(ps) while(ps[len].name) len++;
+	return len;
+}
+int len_functions(FWFunctionSpec *fs){
+	int len = 0;
+	if(fs) while(fs[len].name) len++;
+	return len;
+}
+int fwiterator_generic(int index, FWTYPE *fwt, void *pointer, const char **name, int *lastProp, int *jndex){
+	//start iterating by passing -1 for index. When you get -1 back, you are done.
+	//FWPointer is for SFNode: it will have an instance-specific result from its custom iterator
+	//next property
+	int lenp, lenf;
+	(*jndex) = 0;
+	FWPropertySpec *ps = fwt->Properties;
+	FWIterator iterator = fwt->iterator;
+	if(ps){
+		index ++;
+		lenp = len_properties(ps);
+		if(index < lenp){
+			(*name) = ps[index].name;
+			(*jndex) = ps[index].index;
+			(*lastProp) = index;
+			return index;
+		}
+	}else if(iterator){
+		int iret = iterator(index, fwt, pointer, name, lastProp, jndex);
+		if(iret > -1) return iret;
+		index++; //for functions below
+	}
+	//next function
+	FWFunctionSpec *fs = fwt->Functions;
+	lenf = len_functions(fs);
+	if(index - (*lastProp) < lenf){
+		(*name) = fs[index-lenp].name;
+		return index;
+	}
+	return -1;
+}
+int fwhas_generic(FWTYPE *fwt, void *pointer, const char *key, int *lastProp, int *jndex){
+	int index = -1;
+	char *name;
+	while( (index = fwiterator_generic(index,fwt,pointer,&name, lastProp, jndex)) > -1){
+		if(!strcmp(name,key)){
+			//found it
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
 
 
 typedef struct pJScript{
@@ -201,7 +254,7 @@ void show_stack(duk_context *ctx, char* comment)
 
 
 
-//OBJECT VIRTUALIZATION / PROXY HELPERS: constructor, handler (has,get,set,deleteProp)
+//OBJECT VIRTUALIZATION / PROXY HELPERS: constructor, handler (has,ownKeys,enumerate,get,set,deleteProp)
 
 static struct {
 	int nkey;
@@ -427,11 +480,96 @@ int chas(duk_context *ctx) {
 	rc = duk_get_prop_string(ctx,0,"fwChanged");
 	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
 	duk_pop(ctx);
+	const char *key = duk_require_string(ctx,-2);
+	printf("key=%s\n",key);
 
 	if(fwType) printf("fwType in chas=%s\n",fwType);
-
+	int nr, lastProp, index, isFunc;
+	nr = 1;
+	FWTYPE *fwt = getFWTYPE(itype);
+	if(fwhas_generic(fwt,parent,key,&lastProp,&index)){
+		duk_push_true(ctx);
+	}else{
+		duk_push_false(ctx);
+	}
+	isFunc = index - lastProp;
 	show_stack(ctx,"in chas");
-	duk_push_string(ctx, nativeValue);
+
+    return nr;
+}
+int cownKeys(duk_context *ctx) {
+	int rc, itype, *valueChanged;
+	const char *fwType = NULL;
+	void *parent;
+
+	/* get type of parent object for this property*/
+	rc = duk_get_prop_string(ctx,0,"fwType");
+	if(rc == 1) fwType = duk_to_string(ctx,-1);
+	duk_pop(ctx);
+	rc = duk_get_prop_string(ctx,0,"fwItype");
+	if(rc==1) itype = duk_get_int(ctx,-1);
+	duk_pop(ctx);
+	//if(fwType) printf("fwType in cget=%s\n",fwType);
+	/* get the pointer to the parent object */
+	rc = duk_get_prop_string(ctx,0,"fwField");
+	if(rc == 1) parent = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+	/* get the pointer to the changed flag */
+	rc = duk_get_prop_string(ctx,0,"fwChanged");
+	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+
+	if(fwType) printf("fwType in cownKeys=%s\n",fwType);
+	int arr_idx = duk_push_array(ctx);
+	int i = -1;
+	char *fieldname;
+	int lastProp, isFunc, jndex;
+	//FWTYPE *getFWTYPE(int itype)
+	FWTYPE *fwt = getFWTYPE(itype);
+	//fwiterator_generic(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex)
+	while( i = fwiterator_generic(i,fwt,parent,&fieldname,&lastProp,&jndex) > -1 ){
+		duk_push_string(ctx, fieldname);
+		duk_put_prop_index(ctx, arr_idx, i);
+	}
+	show_stack(ctx,"in cownKeys");
+    return 1;
+}
+int cenumerate(duk_context *ctx) {
+	int rc, itype, *valueChanged;
+	const char *fwType = NULL;
+	union anyVrml *parent;
+
+	/* get type of parent object for this property*/
+	rc = duk_get_prop_string(ctx,0,"fwType");
+	if(rc == 1) fwType = duk_to_string(ctx,-1);
+	duk_pop(ctx);
+	rc = duk_get_prop_string(ctx,0,"fwItype");
+	if(rc==1) itype = duk_get_int(ctx,-1);
+	duk_pop(ctx);
+	//if(fwType) printf("fwType in cget=%s\n",fwType);
+	/* get the pointer to the parent object */
+	rc = duk_get_prop_string(ctx,0,"fwField");
+	if(rc == 1) parent = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+	/* get the pointer to the changed flag */
+	rc = duk_get_prop_string(ctx,0,"fwChanged");
+	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+
+	if(fwType) printf("fwType in cenumerate=%s\n",fwType);
+	int arr_idx = duk_push_array(ctx);
+	int i = -1;
+	char *fieldname;
+	int isFunc, lastProp, jndex;
+	//FWTYPE *getFWTYPE(int itype)
+	FWTYPE *fwt = getFWTYPE(itype);
+	//fwiterator_generic(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex)
+	while( i = fwiterator_generic(i,fwt,parent,&fieldname,&lastProp,&jndex) > -1 ){
+		//isFunc = i > lastProp;
+		duk_push_string(ctx, fieldname);
+		duk_put_prop_index(ctx, arr_idx, i);
+	}
+	show_stack(ctx,"in cenumerate");
     return 1;
 }
 
@@ -758,27 +896,37 @@ int cget(duk_context *ctx) {
 			nr = 1;
 		}else{
 			//check properties - if a property, call the type-specific getter
-			if(fwt->Properties){
-				int index;
-				FWPropertySpec *ps = getFWProp(fwt,key,&index);
-				if(ps){
-					FWVAL fwretval;
-					nr = fwt->Getter(index,parent,&fwretval);
-					if(nr){
-						nr = fwval_duk_push(ctx,&fwretval);
-					}
-				}
-			}else if(fwt->has){
-				int index;
-				int ihas = fwt->has(fwt,key,&index);
-				if(ihas){
-					FWVAL fwretval;
-					nr = fwt->Getter(index,parent,&fwretval);
-					if(nr){
-						nr = fwval_duk_push(ctx,&fwretval);
-					}
+			//int fwhas_generic(FWTYPE *fwt, FWPointer *pointer, char *key, int *isFunc){
+			int lastProp, isFunc, index;
+			if(fwhas_generic(fwt,parent,key,&lastProp,&index)){
+				FWVAL fwretval;
+				//isFunc = lastProp > index; //not correct - this is jindex being returned, but we already know its a property here
+				nr = fwt->Getter(index,parent,&fwretval);
+				if(nr){
+					nr = fwval_duk_push(ctx,&fwretval);
 				}
 			}
+			//if(fwt->Properties){
+			//	int index;
+			//	FWPropertySpec *ps = getFWProp(fwt,key,&index);
+			//	if(ps){
+			//		FWVAL fwretval;
+			//		nr = fwt->Getter(index,parent,&fwretval);
+			//		if(nr){
+			//			nr = fwval_duk_push(ctx,&fwretval);
+			//		}
+			//	}
+			//}else if(fwt->has){
+			//	int index;
+			//	int ihas = fwt->has(fwt,key,&index);
+			//	if(ihas){
+			//		FWVAL fwretval;
+			//		nr = fwt->Getter(index,parent,&fwretval);
+			//		if(nr){
+			//			nr = fwval_duk_push(ctx,&fwretval);
+			//		}
+			//	}
+			//}
 		}
 	}
     return nr;
@@ -920,6 +1068,10 @@ void addHandler(duk_context *ctx){
 	duk_push_c_function(ctx,chas,2);
 	rc = duk_put_prop_string(ctx, ihandler, "has");
 	printf("rc=%d",rc);
+	duk_push_c_function(ctx,cownKeys,1);
+	duk_put_prop_string(ctx, ihandler, "ownKeys");
+	duk_push_c_function(ctx,cenumerate,1);
+	duk_put_prop_string(ctx, ihandler, "enumerate");
 	duk_push_c_function(ctx,cget,3);
 	duk_put_prop_string(ctx, ihandler, "get");
 	duk_push_c_function(ctx,cset,4);

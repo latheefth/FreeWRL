@@ -1352,13 +1352,28 @@ int X3DConstantsHas(FWType fwtype, char *key, int *index)
 	}
 	return retval;
 }
+int len_constants(){
+	int len = (sizeof(lookup_X3DConstants) / sizeof(struct string_int)) -1;
+	return len;
+}
+int X3DConstantsIterator(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex){
+	index ++;
+	(*jndex) = 0;
+	if(index < len_constants()){
+		(*name) = lookup_X3DConstants[index].c;
+		(*jndex) = index;
+		(*lastProp) = index;
+		return index;
+	}
+	return -1;
+}
 FWTYPE X3DConstantsType = {
 	AUXTYPE_X3DConstants,
 	"X3DConstants",
 	0, //sizeof(struct X3DRoute), 
 	NULL, //no constructor for X3DRoute
 	NULL, //X3DConstantsProperties - lets have fun and use the custom HAS function
-	X3DConstantsHas, //custom HAS function - returns the index used in the Getter
+	X3DConstantsIterator, //custom Iterator function - returns the index used in the Getter and has
 	X3DConstantsGetter,
 	NULL,
 	FALSE, //takes int index in prop
