@@ -121,8 +121,9 @@ int fwiterator_generic(int index, FWTYPE *fwt, void *pointer, const char **name,
 	//next function
 	FWFunctionSpec *fs = fwt->Functions;
 	lenf = len_functions(fs);
-	if(index - (*lastProp) < lenf){
-		(*name) = fs[index-lenp].name;
+	int ifindex = index - 1 - (*lastProp);
+	if(ifindex < lenf){
+		(*name) = fs[ifindex].name;
 		return index;
 	}
 	return -1;
@@ -480,7 +481,7 @@ int chas(duk_context *ctx) {
 	rc = duk_get_prop_string(ctx,0,"fwChanged");
 	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
 	duk_pop(ctx);
-	const char *key = duk_require_string(ctx,-2);
+	const char *key = duk_require_string(ctx,-1);
 	printf("key=%s\n",key);
 
 	if(fwType) printf("fwType in chas=%s\n",fwType);
@@ -527,7 +528,7 @@ int cownKeys(duk_context *ctx) {
 	//FWTYPE *getFWTYPE(int itype)
 	FWTYPE *fwt = getFWTYPE(itype);
 	//fwiterator_generic(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex)
-	while( i = fwiterator_generic(i,fwt,parent,&fieldname,&lastProp,&jndex) > -1 ){
+	while( (i = fwiterator_generic(i,fwt,parent,&fieldname,&lastProp,&jndex)) > -1 ){
 		duk_push_string(ctx, fieldname);
 		duk_put_prop_index(ctx, arr_idx, i);
 	}
@@ -558,13 +559,13 @@ int cenumerate(duk_context *ctx) {
 
 	if(fwType) printf("fwType in cenumerate=%s\n",fwType);
 	int arr_idx = duk_push_array(ctx);
-	int i = -1;
+	int next, i = -1;
 	char *fieldname;
 	int isFunc, lastProp, jndex;
 	//FWTYPE *getFWTYPE(int itype)
 	FWTYPE *fwt = getFWTYPE(itype);
 	//fwiterator_generic(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex)
-	while( i = fwiterator_generic(i,fwt,parent,&fieldname,&lastProp,&jndex) > -1 ){
+	while( (i = fwiterator_generic(i,fwt,parent,&fieldname,&lastProp,&jndex)) > -1 ){
 		//isFunc = i > lastProp;
 		duk_push_string(ctx, fieldname);
 		duk_put_prop_index(ctx, arr_idx, i);
@@ -1063,11 +1064,9 @@ void addHandler(duk_context *ctx){
 	duk_put_prop_string(ctx, iglobal, "handler");
 
 	duk_get_prop_string(ctx,iglobal,"handler"); //get handler from global
-	if(1) ihandler = duk_get_top(ctx) -1; //+ve
-	else ihandler = -2; //-ve
+	ihandler = duk_get_top(ctx) -1; //+ve
 	duk_push_c_function(ctx,chas,2);
-	rc = duk_put_prop_string(ctx, ihandler, "has");
-	printf("rc=%d",rc);
+	duk_put_prop_string(ctx, ihandler, "has");
 	duk_push_c_function(ctx,cownKeys,1);
 	duk_put_prop_string(ctx, ihandler, "ownKeys");
 	duk_push_c_function(ctx,cenumerate,1);
@@ -1206,7 +1205,17 @@ void JSCreateScriptContext(int num) {
 
 	//test
 	if(1){
-		duk_eval_string(ctx,"print('X3DConstants.outputOnly='); print(X3DConstants.outputOnly);");
+		duk_eval_string(ctx,"print(Object.keys(Browser));"); //invokes ownKeys
+		duk_pop(ctx);
+		duk_eval_string(ctx,"print(Object.getOwnPropertyNames(Browser));"); //invokes ownKeys
+		duk_pop(ctx);
+		duk_eval_string(ctx,"for (k in Browser) {print(k);}"); //invokes enumerate
+		duk_pop(ctx);
+		duk_eval_string(ctx,"if('println' in Browser) print('have println'); else print('no println');"); //invokes has
+		duk_pop(ctx);
+		duk_eval_string(ctx,"print('X3DConstants.outputOnly='); print(X3DConstants.outputOnly);"); //invokes custom iterator in generic has
+		duk_pop(ctx);
+		duk_eval_string(ctx,"print(Object.keys(X3DConstants));"); //invokes custom iterator in ownKeys
 		duk_pop(ctx);
 	}
 	if(0){
