@@ -43,7 +43,7 @@
 
 typedef int indexT;
 
-FWTYPE *fwtypesArray[30];  //true statics - they only need to be defined once per process
+FWTYPE *fwtypesArray[60];  //true statics - they only need to be defined once per process, we have about 50 types as of july 2014
 int FWTYPES_COUNT = 0;
 
 void initVRMLBrowser(FWTYPE** typeArray, int *n);
@@ -1906,14 +1906,150 @@ void js_setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int 
 	return;
 }
 
-void setScriptECMAtype(int num){
-	printf("in setScriptECMAtype\n");
-	return;
+/* take an ECMA value in the X3D Scenegraph, and return a jsval with it in */
+/* This is FAST as w deal just with pointers */
+void X3D_ECMA_TO_JS(void *Data, int datalen, int dataType, FWval newval) {
+	float fl;
+	double dl;
+	int il;
+
+	/* NOTE - caller of this function has already defined a BeginRequest */
+
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("calling X3D_ECMA_TO_JS on type %s\n",FIELDTYPES[dataType]);
+	#endif
+
+	switch (dataType) {
+
+		case FIELDTYPE_SFFloat:	{
+			memcpy ((void *) &fl, Data, datalen);
+			newval->_numeric = (double)fl;
+			newval->itype = 'N';
+			break;
+		}
+		case FIELDTYPE_SFDouble:
+		case FIELDTYPE_SFTime:	{
+			memcpy ((void *) &dl, Data, datalen);
+			newval->_numeric = dl;
+			newval->itype = 'N';
+			break;
+		}
+		case FIELDTYPE_SFBool:
+			memcpy ((void *) &il,Data, datalen);
+			newval->_boolean = il;
+			newval->itype = 'B';
+			break;
+		case FIELDTYPE_SFInt32: 
+			memcpy ((void *) &il,Data, datalen);
+			newval->_integer = il;
+			newval->itype = 'I';
+			break;
+		case FIELDTYPE_SFString: {
+			struct Uni_String *ms;
+
+			/* datalen will be ROUTING_SFSTRING here; or at least should be! We
+			   copy over the data, which is a UniString pointer, and use the pointer
+			   value here */
+			memcpy((void *) &ms,Data, sizeof(void *));
+			newval->_string = ms->strptr;
+			newval->itype = 'S';
+			break;
+			}
+		default: {	printf("WARNING: SHOULD NOT BE HERE in X3D_ECMA_TO_JS! %d\n",dataType); }
+	}
 }
-void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int datalen){
+
+
+//void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int datalen){
+//	printf("in set_one_ECMAtype\n");
+//	return;
+//}
+void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int datalen) {
+	char scriptline[100];
+	FWVAL newval;
+	duk_context *ctx;
+	int obj;
+	struct CRscriptStruct *ScriptControl = getScriptControl();
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
+
 	printf("in set_one_ECMAtype\n");
-	return;
+
+	#ifdef SETFIELDVERBOSE
+	printf ("set_one_ECMAtype, to %d namepointer %d, fieldname %s, datatype %d length %d\n",
+		tonode,toname,JSparamnames[toname].name,dataType,datalen);
+	#endif
+
+	/* get context and global object for this script */
+	ctx =  (duk_context *)ScriptControl[tonode].cx;
+	obj = *(int*)ScriptControl[tonode].glob;
+
+
+	//get function by name
+	show_stack(ctx,"before seeking isOver");
+	duk_eval_string(ctx,JSparamnames[toname].name); //gets the evenin function on the stack
+	show_stack(ctx,"after seeking isOver");
+
+	//push ecma value as arg
+
+
+	X3D_ECMA_TO_JS(Data, datalen, dataType, &newval);
+	switch(newval.itype){
+	case 'I': duk_push_int(ctx,newval._integer); break;
+	case 'N': duk_push_number(ctx,newval._numeric); break;
+	case 'B': duk_push_boolean(ctx,newval._boolean); break;
+	case 'S': duk_push_string(ctx,newval._string); break;
+	default: duk_push_null(ctx);
+	}
+	//push double TickTime(); as arg
+	duk_push_number(ctx,TickTime());
+	//run function
+	//show_stack(ctx,"before calling isOver");
+	duk_call(ctx,2);
+	//show_stack(ctx,"after calling isOver");
+	duk_pop(ctx); //pop undefined that results from void myfunc(){}
+	//show_stack(ctx,"after popping");
+	printf("end ecma\n");
 }
+
+
+//void setScriptECMAtype(int num){
+//	printf("in setScriptECMAtype\n");
+//	return;
+//}
+
+/*  setScriptECMAtype called by getField_ToJavascript for
+        case FIELDTYPE_SFBool:
+        case FIELDTYPE_SFFloat:
+        case FIELDTYPE_SFTime:
+        case FIELDTYPE_SFDouble:
+        case FIELDTYPE_SFInt32:
+        case FIELDTYPE_SFString:
+*/
+
+void setScriptECMAtype (int num) {
+	void *fn;
+	int tptr;
+	int len;
+	int to_counter;
+	CRnodeStruct *to_ptr = NULL;
+	struct CRStruct *CRoutes = getCRoutes();
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
+	printf("in setScriptECMAtype\n");
+	fn = offsetPointer_deref(void *, CRoutes[num].routeFromNode, CRoutes[num].fnptr);
+	len = CRoutes[num].len;
+
+	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
+                struct Shader_Script *myObj;
+
+		to_ptr = &(CRoutes[num].tonodes[to_counter]);
+                myObj = X3D_SCRIPT(to_ptr->routeToNode)->__scriptObj;
+		/* printf ("setScriptECMAtype, myScriptNumber is %d\n",myObj->num); */
+		tptr = to_ptr->foffset;
+		set_one_ECMAtype (myObj->num, tptr, JSparamnames[tptr].type, fn,len);
+	}
+}
+
+
 void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen){
 	printf("in set_one_MultiElementType\n");
 	return;

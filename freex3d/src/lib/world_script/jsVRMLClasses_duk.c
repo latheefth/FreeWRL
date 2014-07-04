@@ -453,7 +453,7 @@ FWTYPE MFVec2fType = {
 FWTYPE SFImageType = {
 	FIELDTYPE_SFImage,
 	"SFImage",
-	0, //sizeof(struct ),  //----------------------unknown struct
+	sizeof(void *), //sizeof(struct ),  //----------------------unknown struct but it looks like an SFNode with node-specific fields
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
