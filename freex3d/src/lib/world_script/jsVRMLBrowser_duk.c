@@ -645,6 +645,7 @@ FWTYPE BrowserType = {
 	"X3DBrowser",
 	0, //sizeof(struct X3DBrowser), 
 	NULL, //no constructor for Browser
+	NULL, //no constructor args
 	BrowserProperties,
 	NULL, //no special has
 	BrowserGetter,
@@ -717,6 +718,7 @@ FWTYPE ComponentInfoArrayType = {
 	"ComponentInfoArray",
 	0, //sizeof(struct X3DBrowser), 
 	NULL, //no constructor for Browser
+	NULL, //no constructor args
 	ComponentInfoArrayProperties,
 	NULL, //no special has
 	ComponentInfoArrayGetter,
@@ -766,6 +768,7 @@ FWTYPE ComponentInfoType = {
 	"ComponentInfo",
 	0, //sizeof(struct X3DBrowser), 
 	NULL, //no constructor for Browser
+	NULL, //no constructor args
 	ComponentInfoProperties,
 	NULL, //no special has
 	ComponentInfoGetter,
@@ -812,6 +815,7 @@ FWTYPE ProfileInfoArrayType = {
 	"ProfileInfoArray",
 	0, //sizeof(struct X3DBrowser), 
 	NULL, //no constructor for Browser
+	NULL, //no constructor args
 	ProfileInfoArrayProperties,
 	NULL, //no special has
 	ProfileInfoArrayGetter,
@@ -877,6 +881,7 @@ FWTYPE ProfileInfoType = {
 	"ProfileInfo",
 	0, //sizeof(struct X3DBrowser), 
 	NULL, //no constructor for Browser
+	NULL, //no constructor args
 	ProfileInfoProperties,
 	NULL, //no special has
 	ProfileInfoGetter,
@@ -1030,6 +1035,7 @@ FWTYPE X3DExecutionContextType = {
 	"X3DExecutionContext",
 	0, //sizeof(struct X3DBrowser), 
 	NULL, //no constructor
+	NULL, //no constructor args
 	X3DExecutionContextProperties,
 	NULL, //no special has
 	X3DExecutionContextGetter,
@@ -1069,6 +1075,7 @@ FWTYPE X3DRouteArrayType = {
 	"X3DRouteArray",
 	0, //sizeof(struct X3DRoute), 
 	NULL, //no constructor for X3DRoute
+	NULL, //no constructor args
 	X3DRouteArrayProperties,
 	NULL, //no special has
 	X3DRouteArrayGetter,
@@ -1133,6 +1140,7 @@ FWTYPE X3DRouteType = {
 	"X3DRoute",
 	0, //sizeof(struct X3DRoute), 
 	NULL, //no constructor for X3DRoute
+	NULL, //no constructor args
 	X3DRouteProperties,
 	NULL, //no special has
 	X3DRouteGetter,
@@ -1279,6 +1287,7 @@ FWTYPE X3DConstantsType = {
 	"X3DConstants",
 	0, //sizeof(struct X3DRoute), 
 	NULL, //no constructor for X3DRoute
+	NULL, //no constructor args
 	NULL, //X3DConstantsProperties - lets have fun and use the custom HAS function
 	X3DConstantsIterator, //custom Iterator function - returns the index used in the Getter and has
 	X3DConstantsGetter,

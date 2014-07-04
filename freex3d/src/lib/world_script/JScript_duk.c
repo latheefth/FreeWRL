@@ -359,24 +359,11 @@ int fwType2itype(const char *fwType){
 }
 void push_typed_proxy(duk_context *ctx, int itype, void *fwpointer, int* valueChanged)
 {
-	/*  called by both the cfwconstructor (for new Proxy) and fwgetter (for referenced script->fields)
-		1. please have the proxy object on the stack before calling
-		   cfwconstructor: push_this (from the 'new')
-		   fwgetter: push_object (fresh object)
-		2. nativePtr
-			cfwconstructor: malloc/construct a new field, set the values and give the pointer
-			fwgetter: reference to script->field[i]
-	*/
+	//like push_typed_proxy2 except push this instead of push obj
 	int rc;
 
-	//add fwtype to this
-	//- if I have one C constructor, and many named js constructors
-	//- I need to fetch the name of the constructor and use it here
-	//duk_push_string(ctx,fwType); //"SFColor");
-	////show_stack(ctx,"just before putting prop string fwtype");
-	//duk_put_prop_string(ctx,-2,"fwType");
-	//show_stack(ctx,"just after putting prop string fwtype");
-	//add native pointer to this
+	duk_eval_string(ctx,"Proxy");
+	duk_push_this(ctx);  //this
 	duk_push_pointer(ctx,fwpointer);
 	duk_put_prop_string(ctx,-2,"fwField");
 	duk_push_pointer(ctx,valueChanged);
@@ -384,17 +371,8 @@ void push_typed_proxy(duk_context *ctx, int itype, void *fwpointer, int* valueCh
 	duk_push_int(ctx,itype);
 	duk_put_prop_string(ctx,-2,"fwItype");
 
-
-	duk_pop(ctx); //pop this
-
-	duk_push_global_object(ctx); //could I just push an object, or push nothing? then how to get global->handler?
-	int iglobal = duk_get_top(ctx) -1;
-	rc = duk_get_prop_string(ctx,iglobal,"Proxy");
-	//rc = duk_get_prop_string(ctx,iglobal,"this");
-	duk_push_this(ctx);
-	rc = duk_get_prop_string(ctx,iglobal,"handler");
+	duk_eval_string(ctx,"handler");
 	duk_new(ctx,2); /* [ global Proxy target handler ] -> [ global result ] */
-	duk_remove(ctx,-2); //remove global so just proxy on stack
 
 }
 
@@ -421,10 +399,69 @@ int push_typed_proxy2(duk_context *ctx, int itype, void *fwpointer, int* valueCh
 
 
 #include <math.h> //for int = round(numeric)
+
+void convert_duk_to_fwvals(duk_context *ctx, int nargs, struct ArgListType arglist, FWval *args, int *argc){
+	int nUsable,nNeeded, i;
+	nUsable = arglist.iVarArgStartsAt > -1 ? nargs : arglist.nfixedArg;
+	nNeeded = max(nUsable,arglist.nfixedArg);
+	FWval pars = malloc(nNeeded*sizeof(FWVAL));
+	(*args) = pars;
+	//QC and genericization of incoming parameters
+	(*argc) = nNeeded;
+	for(i=0;i<nUsable;i++){
+		char ctype;
+		if(i < arglist.nfixedArg) 
+			ctype = arglist.argtypes[i];
+		else 
+			ctype = arglist.argtypes[arglist.iVarArgStartsAt];
+		pars[i].itype = ctype;
+		switch(ctype){
+		case 'B': pars[i]._boolean = duk_get_boolean(ctx,i); break;
+		case 'I': pars[i]._integer = duk_get_int(ctx,i); break;
+		case 'N': pars[i]._numeric = duk_get_number(ctx,i); break;
+		case 'S': pars[i]._string = duk_get_string(ctx,i); break;
+		case 'F': //flexi-string idea - allow either String or MFString (no such thing as SFString from ecma - it uses String for that)
+			if(duk_is_pointer(ctx,i)){
+				void *ptr = duk_get_pointer(ctx,i); 
+				pars[i]._web3dval.native = ptr;
+				pars[i]._web3dval.fieldType = FIELDTYPE_MFString; //type of the incoming arg[i]
+				pars[i].itype = 'W';
+			}else if(duk_is_string(ctx,i)){
+				pars[i]._string = duk_get_string(ctx,i); 
+				pars[i].itype = 'S';
+			}
+			break; 
+		case 'W': {
+			void *ptr = duk_get_pointer(ctx,i); 
+			pars[i]._web3dval.native = ptr;
+			pars[i]._web3dval.fieldType = FIELDTYPE_SFNode; //type of the incoming arg[i]
+			}
+			break;
+		case 'O': break; //object pointer ie to js function callback object
+		}
+	}
+		
+	for(i=nUsable;i<nNeeded;i++){
+		//fill
+		char ctype = arglist.argtypes[i];
+		pars[i].itype = ctype;
+		switch(ctype){
+		case 'B': pars[i]._boolean = FALSE; break;
+		case 'I': pars[i]._integer = 0; break;
+		case 'N': pars[i]._numeric = 0.0; break;
+		case 'S': pars[i]._string = NULL; break;
+		case 'F': pars[i]._string = NULL; pars[i].itype = 'S'; break;
+		case 'W': pars[i]._web3dval.fieldType = FIELDTYPE_SFNode; pars[i]._web3dval.native = NULL; break;
+		case 'O': pars[i]._jsobject = NULL; break; 
+		}
+	}
+}
+
+
 int cfwconstructor(duk_context *ctx) {
 	int rc, nargs;
 	int *valueChanged = NULL; //so called 'internal' variables inside the script context don't point to a valueChanged
-	int itype = 0;
+	int itype = -1;
 	nargs = duk_get_top(ctx);
 
 	duk_push_current_function(ctx);
@@ -432,63 +469,24 @@ int cfwconstructor(duk_context *ctx) {
 	if(rc == 1) itype = duk_to_int(ctx,-1);
 	duk_pop(ctx); //current function
 
-	//some things we don't allow scene authors to construct in their javascript
-	if(itype >= AUXTYPE_X3DConstants) return 0; //AUXTYPE_s not constructable (except route?)
+	if(itype < 0) return 0; //no itype means it's not one of ours
+	FWTYPE *fwt = getFWTYPE(itype);
+	if(!fwt->Constructor) return 0; ///AUXTYPE_s not constructable (except route?)
 
-
-	show_stack(ctx,"in C constructor before push this");
+	//find the contructor that matches the args best
+	int i = 0;
+	while(fwt->ConstructorArgs[i].nfixedArg > -1){
+		if(fwt->ConstructorArgs[i].nfixedArg == nargs) 
+			//its a match
+			break;
+	}
+	FWval args = NULL;
+	int argc;
+	convert_duk_to_fwvals(ctx, nargs, fwt->ConstructorArgs[i], &args, &argc);
+	void *fwpointer = fwt->Constructor(fwt,i,args);
+	free(args);
 	duk_push_this(ctx);
-	//add native pointer to this
-	void *fwpointer = malloc(sizeof(union anyVrml));
-
-	if(0){
-		show_stack(ctx,"in C constructor");
-
-		//add fwtype to this
-		//- if I have one C constructor, and many named js constructors
-		//- I need to fetch the name of the constructor and use it here
-		duk_push_pointer(ctx,fwpointer);
-		duk_put_prop_string(ctx,-2,"fwField");
-		duk_pop(ctx); //pop this
-
-		duk_push_global_object(ctx); //could I just push an object, or push nothing? then how to get global->handler?
-		if(1){
-			int iglobal = duk_get_top(ctx) -1;
-			rc = duk_get_prop_string(ctx,iglobal,"Proxy");
-			//rc = duk_get_prop_string(ctx,iglobal,"this");
-				duk_push_this(ctx);
-			rc = duk_get_prop_string(ctx,iglobal,"handler");
-			duk_new(ctx,2); /* [ global Proxy target handler ] -> [ global result ] */
-			//duk_remove(ctx, -2); /* remove global -> [ result ] */
-			if(0){
-				duk_put_prop_string(ctx,iglobal,"proxy");
-				duk_get_prop_string(ctx,-1,"proxy"); //get it from global
-			}
-		}else{
-			duk_eval_string(ctx,"var proxy = new Proxy(this,handler);");
-			duk_pop(ctx); //pop eval results
-			duk_get_prop_string(ctx,-1,"proxy"); //get it from global
-		}
-		duk_remove(ctx,-2); //remove global so just proxy on stack
-	}else{
-		push_typed_proxy(ctx,itype, fwpointer, valueChanged);
-	}
-	//put return value -a proxy object- on stack for return
-	//get the args passed to the constructor, and call the proxy properties with them
-	//or call a native constructor for the type and pass in args
-	//Q. in FWTypes, did I have an fw_vargs type?
-	if(nargs == 3){
-		const char *val;
-		//here we go directly to my code - works
-		val = duk_to_string(ctx,0);
-		nativeSetS("x", val);
-		val = duk_to_string(ctx,1);
-		nativeSetS("y", val);
-		val = duk_to_string(ctx,2);
-		nativeSetS("z", val);
-	}
-	//for(int i=0;i<nargs;i++){
-	//}
+	push_typed_proxy(ctx,itype, fwpointer, valueChanged);
 	return 1;
 }
 int chas(duk_context *ctx) {
@@ -834,51 +832,7 @@ int cget(duk_context *ctx) {
 	//show_stack0(ctx,"in cget",0);
 
 	nr = 0;
-	if(itype < 0 ) return nr;
-	if(itype < 1000){
-		//itype is in FIELDTYPE_ range
-		/* figure out what field on the parent the get is referring to */
-		//if(!strncmp(fwType,"MF",2) || !strncmp(fwType,"SF",2)){
-		if(!parent) return nr;
-		if(duk_is_number(ctx,-2)){
-			//indexer
-			int ikey = duk_get_int(ctx,-2);
-			//int ikey = round(key);
-			char *fwType = itype2string(itype);
-			if(!strncmp(fwType,"MF",2)){
-				//its an MF field type, and we have an index to it.
-				if(ikey < parent->mfbool.n && ikey > -1){
-					// valid index range - figure out what type the SF is and return the element
-					int isize;
-					int iSFtype;
-					//convert the parent's MF type to equivalent SF type for element
-					iSFtype = mf2sf(itype);
-					isize = sizeofSF(iSFtype);
-					if(isECMAtype(iSFtype)){
-						union anyVrml *fieldvalue;
-						fieldvalue = (union anyVrml*)((char*)(parent->mfbool.p)+ ikey*isize);
-						nr = push_duk_fieldvalueECMA(ctx, iSFtype, fieldvalue);
-					}else{
-						field = (union anyVrml*)&parent->mfbool.p[ikey];
-						nr = push_typed_proxy2(ctx,iSFtype,field,valueChanged); 
-						//push_duk_fieldvalueObject(ctx, iSFtype, field, valueChanged);
-					}
-				}
-			}
-		}else{
-			//named property
-			int kval = -1;
-			char *val = NULL;
-			const char *key = duk_require_string(ctx,-2);
-			printf("key=%s\n",key);
-
-			for(int j=0;j<nativeStruct.nkey;j++)
-				if(!strcmp(nativeStruct.key[j],key)) kval = j;
-			if(kval > -1) val = nativeStruct.val[kval];
-			else val = "None";
-			duk_push_string(ctx,val);
-		}
-	}else{ //itype < 1000
+	if(itype > -1){
 		//itype is in AUXTYPE_ range
 		FWTYPE *fwt = getFWTYPE(itype);
 		int jndex, found;
@@ -926,7 +880,7 @@ int cget(duk_context *ctx) {
 int cset(duk_context *ctx) {
 	int rc, itype, *valueChanged;
 	union anyVrml *parent;
-
+	itype = -1;
 	/* get type of parent object for this property*/
 	rc = duk_get_prop_string(ctx,0,"fwItype");
 	if(rc==1) itype = duk_get_int(ctx,-1);
@@ -947,29 +901,7 @@ int cset(duk_context *ctx) {
 	const char *key = duk_require_string(ctx,-3);
 	printf("key=%s val=%s\n",key,val);
 
-	if(itype < 1000){
-		if(duk_is_number(ctx,-3)){
-			//indexer
-			double key = duk_require_number(ctx,-3);
-			int ikey = round(key);
-			printf("index =%d\n",ikey);
-			nativeStruct.arr[ikey] = strdup(val);
-		}else{
-			//named property
-			int kval = -1;
-			const char *key = duk_require_string(ctx,-3);
-			for(int j=0;j<nativeStruct.nkey;j++)
-				if(!strcmp(nativeStruct.key[j],key))	kval = j;
-			if(kval < 0) {
-				kval = nativeStruct.nkey;
-				nativeStruct.key[kval] = strdup(key);
-				nativeStruct.nkey++;
-			}
-			nativeStruct.val[kval] = strdup(val);
-
-			printf("key =%s\n",key);
-		}
-	}else{
+	if(itype > -1) {
 		//itype is in AUXTYPE_ range
 		FWTYPE *fwt = getFWTYPE(itype);
 		int jndex, found;
@@ -991,12 +923,12 @@ int cset(duk_context *ctx) {
 			//fwsetval.itype = ps->type;
 			switch(type){
 			case '0':break;
-			case 'I': fwsetval._integer = duk_get_int(ctx,-2); break;
-			case 'N': fwsetval._numeric = duk_get_number(ctx,-2); break;
-			case 'B': fwsetval._boolean = duk_get_boolean(ctx,-2); break;
-			case 'S': fwsetval._string = duk_get_string(ctx,-2); break;
-			case 'W': fwsetval._web3dval.native = duk_get_pointer(ctx,-2); fwsetval._web3dval.fieldType = itype; break;
-			case 'P': fwsetval._pointer.native = duk_get_pointer(ctx,-2); fwsetval._pointer.fieldType = itype; break;
+			case 'I': fwsetval._integer = duk_to_int(ctx,-2); break;
+			case 'N': fwsetval._numeric = duk_to_number(ctx,-2); break;
+			case 'B': fwsetval._boolean = duk_to_boolean(ctx,-2); break;
+			case 'S': fwsetval._string = duk_to_string(ctx,-2); break;
+			case 'W': fwsetval._web3dval.native = duk_to_pointer(ctx,-2); fwsetval._web3dval.fieldType = itype; break;
+			case 'P': fwsetval._pointer.native = duk_to_pointer(ctx,-2); fwsetval._pointer.fieldType = itype; break;
 			}
 			fwt->Setter(jndex,parent,&fwsetval);
 		}
@@ -1172,7 +1104,7 @@ void JSCreateScriptContext(int num) {
 		//FWTYPE *fwtypesArray[30];  //true statics - they only need to be defined once per process
 		//int FWTYPES_COUNT = 0;
 		for(int i=0;i<FWTYPES_COUNT;i++)
-			if(fwtypesArray[i]->Constructors)
+			if(fwtypesArray[i]->Constructor)
 				addCustomProxyType(ctx,iglobal,fwtypesArray[i]->name);
 	}
 	show_stack(ctx,"before adding Browser");

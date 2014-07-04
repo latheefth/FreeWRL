@@ -159,15 +159,13 @@ int SFColor_getHSV(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwre
 }
 
 
-
-
-
 //#define FIELDTYPE_SFFloat	0
 FWTYPE SFFloatType = {
 	FIELDTYPE_SFFloat,
 	"SFFloat",
 	sizeof(float), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -181,6 +179,7 @@ FWTYPE MFFloatType = {
 	"MFFloat",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -194,6 +193,7 @@ FWTYPE SFRotationType = {
 	"SFRotation",
 	sizeof(struct SFRotation), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -207,6 +207,7 @@ FWTYPE MFRotationType = {
 	"MFRotation",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -220,6 +221,7 @@ FWTYPE SFVec3fType = {
 	"SFVec3f",
 	sizeof(struct SFVec3f), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -233,6 +235,7 @@ FWTYPE MFVec3fType = {
 	"MFVec3f",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -246,6 +249,7 @@ FWTYPE SFBoolType = {
 	"SFBool",
 	sizeof(int), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -259,6 +263,7 @@ FWTYPE MFBoolType = {
 	"MFBool",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -272,6 +277,7 @@ FWTYPE SFInt32Type = {
 	"SFInt32",
 	sizeof(int), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -285,6 +291,7 @@ FWTYPE MFInt32Type = {
 	"MFInt32",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -298,6 +305,7 @@ FWTYPE SFNodeType = {
 	"SFNode",
 	sizeof(void*), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -311,6 +319,7 @@ FWTYPE MFNodeType = {
 	"MFNode",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -318,16 +327,73 @@ FWTYPE MFNodeType = {
 	'N',0, //index prop type,readonly
 	NULL, //functions
 };
+
+
+int SFColor_Getter(int index, void * fwn, FWval fwretval){
+	struct SFColor *ptr = (struct SFColor *)fwn;
+	int nr = 1;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	switch(index){
+	case 0: //r
+	case 1: //g
+	case 2: //b
+		fwretval->_numeric =  ptr->c[index];
+		break;
+	default:
+		nr = 0;
+	}
+	fwretval->itype = 'N';
+	return nr;
+}
+int SFColor_Setter(int index, void * fwn, FWval fwval){
+	struct SFColor *ptr = (struct SFColor *)fwn;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	switch(index){
+	case 0: //r
+	case 1: //g
+	case 2: //b
+		ptr->c[index] = fwval->_numeric;
+		break;
+	}
+	return TRUE;
+}
+//typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
+void * SFColor_Constructor(FWType fwtype, int ic, FWval fwpars){
+	struct SFColor *ptr = malloc(fwtype->size_of); //garbage collector please
+	if(fwtype->ConstructorArgs[0].nfixedArg == 3)
+	for(int i=0;i<3;i++)
+		ptr->c[i] = fwpars[i]._numeric;
+	return (void *)ptr;
+}
+
+FWPropertySpec (SFColor_Properties)[] = {
+	{"r", 0, 'N', 'F'},
+	{"g", 1, 'N', 'F'},
+	{"b", 2, 'N', 'F'},
+	{NULL,0,0,0},
+};
+
+//typedef struct ArgListType {
+//	char nfixedArg;
+//	char iVarArgStartsAt; //-1 no varargs
+//	char fillMissingFixedWithZero; //T/F if F then complain if short
+//	char *argtypes; //if varargs, then argtypes[nfixedArg] == type of varArg, and all varargs are assumed the same type
+//} ArgListType;
+ArgListType (SFColor_ConstructorArgs)[] = {
+		{3,0,'T',"NNN"},
+		{-1,0,0,NULL},
+};
 //#define FIELDTYPE_SFColor	12
 FWTYPE SFColorType = {
 	FIELDTYPE_SFColor,
 	"SFColor",
 	sizeof(struct SFColor), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //Properties,
+	SFColor_Constructor, //constructor
+	SFColor_ConstructorArgs, //constructor args
+	SFColor_Properties, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
+	SFColor_Getter, //Getter,
+	SFColor_Setter, //Setter,
 	'N',0, //index prop type,readonly
 	NULL, //functions
 };
@@ -337,6 +403,7 @@ FWTYPE MFColorType = {
 	"MFColor",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -350,6 +417,7 @@ FWTYPE SFColorRGBAType = {
 	"SFColorRGBA",
 	sizeof(struct SFColorRGBA), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -363,6 +431,7 @@ FWTYPE MFColorRGBAType = {
 	"MFColorRGBA",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -376,6 +445,7 @@ FWTYPE SFTimeType = {
 	"SFTime",
 	sizeof(double), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -389,6 +459,7 @@ FWTYPE MFTimeType = {
 	"MFTime",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -402,6 +473,7 @@ FWTYPE SFStringType = {
 	"SFString",
 	sizeof(void *), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -415,6 +487,7 @@ FWTYPE MFStringType = {
 	"MFString",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -428,6 +501,7 @@ FWTYPE SFVec2fType = {
 	"SFVec2f",
 	sizeof(struct SFVec2f), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -442,6 +516,7 @@ FWTYPE MFVec2fType = {
 	"MFVec2f",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -455,6 +530,7 @@ FWTYPE SFImageType = {
 	"SFImage",
 	sizeof(void *), //sizeof(struct ),  //----------------------unknown struct but it looks like an SFNode with node-specific fields
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -470,6 +546,7 @@ FWTYPE SFVec3dType = {
 	"SFVec3d",
 	sizeof(struct SFVec3d), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -484,6 +561,7 @@ FWTYPE MFVec3dType = {
 	"MFVec3d",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -498,6 +576,7 @@ FWTYPE SFDoubleType = {
 	"SFDouble",
 	sizeof(double), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -512,6 +591,7 @@ FWTYPE MFDoubleType = {
 	"MFDouble",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -526,6 +606,7 @@ FWTYPE SFMatrix3fType = {
 	"SFMatrix3f",
 	sizeof(struct SFMatrix3f), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -540,6 +621,7 @@ FWTYPE MFMatrix3fType = {
 	"MFMatrix3f",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -553,6 +635,7 @@ FWTYPE SFMatrix3dType = {
 	"SFMatrix3d",
 	sizeof(struct SFMatrix3d), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -566,6 +649,7 @@ FWTYPE MFMatrix3dType = {
 	"MFMatrix3d",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -579,6 +663,7 @@ FWTYPE SFMatrix4fType = {
 	"SFMatrix4f",
 	sizeof(struct SFMatrix4f), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -592,6 +677,7 @@ FWTYPE MFMatrix4fType = {
 	"MFMatrix4f",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -606,6 +692,7 @@ FWTYPE SFMatrix4dType = {
 	"SFMatrix4d",
 	sizeof(struct SFMatrix4d), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -620,6 +707,7 @@ FWTYPE MFMatrix4dType = {
 	"MFMatrix4d",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -634,6 +722,7 @@ FWTYPE SFVec2dType = {
 	"SFVec2d",
 	sizeof(struct SFVec2d), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -648,6 +737,7 @@ FWTYPE MFVec2dType = {
 	"MFVec2d",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -662,6 +752,7 @@ FWTYPE SFVec4fType = {
 	"SFVec4f",
 	sizeof(struct SFVec4f), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -676,6 +767,7 @@ FWTYPE MFVec4fType = {
 	"MFVec4f",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -690,6 +782,7 @@ FWTYPE SFVec4dType = {
 	"SFVec4d",
 	sizeof(struct SFVec4d), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,
@@ -704,6 +797,7 @@ FWTYPE MFVec4dType = {
 	"MFVec4d",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
+	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
 	NULL, //Getter,

@@ -48,7 +48,7 @@ typedef int (* FWFunction)();
 typedef int (* FWGet)();
 typedef int (* FWSet)();
 typedef int (* FWIterator)();
-
+typedef void *(* FWConstructor)();
 
 typedef struct FWFunctionSpec {
     const char		*name;
@@ -62,7 +62,8 @@ typedef struct FWTYPE{
 	char *name;
 	//int index; //index into an array of FWTYPES
 	int size_of; //for mallocing in constructor
-	struct ArgListType *Constructors;
+	FWConstructor Constructor;
+	struct ArgListType *ConstructorArgs;
 	FWPropertySpec *Properties;
 	FWIterator iterator; //if NULL and Properties, then will use generic function to has, else if !Properties and iterator, then will iterator in has
 	FWGet Getter; //Q should I have a virtual Getter that takes a char* key and does its own lookup?
@@ -110,7 +111,7 @@ typedef struct FWVAL{
 } FWVAL, *FWval;
 FWval FWvalsNew(int argc);
 
-typedef int (* FWConstructor)(FWType fwtype, void * fwn, int argc, FWval fwpars);
+typedef void * (* FWConstructor)(FWType fwtype, int ic, FWval fwpars);
 typedef int (* FWFunction)(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval);
 typedef int (* FWGet)(int index, void * fwn, FWval fwretval);
 typedef int (* FWSet)(int index, void * fwn, FWval fwsetval);
