@@ -77,6 +77,7 @@ typedef struct WEB3DNATIVE {
 	int fieldType;      //type of vrml field (use FIELDTYPE_SFNode for nodes, else ie FIELDTYPE_SFVec3f)
 	void *native;		//pointer to anyVrml
 	int *valueChanged; 	//pointer to valueChanged != NULL if this FWNATIVe is a reference to a Script->Field
+	char gc; //'T' or 1 if you malloced the pointer and want the engine to free() when it garbage collects the related obj
 } FWPointer;// *Web3dNative, 
 
 #define AUXTYPE_X3DConstants 1001

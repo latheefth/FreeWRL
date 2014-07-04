@@ -1164,8 +1164,17 @@ void JSCreateScriptContext(int num) {
 
 	addHandler(ctx); //add helper called handler, to global object
 	//from GeneratedCode.c const char *FIELDTYPES[]; const int FIELDTYPES_COUNT;
+	if(0){
 	for(int i=0;i<FIELDTYPES_COUNT;i++)
 		addCustomProxyType(ctx, iglobal, FIELDTYPES[i]); //adds proxy constructor function (called typeName in js), and proxy handlers
+	}
+	if(1){
+		//FWTYPE *fwtypesArray[30];  //true statics - they only need to be defined once per process
+		//int FWTYPES_COUNT = 0;
+		for(int i=0;i<FWTYPES_COUNT;i++)
+			if(fwtypesArray[i]->Constructors)
+				addCustomProxyType(ctx,iglobal,fwtypesArray[i]->name);
+	}
 	show_stack(ctx,"before adding Browser");
 	add_duk_global_property(ctx, iglobal, AUXTYPE_X3DBrowser, "Browser", NULL, NULL,NULL,0);
 	//add_duk_global_property(ctx, iglobal, AUXTYPE_X3DBrowser, "Browser", "X3DBrowser", p->Instance->Browser, NULL,(struct X3D_Node*)p->Instance,2);

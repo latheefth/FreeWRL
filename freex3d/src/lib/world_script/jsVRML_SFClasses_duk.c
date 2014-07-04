@@ -61,6 +61,25 @@
 /*							*/
 /********************************************************/
 
+/*
+Notes for the virtual proxy approach used here:
+The field types represented by primitives in ecmascript have no constructor,
+ gc=0 on their pointer, and getter/setter convert to/from ecma primitives:
+ SFBool		boolean
+ SFInt32	numeric
+ SFFloat	numeric
+ SFTime		numeric
+ SFDouble	numeric
+ SFString	string
+For Script node fields they show up as all other field types as properties on the js context global object.
+But unlike other field types, there's no new SFBool(). Getters and setters convert to/from ecma primitives
+and set the valueChanged flag when set. Similarly other fieldtype functions and getter/setters convert to/from
+ecma primitive instead of one of the above, and never generate a new one of these.
+*/
+
+struct Multi_Any {int n; void *p;}; //should be same size as {int n, double *p} or {int n, struct X3D_Node **p} - an int and a pointer
+
+
 /* from http://www.cs.rit.edu/~ncs/color/t_convert.html */
 double MIN(double a, double b, double c) {
 	double min;
@@ -134,6 +153,7 @@ int SFColor_getHSV(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwre
 	memcpy(any->sfvec3d.c,xp,sizeof(double)*3);
 	fwretval->_web3dval.native = any; 
 	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3d;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
 	fwretval->itype = 'W';
 	return 1;
 }
@@ -146,7 +166,7 @@ int SFColor_getHSV(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwre
 FWTYPE SFFloatType = {
 	FIELDTYPE_SFFloat,
 	"SFFloat",
-	0, //sizeof(struct ), 
+	sizeof(float), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -159,7 +179,7 @@ FWTYPE SFFloatType = {
 FWTYPE MFFloatType = {
 	FIELDTYPE_MFFloat,
 	"MFFloat",
-	0, //sizeof(struct ), 
+	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -172,7 +192,7 @@ FWTYPE MFFloatType = {
 FWTYPE SFRotationType = {
 	FIELDTYPE_SFRotation,
 	"SFRotation",
-	0, //sizeof(struct ), 
+	sizeof(struct SFRotation), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -185,7 +205,7 @@ FWTYPE SFRotationType = {
 FWTYPE MFRotationType = {
 	FIELDTYPE_MFRotation,
 	"MFRotation",
-	0, //sizeof(struct ), 
+	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -198,7 +218,7 @@ FWTYPE MFRotationType = {
 FWTYPE SFVec3fType = {
 	FIELDTYPE_SFVec3f,
 	"SFVec3f",
-	0, //sizeof(struct ), 
+	sizeof(struct SFVec3f), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -211,7 +231,7 @@ FWTYPE SFVec3fType = {
 FWTYPE MFVec3fType = {
 	FIELDTYPE_MFVec3f,
 	"MFVec3f",
-	0, //sizeof(struct ), 
+	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -224,7 +244,7 @@ FWTYPE MFVec3fType = {
 FWTYPE SFBoolType = {
 	FIELDTYPE_SFBool,
 	"SFBool",
-	0, //sizeof(struct ), 
+	sizeof(int), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -237,7 +257,7 @@ FWTYPE SFBoolType = {
 FWTYPE MFBoolType = {
 	FIELDTYPE_MFBool,
 	"MFBool",
-	0, //sizeof(struct ), 
+	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -250,7 +270,7 @@ FWTYPE MFBoolType = {
 FWTYPE SFInt32Type = {
 	FIELDTYPE_SFInt32,
 	"SFInt32",
-	0, //sizeof(struct ), 
+	sizeof(int), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -263,7 +283,7 @@ FWTYPE SFInt32Type = {
 FWTYPE MFInt32Type = {
 	FIELDTYPE_MFInt32,
 	"MFInt32",
-	0, //sizeof(struct ), 
+	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -276,7 +296,7 @@ FWTYPE MFInt32Type = {
 FWTYPE SFNodeType = {
 	FIELDTYPE_SFNode,
 	"SFNode",
-	0, //sizeof(struct ), 
+	sizeof(void*), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -289,7 +309,7 @@ FWTYPE SFNodeType = {
 FWTYPE MFNodeType = {
 	FIELDTYPE_MFNode,
 	"MFNode",
-	0, //sizeof(struct ), 
+	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -302,7 +322,7 @@ FWTYPE MFNodeType = {
 FWTYPE SFColorType = {
 	FIELDTYPE_SFColor,
 	"SFColor",
-	0, //sizeof(struct ), 
+	sizeof(struct SFColor), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -315,7 +335,7 @@ FWTYPE SFColorType = {
 FWTYPE MFColorType = {
 	FIELDTYPE_MFColor,
 	"MFColor",
-	0, //sizeof(struct ), 
+	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -328,7 +348,7 @@ FWTYPE MFColorType = {
 FWTYPE SFColorRGBAType = {
 	FIELDTYPE_SFColorRGBA,
 	"SFColorRGBA",
-	0, //sizeof(struct ), 
+	sizeof(struct SFColorRGBA), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -341,7 +361,7 @@ FWTYPE SFColorRGBAType = {
 FWTYPE MFColorRGBAType = {
 	FIELDTYPE_MFColorRGBA,
 	"MFColorRGBA",
-	0, //sizeof(struct ), 
+	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -354,7 +374,7 @@ FWTYPE MFColorRGBAType = {
 FWTYPE SFTimeType = {
 	FIELDTYPE_SFTime,
 	"SFTime",
-	0, //sizeof(struct ), 
+	sizeof(double), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -367,7 +387,7 @@ FWTYPE SFTimeType = {
 FWTYPE MFTimeType = {
 	FIELDTYPE_MFTime,
 	"MFTime",
-	0, //sizeof(struct ), 
+	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -380,7 +400,7 @@ FWTYPE MFTimeType = {
 FWTYPE SFStringType = {
 	FIELDTYPE_SFString,
 	"SFString",
-	0, //sizeof(struct ), 
+	sizeof(void *), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -393,7 +413,7 @@ FWTYPE SFStringType = {
 FWTYPE MFStringType = {
 	FIELDTYPE_MFString,
 	"MFString",
-	0, //sizeof(struct ), 
+	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -406,7 +426,7 @@ FWTYPE MFStringType = {
 FWTYPE SFVec2fType = {
 	FIELDTYPE_SFVec2f,
 	"SFVec2f",
-	0, //sizeof(struct ), 
+	sizeof(struct SFVec2f), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -420,7 +440,7 @@ FWTYPE SFVec2fType = {
 FWTYPE MFVec2fType = {
 	FIELDTYPE_MFVec2f,
 	"MFVec2f",
-	0, //sizeof(struct ), 
+	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -433,7 +453,7 @@ FWTYPE MFVec2fType = {
 FWTYPE SFImageType = {
 	FIELDTYPE_SFImage,
 	"SFImage",
-	0, //sizeof(struct ), 
+	0, //sizeof(struct ),  //----------------------unknown struct
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -448,7 +468,7 @@ FWTYPE SFImageType = {
 FWTYPE SFVec3dType = {
 	FIELDTYPE_SFVec3d,
 	"SFVec3d",
-	0, //sizeof(struct ), 
+	sizeof(struct SFVec3d), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -462,7 +482,7 @@ FWTYPE SFVec3dType = {
 FWTYPE MFVec3dType = {
 	FIELDTYPE_MFVec3d,
 	"MFVec3d",
-	0, //sizeof(struct ), 
+	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -476,7 +496,7 @@ FWTYPE MFVec3dType = {
 FWTYPE SFDoubleType = {
 	FIELDTYPE_SFDouble,
 	"SFDouble",
-	0, //sizeof(struct ), 
+	sizeof(double), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -490,7 +510,7 @@ FWTYPE SFDoubleType = {
 FWTYPE MFDoubleType = {
 	FIELDTYPE_MFDouble,
 	"MFDouble",
-	0, //sizeof(struct ), 
+	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -504,7 +524,7 @@ FWTYPE MFDoubleType = {
 FWTYPE SFMatrix3fType = {
 	FIELDTYPE_SFMatrix3f,
 	"SFMatrix3f",
-	0, //sizeof(struct ), 
+	sizeof(struct SFMatrix3f), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -518,7 +538,7 @@ FWTYPE SFMatrix3fType = {
 FWTYPE MFMatrix3fType = {
 	FIELDTYPE_MFMatrix3f,
 	"MFMatrix3f",
-	0, //sizeof(struct ), 
+	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -531,7 +551,7 @@ FWTYPE MFMatrix3fType = {
 FWTYPE SFMatrix3dType = {
 	FIELDTYPE_SFMatrix3d,
 	"SFMatrix3d",
-	0, //sizeof(struct ), 
+	sizeof(struct SFMatrix3d), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -544,7 +564,7 @@ FWTYPE SFMatrix3dType = {
 FWTYPE MFMatrix3dType = {
 	FIELDTYPE_MFMatrix3d,
 	"MFMatrix3d",
-	0, //sizeof(struct ), 
+	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -557,7 +577,7 @@ FWTYPE MFMatrix3dType = {
 FWTYPE SFMatrix4fType = {
 	FIELDTYPE_SFMatrix4f,
 	"SFMatrix4f",
-	0, //sizeof(struct ), 
+	sizeof(struct SFMatrix4f), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -570,7 +590,7 @@ FWTYPE SFMatrix4fType = {
 FWTYPE MFMatrix4fType = {
 	FIELDTYPE_MFMatrix4f,
 	"MFMatrix4f",
-	0, //sizeof(struct ), 
+	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -584,7 +604,7 @@ FWTYPE MFMatrix4fType = {
 FWTYPE SFMatrix4dType = {
 	FIELDTYPE_SFMatrix4d,
 	"SFMatrix4d",
-	0, //sizeof(struct ), 
+	sizeof(struct SFMatrix4d), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -598,7 +618,7 @@ FWTYPE SFMatrix4dType = {
 FWTYPE MFMatrix4dType = {
 	FIELDTYPE_MFMatrix4d,
 	"MFMatrix4d",
-	0, //sizeof(struct ), 
+	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -612,7 +632,7 @@ FWTYPE MFMatrix4dType = {
 FWTYPE SFVec2dType = {
 	FIELDTYPE_SFVec2d,
 	"SFVec2d",
-	0, //sizeof(struct ), 
+	sizeof(struct SFVec2d), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -626,7 +646,7 @@ FWTYPE SFVec2dType = {
 FWTYPE MFVec2dType = {
 	FIELDTYPE_MFVec2d,
 	"MFVec2d",
-	0, //sizeof(struct ), 
+	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -640,7 +660,7 @@ FWTYPE MFVec2dType = {
 FWTYPE SFVec4fType = {
 	FIELDTYPE_SFVec4f,
 	"SFVec4f",
-	0, //sizeof(struct ), 
+	sizeof(struct SFVec4f), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -654,7 +674,7 @@ FWTYPE SFVec4fType = {
 FWTYPE MFVec4fType = {
 	FIELDTYPE_MFVec4f,
 	"MFVec4f",
-	0, //sizeof(struct ), 
+	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -668,7 +688,7 @@ FWTYPE MFVec4fType = {
 FWTYPE SFVec4dType = {
 	FIELDTYPE_SFVec4d,
 	"SFVec4d",
-	0, //sizeof(struct ), 
+	sizeof(struct SFVec4d), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
@@ -682,7 +702,7 @@ FWTYPE SFVec4dType = {
 FWTYPE MFVec4dType = {
 	FIELDTYPE_MFVec4d,
 	"MFVec4d",
-	0, //sizeof(struct ), 
+	sizeof(struct Multi_Any), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //Properties,
 	NULL, //special iterator
