@@ -47,8 +47,10 @@ FWTYPE *fwtypesArray[30];  //true statics - they only need to be defined once pe
 int FWTYPES_COUNT = 0;
 
 void initVRMLBrowser(FWTYPE** typeArray, int *n);
+void initVRMLFields(FWTYPE** typeArray, int *n);
 void initFWTYPEs(){
 	initVRMLBrowser(fwtypesArray, &FWTYPES_COUNT);
+	initVRMLFields(fwtypesArray, &FWTYPES_COUNT);
 }
 FWTYPE *getFWTYPE(int itype){
 	int i;
@@ -1171,7 +1173,6 @@ void JSCreateScriptContext(int num) {
 	//add x3d X3DConstants table 
 	//addCustomProxyType(ctx,iglobal,"X3DConstants");
 	add_duk_global_property(ctx, iglobal,AUXTYPE_X3DConstants,"X3DConstants", NULL, NULL, NULL,0);
-	//add_duk_global_property(ctx, iglobal,AUXTYPE_X3DConstants,"X3DConstants", "X3DConstants", p->Instance->X3DConstants, NULL, (struct X3D_Node*) p->Instance,3);
 
 
 	//test

@@ -834,7 +834,7 @@ FWPropertySpec (ProfileInfoProperties)[] = {
 	{"level", 1, 'N', 'T'},
 	{"Title", 2, 'S', 'T'},
 	{"providerUrl", 3, 'S', 'T'},
-	{"components", 4, 'P', 'T'}, //writable?
+	{"components", 4, 'P', 'T'}, //writable? if so then I need a constructor for ComponentInfo?
 	{NULL,0,0,0},
 };
 
@@ -1256,17 +1256,7 @@ int X3DConstantsGetter(int index, void * fwn, FWval fwretval){
 	fwretval->itype = 'I';
 	return nr;
 }
-int X3DConstantsHas(FWType fwtype, char *key, int *index)
-{
-	int retval = 0;
-	int jndex;
-	struct string_int* si = lookup_string_int(lookup_X3DConstants,key,&jndex);
-	if(si){
-		(*index) = jndex;
-		retval = 1;
-	}
-	return retval;
-}
+
 int len_constants(){
 	int len = (sizeof(lookup_X3DConstants) / sizeof(struct string_int)) -1;
 	return len;

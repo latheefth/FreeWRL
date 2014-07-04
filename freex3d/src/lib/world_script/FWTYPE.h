@@ -47,7 +47,6 @@ typedef struct ArgListType {
 typedef int (* FWFunction)();
 typedef int (* FWGet)();
 typedef int (* FWSet)();
-typedef int (* FWHas)();
 typedef int (* FWIterator)();
 
 
@@ -114,7 +113,6 @@ typedef int (* FWConstructor)(FWType fwtype, void * fwn, int argc, FWval fwpars)
 typedef int (* FWFunction)(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval);
 typedef int (* FWGet)(int index, void * fwn, FWval fwretval);
 typedef int (* FWSet)(int index, void * fwn, FWval fwsetval);
-typedef int (* FWHas)(FWType fwtype, char *key, int *index);
 typedef int (* FWIterator)(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex, char *type, char *readOnly);
 //typedef void (* FWFinalizer)(FWType fwtype, FWNative fwn);
 
