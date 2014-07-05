@@ -2111,6 +2111,27 @@ void setScriptECMAtype (int num) {
 
 
 void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen){
+	//tonode - script array num
+	//tnfield - integer index into jsparamname[] array
+	//void* Data - pointer to anyVrml of the from node
+	//datalen - size of anyVrml to memcpy
+	FWVAL newval;
+	duk_context *ctx;
+	int obj;
+	int itype;
+
+	struct CRscriptStruct *ScriptControl = getScriptControl();
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
+
+	ctx =  (duk_context *)ScriptControl[tonode].cx;
+	obj = *(int*)ScriptControl[tonode].glob;
+	
+	//get function by name
+	show_stack(ctx,"before seeking isOver");
+	duk_eval_string(ctx,JSparamnames[tnfield].name); //gets the evenin function on the stack
+	show_stack(ctx,"after seeking isOver");
+	itype = JSparamnames[tnfield].type;
+	push_typed_proxy2(ctx,itype,Data,NULL);
 	printf("in set_one_MultiElementType\n");
 	return;
 }
