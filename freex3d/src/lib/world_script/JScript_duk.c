@@ -1218,6 +1218,7 @@ int fwsetterNS(duk_context *ctx) {
 	int nargs, nr;
 	int rc, itype, *valueChanged;
 	union anyVrml *field;
+	struct X3D_Node* thisScriptNode = NULL;
 	nargs = duk_get_top(ctx);
 
 	/* retrieve key from nonstandard arg */
@@ -1234,15 +1235,30 @@ int fwsetterNS(duk_context *ctx) {
 	rc = duk_get_prop_string(ctx,-1,"fwItype");
 	if(rc==1) itype = duk_get_int(ctx,-1);
 	duk_pop(ctx);
-	/* get the pointer to the parent object */
-	rc = duk_get_prop_string(ctx,-1,"fwField");
-	if(rc == 1) field = duk_to_pointer(ctx,-1);
-	duk_pop(ctx);
-	/* get the pointer to the changed flag */
-	rc = duk_get_prop_string(ctx,-1,"fwChanged");
-	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
-	duk_pop(ctx);
+	if(itype < AUXTYPE_X3DConstants){
+		//our script fields
+		rc = duk_get_prop_string(ctx,-1,"fwNode");
+		if(rc==1) thisScriptNode = duk_to_pointer(ctx,-1);
+		duk_pop(ctx);
+		/* get the pointer to the changed flag */
+		rc = duk_get_prop_string(ctx,-1,"fwChanged");
+		if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
+		duk_pop(ctx);
+	}else{
+		//Q. do we come in here?
+		rc = duk_get_prop_string(ctx,-1,"fwField");
+		if(rc==1) field = duk_to_pointer(ctx,-1);
+		duk_pop(ctx);
+	}
 	duk_pop(ctx); //pop current function
+
+	if(itype < AUXTYPE_X3DConstants){
+		//our script fields
+		int ifield, mode, ihave;
+		if(thisScriptNode == NULL) return 0;
+		ihave = getFieldFromNodeAndName(thisScriptNode,key, &itype, &mode, &ifield, &field);
+		if(!ihave) return 0;
+	}
 
 	/*we have the field, and even the key name. 
 	  So we should be able to decide how to deal with the incoming set value type 
@@ -1298,17 +1314,19 @@ int fwsetterNS(duk_context *ctx) {
 		break;
 	case DUK_TYPE_OBJECT:
 	{
-		int itypeRHS;
+		int itypeRHS = -1;
 		union anyVrml *fieldRHS = NULL;
-		rc = duk_get_prop_string(ctx,0,"fwItype");
+		rc = duk_get_prop_string(ctx,0,"target");
+		rc = duk_get_prop_string(ctx,-1,"fwItype");
 		if(rc == 1) itypeRHS = duk_to_int(ctx,-1);
 		duk_pop(ctx);
-		rc = duk_get_prop_string(ctx,0,"fwField");
+		rc = duk_get_prop_string(ctx,-1,"fwField");
 		if(rc == 1) fieldRHS = duk_to_pointer(ctx,-1);
+		duk_pop(ctx);
 		duk_pop(ctx);
 		/*we don't need the RHS fwChanged=valueChanged* because we are only changing the LHS*/
 
-		if(fieldRHS){
+		if(fieldRHS != NULL){
 			/* its one of our proxy field types. But is it the type we need?*/
 			if(itype == itypeRHS){
 				/* same proxy type - attempt to copy it's value from LHS to RHS  */
@@ -1316,7 +1334,7 @@ int fwsetterNS(duk_context *ctx) {
 					Q. what about the p* from complex fields? deep copy or just the pointer?
 				*/
 				*field = *fieldRHS;
-				//*valueChanged = TRUE;
+				// see below *valueChanged = TRUE;
 				isOK = TRUE;
 			}
 		}
@@ -1369,10 +1387,10 @@ void push_typed_proxy_fwgetter(duk_context *ctx, int itype, int mode, const char
 	duk_put_prop_string(ctx,-2,"fwChanged");
 	duk_push_int(ctx,itype);
 	duk_put_prop_string(ctx,-2,"fwItype");
-	duk_push_int(ctx,mode);
-	duk_put_prop_string(ctx,-2,"fwMode");
-	duk_push_string(ctx,fieldname); //myscriptfield1
-	duk_put_prop_string(ctx,-2,"fwName");
+	//duk_push_int(ctx,mode);
+	//duk_put_prop_string(ctx,-2,"fwMode");
+	//duk_push_string(ctx,fieldname); //myscriptfield1
+	//duk_put_prop_string(ctx,-2,"fwName");
 
 	//rc = duk_get_prop_string(ctx,iglobal,"handler");
 	duk_eval_string(ctx,"handler");
@@ -1418,8 +1436,6 @@ int push_duk_fieldvalue(duk_context *ctx, int itype, int mode, const char* field
 }
 
 //convenience wrappers to get details for built-in fields and -on script and protoInstance- dynamic fields
-//ifield: for script/proto if >= 1000 then ifield-1000 is an index into dynamic fields array ie script->fields[i], else its treated as builtin ie to get URL on script
-//		  for builtin fields index 0,1,2 into fields (offset = index*5, index = offset/5)
 int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *type, int *kind, int *iifield, union anyVrml **value){
 	*type = 0;
 	*kind = 0;
@@ -1439,7 +1455,6 @@ int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *ty
 		snode = (struct X3D_Script*)node;
 		sp = (struct Shader_Script *)snode->__scriptObj;
 		sfields = sp->fields;
-		//fprintf(fp,"sp->fields->n = %d\n",sp->fields->n);
 		for(k=0;k<sfields->n;k++)
 		{
 			char *fieldName;
@@ -1485,7 +1500,7 @@ int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *ty
 					*kind = pfield->mode;
 					if(pfield->mode == PKW_initializeOnly || pfield->mode == PKW_inputOutput)
 						*value = &(pfield->defaultVal);
-					*iifield = k + 1000; //1000 is sentinal value for dynamic/user fields on script/proto
+					*iifield = k;
 					return 1;
 				}
 			}
@@ -1512,7 +1527,7 @@ int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *ty
 			if(!strcmp(FIELDNAMES[field->nameIndex],fieldname)){
 				*type = field->typeIndex;
 				*kind = field->ioType;
-				*iifield = ifield; //1000 is sentinal value for dynamic/user fields on script/proto
+				*iifield = ifield; 
 				*value = (union anyVrml*)&((char*)node)[field->offset];
 				return 1;
 			}
@@ -1522,8 +1537,7 @@ int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *ty
 	}
 	return 0;
 }
-int getFieldFromNodeAndIndex(struct X3D_Node* node, int iifield, const char **fieldname, int *type, int *kind, union anyVrml **value){
-	int ifield = iifield % 1000;
+int getFieldFromNodeAndIndex(struct X3D_Node* node, int ifield, const char **fieldname, int *type, int *kind, union anyVrml **value){
 	int iret = 0;
 	*type = 0;
 	*kind = 0;
