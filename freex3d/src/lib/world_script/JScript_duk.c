@@ -1488,6 +1488,7 @@ int get_valueChanged_flag (int fptr, int actualscript){
 		}
 		printf("flag=%d",field->valueChanged);
 	}
+	gglobal()->JScript.JSglobal_return_val = (void *)&field->value;
 	return field->valueChanged;
 }
 void resetScriptTouchedFlag(int actualscript, int fptr){
@@ -1937,12 +1938,32 @@ void js_cleanup_script_context(int counter){
 	return;
 }
 void js_setField_javascriptEventOut_B(union anyVrml* any, int fieldType, unsigned len, int extraData, int actualscript){
+	//I think in here there is nothing to do for brotos, because the job of _B was to copy values out of javascript and
+	//into script fields, and the _B broto approach to routing would then do routing from the script fields.
+	//here in the duk / proxy method, we are already doing the setting of script fields directly.
 	printf("in js_setField_javascriptEventOut_B\n");
 	return;
 }
-void js_setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fieldType, unsigned len, int extraData, int actualscript){
-	printf("in js_setField_javascriptEventOut\n");
-	return;
+
+void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fieldType, unsigned len, int extraData) {
+	//this proxy method already writes to the script field, so there's nothing to update 
+	//- can just copy anyVrml from script field to endpoint on Route 
+	// (Brotos don't come in this function)
+	char *memptr;
+	char *fromptr;
+	ttglobal tg = gglobal();
+
+	/* set up a pointer to where to put this stuff */
+	memptr = offsetPointer_deref(char *, tn, tptr);
+	//the from -our current script field value- is coming in through JSglobal_return_val 
+	fromptr = tg->JScript.JSglobal_return_val;
+	memcpy(memptr,fromptr,len);
+}
+void js_setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fieldType, unsigned len, int extraData, int actualscript) {
+	struct CRscriptStruct *scriptcontrol;
+
+	scriptcontrol = getScriptControlIndex(actualscript);
+	setField_javascriptEventOut(tn,tptr,fieldType, len, extraData);
 }
 
 /* take an ECMA value in the X3D Scenegraph, and return a jsval with it in */
