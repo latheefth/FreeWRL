@@ -1316,11 +1316,10 @@ int fwsetterNS(duk_context *ctx) {
 	{
 		int itypeRHS = -1;
 		union anyVrml *fieldRHS = NULL;
-		rc = duk_get_prop_string(ctx,0,"target");
-		rc = duk_get_prop_string(ctx,-1,"fwItype");
+		rc = duk_get_prop_string(ctx,0,"fwItype");
 		if(rc == 1) itypeRHS = duk_to_int(ctx,-1);
 		duk_pop(ctx);
-		rc = duk_get_prop_string(ctx,-1,"fwField");
+		rc = duk_get_prop_string(ctx,0,"fwField");
 		if(rc == 1) fieldRHS = duk_to_pointer(ctx,-1);
 		duk_pop(ctx);
 		duk_pop(ctx);
