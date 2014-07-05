@@ -299,6 +299,40 @@ FWTYPE MFInt32Type = {
 	'N',0, //index prop type,readonly
 	NULL, //functions
 };
+
+int getFieldFromNodeAndIndex(struct X3D_Node* node, int iifield, const char **fieldname, int *type, int *kind, union anyVrml **value);
+int SFNode_Iterator(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex, char *type, char *readOnly){
+	struct X3D_Node *node = (struct X3D_Node*)pointer;
+	int ftype, kind, ihave;
+	union anyVrml *value;
+	index ++;
+	(*jndex) = 0;
+	int iifield = index;
+	ihave = getFieldFromNodeAndIndex(node, index, name, &ftype, &kind, &value);
+	if(ihave){
+		(*jndex) = index;
+		(*lastProp) = index;
+		(*type) = ftype;
+		(*readOnly) = kind == PKW_inputOnly ? 'T' : 0;
+		return index;
+	}
+	return -1;
+}
+int SFNode_Getter(int index, void * fwn, FWval fwretval){
+	struct X3D_Node *node = (struct X3D_Node*)fwn;
+	int ftype, kind, ihave, nr;
+	const char *name;
+	union anyVrml *value;
+	nr = 0;
+	ihave = getFieldFromNodeAndIndex(node, index, &name, &ftype, &kind, &value);
+	if(ihave){
+		fwretval->itype = 'W';
+		fwretval->_web3dval.fieldType = ftype;
+		fwretval->_web3dval.native = value; //Q. am I supposed to deep copy here? I'm not. So I don't set gc.
+		nr = 1;
+	}
+	return nr;
+}
 //#define FIELDTYPE_SFNode	10
 FWTYPE SFNodeType = {
 	FIELDTYPE_SFNode,
@@ -307,10 +341,10 @@ FWTYPE SFNodeType = {
 	NULL, //constructor
 	NULL, //constructor args
 	NULL, //Properties,
-	NULL, //special iterator
-	NULL, //Getter,
+	SFNode_Iterator, //special iterator
+	SFNode_Getter, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	0,0, //index prop type,readonly
 	NULL, //functions
 };
 //#define FIELDTYPE_MFNode	11

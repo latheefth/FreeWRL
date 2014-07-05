@@ -257,7 +257,7 @@ void show_stack0(duk_context *ctx, char* comment, int dig)
 }
 void show_stack(duk_context *ctx, char* comment)
 {
-	show_stack0(ctx, comment, 1);
+	show_stack0(ctx, comment, 0);
 }
 
 
@@ -995,7 +995,7 @@ void addCustomProxyType(duk_context *ctx, int iglobal, const char *typeName)
 	duk_put_prop_string(ctx,iglobal,typeName);
 }
 //void add_duk_global_property(duk_context *ctx, int iglobal, const char *fieldname, int itype, int mode, const char *ctype, void *fieldptr /*anyVrml*/, int *valueChanged);
-void add_duk_global_property(duk_context *ctx, int iglobal, int itype, const char *fieldname, void *fieldptr /*anyVrml*/, int *valueChanged, struct X3D_Node *node, int ifield );
+void add_duk_global_property(duk_context *ctx, int itype, const char *fieldname, int *valueChanged, struct X3D_Node *node);
 
 static char *DefaultScriptMethodsA = "function initialize() {}; " \
 			" function shutdown() {}; " \
@@ -1108,12 +1108,12 @@ void JSCreateScriptContext(int num) {
 				addCustomProxyType(ctx,iglobal,fwtypesArray[i]->name);
 	}
 	show_stack(ctx,"before adding Browser");
-	add_duk_global_property(ctx, iglobal, AUXTYPE_X3DBrowser, "Browser", NULL, NULL,NULL,0);
+	add_duk_global_property(ctx, AUXTYPE_X3DBrowser, "Browser", NULL, NULL);
 	//add_duk_global_property(ctx, iglobal, AUXTYPE_X3DBrowser, "Browser", "X3DBrowser", p->Instance->Browser, NULL,(struct X3D_Node*)p->Instance,2);
 	//addCustomProxyType(ctx, iglobal, "Browser"); 
 	//add x3d X3DConstants table 
 	//addCustomProxyType(ctx,iglobal,"X3DConstants");
-	add_duk_global_property(ctx, iglobal,AUXTYPE_X3DConstants,"X3DConstants", NULL, NULL, NULL,0);
+	add_duk_global_property(ctx, AUXTYPE_X3DConstants,"X3DConstants", NULL, NULL);
 
 
 	//test
@@ -1144,7 +1144,7 @@ void JSCreateScriptContext(int num) {
 	duk_pop(ctx);
 
 	}
-	if(1){
+	if(0){
 		duk_eval_string(ctx,"print('Browser.supportedComponents.length = ');");duk_pop(ctx);
 		duk_eval_string(ctx,"print(Browser.supportedComponents.length);"); duk_pop(ctx);
 		duk_eval_string(ctx,"for(var i=0;i<Browser.supportedComponents.length;i++) {print(Browser.supportedComponents[i].name + ' '+Browser.supportedComponents[i].level);}"); duk_pop(ctx);
@@ -1420,11 +1420,12 @@ int push_duk_fieldvalue(duk_context *ctx, int itype, int mode, const char* field
 //convenience wrappers to get details for built-in fields and -on script and protoInstance- dynamic fields
 //ifield: for script/proto if >= 1000 then ifield-1000 is an index into dynamic fields array ie script->fields[i], else its treated as builtin ie to get URL on script
 //		  for builtin fields index 0,1,2 into fields (offset = index*5, index = offset/5)
-void getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *type, int *kind, int *iifield, union anyVrml **value){
+int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *type, int *kind, int *iifield, union anyVrml **value){
 	*type = 0;
 	*kind = 0;
 	*iifield = -1;
 	*value = NULL;
+	//Q. what about shader script?
 	if(node->_nodeType == NODE_Script) 
 	{
 		int k;
@@ -1450,8 +1451,8 @@ void getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *t
 				*type = fdecl->fieldType;
 				*kind = fdecl->PKWmode;
 				*value = &(sfield->value);
-				*iifield = k + 1000; //1000 is sentinal value for dynamic/user fields on script/proto
-				return;
+				*iifield = k; 
+				return 1;
 			}
 		}
 	}else if(node->_nodeType == NODE_Proto) {
@@ -1485,7 +1486,7 @@ void getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *t
 					if(pfield->mode == PKW_initializeOnly || pfield->mode == PKW_inputOutput)
 						*value = &(pfield->defaultVal);
 					*iifield = k + 1000; //1000 is sentinal value for dynamic/user fields on script/proto
-					return;
+					return 1;
 				}
 			}
 		}
@@ -1513,15 +1514,17 @@ void getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *t
 				*kind = field->ioType;
 				*iifield = ifield; //1000 is sentinal value for dynamic/user fields on script/proto
 				*value = (union anyVrml*)&((char*)node)[field->offset];
-				return;
+				return 1;
 			}
 			ifield++;
 			field = &offsets[ifield];
 		}
 	}
+	return 0;
 }
-void getFieldFromNodeAndIndex(struct X3D_Node* node, int iifield, const char **fieldname, int *type, int *kind, union anyVrml **value){
+int getFieldFromNodeAndIndex(struct X3D_Node* node, int iifield, const char **fieldname, int *type, int *kind, union anyVrml **value){
 	int ifield = iifield % 1000;
+	int iret = 0;
 	*type = 0;
 	*kind = 0;
 	*fieldname = NULL;
@@ -1552,8 +1555,9 @@ void getFieldFromNodeAndIndex(struct X3D_Node* node, int iifield, const char **f
 			*type = fdecl->fieldType;
 			*kind = fdecl->PKWmode;
 			*value = &(sfield->value);
+			iret = 1;
 		}
-		return;
+		return iret;
 	}else if(node->_nodeType == NODE_Proto ) {
 		int k, mode;
 		struct Vector* usernames[4];
@@ -1583,10 +1587,11 @@ void getFieldFromNodeAndIndex(struct X3D_Node* node, int iifield, const char **f
 					*kind = pfield->mode;
 					if(pfield->mode == PKW_initializeOnly || pfield->mode == PKW_inputOutput)
 						*value = &(pfield->defaultVal);
+					iret = 1;
 				}
 			}
 		}
-		return;
+		return iret;
 	}
 	//builtins on non-script, non-proto nodes (and also builtin fields like url on Script)
 	{
@@ -1599,14 +1604,16 @@ void getFieldFromNodeAndIndex(struct X3D_Node* node, int iifield, const char **f
 		} *finfo;
 
 		finfo offsets;
-		finfo field;
+		int k;
+
 		offsets = (finfo)NODE_OFFSETS[node->_nodeType];
-		field = &offsets[iifield];
-		*fieldname = FIELDNAMES[field->nameIndex];
-		*type = field->typeIndex;
-		*kind = field->ioType;
-		*value = (union anyVrml*)&((char*)node)[field->offset];
-		return;
+		for(k=0;k<=ifield;k++)
+			if(offsets[k].nameIndex == -1) return 0;
+		*fieldname = FIELDNAMES[offsets[ifield].nameIndex];
+		*type = offsets[ifield].typeIndex;
+		*kind = offsets[ifield].ioType;
+		*value = (union anyVrml*)&((char*)node)[offsets[ifield].offset];
+		return 1;
 	}
 }
 
@@ -1616,6 +1623,7 @@ int fwgetterNS(duk_context *ctx) {
 	int nargs, nr;
 	int rc, itype, mode, *valueChanged;
 	const char *fwName = NULL;
+	struct X3D_Node *thisScriptNode;
 	union anyVrml *field;
 
 	nargs = duk_get_top(ctx);
@@ -1631,39 +1639,34 @@ int fwgetterNS(duk_context *ctx) {
 	rc = duk_get_prop_string(ctx,-1,"fwItype");
 	if(rc==1) itype = duk_get_int(ctx,-1);
 	duk_pop(ctx);
-	rc = duk_get_prop_string(ctx,-1,"fwMode");
-	if(rc==1) mode = duk_get_int(ctx,-1);
-	duk_pop(ctx);
-	rc = duk_get_prop_string(ctx,-1,"fwName"); //s.b. same as key/fieldname
-	if(rc == 1) fwName = duk_to_string(ctx,-1);
-	duk_pop(ctx);
-	/* get the pointer to the parent object */
-	rc = duk_get_prop_string(ctx,-1,"fwField");
-	if(rc == 1) field = duk_to_pointer(ctx,-1);
-	duk_pop(ctx);
-	/* get the pointer to the changed flag */
-	rc = duk_get_prop_string(ctx,-1,"fwChanged");
-	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
-	duk_pop(ctx);
+	if(itype < AUXTYPE_X3DConstants){
+		//our script fields
+		rc = duk_get_prop_string(ctx,-1,"fwNode");
+		if(rc==1) thisScriptNode = duk_to_pointer(ctx,-1);
+		duk_pop(ctx);
+		/* get the pointer to the changed flag */
+		rc = duk_get_prop_string(ctx,-1,"fwChanged");
+		if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
+		duk_pop(ctx);
+	}
 	duk_pop(ctx); //pop current function
 
-	if(0){
-		duk_eval_string(ctx,"__script");
-		struct Shader_Script *script = (struct Shader_Script*)duk_require_pointer(ctx,-1);
-		//printf("script pointer=%x",script);
-	}
-	if(itype == AUXTYPE_X3DBrowser || itype == AUXTYPE_X3DConstants){
-		//duk_push_object(ctx); //proxy object on which get/set handlers will be applied
+	nr = 0;
+	if(itype < AUXTYPE_X3DConstants){
+		//our script fields
+		int ifield;
+		if(getFieldFromNodeAndName(thisScriptNode,fieldname, &itype, &mode, &ifield, &field)){
+			nr = push_duk_fieldvalue(ctx, itype, mode, fieldname, field,  valueChanged);
+		}
+	}else{
+		//X3DBrowser, X3DConstants
 		push_typed_proxy_fwgetter(ctx, itype, PKW_initializeOnly, fieldname, NULL, NULL);
 		nr = 1;
-	}else{
-		nr = push_duk_fieldvalue(ctx, itype, mode, fieldname, field,  valueChanged);
 	}
-	//show_stack(ctx,"in fwgetterNS at end");
     return nr;
 }
 
-void add_duk_global_property(duk_context *ctx, int iglobal, int itype, const char *fieldname, void *fieldptr /*anyVrml*/, int *valueChanged, struct X3D_Node *node, int ifield ){
+void add_duk_global_property(duk_context *ctx, int itype, const char *fieldname, int *valueChanged, struct X3D_Node *node ){
 	int rc;
 	char *str;
 	//show_stack(ctx,"starting add_duk_global_property");
@@ -1674,57 +1677,41 @@ void add_duk_global_property(duk_context *ctx, int iglobal, int itype, const cha
 	duk_eval_string(ctx,"this"); //global object
 	//show_stack(ctx,"myobj?");
 	/* push key */
-	duk_push_string(ctx,fieldname); //"myprop");
+	duk_push_string(ctx,fieldname); //"myScriptFieldName"
 	/* push setter */
 	duk_push_c_function(ctx,fwsetterNS,2); //1 extra parameter is nonstandard (NS) key
-	duk_push_pointer(ctx,fieldptr);
-	duk_put_prop_string(ctx,-2,"fwField");
-	duk_push_pointer(ctx,valueChanged);
-	duk_put_prop_string(ctx,-2,"fwChanged");
+	//duk_push_pointer(ctx,fieldptr);
+	//duk_put_prop_string(ctx,-2,"fwField");
+	if(itype < AUXTYPE_X3DConstants){
+		duk_push_pointer(ctx,valueChanged);
+		duk_put_prop_string(ctx,-2,"fwChanged");
+		duk_push_pointer(ctx,node);
+		duk_put_prop_string(ctx,-2,"fwNode");
+	}
 	duk_push_int(ctx,itype);
 	duk_put_prop_string(ctx,-2,"fwItype");
-	duk_push_pointer(ctx,node);
-	duk_put_prop_string(ctx,-2,"fwNode");
-	duk_push_int(ctx,ifield); 
-	duk_put_prop_string(ctx,-2,"fwIfield");
+	//duk_push_int(ctx,ifield); 
+	//duk_put_prop_string(ctx,-2,"fwIfield");
 	/* push getter */
 	duk_push_c_function(ctx,fwgetterNS,1); //0 extra parameter is nonstandard (NS) key
-	duk_push_pointer(ctx,fieldptr);
-	duk_put_prop_string(ctx,-2,"fwField");
-	duk_push_pointer(ctx,valueChanged);
-	duk_put_prop_string(ctx,-2,"fwChanged");
+	//duk_push_pointer(ctx,fieldptr);
+	//duk_put_prop_string(ctx,-2,"fwField");
+	if(itype < AUXTYPE_X3DConstants){
+		duk_push_pointer(ctx,node);
+		duk_put_prop_string(ctx,-2,"fwNode");
+		duk_push_pointer(ctx,valueChanged);
+		duk_put_prop_string(ctx,-2,"fwChanged");
+	}
 	duk_push_int(ctx,itype);
 	duk_put_prop_string(ctx,-2,"fwItype");
-	duk_push_pointer(ctx,node);
-	duk_put_prop_string(ctx,-2,"fwNode");
-	duk_push_int(ctx,ifield); 
-	duk_put_prop_string(ctx,-2,"fwIfield");
+	//duk_push_int(ctx,ifield); 
+	//duk_put_prop_string(ctx,-2,"fwIfield");
 
-	//show_stack(ctx,"C");
 	duk_call(ctx, 4);
 	duk_pop(ctx);
-	//show_stack(ctx,"D");
-	if(0){
-		//test evals:
-		char teststring[1000];
-		strcpy(teststring,fieldname);
-		strcat(teststring," = 'halleluha!';");
-		//duk_eval_string(ctx,"myprop = 'halleluha!';");
-		duk_eval_string(ctx,teststring);
-		duk_pop(ctx);
-		show_stack(ctx,"before print");
-		duk_eval_string(ctx,"print('hi there');"); duk_pop(ctx);
-		strcpy(teststring,"print(");
-		strcat(teststring,fieldname);
-		strcat(teststring,".toString());");
-		//duk_eval_string(ctx,"print(myprop.toString());");
-		duk_eval_string(ctx,teststring);
-		duk_pop(ctx);
-	}
-	//show_stack(ctx,"E");
 }
 
-void InitScriptField2(struct CRscriptStruct *scriptcontrol, indexT kind, int itype, const char* fieldname, union anyVrml *fieldvalue, int *valueChanged, struct X3D_Node* parent, int ifield)
+void InitScriptField2(struct CRscriptStruct *scriptcontrol, int itype, const char* fieldname, int *valueChanged, struct X3D_Node* parent)
 {
 	/* Creates a javascript-context twin of a Script node for fields of type:
 	 *  field/initializeOnly, eventOut/outputOnly, and the field/eventOut part of exposedField/inputOutput
@@ -1740,13 +1727,10 @@ void InitScriptField2(struct CRscriptStruct *scriptcontrol, indexT kind, int ity
 	int iglobal;
 	printf("in InitScriptField\n");
 
-	if (kind == PKW_inputOnly) return; //we'll hook input events to the author's functions elsewhere
-	//everything else -fields, eventOuts- needs a strict property twin created on the global object
 	// create twin property
 	ctx = scriptcontrol->cx;
-	iglobal = *(int*)scriptcontrol->glob; 
-	add_duk_global_property(ctx,iglobal,itype,fieldname, fieldvalue,valueChanged,parent,ifield);
-	*valueChanged = 0;
+	//iglobal = *(int*)scriptcontrol->glob; 
+	add_duk_global_property(ctx,itype,fieldname, valueChanged,parent);
 
 	return;
 }
@@ -1774,7 +1758,11 @@ void JSInitializeScriptAndFields (int num) {
 		fieldname = ScriptFieldDecl_getName(field);
 		kind = ScriptFieldDecl_getMode(field);
 		itype = ScriptFieldDecl_getType(field);
-		InitScriptField2(scriptcontrol, kind, itype, fieldname, &field->value, &field->valueChanged, script->ShaderScriptNode, i+1000);
+		if (kind != PKW_inputOnly) { //we'll hook input events to the author's functions elsewhere
+			//everything else -fields, eventOuts- needs a strict property twin created on the global object
+			field->valueChanged = 0;
+			InitScriptField2(scriptcontrol, itype, fieldname, &field->valueChanged, script->ShaderScriptNode);
+		}
 	}
 	
 	if (!jsActualrunScript(num, scriptcontrol->scriptText)) {
