@@ -2132,6 +2132,10 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen)
 	show_stack(ctx,"after seeking isOver");
 	itype = JSparamnames[tnfield].type;
 	push_typed_proxy2(ctx,itype,Data,NULL);
+	duk_push_number(ctx,TickTime());
+	duk_call(ctx,2);
+	//show_stack(ctx,"after calling isOver");
+	duk_pop(ctx); //pop undefined that results from void myfunc(){}
 	printf("in set_one_MultiElementType\n");
 	return;
 }
