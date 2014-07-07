@@ -264,28 +264,28 @@ void show_stack(duk_context *ctx, char* comment)
 
 //OBJECT VIRTUALIZATION / PROXY HELPERS: constructor, handler (has,ownKeys,enumerate,get,set,deleteProp)
 
-static struct {
-	int nkey;
-	char *key[100];
-	char *val[100];
-	char *arr[100];
-} nativeStruct = {0};
-
-void nativeSetS(const char *key, const char *val)
-{
-	//named property
-	int kval = -1;
-	for(int j=0;j<nativeStruct.nkey;j++)
-		if(!strcmp(nativeStruct.key[j],key))	kval = j;
-	if(kval < 0) {
-		kval = nativeStruct.nkey;
-		nativeStruct.key[kval] = strdup(key);
-		nativeStruct.nkey++;
-	}
-	nativeStruct.val[kval] = strdup(val);
-}
-static char* nativeValue = NULL;
-
+//static struct {
+//	int nkey;
+//	char *key[100];
+//	char *val[100];
+//	char *arr[100];
+//} nativeStruct = {0};
+//
+//void nativeSetS(const char *key, const char *val)
+//{
+//	//named property
+//	int kval = -1;
+//	for(int j=0;j<nativeStruct.nkey;j++)
+//		if(!strcmp(nativeStruct.key[j],key))	kval = j;
+//	if(kval < 0) {
+//		kval = nativeStruct.nkey;
+//		nativeStruct.key[kval] = strdup(key);
+//		nativeStruct.nkey++;
+//	}
+//	nativeStruct.val[kval] = strdup(val);
+//}
+//static char* nativeValue = NULL;
+//
 
 int isECMAtype(int itype){
 	int isEcma;
@@ -703,9 +703,6 @@ void convert_duk_to_fwvals(duk_context *ctx, int nargs, struct ArgListType argli
 			}
 			break; 
 		case 'W': {
-			//void *ptr = duk_get_pointer(ctx,i); 
-			//pars[i]._web3dval.native = ptr;
-			//pars[i]._web3dval.fieldType = FIELDTYPE_SFNode; //type of the incoming arg[i]
 			{
 				int rc, isOK, itypeRHS = -1;
 				union anyVrml *fieldRHS = NULL;
@@ -722,20 +719,13 @@ void convert_duk_to_fwvals(duk_context *ctx, int nargs, struct ArgListType argli
 				isOK = FALSE;
 				if(fieldRHS != NULL && itypeRHS > -1){
 					/* its one of our proxy field types. But is it the type we need?*/
-					//if(itype == itypeRHS){
-						/* same proxy type - attempt to copy it's value from LHS to RHS  */
-						/* copy one anyVrml field to the other by value. 
-							Q. what about the p* from complex fields? deep copy or just the pointer?
-						*/
-
-						//*field = *fieldRHS; //shallow copy - won't copy p[] in MF types
-						//medium_copy_field(itypeRHS,fieldRHS,&pars[i]._web3dval.native); //medium copy - copies p[] in MF types but not deep copy *(p[i]) if p[i] is pointer type ie SFNode* or Uni_String*
-						pars[i]._web3dval.native = fieldRHS;
-						pars[i]._web3dval.fieldType = itypeRHS;
-						pars[i].itype = 'W';
-						// see below *valueChanged = TRUE;
-						isOK = TRUE;
-					//}
+					//*field = *fieldRHS; //shallow copy - won't copy p[] in MF types
+					//medium_copy_field(itypeRHS,fieldRHS,&pars[i]._web3dval.native); //medium copy - copies p[] in MF types but not deep copy *(p[i]) if p[i] is pointer type ie SFNode* or Uni_String*
+					pars[i]._web3dval.native = fieldRHS;
+					pars[i]._web3dval.fieldType = itypeRHS;
+					pars[i].itype = 'W';
+					// see below *valueChanged = TRUE;
+					isOK = TRUE;
 				}
 			}
 			}
@@ -804,23 +794,10 @@ int cfwconstructor(duk_context *ctx) {
 	FWval args = NULL;
 	int argc;
 	convert_duk_to_fwvals(ctx, nargs, fwt->ConstructorArgs[i], &args, &argc);
-	//show_stack0(ctx,"cfwconstructor before type-specific constructor",0);
 
 	void *fwpointer = fwt->Constructor(fwt,argc,args);
 	free(args);
-	//show_stack0(ctx,"cfwconstructor before push this",0);
-	if(fwt->itype == FIELDTYPE_MFColor){ //13
-		//our MFColor test
-		struct SFColor *sfc;
-		struct Multi_Color *mfcolor = (struct Multi_Color *)fwpointer;
-		for(int ii=0;ii<mfcolor->n;ii++){
-			sfc = &mfcolor->p[ii];
-			printf("sfcolor[%d]=(%f,%f,%f)\n",ii,sfc->c[0],sfc->c[1],sfc->c[2]);
-		}
-	}
-	//duk_push_this(ctx);
 	push_typed_proxy(ctx,itype, fwpointer, valueChanged);
-	show_stack0(ctx,"cfwconstructor end - should be proxy on top, args underneath",0);
 
 	return 1;
 }
@@ -1112,28 +1089,40 @@ int cget(duk_context *ctx) {
 	//show_stack0(ctx,"in cget",0);
 
 	nr = 0;
-	const char *key = duk_require_string(ctx,-2);
-	printf("key=%s \n",key);
-	if(!strcmp(key,"fwItype")){
-		//someone else is asking a proxy for its fwItype (for example LHS = RHSProxy) the LHS Setter may want the RHS's fwItype
-		duk_push_int(ctx,itype);
-		nr = 1;
-		return nr;
-	}
-	if(!strcmp(key,"fwField")){
-		//someone is asking a proxy for its fwField
-		duk_push_pointer(ctx,parent);
-		nr = 1;
-		return nr;
+	//printf("indexer is%s\n",duk_type_to_string(duk_get_type(ctx,-2)));
+	switch(duk_get_type(ctx,-2)){
+	case DUK_TYPE_NUMBER:{
+		int ikey = duk_get_int(ctx,-2);
+		//printf("key=[%d]",ikey);
+		}
+		break;
+	default: {
+		const char *key = duk_require_string(ctx,-2);
+		//printf("key=%s \n",key);
+		if(!strcmp(key,"fwItype")){
+			//someone else is asking a proxy for its fwItype (for example LHS = RHSProxy) the LHS Setter may want the RHS's fwItype
+			duk_push_int(ctx,itype);
+			nr = 1;
+			return nr;
+		}
+		if(!strcmp(key,"fwField")){
+			//someone is asking a proxy for its fwField
+			duk_push_pointer(ctx,parent);
+			nr = 1;
+			return nr;
+		}
+
+		}
+		break;
 	}
 
 
 	if(itype > -1){
 		//itype is in AUXTYPE_ range
+		const char *key;// = duk_require_string(ctx,-2);
 		FWTYPE *fwt = getFWTYPE(itype);
 		int jndex, found;
 		char type, readOnly;
-		const char *key;// = duk_require_string(ctx,-2);
 
 		//check numeric indexer
 		if(duk_is_number(ctx,-2) && fwt->takesIndexer){
@@ -1145,7 +1134,7 @@ int cget(duk_context *ctx) {
 		}else{
 			//check properties - if a property, call the type-specific setter
 			int lastProp;
-			key = duk_require_string(ctx,-2);
+			key = duk_get_string(ctx,-2);
 			found = fwhas_generic(fwt,parent,key,&jndex,&type,&readOnly);
 		}
 		if(found && type=='f'){
@@ -1191,27 +1180,60 @@ int cset(duk_context *ctx) {
 	duk_pop(ctx);
 
 
-	show_stack0(ctx,"in cset",0);
+	//show_stack0(ctx,"in cset",0);
 	//char *val = duk_require_string(ctx,-2);
-	const char *val = duk_to_string(ctx,-2);
-	const char *key = duk_require_string(ctx,-3);
-	printf("key=%s val=%s\n",key,val);
+	//const char *val = duk_to_string(ctx,-2);
+	//const char *key = duk_require_string(ctx,-3);
+	//printf("key=%s val=%s\n",key,val);
+
+	//printf("cset indexer is%s\n",duk_type_to_string(duk_get_type(ctx,-3)));
+	switch(duk_get_type(ctx,-3)){
+	case DUK_TYPE_NUMBER:{
+		int ikey = duk_get_int(ctx,-3);
+		//printf("key=[%d] ",ikey);
+		}
+		break;
+	default: {
+		const char *key = duk_require_string(ctx,-3);
+		//printf("key=%s ",key);
+		}
+		break;
+	}
+	//printf("cset val is%s\n",duk_type_to_string(duk_get_type(ctx,-2)));
+	switch(duk_get_type(ctx,-2)){
+	case DUK_TYPE_NUMBER:{
+		int ival = duk_get_int(ctx,-2);
+		//printf("val=[%d]\n",ival);
+		}
+		break;
+	case DUK_TYPE_STRING:{
+		const char *cval = duk_get_string(ctx,-2);
+		//printf("val=%s\n",cval);
+		}
+		break;
+	default: 
+		//printf("val is object\n");
+		break;
+	}
+
 
 	if(itype > -1) {
 		//itype is in AUXTYPE_ range
+		const char* key;
 		FWTYPE *fwt = getFWTYPE(itype);
 		int jndex, found;
 		char type, readOnly;
 		//check numeric indexer
 		if(duk_is_number(ctx,-2) && fwt->takesIndexer){
 			//indexer
-			jndex = duk_get_int(ctx,-2);
+			jndex = duk_get_int(ctx,-3);
 			type = fwt->takesIndexer;
 			readOnly = fwt->indexerReadOnly;
 			found = 1;
 		}else{
 			//check properties - if a property, call the type-specific setter
 			int lastProp;
+			key = duk_get_string(ctx,-3);
 			found = fwhas_generic(fwt,parent,key,&jndex,&type,&readOnly) && (type != 'f');
 		}
 		if(found && (readOnly != 'T') && fwt->Setter){
@@ -1250,7 +1272,7 @@ int cdel(duk_context *ctx) {
 	duk_pop(ctx);
 
 	show_stack0(ctx,"in cdel",0);
-	duk_push_string(ctx, nativeValue);
+	//duk_push_string(ctx, nativeValue);
     return 1;
 }
 
@@ -1403,7 +1425,7 @@ void JSCreateScriptContext(int num) {
 			if(fwtypesArray[i]->Constructor)
 				addCustomProxyType(ctx,iglobal,fwtypesArray[i]->name);
 	}
-	show_stack(ctx,"before adding Browser");
+	//show_stack(ctx,"before adding Browser");
 	add_duk_global_property(ctx, AUXTYPE_X3DBrowser, "Browser", NULL, NULL);
 	//add_duk_global_property(ctx, iglobal, AUXTYPE_X3DBrowser, "Browser", "X3DBrowser", p->Instance->Browser, NULL,(struct X3D_Node*)p->Instance,2);
 	//addCustomProxyType(ctx, iglobal, "Browser"); 
@@ -1463,13 +1485,13 @@ void JSCreateScriptContext(int num) {
 	//* Global methods and defines (some redirecting to the Browser object ie print = Browser.println)
 	//if (!ACTUALRUNSCRIPT(num,DefaultScriptMethods,&rval))
 	//	cleanupDie(num,"runScript failed in VRML::newJS DefaultScriptMethods");
-	if(1){
+	if(0){
 		/* I need these working, but print = Browser.print isn't hooked up, and bombs later*/
 		show_stack(ctx,"\nbefore eval DefaultScriptMethods");
 		duk_eval_string(ctx,DefaultScriptMethodsA);
 		duk_pop(ctx);
 	}
-	show_stack(ctx,"done initializeContext - should be 1 object (global)");
+	//show_stack(ctx,"done initializeContext - should be 1 object (global)");
 	//duk_eval_string(ctx,"print('hi there');"); duk_pop(ctx);
 
 
@@ -2176,32 +2198,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 	//the from -our current script field value- is coming in through JSglobal_return_val 
 	fromptr = tg->JScript.JSglobal_return_val;
 	
-	//if(len <= 0)
-	//	printf("len <= 0 in setField_javascriptEventOut\n");
-	//datasize = sizeofSForMF(fieldType);
-	//memcpy(memptr,fromptr,datasize); //len); //shallow
 	medium_copy_field0(fieldType,fromptr,memptr); //will copy p data in MF
-	if(fieldType == FIELDTYPE_MFColor){ //13
-		//our MFColor test
-		struct SFColor *sfc;
-		struct Multi_Color *mfcolor = (struct Multi_Color *)fromptr;
-		printf("setField_javascriptEventOut fromptr\n");
-		for(int ii=0;ii<mfcolor->n;ii++){
-			sfc = &mfcolor->p[ii];
-			printf("sfcolor[%d]=(%f,%f,%f)\n",ii,sfc->c[0],sfc->c[1],sfc->c[2]);
-		}
-	}
-	if(fieldType == FIELDTYPE_MFColor){ //13
-		//our MFColor test
-		struct SFColor *sfc;
-		struct Multi_Color *mfcolor = (struct Multi_Color *)memptr;
-		printf("setField_javascriptEventOut memptr\n");
-		for(int ii=0;ii<mfcolor->n;ii++){
-			sfc = &mfcolor->p[ii];
-			printf("sfcolor[%d]=(%f,%f,%f)\n",ii,sfc->c[0],sfc->c[1],sfc->c[2]);
-		}
-	}
-
 	return;
 }
 void js_setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fieldType, unsigned len, int extraData, int actualscript) {
@@ -2408,42 +2405,13 @@ void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int
 	itype = dataType; //JSparamnames[toname].type;
 	//medium copy
 	void *datacopy = NULL;
-	char *source = (char *)Data - sizeof(int); //backup so we get the whole MF including .n
+	//char *source = (char *)Data - sizeof(int); //backup so we get the whole MF including .n
+	struct Multi_Any maData;
+	maData.n = datalen;
+	maData.p = Data;
+	char *source = (char *)&maData;
 	medium_copy_field(itype,source,&datacopy);
-	//void *datacopy = malloc(dataLen); //gc please
-	//memcpy(datacopy,Data,dataLen); 
-	if(itype == FIELDTYPE_MFColor){ //13
-		//our MFColor test
-		struct SFColor *sfc;
-		printf("Data\n");
-		sfc = Data;
-		for(int ii=0;ii<datalen;ii++){
-			printf("sfcolor[%d]=(%f,%f,%f)\n",ii,sfc->c[0],sfc->c[1],sfc->c[2]);
-			sfc = &sfc[1];
-		}
-	}
 
-	if(itype == FIELDTYPE_MFColor){ //13
-		//our MFColor test
-		struct SFColor *sfc;
-		struct Multi_Color *mfcolor = (struct Multi_Color *)source;
-		printf("source\n");
-		for(int ii=0;ii<mfcolor->n;ii++){
-			sfc = &mfcolor->p[ii];
-			printf("sfcolor[%d]=(%f,%f,%f)\n",ii,sfc->c[0],sfc->c[1],sfc->c[2]);
-		}
-	}
-
-	if(itype == FIELDTYPE_MFColor){ //13
-		//our MFColor test
-		struct SFColor *sfc;
-		struct Multi_Color *mfcolor = (struct Multi_Color *)datacopy;
-		printf("datacopy\n");
-		for(int ii=0;ii<mfcolor->n;ii++){
-			sfc = &mfcolor->p[ii];
-			printf("sfcolor[%d]=(%f,%f,%f)\n",ii,sfc->c[0],sfc->c[1],sfc->c[2]);
-		}
-	}
 	push_typed_proxy2(ctx,itype,datacopy,NULL);
 	duk_push_number(ctx,TickTime());
 	duk_call(ctx,2);

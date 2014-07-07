@@ -364,16 +364,19 @@ FWTYPE MFNodeType = {
 
 int SFColor_Getter(int index, void * fwn, FWval fwretval){
 	struct SFColor *ptr = (struct SFColor *)fwn;
-	int nr = 1;
+	int nr = 0;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
-	switch(index){
-	case 0: //r
-	case 1: //g
-	case 2: //b
-		fwretval->_numeric =  ptr->c[index];
-		break;
-	default:
-		nr = 0;
+	if(index > -1 && index < 3){
+		nr = 1;
+		switch(index){
+		case 0: //r
+		case 1: //g
+		case 2: //b
+			fwretval->_numeric =  ptr->c[index];
+			break;
+		default:
+			nr = 0;
+		}
 	}
 	fwretval->itype = 'N';
 	return nr;
@@ -381,14 +384,17 @@ int SFColor_Getter(int index, void * fwn, FWval fwretval){
 int SFColor_Setter(int index, void * fwn, FWval fwval){
 	struct SFColor *ptr = (struct SFColor *)fwn;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
-	switch(index){
-	case 0: //r
-	case 1: //g
-	case 2: //b
-		ptr->c[index] = fwval->_numeric;
-		break;
+	if(index > -1 && index < 3){
+		switch(index){
+		case 0: //r
+		case 1: //g
+		case 2: //b
+			ptr->c[index] = fwval->_numeric;
+			break;
+		}
+		return TRUE;
 	}
-	return TRUE;
+	return FALSE;
 }
 //typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
 void * SFColor_Constructor(FWType fwtype, int ic, FWval fwpars){
