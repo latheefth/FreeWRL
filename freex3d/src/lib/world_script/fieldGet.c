@@ -215,7 +215,6 @@ int setMFElementtype (int num) {
 		/* check Multimemcpy for C to C routing for this type */
 		/* get the number of elements */
 		len = mfp->n;
-		if(len == 0) return FALSE; //dug9 july 2014 I see an empty call with both SM and DUK.
 		pptr = (char *) mfp->p; /* pptr is a char * just for math stuff */
 		#ifdef SETFIELDVERBOSE
 		printf ("setMFElementtype, len now %d, from %d\n",len,fn);
