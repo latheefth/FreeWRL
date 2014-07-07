@@ -77,7 +77,6 @@ and set the valueChanged flag when set. Similarly other fieldtype functions and 
 ecma primitive instead of one of the above, and never generate a new one of these.
 */
 
-struct Multi_Any {int n; void *p;}; //should be same size as {int n, double *p} or {int n, struct X3D_Node **p} - an int and a pointer
 
 
 /* from http://www.cs.rit.edu/~ncs/color/t_convert.html */
@@ -431,18 +430,85 @@ FWTYPE SFColorType = {
 	'N',0, //index prop type,readonly
 	NULL, //functions
 };
+//MFW for MF types that take web3d (non-ecma-primitive) types ie new MFColor( new SFColor(0,0,0), new SFColor(.1,.2,.3), ...) 
+ArgListType (MFW_ConstructorArgs)[] = {
+		{0,0,'F',"W"},
+		{-1,0,0,NULL},
+};
+int sizeofSF(int itype);
+int lenItype(int itype){
+	return returnRoutingElementLength(itype);
+	return sizeofSF(itype);
+}
+void * MFW_Constructor(FWType fwtype, int argc, FWval fwpars){
+	int lenSF;
+	struct Multi_Any *ptr = malloc(sizeof(struct Multi_Any));  ///malloc in 2 parts for MF
+	lenSF = lenItype(fwtype->itype-1); //assumes FIELDTYPE_SFSomething = FIELDTYPE_MFSomething -1
+	ptr->n = argc;
+	ptr->p = NULL;
+	if(ptr->n)
+		ptr->p = malloc(ptr->n * lenSF); // This second part is resizable ie MF[i] = new SF() if i >= (.length), .length is expanded to accomodate
+	char *p = ptr->p;
+	for(int i=0;i<ptr->n;i++){
+		memcpy(p,fwpars[i]._web3dval.native,lenSF);
+		p += lenSF;
+	}
+	return (void *)ptr;
+}
+FWPropertySpec (MFW_Properties)[] = {
+	{"length", -1, 'N', 'F'},
+	{NULL,0,0,0},
+};
+int MFColor_Getter(int index, void * fwn, FWval fwretval){
+	struct Multi_Any *ptr = (struct Multi_Any *)fwn;
+	int nr = 0;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index == -1){
+		//length
+		fwretval->_integer = ptr->n;
+		fwretval->itype = 'I';
+		nr = 1;
+	}else if(index > -1 && index < ptr->n){
+		int elen = sizeofSF(FIELDTYPE_SFColor);
+		fwretval->_web3dval.native = (void *)(ptr->p + index*elen);
+		fwretval->_web3dval.fieldType = FIELDTYPE_SFColor;
+		fwretval->itype = 'W';
+		nr = 1;
+	}
+	return nr;
+}
+int MFColor_Setter(int index, void * fwn, FWval fwval){
+	struct Multi_Any *ptr = (struct Multi_Any *)fwn;
+	int nr = FALSE;
+	int elen = sizeofSF(FIELDTYPE_SFColor);
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index == -1){
+		//length
+		ptr->n = fwval->_integer;
+		ptr->p = realloc(ptr->p,ptr->n * elen);
+		nr = TRUE;
+	}else if(index > -1){
+		if(index >= ptr->n){
+			ptr->n = index +1;
+			ptr->p = realloc(ptr->p,ptr->n *elen); //need power of 2 if SFNode
+		}
+		memcpy(ptr->p + index*elen,fwval->_web3dval.native, elen);
+		nr = TRUE;
+	}
+	return nr;
+}
 //#define FIELDTYPE_MFColor	13
 FWTYPE MFColorType = {
 	FIELDTYPE_MFColor,
 	"MFColor",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
+	MFW_Constructor, //constructor
+	MFW_ConstructorArgs, //constructor args
+	MFW_Properties, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	MFColor_Getter, //Getter,
+	MFColor_Setter, //Setter,
+	'W',0, //index prop type,readonly
 	NULL, //functions
 };
 //#define FIELDTYPE_SFColorRGBA	14

@@ -1834,25 +1834,25 @@ extern const int FIELDTYPES_COUNT;
 #define FIELDTYPE_MFVec2f	21
 #define FIELDTYPE_SFImage	22
 #define FIELDTYPE_FreeWRLPTR	23
-#define FIELDTYPE_FreeWRLThread	24
-#define FIELDTYPE_SFVec3d	25
-#define FIELDTYPE_MFVec3d	26
-#define FIELDTYPE_SFDouble	27
-#define FIELDTYPE_MFDouble	28
-#define FIELDTYPE_SFMatrix3f	29
-#define FIELDTYPE_MFMatrix3f	30
-#define FIELDTYPE_SFMatrix3d	31
-#define FIELDTYPE_MFMatrix3d	32
-#define FIELDTYPE_SFMatrix4f	33
-#define FIELDTYPE_MFMatrix4f	34
-#define FIELDTYPE_SFMatrix4d	35
-#define FIELDTYPE_MFMatrix4d	36
-#define FIELDTYPE_SFVec2d	37
-#define FIELDTYPE_MFVec2d	38
-#define FIELDTYPE_SFVec4f	39
-#define FIELDTYPE_MFVec4f	40
-#define FIELDTYPE_SFVec4d	41
-#define FIELDTYPE_MFVec4d	42
+#define FIELDTYPE_SFVec3d	24
+#define FIELDTYPE_MFVec3d	25
+#define FIELDTYPE_SFDouble	26
+#define FIELDTYPE_MFDouble	27
+#define FIELDTYPE_SFMatrix3f	28
+#define FIELDTYPE_MFMatrix3f	29
+#define FIELDTYPE_SFMatrix3d	30
+#define FIELDTYPE_MFMatrix3d	31
+#define FIELDTYPE_SFMatrix4f	32
+#define FIELDTYPE_MFMatrix4f	33
+#define FIELDTYPE_SFMatrix4d	34
+#define FIELDTYPE_MFMatrix4d	35
+#define FIELDTYPE_SFVec2d	36
+#define FIELDTYPE_MFVec2d	37
+#define FIELDTYPE_SFVec4f	38
+#define FIELDTYPE_MFVec4f	39
+#define FIELDTYPE_SFVec4d	40
+#define FIELDTYPE_MFVec4d	41
+#define FIELDTYPE_FreeWRLThread	42
 
 /*cstruct*/
 struct Multi_Float { int n; float  *p; };
@@ -1878,7 +1878,6 @@ struct SFVec2f { float c[2]; };
 struct Multi_Vec2f { int n; struct SFVec2f  *p; };
 /*cstruct*/
 /*cstruct*/
-/*cstruct*/
 struct SFVec3d { double c[3]; };
 struct Multi_Vec3d { int n; struct SFVec3d  *p; };
 /*cstruct*/
@@ -1897,6 +1896,7 @@ struct SFVec4f { float c[4]; };
 struct Multi_Vec4f { int n; struct SFVec4f  *p; };
 struct SFVec4d { double c[4]; };
 struct Multi_Vec4d { int n; struct SFVec4d  *p; };
+/*cstruct*/
 const char *stringFieldtypeType(int st);
 
 /* Table of built-in nodeIds */

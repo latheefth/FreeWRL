@@ -287,7 +287,167 @@ void nativeSetS(const char *key, const char *val)
 static char* nativeValue = NULL;
 
 
+int isECMAtype(int itype){
+	int isEcma;
+	switch(itype){
+    case FIELDTYPE_SFBool:
+    case FIELDTYPE_SFFloat:
+    case FIELDTYPE_SFTime:
+    case FIELDTYPE_SFDouble:
+    case FIELDTYPE_SFInt32:
+    case FIELDTYPE_SFString:
+		isEcma = TRUE;
+	default:
+		isEcma = FALSE;
+	}
+	return isEcma;
+}
+int mf2sf(int itype){
+	//luckily the fieldtype defines are consistently mf = sf+1
+	//return convertToSFType(itype); //this is more reliable -converts and sf to itself- but bulky
+	return itype -1;
+}
+int sf2mf(int itype){
+	//luckily the fieldtype defines are consistently mf = sf+1
+	return itype +1;
+}
 
+/*we seem to be missing something in generated code/structs that would allow me to
+  look up how big something is. I suspect it's ##MACRO-ized elsewhere.
+*/
+int isSForMFType(int itype){
+	//sadly the fieldtype defines aren't reliably even or odd for sf or mf, so we'll do a switch case
+	//-1 unknown /not a fieldtype
+	//0 SF
+	//1 MF
+	int iret;
+	switch(itype){
+		case FIELDTYPE_SFFloat: 
+		case FIELDTYPE_SFRotation:	
+		case FIELDTYPE_SFVec3f:	
+		case FIELDTYPE_SFBool:	
+		case FIELDTYPE_SFInt32:	
+		case FIELDTYPE_SFNode:	
+		case FIELDTYPE_SFColor:	
+		case FIELDTYPE_SFColorRGBA:	
+		case FIELDTYPE_SFTime:	
+		case FIELDTYPE_SFString: 
+		case FIELDTYPE_SFVec2f:	
+		//case FIELDTYPE_SFImage:
+		case FIELDTYPE_SFVec3d:	
+		case FIELDTYPE_SFDouble: 
+		case FIELDTYPE_SFMatrix3f: 
+		case FIELDTYPE_SFMatrix3d: 
+		case FIELDTYPE_SFMatrix4f: 
+		case FIELDTYPE_SFMatrix4d: 
+		case FIELDTYPE_SFVec2d: 
+		case FIELDTYPE_SFVec4f:	
+		case FIELDTYPE_SFVec4d:	
+			iret = 0;
+			break;
+
+		case FIELDTYPE_MFFloat: 
+		case FIELDTYPE_MFRotation:	
+		case FIELDTYPE_MFVec3f:	
+		case FIELDTYPE_MFBool:	
+		case FIELDTYPE_MFInt32:	
+		case FIELDTYPE_MFNode:	
+		case FIELDTYPE_MFColor:	
+		case FIELDTYPE_MFColorRGBA:	
+		case FIELDTYPE_MFTime:	
+		case FIELDTYPE_MFString: 
+		case FIELDTYPE_MFVec2f:	
+		//case FIELDTYPE_MFImage:
+		case FIELDTYPE_MFVec3d:	
+		case FIELDTYPE_MFDouble: 
+		case FIELDTYPE_MFMatrix3f: 
+		case FIELDTYPE_MFMatrix3d: 
+		case FIELDTYPE_MFMatrix4f: 
+		case FIELDTYPE_MFMatrix4d: 
+		case FIELDTYPE_MFVec2d: 
+		case FIELDTYPE_MFVec4f:	
+		case FIELDTYPE_MFVec4d:	
+			iret = 1; break;
+		default:
+			iret = -1; break;
+	}
+	return iret;
+}
+int type2SF(int itype){
+	//unconditionally returns sf type
+	int jtype, sformf = isSForMFType(itype);
+	if(sformf < 0) return -1;
+	jtype = itype;
+	if(sformf == 1) jtype = mf2sf(itype);
+	return jtype;
+}
+int isSFType(int itype){
+	return (isSForMFType(itype) == 0) ? 1 : 0;
+}
+int sizeofSForMF(int itype){
+	//goal get the offset for MF.p[i] in bytes
+	int iz;
+	switch(itype){
+	case FIELDTYPE_SFFloat: iz = sizeof(float); break;
+	case FIELDTYPE_SFRotation:	iz = sizeof(struct SFRotation); break;
+	case FIELDTYPE_SFVec3f:	iz = 3*sizeof(struct SFVec3f);break;
+	case FIELDTYPE_SFBool:	iz = sizeof(int); break;
+	case FIELDTYPE_SFInt32:	iz = sizeof(int); break;
+	case FIELDTYPE_SFNode:	iz = sizeof(void*); break;
+	case FIELDTYPE_SFColor:	iz = sizeof(struct SFColor); break;
+	case FIELDTYPE_SFColorRGBA:	iz = sizeof(struct SFColorRGBA); break;
+	case FIELDTYPE_SFTime:	iz = sizeof(double); break;
+	case FIELDTYPE_SFString: iz = sizeof(struct Uni_string *); break;
+	case FIELDTYPE_SFVec2f:	iz = sizeof(struct SFVec2f); break;
+	//case FIELDTYPE_SFImage:	iz = 
+	case FIELDTYPE_SFVec3d:	iz = sizeof(struct SFVec3d); break;
+	case FIELDTYPE_SFDouble: iz = sizeof(double); break;
+	case FIELDTYPE_SFMatrix3f: iz = sizeof(struct SFMatrix3f); break;
+	case FIELDTYPE_SFMatrix3d: iz = sizeof(struct SFMatrix3d); break;
+	case FIELDTYPE_SFMatrix4f: iz = sizeof(struct SFMatrix4f); break;
+	case FIELDTYPE_SFMatrix4d: iz = sizeof(struct SFMatrix4d); break;
+	case FIELDTYPE_SFVec2d: iz = sizeof(struct SFVec2d); break;
+	case FIELDTYPE_SFVec4f:	iz = sizeof(struct SFVec4f); break;
+	case FIELDTYPE_SFVec4d:	iz = sizeof(struct SFVec4d); break;
+
+	case FIELDTYPE_MFFloat: 
+	case FIELDTYPE_MFRotation:	
+	case FIELDTYPE_MFVec3f:	
+	case FIELDTYPE_MFBool:	
+	case FIELDTYPE_MFInt32:	
+	case FIELDTYPE_MFNode:	
+	case FIELDTYPE_MFColor:	
+	case FIELDTYPE_MFColorRGBA:	
+	case FIELDTYPE_MFTime:	
+	case FIELDTYPE_MFString: 
+	case FIELDTYPE_MFVec2f:	
+	//case FIELDTYPE_MFImage:	iz = 
+	case FIELDTYPE_MFVec3d:	
+	case FIELDTYPE_MFDouble: 
+	case FIELDTYPE_MFMatrix3f: 
+	case FIELDTYPE_MFMatrix3d: 
+	case FIELDTYPE_MFMatrix4f: 
+	case FIELDTYPE_MFMatrix4d: 
+	case FIELDTYPE_MFVec2d: 
+	case FIELDTYPE_MFVec4f:	
+	case FIELDTYPE_MFVec4d:	
+		iz = sizeof(struct Multi_Any);
+		break;
+	default:
+		//unknown
+		iz = sizeof(void*);
+		break;
+	}
+	return iz;
+}
+int sizeofSF(int itype){
+	int jtype;
+	int sformf = isSForMFType(itype);
+	if( sformf < 0) return 0;
+	jtype = itype;
+	if( sformf == 1 ) jtype = mf2sf(itype);
+	return sizeofSForMF(jtype);
+}
 
 //struct Node_Scene {
 //       int _nodeType; /* unique integer for each type */ 
@@ -368,7 +528,7 @@ int fwType2itype(const char *fwType){
 		}
 		if(ifield > -1 && isMF ) ifield++;
 	}else{
-		//browser and scene/executionContext shouldn't be going through cfwconstructor
+		//browser and scene/executionContext shouldn't be going through fwconstructor
 		if(!strcmp(fwType,"Browser")) ifield = AUXTYPE_X3DBrowser;
 		if(!strcmp(fwType,"X3DConstants")) ifield = AUXTYPE_X3DConstants;
 	}
@@ -458,6 +618,58 @@ int push_typed_proxy2(duk_context *ctx, int itype, void *fwpointer, int* valueCh
 
 
 #include <math.h> //for int = round(numeric)
+void medium_copy_field0(int itype, void* source, void* dest)
+{
+	/* medium-deep copies field up to and including pointer: doesn't deep copy *(SFNode*) or *(SFString*), 
+		- SFString treated analogous to const char * 
+		- malloc your starting type outside
+	*/
+	
+	int i, sfsize,sformf;
+	int sftype, isMF;
+	struct Multi_Any *mfs,*mfd;
+
+	sformf = isSForMFType(itype);
+	if(sformf < 0){
+		printf("bad type in medium_copy_field0\n");
+		return;
+	}
+	isMF = sformf == 1; 
+	sftype = type2SF(itype);
+	//from EAI_C_CommonFunctions.c
+	sfsize = sizeofSF(sftype); //returnElementLength(sftype) * returnElementRowSize(sftype);
+	if(isMF)
+	{
+		int nele;
+		char *ps, *pd;
+		mfs = (struct Multi_Any*)source;
+		mfd = (struct Multi_Any*)dest;
+		//we need to malloc and do more copying
+		nele = mfs->n;
+		if( sftype == FIELDTYPE_SFNode ) nele = (int) upper_power_of_two(nele); //upper power of 2 is a convention for children[] to solve a realloc memory fragmentation issue during parsing of extremely large and flat files
+		mfd->p = malloc(sfsize*nele);
+		mfd->n = mfs->n;
+		ps = (char *)mfs->p;
+		pd = (char *)mfd->p;
+		for(i=0;i<mfs->n;i++)
+		{
+			medium_copy_field0(sftype,(union anyVrml*)ps,(union anyVrml*)pd);
+			ps += sfsize;
+			pd += sfsize;
+		}
+
+	}else{ 
+		//isSF
+		memcpy(dest,source,sfsize);
+	}
+} //return medium_copy_field
+void medium_copy_field(int itype, void* source, void** dest){
+	//void *myDestination = NULL;
+	//medium_copy_field(itype,source,&myDestination);
+	// it will malloc the size
+	(*dest) = malloc(sizeofSForMF(itype));
+	medium_copy_field0(itype,source,(*dest));
+}
 
 void convert_duk_to_fwvals(duk_context *ctx, int nargs, struct ArgListType arglist, FWval *args, int *argc){
 	int nUsable,nNeeded, i;
@@ -491,9 +703,41 @@ void convert_duk_to_fwvals(duk_context *ctx, int nargs, struct ArgListType argli
 			}
 			break; 
 		case 'W': {
-			void *ptr = duk_get_pointer(ctx,i); 
-			pars[i]._web3dval.native = ptr;
-			pars[i]._web3dval.fieldType = FIELDTYPE_SFNode; //type of the incoming arg[i]
+			//void *ptr = duk_get_pointer(ctx,i); 
+			//pars[i]._web3dval.native = ptr;
+			//pars[i]._web3dval.fieldType = FIELDTYPE_SFNode; //type of the incoming arg[i]
+			{
+				int rc, isOK, itypeRHS = -1;
+				union anyVrml *fieldRHS = NULL;
+				rc = duk_get_prop_string(ctx,i,"fwItype");
+				if(rc == 1){
+					//printf(duk_type_to_string(duk_get_type(ctx, -1)));
+					itypeRHS = duk_to_int(ctx,-1);
+				}
+				duk_pop(ctx);
+				rc = duk_get_prop_string(ctx,i,"fwField");
+				if(rc == 1) fieldRHS = duk_to_pointer(ctx,-1);
+				duk_pop(ctx);
+				/*we don't need the RHS fwChanged=valueChanged* because we are only changing the LHS*/
+				isOK = FALSE;
+				if(fieldRHS != NULL && itypeRHS > -1){
+					/* its one of our proxy field types. But is it the type we need?*/
+					//if(itype == itypeRHS){
+						/* same proxy type - attempt to copy it's value from LHS to RHS  */
+						/* copy one anyVrml field to the other by value. 
+							Q. what about the p* from complex fields? deep copy or just the pointer?
+						*/
+
+						//*field = *fieldRHS; //shallow copy - won't copy p[] in MF types
+						//medium_copy_field(itypeRHS,fieldRHS,&pars[i]._web3dval.native); //medium copy - copies p[] in MF types but not deep copy *(p[i]) if p[i] is pointer type ie SFNode* or Uni_String*
+						pars[i]._web3dval.native = fieldRHS;
+						pars[i]._web3dval.fieldType = itypeRHS;
+						pars[i].itype = 'W';
+						// see below *valueChanged = TRUE;
+						isOK = TRUE;
+					//}
+				}
+			}
 			}
 			break;
 		case 'O': break; //object pointer ie to js function callback object
@@ -510,8 +754,11 @@ void convert_duk_to_fwvals(duk_context *ctx, int nargs, struct ArgListType argli
 		case 'N': pars[i]._numeric = 0.0; break;
 		case 'S': pars[i]._string = NULL; break;
 		case 'F': pars[i]._string = NULL; pars[i].itype = 'S'; break;
-		case 'W': pars[i]._web3dval.fieldType = FIELDTYPE_SFNode; pars[i]._web3dval.native = NULL; break;
-		case 'O': pars[i]._jsobject = NULL; break; 
+		case 'W': 
+			pars[i]._web3dval.fieldType = FIELDTYPE_SFNode; 
+			pars[i]._web3dval.native = NULL; break;
+		case 'O': 
+			pars[i]._jsobject = NULL; break; 
 		}
 	}
 }
@@ -541,7 +788,9 @@ int cfwconstructor(duk_context *ctx) {
 	int ifound, i = 0;
 	ifound = -1;
 	while(fwt->ConstructorArgs[i].nfixedArg > -1){
-		if(fwt->ConstructorArgs[i].nfixedArg == nargs){ 
+		int nfixed = fwt->ConstructorArgs[i].nfixedArg;
+		int ivarsa = fwt->ConstructorArgs[i].iVarArgStartsAt;
+		if( nargs == nfixed || (ivarsa > -1 && nargs > nfixed )){ 
 			//its a match
 			ifound = i;
 			break;
@@ -557,13 +806,21 @@ int cfwconstructor(duk_context *ctx) {
 	convert_duk_to_fwvals(ctx, nargs, fwt->ConstructorArgs[i], &args, &argc);
 	//show_stack0(ctx,"cfwconstructor before type-specific constructor",0);
 
-	void *fwpointer = fwt->Constructor(fwt,i,args);
+	void *fwpointer = fwt->Constructor(fwt,argc,args);
 	free(args);
 	//show_stack0(ctx,"cfwconstructor before push this",0);
-
+	if(fwt->itype == FIELDTYPE_MFColor){ //13
+		//our MFColor test
+		struct SFColor *sfc;
+		struct Multi_Color *mfcolor = (struct Multi_Color *)fwpointer;
+		for(int ii=0;ii<mfcolor->n;ii++){
+			sfc = &mfcolor->p[ii];
+			printf("sfcolor[%d]=(%f,%f,%f)\n",ii,sfc->c[0],sfc->c[1],sfc->c[2]);
+		}
+	}
 	//duk_push_this(ctx);
 	push_typed_proxy(ctx,itype, fwpointer, valueChanged);
-	//show_stack0(ctx,"cfwconstructor end - should be proxy on top, args underneath",0);
+	show_stack0(ctx,"cfwconstructor end - should be proxy on top, args underneath",0);
 
 	return 1;
 }
@@ -702,59 +959,8 @@ int push_duk_fieldvalueECMA(duk_context *ctx, int itype, union anyVrml *fieldval
 //	push_typed_proxy2(ctx, itype, field, valueChanged);
 //	return 1;
 //}
-int isECMAtype(int itype){
-	int isEcma;
-	switch(itype){
-    case FIELDTYPE_SFBool:
-    case FIELDTYPE_SFFloat:
-    case FIELDTYPE_SFTime:
-    case FIELDTYPE_SFDouble:
-    case FIELDTYPE_SFInt32:
-    case FIELDTYPE_SFString:
-		isEcma = TRUE;
-	default:
-		isEcma = FALSE;
-	}
-	return isEcma;
-}
-int mf2sf(int itype){
-	//return convertToSFType(itype); //this is more reliable but bulky
-	return itype -1;
-}
-/*we seem to be missing something in generated code/structs that would allow me to
-  look up how big something is. I suspect it's ##MACRO-ized elsewhere.
-*/
-int sizeofSF(int itype){
-	//goal get the offset for MF.p[i] in bytes
-	int iz;
-	switch(itype){
-	case FIELDTYPE_SFFloat: iz = sizeof(float); break;
-	case FIELDTYPE_SFRotation:	iz = sizeof(struct SFRotation); break;
-	case FIELDTYPE_SFVec3f:	iz = 3*sizeof(struct SFVec3f);break;
-	case FIELDTYPE_SFBool:	iz = sizeof(int); break;
-	case FIELDTYPE_SFInt32:	iz = sizeof(int); break;
-	case FIELDTYPE_SFNode:	iz = sizeof(void*); break;
-	case FIELDTYPE_SFColor:	iz = sizeof(struct SFColor); break;
-	case FIELDTYPE_SFColorRGBA:	iz = sizeof(struct SFColorRGBA); break;
-	case FIELDTYPE_SFTime:	iz = sizeof(double); break;
-	case FIELDTYPE_SFString: iz = sizeof(struct Uni_string *); break;
-	case FIELDTYPE_SFVec2f:	iz = sizeof(struct SFVec2f); break;
-	//case FIELDTYPE_SFImage:	iz = 
-	case FIELDTYPE_SFVec3d:	iz = sizeof(struct SFVec3d); break;
-	case FIELDTYPE_SFDouble: iz = sizeof(double); break;
-	case FIELDTYPE_SFMatrix3f: iz = sizeof(struct SFMatrix3f); break;
-	case FIELDTYPE_SFMatrix3d: iz = sizeof(struct SFMatrix3d); break;
-	case FIELDTYPE_SFMatrix4f: iz = sizeof(struct SFMatrix4f); break;
-	case FIELDTYPE_SFMatrix4d: iz = sizeof(struct SFMatrix4d); break;
-	case FIELDTYPE_SFVec2d: iz = sizeof(struct SFVec2d); break;
-	case FIELDTYPE_SFVec4f:	iz = sizeof(struct SFVec4f); break;
-	case FIELDTYPE_SFVec4d:	iz = sizeof(struct SFVec4d); break;
-	default:
-		//ouch
-		iz = sizeof(void*);
-	}
-	return iz;
-}
+
+
 int Browser_getSomething(double *dval,double A, double B, double C){
 	*dval = A + B + C;
 	return 1;
@@ -1468,40 +1674,49 @@ int getFieldFromNodeAndIndex(struct X3D_Node* node, int ifield, const char **fie
 }
 
 int get_valueChanged_flag (int fptr, int actualscript){
+	char *fullname;
+	union anyVrml* value;
+	int type, kind, ifield;
+	struct X3D_Node *node;
 	struct Shader_Script *script;
 	struct ScriptFieldDecl *field;
 	struct CRscriptStruct *scriptcontrol, *ScriptControlArr = getScriptControl();
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 	scriptcontrol = &ScriptControlArr[actualscript];
 	script = scriptcontrol->script;
-	field = Shader_Script_getScriptField(script, fptr);
-	if(field->valueChanged){
-		const char* fname;
-		int type, kind, ihave;
-		union anyVrml *value;
-		struct X3D_Node *node;
-		node = script->ShaderScriptNode;
-		ihave = getFieldFromNodeAndIndex(node,fptr,&fname,&type,&kind,&value);
-		if(!ihave) 
-			printf("ouch bad fptr %d",fptr);
-		else{
-			printf("%s %d %d %f %f %f ",fname,type,kind,value->sfcolor.c[0],value->sfcolor.c[1],value->sfcolor.c[2]);
-		}
-		printf("flag=%d",field->valueChanged);
+	node = script->ShaderScriptNode;
+	fullname = JSparamnames[fptr].name;
+	int found = getFieldFromNodeAndName(node,fullname,&type,&kind,&ifield,&value);
+	if(found){
+		field = Shader_Script_getScriptField(script, ifield);
+		gglobal()->JScript.JSglobal_return_val = (void *)&field->value;
+		return field->valueChanged;
 	}
-	gglobal()->JScript.JSglobal_return_val = (void *)&field->value;
-	return field->valueChanged;
+	gglobal()->JScript.JSglobal_return_val = NULL;
+	return 0;
 }
 void resetScriptTouchedFlag(int actualscript, int fptr){
+	char *fullname;
+	union anyVrml* value;
+	int type, kind, ifield;
+	struct X3D_Node *node;
 	struct Shader_Script *script;
 	struct ScriptFieldDecl *field;
 	struct CRscriptStruct *scriptcontrol, *ScriptControlArr = getScriptControl();
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 	scriptcontrol = &ScriptControlArr[actualscript];
 	script = scriptcontrol->script;
-	field = Shader_Script_getScriptField(script, fptr);
-	field->valueChanged = 0;
+	node = script->ShaderScriptNode;
+	fullname = JSparamnames[fptr].name;
+	int found = getFieldFromNodeAndName(node,fullname,&type,&kind,&ifield,&value);
+	if(found){
+		field = Shader_Script_getScriptField(script, ifield);
+		field->valueChanged = 0;
+	}
 	//printf("in get_valueChanged_flag\n");
 	return;
 }
+
 
 
 /* fwsetterNS, fwgetterNS are for our Script node dynamic fields, or
@@ -1618,7 +1833,7 @@ int fwsetterNS(duk_context *ctx) {
 		union anyVrml *fieldRHS = NULL;
 		rc = duk_get_prop_string(ctx,0,"fwItype");
 		if(rc == 1){
-			printf(duk_type_to_string(duk_get_type(ctx, -1)));
+			//printf(duk_type_to_string(duk_get_type(ctx, -1)));
 			itypeRHS = duk_to_int(ctx,-1);
 		}
 		duk_pop(ctx);
@@ -1635,7 +1850,9 @@ int fwsetterNS(duk_context *ctx) {
 				/* copy one anyVrml field to the other by value. 
 					Q. what about the p* from complex fields? deep copy or just the pointer?
 				*/
-				*field = *fieldRHS;
+
+				//*field = *fieldRHS; //shallow copy - won't copy p[] in MF types
+				medium_copy_field0(itype,fieldRHS,field); //medium copy - copies p[] in MF types but not deep copy *(p[i]) if p[i] is pointer type ie SFNode* or Uni_String*
 				// see below *valueChanged = TRUE;
 				isOK = TRUE;
 			}
@@ -1946,18 +2163,46 @@ void js_setField_javascriptEventOut_B(union anyVrml* any, int fieldType, unsigne
 }
 
 void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fieldType, unsigned len, int extraData) {
-	//this proxy method already writes to the script field, so there's nothing to update 
+	//this proxy method already writes to the script field, so there's nothing to update in javascript
 	//- can just copy anyVrml from script field to endpoint on Route 
 	// (Brotos don't come in this function)
 	char *memptr;
 	char *fromptr;
+	int datasize;
 	ttglobal tg = gglobal();
 
 	/* set up a pointer to where to put this stuff */
 	memptr = offsetPointer_deref(char *, tn, tptr);
 	//the from -our current script field value- is coming in through JSglobal_return_val 
 	fromptr = tg->JScript.JSglobal_return_val;
-	memcpy(memptr,fromptr,len);
+	
+	//if(len <= 0)
+	//	printf("len <= 0 in setField_javascriptEventOut\n");
+	//datasize = sizeofSForMF(fieldType);
+	//memcpy(memptr,fromptr,datasize); //len); //shallow
+	medium_copy_field0(fieldType,fromptr,memptr); //will copy p data in MF
+	if(fieldType == FIELDTYPE_MFColor){ //13
+		//our MFColor test
+		struct SFColor *sfc;
+		struct Multi_Color *mfcolor = (struct Multi_Color *)fromptr;
+		printf("setField_javascriptEventOut fromptr\n");
+		for(int ii=0;ii<mfcolor->n;ii++){
+			sfc = &mfcolor->p[ii];
+			printf("sfcolor[%d]=(%f,%f,%f)\n",ii,sfc->c[0],sfc->c[1],sfc->c[2]);
+		}
+	}
+	if(fieldType == FIELDTYPE_MFColor){ //13
+		//our MFColor test
+		struct SFColor *sfc;
+		struct Multi_Color *mfcolor = (struct Multi_Color *)memptr;
+		printf("setField_javascriptEventOut memptr\n");
+		for(int ii=0;ii<mfcolor->n;ii++){
+			sfc = &mfcolor->p[ii];
+			printf("sfcolor[%d]=(%f,%f,%f)\n",ii,sfc->c[0],sfc->c[1],sfc->c[2]);
+		}
+	}
+
+	return;
 }
 void js_setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fieldType, unsigned len, int extraData, int actualscript) {
 	struct CRscriptStruct *scriptcontrol;
@@ -2109,7 +2354,6 @@ void setScriptECMAtype (int num) {
 	}
 }
 
-
 void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen){
 	//tonode - script array num
 	//tnfield - integer index into jsparamname[] array
@@ -2126,21 +2370,85 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen)
 	ctx =  (duk_context *)ScriptControl[tonode].cx;
 	obj = *(int*)ScriptControl[tonode].glob;
 	
+	printf("in set_one_MultiElementType\n");
 	//get function by name
-	show_stack(ctx,"before seeking isOver");
 	duk_eval_string(ctx,JSparamnames[tnfield].name); //gets the evenin function on the stack
-	show_stack(ctx,"after seeking isOver");
 	itype = JSparamnames[tnfield].type;
-	push_typed_proxy2(ctx,itype,Data,NULL);
+	//medium copy
+	void *datacopy = NULL;
+	medium_copy_field(itype,Data,&datacopy);
+	//void *datacopy = malloc(dataLen); //gc please
+	//memcpy(datacopy,Data,dataLen); 
+	push_typed_proxy2(ctx,itype,datacopy,NULL);
 	duk_push_number(ctx,TickTime());
 	duk_call(ctx,2);
 	//show_stack(ctx,"after calling isOver");
 	duk_pop(ctx); //pop undefined that results from void myfunc(){}
-	printf("in set_one_MultiElementType\n");
 	return;
 }
 void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int datalen){
+	//tonode - script array num
+	//tnfield - integer index into jsparamname[] array
+	//void* Data - MF.p
+	//datalen - MF.n
+	FWVAL newval;
+	duk_context *ctx;
+	int obj;
+	int itype;
+
+	struct CRscriptStruct *ScriptControl = getScriptControl();
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
+
+	ctx =  (duk_context *)ScriptControl[tonode].cx;
+	obj = *(int*)ScriptControl[tonode].glob;
+	
 	printf("in set_one_MFElementType\n");
+	//get function by name
+	duk_eval_string(ctx,JSparamnames[toname].name); //gets the evenin function on the stack
+	itype = dataType; //JSparamnames[toname].type;
+	//medium copy
+	void *datacopy = NULL;
+	char *source = (char *)Data - sizeof(int); //backup so we get the whole MF including .n
+	medium_copy_field(itype,source,&datacopy);
+	//void *datacopy = malloc(dataLen); //gc please
+	//memcpy(datacopy,Data,dataLen); 
+	if(itype == FIELDTYPE_MFColor){ //13
+		//our MFColor test
+		struct SFColor *sfc;
+		printf("Data\n");
+		sfc = Data;
+		for(int ii=0;ii<datalen;ii++){
+			printf("sfcolor[%d]=(%f,%f,%f)\n",ii,sfc->c[0],sfc->c[1],sfc->c[2]);
+			sfc = &sfc[1];
+		}
+	}
+
+	if(itype == FIELDTYPE_MFColor){ //13
+		//our MFColor test
+		struct SFColor *sfc;
+		struct Multi_Color *mfcolor = (struct Multi_Color *)source;
+		printf("source\n");
+		for(int ii=0;ii<mfcolor->n;ii++){
+			sfc = &mfcolor->p[ii];
+			printf("sfcolor[%d]=(%f,%f,%f)\n",ii,sfc->c[0],sfc->c[1],sfc->c[2]);
+		}
+	}
+
+	if(itype == FIELDTYPE_MFColor){ //13
+		//our MFColor test
+		struct SFColor *sfc;
+		struct Multi_Color *mfcolor = (struct Multi_Color *)datacopy;
+		printf("datacopy\n");
+		for(int ii=0;ii<mfcolor->n;ii++){
+			sfc = &mfcolor->p[ii];
+			printf("sfcolor[%d]=(%f,%f,%f)\n",ii,sfc->c[0],sfc->c[1],sfc->c[2]);
+		}
+	}
+	push_typed_proxy2(ctx,itype,datacopy,NULL);
+	duk_push_number(ctx,TickTime());
+	duk_call(ctx,2);
+	//show_stack(ctx,"after calling isOver");
+	duk_pop(ctx); //pop undefined that results from void myfunc(){}
 	return;
 }
 int jsIsRunning(){

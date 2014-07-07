@@ -70,8 +70,7 @@ typedef struct FWTYPE{
 	FWSet Setter;
 	char takesIndexer; char indexerReadOnly;//getter can take in integer index ie MF[33]. put 0 or FALSE for no, else put the type the property takes/gives ie 'W' 'S' 'I' 'N' 'B' 'P'
 	FWFunctionSpec *Functions;
-} FWTYPE;
-typedef struct FWTYPE *FWType;
+} FWTYPE, *FWType;
 
 //wrapper around *native with a few extras 
 typedef struct WEB3DNATIVE {
@@ -115,8 +114,9 @@ typedef void * (* FWConstructor)(FWType fwtype, int ic, FWval fwpars);
 typedef int (* FWFunction)(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval);
 typedef int (* FWGet)(int index, void * fwn, FWval fwretval);
 typedef int (* FWSet)(int index, void * fwn, FWval fwsetval);
-typedef int (* FWIterator)(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex, char *type, char *readOnly);
+typedef int (* FWIterator)(int index, FWType fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex, char *type, char *readOnly);
 //typedef void (* FWFinalizer)(FWType fwtype, FWNative fwn);
+struct Multi_Any {int n; char *p;}; //should be same size as {int n, double *p} or {int n, struct X3D_Node **p} - an int and a pointer
 
 
 

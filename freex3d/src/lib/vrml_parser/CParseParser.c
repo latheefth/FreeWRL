@@ -4567,7 +4567,7 @@ void copy_field(int typeIndex, union anyVrml* source, union anyVrml* dest, struc
 	int sftype, isMF;
 	struct Multi_Node *mfs,*mfd;
 
-	isMF = typeIndex % 2;
+	isMF = typeIndex % 2;  //this is wrong - you need a functional lookup or re-arrange the #defines
 	sftype = typeIndex - isMF;
 	//from EAI_C_CommonFunctions.c
 	isize = returnElementLength(sftype) * returnElementRowSize(sftype);

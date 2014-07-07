@@ -46,7 +46,6 @@ our @Fields = qw/
 	MFVec2f
 	SFImage
 	FreeWRLPTR
-	FreeWRLThread
 	SFVec3d
 	MFVec3d
 	SFDouble
@@ -65,6 +64,7 @@ our @Fields = qw/
 	MFVec4f
 	SFVec4d
 	MFVec4d
+	FreeWRLThread
 /;
 
 

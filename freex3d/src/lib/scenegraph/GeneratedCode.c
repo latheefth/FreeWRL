@@ -1552,7 +1552,6 @@ const int GEOSPATIAL_COUNT = ARR_SIZE(GEOSPATIAL);
 	"MFVec2f",
 	"SFImage",
 	"FreeWRLPTR",
-	"FreeWRLThread",
 	"SFVec3d",
 	"MFVec3d",
 	"SFDouble",
@@ -1571,6 +1570,7 @@ const int GEOSPATIAL_COUNT = ARR_SIZE(GEOSPATIAL);
 	"MFVec4f",
 	"SFVec4d",
 	"MFVec4d",
+	"FreeWRLThread",
 };
 const int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 
@@ -5439,7 +5439,6 @@ char mapFieldTypeToEAItype (int st) {
 		case FIELDTYPE_MFVec2f:	return EAI_MFVec2f;
 		case FIELDTYPE_SFImage:	return EAI_SFImage;
 		case FIELDTYPE_FreeWRLPTR:	return EAI_FreeWRLPTR;
-		case FIELDTYPE_FreeWRLThread:	return EAI_FreeWRLThread;
 		case FIELDTYPE_SFVec3d:	return EAI_SFVec3d;
 		case FIELDTYPE_MFVec3d:	return EAI_MFVec3d;
 		case FIELDTYPE_SFDouble:	return EAI_SFDouble;
@@ -5458,6 +5457,7 @@ char mapFieldTypeToEAItype (int st) {
 		case FIELDTYPE_MFVec4f:	return EAI_MFVec4f;
 		case FIELDTYPE_SFVec4d:	return EAI_SFVec4d;
 		case FIELDTYPE_MFVec4d:	return EAI_MFVec4d;
+		case FIELDTYPE_FreeWRLThread:	return EAI_FreeWRLThread;
 		default: return -1;
 	}
 	return -1;
@@ -5489,7 +5489,6 @@ int mapEAItypeToFieldType (char st) {
 		case EAI_MFVec2f:	return FIELDTYPE_MFVec2f;
 		case EAI_SFImage:	return FIELDTYPE_SFImage;
 		case EAI_FreeWRLPTR:	return FIELDTYPE_FreeWRLPTR;
-		case EAI_FreeWRLThread:	return FIELDTYPE_FreeWRLThread;
 		case EAI_SFVec3d:	return FIELDTYPE_SFVec3d;
 		case EAI_MFVec3d:	return FIELDTYPE_MFVec3d;
 		case EAI_SFDouble:	return FIELDTYPE_SFDouble;
@@ -5508,6 +5507,7 @@ int mapEAItypeToFieldType (char st) {
 		case EAI_MFVec4f:	return FIELDTYPE_MFVec4f;
 		case EAI_SFVec4d:	return FIELDTYPE_SFVec4d;
 		case EAI_MFVec4d:	return FIELDTYPE_MFVec4d;
+		case EAI_FreeWRLThread:	return FIELDTYPE_FreeWRLThread;
 		default: return -1;
 	}
 	return -1;
@@ -5539,7 +5539,6 @@ int convertToSFType (int st) {
 		case FIELDTYPE_MFVec2f:	return FIELDTYPE_SFVec2f;
 		case FIELDTYPE_SFImage:	return FIELDTYPE_SFImage;
 		case FIELDTYPE_FreeWRLPTR:	return FIELDTYPE_FreeWRLPTR;
-		case FIELDTYPE_FreeWRLThread:	return FIELDTYPE_FreeWRLThread;
 		case FIELDTYPE_SFVec3d:	return FIELDTYPE_SFVec3d;
 		case FIELDTYPE_MFVec3d:	return FIELDTYPE_SFVec3d;
 		case FIELDTYPE_SFDouble:	return FIELDTYPE_SFDouble;
@@ -5558,6 +5557,7 @@ int convertToSFType (int st) {
 		case FIELDTYPE_MFVec4f:	return FIELDTYPE_SFVec4f;
 		case FIELDTYPE_SFVec4d:	return FIELDTYPE_SFVec4d;
 		case FIELDTYPE_MFVec4d:	return FIELDTYPE_SFVec4d;
+		case FIELDTYPE_FreeWRLThread:	return FIELDTYPE_FreeWRLThread;
 	}
 	return -1;
 }
