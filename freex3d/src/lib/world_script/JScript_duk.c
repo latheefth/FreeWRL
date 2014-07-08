@@ -866,7 +866,7 @@ int chas(duk_context *ctx) {
 	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
 	duk_pop(ctx);
 	const char *key = duk_require_string(ctx,-1);
-	printf("key=%s\n",key);
+	//printf("key=%s\n",key);
 
 	int nr, index;
 	char type, readOnly;
@@ -878,7 +878,7 @@ int chas(duk_context *ctx) {
 		duk_push_false(ctx);
 	}
 	//isFunc = type == 'f';
-	show_stack(ctx,"in chas");
+	//show_stack(ctx,"in chas");
 
     return nr;
 }
@@ -916,7 +916,7 @@ int cownKeys(duk_context *ctx) {
 		duk_push_string(ctx, fieldname);
 		duk_put_prop_index(ctx, arr_idx, i);
 	}
-	show_stack(ctx,"in cownKeys");
+	//show_stack(ctx,"in cownKeys");
     return 1;
 }
 int cenumerate(duk_context *ctx) {
@@ -949,7 +949,7 @@ int cenumerate(duk_context *ctx) {
 		duk_push_string(ctx, fieldname);
 		duk_put_prop_index(ctx, arr_idx, i);
 	}
-	show_stack(ctx,"in cenumerate");
+	//show_stack(ctx,"in cenumerate");
     return 1;
 }
 
@@ -2375,9 +2375,9 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 
 
 	//get function by name
-	show_stack(ctx,"before seeking isOver");
+	//show_stack(ctx,"before seeking isOver");
 	duk_eval_string(ctx,JSparamnames[toname].name); //gets the evenin function on the stack
-	show_stack(ctx,"after seeking isOver");
+	//show_stack(ctx,"after seeking isOver");
 
 	//push ecma value as arg
 

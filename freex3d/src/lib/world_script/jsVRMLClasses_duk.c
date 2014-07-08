@@ -318,7 +318,7 @@ int SFNode_Iterator(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int
 	return -1;
 }
 int SFNode_Getter(int index, void * fwn, FWval fwretval){
-	struct X3D_Node *node = (struct X3D_Node*)fwn; //may be wrong
+	struct X3D_Node *node = ((union anyVrml*)fwn)->sfnode; 
 	int ftype, kind, ihave, nr;
 	const char *name;
 	union anyVrml *value;
@@ -333,10 +333,10 @@ int SFNode_Getter(int index, void * fwn, FWval fwretval){
 	return nr;
 }
 void * SFNode_Constructor(FWType fwtype, int nargs, FWval fwpars){
-	struct X3D_Node *ptr = NULL; // = malloc(fwtype->size_of); //garbage collector please
+	struct X3D_Node **ptr = NULL; // = malloc(fwtype->size_of); //garbage collector please
 	if(nargs == 1){
 		if(fwpars[0].itype == 'S'){
-			/* for the return of the nodes */
+			//SFNode.wrl createFromAString = new SFNode('Cylinder {height 1}');
 			struct X3D_Group *retGroup;
 			char *xstr; 
 			char *tmpstr;
@@ -355,11 +355,13 @@ void * SFNode_Constructor(FWType fwtype, int nargs, FWval fwpars){
 			ra = EAI_CreateVrml("String",_c,retGroup);
 			globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
 			if(retGroup->children.n < 1) return 0;
-			ptr = (struct X3D_Node *)&retGroup->children.p[0];
+			ptr = malloc(sizeof(void *));
+			*ptr = retGroup->children.p[0]; 
 		}else if(fwpars->itype = 'W'){
-			if(fwpars->_web3dval.fieldType == FIELDTYPE_SFNode)
+			if(fwpars->_web3dval.fieldType == FIELDTYPE_SFNode){
+				//SFNode.wrl newedPointer = new SFNode(ptr); 
 				ptr = fwpars[0]._web3dval.native; //don't gc
-			
+			}
 		}
 	}
 	return ptr;
