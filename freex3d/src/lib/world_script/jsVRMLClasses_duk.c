@@ -391,15 +391,11 @@ ArgListType (MFW_ConstructorArgs)[] = {
 		{0,0,'F',"W"},
 		{-1,0,0,NULL},
 };
-int sizeofSF(int itype);
-int lenItype(int itype){
-	return returnRoutingElementLength(itype);
-	return sizeofSF(itype);
-}
+int sizeofSF(int itype); //thunks MF to SF (usually itype-1) and gets sizeof SF
 void * MFW_Constructor(FWType fwtype, int argc, FWval fwpars){
 	int lenSF;
 	struct Multi_Any *ptr = malloc(sizeof(struct Multi_Any));  ///malloc in 2 parts for MF
-	lenSF = lenItype(fwtype->itype-1); //assumes FIELDTYPE_SFSomething = FIELDTYPE_MFSomething -1
+	lenSF = sizeofSF(fwtype->itype); 
 	ptr->n = argc;
 	ptr->p = NULL;
 	if(ptr->n)
