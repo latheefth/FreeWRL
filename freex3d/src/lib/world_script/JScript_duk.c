@@ -884,7 +884,8 @@ int chas(duk_context *ctx) {
 }
 int cownKeys(duk_context *ctx) {
 	int rc, itype, *valueChanged;
-	void *parent;
+	void *parent = NULL;
+	itype = -1;
 
 	/* get type of parent object for this property*/
 	rc = duk_get_prop_string(ctx,0,"fwItype");
@@ -899,6 +900,10 @@ int cownKeys(duk_context *ctx) {
 	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
 	duk_pop(ctx);
 
+	if(itype < 0) 
+		return 0;
+	if(parent == NULL) 
+		return 0;
 	int arr_idx = duk_push_array(ctx);
 	int i = -1;
 	char *fieldname;
@@ -986,10 +991,10 @@ int push_duk_fieldvalueECMA(duk_context *ctx, int itype, union anyVrml *fieldval
 //}
 
 
-int Browser_getSomething(double *dval,double A, double B, double C){
-	*dval = A + B + C;
-	return 1;
-}
+//int Browser_getSomething(double *dval,double A, double B, double C){
+//	*dval = A + B + C;
+//	return 1;
+//}
 
 int fwval_duk_push(duk_context *ctx, FWval fwretval, int *valueChanged){
 	//converts engine-agnostic FWVAL return value to duk engine specific return values and pushes them onto the duk value stack
@@ -1149,12 +1154,12 @@ int cget(duk_context *ctx) {
 	switch(duk_get_type(ctx,-2)){
 	case DUK_TYPE_NUMBER:{
 		int ikey = duk_get_int(ctx,-2);
-		//printf("key=[%d]",ikey);
+		printf("key=[%d]",ikey);
 		}
 		break;
 	default: {
 		const char *key = duk_require_string(ctx,-2);
-		//printf("key=%s \n",key);
+		printf("key=%s \n",key);
 		if(!strcmp(key,"fwItype")){
 			//someone else is asking a proxy for its fwItype (for example LHS = RHSProxy) the LHS Setter may want the RHS's fwItype
 			duk_push_int(ctx,itype);
@@ -1181,12 +1186,21 @@ int cget(duk_context *ctx) {
 		char type, readOnly;
 
 		//check numeric indexer
-		if(duk_is_number(ctx,-2) && fwt->takesIndexer){
+		if(duk_is_number(ctx,-2)){
 			//indexer
-			jndex = duk_get_int(ctx,-2);
-			type = fwt->takesIndexer;
-			readOnly = fwt->indexerReadOnly;
-			found = 1;
+			int index = duk_get_int(ctx,-2);
+			if(fwt->takesIndexer){
+				type = fwt->takesIndexer;
+				readOnly = fwt->indexerReadOnly;
+				jndex = index;
+				found = 1;
+			}else{
+				//script is attempting to iterate over/get properties by number to get value - good luck
+				const char *name;
+				int lastProp;
+				index = fwiterator_generic(index -1,fwt,parent,&name,&lastProp,&jndex,&type,&readOnly);
+				if(index > -1) found = 1;
+			}
 		}else{
 			//check properties - if a property, call the type-specific setter
 			int lastProp;
@@ -2024,6 +2038,24 @@ int push_duk_fieldvalue(duk_context *ctx, int itype, int mode, const char* field
 			duk_push_string(ctx,field->sfstring->strptr); break;
 		default:
 			//we need an object with our c handlers and pointer to our script->field[i]
+			if(0){
+				if(itype == FIELDTYPE_SFNode){
+				//test to compare anyVrml.SFNode with X3D_Node*
+				//typedef struct X3D_Node*	vrmlNodeT;
+
+				struct X3D_Node *anode;
+				//anode = (struct X3D_Node *)(field); //WRONG (but how? H0: struct/union word alignment WRONG H1: off by a pointer * or & RIGHT)
+				//anode = (struct X3D_Node *)&(field); //WRONG
+				//anode = (struct X3D_Node *)&(*field); //WRONG
+				//anode = (struct X3D_Node *)(*field); //I think this is numerically RIGHT, but syntactically awkward/WRONG for compilers
+				(memcpy(&anode,field,sizeof(void *))); //RIGHT, works, same as above line: the contents of struct anyVrml is a pointer
+				printf("anode._nodeType=%d ",anode->_nodeType); 
+				printf("anyvrml.sfnode._nodetype=%d\n",field->sfnode->_nodeType);
+				anode = field->sfnode; //RIGHT
+				printf("anode = anyvrml.sfnode ._nodetype=%d\n",anode->_nodeType);
+				printf("same?\n");
+				}
+			}
 			push_typed_proxy_fwgetter(ctx, itype, mode, fieldname, field,  valueChanged);
 			break;
 		}
