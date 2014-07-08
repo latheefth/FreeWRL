@@ -332,13 +332,50 @@ int SFNode_Getter(int index, void * fwn, FWval fwretval){
 	}
 	return nr;
 }
+void * SFNode_Constructor(FWType fwtype, int nargs, FWval fwpars){
+	struct SFNode *ptr = NULL; // = malloc(fwtype->size_of); //garbage collector please
+	if(nargs == 1){
+		if(fwpars[0].itype == 'S'){
+			/* for the return of the nodes */
+			struct X3D_Group *retGroup;
+			char *xstr; 
+			char *tmpstr;
+			char *separator;
+			int ra;
+			int count;
+			int wantedsize;
+			int MallocdSize;
+			ttglobal tg = gglobal();
+			struct VRMLParser *globalParser = (struct VRMLParser *)tg->CParse.globalParser;
+			const char *_c = fwpars[0]._string;
+
+			/* do the call to make the VRML code  - create a new browser just for this string */
+			gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
+			retGroup = createNewX3DNode(NODE_Group);
+			ra = EAI_CreateVrml("String",_c,retGroup);
+			globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
+			if(retGroup->children.n < 1) return 0;
+			ptr = (struct SFNode *)&retGroup->children.p[0];
+		}else if(fwpars->itype = 'W'){
+			if(fwpars->_web3dval.fieldType == FIELDTYPE_SFNode)
+				ptr = fwpars[0]._web3dval.native; //don't gc
+			
+		}
+	}
+	return ptr;
+}
+ArgListType (SFNode_ConstructorArgs)[] = {
+		{1,-1,'F',"S"},
+		{1,-1,'F',"W"},
+		{-1,0,0,NULL},
+};
 //#define FIELDTYPE_SFNode	10
 FWTYPE SFNodeType = {
 	FIELDTYPE_SFNode,
 	"SFNode",
 	sizeof(void*), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
+	SFNode_Constructor, //constructor
+	SFNode_ConstructorArgs, //constructor args
 	NULL, //Properties,
 	SFNode_Iterator, //special iterator
 	SFNode_Getter, //Getter,
@@ -346,18 +383,95 @@ FWTYPE SFNodeType = {
 	0,0, //index prop type,readonly
 	NULL, //functions
 };
+
+
+
+//MFW for MF types that take web3d (non-ecma-primitive) types ie new MFColor( new SFColor(0,0,0), new SFColor(.1,.2,.3), ...) 
+ArgListType (MFW_ConstructorArgs)[] = {
+		{0,0,'F',"W"},
+		{-1,0,0,NULL},
+};
+int sizeofSF(int itype);
+int lenItype(int itype){
+	return returnRoutingElementLength(itype);
+	return sizeofSF(itype);
+}
+void * MFW_Constructor(FWType fwtype, int argc, FWval fwpars){
+	int lenSF;
+	struct Multi_Any *ptr = malloc(sizeof(struct Multi_Any));  ///malloc in 2 parts for MF
+	lenSF = lenItype(fwtype->itype-1); //assumes FIELDTYPE_SFSomething = FIELDTYPE_MFSomething -1
+	ptr->n = argc;
+	ptr->p = NULL;
+	if(ptr->n)
+		ptr->p = malloc(ptr->n * lenSF); // This second part is resizable ie MF[i] = new SF() if i >= (.length), .length is expanded to accomodate
+	char *p = ptr->p;
+	for(int i=0;i<ptr->n;i++){
+		memcpy(p,fwpars[i]._web3dval.native,lenSF);
+		p += lenSF;
+	}
+	return (void *)ptr;
+}
+FWPropertySpec (MFW_Properties)[] = {
+	{"length", -1, 'N', 'F'},
+	{NULL,0,0,0},
+};
+int MFNode_Getter(int index, void * fwn, FWval fwretval){
+	struct Multi_Any *ptr = (struct Multi_Any *)fwn;
+	int nr = 0;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index == -1){
+		//length
+		fwretval->_integer = ptr->n;
+		fwretval->itype = 'I';
+		nr = 1;
+	}else if(index > -1 && index < ptr->n){
+		int elen = sizeofSF(FIELDTYPE_SFNode);
+		fwretval->_web3dval.native = (void *)(ptr->p + index*elen);
+		fwretval->_web3dval.fieldType = FIELDTYPE_SFNode;
+		fwretval->itype = 'W';
+		nr = 1;
+	}
+	return nr;
+}
+int MFNode_Setter(int index, void * fwn, FWval fwval){
+	struct Multi_Any *ptr = (struct Multi_Any *)fwn;
+	int nelen, nold, nr = FALSE;
+	int elen = sizeofSF(FIELDTYPE_SFNode);
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index == -1){
+		//length
+		nold = ptr->n;
+		ptr->n = fwval->_integer;
+		if(ptr->n > nold){
+			//nelen = (int) upper_power_of_two(fwval->_integer);
+			ptr->p = realloc(ptr->p,ptr->n * elen);
+		}
+		nr = TRUE;
+	}else if(index > -1){
+		if(index >= ptr->n){
+			//nold = ptr->n;
+			ptr->n = index+1;
+			//nelen = (int) upper_power_of_two(ptr->n);
+			ptr->p = realloc(ptr->p,ptr->n *elen); //need power of 2 if SFNode children
+		}
+		memcpy(ptr->p + index*elen,fwval->_web3dval.native, elen);
+		nr = TRUE;
+	}
+	return nr;
+}
+
 //#define FIELDTYPE_MFNode	11
 FWTYPE MFNodeType = {
 	FIELDTYPE_MFNode,
 	"MFNode",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
+	MFW_Constructor, //constructor
+	MFW_ConstructorArgs, //constructor args
+	MFW_Properties, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	MFNode_Getter, //Getter,
+	MFNode_Setter, //Setter,
+	'W',0, //index prop type,readonly
 	NULL, //functions
 };
 
@@ -435,35 +549,6 @@ FWTYPE SFColorType = {
 	SFColor_Setter, //Setter,
 	'N',0, //index prop type,readonly
 	NULL, //functions
-};
-//MFW for MF types that take web3d (non-ecma-primitive) types ie new MFColor( new SFColor(0,0,0), new SFColor(.1,.2,.3), ...) 
-ArgListType (MFW_ConstructorArgs)[] = {
-		{0,0,'F',"W"},
-		{-1,0,0,NULL},
-};
-int sizeofSF(int itype);
-int lenItype(int itype){
-	return returnRoutingElementLength(itype);
-	return sizeofSF(itype);
-}
-void * MFW_Constructor(FWType fwtype, int argc, FWval fwpars){
-	int lenSF;
-	struct Multi_Any *ptr = malloc(sizeof(struct Multi_Any));  ///malloc in 2 parts for MF
-	lenSF = lenItype(fwtype->itype-1); //assumes FIELDTYPE_SFSomething = FIELDTYPE_MFSomething -1
-	ptr->n = argc;
-	ptr->p = NULL;
-	if(ptr->n)
-		ptr->p = malloc(ptr->n * lenSF); // This second part is resizable ie MF[i] = new SF() if i >= (.length), .length is expanded to accomodate
-	char *p = ptr->p;
-	for(int i=0;i<ptr->n;i++){
-		memcpy(p,fwpars[i]._web3dval.native,lenSF);
-		p += lenSF;
-	}
-	return (void *)ptr;
-}
-FWPropertySpec (MFW_Properties)[] = {
-	{"length", -1, 'N', 'F'},
-	{NULL,0,0,0},
 };
 int MFColor_Getter(int index, void * fwn, FWval fwretval){
 	struct Multi_Any *ptr = (struct Multi_Any *)fwn;

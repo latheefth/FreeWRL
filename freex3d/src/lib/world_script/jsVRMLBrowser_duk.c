@@ -419,18 +419,53 @@ int VrmlBrowserCreateX3DFromString(FWType fwtype, void * fwn, int argc, FWval fw
 	/* do the call to make the VRML code  - create a new browser just for this string */
 	gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
 	retGroup = createNewX3DNode(NODE_Group);
-	ra = EAI_CreateVrml("String",_c,retGroup);
+	ra = EAI_CreateX3d("String",_c,retGroup);
 	globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
 
-	fwretval->_web3dval.native = (void *)retGroup;
+	//fwretval->_web3dval.native = (void *)retGroup;
+	if(retGroup->children.n < 1) return 0;
+	if(0){
+	fwretval->_web3dval.native = &retGroup->children.p[0];
 	fwretval->_web3dval.fieldType = FIELDTYPE_SFNode; //Group
+	}else{
+	fwretval->_web3dval.native = &retGroup->children;
+	fwretval->_web3dval.fieldType = FIELDTYPE_MFNode; //Group
+	}
 	fwretval->itype = 'W';
 	return 1;
 }
+//int jsrrunScript(duk_context *ctx, char *script, FWval retval);
 int VrmlBrowserCreateVrmlFromString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
 {
-	//from x3dnode, from char*field, to x3dnode, to char*field
-	return 0;
+	/* for the return of the nodes */
+	struct X3D_Group *retGroup;
+	char *xstr; 
+	char *tmpstr;
+	char *separator;
+	int ra;
+	int count;
+	int wantedsize;
+	int MallocdSize;
+	ttglobal tg = gglobal();
+	struct VRMLParser *globalParser = (struct VRMLParser *)tg->CParse.globalParser;
+	const char *_c = fwpars[0]._string;
+
+	/* do the call to make the VRML code  - create a new browser just for this string */
+	gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
+	retGroup = createNewX3DNode(NODE_Group);
+	ra = EAI_CreateVrml("String",_c,retGroup);
+	globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
+	if(retGroup->children.n < 1) return 0;
+	if(0){
+	fwretval->_web3dval.native = &retGroup->children.p[0];
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFNode; //Group
+	}else{
+	fwretval->_web3dval.native = &retGroup->children;
+	fwretval->_web3dval.fieldType = FIELDTYPE_MFNode; //Group
+	}
+	fwretval->itype = 'W';
+	return 1;
+
 }
 int VrmlBrowserCreateVrmlFromURL(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
 {

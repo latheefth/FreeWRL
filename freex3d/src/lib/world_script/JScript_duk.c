@@ -692,16 +692,14 @@ void convert_duk_to_fwvals(duk_context *ctx, int nargs, struct ArgListType argli
 		case 'N': pars[i]._numeric = duk_get_number(ctx,i); break;
 		case 'S': pars[i]._string = duk_get_string(ctx,i); break;
 		case 'F': //flexi-string idea - allow either String or MFString (no such thing as SFString from ecma - it uses String for that)
-			if(duk_is_pointer(ctx,i)){
-				void *ptr = duk_get_pointer(ctx,i); 
-				pars[i]._web3dval.native = ptr;
-				pars[i]._web3dval.fieldType = FIELDTYPE_MFString; //type of the incoming arg[i]
-				pars[i].itype = 'W';
-			}else if(duk_is_string(ctx,i)){
+			if(duk_is_string(ctx,i)){
 				pars[i]._string = duk_get_string(ctx,i); 
 				pars[i].itype = 'S';
+				break;
 			}
-			break; 
+			if(!duk_is_object(ctx,i))
+				break;
+			//else fall through to W
 		case 'W': {
 			{
 				int rc, isOK, itypeRHS = -1;
@@ -780,10 +778,60 @@ int cfwconstructor(duk_context *ctx) {
 	while(fwt->ConstructorArgs[i].nfixedArg > -1){
 		int nfixed = fwt->ConstructorArgs[i].nfixedArg;
 		int ivarsa = fwt->ConstructorArgs[i].iVarArgStartsAt;
+		char *neededType = fwt->ConstructorArgs[i].argtypes;
 		if( nargs == nfixed || (ivarsa > -1 && nargs > nfixed )){ 
-			//its a match
-			ifound = i;
-			break;
+			//nargs is a match
+			int allOK = TRUE;
+			//check each narg for compatible type
+			for(int j=0;j<nargs;j++){
+				int isOK, RHS_duk_type = duk_get_type(ctx, j);
+				isOK = FALSE;
+				switch(RHS_duk_type){
+				case DUK_TYPE_NUMBER: 
+					if(neededType[j]=='N' || neededType[j]=='I') isOK = TRUE;
+					break;
+				case DUK_TYPE_BOOLEAN: 
+					if(neededType[j]=='B') isOK = TRUE;
+					break;
+				case DUK_TYPE_STRING:
+					if(neededType[j]=='S' || neededType[j] =='F') isOK = TRUE;
+					break;
+				case DUK_TYPE_OBJECT:
+					if(neededType[j]=='W'){
+						int rc, itypeRHS = -1;
+						union anyVrml *fieldRHS = NULL;
+						rc = duk_get_prop_string(ctx,j,"fwItype");
+						if(rc == 1){
+							//printf(duk_type_to_string(duk_get_type(ctx, -1)));
+							itypeRHS = duk_to_int(ctx,-1);
+						}
+						duk_pop(ctx);
+						rc = duk_get_prop_string(ctx,j,"fwField");
+						if(rc == 1) fieldRHS = duk_to_pointer(ctx,-1);
+						duk_pop(ctx);
+						//we don't need the RHS fwChanged=valueChanged* because we are only changing the LHS
+
+						if(fieldRHS != NULL && itypeRHS > -1){
+							isOK = TRUE;
+						}
+					}
+					break;
+				case DUK_TYPE_NONE: 
+				case DUK_TYPE_UNDEFINED: 
+				case DUK_TYPE_NULL: 
+					// are we attempting to null out the field? we aren't allowed to change its type (to undefined) 
+				case DUK_TYPE_POINTER: 
+					// don't know what this would be for if anything 
+				default:
+					isOK = FALSE;
+					break;
+				}
+				allOK = allOK && isOK;
+			}
+			if(allOK){
+				ifound = i;
+				break;
+			}
 		}
 		i++;
 	}
@@ -1041,6 +1089,14 @@ int cfunction(duk_context *ctx) {
 				}
 				break;
 			case 'O': break; //object pointer ie to js function callback object
+			//case 'X':  //executable string ie Browser.createNode(string) - we convert the string into 'W' before passing result into function
+			//	{
+			//	int nr = 0;
+			//	FWVAL retval;
+			//	const char *xstring =  duk_get_string(ctx,i); 
+			//	nr = jsrrunScript(ctx, xstring, &pars[i]);
+			//	}
+			//	break;
 			}
 		}
 		
@@ -1190,12 +1246,12 @@ int cset(duk_context *ctx) {
 	switch(duk_get_type(ctx,-3)){
 	case DUK_TYPE_NUMBER:{
 		int ikey = duk_get_int(ctx,-3);
-		//printf("key=[%d] ",ikey);
+		printf("key=[%d] ",ikey);
 		}
 		break;
 	default: {
 		const char *key = duk_require_string(ctx,-3);
-		//printf("key=%s ",key);
+		printf("key=%s ",key);
 		}
 		break;
 	}
@@ -1203,16 +1259,16 @@ int cset(duk_context *ctx) {
 	switch(duk_get_type(ctx,-2)){
 	case DUK_TYPE_NUMBER:{
 		int ival = duk_get_int(ctx,-2);
-		//printf("val=[%d]\n",ival);
+		printf("val=[%d]\n",ival);
 		}
 		break;
 	case DUK_TYPE_STRING:{
 		const char *cval = duk_get_string(ctx,-2);
-		//printf("val=%s\n",cval);
+		printf("val=%s\n",cval);
 		}
 		break;
 	default: 
-		//printf("val is object\n");
+		printf("val is object\n");
 		break;
 	}
 
@@ -1224,7 +1280,7 @@ int cset(duk_context *ctx) {
 		int jndex, found;
 		char type, readOnly;
 		//check numeric indexer
-		if(duk_is_number(ctx,-2) && fwt->takesIndexer){
+		if(duk_is_number(ctx,-3) && fwt->takesIndexer){
 			//indexer
 			jndex = duk_get_int(ctx,-3);
 			type = fwt->takesIndexer;
@@ -2435,4 +2491,67 @@ void jsClearScriptControlEntries(int num){
 	printf("in jsClearScriptControlEntries\n");
 	return;
 }
+/* run the script from within Javascript  */
+/*
+int jsrrunScript(duk_context *ctx, char *script, FWval retval) {
+	double val;
+	int ival, itype, isOK;
+	const char *cval;
+	duk_eval_string(ctx,script);
+	int RHS_duk_type = duk_get_type(ctx, -1);
+	isOK = FALSE;
+	switch(RHS_duk_type){
+	case DUK_TYPE_NUMBER: 
+		retval->_numeric = duk_require_number(ctx,-1);
+		retval->itype = 'N';
+		isOK = TRUE;
+		break;
+	case DUK_TYPE_BOOLEAN: 
+		retval->_boolean = duk_require_boolean(ctx,-1);
+		retval->itype = 'B';
+		isOK = TRUE;
+		break;
+	case DUK_TYPE_STRING:
+		retval->_string = duk_require_string(ctx,-1);
+		retval->itype = 'S';
+		isOK = TRUE;
+		break;
+	case DUK_TYPE_OBJECT:
+	{
+		int rc, itypeRHS = -1;
+		union anyVrml *fieldRHS = NULL;
+		rc = duk_get_prop_string(ctx,-1,"fwItype");
+		if(rc == 1){
+			//printf(duk_type_to_string(duk_get_type(ctx, -1)));
+			itypeRHS = duk_to_int(ctx,-1);
+		}
+		duk_pop(ctx);
+		rc = duk_get_prop_string(ctx,-1,"fwField");
+		if(rc == 1) fieldRHS = duk_to_pointer(ctx,-1);
+		duk_pop(ctx);
+		//we don't need the RHS fwChanged=valueChanged* because we are only changing the LHS
+
+		if(fieldRHS != NULL && itypeRHS > -1){
+			retval->_web3dval.native = fieldRHS; //shallow copy - won't copy p[] in MF types
+			retval->_web3dval.fieldType = itypeRHS;
+			isOK = TRUE;
+		}
+	}
+		break;
+	case DUK_TYPE_NONE: 
+	case DUK_TYPE_UNDEFINED: 
+	case DUK_TYPE_NULL: 
+		// are we attempting to null out the field? we aren't allowed to change its type (to undefined) 
+	case DUK_TYPE_POINTER: 
+		// don't know what this would be for if anything 
+	default:
+		isOK = FALSE;
+		break;
+	}
+	duk_pop(ctx); //the duk_eval_string result;
+	return isOK; //we leave results on stack
+}
+*/
+
+
 #endif /*  defined(JAVASCRIPT_DUK) */
