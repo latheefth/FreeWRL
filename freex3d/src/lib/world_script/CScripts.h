@@ -66,6 +66,7 @@ struct ScriptFieldDecl
  int valueChanged; //dug9_2014 eventOut flag, added for JScript_duk.c / duktape, which will use this valueChanged,anyVrml instead of jsNative.h > sfNative.valueChanged,anyVrml
  union anyVrml value;
  BOOL valueSet;	/* Has the value been set? used during parsing and construction*/
+ int eventInSet; //used by SFNode setter, and runQueuedDirectOutputs
  struct Shader_Script* script; //dug9_2014 added here for duktape proxy 
 };
 

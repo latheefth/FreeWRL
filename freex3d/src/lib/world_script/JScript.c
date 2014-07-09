@@ -3246,7 +3246,10 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen 
 #endif
 }
 
-
+int runQueuedDirectOutputs(){
+	//stub for SM and STUBS (DUK has it)
+	return FALSE;
+}
 
 
 #endif /* HAVE_JAVASCRIPT */
@@ -3254,4 +3257,5 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen 
 
 
 #endif /* HAVE_JAVASCRIPT */
+
 #endif /* !(defined(JAVASCRIPT_STUB) || defined(JAVASCRIPT_DUK) */

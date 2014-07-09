@@ -1494,6 +1494,8 @@ void mark_script (int num) {
 }
 
 
+int runQueuedDirectOutputs();
+
 /********************************************************************
 
 gatherScriptEventOuts - at least one script has been triggered; get the
@@ -2212,6 +2214,7 @@ void propagate_events_A() {
 		}
 
 		#ifdef HAVE_JAVASCRIPT
+		havinterp = havinterp || runQueuedDirectOutputs();
 		/* run gatherScriptEventOuts for each active script */
 		gatherScriptEventOuts();
 		#endif
@@ -2779,6 +2782,7 @@ void propagate_events_B() {
 
 		#ifdef HAVE_JAVASCRIPT
 		/* run gatherScriptEventOuts for each active script */
+		havinterp = havinterp || runQueuedDirectOutputs();
 		//gatherScriptEventOuts();
 		#endif
 	} while (havinterp==TRUE);

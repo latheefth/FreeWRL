@@ -121,6 +121,7 @@ struct ScriptFieldDecl* newScriptFieldDecl(struct VRMLLexer* me, indexT mod, ind
 
  /* Field's value not yet initialized! */
  ret->valueSet=(mod!=PKW_initializeOnly);
+ ret->eventInSet = FALSE; //flag used for directOutput
  /* value is set later on */
 
  #ifdef CPARSERVERBOSE

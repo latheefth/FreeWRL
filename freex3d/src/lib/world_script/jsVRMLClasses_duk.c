@@ -158,6 +158,20 @@ int SFColor_getHSV(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwre
 }
 
 
+int SFFloat_Getter(int index, void * fwn, FWval fwretval){
+	float *ptr = (float *)fwn;
+	fwretval->_numeric =  (double)*(ptr);
+	fwretval->itype = 'N';
+	return 1;
+}
+int SFFloat_Setter(int index, void * fwn, FWval fwval){
+	float *ptr = (float *)fwn;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	(*ptr) = (float)fwval->_numeric;
+	return TRUE;
+}
+
+
 //#define FIELDTYPE_SFFloat	0
 FWTYPE SFFloatType = {
 	FIELDTYPE_SFFloat,
@@ -167,9 +181,9 @@ FWTYPE SFFloatType = {
 	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	SFFloat_Getter, //Getter,
+	SFFloat_Setter, //Setter,
+	0,0, //index prop type,readonly
 	NULL, //functions
 };
 //#define FIELDTYPE_MFFloat	1
@@ -303,16 +317,27 @@ int getFieldFromNodeAndIndex(struct X3D_Node* node, int iifield, const char **fi
 int SFNode_Iterator(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex, char *type, char *readOnly){
 	struct X3D_Node *node = ((union anyVrml*)pointer)->sfnode;
 	int ftype, kind, ihave;
+	char ctype;
 	union anyVrml *value;
 	index ++;
 	(*jndex) = 0;
 	int iifield = index;
 	ihave = getFieldFromNodeAndIndex(node, index, name, &ftype, &kind, &value);
+	switch(ftype){
+		case FIELDTYPE_SFBool: ctype = 'B'; break;
+		case FIELDTYPE_SFInt32: ctype = 'I'; break;
+		case FIELDTYPE_SFFloat: 
+		case FIELDTYPE_SFDouble:
+		case FIELDTYPE_SFTime: ctype = 'N'; break;
+		case FIELDTYPE_SFString: ctype = 'S'; break;
+		default: ctype = 'W'; break;
+	}
 	if(ihave){
 		(*jndex) = index;
 		(*lastProp) = index;
-		(*type) = ftype;
-		(*readOnly) = kind == PKW_inputOnly ? 'T' : 0;
+		(*type) = ctype;
+		//(*readOnly) = kind == PKW_inputOnly ? 'T' : 0;
+		(*readOnly) = 0;
 		return index;
 	}
 	return -1;
@@ -325,12 +350,95 @@ int SFNode_Getter(int index, void * fwn, FWval fwretval){
 	nr = 0;
 	ihave = getFieldFromNodeAndIndex(node, index, &name, &ftype, &kind, &value);
 	if(ihave){
-		fwretval->itype = 'W';
-		fwretval->_web3dval.fieldType = ftype;
-		fwretval->_web3dval.native = value; //Q. am I supposed to deep copy here? I'm not. So I don't set gc.
+		//copy W type or primative type, depending on ftype
+		switch(ftype){
+		case FIELDTYPE_SFBool:
+			fwretval->itype = 'B';
+			fwretval->_boolean = value->sfbool;
+			break;
+		case FIELDTYPE_SFInt32:
+			fwretval->itype = 'I';
+			fwretval->_integer = value->sfint32;
+			break;
+
+		case FIELDTYPE_SFFloat:
+			fwretval->itype = 'N';
+			fwretval->_numeric = (double)value->sffloat;
+			break;
+
+		case FIELDTYPE_SFDouble:
+		case FIELDTYPE_SFTime:
+			fwretval->itype = 'N';
+			fwretval->_numeric = value->sftime;
+			break;
+
+		case FIELDTYPE_SFString:
+			fwretval->itype = 'S';
+			fwretval->_string = value->sfstring->strptr;
+			break;
+
+		default:
+			fwretval->itype = 'W';
+			fwretval->_web3dval.fieldType = ftype;
+			fwretval->_web3dval.native = value; //Q. am I supposed to deep copy here? I'm not. So I don't set gc.
+		}
 		nr = 1;
 	}
 	return nr;
+}
+int SFNode_Setter(int index, void * fwn, FWval fwval){
+	struct X3D_Node *node = ((union anyVrml*)fwn)->sfnode; 
+	int ftype, kind, ihave, nr;
+	const char *name;
+	union anyVrml *value;
+	nr = FALSE;
+	ihave = getFieldFromNodeAndIndex(node, index, &name, &ftype, &kind, &value);
+	if(ihave){
+		//copy W type or primative type, depending on ftype
+		switch(ftype){
+		case FIELDTYPE_SFBool:
+			fwval->itype = 'B';
+			value->sfbool = fwval->_boolean;
+			break;
+		case FIELDTYPE_SFInt32:
+			fwval->itype = 'I';
+			value->sfint32 = fwval->_integer;
+			break;
+
+		case FIELDTYPE_SFFloat:
+			fwval->itype = 'N';
+			value->sffloat = (float)fwval->_numeric;
+			break;
+
+		case FIELDTYPE_SFDouble:
+		case FIELDTYPE_SFTime:
+			fwval->itype = 'N';
+			value->sftime = fwval->_numeric;
+			break;
+
+		case FIELDTYPE_SFString:
+			fwval->itype = 'S';
+			value->sfstring->strptr = strdup(fwval->_string);
+			value->sfstring->len = strlen(fwval->_string);
+			break;
+
+		default:
+			value = fwval->_web3dval.native; //Q. am I supposed to deep copy here? 
+		}
+		if(node->_nodeType == NODE_Script) {
+			//notify for event processing
+			struct Shader_Script *script = X3D_SCRIPT(node)->__scriptObj;
+			struct ScriptFieldDecl *field;
+			field = Shader_Script_getScriptField(script,index);
+			if(kind == PKW_inputOutput || kind == PKW_outputOnly)
+				field->valueChanged = TRUE;
+			if(kind == PKW_inputOnly || kind == PKW_inputOutput)
+				field->eventInSet = TRUE; //see runQueuedDirectOutputs()
+		}
+		nr = TRUE;
+	}
+	return nr;
+
 }
 void * SFNode_Constructor(FWType fwtype, int nargs, FWval fwpars){
 	struct X3D_Node **ptr = NULL; // = malloc(fwtype->size_of); //garbage collector please
@@ -381,7 +489,7 @@ FWTYPE SFNodeType = {
 	NULL, //Properties,
 	SFNode_Iterator, //special iterator
 	SFNode_Getter, //Getter,
-	NULL, //Setter,
+	SFNode_Setter, //Setter,
 	0,0, //index prop type,readonly
 	NULL, //functions
 };

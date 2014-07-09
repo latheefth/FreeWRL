@@ -1310,6 +1310,7 @@ int cset(duk_context *ctx) {
 			FWVAL fwsetval;
 			//fwsetval.itype = ps->type;
 			switch(type){
+				//there could/should be better detection of duk_type and mapping/error checking to convert to type
 			case '0':break;
 			case 'I': fwsetval._integer = duk_to_int(ctx,-2); break;
 			case 'N': fwsetval._numeric = duk_to_number(ctx,-2); break;
@@ -2584,6 +2585,90 @@ int jsrrunScript(duk_context *ctx, char *script, FWval retval) {
 	return isOK; //we leave results on stack
 }
 */
+int runQueuedDirectOutputs()
+{
+	/*
+	http://www.web3d.org/files/specifications/19775-1/V3.3/Part01/components/scripting.html#directoutputs
+	http://www.web3d.org/files/specifications/19775-1/V3.3/Part01/components/scripting.html#Accessingfieldsandevents
+
+	Interpretation: The reason the SAI specs say to queue directOutputs in an event queue, 
+	is because external SAIs are running in a different thread: the rendering thread could be
+	using a node just when you want to write to it from the SAI thread.
+	I'll assume here we are working on the internal/javascript/ecmascript SAI, and that it is
+	synchronous with the rendering thread, so it can safely write to nodes without queuing.
+
+	So our effort here is just to make it convenient to write to eventIn/inputOnly 
+	(or the eventIn/inputOnly part of exposedField/inputOutput fields).
+
+	Writing to builtin nodes from a script is already implemented in freewrl by directly writing 
+	the fields immediately during the script. However writing to another script wassn't working properly July 8, 2014.
+	The following proposed algo was the result of analyzing the behaviour of other vrml/x3d browsers. 
+
+	DIRECTOUTPUT ALGO:
+	When writing to another script node from the current script:
+	a) write unconditionally to the other script->field->value, including to field/initializeOnly and eventIn/inputOnly
+	b) set a valueSet flag on the field (like valueChanged for output) and the valueChanged flag
+	c) set the node _changed or isActive flag to trigger updates
+	d) either 
+	i) have a stack of queues of script nodes changed and process after each script function OR
+	ii) like gatherScriptEventOuts() have a spot in the routing loop to look at the valueSet flag 
+	    for script fields and if valueSet then if the field is inputOnly/eventIn or exposedField/inputOutput 
+		take the field->value and pass it the the eventIn function (with the current/same timestamp).
+
+	It's this d) ii) we are implementing here.
+	*/
+	ttglobal tg = gglobal();
+	struct Shader_Script *script;
+	struct ScriptFieldDecl *field;
+	int i,nfields, kind, itype;
+	const char *fieldname;
+	struct CRscriptStruct *ScriptControlArray, *scriptcontrol;
+	ScriptControlArray = getScriptControl();
+	
+
+	static int doneOnce = 0;
+	if(!doneOnce){
+		printf("in runQueuedDirectOutputs\n");
+		doneOnce++;
+	}
+	int moreAction = FALSE;
+	for(int num=0;num< tg->CRoutes.max_script_found_and_initialized;num++){
+		scriptcontrol = &ScriptControlArray[num];
+		script = scriptcontrol->script;
+		if(isScriptControlInitialized(script->num) && isScriptControlOK(script->num)){
+			int nfields = Shader_Script_getScriptFieldCount(script);
+			for(i=0;i<nfields;i++){
+				field = Shader_Script_getScriptField(script,i);
+				fieldname = ScriptFieldDecl_getName(field);
+				kind = ScriptFieldDecl_getMode(field);
+				itype = ScriptFieldDecl_getType(field);
+				if(field->eventInSet){
+					if( (kind == PKW_inputOnly || kind == PKW_inputOutput)){
+						int JSparamNameIndex = field->fieldDecl->JSparamNameIndex;
+						mark_script(script->num);
+						//run script eventIn function with field->value and tickTime
+						int isMF, sftype, len, isize;
+						isMF = itype % 2; //WRONG - use a function to lookup
+						sftype = itype - isMF;
+						//from EAI_C_CommonFunctions.c
+						isize = returnElementLength(sftype) * returnElementRowSize(sftype);
+						if(isMF) len = sizeof(int) + sizeof(void*);
+						else len = isize;
+
+						field->eventInSet = FALSE;
+						getField_ToJavascript_B(script->num, JSparamNameIndex, itype, &field->value, len);
+						printf("+eventInSet and input kind=%d value=%f\n",kind,field->value.sffloat);
+						moreAction = TRUE;
+					}else{
+						printf("-eventInSet but not input kind=%d value=%f\n",kind,field->value.sffloat);
+						field->eventInSet = FALSE;
+					}
+				}
+			}
+		}
+	}
+	return moreAction; //IF TRUE will make routing do another loop on the same timestamp
+}
 
 
 #endif /*  defined(JAVASCRIPT_DUK) */

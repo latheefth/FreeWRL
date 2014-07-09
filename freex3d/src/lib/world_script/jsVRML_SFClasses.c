@@ -1617,6 +1617,8 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 	return JS_TRUE;
 }
 
+void Parser_scanStringValueToMem_B(union anyVrml* any, indexT ctype, char *value, int isXML);
+
 JSBool
 #if JS_VERSION < 185
 SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
@@ -1704,7 +1706,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 		}
 		#endif
 
-		/* dug9 attempt to find and write the field of another script */
+		/* dug9 2012 attempt to find and write the field of another script */
 		if( ptr->handle->_nodeType== NODE_Script )
 		{
 			/* code borrowed from fieldGet.c L.138 in set_one_ECMAtype() and reworked
@@ -1887,6 +1889,34 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 			JS_EndRequest(cx);
 			#endif
 		}
+		//dug9 July 9, 2014 - failed attempt to fix, see runQueuedDirectOutputs()
+		// problem: 1) it's a lot of work to drill into the JS object for the other script to set the field value and valueChanged flag
+		// 2) taking a shortcut in the routing loop would require refactoring: JSGlobal_object between get_valueChanged and js_setField_javascriptEventOut
+		// would need to be generalized to do anyVrml or anyVrml passed directly up and down.
+		if(0) if( ptr->handle->_nodeType== NODE_Script )
+		{
+			//step 1. unconditionally write the script->field->value regardless of its kind/PKW
+			struct ScriptFieldDecl* myfield; 
+			struct Shader_Script *script;
+			struct CRscriptStruct *ScriptControl = getScriptControl(); 
+			script = X3D_SCRIPT(ptr->handle)->__scriptObj;
+			/* is the script ok and initialized? */
+			if ((!ScriptControl[script->num]._initialized) || (!ScriptControl[script->num].scriptOK)) {
+				/* printf ("waiting for initializing script %d at %s:%d\n",(uintptr_t)to_ptr->routeToNode, __FILE__,__LINE__); */
+				return JS_FALSE;;
+			}
+			myfield = script_getField_viaCharName(script, _id_c);
+			if(!myfield) return JS_FALSE;
+			int itype = ScriptFieldDecl_getType(myfield);
+			int kind =  ScriptFieldDecl_getMode(myfield);
+			Parser_scanStringValueToMem_B(&myfield->value, itype, _val_c, FALSE);
+			if(kind == PKW_inputOnly || kind == PKW_inputOutput)
+				myfield->eventInSet = TRUE; //flag for runQueuedDirectOutputs() to run eventIn function on other script, feeding it the value we just set
+			if(kind == PKW_inputOutput || kind == PKW_outputOnly)
+				myfield->valueChanged = TRUE; //flag for eventOuts on other script to send what we are writing
+			return JS_TRUE;
+		}
+
 		setField_fromJavascript (X3D_NODE(ptr->handle), _id_c, _val_c, FALSE);
 	}
 
