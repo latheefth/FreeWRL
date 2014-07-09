@@ -1208,11 +1208,12 @@ HWND create_main_window0(freewrl_params_t * d) //int argc, char *argv[])
     UpdateWindow(ghWnd); 
 	if (d->fullscreen){ 
 		//stefan borderless, title-less
+		LONG lExStyle;
 		LONG lStyle = GetWindowLong(ghWnd, GWL_STYLE);
 		lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZE | WS_MAXIMIZE | WS_SYSMENU);
 		SetWindowLong(ghWnd, GWL_STYLE, lStyle);
 
-		LONG lExStyle = GetWindowLong(ghWnd, GWL_EXSTYLE);
+		lExStyle = GetWindowLong(ghWnd, GWL_EXSTYLE);
 		lExStyle &= ~(WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE);
 		SetWindowLong(ghWnd, GWL_EXSTYLE, lExStyle);
 

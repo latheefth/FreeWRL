@@ -1895,6 +1895,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 		// would need to be generalized to do anyVrml or anyVrml passed directly up and down.
 		if(0) if( ptr->handle->_nodeType== NODE_Script )
 		{
+			int itype, kind;
 			//step 1. unconditionally write the script->field->value regardless of its kind/PKW
 			struct ScriptFieldDecl* myfield; 
 			struct Shader_Script *script;
@@ -1907,8 +1908,8 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 			}
 			myfield = script_getField_viaCharName(script, _id_c);
 			if(!myfield) return JS_FALSE;
-			int itype = ScriptFieldDecl_getType(myfield);
-			int kind =  ScriptFieldDecl_getMode(myfield);
+			itype = ScriptFieldDecl_getType(myfield);
+			kind =  ScriptFieldDecl_getMode(myfield);
 			Parser_scanStringValueToMem_B(&myfield->value, itype, _val_c, FALSE);
 			if(kind == PKW_inputOnly || kind == PKW_inputOutput)
 				myfield->eventInSet = TRUE; //flag for runQueuedDirectOutputs() to run eventIn function on other script, feeding it the value we just set

@@ -1,5 +1,5 @@
 4 javascript engine linking options 
-(updated June 20, 2014)
+(updated July 9, 2014)
 
 A. NO_JAVASCRIPT or !HAVE_JAVASCRIPT
 - used on android and iOS to exclude javascript-specific code bit by bit
@@ -26,11 +26,11 @@ started as of June 2014 not implemented - in theory a more portable javascript e
 #define JAVASCRIPT_DUK
 Link to:
 - CScript.c, fieldSet.c fieldGet.c 
-- JScript_duk.c, include_duktape.c
+- JScript_duk.c, include_duktape.c, jsVRMLBrowser_duk.c, jsVRMLClasses.c
 
 B.all If you link to all the above files:
 - CScript.c, fieldSet.c fieldGet.c 
 - JScript.c, jsUtils.c, jsVRMLBrowser.c, jsVRMLClasses.c, jsVRML_SFClasses.c jsVRML_MFClasses.c
 - JScript_stub.c
-- JScript_duk.c, include_duktape.c
+- JScript_duk.c, include_duktape.c, jsVRMLBrowser_duk.c, jsVRMLClasses.c
 then you can use the #defines listed in B to switch quickly between them for different builds.
