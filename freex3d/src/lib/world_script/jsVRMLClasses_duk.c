@@ -158,13 +158,13 @@ int SFColor_getHSV(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwre
 }
 
 
-int SFFloat_Getter(int index, void * fwn, FWval fwretval){
+int SFFloat_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	float *ptr = (float *)fwn;
 	fwretval->_numeric =  (double)*(ptr);
 	fwretval->itype = 'N';
 	return 1;
 }
-int SFFloat_Setter(int index, void * fwn, FWval fwval){
+int SFFloat_Setter(FWType fwt, int index, void * fwn, FWval fwval){
 	float *ptr = (float *)fwn;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	(*ptr) = (float)fwval->_numeric;
@@ -342,7 +342,7 @@ int SFNode_Iterator(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int
 	}
 	return -1;
 }
-int SFNode_Getter(int index, void * fwn, FWval fwretval){
+int SFNode_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	struct X3D_Node *node = ((union anyVrml*)fwn)->sfnode; 
 	int ftype, kind, ihave, nr;
 	const char *name;
@@ -386,7 +386,7 @@ int SFNode_Getter(int index, void * fwn, FWval fwretval){
 	}
 	return nr;
 }
-int SFNode_Setter(int index, void * fwn, FWval fwval){
+int SFNode_Setter(FWType fwt, int index, void * fwn, FWval fwval){
 	struct X3D_Node *node = ((union anyVrml*)fwn)->sfnode; 
 	int ftype, kind, ihave, nr;
 	const char *name;
@@ -521,7 +521,7 @@ FWPropertySpec (MFW_Properties)[] = {
 	{"length", -1, 'N', 'F'},
 	{NULL,0,0,0},
 };
-int MFNode_Getter(int index, void * fwn, FWval fwretval){
+int MFW_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	struct Multi_Any *ptr = (struct Multi_Any *)fwn;
 	int nr = 0;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
@@ -531,18 +531,18 @@ int MFNode_Getter(int index, void * fwn, FWval fwretval){
 		fwretval->itype = 'I';
 		nr = 1;
 	}else if(index > -1 && index < ptr->n){
-		int elen = sizeofSF(FIELDTYPE_SFNode);
+		int elen = sizeofSF(fwt->itype);
 		fwretval->_web3dval.native = (void *)(ptr->p + index*elen);
-		fwretval->_web3dval.fieldType = FIELDTYPE_SFNode;
+		fwretval->_web3dval.fieldType = type2SF(fwt->itype);
 		fwretval->itype = 'W';
 		nr = 1;
 	}
 	return nr;
 }
-int MFNode_Setter(int index, void * fwn, FWval fwval){
+int MFW_Setter(FWType fwt, int index, void * fwn, FWval fwval){
 	struct Multi_Any *ptr = (struct Multi_Any *)fwn;
 	int nelen, nold, nr = FALSE;
-	int elen = sizeofSF(FIELDTYPE_SFNode);
+	int elen = sizeofSF(fwt->itype);
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index == -1){
 		//length
@@ -575,14 +575,14 @@ FWTYPE MFNodeType = {
 	MFW_ConstructorArgs, //constructor args
 	MFW_Properties, //Properties,
 	NULL, //special iterator
-	MFNode_Getter, //Getter,
-	MFNode_Setter, //Setter,
+	MFW_Getter, //Getter,
+	MFW_Setter, //Setter,
 	'W',0, //index prop type,readonly
 	NULL, //functions
 };
 
 
-int SFColor_Getter(int index, void * fwn, FWval fwretval){
+int SFColor_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	struct SFColor *ptr = (struct SFColor *)fwn;
 	int nr = 0;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
@@ -601,7 +601,7 @@ int SFColor_Getter(int index, void * fwn, FWval fwretval){
 	fwretval->itype = 'N';
 	return nr;
 }
-int SFColor_Setter(int index, void * fwn, FWval fwval){
+int SFColor_Setter(FWType fwt, int index, void * fwn, FWval fwval){
 	struct SFColor *ptr = (struct SFColor *)fwn;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index > -1 && index < 3){
@@ -656,44 +656,44 @@ FWTYPE SFColorType = {
 	'N',0, //index prop type,readonly
 	NULL, //functions
 };
-int MFColor_Getter(int index, void * fwn, FWval fwretval){
-	struct Multi_Any *ptr = (struct Multi_Any *)fwn;
-	int nr = 0;
-	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
-	if(index == -1){
-		//length
-		fwretval->_integer = ptr->n;
-		fwretval->itype = 'I';
-		nr = 1;
-	}else if(index > -1 && index < ptr->n){
-		int elen = sizeofSF(FIELDTYPE_SFColor);
-		fwretval->_web3dval.native = (void *)(ptr->p + index*elen);
-		fwretval->_web3dval.fieldType = FIELDTYPE_SFColor;
-		fwretval->itype = 'W';
-		nr = 1;
-	}
-	return nr;
-}
-int MFColor_Setter(int index, void * fwn, FWval fwval){
-	struct Multi_Any *ptr = (struct Multi_Any *)fwn;
-	int nr = FALSE;
-	int elen = sizeofSF(FIELDTYPE_SFColor);
-	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
-	if(index == -1){
-		//length
-		ptr->n = fwval->_integer;
-		ptr->p = realloc(ptr->p,ptr->n * elen);
-		nr = TRUE;
-	}else if(index > -1){
-		if(index >= ptr->n){
-			ptr->n = index +1;
-			ptr->p = realloc(ptr->p,ptr->n *elen); //need power of 2 if SFNode
-		}
-		memcpy(ptr->p + index*elen,fwval->_web3dval.native, elen);
-		nr = TRUE;
-	}
-	return nr;
-}
+//int MFColor_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+//	struct Multi_Any *ptr = (struct Multi_Any *)fwn;
+//	int nr = 0;
+//	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+//	if(index == -1){
+//		//length
+//		fwretval->_integer = ptr->n;
+//		fwretval->itype = 'I';
+//		nr = 1;
+//	}else if(index > -1 && index < ptr->n){
+//		int elen = sizeofSF(FIELDTYPE_SFColor);
+//		fwretval->_web3dval.native = (void *)(ptr->p + index*elen);
+//		fwretval->_web3dval.fieldType = FIELDTYPE_SFColor;
+//		fwretval->itype = 'W';
+//		nr = 1;
+//	}
+//	return nr;
+//}
+//int MFColor_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+//	struct Multi_Any *ptr = (struct Multi_Any *)fwn;
+//	int nr = FALSE;
+//	int elen = sizeofSF(FIELDTYPE_SFColor);
+//	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+//	if(index == -1){
+//		//length
+//		ptr->n = fwval->_integer;
+//		ptr->p = realloc(ptr->p,ptr->n * elen);
+//		nr = TRUE;
+//	}else if(index > -1){
+//		if(index >= ptr->n){
+//			ptr->n = index +1;
+//			ptr->p = realloc(ptr->p,ptr->n *elen); //need power of 2 if SFNode
+//		}
+//		memcpy(ptr->p + index*elen,fwval->_web3dval.native, elen);
+//		nr = TRUE;
+//	}
+//	return nr;
+//}
 //#define FIELDTYPE_MFColor	13
 FWTYPE MFColorType = {
 	FIELDTYPE_MFColor,
@@ -703,8 +703,8 @@ FWTYPE MFColorType = {
 	MFW_ConstructorArgs, //constructor args
 	MFW_Properties, //Properties,
 	NULL, //special iterator
-	MFColor_Getter, //Getter,
-	MFColor_Setter, //Setter,
+	MFW_Getter, //Getter,
+	MFW_Setter, //Setter,
 	'W',0, //index prop type,readonly
 	NULL, //functions
 };

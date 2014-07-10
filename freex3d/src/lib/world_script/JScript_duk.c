@@ -778,26 +778,29 @@ int cfwconstructor(duk_context *ctx) {
 	while(fwt->ConstructorArgs[i].nfixedArg > -1){
 		int nfixed = fwt->ConstructorArgs[i].nfixedArg;
 		int ivarsa = fwt->ConstructorArgs[i].iVarArgStartsAt;
-		char *neededType = fwt->ConstructorArgs[i].argtypes;
-		if( nargs == nfixed || (ivarsa > -1 && nargs > nfixed )){ 
+		char *neededTypes = fwt->ConstructorArgs[i].argtypes;
+		if( nargs == nfixed || (ivarsa > -1 && nargs >= nfixed )){ 
 			//nargs is a match
 			int allOK = TRUE;
 			//check each narg for compatible type
 			for(int j=0;j<nargs;j++){
+				char neededType;
 				int isOK, RHS_duk_type = duk_get_type(ctx, j);
 				isOK = FALSE;
+				neededType = j >= nfixed ? neededTypes[ivarsa] : neededTypes[j]; //if you have varargs you specify one more type than the fixed requires
+				// for example MFColor nfixed=0 (you can have 0 to infinity args), ivarsa=0 (varargs start at index 0), neededTypes="W" the first and subsequent varargs are of type 'W'
 				switch(RHS_duk_type){
 				case DUK_TYPE_NUMBER: 
-					if(neededType[j]=='N' || neededType[j]=='I') isOK = TRUE;
+					if(neededType =='N' || neededType =='I') isOK = TRUE;
 					break;
 				case DUK_TYPE_BOOLEAN: 
-					if(neededType[j]=='B') isOK = TRUE;
+					if(neededType =='B') isOK = TRUE;
 					break;
 				case DUK_TYPE_STRING:
-					if(neededType[j]=='S' || neededType[j] =='F') isOK = TRUE;
+					if(neededType =='S' || neededType =='F') isOK = TRUE;
 					break;
 				case DUK_TYPE_OBJECT:
-					if(neededType[j]=='W'){
+					if(neededType =='W'){
 						int rc, itypeRHS = -1;
 						union anyVrml *fieldRHS = NULL;
 						rc = duk_get_prop_string(ctx,j,"fwItype");
@@ -1224,7 +1227,7 @@ int cget(duk_context *ctx) {
 			}
 		}else if(found && fwt->Getter){
 			FWVAL fwretval;
-			nr = fwt->Getter(jndex,parent,&fwretval);
+			nr = fwt->Getter(fwt,jndex,parent,&fwretval);
 			if(nr){
 				nr = fwval_duk_push(ctx,&fwretval,valueChanged);
 			}
@@ -1319,7 +1322,7 @@ int cset(duk_context *ctx) {
 			case 'W': fwsetval._web3dval.native = duk_to_pointer(ctx,-2); fwsetval._web3dval.fieldType = itype; break;
 			case 'P': fwsetval._pointer.native = duk_to_pointer(ctx,-2); fwsetval._pointer.fieldType = itype; break;
 			}
-			fwt->Setter(jndex,parent,&fwsetval);
+			fwt->Setter(fwt,jndex,parent,&fwsetval);
 		}
 	}
     return 0;

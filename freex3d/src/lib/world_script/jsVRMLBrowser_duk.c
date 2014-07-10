@@ -618,7 +618,7 @@ struct proftablestruct {
 };
 struct proftablestruct *getProfTable();
 int * getCapabilitiesTable();
-int BrowserGetter(int index, void * fwn, FWval fwretval){
+int BrowserGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 	int nr = 1;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	switch (index) {
@@ -663,7 +663,7 @@ int BrowserGetter(int index, void * fwn, FWval fwretval){
 		}
 	return nr;
 }
-int BrowserSetter(int index, void * fwn, FWval fwval){
+int BrowserSetter(FWType fwt, int index, void * fwn, FWval fwval){
 	switch (index) {
 		case 4: //description is settable
 			gglobal()->Mainloop.BrowserDescription = fwval->_string;
@@ -723,7 +723,7 @@ typedef struct intTableIndex{
 //ComponentInfo [integer index];
 //}
 
-int ComponentInfoArrayGetter(int index, void * fwn, FWval fwretval){
+int ComponentInfoArrayGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 	int *_table;
 	int nr = 1;
 	_table = (int *)fwn;
@@ -771,7 +771,7 @@ FWPropertySpec (ComponentInfoProperties)[] = {
 };
 
 
-int ComponentInfoGetter(int index, void * fwn, FWval fwretval){
+int ComponentInfoGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 	int nr, *tableEntry, nameIndex;
 	tableEntry = (int *)fwn;
 	nr = 1;
@@ -820,7 +820,7 @@ FWTYPE ComponentInfoType = {
 //}
 
 
-int ProfileInfoArrayGetter(int index, void * fwn, FWval fwretval){
+int ProfileInfoArrayGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 	struct proftablestruct *_table;
 	int nr = 1;
 	_table = (struct proftablestruct *)fwn;
@@ -878,7 +878,7 @@ FWPropertySpec (ProfileInfoProperties)[] = {
 };
 
 
-int ProfileInfoGetter(int index, void * fwn, FWval fwretval){
+int ProfileInfoGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 	int nr, nameIndex;
 	struct proftablestruct *tableEntry;
 	tableEntry = (struct proftablestruct *)fwn;
@@ -999,7 +999,7 @@ static FWPropertySpec (X3DExecutionContextProperties)[] = {
 	{0}
 };
 
-int X3DExecutionContextGetter(int index, void * fwn, FWval fwretval){
+int X3DExecutionContextGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 	struct X3D_Node * ec;
 	int nr = 1;
 	ec = (struct X3D_Node*)fwn;
@@ -1134,7 +1134,7 @@ FWPropertySpec (X3DRouteProperties)[] = {
 	{NULL,0,0,0},
 };
 void getFieldFromNodeAndIndex(struct X3D_Node* node, int iifield, const char **fieldname, int *type, int *kind, union anyVrml **value);
-int X3DRouteGetter(int index, void * fwn, FWval fwretval){
+int X3DRouteGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 	union anyVrml *value;
 	int type, kind;
 	char *fieldname;
@@ -1293,7 +1293,7 @@ struct string_int *lookup_string_int(struct string_int *table, char *searchkey, 
 	return NULL;
 }
 
-int X3DConstantsGetter(int index, void * fwn, FWval fwretval){
+int X3DConstantsGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 	int nr = 1;
 	fwretval->_integer = lookup_X3DConstants[index].i;
 	fwretval->itype = 'I';
