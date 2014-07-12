@@ -304,6 +304,10 @@ int getCRouteCount(){
 	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
 	return p->CRoutes_Count;
 }
+int *getCRouteCounter(){
+	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
+	return &p->CRoutes_Count;
+}
 
 
 

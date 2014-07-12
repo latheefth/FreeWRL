@@ -77,7 +77,7 @@ and set the valueChanged flag when set. Similarly other fieldtype functions and 
 ecma primitive instead of one of the above, and never generate a new one of these.
 */
 
-
+int type2SF(int itype);
 
 /* from http://www.cs.rit.edu/~ncs/color/t_convert.html */
 double MIN(double a, double b, double c) {
@@ -160,14 +160,18 @@ int SFColor_getHSV(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwre
 
 int SFFloat_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	float *ptr = (float *)fwn;
-	fwretval->_numeric =  (double)*(ptr);
-	fwretval->itype = 'N';
+	//fwretval->_numeric =  (double)*(ptr);
+	fwretval->_web3dval.anyvrml->sffloat = (float)(*ptr);
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFFloat;
+	fwretval->itype = 'W';
 	return 1;
 }
 int SFFloat_Setter(FWType fwt, int index, void * fwn, FWval fwval){
 	float *ptr = (float *)fwn;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
-	(*ptr) = (float)fwval->_numeric;
+	//(*ptr) = (float)fwval->_numeric;
+	(*ptr) = fwval->_web3dval.anyvrml->sffloat;
+
 	return TRUE;
 }
 
@@ -187,19 +191,129 @@ FWTYPE SFFloatType = {
 	NULL, //functions
 };
 //#define FIELDTYPE_MFFloat	1
+//FWTYPE MFFloatType = {
+//	FIELDTYPE_MFFloat,
+//	"MFFloat",
+//	sizeof(struct Multi_Any), //sizeof(struct ), 
+//	NULL, //constructor
+//	NULL, //constructor args
+//	NULL, //Properties,
+//	NULL, //special iterator
+//	NULL, //Getter,
+//	NULL, //Setter,
+//	'N',0, //index prop type,readonly
+//	NULL, //functions
+//};
+
+//MFW for MF types that take web3d (non-ecma-primitive) types ie new MFColor( new SFColor(0,0,0), new SFColor(.1,.2,.3), ...) 
+ArgListType (MFW_ConstructorArgs)[] = {
+		{0,0,0,"W"},
+		{-1,0,0,NULL},
+};
+int sizeofSF(int itype); //thunks MF to SF (usually itype-1) and gets sizeof SF
+void * MFW_Constructor(FWType fwtype, int argc, FWval fwpars){
+	int lenSF;
+	struct Multi_Any *ptr = malloc(sizeof(struct Multi_Any));  ///malloc in 2 parts for MF
+	lenSF = sizeofSF(fwtype->itype); 
+	ptr->n = argc;
+	ptr->p = NULL;
+	if(ptr->n)
+		ptr->p = malloc(ptr->n * lenSF); // This second part is resizable ie MF[i] = new SF() if i >= (.length), .length is expanded to accomodate
+	char *p = ptr->p;
+	for(int i=0;i<ptr->n;i++){
+		memcpy(p,fwpars[i]._web3dval.native,lenSF);
+		p += lenSF;
+	}
+	return (void *)ptr;
+}
+FWPropertySpec (MFW_Properties)[] = {
+	{"length", -1, 'I', 0},
+	{NULL,0,0,0},
+};
+int MFW_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+	struct Multi_Any *ptr = (struct Multi_Any *)fwn;
+	int nr = 0;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index == -1){
+		//length
+		//fwretval->_integer = ptr->n;
+		//fwretval->itype = 'I';
+		fwretval->_web3dval.native = &ptr->n;
+		fwretval->_web3dval.fieldType = FIELDTYPE_SFInt32;
+		fwretval->itype = 'W';
+		nr = 1;
+	}else if(index > -1 && index < ptr->n){
+		int elen = sizeofSF(fwt->itype);
+		fwretval->_web3dval.native = (void *)(ptr->p + index*elen);
+		fwretval->_web3dval.fieldType = type2SF(fwt->itype);
+		fwretval->itype = 'W';
+		nr = 1;
+	}
+	return nr;
+}
+int MFW_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+	struct Multi_Any *ptr = (struct Multi_Any *)fwn;
+	int nelen, nold, nr = FALSE;
+	int elen = sizeofSF(fwt->itype);
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index == -1){
+		//length
+		nold = ptr->n;
+		//ptr->n = fwval->_integer;
+		ptr->n = fwval->_web3dval.anyvrml->sfint32;
+		if(ptr->n > nold){
+			//nelen = (int) upper_power_of_two(fwval->_integer);
+			ptr->p = realloc(ptr->p,ptr->n * elen);
+		}
+		nr = TRUE;
+	}else if(index > -1){
+		if(index >= ptr->n){
+			//nold = ptr->n;
+			ptr->n = index+1;
+			//nelen = (int) upper_power_of_two(ptr->n);
+			ptr->p = realloc(ptr->p,ptr->n *elen); //need power of 2 if SFNode children
+		}
+		memcpy(ptr->p + index*elen,fwval->_web3dval.native, elen);
+		nr = TRUE;
+	}
+	return nr;
+}
+
+void * MFFloat_Constructor(FWType fwtype, int argc, FWval fwpars){
+	int lenSF;
+	struct Multi_Any *ptr = malloc(sizeof(struct Multi_Any));  ///malloc in 2 parts for MF
+	lenSF = sizeofSF(fwtype->itype); 
+	ptr->n = argc;
+	ptr->p = NULL;
+	if(ptr->n)
+		ptr->p = malloc(ptr->n * lenSF); // This second part is resizable ie MF[i] = new SF() if i >= (.length), .length is expanded to accomodate
+	char *p = ptr->p;
+	for(int i=0;i<ptr->n;i++){
+		//float ff = (float)fwpars[i]._numeric; //fwpars[i]._web3dval.native;
+		memcpy(p,&fwpars[i]._web3dval.native,lenSF);
+		p += lenSF;
+	}
+	return (void *)ptr;
+}
+ArgListType (MFFloat_ConstructorArgs)[] = {
+		{0,0,0,"N"},
+		{-1,0,0,NULL},
+};
+
 FWTYPE MFFloatType = {
 	FIELDTYPE_MFFloat,
 	"MFFloat",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
+	MFFloat_Constructor, //constructor
+	MFFloat_ConstructorArgs, //constructor args
+	MFW_Properties, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	MFW_Getter, //Getter,
+	MFW_Setter, //Setter,
+	'W',0, //index prop type,readonly
 	NULL, //functions
 };
+
 //#define FIELDTYPE_SFRotation	2
 FWTYPE SFRotationType = {
 	FIELDTYPE_SFRotation,
@@ -211,7 +325,7 @@ FWTYPE SFRotationType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'F',0, //index prop type,readonly
 	NULL, //functions
 };
 //#define FIELDTYPE_MFRotation	3
@@ -225,7 +339,7 @@ FWTYPE MFRotationType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'W',0, //index prop type,readonly
 	NULL, //functions
 };
 //#define FIELDTYPE_SFVec3f	4
@@ -239,7 +353,7 @@ FWTYPE SFVec3fType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'F',0, //index prop type,readonly
 	NULL, //functions
 };
 //#define FIELDTYPE_MFVec3f	5
@@ -253,7 +367,7 @@ FWTYPE MFVec3fType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'W',0, //index prop type,readonly
 	NULL, //functions
 };
 //#define FIELDTYPE_SFBool	6
@@ -267,7 +381,7 @@ FWTYPE SFBoolType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	0,0, //index prop type,readonly
 	NULL, //functions
 };
 //#define FIELDTYPE_MFBool	7
@@ -281,7 +395,7 @@ FWTYPE MFBoolType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'B',0, //index prop type,readonly
 	NULL, //functions
 };
 //#define FIELDTYPE_SFInt32	8
@@ -295,7 +409,7 @@ FWTYPE SFInt32Type = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	0,0, //index prop type,readonly
 	NULL, //functions
 };
 //#define FIELDTYPE_MFInt32	9
@@ -309,7 +423,7 @@ FWTYPE MFInt32Type = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'I',0, //index prop type,readonly
 	NULL, //functions
 };
 
@@ -326,9 +440,9 @@ int SFNode_Iterator(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int
 	switch(ftype){
 		case FIELDTYPE_SFBool: ctype = 'B'; break;
 		case FIELDTYPE_SFInt32: ctype = 'I'; break;
-		case FIELDTYPE_SFFloat: 
-		case FIELDTYPE_SFDouble:
-		case FIELDTYPE_SFTime: ctype = 'N'; break;
+		case FIELDTYPE_SFFloat: ctype = 'F'; break;
+		case FIELDTYPE_SFDouble: ctype = 'D'; break;
+		case FIELDTYPE_SFTime: ctype = 'D'; break;
 		case FIELDTYPE_SFString: ctype = 'S'; break;
 		default: ctype = 'W'; break;
 	}
@@ -350,6 +464,10 @@ int SFNode_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	nr = 0;
 	ihave = getFieldFromNodeAndIndex(node, index, &name, &ftype, &kind, &value);
 	if(ihave){
+		fwretval->_web3dval.anyvrml = value;
+		fwretval->_web3dval.fieldType = ftype;
+		fwretval->itype = 'W';
+/*
 		//copy W type or primative type, depending on ftype
 		switch(ftype){
 		case FIELDTYPE_SFBool:
@@ -362,13 +480,13 @@ int SFNode_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 			break;
 
 		case FIELDTYPE_SFFloat:
-			fwretval->itype = 'N';
+			fwretval->itype = 'F';
 			fwretval->_numeric = (double)value->sffloat;
 			break;
 
 		case FIELDTYPE_SFDouble:
 		case FIELDTYPE_SFTime:
-			fwretval->itype = 'N';
+			fwretval->itype = 'D';
 			fwretval->_numeric = value->sftime;
 			break;
 
@@ -382,10 +500,12 @@ int SFNode_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 			fwretval->_web3dval.fieldType = ftype;
 			fwretval->_web3dval.native = value; //Q. am I supposed to deep copy here? I'm not. So I don't set gc.
 		}
+*/
 		nr = 1;
 	}
 	return nr;
 }
+void medium_copy_field0(int itype, void* source, void* dest);
 int SFNode_Setter(FWType fwt, int index, void * fwn, FWval fwval){
 	struct X3D_Node *node = ((union anyVrml*)fwn)->sfnode; 
 	int ftype, kind, ihave, nr;
@@ -394,6 +514,10 @@ int SFNode_Setter(FWType fwt, int index, void * fwn, FWval fwval){
 	nr = FALSE;
 	ihave = getFieldFromNodeAndIndex(node, index, &name, &ftype, &kind, &value);
 	if(ihave){
+		//value = fwval->_web3dval.anyvrml;  //Q. should be *value = *anyvrml or medium_copy_field?
+		medium_copy_field0(ftype,fwval->_web3dval.anyvrml,value);
+		//ftype = fwval->_web3dval.fieldType;
+/*
 		//copy W type or primative type, depending on ftype
 		switch(ftype){
 		case FIELDTYPE_SFBool:
@@ -406,13 +530,13 @@ int SFNode_Setter(FWType fwt, int index, void * fwn, FWval fwval){
 			break;
 
 		case FIELDTYPE_SFFloat:
-			fwval->itype = 'N';
+			fwval->itype = 'F';
 			value->sffloat = (float)fwval->_numeric;
 			break;
 
 		case FIELDTYPE_SFDouble:
 		case FIELDTYPE_SFTime:
-			fwval->itype = 'N';
+			fwval->itype = 'D';
 			value->sftime = fwval->_numeric;
 			break;
 
@@ -425,6 +549,7 @@ int SFNode_Setter(FWType fwt, int index, void * fwn, FWval fwval){
 		default:
 			value = fwval->_web3dval.native; //Q. am I supposed to deep copy here? 
 		}
+*/
 		if(node->_nodeType == NODE_Script) {
 			//notify for event processing
 			struct Shader_Script *script = X3D_SCRIPT(node)->__scriptObj;
@@ -455,7 +580,7 @@ void * SFNode_Constructor(FWType fwtype, int nargs, FWval fwpars){
 			int MallocdSize;
 			ttglobal tg = gglobal();
 			struct VRMLParser *globalParser = (struct VRMLParser *)tg->CParse.globalParser;
-			const char *_c = fwpars[0]._string;
+			const char *_c = fwpars[0]._web3dval.anyvrml->sfstring->strptr; //fwpars[0]._string;
 
 			/* do the call to make the VRML code  - create a new browser just for this string */
 			gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
@@ -475,8 +600,8 @@ void * SFNode_Constructor(FWType fwtype, int nargs, FWval fwpars){
 	return ptr;
 }
 ArgListType (SFNode_ConstructorArgs)[] = {
-		{1,-1,'F',"S"},
-		{1,-1,'F',"W"},
+		{1,-1,0,"S"},
+		{1,-1,0,"W"},
 		{-1,0,0,NULL},
 };
 //#define FIELDTYPE_SFNode	10
@@ -495,76 +620,6 @@ FWTYPE SFNodeType = {
 };
 
 
-
-//MFW for MF types that take web3d (non-ecma-primitive) types ie new MFColor( new SFColor(0,0,0), new SFColor(.1,.2,.3), ...) 
-ArgListType (MFW_ConstructorArgs)[] = {
-		{0,0,'F',"W"},
-		{-1,0,0,NULL},
-};
-int sizeofSF(int itype); //thunks MF to SF (usually itype-1) and gets sizeof SF
-void * MFW_Constructor(FWType fwtype, int argc, FWval fwpars){
-	int lenSF;
-	struct Multi_Any *ptr = malloc(sizeof(struct Multi_Any));  ///malloc in 2 parts for MF
-	lenSF = sizeofSF(fwtype->itype); 
-	ptr->n = argc;
-	ptr->p = NULL;
-	if(ptr->n)
-		ptr->p = malloc(ptr->n * lenSF); // This second part is resizable ie MF[i] = new SF() if i >= (.length), .length is expanded to accomodate
-	char *p = ptr->p;
-	for(int i=0;i<ptr->n;i++){
-		memcpy(p,fwpars[i]._web3dval.native,lenSF);
-		p += lenSF;
-	}
-	return (void *)ptr;
-}
-FWPropertySpec (MFW_Properties)[] = {
-	{"length", -1, 'N', 'F'},
-	{NULL,0,0,0},
-};
-int MFW_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
-	struct Multi_Any *ptr = (struct Multi_Any *)fwn;
-	int nr = 0;
-	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
-	if(index == -1){
-		//length
-		fwretval->_integer = ptr->n;
-		fwretval->itype = 'I';
-		nr = 1;
-	}else if(index > -1 && index < ptr->n){
-		int elen = sizeofSF(fwt->itype);
-		fwretval->_web3dval.native = (void *)(ptr->p + index*elen);
-		fwretval->_web3dval.fieldType = type2SF(fwt->itype);
-		fwretval->itype = 'W';
-		nr = 1;
-	}
-	return nr;
-}
-int MFW_Setter(FWType fwt, int index, void * fwn, FWval fwval){
-	struct Multi_Any *ptr = (struct Multi_Any *)fwn;
-	int nelen, nold, nr = FALSE;
-	int elen = sizeofSF(fwt->itype);
-	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
-	if(index == -1){
-		//length
-		nold = ptr->n;
-		ptr->n = fwval->_integer;
-		if(ptr->n > nold){
-			//nelen = (int) upper_power_of_two(fwval->_integer);
-			ptr->p = realloc(ptr->p,ptr->n * elen);
-		}
-		nr = TRUE;
-	}else if(index > -1){
-		if(index >= ptr->n){
-			//nold = ptr->n;
-			ptr->n = index+1;
-			//nelen = (int) upper_power_of_two(ptr->n);
-			ptr->p = realloc(ptr->p,ptr->n *elen); //need power of 2 if SFNode children
-		}
-		memcpy(ptr->p + index*elen,fwval->_web3dval.native, elen);
-		nr = TRUE;
-	}
-	return nr;
-}
 
 //#define FIELDTYPE_MFNode	11
 FWTYPE MFNodeType = {
@@ -592,13 +647,15 @@ int SFColor_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 		case 0: //r
 		case 1: //g
 		case 2: //b
-			fwretval->_numeric =  ptr->c[index];
+			//fwretval->_numeric =  ptr->c[index];
+			fwretval->_web3dval.anyvrml = (union anyVrml*)&ptr->c[index];
+			fwretval->_web3dval.fieldType = FIELDTYPE_SFFloat;
 			break;
 		default:
 			nr = 0;
 		}
 	}
-	fwretval->itype = 'N';
+	fwretval->itype = 'W';
 	return nr;
 }
 int SFColor_Setter(FWType fwt, int index, void * fwn, FWval fwval){
@@ -609,7 +666,7 @@ int SFColor_Setter(FWType fwt, int index, void * fwn, FWval fwval){
 		case 0: //r
 		case 1: //g
 		case 2: //b
-			ptr->c[index] = fwval->_numeric;
+			ptr->c[index] = fwval->_web3dval.anyvrml->sffloat; //fwval->_numeric;
 			break;
 		}
 		return TRUE;
@@ -621,14 +678,14 @@ void * SFColor_Constructor(FWType fwtype, int ic, FWval fwpars){
 	struct SFColor *ptr = malloc(fwtype->size_of); //garbage collector please
 	if(fwtype->ConstructorArgs[0].nfixedArg == 3)
 	for(int i=0;i<3;i++)
-		ptr->c[i] = fwpars[i]._numeric;
+		ptr->c[i] = fwpars[i]._web3dval.anyvrml->sffloat; // fwpars[i]._numeric;
 	return (void *)ptr;
 }
 
 FWPropertySpec (SFColor_Properties)[] = {
-	{"r", 0, 'N', 'F'},
-	{"g", 1, 'N', 'F'},
-	{"b", 2, 'N', 'F'},
+	{"r", 0, 'F', 0},
+	{"g", 1, 'F', 0},
+	{"b", 2, 'F', 0},
 	{NULL,0,0,0},
 };
 
@@ -639,7 +696,7 @@ FWPropertySpec (SFColor_Properties)[] = {
 //	char *argtypes; //if varargs, then argtypes[nfixedArg] == type of varArg, and all varargs are assumed the same type
 //} ArgListType;
 ArgListType (SFColor_ConstructorArgs)[] = {
-		{3,0,'T',"NNN"},
+		{3,0,'T',"FFF"},
 		{-1,0,0,NULL},
 };
 //#define FIELDTYPE_SFColor	12
@@ -653,7 +710,7 @@ FWTYPE SFColorType = {
 	NULL, //special iterator
 	SFColor_Getter, //Getter,
 	SFColor_Setter, //Setter,
-	'N',0, //index prop type,readonly
+	'F',0, //index prop type,readonly
 	NULL, //functions
 };
 //int MFColor_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
@@ -719,7 +776,7 @@ FWTYPE SFColorRGBAType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'F',0, //index prop type,readonly
 	NULL, //functions
 };
 //#define FIELDTYPE_MFColorRGBA	15
@@ -733,7 +790,7 @@ FWTYPE MFColorRGBAType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'W',0, //index prop type,readonly
 	NULL, //functions
 };
 //#define FIELDTYPE_SFTime	16
@@ -747,7 +804,7 @@ FWTYPE SFTimeType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	0,0, //index prop type,readonly
 	NULL, //functions
 };
 //#define FIELDTYPE_MFTime	17
@@ -761,7 +818,7 @@ FWTYPE MFTimeType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'D',0, //index prop type,readonly
 	NULL, //functions
 };
 //#define FIELDTYPE_SFString	18
@@ -775,7 +832,7 @@ FWTYPE SFStringType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	0,0, //index prop type,readonly  //Q. should string[i] return 'I' == char, like SFImage indexer?
 	NULL, //functions
 };
 //#define FIELDTYPE_MFString	19
@@ -789,7 +846,7 @@ FWTYPE MFStringType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'S',0, //index prop type,readonly
 	NULL, //functions
 };
 //#define FIELDTYPE_SFVec2f	20
@@ -803,7 +860,7 @@ FWTYPE SFVec2fType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'F',0, //index prop type,readonly
 	NULL, //functions
 };
 
@@ -818,7 +875,7 @@ FWTYPE MFVec2fType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'W',0, //index prop type,readonly
 	NULL, //functions
 };
 //#define FIELDTYPE_SFImage	22
@@ -832,7 +889,7 @@ FWTYPE SFImageType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'I',0, //index prop type,readonly
 	NULL, //functions
 };
 //#define FIELDTYPE_FreeWRLPTR	23
@@ -848,7 +905,7 @@ FWTYPE SFVec3dType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'D',0, //index prop type,readonly
 	NULL, //functions
 };
 
@@ -863,7 +920,7 @@ FWTYPE MFVec3dType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'W',0, //index prop type,readonly
 	NULL, //functions
 };
 
@@ -878,7 +935,7 @@ FWTYPE SFDoubleType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	0,0, //index prop type,readonly
 	NULL, //functions
 };
 
@@ -893,7 +950,7 @@ FWTYPE MFDoubleType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'D',0, //index prop type,readonly
 	NULL, //functions
 };
 
@@ -908,7 +965,7 @@ FWTYPE SFMatrix3fType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'F',0, //index prop type,readonly
 	NULL, //functions
 };
 
@@ -923,7 +980,7 @@ FWTYPE MFMatrix3fType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'W',0, //index prop type,readonly
 	NULL, //functions
 };
 //#define FIELDTYPE_SFMatrix3d	31
@@ -937,7 +994,7 @@ FWTYPE SFMatrix3dType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'D',0, //index prop type,readonly
 	NULL, //functions
 };
 //#define FIELDTYPE_MFMatrix3d	32
@@ -951,7 +1008,7 @@ FWTYPE MFMatrix3dType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'W',0, //index prop type,readonly
 	NULL, //functions
 };
 //#define FIELDTYPE_SFMatrix4f	33
@@ -965,7 +1022,7 @@ FWTYPE SFMatrix4fType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'F',0, //index prop type,readonly
 	NULL, //functions
 };
 //#define FIELDTYPE_MFMatrix4f	34
@@ -979,7 +1036,7 @@ FWTYPE MFMatrix4fType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'W',0, //index prop type,readonly
 	NULL, //functions
 };
 
@@ -994,7 +1051,7 @@ FWTYPE SFMatrix4dType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'D',0, //index prop type,readonly
 	NULL, //functions
 };
 
@@ -1009,7 +1066,7 @@ FWTYPE MFMatrix4dType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'W',0, //index prop type,readonly
 	NULL, //functions
 };
 
@@ -1024,7 +1081,7 @@ FWTYPE SFVec2dType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'D',0, //index prop type,readonly
 	NULL, //functions
 };
 
@@ -1039,7 +1096,7 @@ FWTYPE MFVec2dType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'W',0, //index prop type,readonly
 	NULL, //functions
 };
 
@@ -1054,7 +1111,7 @@ FWTYPE SFVec4fType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'F',0, //index prop type,readonly
 	NULL, //functions
 };
 
@@ -1069,7 +1126,7 @@ FWTYPE MFVec4fType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'W',0, //index prop type,readonly
 	NULL, //functions
 };
 
@@ -1084,7 +1141,7 @@ FWTYPE SFVec4dType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'D',0, //index prop type,readonly
 	NULL, //functions
 };
 
@@ -1099,7 +1156,7 @@ FWTYPE MFVec4dType = {
 	NULL, //special iterator
 	NULL, //Getter,
 	NULL, //Setter,
-	'N',0, //index prop type,readonly
+	'W',0, //index prop type,readonly
 	NULL, //functions
 };
 

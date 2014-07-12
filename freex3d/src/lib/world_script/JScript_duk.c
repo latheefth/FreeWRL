@@ -397,7 +397,7 @@ int sizeofSForMF(int itype){
 	case FIELDTYPE_SFColor:	iz = sizeof(struct SFColor); break;
 	case FIELDTYPE_SFColorRGBA:	iz = sizeof(struct SFColorRGBA); break;
 	case FIELDTYPE_SFTime:	iz = sizeof(double); break;
-	case FIELDTYPE_SFString: iz = sizeof(struct Uni_string *); break;
+	case FIELDTYPE_SFString: iz = sizeof(struct Uni_string *); break;  //sizeof(void *) because nodes that have a string field declare it struct Uni_String *, so when copying to a node, you copy sizeof(void*). H: if the char *string is const, then uni_string is const (they may hang out as pals for life, or char *string may outlive its uni_string pal
 	case FIELDTYPE_SFVec2f:	iz = sizeof(struct SFVec2f); break;
 	//case FIELDTYPE_SFImage:	iz = 
 	case FIELDTYPE_SFVec3d:	iz = sizeof(struct SFVec3d); break;
@@ -671,46 +671,71 @@ void medium_copy_field(int itype, void* source, void** dest){
 	medium_copy_field0(itype,source,(*dest));
 }
 
-void convert_duk_to_fwvals(duk_context *ctx, int nargs, struct ArgListType arglist, FWval *args, int *argc){
-	int nUsable,nNeeded, i;
+void convert_duk_to_fwvals(duk_context *ctx, int nargs, int istack, struct ArgListType arglist, FWval *args, union anyVrml **any, int *argc){
+	int nUsable,nNeeded, i, ii;
+	union anyVrml *many;
+	struct Uni_String *uni;
 	nUsable = arglist.iVarArgStartsAt > -1 ? nargs : arglist.nfixedArg;
 	nNeeded = max(nUsable,arglist.nfixedArg);
 	FWval pars = malloc(nNeeded*sizeof(FWVAL));
+	many = malloc(nNeeded*sizeof(union anyVrml));
+	(*any) = many;
+	for(i=0;i<nNeeded;i++){
+		pars[i]._web3dval.anyvrml = &many[i];
+	}
 	(*args) = pars;
 	//QC and genericization of incoming parameters
 	(*argc) = nNeeded;
 	for(i=0;i<nUsable;i++){
+		const char* str;
+		ii = istack + i;
 		char ctype;
 		if(i < arglist.nfixedArg) 
 			ctype = arglist.argtypes[i];
 		else 
 			ctype = arglist.argtypes[arglist.iVarArgStartsAt];
-		pars[i].itype = ctype;
+		pars[i].itype = 'W'; //ctype;
 		switch(ctype){
-		case 'B': pars[i]._boolean = duk_get_boolean(ctx,i); break;
-		case 'I': pars[i]._integer = duk_get_int(ctx,i); break;
-		case 'N': pars[i]._numeric = duk_get_number(ctx,i); break;
-		case 'S': pars[i]._string = duk_get_string(ctx,i); break;
-		case 'F': //flexi-string idea - allow either String or MFString (no such thing as SFString from ecma - it uses String for that)
-			if(duk_is_string(ctx,i)){
-				pars[i]._string = duk_get_string(ctx,i); 
-				pars[i].itype = 'S';
+		//case 'B': pars[i]._boolean = duk_get_boolean(ctx,i); break;
+		//case 'I': pars[i]._integer = duk_get_int(ctx,i); break;
+		//case 'F': pars[i]._numeric = duk_get_number(ctx,i); break;
+		//case 'D': pars[i]._numeric = duk_get_number(ctx,i); break;
+		//case 'S': pars[i]._string = duk_get_string(ctx,i); break;
+		case 'B': pars[i]._web3dval.anyvrml->sfbool = duk_get_boolean(ctx,ii); pars[i]._web3dval.fieldType = FIELDTYPE_SFBool; break;
+		case 'I': pars[i]._web3dval.anyvrml->sfint32 = duk_get_int(ctx,ii);  pars[i]._web3dval.fieldType = FIELDTYPE_SFInt32; break;
+		case 'F': pars[i]._web3dval.anyvrml->sffloat = (float) duk_get_number(ctx,ii);  pars[i]._web3dval.fieldType = FIELDTYPE_SFFloat; break;
+		case 'D': pars[i]._web3dval.anyvrml->sfdouble = duk_get_number(ctx,ii);  pars[i]._web3dval.fieldType = FIELDTYPE_SFDouble; break;
+		case 'S': str = strdup(duk_get_string(ctx,ii)); 
+			//later use of a uni_string just copies its pointer. so if str is const, then we need a const struct uni_string to go with it.
+			pars[i]._web3dval.anyvrml->sfstring = malloc(sizeof(struct Uni_String));
+			pars[i]._web3dval.anyvrml->sfstring->strptr = strdup(str);
+			pars[i]._web3dval.anyvrml->sfstring->len = strlen(pars[i]._web3dval.anyvrml->sfstring->strptr);
+			pars[i]._web3dval.fieldType = FIELDTYPE_SFString;
+			break;
+		case 'Z': //flexi-string idea - allow either String or MFString (no such thing as SFString from ecma - it uses String for that)
+			if(duk_is_string(ctx,ii)){
+				//pars[i]._string = duk_get_string(ctx,i); 
+				//pars[i].itype = 'S';
+				pars[i]._web3dval.anyvrml->sfstring = malloc(sizeof(struct Uni_String));
+				pars[i]._web3dval.anyvrml->sfstring->strptr = strdup(str);
+				pars[i]._web3dval.anyvrml->sfstring->len = strlen(pars[i]._web3dval.anyvrml->sfstring->strptr);
+				pars[i]._web3dval.fieldType = FIELDTYPE_SFString;
+
 				break;
 			}
 			if(!duk_is_object(ctx,i))
 				break;
 			//else fall through to W
 		case 'W': {
-			{
 				int rc, isOK, itypeRHS = -1;
 				union anyVrml *fieldRHS = NULL;
-				rc = duk_get_prop_string(ctx,i,"fwItype");
+				rc = duk_get_prop_string(ctx,ii,"fwItype");
 				if(rc == 1){
 					//printf(duk_type_to_string(duk_get_type(ctx, -1)));
 					itypeRHS = duk_to_int(ctx,-1);
 				}
 				duk_pop(ctx);
-				rc = duk_get_prop_string(ctx,i,"fwField");
+				rc = duk_get_prop_string(ctx,ii,"fwField");
 				if(rc == 1) fieldRHS = duk_to_pointer(ctx,-1);
 				duk_pop(ctx);
 				/*we don't need the RHS fwChanged=valueChanged* because we are only changing the LHS*/
@@ -726,8 +751,32 @@ void convert_duk_to_fwvals(duk_context *ctx, int nargs, struct ArgListType argli
 					isOK = TRUE;
 				}
 			}
+			break;
+		case 'P': {
+				int rc, isOK, itypeRHS = -1;
+				union anyVrml *fieldRHS = NULL;
+				rc = duk_get_prop_string(ctx,ii,"fwItype");
+				if(rc == 1){
+					//printf(duk_type_to_string(duk_get_type(ctx, -1)));
+					itypeRHS = duk_to_int(ctx,-1);
+				}
+				duk_pop(ctx);
+				rc = duk_get_prop_string(ctx,ii,"fwField");
+				if(rc == 1) fieldRHS = duk_to_pointer(ctx,-1);
+				duk_pop(ctx);
+				/*we don't need the RHS fwChanged=valueChanged* because we are only changing the LHS*/
+				isOK = FALSE;
+				if(fieldRHS != NULL && itypeRHS >= AUXTYPE_X3DConstants){
+					/* its one of our auxiliary types - Browser, X3DConstants, ProfileInfo, ComponentInfo, X3DRoute ...*/
+					pars[i]._pointer.native = fieldRHS;
+					pars[i]._pointer.fieldType = itypeRHS;
+					pars[i].itype = 'P';
+					// see below *valueChanged = TRUE;
+					isOK = TRUE;
+				}
 			}
 			break;
+
 		case 'O': break; //object pointer ie to js function callback object
 		}
 	}
@@ -735,18 +784,32 @@ void convert_duk_to_fwvals(duk_context *ctx, int nargs, struct ArgListType argli
 	for(i=nUsable;i<nNeeded;i++){
 		//fill
 		char ctype = arglist.argtypes[i];
-		pars[i].itype = ctype;
+		pars[i].itype = 'W'; //ctype;
 		switch(ctype){
-		case 'B': pars[i]._boolean = FALSE; break;
-		case 'I': pars[i]._integer = 0; break;
-		case 'N': pars[i]._numeric = 0.0; break;
-		case 'S': pars[i]._string = NULL; break;
-		case 'F': pars[i]._string = NULL; pars[i].itype = 'S'; break;
+		//case 'B': pars[i]._boolean = FALSE; break;
+		//case 'I': pars[i]._integer = 0; break;
+		//case 'F': pars[i]._numeric = 0.0; break;
+		//case 'D': pars[i]._numeric = 0.0; break;
+		//case 'S': pars[i]._string = NULL; break;
+		//case 'Z': pars[i]._string = NULL; pars[i].itype = 'S'; break;
+		case 'B': pars[i]._web3dval.anyvrml->sfbool = FALSE;	pars[i]._web3dval.fieldType = FIELDTYPE_SFBool; break;
+		case 'I': pars[i]._web3dval.anyvrml->sfint32 = 0;		pars[i]._web3dval.fieldType = FIELDTYPE_SFInt32; break;
+		case 'F': pars[i]._web3dval.anyvrml->sffloat = 0.0f;	pars[i]._web3dval.fieldType = FIELDTYPE_SFFloat; break;
+		case 'D': pars[i]._web3dval.anyvrml->sfdouble = 0.0;	pars[i]._web3dval.fieldType = FIELDTYPE_SFDouble; break;
+		case 'S': pars[i]._web3dval.anyvrml->sfstring = malloc(sizeof(struct Uni_String));
+			pars[i]._web3dval.anyvrml->sfstring->strptr = NULL;	pars[i]._web3dval.fieldType = FIELDTYPE_SFString; break;
+		case 'Z': pars[i]._web3dval.anyvrml->sfstring = malloc(sizeof(struct Uni_String));
+			pars[i]._web3dval.anyvrml->sfstring->strptr = NULL; pars[i]._web3dval.fieldType = FIELDTYPE_SFString; break;
 		case 'W': 
 			pars[i]._web3dval.fieldType = FIELDTYPE_SFNode; 
 			pars[i]._web3dval.native = NULL; break;
+		//case 'P': 
+		//	pars[i]._web3dval.fieldType = FIELDTYPE_SFNode; //I don't have a good default value - do I need an AUXTYPE_NULL?
+		//	pars[i]._web3dval.native = NULL; break;
 		case 'O': 
 			pars[i]._jsobject = NULL; break; 
+		default:
+			pars[i].itype = '0';
 		}
 	}
 }
@@ -789,18 +852,19 @@ int cfwconstructor(duk_context *ctx) {
 				isOK = FALSE;
 				neededType = j >= nfixed ? neededTypes[ivarsa] : neededTypes[j]; //if you have varargs you specify one more type than the fixed requires
 				// for example MFColor nfixed=0 (you can have 0 to infinity args), ivarsa=0 (varargs start at index 0), neededTypes="W" the first and subsequent varargs are of type 'W'
+				printf("duktype %s\n",duk_type_to_string(RHS_duk_type));
 				switch(RHS_duk_type){
 				case DUK_TYPE_NUMBER: 
-					if(neededType =='N' || neededType =='I') isOK = TRUE;
+					if(neededType =='F' || neededType =='D' || neededType =='I') isOK = TRUE;
 					break;
 				case DUK_TYPE_BOOLEAN: 
 					if(neededType =='B') isOK = TRUE;
 					break;
 				case DUK_TYPE_STRING:
-					if(neededType =='S' || neededType =='F') isOK = TRUE;
+					if(neededType =='S' || neededType =='Z') isOK = TRUE;
 					break;
 				case DUK_TYPE_OBJECT:
-					if(neededType =='W'){
+					if(neededType =='W' || neededType =='P'){
 						int rc, itypeRHS = -1;
 						union anyVrml *fieldRHS = NULL;
 						rc = duk_get_prop_string(ctx,j,"fwItype");
@@ -815,6 +879,7 @@ int cfwconstructor(duk_context *ctx) {
 						//we don't need the RHS fwChanged=valueChanged* because we are only changing the LHS
 
 						if(fieldRHS != NULL && itypeRHS > -1){
+							//in theory, we could make sure somehow that we had the right kind of 'W' : add a FIELDTYPE_ / AUXTYPE_ array in arglist struct
 							isOK = TRUE;
 						}
 					}
@@ -843,10 +908,12 @@ int cfwconstructor(duk_context *ctx) {
 		return 0;
 	}
 	FWval args = NULL;
+	union anyVrml *any;
 	int argc;
-	convert_duk_to_fwvals(ctx, nargs, fwt->ConstructorArgs[i], &args, &argc);
+	convert_duk_to_fwvals(ctx, nargs, 0, fwt->ConstructorArgs[i], &args, &any, &argc);
 
 	void *fwpointer = fwt->Constructor(fwt,argc,args);
+	free(any);
 	free(args);
 	push_typed_proxy(ctx,itype, fwpointer, valueChanged);
 
@@ -903,11 +970,9 @@ int cownKeys(duk_context *ctx) {
 	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
 	duk_pop(ctx);
 
-	if(itype < 0) 
-		return 0;
-	if(parent == NULL) 
-		return 0;
 	int arr_idx = duk_push_array(ctx);
+	if(itype < 0 || (itype < AUXTYPE_X3DConstants && parent == NULL))
+		return 1; //return empty array
 	int i = -1;
 	char *fieldname;
 	int lastProp, isFunc, jndex;
@@ -1003,17 +1068,35 @@ int fwval_duk_push(duk_context *ctx, FWval fwretval, int *valueChanged){
 	//converts engine-agnostic FWVAL return value to duk engine specific return values and pushes them onto the duk value stack
 	int nr = 1;
 	switch(fwretval->itype){
+	/*
 	case 'B':
 		duk_push_boolean(ctx,fwretval->_boolean); break;
 	case 'I':
 		duk_push_int(ctx,fwretval->_integer); break;
-	case 'N':
+	case 'F':
+		duk_push_number(ctx,fwretval->_numeric); break;
+	case 'D':
 		duk_push_number(ctx,fwretval->_numeric); break;
 	case 'S':
 		duk_push_string(ctx,fwretval->_string); break;
+	*/
 	case 'W':
 		//for web3d field types
-		push_typed_proxy2(ctx,fwretval->_web3dval.fieldType,fwretval->_web3dval.native,valueChanged);
+		switch(fwretval->_web3dval.fieldType){
+		case FIELDTYPE_SFBool:
+			duk_push_boolean(ctx,fwretval->_web3dval.anyvrml->sfbool); break;
+		case FIELDTYPE_SFInt32:
+			duk_push_int(ctx,fwretval->_web3dval.anyvrml->sfint32); break;
+		case FIELDTYPE_SFFloat:
+			duk_push_number(ctx,(double)fwretval->_web3dval.anyvrml->sffloat); break;
+		case FIELDTYPE_SFDouble:
+		case FIELDTYPE_SFTime:
+			duk_push_number(ctx,fwretval->_web3dval.anyvrml->sfdouble); break;
+		case FIELDTYPE_SFString:
+			duk_push_string(ctx,fwretval->_web3dval.anyvrml->sfstring->strptr); break;
+		default:
+			push_typed_proxy2(ctx,fwretval->_web3dval.fieldType,fwretval->_web3dval.native,valueChanged);
+		}
 		break;
 	case 'P':
 		//for web3d auxiliary types Browser, X3DFieldDefinitionArray, X3DRoute ...
@@ -1061,7 +1144,12 @@ int cfunction(duk_context *ctx) {
 	//check functions - if its a function push the type's specfic function
 	fs = getFWFunc(fwt,fwFunc);
 	if(fs){
+		FWval pars;
+		union anyVrml *any;
+		int argc;
 		FWVAL fwretval;
+		convert_duk_to_fwvals(ctx, nargs, 0, fs->arglist, &pars, &any, &argc);
+		/*
 		int nUsable,nNeeded;
 		nUsable = fs->arglist.iVarArgStartsAt > -1 ? nargs : fs->arglist.nfixedArg;
 		nNeeded = max(nUsable,fs->arglist.nfixedArg);
@@ -1073,14 +1161,15 @@ int cfunction(duk_context *ctx) {
 				ctype = fs->arglist.argtypes[i];
 			else 
 				ctype = fs->arglist.argtypes[fs->arglist.iVarArgStartsAt];
-			pars[i].itype = ctype;
+			pars[i].itype = 'W'; // ctype;
 			switch(ctype){
 			case 'B': pars[i]._boolean = duk_get_boolean(ctx,i); break;
 			case 'I': pars[i]._integer = duk_get_int(ctx,i); break;
-			case 'N': pars[i]._numeric = duk_get_number(ctx,i); break;
+			case 'F': pars[i]._numeric = duk_get_number(ctx,i); break;
+			case 'D': pars[i]._numeric = duk_get_number(ctx,i); break;
 			case 'S': pars[i]._string = duk_get_string(ctx,i); break;
-			case 'F': //flexi-string idea - allow either String or MFString (no such thing as SFString from ecma - it uses String for that)
-				if(duk_is_pointer(ctx,i)){
+			case 'Z': //flexi-string idea - allow either String or MFString (no such thing as SFString from ecma - it uses String for that)
+				if(duk_is_pointer(ctx,i)){ 
 					void *ptr = duk_get_pointer(ctx,i); 
 					pars[i]._web3dval.native = ptr;
 					pars[i]._web3dval.fieldType = FIELDTYPE_MFString; //type of the incoming arg[i]
@@ -1091,23 +1180,17 @@ int cfunction(duk_context *ctx) {
 				}
 				break; 
 			case 'W': {
+				//Q. won't my function argument come in as a Proxy Object and if so don't I need to get_prop_string fwField to get the pointer?
 				void *ptr = duk_get_pointer(ctx,i); 
 				pars[i]._web3dval.native = ptr;
-				pars[i]._web3dval.fieldType = FIELDTYPE_SFNode; //type of the incoming arg[i]
+				pars[i]._web3dval.fieldType = FIELDTYPE_SFNode; //type of the incoming arg[i] //and shouldn't I get fwItype of the Proxy? And verify it's a W not a P?
 				}
 				break;
-			case 'O': break; //object pointer ie to js function callback object
-			//case 'X':  //executable string ie Browser.createNode(string) - we convert the string into 'W' before passing result into function
-			//	{
-			//	int nr = 0;
-			//	FWVAL retval;
-			//	const char *xstring =  duk_get_string(ctx,i); 
-			//	nr = jsrrunScript(ctx, xstring, &pars[i]);
-			//	}
-			//	break;
+			case 'O': 
+				break; //object pointer ie to js function callback object
 			}
 		}
-		
+
 		for(i=nUsable;i<nNeeded;i++){
 			//fill
 			char ctype = fs->arglist.argtypes[i];
@@ -1115,18 +1198,22 @@ int cfunction(duk_context *ctx) {
 			switch(ctype){
 			case 'B': pars[i]._boolean = FALSE; break;
 			case 'I': pars[i]._integer = 0; break;
-			case 'N': pars[i]._numeric = 0.0; break;
+			case 'F': pars[i]._numeric = 0.0; break;
+			case 'D': pars[i]._numeric = 0.0; break;
 			case 'S': pars[i]._string = NULL; break;
-			case 'F': pars[i]._string = NULL; pars[i].itype = 'S'; break;
+			case 'Z': pars[i]._string = NULL; pars[i].itype = 'S'; break;
 			case 'W': pars[i]._web3dval.fieldType = FIELDTYPE_SFNode; pars[i]._web3dval.native = NULL; break;
 			case 'O': pars[i]._jsobject = NULL; break; 
 			}
 		}
+		*/
 		//the object function call, using engine-agnostic parameters
-		nr = fs->call(fwt,parent,nNeeded,pars,&fwretval);
+		//nr = fs->call(fwt,parent,nNeeded,pars,&fwretval);
+		nr = fs->call(fwt,parent,argc,pars,&fwretval);
 		if(nr){
 			nr = fwval_duk_push(ctx,&fwretval,valueChanged);
 		}
+		free(any);
 		free(pars);
 	}
 	return nr;
@@ -1310,19 +1397,38 @@ int cset(duk_context *ctx) {
 			found = fwhas_generic(fwt,parent,key,&jndex,&type,&readOnly) && (type != 'f');
 		}
 		if(found && (readOnly != 'T') && fwt->Setter){
-			FWVAL fwsetval;
-			//fwsetval.itype = ps->type;
-			switch(type){
-				//there could/should be better detection of duk_type and mapping/error checking to convert to type
-			case '0':break;
-			case 'I': fwsetval._integer = duk_to_int(ctx,-2); break;
-			case 'N': fwsetval._numeric = duk_to_number(ctx,-2); break;
-			case 'B': fwsetval._boolean = duk_to_boolean(ctx,-2); break;
-			case 'S': fwsetval._string = duk_to_string(ctx,-2); break;
-			case 'W': fwsetval._web3dval.native = duk_to_pointer(ctx,-2); fwsetval._web3dval.fieldType = itype; break;
-			case 'P': fwsetval._pointer.native = duk_to_pointer(ctx,-2); fwsetval._pointer.fieldType = itype; break;
+			//if(0){
+			//	FWVAL fwsetval;
+			//	//fwsetval.itype = ps->type;
+			//	switch(type){
+			//		//there could/should be better detection of duk_type and mapping/error checking to convert to type
+			//	case '0':break;
+			//	case 'I': fwsetval._integer = duk_to_int(ctx,-2); break;
+			//	case 'F': fwsetval._numeric = duk_to_number(ctx,-2); break;
+			//	case 'D': fwsetval._numeric = duk_to_number(ctx,-2); break;
+			//	case 'B': fwsetval._boolean = duk_to_boolean(ctx,-2); break;
+			//	case 'S': fwsetval._string = duk_to_string(ctx,-2); break;
+			//	case 'W': fwsetval._web3dval.native = duk_to_pointer(ctx,-2); fwsetval._web3dval.fieldType = itype; break;
+			//	case 'P': fwsetval._pointer.native = duk_to_pointer(ctx,-2); fwsetval._pointer.fieldType = itype; break;
+			//	}
+			//	fwt->Setter(fwt,jndex,parent,&fwsetval);
+
+			//}else
+			{
+				FWval fwsetval = NULL;
+				union anyVrml *any;
+				struct ArgListType arglist;
+				int argc;
+				arglist.argtypes = &type;
+				arglist.fillMissingFixedWithZero = 0;
+				arglist.nfixedArg = 1;
+				arglist.iVarArgStartsAt = -1;
+				convert_duk_to_fwvals(ctx, 1, -2, arglist, &fwsetval, &any, &argc);
+				if(argc == 1)
+					fwt->Setter(fwt,jndex,parent,fwsetval);
+				free(any);
+				free(fwsetval);
 			}
-			fwt->Setter(fwt,jndex,parent,&fwsetval);
 		}
 	}
     return 0;
@@ -1559,6 +1665,12 @@ void JSCreateScriptContext(int num) {
 	//* Global methods and defines (some redirecting to the Browser object ie print = Browser.println)
 	//if (!ACTUALRUNSCRIPT(num,DefaultScriptMethods,&rval))
 	//	cleanupDie(num,"runScript failed in VRML::newJS DefaultScriptMethods");
+	if(0){
+	duk_eval_string(ctx,DefaultScriptMethodsA);
+	duk_pop(ctx);
+	duk_eval_string(ctx,DefaultScriptMethodsB);
+	duk_pop(ctx);
+	}
 	if(0){
 		/* I need these working, but print = Browser.print isn't hooked up, and bombs later*/
 		show_stack(ctx,"\nbefore eval DefaultScriptMethods");
@@ -2230,7 +2342,7 @@ void JSInitializeScriptAndFields (int num) {
 }
 
 int jsActualrunScript(int num, char *script){
-	int len, rc;
+	int len, rc, iret;
 	duk_context *ctx;
 	int iglobal;
 	struct CRscriptStruct *ScriptControl = getScriptControl();
@@ -2244,16 +2356,32 @@ int jsActualrunScript(int num, char *script){
 	//CLEANUP_JAVASCRIPT(_context)
 
 	len = (int) strlen(script);
-	rc=0;
-	duk_eval_string(ctx, script);
-	if(rc<0){
-		printf ("ActualrunScript - JS_EvaluateScript failed for %s", script);
-		printf ("\n");
-		ConsoleMessage ("ActualrunScript - JS_EvaluateScript failed for %s", script);
-		return FALSE;
+	iret = TRUE;
+	if(0){
+		rc=0;
+		//this will do a popup abort, with no diagnostic message
+		duk_eval_string(ctx, script);
+		if(rc<0){
+			printf ("ActualrunScript - JS_EvaluateScript failed for %s", script);
+			printf ("\n");
+			ConsoleMessage ("ActualrunScript - JS_EvaluateScript failed for %s", script);
+			iret = FALSE;
+		}
+		duk_pop(ctx); //pop result which we don't use
+	}else{
+		//this shows the diagnostic message, and allows the program to continue running with the script not run
+		duk_push_string(ctx, script);
+		if (duk_peval(ctx) != 0) {
+			ConsoleMessage("eval failed: %s\n", duk_safe_to_string(ctx, -1));
+			iret = FALSE;
+		} else if(0) {
+			printf("result is: %s\n", duk_safe_to_string(ctx, -1));
+		}
+		duk_pop(ctx); //pop result which we don't use
 	}
-	duk_pop(ctx);
-	return TRUE;
+
+
+	return iret;
 }
 void SaveScriptField (int num, indexT kind, indexT type, const char* field, union anyVrml value){
 	return;
@@ -2302,12 +2430,13 @@ void js_setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int 
 
 /* take an ECMA value in the X3D Scenegraph, and return a jsval with it in */
 /* This is FAST as w deal just with pointers */
+/*
 void X3D_ECMA_TO_JS(void *Data, int datalen, int dataType, FWval newval) {
 	float fl;
 	double dl;
 	int il;
 
-	/* NOTE - caller of this function has already defined a BeginRequest */
+	// NOTE - caller of this function has already defined a BeginRequest 
 
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("calling X3D_ECMA_TO_JS on type %s\n",FIELDTYPES[dataType]);
@@ -2318,14 +2447,14 @@ void X3D_ECMA_TO_JS(void *Data, int datalen, int dataType, FWval newval) {
 		case FIELDTYPE_SFFloat:	{
 			memcpy ((void *) &fl, Data, datalen);
 			newval->_numeric = (double)fl;
-			newval->itype = 'N';
+			newval->itype = 'F';
 			break;
 		}
 		case FIELDTYPE_SFDouble:
 		case FIELDTYPE_SFTime:	{
 			memcpy ((void *) &dl, Data, datalen);
 			newval->_numeric = dl;
-			newval->itype = 'N';
+			newval->itype = 'D';
 			break;
 		}
 		case FIELDTYPE_SFBool:
@@ -2341,9 +2470,9 @@ void X3D_ECMA_TO_JS(void *Data, int datalen, int dataType, FWval newval) {
 		case FIELDTYPE_SFString: {
 			struct Uni_String *ms;
 
-			/* datalen will be ROUTING_SFSTRING here; or at least should be! We
-			   copy over the data, which is a UniString pointer, and use the pointer
-			   value here */
+			// datalen will be ROUTING_SFSTRING here; or at least should be! We
+			//  copy over the data, which is a UniString pointer, and use the pointer
+			//   value here 
 			memcpy((void *) &ms,Data, sizeof(void *));
 			newval->_string = ms->strptr;
 			newval->itype = 'S';
@@ -2352,7 +2481,7 @@ void X3D_ECMA_TO_JS(void *Data, int datalen, int dataType, FWval newval) {
 		default: {	printf("WARNING: SHOULD NOT BE HERE in X3D_ECMA_TO_JS! %d\n",dataType); }
 	}
 }
-
+*/
 
 //void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int datalen){
 //	printf("in set_one_ECMAtype\n");
@@ -2362,7 +2491,7 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 	char scriptline[100];
 	FWVAL newval;
 	duk_context *ctx;
-	int obj;
+	int obj, rc;
 	struct CRscriptStruct *ScriptControl = getScriptControl();
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
@@ -2385,20 +2514,36 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 
 	//push ecma value as arg
 
-
-	X3D_ECMA_TO_JS(Data, datalen, dataType, &newval);
-	switch(newval.itype){
-	case 'I': duk_push_int(ctx,newval._integer); break;
-	case 'N': duk_push_number(ctx,newval._numeric); break;
-	case 'B': duk_push_boolean(ctx,newval._boolean); break;
-	case 'S': duk_push_string(ctx,newval._string); break;
-	default: duk_push_null(ctx);
+	//if(0){
+	//	X3D_ECMA_TO_JS(Data, datalen, dataType, &newval);
+	//	switch(newval.itype){
+	//	case 'I': duk_push_int(ctx,newval._integer); break;
+	//	case 'F': duk_push_number(ctx,newval._numeric); break;
+	//	case 'D': duk_push_number(ctx,newval._numeric); break;
+	//	case 'B': duk_push_boolean(ctx,newval._boolean); break;
+	//	case 'S': duk_push_string(ctx,newval._string); break;
+	//	default: duk_push_null(ctx);
+	//	}
+	//}else
+	{
+		int rc;
+		FWVAL fwval;
+		fwval._web3dval.anyvrml = Data;
+		fwval._web3dval.fieldType = dataType;
+		fwval.itype = 'W';
+		rc = fwval_duk_push(ctx, &fwval, NULL);
+		//if(rc == 1) OK
 	}
 	//push double TickTime(); as arg
 	duk_push_number(ctx,TickTime());
 	//run function
 	//show_stack(ctx,"before calling isOver");
-	duk_call(ctx,2);
+	//duk_call(ctx,2);
+	rc = duk_pcall(ctx, 2);  /* [ ... func 2 3 ] -> [ 5 ] */
+	if (rc != DUK_EXEC_SUCCESS) {
+	  printf("error: %s for function %s\n", duk_to_string(ctx, -1),JSparamnames[toname].name);
+	}
+
 	//show_stack(ctx,"after calling isOver");
 	duk_pop(ctx); //pop undefined that results from void myfunc(){}
 	//show_stack(ctx,"after popping");
@@ -2450,7 +2595,7 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen)
 	//datalen - size of anyVrml to memcpy
 	FWVAL newval;
 	duk_context *ctx;
-	int obj;
+	int obj, rc;
 	int itype;
 
 	struct CRscriptStruct *ScriptControl = getScriptControl();
@@ -2470,7 +2615,11 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen)
 	//memcpy(datacopy,Data,dataLen); 
 	push_typed_proxy2(ctx,itype,datacopy,NULL);
 	duk_push_number(ctx,TickTime());
-	duk_call(ctx,2);
+	//duk_call(ctx,2);
+	rc = duk_pcall(ctx, 2);  /* [ ... func 2 3 ] -> [ 5 ] */
+	if (rc != DUK_EXEC_SUCCESS) {
+	  printf("error: %s for function %s\n", duk_to_string(ctx, -1),JSparamnames[tnfield].name);
+	}
 	//show_stack(ctx,"after calling isOver");
 	duk_pop(ctx); //pop undefined that results from void myfunc(){}
 	return;
@@ -2539,7 +2688,7 @@ int jsrrunScript(duk_context *ctx, char *script, FWval retval) {
 	switch(RHS_duk_type){
 	case DUK_TYPE_NUMBER: 
 		retval->_numeric = duk_require_number(ctx,-1);
-		retval->itype = 'N';
+		retval->itype = 'D';
 		isOK = TRUE;
 		break;
 	case DUK_TYPE_BOOLEAN: 
@@ -2588,6 +2737,9 @@ int jsrrunScript(duk_context *ctx, char *script, FWval retval) {
 	return isOK; //we leave results on stack
 }
 */
+int isScriptControlOK(int actualscript);
+int isScriptControlInitialized(int actualscript);
+void getField_ToJavascript_B(int shader_num, int fieldOffset, int type, union anyVrml *any, int len);
 int runQueuedDirectOutputs()
 {
 	/*
