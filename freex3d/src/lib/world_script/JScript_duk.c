@@ -689,6 +689,18 @@ void convert_duk_to_fwvals(duk_context *ctx, int nargs, int istack, struct ArgLi
 		else 
 			ctype = arglist.argtypes[arglist.iVarArgStartsAt];
 		pars[i].itype = ctype;
+		if( duk_is_object(ctx, ii)){
+			int rc, isPrimitive;
+			//if the script goes myField = new String('hi'); then it comes in here as an object (versus myField = 'hi'; which is a string)
+			rc = duk_get_prop_string(ctx,ii,"fwItype");
+			duk_pop(ctx);
+			isPrimitive = rc == 0;
+			if(isPrimitive){
+				//void duk_to_primitive(duk_context *ctx, duk_idx_t index, duk_int_t hint); DUK_HINT_NONE
+				//http://www.duktape.org/api.html#duk_to_primitive
+				duk_to_primitive(ctx,ii,DUK_HINT_NONE);
+			}
+		}
 		switch(ctype){
 		case 'B': pars[i]._boolean = duk_get_boolean(ctx,ii); break;
 		case 'I': pars[i]._integer = duk_get_int(ctx,ii); break;
@@ -1653,7 +1665,7 @@ void JSCreateScriptContext(int num) {
 	//* Global methods and defines (some redirecting to the Browser object ie print = Browser.println)
 	//if (!ACTUALRUNSCRIPT(num,DefaultScriptMethods,&rval))
 	//	cleanupDie(num,"runScript failed in VRML::newJS DefaultScriptMethods");
-	if(0){
+	if(1){
 	duk_eval_string(ctx,DefaultScriptMethodsA);
 	duk_pop(ctx);
 	duk_eval_string(ctx,DefaultScriptMethodsB);
@@ -1984,6 +1996,18 @@ int fwsetterNS(duk_context *ctx) {
 	int ival;
 	const char* sval;
 	/* get details of RHS ... then copy by value to LHS */
+	if( duk_is_object(ctx, 0)){
+		int rc, isPrimitive;
+		//if the script goes myField = new String('hi'); then it comes in here as an object (versus myField = 'hi'; which is a string)
+		rc = duk_get_prop_string(ctx,0,"fwItype");
+		duk_pop(ctx);
+		isPrimitive = rc == 0;
+		if(isPrimitive){
+			//void duk_to_primitive(duk_context *ctx, duk_idx_t index, duk_int_t hint); DUK_HINT_NONE
+			//http://www.duktape.org/api.html#duk_to_primitive
+			duk_to_primitive(ctx,0,DUK_HINT_NONE);
+		}
+	}
 	int RHS_duk_type = duk_get_type(ctx, 0);
 	switch(RHS_duk_type){
 	case DUK_TYPE_NUMBER: 
@@ -2007,7 +2031,7 @@ int fwsetterNS(duk_context *ctx) {
 		isOK = TRUE;
 		switch(itype){
 		case FIELDTYPE_SFBool:
-			field->sfbool = ival;
+			field->sfbool = ival; break;
 		default:
 			isOK = FALSE;
 		}
@@ -2017,14 +2041,19 @@ int fwsetterNS(duk_context *ctx) {
 		isOK = TRUE;
 		switch(itype){
 		case FIELDTYPE_SFString:
-			field->sfstring->strptr = strdup(sval); //should strdup this?
-			field->sfstring->len = strlen(sval);
+			field->sfstring = newASCIIString(sval);
+			//field->sfstring->strptr = strdup(sval); //should strdup this?
+			//field->sfstring->len = strlen(sval);
+			break;
 		default:
 			isOK = FALSE;
 		}
 		break;
 	case DUK_TYPE_OBJECT:
 	{
+		//if the script goes myField = new String('hi'); then it comes in here as an object (versus myField = 'hi'; which is a string)
+		//void duk_to_primitive(duk_context *ctx, duk_idx_t index, duk_int_t hint); DUK_HINT_NONE
+		//http://www.duktape.org/api.html#duk_to_primitive
 		int itypeRHS = -1;
 		union anyVrml *fieldRHS = NULL;
 		rc = duk_get_prop_string(ctx,0,"fwItype");
@@ -2067,6 +2096,7 @@ int fwsetterNS(duk_context *ctx) {
 	default:
 		break;
 	}
+
 	if(isOK){
 		*valueChanged = TRUE; /*LHS valueChanged*/
 	}
@@ -2376,8 +2406,34 @@ void SaveScriptField (int num, indexT kind, indexT type, const char* field, unio
 }
 static int duk_once = 0;
 void process_eventsProcessed(){
+	duk_context *ctx;
+	int rc;
 	if(!duk_once) printf("in process_eventsProcessed\n");
+	//call function eventsProcessed () {
+
 	duk_once++;
+
+	int counter;
+	struct CRscriptStruct *scriptcontrol;
+	ttglobal tg = gglobal();
+	ppJScript p = (ppJScript)tg->JScript.prv;
+	for (counter = 0; counter <= tg->CRoutes.max_script_found_and_initialized; counter++) {
+		scriptcontrol = getScriptControlIndex(counter);
+		//if (scriptcontrol->eventsProcessed == NULL) {
+		//	//compile function - duktape doesn't have this
+		//	scriptcontrol->eventsProcessed = ???
+		//}
+		ctx = scriptcontrol->cx;
+		duk_eval_string(ctx,"eventsProcessed"); //gets the evenin function on the stack
+		//push double TickTime(); as arg
+		duk_push_number(ctx,TickTime());
+		rc = duk_pcall(ctx, 1);
+		if (rc != DUK_EXEC_SUCCESS) {
+		  printf("error: %s for function %s\n", duk_to_string(ctx, -1),"eventsProcessed");
+		}
+		duk_pop(ctx); //pop undefined that results from void myfunc(){}
+	}
+
 	return;
 }
 void js_cleanup_script_context(int counter){

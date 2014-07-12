@@ -822,6 +822,7 @@ FWTYPE MFTimeType = {
 	'D',0, //index prop type,readonly
 	NULL, //functions
 };
+
 //#define FIELDTYPE_SFString	18
 FWTYPE SFStringType = {
 	FIELDTYPE_SFString,
@@ -836,20 +837,49 @@ FWTYPE SFStringType = {
 	0,0, //index prop type,readonly  //Q. should string[i] return 'I' == char, like SFImage indexer?
 	NULL, //functions
 };
+
+void * MFString_Constructor(FWType fwtype, int argc, FWval fwpars){
+	int lenSF;
+	struct Multi_Any *ptr = malloc(sizeof(struct Multi_Any));  ///malloc in 2 parts for MF
+	lenSF = sizeofSF(fwtype->itype); 
+	ptr->n = argc;
+	ptr->p = NULL;
+	if(ptr->n)
+		ptr->p = malloc(ptr->n * lenSF); // This second part is resizable ie MF[i] = new SF() if i >= (.length), .length is expanded to accomodate
+	char *p = ptr->p;
+	for(int i=0;i<ptr->n;i++){
+		//float ff = (float)fwpars[i]._numeric; //fwpars[i]._web3dval.native;
+		if(fwpars[i].itype == 'W' && fwpars[i]._web3dval.fieldType == FIELDTYPE_SFString)
+			memcpy(p,&fwpars[i]._web3dval.native,lenSF);
+		else if(fwpars[i].itype = 'S'){
+			void *tmp = newASCIIString(fwpars[i]._string);
+			memcpy(p,&tmp,lenSF);
+			//(*p) = (char *)
+		}
+		p += lenSF;
+	}
+	return (void *)ptr;
+}
+ArgListType (MFString_ConstructorArgs)[] = {
+		{0,0,0,"S"},
+		{-1,0,0,NULL},
+};
 //#define FIELDTYPE_MFString	19
 FWTYPE MFStringType = {
 	FIELDTYPE_MFString,
 	"MFString",
-	sizeof(struct Multi_Any), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
+	sizeof(struct Multi_Any),
+	MFString_Constructor, //constructor
+	MFString_ConstructorArgs, //constructor args
+	MFW_Properties, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
-	'S',0, //index prop type,readonly
+	MFW_Getter, //Getter,
+	MFW_Setter, //Setter,
+	'W',0, //index prop type,readonly
 	NULL, //functions
 };
+
+
 //#define FIELDTYPE_SFVec2f	20
 FWTYPE SFVec2fType = {
 	FIELDTYPE_SFVec2f,
