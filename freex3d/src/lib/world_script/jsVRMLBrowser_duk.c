@@ -207,29 +207,28 @@ X3DBrowser{
 	void println(Object or String);
 }
 */
-void string2sfstring(const char *str, union anyVrml** any){
-	struct Uni_String* sf = malloc(sizeof(struct Uni_String));
-	(*any) = &sf;
-	sf->strptr = str;
-	sf->len = strlen(str);
-}
+//void string2sfstring(const char *str, union anyVrml** any){
+//	struct Uni_String* sf = malloc(sizeof(struct Uni_String));
+//	(*any) = &sf;
+//	sf->strptr = str;
+//	sf->len = strlen(str);
+//}
 int VrmlBrowserGetName(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
 {
-	//fwretval->_string = BrowserName;
-	//fwretval->_web3dval.anyvrml->sfstring->strptr = BrowserName;
-	//fwretval->_web3dval.anyvrml->sfstring->len = lenstr(BrowserName);
-	string2sfstring(BrowserName,&fwretval->_web3dval.anyvrml);
-	fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
-	fwretval->itype = 'W';
+	fwretval->_string = BrowserName;
+	fwretval->itype = 'S';
+	//string2sfstring(BrowserName,&fwretval->_web3dval.anyvrml);
+	//fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
+	//fwretval->itype = 'W';
 	return 1;
 }
 int VrmlBrowserGetVersion(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
 {
-	//fwretval->_string = libFreeWRL_get_version();
-	//fwretval->itype = 'S';
-	string2sfstring(libFreeWRL_get_version(),&fwretval->_web3dval.anyvrml);
-	fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
-	fwretval->itype = 'W';
+	fwretval->_string = libFreeWRL_get_version();
+	fwretval->itype = 'S';
+	//string2sfstring(libFreeWRL_get_version(),&fwretval->_web3dval.anyvrml);
+	//fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
+	//fwretval->itype = 'W';
 
 	return 1;
 }
@@ -237,11 +236,11 @@ int VrmlBrowserGetCurrentSpeed(FWType fwtype, void * fwn, int argc, FWval fwpars
 {
 	char string[1000];
 	sprintf (string,"%f",gglobal()->Mainloop.BrowserSpeed);
-	//fwretval->_string = strdup(string);
-	//fwretval->itype = 'S';
-	string2sfstring(strdup(string),&fwretval->_web3dval.anyvrml);
-	fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
-	fwretval->itype = 'W';
+	fwretval->_string = strdup(string);
+	fwretval->itype = 'S';
+	//string2sfstring(strdup(string),&fwretval->_web3dval.anyvrml);
+	//fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
+	//fwretval->itype = 'W';
 
 	return 1;
 }
@@ -250,21 +249,21 @@ int VrmlBrowserGetCurrentFrameRate(FWType fwtype, void * fwn, int argc, FWval fw
 {
 	char string[1000];
 	sprintf (string,"%6.2f",gglobal()->Mainloop.BrowserFPS);
-	//fwretval->_string = strdup(string);
-	//fwretval->itype = 'S';
-	string2sfstring(strdup(string),&fwretval->_web3dval.anyvrml);
-	fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
-	fwretval->itype = 'W';
+	fwretval->_string = strdup(string);
+	fwretval->itype = 'S';
+	//string2sfstring(strdup(string),&fwretval->_web3dval.anyvrml);
+	//fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
+	//fwretval->itype = 'W';
 
 	return 1;
 }
 int VrmlBrowserGetWorldURL(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
 {
-	//fwretval->_string = BrowserFullPath;
-	//fwretval->itype = 'S';
-	string2sfstring(BrowserFullPath,&fwretval->_web3dval.anyvrml);
-	fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
-	fwretval->itype = 'W';
+	fwretval->_string = BrowserFullPath;
+	fwretval->itype = 'S';
+	//string2sfstring(BrowserFullPath,&fwretval->_web3dval.anyvrml);
+	//fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
+	//fwretval->itype = 'W';
 
 	return 1;
 }
@@ -424,10 +423,10 @@ int VrmlBrowserLoadURL(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval 
 int VrmlBrowserSetDescription(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	const char *_costr = NULL;
-	//if(fwpars[0].itype == 'S')
-	//	gglobal()->Mainloop.BrowserDescription = fwpars[0]._string;
-	if(fwpars[0].itype == 'W' && fwpars[0]._web3dval.fieldType == FIELDTYPE_SFString)
-		gglobal()->Mainloop.BrowserDescription = fwpars[0]._web3dval.anyvrml->sfstring->strptr;
+	if(fwpars[0].itype == 'S')
+		gglobal()->Mainloop.BrowserDescription = fwpars[0]._string;
+	//if(fwpars[0].itype == 'W' && fwpars[0]._web3dval.fieldType == FIELDTYPE_SFString)
+	//	gglobal()->Mainloop.BrowserDescription = fwpars[0]._web3dval.anyvrml->sfstring->strptr;
 	return 0;
 }
 int VrmlBrowserCreateX3DFromString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
@@ -443,7 +442,7 @@ int VrmlBrowserCreateX3DFromString(FWType fwtype, void * fwn, int argc, FWval fw
 	int MallocdSize;
 	ttglobal tg = gglobal();
 	struct VRMLParser *globalParser = (struct VRMLParser *)tg->CParse.globalParser;
-	const char *_c = fwpars[0]._web3dval.anyvrml->sfstring->strptr; //fwpars[0]._string;
+	const char *_c = fwpars[0]._string; //fwpars[0]._web3dval.anyvrml->sfstring->strptr; 
 
 	/* do the call to make the VRML code  - create a new browser just for this string */
 	gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
@@ -477,7 +476,7 @@ int VrmlBrowserCreateVrmlFromString(FWType fwtype, void * fwn, int argc, FWval f
 	int MallocdSize;
 	ttglobal tg = gglobal();
 	struct VRMLParser *globalParser = (struct VRMLParser *)tg->CParse.globalParser;
-	const char *_c = fwpars[0]._web3dval.anyvrml->sfstring->strptr; //fwpars[0]._string;
+	const char *_c = fwpars[0]._string; //fwpars[0]._web3dval.anyvrml->sfstring->strptr; 
 
 	/* do the call to make the VRML code  - create a new browser just for this string */
 	gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
@@ -531,10 +530,10 @@ int addDeleteRoute(char* callingFunc, int argc, FWval fwpars, FWval fwretval){
 	int myField;
 	int fromOfs, toOfs, len;
 
-	fromNode = fwpars[0]._web3dval.anyvrml->sfnode;
-	toNode   = fwpars[2]._web3dval.anyvrml->sfnode; //X3D_NODE(fwpars[2]._web3dval.native);
-	fromFieldString = fwpars[1]._web3dval.anyvrml->sfstring->strptr; //fwpars[1]._string;
-	toFieldString = fwpars[3]._web3dval.anyvrml->sfstring->strptr; //fwpars[3]._string;
+	fromNode = fwpars[0]._web3dval.native; //anyvrml->sfnode;
+	toNode   = fwpars[2]._web3dval.native; //anyvrml->sfnode; //X3D_NODE(fwpars[2]._web3dval.native);
+	fromFieldString = fwpars[1]._string; //fwpars[1]._web3dval.anyvrml->sfstring->strptr; 
+	toFieldString = fwpars[3]._string; //fwpars[3]._web3dval.anyvrml->sfstring->strptr; 
 	getFieldFromNodeAndName(fromNode,fromFieldString,&fromType,&fromKind,&fromField,&fromValue);
 	getFieldFromNodeAndName(toNode,toFieldString,&toType,&toKind,&toField,&toValue);
 
@@ -578,8 +577,9 @@ int VrmlBrowserDeleteRoute(FWType fwtype, void * fwn, int argc, FWval fwpars, FW
 int VrmlBrowserPrint(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	const char *_costr = NULL;
-	if(fwpars[0].itype == 'W' && fwpars[0]._web3dval.fieldType == FIELDTYPE_SFString){
-		_costr = fwpars[0]._web3dval.anyvrml->sfstring->strptr; //fwpars[0]._string;
+	//if(fwpars[0].itype == 'W' && fwpars[0]._web3dval.fieldType == FIELDTYPE_SFString){
+	if(fwpars[0].itype == 'S'){
+		_costr = fwpars[0]._string; //fwpars[0]._web3dval.anyvrml->sfstring->strptr; 
 		ConsoleMessage("%s",_costr);
 	}
 	return 0;
@@ -587,8 +587,9 @@ int VrmlBrowserPrint(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fw
 int VrmlBrowserPrintln(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	const char *_costr = NULL;
-	if(fwpars[0].itype == 'W' && fwpars[0]._web3dval.fieldType == FIELDTYPE_SFString){
-		_costr = fwpars[0]._web3dval.anyvrml->sfstring->strptr; //fwpars[0]._string;
+	//if(fwpars[0].itype == 'W' && fwpars[0]._web3dval.fieldType == FIELDTYPE_SFString){
+	if(fwpars[0].itype == 'S'){
+		_costr = fwpars[0]._string; //fwpars[0]._web3dval.anyvrml->sfstring->strptr; 
 		ConsoleMessage("%s\n",_costr);
 	}
 	return 0;
@@ -655,38 +656,40 @@ int BrowserGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	switch (index) {
 		case 0: //name
-			//fwretval->_string = BrowserName;
-			//fwretval->itype = 'S';
-			string2sfstring(BrowserName,&fwretval->_web3dval.anyvrml); 
-			fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
-			fwretval->itype = 'W';
+			fwretval->_string = BrowserName;
+			fwretval->itype = 'S';
+			//string2sfstring(BrowserName,&fwretval->_web3dval.anyvrml); 
+			//fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
+			//fwretval->itype = 'W';
 			break;
 		case 1: //version
-			//fwretval->_string = libFreeWRL_get_version();
-			//fwretval->itype = 'S';
-			string2sfstring(libFreeWRL_get_version(),&fwretval->_web3dval.anyvrml); 
-			fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
-			fwretval->itype = 'W';
+			fwretval->_string = libFreeWRL_get_version();
+			fwretval->itype = 'S';
+			//string2sfstring(libFreeWRL_get_version(),&fwretval->_web3dval.anyvrml); 
+			//fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
+			//fwretval->itype = 'W';
 
 			break;
 		case 2: //currentSpeed
-			//fwretval->_numeric = gglobal()->Mainloop.BrowserSpeed;
-			fwretval->_web3dval.native = &gglobal()->Mainloop.BrowserSpeed;
-			fwretval->_web3dval.fieldType = FIELDTYPE_SFDouble;
-			fwretval->itype = 'W';
+			fwretval->_numeric = gglobal()->Mainloop.BrowserSpeed;
+			fwretval->itype = 'D';
+			//fwretval->_web3dval.native = &gglobal()->Mainloop.BrowserSpeed;
+			//fwretval->_web3dval.fieldType = FIELDTYPE_SFDouble;
+			//fwretval->itype = 'W';
 			break;
 		case 3: //currentFrameRate
-			//fwretval->_numeric = gglobal()->Mainloop.BrowserFPS;
-			fwretval->_web3dval.native = &gglobal()->Mainloop.BrowserFPS;
-			fwretval->_web3dval.fieldType = FIELDTYPE_SFDouble;
-			fwretval->itype = 'W';
+			fwretval->_numeric = gglobal()->Mainloop.BrowserFPS;
+			fwretval->itype = 'D';
+			//fwretval->_web3dval.native = &gglobal()->Mainloop.BrowserFPS;
+			//fwretval->_web3dval.fieldType = FIELDTYPE_SFDouble;
+			//fwretval->itype = 'W';
 			break;
 		case 4: //description
-			//fwretval->_string = gglobal()->Mainloop.BrowserDescription; //this is settable
-			//fwretval->itype = 'S';
-			string2sfstring(gglobal()->Mainloop.BrowserDescription,&fwretval->_web3dval.anyvrml); 
-			fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
-			fwretval->itype = 'W';
+			fwretval->_string = gglobal()->Mainloop.BrowserDescription; //this is settable
+			fwretval->itype = 'S';
+			//string2sfstring(gglobal()->Mainloop.BrowserDescription,&fwretval->_web3dval.anyvrml); 
+			//fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
+			//fwretval->itype = 'W';
 			break;
 		case 5: //supportedComponents
 			fwretval->_pointer.fieldType = AUXTYPE_ComponentInfoArray;
@@ -712,7 +715,7 @@ int BrowserGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 int BrowserSetter(FWType fwt, int index, void * fwn, FWval fwval){
 	switch (index) {
 		case 4: //description is settable
-			gglobal()->Mainloop.BrowserDescription = fwval->_web3dval.anyvrml->sfstring->strptr; //fwval->_string;
+			gglobal()->Mainloop.BrowserDescription = fwval->_string; //fwval->_web3dval.anyvrml->sfstring->strptr; 
 			break;
 		default:
 			break;
@@ -834,24 +837,25 @@ int ComponentInfoGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 		case 0://name
 		case 1://Title
 			nameIndex = tableEntry[0];
-			//fwretval->_string = COMPONENTS[nameIndex]; 
-			//fwretval->itype = 'S';
-			string2sfstring(COMPONENTS[nameIndex],&fwretval->_web3dval.anyvrml); 
-			fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
-			fwretval->itype = 'W';
+			fwretval->_string = COMPONENTS[nameIndex]; 
+			fwretval->itype = 'S';
+			//string2sfstring(COMPONENTS[nameIndex],&fwretval->_web3dval.anyvrml); 
+			//fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
+			//fwretval->itype = 'W';
 			break;
 		case 2://level
-			//fwretval->_integer = tableEntry[1];
-			fwretval->itype = 'W';
-			fwretval->_web3dval.native = &tableEntry[1];
-			fwretval->_web3dval.fieldType = FIELDTYPE_SFInt32;
+			fwretval->_integer = tableEntry[1];
+			fwretval->itype = 'I';
+			//fwretval->itype = 'W';
+			//fwretval->_web3dval.native = &tableEntry[1];
+			//fwretval->_web3dval.fieldType = FIELDTYPE_SFInt32;
 			break;
 		case 3://providerUrl
-			//fwretval->_string = "freewrl.sourceforge.net";
-			//fwretval->itype = 'S';
-			string2sfstring("freewrl.sourceforge.net",&fwretval->_web3dval.anyvrml); 
-			fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
-			fwretval->itype = 'W';
+			fwretval->_string = "freewrl.sourceforge.net";
+			fwretval->itype = 'S';
+			//string2sfstring("freewrl.sourceforge.net",&fwretval->_web3dval.anyvrml); 
+			//fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
+			//fwretval->itype = 'W';
 
 			break;
 		default:
@@ -891,11 +895,11 @@ int ProfileInfoArrayGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 	if(index == -1){
 //extern const char *COMPONENTS[];
 //extern const int COMPONENTS_COUNT;
-		//fwretval->_integer = _length;
-		//fwretval->itype = 'I';
-		fwretval->_web3dval.native = &PROFILES_COUNT;
-		fwretval->_web3dval.fieldType = FIELDTYPE_SFInt32;
-		fwretval->itype = 'W';
+		fwretval->_integer = PROFILES_COUNT; // _length;
+		fwretval->itype = 'I';
+		//fwretval->_web3dval.native = &PROFILES_COUNT;
+		//fwretval->_web3dval.fieldType = FIELDTYPE_SFInt32;
+		//fwretval->itype = 'W';
 	}else if(index > -1 && index < PROFILES_COUNT ){
 		fwretval->_pointer.native = &_table[index];
 		fwretval->_pointer.fieldType = AUXTYPE_ProfileInfo;
@@ -953,30 +957,30 @@ int ProfileInfoGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 		case 0://name
 		case 1://Title
 			nameIndex = tableEntry->profileName;
-			//fwretval->_string = stringProfileType(nameIndex);
-			//fwretval->itype = 'S';
-			string2sfstring(stringProfileType(nameIndex),&fwretval->_web3dval.anyvrml); 
-			fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
-			fwretval->itype = 'W';
+			fwretval->_string = stringProfileType(nameIndex);
+			fwretval->itype = 'S';
+			//string2sfstring(stringProfileType(nameIndex),&fwretval->_web3dval.anyvrml); 
+			//fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
+			//fwretval->itype = 'W';
 			break;
 		case 2://level
-			//fwretval->_integer = tableEntry->level;
-			//fwretval->itype = 'I';
-			fwretval->_web3dval.native = &tableEntry->level;
-			fwretval->_web3dval.fieldType = FIELDTYPE_SFInt32;
-			fwretval->itype = 'W';
+			fwretval->_integer = tableEntry->level;
+			fwretval->itype = 'I';
+			//fwretval->_web3dval.native = &tableEntry->level;
+			//fwretval->_web3dval.fieldType = FIELDTYPE_SFInt32;
+			//fwretval->itype = 'W';
 			break;
 		case 3://providerUrl
-			//fwretval->_string = "freewrl.sourceforge.net";
-			//fwretval->itype = 'S';
-			string2sfstring("freewrl.sourceforge.net",&fwretval->_web3dval.anyvrml); 
-			fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
-			fwretval->itype = 'W';
+			fwretval->_string = "freewrl.sourceforge.net";
+			fwretval->itype = 'S';
+			//string2sfstring("freewrl.sourceforge.net",&fwretval->_web3dval.anyvrml); 
+			//fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
+			//fwretval->itype = 'W';
 			break;
 		case 4://components
 			fwretval->_pointer.native = (void *)tableEntry->profileTable;
 			fwretval->_pointer.fieldType = AUXTYPE_ComponentInfoArray;
-			fwretval->itype = 'W';
+			fwretval->itype = 'P';
 			break;
 		default:
 			nr = 0;
@@ -1019,23 +1023,23 @@ int X3DExecutionContext_deleteRoute(FWType fwtype, void * fwn, int argc, FWval f
 	fwpars2[0]._web3dval.native = fromNode;
 	fwpars2[0].itype = 'W';
 
-	//fwpars2[1]._string = route->fromField;
-	//fwpars2[1].itype = 'S';
 	getFieldFromNodeAndIndex(fromNode,fromOffset,&fromField,&ftype,&kind,&value);
-	string2sfstring(fromField,&fwpars2[1]._web3dval.anyvrml); 
-	fwpars2[1]._web3dval.fieldType = FIELDTYPE_SFString;
-	fwpars2[1].itype = 'W';
+	fwpars2[1]._string = fromField;
+	fwpars2[1].itype = 'S';
+	//string2sfstring(fromField,&fwpars2[1]._web3dval.anyvrml); 
+	//fwpars2[1]._web3dval.fieldType = FIELDTYPE_SFString;
+	//fwpars2[1].itype = 'W';
 
 	fwpars2[2]._web3dval.fieldType = FIELDTYPE_SFNode;
 	fwpars2[2]._web3dval.native = toNode;
 	fwpars2[2].itype = 'W';
 
-	//fwpars2[3]._string = route->toField;
-	//fwpars2[3].itype = 'S';
 	getFieldFromNodeAndIndex(toNode,toOffset,&toField,&ftype,&kind,&value);
-	string2sfstring(toField,&fwpars2[3]._web3dval.anyvrml); 
-	fwpars2[3]._web3dval.fieldType = FIELDTYPE_SFString;
-	fwpars2[3].itype = 'W';
+	fwpars2[3]._string = toField;
+	fwpars2[3].itype = 'S';
+	//string2sfstring(toField,&fwpars2[3]._web3dval.anyvrml); 
+	//fwpars2[3]._web3dval.fieldType = FIELDTYPE_SFString;
+	//fwpars2[3].itype = 'W';
 
 	iret = addDeleteRoute("deleteRoute",4,fwpars2,fwretval);
 	return 0;
@@ -1043,7 +1047,7 @@ int X3DExecutionContext_deleteRoute(FWType fwtype, void * fwn, int argc, FWval f
 int X3DExecutionContext_getNamedNode(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
 	int nr = 0;
 	//broto warning - DEF name list should be per-executionContext
-	struct X3D_Node* node = parser_getNodeFromName(fwpars[0]._web3dval.anyvrml->sfstring->strptr); //._string);
+	struct X3D_Node* node = parser_getNodeFromName(fwpars[0]._string); //_web3dval.anyvrml->sfstring->strptr); 
 	if(node){
 		fwretval->_web3dval.native = node;
 		fwretval->_web3dval.fieldType = FIELDTYPE_SFNode;
@@ -1102,23 +1106,25 @@ int X3DExecutionContextGetter(FWType fwt, int index, void * fwn, FWval fwretval)
 	switch (index) {
 		case 0: //specificationVersion
 		{
-			//char cstr[100]; //vc12 didn't like this - stack trouble
-			char *str;
-			str = malloc(32);
+			char str[32]; //vc12 didn't like this - stack trouble
+			//char *str;
+			//str = malloc(32);
 			sprintf(str,"{%d,%d,%d}",inputFileVersion[0],inputFileVersion[1],inputFileVersion[2]);
-			string2sfstring(str,&fwretval->_web3dval.anyvrml); 
-			fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
-			fwretval->itype = 'W';
+			fwretval->_string = strdup(str);
+			fwretval->itype = 'S';
+			//string2sfstring(str,&fwretval->_web3dval.anyvrml); 
+			//fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
+			//fwretval->itype = 'W';
 		}
 			break;
 		case 1: //encoding string readonly
 		{
 			//Valid values are "ASCII", "VRML", "XML", "BINARY", "SCRIPTED", "BIFS", "NONE" 
-			//fwretval->_string = "not filled in yet sb. VRML or XML or ..";
-			//fwretval->itype = 'S';
-			string2sfstring("not filled in yet sb. VRML or XML or ..",&fwretval->_web3dval.anyvrml); 
-			fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
-			fwretval->itype = 'W';
+			fwretval->_string = "not filled in yet sb. VRML or XML or ..";
+			fwretval->itype = 'S';
+			//string2sfstring("not filled in yet sb. VRML or XML or ..",&fwretval->_web3dval.anyvrml); 
+			//fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
+			//fwretval->itype = 'W';
 		}
 			break;
 		case 2: //profile
@@ -1137,11 +1143,11 @@ int X3DExecutionContextGetter(FWType fwt, int index, void * fwn, FWval fwretval)
 			fwretval->itype = 'P';
 			break;
 		case 4: //worldURL
-			//fwretval->_string =  gglobal()->Mainloop.url; //this is settable
-			//fwretval->itype = 'S';
-			string2sfstring(gglobal()->Mainloop.url,&fwretval->_web3dval.anyvrml); 
-			fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
-			fwretval->itype = 'W';
+			fwretval->_string =  gglobal()->Mainloop.url; //this is settable
+			fwretval->itype = 'S';
+			//string2sfstring(gglobal()->Mainloop.url,&fwretval->_web3dval.anyvrml); 
+			//fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
+			//fwretval->itype = 'W';
 
 			break;
 		case 5: //rootNodes
@@ -1273,11 +1279,11 @@ int X3DRouteGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 	case 1: //fromField
 		//fieldname = findFIELDNAMESfromNodeOffset0(fromNode,fromOffset);
 		getFieldFromNodeAndIndex(fromNode,fromOffset,&fieldname,&type,&kind,&value);
-		//fwretval->_string = fieldname; //NULL;
-		//fwretval->itype = 'S';
-		string2sfstring(fieldname,&fwretval->_web3dval.anyvrml); 
-		fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
-		fwretval->itype = 'W';
+		fwretval->_string = fieldname; //NULL;
+		fwretval->itype = 'S';
+		//string2sfstring(fieldname,&fwretval->_web3dval.anyvrml); 
+		//fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
+		//fwretval->itype = 'W';
 
 		break;
 	case 2: //toNode
@@ -1288,11 +1294,11 @@ int X3DRouteGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 	case 3: //toField
 		//getFieldFromNodeAndIndex(route->tonodes[0].routeToNode,route->tonodes[0].foffset,&fieldname,&type,&kind,&value);
 		getFieldFromNodeAndIndex(toNode,toOffset,&fieldname,&type,&kind,&value);
-		//fwretval->_string = fieldname;
-		//fwretval->itype = 'S';
-		string2sfstring(fieldname,&fwretval->_web3dval.anyvrml); 
-		fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
-		fwretval->itype = 'W';
+		fwretval->_string = fieldname;
+		fwretval->itype = 'S';
+		//string2sfstring(fieldname,&fwretval->_web3dval.anyvrml); 
+		//fwretval->_web3dval.fieldType = FIELDTYPE_SFString;
+		//fwretval->itype = 'W';
 
 		break;
 	default:

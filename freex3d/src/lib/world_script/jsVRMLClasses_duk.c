@@ -161,7 +161,7 @@ int SFColor_getHSV(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwre
 int SFFloat_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	float *ptr = (float *)fwn;
 	//fwretval->_numeric =  (double)*(ptr);
-	fwretval->_web3dval.anyvrml->sffloat = (float)(*ptr);
+	fwretval->_web3dval.native = ptr;
 	fwretval->_web3dval.fieldType = FIELDTYPE_SFFloat;
 	fwretval->itype = 'W';
 	return 1;
@@ -170,7 +170,10 @@ int SFFloat_Setter(FWType fwt, int index, void * fwn, FWval fwval){
 	float *ptr = (float *)fwn;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	//(*ptr) = (float)fwval->_numeric;
-	(*ptr) = fwval->_web3dval.anyvrml->sffloat;
+	//if(fwval->itype == 'F')
+		(*ptr) = (float)fwval->_numeric;
+	//else if(fwval->itype = 'W')
+	//	(*ptr) = fwval->_web3dval.anyvrml->sffloat;
 
 	return TRUE;
 }
@@ -260,7 +263,10 @@ int MFW_Setter(FWType fwt, int index, void * fwn, FWval fwval){
 		//length
 		nold = ptr->n;
 		//ptr->n = fwval->_integer;
-		ptr->n = fwval->_web3dval.anyvrml->sfint32;
+		//if(fwval->itype == 'I')
+			ptr->n = fwval->_integer;
+		//else if(fwval->itype == 'W')
+		//	ptr->n = fwval->_web3dval.anyvrml->sfint32;
 		if(ptr->n > nold){
 			//nelen = (int) upper_power_of_two(fwval->_integer);
 			ptr->p = realloc(ptr->p,ptr->n * elen);
@@ -296,7 +302,7 @@ void * MFFloat_Constructor(FWType fwtype, int argc, FWval fwpars){
 	return (void *)ptr;
 }
 ArgListType (MFFloat_ConstructorArgs)[] = {
-		{0,0,0,"N"},
+		{0,0,0,"F"},
 		{-1,0,0,NULL},
 };
 
@@ -464,7 +470,7 @@ int SFNode_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	nr = 0;
 	ihave = getFieldFromNodeAndIndex(node, index, &name, &ftype, &kind, &value);
 	if(ihave){
-		fwretval->_web3dval.anyvrml = value;
+		fwretval->_web3dval.native = value;
 		fwretval->_web3dval.fieldType = ftype;
 		fwretval->itype = 'W';
 /*
@@ -515,41 +521,36 @@ int SFNode_Setter(FWType fwt, int index, void * fwn, FWval fwval){
 	ihave = getFieldFromNodeAndIndex(node, index, &name, &ftype, &kind, &value);
 	if(ihave){
 		//value = fwval->_web3dval.anyvrml;  //Q. should be *value = *anyvrml or medium_copy_field?
-		medium_copy_field0(ftype,fwval->_web3dval.anyvrml,value);
+		//medium_copy_field0(ftype,fwval->_web3dval.native,value);
 		//ftype = fwval->_web3dval.fieldType;
-/*
+
 		//copy W type or primative type, depending on ftype
-		switch(ftype){
-		case FIELDTYPE_SFBool:
-			fwval->itype = 'B';
+		switch(fwval->itype){
+		case 'B':
 			value->sfbool = fwval->_boolean;
 			break;
-		case FIELDTYPE_SFInt32:
-			fwval->itype = 'I';
+		case 'I':
 			value->sfint32 = fwval->_integer;
 			break;
 
-		case FIELDTYPE_SFFloat:
-			fwval->itype = 'F';
+		case 'F':
 			value->sffloat = (float)fwval->_numeric;
 			break;
 
-		case FIELDTYPE_SFDouble:
-		case FIELDTYPE_SFTime:
-			fwval->itype = 'D';
+		case 'D':
 			value->sftime = fwval->_numeric;
 			break;
 
-		case FIELDTYPE_SFString:
-			fwval->itype = 'S';
+		case 'S':
 			value->sfstring->strptr = strdup(fwval->_string);
 			value->sfstring->len = strlen(fwval->_string);
 			break;
 
 		default:
-			value = fwval->_web3dval.native; //Q. am I supposed to deep copy here? 
+			//value = fwval->_web3dval.native; //Q. am I supposed to deep copy here? 
+			medium_copy_field0(ftype,fwval->_web3dval.native,value);
 		}
-*/
+
 		if(node->_nodeType == NODE_Script) {
 			//notify for event processing
 			struct Shader_Script *script = X3D_SCRIPT(node)->__scriptObj;
@@ -580,7 +581,7 @@ void * SFNode_Constructor(FWType fwtype, int nargs, FWval fwpars){
 			int MallocdSize;
 			ttglobal tg = gglobal();
 			struct VRMLParser *globalParser = (struct VRMLParser *)tg->CParse.globalParser;
-			const char *_c = fwpars[0]._web3dval.anyvrml->sfstring->strptr; //fwpars[0]._string;
+			const char *_c = fwpars[0]._string; // fwpars[0]._web3dval.anyvrml->sfstring->strptr; 
 
 			/* do the call to make the VRML code  - create a new browser just for this string */
 			gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
@@ -647,15 +648,15 @@ int SFColor_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 		case 0: //r
 		case 1: //g
 		case 2: //b
-			//fwretval->_numeric =  ptr->c[index];
-			fwretval->_web3dval.anyvrml = (union anyVrml*)&ptr->c[index];
-			fwretval->_web3dval.fieldType = FIELDTYPE_SFFloat;
+			fwretval->_numeric =  ptr->c[index];
+			//fwretval->_web3dval.anyvrml = (union anyVrml*)&ptr->c[index];
+			//fwretval->_web3dval.fieldType = FIELDTYPE_SFFloat;
 			break;
 		default:
 			nr = 0;
 		}
 	}
-	fwretval->itype = 'W';
+	fwretval->itype = 'F';
 	return nr;
 }
 int SFColor_Setter(FWType fwt, int index, void * fwn, FWval fwval){
@@ -666,7 +667,7 @@ int SFColor_Setter(FWType fwt, int index, void * fwn, FWval fwval){
 		case 0: //r
 		case 1: //g
 		case 2: //b
-			ptr->c[index] = fwval->_web3dval.anyvrml->sffloat; //fwval->_numeric;
+			ptr->c[index] = fwval->_numeric; //fwval->_web3dval.anyvrml->sffloat; 
 			break;
 		}
 		return TRUE;
@@ -678,7 +679,7 @@ void * SFColor_Constructor(FWType fwtype, int ic, FWval fwpars){
 	struct SFColor *ptr = malloc(fwtype->size_of); //garbage collector please
 	if(fwtype->ConstructorArgs[0].nfixedArg == 3)
 	for(int i=0;i<3;i++)
-		ptr->c[i] = fwpars[i]._web3dval.anyvrml->sffloat; // fwpars[i]._numeric;
+		ptr->c[i] =  fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
 	return (void *)ptr;
 }
 

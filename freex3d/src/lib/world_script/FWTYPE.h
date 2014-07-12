@@ -76,8 +76,8 @@ typedef struct FWTYPE{
 typedef struct WEB3DNATIVE {
 	int fieldType;      //type of vrml field (use FIELDTYPE_SFNode for nodes, else ie FIELDTYPE_SFVec3f)
 	union {
-	void *native;		//pointer to auxtype
-	union anyVrml *anyvrml;		//pointer to anyVrml
+	void *native;		//pointer to auxtype - you would assign to this
+	union anyVrml *anyvrml;		//pointer to anyVrml - you can use this during debugging to inspect the native you assigned
 	};
 	int *valueChanged; 	//pointer to valueChanged != NULL if this FWNATIVe is a reference to a Script->Field
 	char gc; //'T' or 1 if you malloced the pointer and want the engine to free() when it garbage collects the related obj
@@ -101,11 +101,13 @@ typedef struct WEB3DNATIVE {
 typedef struct FWVAL{
 	char itype; //0 = null, F=Float D=Double I=Integer B=Boolean S=String, Z=flexiString (MF or S) W=Object-web3d O-js Object P=ptr
 	union {
-		//int _null;
-		//double _numeric;
-		//int _integer;
-		//int _boolean;
-		//const char* _string;
+		//union anyScalar{
+		int _null;
+		double _numeric;
+		int _integer;
+		int _boolean;
+		const char* _string;
+		//}
 		FWPointer _pointer;
 		FWPointer _web3dval;
 		void* _jsobject; //placeholder for js function callback objects

@@ -671,18 +671,12 @@ void medium_copy_field(int itype, void* source, void** dest){
 	medium_copy_field0(itype,source,(*dest));
 }
 
-void convert_duk_to_fwvals(duk_context *ctx, int nargs, int istack, struct ArgListType arglist, FWval *args, union anyVrml **any, int *argc){
+void convert_duk_to_fwvals(duk_context *ctx, int nargs, int istack, struct ArgListType arglist, FWval *args, int *argc){
 	int nUsable,nNeeded, i, ii;
-	union anyVrml *many;
 	struct Uni_String *uni;
 	nUsable = arglist.iVarArgStartsAt > -1 ? nargs : arglist.nfixedArg;
 	nNeeded = max(nUsable,arglist.nfixedArg);
 	FWval pars = malloc(nNeeded*sizeof(FWVAL));
-	many = malloc(nNeeded*sizeof(union anyVrml));
-	(*any) = many;
-	for(i=0;i<nNeeded;i++){
-		pars[i]._web3dval.anyvrml = &many[i];
-	}
 	(*args) = pars;
 	//QC and genericization of incoming parameters
 	(*argc) = nNeeded;
@@ -694,32 +688,32 @@ void convert_duk_to_fwvals(duk_context *ctx, int nargs, int istack, struct ArgLi
 			ctype = arglist.argtypes[i];
 		else 
 			ctype = arglist.argtypes[arglist.iVarArgStartsAt];
-		pars[i].itype = 'W'; //ctype;
+		pars[i].itype = ctype;
 		switch(ctype){
-		//case 'B': pars[i]._boolean = duk_get_boolean(ctx,i); break;
-		//case 'I': pars[i]._integer = duk_get_int(ctx,i); break;
-		//case 'F': pars[i]._numeric = duk_get_number(ctx,i); break;
-		//case 'D': pars[i]._numeric = duk_get_number(ctx,i); break;
-		//case 'S': pars[i]._string = duk_get_string(ctx,i); break;
-		case 'B': pars[i]._web3dval.anyvrml->sfbool = duk_get_boolean(ctx,ii); pars[i]._web3dval.fieldType = FIELDTYPE_SFBool; break;
-		case 'I': pars[i]._web3dval.anyvrml->sfint32 = duk_get_int(ctx,ii);  pars[i]._web3dval.fieldType = FIELDTYPE_SFInt32; break;
-		case 'F': pars[i]._web3dval.anyvrml->sffloat = (float) duk_get_number(ctx,ii);  pars[i]._web3dval.fieldType = FIELDTYPE_SFFloat; break;
-		case 'D': pars[i]._web3dval.anyvrml->sfdouble = duk_get_number(ctx,ii);  pars[i]._web3dval.fieldType = FIELDTYPE_SFDouble; break;
-		case 'S': str = strdup(duk_get_string(ctx,ii)); 
-			//later use of a uni_string just copies its pointer. so if str is const, then we need a const struct uni_string to go with it.
-			pars[i]._web3dval.anyvrml->sfstring = malloc(sizeof(struct Uni_String));
-			pars[i]._web3dval.anyvrml->sfstring->strptr = strdup(str);
-			pars[i]._web3dval.anyvrml->sfstring->len = strlen(pars[i]._web3dval.anyvrml->sfstring->strptr);
-			pars[i]._web3dval.fieldType = FIELDTYPE_SFString;
-			break;
+		case 'B': pars[i]._boolean = duk_get_boolean(ctx,ii); break;
+		case 'I': pars[i]._integer = duk_get_int(ctx,ii); break;
+		case 'F': pars[i]._numeric = duk_get_number(ctx,ii); break;
+		case 'D': pars[i]._numeric = duk_get_number(ctx,ii); break;
+		case 'S': pars[i]._string = duk_get_string(ctx,ii); break;
+		//case 'B': pars[i]._web3dval.anyvrml->sfbool = duk_get_boolean(ctx,ii); pars[i]._web3dval.fieldType = FIELDTYPE_SFBool; break;
+		//case 'I': pars[i]._web3dval.anyvrml->sfint32 = duk_get_int(ctx,ii);  pars[i]._web3dval.fieldType = FIELDTYPE_SFInt32; break;
+		//case 'F': pars[i]._web3dval.anyvrml->sffloat = (float) duk_get_number(ctx,ii);  pars[i]._web3dval.fieldType = FIELDTYPE_SFFloat; break;
+		//case 'D': pars[i]._web3dval.anyvrml->sfdouble = duk_get_number(ctx,ii);  pars[i]._web3dval.fieldType = FIELDTYPE_SFDouble; break;
+		//case 'S': str = strdup(duk_get_string(ctx,ii)); 
+		//	//later use of a uni_string just copies its pointer. so if str is const, then we need a const struct uni_string to go with it.
+		//	pars[i]._web3dval.anyvrml->sfstring = malloc(sizeof(struct Uni_String));
+		//	pars[i]._web3dval.anyvrml->sfstring->strptr = strdup(str);
+		//	pars[i]._web3dval.anyvrml->sfstring->len = strlen(pars[i]._web3dval.anyvrml->sfstring->strptr);
+		//	pars[i]._web3dval.fieldType = FIELDTYPE_SFString;
+		//	break;
 		case 'Z': //flexi-string idea - allow either String or MFString (no such thing as SFString from ecma - it uses String for that)
 			if(duk_is_string(ctx,ii)){
-				//pars[i]._string = duk_get_string(ctx,i); 
-				//pars[i].itype = 'S';
-				pars[i]._web3dval.anyvrml->sfstring = malloc(sizeof(struct Uni_String));
-				pars[i]._web3dval.anyvrml->sfstring->strptr = strdup(str);
-				pars[i]._web3dval.anyvrml->sfstring->len = strlen(pars[i]._web3dval.anyvrml->sfstring->strptr);
-				pars[i]._web3dval.fieldType = FIELDTYPE_SFString;
+				pars[i]._string = duk_get_string(ctx,ii); 
+				pars[i].itype = 'S';
+				//pars[i]._web3dval.anyvrml->sfstring = malloc(sizeof(struct Uni_String));
+				//pars[i]._web3dval.anyvrml->sfstring->strptr = strdup(str);
+				//pars[i]._web3dval.anyvrml->sfstring->len = strlen(pars[i]._web3dval.anyvrml->sfstring->strptr);
+				//pars[i]._web3dval.fieldType = FIELDTYPE_SFString;
 
 				break;
 			}
@@ -784,22 +778,22 @@ void convert_duk_to_fwvals(duk_context *ctx, int nargs, int istack, struct ArgLi
 	for(i=nUsable;i<nNeeded;i++){
 		//fill
 		char ctype = arglist.argtypes[i];
-		pars[i].itype = 'W'; //ctype;
+		pars[i].itype = ctype;
 		switch(ctype){
-		//case 'B': pars[i]._boolean = FALSE; break;
-		//case 'I': pars[i]._integer = 0; break;
-		//case 'F': pars[i]._numeric = 0.0; break;
-		//case 'D': pars[i]._numeric = 0.0; break;
-		//case 'S': pars[i]._string = NULL; break;
-		//case 'Z': pars[i]._string = NULL; pars[i].itype = 'S'; break;
-		case 'B': pars[i]._web3dval.anyvrml->sfbool = FALSE;	pars[i]._web3dval.fieldType = FIELDTYPE_SFBool; break;
-		case 'I': pars[i]._web3dval.anyvrml->sfint32 = 0;		pars[i]._web3dval.fieldType = FIELDTYPE_SFInt32; break;
-		case 'F': pars[i]._web3dval.anyvrml->sffloat = 0.0f;	pars[i]._web3dval.fieldType = FIELDTYPE_SFFloat; break;
-		case 'D': pars[i]._web3dval.anyvrml->sfdouble = 0.0;	pars[i]._web3dval.fieldType = FIELDTYPE_SFDouble; break;
-		case 'S': pars[i]._web3dval.anyvrml->sfstring = malloc(sizeof(struct Uni_String));
-			pars[i]._web3dval.anyvrml->sfstring->strptr = NULL;	pars[i]._web3dval.fieldType = FIELDTYPE_SFString; break;
-		case 'Z': pars[i]._web3dval.anyvrml->sfstring = malloc(sizeof(struct Uni_String));
-			pars[i]._web3dval.anyvrml->sfstring->strptr = NULL; pars[i]._web3dval.fieldType = FIELDTYPE_SFString; break;
+		case 'B': pars[i]._boolean = FALSE; break;
+		case 'I': pars[i]._integer = 0; break;
+		case 'F': pars[i]._numeric = 0.0; break;
+		case 'D': pars[i]._numeric = 0.0; break;
+		case 'S': pars[i]._string = NULL; break;
+		case 'Z': pars[i]._string = NULL; pars[i].itype = 'S'; break;
+		//case 'B': pars[i]._web3dval.anyvrml->sfbool = FALSE;	pars[i]._web3dval.fieldType = FIELDTYPE_SFBool; break;
+		//case 'I': pars[i]._web3dval.anyvrml->sfint32 = 0;		pars[i]._web3dval.fieldType = FIELDTYPE_SFInt32; break;
+		//case 'F': pars[i]._web3dval.anyvrml->sffloat = 0.0f;	pars[i]._web3dval.fieldType = FIELDTYPE_SFFloat; break;
+		//case 'D': pars[i]._web3dval.anyvrml->sfdouble = 0.0;	pars[i]._web3dval.fieldType = FIELDTYPE_SFDouble; break;
+		//case 'S': pars[i]._web3dval.anyvrml->sfstring = malloc(sizeof(struct Uni_String));
+		//	pars[i]._web3dval.anyvrml->sfstring->strptr = NULL;	pars[i]._web3dval.fieldType = FIELDTYPE_SFString; break;
+		//case 'Z': pars[i]._web3dval.anyvrml->sfstring = malloc(sizeof(struct Uni_String));
+		//	pars[i]._web3dval.anyvrml->sfstring->strptr = NULL; pars[i]._web3dval.fieldType = FIELDTYPE_SFString; break;
 		case 'W': 
 			pars[i]._web3dval.fieldType = FIELDTYPE_SFNode; 
 			pars[i]._web3dval.native = NULL; break;
@@ -908,12 +902,10 @@ int cfwconstructor(duk_context *ctx) {
 		return 0;
 	}
 	FWval args = NULL;
-	union anyVrml *any;
 	int argc;
-	convert_duk_to_fwvals(ctx, nargs, 0, fwt->ConstructorArgs[i], &args, &any, &argc);
+	convert_duk_to_fwvals(ctx, nargs, 0, fwt->ConstructorArgs[i], &args, &argc);
 
 	void *fwpointer = fwt->Constructor(fwt,argc,args);
-	free(any);
 	free(args);
 	push_typed_proxy(ctx,itype, fwpointer, valueChanged);
 
@@ -1068,7 +1060,7 @@ int fwval_duk_push(duk_context *ctx, FWval fwretval, int *valueChanged){
 	//converts engine-agnostic FWVAL return value to duk engine specific return values and pushes them onto the duk value stack
 	int nr = 1;
 	switch(fwretval->itype){
-	/*
+	
 	case 'B':
 		duk_push_boolean(ctx,fwretval->_boolean); break;
 	case 'I':
@@ -1079,9 +1071,9 @@ int fwval_duk_push(duk_context *ctx, FWval fwretval, int *valueChanged){
 		duk_push_number(ctx,fwretval->_numeric); break;
 	case 'S':
 		duk_push_string(ctx,fwretval->_string); break;
-	*/
+	
 	case 'W':
-		//for web3d field types
+		//for pointers to web3d field types
 		switch(fwretval->_web3dval.fieldType){
 		case FIELDTYPE_SFBool:
 			duk_push_boolean(ctx,fwretval->_web3dval.anyvrml->sfbool); break;
@@ -1145,10 +1137,9 @@ int cfunction(duk_context *ctx) {
 	fs = getFWFunc(fwt,fwFunc);
 	if(fs){
 		FWval pars;
-		union anyVrml *any;
 		int argc;
 		FWVAL fwretval;
-		convert_duk_to_fwvals(ctx, nargs, 0, fs->arglist, &pars, &any, &argc);
+		convert_duk_to_fwvals(ctx, nargs, 0, fs->arglist, &pars, &argc);
 		/*
 		int nUsable,nNeeded;
 		nUsable = fs->arglist.iVarArgStartsAt > -1 ? nargs : fs->arglist.nfixedArg;
@@ -1213,7 +1204,6 @@ int cfunction(duk_context *ctx) {
 		if(nr){
 			nr = fwval_duk_push(ctx,&fwretval,valueChanged);
 		}
-		free(any);
 		free(pars);
 	}
 	return nr;
@@ -1416,17 +1406,15 @@ int cset(duk_context *ctx) {
 			//}else
 			{
 				FWval fwsetval = NULL;
-				union anyVrml *any;
 				struct ArgListType arglist;
 				int argc;
 				arglist.argtypes = &type;
 				arglist.fillMissingFixedWithZero = 0;
 				arglist.nfixedArg = 1;
 				arglist.iVarArgStartsAt = -1;
-				convert_duk_to_fwvals(ctx, 1, -2, arglist, &fwsetval, &any, &argc);
+				convert_duk_to_fwvals(ctx, 1, -2, arglist, &fwsetval, &argc);
 				if(argc == 1)
 					fwt->Setter(fwt,jndex,parent,fwsetval);
-				free(any);
 				free(fwsetval);
 			}
 		}
@@ -2528,7 +2516,7 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 	{
 		int rc;
 		FWVAL fwval;
-		fwval._web3dval.anyvrml = Data;
+		fwval._web3dval.native = Data;
 		fwval._web3dval.fieldType = dataType;
 		fwval.itype = 'W';
 		rc = fwval_duk_push(ctx, &fwval, NULL);
