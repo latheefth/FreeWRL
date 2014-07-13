@@ -897,18 +897,42 @@ FWTYPE SFInt32Type = {
 	0,0, //index prop type,readonly
 	NULL, //functions
 };
+
+
+void * MFInt32_Constructor(FWType fwtype, int argc, FWval fwpars){
+	int lenSF;
+	struct Multi_Any *ptr = malloc(sizeof(struct Multi_Any));  ///malloc in 2 parts for MF
+	lenSF = sizeofSF(fwtype->itype); 
+	ptr->n = argc;
+	ptr->p = NULL;
+	if(ptr->n)
+		ptr->p = malloc(ptr->n * lenSF); // This second part is resizable ie MF[i] = new SF() if i >= (.length), .length is expanded to accomodate
+	char *p = ptr->p;
+	for(int i=0;i<ptr->n;i++){
+		//float ff = (float)fwpars[i]._numeric; //fwpars[i]._web3dval.native;
+		memcpy(p,&fwpars[i]._web3dval.native,lenSF);
+		p += lenSF;
+	}
+	return (void *)ptr;
+}
+ArgListType (MFInt32_ConstructorArgs)[] = {
+		{0,0,0,"I"},
+		{-1,0,0,NULL},
+};
+
+
 //#define FIELDTYPE_MFInt32	9
 FWTYPE MFInt32Type = {
 	FIELDTYPE_MFInt32,
 	"MFInt32",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
+	MFInt32_Constructor, //constructor
+	MFInt32_ConstructorArgs, //constructor args
+	MFW_Properties, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
-	'I',0, //index prop type,readonly
+	MFW_Getter, //Getter,
+	MFW_Setter, //Setter,
+	'W',0, //index prop type,readonly
 	NULL, //functions
 };
 
@@ -1799,18 +1823,39 @@ FWTYPE SFDoubleType = {
 	NULL, //functions
 };
 
+void * MFDouble_Constructor(FWType fwtype, int argc, FWval fwpars){
+	int lenSF;
+	struct Multi_Any *ptr = malloc(sizeof(struct Multi_Any));  ///malloc in 2 parts for MF
+	lenSF = sizeofSF(fwtype->itype); 
+	ptr->n = argc;
+	ptr->p = NULL;
+	if(ptr->n)
+		ptr->p = malloc(ptr->n * lenSF); // This second part is resizable ie MF[i] = new SF() if i >= (.length), .length is expanded to accomodate
+	char *p = ptr->p;
+	for(int i=0;i<ptr->n;i++){
+		//float ff = (float)fwpars[i]._numeric; //fwpars[i]._web3dval.native;
+		memcpy(p,&fwpars[i]._web3dval.native,lenSF);
+		p += lenSF;
+	}
+	return (void *)ptr;
+}
+ArgListType (MFDouble_ConstructorArgs)[] = {
+		{0,0,0,"D"},
+		{-1,0,0,NULL},
+};
+
 //#define FIELDTYPE_MFDouble	28
 FWTYPE MFDoubleType = {
 	FIELDTYPE_MFDouble,
 	"MFDouble",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
+	MFDouble_Constructor, //constructor
+	MFDouble_ConstructorArgs, //constructor args
+	MFW_Properties, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
-	'D',0, //index prop type,readonly
+	MFW_Getter, //Getter,
+	MFW_Setter, //Setter,
+	'W',0, //index prop type,readonly
 	NULL, //functions
 };
 
