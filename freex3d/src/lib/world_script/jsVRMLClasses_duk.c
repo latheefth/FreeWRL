@@ -54,6 +54,10 @@
 #include "JScript.h"
 #include "CScripts.h"
 
+#define LARGESTRING 2048
+#define STRING 512
+#define SMALLSTRING 128
+
 
 /********************************************************/
 /*							*/
@@ -332,31 +336,308 @@ FWTYPE MFFloatType = {
 	NULL, //functions
 };
 
+
+// http://www.web3d.org/files/specifications/19777-1/V3.0/Part1/functions.html#SFRotation
+/* SFRotation
+constructors
+SFRotation (numeric x,  numeric y,  numeric z,  numeric angle) x, y, and z are the axis of the rotation. angle is the angle of the rotation (in radians). Missing values default to 0.0, except y, which defaults to 1.0. 
+SFRotation (SFVec3f axis,  numeric  angle) axis is the axis of rotation. angle is the angle of the rotation (in radians) 
+SFRotation (SFVec3f fromVector,  SFVec3f toVector) fromVector and toVector are normalized and the rotation value that would rotate from the fromVector to the toVector is stored in the object. 
+props
+numeric x No first value of the axis vector 
+numeric y No second value of the axis vector 
+numeric z No third value of the axis vector 
+numeric angle No the angle of the rotation (in radians) 
+funcs
+SFVec3f getAxis() Returns the axis of rotation. 
+SFRotation inverse() Returns the inverse of this object's rotation.  
+SFRotation multiply(SFRotation rot) Returns the object multiplied by the passed value.  
+SFVec3f multiVec(SFVec3f vec) Returns the value of vec multiplied by the matrix corresponding to this object's rotation.  
+void setAxis(SFVec3f vec) Sets the axis of rotation to the value passed in vec.  
+SFRotation slerp(SFRotation dest, numeric t) Returns the value of the spherical linear interpolation between this object's rotation and dest at value 0 = t = 1. For t = 0, the value is this object`s rotation. For t = 1, the value is dest.  
+String toString() Returns a String containing the value of x, y, z, and angle encoding using the X3D Classic VRML encoding (see part 2 of ISO/IEC 19776). 
+*/
+int SFRotation_getAxis(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFRotation *ptr = (struct SFRotation *)fwn;
+	struct SFVec3f *res = malloc(sizeof(struct SFVec3f));
+	veccopy3f(res->c,ptr->c);
+	fwretval->_web3dval.native = res; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3f;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+
+int SFRotation_inverse(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFRotation *ptr = (struct SFRotation *)fwn;
+	struct SFRotation *res = malloc(sizeof(struct SFRotation));
+	Quaternion q1,qret;
+	double a,b,c,d;
+
+	/* convert both rotation to quaternion */
+	vrmlrot_to_quaternion(&q1, (double) ptr->c[0], 
+		(double) ptr->c[1], (double) ptr->c[2], (double) ptr->c[3]);
+
+	/* invert it */
+	quaternion_inverse(&qret,&q1);
+
+	/* and return the resultant, as a vrml rotation */
+	quaternion_to_vrmlrot(&qret, &a, &b, &c, &d);
+	/* double to floats, can not use pointers... */
+	res->c[0] = (float) a;
+	res->c[1] = (float) b;
+	res->c[2] = (float) c;
+	res->c[3] = (float) d;
+
+	fwretval->_web3dval.native = res; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFRotation;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+
+int SFRotation_multiply(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFRotation *ptr = (struct SFRotation *)fwn;
+	struct SFRotation *rhs = (struct SFRotation *)fwpars[0]._web3dval.native;
+	struct SFRotation *res = malloc(sizeof(struct SFRotation));
+	Quaternion q1,q2,qret;
+	double a,b,c,d;
+
+	/* convert both rotation to quaternion */
+	vrmlrot_to_quaternion(&q1, (double) ptr->c[0], 
+		(double) ptr->c[1], (double) ptr->c[2], (double) ptr->c[3]);
+
+	vrmlrot_to_quaternion(&q2, (double) rhs->c[0], 
+		(double) rhs->c[1], (double) rhs->c[2], (double) rhs->c[3]);
+
+	/* multiply them */
+	quaternion_multiply(&qret,&q1,&q2);
+
+	/* and return the resultant, as a vrml rotation */
+	quaternion_to_vrmlrot(&qret, &a, &b, &c, &d);
+	/* double to floats, can not use pointers... */
+	res->c[0] = (float) a;
+	res->c[1] = (float) b;
+	res->c[2] = (float) c;
+	res->c[3] = (float) d;
+
+	fwretval->_web3dval.native = res; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFRotation;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+
+int SFRotation_multiVec(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFRotation *ptr = (struct SFRotation *)fwn;
+	struct SFVec3f *v = (struct SFVec3f *)fwpars[0]._web3dval.native;
+	struct SFVec3f *res = malloc(sizeof(struct SFVec3f));
+	struct SFVec3f c1, c2, r;
+	double rl,angle,s,c;
+
+	veccopy3f(r.c,ptr->c);
+	rl = veclength3f(r.c);
+	angle = ptr->c[3];
+	s = (float) sin(angle);
+	c = (float) cos(angle);
+	veccross3f(c1.c,r.c,v->c);
+	vecscale3f(c1.c,c1.c,1.0/rl);
+	veccross3f(c2.c,r.c,c1.c);
+	vecscale3f(c2.c,c2.c,1.0/rl);
+	for(int i=0;i<3;i++)
+		res->c[i] = (float) (v->c[i] + s * c1.c[i] + (1.0-c) * c2.c[i]);
+
+	fwretval->_web3dval.native = res; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3f;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+
+int SFRotation_setAxis(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFRotation *ptr = (struct SFRotation *)fwn;
+	struct SFVec3f *v = (struct SFVec3f *)fwpars[0]._web3dval.native;
+	veccopy3f(ptr->c,v->c);
+	return 0;
+}
+
+int SFRotation_slerp(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFRotation *rot = (struct SFRotation *)fwn;
+	struct SFRotation *dest = (struct SFRotation *)fwpars[0]._web3dval.native;
+	double t = fwpars[1]._numeric;
+	struct SFRotation *res = malloc(sizeof(struct SFRotation));
+	Quaternion quat,quat_dest,quat_ret;
+	double a,b,c,d;
+
+	/*
+	 * From Annex C, C.6.7.4:
+	 *
+	 * For t = 0, return object's rotation.
+	 * For t = 1, return 1st argument.
+	 * For 0 < t < 1, compute slerp.
+	 */
+	if (APPROX(t, 0)) {
+		memcpy(res->c,rot->c,4*sizeof(float));
+	} else if (APPROX(t, 1)) {
+		memcpy(res->c,dest->c,4*sizeof(float));
+	} else {
+
+		vrmlrot_to_quaternion(&quat,
+							  rot->c[0],
+							  rot->c[1],
+							  rot->c[2],
+							  rot->c[3]);
+
+		vrmlrot_to_quaternion(&quat_dest,
+							  dest->c[0],
+							  dest->c[1],
+							  dest->c[2],
+							  dest->c[3]);
+
+		quaternion_slerp(&quat_ret, &quat, &quat_dest, t);
+		quaternion_to_vrmlrot(&quat_ret,&a,&b,&c,&d);
+		/* double to floats, can not use pointers... */
+		res->c[0] = (float) a;
+		res->c[1] = (float) b;
+		res->c[2] = (float) c;
+		res->c[3] = (float) d;
+	}
+	fwretval->_web3dval.native = res; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFRotation;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+
+int SFRotation_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFRotation *ptr = (struct SFRotation *)fwn;
+	char buff[STRING], *str;
+	int len;
+	memset(buff, 0, STRING);
+	sprintf(buff, "%.9g %.9g %.9g %.9g",
+			ptr->c[0], ptr->c[1], ptr->c[2], ptr->c[3]);
+	len = strlen(buff);
+	str = malloc(len+1);  //leak
+	strcpy(str,buff);
+	fwretval->_string = str;
+	fwretval->itype = 'S';
+	return 1;
+}
+
+
+FWFunctionSpec (SFRotation_Functions)[] = {
+	{"getAxis", SFRotation_getAxis, 'W',{0,-1,0,NULL}},
+	{"inverse", SFRotation_inverse, 'W',{1,-1,0,"W"}},
+	{"multiply", SFRotation_multiply, 'W',{1,-1,0,"W"}},
+	{"multiVec", SFRotation_multiVec, 'W',{1,-1,0,"W"}},
+	{"setAxis", SFRotation_setAxis, '0',{1,-1,0,"W"}},
+	{"slerp", SFRotation_slerp, 'W',{2,-1,0,"WF"}},
+	{"toString", SFRotation_toString, 'S',{0,-1,0,NULL}},
+	{0}
+};
+int SFRotation_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
+	int nr = 0;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index > -1 && index < 4){
+		nr = 1;
+		switch(index){
+		case 0: //x
+		case 1: //y
+		case 2: //z
+		case 3: //angle
+			fwretval->_numeric =  ptr->c[index];
+			//fwretval->_web3dval.anyvrml = (union anyVrml*)&ptr->c[index];
+			//fwretval->_web3dval.fieldType = FIELDTYPE_SFFloat;
+			break;
+		default:
+			nr = 0;
+		}
+	}
+	fwretval->itype = 'F';
+	return nr;
+}
+int SFRotation_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index > -1 && index < 4){
+		switch(index){
+		case 0: //x
+		case 1: //y
+		case 2: //z
+		case 3: //angle
+			ptr->c[index] = (float)fwval->_numeric; //fwval->_web3dval.anyvrml->sffloat; 
+			break;
+		}
+		return TRUE;
+	}
+	return FALSE;
+}
+//typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
+void * SFRotation_Constructor(FWType fwtype, int ic, FWval fwpars){
+	struct SFRotation *ptr = malloc(fwtype->size_of); //garbage collector please
+	if(ic == 4){
+		for(int i=0;i<4;i++)
+			ptr->c[i] =  fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
+	}else if(ic == 2 && fwpars[1].itype == 'F'){
+		//SFVec3f axis, float angle
+		veccopy3f(ptr->c,fwpars[0]._web3dval.native);
+		ptr->c[3] = (float)fwpars[1]._numeric;
+
+	}else if(ic == 2 && fwpars[1].itype == 'W'){
+		//SFVec3f from SFVec3f to
+		struct SFVec3f *v1 = fwpars[0]._web3dval.native;
+		struct SFVec3f *v2 = fwpars[1]._web3dval.native;
+		float v1len = veclength3f(v1->c);
+		float v2len = veclength3f(v2->c);
+		float v12dp = vecdot3f(v1->c, v2->c);
+		veccross3f(ptr->c,v1->c,v2->c);
+		v12dp /= v1len * v2len;
+		ptr->c[3] = (float) atan2(sqrt(1 - v12dp * v12dp), v12dp);
+	}
+	return (void *)ptr;
+}
+FWPropertySpec (SFRotation_Properties)[] = {
+	{"x", 0, 'F', 0},
+	{"y", 1, 'F', 0},
+	{"z", 2, 'F', 0},
+	{"angle", 3, 'F', 0},
+	{NULL,0,0,0},
+};
+ArgListType (SFRotation_ConstructorArgs)[] = {
+	{4,0,'T',"FFFF"},
+	{2,0,'T',"WF"},
+	{2,-1,'F',"WW"},
+	{-1,0,0,NULL},
+};
 //#define FIELDTYPE_SFRotation	2
 FWTYPE SFRotationType = {
 	FIELDTYPE_SFRotation,
 	"SFRotation",
 	sizeof(struct SFRotation), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
+	SFRotation_Constructor, //constructor
+	SFRotation_ConstructorArgs, //constructor args
+	SFRotation_Properties, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
+	SFRotation_Getter, //Getter,
+	SFRotation_Setter, //Setter,
 	'F',0, //index prop type,readonly
-	NULL, //functions
+	SFRotation_Functions, //functions
 };
+
+
+
 //#define FIELDTYPE_MFRotation	3
 FWTYPE MFRotationType = {
 	FIELDTYPE_MFRotation,
 	"MFRotation",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
+	MFW_Constructor, //constructor
+	MFW_ConstructorArgs, //constructor args
+	MFW_Properties, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
+	MFW_Getter, //Getter,
+	MFW_Setter, //Setter,
 	'W',0, //index prop type,readonly
 	NULL, //functions
 };
