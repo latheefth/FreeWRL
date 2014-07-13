@@ -33,7 +33,7 @@ Local include for world_script directory.
 typedef struct FWPropertySpec {
     const char	*name; //NULL means index int: SFVec3f[0], MF[i]
     char		index; //stable property index for switch/casing instead of strcmp on name
-    char		type; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+    char		type; //0 = null, F=Float D=Double I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr Z=flexiString(SFString,MFString[0] or ecmaString)
 	char		readOnly; //T/F
 } FWPropertySpec;
 

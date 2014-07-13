@@ -40,6 +40,39 @@
 
 #define DJ_KEEP_COMPILER_WARNING 0
 
+double * vecadd2d(double *c, double *a, double *b){
+	c[0] = a[0] + b[0];
+	c[1] = a[1] + b[1];
+	return c;
+}
+
+double *vecdif2d(double *c, double* a, double *b){
+	c[0] = a[0] - b[0];
+	c[1] = a[1] - b[1];
+	return c;
+}
+double veclength2d( double *p ){
+	return sqrt(p[0]*p[0] + p[1]*p[1]);
+}
+double vecdot2d(double *a, double *b){
+	return a[0]*b[0] + a[1]*b[1];
+}
+
+double* vecscale2d(double* r, double* v, double s){
+    r[0] = v[0] * s;
+    r[1] = v[1] * s;
+    return r;
+}
+
+double vecnormal2d(double *r, double *v){
+    double ret = sqrt(vecdot2d(v,v));
+    /* if(ret == 0.) return 0.; */
+    if (APPROX(ret, 0)) return 0.;
+    vecscale2d(r,v,1./ret);
+    return ret;
+}
+
+
 /* Altenate implemetations available, should merge them eventually */
 double *vecaddd(double *c, double* a, double *b)
 {

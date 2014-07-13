@@ -1585,9 +1585,9 @@ void * SFVec3d_Constructor(FWType fwtype, int ic, FWval fwpars){
 }
 
 FWPropertySpec (SFVec3d_Properties)[] = {
-	{"x", 0, 'F', 0},
-	{"y", 1, 'F', 0},
-	{"z", 2, 'F', 0},
+	{"x", 0, 'D', 0},
+	{"y", 1, 'D', 0},
+	{"z", 2, 'D', 0},
 	{NULL,0,0,0},
 };
 ArgListType (SFVec3d_ConstructorArgs)[] = {
@@ -1772,19 +1772,179 @@ FWTYPE MFMatrix4dType = {
 	NULL, //functions
 };
 
+
+// http://www.web3d.org/files/specifications/19777-1/V3.0/Part1/functions.html#SFVec2d
+/* SFVec2d
+Constructor
+SFVec2f (numeric x, numeric y) Missing values default to 0.0d+00. 
+props
+numeric x No First value of the vector 
+numeric y No Second value of the vector 
+funcs
+SFVec2d add(SFVec2d vec) Returns the value of the passed value added, component-wise, to the object. 
+SFVec2d divide(numeric n) Returns the value of the object divided by the passed value. 
+numeric dot(SFVec2d vec) Returns the dot product of this vector and the passed value. 
+numeric length() Returns the geometric length of this vector. 
+SFVec2d multiply(numeric n) Returns the value of the object multiplied by the passed value. 
+SFVec2d normalize() Returns the object converted to unit length . 
+SFVec2d subtract(SFVec2d vec) Returns the value of the passed value subtracted, component-wise, from the object. 
+String toString() Returns a String containing the value of x and y encoding using the X3D Classic VRML encoding (see part 2 of ISO/IEC 19776). 
+*/
+
+int SFVec2d_add(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec2d *ptr = (struct SFVec2d *)fwn;
+	struct SFVec2d *rhs = fwpars[0]._web3dval.native;
+	struct SFVec2d *res = malloc(fwtype->size_of);
+	vecadd2d(res->c,ptr->c,rhs->c);
+	fwretval->_web3dval.native = res; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec2d;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+int SFVec2d_subtract(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec2d *ptr = (struct SFVec2d *)fwn;
+	struct SFVec2d *rhs = fwpars[0]._web3dval.native;
+	struct SFVec2d *res = malloc(fwtype->size_of);
+	vecdif2d(res->c,ptr->c,rhs->c);
+	fwretval->_web3dval.native = res; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec2d;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+int SFVec2d_divide(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec2d *ptr = (struct SFVec2d *)fwn;
+	double rhs = fwpars[0]._numeric;
+	if(rhs == 0.0){
+		return 0;
+	}
+	rhs = 1.0/rhs;
+	struct SFVec2d *res = malloc(fwtype->size_of);
+	vecscale2d(res->c,ptr->c,rhs);
+	fwretval->_web3dval.native = res; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec2d;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+int SFVec2d_multiply(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec2d *ptr = (struct SFVec2d *)fwn;
+	double rhs = fwpars[0]._numeric;
+	struct SFVec2d *res = malloc(fwtype->size_of);
+	vecscale2d(res->c,ptr->c,rhs);
+	fwretval->_web3dval.native = res; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec2d;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+int SFVec2d_normalize(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec2d *ptr = (struct SFVec2d *)fwn;
+	struct SFVec2d *res = malloc(fwtype->size_of);
+	vecnormal2d(res->c,ptr->c);
+	fwretval->_web3dval.native = res; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec2d;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+
+int SFVec2d_length(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec2d *ptr = (struct SFVec2d *)fwn;
+	double res;
+	res = veclength2d(ptr->c);
+	fwretval->_numeric = res; 
+	fwretval->itype = 'D';
+	return 1;
+}
+int SFVec2d_dot(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec2d *ptr = (struct SFVec2d *)fwn;
+	struct SFVec2d *rhs = fwpars[0]._web3dval.native;
+	double res;
+	res = vecdot2d(ptr->c,rhs->c);
+	fwretval->_numeric = res; 
+	fwretval->itype = 'D';
+	return 1;
+}
+
+FWFunctionSpec (SFVec2d_Functions)[] = {
+	{"add", SFVec2d_add, 'W',{1,-1,0,"W"}},
+	{"divide", SFVec2d_divide, 'W',{1,-1,0,"D"}},
+	{"dot", SFVec2d_dot, 'D',{1,-1,0,"W"}},
+	{"length", SFVec2d_length, 'D',{0,-1,0,NULL}},
+	{"multiply", SFVec2d_multiply, 'W',{1,-1,0,"D"}},
+	{"normalize", SFVec2d_normalize, 'W',{0,-1,0,NULL}},
+	{"subtract", SFVec2d_subtract, 'W',{1,-1,0,"W"}},
+	//{"toString", SFVec2d_toString, 'S',{0,-1,0,NULL}},
+	{0}
+};
+
+int SFVec2d_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+	struct SFVec2d *ptr = (struct SFVec2d *)fwn;
+	int nr = 0;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index > -1 && index < 2){
+		nr = 1;
+		switch(index){
+		case 0: //x
+		case 1: //y
+			fwretval->_numeric =  ptr->c[index];
+			//fwretval->_web3dval.anyvrml = (union anyVrml*)&ptr->c[index];
+			//fwretval->_web3dval.fieldType = FIELDTYPE_SFFloat;
+			break;
+		default:
+			nr = 0;
+		}
+	}
+	fwretval->itype = 'D';
+	return nr;
+}
+int SFVec2d_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+	struct SFVec2d *ptr = (struct SFVec2d *)fwn;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index > -1 && index < 2){
+		switch(index){
+		case 0: //x
+		case 1: //y
+			ptr->c[index] = fwval->_numeric; //fwval->_web3dval.anyvrml->sffloat; 
+			break;
+		}
+		return TRUE;
+	}
+	return FALSE;
+}
+//typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
+void * SFVec2d_Constructor(FWType fwtype, int ic, FWval fwpars){
+	struct SFVec2d *ptr = malloc(fwtype->size_of); //garbage collector please
+	for(int i=0;i<3;i++)
+		ptr->c[i] =  fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
+	return (void *)ptr;
+}
+
+FWPropertySpec (SFVec2d_Properties)[] = {
+	{"x", 0, 'D', 0},
+	{"y", 1, 'D', 0},
+	{NULL,0,0,0},
+};
+ArgListType (SFVec2d_ConstructorArgs)[] = {
+		{2,0,'T',"DD"},
+		{-1,0,0,NULL},
+};
+
 //#define FIELDTYPE_SFVec2d	37
 FWTYPE SFVec2dType = {
 	FIELDTYPE_SFVec2d,
 	"SFVec2d",
 	sizeof(struct SFVec2d), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
+	SFVec2d_Constructor, //constructor
+	SFVec2d_ConstructorArgs, //constructor args
+	SFVec2d_Properties, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
+	SFVec2d_Getter, //Getter,
+	SFVec2d_Setter, //Setter,
 	'D',0, //index prop type,readonly
-	NULL, //functions
+	SFVec2d_Functions, //functions
 };
 
 //#define FIELDTYPE_MFVec2d	38
@@ -1792,12 +1952,12 @@ FWTYPE MFVec2dType = {
 	FIELDTYPE_MFVec2d,
 	"MFVec2d",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
+	MFW_Constructor, //constructor
+	MFW_ConstructorArgs, //constructor args
+	MFW_Properties, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
+	MFW_Getter, //Getter,
+	MFW_Setter, //Setter,
 	'W',0, //index prop type,readonly
 	NULL, //functions
 };

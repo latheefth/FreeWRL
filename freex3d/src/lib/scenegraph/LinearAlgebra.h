@@ -171,6 +171,13 @@ double vecdotd(double *a, double *b);
 double* vecscaled(double* r, double* v, double s);
 double vecnormald(double *r, double *v);
 
+double * vecadd2d(double *c, double *a, double *b);
+double *vecdif2d(double *c, double* a, double *b);
+double veclength2d( double *p );
+double vecdot2d(double *a, double *b);
+double* vecscale2d(double* r, double* v, double s);
+double vecnormal2d(double *r, double *v);
+
 float *veccopy3f(float *b, float *a);
 float *vecset3f(float *b, float x, float y, float z);
 float *vecadd3f(float *c, float *a, float *b);
