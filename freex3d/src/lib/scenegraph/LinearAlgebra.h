@@ -163,6 +163,8 @@ double vecangle(struct point_XYZ* V1, struct point_XYZ* V2);
 void veccross(struct point_XYZ *c , struct point_XYZ a, struct point_XYZ b);
 
 
+double * vecaddd(double *c, double *a, double *b);
+double *vecdifd(double *c, double* a, double *b);
 double * veccrossd(double *c, double *a, double *b);
 double veclengthd( double *p );
 double vecdotd(double *a, double *b);

@@ -148,13 +148,25 @@ int SFColor_getHSV(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwre
 	/* convert rgb to hsv */
 	convertRGBtoHSV((double)ptr->c[0], (double)ptr->c[1], (double)ptr->c[2],&xp[0],&xp[1],&xp[2]);
 	//supposed to return numeric[3] - don't have that set up so sfvec3d
-	union anyVrml *any = malloc(sizeof(union anyVrml)); //garbage collector please
-	memcpy(any->sfvec3d.c,xp,sizeof(double)*3);
-	fwretval->_web3dval.native = any; 
+	struct SFVec3d *sf3d = malloc(sizeof(struct SFVec3d)); //garbage collector please
+	memcpy(sf3d->c,xp,sizeof(double)*3);
+	fwretval->_web3dval.native = sf3d; 
 	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3d;
 	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
 	fwretval->itype = 'W';
 	return 1;
+}
+
+int SFColor_setHSV(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	//argc should == 3 for setHSV
+	struct SFColor *ptr = (struct SFColor *)fwn;
+	double xp[3];
+	/* convert rgb to hsv */
+	convertHSVtoRGB((double)fwpars[0]._numeric, (double)fwpars[1]._numeric, (double)fwpars[2]._numeric,&xp[0],&xp[1],&xp[2]);
+	ptr->c[0] = (float)xp[0];
+	ptr->c[1] = (float)xp[1];
+	ptr->c[2] = (float)xp[2];
+	return 0;
 }
 
 
@@ -239,11 +251,11 @@ int MFW_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index == -1){
 		//length
-		//fwretval->_integer = ptr->n;
-		//fwretval->itype = 'I';
-		fwretval->_web3dval.native = &ptr->n;
-		fwretval->_web3dval.fieldType = FIELDTYPE_SFInt32;
-		fwretval->itype = 'W';
+		fwretval->_integer = ptr->n;
+		fwretval->itype = 'I';
+		//fwretval->_web3dval.native = &ptr->n;
+		//fwretval->_web3dval.fieldType = FIELDTYPE_SFInt32;
+		//fwretval->itype = 'W';
 		nr = 1;
 	}else if(index > -1 && index < ptr->n){
 		int elen = sizeofSF(fwt->itype);
@@ -348,20 +360,206 @@ FWTYPE MFRotationType = {
 	'W',0, //index prop type,readonly
 	NULL, //functions
 };
+
+
+
+/*
+SFVec3f add(SFVec3f vec) Returns the value of the passed value added, component-wise, to the object. 
+SFVec3f cross(SFVec3f vec) Returns the cross product of the object and the passed value. 
+SFVec3f divide(numeric n) Returns the value of the object divided by the passed value. 
+numeric dot(SFVec3f vec) Returns the dot product of this vector and the passed value as a double precision value. 
+numeric length() Returns the geometric length of this vector as a double precision value. 
+SFVec3f multiple(numeric n) Returns the value of the object multiplied by the passed value. 
+SFVec3f negate() Returns the value of the component-wise negation of the object. 
+SFVec3f normalize() Returns the object converted to unit length . 
+SFVec3f subtract(SFVec3f vec) Returns the value of the passed value subtracted, component-wise, from the object. 
+String toString() Returns a String containing the value of x, y, and z encoded using the X3D Classic VRML encoding (see part 2 of ISO/IEC 19776). 
+*/
+#include "../scenegraph/LinearAlgebra.h"
+//SFVec3f add(SFVec3f vec) Returns the value of the passed value added, component-wise, to the object. 
+int SFVec3f_add(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
+	struct SFVec3f *rhs = fwpars[0]._web3dval.native;
+	struct SFVec3f *res = malloc(fwtype->size_of);
+	vecadd3f(res->c,ptr->c,rhs->c);
+	fwretval->_web3dval.native = res; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3f;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+int SFVec3f_cross(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
+	struct SFVec3f *rhs = fwpars[0]._web3dval.native;
+	struct SFVec3f *res = malloc(fwtype->size_of);
+	veccross3f(res->c,ptr->c,rhs->c);
+	fwretval->_web3dval.native = res; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3f;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+int SFVec3f_subtract(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
+	struct SFVec3f *rhs = fwpars[0]._web3dval.native;
+	struct SFVec3f *res = malloc(fwtype->size_of);
+	vecdif3f(res->c,ptr->c,rhs->c);
+	fwretval->_web3dval.native = res; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3f;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+int SFVec3f_divide(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
+	float rhs = fwpars[0]._numeric;
+	if(rhs == 0.0f){
+		return 0;
+	}
+	rhs = 1.0/rhs;
+	struct SFVec3f *res = malloc(fwtype->size_of);
+	vecscale3f(res->c,ptr->c,rhs);
+	fwretval->_web3dval.native = res; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3f;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+int SFVec3f_multiply(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
+	float rhs = fwpars[0]._numeric;
+	struct SFVec3f *res = malloc(fwtype->size_of);
+	vecscale3f(res->c,ptr->c,rhs);
+	fwretval->_web3dval.native = res; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3f;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+int SFVec3f_normalize(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
+	struct SFVec3f *res = malloc(fwtype->size_of);
+	vecnormalize3f(res->c,ptr->c);
+	fwretval->_web3dval.native = res; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3f;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+
+int SFVec3f_negate(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
+	struct SFVec3f *res = malloc(fwtype->size_of);
+	vecscale3f(res->c,ptr->c,-1.0f);
+	fwretval->_web3dval.native = res; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3f;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+int SFVec3f_length(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
+	float res;
+	res = veclength3f(ptr->c);
+	fwretval->_numeric = res; 
+	fwretval->itype = 'F';
+	return 1;
+}
+int SFVec3f_dot(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
+	struct SFVec3f *rhs = fwpars[0]._web3dval.native;
+	double res;
+	res = vecdot3f(ptr->c,rhs->c);
+	fwretval->_numeric = res; 
+	fwretval->itype = 'F';
+	return 1;
+}
+
+FWFunctionSpec (SFVec3f_Functions)[] = {
+	{"add", SFVec3f_add, 'W',{1,-1,0,"W"}},
+	{"cross", SFVec3f_cross, 'W',{1,-1,0,"W"}},
+	{"divide", SFVec3f_divide, 'W',{1,-1,0,"F"}},
+	{"dot", SFVec3f_dot, 'F',{1,-1,0,"W"}},
+	{"length", SFVec3f_length, 'F',{0,-1,0,NULL}},
+	{"multiply", SFVec3f_multiply, 'W',{1,-1,0,"F"}},
+	{"negate", SFVec3f_negate, 'W',{0,-1,0,NULL}},
+	{"normalize", SFVec3f_normalize, 'W',{0,-1,0,NULL}},
+	{"subtract", SFVec3f_subtract, 'W',{1,-1,0,"W"}},
+	//{"toString", SFVec3f_toString, 'S',{0,-1,0,NULL}},
+	{0}
+};
+
+int SFVec3f_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
+	int nr = 0;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index > -1 && index < 3){
+		nr = 1;
+		switch(index){
+		case 0: //x
+		case 1: //y
+		case 2: //z
+			fwretval->_numeric =  ptr->c[index];
+			//fwretval->_web3dval.anyvrml = (union anyVrml*)&ptr->c[index];
+			//fwretval->_web3dval.fieldType = FIELDTYPE_SFFloat;
+			break;
+		default:
+			nr = 0;
+		}
+	}
+	fwretval->itype = 'F';
+	return nr;
+}
+int SFVec3f_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index > -1 && index < 3){
+		switch(index){
+		case 0: //x
+		case 1: //y
+		case 2: //z
+			ptr->c[index] = (float)fwval->_numeric; //fwval->_web3dval.anyvrml->sffloat; 
+			break;
+		}
+		return TRUE;
+	}
+	return FALSE;
+}
+//typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
+void * SFVec3f_Constructor(FWType fwtype, int ic, FWval fwpars){
+	struct SFVec3f *ptr = malloc(fwtype->size_of); //garbage collector please
+	for(int i=0;i<3;i++)
+		ptr->c[i] =  fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
+	return (void *)ptr;
+}
+
+FWPropertySpec (SFVec3f_Properties)[] = {
+	{"x", 0, 'F', 0},
+	{"y", 1, 'F', 0},
+	{"z", 2, 'F', 0},
+	{NULL,0,0,0},
+};
+ArgListType (SFVec3f_ConstructorArgs)[] = {
+		{3,0,'T',"FFF"},
+		{-1,0,0,NULL},
+};
+
+
 //#define FIELDTYPE_SFVec3f	4
 FWTYPE SFVec3fType = {
 	FIELDTYPE_SFVec3f,
 	"SFVec3f",
 	sizeof(struct SFVec3f), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
+	SFVec3f_Constructor, //constructor
+	SFVec3f_ConstructorArgs, //constructor args
+	SFVec3f_Properties, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
+	SFVec3f_Getter, //Getter,
+	SFVec3f_Setter, //Setter,
 	'F',0, //index prop type,readonly
-	NULL, //functions
+	SFVec3f_Functions, //functions
 };
+
 //#define FIELDTYPE_MFVec3f	5
 FWTYPE MFVec3fType = {
 	FIELDTYPE_MFVec3f,
@@ -542,8 +740,9 @@ int SFNode_Setter(FWType fwt, int index, void * fwn, FWval fwval){
 			break;
 
 		case 'S':
-			value->sfstring->strptr = strdup(fwval->_string);
-			value->sfstring->len = strlen(fwval->_string);
+			value->sfstring = newASCIIString(fwval->_string);
+			//value->sfstring->strptr = strdup(fwval->_string);
+			//value->sfstring->len = strlen(fwval->_string);
 			break;
 
 		default:
@@ -558,8 +757,11 @@ int SFNode_Setter(FWType fwt, int index, void * fwn, FWval fwval){
 			field = Shader_Script_getScriptField(script,index);
 			if(kind == PKW_inputOutput || kind == PKW_outputOnly)
 				field->valueChanged = TRUE;
-			if(kind == PKW_inputOnly || kind == PKW_inputOutput)
+			if(kind == PKW_inputOnly || kind == PKW_inputOutput) {
+				//if using fwsetter0, we could be writing to ourselves, sending ourselves an eventIn when we really just want an eventOut
+				//so we should be doing && (gglobal.currentScript != node) and set gglobal.currentScript = thisScriptNode in fwsetter0 (and back to null after call)
 				field->eventInSet = TRUE; //see runQueuedDirectOutputs()
+			}
 		}
 		nr = TRUE;
 	}
@@ -638,6 +840,12 @@ FWTYPE MFNodeType = {
 };
 
 
+FWFunctionSpec (SFColor_Functions)[] = {
+	{"getHSV", SFColor_getHSV, 'W',{0,0,0,NULL}},
+	{"setHSV", SFColor_setHSV, 0,{3,-1,'T',"DDD"}},
+	{0}
+};
+
 int SFColor_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	struct SFColor *ptr = (struct SFColor *)fwn;
 	int nr = 0;
@@ -712,7 +920,7 @@ FWTYPE SFColorType = {
 	SFColor_Getter, //Getter,
 	SFColor_Setter, //Setter,
 	'F',0, //index prop type,readonly
-	NULL, //functions
+	SFColor_Functions, //functions
 };
 //int MFColor_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 //	struct Multi_Any *ptr = (struct Multi_Any *)fwn;
@@ -925,20 +1133,201 @@ FWTYPE SFImageType = {
 };
 //#define FIELDTYPE_FreeWRLPTR	23
 //#define FIELDTYPE_FreeWRLThread	24
+
+/*
+SFVec3d add(SFVec3d vec) Returns the value of the passed value added, component-wise, to the object. 
+SFVec3d cross(SFVec3d vec) Returns the cross product of the object and the passed value. 
+SFVec3d divide(numeric n) Returns the value of the object divided by the passed value. 
+numeric dot(SFVec3d vec) Returns the dot product of this vector and the passed value as a double precision value. 
+numeric length() Returns the geometric length of this vector as a double precision value. 
+SFVec3d multiple(numeric n) Returns the value of the object multiplied by the passed value. 
+SFVec3d negate() Returns the value of the component-wise negation of the object. 
+SFVec3d normalize() Returns the object converted to unit length . 
+SFVec3d subtract(SFVec3f vec) Returns the value of the passed value subtracted, component-wise, from the object. 
+String toString() Returns a String containing the value of x, y, and z encoded using the X3D Classic VRML encoding (see part 2 of ISO/IEC 19776). 
+*/
+//SFVec3d add(SFVec3d vec) Returns the value of the passed value added, component-wise, to the object. 
+int SFVec3d_add(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
+	struct SFVec3d *rhs = fwpars[0]._web3dval.native;
+	struct SFVec3d *res = malloc(fwtype->size_of);
+	vecaddd(res->c,ptr->c,rhs->c);
+	fwretval->_web3dval.native = res; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3d;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+int SFVec3d_cross(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
+	struct SFVec3d *rhs = fwpars[0]._web3dval.native;
+	struct SFVec3d *res = malloc(fwtype->size_of);
+	veccrossd(res->c,ptr->c,rhs->c);
+	fwretval->_web3dval.native = res; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3d;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+int SFVec3d_subtract(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
+	struct SFVec3d *rhs = fwpars[0]._web3dval.native;
+	struct SFVec3d *res = malloc(fwtype->size_of);
+	vecdifd(res->c,ptr->c,rhs->c);
+	fwretval->_web3dval.native = res; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3d;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+int SFVec3d_divide(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
+	double rhs = fwpars[0]._numeric;
+	if(rhs == 0.0){
+		return 0;
+	}
+	rhs = 1.0/rhs;
+	struct SFVec3d *res = malloc(fwtype->size_of);
+	vecscaled(res->c,ptr->c,rhs);
+	fwretval->_web3dval.native = res; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3d;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+int SFVec3d_multiply(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
+	double rhs = fwpars[0]._numeric;
+	struct SFVec3d *res = malloc(fwtype->size_of);
+	vecscaled(res->c,ptr->c,rhs);
+	fwretval->_web3dval.native = res; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3d;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+int SFVec3d_normalize(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
+	struct SFVec3d *res = malloc(fwtype->size_of);
+	vecnormald(res->c,ptr->c);
+	fwretval->_web3dval.native = res; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3d;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+
+int SFVec3d_negate(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
+	struct SFVec3d *res = malloc(fwtype->size_of);
+	vecscaled(res->c,ptr->c,-1.0);
+	fwretval->_web3dval.native = res; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3d;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+int SFVec3d_length(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
+	double res;
+	res = veclengthd(ptr->c);
+	fwretval->_numeric = res; 
+	fwretval->itype = 'D';
+	return 1;
+}
+int SFVec3d_dot(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
+	struct SFVec3d *rhs = fwpars[0]._web3dval.native;
+	double res;
+	res = vecdotd(ptr->c,rhs->c);
+	fwretval->_numeric = res; 
+	fwretval->itype = 'D';
+	return 1;
+}
+
+FWFunctionSpec (SFVec3d_Functions)[] = {
+	{"add", SFVec3d_add, 'W',{1,-1,0,"W"}},
+	{"cross", SFVec3d_cross, 'W',{1,-1,0,"W"}},
+	{"divide", SFVec3d_divide, 'W',{1,-1,0,"D"}},
+	{"dot", SFVec3d_dot, 'D',{1,-1,0,"W"}},
+	{"length", SFVec3d_length, 'D',{0,-1,0,NULL}},
+	{"multiply", SFVec3d_multiply, 'W',{1,-1,0,"D"}},
+	{"negate", SFVec3d_negate, 'W',{0,-1,0,NULL}},
+	{"normalize", SFVec3d_normalize, 'W',{0,-1,0,NULL}},
+	{"subtract", SFVec3d_subtract, 'W',{1,-1,0,"W"}},
+	//{"toString", SFVec3d_toString, 'S',{0,-1,0,NULL}},
+	{0}
+};
+
+int SFVec3d_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
+	int nr = 0;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index > -1 && index < 3){
+		nr = 1;
+		switch(index){
+		case 0: //x
+		case 1: //y
+		case 2: //z
+			fwretval->_numeric =  ptr->c[index];
+			//fwretval->_web3dval.anyvrml = (union anyVrml*)&ptr->c[index];
+			//fwretval->_web3dval.fieldType = FIELDTYPE_SFFloat;
+			break;
+		default:
+			nr = 0;
+		}
+	}
+	fwretval->itype = 'D';
+	return nr;
+}
+int SFVec3d_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index > -1 && index < 3){
+		switch(index){
+		case 0: //x
+		case 1: //y
+		case 2: //z
+			ptr->c[index] = fwval->_numeric; //fwval->_web3dval.anyvrml->sffloat; 
+			break;
+		}
+		return TRUE;
+	}
+	return FALSE;
+}
+//typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
+void * SFVec3d_Constructor(FWType fwtype, int ic, FWval fwpars){
+	struct SFVec3d *ptr = malloc(fwtype->size_of); //garbage collector please
+	for(int i=0;i<3;i++)
+		ptr->c[i] =  fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
+	return (void *)ptr;
+}
+
+FWPropertySpec (SFVec3d_Properties)[] = {
+	{"x", 0, 'F', 0},
+	{"y", 1, 'F', 0},
+	{"z", 2, 'F', 0},
+	{NULL,0,0,0},
+};
+ArgListType (SFVec3d_ConstructorArgs)[] = {
+		{3,0,'T',"DDD"},
+		{-1,0,0,NULL},
+};
 //#define FIELDTYPE_SFVec3d	25
 FWTYPE SFVec3dType = {
 	FIELDTYPE_SFVec3d,
 	"SFVec3d",
 	sizeof(struct SFVec3d), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
+	SFVec3d_Constructor, //constructor
+	SFVec3d_ConstructorArgs, //constructor args
+	SFVec3d_Properties, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
+	SFVec3d_Getter, //Getter,
+	SFVec3d_Setter, //Setter,
 	'D',0, //index prop type,readonly
-	NULL, //functions
+	SFVec3d_Functions, //functions
 };
+
 
 //#define FIELDTYPE_MFVec3d	26
 FWTYPE MFVec3dType = {

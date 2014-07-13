@@ -580,7 +580,8 @@ int VrmlBrowserPrint(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fw
 	//if(fwpars[0].itype == 'W' && fwpars[0]._web3dval.fieldType == FIELDTYPE_SFString){
 	if(fwpars[0].itype == 'S'){
 		_costr = fwpars[0]._string; //fwpars[0]._web3dval.anyvrml->sfstring->strptr; 
-		ConsoleMessage("%s",_costr);
+		if(_costr)
+			ConsoleMessage("%s",_costr);
 	}
 	return 0;
 }
@@ -590,7 +591,8 @@ int VrmlBrowserPrintln(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval 
 	//if(fwpars[0].itype == 'W' && fwpars[0]._web3dval.fieldType == FIELDTYPE_SFString){
 	if(fwpars[0].itype == 'S'){
 		_costr = fwpars[0]._string; //fwpars[0]._web3dval.anyvrml->sfstring->strptr; 
-		ConsoleMessage("%s\n",_costr);
+		if(_costr)
+			ConsoleMessage("%s\n",_costr);
 	}
 	return 0;
 }
@@ -1433,10 +1435,11 @@ struct string_int *lookup_string_int(struct string_int *table, char *searchkey, 
 
 int X3DConstantsGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 	int nr = 1;
-	//fwretval->_integer = lookup_X3DConstants[index].i;
-	fwretval->itype = 'W';
-	fwretval->_web3dval.native = &lookup_X3DConstants[index].i;
-	fwretval->_web3dval.fieldType = FIELDTYPE_SFInt32;
+	fwretval->_integer = lookup_X3DConstants[index].i;
+	fwretval->itype = 'I';
+	//fwretval->itype = 'W';
+	//fwretval->_web3dval.native = &lookup_X3DConstants[index].i;
+	//fwretval->_web3dval.fieldType = FIELDTYPE_SFInt32;
 	return nr;
 }
 

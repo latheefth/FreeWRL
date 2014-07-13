@@ -858,7 +858,7 @@ int cfwconstructor(duk_context *ctx) {
 				isOK = FALSE;
 				neededType = j >= nfixed ? neededTypes[ivarsa] : neededTypes[j]; //if you have varargs you specify one more type than the fixed requires
 				// for example MFColor nfixed=0 (you can have 0 to infinity args), ivarsa=0 (varargs start at index 0), neededTypes="W" the first and subsequent varargs are of type 'W'
-				printf("duktype %s\n",duk_type_to_string(RHS_duk_type));
+				//printf("duktype %s\n",duk_type_to_string(RHS_duk_type));
 				switch(RHS_duk_type){
 				case DUK_TYPE_NUMBER: 
 					if(neededType =='F' || neededType =='D' || neededType =='I') isOK = TRUE;
@@ -1122,7 +1122,7 @@ int cfunction(duk_context *ctx) {
 	FWFunctionSpec *fs;
 
 	int nargs = duk_get_top(ctx);
-	show_stack0(ctx,"in cfuction",0);
+	//show_stack0(ctx,"in cfuction",0);
 	duk_push_current_function(ctx);
 	/* get type of parent object for this property*/
 	rc = duk_get_prop_string(ctx,-1,"fwItype");
@@ -1215,6 +1215,8 @@ int cfunction(duk_context *ctx) {
 		nr = fs->call(fwt,parent,argc,pars,&fwretval);
 		if(nr){
 			nr = fwval_duk_push(ctx,&fwretval,valueChanged);
+		}else{
+			if(valueChanged) *valueChanged = TRUE;
 		}
 		free(pars);
 	}
@@ -1246,12 +1248,12 @@ int cget(duk_context *ctx) {
 	switch(duk_get_type(ctx,-2)){
 	case DUK_TYPE_NUMBER:{
 		int ikey = duk_get_int(ctx,-2);
-		printf("key=[%d]",ikey);
+		//printf("key=[%d]",ikey);
 		}
 		break;
 	default: {
 		const char *key = duk_require_string(ctx,-2);
-		printf("key=%s \n",key);
+		//printf("key=%s \n",key);
 		if(!strcmp(key,"fwItype")){
 			//someone else is asking a proxy for its fwItype (for example LHS = RHSProxy) the LHS Setter may want the RHS's fwItype
 			duk_push_int(ctx,itype);
@@ -1352,12 +1354,12 @@ int cset(duk_context *ctx) {
 	switch(duk_get_type(ctx,-3)){
 	case DUK_TYPE_NUMBER:{
 		int ikey = duk_get_int(ctx,-3);
-		printf("key=[%d] ",ikey);
+		//printf("key=[%d] ",ikey);
 		}
 		break;
 	default: {
 		const char *key = duk_require_string(ctx,-3);
-		printf("key=%s ",key);
+		//printf("key=%s ",key);
 		}
 		break;
 	}
@@ -1365,16 +1367,16 @@ int cset(duk_context *ctx) {
 	switch(duk_get_type(ctx,-2)){
 	case DUK_TYPE_NUMBER:{
 		int ival = duk_get_int(ctx,-2);
-		printf("val=[%d]\n",ival);
+		//printf("val=[%d]\n",ival);
 		}
 		break;
 	case DUK_TYPE_STRING:{
 		const char *cval = duk_get_string(ctx,-2);
-		printf("val=%s\n",cval);
+		//printf("val=%s\n",cval);
 		}
 		break;
 	default: 
-		printf("val is object\n");
+		//printf("val is object\n");
 		break;
 	}
 
@@ -1931,7 +1933,31 @@ void resetScriptTouchedFlag(int actualscript, int fptr){
    more precisely, for the javascript property we create on the js>context>global object,
    one global>property for each script field, with the name of the script field on the property
 */
+int fwsetter0(duk_context *ctx,int ii,void *parent,int itype,char *key){
+	if(itype > -1) {
+		//itype is in AUXTYPE_ range
+		FWTYPE *fwt = getFWTYPE(itype);
+		int jndex, found;
+		char type, readOnly;
 
+		//check properties - if a property, call the type-specific setter
+		found = fwhas_generic(fwt,parent,key,&jndex,&type,&readOnly) && (type != 'f');
+		if(found && (readOnly != 'T') && fwt->Setter){
+			FWval fwsetval = NULL;
+			struct ArgListType arglist;
+			int argc;
+			arglist.argtypes = &type;
+			arglist.fillMissingFixedWithZero = 0;
+			arglist.nfixedArg = 1;
+			arglist.iVarArgStartsAt = -1;
+			convert_duk_to_fwvals(ctx, 1, ii, arglist, &fwsetval, &argc);
+			if(argc == 1)
+				fwt->Setter(fwt,jndex,parent,fwsetval);
+			free(fwsetval);
+		}
+	}
+	return 0;
+}
 int fwsetterNS(duk_context *ctx) {
 	/* myfield = new SFVec3f(1,2,3); 
 	 * if myfield is a property we set on the global object, and we've assigned this setter to it,
@@ -1975,10 +2001,19 @@ int fwsetterNS(duk_context *ctx) {
 	}
 	duk_pop(ctx); //pop current function
 
+
+
 	if(itype < AUXTYPE_X3DConstants){
 		//our script fields
 		int ifield, mode, ihave;
 		if(thisScriptNode == NULL) return 0;
+		if(1){
+			union anyVrml any;
+			any.sfnode = thisScriptNode;
+			fwsetter0(ctx,0,&any,FIELDTYPE_SFNode,key);
+			//fwsetter0(duk_context *ctx,int ii,void *parent,int itype,char *key)
+			return 0;
+		}
 		ihave = getFieldFromNodeAndName(thisScriptNode,key, &itype, &mode, &ifield, &field);
 		if(!ihave) return 0;
 	}
@@ -2199,7 +2234,22 @@ int push_duk_fieldvalue(duk_context *ctx, int itype, int mode, const char* field
 }
 
 
-
+int fwgetter0(duk_context *ctx,void *parent,int itype, char *key, int *valueChanged){
+	FWTYPE *fwt = getFWTYPE(itype);
+	int jndex, found, nr;
+	char type, readOnly;
+	nr = 0;
+	//check properties - if a property, call the type-specific setter
+	found = fwhas_generic(fwt,parent,key,&jndex,&type,&readOnly);
+	if(found && fwt->Getter){
+		FWVAL fwretval;
+		nr = fwt->Getter(fwt,jndex,parent,&fwretval);
+		if(nr){
+			nr = fwval_duk_push(ctx,&fwretval,valueChanged);
+		}
+	}
+	return nr;
+}
 int fwgetterNS(duk_context *ctx) {
 	int nargs, nr;
 	int rc, itype, mode, *valueChanged;
@@ -2232,10 +2282,19 @@ int fwgetterNS(duk_context *ctx) {
 	}
 	duk_pop(ctx); //pop current function
 
+
 	nr = 0;
 	if(itype < AUXTYPE_X3DConstants){
 		//our script fields
 		int ifield;
+		if(1){
+			//int fwgetter0(duk_context *ctx,void *parent,int itype, char *key, int *valueChanged){
+			union anyVrml any;
+			any.sfnode = thisScriptNode;
+			nr = fwgetter0(ctx,&any,FIELDTYPE_SFNode,fieldname,valueChanged);
+			return nr;
+		}
+
 		if(getFieldFromNodeAndName(thisScriptNode,fieldname, &itype, &mode, &ifield, &field)){
 			nr = push_duk_fieldvalue(ctx, itype, mode, fieldname, field,  valueChanged);
 		}
@@ -2429,7 +2488,7 @@ void process_eventsProcessed(){
 		duk_push_number(ctx,TickTime());
 		rc = duk_pcall(ctx, 1);
 		if (rc != DUK_EXEC_SUCCESS) {
-		  printf("error: %s for function %s\n", duk_to_string(ctx, -1),"eventsProcessed");
+		  printf("error: '%s' happened in js function %s called from process_eventsProcessed\n", duk_to_string(ctx, -1),"eventsProcessed");
 		}
 		duk_pop(ctx); //pop undefined that results from void myfunc(){}
 	}
@@ -2585,7 +2644,7 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 	//duk_call(ctx,2);
 	rc = duk_pcall(ctx, 2);  /* [ ... func 2 3 ] -> [ 5 ] */
 	if (rc != DUK_EXEC_SUCCESS) {
-	  printf("error: %s for function %s\n", duk_to_string(ctx, -1),JSparamnames[toname].name);
+	  printf("error: '%s' happened in js function %s called from set_one_ECMAType\n", duk_to_string(ctx, -1),JSparamnames[toname].name);
 	}
 
 	//show_stack(ctx,"after calling isOver");
@@ -2662,7 +2721,7 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen)
 	//duk_call(ctx,2);
 	rc = duk_pcall(ctx, 2);  /* [ ... func 2 3 ] -> [ 5 ] */
 	if (rc != DUK_EXEC_SUCCESS) {
-	  printf("error: %s for function %s\n", duk_to_string(ctx, -1),JSparamnames[tnfield].name);
+	  printf("error: '%s' happened in js function %s called from set_one_Multi_ElementType\n", duk_to_string(ctx, -1),JSparamnames[tnfield].name);
 	}
 	//show_stack(ctx,"after calling isOver");
 	duk_pop(ctx); //pop undefined that results from void myfunc(){}
