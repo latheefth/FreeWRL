@@ -178,6 +178,13 @@ double vecdot2d(double *a, double *b);
 double* vecscale2d(double* r, double* v, double s);
 double vecnormal2d(double *r, double *v);
 
+float * vecadd2f(float *c, float *a, float *b);
+float *vecdif2f(float *c, float* a, float *b);
+float veclength2f( float *p );
+float vecdot2f(float *a, float *b);
+float* vecscale2f(float* r, float* v, float s);
+float vecnormal2f(float *r, float *v);
+
 float *veccopy3f(float *b, float *a);
 float *vecset3f(float *b, float x, float y, float z);
 float *vecadd3f(float *c, float *a, float *b);

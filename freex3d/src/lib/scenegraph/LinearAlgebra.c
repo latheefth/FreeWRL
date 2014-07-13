@@ -72,6 +72,40 @@ double vecnormal2d(double *r, double *v){
     return ret;
 }
 
+float * vecadd2f(float *c, float *a, float *b){
+	c[0] = a[0] + b[0];
+	c[1] = a[1] + b[1];
+	return c;
+}
+
+float *vecdif2f(float *c, float* a, float *b){
+	c[0] = a[0] - b[0];
+	c[1] = a[1] - b[1];
+	return c;
+}
+float veclength2f( float *p ){
+	return (float) sqrt(p[0]*p[0] + p[1]*p[1]);
+}
+float vecdot2f(float *a, float *b){
+	return a[0]*b[0] + a[1]*b[1];
+}
+
+float* vecscale2f(float* r, float* v, float s){
+    r[0] = v[0] * s;
+    r[1] = v[1] * s;
+    return r;
+}
+
+float vecnormal2f(float *r, float *v){
+    float ret = (float)sqrt(vecdot2f(v,v));
+    /* if(ret == 0.) return 0.; */
+    if (APPROX(ret, 0)) return 0.0f;
+    vecscale2f(r,v,1.0f/ret);
+    return ret;
+}
+
+
+
 
 /* Altenate implemetations available, should merge them eventually */
 double *vecaddd(double *c, double* a, double *b)
