@@ -846,12 +846,12 @@ FWTYPE MFVec3fType = {
 	FIELDTYPE_MFVec3f,
 	"MFVec3f",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
+	MFW_Constructor, //constructor
+	MFW_ConstructorArgs, //constructor args
+	MFW_Properties, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
+	MFW_Getter, //Getter,
+	MFW_Setter, //Setter,
 	'W',0, //index prop type,readonly
 	NULL, //functions
 };
@@ -1615,15 +1615,16 @@ FWTYPE MFVec3dType = {
 	FIELDTYPE_MFVec3d,
 	"MFVec3d",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
+	MFW_Constructor, //constructor
+	MFW_ConstructorArgs, //constructor args
+	MFW_Properties, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
+	MFW_Getter, //Getter,
+	MFW_Setter, //Setter,
 	'W',0, //index prop type,readonly
 	NULL, //functions
 };
+
 
 //#define FIELDTYPE_SFDouble	27
 FWTYPE SFDoubleType = {
