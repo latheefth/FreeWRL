@@ -305,6 +305,8 @@ int isECMAtype(int itype){
 int mf2sf(int itype){
 	//luckily the fieldtype defines are consistently mf = sf+1
 	//return convertToSFType(itype); //this is more reliable -converts and sf to itself- but bulky
+	if(itype == FIELDTYPE_SFImage)
+		return FIELDTYPE_SFInt32;
 	return itype -1;
 }
 int sf2mf(int itype){
@@ -333,7 +335,7 @@ int isSForMFType(int itype){
 		case FIELDTYPE_SFTime:	
 		case FIELDTYPE_SFString: 
 		case FIELDTYPE_SFVec2f:	
-		case FIELDTYPE_SFImage:
+		//case FIELDTYPE_SFImage:
 		case FIELDTYPE_SFVec3d:	
 		case FIELDTYPE_SFDouble: 
 		case FIELDTYPE_SFMatrix3f: 
@@ -357,7 +359,7 @@ int isSForMFType(int itype){
 		case FIELDTYPE_MFTime:	
 		case FIELDTYPE_MFString: 
 		case FIELDTYPE_MFVec2f:	
-		case FIELDTYPE_MFImage:
+		case FIELDTYPE_SFImage: //
 		case FIELDTYPE_MFVec3d:	
 		case FIELDTYPE_MFDouble: 
 		case FIELDTYPE_MFMatrix3f: 
@@ -399,7 +401,7 @@ int sizeofSForMF(int itype){
 	case FIELDTYPE_SFTime:	iz = sizeof(double); break;
 	case FIELDTYPE_SFString: iz = sizeof(struct Uni_string *); break;  //sizeof(void *) because nodes that have a string field declare it struct Uni_String *, so when copying to a node, you copy sizeof(void*). H: if the char *string is const, then uni_string is const (they may hang out as pals for life, or char *string may outlive its uni_string pal
 	case FIELDTYPE_SFVec2f:	iz = sizeof(struct SFVec2f); break;
-	case FIELDTYPE_SFImage:	iz = sizeof(void*); break;
+	//case FIELDTYPE_SFImage:	iz = sizeof(void*); break;
 	case FIELDTYPE_SFVec3d:	iz = sizeof(struct SFVec3d); break;
 	case FIELDTYPE_SFDouble: iz = sizeof(double); break;
 	case FIELDTYPE_SFMatrix3f: iz = sizeof(struct SFMatrix3f); break;
@@ -410,6 +412,7 @@ int sizeofSForMF(int itype){
 	case FIELDTYPE_SFVec4f:	iz = sizeof(struct SFVec4f); break;
 	case FIELDTYPE_SFVec4d:	iz = sizeof(struct SFVec4d); break;
 
+	case FIELDTYPE_SFImage: //same as MFInt32
 	case FIELDTYPE_MFFloat: 
 	case FIELDTYPE_MFRotation:	
 	case FIELDTYPE_MFVec3f:	
@@ -2496,7 +2499,7 @@ void process_eventsProcessed(){
 	return;
 }
 void js_cleanup_script_context(int counter){
-	printf("in js_cleanup_script_context\n");
+	//printf("in js_cleanup_script_context\n");
 	return;
 }
 void js_setField_javascriptEventOut_B(union anyVrml* any, int fieldType, unsigned len, int extraData, int actualscript){
@@ -2598,7 +2601,7 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 	struct CRscriptStruct *ScriptControl = getScriptControl();
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
-	printf("in set_one_ECMAtype\n");
+	//printf("in set_one_ECMAtype\n");
 
 	#ifdef SETFIELDVERBOSE
 	printf ("set_one_ECMAtype, to %d namepointer %d, fieldname %s, datatype %d length %d\n",
@@ -2650,7 +2653,7 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 	//show_stack(ctx,"after calling isOver");
 	duk_pop(ctx); //pop undefined that results from void myfunc(){}
 	//show_stack(ctx,"after popping");
-	printf("end ecma\n");
+	//printf("end ecma\n");
 }
 
 
@@ -2676,7 +2679,7 @@ void setScriptECMAtype (int num) {
 	CRnodeStruct *to_ptr = NULL;
 	struct CRStruct *CRoutes = getCRoutes();
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
-	printf("in setScriptECMAtype\n");
+	//printf("in setScriptECMAtype\n");
 	fn = offsetPointer_deref(void *, CRoutes[num].routeFromNode, CRoutes[num].fnptr);
 	len = CRoutes[num].len;
 
@@ -2707,7 +2710,7 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen)
 	ctx =  (duk_context *)ScriptControl[tonode].cx;
 	obj = *(int*)ScriptControl[tonode].glob;
 	
-	printf("in set_one_MultiElementType\n");
+	//printf("in set_one_MultiElementType\n");
 	//get function by name
 	duk_eval_string(ctx,JSparamnames[tnfield].name); //gets the evenin function on the stack
 	itype = JSparamnames[tnfield].type;
@@ -2736,7 +2739,7 @@ void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int
 	duk_context *ctx;
 	int obj;
 	int itype;
-
+	union anyVrml *any;
 	struct CRscriptStruct *ScriptControl = getScriptControl();
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
@@ -2754,8 +2757,9 @@ void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int
 	maData.n = datalen;
 	maData.p = Data;
 	char *source = (char *)&maData;
+	any = source;
 	medium_copy_field(itype,source,&datacopy);
-
+	any = datacopy;
 	push_typed_proxy2(ctx,itype,datacopy,NULL);
 	duk_push_number(ctx,TickTime());
 	duk_call(ctx,2);

@@ -199,13 +199,34 @@ int MFW_Setter(FWType fwt, int index, void * fwn, FWval fwval){
 		}
 		nr = TRUE;
 	}else if(index > -1){
+		char *p;
 		if(index >= ptr->n){
 			//nold = ptr->n;
 			ptr->n = index+1;
 			//nelen = (int) upper_power_of_two(ptr->n);
 			ptr->p = realloc(ptr->p,ptr->n *elen); //need power of 2 if SFNode children
 		}
-		memcpy(ptr->p + index*elen,fwval->_web3dval.native, elen);
+		p = ptr->p + index * elen;
+		if(fwval->itype == 'W')
+			memcpy(p,fwval->_web3dval.native, elen);
+		else{
+			float ff;
+			switch(fwval->itype){
+			case 'B':
+				memcpy(p,&fwval->_boolean,elen); break;
+			case 'I':
+				memcpy(p,&fwval->_integer,elen); break;
+			case 'F':
+				ff = (float)fwval->_numeric;
+				memcpy(p,&ff,elen); break;
+			case 'D':
+				memcpy(p,&fwval->_numeric,elen); break;
+			case 'S':{
+				struct Uni_String *uni = newASCIIString(fwval->_string);
+				memcpy(p,&uni,elen); break;
+				}
+			}
+		}
 		nr = TRUE;
 	}
 	return nr;
@@ -222,7 +243,13 @@ void * MFFloat_Constructor(FWType fwtype, int argc, FWval fwpars){
 	char *p = ptr->p;
 	for(int i=0;i<ptr->n;i++){
 		//float ff = (float)fwpars[i]._numeric; //fwpars[i]._web3dval.native;
-		memcpy(p,&fwpars[i]._web3dval.native,lenSF);
+		if(fwpars[i].itype == 'W' && fwpars[i]._web3dval.fieldType == FIELDTYPE_SFFloat)
+			memcpy(p,&fwpars[i]._web3dval.native,lenSF);
+		else if(fwpars[i].itype == 'F'){
+			float ff = fwpars[i]._numeric;
+			memcpy(p,&ff,lenSF);
+		}
+
 		p += lenSF;
 	}
 	return (void *)ptr;
@@ -1760,40 +1787,28 @@ funcs
 String toString() Returns a String containing the  value of x, y, comp and array encoded using the Classic VRML encoding (see part 2 of ISO/IEC 19776). 
 */
 
-struct SFImage {
-	int width;
-	int height;
-	int comp;
-	struct Multi_Int32 *array;
-};
+
 FWFunctionSpec (SFImage_Functions)[] = {
 	//{"toString", SFImage_toString, 'S',{0,-1,0,NULL}},
 	{0}
 };
 
 int SFImage_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
-	struct SFImage **ptr = (struct SFImage **)fwn;
-	struct SFImage *iptr = (*ptr);
+	struct Multi_Int32 *ptr = (struct Multi_Int32 *)fwn;
 	int nr = 0;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index > -1 && index < 4){
 		nr = 1;
 		switch(index){
 		case 0: //width
-		fwretval->_integer =  iptr->width;
-		fwretval->itype = 'I';
-		break;
 		case 1: //height
-		fwretval->_integer =  iptr->height;
-		fwretval->itype = 'I';
-		break;
 		case 2: //comp
-		fwretval->_integer =  iptr->comp;
+		fwretval->_integer =  ptr->p[index];
 		fwretval->itype = 'I';
 		break;
 
 		case 3: //array
-		fwretval->_web3dval.native = iptr->array;
+		fwretval->_web3dval.native = ptr; //hope they don't go image.array[0] = infinity; which will overwrite width. same for height, comp
 		fwretval->_web3dval.fieldType = FIELDTYPE_MFInt32;
 		fwretval->itype = 'W';
 		break;
@@ -1804,24 +1819,33 @@ int SFImage_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	return nr;
 }
 int SFImage_Setter(FWType fwt, int index, void * fwn, FWval fwval){
-	struct SFImage **ptr = (struct SFImage **)fwn;
-	struct SFImage *iptr = *ptr;
+	struct Multi_Int32 *ptr = (struct Multi_Int32*)fwn;
+	int *p;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index > -1 && index < 4){
 		switch(index){
 			case 0: //width
-			iptr->width = fwval->_integer;
-			break;
 			case 1: //height
-			iptr->height = fwval->_integer;
-			break;
 			case 2: //comp
-			iptr->comp = fwval->_integer;
+			ptr->p[index] = fwval->_integer;
+			p = ptr->p;
+			if(ptr->n < (p[0] * p[1] * p[2]) ){
+				//resize
+				ptr->n = (p[0] * p[1] * p[2]);
+				ptr->p = realloc(ptr->p,ptr->n);
+			}
 			break;
 
 			case 3: //array
 			if(fwval->itype == 'W' && fwval->_web3dval.fieldType == FIELDTYPE_MFInt32 ){
-				iptr->array = fwval->_web3dval.native;
+				int width,height,comp;
+				int i,j, ncopy;
+				struct Multi_Int32 *im = fwval->_web3dval.native;
+				ncopy = min(ptr->n,im->n);
+				//don't write over width,height,comp
+				memcpy(&ptr->p[3],&im->p[3],(ncopy-3)*sizeof(int));
+				//for(i=3;i<ncopy;i++)
+				//	ptr->p[i] = im->p[i];
 			}
 			break;
 			default:
@@ -1833,18 +1857,28 @@ int SFImage_Setter(FWType fwt, int index, void * fwn, FWval fwval){
 }
 //typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
 void * SFImage_Constructor(FWType fwtype, int ic, FWval fwpars){
-	struct SFImage **ptr = malloc(fwtype->size_of); //garbage collector please
-	struct SFImage *iptr = malloc(sizeof(struct SFImage)); //garbage collector please
-	(*ptr) = iptr;
-	iptr->width = fwpars[0]._integer;
-	iptr->height = fwpars[1]._integer;
-	iptr->comp = fwpars[2]._integer;
-	iptr->array = fwpars[3]._web3dval.native;
-	if(!iptr->array){
-		iptr->array = malloc(sizeof(struct Multi_Int32));
-		iptr->array->n = iptr->width * iptr->height;
-		iptr->array->p = malloc(iptr->array->n * sizeof(int));
+	//around freewrl, SFImage is stored as a MFIn32, with n = 3 x width x height, 
+	//and the first (int,int,int) pixel sacrificed to hold (width,height,comp)
+	int width, height, comp;
+	struct Multi_Int32 *ptr = malloc(fwtype->size_of); //garbage collector please
+
+	width = fwpars[0]._integer;
+	height = fwpars[1]._integer;
+	comp = fwpars[2]._integer;
+	ptr->n = 3 * width * height;
+	ptr->p = malloc(ptr->n * sizeof(int)); //garbage collector please
+	if(fwpars[3].itype == 'W' && fwpars[3]._web3dval.fieldType == FIELDTYPE_MFInt32){
+		//the incoming MFInt32 pixel values are one pixel per Int32, so we need to expand to 3 ints
+		int i,j, ncopy;
+		struct Multi_Int32 *im = fwpars[3]._web3dval.native;
+		ncopy = min(ptr->n,im->n);
+		for(i=0;i<ncopy;i++)
+			ptr->p[i] = im->p[i];
 	}
+	//first 3 ints are sacrificed
+	ptr->p[0] = width;
+	ptr->p[1] = height;
+	ptr->p[2] = comp;
 	return (void *)ptr;
 }
 
@@ -1852,7 +1886,7 @@ FWPropertySpec (SFImage_Properties)[] = {
 	{"width", 0, 'I', 0},
 	{"height", 1, 'I', 0},
 	{"comp", 2, 'I', 0},
-	{"array", 2, 'W', 0},
+	{"array", 3, 'W', 0},
 	{NULL,0,0,0},
 };
 ArgListType (SFImage_ConstructorArgs)[] = {
@@ -1865,7 +1899,7 @@ ArgListType (SFImage_ConstructorArgs)[] = {
 FWTYPE SFImageType = {
 	FIELDTYPE_SFImage,
 	"SFImage",
-	sizeof(void *), //sizeof(struct ),  //----------------------unknown struct - made something up
+	sizeof(struct Multi_Int32), 
 	SFImage_Constructor, //constructor
 	SFImage_ConstructorArgs, //constructor args
 	SFImage_Properties, //Properties,
@@ -2159,10 +2193,116 @@ FWTYPE MFDoubleType = {
 	NULL, //functions
 };
 
+// http://www.web3d.org/files/specifications/19777-1/V3.0/Part1/functions.html#Matrix3
+/* Matrix3
+constr
+X3DMatrix3 (numeric f11, numeric f12, numeric f13,
+  numeric f21, numeric f22, numeric f23,
+  numeric f31, numeric f32, numeric f33) The creation function shall initialize the array using zero or more SFVec3-valued expressions passed as parameters. 
+props
+- row major single index
+funcs
+void setTransform(SFVec2f translation, SFVec3f rotation, SFVec2f scale, SFVec3f scaleOrientation, SFVec2f center)
+	Sets the Matrix to the passed values. Any of the rightmost parameters may be omitted. The function has zero to five parameters. For example, specifying zero parameters results in an identity matrix while specifying one parameter results in a translation and specifying two parameters results in a translation and a rotation. Any unspecified parameter is set to its default as specified for the Transform node. Values are applied to the matrix in the same order as the matrix field calculations for the Transform node. 
+void getTransform(SFVec2f translation, SFVec3f rotation, SFVec2f scale) 
+	Decomposes the Matrix and returns the components in the passed translation, rotation, and scale objects. The types of these passed objects is the same as the first three arguments to setTransform. If any passed object is not sent, or if the null object is sent for any value, that value is not returned. Any projection or shear information in the matrix is ignored. 
+Matrix3 inverse()
+	Returns a Matrix whose value is the inverse of this object. 
+Matrix3 transpose()
+	Returns a Matrix whose value is the transpose of this object. 
+Matrix3 multLeft(Matrix3)
+	Returns a Matrix whose value is the object multiplied by the passed matrix on the left. 
+Matrix3 multRight(Matrix3)
+	Returns a Matrix whose value is the object multiplied by the passed matrix on the right. 
+SFVec2f multVecMatrix(SFVec2f vec)
+	Returns an SFVec3f whose value is the object multiplied by the passed row vector. 
+SFVec2f multMatrixVec(SFVec2f vec)
+	Returns an SFVec3f whose value is the object multiplied by the passed column vector. 
+String toString() Returns a String containing the matrix contents encoded using the X3D Classic VRML encoding (see part 2 of ISO/IEC 19776). 
+
+*/
+/*
+int X3DMatrix3_setTransform(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
+	struct SFVec3d *rhs = fwpars[0]._web3dval.native;
+	double res;
+	res = vecdotd(ptr->c,rhs->c);
+	fwretval->_numeric = res; 
+	fwretval->itype = 'D';
+	return 1;
+}
+
+FWFunctionSpec (SFVec3d_Functions)[] = {
+	{"setTransform", X3DMatrix3_setTransform, 'P',{5,-1,0,"W"}},
+	{"getTransform", X3DMatrix3_getTransform, 'P',{1,-1,0,"W"}},
+	{"inverse", X3DMatrix3_inverse, 'D',{1,-1,0,"W"}},
+	{"transpose", X3DMatrix3_transpose, 'D',{0,-1,0,NULL}},
+	{"multLeft", X3DMatrix3_multLeft, 'W',{1,-1,0,"D"}},
+	{"multRight", X3DMatrix3_multRight, 'W',{0,-1,0,NULL}},
+	{"multVecMatrix", X3DMatrix3_multVecMatrix, 'W',{0,-1,0,NULL}},
+	{"multMatrixVec", X3DMatrix3_multMatrixVec, 'W',{1,-1,0,"W"}},
+	//{"toString", X3DMatrix3_toString, 'S',{0,-1,0,NULL}},
+	{0}
+};
+
+int SFVec3d_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
+	int nr = 0;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index > -1 && index < 3){
+		nr = 1;
+		switch(index){
+		case 0: //x
+		case 1: //y
+		case 2: //z
+			fwretval->_numeric =  ptr->c[index];
+			//fwretval->_web3dval.anyvrml = (union anyVrml*)&ptr->c[index];
+			//fwretval->_web3dval.fieldType = FIELDTYPE_SFFloat;
+			break;
+		default:
+			nr = 0;
+		}
+	}
+	fwretval->itype = 'D';
+	return nr;
+}
+int SFVec3d_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index > -1 && index < 3){
+		switch(index){
+		case 0: //x
+		case 1: //y
+		case 2: //z
+			ptr->c[index] = fwval->_numeric; //fwval->_web3dval.anyvrml->sffloat; 
+			break;
+		}
+		return TRUE;
+	}
+	return FALSE;
+}
+//typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
+void * SFVec3d_Constructor(FWType fwtype, int ic, FWval fwpars){
+	struct SFVec3d *ptr = malloc(fwtype->size_of); //garbage collector please
+	for(int i=0;i<3;i++)
+		ptr->c[i] =  fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
+	return (void *)ptr;
+}
+
+FWPropertySpec (SFVec3d_Properties)[] = {
+	{"x", 0, 'D', 0},
+	{"y", 1, 'D', 0},
+	{"z", 2, 'D', 0},
+	{NULL,0,0,0},
+};
+ArgListType (SFVec3d_ConstructorArgs)[] = {
+		{3,0,'T',"DDD"},
+		{-1,0,0,NULL},
+};
 //#define FIELDTYPE_SFMatrix3f	29
-FWTYPE SFMatrix3fType = {
-	FIELDTYPE_SFMatrix3f,
-	"SFMatrix3f",
+FWTYPE X3DMatrix3Type = {
+	AUXTYPE_X3DMatrix3,
+	"X3DMatrix3",
 	sizeof(struct SFMatrix3f), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //constructor args
@@ -2173,53 +2313,55 @@ FWTYPE SFMatrix3fType = {
 	'F',0, //index prop type,readonly
 	NULL, //functions
 };
-
+*/
 //#define FIELDTYPE_MFMatrix3f	30
-FWTYPE MFMatrix3fType = {
-	FIELDTYPE_MFMatrix3f,
-	"MFMatrix3f",
-	sizeof(struct Multi_Any), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
-	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
-	'W',0, //index prop type,readonly
-	NULL, //functions
-};
+//FWTYPE MFMatrix3fType = {
+//	FIELDTYPE_MFMatrix3f,
+//	"MFMatrix3f",
+//	sizeof(struct Multi_Any), //sizeof(struct ), 
+//	MFW_Constructor, //constructor
+//	MFW_ConstructorArgs, //constructor args
+//	MFW_Properties, //Properties,
+//	NULL, //special iterator
+//	MFW_Getter, //Getter,
+//	MFW_Setter, //Setter,
+//	'W',0, //index prop type,readonly
+//	NULL, //functions
+//};
 //#define FIELDTYPE_SFMatrix3d	31
-FWTYPE SFMatrix3dType = {
-	FIELDTYPE_SFMatrix3d,
-	"SFMatrix3d",
-	sizeof(struct SFMatrix3d), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
-	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
-	'D',0, //index prop type,readonly
-	NULL, //functions
-};
+//FWTYPE SFMatrix3dType = {
+//	FIELDTYPE_SFMatrix3d,
+//	"SFMatrix3d",
+//	sizeof(struct SFMatrix3d), //sizeof(struct ), 
+//	NULL, //constructor
+//	NULL, //constructor args
+//	NULL, //Properties,
+//	NULL, //special iterator
+//	NULL, //Getter,
+//	NULL, //Setter,
+//	'D',0, //index prop type,readonly
+//	NULL, //functions
+//};
 //#define FIELDTYPE_MFMatrix3d	32
-FWTYPE MFMatrix3dType = {
-	FIELDTYPE_MFMatrix3d,
-	"MFMatrix3d",
-	sizeof(struct Multi_Any), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
-	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
-	'W',0, //index prop type,readonly
-	NULL, //functions
-};
+//FWTYPE MFMatrix3dType = {
+//	FIELDTYPE_MFMatrix3d,
+//	"MFMatrix3d",
+//	sizeof(struct Multi_Any), //sizeof(struct ), 
+//	MFW_Constructor, //constructor
+//	MFW_ConstructorArgs, //constructor args
+//	MFW_Properties, //Properties,
+//	NULL, //special iterator
+//	MFW_Getter, //Getter,
+//	MFW_Setter, //Setter,
+//	'W',0, //index prop type,readonly
+//	NULL, //functions
+//};
+
+/*
 //#define FIELDTYPE_SFMatrix4f	33
-FWTYPE SFMatrix4fType = {
-	FIELDTYPE_SFMatrix4f,
-	"SFMatrix4f",
+FWTYPE X3DMatrix4Type = {
+	AUXTYPE_X3DMatrix4,
+	"X3DMatrix4",
 	sizeof(struct SFMatrix4f), //sizeof(struct ), 
 	NULL, //constructor
 	NULL, //constructor args
@@ -2230,50 +2372,51 @@ FWTYPE SFMatrix4fType = {
 	'F',0, //index prop type,readonly
 	NULL, //functions
 };
+*/
 //#define FIELDTYPE_MFMatrix4f	34
-FWTYPE MFMatrix4fType = {
-	FIELDTYPE_MFMatrix4f,
-	"MFMatrix4f",
-	sizeof(struct Multi_Any), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
-	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
-	'W',0, //index prop type,readonly
-	NULL, //functions
-};
+//FWTYPE MFMatrix4fType = {
+//	FIELDTYPE_MFMatrix4f,
+//	"MFMatrix4f",
+//	sizeof(struct Multi_Any), //sizeof(struct ), 
+//	MFW_Constructor, //constructor
+//	MFW_ConstructorArgs, //constructor args
+//	MFW_Properties, //Properties,
+//	NULL, //special iterator
+//	MFW_Getter, //Getter,
+//	MFW_Setter, //Setter,
+//	'W',0, //index prop type,readonly
+//	NULL, //functions
+//};
 
 //#define FIELDTYPE_SFMatrix4d	35
-FWTYPE SFMatrix4dType = {
-	FIELDTYPE_SFMatrix4d,
-	"SFMatrix4d",
-	sizeof(struct SFMatrix4d), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
-	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
-	'D',0, //index prop type,readonly
-	NULL, //functions
-};
+//FWTYPE SFMatrix4dType = {
+//	FIELDTYPE_SFMatrix4d,
+//	"SFMatrix4d",
+//	sizeof(struct SFMatrix4d), //sizeof(struct ), 
+//	NULL, //constructor
+//	NULL, //constructor args
+//	NULL, //Properties,
+//	NULL, //special iterator
+//	NULL, //Getter,
+//	NULL, //Setter,
+//	'D',0, //index prop type,readonly
+//	NULL, //functions
+//};
 
 //#define FIELDTYPE_MFMatrix4d	36
-FWTYPE MFMatrix4dType = {
-	FIELDTYPE_MFMatrix4d,
-	"MFMatrix4d",
-	sizeof(struct Multi_Any), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
-	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
-	'W',0, //index prop type,readonly
-	NULL, //functions
-};
+//FWTYPE MFMatrix4dType = {
+//	FIELDTYPE_MFMatrix4d,
+//	"MFMatrix4d",
+//	sizeof(struct Multi_Any), //sizeof(struct ), 
+//	MFW_Constructor, //constructor
+//	MFW_ConstructorArgs, //constructor args
+//	MFW_Properties, //Properties,
+//	NULL, //special iterator
+//	MFW_Getter, //Getter,
+//	MFW_Setter, //Setter,
+//	'W',0, //index prop type,readonly
+//	NULL, //functions
+//};
 
 
 // http://www.web3d.org/files/specifications/19777-1/V3.0/Part1/functions.html#SFVec2d
@@ -2682,14 +2825,14 @@ void initVRMLFields(FWTYPE** typeArray, int *n){
 	typeArray[*n] = &MFVec3dType; (*n)++;
 	typeArray[*n] = &SFDoubleType; (*n)++;
 	typeArray[*n] = &MFDoubleType; (*n)++;
-	typeArray[*n] = &SFMatrix3fType; (*n)++;
-	typeArray[*n] = &MFMatrix3fType; (*n)++;
-	typeArray[*n] = &SFMatrix3dType; (*n)++;
-	typeArray[*n] = &MFMatrix3dType; (*n)++;
-	typeArray[*n] = &SFMatrix4fType; (*n)++;
-	typeArray[*n] = &MFMatrix4fType; (*n)++;
-	typeArray[*n] = &SFMatrix4dType; (*n)++;
-	typeArray[*n] = &MFMatrix4dType; (*n)++;
+	//typeArray[*n] = &SFMatrix3fType; (*n)++;
+	//typeArray[*n] = &MFMatrix3fType; (*n)++;
+	//typeArray[*n] = &SFMatrix3dType; (*n)++;
+	//typeArray[*n] = &MFMatrix3dType; (*n)++;
+	//typeArray[*n] = &SFMatrix4fType; (*n)++;
+	//typeArray[*n] = &MFMatrix4fType; (*n)++;
+	//typeArray[*n] = &SFMatrix4dType; (*n)++;
+	//typeArray[*n] = &MFMatrix4dType; (*n)++;
 	typeArray[*n] = &SFVec2dType; (*n)++;
 	typeArray[*n] = &MFVec2dType; (*n)++;
 	typeArray[*n] = &SFVec4fType; (*n)++;

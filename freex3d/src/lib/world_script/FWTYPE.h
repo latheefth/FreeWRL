@@ -93,6 +93,8 @@ typedef struct WEB3DNATIVE {
 #define AUXTYPE_X3DRouteArray 1015
 #define AUXTYPE_X3DScene 1016
 #define AUXTYPE_X3DExecutionContext 1017
+#define AUXTYPE_X3DMatrix3 1018
+#define AUXTYPE_X3DMatrix4 1019
 //typedef struct FWPointer{
 //	int auxtype; //gets asigned to fwItype, so cget can switch (instead of using sfnode and declaring a _nodeType in your auxiliary type struct)
 //	void *ptr;
