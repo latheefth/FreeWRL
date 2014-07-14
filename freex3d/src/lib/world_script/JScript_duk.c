@@ -40,7 +40,7 @@
 #include "JScript.h"
 #include "FWTYPE.h"
 #include "duktape/duktape.h"
-
+#define FIELDTYPE_MFImage	43 
 typedef int indexT;
 
 FWTYPE *fwtypesArray[60];  //true statics - they only need to be defined once per process, we have about 50 types as of july 2014
@@ -333,7 +333,7 @@ int isSForMFType(int itype){
 		case FIELDTYPE_SFTime:	
 		case FIELDTYPE_SFString: 
 		case FIELDTYPE_SFVec2f:	
-		//case FIELDTYPE_SFImage:
+		case FIELDTYPE_SFImage:
 		case FIELDTYPE_SFVec3d:	
 		case FIELDTYPE_SFDouble: 
 		case FIELDTYPE_SFMatrix3f: 
@@ -357,7 +357,7 @@ int isSForMFType(int itype){
 		case FIELDTYPE_MFTime:	
 		case FIELDTYPE_MFString: 
 		case FIELDTYPE_MFVec2f:	
-		//case FIELDTYPE_MFImage:
+		case FIELDTYPE_MFImage:
 		case FIELDTYPE_MFVec3d:	
 		case FIELDTYPE_MFDouble: 
 		case FIELDTYPE_MFMatrix3f: 
@@ -399,7 +399,7 @@ int sizeofSForMF(int itype){
 	case FIELDTYPE_SFTime:	iz = sizeof(double); break;
 	case FIELDTYPE_SFString: iz = sizeof(struct Uni_string *); break;  //sizeof(void *) because nodes that have a string field declare it struct Uni_String *, so when copying to a node, you copy sizeof(void*). H: if the char *string is const, then uni_string is const (they may hang out as pals for life, or char *string may outlive its uni_string pal
 	case FIELDTYPE_SFVec2f:	iz = sizeof(struct SFVec2f); break;
-	//case FIELDTYPE_SFImage:	iz = 
+	case FIELDTYPE_SFImage:	iz = sizeof(void*); break;
 	case FIELDTYPE_SFVec3d:	iz = sizeof(struct SFVec3d); break;
 	case FIELDTYPE_SFDouble: iz = sizeof(double); break;
 	case FIELDTYPE_SFMatrix3f: iz = sizeof(struct SFMatrix3f); break;
@@ -421,7 +421,7 @@ int sizeofSForMF(int itype){
 	case FIELDTYPE_MFTime:	
 	case FIELDTYPE_MFString: 
 	case FIELDTYPE_MFVec2f:	
-	//case FIELDTYPE_MFImage:	iz = 
+	case FIELDTYPE_MFImage:
 	case FIELDTYPE_MFVec3d:	
 	case FIELDTYPE_MFDouble: 
 	case FIELDTYPE_MFMatrix3f: 

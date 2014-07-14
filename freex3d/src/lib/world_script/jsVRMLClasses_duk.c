@@ -83,96 +83,6 @@ ecma primitive instead of one of the above, and never generate a new one of thes
 
 int type2SF(int itype);
 
-/* from http://www.cs.rit.edu/~ncs/color/t_convert.html */
-double MIN(double a, double b, double c) {
-	double min;
-	if((a<b)&&(a<c))min=a; else if((b<a)&&(b<c))min=b; else min=c; return min;
-}
-
-double MAX(double a, double b, double c) {
-	double max;
-	if((a>b)&&(a>c))max=a; else if((b>a)&&(b>c))max=b; else max=c; return max;
-}
-
-void convertRGBtoHSV(double r, double g, double b, double *h, double *s, double *v) {
-	double my_min, my_max, delta;
-
-	my_min = MIN( r, g, b );
-	my_max = MAX( r, g, b );
-	*v = my_max;				/* v */
-	delta = my_max - my_min;
-	if( my_max != 0 )
-		*s = delta / my_max;		/* s */
-	else {
-		/* r = g = b = 0 */		/* s = 0, v is undefined */
-		*s = 0;
-		*h = -1;
-		return;
-	}
-	if( r == my_max )
-		*h = ( g - b ) / delta;		/* between yellow & magenta */
-	else if( g == my_max )
-		*h = 2 + ( b - r ) / delta;	/* between cyan & yellow */
-	else
-		*h = 4 + ( r - g ) / delta;	/* between magenta & cyan */
-	*h *= 60;				/* degrees */
-	if( *h < 0 )
-		*h += 360;
-}
-void convertHSVtoRGB( double h, double s, double v ,double *r, double *g, double *b)
-{
-	int i;
-	double f, p, q, t;
-	if( s == 0 ) {
-		/* achromatic (grey) */
-		*r = *g = *b = v;
-		return;
-	}
-	h /= 60;			/* sector 0 to 5 */
-	i = (int) floor( h );
-	f = h - i;			/* factorial part of h */
-	p = v * ( 1 - s );
-	q = v * ( 1 - s * f );
-	t = v * ( 1 - s * ( 1 - f ) );
-	switch( i ) {
-		case 0: *r = v; *g = t; *b = p; break;
-		case 1: *r = q; *g = v; *b = p; break;
-		case 2: *r = p; *g = v; *b = t; break;
-		case 3: *r = p; *g = q; *b = v; break;
-		case 4: *r = t; *g = p; *b = v; break;
-		default: *r = v; *g = p; *b = q; break;
-	}
-}
-
-
-int SFColor_getHSV(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
-	//argc should == 0 for getHSV
-	struct SFColor *ptr = (struct SFColor *)fwn;
-	double xp[3];
-	/* convert rgb to hsv */
-	convertRGBtoHSV((double)ptr->c[0], (double)ptr->c[1], (double)ptr->c[2],&xp[0],&xp[1],&xp[2]);
-	//supposed to return numeric[3] - don't have that set up so sfvec3d
-	struct SFVec3d *sf3d = malloc(sizeof(struct SFVec3d)); //garbage collector please
-	memcpy(sf3d->c,xp,sizeof(double)*3);
-	fwretval->_web3dval.native = sf3d; 
-	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3d;
-	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
-	fwretval->itype = 'W';
-	return 1;
-}
-
-int SFColor_setHSV(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
-	//argc should == 3 for setHSV
-	struct SFColor *ptr = (struct SFColor *)fwn;
-	double xp[3];
-	/* convert rgb to hsv */
-	convertHSVtoRGB((double)fwpars[0]._numeric, (double)fwpars[1]._numeric, (double)fwpars[2]._numeric,&xp[0],&xp[1],&xp[2]);
-	ptr->c[0] = (float)xp[0];
-	ptr->c[1] = (float)xp[1];
-	ptr->c[2] = (float)xp[2];
-	return 0;
-}
-
 
 int SFFloat_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	float *ptr = (float *)fwn;
@@ -332,7 +242,7 @@ FWTYPE MFFloatType = {
 	NULL, //special iterator
 	MFW_Getter, //Getter,
 	MFW_Setter, //Setter,
-	'W',0, //index prop type,readonly
+	'F',0, //index prop type,readonly
 	NULL, //functions
 };
 
@@ -536,7 +446,7 @@ FWFunctionSpec (SFRotation_Functions)[] = {
 	{0}
 };
 int SFRotation_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
-	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
+	struct SFRotation *ptr = (struct SFRotation *)fwn;
 	int nr = 0;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index > -1 && index < 4){
@@ -558,7 +468,7 @@ int SFRotation_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	return nr;
 }
 int SFRotation_Setter(FWType fwt, int index, void * fwn, FWval fwval){
-	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
+	struct SFRotation *ptr = (struct SFRotation *)fwn;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index > -1 && index < 4){
 		switch(index){
@@ -869,17 +779,45 @@ FWTYPE SFBoolType = {
 	0,0, //index prop type,readonly
 	NULL, //functions
 };
+
+
+void * MFBool_Constructor(FWType fwtype, int argc, FWval fwpars){
+	int lenSF;
+	struct Multi_Any *ptr = malloc(sizeof(struct Multi_Any));  ///malloc in 2 parts for MF
+	lenSF = sizeofSF(fwtype->itype); 
+	ptr->n = argc;
+	ptr->p = NULL;
+	if(ptr->n)
+		ptr->p = malloc(ptr->n * lenSF); // This second part is resizable ie MF[i] = new SF() if i >= (.length), .length is expanded to accomodate
+	char *p = ptr->p;
+	for(int i=0;i<ptr->n;i++){
+		//float ff = (float)fwpars[i]._numeric; //fwpars[i]._web3dval.native;
+		if(fwpars[i].itype == 'W')
+			memcpy(p,&fwpars[i]._web3dval.native,lenSF);
+		else if(fwpars[i].itype == 'B'){
+			memcpy(p,&fwpars[i]._boolean,lenSF);
+		}
+		p += lenSF;
+	}
+	return (void *)ptr;
+}
+ArgListType (MFBool_ConstructorArgs)[] = {
+		{0,0,0,"B"},
+		{-1,0,0,NULL},
+};
+
+
 //#define FIELDTYPE_MFBool	7
 FWTYPE MFBoolType = {
 	FIELDTYPE_MFBool,
 	"MFBool",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
+	MFBool_Constructor, //constructor
+	MFBool_ConstructorArgs, //constructor args
+	MFW_Properties, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
+	MFW_Getter, //Getter,
+	MFW_Setter, //Setter,
 	'B',0, //index prop type,readonly
 	NULL, //functions
 };
@@ -910,7 +848,10 @@ void * MFInt32_Constructor(FWType fwtype, int argc, FWval fwpars){
 	char *p = ptr->p;
 	for(int i=0;i<ptr->n;i++){
 		//float ff = (float)fwpars[i]._numeric; //fwpars[i]._web3dval.native;
-		memcpy(p,&fwpars[i]._web3dval.native,lenSF);
+		if(fwpars[i].itype == 'W')
+			memcpy(p,&fwpars[i]._web3dval.native,lenSF);
+		else if(fwpars[i].itype == 'I')
+			memcpy(p,&fwpars[i]._integer,lenSF);
 		p += lenSF;
 	}
 	return (void *)ptr;
@@ -932,7 +873,7 @@ FWTYPE MFInt32Type = {
 	NULL, //special iterator
 	MFW_Getter, //Getter,
 	MFW_Setter, //Setter,
-	'W',0, //index prop type,readonly
+	'I',0, //index prop type,readonly
 	NULL, //functions
 };
 
@@ -1145,6 +1086,96 @@ FWTYPE MFNodeType = {
 };
 
 
+/* from http://www.cs.rit.edu/~ncs/color/t_convert.html */
+double MIN(double a, double b, double c) {
+	double min;
+	if((a<b)&&(a<c))min=a; else if((b<a)&&(b<c))min=b; else min=c; return min;
+}
+
+double MAX(double a, double b, double c) {
+	double max;
+	if((a>b)&&(a>c))max=a; else if((b>a)&&(b>c))max=b; else max=c; return max;
+}
+
+void convertRGBtoHSV(double r, double g, double b, double *h, double *s, double *v) {
+	double my_min, my_max, delta;
+
+	my_min = MIN( r, g, b );
+	my_max = MAX( r, g, b );
+	*v = my_max;				/* v */
+	delta = my_max - my_min;
+	if( my_max != 0 )
+		*s = delta / my_max;		/* s */
+	else {
+		/* r = g = b = 0 */		/* s = 0, v is undefined */
+		*s = 0;
+		*h = -1;
+		return;
+	}
+	if( r == my_max )
+		*h = ( g - b ) / delta;		/* between yellow & magenta */
+	else if( g == my_max )
+		*h = 2 + ( b - r ) / delta;	/* between cyan & yellow */
+	else
+		*h = 4 + ( r - g ) / delta;	/* between magenta & cyan */
+	*h *= 60;				/* degrees */
+	if( *h < 0 )
+		*h += 360;
+}
+void convertHSVtoRGB( double h, double s, double v ,double *r, double *g, double *b)
+{
+	int i;
+	double f, p, q, t;
+	if( s == 0 ) {
+		/* achromatic (grey) */
+		*r = *g = *b = v;
+		return;
+	}
+	h /= 60;			/* sector 0 to 5 */
+	i = (int) floor( h );
+	f = h - i;			/* factorial part of h */
+	p = v * ( 1 - s );
+	q = v * ( 1 - s * f );
+	t = v * ( 1 - s * ( 1 - f ) );
+	switch( i ) {
+		case 0: *r = v; *g = t; *b = p; break;
+		case 1: *r = q; *g = v; *b = p; break;
+		case 2: *r = p; *g = v; *b = t; break;
+		case 3: *r = p; *g = q; *b = v; break;
+		case 4: *r = t; *g = p; *b = v; break;
+		default: *r = v; *g = p; *b = q; break;
+	}
+}
+
+
+int SFColor_getHSV(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	//argc should == 0 for getHSV
+	struct SFColor *ptr = (struct SFColor *)fwn;
+	double xp[3];
+	/* convert rgb to hsv */
+	convertRGBtoHSV((double)ptr->c[0], (double)ptr->c[1], (double)ptr->c[2],&xp[0],&xp[1],&xp[2]);
+	//supposed to return numeric[3] - don't have that set up so sfvec3d
+	struct SFVec3d *sf3d = malloc(sizeof(struct SFVec3d)); //garbage collector please
+	memcpy(sf3d->c,xp,sizeof(double)*3);
+	fwretval->_web3dval.native = sf3d; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3d;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+
+int SFColor_setHSV(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	//argc should == 3 for setHSV
+	struct SFColor *ptr = (struct SFColor *)fwn;
+	double xp[3];
+	/* convert rgb to hsv */
+	convertHSVtoRGB((double)fwpars[0]._numeric, (double)fwpars[1]._numeric, (double)fwpars[2]._numeric,&xp[0],&xp[1],&xp[2]);
+	ptr->c[0] = (float)xp[0];
+	ptr->c[1] = (float)xp[1];
+	ptr->c[2] = (float)xp[2];
+	return 0;
+}
+
 FWFunctionSpec (SFColor_Functions)[] = {
 	{"getHSV", SFColor_getHSV, 'W',{0,0,0,NULL}},
 	{"setHSV", SFColor_setHSV, 0,{3,-1,'T',"DDD"}},
@@ -1279,34 +1310,139 @@ FWTYPE MFColorType = {
 	'W',0, //index prop type,readonly
 	NULL, //functions
 };
+
+
+int SFColorRGBA_getHSV(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	//argc should == 0 for getHSV
+	struct SFColorRGBA *ptr = (struct SFColorRGBA *)fwn;
+	double xp[3];
+	/* convert rgb to hsv */
+	convertRGBtoHSV((double)ptr->c[0], (double)ptr->c[1], (double)ptr->c[2],&xp[0],&xp[1],&xp[2]);
+	//supposed to return numeric[3] - don't have that set up so sfvec3d
+	struct SFVec3d *sf3d = malloc(sizeof(struct SFVec3d)); //garbage collector please
+	memcpy(sf3d->c,xp,sizeof(double)*3);
+	fwretval->_web3dval.native = sf3d; 
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3d;
+	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
+	fwretval->itype = 'W';
+	return 1;
+}
+
+int SFColorRGBA_setHSV(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	//argc should == 3 for setHSV
+	struct SFColorRGBA *ptr = (struct SFColorRGBA *)fwn;
+	double xp[3];
+	/* convert rgb to hsv */
+	convertHSVtoRGB((double)fwpars[0]._numeric, (double)fwpars[1]._numeric, (double)fwpars[2]._numeric,&xp[0],&xp[1],&xp[2]);
+	ptr->c[0] = (float)xp[0];
+	ptr->c[1] = (float)xp[1];
+	ptr->c[2] = (float)xp[2];
+	ptr->c[3] = 1.0f;
+	return 0;
+}
+
+FWFunctionSpec (SFColorRGBA_Functions)[] = {
+	{"getHSV", SFColor_getHSV, 'W',{0,0,0,NULL}},
+	{"setHSV", SFColor_setHSV, 0,{3,-1,'T',"DDD"}},
+	{0}
+};
+
+int SFColorRGBA_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+	struct SFColorRGBA *ptr = (struct SFColorRGBA *)fwn;
+	int nr = 0;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index > -1 && index < 4){
+		nr = 1;
+		switch(index){
+		case 0: //r
+		case 1: //g
+		case 2: //b
+		case 3: //a
+			fwretval->_numeric =  ptr->c[index];
+			//fwretval->_web3dval.anyvrml = (union anyVrml*)&ptr->c[index];
+			//fwretval->_web3dval.fieldType = FIELDTYPE_SFFloat;
+			break;
+		default:
+			nr = 0;
+		}
+	}
+	fwretval->itype = 'F';
+	return nr;
+}
+int SFColorRGBA_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+	struct SFColorRGBA *ptr = (struct SFColorRGBA *)fwn;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index > -1 && index < 4){
+		switch(index){
+		case 0: //r
+		case 1: //g
+		case 2: //b
+		case 3: //a
+			ptr->c[index] = fwval->_numeric; //fwval->_web3dval.anyvrml->sffloat; 
+			break;
+		}
+		return TRUE;
+	}
+	return FALSE;
+}
+//typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
+void * SFColorRGBA_Constructor(FWType fwtype, int ic, FWval fwpars){
+	struct SFColorRGBA *ptr = malloc(fwtype->size_of); //garbage collector please
+	if(ic == 4)
+	for(int i=0;i<4;i++)
+		ptr->c[i] =  fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
+	return (void *)ptr;
+}
+
+FWPropertySpec (SFColorRGBA_Properties)[] = {
+	{"r", 0, 'F', 0},
+	{"g", 1, 'F', 0},
+	{"b", 2, 'F', 0},
+	{"a", 3, 'F', 0},
+	{NULL,0,0,0},
+};
+
+//typedef struct ArgListType {
+//	char nfixedArg;
+//	char iVarArgStartsAt; //-1 no varargs
+//	char fillMissingFixedWithZero; //T/F if F then complain if short
+//	char *argtypes; //if varargs, then argtypes[nfixedArg] == type of varArg, and all varargs are assumed the same type
+//} ArgListType;
+ArgListType (SFColorRGBA_ConstructorArgs)[] = {
+		{4,0,'T',"FFFF"},
+		{-1,0,0,NULL},
+};
+
+
 //#define FIELDTYPE_SFColorRGBA	14
 FWTYPE SFColorRGBAType = {
 	FIELDTYPE_SFColorRGBA,
 	"SFColorRGBA",
 	sizeof(struct SFColorRGBA), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
+	SFColorRGBA_Constructor, //constructor
+	SFColorRGBA_ConstructorArgs, //constructor args
+	SFColorRGBA_Properties, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
+	SFColorRGBA_Getter, //Getter,
+	SFColorRGBA_Setter, //Setter,
 	'F',0, //index prop type,readonly
-	NULL, //functions
+	SFColorRGBA_Functions, //functions
 };
 //#define FIELDTYPE_MFColorRGBA	15
 FWTYPE MFColorRGBAType = {
 	FIELDTYPE_MFColorRGBA,
 	"MFColorRGBA",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
+	MFW_Constructor, //constructor
+	MFW_ConstructorArgs, //constructor args
+	MFW_Properties, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
+	MFW_Getter, //Getter,
+	MFW_Setter, //Setter,
 	'W',0, //index prop type,readonly
 	NULL, //functions
 };
+
 //#define FIELDTYPE_SFTime	16
 FWTYPE SFTimeType = {
 	FIELDTYPE_SFTime,
@@ -1321,17 +1457,43 @@ FWTYPE SFTimeType = {
 	0,0, //index prop type,readonly
 	NULL, //functions
 };
+
+void * MFTime_Constructor(FWType fwtype, int argc, FWval fwpars){
+	int lenSF;
+	struct Multi_Any *ptr = malloc(sizeof(struct Multi_Any));  ///malloc in 2 parts for MF
+	lenSF = sizeofSF(fwtype->itype); 
+	ptr->n = argc;
+	ptr->p = NULL;
+	if(ptr->n)
+		ptr->p = malloc(ptr->n * lenSF); // This second part is resizable ie MF[i] = new SF() if i >= (.length), .length is expanded to accomodate
+	char *p = ptr->p;
+	for(int i=0;i<ptr->n;i++){
+		//float ff = (float)fwpars[i]._numeric; //fwpars[i]._web3dval.native;
+		if(fwpars[i].itype == 'W')
+			memcpy(p,&fwpars[i]._web3dval.native,lenSF);
+		else if(fwpars[i].itype == 'D')
+			memcpy(p,&fwpars[i]._numeric,lenSF);
+		p += lenSF;
+	}
+	return (void *)ptr;
+}
+ArgListType (MFTime_ConstructorArgs)[] = {
+		{0,0,0,"D"},
+		{-1,0,0,NULL},
+};
+
+
 //#define FIELDTYPE_MFTime	17
 FWTYPE MFTimeType = {
 	FIELDTYPE_MFTime,
 	"MFTime",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
+	MFTime_Constructor, //constructor
+	MFTime_ConstructorArgs, //constructor args
+	MFW_Properties, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
+	MFW_Getter, //Getter,
+	MFW_Setter, //Setter,
 	'D',0, //index prop type,readonly
 	NULL, //functions
 };
@@ -1388,7 +1550,7 @@ FWTYPE MFStringType = {
 	NULL, //special iterator
 	MFW_Getter, //Getter,
 	MFW_Setter, //Setter,
-	'W',0, //index prop type,readonly
+	'S',0, //index prop type,readonly
 	NULL, //functions
 };
 
@@ -1580,20 +1742,155 @@ FWTYPE MFVec2fType = {
 	'W',0, //index prop type,readonly
 	NULL, //functions
 };
+
+/* SFImage
+http://www.web3d.org/files/specifications/19777-1/V3.0/Part1/functions.html#SFImage
+constr
+SFImage (numeric x, numeric y, numeric comp, MFInt32 array) x is the x-dimension of the image. y is the y-dimension of the image. comp is the number of components of the image (1 for greyscale, 2 for greyscale+alpha, 3 for rgb, 4 for rgb+alpha). Array contains the x * y values for the pixels of the image. The format of each pixel is an SFImage as in the PixelTexture node (see part 1 of ISO/IEC 19775).  
+props
+numeric width No Width dimension of the image in pixels 
+numeric height No Height dimension of the image in pixels 
+numeric comp No Number of components of the image
+1.greyscale or alpha
+2.greyscale + alpha
+3.rgb
+4.rgb + alpha
+MFInt32 array No Returns a String containing the  value of x, y, comp and array encoded using the Classic VRML encoding (see part 2 of ISO/IEC 19776). 
+funcs
+String toString() Returns a String containing the  value of x, y, comp and array encoded using the Classic VRML encoding (see part 2 of ISO/IEC 19776). 
+*/
+
+struct SFImage {
+	int width;
+	int height;
+	int comp;
+	struct Multi_Int32 *array;
+};
+FWFunctionSpec (SFImage_Functions)[] = {
+	//{"toString", SFImage_toString, 'S',{0,-1,0,NULL}},
+	{0}
+};
+
+int SFImage_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+	struct SFImage **ptr = (struct SFImage **)fwn;
+	struct SFImage *iptr = (*ptr);
+	int nr = 0;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index > -1 && index < 4){
+		nr = 1;
+		switch(index){
+		case 0: //width
+		fwretval->_integer =  iptr->width;
+		fwretval->itype = 'I';
+		break;
+		case 1: //height
+		fwretval->_integer =  iptr->height;
+		fwretval->itype = 'I';
+		break;
+		case 2: //comp
+		fwretval->_integer =  iptr->comp;
+		fwretval->itype = 'I';
+		break;
+
+		case 3: //array
+		fwretval->_web3dval.native = iptr->array;
+		fwretval->_web3dval.fieldType = FIELDTYPE_MFInt32;
+		fwretval->itype = 'W';
+		break;
+		default:
+		nr = 0;
+		}
+	}
+	return nr;
+}
+int SFImage_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+	struct SFImage **ptr = (struct SFImage **)fwn;
+	struct SFImage *iptr = *ptr;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index > -1 && index < 4){
+		switch(index){
+			case 0: //width
+			iptr->width = fwval->_integer;
+			break;
+			case 1: //height
+			iptr->height = fwval->_integer;
+			break;
+			case 2: //comp
+			iptr->comp = fwval->_integer;
+			break;
+
+			case 3: //array
+			if(fwval->itype == 'W' && fwval->_web3dval.fieldType == FIELDTYPE_MFInt32 ){
+				iptr->array = fwval->_web3dval.native;
+			}
+			break;
+			default:
+				break;
+		}
+		return TRUE;
+	}
+	return FALSE;
+}
+//typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
+void * SFImage_Constructor(FWType fwtype, int ic, FWval fwpars){
+	struct SFImage **ptr = malloc(fwtype->size_of); //garbage collector please
+	struct SFImage *iptr = malloc(sizeof(struct SFImage)); //garbage collector please
+	(*ptr) = iptr;
+	iptr->width = fwpars[0]._integer;
+	iptr->height = fwpars[1]._integer;
+	iptr->comp = fwpars[2]._integer;
+	iptr->array = fwpars[3]._web3dval.native;
+	if(!iptr->array){
+		iptr->array = malloc(sizeof(struct Multi_Int32));
+		iptr->array->n = iptr->width * iptr->height;
+		iptr->array->p = malloc(iptr->array->n * sizeof(int));
+	}
+	return (void *)ptr;
+}
+
+FWPropertySpec (SFImage_Properties)[] = {
+	{"width", 0, 'I', 0},
+	{"height", 1, 'I', 0},
+	{"comp", 2, 'I', 0},
+	{"array", 2, 'W', 0},
+	{NULL,0,0,0},
+};
+ArgListType (SFImage_ConstructorArgs)[] = {
+		{4,3,'T',"IIIW"},
+		{-1,0,0,NULL},
+};
+
+
 //#define FIELDTYPE_SFImage	22
 FWTYPE SFImageType = {
 	FIELDTYPE_SFImage,
 	"SFImage",
-	sizeof(void *), //sizeof(struct ),  //----------------------unknown struct but it looks like an SFNode with node-specific fields
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
+	sizeof(void *), //sizeof(struct ),  //----------------------unknown struct - made something up
+	SFImage_Constructor, //constructor
+	SFImage_ConstructorArgs, //constructor args
+	SFImage_Properties, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
-	'I',0, //index prop type,readonly
+	SFImage_Getter, //Getter,
+	SFImage_Setter, //Setter,
+	0,0, //index prop type,readonly
+	SFImage_Functions, //functions
+};
+
+#define FIELDTYPE_MFImage	43 
+FWTYPE MFImageType = {
+	FIELDTYPE_MFImage,
+	"MFImage",
+	sizeof(struct Multi_Any), //sizeof(struct ), 
+	MFW_Constructor, //constructor
+	MFW_ConstructorArgs, //constructor args
+	MFW_Properties, //Properties,
+	NULL, //special iterator
+	MFW_Getter, //Getter,
+	MFW_Setter, //Setter,
+	'W',0, //index prop type,readonly
 	NULL, //functions
 };
+
 //#define FIELDTYPE_FreeWRLPTR	23
 //#define FIELDTYPE_FreeWRLThread	24
 
@@ -1834,7 +2131,10 @@ void * MFDouble_Constructor(FWType fwtype, int argc, FWval fwpars){
 	char *p = ptr->p;
 	for(int i=0;i<ptr->n;i++){
 		//float ff = (float)fwpars[i]._numeric; //fwpars[i]._web3dval.native;
-		memcpy(p,&fwpars[i]._web3dval.native,lenSF);
+		if(fwpars[i].itype == 'W')
+			memcpy(p,&fwpars[i]._web3dval.native,lenSF);
+		else if(fwpars[i].itype == 'D')
+			memcpy(p,&fwpars[i]._numeric,lenSF);
 		p += lenSF;
 	}
 	return (void *)ptr;
@@ -1855,7 +2155,7 @@ FWTYPE MFDoubleType = {
 	NULL, //special iterator
 	MFW_Getter, //Getter,
 	MFW_Setter, //Setter,
-	'W',0, //index prop type,readonly
+	'D',0, //index prop type,readonly
 	NULL, //functions
 };
 
@@ -2165,19 +2465,83 @@ FWTYPE MFVec2dType = {
 	NULL, //functions
 };
 
+FWFunctionSpec (SFVec4f_Functions)[] = {
+	//{"toString", SFVec4f_toString, 'S',{0,-1,0,NULL}},
+	{0}
+};
+
+int SFVec4f_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+	struct SFVec4f *ptr = (struct SFVec4f *)fwn;
+	int nr = 0;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index > -1 && index < 4){
+		nr = 1;
+		switch(index){
+		case 0: //x
+		case 1: //y
+		case 2: //z
+		case 3: //t
+			fwretval->_numeric =  ptr->c[index];
+			//fwretval->_web3dval.anyvrml = (union anyVrml*)&ptr->c[index];
+			//fwretval->_web3dval.fieldType = FIELDTYPE_SFFloat;
+			break;
+		default:
+			nr = 0;
+		}
+	}
+	fwretval->itype = 'F';
+	return nr;
+}
+int SFVec4f_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+	struct SFVec4f *ptr = (struct SFVec4f *)fwn;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index > -1 && index < 4){
+		switch(index){
+		case 0: //x
+		case 1: //y
+		case 2: //z
+		case 3: //t
+			ptr->c[index] = (float)fwval->_numeric; //fwval->_web3dval.anyvrml->sffloat; 
+			break;
+		}
+		return TRUE;
+	}
+	return FALSE;
+}
+//typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
+void * SFVec4f_Constructor(FWType fwtype, int ic, FWval fwpars){
+	struct SFVec4f *ptr = malloc(fwtype->size_of); //garbage collector please
+	for(int i=0;i<4;i++)
+		ptr->c[i] =  (float)fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
+	return (void *)ptr;
+}
+
+FWPropertySpec (SFVec4f_Properties)[] = {
+	{"x", 0, 'F', 0},
+	{"y", 1, 'F', 0},
+	{"z", 2, 'F', 0},
+	{"w", 3, 'F', 0},
+	{NULL,0,0,0},
+};
+ArgListType (SFVec4f_ConstructorArgs)[] = {
+		{4,0,'T',"FFFF"},
+		{-1,0,0,NULL},
+};
+
+
 //#define FIELDTYPE_SFVec4f	39
 FWTYPE SFVec4fType = {
 	FIELDTYPE_SFVec4f,
 	"SFVec4f",
 	sizeof(struct SFVec4f), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
+	SFVec4f_Constructor, //constructor
+	SFVec4f_ConstructorArgs, //constructor args
+	SFVec4f_Properties, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
+	SFVec4f_Getter, //Getter,
+	SFVec4f_Setter, //Setter,
 	'F',0, //index prop type,readonly
-	NULL, //functions
+	SFVec4f_Functions, //functions
 };
 
 //#define FIELDTYPE_MFVec4f	40
@@ -2185,29 +2549,92 @@ FWTYPE MFVec4fType = {
 	FIELDTYPE_MFVec4f,
 	"MFVec4f",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
+	MFW_Constructor, //constructor
+	MFW_ConstructorArgs, //constructor args
+	MFW_Properties, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
+	MFW_Getter, //Getter,
+	MFW_Setter, //Setter,
 	'W',0, //index prop type,readonly
 	NULL, //functions
 };
 
+
+FWFunctionSpec (SFVec4d_Functions)[] = {
+	//{"toString", SFVec4d_toString, 'S',{0,-1,0,NULL}},
+	{0}
+};
+
+int SFVec4d_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
+	int nr = 0;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index > -1 && index < 4){
+		nr = 1;
+		switch(index){
+		case 0: //x
+		case 1: //y
+		case 2: //z
+		case 3: //t
+			fwretval->_numeric =  ptr->c[index];
+			//fwretval->_web3dval.anyvrml = (union anyVrml*)&ptr->c[index];
+			//fwretval->_web3dval.fieldType = FIELDTYPE_SFFloat;
+			break;
+		default:
+			nr = 0;
+		}
+	}
+	fwretval->itype = 'D';
+	return nr;
+}
+int SFVec4d_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index > -1 && index < 4){
+		switch(index){
+		case 0: //x
+		case 1: //y
+		case 2: //z
+		case 3: //t
+			ptr->c[index] = fwval->_numeric; //fwval->_web3dval.anyvrml->sffloat; 
+			break;
+		}
+		return TRUE;
+	}
+	return FALSE;
+}
+//typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
+void * SFVec4d_Constructor(FWType fwtype, int ic, FWval fwpars){
+	struct SFVec3d *ptr = malloc(fwtype->size_of); //garbage collector please
+	for(int i=0;i<4;i++)
+		ptr->c[i] =  fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
+	return (void *)ptr;
+}
+
+FWPropertySpec (SFVec4d_Properties)[] = {
+	{"x", 0, 'D', 0},
+	{"y", 1, 'D', 0},
+	{"z", 2, 'D', 0},
+	{"w", 3, 'D', 0},
+	{NULL,0,0,0},
+};
+ArgListType (SFVec4d_ConstructorArgs)[] = {
+		{3,0,'T',"DDDD"},
+		{-1,0,0,NULL},
+};
 //#define FIELDTYPE_SFVec4d	41
 FWTYPE SFVec4dType = {
 	FIELDTYPE_SFVec4d,
 	"SFVec4d",
 	sizeof(struct SFVec4d), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
+	SFVec4d_Constructor, //constructor
+	SFVec4d_ConstructorArgs, //constructor args
+	SFVec4d_Properties, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
+	SFVec4d_Getter, //Getter,
+	SFVec4d_Setter, //Setter,
 	'D',0, //index prop type,readonly
-	NULL, //functions
+	SFVec4d_Functions, //functions
 };
 
 //#define FIELDTYPE_MFVec4d	42
@@ -2215,12 +2642,12 @@ FWTYPE MFVec4dType = {
 	FIELDTYPE_MFVec4d,
 	"MFVec4d",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
-	NULL, //Properties,
+	MFW_Constructor, //constructor
+	MFW_ConstructorArgs, //constructor args
+	MFW_Properties, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
+	MFW_Getter, //Getter,
+	MFW_Setter, //Setter,
 	'W',0, //index prop type,readonly
 	NULL, //functions
 };
