@@ -150,6 +150,13 @@ float *veccopy3f(float *b, float *a)
 	b[2] = a[2];
 	return b;
 }
+float *veccopy2f(float *b, float *a)
+{
+	b[0] = a[0];
+	b[1] = a[1];
+	return b;
+}
+
 double * veccrossd(double *c, double *a, double *b)
 {
     c[0] = a[1] * b[2] - a[2] * b[1];
@@ -202,6 +209,10 @@ float veclength( struct point_XYZ p )
 float vecdot3f( float *a, float *b )
 {
     return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+}
+float vecdot4f( float *a, float *b )
+{
+    return a[0]*b[0] + a[1]*b[1] + a[2]*b[2] + + a[3]*b[3];
 }
 float *vecset3f(float *b, float x, float y, float z)
 {
@@ -267,6 +278,23 @@ float *vecscale3f(float *b, float *a, float scale){
 	b[2] = a[2] * scale;
 	return b;
 }
+float *vecscale4f(float *b, float *a, float scale){
+	b[0] = a[0] * scale;
+	b[1] = a[1] * scale;
+	b[2] = a[2] * scale;
+	b[3] = a[3] * scale;
+	return b;
+}
+float *vecmult3f(float *c, float *a, float *b){
+	//c[i] = a[i]*b[i] 
+	for(int i=0;i<3;i++) c[i] = a[i]*b[i];
+	return c;
+}
+float *vecmult2f(float *c, float *a, float *b){
+	//c[i] = a[i]*b[i] 
+	for(int i=0;i<2;i++) c[i] = a[i]*b[i];
+	return c;
+}
 
 float *vecnormalize3f(float *b, float *a)
 {
@@ -323,6 +351,58 @@ float* transformf(float* r, const float* a, const GLDOUBLE* b)
 	r[2] = (float) (b[2]*tmp[0] +b[6]*tmp[1] +b[10]*tmp[2] +b[14]);
     }
     return r;
+}
+float* matmultvec4f(float* r4, float *mat4, float* a4 )
+{
+	int i,j;
+    float t4[4], *b[4];
+	memcpy(t4,a4,4*sizeof(float));
+	for(i=0;i<4;i++){
+		r4[i] = 0.0f;
+		b[i] = &mat4[i*4];
+		for(j=0;j<4;j++)
+			r4[i] += b[i][j]*t4[j];
+	}
+    return r4;
+}
+float* vecmultmat4f(float* r4, float* a4, float *mat4 )
+{
+	int i,j;
+    float t4[4], *b[4];
+	memcpy(t4,a4,4*sizeof(float));
+	for(i=0;i<4;i++){
+		r4[i] = 0.0f;
+		b[i] = &mat4[i*4];
+		for(j=0;j<4;j++)
+			r4[i] += t4[j]*b[j][i];
+	}
+    return r4;
+}
+float* matmultvec3f(float* r3, float *mat3, float* a3 )
+{
+	int i,j;
+    float t3[3], *b[3];
+	memcpy(t3,a3,3*sizeof(float));
+	for(i=0;i<3;i++){
+		r3[i] = 0.0f;
+		b[i] = &mat3[i*3];
+		for(j=0;j<3;j++)
+			r3[i] += b[i][j]*t3[j];
+	}
+    return r3;
+}
+float* vecmultmat3f(float* r3, float* a3, float *mat3 )
+{
+	int i,j;
+    float t3[3], *b[3];
+	memcpy(t3,a3,3*sizeof(float));
+	for(i=0;i<3;i++){
+		r3[i] = 0.0f;
+		b[i] = &mat3[i*4];
+		for(j=0;j<3;j++)
+			r3[i] += t3[j]*b[j][i];
+	}
+    return r3;
 }
 /*transform point, but ignores translation.*/
 struct point_XYZ* transform3x3(struct point_XYZ* r, const struct point_XYZ* a, const GLDOUBLE* b)
@@ -556,6 +636,44 @@ GLDOUBLE* mattranspose(GLDOUBLE* res, GLDOUBLE* mm)
 	return res;
 }
 
+float* mattranspose4f(float* res, float* mm)
+{
+	float mcpy[16];
+	int i, j;
+	float *m;
+
+	m = mm;
+	if(res == m) {
+		memcpy(mcpy,m,sizeof(float)*16);
+		m = mcpy;
+	}
+
+	for (i = 0; i < 4; i++) {
+		for (j = 0; j < 4; j++) {
+			res[i*4+j] = m[j*4+i];
+		}
+	}
+	return res;
+}
+float* mattranspose3f(float* res, float* mm)
+{
+	float mcpy[9];
+	int i, j;
+	float *m;
+
+	m = mm;
+	if(res == m) {
+		memcpy(mcpy,m,sizeof(float)*9);
+		m = mcpy;
+	}
+
+	for (i = 0; i < 3; i++) {
+		for (j = 0; j < 3; j++) {
+			res[i*3+j] = m[j*3+i];
+		}
+	}
+	return res;
+}
 
 GLDOUBLE* matinverse(GLDOUBLE* res, GLDOUBLE* mm)
 {
@@ -570,6 +688,43 @@ GLDOUBLE* matinverse(GLDOUBLE* res, GLDOUBLE* mm)
     }
 
     Deta = det3x3(m);
+	Deta = 1.0 / Deta;
+
+    res[0] = (-m[9]*m[6] +m[5]*m[10])*Deta;
+    res[4] = (+m[8]*m[6] -m[4]*m[10])*Deta;
+    res[8] = (-m[8]*m[5] +m[4]*m[9])*Deta;
+    res[12] = ( m[12]*m[9]*m[6] -m[8]*m[13]*m[6] -m[12]*m[5]*m[10] +m[4]*m[13]*m[10] +m[8]*m[5]*m[14] -m[4]*m[9]*m[14])*Deta;
+
+    res[1] = (+m[9]*m[2] -m[1]*m[10])*Deta;
+    res[5] = (-m[8]*m[2] +m[0]*m[10])*Deta;
+    res[9] = (+m[8]*m[1] -m[0]*m[9])*Deta;
+    res[13] = (-m[12]*m[9]*m[2] +m[8]*m[13]*m[2] +m[12]*m[1]*m[10] -m[0]*m[13]*m[10] -m[8]*m[1]*m[14] +m[0]*m[9]*m[14])*Deta;
+
+    res[2] = (-m[5]*m[2] +m[1]*m[6])*Deta;
+    res[6] = (+m[4]*m[2] -m[0]*m[6])*Deta;
+    res[10] = (-m[4]*m[1] +m[0]*m[5])*Deta;
+    res[14] = ( m[12]*m[5]*m[2] -m[4]*m[13]*m[2] -m[12]*m[1]*m[6] +m[0]*m[13]*m[6] +m[4]*m[1]*m[14] -m[0]*m[5]*m[14])*Deta;
+
+    res[3] = (+m[5]*m[2]*m[11] -m[1]*m[6]*m[11])*Deta;
+    res[7] = (-m[4]*m[2]*m[11] +m[0]*m[6]*m[11])*Deta;
+    res[11] = (+m[4]*m[1]*m[11] -m[0]*m[5]*m[11])*Deta;
+    res[15] = (-m[8]*m[5]*m[2] +m[4]*m[9]*m[2] +m[8]*m[1]*m[6] -m[0]*m[9]*m[6] -m[4]*m[1]*m[10] +m[0]*m[5]*m[10])*Deta;
+
+    return res;
+}
+float* matinverse4f(float* res, float* mm)
+{
+    float Deta;
+    float mcpy[16];
+	float *m;
+
+	m = mm;
+    if(res == m) {
+	memcpy(mcpy,m,sizeof(float)*16);
+	m = mcpy;
+    }
+
+    Deta = det3f(&m[0],&m[4],&m[8]); //det3x3(m);
 	Deta = 1.0 / Deta;
 
     res[0] = (-m[9]*m[6] +m[5]*m[10])*Deta;
@@ -701,6 +856,59 @@ GLDOUBLE* matmultiply(GLDOUBLE* r, GLDOUBLE* mm , GLDOUBLE* nn)
 
     return r;
 }
+
+float* matmultiply4f(float* r, float* mm , float* nn)
+{
+    float tm[16],tn[16];
+	float *m, *n;
+	int i,j,k;
+    /* prevent self-multiplication problems.*/
+	m = mm;
+	n = nn;
+    if(r == m) {
+	memcpy(tm,m,sizeof(float)*16);
+	m = tm;
+    }
+    if(r == n) {
+	memcpy(tn,n,sizeof(float)*16);
+	n = tn;
+    }
+	/* assume 4x4 homgenous transform */
+	for(i=0;i<4;i++)
+		for(j=0;j<4;j++)
+		{
+			r[i*4+j] = 0.0;
+			for(k=0;k<4;k++)
+				r[i*4+j] += m[i*4+k]*n[k*4+j];
+		}
+	return r;
+}
+float* matmultiply3f(float* r, float* mm , float* nn)
+{
+    float tm[9],tn[9];
+	float *m, *n;
+	int i,j,k;
+    /* prevent self-multiplication problems.*/
+	m = mm;
+	n = nn;
+    if(r == m) {
+	memcpy(tm,m,sizeof(float)*9);
+	m = tm;
+    }
+    if(r == n) {
+	memcpy(tn,n,sizeof(float)*9);
+	n = tn;
+    }
+	/* assume 4x4 homgenous transform */
+	for(i=0;i<3;i++)
+		for(j=0;j<3;j++)
+		{
+			r[i*3+j] = 0.0;
+			for(k=0;k<3;k++)
+				r[i*3+j] += m[i*3+k]*n[k*3+j];
+		}
+	return r;
+}
 float *axisangle_rotate3f(float* b, float *a, float *axisangle)
 {
 	/*	http://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation
@@ -719,6 +927,39 @@ float *axisangle_rotate3f(float* b, float *a, float *axisangle)
 	vecadd3f(b,vecscale3f(t1, a, cosine), vecadd3f(t2, vecscale3f(t3, cross, sine), vecscale3f(t4, axis, dot*(1.0f - cosine))));
 	return b;
 }
+float *matidentity4f(float *b){
+	// zeros a 4x4 and puts 1's down the diagonal to make a 4x4 identity matrix
+	int i,j;
+	float *mat[4];
+	for(i=0;i<4;i++){
+		mat[i] = &b[i*4];
+		for(j=0;j<4;j++)
+			mat[i][j] = 0.0f;
+		mat[i][i] = 1.0f;
+	}
+	return b;
+}
+float *matidentity3f(float *b){
+	// zeros a 4x4 and puts 1's down the diagonal to make a 4x4 identity matrix
+	int i;
+	for(i=0;i<9;i++) b[i] = 0.0f;
+	for(i=0;i<3;i++) b[i*3 +i] = 1.0f;
+	return b;
+}
+float *axisangle2matrix4f(float *b, float *axisangle){
+	//untested as of july 2014
+	int i,j;
+	float *mat[4];
+	for(i=0;i<4;i++)
+		mat[i] = &b[i*4];
+	matidentity4f(b);
+	//rotate identity using axisangle
+	for(i=0;i<3;i++){ //could be 4 here if there was anything on line 4, but with identity its 0 0 0 1
+		axisangle_rotate3f(mat[i], mat[i], axisangle);
+	}
+	return b;
+}
+
 void rotate_v2v_axisAngled(double* axis, double* angle, double *orig, double *result)
 {
     double cvl;

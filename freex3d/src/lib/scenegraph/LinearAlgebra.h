@@ -178,12 +178,14 @@ double vecdot2d(double *a, double *b);
 double* vecscale2d(double* r, double* v, double s);
 double vecnormal2d(double *r, double *v);
 
+float *veccopy2f(float *b, float *a);
 float * vecadd2f(float *c, float *a, float *b);
 float *vecdif2f(float *c, float* a, float *b);
 float veclength2f( float *p );
 float vecdot2f(float *a, float *b);
 float* vecscale2f(float* r, float* v, float s);
 float vecnormal2f(float *r, float *v);
+float *vecmult2f(float *c, float *a, float *b);
 
 float *veccopy3f(float *b, float *a);
 float *vecset3f(float *b, float x, float y, float z);
@@ -192,6 +194,7 @@ float *vecdif3f(float *c, float *a, float *b);
 float vecdot3f(float *a, float *b);
 float *veccross3f(float *c, float *a, float *b);
 float *vecscale3f(float *b, float *a, float scale);
+float *vecmult3f(float *c, float *a, float *b);
 float veclength3f(float *a);
 float *vecnormalize3f(float *b, float *a);
 float det3f(float *a, float *b, float *c);
@@ -201,10 +204,19 @@ BOOL line_intersect_planed_3f(float *p, float *v, float *N, float d, float *pi, 
 BOOL line_intersect_plane_3f(float *p, float *v, float *N, float *pp, float *pi, float *t);
 BOOL line_intersect_cylinder_3f(float *p, float *v, float radius, float *pi);
 
+float vecdot4f( float *a, float *b );
+float *vecscale4f(float *b, float *a, float scale);
+
 GLDOUBLE det3x3(GLDOUBLE* data);
 
 struct point_XYZ* transform(struct point_XYZ* r, const struct point_XYZ* a, const GLDOUBLE* b);
 float* transformf(float* r, const float* a, const GLDOUBLE* b);
+
+float* matmultvec3f(float* r3, float *mat3, float* a3 );
+float* vecmultmat3f(float* r3, float* a3, float *mat3 );
+BOOL matrix3x3_inverse_float(float *inn, float *outt);
+float* vecmultmat4f(float* r4, float *a4, float *mat4);
+float* matmultvec4f(float* r4, float *mat4, float* a4 );
 
 /*only transforms using the rotation component.
   Usefull for transforming normals, and optimizing when you know there's no translation */
@@ -226,7 +238,12 @@ struct point_XYZ* vecdiff(struct point_XYZ* r, struct point_XYZ* v, struct point
 void make_orthogonal_vector_space(struct point_XYZ* i, struct point_XYZ* j, struct point_XYZ n);
 
 GLDOUBLE* matinverse(GLDOUBLE* res, GLDOUBLE* m);
+float* matinverse4f(float* res, float* mm);
 GLDOUBLE* mattranspose(GLDOUBLE* res, GLDOUBLE* m);
+float* mattranspose4f(float* res, float* mm);
+float *matidentity3f(float *b);
+float* matmultiply3f(float* r, float* mm , float* nn);
+float* mattranspose3f(float* res, float* mm);
 
 struct point_XYZ* polynormal(struct point_XYZ* r, struct point_XYZ* p1, struct point_XYZ* p2, struct point_XYZ* p3);
 /*simple wrapper for now. optimize later */
@@ -241,6 +258,9 @@ void rotate_v2v_axisAngled(double* axis, double* angle, double *orig, double *re
 GLDOUBLE* mattranslate(GLDOUBLE* r, double dx, double dy, double dz);
 
 GLDOUBLE* matmultiply(GLDOUBLE* r, GLDOUBLE* m , GLDOUBLE* n);
+float* matmultiply4f(float* r, float* mm , float* nn);
+float *axisangle2matrix4f(float *b, float *axisangle);
+float *matidentity4f(float *b);
 
 void scale_to_matrix (double *mat, struct point_XYZ *scale);
 void loadIdentityMatrix (double *mat);

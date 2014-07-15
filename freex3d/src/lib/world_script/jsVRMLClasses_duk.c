@@ -2219,84 +2219,300 @@ SFVec2f multVecMatrix(SFVec2f vec)
 SFVec2f multMatrixVec(SFVec2f vec)
 	Returns an SFVec3f whose value is the object multiplied by the passed column vector. 
 String toString() Returns a String containing the matrix contents encoded using the X3D Classic VRML encoding (see part 2 of ISO/IEC 19776). 
+I assume they mean homogenous transform, 2D
+[x']   [x  y  1] X [c*sx  s*sy  px]   [x]   //px, py are 2D perspectives
+[y'] =             [-s*sx c*sy  py] X [y]
+[w ]               [tx    ty     1]   [1]  //tx,ty are 2D translations
+x" = x'/w
+y" = y'/w
+dug9 complaint about Matrix3.getTransform, .setTransform july 2014:
+A 2D planar rotation can be represented by a scalar angle. I have no idea where the angle
+is in the SFVec3f. I could guess the angle is in [4] in the SFRotation, and assume
+the axis part is 0,0,1. 
+I gather the reason they pass in complex types for rotations in setTransform is 
+a) so null can be used to signal no-value (but 0 for rotation would do the same)
+b) because they want them returned in getTransform and to get something returned via
+function args you have to pass in a pointer type, not an ecma primitive value. 
+Primitive values can't be returned through function args only through return vals. 
+They could have:
+1) broken the get into getScale, getRotation, getTranslation, and then the getRotation could return
+an ecma numeric primitive, or 
+2) numeric getTransform(scale,translation) with the numeric return val being the rotation, or
+3) defined an SFFloat complex type and passed it as a pointer object
+I will implment july 2014 the rotations as scalar/primitive/numerics and do #2, which doesn't comply with specs
 
 */
-/*
+
+
 int X3DMatrix3_setTransform(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
-	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
-	struct SFVec3d *rhs = fwpars[0]._web3dval.native;
-	double res;
-	res = vecdotd(ptr->c,rhs->c);
-	fwretval->_numeric = res; 
-	fwretval->itype = 'D';
+	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/group.html#Transform
+	// P' = T * C * R * SR * S * -SR * -C * P
+	int i,j;
+	float angle, scaleangle;
+	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
+	struct SFVec2f *translation = fwpars[0]._web3dval.native;
+	struct SFVec3f *rotation = NULL;
+	if(fwpars[1].itype == 'W' && fwpars[1]._web3dval.fieldType == FIELDTYPE_SFVec3f){
+		rotation = fwpars[1]._web3dval.native;
+		angle = rotation->c[0]; //your guess is as good as mine what they meant
+	}
+	if(fwpars[1].itype == 'F')
+		angle = (float)fwpars[1]._numeric;
+	struct SFVec2f *scale = fwpars[2]._web3dval.native;
+	struct SFVec3f *scaleOrientation = NULL;
+	if(fwpars[3].itype == 'W' && fwpars[3]._web3dval.fieldType == FIELDTYPE_SFVec3f){
+		scaleOrientation = fwpars[3]._web3dval.native;
+		scaleangle = scaleOrientation->c[0]; //your guess is as good as mine what they meant
+	}
+	if(fwpars[3].itype == 'F')
+		scaleangle = (float)fwpars[3]._numeric;
+	struct SFVec2f *center = fwpars[4]._web3dval.native;
+	float *matrix[3], m2[9], *mat[3];
+	for(i=0;i<3;i++){
+		matrix[0] = &ptr->c[i*3];
+		mat[i] = &m2[i*3];
+	}
+	//initialize to Identity
+	matidentity3f(matrix[0]);
+
+	//-C
+	if(center){
+		matidentity3f(mat[0]);
+		veccopy2f(mat[2],center->c);
+		vecscale2f(mat[2],mat[3],-1.0f);
+		matmultiply3f(matrix[0],mat[0],matrix[0]);
+	}
+	//-SR
+	if(scaleangle != 0.0f){
+		matidentity3f(mat[0]);
+		mat[0][0] =  mat[1][1] = cos(-scaleangle);
+		mat[0][1] =  mat[1][0] = sin(-scaleangle);
+		mat[0][1] = -mat[0][1];
+		matmultiply3f(matrix[0],mat[0],matrix[0]);
+	}
+	//S
+	if(scale){
+		matidentity4f(mat[0]);
+		for(i=0;i<3;i++)
+			vecmult2f(mat[i],mat[i],scale->c);
+		matmultiply3f(matrix[0],mat[0],matrix[0]);
+	}
+	//SR
+	if(scaleangle != 0.0f){
+		matidentity3f(mat[0]);
+		mat[0][0] =  mat[1][1] = cos(scaleangle);
+		mat[0][1] =  mat[1][0] = sin(scaleangle);
+		mat[0][1] = -mat[0][1];
+		matmultiply3f(matrix[0],mat[0],matrix[0]);
+	}
+	//R
+	if(angle != 0.0f){
+		matidentity3f(mat[0]);
+		mat[0][0] =  mat[1][1] = cos(angle);
+		mat[0][1] =  mat[1][0] = sin(angle);
+		mat[0][1] = -mat[0][1];
+		matmultiply3f(matrix[0],mat[0],matrix[0]);
+	}
+	//C
+	if(center){
+		matidentity3f(mat[0]);
+		veccopy2f(mat[2],center->c);
+		matmultiply3f(matrix[0],mat[0],matrix[0]);
+	}
+	//T
+	if(translation){
+		matidentity3f(mat[0]);
+		veccopy2f(mat[2],translation->c);
+		matmultiply3f(matrix[0],mat[0],matrix[0]);
+	}
+
+	return 0;
+}
+
+int X3DMatrix3_getTransform(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	//void getTransform(SFVec2f translation, SFVec3f rotation, SFVec2f scale) 
+	float angle = 0.0f;
+	int i;
+	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
+	struct SFVec2f *translation = fwpars[0]._web3dval.native;
+	struct SFVec3f *rotation = NULL;
+	if(fwpars[1].itype == 'W' && fwpars[1]._web3dval.fieldType == FIELDTYPE_SFVec3f){
+		rotation = fwpars[1]._web3dval.native;
+		angle = rotation->c[3]; //your guess is as good as mine
+	}else if(fwpars[1].itype == 'F'){
+		angle = (float)fwpars[1]._numeric;
+	}
+	struct SFVec2f *scale = fwpars[2]._web3dval.native;
+    float *matrix[3], retscale[2];
+	for(i=0;i<3;i++)
+		matrix[i] = &ptr->c[i*3];
+
+	//get row scales
+	for(i=0;i<2;i++)
+		retscale[i] = (float)sqrt(vecdot3f(matrix[i],matrix[i]));
+
+	if (translation) {
+		veccopy2f(translation->c,matrix[2]);
+	}
+
+	/* rotation */
+	if (1) {
+		/* apply length to each row to normalize upperleft 3x3 to rotations and shears*/
+		float m2[9], ff;
+		for(i=0;i<2;i++){
+			ff = retscale[i];
+			if(ff != 0.0f) ff = 1/ff;
+				vecscale3f(&m2[i*3],matrix[i],ff);
+		}
+		angle = atan2(m2[1],m2[2]);
+		/* now copy the values over */
+		if(rotation) 
+			rotation->c[3] = angle;
+	}
+
+	/* scale */
+	if (scale) {
+		veccopy2f(scale->c,retscale);
+	}
+
+	fwretval->itype = 'F';
+	fwretval->_numeric = angle;
 	return 1;
 }
 
-FWFunctionSpec (SFVec3d_Functions)[] = {
-	{"setTransform", X3DMatrix3_setTransform, 'P',{5,-1,0,"W"}},
+int X3DMatrix3_inverse(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
+	struct SFMatrix3f *ret = malloc(sizeof(struct SFMatrix3f));
+
+	matrix3x3_inverse_float(ptr->c, ret->c);
+
+	fwretval->_pointer.native = ret;
+	fwretval->_pointer.fieldType = AUXTYPE_X3DMatrix3;
+	fwretval->itype = 'P';
+	return 1;
+}
+int X3DMatrix3_transpose(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
+	struct SFMatrix3f *ret = malloc(sizeof(struct SFMatrix3f));
+
+	mattranspose3f(ret->c, ptr->c);
+
+	fwretval->_pointer.native = ret;
+	fwretval->_pointer.fieldType = AUXTYPE_X3DMatrix3;
+	fwretval->itype = 'P';
+
+	return 1;
+}
+int X3DMatrix3_multLeft(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
+	struct SFMatrix3f *lhs = (struct SFMatrix3f *)fwpars[0]._web3dval.native;
+	struct SFMatrix3f *ret = malloc(sizeof(struct SFMatrix3f));
+
+	matmultiply3f(ret->c,  lhs->c , ptr->c);
+
+	fwretval->_pointer.native = ret;
+	fwretval->_pointer.fieldType = AUXTYPE_X3DMatrix3;
+	fwretval->itype = 'P';
+	return 1;
+}
+int X3DMatrix3_multRight(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
+	struct SFMatrix3f *rhs = (struct SFMatrix3f *)fwpars[0]._web3dval.native;
+	struct SFMatrix3f *ret = malloc(sizeof(struct SFMatrix3f));
+	fwretval->_pointer.native = ret;
+
+	matmultiply3f(ret->c,  ptr->c, rhs->c);
+
+	fwretval->_pointer.fieldType = AUXTYPE_X3DMatrix3;
+	fwretval->itype = 'P';
+	return 1;
+}
+int X3DMatrix3_multVecMatrix(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
+	struct SFVec2f *rhs = (struct SFVec2f *)fwpars[0]._web3dval.native;
+	struct SFVec2f *ret = malloc(sizeof(struct SFVec2f));
+	float a3[3], r3[3];
+	veccopy2f(a3,rhs->c);
+	a3[2] = 1.0f;
+	vecmultmat3f(r3, a3, ptr->c);
+	if(r3[2] != 0.0f){
+		float wi = 1.0f/r3[2];
+		vecscale2f(ret->c,r3,wi);
+	}else{
+		veccopy2f(ret->c,r3);
+	}
+
+	fwretval->_pointer.native = ret;
+	fwretval->_pointer.fieldType = FIELDTYPE_SFVec2f;
+	fwretval->itype = 'W';
+	return 1;
+}
+int X3DMatrix3_multMatrixVec(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
+	struct SFVec2f *rhs = (struct SFVec2f *)fwpars[0]._web3dval.native;
+	struct SFVec2f *ret = malloc(sizeof(struct SFVec2f));
+	float a3[3], r3[3];
+	veccopy2f(a3,rhs->c);
+	a3[2] = 1.0f;
+	matmultvec3f(r3, ptr->c,a3);
+	if(r3[2] != 0.0f){
+		float wi = 1.0f/r3[2];
+		vecscale2f(ret->c,r3,wi);
+	}else{
+		veccopy2f(ret->c,r3);
+	}
+
+	fwretval->_pointer.native = ret;
+	fwretval->_pointer.fieldType = FIELDTYPE_SFVec2f;
+	fwretval->itype = 'W';
+	return 1;
+}
+
+FWFunctionSpec (X3DMatrix3_Functions)[] = {
+	{"setTransform", X3DMatrix3_setTransform, 0,{5,-1,0,"WWWWW"}},
 	{"getTransform", X3DMatrix3_getTransform, 'P',{1,-1,0,"W"}},
-	{"inverse", X3DMatrix3_inverse, 'D',{1,-1,0,"W"}},
-	{"transpose", X3DMatrix3_transpose, 'D',{0,-1,0,NULL}},
-	{"multLeft", X3DMatrix3_multLeft, 'W',{1,-1,0,"D"}},
-	{"multRight", X3DMatrix3_multRight, 'W',{0,-1,0,NULL}},
-	{"multVecMatrix", X3DMatrix3_multVecMatrix, 'W',{0,-1,0,NULL}},
+	{"inverse", X3DMatrix3_inverse, 'P',{0,-1,0,NULL}},
+	{"transpose", X3DMatrix3_transpose, 'P',{0,-1,0,NULL}},
+	{"multLeft", X3DMatrix3_multLeft, 'P',{1,-1,0,"P"}},
+	{"multRight", X3DMatrix3_multRight, 'P',{1,-1,0,"P"}},
+	{"multVecMatrix", X3DMatrix3_multVecMatrix, 'W',{1,-1,0,"W"}},
 	{"multMatrixVec", X3DMatrix3_multMatrixVec, 'W',{1,-1,0,"W"}},
 	//{"toString", X3DMatrix3_toString, 'S',{0,-1,0,NULL}},
 	{0}
 };
 
-int SFVec3d_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
-	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
+int X3DMatrix3_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
 	int nr = 0;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
-	if(index > -1 && index < 3){
+	if(index > -1 && index < 9){
 		nr = 1;
-		switch(index){
-		case 0: //x
-		case 1: //y
-		case 2: //z
-			fwretval->_numeric =  ptr->c[index];
-			//fwretval->_web3dval.anyvrml = (union anyVrml*)&ptr->c[index];
-			//fwretval->_web3dval.fieldType = FIELDTYPE_SFFloat;
-			break;
-		default:
-			nr = 0;
-		}
+		fwretval->_numeric =  ptr->c[index];
 	}
-	fwretval->itype = 'D';
+	fwretval->itype = 'F';
 	return nr;
 }
-int SFVec3d_Setter(FWType fwt, int index, void * fwn, FWval fwval){
-	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
+int X3DMatrix3_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
-	if(index > -1 && index < 3){
-		switch(index){
-		case 0: //x
-		case 1: //y
-		case 2: //z
+	if(index > -1 && index < 9){
+		if(fwval->itype = 'F'){
 			ptr->c[index] = fwval->_numeric; //fwval->_web3dval.anyvrml->sffloat; 
-			break;
+			return TRUE;
 		}
-		return TRUE;
 	}
 	return FALSE;
 }
 //typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
-void * SFVec3d_Constructor(FWType fwtype, int ic, FWval fwpars){
+void * X3DMatrix3_Constructor(FWType fwtype, int ic, FWval fwpars){
 	struct SFVec3d *ptr = malloc(fwtype->size_of); //garbage collector please
 	for(int i=0;i<3;i++)
 		ptr->c[i] =  fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
 	return (void *)ptr;
 }
 
-FWPropertySpec (SFVec3d_Properties)[] = {
-	{"x", 0, 'D', 0},
-	{"y", 1, 'D', 0},
-	{"z", 2, 'D', 0},
-	{NULL,0,0,0},
-};
-ArgListType (SFVec3d_ConstructorArgs)[] = {
-		{3,0,'T',"DDD"},
+ArgListType (X3DMatrix3_ConstructorArgs)[] = {
+		{9,0,'T',"FFFFFFFFF"},
 		{-1,0,0,NULL},
 };
 //#define FIELDTYPE_SFMatrix3f	29
@@ -2304,119 +2520,337 @@ FWTYPE X3DMatrix3Type = {
 	AUXTYPE_X3DMatrix3,
 	"X3DMatrix3",
 	sizeof(struct SFMatrix3f), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
+	X3DMatrix3_Constructor, //constructor
+	X3DMatrix3_ConstructorArgs, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
+	X3DMatrix3_Getter, //Getter,
+	X3DMatrix3_Setter, //Setter,
 	'F',0, //index prop type,readonly
-	NULL, //functions
+	X3DMatrix3_Functions, //functions
 };
-*/
-//#define FIELDTYPE_MFMatrix3f	30
-//FWTYPE MFMatrix3fType = {
-//	FIELDTYPE_MFMatrix3f,
-//	"MFMatrix3f",
-//	sizeof(struct Multi_Any), //sizeof(struct ), 
-//	MFW_Constructor, //constructor
-//	MFW_ConstructorArgs, //constructor args
-//	MFW_Properties, //Properties,
-//	NULL, //special iterator
-//	MFW_Getter, //Getter,
-//	MFW_Setter, //Setter,
-//	'W',0, //index prop type,readonly
-//	NULL, //functions
-//};
-//#define FIELDTYPE_SFMatrix3d	31
-//FWTYPE SFMatrix3dType = {
-//	FIELDTYPE_SFMatrix3d,
-//	"SFMatrix3d",
-//	sizeof(struct SFMatrix3d), //sizeof(struct ), 
-//	NULL, //constructor
-//	NULL, //constructor args
-//	NULL, //Properties,
-//	NULL, //special iterator
-//	NULL, //Getter,
-//	NULL, //Setter,
-//	'D',0, //index prop type,readonly
-//	NULL, //functions
-//};
-//#define FIELDTYPE_MFMatrix3d	32
-//FWTYPE MFMatrix3dType = {
-//	FIELDTYPE_MFMatrix3d,
-//	"MFMatrix3d",
-//	sizeof(struct Multi_Any), //sizeof(struct ), 
-//	MFW_Constructor, //constructor
-//	MFW_ConstructorArgs, //constructor args
-//	MFW_Properties, //Properties,
-//	NULL, //special iterator
-//	MFW_Getter, //Getter,
-//	MFW_Setter, //Setter,
-//	'W',0, //index prop type,readonly
-//	NULL, //functions
-//};
 
-/*
-//#define FIELDTYPE_SFMatrix4f	33
+
+/* 
+Matrix4
+http://www.web3d.org/files/specifications/19777-1/V3.0/Part1/functions.html#Matrix4
+"The translation elements are in the fourth row. For example, x3dMatrixObjectName[3][0] is the X offset"
+- I assume its a 4x4 homogenous transform matrix
+[x']   [x y z 1] X [   scale      px]   where px,py,pz are perspectives ie pz = 1/focal-length
+[y'] =             [   and        py] 
+[z']               [   rot        pz] 
+[w ]               [tx   ty   tz   1]   and tx,ty,tz are translations
+x" = x'/w
+y" = y'/w
+z" = z'/w
+
+constr
+X3DMatrix4 (numeric f11, numeric f12, numeric f13, numeric f14,
+  numeric f21, numeric f22, numeric f23, numeric f24,
+  numeric f31, numeric f32, numeric f33, numeric f34,
+  numeric f41, numeric f42, numeric f43, numeric f44) The creation function shall initialize the array using zero or more SFVec3-valued expressions passed as parameters. 
+props
+array-style indexing row-major order
+funcs
+void setTransform(SFVec3f translation, SFRotation rotation, SFVec3f scale, SFRotation scaleOrientation, SFVec3f center) 
+	Sets the Matrix to the passed values. Any of the rightmost parameters may be omitted. The function has zero to five parameters. For example, specifying zero parameters results in an identity matrix while specifying one parameter results in a translation and specifying two parameters results in a translation and a rotation. Any unspecified parameter is set to its default as specified for the Transform node. Values are applied to the matrix in the same order as the matrix field calculations for the Transform node. 
+void getTransform(SFVec3f translation, SFRotation rotation, SFVec3f scale) 
+	Decomposes the Matrix and returns the components in the passed translation, rotation, and scale objects. The types of these passed objects is the same as the first three arguments to setTransform. If any passed object is not sent, or if the null object is sent for any value, that value is not returned. Any projection or shear information in the matrix is ignored.  
+Matrix4 inverse()      Returns a Matrix whose value is the inverse of this object. 
+Matrix4 transpose()    Returns a Matrix whose value is the transpose of this object. 
+Matrix4 multLeft(Matrix4 matrix)   Returns a Matrix whose value is the object multiplied by the passed matrix on the left. 
+Matrix4 multRight(Matrix4 matrix)    Returns a Matrix whose value is the object multiplied by the passed matrix on the right. 
+SFVec3f multVecMatrix(SFVec3f vec)    Returns an SFVec3f whose value is the object multiplied by the passed row vector. 
+SFVec3f multMatrixVec(SFVec3f vec)    Returns an SFVec3f whose value is the object multiplied by the passed column vector. 
+String toString()    Returns a String containing the matrix contents encoded using the X3D Classic VRML encoding (see part 2 of ISO/IEC 19776). 
+
+*/
+
+int X3DMatrix4_setTransform(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	//void setTransform(SFVec3f translation, SFRotation rotation, SFVec3f scale, SFRotation scaleOrientation, SFVec3f center) 
+	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/group.html#Transform
+	// P' = T * C * R * SR * S * -SR * -C * P
+	int i,j;
+	struct SFMatrix4f *ptr = (struct SFMatrix4f *)fwn;
+	struct SFVec3f *translation = fwpars[0]._web3dval.native;
+	struct SFRotation *rotation = fwpars[1]._web3dval.native;
+	struct SFVec3f *scale = fwpars[2]._web3dval.native;
+	struct SFRotation *scaleOrientation = fwpars[3]._web3dval.native;
+	struct SFVec3f *center = fwpars[4]._web3dval.native;
+	//set up some [][] helpers for clarity
+	float *matrix[4], *mat[4], m2[16];
+	for(i=0;i<4;i++){
+		matrix[i] = &ptr->c[i*4]; //our current matrix3
+		mat[i] = &m2[i*4]; //scratch matrix
+	}
+	//initialize to Identity
+	matidentity4f(matrix[0]);
+	//-C
+	if(center){
+		matidentity4f(mat[0]);
+		veccopy3f(mat[3],center->c);
+		vecscale3f(mat[3],mat[3],-1.0f);
+		matmultiply4f(matrix[0],mat[0],matrix[0]);
+	}
+	//-SR
+	if(scaleOrientation){
+		scaleOrientation->c[3] = -scaleOrientation->c[3];
+		matidentity4f(mat[0]);
+		for(i=0;i<3;i++)
+			axisangle_rotate3f(mat[i], mat[i], scaleOrientation->c);
+		matmultiply4f(matrix[0],mat[0],matrix[0]);
+		scaleOrientation->c[3] = -scaleOrientation->c[3];
+	}
+	//S
+	if(scale){
+		matidentity4f(mat[0]);
+		for(i=0;i<4;i++)
+			vecmult3f(mat[i],mat[i],scale->c);
+		matmultiply4f(matrix[0],mat[0],matrix[0]);
+	}
+	//SR
+	if(scaleOrientation){
+		matidentity4f(mat[0]);
+		for(i=0;i<3;i++)
+			axisangle_rotate3f(mat[i], mat[i], scaleOrientation->c);
+		matmultiply4f(matrix[0],mat[0],matrix[0]);
+	}
+	//R
+	if(rotation){
+		matidentity4f(mat[0]);
+		for(i=0;i<3;i++)
+			axisangle_rotate3f(mat[i], mat[i], rotation->c);
+		matmultiply4f(matrix[0],mat[0],matrix[0]);
+
+	}
+	//C
+	if(center){
+		matidentity4f(mat[0]);
+		veccopy3f(mat[3],center->c);
+		matmultiply4f(matrix[0],mat[0],matrix[0]);
+	}
+	//T
+	if(translation){
+		matidentity4f(mat[0]);
+		veccopy3f(mat[3],translation->c);
+		matmultiply4f(matrix[0],mat[0],matrix[0]);
+	}
+
+	return 0;
+}
+
+int X3DMatrix4_getTransform(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	//void getTransform(SFVec3f translation, SFRotation rotation, SFVec3f scale) 
+	int i;
+	struct SFMatrix4f *ptr = (struct SFMatrix4f *)fwn;
+	struct SFVec3f *translation = fwpars[0]._web3dval.native;
+	struct SFRotation *rotation = fwpars[1]._web3dval.native;
+	struct SFVec3f *scale = fwpars[2]._web3dval.native;
+    float *matrix[4], retscale[3];
+	double matrixd[16];
+    	Quaternion quat;
+    	double qu[4];
+	double r0[4], r1[4], r2[4];
+	for(i=0;i<4;i++)
+		matrix[i] = &ptr->c[i*4];
+
+	//get row scales
+	for(i=0;i<3;i++)
+		retscale[i] = (float)sqrt(vecdot4f(matrix[i],matrix[i]));
+
+	if (translation) {
+		veccopy3f(translation->c,matrix[3]);
+	}
+
+	/* rotation */
+	if (rotation) {
+		/* apply length to each row to normalize upperleft 3x3 to rotations and shears*/
+		float m2[16], ff;
+		for(i=0;i<3;i++){
+			ff = retscale[i];
+			if(ff != 0.0f) ff = 1/ff;
+				vecscale4f(&m2[i*4],matrix[i],ff);
+		}
+		/* convert the matrix to a quaternion */
+		for(i=0;i<16;i++) matrixd[i] = (double) m2[i];
+		matrix_to_quaternion (&quat, matrixd);
+		#ifdef JSVRMLCLASSESVERBOSE
+		printf ("quaternion %f %f %f %f\n",quat.x,quat.y,quat.z,quat.w);
+		#endif
+
+		/* convert the quaternion to a VRML rotation */
+		quaternion_to_vrmlrot(&quat, &qu[0],&qu[1],&qu[2],&qu[3]);
+
+		/* now copy the values over */
+		for (i=0; i<4; i++) 
+			rotation->c[i] = (float) qu[i];
+	}
+
+	/* scale */
+	if (scale) {
+		veccopy3f(scale->c,retscale);
+	}
+
+	return 0;
+}
+
+int X3DMatrix4_inverse(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	//Matrix4 inverse()
+	struct SFMatrix4f *ptr = (struct SFMatrix4f *)fwn;
+	struct SFMatrix4f *ret = malloc(sizeof(struct SFMatrix4f));
+
+	matinverse4f(ret->c,ptr->c);
+
+	fwretval->_pointer.native = ret;
+	fwretval->_pointer.fieldType = AUXTYPE_X3DMatrix4;
+	fwretval->itype = 'P';
+	return 1;
+}
+int X3DMatrix4_transpose(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	//Matrix4 transpose()    Returns a Matrix whose value is the transpose of this object. 
+	struct SFMatrix4f *ptr = (struct SFMatrix4f *)fwn;
+	struct SFMatrix4f *ret = malloc(sizeof(struct SFMatrix4f));
+
+	mattranspose4f(ret->c, ptr->c);
+
+	fwretval->_pointer.native = ret;
+	fwretval->_pointer.fieldType = AUXTYPE_X3DMatrix4;
+	fwretval->itype = 'P';
+
+	return 1;
+}
+int X3DMatrix4_multLeft(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	//Matrix4 multLeft(Matrix4 matrix)   Returns a Matrix whose value is the object multiplied by the passed matrix on the left. 
+
+	struct SFMatrix4f *ptr = (struct SFMatrix4f *)fwn;
+	struct SFMatrix4f *rhs = (struct SFMatrix4f *)fwpars[0]._web3dval.native;
+	struct SFMatrix4f *ret = malloc(sizeof(struct SFMatrix4f));
+
+	matmultiply4f(ptr->c,rhs->c,ptr->c);
+
+	fwretval->_pointer.native = ret;
+	fwretval->_pointer.fieldType = AUXTYPE_X3DMatrix4;
+	fwretval->itype = 'P';
+	return 1;
+}
+int X3DMatrix4_multRight(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	//Matrix4 multRight(Matrix4 matrix)    Returns a Matrix whose value is the object multiplied by the passed matrix on the right. 
+	struct SFMatrix4f *ptr = (struct SFMatrix4f *)fwn;
+	struct SFMatrix4f *rhs = (struct SFMatrix4f *)fwpars[0]._web3dval.native;
+	struct SFMatrix4f *ret = malloc(sizeof(struct SFMatrix4f));
+	fwretval->_pointer.native = ret;
+
+	matmultiply4f(ptr->c,ptr->c,rhs->c);
+
+	fwretval->_pointer.fieldType = AUXTYPE_X3DMatrix4;
+	fwretval->itype = 'P';
+	return 1;
+}
+int X3DMatrix4_multVecMatrix(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	//SFVec3f multVecMatrix(SFVec3f vec)    Returns an SFVec3f whose value is the object multiplied by the passed row vector. 
+	struct SFMatrix4f *ptr = (struct SFMatrix4f *)fwn;
+	struct SFVec3f *rhs = (struct SFVec3f *)fwpars[0]._web3dval.native;
+	struct SFVec3f *ret = malloc(sizeof(struct SFVec3f));
+	float a4[4], r4[4];
+	veccopy3f(a4,rhs->c);
+	a4[3] = 1.0f;
+	vecmultmat4f(r4, a4, ptr->c);
+	if(r4[3] != 0.0f){
+		float wi = 1.0f/r4[3];
+		vecscale3f(ret->c,r4,wi);
+	}else{
+		veccopy3f(ret->c,r4);
+	}
+
+	fwretval->_pointer.native = ret;
+	fwretval->_pointer.fieldType = FIELDTYPE_SFVec3f;
+	fwretval->itype = 'W';
+	return 1;
+}
+int X3DMatrix4_multMatrixVec(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	//SFVec3f multMatrixVec(SFVec3f vec)    Returns an SFVec3f whose value is the object multiplied by the passed column vector. 
+	struct SFMatrix4f *ptr = (struct SFMatrix4f *)fwn;
+	struct SFVec3f *rhs = (struct SFVec3f *)fwpars[0]._web3dval.native;
+	struct SFVec3f *ret = malloc(sizeof(struct SFVec3f));
+//float* matmultvec4f(float* r4, float *mat4, float* a4 );
+	float a4[4], r4[4];
+	veccopy3f(a4,rhs->c);
+	a4[3] = 1.0f;
+	matmultvec4f(r4, ptr->c, a4 );
+	if(r4[3] != 0.0f){
+		float wi = 1.0f/r4[3];
+		vecscale3f(ret->c,r4,wi);
+	}else{
+		veccopy3f(ret->c,r4);
+	}
+
+	fwretval->_pointer.native = ret;
+	fwretval->_pointer.fieldType = FIELDTYPE_SFVec3f;
+	fwretval->itype = 'W';
+	return 1;
+}
+
+FWFunctionSpec (X3DMatrix4_Functions)[] = {
+	{"setTransform", X3DMatrix4_setTransform, 0,{5,-1,0,"WWWWW"}},
+	{"getTransform", X3DMatrix4_getTransform, 'P',{1,-1,0,"W"}},
+	{"inverse", X3DMatrix4_inverse, 'P',{0,-1,0,NULL}},
+	{"transpose", X3DMatrix4_transpose, 'P',{0,-1,0,NULL}},
+	{"multLeft", X3DMatrix4_multLeft, 'P',{1,-1,0,"P"}},
+	{"multRight", X3DMatrix4_multRight, 'P',{1,-1,0,"P"}},
+	{"multVecMatrix", X3DMatrix4_multVecMatrix, 'W',{1,-1,0,"W"}},
+	{"multMatrixVec", X3DMatrix4_multMatrixVec, 'W',{1,-1,0,"W"}},
+	//{"toString", X3DMatrix4_toString, 'S',{0,-1,0,NULL}},
+	{0}
+};
+
+int X3DMatrix4_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
+	int nr = 0;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index > -1 && index < 9){
+		nr = 1;
+		fwretval->_numeric =  ptr->c[index];
+	}
+	fwretval->itype = 'F';
+	return nr;
+}
+int X3DMatrix4_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
+	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+	if(index > -1 && index < 9){
+		if(fwval->itype = 'F'){
+			ptr->c[index] = fwval->_numeric; //fwval->_web3dval.anyvrml->sffloat; 
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+//typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
+void * X3DMatrix4_Constructor(FWType fwtype, int ic, FWval fwpars){
+	struct SFVec3d *ptr = malloc(fwtype->size_of); //garbage collector please
+	for(int i=0;i<3;i++)
+		ptr->c[i] =  fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
+	return (void *)ptr;
+}
+
+ArgListType (X3DMatrix4_ConstructorArgs)[] = {
+		{9,0,'T',"FFFFFFFFF"},
+		{-1,0,0,NULL},
+};
+
 FWTYPE X3DMatrix4Type = {
 	AUXTYPE_X3DMatrix4,
 	"X3DMatrix4",
-	sizeof(struct SFMatrix4f), //sizeof(struct ), 
-	NULL, //constructor
-	NULL, //constructor args
+	sizeof(struct SFMatrix3f), //sizeof(struct ), 
+	X3DMatrix4_Constructor, //constructor
+	X3DMatrix4_ConstructorArgs, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
-	NULL, //Getter,
-	NULL, //Setter,
+	X3DMatrix4_Getter, //Getter,
+	X3DMatrix4_Setter, //Setter,
 	'F',0, //index prop type,readonly
-	NULL, //functions
+	X3DMatrix4_Functions, //functions
 };
-*/
-//#define FIELDTYPE_MFMatrix4f	34
-//FWTYPE MFMatrix4fType = {
-//	FIELDTYPE_MFMatrix4f,
-//	"MFMatrix4f",
-//	sizeof(struct Multi_Any), //sizeof(struct ), 
-//	MFW_Constructor, //constructor
-//	MFW_ConstructorArgs, //constructor args
-//	MFW_Properties, //Properties,
-//	NULL, //special iterator
-//	MFW_Getter, //Getter,
-//	MFW_Setter, //Setter,
-//	'W',0, //index prop type,readonly
-//	NULL, //functions
-//};
-
-//#define FIELDTYPE_SFMatrix4d	35
-//FWTYPE SFMatrix4dType = {
-//	FIELDTYPE_SFMatrix4d,
-//	"SFMatrix4d",
-//	sizeof(struct SFMatrix4d), //sizeof(struct ), 
-//	NULL, //constructor
-//	NULL, //constructor args
-//	NULL, //Properties,
-//	NULL, //special iterator
-//	NULL, //Getter,
-//	NULL, //Setter,
-//	'D',0, //index prop type,readonly
-//	NULL, //functions
-//};
-
-//#define FIELDTYPE_MFMatrix4d	36
-//FWTYPE MFMatrix4dType = {
-//	FIELDTYPE_MFMatrix4d,
-//	"MFMatrix4d",
-//	sizeof(struct Multi_Any), //sizeof(struct ), 
-//	MFW_Constructor, //constructor
-//	MFW_ConstructorArgs, //constructor args
-//	MFW_Properties, //Properties,
-//	NULL, //special iterator
-//	MFW_Getter, //Getter,
-//	MFW_Setter, //Setter,
-//	'W',0, //index prop type,readonly
-//	NULL, //functions
-//};
 
 
 // http://www.web3d.org/files/specifications/19777-1/V3.0/Part1/functions.html#SFVec2d
