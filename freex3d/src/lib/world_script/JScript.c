@@ -1625,8 +1625,10 @@ void resetScriptTouchedFlag(int actualscript, int fptr) {
 
 int jsActualrunScript(int num, char *script);
 void JSInitializeScriptAndFields (int num) {
+#ifdef OLDWAY33
         struct ScriptParamList *thisEntry;
         struct ScriptParamList *nextEntry;
+#endif
 	//jsval rval;
 	//ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
 	struct CRscriptStruct *ScriptControl = getScriptControl();
@@ -1639,6 +1641,12 @@ void JSInitializeScriptAndFields (int num) {
 	//	return;
 	//}
 	/* run through fields in order of entry in the X3D file */
+
+
+
+
+
+#ifdef OLDWAY33
         thisEntry = ScriptControl[num].paramList;
         while (thisEntry != NULL) {
 		/* printf ("script field is %s\n",thisEntry->field);  */
@@ -1653,6 +1661,23 @@ void JSInitializeScriptAndFields (int num) {
 	
 	/* we have freed each element, set list to NULL in case anyone else comes along */
 	ScriptControl[num].paramList = NULL;
+#else
+	int i,nfields,kind,itype;
+	const char *fieldname;
+	struct Shader_Script *script;
+	struct ScriptFieldDecl *field;
+
+	script = ScriptControl[num].script;
+	printf("adding fields from script %x\n",script);
+	nfields = Shader_Script_getScriptFieldCount(script);
+	for(i=0;i<nfields;i++){
+		field = Shader_Script_getScriptField(script,i);
+		fieldname = ScriptFieldDecl_getName(field);
+		kind = ScriptFieldDecl_getMode(field);
+		itype = ScriptFieldDecl_getType(field);
+		InitScriptField(num, kind, itype, fieldname, field->value);
+	}
+#endif
 
 	if (!jsActualrunScript(num, ScriptControl[num].scriptText)) {
 		ConsoleMessage ("JSInitializeScriptAndFields, script failure\n");
@@ -1670,6 +1695,7 @@ void JSInitializeScriptAndFields (int num) {
 
 /* save this field from the parser; initialize it when the fwl_RenderSceneUpdateScene wants to initialize it */
 void SaveScriptField (int num, indexT kind, indexT type, const char* field, union anyVrml value) {
+#ifdef OLDWAY33
 	struct ScriptParamList **nextInsert;
 	struct ScriptParamList *newEntry;
 	struct CRscriptStruct *ScriptControl = getScriptControl();
@@ -1698,6 +1724,7 @@ void SaveScriptField (int num, indexT kind, indexT type, const char* field, unio
 	newEntry->type = type;
 	newEntry->field = STRDUP(field);
 	newEntry->value = value;
+#endif
 }
 
 

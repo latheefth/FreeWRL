@@ -1588,9 +1588,9 @@ static void parseAttributes() {
 			   initialized in JSInitializeScriptAndFields of course! */
 			switch (thisNode->_nodeType) {
 				case NODE_Script:
-        			case NODE_ComposedShader: 
-        			case NODE_ShaderProgram:
-        			case NODE_PackagedShader: {
+				case NODE_ComposedShader: 
+				case NODE_ShaderProgram:
+				case NODE_PackagedShader: {
 					int rv, offs, type, accessType;
 					struct Shader_Script *myObj;
 
@@ -1604,104 +1604,136 @@ static void parseAttributes() {
 
 					/* found the name, if the offset is not INT_ID_UNDEFINED */
 					if (offs != INT_ID_UNDEFINED) {
+						int kk;
+//#define OLDWAY33 1
+#ifdef OLDWAY33
+						struct ScriptParamList *thisEntry;
+						struct CRscriptStruct *ScriptControl = getScriptControl();
 
-					        struct ScriptParamList *thisEntry;
-							struct CRscriptStruct *ScriptControl = getScriptControl();
+						thisEntry = ScriptControl[myObj->num].paramList;
+						kk= -1;
+						while (thisEntry != NULL) {
+							kk++;
+#else
+						int nfield = vectorSize(myObj->fields);
+						printf("number of fields in script=%d\n",nfield);
+						for(kk=0;kk<nfield;kk++){
 
-        					thisEntry = ScriptControl[myObj->num].paramList;
-        					while (thisEntry != NULL) {
-        					        /* printf ("script field is %s\n",thisEntry->field); */
-							if (strcmp (nvp->fieldName, thisEntry->field) == 0) {
+#endif
+							/* printf ("script field is %s\n",thisEntry->field); */
+							int itype, kind;
+							union anyVrml *value;
+							char *fname;
+#ifdef OLDWAY33
+							fname = thisEntry->field;
+							kind = thisEntry->kind;
+							value = &thisEntry->value;
+							itype = thisEntry->type;
+#else
+							//struct Vector *sfields;
+							struct ScriptFieldDecl *sfield;
+							struct FieldDecl *fdecl;
+							struct CRjsnameStruct *JSparamnames = getJSparamnames();
+
+							sfield = vector_get(struct ScriptFieldDecl *,myObj->fields,kk); //offs);
+							//if(sfield->ASCIIvalue) printf("Ascii value=%s\n",sfield->ASCIIvalue);
+							fdecl = sfield->fieldDecl;
+							fname = fieldDecl_getShaderScriptName(fdecl);
+							//if(!strcmp(fieldName,fieldname)){
+							itype = fdecl->fieldType;
+							kind = fdecl->PKWmode;
+							value = &(sfield->value);
+#endif
+							if (strcmp (nvp->fieldName, fname) == 0) {
+								printf("nvp->fname = %s fname=%s itype=%d kind=%d jindx=%d\n",nvp->fieldName, fname,itype,kind,kk);
 
 								/* printf ("name MATCH\n");
 								printf ("thisEntry->kind %d type %d value %f\n",
 									thisEntry->kind,thisEntry->type,thisEntry->value); */
-							if ((thisEntry->kind==PKW_initializeOnly) || (thisEntry->kind==PKW_inputOutput)) 
-							{
-				                if (nvp->fieldValue== NULL) {
-                					ConsoleMessage ("PROTO connect field, an initializeOnly or inputOut needs an initialValue for name %s",nvp->fieldName);
-        						} else {
-									if(nvp->fieldType == 0)
-									{
-										/* printf ("have to parse fieldValue :%s: and place it into my value\n",nvp->fieldValue);  */
-										Parser_scanStringValueToMem(X3D_NODE(&(thisEntry->value)), 0, 
-											thisEntry->type, nvp->fieldValue, TRUE);
-									}
-									else if(nvp->fieldType == 1)
-									{
-										/* not currently implemented, but reserved for DEF index style
-										?? itoa(DEF index)
-						                ?? np = getEAINodeFromTable(atoi(value), -1);
-										*/
-									}
-									else if(nvp->fieldType == FIELDTYPE_MFNode || nvp->fieldType == FIELDTYPE_SFNode )  
-									{
-										/*dug9 added July 18, 2010 (search for BIGPUSH / BIGPOP to find where data set)
-										  we have an MFNode field already in binary form 
-										  <fieldValue name="Buildings">
-											<Transform USE="House1"/>
-											<Transform USE="House2">
-										   </fieldValue>
-										   the House transforms have been parsed as regular nodes and 
-										   the top level nodes listed in an MFNode
-									    */
-										union anyVrml* av;
-										if(sscanf(nvp->fieldValue,"%p",&av) != 1)
+								if ((kind==PKW_initializeOnly) || (kind==PKW_inputOutput)) 
+								{
+									if (nvp->fieldValue== NULL) {
+										ConsoleMessage ("PROTO connect field, an initializeOnly or inputOut needs an initialValue for name %s",nvp->fieldName);
+									} else {
+										if(nvp->fieldType == 0)
 										{
-											printf ("parseAttributes - can not get handle from %s\n",nvp->fieldValue);
+											/* printf ("have to parse fieldValue :%s: and place it into my value\n",nvp->fieldValue);  */
+											Parser_scanStringValueToMem(X3D_NODE(value), 0, 
+												itype, nvp->fieldValue, TRUE);
 										}
-										else
+										else if(nvp->fieldType == 1)
 										{
-											/* printf("parseAttributes - got %d mf fields back from pointer %s \n",((struct Multi_Node *)av)->n,nvp->fieldValue);*/
-											if( type == FIELDTYPE_MFNode )
+											/* not currently implemented, but reserved for DEF index style
+											?? itoa(DEF index)
+											?? np = getEAINodeFromTable(atoi(value), -1);
+											*/
+										}
+										else if(nvp->fieldType == FIELDTYPE_MFNode || nvp->fieldType == FIELDTYPE_SFNode )  
+										{
+											/*dug9 added July 18, 2010 (search for BIGPUSH / BIGPOP to find where data set)
+											  we have an MFNode field already in binary form 
+											  <fieldValue name="Buildings">
+												<Transform USE="House1"/>
+												<Transform USE="House2">
+											   </fieldValue>
+											   the House transforms have been parsed as regular nodes and 
+											   the top level nodes listed in an MFNode
+											*/
+											union anyVrml* av;
+											if(sscanf(nvp->fieldValue,"%p",&av) != 1)
 											{
-												memcpy(&thisEntry->value,av,sizeof(union anyVrml)); 
-											}
-											else if( type == FIELDTYPE_SFNode)
-											{
-												if(nvp->fieldType == FIELDTYPE_SFNode)
-												{
-													/* this came from the ProtoInterface field where we knew the type */
-													memcpy(&thisEntry->value,av,sizeof(union anyVrml)); 
-												}
-												else if(nvp->fieldType == FIELDTYPE_MFNode)
-												{
-													/* this came from the ProtoInstance fieldValue where did not know the type
-													   and we guessed at MFNode to be most general. But we were wrong in this
-													   case - so down-convert first node in MFNode to SFNode and forget the rest */
-													//struct X3D_Transform *tt = (struct X3D_Transform*)((struct Multi_Node *)av)->p[0];
-													struct X3D_Node *tt = (struct X3D_Node*)((struct Multi_Node *)av)->p[0];
-													memcpy(&thisEntry->value,&tt,sizeof(struct X3D_Node*));
-													/* could free the rest of the unused MFnodes here if there are some and we were ambitious */
-												}
+												printf ("parseAttributes - can not get handle from %s\n",nvp->fieldValue);
 											}
 											else
 											{
-												//we got an MFNode or SFNode in the ProtoInstance fieldValue
-												//but the expanded proto and Script node don't want it
-												printf("ProtoInstance fieldValue type MFNode or SFNode Proto type %d mismatch\n",type);
-												/* could free all the unused MFnodes here if we were ambitious */
+												/* printf("parseAttributes - got %d mf fields back from pointer %s \n",((struct Multi_Node *)av)->n,nvp->fieldValue);*/
+												if( type == FIELDTYPE_MFNode )
+												{
+													memcpy(value,av,sizeof(union anyVrml)); 
+												}
+												else if( type == FIELDTYPE_SFNode)
+												{
+													if(nvp->fieldType == FIELDTYPE_SFNode)
+													{
+														/* this came from the ProtoInterface field where we knew the type */
+														memcpy(value,av,sizeof(union anyVrml)); 
+													}
+													else if(nvp->fieldType == FIELDTYPE_MFNode)
+													{
+														/* this came from the ProtoInstance fieldValue where did not know the type
+														   and we guessed at MFNode to be most general. But we were wrong in this
+														   case - so down-convert first node in MFNode to SFNode and forget the rest */
+														//struct X3D_Transform *tt = (struct X3D_Transform*)((struct Multi_Node *)av)->p[0];
+														struct X3D_Node *tt = (struct X3D_Node*)((struct Multi_Node *)av)->p[0];
+														memcpy(value,&tt,sizeof(struct X3D_Node*));
+														/* could free the rest of the unused MFnodes here if there are some and we were ambitious */
+													}
+												}
+												else
+												{
+													//we got an MFNode or SFNode in the ProtoInstance fieldValue
+													//but the expanded proto and Script node don't want it
+													printf("ProtoInstance fieldValue type MFNode or SFNode Proto type %d mismatch\n",type);
+													/* could free all the unused MFnodes here if we were ambitious */
+												}
+												FREE_IF_NZ(av); //size of union anyVrml, malloced elsewhere
 											}
-											FREE_IF_NZ(av); //size of union anyVrml, malloced elsewhere
 										}
+										/* printf ("done this parsing\n"); */
 									}
-									/* printf ("done this parsing\n"); */
 								}
 							}
-
-							}
+#ifdef OLDWAY33
 							thisEntry=thisEntry->next;
+#endif
 						}
 					} else {
 						/* some fields, eg "PackagedShader language field" or any other field that is not a field,
 						   is just a normal field as defined in the spec, so make it so */
 						setField_fromJavascript (thisNode, nvp->fieldName,nvp->fieldValue, TRUE);
 					}
-		
-
 				}
 				break;
-
 				default: 
 					//setField_fromJavascript (thisNode, nvp->fieldName,nvp->fieldValue, TRUE);
 					//break;

@@ -197,7 +197,9 @@ void deleteScriptFieldDecl(struct ScriptFieldDecl* me)
 /* Sets script field value */
 void scriptFieldDecl_setFieldValue(struct ScriptFieldDecl* me, union anyVrml v)
 {
- ASSERT(me->fieldDecl->PKWmode==PKW_initializeOnly); 
+ //ASSERT(me->fieldDecl->PKWmode==PKW_initializeOnly); 
+ //dug9 2014 in june or july I changed scripts to allow inputOutput/exposedFields, to match X3D v3.3 specs (vrml specs said no) 
+ ASSERT(me->fieldDecl->PKWmode==PKW_initializeOnly || me->fieldDecl->PKWmode==PKW_inputOutput)
  me->value=v;
  me->valueSet=TRUE;
 }
