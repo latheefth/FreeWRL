@@ -1616,7 +1616,7 @@ static void parseAttributes() {
 							kk++;
 #else
 						int nfield = vectorSize(myObj->fields);
-						printf("number of fields in script=%d\n",nfield);
+						//printf("number of fields in script=%d\n",nfield);
 						for(kk=0;kk<nfield;kk++){
 
 #endif
@@ -1645,7 +1645,7 @@ static void parseAttributes() {
 							value = &(sfield->value);
 #endif
 							if (strcmp (nvp->fieldName, fname) == 0) {
-								printf("nvp->fname = %s fname=%s itype=%d kind=%d jindx=%d\n",nvp->fieldName, fname,itype,kind,kk);
+								//printf("nvp->fname = %s fname=%s itype=%d kind=%d jindx=%d\n",nvp->fieldName, fname,itype,kind,kk);
 
 								/* printf ("name MATCH\n");
 								printf ("thisEntry->kind %d type %d value %f\n",
