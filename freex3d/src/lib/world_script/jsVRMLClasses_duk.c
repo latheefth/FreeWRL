@@ -466,7 +466,8 @@ FWFunctionSpec (SFRotation_Functions)[] = {
 	{"getAxis", SFRotation_getAxis, 'W',{0,-1,0,NULL}},
 	{"inverse", SFRotation_inverse, 'W',{1,-1,0,"W"}},
 	{"multiply", SFRotation_multiply, 'W',{1,-1,0,"W"}},
-	{"multiVec", SFRotation_multiVec, 'W',{1,-1,0,"W"}},
+	{"multVec", SFRotation_multiVec, 'W',{1,-1,0,"W"}}, //freewrl spelling
+	{"multiVec", SFRotation_multiVec, 'W',{1,-1,0,"W"}}, //web3d.org spelling
 	{"setAxis", SFRotation_setAxis, '0',{1,-1,0,"W"}},
 	{"slerp", SFRotation_slerp, 'W',{2,-1,0,"WF"}},
 	{"toString", SFRotation_toString, 'S',{0,-1,0,NULL}},

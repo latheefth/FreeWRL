@@ -392,7 +392,7 @@ int sizeofSForMF(int itype){
 	switch(itype){
 	case FIELDTYPE_SFFloat: iz = sizeof(float); break;
 	case FIELDTYPE_SFRotation:	iz = sizeof(struct SFRotation); break;
-	case FIELDTYPE_SFVec3f:	iz = 3*sizeof(struct SFVec3f);break;
+	case FIELDTYPE_SFVec3f:	iz = sizeof(struct SFVec3f);break;
 	case FIELDTYPE_SFBool:	iz = sizeof(int); break;
 	case FIELDTYPE_SFInt32:	iz = sizeof(int); break;
 	case FIELDTYPE_SFNode:	iz = sizeof(void*); break;
@@ -1303,6 +1303,9 @@ int cget(duk_context *ctx) {
 			int lastProp;
 			key = duk_get_string(ctx,-2);
 			found = fwhas_generic(fwt,parent,key,&jndex,&type,&readOnly);
+			if(!found){
+				ConsoleMessage("type %s has no property or function %s - please check your typing\n",fwt->name,key);
+			}
 		}
 		if(found && type=='f'){
 			FWFunctionSpec *fw = getFWFunc(fwt,key);
@@ -1430,8 +1433,10 @@ int cset(duk_context *ctx) {
 				arglist.nfixedArg = 1;
 				arglist.iVarArgStartsAt = -1;
 				convert_duk_to_fwvals(ctx, 1, -2, arglist, &fwsetval, &argc);
-				if(argc == 1)
+				if(argc == 1){
 					fwt->Setter(fwt,jndex,parent,fwsetval);
+					(*valueChanged) = 1;
+				}
 				free(fwsetval);
 			}
 		}
@@ -2757,7 +2762,7 @@ void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int
 	maData.n = datalen;
 	maData.p = Data;
 	char *source = (char *)&maData;
-	any = source;
+	any = (void*)source;
 	medium_copy_field(itype,source,&datacopy);
 	any = datacopy;
 	push_typed_proxy2(ctx,itype,datacopy,NULL);
