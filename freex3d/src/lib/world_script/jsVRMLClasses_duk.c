@@ -694,6 +694,21 @@ int SFVec3f_dot(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretva
 	return 1;
 }
 
+int SFVec3f_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
+	char buff[STRING], *str;
+	int len;
+	memset(buff, 0, STRING);
+	sprintf(buff, "%.9g %.9g %.9g",
+			ptr->c[0], ptr->c[1], ptr->c[2]);
+	len = strlen(buff);
+	str = malloc(len+1);  //leak
+	strcpy(str,buff);
+	fwretval->_string = str;
+	fwretval->itype = 'S';
+	return 1;
+}
+
 FWFunctionSpec (SFVec3f_Functions)[] = {
 	{"add", SFVec3f_add, 'W',{1,-1,0,"W"}},
 	{"cross", SFVec3f_cross, 'W',{1,-1,0,"W"}},
@@ -704,7 +719,7 @@ FWFunctionSpec (SFVec3f_Functions)[] = {
 	{"negate", SFVec3f_negate, 'W',{0,-1,0,NULL}},
 	{"normalize", SFVec3f_normalize, 'W',{0,-1,0,NULL}},
 	{"subtract", SFVec3f_subtract, 'W',{1,-1,0,"W"}},
-	//{"toString", SFVec3f_toString, 'S',{0,-1,0,NULL}},
+	{"toString", SFVec3f_toString, 'S',{0,-1,0,NULL}},
 	{0}
 };
 
@@ -1554,10 +1569,29 @@ void * MFString_Constructor(FWType fwtype, int argc, FWval fwpars){
 		//float ff = (float)fwpars[i]._numeric; //fwpars[i]._web3dval.native;
 		if(fwpars[i].itype == 'W' && fwpars[i]._web3dval.fieldType == FIELDTYPE_SFString)
 			memcpy(p,&fwpars[i]._web3dval.native,lenSF);
-		else if(fwpars[i].itype = 'S'){
+		else if(fwpars[i].itype == 'S'){
 			void *tmp = newASCIIString(fwpars[i]._string);
 			memcpy(p,&tmp,lenSF);
 			//(*p) = (char *)
+		}else if(fwpars[i].itype == 'F' || fwpars[i].itype == 'D'){
+			void *tmp;
+			char str[100];
+			sprintf(str,"%f", fwpars[i]._numeric);
+			tmp = newASCIIString(str);
+			memcpy(p,&tmp,lenSF);
+		}else if(fwpars[i].itype == 'I' ){
+			void *tmp;
+			char str[100];
+			sprintf(str,"%d", fwpars[i]._integer);
+			tmp = newASCIIString(str);
+			memcpy(p,&tmp,lenSF);
+		}else if(fwpars[i].itype == 'B' ){
+			void *tmp;
+			const char *str = "false";
+			if(fwpars[i]._boolean) str = "true";
+			tmp = newASCIIString(str);
+			memcpy(p,&tmp,lenSF);
+
 		}
 		p += lenSF;
 	}
@@ -1565,6 +1599,10 @@ void * MFString_Constructor(FWType fwtype, int argc, FWval fwpars){
 }
 ArgListType (MFString_ConstructorArgs)[] = {
 		{0,0,0,"S"},
+		{0,0,0,"F"},
+		{0,0,0,"D"},
+		{0,0,0,"I"},
+		{0,0,0,"B"},
 		{-1,0,0,NULL},
 };
 //#define FIELDTYPE_MFString	19
@@ -1677,6 +1715,20 @@ int SFVec2f_dot(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretva
 	return 1;
 }
 
+int SFVec2f_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec2f *ptr = (struct SFVec2f *)fwn;
+	char buff[STRING], *str;
+	int len;
+	memset(buff, 0, STRING);
+	sprintf(buff, "%.9g %.9g",
+			ptr->c[0], ptr->c[1]);
+	len = strlen(buff);
+	str = malloc(len+1);  //leak
+	strcpy(str,buff);
+	fwretval->_string = str;
+	fwretval->itype = 'S';
+	return 1;
+}
 FWFunctionSpec (SFVec2f_Functions)[] = {
 	{"add", SFVec2f_add, 'W',{1,-1,0,"W"}},
 	{"divide", SFVec2f_divide, 'W',{1,-1,0,"F"}},
@@ -1685,7 +1737,7 @@ FWFunctionSpec (SFVec2f_Functions)[] = {
 	{"multiply", SFVec2f_multiply, 'W',{1,-1,0,"F"}},
 	{"normalize", SFVec2f_normalize, 'W',{0,-1,0,NULL}},
 	{"subtract", SFVec2f_subtract, 'W',{1,-1,0,"W"}},
-	//{"toString", SFVec2f_toString, 'S',{0,-1,0,NULL}},
+	{"toString", SFVec2f_toString, 'S',{0,-1,0,NULL}},
 	{0}
 };
 
@@ -2040,6 +2092,21 @@ int SFVec3d_dot(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretva
 	return 1;
 }
 
+int SFVec3d_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
+	char buff[STRING], *str;
+	int len;
+	memset(buff, 0, STRING);
+	sprintf(buff, "%.9g %.9g %.9g",
+			ptr->c[0], ptr->c[1], ptr->c[2]);
+	len = strlen(buff);
+	str = malloc(len+1);  //leak
+	strcpy(str,buff);
+	fwretval->_string = str;
+	fwretval->itype = 'S';
+	return 1;
+}
+
 FWFunctionSpec (SFVec3d_Functions)[] = {
 	{"add", SFVec3d_add, 'W',{1,-1,0,"W"}},
 	{"cross", SFVec3d_cross, 'W',{1,-1,0,"W"}},
@@ -2050,7 +2117,7 @@ FWFunctionSpec (SFVec3d_Functions)[] = {
 	{"negate", SFVec3d_negate, 'W',{0,-1,0,NULL}},
 	{"normalize", SFVec3d_normalize, 'W',{0,-1,0,NULL}},
 	{"subtract", SFVec3d_subtract, 'W',{1,-1,0,"W"}},
-	//{"toString", SFVec3d_toString, 'S',{0,-1,0,NULL}},
+	{"toString", SFVec3d_toString, 'S',{0,-1,0,NULL}},
 	{0}
 };
 
@@ -2948,7 +3015,20 @@ int SFVec2d_dot(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretva
 	fwretval->itype = 'D';
 	return 1;
 }
-
+int SFVec2d_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec2d *ptr = (struct SFVec2d *)fwn;
+	char buff[STRING], *str;
+	int len;
+	memset(buff, 0, STRING);
+	sprintf(buff, "%.9g %.9g",
+			ptr->c[0], ptr->c[1]);
+	len = strlen(buff);
+	str = malloc(len+1);  //leak
+	strcpy(str,buff);
+	fwretval->_string = str;
+	fwretval->itype = 'S';
+	return 1;
+}
 FWFunctionSpec (SFVec2d_Functions)[] = {
 	{"add", SFVec2d_add, 'W',{1,-1,0,"W"}},
 	{"divide", SFVec2d_divide, 'W',{1,-1,0,"D"}},
@@ -2957,7 +3037,7 @@ FWFunctionSpec (SFVec2d_Functions)[] = {
 	{"multiply", SFVec2d_multiply, 'W',{1,-1,0,"D"}},
 	{"normalize", SFVec2d_normalize, 'W',{0,-1,0,NULL}},
 	{"subtract", SFVec2d_subtract, 'W',{1,-1,0,"W"}},
-	//{"toString", SFVec2d_toString, 'S',{0,-1,0,NULL}},
+	{"toString", SFVec2d_toString, 'S',{0,-1,0,NULL}},
 	{0}
 };
 
@@ -3043,8 +3123,23 @@ FWTYPE MFVec2dType = {
 	NULL, //functions
 };
 
+int SFVec4f_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec4f *ptr = (struct SFVec4f *)fwn;
+	char buff[STRING], *str;
+	int len;
+	memset(buff, 0, STRING);
+	sprintf(buff, "%.9g %.9g %.9g %.9g",
+			ptr->c[0], ptr->c[1], ptr->c[2], ptr->c[3]);
+	len = strlen(buff);
+	str = malloc(len+1);  //leak
+	strcpy(str,buff);
+	fwretval->_string = str;
+	fwretval->itype = 'S';
+	return 1;
+}
+
 FWFunctionSpec (SFVec4f_Functions)[] = {
-	//{"toString", SFVec4f_toString, 'S',{0,-1,0,NULL}},
+	{"toString", SFVec4f_toString, 'S',{0,-1,0,NULL}},
 	{0}
 };
 
@@ -3137,9 +3232,22 @@ FWTYPE MFVec4fType = {
 	NULL, //functions
 };
 
-
+int SFVec4d_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec4d *ptr = (struct SFVec4d *)fwn;
+	char buff[STRING], *str;
+	int len;
+	memset(buff, 0, STRING);
+	sprintf(buff, "%.9g %.9g %.9g %.9g",
+			ptr->c[0], ptr->c[1], ptr->c[2], ptr->c[3]);
+	len = strlen(buff);
+	str = malloc(len+1);  //leak
+	strcpy(str,buff);
+	fwretval->_string = str;
+	fwretval->itype = 'S';
+	return 1;
+}
 FWFunctionSpec (SFVec4d_Functions)[] = {
-	//{"toString", SFVec4d_toString, 'S',{0,-1,0,NULL}},
+	{"toString", SFVec4d_toString, 'S',{0,-1,0,NULL}},
 	{0}
 };
 

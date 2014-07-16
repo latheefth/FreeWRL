@@ -2271,9 +2271,7 @@ int fwgetterNS(duk_context *ctx) {
 	//show_stack(ctx,"in fwgetterNS at start");
 	const char *fieldname = duk_require_string(ctx,0);
 	//printf("\nfwgetterNS key=%s\n",key);
-	if(!strcmp(fieldname,"BuildingSwitches")){
-		printf("fwgetting buildingswitches\n");
-	}
+
 	/* retrieve field pointer from Cfunc */
 	duk_push_current_function(ctx);
 	/* get type of parent object for this property*/
