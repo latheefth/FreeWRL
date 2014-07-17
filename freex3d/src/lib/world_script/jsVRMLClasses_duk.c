@@ -86,10 +86,11 @@ int type2SF(int itype);
 
 int SFFloat_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	float *ptr = (float *)fwn;
-	//fwretval->_numeric =  (double)*(ptr);
-	fwretval->_web3dval.native = ptr;
-	fwretval->_web3dval.fieldType = FIELDTYPE_SFFloat;
-	fwretval->itype = 'W';
+	fwretval->_numeric =  (double)*(ptr);
+	fwretval->itype = 'F';
+	//fwretval->_web3dval.native = ptr;
+	//fwretval->_web3dval.fieldType = FIELDTYPE_SFFloat;
+	//fwretval->itype = 'W';
 	return 1;
 }
 int SFFloat_Setter(FWType fwt, int index, void * fwn, FWval fwval){
@@ -175,6 +176,7 @@ int MFW_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 		int elen = sizeofSF(fwt->itype);
 		fwretval->_web3dval.native = (void *)(ptr->p + index*elen);
 		fwretval->_web3dval.fieldType = type2SF(fwt->itype);
+		fwretval->_web3dval.gc = 0;
 		fwretval->itype = 'W';
 		nr = 1;
 	}
@@ -959,6 +961,7 @@ int SFNode_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	if(ihave){
 		fwretval->_web3dval.native = value;
 		fwretval->_web3dval.fieldType = ftype;
+		fwretval->_web3dval.gc = 0;
 		fwretval->itype = 'W';
 /*
 		//copy W type or primative type, depending on ftype
@@ -1863,6 +1866,7 @@ int SFImage_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 		case 3: //array
 		fwretval->_web3dval.native = ptr; //hope they don't go image.array[0] = infinity; which will overwrite width. same for height, comp
 		fwretval->_web3dval.fieldType = FIELDTYPE_MFInt32;
+		fwretval->_web3dval.gc = 0;
 		fwretval->itype = 'W';
 		break;
 		default:
@@ -2456,6 +2460,7 @@ int X3DMatrix3_inverse(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval 
 
 	fwretval->_pointer.native = ret;
 	fwretval->_pointer.fieldType = AUXTYPE_X3DMatrix3;
+	fwretval->_pointer.gc = 'T';
 	fwretval->itype = 'P';
 	return 1;
 }
@@ -2467,6 +2472,7 @@ int X3DMatrix3_transpose(FWType fwtype, void * fwn, int argc, FWval fwpars, FWva
 
 	fwretval->_pointer.native = ret;
 	fwretval->_pointer.fieldType = AUXTYPE_X3DMatrix3;
+	fwretval->_pointer.gc = 'T';
 	fwretval->itype = 'P';
 
 	return 1;
@@ -2481,6 +2487,7 @@ int X3DMatrix3_multLeft(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval
 	fwretval->_pointer.native = ret;
 	fwretval->_pointer.fieldType = AUXTYPE_X3DMatrix3;
 	fwretval->itype = 'P';
+	fwretval->_pointer.gc = 'T';
 	return 1;
 }
 int X3DMatrix3_multRight(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
@@ -2492,6 +2499,7 @@ int X3DMatrix3_multRight(FWType fwtype, void * fwn, int argc, FWval fwpars, FWva
 	matmultiply3f(ret->c,  ptr->c, rhs->c);
 
 	fwretval->_pointer.fieldType = AUXTYPE_X3DMatrix3;
+	fwretval->_pointer.gc = 'T';
 	fwretval->itype = 'P';
 	return 1;
 }
@@ -2510,8 +2518,9 @@ int X3DMatrix3_multVecMatrix(FWType fwtype, void * fwn, int argc, FWval fwpars, 
 		veccopy2f(ret->c,r3);
 	}
 
-	fwretval->_pointer.native = ret;
-	fwretval->_pointer.fieldType = FIELDTYPE_SFVec2f;
+	fwretval->_web3dval.native = ret;
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec2f;
+	fwretval->_web3dval.gc = 'T';
 	fwretval->itype = 'W';
 	return 1;
 }
@@ -2530,8 +2539,9 @@ int X3DMatrix3_multMatrixVec(FWType fwtype, void * fwn, int argc, FWval fwpars, 
 		veccopy2f(ret->c,r3);
 	}
 
-	fwretval->_pointer.native = ret;
-	fwretval->_pointer.fieldType = FIELDTYPE_SFVec2f;
+	fwretval->_web3dval.native = ret;
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec2f;
+	fwretval->_web3dval.gc = 'T';
 	fwretval->itype = 'W';
 	return 1;
 }
@@ -2771,6 +2781,7 @@ int X3DMatrix4_inverse(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval 
 
 	fwretval->_pointer.native = ret;
 	fwretval->_pointer.fieldType = AUXTYPE_X3DMatrix4;
+	fwretval->_pointer.gc = 'T';
 	fwretval->itype = 'P';
 	return 1;
 }
@@ -2783,6 +2794,7 @@ int X3DMatrix4_transpose(FWType fwtype, void * fwn, int argc, FWval fwpars, FWva
 
 	fwretval->_pointer.native = ret;
 	fwretval->_pointer.fieldType = AUXTYPE_X3DMatrix4;
+	fwretval->_pointer.gc = 'T';
 	fwretval->itype = 'P';
 
 	return 1;
@@ -2798,6 +2810,7 @@ int X3DMatrix4_multLeft(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval
 
 	fwretval->_pointer.native = ret;
 	fwretval->_pointer.fieldType = AUXTYPE_X3DMatrix4;
+	fwretval->_pointer.gc = 'T';
 	fwretval->itype = 'P';
 	return 1;
 }
@@ -2811,6 +2824,7 @@ int X3DMatrix4_multRight(FWType fwtype, void * fwn, int argc, FWval fwpars, FWva
 	matmultiply4f(ptr->c,ptr->c,rhs->c);
 
 	fwretval->_pointer.fieldType = AUXTYPE_X3DMatrix4;
+	fwretval->_pointer.gc = 'T';
 	fwretval->itype = 'P';
 	return 1;
 }
@@ -2830,8 +2844,9 @@ int X3DMatrix4_multVecMatrix(FWType fwtype, void * fwn, int argc, FWval fwpars, 
 		veccopy3f(ret->c,r4);
 	}
 
-	fwretval->_pointer.native = ret;
-	fwretval->_pointer.fieldType = FIELDTYPE_SFVec3f;
+	fwretval->_web3dval.native = ret;
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3f;
+	fwretval->_web3dval.gc = 'T';
 	fwretval->itype = 'W';
 	return 1;
 }
@@ -2852,8 +2867,9 @@ int X3DMatrix4_multMatrixVec(FWType fwtype, void * fwn, int argc, FWval fwpars, 
 		veccopy3f(ret->c,r4);
 	}
 
-	fwretval->_pointer.native = ret;
-	fwretval->_pointer.fieldType = FIELDTYPE_SFVec3f;
+	fwretval->_web3dval.native = ret;
+	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3f;
+	fwretval->_web3dval.gc = 'T';
 	fwretval->itype = 'W';
 	return 1;
 }

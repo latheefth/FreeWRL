@@ -458,7 +458,9 @@ int VrmlBrowserCreateX3DFromString(FWType fwtype, void * fwn, int argc, FWval fw
 	}else{
 	fwretval->_web3dval.native = &retGroup->children;
 	fwretval->_web3dval.fieldType = FIELDTYPE_MFNode; //Group
+
 	}
+	fwretval->_web3dval.gc = 0; //will be GCd by nodelist
 	fwretval->itype = 'W';
 	return 1;
 }
@@ -491,6 +493,7 @@ int VrmlBrowserCreateVrmlFromString(FWType fwtype, void * fwn, int argc, FWval f
 	fwretval->_web3dval.native = &retGroup->children;
 	fwretval->_web3dval.fieldType = FIELDTYPE_MFNode; //Group
 	}
+	fwretval->_web3dval.gc = 0;
 	fwretval->itype = 'W';
 	return 1;
 
@@ -696,16 +699,19 @@ int BrowserGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 		case 5: //supportedComponents
 			fwretval->_pointer.fieldType = AUXTYPE_ComponentInfoArray;
 			fwretval->_pointer.native = (void*)getCapabilitiesTable(); //TO-DO something about component info array
+			fwretval->_pointer.gc = 0;
 			fwretval->itype = 'P';
 			break;
 		case 6: //supportedProfiles
 			fwretval->_pointer.fieldType = AUXTYPE_ProfileInfoArray;
 			fwretval->_pointer.native = (void*)getProfTable(); //TO-DO something about profile info array
+			fwretval->_pointer.gc = 0;
 			fwretval->itype = 'P';
 			break;
 		case 7: //currentScene
 			fwretval->_web3dval.fieldType = AUXTYPE_X3DExecutionContext; //AUXTYPE_X3DScene;
 			fwretval->_web3dval.native = (void *)(struct X3D_Node*)rootNode(); //X3DScene || X3DExecutionContext
+			fwretval->_web3dval.gc = 0;
 				//change this to (Script)._executionContext when brotos working fully
 			fwretval->itype = 'P';
 			break;
@@ -789,13 +795,13 @@ int ComponentInfoArrayGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 //extern const int COMPONENTS_COUNT;
 		int _length = capabilitiesHandler_getTableLength(_table); //COMPONENTS_COUNT;
 		//fwretval->_integer = _length;
-		fwretval->itype = 'W';
-		fwretval->_web3dval.native = intdup(_length);
-		fwretval->_web3dval.fieldType = FIELDTYPE_SFInt32;
+		fwretval->itype = 'I';
+		fwretval->_integer = _length;
 
 	}else if(index > -1 && index < COMPONENTS_COUNT ){
 		fwretval->_pointer.native = &_table[2*index];
 		fwretval->_pointer.fieldType = AUXTYPE_ComponentInfo;
+		fwretval->_pointer.gc = 0;
 		fwretval->itype = 'P';
 	}
 	return nr;
@@ -905,6 +911,7 @@ int ProfileInfoArrayGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 	}else if(index > -1 && index < PROFILES_COUNT ){
 		fwretval->_pointer.native = &_table[index];
 		fwretval->_pointer.fieldType = AUXTYPE_ProfileInfo;
+		fwretval->_pointer.gc = 0;
 		fwretval->itype = 'P';
 	}
 	return nr;
@@ -982,6 +989,7 @@ int ProfileInfoGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 		case 4://components
 			fwretval->_pointer.native = (void *)tableEntry->profileTable;
 			fwretval->_pointer.fieldType = AUXTYPE_ComponentInfoArray;
+			fwretval->_pointer.gc = 0;
 			fwretval->itype = 'P';
 			break;
 		default:
@@ -1051,8 +1059,9 @@ int X3DExecutionContext_getNamedNode(FWType fwtype, void * fwn, int argc, FWval 
 	//broto warning - DEF name list should be per-executionContext
 	struct X3D_Node* node = parser_getNodeFromName(fwpars[0]._string); //_web3dval.anyvrml->sfstring->strptr); 
 	if(node){
-		fwretval->_web3dval.native = node;
+		fwretval->_web3dval.native = node;  //Q should this be &node? to convert it from X3D_Node to anyVrml->sfnode?
 		fwretval->_web3dval.fieldType = FIELDTYPE_SFNode;
+		fwretval->_web3dval.gc = 0;
 		fwretval->itype = 'W';
 		nr = 1;
 	}
@@ -1136,12 +1145,14 @@ int X3DExecutionContextGetter(FWType fwt, int index, void * fwn, FWval fwretval)
 			profile = getProfTable();
 			fwretval->_pointer.native = &profile[index];
 			fwretval->_pointer.fieldType = AUXTYPE_ProfileInfo;
+			fwretval->_pointer.gc = 0;
 			fwretval->itype = 'P';
 		}
 			break;
 		case 3: //components
 			fwretval->_pointer.native = (void *)gglobal()->Mainloop.scene_components;
 			fwretval->_pointer.fieldType = AUXTYPE_ComponentInfoArray;
+			fwretval->_pointer.gc = 0;
 			fwretval->itype = 'P';
 			break;
 		case 4: //worldURL
@@ -1155,6 +1166,7 @@ int X3DExecutionContextGetter(FWType fwt, int index, void * fwn, FWval fwretval)
 		case 5: //rootNodes
 			fwretval->_web3dval.native = (void *)&((struct X3D_Group*)rootNode())->children;  //broto warning: inside a proto should be the rootnodes of the protobody
 			fwretval->_web3dval.fieldType = FIELDTYPE_MFNode;
+			fwretval->_web3dval.gc = 0;
 			fwretval->itype = 'W';
 			break;
 		case 6: //protos
@@ -1168,6 +1180,7 @@ int X3DExecutionContextGetter(FWType fwt, int index, void * fwn, FWval fwretval)
 		case 8: //routes
 			fwretval->_pointer.fieldType = AUXTYPE_X3DRouteArray; 
 			fwretval->_pointer.native = NULL; //broto warning: this should be a per-context array
+			fwretval->_pointer.gc = 0;
 			fwretval->itype = 'P';
 			break;
 		case 9: //isScene
@@ -1175,6 +1188,7 @@ int X3DExecutionContextGetter(FWType fwt, int index, void * fwn, FWval fwretval)
 			fwretval->itype = 'W';
 			fwretval->_web3dval.native = &_TRUE;
 			fwretval->_web3dval.fieldType = FIELDTYPE_SFBool;
+			fwretval->_web3dval.gc = 0;
 			break;
 		default:
 			nr = 0;
@@ -1203,18 +1217,21 @@ int X3DRouteArrayGetter(int index, void * fwn, FWval fwretval){
 	int nr = 0;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index == -1){
-		//int _length = getCRouteCount();
-		//fwretval->_integer = _length;
-		//fwretval->itype = 'I';
-		fwretval->itype = 'W';
-		fwretval->_web3dval.native = getCRouteCounter(); //intdup(_length);
-		fwretval->_web3dval.fieldType = FIELDTYPE_SFInt32;
+		int _length = getCRouteCount();
+		fwretval->_integer = _length;
+		fwretval->itype = 'I';
+		//fwretval->itype = 'W';
+		//fwretval->_web3dval.native = getCRouteCounter(); //intdup(_length);
+		//fwretval->_web3dval.fieldType = FIELDTYPE_SFInt32;
+		//fwretval->_web3dval.gc = 0;
+
 
 		nr = 1;
 	}else if(index > -1 && index < getCRouteCount() ){
 		struct CRStruct *routes = getCRoutes();
 		//fwretval->_pointer.native = &routes[index];
 		fwretval->_pointer.native = intdup(index);
+		fwretval->_pointer.gc = 1;
 		//getSpecificRoute (index,&fromNode, &fromOffset, &toNode, &toOffset);
 		fwretval->_pointer.fieldType = AUXTYPE_X3DRoute;
 		fwretval->itype = 'P';
@@ -1276,6 +1293,7 @@ int X3DRouteGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 	case 0: //fromNode
 		fwretval->_web3dval.native = (void*)fromNode; //route->routeFromNode;
 		fwretval->_web3dval.fieldType = FIELDTYPE_SFNode;
+		fwretval->_web3dval.gc = 0;
 		fwretval->itype = 'W';
 		break;
 	case 1: //fromField
@@ -1292,6 +1310,7 @@ int X3DRouteGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 		fwretval->_web3dval.native = (void*)toNode; //route->routeFromNode;
 		fwretval->_web3dval.fieldType = FIELDTYPE_SFNode;
 		fwretval->itype = 'W';
+		fwretval->_web3dval.gc = 0;
 		break;
 	case 3: //toField
 		//getFieldFromNodeAndIndex(route->tonodes[0].routeToNode,route->tonodes[0].foffset,&fieldname,&type,&kind,&value);

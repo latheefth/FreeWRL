@@ -537,6 +537,44 @@ int fwType2itype(const char *fwType){
 	}
 	return ifield;
 }
+void freeField(int itype, void* any){
+	if(isSForMFType(itype) == 0)
+		free(any); //SF
+	else if(isSForMFType(itype) == 1){
+		//MF
+		struct Multi_Any* mf = (struct Multi_Any*)any;
+		free(mf->p);  //bombs. H0: I'm not deep copying or medium_copy_field() everywhere I should
+		free(mf);
+	}
+}
+int cfinalizer(duk_context *ctx){
+	int rc, itype, igc;
+	void *fwpointer = NULL;
+	itype = igc = -1;
+	rc = duk_get_prop_string(ctx,0,"fwItype");
+	if(rc == 1) itype = duk_to_int(ctx,-1);
+	duk_pop(ctx); //get prop string result
+	rc = duk_get_prop_string(ctx,0,"fwGC");
+	if(rc == 1) igc = duk_to_boolean(ctx,-1);
+	duk_pop(ctx); //get prop string result
+	rc = duk_get_prop_string(ctx,0,"fwField");
+	if(rc == 1) fwpointer = duk_to_pointer(ctx,-1);
+	duk_pop(ctx); //get prop string result
+
+
+	//printf("hi from finalizer, itype=%d igc=%d p=%p\n",itype,igc,fwpointer);
+	if(igc > 0 && itype > -1 && fwpointer){
+		if(itype < AUXTYPE_X3DConstants){
+			//FIELDS
+			freeField(itype,fwpointer);   
+		}else{
+			//AUXTYPES
+			free(fwpointer);
+		}
+	}
+	return 0;
+}
+static int doingFinalizer = 1;
 void push_typed_proxy(duk_context *ctx, int itype, void *fwpointer, int* valueChanged)
 {
 	//like push_typed_proxy2 except push this instead of push obj
@@ -551,6 +589,11 @@ void push_typed_proxy(duk_context *ctx, int itype, void *fwpointer, int* valueCh
 		duk_put_prop_string(ctx,-2,"fwChanged");
 		duk_push_int(ctx,itype);
 		duk_put_prop_string(ctx,-2,"fwItype");
+		if(doingFinalizer){
+			duk_push_boolean(ctx,TRUE);
+			duk_put_prop_string(ctx,-2,"fwGC");
+		}
+
 		//rc = duk_get_prop_string(ctx,-1,"fwItype");
 		//if(rc == 1){
 		//	printf(duk_type_to_string(duk_get_type(ctx, -1)));
@@ -572,6 +615,22 @@ void push_typed_proxy(duk_context *ctx, int itype, void *fwpointer, int* valueCh
 		//}
 		//duk_pop(ctx);
 
+		if(doingFinalizer){
+			//push_typed_proxy is called by constructor, that mallocs (via fwtype->constructor) and should GC
+			//
+			//Duktape.fin(a, function (x) {
+			//       try {
+			//           print('finalizer, foo ->', x.foo);
+			//       } catch (e) {
+			//           print('WARNING: finalizer failed (ignoring): ' + e);
+			//       }
+			//   });
+			duk_eval_string(ctx,"Duktape.fin");
+			duk_dup(ctx, -2); //copy the proxy object
+			duk_push_c_function(ctx,cfinalizer,1);
+			duk_pcall(ctx,2);
+			duk_pop(ctx); //pop Duktape.fin result
+		}
 
 	}
 	if(0){
@@ -598,7 +657,7 @@ void push_typed_proxy(duk_context *ctx, int itype, void *fwpointer, int* valueCh
 
 }
 
-int push_typed_proxy2(duk_context *ctx, int itype, void *fwpointer, int* valueChanged)
+int push_typed_proxy2(duk_context *ctx, int itype, void *fwpointer, int* valueChanged, char doGC)
 {
 	/*  like fwgetter version, except with no fieldname or mode, for temp proxies
 		nativePtr
@@ -613,9 +672,32 @@ int push_typed_proxy2(duk_context *ctx, int itype, void *fwpointer, int* valueCh
 	duk_put_prop_string(ctx,-2,"fwChanged");
 	duk_push_int(ctx,itype);
 	duk_put_prop_string(ctx,-2,"fwItype");
+	if(doingFinalizer && doGC){
+		duk_push_boolean(ctx,TRUE);
+		duk_put_prop_string(ctx,-2,"fwGC");
+	}
 
 	duk_eval_string(ctx,"handler");
 	duk_new(ctx,2); /* [ global Proxy target handler ] -> [ global result ] */
+
+	if(doingFinalizer && doGC){
+		//push_typed_proxy2 _refers_ to script->field[i]->anyVrml (its caller fwgetter doesn't malloc) and should not GC its pointer
+		//
+		//Duktape.fin(a, function (x) {
+		//       try {
+		//           print('finalizer, foo ->', x.foo);
+		//       } catch (e) {
+		//           print('WARNING: finalizer failed (ignoring): ' + e);
+		//       }
+		//   });
+
+		duk_eval_string(ctx,"Duktape.fin");
+		duk_dup(ctx, -2); //copy the proxy object
+		duk_push_c_function(ctx,cfinalizer,1);
+		duk_pcall(ctx,2);
+		duk_pop(ctx); //pop Duktape.fin result
+	}
+
 	return 1;
 }
 
@@ -1102,12 +1184,12 @@ int fwval_duk_push(duk_context *ctx, FWval fwretval, int *valueChanged){
 		case FIELDTYPE_SFString:
 			duk_push_string(ctx,fwretval->_web3dval.anyvrml->sfstring->strptr); break;
 		default:
-			push_typed_proxy2(ctx,fwretval->_web3dval.fieldType,fwretval->_web3dval.native,valueChanged);
+			push_typed_proxy2(ctx,fwretval->_web3dval.fieldType,fwretval->_web3dval.native,valueChanged,fwretval->_web3dval.gc);
 		}
 		break;
 	case 'P':
 		//for web3d auxiliary types Browser, X3DFieldDefinitionArray, X3DRoute ...
-		push_typed_proxy2(ctx,fwretval->_pointer.fieldType,fwretval->_pointer.native,valueChanged);
+		push_typed_proxy2(ctx,fwretval->_pointer.fieldType,fwretval->_pointer.native,valueChanged,fwretval->_pointer.gc);
 		break;
 	case '0':
 	default:
@@ -1435,7 +1517,8 @@ int cset(duk_context *ctx) {
 				convert_duk_to_fwvals(ctx, 1, -2, arglist, &fwsetval, &argc);
 				if(argc == 1){
 					fwt->Setter(fwt,jndex,parent,fwsetval);
-					(*valueChanged) = 1;
+					if(valueChanged)
+						(*valueChanged) = 1;
 				}
 				free(fwsetval);
 			}
@@ -2641,6 +2724,7 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 		FWVAL fwval;
 		fwval._web3dval.native = Data;
 		fwval._web3dval.fieldType = dataType;
+		fwval._web3dval.gc = 0;
 		fwval.itype = 'W';
 		rc = fwval_duk_push(ctx, &fwval, NULL);
 		//if(rc == 1) OK
@@ -2724,7 +2808,7 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen)
 	medium_copy_field(itype,Data,&datacopy);
 	//void *datacopy = malloc(dataLen); //gc please
 	//memcpy(datacopy,Data,dataLen); 
-	push_typed_proxy2(ctx,itype,datacopy,NULL);
+	push_typed_proxy2(ctx,itype,datacopy,NULL,'T');
 	duk_push_number(ctx,TickTime());
 	//duk_call(ctx,2);
 	rc = duk_pcall(ctx, 2);  /* [ ... func 2 3 ] -> [ 5 ] */
@@ -2765,7 +2849,7 @@ void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int
 	any = (void*)source;
 	medium_copy_field(itype,source,&datacopy);
 	any = datacopy;
-	push_typed_proxy2(ctx,itype,datacopy,NULL);
+	push_typed_proxy2(ctx,itype,datacopy,NULL,'T');
 	duk_push_number(ctx,TickTime());
 	duk_call(ctx,2);
 	//show_stack(ctx,"after calling isOver");
