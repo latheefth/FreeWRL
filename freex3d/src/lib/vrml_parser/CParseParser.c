@@ -219,8 +219,7 @@ BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*)={
     &parser_sfstringValue_, &parser_mfstringValue,
     &parser_sfvec2fValue, &parser_mfvec2fValue,
     &parser_sfimageValue,  /* SFImage */ 
-    &parser_fieldTypeNotParsedYet, /* FreeWRLPTR */
-    &parser_fieldTypeNotParsedYet, /* FreeWRLThread */
+    &parser_fieldTypeNotParsedYet, /* FreeWRLPTR 23 */
     &parser_sfvec3dValue, &parser_mfvec3dValue,
     &parser_sftimeValue, &parser_mftimeValue,
     &parser_sfmatrix3fValue, &parser_fieldTypeNotParsedYet, /* Matrix3f */
@@ -230,7 +229,7 @@ BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*)={
     &parser_sfvec2dValue, &parser_fieldTypeNotParsedYet, /* Vec2d */
     &parser_sfvec4fValue, &parser_fieldTypeNotParsedYet, /* Vec4f */
     &parser_sfvec4dValue, &parser_fieldTypeNotParsedYet, /* Vec4d */
-
+    &parser_fieldTypeNotParsedYet, /* FreeWRLThread */
 };
 
 /* for error messages */
@@ -3244,7 +3243,7 @@ void cParseErrorCurID(struct VRMLParser *me, char *str) {
 	}
 
 	p->foundInputErrors++;
-	ConsoleMessage("%s",fw_outline); 
+	ConsoleMessage(fw_outline); 
 }
 
 void cParseErrorFieldString(struct VRMLParser *me, char *str, const char *str2) {
