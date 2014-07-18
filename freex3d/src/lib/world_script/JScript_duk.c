@@ -787,11 +787,11 @@ void convert_duk_to_fwvals(duk_context *ctx, int nargs, int istack, struct ArgLi
 			}
 		}
 		switch(ctype){
-		case 'B': pars[i]._boolean = duk_get_boolean(ctx,ii); break;
-		case 'I': pars[i]._integer = duk_get_int(ctx,ii); break;
-		case 'F': pars[i]._numeric = duk_get_number(ctx,ii); break;
-		case 'D': pars[i]._numeric = duk_get_number(ctx,ii); break;
-		case 'S': pars[i]._string = duk_get_string(ctx,ii); break;
+		case 'B': pars[i]._boolean = duk_to_boolean(ctx,ii); break;
+		case 'I': pars[i]._integer = duk_to_int(ctx,ii); break;
+		case 'F': pars[i]._numeric = duk_to_number(ctx,ii); break;
+		case 'D': pars[i]._numeric = duk_to_number(ctx,ii); break;
+		case 'S': pars[i]._string = duk_to_string(ctx,ii); break;
 		//case 'B': pars[i]._web3dval.anyvrml->sfbool = duk_get_boolean(ctx,ii); pars[i]._web3dval.fieldType = FIELDTYPE_SFBool; break;
 		//case 'I': pars[i]._web3dval.anyvrml->sfint32 = duk_get_int(ctx,ii);  pars[i]._web3dval.fieldType = FIELDTYPE_SFInt32; break;
 		//case 'F': pars[i]._web3dval.anyvrml->sffloat = (float) duk_get_number(ctx,ii);  pars[i]._web3dval.fieldType = FIELDTYPE_SFFloat; break;
@@ -1271,66 +1271,7 @@ int cfunction(duk_context *ctx) {
 		int argc;
 		FWVAL fwretval;
 		convert_duk_to_fwvals(ctx, nargs, 0, fs->arglist, &pars, &argc);
-		/*
-		int nUsable,nNeeded;
-		nUsable = fs->arglist.iVarArgStartsAt > -1 ? nargs : fs->arglist.nfixedArg;
-		nNeeded = max(nUsable,fs->arglist.nfixedArg);
-		FWval pars = malloc(nNeeded*sizeof(FWVAL));
-		//QC and genericization of incoming parameters
-		for(i=0;i<nUsable;i++){
-			char ctype;
-			if(i < fs->arglist.nfixedArg) 
-				ctype = fs->arglist.argtypes[i];
-			else 
-				ctype = fs->arglist.argtypes[fs->arglist.iVarArgStartsAt];
-			pars[i].itype = 'W'; // ctype;
-			switch(ctype){
-			case 'B': pars[i]._boolean = duk_get_boolean(ctx,i); break;
-			case 'I': pars[i]._integer = duk_get_int(ctx,i); break;
-			case 'F': pars[i]._numeric = duk_get_number(ctx,i); break;
-			case 'D': pars[i]._numeric = duk_get_number(ctx,i); break;
-			case 'S': pars[i]._string = duk_get_string(ctx,i); break;
-			case 'Z': //flexi-string idea - allow either String or MFString (no such thing as SFString from ecma - it uses String for that)
-				if(duk_is_pointer(ctx,i)){ 
-					void *ptr = duk_get_pointer(ctx,i); 
-					pars[i]._web3dval.native = ptr;
-					pars[i]._web3dval.fieldType = FIELDTYPE_MFString; //type of the incoming arg[i]
-					pars[i].itype = 'W';
-				}else if(duk_is_string(ctx,i)){
-					pars[i]._string = duk_get_string(ctx,i); 
-					pars[i].itype = 'S';
-				}
-				break; 
-			case 'W': {
-				//Q. won't my function argument come in as a Proxy Object and if so don't I need to get_prop_string fwField to get the pointer?
-				void *ptr = duk_get_pointer(ctx,i); 
-				pars[i]._web3dval.native = ptr;
-				pars[i]._web3dval.fieldType = FIELDTYPE_SFNode; //type of the incoming arg[i] //and shouldn't I get fwItype of the Proxy? And verify it's a W not a P?
-				}
-				break;
-			case 'O': 
-				break; //object pointer ie to js function callback object
-			}
-		}
-
-		for(i=nUsable;i<nNeeded;i++){
-			//fill
-			char ctype = fs->arglist.argtypes[i];
-			pars[i].itype = ctype;
-			switch(ctype){
-			case 'B': pars[i]._boolean = FALSE; break;
-			case 'I': pars[i]._integer = 0; break;
-			case 'F': pars[i]._numeric = 0.0; break;
-			case 'D': pars[i]._numeric = 0.0; break;
-			case 'S': pars[i]._string = NULL; break;
-			case 'Z': pars[i]._string = NULL; pars[i].itype = 'S'; break;
-			case 'W': pars[i]._web3dval.fieldType = FIELDTYPE_SFNode; pars[i]._web3dval.native = NULL; break;
-			case 'O': pars[i]._jsobject = NULL; break; 
-			}
-		}
-		*/
 		//the object function call, using engine-agnostic parameters
-		//nr = fs->call(fwt,parent,nNeeded,pars,&fwretval);
 		nr = fs->call(fwt,parent,argc,pars,&fwretval);
 		if(nr){
 			nr = fwval_duk_push(ctx,&fwretval,valueChanged);
