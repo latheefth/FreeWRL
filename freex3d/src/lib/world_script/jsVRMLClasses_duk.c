@@ -109,6 +109,7 @@ int SFFloat_Setter(FWType fwt, int index, void * fwn, FWval fwval){
 //#define FIELDTYPE_SFFloat	0
 FWTYPE SFFloatType = {
 	FIELDTYPE_SFFloat,
+	'F',
 	"SFFloat",
 	sizeof(float), //sizeof(struct ), 
 	NULL, //constructor
@@ -173,8 +174,9 @@ int MFW_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 		//fwretval->itype = 'W';
 		nr = 1;
 	}else if(index > -1 && index < ptr->n){
+		char *p = (char *)ptr->p;
 		int elen = sizeofSF(fwt->itype);
-		fwretval->_web3dval.native = (void *)(ptr->p + index*elen);
+		fwretval->_web3dval.native = (void *)(p + index*elen);
 		fwretval->_web3dval.fieldType = type2SF(fwt->itype);
 		fwretval->_web3dval.gc = 0;
 		fwretval->itype = 'W';
@@ -200,12 +202,12 @@ char *sfToString(FWType fwt, void *fwn){
 		str = strdup(strbuf);
 		break;
 	case FIELDTYPE_SFFloat:
-		sprintf(strbuf,"%f",any->sffloat);
+		sprintf(strbuf,"%g",any->sffloat);
 		str = strdup(strbuf);
 		break;
 	case FIELDTYPE_SFDouble:
 	case FIELDTYPE_SFTime:
-		sprintf(strbuf,"%lf",any->sfdouble);
+		sprintf(strbuf,"%g",any->sfdouble);
 		str = strdup(strbuf);
 		break;
 	case FIELDTYPE_SFString:{
@@ -233,26 +235,32 @@ char *sfToString(FWType fwt, void *fwn){
 	}
 	return str;
 }
+int type2SF(int itype);
 char *mfToString(FWType fwt, void * fwn){
 	//caller must free / gc the return string
-	int i, sftype, len, showType;
+	int i, sftype, len, showType, elen;
+	char *p;
 	struct Multi_Any *ptr = (struct Multi_Any *)fwn;
-	showType = 0; //=1 to see MFColor[], =0 to see []
+	showType = 1; //=1 to see MFColor[], =0 to see []
 	len = strlen("[ ");
 	if(showType) len += strlen(fwt->name);
 	char *str = malloc(len +1);
 	str[0] = 0;
 	if(showType) strcat(str,fwt->name);
 	str = strcat(str,"[ ");
-	sftype = mf2sf(fwt->itype);
+	//sftype = mf2sf(fwt->itype);
+	sftype = type2SF(fwt->itype);
 	FWTYPE *fwtsf = getFWTYPE(sftype);
+	p = (char *)ptr->p;
+	elen = sizeofSF(fwt->itype);
 	for(i=0;i<ptr->n;i++)
 	{
-		char * sf = sfToString(fwtsf,&ptr->p[i]);
+		char * sf = sfToString(fwtsf,p);
 		str = realloc(str,strlen(str)+strlen(sf)+2);
 		str = strcat(str,sf);
 		str = strcat(str," ");
 		free(sf);
+		p = p + elen;
 	}
 	str[strlen(str)-1] = ']';
 	return str;
@@ -353,6 +361,7 @@ ArgListType (MFFloat_ConstructorArgs)[] = {
 
 FWTYPE MFFloatType = {
 	FIELDTYPE_MFFloat,
+	'W',
 	"MFFloat",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	MFFloat_Constructor, //constructor
@@ -643,6 +652,7 @@ ArgListType (SFRotation_ConstructorArgs)[] = {
 //#define FIELDTYPE_SFRotation	2
 FWTYPE SFRotationType = {
 	FIELDTYPE_SFRotation,
+	'W',
 	"SFRotation",
 	sizeof(struct SFRotation), //sizeof(struct ), 
 	SFRotation_Constructor, //constructor
@@ -660,6 +670,7 @@ FWTYPE SFRotationType = {
 //#define FIELDTYPE_MFRotation	3
 FWTYPE MFRotationType = {
 	FIELDTYPE_MFRotation,
+	'W',
 	"MFRotation",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	MFW_Constructor, //constructor
@@ -874,6 +885,7 @@ ArgListType (SFVec3f_ConstructorArgs)[] = {
 //#define FIELDTYPE_SFVec3f	4
 FWTYPE SFVec3fType = {
 	FIELDTYPE_SFVec3f,
+	'W',
 	"SFVec3f",
 	sizeof(struct SFVec3f), //sizeof(struct ), 
 	SFVec3f_Constructor, //constructor
@@ -889,6 +901,7 @@ FWTYPE SFVec3fType = {
 //#define FIELDTYPE_MFVec3f	5
 FWTYPE MFVec3fType = {
 	FIELDTYPE_MFVec3f,
+	'W',
 	"MFVec3f",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	MFW_Constructor, //constructor
@@ -903,6 +916,7 @@ FWTYPE MFVec3fType = {
 //#define FIELDTYPE_SFBool	6
 FWTYPE SFBoolType = {
 	FIELDTYPE_SFBool,
+	'B',
 	"SFBool",
 	sizeof(int), //sizeof(struct ), 
 	NULL, //constructor
@@ -945,6 +959,7 @@ ArgListType (MFBool_ConstructorArgs)[] = {
 //#define FIELDTYPE_MFBool	7
 FWTYPE MFBoolType = {
 	FIELDTYPE_MFBool,
+	'W',
 	"MFBool",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	MFBool_Constructor, //constructor
@@ -959,6 +974,7 @@ FWTYPE MFBoolType = {
 //#define FIELDTYPE_SFInt32	8
 FWTYPE SFInt32Type = {
 	FIELDTYPE_SFInt32,
+	'I',
 	"SFInt32",
 	sizeof(int), //sizeof(struct ), 
 	NULL, //constructor
@@ -1000,6 +1016,7 @@ ArgListType (MFInt32_ConstructorArgs)[] = {
 //#define FIELDTYPE_MFInt32	9
 FWTYPE MFInt32Type = {
 	FIELDTYPE_MFInt32,
+	'W',
 	"MFInt32",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	MFInt32_Constructor, //constructor
@@ -1195,6 +1212,7 @@ ArgListType (SFNode_ConstructorArgs)[] = {
 //#define FIELDTYPE_SFNode	10
 FWTYPE SFNodeType = {
 	FIELDTYPE_SFNode,
+	'W',
 	"SFNode",
 	sizeof(void*), //sizeof(struct ), 
 	SFNode_Constructor, //constructor
@@ -1212,6 +1230,7 @@ FWTYPE SFNodeType = {
 //#define FIELDTYPE_MFNode	11
 FWTYPE MFNodeType = {
 	FIELDTYPE_MFNode,
+	'W',
 	"MFNode",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	MFW_Constructor, //constructor
@@ -1386,6 +1405,7 @@ ArgListType (SFColor_ConstructorArgs)[] = {
 //#define FIELDTYPE_SFColor	12
 FWTYPE SFColorType = {
 	FIELDTYPE_SFColor,
+	'W',
 	"SFColor",
 	sizeof(struct SFColor), //sizeof(struct ), 
 	SFColor_Constructor, //constructor
@@ -1438,6 +1458,7 @@ FWTYPE SFColorType = {
 //#define FIELDTYPE_MFColor	13
 FWTYPE MFColorType = {
 	FIELDTYPE_MFColor,
+	'W',
 	"MFColor",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	MFW_Constructor, //constructor
@@ -1556,6 +1577,7 @@ ArgListType (SFColorRGBA_ConstructorArgs)[] = {
 //#define FIELDTYPE_SFColorRGBA	14
 FWTYPE SFColorRGBAType = {
 	FIELDTYPE_SFColorRGBA,
+	'W',
 	"SFColorRGBA",
 	sizeof(struct SFColorRGBA), //sizeof(struct ), 
 	SFColorRGBA_Constructor, //constructor
@@ -1570,6 +1592,7 @@ FWTYPE SFColorRGBAType = {
 //#define FIELDTYPE_MFColorRGBA	15
 FWTYPE MFColorRGBAType = {
 	FIELDTYPE_MFColorRGBA,
+	'W',
 	"MFColorRGBA",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	MFW_Constructor, //constructor
@@ -1585,6 +1608,7 @@ FWTYPE MFColorRGBAType = {
 //#define FIELDTYPE_SFTime	16
 FWTYPE SFTimeType = {
 	FIELDTYPE_SFTime,
+	'D',
 	"SFTime",
 	sizeof(double), //sizeof(struct ), 
 	NULL, //constructor
@@ -1625,6 +1649,7 @@ ArgListType (MFTime_ConstructorArgs)[] = {
 //#define FIELDTYPE_MFTime	17
 FWTYPE MFTimeType = {
 	FIELDTYPE_MFTime,
+	'W',
 	"MFTime",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	MFTime_Constructor, //constructor
@@ -1640,6 +1665,7 @@ FWTYPE MFTimeType = {
 //#define FIELDTYPE_SFString	18
 FWTYPE SFStringType = {
 	FIELDTYPE_SFString,
+	'S',
 	"SFString",
 	sizeof(void *), //sizeof(struct ), 
 	NULL, //constructor
@@ -1704,6 +1730,7 @@ ArgListType (MFString_ConstructorArgs)[] = {
 //#define FIELDTYPE_MFString	19
 FWTYPE MFStringType = {
 	FIELDTYPE_MFString,
+	'W',
 	"MFString",
 	sizeof(struct Multi_Any),
 	MFString_Constructor, //constructor
@@ -1892,6 +1919,7 @@ ArgListType (SFVec2f_ConstructorArgs)[] = {
 //#define FIELDTYPE_SFVec2f	20
 FWTYPE SFVec2fType = {
 	FIELDTYPE_SFVec2f,
+	'W',
 	"SFVec2f",
 	sizeof(struct SFVec2f), //sizeof(struct ), 
 	SFVec2f_Constructor, //constructor
@@ -1907,6 +1935,7 @@ FWTYPE SFVec2fType = {
 //#define FIELDTYPE_MFVec2f	21
 FWTYPE MFVec2fType = {
 	FIELDTYPE_MFVec2f,
+	'W',
 	"MFVec2f",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	MFW_Constructor, //constructor
@@ -2056,6 +2085,7 @@ ArgListType (SFImage_ConstructorArgs)[] = {
 //#define FIELDTYPE_SFImage	22
 FWTYPE SFImageType = {
 	FIELDTYPE_SFImage,
+	'W',
 	"SFImage",
 	sizeof(struct Multi_Int32), 
 	SFImage_Constructor, //constructor
@@ -2071,6 +2101,7 @@ FWTYPE SFImageType = {
 #define FIELDTYPE_MFImage	43 
 FWTYPE MFImageType = {
 	FIELDTYPE_MFImage,
+	'W',
 	"MFImage",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	MFW_Constructor, //constructor
@@ -2283,6 +2314,7 @@ ArgListType (SFVec3d_ConstructorArgs)[] = {
 //#define FIELDTYPE_SFVec3d	25
 FWTYPE SFVec3dType = {
 	FIELDTYPE_SFVec3d,
+	'W',
 	"SFVec3d",
 	sizeof(struct SFVec3d), //sizeof(struct ), 
 	SFVec3d_Constructor, //constructor
@@ -2299,6 +2331,7 @@ FWTYPE SFVec3dType = {
 //#define FIELDTYPE_MFVec3d	26
 FWTYPE MFVec3dType = {
 	FIELDTYPE_MFVec3d,
+	'W',
 	"MFVec3d",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	MFW_Constructor, //constructor
@@ -2315,6 +2348,7 @@ FWTYPE MFVec3dType = {
 //#define FIELDTYPE_SFDouble	27
 FWTYPE SFDoubleType = {
 	FIELDTYPE_SFDouble,
+	'D',
 	"SFDouble",
 	sizeof(double), //sizeof(struct ), 
 	NULL, //constructor
@@ -2354,6 +2388,7 @@ ArgListType (MFDouble_ConstructorArgs)[] = {
 //#define FIELDTYPE_MFDouble	28
 FWTYPE MFDoubleType = {
 	FIELDTYPE_MFDouble,
+	'W',
 	"MFDouble",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	MFDouble_Constructor, //constructor
@@ -2714,6 +2749,7 @@ ArgListType (X3DMatrix3_ConstructorArgs)[] = {
 //#define FIELDTYPE_SFMatrix3f	29
 FWTYPE X3DMatrix3Type = {
 	AUXTYPE_X3DMatrix3,
+	'P',
 	"X3DMatrix3",
 	sizeof(struct SFMatrix3f), //sizeof(struct ), 
 	X3DMatrix3_Constructor, //constructor
@@ -3060,6 +3096,7 @@ ArgListType (X3DMatrix4_ConstructorArgs)[] = {
 
 FWTYPE X3DMatrix4Type = {
 	AUXTYPE_X3DMatrix4,
+	'P',
 	"X3DMatrix4",
 	sizeof(struct SFMatrix3f), //sizeof(struct ), 
 	X3DMatrix4_Constructor, //constructor
@@ -3248,6 +3285,7 @@ ArgListType (SFVec2d_ConstructorArgs)[] = {
 //#define FIELDTYPE_SFVec2d	37
 FWTYPE SFVec2dType = {
 	FIELDTYPE_SFVec2d,
+	'W',
 	"SFVec2d",
 	sizeof(struct SFVec2d), //sizeof(struct ), 
 	SFVec2d_Constructor, //constructor
@@ -3263,6 +3301,7 @@ FWTYPE SFVec2dType = {
 //#define FIELDTYPE_MFVec2d	38
 FWTYPE MFVec2dType = {
 	FIELDTYPE_MFVec2d,
+	'W',
 	"MFVec2d",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	MFW_Constructor, //constructor
@@ -3357,6 +3396,7 @@ ArgListType (SFVec4f_ConstructorArgs)[] = {
 //#define FIELDTYPE_SFVec4f	39
 FWTYPE SFVec4fType = {
 	FIELDTYPE_SFVec4f,
+	'W',
 	"SFVec4f",
 	sizeof(struct SFVec4f), //sizeof(struct ), 
 	SFVec4f_Constructor, //constructor
@@ -3372,6 +3412,7 @@ FWTYPE SFVec4fType = {
 //#define FIELDTYPE_MFVec4f	40
 FWTYPE MFVec4fType = {
 	FIELDTYPE_MFVec4f,
+	'W',
 	"MFVec4f",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	MFW_Constructor, //constructor
@@ -3463,6 +3504,7 @@ ArgListType (SFVec4d_ConstructorArgs)[] = {
 //#define FIELDTYPE_SFVec4d	41
 FWTYPE SFVec4dType = {
 	FIELDTYPE_SFVec4d,
+	'W',
 	"SFVec4d",
 	sizeof(struct SFVec4d), //sizeof(struct ), 
 	SFVec4d_Constructor, //constructor
@@ -3478,6 +3520,7 @@ FWTYPE SFVec4dType = {
 //#define FIELDTYPE_MFVec4d	42
 FWTYPE MFVec4dType = {
 	FIELDTYPE_MFVec4d,
+	'W',
 	"MFVec4d",
 	sizeof(struct Multi_Any), //sizeof(struct ), 
 	MFW_Constructor, //constructor

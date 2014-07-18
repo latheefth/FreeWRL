@@ -933,7 +933,8 @@ int cfwconstructor(duk_context *ctx) {
 		int nfixed = fwt->ConstructorArgs[i].nfixedArg;
 		int ivarsa = fwt->ConstructorArgs[i].iVarArgStartsAt;
 		char *neededTypes = fwt->ConstructorArgs[i].argtypes;
-		if( nargs == nfixed || (ivarsa > -1 && nargs >= nfixed )){ 
+		int fill = fwt->ConstructorArgs[i].fillMissingFixedWithZero == 'T';
+		if( nargs == nfixed || (ivarsa > -1 && nargs >= nfixed ) || (ivarsa > -1 && fill)){ 
 			//nargs is a match
 			int allOK = TRUE;
 			//check each narg for compatible type
@@ -987,6 +988,10 @@ int cfwconstructor(duk_context *ctx) {
 				}
 				allOK = allOK && isOK;
 			}
+			if(fill)
+				for(int j=nargs;j<nfixed;j++){
+					allOK = allOK && 1;
+				}
 			if(allOK){
 				ifound = i;
 				break;
@@ -1001,6 +1006,31 @@ int cfwconstructor(duk_context *ctx) {
 	FWval args = NULL;
 	int argc;
 	convert_duk_to_fwvals(ctx, nargs, 0, fwt->ConstructorArgs[i], &args, &argc);
+	if(fwt->ConstructorArgs[ifound].fillMissingFixedWithZero == 'T' && nargs < fwt->ConstructorArgs[ifound].nfixedArg){
+		int nfixed = fwt->ConstructorArgs[ifound].nfixedArg;
+		int ivarsa = fwt->ConstructorArgs[ifound].iVarArgStartsAt;
+		char *neededTypes = fwt->ConstructorArgs[ifound].argtypes;
+		int fill = fwt->ConstructorArgs[ifound].fillMissingFixedWithZero == 'T';
+		args = realloc(args,nfixed * sizeof(FWVAL));
+		for(int j=nargs;j<nfixed;j++){
+			switch(neededTypes[j]){
+			case 'B':
+				args[j]._boolean = FALSE; break;
+			case 'I':
+				args[j]._integer = 0; break;
+			case 'F':
+				args[j]._numeric = 0.0; break;
+			case 'D':
+				args[j]._numeric = 0.0; break;
+			case 'S':
+				args[j]._string = ""; break;
+			case 'W':
+			case 'P':
+				break;
+			}
+		}
+		argc = nfixed;
+	}
 
 	void *fwpointer = fwt->Constructor(fwt,argc,args);
 	free(args);
@@ -1174,8 +1204,12 @@ int fwval_duk_push(duk_context *ctx, FWval fwretval, int *valueChanged){
 		switch(fwretval->_web3dval.fieldType){
 		case FIELDTYPE_SFBool:
 			duk_push_boolean(ctx,fwretval->_web3dval.anyvrml->sfbool); break;
-		case FIELDTYPE_SFInt32:
-			duk_push_int(ctx,fwretval->_web3dval.anyvrml->sfint32); break;
+		case FIELDTYPE_SFInt32:{
+			int ii = fwretval->_web3dval.anyvrml->sfint32;
+			duk_push_int(ctx,ii);
+			//duk_push_int(ctx,fwretval->_web3dval.anyvrml->sfint32); 
+			}
+			break;
 		case FIELDTYPE_SFFloat:
 			duk_push_number(ctx,(double)fwretval->_web3dval.anyvrml->sffloat); break;
 		case FIELDTYPE_SFDouble:

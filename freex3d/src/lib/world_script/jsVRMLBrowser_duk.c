@@ -734,6 +734,7 @@ int BrowserSetter(FWType fwt, int index, void * fwn, FWval fwval){
 
 FWTYPE BrowserType = {
 	AUXTYPE_X3DBrowser,
+	'P',
 	"X3DBrowser",
 	0, //sizeof(struct X3DBrowser), 
 	NULL, //no constructor for Browser
@@ -815,6 +816,7 @@ FWPropertySpec (ComponentInfoArrayProperties)[] = {
 
 FWTYPE ComponentInfoArrayType = {
 	AUXTYPE_ComponentInfoArray,
+	'P',
 	"ComponentInfoArray",
 	0, //sizeof(struct X3DBrowser), 
 	NULL, //no constructor for Browser
@@ -875,6 +877,7 @@ int ComponentInfoGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 
 FWTYPE ComponentInfoType = {
 	AUXTYPE_ComponentInfo,
+	'P',
 	"ComponentInfo",
 	0, //sizeof(struct X3DBrowser), 
 	NULL, //no constructor for Browser
@@ -925,6 +928,7 @@ FWPropertySpec (ProfileInfoArrayProperties)[] = {
 
 FWTYPE ProfileInfoArrayType = {
 	AUXTYPE_ProfileInfoArray,
+	'P',
 	"ProfileInfoArray",
 	0, //sizeof(struct X3DBrowser), 
 	NULL, //no constructor for Browser
@@ -1001,6 +1005,7 @@ int ProfileInfoGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 
 FWTYPE ProfileInfoType = {
 	AUXTYPE_ProfileInfo,
+	'P',
 	"ProfileInfo",
 	0, //sizeof(struct X3DBrowser), 
 	NULL, //no constructor for Browser
@@ -1198,6 +1203,7 @@ int X3DExecutionContextGetter(FWType fwt, int index, void * fwn, FWval fwretval)
 
 FWTYPE X3DExecutionContextType = {
 	AUXTYPE_X3DExecutionContext,
+	'P',
 	"X3DExecutionContext",
 	0, //sizeof(struct X3DBrowser), 
 	NULL, //no constructor
@@ -1248,6 +1254,7 @@ FWPropertySpec (X3DRouteArrayProperties)[] = {
 
 FWTYPE X3DRouteArrayType = {
 	AUXTYPE_X3DRouteArray,
+	'P',
 	"X3DRouteArray",
 	0, //sizeof(struct X3DRoute), 
 	NULL, //no constructor for X3DRoute
@@ -1331,6 +1338,7 @@ int X3DRouteGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 
 FWTYPE X3DRouteType = {
 	AUXTYPE_X3DRoute,
+	'P',
 	"X3DRoute",
 	0, //sizeof(struct X3DRoute), 
 	NULL, //no constructor for X3DRoute
@@ -1481,6 +1489,7 @@ int X3DConstantsIterator(int index, FWTYPE *fwt, FWPointer *pointer, char **name
 }
 FWTYPE X3DConstantsType = {
 	AUXTYPE_X3DConstants,
+	'P',
 	"X3DConstants",
 	0, //sizeof(struct X3DRoute), 
 	NULL, //no constructor for X3DRoute

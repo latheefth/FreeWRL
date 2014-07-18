@@ -59,6 +59,7 @@ typedef struct FWFunctionSpec {
 
 typedef struct FWTYPE{
 	int itype; //AUXTYPE_ or FIELDTYPE_
+	char ctype;  //what it maps to in fwval.itype: B,I,F,D,S,W,P
 	char *name;
 	//int index; //index into an array of FWTYPES
 	int size_of; //for mallocing in constructor
