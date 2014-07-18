@@ -1300,6 +1300,12 @@ int cfunction(duk_context *ctx) {
 		nr = fs->call(fwt,parent,argc,pars,&fwretval);
 		if(nr){
 			nr = fwval_duk_push(ctx,&fwretval,valueChanged);
+			if(nr && !strcmp(fwFunc,"toString")){
+				if(fwretval.itype == 'S' && fwretval._string){
+					//printf("gcing toString string %s\n",fwretval._string);
+					free(fwretval._string);  //if this bombs take it out and toString strings won't be gcd. There's nothing set up to gc _string in general
+				}
+			}
 		}else{
 			if(valueChanged) *valueChanged = TRUE;
 		}
