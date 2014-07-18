@@ -1213,7 +1213,7 @@ FWTYPE X3DExecutionContextType = {
 struct CRStruct *getCRoutes();
 int getCRouteCount();
 int *getCRouteCounter();
-int X3DRouteArrayGetter(int index, void * fwn, FWval fwretval){
+int X3DRouteArrayGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 	int nr = 0;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index == -1){
@@ -1230,7 +1230,7 @@ int X3DRouteArrayGetter(int index, void * fwn, FWval fwretval){
 	}else if(index > -1 && index < getCRouteCount() ){
 		struct CRStruct *routes = getCRoutes();
 		//fwretval->_pointer.native = &routes[index];
-		fwretval->_pointer.native = intdup(index);
+		fwretval->_pointer.native = intdup(index+1);
 		fwretval->_pointer.gc = 1;
 		//getSpecificRoute (index,&fromNode, &fromOffset, &toNode, &toOffset);
 		fwretval->_pointer.fieldType = AUXTYPE_X3DRoute;
@@ -1285,8 +1285,8 @@ int X3DRouteGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 	//route = (struct CRStruct *)fwn;
 	int indexr = *(int *)fwn;
 
-	getSpecificRoute (index,&fromNode, &fromOffset, &toNode, &toOffset);
-
+	getSpecificRoute (indexr,&fromNode, &fromOffset, &toNode, &toOffset);
+	if(!fromNode || !toNode) return 0;
 
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	switch(index){
