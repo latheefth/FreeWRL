@@ -1495,39 +1495,20 @@ int cset(duk_context *ctx) {
 			found = fwhas_generic(fwt,parent,key,&jndex,&type,&readOnly) && (type != 'f');
 		}
 		if(found && (readOnly != 'T') && fwt->Setter){
-			//if(0){
-			//	FWVAL fwsetval;
-			//	//fwsetval.itype = ps->type;
-			//	switch(type){
-			//		//there could/should be better detection of duk_type and mapping/error checking to convert to type
-			//	case '0':break;
-			//	case 'I': fwsetval._integer = duk_to_int(ctx,-2); break;
-			//	case 'F': fwsetval._numeric = duk_to_number(ctx,-2); break;
-			//	case 'D': fwsetval._numeric = duk_to_number(ctx,-2); break;
-			//	case 'B': fwsetval._boolean = duk_to_boolean(ctx,-2); break;
-			//	case 'S': fwsetval._string = duk_to_string(ctx,-2); break;
-			//	case 'W': fwsetval._web3dval.native = duk_to_pointer(ctx,-2); fwsetval._web3dval.fieldType = itype; break;
-			//	case 'P': fwsetval._pointer.native = duk_to_pointer(ctx,-2); fwsetval._pointer.fieldType = itype; break;
-			//	}
-			//	fwt->Setter(fwt,jndex,parent,&fwsetval);
-
-			//}else
-			{
-				FWval fwsetval = NULL;
-				struct ArgListType arglist;
-				int argc;
-				arglist.argtypes = &type;
-				arglist.fillMissingFixedWithZero = 0;
-				arglist.nfixedArg = 1;
-				arglist.iVarArgStartsAt = -1;
-				convert_duk_to_fwvals(ctx, 1, -2, arglist, &fwsetval, &argc);
-				if(argc == 1){
-					fwt->Setter(fwt,jndex,parent,fwsetval);
-					if(valueChanged)
-						(*valueChanged) = 1;
-				}
-				free(fwsetval);
+			FWval fwsetval = NULL;
+			struct ArgListType arglist;
+			int argc;
+			arglist.argtypes = &type;
+			arglist.fillMissingFixedWithZero = 0;
+			arglist.nfixedArg = 1;
+			arglist.iVarArgStartsAt = -1;
+			convert_duk_to_fwvals(ctx, 1, -2, arglist, &fwsetval, &argc);
+			if(argc == 1){
+				fwt->Setter(fwt,jndex,parent,fwsetval);
+				if(valueChanged)
+					(*valueChanged) = 1;
 			}
+			free(fwsetval);
 		}
 	}
     return 0;
