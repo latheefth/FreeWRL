@@ -182,6 +182,96 @@ int MFW_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	}
 	return nr;
 }
+int mf2sf(int itype);
+FWTYPE *getFWTYPE(int itype);
+char *sfToString(FWType fwt, void *fwn){
+	//caller must free / gc the return string
+	int i;
+	union anyVrml *any = (union anyVrml*)fwn;
+	char strbuf[100];
+	char *str = NULL;
+	switch(fwt->itype){
+	case FIELDTYPE_SFBool:
+		if(any->sfbool) str = strdup("true");
+		else str = strdup("false");
+		break;
+	case FIELDTYPE_SFInt32:
+		sprintf(strbuf,"%d",any->sfint32);
+		str = strdup(strbuf);
+		break;
+	case FIELDTYPE_SFFloat:
+		sprintf(strbuf,"%f",any->sffloat);
+		str = strdup(strbuf);
+		break;
+	case FIELDTYPE_SFDouble:
+	case FIELDTYPE_SFTime:
+		sprintf(strbuf,"%lf",any->sfdouble);
+		str = strdup(strbuf);
+		break;
+	case FIELDTYPE_SFString:{
+		str = malloc(strlen(any->sfstring->strptr)+3);
+		strcpy(str,"\"");
+		str = strcat(str,any->sfstring->strptr);
+		str = strcat(str,"\"");
+		}
+		break;
+	default:
+	{
+		//delegate to SF type toString function
+		i = 0;
+		while(fwt->Functions[i].name){
+			if(!strcmp(fwt->Functions[i].name,"toString")){
+				FWval fwpars = NULL;
+				FWVAL fwretval;
+				fwt->Functions[i].call(fwt,fwn,0,fwpars,&fwretval);
+				str = fwretval._string;
+				break;
+			}
+		}
+		break;
+	}
+	}
+	return str;
+}
+char *mfToString(FWType fwt, void * fwn){
+	//caller must free / gc the return string
+	int i, sftype, len, showType;
+	struct Multi_Any *ptr = (struct Multi_Any *)fwn;
+	showType = 0; //=1 to see MFColor[], =0 to see []
+	len = strlen("[ ");
+	if(showType) len += strlen(fwt->name);
+	char *str = malloc(len +1);
+	str[0] = 0;
+	if(showType) strcat(str,fwt->name);
+	str = strcat(str,"[ ");
+	sftype = mf2sf(fwt->itype);
+	FWTYPE *fwtsf = getFWTYPE(sftype);
+	for(i=0;i<ptr->n;i++)
+	{
+		char * sf = sfToString(fwtsf,&ptr->p[i]);
+		str = realloc(str,strlen(str)+strlen(sf)+2);
+		str = strcat(str,sf);
+		str = strcat(str," ");
+		free(sf);
+	}
+	str[strlen(str)-1] = ']';
+	return str;
+}
+
+int MFW_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	char *str;
+	str = mfToString(fwtype,fwn);
+	fwretval->_string = str;
+	fwretval->itype = 'S';
+	return 1;
+}
+
+FWFunctionSpec (MFW_Functions)[] = {
+	{"toString", MFW_toString, 'S',{0,-1,0,NULL}},
+	{0}
+};
+
+
 int MFW_Setter(FWType fwt, int index, void * fwn, FWval fwval){
 	struct Multi_Any *ptr = (struct Multi_Any *)fwn;
 	int nelen, nold, nr = FALSE;
@@ -272,7 +362,7 @@ FWTYPE MFFloatType = {
 	MFW_Getter, //Getter,
 	MFW_Setter, //Setter,
 	'F',0, //index prop type,readonly
-	NULL, //functions
+	MFW_Functions, //functions
 };
 
 
@@ -579,7 +669,7 @@ FWTYPE MFRotationType = {
 	MFW_Getter, //Getter,
 	MFW_Setter, //Setter,
 	'W',0, //index prop type,readonly
-	NULL, //functions
+	MFW_Functions, //functions
 };
 
 
@@ -808,7 +898,7 @@ FWTYPE MFVec3fType = {
 	MFW_Getter, //Getter,
 	MFW_Setter, //Setter,
 	'W',0, //index prop type,readonly
-	NULL, //functions
+	MFW_Functions, //functions
 };
 //#define FIELDTYPE_SFBool	6
 FWTYPE SFBoolType = {
@@ -864,7 +954,7 @@ FWTYPE MFBoolType = {
 	MFW_Getter, //Getter,
 	MFW_Setter, //Setter,
 	'B',0, //index prop type,readonly
-	NULL, //functions
+	MFW_Functions, //functions
 };
 //#define FIELDTYPE_SFInt32	8
 FWTYPE SFInt32Type = {
@@ -919,7 +1009,7 @@ FWTYPE MFInt32Type = {
 	MFW_Getter, //Getter,
 	MFW_Setter, //Setter,
 	'I',0, //index prop type,readonly
-	NULL, //functions
+	MFW_Functions, //functions
 };
 
 int getFieldFromNodeAndIndex(struct X3D_Node* node, int iifield, const char **fieldname, int *type, int *kind, union anyVrml **value);
@@ -1088,7 +1178,10 @@ void * SFNode_Constructor(FWType fwtype, int nargs, FWval fwpars){
 		}else if(fwpars->itype = 'W'){
 			if(fwpars->_web3dval.fieldType == FIELDTYPE_SFNode){
 				//SFNode.wrl newedPointer = new SFNode(ptr); 
-				ptr = fwpars[0]._web3dval.native; //don't gc
+				//ptr = fwpars[0]._web3dval.native; //don't gc
+				ptr = malloc(sizeof(void *));
+				*ptr = ((union anyVrml*)fwpars[0]._web3dval.native)->sfnode; 
+
 			}
 		}
 	}
@@ -1128,7 +1221,7 @@ FWTYPE MFNodeType = {
 	MFW_Getter, //Getter,
 	MFW_Setter, //Setter,
 	'W',0, //index prop type,readonly
-	NULL, //functions
+	MFW_Functions, //functions
 };
 
 
@@ -1354,7 +1447,7 @@ FWTYPE MFColorType = {
 	MFW_Getter, //Getter,
 	MFW_Setter, //Setter,
 	'W',0, //index prop type,readonly
-	NULL, //functions
+	MFW_Functions, //functions
 };
 
 
@@ -1486,7 +1579,7 @@ FWTYPE MFColorRGBAType = {
 	MFW_Getter, //Getter,
 	MFW_Setter, //Setter,
 	'W',0, //index prop type,readonly
-	NULL, //functions
+	MFW_Functions, //functions
 };
 
 //#define FIELDTYPE_SFTime	16
@@ -1541,7 +1634,7 @@ FWTYPE MFTimeType = {
 	MFW_Getter, //Getter,
 	MFW_Setter, //Setter,
 	'D',0, //index prop type,readonly
-	NULL, //functions
+	MFW_Functions, //functions
 };
 
 //#define FIELDTYPE_SFString	18
@@ -1620,7 +1713,7 @@ FWTYPE MFStringType = {
 	MFW_Getter, //Getter,
 	MFW_Setter, //Setter,
 	'S',0, //index prop type,readonly
-	NULL, //functions
+	MFW_Functions, //functions
 };
 
 
@@ -1781,7 +1874,7 @@ int SFVec2f_Setter(FWType fwt, int index, void * fwn, FWval fwval){
 //typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
 void * SFVec2f_Constructor(FWType fwtype, int ic, FWval fwpars){
 	struct SFVec2f *ptr = malloc(fwtype->size_of); //garbage collector please
-	for(int i=0;i<3;i++)
+	for(int i=0;i<2;i++)
 		ptr->c[i] =  fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
 	return (void *)ptr;
 }
@@ -1823,7 +1916,7 @@ FWTYPE MFVec2fType = {
 	MFW_Getter, //Getter,
 	MFW_Setter, //Setter,
 	'W',0, //index prop type,readonly
-	NULL, //functions
+	MFW_Functions, //functions
 };
 
 /* SFImage
@@ -1843,9 +1936,17 @@ funcs
 String toString() Returns a String containing the  value of x, y, comp and array encoded using the Classic VRML encoding (see part 2 of ISO/IEC 19776). 
 */
 
+int SFImage_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	char *str;
+	FWType mfint32type = getFWTYPE(FIELDTYPE_MFInt32);
+	str = mfToString(mfint32type, fwn);
+	fwretval->_string = str;
+	fwretval->itype = 'S';
+	return 1;
+}
 
 FWFunctionSpec (SFImage_Functions)[] = {
-	//{"toString", SFImage_toString, 'S',{0,-1,0,NULL}},
+	{"toString", SFImage_toString, 'S',{0,-1,0,NULL}},
 	{0}
 };
 
@@ -1979,7 +2080,7 @@ FWTYPE MFImageType = {
 	MFW_Getter, //Getter,
 	MFW_Setter, //Setter,
 	'W',0, //index prop type,readonly
-	NULL, //functions
+	MFW_Functions, //functions
 };
 
 //#define FIELDTYPE_FreeWRLPTR	23
@@ -2207,7 +2308,7 @@ FWTYPE MFVec3dType = {
 	MFW_Getter, //Getter,
 	MFW_Setter, //Setter,
 	'W',0, //index prop type,readonly
-	NULL, //functions
+	MFW_Functions, //functions
 };
 
 
@@ -2262,7 +2363,7 @@ FWTYPE MFDoubleType = {
 	MFW_Getter, //Getter,
 	MFW_Setter, //Setter,
 	'D',0, //index prop type,readonly
-	NULL, //functions
+	MFW_Functions, //functions
 };
 
 // http://www.web3d.org/files/specifications/19777-1/V3.0/Part1/functions.html#Matrix3
@@ -2546,6 +2647,23 @@ int X3DMatrix3_multMatrixVec(FWType fwtype, void * fwn, int argc, FWval fwpars, 
 	return 1;
 }
 
+int X3DMatrix3_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
+	char *str, *r;
+	int i;
+	FWType sfvec3ftype = getFWTYPE(FIELDTYPE_SFVec3f);
+
+	str = NULL;
+	for(i=0;i<3;i++){
+		r = sfToString(sfvec3ftype,&ptr->c[i*3]);
+		str = realloc(str,strlen(str)+strlen(r)+2);
+		str = strcat(str,r);
+	}
+	fwretval->_string = str;
+	fwretval->itype = 'S';
+	return 1;
+}
+
 FWFunctionSpec (X3DMatrix3_Functions)[] = {
 	{"setTransform", X3DMatrix3_setTransform, 0,{5,-1,0,"WWWWW"}},
 	{"getTransform", X3DMatrix3_getTransform, 'P',{1,-1,0,"W"}},
@@ -2555,7 +2673,7 @@ FWFunctionSpec (X3DMatrix3_Functions)[] = {
 	{"multRight", X3DMatrix3_multRight, 'P',{1,-1,0,"P"}},
 	{"multVecMatrix", X3DMatrix3_multVecMatrix, 'W',{1,-1,0,"W"}},
 	{"multMatrixVec", X3DMatrix3_multMatrixVec, 'W',{1,-1,0,"W"}},
-	//{"toString", X3DMatrix3_toString, 'S',{0,-1,0,NULL}},
+	{"toString", X3DMatrix3_toString, 'S',{0,-1,0,NULL}},
 	{0}
 };
 
@@ -2874,6 +2992,24 @@ int X3DMatrix4_multMatrixVec(FWType fwtype, void * fwn, int argc, FWval fwpars, 
 	return 1;
 }
 
+int X3DMatrix4_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFMatrix4f *ptr = (struct SFMatrix4f *)fwn;
+	char *str, *r;
+	int i;
+	FWType sfvec4ftype = getFWTYPE(FIELDTYPE_SFVec4f);
+
+	str = NULL;
+	for(i=0;i<4;i++){
+		r = sfToString(sfvec4ftype,&ptr->c[i*4]);
+		str = realloc(str,strlen(str)+strlen(r)+2);
+		str = strcat(str,r);
+	}
+	fwretval->_string = str;
+	fwretval->itype = 'S';
+	return 1;
+}
+
+
 FWFunctionSpec (X3DMatrix4_Functions)[] = {
 	{"setTransform", X3DMatrix4_setTransform, 0,{5,-1,0,"WWWWW"}},
 	{"getTransform", X3DMatrix4_getTransform, 'P',{1,-1,0,"W"}},
@@ -2883,7 +3019,7 @@ FWFunctionSpec (X3DMatrix4_Functions)[] = {
 	{"multRight", X3DMatrix4_multRight, 'P',{1,-1,0,"P"}},
 	{"multVecMatrix", X3DMatrix4_multVecMatrix, 'W',{1,-1,0,"W"}},
 	{"multMatrixVec", X3DMatrix4_multMatrixVec, 'W',{1,-1,0,"W"}},
-	//{"toString", X3DMatrix4_toString, 'S',{0,-1,0,NULL}},
+	{"toString", X3DMatrix4_toString, 'S',{0,-1,0,NULL}},
 	{0}
 };
 
@@ -3136,7 +3272,7 @@ FWTYPE MFVec2dType = {
 	MFW_Getter, //Getter,
 	MFW_Setter, //Setter,
 	'W',0, //index prop type,readonly
-	NULL, //functions
+	MFW_Functions, //functions
 };
 
 int SFVec4f_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
@@ -3245,7 +3381,7 @@ FWTYPE MFVec4fType = {
 	MFW_Getter, //Getter,
 	MFW_Setter, //Setter,
 	'W',0, //index prop type,readonly
-	NULL, //functions
+	MFW_Functions, //functions
 };
 
 int SFVec4d_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
@@ -3351,7 +3487,7 @@ FWTYPE MFVec4dType = {
 	MFW_Getter, //Getter,
 	MFW_Setter, //Setter,
 	'W',0, //index prop type,readonly
-	NULL, //functions
+	MFW_Functions, //functions
 };
 
 void initVRMLFields(FWTYPE** typeArray, int *n){

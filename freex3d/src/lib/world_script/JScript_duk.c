@@ -543,7 +543,7 @@ void freeField(int itype, void* any){
 	else if(isSForMFType(itype) == 1){
 		//MF
 		struct Multi_Any* mf = (struct Multi_Any*)any;
-		free(mf->p);  //bombs. H0: I'm not deep copying or medium_copy_field() everywhere I should
+		free(mf->p);  //if bombs, it could be because I'm not deep copying or medium_copy_field() everywhere I should
 		free(mf);
 	}
 }

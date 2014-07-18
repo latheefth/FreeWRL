@@ -3244,7 +3244,7 @@ void cParseErrorCurID(struct VRMLParser *me, char *str) {
 	}
 
 	p->foundInputErrors++;
-	ConsoleMessage(fw_outline); 
+	ConsoleMessage("%s",fw_outline); 
 }
 
 void cParseErrorFieldString(struct VRMLParser *me, char *str, const char *str2) {
