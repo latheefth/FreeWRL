@@ -1232,6 +1232,32 @@ int fwval_duk_push(duk_context *ctx, FWval fwretval, int *valueChanged){
 	return nr;
 }
 
+int ctypefunction(duk_context *ctx) {
+	int rc, nr, itype;
+	const char *fwFunc = NULL;
+	union anyVrml* field = NULL;
+	FWTYPE *fwt;
+
+	itype = -1;
+	int nargs = duk_get_top(ctx);
+	//show_stack0(ctx,"in cfuction",0);
+	duk_push_current_function(ctx);
+	/* get type of parent object for this property*/
+	rc = duk_get_prop_string(ctx,-1,"fwItype");
+	if(rc==1) itype = duk_get_int(ctx,-1);
+	duk_pop(ctx);
+	/* get the name of the function called */
+	rc = duk_get_prop_string(ctx,-1,"fwFunc");
+	if(rc == 1) fwFunc = duk_to_string(ctx,-1);
+	duk_pop(ctx);
+	duk_pop(ctx); //durrent function
+	nr = 0;
+	if(!strcmp(fwFunc,"getType")){
+		duk_push_int(ctx,itype);
+		nr = 1;
+	}
+	return nr;
+}
 int cfunction(duk_context *ctx) {
 	int rc, nr, itype, *valueChanged;
 	const char *fwFunc = NULL;
@@ -1332,7 +1358,16 @@ int cget(duk_context *ctx) {
 			nr = 1;
 			return nr;
 		}
-
+		if(!strcmp(key,"getType")){
+			//its a function all auxtypes and fieldtypes share
+			duk_push_c_function(ctx,ctypefunction,DUK_VARARGS);
+			duk_push_int(ctx,itype);
+			duk_put_prop_string(ctx,-2,"fwItype");
+			duk_push_string(ctx,key);
+			duk_put_prop_string(ctx,-2,"fwFunc");
+			nr = 1;
+			return nr;
+		}
 		}
 		break;
 	}
@@ -2149,11 +2184,11 @@ int fwsetterNS(duk_context *ctx) {
 			//printf(duk_type_to_string(duk_get_type(ctx, -1)));
 			itypeRHS = duk_to_int(ctx,-1);
 		}
-		duk_pop(ctx);
+		duk_pop(ctx); //pop get_prop
 		rc = duk_get_prop_string(ctx,0,"fwField");
 		if(rc == 1) fieldRHS = duk_to_pointer(ctx,-1);
-		duk_pop(ctx);
-		duk_pop(ctx);
+		duk_pop(ctx); //pop get_prop
+		duk_pop(ctx); //??? what's this pop for?
 		/*we don't need the RHS fwChanged=valueChanged* because we are only changing the LHS*/
 
 		if(fieldRHS != NULL){
@@ -2304,6 +2339,13 @@ int fwgetter0(duk_context *ctx,void *parent,int itype, char *key, int *valueChan
 	return nr;
 }
 int fwgetterNS(duk_context *ctx) {
+	/* when we initializeContext we assign 2 kinds of properties to the global object in the context:
+		1. FIELDTYPES: our Script Node's dynamic (scene-authored) fields (or more precisely, their js proxys), with features:
+			- has valueChanged, getName, getMode (getType is part of all FIELDTYPEs and AUXTYPEs)
+			- reference when getting if non-primitive, deep copy when setting
+		2. AUXTYPES: a) Browser (AUXTYPE_X3DBrowser) b) X3DConstants (AUXTYPE_X3DConstants)
+			- reference when getting, never set (these two are static singletons)
+	*/
 	int nargs, nr;
 	int rc, itype, mode, *valueChanged;
 	const char *fwName = NULL;
