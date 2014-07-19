@@ -81,6 +81,7 @@ typedef struct WEB3DNATIVE {
 	union anyVrml *anyvrml;		//pointer to anyVrml - you can use this during debugging to inspect the native you assigned
 	};
 	int *valueChanged; 	//pointer to valueChanged != NULL if this FWNATIVe is a reference to a Script->Field
+	int kind; //inputOnly, outputOnly, initializeOnly, inputOutput in PKW_ constant values 
 	char gc; //'T' or 1 if you malloced the pointer and want the engine to free() when it garbage collects the related obj
 } FWPointer;// *Web3dNative, 
 

@@ -1068,6 +1068,7 @@ int SFNode_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	if(ihave){
 		fwretval->_web3dval.native = value;
 		fwretval->_web3dval.fieldType = ftype;
+		fwretval->_web3dval.kind = kind;
 		fwretval->_web3dval.gc = 0;
 		fwretval->itype = 'W';
 /*

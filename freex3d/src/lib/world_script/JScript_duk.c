@@ -657,7 +657,7 @@ void push_typed_proxy(duk_context *ctx, int itype, void *fwpointer, int* valueCh
 
 }
 
-int push_typed_proxy2(duk_context *ctx, int itype, void *fwpointer, int* valueChanged, char doGC)
+int push_typed_proxy2(duk_context *ctx, int itype, int kind, void *fwpointer, int* valueChanged, char doGC)
 {
 	/*  like fwgetter version, except with no fieldname or mode, for temp proxies
 		nativePtr
@@ -672,6 +672,9 @@ int push_typed_proxy2(duk_context *ctx, int itype, void *fwpointer, int* valueCh
 	duk_put_prop_string(ctx,-2,"fwChanged");
 	duk_push_int(ctx,itype);
 	duk_put_prop_string(ctx,-2,"fwItype");
+	duk_push_int(ctx,kind);
+	duk_put_prop_string(ctx,-2,"fwKind");
+
 	if(doingFinalizer && doGC){
 		duk_push_boolean(ctx,TRUE);
 		duk_put_prop_string(ctx,-2,"fwGC");
@@ -1204,12 +1207,8 @@ int fwval_duk_push(duk_context *ctx, FWval fwretval, int *valueChanged){
 		switch(fwretval->_web3dval.fieldType){
 		case FIELDTYPE_SFBool:
 			duk_push_boolean(ctx,fwretval->_web3dval.anyvrml->sfbool); break;
-		case FIELDTYPE_SFInt32:{
-			int ii = fwretval->_web3dval.anyvrml->sfint32;
-			duk_push_int(ctx,ii);
-			//duk_push_int(ctx,fwretval->_web3dval.anyvrml->sfint32); 
-			}
-			break;
+		case FIELDTYPE_SFInt32:
+			duk_push_int(ctx,fwretval->_web3dval.anyvrml->sfint32); break;
 		case FIELDTYPE_SFFloat:
 			duk_push_number(ctx,(double)fwretval->_web3dval.anyvrml->sffloat); break;
 		case FIELDTYPE_SFDouble:
@@ -1218,12 +1217,12 @@ int fwval_duk_push(duk_context *ctx, FWval fwretval, int *valueChanged){
 		case FIELDTYPE_SFString:
 			duk_push_string(ctx,fwretval->_web3dval.anyvrml->sfstring->strptr); break;
 		default:
-			push_typed_proxy2(ctx,fwretval->_web3dval.fieldType,fwretval->_web3dval.native,valueChanged,fwretval->_web3dval.gc);
+			push_typed_proxy2(ctx,fwretval->_web3dval.fieldType,fwretval->_web3dval.kind,fwretval->_web3dval.native,valueChanged,fwretval->_web3dval.gc);
 		}
 		break;
 	case 'P':
 		//for web3d auxiliary types Browser, X3DFieldDefinitionArray, X3DRoute ...
-		push_typed_proxy2(ctx,fwretval->_pointer.fieldType,fwretval->_pointer.native,valueChanged,fwretval->_pointer.gc);
+		push_typed_proxy2(ctx,fwretval->_pointer.fieldType,fwretval->_pointer.kind,fwretval->_pointer.native,valueChanged,fwretval->_pointer.gc);
 		break;
 	case '0':
 	default:
@@ -1233,18 +1232,23 @@ int fwval_duk_push(duk_context *ctx, FWval fwretval, int *valueChanged){
 }
 
 int ctypefunction(duk_context *ctx) {
-	int rc, nr, itype;
+	int rc, nr, itype, kind;
 	const char *fwFunc = NULL;
 	union anyVrml* field = NULL;
 	FWTYPE *fwt;
 
 	itype = -1;
+	kind = -1;
 	int nargs = duk_get_top(ctx);
 	//show_stack0(ctx,"in cfuction",0);
 	duk_push_current_function(ctx);
 	/* get type of parent object for this property*/
 	rc = duk_get_prop_string(ctx,-1,"fwItype");
 	if(rc==1) itype = duk_get_int(ctx,-1);
+	duk_pop(ctx);
+	/*get the PKW_inputOutput read/write mode for the parent field*/
+	rc = duk_get_prop_string(ctx,-1,"fwKind");
+	if(rc==1) kind = duk_get_int(ctx,-1);
 	duk_pop(ctx);
 	/* get the name of the function called */
 	rc = duk_get_prop_string(ctx,-1,"fwFunc");
@@ -1254,6 +1258,22 @@ int ctypefunction(duk_context *ctx) {
 	nr = 0;
 	if(!strcmp(fwFunc,"getType")){
 		duk_push_int(ctx,itype);
+		nr = 1;
+	}
+	if(!strcmp(fwFunc,"isReadable")){
+		int isreadable = TRUE;
+		if(kind > -1)
+			isreadable = isreadable && (kind == PKW_inputOutput || kind == PKW_initializeOnly);
+		if(isreadable) duk_push_true(ctx);
+		else duk_push_false(ctx);
+		nr = 1;
+	}
+	if(!strcmp(fwFunc,"isWritable")){
+		int iswritable = TRUE;
+		if(kind > -1)
+			iswritable = iswritable && (kind == PKW_inputOutput || kind == PKW_outputOnly);
+		if(iswritable) duk_push_true(ctx);
+		else duk_push_false(ctx);
 		nr = 1;
 	}
 	return nr;
@@ -1315,15 +1335,20 @@ int cfunction(duk_context *ctx) {
 	return nr;
 }
 int cget(duk_context *ctx) {
-	int rc, nr, itype, *valueChanged;
+	int rc, nr, itype, kind, *valueChanged;
 	//show_stack(ctx,"in cget");
 	union anyVrml* parent = NULL;
 	union anyVrml* field = NULL;
 
 	/* get type of parent object for this property*/
 	itype = -1;
+	kind = -1;
 	rc = duk_get_prop_string(ctx,0,"fwItype");
 	if(rc==1) itype = duk_get_int(ctx,-1);
+	duk_pop(ctx);
+	/* get the kind of parent field PKW_inputOutput etc*/
+	rc = duk_get_prop_string(ctx,0,"fwKind");
+	if(rc==1) kind = duk_get_int(ctx,-1);
 	duk_pop(ctx);
 	/* get the pointer to the parent object */
 	rc = duk_get_prop_string(ctx,0,"fwField");
@@ -1358,11 +1383,13 @@ int cget(duk_context *ctx) {
 			nr = 1;
 			return nr;
 		}
-		if(!strcmp(key,"getType")){
+		if(!strcmp(key,"getType") || !strcmp(key,"isReadable") || !strcmp(key,"isWritable")){
 			//its a function all auxtypes and fieldtypes share
 			duk_push_c_function(ctx,ctypefunction,DUK_VARARGS);
 			duk_push_int(ctx,itype);
 			duk_put_prop_string(ctx,-2,"fwItype");
+			duk_push_int(ctx,kind);
+			duk_put_prop_string(ctx,-2,"fwKind");
 			duk_push_string(ctx,key);
 			duk_put_prop_string(ctx,-2,"fwFunc");
 			nr = 1;
@@ -1865,8 +1892,16 @@ int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *ty
 		while( field->nameIndex > -1) //<< generalized for scripts and builtins?
 		{
 			if(!strcmp(FIELDNAMES[field->nameIndex],fieldname)){
+				int kkind;
 				*type = field->typeIndex;
-				*kind = field->ioType;
+				kkind = -1;
+				switch(field->ioType){
+					case KW_initializeOnly: kkind = PKW_initializeOnly; break;
+					case KW_inputOnly: kkind = PKW_inputOnly; break;
+					case KW_outputOnly: kkind = PKW_outputOnly; break;
+					case KW_inputOutput: kkind = PKW_inputOutput; break;
+				}
+				*kind = kkind;
 				*iifield = ifield; 
 				*value = (union anyVrml*)&((char*)node)[field->offset];
 				return 1;
@@ -1958,14 +1993,21 @@ int getFieldFromNodeAndIndex(struct X3D_Node* node, int ifield, const char **fie
 		} *finfo;
 
 		finfo offsets;
-		int k;
+		int k, kkind;
 
 		offsets = (finfo)NODE_OFFSETS[node->_nodeType];
 		for(k=0;k<=ifield;k++)
 			if(offsets[k].nameIndex == -1) return 0;
 		*fieldname = FIELDNAMES[offsets[ifield].nameIndex];
 		*type = offsets[ifield].typeIndex;
-		*kind = offsets[ifield].ioType;
+		kkind = -1;
+		switch(offsets[ifield].ioType){
+			case KW_initializeOnly: kkind = PKW_initializeOnly; break;
+			case KW_inputOnly: kkind = PKW_inputOnly; break;
+			case KW_outputOnly: kkind = PKW_outputOnly; break;
+			case KW_inputOutput: kkind = PKW_inputOutput; break;
+		}
+		*kind = kkind;
 		*value = (union anyVrml*)&((char*)node)[offsets[ifield].offset];
 		return 1;
 	}
@@ -2812,7 +2854,7 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen)
 	medium_copy_field(itype,Data,&datacopy);
 	//void *datacopy = malloc(dataLen); //gc please
 	//memcpy(datacopy,Data,dataLen); 
-	push_typed_proxy2(ctx,itype,datacopy,NULL,'T');
+	push_typed_proxy2(ctx,itype,PKW_inputOutput,datacopy,NULL,'T');
 	duk_push_number(ctx,TickTime());
 	//duk_call(ctx,2);
 	rc = duk_pcall(ctx, 2);  /* [ ... func 2 3 ] -> [ 5 ] */
@@ -2853,7 +2895,7 @@ void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int
 	any = (void*)source;
 	medium_copy_field(itype,source,&datacopy);
 	any = datacopy;
-	push_typed_proxy2(ctx,itype,datacopy,NULL,'T');
+	push_typed_proxy2(ctx,itype,PKW_inputOutput,datacopy,NULL,'T');
 	duk_push_number(ctx,TickTime());
 	duk_call(ctx,2);
 	//show_stack(ctx,"after calling isOver");
