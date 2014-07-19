@@ -1209,6 +1209,23 @@ ArgListType (SFNode_ConstructorArgs)[] = {
 		{1,-1,0,"W"},
 		{-1,0,0,NULL},
 };
+/*
+String getNodeName() Returns the node name 
+Array getNodeType() Returns, in the array, a list of constant values that indicate node typess as provided in the X3DConstants object. 
+FieldDefinitionArray getFieldDefinitions() Returns a list of fields defined for the SFNode object. 
+String toVRMLString() Returns the X3D Classic VRML-encoded string that, if parsed as the value of an SFNode field, would produce this node. If the browser is unable to reproduce this node, the name of the node followed by the open brace and close brace shall be returned. Additional information may be included as one or more Classic VRML comment strings. 
+String toXMLString() Returns the X3D XML-encoded string that, if parsed as the value of an SFNode field, would produce this node. If the browser is unable to reproduce this node, a simple XML Element definition shall be returned. Additional information may be included as one or more XML comments. 
+- july 2014 not yet implemented
+*/
+FWFunctionSpec (SFNodeFunctions)[] = {
+	//{"getNodeName",	SFNode_getNodeName, 'S',{0,0,0,NULL}},
+	//{"getNodeType", SFNode_getNodeType, 'W',{0,0,0,NULL}},
+	//{"getFieldDefinitions", SFNode_getFieldDefinitions, 'P',{0,0,0,NULL}},
+	//{"toVRMLString", SFNode_toVRMLString, 'S',{0,0,0,NULL}},
+	//{"toXMLString", SFNode_toXMLString, 'S',{0,0,0,NULL}},
+	{0}
+};
+
 //#define FIELDTYPE_SFNode	10
 FWTYPE SFNodeType = {
 	FIELDTYPE_SFNode,
@@ -1222,7 +1239,7 @@ FWTYPE SFNodeType = {
 	SFNode_Getter, //Getter,
 	SFNode_Setter, //Setter,
 	0,0, //index prop type,readonly
-	NULL, //functions
+	SFNodeFunctions, //functions
 };
 
 

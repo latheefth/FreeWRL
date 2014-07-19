@@ -67,9 +67,15 @@ void getFieldFromNodeAndIndex(struct X3D_Node* node, int iifield, const char **f
    The Scene/ExecutionContext Profile and Components should be created during parsing
    (as of Aug 3, 2013 the parser calls handleProfile() or handleComponent() which
     just complains with printfs if freewrl can't handle the scene, and doesn't save them)
-
 	For the browser's supportedComponents and supportedProfiles, we'll have
-	indexable arrays, and on getting an index, we'll construct a throwaway JS object.
+	indexable arrays.
+
+	AUXTYPES are never routed, never assigned to a Script Node's fields. They are never deep copied.
+	But they may have FIELDTYPE properties.
+
+	X3DRoute - as of july 2014 this is 'broken'
+	X3DScene/X3DExecutionContext - not properly implemented
+
 */
 
 
