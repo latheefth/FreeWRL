@@ -84,26 +84,48 @@ ecma primitive instead of one of the above, and never generate a new one of thes
 int type2SF(int itype);
 
 
-int SFFloat_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+//int SFFloat_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+//	float *ptr = (float *)fwn;
+//	fwretval->_numeric =  (double)*(ptr);
+//	fwretval->itype = 'F';
+//	//fwretval->_web3dval.native = ptr;
+//	//fwretval->_web3dval.fieldType = FIELDTYPE_SFFloat;
+//	//fwretval->itype = 'W';
+//	return 1;
+//}
+//int SFFloat_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+//	float *ptr = (float *)fwn;
+//	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
+//	//(*ptr) = (float)fwval->_numeric;
+//	//if(fwval->itype == 'F')
+//		(*ptr) = (float)fwval->_numeric;
+//	//else if(fwval->itype = 'W')
+//	//	(*ptr) = fwval->_web3dval.anyvrml->sffloat;
+//
+//	return TRUE;
+//}
+
+int SFFloat_valueOf(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+{
 	float *ptr = (float *)fwn;
 	fwretval->_numeric =  (double)*(ptr);
 	fwretval->itype = 'F';
-	//fwretval->_web3dval.native = ptr;
-	//fwretval->_web3dval.fieldType = FIELDTYPE_SFFloat;
-	//fwretval->itype = 'W';
 	return 1;
 }
-int SFFloat_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+int SFFloat_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+{
+	char str[512];
 	float *ptr = (float *)fwn;
-	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
-	//(*ptr) = (float)fwval->_numeric;
-	//if(fwval->itype == 'F')
-		(*ptr) = (float)fwval->_numeric;
-	//else if(fwval->itype = 'W')
-	//	(*ptr) = fwval->_web3dval.anyvrml->sffloat;
-
-	return TRUE;
+	sprintf(str,"%g",(*ptr));
+	fwretval->_string =  strdup(str);
+	fwretval->itype = 'S';
+	return 1;
 }
+FWFunctionSpec (SFFloat_Functions)[] = {
+	{"valueOf", SFFloat_valueOf, 'F',{0,0,0,NULL}},
+	{"toString", SFFloat_toString, 'S',{0,0,0,NULL}},
+	{0}
+};
 
 
 //#define FIELDTYPE_SFFloat	0
@@ -116,10 +138,10 @@ FWTYPE SFFloatType = {
 	NULL, //constructor args
 	NULL, //Properties,
 	NULL, //special iterator
-	SFFloat_Getter, //Getter,
-	SFFloat_Setter, //Setter,
+	NULL, //Getter,
+	NULL, //Setter,
 	0,0, //index prop type,readonly
-	NULL, //functions
+	SFFloat_Functions, //functions
 };
 //#define FIELDTYPE_MFFloat	1
 //FWTYPE MFFloatType = {
@@ -913,6 +935,33 @@ FWTYPE MFVec3fType = {
 	'W',0, //index prop type,readonly
 	MFW_Functions, //functions
 };
+
+int SFBool_valueOf(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+{
+	int *ptr = (int *)fwn;
+	fwretval->_boolean =  *(ptr);
+	fwretval->itype = 'B';
+	return 1;
+}
+int SFBool_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+{
+	char *str;
+	int *ptr = (int *)fwn;
+	if(*ptr)
+		str = "true";
+	else
+		str = "false";
+	fwretval->_string =  strdup(str);
+	fwretval->itype = 'S';
+	return 1;
+}
+
+FWFunctionSpec (SFBool_Functions)[] = {
+	{"valueOf", SFBool_valueOf, 'B',{0,0,0,NULL}},
+	{"toString", SFBool_toString, 'S',{0,0,0,NULL}},
+	{0}
+};
+
 //#define FIELDTYPE_SFBool	6
 FWTYPE SFBoolType = {
 	FIELDTYPE_SFBool,
@@ -926,7 +975,7 @@ FWTYPE SFBoolType = {
 	NULL, //Getter,
 	NULL, //Setter,
 	0,0, //index prop type,readonly
-	NULL, //functions
+	SFBool_Functions, //functions
 };
 
 
@@ -971,6 +1020,28 @@ FWTYPE MFBoolType = {
 	'B',0, //index prop type,readonly
 	MFW_Functions, //functions
 };
+
+int SFInt32_valueOf(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+{
+	int *ptr = (int *)fwn;
+	fwretval->_integer =  *(ptr);
+	fwretval->itype = 'I';
+	return 1;
+}
+int SFInt32_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+{
+	char str[16];
+	int *ptr = (int *)fwn;
+	sprintf(str,"%d",(*ptr));
+	fwretval->_string =  strdup(str);
+	fwretval->itype = 'S';
+	return 1;
+}
+FWFunctionSpec (SFInt32_Functions)[] = {
+	{"valueOf", SFInt32_valueOf, 'I',{0,0,0,NULL}},
+	{"toString", SFInt32_toString, 'S',{0,0,0,NULL}},
+	{0}
+};
 //#define FIELDTYPE_SFInt32	8
 FWTYPE SFInt32Type = {
 	FIELDTYPE_SFInt32,
@@ -984,7 +1055,7 @@ FWTYPE SFInt32Type = {
 	NULL, //Getter,
 	NULL, //Setter,
 	0,0, //index prop type,readonly
-	NULL, //functions
+	SFInt32_Functions, //functions
 };
 
 
@@ -1623,6 +1694,29 @@ FWTYPE MFColorRGBAType = {
 	MFW_Functions, //functions
 };
 
+int SFDouble_valueOf(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+{
+	double *ptr = (double *)fwn;
+	fwretval->_numeric =  *(ptr);
+	fwretval->itype = 'D';
+	return 1;
+}
+int SFDouble_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+{
+	char str[512];
+	double *ptr = (double *)fwn;
+	sprintf(str,"%g",(*ptr));
+	fwretval->_string =  strdup(str);
+	fwretval->itype = 'S';
+	return 1;
+}
+
+FWFunctionSpec (SFDouble_Functions)[] = {
+	{"valueOf", SFDouble_valueOf, 'D',{0,0,0,NULL}},
+	{"toString", SFDouble_toString, 'S',{0,0,0,NULL}},
+	{0}
+};
+
 //#define FIELDTYPE_SFTime	16
 FWTYPE SFTimeType = {
 	FIELDTYPE_SFTime,
@@ -1636,7 +1730,7 @@ FWTYPE SFTimeType = {
 	NULL, //Getter,
 	NULL, //Setter,
 	0,0, //index prop type,readonly
-	NULL, //functions
+	SFDouble_Functions, //functions
 };
 
 void * MFTime_Constructor(FWType fwtype, int argc, FWval fwpars){
@@ -1680,6 +1774,27 @@ FWTYPE MFTimeType = {
 	MFW_Functions, //functions
 };
 
+int SFString_valueOf(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+{
+	struct Uni_String *ptr = (struct Uni_String *)fwn;
+	fwretval->_string =  ptr->strptr;
+	fwretval->itype = 'S';
+	return 1;
+}
+int SFString_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+{
+	struct Uni_String *ptr = (struct Uni_String *)fwn;
+	fwretval->_string =  strdup(ptr->strptr);
+	fwretval->itype = 'S';
+	return 1;
+}
+
+FWFunctionSpec (SFString_Functions)[] = {
+	{"valueOf", SFString_valueOf, 'S',{0,0,0,NULL}},
+	{"toString", SFString_toString, 'S',{0,0,0,NULL}},
+	{0}
+};
+
 //#define FIELDTYPE_SFString	18
 FWTYPE SFStringType = {
 	FIELDTYPE_SFString,
@@ -1693,7 +1808,7 @@ FWTYPE SFStringType = {
 	NULL, //Getter,
 	NULL, //Setter,
 	0,0, //index prop type,readonly  //Q. should string[i] return 'I' == char, like SFImage indexer?
-	NULL, //functions
+	SFString_Functions, //functions
 };
 
 void * MFString_Constructor(FWType fwtype, int argc, FWval fwpars){
@@ -2363,6 +2478,7 @@ FWTYPE MFVec3dType = {
 };
 
 
+
 //#define FIELDTYPE_SFDouble	27
 FWTYPE SFDoubleType = {
 	FIELDTYPE_SFDouble,
@@ -2376,7 +2492,7 @@ FWTYPE SFDoubleType = {
 	NULL, //Getter,
 	NULL, //Setter,
 	0,0, //index prop type,readonly
-	NULL, //functions
+	SFDouble_Functions, //functions
 };
 
 void * MFDouble_Constructor(FWType fwtype, int argc, FWval fwpars){

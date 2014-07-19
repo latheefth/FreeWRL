@@ -121,6 +121,8 @@ int fwiterator_generic(int index, FWTYPE *fwt, void *pointer, const char **name,
 		int iret = iterator(index, fwt, pointer, name, lastProp, jndex, type, readOnly);
 		if(iret > -1) return iret;
 		index++; //for functions below
+	}else{
+		index++; //may not have properties (or iterator) like SFFloat, which has a valueOf function
 	}
 	//next function
 	FWFunctionSpec *fs = fwt->Functions;
@@ -137,6 +139,7 @@ int fwiterator_generic(int index, FWTYPE *fwt, void *pointer, const char **name,
 
 int fwhas_generic(FWTYPE *fwt, void *pointer, const char *key, int *jndex, char *type, char *readOnly){
 	int lastProp, index = -1;
+	lastProp = -1;
 	char *name;
 	while( (index = fwiterator_generic(index,fwt,pointer,&name, &lastProp, jndex, type, readOnly)) > -1){
 		if(!strcmp(name,key)){
@@ -790,7 +793,11 @@ void convert_duk_to_fwvals(duk_context *ctx, int nargs, int istack, struct ArgLi
 			}
 		}
 		switch(ctype){
-		case 'B': pars[i]._boolean = duk_to_boolean(ctx,ii); break;
+		case 'B': {
+			int bb = duk_get_boolean(ctx,ii); //duk_to_boolean(ctx,ii);
+			pars[i]._boolean = bb; // duk_to_boolean(ctx,ii); 
+			}
+			break;
 		case 'I': pars[i]._integer = duk_to_int(ctx,ii); break;
 		case 'F': pars[i]._numeric = duk_to_number(ctx,ii); break;
 		case 'D': pars[i]._numeric = duk_to_number(ctx,ii); break;
@@ -1185,7 +1192,22 @@ int push_duk_fieldvalueECMA(duk_context *ctx, int itype, union anyVrml *fieldval
 //	*dval = A + B + C;
 //	return 1;
 //}
-
+static int SCALARS_ARE_PRIMITIVES = TRUE;
+/* SCALARS_ARE_PRIMITIVES
+   the ecmascript ! operator invokes ToBoolean() which always returns true when the argument is an object
+   http://www.ecma-international.org/ecma-262/5.1/#sec-11.4.9
+   http://www.ecma-international.org/ecma-262/5.1/#sec-9.2
+   the web3d.org ecmascript specs say all fields shall have getType(), isReadable(), isWritable() functions.
+   if I have: Script {
+	field SFBool enabled TRUE 
+	url "ecmascript: function initialize(){
+		var A = !enabled;			//A returns false if enabled is a primitive and its value is true, 
+									//but A always returns false if enabled is a proxy object
+		var B = enabled.getType();	//eval fails with 'type error, not an object' if enabled is a primitive,
+									//but B returns X3DConstants.SFBool if enabled is a proxy object
+	Because there are some goodies either way, and I'm not sure what the specs intend, I've made it configurable for now,
+	although comparisons with vivaty are closer to SCALARS_ARE_PRIMITIVES = TRUE (some scenes fail with FALSE).
+*/
 int fwval_duk_push(duk_context *ctx, FWval fwretval, int *valueChanged){
 	//converts engine-agnostic FWVAL return value to duk engine specific return values and pushes them onto the duk value stack
 	int nr = 1;
@@ -1203,20 +1225,25 @@ int fwval_duk_push(duk_context *ctx, FWval fwretval, int *valueChanged){
 		duk_push_string(ctx,fwretval->_string); break;
 	
 	case 'W':
-		//for pointers to web3d field types
-		switch(fwretval->_web3dval.fieldType){
-		case FIELDTYPE_SFBool:
-			duk_push_boolean(ctx,fwretval->_web3dval.anyvrml->sfbool); break;
-		case FIELDTYPE_SFInt32:
-			duk_push_int(ctx,fwretval->_web3dval.anyvrml->sfint32); break;
-		case FIELDTYPE_SFFloat:
-			duk_push_number(ctx,(double)fwretval->_web3dval.anyvrml->sffloat); break;
-		case FIELDTYPE_SFDouble:
-		case FIELDTYPE_SFTime:
-			duk_push_number(ctx,fwretval->_web3dval.anyvrml->sfdouble); break;
-		case FIELDTYPE_SFString:
-			duk_push_string(ctx,fwretval->_web3dval.anyvrml->sfstring->strptr); break;
-		default:
+		if(SCALARS_ARE_PRIMITIVES){
+			//for pointers to web3d field types
+			switch(fwretval->_web3dval.fieldType){
+			case FIELDTYPE_SFBool:
+				duk_push_boolean(ctx,fwretval->_web3dval.anyvrml->sfbool); break;
+			case FIELDTYPE_SFInt32:
+				duk_push_int(ctx,fwretval->_web3dval.anyvrml->sfint32); break;
+			case FIELDTYPE_SFFloat:
+				duk_push_number(ctx,(double)fwretval->_web3dval.anyvrml->sffloat); break;
+			case FIELDTYPE_SFDouble:
+			case FIELDTYPE_SFTime:
+				duk_push_number(ctx,fwretval->_web3dval.anyvrml->sfdouble); break;
+			case FIELDTYPE_SFString:
+				duk_push_string(ctx,fwretval->_web3dval.anyvrml->sfstring->strptr); break;
+			default:
+				push_typed_proxy2(ctx,fwretval->_web3dval.fieldType,fwretval->_web3dval.kind,fwretval->_web3dval.native,valueChanged,fwretval->_web3dval.gc);
+			}
+		}else{
+			//SCALARS_ARE_PROXY_OBJECTS
 			push_typed_proxy2(ctx,fwretval->_web3dval.fieldType,fwretval->_web3dval.kind,fwretval->_web3dval.native,valueChanged,fwretval->_web3dval.gc);
 		}
 		break;
