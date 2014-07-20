@@ -97,10 +97,7 @@ typedef struct WEB3DNATIVE {
 #define AUXTYPE_X3DExecutionContext 1017
 #define AUXTYPE_X3DMatrix3 1018
 #define AUXTYPE_X3DMatrix4 1019
-//typedef struct FWPointer{
-//	int auxtype; //gets asigned to fwItype, so cget can switch (instead of using sfnode and declaring a _nodeType in your auxiliary type struct)
-//	void *ptr;
-//} * FwPointer;
+
 //our version of a variant, except in C types and our union anyVrml
 typedef struct FWVAL{
 	char itype; //0 = null, F=Float D=Double I=Integer B=Boolean S=String, Z=flexiString (MF or S) W=Object-web3d O-js Object P=ptr

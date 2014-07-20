@@ -2054,15 +2054,16 @@ int push_duk_fieldvalue(duk_context *ctx, int itype, int mode, const char* field
 
 
 int fwgetter0(duk_context *ctx,void *parent,int itype, char *key, int *valueChanged){
+	//uses fwtype SFNode's getter
 	FWTYPE *fwt = getFWTYPE(itype);
 	int jndex, found, nr;
 	char type, readOnly;
 	nr = 0;
 	//check properties - if a property, call the type-specific setter
-	found = fwhas_generic(fwt,parent,key,&jndex,&type,&readOnly);
+	found = fwhas_generic(fwt,parent,key,&jndex,&type,&readOnly); //SFNode_Iterator
 	if(found && fwt->Getter){
 		FWVAL fwretval;
-		nr = fwt->Getter(fwt,jndex,parent,&fwretval);
+		nr = fwt->Getter(fwt,jndex,parent,&fwretval); //SFNode_Getter
 		if(nr){
 			nr = fwval_duk_push(ctx,&fwretval,valueChanged);
 		}
@@ -2112,18 +2113,9 @@ int fwgetterNS(duk_context *ctx) {
 	nr = 0;
 	if(itype < AUXTYPE_X3DConstants){
 		//our script fields
-		int ifield;
-		if(1){
-			//int fwgetter0(duk_context *ctx,void *parent,int itype, char *key, int *valueChanged){
-			union anyVrml any;
-			any.sfnode = thisScriptNode;
-			nr = fwgetter0(ctx,&any,FIELDTYPE_SFNode,fieldname,valueChanged);
-			return nr;
-		}
-
-		if(getFieldFromNodeAndName(thisScriptNode,fieldname, &itype, &mode, &ifield, &field)){
-			nr = push_duk_fieldvalue(ctx, itype, mode, fieldname, field,  valueChanged);
-		}
+		union anyVrml any;
+		any.sfnode = thisScriptNode;
+		nr = fwgetter0(ctx,&any,FIELDTYPE_SFNode,fieldname,valueChanged);
 	}else{
 		//X3DBrowser, X3DConstants
 		push_typed_proxy_fwgetter(ctx, itype, PKW_initializeOnly, fieldname, NULL, NULL);
@@ -2135,19 +2127,14 @@ int fwgetterNS(duk_context *ctx) {
 void add_duk_global_property(duk_context *ctx, int itype, const char *fieldname, int *valueChanged, struct X3D_Node *node ){
 	int rc;
 	char *str;
-	//show_stack(ctx,"starting add_duk_global_property");
 
 	duk_eval_string(ctx, "defineAccessor"); //defineAccessor(obj,propName,setter,getter)
-	//show_stack(ctx,"after eval");
 	/* push object */
 	duk_eval_string(ctx,"this"); //global object
-	//show_stack(ctx,"myobj?");
 	/* push key */
 	duk_push_string(ctx,fieldname); //"myScriptFieldName"
 	/* push setter */
 	duk_push_c_function(ctx,fwsetterNS,2); //1 extra parameter is nonstandard (NS) key
-	//duk_push_pointer(ctx,fieldptr);
-	//duk_put_prop_string(ctx,-2,"fwField");
 	if(itype < AUXTYPE_X3DConstants){
 		duk_push_pointer(ctx,valueChanged);
 		duk_put_prop_string(ctx,-2,"fwChanged");
@@ -2156,12 +2143,8 @@ void add_duk_global_property(duk_context *ctx, int itype, const char *fieldname,
 	}
 	duk_push_int(ctx,itype);
 	duk_put_prop_string(ctx,-2,"fwItype");
-	//duk_push_int(ctx,ifield); 
-	//duk_put_prop_string(ctx,-2,"fwIfield");
 	/* push getter */
 	duk_push_c_function(ctx,fwgetterNS,1); //0 extra parameter is nonstandard (NS) key
-	//duk_push_pointer(ctx,fieldptr);
-	//duk_put_prop_string(ctx,-2,"fwField");
 	if(itype < AUXTYPE_X3DConstants){
 		duk_push_pointer(ctx,node);
 		duk_put_prop_string(ctx,-2,"fwNode");
@@ -2170,8 +2153,6 @@ void add_duk_global_property(duk_context *ctx, int itype, const char *fieldname,
 	}
 	duk_push_int(ctx,itype);
 	duk_put_prop_string(ctx,-2,"fwItype");
-	//duk_push_int(ctx,ifield); 
-	//duk_put_prop_string(ctx,-2,"fwIfield");
 
 	duk_call(ctx, 4);
 	duk_pop(ctx);
@@ -2329,7 +2310,7 @@ void js_setField_javascriptEventOut_B(union anyVrml* any, int fieldType, unsigne
 	//I think in here there is nothing to do for brotos, because the job of _B was to copy values out of javascript and
 	//into script fields, and the _B broto approach to routing would then do routing from the script fields.
 	//here in the duk / proxy method, we are already doing the setting of script fields directly.
-	printf("in js_setField_javascriptEventOut_B\n");
+	//printf("in js_setField_javascriptEventOut_B\n");
 	return;
 }
 
@@ -2377,13 +2358,11 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 
 	/* get context and global object for this script */
 	ctx =  (duk_context *)ScriptControl[tonode].cx;
-	obj = *(int*)ScriptControl[tonode].glob;
+	obj = *(int*)ScriptControl[tonode].glob; //don't need
 
 
 	//get function by name
-	//show_stack(ctx,"before seeking isOver");
 	duk_eval_string(ctx,JSparamnames[toname].name); //gets the evenin function on the stack
-	//show_stack(ctx,"after seeking isOver");
 
 	//push ecma value as arg
 	{
@@ -2399,15 +2378,12 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 	//push double TickTime(); as arg
 	duk_push_number(ctx,TickTime());
 	//run function
-	//show_stack(ctx,"before calling isOver");
 	rc = duk_pcall(ctx, 2);  /* [ ... func 2 3 ] -> [ 5 ] */
 	if (rc != DUK_EXEC_SUCCESS) {
 	  printf("error: '%s' happened in js function %s called from set_one_ECMAType\n", duk_to_string(ctx, -1),JSparamnames[toname].name);
 	}
 
-	//show_stack(ctx,"after calling isOver");
 	duk_pop(ctx); //pop undefined that results from void myfunc(){}
-	//show_stack(ctx,"after popping");
 	//printf("end ecma\n");
 }
 
@@ -2495,7 +2471,7 @@ void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int
 	ctx =  (duk_context *)ScriptControl[tonode].cx;
 	obj = *(int*)ScriptControl[tonode].glob;
 	
-	printf("in set_one_MFElementType\n");
+	//printf("in set_one_MFElementType\n");
 	//get function by name
 	duk_eval_string(ctx,JSparamnames[toname].name); //gets the evenin function on the stack
 	itype = dataType; //JSparamnames[toname].type;
@@ -2517,19 +2493,19 @@ void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int
 	return;
 }
 int jsIsRunning(){
-	printf("in jsIsRunning\n");
+	//printf("in jsIsRunning\n");
 	return 1;
 }
 void JSDeleteScriptContext(int num){
-	printf("in JSDeleteScriptContext\n");
+	//printf("in JSDeleteScriptContext\n");
 	return;
 }
 void jsShutdown(){
-	printf("in jsShutdown\n");
+	//printf("in jsShutdown\n");
 	return;
 }
 void jsClearScriptControlEntries(int num){
-	printf("in jsClearScriptControlEntries\n");
+	//printf("in jsClearScriptControlEntries\n");
 	return;
 }
 /* run the script from within Javascript  */
@@ -2668,10 +2644,10 @@ int runQueuedDirectOutputs()
 
 						field->eventInSet = FALSE;
 						getField_ToJavascript_B(script->num, JSparamNameIndex, itype, &field->value, len);
-						printf("+eventInSet and input kind=%d value=%f\n",kind,field->value.sffloat);
+						//printf("+eventInSet and input kind=%d value=%f\n",kind,field->value.sffloat);
 						moreAction = TRUE;
 					}else{
-						printf("-eventInSet but not input kind=%d value=%f\n",kind,field->value.sffloat);
+						//printf("-eventInSet but not input kind=%d value=%f\n",kind,field->value.sffloat);
 						field->eventInSet = FALSE;
 					}
 				}
