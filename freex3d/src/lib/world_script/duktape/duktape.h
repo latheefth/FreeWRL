@@ -1661,10 +1661,10 @@ typedef FILE duk_file;
 #define DUK_FOPEN        fopen
 #define DUK_FCLOSE       fclose
 #define DUK_FREAD        fread
-#define DUK_FWRITE       fwwrite //fwrite
+#define DUK_FWRITE       fwrite
 #define DUK_FSEEK        fseek
 #define DUK_FTELL        ftell
-#define DUK_FFLUSH       fwflush //fflush
+#define DUK_FFLUSH       fflush
 #define DUK_FPUTC        fputc
 
 #define DUK_MEMZERO(p,n) \

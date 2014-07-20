@@ -39,7 +39,6 @@
 
 #include "JScript.h"
 #include "FWTYPE.h"
-#include "duktape/duktape.h"
 #define FIELDTYPE_MFImage	43 
 typedef int indexT;
 
@@ -181,114 +180,10 @@ void jsUtils_init(void *t){}
 void jsVRMLClasses_init(void *t){}
 
 
-#include <stdio.h>
-#include <memory.h>
-static char buf[2048];
-static int n = 0;
-int fwwrite(const void *buffer, int size, int count, FILE *target);
-int fwflush(FILE *target);
-int fwwrite(const void *addon, int size, int count, FILE *target)
-{
-	if(target == stdout || target == stderr){
-		memcpy(&buf[n], addon, size*count);
-		n += size*count;
-		return size*count;
-	}else{
-		return fwrite(addon,size,count,target);
-	}
-}
-int fwflush(FILE *target)
-{
-	if(target == stdout || target == stderr){
-		buf[n] = '\0';
-		printf("%s", buf);
-		n = 0;
-		return 0;
-	}else{
-		return fflush(target);
-	}
-
-}
-
-void show_stack0(duk_context *ctx, char* comment, int dig)
-{
-	int rc, itop = duk_get_top(ctx);
-	if(comment) printf("%s top=%d\n",comment,itop);
-	//printf("%10s%10s%10s\n","position","type","more");
-	printf("%10s%10s\n","position","type");
-	for(int i=0;i<itop;i++){
-		int ipos = -(i+1);
-		int t = duk_get_type(ctx, ipos);
-		char *stype = NULL;
-		const char * amore = "";
-		switch(t){
-			case DUK_TYPE_NUMBER: stype ="number"; break;
-			case DUK_TYPE_STRING: stype ="string"; 
-				if(dig) amore = duk_get_string(ctx,ipos);
-				break;
-
-			case DUK_TYPE_OBJECT: stype ="object"; 
-				if(dig){
-				rc = duk_get_prop_string(ctx, ipos, "fwItype");
-				if(rc == 1) amore = duk_to_string(ctx,-1);
-				duk_pop(ctx);
-				}
-				break;
-			case DUK_TYPE_NONE: stype ="none"; break;
-			case DUK_TYPE_UNDEFINED: stype ="undefined"; break;
-			case DUK_TYPE_BOOLEAN: stype ="boolean"; break;
-			case DUK_TYPE_NULL: stype ="null"; break;
-			case DUK_TYPE_POINTER: stype ="pointer"; break;
-			default:
-				stype = "unknown";
-		}
-		if(duk_is_function(ctx,ipos)){
-			char *afunc = "";
-			afunc = duk_is_c_function(ctx,ipos) ? "Cfunc" : afunc;
-			afunc = duk_is_ecmascript_function(ctx,ipos) ? "jsfunc" : afunc;
-			afunc = duk_is_bound_function(ctx,ipos) ? "boundfunc" : afunc;
-			amore = afunc;
-		}
-		if(duk_is_nan(ctx,ipos)){
-			amore = "NaN";
-		}
-		if(duk_is_object(ctx,ipos)){
-
-		}
-		printf("%10d%10s   %s\n",ipos,stype,amore);
-	}
-}
-void show_stack(duk_context *ctx, char* comment)
-{
-	show_stack0(ctx, comment, 0);
-}
 
 
+//==============ENGINE-AGNOSTIC HELPER CODE (could be extracted to other module) ====================
 
-//OBJECT VIRTUALIZATION / PROXY HELPERS: constructor, handler (has,ownKeys,enumerate,get,set,deleteProp)
-
-//static struct {
-//	int nkey;
-//	char *key[100];
-//	char *val[100];
-//	char *arr[100];
-//} nativeStruct = {0};
-//
-//void nativeSetS(const char *key, const char *val)
-//{
-//	//named property
-//	int kval = -1;
-//	for(int j=0;j<nativeStruct.nkey;j++)
-//		if(!strcmp(nativeStruct.key[j],key))	kval = j;
-//	if(kval < 0) {
-//		kval = nativeStruct.nkey;
-//		nativeStruct.key[kval] = strdup(key);
-//		nativeStruct.nkey++;
-//	}
-//	nativeStruct.val[kval] = strdup(val);
-//}
-//static char* nativeValue = NULL;
-//
 
 int isECMAtype(int itype){
 	int isEcma;
@@ -455,12 +350,6 @@ int sizeofSF(int itype){
 	return sizeofSForMF(jtype);
 }
 
-//struct Node_Scene {
-//       int _nodeType; /* unique integer for each type */ 
-//};
-//struct Node_ExecutionContext {
-//       int _nodeType; /* unique integer for each type */ 
-//};
 struct string_int{
 	char *c;
 	int i;
@@ -498,1337 +387,8 @@ char * itype2string(int itype){
 	}
 	return NULL;
 }
-const char *duk_type_to_string(int duktype){
-	const char* r = NULL;
-	switch(duktype){
-	case DUK_TYPE_NUMBER: r = "DUK_TYPE_NUMBER"; break;
-	case DUK_TYPE_BOOLEAN:  r = "DUK_TYPE_BOOLEAN"; break;
-	case DUK_TYPE_STRING:  r = "DUK_TYPE_STRING"; break;
-	case DUK_TYPE_OBJECT: r =  "DUK_TYPE_OBJECT"; break;
-	case DUK_TYPE_NONE:  r = "DUK_TYPE_NONE"; break;
-	case DUK_TYPE_UNDEFINED:  r =  "DUK_TYPE_UNDEFINED"; break;
-	case DUK_TYPE_NULL:  r =  "DUK_TYPE_NULL"; break;
-	case DUK_TYPE_POINTER:  r = "DUK_TYPE_POINTER"; break;
-	default:
-		r = "UNKNOWN_TYPE";
-		break;
-	}
-	return r;
-}
-//const char *stringFieldtypeType (int st); //in generatedcode
-//const char *stringNodeType (int st);
-int fwType2itype(const char *fwType){
-	int isSF, isMF, ifield = -1;
-	const char *suffix;
-	isSF = !strncmp(fwType,"SF",2);
-	isMF = !strncmp(fwType,"MF",2);
-	if(isSF || isMF){
-		suffix = &fwType[2]; //skip SF/MF part
-		int i = 0;
-		while(lookup_fieldType[i].c){
-			if(!strcmp(suffix,lookup_fieldType[i].c)){
-				ifield = lookup_fieldType[i].i;
-				break;
-			}
-			i++;
-		}
-		if(ifield > -1 && isMF ) ifield++;
-	}else{
-		//browser and scene/executionContext shouldn't be going through fwconstructor
-		if(!strcmp(fwType,"Browser")) ifield = AUXTYPE_X3DBrowser;
-		if(!strcmp(fwType,"X3DConstants")) ifield = AUXTYPE_X3DConstants;
-	}
-	return ifield;
-}
-void freeField(int itype, void* any){
-	if(isSForMFType(itype) == 0)
-		free(any); //SF
-	else if(isSForMFType(itype) == 1){
-		//MF
-		struct Multi_Any* mf = (struct Multi_Any*)any;
-		free(mf->p);  //if bombs, it could be because I'm not deep copying or medium_copy_field() everywhere I should
-		free(mf);
-	}
-}
-int cfinalizer(duk_context *ctx){
-	int rc, itype, igc;
-	void *fwpointer = NULL;
-	itype = igc = -1;
-	rc = duk_get_prop_string(ctx,0,"fwItype");
-	if(rc == 1) itype = duk_to_int(ctx,-1);
-	duk_pop(ctx); //get prop string result
-	rc = duk_get_prop_string(ctx,0,"fwGC");
-	if(rc == 1) igc = duk_to_boolean(ctx,-1);
-	duk_pop(ctx); //get prop string result
-	rc = duk_get_prop_string(ctx,0,"fwField");
-	if(rc == 1) fwpointer = duk_to_pointer(ctx,-1);
-	duk_pop(ctx); //get prop string result
 
 
-	//printf("hi from finalizer, itype=%d igc=%d p=%p\n",itype,igc,fwpointer);
-	if(igc > 0 && itype > -1 && fwpointer){
-		if(itype < AUXTYPE_X3DConstants){
-			//FIELDS
-			freeField(itype,fwpointer);   
-		}else{
-			//AUXTYPES
-			free(fwpointer);
-		}
-	}
-	return 0;
-}
-static int doingFinalizer = 1;
-void push_typed_proxy(duk_context *ctx, int itype, void *fwpointer, int* valueChanged)
-{
-	//like push_typed_proxy2 except push this instead of push obj
-	int rc;
-	if(1){
-		//show_stack0(ctx,"push_typed_proxy start",0);
-		duk_eval_string(ctx,"Proxy");
-		duk_push_this(ctx);  //this
-		duk_push_pointer(ctx,fwpointer);
-		duk_put_prop_string(ctx,-2,"fwField");
-		duk_push_pointer(ctx,valueChanged);
-		duk_put_prop_string(ctx,-2,"fwChanged");
-		duk_push_int(ctx,itype);
-		duk_put_prop_string(ctx,-2,"fwItype");
-		if(doingFinalizer){
-			duk_push_boolean(ctx,TRUE);
-			duk_put_prop_string(ctx,-2,"fwGC");
-		}
-
-		//rc = duk_get_prop_string(ctx,-1,"fwItype");
-		//if(rc == 1){
-		//	printf(duk_type_to_string(duk_get_type(ctx, -1)));
-		//	int itypeRHS = duk_to_int(ctx,-1);
-		//	printf("itypeRHS=%d\n",itypeRHS);
-		//}
-		//duk_pop(ctx);
-
-		duk_eval_string(ctx,"handler");
-		//show_stack0(ctx,"push_typed_proxy should have Proxy, this, handler",0);
-
-		duk_new(ctx,2); /* [ global Proxy target handler ] -> [ global result ] */
-		//show_stack0(ctx,"push_typed_proxy after new, proxy obj should be result???",0);
-		//rc = duk_get_prop_string(ctx,-1,"fwItype");
-		//if(rc == 1){
-		//	printf(duk_type_to_string(duk_get_type(ctx, -1)));
-		//	int itypeRHS = duk_to_int(ctx,-1);
-		//	printf("itypeRHS=%d\n",itypeRHS);
-		//}
-		//duk_pop(ctx);
-
-		if(doingFinalizer){
-			//push_typed_proxy is called by constructor, that mallocs (via fwtype->constructor) and should GC
-			//
-			//Duktape.fin(a, function (x) {
-			//       try {
-			//           print('finalizer, foo ->', x.foo);
-			//       } catch (e) {
-			//           print('WARNING: finalizer failed (ignoring): ' + e);
-			//       }
-			//   });
-			duk_eval_string(ctx,"Duktape.fin");
-			duk_dup(ctx, -2); //copy the proxy object
-			duk_push_c_function(ctx,cfinalizer,1);
-			duk_pcall(ctx,2);
-			duk_pop(ctx); //pop Duktape.fin result
-		}
-
-	}
-	if(0){
-	
-	duk_push_pointer(ctx,fwpointer);
-	duk_put_prop_string(ctx,-2,"fwField");
-	duk_push_pointer(ctx,valueChanged);
-	duk_put_prop_string(ctx,-2,"fwChanged");
-	duk_push_int(ctx,itype);
-	duk_put_prop_string(ctx,-2,"fwItype");
-
-	duk_pop(ctx); //pop this
-
-	duk_push_global_object(ctx); //could I just push an object, or push nothing? then how to get global->handler?
-	int iglobal = duk_get_top(ctx) -1;
-	rc = duk_get_prop_string(ctx,iglobal,"Proxy");
-	//rc = duk_get_prop_string(ctx,iglobal,"this");
-	duk_push_this(ctx);
-	rc = duk_get_prop_string(ctx,iglobal,"handler");	duk_new(ctx,2); /* [ global Proxy target handler ] -> [ global result ] */
-	duk_new(ctx,2); /* [ global Proxy target handler ] -> [ global result ] */
-	duk_remove(ctx,-2); //remove global so just proxy on stack
-	}
-
-
-}
-
-int push_typed_proxy2(duk_context *ctx, int itype, int kind, void *fwpointer, int* valueChanged, char doGC)
-{
-	/*  like fwgetter version, except with no fieldname or mode, for temp proxies
-		nativePtr
-	*/
-	int rc;
-
-	duk_eval_string(ctx,"Proxy");
-	duk_push_object(ctx);
-	duk_push_pointer(ctx,fwpointer);
-	duk_put_prop_string(ctx,-2,"fwField");
-	duk_push_pointer(ctx,valueChanged);
-	duk_put_prop_string(ctx,-2,"fwChanged");
-	duk_push_int(ctx,itype);
-	duk_put_prop_string(ctx,-2,"fwItype");
-	duk_push_int(ctx,kind);
-	duk_put_prop_string(ctx,-2,"fwKind");
-
-	if(doingFinalizer && doGC){
-		duk_push_boolean(ctx,TRUE);
-		duk_put_prop_string(ctx,-2,"fwGC");
-	}
-
-	duk_eval_string(ctx,"handler");
-	duk_new(ctx,2); /* [ global Proxy target handler ] -> [ global result ] */
-
-	if(doingFinalizer && doGC){
-		//push_typed_proxy2 _refers_ to script->field[i]->anyVrml (its caller fwgetter doesn't malloc) and should not GC its pointer
-		//
-		//Duktape.fin(a, function (x) {
-		//       try {
-		//           print('finalizer, foo ->', x.foo);
-		//       } catch (e) {
-		//           print('WARNING: finalizer failed (ignoring): ' + e);
-		//       }
-		//   });
-
-		duk_eval_string(ctx,"Duktape.fin");
-		duk_dup(ctx, -2); //copy the proxy object
-		duk_push_c_function(ctx,cfinalizer,1);
-		duk_pcall(ctx,2);
-		duk_pop(ctx); //pop Duktape.fin result
-	}
-
-	return 1;
-}
-
-
-#include <math.h> //for int = round(numeric)
-void medium_copy_field0(int itype, void* source, void* dest)
-{
-	/* medium-deep copies field up to and including pointer: doesn't deep copy *(SFNode*) or *(SFString*), 
-		- SFString treated analogous to const char * 
-		- malloc your starting type outside
-	*/
-	
-	int i, sfsize,sformf;
-	int sftype, isMF;
-	struct Multi_Any *mfs,*mfd;
-
-	sformf = isSForMFType(itype);
-	if(sformf < 0){
-		printf("bad type in medium_copy_field0\n");
-		return;
-	}
-	isMF = sformf == 1; 
-	sftype = type2SF(itype);
-	//from EAI_C_CommonFunctions.c
-	sfsize = sizeofSF(sftype); //returnElementLength(sftype) * returnElementRowSize(sftype);
-	if(isMF)
-	{
-		int nele;
-		char *ps, *pd;
-		mfs = (struct Multi_Any*)source;
-		mfd = (struct Multi_Any*)dest;
-		//we need to malloc and do more copying
-		nele = mfs->n;
-		if( sftype == FIELDTYPE_SFNode ) nele = (int) upper_power_of_two(nele); //upper power of 2 is a convention for children[] to solve a realloc memory fragmentation issue during parsing of extremely large and flat files
-		mfd->p = malloc(sfsize*nele);
-		mfd->n = mfs->n;
-		ps = (char *)mfs->p;
-		pd = (char *)mfd->p;
-		for(i=0;i<mfs->n;i++)
-		{
-			medium_copy_field0(sftype,(union anyVrml*)ps,(union anyVrml*)pd);
-			ps += sfsize;
-			pd += sfsize;
-		}
-
-	}else{ 
-		//isSF
-		memcpy(dest,source,sfsize);
-	}
-} //return medium_copy_field
-void medium_copy_field(int itype, void* source, void** dest){
-	//void *myDestination = NULL;
-	//medium_copy_field(itype,source,&myDestination);
-	// it will malloc the size
-	(*dest) = malloc(sizeofSForMF(itype));
-	medium_copy_field0(itype,source,(*dest));
-}
-
-void convert_duk_to_fwvals(duk_context *ctx, int nargs, int istack, struct ArgListType arglist, FWval *args, int *argc){
-	int nUsable,nNeeded, i, ii;
-	struct Uni_String *uni;
-	nUsable = arglist.iVarArgStartsAt > -1 ? nargs : arglist.nfixedArg;
-	nNeeded = max(nUsable,arglist.nfixedArg);
-	FWval pars = malloc(nNeeded*sizeof(FWVAL));
-	(*args) = pars;
-	//QC and genericization of incoming parameters
-	(*argc) = nNeeded;
-	for(i=0;i<nUsable;i++){
-		const char* str;
-		ii = istack + i;
-		char ctype;
-		if(i < arglist.nfixedArg) 
-			ctype = arglist.argtypes[i];
-		else 
-			ctype = arglist.argtypes[arglist.iVarArgStartsAt];
-		pars[i].itype = ctype;
-		if( duk_is_object(ctx, ii)){
-			int rc, isPrimitive;
-			//if the script goes myField = new String('hi'); then it comes in here as an object (versus myField = 'hi'; which is a string)
-			rc = duk_get_prop_string(ctx,ii,"fwItype");
-			duk_pop(ctx);
-			isPrimitive = rc == 0;
-			if(isPrimitive){
-				//void duk_to_primitive(duk_context *ctx, duk_idx_t index, duk_int_t hint); DUK_HINT_NONE
-				//http://www.duktape.org/api.html#duk_to_primitive
-				duk_to_primitive(ctx,ii,DUK_HINT_NONE);
-			}
-		}
-		switch(ctype){
-		case 'B': {
-			int bb = duk_get_boolean(ctx,ii); //duk_to_boolean(ctx,ii);
-			pars[i]._boolean = bb; // duk_to_boolean(ctx,ii); 
-			}
-			break;
-		case 'I': pars[i]._integer = duk_to_int(ctx,ii); break;
-		case 'F': pars[i]._numeric = duk_to_number(ctx,ii); break;
-		case 'D': pars[i]._numeric = duk_to_number(ctx,ii); break;
-		case 'S': pars[i]._string = duk_to_string(ctx,ii); break;
-		//case 'B': pars[i]._web3dval.anyvrml->sfbool = duk_get_boolean(ctx,ii); pars[i]._web3dval.fieldType = FIELDTYPE_SFBool; break;
-		//case 'I': pars[i]._web3dval.anyvrml->sfint32 = duk_get_int(ctx,ii);  pars[i]._web3dval.fieldType = FIELDTYPE_SFInt32; break;
-		//case 'F': pars[i]._web3dval.anyvrml->sffloat = (float) duk_get_number(ctx,ii);  pars[i]._web3dval.fieldType = FIELDTYPE_SFFloat; break;
-		//case 'D': pars[i]._web3dval.anyvrml->sfdouble = duk_get_number(ctx,ii);  pars[i]._web3dval.fieldType = FIELDTYPE_SFDouble; break;
-		//case 'S': str = strdup(duk_get_string(ctx,ii)); 
-		//	//later use of a uni_string just copies its pointer. so if str is const, then we need a const struct uni_string to go with it.
-		//	pars[i]._web3dval.anyvrml->sfstring = malloc(sizeof(struct Uni_String));
-		//	pars[i]._web3dval.anyvrml->sfstring->strptr = strdup(str);
-		//	pars[i]._web3dval.anyvrml->sfstring->len = strlen(pars[i]._web3dval.anyvrml->sfstring->strptr);
-		//	pars[i]._web3dval.fieldType = FIELDTYPE_SFString;
-		//	break;
-		case 'Z': //flexi-string idea - allow either String or MFString (no such thing as SFString from ecma - it uses String for that)
-			if(duk_is_string(ctx,ii)){
-				pars[i]._string = duk_get_string(ctx,ii); 
-				pars[i].itype = 'S';
-				//pars[i]._web3dval.anyvrml->sfstring = malloc(sizeof(struct Uni_String));
-				//pars[i]._web3dval.anyvrml->sfstring->strptr = strdup(str);
-				//pars[i]._web3dval.anyvrml->sfstring->len = strlen(pars[i]._web3dval.anyvrml->sfstring->strptr);
-				//pars[i]._web3dval.fieldType = FIELDTYPE_SFString;
-
-				break;
-			}
-			if(!duk_is_object(ctx,i))
-				break;
-			//else fall through to W
-		case 'W': {
-				int rc, isOK, itypeRHS = -1;
-				union anyVrml *fieldRHS = NULL;
-				rc = duk_get_prop_string(ctx,ii,"fwItype");
-				if(rc == 1){
-					//printf(duk_type_to_string(duk_get_type(ctx, -1)));
-					itypeRHS = duk_to_int(ctx,-1);
-				}
-				duk_pop(ctx);
-				rc = duk_get_prop_string(ctx,ii,"fwField");
-				if(rc == 1) fieldRHS = duk_to_pointer(ctx,-1);
-				duk_pop(ctx);
-				/*we don't need the RHS fwChanged=valueChanged* because we are only changing the LHS*/
-				isOK = FALSE;
-				if(fieldRHS != NULL && itypeRHS > -1){
-					/* its one of our proxy field types. But is it the type we need?*/
-					//*field = *fieldRHS; //shallow copy - won't copy p[] in MF types
-					//medium_copy_field(itypeRHS,fieldRHS,&pars[i]._web3dval.native); //medium copy - copies p[] in MF types but not deep copy *(p[i]) if p[i] is pointer type ie SFNode* or Uni_String*
-					pars[i]._web3dval.native = fieldRHS;
-					pars[i]._web3dval.fieldType = itypeRHS;
-					pars[i].itype = 'W';
-					// see below *valueChanged = TRUE;
-					isOK = TRUE;
-				}
-			}
-			break;
-		case 'P': {
-				int rc, isOK, itypeRHS = -1;
-				union anyVrml *fieldRHS = NULL;
-				rc = duk_get_prop_string(ctx,ii,"fwItype");
-				if(rc == 1){
-					//printf(duk_type_to_string(duk_get_type(ctx, -1)));
-					itypeRHS = duk_to_int(ctx,-1);
-				}
-				duk_pop(ctx);
-				rc = duk_get_prop_string(ctx,ii,"fwField");
-				if(rc == 1) fieldRHS = duk_to_pointer(ctx,-1);
-				duk_pop(ctx);
-				/*we don't need the RHS fwChanged=valueChanged* because we are only changing the LHS*/
-				isOK = FALSE;
-				if(fieldRHS != NULL && itypeRHS >= AUXTYPE_X3DConstants){
-					/* its one of our auxiliary types - Browser, X3DConstants, ProfileInfo, ComponentInfo, X3DRoute ...*/
-					pars[i]._pointer.native = fieldRHS;
-					pars[i]._pointer.fieldType = itypeRHS;
-					pars[i].itype = 'P';
-					// see below *valueChanged = TRUE;
-					isOK = TRUE;
-				}
-			}
-			break;
-
-		case 'O': break; //object pointer ie to js function callback object
-		}
-	}
-		
-	for(i=nUsable;i<nNeeded;i++){
-		//fill
-		char ctype = arglist.argtypes[i];
-		pars[i].itype = ctype;
-		switch(ctype){
-		case 'B': pars[i]._boolean = FALSE; break;
-		case 'I': pars[i]._integer = 0; break;
-		case 'F': pars[i]._numeric = 0.0; break;
-		case 'D': pars[i]._numeric = 0.0; break;
-		case 'S': pars[i]._string = NULL; break;
-		case 'Z': pars[i]._string = NULL; pars[i].itype = 'S'; break;
-		//case 'B': pars[i]._web3dval.anyvrml->sfbool = FALSE;	pars[i]._web3dval.fieldType = FIELDTYPE_SFBool; break;
-		//case 'I': pars[i]._web3dval.anyvrml->sfint32 = 0;		pars[i]._web3dval.fieldType = FIELDTYPE_SFInt32; break;
-		//case 'F': pars[i]._web3dval.anyvrml->sffloat = 0.0f;	pars[i]._web3dval.fieldType = FIELDTYPE_SFFloat; break;
-		//case 'D': pars[i]._web3dval.anyvrml->sfdouble = 0.0;	pars[i]._web3dval.fieldType = FIELDTYPE_SFDouble; break;
-		//case 'S': pars[i]._web3dval.anyvrml->sfstring = malloc(sizeof(struct Uni_String));
-		//	pars[i]._web3dval.anyvrml->sfstring->strptr = NULL;	pars[i]._web3dval.fieldType = FIELDTYPE_SFString; break;
-		//case 'Z': pars[i]._web3dval.anyvrml->sfstring = malloc(sizeof(struct Uni_String));
-		//	pars[i]._web3dval.anyvrml->sfstring->strptr = NULL; pars[i]._web3dval.fieldType = FIELDTYPE_SFString; break;
-		case 'W': 
-			pars[i]._web3dval.fieldType = FIELDTYPE_SFNode; 
-			pars[i]._web3dval.native = NULL; break;
-		//case 'P': 
-		//	pars[i]._web3dval.fieldType = FIELDTYPE_SFNode; //I don't have a good default value - do I need an AUXTYPE_NULL?
-		//	pars[i]._web3dval.native = NULL; break;
-		case 'O': 
-			pars[i]._jsobject = NULL; break; 
-		default:
-			pars[i].itype = '0';
-		}
-	}
-}
-
-
-int cfwconstructor(duk_context *ctx) {
-	int rc, nargs;
-	int *valueChanged = NULL; //so called 'internal' variables inside the script context don't point to a valueChanged
-	int itype = -1;
-	nargs = duk_get_top(ctx);
-
-	//show_stack0(ctx,"cfwconstructor start",0);
-
-	duk_push_current_function(ctx);
-	rc = duk_get_prop_string(ctx,-1,"fwItype");
-	if(rc == 1) itype = duk_to_int(ctx,-1);
-	duk_pop(ctx); //get prop string result
-	duk_pop(ctx); //current function
-
-	//show_stack0(ctx,"cfwconstructor after push and pop current function",0);
-
-	if(itype < 0) return 0; //no itype means it's not one of ours
-	FWTYPE *fwt = getFWTYPE(itype);
-	if(!fwt->Constructor) return 0; ///AUXTYPE_s not constructable (except route?)
-
-	//find the contructor that matches the args best
-	int ifound, i = 0;
-	ifound = -1;
-	while(fwt->ConstructorArgs[i].nfixedArg > -1){
-		int nfixed = fwt->ConstructorArgs[i].nfixedArg;
-		int ivarsa = fwt->ConstructorArgs[i].iVarArgStartsAt;
-		char *neededTypes = fwt->ConstructorArgs[i].argtypes;
-		int fill = fwt->ConstructorArgs[i].fillMissingFixedWithZero == 'T';
-		if( nargs == nfixed || (ivarsa > -1 && nargs >= nfixed ) || (ivarsa > -1 && fill)){ 
-			//nargs is a match
-			int allOK = TRUE;
-			//check each narg for compatible type
-			for(int j=0;j<nargs;j++){
-				char neededType;
-				int isOK, RHS_duk_type = duk_get_type(ctx, j);
-				isOK = FALSE;
-				neededType = j >= nfixed ? neededTypes[ivarsa] : neededTypes[j]; //if you have varargs you specify one more type than the fixed requires
-				// for example MFColor nfixed=0 (you can have 0 to infinity args), ivarsa=0 (varargs start at index 0), neededTypes="W" the first and subsequent varargs are of type 'W'
-				//printf("duktype %s\n",duk_type_to_string(RHS_duk_type));
-				switch(RHS_duk_type){
-				case DUK_TYPE_NUMBER: 
-					if(neededType =='F' || neededType =='D' || neededType =='I') isOK = TRUE;
-					break;
-				case DUK_TYPE_BOOLEAN: 
-					if(neededType =='B') isOK = TRUE;
-					break;
-				case DUK_TYPE_STRING:
-					if(neededType =='S' || neededType =='Z') isOK = TRUE;
-					break;
-				case DUK_TYPE_OBJECT:
-					if(neededType =='W' || neededType =='P'){
-						int rc, itypeRHS = -1;
-						union anyVrml *fieldRHS = NULL;
-						rc = duk_get_prop_string(ctx,j,"fwItype");
-						if(rc == 1){
-							//printf(duk_type_to_string(duk_get_type(ctx, -1)));
-							itypeRHS = duk_to_int(ctx,-1);
-						}
-						duk_pop(ctx);
-						rc = duk_get_prop_string(ctx,j,"fwField");
-						if(rc == 1) fieldRHS = duk_to_pointer(ctx,-1);
-						duk_pop(ctx);
-						//we don't need the RHS fwChanged=valueChanged* because we are only changing the LHS
-
-						if(fieldRHS != NULL && itypeRHS > -1){
-							//in theory, we could make sure somehow that we had the right kind of 'W' : add a FIELDTYPE_ / AUXTYPE_ array in arglist struct
-							isOK = TRUE;
-						}
-					}
-					break;
-				case DUK_TYPE_NONE: 
-				case DUK_TYPE_UNDEFINED: 
-				case DUK_TYPE_NULL: 
-					// are we attempting to null out the field? we aren't allowed to change its type (to undefined) 
-				case DUK_TYPE_POINTER: 
-					// don't know what this would be for if anything 
-				default:
-					isOK = FALSE;
-					break;
-				}
-				allOK = allOK && isOK;
-			}
-			if(fill)
-				for(int j=nargs;j<nfixed;j++){
-					allOK = allOK && 1;
-				}
-			if(allOK){
-				ifound = i;
-				break;
-			}
-		}
-		i++;
-	}
-	if(ifound < 0){
-		printf("matching constructor not found, you have %d args for %s\n",nargs,fwt->name);
-		return 0;
-	}
-	FWval args = NULL;
-	int argc;
-	convert_duk_to_fwvals(ctx, nargs, 0, fwt->ConstructorArgs[i], &args, &argc);
-	if(fwt->ConstructorArgs[ifound].fillMissingFixedWithZero == 'T' && nargs < fwt->ConstructorArgs[ifound].nfixedArg){
-		int nfixed = fwt->ConstructorArgs[ifound].nfixedArg;
-		int ivarsa = fwt->ConstructorArgs[ifound].iVarArgStartsAt;
-		char *neededTypes = fwt->ConstructorArgs[ifound].argtypes;
-		int fill = fwt->ConstructorArgs[ifound].fillMissingFixedWithZero == 'T';
-		args = realloc(args,nfixed * sizeof(FWVAL));
-		for(int j=nargs;j<nfixed;j++){
-			switch(neededTypes[j]){
-			case 'B':
-				args[j]._boolean = FALSE; break;
-			case 'I':
-				args[j]._integer = 0; break;
-			case 'F':
-				args[j]._numeric = 0.0; break;
-			case 'D':
-				args[j]._numeric = 0.0; break;
-			case 'S':
-				args[j]._string = ""; break;
-			case 'W':
-			case 'P':
-				break;
-			}
-		}
-		argc = nfixed;
-	}
-
-	void *fwpointer = fwt->Constructor(fwt,argc,args);
-	free(args);
-	push_typed_proxy(ctx,itype, fwpointer, valueChanged);
-
-	return 1;
-}
-int chas(duk_context *ctx) {
-	int rc, itype, *valueChanged;
-	union anyVrml *parent;
-
-	/* get type of parent object for this property*/
-	rc = duk_get_prop_string(ctx,0,"fwItype");
-	if(rc==1) itype = duk_get_int(ctx,-1);
-	duk_pop(ctx);
-	/* get the pointer to the parent object */
-	rc = duk_get_prop_string(ctx,0,"fwField");
-	if(rc == 1) parent = duk_to_pointer(ctx,-1);
-	duk_pop(ctx);
-	/* get the pointer to the changed flag */
-	rc = duk_get_prop_string(ctx,0,"fwChanged");
-	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
-	duk_pop(ctx);
-	const char *key = duk_require_string(ctx,-1);
-	//printf("key=%s\n",key);
-
-	int nr, index;
-	char type, readOnly;
-	nr = 1;
-	FWTYPE *fwt = getFWTYPE(itype);
-	if(fwhas_generic(fwt,parent,key,&index,&type,&readOnly)){
-		duk_push_true(ctx);
-	}else{
-		duk_push_false(ctx);
-	}
-	//isFunc = type == 'f';
-	//show_stack(ctx,"in chas");
-
-    return nr;
-}
-int cownKeys(duk_context *ctx) {
-	int rc, itype, *valueChanged;
-	void *parent = NULL;
-	itype = -1;
-
-	/* get type of parent object for this property*/
-	rc = duk_get_prop_string(ctx,0,"fwItype");
-	if(rc==1) itype = duk_get_int(ctx,-1);
-	duk_pop(ctx);
-	/* get the pointer to the parent object */
-	rc = duk_get_prop_string(ctx,0,"fwField");
-	if(rc == 1) parent = duk_to_pointer(ctx,-1);
-	duk_pop(ctx);
-	/* get the pointer to the changed flag */
-	rc = duk_get_prop_string(ctx,0,"fwChanged");
-	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
-	duk_pop(ctx);
-
-	int arr_idx = duk_push_array(ctx);
-	if(itype < 0 || (itype < AUXTYPE_X3DConstants && parent == NULL))
-		return 1; //return empty array
-	int i = -1;
-	char *fieldname;
-	int lastProp, isFunc, jndex;
-	char type, readOnly;
-	//FWTYPE *getFWTYPE(int itype)
-	FWTYPE *fwt = getFWTYPE(itype);
-	//fwiterator_generic(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex)
-	while( (i = fwiterator_generic(i,fwt,parent,&fieldname,&lastProp,&jndex,&type,&readOnly)) > -1 ){
-		duk_push_string(ctx, fieldname);
-		duk_put_prop_index(ctx, arr_idx, i);
-	}
-	//show_stack(ctx,"in cownKeys");
-    return 1;
-}
-int cenumerate(duk_context *ctx) {
-	int rc, itype, *valueChanged;
-	union anyVrml *parent;
-
-	/* get type of parent object for this property*/
-	rc = duk_get_prop_string(ctx,0,"fwItype");
-	if(rc==1) itype = duk_get_int(ctx,-1);
-	duk_pop(ctx);
-	/* get the pointer to the parent object */
-	rc = duk_get_prop_string(ctx,0,"fwField");
-	if(rc == 1) parent = duk_to_pointer(ctx,-1);
-	duk_pop(ctx);
-	/* get the pointer to the changed flag */
-	rc = duk_get_prop_string(ctx,0,"fwChanged");
-	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
-	duk_pop(ctx);
-
-	int arr_idx = duk_push_array(ctx);
-	int next, i = -1;
-	char *fieldname;
-	int isFunc, lastProp, jndex;
-	char type, readOnly;
-	//FWTYPE *getFWTYPE(int itype)
-	FWTYPE *fwt = getFWTYPE(itype);
-	//fwiterator_generic(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex)
-	while( (i = fwiterator_generic(i,fwt,parent,&fieldname,&lastProp,&jndex,&type,&readOnly)) > -1 ){
-		//isFunc = i > lastProp;
-		duk_push_string(ctx, fieldname);
-		duk_put_prop_index(ctx, arr_idx, i);
-	}
-	//show_stack(ctx,"in cenumerate");
-    return 1;
-}
-
-int push_duk_fieldvalueECMA(duk_context *ctx, int itype, union anyVrml *fieldvalue)
-{
-	/*we have the field, and even the key name. 
-	  So we should be able to decide how to package the outgoing value type:
-	  according to specs:
-	  - return ecma primitive value type for SFBool, SFInt32, SFFloat, SFDouble, SFTime, SFString
-	  - return our field-type-specific object/proxy-wrapper, pointing to our global.field, for the others.
-	*/
-	int nr;
-	int isOK = FALSE;
-	nr = 1;
-	switch(itype){
-    case FIELDTYPE_SFBool:
-		duk_push_boolean(ctx,fieldvalue->sfbool); break;
-    case FIELDTYPE_SFFloat:
-		duk_push_number(ctx,fieldvalue->sffloat); break;
-    case FIELDTYPE_SFTime:
-		duk_push_number(ctx,fieldvalue->sftime); break;
-    case FIELDTYPE_SFDouble:
-		duk_push_number(ctx,fieldvalue->sfdouble); break;
-    case FIELDTYPE_SFInt32:
-		duk_push_int(ctx,fieldvalue->sfint32); break;
-    case FIELDTYPE_SFString:
-		duk_push_string(ctx,fieldvalue->sfstring->strptr); break;
-	default:
-		nr = 0; 
-		break;
-	}
-	//show_stack(ctx,"in fwgetterNS at end");
-    return nr;
-}
-//int push_duk_fieldvalueObject(duk_context *ctx, int itype, union anyVrml *field, int *valueChanged ){
-//	//we need an object with our c handlers and pointer to our script->field[i]
-//	push_typed_proxy2(ctx, itype, field, valueChanged);
-//	return 1;
-//}
-
-
-//int Browser_getSomething(double *dval,double A, double B, double C){
-//	*dval = A + B + C;
-//	return 1;
-//}
-static int SCALARS_ARE_PRIMITIVES = TRUE;
-/* SCALARS_ARE_PRIMITIVES
-   the ecmascript ! operator invokes ToBoolean() which always returns true when the argument is an object
-   http://www.ecma-international.org/ecma-262/5.1/#sec-11.4.9
-   http://www.ecma-international.org/ecma-262/5.1/#sec-9.2
-   the web3d.org ecmascript specs say all fields shall have getType(), isReadable(), isWritable() functions.
-   if I have: Script {
-	field SFBool enabled TRUE 
-	url "ecmascript: function initialize(){
-		var A = !enabled;			//A returns false if enabled is a primitive and its value is true, 
-									//but A always returns false if enabled is a proxy object
-		var B = enabled.getType();	//eval fails with 'type error, not an object' if enabled is a primitive,
-									//but B returns X3DConstants.SFBool if enabled is a proxy object
-	Because there are some goodies either way, and I'm not sure what the specs intend, I've made it configurable for now,
-	although comparisons with vivaty are closer to SCALARS_ARE_PRIMITIVES = TRUE (some scenes fail with FALSE).
-*/
-int fwval_duk_push(duk_context *ctx, FWval fwretval, int *valueChanged){
-	//converts engine-agnostic FWVAL return value to duk engine specific return values and pushes them onto the duk value stack
-	int nr = 1;
-	switch(fwretval->itype){
-	
-	case 'B':
-		duk_push_boolean(ctx,fwretval->_boolean); break;
-	case 'I':
-		duk_push_int(ctx,fwretval->_integer); break;
-	case 'F':
-		duk_push_number(ctx,fwretval->_numeric); break;
-	case 'D':
-		duk_push_number(ctx,fwretval->_numeric); break;
-	case 'S':
-		duk_push_string(ctx,fwretval->_string); break;
-	
-	case 'W':
-		if(SCALARS_ARE_PRIMITIVES){
-			//for pointers to web3d field types
-			switch(fwretval->_web3dval.fieldType){
-			case FIELDTYPE_SFBool:
-				duk_push_boolean(ctx,fwretval->_web3dval.anyvrml->sfbool); break;
-			case FIELDTYPE_SFInt32:
-				duk_push_int(ctx,fwretval->_web3dval.anyvrml->sfint32); break;
-			case FIELDTYPE_SFFloat:
-				duk_push_number(ctx,(double)fwretval->_web3dval.anyvrml->sffloat); break;
-			case FIELDTYPE_SFDouble:
-			case FIELDTYPE_SFTime:
-				duk_push_number(ctx,fwretval->_web3dval.anyvrml->sfdouble); break;
-			case FIELDTYPE_SFString:
-				duk_push_string(ctx,fwretval->_web3dval.anyvrml->sfstring->strptr); break;
-			default:
-				push_typed_proxy2(ctx,fwretval->_web3dval.fieldType,fwretval->_web3dval.kind,fwretval->_web3dval.native,valueChanged,fwretval->_web3dval.gc);
-			}
-		}else{
-			//SCALARS_ARE_PROXY_OBJECTS
-			push_typed_proxy2(ctx,fwretval->_web3dval.fieldType,fwretval->_web3dval.kind,fwretval->_web3dval.native,valueChanged,fwretval->_web3dval.gc);
-		}
-		break;
-	case 'P':
-		//for web3d auxiliary types Browser, X3DFieldDefinitionArray, X3DRoute ...
-		push_typed_proxy2(ctx,fwretval->_pointer.fieldType,fwretval->_pointer.kind,fwretval->_pointer.native,valueChanged,fwretval->_pointer.gc);
-		break;
-	case '0':
-	default:
-		nr = 0; break;
-	}
-	return nr;
-}
-
-int ctypefunction(duk_context *ctx) {
-	int rc, nr, itype, kind;
-	const char *fwFunc = NULL;
-	union anyVrml* field = NULL;
-	FWTYPE *fwt;
-
-	itype = -1;
-	kind = -1;
-	int nargs = duk_get_top(ctx);
-	//show_stack0(ctx,"in cfuction",0);
-	duk_push_current_function(ctx);
-	/* get type of parent object for this property*/
-	rc = duk_get_prop_string(ctx,-1,"fwItype");
-	if(rc==1) itype = duk_get_int(ctx,-1);
-	duk_pop(ctx);
-	/*get the PKW_inputOutput read/write mode for the parent field*/
-	rc = duk_get_prop_string(ctx,-1,"fwKind");
-	if(rc==1) kind = duk_get_int(ctx,-1);
-	duk_pop(ctx);
-	/* get the name of the function called */
-	rc = duk_get_prop_string(ctx,-1,"fwFunc");
-	if(rc == 1) fwFunc = duk_to_string(ctx,-1);
-	duk_pop(ctx);
-	duk_pop(ctx); //durrent function
-	nr = 0;
-	if(!strcmp(fwFunc,"getType")){
-		duk_push_int(ctx,itype);
-		nr = 1;
-	}
-	if(!strcmp(fwFunc,"isReadable")){
-		int isreadable = TRUE;
-		if(kind > -1)
-			isreadable = isreadable && (kind == PKW_inputOutput || kind == PKW_initializeOnly);
-		if(isreadable) duk_push_true(ctx);
-		else duk_push_false(ctx);
-		nr = 1;
-	}
-	if(!strcmp(fwFunc,"isWritable")){
-		int iswritable = TRUE;
-		if(kind > -1)
-			iswritable = iswritable && (kind == PKW_inputOutput || kind == PKW_outputOnly);
-		if(iswritable) duk_push_true(ctx);
-		else duk_push_false(ctx);
-		nr = 1;
-	}
-	return nr;
-}
-int cfunction(duk_context *ctx) {
-	int rc, nr, itype, *valueChanged;
-	const char *fwFunc = NULL;
-	union anyVrml* parent = NULL;
-	union anyVrml* field = NULL;
-	FWTYPE *fwt;
-	FWFunctionSpec *fs;
-
-	int nargs = duk_get_top(ctx);
-	//show_stack0(ctx,"in cfuction",0);
-	duk_push_current_function(ctx);
-	/* get type of parent object for this property*/
-	rc = duk_get_prop_string(ctx,-1,"fwItype");
-	if(rc==1) itype = duk_get_int(ctx,-1);
-	duk_pop(ctx);
-	/* get the pointer to the parent object */
-	rc = duk_get_prop_string(ctx,-1,"fwField");
-	if(rc == 1) parent = duk_to_pointer(ctx,-1);
-	duk_pop(ctx);
-	/* get the pointer to the changed flag */
-	rc = duk_get_prop_string(ctx,-1,"fwChanged");
-	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
-	duk_pop(ctx);
-	/* get the name of the function called */
-	rc = duk_get_prop_string(ctx,-1,"fwFunc");
-	if(rc == 1) fwFunc = duk_to_string(ctx,-1);
-	duk_pop(ctx);
-	duk_pop(ctx); //durrent function
-
-	nr = 0;
-	int i;
-	fwt = getFWTYPE(itype);
-	//check functions - if its a function push the type's specfic function
-	fs = getFWFunc(fwt,fwFunc);
-	if(fs){
-		FWval pars;
-		int argc;
-		FWVAL fwretval;
-		convert_duk_to_fwvals(ctx, nargs, 0, fs->arglist, &pars, &argc);
-		//the object function call, using engine-agnostic parameters
-		nr = fs->call(fwt,parent,argc,pars,&fwretval);
-		if(nr){
-			nr = fwval_duk_push(ctx,&fwretval,valueChanged);
-			if(nr && !strcmp(fwFunc,"toString")){
-				if(fwretval.itype == 'S' && fwretval._string){
-					//printf("gcing toString string %s\n",fwretval._string);
-					free(fwretval._string);  //if this bombs take it out and toString strings won't be gcd. There's nothing set up to gc _string in general
-				}
-			}
-		}else{
-			if(valueChanged) *valueChanged = TRUE;
-		}
-		free(pars);
-	}
-	return nr;
-}
-int cget(duk_context *ctx) {
-	int rc, nr, itype, kind, *valueChanged;
-	//show_stack(ctx,"in cget");
-	union anyVrml* parent = NULL;
-	union anyVrml* field = NULL;
-
-	/* get type of parent object for this property*/
-	itype = -1;
-	kind = -1;
-	rc = duk_get_prop_string(ctx,0,"fwItype");
-	if(rc==1) itype = duk_get_int(ctx,-1);
-	duk_pop(ctx);
-	/* get the kind of parent field PKW_inputOutput etc*/
-	rc = duk_get_prop_string(ctx,0,"fwKind");
-	if(rc==1) kind = duk_get_int(ctx,-1);
-	duk_pop(ctx);
-	/* get the pointer to the parent object */
-	rc = duk_get_prop_string(ctx,0,"fwField");
-	if(rc == 1) parent = duk_to_pointer(ctx,-1);
-	duk_pop(ctx);
-	/* get the pointer to the changed flag */
-	rc = duk_get_prop_string(ctx,0,"fwChanged");
-	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
-	duk_pop(ctx);
-	//show_stack0(ctx,"in cget",0);
-
-	nr = 0;
-	//printf("indexer is%s\n",duk_type_to_string(duk_get_type(ctx,-2)));
-	switch(duk_get_type(ctx,-2)){
-	case DUK_TYPE_NUMBER:{
-		int ikey = duk_get_int(ctx,-2);
-		//printf("key=[%d]",ikey);
-		}
-		break;
-	default: {
-		const char *key = duk_require_string(ctx,-2);
-		//printf("key=%s \n",key);
-		if(!strcmp(key,"fwItype")){
-			//someone else is asking a proxy for its fwItype (for example LHS = RHSProxy) the LHS Setter may want the RHS's fwItype
-			duk_push_int(ctx,itype);
-			nr = 1;
-			return nr;
-		}
-		if(!strcmp(key,"fwField")){
-			//someone is asking a proxy for its fwField
-			duk_push_pointer(ctx,parent);
-			nr = 1;
-			return nr;
-		}
-		if(!strcmp(key,"getType") || !strcmp(key,"isReadable") || !strcmp(key,"isWritable")){
-			//its a function all auxtypes and fieldtypes share
-			duk_push_c_function(ctx,ctypefunction,DUK_VARARGS);
-			duk_push_int(ctx,itype);
-			duk_put_prop_string(ctx,-2,"fwItype");
-			duk_push_int(ctx,kind);
-			duk_put_prop_string(ctx,-2,"fwKind");
-			duk_push_string(ctx,key);
-			duk_put_prop_string(ctx,-2,"fwFunc");
-			nr = 1;
-			return nr;
-		}
-		}
-		break;
-	}
-
-
-	if(itype > -1){
-		//itype is in AUXTYPE_ range
-		const char *key;// = duk_require_string(ctx,-2);
-		FWTYPE *fwt = getFWTYPE(itype);
-		int jndex, found;
-		char type, readOnly;
-
-		//check numeric indexer
-		if(duk_is_number(ctx,-2)){
-			//indexer
-			int index = duk_get_int(ctx,-2);
-			if(fwt->takesIndexer){
-				type = fwt->takesIndexer;
-				readOnly = fwt->indexerReadOnly;
-				jndex = index;
-				found = 1;
-			}else{
-				//script is attempting to iterate over/get properties by number to get value - good luck
-				const char *name;
-				int lastProp;
-				index = fwiterator_generic(index -1,fwt,parent,&name,&lastProp,&jndex,&type,&readOnly);
-				if(index > -1) found = 1;
-			}
-		}else{
-			//check properties - if a property, call the type-specific setter
-			int lastProp;
-			key = duk_get_string(ctx,-2);
-			found = fwhas_generic(fwt,parent,key,&jndex,&type,&readOnly);
-			if(!found){
-				ConsoleMessage("type %s has no property or function %s - please check your typing\n",fwt->name,key);
-			}
-		}
-		if(found && type=='f'){
-			FWFunctionSpec *fw = getFWFunc(fwt,key);
-			if(fw){
-				//its a function
-				duk_push_c_function(ctx,cfunction,DUK_VARARGS);
-				duk_push_pointer(ctx,parent);
-				duk_put_prop_string(ctx,-2,"fwField");
-				duk_push_pointer(ctx,valueChanged);
-				duk_put_prop_string(ctx,-2,"fwChanged");
-				duk_push_int(ctx,itype);
-				duk_put_prop_string(ctx,-2,"fwItype");
-				duk_push_string(ctx,key);
-				duk_put_prop_string(ctx,-2,"fwFunc");
-				nr = 1;
-			}
-		}else if(found && fwt->Getter){
-			FWVAL fwretval;
-			nr = fwt->Getter(fwt,jndex,parent,&fwretval);
-			if(nr){
-				nr = fwval_duk_push(ctx,&fwretval,valueChanged);
-			}
-		}
-	}
-    return nr;
-}
-int cset(duk_context *ctx) {
-	int rc, itype, *valueChanged;
-	union anyVrml *parent;
-	itype = -1;
-	/* get type of parent object for this property*/
-	rc = duk_get_prop_string(ctx,0,"fwItype");
-	if(rc==1) itype = duk_get_int(ctx,-1);
-	duk_pop(ctx);
-	/* get the pointer to the parent object */
-	rc = duk_get_prop_string(ctx,0,"fwField");
-	if(rc == 1) parent = duk_to_pointer(ctx,-1);
-	duk_pop(ctx);
-	/* get the pointer to the changed flag */
-	rc = duk_get_prop_string(ctx,0,"fwChanged");
-	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
-	duk_pop(ctx);
-
-
-	//show_stack0(ctx,"in cset",0);
-	//char *val = duk_require_string(ctx,-2);
-	//const char *val = duk_to_string(ctx,-2);
-	//const char *key = duk_require_string(ctx,-3);
-	//printf("key=%s val=%s\n",key,val);
-
-	//printf("cset indexer is%s\n",duk_type_to_string(duk_get_type(ctx,-3)));
-	switch(duk_get_type(ctx,-3)){
-	case DUK_TYPE_NUMBER:{
-		int ikey = duk_get_int(ctx,-3);
-		//printf("key=[%d] ",ikey);
-		}
-		break;
-	default: {
-		const char *key = duk_require_string(ctx,-3);
-		//printf("key=%s ",key);
-		}
-		break;
-	}
-	//printf("cset val is%s\n",duk_type_to_string(duk_get_type(ctx,-2)));
-	switch(duk_get_type(ctx,-2)){
-	case DUK_TYPE_NUMBER:{
-		int ival = duk_get_int(ctx,-2);
-		//printf("val=[%d]\n",ival);
-		}
-		break;
-	case DUK_TYPE_STRING:{
-		const char *cval = duk_get_string(ctx,-2);
-		//printf("val=%s\n",cval);
-		}
-		break;
-	default: 
-		//printf("val is object\n");
-		break;
-	}
-
-
-	if(itype > -1) {
-		//itype is in FIELDTYPE_ and AUXTYPE_ range
-		const char* key;
-		FWTYPE *fwt = getFWTYPE(itype);
-		int jndex, found;
-		char type, readOnly;
-		//check numeric indexer
-		if(duk_is_number(ctx,-3) && fwt->takesIndexer){
-			//indexer
-			jndex = duk_get_int(ctx,-3);
-			type = fwt->takesIndexer;
-			readOnly = fwt->indexerReadOnly;
-			found = 1;
-		}else{
-			//check properties - if a property, call the type-specific setter
-			int lastProp;
-			key = duk_get_string(ctx,-3);
-			found = fwhas_generic(fwt,parent,key,&jndex,&type,&readOnly) && (type != 'f');
-		}
-		if(found && (readOnly != 'T') && fwt->Setter){
-			FWval fwsetval = NULL;
-			struct ArgListType arglist;
-			int argc;
-			arglist.argtypes = &type;
-			arglist.fillMissingFixedWithZero = 0;
-			arglist.nfixedArg = 1;
-			arglist.iVarArgStartsAt = -1;
-			convert_duk_to_fwvals(ctx, 1, -2, arglist, &fwsetval, &argc);
-			if(argc == 1){
-				fwt->Setter(fwt,jndex,parent,fwsetval);
-				if(valueChanged)
-					(*valueChanged) = 1;
-			}
-			free(fwsetval);
-		}
-	}
-    return 0;
-}
-int cdel(duk_context *ctx) {
-	int rc, itype, *valueChanged;
-	union anyVrml *parent;
-
-	/* get type of parent object for this property*/
-	rc = duk_get_prop_string(ctx,0,"fwItype");
-	if(rc==1) itype = duk_get_int(ctx,-1);
-	duk_pop(ctx);
-	//if(fwType) printf("fwType in cget=%s\n",fwType);
-	/* get the pointer to the parent object */
-	rc = duk_get_prop_string(ctx,0,"fwField");
-	if(rc == 1) parent = duk_to_pointer(ctx,-1);
-	duk_pop(ctx);
-	/* get the pointer to the changed flag */
-	rc = duk_get_prop_string(ctx,0,"fwChanged");
-	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
-	duk_pop(ctx);
-
-	show_stack0(ctx,"in cdel",0);
-	//duk_push_string(ctx, nativeValue);
-    return 1;
-}
-
-//c-side helper adds the generic handler to global, for use when creating each proxy
-void addHandler(duk_context *ctx){
-	int iglobal, ihandler, rc;
-	iglobal = duk_get_top(ctx) -1;
-
-	duk_push_object(ctx);
-	duk_put_prop_string(ctx, iglobal, "handler");
-
-	duk_get_prop_string(ctx,iglobal,"handler"); //get handler from global
-	ihandler = duk_get_top(ctx) -1; //+ve
-	duk_push_c_function(ctx,chas,2);
-	duk_put_prop_string(ctx, ihandler, "has");
-	duk_push_c_function(ctx,cownKeys,1);
-	duk_put_prop_string(ctx, ihandler, "ownKeys");
-	duk_push_c_function(ctx,cenumerate,1);
-	duk_put_prop_string(ctx, ihandler, "enumerate");
-	duk_push_c_function(ctx,cget,3);
-	duk_put_prop_string(ctx, ihandler, "get");
-	duk_push_c_function(ctx,cset,4);
-	duk_put_prop_string(ctx, ihandler, "set");
-	duk_push_c_function(ctx,cdel,2);
-	duk_put_prop_string(ctx, ihandler, "del");
-	duk_pop(ctx); //pop handler off stack
-
-}
-void addCustomProxyType(duk_context *ctx, int iglobal, const char *typeName)
-{
-	int itype;
-	duk_push_c_function(ctx,cfwconstructor,DUK_VARARGS);
-	//put fname=SFVec3f on c_function, so in constructor we can tell what we are trying to construct
-	itype = fwType2itype(typeName);
-	duk_push_int(ctx,itype);
-	duk_put_prop_string(ctx,-2,"fwItype");
-	//put SFVec3f = c_fuction on global
-	duk_put_prop_string(ctx,iglobal,typeName);
-}
-//void add_duk_global_property(duk_context *ctx, int iglobal, const char *fieldname, int itype, int mode, const char *ctype, void *fieldptr /*anyVrml*/, int *valueChanged);
-void add_duk_global_property(duk_context *ctx, int itype, const char *fieldname, int *valueChanged, struct X3D_Node *node);
-
-static char *DefaultScriptMethodsA = "function initialize() {}; " \
-			" function shutdown() {}; " \
-			" function eventsProcessed() {}; " \
-			" TRUE=true; FALSE=false; " \
-			"";
-
-
-static char *DefaultScriptMethodsB = " function print(x) {Browser.print(x)}; " \
-			" function println(x) {Browser.println(x)}; " \
-			" function getName() {return Browser.getName()}; "\
-			" function getVersion() {return Browser.getVersion()}; "\
-			" function getCurrentSpeed() {return Browser.getCurrentSpeed()}; "\
-			" function getCurrentFrameRate() {return Browser.getCurrentFrameRate()}; "\
-			" function getWorldURL() {return Browser.getWorldURL()}; "\
-			" function replaceWorld(x) {Browser.replaceWorld(x)}; "\
-			" function loadURL(x,y) {Browser.loadURL(x,y)}; "\
-			" function setDescription(x) {Browser.setDescription(x)}; "\
-			" function createVrmlFromString(x) {Browser.createVrmlFromString(x)}; "\
-			" function createVrmlFromURL(x,y,z) {Browser.createVrmlFromURL(x,y,z)}; "\
-			" function createX3DFromString(x) {Browser.createX3DFromString(x)}; "\
-			" function createX3DFromURL(x,y,z) {Browser.createX3DFromURL(x,y,z)}; "\
-			" function addRoute(a,b,c,d) {Browser.addRoute(a,b,c,d)}; "\
-			" function deleteRoute(a,b,c,d) {Browser.deleteRoute(a,b,c,d)}; "
-			"";
-
-/*add x3d v3.3 ecmascript X3DConstants table 
-// http://www.web3d.org/files/specifications/19777-1/V3.0/index.html
-// http://www.web3d.org/files/specifications/19777-1/V3.0/Part1/functions.html
-// 7.9.11
-*/
-
-
-/* www.duktape.org javascript engine used here */
-//A DUK helper function
-static char *eval_string_defineAccessor = "\
-function defineAccessor(obj, key, set, get) { \
-    Object.defineProperty(obj, key, { \
-        enumerable: true, configurable: true, \
-        set: set, get: get \
-    }); \
-}";
-
-
-//void JSCreateScriptContext(int num){return;}
-/* create the script context for this script. This is called from the thread
-   that handles script calling in the fwl_RenderSceneUpdateScene */
-void JSCreateScriptContext(int num) {
-	int iglobal, rc;
-	//jsval rval;
-	duk_context *ctx; 	/* these are set here */
-	struct Shader_Script *script;
-	//JSObject *_globalObj; 	/* these are set here */
-	//BrowserNative *br; 	/* these are set here */
-	ppJScript p = (ppJScript)gglobal()->JScript.prv;
-	struct CRscriptStruct *ScriptControl = getScriptControl();
-	script = ScriptControl[num].script;
-
-	//CREATE CONTEXT
-	//_context = JS_NewContext(p->runtime, STACK_CHUNK_SIZE);
-	//if (!_context) freewrlDie("JS_NewContext failed");
-	//JS_SetErrorReporter(_context, errorReporter);
-	ctx = duk_create_heap_default();
-
-	//ADD STANDARD JS GLOBAL OBJECT/CLASSES
-	//_globalObj = JS_NewObject(_context, &p->globalClass, NULL, NULL);
-	/* gets JS standard classes */
-	//if (!JS_InitStandardClasses(_context, _globalObj))
-	//	freewrlDie("JS_InitStandardClasses failed");
-    duk_push_global_object(ctx);
-	iglobal = duk_get_top(ctx) -1;
-
-	//SAVE OUR CONTEXT IN OUR PROGRAM'S SCRIPT NODE FOR LATER RE-USE
-	//ScriptControl[num].cx =  _context;
-	//ScriptControl[num].glob =  _globalObj;
-	ScriptControl[num].cx =  ctx;
-	ScriptControl[num].glob =  (void *)malloc(sizeof(int)); 
-	*((int *)ScriptControl[num].glob) = iglobal; //we'll be careful not to pop our global for this context (till context cleanup)
-
-	//ADD DUK HELPER PROPS AND FUNCTIONS
-	duk_push_pointer(ctx,script);
-	duk_put_prop_string(ctx,iglobal,"__script");
-
-	duk_push_string(ctx,eval_string_defineAccessor);
-	duk_eval(ctx);
-	//printf("result is: %s\n", duk_get_string(ctx, -1));
-	duk_pop(ctx);
-
-	//ADD CUSTOM TYPES
-	//* VRML Browser
-	//br = (BrowserNative *) JS_malloc(_context, sizeof(BrowserNative));
-	//if (!VrmlBrowserInit(_context, _globalObj, br))
-	//	freewrlDie("VrmlBrowserInit failed");
-
-	//* VRML field types - SF and MF
-	//if (!loadVrmlClasses(_context, _globalObj))
-	//	freewrlDie("loadVrmlClasses failed");
-
-	addHandler(ctx); //add helper called handler, to global object
-	//from GeneratedCode.c const char *FIELDTYPES[]; const int FIELDTYPES_COUNT;
-	if(0){
-	for(int i=0;i<FIELDTYPES_COUNT;i++)
-		addCustomProxyType(ctx, iglobal, FIELDTYPES[i]); //adds proxy constructor function (called typeName in js), and proxy handlers
-	}
-	if(1){
-		//FWTYPE *fwtypesArray[30];  //true statics - they only need to be defined once per process
-		//int FWTYPES_COUNT = 0;
-		for(int i=0;i<FWTYPES_COUNT;i++)
-			if(fwtypesArray[i]->Constructor)
-				addCustomProxyType(ctx,iglobal,fwtypesArray[i]->name);
-	}
-	//show_stack(ctx,"before adding Browser");
-	add_duk_global_property(ctx, AUXTYPE_X3DBrowser, "Browser", NULL, NULL);
-	//add_duk_global_property(ctx, iglobal, AUXTYPE_X3DBrowser, "Browser", "X3DBrowser", p->Instance->Browser, NULL,(struct X3D_Node*)p->Instance,2);
-	//addCustomProxyType(ctx, iglobal, "Browser"); 
-	//add x3d X3DConstants table 
-	//addCustomProxyType(ctx,iglobal,"X3DConstants");
-	add_duk_global_property(ctx, AUXTYPE_X3DConstants,"X3DConstants", NULL, NULL);
-
-
-	//test
-	if(0){
-		duk_eval_string(ctx,"print(Object.keys(Browser));"); //invokes ownKeys
-		duk_pop(ctx);
-		duk_eval_string(ctx,"print(Object.getOwnPropertyNames(Browser));"); //invokes ownKeys
-		duk_pop(ctx);
-		duk_eval_string(ctx,"for (k in Browser) {print(k);}"); //invokes enumerate
-		duk_pop(ctx);
-		duk_eval_string(ctx,"if('println' in Browser) print('have println'); else print('no println');"); //invokes has
-		duk_pop(ctx);
-		duk_eval_string(ctx,"print('X3DConstants.outputOnly='); print(X3DConstants.outputOnly);"); //invokes custom iterator in generic has
-		duk_pop(ctx);
-		duk_eval_string(ctx,"print(Object.keys(X3DConstants));"); //invokes custom iterator in ownKeys
-		duk_pop(ctx);
-	}
-	if(0){
-	duk_eval_string(ctx,"Browser.println('hi from brwsr.println');");
-	duk_pop(ctx);
-	duk_eval_string(ctx,"Browser.description = 'funny description happened on the way to ..';");
-	duk_pop(ctx);
-	duk_eval_string(ctx,"Browser.println(Browser.description);");
-	duk_pop(ctx);
-	duk_eval_string(ctx,"print('hi from print');");
-	duk_pop(ctx);
-	duk_eval_string(ctx,"print(Browser.version);");
-	duk_pop(ctx);
-
-	}
-	if(0){
-		duk_eval_string(ctx,"print('Browser.supportedComponents.length = ');");duk_pop(ctx);
-		duk_eval_string(ctx,"print(Browser.supportedComponents.length);"); duk_pop(ctx);
-		duk_eval_string(ctx,"for(var i=0;i<Browser.supportedComponents.length;i++) {print(Browser.supportedComponents[i].name + ' '+Browser.supportedComponents[i].level);}"); duk_pop(ctx);
-		
-	}
-
-
-	if(0){
-	duk_eval_string(ctx,"var myvec3 = new SFVec3f(1.0,2.0,3.0);");
-	duk_pop(ctx);
-	duk_eval_string(ctx,"print(myvec3.x.toString());");
-	duk_pop(ctx);
-	duk_eval_string(ctx,"myvec3.y = 45.0;");
-	duk_pop(ctx);
-	duk_eval_string(ctx,"print('sb45='+myvec3.y);");
-	duk_pop(ctx);
-	}
-
-
-	//* Global methods and defines (some redirecting to the Browser object ie print = Browser.println)
-	//if (!ACTUALRUNSCRIPT(num,DefaultScriptMethods,&rval))
-	//	cleanupDie(num,"runScript failed in VRML::newJS DefaultScriptMethods");
-	if(1){
-	duk_eval_string(ctx,DefaultScriptMethodsA);
-	duk_pop(ctx);
-	duk_eval_string(ctx,DefaultScriptMethodsB);
-	duk_pop(ctx);
-	}
-	if(0){
-		/* I need these working, but print = Browser.print isn't hooked up, and bombs later*/
-		show_stack(ctx,"\nbefore eval DefaultScriptMethods");
-		duk_eval_string(ctx,DefaultScriptMethodsA);
-		duk_pop(ctx);
-	}
-	//show_stack(ctx,"done initializeContext - should be 1 object (global)");
-	//duk_eval_string(ctx,"print('hi there');"); duk_pop(ctx);
-
-
-	/* send this data over to the routing table functions. */
-	CRoutes_js_new (num, JAVASCRIPT);
-	return;
-}
 //convenience wrappers to get details for built-in fields and -on script and protoInstance- dynamic fields
 int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *type, int *kind, int *iifield, union anyVrml **value){
 	*type = 0;
@@ -2084,6 +644,1259 @@ void resetScriptTouchedFlag(int actualscript, int fptr){
 	return;
 }
 
+//const char *stringFieldtypeType (int st); //in generatedcode
+//const char *stringNodeType (int st);
+int fwType2itype(const char *fwType){
+	int isSF, isMF, ifield = -1;
+	const char *suffix;
+	isSF = !strncmp(fwType,"SF",2);
+	isMF = !strncmp(fwType,"MF",2);
+	if(isSF || isMF){
+		suffix = &fwType[2]; //skip SF/MF part
+		int i = 0;
+		while(lookup_fieldType[i].c){
+			if(!strcmp(suffix,lookup_fieldType[i].c)){
+				ifield = lookup_fieldType[i].i;
+				break;
+			}
+			i++;
+		}
+		if(ifield > -1 && isMF ) ifield++;
+	}else{
+		//browser and scene/executionContext shouldn't be going through fwconstructor
+		if(!strcmp(fwType,"Browser")) ifield = AUXTYPE_X3DBrowser;
+		if(!strcmp(fwType,"X3DConstants")) ifield = AUXTYPE_X3DConstants;
+	}
+	return ifield;
+}
+void freeField(int itype, void* any){
+	if(isSForMFType(itype) == 0)
+		free(any); //SF
+	else if(isSForMFType(itype) == 1){
+		//MF
+		struct Multi_Any* mf = (struct Multi_Any*)any;
+		free(mf->p);  //if bombs, it could be because I'm not deep copying or medium_copy_field() everywhere I should
+		free(mf);
+	}
+}
+
+#include <math.h> //for int = round(numeric)
+void medium_copy_field0(int itype, void* source, void* dest)
+{
+	/* medium-deep copies field up to and including pointer: doesn't deep copy *(SFNode*) or *(SFString*), 
+		- SFString treated analogous to const char * 
+		- malloc your starting type outside
+	*/
+	
+	int i, sfsize,sformf;
+	int sftype, isMF;
+	struct Multi_Any *mfs,*mfd;
+
+	sformf = isSForMFType(itype);
+	if(sformf < 0){
+		printf("bad type in medium_copy_field0\n");
+		return;
+	}
+	isMF = sformf == 1; 
+	sftype = type2SF(itype);
+	//from EAI_C_CommonFunctions.c
+	sfsize = sizeofSF(sftype); //returnElementLength(sftype) * returnElementRowSize(sftype);
+	if(isMF)
+	{
+		int nele;
+		char *ps, *pd;
+		mfs = (struct Multi_Any*)source;
+		mfd = (struct Multi_Any*)dest;
+		//we need to malloc and do more copying
+		nele = mfs->n;
+		if( sftype == FIELDTYPE_SFNode ) nele = (int) upper_power_of_two(nele); //upper power of 2 is a convention for children[] to solve a realloc memory fragmentation issue during parsing of extremely large and flat files
+		mfd->p = malloc(sfsize*nele);
+		mfd->n = mfs->n;
+		ps = (char *)mfs->p;
+		pd = (char *)mfd->p;
+		for(i=0;i<mfs->n;i++)
+		{
+			medium_copy_field0(sftype,(union anyVrml*)ps,(union anyVrml*)pd);
+			ps += sfsize;
+			pd += sfsize;
+		}
+
+	}else{ 
+		//isSF
+		memcpy(dest,source,sfsize);
+	}
+} //return medium_copy_field
+void medium_copy_field(int itype, void* source, void** dest){
+	//void *myDestination = NULL;
+	//medium_copy_field(itype,source,&myDestination);
+	// it will malloc the size
+	(*dest) = malloc(sizeofSForMF(itype));
+	medium_copy_field0(itype,source,(*dest));
+}
+
+
+static char *DefaultScriptMethodsA = "function initialize() {}; " \
+			" function shutdown() {}; " \
+			" function eventsProcessed() {}; " \
+			" TRUE=true; FALSE=false; " \
+			"";
+
+
+static char *DefaultScriptMethodsB = " function print(x) {Browser.print(x)}; " \
+			" function println(x) {Browser.println(x)}; " \
+			" function getName() {return Browser.getName()}; "\
+			" function getVersion() {return Browser.getVersion()}; "\
+			" function getCurrentSpeed() {return Browser.getCurrentSpeed()}; "\
+			" function getCurrentFrameRate() {return Browser.getCurrentFrameRate()}; "\
+			" function getWorldURL() {return Browser.getWorldURL()}; "\
+			" function replaceWorld(x) {Browser.replaceWorld(x)}; "\
+			" function loadURL(x,y) {Browser.loadURL(x,y)}; "\
+			" function setDescription(x) {Browser.setDescription(x)}; "\
+			" function createVrmlFromString(x) {Browser.createVrmlFromString(x)}; "\
+			" function createVrmlFromURL(x,y,z) {Browser.createVrmlFromURL(x,y,z)}; "\
+			" function createX3DFromString(x) {Browser.createX3DFromString(x)}; "\
+			" function createX3DFromURL(x,y,z) {Browser.createX3DFromURL(x,y,z)}; "\
+			" function addRoute(a,b,c,d) {Browser.addRoute(a,b,c,d)}; "\
+			" function deleteRoute(a,b,c,d) {Browser.deleteRoute(a,b,c,d)}; "
+			"";
+
+/*add x3d v3.3 ecmascript X3DConstants table 
+// http://www.web3d.org/files/specifications/19777-1/V3.0/index.html
+// http://www.web3d.org/files/specifications/19777-1/V3.0/Part1/functions.html
+// 7.9.11
+*/
+
+
+//==============START OF DUKTAPE-SPECIFIC CODE====================
+#include "duktape/duktape.h"
+
+const char *duk_type_to_string(int duktype){
+	const char* r = NULL;
+	switch(duktype){
+	case DUK_TYPE_NUMBER: r = "DUK_TYPE_NUMBER"; break;
+	case DUK_TYPE_BOOLEAN:  r = "DUK_TYPE_BOOLEAN"; break;
+	case DUK_TYPE_STRING:  r = "DUK_TYPE_STRING"; break;
+	case DUK_TYPE_OBJECT: r =  "DUK_TYPE_OBJECT"; break;
+	case DUK_TYPE_NONE:  r = "DUK_TYPE_NONE"; break;
+	case DUK_TYPE_UNDEFINED:  r =  "DUK_TYPE_UNDEFINED"; break;
+	case DUK_TYPE_NULL:  r =  "DUK_TYPE_NULL"; break;
+	case DUK_TYPE_POINTER:  r = "DUK_TYPE_POINTER"; break;
+	default:
+		r = "UNKNOWN_TYPE";
+		break;
+	}
+	return r;
+}
+
+void show_stack(duk_context *ctx, char* comment)
+{
+	int rc, itop = duk_get_top(ctx);
+	if(comment) printf("%s top=%d\n",comment,itop);
+	//printf("%10s%10s%10s\n","position","type","more");
+	printf("%10s%10s\n","position","type");
+	for(int i=0;i<itop;i++){
+		int ipos = -(i+1);
+		int t = duk_get_type(ctx, ipos);
+		char *stype = NULL;
+		const char * amore = "";
+		switch(t){
+			case DUK_TYPE_NUMBER: stype ="number"; break;
+			case DUK_TYPE_STRING: stype ="string"; break;
+
+			case DUK_TYPE_OBJECT: stype ="object"; break;
+			case DUK_TYPE_NONE: stype ="none"; break;
+			case DUK_TYPE_UNDEFINED: stype ="undefined"; break;
+			case DUK_TYPE_BOOLEAN: stype ="boolean"; break;
+			case DUK_TYPE_NULL: stype ="null"; break;
+			case DUK_TYPE_POINTER: stype ="pointer"; break;
+			default:
+				stype = "unknown";
+		}
+		if(duk_is_function(ctx,ipos)){
+			char *afunc = "";
+			afunc = duk_is_c_function(ctx,ipos) ? "Cfunc" : afunc;
+			afunc = duk_is_ecmascript_function(ctx,ipos) ? "jsfunc" : afunc;
+			afunc = duk_is_bound_function(ctx,ipos) ? "boundfunc" : afunc;
+			amore = afunc;
+		}
+		if(duk_is_nan(ctx,ipos)){
+			amore = "NaN";
+		}
+		if(duk_is_object(ctx,ipos)){
+
+		}
+		printf("%10d%10s   %s\n",ipos,stype,amore);
+	}
+}
+
+//Object virtualization via proxy objects: constructor, handlers (has,ownKeys,enumerate,get,set,deleteProp), finalizer
+
+int cfinalizer(duk_context *ctx){
+	int rc, itype, igc;
+	void *fwpointer = NULL;
+	itype = igc = -1;
+	rc = duk_get_prop_string(ctx,0,"fwItype");
+	if(rc == 1) itype = duk_to_int(ctx,-1);
+	duk_pop(ctx); //get prop string result
+	rc = duk_get_prop_string(ctx,0,"fwGC");
+	if(rc == 1) igc = duk_to_boolean(ctx,-1);
+	duk_pop(ctx); //get prop string result
+	rc = duk_get_prop_string(ctx,0,"fwField");
+	if(rc == 1) fwpointer = duk_to_pointer(ctx,-1);
+	duk_pop(ctx); //get prop string result
+
+
+	//printf("hi from finalizer, itype=%d igc=%d p=%p\n",itype,igc,fwpointer);
+	if(igc > 0 && itype > -1 && fwpointer){
+		if(itype < AUXTYPE_X3DConstants){
+			//FIELDS
+			freeField(itype,fwpointer);   
+		}else{
+			//AUXTYPES
+			free(fwpointer);
+		}
+	}
+	return 0;
+}
+
+static int doingFinalizer = 1;
+void push_typed_proxy(duk_context *ctx, int itype, void *fwpointer, int* valueChanged)
+{
+	//like push_typed_proxy2 except push this instead of push obj
+	int rc;
+	if(1){
+		//show_stack(ctx,"push_typed_proxy start");
+		duk_eval_string(ctx,"Proxy");
+		duk_push_this(ctx);  //this
+		duk_push_pointer(ctx,fwpointer);
+		duk_put_prop_string(ctx,-2,"fwField");
+		duk_push_pointer(ctx,valueChanged);
+		duk_put_prop_string(ctx,-2,"fwChanged");
+		duk_push_int(ctx,itype);
+		duk_put_prop_string(ctx,-2,"fwItype");
+		if(doingFinalizer){
+			duk_push_boolean(ctx,TRUE);
+			duk_put_prop_string(ctx,-2,"fwGC");
+		}
+		duk_eval_string(ctx,"handler");
+		//show_stack(ctx,"push_typed_proxy should have Proxy, this, handler");
+
+		duk_new(ctx,2); /* [ global Proxy target handler ] -> [ global result ] */
+		//show_stack(ctx,"push_typed_proxy after new, proxy obj should be result???");
+
+		if(doingFinalizer){
+			//push_typed_proxy is called by constructor, that mallocs (via fwtype->constructor) and should GC
+			//
+			//Duktape.fin(a, function (x) {
+			//       try {
+			//           print('finalizer, foo ->', x.foo);
+			//       } catch (e) {
+			//           print('WARNING: finalizer failed (ignoring): ' + e);
+			//       }
+			//   });
+			duk_eval_string(ctx,"Duktape.fin");
+			duk_dup(ctx, -2); //copy the proxy object
+			duk_push_c_function(ctx,cfinalizer,1);
+			duk_pcall(ctx,2);
+			duk_pop(ctx); //pop Duktape.fin result
+		}
+	}
+}
+
+int push_typed_proxy2(duk_context *ctx, int itype, int kind, void *fwpointer, int* valueChanged, char doGC)
+{
+	/*  like fwgetter version, except with no fieldname or mode, for temp proxies
+		nativePtr
+	*/
+	int rc;
+
+	duk_eval_string(ctx,"Proxy");
+	duk_push_object(ctx);
+	duk_push_pointer(ctx,fwpointer);
+	duk_put_prop_string(ctx,-2,"fwField");
+	duk_push_pointer(ctx,valueChanged);
+	duk_put_prop_string(ctx,-2,"fwChanged");
+	duk_push_int(ctx,itype);
+	duk_put_prop_string(ctx,-2,"fwItype");
+	duk_push_int(ctx,kind);
+	duk_put_prop_string(ctx,-2,"fwKind");
+
+	if(doingFinalizer && doGC){
+		duk_push_boolean(ctx,TRUE);
+		duk_put_prop_string(ctx,-2,"fwGC");
+	}
+
+	duk_eval_string(ctx,"handler");
+	duk_new(ctx,2); /* [ global Proxy target handler ] -> [ global result ] */
+
+	if(doingFinalizer && doGC){
+		//push_typed_proxy2 _refers_ to script->field[i]->anyVrml (its caller fwgetter doesn't malloc) and should not GC its pointer
+		//
+		//Duktape.fin(a, function (x) {
+		//       try {
+		//           print('finalizer, foo ->', x.foo);
+		//       } catch (e) {
+		//           print('WARNING: finalizer failed (ignoring): ' + e);
+		//       }
+		//   });
+
+		duk_eval_string(ctx,"Duktape.fin");
+		duk_dup(ctx, -2); //copy the proxy object
+		duk_push_c_function(ctx,cfinalizer,1);
+		duk_pcall(ctx,2);
+		duk_pop(ctx); //pop Duktape.fin result
+	}
+
+	return 1;
+}
+
+
+
+void convert_duk_to_fwvals(duk_context *ctx, int nargs, int istack, struct ArgListType arglist, FWval *args, int *argc){
+	int nUsable,nNeeded, i, ii;
+	struct Uni_String *uni;
+	nUsable = arglist.iVarArgStartsAt > -1 ? nargs : arglist.nfixedArg;
+	nNeeded = max(nUsable,arglist.nfixedArg);
+	FWval pars = malloc(nNeeded*sizeof(FWVAL));
+	(*args) = pars;
+	//QC and genericization of incoming parameters
+	(*argc) = nNeeded;
+	for(i=0;i<nUsable;i++){
+		const char* str;
+		ii = istack + i;
+		char ctype;
+		if(i < arglist.nfixedArg) 
+			ctype = arglist.argtypes[i];
+		else 
+			ctype = arglist.argtypes[arglist.iVarArgStartsAt];
+		pars[i].itype = ctype;
+		if( duk_is_object(ctx, ii)){
+			int rc, isPrimitive;
+			//if the script goes myField = new String('hi'); then it comes in here as an object (versus myField = 'hi'; which is a string)
+			rc = duk_get_prop_string(ctx,ii,"fwItype");
+			duk_pop(ctx);
+			isPrimitive = rc == 0;
+			if(isPrimitive){
+				//void duk_to_primitive(duk_context *ctx, duk_idx_t index, duk_int_t hint); DUK_HINT_NONE
+				//http://www.duktape.org/api.html#duk_to_primitive
+				duk_to_primitive(ctx,ii,DUK_HINT_NONE);
+			}
+		}
+		switch(ctype){
+		case 'B': {
+			int bb = duk_get_boolean(ctx,ii); //duk_to_boolean(ctx,ii);
+			pars[i]._boolean = bb; // duk_to_boolean(ctx,ii); 
+			}
+			break;
+		case 'I': pars[i]._integer = duk_to_int(ctx,ii); break;
+		case 'F': pars[i]._numeric = duk_to_number(ctx,ii); break;
+		case 'D': pars[i]._numeric = duk_to_number(ctx,ii); break;
+		case 'S': pars[i]._string = duk_to_string(ctx,ii); break;
+		case 'Z': //flexi-string idea - allow either String or MFString (no such thing as SFString from ecma - it uses String for that)
+			if(duk_is_string(ctx,ii)){
+				pars[i]._string = duk_get_string(ctx,ii); 
+				pars[i].itype = 'S';
+				break;
+			}
+			if(!duk_is_object(ctx,i))
+				break;
+			//else fall through to W
+		case 'W': {
+				int rc, isOK, itypeRHS = -1;
+				union anyVrml *fieldRHS = NULL;
+				rc = duk_get_prop_string(ctx,ii,"fwItype");
+				if(rc == 1){
+					itypeRHS = duk_to_int(ctx,-1);
+				}
+				duk_pop(ctx);
+				rc = duk_get_prop_string(ctx,ii,"fwField");
+				if(rc == 1) fieldRHS = duk_to_pointer(ctx,-1);
+				duk_pop(ctx);
+				/*we don't need the RHS fwChanged=valueChanged* because we are only changing the LHS*/
+				isOK = FALSE;
+				if(fieldRHS != NULL && itypeRHS > -1){
+					// its one of our proxy field types. But is it the type we need?
+					//medium_copy_field(itypeRHS,fieldRHS,&pars[i]._web3dval.native); //medium copy - copies p[] in MF types but not deep copy *(p[i]) if p[i] is pointer type ie SFNode* or Uni_String*
+					pars[i]._web3dval.native = fieldRHS;
+					pars[i]._web3dval.fieldType = itypeRHS;
+					pars[i].itype = 'W';
+					// see below *valueChanged = TRUE;
+					isOK = TRUE;
+				}
+			}
+			break;
+		case 'P': {
+				int rc, isOK, itypeRHS = -1;
+				union anyVrml *fieldRHS = NULL;
+				rc = duk_get_prop_string(ctx,ii,"fwItype");
+				if(rc == 1){
+					//printf(duk_type_to_string(duk_get_type(ctx, -1)));
+					itypeRHS = duk_to_int(ctx,-1);
+				}
+				duk_pop(ctx);
+				rc = duk_get_prop_string(ctx,ii,"fwField");
+				if(rc == 1) fieldRHS = duk_to_pointer(ctx,-1);
+				duk_pop(ctx);
+				/*we don't need the RHS fwChanged=valueChanged* because we are only changing the LHS*/
+				isOK = FALSE;
+				if(fieldRHS != NULL && itypeRHS >= AUXTYPE_X3DConstants){
+					/* its one of our auxiliary types - Browser, X3DConstants, ProfileInfo, ComponentInfo, X3DRoute ...*/
+					pars[i]._pointer.native = fieldRHS;
+					pars[i]._pointer.fieldType = itypeRHS;
+					pars[i].itype = 'P';
+					// see below *valueChanged = TRUE;
+					isOK = TRUE;
+				}
+			}
+			break;
+
+		case 'O': break; //object pointer ie to js function callback object
+		}
+	}
+		
+	for(i=nUsable;i<nNeeded;i++){
+		//fill
+		char ctype = arglist.argtypes[i];
+		pars[i].itype = ctype;
+		switch(ctype){
+		case 'B': pars[i]._boolean = FALSE; break;
+		case 'I': pars[i]._integer = 0; break;
+		case 'F': pars[i]._numeric = 0.0; break;
+		case 'D': pars[i]._numeric = 0.0; break;
+		case 'S': pars[i]._string = NULL; break;
+		case 'Z': pars[i]._string = NULL; pars[i].itype = 'S'; break;
+		case 'W': 
+			pars[i]._web3dval.fieldType = FIELDTYPE_SFNode; 
+			pars[i]._web3dval.native = NULL; break;
+		//case 'P': 
+		//	pars[i]._web3dval.fieldType = FIELDTYPE_SFNode; //I don't have a good default value - do I need an AUXTYPE_NULL?
+		//	pars[i]._web3dval.native = NULL; break;
+		case 'O': 
+			pars[i]._jsobject = NULL; break; 
+		default:
+			pars[i].itype = '0';
+		}
+	}
+}
+
+
+int cfwconstructor(duk_context *ctx) {
+	int rc, nargs;
+	int *valueChanged = NULL; //so called 'internal' variables inside the script context don't point to a valueChanged
+	int itype = -1;
+	nargs = duk_get_top(ctx);
+
+	//show_stack(ctx,"cfwconstructor start");
+
+	duk_push_current_function(ctx);
+	rc = duk_get_prop_string(ctx,-1,"fwItype");
+	if(rc == 1) itype = duk_to_int(ctx,-1);
+	duk_pop(ctx); //get prop string result
+	duk_pop(ctx); //current function
+
+	//show_stack(ctx,"cfwconstructor after push and pop current function");
+
+	if(itype < 0) return 0; //no itype means it's not one of ours
+	FWTYPE *fwt = getFWTYPE(itype);
+	if(!fwt->Constructor) return 0; ///AUXTYPE_s not constructable (except route?)
+
+	//find the contructor that matches the args best
+	int ifound, i = 0;
+	ifound = -1;
+	while(fwt->ConstructorArgs[i].nfixedArg > -1){
+		int nfixed = fwt->ConstructorArgs[i].nfixedArg;
+		int ivarsa = fwt->ConstructorArgs[i].iVarArgStartsAt;
+		char *neededTypes = fwt->ConstructorArgs[i].argtypes;
+		int fill = fwt->ConstructorArgs[i].fillMissingFixedWithZero == 'T';
+		if( nargs == nfixed || (ivarsa > -1 && nargs >= nfixed ) || (ivarsa > -1 && fill)){ 
+			//nargs is a match
+			int allOK = TRUE;
+			//check each narg for compatible type
+			for(int j=0;j<nargs;j++){
+				char neededType;
+				int isOK, RHS_duk_type = duk_get_type(ctx, j);
+				isOK = FALSE;
+				neededType = j >= nfixed ? neededTypes[ivarsa] : neededTypes[j]; //if you have varargs you specify one more type than the fixed requires
+				// for example MFColor nfixed=0 (you can have 0 to infinity args), ivarsa=0 (varargs start at index 0), neededTypes="W" the first and subsequent varargs are of type 'W'
+				//printf("duktype %s\n",duk_type_to_string(RHS_duk_type));
+				switch(RHS_duk_type){
+				case DUK_TYPE_NUMBER: 
+					if(neededType =='F' || neededType =='D' || neededType =='I') isOK = TRUE;
+					break;
+				case DUK_TYPE_BOOLEAN: 
+					if(neededType =='B') isOK = TRUE;
+					break;
+				case DUK_TYPE_STRING:
+					if(neededType =='S' || neededType =='Z') isOK = TRUE;
+					break;
+				case DUK_TYPE_OBJECT:
+					if(neededType =='W' || neededType =='P'){
+						int rc, itypeRHS = -1;
+						union anyVrml *fieldRHS = NULL;
+						rc = duk_get_prop_string(ctx,j,"fwItype");
+						if(rc == 1){
+							//printf(duk_type_to_string(duk_get_type(ctx, -1)));
+							itypeRHS = duk_to_int(ctx,-1);
+						}
+						duk_pop(ctx);
+						rc = duk_get_prop_string(ctx,j,"fwField");
+						if(rc == 1) fieldRHS = duk_to_pointer(ctx,-1);
+						duk_pop(ctx);
+						//we don't need the RHS fwChanged=valueChanged* because we are only changing the LHS
+
+						if(fieldRHS != NULL && itypeRHS > -1){
+							//in theory, we could make sure somehow that we had the right kind of 'W' : add a FIELDTYPE_ / AUXTYPE_ array in arglist struct
+							isOK = TRUE;
+						}
+					}
+					break;
+				case DUK_TYPE_NONE: 
+				case DUK_TYPE_UNDEFINED: 
+				case DUK_TYPE_NULL: 
+					// are we attempting to null out the field? we aren't allowed to change its type (to undefined) 
+				case DUK_TYPE_POINTER: 
+					// don't know what this would be for if anything 
+				default:
+					isOK = FALSE;
+					break;
+				}
+				allOK = allOK && isOK;
+			}
+			if(fill)
+				for(int j=nargs;j<nfixed;j++){
+					allOK = allOK && 1;
+				}
+			if(allOK){
+				ifound = i;
+				break;
+			}
+		}
+		i++;
+	}
+	if(ifound < 0){
+		printf("matching constructor not found, you have %d args for %s\n",nargs,fwt->name);
+		return 0;
+	}
+	FWval args = NULL;
+	int argc;
+	convert_duk_to_fwvals(ctx, nargs, 0, fwt->ConstructorArgs[i], &args, &argc);
+	if(fwt->ConstructorArgs[ifound].fillMissingFixedWithZero == 'T' && nargs < fwt->ConstructorArgs[ifound].nfixedArg){
+		int nfixed = fwt->ConstructorArgs[ifound].nfixedArg;
+		int ivarsa = fwt->ConstructorArgs[ifound].iVarArgStartsAt;
+		char *neededTypes = fwt->ConstructorArgs[ifound].argtypes;
+		int fill = fwt->ConstructorArgs[ifound].fillMissingFixedWithZero == 'T';
+		args = realloc(args,nfixed * sizeof(FWVAL));
+		for(int j=nargs;j<nfixed;j++){
+			switch(neededTypes[j]){
+			case 'B':
+				args[j]._boolean = FALSE; break;
+			case 'I':
+				args[j]._integer = 0; break;
+			case 'F':
+				args[j]._numeric = 0.0; break;
+			case 'D':
+				args[j]._numeric = 0.0; break;
+			case 'S':
+				args[j]._string = ""; break;
+			case 'W':
+			case 'P':
+				break;
+			}
+		}
+		argc = nfixed;
+	}
+
+	void *fwpointer = fwt->Constructor(fwt,argc,args);
+	free(args);
+	push_typed_proxy(ctx,itype, fwpointer, valueChanged);
+
+	return 1;
+}
+int chas(duk_context *ctx) {
+	int rc, itype, *valueChanged;
+	union anyVrml *parent;
+
+	/* get type of parent object for this property*/
+	rc = duk_get_prop_string(ctx,0,"fwItype");
+	if(rc==1) itype = duk_get_int(ctx,-1);
+	duk_pop(ctx);
+	/* get the pointer to the parent object */
+	rc = duk_get_prop_string(ctx,0,"fwField");
+	if(rc == 1) parent = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+	/* get the pointer to the changed flag */
+	rc = duk_get_prop_string(ctx,0,"fwChanged");
+	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+	const char *key = duk_require_string(ctx,-1);
+	//printf("key=%s\n",key);
+
+	int nr, index;
+	char type, readOnly;
+	nr = 1;
+	FWTYPE *fwt = getFWTYPE(itype);
+	if(fwhas_generic(fwt,parent,key,&index,&type,&readOnly)){
+		duk_push_true(ctx);
+	}else{
+		duk_push_false(ctx);
+	}
+	//isFunc = type == 'f';
+	//show_stack(ctx,"in chas");
+
+    return nr;
+}
+int cownKeys(duk_context *ctx) {
+	int rc, itype, *valueChanged;
+	void *parent = NULL;
+	itype = -1;
+
+	/* get type of parent object for this property*/
+	rc = duk_get_prop_string(ctx,0,"fwItype");
+	if(rc==1) itype = duk_get_int(ctx,-1);
+	duk_pop(ctx);
+	/* get the pointer to the parent object */
+	rc = duk_get_prop_string(ctx,0,"fwField");
+	if(rc == 1) parent = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+	/* get the pointer to the changed flag */
+	rc = duk_get_prop_string(ctx,0,"fwChanged");
+	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+
+	int arr_idx = duk_push_array(ctx);
+	if(itype < 0 || (itype < AUXTYPE_X3DConstants && parent == NULL))
+		return 1; //return empty array
+	int i = -1;
+	char *fieldname;
+	int lastProp, isFunc, jndex;
+	char type, readOnly;
+	//FWTYPE *getFWTYPE(int itype)
+	FWTYPE *fwt = getFWTYPE(itype);
+	//fwiterator_generic(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex)
+	while( (i = fwiterator_generic(i,fwt,parent,&fieldname,&lastProp,&jndex,&type,&readOnly)) > -1 ){
+		duk_push_string(ctx, fieldname);
+		duk_put_prop_index(ctx, arr_idx, i);
+	}
+	//show_stack(ctx,"in cownKeys");
+    return 1;
+}
+int cenumerate(duk_context *ctx) {
+	int rc, itype, *valueChanged;
+	union anyVrml *parent;
+
+	/* get type of parent object for this property*/
+	rc = duk_get_prop_string(ctx,0,"fwItype");
+	if(rc==1) itype = duk_get_int(ctx,-1);
+	duk_pop(ctx);
+	/* get the pointer to the parent object */
+	rc = duk_get_prop_string(ctx,0,"fwField");
+	if(rc == 1) parent = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+	/* get the pointer to the changed flag */
+	rc = duk_get_prop_string(ctx,0,"fwChanged");
+	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+
+	int arr_idx = duk_push_array(ctx);
+	int next, i = -1;
+	char *fieldname;
+	int isFunc, lastProp, jndex;
+	char type, readOnly;
+	//FWTYPE *getFWTYPE(int itype)
+	FWTYPE *fwt = getFWTYPE(itype);
+	//fwiterator_generic(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex)
+	while( (i = fwiterator_generic(i,fwt,parent,&fieldname,&lastProp,&jndex,&type,&readOnly)) > -1 ){
+		//isFunc = i > lastProp;
+		duk_push_string(ctx, fieldname);
+		duk_put_prop_index(ctx, arr_idx, i);
+	}
+	//show_stack(ctx,"in cenumerate");
+    return 1;
+}
+
+int push_duk_fieldvalueECMA(duk_context *ctx, int itype, union anyVrml *fieldvalue)
+{
+	/*we have the field, and even the key name. 
+	  So we should be able to decide how to package the outgoing value type:
+	  according to specs:
+	  - return ecma primitive value type for SFBool, SFInt32, SFFloat, SFDouble, SFTime, SFString
+	  - return our field-type-specific object/proxy-wrapper, pointing to our global.field, for the others.
+	*/
+	int nr;
+	int isOK = FALSE;
+	nr = 1;
+	switch(itype){
+    case FIELDTYPE_SFBool:
+		duk_push_boolean(ctx,fieldvalue->sfbool); break;
+    case FIELDTYPE_SFFloat:
+		duk_push_number(ctx,fieldvalue->sffloat); break;
+    case FIELDTYPE_SFTime:
+		duk_push_number(ctx,fieldvalue->sftime); break;
+    case FIELDTYPE_SFDouble:
+		duk_push_number(ctx,fieldvalue->sfdouble); break;
+    case FIELDTYPE_SFInt32:
+		duk_push_int(ctx,fieldvalue->sfint32); break;
+    case FIELDTYPE_SFString:
+		duk_push_string(ctx,fieldvalue->sfstring->strptr); break;
+	default:
+		nr = 0; 
+		break;
+	}
+	//show_stack(ctx,"in fwgetterNS at end");
+    return nr;
+}
+
+static int SCALARS_ARE_PRIMITIVES = TRUE;
+/* SCALARS_ARE_PRIMITIVES
+   the ecmascript ! operator invokes ToBoolean() which always returns true when the argument is an object
+   http://www.ecma-international.org/ecma-262/5.1/#sec-11.4.9
+   http://www.ecma-international.org/ecma-262/5.1/#sec-9.2
+   the web3d.org ecmascript specs say all fields shall have getType(), isReadable(), isWritable() functions.
+   if I have: Script {
+	field SFBool enabled TRUE 
+	url "ecmascript: function initialize(){
+		var A = !enabled;			//A returns false if enabled is a primitive and its value is true, 
+									//but A always returns false if enabled is a proxy object
+		var B = enabled.getType();	//eval fails with 'type error, not an object' if enabled is a primitive,
+									//but B returns X3DConstants.SFBool if enabled is a proxy object
+	Because there are some goodies either way, and I'm not sure what the specs intend, I've made it configurable for now,
+	although comparisons with vivaty are closer to SCALARS_ARE_PRIMITIVES = TRUE (some scenes fail with FALSE).
+*/
+int fwval_duk_push(duk_context *ctx, FWval fwretval, int *valueChanged){
+	//converts engine-agnostic FWVAL return value to duk engine specific return values and pushes them onto the duk value stack
+	int nr = 1;
+	switch(fwretval->itype){
+	
+	case 'B':
+		duk_push_boolean(ctx,fwretval->_boolean); break;
+	case 'I':
+		duk_push_int(ctx,fwretval->_integer); break;
+	case 'F':
+		duk_push_number(ctx,fwretval->_numeric); break;
+	case 'D':
+		duk_push_number(ctx,fwretval->_numeric); break;
+	case 'S':
+		duk_push_string(ctx,fwretval->_string); break;
+	
+	case 'W':
+		if(SCALARS_ARE_PRIMITIVES){
+			//for pointers to web3d field types
+			switch(fwretval->_web3dval.fieldType){
+			case FIELDTYPE_SFBool:
+				duk_push_boolean(ctx,fwretval->_web3dval.anyvrml->sfbool); break;
+			case FIELDTYPE_SFInt32:
+				duk_push_int(ctx,fwretval->_web3dval.anyvrml->sfint32); break;
+			case FIELDTYPE_SFFloat:
+				duk_push_number(ctx,(double)fwretval->_web3dval.anyvrml->sffloat); break;
+			case FIELDTYPE_SFDouble:
+			case FIELDTYPE_SFTime:
+				duk_push_number(ctx,fwretval->_web3dval.anyvrml->sfdouble); break;
+			case FIELDTYPE_SFString:
+				duk_push_string(ctx,fwretval->_web3dval.anyvrml->sfstring->strptr); break;
+			default:
+				push_typed_proxy2(ctx,fwretval->_web3dval.fieldType,fwretval->_web3dval.kind,fwretval->_web3dval.native,valueChanged,fwretval->_web3dval.gc);
+			}
+		}else{
+			//SCALARS_ARE_PROXY_OBJECTS
+			push_typed_proxy2(ctx,fwretval->_web3dval.fieldType,fwretval->_web3dval.kind,fwretval->_web3dval.native,valueChanged,fwretval->_web3dval.gc);
+		}
+		break;
+	case 'P':
+		//for web3d auxiliary types Browser, X3DFieldDefinitionArray, X3DRoute ...
+		push_typed_proxy2(ctx,fwretval->_pointer.fieldType,fwretval->_pointer.kind,fwretval->_pointer.native,valueChanged,fwretval->_pointer.gc);
+		break;
+	case '0':
+	default:
+		nr = 0; break;
+	}
+	return nr;
+}
+
+int ctypefunction(duk_context *ctx) {
+	int rc, nr, itype, kind;
+	const char *fwFunc = NULL;
+	union anyVrml* field = NULL;
+	FWTYPE *fwt;
+
+	itype = -1;
+	kind = -1;
+	int nargs = duk_get_top(ctx);
+	//show_stack(ctx,"in cfuction");
+	duk_push_current_function(ctx);
+	/* get type of parent object for this property*/
+	rc = duk_get_prop_string(ctx,-1,"fwItype");
+	if(rc==1) itype = duk_get_int(ctx,-1);
+	duk_pop(ctx);
+	/*get the PKW_inputOutput read/write mode for the parent field*/
+	rc = duk_get_prop_string(ctx,-1,"fwKind");
+	if(rc==1) kind = duk_get_int(ctx,-1);
+	duk_pop(ctx);
+	/* get the name of the function called */
+	rc = duk_get_prop_string(ctx,-1,"fwFunc");
+	if(rc == 1) fwFunc = duk_to_string(ctx,-1);
+	duk_pop(ctx);
+	duk_pop(ctx); //durrent function
+	nr = 0;
+	if(!strcmp(fwFunc,"getType")){
+		duk_push_int(ctx,itype);
+		nr = 1;
+	}
+	if(!strcmp(fwFunc,"isReadable")){
+		int isreadable = TRUE;
+		if(kind > -1)
+			isreadable = isreadable && (kind == PKW_inputOutput || kind == PKW_initializeOnly);
+		if(isreadable) duk_push_true(ctx);
+		else duk_push_false(ctx);
+		nr = 1;
+	}
+	if(!strcmp(fwFunc,"isWritable")){
+		int iswritable = TRUE;
+		if(kind > -1)
+			iswritable = iswritable && (kind == PKW_inputOutput || kind == PKW_outputOnly);
+		if(iswritable) duk_push_true(ctx);
+		else duk_push_false(ctx);
+		nr = 1;
+	}
+	return nr;
+}
+int cfunction(duk_context *ctx) {
+	int rc, nr, itype, *valueChanged;
+	const char *fwFunc = NULL;
+	union anyVrml* parent = NULL;
+	union anyVrml* field = NULL;
+	FWTYPE *fwt;
+	FWFunctionSpec *fs;
+
+	int nargs = duk_get_top(ctx);
+	//show_stack(ctx,"in cfuction");
+	duk_push_current_function(ctx);
+	/* get type of parent object for this property*/
+	rc = duk_get_prop_string(ctx,-1,"fwItype");
+	if(rc==1) itype = duk_get_int(ctx,-1);
+	duk_pop(ctx);
+	/* get the pointer to the parent object */
+	rc = duk_get_prop_string(ctx,-1,"fwField");
+	if(rc == 1) parent = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+	/* get the pointer to the changed flag */
+	rc = duk_get_prop_string(ctx,-1,"fwChanged");
+	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+	/* get the name of the function called */
+	rc = duk_get_prop_string(ctx,-1,"fwFunc");
+	if(rc == 1) fwFunc = duk_to_string(ctx,-1);
+	duk_pop(ctx);
+	duk_pop(ctx); //durrent function
+
+	nr = 0;
+	int i;
+	fwt = getFWTYPE(itype);
+	//check functions - if its a function push the type's specfic function
+	fs = getFWFunc(fwt,fwFunc);
+	if(fs){
+		FWval pars;
+		int argc;
+		FWVAL fwretval;
+		convert_duk_to_fwvals(ctx, nargs, 0, fs->arglist, &pars, &argc);
+		//the object function call, using engine-agnostic parameters
+		nr = fs->call(fwt,parent,argc,pars,&fwretval);
+		if(nr){
+			nr = fwval_duk_push(ctx,&fwretval,valueChanged);
+			if(nr && !strcmp(fwFunc,"toString")){
+				if(fwretval.itype == 'S' && fwretval._string){
+					//printf("gcing toString string %s\n",fwretval._string);
+					free(fwretval._string);  //if this bombs take it out and toString strings won't be gcd. There's nothing set up to gc _string in general
+				}
+			}
+		}else{
+			if(valueChanged) *valueChanged = TRUE;
+		}
+		free(pars);
+	}
+	return nr;
+}
+int cget(duk_context *ctx) {
+	int rc, nr, itype, kind, *valueChanged;
+	//show_stack(ctx,"in cget");
+	union anyVrml* parent = NULL;
+	union anyVrml* field = NULL;
+
+	/* get type of parent object for this property*/
+	itype = -1;
+	kind = -1;
+	rc = duk_get_prop_string(ctx,0,"fwItype");
+	if(rc==1) itype = duk_get_int(ctx,-1);
+	duk_pop(ctx);
+	/* get the kind of parent field PKW_inputOutput etc*/
+	rc = duk_get_prop_string(ctx,0,"fwKind");
+	if(rc==1) kind = duk_get_int(ctx,-1);
+	duk_pop(ctx);
+	/* get the pointer to the parent object */
+	rc = duk_get_prop_string(ctx,0,"fwField");
+	if(rc == 1) parent = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+	/* get the pointer to the changed flag */
+	rc = duk_get_prop_string(ctx,0,"fwChanged");
+	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+	//show_stack(ctx,"in cget");
+
+	nr = 0;
+	//printf("indexer is%s\n",duk_type_to_string(duk_get_type(ctx,-2)));
+	switch(duk_get_type(ctx,-2)){
+	case DUK_TYPE_NUMBER:{
+		int ikey = duk_get_int(ctx,-2);
+		//printf("key=[%d]",ikey);
+		}
+		break;
+	default: {
+		const char *key = duk_require_string(ctx,-2);
+		//printf("key=%s \n",key);
+		if(!strcmp(key,"fwItype")){
+			//someone else is asking a proxy for its fwItype (for example LHS = RHSProxy) the LHS Setter may want the RHS's fwItype
+			duk_push_int(ctx,itype);
+			nr = 1;
+			return nr;
+		}
+		if(!strcmp(key,"fwField")){
+			//someone is asking a proxy for its fwField
+			duk_push_pointer(ctx,parent);
+			nr = 1;
+			return nr;
+		}
+		if(!strcmp(key,"getType") || !strcmp(key,"isReadable") || !strcmp(key,"isWritable")){
+			//its a function all auxtypes and fieldtypes share
+			duk_push_c_function(ctx,ctypefunction,DUK_VARARGS);
+			duk_push_int(ctx,itype);
+			duk_put_prop_string(ctx,-2,"fwItype");
+			duk_push_int(ctx,kind);
+			duk_put_prop_string(ctx,-2,"fwKind");
+			duk_push_string(ctx,key);
+			duk_put_prop_string(ctx,-2,"fwFunc");
+			nr = 1;
+			return nr;
+		}
+		}
+		break;
+	}
+
+
+	if(itype > -1){
+		//itype is in AUXTYPE_ range
+		const char *key;// = duk_require_string(ctx,-2);
+		FWTYPE *fwt = getFWTYPE(itype);
+		int jndex, found;
+		char type, readOnly;
+
+		//check numeric indexer
+		if(duk_is_number(ctx,-2)){
+			//indexer
+			int index = duk_get_int(ctx,-2);
+			if(fwt->takesIndexer){
+				type = fwt->takesIndexer;
+				readOnly = fwt->indexerReadOnly;
+				jndex = index;
+				found = 1;
+			}else{
+				//script is attempting to iterate over/get properties by number to get value - good luck
+				const char *name;
+				int lastProp;
+				index = fwiterator_generic(index -1,fwt,parent,&name,&lastProp,&jndex,&type,&readOnly);
+				if(index > -1) found = 1;
+			}
+		}else{
+			//check properties - if a property, call the type-specific setter
+			int lastProp;
+			key = duk_get_string(ctx,-2);
+			found = fwhas_generic(fwt,parent,key,&jndex,&type,&readOnly);
+			if(!found){
+				ConsoleMessage("type %s has no property or function %s - please check your typing\n",fwt->name,key);
+			}
+		}
+		if(found && type=='f'){
+			FWFunctionSpec *fw = getFWFunc(fwt,key);
+			if(fw){
+				//its a function
+				duk_push_c_function(ctx,cfunction,DUK_VARARGS);
+				duk_push_pointer(ctx,parent);
+				duk_put_prop_string(ctx,-2,"fwField");
+				duk_push_pointer(ctx,valueChanged);
+				duk_put_prop_string(ctx,-2,"fwChanged");
+				duk_push_int(ctx,itype);
+				duk_put_prop_string(ctx,-2,"fwItype");
+				duk_push_string(ctx,key);
+				duk_put_prop_string(ctx,-2,"fwFunc");
+				nr = 1;
+			}
+		}else if(found && fwt->Getter){
+			FWVAL fwretval;
+			nr = fwt->Getter(fwt,jndex,parent,&fwretval);
+			if(nr){
+				nr = fwval_duk_push(ctx,&fwretval,valueChanged);
+			}
+		}
+	}
+    return nr;
+}
+int cset(duk_context *ctx) {
+	int rc, itype, *valueChanged;
+	union anyVrml *parent;
+	itype = -1;
+	/* get type of parent object for this property*/
+	rc = duk_get_prop_string(ctx,0,"fwItype");
+	if(rc==1) itype = duk_get_int(ctx,-1);
+	duk_pop(ctx);
+	/* get the pointer to the parent object */
+	rc = duk_get_prop_string(ctx,0,"fwField");
+	if(rc == 1) parent = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+	/* get the pointer to the changed flag */
+	rc = duk_get_prop_string(ctx,0,"fwChanged");
+	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+
+
+	switch(duk_get_type(ctx,-3)){
+	case DUK_TYPE_NUMBER:{
+		int ikey = duk_get_int(ctx,-3);
+		//printf("key=[%d] ",ikey);
+		}
+		break;
+	default: {
+		const char *key = duk_require_string(ctx,-3);
+		//printf("key=%s ",key);
+		}
+		break;
+	}
+	switch(duk_get_type(ctx,-2)){
+	case DUK_TYPE_NUMBER:{
+		int ival = duk_get_int(ctx,-2);
+		//printf("val=[%d]\n",ival);
+		}
+		break;
+	case DUK_TYPE_STRING:{
+		const char *cval = duk_get_string(ctx,-2);
+		//printf("val=%s\n",cval);
+		}
+		break;
+	default: 
+		//printf("val is object\n");
+		break;
+	}
+
+
+	if(itype > -1) {
+		//itype is in FIELDTYPE_ and AUXTYPE_ range
+		const char* key;
+		FWTYPE *fwt = getFWTYPE(itype);
+		int jndex, found;
+		char type, readOnly;
+		//check numeric indexer
+		if(duk_is_number(ctx,-3) && fwt->takesIndexer){
+			//indexer
+			jndex = duk_get_int(ctx,-3);
+			type = fwt->takesIndexer;
+			readOnly = fwt->indexerReadOnly;
+			found = 1;
+		}else{
+			//check properties - if a property, call the type-specific setter
+			int lastProp;
+			key = duk_get_string(ctx,-3);
+			found = fwhas_generic(fwt,parent,key,&jndex,&type,&readOnly) && (type != 'f');
+		}
+		if(found && (readOnly != 'T') && fwt->Setter){
+			FWval fwsetval = NULL;
+			struct ArgListType arglist;
+			int argc;
+			arglist.argtypes = &type;
+			arglist.fillMissingFixedWithZero = 0;
+			arglist.nfixedArg = 1;
+			arglist.iVarArgStartsAt = -1;
+			convert_duk_to_fwvals(ctx, 1, -2, arglist, &fwsetval, &argc);
+			if(argc == 1){
+				fwt->Setter(fwt,jndex,parent,fwsetval);
+				if(valueChanged)
+					(*valueChanged) = 1;
+			}
+			free(fwsetval);
+		}
+	}
+    return 0;
+}
+int cdel(duk_context *ctx) {
+	int rc, itype, *valueChanged;
+	union anyVrml *parent;
+
+	/* get type of parent object for this property*/
+	rc = duk_get_prop_string(ctx,0,"fwItype");
+	if(rc==1) itype = duk_get_int(ctx,-1);
+	duk_pop(ctx);
+	//if(fwType) printf("fwType in cget=%s\n",fwType);
+	/* get the pointer to the parent object */
+	rc = duk_get_prop_string(ctx,0,"fwField");
+	if(rc == 1) parent = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+	/* get the pointer to the changed flag */
+	rc = duk_get_prop_string(ctx,0,"fwChanged");
+	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
+	duk_pop(ctx);
+
+	show_stack(ctx,"in cdel");
+	//duk_push_string(ctx, nativeValue);
+    return 1;
+}
+
+//c-side helper adds the generic handler to global, for use when creating each proxy
+void addHandler(duk_context *ctx){
+	int iglobal, ihandler, rc;
+	iglobal = duk_get_top(ctx) -1;
+
+	duk_push_object(ctx);
+	duk_put_prop_string(ctx, iglobal, "handler");
+
+	duk_get_prop_string(ctx,iglobal,"handler"); //get handler from global
+	ihandler = duk_get_top(ctx) -1; //+ve
+	duk_push_c_function(ctx,chas,2);
+	duk_put_prop_string(ctx, ihandler, "has");
+	duk_push_c_function(ctx,cownKeys,1);
+	duk_put_prop_string(ctx, ihandler, "ownKeys");
+	duk_push_c_function(ctx,cenumerate,1);
+	duk_put_prop_string(ctx, ihandler, "enumerate");
+	duk_push_c_function(ctx,cget,3);
+	duk_put_prop_string(ctx, ihandler, "get");
+	duk_push_c_function(ctx,cset,4);
+	duk_put_prop_string(ctx, ihandler, "set");
+	duk_push_c_function(ctx,cdel,2);
+	duk_put_prop_string(ctx, ihandler, "del");
+	duk_pop(ctx); //pop handler off stack
+
+}
+void addCustomProxyType(duk_context *ctx, int iglobal, const char *typeName)
+{
+	int itype;
+	duk_push_c_function(ctx,cfwconstructor,DUK_VARARGS);
+	//put fname=SFVec3f on c_function, so in constructor we can tell what we are trying to construct
+	itype = fwType2itype(typeName);
+	duk_push_int(ctx,itype);
+	duk_put_prop_string(ctx,-2,"fwItype");
+	//put SFVec3f = c_fuction on global
+	duk_put_prop_string(ctx,iglobal,typeName);
+}
+void add_duk_global_property(duk_context *ctx, int itype, const char *fieldname, int *valueChanged, struct X3D_Node *node);
+
+
+/* www.duktape.org javascript engine used here */
+//A DUK helper function
+static char *eval_string_defineAccessor = "\
+function defineAccessor(obj, key, set, get) { \
+    Object.defineProperty(obj, key, { \
+        enumerable: true, configurable: true, \
+        set: set, get: get \
+    }); \
+}";
+
+
+
+/* create the script context for this script. This is called from the thread
+   that handles script calling in the fwl_RenderSceneUpdateScene */
+void JSCreateScriptContext(int num) {
+	int iglobal, rc;
+	//jsval rval;
+	duk_context *ctx; 	/* these are set here */
+	struct Shader_Script *script;
+	//JSObject *_globalObj; 	/* these are set here */
+	//BrowserNative *br; 	/* these are set here */
+	ppJScript p = (ppJScript)gglobal()->JScript.prv;
+	struct CRscriptStruct *ScriptControl = getScriptControl();
+	script = ScriptControl[num].script;
+
+	//CREATE CONTEXT
+	ctx = duk_create_heap_default();
+
+	//ADD STANDARD JS GLOBAL OBJECT/CLASSES
+    duk_push_global_object(ctx);
+	iglobal = duk_get_top(ctx) -1;
+
+	//SAVE OUR CONTEXT IN OUR PROGRAM'S SCRIPT NODE FOR LATER RE-USE
+	ScriptControl[num].cx =  ctx;
+	ScriptControl[num].glob =  (void *)malloc(sizeof(int)); 
+	*((int *)ScriptControl[num].glob) = iglobal; //we'll be careful not to pop our global for this context (till context cleanup)
+
+	//ADD HELPER PROPS AND FUNCTIONS
+	//duk_push_pointer(ctx,script); //I don't think we need to know the script this way, but in the future, you might
+	//duk_put_prop_string(ctx,iglobal,"__script");
+	duk_push_string(ctx,eval_string_defineAccessor);
+	duk_eval(ctx);
+	duk_pop(ctx);
+
+	//ADD CUSTOM TYPES - Browser, X3DConstants, web3d field types 
+	addHandler(ctx); //add helper called handler, to global object
+	//add types that can be newed ie var a = new SFVec3f();
+	//  they will have a non-null constructor function
+	//  generally, it's all our SF and MF field types
+	for(int i=0;i<FWTYPES_COUNT;i++)
+		if(fwtypesArray[i]->Constructor)
+			addCustomProxyType(ctx,iglobal,fwtypesArray[i]->name);
+	//show_stack(ctx,"before adding Browser");
+	//add static singltons on global object ie global.Browser global.X3DConstants
+	add_duk_global_property(ctx, AUXTYPE_X3DBrowser, "Browser", NULL, NULL);
+	add_duk_global_property(ctx, AUXTYPE_X3DConstants,"X3DConstants", NULL, NULL);
+	//add Global methods and defines for VMRL/X3D (some redirecting to the Browser object ie print = Browser.println)
+	duk_eval_string(ctx,DefaultScriptMethodsA);
+	duk_pop(ctx);
+	duk_eval_string(ctx,DefaultScriptMethodsB);
+	duk_pop(ctx);
+
+	/* send this data over to the routing table functions. */
+	CRoutes_js_new (num, JAVASCRIPT);
+
+	//tests, if something is broken these tests might help
+	if(0){
+		duk_eval_string(ctx,"print(Object.keys(Browser));"); //invokes ownKeys
+		duk_pop(ctx);
+		duk_eval_string(ctx,"print(Object.getOwnPropertyNames(Browser));"); //invokes ownKeys
+		duk_pop(ctx);
+		duk_eval_string(ctx,"for (k in Browser) {print(k);}"); //invokes enumerate
+		duk_pop(ctx);
+		duk_eval_string(ctx,"if('println' in Browser) print('have println'); else print('no println');"); //invokes has
+		duk_pop(ctx);
+		duk_eval_string(ctx,"print('X3DConstants.outputOnly='); print(X3DConstants.outputOnly);"); //invokes custom iterator in generic has
+		duk_pop(ctx);
+		duk_eval_string(ctx,"print(Object.keys(X3DConstants));"); //invokes custom iterator in ownKeys
+		duk_pop(ctx);
+	}
+	if(0){
+		duk_eval_string(ctx,"Browser.println('hi from brwsr.println');");
+		duk_pop(ctx);
+		duk_eval_string(ctx,"Browser.description = 'funny description happened on the way to ..';");
+		duk_pop(ctx);
+		duk_eval_string(ctx,"Browser.println(Browser.description);");
+		duk_pop(ctx);
+		duk_eval_string(ctx,"print('hi from print');");
+		duk_pop(ctx);
+		duk_eval_string(ctx,"print(Browser.version);");
+		duk_pop(ctx);
+
+	}
+	if(0){
+		duk_eval_string(ctx,"print('Browser.supportedComponents.length = ');");duk_pop(ctx);
+		duk_eval_string(ctx,"print(Browser.supportedComponents.length);"); duk_pop(ctx);
+		duk_eval_string(ctx,"for(var i=0;i<Browser.supportedComponents.length;i++) {print(Browser.supportedComponents[i].name + ' '+Browser.supportedComponents[i].level);}"); duk_pop(ctx);
+	}
+	if(0){
+		duk_eval_string(ctx,"var myvec3 = new SFVec3f(1.0,2.0,3.0);");
+		duk_pop(ctx);
+		duk_eval_string(ctx,"print(myvec3.x.toString());");
+		duk_pop(ctx);
+		duk_eval_string(ctx,"myvec3.y = 45.0;");
+		duk_pop(ctx);
+		duk_eval_string(ctx,"print('sb45='+myvec3.y);");
+		duk_pop(ctx);
+	}
+
+	return;
+}
+
 
 
 /* fwsetterNS, fwgetterNS are for our Script node dynamic fields, or
@@ -2172,36 +1985,16 @@ void push_typed_proxy_fwgetter(duk_context *ctx, int itype, int mode, const char
 	*/
 	int rc;
 
-	//add fwtype to this
-	//- if I have one C constructor, and many named js constructors
-	//- I need to fetch the name of the constructor and use it here
-
-	//duk_pop(ctx); //pop this
-
-	//duk_push_global_object(ctx); //could I just push an object, or push nothing? then how to get global->handler?
-	//int iglobal = duk_get_top(ctx) -1;
-	//rc = duk_get_prop_string(ctx,iglobal,"Proxy");
 	duk_eval_string(ctx,"Proxy");
-	//rc = duk_get_prop_string(ctx,iglobal,"this");
-	//duk_push_this(ctx);
 	duk_push_object(ctx);
-	//show_stack(ctx,"just after putting prop string fwtype");
-	//add native pointer to this
 	duk_push_pointer(ctx,fwpointer);
 	duk_put_prop_string(ctx,-2,"fwField");
 	duk_push_pointer(ctx,valueChanged);
 	duk_put_prop_string(ctx,-2,"fwChanged");
 	duk_push_int(ctx,itype);
 	duk_put_prop_string(ctx,-2,"fwItype");
-	//duk_push_int(ctx,mode);
-	//duk_put_prop_string(ctx,-2,"fwMode");
-	//duk_push_string(ctx,fieldname); //myscriptfield1
-	//duk_put_prop_string(ctx,-2,"fwName");
-
-	//rc = duk_get_prop_string(ctx,iglobal,"handler");
 	duk_eval_string(ctx,"handler");
 	duk_new(ctx,2); /* [ global Proxy target handler ] -> [ global result ] */
-	//duk_remove(ctx,-2); //remove global so just proxy on stack
 }
 
 
@@ -2564,65 +2357,9 @@ void js_setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int 
 	setField_javascriptEventOut(tn,tptr,fieldType, len, extraData);
 }
 
-/* take an ECMA value in the X3D Scenegraph, and return a jsval with it in */
-/* This is FAST as w deal just with pointers */
-/*
-void X3D_ECMA_TO_JS(void *Data, int datalen, int dataType, FWval newval) {
-	float fl;
-	double dl;
-	int il;
 
-	// NOTE - caller of this function has already defined a BeginRequest 
 
-	#ifdef JSVRMLCLASSESVERBOSE
-	printf ("calling X3D_ECMA_TO_JS on type %s\n",FIELDTYPES[dataType]);
-	#endif
 
-	switch (dataType) {
-
-		case FIELDTYPE_SFFloat:	{
-			memcpy ((void *) &fl, Data, datalen);
-			newval->_numeric = (double)fl;
-			newval->itype = 'F';
-			break;
-		}
-		case FIELDTYPE_SFDouble:
-		case FIELDTYPE_SFTime:	{
-			memcpy ((void *) &dl, Data, datalen);
-			newval->_numeric = dl;
-			newval->itype = 'D';
-			break;
-		}
-		case FIELDTYPE_SFBool:
-			memcpy ((void *) &il,Data, datalen);
-			newval->_boolean = il;
-			newval->itype = 'B';
-			break;
-		case FIELDTYPE_SFInt32: 
-			memcpy ((void *) &il,Data, datalen);
-			newval->_integer = il;
-			newval->itype = 'I';
-			break;
-		case FIELDTYPE_SFString: {
-			struct Uni_String *ms;
-
-			// datalen will be ROUTING_SFSTRING here; or at least should be! We
-			//  copy over the data, which is a UniString pointer, and use the pointer
-			//   value here 
-			memcpy((void *) &ms,Data, sizeof(void *));
-			newval->_string = ms->strptr;
-			newval->itype = 'S';
-			break;
-			}
-		default: {	printf("WARNING: SHOULD NOT BE HERE in X3D_ECMA_TO_JS! %d\n",dataType); }
-	}
-}
-*/
-
-//void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int datalen){
-//	printf("in set_one_ECMAtype\n");
-//	return;
-//}
 void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int datalen) {
 	char scriptline[100];
 	FWVAL newval;
@@ -2649,18 +2386,6 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 	//show_stack(ctx,"after seeking isOver");
 
 	//push ecma value as arg
-
-	//if(0){
-	//	X3D_ECMA_TO_JS(Data, datalen, dataType, &newval);
-	//	switch(newval.itype){
-	//	case 'I': duk_push_int(ctx,newval._integer); break;
-	//	case 'F': duk_push_number(ctx,newval._numeric); break;
-	//	case 'D': duk_push_number(ctx,newval._numeric); break;
-	//	case 'B': duk_push_boolean(ctx,newval._boolean); break;
-	//	case 'S': duk_push_string(ctx,newval._string); break;
-	//	default: duk_push_null(ctx);
-	//	}
-	//}else
 	{
 		int rc;
 		FWVAL fwval;
@@ -2675,7 +2400,6 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 	duk_push_number(ctx,TickTime());
 	//run function
 	//show_stack(ctx,"before calling isOver");
-	//duk_call(ctx,2);
 	rc = duk_pcall(ctx, 2);  /* [ ... func 2 3 ] -> [ 5 ] */
 	if (rc != DUK_EXEC_SUCCESS) {
 	  printf("error: '%s' happened in js function %s called from set_one_ECMAType\n", duk_to_string(ctx, -1),JSparamnames[toname].name);
@@ -2688,10 +2412,6 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 }
 
 
-//void setScriptECMAtype(int num){
-//	printf("in setScriptECMAtype\n");
-//	return;
-//}
 
 /*  setScriptECMAtype called by getField_ToJavascript for
         case FIELDTYPE_SFBool:
@@ -2748,8 +2468,6 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen)
 	//medium copy
 	void *datacopy = NULL;
 	medium_copy_field(itype,Data,&datacopy);
-	//void *datacopy = malloc(dataLen); //gc please
-	//memcpy(datacopy,Data,dataLen); 
 	push_typed_proxy2(ctx,itype,PKW_inputOutput,datacopy,NULL,'T');
 	duk_push_number(ctx,TickTime());
 	//duk_call(ctx,2);
