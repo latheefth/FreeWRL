@@ -1220,7 +1220,7 @@ int cfwconstructor(duk_context *ctx) {
 }
 int chas(duk_context *ctx) {
 	int rc, itype, *valueChanged;
-	union anyVrml *parent;
+	union anyVrml *parent = NULL;
 
 	/* get type of parent object for this property*/
 	rc = duk_get_prop_string(ctx,0,"fwItype");
@@ -1288,7 +1288,7 @@ int cownKeys(duk_context *ctx) {
 }
 int cenumerate(duk_context *ctx) {
 	int rc, itype, *valueChanged;
-	union anyVrml *parent;
+	union anyVrml *parent = NULL;
 
 	/* get type of parent object for this property*/
 	rc = duk_get_prop_string(ctx,0,"fwItype");
@@ -1466,7 +1466,7 @@ int ctypefunction(duk_context *ctx) {
 	return nr;
 }
 int cfunction(duk_context *ctx) {
-	int rc, nr, itype, *valueChanged;
+	int rc, nr, itype, *valueChanged = NULL;
 	const char *fwFunc = NULL;
 	union anyVrml* parent = NULL;
 	union anyVrml* field = NULL;
@@ -1522,7 +1522,7 @@ int cfunction(duk_context *ctx) {
 	return nr;
 }
 int cget(duk_context *ctx) {
-	int rc, nr, itype, kind, *valueChanged;
+	int rc, nr, itype, kind, *valueChanged = NULL;
 	//show_stack(ctx,"in cget");
 	union anyVrml* parent = NULL;
 	union anyVrml* field = NULL;
@@ -1589,7 +1589,7 @@ int cget(duk_context *ctx) {
 
 	if(itype > -1){
 		//itype is in AUXTYPE_ range
-		const char *key;// = duk_require_string(ctx,-2);
+		const char *key = NULL;// = duk_require_string(ctx,-2);
 		FWTYPE *fwt = getFWTYPE(itype);
 		int jndex, found;
 		char type, readOnly;
@@ -1645,8 +1645,8 @@ int cget(duk_context *ctx) {
     return nr;
 }
 int cset(duk_context *ctx) {
-	int rc, itype, *valueChanged;
-	union anyVrml *parent;
+	int rc, itype, *valueChanged = NULL; 
+	union anyVrml *parent = NULL;
 	itype = -1;
 	/* get type of parent object for this property*/
 	rc = duk_get_prop_string(ctx,0,"fwItype");
@@ -2085,9 +2085,9 @@ int fwgetterNS(duk_context *ctx) {
 			- reference when getting, never set (these two are static singletons)
 	*/
 	int nargs, nr;
-	int rc, itype, mode, *valueChanged;
+	int rc, itype, mode, *valueChanged = NULL;
 	const char *fwName = NULL;
-	struct X3D_Node *thisScriptNode;
+	struct X3D_Node *thisScriptNode = NULL;
 	union anyVrml *field;
 
 	nargs = duk_get_top(ctx);

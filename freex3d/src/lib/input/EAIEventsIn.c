@@ -1380,7 +1380,7 @@ void EAI_RW(char *str) {
 	}
 }
 
-#if !defined(EXCLUDE_EAI)
+//#if !defined(EXCLUDE_EAI)
 
 void createLoadURL(char *bufptr) {
 	#define strbrk " :loadURLStringBreak:"
@@ -1437,6 +1437,7 @@ void createLoadURL(char *bufptr) {
 	}
 	/* EAI_AnchorNode.__parenturl = newASCIIString("./"); */
 }
+#if !defined(EXCLUDE_EAI)
 
 
 /* if we have a LOADURL command (loadURL in java-speak) we call Anchor code to do this.
