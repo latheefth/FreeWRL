@@ -24,7 +24,10 @@ Javascript C language binding.
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-
+/* To do list July 2014
+X3DRoute type is broken
+X3DScene/X3DExecutionContext - functions not implemented relating to protos
+*/
 #include <config.h>
 #if defined(JAVASCRIPT_DUK)
 #include <system.h>

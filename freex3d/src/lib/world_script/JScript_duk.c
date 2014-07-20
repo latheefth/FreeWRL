@@ -17,6 +17,12 @@
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
+/* To do list July 2014
+- runQueuedDirectOutputs() - is there a way to flag a Script Node so this isn't a double loop over all scripts and fields?
+- cfwconstructor - fwtype could be extended to articulate allowed AUXTYPEs and FIELDTYPEs for a given W or P
+*/
+
+
 #include <config.h>
 #if defined(JAVASCRIPT_DUK)
 #include <system.h>

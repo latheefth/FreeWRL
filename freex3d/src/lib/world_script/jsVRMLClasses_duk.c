@@ -23,7 +23,11 @@
     You should have received a copy of the GNU General Public License
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
+/* To do list July 2014
+SFNode - functions not implemented
+X3DMatrix3,4 - code implemented but never tested
 
+*/
 
 #include <config.h>
 #include <config.h>
