@@ -1540,7 +1540,7 @@ int cset(duk_context *ctx) {
 
 
 	if(itype > -1) {
-		//itype is in AUXTYPE_ range
+		//itype is in FIELDTYPE_ and AUXTYPE_ range
 		const char* key;
 		FWTYPE *fwt = getFWTYPE(itype);
 		int jndex, found;
@@ -2090,41 +2090,19 @@ void resetScriptTouchedFlag(int actualscript, int fptr){
    more precisely, for the javascript property we create on the js>context>global object,
    one global>property for each script field, with the name of the script field on the property
 */
-int fwsetter0(duk_context *ctx,int ii,void *parent,int itype,char *key){
-	if(itype > -1) {
-		//itype is in AUXTYPE_ range
-		FWTYPE *fwt = getFWTYPE(itype);
-		int jndex, found;
-		char type, readOnly;
 
-		//check properties - if a property, call the type-specific setter
-		found = fwhas_generic(fwt,parent,key,&jndex,&type,&readOnly) && (type != 'f');
-		if(found && (readOnly != 'T') && fwt->Setter){
-			FWval fwsetval = NULL;
-			struct ArgListType arglist;
-			int argc;
-			arglist.argtypes = &type;
-			arglist.fillMissingFixedWithZero = 0;
-			arglist.nfixedArg = 1;
-			arglist.iVarArgStartsAt = -1;
-			convert_duk_to_fwvals(ctx, 1, ii, arglist, &fwsetval, &argc);
-			if(argc == 1)
-				fwt->Setter(fwt,jndex,parent,fwsetval);
-			free(fwsetval);
-		}
-	}
-	return 0;
-}
+int SFNode_Setter0(FWType fwt, int index, void * fwn, FWval fwval, int isCurrentScriptNode);
 int fwsetterNS(duk_context *ctx) {
 	/* myfield = new SFVec3f(1,2,3); 
 	 * if myfield is a property we set on the global object, and we've assigned this setter to it,
 	 * we'll come in here. We can set the *valueChanged and value on the LHS object, by copying, as per specs
 	 * terminology: LHS: left hand side of equation (ie myfield) RHS: right hand side of equation (ie result of new SFVec3f() )
+	 * if we come in here for AUXTYPES we should not write - AUXTYPE_X3DBrowser, and AUXTYPE_X3DConstants are static singletons
 	 */
 	int nargs, nr;
 	int rc, itype, *valueChanged;
 	union anyVrml *field;
-	struct X3D_Node* thisScriptNode = NULL;
+	struct X3D_Node* parent = NULL;
 	nargs = duk_get_top(ctx);
 
 	/* retrieve key from nonstandard arg */
@@ -2134,6 +2112,7 @@ int fwsetterNS(duk_context *ctx) {
 	const char *key = duk_require_string(ctx,1); //"myprop";
 	//printf("\nfwsetterNS, key=%s value=%s\n",key,nativeValue);
 
+	itype = -1;
 	/* get details of LHS object */
 	/* retrieve field pointer from Cfunc */
 	duk_push_current_function(ctx);
@@ -2141,156 +2120,46 @@ int fwsetterNS(duk_context *ctx) {
 	rc = duk_get_prop_string(ctx,-1,"fwItype");
 	if(rc==1) itype = duk_get_int(ctx,-1);
 	duk_pop(ctx);
-	if(itype < AUXTYPE_X3DConstants){
+	if(itype > -1 && itype < AUXTYPE_X3DConstants){
 		//our script fields
 		rc = duk_get_prop_string(ctx,-1,"fwNode");
-		if(rc==1) thisScriptNode = duk_to_pointer(ctx,-1);
+		if(rc==1) parent = duk_to_pointer(ctx,-1);
 		duk_pop(ctx);
 		/* get the pointer to the changed flag */
 		rc = duk_get_prop_string(ctx,-1,"fwChanged");
 		if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
 		duk_pop(ctx);
-	}else{
-		//Q. do we come in here?
-		rc = duk_get_prop_string(ctx,-1,"fwField");
-		if(rc==1) field = duk_to_pointer(ctx,-1);
-		duk_pop(ctx);
 	}
 	duk_pop(ctx); //pop current function
 
+	if(itype > -1 && itype < AUXTYPE_X3DConstants){
+		//code borrowed from cget and modified to not set setEventIn on self (auto-eventing this script)
+		//const char* key;
+		FWTYPE *fwt = getFWTYPE(FIELDTYPE_SFNode);
+		int jndex, found;
+		char type, readOnly;
+		//check properties - if a property, call the type-specific setter
+		int lastProp;
+		union anyVrml any;
+		any.sfnode = parent;
 
-
-	if(itype < AUXTYPE_X3DConstants){
-		//our script fields
-		int ifield, mode, ihave;
-		if(thisScriptNode == NULL) return 0;
-		if(1){
-			union anyVrml any;
-			any.sfnode = thisScriptNode;
-			fwsetter0(ctx,0,&any,FIELDTYPE_SFNode,key);
-			//fwsetter0(duk_context *ctx,int ii,void *parent,int itype,char *key)
-			return 0;
-		}
-		ihave = getFieldFromNodeAndName(thisScriptNode,key, &itype, &mode, &ifield, &field);
-		if(!ihave) return 0;
-	}
-
-	/*we have the field, and even the key name. 
-	  So we should be able to decide how to deal with the incoming set value type 
-	  according to specs:
-	  - convert incoming ecma primitive value type for SFBool, SFInt32, SFFloat, SFDouble, SFTime, SFString
-	  - if it's one of our field-type-specific object/proxy-wrapper, copy the field values
-	  - if it's something else, return error, unknown conversion
-	  if succesful set valueChanged
-	*/
-	int isOK = FALSE;
-	double val;
-	int ival;
-	const char* sval;
-	/* get details of RHS ... then copy by value to LHS */
-	if( duk_is_object(ctx, 0)){
-		int rc, isPrimitive;
-		//if the script goes myField = new String('hi'); then it comes in here as an object (versus myField = 'hi'; which is a string)
-		rc = duk_get_prop_string(ctx,0,"fwItype");
-		duk_pop(ctx);
-		isPrimitive = rc == 0;
-		if(isPrimitive){
-			//void duk_to_primitive(duk_context *ctx, duk_idx_t index, duk_int_t hint); DUK_HINT_NONE
-			//http://www.duktape.org/api.html#duk_to_primitive
-			duk_to_primitive(ctx,0,DUK_HINT_NONE);
-		}
-	}
-	int RHS_duk_type = duk_get_type(ctx, 0);
-	switch(RHS_duk_type){
-	case DUK_TYPE_NUMBER: 
-		val = duk_require_number(ctx,0);
-		isOK = TRUE;
-		switch(itype){
-			case FIELDTYPE_SFFloat:
-				field->sffloat = val; break;
-			case FIELDTYPE_SFTime:
-				field->sftime = val; break;
-			case FIELDTYPE_SFDouble:
-				field->sfdouble = val; break;
-			case FIELDTYPE_SFInt32:
-				field->sfint32 = round(val); break;
-			default:
-				isOK = FALSE;
-		}
-		break;
-	case DUK_TYPE_BOOLEAN: 
-		ival = duk_require_boolean(ctx,0);
-		isOK = TRUE;
-		switch(itype){
-		case FIELDTYPE_SFBool:
-			field->sfbool = ival; break;
-		default:
-			isOK = FALSE;
-		}
-		break;
-	case DUK_TYPE_STRING:
-		sval = duk_require_string(ctx,0);
-		isOK = TRUE;
-		switch(itype){
-		case FIELDTYPE_SFString:
-			field->sfstring = newASCIIString(sval);
-			//field->sfstring->strptr = strdup(sval); //should strdup this?
-			//field->sfstring->len = strlen(sval);
-			break;
-		default:
-			isOK = FALSE;
-		}
-		break;
-	case DUK_TYPE_OBJECT:
-	{
-		//if the script goes myField = new String('hi'); then it comes in here as an object (versus myField = 'hi'; which is a string)
-		//void duk_to_primitive(duk_context *ctx, duk_idx_t index, duk_int_t hint); DUK_HINT_NONE
-		//http://www.duktape.org/api.html#duk_to_primitive
-		int itypeRHS = -1;
-		union anyVrml *fieldRHS = NULL;
-		rc = duk_get_prop_string(ctx,0,"fwItype");
-		if(rc == 1){
-			//printf(duk_type_to_string(duk_get_type(ctx, -1)));
-			itypeRHS = duk_to_int(ctx,-1);
-		}
-		duk_pop(ctx); //pop get_prop
-		rc = duk_get_prop_string(ctx,0,"fwField");
-		if(rc == 1) fieldRHS = duk_to_pointer(ctx,-1);
-		duk_pop(ctx); //pop get_prop
-		duk_pop(ctx); //??? what's this pop for?
-		/*we don't need the RHS fwChanged=valueChanged* because we are only changing the LHS*/
-
-		if(fieldRHS != NULL){
-			/* its one of our proxy field types. But is it the type we need?*/
-			if(itype == itypeRHS){
-				/* same proxy type - attempt to copy it's value from LHS to RHS  */
-				/* copy one anyVrml field to the other by value. 
-					Q. what about the p* from complex fields? deep copy or just the pointer?
-				*/
-
-				//*field = *fieldRHS; //shallow copy - won't copy p[] in MF types
-				medium_copy_field0(itype,fieldRHS,field); //medium copy - copies p[] in MF types but not deep copy *(p[i]) if p[i] is pointer type ie SFNode* or Uni_String*
-				// see below *valueChanged = TRUE;
-				isOK = TRUE;
+		found = fwhas_generic(fwt,&any,key,&jndex,&type,&readOnly) && (type != 'f');
+		if(found){
+			FWval fwsetval = NULL;
+			struct ArgListType arglist;
+			int argc;
+			arglist.argtypes = &type;
+			arglist.fillMissingFixedWithZero = 0;
+			arglist.nfixedArg = 1;
+			arglist.iVarArgStartsAt = -1;
+			convert_duk_to_fwvals(ctx, 1, -2, arglist, &fwsetval, &argc);
+			if(argc == 1){
+				SFNode_Setter0(fwt,jndex,&any,fwsetval,TRUE);
+				//if(valueChanged)
+				//	(*valueChanged) = 1; //DONE IN SFNODE_SETTER0
 			}
+			free(fwsetval);
 		}
-	}
-		break;
-	case DUK_TYPE_NONE: 
-	case DUK_TYPE_UNDEFINED: 
-	case DUK_TYPE_NULL: 
-		/* are we attempting to null out the field? we aren't allowed to change its type (to undefined) */
-		memset(field,0,sizeof(union anyVrml));
-		isOK = TRUE;
-		break;
-	case DUK_TYPE_POINTER: 
-		/* don't know what this would be for if anything */
-	default:
-		break;
-	}
-
-	if(isOK){
-		*valueChanged = TRUE; /*LHS valueChanged*/
 	}
 	return 0;
 }

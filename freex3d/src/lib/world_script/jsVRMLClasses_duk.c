@@ -1181,7 +1181,9 @@ int SFNode_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	return nr;
 }
 void medium_copy_field0(int itype, void* source, void* dest);
-int SFNode_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+int SFNode_Setter0(FWType fwt, int index, void * fwn, FWval fwval, int isCurrentScriptNode){
+	// shared between fwSetterNS() and SFNode_Setter
+	//
 	struct X3D_Node *node = ((union anyVrml*)fwn)->sfnode; 
 	int ftype, kind, ihave, nr;
 	const char *name;
@@ -1228,16 +1230,21 @@ int SFNode_Setter(FWType fwt, int index, void * fwn, FWval fwval){
 			field = Shader_Script_getScriptField(script,index);
 			if(kind == PKW_inputOutput || kind == PKW_outputOnly)
 				field->valueChanged = TRUE;
-			if(kind == PKW_inputOnly || kind == PKW_inputOutput) {
+			if(!isCurrentScriptNode) {
+				if(kind == PKW_inputOnly || kind == PKW_inputOutput) {
 				//if using fwsetter0, we could be writing to ourselves, sending ourselves an eventIn when we really just want an eventOut
 				//so we should be doing && (gglobal.currentScript != node) and set gglobal.currentScript = thisScriptNode in fwsetter0 (and back to null after call)
 				field->eventInSet = TRUE; //see runQueuedDirectOutputs()
+				}
 			}
 		}
 		nr = TRUE;
 	}
 	return nr;
 
+}
+int SFNode_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+	return SFNode_Setter0(fwt,index,fwn,fwval,FALSE);
 }
 void * SFNode_Constructor(FWType fwtype, int nargs, FWval fwpars){
 	struct X3D_Node **ptr = NULL; // = malloc(fwtype->size_of); //garbage collector please
