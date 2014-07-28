@@ -58,6 +58,6 @@ void jsClearScriptControlEntries(int num){return;}
 void SaveScriptField (int num, indexT kind, indexT type, const char* field, union anyVrml value){return;}
 int runQueuedDirectOutputs(){
 	//stub for SM and STUBS (DUK has it)
-	return FALSE;
+	return 0;
 }
 #endif /* defined(JAVASCRIPT_STUB) */
