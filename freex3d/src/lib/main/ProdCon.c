@@ -176,7 +176,7 @@ void ProdCon_init(struct tProdCon *t)
 		p->_P_LOCK_VAR = 0;
 		p->resource_list_to_parse = NULL;
 		p->frontend_list_to_get = NULL;
-		p->frontend_gets_files = 0; //dug9 Sep 1, 2013 used to test new fgf method in win32
+		p->frontend_gets_files = TRUE; //dug9 Sep 1, 2013 used to test new fgf method in win32; July2014 we're back, for Async
 		/* psp is the data structure that holds parameters for the parsing thread */
 		//p->psp;
 		/* is the inputParse thread created? */
@@ -990,6 +990,7 @@ void frontend_dequeue_get_enqueue(){
 	while( (item = frontenditem_dequeue()) != NULL ){
 		//download_url((resource_item_t *) item->elem);
 		resource_fetch((resource_item_t *) item->elem);
+		resource_load((resource_item_t *) item->elem);
 		resitem_enqueue(item);
 	}
 }
