@@ -650,23 +650,30 @@ void load_Inline (struct X3D_Inline *node) {
 			/* printf ("load_Inline, after resource_fetch, we have type  %s  status %s\n",
 				resourceTypeToString(res->type), resourceStatusToString(res->status)); */
 			// do we try the next url in the multi-url? 
-			if ((res->status == ress_failed) && (res->m_request != NULL)) {
-				//still some hope via multi_string url, perhaps next one
-				/* printf ("load_Inline, not found, lets try this again\n");*/
-				res->status = ress_invalid;
-				res->type = rest_multi;
-			} else if (res->status == ress_loaded) {
-				//determined during load process by resource_identify_type(): res->media_type = resm_vrml; //resm_unknown;
-				res->whereToPlaceData = X3D_NODE(node);
-				res->offsetFromWhereToPlaceData = offsetof (struct X3D_Inline, __children);
-				res->actions = resa_process;
-				node->__loadstatus = INLINE_PARSING; // a "do-nothing" approach 
-				res->complete = FALSE;
-				send_resource_to_parser(res);
-			} else if ((res->status == ress_failed) || (res->status == ress_invalid)) {
-				//no hope left
-				printf ("resource failed to load\n");
-				node->__loadstatus = INLINE_STABLE; // a "do-nothing" approach 
+			if(res->complete){
+				if ((res->status == ress_failed) && (res->m_request != NULL)) {
+					//still some hope via multi_string url, perhaps next one
+					/* printf ("load_Inline, not found, lets try this again\n");*/
+					if(0){
+						//let FE/ML iterate over Multi_URL
+						res->status = ress_invalid;
+						res->type = rest_multi;
+						resource_identify(node->_parentResource, res); //should increment multi pointer
+						frontenditem_enqueue(ml_new(res));
+					}
+				} else if (res->status == ress_loaded) {
+					//determined during load process by resource_identify_type(): res->media_type = resm_vrml; //resm_unknown;
+					res->whereToPlaceData = X3D_NODE(node);
+					res->offsetFromWhereToPlaceData = offsetof (struct X3D_Inline, __children);
+					res->actions = resa_process;
+					node->__loadstatus = INLINE_PARSING; // a "do-nothing" approach 
+					res->complete = FALSE;
+					send_resource_to_parser(res);
+				} else if ((res->status == ress_failed) || (res->status == ress_invalid)) {
+					//no hope left
+					printf ("resource failed to load\n");
+					node->__loadstatus = INLINE_STABLE; // a "do-nothing" approach 
+				}
 			}
 			break;
 
@@ -675,10 +682,11 @@ void load_Inline (struct X3D_Inline *node) {
 
 				//printf ("inline parsing.... %s\n",resourceStatusToString(res->status));
 				//printf ("res complete %d\n",res->complete);
-
-				if (res->status == ress_parsed) {
-					node->__loadstatus = INLINE_STABLE; 
-				} 
+				if(res->complete){
+					if (res->status == ress_parsed) {
+						node->__loadstatus = INLINE_STABLE; 
+					} 
+				}
 
 			break;
 		}

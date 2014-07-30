@@ -987,10 +987,27 @@ s_list_t *frontenditem_dequeue(){
 //this is for simulating frontend_gets_files in win32 - called from lib/main.c
 void frontend_dequeue_get_enqueue(){
 	s_list_t *item = NULL;
+	resource_item_t *res = NULL;
+	int more;
 	while( (item = frontenditem_dequeue()) != NULL ){
 		//download_url((resource_item_t *) item->elem);
-		resource_fetch((resource_item_t *) item->elem);
-		resource_load((resource_item_t *) item->elem);
+
+		do{
+			resource_fetch((resource_item_t *) item->elem); //URL2FILE
+			//still some hope via multi_string url, perhaps next one
+			/* printf ("load_Inline, not found, lets try this again\n");*/
+			//Multi_URL loop moved here (middle layer ML), 
+			//but must consult BE to convert relativeURL to absoluteURL via baseURL 
+			//(or could we absolutize in a batch in resource_create_multi0()?)
+			res = (resource_item_t*)item->elem;
+			more = (res->status == ress_failed) && (res->m_request != NULL);
+			if(more){
+				res->status = ress_invalid; //downgrade ress_fail to ress_invalid
+				res->type = rest_multi; //should already be flagged
+				resource_identify(res->parent, res); //should increment multi pointer
+			}
+		}while(more);
+		resource_load((resource_item_t *) item->elem);  //FILE2BLOB
 		resitem_enqueue(item);
 	}
 }
@@ -1028,6 +1045,7 @@ static bool parser_process_res(s_list_t *item)
 			resource_identify(res->parent, res);
 			if (res->type == rest_invalid) {
 				remove_it = TRUE;
+				res->complete = TRUE; //J30
 			}
 		}
 		break;
@@ -1048,13 +1066,15 @@ static bool parser_process_res(s_list_t *item)
 		if (!resource_load(res)) {
 			ERROR_MSG("failure when trying to load resource: %s\n", res->URLrequest);
 			remove_it = TRUE;
+			res->complete = TRUE; //J30
 			retval = FALSE;
 		}
 		break;
 
 	case ress_failed:
-            retval = FALSE;
+		retval = FALSE;
 		remove_it = TRUE;
+		res->complete = TRUE; //J30
 		break;
 
 	case ress_loaded:
@@ -1099,20 +1119,24 @@ static bool parser_process_res(s_list_t *item)
 			printf("processed x3z\n");
 		}
 		/* Parse only once ! */
+		res->complete = TRUE; //J30
 		remove_it = TRUE;
 		break;
 
 	case ress_not_loaded:
 		remove_it = TRUE;
-            retval = FALSE;
+		res->complete = TRUE; //J30
+		retval = FALSE;
 		break;
 
 	case ress_parsed:
+		res->complete = TRUE; //J30
 		remove_it = TRUE;
 		break;
 
 	case ress_not_parsed:
-            retval = FALSE;
+		res->complete = TRUE; //J30
+		retval = FALSE;
 		remove_it = TRUE;
 		break;
 	}

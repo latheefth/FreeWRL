@@ -136,8 +136,8 @@ resource_item_t* resource_create_multi0(s_Multi_String_t *request)
 	/* Convert Mutli_String to a list string */
 	for (i = 0; i < request->n; i++) {
 		char *url = STRDUP(request->p[i]->strptr);
-		 //ConsoleMessage ("putting %s on the list\n",url); 
-		 item->m_request = ml_append(item->m_request, ml_new(url));
+			//ConsoleMessage ("putting %s on the list\n",url); 
+			item->m_request = ml_append(item->m_request, ml_new(url));
 	}
 	return item;
 }
@@ -371,6 +371,7 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 		  resourceStatusToString(res->status), res->URLrequest, 
 		  res->URLbase, res->parsed_request,
 		  res->parent, (res->parent ? res->parent->URLbase : "N/A"));
+	return;
 }
 
 /**

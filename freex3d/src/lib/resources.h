@@ -72,7 +72,7 @@ typedef enum resource_media_type {
 } resource_media_type_t;
 
 typedef enum resource_actions {
-	resa_default = 0, //all by default: download, load, parse/process
+	resa_default = 0, //all by default: download, load, parse/process: not using actions
 	resa_identify = 1,
 	resa_download = 2, //will & and | as bit flags so declare 1,2,4,8.. power of 2 or 1<<n
 	resa_load = 4,
@@ -93,10 +93,16 @@ typedef struct resource_item {
 	/* Request */
 	resource_type_t type;
 	resource_status_t status;
-	resource_actions_t actions; //if 0, do default which is all phases download, load, parse, else do phases |= 
-	
+	resource_actions_t actions; //if 0, do default which is all actions: download, load, parse, 
+		//else do specific requested actions (which are bitwise |= resource_actions_t's)
+	//resource_actions_t successful;  //you could have more bitwise flags to track what steps succeeded, which were attempted etc.
+	//resource_actions_t attempted; 
+
 	/* Resource has passed all the steps */
-	bool complete;
+	//July30,2014 dug9: clarification (and possible change) of the meaning of complete: 
+	//  work thread (and FE/ML download/load threads) has attempted all requested actions which are possible,
+	//  and is finished with the resitem (some actions may have failed - test with last status ie ress_failed etc)
+	bool complete;  
 	void *whereToPlaceData;
 	int offsetFromWhereToPlaceData;
 
