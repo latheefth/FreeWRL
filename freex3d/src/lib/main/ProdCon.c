@@ -1024,13 +1024,16 @@ static bool parser_process_res(s_list_t *item)
 	case ress_invalid:
 	case ress_none:
             retval = FALSE;
-		resource_identify(res->parent, res);
-		if (res->type == rest_invalid) {
-			remove_it = TRUE;
+		if(!res->actions || (res->actions & resa_identify)){
+			resource_identify(res->parent, res);
+			if (res->type == rest_invalid) {
+				remove_it = TRUE;
+			}
 		}
 		break;
 
 	case ress_starts_good:
+		if(!res->actions || (res->actions & resa_download))
 		if(p->frontend_gets_files){
 			frontenditem_enqueue(ml_new(res));
 			remove_it = TRUE;
@@ -1040,6 +1043,7 @@ static bool parser_process_res(s_list_t *item)
 		break;
 
 	case ress_downloaded:
+		if(!res->actions || (res->actions & resa_load))
 		/* Here we may want to delegate loading into another thread ... */
 		if (!resource_load(res)) {
 			ERROR_MSG("failure when trying to load resource: %s\n", res->URLrequest);
@@ -1054,7 +1058,8 @@ static bool parser_process_res(s_list_t *item)
 		break;
 
 	case ress_loaded:
-		// printf("processing resource, media_type %s\n",resourceMediaTypeToString(res->media_type));
+			// printf("processing resource, media_type %s\n",resourceMediaTypeToString(res->media_type));
+		if(!res->actions || (res->actions & resa_process))
 		switch (res->media_type) {
 		case resm_unknown:
 			ConsoleMessage ("deciphering file: 404 file not found or unknown file type encountered.");
@@ -1070,7 +1075,7 @@ static bool parser_process_res(s_list_t *item)
 
 			} else {
 				ERROR_MSG("parser failed for resource: %s\n", res->URLrequest);
-                retval = FALSE;
+				retval = FALSE;
 			}
 			break;
 		case resm_pshader:
@@ -1079,14 +1084,14 @@ static bool parser_process_res(s_list_t *item)
 				DEBUG_MSG("parser successfull: %s\n", res->URLrequest);
 				res->status = ress_parsed;
 			} else {
-                retval = FALSE;
+				retval = FALSE;
 				ERROR_MSG("parser failed for resource: %s\n", res->URLrequest);
 			}
 			break;
 		case resm_image:
 		case resm_movie:
 			/* Texture file has been loaded into memory
-			   the node could be updated ... i.e. texture created */
+				the node could be updated ... i.e. texture created */
 			res->complete = TRUE; /* small hack */
 			break;
 		case resm_x3z:

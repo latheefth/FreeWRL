@@ -71,6 +71,16 @@ typedef enum resource_media_type {
 	resm_x3z
 } resource_media_type_t;
 
+typedef enum resource_actions {
+	resa_default = 0, //all by default: download, load, parse/process
+	resa_identify = 1,
+	resa_download = 2, //will & and | as bit flags so declare 1,2,4,8.. power of 2 or 1<<n
+	resa_load = 4,
+	resa_process = 8,
+	//resa_place,
+	//resa_ remove, delete ?? ... see parser_process_res()
+} resource_actions_t;
+
 typedef struct resource_item {
 
 	/* Parent */
@@ -83,7 +93,8 @@ typedef struct resource_item {
 	/* Request */
 	resource_type_t type;
 	resource_status_t status;
-
+	resource_actions_t actions; //if 0, do default which is all phases download, load, parse, else do phases |= 
+	
 	/* Resource has passed all the steps */
 	bool complete;
 	void *whereToPlaceData;
@@ -203,6 +214,6 @@ char *resourceMediaTypeToString(int type);
 
 /* Initial URL loaded : replace IS_WORLD_LOADED */
 extern bool resource_is_root_loaded();
-
+void frontenditem_enqueue(s_list_t *item);
 
 #endif /* __LIBFREEWRL_RESOURCES_H__ */
