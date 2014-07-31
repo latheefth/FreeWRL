@@ -506,6 +506,30 @@ static void script_initCodeFromMFUri_download(struct Shader_Script* me, struct M
 		resitem_enqueue(ml_new(res));
 	}
 }
+static void shader_initCodeFromMFUri_download(struct Shader_Script* me, struct Multi_String *s){
+	 /* Not a valid script text in this MFString. Lets see if this
+		is this a possible file that we have to get? */
+	resource_item_t *res, *parentres;
+
+	DEBUG_CPARSER("script_initCodeFromUri, uri is %s\n", uri); 
+	//printf("script_initCodeFromUri, uri is %s\n", uri);
+
+	res = resource_create_multi(s);
+	// printf ("past resource_create_single\n");
+	parentres = ((struct X3D_Script*)(me->ShaderScriptNode))->_parentResource;
+	//resource_identify(gglobal()->resources.root_res, res); 
+	resource_identify(parentres, res); 
+	//printf ("past resource_identify\n");
+
+	if (res->type != rest_invalid) {
+		//printf ("going to resource_fetch\n");
+		res->status = ress_starts_good;
+		res->media_type = resm_fshader;
+		res->whereToPlaceData = me;
+		res->actions = resa_download | resa_load | resa_process;
+		resitem_enqueue(ml_new(res));
+	}
+}
 #ifdef OLDCODE
 static void script_
 		if (resource_fetch(res)) {

@@ -148,7 +148,7 @@ struct myArgs {
 						char *myText = NULL; /* pointer to text to send in */ \
 						char *cptr; /* returned caracter pointer pointer */ \
 						 \
-						  cptr = shader_initCodeFromMFUri(&prog->url); \
+						  cptr = prog->url.p[0]->strptr; /*shader_initCodeFromMFUri(&prog->url);*/ \
 						  if (cptr == NULL) { \
 							ConsoleMessage ("error reading url for :%s:",stringNodeType(NODE_##myNodeType)); \
                             myText = "";\
@@ -1007,18 +1007,164 @@ static void *thread_compile_ProgramShader (void *args){
     return NULL;
 }
 
+
+static int shader_initCode(struct X3D_ShaderProgram *node, char* buffer){
+	node->url.p[0]->strptr = buffer;
+	node->url.n = 1;
+	return TRUE;
+}
+
+bool parser_process_res_SHADER(resource_item_t *res)
+{
+	s_list_t *l;
+	openned_file_t *of;
+	struct X3D_ShaderProgram* ss;
+	const char *buffer;
+
+	buffer = NULL;
+
+	switch (res->type) {
+	case rest_invalid:
+		return FALSE;
+		break;
+
+	case rest_string:
+		buffer = res->URLrequest;
+		break;
+	case rest_url:
+	case rest_file:
+	case rest_multi:
+		l = (s_list_t *) res->openned_files;
+		if (!l) {
+			/* error */
+			return FALSE;
+		}
+
+		of = ml_elem(l);
+		if (!of) {
+			/* error */
+			return FALSE;
+		}
+
+		buffer = of->fileData;
+		break;
+	}
+
+	ss = (struct X3D_ShaderProgram *) res->whereToPlaceData;
+
+	return shader_initCode(ss, buffer);
+}
+
+
+
+enum{
+LOADER_INITIAL_STATE=0,
+LOADER_REQUEST_RESOURCE,
+LOADER_FETCHING_RESOURCE,
+LOADER_PROCESSING,
+LOADER_STABLE_LOADED,
+LOADER_STABLE,
+};
+int shaderprogram_loaded(struct X3D_ShaderProgram *node)
+{
+	resource_item_t *res;
+	int retval = FALSE;
+	switch (node->__loadstatus) {
+		case LOADER_INITIAL_STATE: /* nothing happened yet */
+
+		if (node->url.n == 0) {
+			node->__loadstatus = LOADER_STABLE; /* a "do-nothing" approach */
+		} else {
+			//see if its plain text string
+			char * sc = shader_initCodeFromMFUri(&node->url);
+			if(sc){
+				node->url.p[0]->strptr = sc; //wa re probably just putting it back where it came from, but in case 2nd part of multi, we promote to first part
+				node->url.n = 1;
+				node->__loadstatus = LOADER_STABLE_LOADED;
+			}else{
+				res = resource_create_multi(&(node->url));
+				res->media_type = resm_fshader;
+				node->__loadstatus = LOADER_REQUEST_RESOURCE;
+				node->__loadResource = res;
+			}
+		}
+		break;
+
+		case LOADER_REQUEST_RESOURCE:
+		res = node->__loadResource;
+		resource_identify(node->_parentResource, res);
+		/* printf ("load_Inline, before resource_fetch, we have type  %s  status %s\n",
+			resourceTypeToString(res->type), resourceStatusToString(res->status)); */
+		res->actions = resa_download | resa_load; //not resa_parse which we do below
+		resitem_enqueue(ml_new(res)); 
+		//frontenditem_enqueue(ml_new(res));
+		node->__loadstatus = LOADER_FETCHING_RESOURCE;
+		break;
+
+		case LOADER_FETCHING_RESOURCE:
+		res = node->__loadResource;
+		/* printf ("load_Inline, after resource_fetch, we have type  %s  status %s\n",
+			resourceTypeToString(res->type), resourceStatusToString(res->status)); */
+		// do we try the next url in the multi-url? 
+		if(res->complete){
+			if (res->status == ress_loaded) {
+				//determined during load process by resource_identify_type(): res->media_type = resm_vrml; //resm_unknown;
+				res->whereToPlaceData = X3D_NODE(node);
+				res->offsetFromWhereToPlaceData = 0; 
+				res->actions = resa_process;
+				node->__loadstatus = LOADER_PROCESSING; // a "do-nothing" approach 
+				res->complete = FALSE;
+				//send_resource_to_parser(res);
+				//send_resource_to_parser_if_available(res);
+				resitem_enqueue(ml_new(res));
+			} else if ((res->status == ress_failed) || (res->status == ress_invalid)) {
+				//no hope left
+				printf ("resource failed to load\n");
+				node->__loadstatus = LOADER_STABLE; // a "do-nothing" approach 
+			}
+		}
+		break;
+
+		case LOADER_PROCESSING:
+			res = node->__loadResource;
+
+			//printf ("inline parsing.... %s\n",resourceStatusToString(res->status));
+			//printf ("res complete %d\n",res->complete);
+			if(res->complete){
+				if (res->status == ress_parsed) {
+					node->__loadstatus = LOADER_STABLE_LOADED;
+				}else{
+					node->__loadstatus = LOADER_STABLE;
+				}
+			}
+
+		break;
+		case LOADER_STABLE:
+		break;
+		case LOADER_STABLE_LOADED:
+		retval = TRUE;
+	}
+	return retval;
+}
+int shaderprograms_loaded(struct Multi_Node *programs){
+	int i, retval = TRUE;
+	for(i=0;i<programs->n;i++)
+		retval = retval && shaderprogram_loaded((struct X3D_ShaderProgram *)programs->p[i]);
+	return retval;
+}
 void compile_ProgramShader (struct X3D_ProgramShader *node) {
 	struct myArgs *args;
 	ttglobal tg = gglobal();
-
-	args = MALLOC(struct myArgs *, sizeof (struct myArgs));
-	args->node  = X3D_NODE(node);
-	args->tg  = tg;
+	if(shaderprograms_loaded(&node->programs)){ //if all the program parts are downloaded and loaded
+		args = MALLOC(struct myArgs *, sizeof (struct myArgs));
+		args->node  = X3D_NODE(node);
+		args->tg  = tg;
 	
-    if (TEST_NULL_THREAD(node->_shaderLoadThread)) {
-        pthread_create (&(node->_shaderLoadThread), NULL,
-                        &thread_compile_ProgramShader, (void *)args);
-    }
+		if (TEST_NULL_THREAD(node->_shaderLoadThread)) {
+			pthread_create (&(node->_shaderLoadThread), NULL,
+							&thread_compile_ProgramShader, (void *)args);
+		}
+	}
 }
 
 void compile_PackagedShader (struct X3D_PackagedShader *node) {

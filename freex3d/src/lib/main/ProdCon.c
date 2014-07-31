@@ -837,7 +837,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 /**
  *   parser_process_res_SHADER: this is the final parser (loader) stage, then call the real parser.
  */
-static bool parser_process_res_SHADER(resource_item_t *res)
+static bool parser_process_res_SCRIPT(resource_item_t *res)
 {
 	s_list_t *l;
 	openned_file_t *of;
@@ -1099,6 +1099,14 @@ static bool parser_process_res(s_list_t *item)
 			}
 			break;
 		case resm_script:
+			if (parser_process_res_SCRIPT(res)) {
+				DEBUG_MSG("parser successfull: %s\n", res->URLrequest);
+				res->status = ress_parsed;
+			} else {
+				retval = FALSE;
+				ERROR_MSG("parser failed for resource: %s\n", res->URLrequest);
+			}
+			break;
 		case resm_pshader:
 		case resm_fshader:
 			if (parser_process_res_SHADER(res)) {
