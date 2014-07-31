@@ -933,17 +933,7 @@ static void *thread_compile_ComposedShader(void *args) {
 }
 
 
-void compile_ComposedShader (struct X3D_ComposedShader *node) {
-	struct myArgs *args;
-	ttglobal tg = gglobal();
-	args = MALLOC(struct myArgs *, sizeof (struct myArgs));
-	args->node  = X3D_NODE(node);
-	args->tg  = tg;
-    if (TEST_NULL_THREAD(node->_shaderLoadThread)) {
-	pthread_create (&(node->_shaderLoadThread), NULL,
-		&thread_compile_ComposedShader, (void *)args); //node);
-    }
-}
+
 
 
 static void *thread_compile_ProgramShader (void *args){
@@ -1152,6 +1142,21 @@ int shaderprograms_loaded(struct Multi_Node *programs){
 		retval = retval && shaderprogram_loaded((struct X3D_ShaderProgram *)programs->p[i]);
 	return retval;
 }
+
+void compile_ComposedShader (struct X3D_ComposedShader *node) {
+	struct myArgs *args;
+	ttglobal tg = gglobal();
+	if(shaderprograms_loaded(&node->parts)){ //if all the program parts are downloaded and loaded
+		args = MALLOC(struct myArgs *, sizeof (struct myArgs));
+		args->node  = X3D_NODE(node);
+		args->tg  = tg;
+		if (TEST_NULL_THREAD(node->_shaderLoadThread)) {
+		pthread_create (&(node->_shaderLoadThread), NULL,
+			&thread_compile_ComposedShader, (void *)args); //node);
+		}
+	}
+}
+
 void compile_ProgramShader (struct X3D_ProgramShader *node) {
 	struct myArgs *args;
 	ttglobal tg = gglobal();
