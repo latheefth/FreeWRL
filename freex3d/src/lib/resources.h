@@ -66,6 +66,7 @@ typedef enum resource_media_type {
 	resm_x3d,
 	resm_image,
 	resm_movie,
+	resm_script,
 	resm_pshader,
 	resm_fshader,
 	resm_x3z
@@ -103,8 +104,9 @@ typedef struct resource_item {
 	//  work thread (and FE/ML download/load threads) has attempted all requested actions which are possible,
 	//  and is finished with the resitem (some actions may have failed - test with last status ie ress_failed etc)
 	bool complete;  
-	void *whereToPlaceData;
-	int offsetFromWhereToPlaceData;
+	//for vrml/x3d media types:
+	void *whereToPlaceData;  // usually X3D_Node*, except for Scripts and Shaders, it's Shader_Script* (which is a sub-struct)
+	int offsetFromWhereToPlaceData; //usually field offset (not used for Scripts/Shaders)
 
 	/* We can be feed with a Multi_String list of requests */
 	s_list_t *m_request;
@@ -189,6 +191,7 @@ resource_item_t* resource_create_from_string(const char *string);
 void push_resource_request(const char *request);
 void resource_identify(resource_item_t *base, resource_item_t *resresource_identify);
 bool resource_fetch(resource_item_t *res);
+void resitem_enqueue(s_list_t *resitem);
 bool resource_load(resource_item_t *res);
 void resource_identify_type(resource_item_t *res);
 void resource_destroy(resource_item_t *res);

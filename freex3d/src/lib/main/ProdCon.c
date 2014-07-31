@@ -869,7 +869,7 @@ static bool parser_process_res_SHADER(resource_item_t *res)
 			return FALSE;
 		}
 
-		/* FIXME: finish this */
+		buffer = of->fileData;
 		break;
 	}
 
@@ -1098,6 +1098,7 @@ static bool parser_process_res(s_list_t *item)
 				retval = FALSE;
 			}
 			break;
+		case resm_script:
 		case resm_pshader:
 		case resm_fshader:
 			if (parser_process_res_SHADER(res)) {
