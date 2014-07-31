@@ -6434,6 +6434,8 @@ struct X3D_ShaderProgram {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
+	void * __loadResource;
+	int __loadstatus;
 	void * _parentResource;
 	struct X3D_Node *_shaderUserDefinedFields;
 	struct X3D_Node *metadata;
