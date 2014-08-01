@@ -562,8 +562,8 @@ bool resource_load(resource_item_t *res)
 
 		if (of) {
 			res->status = ress_loaded;
-			res->openned_files = ml_append( (s_list_t *) res->openned_files,
-							ml_new(of) );
+			//res->openned_files = ml_append( (s_list_t *) res->openned_files, ml_new(of) );
+			res->openned_files = of; 
 
 			/* If type is not specified by the caller try to identify it automatically */
 			if (res->media_type == resm_unknown) {
@@ -631,13 +631,14 @@ void resource_identify_type(resource_item_t *res)
 		case rest_url:
 		case rest_file:
 		case rest_multi:
-			l = (s_list_t *) res->openned_files;
-			if (!l) {
-				/* error */
-				return;
-			}
-			
-			of = ml_elem(l);
+			//l = (s_list_t *) res->openned_files;
+			//if (!l) {
+			//	/* error */
+			//	return;
+			//}
+			//
+			//of = ml_elem(l);
+			of = res->openned_files;
 			if (!of) {
 				/* error */
 				return;
@@ -739,11 +740,12 @@ void resource_destroy(resource_item_t *res)
 		case ress_not_parsed:
 		if(0){
 			/* Remove openned file ? */
-			of = (s_list_t *) res->openned_files;
-			if (of) {
-				/* close any openned file */
-				close( ((openned_file_t*)of->elem)->fileDescriptor );
-			}
+			//of = (s_list_t *) res->openned_files;
+			of = res->openned_files;
+			//if (of) {
+			//	/* close any openned file */
+			//	close( ((openned_file_t*)of->elem)->fileDescriptor );
+			//}
 
 			/* Remove cached file ? */
 			cf = (s_list_t *) res->cached_files;
@@ -778,10 +780,10 @@ void resource_destroy(resource_item_t *res)
 		case ress_parsed:
 		case ress_not_parsed:
 			/* Remove openned file ? */
-			of = (s_list_t *) res->openned_files;
-			if (of) {
-				/* close any openned file */
-			}
+			//of = (s_list_t *) res->openned_files;
+			//if (of) {
+			//	/* close any openned file */
+			//}
 
 			/* free the actual file  */
 			FREE(res->actual_file);
@@ -844,13 +846,13 @@ void resource_close_files(resource_item_t *res)
 	ASSERT(res);
 
 	/* Remove openned file ? */
-	of = (s_list_t *) res->openned_files;
-	if (of) {
-		/* close any openned file */
-		int fd = ((openned_file_t*)of->elem)->fileDescriptor;
-		if (fd)
-			close( fd );
-	}
+	//of = (s_list_t *) res->openned_files;
+	//if (of) {
+	//	/* close any openned file */
+	//	int fd = ((openned_file_t*)of->elem)->fileDescriptor;
+	//	if (fd)
+	//		close( fd );
+	//}
 
 }
 
@@ -903,7 +905,8 @@ void resource_tree_destroy()
 void resource_dump(resource_item_t *res)
 {
 	s_list_t *cf;
-	s_list_t *of;
+	//s_list_t *of;
+	openned_file_t *of;
 
 	PRINTF ("resource_dump: %p\n"
 		  "request: %s\n"
@@ -920,9 +923,11 @@ void resource_dump(resource_item_t *res)
 	}
 	PRINTF("\nopenned files: ");
 
-	of = (s_list_t *) res->openned_files;
+	//of = (s_list_t *) res->openned_files;
+	of = res->openned_files;
 	if (of) {
-		ml_foreach(of, PRINTF("%s ", (char *) ((openned_file_t *)ml_elem(__l))->fileFileName));
+		//ml_foreach(of, PRINTF("%s ", (char *) ((openned_file_t *)ml_elem(__l))->fileFileName));
+		PRINTF("%s ", of->fileFileName);
 	} else {
 		PRINTF("none");
 	}
@@ -1031,11 +1036,11 @@ void resource_tree_dump(int level, resource_item_t *root)
 	spacer printf("parsed_request:\t %s\n", root->parsed_request);
 	spacer printf("actual_file:\t %s\n", root->actual_file);
 	spacer printf("cached_files:\t %p\n", root->cached_files);
-	if (root->openned_files) {
-		spacer printf("openned_files:\t "); ml_foreach(root->openned_files, of_dump((openned_file_t *)ml_elem(__l)));
-	} else {
-		spacer printf("openned_files:\t <empty>\n");
-	}
+	//if (root->openned_files) {
+	//	spacer printf("openned_files:\t "); ml_foreach(root->openned_files, of_dump((openned_file_t *)ml_elem(__l)));
+	//} else {
+	//	spacer printf("openned_files:\t <empty>\n");
+	//}
 	spacer printf("four_first_bytes:\t %c %c %c %c\n", root->four_first_bytes[0], root->four_first_bytes[1], root->four_first_bytes[2], root->four_first_bytes[3]);
 	spacer printf("media_type:\t %u\n", root->media_type);
 

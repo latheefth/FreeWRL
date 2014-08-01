@@ -632,13 +632,14 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 		//printf("after parse_string in EAI/SAI parsing\n");
 	} else {
 		/* standard file parsing */
-		l = (s_list_t *) res->openned_files;
-		if (!l) {
-			/* error */
-			return FALSE;
-		}
+		//l = (s_list_t *) res->openned_files;
+		//if (!l) {
+		//	/* error */
+		//	return FALSE;
+		//}
 
-		of = ml_elem(l);
+		//of = ml_elem(l);
+		of = res->openned_files;
 		if (!of) {
 			/* error */
 			return FALSE;
@@ -861,13 +862,14 @@ static bool parser_process_res_SCRIPT(resource_item_t *res)
 	case rest_url:
 	case rest_file:
 	case rest_multi:
-		l = (s_list_t *) res->openned_files;
-		if (!l) {
-			/* error */
-			return FALSE;
-		}
+		//l = (s_list_t *) res->openned_files;
+		//if (!l) {
+		//	/* error */
+		//	return FALSE;
+		//}
 
-		of = ml_elem(l);
+		//of = ml_elem(l);
+		of = res->openned_files;
 		if (!of) {
 			/* error */
 			return FALSE;

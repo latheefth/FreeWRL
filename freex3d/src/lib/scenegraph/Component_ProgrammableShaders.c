@@ -1024,13 +1024,14 @@ bool parser_process_res_SHADER(resource_item_t *res)
 	case rest_url:
 	case rest_file:
 	case rest_multi:
-		l = (s_list_t *) res->openned_files;
-		if (!l) {
-			/* error */
-			return FALSE;
-		}
+		//l = (s_list_t *) res->openned_files;
+		//if (!l) {
+		//	/* error */
+		//	return FALSE;
+		//}
 
-		of = ml_elem(l);
+		//of = ml_elem(l);
+		of = res->openned_files;
 		if (!of) {
 			/* error */
 			return FALSE;

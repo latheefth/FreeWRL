@@ -361,6 +361,9 @@ void splitpath_local_suffix(const char *url, char **local_name, char **suff)
 		}
 	}
 }
+
+int checkExitRequest();
+
 void fwl_startFreeWRL(const char *url)
 {
 
