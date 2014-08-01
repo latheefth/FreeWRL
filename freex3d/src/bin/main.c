@@ -85,11 +85,11 @@ int main (int argc, char **argv)
     const char *libver;
     const char  *progver;
 
-#if defined(_ANDROID)
-    int tempIsAndroid = 1 ;
-#else
-    int tempIsAndroid = 0 ;
-#endif
+//#if defined(_ANDROID)
+//    int tempIsAndroid = 1 ;
+//#else
+//    int tempIsAndroid = 0 ;
+//#endif
 
     freewrl_params_t *fv_params = NULL;
 

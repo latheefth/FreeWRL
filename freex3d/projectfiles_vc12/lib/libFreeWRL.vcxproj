@@ -233,7 +233,6 @@
     <ClCompile Include="$(SRC)\lib\scenegraph\Polyrep.c" />
     <ClCompile Include="$(SRC)\lib\main\ProdCon.c" />
     <ClCompile Include="$(SRC)\lib\scenegraph\quaternion.c" />
-    <ClCompile Include="$(SRC)\lib\opengl\RasterFont.c" />
     <ClCompile Include="$(SRC)\lib\scenegraph\RenderFuncs.c" />
     <ClCompile Include="$(SRC)\lib\opengl\RenderTextures.c" />
     <ClCompile Include="$(SRC)\lib\resources.c" />

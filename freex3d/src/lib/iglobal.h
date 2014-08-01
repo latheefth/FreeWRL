@@ -216,9 +216,9 @@ typedef struct iiglobal //InstanceGlobal
         }OpenCL_Utils;
 #endif //HAVE_OPENCL
 
-	struct tRasterFont{
-		void *prv;
-	}RasterFont;
+	//struct tRasterFont{
+	//	void *prv;
+	//}RasterFont;
 	struct tRenderTextures{
 		struct multiTexParams textureParameterStack[MAX_MULTITEXTURE];
 		void *prv;

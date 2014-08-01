@@ -1232,9 +1232,9 @@ void _inputParseThread(void *globalcontext)
 			p->inputThreadParsing = TRUE;
 			result = parser_process_res(item); //,&p->resource_list_to_parse);
 			p->inputThreadParsing = FALSE;
-			#if defined (IPHONE) || defined (_ANDROID)
-            		if (result) setMenuStatus ("ok"); else setMenuStatus("not ok");
-			#endif
+			//#if defined (IPHONE) || defined (_ANDROID)
+   //         		if (result) setMenuStatus ("ok"); else setMenuStatus("not ok");
+			//#endif
 		}
 
 		tg->threads.ResourceThreadRunning = FALSE;

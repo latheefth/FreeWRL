@@ -252,9 +252,6 @@
     <ClCompile Include="$(SRC)\lib\scenegraph\quaternion.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SRC)\lib\opengl\RasterFont.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SRC)\lib\scenegraph\RenderFuncs.c">
       <Filter>Source Files</Filter>
     </ClCompile>
