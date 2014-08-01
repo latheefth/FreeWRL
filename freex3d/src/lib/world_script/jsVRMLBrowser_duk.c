@@ -462,7 +462,7 @@ int VrmlBrowserCreateVrmlFromString(FWType fwtype, void * fwn, int argc, FWval f
 	retGroup = createNewX3DNode(NODE_Group);
 	ra = EAI_CreateVrml("String",_c,retGroup);
 	globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
-	if(retGroup->children.n < 1) return 0;
+	//if(retGroup->children.n < 1) return 0;
 	fwretval->_web3dval.native = &retGroup->children;
 	fwretval->_web3dval.fieldType = FIELDTYPE_MFNode; //Group
 	fwretval->_web3dval.gc = 0;

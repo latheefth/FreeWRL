@@ -950,14 +950,14 @@ void resource_push_multi_request(struct Multi_String *request)
 /**
  *   resource_wait: wait for parser to complete the resource fetch/download/load/...
  */
-void resource_wait(resource_item_t *res)
-{
-	TRACE_MSG("resource_wait: starts waiting for res to complete: %s\n", res->URLrequest);
-	/* Wait while parser is working */
-	while (!res->complete) {
-		usleep(50); /* thanks dave */
-	}
-}
+//void resource_wait(resource_item_t *res)
+//{
+//	TRACE_MSG("resource_wait: starts waiting for res to complete: %s\n", res->URLrequest);
+//	/* Wait while parser is working */
+//	while (!res->complete) {
+//		usleep(50); /* thanks dave */
+//	}
+//}
 
 
 
