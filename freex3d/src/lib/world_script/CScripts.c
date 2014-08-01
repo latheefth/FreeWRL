@@ -498,7 +498,6 @@ static void script_initCodeFromMFUri_download(struct Shader_Script* me, struct M
 	//printf ("past resource_identify\n");
 
 	if (res->type != rest_invalid) {
-		//printf ("going to resource_fetch\n");
 		res->status = ress_starts_good;
 		res->media_type = resm_script;
 		res->whereToPlaceData = me;
@@ -522,7 +521,6 @@ static void shader_initCodeFromMFUri_download(struct Shader_Script* me, struct M
 	//printf ("past resource_identify\n");
 
 	if (res->type != rest_invalid) {
-		//printf ("going to resource_fetch\n");
 		res->status = ress_starts_good;
 		res->media_type = resm_fshader;
 		res->whereToPlaceData = me;
@@ -530,63 +528,7 @@ static void shader_initCodeFromMFUri_download(struct Shader_Script* me, struct M
 		resitem_enqueue(ml_new(res));
 	}
 }
-#ifdef OLDCODE
-static void script_
-		if (resource_fetch(res)) {
-			//printf ("past resource_fetch\n");
-			if (resource_load(res)) {
-				s_list_t *l;
-				openned_file_t *of;
-				l = res->openned_files;
-				of = ml_elem(l);
-/*
-				of = XALLOC(openned_file_t);
-				of->fileFileName = filename;
-				of->fileDescriptor = fd;
-				of->fileData = data;
-				of->fileDataSize = dataSize;
-				of->imageHeight = imageHeight;
-				of->imageWidth = imageWidth;
-				of->imageAlpha = imageAlpha;
-*/
-				/* ok - Scripts get initialized; shaders get the buffer returned */
-				if (me==NULL) { /* a Shader */
-					//printf ("script_initCodeFromUri, got me==NULL\n");
-					//printf ("script_initCodeFromUri, datalen :%ld:\n",strlen((const char *)of->fileData));
-					//*crv = STRDUP((const char*)of->fileData);
-					// move the file data over for any upcoming FREE_IF_NZ() calls, 
-					// and make the original pointer NULL.
-					*crv = (char *)of->fileData;
-					of->fileData = NULL;
-					//printf ("script_initCodeFromUri, datalen copied :%ld:\n",strlen((const char*)*crv));
-					//printf ("script_initCodeFromUri, of says datalen is %d\n",of->fileDataSize);
-					//printf("**** Shader:\n%s\n", *crv); 
-					//printf ("script data %s\n",of->fileData);
-					//printf ("*** Shader: doing the quick return here\n");
-					return TRUE;
-				} else {
-					/* a Script */
-					//printf("**** Script:\n%s\n", *crv);
-					rv = script_initCode(me, (const char*) of->fileData);
-				}
-			}
-		}
-	}
 
-	//printf ("passed rest_invalid test\n");
-
-	if (res->status == ress_loaded && rv) {
-		/* ok - we are replacing EXTERNPROTO with PROTO */
-		res->status = ress_parsed;
-		res->complete = TRUE;
-		return TRUE;
-	} else {
-		/* failure, FIXME: remove res from root_res... */
-		/* 		resource_destroy(res); */
-	}
-	return FALSE;
-}
-#endif
 
 /* initialize a script from a url. Expects valid input */
 BOOL script_initCodeFromMFUri(struct Shader_Script* me, const struct Multi_String* s) {

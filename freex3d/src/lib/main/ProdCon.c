@@ -1021,6 +1021,7 @@ int frontendGetsFiles(){
 
 void process_res_texitem(resource_item_t *res);
 bool parser_process_res_SHADER(resource_item_t *res);
+void process_res_audio(resource_item_t *res);
 /**
  *   parser_process_res: for each resource state, advance the process of loading.
  *   this version assumes the item has been dequeued for processing,
@@ -1056,12 +1057,13 @@ static bool parser_process_res(s_list_t *item)
 		break;
 
 	case ress_starts_good:
-		if(!res->actions || (res->actions & resa_download))
-		if(p->frontend_gets_files){
+		if(!res->actions || (res->actions & resa_download)){
+		//if(p->frontend_gets_files){
 			frontenditem_enqueue(ml_new(res));
 			remove_it = TRUE;
-		}else{
-			resource_fetch(res);
+		//}else{
+		//	resource_fetch(res);
+		//}
 		}
 		break;
 
@@ -1128,6 +1130,10 @@ static bool parser_process_res(s_list_t *item)
 				the node could be updated ... i.e. texture created */
 			res->complete = TRUE; /* small hack */
 			process_res_texitem(res);
+			break;
+		case resm_audio:
+			res->complete = TRUE;
+			process_res_audio(res);
 			break;
 		case resm_x3z:
 			process_x3z(res);

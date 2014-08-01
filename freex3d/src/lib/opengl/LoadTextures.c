@@ -751,48 +751,6 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 	resitem_enqueue(ml_new(res));
 	return TRUE;
 
-	//	/* hold on to the top of the list so we can delete it later */
-	//	head_of_list = res->m_request;
-	//	/* go through the urls until we have a success, or total failure */
-	//	do {
-	//		/* Setup parent */
-	//		resource_identify(parentPath, res);
-	//		/* Setup media type */
-	//		res->media_type = resm_image; /* quick hack */
-
-	//		if (resource_fetch(res)) {
-	//			DEBUG_TEX("really loading texture data from %s into %p\n", res->actual_file, entry);
-	//			if (texture_load_from_file(entry, res->actual_file)) {
-	//				entry->status = TEX_NEEDSBINDING; /* tell the texture thread to convert data to OpenGL-format */
-	//				res->complete = TRUE;
-	//			}
-	//		} else {
-	//			/* we had a problem with that URL, set this so we can try the next */
-	//			res->type=rest_multi;
-	//		}
-	//	} while ((res->status != ress_downloaded) && (res->m_request != NULL));
-
-	//	/* destroy the m_request, if it exists */
-	//	if (head_of_list != NULL) {
-	//		ml_delete_all(head_of_list);
-	//	}
-
-	//} else {
-	//	ERROR_MSG("Could not load texture, no URL present\n");
-	//}
-
-	///* really not successful */
-	//if (res== NULL) return FALSE;
-
-
-	///* were we successful?? */
-	//if (res->status != ress_downloaded) {
-	//	ERROR_MSG("Could not load texture: %s\n", entry->filename);
-	//	return FALSE;
-	//} else {
-	//	return TRUE;
-	//}
-	//return FALSE;
 }
 /*
 parsing thread --> texture_loading_thread hand-off

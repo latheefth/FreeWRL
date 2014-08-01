@@ -1083,7 +1083,7 @@ int shaderprogram_loaded(struct X3D_ShaderProgram *node)
 		case LOADER_REQUEST_RESOURCE:
 		res = node->__loadResource;
 		resource_identify(node->_parentResource, res);
-		/* printf ("load_Inline, before resource_fetch, we have type  %s  status %s\n",
+		/* printf ("load_Inline, we have type  %s  status %s\n",
 			resourceTypeToString(res->type), resourceStatusToString(res->status)); */
 		res->actions = resa_download | resa_load; //not resa_parse which we do below
 		resitem_enqueue(ml_new(res)); 
@@ -1093,7 +1093,7 @@ int shaderprogram_loaded(struct X3D_ShaderProgram *node)
 
 		case LOADER_FETCHING_RESOURCE:
 		res = node->__loadResource;
-		/* printf ("load_Inline, after resource_fetch, we have type  %s  status %s\n",
+		/* printf ("load_Inline, we have type  %s  status %s\n",
 			resourceTypeToString(res->type), resourceStatusToString(res->status)); */
 		// do we try the next url in the multi-url? 
 		if(res->complete){

@@ -471,144 +471,10 @@ void child_Anchor (struct X3D_Anchor *node) {
 }
 
 
-#ifdef FRONTEND_GETS_FILES
-
-/* do we want the GUI to load Inlines? Probabally if it loads the other files.... */
-
-/* XXXX - because of the async nature of this, only the first file will be tried; if it fails, nothing
-   else will be tried. We should store the resource locally, and, when scanning inline during rendering, check
-   the status... */
-
-
-static void loadInline(struct X3D_Inline *me)  
-{
-	resource_item_t *res = NULL;
-	struct Multi_String *url = NULL;
-	resource_item_t *parentPath = NULL;
-
-	url = &(me->url);
-	parentPath = me->_parentResource;
-
-/*
-	printf ("loadInline, we have status of ");
-	switch (me->__loadstatus) {
-		case INLINE_INITIAL_STATE: printf ("INLINE_INITIAL_STATE\n"); break;
-		case INLINE_FETCHING_RESOURCE: printf ("INLINE_FETCHING_RESOURCE\n"); break;
-		case INLINE_PARSING: printf ("INLINE_PARSING\n"); break;
-		case INLINE_STABLE: printf ("INLINE_STABLE\n"); break;
-	};
-    printf ("url.n %d\n",url->n);
-    printf ("url.p[0] %s\n",url->p[0]->strptr);
-*/
-
-	// get the resource pointer from the Inline node.
-	res = me->__loadResource;
-
-	switch (me->__loadstatus) {
-
-		case INLINE_INITIAL_STATE: {
-			// starting up here. Is the URL empty?
-			if (me->url.n == 0) {
-				me->__loadstatus = INLINE_STABLE; 
-			} else {
-				// create the resource;
-				res = resource_create_multi(url);
-
-				// save it...;
-				me->__loadResource = res;
-
-				// Setup parent
-				resource_identify(parentPath, res);
-				res->media_type = resm_image; /* quick hack */
-
-				// go to next one
-				me->__loadstatus = INLINE_FETCHING_RESOURCE;
-			}
-			break;
-		}
-
-		case INLINE_FETCHING_RESOURCE: {
-			bool rv;
-
-			 /* 
-              printf ("load_Inline, before resource_fetch, we have type  %s  status %s\n",
-				resourceTypeToString(res->type), resourceStatusToString(res->status)); 
-			*/
-			
-			rv = resource_fetch(res);
-
-			/* printf ("load_Inline, after resource_fetch, we have type  %s  status %s\n",
-				resourceTypeToString(res->type), resourceStatusToString(res->status)); 
-            */
-
-			/* do we try the next url in the multi-url? */
-			if ((res->status == ress_failed) && (res->m_request != NULL)) {
-				/* printf ("load_Inline, not found, lets try this again\n");*/
-				res->status = ress_invalid;
-				res->type = rest_multi;
-
-			/* did we get this one? */
-			} else if (res->status == ress_downloaded) {
-				res->media_type = resm_unknown;
-				res->whereToPlaceData = X3D_NODE(me);
-				res->offsetFromWhereToPlaceData = (float) offsetof (struct X3D_Inline, __children);
-                //printf ("going to send resource to parser async for res %p\n",res);
-				if (send_resource_to_parser_if_available(res)) {
-				me->__loadstatus = INLINE_PARSING; /* a "do-nothing" approach */
-			} else {
-                    //printf ("have to wait here for parser to finish\n");
-                }
-                //printf ("done the send resource to parser async for res %p\n",res);
-                
-				
-			} else {
-				if ((res->status == ress_failed) || (res->status == ress_invalid)) {
-					printf ("resource failed to load\n");
-					me->__loadstatus = INLINE_STABLE; /* a "do-nothing" approach */
-				} else {
-					printf ("resource Inline in invalid state\n");
-					me->__loadstatus = INLINE_STABLE; /* a "do-nothing" approach */
-				}
-			}
-
-			break;
-		}
-
-		case INLINE_PARSING: {
-			/* printf ("load_Inline, after resource_fetch, we have type  %s  status %s\n",
-				resourceTypeToString(res->type), resourceStatusToString(res->status)); */
-
-			// did this one fail?
-			if (res->status == ress_not_loaded) {
-				printf ("hmmm - problem here...\n");
-				res->status = ress_invalid;
-                                res->type = rest_multi;
-
-				// go and try the next URL on the url array
-				resource_identify(parentPath, res);
-
-				// go back and try another URL
-				me->__loadstatus = INLINE_FETCHING_RESOURCE;
-
-			}
-
-
-			// are we good to go??
-			else if (res->status == ress_parsed) {
-				me->__loadstatus = INLINE_STABLE;
-			}
-
-			break;
-		}
-	}
-}
-#endif
 
 /* note that we get the resources in a couple of steps; this tries to keep the scenegraph running */
 void load_Inline (struct X3D_Inline *node) {
-#ifndef FRONTEND_GETS_FILES
 	resource_item_t *res;
-#endif
 	// printf ("load_Inline %u, loadStatus %d loadResource %u\n",node, node->__loadstatus, node->__loadResource);
 
     //printf ("load_Inline, node %p loadStatus %d\n",node,node->load);
@@ -616,12 +482,6 @@ void load_Inline (struct X3D_Inline *node) {
 	if (node->load) {
 		/* printf ("loading Inline\n");  */
 
-#ifdef FRONTEND_GETS_FILES
-	if (node->__loadstatus != INLINE_STABLE) {
-		loadInline(node);
-	}
-
-#else
 		switch (node->__loadstatus) {
 			case INLINE_INITIAL_STATE: /* nothing happened yet */
 
@@ -638,30 +498,20 @@ void load_Inline (struct X3D_Inline *node) {
 			case INLINE_REQUEST_RESOURCE:
 			res = node->__loadResource;
 			resource_identify(node->_parentResource, res);
-			/* printf ("load_Inline, before resource_fetch, we have type  %s  status %s\n",
+			/* printf ("load_Inline, we have type  %s  status %s\n",
 				resourceTypeToString(res->type), resourceStatusToString(res->status)); */
 			res->actions = resa_download | resa_load; //not resa_parse which we do below
-			frontenditem_enqueue(ml_new(res));
+			//frontenditem_enqueue(ml_new(res));
+			resitem_enqueue(ml_new(res));
 			node->__loadstatus = INLINE_FETCHING_RESOURCE;
 			break;
 
 			case INLINE_FETCHING_RESOURCE:
 			res = node->__loadResource;
-			/* printf ("load_Inline, after resource_fetch, we have type  %s  status %s\n",
+			/* printf ("load_Inline, we have type  %s  status %s\n",
 				resourceTypeToString(res->type), resourceStatusToString(res->status)); */
-			// do we try the next url in the multi-url? 
 			if(res->complete){
-				if ((res->status == ress_failed) && (res->m_request != NULL)) {
-					//still some hope via multi_string url, perhaps next one
-					/* printf ("load_Inline, not found, lets try this again\n");*/
-					if(0){
-						//let FE/ML iterate over Multi_URL
-						res->status = ress_invalid;
-						res->type = rest_multi;
-						resource_identify(node->_parentResource, res); //should increment multi pointer
-						frontenditem_enqueue(ml_new(res));
-					}
-				} else if (res->status == ress_loaded) {
+				if (res->status == ress_loaded) {
 					//determined during load process by resource_identify_type(): res->media_type = resm_vrml; //resm_unknown;
 					res->whereToPlaceData = X3D_NODE(node);
 					res->offsetFromWhereToPlaceData = offsetof (struct X3D_Inline, __children);
@@ -694,7 +544,6 @@ void load_Inline (struct X3D_Inline *node) {
 			break;
 		}
 
-#endif /* FRONTEND_GETS_FILES */
 	} else {
 		printf ("unloading Inline\n");
 	}

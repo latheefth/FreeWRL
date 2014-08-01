@@ -2091,7 +2091,9 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 		MARK_EVENT (ptr, offsetof (struct X3D_SphereSensor, trackPoint_changed));
 	}
 }
-
+void process_res_audio(resource_item_t *res){
+	struct X3D_AudioClip *node = res->whereToPlaceData;
+}
 void locateAudioSource (struct X3D_AudioClip *node) {
 	resource_item_t *res;
 	resource_item_t *parentPath;
@@ -2104,16 +2106,19 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 	res = resource_create_multi(&node->url);
 
 	resource_get_valid_url_from_multi(parentPath, res);
+	resource_identify(node->_parentResource, res);
+	res->media_type = resm_audio;
+	res->whereToPlaceData = node;
+	resitem_enqueue(ml_new(res));
+	//send_resource_to_parser(res);
+	//resource_wait(res);
+	//
+	//if (res->status == ress_loaded) {
+	//	/* TODO: check into the audio file ??? check what textures do in resource_get_valid_texture_from_multi */
+	//	return;
+	//}
 
-	send_resource_to_parser(res);
-	resource_wait(res);
-	
-	if (res->status == ress_loaded) {
-		/* TODO: check into the audio file ??? check what textures do in resource_get_valid_texture_from_multi */
-		return;
-	}
-
-	resource_destroy(res);	
+	//resource_destroy(res);	
 	
 	node->__sourceNumber = BADAUDIOSOURCE;
 

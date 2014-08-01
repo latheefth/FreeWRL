@@ -326,7 +326,6 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 				IF_cleanedURL_IS_ABSOLUTE {
 					/* This is an absolute filename */
 
-					/* resource_fetch will test that filename */
 					res->type = rest_file;
 					res->status = ress_starts_good;
 					url = STRDUP(cleanedURL);
@@ -342,7 +341,6 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 
 					/* printf("about to join :%s: and :%s: resource.c L299\n",cwd,res->request);*/
 					url = concat_path(cwd, res->URLrequest);
-					/* resource_fetch will test that filename */
 					res->type = rest_file;
 					res->status = ress_starts_good;
 				}

@@ -69,6 +69,7 @@ typedef enum resource_media_type {
 	resm_script,
 	resm_pshader,
 	resm_fshader,
+	resm_audio,
 	resm_x3z
 } resource_media_type_t;
 

@@ -2176,6 +2176,7 @@ void endExternProtoDeclare(void) {
 		res = resource_create_multi(&url);
 		resource_identify(gglobal()->resources.root_res, res);
 		if (res->type != rest_invalid) {
+#ifdef HAD_RESOURCE_LOAD
 			if (resource_fetch(res)) {
 				if (resource_load(res)) {
 					s_list_t *l;
@@ -2188,6 +2189,10 @@ void endExternProtoDeclare(void) {
 				/*	printf("**** X3D EXTERNPROTO:\n%s\n", buffer); */
 				}
 			}
+#else
+			res->status = ress_failed;
+			printf("externProto not currently supported\n");
+#endif
 		}
 		
 		
