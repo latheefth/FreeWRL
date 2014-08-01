@@ -2105,7 +2105,7 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 
 	res = resource_create_multi(&node->url);
 
-	resource_get_valid_url_from_multi(parentPath, res);
+	//resource_get_valid_url_from_multi(parentPath, res);
 	resource_identify(node->_parentResource, res);
 	res->media_type = resm_audio;
 	res->whereToPlaceData = node;

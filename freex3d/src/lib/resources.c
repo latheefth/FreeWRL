@@ -233,7 +233,17 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 		network = defaults->network;
 	}
 
-
+	{	
+		char* pound;
+		pound = NULL;
+		pound = strchr(res->URLrequest, '#');
+		if (pound != NULL) {
+			*pound = '\0';
+			/* copy the name out, so that Anchors can go to correct Viewpoint */
+			pound++;
+			res->afterPoundCharacters = STRDUP(pound);
+		}
+	}
 	/* URI specifier at the beginning ? */
 	res->network = checkNetworkFile(res->URLrequest);
 
@@ -394,14 +404,14 @@ bool resource_fetch(resource_item_t *res)
 		case ress_none:
 		case ress_starts_good:
 			DEBUG_RES ("resource_fetch, calling download_url\n");
-			pound = NULL;
-			pound = strchr(res->parsed_request, '#');
-			if (pound != NULL) {
-				*pound = '\0';
-				/* copy the name out, so that Anchors can go to correct Viewpoint */
-				pound++;
-				res->afterPoundCharacters = STRDUP(pound);
-			}
+			//pound = NULL;
+			//pound = strchr(res->parsed_request, '#');
+			//if (pound != NULL) {
+			//	*pound = '\0';
+			//	/* copy the name out, so that Anchors can go to correct Viewpoint */
+			//	pound++;
+			//	res->afterPoundCharacters = STRDUP(pound);
+			//}
 
 			download_url(res);
 			break;
@@ -416,11 +426,11 @@ bool resource_fetch(resource_item_t *res)
 		case ress_none:
 		case ress_starts_good:
 			/* SJD If this is a PROTO expansion, need to take of trailing part after # */
-			pound = NULL;
-			pound = strchr(res->parsed_request, '#');
-			if (pound != NULL) {
-				*pound = '\0';
-			}
+			//pound = NULL;
+			//pound = strchr(res->parsed_request, '#');
+			//if (pound != NULL) {
+			//	*pound = '\0';
+			//}
 				
 #if defined(FRONTEND_GETS_FILES)
 ConsoleMessage ("ERROR, should not be here in rest_file");
@@ -430,11 +440,11 @@ ConsoleMessage ("ERROR, should not be here in rest_file");
 				if (do_file_readable(res->parsed_request)) {
 					res->status = ress_downloaded;
 					res->actual_file = STRDUP(res->parsed_request);
-					if (pound != NULL) {
-						/* copy the name out, so that Anchors can go to correct Viewpoint */
-						pound ++;
-						res->afterPoundCharacters = STRDUP(pound);
-					}
+					//if (pound != NULL) {
+					//	/* copy the name out, so that Anchors can go to correct Viewpoint */
+					//	pound ++;
+					//	res->afterPoundCharacters = STRDUP(pound);
+					//}
 				} else {
 					res->status = ress_failed;
 					ERROR_MSG("resource_fetch: wrong permission to read file: %s\n", res->parsed_request);
