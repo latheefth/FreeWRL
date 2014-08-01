@@ -575,7 +575,7 @@ void dump_parser_wait_queue()
 /**
  *   parser_process_res_VRML_X3D: this is the final parser (loader) stage, then call the real parser.
  */
-static bool parser_process_res_VRML_X3D(resource_item_t *res)
+bool parser_process_res_VRML_X3D(resource_item_t *res)
 {
 	s_list_t *l;
 	openned_file_t *of;
