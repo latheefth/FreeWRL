@@ -1073,16 +1073,16 @@ static bool parser_process_res(s_list_t *item)
 		}
 		break;
 
-	case ress_downloaded:
-		if(!res->actions || (res->actions & resa_load))
-		/* Here we may want to delegate loading into another thread ... */
-		if (!resource_load(res)) {
-			ERROR_MSG("failure when trying to load resource: %s\n", res->URLrequest);
-			remove_it = TRUE;
-			res->complete = TRUE; //J30
-			retval = FALSE;
-		}
-		break;
+	//case ress_downloaded:
+	//	if(!res->actions || (res->actions & resa_load))
+	//	/* Here we may want to delegate loading into another thread ... */
+	//	if (!resource_load(res)) {
+	//		ERROR_MSG("failure when trying to load resource: %s\n", res->URLrequest);
+	//		remove_it = TRUE;
+	//		res->complete = TRUE; //J30
+	//		retval = FALSE;
+	//	}
+	//	break;
 
 	case ress_failed:
 		retval = FALSE;

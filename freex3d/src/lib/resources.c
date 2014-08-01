@@ -363,12 +363,12 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 	res->URLbase = STRDUP(url);
 	removeFilenameFromPath(res->URLbase);
 
-#ifdef FRONTEND_GETS_FILES
-        DEBUG_RES ("FRONTEND_GETS_FILES set to true, always assume that the file is of network ty pe\n");
-	res->network = TRUE;
-	res->type = rest_url;
-
-#endif
+//#ifdef FRONTEND_GETS_FILES
+//        DEBUG_RES ("FRONTEND_GETS_FILES set to true, always assume that the file is of network ty pe\n");
+//	res->network = TRUE;
+//	res->type = rest_url;
+//
+//#endif
 
 
         // ok we should be good to go now        res->network = TRUE;
