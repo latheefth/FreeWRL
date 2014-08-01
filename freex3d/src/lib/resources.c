@@ -467,6 +467,21 @@ ConsoleMessage ("ERROR, should not be here in rest_file");
 		  res->parent, (res->parent ? res->parent->URLbase : "N/A"));
 	return (res->status == ress_downloaded);
 }
+bool imagery_load(resource_item_t *res){
+	bool retval;
+	struct textureTableIndexStruct *entry = res->whereToPlaceData;
+	if(res->status == ress_downloaded){
+		if (texture_load_from_file(entry, res->actual_file)) {
+			entry->status = TEX_READ; /* tell the texture thread to convert data to OpenGL-format */
+			res->status = ress_loaded;
+			retval = TRUE;
+			return retval;
+		}
+	}
+	res->status = ress_not_loaded;
+	retval = FALSE;
+	return retval;
+}
 
 /**
  *   resource_load: load the actual file into memory, add it to openned files list.

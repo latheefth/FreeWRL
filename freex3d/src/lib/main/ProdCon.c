@@ -984,6 +984,7 @@ s_list_t *frontenditem_dequeue(){
 
 	return threadsafe_dequeue_item(&p->frontend_list_to_get, &tg->threads.mutex_frontend_list );
 }
+bool imagery_load(resource_item_t *res);
 //this is for simulating frontend_gets_files in win32 - called from lib/main.c
 void frontend_dequeue_get_enqueue(){
 	s_list_t *item = NULL;
@@ -991,15 +992,14 @@ void frontend_dequeue_get_enqueue(){
 	int more;
 	while( (item = frontenditem_dequeue()) != NULL ){
 		//download_url((resource_item_t *) item->elem);
-
+		res = item->elem;
 		do{
-			resource_fetch((resource_item_t *) item->elem); //URL2FILE
+			resource_fetch(res); //URL2FILE
 			//still some hope via multi_string url, perhaps next one
 			/* printf ("load_Inline, not found, lets try this again\n");*/
 			//Multi_URL loop moved here (middle layer ML), 
 			//but must consult BE to convert relativeURL to absoluteURL via baseURL 
 			//(or could we absolutize in a batch in resource_create_multi0()?)
-			res = (resource_item_t*)item->elem;
 			more = (res->status == ress_failed) && (res->m_request != NULL);
 			if(more){
 				res->status = ress_invalid; //downgrade ress_fail to ress_invalid
@@ -1007,7 +1007,11 @@ void frontend_dequeue_get_enqueue(){
 				resource_identify(res->parent, res); //should increment multi pointer
 			}
 		}while(more);
-		resource_load((resource_item_t *) item->elem);  //FILE2BLOB
+		if(res->media_type == resm_image){
+			imagery_load(res); //FILE2TEXBLOB
+		}else{
+			resource_load(res);  //FILE2BLOB
+		}
 		resitem_enqueue(item);
 	}
 }
@@ -1015,7 +1019,8 @@ int frontendGetsFiles(){
 	return ((ppProdCon)(gglobal()->ProdCon.prv))->frontend_gets_files;
 }
 
-
+void process_res_texitem(resource_item_t *res);
+bool parser_process_res_SHADER(resource_item_t *res);
 /**
  *   parser_process_res: for each resource state, advance the process of loading.
  *   this version assumes the item has been dequeued for processing,
@@ -1122,6 +1127,7 @@ static bool parser_process_res(s_list_t *item)
 			/* Texture file has been loaded into memory
 				the node could be updated ... i.e. texture created */
 			res->complete = TRUE; /* small hack */
+			process_res_texitem(res);
 			break;
 		case resm_x3z:
 			process_x3z(res);
