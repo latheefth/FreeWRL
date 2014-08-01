@@ -416,11 +416,13 @@ void fwl_startFreeWRL(const char *url)
 	if(frontendGetsFiles()){
 		for(;;){
 			frontend_dequeue_get_enqueue();
-			sleep(200);
+			if(checkExitRequest()) break;
 		}
+		sleep(200); //wait for backend threads to wind down
+	}else{
+		/* now wait around until something kills this thread. */
+		pthread_join(gglobal()->threads.DispThrd, NULL);
 	}
-	/* now wait around until something kills this thread. */
-	pthread_join(gglobal()->threads.DispThrd, NULL);
 }
 
 /**

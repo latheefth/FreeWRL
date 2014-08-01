@@ -989,12 +989,14 @@ s_list_t *frontenditem_dequeue(){
 	return threadsafe_dequeue_item(&p->frontend_list_to_get, &tg->threads.mutex_frontend_list );
 }
 bool imagery_load(resource_item_t *res);
+int checkReplaceWorldRequest();
+int checkExitRequest();
 //this is for simulating frontend_gets_files in win32 - called from lib/main.c
 void frontend_dequeue_get_enqueue(){
 	s_list_t *item = NULL;
 	resource_item_t *res = NULL;
 	int more;
-	while( (item = frontenditem_dequeue()) != NULL ){
+	while( !checkExitRequest() && !checkReplaceWorldRequest() && (item = frontenditem_dequeue()) != NULL ){
 		//download_url((resource_item_t *) item->elem);
 		res = item->elem;
 		do{

@@ -4296,17 +4296,23 @@ void finalizeRenderSceneUpdateScene() {
 #ifndef FRONTEND_HANDLES_DISPLAY_THREAD
 
 
-void checkReplaceWorldRequest(){
+int checkReplaceWorldRequest(){
 	ttglobal tg = gglobal();
 	if (tg->Mainloop.replaceWorldRequest || tg->Mainloop.replaceWorldRequestMulti){
 		tg->threads.flushing = 1;
 	}
+	return tg->threads.flushing;
 }
-void checkExitRequest(){
-	ttglobal tg = gglobal();
-	if (tg->threads.MainLoopQuit == 1){
-		tg->threads.flushing = 1;
+static int exitRequest = 0; //static because we want to exit the process, not just a freewrl instance (I think).
+int checkExitRequest(){
+	if(!exitRequest){
+		ttglobal tg = gglobal();
+		if (tg->threads.MainLoopQuit == 1){
+			tg->threads.flushing = 1;
+			exitRequest = 1;
+		}
 	}
+	return exitRequest;
 }
 void doReplaceWorldRequest()
 {
