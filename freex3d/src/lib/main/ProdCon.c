@@ -484,68 +484,68 @@ void new_root(){
 }
 void resitem_enqueue(s_list_t* item);
 
-void send_resource_to_parser(resource_item_t *res)
-{
-	ppProdCon p;
-	ttglobal tg;
+//void send_resource_to_parser(resource_item_t *res)
+//{
+//	ppProdCon p;
+//	ttglobal tg;
+//
+//    //ConsoleMessage ("send_resource_to_parser, res->new_root %s",BOOL_STR(res->new_root));
+//
+//	if (res->new_root) {
+//		new_root();
+//	}
+//
+//
+//	/* We are not in parser thread, most likely
+//	   in main or display thread, and we successfully
+//	   parsed a resource request.
+//
+//	   We send it to parser.
+//	*/
+//	tg = gglobal();
+//	p = tg->ProdCon.prv;
+//
+//	/* Wait for display thread to be fully initialized */
+//	while (IS_DISPLAY_INITIALIZED == FALSE) {
+//		usleep(50);
+//	}
+//
+//	///* wait for the parser thread to come up to speed */
+//	//while (!p->inputParseInitialized)
+//	//	usleep(50);
+//
+//	resitem_enqueue(ml_new(res));
+//}
 
-    //ConsoleMessage ("send_resource_to_parser, res->new_root %s",BOOL_STR(res->new_root));
-
-	if (res->new_root) {
-		new_root();
-	}
 
 
-	/* We are not in parser thread, most likely
-	   in main or display thread, and we successfully
-	   parsed a resource request.
-
-	   We send it to parser.
-	*/
-	tg = gglobal();
-	p = tg->ProdCon.prv;
-
-	/* Wait for display thread to be fully initialized */
-	while (IS_DISPLAY_INITIALIZED == FALSE) {
-		usleep(50);
-	}
-
-	///* wait for the parser thread to come up to speed */
-	//while (!p->inputParseInitialized)
-	//	usleep(50);
-
-	resitem_enqueue(ml_new(res));
-}
-
-
-
-bool send_resource_to_parser_if_available(resource_item_t *res)
-{
-	/* We are not in parser thread, most likely
-	   in main or display thread, and we successfully
-	   parsed a resource request.
-
-	   We send it to parser.
-	*/
-	ppProdCon p;
-	ttglobal tg = gglobal();
-	p = (ppProdCon)tg->ProdCon.prv;
-
-	/* Wait for display thread to be fully initialized */
-	/* dug9 Aug 24, 2013 - don't wait (it seems to hang apartment-threaded apps) and see what happens.
-		display_initialized flag is set in a worker thread.
-		H: perhaps the usleep and pthread_create compete in an apartment thread, causing deadlock
-	*/
-	//while (IS_DISPLAY_INITIALIZED == FALSE) {
-	//	usleep(50);
-	//}
-
-	/* wait for the parser thread to come up to speed */
-	//while (!p->inputParseInitialized) usleep(50);
-
-	resitem_enqueue(ml_new(res));
-    return TRUE;
-}
+//bool send_resource_to_parser_if_available(resource_item_t *res)
+//{
+//	/* We are not in parser thread, most likely
+//	   in main or display thread, and we successfully
+//	   parsed a resource request.
+//
+//	   We send it to parser.
+//	*/
+//	ppProdCon p;
+//	ttglobal tg = gglobal();
+//	p = (ppProdCon)tg->ProdCon.prv;
+//
+//	/* Wait for display thread to be fully initialized */
+//	/* dug9 Aug 24, 2013 - don't wait (it seems to hang apartment-threaded apps) and see what happens.
+//		display_initialized flag is set in a worker thread.
+//		H: perhaps the usleep and pthread_create compete in an apartment thread, causing deadlock
+//	*/
+//	//while (IS_DISPLAY_INITIALIZED == FALSE) {
+//	//	usleep(50);
+//	//}
+//
+//	/* wait for the parser thread to come up to speed */
+//	//while (!p->inputParseInitialized) usleep(50);
+//
+//	resitem_enqueue(ml_new(res));
+//    return TRUE;
+//}
 
 void dump_resource_waiting(resource_item_t* res)
 {

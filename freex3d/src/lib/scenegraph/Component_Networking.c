@@ -519,7 +519,8 @@ void load_Inline (struct X3D_Inline *node) {
 					node->__loadstatus = INLINE_PARSING; // a "do-nothing" approach 
 					res->complete = FALSE;
 					//send_resource_to_parser(res);
-					send_resource_to_parser_if_available(res);
+					//send_resource_to_parser_if_available(res);
+					resitem_enqueue(ml_new(res));
 				} else if ((res->status == ress_failed) || (res->status == ress_invalid)) {
 					//no hope left
 					printf ("resource failed to load\n");

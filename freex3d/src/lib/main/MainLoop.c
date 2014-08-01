@@ -4326,7 +4326,8 @@ void doReplaceWorldRequest()
 	if (req){
 		kill_oldWorld(TRUE, TRUE, __FILE__, __LINE__);
 		res = resource_create_single(req);
-		send_resource_to_parser_async(res);
+		//send_resource_to_parser_async(res);
+		resitem_enqueue(ml_new(res));
 	}
 	resm = (resource_item_t *)tg->Mainloop.replaceWorldRequestMulti;
 	if (resm){
@@ -4334,7 +4335,8 @@ void doReplaceWorldRequest()
 		kill_oldWorld(TRUE, TRUE, __FILE__, __LINE__);
 		resm->new_root = true;
 		gglobal()->resources.root_res = resm;
-		send_resource_to_parser_async(resm);
+		//send_resource_to_parser_async(resm);
+		resitem_enqueue(ml_new(resm));
 	}
 	tg->threads.flushing = 0;
 }

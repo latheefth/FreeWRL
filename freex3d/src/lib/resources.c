@@ -940,7 +940,8 @@ void fwl_resource_push_single_request(const char *request)
 		return;
 
 	res = resource_create_single(request);
-	send_resource_to_parser(res);
+	//send_resource_to_parser(res);
+	resitem_enqueue(ml_new(res));
 }
 
 /**
@@ -954,7 +955,8 @@ void resource_push_multi_request(struct Multi_String *request)
 		return;
 
 	res = resource_create_multi(request);
-	send_resource_to_parser(res);
+	resitem_enqueue(ml_new(res));
+	//send_resource_to_parser(res);
 }
 
 /**
