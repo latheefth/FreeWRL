@@ -1012,10 +1012,12 @@ bool imagery_load(resource_item_t *res);
 int checkReplaceWorldRequest();
 int checkExitRequest();
 enum {
+	url2file_task_chain,
+	url2file_task_spawn,
 	file2blob_task_chain,
 	file2blob_task_spawn,
 	file2blob_task_enqueue,
-} file2blob_task_tactic;
+} url2blob_task_tactic;
 
 int file2blob(resource_item_t *res){
 	int retval;
@@ -1026,8 +1028,45 @@ int file2blob(resource_item_t *res){
 	}
 	return retval;
 }
+int url2file(resource_item_t *res){
+	int retval = 0;
+	int more_multi;
+	resource_fetch(res); //URL2FILE
+	//Multi_URL loop moved here (middle layer ML), 
+	more_multi = (res->status == ress_failed) && (res->m_request != NULL);
+	if(more_multi){
+		//still some hope via multi_string url, perhaps next one
+		res->status = ress_invalid; //downgrade ress_fail to ress_invalid
+		res->type = rest_multi; //should already be flagged
+		//must consult BE to convert relativeURL to absoluteURL via baseURL 
+		//(or could we absolutize in a batch in resource_create_multi0()?)
+		resource_identify(res->parent, res); //should increment multi pointer/iterator
+		retval = 1;
+	}else if(res->status == ress_downloaded){
+		//queue for loading
+		retval = 1;
+	}
+	return retval;
+}
 
 static int async_thread_count = 0;
+static void *thread_download_async (void *args){
+	int downloaded;
+	resource_item_t *res = (resource_item_t *)args;
+	async_thread_count++;
+	printf("{%d}",async_thread_count);
+	downloaded = url2file(res);
+	//enqueue FILE to ML
+	if(downloaded)
+		frontenditem_enqueue_tg(ml_new(res),res->tg);
+	async_thread_count--;
+	return NULL;
+}
+void downloadAsync (resource_item_t *res) {
+	if(!res->_loadThread) res->_loadThread = malloc(sizeof(pthread_t));
+	pthread_create ((pthread_t*)res->_loadThread, NULL,&thread_download_async, (void *)res);
+}
+
 static void *thread_load_async (void *args){
 	int loaded;
 	resource_item_t *res = (resource_item_t *)args;
@@ -1052,35 +1091,40 @@ void loadAsync (resource_item_t *res) {
 
 //this is for simulating frontend_gets_files in configs that run _displayThread: desktop and browser plugins
 //but can be run from any thread as long as you know the freewrl instance/context/tg/gglobal* for the resitem and frontenditem queues, replaceWorldRequest etc
-#define MAX_SPAWNED_PER_PASS 10  //in desktop I've had 57 spawned threads at once, with no problems. In case there's a problem this will limit spawned-per-pass, which will indirectly limit spawned-at-same-time
+#define MAX_SPAWNED_PER_PASS 15  //in desktop I've had 57 spawned threads at once, with no problems. In case there's a problem this will limit spawned-per-pass, which will indirectly limit spawned-at-same-time
 void frontend_dequeue_get_enqueue(void *tg){
 	int count_this_pass;
 	s_list_t *item = NULL;
 	resource_item_t *res = NULL;
 	fwl_setCurrentHandle(tg, __FILE__, __LINE__); //set the freewrl instance - will apply to all following calls into the backend. This allows you to call from any thread.
 	count_this_pass = 0; //approximately == number of spawned threads running at one time when doing file2blob_task_spawn
-	while( count_this_pass < MAX_SPAWNED_PER_PASS && !checkExitRequest() && !checkReplaceWorldRequest() && (item = frontenditem_dequeue()) != NULL ){
+	while( max(count_this_pass,async_thread_count) < MAX_SPAWNED_PER_PASS && !checkExitRequest() && !checkReplaceWorldRequest() && (item = frontenditem_dequeue()) != NULL ){
 		count_this_pass++;
 		//download_url((resource_item_t *) item->elem);
 		res = item->elem;
 		if(res->status != ress_downloaded){
-			int more_multi;
-			resource_fetch(res); //URL2FILE
-			//Multi_URL loop moved here (middle layer ML), 
-			more_multi = (res->status == ress_failed) && (res->m_request != NULL);
-			if(more_multi){
-				//still some hope via multi_string url, perhaps next one
-				res->status = ress_invalid; //downgrade ress_fail to ress_invalid
-				res->type = rest_multi; //should already be flagged
-				//must consult BE to convert relativeURL to absoluteURL via baseURL 
-				//(or could we absolutize in a batch in resource_create_multi0()?)
-				resource_identify(res->parent, res); //should increment multi pointer/iterator
-				frontenditem_enqueue(item);
+			int tactic = url2file_task_spawn;//url2file_task_spawn;
+			if(tactic == url2file_task_chain){
+				int more_multi;
+				resource_fetch(res); //URL2FILE
+				//Multi_URL loop moved here (middle layer ML), 
+				more_multi = (res->status == ress_failed) && (res->m_request != NULL);
+				if(more_multi){
+					//still some hope via multi_string url, perhaps next one
+					res->status = ress_invalid; //downgrade ress_fail to ress_invalid
+					res->type = rest_multi; //should already be flagged
+					//must consult BE to convert relativeURL to absoluteURL via baseURL 
+					//(or could we absolutize in a batch in resource_create_multi0()?)
+					resource_identify(res->parent, res); //should increment multi pointer/iterator
+					frontenditem_enqueue(item);
+				}
+			}else if(tactic == url2file_task_spawn){
+				downloadAsync(res); //res already has res->tg with global context
 			}
 		}
 		if(res->status == ress_downloaded){
 			//chain, spawn async/thread, or re-enqueue FILE2BLOB to some work thread
-			int tactic = file2blob_task_enqueue; //file2blob_task_spawn;
+			int tactic = file2blob_task_spawn; //file2blob_task_spawn;
 			if(tactic == file2blob_task_chain){
 				//chain FILE2BLOB
 				if(res->media_type == resm_image){

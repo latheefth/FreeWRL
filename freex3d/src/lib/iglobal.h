@@ -76,9 +76,9 @@ typedef struct iiglobal //InstanceGlobal
 		bool global_trace_threads;// = FALSE;
 		void *prv;
 	} internalc;
-	struct tio_http {
-		void *prv;
-	} io_http;
+	//struct tio_http {
+	//	void *prv;
+	//} io_http;
 	struct tresources {
 		resource_item_t *root_res; // = NULL;
 		void *prv;

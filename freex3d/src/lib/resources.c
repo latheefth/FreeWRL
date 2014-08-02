@@ -51,6 +51,27 @@
 //#define DEBUG_RES printf
 static void possiblyUnzip (openned_file_t *of);
 
+
+typedef struct presources{
+	struct Vector *resStack; //=NULL;
+	resource_item_t *lastBaseResource; //=NULL;
+}* presources;
+void *resources_constructor()
+{
+	void* v = malloc(sizeof(struct presources));
+	memset(v,0,sizeof(struct presources));
+	return v;
+}
+void resources_init(struct tresources* t)
+{
+	//public
+	//private
+	//presources p;
+	t->prv = resources_constructor();
+	//p = (presources)t->prv);
+}
+
+
 /* move Michel Briand's initialization code to one place to ensure consistency
    when fields are added/removed */
 
@@ -1229,4 +1250,87 @@ static void possiblyUnzip (openned_file_t *of) {
 bool resource_is_root_loaded()
 {
 	return ((gglobal()->resources.root_res != NULL) && (gglobal()->resources.root_res->status == ress_parsed));
+}
+
+/**
+ *   For keeping track of current url (for parsing / textures).
+ *
+ * this is a Vector; we keep track of n depths.
+ */
+
+/* keep the last base resource around, for times when we are making nodes during runtime, eg
+   textures in Background nodes */
+
+void pushInputResource(resource_item_t *url) 
+{
+	presources p = gglobal()->resources.prv;
+	DEBUG_MSG("pushInputResource current Resource is %s", url->parsed_request);
+
+            
+        
+	/* push this one */
+	if (p->resStack==NULL) {
+		p->resStack = newStack (resource_item_t *);
+	}
+
+    /* is this an EAI/SAI request? If not, we don't push this one on the stack */
+    /*
+    if (url->parsed_request != NULL)
+        if (strncmp(url->parsed_request,EAI_Flag,strlen(EAI_Flag)) == 0) {
+            DEBUG_MSG("pushInputResource, from EAI, ignoring");
+            return;
+        }
+*/
+	stack_push (resource_item_t*, p->resStack, url);
+    DEBUG_MSG("pushInputResource, after push, stack size %d",vectorSize(p->resStack));
+}
+
+void popInputResource() {
+	resource_item_t *cwu;
+	presources p = gglobal()->resources.prv;
+
+	/* lets just keep this one around, to see if it is really the bottom of the stack */
+    DEBUG_MSG("popInputResource, stack size %d",vectorSize(p->resStack));
+    
+	cwu = stack_top(resource_item_t *, p->resStack);
+
+	/* pop the stack, and if we are at "nothing" keep the pointer to the last resource */
+	stack_pop((resource_item_t *), p->resStack);
+
+	if (stack_empty(p->resStack)) {
+		DEBUG_MSG ("popInputResource, stack now empty and we have saved the last resource\n");
+		p->lastBaseResource = cwu;
+	} else {
+		cwu = stack_top(resource_item_t *, p->resStack);
+        DEBUG_MSG("popInputResource, cwu = %p",cwu);
+		DEBUG_MSG("popInputResource before pop, current Resource is %s\n", cwu->parsed_request);
+	}
+}
+
+resource_item_t *getInputResource()
+{
+	resource_item_t *cwu;
+	presources p = gglobal()->resources.prv;
+
+    
+	DEBUG_MSG("getInputResource \n");
+	if (p->resStack==NULL) {
+		DEBUG_MSG("getInputResource, stack NULL\n");
+		return NULL;
+	}
+
+	/* maybe we are running, and are, say, making up background textures at runtime? */
+	if (stack_empty(p->resStack)) {
+		if (p->lastBaseResource == NULL) {
+			ConsoleMessage ("stacking error - looking for input resource, but it is null");
+		} else {
+			DEBUG_MSG("so, returning %s\n",p->lastBaseResource->parsed_request);
+		}
+		return p->lastBaseResource;
+	}
+
+
+	cwu = stack_top(resource_item_t *, p->resStack);
+	DEBUG_MSG("getInputResource current Resource is %lu %lx %s\n", (unsigned long int) cwu, (unsigned long int) cwu, cwu->parsed_request);
+	return cwu;
 }

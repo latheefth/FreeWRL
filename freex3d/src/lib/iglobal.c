@@ -4,7 +4,7 @@
 
 void display_init(struct tdisplay* d);
 void internalc_init(struct tinternalc* ic);
-void io_http_init(struct tio_http* t);
+void resources_init(struct tresources* t);
 void threads_init(struct tthreads* t);
 
 #if !defined(FRONTEND_DOES_SNAPSHOTS)
@@ -113,8 +113,7 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	//call initializer for each sub-struct
 	display_init(&iglobal->display);
 	internalc_init(&iglobal->internalc);
-	io_http_init(&iglobal->io_http);
-	//resources_init
+	resources_init(&iglobal->resources);
 	threads_init(&iglobal->threads);
     
     
@@ -279,7 +278,6 @@ OLDCODE	FREE_IF_NZ(tg->Component_Networking.prv);
     
 	FREE_IF_NZ(tg->threads.prv);
 	FREE_IF_NZ(tg->resources.prv);
-	FREE_IF_NZ(tg->io_http.prv);
 	FREE_IF_NZ(tg->internalc.prv);
 	FREE_IF_NZ(tg->display.prv);
 

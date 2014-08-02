@@ -40,32 +40,8 @@
 #include "scenegraph/Vector.h"
 #include "main/ProdCon.h"
 
-#if defined(HAVE_WININET)
- #include <WinInet.h>
-#endif
-typedef struct pio_http{
-#ifdef HAVE_WININET
-		HINTERNET hWinInet;
-#else
-		void* filler; //=NULL;
-#endif
-		struct Vector *resStack; //=NULL;
-		resource_item_t *lastBaseResource; //=NULL;
-}* ppio_http;
-void *io_http_constructor()
-{
-	void* v = malloc(sizeof(struct pio_http));
-	memset(v,0,sizeof(struct pio_http));
-	return v;
-}
-void io_http_init(struct tio_http* t)
-{
-	//public
-	//private
-	//ppio_http p;
-	t->prv = io_http_constructor();
-	//p = (ppio_http)t->prv);
-}
+
+
 
 
 /*
@@ -296,12 +272,11 @@ void closeWinInetHandle()
 /* char* download_url_WinInet(const char *url, const char *tmp) */
 char* download_url_WinInet(resource_item_t *res)
 {
-	ppio_http p = gglobal()->io_http.prv;
-	if(!p->hWinInet)
+	if(!hWinInet)
 	{
-		p->hWinInet = winInetInit();
+		hWinInet = winInetInit();
 	}
-	if(!p->hWinInet) 
+	if(!hWinInet) 
 		return NULL;
 	else
 	{
@@ -312,7 +287,42 @@ char* download_url_WinInet(resource_item_t *res)
 			if (!fp) fp = fopen("http_log.txt", "w+");
 			fprintf(fp,"[%s]\n", res->parsed_request);
 		}
-		hOpenUrl=InternetOpenUrl(p->hWinInet,res->parsed_request,NULL,0,0,0); //INTERNET_FLAG_NO_UI|INTERNET_FLAG_RELOAD/*|INTERNET_FLAG_IGNORE_CERT_CN_INVALID install the cert instead*/,0);
+		hOpenUrl=InternetOpenUrl(hWinInet,res->parsed_request,NULL,0,0,0); //INTERNET_FLAG_NO_UI|INTERNET_FLAG_RELOAD/*|INTERNET_FLAG_IGNORE_CERT_CN_INVALID install the cert instead*/,0);
+		DWORD buflen = 1023;
+		DWORD dwError;
+		char buffer[1024];
+		//if(InternetGetLastResponseInfo(&dwError,buffer,&buflen)){
+		//	printf("error=%s\n",buffer);
+		//}else{
+		//	printf("no error\n");
+		//}
+// BOOL HttpQueryInfo(
+//  _In_     HINTERNET hRequest,
+//  _In_     DWORD dwInfoLevel,
+//  _Inout_  LPVOID lpvBuffer,
+//  _Inout_  LPDWORD lpdwBufferLength,
+//  _Inout_  LPDWORD lpdwIndex
+//);
+		//http://msdn.microsoft.com/en-us/library/aa384238(v=vs.85).aspx
+		DWORD InfoLevel, Index;
+		buflen = 1023;
+		Index = 0;
+		InfoLevel = HTTP_QUERY_RAW_HEADERS_CRLF;
+		if(HttpQueryInfo(hOpenUrl,InfoLevel,buffer,&buflen,NULL)){
+			//printf("query buffer=%s\n",buffer);
+			if(strstr(buffer,"404 Not Found")){
+				//HTTP/1.1 404 Not Found
+				ERROR_MSG("Download failed for url %s\n", res->parsed_request);
+				return NULL;
+			}
+			//else 200 OK
+		}
+		//else{
+		//	printf("no query buffer\n");
+		//}
+
+
+		//DWORD err = GetLastError();
 		if (!(hOpenUrl))
 		{
 			ERROR_MSG("Download failed for url %s\n", res->parsed_request);
@@ -326,7 +336,8 @@ char* download_url_WinInet(resource_item_t *res)
 			if (res->temp_dir) {
 				temp = STRDUP(res->temp_dir);
 			} else {
-				temp = tempnam(gglobal()->Mainloop.tmpFileLocation, "freewrl_download_XXXXXXXX");
+				//temp = _tempnam(gglobal()->Mainloop.tmpFileLocation, "freewrl_download_XXXXXXXX");
+				temp = _tempnam(NULL, "freewrl_download_XXXXXXXX");
 				if (!temp) {
 					PERROR_MSG("download_url: can't create temporary name.\n");
 					return NULL;	
@@ -476,85 +487,85 @@ void download_url(resource_item_t *res)
 	}
 }
 
-/**
- *   For keeping track of current url (for parsing / textures).
- *
- * this is a Vector; we keep track of n depths.
- */
-
-/* keep the last base resource around, for times when we are making nodes during runtime, eg
-   textures in Background nodes */
-
-void pushInputResource(resource_item_t *url) 
-{
-	ppio_http p = gglobal()->io_http.prv;
-	DEBUG_MSG("pushInputResource current Resource is %s", url->parsed_request);
-
-            
-        
-	/* push this one */
-	if (p->resStack==NULL) {
-		p->resStack = newStack (resource_item_t *);
-	}
-
-    /* is this an EAI/SAI request? If not, we don't push this one on the stack */
-    /*
-    if (url->parsed_request != NULL)
-        if (strncmp(url->parsed_request,EAI_Flag,strlen(EAI_Flag)) == 0) {
-            DEBUG_MSG("pushInputResource, from EAI, ignoring");
-            return;
-        }
-*/
-	stack_push (resource_item_t*, p->resStack, url);
-    DEBUG_MSG("pushInputResource, after push, stack size %d",vectorSize(p->resStack));
-}
-
-void popInputResource() {
-	resource_item_t *cwu;
-	ppio_http p = gglobal()->io_http.prv;
-
-	/* lets just keep this one around, to see if it is really the bottom of the stack */
-    DEBUG_MSG("popInputResource, stack size %d",vectorSize(p->resStack));
-    
-	cwu = stack_top(resource_item_t *, p->resStack);
-
-	/* pop the stack, and if we are at "nothing" keep the pointer to the last resource */
-	stack_pop((resource_item_t *), p->resStack);
-
-	if (stack_empty(p->resStack)) {
-		DEBUG_MSG ("popInputResource, stack now empty and we have saved the last resource\n");
-		p->lastBaseResource = cwu;
-	} else {
-		cwu = stack_top(resource_item_t *, p->resStack);
-        DEBUG_MSG("popInputResource, cwu = %p",cwu);
-		DEBUG_MSG("popInputResource before pop, current Resource is %s\n", cwu->parsed_request);
-	}
-}
-
-resource_item_t *getInputResource()
-{
-	resource_item_t *cwu;
-	ppio_http p = gglobal()->io_http.prv;
-
-    
-	DEBUG_MSG("getInputResource \n");
-	if (p->resStack==NULL) {
-		DEBUG_MSG("getInputResource, stack NULL\n");
-		return NULL;
-	}
-
-	/* maybe we are running, and are, say, making up background textures at runtime? */
-	if (stack_empty(p->resStack)) {
-		if (p->lastBaseResource == NULL) {
-			ConsoleMessage ("stacking error - looking for input resource, but it is null");
-		} else {
-			DEBUG_MSG("so, returning %s\n",p->lastBaseResource->parsed_request);
-		}
-		return p->lastBaseResource;
-	}
-
-
-	cwu = stack_top(resource_item_t *, p->resStack);
-	DEBUG_MSG("getInputResource current Resource is %lu %lx %s\n", (unsigned long int) cwu, (unsigned long int) cwu, cwu->parsed_request);
-	return cwu;
-}
+///**
+// *   For keeping track of current url (for parsing / textures).
+// *
+// * this is a Vector; we keep track of n depths.
+// */
+//
+///* keep the last base resource around, for times when we are making nodes during runtime, eg
+//   textures in Background nodes */
+//
+//void pushInputResource(resource_item_t *url) 
+//{
+//	ppio_http p = gglobal()->io_http.prv;
+//	DEBUG_MSG("pushInputResource current Resource is %s", url->parsed_request);
+//
+//            
+//        
+//	/* push this one */
+//	if (p->resStack==NULL) {
+//		p->resStack = newStack (resource_item_t *);
+//	}
+//
+//    /* is this an EAI/SAI request? If not, we don't push this one on the stack */
+//    /*
+//    if (url->parsed_request != NULL)
+//        if (strncmp(url->parsed_request,EAI_Flag,strlen(EAI_Flag)) == 0) {
+//            DEBUG_MSG("pushInputResource, from EAI, ignoring");
+//            return;
+//        }
+//*/
+//	stack_push (resource_item_t*, p->resStack, url);
+//    DEBUG_MSG("pushInputResource, after push, stack size %d",vectorSize(p->resStack));
+//}
+//
+//void popInputResource() {
+//	resource_item_t *cwu;
+//	ppio_http p = gglobal()->io_http.prv;
+//
+//	/* lets just keep this one around, to see if it is really the bottom of the stack */
+//    DEBUG_MSG("popInputResource, stack size %d",vectorSize(p->resStack));
+//    
+//	cwu = stack_top(resource_item_t *, p->resStack);
+//
+//	/* pop the stack, and if we are at "nothing" keep the pointer to the last resource */
+//	stack_pop((resource_item_t *), p->resStack);
+//
+//	if (stack_empty(p->resStack)) {
+//		DEBUG_MSG ("popInputResource, stack now empty and we have saved the last resource\n");
+//		p->lastBaseResource = cwu;
+//	} else {
+//		cwu = stack_top(resource_item_t *, p->resStack);
+//        DEBUG_MSG("popInputResource, cwu = %p",cwu);
+//		DEBUG_MSG("popInputResource before pop, current Resource is %s\n", cwu->parsed_request);
+//	}
+//}
+//
+//resource_item_t *getInputResource()
+//{
+//	resource_item_t *cwu;
+//	ppio_http p = gglobal()->io_http.prv;
+//
+//    
+//	DEBUG_MSG("getInputResource \n");
+//	if (p->resStack==NULL) {
+//		DEBUG_MSG("getInputResource, stack NULL\n");
+//		return NULL;
+//	}
+//
+//	/* maybe we are running, and are, say, making up background textures at runtime? */
+//	if (stack_empty(p->resStack)) {
+//		if (p->lastBaseResource == NULL) {
+//			ConsoleMessage ("stacking error - looking for input resource, but it is null");
+//		} else {
+//			DEBUG_MSG("so, returning %s\n",p->lastBaseResource->parsed_request);
+//		}
+//		return p->lastBaseResource;
+//	}
+//
+//
+//	cwu = stack_top(resource_item_t *, p->resStack);
+//	DEBUG_MSG("getInputResource current Resource is %lu %lx %s\n", (unsigned long int) cwu, (unsigned long int) cwu, cwu->parsed_request);
+//	return cwu;
+//}
