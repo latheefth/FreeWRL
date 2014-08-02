@@ -176,7 +176,7 @@ void ProdCon_init(struct tProdCon *t)
 		p->_P_LOCK_VAR = 0;
 		p->resource_list_to_parse = NULL;
 		p->frontend_list_to_get = NULL;
-		p->frontend_gets_files = TRUE; //dug9 Sep 1, 2013 used to test new fgf method in win32; July2014 we're back, for Async
+		p->frontend_gets_files = 2; //dug9 Sep 1, 2013 used to test new fgf method in win32; July2014 we're back, for Async 1=main.c 2=_displayThread
 		/* psp is the data structure that holds parameters for the parsing thread */
 		//p->psp;
 		/* is the inputParse thread created? */
@@ -950,6 +950,11 @@ void resitem_enqueue(s_list_t *item){
 
 	threadsafe_enqueue_item_signal(item,&p->resource_list_to_parse, &tg->threads.mutex_resource_list, &tg->threads.resource_list_condition );
 }
+void resitem_enqueue_tg(s_list_t *item, void* tg){
+	fwl_setCurrentHandle(tg, __FILE__, __LINE__);
+	resitem_enqueue(item);
+	fwl_clearCurrentHandle();
+}
 s_list_t *resitem_dequeue(){
 	ppProdCon p;
 	ttglobal tg = gglobal();
@@ -983,6 +988,11 @@ void frontenditem_enqueue(s_list_t *item){
 
 	threadsafe_enqueue_item(item,&p->frontend_list_to_get, &tg->threads.mutex_frontend_list );
 }
+void frontenditem_enqueue_tg(s_list_t *item, void *tg){
+	fwl_setCurrentHandle(tg, __FILE__, __LINE__);
+	frontenditem_enqueue(item);
+	fwl_clearCurrentHandle();
+}
 s_list_t *frontenditem_dequeue(){
 	ppProdCon p;
 	ttglobal tg = gglobal();
@@ -990,6 +1000,14 @@ s_list_t *frontenditem_dequeue(){
 
 	return threadsafe_dequeue_item(&p->frontend_list_to_get, &tg->threads.mutex_frontend_list );
 }
+s_list_t *frontenditem_dequeue_tg(void *tg){
+	s_list_t *item;
+	fwl_setCurrentHandle(tg, __FILE__, __LINE__);
+	item = frontenditem_dequeue();
+	fwl_clearCurrentHandle();
+	return item;
+}
+
 bool imagery_load(resource_item_t *res);
 int checkReplaceWorldRequest();
 int checkExitRequest();
@@ -998,32 +1016,71 @@ enum {
 	file2blob_task_spawn,
 	file2blob_task_enqueue,
 } file2blob_task_tactic;
-//this is for simulating frontend_gets_files in win32 - called from lib/main.c
-void frontend_dequeue_get_enqueue(){
+
+int file2blob(resource_item_t *res){
+	int retval;
+	if(res->media_type == resm_image){
+		retval = imagery_load(res); //FILE2TEXBLOB
+	}else{
+		retval = resource_load(res);  //FILE2BLOB
+	}
+	return retval;
+}
+
+static int async_thread_count = 0;
+static void *thread_load_async (void *args){
+	int loaded;
+	resource_item_t *res = (resource_item_t *)args;
+	async_thread_count++;
+	printf("[%d]",async_thread_count);
+	//if(res->media_type == resm_image){
+	//	imagery_load(res); //FILE2TEXBLOB
+	//}else{
+	//	resource_load(res);  //FILE2BLOB
+	//}
+	loaded = file2blob(res);
+	//enqueue BLOB to BE
+	if(loaded)
+		resitem_enqueue_tg(ml_new(res),res->tg);
+	async_thread_count--;
+	return NULL;
+}
+void loadAsync (resource_item_t *res) {
+	if(!res->_loadThread) res->_loadThread = malloc(sizeof(pthread_t));
+	pthread_create ((pthread_t*)res->_loadThread, NULL,&thread_load_async, (void *)res);
+}
+
+//this is for simulating frontend_gets_files in configs that run _displayThread: desktop and browser plugins
+//but can be run from any thread as long as you know the freewrl instance/context/tg/gglobal* for the resitem and frontenditem queues, replaceWorldRequest etc
+#define MAX_SPAWNED_PER_PASS 10  //in desktop I've had 57 spawned threads at once, with no problems. In case there's a problem this will limit spawned-per-pass, which will indirectly limit spawned-at-same-time
+void frontend_dequeue_get_enqueue(void *tg){
+	int count_this_pass;
 	s_list_t *item = NULL;
 	resource_item_t *res = NULL;
-	int more;
-	while( !checkExitRequest() && !checkReplaceWorldRequest() && (item = frontenditem_dequeue()) != NULL ){
+	fwl_setCurrentHandle(tg, __FILE__, __LINE__); //set the freewrl instance - will apply to all following calls into the backend. This allows you to call from any thread.
+	count_this_pass = 0; //approximately == number of spawned threads running at one time when doing file2blob_task_spawn
+	while( count_this_pass < MAX_SPAWNED_PER_PASS && !checkExitRequest() && !checkReplaceWorldRequest() && (item = frontenditem_dequeue()) != NULL ){
+		count_this_pass++;
 		//download_url((resource_item_t *) item->elem);
 		res = item->elem;
 		if(res->status != ress_downloaded){
+			int more_multi;
 			resource_fetch(res); //URL2FILE
-			//still some hope via multi_string url, perhaps next one
-			/* printf ("load_Inline, not found, lets try this again\n");*/
 			//Multi_URL loop moved here (middle layer ML), 
-			//but must consult BE to convert relativeURL to absoluteURL via baseURL 
-			//(or could we absolutize in a batch in resource_create_multi0()?)
-			more = (res->status == ress_failed) && (res->m_request != NULL);
-			if(more){
+			more_multi = (res->status == ress_failed) && (res->m_request != NULL);
+			if(more_multi){
+				//still some hope via multi_string url, perhaps next one
 				res->status = ress_invalid; //downgrade ress_fail to ress_invalid
 				res->type = rest_multi; //should already be flagged
-				resource_identify(res->parent, res); //should increment multi pointer
+				//must consult BE to convert relativeURL to absoluteURL via baseURL 
+				//(or could we absolutize in a batch in resource_create_multi0()?)
+				resource_identify(res->parent, res); //should increment multi pointer/iterator
 				frontenditem_enqueue(item);
 			}
 		}
 		if(res->status == ress_downloaded){
 			//chain, spawn async/thread, or re-enqueue FILE2BLOB to some work thread
-			int tactic = file2blob_task_chain;
+			int tactic = file2blob_task_enqueue; //file2blob_task_spawn;
 			if(tactic == file2blob_task_chain){
 				//chain FILE2BLOB
 				if(res->media_type == resm_image){
@@ -1035,14 +1092,18 @@ void frontend_dequeue_get_enqueue(){
 				resitem_enqueue(item);
 			}else if(tactic == file2blob_task_enqueue){
 				//set BE load function to non-null
+				//a) res->load_func = imagery_load or resource_load or file2blob
+				res->_loadFunc = file2blob;
+				//b) backend_setloadfunction(file2blob) or backend_setimageryloadfunction(imagery_load) and backend_setresourceloadfunction(resource_load)
 				//enqueue downloaded FILE
 				resitem_enqueue(item);
 			}else if(tactic == file2blob_task_spawn){
-				//create args
-				//spawn thread with args
+				//spawn thread
+				loadAsync(res); //res already has res->tg with global context
 			}
 		}
 	}
+	//fwl_clearCurrentHandle(); don't unset, in case we are in a BE/ML thread ie _displayThread
 }
 int frontendGetsFiles(){
 	return ((ppProdCon)(gglobal()->ProdCon.prv))->frontend_gets_files;
@@ -1096,16 +1157,19 @@ static bool parser_process_res(s_list_t *item)
 		}
 		break;
 
-	//case ress_downloaded:
-	//	if(!res->actions || (res->actions & resa_load))
-	//	/* Here we may want to delegate loading into another thread ... */
-	//	if (!resource_load(res)) {
-	//		ERROR_MSG("failure when trying to load resource: %s\n", res->URLrequest);
-	//		remove_it = TRUE;
-	//		res->complete = TRUE; //J30
-	//		retval = FALSE;
-	//	}
-	//	break;
+	case ress_downloaded:
+		if(!res->actions || (res->actions & resa_load))
+		/* Here we may want to delegate loading into another thread ... */
+		//if (!resource_load(res)) {
+		if(res->_loadFunc){
+			if(!res->_loadFunc(res)){
+				ERROR_MSG("failure when trying to load resource: %s\n", res->URLrequest);
+				remove_it = TRUE;
+				res->complete = TRUE; //J30
+				retval = FALSE;
+			}
+		}
+		break;
 
 	case ress_failed:
 		retval = FALSE;

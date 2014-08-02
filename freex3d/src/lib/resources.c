@@ -64,6 +64,7 @@ resource_item_t *newResourceItem() {
 	item->parent = NULL;
 	item->actual_file = NULL;
 	item->cached_files = NULL;
+	item->tg = gglobal();
 	return item;
 }
 

@@ -173,7 +173,9 @@ typedef struct resource_item {
 
 	resource_media_type_t media_type;
 	int treat_as_root; //bandaid for .x3z doc.x3d to be seen as root res equivalent
-
+	void *_loadThread; //pthread_t * used for async_loading in middleLayer ML
+	void *tg; //gglobal context
+	int (*_loadFunc)(void *);
 } resource_item_t;
 
 extern resource_item_t *root_res;

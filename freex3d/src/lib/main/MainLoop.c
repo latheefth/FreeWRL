@@ -4483,6 +4483,8 @@ void _displayThread(void *globalcontext)
 	ENTER_THREAD("display");
 
 	do{
+		if(frontendGetsFiles()==2) 
+			frontend_dequeue_get_enqueue(tg); //this is non-blocking (returns immediately) if queue empty
 		more = fwl_draw();
 		//if (!tg->display.params.frontend_handles_display_thread){
 			/* swap the rendering area */

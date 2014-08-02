@@ -366,7 +366,7 @@ int checkExitRequest();
 
 void fwl_startFreeWRL(const char *url)
 {
-
+	void *ttg = NULL;
 	//ConsoleMessage ("yes, really, FWL_STARTFREEWRL called is called\n");
 
 	/* Give the main argument to the resource handler */
@@ -396,6 +396,7 @@ void fwl_startFreeWRL(const char *url)
 		//	gglobal()->Mainloop.scene_suff = suff;
 		//}
 		ttglobal tg = gglobal();
+		ttg = tg;
 		char* suff = NULL;
 		char* local_name = NULL;
 		splitpath_local_suffix(url, &local_name, &suff);
@@ -416,9 +417,10 @@ void fwl_startFreeWRL(const char *url)
 	//this is for simulating frontend_gets_files for testing. Do not set FRONTEND_GETS_FILES. 
 	//this tests an alternate method. 
 	// you need to put an http:// file on the command line (this is hardwired for io_http gets only, not local
-	if(frontendGetsFiles()){
+	if(frontendGetsFiles()==1){
 		for(;;){
-			frontend_dequeue_get_enqueue();
+			frontend_dequeue_get_enqueue(ttg); //this is non-blocking (returns immediately) if queue empty
+			sleep(100);
 			if(checkExitRequest()) break;
 		}
 		sleep(200); //wait for backend threads to wind down
