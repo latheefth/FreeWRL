@@ -993,6 +993,11 @@ s_list_t *frontenditem_dequeue(){
 bool imagery_load(resource_item_t *res);
 int checkReplaceWorldRequest();
 int checkExitRequest();
+enum {
+	file2blob_task_chain,
+	file2blob_task_spawn,
+	file2blob_task_enqueue,
+} file2blob_task_tactic;
 //this is for simulating frontend_gets_files in win32 - called from lib/main.c
 void frontend_dequeue_get_enqueue(){
 	s_list_t *item = NULL;
@@ -1001,7 +1006,7 @@ void frontend_dequeue_get_enqueue(){
 	while( !checkExitRequest() && !checkReplaceWorldRequest() && (item = frontenditem_dequeue()) != NULL ){
 		//download_url((resource_item_t *) item->elem);
 		res = item->elem;
-		do{
+		if(res->status != ress_downloaded){
 			resource_fetch(res); //URL2FILE
 			//still some hope via multi_string url, perhaps next one
 			/* printf ("load_Inline, not found, lets try this again\n");*/
@@ -1013,14 +1018,30 @@ void frontend_dequeue_get_enqueue(){
 				res->status = ress_invalid; //downgrade ress_fail to ress_invalid
 				res->type = rest_multi; //should already be flagged
 				resource_identify(res->parent, res); //should increment multi pointer
+				frontenditem_enqueue(item);
 			}
-		}while(more);
-		if(res->media_type == resm_image){
-			imagery_load(res); //FILE2TEXBLOB
-		}else{
-			resource_load(res);  //FILE2BLOB
 		}
-		resitem_enqueue(item);
+		if(res->status == ress_downloaded){
+			//chain, spawn async/thread, or re-enqueue FILE2BLOB to some work thread
+			int tactic = file2blob_task_chain;
+			if(tactic == file2blob_task_chain){
+				//chain FILE2BLOB
+				if(res->media_type == resm_image){
+					imagery_load(res); //FILE2TEXBLOB
+				}else{
+					resource_load(res);  //FILE2BLOB
+				}
+				//enqueue BLOB to BE
+				resitem_enqueue(item);
+			}else if(tactic == file2blob_task_enqueue){
+				//set BE load function to non-null
+				//enqueue downloaded FILE
+				resitem_enqueue(item);
+			}else if(tactic == file2blob_task_spawn){
+				//create args
+				//spawn thread with args
+			}
+		}
 	}
 }
 int frontendGetsFiles(){
