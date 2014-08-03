@@ -228,4 +228,8 @@ char *resourceMediaTypeToString(int type);
 extern bool resource_is_root_loaded();
 void frontenditem_enqueue(s_list_t *item);
 
+void popInputResource();
+void pushInputResource(resource_item_t *url);
+resource_item_t *getInputResource();
+
 #endif /* __LIBFREEWRL_RESOURCES_H__ */

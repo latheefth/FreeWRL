@@ -28,69 +28,25 @@
 
 #include <config.h>
 #include <system.h>
-#include <display.h>
+#include <resources.h>
+//#include <display.h>
 #include <internal.h>
 
-#include <libFreeWRL.h>
-#include <list.h>
-
-#include <io_files.h>
-#include <io_http.h>
-#include <threads.h>
-#include "scenegraph/Vector.h"
-#include "main/ProdCon.h"
-
-
+//#include <libFreeWRL.h>
+//#include <list.h>
+//
+//#include <io_files.h>
+//#include <io_http.h>
+//#include <threads.h>
+//#include "scenegraph/Vector.h"
+//#include "main/ProdCon.h"
 
 
 
-/*
- * Check to see if the file name is a local file, or a network file.
- * return TRUE if it looks like a file from the network, false if it
- * is local to this machine
- * October 2007 - Michel Briand suggested the https:// lines.
- */
-/**
- *   checkNetworkFile:
- */
-bool checkNetworkFile(const char *fn)
-{
-    //int i = 0; 
-    //char *pt = fn; 
-    
-    if (fn == NULL) {
-        ConsoleMessage ("checkNetworkFile, got a NULL here");
-        return FALSE;
-    }
-    
-  //  while (*pt != '\0') {
-  //      ConsoleMessage ("cfn %d is %x %c",i,*pt,*pt);
-  //      i++;
-  //      pt++;
-  //  }
-    
-    //ConsoleMessage ("checkNetworkFile, have %s, len %d\n",fn,strlen(fn));
-    
-	if ((strncmp(fn,"ftp://", strlen("ftp://"))) &&
-	    (strncmp(fn,"FTP://", strlen("FTP://"))) &&
-	    (strncmp(fn,"http://", strlen("http://"))) &&
-	    (strncmp(fn,"HTTP://", strlen("HTTP://"))) &&
-	    (strncmp(fn,"https://", strlen("https://"))) &&
-	    (strncmp(fn,"HTTPS://", strlen("HTTPS://"))) &&
-/* JAS - these really are local files | MB - indeed :^) !
-	    (strncmp(fn,"file://", strlen("file://"))) &&
-	    (strncmp(fn,"FILE://", strlen("FILE://"))) &&
-*/
-	    (strncmp(fn,"urn://", strlen("urn://"))) &&
-	    (strncmp(fn,"URN://", strlen("URN://")))
 
-	) {
-        	//ConsoleMessage ("CNF returning FALSE");
-		return FALSE;
-	}
-    	//ConsoleMessage ("CNF returning TRUE");
-	return TRUE;
-}
+#ifdef _MSC_VER
+#define strncasecmp _strnicmp
+#endif
 
 bool is_url(const char *url)
 {
@@ -487,85 +443,244 @@ void download_url(resource_item_t *res)
 	}
 }
 
-///**
-// *   For keeping track of current url (for parsing / textures).
-// *
-// * this is a Vector; we keep track of n depths.
-// */
-//
-///* keep the last base resource around, for times when we are making nodes during runtime, eg
-//   textures in Background nodes */
-//
-//void pushInputResource(resource_item_t *url) 
-//{
-//	ppio_http p = gglobal()->io_http.prv;
-//	DEBUG_MSG("pushInputResource current Resource is %s", url->parsed_request);
-//
-//            
-//        
-//	/* push this one */
-//	if (p->resStack==NULL) {
-//		p->resStack = newStack (resource_item_t *);
-//	}
-//
-//    /* is this an EAI/SAI request? If not, we don't push this one on the stack */
-//    /*
-//    if (url->parsed_request != NULL)
-//        if (strncmp(url->parsed_request,EAI_Flag,strlen(EAI_Flag)) == 0) {
-//            DEBUG_MSG("pushInputResource, from EAI, ignoring");
-//            return;
-//        }
-//*/
-//	stack_push (resource_item_t*, p->resStack, url);
-//    DEBUG_MSG("pushInputResource, after push, stack size %d",vectorSize(p->resStack));
-//}
-//
-//void popInputResource() {
-//	resource_item_t *cwu;
-//	ppio_http p = gglobal()->io_http.prv;
-//
-//	/* lets just keep this one around, to see if it is really the bottom of the stack */
-//    DEBUG_MSG("popInputResource, stack size %d",vectorSize(p->resStack));
-//    
-//	cwu = stack_top(resource_item_t *, p->resStack);
-//
-//	/* pop the stack, and if we are at "nothing" keep the pointer to the last resource */
-//	stack_pop((resource_item_t *), p->resStack);
-//
-//	if (stack_empty(p->resStack)) {
-//		DEBUG_MSG ("popInputResource, stack now empty and we have saved the last resource\n");
-//		p->lastBaseResource = cwu;
-//	} else {
-//		cwu = stack_top(resource_item_t *, p->resStack);
-//        DEBUG_MSG("popInputResource, cwu = %p",cwu);
-//		DEBUG_MSG("popInputResource before pop, current Resource is %s\n", cwu->parsed_request);
-//	}
-//}
-//
-//resource_item_t *getInputResource()
-//{
-//	resource_item_t *cwu;
-//	ppio_http p = gglobal()->io_http.prv;
-//
-//    
-//	DEBUG_MSG("getInputResource \n");
-//	if (p->resStack==NULL) {
-//		DEBUG_MSG("getInputResource, stack NULL\n");
-//		return NULL;
-//	}
-//
-//	/* maybe we are running, and are, say, making up background textures at runtime? */
-//	if (stack_empty(p->resStack)) {
-//		if (p->lastBaseResource == NULL) {
-//			ConsoleMessage ("stacking error - looking for input resource, but it is null");
-//		} else {
-//			DEBUG_MSG("so, returning %s\n",p->lastBaseResource->parsed_request);
-//		}
-//		return p->lastBaseResource;
-//	}
-//
-//
-//	cwu = stack_top(resource_item_t *, p->resStack);
-//	DEBUG_MSG("getInputResource current Resource is %lu %lx %s\n", (unsigned long int) cwu, (unsigned long int) cwu, cwu->parsed_request);
-//	return cwu;
-//}
+/**
+ *   resource_fetch: download remote url or check for local file access.
+ */
+bool resource_fetch(resource_item_t *res)
+{
+	char* pound;
+	DEBUG_RES("fetching resource: %s, %s resource %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status) ,res->URLrequest);
+
+	ASSERT(res);
+
+	switch (res->type) {
+
+	case rest_invalid:
+		res->status = ress_invalid;
+		ERROR_MSG("resource_fetch: can't fetch an invalid resource: %s\n", res->URLrequest);
+		break;
+
+	case rest_url:
+		switch (res->status) {
+		case ress_none:
+		case ress_starts_good:
+			DEBUG_RES ("resource_fetch, calling download_url\n");
+			//pound = NULL;
+			//pound = strchr(res->parsed_request, '#');
+			//if (pound != NULL) {
+			//	*pound = '\0';
+			//	/* copy the name out, so that Anchors can go to correct Viewpoint */
+			//	pound++;
+			//	res->afterPoundCharacters = STRDUP(pound);
+			//}
+
+			download_url(res);
+			break;
+		default:
+			/* error */
+			break;
+		}
+		break;
+
+	case rest_file:
+		switch (res->status) {
+		case ress_none:
+		case ress_starts_good:
+			/* SJD If this is a PROTO expansion, need to take of trailing part after # */
+			//pound = NULL;
+			//pound = strchr(res->parsed_request, '#');
+			//if (pound != NULL) {
+			//	*pound = '\0';
+			//}
+				
+#if defined(FRONTEND_GETS_FILES)
+ConsoleMessage ("ERROR, should not be here in rest_file");
+#else
+
+			if (do_file_exists(res->parsed_request)) {
+				if (do_file_readable(res->parsed_request)) {
+					res->status = ress_downloaded;
+					res->actual_file = STRDUP(res->parsed_request);
+					//if (pound != NULL) {
+					//	/* copy the name out, so that Anchors can go to correct Viewpoint */
+					//	pound ++;
+					//	res->afterPoundCharacters = STRDUP(pound);
+					//}
+				} else {
+					res->status = ress_failed;
+					ERROR_MSG("resource_fetch: wrong permission to read file: %s\n", res->parsed_request);
+				}
+			} else {
+				res->status = ress_failed;
+				ERROR_MSG("resource_fetch: can't find file: %s\n", res->parsed_request);
+			}
+#endif //FRONTEND_GETS_FILES
+
+			break;
+		default:
+			/* error */
+			break;
+		}
+		break;
+
+	case rest_multi:
+	case rest_string:
+		/* Nothing to do */
+		break;
+	}
+	DEBUG_RES ("resource_fetch (end): network=%s type=%s status=%s"
+		  " request=<%s> base=<%s> url=<%s> [parent %p, %s]\n", 
+		  BOOL_STR(res->network), resourceTypeToString(res->type), 
+		  resourceStatusToString(res->status), res->URLrequest, 
+		  res->URLbase, res->parsed_request,
+		  res->parent, (res->parent ? res->parent->URLbase : "N/A"));
+	return (res->status == ress_downloaded);
+}
+
+
+void frontenditem_enqueue_tg(s_list_t *item, void *tg);
+s_list_t *frontenditem_dequeue_tg(void *tg);
+s_list_t *frontenditem_dequeue();
+void resitem_enqueue_tg(s_list_t *item, void* tg);
+
+bool imagery_load(resource_item_t *res);
+int checkReplaceWorldRequest();
+int checkExitRequest();
+enum {
+	url2file_task_chain,
+	url2file_task_spawn,
+	file2blob_task_chain,
+	file2blob_task_spawn,
+	file2blob_task_enqueue,
+} url2blob_task_tactic;
+
+int file2blob(resource_item_t *res){
+	int retval;
+	if(res->media_type == resm_image){
+		retval = imagery_load(res); //FILE2TEXBLOB
+	}else{
+		retval = resource_load(res);  //FILE2BLOB
+	}
+	return retval;
+}
+int url2file(resource_item_t *res){
+	int retval = 0;
+	int more_multi;
+	resource_fetch(res); //URL2FILE
+	//Multi_URL loop moved here (middle layer ML), 
+	more_multi = (res->status == ress_failed) && (res->m_request != NULL);
+	if(more_multi){
+		//still some hope via multi_string url, perhaps next one
+		res->status = ress_invalid; //downgrade ress_fail to ress_invalid
+		res->type = rest_multi; //should already be flagged
+		//must consult BE to convert relativeURL to absoluteURL via baseURL 
+		//(or could we absolutize in a batch in resource_create_multi0()?)
+		resource_identify(res->parent, res); //should increment multi pointer/iterator
+		retval = 1;
+	}else if(res->status == ress_downloaded){
+		//queue for loading
+		retval = 1;
+	}
+	return retval;
+}
+
+static int async_thread_count = 0;
+static void *thread_download_async (void *args){
+	int downloaded;
+	resource_item_t *res = (resource_item_t *)args;
+	async_thread_count++;
+	printf("{%d}",async_thread_count);
+	downloaded = url2file(res);
+	//enqueue FILE to ML
+	if(downloaded)
+		frontenditem_enqueue_tg(ml_new(res),res->tg);
+	async_thread_count--;
+	return NULL;
+}
+void downloadAsync (resource_item_t *res) {
+	if(!res->_loadThread) res->_loadThread = malloc(sizeof(pthread_t));
+	pthread_create ((pthread_t*)res->_loadThread, NULL,&thread_download_async, (void *)res);
+}
+
+static void *thread_load_async (void *args){
+	int loaded;
+	resource_item_t *res = (resource_item_t *)args;
+	async_thread_count++;
+	printf("[%d]",async_thread_count);
+	//if(res->media_type == resm_image){
+	//	imagery_load(res); //FILE2TEXBLOB
+	//}else{
+	//	resource_load(res);  //FILE2BLOB
+	//}
+	loaded = file2blob(res);
+	//enqueue BLOB to BE
+	if(loaded)
+		resitem_enqueue_tg(ml_new(res),res->tg);
+	async_thread_count--;
+	return NULL;
+}
+void loadAsync (resource_item_t *res) {
+	if(!res->_loadThread) res->_loadThread = malloc(sizeof(pthread_t));
+	pthread_create ((pthread_t*)res->_loadThread, NULL,&thread_load_async, (void *)res);
+}
+
+//this is for simulating frontend_gets_files in configs that run _displayThread: desktop and browser plugins
+//but can be run from any thread as long as you know the freewrl instance/context/tg/gglobal* for the resitem and frontenditem queues, replaceWorldRequest etc
+#define MAX_SPAWNED_PER_PASS 15  //in desktop I've had 57 spawned threads at once, with no problems. In case there's a problem this will limit spawned-per-pass, which will indirectly limit spawned-at-same-time
+void frontend_dequeue_get_enqueue(void *tg){
+	int count_this_pass;
+	s_list_t *item = NULL;
+	resource_item_t *res = NULL;
+	fwl_setCurrentHandle(tg, __FILE__, __LINE__); //set the freewrl instance - will apply to all following calls into the backend. This allows you to call from any thread.
+	count_this_pass = 0; //approximately == number of spawned threads running at one time when doing file2blob_task_spawn
+	while( max(count_this_pass,async_thread_count) < MAX_SPAWNED_PER_PASS && !checkExitRequest() && !checkReplaceWorldRequest() && (item = frontenditem_dequeue()) != NULL ){
+		count_this_pass++;
+		//download_url((resource_item_t *) item->elem);
+		res = item->elem;
+		if(res->status != ress_downloaded){
+			int tactic = url2file_task_spawn;//url2file_task_spawn;
+			if(tactic == url2file_task_chain){
+				int more_multi;
+				resource_fetch(res); //URL2FILE
+				//Multi_URL loop moved here (middle layer ML), 
+				more_multi = (res->status == ress_failed) && (res->m_request != NULL);
+				if(more_multi){
+					//still some hope via multi_string url, perhaps next one
+					res->status = ress_invalid; //downgrade ress_fail to ress_invalid
+					res->type = rest_multi; //should already be flagged
+					//must consult BE to convert relativeURL to absoluteURL via baseURL 
+					//(or could we absolutize in a batch in resource_create_multi0()?)
+					resource_identify(res->parent, res); //should increment multi pointer/iterator
+					frontenditem_enqueue(item);
+				}
+			}else if(tactic == url2file_task_spawn){
+				downloadAsync(res); //res already has res->tg with global context
+			}
+		}
+		if(res->status == ress_downloaded){
+			//chain, spawn async/thread, or re-enqueue FILE2BLOB to some work thread
+			int tactic = file2blob_task_spawn; //file2blob_task_spawn;
+			if(tactic == file2blob_task_chain){
+				//chain FILE2BLOB
+				if(res->media_type == resm_image){
+					imagery_load(res); //FILE2TEXBLOB
+				}else{
+					resource_load(res);  //FILE2BLOB
+				}
+				//enqueue BLOB to BE
+				resitem_enqueue(item);
+			}else if(tactic == file2blob_task_enqueue){
+				//set BE load function to non-null
+				//a) res->load_func = imagery_load or resource_load or file2blob
+				res->_loadFunc = file2blob;
+				//b) backend_setloadfunction(file2blob) or backend_setimageryloadfunction(imagery_load) and backend_setresourceloadfunction(resource_load)
+				//enqueue downloaded FILE
+				resitem_enqueue(item);
+			}else if(tactic == file2blob_task_spawn){
+				//spawn thread
+				loadAsync(res); //res already has res->tg with global context
+			}
+		}
+	}
+	//fwl_clearCurrentHandle(); don't unset, in case we are in a BE/ML thread ie _displayThread
+}

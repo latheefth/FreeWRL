@@ -190,6 +190,56 @@ resource_item_t* resource_create_from_string(const char *string)
 	return item;
 }
 
+
+/*
+ * Check to see if the file name is a local file, or a network file.
+ * return TRUE if it looks like a file from the network, false if it
+ * is local to this machine
+ * October 2007 - Michel Briand suggested the https:// lines.
+ */
+/**
+ *   checkNetworkFile:
+ */
+bool checkNetworkFile(const char *fn)
+{
+    //int i = 0; 
+    //char *pt = fn; 
+    
+    if (fn == NULL) {
+        ConsoleMessage ("checkNetworkFile, got a NULL here");
+        return FALSE;
+    }
+    
+  //  while (*pt != '\0') {
+  //      ConsoleMessage ("cfn %d is %x %c",i,*pt,*pt);
+  //      i++;
+  //      pt++;
+  //  }
+    
+    //ConsoleMessage ("checkNetworkFile, have %s, len %d\n",fn,strlen(fn));
+    
+	if ((strncmp(fn,"ftp://", strlen("ftp://"))) &&
+	    (strncmp(fn,"FTP://", strlen("FTP://"))) &&
+	    (strncmp(fn,"http://", strlen("http://"))) &&
+	    (strncmp(fn,"HTTP://", strlen("HTTP://"))) &&
+	    (strncmp(fn,"https://", strlen("https://"))) &&
+	    (strncmp(fn,"HTTPS://", strlen("HTTPS://"))) &&
+/* JAS - these really are local files | MB - indeed :^) !
+	    (strncmp(fn,"file://", strlen("file://"))) &&
+	    (strncmp(fn,"FILE://", strlen("FILE://"))) &&
+*/
+	    (strncmp(fn,"urn://", strlen("urn://"))) &&
+	    (strncmp(fn,"URN://", strlen("URN://")))
+
+	) {
+        	//ConsoleMessage ("CNF returning FALSE");
+		return FALSE;
+	}
+    	//ConsoleMessage ("CNF returning TRUE");
+	return TRUE;
+}
+
+
 /**
  *   resource_identify: identify resource type and location relatively to base
  *			If base is NULL then this resource may become a root
@@ -258,7 +308,7 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 	{	
 		char* pound;
 		pound = NULL;
-		pound = strchr(res->URLrequest, '#');
+		pound = strchr(res->URLrequest, '#'); //moved here Aug2014 Q. should it be later on strdup of URLrequest?
 		if (pound != NULL) {
 			*pound = '\0';
 			/* copy the name out, so that Anchors can go to correct Viewpoint */
@@ -402,100 +452,6 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 		  res->URLbase, res->parsed_request,
 		  res->parent, (res->parent ? res->parent->URLbase : "N/A"));
 	return;
-}
-
-/**
- *   resource_fetch: download remote url or check for local file access.
- */
-bool resource_fetch(resource_item_t *res)
-{
-	char* pound;
-	DEBUG_RES("fetching resource: %s, %s resource %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status) ,res->URLrequest);
-
-	ASSERT(res);
-
-	switch (res->type) {
-
-	case rest_invalid:
-		res->status = ress_invalid;
-		ERROR_MSG("resource_fetch: can't fetch an invalid resource: %s\n", res->URLrequest);
-		break;
-
-	case rest_url:
-		switch (res->status) {
-		case ress_none:
-		case ress_starts_good:
-			DEBUG_RES ("resource_fetch, calling download_url\n");
-			//pound = NULL;
-			//pound = strchr(res->parsed_request, '#');
-			//if (pound != NULL) {
-			//	*pound = '\0';
-			//	/* copy the name out, so that Anchors can go to correct Viewpoint */
-			//	pound++;
-			//	res->afterPoundCharacters = STRDUP(pound);
-			//}
-
-			download_url(res);
-			break;
-		default:
-			/* error */
-			break;
-		}
-		break;
-
-	case rest_file:
-		switch (res->status) {
-		case ress_none:
-		case ress_starts_good:
-			/* SJD If this is a PROTO expansion, need to take of trailing part after # */
-			//pound = NULL;
-			//pound = strchr(res->parsed_request, '#');
-			//if (pound != NULL) {
-			//	*pound = '\0';
-			//}
-				
-#if defined(FRONTEND_GETS_FILES)
-ConsoleMessage ("ERROR, should not be here in rest_file");
-#else
-
-			if (do_file_exists(res->parsed_request)) {
-				if (do_file_readable(res->parsed_request)) {
-					res->status = ress_downloaded;
-					res->actual_file = STRDUP(res->parsed_request);
-					//if (pound != NULL) {
-					//	/* copy the name out, so that Anchors can go to correct Viewpoint */
-					//	pound ++;
-					//	res->afterPoundCharacters = STRDUP(pound);
-					//}
-				} else {
-					res->status = ress_failed;
-					ERROR_MSG("resource_fetch: wrong permission to read file: %s\n", res->parsed_request);
-				}
-			} else {
-				res->status = ress_failed;
-				ERROR_MSG("resource_fetch: can't find file: %s\n", res->parsed_request);
-			}
-#endif //FRONTEND_GETS_FILES
-
-			break;
-		default:
-			/* error */
-			break;
-		}
-		break;
-
-	case rest_multi:
-	case rest_string:
-		/* Nothing to do */
-		break;
-	}
-	DEBUG_RES ("resource_fetch (end): network=%s type=%s status=%s"
-		  " request=<%s> base=<%s> url=<%s> [parent %p, %s]\n", 
-		  BOOL_STR(res->network), resourceTypeToString(res->type), 
-		  resourceStatusToString(res->status), res->URLrequest, 
-		  res->URLbase, res->parsed_request,
-		  res->parent, (res->parent ? res->parent->URLbase : "N/A"));
-	return (res->status == ress_downloaded);
 }
 bool imagery_load(resource_item_t *res){
 	bool retval;
@@ -1001,31 +957,31 @@ void resource_push_multi_request(struct Multi_String *request)
 
 
 /* go through, and find the first valid url in a multi-url string */
-void resource_get_valid_url_from_multi(resource_item_t *parentPath, resource_item_t *res) {
-	do {
-		DEBUG_RES("resource_get_valid_url_from_multi, status %s type %s res->m_request %p\n",
-			resourceStatusToString(res->status),resourceTypeToString(res->type),res->m_request);
-
-		resource_identify(parentPath, res); 
-
-		/* have this resource, is it a good file? */
-		if (resource_fetch(res)) {
-		}
-
-		/* do we try the next url in the multi-url? */
-		if ((res->status != ress_loaded) && (res->m_request != NULL)) {
-			DEBUG_RES ("not found, lets try this again\n");
-			res->status = ress_invalid; 
-			res->type = rest_multi;
-
-		}
-
-		DEBUG_RES("resource_get_valid_url_from_multi, end  of do-while, status %s type %s res->m_request %p\n",
-			resourceStatusToString(res->status),resourceTypeToString(res->type),res->m_request);
-
-	/* go through and try, try again if this one fails. */
-	} while ((res->status != ress_loaded) && (res->m_request != NULL));
-}
+//void resource_get_valid_url_from_multi(resource_item_t *parentPath, resource_item_t *res) {
+//	do {
+//		DEBUG_RES("resource_get_valid_url_from_multi, status %s type %s res->m_request %p\n",
+//			resourceStatusToString(res->status),resourceTypeToString(res->type),res->m_request);
+//
+//		resource_identify(parentPath, res); 
+//
+//		///* have this resource, is it a good file? */
+//		//if (resource_fetch(res)) {
+//		//}
+//
+//		/* do we try the next url in the multi-url? */
+//		if ((res->status != ress_loaded) && (res->m_request != NULL)) {
+//			DEBUG_RES ("not found, lets try this again\n");
+//			res->status = ress_invalid; 
+//			res->type = rest_multi;
+//
+//		}
+//
+//		DEBUG_RES("resource_get_valid_url_from_multi, end  of do-while, status %s type %s res->m_request %p\n",
+//			resourceStatusToString(res->status),resourceTypeToString(res->type),res->m_request);
+//
+//	/* go through and try, try again if this one fails. */
+//	} while ((res->status != ress_loaded) && (res->m_request != NULL));
+//}
 
 /**
  *   resource_tree_dump: print the resource tree for debugging.
