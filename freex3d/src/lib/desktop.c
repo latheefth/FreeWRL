@@ -17,15 +17,36 @@
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
+/*desktop.c theme: traditional desktop- and browser plugin-specific code
+including former !FRONTEND_HANDLES_DISPLAY_THREAD and !FRONTEND_GETS_FILES code
+(versus: sandbox configs like android, ios, winRT where the frontend has its own displaythread and io_http>download_url )
+The functions in here emulate FEGF+FEHDT for desktop, so desktop works like sandbox apps
+- desktop io_http > download_url is called from in here
+- _displayThread loop is created and run in here
+- desktop console-program startup
+- desktop browser-plugin startup
+- dequeue_get_enqueue called once per displaythread to dequeue URL from backend, 
+	do URL2BLOB = URL2FILE+FILE2BLOB by spawning download, load tasks,
+	and enqueuing the BLOB results to the backend
+
+Tips for freewrl developers:
+ don't call resource_fetch or download_url() -which are synchronous calls -from backend modules 
+ (it took a lot of work to get them out of there) instead develop 'async' so the frontend can deliver
+ results whenever downloads arrive.
+ externProto: If you are trying to repair tests 17.wrl, 17.x3d, or externProto
+	you should refactor externProto parsing and runtime code to allow asynchronous/delay loading
+	of externProto definitions.
+*/
 
 #include <config.h>
 #include <system.h>
 #include <resources.h>
-//#include <display.h>
 #include <internal.h>
+#include <io_http.h>
 
 /**
  *   resource_fetch: download remote url or check for local file access.
+
  */
 bool resource_fetch(resource_item_t *res)
 {
@@ -74,9 +95,9 @@ bool resource_fetch(resource_item_t *res)
 			//	*pound = '\0';
 			//}
 				
-#if defined(FRONTEND_GETS_FILES)
-ConsoleMessage ("ERROR, should not be here in rest_file");
-#else
+//#if defined(FRONTEND_GETS_FILES)
+//ConsoleMessage ("ERROR, should not be here in rest_file");
+//#else
 
 			if (do_file_exists(res->parsed_request)) {
 				if (do_file_readable(res->parsed_request)) {
@@ -95,7 +116,7 @@ ConsoleMessage ("ERROR, should not be here in rest_file");
 				res->status = ress_failed;
 				ERROR_MSG("resource_fetch: can't find file: %s\n", res->parsed_request);
 			}
-#endif //FRONTEND_GETS_FILES
+//#endif //FRONTEND_GETS_FILES
 
 			break;
 		default:
@@ -288,8 +309,8 @@ void _displayThread(void *globalcontext)
 	ENTER_THREAD("display");
 
 	do{
-		if(frontendGetsFiles()==2) 
-			frontend_dequeue_get_enqueue(globalcontext); //this is non-blocking (returns immediately) if queue empty
+		//if(frontendGetsFiles()==2) 
+		frontend_dequeue_get_enqueue(globalcontext); //this is non-blocking (returns immediately) if queue empty
 		more = fwl_draw();
 		/* swap the rendering area */
 		FW_GL_SWAPBUFFERS;
@@ -299,7 +320,7 @@ void _displayThread(void *globalcontext)
 	return;
 }
 
-#if !defined (FRONTEND_HANDLES_DISPLAY_THREAD)
+//#if !defined (FRONTEND_HANDLES_DISPLAY_THREAD)
 void fwl_initializeDisplayThread()
 {
 	int ret;
@@ -311,7 +332,7 @@ void fwl_initializeDisplayThread()
 	ASSERT(TEST_NULL_THREAD(gglobal()->threads.DispThrd));
 
 
-	///* Initialize all mutex/condition variables ... */
+	///* Initialize all mutex/condition variables ... */ //moved to resource and texture thread inits
 	//pthread_mutex_init( &tg->threads.mutex_resource_tree, NULL );
 	//pthread_mutex_init( &tg->threads.mutex_resource_list, NULL );
 	//pthread_mutex_init( &tg->threads.mutex_texture_list, NULL );
@@ -340,7 +361,7 @@ void fwl_initializeDisplayThread()
 #endif
 }
 
-#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
+//#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 
 
 //desktop plugin
@@ -360,19 +381,17 @@ void fwl_spawnRenderingThread(void *globalcontext){
 //desktop console
 void fwl_startFreeWRL(const char *url)
 {
-	void *ttg = NULL;
+	ttglobal tg = gglobal();
 	//ConsoleMessage ("yes, really, FWL_STARTFREEWRL called is called\n");
 
 	/* Give the main argument to the resource handler */
 	if (url != NULL) {
-		ttglobal tg = gglobal();
-		ttg = tg;
-		char* suff = NULL;
-		char* local_name = NULL;
-		splitpath_local_suffix(url, &local_name, &suff);
-		if(url) tg->Mainloop.url = strdup(url);
-		tg->Mainloop.scene_name = local_name;
-		tg->Mainloop.scene_suff = suff;
+		//char* suff = NULL;
+		//char* local_name = NULL;
+		//splitpath_local_suffix(url, &local_name, &suff);
+		//if(url) tg->Mainloop.url = strdup(url);
+		//tg->Mainloop.scene_name = local_name;
+		//tg->Mainloop.scene_suff = suff;
 
 		fwl_resource_push_single_request(url);
 		DEBUG_MSG("request sent to parser thread, main thread joining display thread...\n");
@@ -392,6 +411,6 @@ void fwl_startFreeWRL(const char *url)
 	//}else{
 		/* now wait around until something kills this thread. */
 		//pthread_join(gglobal()->threads.DispThrd, NULL);
-		_displayThread(ttg);
+		_displayThread(tg);
 	//}
 }

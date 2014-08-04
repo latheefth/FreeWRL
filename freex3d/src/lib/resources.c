@@ -911,7 +911,7 @@ void resource_dump(resource_item_t *res)
 	}
 	PRINTF("\n");
 }
-
+void splitpath_local_suffix(const char *url, char **local_name, char **suff);
 /**
  *   fwl_resource_push_single_request: easy function to launch a load process (asynchronous).
  */
@@ -925,6 +925,17 @@ void fwl_resource_push_single_request(const char *request)
 	res = resource_create_single(request);
 	//send_resource_to_parser(res);
 	resitem_enqueue(ml_new(res));
+	if(request){
+		//update information about the scene for scripting (Q. what about window title?)
+		//not sure this is a good place, in part because the calling thread may not be in a gglobal thread
+		ttglobal tg = gglobal();
+		char* suff = NULL;
+		char* local_name = NULL;
+		splitpath_local_suffix(request, &local_name, &suff);
+		tg->Mainloop.scene_name = local_name;
+		tg->Mainloop.scene_suff = suff;
+	}
+
 }
 
 /**
