@@ -291,18 +291,18 @@ bool fwl_initFreeWRL(freewrl_params_t *params){
 	///* Initialize common UI variables */ - done in common.c
 	//myMenuStatus[0] = '\0';
 
-#ifndef FRONTEND_HANDLES_DISPLAY_THREAD
-	if(!params->frontend_handles_display_thread){
-		/* OK the display is now initialized,
-		   create the display thread and wait for it
-		   to complete initialization */
-		fwl_initializeDisplayThread();
-
-		//usleep(50);
-		//set_thread2global(tg,tg->threads.DispThrd ,"display thread");
-	}
-
-#endif //FRONTEND_HANDLES_DISPLAY_THREAD
+//#ifndef FRONTEND_HANDLES_DISPLAY_THREAD
+//	if(!params->frontend_handles_display_thread){
+//		/* OK the display is now initialized,
+//		   create the display thread and wait for it
+//		   to complete initialization */
+//		fwl_initializeDisplayThread();
+//
+//		//usleep(50);
+//		//set_thread2global(tg,tg->threads.DispThrd ,"display thread");
+//	}
+//
+//#endif //FRONTEND_HANDLES_DISPLAY_THREAD
 
 	fwl_initializeInputParseThread();
 	//set_thread2global(tg, tg->threads.PCthread ,"parse thread");
@@ -364,42 +364,6 @@ void splitpath_local_suffix(const char *url, char **local_name, char **suff)
 
 int checkExitRequest();
 
-void fwl_startFreeWRL(const char *url)
-{
-	void *ttg = NULL;
-	//ConsoleMessage ("yes, really, FWL_STARTFREEWRL called is called\n");
-
-	/* Give the main argument to the resource handler */
-	if (url != NULL) {
-		ttglobal tg = gglobal();
-		ttg = tg;
-		char* suff = NULL;
-		char* local_name = NULL;
-		splitpath_local_suffix(url, &local_name, &suff);
-		if(url) tg->Mainloop.url = strdup(url);
-		tg->Mainloop.scene_name = local_name;
-		tg->Mainloop.scene_suff = suff;
-
-		fwl_resource_push_single_request(url);
-		DEBUG_MSG("request sent to parser thread, main thread joining display thread...\n");
-	} else {
-		DEBUG_MSG("no request for parser thread, main thread joining display thread...\n");
-	}
-	//this is for simulating frontend_gets_files for testing. Do not set FRONTEND_GETS_FILES. 
-	//this tests an alternate method. 
-	// you need to put an http:// file on the command line (this is hardwired for io_http gets only, not local
-	//if(frontendGetsFiles()==1){
-	//	for(;;){
-	//		frontend_dequeue_get_enqueue(ttg); //this is non-blocking (returns immediately) if queue empty
-	//		sleep(100);
-	//		if(checkExitRequest()) break;
-	//	}
-	//	sleep(200); //wait for backend threads to wind down
-	//}else{
-		/* now wait around until something kills this thread. */
-		pthread_join(gglobal()->threads.DispThrd, NULL);
-	//}
-}
 
 /**
  * Explicit exit routine

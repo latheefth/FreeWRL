@@ -4293,7 +4293,7 @@ void finalizeRenderSceneUpdateScene() {
 
 
 /* iphone front end handles the displayThread internally */
-#ifndef FRONTEND_HANDLES_DISPLAY_THREAD
+//#ifndef FRONTEND_HANDLES_DISPLAY_THREAD
 
 
 int checkReplaceWorldRequest(){
@@ -4459,137 +4459,8 @@ int fwl_draw()
 	return more;
 }
 
-void _displayThread(void *globalcontext)
-{
-	/* C CONTROLLER - used in configurations such as C main programs, and browser plugins with no loop of their own
-	- usually the loop, create gl context, and swapbuffers stay together in the same layer
-	MVC - Model-View-Controller design pattern: do the Controller activities here:
-	1) tell Model (scenegraph, most of libfreewrl) to update itself
-	2) tell View to poll-model-and-update-itself (View: GUI UI/statusbarHud/Console)
-	-reason for MVC: no callbacks are needed from Model to UI(View), so easy to change View
-	-here everything is in C so we don't absolutely need MVC style, but we are preparing MVC in C
-	to harmonize with Android, IOS etc where the UI(View) and Controller are in Objective-C or Java and Model(state) in C
 
-	Non-blocking UI thread - some frontends don't allow you to block the display thread. They will be in
-	different code like objectiveC, java, C#, but here we try and honor the idea by allowing
-	looping to continue while waiting for worker threads to flush and/or exit by polling the status of the workers
-	rather than using mutex conditions.
-	*/
-	int more;
-	ppMainloop p;
-	ttglobal tg = (ttglobal)globalcontext;
-	fwl_setCurrentHandle(tg, __FILE__, __LINE__);
-	p = (ppMainloop)tg->Mainloop.prv;
-	ENTER_THREAD("display");
-
-	do{
-		if(frontendGetsFiles()==2) 
-			frontend_dequeue_get_enqueue(tg); //this is non-blocking (returns immediately) if queue empty
-		more = fwl_draw();
-		//if (!tg->display.params.frontend_handles_display_thread){
-			/* swap the rendering area */
-			FW_GL_SWAPBUFFERS;
-		//}
-	} while (more);
-	finalizeRenderSceneUpdateScene(); //Model end
-	//printf("Ending display thread gracefully\n");
-	return;
-}
-void _displayThread_old_hide(void *globalcontext)
-{
-	/*
-	MVC - Model-View-Controller design pattern: do the Controller activities here:
-	 1) tell Model (scenegraph, most of libfreewrl) to update itself
-	 2) tell View to poll-model-and-update-itself (View: GUI UI/statusbarHud/Console)
-	-reason for MVC: no callbacks are needed from Model to UI(View), so easy to change View
-	-here everything is in C so we don't absolutely need MVC style, but we are preparing MVC in C
-	 to harmonize with Android, IOS etc where the UI(View) and Controller are in Objective-C or Java and Model(state) in C
-
-	 Non-blocking UI thread - some frontends don't allow you to block the display thread. They will be in
-	 different code like objectiveC, java, C#, but here we try and honor the idea by allowing
-	 looping to continue while waiting for worker threads to flush and/or exit by polling the status of the workers
-	 rather than using mutex conditions.
-	*/
-	int more;
-	ppMainloop p;
-	ttglobal tg = (ttglobal)globalcontext;
-	fwl_setCurrentHandle(tg,__FILE__,__LINE__);
-	p = (ppMainloop)tg->Mainloop.prv;
-	ENTER_THREAD("display");
-
-	more = TRUE;
-#if KEEP_FV_INLIB
-	/* Hmm. display_initialize is really a frontend function. The frontend should call it before calling _displayThread
-	   Except: remember to keep the swapbuffers and display_init in the same thread
-	   - swapbuffers gets the 'current device context' likely with a thread lookup technique
-	  dug9 Mar2014: callbacks from the Controller to the View are allowed if they are in the same technology,
-	   so some callbacks could be registered in gglobal and assigned here, to minimize #ifdefs
-	*/
-	view_initialize = view_initialize0; //defined above, with ifdefs
-	view_update = view_update0; //defined above with ifdefs
-#endif /* KEEP_FV_INLIB */
-	if (view_initialize)
-		more = view_initialize();
-
-	if (more){
-		fwl_initializeRenderSceneUpdateScene();  //Model initialize
-		//sleep(1500);
-
-		/* loop and loop, and loop... */
-		//while (!((ppMainloop)(tg->Mainloop.prv))->quitThread) {
-		while (more)
-		{
-			switch (tg->threads.MainLoopQuit){
-			case 0:
-			case 1:
-				//PRINTF("event loop\n");
-				switch (tg->threads.flushing)
-				{
-					case 0:
-						profile_start("mainloop");
-						//model: udate yourself
-						fwl_RenderSceneUpdateScene(); //Model update
-						profile_end("mainloop");
-
-						//view: poll model and update yourself >>
-						if (view_update) view_update();
-
-						/* swap the rendering area */
-						FW_GL_SWAPBUFFERS;
-						PRINT_GL_ERROR_IF_ANY("XEvents::render");
-						checkReplaceWorldRequest(); //will set flushing=1
-						checkExitRequest(); //will set flushing=1
-						break;
-					case 1:
-						if(workers_waiting()) //one way to tell if workers finished flushing is if their queues are empty, and they are not busy
-						{
-							kill_oldWorld(TRUE, TRUE, __FILE__, __LINE__); //does a MarkForDispose on nodes, wipes out binding stacks and route table, javascript
-							tg->threads.flushing = 0;
-							if (tg->threads.MainLoopQuit)
-								tg->threads.MainLoopQuit++; //quiting takes priority over replacing
-							else
-								doReplaceWorldRequest();
-						}
-				}
-				break;
-			case 2:
-				//tell worker threads to stop gracefully
-				workers_stop();
-				killNodes(); //deallocates nodes MarkForDisposed
-				tg->threads.MainLoopQuit++;
-				break;
-			case 3:
-				//check if worker threads have exited
-				more = workers_running();
-				break;
-			}
-		}
-		/* when finished: */
-		finalizeRenderSceneUpdateScene(); //Model end
-	}
-	//printf("Ending display thread gracefully\n");
-}
-#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
+//#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 
 
 void fwl_setLastMouseEvent(int etype) {
