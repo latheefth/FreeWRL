@@ -1221,3 +1221,67 @@ void process_x3z(resource_item_t *res){
 void process_x3z(resource_item_t *res){
 }
 #endif
+
+enum {
+	file2blob_task_chain,
+	file2blob_task_spawn,
+	file2blob_task_enqueue,
+} file2blob_task_tactic;
+
+int file2blob(resource_item_t *res){
+	int retval;
+	if(res->media_type == resm_image){
+		retval = imagery_load(res); //FILE2TEXBLOB
+	}else{
+		retval = resource_load(res);  //FILE2BLOB
+	}
+	return retval;
+}
+int async_thread_count = 0;
+static void *thread_load_async (void *args){
+	int loaded;
+	resource_item_t *res = (resource_item_t *)args;
+	async_thread_count++;
+	printf("[%d]",async_thread_count);
+	//if(res->media_type == resm_image){
+	//	imagery_load(res); //FILE2TEXBLOB
+	//}else{
+	//	resource_load(res);  //FILE2BLOB
+	//}
+	loaded = file2blob(res);
+	//enqueue BLOB to BE
+	if(loaded)
+		resitem_enqueue_tg(ml_new(res),res->tg);
+	async_thread_count--;
+	return NULL;
+}
+void loadAsync (resource_item_t *res) {
+	if(!res->_loadThread) res->_loadThread = malloc(sizeof(pthread_t));
+	pthread_create ((pthread_t*)res->_loadThread, NULL,&thread_load_async, (void *)res);
+}
+
+void file2blob_task(s_list_t *item){
+	//chain, spawn async/thread, or re-enqueue FILE2BLOB to some work thread
+	resource_item_t *res = item->elem;
+	int tactic = file2blob_task_spawn; //file2blob_task_spawn;
+	if(tactic == file2blob_task_chain){
+		//chain FILE2BLOB
+		if(res->media_type == resm_image){
+			imagery_load(res); //FILE2TEXBLOB
+		}else{
+			resource_load(res);  //FILE2BLOB
+		}
+		//enqueue BLOB to BE
+		resitem_enqueue(item);
+	}else if(tactic == file2blob_task_enqueue){
+		//set BE load function to non-null
+		//a) res->load_func = imagery_load or resource_load or file2blob
+		res->_loadFunc = file2blob;
+		//b) backend_setloadfunction(file2blob) or backend_setimageryloadfunction(imagery_load) and backend_setresourceloadfunction(resource_load)
+		//enqueue downloaded FILE
+		resitem_enqueue(item);
+	}else if(tactic == file2blob_task_spawn){
+		//spawn thread
+		loadAsync(res); //res already has res->tg with global context
+	}
+}

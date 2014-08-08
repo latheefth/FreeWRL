@@ -64,6 +64,13 @@ void fwl_setConsole_writePrimitive(int ibool);
 void statusbar_set_window_size(int width, int height);
 void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY);
 int getCursorStyle();
+void *fwl_frontenditem_dequeue();
+char* fwl_resitem_getURL(void *res);
+int	fwl_resitem_getStatus(void *res);
+int	fwl_resitem_getType(void *res);
+void fwl_resitem_enqueuNextMulti(void *res);
+void fwl_resitem_setLocalPath(void *res, char* path);
+void fwl_resitem_enqueue(void *res);
 }
 
 #include <malloc.h>
@@ -107,6 +114,7 @@ CdllFreeWRL::CdllFreeWRL()
 //		- else pass null and a window will be created for you
 void CdllFreeWRL::onInit(int width, int height, void* windowhandle, bool bEai, bool frontend_handles_display_thread)
 {
+	int ok;
 	struct freewrl_params *params;
 	//if( !fwl_setCurrentHandle(handle) ){
 	//this->globalcontexthandle = fwl_init_instance(); //before setting any structs we need a struct allocated
@@ -122,10 +130,16 @@ void CdllFreeWRL::onInit(int width, int height, void* windowhandle, bool bEai, b
 	params->winToEmbedInto = (long)windowhandle;
 	params->frontend_handles_display_thread = frontend_handles_display_thread;
 	swDebugf("just before fwl_initFreeWRL\n");
-	if (!fwl_initFreeWRL(params)) {
+	ok = fwl_initFreeWRL(params);
+	//if(!ok){
 		//ERROR_MSG("main: aborting during initialization.\n");
 		//exit(1);
-	}
+	//} 
+#ifndef FRONTEND_HANDLES_DISPLAY_THREAD
+	if(ok)
+		if(!frontend_handles_display_thread)
+			fwl_initializeDisplayThread();
+#endif
 #ifdef STATUSBAR_HUD
 	statusbar_set_window_size(width, height);
 #else
@@ -291,6 +305,59 @@ int CdllFreeWRL::getUpdatedCursorStyle()
 	}
 	fwl_clearCurrentHandle();
 	return cstyle;
+}
+
+void* CdllFreeWRL::frontenditem_dequeue()
+{
+	void *item = nullptr;
+	if (fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
+		item = fwl_frontenditem_dequeue();
+	}
+	fwl_clearCurrentHandle();
+	return item;
+}
+char* CdllFreeWRL::resitem_getURL(void *res){
+	char *url = nullptr;
+	if (fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
+		url = fwl_resitem_getURL(res);
+	}
+	fwl_clearCurrentHandle();
+	return url;
+}
+int CdllFreeWRL::resitem_getStatus(void *res){
+	int status;
+	if (fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
+		status = fwl_resitem_getStatus(res);
+	}
+	fwl_clearCurrentHandle();
+	return status;
+}
+int CdllFreeWRL::resitem_getType(void *res){
+	int status;
+	if (fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
+		status = fwl_resitem_getType(res);
+	}
+	fwl_clearCurrentHandle();
+	return status;
+}
+void CdllFreeWRL::resitem_enqueuNextMulti(void *res){
+	if (fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
+		fwl_resitem_enqueuNextMulti(res);
+	}
+	fwl_clearCurrentHandle();
+}
+void CdllFreeWRL::resitem_setLocalPath(void *res, char* path){
+	if (fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
+		fwl_resitem_setLocalPath(res,path);
+	}
+	fwl_clearCurrentHandle();
+}
+
+void CdllFreeWRL::resitem_enqueue(void *res){
+	if (fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
+		fwl_resitem_enqueue(res);
+	}
+	fwl_clearCurrentHandle();
 }
 
 //void __stdcall CdllFreeWRL::setProcessingAICommandsCallback(OnProcessingAICommands func)

@@ -5001,11 +5001,12 @@ void fwl_Android_replaceWorldNeeded() {
 // JAS - Do not know if these are still required.
 
 /* called from the standalone OSX front end and the OSX plugin */
+char *strBackslash2fore(char *);
 void fwl_replaceWorldNeeded(char* str)
 {
 	ConsoleMessage("file to load: %s\n",str);
 
-	gglobal()->Mainloop.replaceWorldRequest = STRDUP(str);
+	gglobal()->Mainloop.replaceWorldRequest = strBackslash2fore(STRDUP(str));
 }
 void fwl_replaceWorldNeededRes(resource_item_t *multiResWithParent){
 	gglobal()->Mainloop.replaceWorldRequestMulti = (void*)(multiResWithParent);

@@ -1007,7 +1007,18 @@ s_list_t *frontenditem_dequeue_tg(void *tg){
 	fwl_clearCurrentHandle();
 	return item;
 }
-
+void *fwl_frontenditem_dequeue(){
+	void *res = NULL;
+	s_list_t *item = frontenditem_dequeue();
+	if (item){
+		res = item->elem;
+		free(item);
+	}
+	return res;
+}
+void fwl_resitem_enqueue(void *res){
+	resitem_enqueue(ml_new(res));
+}
 
 int frontendGetsFiles(){
 	return ((ppProdCon)(gglobal()->ProdCon.prv))->frontend_gets_files;

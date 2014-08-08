@@ -36,6 +36,85 @@ Tips for freewrl developers:
  externProto: If you are trying to repair tests 17.wrl, 17.x3d, or externProto
 	you should refactor externProto parsing and runtime code to allow asynchronous/delay loading
 	of externProto definitions.
+
+EMULATING FEGF in ML - more detail..
+terminology
+FE - frontend
+BE - backend
+ML - middle layer
+FEGF (FRONTEND GETS FILES)
+	- sandboxed Android, IOS and winRT download internet resources in frontend code, in asynchronous tasks so as not to block the UI thread.
+	- (versus desktop MLGF - see code below and io_http.c)
+FEHDT (FRONTEND_HANDLES_DISPLAY_THREAD)
+	- android, winRT run their own displaythread, and own the swapbuffers and opengl/directx context
+	- (versus desktop console and plugins that launch a displaythread which loops and does swapbuffers -see _displayThread below)
+BLOB - binary large object - a text string blob for vrml/x3d
+TEXBLOB - width,height,RGBA blob for textures
+Scenery: vrml/x3d for main scene, inline, externProto, string
+Imagery: image files .jpg, .ico, .png etc
+Scripts: .js, shader
+
+BE (BackEnd) worker threads:
+Scenery and scripts: _inputParsingThread()
+Imagery: _textureThread()
+
+download2local - downloads an internet file to a local file
+local2blob - reads a local disk file into BLOB or TEXBLOB
+INITSCENE = {URL -> BE -> initScene -> enqueueURL}
+-- killOldworld, new resItem with baseURL pushed on stack to populate _parentResource fields
+-- URL enqueued for worker thread (which may in turn enqueue it for FE thread's URL2LOCAL)
+FILE2BLOB = {localURL -> ML -> local2blob -> enqueueBlob -> BE}
+W3DX - web3d stage .zip^^
+
+Typical workflows for WinRT FEGF configuration:
+1. URLBox -> INITSCENE -> FE -> URL? download2Local -> FILE2BLOB
+2. Picker/OpenWith -> AccessCache -> INITSCENE -> FE -> cacheLookup -> found ? use : filePicker -> download/copy2Local -> FILE2BLOB
+3. Picker/OpenWith -> W3DX? -> ML -> localStage -> manifest -> mainsceneURL -> INITSCENE -> ML-> manifestLookup -> FILE2BLOB
+
+Desktop configurations would be refactored to move URL2LOCAL AND LOCAL2BLOB into the ML:
+- resource push, pop at end of io_http.c would be moved to resources.c
+- io_files.c and io_http.c would be moved to ML -out of the core library
+- core library would work in URLs and BLOBS
+- to avoid yet more threads to run the ML, the BE would enqueue a task with a function pointer for URL2LOCAL, for each URL it enqueues, if the function pointer is non-null it runs it, else does nothing. ML would populate the function pointer. After ML does URL2LOCAL, if successful, it enqueus another function task LOCAL2BLOB which the worker thread runs.
+
+Android may be diskless for some types of files -no local file intermediary- and if so does URL2BLOB in one step in the FE.
+Some different possible workflows for different configurations and scenarios:
+1 ------------------------------------------(BLOB) ------------P-> SCENERY || JS || SHADER
+2 --------------------------LOCAL FILE -L-> (BLOB || TEXBLOB) -P-> SCENERY || JS || SHADER || TEXTURE
+3 URL --D-----------------> LOCAL FILE -L-> (BLOB || TEXBLOB) -P-> SCENERY || JS || SHADER || TEXTURE
+4 URL --D-> LOCAL ZIP --U-> LOCAL FILE -L-> (BLOB || TEXBLOB) -P-> SCENERY || JS || SHADER || TEXTURE
+5 ----------LOCAL ZIP --U-> LOCAL FILE -L-> (BLOB || TEXBLOB) -P-> SCENERY || JS || SHADER || TEXTURE
+6 URL ---------D+L------------------------> (BLOB || TEXBLOB) -P-> SCENERY || JS || SHADER || TEXTURE
+
+D-download, U-unzip, L-load, I-convert to Image w,h,rgba, P-Process: parse/texture
+BLOB and TEXBLOB are the common/goal states
+Two workflows for TEXBLOB:
+LI-> (TEXBLOB) -P-> TEXTURE
+- when your image libary loads from file
+L-> (BLOB) I (TEXBLOB) -P-> TEXTURE
+- when your image library loads from BLOB
+
+I think I did .x3z + minizip in the wrong layer. It should be in a middle layer, not in the BE. You would never Anchor to a .x3z or .w3dx.
+
+^^
+Stage is a missing concept from web3d.org. A scene file, with all its .js files, its inline/extern Proto and anchor scenes aka scenery, 
+all its imagery, as a self-contained set or 'stage'
+- like .x3z minizip bundling of doc.x3d + images, except more general
+- freewrl could be modified to aggregate files it downloads into a local cache of files, and add w3dx.manifest 
+  that would list the original URL of the mainscene, and its stage relative path, and a lookup table of all
+  the other resources original URLs and their stage relative path. Then zip it and rename it to .w3dx.
+RULE: the BE must never know. ML unzips, gets the mainscene original URL and passes to the BE. The BE then requests
+  the mainscene by it's original URL, and ML looks it up in the manifest table, gets the stage-relative path,
+  and prepends the path of the stage.
+w3dx.manifest:
+<stage>
+<file type="mainscene" url="" path=""/>
+<file type="scene" url="" path=""/>
+<file type="scenery" url="" path=""/>
+<file type="imagery" url="" path=""/>
+...
+</stage>
+
 */
 
 #include <config.h>
@@ -151,20 +230,9 @@ int checkExitRequest();
 enum {
 	url2file_task_chain,
 	url2file_task_spawn,
-	file2blob_task_chain,
-	file2blob_task_spawn,
-	file2blob_task_enqueue,
-} url2blob_task_tactic;
+} url2file_task_tactic;
 
-int file2blob(resource_item_t *res){
-	int retval;
-	if(res->media_type == resm_image){
-		retval = imagery_load(res); //FILE2TEXBLOB
-	}else{
-		retval = resource_load(res);  //FILE2BLOB
-	}
-	return retval;
-}
+int file2blob(resource_item_t *res);
 int url2file(resource_item_t *res){
 	int retval = 0;
 	int more_multi;
@@ -186,7 +254,7 @@ int url2file(resource_item_t *res){
 	return retval;
 }
 
-static int async_thread_count = 0;
+extern int async_thread_count;
 static void *thread_download_async (void *args){
 	int downloaded;
 	resource_item_t *res = (resource_item_t *)args;
@@ -204,28 +272,8 @@ void downloadAsync (resource_item_t *res) {
 	pthread_create ((pthread_t*)res->_loadThread, NULL,&thread_download_async, (void *)res);
 }
 
-static void *thread_load_async (void *args){
-	int loaded;
-	resource_item_t *res = (resource_item_t *)args;
-	async_thread_count++;
-	printf("[%d]",async_thread_count);
-	//if(res->media_type == resm_image){
-	//	imagery_load(res); //FILE2TEXBLOB
-	//}else{
-	//	resource_load(res);  //FILE2BLOB
-	//}
-	loaded = file2blob(res);
-	//enqueue BLOB to BE
-	if(loaded)
-		resitem_enqueue_tg(ml_new(res),res->tg);
-	async_thread_count--;
-	return NULL;
-}
-void loadAsync (resource_item_t *res) {
-	if(!res->_loadThread) res->_loadThread = malloc(sizeof(pthread_t));
-	pthread_create ((pthread_t*)res->_loadThread, NULL,&thread_load_async, (void *)res);
-}
 
+void file2blob_task(s_list_t *item);
 //this is for simulating frontend_gets_files in configs that run _displayThread: desktop and browser plugins
 //but can be run from any thread as long as you know the freewrl instance/context/tg/gglobal* for the resitem and frontenditem queues, replaceWorldRequest etc
 #define MAX_SPAWNED_PER_PASS 15  //in desktop I've had 57 spawned threads at once, with no problems. In case there's a problem this will limit spawned-per-pass, which will indirectly limit spawned-at-same-time
@@ -260,28 +308,29 @@ void frontend_dequeue_get_enqueue(void *tg){
 			}
 		}
 		if(res->status == ress_downloaded){
-			//chain, spawn async/thread, or re-enqueue FILE2BLOB to some work thread
-			int tactic = file2blob_task_spawn; //file2blob_task_spawn;
-			if(tactic == file2blob_task_chain){
-				//chain FILE2BLOB
-				if(res->media_type == resm_image){
-					imagery_load(res); //FILE2TEXBLOB
-				}else{
-					resource_load(res);  //FILE2BLOB
-				}
-				//enqueue BLOB to BE
-				resitem_enqueue(item);
-			}else if(tactic == file2blob_task_enqueue){
-				//set BE load function to non-null
-				//a) res->load_func = imagery_load or resource_load or file2blob
-				res->_loadFunc = file2blob;
-				//b) backend_setloadfunction(file2blob) or backend_setimageryloadfunction(imagery_load) and backend_setresourceloadfunction(resource_load)
-				//enqueue downloaded FILE
-				resitem_enqueue(item);
-			}else if(tactic == file2blob_task_spawn){
-				//spawn thread
-				loadAsync(res); //res already has res->tg with global context
-			}
+			file2blob_task(item);
+			////chain, spawn async/thread, or re-enqueue FILE2BLOB to some work thread
+			//int tactic = file2blob_task_spawn; //file2blob_task_spawn;
+			//if(tactic == file2blob_task_chain){
+			//	//chain FILE2BLOB
+			//	if(res->media_type == resm_image){
+			//		imagery_load(res); //FILE2TEXBLOB
+			//	}else{
+			//		resource_load(res);  //FILE2BLOB
+			//	}
+			//	//enqueue BLOB to BE
+			//	resitem_enqueue(item);
+			//}else if(tactic == file2blob_task_enqueue){
+			//	//set BE load function to non-null
+			//	//a) res->load_func = imagery_load or resource_load or file2blob
+			//	res->_loadFunc = file2blob;
+			//	//b) backend_setloadfunction(file2blob) or backend_setimageryloadfunction(imagery_load) and backend_setresourceloadfunction(resource_load)
+			//	//enqueue downloaded FILE
+			//	resitem_enqueue(item);
+			//}else if(tactic == file2blob_task_spawn){
+			//	//spawn thread
+			//	loadAsync(res); //res already has res->tg with global context
+			//}
 		}
 	}
 	//fwl_clearCurrentHandle(); don't unset, in case we are in a BE/ML thread ie _displayThread

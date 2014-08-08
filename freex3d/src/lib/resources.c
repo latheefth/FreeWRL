@@ -242,13 +242,23 @@ bool checkNetworkFile(const char *fn)
 
 /**
  *   resource_identify: identify resource type and location relatively to base
- *			If base is NULL then this resource may become a root
+ *		If base is NULL then this resource may become a root
  *			node of resource hierarchy.
+ *	for sandbox apps, in general there are 3 locations of interest: a) internet b) intranet c) local
+ *  and the 3 may be treated differently in the frontend, for example the app may have internet permission
+ *  but not intranet permission. Local files would be in an AppData folder where fopen,fread have permission.
+ *  we don't differentiate here between intranet and local, instead that's done with res->status == ress_downloaded
+ *  when the file is local
+ *  in frontend: 
+ *    if(res->type == rest_url)
+ *		internet file: download to local, and set res->status to ress_downloaded
+ *    else if(res->type == rest_file && res->status != ress_downloaded)
+ *		intranet file: get permission (ie filepicker or access permission cache) and copy from intranet to local and set res->status = ress_downloaded
+ *    else if(res->type == rest_file && res->status == ress_downloaded)
+ *		local file: load local file to blob in frontend, or enqueue a backend load task, depending on your platform configuration
  *
- *   TODO: finish the multi implementation.
+ *	
  *
- *   try to be idempotent
- *   parse status: res->type
  */
 
 void resource_identify(resource_item_t *baseResource, resource_item_t *res)
@@ -1300,4 +1310,39 @@ resource_item_t *getInputResource()
 	cwu = stack_top(resource_item_t *, p->resStack);
 	DEBUG_MSG("getInputResource current Resource is %lu %lx %s\n", (unsigned long int) cwu, (unsigned long int) cwu, cwu->parsed_request);
 	return cwu;
+}
+
+//used by FEGF configs in frontend
+char* fwl_resitem_getURL(void *resp){
+	resource_item_t *res = (resource_item_t *)resp;
+	return res->parsed_request;
+}
+void fwl_resitem_enqueuNextMulti(void *resp){
+	resource_item_t *res = (resource_item_t *)resp;
+	int more_multi = (res->status == ress_failed) && (res->m_request != NULL);
+	if(more_multi){
+		//still some hope via multi_string url, perhaps next one
+		res->status = ress_invalid; //downgrade ress_fail to ress_invalid
+		res->type = rest_multi; //should already be flagged
+		//must consult BE to convert relativeURL to absoluteURL via baseURL 
+		//(or could we absolutize in a batch in resource_create_multi0()?)
+		resource_identify(res->parent, res); //should increment multi pointer/iterator
+		frontenditem_enqueue(ml_new(res));
+	}
+}
+char *strBackslash2fore(char *);
+int file2blob(resource_item_t *res);
+void fwl_resitem_setLocalPath(void *resp, char* path){
+	resource_item_t *res = (resource_item_t *)resp;
+	res->status = ress_downloaded;
+	res->actual_file = strBackslash2fore(STRDUP(path));
+	res->_loadFunc = file2blob;
+}
+int	fwl_resitem_getStatus(void *resp){
+	resource_item_t *res = (resource_item_t *)resp;
+	return res->status;
+}
+int	fwl_resitem_getType(void *resp){
+	resource_item_t *res = (resource_item_t *)resp;
+	return res->type;
 }
