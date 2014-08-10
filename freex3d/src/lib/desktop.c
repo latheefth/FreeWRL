@@ -232,6 +232,13 @@ enum {
 	url2file_task_spawn,
 } url2file_task_tactic;
 
+enum {
+	file2blob_task_chain,
+	file2blob_task_spawn,
+	file2blob_task_enqueue,
+} file2blob_task_tactic;
+
+
 int file2blob(resource_item_t *res);
 int url2file(resource_item_t *res){
 	int retval = 0;
@@ -254,16 +261,20 @@ int url2file(resource_item_t *res){
 	return retval;
 }
 
+void file2blob_task(s_list_t *item);
 extern int async_thread_count;
 static void *thread_download_async (void *args){
 	int downloaded;
 	resource_item_t *res = (resource_item_t *)args;
 	async_thread_count++;
 	printf("{%d}",async_thread_count);
+	if(fwl_setCurrentHandle(res->tg, __FILE__, __LINE__));
+
 	downloaded = url2file(res);
-	//enqueue FILE to ML
+
+	int tactic = file2blob_task_chain;
 	if(downloaded)
-		frontenditem_enqueue_tg(ml_new(res),res->tg);
+		file2blob_task(ml_new(res));
 	async_thread_count--;
 	return NULL;
 }
@@ -273,7 +284,6 @@ void downloadAsync (resource_item_t *res) {
 }
 
 
-void file2blob_task(s_list_t *item);
 //this is for simulating frontend_gets_files in configs that run _displayThread: desktop and browser plugins
 //but can be run from any thread as long as you know the freewrl instance/context/tg/gglobal* for the resitem and frontenditem queues, replaceWorldRequest etc
 #define MAX_SPAWNED_PER_PASS 15  //in desktop I've had 57 spawned threads at once, with no problems. In case there's a problem this will limit spawned-per-pass, which will indirectly limit spawned-at-same-time
@@ -309,28 +319,6 @@ void frontend_dequeue_get_enqueue(void *tg){
 		}
 		if(res->status == ress_downloaded){
 			file2blob_task(item);
-			////chain, spawn async/thread, or re-enqueue FILE2BLOB to some work thread
-			//int tactic = file2blob_task_spawn; //file2blob_task_spawn;
-			//if(tactic == file2blob_task_chain){
-			//	//chain FILE2BLOB
-			//	if(res->media_type == resm_image){
-			//		imagery_load(res); //FILE2TEXBLOB
-			//	}else{
-			//		resource_load(res);  //FILE2BLOB
-			//	}
-			//	//enqueue BLOB to BE
-			//	resitem_enqueue(item);
-			//}else if(tactic == file2blob_task_enqueue){
-			//	//set BE load function to non-null
-			//	//a) res->load_func = imagery_load or resource_load or file2blob
-			//	res->_loadFunc = file2blob;
-			//	//b) backend_setloadfunction(file2blob) or backend_setimageryloadfunction(imagery_load) and backend_setresourceloadfunction(resource_load)
-			//	//enqueue downloaded FILE
-			//	resitem_enqueue(item);
-			//}else if(tactic == file2blob_task_spawn){
-			//	//spawn thread
-			//	loadAsync(res); //res already has res->tg with global context
-			//}
 		}
 	}
 	//fwl_clearCurrentHandle(); don't unset, in case we are in a BE/ML thread ie _displayThread

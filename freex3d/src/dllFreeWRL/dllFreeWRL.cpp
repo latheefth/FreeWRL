@@ -71,6 +71,7 @@ int	fwl_resitem_getType(void *res);
 void fwl_resitem_enqueuNextMulti(void *res);
 void fwl_resitem_setLocalPath(void *res, char* path);
 void fwl_resitem_enqueue(void *res);
+int file2blob(void *res);
 }
 
 #include <malloc.h>
@@ -352,7 +353,13 @@ void CdllFreeWRL::resitem_setLocalPath(void *res, char* path){
 	}
 	fwl_clearCurrentHandle();
 }
-
+void CdllFreeWRL::resitem_load(void *res){
+	if (fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
+		if (file2blob(res))
+			fwl_resitem_enqueue(res);
+	}
+	fwl_clearCurrentHandle();
+}
 void CdllFreeWRL::resitem_enqueue(void *res){
 	if (fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
 		fwl_resitem_enqueue(res);

@@ -52,6 +52,7 @@ public:
 	void resitem_enqueuNextMulti(void *res);
 	void resitem_setLocalPath(void *res, char* path);
 	void resitem_enqueue(void *res);
+	void resitem_load(void *res);
 	//void __stdcall setProcessingAICommandsCallback(OnProcessingAICommands func);
 	
 private:
