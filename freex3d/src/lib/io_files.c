@@ -853,32 +853,7 @@ BOOL DeleteDirectory0(const TCHAR* sPath) {
 	FindClose(hFind);  // closing file handle
 	return RemoveDirectory(sPath); // remove the empty directory
 }
-/*
-BOOL directory_remove_all(const char* sPath) {
-	int jj;
-    size_t convertedChars = 0;
-    TCHAR wcstring[MAX_PATH];
-	char fname2[MAX_PATH];
-	size_t origsize; //= strlen(fname) + 1;
-	BOOL retval;
-	origsize = strlen(sPath) + 1;
-	strcpy(fname2,sPath);
-	for(jj=0;jj<strlen(fname2);jj++)
-		if(fname2[jj] == '/' ) fname2[jj] = '\\';
 
-#ifdef _UNICODE
-#if _MSC_VER >= 1500
-	mbstowcs_s(&convertedChars, wcstring, origsize, fname2, _TRUNCATE);
-#else
-	mbstowcs(wcstring, fname2, MB_CUR_MAX);
-#endif
-#else
-	_tcscpy(wcstring,fname2);
-#endif
-	retval = DeleteDirectory0(wcstring);
-	return retval;
-}
-*/
 BOOL tdirectory_remove_all(TCHAR *sPath){
 	BOOL retval;
 	retval = DeleteDirectory0(sPath);
@@ -1222,6 +1197,8 @@ void process_x3z(resource_item_t *res){
 }
 #endif
 
+
+
 enum {
 	file2blob_task_chain,
 	file2blob_task_spawn,
@@ -1243,11 +1220,6 @@ static void *thread_load_async (void *args){
 	resource_item_t *res = (resource_item_t *)args;
 	async_thread_count++;
 	printf("[%d]",async_thread_count);
-	//if(res->media_type == resm_image){
-	//	imagery_load(res); //FILE2TEXBLOB
-	//}else{
-	//	resource_load(res);  //FILE2BLOB
-	//}
 	loaded = file2blob(res);
 	//enqueue BLOB to BE
 	if(loaded)
