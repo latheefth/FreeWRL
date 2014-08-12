@@ -259,12 +259,12 @@ int doBrowserAction()
 			fwl_gotoViewpoint(&(Anchor_url.p[0]->strptr[1]));
 			return TRUE;
 		}
-			/* We have a url, lets go and get the first one of them */
-                parentPath = (resource_item_t *)AnchorsAnchor()->_parentResource;
+		/* We have a url, lets go and get the first one of them */
+		parentPath = (resource_item_t *)AnchorsAnchor()->_parentResource;
 		p->plugin_res = resource_create_multi0(&AnchorsAnchor()->url);
 #ifdef TRUE //EXPERIMENT_FAILED
 		{
-			/*Goal: avoid blocking UI thread: a resource_fetch (below) which includes a wait loop
+			/*Goal: avoid blocking UI thread
 			  Method: schedule a scene change whereby the file part gets sent to the resource worker thread
 			  while the UI thread keeps looping
 			  - first, make sure it's a scene file (not .html, .img which are handled in the html browser in new window)
@@ -278,7 +278,7 @@ int doBrowserAction()
 				return FALSE;
 			}
 		}
-#endif
+#else //EXPERIMENT
 
 #ifdef TEXVERBOSE
 		PRINTF("url: ");
@@ -323,25 +323,25 @@ int doBrowserAction()
 				} else {
 #ifdef _MSC_VER				
 					resource_item_t *resToLoad;
-						//we don't want to launch a new IE browser or IE tab, 
-						//just load a new scene in freewrl
-						//analogous to what happens when we have file://...AnchorA.x3d 
-						//the following is the only way I know to do that right now, same as 
-						//below several lines:
-						kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+					//we don't want to launch a new IE browser or IE tab, 
+					//just load a new scene in freewrl
+					//analogous to what happens when we have file://...AnchorA.x3d 
+					//the following is the only way I know to do that right now, same as 
+					//below several lines:
+					kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 
-						/* we want to clean out the old world AND load a new one in */
+					/* we want to clean out the old world AND load a new one in */
 
-						resToLoad = resource_create_single(p->plugin_res->parsed_request);
-						resToLoad->afterPoundCharacters = p->plugin_res->afterPoundCharacters;
+					resToLoad = resource_create_single(p->plugin_res->parsed_request);
+					resToLoad->afterPoundCharacters = p->plugin_res->afterPoundCharacters;
 
-						send_resource_to_parser(resToLoad);
+					send_resource_to_parser(resToLoad);
 
-						p->waitingForURLtoLoad = TRUE;
-						return TRUE; /* keep the browser ticking along here */
+					p->waitingForURLtoLoad = TRUE;
+					return TRUE; /* keep the browser ticking along here */
 #else
-						p->plugin_res->complete = TRUE;
-						startNewHTMLWindow(p->plugin_res->parsed_request);
+					p->plugin_res->complete = TRUE;
+					startNewHTMLWindow(p->plugin_res->parsed_request);
 #endif
 				}
 			} else {
@@ -360,6 +360,7 @@ int doBrowserAction()
 			ERROR_MSG("Could not load new world: %s\n", p->plugin_res->actual_file);
 			return FALSE;
 		}
+#endif //EXPERIMENT
 
 /*********************************************************/
 
@@ -367,7 +368,6 @@ int doBrowserAction()
 	} else {
 		/* printf ("\nwe have a single replacement here\n"); */
 	}
-
 	return FALSE; /* we are done the action */
 }
 

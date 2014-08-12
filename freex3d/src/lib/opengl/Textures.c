@@ -1354,6 +1354,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 			break;
 
 		case TEX_LOADING:
+		case TEX_READ:
 			DEBUG_TEX("I've to wait for %p...\n", myTableIndex);
 			break;
 

@@ -176,7 +176,7 @@ void ProdCon_init(struct tProdCon *t)
 		p->_P_LOCK_VAR = 0;
 		p->resource_list_to_parse = NULL;
 		p->frontend_list_to_get = NULL;
-		p->frontend_gets_files = 0; //dug9 Sep 1, 2013 used to test new fgf method in win32
+		p->frontend_gets_files = 2; //dug9 Sep 1, 2013 used to test new fgf method in win32; July2014 we're back, for Async 1=main.c 2=_displayThread
 		/* psp is the data structure that holds parameters for the parsing thread */
 		//p->psp;
 		/* is the inputParse thread created? */
@@ -395,89 +395,6 @@ void EAI_killBindables (void) {
 
 }
 
-/* interface for creating VRML for EAI */
-int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *where)
-{
-	resource_item_t *res;
-	char *newString;
-
-	newString = NULL;
-
-	if (strncmp(tp, "URL", 3) == 0) {
-
-		res = resource_create_single(inputstring);
-		res->whereToPlaceData = where;
-		res->offsetFromWhereToPlaceData = (int) offsetof (struct X3D_Group, children);
-		/* printf ("EAI_CreateVrml, res->where is %u, root is %u parameter where %u\n",res->where, rootNode, where); */
-
-	} else { // all other cases are inline code to parse... let the parser do the job ;P...
-
-		const char *sendIn;
-
-		if (strncmp(inputstring,"#VRML V2.0", 6) == 0) {
-			sendIn = inputstring;
-		} else {
-			newString = MALLOC (char *, strlen(inputstring) + strlen ("#VRML V2.0 utf8\n") + 3);
-			strcpy (newString,"#VRML V2.0 utf8\n");
-			strcat (newString,inputstring);
-			sendIn = newString;
-			/* printf ("EAI_Create, had to append, now :%s:\n",newString); */
-		}
-
-		res = resource_create_from_string(sendIn);
-		res->media_type=resm_vrml;
-		res->parsed_request = EAI_Flag;
-		res->whereToPlaceData = where;
-		res->offsetFromWhereToPlaceData = (int) offsetof (struct X3D_Group, children);
-	}
-
-	send_resource_to_parser(res);
-	resource_wait(res);
-	FREE_IF_NZ(newString);
-	return (res->status == ress_parsed);
-}
-
-/* interface for creating X3D for EAI - like above except x3d */
-int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Group *where)
-{
-	resource_item_t *res;
-	char *newString;
-
-	newString = NULL;
-
-	if (strncmp(tp, "URL", 3) == 0) {
-
-		res = resource_create_single(inputstring);
-		res->whereToPlaceData = where;
-		res->offsetFromWhereToPlaceData = (int) offsetof (struct X3D_Group, children);
-		/* printf ("EAI_CreateVrml, res->where is %u, root is %u parameter where %u\n",res->where, rootNode, where); */
-
-	} else { // all other cases are inline code to parse... let the parser do the job ;P...
-
-		const char *sendIn;
-		// the x3dparser doesn't like multiple root xml elements
-		// and it doesn't seem to hurt to give it an extra wrapping in <x3d>
-		// that way you can have multiple root elements and they all get
-	    // put into the target children[] field
-		newString = MALLOC (char *, strlen(inputstring) + strlen ("<X3D>\n\n</X3D>\n") + 3);
-		strcpy(newString,"<X3D>\n");
-		strcat(newString,inputstring);
-		strcat(newString,"\n</X3D>\n");
-		sendIn = newString;
-		//printf("EAI_createX3d string[%s]\n",sendIn);
-		res = resource_create_from_string(sendIn);
-		res->media_type=resm_x3d; //**different than vrml
-		res->parsed_request = EAI_Flag;
-		res->whereToPlaceData = where;
-		res->offsetFromWhereToPlaceData = (int) offsetof (struct X3D_Group, children);
-	}
-
-	send_resource_to_parser(res);
-	resource_wait(res);
-	FREE_IF_NZ(newString);
-	return (res->status == ress_parsed);
-}
-
 void new_root(){
 	//clean up before loading a new scene
 	int i;
@@ -567,68 +484,68 @@ void new_root(){
 }
 void resitem_enqueue(s_list_t* item);
 
-void send_resource_to_parser(resource_item_t *res)
-{
-	ppProdCon p;
-	ttglobal tg;
+//void send_resource_to_parser(resource_item_t *res)
+//{
+//	ppProdCon p;
+//	ttglobal tg;
+//
+//    //ConsoleMessage ("send_resource_to_parser, res->new_root %s",BOOL_STR(res->new_root));
+//
+//	if (res->new_root) {
+//		new_root();
+//	}
+//
+//
+//	/* We are not in parser thread, most likely
+//	   in main or display thread, and we successfully
+//	   parsed a resource request.
+//
+//	   We send it to parser.
+//	*/
+//	tg = gglobal();
+//	p = tg->ProdCon.prv;
+//
+//	/* Wait for display thread to be fully initialized */
+//	while (IS_DISPLAY_INITIALIZED == FALSE) {
+//		usleep(50);
+//	}
+//
+//	///* wait for the parser thread to come up to speed */
+//	//while (!p->inputParseInitialized)
+//	//	usleep(50);
+//
+//	resitem_enqueue(ml_new(res));
+//}
 
-    //ConsoleMessage ("send_resource_to_parser, res->new_root %s",BOOL_STR(res->new_root));
-
-	if (res->new_root) {
-		new_root();
-	}
 
 
-	/* We are not in parser thread, most likely
-	   in main or display thread, and we successfully
-	   parsed a resource request.
-
-	   We send it to parser.
-	*/
-	tg = gglobal();
-	p = tg->ProdCon.prv;
-
-	/* Wait for display thread to be fully initialized */
-	while (IS_DISPLAY_INITIALIZED == FALSE) {
-		usleep(50);
-	}
-
-	///* wait for the parser thread to come up to speed */
-	//while (!p->inputParseInitialized)
-	//	usleep(50);
-
-	resitem_enqueue(ml_new(res));
-}
-
-
-
-bool send_resource_to_parser_if_available(resource_item_t *res)
-{
-	/* We are not in parser thread, most likely
-	   in main or display thread, and we successfully
-	   parsed a resource request.
-
-	   We send it to parser.
-	*/
-	ppProdCon p;
-	ttglobal tg = gglobal();
-	p = (ppProdCon)tg->ProdCon.prv;
-
-	/* Wait for display thread to be fully initialized */
-	/* dug9 Aug 24, 2013 - don't wait (it seems to hang apartment-threaded apps) and see what happens.
-		display_initialized flag is set in a worker thread.
-		H: perhaps the usleep and pthread_create compete in an apartment thread, causing deadlock
-	*/
-	//while (IS_DISPLAY_INITIALIZED == FALSE) {
-	//	usleep(50);
-	//}
-
-	/* wait for the parser thread to come up to speed */
-	//while (!p->inputParseInitialized) usleep(50);
-
-	resitem_enqueue(ml_new(res));
-    return TRUE;
-}
+//bool send_resource_to_parser_if_available(resource_item_t *res)
+//{
+//	/* We are not in parser thread, most likely
+//	   in main or display thread, and we successfully
+//	   parsed a resource request.
+//
+//	   We send it to parser.
+//	*/
+//	ppProdCon p;
+//	ttglobal tg = gglobal();
+//	p = (ppProdCon)tg->ProdCon.prv;
+//
+//	/* Wait for display thread to be fully initialized */
+//	/* dug9 Aug 24, 2013 - don't wait (it seems to hang apartment-threaded apps) and see what happens.
+//		display_initialized flag is set in a worker thread.
+//		H: perhaps the usleep and pthread_create compete in an apartment thread, causing deadlock
+//	*/
+//	//while (IS_DISPLAY_INITIALIZED == FALSE) {
+//	//	usleep(50);
+//	//}
+//
+//	/* wait for the parser thread to come up to speed */
+//	//while (!p->inputParseInitialized) usleep(50);
+//
+//	resitem_enqueue(ml_new(res));
+//    return TRUE;
+//}
 
 void dump_resource_waiting(resource_item_t* res)
 {
@@ -658,7 +575,7 @@ void dump_parser_wait_queue()
 /**
  *   parser_process_res_VRML_X3D: this is the final parser (loader) stage, then call the real parser.
  */
-static bool parser_process_res_VRML_X3D(resource_item_t *res)
+bool parser_process_res_VRML_X3D(resource_item_t *res)
 {
 	s_list_t *l;
 	openned_file_t *of;
@@ -715,13 +632,14 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		//printf("after parse_string in EAI/SAI parsing\n");
 	} else {
 		/* standard file parsing */
-		l = (s_list_t *) res->openned_files;
-		if (!l) {
-			/* error */
-			return FALSE;
-		}
+		//l = (s_list_t *) res->openned_files;
+		//if (!l) {
+		//	/* error */
+		//	return FALSE;
+		//}
 
-		of = ml_elem(l);
+		//of = ml_elem(l);
+		of = res->openned_files;
 		if (!of) {
 			/* error */
 			return FALSE;
@@ -834,10 +752,97 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	return TRUE;
 }
 
+/* interface for creating VRML for EAI */
+int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *where)
+{
+	resource_item_t *res;
+	char *newString;
+
+	newString = NULL;
+
+	if (strncmp(tp, "URL", 3) == 0) {
+
+		res = resource_create_single(inputstring);
+		res->whereToPlaceData = where;
+		res->offsetFromWhereToPlaceData = (int) offsetof (struct X3D_Group, children);
+		/* printf ("EAI_CreateVrml, res->where is %u, root is %u parameter where %u\n",res->where, rootNode, where); */
+
+	} else { // all other cases are inline code to parse... let the parser do the job ;P...
+
+		const char *sendIn;
+
+		if (strncmp(inputstring,"#VRML V2.0", 6) == 0) {
+			sendIn = inputstring;
+		} else {
+			newString = MALLOC (char *, strlen(inputstring) + strlen ("#VRML V2.0 utf8\n") + 3);
+			strcpy (newString,"#VRML V2.0 utf8\n");
+			strcat (newString,inputstring);
+			sendIn = newString;
+			/* printf ("EAI_Create, had to append, now :%s:\n",newString); */
+		}
+
+		res = resource_create_from_string(sendIn);
+		res->media_type=resm_vrml;
+		res->parsed_request = EAI_Flag;
+		res->whereToPlaceData = where;
+		res->offsetFromWhereToPlaceData = (int) offsetof (struct X3D_Group, children);
+	}
+	return parser_process_res_VRML_X3D(res);
+	//send_resource_to_parser(res);
+	//resource_wait(res);
+	//FREE_IF_NZ(newString);
+	//return (res->status == ress_parsed);
+}
+
+/* interface for creating X3D for EAI - like above except x3d */
+int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Group *where)
+{
+	int retval;
+	resource_item_t *res;
+	char *newString;
+
+	newString = NULL;
+
+	if (strncmp(tp, "URL", 3) == 0) {
+
+		res = resource_create_single(inputstring);
+		res->whereToPlaceData = where;
+		res->offsetFromWhereToPlaceData = (int) offsetof (struct X3D_Group, children);
+		/* printf ("EAI_CreateVrml, res->where is %u, root is %u parameter where %u\n",res->where, rootNode, where); */
+
+	} else { // all other cases are inline code to parse... let the parser do the job ;P...
+
+		const char *sendIn;
+		// the x3dparser doesn't like multiple root xml elements
+		// and it doesn't seem to hurt to give it an extra wrapping in <x3d>
+		// that way you can have multiple root elements and they all get
+	    // put into the target children[] field
+		newString = MALLOC (char *, strlen(inputstring) + strlen ("<X3D>\n\n</X3D>\n") + 3);
+		strcpy(newString,"<X3D>\n");
+		strcat(newString,inputstring);
+		strcat(newString,"\n</X3D>\n");
+		sendIn = newString;
+		//printf("EAI_createX3d string[%s]\n",sendIn);
+		res = resource_create_from_string(sendIn);
+		res->media_type=resm_x3d; //**different than vrml
+		res->parsed_request = EAI_Flag;
+		res->whereToPlaceData = where;
+		res->offsetFromWhereToPlaceData = (int) offsetof (struct X3D_Group, children);
+	}
+	return parser_process_res_VRML_X3D(res);
+
+	//send_resource_to_parser(res);
+	//resource_wait(res);
+	//FREE_IF_NZ(newString);
+	//return (res->status == ress_parsed);
+}
+
+
+
 /**
  *   parser_process_res_SHADER: this is the final parser (loader) stage, then call the real parser.
  */
-static bool parser_process_res_SHADER(resource_item_t *res)
+static bool parser_process_res_SCRIPT(resource_item_t *res)
 {
 	s_list_t *l;
 	openned_file_t *of;
@@ -857,19 +862,20 @@ static bool parser_process_res_SHADER(resource_item_t *res)
 	case rest_url:
 	case rest_file:
 	case rest_multi:
-		l = (s_list_t *) res->openned_files;
-		if (!l) {
-			/* error */
-			return FALSE;
-		}
+		//l = (s_list_t *) res->openned_files;
+		//if (!l) {
+		//	/* error */
+		//	return FALSE;
+		//}
 
-		of = ml_elem(l);
+		//of = ml_elem(l);
+		of = res->openned_files;
 		if (!of) {
 			/* error */
 			return FALSE;
 		}
 
-		/* FIXME: finish this */
+		buffer = of->fileData;
 		break;
 	}
 
@@ -944,6 +950,11 @@ void resitem_enqueue(s_list_t *item){
 
 	threadsafe_enqueue_item_signal(item,&p->resource_list_to_parse, &tg->threads.mutex_resource_list, &tg->threads.resource_list_condition );
 }
+void resitem_enqueue_tg(s_list_t *item, void* tg){
+	fwl_setCurrentHandle(tg, __FILE__, __LINE__);
+	resitem_enqueue(item);
+	fwl_clearCurrentHandle();
+}
 s_list_t *resitem_dequeue(){
 	ppProdCon p;
 	ttglobal tg = gglobal();
@@ -977,6 +988,11 @@ void frontenditem_enqueue(s_list_t *item){
 
 	threadsafe_enqueue_item(item,&p->frontend_list_to_get, &tg->threads.mutex_frontend_list );
 }
+void frontenditem_enqueue_tg(s_list_t *item, void *tg){
+	fwl_setCurrentHandle(tg, __FILE__, __LINE__);
+	frontenditem_enqueue(item);
+	fwl_clearCurrentHandle();
+}
 s_list_t *frontenditem_dequeue(){
 	ppProdCon p;
 	ttglobal tg = gglobal();
@@ -984,20 +1000,33 @@ s_list_t *frontenditem_dequeue(){
 
 	return threadsafe_dequeue_item(&p->frontend_list_to_get, &tg->threads.mutex_frontend_list );
 }
-//this is for simulating frontend_gets_files in win32 - called from lib/main.c
-void frontend_dequeue_get_enqueue(){
-	s_list_t *item = NULL;
-	while( (item = frontenditem_dequeue()) != NULL ){
-		//download_url((resource_item_t *) item->elem);
-		resource_fetch((resource_item_t *) item->elem);
-		resitem_enqueue(item);
-	}
+s_list_t *frontenditem_dequeue_tg(void *tg){
+	s_list_t *item;
+	fwl_setCurrentHandle(tg, __FILE__, __LINE__);
+	item = frontenditem_dequeue();
+	fwl_clearCurrentHandle();
+	return item;
 }
+void *fwl_frontenditem_dequeue(){
+	void *res = NULL;
+	s_list_t *item = frontenditem_dequeue();
+	if (item){
+		res = item->elem;
+		free(item);
+	}
+	return res;
+}
+void fwl_resitem_enqueue(void *res){
+	resitem_enqueue(ml_new(res));
+}
+
 int frontendGetsFiles(){
 	return ((ppProdCon)(gglobal()->ProdCon.prv))->frontend_gets_files;
 }
 
-
+void process_res_texitem(resource_item_t *res);
+bool parser_process_res_SHADER(resource_item_t *res);
+void process_res_audio(resource_item_t *res);
 /**
  *   parser_process_res: for each resource state, advance the process of loading.
  *   this version assumes the item has been dequeued for processing,
@@ -1023,37 +1052,49 @@ static bool parser_process_res(s_list_t *item)
 	case ress_invalid:
 	case ress_none:
             retval = FALSE;
-		resource_identify(res->parent, res);
-		if (res->type == rest_invalid) {
-			remove_it = TRUE;
+		if(!res->actions || (res->actions & resa_identify)){
+			resource_identify(res->parent, res);
+			if (res->type == rest_invalid) {
+				remove_it = TRUE;
+				res->complete = TRUE; //J30
+			}
 		}
 		break;
 
 	case ress_starts_good:
-		if(p->frontend_gets_files){
+		if(!res->actions || (res->actions & resa_download)){
+		//if(p->frontend_gets_files){
 			frontenditem_enqueue(ml_new(res));
 			remove_it = TRUE;
-		}else{
-			resource_fetch(res);
+		//}else{
+		//	resource_fetch(res);
+		//}
 		}
 		break;
 
 	case ress_downloaded:
+		if(!res->actions || (res->actions & resa_load))
 		/* Here we may want to delegate loading into another thread ... */
-		if (!resource_load(res)) {
-			ERROR_MSG("failure when trying to load resource: %s\n", res->URLrequest);
-			remove_it = TRUE;
-			retval = FALSE;
+		//if (!resource_load(res)) {
+		if(res->_loadFunc){
+			if(!res->_loadFunc(res)){
+				ERROR_MSG("failure when trying to load resource: %s\n", res->URLrequest);
+				remove_it = TRUE;
+				res->complete = TRUE; //J30
+				retval = FALSE;
+			}
 		}
 		break;
 
 	case ress_failed:
-            retval = FALSE;
+		retval = FALSE;
 		remove_it = TRUE;
+		res->complete = TRUE; //J30
 		break;
 
 	case ress_loaded:
-		// printf("processing resource, media_type %s\n",resourceMediaTypeToString(res->media_type));
+			// printf("processing resource, media_type %s\n",resourceMediaTypeToString(res->media_type));
+		if(!res->actions || (res->actions & resa_process))
 		switch (res->media_type) {
 		case resm_unknown:
 			ConsoleMessage ("deciphering file: 404 file not found or unknown file type encountered.");
@@ -1069,7 +1110,16 @@ static bool parser_process_res(s_list_t *item)
 
 			} else {
 				ERROR_MSG("parser failed for resource: %s\n", res->URLrequest);
-                retval = FALSE;
+				retval = FALSE;
+			}
+			break;
+		case resm_script:
+			if (parser_process_res_SCRIPT(res)) {
+				DEBUG_MSG("parser successfull: %s\n", res->URLrequest);
+				res->status = ress_parsed;
+			} else {
+				retval = FALSE;
+				ERROR_MSG("parser failed for resource: %s\n", res->URLrequest);
 			}
 			break;
 		case resm_pshader:
@@ -1078,35 +1128,44 @@ static bool parser_process_res(s_list_t *item)
 				DEBUG_MSG("parser successfull: %s\n", res->URLrequest);
 				res->status = ress_parsed;
 			} else {
-                retval = FALSE;
+				retval = FALSE;
 				ERROR_MSG("parser failed for resource: %s\n", res->URLrequest);
 			}
 			break;
 		case resm_image:
 		case resm_movie:
 			/* Texture file has been loaded into memory
-			   the node could be updated ... i.e. texture created */
+				the node could be updated ... i.e. texture created */
 			res->complete = TRUE; /* small hack */
+			process_res_texitem(res);
+			break;
+		case resm_audio:
+			res->complete = TRUE;
+			process_res_audio(res);
 			break;
 		case resm_x3z:
 			process_x3z(res);
 			printf("processed x3z\n");
 		}
 		/* Parse only once ! */
+		res->complete = TRUE; //J30
 		remove_it = TRUE;
 		break;
 
 	case ress_not_loaded:
 		remove_it = TRUE;
-            retval = FALSE;
+		res->complete = TRUE; //J30
+		retval = FALSE;
 		break;
 
 	case ress_parsed:
+		res->complete = TRUE; //J30
 		remove_it = TRUE;
 		break;
 
 	case ress_not_parsed:
-            retval = FALSE;
+		res->complete = TRUE; //J30
+		retval = FALSE;
 		remove_it = TRUE;
 		break;
 	}
@@ -1175,9 +1234,9 @@ void _inputParseThread(void *globalcontext)
 			p->inputThreadParsing = TRUE;
 			result = parser_process_res(item); //,&p->resource_list_to_parse);
 			p->inputThreadParsing = FALSE;
-			#if defined (IPHONE) || defined (_ANDROID)
-            		if (result) setMenuStatus ("ok"); else setMenuStatus("not ok");
-			#endif
+			//#if defined (IPHONE) || defined (_ANDROID)
+   //         		if (result) setMenuStatus ("ok"); else setMenuStatus("not ok");
+			//#endif
 		}
 
 		tg->threads.ResourceThreadRunning = FALSE;

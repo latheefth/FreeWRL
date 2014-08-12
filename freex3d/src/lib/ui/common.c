@@ -145,7 +145,7 @@ char *getMenuStatus()
 {
 	return ((ppcommon)gglobal()->common.prv)->myMenuStatus;
 }
-#if !defined (_ANDROID)
+//#if !defined (_ANDROID)
 
 
 void setWindowTitle0()
@@ -160,7 +160,7 @@ char *getWindowTitle()
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 	return p->window_title;
 }
-#endif //ANDROID
+//#endif //ANDROID
 
 void setMessageBar()
 {

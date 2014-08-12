@@ -4628,13 +4628,18 @@ const int OFFSETS_Script[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_ShaderPart[] = {
+	(int) FIELDNAMES___loadResource, (int) offsetof (struct X3D_ShaderPart, __loadResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___loadstatus, (int) offsetof (struct X3D_ShaderPart, __loadstatus),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__parentResource, (int) offsetof (struct X3D_ShaderPart, _parentResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__shaderUserDefinedFields, (int) offsetof (struct X3D_ShaderPart, _shaderUserDefinedFields),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_ShaderPart, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_type, (int) offsetof (struct X3D_ShaderPart, type),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_url, (int) offsetof (struct X3D_ShaderPart, url),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_ShaderProgram[] = {
+	(int) FIELDNAMES___loadResource, (int) offsetof (struct X3D_ShaderProgram, __loadResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___loadstatus, (int) offsetof (struct X3D_ShaderProgram, __loadstatus),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__parentResource, (int) offsetof (struct X3D_ShaderProgram, _parentResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__shaderUserDefinedFields, (int) offsetof (struct X3D_ShaderProgram, _shaderUserDefinedFields),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_ShaderProgram, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -8404,7 +8409,10 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ShaderPart : {
 			struct X3D_ShaderPart * tmp2;
 			tmp2 = (struct X3D_ShaderPart *) tmp;
+			tmp2->__loadResource = 0;
+			tmp2->__loadstatus = 0;
 			tmp2->_parentResource = getInputResource();
+			tmp2->_shaderUserDefinedFields = NULL;
 			tmp2->metadata = NULL;
 			tmp2->type = newASCIIString("VERTEX");
 			tmp2->url.n=0; tmp2->url.p=0;
@@ -8414,6 +8422,8 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ShaderProgram : {
 			struct X3D_ShaderProgram * tmp2;
 			tmp2 = (struct X3D_ShaderProgram *) tmp;
+			tmp2->__loadResource = 0;
+			tmp2->__loadstatus = 0;
 			tmp2->_parentResource = getInputResource();
 			tmp2->_shaderUserDefinedFields = NULL;
 			tmp2->metadata = NULL;

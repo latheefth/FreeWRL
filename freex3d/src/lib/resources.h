@@ -66,10 +66,22 @@ typedef enum resource_media_type {
 	resm_x3d,
 	resm_image,
 	resm_movie,
+	resm_script,
 	resm_pshader,
 	resm_fshader,
+	resm_audio,
 	resm_x3z
 } resource_media_type_t;
+
+typedef enum resource_actions {
+	resa_default = 0, //all by default: download, load, parse/process: not using actions
+	resa_identify = 1,
+	resa_download = 2, //will & and | as bit flags so declare 1,2,4,8.. power of 2 or 1<<n
+	resa_load = 4,
+	resa_process = 8,
+	//resa_place,
+	//resa_ remove, delete ?? ... see parser_process_res()
+} resource_actions_t;
 
 typedef struct resource_item {
 
@@ -83,11 +95,19 @@ typedef struct resource_item {
 	/* Request */
 	resource_type_t type;
 	resource_status_t status;
+	resource_actions_t actions; //if 0, do default which is all actions: download, load, parse, 
+		//else do specific requested actions (which are bitwise |= resource_actions_t's)
+	//resource_actions_t successful;  //you could have more bitwise flags to track what steps succeeded, which were attempted etc.
+	//resource_actions_t attempted; 
 
 	/* Resource has passed all the steps */
-	bool complete;
-	void *whereToPlaceData;
-	int offsetFromWhereToPlaceData;
+	//July30,2014 dug9: clarification (and possible change) of the meaning of complete: 
+	//  work thread (and FE/ML download/load threads) has attempted all requested actions which are possible,
+	//  and is finished with the resitem (some actions may have failed - test with last status ie ress_failed etc)
+	bool complete;  
+	//for vrml/x3d media types:
+	void *whereToPlaceData;  // usually X3D_Node*, except for Scripts and Shaders, it's Shader_Script* (which is a sub-struct)
+	int offsetFromWhereToPlaceData; //usually field offset (not used for Scripts/Shaders)
 
 	/* We can be feed with a Multi_String list of requests */
 	s_list_t *m_request;
@@ -153,7 +173,9 @@ typedef struct resource_item {
 
 	resource_media_type_t media_type;
 	int treat_as_root; //bandaid for .x3z doc.x3d to be seen as root res equivalent
-
+	void *_loadThread; //pthread_t * used for async_loading in middleLayer ML
+	void *tg; //gglobal context
+	int (*_loadFunc)(void *);
 } resource_item_t;
 
 extern resource_item_t *root_res;
@@ -172,6 +194,7 @@ resource_item_t* resource_create_from_string(const char *string);
 void push_resource_request(const char *request);
 void resource_identify(resource_item_t *base, resource_item_t *resresource_identify);
 bool resource_fetch(resource_item_t *res);
+void resitem_enqueue(s_list_t *resitem);
 bool resource_load(resource_item_t *res);
 void resource_identify_type(resource_item_t *res);
 void resource_destroy(resource_item_t *res);
@@ -203,6 +226,10 @@ char *resourceMediaTypeToString(int type);
 
 /* Initial URL loaded : replace IS_WORLD_LOADED */
 extern bool resource_is_root_loaded();
+void frontenditem_enqueue(s_list_t *item);
 
+void popInputResource();
+void pushInputResource(resource_item_t *url);
+resource_item_t *getInputResource();
 
 #endif /* __LIBFREEWRL_RESOURCES_H__ */

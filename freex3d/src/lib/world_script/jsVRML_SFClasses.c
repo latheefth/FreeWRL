@@ -1338,21 +1338,22 @@ SFNodeConstr(JSContext *cx, uintN argc, jsval *vp) {
 				#ifdef JSVRMLCLASSESVERBOSE
 				printf ("SFNodeConstr, sending resource to parser\n");
 				#endif
-				send_resource_to_parser(res);
+				//send_resource_to_parser(res);
 				#ifdef JSVRMLCLASSESVERBOSE
 				printf ("SFNodeConstr, waiting on resource\n");
 				#endif
-				resource_wait(res);
+				//resource_wait(res);
 
 				#ifdef JSVRMLCLASSESVERBOSE
 				printf ("SFNodeConstr we have created %d nodes\n",myGroup->children.n);
 				#endif
 
 				/* we MUST create 1 node here; if not, there is an error */
-				if ((myGroup->children.n) != 1) {
-					ConsoleMessage ("SFNativeNew - created %d nodes, expected 1 only\n",myGroup->children.n);
-					return JS_FALSE;
-				}
+				//if ((myGroup->children.n) != 1) {
+				//	ConsoleMessage ("SFNativeNew - created %d nodes, expected 1 only\n",myGroup->children.n);
+				//	return JS_FALSE;
+				//}
+				parser_process_res_VRML_X3D(res);
 				newHandle = X3D_NODE(myGroup->children.p[0]);
 			}
 			

@@ -45,6 +45,14 @@ public:
 	void setTempFolder(char *tmpFolder);
 	void setFontFolder(char *fontFolder);
 	int getUpdatedCursorStyle();
+	void* frontenditem_dequeue();
+	char* resitem_getURL(void *res);
+	int resitem_getStatus(void *res);
+	int resitem_getType(void *res);
+	void resitem_enqueuNextMulti(void *res);
+	void resitem_setLocalPath(void *res, char* path);
+	void resitem_enqueue(void *res);
+	void resitem_load(void *res);
 	//void __stdcall setProcessingAICommandsCallback(OnProcessingAICommands func);
 	
 private:

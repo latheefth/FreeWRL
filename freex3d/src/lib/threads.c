@@ -162,48 +162,6 @@ void threads_init(struct tthreads* t)
 void sync(){}
 #endif
 
-#if !defined (FRONTEND_HANDLES_DISPLAY_THREAD)
-void fwl_initializeDisplayThread()
-{
-	int ret;
-	ttglobal tg = gglobal();
-	/* Synchronize trace/error log... */
-	fflush(stdout);
-	fflush(stderr);
-	sync();
-	ASSERT(TEST_NULL_THREAD(gglobal()->threads.DispThrd));
-
-
-	/* Initialize all mutex/condition variables ... */
-	pthread_mutex_init( &tg->threads.mutex_resource_tree, NULL );
-	pthread_mutex_init( &tg->threads.mutex_resource_list, NULL );
-	pthread_mutex_init( &tg->threads.mutex_texture_list, NULL );
-	pthread_cond_init( &tg->threads.resource_list_condition, NULL );
-	pthread_cond_init( &tg->threads.texture_list_condition, NULL );
-	pthread_mutex_init(&tg->threads.mutex_frontend_list,NULL);
-
-
-	ret = pthread_create(&tg->threads.DispThrd, NULL, (void *) _displayThread, tg);
-	switch (ret) {
-	case 0: 
-		break;
-	case EAGAIN: 
-		ERROR_MSG("initializeDisplayThread: not enough system resources to create a process for the new thread.");
-		return;
-	}
-
-
-#if !defined(TARGET_AQUA) && !defined(_MSC_VER) 
-	if (gglobal()->internalc.global_trace_threads) {
-		TRACE_MSG("initializeDisplayThread: waiting for display to become initialized...\n");
-		while (IS_DISPLAY_INITIALIZED == FALSE) {
-			usleep(50);
-		}
-	}
-#endif
-}
-
-#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 
 
 
@@ -216,6 +174,13 @@ void fwl_initializeInputParseThread()
 	/* Synchronize trace/error log... */
 	fflush(stdout);
 	fflush(stderr);
+
+	/* Initialize all mutex/condition variables ... */
+	pthread_mutex_init( &tg->threads.mutex_resource_tree, NULL );
+	pthread_mutex_init( &tg->threads.mutex_resource_list, NULL );
+	pthread_cond_init( &tg->threads.resource_list_condition, NULL );
+	pthread_mutex_init(&tg->threads.mutex_frontend_list,NULL);
+
 
 	ASSERT(TEST_NULL_THREAD(tg->threads.PCthread));
 	ret = pthread_create(&tg->threads.PCthread, NULL, (void *(*)(void *))&_inputParseThread, tg);
@@ -233,6 +198,9 @@ void fwl_initializeTextureThread()
 {
 	int ret;
 	ttglobal tg = gglobal();
+
+	pthread_mutex_init( &tg->threads.mutex_texture_list, NULL );
+	pthread_cond_init( &tg->threads.texture_list_condition, NULL );
 
 	/* Synchronize trace/error log... */
 	fflush(stdout);

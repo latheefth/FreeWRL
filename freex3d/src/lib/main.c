@@ -291,18 +291,18 @@ bool fwl_initFreeWRL(freewrl_params_t *params){
 	///* Initialize common UI variables */ - done in common.c
 	//myMenuStatus[0] = '\0';
 
-#ifndef FRONTEND_HANDLES_DISPLAY_THREAD
-	if(!params->frontend_handles_display_thread){
-		/* OK the display is now initialized,
-		   create the display thread and wait for it
-		   to complete initialization */
-		fwl_initializeDisplayThread();
-
-		//usleep(50);
-		//set_thread2global(tg,tg->threads.DispThrd ,"display thread");
-	}
-
-#endif //FRONTEND_HANDLES_DISPLAY_THREAD
+//#ifndef FRONTEND_HANDLES_DISPLAY_THREAD
+//	if(!params->frontend_handles_display_thread){
+//		/* OK the display is now initialized,
+//		   create the display thread and wait for it
+//		   to complete initialization */
+//		fwl_initializeDisplayThread();
+//
+//		//usleep(50);
+//		//set_thread2global(tg,tg->threads.DispThrd ,"display thread");
+//	}
+//
+//#endif //FRONTEND_HANDLES_DISPLAY_THREAD
 
 	fwl_initializeInputParseThread();
 	//set_thread2global(tg, tg->threads.PCthread ,"parse thread");
@@ -361,67 +361,9 @@ void splitpath_local_suffix(const char *url, char **local_name, char **suff)
 		}
 	}
 }
-void fwl_startFreeWRL(const char *url)
-{
 
-	//ConsoleMessage ("yes, really, FWL_STARTFREEWRL called is called\n");
+int checkExitRequest();
 
-	/* Give the main argument to the resource handler */
-	if (url != NULL) {
-		//int i,len;
-		//const char *localname;
-		//len = strlen(url);
-		//localname = NULL;
-		//for(i=len-1;i>=0;i--){
-		//	if(url[i] == '/') break;
-		//	localname = &url[i];
-		//}
-		//if(localname){
-		//	char* suff;
-		//	char* local_name = STRDUP(localname);
-		//	len = strlen(local_name);
-		//	suff = NULL;
-		//	for(i=len-1;i>=0;i--){
-		//		if(local_name[i] == '.') {
-		//			local_name[i] = '\0';
-		//			suff = &local_name[i+1];
-		//			break;
-		//		}
-		//	}
-		//	gglobal()->Mainloop.url = strdup(url);
-		//	gglobal()->Mainloop.scene_name = local_name;
-		//	gglobal()->Mainloop.scene_suff = suff;
-		//}
-		ttglobal tg = gglobal();
-		char* suff = NULL;
-		char* local_name = NULL;
-		splitpath_local_suffix(url, &local_name, &suff);
-		if(url) tg->Mainloop.url = strdup(url);
-		tg->Mainloop.scene_name = local_name;
-		tg->Mainloop.scene_suff = suff;
-
-
-		//file = stripLocalFileName ((char *)file);
-		//FREE_IF_NZ (BrowserFullPath);
-		//BrowserFullPath = STRDUP((char *) file);
-
-		fwl_resource_push_single_request(url);
-		DEBUG_MSG("request sent to parser thread, main thread joining display thread...\n");
-	} else {
-		DEBUG_MSG("no request for parser thread, main thread joining display thread...\n");
-	}
-	//this is for simulating frontend_gets_files for testing. Do not set FRONTEND_GETS_FILES. 
-	//this tests an alternate method. 
-	// you need to put an http:// file on the command line (this is hardwired for io_http gets only, not local
-	if(frontendGetsFiles()){
-		for(;;){
-			frontend_dequeue_get_enqueue();
-			sleep(200);
-		}
-	}
-	/* now wait around until something kills this thread. */
-	pthread_join(gglobal()->threads.DispThrd, NULL);
-}
 
 /**
  * Explicit exit routine

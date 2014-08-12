@@ -33,15 +33,9 @@
 /* change method char* download_url(const char *url, const char *tmp); */
 void download_url(resource_item_t *res);
 
-void popInputResource();
-void pushInputResource(resource_item_t *url);
-resource_item_t *getInputResource();
 
 /* URL manipulation */
 bool checkNetworkFile(const char *fn);
-#ifdef _MSC_VER
-#define strncasecmp _strnicmp
-#endif
 
 
 #endif /* __LIBFREEWRL_IO_HTTP_H__ */

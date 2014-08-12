@@ -2548,15 +2548,20 @@ our %Nodes = (
 			metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			url => ["MFString", [], "inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			type => ["SFString","VERTEX","inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
+			__loadstatus =>["SFInt32",0,"initializeOnly", 0],
 			_parentResource =>["FreeWRLPTR",0,"initializeOnly", 0],
+			__loadResource => ["FreeWRLPTR", 0, "initializeOnly", 0],
+			_shaderUserDefinedFields => ["SFNode", "NULL", "initializeOnly", 0],
 	}, "X3DUrlObject"),
 
 	"ShaderProgram" => new VRML::NodeType("ShaderProgram", {
 			metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			url => ["MFString", [], "inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			type => ["SFString","","inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
-			 _shaderUserDefinedFields => ["SFNode", "NULL", "initializeOnly", 0],
+			__loadstatus =>["SFInt32",0,"initializeOnly", 0],
 			_parentResource =>["FreeWRLPTR",0,"initializeOnly", 0],
+			__loadResource => ["FreeWRLPTR", 0, "initializeOnly", 0],
+			_shaderUserDefinedFields => ["SFNode", "NULL", "initializeOnly", 0],
 	}, "X3DUrlObject"),
 
 

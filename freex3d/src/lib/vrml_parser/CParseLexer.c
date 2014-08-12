@@ -1419,6 +1419,7 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
 	resource_identify(gglobal()->resources.root_res, res);
 
 	if (res->type != rest_invalid) {
+#ifdef HAD_RESOURCE_LOAD
 		if (resource_fetch(res)) {
  			pound = strchr(res->URLrequest, '#'); 
 			if (resource_load(res)) {
@@ -1430,6 +1431,10 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
  				embedEXTERNPROTO(me, myName, (char *)buffer, pound); 
 			}
 		}
+#else
+			res->status = ress_failed;
+			printf("externProto not currently supported\n");
+#endif
 	}
 	
 	if (res->status == ress_loaded) {
