@@ -544,7 +544,7 @@ bool resource_load(resource_item_t *res)
 
 
 #else //FRONTEND_GETS_FILES
-
+	//this line is in branch Async
 	case ress_downloaded:
 		of = load_file(res->actual_file);
 
