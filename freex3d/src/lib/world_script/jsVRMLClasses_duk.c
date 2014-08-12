@@ -1157,6 +1157,7 @@ int SFNode_Setter0(FWType fwt, int index, void * fwn, FWval fwval, int isCurrent
 			}
 		}
 		nr = TRUE;
+		update_node(node);
 	}
 	return nr;
 
