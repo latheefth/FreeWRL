@@ -443,141 +443,112 @@ BOOL script_initCode(struct Shader_Script* me, const char* code)
    contains the script; if not, it goes and tries to see if the SFString 
    contains a file that (hopefully) contains the script */
 
-static bool script_initCodeFromUri(struct Shader_Script* me, const char* uri, char** crv)
+static bool script_initCodeFromBLOB(struct Shader_Script* me, const char* uri, char** crv)
 {
- size_t i;
- int rv;
- resource_item_t *res;
-    //ConsoleMessage ("script_initCodeFromUri starting");
-    
-  rv = FALSE; /* initialize it */
+	size_t i;
+	int rv;
+	//ConsoleMessage ("script_initCodeFromUri starting");
 
- /* strip off whitespace at the beginning JAS */
- while ((*uri<= ' ') && (*uri>0)) uri++;
+	rv = FALSE; /* initialize it */
 
- /* Try javascript protocol */
- for(i=0; i!=ARR_SIZE(JS_PROTOCOLS); ++i)
- {
-  const char* u=uri;
-  const char* v=JS_PROTOCOLS[i];
+	/* strip off whitespace at the beginning JAS */
+	while ((*uri<= ' ') && (*uri>0)) uri++;
 
-  while(*u && *v && *u==*v)
-  {
-   ++u;
-   ++v;
-  }
-     
-     //ConsoleMessage ("so far, u is :%s:",u);
-     
-  /* Is this a "data:text/plain," uri? JAS*/
-  if((!*v && *u==',') || (!*v && *u==':')) {
-   	if (me != NULL) {
-        ConsoleMessage ("calling script_initCode");
-        
-		return script_initCode(me, u+1); /* a script */
-	} else {
+	/* Try javascript protocol */
+	for(i=0; i!=ARR_SIZE(JS_PROTOCOLS); ++i)
+	{
+		const char* u=uri;
+		const char* v=JS_PROTOCOLS[i];
 
-        *crv = STRDUP(u+1);
-        //printf("script_initCodeFromUri, returning crv as %s\n",*crv);
-        return TRUE;
-	}
-   }
- }
+		while(*u && *v && *u==*v)
+		{
+			++u;
+			++v;
+		}
+		//ConsoleMessage ("so far, u is :%s:",u);
+		/* Is this a "data:text/plain," uri? JAS*/
+		if((!*v && *u==',') || (!*v && *u==':')) {
+			if (me != NULL) {
+				ConsoleMessage ("calling script_initCode");
 
- /* Not a valid script text in this SFString. Lets see if this
-    is this a possible file that we have to get? */
-
- DEBUG_CPARSER("script_initCodeFromUri, uri is %s\n", uri); 
-    //printf("script_initCodeFromUri, uri is %s\n", uri);
-
- res = resource_create_single(uri);
-   // printf ("past resource_create_single\n");
-    
- resource_identify(gglobal()->resources.root_res, res);
-    //printf ("past resource_identify\n");
-    
- if (res->type != rest_invalid) {
-     //printf ("going to resource_fetch\n");
-     
-	 if (resource_fetch(res)) {
-         //printf ("past resource_fetch\n");
-		 if (resource_load(res)) {
-			 s_list_t *l;
-			 openned_file_t *of;
-
-			 l = res->openned_files;
-            of = ml_elem(l);
-/*
-
-             of = XALLOC(openned_file_t);
-             of->fileFileName = filename;
-             of->fileDescriptor = fd;
-             of->fileData = data;
-             of->fileDataSize = dataSize;
-             of->imageHeight = imageHeight;
-             of->imageWidth = imageWidth;
-             of->imageAlpha = imageAlpha;
-*/
-
-             
-			/* ok - Scripts get initialized; shaders get the buffer returned */
-			if (me==NULL) { /* a Shader */
-                //printf ("script_initCodeFromUri, got me==NULL\n");
-                //printf ("script_initCodeFromUri, datalen :%ld:\n",strlen((const char *)of->fileData));
-
-			 	//*crv = STRDUP((const char*)of->fileData);
-                
-                // move the file data over for any upcoming FREE_IF_NZ() calls, 
-                // and make the original pointer NULL.
-                *crv = (char *)of->fileData;
-                of->fileData = NULL;
-                
-                //printf ("script_initCodeFromUri, datalen copied :%ld:\n",strlen((const char*)*crv));
-                //printf ("script_initCodeFromUri, of says datalen is %d\n",of->fileDataSize);
-                
-			 	//printf("**** Shader:\n%s\n", *crv); 
-                   //             printf ("script data %s\n",of->fileData);
-				//printf ("*** Shader: doing the quick return here\n");
-				return TRUE;
+				return script_initCode(me, u+1); /* a script */
 			} else {
-				/* a Script */
-			 	//printf("**** Script:\n%s\n", *crv);
-			 	rv = script_initCode(me, (const char*) of->fileData);
-			}
-		 }
-	 }
- }
- 
-    //printf ("passed rest_invalid test\n");
-    
- if (res->status == ress_loaded && rv) {
-	 /* ok - we are replacing EXTERNPROTO with PROTO */
-	 res->status = ress_parsed;
-	 res->complete = TRUE;
-	 return TRUE;
- } else {
-	 /* failure, FIXME: remove res from root_res... */
-/* 		resource_destroy(res); */
- }
 
- return FALSE;
+				*crv = STRDUP(u+1);
+				//printf("script_initCodeFromUri, returning crv as %s\n",*crv);
+				return TRUE;
+			}
+		}
+	}
+	return FALSE;
+}
+static void script_initCodeFromMFUri_download(struct Shader_Script* me, struct Multi_String *s){
+	 /* Not a valid script text in this MFString. Lets see if this
+		is this a possible file that we have to get? */
+	resource_item_t *res, *parentres;
+
+	DEBUG_CPARSER("script_initCodeFromUri, uri is %s\n", uri); 
+	//printf("script_initCodeFromUri, uri is %s\n", uri);
+
+	res = resource_create_multi(s);
+	// printf ("past resource_create_single\n");
+	parentres = ((struct X3D_Script*)(me->ShaderScriptNode))->_parentResource;
+	//resource_identify(gglobal()->resources.root_res, res); 
+	resource_identify(parentres, res); 
+	//printf ("past resource_identify\n");
+
+	if (res->type != rest_invalid) {
+		res->status = ress_starts_good;
+		res->media_type = resm_script;
+		res->whereToPlaceData = me;
+		res->actions = resa_download | resa_load | resa_process;
+		resitem_enqueue(ml_new(res));
+	}
+}
+static void shader_initCodeFromMFUri_download(struct Shader_Script* me, struct Multi_String *s){
+	 /* Not a valid script text in this MFString. Lets see if this
+		is this a possible file that we have to get? */
+	resource_item_t *res, *parentres;
+
+	DEBUG_CPARSER("script_initCodeFromUri, uri is %s\n", uri); 
+	//printf("script_initCodeFromUri, uri is %s\n", uri);
+
+	res = resource_create_multi(s);
+	// printf ("past resource_create_single\n");
+	parentres = ((struct X3D_Script*)(me->ShaderScriptNode))->_parentResource;
+	//resource_identify(gglobal()->resources.root_res, res); 
+	resource_identify(parentres, res); 
+	//printf ("past resource_identify\n");
+
+	if (res->type != rest_invalid) {
+		res->status = ress_starts_good;
+		res->media_type = resm_fshader;
+		res->whereToPlaceData = me;
+		res->actions = resa_download | resa_load | resa_process;
+		resitem_enqueue(ml_new(res));
+	}
 }
 
 
 /* initialize a script from a url. Expects valid input */
 BOOL script_initCodeFromMFUri(struct Shader_Script* me, const struct Multi_String* s) {
 	size_t i;
+	int *isURL = malloc(sizeof(int)*s->n);
+	//struct Multi_String *multires = MALLOC(struct Multi_String *,sizeof(struct Multi_String));
+	//multires->p = MALLOC(struct Uni_String**,sizeof(struct Uni_String)*s->n);
+	//tmp2->family.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);tmp2->family.p[0] = newASCIIString("SERIF");tmp2->family.n=1; ;
 
 	for(i=0; i!=s->n; ++i) {
 		//FREE_IF_NZ(p->buffer);
         char *mfcrv = NULL;
-		if(script_initCodeFromUri(me, s->p[i]->strptr,&mfcrv)) {
+		if(script_initCodeFromBLOB(me, s->p[i]->strptr,&mfcrv)) {
 			FREE_IF_NZ(mfcrv);
    			return TRUE;
 		}
 	}
-
-	/* failure... */
+	//not an inline script, so they must be URLs
+	script_initCodeFromMFUri_download(me, s);
+	/* failure or delayed success */
  	return FALSE;
 }
 
@@ -591,7 +562,7 @@ char *shader_initCodeFromMFUri(const struct Multi_String* s) {
         if (s->p[i]->strptr != NULL) {
             //ConsoleMessage ("looking at :%s: ",s->p[i]->strptr);
             //if (strncmp("data:text/plain,",s->p[i]->strptr , strlen("data:text/plain,")) == 0) {
-            if(script_initCodeFromUri(NULL, s->p[i]->strptr,&mfcrv)) {
+            if(script_initCodeFromBLOB(NULL, s->p[i]->strptr,&mfcrv)) {
                 //printf ("shader_initCodeFromMFUri, returning datalen :%d:\n",strlen(mfcrv));
                 return mfcrv;
             }
@@ -600,6 +571,9 @@ char *shader_initCodeFromMFUri(const struct Multi_String* s) {
             //}
         }
 	}
+	//not a blob already - must be an MF URL
+	//script_initCodeFromMFUri_download(me, s); NEEDS WORK > see component_Programmableshaders.c > LOCATE_SHADER_PARTS
+
 
 	/* failure... */
  	return NULL;

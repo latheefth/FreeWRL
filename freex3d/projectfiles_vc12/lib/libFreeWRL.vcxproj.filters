@@ -252,9 +252,6 @@
     <ClCompile Include="$(SRC)\lib\scenegraph\quaternion.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SRC)\lib\opengl\RasterFont.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SRC)\lib\scenegraph\RenderFuncs.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -346,6 +343,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\lib\world_script\jsVRMLClasses_duk.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\lib\desktop.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

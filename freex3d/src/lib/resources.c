@@ -51,6 +51,27 @@
 //#define DEBUG_RES printf
 static void possiblyUnzip (openned_file_t *of);
 
+
+typedef struct presources{
+	struct Vector *resStack; //=NULL;
+	resource_item_t *lastBaseResource; //=NULL;
+}* presources;
+void *resources_constructor()
+{
+	void* v = malloc(sizeof(struct presources));
+	memset(v,0,sizeof(struct presources));
+	return v;
+}
+void resources_init(struct tresources* t)
+{
+	//public
+	//private
+	//presources p;
+	t->prv = resources_constructor();
+	//p = (presources)t->prv);
+}
+
+
 /* move Michel Briand's initialization code to one place to ensure consistency
    when fields are added/removed */
 
@@ -64,6 +85,7 @@ resource_item_t *newResourceItem() {
 	item->parent = NULL;
 	item->actual_file = NULL;
 	item->cached_files = NULL;
+	item->tg = gglobal();
 	return item;
 }
 
@@ -136,8 +158,8 @@ resource_item_t* resource_create_multi0(s_Multi_String_t *request)
 	/* Convert Mutli_String to a list string */
 	for (i = 0; i < request->n; i++) {
 		char *url = STRDUP(request->p[i]->strptr);
-		 //ConsoleMessage ("putting %s on the list\n",url); 
-		 item->m_request = ml_append(item->m_request, ml_new(url));
+			//ConsoleMessage ("putting %s on the list\n",url); 
+			item->m_request = ml_append(item->m_request, ml_new(url));
 	}
 	return item;
 }
@@ -168,15 +190,75 @@ resource_item_t* resource_create_from_string(const char *string)
 	return item;
 }
 
+
+/*
+ * Check to see if the file name is a local file, or a network file.
+ * return TRUE if it looks like a file from the network, false if it
+ * is local to this machine
+ * October 2007 - Michel Briand suggested the https:// lines.
+ */
+/**
+ *   checkNetworkFile:
+ */
+bool checkNetworkFile(const char *fn)
+{
+    //int i = 0; 
+    //char *pt = fn; 
+    
+    if (fn == NULL) {
+        ConsoleMessage ("checkNetworkFile, got a NULL here");
+        return FALSE;
+    }
+    
+  //  while (*pt != '\0') {
+  //      ConsoleMessage ("cfn %d is %x %c",i,*pt,*pt);
+  //      i++;
+  //      pt++;
+  //  }
+    
+    //ConsoleMessage ("checkNetworkFile, have %s, len %d\n",fn,strlen(fn));
+    
+	if ((strncmp(fn,"ftp://", strlen("ftp://"))) &&
+	    (strncmp(fn,"FTP://", strlen("FTP://"))) &&
+	    (strncmp(fn,"http://", strlen("http://"))) &&
+	    (strncmp(fn,"HTTP://", strlen("HTTP://"))) &&
+	    (strncmp(fn,"https://", strlen("https://"))) &&
+	    (strncmp(fn,"HTTPS://", strlen("HTTPS://"))) &&
+/* JAS - these really are local files | MB - indeed :^) !
+	    (strncmp(fn,"file://", strlen("file://"))) &&
+	    (strncmp(fn,"FILE://", strlen("FILE://"))) &&
+*/
+	    (strncmp(fn,"urn://", strlen("urn://"))) &&
+	    (strncmp(fn,"URN://", strlen("URN://")))
+
+	) {
+        	//ConsoleMessage ("CNF returning FALSE");
+		return FALSE;
+	}
+    	//ConsoleMessage ("CNF returning TRUE");
+	return TRUE;
+}
+
+
 /**
  *   resource_identify: identify resource type and location relatively to base
- *			If base is NULL then this resource may become a root
+ *		If base is NULL then this resource may become a root
  *			node of resource hierarchy.
+ *	for sandbox apps, in general there are 3 locations of interest: a) internet b) intranet c) local
+ *  and the 3 may be treated differently in the frontend, for example the app may have internet permission
+ *  but not intranet permission. Local files would be in an AppData folder where fopen,fread have permission.
+ *  we don't differentiate here between intranet and local, instead that's done with res->status == ress_downloaded
+ *  when the file is local
+ *  in frontend: 
+ *    if(res->type == rest_url)
+ *		internet file: download to local, and set res->status to ress_downloaded
+ *    else if(res->type == rest_file && res->status != ress_downloaded)
+ *		intranet file: get permission (ie filepicker or access permission cache) and copy from intranet to local and set res->status = ress_downloaded
+ *    else if(res->type == rest_file && res->status == ress_downloaded)
+ *		local file: load local file to blob in frontend, or enqueue a backend load task, depending on your platform configuration
  *
- *   TODO: finish the multi implementation.
+ *	
  *
- *   try to be idempotent
- *   parse status: res->type
  */
 
 void resource_identify(resource_item_t *baseResource, resource_item_t *res)
@@ -233,7 +315,17 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 		network = defaults->network;
 	}
 
-
+	{	
+		char* pound;
+		pound = NULL;
+		pound = strchr(res->URLrequest, '#'); //moved here Aug2014 Q. should it be later on strdup of URLrequest?
+		if (pound != NULL) {
+			*pound = '\0';
+			/* copy the name out, so that Anchors can go to correct Viewpoint */
+			pound++;
+			res->afterPoundCharacters = STRDUP(pound);
+		}
+	}
 	/* URI specifier at the beginning ? */
 	res->network = checkNetworkFile(res->URLrequest);
 
@@ -326,7 +418,6 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 				IF_cleanedURL_IS_ABSOLUTE {
 					/* This is an absolute filename */
 
-					/* resource_fetch will test that filename */
 					res->type = rest_file;
 					res->status = ress_starts_good;
 					url = STRDUP(cleanedURL);
@@ -342,7 +433,6 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 
 					/* printf("about to join :%s: and :%s: resource.c L299\n",cwd,res->request);*/
 					url = concat_path(cwd, res->URLrequest);
-					/* resource_fetch will test that filename */
 					res->type = rest_file;
 					res->status = ress_starts_good;
 				}
@@ -355,12 +445,12 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 	res->URLbase = STRDUP(url);
 	removeFilenameFromPath(res->URLbase);
 
-#ifdef FRONTEND_GETS_FILES
-        DEBUG_RES ("FRONTEND_GETS_FILES set to true, always assume that the file is of network ty pe\n");
-	res->network = TRUE;
-	res->type = rest_url;
-
-#endif
+//#ifdef FRONTEND_GETS_FILES
+//        DEBUG_RES ("FRONTEND_GETS_FILES set to true, always assume that the file is of network ty pe\n");
+//	res->network = TRUE;
+//	res->type = rest_url;
+//
+//#endif
 
 
         // ok we should be good to go now        res->network = TRUE;
@@ -371,100 +461,22 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 		  resourceStatusToString(res->status), res->URLrequest, 
 		  res->URLbase, res->parsed_request,
 		  res->parent, (res->parent ? res->parent->URLbase : "N/A"));
+	return;
 }
-
-/**
- *   resource_fetch: download remote url or check for local file access.
- */
-bool resource_fetch(resource_item_t *res)
-{
-	char* pound;
-	DEBUG_RES("fetching resource: %s, %s resource %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status) ,res->URLrequest);
-
-	ASSERT(res);
-
-	switch (res->type) {
-
-	case rest_invalid:
-		res->status = ress_invalid;
-		ERROR_MSG("resource_fetch: can't fetch an invalid resource: %s\n", res->URLrequest);
-		break;
-
-	case rest_url:
-		switch (res->status) {
-		case ress_none:
-		case ress_starts_good:
-			DEBUG_RES ("resource_fetch, calling download_url\n");
-			pound = NULL;
-			pound = strchr(res->parsed_request, '#');
-			if (pound != NULL) {
-				*pound = '\0';
-				/* copy the name out, so that Anchors can go to correct Viewpoint */
-				pound++;
-				res->afterPoundCharacters = STRDUP(pound);
-			}
-
-			download_url(res);
-			break;
-		default:
-			/* error */
-			break;
+bool imagery_load(resource_item_t *res){
+	bool retval;
+	struct textureTableIndexStruct *entry = res->whereToPlaceData;
+	if(res->status == ress_downloaded){
+		if (texture_load_from_file(entry, res->actual_file)) {
+			entry->status = TEX_READ; /* tell the texture thread to convert data to OpenGL-format */
+			res->status = ress_loaded;
+			retval = TRUE;
+			return retval;
 		}
-		break;
-
-	case rest_file:
-		switch (res->status) {
-		case ress_none:
-		case ress_starts_good:
-			/* SJD If this is a PROTO expansion, need to take of trailing part after # */
-			pound = NULL;
-			pound = strchr(res->parsed_request, '#');
-			if (pound != NULL) {
-				*pound = '\0';
-			}
-				
-#if defined(FRONTEND_GETS_FILES)
-ConsoleMessage ("ERROR, should not be here in rest_file");
-#else
-
-			if (do_file_exists(res->parsed_request)) {
-				if (do_file_readable(res->parsed_request)) {
-					res->status = ress_downloaded;
-					res->actual_file = STRDUP(res->parsed_request);
-					if (pound != NULL) {
-						/* copy the name out, so that Anchors can go to correct Viewpoint */
-						pound ++;
-						res->afterPoundCharacters = STRDUP(pound);
-					}
-				} else {
-					res->status = ress_failed;
-					ERROR_MSG("resource_fetch: wrong permission to read file: %s\n", res->parsed_request);
-				}
-			} else {
-				res->status = ress_failed;
-				ERROR_MSG("resource_fetch: can't find file: %s\n", res->parsed_request);
-			}
-#endif //FRONTEND_GETS_FILES
-
-			break;
-		default:
-			/* error */
-			break;
-		}
-		break;
-
-	case rest_multi:
-	case rest_string:
-		/* Nothing to do */
-		break;
 	}
-	DEBUG_RES ("resource_fetch (end): network=%s type=%s status=%s"
-		  " request=<%s> base=<%s> url=<%s> [parent %p, %s]\n", 
-		  BOOL_STR(res->network), resourceTypeToString(res->type), 
-		  resourceStatusToString(res->status), res->URLrequest, 
-		  res->URLbase, res->parsed_request,
-		  res->parent, (res->parent ? res->parent->URLbase : "N/A"));
-	return (res->status == ress_downloaded);
+	res->status = ress_not_loaded;
+	retval = FALSE;
+	return retval;
 }
 
 /**
@@ -538,8 +550,8 @@ bool resource_load(resource_item_t *res)
 
 		if (of) {
 			res->status = ress_loaded;
-			res->openned_files = ml_append( (s_list_t *) res->openned_files,
-							ml_new(of) );
+			//res->openned_files = ml_append( (s_list_t *) res->openned_files, ml_new(of) );
+			res->openned_files = of; 
 
 			/* If type is not specified by the caller try to identify it automatically */
 			if (res->media_type == resm_unknown) {
@@ -607,13 +619,14 @@ void resource_identify_type(resource_item_t *res)
 		case rest_url:
 		case rest_file:
 		case rest_multi:
-			l = (s_list_t *) res->openned_files;
-			if (!l) {
-				/* error */
-				return;
-			}
-			
-			of = ml_elem(l);
+			//l = (s_list_t *) res->openned_files;
+			//if (!l) {
+			//	/* error */
+			//	return;
+			//}
+			//
+			//of = ml_elem(l);
+			of = res->openned_files;
 			if (!of) {
 				/* error */
 				return;
@@ -715,11 +728,12 @@ void resource_destroy(resource_item_t *res)
 		case ress_not_parsed:
 		if(0){
 			/* Remove openned file ? */
-			of = (s_list_t *) res->openned_files;
-			if (of) {
-				/* close any openned file */
-				close( ((openned_file_t*)of->elem)->fileDescriptor );
-			}
+			//of = (s_list_t *) res->openned_files;
+			of = res->openned_files;
+			//if (of) {
+			//	/* close any openned file */
+			//	close( ((openned_file_t*)of->elem)->fileDescriptor );
+			//}
 
 			/* Remove cached file ? */
 			cf = (s_list_t *) res->cached_files;
@@ -754,10 +768,10 @@ void resource_destroy(resource_item_t *res)
 		case ress_parsed:
 		case ress_not_parsed:
 			/* Remove openned file ? */
-			of = (s_list_t *) res->openned_files;
-			if (of) {
-				/* close any openned file */
-			}
+			//of = (s_list_t *) res->openned_files;
+			//if (of) {
+			//	/* close any openned file */
+			//}
 
 			/* free the actual file  */
 			FREE(res->actual_file);
@@ -820,13 +834,13 @@ void resource_close_files(resource_item_t *res)
 	ASSERT(res);
 
 	/* Remove openned file ? */
-	of = (s_list_t *) res->openned_files;
-	if (of) {
-		/* close any openned file */
-		int fd = ((openned_file_t*)of->elem)->fileDescriptor;
-		if (fd)
-			close( fd );
-	}
+	//of = (s_list_t *) res->openned_files;
+	//if (of) {
+	//	/* close any openned file */
+	//	int fd = ((openned_file_t*)of->elem)->fileDescriptor;
+	//	if (fd)
+	//		close( fd );
+	//}
 
 }
 
@@ -879,7 +893,8 @@ void resource_tree_destroy()
 void resource_dump(resource_item_t *res)
 {
 	s_list_t *cf;
-	s_list_t *of;
+	//s_list_t *of;
+	openned_file_t *of;
 
 	PRINTF ("resource_dump: %p\n"
 		  "request: %s\n"
@@ -896,15 +911,17 @@ void resource_dump(resource_item_t *res)
 	}
 	PRINTF("\nopenned files: ");
 
-	of = (s_list_t *) res->openned_files;
+	//of = (s_list_t *) res->openned_files;
+	of = res->openned_files;
 	if (of) {
-		ml_foreach(of, PRINTF("%s ", (char *) ((openned_file_t *)ml_elem(__l))->fileFileName));
+		//ml_foreach(of, PRINTF("%s ", (char *) ((openned_file_t *)ml_elem(__l))->fileFileName));
+		PRINTF("%s ", of->fileFileName);
 	} else {
 		PRINTF("none");
 	}
 	PRINTF("\n");
 }
-
+void splitpath_local_suffix(const char *url, char **local_name, char **suff);
 /**
  *   fwl_resource_push_single_request: easy function to launch a load process (asynchronous).
  */
@@ -916,7 +933,19 @@ void fwl_resource_push_single_request(const char *request)
 		return;
 
 	res = resource_create_single(request);
-	send_resource_to_parser(res);
+	//send_resource_to_parser(res);
+	resitem_enqueue(ml_new(res));
+	if(request){
+		//update information about the scene for scripting (Q. what about window title?)
+		//not sure this is a good place, in part because the calling thread may not be in a gglobal thread
+		ttglobal tg = gglobal();
+		char* suff = NULL;
+		char* local_name = NULL;
+		splitpath_local_suffix(request, &local_name, &suff);
+		tg->Mainloop.scene_name = local_name;
+		tg->Mainloop.scene_suff = suff;
+	}
+
 }
 
 /**
@@ -930,49 +959,50 @@ void resource_push_multi_request(struct Multi_String *request)
 		return;
 
 	res = resource_create_multi(request);
-	send_resource_to_parser(res);
+	resitem_enqueue(ml_new(res));
+	//send_resource_to_parser(res);
 }
 
 /**
  *   resource_wait: wait for parser to complete the resource fetch/download/load/...
  */
-void resource_wait(resource_item_t *res)
-{
-	TRACE_MSG("resource_wait: starts waiting for res to complete: %s\n", res->URLrequest);
-	/* Wait while parser is working */
-	while (!res->complete) {
-		usleep(50); /* thanks dave */
-	}
-}
+//void resource_wait(resource_item_t *res)
+//{
+//	TRACE_MSG("resource_wait: starts waiting for res to complete: %s\n", res->URLrequest);
+//	/* Wait while parser is working */
+//	while (!res->complete) {
+//		usleep(50); /* thanks dave */
+//	}
+//}
 
 
 
 /* go through, and find the first valid url in a multi-url string */
-void resource_get_valid_url_from_multi(resource_item_t *parentPath, resource_item_t *res) {
-	do {
-		DEBUG_RES("resource_get_valid_url_from_multi, status %s type %s res->m_request %p\n",
-			resourceStatusToString(res->status),resourceTypeToString(res->type),res->m_request);
-
-		resource_identify(parentPath, res); 
-
-		/* have this resource, is it a good file? */
-		if (resource_fetch(res)) {
-		}
-
-		/* do we try the next url in the multi-url? */
-		if ((res->status != ress_loaded) && (res->m_request != NULL)) {
-			DEBUG_RES ("not found, lets try this again\n");
-			res->status = ress_invalid; 
-			res->type = rest_multi;
-
-		}
-
-		DEBUG_RES("resource_get_valid_url_from_multi, end  of do-while, status %s type %s res->m_request %p\n",
-			resourceStatusToString(res->status),resourceTypeToString(res->type),res->m_request);
-
-	/* go through and try, try again if this one fails. */
-	} while ((res->status != ress_loaded) && (res->m_request != NULL));
-}
+//void resource_get_valid_url_from_multi(resource_item_t *parentPath, resource_item_t *res) {
+//	do {
+//		DEBUG_RES("resource_get_valid_url_from_multi, status %s type %s res->m_request %p\n",
+//			resourceStatusToString(res->status),resourceTypeToString(res->type),res->m_request);
+//
+//		resource_identify(parentPath, res); 
+//
+//		///* have this resource, is it a good file? */
+//		//if (resource_fetch(res)) {
+//		//}
+//
+//		/* do we try the next url in the multi-url? */
+//		if ((res->status != ress_loaded) && (res->m_request != NULL)) {
+//			DEBUG_RES ("not found, lets try this again\n");
+//			res->status = ress_invalid; 
+//			res->type = rest_multi;
+//
+//		}
+//
+//		DEBUG_RES("resource_get_valid_url_from_multi, end  of do-while, status %s type %s res->m_request %p\n",
+//			resourceStatusToString(res->status),resourceTypeToString(res->type),res->m_request);
+//
+//	/* go through and try, try again if this one fails. */
+//	} while ((res->status != ress_loaded) && (res->m_request != NULL));
+//}
 
 /**
  *   resource_tree_dump: print the resource tree for debugging.
@@ -1005,11 +1035,11 @@ void resource_tree_dump(int level, resource_item_t *root)
 	spacer printf("parsed_request:\t %s\n", root->parsed_request);
 	spacer printf("actual_file:\t %s\n", root->actual_file);
 	spacer printf("cached_files:\t %p\n", root->cached_files);
-	if (root->openned_files) {
-		spacer printf("openned_files:\t "); ml_foreach(root->openned_files, of_dump((openned_file_t *)ml_elem(__l)));
-	} else {
-		spacer printf("openned_files:\t <empty>\n");
-	}
+	//if (root->openned_files) {
+	//	spacer printf("openned_files:\t "); ml_foreach(root->openned_files, of_dump((openned_file_t *)ml_elem(__l)));
+	//} else {
+	//	spacer printf("openned_files:\t <empty>\n");
+	//}
 	spacer printf("four_first_bytes:\t %c %c %c %c\n", root->four_first_bytes[0], root->four_first_bytes[1], root->four_first_bytes[2], root->four_first_bytes[3]);
 	spacer printf("media_type:\t %u\n", root->media_type);
 
@@ -1197,4 +1227,122 @@ static void possiblyUnzip (openned_file_t *of) {
 bool resource_is_root_loaded()
 {
 	return ((gglobal()->resources.root_res != NULL) && (gglobal()->resources.root_res->status == ress_parsed));
+}
+
+/**
+ *   For keeping track of current url (for parsing / textures).
+ *
+ * this is a Vector; we keep track of n depths.
+ */
+
+/* keep the last base resource around, for times when we are making nodes during runtime, eg
+   textures in Background nodes */
+
+void pushInputResource(resource_item_t *url) 
+{
+	presources p = gglobal()->resources.prv;
+	DEBUG_MSG("pushInputResource current Resource is %s", url->parsed_request);
+
+            
+        
+	/* push this one */
+	if (p->resStack==NULL) {
+		p->resStack = newStack (resource_item_t *);
+	}
+
+    /* is this an EAI/SAI request? If not, we don't push this one on the stack */
+    /*
+    if (url->parsed_request != NULL)
+        if (strncmp(url->parsed_request,EAI_Flag,strlen(EAI_Flag)) == 0) {
+            DEBUG_MSG("pushInputResource, from EAI, ignoring");
+            return;
+        }
+*/
+	stack_push (resource_item_t*, p->resStack, url);
+    DEBUG_MSG("pushInputResource, after push, stack size %d",vectorSize(p->resStack));
+}
+
+void popInputResource() {
+	resource_item_t *cwu;
+	presources p = gglobal()->resources.prv;
+
+	/* lets just keep this one around, to see if it is really the bottom of the stack */
+    DEBUG_MSG("popInputResource, stack size %d",vectorSize(p->resStack));
+    
+	cwu = stack_top(resource_item_t *, p->resStack);
+
+	/* pop the stack, and if we are at "nothing" keep the pointer to the last resource */
+	stack_pop((resource_item_t *), p->resStack);
+
+	if (stack_empty(p->resStack)) {
+		DEBUG_MSG ("popInputResource, stack now empty and we have saved the last resource\n");
+		p->lastBaseResource = cwu;
+	} else {
+		cwu = stack_top(resource_item_t *, p->resStack);
+        DEBUG_MSG("popInputResource, cwu = %p",cwu);
+		DEBUG_MSG("popInputResource before pop, current Resource is %s\n", cwu->parsed_request);
+	}
+}
+
+resource_item_t *getInputResource()
+{
+	resource_item_t *cwu;
+	presources p = gglobal()->resources.prv;
+
+    
+	DEBUG_MSG("getInputResource \n");
+	if (p->resStack==NULL) {
+		DEBUG_MSG("getInputResource, stack NULL\n");
+		return NULL;
+	}
+
+	/* maybe we are running, and are, say, making up background textures at runtime? */
+	if (stack_empty(p->resStack)) {
+		if (p->lastBaseResource == NULL) {
+			ConsoleMessage ("stacking error - looking for input resource, but it is null");
+		} else {
+			DEBUG_MSG("so, returning %s\n",p->lastBaseResource->parsed_request);
+		}
+		return p->lastBaseResource;
+	}
+
+
+	cwu = stack_top(resource_item_t *, p->resStack);
+	DEBUG_MSG("getInputResource current Resource is %lu %lx %s\n", (unsigned long int) cwu, (unsigned long int) cwu, cwu->parsed_request);
+	return cwu;
+}
+
+//used by FEGF configs in frontend
+char* fwl_resitem_getURL(void *resp){
+	resource_item_t *res = (resource_item_t *)resp;
+	return res->parsed_request;
+}
+void fwl_resitem_enqueuNextMulti(void *resp){
+	resource_item_t *res = (resource_item_t *)resp;
+	int more_multi = (res->status == ress_failed) && (res->m_request != NULL);
+	if(more_multi){
+		//still some hope via multi_string url, perhaps next one
+		res->status = ress_invalid; //downgrade ress_fail to ress_invalid
+		res->type = rest_multi; //should already be flagged
+		//must consult BE to convert relativeURL to absoluteURL via baseURL 
+		//(or could we absolutize in a batch in resource_create_multi0()?)
+		resource_identify(res->parent, res); //should increment multi pointer/iterator
+		frontenditem_enqueue(ml_new(res));
+	}
+}
+char *strBackslash2fore(char *);
+int file2blob(resource_item_t *res);
+void fwl_resitem_setLocalPath(void *resp, char* path){
+	resource_item_t *res = (resource_item_t *)resp;
+	res->status = ress_downloaded;
+	res->actual_file = strBackslash2fore(STRDUP(path));
+	res->_loadFunc = file2blob;
+}
+int	fwl_resitem_getStatus(void *resp){
+	resource_item_t *res = (resource_item_t *)resp;
+	return res->status;
+}
+int	fwl_resitem_getType(void *resp){
+	resource_item_t *res = (resource_item_t *)resp;
+	return res->type;
 }

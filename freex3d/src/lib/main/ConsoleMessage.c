@@ -216,7 +216,7 @@ char *fwg_get_last_message() {
 }
 
 int fwl_StringConsoleMessage(char* consoleBuffer) {
-	return ConsoleMessage(consoleBuffer);
+	return ConsoleMessage("%s",consoleBuffer);
 }
 
 

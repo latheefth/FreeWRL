@@ -710,6 +710,7 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 
 	case NODE_PixelTexture:
 		texture_load_from_pixelTexture(entry,(struct X3D_PixelTexture *)entry->scenegraphNode);
+		//sets TEX_NEEDSBINDING internally
 		return TRUE;
 		break;
 
@@ -720,6 +721,7 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 
 	case NODE_MovieTexture:
 		texture_load_from_MovieTexture(entry);
+		entry->status = TEX_NOTFOUND; //NOT_IMPLEMENTED
 		return TRUE;
 #ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 		url = & (((struct X3D_MovieTexture *)entry->scenegraphNode)->url);
@@ -732,64 +734,24 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 		parentPath = (resource_item_t *)(((struct X3D_ImageCubeMapTexture *)entry->scenegraphNode)->_parentResource);
 		break;
 
-	default: {
+	default: 
 		printf ("invalid nodetype given to loadTexture, %s is not valid\n",stringNodeType(entry->nodeType));
 	}
-
-	}
-	if (url != NULL) {
-		s_list_t *head_of_list;
-#ifdef TEXVERBOSE
-		PRINTF("url: ");
-		Multi_String_print(url);
-		PRINTF("parent resource: \n");
-		resource_dump(parentPath);
-#endif
-		res = resource_create_multi(url);
-		/* hold on to the top of the list so we can delete it later */
-		head_of_list = res->m_request;
-		/* go through the urls until we have a success, or total failure */
-		do {
-			/* Setup parent */
-			resource_identify(parentPath, res);
-			/* Setup media type */
-			res->media_type = resm_image; /* quick hack */
-
-			if (resource_fetch(res)) {
-				DEBUG_TEX("really loading texture data from %s into %p\n", res->actual_file, entry);
-				if (texture_load_from_file(entry, res->actual_file)) {
-					entry->status = TEX_NEEDSBINDING; /* tell the texture thread to convert data to OpenGL-format */
-					res->complete = TRUE;
-				}
-			} else {
-				/* we had a problem with that URL, set this so we can try the next */
-				res->type=rest_multi;
-			}
-		} while ((res->status != ress_downloaded) && (res->m_request != NULL));
-
-		/* destroy the m_request, if it exists */
-		if (head_of_list != NULL) {
-			ml_delete_all(head_of_list);
-		}
-
-	} else {
-		ERROR_MSG("Could not load texture, no URL present\n");
-	}
-
-	/* really not successful */
-	if (res== NULL) return FALSE;
-
-
-	/* were we successful?? */
-	if (res->status != ress_downloaded) {
-		ERROR_MSG("Could not load texture: %s\n", entry->filename);
+	if(!url){
+		entry->status = TEX_NOTFOUND;
 		return FALSE;
-	} else {
-		return TRUE;
 	}
-	return FALSE;
-}
 
+	//TEX_LOADING
+	res = resource_create_multi(url);
+	res->type=rest_multi;
+	res->media_type = resm_image; /* quick hack */
+	resource_identify(parentPath, res);
+	res->whereToPlaceData = entry;
+	resitem_enqueue(ml_new(res));
+	return TRUE;
+
+}
 /*
 parsing thread --> texture_loading_thread hand-off
 GOAL: texture thread blocks when no textures requested. (rather than sleep(500) and for(;;) )
@@ -831,7 +793,6 @@ static void texture_process_list(s_list_t *item)
 	
 	/* JAS - put in the TEX_LOADING flag here - it helps on OSX */
 	case TEX_LOADING:
-	case TEX_NOTLOADED:
 		if (texture_process_entry(entry)) {
 			remove_it = TRUE;
 		}else{
@@ -841,7 +802,10 @@ static void texture_process_list(s_list_t *item)
 			// you'll just get the same result in a vicious cycle
 		}
 		break;
-		
+	case TEX_READ:
+		entry->status = TEX_NEEDSBINDING;
+		remove_it = TRUE;
+		break;		
 	default:
 		//DEBUG_MSG("Could not process texture entry: %s\n", entry->filename);
 		remove_it = TRUE;
@@ -883,6 +847,12 @@ void send_texture_to_loader(textureTableIndexStruct_s *entry)
 	texitem_enqueue(ml_new(entry));
 }
 
+void process_res_texitem(resource_item_t *res){
+	//resitem after download+load -> texture thread
+	textureTableIndexStruct_s *entry;
+	entry = res->whereToPlaceData;
+	texitem_enqueue(ml_new(entry));
+}
 
 /**
  *   _textureThread: work on textures, until the end of time.

@@ -2147,13 +2147,13 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, uintN argc, jsval *vp) {
 
 	/* printf ("type of field %s, accessType %s\n",stringFieldtypeType(type),stringKeywordType(accessType)); */
 	res->offsetFromWhereToPlaceData = offs;
-
-	send_resource_to_parser(res);
-	resource_wait(res);
-	
-	if (res->status == ress_parsed) {
-		/* Cool :) */
-	}
+	parser_process_res_VRML_X3D(res);
+	//send_resource_to_parser(res);
+	//resource_wait(res);
+	//
+	//if (res->status == ress_parsed) {
+	//	/* Cool :) */
+	//}
 
 	MARK_EVENT(myptr,offs);
 #if JS_VERSION >= 185

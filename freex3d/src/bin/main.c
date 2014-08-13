@@ -85,11 +85,11 @@ int main (int argc, char **argv)
     const char *libver;
     const char  *progver;
 
-#if defined(_ANDROID)
-    int tempIsAndroid = 1 ;
-#else
-    int tempIsAndroid = 0 ;
-#endif
+//#if defined(_ANDROID)
+//    int tempIsAndroid = 1 ;
+//#else
+//    int tempIsAndroid = 0 ;
+//#endif
 
     freewrl_params_t *fv_params = NULL;
 
@@ -228,7 +228,9 @@ void fv_catch_SIGSEGV()
 {
     if (!CaughtSEGV) {
 
-        fwl_StringConsoleMessage("FreeWRL got a SIGSEGV - please feel free to report this - http://freewrl.sf.net.\n");
+        //fwl_StringConsoleMessage("FreeWRL got a SIGSEGV - please feel free to report this - http://freewrl.sf.net.\n");
+		//bombs H: its coming in on an annonymous thread and console message needs TSD (thread-specific-data via gglobal)
+		printf("FreeWRL got a SIGSEGV - please feel free to report this - http://freewrl.sf.net.\n");
 	CaughtSEGV = TRUE;
     }
     fwExit(1);

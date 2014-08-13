@@ -1187,7 +1187,7 @@ void * SFNode_Constructor(FWType fwtype, int nargs, FWval fwpars){
 			retGroup = createNewX3DNode(NODE_Group);
 			ra = EAI_CreateVrml("String",_c,retGroup);
 			globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
-			if(retGroup->children.n < 1) return 0;
+			//if(retGroup->children.n < 1) return 0;
 			ptr = malloc(sizeof(void *));
 			*ptr = retGroup->children.p[0]; 
 		}else if(fwpars->itype = 'W'){

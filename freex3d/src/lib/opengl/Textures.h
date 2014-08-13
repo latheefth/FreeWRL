@@ -82,9 +82,11 @@ struct textureVertexInfo {
 /* for texIsloaded structure */
 #define TEX_NOTLOADED       0
 #define TEX_LOADING         1
-#define TEX_NEEDSBINDING    2
-#define TEX_LOADED          3
-#define TEX_UNSQUASHED      4
+#define TEX_READ            2
+#define TEX_NEEDSBINDING    3
+#define TEX_LOADED          4
+#define TEX_UNSQUASHED      5
+#define TEX_NOTFOUND		6
 
 const char *texst(int num);
 
