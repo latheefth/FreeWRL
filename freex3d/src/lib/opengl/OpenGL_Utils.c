@@ -2211,8 +2211,9 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         // add the following:
         // this has both Vertex manipulations, and lighting, etc.
 //                    #define HEADLIGHT_LIGHT (MAX_LIGHTS-1)\n
-        vertexSource[vertexMainStart] =
-                    "vec4 ftransform() {return vec4 (fw_ProjectionMatrix*fw_ModelViewMatrix*fw_Vertex);}\n \
+        vertexSource[vertexMainStart] = "  \n \
+					#define HEADLIGHT_LIGHT 0\n \
+					#define ftransform() (fw_ProjectionMatrix*fw_ModelViewMatrix*fw_Vertex)\n \
                     #define gl_ModelViewProjectionMatrix (fw_ProjectionMatrix*fw_ModelViewMatrix)\n \
                     #define gl_NormalMatrix fw_NormalMatrix\n \
                     #define gl_ProjectionMatrix fw_ProjectionMatrix \n\
@@ -2235,6 +2236,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 
 //                   #define HEADLIGHT_LIGHT (MAX_LIGHTS-1)\n
 	fragmentSource[fragmentMainStart] = " \
+					#define HEADLIGHT_LIGHT 0\n \
                     #define gl_NormalMatrix fw_NormalMatrix\n \
                     #define gl_Normal fw_Normal\n \
                     #define gl_LightSource fw_LightSource\n ";
