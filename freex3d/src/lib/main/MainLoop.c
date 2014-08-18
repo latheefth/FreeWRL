@@ -4417,10 +4417,12 @@ int fwl_draw()
 		switch (tg->threads.flushing)
 		{
 		case 0:
+			profile_end("frontend");
 			profile_start("mainloop");
 			//model: udate yourself
 			fwl_RenderSceneUpdateScene(); //Model update
 			profile_end("mainloop");
+			profile_start("frontend");
 
 			//view: poll model and update yourself >>
 			if (view_update) view_update();
