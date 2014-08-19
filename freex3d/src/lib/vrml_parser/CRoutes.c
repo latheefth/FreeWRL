@@ -1862,7 +1862,7 @@ void JSMaxAlloc() {
 }
 
 /* set up table entry for this new script */
-void JSInit(struct Shader_Script *script) { //int num) {
+void JSInit(struct Shader_Script *script) { /* int num) { */
 	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
 	#ifdef JAVASCRIPTVERBOSE 
 	printf("JSinit: script %d\n",num);

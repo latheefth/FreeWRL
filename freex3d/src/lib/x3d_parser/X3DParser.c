@@ -1458,7 +1458,7 @@ static void saveAttributes(int myNodeType, const xmlChar *name, char** atts) {
 		#endif
 
 		myObj = X3D_SCRIPT(thisNode)->__scriptObj;
-		JSInit(myObj); //->num);
+		JSInit(myObj); /* ->num); */
 		#else
 
 			ConsoleMessage ("Javascript not supported\n");
