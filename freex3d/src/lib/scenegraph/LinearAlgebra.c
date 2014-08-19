@@ -286,13 +286,15 @@ float *vecscale4f(float *b, float *a, float scale){
 	return b;
 }
 float *vecmult3f(float *c, float *a, float *b){
-	//c[i] = a[i]*b[i] 
-	for(int i=0;i<3;i++) c[i] = a[i]*b[i];
+	/* c[i] = a[i]*b[i] */
+	int i=0;
+	for(;i<3;i++) c[i] = a[i]*b[i];
 	return c;
 }
 float *vecmult2f(float *c, float *a, float *b){
-	//c[i] = a[i]*b[i] 
-	for(int i=0;i<2;i++) c[i] = a[i]*b[i];
+	/* c[i] = a[i]*b[i] */
+	int i=0;
+	for(;i<2;i++) c[i] = a[i]*b[i];
 	return c;
 }
 
