@@ -36,6 +36,6 @@ int frontendGetsFiles();
 void resitem_queue_flush();
 void resitem_queue_exit();
 void resitem_enqueue_tg(s_list_t *item, void* tg);
-:bool parser_process_res_VRML_X3D(resource_item_t *res);
+bool parser_process_res_VRML_X3D(resource_item_t *res);
 
 #endif /* __FREEWRL_PRODCON_MAIN_H__ */
