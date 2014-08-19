@@ -299,7 +299,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, indexT c
 	#ifdef SETFIELDVERBOSE
 	printf ("\nPST, for %s we have %s strlen %lu\n",stringFieldtypeType(ctype), value, strlen(value));
 	#endif
-
+	np = NULL;
 	/* if this is the first time through, create a new parser, and tell it:
 	      - that we are using X3D formatted field strings, NOT "VRML" ones;
 	      - that the destination node is not important (the NULL, offset 0) */
@@ -411,8 +411,10 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, indexT c
 		if (oldvalue) {
 			remove_parent(oldvalue, node);
 		}
-		memcpy(nst, (void*)&np, sizeof(struct X3D_Node*));
-		add_parent(np, node, "sarah's add", 0);
+		if(np){
+			memcpy(nst, (void*)&np, sizeof(struct X3D_Node*));
+			add_parent(np, node, "sarah's add", 0);
+		}
 	} else if (parseType(parser, ctype, &myVal)) {
 		/* printf ("parsed successfully\n");  */
 		nst = offsetPointer_deref(void *,node,coffset);

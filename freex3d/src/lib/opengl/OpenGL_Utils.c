@@ -1492,6 +1492,8 @@ uniform vec4 HatchColour; \n\
 uniform bool hatched; uniform bool filled;\n\
 uniform vec2 HatchScale; uniform vec2 HatchPct; uniform int algorithm; ";
 
+//=============STRUCT METHOD FOR LIGHTS==================
+// use for opengl, and angleproject desktop/d3d9
 static const GLchar *lightDefines = "\
 struct fw_MaterialParameters {\n\
   vec4 emission;\n\
@@ -1523,6 +1525,8 @@ struct fw_LightSourceParameters { \n\
 \n\
 uniform fw_LightSourceParameters fw_LightSource[MAX_LIGHTS] /* gl_MaxLights */ ;\n\
 ";
+
+
 
 /* replace:
  linearAttenuation uniform float light_linAtten[MAX_LIGHTS];    \n\
@@ -1601,8 +1605,7 @@ if (backFacing) { \n \
 		    powerFactor *= myMat.shininess; \n\
           } \n\
         } \n\
-		//attenuation = 1.0/(fw_LightSource[i].constantAttenuation + fw_LightSource[i].linearAttenuation * d * fw_LightSource[i].quadraticAttenuation *d *d);\n\
-		attenuation = 1.0/(fw_LightSource[i].Attenuations.x + fw_LightSource[i].Attenuations.y * d * fw_LightSource[i].Attenuations.z *d *d);\n\
+		attenuation = 1.0/(fw_LightSource[i].Attenuations.x + (fw_LightSource[i].Attenuations.y * d) + (fw_LightSource[i].Attenuations.z *d *d));\n\
         spotDot = dot (-L,myLightDir);\n\
         /* check against spotCosCutoff */\n\
 		if (spotDot > fw_LightSource[i].spotCutoff) {\n\
@@ -1644,8 +1647,7 @@ if (backFacing) { \n \
             //attenuation = (myMat.shininess-128.0);\n\
           }\n\
           /* this is actually the SFVec3f attenuation field */\n\
-          //attenuation = 1.0/(fw_LightSource[i].constantAttenuation + fw_LightSource[i].linearAttenuation * d* fw_LightSource[i].quadraticAttenuation *d *d);\n\
-		  attenuation = 1.0/(fw_LightSource[i].Attenuations.x + fw_LightSource[i].Attenuations.y * d * fw_LightSource[i].Attenuations.z *d *d);\n\
+		  attenuation = 1.0/(fw_LightSource[i].Attenuations.x + (fw_LightSource[i].Attenuations.y * d) + (fw_LightSource[i].Attenuations.z *d *d));\n\
           /* diffuse light computation */\n\
           diffuse += nDotL* matdiffuse*myLightDiffuse * attenuation;\n\
           /* ambient light computation */\n\
@@ -1660,8 +1662,152 @@ if (backFacing) { \n \
   return clamp(vec4(vec3(ambient+diffuse+specular+emissive),myAlph), 0.0, 1.0);\n\
 }\n\
 ";
+//============= USING_SHADER_LIGHT_ARRAY_METHOD FOR LIGHTS==================
+//used for angleproject winRT d3d11 (which can't/doesn't convert GLSL struct[] array to HLSL properly - just affects lights)
+//will break custom shader node vertex/pixel shaders that try to use gl_LightSource[] ie teapot-Toon.wrl
+static const GLchar *lightDefinesArrayMethod = "\
+struct fw_MaterialParameters {\n\
+  vec4 emission;\n\
+  vec4 ambient;\n\
+  vec4 diffuse;\n\
+  vec4 specular;\n\
+  float shininess;\n\
+};\n\
+uniform int lightcount;\n\
+uniform int lightType[MAX_LIGHTS];\n\
+uniform vec4 lightambient[MAX_LIGHTS];  \n\
+uniform vec4 lightdiffuse[MAX_LIGHTS];   \n\
+uniform vec4 lightspecular[MAX_LIGHTS]; \n\
+uniform vec4 lightposition[MAX_LIGHTS];   \n\
+uniform vec4 lighthalfVector[MAX_LIGHTS];  \n\
+uniform vec4 lightspotDirection[MAX_LIGHTS]; \n\
+uniform float lightspotExponent[MAX_LIGHTS]; \n\
+uniform float lightspotCutoff[MAX_LIGHTS]; \n\
+uniform float lightspotCosCutoff[MAX_LIGHTS]; \n\
+uniform float lightRadius[MAX_LIGHTS]; \n\
+uniform vec3 lightAttenuations[MAX_LIGHTS]; \n\
+";
 
-
+static const GLchar *ADSLLightModelArrayMethod = "\n\
+/* use ADSLightModel here the ADS colour is returned from the function.  */\n\
+vec4 ADSLightModel(in vec3 myNormal, in vec4 myPosition, in bool useMatDiffuse) {\n\
+  int i;\n\
+  vec4 diffuse = vec4(0., 0., 0., 0.);\n\
+  vec4 ambient = vec4(0., 0., 0., 0.);\n\
+  vec4 specular = vec4(0., 0., 0., 1.);\n\
+  vec3 normal = normalize (myNormal);\n\
+\n\
+  vec3 viewv = -normalize(myPosition.xyz); \n \
+  bool backFacing = (dot(normal,viewv) < 0.0); \n \
+  vec4 emissive;\n\
+  vec4 matdiffuse = vec4(1.0,1.0,1.0,1.0);\n\
+  float myAlph = 0.0;\n\
+\n\
+  fw_MaterialParameters myMat = fw_FrontMaterial;\n\
+\n\
+/* back Facing materials - flip the normal and grab back materials */ \n \
+if (backFacing) { \n \
+	normal = -normal; \n \
+	myMat = fw_BackMaterial; \n \
+} \n \
+\n\
+  emissive = myMat.emission;\n\
+  myAlph = myMat.diffuse.a;\n\
+  if(useMatDiffuse)\n\
+    matdiffuse = myMat.diffuse;\n\
+\n\
+  /* apply the lights to this material */\n\
+  for (i=0; i<MAX_LIGHTS; i++) {\n\
+  	if(i<lightcount){ /* weird but ANGLE for d3d9 needs constant loop (d3d11/winrt OK with variable loop)*/ \n\
+      vec4 myLightDiffuse = lightdiffuse[i];\n\
+      vec4 myLightAmbient = lightambient[i];\n\
+      vec4 myLightSpecular = lightspecular[i];\n\
+      vec4 myLightPosition = lightposition[i]; \n\
+      vec4 myspotDirection = lightspotDirection[i]; \n\
+      int myLightType = lightType[i]; \n\
+      vec3 myLightDir = myspotDirection.xyz; \n\
+      vec3 eyeVector = normalize(myPosition.xyz);\n\
+      vec3  VP;     /* vector of light direction and distance */\n\
+      VP = myLightPosition.xyz - myPosition.xyz;\n\
+      vec3 L = myLightDir; /*directional light*/ \n\
+      if(myLightType < 2) /*point and spot*/ \n\
+        L = normalize(VP); \n\
+      float nDotL = max(dot(normal, L), 0.0);\n\
+      vec3 halfVector = normalize(L - eyeVector);\n\
+      /* normal dot light half vector */\n\
+      float nDotHV = max(dot(normal,halfVector),0.0);\n\
+      \n\
+      if (myLightType==1) {\n\
+        /* SpotLight */\n\
+        float spotDot; \n\
+        float spotAttenuation = 0.0; \n\
+        float powerFactor = 0.0; /* for light dropoff */ \n\
+        float attenuation; /* computed attenuation factor */\n\
+        float d;            /* distance to vertex */            \n\
+        d = length(VP);\n\
+        if (nDotL > 0.0) {\n\
+          powerFactor = pow(nDotL,myMat.shininess); \n\
+          /* tone down the power factor if myMat.shininess borders 0 */\n\
+          if (myMat.shininess < 1.0) {\n\
+              powerFactor *= myMat.shininess; \n\
+          } \n\
+        } \n\
+        attenuation = 1.0/(lightAttenuations[i].x + (lightAttenuations[i].y * d) + (lightAttenuations[i].z *d *d));\n\
+        spotDot = dot (-L,myLightDir);\n\
+        /* check against spotCosCutoff */\n\
+        if (spotDot > lightspotCutoff[i]) {\n\
+          spotAttenuation = pow(spotDot,lightspotExponent[i]);\n\
+        }\n\
+        attenuation *= spotAttenuation;\n\
+        /* diffuse light computation */\n\
+        diffuse += nDotL* matdiffuse*myLightDiffuse * attenuation;\n\
+        /* ambient light computation */\n\
+        ambient += myMat.ambient*myLightAmbient;\n\
+        /* specular light computation */\n\
+        specular += myLightSpecular * powerFactor * attenuation;\n\
+        \n\
+      } else if (myLightType == 2) { \n\
+        /* DirectionalLight */ \n\
+        float powerFactor = 0.0; /* for light dropoff */\n\
+        if (nDotL > 0.0) {\n\
+          powerFactor = pow(nDotHV, myMat.shininess);\n\
+          /* tone down the power factor if myMat.shininess borders 0 */\n\
+          if (myMat.shininess < 1.0) {\n\
+              powerFactor *= myMat.shininess;\n\
+          }\n\
+        }\n\
+        /* Specular light computation */\n\
+        specular += myMat.specular *myLightSpecular*powerFactor;\n\
+        /* diffuse light computation */\n\
+        diffuse += nDotL*matdiffuse*myLightDiffuse;\n\
+        /* ambient light computation */\n\
+        ambient += myMat.ambient*myLightAmbient; \n\
+      } else {\n\
+        /* PointLight */\n\
+        float powerFactor=0.0; /* for light dropoff */\n\
+        float attenuation = 0.0; /* computed attenuation factor */\n\
+        float d = length(VP);  /* distance to vertex */ \n\
+        /* are we within range? */\n\
+        if (d <= lightRadius[i]) {\n\
+          if (nDotL > 0.0) {\n\
+              powerFactor = pow(nDotL, myMat.shininess);\n\
+          }\n\
+          /* this is actually the SFVec3f attenuation field */\n\
+            attenuation = 1.0/(lightAttenuations[i].x + (lightAttenuations[i].y * d) + (lightAttenuations[i].z *d *d));\n\
+          /* diffuse light computation */\n\
+          diffuse += nDotL* matdiffuse*myLightDiffuse * attenuation;\n\
+          /* ambient light computation */\n\
+          ambient += myMat.ambient*myLightAmbient;\n\
+          /* specular light computation */\n\
+          attenuation *= (myMat.shininess/128.0);\n\
+          specular += myLightSpecular * powerFactor * attenuation;\n\
+        }\n\
+      }\n\
+     }\n\
+  }\n\
+  return clamp(vec4(vec3(ambient+diffuse+specular+emissive),myAlph), 0.0, 1.0);\n\
+}\n\
+";
 
 /* FRAGMENT bits */
 //#if defined (GL_HIGH_FLOAT) &&  defined(GL_MEDIUM_FLOAT)
@@ -1886,10 +2032,20 @@ if(textureCount>=8) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode7,fw_Textur
 const static GLchar *pointSizeDeclare="uniform float pointSize;\n";
 const static GLchar *pointSizeAss="gl_PointSize = pointSize; \n";
 
+
 static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker], const GLchar *fragmentSource[fragmentEndMarker], unsigned int whichOne, int usePhongShading) {
 
     bool doThis;
 	bool didADSLmaterial;
+#ifdef USING_SHADER_LIGHT_ARRAY_METHOD
+	//for angleproject winRT d3d11 - can't do struct[] array for lights
+	const GLchar *lightDefines0 = lightDefinesArrayMethod;
+	const GLchar *ADSLLightModel0 = ADSLLightModelArrayMethod;
+#else
+	const GLchar *lightDefines0 = lightDefines;
+	const GLchar *ADSLLightModel0 = ADSLLightModel;
+#endif
+	
 	/* GL_ES - do we have medium precision, or just low precision?? */
     /* Phong shading - use the highest we have */
     /* GL_ES_VERSION_2_0 has these definitions */
@@ -2085,11 +2241,11 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         vertexSource[vertexNormalDeclare] = vertNormDec;
         vertexSource[vertexNormPosCalculation] = vertNormPosCalc;
 
-        fragmentSource[fragmentLightDefines] = lightDefines;
+        fragmentSource[fragmentLightDefines] = lightDefines0;
         fragmentSource[fragmentOneColourDeclare] = vertOneMatDec;
         fragmentSource[fragmentBackColourDeclare] = vertBackMatDec;
         fragmentSource[fragmentNormPosDeclare] = varyingNormPos;
-        fragmentSource[fragmentADSLLightModel] = ADSLLightModel;
+        fragmentSource[fragmentADSLLightModel] = ADSLLightModel0;
         fragmentSource[fragmentADSLAssign] = fragADSLAss;
 
     }
@@ -2100,12 +2256,12 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 	didADSLmaterial = false;
     if((DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER)) && (!usePhongShading)) {
         vertexSource[vertexNormalDeclare] = vertNormDec;
-        vertexSource[vertexLightDefines] = lightDefines;
+        vertexSource[vertexLightDefines] = lightDefines0;
         vertexSource[vertexOneMaterialDeclare] = vertOneMatDec;
         vertexSource[vertFrontColourDeclare] = varyingFrontColour;
         vertexSource[vertexNormPosCalculation] = vertNormPosCalc;
         vertexSource[vertexNormPosOutput] = vecNormPos;
-        vertexSource[vertexLightingEquation] = ADSLLightModel;
+        vertexSource[vertexLightingEquation] = ADSLLightModel0;
         vertexSource[vertexBackMaterialDeclare] = vertBackMatDec;
         vertexSource[vertexADSLCalculation] = vertADSLCalc;
 		didADSLmaterial = true;
@@ -2115,7 +2271,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 
 
         if DESIRE(whichOne,HAVE_LINEPOINTS_APPEARANCE) {
-            vertexSource[vertexLightDefines] = lightDefines;
+            vertexSource[vertexLightDefines] = lightDefines0;
             vertexSource[vertFrontColourDeclare] = varyingFrontColour;
             vertexSource[vertexOneMaterialDeclare] = vertOneMatDec;
 
@@ -2161,10 +2317,10 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
                 modulate/play with this. */
 
             vertexSource[vertexOneMaterialDeclare] = vertOneMatDec;
-            vertexSource[vertexLightDefines] = lightDefines;
+            vertexSource[vertexLightDefines] = lightDefines0;
             vertexSource[vertexNormPosCalculation] = vertNormPosCalc;
             vertexSource[vertexNormPosOutput] = vecNormPos;
-            vertexSource[vertexLightingEquation] = ADSLLightModel;
+            vertexSource[vertexLightingEquation] = ADSLLightModel0;
             vertexSource[vertexBackMaterialDeclare] = vertBackMatDec;
 
             fragmentSource[fragmentMultiTexDefines]= fragMultiTexUniforms;
@@ -2244,14 +2400,14 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 
 
 
-        vertexSource[vertexLightDefines] = lightDefines;
+        vertexSource[vertexLightDefines] = lightDefines0;
         vertexSource[vertexSimpleColourDeclare] = vertSimColDec;
         vertexSource[vertFrontColourDeclare] = varyingFrontColour;
 
 
 
         vertexSource[vertexNormalDeclare] = vertNormDec;
-        fragmentSource[fragmentLightDefines] = lightDefines;
+        fragmentSource[fragmentLightDefines] = lightDefines0;
         //ConsoleMessage ("sources here for %d are %p and %p", me, p->userDefinedVertexShader[me], p->userDefinedFragmentShader[me]);
 
         if ((p->userDefinedVertexShader[me] == NULL) || (p->userDefinedFragmentShader[me]==NULL)) {
@@ -2448,11 +2604,81 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 
      uniform gl_LightSourceParameters gl_LightSource[gl_MaxLights];
      */
+		{
+			//using lighsource arrays - see shader
+			char uniformName[100];
+			char* sndx;
+			me->haveLightInShader = false;
+#ifdef USING_SHADER_LIGHT_ARRAY_METHOD
 
-    {
-        char uniformName[100];
-        me->haveLightInShader = false;
+			for (i = 0; i<MAX_LIGHTS; i++) {
+				/* go through and modify the array for each variable */
+				strcpy(uniformName, "lightambient[0]");
+				sndx = strstr(uniformName, "["); 
+				sndx[1] = '0' + i;
+				me->lightAmbient[i] = GET_UNIFORM(myProg, uniformName);
 
+				//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightAmbient[i]);
+
+				strcpy(uniformName, "lightdiffuse[0]");
+				sndx = strstr(uniformName, "[");
+				sndx[1] = '0' + i;
+				me->lightDiffuse[i] = GET_UNIFORM(myProg, uniformName);
+				//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightDiffuse[i]);
+
+
+				strcpy(uniformName, "lightspecular[0]");
+				sndx = strstr(uniformName, "[");
+				sndx[1] = '0' + i;
+				me->lightSpecular[i] = GET_UNIFORM(myProg, uniformName);
+				//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpecular[i]);
+
+
+				strcpy(uniformName, "lightposition[0]");
+				sndx = strstr(uniformName, "[");
+				sndx[1] = '0' + i;
+				me->lightPosition[i] = GET_UNIFORM(myProg, uniformName);
+				//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightPosition[i]);
+
+
+				// flag used to determine if we have to send light position info to this shader
+				if (me->lightPosition[i] != -1) me->haveLightInShader = true;
+
+				strcpy(uniformName, "lightspotDirection[0]");
+				sndx = strstr(uniformName, "[");
+				sndx[1] = '0' + i;
+				me->lightSpotDir[i] = GET_UNIFORM(myProg, uniformName);
+				//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpotDir[i]);
+
+
+				strcpy(uniformName, "lightspotExponent[0]");
+				sndx = strstr(uniformName, "[");
+				sndx[1] = '0' + i;
+				me->lightSpotBeamWidth[i] = GET_UNIFORM(myProg, uniformName);
+				//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpotBeamWidth[i]);
+
+
+				strcpy(uniformName, "lightspotCutoff[0]");
+				sndx = strstr(uniformName, "[");
+				sndx[1] = '0' + i;
+				me->lightSpotCutoffAngle[i] = GET_UNIFORM(myProg, uniformName);
+				//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpotCutoffAngle[i]);
+
+
+				strcpy(uniformName, "lightAttenuations[0]");
+				sndx = strstr(uniformName, "[");
+				sndx[1] = '0' + i;
+				me->lightAtten[i] = GET_UNIFORM(myProg, uniformName);
+
+				strcpy(uniformName, "lightRadius[0]");
+				sndx = strstr(uniformName, "[");
+				sndx[1] = '0' + i;
+				me->lightRadius[i] = GET_UNIFORM(myProg, uniformName);
+				//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightQuadAtten[i]);
+
+			}
+
+#else //USING_SHADER_LIGHT_ARRAY_METHOD
         strcpy(uniformName,"fw_LightSource[0].");
         for (i=0; i<MAX_LIGHTS; i++) {
             /* go through and modify the array for each variable */
@@ -2524,6 +2750,7 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
             //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightQuadAtten[i]);
 
         }
+#endif // USING_SHADER_LIGHT_ARRAY_METHOD
 		strcpy(uniformName,"lightType[0]");
 		for (i = 0; i < MAX_LIGHTS; i++) {
 			/* go through and modify the array for each variable */
