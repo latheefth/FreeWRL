@@ -5493,7 +5493,7 @@ BOOL found_IS_field(struct VRMLParser* me, struct X3D_Node *node)
 	foundProtoField = FALSE;
 	f = NULL;
 	{
-		const char* pname;
+		const char* pname = NULL;
 		struct Vector* usernames[4];
 		const char **userArr;
 		usernames[0] = me->lexer->user_initializeOnly;
@@ -5525,6 +5525,7 @@ BOOL found_IS_field(struct VRMLParser* me, struct X3D_Node *node)
 		}
 		//check its type
 		if(f->type != type){
+			if(!pname) pname = "";
 			ConsoleMessage("Parser error: IS - we have a name match: %s IS %s found protofield %s\n",
 				nodeFieldName,protoFieldName,pname);
 			ConsoleMessage("...But the types don't match: nodefield %s protofield %s\n",

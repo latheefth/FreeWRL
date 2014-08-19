@@ -609,6 +609,7 @@ void fwl_RenderSceneUpdateScene() {
 		//  - 4 same as 3, except done to harmonize with linux/aqua naming approach:
 		//  - fwl_set_SnapFile(path = {"fixture" | "playback" }); to set mytmp
 		//  -
+		folder = NULL;
 		namingMethod = 4;
 		//if(p->frameNum == 1){
 		if(!p->fwplayOpened){
