@@ -28,6 +28,8 @@
 #ifndef __FREEWRL_JS_JSCRIPT_H__
 #define __FREEWRL_JS_JSCRIPT_H__
 
+#include "vrml_parser/CParseParser.h"
+
 void kill_javascript(void);
 void JSInit(struct Shader_Script *script); /* int num); */
 void SaveScriptText(int num, const char *text);
