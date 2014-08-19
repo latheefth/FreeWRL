@@ -39,6 +39,7 @@
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../main/ProdCon.h"
 #include "../vrml_parser/CParseGeneral.h"
 #include "../main/Snapshot.h"
 #include "../scenegraph/LinearAlgebra.h"

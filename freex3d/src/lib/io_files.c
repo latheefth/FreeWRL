@@ -31,7 +31,7 @@
 #include <display.h>
 #include <internal.h>
 #include <libFreeWRL.h>
-#include <errno.h>
+#include <resources.h>
 
 #include <list.h> /* internal use only */
 #include <io_files.h>
@@ -54,6 +54,7 @@
 #endif
 #include <limits.h>   /* SSIZE_MAX */
 
+#include "main/ProdCon.h"
 #include "input/InputFunctions.h"
 #include "plugin/pluginUtils.h"
 #include "plugin/PluginSocket.h"

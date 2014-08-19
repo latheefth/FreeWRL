@@ -224,9 +224,7 @@ bool resource_fetch(resource_item_t *res)
 void frontenditem_enqueue_tg(s_list_t *item, void *tg);
 s_list_t *frontenditem_dequeue_tg(void *tg);
 s_list_t *frontenditem_dequeue();
-void resitem_enqueue_tg(s_list_t *item, void* tg);
 
-bool imagery_load(resource_item_t *res);
 int checkReplaceWorldRequest();
 int checkExitRequest();
 enum {

@@ -38,6 +38,7 @@ Javascript C language binding.
 #include "../vrml_parser/CRoutes.h"
 #include "../opengl/OpenGL_Utils.h"
 #include "../main/headers.h"
+#include "../main/ProdCon.h"
 #include "../scenegraph/RenderFuncs.h"
 #include "../vrml_parser/CParseGeneral.h"
 #include "../scenegraph/Vector.h"
