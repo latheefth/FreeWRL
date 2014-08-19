@@ -28,6 +28,7 @@ libFreeWRL_la_SOURCES = \
 			resources.c \
 			iglobal.h \
 			iglobal.c \
+			desktop.c \
  \
 main/headers.h \
 main/MainLoop.c \

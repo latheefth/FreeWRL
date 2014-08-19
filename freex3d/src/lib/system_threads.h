@@ -32,6 +32,7 @@ Internal header: threading library, and processor control (sched).
 
 #if HAVE_PTHREAD
 # include <pthread.h>
+# include <errno.h>
 #endif
 
 #if HAVE_SCHED_H

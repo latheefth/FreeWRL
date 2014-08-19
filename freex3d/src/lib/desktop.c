@@ -119,9 +119,11 @@ w3dx.manifest:
 
 #include <config.h>
 #include <system.h>
+#include <system_threads.h>
 #include <resources.h>
 #include <internal.h>
 #include <io_http.h>
+#include "main/MainLoop.h"
 
 /**
  *   resource_fetch: download remote url or check for local file access.
