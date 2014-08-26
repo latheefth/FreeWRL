@@ -3328,6 +3328,13 @@ void dump_scenegraph(int method)
 //#endif
 }
 
+void fwl_clearWorld(){
+	//clear the scene to empty (and do cleanup on old scene);
+	ttglobal tg = gglobal();
+	tg->Mainloop.replaceWorldRequest = NULL;
+	tg->threads.flushing = 1;
+	return;
+}
 
 void sendKeyToKeySensor(const char key, int upDown);
 /* handle a keypress. "man freewrl" shows all the recognized keypresses */
@@ -3348,74 +3355,75 @@ void fwl_do_keyPress0(int key, int type) {
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 
-        /* does this X3D file have a KeyDevice node? if so, send it to it */
+	/* does this X3D file have a KeyDevice node? if so, send it to it */
 	//printf("fwl_do_keyPress: %c%d\n",kp,type);
-		if(key == 27 && type == 1)
+	if(key == 27 && type == 1)
+	{
+		//ESC key to toggle back to freewrl command use of keyboard
+		p->keySensorMode = 1 - p->keySensorMode; //toggle
+	}
+	if (p->keySensorMode && KeySensorNodePresent()) {
+		sendKeyToKeySensor(key,type); //some keysensor test files show no opengl graphics, so we need a logfile
+	} else {
+		int handled = isAQUA;
+		if(type == KEYPRESS)
 		{
-			//ESC key to toggle back to freewrl command use of keyboard
-			p->keySensorMode = 1 - p->keySensorMode; //toggle
-		}
-		if (p->keySensorMode && KeySensorNodePresent()) {
-				sendKeyToKeySensor(key,type); //some keysensor test files show no opengl graphics, so we need a logfile
-        } else {
-			int handled = isAQUA;
-			if(type == KEYPRESS)
-			{
-						lkp = key;
-						//if(kp>='A' && kp <='Z') lkp = tolower(kp);
-                        switch (lkp) {
-                                case 'e': { fwl_set_viewer_type (VIEWER_EXAMINE); break; }
-                                case 'w': { fwl_set_viewer_type (VIEWER_WALK); break; }
-                                case 'd': { fwl_set_viewer_type (VIEWER_FLY); break; }
-                                case 'f': { fwl_set_viewer_type (VIEWER_EXFLY); break; }
-                                case 'y': { fwl_set_viewer_type (VIEWER_YAWPITCHZOOM); break; }
-								case 't': { fwl_set_viewer_type(VIEWER_TURNTABLE); break; }
-								case 'h': { fwl_toggle_headlight(); break; }
-                                case '/': { print_viewer(); break; }
-                                //case '\\': { dump_scenegraph(); break; }
-                                case '\\': { dump_scenegraph(1); break; }
-                                case '|': { dump_scenegraph(2); break; }
-                                case '=': { dump_scenegraph(3); break; }
-                                case '+': { dump_scenegraph(4); break; }
-                                case '-': { dump_scenegraph(5); break; }
-                                case '`': { toggleLogfile(); break; }
+			lkp = key;
+			//if(kp>='A' && kp <='Z') lkp = tolower(kp);
+			switch (lkp) {
+				case 'a': {  fwl_clearWorld(); break; }
+				case 'e': { fwl_set_viewer_type (VIEWER_EXAMINE); break; }
+				case 'w': { fwl_set_viewer_type (VIEWER_WALK); break; }
+				case 'd': { fwl_set_viewer_type (VIEWER_FLY); break; }
+				case 'f': { fwl_set_viewer_type (VIEWER_EXFLY); break; }
+				case 'y': { fwl_set_viewer_type (VIEWER_YAWPITCHZOOM); break; }
+				case 't': { fwl_set_viewer_type(VIEWER_TURNTABLE); break; }
+				case 'h': { fwl_toggle_headlight(); break; }
+				case '/': { print_viewer(); break; }
+				//case '\\': { dump_scenegraph(); break; }
+				case '\\': { dump_scenegraph(1); break; }
+				case '|': { dump_scenegraph(2); break; }
+				case '=': { dump_scenegraph(3); break; }
+				case '+': { dump_scenegraph(4); break; }
+				case '-': { dump_scenegraph(5); break; }
+				case '`': { toggleLogfile(); break; }
 
-                                case '$': resource_tree_dump(0, tg->resources.root_res); break;
-                                case '*': resource_tree_list_files(0, tg->resources.root_res); break;
-                                case 'q': { if (!RUNNINGASPLUGIN) {
-                                                  fwl_doQuit();
-                                            }
-                                            break;
-                                          }
-                                case 'c': { toggle_collision(); break;}
-                                case 'v': {fwl_Next_ViewPoint(); break;}
-                                case 'b': {fwl_Prev_ViewPoint(); break;}
-								case '.': {profile_print_all(); break;}
+				case '$': resource_tree_dump(0, tg->resources.root_res); break;
+				case '*': resource_tree_list_files(0, tg->resources.root_res); break;
+				case 'q': { if (!RUNNINGASPLUGIN) {
+							fwl_doQuit();
+							}
+							break;
+						}
+				case 'c': { toggle_collision(); break;}
+				case 'v': {fwl_Next_ViewPoint(); break;}
+				case 'b': {fwl_Prev_ViewPoint(); break;}
+				case '.': {profile_print_all(); break;}
 
 #if !defined(FRONTEND_DOES_SNAPSHOTS)
-                                case 's': {fwl_toggleSnapshot(); break;}
-                                case 'x': {Snapshot(); break;} /* thanks to luis dias mas dec16,09 */
+				case 's': {fwl_toggleSnapshot(); break;}
+				case 'x': {Snapshot(); break;} /* thanks to luis dias mas dec16,09 */
 #endif //FRONTEND_DOES_SNAPSHOTS
 
-                                default:
-									handled = 0;
-									break;
-                        }
-                }
-				if(!handled) {
-					char kp;
-					if(type/10 == 0)
-						kp = (char)key; //normal keyboard key
-					else
-						kp = lookup_fly_key(key); //actionKey possibly numpad or arrows, convert to a/z
-					if(kp){
-						if(type%10 == KEYDOWN)
-							handle_key(kp);  //keydown for fly
-						if(type%10 == KEYUP)
-							handle_keyrelease(kp); //keyup for fly
-					}
-                }
-        }
+				default:
+					handled = 0;
+					break;
+			}
+		}
+		if(!handled) {
+			char kp;
+			if(type/10 == 0)
+				kp = (char)key; //normal keyboard key
+			else
+				kp = lookup_fly_key(key); //actionKey possibly numpad or arrows, convert to a/z
+			if(kp){
+				if(type%10 == KEYDOWN)
+					handle_key(kp);  //keydown for fly
+				if(type%10 == KEYUP)
+					handle_keyrelease(kp); //keyup for fly
+			}
+		}
+	}
 }
 void queueKeyPress(ppMainloop p, int key, int type){
 	if(p->keypressQueueCount < 50){
