@@ -1206,6 +1206,24 @@ enum {
 	file2blob_task_enqueue,
 } file2blob_task_tactic;
 
+void resource_remove_cached_file(s_list_t *cfe);
+void delete_temp_file(resource_item_t *res){
+	/*we delete a temp file immediately after it's loaded (ie after FILE2BLOB)
+	  (versus cleaning up on program exit. Bombing, killing and some configurations of mobile don't exit cleanly).
+	  stub this function if you want to see the temp files being created during a run.
+	  .x3z files need to hang around longer, for unzipping, and get cleaned up hopefully on exit.
+	*/
+	s_list_t *cf;
+	if(res->media_type != resm_x3z){
+		cf = (s_list_t *)res->cached_files;
+		if (cf) {
+			ml_foreach(cf, resource_remove_cached_file(__l));
+			//should clean up list items (but are contained strings constants/used elsewhere or strduped)
+			res->cached_files = NULL;
+		}
+	}
+}
+
 int file2blob(resource_item_t *res){
 	int retval;
 	if(res->media_type == resm_image){
@@ -1213,6 +1231,7 @@ int file2blob(resource_item_t *res){
 	}else{
 		retval = resource_load(res);  //FILE2BLOB
 	}
+	delete_temp_file(res);
 	return retval;
 }
 int async_thread_count = 0;
@@ -1232,7 +1251,6 @@ void loadAsync (resource_item_t *res) {
 	if(!res->_loadThread) res->_loadThread = malloc(sizeof(pthread_t));
 	pthread_create ((pthread_t*)res->_loadThread, NULL,&thread_load_async, (void *)res);
 }
-
 void file2blob_task(s_list_t *item){
 	//chain, spawn async/thread, or re-enqueue FILE2BLOB to some work thread
 	resource_item_t *res = item->elem;
@@ -1245,6 +1263,7 @@ void file2blob_task(s_list_t *item){
 			resource_load(res);  //FILE2BLOB
 		}
 		//enqueue BLOB to BE
+		delete_temp_file(res);
 		resitem_enqueue(item);
 	}else if(tactic == file2blob_task_enqueue){
 		//set BE load function to non-null

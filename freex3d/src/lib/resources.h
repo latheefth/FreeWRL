@@ -175,7 +175,7 @@ typedef struct resource_item {
 	int treat_as_root; //bandaid for .x3z doc.x3d to be seen as root res equivalent
 	void *_loadThread; //pthread_t * used for async_loading in middleLayer ML
 	void *tg; //gglobal context
-	int (*_loadFunc)(void *);
+	int (*_loadFunc)(void *); //used for some experiments where the backend loads, but the frontend injects a load function
 } resource_item_t;
 
 extern resource_item_t *root_res;
