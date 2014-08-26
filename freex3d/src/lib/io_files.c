@@ -1213,11 +1213,13 @@ void delete_temp_file(resource_item_t *res){
 	  stub this function if you want to see the temp files being created during a run.
 	*/
 	s_list_t *cf;
-	cf = (s_list_t *)res->cached_files;
-	if (cf) {
-		ml_foreach(cf, resource_remove_cached_file(__l));
-		//should clean up list items (but are contained strings constants/used elsewhere or strduped)
-		res->cached_files = NULL;
+	if(res->media_type != resm_x3z){
+		cf = (s_list_t *)res->cached_files;
+		if (cf) {
+			ml_foreach(cf, resource_remove_cached_file(__l));
+			//should clean up list items (but are contained strings constants/used elsewhere or strduped)
+			res->cached_files = NULL;
+		}
 	}
 }
 
