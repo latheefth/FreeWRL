@@ -1211,6 +1211,7 @@ void delete_temp_file(resource_item_t *res){
 	/*we delete a temp file immediately after it's loaded (ie after FILE2BLOB)
 	  (versus cleaning up on program exit. Bombing, killing and some configurations of mobile don't exit cleanly).
 	  stub this function if you want to see the temp files being created during a run.
+	  .x3z files need to hang around longer, for unzipping, and get cleaned up hopefully on exit.
 	*/
 	s_list_t *cf;
 	if(res->media_type != resm_x3z){
