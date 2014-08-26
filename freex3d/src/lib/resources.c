@@ -685,7 +685,7 @@ void resource_identify_type(resource_item_t *res)
  */
 void remove_file_or_folder(const char *path);
 
-static void resource_remove_cached_file(s_list_t *cfe)
+void resource_remove_cached_file(s_list_t *cfe)
 {
 	const char *cached_file;
 	cached_file = (const char *) cfe->elem;
@@ -1336,6 +1336,17 @@ void fwl_resitem_setLocalPath(void *resp, char* path){
 	resource_item_t *res = (resource_item_t *)resp;
 	res->status = ress_downloaded;
 	res->actual_file = strBackslash2fore(STRDUP(path));
+	int delete_after_load = 1;
+	if (delete_after_load){
+		//warning this will delete the actual_file setLocalPath is for downloaded/copied/cached files only, 
+		//not direct intranet files as with desktop.c
+		s_list_t *item;
+		item = ml_new(res->actual_file);
+		if (!res->cached_files)
+			res->cached_files = (void *)item;
+		else
+			res->cached_files = ml_append(res->cached_files, item);
+	}
 	res->_loadFunc = file2blob;
 }
 int	fwl_resitem_getStatus(void *resp){

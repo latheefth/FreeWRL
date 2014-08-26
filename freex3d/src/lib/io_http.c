@@ -434,7 +434,12 @@ void download_url(resource_item_t *res)
 		res->status = ress_downloaded;
 		if(strcmp(res->actual_file,res->parsed_request)){
 			//it's a temp file 
-			res->cached_files = ml_append(res->cached_files,ml_new(res->actual_file));
+			s_list_t *item;
+			item = ml_new(res->actual_file);
+			if (!res->cached_files)
+				res->cached_files = (void *)item;
+			else
+				res->cached_files = ml_append(res->cached_files,item);
 		}
 	} else {
 		/* download failed */
