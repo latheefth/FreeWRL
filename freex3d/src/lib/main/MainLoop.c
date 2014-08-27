@@ -3371,7 +3371,7 @@ void fwl_do_keyPress0(int key, int type) {
 			lkp = key;
 			//if(kp>='A' && kp <='Z') lkp = tolower(kp);
 			switch (lkp) {
-				case 'a': {  fwl_clearWorld(); break; }
+				case 'n': {  fwl_clearWorld(); break; }
 				case 'e': { fwl_set_viewer_type (VIEWER_EXAMINE); break; }
 				case 'w': { fwl_set_viewer_type (VIEWER_WALK); break; }
 				case 'd': { fwl_set_viewer_type (VIEWER_FLY); break; }
