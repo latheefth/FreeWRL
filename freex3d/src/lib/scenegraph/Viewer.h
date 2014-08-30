@@ -204,9 +204,16 @@ typedef struct key {
 /* Modeled after Descent(tm) ;) */
 typedef struct viewer_fly {
 	double Velocity[COORD_SYS];
+	double ttransition[COORD_SYS];
 	double AVelocity[COORD_SYS];
-	Key Down[KEYS_HANDLED];
-	Key WasDown[KEYS_HANDLED];
+	double Adesired[COORD_SYS];
+	double Aturned[COORD_SYS];
+	double Acurrent[COORD_SYS];
+	double rtransition[COORD_SYS];
+	Key Down[KEYS_HANDLED]; //state
+	double downEpoch[KEYS_HANDLED]; 
+	Key WasDown[KEYS_HANDLED]; //accumulator
+	double wasdownEra[KEYS_HANDLED]; 
 	double lasttime;
 } X3D_Viewer_Fly;
 
@@ -292,53 +299,27 @@ void fwl_init_StereoDefaults(void);
 
 void viewer_postGLinit_init(void);
 
-void
-viewer_init(X3D_Viewer *viewer,
-			int type);
+void viewer_init(X3D_Viewer *viewer, int type);
 
-void
-print_viewer();
+void print_viewer();
+int fwl_get_headlight();
+void fwl_toggle_headlight();
+int use_keys(void);
 
-int
-fwl_get_headlight();
-
-void
-fwl_toggle_headlight();
-
-int
-use_keys(void);
-
-void
-set_eyehalf( const double eyehalf,
-			const double eyehalfangle);
-
-void
-resolve_pos(void);
+void set_eyehalf( const double eyehalf,	const double eyehalfangle);
+void resolve_pos(void);
 void getViewpointExamineDistance(void);
 
-void
-xy2qua(Quaternion *ret,
+void xy2qua(Quaternion *ret,
 	   const double x,
 	   const double y);
 
-void
-viewer_togl( double fieldofview);
-
+void viewer_togl( double fieldofview);
 
 void handle(const int mev, const unsigned int button, const float x, const float y);
-
-void
-handle_key(const char key);
-
-void
-handle_keyrelease (const char key);
-
-void
-handle_tick();
-
-void
-set_action(char *key);
-
+void handle_key(const char key);
+void handle_keyrelease (const char key);
+void handle_tick();
 void set_stereo_offset0(); /*int iside, double eyehalf, double eyehalfangle);*/
 /*
 void
@@ -347,8 +328,7 @@ set_stereo_offset(unsigned int buffer,
 				  const double eyehalfangle,
 				  double fieldofview);
 */
-void
-increment_pos( struct point_XYZ *vec);
+void increment_pos( struct point_XYZ *vec);
 
 void bind_Viewpoint(struct X3D_Viewpoint *node);
 void bind_OrthoViewpoint(struct X3D_OrthoViewpoint *node);
