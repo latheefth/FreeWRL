@@ -65,24 +65,14 @@ static void init_stereodefaults(X3D_Viewer *Viewer)
 }
 
 
-
-
-
-
-//true static:
-static Key staticKeyMap[KEYS_HANDLED] = KEYMAP;
 typedef struct pViewer{
 	int examineCounter;// = 5;
 
-	int viewer_initialized;// = FALSE;
-	X3D_Viewer_Walk viewer_walk;// = { 0, 0, 0, 0, 0, 0 };
-	X3D_Viewer_Examine viewer_examine;// = { {0, 0, 0}, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0 };
-	X3D_Viewer_Fly viewer_fly;// = { { 0, 0, 0 }, { 0, 0, 0 }, KEYMAP, KEYMAP, -1 };
-	X3D_Viewer_YawPitchZoom viewer_ypz;// = { {0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, 0.0f, 0.0f };
-	int translaten[COORD_SYS];// = { 0, 0, 0 };
-	int rotaten[COORD_SYS];// = { 0, 0, 0 };
-	double tEra[COORD_SYS];// = { 0, 0, 0 };
-	double rEra[COORD_SYS];// = { 0, 0, 0 };
+	int viewer_initialized;
+	X3D_Viewer_Walk viewer_walk;
+	X3D_Viewer_Examine viewer_examine;
+	X3D_Viewer_Fly viewer_fly;
+	X3D_Viewer_YawPitchZoom viewer_ypz;
 
 	FILE *exfly_in_file;
 	struct point_XYZ viewer_lastP;
@@ -115,31 +105,12 @@ void Viewer_init(struct tViewer *t){
 		p->examineCounter = 5;
 
 		p->viewer_initialized = FALSE;
-		//p->viewer_walk = { 0, 0, 0, 0, 0, 0 };
-		//p->viewer_examine = { {0, 0, 0}, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0 };
-		{
-			int i;
-			for(i=0;i<KEYS_HANDLED;i++)
-			{
-				p->viewer_fly.Down[i] =  staticKeyMap[i]; // = { { 0, 0, 0 }, { 0, 0, 0 }, KEYMAP, KEYMAP, -1 };
-				p->viewer_fly.WasDown[i] = staticKeyMap[i];
-			}
-			p->viewer_fly.lasttime = -1;
-		}
-		//p->viewer_fly.
-		//p->viewer_ypz = { {0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, 0.0f, 0.0f };
-		memset(p->translaten,0,3*sizeof(int));
-		memset(p->rotaten,0,3*sizeof(int));
-		//p->exfly_in_file;
-		//p->viewer_lastP;
 		#ifdef _MSC_VER
 		p->exflyMethod = 1;  /* could be a user settable option, which kind of exfly to do */
 		#else
 		p->exflyMethod = 0;
 		#endif
 		p->StereoInitializedOnce = 0;
-		//p->acMask[2][3]; //anaglyphChannelMask
-		// most common is Red/Cyan glasses, set left to Red, right to Cyan.
 		p->acMask[0][0] = (GLboolean)1; // R = 1, 0, 0
 
 		p->acMask[1][1] = (GLboolean)1; // C = 0, 1, 1
@@ -1260,8 +1231,40 @@ char lookup_fly_key(int key){
 	return kp;
 }
 
-void
-handle_key(const char key)
+static struct flykey_lookup_type {
+	char key;
+	int motion; //translation 0, rotation 1
+	int axis; //0=x,1=y,2=z
+	int sign; //-1 left 1 right
+} flykey_lookup [] = {
+	'j', 0, 0, -1,
+	'l', 0, 0,  1,
+	'p', 0, 1, -1,
+	';', 0, 1,  1,
+	'a', 0, 2, -1,
+	'z', 0, 2,  1,
+
+	'k', 1, 0, -1,
+	'8', 1, 0,  1,
+	'u', 1, 1, -1,
+	'o', 1, 1,  1,
+	'7', 1, 2, -1,
+	'9', 1, 2,  1,
+};
+
+struct flykey_lookup_type *getFlyIndex(char key){
+	struct flykey_lookup_type *flykey;
+	int index = -1;
+	flykey = NULL;
+	for(index=0;index<KEYS_HANDLED;index++){
+		if(key == flykey_lookup[index].key ) break;
+	}
+	if(index > -1)
+		flykey = &flykey_lookup[index];
+	return flykey;
+}
+
+void handle_key(const char key, double keytime)
 {
 	char _key;
 	int i;
@@ -1270,24 +1273,21 @@ handle_key(const char key)
 	fly = &p->Viewer.fly;
 	printf("%c",key);
 	if (p->Viewer.type == VIEWER_FLY) {
+		struct flykey_lookup_type *flykey;
 		/* $key = lc $key; */
 		_key = (char) tolower((int) key);
-
-		for (i = 0; i < KEYS_HANDLED; i++) {
-			if ((fly->Down[i]).key  == _key) {
-				
-				/* $this->{Down}{$key} = 1; */
-				fly->Down[i].hit = 1;
-				//fly->WasDown[i].hit += fly->Down[i].hit;
-				fly->downEpoch[i] = Time1970sec();
-			}
+		flykey = getFlyIndex(_key);
+		if(flykey){
+			fly->down[flykey->motion][flykey->axis].direction = flykey->sign;
+			fly->down[flykey->motion][flykey->axis].epoch = keytime; //initial keydown
+			fly->down[flykey->motion][flykey->axis].era = keytime;  //will decrement as we apply velocity in fly
+			fly->down[flykey->motion][flykey->axis].once = 1;
 		}
 	}
 }
 
 
-void
-handle_keyrelease(const char key)
+void handle_keyrelease(const char key, double keytime)
 {
 	char _key;
 	int i;
@@ -1298,16 +1298,20 @@ handle_keyrelease(const char key)
 
 	if (p->Viewer.type == VIEWER_FLY) {
 		/* $key = lc $key; */
+		struct flykey_lookup_type *flykey;
 		_key = (char) tolower((int) key);
-
-		for (i = 0; i < KEYS_HANDLED; i++) {
-			if ((fly->Down[i]).key  == _key) {
-				/* $this->{WasDown}{$key} += $this->{Down}{$key}; */
-				fly->WasDown[i].hit += fly->Down[i].hit;
-				fly->wasdownEra[i] = Time1970sec() - fly->downEpoch[i];
-				/* delete $this->{Down}{$key}; */
-				fly->Down[i].hit = 0;
+		flykey = getFlyIndex(_key);
+		if(flykey){
+			int *ndown = &fly->ndown[flykey->motion][flykey->axis];
+			if((*ndown) < 10){
+				//up to 20 key chirps per axis are stored, with their elapsed time down measured in the keyboard's thread
+				fly->wasDown[flykey->motion][flykey->axis][*ndown].direction = fly->down[flykey->motion][flykey->axis].direction;
+				fly->wasDown[flykey->motion][flykey->axis][*ndown].epoch = keytime - fly->down[flykey->motion][flykey->axis].epoch; //total pressedTime
+				fly->wasDown[flykey->motion][flykey->axis][*ndown].era = keytime - fly->down[flykey->motion][flykey->axis].era; //unused keydown time
+				fly->wasDown[flykey->motion][flykey->axis][*ndown].once = fly->down[flykey->motion][flykey->axis].once;  //a flag for the handle_tick to play with
+				(*ndown)++;
 			}
+			fly->down[flykey->motion][flykey->axis].direction = 0;
 		}
 	}
 }
@@ -1592,93 +1596,31 @@ handle_tick_exfly()
 	}
 }
 
-static char *tranlate_keys = "azjlp;";
-static char *rotate_keys = "8kuo79";
-static char *xaxis_keys = "jl8k";
-static char *yaxis_keys = "p;uo";
-static char *zaxis_keys = "az79";
-static struct flykey_lookup_type {
-	char key;
-	int motion;
-	int axis;
-	int sign;
-} flykey_lookup [] = {
-	'j', 0, 0, -1,
-	'l', 0, 0,  1,
-	'p', 0, 1, -1,
-	';', 0, 1,  1,
-	'a', 0, 2, -1,
-	'z', 0, 2,  1,
 
-	'k', 1, 0, -1,
-	'8', 1, 0,  1,
-	'u', 1, 1, -1,
-	'o', 1, 1,  1,
-	'7', 1, 2, -1,
-	'9', 1, 2,  1,
-
-};
-
-int different_sign(int A, int B){
-	return  A && B ? A*B < 0 : 0;
-}
-void set_action(char key, int nhit, double era, int *translate, int *rotate, double* tEra, double *rEra)
-{
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
-	struct flykey_lookup_type flykey;
-	int index = -1;
-	for(index=0;index<KEYS_HANDLED;index++){
-		if(key == flykey_lookup[index].key ) break;
-	}
-	flykey = flykey_lookup[index];
-	if(flykey.motion == 0){
-		//translaiton motion
-		if(different_sign(translate[flykey.axis],flykey.sign) ){
-			translate[flykey.axis] = 0; //we just changed direction, so zero out count of keys going the other direction
-			tEra[flykey.axis] = 0.0;
-		}
-		translate[flykey.axis] += flykey.sign * nhit;
-		tEra[flykey.axis] += era;
-	}else{
-		//rotaiton motion
-		if(different_sign(rotate[flykey.axis],flykey.sign)){
-			rotate[flykey.axis] = 0; //we just changed direction, so zero out our count of key strokes going the other way
-			rEra[flykey.axis] = 0.0;
-		}
-		rotate[flykey.axis] += flykey.sign * nhit;
-		rEra[flykey.axis] += era;
-		//printf("(%f)",era);
-	}
-}
 
 /* FLY mode change Aug 29, 2014 dug9:
 	I was having trouble adjusting speeds on a fast computer - 
-	- multiple keystrokes didn't change speed
+	- multiple keystrokes didn't change linear speed
 	- angluar speed was too fast.
-	Not sure what the old design was.
 	New design: 
+		Goal: slow and fast frame rates both work
 		Linear: if the user presses a key again/mulitple times before the related speed decay finishes, 
 			those keystrokes are interpreted as a desire to increase speed.
-		Angular: holding the key down longer accelerates the rotation speed, brief taps do small angle adjustments
+		Angular: brief taps do small angle adjustments 1/64 of full circle, holding key down does full rotation in 6 seconds
+		In both cases, the keydown elapsed time is measured in the keybaord thread, not the display/rendering thread
 */
-int _isign(int any){
-	//return the +- sign of an int, as an int
-	return any < 0 ? -1 : 1;
-}
+
 static void handle_tick_fly()
 {
 	X3D_Viewer_Fly *fly;
-	Key ps[KEYS_HANDLED] = KEYMAP;
 	Quaternion q_v, nq = { 1, 0, 0, 0 };
 	struct point_XYZ v;
-	int translate[3], rotate[3];
-	double tEra[3], rEra[3], tEran[3], rEran[3];
 	double changed = 0.0, time_diff = -1.0;
 	int i;
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	fly = &p->Viewer.fly;
 
-	//sleep(800); //slow frame rate to test frame-rate dependent actions
+	//sleep(400); //slow frame rate to test frame-rate-dependent actions
 	if (fly->lasttime < 0) {
 		fly->lasttime = TickTime();
 		return;
@@ -1691,270 +1633,95 @@ static void handle_tick_fly()
 		fly->lasttime = dtime;
 	}
 
-	for(i=0;i<3;i++){
-		translate[i] = rotate[i] =0;
-		tEra[i] = rEra[i] = tEran[i] = rEran[i] = 0.0;
-	}
-
-	/* first, get all the keypresses since the last time */
-	for (i = 0; i < KEYS_HANDLED; i++) {
-		if(fly->Down[i].hit) { //current key state ie down = 1
-			set_action(fly->Down[i].key, fly->Down[i].hit, fly->lasttime - fly->downEpoch[i], translate, rotate, tEra, rEra);
-		}
-	}
-	for(i=0;i<3;i++){
-		//clear any reversals (clear speed-related cumulative keystrokes in one direction when we get a keydown in the other direction
-		if(different_sign(translate[i],p->translaten[i])) p->translaten[i] = 0;
-		if(different_sign(rotate[i],p->rotaten[i])) p->rotaten[i] = 0;
-	}
-
-	for (i = 0; i < KEYS_HANDLED; i++) {
-		if(fly->WasDown[i].hit) //cumulative keydowns (used to speed up)
-			set_action(fly->WasDown[i].key, fly->WasDown[i].hit, fly->wasdownEra[i], p->translaten, p->rotaten, p->tEra, p->rEra);
-		fly->WasDown[i].hit = 0;
-	} 
 
 	/* has anything changed? if so, then re-render */
 
 	/* linear movement */
-	for (i = 0; i < COORD_SYS; i++) {
+	for (i = 0; i < 3; i++) {
 		//fade old velocity, using something like exponential decay Ni = N(i-1)*e**(k*t) where k < 0
-		if(!translate[i]){
-			double dtime = fly->lasttime - fly->ttransition[i];
+		if(!fly->down[0][i].direction){
+			double dtime = fly->lasttime - fly->down[0][i].epoch; //fly->ttransition[i][0];
 			if(dtime > .25) //delay decay, waiting for more speed-indicating keystrokes
-				fly->Velocity[i] *= pow(0.04, time_diff); 
+				fly->Velocity[0][i] *= pow(0.04, time_diff); 
 		}
 		//if its almost 0, clamp to zero
-		if(fabs(fly->Velocity[i]) < .001){
-			fly->Velocity[i] = 0.0;
+		if(fabs(fly->Velocity[0][i]) < .001){
+			fly->Velocity[0][i] = 0.0;
 		}
 		//if key action, add new velocity
-		if(translate[i]){
-			fly->Velocity[i] += p->translaten[i] * p->Viewer.speed;
-			p->translaten[i] = 0; 
-			fly->ttransition[i] = fly->lasttime; //save time of last [i] translate, for delaying decay
+		if(fly->down[0][i].direction){ 
+			//key is currently down
+			fly->Velocity[0][i] += (fly->ndown[0][i]+fly->down[0][i].once)*fly->down[0][i].direction * p->Viewer.speed;
+			fly->down[0][i].once = 0;
+			fly->ndown[0][i] = 0; //p->translaten[i] = 0; 
+			//fly->ttransition[i][0] = fly->lasttime; //save time of last [i] translate, for delaying decay
 		}
-		changed += fly->Velocity[i];
+		changed += fly->Velocity[0][i];
 	}
 
 	/* if we do NOT have a GeoViewpoint node, constrain all 3 axis */
 	if (p->Viewer.GeoSpatialNode == NULL) 
-		if(0) for (i = 0; i < COORD_SYS; i++) {
-			if (fabs(fly->Velocity[i]) >9.0) 
-				fly->Velocity[i] /= (fabs(fly->Velocity[i]) /9.0);
+		if(0) for (i = 0; i < 3; i++) {
+			if (fabs(fly->Velocity[0][i]) >9.0) 
+				fly->Velocity[0][i] /= (fabs(fly->Velocity[0][i]) /9.0);
 		}
 
 	/* angular movement 
 		key chirp - a quck press and release on a key
-		AVelocity - (not velocity)  amount of angle in radians we want to turn on this tick
-		rtransition - elapsed time since the last key down (or more practically, time since last key-up tick)
-				- used to ramp up angular speed based on how long you hold the key down
-				- quick chirps on the key will give you small 'touch-up' angles
-		problem: requires fast frame rate for chirps and instant visual feedback on angle turned, otherwise it's unusable
+		Velocity - (not velocity)  amount of angle in radians we want to turn on this tick
+		era - elapsed time between key down and keyup, as measured in the keyboard thread
+			- used to ramp up angular speed based on how long you hold the key down
+			- quick chirps on the key will give you smaller 'touch-up' angles
+		goal: so it works with both fast frame rate/FPS and slow
+			fast: chirps and instant visual feedback on angle turned with key held down
+			slow: count your chirps, 64 chirps per full circle/2PI, or hold key down and count seconds 6 seconds = 2PI
 	*/
-	for (i = 0; i < COORD_SYS; i++) {
-		static double radians_per_second = .6; //seems to turn faster than this
-		fly->AVelocity[i] = 0.0;
-		if(!rotate[i]){
-			if(0) fly->AVelocity[i] *= pow(0.04, time_diff);
-			fly->rtransition[i] = fly->lasttime;
+	for (i = 0; i < 3; i++) {
+		static double radians_per_second = .6; //seems to turn 2x faster than this
+		fly->Velocity[1][i] = 0.0;
+		if(!fly->down[1][i].direction){
+			fly->Velocity[1][i] *= pow(0.04, time_diff);
 		}else{
-			if(0){
-				double rps = radians_per_second;
-				double dtime = fly->lasttime - fly->rtransition[i];
-				double tdiff = min(time_diff,dtime); //the key down/up is sometime separate in OS thread, more responsive than frame/display thread, for key chirps
-				if(dtime < .25)	rps *= .33; //key chirps can be used for small angle touch-ups
-				else if(dtime < .5) rps *= .66;
-				fly->AVelocity[i] += tdiff * rotate[i] * rps; // * 0.025;
-			}
-			if(1){
-				double rps = radians_per_second;
-				double era = rEra[i];
-				double tdiff = min(time_diff,era);
-				if(era > .25){
-					//not a chirp
-					fly->AVelocity[i] += tdiff * rotate[i] * rps; // * 0.025;
-					//printf("*");
-				}
-			}
+			//the key is currently being held down, use a bit of it here
+			double rps = radians_per_second;
+			double pressedEra = fly->lasttime - fly->down[1][i].epoch; //rEra[i];
+			//normally not a chirp, but could be - a chirp here will hardly show, so no harm in double doing chirps here and below
+			double era = fly->lasttime - fly->down[1][i].era; //- .25; //save a chirp worth because it gets chirped below when the key comes up
+			fly->Velocity[1][i] += era * fly->down[1][i].direction * rps; // * 0.025;
+			fly->down[1][i].era += era; //subtract what we just used
+			//printf("*");
 		}
-		if(1) if(p->rotaten[i]){
+		if(fly->ndown[1][i]){ 
+			//there were some keydowns that happened between ticktimes, add their effects here
 			double rps = radians_per_second * .33;
-			double era = p->rEra[i];
-			//printf("+%f ",era);
-			if(era <= .25) {
-				//a chirp. Which can be too fast to measure in keyboard thread, so we give it a consistent down time (era)
-				era = .25;
-				fly->AVelocity[i] += era * _isign(p->rotaten[i]) * rps; // * 0.025;
-
+			for(int k=0; k<fly->ndown[1][i]; k++){
+				double era = fly->wasDown[1][i][k].era; //unused keydown time
+				double pressedEra = fly->wasDown[1][i][k].epoch; //total pressedTime
+				//printf("+%f %f \n",era,pressedTime);
+				if(pressedEra <= .1)
+					era = .25; //a key chirp. Which can be too fast to measure in keyboard thread, so we give it a consistent down time (era)
+				//printf("%d ",fly->wasDown[k][i][1].direction);
+				fly->Velocity[1][i] += era * fly->wasDown[1][i][k].direction * rps; // * 0.025;
 			}
-			p->rotaten[i] = 0;
-			p->rEra[i] = 0.0;
+			fly->ndown[1][i] = 0;
 		}
-		if (fabs(fly->AVelocity[i]) > 0.8) {
-			fly->AVelocity[i] /= (fabs(fly->AVelocity[i]) / 0.8);
+		if (fabs(fly->Velocity[1][i]) > 0.8) {
+			fly->Velocity[1][i] /= (fabs(fly->Velocity[1][i]) / 0.8);
 		}
-		changed += fly->AVelocity[i];
-		/* printf ("avel %d %f\n",i,fly->AVelocity[i]); */
-	}
-
-
-	/* angular movement */
-	if(0)
-	for (i = 0; i < COORD_SYS; i++) {
-		/* you specify your desired angle by the number of rapid key repetitions you do during the transition
-			1 key = PI/32,  2 keys = PI/16, 3 keys=PI/8, 4 keys = PI/4, 5 keys = PI/2 (90)
-			variables:
-			AVelocity - not velocity, rather the amount of angle in radians we want to turn on this tick
-			rtransition - elapsed time since the last key down, used to detect repeating keys
-			Adesired - total desired angle, including sign, we want to turn. 
-					 - For example if we want to turn right 90 degrees, we hit 'o' 5 times rapidly, then Adesired is PI/2
-			Aturned - how much of our initial desired angle we have already turned
-			Acurrent = Adesired - Aturned
-		*/
-		//fade old angular velocity using exponential decay
-		double dtime = fly->lasttime - fly->rtransition[i];
-		if(!rotate[i]){
-			if(dtime > .25) {
-				//delay decay, waiting for more speed-indicating keystrokes
-				//fly->AVelocity[i] *= pow(0.04, time_diff);
-				p->rotaten[i] = 0; 
-				fly->Aturned[i] = 0.0;
-				//fly->Acurrent[i] = 0.0;
-				//fly->Adesired[i] = 0.0;
-			}
-		}
-
-		//if its almost 0, clamp to zero
-		if(fabs(fly->Adesired[i]) < .01){
-			fly->Adesired[i] = 0.0;
-		}
-		double transitionTime = 1.7;
-		double timed = min(time_diff,transitionTime);
-		double decrement = fly->Adesired[i] * timed / transitionTime * dtime / transitionTime; 
-		if(fabs(decrement) > fabs(fly->Adesired[i])) decrement = fly->Adesired[i];
-		//fly->Acurrent[i] = fly->Adesired[i] - decrement;
-		fly->Adesired[i] -= decrement;
-		fly->AVelocity[i] = decrement; // / time_diff;
-		//fly->Aturned[i] += decrement;
-		//if(fabs(fly->Aturned[i]) >= fabs(fly->Adesired[i])) fly->Adesired[i] = 0.0;
-		//if holding key down, increase velocity
-		double pi = acos(-1.0);
-		double desired_angle[] = {0.0, pi/32.0, pi/16.0, pi/8.0, pi/4.0, pi/2.0, pi, 2*pi};
-		double new_desire = 0.0;
-		int nhits, isign;
-		isign = _isign(p->rotaten[i]);
-		nhits = min(isign * p->rotaten[i], 7) ;
-		if(nhits){
-			new_desire = (double)(isign) * desired_angle[nhits];
-			fly->Adesired[i] = new_desire;
-			//fly->Acurrent[i] = new_desire - fly->Aturned[i];
-		}
-		//printf("%d %f %f %f %f %f\n",nhits,new_desire,decrement,fly->Adesired[i],fly->Acurrent[i], timed);
-		if(rotate[i]){
-			//fly->AVelocity[i] += (double)(isign) * desired_angle[nhits]; // * .5;
-			fly->rtransition[i] = fly->lasttime; //save time of last keydown, for delaying decay
-		}
-		changed += fly->AVelocity[i];
-		/* printf ("avel %d %f\n",i,fly->AVelocity[i]); */
-	}
-
-	/* angular movement */
-	if(0)
-	for (i = 0; i < COORD_SYS; i++) {
-		/* you specify your desired angle by the number of rapid key repetitions you do during the transition
-			1 key = PI/32,  2 keys = PI/16, 3 keys=PI/8, 4 keys = PI/4, 5 keys = PI/2 (90)
-			variables:
-			AVelocity - not velocity, rather the amount of angle in radians we want to turn on this tick
-			rtransition - elapsed time since the last key down, used to detect repeating keys
-			Adesired - total desired angle, including sign, we want to turn. 
-					 - For example if we want to turn right 90 degrees, we hit 'o' 5 times rapidly, then Adesired is PI/2
-			Aturned - how much of our initial desired angle we have already turned
-			Acurrent = Adesired - Aturned
-		*/
-		//fade old angular velocity using exponential decay
-		if(!rotate[i]){
-			double dtime = fly->lasttime - fly->rtransition[i];
-			if(dtime > .25) {
-				//delay decay, waiting for more speed-indicating keystrokes
-				//fly->AVelocity[i] *= pow(0.04, time_diff);
-				p->rotaten[i] = 0; 
-				fly->Aturned[i] = 0.0;
-				//fly->Acurrent[i] = 0.0;
-				//fly->Adesired[i] = 0.0;
-			}
-		}
-
-		//if its almost 0, clamp to zero
-		if(fabs(fly->Acurrent[i]) < .01){
-			fly->Acurrent[i] = 0.0;
-			fly->Adesired[i] = 0.0;
-			fly->Aturned[i] = 0.0;
-		}
-		double transitionTime = 3.4; //1.7;
-		double timed = min(time_diff,transitionTime);
-		double decrement = fly->Adesired[i] * timed/transitionTime; 
-		if(fabs(decrement) > fabs(fly->Acurrent[i])) decrement = fly->Acurrent[i];
-		fly->Acurrent[i] = fly->Adesired[i] - decrement;
-		fly->AVelocity[i] = decrement; // / time_diff;
-		fly->Aturned[i] += decrement;
-		//if(fabs(fly->Aturned[i]) >= fabs(fly->Adesired[i])) fly->Adesired[i] = 0.0;
-		//if holding key down, increase velocity
-		double pi = acos(-1.0);
-		double desired_angle[] = {0.0, pi/32.0, pi/16.0, pi/8.0, pi/4.0, pi/2.0, pi, 2*pi};
-		double new_desire = 0.0;
-		int nhits, isign;
-		isign = _isign(p->rotaten[i]);
-		nhits = min(isign * p->rotaten[i], 7) ;
-		if(nhits){
-			new_desire = (double)(isign) * desired_angle[nhits];
-			fly->Adesired[i] = new_desire;
-			fly->Acurrent[i] = new_desire - fly->Aturned[i];
-		}
-		//printf("%d %f %f %f %f %f\n",nhits,new_desire,decrement,fly->Adesired[i],fly->Acurrent[i], timed);
-		if(rotate[i]){
-			//fly->AVelocity[i] += (double)(isign) * desired_angle[nhits]; // * .5;
-			fly->rtransition[i] = fly->lasttime; //save time of last keydown, for delaying decay
-		}
-		changed += fly->AVelocity[i];
-		/* printf ("avel %d %f\n",i,fly->AVelocity[i]); */
-	}
-	if(0)
-	for (i = 0; i < COORD_SYS; i++) {
-		//fade old angular velocity using exponential decay
-		if(!rotate[i]){
-			fly->AVelocity[i] *= pow(0.04, time_diff);
-			fly->rtransition[i] = fly->lasttime; //save time of last [i] translate, for delaying decay
-		}
-		//if its almost 0, clamp to zero
-		if(fabs(fly->AVelocity[i]) < .01){
-			fly->AVelocity[i] = 0.0;
-		}
-		//if holding key down, increase velocity
-		if(rotate[i]){
-			double dtime = fly->lasttime - fly->rtransition[i];
-			double raccelerator = .7;
-			if(dtime < .2) raccelerator = .4;
-			else if(dtime > .75) raccelerator = 1.2;
-			fly->AVelocity[i] = rotate[i] * 0.5 * raccelerator;
-			//fly->AVelocity[i] += (double)(p->rotaten[i])*.1/time_diff; //one-time click gives .1 radians
-			p->rotaten[i] = 0;
-		}
-
-		changed += fly->AVelocity[i];
+		changed += fly->Velocity[1][i];
 		/* printf ("avel %d %f\n",i,fly->AVelocity[i]); */
 	}
 
 	/* have we done anything here? */
 	if (APPROX(changed,0.0)) return;
-	v.x = fly->Velocity[0] * time_diff;
-	v.y = fly->Velocity[1] * time_diff;
-	v.z = fly->Velocity[2] * time_diff;
+	v.x = fly->Velocity[0][0] * time_diff;
+	v.y = fly->Velocity[0][1] * time_diff;
+	v.z = fly->Velocity[0][2] * time_diff;
 	increment_pos(&v);
 
-	nq.x = fly->AVelocity[0];// * time_diff;
-	nq.y = fly->AVelocity[1]; // * time_diff;
-	nq.z = fly->AVelocity[2]; // * time_diff;
+	nq.x = fly->Velocity[1][0];// * time_diff;
+	nq.y = fly->Velocity[1][1]; // * time_diff;
+	nq.z = fly->Velocity[1][2]; // * time_diff;
 	quaternion_normalize(&nq);
 
 	quaternion_set(&q_v, &(p->Viewer.Quat));
