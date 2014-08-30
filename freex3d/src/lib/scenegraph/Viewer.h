@@ -50,22 +50,6 @@ void fwl_set_viewer_type(const int type);
 #define RELEASE_LEN 7
 
 #define KEYS_HANDLED 12
-/* my %actions = ( */
-/* 	a => sub {$aadd[2] -= $_[0]}, */
-/* 	z => sub {$aadd[2] += $_[0]}, */
-/* 	j => sub {$aadd[0] -= $_[0]}, */
-/* 	l => sub {$aadd[0] += $_[0]}, */
-/* 	p => sub {$aadd[1] += $_[0]}, */
-/* 	';' => sub {$aadd[1] -= $_[0]}, */
-
-/* 	8 => sub {$radd[0] += $_[0]}, */
-/* 	k => sub {$radd[0] -= $_[0]}, */
-/* 	u => sub {$radd[1] -= $_[0]}, */
-/* 	o => sub {$radd[1] += $_[0]}, */
-/* 	7 => sub {$radd[2] -= $_[0]}, */
-/* 	9 => sub {$radd[2] += $_[0]}, */
-/* ); */
-#define KEYMAP {{'a',0},{'z',0},{'j',0},{'l',0},{'p',0},{';',0},{'8',0},{'k',0},{'u',0},{'o',0 },{'7',0},{'9',0}}
 
 
 #define VIEWER_STEREO_OFF 0
@@ -75,7 +59,6 @@ void fwl_set_viewer_type(const int type);
 #define VIEWER_STEREO_UPDOWN 4
 
 
-#define COORD_SYS 3
 #define X_AXIS 0
 #define Y_AXIS 1
 #define Z_AXIS 2
@@ -199,14 +182,20 @@ typedef struct key {
 	char key;
 	unsigned int hit;
 } Key;
+typedef struct keyHit {
+	int direction;
+	double epoch; //original keydown time
+	double era; //keydown time not yet used by handle_tick
+	int once; //flag for handle_tick to tell if its used this keyHit already
+} KeyHit;
 
 
 /* Modeled after Descent(tm) ;) */
 typedef struct viewer_fly {
-	double Velocity[COORD_SYS];
-	double AVelocity[COORD_SYS];
-	Key Down[KEYS_HANDLED];
-	Key WasDown[KEYS_HANDLED];
+	double Velocity[2][3];
+	KeyHit down[2][3]; //
+	int ndown[2][3]; //number of clicks queued per axis motion
+	KeyHit wasDown[2][3][10]; //up to 10 chars per axis motion are queued for fly_tick
 	double lasttime;
 } X3D_Viewer_Fly;
 
@@ -292,53 +281,27 @@ void fwl_init_StereoDefaults(void);
 
 void viewer_postGLinit_init(void);
 
-void
-viewer_init(X3D_Viewer *viewer,
-			int type);
+void viewer_init(X3D_Viewer *viewer, int type);
 
-void
-print_viewer();
+void print_viewer();
+int fwl_get_headlight();
+void fwl_toggle_headlight();
+int use_keys(void);
 
-int
-fwl_get_headlight();
-
-void
-fwl_toggle_headlight();
-
-int
-use_keys(void);
-
-void
-set_eyehalf( const double eyehalf,
-			const double eyehalfangle);
-
-void
-resolve_pos(void);
+void set_eyehalf( const double eyehalf,	const double eyehalfangle);
+void resolve_pos(void);
 void getViewpointExamineDistance(void);
 
-void
-xy2qua(Quaternion *ret,
+void xy2qua(Quaternion *ret,
 	   const double x,
 	   const double y);
 
-void
-viewer_togl( double fieldofview);
-
+void viewer_togl( double fieldofview);
 
 void handle(const int mev, const unsigned int button, const float x, const float y);
-
-void
-handle_key(const char key);
-
-void
-handle_keyrelease (const char key);
-
-void
-handle_tick();
-
-void
-set_action(char *key);
-
+void handle_key(const char key, double keytime);
+void handle_keyrelease (const char key, double keytime);
+void handle_tick();
 void set_stereo_offset0(); /*int iside, double eyehalf, double eyehalfangle);*/
 /*
 void
@@ -347,8 +310,7 @@ set_stereo_offset(unsigned int buffer,
 				  const double eyehalfangle,
 				  double fieldofview);
 */
-void
-increment_pos( struct point_XYZ *vec);
+void increment_pos( struct point_XYZ *vec);
 
 void bind_Viewpoint(struct X3D_Viewpoint *node);
 void bind_OrthoViewpoint(struct X3D_OrthoViewpoint *node);

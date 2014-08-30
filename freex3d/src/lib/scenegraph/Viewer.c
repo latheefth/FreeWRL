@@ -65,22 +65,14 @@ static void init_stereodefaults(X3D_Viewer *Viewer)
 }
 
 
-
-
-
-
-//true static:
-static Key staticKeyMap[KEYS_HANDLED] = KEYMAP;
 typedef struct pViewer{
 	int examineCounter;// = 5;
 
-	int viewer_initialized;// = FALSE;
-	X3D_Viewer_Walk viewer_walk;// = { 0, 0, 0, 0, 0, 0 };
-	X3D_Viewer_Examine viewer_examine;// = { {0, 0, 0}, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0 };
-	X3D_Viewer_Fly viewer_fly;// = { { 0, 0, 0 }, { 0, 0, 0 }, KEYMAP, KEYMAP, -1 };
-	X3D_Viewer_YawPitchZoom viewer_ypz;// = { {0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, 0.0f, 0.0f };
-	int translate[COORD_SYS];// = { 0, 0, 0 };
-	int rotate[COORD_SYS];// = { 0, 0, 0 };
+	int viewer_initialized;
+	X3D_Viewer_Walk viewer_walk;
+	X3D_Viewer_Examine viewer_examine;
+	X3D_Viewer_Fly viewer_fly;
+	X3D_Viewer_YawPitchZoom viewer_ypz;
 
 	FILE *exfly_in_file;
 	struct point_XYZ viewer_lastP;
@@ -113,33 +105,12 @@ void Viewer_init(struct tViewer *t){
 		p->examineCounter = 5;
 
 		p->viewer_initialized = FALSE;
-		//p->viewer_walk = { 0, 0, 0, 0, 0, 0 };
-		//p->viewer_examine = { {0, 0, 0}, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0 };
-		{
-			int i;
-			for(i=0;i<KEYS_HANDLED;i++)
-			{
-				p->viewer_fly.Down[i] =  staticKeyMap[i]; // = { { 0, 0, 0 }, { 0, 0, 0 }, KEYMAP, KEYMAP, -1 };
-				p->viewer_fly.WasDown[i] = staticKeyMap[i];
-			}
-			p->viewer_fly.lasttime = -1;
-		}
-		//p->viewer_fly.
-		//p->viewer_ypz = { {0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, 0.0f, 0.0f };
-
-		//p->translate[COORD_SYS] = { 0, 0, 0 };
-		//p->rotate[COORD_SYS] = { 0, 0, 0 };
-
-		//p->exfly_in_file;
-		//p->viewer_lastP;
 		#ifdef _MSC_VER
 		p->exflyMethod = 1;  /* could be a user settable option, which kind of exfly to do */
 		#else
 		p->exflyMethod = 0;
 		#endif
 		p->StereoInitializedOnce = 0;
-		//p->acMask[2][3]; //anaglyphChannelMask
-		// most common is Red/Cyan glasses, set left to Red, right to Cyan.
 		p->acMask[0][0] = (GLboolean)1; // R = 1, 0, 0
 
 		p->acMask[1][1] = (GLboolean)1; // C = 0, 1, 1
@@ -1260,31 +1231,63 @@ char lookup_fly_key(int key){
 	return kp;
 }
 
-void
-handle_key(const char key)
+static struct flykey_lookup_type {
+	char key;
+	int motion; //translation 0, rotation 1
+	int axis; //0=x,1=y,2=z
+	int sign; //-1 left 1 right
+} flykey_lookup [] = {
+	'j', 0, 0, -1,
+	'l', 0, 0,  1,
+	'p', 0, 1, -1,
+	';', 0, 1,  1,
+	'a', 0, 2, -1,
+	'z', 0, 2,  1,
+
+	'k', 1, 0, -1,
+	'8', 1, 0,  1,
+	'u', 1, 1, -1,
+	'o', 1, 1,  1,
+	'7', 1, 2, -1,
+	'9', 1, 2,  1,
+};
+
+struct flykey_lookup_type *getFlyIndex(char key){
+	struct flykey_lookup_type *flykey;
+	int index = -1;
+	flykey = NULL;
+	for(index=0;index<KEYS_HANDLED;index++){
+		if(key == flykey_lookup[index].key ) break;
+	}
+	if(index > -1)
+		flykey = &flykey_lookup[index];
+	return flykey;
+}
+
+void handle_key(const char key, double keytime)
 {
 	char _key;
 	int i;
 	X3D_Viewer_Fly *fly; 
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	fly = &p->Viewer.fly;
-
+	printf("%c",key);
 	if (p->Viewer.type == VIEWER_FLY) {
+		struct flykey_lookup_type *flykey;
 		/* $key = lc $key; */
 		_key = (char) tolower((int) key);
-
-		for (i = 0; i < KEYS_HANDLED; i++) {
-			if ((fly->Down[i]).key  == _key) {
-				/* $this->{Down}{$key} = 1; */
-				(fly->Down[i]).hit = 1;
-			}
+		flykey = getFlyIndex(_key);
+		if(flykey){
+			fly->down[flykey->motion][flykey->axis].direction = flykey->sign;
+			fly->down[flykey->motion][flykey->axis].epoch = keytime; //initial keydown
+			fly->down[flykey->motion][flykey->axis].era = keytime;  //will decrement as we apply velocity in fly
+			fly->down[flykey->motion][flykey->axis].once = 1;
 		}
 	}
 }
 
 
-void
-handle_keyrelease(const char key)
+void handle_keyrelease(const char key, double keytime)
 {
 	char _key;
 	int i;
@@ -1295,15 +1298,20 @@ handle_keyrelease(const char key)
 
 	if (p->Viewer.type == VIEWER_FLY) {
 		/* $key = lc $key; */
+		struct flykey_lookup_type *flykey;
 		_key = (char) tolower((int) key);
-
-		for (i = 0; i < KEYS_HANDLED; i++) {
-			if ((fly->Down[i]).key  == _key) {
-				/* $this->{WasDown}{$key} += $this->{Down}{$key}; */
-				(fly->WasDown[i]).hit += (fly->Down[i]).hit;
-				/* delete $this->{Down}{$key}; */
-				(fly->Down[i]).hit = 0;
+		flykey = getFlyIndex(_key);
+		if(flykey){
+			int *ndown = &fly->ndown[flykey->motion][flykey->axis];
+			if((*ndown) < 10){
+				//up to 20 key chirps per axis are stored, with their elapsed time down measured in the keyboard's thread
+				fly->wasDown[flykey->motion][flykey->axis][*ndown].direction = fly->down[flykey->motion][flykey->axis].direction;
+				fly->wasDown[flykey->motion][flykey->axis][*ndown].epoch = keytime - fly->down[flykey->motion][flykey->axis].epoch; //total pressedTime
+				fly->wasDown[flykey->motion][flykey->axis][*ndown].era = keytime - fly->down[flykey->motion][flykey->axis].era; //unused keydown time
+				fly->wasDown[flykey->motion][flykey->axis][*ndown].once = fly->down[flykey->motion][flykey->axis].once;  //a flag for the handle_tick to play with
+				(*ndown)++;
 			}
+			fly->down[flykey->motion][flykey->axis].direction = 0;
 		}
 	}
 }
@@ -1589,136 +1597,131 @@ handle_tick_exfly()
 }
 
 
-void
-set_action(char *key)
-{
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
-	switch(*key) {
-	case 'a':
-		p->translate[Z_AXIS] -= 1;
-		break;
-	case 'z':
-		p->translate[Z_AXIS] += 1;
-		break;
-	case 'j':
-		p->translate[X_AXIS] -= 1;
-		break;
-	case 'l':
-		p->translate[X_AXIS] += 1;
-		break;
-	case 'p':
-		p->translate[Y_AXIS] -= 1;
-		break;
-	case ';':
-		p->translate[Y_AXIS] += 1;
-		break;
-	case '8':
-		p->rotate[X_AXIS] += 1;
-		break;
-	case 'k':
-		p->rotate[X_AXIS] -= 1;
-		break;
-	case 'u':
-		p->rotate[Y_AXIS] -= 1;
-		break;
-	case 'o':
-		p->rotate[Y_AXIS] += 1;
-		break;
-	case '7':
-		p->rotate[Z_AXIS] -= 1;
-		break;
-	case '9':
-		p->rotate[Z_AXIS] += 1;
-		break;
-	default:
-		break;
-	}
-}
+/* FLY mode change Aug 29, 2014 dug9:
+	I was having trouble adjusting speeds on a fast computer - 
+	- multiple keystrokes didn't change linear speed
+	- angluar speed was too fast.
+	New design: 
+		Goal: slow and fast frame rates both work
+		Linear: if the user presses a key again/mulitple times before the related speed decay finishes, 
+			those keystrokes are interpreted as a desire to increase speed.
+		Angular: brief taps do small angle adjustments 1/64 of full circle, holding key down does full rotation in 6 seconds
+		In both cases, the keydown elapsed time is measured in the keybaord thread, not the display/rendering thread
+*/
 
-static void
-handle_tick_fly()
+static void handle_tick_fly()
 {
 	X3D_Viewer_Fly *fly;
-	Key ps[KEYS_HANDLED] = KEYMAP;
 	Quaternion q_v, nq = { 1, 0, 0, 0 };
 	struct point_XYZ v;
-	double changed = 0, time_diff = -1;
+	double changed = 0.0, time_diff = -1.0;
 	int i;
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	fly = &p->Viewer.fly;
 
+	//sleep(400); //slow frame rate to test frame-rate-dependent actions
 	if (fly->lasttime < 0) {
 		fly->lasttime = TickTime();
 		return;
 	} else {
-		time_diff = TickTime() - fly->lasttime;
-		fly->lasttime = TickTime();
+		double dtime = TickTime();
+		time_diff = dtime - fly->lasttime;
 		if (APPROX(time_diff, 0)) {
 			return;
 		}
+		fly->lasttime = dtime;
 	}
 
-	/* first, get all the keypresses since the last time */
-	for (i = 0; i < KEYS_HANDLED; i++) {
-		(ps[i]).hit += (fly->Down[i]).hit;
-	}
-
-	for (i = 0; i < KEYS_HANDLED; i++) {
-		(ps[i]).hit += (fly->WasDown[i]).hit;
-		(fly->WasDown[i]).hit = 0;
-	} 
-
-	memset(p->translate, 0, sizeof(int) * COORD_SYS);
-	memset(p->rotate, 0, sizeof(int) * COORD_SYS);
-
-	for (i = 0; i < KEYS_HANDLED; i++) {
-		if ((ps[i]).hit) {
-			set_action(&(ps[i]).key);
-		}
-	}
 
 	/* has anything changed? if so, then re-render */
 
 	/* linear movement */
-	for (i = 0; i < COORD_SYS; i++) {
-		fly->Velocity[i] *= pow(0.06, time_diff);
-
-		fly->Velocity[i] += time_diff * p->translate[i] * 14.5 * p->Viewer.speed;
-		changed += fly->Velocity[i];
-		/* printf ("vel %d %f\n",i,fly->Velocity[i]); */
+	for (i = 0; i < 3; i++) {
+		//fade old velocity, using something like exponential decay Ni = N(i-1)*e**(k*t) where k < 0
+		if(!fly->down[0][i].direction){
+			double dtime = fly->lasttime - fly->down[0][i].epoch; //fly->ttransition[i][0];
+			if(dtime > .25) //delay decay, waiting for more speed-indicating keystrokes
+				fly->Velocity[0][i] *= pow(0.04, time_diff); 
+		}
+		//if its almost 0, clamp to zero
+		if(fabs(fly->Velocity[0][i]) < .001){
+			fly->Velocity[0][i] = 0.0;
+		}
+		//if key action, add new velocity
+		if(fly->down[0][i].direction){ 
+			//key is currently down
+			fly->Velocity[0][i] += (fly->ndown[0][i]+fly->down[0][i].once)*fly->down[0][i].direction * p->Viewer.speed;
+			fly->down[0][i].once = 0;
+			fly->ndown[0][i] = 0; //p->translaten[i] = 0; 
+			//fly->ttransition[i][0] = fly->lasttime; //save time of last [i] translate, for delaying decay
+		}
+		changed += fly->Velocity[0][i];
 	}
 
 	/* if we do NOT have a GeoViewpoint node, constrain all 3 axis */
 	if (p->Viewer.GeoSpatialNode == NULL) 
-		for (i = 0; i < COORD_SYS; i++) {
-			if (fabs(fly->Velocity[i]) >9.0) fly->Velocity[i] /= (fabs(fly->Velocity[i]) /9.0);
+		if(0) for (i = 0; i < 3; i++) {
+			if (fabs(fly->Velocity[0][i]) >9.0) 
+				fly->Velocity[0][i] /= (fabs(fly->Velocity[0][i]) /9.0);
 		}
 
-	/* angular movement */
-	for (i = 0; i < COORD_SYS; i++) {
-		fly->AVelocity[i] *= pow(0.04, time_diff);
-		fly->AVelocity[i] += time_diff * p->rotate[i] * 0.025;
-
-		if (fabs(fly->AVelocity[i]) > 0.8) {
-			fly->AVelocity[i] /= (fabs(fly->AVelocity[i]) / 0.8);
+	/* angular movement 
+		key chirp - a quck press and release on a key
+		Velocity - (not velocity)  amount of angle in radians we want to turn on this tick
+		era - elapsed time between key down and keyup, as measured in the keyboard thread
+			- used to ramp up angular speed based on how long you hold the key down
+			- quick chirps on the key will give you smaller 'touch-up' angles
+		goal: so it works with both fast frame rate/FPS and slow
+			fast: chirps and instant visual feedback on angle turned with key held down
+			slow: count your chirps, 64 chirps per full circle/2PI, or hold key down and count seconds 6 seconds = 2PI
+	*/
+	for (i = 0; i < 3; i++) {
+		static double radians_per_second = .6; //seems to turn 2x faster than this
+		fly->Velocity[1][i] = 0.0;
+		if(!fly->down[1][i].direction){
+			fly->Velocity[1][i] *= pow(0.04, time_diff);
+		}else{
+			//the key is currently being held down, use a bit of it here
+			double rps = radians_per_second;
+			double pressedEra = fly->lasttime - fly->down[1][i].epoch; //rEra[i];
+			//normally not a chirp, but could be - a chirp here will hardly show, so no harm in double doing chirps here and below
+			double era = fly->lasttime - fly->down[1][i].era; //- .25; //save a chirp worth because it gets chirped below when the key comes up
+			fly->Velocity[1][i] += era * fly->down[1][i].direction * rps; // * 0.025;
+			fly->down[1][i].era += era; //subtract what we just used
+			//printf("*");
 		}
-		changed += fly->AVelocity[i];
+		if(fly->ndown[1][i]){ 
+			//there were some keydowns that happened between ticktimes, add their effects here
+			double rps = radians_per_second * .33;
+			for(int k=0; k<fly->ndown[1][i]; k++){
+				double era = fly->wasDown[1][i][k].era; //unused keydown time
+				double pressedEra = fly->wasDown[1][i][k].epoch; //total pressedTime
+				//printf("+%f %f \n",era,pressedTime);
+				if(pressedEra <= .1)
+					era = .25; //a key chirp. Which can be too fast to measure in keyboard thread, so we give it a consistent down time (era)
+				//printf("%d ",fly->wasDown[k][i][1].direction);
+				fly->Velocity[1][i] += era * fly->wasDown[1][i][k].direction * rps; // * 0.025;
+			}
+			fly->ndown[1][i] = 0;
+		}
+		if (fabs(fly->Velocity[1][i]) > 0.8) {
+			fly->Velocity[1][i] /= (fabs(fly->Velocity[1][i]) / 0.8);
+		}
+		changed += fly->Velocity[1][i];
 		/* printf ("avel %d %f\n",i,fly->AVelocity[i]); */
 	}
 
 	/* have we done anything here? */
 	if (APPROX(changed,0.0)) return;
-
-	v.x = fly->Velocity[0] * time_diff;
-	v.y = fly->Velocity[1] * time_diff;
-	v.z = fly->Velocity[2] * time_diff;
+	v.x = fly->Velocity[0][0] * time_diff;
+	v.y = fly->Velocity[0][1] * time_diff;
+	v.z = fly->Velocity[0][2] * time_diff;
 	increment_pos(&v);
 
-
-	nq.x = fly->AVelocity[0];
-	nq.y = fly->AVelocity[1];
-	nq.z = fly->AVelocity[2];
+	nq.x = fly->Velocity[1][0];// * time_diff;
+	nq.y = fly->Velocity[1][1]; // * time_diff;
+	nq.z = fly->Velocity[1][2]; // * time_diff;
 	quaternion_normalize(&nq);
 
 	quaternion_set(&q_v, &(p->Viewer.Quat));

@@ -3417,10 +3417,11 @@ void fwl_do_keyPress0(int key, int type) {
 			else
 				kp = lookup_fly_key(key); //actionKey possibly numpad or arrows, convert to a/z
 			if(kp){
+				double keytime = Time1970sec();
 				if(type%10 == KEYDOWN)
-					handle_key(kp);  //keydown for fly
+					handle_key(kp,keytime);  //keydown for fly
 				if(type%10 == KEYUP)
-					handle_keyrelease(kp); //keyup for fly
+					handle_keyrelease(kp,keytime); //keyup for fly
 			}
 		}
 	}
