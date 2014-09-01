@@ -1299,7 +1299,7 @@ VrmlMatrixinverse(JSContext *cx, uintN argc, jsval *vp) {
 		return JS_FALSE;
 	}
 	_getmatrix (cx, obj,src);
-	matinverse (dest,src);
+	matinverseFULL (dest,src);
 
         retObj = JS_ConstructObject(cx,&VrmlMatrixClass,NULL, NULL);
 
@@ -1375,7 +1375,7 @@ VrmlMatrixmultLeft(JSContext *cx, uintN argc, jsval *vp) {
 	/* fill in the 2 matricies, multiply them, then return it */
 	_getmatrix(cx,obj,matrix1);
 	_getmatrix(cx,transObj,matrix2);
-	matmultiply(matrix1,matrix1,matrix2);
+	matmultiplyFULL(matrix1,matrix1,matrix2);
 
 	retObj = JS_ConstructObject(cx,&VrmlMatrixClass,NULL, NULL);
 
@@ -1425,7 +1425,7 @@ VrmlMatrixmultRight(JSContext *cx, uintN argc, jsval *vp) {
 	/* fill in the 2 matricies, multiply them, then return it */
 	_getmatrix(cx,obj,matrix1);
 	_getmatrix(cx,transObj,matrix2);
-	matmultiply(matrix1,matrix2,matrix1);
+	matmultiplyFULL(matrix1,matrix2,matrix1);
 
 	retObj = JS_ConstructObject(cx,&VrmlMatrixClass,NULL, NULL);
 

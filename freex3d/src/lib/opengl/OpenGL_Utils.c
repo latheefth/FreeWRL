@@ -3523,7 +3523,7 @@ void fw_glRotateRad (GLDOUBLE angle, GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
 	matrotate(myMat,angle,x,y,z);
 
 	//printmatrix2 (myMat, "rotation matrix");
-	matmultiply(p->currentMatrix,myMat,p->currentMatrix);
+	matmultiplyAFFINE(p->currentMatrix,myMat,p->currentMatrix);
 
 	//printmatrix2 (p->currentMatrix,"currentMatrix after rotate");
 
@@ -3569,7 +3569,7 @@ void fw_glRotated (GLDOUBLE angle, GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
 		return;
 	}
 	matrotate(myMat,radAng,x,y,z);
-	matmultiply(p->currentMatrix,p->currentMatrix,myMat);
+	matmultiplyAFFINE(p->currentMatrix,p->currentMatrix,myMat);
 
 	FW_GL_LOADMATRIX(p->currentMatrix);
 }
@@ -5995,7 +5995,6 @@ void printmatrix2(GLDOUBLE* mat,char* description ) {
 
 }
 
-
 /* gluPerspective replacement */
 void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE zFar) {
 	GLDOUBLE xmin, xmax, ymin, ymax;
@@ -6024,7 +6023,7 @@ void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE 
 	//printmatrix2(ndp2,"ndp2 = transpose(ndp)");
 	//JAS printmatrix2(dp,"dp");
 
-	matmultiply(ndp,ndp2,dp);
+	matmultiplyFULL(ndp,ndp2,dp);
 
 	//printmatrix2(ndp,"ndp = ndp2*dp");
 
@@ -6059,7 +6058,7 @@ void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE 
     m[2*4+3] = -1;
     m[3*4+2] = -2 * zNear * zFar / deltaZ;
     m[3*4+3] = 0;
-	matmultiply(m,m,dp);
+	matmultiplyFULL(m,m,dp);
 	if(method==2)
 	  FW_GL_LOADMATRIX(m);
 

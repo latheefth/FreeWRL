@@ -2271,7 +2271,7 @@ void proximity_GeoProximitySensor (struct X3D_GeoProximitySensor *node) {
 		&t_zvec.x,&t_zvec.y,&t_zvec.z); 
 	FW_GLU_UNPROJECT(yvec.x,yvec.y,yvec.z,modelMatrix,projMatrix,viewport, 
 		&t_yvec.x,&t_yvec.y,&t_yvec.z); 
-	matinverse(view2prox,modelMatrix); 
+	matinverseAFFINE(view2prox,modelMatrix); 
     transform(&t_center,&orig, view2prox); 
  
  

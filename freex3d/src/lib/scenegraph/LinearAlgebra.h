@@ -238,6 +238,9 @@ struct point_XYZ* vecdiff(struct point_XYZ* r, struct point_XYZ* v, struct point
 void make_orthogonal_vector_space(struct point_XYZ* i, struct point_XYZ* j, struct point_XYZ n);
 
 GLDOUBLE* matinverse(GLDOUBLE* res, GLDOUBLE* m);
+GLDOUBLE* matinverseFULL(GLDOUBLE* res, GLDOUBLE* m);
+GLDOUBLE* matinverseAFFINE(GLDOUBLE* res, GLDOUBLE* m);
+
 float* matinverse4f(float* res, float* mm);
 GLDOUBLE* mattranspose(GLDOUBLE* res, GLDOUBLE* m);
 float* mattranspose4f(float* res, float* mm);
@@ -258,6 +261,8 @@ void rotate_v2v_axisAngled(double* axis, double* angle, double *orig, double *re
 GLDOUBLE* mattranslate(GLDOUBLE* r, double dx, double dy, double dz);
 
 GLDOUBLE* matmultiply(GLDOUBLE* r, GLDOUBLE* m , GLDOUBLE* n);
+GLDOUBLE* matmultiplyFULL(GLDOUBLE* r, GLDOUBLE* m , GLDOUBLE* n);
+GLDOUBLE* matmultiplyAFFINE(GLDOUBLE* r, GLDOUBLE* m , GLDOUBLE* n);
 float* matmultiply4f(float* r, float* mm , float* nn);
 float *axisangle2matrix4f(float *b, float *axisangle);
 float *matidentity4f(float *b);
