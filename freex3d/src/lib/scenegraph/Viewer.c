@@ -519,7 +519,8 @@ void avatar2BoundViewpointVerticalAvatar(GLDOUBLE *matA2BVVA, GLDOUBLE *matBVVA2
 	//tilted is in avatar space.
 	matrotate2v(matA2BVVA,downvec,tilted); 
 	matrotate2v(matBVVA2A,tilted,downvec); 
-	//matinverse(matBVVA2A,matA2BVVA);
+	//printmatrix2(matA2BVVA,"A2BVVA" );
+	//printmatrix2(matBVVA2A,"BVVA2A");
 	return;
 }
 
@@ -686,7 +687,7 @@ void getCurrentPosInModel (int addInAntiPos) {
 */
 
 
-	matinverse(inverseMatrix,modelMatrix);
+	matinverseAFFINE(inverseMatrix,modelMatrix);
 
 /*
 printf ("togl, after inverse, %lf %lf %lf\n",inverseMatrix[12],inverseMatrix[13],inverseMatrix[14]);
@@ -2309,10 +2310,15 @@ void slerp_viewpoint()
 			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, p->viewpoint2rootnode);
 			memcpy(vpn2rn,p->viewpoint2rootnode,sizeof(double)*16);
 			//matinverse(rn2vpo,vpo2rn);
-			matinverse(rn2vpn,vpn2rn);
+			matinverseAFFINE(rn2vpn,vpn2rn);
 			//this works a bit:
 			// diff_RN[rn x rn] = vpo2rn[rn x vpo] * rn2vpn[vpn x rn]
-			matmultiply(diffrn,vpo2rn,rn2vpn);
+			//printmatrix2(vpo2rn,"vpo2rn");
+			//printmatrix2(rn2vpn,"rn2vpn");
+			matmultiplyAFFINE(diffrn,vpo2rn,rn2vpn); 
+			//printmatrix2(diffrn,"AFFINE diffrn");
+			//matmultiplyFULL(diffrn,vpo2rn,rn2vpn);
+			//printmatrix2(diffrn,"FULL diffrn");
 
 			//slerping quat and point_XYZ
 			matrix_to_quaternion(&p->sq,diffrn);

@@ -1006,7 +1006,7 @@ void collide_genericfaceset (struct X3D_IndexedFaceSet *node ){
 					- done in Mainloop.c get_collisionoffset() with FallInfo.collision2avatar
 		   */
 
-			matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+			matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
 			//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
 
@@ -1192,7 +1192,7 @@ void collide_Sphere (struct X3D_Sphere *node) {
 			double maxdisp = 0;
 			radscale.x = radscale.y = radscale.z = node->radius;
 			scale_to_matrix (modelMatrix, &radscale);
-			matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+			matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
 			//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
 			if(!collisionSphere.npts) collisionSphere_init(node);
@@ -1229,7 +1229,7 @@ void collide_Sphere (struct X3D_Sphere *node) {
 		else
 		{
 			/* easy analytical sphere-sphere stuff */
-			matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+			matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
 			//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
 			t_orig.x = modelMatrix[12];
@@ -1390,7 +1390,7 @@ void collide_Box (struct X3D_Box *node) {
 
 	       /* get the transformed position of the Box, and the scale-corrected radius. */
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
-			matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+			matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
 			//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 			{
 				int i;
@@ -1630,7 +1630,7 @@ collisionCone_render(5.0,5.0);
 				radscale.x = radscale.z = node->bottomRadius;
 				radscale.y = node->height;
 				scale_to_matrix (modelMatrix, &radscale);
-				matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+				matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
 				//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 				if( !avatarCollisionVolumeIntersectMBB(modelMatrix, collisionCone.smin,collisionCone.smax)) return;
 
@@ -1664,7 +1664,7 @@ collisionCone_render(5.0,5.0);
 			else
 			{
 			   /* values for rapid test */
-				matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+				matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
 				//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
 			   t_orig.x = modelMatrix[12];
@@ -1897,7 +1897,7 @@ void collide_Cylinder (struct X3D_Cylinder *node) {
 				radscale.x = radscale.z = node->radius;
 				radscale.y = node->height;
 				scale_to_matrix (modelMatrix, &radscale);
-				matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+				matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
 				//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 				if( !avatarCollisionVolumeIntersectMBB(modelMatrix, collisionCylinder.smin,collisionCylinder.smax)) return;
 
@@ -1947,7 +1947,7 @@ void collide_Cylinder (struct X3D_Cylinder *node) {
 			{
 
 			   /* values for rapid test */
-				matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+				matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
 				//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 			   t_orig.x = modelMatrix[12];
 			   t_orig.y = modelMatrix[13];
@@ -2016,7 +2016,7 @@ void collide_Extrusion (struct X3D_Extrusion *node) {
 	       pr = *(node->_intern);
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-   			matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+   			matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
 			//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
 			#ifdef RENDERVERBOSE

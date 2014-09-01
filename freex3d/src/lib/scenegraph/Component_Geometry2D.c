@@ -685,7 +685,7 @@ void collide_Rectangle2D (struct X3D_Rectangle2D *node) {
 	       /* get the transformed position of the Box, and the scale-corrected radius. */
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-			matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+			matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
 			//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
 		   {
