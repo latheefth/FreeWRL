@@ -558,14 +558,36 @@ static void moveBackgroundCentre () {
 
 		/* Undo the translation and scale effects */
 		FW_GL_SCALE_D(sx,sy,sz);
+		//printf("moveBackground old T %f %f %f old S %f %f %f\n",x,y,z,sx,sy,sz);
 	}
 	if(1){
+		//translation, scale same as glu_unproject (no 4*z needed for this way)
 		double modi[16];
-		struct point_XYZ p;
+		struct point_XYZ p, q;
 		p.x = p.y = p.z = 0.0;
 		matinverseAFFINE(modi,mod);
 		transform(&p,&p,modi);
 		FW_GL_TRANSLATE_D(p.x,p.y,p.z);
+
+		LIGHTING_OFF
+
+		/* Get scale */
+		q = p;
+		q.x += 1.0;
+		transform(&q,&q,mod);
+		sx = 1.0/sqrt( q.x*q.x + q.y*q.y + q.z*q.z );
+		q = p;
+		q.y += 1.0;
+		transform(&q,&q,mod);
+		sy = 1.0/sqrt( q.x*q.x + q.y*q.y + q.z*q.z );
+		q = p;
+		q.z += 1.0;
+		transform(&q,&q,mod);
+		sz = 1.0/sqrt( q.x*q.x + q.y*q.y + q.z*q.z );
+		/* Undo the translation and scale effects */
+		FW_GL_SCALE_D(sx,sy,sz);
+		//printf("moveBackground new T %f %f %f new S %f %f %f\n",x,y,z,sx,sy,sz);
+		//printf("\n");
 	}
 }
 
