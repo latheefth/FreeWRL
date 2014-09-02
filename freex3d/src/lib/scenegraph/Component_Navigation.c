@@ -370,7 +370,6 @@ if ((selno->_renderFlags & VF_shouldSortChildren) == VF_shouldSortChildren) prin
 printf ("\n");
 }
 */
-
         render_node(node->_selected);
 }
 
@@ -402,15 +401,20 @@ void proximity_LOD (struct X3D_LOD *node) {
         /* calculate which one to display */
         FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, mod);
 		if(0){
+			//this is centered on the front face of the frustum, about .1 away from avatar center (approximately correct)
 			/* printf ("LOD, mat %f %f %f\n",mod[12],mod[13],mod[14]); */
 			FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
 			FW_GLU_UNPROJECT(0,0,0,mod,proj,viewport, &vec.x,&vec.y,&vec.z);
+			//printf("old vec= %f %f %f\n", vec.x,vec.y,vec.z);
 		}
 		if(1){
+			//this is centered on the avatar (correct)
 			double modi[16];
 			struct point_XYZ orig = {0.0,0.0,0.0};
 			matinverseAFFINE(modi,mod);
 			transform(&vec,&orig,modi);
+			//printf("new vec= %f %f %f\n", vec.x,vec.y,vec.z);
+			//printf("\n");
 		}
         vec.x -= (node->center).c[0];
         vec.y -= (node->center).c[1];
