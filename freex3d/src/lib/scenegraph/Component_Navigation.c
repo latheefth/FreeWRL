@@ -196,6 +196,7 @@ void prep_Billboard (struct X3D_Billboard *node) {
 		FW_GLU_UNPROJECT(orig.x, orig.y, orig.z, mod, proj, viewport, &vpos.x, &vpos.y, &vpos.z);
 	}
 	if(1){
+		//feature-AFFINE_GLU_UNPROJECT
 		double modi[16];
 		matinverseAFFINE(modi,mod);
 		transform(&vpos,&orig,modi);
@@ -408,6 +409,7 @@ void proximity_LOD (struct X3D_LOD *node) {
 			//printf("old vec= %f %f %f\n", vec.x,vec.y,vec.z);
 		}
 		if(1){
+			//feature-AFFINE_GLU_UNPROJECT
 			//this is centered on the avatar (correct)
 			double modi[16];
 			struct point_XYZ orig = {0.0,0.0,0.0};

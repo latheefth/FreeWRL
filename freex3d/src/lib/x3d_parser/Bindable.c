@@ -561,6 +561,7 @@ static void moveBackgroundCentre () {
 		//printf("moveBackground old T %f %f %f old S %f %f %f\n",x,y,z,sx,sy,sz);
 	}
 	if(1){
+		//feature-AFFINE_GLU_UNPROJECT
 		//translation, scale same as glu_unproject (no 4*z needed for this way)
 		double modi[16];
 		struct point_XYZ p, q;

@@ -2275,6 +2275,7 @@ void proximity_GeoProximitySensor (struct X3D_GeoProximitySensor *node) {
 	}
 	matinverseAFFINE(view2prox,modelMatrix); 
 	if(1){
+		//feature-AFFINE_GLU_UNPROJECT
 		transform(&t_orig,&orig,view2prox);
 		transform(&zvec,&zvec,view2prox);
 		transform(&yvec,&yvec,view2prox);
