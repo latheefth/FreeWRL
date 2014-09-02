@@ -3856,13 +3856,34 @@ What I think we could do better:
 1. world bearing coords:
 	Benefits of converting mousexy into world bearing(A,B) once per frame before sensitive pass:
 	a) 3D PointingDevices generate bearing(A,B) in world coordinates
+		dug9 Aug31, 2014: not really. FLY keyboard is 6DOF/3D, and works in current-viewpoint space, 
+			adding relative motions on each tick. If I had a 3D pointing device, I would use it the same way
 	b) separate PickingComponent (not yet fully implemented) works in world coordinates
 	- so these two can share code if PointingDevice bearing from mouse is in world
 	c) minimizes the use of glu_unproject (a compound convenience function with expensive 
 		matrix inverse)
+		dug9 Aug31, 2014: to do a ray_intersect_geometry you need to transform 2 points into local geometry
+			-and that requires a matrix inverse- or you need to transform all the geometry points into
+			a stable pickray coordinate system (like avatar collision) - requiring the transform of  lots of points
+			IDEA: when compile_transform do the inverse of the transform too - 2 matrix stacks 
+			- then for VF_Sensitive you'd matrix multiply down both stacks, use the inverse for transforming
+				pick ray points into local, and use modelview (or model if you want global) to transform
+				the near-side intersection back into stable pickray coordinates for eventual comparative 
+				distance sorting
+			- Q. would this be faster than inverting modelview (or model) at each shape (to transform 2 ray points to
+				local) or transforming all shape to viewpoint space to intersect there (like collision)? I ask because
+				I'm thinking of implementing web3d.org LOOKAT navigation type, which allows you to click on any shape
+				(and then your viewpoint transitions to EXAMINE distance near that shape). Unlike Sensitive -which
+				sensitize a few nodes- LOOKAT would allow any shape to be picked, so testing (transforming or inverting)
+				needs to be done at more shapes. For LOOKAT I'll use the collision approach (transform all shape
+				points to avatar/viewpoint space) and it already has a linesegment(A,B)_intersect_shape, 
+				with distance sorting for wall penetration detection and correction.
 	How:
 	after setup_viewpoint and before render_hier(VF_Sensitive), transform the mouse bearing (A,B) 
 	from viewpoint to world coordinates using the view matrix. 
+	dug9 Aug31, 2014: keep in mind points along the pickray need to be sorted along the pickray 
+			(all but the closest are occluded), and that might be simpler math in viewpoint coordinates (distance=z)
+			versus world coordinate (A,B) which requires a dot product distance=(C-A)dot(B-A)
 2. normal proj matrix (vs glu_pick modified proj matrix)
 	Benefits of using normal proj matrix for PointingDeviceSensor:
 	a) allows multiple bearings to be processed on the same pass for future multi-touch devices (no 
@@ -3877,6 +3898,14 @@ What I think we could do better:
 	in setup_projection(pick=FALSE,,), and glu_unproject with the mousexy to get B in 
 	viewpoint-local, then use view to transform A,B from viewpoint-local to world. View is 
 	computed with setup_viewpoint()
+	
+	dug9 Aug31 2014: extent/Minimum Bounding Boxes (MBB) - if you transform the object shape MBB
+		directly into pickray-aligned coordinates in one step with pickray-aligned modelview, then exclusion can be done
+		with simple x < max type culling tests. Then once that test gets a hit you can do more expensive
+		operations. That's the benefit of pickray-aligned (modified) modelview: faster culling. Otherwise using
+		ordinary modelview or model, you have to do another matrix multiply on 8 points to get that MBB into
+		pickray-aligned space, or do a more general ray-intersect-unaligned-box which has more math.
+
 3. explicit sensor stack:
 	Benefits of an explicit sensor stack in render_node():
 	a) code will be easier to read (vs. current 'shuffling' on recusion)
