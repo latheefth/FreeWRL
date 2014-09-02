@@ -191,9 +191,15 @@ void prep_Billboard (struct X3D_Billboard *node) {
 	FW_GL_PUSH_MATRIX();
 
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, mod);
-	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
-	FW_GLU_UNPROJECT(orig.x, orig.y, orig.z, mod, proj, viewport, &vpos.x, &vpos.y, &vpos.z);
-
+	if(0){
+		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
+		FW_GLU_UNPROJECT(orig.x, orig.y, orig.z, mod, proj, viewport, &vpos.x, &vpos.y, &vpos.z);
+	}
+	if(1){
+		double modi[16];
+		matinverseAFFINE(modi,mod);
+		transform(&vpos,&orig,modi);
+	}
 	len = VECSQ(vpos);
 	if (APPROX(len, 0)) { return; }
 	VECSCALE(vpos, 1/sqrt(len));
@@ -395,9 +401,17 @@ void proximity_LOD (struct X3D_LOD *node) {
 
         /* calculate which one to display */
         FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, mod);
-        /* printf ("LOD, mat %f %f %f\n",mod[12],mod[13],mod[14]); */
-        FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
-        FW_GLU_UNPROJECT(0,0,0,mod,proj,viewport, &vec.x,&vec.y,&vec.z);
+		if(0){
+			/* printf ("LOD, mat %f %f %f\n",mod[12],mod[13],mod[14]); */
+			FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
+			FW_GLU_UNPROJECT(0,0,0,mod,proj,viewport, &vec.x,&vec.y,&vec.z);
+		}
+		if(1){
+			double modi[16];
+			struct point_XYZ orig = {0.0,0.0,0.0};
+			matinverseAFFINE(modi,mod);
+			transform(&vec,&orig,modi);
+		}
         vec.x -= (node->center).c[0];
         vec.y -= (node->center).c[1];
         vec.z -= (node->center).c[2];

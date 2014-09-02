@@ -539,24 +539,34 @@ static void moveBackgroundCentre () {
 
 	FW_GL_PUSH_MATRIX();
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, mod);
-	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
-	/* Get origin */
-	FW_GLU_UNPROJECT(0.0f,0.0f,0.0f,mod,proj,viewport,&x,&y,&z);
-	FW_GL_TRANSLATE_D(x,y,z);
+	if(0){
+		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
+		/* Get origin */
+		FW_GLU_UNPROJECT(0.0f,0.0f,0.0f,mod,proj,viewport,&x,&y,&z);
+		FW_GL_TRANSLATE_D(x,y,z);
 
-	LIGHTING_OFF
+		LIGHTING_OFF
 
-	FW_GLU_UNPROJECT(0.0f,0.0f,0.0f,mod,unit,viewport,&x,&y,&z);
-	/* Get scale */
-	FW_GLU_PROJECT(x+1,y,z,mod,unit,viewport,&x1,&y1,&z1);
-	sx = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
-	FW_GLU_PROJECT(x,y+1,z,mod,unit,viewport,&x1,&y1,&z1);
-	sy = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
-	FW_GLU_PROJECT(x,y,z+1,mod,unit,viewport,&x1,&y1,&z1);
-	sz = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
+		FW_GLU_UNPROJECT(0.0f,0.0f,0.0f,mod,unit,viewport,&x,&y,&z);
+		/* Get scale */
+		FW_GLU_PROJECT(x+1,y,z,mod,unit,viewport,&x1,&y1,&z1);
+		sx = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
+		FW_GLU_PROJECT(x,y+1,z,mod,unit,viewport,&x1,&y1,&z1);
+		sy = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
+		FW_GLU_PROJECT(x,y,z+1,mod,unit,viewport,&x1,&y1,&z1);
+		sz = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
 
-	/* Undo the translation and scale effects */
-	FW_GL_SCALE_D(sx,sy,sz);
+		/* Undo the translation and scale effects */
+		FW_GL_SCALE_D(sx,sy,sz);
+	}
+	if(1){
+		double modi[16];
+		struct point_XYZ p;
+		p.x = p.y = p.z = 0.0;
+		matinverseAFFINE(modi,mod);
+		transform(&p,&p,modi);
+		FW_GL_TRANSLATE_D(p.x,p.y,p.z);
+	}
 }
 
 static void recalculateBackgroundVectors(struct X3D_Background *node) {
@@ -858,7 +868,10 @@ void render_Background (struct X3D_Background *node) {
 	}
 
 	/* we have a sphere (maybe one and a half, as the sky and ground are different) so scale it up so that
-	   all geometry fits within the spheres */
+	   all geometry fits within the spheres 
+		dug9 Sept 2014: background could in theory be a tiny box or sphere that wraps around the avatar, if
+		you can draw it first on each frame _and_ turn off 'depth' when you draw it.   
+	*/
 	FW_GL_SCALE_D (viewer->backgroundPlane, viewer->backgroundPlane, viewer->backgroundPlane);
 
 		enableGlobalShader(getMyShader(COLOUR_MATERIAL_SHADER));

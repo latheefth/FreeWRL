@@ -340,6 +340,10 @@ struct point_XYZ* transform(struct point_XYZ* r, const struct point_XYZ* a, cons
     }
     return r;
 }
+struct point_XYZ* transformAFFINE(struct point_XYZ* r, const struct point_XYZ* a, const GLDOUBLE* b){
+	return transform(r,a,b);
+}
+
 
 float* transformf(float* r, const float* a, const GLDOUBLE* b)
 {
