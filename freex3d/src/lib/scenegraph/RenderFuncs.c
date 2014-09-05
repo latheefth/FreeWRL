@@ -122,7 +122,7 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 	/* material node usage depends on texture depth; if rgb (depth1) we blend color field
 	   and diffusecolor with texture, else, we dont bother with material colors */
 	t->last_texture_type = NOTEXTURE;
-	t->usingAffinePickmatrix = 0; /*use AFFINE matrix to transform points to align with pickray, instead of using GLU_UNPROJECT, feature-AFFINE_GLU_UNPROJECT*/
+	t->usingAffinePickmatrix = 1; /*use AFFINE matrix to transform points to align with pickray, instead of using GLU_UNPROJECT, feature-AFFINE_GLU_UNPROJECT*/
 
 	//private
 	t->prv = RenderFuncs_constructor();
