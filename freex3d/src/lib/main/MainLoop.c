@@ -1865,6 +1865,7 @@ static void render_pre() {
 		//drawStatusBar();
 		PRINT_GL_ERROR_IF_ANY("GLBackend::render_pre");
 }
+void matrixFromAxisAngle4d(double *mat, double rangle, double x, double y, double z);
 void setup_projection(int pick, int x, int y)
 {
 	GLDOUBLE fieldofview2;
@@ -1980,13 +1981,19 @@ void setup_projection(int pick, int x, int y)
     else{
         FW_GL_VIEWPORT(xvp, bottom, screenwidth2, screenheight);
     }
-
 	FW_GL_LOAD_IDENTITY();
 	if(pick) {
 		/* picking for mouse events */
-		FW_GL_GETINTEGERV(GL_VIEWPORT,p->viewPort2);
-		//FW_GLU_PICK_MATRIX((float)x,(float)p->viewPort2[3]-y + bottom, (float)100,(float)100,p->viewPort2);
-		FW_GLU_PICK_MATRIX((float)x,(float)p->viewPort2[3]  -y + bottom +top, (float)100,(float)100,p->viewPort2);
+		//tg->RenderFuncs.usingAffinePickmatrix = 1 - tg->RenderFuncs.usingAffinePickmatrix; //toggle each pass for comparative testing
+		if(!tg->RenderFuncs.usingAffinePickmatrix){
+			//OLD WAY: modifies proj matrix to a narrow window around the mouse point (see below for NEW WAY)
+			FW_GL_GETINTEGERV(GL_VIEWPORT,p->viewPort2);
+			//x = (p->viewPort2[2]-p->viewPort2[0])*.5 + 100.0;
+			//y - (p->viewPort2[3]-p->viewPort2[1])*.5;
+
+			//FW_GLU_PICK_MATRIX((float)x,(float)p->viewPort2[3]-y + bottom, (float)100,(float)100,p->viewPort2);
+			FW_GLU_PICK_MATRIX((float)x,(float)p->viewPort2[3]  -y + bottom +top, (float)100,(float)100,p->viewPort2);
+		}
 	}
 
 	/* ortho projection or perspective projection? */
@@ -2015,6 +2022,97 @@ void setup_projection(int pick, int x, int y)
 		/* glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);  */
         //printf ("Before FW_GLU_PERSPECTIVE, np %f fp %f\n",viewer->nearPlane, viewer->farPlane);
 		FW_GLU_PERSPECTIVE(fieldofview2, aspect2, viewer->nearPlane,viewer->farPlane);
+	}
+	if(pick){
+		if(tg->RenderFuncs.usingAffinePickmatrix){
+			//feature-AFFINE_GLU_UNPROJECT
+			//NEW WAY: leaves proj matrix as normal, and creates a separate affine PICKMATRIX that when multiplied with modelview,
+			// will point down the pickray (see above for OLD WAY)
+			// method: uproject 2 points along the ray, one on nearside of frustum (window z = 0) 
+			//	one on farside of frustum (window z = 1)
+			// then the first one is A, second one is B
+			// create a translation matrix to get from 0,0,0 to A T
+			// create a rotation matrix R to get from A toward B
+			// pickmatrix = R * T
+			double mvident[16], pickMatrix[16], pmi[16], proj[16], R1[16], R2[16], R3[16], T[16];
+			int viewport[4];
+			double A[3], B[3], C[3], a[3], b[3];
+			double yaw, pitch;
+			loadIdentityMatrix(mvident);
+			FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
+			FW_GL_GETINTEGERV(GL_VIEWPORT,viewport);
+			double yy = (float)viewport[3]  -y + bottom +top;
+			//nearside point
+			a[0] = x; a[1] = yy;  a[2] = 0.0;
+			FW_GLU_UNPROJECT(a[0], a[1], a[2], mvident, proj, viewport,
+				 &A[0],&A[1],&A[2]);
+			mattranslate(T,A[0],A[1],A[2]);
+			//farside point
+			b[0] = x; b[1] = yy;  b[2] = 1.0;
+			FW_GLU_UNPROJECT(b[0], b[1], b[2], mvident, proj, viewport,
+				 &B[0],&B[1],&B[2]);
+			vecdifd(C,B,A);
+			vecnormald(C,C);
+			if(0) printf("Cdif %f %f %f\n",C[0],C[1],C[2]);
+			//if(1){
+			//	double hypotenuse = sqrt(C[0]*C[0] + C[2]*C[2]);
+			//	yaw = asin(C[0]/hypotenuse); 
+			//	hypotenuse = sqrt(C[1]*C[1] + C[2]*C[2]);
+			//	pitch = asin(C[1]/hypotenuse); 
+			//	if(1) printf("asin yaw=%f pitch=%f\n",yaw,pitch);
+			//}
+			yaw = atan2(C[0],-C[2]);
+			matrixFromAxisAngle4d(R1, -yaw, 0.0, 1.0, 0.0);
+			if(1){
+				transformAFFINEd(C,C,R1);
+				if(0) printf("Yawed Cdif %f %f %f\n",C[0],C[1],C[2]);
+				pitch = atan2(C[1],-C[2]);
+			}else{
+				double hypotenuse = sqrt(C[0]*C[0] + C[2]*C[2]);
+				pitch = atan2(C[1],hypotenuse);
+			}
+			if(1) printf("atan2 yaw=%f pitch=%f\n",yaw,pitch);
+
+			pitch = -pitch;
+			if(0) printf("[yaw=%f pitch=%f\n",yaw,pitch);
+			if(0){
+				matrotate(R1, -pitch, 1.0, 0.0, 0.0);
+				matrotate(R2, -yaw, 0.0, 1.0, 0.0);
+			}else{
+				matrixFromAxisAngle4d(R1, pitch, 1.0, 0.0, 0.0);
+				if(0) printmatrix2(R1,"pure R1");
+				matrixFromAxisAngle4d(R2, yaw, 0.0, 1.0, 0.0);
+				if(0) printmatrix2(R2,"pure R2");
+			}
+			matmultiplyAFFINE(R3,R1,R2);
+			if(0) printmatrix2(R3,"R3=R1*R2");
+			if(1){
+				matmultiplyAFFINE(pickMatrix,R3, T); 
+				matinverseAFFINE(pmi,pickMatrix);
+				//matinverseFULL(pmi,pickMatrix); //don't need extra FLOPS 
+			}else{
+				//direct hacking of matrix, can save a few FLOPs
+				R3[12] = A[0]; 
+				R3[13] = A[1]; 
+				R3[14] = A[2];
+				matcopy(pickMatrix,R3);
+				matinverseAFFINE(pmi,pickMatrix); //,R3);
+				if(0)printmatrix2(R3,"R3[12]=A");
+			}
+			if(0) printmatrix2(pmi,"inverted");
+			if(1)
+				setPickrayMatrix(0,pickMatrix); //using pickmatrix in upd_ray and get_hyper
+			else
+				setPickrayMatrix(0,pmi); //if using pickmatrix_inverse in upd_ray and get_hyper
+			if(0){
+				//Test: transform A,B and they should come out 0,0,x
+				double rA[3], rB[3];
+				transformAFFINEd(rA,A,pmi);
+				transformAFFINEd(rB,B,pmi);
+				printf(" A %f %f %f  B %f %f %f \n",A[0],A[1],A[2],B[0],B[1],B[2]);
+				printf("rA %f %f %f rB %f %f %f \n",rA[0],rA[1],rA[2],rB[0],rB[1],rB[2]);
+			}
+		}
 	}
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 	PRINT_GL_ERROR_IF_ANY("XEvents::setup_projection");
@@ -3706,7 +3804,7 @@ bearing: 2 points (A,B) defining a ray in 3D space going from A in the direction
 		into world coordinates for the remainder of PointingDeviceSensor activity]
 	[2.for a 3D pointing device, it would have its own A,B in world. And then that world bearing 
 		can be transformed into geometry-local and sensor-local and intersections with 
-		shape-geometry and sensor-geometry calculated.]
+		shape-geometry and sensor-geometry calculated. dug9 Sept 2, 2014: FLY keyboard is 6DOF/3D, and not in world]
 hit: an intersection between the bearing and geometry that is closer to A (supercedes previous cloest)
 
 As seen by the developer, here's how I (dug9 Apr 2014) think they should work internally, on each frame 
@@ -3721,7 +3819,8 @@ As seen by the developer, here's how I (dug9 Apr 2014) think they should work in
 	-apply a special pick-projection matrix, in setup_projection(pick=TRUE,,), so that glu_unproject 
 		is with respect to the mouse-xy bearing B point being at the center of the viewport 
 		[use normal projection, and minimize the use of glu_unproject by transforming viewport-local bearing
-		to world during setup, and use world for bearing for all subsequent PointingDeviceSensor activities]
+		to world during setup, and use world for bearing for all subsequent PointingDeviceSensor activities
+		dug9 Sept 2014: or keep in avatar coords, and set up a avatar2pickray affine transform]
  3. from the scene root, in in render_hier(VF_Sensitive) pass, tranverse the scenegraph looking for sensitive 
 	group/transform parent nodes, accumulating the model part of the modelview matrix as normal.
 	When we find a sensitive parent: 
@@ -3742,7 +3841,7 @@ As seen by the developer, here's how I (dug9 Apr 2014) think they should work in
 		- filter the intersection point to elliminate if in the -B direction from A (behind the viewpoint)
 		- transform using modelview and pick-proj matrix into pick-viewport-local coordinates 
 		  [transform using model into bearing-world coordinates]
-		- compare the remaining intersection point by distance from A, and chose it over 
+		- compare the remaining intersection point by distance from A, and choose it over 
 			the current one if closer to A (the other is 'occluded') to produce a new hit
 	d) if there was a new hit, record some details needed by the particular type of sensor node, (but don't
 		generate events yet - we have to search for even closer hits):
@@ -3761,8 +3860,9 @@ As seen by the developer, here's how I (dug9 Apr 2014) think they should work in
 
 What's not shown above: 
 6. what happens when 2+ sensor nodes apply to the same geometry:
-	the specs say it's the sensor that's the nearest co-descendent (sibling or higher) to the geometry
-	(it doesn't say what happens in a tie ie 2 different sensor nodes are siblings)
+	for example, parent [ sensor1, group [ sensor 2, shape ] ]
+	the specs say it's the sensor that's the nearest co-descendent (sibling or higher) to the geometry [sensor2,shape]
+	(it doesn't say what happens in a tie ie 2 different sensor nodes are siblings) [sensor1,sensor2,shape]
 	(it doesn't say what happens if you DEF a sensornode and USE it in various places)
 7. what happens on each frame during a Drag:
 	the successful dragsensor node is 'chosen' on the mouse-down
@@ -3905,6 +4005,10 @@ What I think we could do better:
 		operations. That's the benefit of pickray-aligned (modified) modelview: faster culling. Otherwise using
 		ordinary modelview or model, you have to do another matrix multiply on 8 points to get that MBB into
 		pickray-aligned space, or do a more general ray-intersect-unaligned-box which has more math.
+	dug9 Sept 2, 2014: if GLU_PROJECT, GLU_UNPROJECT are being used now to transform, then there is already
+		a matrix concatonation: modelview and projection. So substituting a pickray-aligned affine
+		matrix for the proj matrix won't add matrix multiplies, and since the combined would now be 
+		affine, further ops can also be affine, reducing FLOPs. 
 
 3. explicit sensor stack:
 	Benefits of an explicit sensor stack in render_node():
@@ -3921,6 +4025,8 @@ What I think we could do better:
 	a) allows speed optimization by computing inverse once, and using it many times for a given
 		modelview [model] matrix
 	b) avoids reliance on any projection matrix
+	dug9 Sept 2, 2014: 
+	  c) without projection matrix, affine matrix ops can be used which cut FLOPs in half
 	How:
 	a) implement: 
 		FW_GL_GETDOUBLEV(GL_MODEL_MATRIX_INVERSE, modelMatrix);
@@ -3959,34 +4065,74 @@ What I think we could do better:
 	  But it may be overkill if bearing-local is made to == world, for compatibility with 3D pointing devices
 */
 static void get_hyperhit() {
-        double x1,y1,z1,x2,y2,z2,x3,y3,z3;
-        GLDOUBLE projMatrix[16];
-		struct currayhit *rhh, *rh;
-		ttglobal tg = gglobal();
-		rhh = (struct currayhit *)tg->RenderFuncs.rayHitHyper;
-		rh = (struct currayhit *)tg->RenderFuncs.rayHit;
+    double x1,y1,z1,x2,y2,z2,x3,y3,z3;
+    GLDOUBLE projMatrix[16];
+	struct currayhit *rhh, *rh;
+	ttglobal tg = gglobal();
+	rhh = (struct currayhit *)tg->RenderFuncs.rayHitHyper;
+	rh = (struct currayhit *)tg->RenderFuncs.rayHit;
 
-		/*
-		printf ("hy %.2f %.2f %.2f, %.2f %.2f %.2f, %.2f %.2f %.2f\n",
-			r1.x, r1.y, r1.z, r2.x, r2.y, r2.z, 
-			tg->RenderFuncs.hp.x, tg->RenderFuncs.hp.y, tg->RenderFuncs.hp.z);
-		*/
+	/*
+	printf ("hy %.2f %.2f %.2f, %.2f %.2f %.2f, %.2f %.2f %.2f\n",
+		r1.x, r1.y, r1.z, r2.x, r2.y, r2.z, 
+		tg->RenderFuncs.hp.x, tg->RenderFuncs.hp.y, tg->RenderFuncs.hp.z);
+	*/
 
-        FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
-        FW_GLU_UNPROJECT(r1.x, r1.y, r1.z, rhh->modelMatrix,
-                projMatrix, viewport, &x1, &y1, &z1);
-        FW_GLU_UNPROJECT(r2.x, r2.y, r2.z, rhh->modelMatrix,
-                projMatrix, viewport, &x2, &y2, &z2);
-        FW_GLU_UNPROJECT(tg->RenderFuncs.hp.x, tg->RenderFuncs.hp.y, tg->RenderFuncs.hp.z, rh->modelMatrix,
-                projMatrix,viewport, &x3, &y3, &z3);
+	if(!tg->RenderFuncs.usingAffinePickmatrix){
+		//FLOPS 588 double: 3x glu_unproject 196
+		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
+		//FLOPs 588 double: 3 x glu_unproject 196
+		FW_GLU_UNPROJECT(r1.x, r1.y, r1.z, rhh->modelMatrix,
+				projMatrix, viewport, &x1, &y1, &z1);
+		FW_GLU_UNPROJECT(r2.x, r2.y, r2.z, rhh->modelMatrix,
+				projMatrix, viewport, &x2, &y2, &z2);
+		FW_GLU_UNPROJECT(tg->RenderFuncs.hp.x, tg->RenderFuncs.hp.y, tg->RenderFuncs.hp.z, rh->modelMatrix,
+				projMatrix,viewport, &x3, &y3, &z3);
+	}
+	if(tg->RenderFuncs.usingAffinePickmatrix){
+		//feature-AFFINE_GLU_UNPROJECT
+		//FLOPs	112 double:	matmultiplyAFFINE 36, matinverseAFFINE 49, transform (affine) 3x9 =27
+		GLDOUBLE mvp[16], mvpi[16];
+		GLDOUBLE *pickMatrix = getPickrayMatrix(0);
+		struct point_XYZ tp; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 
-        /* printf ("get_hyperhit in VRMLC %f %f %f, %f %f %f, %f %f %f\n",
-            x1,y1,z1,x2,y2,z2,x3,y3,z3); */
+		if(0){
+			//pickMatrix is inverted in setup_projection
+			matmultiplyAFFINE(mvp,rhh->modelMatrix,pickMatrix);
+			matinverseAFFINE(mvpi,mvp);
+		}else{
+			//pickMatrix is not inverted in setup_projection
+			double mvi[16];
+			matinverseAFFINE(mvi,rhh->modelMatrix);
+			matmultiplyAFFINE(mvpi,pickMatrix,mvi);
+		}
+		
+		transform(&tp,&r1,mvpi);
+		x1 = tp.x; y1 = tp.y; z1 = tp.z;
+		transform(&tp,&r2,mvpi);
+		x2 = tp.x; y2 = tp.y; z2 = tp.z;
+		if(0){
+			//pickMatrix is inverted in setup_projection
+			matmultiplyAFFINE(mvp,rh->modelMatrix,pickMatrix);
+			matinverseAFFINE(mvpi,mvp);
+		}else{
+			//pickMatrix is not inverted in setup_projection
+			double mvi[16];
+			matinverseAFFINE(mvi,rh->modelMatrix);
+			matmultiplyAFFINE(mvpi,pickMatrix,mvi);
+		}
 
-        /* and save this globally */
-        tg->RenderFuncs.hyp_save_posn.c[0] = (float) x1; tg->RenderFuncs.hyp_save_posn.c[1] = (float) y1; tg->RenderFuncs.hyp_save_posn.c[2] = (float) z1;
-        tg->RenderFuncs.hyp_save_norm.c[0] = (float) x2; tg->RenderFuncs.hyp_save_norm.c[1] = (float) y2; tg->RenderFuncs.hyp_save_norm.c[2] = (float) z2;
-        tg->RenderFuncs.ray_save_posn.c[0] = (float) x3; tg->RenderFuncs.ray_save_posn.c[1] = (float) y3; tg->RenderFuncs.ray_save_posn.c[2] = (float) z3;
+		transform(&tp,&tg->RenderFuncs.hp,mvpi);
+		x3 = tp.x; y3 = tp.y; z3 = tp.z;
+	}
+	/*
+    printf ("get_hyperhit in VRMLC %f %f %f, %f %f %f, %f %f %f\n",
+        x1,y1,z1,x2,y2,z2,x3,y3,z3); 
+	*/
+    /* and save this globally */
+    tg->RenderFuncs.hyp_save_posn.c[0] = (float) x1; tg->RenderFuncs.hyp_save_posn.c[1] = (float) y1; tg->RenderFuncs.hyp_save_posn.c[2] = (float) z1;
+    tg->RenderFuncs.hyp_save_norm.c[0] = (float) x2; tg->RenderFuncs.hyp_save_norm.c[1] = (float) y2; tg->RenderFuncs.hyp_save_norm.c[2] = (float) z2;
+    tg->RenderFuncs.ray_save_posn.c[0] = (float) x3; tg->RenderFuncs.ray_save_posn.c[1] = (float) y3; tg->RenderFuncs.ray_save_posn.c[2] = (float) z3;
 }
 
 /* set stereo buffers, if required */

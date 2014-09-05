@@ -325,6 +325,7 @@ float det3f(float *a, float *b, float *c)
 
 struct point_XYZ* transform(struct point_XYZ* r, const struct point_XYZ* a, const GLDOUBLE* b)
 {
+	//FLOPs 9 double
     struct point_XYZ tmp; /* JAS*/
 
     if(r != a) { /*protect from self-assignments */
@@ -341,9 +342,24 @@ struct point_XYZ* transform(struct point_XYZ* r, const struct point_XYZ* a, cons
     return r;
 }
 struct point_XYZ* transformAFFINE(struct point_XYZ* r, const struct point_XYZ* a, const GLDOUBLE* b){
+	//FLOPs 9 double
 	return transform(r,a,b);
 }
-
+GLDOUBLE* pointxyz2double(double* r, struct point_XYZ *p){
+	r[0] = p->x; r[1] = p->y; r[2] = p->z;
+	return r;
+}
+struct point_XYZ* double2pointxyz(struct point_XYZ* r, double* p){
+	r->x = p[0]; r->y = p[1]; r->z = p[2];
+	return r;
+}
+double *transformAFFINEd(double *r, double *a, const GLDOUBLE* mat){
+	struct point_XYZ pa, pr;
+	double2pointxyz(&pa,a);
+	transformAFFINE(&pr,&pa,mat);
+	pointxyz2double(r,&pr);
+	return r;
+}
 
 float* transformf(float* r, const float* a, const GLDOUBLE* b)
 {
@@ -1048,6 +1064,52 @@ float *axisangle2matrix4f(float *b, float *axisangle){
 	return b;
 }
 
+void matrixFromAxisAngle4d(double *mat, double rangle, double x, double y, double z) 
+{
+
+	// http://www.euclideanspace.com/maths/geometry/rotations/conversions/angleToMatrix/
+	int i;
+	double c, s, t;
+	double *m[4];
+
+    c = cos(rangle);
+    s = sin(rangle);
+    t = 1.0 - c;
+	//row indexes
+	m[0] = &mat[0];
+	m[1] = &mat[4];
+	m[2] = &mat[8];
+	m[3] = &mat[12];
+	//identity
+	for(i=0;i<16;i++) mat[i] = 0.0;
+	for(i=0;i<4;i++) m[i][i] = 1.0;
+	//  if axis is not already normalised then uncomment this
+	// double magnitude = Math.sqrt(a1.x*a1.x + a1.y*a1.y + a1.z*a1.z);
+	// if (magnitude==0) throw error;
+	// a1.x /= magnitude;
+	// a1.y /= magnitude;
+	// a1.z /= magnitude;
+
+    m[0][0] = c + x*x*t;
+    m[1][1] = c + y*y*t;
+    m[2][2] = c + z*z*t;
+
+
+    double tmp1 = x*y*t;
+    double tmp2 = z*s;
+    m[1][0] = tmp1 + tmp2;
+    m[0][1] = tmp1 - tmp2;
+    tmp1 = x*z*t;
+    tmp2 = y*s;
+    m[2][0] = tmp1 - tmp2;
+    m[0][2] = tmp1 + tmp2;    
+	tmp1 = y*z*t;
+    tmp2 = x*s;
+    m[2][1] = tmp1 + tmp2;
+    m[1][2] = tmp1 - tmp2;
+
+}
+
 void rotate_v2v_axisAngled(double* axis, double* angle, double *orig, double *result)
 {
     double cvl;
@@ -1432,6 +1494,24 @@ static double identity[] = { 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1
 void loadIdentityMatrix (double *mat) {
         memcpy((void *)mat, (void *)identity, sizeof(double)*16);
 }
+double *matcopy(double *r, double*mat){
+	memcpy((void*)r, (void*)mat,sizeof(double)*16);
+}
+
+void printmatrix2(GLDOUBLE* mat,char* description ) {
+    int i,j;
+    printf("mat %s {\n",description);
+    for(i = 0; i< 4; i++) {
+		printf("mat [%2d-%2d] = ",i*4,(i*4)+3);
+		for(j=0;j<4;j++)
+			printf(" %f ",mat[(i*4)+j]);
+			//printf("mat[%d] = %f%s;\n",i,mat[i],i==12 ? " +disp.x" : i==13? " +disp.y" : i==14? " +disp.z" : "");
+		printf("\n");
+    }
+    printf("}\n");
+
+}
+
 
 #ifdef OLDCODE
 OLDCODEvoid point_XYZ_slerp(struct point_XYZ *ret, struct point_XYZ *p1, struct point_XYZ *p2, const double t)

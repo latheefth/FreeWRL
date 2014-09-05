@@ -50,6 +50,7 @@ Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, 
 #include "../scenegraph/Component_ProgrammableShaders.h"
 #include "../scenegraph/Component_Shape.h"
 #include "../ui/common.h"
+#include "../scenegraph/LinearAlgebra.h"
 
 /* for Background spheres */
 struct MyVertex

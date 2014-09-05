@@ -191,5 +191,8 @@ void fw_gluPickMatrix(GLDOUBLE x, GLDOUBLE y, GLDOUBLE deltax, GLDOUBLE deltay,
                   GLint viewport[4]);
 
 void printMaxStackUsed();
+GLDOUBLE *getPickrayMatrix(int index);
+void setPickrayMatrix(int index, GLDOUBLE *mat);
+
 
 #endif /* __FREEWRL_OPENGL_UTILS_H__ */

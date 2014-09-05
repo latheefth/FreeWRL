@@ -218,6 +218,12 @@ BOOL matrix3x3_inverse_float(float *inn, float *outt);
 float* vecmultmat4f(float* r4, float *a4, float *mat4);
 float* matmultvec4f(float* r4, float *mat4, float* a4 );
 
+
+struct point_XYZ* transformAFFINE(struct point_XYZ* r, const struct point_XYZ* a, const GLDOUBLE* b);
+GLDOUBLE* pointxyz2double(double* r, struct point_XYZ *p); /* instead of casting struct to array, this is more rigorous */
+struct point_XYZ* double2pointxyz(struct point_XYZ* r, double* p); /* ditto */
+double *transformAFFINEd(double *r, double *a, const GLDOUBLE* mat); /* same as transformAFFINE which is the same as transform() - just different parameter types */
+
 /*only transforms using the rotation component.
   Usefull for transforming normals, and optimizing when you know there's no translation */
 struct point_XYZ* transform3x3(struct point_XYZ* r, const struct point_XYZ* a, const GLDOUBLE* b);
@@ -269,6 +275,8 @@ float *matidentity4f(float *b);
 
 void scale_to_matrix (double *mat, struct point_XYZ *scale);
 void loadIdentityMatrix (double *mat);
+double *matcopy(double *r, double*mat);
+void printmatrix2(GLDOUBLE* mat,char* description );
 void general_slerp(double *ret, double *p1, double *p2, int size, const double t);
 
 #endif /* __FREEWRL_LINEAR_ALGEBRA_H__ */
