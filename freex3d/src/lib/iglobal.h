@@ -304,6 +304,7 @@ iOLDCODE	}Component_Networking;
 		void *rayHit;
 		void *rayHitHyper;
 		struct point_XYZ t_r1,t_r2,t_r3; /* transformed ray */
+		int usingAffinePickmatrix; /*instead of GLU_UNPROJECT feature-AFFINE_GLU_UNPROJECT*/
 		int	lightingOn;		/* do we need to restore lighting in Shape? */
 		int	have_transparency;//=FALSE;/* did any Shape have transparent material? */
 		/* material node usage depends on texture depth; if rgb (depth1) we blend color field

@@ -2264,14 +2264,22 @@ void proximity_GeoProximitySensor (struct X3D_GeoProximitySensor *node) {
 	 * this gives the orientation of the viewer relative to the sensor. 
 	 */ 
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix); 
-	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix); 
-	FW_GLU_UNPROJECT(orig.x,orig.y,orig.z,modelMatrix,projMatrix,viewport, 
-		&t_orig.x,&t_orig.y,&t_orig.z); 
-	FW_GLU_UNPROJECT(zvec.x,zvec.y,zvec.z,modelMatrix,projMatrix,viewport, 
-		&t_zvec.x,&t_zvec.y,&t_zvec.z); 
-	FW_GLU_UNPROJECT(yvec.x,yvec.y,yvec.z,modelMatrix,projMatrix,viewport, 
-		&t_yvec.x,&t_yvec.y,&t_yvec.z); 
+	if(0){
+		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix); 
+		FW_GLU_UNPROJECT(orig.x,orig.y,orig.z,modelMatrix,projMatrix,viewport, 
+			&t_orig.x,&t_orig.y,&t_orig.z); 
+		FW_GLU_UNPROJECT(zvec.x,zvec.y,zvec.z,modelMatrix,projMatrix,viewport, 
+			&t_zvec.x,&t_zvec.y,&t_zvec.z); 
+		FW_GLU_UNPROJECT(yvec.x,yvec.y,yvec.z,modelMatrix,projMatrix,viewport, 
+			&t_yvec.x,&t_yvec.y,&t_yvec.z); 
+	}
 	matinverseAFFINE(view2prox,modelMatrix); 
+	if(1){
+		//feature-AFFINE_GLU_UNPROJECT
+		transform(&t_orig,&orig,view2prox);
+		transform(&zvec,&zvec,view2prox);
+		transform(&yvec,&yvec,view2prox);
+	}
     transform(&t_center,&orig, view2prox); 
  
  

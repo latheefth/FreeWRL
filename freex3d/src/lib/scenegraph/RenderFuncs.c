@@ -122,6 +122,7 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 	/* material node usage depends on texture depth; if rgb (depth1) we blend color field
 	   and diffusecolor with texture, else, we dont bother with material colors */
 	t->last_texture_type = NOTEXTURE;
+	t->usingAffinePickmatrix = 1; /*use AFFINE matrix to transform points to align with pickray, instead of using GLU_UNPROJECT, feature-AFFINE_GLU_UNPROJECT*/
 
 	//private
 	t->prv = RenderFuncs_constructor();
@@ -836,10 +837,8 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 void upd_ray() {
 	struct point_XYZ t_r1,t_r2,t_r3;
 	GLDOUBLE modelMatrix[16];
-	GLDOUBLE projMatrix[16];
 	ttglobal tg = gglobal();
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
-	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
 /*
 
 {int i; printf ("\n"); 
@@ -849,26 +848,67 @@ for (i=0; i<16; i++) printf ("%4.3lf ",projMatrix[i]); printf ("\n");
 } 
 */
 
-	// the projMatrix used here contains the GLU_PICK_MATRIX translation and scale
-	//transform pick-ray (0,0,-1) B from pick-viewport-local to geometry-local
-	FW_GLU_UNPROJECT(r1.x, r1.y, r1.z, modelMatrix, projMatrix, viewport,
-		     &t_r1.x,&t_r1.y,&t_r1.z);
-	//transform viewpoint A (0,0,0) in pick-ray-viewport-local to geometry-local
-	FW_GLU_UNPROJECT(r2.x, r2.y, r2.z, modelMatrix, projMatrix, viewport,
-		     &t_r2.x,&t_r2.y,&t_r2.z);
-	//in case we need a viewpoint-y-up vector transform viewpoint y to geometry-local 
-	FW_GLU_UNPROJECT(r3.x,r3.y,r3.z,modelMatrix,projMatrix,viewport,
-		     &t_r3.x,&t_r3.y,&t_r3.z);
+	if(!tg->RenderFuncs.usingAffinePickmatrix){
+		GLDOUBLE projMatrix[16];
+		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
+		// the projMatrix used here contains the GLU_PICK_MATRIX translation and scale
+		//transform pick-ray (0,0,-1) B from pick-viewport-local to geometry-local
+		//FLOPS 588 double: 3x glu_unproject 196
+		//r1 = {0,0,-1} means WinZ = -1 in glu_unproject. It's expecting coords in 0-1 range. So -1 would be behind viewer? But x,y still foreward?
+		FW_GLU_UNPROJECT(r1.x, r1.y, r1.z, modelMatrix, projMatrix, viewport,
+				 &t_r1.x,&t_r1.y,&t_r1.z);
+		//transform viewpoint A (0,0,0) in pick-ray-viewport-local to geometry-local
+		FW_GLU_UNPROJECT(r2.x, r2.y, r2.z, modelMatrix, projMatrix, viewport,
+				 &t_r2.x,&t_r2.y,&t_r2.z);
+		//in case we need a viewpoint-y-up vector transform viewpoint y to geometry-local 
+		FW_GLU_UNPROJECT(r3.x,r3.y,r3.z,modelMatrix,projMatrix,viewport,
+				 &t_r3.x,&t_r3.y,&t_r3.z);
+		if(1){
+			//r2 is A, r1 is B relative to A in pickray [A,B)
+			//we prove it here by moving B along the ray, to distance 1.0 from A, and no change to picking
+			vecdiff(&t_r1,&t_r1,&t_r2);
+			vecnormal(&t_r1,&t_r1);
+			vecadd(&t_r1,&t_r1,&t_r2);
+		}
+		//printf("Upd_ray old: (%f %f %f) (%f %f %f) \n",	t_r1.x,t_r1.y,t_r1.z,t_r2.x,t_r2.y,t_r2.z);
+	}
+	if(tg->RenderFuncs.usingAffinePickmatrix){
+		//feature-AFFINE_GLU_UNPROJECT
+		//FLOPs	112 double:	matmultiplyAFFINE 36, matinverseAFFINE 49, 3x transform (affine) 9 =27
+		GLDOUBLE mvp[16], mvpi[16];
+		GLDOUBLE *pickMatrix = getPickrayMatrix(0);
+		struct point_XYZ r11 = {0.0,0.0,1.0}; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
+
+		if(0){
+			//pickMatrix is inverted in setup_projection
+			matmultiplyAFFINE(mvp,modelMatrix,pickMatrix);
+			matinverseAFFINE(mvpi,mvp);
+		}else{
+			//pickMatrix is not inverted in setup_projection
+			double mvi[16];
+			matinverseAFFINE(mvi,modelMatrix);
+			matmultiplyAFFINE(mvpi,pickMatrix,mvi);
+		}
+		transform(&t_r1,&r11,mvpi);
+		transform(&t_r2,&r2,mvpi);
+		transform(&t_r3,&r3,mvpi);
+		//r2 is A, r1 is B relative to A in pickray [A,B)
+		//we prove it here by moving B along the ray, to distance 1.0 from A, and no change to picking
+		vecdiff(&t_r1,&t_r1,&t_r2);
+		vecnormal(&t_r1,&t_r1);
+		vecadd(&t_r1,&t_r1,&t_r2);
+		//printf("Upd_ray new: (%f %f %f) (%f %f %f) \n",	t_r1.x,t_r1.y,t_r1.z,t_r2.x,t_r2.y,t_r2.z);
+	}
 
 	VECCOPY(tg->RenderFuncs.t_r1,t_r1);
 	VECCOPY(tg->RenderFuncs.t_r2,t_r2);
 	VECCOPY(tg->RenderFuncs.t_r3,t_r3);
 
-/*
+	/*
 	printf("Upd_ray: (%f %f %f)->(%f %f %f) == (%f %f %f)->(%f %f %f)\n",
 	r1.x,r1.y,r1.z,r2.x,r2.y,r2.z,
 	t_r1.x,t_r1.y,t_r1.z,t_r2.x,t_r2.y,t_r2.z);
-*/
+	*/
 
 }
 
@@ -1113,7 +1153,7 @@ void render_node(struct X3D_Node *node) {
 		if(justGeom)
 			profile_end("prepgeom");
 		if(p->renderstate.render_sensitive && !tg->RenderFuncs.hypersensitive) {
-			upd_ray();
+			upd_ray(); 
 		}
 		PRINT_GL_ERROR_IF_ANY("prep"); PRINT_NODE(node,virt);
 	}
