@@ -1496,6 +1496,7 @@ void loadIdentityMatrix (double *mat) {
 }
 double *matcopy(double *r, double*mat){
 	memcpy((void*)r, (void*)mat,sizeof(double)*16);
+	return r;
 }
 
 void printmatrix2(GLDOUBLE* mat,char* description ) {
