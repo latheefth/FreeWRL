@@ -4110,7 +4110,7 @@ static void get_hyperhit() {
 				projMatrix, viewport, &x2, &y2, &z2);
 		FW_GLU_UNPROJECT(tg->RenderFuncs.hp.x, tg->RenderFuncs.hp.y, tg->RenderFuncs.hp.z, rh->modelMatrix,
 				projMatrix,viewport, &x3, &y3, &z3);
-		if(1) printf("OLD ");
+		if(0) printf("OLD ");
 	}
 	if(tg->RenderFuncs.usingAffinePickmatrix){
 		//feature-AFFINE_GLU_UNPROJECT
@@ -4148,10 +4148,10 @@ static void get_hyperhit() {
 
 		transform(&tp,&tg->RenderFuncs.hp,mvpi);
 		x3 = tp.x; y3 = tp.y; z3 = tp.z;
-		if(1) printf("NEW ");
+		if(0) printf("NEW ");
 	}
 	
-    if(1) printf ("get_hyper %f %f %f, %f %f %f, %f %f %f\n",
+    if(0) printf ("get_hyper %f %f %f, %f %f %f, %f %f %f\n",
         x1,y1,z1,x2,y2,z2,x3,y3,z3); 
 	
     /* and save this globally */
