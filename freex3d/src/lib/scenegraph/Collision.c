@@ -1215,7 +1215,7 @@ int fast_ycylinder_box_intersect(double y1, double y2, double r,struct point_XYZ
 
 
 
-static void transformMBB(GLDOUBLE *rMBBmin, GLDOUBLE *rMBBmax, GLDOUBLE *matTransform, GLDOUBLE* inMBBmin, GLDOUBLE* inMBBmax)
+void transformMBB(GLDOUBLE *rMBBmin, GLDOUBLE *rMBBmax, GLDOUBLE *matTransform, GLDOUBLE* inMBBmin, GLDOUBLE* inMBBmax)
 {
 	/* transform axes aligned minimum bounding box MBB via octo box - will expand as necessary to cover original volume */
 	struct point_XYZ abox[8];

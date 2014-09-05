@@ -2071,7 +2071,7 @@ void setup_projection(int pick, int x, int y)
 				double hypotenuse = sqrt(C[0]*C[0] + C[2]*C[2]);
 				pitch = atan2(C[1],hypotenuse);
 			}
-			if(1) printf("atan2 yaw=%f pitch=%f\n",yaw,pitch);
+			if(0) printf("atan2 yaw=%f pitch=%f\n",yaw,pitch);
 
 			pitch = -pitch;
 			if(0) printf("[yaw=%f pitch=%f\n",yaw,pitch);
@@ -3650,31 +3650,53 @@ struct X3D_Node* getRayHit() {
 
         if(tg->RenderFuncs.hitPointDist >= 0) {
 			struct currayhit * rh = (struct currayhit *)tg->RenderFuncs.rayHit;
-                FW_GLU_UNPROJECT(tg->RenderFuncs.hp.x,tg->RenderFuncs.hp.y,tg->RenderFuncs.hp.z,rh->modelMatrix,rh->projMatrix,viewport,&x,&y,&z);
 
-                /* and save this globally */
-                tg->RenderFuncs.ray_save_posn.c[0] = (float) x; tg->RenderFuncs.ray_save_posn.c[1] = (float) y; tg->RenderFuncs.ray_save_posn.c[2] = (float) z;
+			if(!tg->RenderFuncs.usingAffinePickmatrix){
+				FW_GLU_UNPROJECT(tg->RenderFuncs.hp.x,tg->RenderFuncs.hp.y,tg->RenderFuncs.hp.z,rh->modelMatrix,rh->projMatrix,viewport,&x,&y,&z);
+			}
+			if(tg->RenderFuncs.usingAffinePickmatrix){
+				GLDOUBLE mvp[16], mvpi[16];
+				GLDOUBLE *pickMatrix = getPickrayMatrix(0);
+				struct point_XYZ r11 = {0.0,0.0,1.0}; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
+				struct point_XYZ tp; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 
-                /* we POSSIBLY are over a sensitive node - lets go through the sensitive list, and see
-                   if it exists */
+				if(0){
+					//pickMatrix is inverted in setup_projection
+					matmultiplyAFFINE(mvp,rh->modelMatrix,pickMatrix);
+					matinverseAFFINE(mvpi,mvp);
+				}else{
+					//pickMatrix is not inverted in setup_projection
+					double mvi[16];
+					matinverseAFFINE(mvi,rh->modelMatrix);
+					matmultiplyAFFINE(mvpi,pickMatrix,mvi);
+				}
+		
+				transform(&tp,&tg->RenderFuncs.hp,mvpi);
+				x = tp.x; y = tp.y, z = tp.z;
+			}
+            /* and save this globally */
+            tg->RenderFuncs.ray_save_posn.c[0] = (float) x; tg->RenderFuncs.ray_save_posn.c[1] = (float) y; tg->RenderFuncs.ray_save_posn.c[2] = (float) z;
 
-                /* is the sensitive node not NULL? */
-                if (rh->hitNode == NULL) return NULL;
+            /* we POSSIBLY are over a sensitive node - lets go through the sensitive list, and see
+                if it exists */
+
+            /* is the sensitive node not NULL? */
+            if (rh->hitNode == NULL) return NULL;
 
 
-				/*
-                printf ("rayhit, we are over a node, have node %p (%s), posn %lf %lf %lf",
-					rh->hitNode, stringNodeType(rh->hitNode->_nodeType), x, y, z);
-				printf(" dist %f \n", rh->hitNode->_dist);
-				*/
+			/*
+            printf ("rayhit, we are over a node, have node %p (%s), posn %lf %lf %lf",
+				rh->hitNode, stringNodeType(rh->hitNode->_nodeType), x, y, z);
+			printf(" dist %f \n", rh->hitNode->_dist);
+			*/
 
 
-                for (i=0; i<p->num_SensorEvents; i++) {
-                        if (p->SensorEvents[i].fromnode == rh->hitNode) {
-                                /* printf ("found this node to be sensitive - returning %u\n",rayHit.hitNode); */
-                                return ((struct X3D_Node*) rh->hitNode);
-                        }
-                }
+            for (i=0; i<p->num_SensorEvents; i++) {
+                    if (p->SensorEvents[i].fromnode == rh->hitNode) {
+                            /* printf ("found this node to be sensitive - returning %u\n",rayHit.hitNode); */
+                            return ((struct X3D_Node*) rh->hitNode);
+                    }
+            }
         }
 
         /* no rayhit, or, node was "close" (scenegraph-wise) to a sensitive node, but is not one itself */
@@ -4088,12 +4110,14 @@ static void get_hyperhit() {
 				projMatrix, viewport, &x2, &y2, &z2);
 		FW_GLU_UNPROJECT(tg->RenderFuncs.hp.x, tg->RenderFuncs.hp.y, tg->RenderFuncs.hp.z, rh->modelMatrix,
 				projMatrix,viewport, &x3, &y3, &z3);
+		if(0) printf("OLD ");
 	}
 	if(tg->RenderFuncs.usingAffinePickmatrix){
 		//feature-AFFINE_GLU_UNPROJECT
 		//FLOPs	112 double:	matmultiplyAFFINE 36, matinverseAFFINE 49, transform (affine) 3x9 =27
 		GLDOUBLE mvp[16], mvpi[16];
 		GLDOUBLE *pickMatrix = getPickrayMatrix(0);
+		struct point_XYZ r11 = {0.0,0.0,1.0}; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 		struct point_XYZ tp; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 
 		if(0){
@@ -4107,7 +4131,7 @@ static void get_hyperhit() {
 			matmultiplyAFFINE(mvpi,pickMatrix,mvi);
 		}
 		
-		transform(&tp,&r1,mvpi);
+		transform(&tp,&r11,mvpi);
 		x1 = tp.x; y1 = tp.y; z1 = tp.z;
 		transform(&tp,&r2,mvpi);
 		x2 = tp.x; y2 = tp.y; z2 = tp.z;
@@ -4124,11 +4148,12 @@ static void get_hyperhit() {
 
 		transform(&tp,&tg->RenderFuncs.hp,mvpi);
 		x3 = tp.x; y3 = tp.y; z3 = tp.z;
+		if(0) printf("NEW ");
 	}
-	/*
-    printf ("get_hyperhit in VRMLC %f %f %f, %f %f %f, %f %f %f\n",
+	
+    if(0) printf ("get_hyper %f %f %f, %f %f %f, %f %f %f\n",
         x1,y1,z1,x2,y2,z2,x3,y3,z3); 
-	*/
+	
     /* and save this globally */
     tg->RenderFuncs.hyp_save_posn.c[0] = (float) x1; tg->RenderFuncs.hyp_save_posn.c[1] = (float) y1; tg->RenderFuncs.hyp_save_posn.c[2] = (float) z1;
     tg->RenderFuncs.hyp_save_norm.c[0] = (float) x2; tg->RenderFuncs.hyp_save_norm.c[1] = (float) y2; tg->RenderFuncs.hyp_save_norm.c[2] = (float) z2;

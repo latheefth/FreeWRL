@@ -122,7 +122,7 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 	/* material node usage depends on texture depth; if rgb (depth1) we blend color field
 	   and diffusecolor with texture, else, we dont bother with material colors */
 	t->last_texture_type = NOTEXTURE;
-	t->usingAffinePickmatrix = 1; /*use AFFINE matrix to transform points to align with pickray, instead of using GLU_UNPROJECT, feature-AFFINE_GLU_UNPROJECT*/
+	t->usingAffinePickmatrix = 0; /*use AFFINE matrix to transform points to align with pickray, instead of using GLU_UNPROJECT, feature-AFFINE_GLU_UNPROJECT*/
 
 	//private
 	t->prv = RenderFuncs_constructor();
@@ -818,8 +818,26 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 		return;
 	}
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix); //snapshot of geometry's modelview matrix
-	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
-	FW_GLU_PROJECT(cx,cy,cz, modelMatrix, projMatrix, viewport, &tg->RenderFuncs.hp.x, &tg->RenderFuncs.hp.y, &tg->RenderFuncs.hp.z);
+	if(!tg->RenderFuncs.usingAffinePickmatrix){
+		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
+		FW_GLU_PROJECT(cx,cy,cz, modelMatrix, projMatrix, viewport, &tg->RenderFuncs.hp.x, &tg->RenderFuncs.hp.y, &tg->RenderFuncs.hp.z);
+	}
+	if(tg->RenderFuncs.usingAffinePickmatrix){
+		GLDOUBLE pmi[16];
+		GLDOUBLE *pickMatrix = getPickrayMatrix(0);
+		struct point_XYZ tp; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
+		tp.x = cx; tp.y = cy; tp.z = cz;
+		transform(&tp, &tp, modelMatrix);
+		if(0){
+			//pickMatrix is inverted in setup_projection
+			transform(&tp,&tp,pickMatrix);
+		}else{
+			//pickMatrix is not inverted in setup_projection
+			matinverseAFFINE(pmi,pickMatrix);
+			transform(&tp,&tp,pmi);
+		}
+		tg->RenderFuncs.hp = tp; //struct value copy
+	}
 	tg->RenderFuncs.hitPointDist = rat;
 	p->rayHit=p->rayph;
 	p->rayHitHyper=p->rayph;
@@ -911,7 +929,55 @@ for (i=0; i<16; i++) printf ("%4.3lf ",projMatrix[i]); printf ("\n");
 	*/
 
 }
+void transformMBB(GLDOUBLE *rMBBmin, GLDOUBLE *rMBBmax, GLDOUBLE *matTransform, GLDOUBLE* inMBBmin, GLDOUBLE* inMBBmax);
+int pickrayHitsMBB(struct X3D_Node *node){
+	//GOAL: on a sensitive (touch sensor) pass, before checking the ray against geometry, check first if the
+	//ray goes through the extent / minimum-bounding-box (MBB) of the shape. If not, no need to check the ray 
+	//against all the shape's triangles, speeding up the VF_Sensitive pass.
+	//FLOPs 156 double: matmultiplyAffine 36, matInversAffine 48,  transformAffine 8 pts x 12= 72
+	int retval;
+	ttglobal tg = gglobal();
+	retval = TRUE;
+	if(tg->RenderFuncs.usingAffinePickmatrix){
+		GLDOUBLE modelMatrix[16];
+		int i, isIn;
+		//if using new Sept 2014 pickmatrix, we can test the pickray against the shape node's bounding box
+		//and if no hit, then no need to run through rendray testing all triangles
+		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
+		//feature-AFFINE_GLU_UNPROJECT
+		//FLOPs	112 double:	matmultiplyAFFINE 36, matinverseAFFINE 49, 3x transform (affine) 9 =27
+		GLDOUBLE mvp[16], mvpi[16];
+		GLDOUBLE smin[3], smax[3], shapeMBBmin[3], shapeMBBmax[3];
+		GLDOUBLE *pickMatrix = getPickrayMatrix(0);
+		//struct point_XYZ r11 = {0.0,0.0,-1.0}; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 
+		if(0){
+			//pickMatrix is inverted in setup_projection
+			matmultiplyAFFINE(mvp,modelMatrix,pickMatrix);
+		}else{
+			//pickMatrix is not inverted in setup_projection
+			double pi[16];
+			matinverseAFFINE(pi,pickMatrix);
+			matmultiplyAFFINE(mvp,modelMatrix,pi);
+		}
+
+		/* generate mins and maxes for avatar cylinder in avatar space to represent the avatar collision volume */
+		for(i=0;i<3;i++)
+		{
+			shapeMBBmin[i] = node->_extent[i*2 + 1];
+			shapeMBBmax[i] = node->_extent[i*2];
+		}
+		transformMBB(smin,smax,mvp,shapeMBBmin,shapeMBBmax); //transform shape's MBB into pickray space
+		// the pickray is now at 0,0,x
+		isIn = TRUE;
+		for(i=0;i<2;i++)
+			isIn = isIn && (smin[i] <= 0.0 && smax[i] >= 0.0);
+		retval = isIn;
+		//printf("%d x %f %f y %f %f\n",isIn,smin[0],smax[0],smin[1],smax[1]);
+		//retval = 1;
+	}
+	return retval;
+}
 
 /* if a node changes, void the display lists */
 /* Courtesy of Jochen Hoenicke */
@@ -1213,7 +1279,8 @@ void render_node(struct X3D_Node *node) {
 	if(p->renderstate.render_geom && p->renderstate.render_sensitive && !tg->RenderFuncs.hypersensitive && virt->rendray) {
 		DEBUG_RENDER("rs 6\n");
 		profile_start("rendray");
-		virt->rendray(node);
+		if(pickrayHitsMBB(node))
+			virt->rendray(node);
 		profile_end("rendray");
 		PRINT_GL_ERROR_IF_ANY("rs 6"); PRINT_NODE(node,virt);
 	}
