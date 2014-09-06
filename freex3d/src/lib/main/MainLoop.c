@@ -1182,27 +1182,25 @@ void fwl_RenderSceneUpdateScene() {
 
 		/* for nodes that use an "isOver" eventOut... */
 		if (p->lastOver != p->CursorOverSensitive) {
-		#ifdef VERBOSE
-			printf ("%lf over changed, p->lastOver %u p->cursorOverSensitive %u, p->butDown1 %d\n",
-				TickTime(), (unsigned int) p->lastOver, (unsigned int) p->CursorOverSensitive,
-				p->ButDown[p->currentCursor][1]);
-		#endif
+			#ifdef VERBOSE
+				printf ("%lf over changed, p->lastOver %u p->cursorOverSensitive %u, p->butDown1 %d\n",
+					TickTime(), (unsigned int) p->lastOver, (unsigned int) p->CursorOverSensitive,
+					p->ButDown[p->currentCursor][1]);
+			#endif
+			if (p->ButDown[p->currentCursor][1]==0) {
 
-		if (p->ButDown[p->currentCursor][1]==0) {
-
-			/* ok, when the user releases a button, cursorOverSensitive WILL BE NULL
-				until it gets sensed again. So, we use the lastOverButtonPressed flag to delay
-				sending this flag by one event loop loop. */
-			if (!p->lastOverButtonPressed) {
-				sendSensorEvents(p->lastOver, overMark, 0, FALSE);
-				sendSensorEvents(p->CursorOverSensitive, overMark, 0, TRUE);
-				p->lastOver = p->CursorOverSensitive;
+				/* ok, when the user releases a button, cursorOverSensitive WILL BE NULL
+					until it gets sensed again. So, we use the lastOverButtonPressed flag to delay
+					sending this flag by one event loop loop. */
+				if (!p->lastOverButtonPressed) {
+					sendSensorEvents(p->lastOver, overMark, 0, FALSE);
+					sendSensorEvents(p->CursorOverSensitive, overMark, 0, TRUE);
+					p->lastOver = p->CursorOverSensitive;
 				}
 				p->lastOverButtonPressed = FALSE;
 			} else {
 				p->lastOverButtonPressed = TRUE;
 			}
-
 		}
 		#ifdef VERBOSE
 		if (p->CursorOverSensitive != NULL)
@@ -1210,14 +1208,12 @@ void fwl_RenderSceneUpdateScene() {
 		#endif /* VERBOSE */
 
 		/* did we have a click of button 1? */
-
 		if (p->ButDown[p->currentCursor][1] && (p->lastPressedOver==NULL)) {
 			/* printf ("Not Navigation and 1 down\n"); */
 			/* send an event of ButtonPress and isOver=true */
 			p->lastPressedOver = p->CursorOverSensitive;
 			sendSensorEvents(p->lastPressedOver, ButtonPress, p->ButDown[p->currentCursor][1], TRUE);
 		}
-
 		if ((p->ButDown[p->currentCursor][1]==0) && p->lastPressedOver!=NULL) {
 			/* printf ("Not Navigation and 1 up\n");  */
 			/* send an event of ButtonRelease and isOver=true;
@@ -1225,7 +1221,6 @@ void fwl_RenderSceneUpdateScene() {
 			sendSensorEvents(p->lastPressedOver, ButtonRelease, p->ButDown[p->currentCursor][1], TRUE);
 			p->lastPressedOver = NULL;
 		}
-
 		if (p->lastMouseEvent == MotionNotify) {
 			/* printf ("Not Navigation and motion - going into sendSensorEvents\n"); */
 			/* TouchSensor hitPoint_changed needs to know if we are over a sensitive node or not */
@@ -1235,8 +1230,6 @@ void fwl_RenderSceneUpdateScene() {
 			sendSensorEvents(p->lastPressedOver,MotionNotify, p->ButDown[p->currentCursor][1], TRUE);
 			p->lastMouseEvent = 0 ;
 		}
-
-
 
 		/* do we need to re-define cursor style? */
 		/* do we need to send an isOver event? */
