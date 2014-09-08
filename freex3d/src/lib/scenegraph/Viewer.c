@@ -2430,7 +2430,7 @@ void slerp_viewpoint()
 }
 void setup_viewpoint_slerp(double* center, double radius){
 	/* when you don't have a  new viewpoint to bind to, but know where you want the viewer to go
-		with a transform relative to the viewer, instead of bind_viewpoint call setup_viewpoint_slerp(matRelative)
+		with a transform relative to the viewer, instead of bind_viewpoint call setup_viewpoint_slerp(pointInEyespace, radiusOfShapeInEyespace)
 		
 	*/
 	GLDOUBLE matTarget[16],matTargeti[16], mv[16];
@@ -2462,6 +2462,9 @@ void setup_viewpoint_slerp(double* center, double radius){
 	pointxyz2double(rpos,&qq);
 	mattranslate(T,rpos[0],rpos[1],rpos[2]);
 
+	//when you pick, your pickray and shape object isn't usually dead center in the viewport. In that case,
+	//besides translating the viewer, you also want to turn the camera to look at the 
+	//center of the shpade
 	veccopyd(C,pos);
 	yaw = atan2(C[0],-C[2]);
 	matrixFromAxisAngle4d(R1, -yaw, 0.0, 1.0, 0.0);
@@ -2491,6 +2494,7 @@ void setup_viewpoint_slerp(double* center, double radius){
 	matrix_to_quaternion(&sq,R3i);
 	quaternion_normalize(&sq);
 	quaternion_multiply(&p->Viewer.Quat,&sq,&p->Viewer.Quat);
+
 	if(0) resolve_pos(); //in examine mode, sets up examine origin
 
 	if(1){

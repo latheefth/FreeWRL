@@ -1260,7 +1260,7 @@ void render_node(struct X3D_Node *node) {
 #endif
 	} //other
 
-	if(p->renderstate.render_sensitive && (node->_renderFlags & VF_Sensitive)) {
+	if(p->renderstate.render_sensitive && ((node->_renderFlags & VF_Sensitive)|| Viewer()->LookatMode ==2)) {
 		DEBUG_RENDER("rs 5\n");
 		profile_start("sensitive");
 		srg = p->renderstate.render_geom;
@@ -1310,7 +1310,7 @@ void render_node(struct X3D_Node *node) {
 #endif
 	}
 
-	if(p->renderstate.render_sensitive && (node->_renderFlags & VF_Sensitive)) {
+	if(p->renderstate.render_sensitive && ((node->_renderFlags & VF_Sensitive) || Viewer()->LookatMode ==2) ) {
 		DEBUG_RENDER("rs 9\n");
 		profile_start("sensitive2");
 
