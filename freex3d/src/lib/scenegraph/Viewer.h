@@ -244,6 +244,8 @@ typedef struct viewer {
 	double startSLERPtime;
 
 	int type; 	/* eg, VIEWER_EXAMINE, etc */
+	int lastType; /* LOOKAT saves previous type, and recovers it when done */
+	int LookatMode; //0 = not, 1= mainloop should do a node pick operation then set this back to 0 */
 	int transitionType;   	/* going from one viewpoint to another */
 	double transitionTime;
 

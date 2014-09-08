@@ -170,6 +170,7 @@ double veclengthd( double *p );
 double vecdotd(double *a, double *b);
 double* vecscaled(double* r, double* v, double s);
 double vecnormald(double *r, double *v);
+double *veccopyd(double *c, double *a);
 
 double * vecadd2d(double *c, double *a, double *b);
 double *vecdif2d(double *c, double* a, double *b);
@@ -272,6 +273,7 @@ GLDOUBLE* matmultiplyAFFINE(GLDOUBLE* r, GLDOUBLE* m , GLDOUBLE* n);
 float* matmultiply4f(float* r, float* mm , float* nn);
 float *axisangle2matrix4f(float *b, float *axisangle);
 float *matidentity4f(float *b);
+void matrixFromAxisAngle4d(double *mat, double rangle, double x, double y, double z);
 
 void scale_to_matrix (double *mat, struct point_XYZ *scale);
 void loadIdentityMatrix (double *mat);

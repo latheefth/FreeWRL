@@ -825,12 +825,13 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 	if(tg->RenderFuncs.usingAffinePickmatrix){
 		GLDOUBLE pmi[16];
 		GLDOUBLE *pickMatrix = getPickrayMatrix(0);
+		GLDOUBLE *pickMatrixi = getPickrayMatrix(1);
 		struct point_XYZ tp; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 		tp.x = cx; tp.y = cy; tp.z = cz;
 		transform(&tp, &tp, modelMatrix);
-		if(0){
+		if(1){
 			//pickMatrix is inverted in setup_projection
-			transform(&tp,&tp,pickMatrix);
+			transform(&tp,&tp,pickMatrixi);
 		}else{
 			//pickMatrix is not inverted in setup_projection
 			matinverseAFFINE(pmi,pickMatrix);
@@ -895,11 +896,12 @@ for (i=0; i<16; i++) printf ("%4.3lf ",projMatrix[i]); printf ("\n");
 		//FLOPs	112 double:	matmultiplyAFFINE 36, matinverseAFFINE 49, 3x transform (affine) 9 =27
 		GLDOUBLE mvp[16], mvpi[16];
 		GLDOUBLE *pickMatrix = getPickrayMatrix(0);
+		GLDOUBLE *pickMatrixi = getPickrayMatrix(1);
 		struct point_XYZ r11 = {0.0,0.0,1.0}; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 
 		if(0){
 			//pickMatrix is inverted in setup_projection
-			matmultiplyAFFINE(mvp,modelMatrix,pickMatrix);
+			matmultiplyAFFINE(mvp,modelMatrix,pickMatrixi);
 			matinverseAFFINE(mvpi,mvp);
 		}else{
 			//pickMatrix is not inverted in setup_projection
@@ -949,11 +951,12 @@ int pickrayHitsMBB(struct X3D_Node *node){
 		GLDOUBLE mvp[16], mvpi[16];
 		GLDOUBLE smin[3], smax[3], shapeMBBmin[3], shapeMBBmax[3];
 		GLDOUBLE *pickMatrix = getPickrayMatrix(0);
+		GLDOUBLE *pickMatrixi = getPickrayMatrix(1);
 		//struct point_XYZ r11 = {0.0,0.0,-1.0}; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 
-		if(0){
+		if(1){
 			//pickMatrix is inverted in setup_projection
-			matmultiplyAFFINE(mvp,modelMatrix,pickMatrix);
+			matmultiplyAFFINE(mvp,modelMatrix,pickMatrixi);
 		}else{
 			//pickMatrix is not inverted in setup_projection
 			double pi[16];
@@ -1257,7 +1260,7 @@ void render_node(struct X3D_Node *node) {
 #endif
 	} //other
 
-	if(p->renderstate.render_sensitive && (node->_renderFlags & VF_Sensitive)) {
+	if(p->renderstate.render_sensitive && ((node->_renderFlags & VF_Sensitive)|| Viewer()->LookatMode ==2)) {
 		DEBUG_RENDER("rs 5\n");
 		profile_start("sensitive");
 		srg = p->renderstate.render_geom;
@@ -1307,7 +1310,7 @@ void render_node(struct X3D_Node *node) {
 #endif
 	}
 
-	if(p->renderstate.render_sensitive && (node->_renderFlags & VF_Sensitive)) {
+	if(p->renderstate.render_sensitive && ((node->_renderFlags & VF_Sensitive) || Viewer()->LookatMode ==2) ) {
 		DEBUG_RENDER("rs 9\n");
 		profile_start("sensitive2");
 

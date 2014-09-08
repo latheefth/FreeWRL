@@ -72,6 +72,9 @@
 
 #include "ProdCon.h"
 
+int getRayHitAndSetLookatTarget();
+void transformMBB(GLDOUBLE *rMBBmin, GLDOUBLE *rMBBmax, GLDOUBLE *matTransform, GLDOUBLE* inMBBmin, GLDOUBLE* inMBBmax);
+
 // for getting time of day
 #if !defined(_MSC_VER)
 #include <sys/time.h>
@@ -971,58 +974,58 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 #else //FRONTEND_DOES_SNAPSHOTS
 
 void fwl_RenderSceneUpdateScene() {
-		double dtime = Time1970sec();
+	double dtime = Time1970sec();
 
 #endif //FRONTEND_DOES_SNAPSHOTS
 
-		ttglobal tg = gglobal();
-		ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
-/* HAd an issue with Anaglyph rendering on Android; the cursorDraw routine caused the MODELVIEW matrix
-to have the Identity matrix loaded, which caused near/far plane calculations to be dinked.
- should be set     FW_GL_MATRIX_MODE(GL_MODELVIEW);
-    FW_GL_LOAD_IDENTITY(); DO NOT LOAD IDENTITY HERE, ELSE near/Far planes screwed up.
- if you want to see what happened, load identity matrix here! (uncomment above line)
-*/
+	/* HAd an issue with Anaglyph rendering on Android; the cursorDraw routine caused the MODELVIEW matrix
+	to have the Identity matrix loaded, which caused near/far plane calculations to be dinked.
+	 should be set     FW_GL_MATRIX_MODE(GL_MODELVIEW);
+		FW_GL_LOAD_IDENTITY(); DO NOT LOAD IDENTITY HERE, ELSE near/Far planes screwed up.
+	 if you want to see what happened, load identity matrix here! (uncomment above line)
+	*/
 
-    PRINT_GL_ERROR_IF_ANY("start of renderSceneUpdateScene");
+	PRINT_GL_ERROR_IF_ANY("start of renderSceneUpdateScene");
 
-        DEBUG_RENDER("start of MainLoop (parsing=%s) (url loaded=%s)\n",
-		     BOOL_STR(fwl_isinputThreadParsing()), BOOL_STR(resource_is_root_loaded()));
+	DEBUG_RENDER("start of MainLoop (parsing=%s) (url loaded=%s)\n",
+	BOOL_STR(fwl_isinputThreadParsing()), BOOL_STR(resource_is_root_loaded()));
 
-        /* should we do events, or maybe a parser is parsing? */
-        p->doEvents = (!fwl_isinputThreadParsing()) && (!fwl_isTextureParsing()) && fwl_isInputThreadInitialized();
-        /* First time through */
-        if (p->loop_count == 0) {
-                p->BrowserStartTime = dtime; //Time1970sec();
-				tg->Mainloop.TickTime = p->BrowserStartTime;
-                tg->Mainloop.lastTime = tg->Mainloop.TickTime - 0.01; /* might as well not invoke the usleep below */
-        } else {
+	/* should we do events, or maybe a parser is parsing? */
+	p->doEvents = (!fwl_isinputThreadParsing()) && (!fwl_isTextureParsing()) && fwl_isInputThreadInitialized();
+	/* First time through */
+	if (p->loop_count == 0) {
+		p->BrowserStartTime = dtime; //Time1970sec();
+		tg->Mainloop.TickTime = p->BrowserStartTime;
+		tg->Mainloop.lastTime = tg->Mainloop.TickTime - 0.01; /* might as well not invoke the usleep below */
+	} else {
 		/* NOTE: front ends now sync with the monitor, meaning, this sleep is no longer needed unless
-		   something goes totally wrong */
+			something goes totally wrong */
 #ifndef FRONTEND_HANDLES_DISPLAY_THREAD
-			if(0) if(!tg->display.params.frontend_handles_display_thread){
-				/* we see how long it took to do the last loop; now that the frame rate is synced to the
-				   vertical retrace of the screens, we should not get more than 60-70fps. We calculate the
-				   time here, if it is more than 200fps, we sleep for 1/100th of a second - we should NOT
-				   need this, but in case something goes pear-shaped (british expression, there!) we do not
-				   consume thousands of frames per second */
+		if(0) if(!tg->display.params.frontend_handles_display_thread){
+			/* we see how long it took to do the last loop; now that the frame rate is synced to the
+				vertical retrace of the screens, we should not get more than 60-70fps. We calculate the
+				time here, if it is more than 200fps, we sleep for 1/100th of a second - we should NOT
+				need this, but in case something goes pear-shaped (british expression, there!) we do not
+				consume thousands of frames per second */
 
-				p->waitsec = TickTime() - lastTime();
-				if (p->waitsec < 0.005) {
-					usleep(10000);
-				}
+			p->waitsec = TickTime() - lastTime();
+			if (p->waitsec < 0.005) {
+				usleep(10000);
 			}
+		}
 #endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
-        }
+	}
 
-        /* Set the timestamp */
-		tg->Mainloop.lastTime = tg->Mainloop.TickTime;
-		tg->Mainloop.TickTime = dtime; //Time1970sec();
+	/* Set the timestamp */
+	tg->Mainloop.lastTime = tg->Mainloop.TickTime;
+	tg->Mainloop.TickTime = dtime; //Time1970sec();
 
-        /* any scripts to do?? */
+	/* any scripts to do?? */
 #ifdef _MSC_VER
-		if(p->doEvents)
+	if(p->doEvents)
 #endif /* _MSC_VER */
 
 	#ifdef HAVE_JAVASCRIPT
@@ -1030,34 +1033,34 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
 	#endif
 
 
-        /* BrowserAction required? eg, anchors, etc */
-        if (tg->RenderFuncs.BrowserAction) {
-                tg->RenderFuncs.BrowserAction = doBrowserAction ();
-        }
+	/* BrowserAction required? eg, anchors, etc */
+	if (tg->RenderFuncs.BrowserAction) {
+		tg->RenderFuncs.BrowserAction = doBrowserAction ();
+	}
 
-        /* has the default background changed? */
-        if (tg->OpenGL_Utils.cc_changed) doglClearColor();
+	/* has the default background changed? */
+	if (tg->OpenGL_Utils.cc_changed) doglClearColor();
 
-        OcclusionStartofRenderSceneUpdateScene();
-        startOfLoopNodeUpdates();
+	OcclusionStartofRenderSceneUpdateScene();
+	startOfLoopNodeUpdates();
 
-		if (p->loop_count == 25) {
-                tg->Mainloop.BrowserFPS = 25.0 / (TickTime()-p->BrowserStartTime);
-                setMenuFps((float)tg->Mainloop.BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
-                /* printf ("fps %f tris %d, rootnode children %d \n",p->BrowserFPS,p->trisThisLoop, X3D_GROUP(rootNode)->children.n);  */
+	if (p->loop_count == 25) {
+		tg->Mainloop.BrowserFPS = 25.0 / (TickTime()-p->BrowserStartTime);
+		setMenuFps((float)tg->Mainloop.BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
+		/* printf ("fps %f tris %d, rootnode children %d \n",p->BrowserFPS,p->trisThisLoop, X3D_GROUP(rootNode)->children.n);  */
 
-                //ConsoleMessage("fps %f tris %d\n",tg->Mainloop.BrowserFPS,tg->Mainloop.trisThisLoop);
+		//ConsoleMessage("fps %f tris %d\n",tg->Mainloop.BrowserFPS,tg->Mainloop.trisThisLoop);
 
 
 		 //printf ("MainLoop, nearPlane %lf farPlane %lf\n",Viewer.nearPlane, Viewer.farPlane);
 
-                p->BrowserStartTime = TickTime();
-                p->loop_count = 1;
-        } else {
-                p->loop_count++;
-        }
+		p->BrowserStartTime = TickTime();
+		p->loop_count = 1;
+	} else {
+		p->loop_count++;
+	}
 
-        tg->Mainloop.trisThisLoop = 0;
+	tg->Mainloop.trisThisLoop = 0;
 
 	if(p->slowloop_count == 1009) p->slowloop_count = 0 ;
 	#if USE_OSC
@@ -1075,26 +1078,24 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
 
 	p->slowloop_count++ ;
 
-        /* handle any events provided on the command line - Robert Sim */
-        if (p->keypress_string && p->doEvents) {
-                if (p->keypress_wait_for_settle > 0) {
-                        p->keypress_wait_for_settle--;
-                } else {
-                        /* dont do the null... */
-                        if (*p->keypress_string) {
-                                /* printf ("handling key %c\n",*p->keypress_string); */
+	/* handle any events provided on the command line - Robert Sim */
+	if (p->keypress_string && p->doEvents) {
+		if (p->keypress_wait_for_settle > 0) {
+			p->keypress_wait_for_settle--;
+		} else {
+			/* dont do the null... */
+			if (*p->keypress_string) {
+				/* printf ("handling key %c\n",*p->keypress_string); */
 #if !defined( AQUA ) && !defined( _MSC_VER )  /*win32 - don't know whats it is suppsoed to do yet */
-
 				DEBUG_XEV("CMD LINE GEN EVENT: %c\n", *p->keypress_string);
-                                fwl_do_keyPress(*p->keypress_string,KeyPress);
+				fwl_do_keyPress(*p->keypress_string,KeyPress);
 #endif /* NOT AQUA and NOT WIN32 */
-
-                                p->keypress_string++;
-                        } else {
-                                p->keypress_string=NULL;
-                        }
-                }
-        }
+				p->keypress_string++;
+			} else {
+				p->keypress_string=NULL;
+			}
+		}
+	}
 
 #if KEEP_X11_INLIB
 	/**
@@ -1105,229 +1106,212 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
 #if defined(TARGET_X11)
 	/* We are running our own bare window */
 	while (XPending(Xdpy)) {
-	    XNextEvent(Xdpy, &event);
-	    DEBUG_XEV("EVENT through XNextEvent\n");
-	    handle_Xevents(event);
+		XNextEvent(Xdpy, &event);
+		DEBUG_XEV("EVENT through XNextEvent\n");
+		handle_Xevents(event);
 	}
 #endif /* TARGET_X11 */
 
 
-    PRINT_GL_ERROR_IF_ANY("before xtdispatch");
+	PRINT_GL_ERROR_IF_ANY("before xtdispatch");
 #if defined(TARGET_MOTIF)
 	/* any updates to the menu buttons? Because of Linux threading
-	   issues, we try to make all updates come from 1 thread */
+		issues, we try to make all updates come from 1 thread */
 	frontendUpdateButtons();
 
 	/* do the Xt events here. */
 	while (XtAppPending(Xtcx)!= 0) {
-
-	    XtAppNextEvent(Xtcx, &event);
-
+		XtAppNextEvent(Xtcx, &event);
 #ifdef XEVENT_VERBOSE
-	    XButtonEvent *bev;
-	    XMotionEvent *mev;
-
-	    switch (event.type) {
-	    case MotionNotify:
-		mev = &event.xmotion;
-		TRACE_MSG("mouse motion event: win=%u, state=%d\n",
-			  mev->window, mev->state);
+		XButtonEvent *bev;
+		XMotionEvent *mev;
+		switch (event.type) {
+			case MotionNotify:
+			mev = &event.xmotion;
+			TRACE_MSG("mouse motion event: win=%u, state=%d\n",mev->window, mev->state);
 		break;
-	    case ButtonPress:
-	    case ButtonRelease:
+		case ButtonPress:
+		case ButtonRelease:
 		bev = &event.xbutton;
-		TRACE_MSG("mouse button event: win=%u, state=%d\n",
-			  bev->window, bev->state);
+		TRACE_MSG("mouse button event: win=%u, state=%d\n",bev->window, bev->state);
 		break;
-	    }
+	}
 #endif /* XEVENT_VERBOSE */
 
-	    DEBUG_XEV("EVENT through XtDispatchEvent\n");
-	    XtDispatchEvent (&event);
+		DEBUG_XEV("EVENT through XtDispatchEvent\n");
+		XtDispatchEvent (&event);
 	}
 
 #endif /* TARGET_MOTIF */
 #endif /* KEEP_X11_INLIB */
 
-//#if defined(_MSC_VER)
-//	/**
-//	 *   Win32 event loop
-//	 *   gives windows message handler a time slice and
-//	 *   it calls fwl_handle_aqua and do_keypress from fwWindow32.c
-//	 */
-//	doEventsWin32A();
-//#endif /* _MSC_VER */
 
-        /* Viewer move viewpoint */
-        handle_tick();
+	/* Viewer move viewpoint */
+	handle_tick();
 
-    PRINT_GL_ERROR_IF_ANY("after handle_tick")
+	PRINT_GL_ERROR_IF_ANY("after handle_tick")
 
-        /* setup Projection and activate ProximitySensors */
-        if (p->onScreen)
+	/* setup Projection and activate ProximitySensors */
+	if (p->onScreen)
 		{
 			render_pre();
 			slerp_viewpoint();
 		}
 
 #ifdef RENDERVERBOSE
-    printf("RENDER STEP----------\n");
+	printf("RENDER STEP----------\n");
 #endif
 
-        /* first events (clock ticks, etc) if we have other things to do, yield */
-        if (p->doEvents) do_first (); //else sched_yield();
+	/* first events (clock ticks, etc) if we have other things to do, yield */
+	if (p->doEvents) do_first (); //else sched_yield();
 
 	/* ensure depth mask turned on here */
 	FW_GL_DEPTHMASK(GL_TRUE);
 
-    PRINT_GL_ERROR_IF_ANY("after depth")
-        /* actual rendering */
-        if (p->onScreen) {
+	PRINT_GL_ERROR_IF_ANY("after depth")
+	/* actual rendering */
+	if (p->onScreen) {
 		render();
 	}
 
-        /* handle_mouse events if clicked on a sensitive node */
-	 //printf("nav mode =%d sensitive= %d\n",p->NavigationMode, tg->Mainloop.HaveSensitive);
-        if (!p->NavigationMode && tg->Mainloop.HaveSensitive) {
-                p->currentCursor = 0;
-                setup_projection(TRUE,tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
-                setup_viewpoint();
-                render_hier(rootNode(),VF_Sensitive  | VF_Geom);
-                p->CursorOverSensitive = getRayHit();
+	/* handle_mouse events if clicked on a sensitive node */
+	//printf("nav mode =%d sensitive= %d\n",p->NavigationMode, tg->Mainloop.HaveSensitive);
+	if (!p->NavigationMode && tg->Mainloop.HaveSensitive && !Viewer()->LookatMode) {
+		p->currentCursor = 0;
+		setup_projection(TRUE,tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
+		setup_viewpoint();
+		render_hier(rootNode(),VF_Sensitive  | VF_Geom);
+		p->CursorOverSensitive = getRayHit();
 
-                /* for nodes that use an "isOver" eventOut... */
-                if (p->lastOver != p->CursorOverSensitive) {
-                        #ifdef VERBOSE
-			  printf ("%lf over changed, p->lastOver %u p->cursorOverSensitive %u, p->butDown1 %d\n",
-				TickTime(), (unsigned int) p->lastOver, (unsigned int) p->CursorOverSensitive,
-				p->ButDown[p->currentCursor][1]);
-                        #endif
+		/* for nodes that use an "isOver" eventOut... */
+		if (p->lastOver != p->CursorOverSensitive) {
+			#ifdef VERBOSE
+				printf ("%lf over changed, p->lastOver %u p->cursorOverSensitive %u, p->butDown1 %d\n",
+					TickTime(), (unsigned int) p->lastOver, (unsigned int) p->CursorOverSensitive,
+					p->ButDown[p->currentCursor][1]);
+			#endif
+			if (p->ButDown[p->currentCursor][1]==0) {
 
-                        if (p->ButDown[p->currentCursor][1]==0) {
+				/* ok, when the user releases a button, cursorOverSensitive WILL BE NULL
+					until it gets sensed again. So, we use the lastOverButtonPressed flag to delay
+					sending this flag by one event loop loop. */
+				if (!p->lastOverButtonPressed) {
+					sendSensorEvents(p->lastOver, overMark, 0, FALSE);
+					sendSensorEvents(p->CursorOverSensitive, overMark, 0, TRUE);
+					p->lastOver = p->CursorOverSensitive;
+				}
+				p->lastOverButtonPressed = FALSE;
+			} else {
+				p->lastOverButtonPressed = TRUE;
+			}
+		}
+		#ifdef VERBOSE
+		if (p->CursorOverSensitive != NULL)
+			printf("COS %d (%s)\n", (unsigned int) p->CursorOverSensitive, stringNodeType(p->CursorOverSensitive->_nodeType));
+		#endif /* VERBOSE */
 
-                                /* ok, when the user releases a button, cursorOverSensitive WILL BE NULL
-                                   until it gets sensed again. So, we use the lastOverButtonPressed flag to delay
-                                   sending this flag by one event loop loop. */
-                                if (!p->lastOverButtonPressed) {
-                                        sendSensorEvents(p->lastOver, overMark, 0, FALSE);
-                                        sendSensorEvents(p->CursorOverSensitive, overMark, 0, TRUE);
-                                        p->lastOver = p->CursorOverSensitive;
-                                }
-                                p->lastOverButtonPressed = FALSE;
-                        } else {
-                                p->lastOverButtonPressed = TRUE;
-                        }
+		/* did we have a click of button 1? */
+		if (p->ButDown[p->currentCursor][1] && (p->lastPressedOver==NULL)) {
+			/* printf ("Not Navigation and 1 down\n"); */
+			/* send an event of ButtonPress and isOver=true */
+			p->lastPressedOver = p->CursorOverSensitive;
+			sendSensorEvents(p->lastPressedOver, ButtonPress, p->ButDown[p->currentCursor][1], TRUE);
+		}
+		if ((p->ButDown[p->currentCursor][1]==0) && p->lastPressedOver!=NULL) {
+			/* printf ("Not Navigation and 1 up\n");  */
+			/* send an event of ButtonRelease and isOver=true;
+				an isOver=false event will be sent below if required */
+			sendSensorEvents(p->lastPressedOver, ButtonRelease, p->ButDown[p->currentCursor][1], TRUE);
+			p->lastPressedOver = NULL;
+		}
+		if (p->lastMouseEvent == MotionNotify) {
+			/* printf ("Not Navigation and motion - going into sendSensorEvents\n"); */
+			/* TouchSensor hitPoint_changed needs to know if we are over a sensitive node or not */
+			sendSensorEvents(p->CursorOverSensitive,MotionNotify, p->ButDown[p->currentCursor][1], TRUE);
 
-                }
-                #ifdef VERBOSE
-                if (p->CursorOverSensitive != NULL)
-			printf("COS %d (%s)\n",
-			       (unsigned int) p->CursorOverSensitive,
-			       stringNodeType(p->CursorOverSensitive->_nodeType));
-                #endif /* VERBOSE */
+			/* PlaneSensors, etc, take the last sensitive node pressed over, and a mouse movement */
+			sendSensorEvents(p->lastPressedOver,MotionNotify, p->ButDown[p->currentCursor][1], TRUE);
+			p->lastMouseEvent = 0 ;
+		}
 
-                /* did we have a click of button 1? */
+		/* do we need to re-define cursor style? */
+		/* do we need to send an isOver event? */
+		if (p->CursorOverSensitive!= NULL) {
+			setSensorCursor();
 
-                if (p->ButDown[p->currentCursor][1] && (p->lastPressedOver==NULL)) {
-                        /* printf ("Not Navigation and 1 down\n"); */
-                        /* send an event of ButtonPress and isOver=true */
-                        p->lastPressedOver = p->CursorOverSensitive;
-                        sendSensorEvents(p->lastPressedOver, ButtonPress, p->ButDown[p->currentCursor][1], TRUE);
-                }
-
-                if ((p->ButDown[p->currentCursor][1]==0) && p->lastPressedOver!=NULL) {
-                        /* printf ("Not Navigation and 1 up\n");  */
-                        /* send an event of ButtonRelease and isOver=true;
-                           an isOver=false event will be sent below if required */
-                        sendSensorEvents(p->lastPressedOver, ButtonRelease, p->ButDown[p->currentCursor][1], TRUE);
-                        p->lastPressedOver = NULL;
-                }
-
-                if (p->lastMouseEvent == MotionNotify) {
-                        /* printf ("Not Navigation and motion - going into sendSensorEvents\n"); */
-                        /* TouchSensor hitPoint_changed needs to know if we are over a sensitive node or not */
-                        sendSensorEvents(p->CursorOverSensitive,MotionNotify, p->ButDown[p->currentCursor][1], TRUE);
-
-                        /* PlaneSensors, etc, take the last sensitive node pressed over, and a mouse movement */
-                        sendSensorEvents(p->lastPressedOver,MotionNotify, p->ButDown[p->currentCursor][1], TRUE);
-                	p->lastMouseEvent = 0 ;
-                }
-
-
-
-                /* do we need to re-define cursor style?        */
-                /* do we need to send an isOver event?          */
-                if (p->CursorOverSensitive!= NULL) {
-					setSensorCursor();
-
-                        /* is this a new node that we are now over?
-                           don't change the node pointer if we are clicked down */
-                        if ((p->lastPressedOver==NULL) && (p->CursorOverSensitive != p->oldCOS)) {
-                                sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
-                                sendSensorEvents(p->CursorOverSensitive,MapNotify,p->ButDown[p->currentCursor][1], TRUE);
-                                p->oldCOS=p->CursorOverSensitive;
-                                sendDescriptionToStatusBar(p->CursorOverSensitive);
-                        }
-
-                } else {
-                        /* hold off on cursor change if dragging a sensor */
-                        if (p->lastPressedOver!=NULL) {
-							setSensorCursor();
-                        } else {
-							setArrowCursor();
-                        }
-
-                        /* were we over a sensitive node? */
-                        if ((p->oldCOS!=NULL)  && (p->ButDown[p->currentCursor][1]==0)) {
-                                sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
-                                /* remove any display on-screen */
-                                sendDescriptionToStatusBar(NULL);
-                                p->oldCOS=NULL;
-                        }
-                }
-
-        } /* (!NavigationMode && HaveSensitive) */
-		else
+			/* is this a new node that we are now over?
+				don't change the node pointer if we are clicked down */
+			if ((p->lastPressedOver==NULL) && (p->CursorOverSensitive != p->oldCOS)) {
+				sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
+				sendSensorEvents(p->CursorOverSensitive,MapNotify,p->ButDown[p->currentCursor][1], TRUE);
+				 p->oldCOS=p->CursorOverSensitive;
+				sendDescriptionToStatusBar(p->CursorOverSensitive);
+			}
+		} else {
+			/* hold off on cursor change if dragging a sensor */
+			if (p->lastPressedOver!=NULL) {
+				setSensorCursor();
+			} else {
+				setArrowCursor();
+			}
+			/* were we over a sensitive node? */
+			if ((p->oldCOS!=NULL)  && (p->ButDown[p->currentCursor][1]==0)) {
+				sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
+				/* remove any display on-screen */
+				sendDescriptionToStatusBar(NULL);
+				p->oldCOS=NULL;
+			}
+		}
+	} /* (!NavigationMode && HaveSensitive) */
+	else if(Viewer()->LookatMode){
+		if(Viewer()->LookatMode < 3)
+			setLookatCursor();
+		if(Viewer()->LookatMode == 2){
+			p->currentCursor = 0;
+			setup_projection(TRUE,tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
+			setup_viewpoint();
+			render_hier(rootNode(),VF_Sensitive  | VF_Geom);
+			getRayHitAndSetLookatTarget();
+		}
+		if(Viewer()->LookatMode > 2)
 			setArrowCursor();
-
+	}else{
+		//normal or navigation mode
+		setArrowCursor();
+	}
 
 	#if !defined(FRONTEND_DOES_SNAPSHOTS)
-        /* handle snapshots */
-        if (tg->Snapshot.doSnapshot) {
-                Snapshot();
-        }
+	/* handle snapshots */
+	if (tg->Snapshot.doSnapshot) {
+		Snapshot();
+	}
 	#endif //FRONTEND_DOES_SNAPSHOTS
 
-        /* do OcclusionCulling, etc */
-        OcclusionCulling();
+	/* do OcclusionCulling, etc */
+	OcclusionCulling();
 
-        if (p->doEvents) {
-                /* and just parsed nodes needing binding? */
-                SEND_BIND_IF_REQUIRED(tg->ProdCon.setViewpointBindInRender)
-                SEND_BIND_IF_REQUIRED(tg->ProdCon.setFogBindInRender)
-                SEND_BIND_IF_REQUIRED(tg->ProdCon.setBackgroundBindInRender)
-                SEND_BIND_IF_REQUIRED(tg->ProdCon.setNavigationBindInRender)
-
-
-                /* handle ROUTES - at least the ones not generated in do_first() */
-                propagate_events();
-
-                /* Javascript events processed */
-                process_eventsProcessed();
-
+	if (p->doEvents) {
+		/* and just parsed nodes needing binding? */
+		SEND_BIND_IF_REQUIRED(tg->ProdCon.setViewpointBindInRender)
+		SEND_BIND_IF_REQUIRED(tg->ProdCon.setFogBindInRender)
+		SEND_BIND_IF_REQUIRED(tg->ProdCon.setBackgroundBindInRender)
+		SEND_BIND_IF_REQUIRED(tg->ProdCon.setNavigationBindInRender)
+		/* handle ROUTES - at least the ones not generated in do_first() */
+		propagate_events();
+		/* Javascript events processed */
+		process_eventsProcessed();
 		#if !defined(EXCLUDE_EAI)
 		/*
-		 * Actions are now separate so that file IO is not tightly coupled
-		 * via shared buffers and file descriptors etc. 'The core' now calls
-		 * the fwlio_SCK* funcs to get data into the system, and calls the fwl_EAI*
-		 * funcs to give the data to the EAI,nd the fwl_MIDI* funcs for MIDI
-		 *
-		 * Although the MIDI code and the EAI code are basically the same
-		 * and one could compress them into a loop, for the moment keep
-		 * them seperate to serve as a example for any extensions...
-		 */
-
-                /* handle_EAI(); */
+			* Actions are now separate so that file IO is not tightly coupled
+			* via shared buffers and file descriptors etc. 'The core' now calls
+			* the fwlio_SCK* funcs to get data into the system, and calls the fwl_EAI*
+			* funcs to give the data to the EAI,nd the fwl_MIDI* funcs for MIDI
+			*
+			* Although the MIDI code and the EAI code are basically the same
+			* and one could compress them into a loop, for the moment keep
+			* them seperate to serve as a example for any extensions...
+			*/
+		/* handle_EAI(); */
 		{
 		int socketVerbose = fwlio_RxTx_control(CHANNEL_EAI, RxTx_GET_VERBOSITY)  ;
 		if ( socketVerbose <= 1 || (socketVerbose > 1 && ((p->slowloop_count % 256) == 0)) ) {
@@ -1353,9 +1337,9 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
 							printf("%s:%d Something for EAI to do with buffer addr %p\n",__FILE__,__LINE__,tempEAIdata ) ;
 						}
 						/*
-						 * Every incoming command has a reply,
-						 * and the reply is synchronous.
-						 */
+							* Every incoming command has a reply,
+							* and the reply is synchronous.
+							*/
 						replyData = fwl_EAI_handleBuffer(tempEAIdata);
 						free(tempEAIdata) ;
 						EAI_StillToDo = 1;
@@ -1364,10 +1348,10 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
 								fwlio_RxTx_sendbuffer(__FILE__,__LINE__,CHANNEL_EAI, replyData) ;
 								free(replyData) ;
 								/*
-								 * Note: fwlio_RxTx_sendbuffer() can also be called async
-								 * due to a listener trigger within routing, but it is
-								 * is up to that caller to clean out its own buffers.
-								 */
+									* Note: fwlio_RxTx_sendbuffer() can also be called async
+									* due to a listener trigger within routing, but it is
+									* is up to that caller to clean out its own buffers.
+									*/
 							}
 							EAI_StillToDo = fwl_EAI_allDone();
 							if(EAI_StillToDo) {
@@ -1377,58 +1361,16 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
 								replyData = fwl_EAI_handleRest();
 							}
 						} while(EAI_StillToDo) ;
-					}
-				}
-			}
-#ifdef OLDCODE
-OLDCODE			/* handle_MIDI(); */
-OLDCODE			//socketVerbose = fwlio_RxTx_control(CHANNEL_MIDI, RxTx_GET_VERBOSITY)  ;
-OLDCODE			if(fwlio_RxTx_control(CHANNEL_MIDI, RxTx_REFRESH) == 0) {
-OLDCODE				/* Nothing to be done, maybe not even running */
-OLDCODE				if ( socketVerbose > 1 ) {
-OLDCODE					printf("%s:%d Nothing to be done\n",__FILE__,__LINE__) ;
-OLDCODE				}
-OLDCODE			} else {
-OLDCODE				if ( socketVerbose > 1 ) {
-OLDCODE					printf("%s:%d Test RxTx_PENDING\n",__FILE__,__LINE__) ;
-OLDCODE				}
-OLDCODE				if(fwlio_RxTx_control(CHANNEL_MIDI, RxTx_PENDING) > 0) {
-OLDCODE					char *tempMIDIdata;
-OLDCODE					if ( socketVerbose != 0 ) {
-OLDCODE						printf("%s:%d Something pending\n",__FILE__,__LINE__) ;
-OLDCODE					}
-OLDCODE					tempMIDIdata = fwlio_RxTx_getbuffer(CHANNEL_MIDI) ;
-OLDCODE					if(tempMIDIdata != (char *)NULL) {
-OLDCODE						char * replyData;
-OLDCODE						int EAI_StillToDo;
-OLDCODE						if ( socketVerbose != 0 ) {
-OLDCODE							printf("%s:%d Something for MIDI to do with buffer addr %p\n",__FILE__,__LINE__,tempMIDIdata ) ;
-OLDCODE						}
-OLDCODE						replyData = fwl_MIDI_handleBuffer(tempMIDIdata);
-OLDCODE						free(tempMIDIdata) ;
-OLDCODE						EAI_StillToDo = 1;
-OLDCODE						do {
-OLDCODE							if(replyData != NULL && strlen(replyData) != 0) {
-OLDCODE								fwlio_RxTx_sendbuffer(__FILE__,__LINE__,CHANNEL_MIDI, replyData) ;
-OLDCODE								free(replyData) ;
-OLDCODE							}
-OLDCODE							EAI_StillToDo = fwl_EAI_allDone();
-OLDCODE							if(EAI_StillToDo) {
-OLDCODE								if ( socketVerbose != 0 ) {
-OLDCODE									printf("%s:%d Something still in EAI buffer? %d\n",__FILE__,__LINE__,EAI_StillToDo ) ;
-OLDCODE								}
-OLDCODE								replyData = fwl_EAI_handleRest();
-OLDCODE							}
-OLDCODE						} while(EAI_StillToDo) ;
-OLDCODE					}
-OLDCODE				}
-OLDCODE			}
-#endif //OLDCODE
+					} //temEAIdata
+				} //fwlio PENDING
+			} //fwlio REFRESH
+		} //socketverbose
 		}
-		}
-  		#endif //EXCLUDE_EAI
-          }
-  }
+		#endif //EXCLUDE_EAI
+	} //doEvents
+}
+
+
 void queueMouseMulti(ppMainloop p, const int mev, const unsigned int button, const int ix, const int iy, int ID){
 	if(p->mouseQueueCount < 50){
 		p->mouseQueue[p->mouseQueueCount].mev = mev;
@@ -1865,7 +1807,6 @@ static void render_pre() {
 		//drawStatusBar();
 		PRINT_GL_ERROR_IF_ANY("GLBackend::render_pre");
 }
-void matrixFromAxisAngle4d(double *mat, double rangle, double x, double y, double z);
 void setup_projection(int pick, int x, int y)
 {
 	GLDOUBLE fieldofview2;
@@ -2100,10 +2041,8 @@ void setup_projection(int pick, int x, int y)
 				if(0)printmatrix2(R3,"R3[12]=A");
 			}
 			if(0) printmatrix2(pmi,"inverted");
-			if(1)
-				setPickrayMatrix(0,pickMatrix); //using pickmatrix in upd_ray and get_hyper
-			else
-				setPickrayMatrix(0,pmi); //if using pickmatrix_inverse in upd_ray and get_hyper
+			setPickrayMatrix(0,pickMatrix); //using pickmatrix in upd_ray and get_hyper
+			setPickrayMatrix(1,pmi); //if using pickmatrix_inverse in upd_ray and get_hyper
 			if(0){
 				//Test: transform A,B and they should come out 0,0,x
 				double rA[3], rB[3];
@@ -3476,6 +3415,7 @@ void fwl_do_keyPress0(int key, int type) {
 				case 'f': { fwl_set_viewer_type (VIEWER_EXFLY); break; }
 				case 'y': { fwl_set_viewer_type (VIEWER_YAWPITCHZOOM); break; }
 				case 't': { fwl_set_viewer_type(VIEWER_TURNTABLE); break; }
+				case 'm': { fwl_set_viewer_type(VIEWER_LOOKAT); break; }
 				case 'h': { fwl_toggle_headlight(); break; }
 				case '/': { print_viewer(); break; }
 				//case '\\': { dump_scenegraph(); break; }
@@ -3641,6 +3581,55 @@ void fwl_gotoViewpoint (char *findThisOne) {
     	}
 }
 
+void setup_viewpoint_slerp(double *center, double radius);
+
+int getRayHitAndSetLookatTarget() {
+	/* called from mainloop for LOOKAT navigation:
+		- take mousexy and treat it like a pickray, similar to, or borrowing VF_Sensitive code
+		- get the closest shape node* along the pickray and its modelview matrix (similar to sensitive, except all and only shape nodes)
+		- get the center and size of the picked shape node, and send the viewpoint to it
+		- return to normal navigation
+	*/
+    double x,y,z;
+    int i;
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+
+    if(tg->RenderFuncs.hitPointDist >= 0) {
+		GLDOUBLE smin[3], smax[3], shapeMBBmin[3], shapeMBBmax[3];
+		struct X3D_Node * node;
+		struct currayhit * rh = (struct currayhit *)tg->RenderFuncs.rayHit;
+
+        /* is the sensitive node not NULL? */
+        if (rh->hitNode == NULL) {
+			Viewer()->LookatMode = 0; //give up, turn off lookat cursor
+		}else{
+			GLDOUBLE matTarget[16];
+			/* generate mins and maxes for avatar cylinder in avatar space to represent the avatar collision volume */
+			node = rh->hitNode;
+			for(i=0;i<3;i++)
+			{
+				shapeMBBmin[i] = node->_extent[i*2 + 1];
+				shapeMBBmax[i] = node->_extent[i*2];
+			}
+			transformMBB(smin,smax,rh->modelMatrix,shapeMBBmin,shapeMBBmax); //transform shape's MBB into eye space
+			double center[3], pos[3], radius, distance;
+			radius = 0.0;
+			for(i=0;i<3;i++){
+				center[i] = (smax[i] + smin[i])*.5;
+				radius = max(radius,(max(abs(smax[i]-center[i]),abs(smin[i]-center[i]))));
+			}
+
+			Viewer()->LookatMode = 3; //go to viewpiont transition mode
+			setup_viewpoint_slerp(center,radius);
+		}
+    }
+    return Viewer()->LookatMode;
+}
+
+
+
 struct X3D_Node* getRayHit() {
         double x,y,z;
         int i;
@@ -3657,12 +3646,13 @@ struct X3D_Node* getRayHit() {
 			if(tg->RenderFuncs.usingAffinePickmatrix){
 				GLDOUBLE mvp[16], mvpi[16];
 				GLDOUBLE *pickMatrix = getPickrayMatrix(0);
+				GLDOUBLE *pickMatrixi = getPickrayMatrix(1);
 				struct point_XYZ r11 = {0.0,0.0,1.0}; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 				struct point_XYZ tp; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 
 				if(0){
 					//pickMatrix is inverted in setup_projection
-					matmultiplyAFFINE(mvp,rh->modelMatrix,pickMatrix);
+					matmultiplyAFFINE(mvp,rh->modelMatrix,pickMatrixi);
 					matinverseAFFINE(mvpi,mvp);
 				}else{
 					//pickMatrix is not inverted in setup_projection
@@ -4117,12 +4107,13 @@ static void get_hyperhit() {
 		//FLOPs	112 double:	matmultiplyAFFINE 36, matinverseAFFINE 49, transform (affine) 3x9 =27
 		GLDOUBLE mvp[16], mvpi[16];
 		GLDOUBLE *pickMatrix = getPickrayMatrix(0);
+		GLDOUBLE *pickMatrixi = getPickrayMatrix(1);
 		struct point_XYZ r11 = {0.0,0.0,1.0}; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 		struct point_XYZ tp; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 
 		if(0){
 			//pickMatrix is inverted in setup_projection
-			matmultiplyAFFINE(mvp,rhh->modelMatrix,pickMatrix);
+			matmultiplyAFFINE(mvp,rhh->modelMatrix,pickMatrixi);
 			matinverseAFFINE(mvpi,mvp);
 		}else{
 			//pickMatrix is not inverted in setup_projection
@@ -4884,7 +4875,7 @@ void fwl_handle_aqua_multi0(const int mev, const unsigned int button, int x, int
                 /* if we are Not over an enabled sensitive node, and we do NOT already have a
                    button down from a sensitive node... */
 
-                if ((p->CursorOverSensitive ==NULL) && (p->lastPressedOver ==NULL)) {
+                if (((p->CursorOverSensitive ==NULL) && (p->lastPressedOver ==NULL)) || Viewer()->LookatMode) {
                         p->NavigationMode=p->ButDown[p->currentCursor][1] || p->ButDown[p->currentCursor][3];
                         handle(mev, button, (float) ((float)x/tg->display.screenWidth), (float) ((float)y/tg->display.screenHeight));
                 }
