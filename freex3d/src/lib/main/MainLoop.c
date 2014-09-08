@@ -72,6 +72,9 @@
 
 #include "ProdCon.h"
 
+int getRayHitAndSetLookatTarget();
+void transformMBB(GLDOUBLE *rMBBmin, GLDOUBLE *rMBBmax, GLDOUBLE *matTransform, GLDOUBLE* inMBBmin, GLDOUBLE* inMBBmax);
+
 // for getting time of day
 #if !defined(_MSC_VER)
 #include <sys/time.h>
@@ -1173,7 +1176,7 @@ void fwl_RenderSceneUpdateScene() {
 
 	/* handle_mouse events if clicked on a sensitive node */
 	//printf("nav mode =%d sensitive= %d\n",p->NavigationMode, tg->Mainloop.HaveSensitive);
-	if (!p->NavigationMode && tg->Mainloop.HaveSensitive) {
+	if (!p->NavigationMode && tg->Mainloop.HaveSensitive && !Viewer()->LookatMode) {
 		p->currentCursor = 0;
 		setup_projection(TRUE,tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
 		setup_viewpoint();
@@ -1260,8 +1263,22 @@ void fwl_RenderSceneUpdateScene() {
 			}
 		}
 	} /* (!NavigationMode && HaveSensitive) */
-	else
+	else if(Viewer()->LookatMode){
+		if(Viewer()->LookatMode < 3)
+			setLookatCursor();
+		if(Viewer()->LookatMode == 2){
+			p->currentCursor = 0;
+			setup_projection(TRUE,tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
+			setup_viewpoint();
+			render_hier(rootNode(),VF_Sensitive  | VF_Geom);
+			getRayHitAndSetLookatTarget();
+		}
+		if(Viewer()->LookatMode > 2)
+			setArrowCursor();
+	}else{
+		//normal or navigation mode
 		setArrowCursor();
+	}
 
 	#if !defined(FRONTEND_DOES_SNAPSHOTS)
 	/* handle snapshots */
@@ -1790,7 +1807,6 @@ static void render_pre() {
 		//drawStatusBar();
 		PRINT_GL_ERROR_IF_ANY("GLBackend::render_pre");
 }
-void matrixFromAxisAngle4d(double *mat, double rangle, double x, double y, double z);
 void setup_projection(int pick, int x, int y)
 {
 	GLDOUBLE fieldofview2;
@@ -2025,10 +2041,8 @@ void setup_projection(int pick, int x, int y)
 				if(0)printmatrix2(R3,"R3[12]=A");
 			}
 			if(0) printmatrix2(pmi,"inverted");
-			if(1)
-				setPickrayMatrix(0,pickMatrix); //using pickmatrix in upd_ray and get_hyper
-			else
-				setPickrayMatrix(0,pmi); //if using pickmatrix_inverse in upd_ray and get_hyper
+			setPickrayMatrix(0,pickMatrix); //using pickmatrix in upd_ray and get_hyper
+			setPickrayMatrix(1,pmi); //if using pickmatrix_inverse in upd_ray and get_hyper
 			if(0){
 				//Test: transform A,B and they should come out 0,0,x
 				double rA[3], rB[3];
@@ -3401,6 +3415,7 @@ void fwl_do_keyPress0(int key, int type) {
 				case 'f': { fwl_set_viewer_type (VIEWER_EXFLY); break; }
 				case 'y': { fwl_set_viewer_type (VIEWER_YAWPITCHZOOM); break; }
 				case 't': { fwl_set_viewer_type(VIEWER_TURNTABLE); break; }
+				case 'm': { fwl_set_viewer_type(VIEWER_LOOKAT); break; }
 				case 'h': { fwl_toggle_headlight(); break; }
 				case '/': { print_viewer(); break; }
 				//case '\\': { dump_scenegraph(); break; }
@@ -3566,6 +3581,89 @@ void fwl_gotoViewpoint (char *findThisOne) {
     	}
 }
 
+void setup_viewpoint_slerp(GLDOUBLE *matRelative, double *center, double radius);
+
+int getRayHitAndSetLookatTarget() {
+	/* called from mainloop for LOOKAT navigation:
+		- take mousexy and treat it like a pickray, similar to, or borrowing VF_Sensitive code
+		- get the closest shape node* along the pickray and its modelview matrix (similar to sensitive, except all and only shape nodes)
+		- get the center and size of the picked shape node, and send the viewpoint to it
+		- return to normal navigation
+	*/
+    double x,y,z;
+    int i;
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+
+    if(tg->RenderFuncs.hitPointDist >= 0) {
+		GLDOUBLE smin[3], smax[3], shapeMBBmin[3], shapeMBBmax[3];
+		struct X3D_Node * node;
+		struct currayhit * rh = (struct currayhit *)tg->RenderFuncs.rayHit;
+
+        /* is the sensitive node not NULL? */
+        if (rh->hitNode == NULL) {
+			Viewer()->LookatMode = 0; //give up, turn off lookat cursor
+		}else{
+			GLDOUBLE matTarget[16];
+			/* generate mins and maxes for avatar cylinder in avatar space to represent the avatar collision volume */
+			node = rh->hitNode;
+			for(i=0;i<3;i++)
+			{
+				shapeMBBmin[i] = node->_extent[i*2 + 1];
+				shapeMBBmax[i] = node->_extent[i*2];
+			}
+			transformMBB(smin,smax,rh->modelMatrix,shapeMBBmin,shapeMBBmax); //transform shape's MBB into pickray space
+			double center[3], pos[3], radius, distance;
+			radius = 0.0;
+			for(i=0;i<3;i++){
+				center[i] = (smax[i] + smin[i])*.5;
+				radius = max(radius,(max(abs(smax[i]-center[i]),abs(smin[i]-center[i]))));
+			}
+			if(0){
+				radius += 10.0;
+				distance = veclengthd(center);
+				distance = (distance -radius)/distance;
+				vecscaled(center,center,distance);
+			}
+			//the target posistion pos is in eye space. 
+
+			if(0){
+				//try and tilt using pickmatrix
+				double *pickMatrix = getPickrayMatrix(0);
+				double *pickMatrixi = getPickrayMatrix(1);
+				double *pickMat;
+				if(0) pickMat = pickMatrixi;
+				else pickMat = pickMatrix;
+
+				double T[16];
+				if(0) mattranslate(T,pos[0],pos[1],pos[2]);
+				else mattranslate(T,-pos[0],-pos[1],-pos[2]);
+				if(1) matmultiplyAFFINE(matTarget,T,pickMat);
+				else matmultiplyAFFINE(matTarget,pickMat,T);
+			}else{
+				//just translate
+				mattranslate(matTarget,-pos[0],-pos[1],-pos[2]);
+			}
+			//transformAFFINEd(pos, pos, pickMatrixi);
+			//now pos is in viewer/eye coordinates
+			//create a relative transform to go from current viewer pose to a new pose
+			//double opos[3],rpos[3];
+
+			//pointxyz2double(opos,&Viewer()->Pos);
+			//vecdifd(rpos,opos,pos);
+			//mattranslate(matTarget,rpos[0],rpos[1],rpos[2]);
+			//matmultiplyAFFINE(matTarget,pickMatrix,matTarget);
+			//matinverseAFFINE(matTarget,matTarget);
+			Viewer()->LookatMode = 3; //go to viewpiont transition mode
+			setup_viewpoint_slerp(matTarget,center,radius);
+		}
+    }
+    return Viewer()->LookatMode;
+}
+
+
+
 struct X3D_Node* getRayHit() {
         double x,y,z;
         int i;
@@ -3582,12 +3680,13 @@ struct X3D_Node* getRayHit() {
 			if(tg->RenderFuncs.usingAffinePickmatrix){
 				GLDOUBLE mvp[16], mvpi[16];
 				GLDOUBLE *pickMatrix = getPickrayMatrix(0);
+				GLDOUBLE *pickMatrixi = getPickrayMatrix(1);
 				struct point_XYZ r11 = {0.0,0.0,1.0}; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 				struct point_XYZ tp; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 
 				if(0){
 					//pickMatrix is inverted in setup_projection
-					matmultiplyAFFINE(mvp,rh->modelMatrix,pickMatrix);
+					matmultiplyAFFINE(mvp,rh->modelMatrix,pickMatrixi);
 					matinverseAFFINE(mvpi,mvp);
 				}else{
 					//pickMatrix is not inverted in setup_projection
@@ -4042,12 +4141,13 @@ static void get_hyperhit() {
 		//FLOPs	112 double:	matmultiplyAFFINE 36, matinverseAFFINE 49, transform (affine) 3x9 =27
 		GLDOUBLE mvp[16], mvpi[16];
 		GLDOUBLE *pickMatrix = getPickrayMatrix(0);
+		GLDOUBLE *pickMatrixi = getPickrayMatrix(1);
 		struct point_XYZ r11 = {0.0,0.0,1.0}; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 		struct point_XYZ tp; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 
 		if(0){
 			//pickMatrix is inverted in setup_projection
-			matmultiplyAFFINE(mvp,rhh->modelMatrix,pickMatrix);
+			matmultiplyAFFINE(mvp,rhh->modelMatrix,pickMatrixi);
 			matinverseAFFINE(mvpi,mvp);
 		}else{
 			//pickMatrix is not inverted in setup_projection
@@ -4809,7 +4909,7 @@ void fwl_handle_aqua_multi0(const int mev, const unsigned int button, int x, int
                 /* if we are Not over an enabled sensitive node, and we do NOT already have a
                    button down from a sensitive node... */
 
-                if ((p->CursorOverSensitive ==NULL) && (p->lastPressedOver ==NULL)) {
+                if (((p->CursorOverSensitive ==NULL) && (p->lastPressedOver ==NULL)) || Viewer()->LookatMode) {
                         p->NavigationMode=p->ButDown[p->currentCursor][1] || p->ButDown[p->currentCursor][3];
                         handle(mev, button, (float) ((float)x/tg->display.screenWidth), (float) ((float)y/tg->display.screenHeight));
                 }

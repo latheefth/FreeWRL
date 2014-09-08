@@ -83,6 +83,7 @@ typedef struct pViewer{
 
 	/* viewpoint slerping */
 	double viewpoint2rootnode[16];
+	double viewpointnew2rootnode[16];
 	int vp2rnSaved;
 	double old2new[16];
 	double identity[16];
@@ -180,7 +181,7 @@ void viewer_default() {
 	memcpy (&p->Viewer.ypz,&p->viewer_ypz, sizeof (X3D_Viewer_YawPitchZoom));
 
 	fwl_set_viewer_type(VIEWER_EXAMINE);
-
+	p->Viewer.LookatMode = 0;
 	//set_eyehalf( Viewer.eyedist/2.0,
 	//	atan2(Viewer.eyedist/2.0,Viewer.screendist)*360.0/(2.0*3.1415926));
 
@@ -375,6 +376,18 @@ void fwl_set_viewer_type(const int type) {
 	case VIEWER_FLY:
 		p->Viewer.type = type;
 		break;
+	case VIEWER_LOOKAT:
+		if(p->Viewer.type == VIEWER_LOOKAT){
+			//this is a request to toggle off LOOKAT mode
+			p->Viewer.type = p->Viewer.lastType;
+			p->Viewer.LookatMode = 0;
+		}else{
+			//request to toggle on LOOKAT mode
+			p->Viewer.lastType = p->Viewer.type;
+			p->Viewer.LookatMode = 1; //tells mainloop to turn off sensitive
+			p->Viewer.type = type;
+		}
+		break;
 	default:
 		ConsoleMessage ("Viewer type %d is not supported. See Viewer.h.\n", type);
 		p->Viewer.type = VIEWER_NONE;
@@ -425,6 +438,8 @@ char* fwl_getNavModeStr()
 		return "TURNTABLE";
 	case VIEWER_FLY:
 		return "FLY";
+	case VIEWER_LOOKAT:
+		return "LOOKAT";
 	default:
 		return "NONE";
 	}
@@ -458,7 +473,7 @@ void resolve_pos() {
 	X3D_Viewer_Examine *examine = &p->Viewer.examine;
 
 
-	if (p->Viewer.type == VIEWER_EXAMINE) {
+	if (p->Viewer.type == VIEWER_EXAMINE  || (p->Viewer.type == VIEWER_LOOKAT && p->Viewer.lastType == VIEWER_EXAMINE) ) {
 		/* my $z = $this->{Quat}->invert->rotate([0,0,1]); */
 		quaternion_inverse(&q_inv, &(p->Viewer.Quat));
 		quaternion_rotation(&rot, &q_inv, &z_axis);
@@ -1035,6 +1050,8 @@ void handle_fly2(const int mev, const unsigned int button, float x, float y) {
 	
 }
 
+
+
 void handle_tick_fly2() {
 	ttglobal tg;
 	ppViewer p;
@@ -1074,6 +1091,43 @@ void handle_tick_fly2() {
  	}
 	
 }
+
+void handle_lookat(const int mev, const unsigned int button, float x, float y) {
+	/* do nothing on mouse down or mouse move
+		on mouse up, trigger node picking action in mainloop
+	*/
+	ttglobal tg;
+	ppViewer p;
+	tg = gglobal();
+	p = (ppViewer)tg->Viewer.prv;
+	
+	switch(mev){
+		case  ButtonPress:
+		case MotionNotify:
+		//do nothing
+		break;
+		case ButtonRelease:
+		//trigger a node pick in mainloop, followed by viewpoint transition
+		p->Viewer.LookatMode = 2;
+	}
+	
+}
+void handle_tick_lookat() {
+	ttglobal tg;
+	ppViewer p;
+	tg = gglobal();
+	p = (ppViewer)tg->Viewer.prv;
+	//stub in case we need the viewer or viewpoint transition here	
+	switch(p->Viewer.LookatMode){
+		case 0: //not in use
+		case 1: //someone set viewer to lookat mode: mainloop shuts off sensitive, turns on lookat cursor
+		case 2: //mouseup tells mainloop to pick a node at current mousexy, turn off lookatcursor
+		case 3: //mainloop picked a node, now transition
+		case 4: //transition complete, restore previous nav type
+		break;
+	}
+}
+
 void handle_tilt(const int mev, const unsigned int button, float x, float y) {
 	/* a vertical drag tilts the camera
 	*/
@@ -1212,6 +1266,8 @@ void handle0(const int mev, const unsigned int button, const float x, const floa
 		handle_yawpitchzoom(mev,button,((float) x),((float)y));
 	case VIEWER_TURNTABLE:
 		handle_turntable(mev, button, ((float)x), ((float)y));
+	case VIEWER_LOOKAT:
+		handle_lookat(mev, button, ((float)x), ((float)y));
 	default:
 		break;
 	}
@@ -1754,6 +1810,9 @@ handle_tick()
 		break;
 	case VIEWER_FLY2:
 		handle_tick_fly2();
+		break;
+	case VIEWER_LOOKAT:
+		handle_tick_lookat();
 		break;
 	case VIEWER_YAWPITCHZOOM:
 	case VIEWER_TURNTABLE:
@@ -2307,8 +2366,12 @@ void slerp_viewpoint()
             //double rn2rn[16];
             double diffrn[16];
 			memcpy(vpo2rn,p->viewpoint2rootnode,sizeof(double)*16);
-			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, p->viewpoint2rootnode);
-			memcpy(vpn2rn,p->viewpoint2rootnode,sizeof(double)*16);
+			if(p->Viewer.LookatMode==3){
+				memcpy(vpn2rn,p->viewpointnew2rootnode,sizeof(double)*16);
+			}else{
+				FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, p->viewpoint2rootnode);
+				memcpy(vpn2rn,p->viewpoint2rootnode,sizeof(double)*16);
+			}
 			//matinverse(rn2vpo,vpo2rn);
 			matinverseAFFINE(rn2vpn,vpn2rn);
 			//this works a bit:
@@ -2351,14 +2414,179 @@ void slerp_viewpoint()
 			vrmlrot_to_quaternion(&qzero, 0.0,1.0,0.0,0.0); //zero it
 			quaternion_slerp(&qdif,&p->sq,&qzero,tickFrac);
 			general_slerp(vshift,p->sp,vzero,3,tickFrac);
-			FW_GL_TRANSLATE_D(vshift[0],vshift[1],vshift[2]);
-			quaternion_togl(&qdif);
+			if(1){
+				FW_GL_TRANSLATE_D(vshift[0],vshift[1],vshift[2]);
+				quaternion_togl(&qdif);
+			}
 			if(tickFrac > .99)
 			{
 				p->Viewer.SLERPing2 = FALSE;
+				if(p->Viewer.LookatMode == 3)
+					fwl_set_viewer_type(VIEWER_LOOKAT); //toggle off LOOKAT
 				//printf(" done\n");
 			}
 		}
+	}
+}
+void setup_viewpoint_slerp(GLDOUBLE *matRelative, double* center, double radius){
+	/* when you don't have a  new viewpoint to bind to, but know where you want the viewer to go
+		with a transform relative to the viewer, instead of bind_viewpoint call setup_viewpoint_slerp(matRelative)
+		
+	*/
+	GLDOUBLE matTarget[16],matTargeti[16], mv[16];
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+
+	if(0){
+		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, mv);
+		//matinverseAFFINE(mv,mv);
+		matcopy(p->viewpoint2rootnode,mv);
+		//matinverseAFFINE(mv,p->viewpoint2rootnode);
+		matcopy(matTarget,matRelative);
+		matinverse(matTarget,matTarget);
+		matmultiplyAFFINE(matTarget,mv,matTarget);
+		//matinverseAFFINE(matTarget,matTarget);
+		matcopy(p->viewpointnew2rootnode,matTarget);
+	}
+	if(0){
+		double pos[3];
+		matinverseAFFINE(matTarget,matRelative);
+		loadIdentityMatrix(p->viewpoint2rootnode);
+		matcopy(p->viewpointnew2rootnode,matRelative);
+		pointxyz2double(pos,&p->Viewer.Pos);
+		transformAFFINEd(pos,pos,matTarget);
+		double2pointxyz(&p->Viewer.Pos,pos);
+	}
+	if(0){
+		double rpos[3], pos[3] = {0.0,0.0,0.0};
+		struct point_XYZ pp,qq;
+
+		matinverseAFFINE(matTargeti,matRelative);
+		matcopy(matTarget, matRelative);
+
+		loadIdentityMatrix(p->viewpoint2rootnode);
+		matcopy(p->viewpointnew2rootnode,matTarget);
+
+		transformAFFINEd(rpos,pos,matTargeti);
+		if(0) vecscaled(rpos,rpos,-1.0);
+		double2pointxyz(&pp,rpos);
+		if(1) quaternion_inverse( &p->Viewer.AntiQuat,&p->Viewer.Quat);
+		if(1) quaternion_rotation(&qq, &p->Viewer.AntiQuat, &pp);
+		else quaternion_rotation(&qq, &p->Viewer.Quat, &pp);
+		if(1) 
+			vecadd(&p->Viewer.Pos,&p->Viewer.Pos,&qq);
+		else 
+			if(1) vecadd(&p->Viewer.Pos,&p->Viewer.Pos,&pp);
+		Quaternion sq;
+		if(1) matrix_to_quaternion(&sq,matTarget);
+		else matrix_to_quaternion(&sq,matTargeti);
+		quaternion_normalize(&sq);
+		if(1) quaternion_multiply(&p->Viewer.Quat,&p->Viewer.Quat,&sq);
+		if(0) quaternion_multiply(&p->Viewer.Quat,&sq,&p->Viewer.Quat);
+		if(1) quaternion_inverse( &p->Viewer.AntiQuat,&p->Viewer.Quat);
+
+		if(1){
+			//VECCOPY(p->Viewer.AntiPos,p->Viewer.Pos);
+			VECCOPY(p->Viewer.currentPosInModel,p->Viewer.Pos);
+
+			if(0) viewer_lastP_clear(); //used by wall penetration. In this case, if collision is on, lets not teleport through walls
+			if(1) resolve_pos(); //in examine mode, sets up examine origin
+		}
+	}
+
+	if(1){
+		double rpos[3], pos[3] = {0.0,0.0,0.0};
+		struct point_XYZ pp,qq;
+
+		loadIdentityMatrix(p->viewpoint2rootnode);
+		loadIdentityMatrix(p->viewpointnew2rootnode);
+
+
+		if(0) vecscaled(pos,center,-1.0);
+		else veccopyd(pos,center);
+
+		if(1){
+			double distance, dradius;
+			dradius = (p->Viewer.Dist, radius + 5.0);
+			distance = veclengthd(pos);
+			distance = (distance - dradius)/distance;
+			vecscaled(pos,pos,distance);
+			p->Viewer.Dist = dradius;
+		}
+
+		double2pointxyz(&pp,pos);
+		if(1){
+			Quaternion q_i;
+			//attempt to correct the position by viewer.quat or .antiquat before adding to Viewer.Pos
+			q_i = p->Viewer.AntiQuat;
+			if(1) quaternion_inverse( &q_i,&p->Viewer.Quat);
+			if(1) quaternion_rotation(&qq, &q_i, &pp);
+			else quaternion_rotation(&qq, &p->Viewer.Quat, &pp);
+		}else{
+			VECCOPY(qq,pp);
+		}
+		if(1) 
+			vecadd(&p->Viewer.Pos,&p->Viewer.Pos,&qq);
+		else 
+			if(1) vecadd(&p->Viewer.Pos,&p->Viewer.Pos,&pp);
+
+		if(1){
+			double yaw, pitch, R1[16], R2[16], R3[16], R3i[16];
+			double C[3];
+			if(0) vecscaled(C,pos,-1.0);
+			else veccopyd(C,pos);
+			yaw = atan2(C[0],-C[2]);
+			matrixFromAxisAngle4d(R1, -yaw, 0.0, 1.0, 0.0);
+			if(1){
+				transformAFFINEd(C,C,R1);
+				if(0) printf("Yawed Cdif %f %f %f\n",C[0],C[1],C[2]);
+				pitch = atan2(C[1],-C[2]);
+			}else{
+				double hypotenuse = sqrt(C[0]*C[0] + C[2]*C[2]);
+				pitch = atan2(C[1],hypotenuse);
+			}
+			if(0) printf("atan2 yaw=%f pitch=%f\n",yaw,pitch);
+
+			pitch = -pitch;
+			if(0) printf("[yaw=%f pitch=%f\n",yaw,pitch);
+			if(0){
+				matrotate(R1, -pitch, 1.0, 0.0, 0.0);
+				matrotate(R2, -yaw, 0.0, 1.0, 0.0);
+			}else{
+				matrixFromAxisAngle4d(R1, pitch, 1.0, 0.0, 0.0);
+				if(0) printmatrix2(R1,"pure R1");
+				matrixFromAxisAngle4d(R2, yaw, 0.0, 1.0, 0.0);
+				if(0) printmatrix2(R2,"pure R2");
+			}
+			matmultiplyAFFINE(R3,R1,R2);
+			matinverseAFFINE(R3i,R3);
+			Quaternion sq;
+			if(0) matrix_to_quaternion(&sq,R3);
+			else matrix_to_quaternion(&sq,R3i);
+			quaternion_normalize(&sq);
+			if(0) quaternion_multiply(&p->Viewer.Quat,&p->Viewer.Quat,&sq);
+			if(1) quaternion_multiply(&p->Viewer.Quat,&sq,&p->Viewer.Quat);
+			if(0) quaternion_inverse( &p->Viewer.AntiQuat,&p->Viewer.Quat);
+		}
+
+
+		if(0) p->Viewer.Dist = radius + 10.0; //doesn't seem to do anything
+		if(0) resolve_pos(); //in examine mode, sets up examine origin
+
+		/* make sure Viewer.Dist is configured properly for Examine mode */
+		if(0) CALCULATE_EXAMINE_DISTANCE
+
+		
+	}
+	if(0){
+		//start slerping
+		p->Viewer.startSLERPtime = TickTime(); 
+		/* slerp Mark II */
+		p->Viewer.SLERPing2 = TRUE;
+		p->Viewer.SLERPing2justStarted = TRUE;
+		p->vp2rnSaved = TRUE; 
+	}else{
+		//just jump to final Pos, Quat
+		fwl_set_viewer_type(VIEWER_LOOKAT); //toggle off LOOKAT
 	}
 }
 /* We have a Viewpoint node being bound. (not a GeoViewpoint node) */
@@ -2467,12 +2695,15 @@ void bind_Viewpoint (struct X3D_Viewpoint *vp) {
 			.orientation -viewpoint field, only changes through scripting 
 			- when you re-bind to a viewpoint later, these will be the originals or script modified
 			- transform useage:
-				WorldCoordinates
-					Transform stack to CBV
-						.Pos (== .position after bind, then navigation changes it)
-							viewpoint avatar
-								.Quat (== .orientation after bind, then navigation changes it)
-									viewpoint camera
+				ShapeCoordinates
+					Transform stack shape2world (model part of modelview)
+						WorldCoordinates (at scene root)
+							Transform stack to CBV (view part of modelview)
+								Currently Bound Viewpoint (CBV)
+									.Pos (== .position after bind, then navigation changes it)
+										viewpoint avatar
+											.Quat (== .orientation after bind, then navigation changes it)
+												viewpoint camera (so called eye coords)
 			.Pos: on binding, it gets a fresh copy of the .position field of the CBV
 				- and navigation changes it
 			.Quat: on binding, it gets a fresh copy of the .orientation field of the CBV

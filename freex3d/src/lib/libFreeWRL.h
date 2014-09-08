@@ -147,6 +147,7 @@ bool Anchor_ReplaceWorld();
 #define VIEWER_TPLANE 8
 #define VIEWER_RPLANE 9
 #define VIEWER_TURNTABLE 10
+#define VIEWER_LOOKAT 11
 
 void setStereoBufferStyle(int);
 
