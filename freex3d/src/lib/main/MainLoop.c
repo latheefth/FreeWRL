@@ -3581,7 +3581,7 @@ void fwl_gotoViewpoint (char *findThisOne) {
     	}
 }
 
-void setup_viewpoint_slerp(GLDOUBLE *matRelative, double *center, double radius);
+void setup_viewpoint_slerp(double *center, double radius);
 
 int getRayHitAndSetLookatTarget() {
 	/* called from mainloop for LOOKAT navigation:
@@ -3613,50 +3613,16 @@ int getRayHitAndSetLookatTarget() {
 				shapeMBBmin[i] = node->_extent[i*2 + 1];
 				shapeMBBmax[i] = node->_extent[i*2];
 			}
-			transformMBB(smin,smax,rh->modelMatrix,shapeMBBmin,shapeMBBmax); //transform shape's MBB into pickray space
+			transformMBB(smin,smax,rh->modelMatrix,shapeMBBmin,shapeMBBmax); //transform shape's MBB into eye space
 			double center[3], pos[3], radius, distance;
 			radius = 0.0;
 			for(i=0;i<3;i++){
 				center[i] = (smax[i] + smin[i])*.5;
 				radius = max(radius,(max(abs(smax[i]-center[i]),abs(smin[i]-center[i]))));
 			}
-			if(0){
-				radius += 10.0;
-				distance = veclengthd(center);
-				distance = (distance -radius)/distance;
-				vecscaled(center,center,distance);
-			}
-			//the target posistion pos is in eye space. 
 
-			if(0){
-				//try and tilt using pickmatrix
-				double *pickMatrix = getPickrayMatrix(0);
-				double *pickMatrixi = getPickrayMatrix(1);
-				double *pickMat;
-				if(0) pickMat = pickMatrixi;
-				else pickMat = pickMatrix;
-
-				double T[16];
-				if(0) mattranslate(T,pos[0],pos[1],pos[2]);
-				else mattranslate(T,-pos[0],-pos[1],-pos[2]);
-				if(1) matmultiplyAFFINE(matTarget,T,pickMat);
-				else matmultiplyAFFINE(matTarget,pickMat,T);
-			}else{
-				//just translate
-				mattranslate(matTarget,-pos[0],-pos[1],-pos[2]);
-			}
-			//transformAFFINEd(pos, pos, pickMatrixi);
-			//now pos is in viewer/eye coordinates
-			//create a relative transform to go from current viewer pose to a new pose
-			//double opos[3],rpos[3];
-
-			//pointxyz2double(opos,&Viewer()->Pos);
-			//vecdifd(rpos,opos,pos);
-			//mattranslate(matTarget,rpos[0],rpos[1],rpos[2]);
-			//matmultiplyAFFINE(matTarget,pickMatrix,matTarget);
-			//matinverseAFFINE(matTarget,matTarget);
 			Viewer()->LookatMode = 3; //go to viewpiont transition mode
-			setup_viewpoint_slerp(matTarget,center,radius);
+			setup_viewpoint_slerp(center,radius);
 		}
     }
     return Viewer()->LookatMode;

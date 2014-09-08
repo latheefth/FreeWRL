@@ -2428,157 +2428,78 @@ void slerp_viewpoint()
 		}
 	}
 }
-void setup_viewpoint_slerp(GLDOUBLE *matRelative, double* center, double radius){
+void setup_viewpoint_slerp(double* center, double radius){
 	/* when you don't have a  new viewpoint to bind to, but know where you want the viewer to go
 		with a transform relative to the viewer, instead of bind_viewpoint call setup_viewpoint_slerp(matRelative)
 		
 	*/
 	GLDOUBLE matTarget[16],matTargeti[16], mv[16];
+	double distance, dradius;
+	double yaw, pitch, R1[16], R2[16], R3[16], R3i[16], T[16];
+	double C[3];
+	Quaternion sq;
+	Quaternion q_i;
+
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
-	if(0){
-		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, mv);
-		//matinverseAFFINE(mv,mv);
-		matcopy(p->viewpoint2rootnode,mv);
-		//matinverseAFFINE(mv,p->viewpoint2rootnode);
-		matcopy(matTarget,matRelative);
-		matinverse(matTarget,matTarget);
-		matmultiplyAFFINE(matTarget,mv,matTarget);
-		//matinverseAFFINE(matTarget,matTarget);
-		matcopy(p->viewpointnew2rootnode,matTarget);
+	double rpos[3], pos[3] = {0.0,0.0,0.0};
+	struct point_XYZ pp,qq;
+
+	veccopyd(pos,center);
+
+	dradius = (p->Viewer.Dist, radius + 5.0);
+	distance = veclengthd(pos);
+	distance = (distance - dradius)/distance;
+	vecscaled(pos,pos,distance);
+	p->Viewer.Dist = dradius;
+
+	double2pointxyz(&pp,pos);
+	//attempt to correct the position by viewer.quat or .antiquat before adding to Viewer.Pos
+	q_i = p->Viewer.AntiQuat;
+	quaternion_inverse( &q_i,&p->Viewer.Quat);
+	quaternion_rotation(&qq, &q_i, &pp);
+	vecadd(&p->Viewer.Pos,&p->Viewer.Pos,&qq);
+	pointxyz2double(rpos,&qq);
+	mattranslate(T,rpos[0],rpos[1],rpos[2]);
+
+	veccopyd(C,pos);
+	yaw = atan2(C[0],-C[2]);
+	matrixFromAxisAngle4d(R1, -yaw, 0.0, 1.0, 0.0);
+	if(1){
+		transformAFFINEd(C,C,R1);
+		if(0) printf("Yawed Cdif %f %f %f\n",C[0],C[1],C[2]);
+		pitch = atan2(C[1],-C[2]);
+	}else{
+		double hypotenuse = sqrt(C[0]*C[0] + C[2]*C[2]);
+		pitch = atan2(C[1],hypotenuse);
 	}
+	if(0) printf("atan2 yaw=%f pitch=%f\n",yaw,pitch);
+
+	pitch = -pitch;
+	if(0) printf("[yaw=%f pitch=%f\n",yaw,pitch);
 	if(0){
-		double pos[3];
-		matinverseAFFINE(matTarget,matRelative);
-		loadIdentityMatrix(p->viewpoint2rootnode);
-		matcopy(p->viewpointnew2rootnode,matRelative);
-		pointxyz2double(pos,&p->Viewer.Pos);
-		transformAFFINEd(pos,pos,matTarget);
-		double2pointxyz(&p->Viewer.Pos,pos);
+		matrotate(R1, -pitch, 1.0, 0.0, 0.0);
+		matrotate(R2, -yaw, 0.0, 1.0, 0.0);
+	}else{
+		matrixFromAxisAngle4d(R1, pitch, 1.0, 0.0, 0.0);
+		if(0) printmatrix2(R1,"pure R1");
+		matrixFromAxisAngle4d(R2, yaw, 0.0, 1.0, 0.0);
+		if(0) printmatrix2(R2,"pure R2");
 	}
-	if(0){
-		double rpos[3], pos[3] = {0.0,0.0,0.0};
-		struct point_XYZ pp,qq;
-
-		matinverseAFFINE(matTargeti,matRelative);
-		matcopy(matTarget, matRelative);
-
-		loadIdentityMatrix(p->viewpoint2rootnode);
-		matcopy(p->viewpointnew2rootnode,matTarget);
-
-		transformAFFINEd(rpos,pos,matTargeti);
-		if(0) vecscaled(rpos,rpos,-1.0);
-		double2pointxyz(&pp,rpos);
-		if(1) quaternion_inverse( &p->Viewer.AntiQuat,&p->Viewer.Quat);
-		if(1) quaternion_rotation(&qq, &p->Viewer.AntiQuat, &pp);
-		else quaternion_rotation(&qq, &p->Viewer.Quat, &pp);
-		if(1) 
-			vecadd(&p->Viewer.Pos,&p->Viewer.Pos,&qq);
-		else 
-			if(1) vecadd(&p->Viewer.Pos,&p->Viewer.Pos,&pp);
-		Quaternion sq;
-		if(1) matrix_to_quaternion(&sq,matTarget);
-		else matrix_to_quaternion(&sq,matTargeti);
-		quaternion_normalize(&sq);
-		if(1) quaternion_multiply(&p->Viewer.Quat,&p->Viewer.Quat,&sq);
-		if(0) quaternion_multiply(&p->Viewer.Quat,&sq,&p->Viewer.Quat);
-		if(1) quaternion_inverse( &p->Viewer.AntiQuat,&p->Viewer.Quat);
-
-		if(1){
-			//VECCOPY(p->Viewer.AntiPos,p->Viewer.Pos);
-			VECCOPY(p->Viewer.currentPosInModel,p->Viewer.Pos);
-
-			if(0) viewer_lastP_clear(); //used by wall penetration. In this case, if collision is on, lets not teleport through walls
-			if(1) resolve_pos(); //in examine mode, sets up examine origin
-		}
-	}
+	matmultiplyAFFINE(R3,R1,R2);
+	matinverseAFFINE(R3i,R3);
+	matrix_to_quaternion(&sq,R3i);
+	quaternion_normalize(&sq);
+	quaternion_multiply(&p->Viewer.Quat,&sq,&p->Viewer.Quat);
+	if(0) resolve_pos(); //in examine mode, sets up examine origin
 
 	if(1){
-		double rpos[3], pos[3] = {0.0,0.0,0.0};
-		struct point_XYZ pp,qq;
-
+		//start slerping
 		loadIdentityMatrix(p->viewpoint2rootnode);
 		loadIdentityMatrix(p->viewpointnew2rootnode);
+		matmultiplyAFFINE(matTarget,R3,T);
+		matinverseAFFINE(p->viewpointnew2rootnode,matTarget);
 
-
-		if(0) vecscaled(pos,center,-1.0);
-		else veccopyd(pos,center);
-
-		if(1){
-			double distance, dradius;
-			dradius = (p->Viewer.Dist, radius + 5.0);
-			distance = veclengthd(pos);
-			distance = (distance - dradius)/distance;
-			vecscaled(pos,pos,distance);
-			p->Viewer.Dist = dradius;
-		}
-
-		double2pointxyz(&pp,pos);
-		if(1){
-			Quaternion q_i;
-			//attempt to correct the position by viewer.quat or .antiquat before adding to Viewer.Pos
-			q_i = p->Viewer.AntiQuat;
-			if(1) quaternion_inverse( &q_i,&p->Viewer.Quat);
-			if(1) quaternion_rotation(&qq, &q_i, &pp);
-			else quaternion_rotation(&qq, &p->Viewer.Quat, &pp);
-		}else{
-			VECCOPY(qq,pp);
-		}
-		if(1) 
-			vecadd(&p->Viewer.Pos,&p->Viewer.Pos,&qq);
-		else 
-			if(1) vecadd(&p->Viewer.Pos,&p->Viewer.Pos,&pp);
-
-		if(1){
-			double yaw, pitch, R1[16], R2[16], R3[16], R3i[16];
-			double C[3];
-			if(0) vecscaled(C,pos,-1.0);
-			else veccopyd(C,pos);
-			yaw = atan2(C[0],-C[2]);
-			matrixFromAxisAngle4d(R1, -yaw, 0.0, 1.0, 0.0);
-			if(1){
-				transformAFFINEd(C,C,R1);
-				if(0) printf("Yawed Cdif %f %f %f\n",C[0],C[1],C[2]);
-				pitch = atan2(C[1],-C[2]);
-			}else{
-				double hypotenuse = sqrt(C[0]*C[0] + C[2]*C[2]);
-				pitch = atan2(C[1],hypotenuse);
-			}
-			if(0) printf("atan2 yaw=%f pitch=%f\n",yaw,pitch);
-
-			pitch = -pitch;
-			if(0) printf("[yaw=%f pitch=%f\n",yaw,pitch);
-			if(0){
-				matrotate(R1, -pitch, 1.0, 0.0, 0.0);
-				matrotate(R2, -yaw, 0.0, 1.0, 0.0);
-			}else{
-				matrixFromAxisAngle4d(R1, pitch, 1.0, 0.0, 0.0);
-				if(0) printmatrix2(R1,"pure R1");
-				matrixFromAxisAngle4d(R2, yaw, 0.0, 1.0, 0.0);
-				if(0) printmatrix2(R2,"pure R2");
-			}
-			matmultiplyAFFINE(R3,R1,R2);
-			matinverseAFFINE(R3i,R3);
-			Quaternion sq;
-			if(0) matrix_to_quaternion(&sq,R3);
-			else matrix_to_quaternion(&sq,R3i);
-			quaternion_normalize(&sq);
-			if(0) quaternion_multiply(&p->Viewer.Quat,&p->Viewer.Quat,&sq);
-			if(1) quaternion_multiply(&p->Viewer.Quat,&sq,&p->Viewer.Quat);
-			if(0) quaternion_inverse( &p->Viewer.AntiQuat,&p->Viewer.Quat);
-		}
-
-
-		if(0) p->Viewer.Dist = radius + 10.0; //doesn't seem to do anything
-		if(0) resolve_pos(); //in examine mode, sets up examine origin
-
-		/* make sure Viewer.Dist is configured properly for Examine mode */
-		if(0) CALCULATE_EXAMINE_DISTANCE
-
-		
-	}
-	if(0){
-		//start slerping
 		p->Viewer.startSLERPtime = TickTime(); 
 		/* slerp Mark II */
 		p->Viewer.SLERPing2 = TRUE;
