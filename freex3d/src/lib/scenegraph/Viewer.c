@@ -2435,7 +2435,7 @@ void setup_viewpoint_slerp(double* center, double radius){
 	*/
 	GLDOUBLE matTarget[16],matTargeti[16], mv[16];
 	double distance, dradius;
-	double yaw, pitch, R1[16], R2[16], R3[16], R3i[16], T[16];
+	double yaw, pitch, R1[16], R2[16], R3[16], R3i[16], T[16], matQuat[16], matAntiQuat[16];
 	double C[3];
 	Quaternion sq;
 	Quaternion q_i;
@@ -2453,18 +2453,20 @@ void setup_viewpoint_slerp(double* center, double radius){
 	vecscaled(pos,pos,distance);
 	p->Viewer.Dist = dradius;
 
+	quaternion_to_matrix(matQuat, &p->Viewer.Quat);
+
 	double2pointxyz(&pp,pos);
 	//attempt to correct the position by viewer.quat or .antiquat before adding to Viewer.Pos
 	q_i = p->Viewer.AntiQuat;
+
 	quaternion_inverse( &q_i,&p->Viewer.Quat);
 	quaternion_rotation(&qq, &q_i, &pp);
 	vecadd(&p->Viewer.Pos,&p->Viewer.Pos,&qq);
 	pointxyz2double(rpos,&qq);
-	mattranslate(T,rpos[0],rpos[1],rpos[2]);
 
 	//when you pick, your pickray and shape object isn't usually dead center in the viewport. In that case,
 	//besides translating the viewer, you also want to turn the camera to look at the 
-	//center of the shpade
+	//center of the shape (turning somewhat toward the pickray direction, but more precisely to the shape object ccenter)
 	veccopyd(C,pos);
 	yaw = atan2(C[0],-C[2]);
 	matrixFromAxisAngle4d(R1, -yaw, 0.0, 1.0, 0.0);
@@ -2499,8 +2501,12 @@ void setup_viewpoint_slerp(double* center, double radius){
 
 	if(1){
 		//start slerping
+		//as of Sept 8, 2014 it jumps at the start of the slerp, 
+		//and that means I don't have viewpointnew2rootnode transform
+		//constructed properly
 		loadIdentityMatrix(p->viewpoint2rootnode);
-		loadIdentityMatrix(p->viewpointnew2rootnode);
+		//loadIdentityMatrix(p->viewpointnew2rootnode);
+		mattranslate(T,rpos[0],rpos[1],rpos[2]);
 		matmultiplyAFFINE(matTarget,R3,T);
 		matinverseAFFINE(p->viewpointnew2rootnode,matTarget);
 
