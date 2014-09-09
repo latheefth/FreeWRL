@@ -288,7 +288,7 @@ void viewer_init(X3D_Viewer *viewer, int type);
 void print_viewer();
 int fwl_get_headlight();
 void fwl_toggle_headlight();
-int use_keys(void);
+//int use_keys(void);
 
 void set_eyehalf( const double eyehalf,	const double eyehalfangle);
 void resolve_pos(void);

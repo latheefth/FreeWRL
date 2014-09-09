@@ -453,14 +453,14 @@ int fwl_getNavMode()
 }
 
 
-int use_keys() {
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
-
-	if (p->Viewer.type == VIEWER_FLY) {
-		return TRUE;
-	}
-	return FALSE;
-}
+//int use_keys() {
+//	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+//
+//	if (p->Viewer.type == VIEWER_FLY) {
+//		return TRUE;
+//	}
+//	return TRUE; //FALSE; //Navigation-key_and_drag
+//}
 
 
 void resolve_pos() {
@@ -1249,6 +1249,8 @@ void handle0(const int mev, const unsigned int button, const float x, const floa
 	case VIEWER_EXFLY:
 		break;
 	case VIEWER_FLY:
+		if(0) handle_walk(mev, button, ((float) x), ((float) y)); //feature-Navigation_key_and_drag
+		if(1) handle_fly2(mev, button, ((float) x), ((float) y)); //feature-Navigation_key_and_drag
 		break;
 	case VIEWER_FLY2:
 		handle_fly2(mev,button,((float) x),((float)y));
@@ -1264,10 +1266,13 @@ void handle0(const int mev, const unsigned int button, const float x, const floa
 		break;
 	case VIEWER_YAWPITCHZOOM:
 		handle_yawpitchzoom(mev,button,((float) x),((float)y));
+		break;
 	case VIEWER_TURNTABLE:
 		handle_turntable(mev, button, ((float)x), ((float)y));
+		break;
 	case VIEWER_LOOKAT:
 		handle_lookat(mev, button, ((float)x), ((float)y));
+		break;
 	default:
 		break;
 	}
@@ -1320,19 +1325,30 @@ struct flykey_lookup_type *getFlyIndex(char key){
 		flykey = &flykey_lookup[index];
 	return flykey;
 }
-
+int isFlyKey(char key){
+	int i, index = -1;
+	for(i=0;i<KEYS_HANDLED;i++)
+		if(key == flykey_lookup[i].key ){
+			index = i;
+			break;
+		}
+	return index > -1 ? 1 : 0;
+}
 void handle_key(const char key, double keytime)
 {
 	char _key;
 	int i;
 	X3D_Viewer_Fly *fly; 
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+
 	fly = &p->Viewer.fly;
 	printf("%c",key);
-	if (p->Viewer.type == VIEWER_FLY) {
+	//if (p->Viewer.type == VIEWER_FLY) {   //Navigation-key_and_drag
 		struct flykey_lookup_type *flykey;
 		/* $key = lc $key; */
 		_key = (char) tolower((int) key);
+		if(!isFlyKey(_key)) return;
+
 		flykey = getFlyIndex(_key);
 		if(flykey){
 			fly->down[flykey->motion][flykey->axis].direction = flykey->sign;
@@ -1340,7 +1356,7 @@ void handle_key(const char key, double keytime)
 			fly->down[flykey->motion][flykey->axis].era = keytime;  //will decrement as we apply velocity in fly
 			fly->down[flykey->motion][flykey->axis].once = 1;
 		}
-	}
+	//} //Navigation-key_and_drag
 }
 
 
@@ -1351,12 +1367,14 @@ void handle_keyrelease(const char key, double keytime)
 	X3D_Viewer_Fly *fly;
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	/* my($this,$time,$key) = @_; */
+
 	fly = &p->Viewer.fly;
 
-	if (p->Viewer.type == VIEWER_FLY) {
+	//if (p->Viewer.type == VIEWER_FLY) { //Navigation-key_and_drag
 		/* $key = lc $key; */
 		struct flykey_lookup_type *flykey;
 		_key = (char) tolower((int) key);
+		if(!isFlyKey(_key)) return;
 		flykey = getFlyIndex(_key);
 		if(flykey){
 			int *ndown = &fly->ndown[flykey->motion][flykey->axis];
@@ -1370,7 +1388,7 @@ void handle_keyrelease(const char key, double keytime)
 			}
 			fly->down[flykey->motion][flykey->axis].direction = 0;
 		}
-	}
+	//} //Navigation-key_and_drag
 }
 
 /* wall penetration detection variables
@@ -1806,7 +1824,8 @@ handle_tick()
 		handle_tick_exfly();
 		break;
 	case VIEWER_FLY:
-		handle_tick_fly();
+		if(0) handle_tick_walk(); //Navigation-key_and_drag: collision shuts off Gravity in VIEWER_FLY, otherwise, just like walk: (WALK - G)
+		if(1) handle_tick_fly2();  //fly2 like (WALK - G) except no RMB PAN, drags aligned to Viewer (vs walk aligned to bound Viewpoint vertical)
 		break;
 	case VIEWER_FLY2:
 		handle_tick_fly2();
@@ -1821,6 +1840,7 @@ handle_tick()
 	default:
 		break;
 	}
+	handle_tick_fly(); //Navigation-key_and_drag
 
 	if (p->Viewer.doExamineModeDistanceCalculations) {
 /*
