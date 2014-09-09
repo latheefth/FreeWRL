@@ -373,6 +373,7 @@ void fwl_set_viewer_type(const int type) {
 	case VIEWER_FLY2:
 	case VIEWER_YAWPITCHZOOM:
 	case VIEWER_TURNTABLE:
+	case VIEWER_EXPLORE:
 	case VIEWER_FLY:
 		p->Viewer.type = type;
 		break;
@@ -440,6 +441,8 @@ char* fwl_getNavModeStr()
 		return "FLY";
 	case VIEWER_LOOKAT:
 		return "LOOKAT";
+	case VIEWER_EXPLORE:
+		return "EXPLORE";
 	default:
 		return "NONE";
 	}
@@ -1128,6 +1131,101 @@ void handle_tick_lookat() {
 	}
 }
 
+void handle_explore(const int mev, const unsigned int button, float x, float y) {
+	/*
+	Like handle_yawpitchzoom, except:
+	move the viewer.Pos in the opposite direction from where we are looking
+	*/
+	int shift, ctrl;
+	X3D_Viewer_YawPitchZoom *ypz;
+	ppViewer p;
+	ttglobal tg = gglobal();
+	p = (ppViewer)gglobal()->Viewer.prv;
+	ypz = &p->Viewer.ypz; //just a place to store last mouse xy during drag
+	shift = tg->Mainloop.SHIFT;
+	ctrl = tg->Mainloop.CTRL;
+
+	if (mev == ButtonPress) {
+		if (button == 1 || button == 3) {
+			ypz->x = x;
+			ypz->y = y;
+		}
+	}
+	else if (mev == MotionNotify) 
+	{
+		Quaternion qyaw, qpitch;
+		double dyaw, dpitch;
+		struct point_XYZ pp, yaxis;
+		double dist, yaw, pitch;
+		Quaternion quat;
+
+		if (button == 1 || button == 3){
+			yaxis.x = yaxis.z = 0.0;
+			yaxis.y = 1.0;
+			pp = p->Viewer.Pos;
+			dist = veclength(pp);
+			vecnormal(&pp, &pp);
+			yaw = -atan2(pp.x, pp.z);
+			pitch = -(acos(vecdot(&pp, &yaxis)) - PI*.5);
+		}
+		if (button == 1) {
+			dyaw = -(ypz->x - x) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom * tg->display.screenRatio;
+			dpitch = -(ypz->y - y) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom;
+			yaw += dyaw;
+			pitch += dpitch;
+		}else if (button == 3) {
+			if(ctrl){
+				//combine with handle_tick to give quadratic adjustment
+			}else{
+				double d, fac;
+				d = (y - ypz->y)*.5; // .25;
+				if (d > 0.0)
+					fac = ((d *  2.0) + (1.0 - d) * 1.0);
+				else
+				{
+					d = fabs(d);
+					fac = ((d * .5) + (1.0 - d) * 1.0);
+				}
+				dist *= fac;
+			}
+		}
+		if (button == 1 || button == 3)
+		{
+			vrmlrot_to_quaternion(&qyaw, 0.0, 1.0, 0.0, yaw);
+			vrmlrot_to_quaternion(&qpitch, 1.0, 0.0, 0.0, pitch);
+			quaternion_multiply(&quat, &qpitch, &qyaw);
+			quaternion_normalize(&quat);
+			quaternion_set(&(p->Viewer.Quat), &quat);
+			//move the viewer.pos in the opposite direction that we are looking
+			quaternion_inverse(&quat, &quat);
+			pp.x = 0.0;
+			pp.y = 0.0;
+			pp.z = dist;
+			quaternion_rotation(&(p->Viewer.Pos), &quat, &pp);
+			//remember the last drag coords for next motion
+			ypz->x = x;
+			ypz->y = y;
+
+		}
+	}
+}
+void handle_tick_explore() {
+	ttglobal tg;
+	ppViewer p;
+	tg = gglobal();
+	p = (ppViewer)tg->Viewer.prv;
+	//stub in case we need the viewer or viewpoint transition here	
+	switch(p->Viewer.LookatMode){
+		case 0: //not in use
+		case 1: //someone set viewer to lookat mode: mainloop shuts off sensitive, turns on lookat cursor
+		case 2: //mouseup tells mainloop to pick a node at current mousexy, turn off lookatcursor
+		case 3: //mainloop picked a node, now transition
+		case 4: //transition complete, restore previous nav type
+		break;
+	}
+}
+
+
 void handle_tilt(const int mev, const unsigned int button, float x, float y) {
 	/* a vertical drag tilts the camera
 	*/
@@ -1272,6 +1370,9 @@ void handle0(const int mev, const unsigned int button, const float x, const floa
 		break;
 	case VIEWER_LOOKAT:
 		handle_lookat(mev, button, ((float)x), ((float)y));
+		break;
+	case VIEWER_EXPLORE:
+		handle_explore(mev, button, ((float)x), ((float)y));
 		break;
 	default:
 		break;
@@ -1832,6 +1933,9 @@ handle_tick()
 		break;
 	case VIEWER_LOOKAT:
 		handle_tick_lookat();
+		break;
+	case VIEWER_EXPLORE:
+		handle_tick_explore();
 		break;
 	case VIEWER_YAWPITCHZOOM:
 	case VIEWER_TURNTABLE:

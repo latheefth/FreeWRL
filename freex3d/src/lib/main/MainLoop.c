@@ -3416,6 +3416,7 @@ void fwl_do_keyPress0(int key, int type) {
 				case 'y': { fwl_set_viewer_type (VIEWER_YAWPITCHZOOM); break; }
 				case 't': { fwl_set_viewer_type(VIEWER_TURNTABLE); break; }
 				case 'm': { fwl_set_viewer_type(VIEWER_LOOKAT); break; }
+				case 'g': { fwl_set_viewer_type(VIEWER_EXPLORE); break; }
 				case 'h': { fwl_toggle_headlight(); break; }
 				case '/': { print_viewer(); break; }
 				//case '\\': { dump_scenegraph(); break; }
@@ -3450,10 +3451,24 @@ void fwl_do_keyPress0(int key, int type) {
 		}
 		if(!handled) {
 			char kp;
-			if(type/10 == 0)
+			if(type/10 == 0){
 				kp = (char)key; //normal keyboard key
-			else
+			}else{
 				kp = lookup_fly_key(key); //actionKey possibly numpad or arrows, convert to a/z
+				if(!kp){
+					//not a fly key - is it SHIFT or CTRL?  //feature-EXPLORE
+					int keystate = type % 10 == KEYDOWN ? 1 : 0;
+					switch(key){
+						case CTL_KEY:
+							tg->Mainloop.CTRL = keystate; break;
+						case SFT_KEY:
+							tg->Mainloop.SHIFT = keystate; break;
+						default:
+						break;
+					}
+					//printf("CTRL=%d SHIFT=%d\n",tg->Mainloop.CTRL,tg->Mainloop.SHIFT);
+				}
+			}
 			if(kp){
 				double keytime = Time1970sec();
 				if(type%10 == KEYDOWN)
