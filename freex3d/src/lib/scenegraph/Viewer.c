@@ -1147,69 +1147,77 @@ void handle_explore(const int mev, const unsigned int button, float x, float y) 
 	shift = tg->Mainloop.SHIFT;
 	ctrl = tg->Mainloop.CTRL;
 
-	if (mev == ButtonPress) {
-		if (button == 1 || button == 3) {
-			ypz->x = x;
-			ypz->y = y;
-		}
-	}
-	else if (mev == MotionNotify) 
-	{
-		Quaternion qyaw, qpitch;
-		double dyaw, dpitch;
-		struct point_XYZ pp, yaxis;
-		double dist, yaw, pitch;
-		Quaternion quat;
-
-		if (button == 1 || button == 3){
-			yaxis.x = yaxis.z = 0.0;
-			yaxis.y = 1.0;
-			pp = p->Viewer.Pos;
-			dist = veclength(pp);
-			vecnormal(&pp, &pp);
-			yaw = -atan2(pp.x, pp.z);
-			pitch = -(acos(vecdot(&pp, &yaxis)) - PI*.5);
-		}
-		if (button == 1) {
-			dyaw = -(ypz->x - x) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom * tg->display.screenRatio;
-			dpitch = -(ypz->y - y) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom;
-			yaw += dyaw;
-			pitch += dpitch;
-		}else if (button == 3) {
-			if(ctrl){
-				//combine with handle_tick to give quadratic adjustment
-			}else{
-				double d, fac;
-				d = (y - ypz->y)*.5; // .25;
-				if (d > 0.0)
-					fac = ((d *  2.0) + (1.0 - d) * 1.0);
-				else
-				{
-					d = fabs(d);
-					fac = ((d * .5) + (1.0 - d) * 1.0);
-				}
-				dist *= fac;
+	if(ctrl) {
+		//we're in pick mode - we'll re-use some lookat code
+		handle_lookat(mev,button,x,y);
+	}else{
+		//we're in navigate mdoe
+		p->Viewer.LookatMode = 0;
+		if (mev == ButtonPress) {
+			if (button == 1 || button == 3) {
+				ypz->x = x;
+				ypz->y = y;
 			}
 		}
-		if (button == 1 || button == 3)
+		else if (mev == MotionNotify) 
 		{
-			vrmlrot_to_quaternion(&qyaw, 0.0, 1.0, 0.0, yaw);
-			vrmlrot_to_quaternion(&qpitch, 1.0, 0.0, 0.0, pitch);
-			quaternion_multiply(&quat, &qpitch, &qyaw);
-			quaternion_normalize(&quat);
-			quaternion_set(&(p->Viewer.Quat), &quat);
-			//move the viewer.pos in the opposite direction that we are looking
-			quaternion_inverse(&quat, &quat);
-			pp.x = 0.0;
-			pp.y = 0.0;
-			pp.z = dist;
-			quaternion_rotation(&(p->Viewer.Pos), &quat, &pp);
-			//remember the last drag coords for next motion
-			ypz->x = x;
-			ypz->y = y;
+			Quaternion qyaw, qpitch;
+			double dyaw, dpitch;
+			struct point_XYZ pp, yaxis;
+			double dist, yaw, pitch;
+			Quaternion quat;
 
+			if (button == 1 || button == 3){
+				yaxis.x = yaxis.z = 0.0;
+				yaxis.y = 1.0;
+				pp = p->Viewer.Pos;
+				dist = veclength(pp);
+				vecnormal(&pp, &pp);
+				yaw = -atan2(pp.x, pp.z);
+				pitch = -(acos(vecdot(&pp, &yaxis)) - PI*.5);
+			}
+			if (button == 1) {
+				dyaw = -(ypz->x - x) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom * tg->display.screenRatio;
+				dpitch = -(ypz->y - y) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom;
+				yaw += dyaw;
+				pitch += dpitch;
+			}else if (button == 3) {
+				if(ctrl){
+					//combine with handle_tick to give quadratic adjustment
+				}else{
+					double d, fac;
+					d = (y - ypz->y)*.5; // .25;
+					if (d > 0.0)
+						fac = ((d *  2.0) + (1.0 - d) * 1.0);
+					else
+					{
+						d = fabs(d);
+						fac = ((d * .5) + (1.0 - d) * 1.0);
+					}
+					dist *= fac;
+				}
+			}
+			if (button == 1 || button == 3)
+			{
+				vrmlrot_to_quaternion(&qyaw, 0.0, 1.0, 0.0, yaw);
+				vrmlrot_to_quaternion(&qpitch, 1.0, 0.0, 0.0, pitch);
+				quaternion_multiply(&quat, &qpitch, &qyaw);
+				quaternion_normalize(&quat);
+				quaternion_set(&(p->Viewer.Quat), &quat);
+				//move the viewer.pos in the opposite direction that we are looking
+				quaternion_inverse(&quat, &quat);
+				pp.x = 0.0;
+				pp.y = 0.0;
+				pp.z = dist;
+				quaternion_rotation(&(p->Viewer.Pos), &quat, &pp);
+				//remember the last drag coords for next motion
+				ypz->x = x;
+				ypz->y = y;
+
+			}
 		}
 	}
+
 }
 void handle_tick_explore() {
 	ttglobal tg;
@@ -2549,8 +2557,11 @@ void slerp_viewpoint()
 			if(tickFrac > .99)
 			{
 				p->Viewer.SLERPing2 = FALSE;
-				if(p->Viewer.LookatMode == 3)
-					fwl_set_viewer_type(VIEWER_LOOKAT); //toggle off LOOKAT
+				if(p->Viewer.LookatMode == 3){
+					if(p->Viewer.type == VIEWER_LOOKAT)
+						fwl_set_viewer_type(VIEWER_LOOKAT); //toggle off LOOKAT
+					p->Viewer.LookatMode = 0; //VIEWER_EXPLORE
+				}
 				//printf(" done\n");
 			}
 		}
@@ -2575,10 +2586,10 @@ void setup_viewpoint_slerp(double* center, double radius){
 
 	veccopyd(pos,center);
 
-	dradius = max(p->Viewer.Dist, radius + 5.0);
-	distance = veclengthd(pos);
-	distance = (distance - dradius)/distance;
-	vecscaled(pos,pos,distance);
+	//dradius = max(p->Viewer.Dist, radius + 5.0);
+	//distance = veclengthd(pos);
+	//distance = (distance - dradius)/distance;
+	vecscaled(pos,pos,radius); //distance);
 	//p->Viewer.Dist = dradius;
 
 	quaternion_normalize(&p->Viewer.Quat);
@@ -2619,7 +2630,7 @@ void setup_viewpoint_slerp(double* center, double radius){
 	if(0) printf("atan2 yaw=%f pitch=%f\n",yaw,pitch);
 
 	pitch = -pitch;
-	if(0) printf("[yaw=%f pitch=%f\n",yaw,pitch);
+	if(1) printf("[yaw=%f pitch=%f\n",yaw,pitch);
 	if(0){
 		matrotate(R1, -pitch, 1.0, 0.0, 0.0);
 		matrotate(R2, -yaw, 0.0, 1.0, 0.0);

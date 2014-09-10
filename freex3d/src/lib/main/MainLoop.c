@@ -1264,6 +1264,7 @@ void fwl_RenderSceneUpdateScene() {
 		}
 	} /* (!NavigationMode && HaveSensitive) */
 	else if(Viewer()->LookatMode){
+		//pick a target object to travel to
 		if(Viewer()->LookatMode < 3)
 			setLookatCursor();
 		if(Viewer()->LookatMode == 2){
@@ -3612,7 +3613,6 @@ int getRayHitAndSetLookatTarget() {
 	p = (ppMainloop)tg->Mainloop.prv;
 
     if(tg->RenderFuncs.hitPointDist >= 0) {
-		GLDOUBLE smin[3], smax[3], shapeMBBmin[3], shapeMBBmax[3];
 		struct X3D_Node * node;
 		struct currayhit * rh = (struct currayhit *)tg->RenderFuncs.rayHit;
 
@@ -3621,29 +3621,44 @@ int getRayHitAndSetLookatTarget() {
 			Viewer()->LookatMode = 0; //give up, turn off lookat cursor
 		}else{
 			GLDOUBLE matTarget[16];
-			/* generate mins and maxes for avatar cylinder in avatar space to represent the avatar collision volume */
-			node = rh->hitNode;
-			for(i=0;i<3;i++)
-			{
-				shapeMBBmin[i] = node->_extent[i*2 + 1];
-				shapeMBBmax[i] = node->_extent[i*2];
-			}
-			transformMBB(smin,smax,rh->modelMatrix,shapeMBBmin,shapeMBBmax); //transform shape's MBB into eye space
-			double center[3], pos[3], radius, distance;
-			radius = 0.0;
-			for(i=0;i<3;i++){
-				center[i] = (smax[i] + smin[i])*.5;
-				radius = max(radius,(max(abs(smax[i]-center[i]),abs(smin[i]-center[i]))));
-			}
+			double center[3], pos[3], radius;
+			if(Viewer()->type == VIEWER_LOOKAT){
+				//use the center of the object, and its radius
+				GLDOUBLE smin[3], smax[3], shapeMBBmin[3], shapeMBBmax[3];
+				double dradius;
+				node = rh->hitNode;
+				for(i=0;i<3;i++)
+				{
+					shapeMBBmin[i] = node->_extent[i*2 + 1];
+					shapeMBBmax[i] = node->_extent[i*2];
+				}
+				transformMBB(smin,smax,rh->modelMatrix,shapeMBBmin,shapeMBBmax); //transform shape's MBB into eye space
+				double pos[3], distance;
+				radius = 0.0;
+				for(i=0;i<3;i++){
+					center[i] = (smax[i] + smin[i])*.5;
+					radius = max(radius,(max(abs(smax[i]-center[i]),abs(smin[i]-center[i]))));
+				}
+				dradius = max(Viewer()->Dist, radius + 5.0);
+				distance = veclengthd(center);
+				distance = (distance - dradius)/distance;
+				radius = distance;
 
+			} else if(Viewer()->type == VIEWER_EXPLORE){
+				//use the pickpoint (think of a large, continuous geospatial terrain shape,
+				// and you want to examine a specific geographic point on that shape)
+				pointxyz2double(center,&tg->RenderFuncs.hp);
+				transformAFFINEd(center,center,getPickrayMatrix(0));
+				//radius = veclengthd(center);
+				//radius *= .2; //zoom 20% toward
+				radius = .2;
+			}
 			Viewer()->LookatMode = 3; //go to viewpiont transition mode
 			setup_viewpoint_slerp(center,radius);
 		}
     }
     return Viewer()->LookatMode;
 }
-
-
 
 struct X3D_Node* getRayHit() {
         double x,y,z;
