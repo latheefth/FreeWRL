@@ -602,9 +602,10 @@ ViewerUpVector computation - see RenderFuncs.c L595
 	vrmlrot_to_quaternion(&q, rotaxis.x, rotaxis.y, rotaxis.z, -angle );
 	quaternion_normalize(&q);
 	quaternion_multiply(&(p->Viewer.Quat), &q, &Quat);
+	quaternion_normalize(&(p->Viewer.Quat));
 
 	/* make sure Viewer.Dist is configured properly for Examine mode */
-	CALCULATE_EXAMINE_DISTANCE
+	//CALCULATE_EXAMINE_DISTANCE
 }
 
 void viewer_togl(double fieldofview) 
@@ -1610,6 +1611,7 @@ static void handle_tick_walk()
 	// .Pos += inverse(planar_part(.Quat)) * walk->ZD
 	//this should rotate the tilts with the avatar
 	quaternion_multiply(&(p->Viewer.Quat), &q, &nq); //Quat = walk->RD * Quat
+	quaternion_normalize(&(p->Viewer.Quat));
 	{
 		double angle;
 		struct point_XYZ tilted;
@@ -1659,7 +1661,7 @@ static void handle_tick_walk()
 	}
 
 	/* make sure Viewer.Dist is configured properly for Examine mode */
-	CALCULATE_EXAMINE_DISTANCE
+	//CALCULATE_EXAMINE_DISTANCE
 }
 
 
@@ -1902,9 +1904,10 @@ static void handle_tick_fly()
 
 	quaternion_set(&q_v, &(p->Viewer.Quat));
 	quaternion_multiply(&(p->Viewer.Quat), &nq, &q_v);
+	quaternion_normalize(&(p->Viewer.Quat));
 
 	/* make sure Viewer.Dist is configured properly for Examine mode */
-	CALCULATE_EXAMINE_DISTANCE
+	//CALCULATE_EXAMINE_DISTANCE
 
 }
 
@@ -2578,6 +2581,7 @@ void setup_viewpoint_slerp(double* center, double radius){
 	vecscaled(pos,pos,distance);
 	//p->Viewer.Dist = dradius;
 
+	quaternion_normalize(&p->Viewer.Quat);
 	quaternion_to_matrix(matQuat, &p->Viewer.Quat);
 
 	double2pointxyz(&pp,pos);
@@ -2593,15 +2597,24 @@ void setup_viewpoint_slerp(double* center, double radius){
 	//besides translating the viewer, you also want to turn the camera to look at the 
 	//center of the shape (turning somewhat toward the pickray direction, but more precisely to the shape object ccenter)
 	veccopyd(C,pos);
-	yaw = atan2(C[0],-C[2]);
+	if(0) printf("Cdif raw %f %f %f\n",C[0],C[1],C[2]);
+	if( APPROX( vecnormald(C,C), 0.0) ) C[2] = 1.0;
+	if(0) printf("Cdif nrm %f %f %f\n",C[0],C[1],C[2]);
+	//C[2] = fabs(C[2]); //if we are too close, we don't want to turn 180 to move away, we just want to back up
+	if(C[2] < 0.0) vecscaled(C,C,-1.0);
+	if(0) printf("Cdif abs %f %f %f\n",C[0],C[1],C[2]);
+	yaw = -atan2(C[0],C[2]);
+	//if(APPROX(C[2],0.0) && APPROX(C[0],0.0)) yaw = 0.0; //atan2(0,0) goes crazy
 	matrixFromAxisAngle4d(R1, -yaw, 0.0, 1.0, 0.0);
 	if(1){
 		transformAFFINEd(C,C,R1);
 		if(0) printf("Yawed Cdif %f %f %f\n",C[0],C[1],C[2]);
-		pitch = atan2(C[1],-C[2]);
+		pitch = -atan2(C[1],C[2]);
+		//if(APPROX(C[2],0.0) && APPROX(C[1],0.0)) pitch = 0.0; //atan2(0,0) goes crazy
 	}else{
 		double hypotenuse = sqrt(C[0]*C[0] + C[2]*C[2]);
-		pitch = atan2(C[1],hypotenuse);
+		pitch = -atan2(C[1],hypotenuse);
+		//if(APPROX(hypotenuse,0.0) && APPROX(C[1],0.0)) pitch = 0.0; //atan2(0,0) goes crazy
 	}
 	if(0) printf("atan2 yaw=%f pitch=%f\n",yaw,pitch);
 
@@ -2621,6 +2634,8 @@ void setup_viewpoint_slerp(double* center, double radius){
 	matrix_to_quaternion(&sq,R3i);
 	quaternion_normalize(&sq);
 	quaternion_multiply(&p->Viewer.Quat,&sq,&p->Viewer.Quat);
+	quaternion_normalize(&p->Viewer.Quat);
+
 
 	if(0) resolve_pos(); //in examine mode, sets up examine origin
 
