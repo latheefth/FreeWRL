@@ -357,14 +357,15 @@ void set_eyehalf(const double eyehalf, const double eyehalfangle) {
 	p->Viewer.eyehalfangle = eyehalfangle;
 	p->Viewer.isStereo = 1;
 }
-
+void resolve_pos2();
 void fwl_set_viewer_type(const int type) {
 	ttglobal tg = gglobal();
 	ppViewer p = (ppViewer)tg->Viewer.prv;
 
 	switch(type) {
-	case VIEWER_NONE:
 	case VIEWER_EXAMINE:
+		resolve_pos2();
+	case VIEWER_NONE:
 	case VIEWER_WALK:
 	case VIEWER_EXFLY:
 	case VIEWER_TPLANE:
@@ -406,7 +407,7 @@ void fwl_set_viewer_type(const int type) {
 			return;
 		}
 
-	viewer_init(&p->Viewer,type);
+	if(1) viewer_init(&p->Viewer,type);  //feature-EXPLORE
 
 	/* tell the window menu what we are */
 	//setMenuButton_navModes(p->Viewer.type);
@@ -465,8 +466,8 @@ int fwl_getNavMode()
 //	return TRUE; //FALSE; //Navigation-key_and_drag
 //}
 
-
-void resolve_pos() {
+void resolve_pos(){}
+void resolve_pos2() {
 	/* my($this) = @_; */
 	struct point_XYZ rot, z_axis = { 0, 0, 1 };
 	Quaternion q_inv;
@@ -476,7 +477,7 @@ void resolve_pos() {
 	X3D_Viewer_Examine *examine = &p->Viewer.examine;
 
 
-	if (p->Viewer.type == VIEWER_EXAMINE  || (p->Viewer.type == VIEWER_LOOKAT && p->Viewer.lastType == VIEWER_EXAMINE) ) {
+	//if (p->Viewer.type == VIEWER_EXAMINE  || (p->Viewer.type == VIEWER_LOOKAT && p->Viewer.lastType == VIEWER_EXAMINE) ) {
 		/* my $z = $this->{Quat}->invert->rotate([0,0,1]); */
 		quaternion_inverse(&q_inv, &(p->Viewer.Quat));
 		quaternion_rotation(&rot, &q_inv, &z_axis);
@@ -494,7 +495,7 @@ printf ("RP, before orig calc %4.3f %4.3f %4.3f\n",examine->Origin.x, examine->O
 /*
 printf ("RP, aft orig calc %4.3f %4.3f %4.3f\n",examine->Origin.x, examine->Origin.y,examine->Origin.z);
 */
-	}
+	//}
 }
 double vecangle2(struct point_XYZ* V1, struct point_XYZ* V2, struct point_XYZ* rotaxis) {
 	/* similar full circle angle computation as:
@@ -836,6 +837,7 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
 
 	if (mev == ButtonPress) {
 		if (button == 1) {
+			resolve_pos2();
 /*
 			printf ("\n");
 			printf ("bp, before SQ %4.3f %4.3f %4.3f %4.3f\n",examine->SQuat.x, examine->SQuat.y, examine->SQuat.z, examine->SQuat.w);
@@ -890,7 +892,6 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
 /*
 	printf ("bp, after quat rotation, pos %4.3f %4.3f %4.3f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z);
 */
-
 	p->Viewer.Pos.x += (examine->Origin).x;
 	p->Viewer.Pos.y += (examine->Origin).y;
 	p->Viewer.Pos.z += (examine->Origin).z;
@@ -1347,8 +1348,7 @@ void handle0(const int mev, const unsigned int button, const float x, const floa
 	case VIEWER_EXFLY:
 		break;
 	case VIEWER_FLY:
-		if(0) handle_walk(mev, button, ((float) x), ((float) y)); //feature-Navigation_key_and_drag
-		if(1) handle_fly2(mev, button, ((float) x), ((float) y)); //feature-Navigation_key_and_drag
+		handle_fly2(mev, button, ((float) x), ((float) y)); //feature-Navigation_key_and_drag
 		break;
 	case VIEWER_FLY2:
 		handle_fly2(mev,button,((float) x),((float)y));
@@ -1944,19 +1944,20 @@ handle_tick()
 	default:
 		break;
 	}
-	handle_tick_fly(); //Navigation-key_and_drag
-
+	if(p->Viewer.type != VIEWER_NONE){
+		handle_tick_fly(); //Navigation-key_and_drag
+	}
 	if (p->Viewer.doExamineModeDistanceCalculations) {
-/*
+		/*
 		printf ("handle_tick - doing calculations\n");
-*/
+		*/
 		CALCULATE_EXAMINE_DISTANCE
 		resolve_pos();
 		p->examineCounter --;
 
 		if (p->examineCounter < 0) {
-		p->Viewer.doExamineModeDistanceCalculations = FALSE;
-		p->examineCounter = 5;
+			p->Viewer.doExamineModeDistanceCalculations = FALSE;
+			p->examineCounter = 5;
 		}
 	}
 }
@@ -2571,11 +2572,11 @@ void setup_viewpoint_slerp(double* center, double radius){
 
 	veccopyd(pos,center);
 
-	dradius = (p->Viewer.Dist, radius + 5.0);
+	dradius = max(p->Viewer.Dist, radius + 5.0);
 	distance = veclengthd(pos);
 	distance = (distance - dradius)/distance;
 	vecscaled(pos,pos,distance);
-	p->Viewer.Dist = dradius;
+	//p->Viewer.Dist = dradius;
 
 	quaternion_to_matrix(matQuat, &p->Viewer.Quat);
 
