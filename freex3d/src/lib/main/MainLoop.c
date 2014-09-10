@@ -1176,7 +1176,7 @@ void fwl_RenderSceneUpdateScene() {
 
 	/* handle_mouse events if clicked on a sensitive node */
 	//printf("nav mode =%d sensitive= %d\n",p->NavigationMode, tg->Mainloop.HaveSensitive);
-	if (!p->NavigationMode && tg->Mainloop.HaveSensitive && !Viewer()->LookatMode) {
+	if (!p->NavigationMode && tg->Mainloop.HaveSensitive && !Viewer()->LookatMode && !tg->Mainloop.SHIFT) {
 		p->currentCursor = 0;
 		setup_projection(TRUE,tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
 		setup_viewpoint();
@@ -4890,7 +4890,7 @@ void fwl_handle_aqua_multi0(const int mev, const unsigned int button, int x, int
                 /* if we are Not over an enabled sensitive node, and we do NOT already have a
                    button down from a sensitive node... */
 
-                if (((p->CursorOverSensitive ==NULL) && (p->lastPressedOver ==NULL)) || Viewer()->LookatMode) {
+                if (((p->CursorOverSensitive ==NULL) && (p->lastPressedOver ==NULL)) || Viewer()->LookatMode || tg->Mainloop.SHIFT) {
                         p->NavigationMode=p->ButDown[p->currentCursor][1] || p->ButDown[p->currentCursor][3];
                         handle(mev, button, (float) ((float)x/tg->display.screenWidth), (float) ((float)y/tg->display.screenHeight));
                 }
