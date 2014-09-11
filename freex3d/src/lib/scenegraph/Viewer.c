@@ -1398,26 +1398,81 @@ void handle_rplane(const int mev, const unsigned int button, float x, float y) {
 	*/
 	X3D_Viewer_InPlane *inplane;
 	Quaternion nq, q_v;
-	double xx,yy;
+	double xx,yy, frameRateAdjustment;
 	ppViewer p;
-	p = (ppViewer)gglobal()->Viewer.prv;
+	ttglobal tg = gglobal();
+	p = (ppViewer)tg->Viewer.prv;
 	inplane = &p->Viewer.inplane;
 
-	xx = x - .5;
-	yy = .5 - y;
+	if( tg->Mainloop.BrowserFPS > 0)
+		frameRateAdjustment = 20.0 / tg->Mainloop.BrowserFPS; /* lets say 20FPS is our speed benchmark for developing tuning parameters */
+	else
+		frameRateAdjustment = 1.0;
+
 	if (mev == ButtonPress) {
-		inplane->x = xx;
-		inplane->y = yy;
+		inplane->x = x; 
+		inplane->y = y; 
 	} else if (mev == MotionNotify) {
-		double drot = atan2(yy,xx) - atan2(inplane->y,inplane->x); 
-		//printf("y=%lf x=%lf inplane-y=%lf inplanex=%lf\n",yy,xx,inplane->y,inplane->x);
-		quaternion_set(&q_v, &(p->Viewer.Quat));
-		vrmlrot_to_quaternion(&nq, 0.0, 0.0, 1.0, drot);
-		quaternion_multiply(&(p->Viewer.Quat), &nq, &q_v);
-		inplane->x = xx;
-		inplane->y = yy;
-		//CALCULATE_EXAMINE_DISTANCE
+		if(0){
+			//static drag
+			double drot = atan2(yy,xx) - atan2(inplane->y,inplane->x); 
+			//printf("y=%lf x=%lf inplane-y=%lf inplanex=%lf\n",yy,xx,inplane->y,inplane->x);
+			quaternion_set(&q_v, &(p->Viewer.Quat));
+			vrmlrot_to_quaternion(&nq, 0.0, 0.0, 1.0, drot);
+			quaternion_multiply(&(p->Viewer.Quat), &nq, &q_v);
+			inplane->x = xx;
+			inplane->y = yy;
+			//CALCULATE_EXAMINE_DISTANCE
+		}
+		if(1){
+			//handle_tick quadratic drag
+			inplane->xx = -xsign_quadratic(x - inplane->x,0.1,0.5,0.0)*frameRateAdjustment;
+			}
+
+	} else if (mev == ButtonRelease) {
+		if (button == 1) {
+			inplane->xx = 0.0f;
+		}
  	}
+}
+void handle_tick_tplane(){}
+void handle_tick_rplane(){
+	X3D_Viewer_InPlane *inplane;
+	Quaternion quat;
+	struct point_XYZ pp;
+	ttglobal tg;
+	ppViewer p;
+	tg = gglobal();
+	p = (ppViewer)tg->Viewer.prv;
+
+	inplane = &p->Viewer.inplane;
+
+	vrmlrot_to_quaternion (&quat,0.0,0.0,0.1,0.4*inplane->xx);
+	quaternion_multiply(&(p->Viewer.Quat), &(p->Viewer.Quat), &quat); 
+	quaternion_normalize(&(p->Viewer.Quat));
+
+}
+void handle_tick_tilt() {
+	X3D_Viewer_YawPitchZoom *ypz;
+	Quaternion quat;
+	struct point_XYZ pp;
+	ttglobal tg;
+	ppViewer p;
+	tg = gglobal();
+	p = (ppViewer)tg->Viewer.prv;
+	ypz = &p->Viewer.ypz; //just a place to store last mouse xy during drag
+
+	/*
+	resolve_pos2();
+	p->Viewer.Dist += ypz->ypz[1];
+	//move the viewer.pos in the opposite direction that we are looking
+	quaternion_inverse(&quat, &(p->Viewer.Quat));
+	pp.x = 0.0;
+	pp.y = 0.0;
+	pp.z = p->Viewer.Dist; //dist;
+	quaternion_rotation(&(p->Viewer.Pos), &quat, &pp);
+	vecadd(&p->Viewer.Pos,&p->Viewer.examine.Origin,&p->Viewer.Pos);
+	*/
 }
 
 /************************************************************************************/
@@ -2032,6 +2087,15 @@ handle_tick()
 		break;
 	case VIEWER_LOOKAT:
 		handle_tick_lookat();
+		break;
+	case VIEWER_TPLANE:
+		handle_tick_tplane();
+		break;
+	case VIEWER_RPLANE:
+		handle_tick_rplane();
+		break;
+	case VIEWER_TILT:
+		handle_tick_tilt();
 		break;
 	case VIEWER_EXPLORE:
 		handle_tick_explore();
