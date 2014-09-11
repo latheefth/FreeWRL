@@ -1324,33 +1324,6 @@ void handle_tick_explore() {
 	}
 }
 
-void handle_tilt(const int mev, const unsigned int button, float x, float y) {
-	/* a vertical drag tilts the camera
-	*/
-	X3D_Viewer_InPlane *inplane;
-	Quaternion nq, q_v;
-	double xx,yy;
-	ppViewer p;
-	p = (ppViewer)gglobal()->Viewer.prv;
-	inplane = &p->Viewer.inplane;
-
-	xx = x - .5;
-	yy = .5 - y;
-	if (mev == ButtonPress) {
-		inplane->x = xx;
-		inplane->y = yy;
-	} else if (mev == MotionNotify) {
-		double drot = atan2(yy,.5) - atan2(inplane->y,.5); 
-		//printf("y=%lf x=%lf inplane-y=%lf inplanex=%lf\n",yy,xx,inplane->y,inplane->x);
-		quaternion_set(&q_v, &(p->Viewer.Quat));
-		vrmlrot_to_quaternion(&nq, 1.0, 0.0, 0.0, drot);
-		quaternion_multiply(&(p->Viewer.Quat), &nq, &q_v);
-		inplane->x = xx;
-		inplane->y = yy;
-		//CALCULATE_EXAMINE_DISTANCE
- 	}
-}
-
 void handle_tplane(const int mev, const unsigned int button, float x, float y) {
 	/* handle_walk with 3button mouse, RMB, can do X,Y in plane, but not rotation
 	   for touch screen with one finger, we want a nav mode called InPlane to 
@@ -1370,27 +1343,36 @@ void handle_tplane(const int mev, const unsigned int button, float x, float y) {
 	else
 		frameRateAdjustment = 1.0;
 
-	xx = x - .5;
-	yy = .5 - y;
 	if (mev == ButtonPress) {
-		inplane->x = xx;
-		inplane->y = yy;
+		inplane->x = x; //x;
+		inplane->y = y; //y;
 	} else if (mev == MotionNotify) {
-		//xyz.x = -(x - inplane->x);
-		//xyz.y = y - inplane->y;
-		xyz.x = -(xx - inplane->x);
-		xyz.y = -(yy - inplane->y);
-		xyz.z = 0.0;
-		xyz.x = .15 * xsign_quadratic(xyz.x,5.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment;
-		xyz.y = .15 * xsign_quadratic(xyz.y,5.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment;
-
-		increment_pos(&xyz);
-		inplane->x = xx;
-		inplane->y = yy;
-		//CALCULATE_EXAMINE_DISTANCE
- 	}
+		inplane->xx = .15 * xsign_quadratic(x - inplane->x,5.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment;
+		inplane->yy = -.15 * xsign_quadratic(y - inplane->y,5.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment;
+ 	} else if(mev == ButtonRelease){
+		inplane->xx = 0.0f;
+		inplane->yy = 0.0f;
+	}
 }
-void handle_rplane(const int mev, const unsigned int button, float x, float y) {
+void handle_tick_tplane(){
+	X3D_Viewer_InPlane *inplane;
+	Quaternion quatr, quatt, quat;
+	struct point_XYZ pp;
+	ttglobal tg;
+	ppViewer p;
+	tg = gglobal();
+	p = (ppViewer)tg->Viewer.prv;
+
+	inplane = &p->Viewer.inplane;
+	pp.x = inplane->xx;
+	pp.y = inplane->yy;
+	pp.z = 0.0;
+
+	//vecadd(&p->Viewer.Pos,&p->Viewer.Pos,&pp);
+	increment_pos(&pp);
+}
+
+void handle_rtplane(const int mev, const unsigned int button, float x, float y) {
 	/* handle_walk with 3button mouse, RMB, can do X,Y in plane, but not rotation
 	   for touch screen with one finger, we want a nav mode called InPlane to 
 	   do the X,Y shifts and rotation in the plane of the camera screen 
@@ -1426,19 +1408,21 @@ void handle_rplane(const int mev, const unsigned int button, float x, float y) {
 		}
 		if(1){
 			//handle_tick quadratic drag
-			inplane->xx = -xsign_quadratic(x - inplane->x,0.1,0.5,0.0)*frameRateAdjustment;
+			inplane->xx = xsign_quadratic(x - inplane->x,0.1,0.5,0.0)*frameRateAdjustment;
+			inplane->yy = xsign_quadratic(y - inplane->y,0.1,0.5,0.0)*frameRateAdjustment;
 			}
 
 	} else if (mev == ButtonRelease) {
 		if (button == 1) {
 			inplane->xx = 0.0f;
+			inplane->yy = 0.0f;
 		}
  	}
 }
-void handle_tick_tplane(){}
+
 void handle_tick_rplane(){
 	X3D_Viewer_InPlane *inplane;
-	Quaternion quat;
+	Quaternion quatr;
 	struct point_XYZ pp;
 	ttglobal tg;
 	ppViewer p;
@@ -1447,32 +1431,27 @@ void handle_tick_rplane(){
 
 	inplane = &p->Viewer.inplane;
 
-	vrmlrot_to_quaternion (&quat,0.0,0.0,0.1,0.4*inplane->xx);
-	quaternion_multiply(&(p->Viewer.Quat), &(p->Viewer.Quat), &quat); 
+	vrmlrot_to_quaternion (&quatr,0.0,0.0,0.1,0.4*inplane->xx); //roll about z axis
+
+	quaternion_multiply(&(p->Viewer.Quat), &quatr,  &(p->Viewer.Quat)); 
 	quaternion_normalize(&(p->Viewer.Quat));
 
 }
 void handle_tick_tilt() {
-	X3D_Viewer_YawPitchZoom *ypz;
-	Quaternion quat;
+	X3D_Viewer_InPlane *inplane;
+	Quaternion quatt;
 	struct point_XYZ pp;
 	ttglobal tg;
 	ppViewer p;
 	tg = gglobal();
 	p = (ppViewer)tg->Viewer.prv;
-	ypz = &p->Viewer.ypz; //just a place to store last mouse xy during drag
 
-	/*
-	resolve_pos2();
-	p->Viewer.Dist += ypz->ypz[1];
-	//move the viewer.pos in the opposite direction that we are looking
-	quaternion_inverse(&quat, &(p->Viewer.Quat));
-	pp.x = 0.0;
-	pp.y = 0.0;
-	pp.z = p->Viewer.Dist; //dist;
-	quaternion_rotation(&(p->Viewer.Pos), &quat, &pp);
-	vecadd(&p->Viewer.Pos,&p->Viewer.examine.Origin,&p->Viewer.Pos);
-	*/
+	inplane = &p->Viewer.inplane;
+
+	vrmlrot_to_quaternion (&quatt,1.0,0.0,0.0,0.4*inplane->yy); //tilt about x axis
+
+	quaternion_multiply(&(p->Viewer.Quat), &quatt, &(p->Viewer.Quat)); 
+	quaternion_normalize(&(p->Viewer.Quat));
 }
 
 /************************************************************************************/
@@ -1506,25 +1485,23 @@ void handle0(const int mev, const unsigned int button, const float x, const floa
 		handle_fly2(mev,button,((float) x),((float)y));
 		break;
 	case VIEWER_TILT:
-		handle_tilt(mev,button,((float) x),((float)y));
+	case VIEWER_RPLANE:
+		handle_rtplane(mev,button,((float) x),((float)y)); //roll, tilt: one uses x, one uses y - separate handle_ticks though
 		break;
 	case VIEWER_TPLANE:
-		handle_tplane(mev,button,((float) x),((float)y));
-		break;
-	case VIEWER_RPLANE:
-		handle_rplane(mev,button,((float) x),((float)y));
+		handle_tplane(mev,button,((float) x),((float)y)); //translation in the viewer plane
 		break;
 	case VIEWER_YAWPITCHZOOM:
-		handle_yawpitchzoom(mev,button,((float) x),((float)y));
+		handle_yawpitchzoom(mev,button,((float) x),((float)y)); //spherical panorama
 		break;
 	case VIEWER_TURNTABLE:
-		handle_turntable(mev, button, ((float)x), ((float)y));
+		handle_turntable(mev, button, ((float)x), ((float)y));  //examine without roll around world 0,0,0 origin - like a 3D editor with authoring plane
 		break;
 	case VIEWER_LOOKAT:
-		handle_lookat(mev, button, ((float)x), ((float)y));
+		handle_lookat(mev, button, ((float)x), ((float)y)); //as per navigationInfo specs, you toggle on, then click an object and it flys you there
 		break;
 	case VIEWER_EXPLORE:
-		handle_explore(mev, button, ((float)x), ((float)y));
+		handle_explore(mev, button, ((float)x), ((float)y)); //as per specs, like turntable around any point you pick with CTRL click
 		break;
 	default:
 		break;
