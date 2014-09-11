@@ -3597,7 +3597,7 @@ void fwl_gotoViewpoint (char *findThisOne) {
     	}
 }
 
-void setup_viewpoint_slerp(double *center, double radius);
+void setup_viewpoint_slerp(double *center, double pivot_radius, double vp_radius);
 
 int getRayHitAndSetLookatTarget() {
 	/* called from mainloop for LOOKAT navigation:
@@ -3606,7 +3606,7 @@ int getRayHitAndSetLookatTarget() {
 		- get the center and size of the picked shape node, and send the viewpoint to it
 		- return to normal navigation
 	*/
-    double x,y,z;
+    double x,y,z, pivot_radius, vp_radius;
     int i;
 	ppMainloop p;
 	ttglobal tg = gglobal();
@@ -3639,22 +3639,23 @@ int getRayHitAndSetLookatTarget() {
 					center[i] = (smax[i] + smin[i])*.5;
 					radius = max(radius,(max(abs(smax[i]-center[i]),abs(smin[i]-center[i]))));
 				}
-				dradius = max(Viewer()->Dist, radius + 5.0);
-				distance = veclengthd(center);
-				distance = (distance - dradius)/distance;
-				radius = distance;
+				vp_radius = max(Viewer()->Dist, radius + 5.0);
+				//distance = veclengthd(center);
+				//distance = (distance - dradius)/distance;
+				//radius = distance;
+				pivot_radius = 0.0;
+				//vp_radius = dradius;
 
 			} else if(Viewer()->type == VIEWER_EXPLORE){
 				//use the pickpoint (think of a large, continuous geospatial terrain shape,
 				// and you want to examine a specific geographic point on that shape)
 				pointxyz2double(center,&tg->RenderFuncs.hp);
 				transformAFFINEd(center,center,getPickrayMatrix(0));
-				//radius = veclengthd(center);
-				//radius *= .2; //zoom 20% toward
-				radius = .2;
+				pivot_radius = 0.0;
+				vp_radius = .8 * veclengthd(center);
 			}
 			Viewer()->LookatMode = 3; //go to viewpiont transition mode
-			setup_viewpoint_slerp(center,radius);
+			setup_viewpoint_slerp(center,pivot_radius,vp_radius);
 		}
     }
     return Viewer()->LookatMode;

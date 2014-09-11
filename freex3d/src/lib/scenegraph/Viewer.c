@@ -220,6 +220,7 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 		//setMenuButton_headlight(viewer->headlight);
 		viewer->speed = 1.0;
 		viewer->Dist = 10.0;
+		//viewer->exploreDist = 10.0;
         memcpy (&viewer->walk, &p->viewer_walk,sizeof (X3D_Viewer_Walk));
         memcpy (&viewer->examine, &p->viewer_examine, sizeof (X3D_Viewer_Examine));
         memcpy (&viewer->fly, &p->viewer_fly, sizeof (X3D_Viewer_Fly));
@@ -1133,92 +1134,114 @@ void handle_tick_lookat() {
 	}
 }
 
+
 void handle_explore(const int mev, const unsigned int button, float x, float y) {
 	/*
 	Like handle_yawpitchzoom, except:
 	move the viewer.Pos in the opposite direction from where we are looking
 	*/
-	int shift, ctrl;
+	int ctrl;
 	X3D_Viewer_YawPitchZoom *ypz;
 	ppViewer p;
 	ttglobal tg = gglobal();
 	p = (ppViewer)gglobal()->Viewer.prv;
 	ypz = &p->Viewer.ypz; //just a place to store last mouse xy during drag
-	shift = tg->Mainloop.SHIFT;
 	ctrl = tg->Mainloop.CTRL;
+
 
 	if(ctrl) {
 		//we're in pick mode - we'll re-use some lookat code
 		handle_lookat(mev,button,x,y);
-	}else{
-		//we're in navigate mdoe
-		p->Viewer.LookatMode = 0;
-		if (mev == ButtonPress) {
-			if (button == 1 || button == 3) {
-				ypz->x = x;
-				ypz->y = y;
-			}
-		}
-		else if (mev == MotionNotify) 
-		{
-			Quaternion qyaw, qpitch;
-			double dyaw, dpitch;
-			struct point_XYZ pp, yaxis;
-			double dist, yaw, pitch;
-			Quaternion quat;
-
-			if (button == 1 || button == 3){
-				yaxis.x = yaxis.z = 0.0;
-				yaxis.y = 1.0;
-				pp = p->Viewer.Pos;
-				dist = veclength(pp);
-				vecnormal(&pp, &pp);
-				yaw = -atan2(pp.x, pp.z);
-				pitch = -(acos(vecdot(&pp, &yaxis)) - PI*.5);
-			}
-			if (button == 1) {
-				dyaw = -(ypz->x - x) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom * tg->display.screenRatio;
-				dpitch = -(ypz->y - y) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom;
-				yaw += dyaw;
-				pitch += dpitch;
-			}else if (button == 3) {
-				if(ctrl){
-					//combine with handle_tick to give quadratic adjustment
-				}else{
-					double d, fac;
-					d = (y - ypz->y)*.5; // .25;
-					if (d > 0.0)
-						fac = ((d *  2.0) + (1.0 - d) * 1.0);
-					else
-					{
-						d = fabs(d);
-						fac = ((d * .5) + (1.0 - d) * 1.0);
-					}
-					dist *= fac;
-				}
-			}
-			if (button == 1 || button == 3)
-			{
-				vrmlrot_to_quaternion(&qyaw, 0.0, 1.0, 0.0, yaw);
-				vrmlrot_to_quaternion(&qpitch, 1.0, 0.0, 0.0, pitch);
-				quaternion_multiply(&quat, &qpitch, &qyaw);
-				quaternion_normalize(&quat);
-				quaternion_set(&(p->Viewer.Quat), &quat);
-				//move the viewer.pos in the opposite direction that we are looking
-				quaternion_inverse(&quat, &quat);
-				pp.x = 0.0;
-				pp.y = 0.0;
-				pp.z = dist;
-				quaternion_rotation(&(p->Viewer.Pos), &quat, &pp);
-				//remember the last drag coords for next motion
-				ypz->x = x;
-				ypz->y = y;
-
-			}
-		}
+		return;
 	}
 
+	if (mev == ButtonPress) {
+		if (button == 1 || button == 3) {
+			ypz->x = x;
+			ypz->y = y;
+		}
+	}
+	else if (mev == MotionNotify) 
+	{
+		Quaternion qyaw, qpitch;
+		double dyaw, dpitch;
+		struct point_XYZ pp, yaxis;
+		double dist, yaw, pitch;
+		Quaternion quat;
+
+		if (button == 1 || button == 3){
+			struct point_XYZ dd,ddr;
+			yaxis.x = yaxis.z = 0.0;
+			yaxis.y = 1.0;
+			//pp = p->Viewer.Pos;
+			if(0) resolve_pos2();
+			if(1) {
+				//(examine->Origin).x = (p->Viewer.Pos).x - p->Viewer.Dist * rot.x;
+				dd.x = dd.y = 0.0; dd.z = p->Viewer.Dist; //exploreDist;
+				quat = p->Viewer.Quat;
+				quaternion_inverse(&quat,&quat);
+				quaternion_rotation(&ddr, &quat, &dd);
+				vecdiff(&p->Viewer.examine.Origin,&p->Viewer.Pos,&ddr);
+			}
+
+			if(0) vecdiff(&pp,&p->Viewer.examine.Origin,&p->Viewer.Pos);
+			if(1) vecdiff(&pp,&p->Viewer.Pos,&p->Viewer.examine.Origin);
+			pp = ddr;
+			if(0) printf("D=%f O=%f %f %f P=%f %f %f pp=%f %f %f\n", p->Viewer.Dist,
+			p->Viewer.examine.Origin.x,p->Viewer.examine.Origin.y,p->Viewer.examine.Origin.z,
+			p->Viewer.Pos.x,p->Viewer.Pos.y,p->Viewer.Pos.z,
+			pp.x,pp.y,pp.z
+			);
+			//dist = veclength(pp);
+			vecnormal(&pp, &pp);
+			yaw = -atan2(pp.x, pp.z);
+			pitch = -(acos(vecdot(&pp, &yaxis)) - PI*.5);
+		}
+		if (button == 1) {
+			dyaw = -(ypz->x - x) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom * tg->display.screenRatio;
+			dpitch = -(ypz->y - y) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom;
+			if(0){
+				dyaw = -dyaw;
+				dpitch = -dpitch;
+			}
+			yaw += dyaw;
+			pitch += dpitch;
+		}else if (button == 3) {
+			double d, fac;
+			d = (y - ypz->y)*.5; // .25;
+			if (d > 0.0)
+				fac = ((d *  2.0) + (1.0 - d) * 1.0);
+			else
+			{
+				d = fabs(d);
+				fac = ((d * .5) + (1.0 - d) * 1.0);
+			}
+			//dist *= fac;
+			p->Viewer.Dist *= fac;
+		}
+		if (button == 1 || button == 3)
+		{
+			vrmlrot_to_quaternion(&qyaw, 0.0, 1.0, 0.0, yaw);
+			vrmlrot_to_quaternion(&qpitch, 1.0, 0.0, 0.0, pitch);
+			quaternion_multiply(&quat, &qpitch, &qyaw);
+			quaternion_normalize(&quat);
+
+			quaternion_set(&(p->Viewer.Quat), &quat);
+			//move the viewer.pos in the opposite direction that we are looking
+			quaternion_inverse(&quat, &quat);
+			pp.x = 0.0;
+			pp.y = 0.0;
+			pp.z = p->Viewer.Dist; //dist;
+			quaternion_rotation(&(p->Viewer.Pos), &quat, &pp);
+			//remember the last drag coords for next motion
+			ypz->x = x;
+			ypz->y = y;
+			vecadd(&p->Viewer.Pos,&p->Viewer.examine.Origin,&p->Viewer.Pos);
+		}
+	}
 }
+
+
 void handle_tick_explore() {
 	ttglobal tg;
 	ppViewer p;
@@ -2567,7 +2590,7 @@ void slerp_viewpoint()
 		}
 	}
 }
-void setup_viewpoint_slerp(double* center, double radius){
+void setup_viewpoint_slerp(double* center, double pivot_radius, double vp_radius){
 	/* when you don't have a  new viewpoint to bind to, but know where you want the viewer to go
 		with a transform relative to the viewer, instead of bind_viewpoint call setup_viewpoint_slerp(pointInEyespace, radiusOfShapeInEyespace)
 		
@@ -2589,12 +2612,20 @@ void setup_viewpoint_slerp(double* center, double radius){
 	//dradius = max(p->Viewer.Dist, radius + 5.0);
 	//distance = veclengthd(pos);
 	//distance = (distance - dradius)/distance;
-	vecscaled(pos,pos,radius); //distance);
-	//p->Viewer.Dist = dradius;
+	vecnormald(pos,pos);
+	vecscaled(pos,pos,vp_radius); //distance);
+	dradius = veclengthd(pos);
+	//if(p->Viewer.type == VIEWER_EXPLORE)
+	//	p->Viewer.exploreDist = vp_radius;
+	//else
+		p->Viewer.Dist = vp_radius; //dradius;
+	if(0) printf("center=%f %f %f\n",center[0],center[1],center[2]);
+	if(0) printf("vp_radius=%f dradius=%f\n", vp_radius, dradius);
 
 	quaternion_normalize(&p->Viewer.Quat);
 	quaternion_to_matrix(matQuat, &p->Viewer.Quat);
 
+	vecdifd(pos,center,pos);
 	double2pointxyz(&pp,pos);
 	//attempt to correct the position by viewer.quat or .antiquat before adding to Viewer.Pos
 	q_i = p->Viewer.AntiQuat;
@@ -2646,7 +2677,6 @@ void setup_viewpoint_slerp(double* center, double radius){
 	quaternion_normalize(&sq);
 	quaternion_multiply(&p->Viewer.Quat,&sq,&p->Viewer.Quat);
 	quaternion_normalize(&p->Viewer.Quat);
-
 
 	if(0) resolve_pos(); //in examine mode, sets up examine origin
 
