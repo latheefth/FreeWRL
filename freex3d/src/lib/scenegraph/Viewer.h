@@ -210,7 +210,8 @@ typedef struct viewer {
 	int headlight;
 	int collision; //added July 7, 2012
 	double speed;
-	double Dist;
+	double Dist; //examine dist
+	//double exploreDist; //explore dist
 	/*stereovision...*/
 	int isStereo; /*=1 stereovision of any type (all types require viewpoint to shift left and right in scene) */
 	int iside;    /* rendering buffer index Left=0 Right=1 */

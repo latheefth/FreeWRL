@@ -1176,7 +1176,7 @@ void fwl_RenderSceneUpdateScene() {
 
 	/* handle_mouse events if clicked on a sensitive node */
 	//printf("nav mode =%d sensitive= %d\n",p->NavigationMode, tg->Mainloop.HaveSensitive);
-	if (!p->NavigationMode && tg->Mainloop.HaveSensitive && !Viewer()->LookatMode) {
+	if (!p->NavigationMode && tg->Mainloop.HaveSensitive && !Viewer()->LookatMode && !tg->Mainloop.SHIFT) {
 		p->currentCursor = 0;
 		setup_projection(TRUE,tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
 		setup_viewpoint();
@@ -1264,6 +1264,7 @@ void fwl_RenderSceneUpdateScene() {
 		}
 	} /* (!NavigationMode && HaveSensitive) */
 	else if(Viewer()->LookatMode){
+		//pick a target object to travel to
 		if(Viewer()->LookatMode < 3)
 			setLookatCursor();
 		if(Viewer()->LookatMode == 2){
@@ -3416,6 +3417,7 @@ void fwl_do_keyPress0(int key, int type) {
 				case 'y': { fwl_set_viewer_type (VIEWER_YAWPITCHZOOM); break; }
 				case 't': { fwl_set_viewer_type(VIEWER_TURNTABLE); break; }
 				case 'm': { fwl_set_viewer_type(VIEWER_LOOKAT); break; }
+				case 'g': { fwl_set_viewer_type(VIEWER_EXPLORE); break; }
 				case 'h': { fwl_toggle_headlight(); break; }
 				case '/': { print_viewer(); break; }
 				//case '\\': { dump_scenegraph(); break; }
@@ -3450,10 +3452,24 @@ void fwl_do_keyPress0(int key, int type) {
 		}
 		if(!handled) {
 			char kp;
-			if(type/10 == 0)
+			if(type/10 == 0){
 				kp = (char)key; //normal keyboard key
-			else
+			}else{
 				kp = lookup_fly_key(key); //actionKey possibly numpad or arrows, convert to a/z
+				if(!kp){
+					//not a fly key - is it SHIFT or CTRL?  //feature-EXPLORE
+					int keystate = type % 10 == KEYDOWN ? 1 : 0;
+					switch(key){
+						case CTL_KEY:
+							tg->Mainloop.CTRL = keystate; break;
+						case SFT_KEY:
+							tg->Mainloop.SHIFT = keystate; break;
+						default:
+						break;
+					}
+					//printf("CTRL=%d SHIFT=%d\n",tg->Mainloop.CTRL,tg->Mainloop.SHIFT);
+				}
+			}
 			if(kp){
 				double keytime = Time1970sec();
 				if(type%10 == KEYDOWN)
@@ -3581,7 +3597,7 @@ void fwl_gotoViewpoint (char *findThisOne) {
     	}
 }
 
-void setup_viewpoint_slerp(double *center, double radius);
+void setup_viewpoint_slerp(double *center, double pivot_radius, double vp_radius);
 
 int getRayHitAndSetLookatTarget() {
 	/* called from mainloop for LOOKAT navigation:
@@ -3590,14 +3606,13 @@ int getRayHitAndSetLookatTarget() {
 		- get the center and size of the picked shape node, and send the viewpoint to it
 		- return to normal navigation
 	*/
-    double x,y,z;
+    double x,y,z, pivot_radius, vp_radius;
     int i;
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 
     if(tg->RenderFuncs.hitPointDist >= 0) {
-		GLDOUBLE smin[3], smax[3], shapeMBBmin[3], shapeMBBmax[3];
 		struct X3D_Node * node;
 		struct currayhit * rh = (struct currayhit *)tg->RenderFuncs.rayHit;
 
@@ -3606,29 +3621,45 @@ int getRayHitAndSetLookatTarget() {
 			Viewer()->LookatMode = 0; //give up, turn off lookat cursor
 		}else{
 			GLDOUBLE matTarget[16];
-			/* generate mins and maxes for avatar cylinder in avatar space to represent the avatar collision volume */
-			node = rh->hitNode;
-			for(i=0;i<3;i++)
-			{
-				shapeMBBmin[i] = node->_extent[i*2 + 1];
-				shapeMBBmax[i] = node->_extent[i*2];
-			}
-			transformMBB(smin,smax,rh->modelMatrix,shapeMBBmin,shapeMBBmax); //transform shape's MBB into eye space
-			double center[3], pos[3], radius, distance;
-			radius = 0.0;
-			for(i=0;i<3;i++){
-				center[i] = (smax[i] + smin[i])*.5;
-				radius = max(radius,(max(abs(smax[i]-center[i]),abs(smin[i]-center[i]))));
-			}
+			double center[3], pos[3], radius;
+			if(Viewer()->type == VIEWER_LOOKAT){
+				//use the center of the object, and its radius
+				GLDOUBLE smin[3], smax[3], shapeMBBmin[3], shapeMBBmax[3];
+				double dradius;
+				node = rh->hitNode;
+				for(i=0;i<3;i++)
+				{
+					shapeMBBmin[i] = node->_extent[i*2 + 1];
+					shapeMBBmax[i] = node->_extent[i*2];
+				}
+				transformMBB(smin,smax,rh->modelMatrix,shapeMBBmin,shapeMBBmax); //transform shape's MBB into eye space
+				double pos[3], distance;
+				radius = 0.0;
+				for(i=0;i<3;i++){
+					center[i] = (smax[i] + smin[i])*.5;
+					radius = max(radius,(max(abs(smax[i]-center[i]),abs(smin[i]-center[i]))));
+				}
+				vp_radius = max(Viewer()->Dist, radius + 5.0);
+				//distance = veclengthd(center);
+				//distance = (distance - dradius)/distance;
+				//radius = distance;
+				pivot_radius = 0.0;
+				//vp_radius = dradius;
 
+			} else if(Viewer()->type == VIEWER_EXPLORE){
+				//use the pickpoint (think of a large, continuous geospatial terrain shape,
+				// and you want to examine a specific geographic point on that shape)
+				pointxyz2double(center,&tg->RenderFuncs.hp);
+				transformAFFINEd(center,center,getPickrayMatrix(0));
+				pivot_radius = 0.0;
+				vp_radius = .8 * veclengthd(center);
+			}
 			Viewer()->LookatMode = 3; //go to viewpiont transition mode
-			setup_viewpoint_slerp(center,radius);
+			setup_viewpoint_slerp(center,pivot_radius,vp_radius);
 		}
     }
     return Viewer()->LookatMode;
 }
-
-
 
 struct X3D_Node* getRayHit() {
         double x,y,z;
@@ -4875,7 +4906,7 @@ void fwl_handle_aqua_multi0(const int mev, const unsigned int button, int x, int
                 /* if we are Not over an enabled sensitive node, and we do NOT already have a
                    button down from a sensitive node... */
 
-                if (((p->CursorOverSensitive ==NULL) && (p->lastPressedOver ==NULL)) || Viewer()->LookatMode) {
+                if (((p->CursorOverSensitive ==NULL) && (p->lastPressedOver ==NULL)) || Viewer()->LookatMode || tg->Mainloop.SHIFT) {
                         p->NavigationMode=p->ButDown[p->currentCursor][1] || p->ButDown[p->currentCursor][3];
                         handle(mev, button, (float) ((float)x/tg->display.screenWidth), (float) ((float)y/tg->display.screenHeight));
                 }
