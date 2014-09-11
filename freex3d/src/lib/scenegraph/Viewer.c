@@ -909,10 +909,17 @@ void handle_turntable(const int mev, const unsigned int button, float x, float y
 	move the viewer.Pos in the opposite direction from where we are looking
 	*/
 	X3D_Viewer_YawPitchZoom *ypz;
+	double frameRateAdjustment;
 	ppViewer p;
 	ttglobal tg = gglobal();
 	p = (ppViewer)gglobal()->Viewer.prv;
 	ypz = &p->Viewer.ypz; //just a place to store last mouse xy during drag
+
+	if( tg->Mainloop.BrowserFPS > 0)
+		frameRateAdjustment = 20.0 / tg->Mainloop.BrowserFPS; /* lets say 20FPS is our speed benchmark for developing tuning parameters */
+	else
+		frameRateAdjustment = 1.0;
+
 
 	if (mev == ButtonPress) {
 		if (button == 1 || button == 3) {
@@ -932,7 +939,7 @@ void handle_turntable(const int mev, const unsigned int button, float x, float y
 			yaxis.x = yaxis.z = 0.0;
 			yaxis.y = 1.0;
 			pp = p->Viewer.Pos;
-			dist = veclength(pp);
+			p->Viewer.Dist = veclength(pp);
 			vecnormal(&pp, &pp);
 			yaw = -atan2(pp.x, pp.z);
 			pitch = -(acos(vecdot(&pp, &yaxis)) - PI*.5);
@@ -943,16 +950,27 @@ void handle_turntable(const int mev, const unsigned int button, float x, float y
 			yaw += dyaw;
 			pitch += dpitch;
 		}else if (button == 3) {
-			double d, fac;
-			d = (y - ypz->y)*.5; // .25;
-			if (d > 0.0)
-				fac = ((d *  2.0) + (1.0 - d) * 1.0);
-			else
-			{
-				d = fabs(d);
-				fac = ((d * .5) + (1.0 - d) * 1.0);
+			//distance drag
+			if(0){
+				//peddling
+				double d, fac;
+				d = (y - ypz->y)*.5; // .25;
+				if (d > 0.0)
+					fac = ((d *  2.0) + (1.0 - d) * 1.0);
+				else
+				{
+					d = fabs(d);
+					fac = ((d * .5) + (1.0 - d) * 1.0);
+				}
+				//dist *= fac;
+				p->Viewer.Dist *= fac;
 			}
-			dist *= fac;
+			if(1) {
+				//handle_tick_explore quadratic
+				double quadratic = -xsign_quadratic(y - ypz->y,5.0,10.0,0.0);
+				ypz->ypz[1] = xsign_quadratic(y - ypz->y,100.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment *.15;
+				//printf("quad=%f y-y %f s=%f fra=%f\n",quadratic,y-ypz->y,p->Viewer.speed,frameRateAdjustment);
+			}
 		}
 		if (button == 1 || button == 3)
 		{
@@ -965,14 +983,22 @@ void handle_turntable(const int mev, const unsigned int button, float x, float y
 			quaternion_inverse(&quat, &quat);
 			pp.x = 0.0;
 			pp.y = 0.0;
-			pp.z = dist;
+			pp.z = p->Viewer.Dist;
 			quaternion_rotation(&(p->Viewer.Pos), &quat, &pp);
+
+		}
+		if(button == 1){
 			//remember the last drag coords for next motion
 			ypz->x = x;
 			ypz->y = y;
 
 		}
+	}else if(mev == ButtonRelease) {
+		if (button == 3) {
+			ypz->ypz[1] = 0.0;
+		}
 	}
+
 }
 
 void handle_yawpitchzoom(const int mev, const unsigned int button, float x, float y) {
@@ -1297,7 +1323,6 @@ void handle_tick_explore() {
 		break;
 	}
 }
-
 
 void handle_tilt(const int mev, const unsigned int button, float x, float y) {
 	/* a vertical drag tilts the camera
@@ -2012,8 +2037,10 @@ handle_tick()
 		handle_tick_explore();
 		break;
 	case VIEWER_YAWPITCHZOOM:
-	case VIEWER_TURNTABLE:
 		//do nothing special on tick
+		break;
+	case VIEWER_TURNTABLE:
+		handle_tick_explore(); //same code for tick turntable/explore
 		break;
 	default:
 		break;
