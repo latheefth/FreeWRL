@@ -1141,6 +1141,7 @@ void handle_explore(const int mev, const unsigned int button, float x, float y) 
 	move the viewer.Pos in the opposite direction from where we are looking
 	*/
 	int ctrl;
+	double frameRateAdjustment;
 	X3D_Viewer_YawPitchZoom *ypz;
 	ppViewer p;
 	ttglobal tg = gglobal();
@@ -1154,6 +1155,12 @@ void handle_explore(const int mev, const unsigned int button, float x, float y) 
 		handle_lookat(mev,button,x,y);
 		return;
 	}
+
+	if( tg->Mainloop.BrowserFPS > 0)
+		frameRateAdjustment = 20.0 / tg->Mainloop.BrowserFPS; /* lets say 20FPS is our speed benchmark for developing tuning parameters */
+	else
+		frameRateAdjustment = 1.0;
+
 
 	if (mev == ButtonPress) {
 		if (button == 1 || button == 3) {
@@ -1207,17 +1214,27 @@ void handle_explore(const int mev, const unsigned int button, float x, float y) 
 			yaw += dyaw;
 			pitch += dpitch;
 		}else if (button == 3) {
-			double d, fac;
-			d = (y - ypz->y)*.5; // .25;
-			if (d > 0.0)
-				fac = ((d *  2.0) + (1.0 - d) * 1.0);
-			else
-			{
-				d = fabs(d);
-				fac = ((d * .5) + (1.0 - d) * 1.0);
+			//distance drag
+			if(0){
+				//peddling
+				double d, fac;
+				d = (y - ypz->y)*.5; // .25;
+				if (d > 0.0)
+					fac = ((d *  2.0) + (1.0 - d) * 1.0);
+				else
+				{
+					d = fabs(d);
+					fac = ((d * .5) + (1.0 - d) * 1.0);
+				}
+				//dist *= fac;
+				p->Viewer.Dist *= fac;
 			}
-			//dist *= fac;
-			p->Viewer.Dist *= fac;
+			if(1) {
+				//handle_tick_explore quadratic
+				double quadratic = -xsign_quadratic(y - ypz->y,5.0,10.0,0.0);
+				ypz->ypz[1] = xsign_quadratic(y - ypz->y,100.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment *.15;
+				//printf("quad=%f y-y %f s=%f fra=%f\n",quadratic,y-ypz->y,p->Viewer.speed,frameRateAdjustment);
+			}
 		}
 		if (button == 1 || button == 3)
 		{
@@ -1234,22 +1251,45 @@ void handle_explore(const int mev, const unsigned int button, float x, float y) 
 			pp.z = p->Viewer.Dist; //dist;
 			quaternion_rotation(&(p->Viewer.Pos), &quat, &pp);
 			//remember the last drag coords for next motion
+			vecadd(&p->Viewer.Pos,&p->Viewer.examine.Origin,&p->Viewer.Pos);
+		}
+		if( button == 1){
 			ypz->x = x;
 			ypz->y = y;
-			vecadd(&p->Viewer.Pos,&p->Viewer.examine.Origin,&p->Viewer.Pos);
+		}
+	}else if(mev == ButtonRelease) {
+		if (button == 3) {
+			ypz->ypz[1] = 0.0;
 		}
 	}
 }
 
 
 void handle_tick_explore() {
+	X3D_Viewer_YawPitchZoom *ypz;
+	Quaternion quat;
+	struct point_XYZ pp;
 	ttglobal tg;
 	ppViewer p;
 	tg = gglobal();
 	p = (ppViewer)tg->Viewer.prv;
+	ypz = &p->Viewer.ypz; //just a place to store last mouse xy during drag
+
+
 	//stub in case we need the viewer or viewpoint transition here	
 	switch(p->Viewer.LookatMode){
 		case 0: //not in use
+			resolve_pos2();
+			p->Viewer.Dist += ypz->ypz[1];
+			//move the viewer.pos in the opposite direction that we are looking
+			quaternion_inverse(&quat, &(p->Viewer.Quat));
+			pp.x = 0.0;
+			pp.y = 0.0;
+			pp.z = p->Viewer.Dist; //dist;
+			quaternion_rotation(&(p->Viewer.Pos), &quat, &pp);
+			vecadd(&p->Viewer.Pos,&p->Viewer.examine.Origin,&p->Viewer.Pos);
+		//printf("ddist=%f\n",ypz->ypz[1]);
+		break;
 		case 1: //someone set viewer to lookat mode: mainloop shuts off sensitive, turns on lookat cursor
 		case 2: //mouseup tells mainloop to pick a node at current mousexy, turn off lookatcursor
 		case 3: //mainloop picked a node, now transition
