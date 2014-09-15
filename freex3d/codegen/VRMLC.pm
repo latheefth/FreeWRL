@@ -572,7 +572,8 @@ sub gen {
 	push @genFuncs1, "\n/* Table of PROTO keywords */\nconst char *PROTOKEYWORDS[] = {\n";
 
 	$keywordIntegerType = 0;
-	@sf = sort keys %VRML::Rend::PROTOKeywordC if %VRML::Rend::PROTOKeywordC;
+	#@sf = sort keys %VRML::Rend::PROTOKeywordC if %VRML::Rend::PROTOKeywordC;
+	@sf = @VRML::Rend::PROTOKeywordC;
 	for my $node (@sf) {
 		push @str, "#define PKW_".$node."	$keywordIntegerType\n";
 		$keywordIntegerType ++;
