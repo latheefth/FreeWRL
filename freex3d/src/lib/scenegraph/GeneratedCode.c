@@ -1334,14 +1334,14 @@ const int COMPONENTS_COUNT = ARR_SIZE(COMPONENTS);
 
 /* Table of PROTO keywords */
 const char *PROTOKEYWORDS[] = {
+	"initializeOnly",
+	"inputOnly",
+	"outputOnly",
+	"inputOutput",
+	"field",
 	"eventIn",
 	"eventOut",
 	"exposedField",
-	"field",
-	"initializeOnly",
-	"inputOnly",
-	"inputOutput",
-	"outputOnly",
 };
 const int PROTOKEYWORDS_COUNT = ARR_SIZE(PROTOKEYWORDS);
 
