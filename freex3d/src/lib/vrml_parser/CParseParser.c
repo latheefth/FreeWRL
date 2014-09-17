@@ -3295,15 +3295,20 @@ void cParseErrorFieldString(struct VRMLParser *me, char *str, const char *str2) 
 struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep);
 static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node);
 static BOOL parser_interfaceDeclarationB(struct VRMLParser* me, struct ProtoDefinition* proto, struct Shader_Script* script);
-
+void initialize_one_script(struct Shader_Script* ss, const struct Multi_String *url);
 static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 	int nodeTypeB, nodeTypeU, isBroto;
 	struct X3D_Node* node=NULL;
+	struct X3D_Proto *currentContext;
+	char pflagdepth;
 	struct ProtoDefinition *thisProto = NULL;
 	#ifdef HAVE_JAVASCRIPT
 		struct Shader_Script* script=NULL;
 	#endif
 	struct Shader_Script* shader=NULL;
+	currentContext = (struct X3D_Proto*)me->ptr;
+	pflagdepth = ((char *)(&currentContext->__protoFlags))[0];
+
 	DECLAREUP
 
 	ASSERT(me->lexer);
@@ -3378,17 +3383,16 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 			therefore this is an attempt to instantiate a PROTO */
 		/* expand this PROTO, put the code right in line, and let the parser
 			go over it as if there was never a proto here... */
-		struct X3D_Proto *proto, *currentContext;
+		struct X3D_Proto *proto; //, *currentContext;
 		char *protoname = vector_get(char*, me->lexer->userNodeTypesVec, nodeTypeU);
-		currentContext = (struct X3D_Proto*)me->ptr;
+		//currentContext = (struct X3D_Proto*)me->ptr;
 		//BOOL isAvailableBroto(char *pname, struct X3D_Proto* currentContext, struct X3D_Proto **proto);
 		//struct X3D_Proto *shallowBrotoInstance(X3D_Proto* proto);
 		if( isAvailableBroto(protoname, currentContext , &proto))
 		{
 			/* its a binary proto, new in 2013 */
-			char pflag = ((char *)(&currentContext->__protoFlags))[0];
 			int idepth = 0; //if its old brotos (2013) don't do depth until sceneInstance. If 2014 broto2, don't do depth here if we're in a protoDeclare or externProtoDeclare
-			if(usingBrotos()==2) idepth = pflag == 1; //2014 broto2: if we're parsing a scene (or Inline) then deepcopy proto to instance it, else shallow
+			if(usingBrotos()==2) idepth = pflagdepth == 1; //2014 broto2: if we're parsing a scene (or Inline) then deepcopy proto to instance it, else shallow
 			node=X3D_NODE(brotoInstance(proto,idepth));
 			if(idepth) add_parent(node,X3D_NODE(currentContext),__FILE__,__LINE__); //helps propagate VF_Sensitive to parent of proto, if proto's 1st node is sensor
 			isBroto = TRUE;
@@ -3615,8 +3619,9 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 #ifdef CPARSERVERBOSE
 			printf("parser_node: try parsing SCRIPT url\n");
 #endif
-			if(0) //do this later in sceneInstance
-			script_initCodeFromMFUri(script, &X3D_SCRIPT(node)->url);
+			if(pflagdepth) //broto1: do this later in sceneInstance broto2: do it during instancing here and brotoInstance
+				//script_initCodeFromMFUri(script, &X3D_SCRIPT(node)->url);
+				initialize_one_script(script,&X3D_SCRIPT(node)->url);
 #ifdef CPARSERVERBOSE
 			printf("parser_node: SCRIPT url parsed\n");
 #endif
@@ -4470,6 +4475,7 @@ void copy_defnames2(Stack *defnames, struct X3D_Proto* target, struct Vector *p2
 void copy_IStable(Stack **sourceIS, Stack** destIS);
 void copy_field(int typeIndex, union anyVrml* source, union anyVrml* dest, struct Vector *p2p, 
 				Stack *instancedScripts, struct X3D_Proto *ctx, struct X3D_Node *parent);
+void initialize_scripts(Stack *instancedScripts);
 void deep_copy_broto_body2(struct X3D_Proto** proto, struct X3D_Proto** dest)
 {
 	//for use with 2014 broto2 when parsing scene/inline and we want to deep-instance brotos as we parse
@@ -4535,6 +4541,8 @@ void deep_copy_broto_body2(struct X3D_Proto** proto, struct X3D_Proto** dest)
 
 	////3. convert IS events to backward routes - maybe not for broto2, which might use the IS table in the (yet to be developed) routing algo
 	//copy_IS(p->__IS, p, p2p);
+
+	initialize_scripts(instancedScripts);
 
 	//*dest = p;
 	//free p2p
@@ -5254,6 +5262,33 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 	}
 }
 int nextScriptHandle (void);
+#ifdef HAVE_JAVASCRIPT
+void initialize_one_script(struct Shader_Script* ss, const struct Multi_String *url){
+	struct ScriptFieldDecl* field;
+	int j;
+
+	//printf("script node %p \n",sn);
+	ss->num = nextScriptHandle(); 
+	//printf(" num=%d \n",ss->num);
+	JSInit(ss); //ss->num);
+	// 2)init each field
+	for(j=0;j<ss->fields->n;j++)
+	{
+		//printf("initializing field %d of %d \n",j,ss->fields->n);
+		field = vector_get(struct ScriptFieldDecl*,ss->fields,j);
+		//script_addField(ss,field);
+
+		scriptFieldDecl_jsFieldInit(field, ss->num); //saves it for initializeOnly work
+		//printf("\t field index %d JSparamnameIndex %d name %s\n",
+		//	j,field->fieldDecl->JSparamNameIndex,JSparamnames[field->fieldDecl->JSparamNameIndex].name);
+		//Q. do I need this: - it mallocs something. Or is this just for initializeOnly?
+		//void SaveScriptField (int num, indexT kind, indexT type, const char* field, union anyVrml value) {
+
+ 	}
+	// 3)init from URI
+	script_initCodeFromMFUri(ss, url);
+}
+#endif /* HAVE_JAVASCRIPT */
 void initialize_scripts(Stack *instancedScripts)
 {
 	/* 
@@ -5298,30 +5333,34 @@ void initialize_scripts(Stack *instancedScripts)
 		{
 			p = vector_get(struct X3D_Node*,instancedScripts,i);
 			sn = (struct X3D_Script*)p;
-			
-			//printf("script node %p \n",sn);
 			// 1)get a script num
 			ss = sn->__scriptObj;
-			//printf("in initialize_scripts i=%d __scriptObj =%p ",i,ss);
-			ss->num = nextScriptHandle(); 
-			//printf(" num=%d \n",ss->num);
-			JSInit(ss); //ss->num);
-			// 2)init each field
-			for(j=0;j<ss->fields->n;j++)
-			{
-				//printf("initializing field %d of %d \n",j,ss->fields->n);
-				field = vector_get(struct ScriptFieldDecl*,ss->fields,j);
-				//script_addField(ss,field);
+			if(1){
+				initialize_one_script(ss,&sn->url);
+			}else{
+			
+				//printf("script node %p \n",sn);
+				//printf("in initialize_scripts i=%d __scriptObj =%p ",i,ss);
+				ss->num = nextScriptHandle(); 
+				//printf(" num=%d \n",ss->num);
+				JSInit(ss); //ss->num);
+				// 2)init each field
+				for(j=0;j<ss->fields->n;j++)
+				{
+					//printf("initializing field %d of %d \n",j,ss->fields->n);
+					field = vector_get(struct ScriptFieldDecl*,ss->fields,j);
+					//script_addField(ss,field);
 
-				scriptFieldDecl_jsFieldInit(field, ss->num); //saves it for initializeOnly work
-				//printf("\t field index %d JSparamnameIndex %d name %s\n",
-				//	j,field->fieldDecl->JSparamNameIndex,JSparamnames[field->fieldDecl->JSparamNameIndex].name);
-				//Q. do I need this: - it mallocs something. Or is this just for initializeOnly?
-				//void SaveScriptField (int num, indexT kind, indexT type, const char* field, union anyVrml value) {
+					scriptFieldDecl_jsFieldInit(field, ss->num); //saves it for initializeOnly work
+					//printf("\t field index %d JSparamnameIndex %d name %s\n",
+					//	j,field->fieldDecl->JSparamNameIndex,JSparamnames[field->fieldDecl->JSparamNameIndex].name);
+					//Q. do I need this: - it mallocs something. Or is this just for initializeOnly?
+					//void SaveScriptField (int num, indexT kind, indexT type, const char* field, union anyVrml value) {
 
- 			}
-			// 3)init from URI
-            script_initCodeFromMFUri(ss, &sn->url);
+ 				}
+				// 3)init from URI
+				script_initCodeFromMFUri(ss, &sn->url);
+			}
 		}
 	}
 	#endif /* HAVE_JAVASCRIPT */
