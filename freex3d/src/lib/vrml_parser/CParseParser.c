@@ -80,7 +80,7 @@ void CParseParser_init(struct tCParseParser *t){
 	{
 		ppCParseParser p = (ppCParseParser)t->prv;
 		p->foundInputErrors = 0;
-		p->useBrotos = 0;
+		p->useBrotos = 0; //0= none/old-way, 1=wrl parsing broto only, then converts to old scene 2=whole scene is a new proto so routing, rendering, DEF/IS/script tables are in new proto 
 	}
 }
 	//ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
@@ -3386,7 +3386,10 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 		if( isAvailableBroto(protoname, currentContext , &proto))
 		{
 			/* its a binary proto, new in 2013 */
-	        node=X3D_NODE(brotoInstance(proto,0));
+			char pflag = ((char *)(&currentContext->__protoFlags))[0];
+			int idepth = 0; //if its old brotos (2013) don't do depth until sceneInstance. If 2014 broto2, don't do depth here if we're in a protoDeclare or externProtoDeclare
+			if(usingBrotos()==2) idepth = pflag == 1; //2014 broto2: if we're parsing a scene (or Inline) then deepcopy proto to instance it, else shallow
+	        node=X3D_NODE(brotoInstance(proto,idepth));
 			isBroto = TRUE;
 		    ASSERT(node);
 			if (ind != ID_UNDEFINED) {
@@ -3693,6 +3696,7 @@ static BOOL parser_interfaceDeclarationB(struct VRMLParser* me, struct ProtoDefi
     }
 
     /* Script can not take inputOutputs */
+   if(0) // change in post-DUK era - we allow inputoutputs now
     if (script != NULL) {
 		if(script->ShaderScriptNode->_nodeType==NODE_Script && mode==PKW_inputOutput)
 		{
@@ -3997,7 +4001,11 @@ static BOOL parser_brotoStatement(struct VRMLParser* me)
 
 	parent = (struct X3D_Proto*)me->ptr;
 	proto->__parentProto = X3D_NODE(parent); //me->ptr; //link back to parent proto, for isAvailableProto search
-	proto->__protoFlags = parent->__protoFlags & 2; //clear the scene flag 1 if set, leave the oldway flag 2 if set
+	proto->__protoFlags = parent->__protoFlags;
+	((char*)(&proto->__protoFlags))[0] = 0; //shallow instancing of protoInstances inside a protoDeclare 
+	///[1] leave parent's the oldway flag if set
+	((char*)(&proto->__protoFlags))[2] = 0; //this is a protoDeclare we are parsing
+	((char*)(&proto->__protoFlags))[3] = 0; //not an externProtoDeclare
 	//set ProtoDefinition *obj
 	proto->__protoDef = obj;
 	proto->__prototype = X3D_NODE(proto); //point to self, so shallow and deep instances will inherit this value
@@ -4269,13 +4277,65 @@ static BOOL parser_routeStatement_B(struct VRMLParser* me)
     /* **************************** */
 
     /* Built-in to built-in */
-	if(((struct X3D_Proto*)(me->ptr))->__protoFlags & 2)
+	int pflags = ((struct X3D_Proto*)(me->ptr))->__protoFlags;
+	char oldwayflag = ((char *)&pflags)[1];
+	if(oldwayflag)
 		parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toType); //old way direct registration
 	else
 		broto_store_route((struct X3D_Proto*)me->ptr,fromNode,fromOfs,toNode,toOfs,toType); //new way delay until sceneInstance()
 
     return TRUE;
 }
+
+/*
+	Binary Protos aka Brotos - allows deeply nested protos, by using scene parsing code to parse protobodies 
+		recursively, as Flux2008 likely does
+	History: 
+		Jan 2013, Broto1- did first version for .wrl parsing, but it unrolled the results into the main scene tables
+		 (Routes, scripts, etc) via function sceneInstance() - and didn't do .x3d parsing, nor externProtos
+		Sept 2014 Broto2 - attempt to render directly from Broto-format scene, and fix externProtos
+	Concepts:
+		deep vs shallow: when instancing a prototype, you go deep if you copy the protoDeclare body 
+			to the body of the protoInstance, and recursively deepen any contained protoInstances. 
+			You go shallow if you just copy the interface (so you can route to it) leaving the body empty. Related to proto expansion.
+		Scene as Proto - to allow the parser to use the same code to parse the scene and protobodies -recursing-
+			the scene and protos need to have a common format. Once parsed, Broto1 converted the SceneProto to old tables and structs. 
+			Broto2 is rendering the SceneProto directly, saving awkward conversion, and requiring rendering
+			algorithms that recurse
+		ExternProtoDeclare/instance - design goal: have externProtoDeclare wrap/contain a protoDeclare,
+			and instance the protodeclare as its first node once loaded, and have an algorithm that ISes 
+			between the externProtoDeclare interface and the contained protoInstance fields. This 'wrapper' design 
+			allows flexibility in ordering of fields, and can do minor PKW mode conversions, and allow the parser
+			to continue parsing the scene while the externproto definition downloads and parses asynchronously
+		p2p - pointer2pointer node* lookup table when copying a binary protoDeclare to a protoInstance: 
+			tables in the declare -such as routes and DEFs- are in terms of the Declare node*, and after new nodoes
+			are created for the protoInstance, the protoDeclare-to-protoInstance node* lookup can be done during
+			copying of the tables
+	Broto2: 5 things share an X3D_Proto node structure:
+		1. ProtoInstance - the only one of these 5 that's shown as a node type in web3d.org specs
+		2. ProtoDeclare - we don't register the struct as a node when mallocing, and we don't expand (deepen) its contained protoInstances
+		3. ExternProtoInstance - in the specs, this would be just another ProtoInstance.
+		4. ExternProtoDeclare - will be like ProtoDeclare, with a URL and a way to watch for it's protodefinition being loaded, like Inline
+		5. Scene - so that parsing can parse protoDeclares and Scene using the same code, we use the same struct. 
+			- Broto1 parsed the scene shallow, then in a second step sceneInstance() deepened the brotos while converting to old scene format
+			- Broto2 parses deep for scenes and inlines, shallow for protodeclares and externProtodeclares
+	To keep these 5 distinguished,
+		char *pflags = (char *)(int* &__protoFlags)
+		pflag[0]: deep parsing instruction
+			1= parse deep: deepen any protoInstances recursively, and register nodes when mallocing (for scene, inline)
+			0= parse shallow: instance protos with no body, don't register nodes during mallocing (for protoDeclare, externProtoDeclare)
+		pflag[1]: oldway parsing instruction
+			1= oldway, for where to send routes etc
+			0= broto1, broto2 way
+		pflag[2]: declare, instance, or scene object
+			0 = protoDeclare or externProtoDeclare  //shouldn't be rendered
+			1 = ProtoInstance or externProtoInstance //first child node is in the render transform stack
+			2 = scene //all child nodes are rendered
+		pflag[3]: extern or intern object
+			0 = scene, protodeclare, protoInstance
+			1 = externProtoInstance, externprotodeclare
+*/
+
 struct brotoDefpair{
 	struct X3D_Node* node;
 	char* name;
@@ -4332,8 +4392,8 @@ BOOL isAvailableBroto(char *pname, struct X3D_Proto* currentContext, struct X3D_
 	return FALSE;
 }
 struct pointer2pointer{
-	struct X3D_Node* pp;
-	struct X3D_Node* pn;
+	struct X3D_Node* pp;  //old or protoDeclare pointer
+	struct X3D_Node* pn;  //new or protoInstance pointer
 };
 
 struct X3D_Node* inPointerTable(struct X3D_Node* source,struct Vector *p2p)
@@ -4351,22 +4411,166 @@ struct X3D_Node* inPointerTable(struct X3D_Node* source,struct Vector *p2p)
 	}
 	return dest;
 }
+struct X3D_Node *p2p_lookup(struct X3D_Node *pnode, struct Vector *p2p);
+void copy_routes2(Stack *routes, struct X3D_Proto* target, struct Vector *p2p)
+{
+	//for 2014 broto2, deep copying of brotodeclare to brotoinstance
+	int i;
+	struct brotoRoute *route;
+	struct X3D_Node *fromNode, *toNode;
+	if(routes == NULL) return;
+	for(i=0;i<routes->n;i++)
+	{
+		route = vector_get(struct brotoRoute*, routes, i);
+		//parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toType); //old way direct registration
+		//broto_store_route(me,fromNode,fromOfs,toNode,toOfs,toType); //new way delay until sceneInstance()
+		fromNode = p2p_lookup(route->fromNode,p2p);
+		toNode = p2p_lookup(route->toNode,p2p);
+       	//CRoutes_RegisterSimple(fromNode, route->fromOfs, toNode, route->toOfs, route->ft);
+		//we'll also store in the deep broto instance, although they aren't used there (yet), and
+		//if target is the main scene, they are abandoned. Maybe someday they'll be used.
+		//if( target )
+		broto_store_route(target,fromNode,route->fromOfs, toNode, route->toOfs, route->ft); 
+	}
+}
+//copy broto defnames to single global scene defnames, for node* to defname lookup in parser_getNameFromNode
+//but can't go the other way (name to node) because there can be duplicate nodes with the same name in
+//different contexts
+//this version for 2014 broto2
+void copy_defnames2(Stack *defnames, struct X3D_Proto* target, struct Vector *p2p)
+{
+	Stack* defs;
+	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
+
+	defs = globalParser->brotoDEFedNodes;
+	if( defs == NULL)
+	{
+		defs = newStack(struct brotoDefpair *);
+		globalParser->brotoDEFedNodes = defs;
+	}
+	if(target->__DEFnames == NULL)
+		target->__DEFnames = newStack(struct brotoDefpair *);
+	if(defnames)
+	{
+		int i,n;
+		struct brotoDefpair* def, *def2;
+		n = vectorSize(defnames);
+		for(i=0;i<n;i++){
+			def = vector_get(struct brotoDefpair*,defnames,i);
+			def2 = MALLOC(struct brotoDefpair*,sizeof(struct brotoDefpair));
+			def2->name = def->name; //I wonder who owns this name
+			def2->node = p2p_lookup(def->node, p2p);
+			stack_push(struct brotoDefpair*, defs, def2);
+			stack_push(struct brotoDefpair*, target->__DEFnames, def2); //added for broto2
+		}
+	}
+}
+void copy_IStable(Stack **sourceIS, Stack** destIS);
+void copy_field(int typeIndex, union anyVrml* source, union anyVrml* dest, struct Vector *p2p, 
+				Stack *instancedScripts, struct X3D_Proto *ctx, struct X3D_Node *parent);
+void deep_copy_broto_body2(struct X3D_Proto** proto, struct X3D_Proto** dest)
+{
+	//for use with 2014 broto2 when parsing scene/inline and we want to deep-instance brotos as we parse
+	//converts from binary proto/broto format to old scene format:
+	//  - ROUTES are registered in global ROUTE registry
+	//  - nodes are instanced and registered in memoryTable for startOfLoopNodesUpdate and killNode access
+	//  - sensors, viewpoints etc are registered
+	//proto - broto instance with 
+	//  - a pointer __prototype to its generic prototype
+	//dest - protoinstance with user fields filled out for this instance already 
+	//     - children/body not filled out yet - it's done here
+	//     - any field/exposedField values in interface IS copied to body node fields
+	//     - broto ROUTES registered in global route registry, with this instances' node* addresses
+	//     ? ( sensors, viewpoints will be directly registered in global/main scene structs)
+	//what will appear different in the scene:
+	//  old: PROTO instances appear as Group nodes with metaSF nodes for interface routing, mangled DEFnames
+	//  new: PROTO instances will appear as X3DProto nodes with userfields for interface routing, local DEFnames
+
+	//DEEP COPYING start here
+	//we're instancing for the final scene, so go deep
+	//0. setup pointer lookup table proto to instance
+	//1. copy nodes, recursing on MFNode,SFnode fields
+	//   to copy, instance a new node of the same type and save (new pointer, old pointer) in lookup table
+	//   iterate over proto's node's fields, copying, and recursing on MFNode, SFNode
+	//   if node is a ProtoInstance, deepcopy it
+	//2. copy ROUTE table, looking up new_pointers in pointer lookup table
+	//3. copy IS table, looking up new_pointers in pointer lookup table
+	//4. copy DEFname table, looking up new pointers in pointer lookup table
+	//
+
+	struct X3D_Proto *prototype, *p;
+	struct X3D_Node *parent;
+	Stack *instancedScripts;
+	struct Vector *p2p = newVector(struct pointer2pointer*,10);
+	
+	//2. copy body from source's _prototype.children to dest.children, ISing initialvalues as we go
+	p=(*dest);
+	p->_children.n = 0;
+	p->_children.p = NULL;
+	parent = (struct X3D_Node*) (*dest); //NULL;
+	prototype = (struct X3D_Proto*)(*proto)->__prototype;
+	//prototype = (struct X3D_Proto*)p->__prototype;
+	//2.c) copy IS
+	//p->__IS = copy IStable from prototype, and the targetNode* pointer will be wrong until p2p
+	//copy_IStable(&((Stack*)prototype->__IS), &((Stack*)p->__IS));
+
+	copy_IStable((Stack **) &(prototype->__IS), (Stack **) &(p->__IS));
+
+	instancedScripts = (*dest)->__scripts;
+	if( instancedScripts == NULL)
+	{
+		instancedScripts = newStack(struct X3D_Node *);
+		(*dest)->__scripts = instancedScripts;
+	}
+
+	//2.a) copy rootnodes
+	copy_field(FIELDTYPE_MFNode,(union anyVrml*)&(prototype->_children),(union anyVrml*)&(p->_children),
+		p2p,instancedScripts,p,parent);
+	//2.b) copy routes
+	copy_routes2(prototype->__ROUTES, p, p2p);
+	//2.d) copy defnames
+	copy_defnames2(prototype->__DEFnames, p, p2p);
+
+	////3. convert IS events to backward routes - maybe not for broto2, which might use the IS table in the (yet to be developed) routing algo
+	//copy_IS(p->__IS, p, p2p);
+
+	//*dest = p;
+	//free p2p
+	return;
+}
 struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep)
 {
+	//shallow copy - just the user-fields, and point back to the *prototype for later 
+	//   deep copy of body and IS-table (2014 broto2 when parsing a protoDeclare or externProtoDeclare)
+	//deep copy - copy body and tables, and if an item in the body is a protoInstance, deep copy it (recursively) 
+	//	(2014 broto2 when parsing a scene or inline)
+
 	int i;
     //int iProtoDeclarationLevel;
     struct ProtoDefinition *pobj,*nobj;
 	struct ProtoFieldDecl *pdecl,*ndecl;
 	struct X3D_Proto *p;
-	if(ideep)
+	if(ideep){
 		p = createNewX3DNode(NODE_Proto);
-	else
+		char pflags[4];
+		pflags[0] = 1; //deep
+		pflags[1] = 0; //new way/brotos
+		pflags[2] = 1; //this is a protoInstance
+		pflags[3] = 0; //not an extern
+		memcpy(&p->__protoFlags,pflags,sizeof(int));
+		deep_copy_broto_body2(&proto,&p);
+	}else{
+		//shallow
 		p = createNewX3DNode0(NODE_Proto);
-
-	memcpy(p,proto,sizeof(struct X3D_Proto));
-	p->_children.n = 0; //don't copy children in here.
-	//shallow copy - just the user-fields, and point back to the *prototype for later 
-	//   deep copy of body and IS-table
+		p->_children.n = 0; //don't copy children in here.
+		char pflags[4];
+		pflags[0] = 0; //shallow
+		pflags[1] = 0; //new way/brotos
+		pflags[2] = 0; //this is a protoDeclare if shallow
+		pflags[3] = 0; //not an extern
+		memcpy(&p->__protoFlags,pflags,sizeof(int));
+	}
+	//memcpy(p,proto,sizeof(struct X3D_Proto)); //dangerous, make sure you re-instance all pointer variables
 	pobj = proto->__protoDef;
 	if(pobj){ //Prodcon doesn't bother mallocing this for scene nRn
 		nobj = MALLOC(struct ProtoDefinition*,sizeof(struct ProtoDefinition));

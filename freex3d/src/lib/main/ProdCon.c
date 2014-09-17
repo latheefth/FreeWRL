@@ -268,26 +268,33 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 		if(usingBrotos()){
 			struct X3D_Proto *sceneProto = createNewX3DNode0(NODE_Proto);
 			sceneProto->__prototype = X3D_NODE(sceneProto);
-			sceneProto->__protoFlags = 1; // bit flags: 1=scene
-			//sceneProto->__protoFlags |= 2; //2=oldway (0 new way) set to 2 for oldway, 0 for new way
+			((char *)(&sceneProto->__protoFlags))[0] = 1; // 1=scene-deepInstancing
+			((char *)(&sceneProto->__protoFlags))[2] = 2; // 2=scene type object, render all children
+			//((char *)(&sceneProto->__protoFlags))[1] = 1; //1=oldway (0 new way) set to 2 for oldway, 0 for new way
 			ret = cParse(sceneProto,(int) offsetof (struct X3D_Proto, _children), (const char*)input);
 			p->haveParsedCParsed = TRUE;
 			if (ret) {
-				if(0) {
-					Stack * DEFedNodes = newVector(struct X3D_Node*, 2);
-					dump_scene2(stdout, 0, (struct X3D_Node*) sceneProto,1,DEFedNodes);
-					deleteVector(struct X3D_Node*,DEFedNodes);
+				if(usingBrotos() == 2){
+					//make new style proto the rootnode
+					setRootNode(sceneProto);
+				}else{
+					//convert new style protos to old scene
+					if(0) {
+						Stack * DEFedNodes = newVector(struct X3D_Node*, 2);
+						dump_scene2(stdout, 0, (struct X3D_Node*) sceneProto,1,DEFedNodes);
+						deleteVector(struct X3D_Node*,DEFedNodes);
+					}
+					ConsoleMessage("starting scene Instancing...\n");
+					sceneInstance(sceneProto,nRn);
+					if(0) {
+						Stack * DEFedNodes = newVector(struct X3D_Node*, 2);
+						dump_scene2(stdout, 0, (struct X3D_Node*) nRn,1,DEFedNodes);
+						deleteVector(struct X3D_Node*,DEFedNodes);
+					}
+					if(0) print_DEFed_node_names_and_pointers(stdout);
+					if(0) print_routes(stdout);
+					ConsoleMessage("...finished scene Instancing\n");
 				}
-				ConsoleMessage("starting scene Instancing...\n");
-				sceneInstance(sceneProto,nRn);
-				if(0) {
-					Stack * DEFedNodes = newVector(struct X3D_Node*, 2);
-					dump_scene2(stdout, 0, (struct X3D_Node*) nRn,1,DEFedNodes);
-					deleteVector(struct X3D_Node*,DEFedNodes);
-				}
-				if(0) print_DEFed_node_names_and_pointers(stdout);
-				if(0) print_routes(stdout);
-				ConsoleMessage("...finished scene Instancing\n");
 			}
 		}else{
 			ret = cParse(nRn,(int) offsetof (struct X3D_Group, children), (const char*)input);

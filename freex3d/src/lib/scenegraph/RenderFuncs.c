@@ -1142,7 +1142,7 @@ void render_node(struct X3D_Node *node) {
 	p = (ppRenderFuncs)tg->RenderFuncs.prv;
 
 	X3D_NODE_CHECK(node);
-
+//#define RENDERVERBOSE 1
 #ifdef RENDERVERBOSE
 	p->renderLevel ++;
 #endif

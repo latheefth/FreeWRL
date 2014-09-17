@@ -1673,7 +1673,13 @@ BOOL isProto(struct X3D_Node *node)
 	if(node)
 		if(node->_nodeType == NODE_Group)
 			if(X3D_GROUP(node)->FreeWRL__protoDef != INT_ID_UNDEFINED) retval = TRUE;
-		if(node->_nodeType == NODE_Proto)
-			retval = TRUE;
+		if(node->_nodeType == NODE_Proto){
+			//as of sept 2014, the broto2 scene is sharing the x3dproto struct, it has a bit flag set: __protoFlags & 1 
+			//we don't want to treat the scene like a protoinstance, because we want to render all a scenes children. Not so for protoinstance.
+			struct X3D_Proto *pn = (struct X3D_Proto*)node;
+			char pflag = ((char *)(&pn->__protoFlags))[2];
+			if(pflag == 1)
+				retval = TRUE; //its a protoinstance or externprotoinstance
+		}
 	return retval;
 }
