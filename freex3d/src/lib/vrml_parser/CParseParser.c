@@ -3297,87 +3297,87 @@ static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node);
 static BOOL parser_interfaceDeclarationB(struct VRMLParser* me, struct ProtoDefinition* proto, struct Shader_Script* script);
 
 static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
-    int nodeTypeB, nodeTypeU, isBroto;
-    struct X3D_Node* node=NULL;
-    struct ProtoDefinition *thisProto = NULL;
+	int nodeTypeB, nodeTypeU, isBroto;
+	struct X3D_Node* node=NULL;
+	struct ProtoDefinition *thisProto = NULL;
 	#ifdef HAVE_JAVASCRIPT
-        struct Shader_Script* script=NULL;
+		struct Shader_Script* script=NULL;
 	#endif
 	struct Shader_Script* shader=NULL;
 	DECLAREUP
-     
-    ASSERT(me->lexer);
-    *ret=node; /* set this to NULL, for now... if this is a real node, it will return a node pointer */
-         
-    /* lexer_node( ... ) #defined to lexer_specialID(me, r1, r2, NODES, NODES_COUNT, userNodeTypesVec) where userNodeTypesVec is a list of PROTO defs */
-    /* this will get the next token (which will be the node type) and search the NODES array for it.  If it is found in the NODES array nodeTypeB will be set to 
-       the index of type in the NODES array.  If it is not in NODES, the list of user-defined nodes will be searched for the type.  If it is found in the user-defined 
-       list nodeTypeU will be set to the index of the type in userNodeTypesVec.  A return value of FALSE indicates that the node type wasn't found in either list */
+
+	ASSERT(me->lexer);
+	*ret=node; /* set this to NULL, for now... if this is a real node, it will return a node pointer */
+
+	/* lexer_node( ... ) #defined to lexer_specialID(me, r1, r2, NODES, NODES_COUNT, userNodeTypesVec) where userNodeTypesVec is a list of PROTO defs */
+	/* this will get the next token (which will be the node type) and search the NODES array for it.  If it is found in the NODES array nodeTypeB will be set to 
+		the index of type in the NODES array.  If it is not in NODES, the list of user-defined nodes will be searched for the type.  If it is found in the user-defined 
+		list nodeTypeU will be set to the index of the type in userNodeTypesVec.  A return value of FALSE indicates that the node type wasn't found in either list */
 
 #ifdef CPARSERVERBOSE
-    printf ("parser_node START, curID :%s: nextIn :%s:\n",me->lexer->curID, me->lexer->nextIn);
+	printf ("parser_node START, curID :%s: nextIn :%s:\n",me->lexer->curID, me->lexer->nextIn);
 #endif
 
 
-#define XBLOCK_STATEMENT_B(LOCATION) \
-   if(parser_routeStatement(me))  { \
-        return TRUE; \
-   } \
- \
-  if (parser_componentStatement(me)) { \
-        return TRUE; \
-  } \
- \
-  if (parser_exportStatement(me)) { \
-        return TRUE; \
-  } \
- \
-  if (parser_importStatement(me)) { \
-        return TRUE; \
-  } \
- \
-  if (parser_metaStatement(me)) { \
-        return TRUE; \
-  } \
- \
-  if (parser_profileStatement(me)) { \
-        return TRUE; \
-  } \
-  if(parser_brotoStatement(me)) { \
-        return TRUE; \
-  }
+//#define XBLOCK_STATEMENT_B(LOCATION) 
+	if(parser_routeStatement(me))  {
+		return TRUE;
+	}
 
-  //if(parser_protoStatement(me)) { 
-  //      return TRUE; 
-  //} 
+	if (parser_componentStatement(me)) {
+		return TRUE;
+	}
 
-    XBLOCK_STATEMENT_B(ddd)
+	if (parser_exportStatement(me)) {
+		return TRUE;
+	}
+
+	if (parser_importStatement(me)) {
+		return TRUE;
+	}
+
+	if (parser_metaStatement(me)) {
+		return TRUE;
+	}
+
+	if (parser_profileStatement(me)) {
+		return TRUE;
+	}
+	if(parser_brotoStatement(me)) {
+		return TRUE;
+	}
+
+	//if(parser_protoStatement(me)) { 
+	//      return TRUE; 
+	//} 
+
+	//XBLOCK_STATEMENT_B(ddd)
 
 
 
-        if(!lexer_node(me->lexer, &nodeTypeB, &nodeTypeU)) {
+	if(!lexer_node(me->lexer, &nodeTypeB, &nodeTypeU)) {
 #ifdef CPARSERVERBOSE
-            printf ("parser_node, not lexed - is this one of those special nodes?\n");
+		printf ("parser_node, not lexed - is this one of those special nodes?\n");
 #endif
-            return FALSE;
-        }
-        
-    /* printf ("after lexer_node, at this point, me->lexer->curID :%s:\n",me->lexer->curID); */
-    /* could this be a proto expansion?? */
+		return FALSE;
+	}
 
-    /* Checks that the next non-whitespace non-comment character is '{' and skips it. */
-    if(!lexer_openCurly(me->lexer))
-        PARSE_ERROR("Expected { after node-type id!")
+	/* printf ("after lexer_node, at this point, me->lexer->curID :%s:\n",me->lexer->curID); */
+	/* could this be a proto expansion?? */
+
+	/* Checks that the next non-whitespace non-comment character is '{' and skips it. */
+	if(!lexer_openCurly(me->lexer))
+		PARSE_ERROR("Expected { after node-type id!")
 
 #ifdef CPARSERVERBOSE
-            printf ("parser_node: have nodeTypeB %d nodeTypeU %d\n",nodeTypeB, nodeTypeU);
+	printf ("parser_node: have nodeTypeB %d nodeTypeU %d\n",nodeTypeB, nodeTypeU);
 #endif
 	isBroto = FALSE;
-    if (nodeTypeU != ID_UNDEFINED) {
-        /* The node name was located in userNodeTypesVec (list of defined PROTOs), 
-		   therefore this is an attempt to instantiate a PROTO */
-        /* expand this PROTO, put the code right in line, and let the parser
-		   go over it as if there was never a proto here... */
+	if (nodeTypeU != ID_UNDEFINED) {
+		/* The node name was located in userNodeTypesVec (list of defined PROTOs), 
+			therefore this is an attempt to instantiate a PROTO */
+		/* expand this PROTO, put the code right in line, and let the parser
+			go over it as if there was never a proto here... */
 		struct X3D_Proto *proto, *currentContext;
 		char *protoname = vector_get(char*, me->lexer->userNodeTypesVec, nodeTypeU);
 		currentContext = (struct X3D_Proto*)me->ptr;
@@ -3389,9 +3389,10 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 			char pflag = ((char *)(&currentContext->__protoFlags))[0];
 			int idepth = 0; //if its old brotos (2013) don't do depth until sceneInstance. If 2014 broto2, don't do depth here if we're in a protoDeclare or externProtoDeclare
 			if(usingBrotos()==2) idepth = pflag == 1; //2014 broto2: if we're parsing a scene (or Inline) then deepcopy proto to instance it, else shallow
-	        node=X3D_NODE(brotoInstance(proto,idepth));
+			node=X3D_NODE(brotoInstance(proto,idepth));
+			if(idepth) add_parent(node,X3D_NODE(currentContext),__FILE__,__LINE__); //helps propagate VF_Sensitive to parent of proto, if proto's 1st node is sensor
 			isBroto = TRUE;
-		    ASSERT(node);
+			ASSERT(node);
 			if (ind != ID_UNDEFINED) {
 				/* Set the top memmber of the DEFed nodes stack to this node */
 				vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind)=node;
@@ -3406,24 +3407,23 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 #ifdef CPARSERVERBOSE
 			printf ("nodeTypeB = ID_UNDEFINED, but nodeTypeU is %d\n",nodeTypeU);
 #endif
-	                
 			/* If this is a PROTO instantiation, then there must be at least one PROTO defined.  
-			   Also, the index retrieved for  this PROTO must be valid. */
+				Also, the index retrieved for  this PROTO must be valid. */
 			ASSERT(nodeTypeU!=ID_UNDEFINED);
 			ASSERT(me->PROTOs);
 			ASSERT(nodeTypeU<vectorSize(me->PROTOs));
-	                
+
 			if (me->curPROTO == NULL) {
 			int newProtoTextLen = 0;
 
 				/* printf ("curPROTO = NULL: before protoExpand, current stream :%s:\n",me->lexer->nextIn); */
-	                
+
 				/* find and expand the PROTO definition */
 				newProtoText = protoExpand(me, nodeTypeU,&thisProto,&newProtoTextLen);
-	                
+
 				/* printf ("curPROTO = NULL: past protoExpand\n"); */
 				parser_fromString(me,newProtoText);
-	                
+
 				/* printf ("curPROTO = NULL: past insertProtoExpansionIntoStream\n"); */
 				/* and, now, lets get the id for the lexer */
 				if(!lexer_node(me->lexer, &nodeTypeB, &nodeTypeU)) {
@@ -3431,61 +3431,59 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 					FREE_IF_NZ(newProtoText);
 					return FALSE;
 				}
-	                
+
 
 				/* printf ("curPROTO = NULL: after possible proto expansion, me->lexer->curID :%s: ",me->lexer->curID);
-				   printf ("curPROTO = NULL: and remainder, me->lexer->nextIn :%s:\n",me->lexer->nextIn); */
+					printf ("curPROTO = NULL: and remainder, me->lexer->nextIn :%s:\n",me->lexer->nextIn); */
 
 				if(!lexer_openCurly(me->lexer))
 					PARSE_ERROR("Expected { after node-type id!")
-
-	                
-						} else {
-							/* Checks that the next non-whitespace non-comment character is an openCurly and skips it. */
-							if(!lexer_openCurly(me->lexer)) {
-								PARSE_ERROR("Expected after node-type id!")
-									} else {
-										/* printf ("curPROTO != NULL; lets skip these fields\n"); */
-										skipToEndOfOpenCurly(me->lexer,0);
-										/* printf ("after skipToEndOfOpenCurly, we have :%s:\n",me->lexer->nextIn); */
-									}
-						}
+				} else {
+					/* Checks that the next non-whitespace non-comment character is an openCurly and skips it. */
+					if(!lexer_openCurly(me->lexer)) {
+						PARSE_ERROR("Expected after node-type id!")
+					} else {
+						/* printf ("curPROTO != NULL; lets skip these fields\n"); */
+						skipToEndOfOpenCurly(me->lexer,0);
+						/* printf ("after skipToEndOfOpenCurly, we have :%s:\n",me->lexer->nextIn); */
+					}
+				}
 			/* JAS - now done by stacked lexer FREE_IF_NZ(newProtoText); */
 		}
-    }
+	}
 
-    /* Built-in node */
-    /* Node was found in NODES array */
-    if(nodeTypeB!=ID_UNDEFINED) {
+	/* Built-in node */
+	/* Node was found in NODES array */
+	if(nodeTypeB!=ID_UNDEFINED) {
 #ifdef CPARSERVERBOSE
-        printf("parser_node: parsing builtin node\n");
+		 printf("parser_node: parsing builtin node\n");
 #endif
 
 	//#ifdef HAVE_JAVASCRIPT
  //       struct Shader_Script* script=NULL;
 	//#endif
 
-        //struct Shader_Script* shader=NULL;
-                 
-        /* Get malloced struct of appropriate X3D_Node type with default values filled in */
-        node=X3D_NODE(createNewX3DNode0((int)nodeTypeB));
-        ASSERT(node);
-                
-        /* if ind != ID_UNDEFINED, we have the first node of a DEF. Save this node pointer, in case
-           some code uses it. eg: DEF xx Transform {children Script {field yy USE xx}} */
-        if (ind != ID_UNDEFINED) {
-            /* Set the top memmber of the DEFed nodes stack to this node */
-            vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind)=node;
+		//struct Shader_Script* shader=NULL;
+
+		/* Get malloced struct of appropriate X3D_Node type with default values filled in */
+		node=X3D_NODE(createNewX3DNode0((int)nodeTypeB));
+		ASSERT(node);
+
+		/* if ind != ID_UNDEFINED, we have the first node of a DEF. Save this node pointer, in case
+			some code uses it. eg: DEF xx Transform {children Script {field yy USE xx}} */
+		if (ind != ID_UNDEFINED) {
+			/* Set the top memmber of the DEFed nodes stack to this node */
+			vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind)=node;
 #ifdef CPARSERVERBOSE
-            printf("parser_node: adding DEFed node (pointer %p) to DEFedNodes vector\n", node);  
+			printf("parser_node: adding DEFed node (pointer %p) to DEFedNodes vector\n", node);  
 #endif
-        }
-                
-        /* Node specific initialization */
-        /* From what I can tell, this only does something for Script nodes.  It sets node->__scriptObj to new_Shader_Script() */
-        parser_specificInitNode_B(node, me);
-                
-        /* Set flag for Shaders/Scripts - these ones can have any number of fields */
+		}
+
+		/* Node specific initialization */
+		/* From what I can tell, this only does something for Script nodes.  It sets node->__scriptObj to new_Shader_Script() */
+		parser_specificInitNode_B(node, me);
+
+		/* Set flag for Shaders/Scripts - these ones can have any number of fields */
 		switch (node->_nodeType) {
 			#ifdef HAVE_JAVASCRIPT
 			case NODE_Script: script=X3D_SCRIPT(node)->__scriptObj; break;
@@ -3497,8 +3495,8 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 		}
 	} /*endif nodetypeB*/
 
-    /* As long as the lexer is returning field statements, ROUTE statements, 
-	  or PROTO statements continue parsing node */
+	/* As long as the lexer is returning field statements, ROUTE statements, 
+		or PROTO statements continue parsing node */
 
 	/*	to get IS handling in the main scene parsing code including for Script user fields
 		I split up the script interface parser so it only creates the field, then
@@ -3507,16 +3505,16 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 	if( (nodeTypeB!=ID_UNDEFINED) || isBroto)
 	{
 		#define SPLIT_SCRIPTUSERFIELD_CREATION_FROM_VALUEPARSING 1
-        while(TRUE)
-        {
-            /* Try to parse the next statement as a field.  For normal "field value" statements 
-			   (i.e. position 1 0 1) this gets the value of the field from the lexer (next token(s)
-               to be processed) and stores it as the appropriate type in the node.
-               For IS statements (i.e. position IS mypos) this adds the node-field combo 
-			   (as an offsetPointer) to the dests list for the protoFieldDecl associated with the user
-               defined field (in the given case, this would be mypos).  */
+		while(TRUE)
+		{
+			/* Try to parse the next statement as a field.  For normal "field value" statements 
+				(i.e. position 1 0 1) this gets the value of the field from the lexer (next token(s)
+				to be processed) and stores it as the appropriate type in the node.
+				For IS statements (i.e. position IS mypos) this adds the node-field combo 
+				(as an offsetPointer) to the dests list for the protoFieldDecl associated with the user
+				defined field (in the given case, this would be mypos).  */
 #ifdef CPARSERVERBOSE
-            printf("parser_node: try parsing field ... \n");
+			printf("parser_node: try parsing field ... \n");
 #endif
 			/* check for IS - can be any mode, and builtin or user field on builtin node or usernode/protoInstance */
 			if( found_IS_field(me,node) ){
@@ -3529,61 +3527,61 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 			}
 
 			/*check for builtin field value on builtin node or usernode/protoInstance*/
-            if(parser_field(me, node)) {
+			if(parser_field(me, node)) {
 #ifdef CPARSERVERBOSE
-                printf("parser_node: field parsed\n");
+				printf("parser_node: field parsed\n");
 #endif
-                continue;
-            }
+				continue;
+			}
 
 
-            /* Try to parse the next statement as a ROUTE (i.e. statement starts with ROUTE).  This checks that the ROUTE statement is valid (i.e. that the referenced node and field combinations  
-               exist, and that they are compatible) and then adds the route to either the CRoutes table of routes, or adds a new ProtoRoute structure to the vector 
-               ProtoDefinition->routes if we are parsing a PROTO */
+			/* Try to parse the next statement as a ROUTE (i.e. statement starts with ROUTE).  This checks that the ROUTE statement is valid (i.e. that the referenced node and field combinations  
+				exist, and that they are compatible) and then adds the route to either the CRoutes table of routes, or adds a new ProtoRoute structure to the vector 
+				ProtoDefinition->routes if we are parsing a PROTO */
 #ifdef CPARSERVERBOSE
-            printf("parser_node: try parsing ROUTE ... \n");
+			printf("parser_node: try parsing ROUTE ... \n");
 #endif
-                        
-            /* try ROUTE, COMPONENT, EXPORT, IMPORT, META, PROFILE statements here */
+
+			/* try ROUTE, COMPONENT, EXPORT, IMPORT, META, PROFILE statements here */
 			SAVEUP
-            BLOCK_STATEMENT(parser_node);
-                        
-                /* Try to parse the next statement as a PROTO (i.e. statement starts with PROTO).  */
-                /* Add the PROTO name to the userNodeTypesVec list of names.  Create and fill in a new protoDefinition structure and add it to the PROTOs list.
-                   Goes through the interface declarations for the PROTO and adds each user-defined field name to the appropriate list of user-defined names (user_initializeOnly, 
-                   user_inputOnly, Out, or user_inputOutput), creates a new protoFieldDecl for the field and adds it to the iface vector of the ProtoDefinition, 
-                   and, in the case of fields and inputOutputs, gets the default value of the field and stores it in the protoFieldDecl. 
-                   Parses the body of the PROTO.  Nodes are added to the scene graph for this PROTO.  Routes are parsed and a new ProtoRoute structure
-                   is created for each one and added to the routes vector of the ProtoDefinition.  PROTOs are recursively parsed!
-                */
+			BLOCK_STATEMENT(parser_node);
+
+			/* Try to parse the next statement as a PROTO (i.e. statement starts with PROTO).  */
+			/* Add the PROTO name to the userNodeTypesVec list of names.  Create and fill in a new protoDefinition structure and add it to the PROTOs list.
+				Goes through the interface declarations for the PROTO and adds each user-defined field name to the appropriate list of user-defined names (user_initializeOnly, 
+				user_inputOnly, Out, or user_inputOutput), creates a new protoFieldDecl for the field and adds it to the iface vector of the ProtoDefinition, 
+				and, in the case of fields and inputOutputs, gets the default value of the field and stores it in the protoFieldDecl. 
+				Parses the body of the PROTO.  Nodes are added to the scene graph for this PROTO.  Routes are parsed and a new ProtoRoute structure
+				is created for each one and added to the routes vector of the ProtoDefinition.  PROTOs are recursively parsed!
+			*/
 #ifdef CPARSERVERBOSE
-                printf("parser_node: try parsing PROTO ... \n");
+			printf("parser_node: try parsing PROTO ... \n");
 #endif
 			BACKUP
 
-            if(parser_protoStatement(me)) {
+			if(parser_protoStatement(me)) {
 #ifdef CPARSERVERBOSE
-                printf("parser_node: PROTO parsed\n");
+				printf("parser_node: PROTO parsed\n");
 #endif
-                continue;
-            }
+				continue;
+			}
 
-            if(parser_brotoStatement(me)) {
+			if(parser_brotoStatement(me)) {
 #ifdef CPARSERVERBOSE
-                printf("parser_vrmlScene: BROTO parsed\n");
+				printf("parser_vrmlScene: BROTO parsed\n");
 #endif
-                continue;
-            }
+				continue;
+			}
 
 #ifdef CPARSERVERBOSE
-            printf("parser_node: try parsing Script or Shader field\n");
+			printf("parser_node: try parsing Script or Shader field\n");
 #endif
 
-	    #ifdef HAVE_JAVASCRIPT
+			#ifdef HAVE_JAVASCRIPT
 			/* check for user field declaration on builtin node of type script or shaderprogram
-			   'mode fieldtype fieldname <fieldvalue>'
-			   and create the field
-			   aside: protoDeclares and protoInstances handled elsewhere:
+				'mode fieldtype fieldname <fieldvalue>'
+				and create the field
+				aside: protoDeclares and protoInstances handled elsewhere:
 					- protoInstance 'fieldname fieldvalue' are handled like builtins in found_IS and parser_field
 					- protoDeclare  'mode fieldtype fieldname <fieldvalue>' are handled in parser_protostatement
 			*/
@@ -3594,60 +3592,60 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 			if(!SPLIT_SCRIPTUSERFIELD_CREATION_FROM_VALUEPARSING)
             if(script && parser_interfaceDeclaration(me, NULL, script)) {
 #ifdef CPARSERVERBOSE
-                printf("parser_node: SCRIPT field parsed\n");
+				printf("parser_node: SCRIPT field parsed\n");
 #endif
-                continue;
-            }
+				continue;
+			}
 
-	    #endif
+			#endif
 
-            if(shader && parser_interfaceDeclaration(me, NULL, shader)) {
+			if(shader && parser_interfaceDeclaration(me, NULL, shader)) {
 #ifdef CPARSERVERBOSE
-                printf("parser_node: Shader field parsed\n");
+				printf("parser_node: Shader field parsed\n");
 #endif
-                continue;
-            }
+				continue;
+			}
 
-            break;
-        }
-                
-	#ifdef HAVE_JAVASCRIPT
-        /* Init code for Scripts */
-        if(script) {
+			break;
+		}
+
+		#ifdef HAVE_JAVASCRIPT
+		/* Init code for Scripts */
+		if(script) {
 #ifdef CPARSERVERBOSE
-            printf("parser_node: try parsing SCRIPT url\n");
+			printf("parser_node: try parsing SCRIPT url\n");
 #endif
 			if(0) //do this later in sceneInstance
-            script_initCodeFromMFUri(script, &X3D_SCRIPT(node)->url);
+			script_initCodeFromMFUri(script, &X3D_SCRIPT(node)->url);
 #ifdef CPARSERVERBOSE
-            printf("parser_node: SCRIPT url parsed\n");
+			printf("parser_node: SCRIPT url parsed\n");
 #endif
-        } /* nodetypeB or brotoInstance */
-	#endif /* HAVE_JAVASCRIPT */
-                
-        /* We must have a node that we've parsed at this point. */
-        ASSERT(node);
-    }
-        
-    /* Check that the node is closed by a '}', and skip this token */
-#ifdef CPARSERVERBOSE
-    printf ("calling lexer_closeCurly at B\n");
-#endif
-        
-    if(!lexer_closeCurly(me->lexer)) {
-        CPARSE_ERROR_CURID("ERROR: Expected a closing brace after fields of a node;")
-            PARSER_FINALLY;
-        return FALSE; 
-    }
-        
-    /* Return the parsed node */
+		} /* nodetypeB or brotoInstance */
+		#endif /* HAVE_JAVASCRIPT */
 
-    #ifdef CPARSERVERBOSE
-    printf ("returning at end of parser_node, ret %u\n",node);
-    if (node != NULL) printf ("and, node type is %s\n",stringNodeType(node->_nodeType));
-    #endif
-    *ret=node;
-    return TRUE;
+		/* We must have a node that we've parsed at this point. */
+		ASSERT(node);
+	}
+
+	/* Check that the node is closed by a '}', and skip this token */
+#ifdef CPARSERVERBOSE
+	printf ("calling lexer_closeCurly at B\n");
+#endif
+
+	if(!lexer_closeCurly(me->lexer)) {
+		CPARSE_ERROR_CURID("ERROR: Expected a closing brace after fields of a node;")
+		PARSER_FINALLY;
+		return FALSE; 
+	}
+
+	/* Return the parsed node */
+
+	#ifdef CPARSERVERBOSE
+	printf ("returning at end of parser_node, ret %u\n",node);
+	if (node != NULL) printf ("and, node type is %s\n",stringNodeType(node->_nodeType));
+	#endif
+	*ret=node;
+	return TRUE;
 }
 
 
@@ -3992,14 +3990,12 @@ static BOOL parser_brotoStatement(struct VRMLParser* me)
 	//create a ProtoDeclare
     proto = createNewX3DNode0(NODE_Proto);
 	//add it to the current context's list of declared protos
-
-	// JAS - &X3D_NODE(proto) gave compiler errors on Android, changed to (struct X3D_Node **) &proto
-	AddRemoveChildren(X3D_NODE(me->ptr), 
-		offsetPointer_deref(struct Multi_Node*,me->ptr,offsetof (struct X3D_Proto, __protoDeclares)), 
-		(struct X3D_Node **) &proto, 1, 1,__FILE__,__LINE__);
-
-
 	parent = (struct X3D_Proto*)me->ptr;
+	if(parent->__protoDeclares == NULL)
+		parent->__protoDeclares = newVector(struct X3D_Proto*,4);
+	vector_pushBack(struct X3D_Proto*,parent->__protoDeclares,proto);
+
+
 	proto->__parentProto = X3D_NODE(parent); //me->ptr; //link back to parent proto, for isAvailableProto search
 	proto->__protoFlags = parent->__protoFlags;
 	((char*)(&proto->__protoFlags))[0] = 0; //shallow instancing of protoInstances inside a protoDeclare 
@@ -4363,7 +4359,8 @@ BOOL isAvailableBroto(char *pname, struct X3D_Proto* currentContext, struct X3D_
     struct ProtoDefinition* obj;
 	struct X3D_Proto *p;
 	struct X3D_Proto* context;
-	struct Multi_Node *plist;
+	//struct Multi_Node *plist;
+	struct Vector *plist;
 
 	*proto = NULL;
 	/* besides current context list also search parent context list if there is one */
@@ -4374,17 +4371,22 @@ BOOL isAvailableBroto(char *pname, struct X3D_Proto* currentContext, struct X3D_
 		// this only makes a difference if you have more than one protodefinition with the same protoName
 		// in the same context
 		BOOL bottomUp = TRUE; 
-		plist = &context->__protoDeclares;
-		for(i=0;i<plist->n;i++)
-		{
-			j = i;
-			if(bottomUp) j = plist->n - 1 - i;
-			p = (struct X3D_Proto*)plist->p[j];
-			obj = p->__protoDef;
-			if(!strcmp(obj->protoName,pname))
+		//plist = &context->__protoDeclares;
+		plist = (struct Vector*) context->__protoDeclares;
+		if(plist){
+			int n = vectorSize(plist);
+			for(i=0;i<n;i++)
 			{
-				*proto = p;
-				return TRUE;
+				j = i;
+				if(bottomUp) j = n - 1 - i;
+				//p = (struct X3D_Proto*)plist->p[j];
+				p = vector_get(struct X3D_Proto*,plist,j);
+				obj = p->__protoDef;
+				if(!strcmp(obj->protoName,pname))
+				{
+					*proto = p;
+					return TRUE;
+				}
 			}
 		}
 		context = (struct X3D_Proto*)context->__parentProto;

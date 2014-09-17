@@ -6215,7 +6215,7 @@ struct X3D_Proto {
 	void * __IS;
 	void * __ROUTES;
 	struct X3D_Node *__parentProto;
-	struct Multi_Node __protoDeclares;
+	void * __protoDeclares;
 	void * __protoDef;
 	int __protoFlags;
 	struct X3D_Node *__prototype;
