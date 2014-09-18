@@ -4280,10 +4280,11 @@ static BOOL parser_routeStatement_B(struct VRMLParser* me)
     /* Built-in to built-in */
 	int pflags = ((struct X3D_Proto*)(me->ptr))->__protoFlags;
 	char oldwayflag = ((char *)&pflags)[1];
-	if(oldwayflag)
+	char instancingflag = ((char *)&pflags)[0];
+	if(oldwayflag || instancingflag)
 		parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toType); //old way direct registration
-	else
-		broto_store_route((struct X3D_Proto*)me->ptr,fromNode,fromOfs,toNode,toOfs,toType); //new way delay until sceneInstance()
+	//else
+	broto_store_route((struct X3D_Proto*)me->ptr,fromNode,fromOfs,toNode,toOfs,toType); //new way delay until sceneInstance()
 
     return TRUE;
 }
@@ -4433,7 +4434,7 @@ void copy_routes2(Stack *routes, struct X3D_Proto* target, struct Vector *p2p)
 		//broto_store_route(me,fromNode,fromOfs,toNode,toOfs,toType); //new way delay until sceneInstance()
 		fromNode = p2p_lookup(route->fromNode,p2p);
 		toNode = p2p_lookup(route->toNode,p2p);
-       	//CRoutes_RegisterSimple(fromNode, route->fromOfs, toNode, route->toOfs, route->ft);
+       	CRoutes_RegisterSimple(fromNode, route->fromOfs, toNode, route->toOfs, route->ft);
 		//we'll also store in the deep broto instance, although they aren't used there (yet), and
 		//if target is the main scene, they are abandoned. Maybe someday they'll be used.
 		//if( target )
@@ -4472,6 +4473,7 @@ void copy_defnames2(Stack *defnames, struct X3D_Proto* target, struct Vector *p2
 		}
 	}
 }
+void copy_IS(Stack *istable, struct X3D_Proto* target, struct Vector *p2p);
 void copy_IStable(Stack **sourceIS, Stack** destIS);
 void copy_field(int typeIndex, union anyVrml* source, union anyVrml* dest, struct Vector *p2p, 
 				Stack *instancedScripts, struct X3D_Proto *ctx, struct X3D_Node *parent);
@@ -4540,7 +4542,7 @@ void deep_copy_broto_body2(struct X3D_Proto** proto, struct X3D_Proto** dest)
 	copy_defnames2(prototype->__DEFnames, p, p2p);
 
 	////3. convert IS events to backward routes - maybe not for broto2, which might use the IS table in the (yet to be developed) routing algo
-	//copy_IS(p->__IS, p, p2p);
+	copy_IS(p->__IS, p, p2p);
 
 	initialize_scripts(instancedScripts);
 

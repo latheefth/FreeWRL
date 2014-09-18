@@ -2449,7 +2449,7 @@ void propagate_events_B() {
 	last_markme = FALSE; // "
 	//#ifdef CRVERBOSE
 	debugRoutes = 0;
-	if(debugRoutes)printf("current time=%d\n",p->thisIntTimeStamp);
+	if(debugRoutes)printf("current time=%d routecount=%d\n",p->thisIntTimeStamp,p->CRoutes_Count);
 	//#endif
 	do {
 		havinterp=FALSE; /* assume no interpolators triggered */
