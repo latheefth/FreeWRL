@@ -4564,6 +4564,9 @@ struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep)
 	struct X3D_Proto *p;
 	if(ideep){
 		p = createNewX3DNode(NODE_Proto);
+		//memcpy(p,proto,sizeof(struct X3D_Proto)); //dangerous, make sure you re-instance all pointer variables
+		p->_children.n = 0; //don't copy children in here - see below
+		p->_children.p = NULL;
 		char pflags[4];
 		pflags[0] = 1; //deep
 		pflags[1] = 0; //new way/brotos
@@ -4573,7 +4576,9 @@ struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep)
 	}else{
 		//shallow
 		p = createNewX3DNode0(NODE_Proto);
+		//memcpy(p,proto,sizeof(struct X3D_Proto)); //dangerous, make sure you re-instance all pointer variables
 		p->_children.n = 0; //don't copy children in here.
+		p->_children.p = NULL;
 		char pflags[4];
 		pflags[0] = 0; //shallow
 		pflags[1] = 0; //new way/brotos
@@ -5264,7 +5269,7 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 		   - defnames, ISes, Routes, body nodes from _prototype upgraded by ISes
 		*/
 		if(usingBrotos() == 2)
-			deep_copy_broto_body2((struct X3D_Proto**)source,(struct X3D_Proto**)dest,instancedScripts);
+			deep_copy_broto_body2((struct X3D_Proto**)source,(struct X3D_Proto**)dest);
 		else
 			deep_copy_broto_body((struct X3D_Proto**)source,(struct X3D_Proto**)dest,instancedScripts);
 	}

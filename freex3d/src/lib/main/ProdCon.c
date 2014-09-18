@@ -269,7 +269,13 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 			struct X3D_Proto *sceneProto = createNewX3DNode0(NODE_Proto);
 			sceneProto->__prototype = X3D_NODE(sceneProto);
 			((char *)(&sceneProto->__protoFlags))[0] = 1; // 1=scene-deepInstancing
-			((char *)(&sceneProto->__protoFlags))[2] = 2; // 2=scene type object, render all children
+			if(usingBrotos() > 1){
+				((char *)(&sceneProto->__protoFlags))[2] = 2; // 2=scene type object, render all children
+			}else{
+				((char *)(&sceneProto->__protoFlags))[2] = 0; // 2=scene type object, render all children
+			}
+
+
 			//((char *)(&sceneProto->__protoFlags))[1] = 1; //1=oldway (0 new way) set to 2 for oldway, 0 for new way
 			ret = cParse(sceneProto,(int) offsetof (struct X3D_Proto, _children), (const char*)input);
 			p->haveParsedCParsed = TRUE;
