@@ -4541,7 +4541,7 @@ void deep_copy_broto_body2(struct X3D_Proto** proto, struct X3D_Proto** dest)
 	//2.d) copy defnames
 	copy_defnames2(prototype->__DEFnames, p, p2p);
 
-	////3. convert IS events to backward routes - maybe not for broto2, which might use the IS table in the (yet to be developed) routing algo
+	////3. convert IS events to backward routes - maybe not for broto3, which might use the IS table in the (yet to be developed) routing algo
 	copy_IS(p->__IS, p, p2p);
 
 	initialize_scripts(instancedScripts);
@@ -4570,7 +4570,6 @@ struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep)
 		pflags[2] = 1; //this is a protoInstance
 		pflags[3] = 0; //not an extern
 		memcpy(&p->__protoFlags,pflags,sizeof(int));
-		deep_copy_broto_body2(&proto,&p);
 	}else{
 		//shallow
 		p = createNewX3DNode0(NODE_Proto);
@@ -4583,6 +4582,8 @@ struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep)
 		memcpy(&p->__protoFlags,pflags,sizeof(int));
 	}
 	//memcpy(p,proto,sizeof(struct X3D_Proto)); //dangerous, make sure you re-instance all pointer variables
+	p->__prototype = proto->__prototype;
+	p->_nodeType = proto->_nodeType;
 	pobj = proto->__protoDef;
 	if(pobj){ //Prodcon doesn't bother mallocing this for scene nRn
 		nobj = MALLOC(struct ProtoDefinition*,sizeof(struct ProtoDefinition));
@@ -4598,6 +4599,8 @@ struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep)
 		}
 		p->__protoDef = nobj;
 	}
+	if(ideep)
+		deep_copy_broto_body2(&proto,&p);
 	return p;
 }
 struct X3D_Node *p2p_lookup(struct X3D_Node *pnode, struct Vector *p2p)
@@ -5260,7 +5263,10 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 		/* deep copy the body/context/_prototype from the Proto:
 		   - defnames, ISes, Routes, body nodes from _prototype upgraded by ISes
 		*/
-		deep_copy_broto_body((struct X3D_Proto**)source,(struct X3D_Proto**)dest,instancedScripts);
+		if(usingBrotos() == 2)
+			deep_copy_broto_body2((struct X3D_Proto**)source,(struct X3D_Proto**)dest,instancedScripts);
+		else
+			deep_copy_broto_body((struct X3D_Proto**)source,(struct X3D_Proto**)dest,instancedScripts);
 	}
 }
 int nextScriptHandle (void);
