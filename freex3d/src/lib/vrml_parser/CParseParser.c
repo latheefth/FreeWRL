@@ -3295,6 +3295,7 @@ void cParseErrorFieldString(struct VRMLParser *me, char *str, const char *str2) 
 struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep);
 static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node);
 static BOOL parser_interfaceDeclarationB(struct VRMLParser* me, struct ProtoDefinition* proto, struct Shader_Script* script);
+void deep_copy_broto_body2(struct X3D_Proto** proto, struct X3D_Proto** dest);
 void initialize_one_script(struct Shader_Script* ss, const struct Multi_String *url);
 static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 	int nodeTypeB, nodeTypeU, isBroto;
@@ -3470,7 +3471,10 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 		//struct Shader_Script* shader=NULL;
 
 		/* Get malloced struct of appropriate X3D_Node type with default values filled in */
-		node=X3D_NODE(createNewX3DNode0((int)nodeTypeB));
+		if(pflagdepth)
+			node=X3D_NODE(createNewX3DNode((int)nodeTypeB)); //registers node types like sensors, textures in tables for scene
+		else
+			node=X3D_NODE(createNewX3DNode0((int)nodeTypeB)); //doesn't register node types in tables, for protoDeclare
 		ASSERT(node);
 
 		/* if ind != ID_UNDEFINED, we have the first node of a DEF. Save this node pointer, in case
@@ -3628,6 +3632,12 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 		} /* nodetypeB or brotoInstance */
 		#endif /* HAVE_JAVASCRIPT */
 
+		if(isBroto && pflagdepth){
+			//copying the body _after_ the protoInstance field values have been parsed 
+			//allows ISd fields in body nodes to get the pkw_initializeOnly/inputOutput value
+			//from the protoInstance interface
+			deep_copy_broto_body2(&X3D_PROTO(X3D_PROTO(node)->__prototype),&X3D_PROTO(node));
+		}
 		/* We must have a node that we've parsed at this point. */
 		ASSERT(node);
 	}
@@ -4604,7 +4614,7 @@ struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep)
 		}
 		p->__protoDef = nobj;
 	}
-	if(ideep)
+	if(0) if(ideep)
 		deep_copy_broto_body2(&proto,&p);
 	return p;
 }
