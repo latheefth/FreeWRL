@@ -2706,6 +2706,7 @@ static BOOL parser_field_B(struct VRMLParser* me, struct X3D_Node* node)
     FTIND_##fieldType, fe, FALSE, NULL, NULL)) {\
     printf ("error in parser_fieldValue by call 2\n"); \
         PARSE_ERROR("Expected " #fieldType " Value for a fieldtype!") }\
+	INIT_CODE_##fieldType(var) \
    return TRUE;
  
    //INIT_CODE_##fieldType(var) \  we're doing this add_parent during instancing as of feb 2013
@@ -3395,7 +3396,7 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 			int idepth = 0; //if its old brotos (2013) don't do depth until sceneInstance. If 2014 broto2, don't do depth here if we're in a protoDeclare or externProtoDeclare
 			if(usingBrotos()==2) idepth = pflagdepth == 1; //2014 broto2: if we're parsing a scene (or Inline) then deepcopy proto to instance it, else shallow
 			node=X3D_NODE(brotoInstance(proto,idepth));
-			if(idepth) add_parent(node,X3D_NODE(currentContext),__FILE__,__LINE__); //helps propagate VF_Sensitive to parent of proto, if proto's 1st node is sensor
+			//moved below, for all nodes if(idepth) add_parent(node,X3D_NODE(currentContext),__FILE__,__LINE__); //helps propagate VF_Sensitive to parent of proto, if proto's 1st node is sensor
 			isBroto = TRUE;
 			ASSERT(node);
 			if (ind != ID_UNDEFINED) {
@@ -3638,6 +3639,8 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 			//from the protoInstance interface
 			deep_copy_broto_body2(&X3D_PROTO(X3D_PROTO(node)->__prototype),&X3D_PROTO(node));
 		}
+		// if(pflagdepth) add_parent(node,parent??,__FILE__,__LINE__); //helps propagate VF_Sensitive to parent of proto, if proto's 1st node is sensor. We do in macro PROCESS_FIELD_B
+
 		/* We must have a node that we've parsed at this point. */
 		ASSERT(node);
 	}
