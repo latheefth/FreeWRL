@@ -311,11 +311,11 @@ static openned_file_t* load_file_read(const char *filename)
 	struct stat ss;
 	int fd;
 	unsigned char *text, *current;
-
+	int left2read; //need signed int for math below
 #ifdef _MSC_VER
-	size_t blocksz, readsz, left2read;
+	size_t blocksz, readsz; //, left2read;
 #else
-	ssize_t blocksz, readsz, left2read;
+	ssize_t blocksz, readsz; //, left2read;
 #endif
 
 	if (stat(filename, &ss) < 0) {
