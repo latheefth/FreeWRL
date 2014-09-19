@@ -80,7 +80,7 @@ void CParseParser_init(struct tCParseParser *t){
 	{
 		ppCParseParser p = (ppCParseParser)t->prv;
 		p->foundInputErrors = 0;
-		p->useBrotos = 0; //0= none/old-way, 1=wrl parsing broto only, then converts to old scene 2=whole scene is a new proto so routing, rendering, DEF/IS/script tables are in new proto 
+		p->useBrotos = 2; //0= none/old-way, 1=wrl parsing broto only, then converts to old scene 2=whole scene is a new proto so routing, rendering, DEF/IS/script tables are in new proto 
 	}
 }
 	//ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
@@ -4614,8 +4614,8 @@ struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep)
 		}
 		p->__protoDef = nobj;
 	}
-	if(0) if(ideep)
-		deep_copy_broto_body2(&proto,&p);
+	//if(0) if(ideep)  moved to after field parsing, so ISing of initial values on the ProtoInstance get into the body
+	//	deep_copy_broto_body2(&proto,&p);
 	return p;
 }
 struct X3D_Node *p2p_lookup(struct X3D_Node *pnode, struct Vector *p2p)

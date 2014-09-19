@@ -313,7 +313,8 @@ static openned_file_t* load_file_read(const char *filename)
 	unsigned char *text, *current;
 
 #ifdef _MSC_VER
-	size_t blocksz, readsz, left2read;
+	size_t blocksz, readsz;
+	int left2read;
 #else
 	ssize_t blocksz, readsz, left2read;
 #endif
