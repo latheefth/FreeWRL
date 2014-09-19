@@ -5559,7 +5559,31 @@ BOOL fieldSynonymCompare(const char *routeFieldName, const char* nodeFieldName) 
 
 //#define WRLMODE(val) (((val) % 4)+4) //jan 2013 codegen PROTOKEYWORDS[] was ordered with x3d synonyms first, wrl last
 
-#define X3DMODE(val)  ((val) % 4)
+//#define X3DMODE(val)  ((val) % 4)
+//#define X3DMODE(##val)   PKW_from_KW((##val) 
+int X3DMODE(int val)
+{
+	int iret = 0;
+	switch(val){
+		case PKW_field: 
+		case PKW_initializeOnly:
+			iret = PKW_initializeOnly; break;
+		case PKW_exposedField:
+		case PKW_inputOutput:
+			iret = PKW_inputOutput; break;
+		case PKW_eventIn: 
+		case PKW_inputOnly:
+			iret = PKW_inputOnly; break;
+		case PKW_eventOut: 
+		case PKW_outputOnly:
+			iret = PKW_outputOnly; break;
+		default:
+			printf("ouch from X3DMODE\n");
+	}
+	return iret;
+}
+
+
 BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackData);
 typedef struct cbDataExactName {
 	char *fname;
@@ -5777,6 +5801,7 @@ BOOL found_IS_field(struct VRMLParser* me, struct X3D_Node *node)
 			f=vector_get(struct ProtoFieldDecl*, pdef->iface, i);
 			userArr =&vector_get(const char*, usernames[X3DMODE(f->mode)], 0);
 			pname = userArr[f->name];
+
 			foundProtoField = !strcmp(pname,protoFieldName) ? TRUE : FALSE;
 			if(foundProtoField ) {
 				/* printf ("protoDefinition_getField, comparing %d %d and %d %d\n", f->name, ind, f->mode, mode); */

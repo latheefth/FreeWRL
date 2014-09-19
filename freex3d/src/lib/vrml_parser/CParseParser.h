@@ -142,5 +142,6 @@ BOOL isAvailableBroto(char *pname, struct X3D_Proto* currentContext, struct X3D_
 void registerParentIfManagedField(int type, int mode, int isPublic, union anyVrml* any, struct X3D_Node* parent);
 void shallow_copy_field(int typeIndex, union anyVrml* source, union anyVrml* dest);
 BOOL usingBrotos();
+int X3DMODE(int val);
 
 #endif /* __FREEWRL_CPARSE_PARSER_H__ */
