@@ -3394,7 +3394,7 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 		{
 			/* its a binary proto, new in 2013 */
 			int idepth = 0; //if its old brotos (2013) don't do depth until sceneInstance. If 2014 broto2, don't do depth here if we're in a protoDeclare or externProtoDeclare
-			if(usingBrotos()==2) idepth = pflagdepth == 1; //2014 broto2: if we're parsing a scene (or Inline) then deepcopy proto to instance it, else shallow
+			if(usingBrotos() > 1) idepth = pflagdepth == 1; //2014 broto2: if we're parsing a scene (or Inline) then deepcopy proto to instance it, else shallow
 			node=X3D_NODE(brotoInstance(proto,idepth));
 			//moved below, for all nodes if(idepth) add_parent(node,X3D_NODE(currentContext),__FILE__,__LINE__); //helps propagate VF_Sensitive to parent of proto, if proto's 1st node is sensor
 			isBroto = TRUE;
@@ -5281,7 +5281,7 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 		/* deep copy the body/context/_prototype from the Proto:
 		   - defnames, ISes, Routes, body nodes from _prototype upgraded by ISes
 		*/
-		if(usingBrotos() == 2)
+		if(usingBrotos() > 1)
 			deep_copy_broto_body2((struct X3D_Proto**)source,(struct X3D_Proto**)dest);
 		else
 			deep_copy_broto_body((struct X3D_Proto**)source,(struct X3D_Proto**)dest,instancedScripts);

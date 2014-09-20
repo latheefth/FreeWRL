@@ -6217,6 +6217,8 @@ struct X3D_Proto {
 	void * __IS;
 	void * __ROUTES;
 	void * __externProtoDeclares;
+	void * __loadResource;
+	int __loadstatus;
 	struct X3D_Node *__parentProto;
 	void * __protoDeclares;
 	void * __protoDef;
@@ -6225,6 +6227,7 @@ struct X3D_Proto {
 	void * __scripts;
 	struct Multi_String __url;
 	struct Multi_Node _children;
+	void * _parentResource;
 	struct Multi_Node _sortedChildren;
 	struct SFVec3f bboxCenter;
 	struct SFVec3f bboxSize;

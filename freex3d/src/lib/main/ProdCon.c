@@ -280,7 +280,7 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 			ret = cParse(sceneProto,(int) offsetof (struct X3D_Proto, _children), (const char*)input);
 			p->haveParsedCParsed = TRUE;
 			if (ret) {
-				if(usingBrotos() == 2){
+				if(usingBrotos() > 1){
 					//make new style proto the rootnode
 					setRootNode(sceneProto);
 				}else{
