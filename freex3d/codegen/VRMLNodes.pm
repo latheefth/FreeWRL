@@ -82,6 +82,7 @@ our %Nodes = (
 		_sortedChildren => ["MFNode", [], "inputOutput", 0],
 		#__protoDeclares => ["MFNode",[],"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__protoDeclares => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		__externProtoDeclares => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		__protoDef => ["FreeWRLPTR", 0, "initializeOnly", 0], #user fields
 		__protoFlags => ["SFInt32", 0, "initializeOnly", 0],
 		__prototype => ["SFNode", "NULL", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], #first node in protobody
@@ -90,6 +91,7 @@ our %Nodes = (
 		__DEFnames => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		__IS => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		__scripts => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		__url => ["MFString", [], "initializeOnly", 0],
 	},"X3DProtoInstance"),
 
 	"MetadataInteger" => new VRML::NodeType("MetadataInteger", {
