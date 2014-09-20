@@ -3062,7 +3062,7 @@ void dump_scene2(FILE *fp, int level, struct X3D_Node* node, int recurse, Stack 
 							const char *fieldName;
 							pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, k);
 							mode = pfield->mode;
-							#define X3DMODE(val)  ((val) % 4)
+							//#define X3DMODE(val)  ((val) % 4)
 							userArr =&vector_get(const char*, usernames[X3DMODE(mode)], 0);
 							fieldName = userArr[pfield->name];
 							spacer
@@ -3188,7 +3188,7 @@ char *findFIELDNAMESfromNodeOffset0(struct X3D_Node *node, int offset)
 					//JAS const char *fieldName;
 					pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, offset);
 					mode = pfield->mode;
-					#define X3DMODE(val)  ((val) % 4)
+					//#define X3DMODE(val)  ((val) % 4)
 					userArr = (char **)&vector_get(const char*, usernames[X3DMODE(mode)], 0);
 					return userArr[pfield->name];
 				    } else return NULL;

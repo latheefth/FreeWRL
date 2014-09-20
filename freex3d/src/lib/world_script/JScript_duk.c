@@ -452,7 +452,7 @@ int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *ty
 				const char *fieldName;
 				pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, k);
 				mode = pfield->mode;
-				#define X3DMODE(val)  ((val) % 4)
+				//#define X3DMODE(val)  ((val) % 4)
 				userArr =&vector_get(const char*, usernames[X3DMODE(mode)], 0);
 				fieldName = userArr[pfield->name];
 				if(!strcmp(fieldName,fieldname)){
@@ -562,7 +562,7 @@ int getFieldFromNodeAndIndex(struct X3D_Node* node, int ifield, const char **fie
 				{
 					pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, k);
 					mode = pfield->mode;
-					#define X3DMODE(val)  ((val) % 4)
+					//#define X3DMODE(val)  ((val) % 4)
 					userArr =&vector_get(const char*, usernames[X3DMODE(mode)], 0);
 					*fieldname = userArr[pfield->name];
 					*type = pfield->type;

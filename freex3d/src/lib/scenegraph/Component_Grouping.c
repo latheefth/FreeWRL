@@ -342,16 +342,19 @@ void child_Transform (struct X3D_Transform *node) {
 
 /* prep_Proto - this is a ProtoInstance (not declare)  */
 void prep_Proto (struct X3D_Proto *node) {
+	if(0)printf("in prep_proto\n");
 	COMPILE_IF_REQUIRED
 	//RECORD_DISTANCE
 }
 /* not sure why we would compile */
 void compile_Proto(struct X3D_Proto *node) {
+	if(0)printf("in compile_proto\n");
 	//REINITIALIZE_SORTED_NODES_FIELD(node->children,node->_sortedChildren);
 	MARK_NODE_COMPILED
 }
 /* render the first node only */
 void child_Proto (struct X3D_Proto *node) {
+	if(0)printf("in child_proto\n");
 	//CHILDREN_COUNT
 	int nc = node->_children.n; //_sortedChildren.n;
 	LOCAL_LIGHT_SAVE

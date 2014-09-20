@@ -79,7 +79,8 @@ void normalChildren(struct Multi_Node ch) {
 			} else if (p->_nodeType == NODE_SpotLight) {
 				if (X3D_SPOTLIGHT(p)->global == TRUE) render_node(p);
 			} else if (p->_nodeType == NODE_PointLight) {
-				if (X3D_POINTLIGHT(p)->global == TRUE) render_node(p);
+				if (X3D_POINTLIGHT(p)->global == TRUE) 
+					render_node(p);
 			} else render_node(p);
 		}
 	}
@@ -129,7 +130,7 @@ void  update_renderFlagB (struct X3D_Node *p, int flag) {
 			return;
 		}
 
-		/* printf ("node %d has %d for a parent\n",p,p->_parents[i]);  */
+		// printf ("node %d type %s has node %d  type %s for a parent\n",p,stringNodeType(p->_nodeType),me,stringNodeType(me->_nodeType));  
 		switch (me->_nodeType) {
 
 			case NODE_Switch:

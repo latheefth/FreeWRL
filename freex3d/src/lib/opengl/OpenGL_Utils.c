@@ -4270,7 +4270,7 @@ struct X3D_Node* getTypeNode(struct X3D_Node *node)
 			{
 				struct X3D_Proto *pn = (struct X3D_Proto*)node;
 				//if(pn->FreeWRL__protoDef != INT_ID_UNDEFINED)
-				if(1) //some flag to say it's not the scene, but a protoInstance where only the first node is rendered
+				if(1) //some flag to say it's not the scene, but a protoInstance where only the first node is rendered - see isProto
 				{
 					//the first node in a protobody determines its type
 					if(pn->_children.n > 0)
@@ -4385,7 +4385,7 @@ void startOfLoopNodeUpdates(void) {
 	/* sort the rootNode, if it is Not NULL */
 	/* remember, the rootNode is not in the linearNodeTable, so we have to do this outside
 	   of that loop */
-	if (rootNode() != NULL) {
+	if (rootNode() != NULL && usingBrotos()!=2) {
 		sortChildren (__LINE__,&rootNode()->children, &rootNode()->_sortedChildren,rootNode()->_renderFlags & VF_shouldSortChildren);
 		rootNode()->_renderFlags=rootNode()->_renderFlags & (0xFFFF^VF_shouldSortChildren);
 		node = (struct X3D_Node*)rootNode();
@@ -5031,7 +5031,7 @@ void markForDispose(struct X3D_Node *node, int recursive){
 	}
 
 //#define WRLMODE(val) (((val) % 4)+4) //jan 2013 codegen PROTOKEYWORDS[] was ordered with x3d synonyms first, wrl last
-#define X3DMODE(val)  ((val) % 4)
+//#define X3DMODE(val)  ((val) % 4)
 BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackData)
 {
 	//field isource: 0=builtin 1=script user field 2=shader_program user field 3=Proto/Broto user field 4=group __protoDef
