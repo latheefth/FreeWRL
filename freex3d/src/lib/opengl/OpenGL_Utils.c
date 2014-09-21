@@ -2987,7 +2987,7 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 #endif
 
 	int ci;
-    struct X3D_Group* rn = rootNode();
+    struct X3D_Node* rn = rootNode();
 	ttglobal tg = gglobal();
 	X3D_Viewer *viewer = Viewer();
 
@@ -3714,15 +3714,18 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 
     /* mark all rootNode children for Dispose */
     if (rootNode() != NULL) {
-        if ((rootNode()->children.p) != NULL) {
-            for (i=0; i<rootNode()->children.n; i++) {
-                markForDispose(rootNode()->children.p[i], TRUE);
+		struct Multi_Node * children;
+		if(usingBrotos()>1) children = &X3D_PROTO(rootNode())->_children;
+		else children = &X3D_GROUP(rootNode())->children;
+        if (children->p != NULL) {
+            for (i=0; i<children->n; i++) {
+                markForDispose(children->p[i], TRUE);
             }
         }
 
 
         /* stop rendering */
-        rootNode()->children.n = 0;
+        children->n = 0;
     }
 
 	/* close the Console Message system, if required. */
@@ -4374,7 +4377,7 @@ void startOfLoopNodeUpdates(void) {
 	}
 	/* turn OFF these flags */
 	{
-		struct X3D_Group* rn = rootNode();
+		struct X3D_Node* rn = rootNode();
 		rn->_renderFlags = rn->_renderFlags & (0xFFFF^VF_Sensitive);
 		rn->_renderFlags = rn->_renderFlags & (0xFFFF^VF_Viewpoint);
 		rn->_renderFlags = rn->_renderFlags & (0xFFFF^VF_localLight);
@@ -4386,10 +4389,37 @@ void startOfLoopNodeUpdates(void) {
 	/* remember, the rootNode is not in the linearNodeTable, so we have to do this outside
 	   of that loop */
 	if (rootNode() != NULL && usingBrotos()<2) {
-		sortChildren (__LINE__,&rootNode()->children, &rootNode()->_sortedChildren,rootNode()->_renderFlags & VF_shouldSortChildren);
-		rootNode()->_renderFlags=rootNode()->_renderFlags & (0xFFFF^VF_shouldSortChildren);
+		struct Multi_Node *children, *_sortedChildren;
 		node = (struct X3D_Node*)rootNode();
-		CHILDREN_NODE(Group)
+		if(node->_nodeType == NODE_Proto){
+			children = &X3D_PROTO(node)->_children;
+			_sortedChildren = &X3D_PROTO(node)->_sortedChildren;
+		}
+		if(node->_nodeType == NODE_Group) {
+			children = &X3D_GROUP(node)->children;
+			_sortedChildren = &X3D_GROUP(node)->_sortedChildren;
+		}
+		sortChildren (__LINE__,children, _sortedChildren,rootNode()->_renderFlags & VF_shouldSortChildren);
+		rootNode()->_renderFlags=rootNode()->_renderFlags & (0xFFFF^VF_shouldSortChildren);
+		if(node->_nodeType == NODE_Proto){
+			//CHILDREN_NODE(Proto)
+			/* DRracer/t85.wrl has 'children' user fields on protos. This works with other browsers.
+				But not freewrl. Unless I hide the children field as _children. Then it works.
+			*/
+			addChildren = NULL; removeChildren = NULL; 
+			offsetOfChildrenPtr = offsetof (struct X3D_Proto, _children); 
+			if (((struct X3D_Proto *)node)->addChildren.n > 0) { 
+				addChildren = &((struct X3D_Proto *)node)->addChildren; 
+				childrenPtr = &((struct X3D_Proto *)node)->_children; 
+			} 
+			if (((struct X3D_Proto *)node)->removeChildren.n > 0) { 
+				removeChildren = &((struct X3D_Proto *)node)->removeChildren; 
+				childrenPtr = &((struct X3D_Proto *)node)->_children; 
+			}
+
+		}else{
+			CHILDREN_NODE(Group)
+		}
 		/* this node possibly has to do add/remove children? */
 		if (childrenPtr != NULL) {
 			if (addChildren != NULL) {
@@ -4418,6 +4448,11 @@ void startOfLoopNodeUpdates(void) {
 		if (node->referenceCount > 0) {
 			pnode = node;
 			node = getTypeNode(node); //+ dug9 dec 13
+			if(node == NULL && pnode != NULL)  //+ dug9 sept 2014
+				if(pnode->_nodeType == NODE_Proto){
+					load_externProtoInstance(X3D_PROTO(pnode));
+					node = getTypeNode(pnode);
+				}
 			if (node != NULL)
 			//switch (node->_nodeType) { //- dug9 dec 13
 			switch (node->_nodeType) { //+ dug9 dec 13
@@ -4873,7 +4908,7 @@ void markForDispose(struct X3D_Node *node, int recursive){
 	char * fieldPtr;
 
 	if (node==NULL) return;
-	if (node==X3D_NODE(rootNode())) {
+	if (node==X3D_NODE(rootNode()) && node->_nodeType != NODE_Proto) {
 		ConsoleMessage ("not disposing rootNode");
 		return;
 	}
@@ -5147,6 +5182,7 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 						}else{
 							usernames[0] = usernames[1] = usernames[2] = usernames[3] = NULL;
 						}
+						if(pstruct)
 						for(j=0; j!=vectorSize(pstruct->iface); ++j)
 						{
 							pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, j);
@@ -5502,7 +5538,12 @@ static void killNode (int index) {
 			if (*fieldOffsetsPtr == FIELDNAMES_children) break;
 		}
 
-		/* nope, not a special field, lets just get rid of it as best we can */
+		/* nope, not a special field, lets just get rid of it as best we can 
+			dug9 sept 2014: GC garbage collection: I wonder if it would be easier/simpler when we malloc something,
+			to put it into a flat scene-GC list (and inline-GC list?) - as we do for a few things already, like nodes - 
+			and don't GC here for fields on occassionally removed nodes, just when we change scenes
+			wipe out the whole GC table(s)?
+		*/
 		switch(*(fieldOffsetsPtr+2)){
 			case FIELDTYPE_MFFloat:
 				MFloat=(struct Multi_Float *)fieldPtr;

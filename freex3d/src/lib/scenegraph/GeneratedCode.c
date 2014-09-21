@@ -4542,9 +4542,11 @@ const int OFFSETS_Proto[] = {
 	(int) FIELDNAMES__children, (int) offsetof (struct X3D_Proto, _children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES__parentResource, (int) offsetof (struct X3D_Proto, _parentResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__sortedChildren, (int) offsetof (struct X3D_Proto, _sortedChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) 0,
+	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_Proto, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_Proto, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_Proto, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_Proto, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_removeChildren, (int) offsetof (struct X3D_Proto, removeChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_ProximitySensor[] = {
@@ -8308,9 +8310,11 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_children.n=0; tmp2->_children.p=0;
 			tmp2->_parentResource = getInputResource();
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
+			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->metadata = NULL;
+			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}

@@ -80,7 +80,7 @@ void CParseParser_init(struct tCParseParser *t){
 	{
 		ppCParseParser p = (ppCParseParser)t->prv;
 		p->foundInputErrors = 0;
-		p->useBrotos = 2; //0= none/old-way, 1=wrl parsing broto only, then converts to old scene 2=whole scene is a new proto so routing, rendering, DEF/IS/script tables are in new proto 
+		p->useBrotos = 0; //0= none/old-way, 1=wrl parsing broto only, then converts to old scene 2=whole scene is a new proto so routing, rendering, DEF/IS/script tables are in new proto 3=EXTERNPROTO is broto wrapper
 	}
 }
 	//ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
@@ -3298,6 +3298,7 @@ static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node);
 static BOOL parser_interfaceDeclarationB(struct VRMLParser* me, struct ProtoDefinition* proto, struct Shader_Script* script);
 void deep_copy_broto_body2(struct X3D_Proto** proto, struct X3D_Proto** dest);
 void initialize_one_script(struct Shader_Script* ss, const struct Multi_String *url);
+static BOOL parser_externbrotoStatement(struct VRMLParser* me);
 static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 	int nodeTypeB, nodeTypeU, isBroto;
 	struct X3D_Node* node=NULL;
@@ -3309,7 +3310,7 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 	#endif
 	struct Shader_Script* shader=NULL;
 	currentContext = (struct X3D_Proto*)me->ptr;
-	pflagdepth = ((char *)(&currentContext->__protoFlags))[0];
+	pflagdepth = ciflag_get(currentContext->__protoFlags,0); //((char *)(&currentContext->__protoFlags))[0];
 
 	DECLAREUP
 
@@ -3351,6 +3352,10 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 		return TRUE;
 	}
 	if(parser_brotoStatement(me)) {
+		return TRUE;
+	}
+	if(usingBrotos()>2) 
+	if(parser_externbrotoStatement(me)) {
 		return TRUE;
 	}
 
@@ -3919,7 +3924,7 @@ static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
     return TRUE;
 }
 
-/* BROTO keyword handling. 
+/* PROTO keyword handling. 
    Like PROTO above: parses ProtoDeclare Interface
    Unlike PROTO above: parses the ProtoDeclare Body like a mini-scene, 
    through re-entrant/recursive call to the same function that parses the main scene
@@ -4016,10 +4021,10 @@ static BOOL parser_brotoStatement(struct VRMLParser* me)
 
 	proto->__parentProto = X3D_NODE(parent); //me->ptr; //link back to parent proto, for isAvailableProto search
 	proto->__protoFlags = parent->__protoFlags;
-	((char*)(&proto->__protoFlags))[0] = 0; //shallow instancing of protoInstances inside a protoDeclare 
+	proto->__protoFlags = ciflag_set(proto->__protoFlags,0,0); //((char*)(&proto->__protoFlags))[0] = 0; //shallow instancing of protoInstances inside a protoDeclare 
 	///[1] leave parent's the oldway flag if set
-	((char*)(&proto->__protoFlags))[2] = 0; //this is a protoDeclare we are parsing
-	((char*)(&proto->__protoFlags))[3] = 0; //not an externProtoDeclare
+	proto->__protoFlags = ciflag_set(proto->__protoFlags,0,2); //((char*)(&proto->__protoFlags))[2] = 0; //this is a protoDeclare we are parsing
+	proto->__protoFlags = ciflag_set(proto->__protoFlags,0,3); //((char*)(&proto->__protoFlags))[3] = 0; //not an externProtoDeclare
 	//set ProtoDefinition *obj
 	proto->__protoDef = obj;
 	proto->__prototype = X3D_NODE(proto); //point to self, so shallow and deep instances will inherit this value
@@ -4071,6 +4076,131 @@ printf ("parser_protoStatement, FINISHED proto :%s:\n",obj->protoName);
 	FREEUP
     return TRUE;
 }
+
+/* EXTERNPROTO keyword handling. 
+   Like PROTO above: parses ExternProtoDeclare Interface as a X3D_Proto
+   - with __url and resource for fetching the definition
+*/
+#define LOAD_INITIAL_STATE 0
+static BOOL parser_externbrotoStatement(struct VRMLParser* me)
+{
+    int name;
+    struct ProtoDefinition* obj;
+    //char *startOfBody;
+    //char *endOfBody;
+    //char *initCP;
+    //uintptr_t bodyLen;
+	struct X3D_Proto *proto, *parent;
+	void *ptr;
+	DECLAREUP
+	unsigned int ofs;
+
+
+    /* Really a EXTERNPROTO? */
+	SAVEUP
+    if(!lexer_keyword(me->lexer, KW_EXTERNPROTO)) 
+	{
+		BACKUP
+        return FALSE;
+	}
+	
+    /* Our name */
+    /* lexer_defineNodeType is #defined as lexer_defineID(me, ret, userNodeTypesVec, FALSE) */
+    /* Add the EXTERNPROTO name to the userNodeTypesVec list of names return the index of the name in the list in name */ 
+    if(!lexer_defineNodeType(me->lexer, &name))
+        PARSE_ERROR("Expected nodeTypeId after EXTERNPROTO!\n")
+    ASSERT(name!=ID_UNDEFINED);
+
+    /* Create a new blank ProtoDefinition structure to contain the data for this EXTERNPROTO */
+    obj=newProtoDefinition();
+
+    /* save the name, if we can get it - it will be the last name on the list, because we will have JUST parsed it. */
+    if (vectorSize(me->lexer->userNodeTypesVec) != ID_UNDEFINED) {
+	obj->protoName = STRDUP(vector_get(const char*, me->lexer->userNodeTypesVec, vectorSize(me->lexer->userNodeTypesVec)-1));
+    } else {
+	printf ("warning - have proto but no name, so just copying a default string in\n");
+	obj->protoName = STRDUP("noProtoNameDefined");
+    }
+
+	#ifdef CPARSERVERBOSE
+	printf ("parser_protoStatement, working on proto :%s:\n",obj->protoName);
+	#endif
+
+    /* If the PROTOs stack has not yet been created, create it */
+    if(!me->PROTOs) {
+        parser_scopeIn_PROTO(me);
+    }
+
+    ASSERT(me->PROTOs);
+    /*  ASSERT(name==vectorSize(me->PROTOs)); */
+
+    /* Add the empty ProtoDefinition structure we just created onto the PROTOs stack */
+    vector_pushBack(struct ProtoDefinition*, me->PROTOs, obj);
+ 
+    /* Now we want to fill in the information in the ProtoDefinition */
+
+    /* Interface declarations */
+
+    /* Make sure that the next token is a '['.  Skip over it. */
+    if(!lexer_openSquare(me->lexer))
+        PARSE_ERROR("Expected [ to start interface declaration!")
+
+            /* Read the next line and parse it as an interface declaration. */
+            /* Add the user-defined field name to the appropriate list of user-defined names (user_initializeOnly, user_inputOnly, Out, or user_inputOutput).
+               Create a new protoFieldDecl for this field and add it to the iface vector for the ProtoDefinition obj.
+               For fields and inputOutputs, get the default value of the field and store it in the protoFieldDecl. */
+            while(parser_interfaceDeclaration(me, obj, NULL));
+
+    /* Make sure that the next token is a ']'.  Skip over it. */
+    if(!lexer_closeSquare(me->lexer))
+        PARSE_ERROR("Expected ] after interface declaration!")
+
+	//pseudocode:
+	//proto = new Proto() //off scenegraph storage please
+	//proto.__protoDef = obj
+	//contextParent.declared_protos.add(proto);
+	//parser_proto_body(proto)
+	//return NULL; //no scenegraph node created, or more precisely: nothing to link in to parent's children
+	
+	//create a ProtoDeclare
+    proto = createNewX3DNode0(NODE_Proto);
+	//add it to the current context's list of declared protos
+	parent = (struct X3D_Proto*)me->ptr;
+	if(parent->__externProtoDeclares == NULL)
+		parent->__externProtoDeclares = newVector(struct X3D_Proto*,4);
+	vector_pushBack(struct X3D_Proto*,parent->__externProtoDeclares,proto);
+
+
+	proto->__parentProto = X3D_NODE(parent); //me->ptr; //link back to parent proto, for isAvailableProto search
+	proto->__protoFlags = parent->__protoFlags;
+	proto->__protoFlags = ciflag_set(proto->__protoFlags,0,0); //((char*)(&proto->__protoFlags))[0] = 0; //shallow instancing of protoInstances inside a protoDeclare 
+	///[1] leave parent's the oldway flag if set
+	proto->__protoFlags = ciflag_set(proto->__protoFlags,0,2); //((char*)(&proto->__protoFlags))[2] = 0; //this is a protoDeclare we are parsing
+	proto->__protoFlags = ciflag_set(proto->__protoFlags,1,3); //((char*)(&proto->__protoFlags))[3] = 1; //an externProtoDeclare
+	//set ProtoDefinition *obj
+	proto->__protoDef = obj;
+	proto->__prototype = X3D_NODE(proto); //point to self, so shallow and deep instances will inherit this value
+
+	/* EXTERNPROTO url */
+	{
+		struct Multi_String url;
+		unsigned char *buffer;
+		char *pound;
+		resource_item_t *res;
+
+		/* get the URL string */
+		if (!parser_mfstringValue(me,&proto->__url)) {
+			PARSE_ERROR ("EXTERNPROTO - problem reading URL string");
+		}
+		proto->__loadstatus = LOAD_INITIAL_STATE;
+		/*the rest is done in load_externProto during rendering*/
+	}
+
+	FREEUP
+    return TRUE;
+}
+
+
 struct brotoRoute
 {
 	struct X3D_Node* fromNode;
@@ -4292,8 +4422,8 @@ static BOOL parser_routeStatement_B(struct VRMLParser* me)
 
     /* Built-in to built-in */
 	int pflags = ((struct X3D_Proto*)(me->ptr))->__protoFlags;
-	char oldwayflag = ((char *)&pflags)[1];
-	char instancingflag = ((char *)&pflags)[0];
+	char oldwayflag = ciflag_get(pflags,1); //((char *)&pflags)[1];
+	char instancingflag = ciflag_get(pflags,0);//((char *)&pflags)[0];
 	if(oldwayflag || instancingflag)
 		parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toType); //old way direct registration
 	//else
@@ -4392,6 +4522,23 @@ BOOL isAvailableBroto(char *pname, struct X3D_Proto* currentContext, struct X3D_
 		BOOL bottomUp = TRUE; 
 		//plist = &context->__protoDeclares;
 		plist = (struct Vector*) context->__protoDeclares;
+		if(plist){
+			int n = vectorSize(plist);
+			for(i=0;i<n;i++)
+			{
+				j = i;
+				if(bottomUp) j = n - 1 - i;
+				//p = (struct X3D_Proto*)plist->p[j];
+				p = vector_get(struct X3D_Proto*,plist,j);
+				obj = p->__protoDef;
+				if(!strcmp(obj->protoName,pname))
+				{
+					*proto = p;
+					return TRUE;
+				}
+			}
+		}
+		plist = (struct Vector*) context->__externProtoDeclares;
 		if(plist){
 			int n = vectorSize(plist);
 			for(i=0;i<n;i++)
@@ -4580,24 +4727,29 @@ struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep)
 		//memcpy(p,proto,sizeof(struct X3D_Proto)); //dangerous, make sure you re-instance all pointer variables
 		p->_children.n = 0; //don't copy children in here - see below
 		p->_children.p = NULL;
-		char pflags[4];
-		pflags[0] = 1; //deep
-		pflags[1] = 0; //new way/brotos
-		pflags[2] = 1; //this is a protoInstance
-		pflags[3] = 0; //not an extern
-		memcpy(&p->__protoFlags,pflags,sizeof(int));
+		int pflags = 0;
+		//char pflags[4];
+		pflags = ciflag_set(pflags,1,0); //pflags[0] = 1; //deep
+		//pflags[1] = 0; //new way/brotos
+		pflags = ciflag_set(pflags,1,2); //pflags[2] = 1; //this is a protoInstance
+		pflags = ciflag_set(pflags,0,3); //pflags[3] = 0; //not an extern
+		if(ciflag_get(proto->__protoFlags,3)==1) 
+			pflags = ciflag_set(pflags,1,3); //its an externProtoInstance
+		//memcpy(&p->__protoFlags,pflags,sizeof(int));
+		p->__protoFlags = pflags;
 	}else{
 		//shallow
 		p = createNewX3DNode0(NODE_Proto);
 		//memcpy(p,proto,sizeof(struct X3D_Proto)); //dangerous, make sure you re-instance all pointer variables
 		p->_children.n = 0; //don't copy children in here.
 		p->_children.p = NULL;
-		char pflags[4];
-		pflags[0] = 0; //shallow
-		pflags[1] = 0; //new way/brotos
-		pflags[2] = 0; //this is a protoDeclare if shallow
-		pflags[3] = 0; //not an extern
-		memcpy(&p->__protoFlags,pflags,sizeof(int));
+		//char pflags[4];
+		//pflags[0] = 0; //shallow
+		//pflags[1] = 0; //new way/brotos
+		//pflags[2] = 0; //this is a protoDeclare if shallow
+		//pflags[3] = 0; //not an extern
+		//memcpy(&p->__protoFlags,pflags,sizeof(int));
+		p->__protoFlags = 0;
 	}
 	//memcpy(p,proto,sizeof(struct X3D_Proto)); //dangerous, make sure you re-instance all pointer variables
 	p->__prototype = proto->__prototype;
@@ -5897,3 +6049,131 @@ BOOL found_IS_field(struct VRMLParser* me, struct X3D_Node *node)
 
 }
 
+/* note that we get the resources in a couple of steps; this tries to keep the scenegraph running 
+	copied from load_Inline
+
+*/
+/* EXTERNPROTO library status */
+#define LOAD_INITIAL_STATE 0
+#define LOAD_REQUEST_RESOURCE 1
+#define LOAD_FETCHING_RESOURCE 2
+#define LOAD_PARSING 3
+#define LOAD_STABLE 10
+
+void load_externProtoDeclare (struct X3D_Proto *node) {
+	resource_item_t *res;
+	// printf ("load_externProto %u, loadStatus %d loadResource %u\n",node, node->__loadstatus, node->__loadResource);
+
+    //printf ("load_externProto, node %p loadStatus %d\n",node,node->load);
+	char flagInstance, flagExtern;
+	flagInstance = ciflag_get(node->__protoFlags,2);
+	flagExtern = ciflag_get(node->__protoFlags,3);
+	if(flagInstance == 0 && flagExtern == 1) { //if protoDeclare and extern
+		/* printf ("loading externProtoDeclare\n");  */
+
+		switch (node->__loadstatus) {
+			case LOAD_INITIAL_STATE: /* nothing happened yet */
+
+			if (node->__url.n == 0) {
+				node->__loadstatus = LOAD_STABLE; /* a "do-nothing" approach */
+			} else {
+				res = resource_create_multi(&(node->__url));
+				res->media_type = resm_unknown;
+				node->__loadstatus = LOAD_REQUEST_RESOURCE;
+				node->__loadResource = res;
+			}
+			break;
+
+			case LOAD_REQUEST_RESOURCE:
+			res = node->__loadResource;
+			resource_identify(node->_parentResource, res);
+			/* printf ("load_Inline, we have type  %s  status %s\n",
+				resourceTypeToString(res->type), resourceStatusToString(res->status)); */
+			res->actions = resa_download | resa_load; //not resa_parse which we do below
+			//frontenditem_enqueue(ml_new(res));
+			resitem_enqueue(ml_new(res));
+			node->__loadstatus = LOAD_FETCHING_RESOURCE;
+			break;
+
+			case LOAD_FETCHING_RESOURCE:
+			res = node->__loadResource;
+			/* printf ("load_Inline, we have type  %s  status %s\n",
+				resourceTypeToString(res->type), resourceStatusToString(res->status)); */
+			if(res->complete){
+				if (res->status == ress_loaded) {
+					//determined during load process by resource_identify_type(): res->media_type = resm_vrml; //resm_unknown;
+					//the externProtoDelares will hold the extern proto library scene for now
+					struct X3D_Proto *libraryScene = createNewX3DNode0(NODE_Proto);
+					if(node->__externProtoDeclares == NULL)
+						node->__externProtoDeclares = newVector(struct X3D_Proto*,1);
+					vector_pushBack(struct X3D_Proto*,node->__externProtoDeclares,libraryScene);
+					res->whereToPlaceData = X3D_NODE(libraryScene);
+					res->offsetFromWhereToPlaceData = offsetof (struct X3D_Proto, _children);
+					res->actions = resa_process;
+					node->__loadstatus = LOAD_PARSING; // a "do-nothing" approach 
+					res->complete = FALSE;
+					//send_resource_to_parser(res);
+					//send_resource_to_parser_if_available(res);
+					resitem_enqueue(ml_new(res));
+				} else if ((res->status == ress_failed) || (res->status == ress_invalid)) {
+					//no hope left
+					printf ("resource failed to load\n");
+					node->__loadstatus = LOAD_STABLE; // a "do-nothing" approach 
+				}
+			}
+			break;
+
+			case LOAD_PARSING:
+				res = node->__loadResource;
+
+				//printf ("inline parsing.... %s\n",resourceStatusToString(res->status));
+				//printf ("res complete %d\n",res->complete);
+				if(res->complete){
+					if (res->status == ress_parsed) {
+						node->__loadstatus = LOAD_STABLE; 
+					} 
+				}
+
+			break;
+			case LOAD_STABLE:
+			break;
+		}
+
+	} 
+}
+void load_externProtoInstance (struct X3D_Proto *node) {
+	resource_item_t *res;
+	// printf ("load_externProto %u, loadStatus %d loadResource %u\n",node, node->__loadstatus, node->__loadResource);
+
+    //printf ("load_externProto, node %p loadStatus %d\n",node,node->load);
+	char flagInstance, flagExtern;
+	flagInstance = ciflag_get(node->__protoFlags,2);
+	flagExtern = ciflag_get(node->__protoFlags,3);
+	if(flagInstance == 1 && flagExtern == 1) { //if protoInstance and extern
+		struct X3D_Proto *pnode = NULL;
+		if(node->_children.n) return; //externProtoInstance body node already instanced
+		pnode = (struct X3D_Proto*)node->__prototype;
+		if(pnode) {
+			if(pnode->__loadstatus != LOAD_STABLE){
+				// extern proto declare not loaded yet, give it a time slice to check its resource
+				load_externProtoDeclare(pnode);
+			}
+			if(pnode->__loadstatus == LOAD_STABLE){
+				// externProtoDeclare may already be loaded, if so, we just need to instance it
+				if(pnode->__externProtoDeclares){
+					int n = vectorSize(pnode->__externProtoDeclares);
+					if(n){
+						struct X3D_Proto *pdeclare, *pinstance;
+						pdeclare = vector_get(struct X3D_Proto*,pnode->__externProtoDeclares,0);
+						pinstance = brotoInstance(pdeclare,1);
+						if (pinstance != NULL) {
+                			AddRemoveChildren(X3D_NODE(node), &node->_children, &X3D_NODE(pinstance), 1, 1,__FILE__,__LINE__);
+							add_parent(X3D_NODE(pinstance),X3D_NODE(node),__FILE__,__LINE__);
+							//inject IS routes
+						}
+					}
+				}
+			}
+		}
+	}
+}

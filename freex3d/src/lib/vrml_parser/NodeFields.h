@@ -1883,9 +1883,11 @@ END_NODE(ProgramShader)
 
 /* Proto node */
 BEGIN_NODE(Proto)
+EVENT_IN(Proto,addChildren,mfnode,addChildren,FIELDTYPE_MFNode)
 FIELD(Proto,bboxCenter,sfvec3f,bboxCenter,FIELDTYPE_SFVec3f)
 FIELD(Proto,bboxSize,sfvec3f,bboxSize,FIELDTYPE_SFVec3f)
 EXPOSED_FIELD(Proto,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EVENT_IN(Proto,removeChildren,mfnode,removeChildren,FIELDTYPE_MFNode)
 END_NODE(Proto)
 
 /* ProximitySensor node */

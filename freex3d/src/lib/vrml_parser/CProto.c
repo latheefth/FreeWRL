@@ -1680,7 +1680,7 @@ BOOL isProto(struct X3D_Node *node)
 				retval = TRUE;
 			}else{
 				struct X3D_Proto *pn = (struct X3D_Proto*)node;
-				char pflag = ((char *)(&pn->__protoFlags))[2];
+				char pflag = ciflag_get(pn->__protoFlags,2); //((char *)(&pn->__protoFlags))[2];
 				if(pflag == 1)
 					retval = TRUE; //its a protoinstance or externprotoinstance
 				else

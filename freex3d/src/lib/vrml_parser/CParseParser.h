@@ -143,5 +143,6 @@ void registerParentIfManagedField(int type, int mode, int isPublic, union anyVrm
 void shallow_copy_field(int typeIndex, union anyVrml* source, union anyVrml* dest);
 BOOL usingBrotos();
 int X3DMODE(int val);
+void load_externProtoInstance (struct X3D_Proto *node);
 
 #endif /* __FREEWRL_CPARSE_PARSER_H__ */

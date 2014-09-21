@@ -341,8 +341,19 @@ void child_Transform (struct X3D_Transform *node) {
 
 
 /* prep_Proto - this is a ProtoInstance (not declare)  */
+/*pack 4 flags into one int, using char */
+char ciflag_get(int flags, int index){
+	char *cflags = (char *)(&flags);
+	return cflags[index];
+}
+int ciflag_set(int flags, char flag, int index ){
+	char *cflags = (char *)(&flags);
+	cflags[index] = flag;
+	return flags;
+}
 void prep_Proto (struct X3D_Proto *node) {
 	if(0)printf("in prep_proto\n");
+	load_externProtoInstance(node);
 	COMPILE_IF_REQUIRED
 	//RECORD_DISTANCE
 }

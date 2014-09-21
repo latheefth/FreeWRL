@@ -6229,9 +6229,11 @@ struct X3D_Proto {
 	struct Multi_Node _children;
 	void * _parentResource;
 	struct Multi_Node _sortedChildren;
+	struct Multi_Node addChildren;
 	struct SFVec3f bboxCenter;
 	struct SFVec3f bboxSize;
 	struct X3D_Node *metadata;
+	struct Multi_Node removeChildren;
 };
 extern struct X3D_Virt virt_Proto;
 /***********************/

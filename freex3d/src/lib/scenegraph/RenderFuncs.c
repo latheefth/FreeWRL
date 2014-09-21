@@ -93,7 +93,7 @@ typedef struct pRenderFuncs{
 	//struct point_XYZ ht1, ht2; not used
 	struct point_XYZ hyper_r1,hyper_r2; /* Transformed ray for the hypersensitive node */
 	struct currayhit rayph;
-	struct X3D_Group *rootNode;//=NULL;	/* scene graph root node */
+	struct X3D_Node *rootNode;//=NULL;	/* scene graph root node */
 	struct X3D_Anchor *AnchorsAnchor;// = NULL;
 	struct currayhit rayHit,rayHitHyper;
 	struct trenderstate renderstate;
@@ -759,7 +759,7 @@ void setAnchorsAnchor(struct X3D_Anchor* anchor)
 
 
 //struct X3D_Group *_rootNode=NULL;	/* scene graph root node */
-struct X3D_Group *rootNode()
+struct X3D_Node *rootNode()
 {
 	// ConsoleMessage ("rootNode called");
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;	
@@ -769,7 +769,7 @@ struct X3D_Group *rootNode()
 	}
 	return p->rootNode;
 }
-void setRootNode(struct X3D_Group *rn)
+void setRootNode(struct X3D_Node *rn)
 {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 	p->rootNode = rn;
@@ -1416,7 +1416,7 @@ void remove_parent(struct X3D_Node *child, struct X3D_Node *parent) {
 }
 
 void
-render_hier(struct X3D_Group *g, int rwhat) {
+render_hier(struct X3D_Node *g, int rwhat) {
 	/// not needed now - see below struct point_XYZ upvec = {0,1,0};
 	/// not needed now - see below GLDOUBLE modelMatrix[16];
 
