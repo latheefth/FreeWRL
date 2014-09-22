@@ -362,7 +362,7 @@ breakIdLoop:
  strcpy(me->curID, buf);
 
  /* is this an EXTERNPROTO? if so, handle it here */
- if(usingBrotos() < 3)
+ if(!usingBrotos())
  if (lexer_keyword(me,KW_EXTERNPROTO) )
         lexer_handle_EXTERNPROTO(me);
 

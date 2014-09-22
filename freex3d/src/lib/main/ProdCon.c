@@ -299,51 +299,51 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 		}
 		break;
 	case IS_TYPE_VRML:
-		if(usingBrotos()){
-			if(usingBrotos()>2 && nRn->_nodeType == NODE_Proto){
+		if(usingBrotos() && nRn->_nodeType == NODE_Proto){
+			//if(usingBrotos() && nRn->_nodeType == NODE_Proto){
 				ret = cParse(nRn,(int) offsetofChildren(nRn), (const char*)input);
 				p->haveParsedCParsed = TRUE;
-			}else{
-				struct X3D_Proto *sceneProto = createNewX3DNode0(NODE_Proto);
-				sceneProto->__prototype = X3D_NODE(sceneProto);
-				//((char *)(&sceneProto->__protoFlags))[0] = 1; // 1=scene-deepInstancing
-				sceneProto->__protoFlags = ciflag_set(sceneProto->__protoFlags,1,0);
-				if(usingBrotos() > 1){
-					//((char *)(&sceneProto->__protoFlags))[2] = 2; // 2=scene type object, render all children
-					sceneProto->__protoFlags = ciflag_set(sceneProto->__protoFlags,2,2);
-				}else{
-					//((char *)(&sceneProto->__protoFlags))[2] = 0; // 2=scene type object, render all children
-					sceneProto->__protoFlags = ciflag_set(sceneProto->__protoFlags,0,2);
-				}
+			//}else{
+			//	struct X3D_Proto *sceneProto = createNewX3DNode0(NODE_Proto);
+			//	sceneProto->__prototype = X3D_NODE(sceneProto);
+			//	//((char *)(&sceneProto->__protoFlags))[0] = 1; // 1=scene-deepInstancing
+			//	sceneProto->__protoFlags = ciflag_set(sceneProto->__protoFlags,1,0);
+			//	if(usingBrotos() > 1){
+			//		//((char *)(&sceneProto->__protoFlags))[2] = 2; // 2=scene type object, render all children
+			//		sceneProto->__protoFlags = ciflag_set(sceneProto->__protoFlags,2,2);
+			//	}else{
+			//		//((char *)(&sceneProto->__protoFlags))[2] = 0; // 2=scene type object, render all children
+			//		sceneProto->__protoFlags = ciflag_set(sceneProto->__protoFlags,0,2);
+			//	}
 
 
-				//((char *)(&sceneProto->__protoFlags))[1] = 1; //1=oldway (0 new way) set to 2 for oldway, 0 for new way
-				ret = cParse(sceneProto,(int) offsetof (struct X3D_Proto, _children), (const char*)input);
-				p->haveParsedCParsed = TRUE;
-				if (ret) {
-					if(usingBrotos() > 1){
-						//make new style proto the rootnode
-						setRootNode(X3D_NODE(sceneProto));
-					}else{
-						//convert new style protos to old scene
-						if(0) {
-							Stack * DEFedNodes = newVector(struct X3D_Node*, 2);
-							dump_scene2(stdout, 0, (struct X3D_Node*) sceneProto,1,DEFedNodes);
-							deleteVector(struct X3D_Node*,DEFedNodes);
-						}
-						ConsoleMessage("starting scene Instancing...\n");
-						sceneInstance(sceneProto,nRn);
-						if(0) {
-							Stack * DEFedNodes = newVector(struct X3D_Node*, 2);
-							dump_scene2(stdout, 0, (struct X3D_Node*) nRn,1,DEFedNodes);
-							deleteVector(struct X3D_Node*,DEFedNodes);
-						}
-						if(0) print_DEFed_node_names_and_pointers(stdout);
-						if(0) print_routes(stdout);
-						ConsoleMessage("...finished scene Instancing\n");
-					}
-				}
-			}
+			//	//((char *)(&sceneProto->__protoFlags))[1] = 1; //1=oldway (0 new way) set to 2 for oldway, 0 for new way
+			//	ret = cParse(sceneProto,(int) offsetof (struct X3D_Proto, _children), (const char*)input);
+			//	p->haveParsedCParsed = TRUE;
+			//	if (ret) {
+			//		if(usingBrotos() > 1){
+			//			//make new style proto the rootnode
+			//			setRootNode(X3D_NODE(sceneProto));
+			//		}else{
+			//			//convert new style protos to old scene
+			//			if(0) {
+			//				Stack * DEFedNodes = newVector(struct X3D_Node*, 2);
+			//				dump_scene2(stdout, 0, (struct X3D_Node*) sceneProto,1,DEFedNodes);
+			//				deleteVector(struct X3D_Node*,DEFedNodes);
+			//			}
+			//			ConsoleMessage("starting scene Instancing...\n");
+			//			sceneInstance(sceneProto,nRn);
+			//			if(0) {
+			//				Stack * DEFedNodes = newVector(struct X3D_Node*, 2);
+			//				dump_scene2(stdout, 0, (struct X3D_Node*) nRn,1,DEFedNodes);
+			//				deleteVector(struct X3D_Node*,DEFedNodes);
+			//			}
+			//			if(0) print_DEFed_node_names_and_pointers(stdout);
+			//			if(0) print_routes(stdout);
+			//			ConsoleMessage("...finished scene Instancing\n");
+			//		}
+			//	}
+			//}
 		}else{
 			ret = cParse(nRn,(int) offsetofChildren(nRn), (const char*)input);
 			p->haveParsedCParsed = TRUE;
@@ -360,17 +360,18 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
             }\
         }}\
         ");
-		if(usingBrotos()<2){
-			struct X3D_Proto *sceneProto = createNewX3DNode0(NODE_Proto);
-			sceneProto->__prototype = X3D_NODE(sceneProto);
-			ret = cParse (sceneProto,(int) offsetof (struct X3D_Proto, _children), newData);
-			p->haveParsedCParsed = TRUE;
-			if (ret) {
-				ConsoleMessage("starting scene Instancing...\n");
-				sceneInstance(sceneProto,nRn);
-				ConsoleMessage("...finished scene Instancing\n");
-			}
-		}else{
+		//if(usingBrotos()<2){
+		//	struct X3D_Proto *sceneProto = createNewX3DNode0(NODE_Proto);
+		//	sceneProto->__prototype = X3D_NODE(sceneProto);
+		//	ret = cParse (sceneProto,(int) offsetof (struct X3D_Proto, _children), newData);
+		//	p->haveParsedCParsed = TRUE;
+		//	if (ret) {
+		//		ConsoleMessage("starting scene Instancing...\n");
+		//		sceneInstance(sceneProto,nRn);
+		//		ConsoleMessage("...finished scene Instancing\n");
+		//	}
+		//}else{
+		if(!usingBrotos()){
 			ret = cParse (nRn,(int) offsetof (struct X3D_Group, children), newData);
 			FREE_IF_NZ(newData);
 		}
@@ -523,8 +524,9 @@ void new_root(){
     	/* mark all rootNode children for Dispose */
 	{
 		struct Multi_Node *children;
-		if(usingBrotos()>1) children = &X3D_PROTO(rootNode())->_children;
-		else children = &X3D_GROUP(rootNode())->children;
+		//if(usingBrotos()>1) children = &X3D_PROTO(rootNode())->_children;
+		//else children = &X3D_GROUP(rootNode())->children;
+		children = childrenField(rootNode());
     	for (i=0; i<children->n; i++) {
             	markForDispose(children->p[i], TRUE);
     	}
@@ -732,17 +734,17 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 		}
 
 		/* create a container so that the parser has a place to put the nodes */
-		if(usingBrotos() > 2){
+		if(usingBrotos()){
 			if(res->whereToPlaceData)
 				nRn = X3D_NODE(res->whereToPlaceData);
 			else{
 				struct X3D_Proto *sceneProto;
 				sceneProto = (struct X3D_Node *) createNewX3DNode(NODE_Proto);
 				sceneProto->__protoFlags = ciflag_set(sceneProto->__protoFlags,1,0);
-				if(usingBrotos() > 1){
+				//if(usingBrotos() > 1){
 					//((char *)(&sceneProto->__protoFlags))[2] = 2; // 2=scene type object, render all children
 					sceneProto->__protoFlags = ciflag_set(sceneProto->__protoFlags,2,2);
-				}
+				//}
 				nRn = X3D_NODE(sceneProto);
 				setRootNode(X3D_NODE(sceneProto));
 			}

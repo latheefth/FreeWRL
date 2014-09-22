@@ -3715,8 +3715,9 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
     /* mark all rootNode children for Dispose */
     if (rootNode() != NULL) {
 		struct Multi_Node * children;
-		if(usingBrotos()>1) children = &X3D_PROTO(rootNode())->_children;
-		else children = &X3D_GROUP(rootNode())->children;
+		//if(usingBrotos()>1) children = &X3D_PROTO(rootNode())->_children;
+		//else children = &X3D_GROUP(rootNode())->children;
+		children = childrenField(rootNode());
         if (children->p != NULL) {
             for (i=0; i<children->n; i++) {
                 markForDispose(children->p[i], TRUE);
@@ -4388,7 +4389,7 @@ void startOfLoopNodeUpdates(void) {
 	/* sort the rootNode, if it is Not NULL */
 	/* remember, the rootNode is not in the linearNodeTable, so we have to do this outside
 	   of that loop */
-	if (rootNode() != NULL && usingBrotos()<2) {
+	if (rootNode() != NULL && !usingBrotos()) {
 		struct Multi_Node *children, *_sortedChildren;
 		node = (struct X3D_Node*)rootNode();
 		if(node->_nodeType == NODE_Proto){
@@ -4458,7 +4459,9 @@ void startOfLoopNodeUpdates(void) {
 						see the concrete type of their first node, and perculate VF_ flags up to the EPI
 						There were other options such as event queue, or following a cascade of protoInstance arrays
 						down the context heirarchy, or tinkering with the VF_ flag visitation rules in render()
-						or inventing a VF_Proto flag, and any of those might work too. This was just convenient/easy/quick 
+						or inventing a VF_Proto flag, or expanding the role of the resource thread to do more work 
+						and keep a list of subscribers with the EPD (externProtoDeclare).
+						And any of those might work too. This was just convenient/easy/quick 
 						for me, so feel free to move it.
 					*/
 					load_externProtoInstance(X3D_PROTO(pnode));
