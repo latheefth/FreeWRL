@@ -80,7 +80,7 @@ void CParseParser_init(struct tCParseParser *t){
 	{
 		ppCParseParser p = (ppCParseParser)t->prv;
 		p->foundInputErrors = 0;
-		p->useBrotos = 0; //0= none/old-way, 1=wrl parsing broto only, then converts to old scene 2=whole scene is a new proto so routing, rendering, DEF/IS/script tables are in new proto 3=EXTERNPROTO is broto wrapper
+		p->useBrotos = 0; //0= none/old-way, non-zero =wrl parsing broto only rendering, DEF/IS/script tables are in new proto 3=EXTERNPROTO is broto wrapper
 	}
 }
 	//ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
@@ -4682,7 +4682,7 @@ void deep_copy_broto_body2(struct X3D_Proto** proto, struct X3D_Proto** dest)
 	parent = (struct X3D_Node*) (*dest); //NULL;
 	prototype = (struct X3D_Proto*)(*proto)->__prototype;
 
-	p->__prototype = prototype;
+	p->__prototype = X3D_NODE(prototype);
 	p->__protoFlags = prototype->__protoFlags;
 	p->__protoFlags = ciflag_set(p->__protoFlags,1,2); //deep instancing of protoInstances inside a protoDeclare 
 
@@ -6091,7 +6091,7 @@ void load_externProtoDeclare (struct X3D_Proto *node) {
 	char flagInstance, flagExtern;
 	flagInstance = ciflag_get(node->__protoFlags,2);
 	flagExtern = ciflag_get(node->__protoFlags,3);
-	if(flagInstance == 0 && flagExtern == 1) { //if protoDeclare and extern
+	if(flagInstance == 0 && flagExtern == 1) { 
 		/* printf ("loading externProtoDeclare\n");  */
 
 		switch (node->__loadstatus) {
@@ -6122,7 +6122,6 @@ void load_externProtoDeclare (struct X3D_Proto *node) {
 				/* printf ("load_Inline, we have type  %s  status %s\n",
 					resourceTypeToString(res->type), resourceStatusToString(res->status)); */
 				res->actions = resa_download | resa_load; //not resa_parse which we do below
-				//frontenditem_enqueue(ml_new(res));
 				struct X3D_Proto *libraryScene = createNewX3DNode0(NODE_Proto);
 				res->whereToPlaceData = X3D_NODE(libraryScene);
 				res->offsetFromWhereToPlaceData = offsetof (struct X3D_Proto, _children);
@@ -6138,82 +6137,65 @@ void load_externProtoDeclare (struct X3D_Proto *node) {
 				resourceTypeToString(res->type), resourceStatusToString(res->status)); */
 			if(res->complete){
 				if (res->status == ress_loaded) {
-					//determined during load process by resource_identify_type(): res->media_type = resm_vrml; //resm_unknown;
-					//the externProtoDelares will hold the extern proto library scene for now
-					//struct X3D_Proto *libraryScene = createNewX3DNode0(NODE_Proto);
-					struct X3D_Proto *libraryScene = res->whereToPlaceData; //from above
-					if(node->__externProtoDeclares == NULL)
-						node->__externProtoDeclares = newVector(struct X3D_Proto*,1);
-					vector_pushBack(struct X3D_Proto*,node->__externProtoDeclares,libraryScene);
-					//res->whereToPlaceData = X3D_NODE(libraryScene);
-					//res->offsetFromWhereToPlaceData = offsetof (struct X3D_Proto, _children);
 					res->actions = resa_process;
-					node->__loadstatus = LOAD_PARSING; // a "do-nothing" approach 
 					res->complete = FALSE;
-					//send_resource_to_parser(res);
-					//send_resource_to_parser_if_available(res);
 					resitem_enqueue(ml_new(res));
 				} else if ((res->status == ress_failed) || (res->status == ress_invalid)) {
 					//no hope left
 					printf ("resource failed to load\n");
 					node->__loadstatus = LOAD_STABLE; // a "do-nothing" approach 
-				}
-			}
+				} else	if (res->status == ress_parsed) {
+					//fetch the particular desired PROTO from the libraryScene, and place in _protoDeclares
+					//or in _prototype
+					struct X3D_Proto *libraryScene = res->whereToPlaceData; //from above
+					if(node->__externProtoDeclares == NULL)
+						node->__externProtoDeclares = newVector(struct X3D_Proto*,1);
+					vector_pushBack(struct X3D_Proto*,node->__externProtoDeclares,libraryScene);
+
+					if(node->__externProtoDeclares){
+						int n = vectorSize(node->__externProtoDeclares);
+						if(n){
+							struct X3D_Proto *libraryScene = vector_get(struct X3D_Proto*,node->__externProtoDeclares,0);
+							if(libraryScene->__protoDeclares){
+								int m = vectorSize(libraryScene->__protoDeclares);
+								if(m){
+									int k;
+									struct X3D_Proto* pDefinition;
+									/* the specs say if there's no # in the url, take the first PROTO definition in the library file
+										else match #name (afterpound in resitem) 
+									*/
+									if(node->__afterPound){
+										for(k=0;k<m;k++){
+											char *typename, *matchstring;
+											//matchstring = node->__typename; //specs don't say this
+											matchstring = node->__afterPound;
+											pDefinition = vector_get(struct X3D_Proto*,libraryScene->__protoDeclares,k);
+											typename = (char *)pDefinition->__typename;
+											if(typename)
+												if(!strcmp(matchstring,typename)){
+													//found it - the library proto's user type name matches this extern proto's #name (afterPound)
+													//now add this protoDeclare to our externProto's protoDeclare list in 1st position
+													node->__protoDeclares = newVector(struct X3D_Proto*,1);
+													vector_pushBack(struct X3D_Proto*,node->__protoDeclares,pDefinition);
+													break;
+												}
+										} //for k
+									}else{
+										//no afterPound, so according to specs: take the first proto in the file
+										pDefinition = vector_get(struct X3D_Proto*,libraryScene->__protoDeclares,0);
+										node->__protoDeclares = newVector(struct X3D_Proto*,1);
+										vector_pushBack(struct X3D_Proto*,node->__protoDeclares,pDefinition);
+									} //else no afterPound
+								} //if(m)
+							} //if(libraryScene->__protoDeclares)
+						} //if(n)
+					} //if(node->__externProtoDeclares)
+					node->__loadstatus = LOAD_STABLE; 
+				} //if (res->status == ress_parsed)
+			} //if(res->complete)
+			//end case LOAD_FETCHING_RESOURCE
 			break;
 
-			case LOAD_PARSING:
-				res = node->__loadResource;
-
-				//printf ("inline parsing.... %s\n",resourceStatusToString(res->status));
-				//printf ("res complete %d\n",res->complete);
-				if(res->complete){
-					if (res->status == ress_parsed) {
-						//fetch the particular desired PROTO from the libraryScene, and place in _protoDeclares
-						//or in _prototype
-						if(node->__externProtoDeclares){
-							int n = vectorSize(node->__externProtoDeclares);
-							if(n){
-								struct X3D_Proto *libraryScene = vector_get(struct X3D_Proto*,node->__externProtoDeclares,0);
-								if(libraryScene->__protoDeclares){
-									int m = vectorSize(libraryScene->__protoDeclares);
-									if(m){
-										int k;
-										struct X3D_Proto* pDefinition;
-										/* the specs say if there's no # in the url, take the first PROTO definition in the library file
-											else match #name (afterpound in resitem) 
-										*/
-										if(node->__afterPound){
-											for(k=0;k<m;k++){
-												char *typename, *matchstring;
-												//matchstring = node->__typename; //specs don't say this
-												matchstring = node->__afterPound;
-												pDefinition = vector_get(struct X3D_Proto*,libraryScene->__protoDeclares,k);
-												typename = (char *)pDefinition->__typename;
-												if(typename)
-													if(!strcmp(matchstring,typename)){
-														//found it - the library proto's user type name matches this extern proto's #name (afterPound)
-														//now add this protoDeclare to our externProto's protoDeclare list in 1st position
-														node->__protoDeclares = newVector(struct X3D_Proto*,1);
-														vector_pushBack(struct X3D_Proto*,node->__protoDeclares,pDefinition);
-														break;
-													}
-											}
-										}else{
-											//no afterPound, so according to specs: take the first proto in the file
-											pDefinition = vector_get(struct X3D_Proto*,libraryScene->__protoDeclares,0);
-											node->__protoDeclares = newVector(struct X3D_Proto*,1);
-											vector_pushBack(struct X3D_Proto*,node->__protoDeclares,pDefinition);
-										}
-									}
-
-								}
-							}
-						}
-						node->__loadstatus = LOAD_STABLE; 
-					} 
-				}
-
-			break;
 			case LOAD_STABLE:
 			break;
 		}
