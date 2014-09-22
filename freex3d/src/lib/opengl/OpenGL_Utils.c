@@ -4450,7 +4450,19 @@ void startOfLoopNodeUpdates(void) {
 			node = getTypeNode(node); //+ dug9 dec 13
 			if(node == NULL && pnode != NULL)  //+ dug9 sept 2014
 				if(pnode->_nodeType == NODE_Proto){
+					UNLOCK_MEMORYTABLE
+					/*dug9 sept 2014: I put load_EPI (externProtoInstance) here because I designed it like Inline
+						where we check and give a time slice to loading when we visit the node instance during render().
+						But that doesn't work for EPIs which have no concrete NODE type, nor VF_ flag
+						so render_hier/render() never visits them until they are loaded and we can
+						see the concrete type of their first node, and perculate VF_ flags up to the EPI
+						There were other options such as event queue, or following a cascade of protoInstance arrays
+						down the context heirarchy, or tinkering with the VF_ flag visitation rules in render()
+						or inventing a VF_Proto flag, and any of those might work too. This was just convenient/easy/quick 
+						for me, so feel free to move it.
+					*/
 					load_externProtoInstance(X3D_PROTO(pnode));
+					LOCK_MEMORYTABLE
 					node = getTypeNode(pnode);
 				}
 			if (node != NULL)

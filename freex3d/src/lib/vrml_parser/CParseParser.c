@@ -4028,6 +4028,7 @@ static BOOL parser_brotoStatement(struct VRMLParser* me)
 	//set ProtoDefinition *obj
 	proto->__protoDef = obj;
 	proto->__prototype = X3D_NODE(proto); //point to self, so shallow and deep instances will inherit this value
+	proto->__typename = strdup(obj->protoName);
 
     /* PROTO body */
     /* Make sure that the next oken is a '{'.  Skip over it. */
@@ -4180,6 +4181,7 @@ static BOOL parser_externbrotoStatement(struct VRMLParser* me)
 	//set ProtoDefinition *obj
 	proto->__protoDef = obj;
 	proto->__prototype = X3D_NODE(proto); //point to self, so shallow and deep instances will inherit this value
+	proto->__typename = (void *)strdup(obj->protoName);
 
 	/* EXTERNPROTO url */
 	{
@@ -5544,7 +5546,7 @@ void initialize_scripts(Stack *instancedScripts)
 	#endif /* HAVE_JAVASCRIPT */
 
 }
-void sceneInstance(struct X3D_Proto* sceneProto, struct X3D_Group *sceneInstance)
+void sceneInstance(struct X3D_Proto* sceneProto, struct X3D_Node *sceneInstance)
 {
 	//sceneProto - cParse results in new X3D_Proto format
 	//sceneInstance - pass in a Group node to accept scene rootNodes 
@@ -5572,10 +5574,12 @@ void sceneInstance(struct X3D_Proto* sceneProto, struct X3D_Group *sceneInstance
 	
 	struct X3D_Proto *scenePlaceholderProto;
 	struct X3D_Node *parent;
+	struct Multi_Node *children;
 	struct Vector *p2p = newVector(struct pointer2pointer*,10);
 	Stack *instancedScripts = newStack(struct X3D_Node*);
-	sceneInstance->children.n = 0;
-	sceneInstance->children.p = NULL;
+	children = childrenField(sceneInstance);
+	children->n = 0;
+	children->p = NULL;
 	parent = (struct X3D_Node*)sceneInstance;
 	scenePlaceholderProto = createNewX3DNode0(NODE_Proto);
 	//if(0){
@@ -5585,7 +5589,7 @@ void sceneInstance(struct X3D_Proto* sceneProto, struct X3D_Group *sceneInstance
 	//}else{
 	//I think the sceneProto being passed in is already the prototype -with body- and not an interface/instance
 	//copy rootnodes
-	copy_field(FIELDTYPE_MFNode,(union anyVrml*)&(sceneProto->_children),(union anyVrml*)&(sceneInstance->children),
+	copy_field(FIELDTYPE_MFNode,(union anyVrml*)&(sceneProto->_children),(union anyVrml*)children,
 		p2p,instancedScripts,scenePlaceholderProto,parent);
 	//}
 	//copy sceneProto routes (child protoInstance routes copied elsewhere)
@@ -6130,6 +6134,36 @@ void load_externProtoDeclare (struct X3D_Proto *node) {
 				//printf ("res complete %d\n",res->complete);
 				if(res->complete){
 					if (res->status == ress_parsed) {
+						//fetch the particular desired PROTO from the libraryScene, and place in _protoDeclares
+						//or in _prototype
+						if(node->__externProtoDeclares){
+							int n = vectorSize(node->__externProtoDeclares);
+							if(n){
+								struct X3D_Proto *libraryScene = vector_get(struct X3D_Proto*,node->__externProtoDeclares,0);
+								if(libraryScene->__protoDeclares){
+									int m = vectorSize(libraryScene->__protoDeclares);
+									if(m){
+										int k;
+										struct X3D_Proto* pDefinition;
+										for(k=0;k<m;k++){
+											char *typename;
+											pDefinition = vector_get(struct X3D_Proto*,libraryScene->__protoDeclares,k);
+											typename = (char *)pDefinition->__typename;
+											if(node->__typename && typename)
+												if(!strcmp(node->__typename,typename)){
+													//found it - the library proto's user type name matches this extern proto's user type name
+													//I think the specs allow you to scramble a bit, but other web3d browsers are more restrictive
+													//now add this protoDeclare to our externProto's protoDeclare list in 1st position
+													node->__protoDeclares = newVector(struct X3D_Proto*,1);
+													vector_pushBack(struct X3D_Proto*,node->__protoDeclares,pDefinition);
+													break;
+												}
+										}
+									}
+
+								}
+							}
+						}
 						node->__loadstatus = LOAD_STABLE; 
 					} 
 				}
@@ -6160,13 +6194,14 @@ void load_externProtoInstance (struct X3D_Proto *node) {
 			}
 			if(pnode->__loadstatus == LOAD_STABLE){
 				// externProtoDeclare may already be loaded, if so, we just need to instance it
-				if(pnode->__externProtoDeclares){
-					int n = vectorSize(pnode->__externProtoDeclares);
+				if(pnode->__protoDeclares){
+					int n = vectorSize(pnode->__protoDeclares);
 					if(n){
 						struct X3D_Proto *pdeclare, *pinstance;
-						pdeclare = vector_get(struct X3D_Proto*,pnode->__externProtoDeclares,0);
+						pdeclare = vector_get(struct X3D_Proto*,pnode->__protoDeclares,0);
 						pinstance = brotoInstance(pdeclare,1);
 						if (pinstance != NULL) {
+							deep_copy_broto_body2(&pdeclare,&pinstance);
                 			AddRemoveChildren(X3D_NODE(node), &node->_children, &X3D_NODE(pinstance), 1, 1,__FILE__,__LINE__);
 							add_parent(X3D_NODE(pinstance),X3D_NODE(node),__FILE__,__LINE__);
 							//inject IS routes

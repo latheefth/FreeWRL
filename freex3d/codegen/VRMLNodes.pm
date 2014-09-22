@@ -97,7 +97,8 @@ our %Nodes = (
 		__url => ["MFString", [], "initializeOnly", 0],
 		__loadstatus =>["SFInt32",0,"initializeOnly", 0],
 		_parentResource =>["FreeWRLPTR",0,"initializeOnly", 0],
-		 __loadResource => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		__loadResource => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		__typename => ["FreeWRLPTR", 0, "initializeOnly", 0],
 	},"X3DProtoInstance"),
 
 	"MetadataInteger" => new VRML::NodeType("MetadataInteger", {

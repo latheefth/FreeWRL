@@ -166,6 +166,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__textureright",
 	"__topTexture",
 	"__transparency",
+	"__typename",
 	"__url",
 	"__vertArr",
 	"__vertIndx",
@@ -4538,6 +4539,7 @@ const int OFFSETS_Proto[] = {
 	(int) FIELDNAMES___protoFlags, (int) offsetof (struct X3D_Proto, __protoFlags),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___prototype, (int) offsetof (struct X3D_Proto, __prototype),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___scripts, (int) offsetof (struct X3D_Proto, __scripts),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___typename, (int) offsetof (struct X3D_Proto, __typename),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___url, (int) offsetof (struct X3D_Proto, __url),  (int) FIELDTYPE_MFString, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__children, (int) offsetof (struct X3D_Proto, _children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES__parentResource, (int) offsetof (struct X3D_Proto, _parentResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
@@ -8306,6 +8308,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__protoFlags = 0;
 			tmp2->__prototype = NULL;
 			tmp2->__scripts = 0;
+			tmp2->__typename = 0;
 			tmp2->__url.n=0; tmp2->__url.p=0;
 			tmp2->_children.n=0; tmp2->_children.p=0;
 			tmp2->_parentResource = getInputResource();

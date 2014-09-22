@@ -887,5 +887,6 @@ void profile_print_all();
 /*pack 4 flags into one int, using char */
 char ciflag_get(int flags, int index);
 int ciflag_set(int flags, char flag, int index );
-
+struct Multi_Node *childrenField(struct X3D_Node *node);
+int offsetofChildren(struct X3D_Node *node);
 #endif /* __FREEWRL_HEADERS_H__ */
