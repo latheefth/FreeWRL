@@ -80,6 +80,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__SphereIndxVBO",
 	"__StartLoadTime",
 	"__VBO",
+	"__afterPound",
 	"__backTexture",
 	"__botpoints",
 	"__bottomTexture",
@@ -4530,6 +4531,7 @@ const int OFFSETS_Proto[] = {
 	(int) FIELDNAMES___DEFnames, (int) offsetof (struct X3D_Proto, __DEFnames),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___IS, (int) offsetof (struct X3D_Proto, __IS),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___ROUTES, (int) offsetof (struct X3D_Proto, __ROUTES),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___afterPound, (int) offsetof (struct X3D_Proto, __afterPound),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___externProtoDeclares, (int) offsetof (struct X3D_Proto, __externProtoDeclares),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___loadResource, (int) offsetof (struct X3D_Proto, __loadResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___loadstatus, (int) offsetof (struct X3D_Proto, __loadstatus),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
@@ -8299,6 +8301,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__DEFnames = 0;
 			tmp2->__IS = 0;
 			tmp2->__ROUTES = 0;
+			tmp2->__afterPound = 0;
 			tmp2->__externProtoDeclares = 0;
 			tmp2->__loadResource = 0;
 			tmp2->__loadstatus = 0;

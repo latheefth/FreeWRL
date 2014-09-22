@@ -642,6 +642,15 @@ void render_polyrep(void *node);
 //extern struct X3D_Group *rootNode;
 struct X3D_Node *rootNode();
 void setRootNode(struct X3D_Node *rn);
+typedef struct void3 {
+	void *one;
+	void *two;
+	void *three;
+} void3;
+struct Vector *libraries();
+void setLibraries(struct Vector *);
+void addLibrary(char *url, struct X3D_Proto *library, void* res);
+void3 *librarySearch(char *absoluteUniUrlNoPound);
 
 extern int isPerlParsing(void);
 /* extern int isURLLoaded(void);	/\* initial scene loaded? Robert Sim *\/ */

@@ -95,6 +95,7 @@ our %Nodes = (
 		__IS => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		__scripts => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		__url => ["MFString", [], "initializeOnly", 0],
+		__afterPound => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		__loadstatus =>["SFInt32",0,"initializeOnly", 0],
 		_parentResource =>["FreeWRLPTR",0,"initializeOnly", 0],
 		__loadResource => ["FreeWRLPTR", 0, "initializeOnly", 0],
