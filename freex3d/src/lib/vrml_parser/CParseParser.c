@@ -3277,6 +3277,55 @@ void cParseErrorFieldString(struct VRMLParser *me, char *str, const char *str2) 
 //
 //
 
+/*
+Sept 2014
+X3D_Proto is now being used for non-node entities as well as ProtoInstance:
+a) protoInstance PI
+b) protoDeclare PD
+c) externProtoInstance EPI
+d) externProtoDeclare EPD
+e) sceneInstance SI (rootNodes parent, deep)
+f) protoLibrary PL (scene declare, shallow)
+
+WRL Parsing now uses the same code for both scene and protoBody, recursing as deep as needed,
+and uses a 'depth' flag for deciding whether to instance what its parsing (ie for scene) or not
+(protoDeclares, shallow).
+
+deep - instancing a live scene, so nodes are registered, routes are registered, scripts are registered, PIs are deep copied
+shallow - we are in a protoDeclare -perhaps in its body- so we just copy the interface of any contained PIs for routing,
+	we do not register nodes, scripts, or do any binding
+
+executionContext EC: scene or protoBody (according to specs), basically a name context, and where routes are supposed to be
+
+X3D_Proto fields
+	void * __DEFnames;	//besides giving def names to the parser, it also saves them in a Vector per-EC
+	void * __IS;		//the IS keyword details are parsed to this, per EC, and a function generates browser ROUTES if deep
+	void * __ROUTES;	//ROUTES are saved here per EC, as well as registered with browser when deep
+	void * __afterPound;	//for EPD, if url is myfile.wrl#Geom then Geom is the afterPound, and is the name of the desired PD in the proto library
+	void * __externProtoDeclares;	//besides giving EPD type names back to parser, the EPDs are stored here per-EC
+	void * __loadResource;	//for network types, like EPD, this is the resource its monitoring that's downloading the PL
+	int __loadstatus;	//for network types like EPD, helps EPD advance step-wise on each visit, as the resource is loaded and parsed
+	struct X3D_Node *__parentProto; //parent EC, when instancing
+	void * __protoDeclares;	//besides giving PD type name back to parser, the parsed PD is stored here per-EC
+	void * __protoDef;	//struct for holding user fields, as used for Script, Proto
+	int __protoFlags;	//char [4] 0) deep=1, shallow=0 1) 1 means useBrotos=0 old way 2) 0-declare 1-instance 2-scene 3) extern=1, else 0
+	struct X3D_Node *__prototype;	//for PI, EPI: will be PD, EPD, so when deep_copying it can get the body
+	void * __scripts;	//stores script nodes parsed here per EC as well as registering with browser when instancing
+	void * __typename;	//for PD,EPD (and PI, EPI): besides giving PD user-defined type name (vs builtin type) back to parser, its stored here
+	struct Multi_String __url;	//for network types like EPD - the parsed URL for downloading
+	void * _parentResource; //for network types, like EPD, this is a resource_item_t * of the main scene, to get its absolute URL in resource_identify
+	
+	//familiar fields:
+	struct Multi_Node _children;	//same use as children[] field in Group/Transform, except hidden as _children for some scenes t85.wrl that name a user field as children
+	struct Multi_Node _sortedChildren;  
+	struct Multi_Node addChildren;
+	struct X3D_Node *metadata;
+	struct Multi_Node removeChildren;
+	struct SFVec3f bboxCenter;
+	struct SFVec3f bboxSize;
+*/
+
+
 
 /* Parses a node (node non-terminal) */
 /* Looks up the node type on the builtin NODES list and the userNodeNames list.  
@@ -5553,6 +5602,9 @@ void initialize_scripts(Stack *instancedScripts)
 }
 void sceneInstance(struct X3D_Proto* sceneProto, struct X3D_Node *sceneInstance)
 {
+	//deprecated Sept 2014 by dug9: we now instance as we parse a scene (or if we did parse a scene as a sceneDeclare
+	//   we could call brotoInstance() and deep_copy_broto_body2() to instance the scene)
+	
 	//sceneProto - cParse results in new X3D_Proto format
 	//sceneInstance - pass in a Group node to accept scene rootNodes 
 	//				- (ROUTES, sensors, viewpoints will be directly registered in global/main scene structs)
@@ -6082,6 +6134,33 @@ resource_item_t * resLibraryAlreadyRequested(resource_item_t *res){
 #define LOAD_FETCHING_RESOURCE 2
 #define LOAD_PARSING 3
 #define LOAD_STABLE 10
+/* dug9 Sept 2014 wrapper technique for externProto for useBrotos:
+	PD - proto declare - a type declaration (shallow copies of contained protos; allocated nodes not registered)
+	PI - proto insstance - a node for the scenegraph to render (deep copies of contained protos; nodes registered)
+	EPD - extern PD
+	EPI - extern PI
+	Wrapper technique:
+		EPD { url, resource, loadstatus, PD once loaded  }
+		EPI { *EPD, PI once loaded }
+	1. during parsing, when an ExternProtoDeclare is encountered, an empty X3D_Proto is created
+		to represent the ExternProtoDeclare EPD as a type, and fields as declared are added, along
+		with the url. No body. A flag is set saying it's not loaded. 
+	2. parsing continues. When an instance of that type is encountered, a copy of the EPD is 
+		created as an externProtoInstance EPI -also empty, and with a pointer back to EPD. Parsing
+		continues, including routing to the EPI
+	3. during rendering when the EPI is visited (currently in startofloopnodeupdates()) it 
+		checks itself to see if its been instanced yet, and 
+		a)	if not loaded:- checks to see if the EPD has been loaded yet, 
+			i) if not, gives a time slice to the EPD when visiting it, see #4
+			ii) if yes, then instances itself, and generates routes between the wrapper EPI and contained PI
+		b) if loaded, renders or whatever its supposed to be doing as a normal node
+	4. EPD when visited 
+		a) checks to see if the resource has been created, if not creates it. 
+			It checks to see if another EPD has already requested the URL (in the case of a proto library)
+			and if so, uses that EPD's resource, else submits a new resource for fetching
+		b) if resource is loaded, then i) if its in a proto library, fetches the #name else ii) takes the first proto
+			and sets it in its __protoDeclare list, and marks itself loaded
+*/
 
 void load_externProtoDeclare (struct X3D_Proto *node) {
 	resource_item_t *res, *res2;
