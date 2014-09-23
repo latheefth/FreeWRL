@@ -640,8 +640,17 @@ void render_polyrep(void *node);
 #endif
 
 //extern struct X3D_Group *rootNode;
-struct X3D_Group *rootNode();
-void setRootNode(struct X3D_Group *rn);
+struct X3D_Node *rootNode();
+void setRootNode(struct X3D_Node *rn);
+typedef struct void3 {
+	void *one;
+	void *two;
+	void *three;
+} void3;
+struct Vector *libraries();
+void setLibraries(struct Vector *);
+void addLibrary(char *url, struct X3D_Proto *library, void* res);
+void3 *librarySearch(char *absoluteUniUrlNoPound);
 
 extern int isPerlParsing(void);
 /* extern int isURLLoaded(void);	/\* initial scene loaded? Robert Sim *\/ */
@@ -883,4 +892,10 @@ void profile_start(char *);
 void profile_end(char *);
 void profile_print_all();
 
+
+/*pack 4 flags into one int, using char */
+char ciflag_get(int flags, int index);
+int ciflag_set(int flags, char flag, int index );
+struct Multi_Node *childrenField(struct X3D_Node *node);
+int offsetofChildren(struct X3D_Node *node);
 #endif /* __FREEWRL_HEADERS_H__ */

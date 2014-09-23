@@ -463,6 +463,7 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 		  res->parent, (res->parent ? res->parent->URLbase : "N/A"));
 	return;
 }
+
 bool imagery_load(resource_item_t *res){
 	bool retval;
 	struct textureTableIndexStruct *entry = res->whereToPlaceData;

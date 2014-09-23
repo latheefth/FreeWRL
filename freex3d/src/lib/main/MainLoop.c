@@ -2970,7 +2970,7 @@ void dump_scene2(FILE *fp, int level, struct X3D_Node* node, int recurse, Stack 
 		Boolean allFields;
 		if (fileno(fp) == fileno(stdout)) { allFields = TRUE; } else { allFields = FALSE; }
 	#else
-		Boolean allFields = FALSE;
+		Boolean allFields = TRUE; //FALSE;
 	#endif
 	/* See vi +/double_conditional codegen/VRMLC.pm */
 	if (node==NULL) return;

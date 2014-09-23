@@ -151,17 +151,20 @@ int main (int argc, char **argv)
 
 #endif
 
-	/* install the signal handlers */
+	/* install the signal handlers 
+		win32 > for debugging its better not to install them: the debugger will then take you to the crash line
+		if signal handlers are installed, then all you see is a SIGSEG printf
+	*/
+#ifdef WANT_SIGNALHANDLERS
+	signal(SIGTERM, (void(*)(int)) fv_catch_SIGQUIT);
+	signal(SIGSEGV, (void(*)(int)) fv_catch_SIGSEGV);
 
-    signal(SIGTERM, (void(*)(int)) fv_catch_SIGQUIT);
-    signal(SIGSEGV, (void(*)(int)) fv_catch_SIGSEGV);
-
-#if !defined(CYGWIN)
-    signal(SIGQUIT, (void(*)(int)) fv_catch_SIGQUIT);
-    signal(SIGALRM, (void(*)(int)) fv_catch_SIGALRM);
-    signal(SIGHUP,  (void(*)(int)) fv_catch_SIGHUP);
+	#if !defined(CYGWIN)
+		signal(SIGQUIT, (void(*)(int)) fv_catch_SIGQUIT);
+		signal(SIGALRM, (void(*)(int)) fv_catch_SIGALRM);
+		signal(SIGHUP,  (void(*)(int)) fv_catch_SIGHUP);
+	#endif
 #endif
-
     /* Before we parse the command line, setup the FreeWRL default parameters */
     fv_params = calloc(1, sizeof(freewrl_params_t));
 

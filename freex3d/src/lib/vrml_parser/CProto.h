@@ -72,6 +72,7 @@ struct ProtoFieldDecl
  indexT mode; /* field, exposedField, eventIn, eventOut */
  indexT type; /* field type */
  indexT name; /* field "name" (its lexer-index) */
+ char *cname; /* field name */
  char *fieldString; /* the field, in ascii form */
  #ifdef OLDDEST
 /* This is the list of desination pointers for this field */
@@ -165,6 +166,7 @@ struct ProtoDefinition
  int estimatedBodyLen; /* an estimate of the expanded proto body size, to give us an output string len */
  char *protoName;      /* proto name as a string - used in EAI calls */
  int isCopy;		/* is this the original or a copy? the original keeps the deconstructedProtoBody */
+ int isExtern;		/* a flag to tell interface parsing not to look for fieldvalues */
 };
 
 /* Adds a field declaration to the interface */

@@ -62,6 +62,9 @@ struct profile_entry {
 	int hits;
 };
 
+
+
+
 typedef struct pRenderFuncs{
 	int profile_entry_count;
 	struct profile_entry profile_entries[100];
@@ -93,7 +96,8 @@ typedef struct pRenderFuncs{
 	//struct point_XYZ ht1, ht2; not used
 	struct point_XYZ hyper_r1,hyper_r2; /* Transformed ray for the hypersensitive node */
 	struct currayhit rayph;
-	struct X3D_Group *rootNode;//=NULL;	/* scene graph root node */
+	struct X3D_Node *rootNode;//=NULL;	/* scene graph root node */
+	struct Vector *libraries; //vector of extern proto library scenes in X3D_Proto format that are parsed shallow (not instanced scenes) - the library protos will be in X3D_Proto->protoDeclares vector
 	struct X3D_Anchor *AnchorsAnchor;// = NULL;
 	struct currayhit rayHit,rayHitHyper;
 	struct trenderstate renderstate;
@@ -137,6 +141,7 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 		p->cur_hits=0;
 		p->empty_group=0;
 		p->rootNode=NULL;	/* scene graph root node */
+		p->libraries=newVector(void3 *,1);
 		p->AnchorsAnchor = NULL;
 		t->rayHit = (void *)&p->rayHit;
 		t->rayHitHyper = (void *)&p->rayHitHyper;
@@ -759,7 +764,7 @@ void setAnchorsAnchor(struct X3D_Anchor* anchor)
 
 
 //struct X3D_Group *_rootNode=NULL;	/* scene graph root node */
-struct X3D_Group *rootNode()
+struct X3D_Node *rootNode()
 {
 	// ConsoleMessage ("rootNode called");
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;	
@@ -769,11 +774,44 @@ struct X3D_Group *rootNode()
 	}
 	return p->rootNode;
 }
-void setRootNode(struct X3D_Group *rn)
+void setRootNode(struct X3D_Node *rn)
 {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 	p->rootNode = rn;
 }
+struct Vector *libraries(){
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	if(!p->libraries) p->libraries = newVector(void3 *,1)	;
+	return p->libraries;
+}
+void setLibraries(struct Vector *libvector){
+	//might use this in KILL_oldWorld to NULL the library vector?
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;	
+	p->libraries = libvector;
+}
+void addLibrary(char *url, struct X3D_Proto *library, void *res){
+	void3 *ul = malloc(sizeof(void3));
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;	
+	ul->one = (void *)strdup(url);
+	ul->two = (void *)library;
+	ul->three = res;
+	vector_pushBack(void3 *,p->libraries,ul);
+}
+void3 *librarySearch(char *absoluteUniUrlNoPound){
+	void3 *ul;
+	struct Vector* libs;
+	int n, i;
+	libs = libraries();
+	n = vectorSize(libs);
+	for(i=0;i<n;i++){
+		ul = vector_get(void3 *,libs,i);
+		if(!strcmp(absoluteUniUrlNoPound,ul->one)){
+			return ul; //return res
+		}
+	}
+	return NULL;
+}
+
 //void *empty_group=0;
 
 /*******************************************************************************/
@@ -1416,7 +1454,7 @@ void remove_parent(struct X3D_Node *child, struct X3D_Node *parent) {
 }
 
 void
-render_hier(struct X3D_Group *g, int rwhat) {
+render_hier(struct X3D_Node *g, int rwhat) {
 	/// not needed now - see below struct point_XYZ upvec = {0,1,0};
 	/// not needed now - see below GLDOUBLE modelMatrix[16];
 

@@ -75,6 +75,9 @@ our %Nodes = (
 	},"X3DChildNode"),
 
 	"Proto" => new VRML::NodeType("Proto", {
+		addChildren => ["MFNode", undef, "inputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		removeChildren => ["MFNode", undef, "inputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		#children => ["MFNode", [], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_children => ["MFNode", [], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		bboxCenter => ["SFVec3f", [0, 0, 0], "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -92,6 +95,11 @@ our %Nodes = (
 		__IS => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		__scripts => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		__url => ["MFString", [], "initializeOnly", 0],
+		__afterPound => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		__loadstatus =>["SFInt32",0,"initializeOnly", 0],
+		_parentResource =>["FreeWRLPTR",0,"initializeOnly", 0],
+		__loadResource => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		__typename => ["FreeWRLPTR", 0, "initializeOnly", 0],
 	},"X3DProtoInstance"),
 
 	"MetadataInteger" => new VRML::NodeType("MetadataInteger", {

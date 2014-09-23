@@ -295,7 +295,6 @@ print_viewer()
 	ConsoleMessage("\tOrientation[%.4f, %.4f, %.4f, %.4f]\n", ori.x, ori.y, ori.z, ori.a);
 	ConsoleMessage("}\n");
 	printStats();
-
 }
 
 int fwl_get_headlight() { 

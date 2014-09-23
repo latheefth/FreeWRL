@@ -80,6 +80,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__SphereIndxVBO",
 	"__StartLoadTime",
 	"__VBO",
+	"__afterPound",
 	"__backTexture",
 	"__botpoints",
 	"__bottomTexture",
@@ -166,6 +167,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__textureright",
 	"__topTexture",
 	"__transparency",
+	"__typename",
 	"__url",
 	"__vertArr",
 	"__vertIndx",
@@ -4529,19 +4531,26 @@ const int OFFSETS_Proto[] = {
 	(int) FIELDNAMES___DEFnames, (int) offsetof (struct X3D_Proto, __DEFnames),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___IS, (int) offsetof (struct X3D_Proto, __IS),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___ROUTES, (int) offsetof (struct X3D_Proto, __ROUTES),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___afterPound, (int) offsetof (struct X3D_Proto, __afterPound),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___externProtoDeclares, (int) offsetof (struct X3D_Proto, __externProtoDeclares),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___loadResource, (int) offsetof (struct X3D_Proto, __loadResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___loadstatus, (int) offsetof (struct X3D_Proto, __loadstatus),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___parentProto, (int) offsetof (struct X3D_Proto, __parentProto),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___protoDeclares, (int) offsetof (struct X3D_Proto, __protoDeclares),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___protoDef, (int) offsetof (struct X3D_Proto, __protoDef),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___protoFlags, (int) offsetof (struct X3D_Proto, __protoFlags),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___prototype, (int) offsetof (struct X3D_Proto, __prototype),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___scripts, (int) offsetof (struct X3D_Proto, __scripts),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___typename, (int) offsetof (struct X3D_Proto, __typename),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___url, (int) offsetof (struct X3D_Proto, __url),  (int) FIELDTYPE_MFString, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__children, (int) offsetof (struct X3D_Proto, _children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__parentResource, (int) offsetof (struct X3D_Proto, _parentResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__sortedChildren, (int) offsetof (struct X3D_Proto, _sortedChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) 0,
+	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_Proto, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_Proto, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_Proto, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_Proto, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_removeChildren, (int) offsetof (struct X3D_Proto, removeChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_ProximitySensor[] = {
@@ -8292,19 +8301,26 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__DEFnames = 0;
 			tmp2->__IS = 0;
 			tmp2->__ROUTES = 0;
+			tmp2->__afterPound = 0;
 			tmp2->__externProtoDeclares = 0;
+			tmp2->__loadResource = 0;
+			tmp2->__loadstatus = 0;
 			tmp2->__parentProto = NULL;
 			tmp2->__protoDeclares = 0;
 			tmp2->__protoDef = 0;
 			tmp2->__protoFlags = 0;
 			tmp2->__prototype = NULL;
 			tmp2->__scripts = 0;
+			tmp2->__typename = 0;
 			tmp2->__url.n=0; tmp2->__url.p=0;
 			tmp2->_children.n=0; tmp2->_children.p=0;
+			tmp2->_parentResource = getInputResource();
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
+			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->metadata = NULL;
+			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
