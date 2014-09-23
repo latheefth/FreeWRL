@@ -80,7 +80,7 @@ void CParseParser_init(struct tCParseParser *t){
 	{
 		ppCParseParser p = (ppCParseParser)t->prv;
 		p->foundInputErrors = 0;
-		p->useBrotos = 3; //0= none/old-way, non-zero =wrl parsing broto only rendering, DEF/IS/script tables are in new proto 3=EXTERNPROTO is broto wrapper
+		p->useBrotos = 0; //0= none/old-way, non-zero =wrl parsing broto only rendering, DEF/IS/script tables are in new proto 3=EXTERNPROTO is broto wrapper
 	}
 }
 	//ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
@@ -3952,10 +3952,11 @@ static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
 		if(source==3){
 			//externProtoDeclares don't set an initial value, yet externProtoInstances copy the declare fields, even if junk or null
 			// (versus regular protoDeclares which must set initial field values on inputOutput/initializeOnly)
-			//so the alreadySet flag is to say that the EPI (or PI) had a value set here, and when 
-			//filling out a late-ariving externprotodefinition, only EPI fields that were initialzed are copied to the child PI
+			//so the alreadySet flag is to say that the EPI had a value set here, and when 
+			//filling out a late-ariving externprotodefinition EPD, only EPI fields that were initialzed are copied to the child PI
 			//-see load_externProtoInstance() 
 			struct X3D_Proto *pnode = X3D_PROTO(node);
+			//I could filter and just do extern proto, but lazy, so do any proto
 			struct ProtoDefinition *pd = pnode->__protoDef;
 			struct ProtoFieldDecl * pf = protoDefinition_getFieldByNum(pd, ifield);
 			pf->alreadySet = 1;
