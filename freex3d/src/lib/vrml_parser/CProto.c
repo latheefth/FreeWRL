@@ -235,6 +235,7 @@ struct ProtoDefinition* newProtoDefinition()
  ret->estimatedBodyLen = 0;
  ret->protoName = NULL;
  ret->isCopy = FALSE;
+ ret->isExtern = FALSE;
 
  return ret;
 }

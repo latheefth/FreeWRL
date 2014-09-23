@@ -80,7 +80,7 @@ void CParseParser_init(struct tCParseParser *t){
 	{
 		ppCParseParser p = (ppCParseParser)t->prv;
 		p->foundInputErrors = 0;
-		p->useBrotos = 0; //0= none/old-way, non-zero =wrl parsing broto only rendering, DEF/IS/script tables are in new proto 3=EXTERNPROTO is broto wrapper
+		p->useBrotos = 3; //0= none/old-way, non-zero =wrl parsing broto only rendering, DEF/IS/script tables are in new proto 3=EXTERNPROTO is broto wrapper
 	}
 }
 	//ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
@@ -664,6 +664,7 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
     int mode;
     int type;
     int name;
+	int externproto;
     union anyVrml defaultVal;
 	DECLAREUP
     struct ProtoFieldDecl* pdecl=NULL;
@@ -677,6 +678,7 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
     printf ("start of parser_interfaceDeclaration\n");
 #endif
 
+	bzero (&defaultVal, sizeof (union anyVrml));
 
     /* Either PROTO or Script interface! */
     ASSERT((proto || script) && !(proto && script));
@@ -737,14 +739,16 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
 
     /* If we are parsing a PROTO, create a new  protoFieldDecl.
        If we are parsing a Script, create a new scriptFieldDecl. */
+	externproto = FALSE;
     if(proto) {
 #ifdef CPARSERVERBOSE
 		printf ("parser_interfaceDeclaration, calling newProtoFieldDecl\n");
 #endif
 
 		pdecl=newProtoFieldDecl(mode, type, name);
+		pdecl->cname = strdup(protoFieldDecl_getStringName(me->lexer, pdecl));
 		//pdecl->fieldString = STRDUP(lexer_stringUser_fieldName(me->lexer, name, mode));
-
+		externproto = proto->isExtern;
 #ifdef CPARSERVERBOSE
 		printf ("parser_interfaceDeclaration, finished calling newProtoFieldDecl\n");
 #endif
@@ -761,66 +765,66 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
 
  
     /* If this is a field or an exposed field */ 
-    if(mode==PKW_initializeOnly || mode==PKW_inputOutput) { 
+    if((mode==PKW_initializeOnly || mode==PKW_inputOutput)  ) { 
 #ifdef CPARSERVERBOSE
 		printf ("parser_interfaceDeclaration, mode==PKW_initializeOnly || mode==PKW_inputOutput\n");
 #endif
+		if(!externproto){
 
+			/* Get the next token(s) from the lexer and store them in defaultVal as the appropriate type. 
+				This is the default value for this field.  */
+			if (script && lexer_keyword(me->lexer, KW_IS)) {
+				int fieldE;
+				int fieldO;
+				struct ScriptFieldInstanceInfo* sfield;
 
-		/* Get the next token(s) from the lexer and store them in defaultVal as the appropriate type. 
-			This is the default value for this field.  */
-		if (script && lexer_keyword(me->lexer, KW_IS)) {
-			int fieldE;
-			int fieldO;
-			struct ScriptFieldInstanceInfo* sfield;
+				/* Find the proto field that this field is mapped to */
+				if(!lexer_field(me->lexer, NULL, NULL, &fieldO, &fieldE))
+					PARSE_ERROR("Expected fieldId after IS!")
 
-			/* Find the proto field that this field is mapped to */
-			if(!lexer_field(me->lexer, NULL, NULL, &fieldO, &fieldE))
-				PARSE_ERROR("Expected fieldId after IS!")
-
-			if(fieldO!=ID_UNDEFINED)
-			{
-				/* Get the protoFieldDeclaration for the field at index fieldO */
-				pField=protoDefinition_getField(me->curPROTO, fieldO, PKW_initializeOnly);
-				if(!pField)
-					PARSE_ERROR("IS source is no field of current PROTO!")
-				ASSERT(pField->mode==PKW_initializeOnly);
-			} else {
-				/* If the field was found in user_inputOutputs */
-				ASSERT(fieldE!=ID_UNDEFINED);
-				/* Get the protoFieldDeclaration for the inputOutput at index fieldO */
-				pField=protoDefinition_getField(me->curPROTO, fieldE, PKW_inputOutput);
-				if(!pField)
-					PARSE_ERROR("IS source is no field of current PROTO!")
-				ASSERT(pField->mode==PKW_inputOutput);
-			}
+				if(fieldO!=ID_UNDEFINED)
+				{
+					/* Get the protoFieldDeclaration for the field at index fieldO */
+					pField=protoDefinition_getField(me->curPROTO, fieldO, PKW_initializeOnly);
+					if(!pField)
+						PARSE_ERROR("IS source is no field of current PROTO!")
+					ASSERT(pField->mode==PKW_initializeOnly);
+				} else {
+					/* If the field was found in user_inputOutputs */
+					ASSERT(fieldE!=ID_UNDEFINED);
+					/* Get the protoFieldDeclaration for the inputOutput at index fieldO */
+					pField=protoDefinition_getField(me->curPROTO, fieldE, PKW_inputOutput);
+					if(!pField)
+						PARSE_ERROR("IS source is no field of current PROTO!")
+					ASSERT(pField->mode==PKW_inputOutput);
+				}
         
-			if (pField) {
-				/* Add this scriptfielddecl to the list of script fields mapped to this proto field */
-				sfield = newScriptFieldInstanceInfo(sdecl, script);
-				vector_pushBack(struct ScriptFieldInstanceInfo*, pField->scriptDests, sfield);
-				defaultVal = pField->defaultVal;
-			}
+				if (pField) {
+					/* Add this scriptfielddecl to the list of script fields mapped to this proto field */
+					sfield = newScriptFieldInstanceInfo(sdecl, script);
+					vector_pushBack(struct ScriptFieldInstanceInfo*, pField->scriptDests, sfield);
+					defaultVal = pField->defaultVal;
+				}
 
-		} else {
-			/* else proto or script but not KW_IS */
-			startOfField = (char *)me->lexer->nextIn;
-			startOfFieldLexerLevel = me->lexer->lexerInputLevel;
+			} else {
+				/* else proto or script but not KW_IS */
+				startOfField = (char *)me->lexer->nextIn;
+				startOfFieldLexerLevel = me->lexer->lexerInputLevel;
 
-			/* set the defaultVal to something - we might have a problem if the parser expects this to be
-			a MF*, and there is "garbage" in there, as it will expect to free it. */
-			bzero (&defaultVal, sizeof (union anyVrml));
+				/* set the defaultVal to something - we might have a problem if the parser expects this to be
+				a MF*, and there is "garbage" in there, as it will expect to free it. */
+				bzero (&defaultVal, sizeof (union anyVrml));
 
-			if (!parseType(me, type, &defaultVal)) {
-				/* Invalid default value parsed.  Delete the proto or script declaration. */
-				CPARSE_ERROR_CURID("Expected default value for field!");
-				if(pdecl) deleteProtoFieldDecl(pdecl);
-				if(sdecl) deleteScriptFieldDecl(sdecl);
-				FREEUP
-				return FALSE;
+				if (!parseType(me, type, &defaultVal)) {
+					/* Invalid default value parsed.  Delete the proto or script declaration. */
+					CPARSE_ERROR_CURID("Expected default value for field!");
+					if(pdecl) deleteProtoFieldDecl(pdecl);
+					if(sdecl) deleteScriptFieldDecl(sdecl);
+					FREEUP
+					return FALSE;
+				}
 			}
 		}
-
 		/* Store the default field value in the protoFieldDeclaration or scriptFieldDecl structure */
 		if(proto) {
 			pdecl->defaultVal=defaultVal;
@@ -3945,6 +3949,17 @@ static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
 			//if(sdecl) deleteScriptFieldDecl(sdecl);
 			return FALSE;
 		}
+		if(source==3){
+			//externProtoDeclares don't set an initial value, yet externProtoInstances copy the declare fields, even if junk or null
+			// (versus regular protoDeclares which must set initial field values on inputOutput/initializeOnly)
+			//so the alreadySet flag is to say that the EPI (or PI) had a value set here, and when 
+			//filling out a late-ariving externprotodefinition, only EPI fields that were initialzed are copied to the child PI
+			//-see load_externProtoInstance() 
+			struct X3D_Proto *pnode = X3D_PROTO(node);
+			struct ProtoDefinition *pd = pnode->__protoDef;
+			struct ProtoFieldDecl * pf = protoDefinition_getFieldByNum(pd, ifield);
+			pf->alreadySet = 1;
+		}
 		if(source==1)
 		{
 			//((struct ScriptFieldDecl*) fdecl)->valueSet=TRUE;
@@ -4163,7 +4178,7 @@ static BOOL parser_externbrotoStatement(struct VRMLParser* me)
 
     /* Create a new blank ProtoDefinition structure to contain the data for this EXTERNPROTO */
     obj=newProtoDefinition();
-
+	obj->isExtern = TRUE;
     /* save the name, if we can get it - it will be the last name on the list, because we will have JUST parsed it. */
     if (vectorSize(me->lexer->userNodeTypesVec) != ID_UNDEFINED) {
 	obj->protoName = STRDUP(vector_get(const char*, me->lexer->userNodeTypesVec, vectorSize(me->lexer->userNodeTypesVec)-1));
@@ -4878,7 +4893,7 @@ struct brotoIS
 	char* nodefieldname;
 	int mode;
 	int ifield;
-	int source;
+	int source; //0= builtin field, 1=script, 2={ComposedShader,ShaderProgram,PackagedShader} 3=Proto
 };
 
 //copy broto IS to old-style global scene routes
@@ -6307,11 +6322,74 @@ void load_externProtoInstance (struct X3D_Proto *node) {
 						pdeclare = vector_get(struct X3D_Proto*,pnode->__protoDeclares,0);
 						pinstance = brotoInstance(pdeclare,1);
 						if (pinstance != NULL) {
+							struct ProtoDefinition *ed, *pd;
+							struct Vector *ei, *pi;
+							struct ProtoFieldDecl *ef, *pf;
+							ed = node->__protoDef;
+							ei = ed->iface;
+							pd = pinstance->__protoDef;
+							pi = pd->iface;
+
+							//inject IS routes
+							{
+								int i,j;
+								char *ename, *pname;
+
+								//match fields to create IStable
+								for(i=0;i<ei->n;i++){
+									ef = protoDefinition_getFieldByNum(ed, i);
+									ename = ef->cname;
+									for(j=0;j<pi->n;j++){
+										pf = protoDefinition_getFieldByNum(pd, j);
+										pname = pf->cname;
+										if(!strcmp(ename,pname)){
+											//name match
+											printf("ename = %s pname = %s\n",ename,pname);
+											if(ef->type == pf->type){
+												//type match
+												printf("etype = %d ptype = %d\n",ef->type, pf->type);
+												//add IS
+												broto_store_IS(node,ef->cname,ef->mode, i, ef->type,	X3D_NODE(pinstance), pf->cname, pf->mode, j, 3);
+											}
+										}
+									}
+								}
+								//convert IStable to browser routes
+								struct Vector *p2p = newVector(struct pointer2pointer*,1);
+								struct pointer2pointer *p2pentry = malloc(sizeof(struct pointer2pointer));
+								//nothing to look up, nuisance to re-use copy_IS
+								p2pentry->pp = X3D_NODE(pinstance);
+								p2pentry->pn = X3D_NODE(pinstance);
+								vector_pushBack(struct pointer2pointer*,p2p,p2pentry);
+								copy_IS(node->__IS, node, p2p);
+							}
+							//copy EPI field initial values to contained PI
+							{
+								int i;
+
+								Stack *istable = (Stack*) node->__IS;
+								if(istable != NULL)
+								for(i=0;i<istable->n;i++)
+								{
+									struct brotoIS* is;
+									int ifield, iprotofield;
+									is = vector_get(struct brotoIS*, istable, i);
+									if(is->pmode == PKW_inputOutput || is->pmode == PKW_initializeOnly){ 
+										if(is->mode == PKW_inputOutput || is->mode == PKW_initializeOnly){
+											ef = protoDefinition_getFieldByNum(ed, is->iprotofield);
+											pf = protoDefinition_getFieldByNum(pd, is->ifield);
+											if(ef->alreadySet)
+											//if(ef->defaultVal.sffloat != 0.0f)
+												memcpy(&pf->defaultVal,&ef->defaultVal, sizeof(union anyVrml));
+										}
+									}
+								}
+							}
+							//now copy broto body, which should cascade inital values down
 							deep_copy_broto_body2(&pdeclare,&pinstance);
                 			AddRemoveChildren(X3D_NODE(node), &node->_children, &X3D_NODE(pinstance), 1, 1,__FILE__,__LINE__);
 							add_parent(X3D_NODE(pinstance),X3D_NODE(node),__FILE__,__LINE__);
-							//inject IS routes
-						}
+						} //if (pinstance != NULL) 
 					}
 				}
 			}
