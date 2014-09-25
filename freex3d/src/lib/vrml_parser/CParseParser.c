@@ -80,7 +80,7 @@ void CParseParser_init(struct tCParseParser *t){
 	{
 		ppCParseParser p = (ppCParseParser)t->prv;
 		p->foundInputErrors = 0;
-		p->useBrotos = 0; //0= none/old-way, non-zero =wrl parsing broto only rendering, DEF/IS/script tables are in new proto 3=EXTERNPROTO is broto wrapper
+		p->useBrotos = 3; //0= none/old-way, non-zero =wrl parsing broto only rendering, DEF/IS/script tables are in new proto 3=EXTERNPROTO is broto wrapper
 	}
 }
 	//ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
@@ -1207,6 +1207,81 @@ static BOOL parser_componentStatement(struct VRMLParser* me) {
 }
 
 
+void handleExport (char *node, char *as) {
+	/* handle export statements. as will be either a string pointer, or NULL */
+	
+	#ifdef CAPABILITIESVERBOSE
+	printf ("handleExport: node :%s: ",node);
+	if (as != NULL) printf (" AS :%s: ",node);
+	printf ("\n");
+	#endif
+}
+
+struct X3D_Context {
+	int protoFlags;
+	void * DEFnames;
+	void * IS;
+	void * ROUTES;
+	void * externProtoDeclares;
+	void * protoDeclares;
+	void * IMPORTS;
+	void * EXPORTS;
+	void * scripts;
+	struct X3D_Context* parentContext;
+	//struct X3D_Node *__parentProto;
+};
+
+
+struct X3D_Context *hasContext(struct X3D_Node* node){
+
+	struct  X3D_Context * context = NULL;
+	/*
+	if(node)
+		switch(node->_nodeType){
+			case NODE_Group:
+				context = offsetPointer_deref(void*, node,  offsetof(struct X3D_Group,__context));
+				break;
+			case NODE_Transform:
+				context = offsetPointer_deref(void*, node,  offsetof(struct X3D_Transform,__context));
+				break;
+			case NODE_Proto:
+				context = offsetPointer_deref(void*, node,  offsetof(struct X3D_Proto,__context));
+				break;
+			case NODE_Inline:  //Q. do I need this in here? Saw code in x3dparser.
+				context = offsetPointer_deref(void*, node,  offsetof(struct X3D_Inline,__context));
+				break;
+			case NODE_GeoLOD:  //Q. do I need this in here?
+				context = offsetPointer_deref(void*, node, offsetof(struct X3D_GeoLOD,__context));
+				break;
+		}
+	*/
+	return context;
+}
+
+void handleExport_B (void *nodeptr, char *node, char *as) {
+	/* handle export statements. as will be either a string pointer, or NULL */
+	if(usingBrotos() && nodeptr && hasContext(nodeptr)){
+		struct X3D_Context *context = hasContext(nodeptr);
+		//context-> hasContext(nodeptr);
+	}
+	#ifdef CAPABILITIESVERBOSE
+	printf ("handleExport: node :%s: ",node);
+	if (as != NULL) printf (" AS :%s: ",node);
+	printf ("\n");
+	#endif
+}
+
+
+void handleImport (char *nodeName,char *nodeImport, char *as) {
+	/* handle Import statements. as will be either a string pointer, or NULL */
+	
+	#ifdef CAPABILITIESVERBOSE
+	printf ("handleImport: inlineNodeName :%s: nodeToImport :%s:",nodeName, nodeImport);
+	if (as != NULL) printf (" AS :%s: ",as);
+	printf ("\n");
+	#endif
+}
+
 static BOOL parser_exportStatement(struct VRMLParser* me) {
     char *nodeToExport = NULL;
     char *alias = NULL; 
@@ -1240,7 +1315,10 @@ static BOOL parser_exportStatement(struct VRMLParser* me) {
     }
 
     /* do the EXPORT */
-    handleExport(nodeToExport, alias);
+	if(usingBrotos())
+		handleExport_B(me->ptr,nodeToExport, alias);
+	else
+		handleExport(nodeToExport, alias);
 
     /* free things up, only as required */
     FREE_IF_NZ(nodeToExport);
@@ -3362,6 +3440,7 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 		struct Shader_Script* script=NULL;
 	#endif
 	struct Shader_Script* shader=NULL;
+	struct X3D_Node* what_am_I = X3D_NODE(me->ptr);
 	currentContext = (struct X3D_Proto*)me->ptr;
 	pflagdepth = ciflag_get(currentContext->__protoFlags,0); //((char *)(&currentContext->__protoFlags))[0];
 
@@ -4267,7 +4346,11 @@ static BOOL parser_externbrotoStatement(struct VRMLParser* me)
     return TRUE;
 }
 
-
+/*Q. could/should brotoRoutes resolve to pointers early during parsing (as they are now) 
+	or late (by storing char* DEFNode, char* fieldname)? 
+	- late might help with Inline IMPORT/EXPORT, where routes are declared
+		before the nodes appear.
+*/
 struct brotoRoute
 {
 	struct X3D_Node* fromNode;

@@ -383,23 +383,3 @@ void handleComponent (int myComponent, int myLevel) {
 		ConsoleMessage ("did not find component %s in capabilities table!",COMPONENTS[myComponent]);
 	}
 }
-
-void handleExport (char *node, char *as) {
-	/* handle export statements. as will be either a string pointer, or NULL */
-	
-	#ifdef CAPABILITIESVERBOSE
-	printf ("handleExport: node :%s: ",node);
-	if (as != NULL) printf (" AS :%s: ",node);
-	printf ("\n");
-	#endif
-}
-
-void handleImport (char *nodeName,char *nodeImport, char *as) {
-	/* handle Import statements. as will be either a string pointer, or NULL */
-	
-	#ifdef CAPABILITIESVERBOSE
-	printf ("handleImport: inlineNodeName :%s: nodeToImport :%s:",nodeName, nodeImport);
-	if (as != NULL) printf (" AS :%s: ",as);
-	printf ("\n");
-	#endif
-}
