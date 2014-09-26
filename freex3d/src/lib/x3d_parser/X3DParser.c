@@ -936,9 +936,14 @@ void linkNodeIn(char *where, int lineno) {
 	*/
 	defaultContainer = myContainer;
 	/* GeoLOD - put into rootNode field */
-	if(myContainer == FIELDNAMES_children && tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1]->_nodeType == NODE_GeoLOD)
+	if(myContainer == FIELDNAMES_children) //&& tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1]->_nodeType == NODE_GeoLOD)
 	{
-		defaultContainer = FIELDNAMES_rootNode; 
+		switch(tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1]->_nodeType){
+		case NODE_GeoLOD:
+			defaultContainer = FIELDNAMES_rootNode; break;
+		case NODE_Proto:
+			defaultContainer = FIELDNAMES___children; break; 
+		}
 	}
 
 	/* Link it in; the parent containerField should exist, and should be an SF or MFNode  */
@@ -1889,7 +1894,11 @@ static void XMLCALL X3DstartElement(void *unused, const xmlChar *iname, const xm
 		switch (myNodeIndex) {
 			case X3DSP_ProtoDeclare: parseProtoDeclare(myAtts); break;
 			case X3DSP_ExternProtoDeclare: parseExternProtoDeclare(myAtts); break;
-			case X3DSP_ProtoBody: parseProtoBody(myAtts); break;
+			case X3DSP_ProtoBody: 
+				//if(usingBrotos()) parseScene(myAtts);
+				//else 
+				parseProtoBody(myAtts); 
+				break;
 			case X3DSP_ProtoInterface: parseProtoInterface(myAtts); break;
 			case X3DSP_ProtoInstance: parseProtoInstance(myAtts); break;
 			case X3DSP_ROUTE: parseRoutes(myAtts); break;
@@ -2094,7 +2103,7 @@ static void shutdownX3DParser () {
 	popParserMode();
 }
 
-int X3DParse (struct X3D_Group* myParent, const char *inputstring) {
+int X3DParse (struct X3D_Node* myParent, const char *inputstring) {
 	ttglobal tg = gglobal();
 	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 	p->currentX3DParser = initializeX3DParser();

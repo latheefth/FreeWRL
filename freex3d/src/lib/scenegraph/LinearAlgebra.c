@@ -1155,7 +1155,7 @@ double matrotate2v(GLDOUBLE* res, struct point_XYZ iv/*original*/, struct point_
 }
 
 
-
+#define SHOW_NONSINGULARS 0  //or 1 for noisy
 /****
  * hacked from a graphics gem
  * Returned value:
@@ -1214,7 +1214,8 @@ BOOL matrix3x3_inverse_float(float *inn, float *outt)
 	if(APPROX(det_1,0.0f)){
 
         /* Matrix M has no inverse */
-        fprintf (stderr, "affine_matrix4_inverse: singular matrix\n");
+
+        if(SHOW_NONSINGULARS) fprintf (stderr, "affine_matrix4_inverse: singular matrix\n");
         return FALSE;
     }
 
@@ -1290,7 +1291,7 @@ BOOL affine_matrix4x4_inverse_float(float *inn, float *outt)
 	if(APPROX(det_1,0.0f)){
 
         /* Matrix M has no inverse */
-        fprintf (stderr, "affine_matrix4_inverse: singular matrix\n");
+        if(SHOW_NONSINGULARS) fprintf (stderr, "affine_matrix4_inverse: singular matrix\n");
         return FALSE;
     }
 
@@ -1374,7 +1375,7 @@ BOOL affine_matrix4x4_inverse_double(double *inn, double *outt)
 	if(APPROX(det_1,0.0)){
 
         /* Matrix M has no inverse */
-        fprintf (stderr, "affine_matrix4_inverse: singular matrix\n");
+        if(SHOW_NONSINGULARS) fprintf (stderr, "affine_matrix4_inverse: singular matrix\n");
         return FALSE;
     }
 

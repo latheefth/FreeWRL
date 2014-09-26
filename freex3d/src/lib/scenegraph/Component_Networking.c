@@ -517,6 +517,8 @@ void load_Inline (struct X3D_Inline *node) {
 					res->offsetFromWhereToPlaceData = offsetof (struct X3D_Inline, __children);
 					res->actions = resa_process;
 					node->__loadstatus = INLINE_PARSING; // a "do-nothing" approach 
+					//tell it to instance (vs library)
+					node->__protoFlags = ciflag_set(node->__protoFlags,1,0);
 					res->complete = FALSE;
 					//send_resource_to_parser(res);
 					//send_resource_to_parser_if_available(res);
