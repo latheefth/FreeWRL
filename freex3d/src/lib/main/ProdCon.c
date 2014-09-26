@@ -765,7 +765,8 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 	/* add the new nodes to wherever the caller wanted */
 
 	/* take the nodes from the nRn node, and put them into the place where we have decided to put them */
-	if(!usingBrotos()){
+	//if(!usingBrotos() ){
+	if(X3D_NODE(nRn)->_nodeType == NODE_Group){
 		struct X3D_Group *nRng = X3D_GROUP(nRn);
 		AddRemoveChildren(X3D_NODE(insert_node),
 				  offsetPointer_deref(void*, insert_node, offsetInNode),

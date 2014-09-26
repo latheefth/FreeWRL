@@ -647,7 +647,7 @@ BOOL parser_vrmlScene_B(struct VRMLParser* me)
 BOOL parser_vrmlScene(struct VRMLParser* me)
 {
 	//ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
-	if(usingBrotos()) //p->useBrotos)
+	if(usingBrotos() && X3D_NODE(me->ptr)->_nodeType == NODE_Proto || X3D_NODE(me->ptr)->_nodeType == NODE_Inline) //p->useBrotos)
 		return parser_vrmlScene_B(me);
 	else
 		return parser_vrmlScene_A(me);
