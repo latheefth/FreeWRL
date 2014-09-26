@@ -4277,8 +4277,8 @@ struct X3D_Node* getTypeNode(struct X3D_Node *node)
 				if(1) //some flag to say it's not the scene, but a protoInstance where only the first node is rendered - see isProto
 				{
 					//the first node in a protobody determines its type
-					if(pn->_children.n > 0)
-						dnode = getTypeNode(pn->_children.p[0]);
+					if(pn->__children.n > 0)
+						dnode = getTypeNode(pn->__children.p[0]);
 					else
 						dnode = NULL;
 				}
@@ -4393,7 +4393,7 @@ void startOfLoopNodeUpdates(void) {
 		struct Multi_Node *children, *_sortedChildren;
 		node = (struct X3D_Node*)rootNode();
 		if(node->_nodeType == NODE_Proto){
-			children = &X3D_PROTO(node)->_children;
+			children = &X3D_PROTO(node)->__children;
 			_sortedChildren = &X3D_PROTO(node)->_sortedChildren;
 		}
 		if(node->_nodeType == NODE_Group) {
@@ -4408,14 +4408,14 @@ void startOfLoopNodeUpdates(void) {
 				But not freewrl. Unless I hide the children field as _children. Then it works.
 			*/
 			addChildren = NULL; removeChildren = NULL; 
-			offsetOfChildrenPtr = offsetof (struct X3D_Proto, _children); 
+			offsetOfChildrenPtr = offsetof (struct X3D_Proto, __children); 
 			if (((struct X3D_Proto *)node)->addChildren.n > 0) { 
 				addChildren = &((struct X3D_Proto *)node)->addChildren; 
-				childrenPtr = &((struct X3D_Proto *)node)->_children; 
+				childrenPtr = &((struct X3D_Proto *)node)->__children; 
 			} 
 			if (((struct X3D_Proto *)node)->removeChildren.n > 0) { 
 				removeChildren = &((struct X3D_Proto *)node)->removeChildren; 
-				childrenPtr = &((struct X3D_Proto *)node)->_children; 
+				childrenPtr = &((struct X3D_Proto *)node)->__children; 
 			}
 
 		}else{

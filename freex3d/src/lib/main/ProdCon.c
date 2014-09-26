@@ -248,7 +248,7 @@ struct Multi_Node *childrenField(struct X3D_Node *node){
 				childs = offsetPointer_deref(void*, node,  offsetof(struct X3D_Transform,children));
 				break;
 			case NODE_Proto:
-				childs = offsetPointer_deref(void*, node,  offsetof(struct X3D_Proto,_children));
+				childs = offsetPointer_deref(void*, node,  offsetof(struct X3D_Proto,__children));
 				break;
 			case NODE_Inline:  //Q. do I need this in here? Saw code in x3dparser.
 				childs = offsetPointer_deref(void*, node,  offsetof(struct X3D_Inline,__children));
@@ -270,7 +270,7 @@ int offsetofChildren(struct X3D_Node *node){
 				offs = offsetof(struct X3D_Transform,children);
 				break;
 			case NODE_Proto:
-				offs = offsetof(struct X3D_Proto,_children);
+				offs = offsetof(struct X3D_Proto,__children);
 				break;
 			case NODE_Inline:  //Q. do I need this in here? Saw code in x3dparser.
 				offs = offsetof(struct X3D_Inline,__children);
@@ -377,7 +377,7 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 		if (gglobal()->internalc.global_strictParsing) { ConsoleMessage ("unknown text as input"); } else {
 			inputFileType = IS_TYPE_VRML;
 			inputFileVersion[0] = 2; /* try VRML V2 */
-			cParse (nRn,(int) offsetof (struct X3D_Proto, _children), (const char*)input);
+			cParse (nRn,(int) offsetof (struct X3D_Proto, __children), (const char*)input);
 			p->haveParsedCParsed = TRUE; }
 	}
 	}
@@ -697,7 +697,7 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 				nRn = X3D_NODE(res->whereToPlaceData);
 			else{
 				struct X3D_Proto *sceneProto;
-				sceneProto = (struct X3D_Node *) createNewX3DNode(NODE_Proto);
+				sceneProto = (struct X3D_Proto *) createNewX3DNode(NODE_Proto);
 				sceneProto->__protoFlags = ciflag_set(sceneProto->__protoFlags,1,0);
 				//if(usingBrotos() > 1){
 					//((char *)(&sceneProto->__protoFlags))[2] = 2; // 2=scene type object, render all children

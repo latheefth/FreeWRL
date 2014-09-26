@@ -4199,7 +4199,7 @@ static BOOL parser_brotoStatement(struct VRMLParser* me)
 		ptr = me->ptr;
 		ofs = me->ofs; //Q. does this change? Or are we always ofs of children in Proto? H: parseFromString different
 		me->ptr = proto;
-		me->ofs = offsetof(struct X3D_Proto, _children);
+		me->ofs = offsetof(struct X3D_Proto, __children);
 		parse_proto_body(me);
 		me->ptr = ptr;
 		me->ofs = ofs;
@@ -4335,7 +4335,7 @@ static BOOL parser_externbrotoStatement(struct VRMLParser* me)
 		resource_item_t *res;
 
 		/* get the URL string */
-		if (!parser_mfstringValue(me,&proto->__url)) {
+		if (!parser_mfstringValue(me,&proto->url)) {
 			PARSE_ERROR ("EXTERNPROTO - problem reading URL string");
 		}
 		proto->__loadstatus = LOAD_INITIAL_STATE;
@@ -4825,8 +4825,8 @@ void deep_copy_broto_body2(struct X3D_Proto** proto, struct X3D_Proto** dest)
 	
 	//2. copy body from source's _prototype.children to dest.children, ISing initialvalues as we go
 	p=(*dest);
-	p->_children.n = 0;
-	p->_children.p = NULL;
+	p->__children.n = 0;
+	p->__children.p = NULL;
 	parent = (struct X3D_Node*) (*dest); //NULL;
 	prototype = (struct X3D_Proto*)(*proto)->__prototype;
 
@@ -4849,7 +4849,7 @@ void deep_copy_broto_body2(struct X3D_Proto** proto, struct X3D_Proto** dest)
 	}
 
 	//2.a) copy rootnodes
-	copy_field(FIELDTYPE_MFNode,(union anyVrml*)&(prototype->_children),(union anyVrml*)&(p->_children),
+	copy_field(FIELDTYPE_MFNode,(union anyVrml*)&(prototype->__children),(union anyVrml*)&(p->__children),
 		p2p,instancedScripts,p,parent);
 	//2.b) copy routes
 	copy_routes2(prototype->__ROUTES, p, p2p);
@@ -4880,8 +4880,8 @@ struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep)
 	if(ideep){
 		p = createNewX3DNode(NODE_Proto);
 		//memcpy(p,proto,sizeof(struct X3D_Proto)); //dangerous, make sure you re-instance all pointer variables
-		p->_children.n = 0; //don't copy children in here - see below
-		p->_children.p = NULL;
+		p->__children.n = 0; //don't copy children in here - see below
+		p->__children.p = NULL;
 		int pflags = 0;
 		//char pflags[4];
 		pflags = ciflag_set(pflags,1,0); //pflags[0] = 1; //deep
@@ -4896,8 +4896,8 @@ struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep)
 		//shallow
 		p = createNewX3DNode0(NODE_Proto);
 		//memcpy(p,proto,sizeof(struct X3D_Proto)); //dangerous, make sure you re-instance all pointer variables
-		p->_children.n = 0; //don't copy children in here.
-		p->_children.p = NULL;
+		p->__children.n = 0; //don't copy children in here.
+		p->__children.p = NULL;
 		//char pflags[4];
 		//pflags[0] = 0; //shallow
 		//pflags[1] = 0; //new way/brotos
@@ -5202,8 +5202,8 @@ void deep_copy_broto_body(struct X3D_Proto** proto, struct X3D_Proto** dest, Sta
 	
 	//2. copy body from source's _prototype.children to dest.children, ISing initialvalues as we go
 	p=(*dest);
-	p->_children.n = 0;
-	p->_children.p = NULL;
+	p->__children.n = 0;
+	p->__children.p = NULL;
 	parent = (struct X3D_Node*) (*dest); //NULL;
 	prototype = (struct X3D_Proto*)(*proto)->__prototype;
 	//prototype = (struct X3D_Proto*)p->__prototype;
@@ -5214,7 +5214,7 @@ void deep_copy_broto_body(struct X3D_Proto** proto, struct X3D_Proto** dest, Sta
 	copy_IStable((Stack **) &(prototype->__IS), (Stack **) &(p->__IS));
 
 	//2.a) copy rootnodes
-	copy_field(FIELDTYPE_MFNode,(union anyVrml*)&(prototype->_children),(union anyVrml*)&(p->_children),
+	copy_field(FIELDTYPE_MFNode,(union anyVrml*)&(prototype->__children),(union anyVrml*)&(p->__children),
 		p2p,instancedScripts,p,parent);
 	//2.b) copy routes
 	copy_routes(prototype->__ROUTES, p, p2p);
@@ -5745,7 +5745,7 @@ void sceneInstance(struct X3D_Proto* sceneProto, struct X3D_Node *sceneInstance)
 	//}else{
 	//I think the sceneProto being passed in is already the prototype -with body- and not an interface/instance
 	//copy rootnodes
-	copy_field(FIELDTYPE_MFNode,(union anyVrml*)&(sceneProto->_children),(union anyVrml*)children,
+	copy_field(FIELDTYPE_MFNode,(union anyVrml*)&(sceneProto->__children),(union anyVrml*)children,
 		p2p,instancedScripts,scenePlaceholderProto,parent);
 	//}
 	//copy sceneProto routes (child protoInstance routes copied elsewhere)
@@ -6275,11 +6275,11 @@ void load_externProtoDeclare (struct X3D_Proto *node) {
 		switch (node->__loadstatus) {
 			case LOAD_INITIAL_STATE: /* nothing happened yet */
 
-			if (node->__url.n == 0) {
+			if (node->url.n == 0) {
 				node->__loadstatus = LOAD_STABLE; /* a "do-nothing" approach */
 				break;
 			} else {
-				res = resource_create_multi(&(node->__url));
+				res = resource_create_multi(&(node->url));
 				res->media_type = resm_unknown;
 				node->__loadstatus = LOAD_REQUEST_RESOURCE;
 				node->__loadResource = res;
@@ -6302,7 +6302,7 @@ void load_externProtoDeclare (struct X3D_Proto *node) {
 				res->actions = resa_download | resa_load; //not resa_parse which we do below
 				struct X3D_Proto *libraryScene = createNewX3DNode0(NODE_Proto);
 				res->whereToPlaceData = X3D_NODE(libraryScene);
-				res->offsetFromWhereToPlaceData = offsetof (struct X3D_Proto, _children);
+				res->offsetFromWhereToPlaceData = offsetof (struct X3D_Proto, __children);
 				addLibrary(res->URLrequest,libraryScene,res);
 				resitem_enqueue(ml_new(res));
 			}
@@ -6390,7 +6390,7 @@ void load_externProtoInstance (struct X3D_Proto *node) {
 	flagExtern = ciflag_get(node->__protoFlags,3);
 	if(flagInstance == 1 && flagExtern == 1) { //if protoInstance and extern
 		struct X3D_Proto *pnode = NULL;
-		if(node->_children.n) return; //externProtoInstance body node already instanced
+		if(node->__children.n) return; //externProtoInstance body node already instanced
 		pnode = (struct X3D_Proto*)node->__prototype;
 		if(pnode) {
 			if(pnode->__loadstatus != LOAD_STABLE){
@@ -6471,7 +6471,7 @@ void load_externProtoInstance (struct X3D_Proto *node) {
 							}
 							//now copy broto body, which should cascade inital values down
 							deep_copy_broto_body2(&pdeclare,&pinstance);
-                			AddRemoveChildren(X3D_NODE(node), &node->_children, &X3D_NODE(pinstance), 1, 1,__FILE__,__LINE__);
+                			AddRemoveChildren(X3D_NODE(node), &node->__children, &X3D_NODE(pinstance), 1, 1,__FILE__,__LINE__);
 							add_parent(X3D_NODE(pinstance),X3D_NODE(node),__FILE__,__LINE__);
 						} //if (pinstance != NULL) 
 					}

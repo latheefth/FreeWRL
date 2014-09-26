@@ -942,7 +942,7 @@ void linkNodeIn(char *where, int lineno) {
 		case NODE_GeoLOD:
 			defaultContainer = FIELDNAMES_rootNode; break;
 		case NODE_Proto:
-			defaultContainer = FIELDNAMES__children; break; 
+			defaultContainer = FIELDNAMES___children; break; 
 		}
 	}
 
