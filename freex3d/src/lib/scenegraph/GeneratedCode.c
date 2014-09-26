@@ -3672,15 +3672,30 @@ const int OFFSETS_IndexedTriangleStripSet[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Inline[] = {
-	(int) FIELDNAMES___children, (int) offsetof (struct X3D_Inline, __children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) 0,
+	(int) FIELDNAMES___DEFnames, (int) offsetof (struct X3D_Inline, __DEFnames),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___IS, (int) offsetof (struct X3D_Inline, __IS),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___ROUTES, (int) offsetof (struct X3D_Inline, __ROUTES),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___afterPound, (int) offsetof (struct X3D_Inline, __afterPound),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___children, (int) offsetof (struct X3D_Inline, __children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES___externProtoDeclares, (int) offsetof (struct X3D_Inline, __externProtoDeclares),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___loadResource, (int) offsetof (struct X3D_Inline, __loadResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___loadstatus, (int) offsetof (struct X3D_Inline, __loadstatus),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___parentProto, (int) offsetof (struct X3D_Inline, __parentProto),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES___protoDeclares, (int) offsetof (struct X3D_Inline, __protoDeclares),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___protoDef, (int) offsetof (struct X3D_Inline, __protoDef),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___protoFlags, (int) offsetof (struct X3D_Inline, __protoFlags),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___prototype, (int) offsetof (struct X3D_Inline, __prototype),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES___scripts, (int) offsetof (struct X3D_Inline, __scripts),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___typename, (int) offsetof (struct X3D_Inline, __typename),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__parentResource, (int) offsetof (struct X3D_Inline, _parentResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__sortedChildren, (int) offsetof (struct X3D_Inline, _sortedChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) 0,
+	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_Inline, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_Inline, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_Inline, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_load, (int) offsetof (struct X3D_Inline, load),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_Inline, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_url, (int) offsetof (struct X3D_Inline, url),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_removeChildren, (int) offsetof (struct X3D_Inline, removeChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_url, (int) offsetof (struct X3D_Inline, url),  (int) FIELDTYPE_MFString, (int) KW_initializeOnly, (int) 0,
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_IntegerSequencer[] = {
@@ -7140,14 +7155,29 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Inline : {
 			struct X3D_Inline * tmp2;
 			tmp2 = (struct X3D_Inline *) tmp;
+			tmp2->__DEFnames = 0;
+			tmp2->__IS = 0;
+			tmp2->__ROUTES = 0;
+			tmp2->__afterPound = 0;
 			tmp2->__children.n=0; tmp2->__children.p=0;
+			tmp2->__externProtoDeclares = 0;
 			tmp2->__loadResource = 0;
 			tmp2->__loadstatus = 0;
+			tmp2->__parentProto = NULL;
+			tmp2->__protoDeclares = 0;
+			tmp2->__protoDef = 0;
+			tmp2->__protoFlags = 0;
+			tmp2->__prototype = NULL;
+			tmp2->__scripts = 0;
+			tmp2->__typename = 0;
 			tmp2->_parentResource = getInputResource();
+			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
+			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->load = TRUE;
 			tmp2->metadata = NULL;
+			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
 			tmp2->url.n=0; tmp2->url.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
@@ -10493,10 +10523,12 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			for (i=0; i<tmp->__children.n; i++) { dump_scene(fp,level+1,tmp->__children.p[i]); }
 		    }
 		    if(allFields) {
+			spacer fprintf (fp," _sortedChildren (MFNode):\n");
+			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(fp,level+1,tmp->_sortedChildren.p[i]); }
+		    }
+		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp," url (MFString): \n");
-			for (i=0; i<tmp->url.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
 		    break;
 		}
 		case NODE_IntegerSequencer : {

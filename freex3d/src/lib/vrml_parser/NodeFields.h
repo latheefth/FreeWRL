@@ -995,11 +995,13 @@ END_NODE(IndexedTriangleStripSet)
 
 /* Inline node */
 BEGIN_NODE(Inline)
+EVENT_IN(Inline,addChildren,mfnode,addChildren,FIELDTYPE_MFNode)
 FIELD(Inline,bboxCenter,sfvec3f,bboxCenter,FIELDTYPE_SFVec3f)
 FIELD(Inline,bboxSize,sfvec3f,bboxSize,FIELDTYPE_SFVec3f)
 FIELD(Inline,load,sfbool,load,FIELDTYPE_SFBool)
 EXPOSED_FIELD(Inline,metadata,sfnode,metadata,FIELDTYPE_SFNode)
-EXPOSED_FIELD(Inline,url,mfstring,url,FIELDTYPE_MFString)
+EVENT_IN(Inline,removeChildren,mfnode,removeChildren,FIELDTYPE_MFNode)
+FIELD(Inline,url,mfstring,url,FIELDTYPE_MFString)
 END_NODE(Inline)
 
 /* IntegerSequencer node */

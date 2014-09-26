@@ -4071,14 +4071,29 @@ struct X3D_Inline {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
+	void * __DEFnames;
+	void * __IS;
+	void * __ROUTES;
+	void * __afterPound;
 	struct Multi_Node __children;
+	void * __externProtoDeclares;
 	void * __loadResource;
 	int __loadstatus;
+	struct X3D_Node *__parentProto;
+	void * __protoDeclares;
+	void * __protoDef;
+	int __protoFlags;
+	struct X3D_Node *__prototype;
+	void * __scripts;
+	void * __typename;
 	void * _parentResource;
+	struct Multi_Node _sortedChildren;
+	struct Multi_Node addChildren;
 	struct SFVec3f bboxCenter;
 	struct SFVec3f bboxSize;
 	int load;
 	struct X3D_Node *metadata;
+	struct Multi_Node removeChildren;
 	struct Multi_String url;
 };
 extern struct X3D_Virt virt_Inline;

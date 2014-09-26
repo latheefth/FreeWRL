@@ -187,16 +187,42 @@ our %Nodes = (
 
 
 	"Inline" => new VRML::NodeType("Inline", {
-		load => ["SFBool", "TRUE","initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__children => ["MFNode", [], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		url => ["MFString", [], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		bboxCenter => ["SFVec3f", [0, 0, 0], "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		bboxSize => ["SFVec3f", [-1, -1, -1], "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-
-                __children => ["MFNode", [], "inputOutput", 0],
+		_sortedChildren => ["MFNode", [], "inputOutput", 0],
+		addChildren => ["MFNode", undef, "inputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		removeChildren => ["MFNode", undef, "inputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__protoDeclares => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		__externProtoDeclares => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		__protoDef => ["FreeWRLPTR", 0, "initializeOnly", 0], #user fields
+		__protoFlags => ["SFInt32", 0, "initializeOnly", 0],
+		__prototype => ["SFNode", "NULL", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], #first node in protobody
+		__parentProto => ["SFNode", "NULL", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], #first node in protobody
+		__ROUTES => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		__DEFnames => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		__IS => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		__scripts => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		url => ["MFString", [], "initializeOnly", 0],
+		__afterPound => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		__loadstatus =>["SFInt32",0,"initializeOnly", 0],
 		_parentResource =>["FreeWRLPTR",0,"initializeOnly", 0],
-		 __loadResource => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		__loadResource => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		__typename => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		load => ["SFBool", "TRUE","initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		
+		
+		# load => ["SFBool", "TRUE","initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		# metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		# url => ["MFString", [], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		# bboxCenter => ["SFVec3f", [0, 0, 0], "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		# bboxSize => ["SFVec3f", [-1, -1, -1], "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+
+                # __children => ["MFNode", [], "inputOutput", 0],
+		# __loadstatus =>["SFInt32",0,"initializeOnly", 0],
+		# _parentResource =>["FreeWRLPTR",0,"initializeOnly", 0],
+		 # __loadResource => ["FreeWRLPTR", 0, "initializeOnly", 0],
 	},"X3DNetworkSensorNode"),
 
 	"LoadSensor" => new VRML::NodeType("LoadSensor", {

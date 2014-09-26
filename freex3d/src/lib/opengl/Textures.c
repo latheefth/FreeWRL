@@ -384,11 +384,13 @@ void releaseTexture(struct X3D_Node *node) {
 #endif
 
 	ti = getTableIndex(tableIndex);
-	ti->status = TEX_NOTLOADED;
-	if (ti->OpenGLTexture != TEXTURE_INVALID) {
-		FW_GL_DELETETEXTURES(1, &ti->OpenGLTexture);
-		ti->OpenGLTexture = TEXTURE_INVALID;
-/* 		FREE_IF_NZ(ti->OpenGLTexture); */
+	if(ti){
+		ti->status = TEX_NOTLOADED;
+		if (ti->OpenGLTexture != TEXTURE_INVALID) {
+			FW_GL_DELETETEXTURES(1, &ti->OpenGLTexture);
+			ti->OpenGLTexture = TEXTURE_INVALID;
+	/* 		FREE_IF_NZ(ti->OpenGLTexture); */
+		}
 	}
 }
 
@@ -1338,7 +1340,6 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 
 	GET_THIS_TEXTURE;
 	myTableIndex = getTableIndex(thisTexture);
-
 	if (myTableIndex->status != TEX_LOADED) {
 		DEBUG_TEX("new_bind_image, I am %p, textureStackTop %d, thisTexture is %d myTableIndex %p status %s\n",
 		node,tg->RenderFuncs.textureStackTop,thisTexture,myTableIndex, texst(myTableIndex->status));
