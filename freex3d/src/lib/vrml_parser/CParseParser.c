@@ -6109,18 +6109,10 @@ BOOL found_IS_field(struct VRMLParser* me, struct X3D_Node *node)
 	f = NULL;
 	{
 		const char* pname = NULL;
-		//struct Vector* usernames[4];
-		//const char **userArr;
-		//usernames[0] = me->lexer->user_initializeOnly;
-		//usernames[1] = me->lexer->user_inputOnly;
-		//usernames[2] = me->lexer->user_outputOnly;
-		//usernames[3] = me->lexer->user_inputOutput;
 		iprotofield = -1;
 		for(i=0; i!=vectorSize(pdef->iface); ++i)
 		{
 			f=vector_get(struct ProtoFieldDecl*, pdef->iface, i);
-			//userArr =&vector_get(const char*, usernames[X3DMODE(f->mode)], 0);
-			//pname = userArr[f->name];
 			pname = f->cname;
 
 			foundProtoField = !strcmp(pname,protoFieldName) ? TRUE : FALSE;
