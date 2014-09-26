@@ -79,8 +79,8 @@ static int XML_ParseFile(xmlSAXHandler *me, const char *myinput, int myinputlen,
 
 /* elements */
 #define XML_SetElementHandler(aaa,bbb,ccc) \
-        aaa->startElement = bbb; \
-        aaa->endElement = ccc; 
+	aaa->startElement = bbb; \
+	aaa->endElement = ccc; 
 
 /* CDATA handling */
 #define XML_SetDefaultHandler(aaa,bbb) /* this is CDATA related too */
@@ -541,64 +541,59 @@ int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs,
 		break; }
 	case NODE_ComposedShader: {
 		*myObj = (struct Shader_Script *) X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields;
-        error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));
+		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));
 		break; }
-            
-            
 	case NODE_ShaderProgram: {
 		*myObj = (struct Shader_Script *) X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields;
 		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));        
 		break; }
-             
-            
 	case NODE_PackagedShader: {
 		*myObj = (struct Shader_Script *) X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields;
 		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));
 		break; }
     case NODE_ProgramShader: {
-            int i;
-            
-            // assume we have an error, unless we find this in the PackagedShader field
-            error = true;
-            
-            // a ProgramShader has potentially lots of ShaderPrograms in the "programs" field...
-            //ConsoleMessage ("have a PRogramShder here, it has %d programs ",X3D_PROGRAMSHADER(node)->programs.n);
-            for (i=0; i<X3D_PROGRAMSHADER(node)->programs.n; i++) {
-                struct X3D_ShaderProgram *ps = X3D_SHADERPROGRAM(X3D_PROGRAMSHADER(node)->programs.p[i]);
-                //ConsoleMessage ("ProgramShader program %d is %p",i,ps);
-                if (ps != NULL) {
-                    int tmpOfs, tmpType, terror;
+			int i;
 
-                    //ConsoleMessage ("ProgramShader, child %d is a %s",i,stringNodeType(ps->_nodeType));
-                    *myObj = (struct Shader_Script *) ps->_shaderUserDefinedFields;
-                    //ConsoleMessage (".... and the userDefinedFields for this one is %p",*myObj);
-                    terror = !(getFieldFromScript (myLexer, name,*myObj,&tmpOfs,&tmpType,accessType));
-                    //ConsoleMessage ("have error %s",terror?" ok ":" not ok" );
-                
-                    if (!terror) {
-                        //ConsoleMessage ("found it");
-                        *offs = tmpOfs; *type = tmpType;
-                        error = false; // ie, no error
-                    }
+			// assume we have an error, unless we find this in the PackagedShader field
+			error = true;
 
-                }
-            }
-            break;}
+			// a ProgramShader has potentially lots of ShaderPrograms in the "programs" field...
+			//ConsoleMessage ("have a PRogramShder here, it has %d programs ",X3D_PROGRAMSHADER(node)->programs.n);
+			for (i=0; i<X3D_PROGRAMSHADER(node)->programs.n; i++) {
+				struct X3D_ShaderProgram *ps = X3D_SHADERPROGRAM(X3D_PROGRAMSHADER(node)->programs.p[i]);
+				//ConsoleMessage ("ProgramShader program %d is %p",i,ps);
+				if (ps != NULL) {
+					int tmpOfs, tmpType, terror;
+
+					//ConsoleMessage ("ProgramShader, child %d is a %s",i,stringNodeType(ps->_nodeType));
+					*myObj = (struct Shader_Script *) ps->_shaderUserDefinedFields;
+					//ConsoleMessage (".... and the userDefinedFields for this one is %p",*myObj);
+					terror = !(getFieldFromScript (myLexer, name,*myObj,&tmpOfs,&tmpType,accessType));
+					//ConsoleMessage ("have error %s",terror?" ok ":" not ok" );
+
+					if (!terror) {
+						//ConsoleMessage ("found it");
+						*offs = tmpOfs; *type = tmpType;
+						error = false; // ie, no error
+					}
+
+				}
+			}
+			break;}
 	default:
 		*myObj=NULL;
-    
-            /* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
-            fieldInt = findRoutedFieldInFIELDNAMES (node, name, routeTo);
 
-            if (fieldInt >=0) { findFieldInOFFSETS(node->_nodeType, 
-                                                   fieldInt, offs, type, accessType);
-            } else {
-                /* do NOT set error here; this might be a PROTO expansion and more work is needed */
-                *offs=INT_ID_UNDEFINED;
-                *type=INT_ID_UNDEFINED;
-            }
+		/* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
+		fieldInt = findRoutedFieldInFIELDNAMES (node, name, routeTo);
+
+		if (fieldInt >=0) { findFieldInOFFSETS(node->_nodeType,fieldInt, offs, type, accessType);
+		} else {
+			/* do NOT set error here; this might be a PROTO expansion and more work is needed */
+			*offs=INT_ID_UNDEFINED;
+			*type=INT_ID_UNDEFINED;
+		}
 	}
-    //if (error) ConsoleMessage ("getRoutingInfo an error"); else ConsoleMessage ("getRoutingInfo ok");
+	//if (error) ConsoleMessage ("getRoutingInfo an error"); else ConsoleMessage ("getRoutingInfo ok");
 
 	return error;
 }
@@ -613,12 +608,12 @@ static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node **innode, i
 
 	node = *innode; /* ease of use - contents of pointer in param line */
  
-    //printf ("start of getRouteField...\n");
-    
+	//printf ("start of getRouteField...\n");
+
 	error = getRoutingInfo(myLexer,node,offs,type,&accessType, &holder, name,routeTo);
-    
-    //if (error) ConsoleMessage ("getRouteField,  after getRoutingInfo an error"); else ConsoleMessage ("getRouteField, getRoutingInfo ok");
-    //printf ("getRouteField, offs %d type %d\n",*offs, *type); 
+
+	//if (error) ConsoleMessage ("getRouteField,  after getRoutingInfo an error"); else ConsoleMessage ("getRouteField, getRoutingInfo ok");
+	//printf ("getRouteField, offs %d type %d\n",*offs, *type); 
 
 	if ((*offs <0) && isProto(node)) 
 	{
@@ -710,7 +705,7 @@ static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node **innode, i
 		//}
 	}
 
-    //if (error) ConsoleMessage ("getRouteField,  an error"); else ConsoleMessage ("getRouteField,  ok");
+	//if (error) ConsoleMessage ("getRouteField,  an error"); else ConsoleMessage ("getRouteField,  ok");
 
 
 	if (*offs <0) {
@@ -720,7 +715,7 @@ static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node **innode, i
 	}
 
 	/* can we route with this direction with this field? This might be already checked, but lets
-	   make sure once and for all... */
+		make sure once and for all... */
 	if (routeTo) {
 		if ((accessType != KW_inputOnly) && (accessType != KW_inputOutput)) {
 			ConsoleMessage ("ROUTE: line %d: can not route TO a type of %s\n",LINE,stringKeywordType(accessType));
@@ -732,7 +727,7 @@ static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node **innode, i
 			error = TRUE;
 		}
 	}
-    //if (error) ConsoleMessage ("getRouteField, returning an error"); else ConsoleMessage ("getRouteField, returning ok");
+	//if (error) ConsoleMessage ("getRouteField, returning an error"); else ConsoleMessage ("getRouteField, returning ok");
 	return error;
 }
 
@@ -799,7 +794,7 @@ static void parseRoutes (char **atts) {
 		} else if (strcmp("toField",atts[i]) ==0) {
 			error = getRouteField(p->myLexer, &toNode, &toOffset, &toType, (char *)atts[i+1],1);
 		}
-	}	
+	}
 
 	/* get out of here if an error is found */
 	if (error) return;
@@ -808,7 +803,7 @@ static void parseRoutes (char **atts) {
 	printf ("now routing from a %s to a %s \n",stringFieldtypeType(fromType), stringFieldtypeType(toType));
 	printf ("	pointers %d %d to %d %d\n",fromNode, fromOffset, toNode, toOffset);
 	#endif
-    
+
 
 	/* are the types the same? */
 	if (fromType != toType) {
@@ -830,19 +825,18 @@ static void parseRoutes (char **atts) {
 
 WARNING - PROTOS have a two extra groups put in; one to hold while parsing, and one Group that is always there. 
 
- <Scene>
-
-  <ProtoDeclare name='txt001'>
-  <ProtoBody>
-    <Material ambientIntensity='0' diffuseColor='1 0.85 0.7' specularColor='1 0.85 0.7' shininess='0.3'/>
-  </ProtoBody>
-  </ProtoDeclare>
-  <Shape>
-        <Cone/>
-     <Appearance>
-                <ProtoInstance  name='txt001'/>
-</Appearance>
-  </Shape>
+<Scene>
+	<ProtoDeclare name='txt001'>
+	<ProtoBody>
+		<Material ambientIntensity='0' diffuseColor='1 0.85 0.7' specularColor='1 0.85 0.7' shininess='0.3'/>
+	</ProtoBody>
+	</ProtoDeclare>
+	<Shape>
+		<Cone/>
+		<Appearance>
+			<ProtoInstance  name='txt001'/>
+		</Appearance>
+	</Shape>
 </Scene>
 
 is a good test to see what happens for these nodes. 
@@ -881,7 +875,7 @@ void linkNodeIn(char *where, int lineno) {
 	ttglobal tg = gglobal();
 
 	/* did we have a valid node here? Things like ProtoDeclares are NOT valid nodes, and we can ignore them,
-	   because there will be no code associated with them */
+		because there will be no code associated with them */
 	
 	/* bounds check */
 	if (tg->X3DParser.parentIndex < 1) {
@@ -931,8 +925,8 @@ void linkNodeIn(char *where, int lineno) {
 	myContainer = tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_defaultContainer;
 	
 	/* kid swap - any parent nodes -like GeoLOD- that have a children field, but intend 
-	   to put _defaultContainer=FIELDNAMES_children xml child nodes 
-	   into a different field can do it here
+		to put _defaultContainer=FIELDNAMES_children xml child nodes 
+		into a different field can do it here
 	*/
 	defaultContainer = myContainer;
 	/* GeoLOD - put into rootNode field */
@@ -953,7 +947,7 @@ void linkNodeIn(char *where, int lineno) {
 
 	/* PROTOS - we will have a Group node here */
 	/* first case, assigning a node to a PROTO Group expansion - eg, in the above example, 
-	   Material should go to appearance, but FORCE it go to children here. */
+		Material should go to appearance, but FORCE it go to children here. */
 
 	if ((ctype == INT_ID_UNDEFINED) && (tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1]->_nodeType == NODE_Group)) {
 		/* printf ("problem finding field %d in a Group %u, so we are pretending this is a PROTO for now\n",
@@ -1025,9 +1019,9 @@ void linkNodeIn(char *where, int lineno) {
 
 	if ((coffset <= 0) && (!tg->internalc.global_strictParsing)) {
 		if ((tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType == NODE_MetadataFloat) ||
-		    (tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType == NODE_MetadataString) ||
-		    (tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType == NODE_MetadataDouble) ||
-		    (tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType == NODE_MetadataInteger)) {
+			(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType == NODE_MetadataString) ||
+			(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType == NODE_MetadataDouble) ||
+			(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType == NODE_MetadataInteger)) {
 			findFieldInOFFSETS(tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1]->_nodeType, 
 				FIELDNAMES_metadata, &coffset, &ctype, &ctmp);
 
@@ -1040,7 +1034,7 @@ void linkNodeIn(char *where, int lineno) {
 
 		}
 		if (coffset <= 0) {
-		    /* this is stated better below 
+			/* this is stated better below 
 			ConsoleMessage ("X3DParser - trouble finding field %s in node %s\n",
 			stringFieldType(parentStack[parentIndex]->_defaultContainer),
 			stringNodeType(parentStack[parentIndex-1]->_nodeType));
@@ -1071,7 +1065,7 @@ void linkNodeIn(char *where, int lineno) {
 			tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1], /* parent */
 			(struct Multi_Node *) memptr,			/* where the children field is */
 			&(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]),	/* this child, 1 node */
-                1, 1,__FILE__,__LINE__);
+				1, 1,__FILE__,__LINE__);
 	}
 }
 
@@ -1080,9 +1074,9 @@ void endCDATA (void *user_data, const xmlChar *string, int len) {
 	ttglobal tg = gglobal();
 	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 	/* JAS printf ("cdata_element, :%s:\n",string); */
-        if (getParserMode() == PARSING_PROTOBODY) {
-                dumpCDATAtoProtoBody ((char *)string);
-        } else if (p->in3_3_fieldValue) {
+	if (getParserMode() == PARSING_PROTOBODY) {
+		dumpCDATAtoProtoBody ((char *)string);
+	} else if (p->in3_3_fieldValue) {
 		appendDataToFieldValue((char *)string,len);
 	} else {
 		/* most likely we have a script here */
@@ -1106,7 +1100,7 @@ void endCDATA (void *user_data, const xmlChar *string, int len) {
 static void parseImport(char **atts) {
 	int i;
 
-        for (i = 0; atts[i]; i += 2) {
+	for (i = 0; atts[i]; i += 2) {
 		printf("import field:%s=%s\n", atts[i], atts[i + 1]);
 	}
 /* do nothing right now */
@@ -1117,16 +1111,16 @@ return;
 /* parse a export statement, and send the results along */
 static void parseExport(char **atts) {
 	int i;
-        char *nodeToExport = NULL;
-        char *alias = NULL;
+	char *nodeToExport = NULL;
+	char *alias = NULL;
 
-        for (i = 0; atts[i]; i += 2) {
+	for (i = 0; atts[i]; i += 2) {
 		printf("export field:%s=%s\n", atts[i], atts[i + 1]);
 	}
 /* do nothing right now */
 return;
 
-        	handleExport(nodeToExport, alias);
+	handleExport(nodeToExport, alias);
 }
 
 /* parse a component statement, and send the results along */
@@ -1170,7 +1164,7 @@ static void parseX3Dhead(char **atts) {
 	int myProfile = -10000; /* something negative, not INT_ID_UNDEFINED... */
 	int versionIndex = INT_ID_UNDEFINED;
 
-        for (i = 0; atts[i]; i += 2) {
+	for (i = 0; atts[i]; i += 2) {
 		/* printf("parseX3Dhead: field:%s=%s\n", atts[i], atts[i + 1]); */
 		if (strcmp("profile",atts[i]) == 0) {
 			myProfile = findFieldInPROFILES(atts[i+1]);
@@ -1196,19 +1190,19 @@ static void parseX3Dhead(char **atts) {
 
 static void parseHeader(char **atts) {
 	int i;
-        for (i = 0; atts[i]; i += 2) {
+	for (i = 0; atts[i]; i += 2) {
 		/* printf("parseHeader: field:%s=%s\n", atts[i], atts[i + 1]); */
 	}
 }
 static void parseScene(char **atts) {
 	int i;
-        for (i = 0; atts[i]; i += 2) {
+	for (i = 0; atts[i]; i += 2) {
 		/* printf("parseScene: field:%s=%s\n", atts[i], atts[i + 1]); */
 	}
 }
 static void parseMeta(char **atts) {
 	int i;
-        for (i = 0; atts[i]; i += 2) {
+	for (i = 0; atts[i]; i += 2) {
 		/* printf("parseMeta field:%s=%s\n", atts[i], atts[i + 1]); */
 	}
 }
@@ -1224,7 +1218,7 @@ static void parseFieldValue(const char *name, char **atts) {
 	printf ("parseFieldValue, mode %s\n",parserModeStrings[getParserMode()]);  
 	#endif
 
-        for (i = 0; atts[i]; i += 2) {
+	for (i = 0; atts[i]; i += 2) {
 		#ifdef X3DPARSERVERBOSE
 		printf("parseFieldValue field:%s=%s\n", atts[i], atts[i + 1]);
 		#endif
@@ -1396,13 +1390,13 @@ static void endProtoInstanceField(const char *name) {
 
 
 /* did we get a USE in a proto instance, like:
-               <ProtoInstance name='CamLoader' DEF='Camera1_Bgpic'>
-                    <fieldValue name='imageName' value='Default.jpg'/>
-                    <fieldValue name='relay'>
-                        <Script USE='CameraRelay'/>
-                    </fieldValue>
-                    <fieldValue name='yscale' value='3.0'/>
-                </ProtoInstance>
+<ProtoInstance name='CamLoader' DEF='Camera1_Bgpic'>
+	<fieldValue name='imageName' value='Default.jpg'/>
+	<fieldValue name='relay'>
+		<Script USE='CameraRelay'/>
+	</fieldValue>
+	<fieldValue name='yscale' value='3.0'/>
+</ProtoInstance>
 
 if so, we will be here for the USE fields.
 
@@ -1445,11 +1439,11 @@ static void saveAttributes(int myNodeType, const xmlChar *name, char** atts) {
 	DEBUG_X3DPARSER ("	saveAttributes, parentIndex %d parentIndex %d\n",tg->X3DParser.parentIndex,tg->X3DParser.parentIndex);
 	
 	/* create the scenegraph node for this one */
-        thisNode = createNewX3DNode(myNodeType);
-        tg->X3DParser.parentStack[tg->X3DParser.parentIndex] = thisNode;
+	thisNode = createNewX3DNode(myNodeType);
+	tg->X3DParser.parentStack[tg->X3DParser.parentIndex] = thisNode;
 
-    //printf ("saveAttributes, node type %s\n",stringNodeType(myNodeType));
-    
+	//printf ("saveAttributes, node type %s\n",stringNodeType(myNodeType));
+
 	if (myNodeType == NODE_Script) {
 		#ifdef HAVE_JAVASCRIPT
 		struct Shader_Script *myObj;
@@ -1479,7 +1473,7 @@ static void saveAttributes(int myNodeType, const xmlChar *name, char** atts) {
 
  
 	/* go through the attributes; do some here, do others later (in case of PROTO IS fields found) */
-        for (i = 0; atts[i]; i += 2) {
+	for (i = 0; atts[i]; i += 2) {
 		/* is this a DEF name? if so, record the name and then ignore the field */
 		if (strcmp ("DEF",atts[i]) == 0) {
 			/* printf ("saveAttributes, this is a DEF, name %s\n",atts[i+1]); */
@@ -1534,8 +1528,8 @@ static void saveAttributes(int myNodeType, const xmlChar *name, char** atts) {
 
 static xmlChar* fixAmp(const unsigned char *InFieldValue)
 {
-    char *fieldValue = (char *)InFieldValue;
-    
+	char *fieldValue = (char *)InFieldValue;
+
 	//for x3d string '"&amp;"' libxml2 gives us &#38; 
 	//we want & like other browsers get
 	//we do it by left-shifting over the #38;
@@ -1676,13 +1670,13 @@ static void parseAttributes() {
 										else if(nvp->fieldType == FIELDTYPE_MFNode || nvp->fieldType == FIELDTYPE_SFNode )  
 										{
 											/*dug9 added July 18, 2010 (search for BIGPUSH / BIGPOP to find where data set)
-											  we have an MFNode field already in binary form 
-											  <fieldValue name="Buildings">
-												<Transform USE="House1"/>
-												<Transform USE="House2">
-											   </fieldValue>
-											   the House transforms have been parsed as regular nodes and 
-											   the top level nodes listed in an MFNode
+												we have an MFNode field already in binary form 
+												<fieldValue name="Buildings">
+													<Transform USE="House1"/>
+													<Transform USE="House2">
+												</fieldValue>
+												the House transforms have been parsed as regular nodes and 
+												the top level nodes listed in an MFNode
 											*/
 											union anyVrml* av;
 											if(sscanf(nvp->fieldValue,"%p",&av) != 1)
@@ -1706,8 +1700,8 @@ static void parseAttributes() {
 													else if(nvp->fieldType == FIELDTYPE_MFNode)
 													{
 														/* this came from the ProtoInstance fieldValue where did not know the type
-														   and we guessed at MFNode to be most general. But we were wrong in this
-														   case - so down-convert first node in MFNode to SFNode and forget the rest */
+															and we guessed at MFNode to be most general. But we were wrong in this
+															case - so down-convert first node in MFNode to SFNode and forget the rest */
 														//struct X3D_Transform *tt = (struct X3D_Transform*)((struct Multi_Node *)av)->p[0];
 														struct X3D_Node *tt = (struct X3D_Node*)((struct Multi_Node *)av)->p[0];
 														memcpy(value,&tt,sizeof(struct X3D_Node*));
@@ -1734,7 +1728,7 @@ static void parseAttributes() {
 						}
 					} else {
 						/* some fields, eg "PackagedShader language field" or any other field that is not a field,
-						   is just a normal field as defined in the spec, so make it so */
+							is just a normal field as defined in the spec, so make it so */
 						setField_fromJavascript (thisNode, nvp->fieldName,nvp->fieldValue, TRUE);
 					}
 				}
@@ -1751,7 +1745,7 @@ static void parseAttributes() {
 					{
 						/* not currently implemented, but reserved for DEF index style
 						?? itoa(DEF index)
-		                ?? np = getEAINodeFromTable(atoi(value), -1);
+						?? np = getEAINodeFromTable(atoi(value), -1);
 						*/
 					}
 					else if(nvp->fieldType == FIELDTYPE_MFNode)  
@@ -1818,7 +1812,7 @@ static void parseAttributes() {
 					}
 					else //if(nvp->fieldType == 0)
 					{
-                        //I get -85529292 so some branches arent setting .value or .fieldValue to 0.
+						//I get -85529292 so some branches arent setting .value or .fieldValue to 0.
 						//printf("Unknown fieldType %d\n",nvp->fieldType);
 						setField_fromJavascript (thisNode, nvp->fieldName,nvp->fieldValue, TRUE);
 
@@ -1838,7 +1832,7 @@ static void XMLCALL X3DstartElement(void *unused, const xmlChar *iname, const xm
 	char **myAtts;
 	int i;
 	char *blankAtts[] = {NULL,NULL};
-    const char *name = (const char*) iname;  // get around compiler warnings on iPhone, etc...
+	const char *name = (const char*) iname;  // get around compiler warnings on iPhone, etc...
 	ttglobal tg = gglobal();
 	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 
@@ -1848,12 +1842,12 @@ static void XMLCALL X3DstartElement(void *unused, const xmlChar *iname, const xm
 	
 	#ifdef X3DPARSERVERBOSE
 	//printf ("startElement: %s : level %d parserMode: %s \n",name,parentIndex,parserModeStrings[getParserMode()]);
-    printf ("X3DstartElement: %s: atts %p\n",name,atts);
-//printf ("startElement, myAtts :%p contents %p\n",myAtts,myAtts[0]);
-{ int i;
-        for (i = 0; myAtts[i]; i += 2) {
-                printf("	      X3DStartElement field:%s=%s\n", myAtts[i], atts[i + 1]);
-}}
+	printf ("X3DstartElement: %s: atts %p\n",name,atts);
+	//printf ("startElement, myAtts :%p contents %p\n",myAtts,myAtts[0]);
+	{ int i;
+			for (i = 0; myAtts[i]; i += 2) {
+					printf("	      X3DStartElement field:%s=%s\n", myAtts[i], atts[i + 1]);
+	}}
 
 	//printf ("X3DstartElement - finished looking at myAtts\n\n");
 	#endif
@@ -1873,12 +1867,12 @@ static void XMLCALL X3DstartElement(void *unused, const xmlChar *iname, const xm
 	if (getParserMode() == PARSING_PROTOINSTANCE) {
 		saveProtoInstanceFields(name,myAtts);
 		return;
-        }
+	}
 
 
 
 	myNodeIndex = findFieldInNODES(name);
-    
+
 	/* is this a "normal" node that can be found in x3d, x3dv and wrl files? */
 	if (myNodeIndex != INT_ID_UNDEFINED) {
 		INCREMENT_PARENTINDEX 
@@ -1931,8 +1925,8 @@ static void XMLCALL X3DendElement(void *unused, const xmlChar *iname) {
 	ttglobal tg = gglobal();
 	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 
-    /* printf ("X3DEndElement for %s\n",name); */
-    
+	/* printf ("X3DEndElement for %s\n",name); */
+
 	#ifdef X3DPARSERVERBOSE
 	printf ("endElement: %s : parentIndex %d mode %s\n",name,parentIndex,parserModeStrings[getParserMode()]); 
 	#endif
@@ -1962,12 +1956,12 @@ static void XMLCALL X3DendElement(void *unused, const xmlChar *iname) {
 /* I wonder if there is a better way of handling this case */
 			#ifdef X3DPARSERVERBOSE
 			printf ("linkNodeIn, got parsing script, have to link node into script body\n");
-        	printf ("linking in %s to %s, field %s (%d)\n",
-                	stringNodeType(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType),
-                	stringNodeType(tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1]->_nodeType),
-                	stringFieldType(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_defaultContainer),
-                	tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_defaultContainer);
-		printf ("but skipping this\n");
+			printf ("linking in %s to %s, field %s (%d)\n",
+				stringNodeType(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType),
+				stringNodeType(tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1]->_nodeType),
+				stringFieldType(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_defaultContainer),
+				tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_defaultContainer);
+			printf ("but skipping this\n");
 			#endif
 
 			DECREMENT_PARENTINDEX
@@ -2095,8 +2089,8 @@ static void shutdownX3DParser () {
 	}
 
 	/* CDATA text space, free it up */
-        FREE_IF_NZ(tg->X3DParser.CDATA_Text);
-        p->CDATA_TextMallocSize = 0; 
+	FREE_IF_NZ(tg->X3DParser.CDATA_Text);
+	p->CDATA_TextMallocSize = 0; 
 	if (p->X3DParserRecurseLevel > INT_ID_UNDEFINED)
 		p->currentX3DParser = p->x3dparser[p->X3DParserRecurseLevel];
 	/* printf ("shutdownX3DParser, current X3DParser %u\n",currentX3DParser); */

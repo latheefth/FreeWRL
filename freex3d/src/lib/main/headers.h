@@ -879,7 +879,7 @@ struct Multi_Vec3f *getCoordinate (struct X3D_Node *node, char *str);
 void replaceWorldNeeded(char* str);
 
 /* X3D C parser */
-int X3DParse(struct X3D_Group *parent, const char *inputstring);
+int X3DParse(struct X3D_Node *parent, const char *inputstring);
 void *createNewX3DNode (int nt);
 void *createNewX3DNode0 (int nt);
 
