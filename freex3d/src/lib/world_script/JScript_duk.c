@@ -432,20 +432,20 @@ int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *ty
 		}
 	}else if(node->_nodeType == NODE_Proto) {
 		int k, mode;
-		struct Vector* usernames[4];
-		const char **userArr;
+		//struct Vector* usernames[4];
+		//const char **userArr;
 		struct ProtoFieldDecl* pfield;
 		struct X3D_Proto* pnode = (struct X3D_Proto*)node;
-		struct VRMLLexer* lexer;
-		struct VRMLParser *globalParser;
+		//struct VRMLLexer* lexer;
+		//struct VRMLParser *globalParser;
 		struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
 		if(pstruct){
-			globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
-			lexer = (struct VRMLLexer*)globalParser->lexer;
-			usernames[0] = lexer->user_initializeOnly;
-			usernames[1] = lexer->user_inputOnly;
-			usernames[2] = lexer->user_outputOnly;
-			usernames[3] = lexer->user_inputOutput;
+			//globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
+			//lexer = (struct VRMLLexer*)globalParser->lexer;
+			//usernames[0] = lexer->user_initializeOnly;
+			//usernames[1] = lexer->user_inputOnly;
+			//usernames[2] = lexer->user_outputOnly;
+			//usernames[3] = lexer->user_inputOutput;
 			if(pstruct->iface)
 			for(k=0; k!=vectorSize(pstruct->iface); ++k)
 			{
@@ -453,8 +453,9 @@ int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *ty
 				pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, k);
 				mode = pfield->mode;
 				//#define X3DMODE(val)  ((val) % 4)
-				userArr =&vector_get(const char*, usernames[X3DMODE(mode)], 0);
-				fieldName = userArr[pfield->name];
+				//userArr =&vector_get(const char*, usernames[X3DMODE(mode)], 0);
+				//fieldName = userArr[pfield->name];
+				fieldName = pfield->cname;
 				if(!strcmp(fieldName,fieldname)){
 					*type = pfield->type;
 					*kind = pfield->mode;
@@ -542,20 +543,20 @@ int getFieldFromNodeAndIndex(struct X3D_Node* node, int ifield, const char **fie
 		return iret;
 	}else if(node->_nodeType == NODE_Proto ) {
 		int k, mode;
-		struct Vector* usernames[4];
-		const char **userArr;
+		//struct Vector* usernames[4];
+		//const char **userArr;
 		struct ProtoFieldDecl* pfield;
 		struct X3D_Proto* pnode = (struct X3D_Proto*)node;
-		struct VRMLLexer* lexer;
-		struct VRMLParser *globalParser;
+		//struct VRMLLexer* lexer;
+		//struct VRMLParser *globalParser;
 		struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
 		if(pstruct){
-			globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
-			lexer = (struct VRMLLexer*)globalParser->lexer;
-			usernames[0] = lexer->user_initializeOnly;
-			usernames[1] = lexer->user_inputOnly;
-			usernames[2] = lexer->user_outputOnly;
-			usernames[3] = lexer->user_inputOutput;
+			//globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
+			//lexer = (struct VRMLLexer*)globalParser->lexer;
+			//usernames[0] = lexer->user_initializeOnly;
+			//usernames[1] = lexer->user_inputOnly;
+			//usernames[2] = lexer->user_outputOnly;
+			//usernames[3] = lexer->user_inputOutput;
 			if(pstruct->iface){
 				k = ifield;
 				if(k > -1 && k < vectorSize(pstruct->iface))
@@ -563,8 +564,9 @@ int getFieldFromNodeAndIndex(struct X3D_Node* node, int ifield, const char **fie
 					pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, k);
 					mode = pfield->mode;
 					//#define X3DMODE(val)  ((val) % 4)
-					userArr =&vector_get(const char*, usernames[X3DMODE(mode)], 0);
-					*fieldname = userArr[pfield->name];
+					//userArr =&vector_get(const char*, usernames[X3DMODE(mode)], 0);
+					//*fieldname = userArr[pfield->name];
+					*fieldname = pfield->cname;
 					*type = pfield->type;
 					*kind = pfield->mode;
 					if(pfield->mode == PKW_initializeOnly || pfield->mode == PKW_inputOutput)
