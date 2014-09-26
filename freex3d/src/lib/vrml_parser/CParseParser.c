@@ -3609,9 +3609,14 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 		//struct Shader_Script* shader=NULL;
 
 		/* Get malloced struct of appropriate X3D_Node type with default values filled in */
-		if(pflagdepth)
+		if(pflagdepth){
 			node=X3D_NODE(createNewX3DNode((int)nodeTypeB)); //registers node types like sensors, textures in tables for scene
-		else
+			if(node->_nodeType == NODE_Inline){
+				if(X3D_NODE(me->ptr)->_nodeType != NODE_Inline && X3D_NODE(me->ptr)->_nodeType != NODE_Proto)
+					printf("ouch trying to caste a %d nodetype to inline or proto\n",X3D_NODE(me->ptr)->_nodeType);
+				X3D_INLINE(node)->__parentProto = me->ptr;
+			}
+		}else
 			node=X3D_NODE(createNewX3DNode0((int)nodeTypeB)); //doesn't register node types in tables, for protoDeclare
 		ASSERT(node);
 
@@ -4157,6 +4162,8 @@ static BOOL parser_brotoStatement(struct VRMLParser* me)
 	//create a ProtoDeclare
     proto = createNewX3DNode0(NODE_Proto);
 	//add it to the current context's list of declared protos
+	if(X3D_NODE(me->ptr)->_nodeType != NODE_Proto && X3D_NODE(me->ptr)->_nodeType != NODE_Inline )
+		printf("ouch trying to caste node type %d to proto\n",X3D_NODE(me->ptr)->_nodeType);
 	parent = (struct X3D_Proto*)me->ptr;
 	if(parent->__protoDeclares == NULL)
 		parent->__protoDeclares = newVector(struct X3D_Proto*,4);
@@ -4707,6 +4714,7 @@ BOOL isAvailableBroto(char *pname, struct X3D_Proto* currentContext, struct X3D_
 		}
 		context = (struct X3D_Proto*)context->__parentProto;
 	}while(context);
+	printf("ouch no broto definition found\n");
 	return FALSE;
 }
 struct pointer2pointer{
