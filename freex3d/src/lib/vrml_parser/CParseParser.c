@@ -80,7 +80,7 @@ void CParseParser_init(struct tCParseParser *t){
 	{
 		ppCParseParser p = (ppCParseParser)t->prv;
 		p->foundInputErrors = 0;
-		p->useBrotos = 3; //0= none/old-way, non-zero =wrl parsing broto only rendering, DEF/IS/script tables are in new proto 3=EXTERNPROTO is broto wrapper
+		p->useBrotos = 0; //0= none/old-way, non-zero =wrl parsing broto only rendering, DEF/IS/script tables are in new proto 3=EXTERNPROTO is broto wrapper
 	}
 }
 	//ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
@@ -647,10 +647,30 @@ BOOL parser_vrmlScene_B(struct VRMLParser* me)
 BOOL parser_vrmlScene(struct VRMLParser* me)
 {
 	//ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
-	if(usingBrotos() && X3D_NODE(me->ptr)->_nodeType == NODE_Proto || X3D_NODE(me->ptr)->_nodeType == NODE_Inline) //p->useBrotos)
+	if(usingBrotos() && X3D_NODE(me->ptr)->_nodeType == NODE_Proto || X3D_NODE(me->ptr)->_nodeType == NODE_Inline) {
+		/* (sorry for documenting instead of refactoring)
+		 broto era: me->ptr is both the executionContext node (scene, proto, inline) 
+		 and the where node of the (where,offset) place to put the parsed nodes.
+		 for brotos (binary proto parsing) the context has a set of arrays where data is put during parsing:
+			ROUTES, EXPORTS, IMPORTS, DEFnames, protoDeclares, externProtoDeclares
+		 and (as of sept 2014) these arrays are used later for instancing declared user prototype nodes
+		 but (as of sept 2014) not used for rendering scenes - that's still in old arrays scattered around freewrl.
+		me->ptr could be split in the future, so me->ptr is just the where node 
+		 and a separate me->ctx would hold the context (scene, proto, inline) 
+		 -ctx either the node ie ctxnode, or if context is separated into a struct, just the struct ie ctxStruct
+		 if ctxnode, then when parsing protobody, besides me->ptr = proto, do me->ctx = proto
+		 its just this top level where the ctxnode and (where,) might be separated, ie js createVrmlFromString()
+		 parses nodes into an MFNode that's not a Proto, or Inline (but the script should know what executionContext its in).
+		 Sept 2014 Proto and Inline have the same structure, so one can be cast to the other. But in theory, if you
+		 separate context out, so its a struct on its own, then Proto and Inline could be different, and both hold
+		 a context struct as a private field.
+		*/
 		return parser_vrmlScene_B(me);
-	else
+	}else{
+		// older vrml tradition:
+		// me->ptr is the where node for (where,offset) to put parsed nodes
 		return parser_vrmlScene_A(me);
+	}
 }
 /* ************************************************************************** */
 /* Nodes and fields */
@@ -1206,7 +1226,13 @@ static BOOL parser_componentStatement(struct VRMLParser* me) {
     return TRUE;
 }
 
+struct IMEXPORT {
+	struct X3D_Node *nodeptr; 
+	char *nodename;
+	char *mxname;
+	char *as;
 
+};
 void handleExport (char *node, char *as) {
 	/* handle export statements. as will be either a string pointer, or NULL */
 	
@@ -1217,52 +1243,32 @@ void handleExport (char *node, char *as) {
 	#endif
 }
 
-struct X3D_Context {
-	int protoFlags;
-	void * DEFnames;
-	void * IS;
-	void * ROUTES;
-	void * externProtoDeclares;
-	void * protoDeclares;
-	void * IMPORTS;
-	void * EXPORTS;
-	void * scripts;
-	struct X3D_Context* parentContext;
-	//struct X3D_Node *__parentProto;
-};
 
+struct X3D_Proto *hasContext(struct X3D_Node* node){
 
-struct X3D_Context *hasContext(struct X3D_Node* node){
-
-	struct  X3D_Context * context = NULL;
-	/*
+	struct  X3D_Proto * context = NULL;
 	if(node)
 		switch(node->_nodeType){
-			case NODE_Group:
-				context = offsetPointer_deref(void*, node,  offsetof(struct X3D_Group,__context));
-				break;
-			case NODE_Transform:
-				context = offsetPointer_deref(void*, node,  offsetof(struct X3D_Transform,__context));
-				break;
 			case NODE_Proto:
-				context = offsetPointer_deref(void*, node,  offsetof(struct X3D_Proto,__context));
+				context = (struct X3D_Proto*)node; //offsetPointer_deref(void*, node,  offsetof(struct X3D_Proto,__context));
 				break;
 			case NODE_Inline:  //Q. do I need this in here? Saw code in x3dparser.
-				context = offsetPointer_deref(void*, node,  offsetof(struct X3D_Inline,__context));
-				break;
-			case NODE_GeoLOD:  //Q. do I need this in here?
-				context = offsetPointer_deref(void*, node, offsetof(struct X3D_GeoLOD,__context));
+				context = (struct X3D_Proto*)node; // offsetPointer_deref(void*, node,  offsetof(struct X3D_Inline,__context));
 				break;
 		}
-	*/
 	return context;
 }
 
 void handleExport_B (void *nodeptr, char *node, char *as) {
 	/* handle export statements. as will be either a string pointer, or NULL */
-	if(usingBrotos() && nodeptr && hasContext(nodeptr)){
-		struct X3D_Context *context = hasContext(nodeptr);
-		//context-> hasContext(nodeptr);
+	struct X3D_Proto *context = hasContext(nodeptr);
+	if(context){
+		struct IMEXPORT *mxport = malloc(sizeof(struct IMEXPORT));
+		if(!context->__EXPORTS) context->__EXPORTS = newVector(struct IMEXPORT *,4);
+		mxport->as = strdup(as);
+		mxport->nodename = strdup(node);
+		mxport->nodeptr = nodeptr;
+		vector_pushBack(struct IMEXPORT*,context->__EXPORTS,mxport);
 	}
 	#ifdef CAPABILITIESVERBOSE
 	printf ("handleExport: node :%s: ",node);
@@ -1274,6 +1280,26 @@ void handleExport_B (void *nodeptr, char *node, char *as) {
 
 void handleImport (char *nodeName,char *nodeImport, char *as) {
 	/* handle Import statements. as will be either a string pointer, or NULL */
+	
+	#ifdef CAPABILITIESVERBOSE
+	printf ("handleImport: inlineNodeName :%s: nodeToImport :%s:",nodeName, nodeImport);
+	if (as != NULL) printf (" AS :%s: ",as);
+	printf ("\n");
+	#endif
+}
+
+void handleImport_B (struct X3D_Node *nodeptr, char *nodeName,char *nodeImport, char *as) {
+	/* handle Import statements. as will be either a string pointer, or NULL */
+	struct X3D_Proto *context = hasContext(nodeptr);
+	if(context){
+		struct IMEXPORT *mxport = malloc(sizeof(struct IMEXPORT));
+		if(!context->__IMPORTS) context->__IMPORTS = newVector(struct IMEXPORT *,4);
+		mxport->as = strdup(as);
+		mxport->nodename = strdup(nodeName);
+		mxport->mxname = strdup(nodeImport);
+		mxport->nodeptr = nodeptr;
+		vector_pushBack(struct IMEXPORT*,context->__IMPORTS,mxport);
+	}
 	
 	#ifdef CAPABILITIESVERBOSE
 	printf ("handleImport: inlineNodeName :%s: nodeToImport :%s:",nodeName, nodeImport);
@@ -1375,7 +1401,10 @@ static BOOL parser_importStatement(struct VRMLParser* me) {
     }
 
     /* do the IMPORT */
-    handleImport(inlineNodeName, nodeToImport, alias);
+	if(usingBrotos())
+		handleImport_B(me->ptr,inlineNodeName, nodeToImport, alias);
+	else
+		handleImport(inlineNodeName, nodeToImport, alias);
 
     FREE_IF_NZ (inlineNodeName);
     FREE_IF_NZ (nodeToImport);

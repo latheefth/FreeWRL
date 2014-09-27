@@ -75,6 +75,7 @@ our %Nodes = (
 	},"X3DChildNode"),
 
 	"Proto" => new VRML::NodeType("Proto", {
+		# sept 2014: keep Inline the same as Proto, so one can be cast to the other, unless/until executionContext is extracted from both
 		__children => ["MFNode", [], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		bboxCenter => ["SFVec3f", [0, 0, 0], "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -89,6 +90,8 @@ our %Nodes = (
 		__prototype => ["SFNode", "NULL", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], #first node in protobody
 		__parentProto => ["SFNode", "NULL", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], #first node in protobody
 		__ROUTES => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		__EXPORTS => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		__IMPORTS => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		__DEFnames => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		__IS => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		__scripts => ["FreeWRLPTR", 0, "initializeOnly", 0],
@@ -187,6 +190,7 @@ our %Nodes = (
 
 
 	"Inline" => new VRML::NodeType("Inline", {
+		# sept 2014: keep Inline the same as Proto, so one can be cast to the other, unless/until executionContext is extracted from both
 		__children => ["MFNode", [], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		bboxCenter => ["SFVec3f", [0, 0, 0], "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -201,6 +205,8 @@ our %Nodes = (
 		__prototype => ["SFNode", "NULL", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], #first node in protobody
 		__parentProto => ["SFNode", "NULL", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], #first node in protobody
 		__ROUTES => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		__EXPORTS => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		__IMPORTS => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		__DEFnames => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		__IS => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		__scripts => ["FreeWRLPTR", 0, "initializeOnly", 0],
