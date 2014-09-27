@@ -63,11 +63,90 @@ typedef xmlSAXHandler* XML_Parser;
 //OLDCODE #define XML_GetErrorCode(aaa)
 //OLDCODE #define XML_ErrorString(aaa) "errors not currently being reported by libxml port"
 
+struct xml_user_data{
+	Stack *context;
+	Stack *nodes;
+	Stack *atts;
+	Stack *modes;
+};
+void init_xml_user_data(struct xml_user_data *ud){
+	ud->context = ud->nodes = ud->atts = ud->modes = NULL;
+	if(ud->context == NULL) ud->context = newVector(struct X3D_Node*,256);
+	ud->context->n = 0;
+	if(ud->nodes == NULL) ud->nodes = newVector(struct X3D_Node*,256);
+	ud->nodes->n = 0;
+	if(ud->atts == NULL) ud->atts = newVector(void*,256);
+	ud->atts->n = 0;
+	if(ud->modes == NULL) ud->modes = newVector(int,256);
+	ud->modes->n = 0;
+}
+//for push,pop,get the index is the vector index range 0, n-1. 
+// Or going from the top top= -1, parent to top = -2.
+#define TOP -1
+#define BOTTOM 0
+void pushContext(void *userData, struct X3D_Node* context){
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	stack_push(struct X3D_Node*,ud->context,context);
+}
+void pushNodeAtt(void *userData,struct X3D_Node* node, void* att){
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	stack_push(struct X3D_Node*,ud->nodes,node);
+	stack_push(void* ,ud->atts,att);
+}
+void pushMode(void *userData, int parsingmode){
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	stack_push(int,ud->modes,parsingmode);
+}
+struct X3D_Node* getContext(void *userData, int index){
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	//return stack_top(struct X3D_Node*,ud->context);
+	if(index < 0)
+		return vector_get(struct X3D_Node*,ud->context, vectorSize(ud->context)+index);
+	else
+		return vector_get(struct X3D_Node*,ud->context, index);
+}
+struct X3D_Node* getNode(void *userData, int index){
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	//return stack_top(struct X3D_Node*,ud->nodes);
+	if(index < 0)
+		return vector_get(struct X3D_Node*,ud->nodes, vectorSize(ud->context)+index);
+	else
+		return vector_get(struct X3D_Node*,ud->nodes, index);
+}
+void* getAtt(void *userData, int index){
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	//return stack_top(void*,ud->atts);
+	if(index < 0)
+		return vector_get(void* ,ud->atts, vectorSize(ud->context)+index);
+	else
+		return vector_get(void* ,ud->atts, index);
+}
+int getMode(void *userData, int index){
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	//return stack_top(int,ud->modes);
+	if(index < 0)
+		return vector_get(int,ud->modes, vectorSize(ud->modes)+index);
+	else
+		return vector_get(int,ud->modes, index);
 
-static int XML_ParseFile(xmlSAXHandler *me, const char *myinput, int myinputlen, int recovery) {
-	int notUsed;
+}
+void popContext(void *userData){
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	stack_pop(struct X3D_Node*,ud->context);
+}
+void popNodeAtt(void *userData){
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	stack_pop(struct X3D_Node*,ud->nodes);
+	stack_pop(void* ,ud->atts);
+}
+void popMode(void *userData){
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	stack_pop(int,ud->modes);
+}
 
-	if (xmlSAXUserParseMemory(me, &notUsed, myinput,myinputlen) == 0) return 0;
+static int XML_ParseFile(xmlSAXHandler *me, void *user_data, const char *myinput, int myinputlen, int recovery) {
+
+	if (xmlSAXUserParseMemory(me, user_data, myinput,myinputlen) == 0) return 0;
 	return XML_STATUS_ERROR;
 }
 
@@ -315,15 +394,15 @@ static void appendDataToFieldValue(char *data, int len) {
 	tg->X3DParser.CDATA_Text[tg->X3DParser.CDATA_Text_curlen]='\0';
 }
 
-void endProtoInstanceFieldTypeNode(const char *name);
-static void endProtoInstanceField(const char *name);
+void endProtoInstanceFieldTypeNode(void *ud, const char *name);
+static void endProtoInstanceField(void *ud, const char *name);
 /* we are finished with a 3.3 fieldValue, tie it in */
-static void setFieldValueDataActive(const char* name) {
+static void setFieldValueDataActive(void *ud,const char* name) {
 	ttglobal tg = gglobal();
 	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 
 	if (!p->in3_3_fieldValue) 
-		endProtoInstanceField(name);
+		endProtoInstanceField(ud,name);
 	else
 	{
 		//printf ("expected this to be in a fieldValue\n");
@@ -892,10 +971,10 @@ void linkNodeIn(char *where, int lineno) {
 /*
 	printf ("linkNodeIn at %s:%d: parserMode %s parentIndex %d, ",
 			where,lineno,
-			parserModeStrings[getParserMode()],parentIndex);
+			parserModeStrings[getMode(ud,TOP)],parentIndex);
 */
 	printf ("linkNodeIn parserMode %s parentIndex %d, ",
-			parserModeStrings[getParserMode()],parentIndex);
+			parserModeStrings[getMode(ud,TOP)],parentIndex);
 	printf ("linking in %s (%u) to %s (%u), field %s (%d)\n",
 		stringNodeType(parentStack[parentIndex]->_nodeType),
 		parentStack[parentIndex],
@@ -1070,11 +1149,11 @@ void linkNodeIn(char *where, int lineno) {
 }
 
 
-void endCDATA (void *user_data, const xmlChar *string, int len) {
+void endCDATA (void *ud, const xmlChar *string, int len) {
 	ttglobal tg = gglobal();
 	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 	/* JAS printf ("cdata_element, :%s:\n",string); */
-	if (getParserMode() == PARSING_PROTOBODY) {
+	if (getMode(ud,TOP) == PARSING_PROTOBODY) {
 		dumpCDATAtoProtoBody ((char *)string);
 	} else if (p->in3_3_fieldValue) {
 		appendDataToFieldValue((char *)string,len);
@@ -1208,14 +1287,14 @@ static void parseMeta(char **atts) {
 }
 
 /* we have a fieldValue, should be in a PROTO expansion */
-static void parseFieldValue(const char *name, char **atts) {
+static void parseFieldValue(void *ud, const char *name, char **atts) {
 	int i;
 	int nameIndex = INT_ID_UNDEFINED;
 	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
 
 
 	#ifdef X3DPARSERVERBOSE
-	printf ("parseFieldValue, mode %s\n",parserModeStrings[getParserMode()]);  
+	printf ("parseFieldValue, mode %s\n",parserModeStrings[getMode(ud,TOP)]);  
 	#endif
 
 	for (i = 0; atts[i]; i += 2) {
@@ -1226,8 +1305,8 @@ static void parseFieldValue(const char *name, char **atts) {
 		if (strcmp(atts[i],"name") == 0) nameIndex= i+1;
 	}
 
-	if ((getParserMode() == PARSING_EXTERNPROTODECLARE) || (getParserMode() == PARSING_PROTOINSTANCE)) {
-		parseProtoInstanceFields(name,atts);
+	if ((getMode(ud,TOP) == PARSING_EXTERNPROTODECLARE) || (getMode(ud,TOP) == PARSING_PROTOINSTANCE)) {
+		parseProtoInstanceFields(ud,name,atts);
 	} else {
 		if (p->in3_3_fieldValue) printf ("parseFieldValue - did not expect in3_3_fieldValue to be set\n");
 		p->in3_3_fieldValue = TRUE;
@@ -1244,42 +1323,42 @@ static void parseFieldValue(const char *name, char **atts) {
 }
 
 
-static void parseIS() {
+static void parseIS(void *ud) {
 	#ifdef X3DPARSERVERBOSE
-	printf ("parseIS mode is %s\n",parserModeStrings[getParserMode()]); 
+	printf ("parseIS mode is %s\n",parserModeStrings[getMode(ud,TOP)]); 
 	#endif
-	pushParserMode(PARSING_IS);
+	pushMode(ud,PARSING_IS);
 
 }
 
 
 
-static void endIS() {
+static void endIS(void *ud) {
 	#ifdef X3DPARSERVERBOSE
-	printf ("endIS mode is %s\n",parserModeStrings[getParserMode()]); 
+	printf ("endIS mode is %s\n",parserModeStrings[getMode(ud,TOP)]); 
 	#endif
-	popParserMode();
+	popMode(ud);
 }
 
 
 
-static void endProtoInterfaceTag() {
-	if (getParserMode() != PARSING_PROTOINTERFACE) {
+static void endProtoInterfaceTag(void *ud) {
+	if (getMode(ud,TOP) != PARSING_PROTOINTERFACE) {
 		ConsoleMessage ("endProtoInterfaceTag: got a </ProtoInterface> but not parsing one at line %d",LINE);
 	}
 	/* now, a ProtoInterface should be within a ProtoDeclare, so, make the expected mode PARSING_PROTODECLARE */
 	//setParserMode(PARSING_PROTODECLARE);
-	popParserMode();
+	popMode(ud);
 }
 
-static void endProtoBodyTag(const char *name) {
+static void endProtoBodyTag(void *ud, const char *name) {
 	/* ending <ProtoBody> */
 	
 	#ifdef X3DPARSERVERBOSE
-	printf ("endProtoBody, mode is %s\n",parserModeStrings[getParserMode()]);
+	printf ("endProtoBody, mode is %s\n",parserModeStrings[getMode(ud,TOP)]);
 	#endif
 
-	if (getParserMode() != PARSING_PROTOBODY) {
+	if (getMode(ud,TOP) != PARSING_PROTOBODY) {
 		ConsoleMessage ("endProtoBodyTag: got a </ProtoBody> but not parsing one at line %d",LINE);
 	}
 
@@ -1287,36 +1366,36 @@ static void endProtoBodyTag(const char *name) {
 
 	/* now, a ProtoBody should be within a ProtoDeclare, so, make the expected mode PARSING_PROTODECLARE */
 	//setParserMode(PARSING_PROTODECLARE);
-	popParserMode();
+	popMode(ud);
 }
 
-static void endExternProtoDeclareTag() {
+static void endExternProtoDeclareTag(void *ud) {
 	/* ending <ExternProtoDeclare> */
 
-	if (getParserMode() != PARSING_EXTERNPROTODECLARE) {
+	if (getMode(ud,TOP) != PARSING_EXTERNPROTODECLARE) {
 		ConsoleMessage ("endExternProtoDeclareTag: got a </ExternProtoDeclare> but not parsing one at line %d",LINE);
 		//setParserMode(PARSING_EXTERNPROTODECLARE);
-		pushParserMode(PARSING_EXTERNPROTODECLARE);
+		pushMode(ud,PARSING_EXTERNPROTODECLARE);
 	}
 	
 	/* we do the DECREMENT_PARENTINDEX here because successful parsing of the included ProtoDeclare leaves it too high */
-	endExternProtoDeclare();
-	popParserMode(); //+
+	endExternProtoDeclare(ud);
+	popMode(ud); //+
 }
 
-static void endProtoDeclareTag() {
+static void endProtoDeclareTag(void *ud) {
 	/* ending <ProtoDeclare> */
 
-	if (getParserMode() != PARSING_PROTODECLARE) {
+	if (getMode(ud,TOP) != PARSING_PROTODECLARE) {
 		ConsoleMessage ("endProtoDeclareTag: got a </ProtoDeclare> but not parsing one at line %d",LINE);
-		pushParserMode(PARSING_PROTODECLARE);
+		pushMode(ud,PARSING_PROTODECLARE);
 	}
 
 	endProtoDeclare();
-	popParserMode();
+	popMode(ud);
 }
 
-static void endProtoInstanceField(const char *name) {
+static void endProtoInstanceField(void *ud, const char *name) {
 	struct X3D_Group *protoExpGroup = NULL;
 	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
 
@@ -1329,7 +1408,7 @@ static void endProtoInstanceField(const char *name) {
 	if (strcmp(name,"ProtoInstance")==0) {
 		/* we should just be assuming that we are parsing regular nodes for the scene graph now */
 		//setParserMode(PARSING_NODES);
-		pushParserMode(PARSING_NODES);
+		pushMode(ud,PARSING_NODES);
 	
 		protoExpGroup = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 		protoExpGroup->FreeWRL__protoDef = PROTO_MARKER;
@@ -1353,7 +1432,7 @@ static void endProtoInstanceField(const char *name) {
 			#endif
 	
 		expandProtoInstance(p->myLexer, protoExpGroup);
-		popParserMode();
+		popMode(ud);
 	
 #ifdef X3DPARSERVERBOSE
 		printf ("after expandProtoInstance, my group (%u)has %d children, %d Meta nodes, and is protodef %d\n",
@@ -1372,11 +1451,11 @@ static void endProtoInstanceField(const char *name) {
 			}
 		}
 #endif
-		popParserMode(); //+ but was something pushed?
+		popMode(ud); //+ but was something pushed?
 	} else if (strcmp(name,"fieldValue")==0) {
 		/* printf ("endProtoInstanceField, got %s, ignoring it\n",name);*/
 		///BIGPOP
-		endProtoInstanceFieldTypeNode(name);
+		endProtoInstanceFieldTypeNode(ud,name);
 	} else {
 		/* this could be something like the ending of shape in the following:
 		   <fieldValue...> <Shape> <Box/> </Shape> </fieldValue> */
@@ -1402,16 +1481,16 @@ if so, we will be here for the USE fields.
 
 
 */
-static void saveProtoInstanceFields (const char *name, char **atts) {
+static void saveProtoInstanceFields (void *ud, const char *name, char **atts) {
 	#ifdef X3DPARSERVERBOSE
 		printf ("saveProtoInstanceFields, have node :%s:\n",name);
 	#endif
 
 	if (strcmp(name,"fieldValue") == 0) {
-		parseFieldValue(name,atts);
+		parseFieldValue(ud,name,atts);
 	} else {
 		/* printf ("warning - saveProtoInstanceFields - dont know what to do with %s\n",name); */
-		parseFieldValue(name,atts);
+		parseFieldValue(ud,name,atts);
 	}
 	#ifdef X3DPARSERVERBOSE
 		printf ("saveProtoInstanceFields END\n");
@@ -1827,7 +1906,7 @@ static void parseAttributes() {
 	}
 }
 
-static void XMLCALL X3DstartElement(void *unused, const xmlChar *iname, const xmlChar **atts) {
+static void XMLCALL X3DstartElement(void *ud, const xmlChar *iname, const xmlChar **atts) {
 	int myNodeIndex;
 	char **myAtts;
 	int i;
@@ -1841,7 +1920,7 @@ static void XMLCALL X3DstartElement(void *unused, const xmlChar *iname, const xm
 	else myAtts = (char **) atts;
 	
 	#ifdef X3DPARSERVERBOSE
-	//printf ("startElement: %s : level %d parserMode: %s \n",name,parentIndex,parserModeStrings[getParserMode()]);
+	//printf ("startElement: %s : level %d parserMode: %s \n",name,parentIndex,parserModeStrings[getMode(ud,TOP)]);
 	printf ("X3DstartElement: %s: atts %p\n",name,atts);
 	//printf ("startElement, myAtts :%p contents %p\n",myAtts,myAtts[0]);
 	{ int i;
@@ -1858,14 +1937,14 @@ static void XMLCALL X3DstartElement(void *unused, const xmlChar *iname, const xm
 		}
 	
 	/* are we storing a PROTO body?? */
-	if (getParserMode() == PARSING_PROTOBODY) {
+	if (getMode(ud,TOP) == PARSING_PROTOBODY) {
 		dumpProtoBody(name,myAtts);
 		return;
 	}
 
 	/* maybe we are doing a Proto Instance?? */
-	if (getParserMode() == PARSING_PROTOINSTANCE) {
-		saveProtoInstanceFields(name,myAtts);
+	if (getMode(ud,TOP) == PARSING_PROTOINSTANCE) {
+		saveProtoInstanceFields(ud,name,myAtts);
 		return;
 	}
 
@@ -1886,29 +1965,29 @@ static void XMLCALL X3DstartElement(void *unused, const xmlChar *iname, const xm
 	myNodeIndex = findFieldInX3DSPECIAL(name);
 	if (myNodeIndex != INT_ID_UNDEFINED) {
 		switch (myNodeIndex) {
-			case X3DSP_ProtoDeclare: parseProtoDeclare(myAtts); break;
-			case X3DSP_ExternProtoDeclare: parseExternProtoDeclare(myAtts); break;
+			case X3DSP_ProtoDeclare: parseProtoDeclare(ud,myAtts); break;
+			case X3DSP_ExternProtoDeclare: parseExternProtoDeclare(ud,myAtts); break;
 			case X3DSP_ProtoBody: 
 				//if(usingBrotos()) parseScene(myAtts);
 				//else 
-				parseProtoBody(myAtts); 
+				parseProtoBody(ud,myAtts); 
 				break;
-			case X3DSP_ProtoInterface: parseProtoInterface(myAtts); break;
-			case X3DSP_ProtoInstance: parseProtoInstance(myAtts); break;
+			case X3DSP_ProtoInterface: parseProtoInterface(ud,myAtts); break;
+			case X3DSP_ProtoInstance: parseProtoInstance(ud,myAtts); break;
 			case X3DSP_ROUTE: parseRoutes(myAtts); break;
 			case X3DSP_meta: parseMeta(myAtts); break;
 			case X3DSP_Scene: parseScene(myAtts); break;
 			case X3DSP_head:
 			case X3DSP_Header: parseHeader(myAtts); break;
 			case X3DSP_X3D: parseX3Dhead(myAtts); break;
-			case X3DSP_fieldValue:  parseFieldValue(name,myAtts); break;
+			case X3DSP_fieldValue:  parseFieldValue(ud,name,myAtts); break;
 			case X3DSP_field: 
-				parseScriptProtoField (p->myLexer, myAtts); break;
-			case X3DSP_IS: parseIS(); break;
+				parseScriptProtoField (ud, p->myLexer, myAtts); break;
+			case X3DSP_IS: parseIS(ud); break;
 			case X3DSP_component: parseComponent(myAtts); break;
 			case X3DSP_export: parseExport(myAtts); break;
 			case X3DSP_import: parseImport(myAtts); break;
-			case X3DSP_connect: parseConnect(p->myLexer, myAtts,p->childAttributes[gglobal()->X3DParser.parentIndex]); break;
+			case X3DSP_connect: parseConnect(ud,p->myLexer, myAtts,p->childAttributes[gglobal()->X3DParser.parentIndex]); break;
 
 			default: printf ("	huh? startElement, X3DSPECIAL, but not handled?? %d, :%s:\n",myNodeIndex,X3DSPECIAL[myNodeIndex]);
 		}
@@ -1917,9 +1996,9 @@ static void XMLCALL X3DstartElement(void *unused, const xmlChar *iname, const xm
 
 	printf ("startElement name  do not currently handle this one :%s: index %d\n",name,myNodeIndex); 
 }
-void endScriptProtoField(); //struct VRMLLexer* myLexer);
+void endScriptProtoField(void *ud); //struct VRMLLexer* myLexer);
 
-static void XMLCALL X3DendElement(void *unused, const xmlChar *iname) {
+static void XMLCALL X3DendElement(void *ud, const xmlChar *iname) {
 	int myNodeIndex;
     const char*name = (const char*) iname;
 	ttglobal tg = gglobal();
@@ -1928,11 +2007,11 @@ static void XMLCALL X3DendElement(void *unused, const xmlChar *iname) {
 	/* printf ("X3DEndElement for %s\n",name); */
 
 	#ifdef X3DPARSERVERBOSE
-	printf ("endElement: %s : parentIndex %d mode %s\n",name,parentIndex,parserModeStrings[getParserMode()]); 
+	printf ("endElement: %s : parentIndex %d mode %s\n",name,parentIndex,parserModeStrings[getMode(ud,TOP)]); 
 	#endif
 
 	/* are we storing a PROTO body?? */
-	if (getParserMode() == PARSING_PROTOBODY) {
+	if (getMode(ud,TOP) == PARSING_PROTOBODY) {
 		/* are we finished with this ProtoBody? */
 		if (strcmp("ProtoBody",name)==0) {
 			/* do nothing... setParserMode(PARSING_PROTODECLARE); */
@@ -1943,13 +2022,13 @@ static void XMLCALL X3DendElement(void *unused, const xmlChar *iname) {
 	}
 
 	/* are we parsing a PROTO Instance still? */
-	if (getParserMode() == PARSING_PROTOINSTANCE) {
-		endProtoInstanceField(name);
+	if (getMode(ud,TOP) == PARSING_PROTOINSTANCE) {
+		endProtoInstanceField(ud,name);
 		return;
 	}
 
 	/* is this an SFNode for a Script field? */
-	if (getParserMode() == PARSING_SCRIPT) {
+	if (getMode(ud,TOP) == PARSING_SCRIPT) {
 		switch (tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1]->_nodeType) {
 			case NODE_Script:
 
@@ -1976,9 +2055,6 @@ static void XMLCALL X3DendElement(void *unused, const xmlChar *iname) {
 	myNodeIndex = findFieldInNODES(name);
 	if (myNodeIndex != INT_ID_UNDEFINED) {
 		/* printf ("endElement - normalNode :%s:\n",name); */
-//#define OLDCODELINKEDIN 1
-#define NEWCODELINKEDIN 1
-#ifdef NEWCODELINKEDIN
 		if (myNodeIndex == NODE_Script) {
 			#ifdef HAVE_JAVASCRIPT
 			initScriptWithScript();
@@ -1986,21 +2062,10 @@ static void XMLCALL X3DendElement(void *unused, const xmlChar *iname) {
 		}
 		parseAttributes();
 		linkNodeIn(__FILE__,__LINE__);
-#endif
-#ifdef OLDCODELINKEDIN
-		switch (myNodeIndex) {
-			#ifdef HAVE_JAVASCRIPT
-			case NODE_Script: initScriptWithScript(); break;
-			#endif /* HAVE_JAVASCRIPT */
-			default: linkNodeIn(__FILE__,__LINE__);
-		}
-		parseAttributes();
-
-#endif
 
 
 		//setParserMode(PARSING_NODES);
-		//popParserMode();
+		//popMode(ud);
 
 		if (p->childAttributes[tg->X3DParser.parentIndex]!=NULL) deleteVector (struct nameValuePairs*, p->childAttributes[gglobal()->X3DParser.parentIndex]);
 		p->childAttributes[tg->X3DParser.parentIndex] = NULL;
@@ -2015,11 +2080,11 @@ static void XMLCALL X3DendElement(void *unused, const xmlChar *iname) {
 	myNodeIndex = findFieldInX3DSPECIAL(name);
 	if (myNodeIndex != INT_ID_UNDEFINED) {
 		switch (myNodeIndex) {
-			case X3DSP_ProtoInterface: endProtoInterfaceTag(); break;
-			case X3DSP_ProtoBody: endProtoBodyTag(name); break;
-			case X3DSP_ProtoDeclare: endProtoDeclareTag(); break;
-			case X3DSP_ExternProtoDeclare: endExternProtoDeclareTag(); break;
-			case X3DSP_IS: endIS(); break;
+			case X3DSP_ProtoInterface: endProtoInterfaceTag(ud); break;
+			case X3DSP_ProtoBody: endProtoBodyTag(ud,name); break;
+			case X3DSP_ProtoDeclare: endProtoDeclareTag(ud); break;
+			case X3DSP_ExternProtoDeclare: endExternProtoDeclareTag(ud); break;
+			case X3DSP_IS: endIS(ud); break;
 			case X3DSP_connect:
 			case X3DSP_ROUTE: 
 			case X3DSP_meta:
@@ -2029,11 +2094,11 @@ static void XMLCALL X3DendElement(void *unused, const xmlChar *iname) {
 			case X3DSP_component:
 			case X3DSP_X3D: break;
 			case X3DSP_field:
-				endScriptProtoField(); //dug9 added July 18,2010
+				endScriptProtoField(ud); //dug9 added July 18,2010
 				break;
 			case X3DSP_fieldValue:
 				//endProtoInstanceField(name);
-				setFieldValueDataActive(name);
+				setFieldValueDataActive(ud,name);
 				break;
 			
 			/* should never do this: */
@@ -2064,11 +2129,11 @@ static XML_Parser initializeX3DParser () {
 		XML_SetUserData(p->x3dparser[p->X3DParserRecurseLevel], &parentIndex);
 	}
 	/* printf ("initializeX3DParser, level %d, parser %u\n",x3dparser[X3DParserRecurseLevel]); */
-	pushParserMode(PARSING_NODES);
+	//pushMode(ud,PARSING_NODES);
 	return p->x3dparser[p->X3DParserRecurseLevel];
 }
 
-static void shutdownX3DParser () {
+static void shutdownX3DParser (void *ud) {
 	ttglobal tg = gglobal();
 	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 
@@ -2094,12 +2159,13 @@ static void shutdownX3DParser () {
 	if (p->X3DParserRecurseLevel > INT_ID_UNDEFINED)
 		p->currentX3DParser = p->x3dparser[p->X3DParserRecurseLevel];
 	/* printf ("shutdownX3DParser, current X3DParser %u\n",currentX3DParser); */
-	popParserMode();
+	popMode(ud);
 }
 
 int X3DParse (struct X3D_Node* myParent, const char *inputstring) {
 	ttglobal tg = gglobal();
 	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
+	struct xml_user_data userData;
 	p->currentX3DParser = initializeX3DParser();
 
 	/* printf ("X3DParse, current X3DParser is %u\n",currentX3DParser); */
@@ -2128,7 +2194,12 @@ int X3DParse (struct X3D_Node* myParent, const char *inputstring) {
 	tg->X3DParser.parentStack[tg->X3DParser.parentIndex] = X3D_NODE(myParent);
 
 	DEBUG_X3DPARSER ("X3DPARSE on :\n%s:\n",inputstring);
-	if (XML_ParseFile(p->currentX3DParser, inputstring, (int) strlen(inputstring), TRUE) == XML_STATUS_ERROR) {
+	init_xml_user_data(&userData);
+	pushContext(&userData,myParent);
+	pushNodeAtt(&userData,myParent,NULL);
+	pushMode(&userData,PARSING_NODES);
+	tg->X3DParser.user_data = &userData;
+	if (XML_ParseFile(p->currentX3DParser, &userData, inputstring, (int) strlen(inputstring), TRUE) == XML_STATUS_ERROR) {
 		// http://xmlsoft.org/html/libxml-xmlerror.html
 		xmlErrorPtr xe = xmlGetLastError();
 		ConsoleMessage("Xml Error %s \n",xe->message);
@@ -2138,9 +2209,9 @@ int X3DParse (struct X3D_Node* myParent, const char *inputstring) {
 			XML_ErrorString(XML_GetErrorCode(currentX3DParser)),
 			XML_GetCurrentLineNumber(currentX3DParser));
 		*/
-		shutdownX3DParser();
+		shutdownX3DParser(&userData);
 		return FALSE;
 	}
-	shutdownX3DParser();
+	shutdownX3DParser(&userData);
 	return TRUE;
 }

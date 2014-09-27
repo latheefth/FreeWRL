@@ -490,7 +490,7 @@ will yield:
 
 
 */
-void parseConnect(struct VRMLLexer *myLexer, char **atts, struct Vector *tos) {
+void parseConnect(void *ud, struct VRMLLexer *myLexer, char **atts, struct Vector *tos) {
 	int i;
 	struct nameValuePairs *nvp;
 	size_t ind;
@@ -506,10 +506,10 @@ void parseConnect(struct VRMLLexer *myLexer, char **atts, struct Vector *tos) {
 	pfInd=INT_ID_UNDEFINED;
 
 	#ifdef X3DPARSERVERBOSE
-	printf ("\nparseConnect mode is %s\n",parserModeStrings[getParserMode()]); 
+	printf ("\nparseConnect mode is %s\n",parserModeStrings[getMode(ud,TOP)]); 
 	#endif
 
-	if (getParserMode() != PARSING_IS) {
+	if (getMode(ud,TOP) != PARSING_IS) {
 		ConsoleMessage ("parseConnect: got a <connect> but not in a Proto Expansion at line %d",LINE);
 	}
 
@@ -633,15 +633,15 @@ void parseConnect(struct VRMLLexer *myLexer, char **atts, struct Vector *tos) {
 	} 
 }
 
-void endConnect() {
+void endConnect(void *ud) {
 	#ifdef X3DPARSERVERBOSE
-	printf ("endConnect mode is %s\n",parserModeStrings[getParserMode()]);
+	printf ("endConnect mode is %s\n",parserModeStrings[getMode(ud,TOP)]);
 	#endif
-	popParserMode();
+	popMode(ud);
 }
 
 
-void parseProtoInstanceFields(const char *name, char **atts) {
+void parseProtoInstanceFields(void *ud, const char *name, char **atts) {
 	int count;
 	ppX3DProtoScript p = (ppX3DProtoScript)gglobal()->X3DProtoScript.prv;
 
@@ -700,7 +700,7 @@ void parseProtoInstanceFields(const char *name, char **atts) {
 			p->fieldNodeParsingStateA[p->curProtoInsStackInd].parsingMFSFNode = 1;
 			if(!p->fieldNodeParsingStateA[p->curProtoInsStackInd].fieldHolderInitialized)
 				p->fieldNodeParsingStateA[p->curProtoInsStackInd].fieldHolder = (struct X3D_Node*)createNewX3DNode(NODE_Group);
-			pushParserMode(PARSING_NODES);
+			pushMode(ud,PARSING_NODES);
 			INCREMENT_PARENTINDEX //parentIndex++;
 			tg->X3DParser.parentStack[gglobal()->X3DParser.parentIndex] = p->fieldNodeParsingStateA[p->curProtoInsStackInd].fieldHolder;
 			if (getChildAttributes(gglobal()->X3DParser.parentIndex)!=NULL) deleteChildAttributes(gglobal()->X3DParser.parentIndex); 
@@ -716,7 +716,7 @@ void parseProtoInstanceFields(const char *name, char **atts) {
 	}
 	#undef INDEX
 }
-void endProtoInstanceFieldTypeNode(const char *name)
+void endProtoInstanceFieldTypeNode(void *ud, const char *name)
 {
 	ppX3DProtoScript p = (ppX3DProtoScript)gglobal()->X3DProtoScript.prv;
 	///BIGPOP
@@ -788,7 +788,7 @@ void endProtoInstanceFieldTypeNode(const char *name)
 			ZERO_NAME_VALUE_PAIR
 		}
 		p->fieldNodeParsingStateA[p->curProtoInsStackInd].parsingMFSFNode = 0;
-		popParserMode();
+		popMode(ud);
 	}
 }
 
@@ -1011,7 +1011,7 @@ void compareExternProtoDeclareWithProto(char *buffer,char *pound) {
 
 	/* parse this text now */
 	myGroup = createNewX3DNode (NODE_Group);
-	if (X3DParse(myGroup,buffer)) {
+	if (X3DParse(X3D_NODE(myGroup),buffer)) {
 		/* printf ("ExternProto parsed OK\n"); */
 	} else {
 		ConsoleMessage ("ExternProto retrieval of :%s: did not parse correctly",CPD.definedProtoName);
@@ -1023,7 +1023,7 @@ void compareExternProtoDeclareWithProto(char *buffer,char *pound) {
 
 
 /* handle a <ProtoInstance> tag */
-void parseProtoInstance (char **atts) {
+void parseProtoInstance (void *ud, char **atts) {
 	int count;
 	int nameIndex;
 	int containerIndex;
@@ -1040,7 +1040,7 @@ void parseProtoInstance (char **atts) {
 	protoTableIndex = 0;
 
 	//setParserMode(PARSING_PROTOINSTANCE);
-	pushParserMode(PARSING_PROTOINSTANCE);
+	pushMode(ud,PARSING_PROTOINSTANCE);
 	p->curProtoInsStackInd++;
 
 	#ifdef X3DPARSERVERBOSE
@@ -1404,7 +1404,7 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	#endif
 
 	/* parse this string */
-	if (X3DParse (myGroup,protoInString)) {
+	if (X3DParse (X3D_NODE(myGroup),protoInString)) {
 		#ifdef X3DPARSERVERBOSE
 		printf ("PARSED OK\n");
 		#endif
@@ -1539,19 +1539,19 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 }
 
 
-void parseProtoBody (char **atts) {
+void parseProtoBody (void *ud, char **atts) {
 	#ifdef X3DPARSERVERBOSE
 	TTY_SPACE
 	printf ("start of parseProtoBody\n");
 	#endif
 
 	//setParserMode(PARSING_PROTOBODY);
-	pushParserMode(PARSING_PROTOBODY);
+	pushMode(ud,PARSING_PROTOBODY);
 }
 
 #define X3DPARSERVERBOSE
 
-void parseProtoDeclare (char **atts) {
+void parseProtoDeclare (void *ud, char **atts) {
 	int count;
 	int nameIndex;
 	ppX3DProtoScript p = (ppX3DProtoScript)gglobal()->X3DProtoScript.prv;
@@ -1564,7 +1564,7 @@ void parseProtoDeclare (char **atts) {
 	p->curProDecStackInd++;
 
 	//setParserMode(PARSING_PROTODECLARE);
-	pushParserMode(PARSING_PROTODECLARE);
+	pushMode(ud,PARSING_PROTODECLARE);
 	
 	for (count = 0; atts[count]; count += 2) {
 		#ifdef X3DPARSERVERBOSE
@@ -1592,7 +1592,7 @@ void parseProtoDeclare (char **atts) {
 #undef X3DPARSERVERBOSE
 
 
-void parseExternProtoDeclare (char **atts) {
+void parseExternProtoDeclare (void *ud, char **atts) {
 	int count;
 	int nameIndex;
 	int urlIndex;
@@ -1607,7 +1607,7 @@ void parseExternProtoDeclare (char **atts) {
 	p->curProDecStackInd++;
 
 	//setParserMode(PARSING_EXTERNPROTODECLARE);
-	pushParserMode(PARSING_EXTERNPROTODECLARE);
+	pushMode(ud,PARSING_EXTERNPROTODECLARE);
 	
 	for (count = 0; atts[count]; count += 2) {
 		#ifdef X3DPARSERVERBOSE
@@ -1643,12 +1643,12 @@ void parseExternProtoDeclare (char **atts) {
 
 
 /* simple sanity check, and change mode */
-void parseProtoInterface (char **atts) {
-	if (getParserMode() != PARSING_PROTODECLARE && getParserMode() != PARSING_EXTERNPROTODECLARE) {
+void parseProtoInterface (void *ud, char **atts) {
+	if (getMode(ud,TOP) != PARSING_PROTODECLARE && getMode(ud,TOP) != PARSING_EXTERNPROTODECLARE) {
 		ConsoleMessage ("got a <ProtoInterface>, but not within a <ProtoDeclare>\n");
 	}
 	//setParserMode(PARSING_PROTOINTERFACE);
-	pushParserMode(PARSING_PROTOINTERFACE);
+	pushMode(ud,PARSING_PROTOINTERFACE);
 }
 
 
@@ -1714,7 +1714,7 @@ static char *getDefaultValuePointer(int type) {
 
 
 /* parse a script or proto field. Note that they are in essence the same, just used differently */
-void parseScriptProtoField(struct VRMLLexer* myLexer, char **atts) {
+void parseScriptProtoField(void *ud, struct VRMLLexer* myLexer, char **atts) {
 	int i;
 	int myparams[MPFIELDS];
 	int which;
@@ -1740,7 +1740,7 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, char **atts) {
 	printf ("start of parseScriptProtoField, parentStack is of type %s\n",stringNodeType(parentStack[parentIndex]->_nodeType));
 	printf("parentIndex=%d\n",parentIndex);
 	printf ("	mode is %s, currentProtoDeclare is %d\n",
-				parserModeStrings[getParserMode()],
+				parserModeStrings[getMode(ud,TOP)],
 				currentProtoDeclare);
 	if (PROTONames[currentProtoDeclare].isExternProto) printf ("	it IS an ExternProto\n"); else printf ("	it is NOT an ExternProto\n");
 	for (i = 0; atts[i]; i += 2) printf("%s %s\n",atts[i],atts[i+1]);
@@ -1748,14 +1748,14 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, char **atts) {
 	#endif
 
 	/* are we parsing an EXTERNPROTO? If so, we should... */
-	if (getParserMode() == PARSING_EXTERNPROTODECLARE) {
+	if (getMode(ud,TOP) == PARSING_EXTERNPROTODECLARE) {
 		if (p->currentProtoDeclare != INT_ID_UNDEFINED) {
 			myObj = CPD.fieldDefs;
 		}
-	} else if( getParserMode() == PARSING_PROTOINTERFACE) {
+	} else if( getMode(ud,TOP) == PARSING_PROTOINTERFACE) {
 		/* make sure we are really in a proto declare. 
 		  dug9 july27,2010: There's no wrapper Group for a ProtoDeclare - that comes later at the Instance stage
-		  therefore we test by getParserMode() */
+		  therefore we test by getMode(ud,TOP) */
 		if ((p->currentProtoDeclare > INT_ID_UNDEFINED) && (p->currentProtoDeclare < p->MAXProtos))
 		{
 			myObj = CPD.fieldDefs;
@@ -1953,7 +1953,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, int ctyp
 	/* sdecl->ASCIIname=STRDUP(atts[myparams[MP_NAME]]); */
 
 	/* if we are parsing a PROTO interface, we might as well save the value as a string, because we will need it later */
-	if (getParserMode() == PARSING_PROTOINTERFACE) {
+	if (getMode(ud,TOP) == PARSING_PROTOINTERFACE) {
 		if (myValueString != NULL)
 			scriptFieldDecl_setFieldASCIIValue(sdecl, STRDUP(myValueString));
 	}
@@ -1989,7 +1989,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, int ctyp
 	  And because a proto can have many MFNode fields, we malloc a data structure when we find a field
     */
 	p->fieldNodeParsingStateB[tg->X3DParser.parentIndex].parsingMFSFNode = 0;
-	if( ((getParserMode() == PARSING_NODES)||(getParserMode() == PARSING_PROTOINTERFACE)) && (myValueType == FIELDTYPE_SFNode || myValueType == FIELDTYPE_MFNode)  )
+	if( ((getMode(ud,TOP) == PARSING_NODES)||(getMode(ud,TOP) == PARSING_PROTOINTERFACE)) && (myValueType == FIELDTYPE_SFNode || myValueType == FIELDTYPE_MFNode)  )
 	{
 		if ((myAccessType == PKW_initializeOnly) || (myAccessType == PKW_inputOutput)) 
 		{
@@ -1997,7 +1997,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, int ctyp
 			if(!p->fieldNodeParsingStateB[tg->X3DParser.parentIndex].fieldHolderInitialized)
 				p->fieldNodeParsingStateB[tg->X3DParser.parentIndex].fieldHolder = (struct X3D_Node*)createNewX3DNode(NODE_Group);
 			X3D_GROUP(p->fieldNodeParsingStateB[tg->X3DParser.parentIndex].fieldHolder)->children.n = 0;
-			pushParserMode(PARSING_NODES);
+			pushMode(ud,PARSING_NODES);
 			INCREMENT_PARENTINDEX //parentIndex++;
 			tg->X3DParser.parentStack[tg->X3DParser.parentIndex] = p->fieldNodeParsingStateB[gglobal()->X3DParser.parentIndex-1].fieldHolder;
 			if (getChildAttributes(gglobal()->X3DParser.parentIndex)!=NULL) deleteChildAttributes(gglobal()->X3DParser.parentIndex); //deleteVector (struct nameValuePairs*, childAttributes[parentIndex]);
@@ -2011,7 +2011,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, int ctyp
 #undef X3DPARSERVERBOSE
 }
 void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, int num);
-void endScriptProtoField()  
+void endScriptProtoField(void *ud)  
 {
 	ttglobal tg = gglobal();
 	ppX3DProtoScript p = (ppX3DProtoScript)tg->X3DProtoScript.prv;
@@ -2079,7 +2079,7 @@ void endScriptProtoField()
 			p->fieldNodeParsingStateB[tg->X3DParser.parentIndex].mfnodeSdecl->valueSet = FALSE;
 		}
 		p->fieldNodeParsingStateB[tg->X3DParser.parentIndex].parsingMFSFNode = 0;
-		popParserMode();
+		popMode(ud);
 	}
 }
 
@@ -2146,7 +2146,7 @@ void addToProtoCode(const char *name) {
 }
 
 
-void endExternProtoDeclare(void) {
+void endExternProtoDeclare(void *ud) {
 	char *pound;
 	char *buffer;
 	int foundOk;
@@ -2224,10 +2224,10 @@ void endExternProtoDeclare(void) {
 			printf ("	pound %s\n",pound);
 			printf ("	currentProtoDeclare %d\n",currentProtoDeclare); */
 			
-			pushParserMode(PARSING_NODES);
+			pushMode(ud,PARSING_NODES);
 
 			compareExternProtoDeclareWithProto(buffer,pound);
-			popParserMode(); //setParserMode(PARSING_EXTERNPROTODECLARE);
+			popMode(ud); //setParserMode(PARSING_EXTERNPROTODECLARE);
 		}
 
 		/* decrement the protoDeclare stack count. If we are nested, get out of the nesting */
@@ -2255,7 +2255,7 @@ void endExternProtoDeclare(void) {
 		/* now, a ExternProtoDeclare should be within normal nodes; make the expected mode PARSING_NODES, assuming
 		   we don't have nested ExternProtoDeclares  */
 		//if (curProDecStackInd == 0) setParserMode(PARSING_NODES);
-		//popParserMode();
+		//popMode(ud);
 
 		if (p->curProDecStackInd < 0) {
 			ConsoleMessage ("X3D_Parser found too many end ExternProtoDeclares at line %d\n",LINE);
@@ -2294,7 +2294,7 @@ void endProtoDeclare(void) {
 		/* now, a ProtoDeclare should be within normal nodes; make the expected mode PARSING_NODES, assuming
 		   we don't have nested ProtoDeclares  */
 		//if (curProDecStackInd == 0) setParserMode(PARSING_NODES);
-		//popParserMode(); done in x3dparser.c end tag
+		//popMode(ud); done in x3dparser.c end tag
 
 		if (p->curProDecStackInd < 0) {
 			ConsoleMessage ("X3D_Parser found too many end ProtoDeclares at line %d\n",LINE);

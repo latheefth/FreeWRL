@@ -105,23 +105,23 @@ void debugpopParserMode(char *fle, int line);
 /* function protos */
 struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int force);
 
-void parseProtoDeclare (char **atts);
-void parseExternProtoDeclare (char **atts);
-void parseProtoInterface (char **atts);
-void parseProtoBody (char **atts);
-void parseProtoInstance (char **atts);
-void parseProtoInstanceFields(const char *name, char **atts);
+void parseProtoDeclare (void *ud, char **atts);
+void parseExternProtoDeclare (void *ud, char **atts);
+void parseProtoInterface (void *ud, char **atts);
+void parseProtoBody (void *ud, char **atts);
+void parseProtoInstance (void *ud, char **atts);
+void parseProtoInstanceFields(void *ud, const char *name, char **atts);
 void dumpProtoBody (const char *name, char **atts);
 void dumpCDATAtoProtoBody (char *str);
-void parseScriptProtoField(struct VRMLLexer *, char **atts);
+void parseScriptProtoField(void *ud, struct VRMLLexer *, char **atts);
 void expandProtoInstance(struct VRMLLexer *, struct X3D_Group * myGroup);
 void freeProtoMemory (void);
 void kill_X3DProtoScripts(void);
 void linkNodeIn(char *, int);
-void parseConnect(struct VRMLLexer * myLexer, char **atts, struct Vector *tos);
-void endConnect(void);
+void parseConnect(void *ud, struct VRMLLexer * myLexer, char **atts, struct Vector *tos);
+void endConnect(void *ud);
 void endProtoDeclare(void);
-void endExternProtoDeclare(void);
+void endExternProtoDeclare(void *ud);
 struct X3D_Node *X3DParser_getNodeFromName(const char *name);
 int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs, int* type, int *accessType, struct Shader_Script **myObj, char *name, int routeTo);
  
@@ -130,6 +130,23 @@ char *X3DParser_getNameFromNode(struct X3D_Node* myNode);
 void setChildAttributes(int index,void *ptr);
 void *getChildAttributes(int index);
 void deleteChildAttributes(int index);
+
+
+struct xml_user_data;
+//for push,pop,get the index is the vector index range 0, n-1. 
+// Or going from the top top= -1, parent to top = -2.
+#define TOP -1
+#define BOTTOM 0
+void pushContext(void *userData, struct X3D_Node* context);
+void pushNodeAtt(void *userData,struct X3D_Node* node, void* att);
+void pushMode(void *userData, int parsingmode);
+struct X3D_Node* getContext(void *userData, int index);
+struct X3D_Node* getNode(void *userData, int index);
+void* getAtt(void *userData, int index);
+int getMode(void *userData, int index);
+void popContext(void *userData);
+void popNodeAtt(void *userData);
+void popMode(void *userData);
 
 
 #endif /*  __FREEWRL_X3D_PARSER_H__ */
