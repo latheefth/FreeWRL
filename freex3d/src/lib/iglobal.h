@@ -386,7 +386,6 @@ iOLDCODE	}Component_Networking;
 		struct X3D_Node *parentStack[PARENTSTACKSIZE];
 		char *CDATA_Text;// = NULL;
 		int CDATA_Text_curlen;// = 0;
-		void *user_data;
 		void *prv;
 	}X3DParser;
 	struct tX3DProtoScript{

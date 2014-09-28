@@ -59,7 +59,7 @@ struct nameValuePairs {
 #define DECREMENT_PARENTINDEX \
         if (gglobal()->X3DParser.parentIndex > 0) { gglobal()->X3DParser.parentIndex--; } else { ConsoleMessage ("X3DParser, line %d stack underflow (source code %s:%d)",LINE,__FILE__,__LINE__); }
 
-#define INCREMENT_PARENTINDEX \
+#define INCREMENT_PARENTINDEX_hide \
         if (gglobal()->X3DParser.parentIndex < (PARENTSTACKSIZE-2))  { \
                 gglobal()->X3DParser.parentIndex++; \
                 gglobal()->X3DParser.parentStack[gglobal()->X3DParser.parentIndex] = NULL; /* make sure we know the state of the new Top of Stack */ \
@@ -114,22 +114,22 @@ void parseProtoInstanceFields(void *ud, const char *name, char **atts);
 void dumpProtoBody (const char *name, char **atts);
 void dumpCDATAtoProtoBody (char *str);
 void parseScriptProtoField(void *ud, struct VRMLLexer *, char **atts);
-void expandProtoInstance(struct VRMLLexer *, struct X3D_Group * myGroup);
+void expandProtoInstance(void *ud, struct VRMLLexer *, struct X3D_Group * myGroup);
 void freeProtoMemory (void);
 void kill_X3DProtoScripts(void);
-void linkNodeIn(char *, int);
+void linkNodeIn(void *ud, char *, int);
 void parseConnect(void *ud, struct VRMLLexer * myLexer, char **atts, struct Vector *tos);
 void endConnect(void *ud);
-void endProtoDeclare(void);
+void endProtoDeclare(void *ud);
 void endExternProtoDeclare(void *ud);
 struct X3D_Node *X3DParser_getNodeFromName(const char *name);
 int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs, int* type, int *accessType, struct Shader_Script **myObj, char *name, int routeTo);
  
 char *X3DParser_getNameFromNode(struct X3D_Node* myNode);
 
-void setChildAttributes(int index,void *ptr);
-void *getChildAttributes(int index);
-void deleteChildAttributes(int index);
+//void setChildAttributes(int index,void *ptr);
+//void *getChildAttributes(int index);
+//void deleteChildAttributes(int index);
 
 
 struct xml_user_data;
@@ -138,14 +138,18 @@ struct xml_user_data;
 #define TOP -1
 #define BOTTOM 0
 void pushContext(void *userData, struct X3D_Node* context);
-void pushNodeAtt(void *userData,struct X3D_Node* node, void* att);
+void pushNode(void *userData,struct X3D_Node* node);
 void pushMode(void *userData, int parsingmode);
 struct X3D_Node* getContext(void *userData, int index);
 struct X3D_Node* getNode(void *userData, int index);
 void* getAtt(void *userData, int index);
+//void* getChild(void *userData, int index);
+void setAtt(void *userData, int index, void* att);
+//void setChild(void *userData, int index, void* child);
+int getNodeTop(ud);
 int getMode(void *userData, int index);
 void popContext(void *userData);
-void popNodeAtt(void *userData);
+void popNode(void *userData);
 void popMode(void *userData);
 
 
