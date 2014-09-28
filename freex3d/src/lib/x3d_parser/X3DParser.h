@@ -106,10 +106,14 @@ void debugpopParserMode(char *fle, int line);
 struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int force);
 
 void parseProtoDeclare (void *ud, char **atts);
+void parseProtoDeclare_B (void *ud, char **atts);
 void parseExternProtoDeclare (void *ud, char **atts);
+void parseExternProtoDeclare_B (void *ud, char **atts);
 void parseProtoInterface (void *ud, char **atts);
 void parseProtoBody (void *ud, char **atts);
+void parseProtoBody_B (void *ud, char **atts);
 void parseProtoInstance (void *ud, char **atts);
+void parseProtoInstance_B (void *ud, char **atts);
 void parseProtoInstanceFields(void *ud, const char *name, char **atts);
 void dumpProtoBody (const char *name, char **atts);
 void dumpCDATAtoProtoBody (char *str);
@@ -127,10 +131,6 @@ int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs,
  
 char *X3DParser_getNameFromNode(struct X3D_Node* myNode);
 
-//void setChildAttributes(int index,void *ptr);
-//void *getChildAttributes(int index);
-//void deleteChildAttributes(int index);
-
 
 struct xml_user_data;
 //for push,pop,get the index is the vector index range 0, n-1. 
@@ -143,9 +143,7 @@ void pushMode(void *userData, int parsingmode);
 struct X3D_Node* getContext(void *userData, int index);
 struct X3D_Node* getNode(void *userData, int index);
 void* getAtt(void *userData, int index);
-//void* getChild(void *userData, int index);
 void setAtt(void *userData, int index, void* att);
-//void setChild(void *userData, int index, void* child);
 int getNodeTop(ud);
 int getMode(void *userData, int index);
 void popContext(void *userData);

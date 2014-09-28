@@ -1024,7 +1024,14 @@ void compareExternProtoDeclareWithProto(char *buffer,char *pound) {
 	/* do the fields match up? */
 	verifyExternAndProtoFields();
 }
-
+void parseProtoInstance_B(void *ud, char **atts) {
+	/*broto version
+		1. lookup the user (proto) type in current and parent context protoDeclare and externProtoDeclare tables
+		2. brotoInstance()
+		3. parse att and any <fieldValue> and IS
+		4. on end, deep_copy_broto_body2 applying the initial field values parsed.
+	*/
+}
 
 /* handle a <ProtoInstance> tag */
 void parseProtoInstance (void *ud, char **atts) {
@@ -1543,7 +1550,11 @@ void expandProtoInstance(void *ud, struct VRMLLexer *myLexer, struct X3D_Group *
 	/* printf ("end of expandProtoInstance\n"); */
 }
 
-
+void parseProtoBody_B (void *ud, char **atts) {
+	//push proto node on context stack
+	pushContext(ud,getNode(ud,TOP));
+	pushMode(ud,PARSING_PROTOBODY);
+}
 void parseProtoBody (void *ud, char **atts) {
 	#ifdef X3DPARSERVERBOSE
 	TTY_SPACE
@@ -1555,6 +1566,14 @@ void parseProtoBody (void *ud, char **atts) {
 }
 
 #define X3DPARSERVERBOSE
+
+void parseProtoDeclare_B (void *ud, char **atts) {
+	//create a new proto but not registered node
+	//get user type name
+	//set flag for shallow/declare
+	//add to current context's protoDeclare array
+	//push on node stack awaiting interface and body
+}
 
 void parseProtoDeclare (void *ud, char **atts) {
 	int count;
@@ -1596,7 +1615,12 @@ void parseProtoDeclare (void *ud, char **atts) {
 }
 #undef X3DPARSERVERBOSE
 
-
+void parseExternProtoDeclare_B (void *ud, char **atts) {
+	//instance a proto and set it's declare flag
+	//parse its user typename
+	//add it to the current context's protoDeclare list
+	//get ready to parse field definitions (with no initial value)
+}
 void parseExternProtoDeclare (void *ud, char **atts) {
 	int count;
 	int nameIndex;
