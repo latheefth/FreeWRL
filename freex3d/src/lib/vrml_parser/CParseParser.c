@@ -4674,7 +4674,7 @@ struct brotoDefpair{
 void broto_store_DEF(struct X3D_Proto* proto,struct X3D_Node* node, char *name)
 {
 	Stack *defs;
-	struct brotoDefpair *def = MALLOC(struct brotoDefpair*,sizeof(struct brotoDefpair));
+	struct brotoDefpair *def = MALLOC(struct brotoDefpair*,sizeof(struct brotoDefpair)); //gc option: make this a local struct (not *)..
 	def->node = node;
 	def->name = STRDUP(name); //I don't know if the lexer clears its arrays after parsing, so DUP here.
 	defs = proto->__DEFnames;
@@ -4683,7 +4683,17 @@ void broto_store_DEF(struct X3D_Proto* proto,struct X3D_Node* node, char *name)
 		defs = newStack(struct brotoDefpair *);
 		proto->__DEFnames = defs;
 	}
-	stack_push(struct brotoDefpair*, defs, def);
+	stack_push(struct brotoDefpair*, defs, def); //..then push the local struct and it should deep copy it, mallocing if it needs space, and reclaiming on vectorDelete
+}
+struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, char *name){
+	int i;
+	struct brotoDefpair *def;
+	if(context->__DEFnames)
+	for(i=0;i<vectorSize(context->__DEFnames);i++){
+		def = vector_get(struct brotoDefpair*, context->__DEFnames,i);
+		if(!strcmp(def->name,name)) return def->node;
+	}
+	return NULL;
 }
 
 BOOL isAvailableBroto(char *pname, struct X3D_Proto* currentContext, struct X3D_Proto **proto)
@@ -5846,7 +5856,7 @@ BOOL nodeTypeSupportsUserFields(struct X3D_Node *node)
 	user = node->_nodeType == NODE_Proto || node->_nodeType == NODE_Script || 
 		   node->_nodeType == NODE_ShaderProgram ||  node->_nodeType == NODE_ComposedShader ||
 		   node->_nodeType == NODE_PackagedShader ? TRUE : FALSE;
-	if(!user &&  node->_nodeType == NODE_Group){
+	if(!user &&  !usingBrotos() && node->_nodeType == NODE_Group){
 		struct X3D_Group* grp = (struct X3D_Group*)node;
 		user = grp->FreeWRL__protoDef !=INT_ID_UNDEFINED ? TRUE : FALSE;
 	}

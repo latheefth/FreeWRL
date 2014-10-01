@@ -48,6 +48,7 @@ struct nameValuePairs {
 #define PARSING_IS		7
 #define PARSING_CONNECT		8
 #define PARSING_EXTERNPROTODECLARE 9
+#define PARSING_FIELD 10
 
 /* for our internal PROTO tables, and, for initializing the XML parser */
 #define PROTOINSTANCE_MAX_LEVELS 50
@@ -118,6 +119,7 @@ void parseProtoInstanceFields(void *ud, const char *name, char **atts);
 void dumpProtoBody (const char *name, char **atts);
 void dumpCDATAtoProtoBody (char *str);
 void parseScriptProtoField(void *ud, struct VRMLLexer *, char **atts);
+void parseScriptProtoField_B(void *ud, char **atts);
 void expandProtoInstance(void *ud, struct VRMLLexer *, struct X3D_Group * myGroup);
 void freeProtoMemory (void);
 void kill_X3DProtoScripts(void);
@@ -140,7 +142,7 @@ struct xml_user_data;
 void pushContext(void *userData, struct X3D_Node* context);
 void pushNode(void *userData,struct X3D_Node* node);
 void pushMode(void *userData, int parsingmode);
-struct X3D_Node* getContext(void *userData, int index);
+struct X3D_Proto* getContext(void *userData, int index);
 struct X3D_Node* getNode(void *userData, int index);
 void* getAtt(void *userData, int index);
 void setAtt(void *userData, int index, void* att);
@@ -149,6 +151,7 @@ int getMode(void *userData, int index);
 void popContext(void *userData);
 void popNode(void *userData);
 void popMode(void *userData);
-
-
+void pushField(void *userData, char* fname);
+void popField(void *userData);
+char* getField(void *userData, int index);
 #endif /*  __FREEWRL_X3D_PARSER_H__ */

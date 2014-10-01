@@ -114,7 +114,7 @@ struct PSStruct {
 	struct Uni_String *sv;			/* the SV for javascript		*/
 };
 
-static bool parser_do_parse_string(const unsigned char *input, const int len, struct X3D_Group *nRn);
+static bool parser_do_parse_string(const unsigned char *input, const int len, struct X3D_Node *nRn);
 
 /* Bindables */
 typedef struct pProdCon{
@@ -237,6 +237,29 @@ void sceneInstance(struct X3D_Proto* proto, struct X3D_Group *scene);
 /* BOOL usingBrotos(); -- moved to CParseParser.h */
 void dump_scene2(FILE *fp, int level, struct X3D_Node* node, int recurse, Stack *DEFedNodes) ;
 
+int indexChildrenName(struct X3D_Node *node){
+	int index = -1; //we'll have it work like a bool too, and I don't think any of our children field are at 0
+	if(node)
+		switch(node->_nodeType){
+			case NODE_Group:
+				index = FIELDNAMES_children;
+				break;
+			case NODE_Transform:
+				index = FIELDNAMES_children;
+				break;
+			case NODE_Proto:
+				index = FIELDNAMES___children;
+				break;
+			case NODE_Inline:  //Q. do I need this in here? Saw code in x3dparser.
+				index = FIELDNAMES___children;
+				break;
+			case NODE_GeoLOD:  //Q. do I need this in here? Saw code in x3dparser.
+				index = FIELDNAMES_rootNode;
+				break;
+		}
+	return index;
+
+}
 struct Multi_Node *childrenField(struct X3D_Node *node){
 	struct Multi_Node *childs = NULL;
 	if(node)
@@ -309,7 +332,7 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 	case IS_TYPE_XML_X3D:
 		if(kids){
 		//if(nRn->_nodeType == NODE_Group || nRn->_nodeType == NODE_Proto){
-			ret = X3DParse(X3D_GROUP(nRn), (const char*)input);
+			ret = X3DParse(X3D_NODE(nRn), (const char*)input);
 		}
 		break;
 	case IS_TYPE_VRML:
