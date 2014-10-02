@@ -4498,7 +4498,7 @@ BOOL route_parse_nodefield(struct VRMLParser* me, int *NodeIndex, struct X3D_Nod
 	FREE_IF_NZ(me->lexer->curID);
 
 	fieldPtr = NULL;
-	foundField = find_anyfield_by_nameAndRouteDir(me->lexer, *Node, &fieldPtr, &mode, &type, 
+	foundField = find_anyfield_by_nameAndRouteDir( *Node, &fieldPtr, &mode, &type, 
 		nodeFieldName, &source, &fdecl, &ifield, PKW_eventType);
 	if(foundField)
 	{
@@ -4807,12 +4807,12 @@ void copy_defnames2(Stack *defnames, struct X3D_Proto* target, struct Vector *p2
 	Stack* defs;
 	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 
-	defs = globalParser->brotoDEFedNodes;
-	if( defs == NULL)
-	{
-		defs = newStack(struct brotoDefpair *);
-		globalParser->brotoDEFedNodes = defs;
-	}
+	//defs = globalParser->brotoDEFedNodes;
+	//if( defs == NULL)
+	//{
+	//	defs = newStack(struct brotoDefpair *);
+	//	globalParser->brotoDEFedNodes = defs;
+	//}
 	if(target->__DEFnames == NULL)
 		target->__DEFnames = newStack(struct brotoDefpair *);
 	if(defnames)
@@ -4825,7 +4825,7 @@ void copy_defnames2(Stack *defnames, struct X3D_Proto* target, struct Vector *p2
 			def2 = MALLOC(struct brotoDefpair*,sizeof(struct brotoDefpair));
 			def2->name = def->name; //I wonder who owns this name
 			def2->node = p2p_lookup(def->node, p2p);
-			stack_push(struct brotoDefpair*, defs, def2);
+			//stack_push(struct brotoDefpair*, defs, def2);
 			stack_push(struct brotoDefpair*, target->__DEFnames, def2); //added for broto2
 		}
 	}
@@ -5131,16 +5131,18 @@ char *broto_getNameFromNode(struct X3D_Node* node)
 	Stack* defs;
 	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 	ret = NULL;
-	defs = globalParser->brotoDEFedNodes;
-	if(defs){
-		int i,n;
-		struct brotoDefpair* def;
-		n = vectorSize(defs);
-		for(i=0;i<n;i++){
-			def = vector_get(struct brotoDefpair*,defs,i);
-			if(def->node == node){
-				ret = def->name; 
-				break;
+	if(globalParser){
+		defs = globalParser->brotoDEFedNodes;
+		if(defs){
+			int i,n;
+			struct brotoDefpair* def;
+			n = vectorSize(defs);
+			for(i=0;i<n;i++){
+				def = vector_get(struct brotoDefpair*,defs,i);
+				if(def->node == node){
+					ret = def->name; 
+					break;
+				}
 			}
 		}
 	}
@@ -6013,7 +6015,7 @@ BOOL cbRootNameAndRouteDir(void *callbackData,struct X3D_Node* node,int jfield,u
 	}
 	return found;
 }
-BOOL find_anyfield_by_nameAndRouteDir(struct VRMLLexer* lexer, struct X3D_Node* node, union anyVrml **anyptr, 
+BOOL find_anyfield_by_nameAndRouteDir(struct X3D_Node* node, union anyVrml **anyptr, 
 			int *imode, int *itype, char* nodeFieldName, int *isource, void** fdecl, int *ifield, int PKW_eventType)
 {
 	int found;

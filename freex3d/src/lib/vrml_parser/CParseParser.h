@@ -135,7 +135,7 @@ BOOL parser_vrmlScene(struct VRMLParser*);
 
 BOOL nodeTypeSupportsUserFields(struct X3D_Node *node);
 int PKW_from_KW(int KW_index);
-BOOL find_anyfield_by_nameAndRouteDir(struct VRMLLexer* lexer, struct X3D_Node* node, union anyVrml **anyptr, 
+BOOL find_anyfield_by_nameAndRouteDir( struct X3D_Node* node, union anyVrml **anyptr, 
 	int *imode, int *itype, char* nodeFieldName, int *isource, void** fdecl, int *ifield, int PKW_eventType);
 BOOL found_IS_field(struct VRMLParser* me, struct X3D_Node *node);
 BOOL isAvailableBroto(char *pname, struct X3D_Proto* currentContext, struct X3D_Proto **proto);

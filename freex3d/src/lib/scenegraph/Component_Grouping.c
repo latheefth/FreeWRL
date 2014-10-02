@@ -387,6 +387,7 @@ if ((node->_renderFlags & VF_inPickableGroup) == VF_inPickableGroup) printf ("VF
 printf ("\n");
 */
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
+	//if(node->__loadstatus != LOAD_STABLE) return; #define LOAD_STABLE 10
 
 
 
