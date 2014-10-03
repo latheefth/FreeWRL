@@ -980,7 +980,9 @@ need to put a node into something other than the "children" field.
 
 */
 int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *type, int *kind, int *iifield, union anyVrml **value);
-void linkNodeIn_B(void *ud, char **atts) {
+int indexChildrenName(struct X3D_Node *node);
+struct Multi_Node *childrenField(struct X3D_Node *node);
+void linkNodeIn_B(void *ud) {
 /*	Assumes you have parsed a node, and have it pushed onto the node stack, and 
 	now you want to put it in a field in it's parent
 	'children' is a weak field recommendation from either the parent or current node
@@ -1017,30 +1019,48 @@ c) look at atts containerField, and if not null and not children, use it.
 		fname = FIELDNAMES[defaultContainer];
 		ok = getFieldFromNodeAndName(parent,fname,&type,&kind,&iifield,&value);
 	}
+	if(!value && node->_defaultContainer == FIELDNAMES_children){
+		//if you try and put a transform into a proto, or LOD, or Inline (or switch?) you'll come in
+		//here to get the equivalent-to-children field
+		ok = getFieldFromNodeAndName(parent,"children",&type,&kind,&iifield,&value);
+		if(!ok){
+			int kids = indexChildrenName(parent);
+			if(kids > 0){
+				 value = (union anyVrml*)childrenField(parent);
+				 type = FIELDTYPE_MFNode;
+			}
+		}
+	}
 	//3.b)
-	if(parentsSuggestion) 
+	if(parentsSuggestion) {
+		//if you're parsing a fieldValue, and your value is an SF or MFnode in a child xml element,
+		//<fieldValue name='myTransform'>
+		//	<Transform USE='tommysTransform'/>
+		//</fieldValue>
+		//you'll come in here
 		ok =getFieldFromNodeAndName(parent,parentsSuggestion,&type,&kind,&iifield,&value);
+	}
 			
-	//3.c)
-	ic = NULL;
-	for (i = 0; atts[i]; i += 2) {
-		if(!strcmp(atts[i],"containerField") ) {
-			ic = atts[i+1];
-			break;
+	if(!value && parent){
+		ok = getFieldFromNodeAndName(parent,"children",&type,&kind,&iifield,&value);
+		if(!ok){
+			int kids = indexChildrenName(parent);
+			if(kids > 0){
+				 value = (union anyVrml*)childrenField(parent);
+				 type = FIELDTYPE_MFNode;
+			}
 		}
 	}
-	if(ic) {
-		if(getFieldFromNodeAndName(parent,ic,&type,&kind,&iifield,&value)){
-			
-		}
-	}
+
 	if(value){
 		if(type == FIELDTYPE_SFNode){
 			value->sfnode = node;
-				ADD_PARENT(node,parent);
+			ADD_PARENT(node,parent);
 		}else if(type == FIELDTYPE_MFNode){
 			AddRemoveChildren(parent,&value->mfnode,&node,1,1,NULL,0);
 		}
+	}else{
+		printf("no where to put node in parent\n");
 	}
 
 }
@@ -1549,6 +1569,13 @@ static void endProtoDeclareTag_B(void *ud) {
 		pushMode(ud,PARSING_PROTODECLARE);
 	}
 	printf("end protoDeclare\n");
+	// set defaultContainer based on 1st child
+	struct X3D_Proto * proto = X3D_PROTO(getNode(ud,TOP));
+	if(proto->__children.n){
+		struct X3D_Node *c1 = proto->__children.p[0];
+		if(c1->_defaultContainer > INT_ID_UNDEFINED) 
+			proto->_defaultContainer = c1->_defaultContainer;
+	}
 	popField(ud);
 	popNode(ud); //I think I should pop the X3DProto off the stack
 	popMode(ud);
@@ -1583,6 +1610,7 @@ static void endProtoInstance_B(void *ud, const char *name) {
 				deep_copy_broto_body2(&X3D_PROTO(pnode->__prototype),&pnode);
 			}
 		}
+		linkNodeIn_B(ud);
 	}
 	popField(ud);
 	popNode(ud);
@@ -1727,7 +1755,9 @@ static void startBuiltin_B(void *ud, int myNodeType, const xmlChar *name, char**
 	void **shaderfield;
 	char pflagdepth;
 	int kids, i, isUSE;
-	char *defname, *suggestedChildField = NULL;
+	char *defname, *suggestedChildField, *containerfield;
+
+	suggestedChildField = containerfield = NULL;
 	context = getContext(ud,TOP);
 	pflagdepth = ciflag_get(context->__protoFlags,0); //0 - we're in a protodeclare, 1 - we are instancing live scenery
 	printf("start builtin %s\n",name);
@@ -1776,7 +1806,7 @@ static void startBuiltin_B(void *ud, int myNodeType, const xmlChar *name, char**
 					isUSE = TRUE;
 				}
 			}
-		}
+		} else if(!strcmp(atts[i],"containerField")) containerfield = atts[i+1];
 	}
 
 	if(!isUSE){
@@ -1789,7 +1819,15 @@ static void startBuiltin_B(void *ud, int myNodeType, const xmlChar *name, char**
 	}
 	pushNode(ud,node);
 	
-	linkNodeIn_B(ud,atts);
+	if(containerfield) {
+		//int builtinField = findFieldInARR(containerfield,FIELDNAMES,FIELDNAMES_COUNT); 
+		int builtinField = findFieldInFIELDNAMES(containerfield);
+		if(builtinField > INT_ID_UNDEFINED){
+			node->_defaultContainer = builtinField;
+		}
+	}
+
+	//linkNodeIn_B(ud);
 
 	if(!isUSE){
 		shaderfield = shaderFields(node);
@@ -1829,6 +1867,8 @@ void endBuiltin_B(void *ud, const xmlChar *name){
 		//overkill -duplicates new_Shader_Script initialize_one_script(sn->__scriptObj,&sn->url);
 		script_initCodeFromMFUri(sn->__scriptObj, &sn->url);
 	}
+	linkNodeIn_B(ud);
+
 	popNode(ud);
 	popField(ud);
 

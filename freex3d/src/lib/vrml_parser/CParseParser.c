@@ -4956,6 +4956,8 @@ struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep)
 	//memcpy(p,proto,sizeof(struct X3D_Proto)); //dangerous, make sure you re-instance all pointer variables
 	p->__prototype = proto->__prototype;
 	p->_nodeType = proto->_nodeType;
+	p->_defaultContainer = proto->_defaultContainer;
+	p->_renderFlags = proto->_renderFlags;
 	pobj = proto->__protoDef;
 	if(pobj){ //Prodcon doesn't bother mallocing this for scene nRn
 		nobj = MALLOC(struct ProtoDefinition*,sizeof(struct ProtoDefinition));

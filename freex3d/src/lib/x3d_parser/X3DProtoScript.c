@@ -513,7 +513,7 @@ void parseConnect_B(void *ud, char **atts) {
 		int ptype, pkind, pifield, ntype, nkind, nifield;
 		union anyVrml *pvalue, *nvalue;
 		okp = getFieldFromNodeAndName(X3D_NODE(proto),protofield,&ptype, &pkind, &pifield, &pvalue);
-		okn = getFieldFromNodeAndName(X3D_NODE(proto), nodefield,&ntype, &nkind, &nifield, &nvalue);
+		okn = getFieldFromNodeAndName(node, nodefield,&ntype, &nkind, &nifield, &nvalue);
 		//check its mode
 		// http://www.web3d.org/files/specifications/19775-1/V3.2/Part01/concepts.html#t-RulesmappingPROTOTYPEdecl
 		// there's what I call a mode-jive table
@@ -551,6 +551,7 @@ void parseConnect_B(void *ud, char **atts) {
 			}
 			//b) register it in the IS-table for our context
 			int source = node->_nodeType == NODE_Proto ? 3 : node->_nodeType == NODE_Script ? 1 : nodeTypeSupportsUserFields(node) ? 2 : 0;
+			//Q. do I need to convert builtin from field index to offset? if( source == 0) nifield *=5;
 			broto_store_IS(context,protofield,pkind,pifield,ptype,
 							node,nodefield,nkind,nifield,source);
 		}
@@ -1091,7 +1092,7 @@ void compareExternProtoDeclareWithProto(char *buffer,char *pound) {
 }
 void broto_store_DEF(struct X3D_Proto* proto,struct X3D_Node* node, char *name);
 struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep);
-void linkNodeIn_B(void *ud, char **atts);
+void linkNodeIn_B(void *ud);
 void parseProtoInstance_B(void *ud, char **atts) {
 	/*broto version
 		1. lookup the user (proto) type in current and parent context protoDeclare and externProtoDeclare tables
@@ -1099,7 +1100,7 @@ void parseProtoInstance_B(void *ud, char **atts) {
 		3. parse att and any <fieldValue> and IS
 		4. on end, deep_copy_broto_body2 applying the initial field values parsed.
 	*/
-	int count;
+	int i;
 	int nameIndex;
 	int containerIndex;
 	int containerField;
@@ -1118,16 +1119,16 @@ void parseProtoInstance_B(void *ud, char **atts) {
 	protoTableIndex = 0;
 
 
-	for (count = 0; atts[count]; count += 2) {
-		if (strcmp("name",atts[count]) == 0) {
-			nameIndex=count+1;
-		} else if (strcmp("containerField",atts[count]) == 0) {
-			containerIndex = count+1;
-		} else if (strcmp("DEF",atts[count]) == 0) {
-			defNameIndex = count+1;
-		} else if (strcmp("class",atts[count]) == 0) {
+	for (i = 0; atts[i]; i += 2) {
+		if (strcmp("name",atts[i]) == 0) {
+			nameIndex=i+1;
+		} else if (strcmp("containerField",atts[i]) == 0) {
+			containerIndex = i+1;
+		} else if (strcmp("DEF",atts[i]) == 0) {
+			defNameIndex = i+1;
+		} else if (strcmp("class",atts[i]) == 0) {
 			ConsoleMessage ("field \"class\" not currently used in a ProtoInstance parse... sorry");
-		} else if (strcmp("USE",atts[count]) == 0) {
+		} else if (strcmp("USE",atts[i]) == 0) {
 			ConsoleMessage ("field \"USE\" not currently used in a ProtoInstance parse... sorry");
 		}
 	}
@@ -1158,8 +1159,18 @@ void parseProtoInstance_B(void *ud, char **atts) {
 			}
 
 			pushNode(ud,node);
-			linkNodeIn_B(ud,atts);
-			//parseAttributes_B(ud,atts);
+			char* containerfield = NULL;
+			for (i = 0; atts[i]; i += 2) {
+				if(!strcmp(atts[i],"containerField")) containerfield = atts[i+1];
+			}
+			if(containerfield) {
+				int builtinField = findFieldInFIELDNAMES(containerfield);
+				if(builtinField > INT_ID_UNDEFINED){
+					node->_defaultContainer = builtinField;
+				}
+			}
+			//linkNodeIn_B(ud);
+			//parseAttributes_B(ud,atts); //PI uses FieldValue
 		}else{
 			pushNode(ud,NULL);
 			ConsoleMessage ("Attempt to instance undefined prototype typename %s\n",protoname);
@@ -1710,24 +1721,22 @@ void parseProtoDeclare_B (void *ud, char **atts) {
 		4.add to current context's protoDeclare array
 		5.push on node stack awaiting interface and body
 	*/
-	int count;
-	int nameIndex;
-	char *typename;
+	int i;
+	char *typename, *appinfo, *documentation, *containerfield;
+	typename = appinfo = documentation = containerfield = NULL;
 	printf("in start protoDeclare\n");
+
 	struct X3D_Proto* proto = createNewX3DNode0(NODE_Proto);
-	for (count = 0; atts[count]; count += 2) {
+	for (i = 0; atts[i]; i += 2) {
 		#ifdef X3DPARSERVERBOSE
 		TTY_SPACE
-		printf ("parseProtoDeclare: field:%s=%s\n", atts[count], atts[count + 1]);
+		printf ("parseProtoDeclare: field:%s=%s\n", atts[i], atts[i+1]);
 		#endif
 
-		if (strcmp("name",atts[count]) == 0) {nameIndex=count+1;}
-		else if ((strcmp("appinfo", atts[count]) != 0)  ||
-			(strcmp("documentation",atts[count]) != 0)) {
-			#ifdef X3DPARSERVERBOSE
-			ConsoleMessage ("found field :%s: in a ProtoDeclare -skipping",atts[count]);
-			#endif
-		}
+		if (!strcmp("name",atts[i]) ) typename = atts[i+1];
+		else if(!strcmp("containerField",atts[i])) containerfield = atts[i+1];
+		else if(!strcmp("appInfo",atts[i])) appinfo = atts[i+1];
+		else if(!strcmp("documentation",atts[i])) documentation = atts[i+1];
 	}
 
 	struct ProtoDefinition* obj;
@@ -1735,9 +1744,8 @@ void parseProtoDeclare_B (void *ud, char **atts) {
 	obj=newProtoDefinition();
 
 	/* did we find the name? */
-	typename = NULL;
-	if (nameIndex != INT_ID_UNDEFINED) {
-		obj->protoName = STRDUP(atts[nameIndex]);
+	if (typename) {
+		obj->protoName = STRDUP(typename);
 	} else {
 		printf ("warning - have proto but no name, so just copying a default string in\n");
 		obj->protoName = STRDUP("noProtoNameDefined");
@@ -1757,6 +1765,12 @@ void parseProtoDeclare_B (void *ud, char **atts) {
 	proto->__protoDef = obj;
 	proto->__prototype = X3D_NODE(proto); //point to self, so shallow and deep instances will inherit this value
 	proto->__typename = strdup(obj->protoName);
+	if(containerfield){
+		int builtinField = findFieldInFIELDNAMES(containerfield);
+		if(builtinField > -1){
+			proto->_defaultContainer = builtinField;
+		}
+	}
 
 	pushMode(ud,PARSING_PROTODECLARE);
 	pushNode(ud,X3D_NODE(proto));
@@ -1806,8 +1820,9 @@ void parseProtoDeclare (void *ud, char **atts) {
 void parseExternProtoDeclare_B (void *ud, char **atts) {
 	//instance a proto and set it's declare flag
 	//parse its user typename
-	//add it to the current context's protoDeclare list
+	//add it to the current context's externProtoDeclare list
 	//get ready to parse field definitions (with no initial value)
+	printf("not parsing externProtoDeclares yet");
 }
 void parseExternProtoDeclare (void *ud, char **atts) {
 	int count;

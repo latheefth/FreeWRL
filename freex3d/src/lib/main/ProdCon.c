@@ -247,6 +247,12 @@ int indexChildrenName(struct X3D_Node *node){
 			case NODE_Transform:
 				index = FIELDNAMES_children;
 				break;
+			case NODE_Switch:
+				index = FIELDNAMES_children;
+				break;
+			case NODE_Billboard:
+				index = FIELDNAMES_children;
+				break;
 			case NODE_Proto:
 				index = FIELDNAMES___children;
 				break;
@@ -256,6 +262,7 @@ int indexChildrenName(struct X3D_Node *node){
 			case NODE_GeoLOD:  //Q. do I need this in here? Saw code in x3dparser.
 				index = FIELDNAMES_rootNode;
 				break;
+			//switch?
 		}
 	return index;
 
@@ -269,6 +276,12 @@ struct Multi_Node *childrenField(struct X3D_Node *node){
 				break;
 			case NODE_Transform:
 				childs = offsetPointer_deref(void*, node,  offsetof(struct X3D_Transform,children));
+				break;
+			case NODE_Switch:
+				childs = offsetPointer_deref(void*, node,  offsetof(struct X3D_Switch,children));
+				break;
+			case NODE_Billboard:
+				childs = offsetPointer_deref(void*, node,  offsetof(struct X3D_Billboard,children));
 				break;
 			case NODE_Proto:
 				childs = offsetPointer_deref(void*, node,  offsetof(struct X3D_Proto,__children));
@@ -291,6 +304,12 @@ int offsetofChildren(struct X3D_Node *node){
 				break;
 			case NODE_Transform:
 				offs = offsetof(struct X3D_Transform,children);
+				break;
+			case NODE_Switch:
+				offs = offsetof(struct X3D_Switch,children);
+				break;
+			case NODE_Billboard:
+				offs = offsetof(struct X3D_Billboard,children);
 				break;
 			case NODE_Proto:
 				offs = offsetof(struct X3D_Proto,__children);
