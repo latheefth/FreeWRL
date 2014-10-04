@@ -1007,7 +1007,7 @@ c) look at atts containerField, and if not null and not children, use it.
 	node = getNode(ud,TOP);
 	parent = getNode(ud,TOP-1);
 	if(!node || !parent)return;
-	parentsSuggestion = getField(ud,TOP);
+	parentsSuggestion = getField(ud,TOP-1);
 
 	//3.a)
 	defaultContainer = node->_defaultContainer;
@@ -1058,7 +1058,13 @@ c) look at atts containerField, and if not null and not children, use it.
 			ADD_PARENT(node,parent);
 		}else if(type == FIELDTYPE_MFNode){
 			union anyVrml *valueadd;
-			ok = getFieldFromNodeAndName(parent,"addChildren",&type,&kind,&iifield,&valueadd);
+			ok = 0;
+			if(parent->_nodeType == NODE_Proto){
+				struct X3D_Proto *pparent = X3D_PROTO(parent);
+				char cflag = ciflag_get(pparent->__protoFlags,2);
+				if(cflag == 2)  //scene
+					ok = getFieldFromNodeAndName(parent,"addChildren",&type,&kind,&iifield,&valueadd);
+			}
 			if(ok)
 				AddRemoveChildren(parent,&valueadd->mfnode,&node,1,1,NULL,0);
 			else
@@ -1579,8 +1585,13 @@ static void endProtoDeclareTag_B(void *ud) {
 	printf("end protoDeclare\n");
 	// set defaultContainer based on 1st child
 	struct X3D_Proto * proto = X3D_PROTO(getNode(ud,TOP));
-	if(proto->__children.n){
-		struct X3D_Node *c1 = proto->__children.p[0];
+	struct Multi_Node *cptr = NULL;
+	if(proto->__children.n)
+		cptr = &proto->__children;
+	else if(proto->addChildren.n)
+		cptr = &proto->addChildren;
+	if(cptr){
+		struct X3D_Node *c1 = cptr->p[0];
 		if(c1->_defaultContainer > INT_ID_UNDEFINED) 
 			proto->_defaultContainer = c1->_defaultContainer;
 	}
@@ -1840,7 +1851,7 @@ static void startBuiltin_B(void *ud, int myNodeType, const xmlChar *name, char**
 	if(!isUSE){
 		shaderfield = shaderFields(node);
 		if(shaderfield)
-			(*shaderfield) = (void *)new_Shader_Script(node);
+			(*shaderfield) = (void *)new_Shader_ScriptB(node);
 		//if(node->_nodeType == NODE_Script && pflagdepth)
 			//initialize script - wait till end element
 			
@@ -1872,8 +1883,9 @@ void endBuiltin_B(void *ud, const xmlChar *name){
 	if(node->_nodeType == NODE_Script && pflagdepth){
 		struct X3D_Script *sn = X3D_SCRIPT(node);
 		printf("dont forget to initialize scripts \n");
-		//overkill -duplicates new_Shader_Script initialize_one_script(sn->__scriptObj,&sn->url);
-		script_initCodeFromMFUri(sn->__scriptObj, &sn->url);
+		//overkill -duplicates new_Shader_Script 
+		initialize_one_script(sn->__scriptObj,&sn->url);
+		//script_initCodeFromMFUri(sn->__scriptObj, &sn->url);
 	}
 	linkNodeIn_B(ud);
 

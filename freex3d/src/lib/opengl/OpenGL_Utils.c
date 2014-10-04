@@ -4657,31 +4657,7 @@ void startOfLoopNodeUpdates(void) {
 					CHILDREN_NODE(Transform)
 				END_NODE
 
-				BEGIN_NODE(Proto)
-					{
-						char ptype = ciflag_get(X3D_PROTO(node)->__protoFlags,2);
-						if(ptype == 2 || ptype == 3){
-							//scene = 2, inline = 3 - OK to sort
-							sortChildren (__LINE__,&X3D_PROTO(node)->__children,&X3D_PROTO(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
-							TURN_OFF_SHOULDSORTCHILDREN
-						}
-					}
-					//CHILDREN_NODE(Proto)
-					/* DRracer/t85.wrl has 'children' user fields on protos. This works with other browsers.
-						But not freewrl. Unless I hide the children field as _children. Then it works.
-					*/
-					addChildren = NULL; removeChildren = NULL; 
-					offsetOfChildrenPtr = offsetof (struct X3D_Proto, __children); 
-					if (((struct X3D_Proto *)node)->addChildren.n > 0) { 
-						addChildren = &((struct X3D_Proto *)node)->addChildren; 
-						childrenPtr = &((struct X3D_Proto *)node)->__children; 
-					} 
-					if (((struct X3D_Proto *)node)->removeChildren.n > 0) { 
-						removeChildren = &((struct X3D_Proto *)node)->removeChildren; 
-						childrenPtr = &((struct X3D_Proto *)node)->__children; 
-					}
 
-				END_NODE
 
 /*              BEGIN_NODE(NurbsGroup)
 					CHILDREN_NODE(NurbsGroup)
@@ -4840,7 +4816,9 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE(MetadataSFVec4d) CMD(SFVec4d,node); END_NODE
 				BEGIN_NODE(MetadataMFVec4d) CMD(MFVec4d,node); END_NODE
 			}
+
 		}
+
 
 		/* now, act on this node  for Sensitive nodes. here we tell the PARENTS that they are sensitive */
 		if (nParents != 0) {
