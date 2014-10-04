@@ -1117,7 +1117,7 @@ void parseProtoInstance_B(void *ud, char **atts) {
 	containerField = INT_ID_UNDEFINED;
 	defNameIndex = INT_ID_UNDEFINED;
 	protoTableIndex = 0;
-
+	printf("parseProtoInstance\n");
 
 	for (i = 0; atts[i]; i += 2) {
 		if (strcmp("name",atts[i]) == 0) {

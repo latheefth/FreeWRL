@@ -1057,7 +1057,12 @@ c) look at atts containerField, and if not null and not children, use it.
 			value->sfnode = node;
 			ADD_PARENT(node,parent);
 		}else if(type == FIELDTYPE_MFNode){
-			AddRemoveChildren(parent,&value->mfnode,&node,1,1,NULL,0);
+			union anyVrml *valueadd;
+			ok = getFieldFromNodeAndName(parent,"addChildren",&type,&kind,&iifield,&valueadd);
+			if(ok)
+				AddRemoveChildren(parent,&valueadd->mfnode,&node,1,1,NULL,0);
+			else
+				AddRemoveChildren(parent,&value->mfnode,&node,1,1,NULL,0);
 		}
 	}else{
 		printf("no where to put node in parent\n");
@@ -1441,6 +1446,8 @@ static void parseFieldValue_B(void *ud, char **atts) {
 	char *fname, *svalue;
 	union anyVrml *value;
 	struct X3D_Node *node = getNode(ud,TOP);
+
+	printf("parseFieldValue\n");
 	fname = svalue = NULL;
 	for(i=0;atts[i];i+=2){
 		if(!strcmp(atts[i],"name")) fname = atts[i+1];
@@ -1455,6 +1462,7 @@ static void parseFieldValue_B(void *ud, char **atts) {
 	pushField(ud,fname); //in case there's no value, because its SF or MFNodes in child xml, or in CDATA
 }
 static void endFieldValue_B(void *ud){
+	printf("endFieldValue\n");
 	popField(ud);
 }
 /* we have a fieldValue, should be in a PROTO expansion */
@@ -1596,6 +1604,7 @@ void deep_copy_broto_body2(struct X3D_Proto** proto, struct X3D_Proto** dest);
 static void endProtoInstance_B(void *ud, const char *name) {
 	//now that initial field values are set, deep copy the broto body
 	struct X3D_Node *node;
+	printf("endProtoInstance_B\n");
 
 	node = getNode(ud,TOP);
 	if(node){
@@ -1702,8 +1711,7 @@ if so, we will be here for the USE fields.
 
 
 */
-static void saveProtoInstanceFields_B(void *ud, const char *name, char **atts) {
-}
+
 
 static void saveProtoInstanceFields (void *ud, const char *name, char **atts) {
 	#ifdef X3DPARSERVERBOSE
@@ -2338,9 +2346,9 @@ static void XMLCALL X3DstartElement(void *ud, const xmlChar *iname, const xmlCha
 	}
 
 	/* maybe we are doing a Proto Instance?? */
+	if(!usingBrotos())
 	if (getMode(ud,TOP) == PARSING_PROTOINSTANCE) {
-		if(usingBrotos()) saveProtoInstanceFields_B(ud,name,myAtts);
-		else saveProtoInstanceFields(ud,name,myAtts);
+		saveProtoInstanceFields(ud,name,myAtts);
 		return;
 	}
 
