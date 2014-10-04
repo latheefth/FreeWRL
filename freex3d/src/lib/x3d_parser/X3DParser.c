@@ -1008,6 +1008,8 @@ c) look at atts containerField, and if not null and not children, use it.
 	parent = getNode(ud,TOP-1);
 	if(!node || !parent)return;
 	parentsSuggestion = getField(ud,TOP-1);
+	//for(i=0;i<10;i++)
+	//	printf("getField %d = %s",i,getField(ud,i));
 
 	//3.a)
 	defaultContainer = node->_defaultContainer;

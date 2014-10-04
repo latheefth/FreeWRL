@@ -1956,7 +1956,7 @@ void parseScriptProtoField_B(void *ud, char **atts) {
 	int mp_name, mp_accesstype, mp_type, mp_value, i;
 	int pkwmode, type;
 	union anyVrml defaultValue, *value;
-	char *fname;
+	char *fname, *cname;
 	value = NULL;
 	mp_name = mp_accesstype = mp_type = mp_value = ID_UNDEFINED;
 	printf("start scriptProtoField\n");
@@ -1981,6 +1981,7 @@ void parseScriptProtoField_B(void *ud, char **atts) {
 		pkwmode = pkwmode > -1? X3DMODE(pkwmode) : pkwmode;
 		type = findFieldInARR(atts[mp_type],FIELDTYPES,FIELDTYPES_COUNT);
 		fname = atts[mp_name];
+		cname = NULL;
 		//memset(&defaultValue,0,sizeof(union anyVrml));
 		bzero(&defaultValue, sizeof (union anyVrml));
 		valueSet = FALSE;
@@ -1998,6 +1999,7 @@ void parseScriptProtoField_B(void *ud, char **atts) {
 				pstruct = (struct ProtoDefinition*) pnode->__protoDef;
 				pfield = newProtoFieldDecl(pkwmode,type,0);
 				pfield->cname = strdup(fname);
+				cname = pfield->cname;
 				memcpy(&pfield->defaultVal,&defaultValue,sizeof(union anyVrml));
 				vector_pushBack(struct ProtoFieldDecl*, pstruct->iface, pfield);
 				value = &pfield->defaultVal;
@@ -2012,6 +2014,7 @@ void parseScriptProtoField_B(void *ud, char **atts) {
 					case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields); break;
 				}
 				int jsname = JSparamIndex (fname, atts[mp_type]);
+				cname = getJSparamnames()[jsname].name;
 				//sfield = newScriptFieldDecl() // too hard to fathom, I'll break it out:
 				sfield = MALLOC(struct ScriptFieldDecl *, sizeof(struct ScriptFieldDecl));
 				bzero(sfield,sizeof(struct ScriptFieldDecl));
@@ -2024,7 +2027,7 @@ void parseScriptProtoField_B(void *ud, char **atts) {
 			}
 		}
 	}
-	pushField(ud,fname); //strong recommendation
+	pushField(ud,cname); //strdup(fname)); //strong recommendation
 	pushMode(ud,PARSING_FIELD);
 }
 
