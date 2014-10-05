@@ -170,11 +170,11 @@ void popMode(void *userData){
 void pushField(void *userData, char *fname){
 	struct xml_user_data *ud = (struct xml_user_data *)userData;
 	stack_push(char *,ud->fields,fname);
-	printf("push n=%d\n",ud->fields->n);
+	if(0) printf("push n=%d\n",ud->fields->n);
 }
 char * getField(void *userData, int index){
 	struct xml_user_data *ud = (struct xml_user_data *)userData;
-	printf("get n=%d\n",ud->fields->n);
+	if(0) printf("get n=%d\n",ud->fields->n);
 	if(index < 0)
 		return vector_get(char *,ud->fields, vectorSize(ud->fields)+index);
 	else
@@ -184,7 +184,7 @@ char * getField(void *userData, int index){
 void popField(void *userData){
 	struct xml_user_data *ud = (struct xml_user_data *)userData;
 	stack_pop(char *,ud->fields);
-	printf("pop n=%d\n",ud->fields->n);
+	if(0) printf("pop n=%d\n",ud->fields->n);
 }
 
 static int XML_ParseFile(xmlSAXHandler *me, void *user_data, const char *myinput, int myinputlen, int recovery) {
@@ -1300,7 +1300,7 @@ void endCDATA_B (void *ud, const xmlChar *string, int len) {
 				value->mfstring.n = 1;
 				value->mfstring.p = malloc(sizeof(void *));
 				value->mfstring.p[0] = newASCIIString(string);
-				printf("copied cdata string= [%s]\n",(struct Uni_String*)(value->mfstring.p[0])->strptr);
+				if(0) printf("copied cdata string= [%s]\n",(struct Uni_String*)(value->mfstring.p[0])->strptr);
 			}
 		}
 		if(!handled)
@@ -1455,7 +1455,7 @@ static void parseFieldValue_B(void *ud, char **atts) {
 	union anyVrml *value;
 	struct X3D_Node *node = getNode(ud,TOP);
 
-	printf("parseFieldValue\n");
+	if(0) printf("parseFieldValue\n");
 	fname = svalue = NULL;
 	for(i=0;atts[i];i+=2){
 		if(!strcmp(atts[i],"name")) fname = atts[i+1];
@@ -1485,7 +1485,7 @@ static void parseFieldValue_B(void *ud, char **atts) {
 	pushField(ud,cname); //in case there's no value, because its SF or MFNodes in child xml, or in CDATA
 }
 static void endFieldValue_B(void *ud){
-	printf("endFieldValue\n");
+	if(0) printf("endFieldValue\n");
 	popField(ud);
 }
 /* we have a fieldValue, should be in a PROTO expansion */
@@ -1604,7 +1604,7 @@ static void endProtoDeclareTag_B(void *ud) {
 		ConsoleMessage ("endProtoDeclareTag: got a </ProtoDeclare> but not parsing one at line %d",LINE);
 		pushMode(ud,PARSING_PROTODECLARE);
 	}
-	printf("end protoDeclare\n");
+	if(0) printf("end protoDeclare\n");
 	// set defaultContainer based on 1st child
 	struct X3D_Proto * proto = X3D_PROTO(getNode(ud,TOP));
 	struct Multi_Node *cptr = NULL;
@@ -1637,7 +1637,7 @@ void deep_copy_broto_body2(struct X3D_Proto** proto, struct X3D_Proto** dest);
 static void endProtoInstance_B(void *ud, const char *name) {
 	//now that initial field values are set, deep copy the broto body
 	struct X3D_Node *node;
-	printf("endProtoInstance_B\n");
+	if(0) printf("endProtoInstance_B\n");
 
 	node = getNode(ud,TOP);
 	if(node){
@@ -1801,7 +1801,7 @@ static void startBuiltin_B(void *ud, int myNodeType, const xmlChar *name, char**
 	suggestedChildField = containerfield = NULL;
 	context = getContext(ud,TOP);
 	pflagdepth = ciflag_get(context->__protoFlags,0); //0 - we're in a protodeclare, 1 - we are instancing live scenery
-	printf("start builtin %s\n",name);
+	if(0) printf("start builtin %s\n",name);
 	node = NULL;
 	defname = NULL;
 	isUSE = FALSE;
@@ -1900,11 +1900,10 @@ void endBuiltin_B(void *ud, const xmlChar *name){
 	char pflagdepth;
 	node = getNode(ud,TOP);
 	context = getContext(ud,TOP);
-	printf("end builtin %s\n",name);
+	if(0)printf("end builtin %s\n",name);
 	pflagdepth = ciflag_get(context->__protoFlags,0); //0 - we're in a protodeclare, 1 - we are instancing live scenery
 	if(node->_nodeType == NODE_Script && pflagdepth){
 		struct X3D_Script *sn = X3D_SCRIPT(node);
-		printf("dont forget to initialize scripts \n");
 		//overkill -duplicates new_Shader_Script 
 		initialize_one_script(sn->__scriptObj,&sn->url);
 		//script_initCodeFromMFUri(sn->__scriptObj, &sn->url);

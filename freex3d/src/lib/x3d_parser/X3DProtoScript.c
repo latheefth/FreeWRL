@@ -1117,7 +1117,7 @@ void parseProtoInstance_B(void *ud, char **atts) {
 	containerField = INT_ID_UNDEFINED;
 	defNameIndex = INT_ID_UNDEFINED;
 	protoTableIndex = 0;
-	printf("parseProtoInstance\n");
+	if(0) printf("parseProtoInstance\n");
 
 	for (i = 0; atts[i]; i += 2) {
 		if (strcmp("name",atts[i]) == 0) {
@@ -1724,7 +1724,7 @@ void parseProtoDeclare_B (void *ud, char **atts) {
 	int i;
 	char *typename, *appinfo, *documentation, *containerfield;
 	typename = appinfo = documentation = containerfield = NULL;
-	printf("in start protoDeclare\n");
+	if(0) printf("in start protoDeclare\n");
 
 	struct X3D_Proto* proto = createNewX3DNode0(NODE_Proto);
 	for (i = 0; atts[i]; i += 2) {
@@ -1828,7 +1828,7 @@ void parseExternProtoDeclare_B (void *ud, char **atts) {
 	int i;
 	char *typename, *appinfo, *documentation, *containerfield, *url;
 	typename = appinfo = documentation = containerfield = url = NULL;
-	printf("in parseExternProtoDeclare_B\n");
+	if(0) printf("in parseExternProtoDeclare_B\n");
 
 	struct X3D_Proto* proto = createNewX3DNode0(NODE_Proto);
 	for (i = 0; atts[i]; i += 2) {
@@ -2019,7 +2019,7 @@ void parseScriptProtoField_B(void *ud, char **atts) {
 	char *fname, *cname;
 	value = NULL;
 	mp_name = mp_accesstype = mp_type = mp_value = ID_UNDEFINED;
-	printf("start scriptProtoField\n");
+	if(0) printf("start scriptProtoField\n");
 	/* have a "key" "value" pairing here. They can be in any order; put them into our order */
 	for (i = 0; atts[i]; i += 2) {
 		/* skip any "appinfo" or "documentation" fields here */
@@ -2394,7 +2394,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, int ctyp
 }
 void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, int num);
 void endScriptProtoField_B(void *ud) {
-	printf("end scriptprotofield\n");
+	if(0) printf("end scriptprotofield\n");
 	popField(ud);
 	popMode(ud); //PARSING_FIELD);
 
