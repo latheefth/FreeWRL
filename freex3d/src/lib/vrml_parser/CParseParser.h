@@ -144,5 +144,8 @@ void shallow_copy_field(int typeIndex, union anyVrml* source, union anyVrml* des
 BOOL usingBrotos();
 int X3DMODE(int val);
 void load_externProtoInstance (struct X3D_Proto *node);
+int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *type, int *kind, int *iifield, union anyVrml **value);
+int getFieldFromNodeAndIndex(struct X3D_Node* node, int ifield, const char **fieldname, int *type, int *kind, union anyVrml **value);
+
 
 #endif /* __FREEWRL_CPARSE_PARSER_H__ */

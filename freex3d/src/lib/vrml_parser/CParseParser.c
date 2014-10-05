@@ -80,7 +80,7 @@ void CParseParser_init(struct tCParseParser *t){
 	{
 		ppCParseParser p = (ppCParseParser)t->prv;
 		p->foundInputErrors = 0;
-		p->useBrotos = 0; //0= none/old-way, non-zero =wrl parsing broto only rendering, DEF/IS/script tables are in new proto 3=EXTERNPROTO is broto wrapper
+		p->useBrotos = 3; //0= none/old-way, non-zero =wrl parsing broto only rendering, DEF/IS/script tables are in new proto 3=EXTERNPROTO is broto wrapper
 	}
 }
 	//ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
@@ -6034,6 +6034,195 @@ BOOL find_anyfield_by_nameAndRouteDir(struct X3D_Node* node, union anyVrml **any
 	}
 	return found;
 }
+
+//convenience wrappers to get details for built-in fields and -on script and protoInstance- dynamic fields
+int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *type, int *kind, int *iifield, union anyVrml **value){
+	*type = 0;
+	*kind = 0;
+	*iifield = -1;
+	*value = NULL;
+	//Q. what about shader script?
+	if(node->_nodeType == NODE_Script) 
+	{
+		int k;
+		struct Vector *sfields;
+		struct ScriptFieldDecl *sfield;
+		struct FieldDecl *fdecl;
+		struct Shader_Script *sp;
+		struct CRjsnameStruct *JSparamnames = getJSparamnames();
+		struct X3D_Script *snode;
+
+		snode = (struct X3D_Script*)node;
+		sp = (struct Shader_Script *)snode->__scriptObj;
+		sfields = sp->fields;
+		for(k=0;k<sfields->n;k++)
+		{
+			char *fieldName;
+			sfield = vector_get(struct ScriptFieldDecl *,sfields,k);
+			//if(sfield->ASCIIvalue) printf("Ascii value=%s\n",sfield->ASCIIvalue);
+			fdecl = sfield->fieldDecl;
+			fieldName = fieldDecl_getShaderScriptName(fdecl);
+			if(!strcmp(fieldName,fieldname)){
+				*type = fdecl->fieldType;
+				*kind = fdecl->PKWmode;
+				*value = &(sfield->value);
+				*iifield = k; 
+				return 1;
+			}
+		}
+	}else if(node->_nodeType == NODE_Proto) {
+		int k, mode;
+		struct ProtoFieldDecl* pfield;
+		struct X3D_Proto* pnode = (struct X3D_Proto*)node;
+		struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
+		if(pstruct){
+			if(pstruct->iface)
+			for(k=0; k!=vectorSize(pstruct->iface); ++k)
+			{
+				const char *fieldName;
+				pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, k);
+				mode = pfield->mode;
+				fieldName = pfield->cname;
+				if(!strcmp(fieldName,fieldname)){
+					*type = pfield->type;
+					*kind = pfield->mode;
+					if(pfield->mode == PKW_initializeOnly || pfield->mode == PKW_inputOutput)
+						*value = &(pfield->defaultVal);
+					*iifield = k;
+					return 1;
+				}
+			}
+		}
+	}
+	//builtins on non-script, non-proto nodes (and also builtin fields like url on Script)
+	{
+		typedef struct field_info{
+			int nameIndex;
+			int offset;
+			int typeIndex;
+			int ioType;
+			int version;
+		} *finfo;
+
+		finfo offsets;
+		finfo field;
+		int ifield;
+		offsets = (finfo)NODE_OFFSETS[node->_nodeType];
+		ifield = 0;
+		field = &offsets[ifield];
+		while( field->nameIndex > -1) //<< generalized for scripts and builtins?
+		{
+			if(!strcmp(FIELDNAMES[field->nameIndex],fieldname)){
+				int kkind;
+				*type = field->typeIndex;
+				kkind = -1;
+				switch(field->ioType){
+					case KW_initializeOnly: kkind = PKW_initializeOnly; break;
+					case KW_inputOnly: kkind = PKW_inputOnly; break;
+					case KW_outputOnly: kkind = PKW_outputOnly; break;
+					case KW_inputOutput: kkind = PKW_inputOutput; break;
+				}
+				*kind = kkind;
+				*iifield = ifield; 
+				*value = (union anyVrml*)&((char*)node)[field->offset];
+				return 1;
+			}
+			ifield++;
+			field = &offsets[ifield];
+		}
+	}
+	return 0;
+}
+int getFieldFromNodeAndIndex(struct X3D_Node* node, int ifield, const char **fieldname, int *type, int *kind, union anyVrml **value){
+	int iret = 0;
+	*type = 0;
+	*kind = 0;
+	*fieldname = NULL;
+	*value = NULL;
+	if(node->_nodeType == NODE_Script ) 
+	{
+		int k;
+		struct Vector *sfields;
+		struct ScriptFieldDecl *sfield;
+		struct FieldDecl *fdecl;
+		struct Shader_Script *sp;
+		struct CRjsnameStruct *JSparamnames = getJSparamnames();
+		struct X3D_Script *snode;
+
+		snode = (struct X3D_Script*)node;
+
+		//sp = *(struct Shader_Script **)&((char*)node)[field->offset];
+		sp = (struct Shader_Script *)snode->__scriptObj;
+		sfields = sp->fields;
+		//fprintf(fp,"sp->fields->n = %d\n",sp->fields->n);
+		k = ifield;
+		if(k > -1 && k < sfields->n)
+		{
+			sfield = vector_get(struct ScriptFieldDecl *,sfields,k);
+			//if(sfield->ASCIIvalue) printf("Ascii value=%s\n",sfield->ASCIIvalue);
+			fdecl = sfield->fieldDecl;
+			*fieldname = fieldDecl_getShaderScriptName(fdecl);
+			*type = fdecl->fieldType;
+			*kind = fdecl->PKWmode;
+			*value = &(sfield->value);
+			iret = 1;
+		}
+		return iret;
+	}else if(node->_nodeType == NODE_Proto ) {
+		int k, mode;
+		struct ProtoFieldDecl* pfield;
+		struct X3D_Proto* pnode = (struct X3D_Proto*)node;
+		struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
+		if(pstruct){
+			if(pstruct->iface){
+				k = ifield;
+				if(k > -1 && k < vectorSize(pstruct->iface))
+				{
+					pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, k);
+					mode = pfield->mode;
+					*fieldname = pfield->cname;
+					*type = pfield->type;
+					*kind = pfield->mode;
+					if(pfield->mode == PKW_initializeOnly || pfield->mode == PKW_inputOutput)
+						*value = &(pfield->defaultVal);
+					iret = 1;
+				}
+			}
+		}
+		return iret;
+	}
+	//builtins on non-script, non-proto nodes (and also builtin fields like url on Script)
+	{
+		typedef struct field_info{
+			int nameIndex;
+			int offset;
+			int typeIndex;
+			int ioType;
+			int version;
+		} *finfo;
+
+		finfo offsets;
+		int k, kkind;
+
+		offsets = (finfo)NODE_OFFSETS[node->_nodeType];
+		for(k=0;k<=ifield;k++)
+			if(offsets[k].nameIndex == -1) return 0;
+		*fieldname = FIELDNAMES[offsets[ifield].nameIndex];
+		*type = offsets[ifield].typeIndex;
+		kkind = -1;
+		switch(offsets[ifield].ioType){
+			case KW_initializeOnly: kkind = PKW_initializeOnly; break;
+			case KW_inputOnly: kkind = PKW_inputOnly; break;
+			case KW_outputOnly: kkind = PKW_outputOnly; break;
+			case KW_inputOutput: kkind = PKW_inputOutput; break;
+		}
+		*kind = kkind;
+		*value = (union anyVrml*)&((char*)node)[offsets[ifield].offset];
+		return 1;
+	}
+}
+
+
 
 void broto_store_IS(struct X3D_Proto *proto,char *protofieldname,int pmode, int iprotofield, int type,
 					struct X3D_Node *node, char* nodefieldname, int mode, int ifield, int source)
