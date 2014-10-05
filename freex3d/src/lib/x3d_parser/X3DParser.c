@@ -1451,7 +1451,7 @@ static void parseMeta(char **atts) {
 
 static void parseFieldValue_B(void *ud, char **atts) {
 	int i, type, kind, iifield, ok;
-	char *fname, *svalue;
+	char *fname, *svalue, *cname;
 	union anyVrml *value;
 	struct X3D_Node *node = getNode(ud,TOP);
 
@@ -1461,22 +1461,28 @@ static void parseFieldValue_B(void *ud, char **atts) {
 		if(!strcmp(atts[i],"name")) fname = atts[i+1];
 		if(!strcmp(atts[i],"value")) svalue = atts[i+1];
 	}
-	if(fname && svalue){
+	ok = 0;
+	cname = NULL;
+	if(fname){
 		ok = getFieldFromNodeAndName(node,fname,&type,&kind,&iifield,&value);
 		if(ok){
-			Parser_scanStringValueToMem_B(value,type,svalue,TRUE);
-			if(node->_nodeType == NODE_Proto){
-				struct X3D_Proto *pnode;
-				struct ProtoFieldDecl* pfield;
-				struct ProtoDefinition* pstruct;
-				pnode = X3D_PROTO(node);
-				pstruct = (struct ProtoDefinition*) pnode->__protoDef;
-				pfield = vector_get(struct ProtoFieldDecl*,pstruct->iface,iifield);
-				pfield->alreadySet = TRUE;
-			}
+			//get a pointer to a heap version of the field name (because atts vanishes on return)
+			ok = getFieldFromNodeAndIndex(node, iifield, &cname, &type, &kind, &value);
 		}
 	}
-	pushField(ud,fname); //in case there's no value, because its SF or MFNodes in child xml, or in CDATA
+	if(cname && value && svalue){
+		Parser_scanStringValueToMem_B(value,type,svalue,TRUE);
+		if(node->_nodeType == NODE_Proto){
+			struct X3D_Proto *pnode;
+			struct ProtoFieldDecl* pfield;
+			struct ProtoDefinition* pstruct;
+			pnode = X3D_PROTO(node);
+			pstruct = (struct ProtoDefinition*) pnode->__protoDef;
+			pfield = vector_get(struct ProtoFieldDecl*,pstruct->iface,iifield);
+			pfield->alreadySet = TRUE;
+		}
+	}
+	pushField(ud,cname); //in case there's no value, because its SF or MFNodes in child xml, or in CDATA
 }
 static void endFieldValue_B(void *ud){
 	printf("endFieldValue\n");

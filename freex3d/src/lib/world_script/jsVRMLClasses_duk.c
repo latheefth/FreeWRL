@@ -552,7 +552,7 @@ int SFRotation_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval
 
 FWFunctionSpec (SFRotation_Functions)[] = {
 	{"getAxis", SFRotation_getAxis, 'W',{0,-1,0,NULL}},
-	{"inverse", SFRotation_inverse, 'W',{1,-1,0,"W"}},
+	{"inverse", SFRotation_inverse, 'W',{0,-1,0,"W"}},
 	{"multiply", SFRotation_multiply, 'W',{1,-1,0,"W"}},
 	{"multVec", SFRotation_multiVec, 'W',{1,-1,0,"W"}}, //freewrl spelling
 	{"multiVec", SFRotation_multiVec, 'W',{1,-1,0,"W"}}, //web3d.org spelling
