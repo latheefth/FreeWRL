@@ -1465,6 +1465,15 @@ static void parseFieldValue_B(void *ud, char **atts) {
 		ok = getFieldFromNodeAndName(node,fname,&type,&kind,&iifield,&value);
 		if(ok){
 			Parser_scanStringValueToMem_B(value,type,svalue,TRUE);
+			if(node->_nodeType == NODE_Proto){
+				struct X3D_Proto *pnode;
+				struct ProtoFieldDecl* pfield;
+				struct ProtoDefinition* pstruct;
+				pnode = X3D_PROTO(node);
+				pstruct = (struct ProtoDefinition*) pnode->__protoDef;
+				pfield = vector_get(struct ProtoFieldDecl*,pstruct->iface,iifield);
+				pfield->alreadySet = TRUE;
+			}
 		}
 	}
 	pushField(ud,fname); //in case there's no value, because its SF or MFNodes in child xml, or in CDATA
@@ -1563,6 +1572,11 @@ static void endProtoBodyTag(void *ud, const char *name) {
 	popMode(ud);
 }
 
+static void endExternProtoDeclareTag_B(void *ud) {
+	popMode(ud);
+	popNode(ud);
+	popField(ud);
+}
 static void endExternProtoDeclareTag(void *ud) {
 	/* ending <ExternProtoDeclare> */
 
@@ -2538,7 +2552,7 @@ static void XMLCALL X3DendElement(void *ud, const xmlChar *iname) {
 				else endProtoDeclareTag(ud); 
 				break;
 			case X3DSP_ExternProtoDeclare: 
-				if(usingBrotos()) endExternProtoDeclareTag(ud);
+				if(usingBrotos()) endExternProtoDeclareTag_B(ud);
 				else endExternProtoDeclareTag(ud); 
 				break;
 			case X3DSP_IS: endIS(ud); break;

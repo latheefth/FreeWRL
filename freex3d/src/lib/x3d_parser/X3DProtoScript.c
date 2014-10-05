@@ -1816,13 +1816,74 @@ void parseProtoDeclare (void *ud, char **atts) {
 	}
 }
 #undef X3DPARSERVERBOSE
+void Parser_scanStringValueToMem_B(union anyVrml* any, indexT ctype, char *value, int isXML);
 
 void parseExternProtoDeclare_B (void *ud, char **atts) {
-	//instance a proto and set it's declare flag
-	//parse its user typename
-	//add it to the current context's externProtoDeclare list
-	//get ready to parse field definitions (with no initial value)
-	printf("not parsing externProtoDeclares yet");
+	/*	1.create a new proto but not registered node
+		2.get user type name from atts
+		3.set flag for shallow/declare
+		4.add to current context's externProtoDeclare array
+		5.push on node stack awaiting interface (with no initial values)
+	*/
+	int i;
+	char *typename, *appinfo, *documentation, *containerfield, *url;
+	typename = appinfo = documentation = containerfield = url = NULL;
+	printf("in parseExternProtoDeclare_B\n");
+
+	struct X3D_Proto* proto = createNewX3DNode0(NODE_Proto);
+	for (i = 0; atts[i]; i += 2) {
+		#ifdef X3DPARSERVERBOSE
+		TTY_SPACE
+		printf ("parseProtoDeclare: field:%s=%s\n", atts[i], atts[i+1]);
+		#endif
+
+		if (!strcmp("name",atts[i]) ) typename = atts[i+1];
+		else if(!strcmp("containerField",atts[i])) containerfield = atts[i+1];
+		else if(!strcmp("appInfo",atts[i])) appinfo = atts[i+1];
+		else if(!strcmp("documentation",atts[i])) documentation = atts[i+1];
+		else if(!strcmp("url",atts[i])) url = atts[i+1];
+	}
+
+	struct ProtoDefinition* obj;
+	struct X3D_Proto* parent = (struct X3D_Proto*)getContext(ud,TOP);
+	obj=newProtoDefinition();
+
+	/* did we find the name? */
+	if (typename) {
+		obj->protoName = STRDUP(typename);
+	} else {
+		printf ("warning - have proto but no name, so just copying a default string in\n");
+		obj->protoName = STRDUP("noProtoNameDefined");
+	}
+	typename = obj->protoName;
+
+	if(parent->__externProtoDeclares == NULL)
+		parent->__externProtoDeclares = newVector(struct X3D_Proto*,4);
+	vector_pushBack(struct X3D_Proto*,parent->__externProtoDeclares,proto);
+	proto->__parentProto = X3D_NODE(parent); //me->ptr; //link back to parent proto, for isAvailableProto search
+	proto->__protoFlags = parent->__protoFlags;
+	proto->__protoFlags = ciflag_set(proto->__protoFlags,0,0); //((char*)(&proto->__protoFlags))[0] = 0; //shallow instancing of protoInstances inside a protoDeclare 
+	///[1] leave parent's the oldway flag if set
+	proto->__protoFlags = ciflag_set(proto->__protoFlags,0,2); //((char*)(&proto->__protoFlags))[2] = 0; //this is a protoDeclare we are parsing
+	proto->__protoFlags = ciflag_set(proto->__protoFlags,1,3); //((char*)(&proto->__protoFlags))[3] = 1; //an externProtoDeclare
+	//set ProtoDefinition *obj
+	proto->__protoDef = obj;
+	proto->__prototype = X3D_NODE(proto); //point to self, so shallow and deep instances will inherit this value
+	proto->__typename = strdup(obj->protoName);
+	if(containerfield){
+		int builtinField = findFieldInFIELDNAMES(containerfield);
+		if(builtinField > -1){
+			proto->_defaultContainer = builtinField;
+		}
+	}
+	if(url){
+		Parser_scanStringValueToMem_B((union anyVrml*)&proto->url, FIELDTYPE_MFString,url, TRUE);
+	}
+	proto->__loadstatus = 0; //= LOAD_INITIAL_STATE
+	pushMode(ud,PARSING_EXTERNPROTODECLARE);
+	pushNode(ud,X3D_NODE(proto));
+	pushField(ud,"__children");
+
 }
 void parseExternProtoDeclare (void *ud, char **atts) {
 	int count;
@@ -1943,7 +2004,6 @@ static char *getDefaultValuePointer(int type) {
 	}
 }
 int findFieldInARR(const char* field, const char** arr, size_t cnt);
-void Parser_scanStringValueToMem_B(union anyVrml* any, indexT ctype, char *value, int isXML);
 void parseScriptProtoField_B(void *ud, char **atts) {
 	/* new user field definitions -name,type,mode- possibly with fieldvalue anyVrml
 		- we will be parsing either:
