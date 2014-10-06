@@ -2432,6 +2432,10 @@ static void XMLCALL X3DstartElement(void *ud, const xmlChar *iname, const xmlCha
 		}
 		return;
 	}
+	/*in theory, you could search broto prototype typenames here, and if found
+		assume it's instanced with builtin syntax (instead of ProtoInstance syntax)
+		if( isAvailableBroto(name, getContext(ud,TOP) , &proto))
+	*/
 
 	/* no, it is not. Lets see what else it could be... */
 	myNodeIndex = findFieldInX3DSPECIAL(name);
