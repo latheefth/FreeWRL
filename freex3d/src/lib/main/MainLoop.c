@@ -3040,20 +3040,10 @@ void dump_scene2(FILE *fp, int level, struct X3D_Node* node, int recurse, Stack 
 				else if(node->_nodeType == NODE_Proto && !strcmp(FIELDNAMES[field->nameIndex],"__protoDef") )
 				{
 					int k, mode;
-					struct Vector* usernames[4];
-					const char **userArr;
 					struct ProtoFieldDecl* pfield;
 					struct X3D_Proto* pnode = (struct X3D_Proto*)node;
-					struct VRMLLexer* lexer;
-					struct VRMLParser *globalParser;
 					struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
 					if(pstruct){
-						globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
-						lexer = (struct VRMLLexer*)globalParser->lexer;
-						usernames[0] = lexer->user_initializeOnly;
-						usernames[1] = lexer->user_inputOnly;
-						usernames[2] = lexer->user_outputOnly;
-						usernames[3] = lexer->user_inputOutput;
 						fprintf(fp," user fields:\n");
 						level++;
 						if(pstruct->iface)
@@ -3062,9 +3052,7 @@ void dump_scene2(FILE *fp, int level, struct X3D_Node* node, int recurse, Stack 
 							const char *fieldName;
 							pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, k);
 							mode = pfield->mode;
-							//#define X3DMODE(val)  ((val) % 4)
-							userArr =&vector_get(const char*, usernames[X3DMODE(mode)], 0);
-							fieldName = userArr[pfield->name];
+							fieldName = pfield->cname;
 							spacer
 							fprintf(fp," %p ",(void*)pfield);
 							fprintf(fp,"  %s",fieldName);
@@ -3168,29 +3156,17 @@ char *findFIELDNAMESfromNodeOffset0(struct X3D_Node *node, int offset)
 		if( node->_nodeType == NODE_Proto )
 		{
 			int mode;
-			struct Vector* usernames[4];
-			char **userArr;
 			struct ProtoFieldDecl* pfield;
 			struct X3D_Proto* pnode = (struct X3D_Proto*)node;
-			struct VRMLLexer* lexer;
-			struct VRMLParser *globalParser;
 			struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
 			if(pstruct){
-				globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
-				lexer = (struct VRMLLexer*)globalParser->lexer;
-				usernames[0] = lexer->user_initializeOnly;
-				usernames[1] = lexer->user_inputOnly;
-				usernames[2] = lexer->user_outputOnly;
-				usernames[3] = lexer->user_inputOutput;
 				if(pstruct->iface) {
 				    if(offset < vectorSize(pstruct->iface))
 				    {
 					//JAS const char *fieldName;
 					pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, offset);
 					mode = pfield->mode;
-					//#define X3DMODE(val)  ((val) % 4)
-					userArr = (char **)&vector_get(const char*, usernames[X3DMODE(mode)], 0);
-					return userArr[pfield->name];
+					return pfield->cname;
 				    } else return NULL;
 				}
 			}else return NULL;

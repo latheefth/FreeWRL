@@ -647,10 +647,30 @@ BOOL parser_vrmlScene_B(struct VRMLParser* me)
 BOOL parser_vrmlScene(struct VRMLParser* me)
 {
 	//ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
-	if(usingBrotos() && X3D_NODE(me->ptr)->_nodeType == NODE_Proto || X3D_NODE(me->ptr)->_nodeType == NODE_Inline) //p->useBrotos)
+	if(usingBrotos() && X3D_NODE(me->ptr)->_nodeType == NODE_Proto || X3D_NODE(me->ptr)->_nodeType == NODE_Inline) {
+		/* (sorry for documenting instead of refactoring)
+		 broto era: me->ptr is both the executionContext node (scene, proto, inline) 
+		 and the where node of the (where,offset) place to put the parsed nodes.
+		 for brotos (binary proto parsing) the context has a set of arrays where data is put during parsing:
+			ROUTES, EXPORTS, IMPORTS, DEFnames, protoDeclares, externProtoDeclares
+		 and (as of sept 2014) these arrays are used later for instancing declared user prototype nodes
+		 but (as of sept 2014) not used for rendering scenes - that's still in old arrays scattered around freewrl.
+		me->ptr could be split in the future, so me->ptr is just the where node 
+		 and a separate me->ctx would hold the context (scene, proto, inline) 
+		 -ctx either the node ie ctxnode, or if context is separated into a struct, just the struct ie ctxStruct
+		 if ctxnode, then when parsing protobody, besides me->ptr = proto, do me->ctx = proto
+		 its just this top level where the ctxnode and (where,) might be separated, ie js createVrmlFromString()
+		 parses nodes into an MFNode that's not a Proto, or Inline (but the script should know what executionContext its in).
+		 Sept 2014 Proto and Inline have the same structure, so one can be cast to the other. But in theory, if you
+		 separate context out, so its a struct on its own, then Proto and Inline could be different, and both hold
+		 a context struct as a private field.
+		*/
 		return parser_vrmlScene_B(me);
-	else
+	}else{
+		// older vrml tradition:
+		// me->ptr is the where node for (where,offset) to put parsed nodes
 		return parser_vrmlScene_A(me);
+	}
 }
 /* ************************************************************************** */
 /* Nodes and fields */
@@ -1206,7 +1226,13 @@ static BOOL parser_componentStatement(struct VRMLParser* me) {
     return TRUE;
 }
 
+struct IMEXPORT {
+	struct X3D_Node *nodeptr; 
+	char *nodename;
+	char *mxname;
+	char *as;
 
+};
 void handleExport (char *node, char *as) {
 	/* handle export statements. as will be either a string pointer, or NULL */
 	
@@ -1217,52 +1243,32 @@ void handleExport (char *node, char *as) {
 	#endif
 }
 
-struct X3D_Context {
-	int protoFlags;
-	void * DEFnames;
-	void * IS;
-	void * ROUTES;
-	void * externProtoDeclares;
-	void * protoDeclares;
-	void * IMPORTS;
-	void * EXPORTS;
-	void * scripts;
-	struct X3D_Context* parentContext;
-	//struct X3D_Node *__parentProto;
-};
 
+struct X3D_Proto *hasContext(struct X3D_Node* node){
 
-struct X3D_Context *hasContext(struct X3D_Node* node){
-
-	struct  X3D_Context * context = NULL;
-	/*
+	struct  X3D_Proto * context = NULL;
 	if(node)
 		switch(node->_nodeType){
-			case NODE_Group:
-				context = offsetPointer_deref(void*, node,  offsetof(struct X3D_Group,__context));
-				break;
-			case NODE_Transform:
-				context = offsetPointer_deref(void*, node,  offsetof(struct X3D_Transform,__context));
-				break;
 			case NODE_Proto:
-				context = offsetPointer_deref(void*, node,  offsetof(struct X3D_Proto,__context));
+				context = (struct X3D_Proto*)node; //offsetPointer_deref(void*, node,  offsetof(struct X3D_Proto,__context));
 				break;
 			case NODE_Inline:  //Q. do I need this in here? Saw code in x3dparser.
-				context = offsetPointer_deref(void*, node,  offsetof(struct X3D_Inline,__context));
-				break;
-			case NODE_GeoLOD:  //Q. do I need this in here?
-				context = offsetPointer_deref(void*, node, offsetof(struct X3D_GeoLOD,__context));
+				context = (struct X3D_Proto*)node; // offsetPointer_deref(void*, node,  offsetof(struct X3D_Inline,__context));
 				break;
 		}
-	*/
 	return context;
 }
 
 void handleExport_B (void *nodeptr, char *node, char *as) {
 	/* handle export statements. as will be either a string pointer, or NULL */
-	if(usingBrotos() && nodeptr && hasContext(nodeptr)){
-		struct X3D_Context *context = hasContext(nodeptr);
-		//context-> hasContext(nodeptr);
+	struct X3D_Proto *context = hasContext(nodeptr);
+	if(context){
+		struct IMEXPORT *mxport = malloc(sizeof(struct IMEXPORT));
+		if(!context->__EXPORTS) context->__EXPORTS = newVector(struct IMEXPORT *,4);
+		mxport->as = strdup(as);
+		mxport->nodename = strdup(node);
+		mxport->nodeptr = nodeptr;
+		vector_pushBack(struct IMEXPORT*,context->__EXPORTS,mxport);
 	}
 	#ifdef CAPABILITIESVERBOSE
 	printf ("handleExport: node :%s: ",node);
@@ -1274,6 +1280,26 @@ void handleExport_B (void *nodeptr, char *node, char *as) {
 
 void handleImport (char *nodeName,char *nodeImport, char *as) {
 	/* handle Import statements. as will be either a string pointer, or NULL */
+	
+	#ifdef CAPABILITIESVERBOSE
+	printf ("handleImport: inlineNodeName :%s: nodeToImport :%s:",nodeName, nodeImport);
+	if (as != NULL) printf (" AS :%s: ",as);
+	printf ("\n");
+	#endif
+}
+
+void handleImport_B (struct X3D_Node *nodeptr, char *nodeName,char *nodeImport, char *as) {
+	/* handle Import statements. as will be either a string pointer, or NULL */
+	struct X3D_Proto *context = hasContext(nodeptr);
+	if(context){
+		struct IMEXPORT *mxport = malloc(sizeof(struct IMEXPORT));
+		if(!context->__IMPORTS) context->__IMPORTS = newVector(struct IMEXPORT *,4);
+		mxport->as = strdup(as);
+		mxport->nodename = strdup(nodeName);
+		mxport->mxname = strdup(nodeImport);
+		mxport->nodeptr = nodeptr;
+		vector_pushBack(struct IMEXPORT*,context->__IMPORTS,mxport);
+	}
 	
 	#ifdef CAPABILITIESVERBOSE
 	printf ("handleImport: inlineNodeName :%s: nodeToImport :%s:",nodeName, nodeImport);
@@ -1375,7 +1401,10 @@ static BOOL parser_importStatement(struct VRMLParser* me) {
     }
 
     /* do the IMPORT */
-    handleImport(inlineNodeName, nodeToImport, alias);
+	if(usingBrotos())
+		handleImport_B(me->ptr,inlineNodeName, nodeToImport, alias);
+	else
+		handleImport(inlineNodeName, nodeToImport, alias);
 
     FREE_IF_NZ (inlineNodeName);
     FREE_IF_NZ (nodeToImport);
@@ -4469,7 +4498,7 @@ BOOL route_parse_nodefield(struct VRMLParser* me, int *NodeIndex, struct X3D_Nod
 	FREE_IF_NZ(me->lexer->curID);
 
 	fieldPtr = NULL;
-	foundField = find_anyfield_by_nameAndRouteDir(me->lexer, *Node, &fieldPtr, &mode, &type, 
+	foundField = find_anyfield_by_nameAndRouteDir( *Node, &fieldPtr, &mode, &type, 
 		nodeFieldName, &source, &fdecl, &ifield, PKW_eventType);
 	if(foundField)
 	{
@@ -4645,7 +4674,7 @@ struct brotoDefpair{
 void broto_store_DEF(struct X3D_Proto* proto,struct X3D_Node* node, char *name)
 {
 	Stack *defs;
-	struct brotoDefpair *def = MALLOC(struct brotoDefpair*,sizeof(struct brotoDefpair));
+	struct brotoDefpair *def = MALLOC(struct brotoDefpair*,sizeof(struct brotoDefpair)); //gc option: make this a local struct (not *)..
 	def->node = node;
 	def->name = STRDUP(name); //I don't know if the lexer clears its arrays after parsing, so DUP here.
 	defs = proto->__DEFnames;
@@ -4654,7 +4683,17 @@ void broto_store_DEF(struct X3D_Proto* proto,struct X3D_Node* node, char *name)
 		defs = newStack(struct brotoDefpair *);
 		proto->__DEFnames = defs;
 	}
-	stack_push(struct brotoDefpair*, defs, def);
+	stack_push(struct brotoDefpair*, defs, def); //..then push the local struct and it should deep copy it, mallocing if it needs space, and reclaiming on vectorDelete
+}
+struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, char *name){
+	int i;
+	struct brotoDefpair *def;
+	if(context->__DEFnames)
+	for(i=0;i<vectorSize(context->__DEFnames);i++){
+		def = vector_get(struct brotoDefpair*, context->__DEFnames,i);
+		if(!strcmp(def->name,name)) return def->node;
+	}
+	return NULL;
 }
 
 BOOL isAvailableBroto(char *pname, struct X3D_Proto* currentContext, struct X3D_Proto **proto)
@@ -4768,12 +4807,12 @@ void copy_defnames2(Stack *defnames, struct X3D_Proto* target, struct Vector *p2
 	Stack* defs;
 	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 
-	defs = globalParser->brotoDEFedNodes;
-	if( defs == NULL)
-	{
-		defs = newStack(struct brotoDefpair *);
-		globalParser->brotoDEFedNodes = defs;
-	}
+	//defs = globalParser->brotoDEFedNodes;
+	//if( defs == NULL)
+	//{
+	//	defs = newStack(struct brotoDefpair *);
+	//	globalParser->brotoDEFedNodes = defs;
+	//}
 	if(target->__DEFnames == NULL)
 		target->__DEFnames = newStack(struct brotoDefpair *);
 	if(defnames)
@@ -4786,7 +4825,7 @@ void copy_defnames2(Stack *defnames, struct X3D_Proto* target, struct Vector *p2
 			def2 = MALLOC(struct brotoDefpair*,sizeof(struct brotoDefpair));
 			def2->name = def->name; //I wonder who owns this name
 			def2->node = p2p_lookup(def->node, p2p);
-			stack_push(struct brotoDefpair*, defs, def2);
+			//stack_push(struct brotoDefpair*, defs, def2);
 			stack_push(struct brotoDefpair*, target->__DEFnames, def2); //added for broto2
 		}
 	}
@@ -4917,6 +4956,8 @@ struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep)
 	//memcpy(p,proto,sizeof(struct X3D_Proto)); //dangerous, make sure you re-instance all pointer variables
 	p->__prototype = proto->__prototype;
 	p->_nodeType = proto->_nodeType;
+	p->_defaultContainer = proto->_defaultContainer;
+	p->_renderFlags = proto->_renderFlags;
 	pobj = proto->__protoDef;
 	if(pobj){ //Prodcon doesn't bother mallocing this for scene nRn
 		nobj = MALLOC(struct ProtoDefinition*,sizeof(struct ProtoDefinition));
@@ -5092,16 +5133,18 @@ char *broto_getNameFromNode(struct X3D_Node* node)
 	Stack* defs;
 	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 	ret = NULL;
-	defs = globalParser->brotoDEFedNodes;
-	if(defs){
-		int i,n;
-		struct brotoDefpair* def;
-		n = vectorSize(defs);
-		for(i=0;i<n;i++){
-			def = vector_get(struct brotoDefpair*,defs,i);
-			if(def->node == node){
-				ret = def->name; 
-				break;
+	if(globalParser){
+		defs = globalParser->brotoDEFedNodes;
+		if(defs){
+			int i,n;
+			struct brotoDefpair* def;
+			n = vectorSize(defs);
+			for(i=0;i<n;i++){
+				def = vector_get(struct brotoDefpair*,defs,i);
+				if(def->node == node){
+					ret = def->name; 
+					break;
+				}
 			}
 		}
 	}
@@ -5454,7 +5497,7 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 						sdecl = protoDefinition_getFieldByNum(sp, k);
  						ddecl=newProtoFieldDecl(sdecl->mode, sdecl->type, sdecl->name);
 						//memcpy(ndecl,pdecl,sizeof(struct ProtoFieldDecl *)); //not just the pointer
-
+						ddecl->cname = sdecl->cname;
 						is_source = 3; 	//field isource: 0=builtin 1=script user field 2=shader_program user field 3=Proto/Broto user field 4=group __protoDef
 
 						
@@ -5518,7 +5561,9 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 				{
 					BOOL isInitialize;
 					dfield = MALLOC(struct ScriptFieldDecl*,sizeof(struct ScriptFieldDecl));
+					bzero(dfield,sizeof(struct ScriptFieldDecl));
 					dfield->fieldDecl = MALLOC(struct FieldDecl *,sizeof(struct FieldDecl));
+					bzero(dfield->fieldDecl,sizeof(struct FieldDecl));
 					is_source = 1; 	//field isource: 0=builtin 1=script user field 2=shader_program user field 3=Proto/Broto user field 4=group __protoDef
 					sfield = vector_get(struct ScriptFieldDecl *,sfields,k);
 
@@ -5619,7 +5664,8 @@ void initialize_one_script(struct Shader_Script* ss, const struct Multi_String *
 		field = vector_get(struct ScriptFieldDecl*,ss->fields,j);
 		//script_addField(ss,field);
 
-		scriptFieldDecl_jsFieldInit(field, ss->num); //saves it for initializeOnly work
+		//scriptFieldDecl_jsFieldInit(field, ss->num); //saves it for initializeOnly work
+		field->script = ss;
 		//printf("\t field index %d JSparamnameIndex %d name %s\n",
 		//	j,field->fieldDecl->JSparamNameIndex,JSparamnames[field->fieldDecl->JSparamNameIndex].name);
 		//Q. do I need this: - it mallocs something. Or is this just for initializeOnly?
@@ -5817,7 +5863,7 @@ BOOL nodeTypeSupportsUserFields(struct X3D_Node *node)
 	user = node->_nodeType == NODE_Proto || node->_nodeType == NODE_Script || 
 		   node->_nodeType == NODE_ShaderProgram ||  node->_nodeType == NODE_ComposedShader ||
 		   node->_nodeType == NODE_PackagedShader ? TRUE : FALSE;
-	if(!user &&  node->_nodeType == NODE_Group){
+	if(!user &&  !usingBrotos() && node->_nodeType == NODE_Group){
 		struct X3D_Group* grp = (struct X3D_Group*)node;
 		user = grp->FreeWRL__protoDef !=INT_ID_UNDEFINED ? TRUE : FALSE;
 	}
@@ -5974,7 +6020,7 @@ BOOL cbRootNameAndRouteDir(void *callbackData,struct X3D_Node* node,int jfield,u
 	}
 	return found;
 }
-BOOL find_anyfield_by_nameAndRouteDir(struct VRMLLexer* lexer, struct X3D_Node* node, union anyVrml **anyptr, 
+BOOL find_anyfield_by_nameAndRouteDir(struct X3D_Node* node, union anyVrml **anyptr, 
 			int *imode, int *itype, char* nodeFieldName, int *isource, void** fdecl, int *ifield, int PKW_eventType)
 {
 	int found;
@@ -5991,6 +6037,195 @@ BOOL find_anyfield_by_nameAndRouteDir(struct VRMLLexer* lexer, struct X3D_Node* 
 	}
 	return found;
 }
+
+//convenience wrappers to get details for built-in fields and -on script and protoInstance- dynamic fields
+int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *type, int *kind, int *iifield, union anyVrml **value){
+	*type = 0;
+	*kind = 0;
+	*iifield = -1;
+	*value = NULL;
+	//Q. what about shader script?
+	if(node->_nodeType == NODE_Script) 
+	{
+		int k;
+		struct Vector *sfields;
+		struct ScriptFieldDecl *sfield;
+		struct FieldDecl *fdecl;
+		struct Shader_Script *sp;
+		struct CRjsnameStruct *JSparamnames = getJSparamnames();
+		struct X3D_Script *snode;
+
+		snode = (struct X3D_Script*)node;
+		sp = (struct Shader_Script *)snode->__scriptObj;
+		sfields = sp->fields;
+		for(k=0;k<sfields->n;k++)
+		{
+			char *fieldName;
+			sfield = vector_get(struct ScriptFieldDecl *,sfields,k);
+			//if(sfield->ASCIIvalue) printf("Ascii value=%s\n",sfield->ASCIIvalue);
+			fdecl = sfield->fieldDecl;
+			fieldName = fieldDecl_getShaderScriptName(fdecl);
+			if(!strcmp(fieldName,fieldname)){
+				*type = fdecl->fieldType;
+				*kind = fdecl->PKWmode;
+				*value = &(sfield->value);
+				*iifield = k; 
+				return 1;
+			}
+		}
+	}else if(node->_nodeType == NODE_Proto) {
+		int k, mode;
+		struct ProtoFieldDecl* pfield;
+		struct X3D_Proto* pnode = (struct X3D_Proto*)node;
+		struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
+		if(pstruct){
+			if(pstruct->iface)
+			for(k=0; k!=vectorSize(pstruct->iface); ++k)
+			{
+				const char *fieldName;
+				pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, k);
+				mode = pfield->mode;
+				fieldName = pfield->cname;
+				if(!strcmp(fieldName,fieldname)){
+					*type = pfield->type;
+					*kind = pfield->mode;
+					if(pfield->mode == PKW_initializeOnly || pfield->mode == PKW_inputOutput)
+						*value = &(pfield->defaultVal);
+					*iifield = k;
+					return 1;
+				}
+			}
+		}
+	}
+	//builtins on non-script, non-proto nodes (and also builtin fields like url on Script)
+	{
+		typedef struct field_info{
+			int nameIndex;
+			int offset;
+			int typeIndex;
+			int ioType;
+			int version;
+		} *finfo;
+
+		finfo offsets;
+		finfo field;
+		int ifield;
+		offsets = (finfo)NODE_OFFSETS[node->_nodeType];
+		ifield = 0;
+		field = &offsets[ifield];
+		while( field->nameIndex > -1) //<< generalized for scripts and builtins?
+		{
+			if(!strcmp(FIELDNAMES[field->nameIndex],fieldname)){
+				int kkind;
+				*type = field->typeIndex;
+				kkind = -1;
+				switch(field->ioType){
+					case KW_initializeOnly: kkind = PKW_initializeOnly; break;
+					case KW_inputOnly: kkind = PKW_inputOnly; break;
+					case KW_outputOnly: kkind = PKW_outputOnly; break;
+					case KW_inputOutput: kkind = PKW_inputOutput; break;
+				}
+				*kind = kkind;
+				*iifield = ifield; 
+				*value = (union anyVrml*)&((char*)node)[field->offset];
+				return 1;
+			}
+			ifield++;
+			field = &offsets[ifield];
+		}
+	}
+	return 0;
+}
+int getFieldFromNodeAndIndex(struct X3D_Node* node, int ifield, const char **fieldname, int *type, int *kind, union anyVrml **value){
+	int iret = 0;
+	*type = 0;
+	*kind = 0;
+	*fieldname = NULL;
+	*value = NULL;
+	if(node->_nodeType == NODE_Script ) 
+	{
+		int k;
+		struct Vector *sfields;
+		struct ScriptFieldDecl *sfield;
+		struct FieldDecl *fdecl;
+		struct Shader_Script *sp;
+		struct CRjsnameStruct *JSparamnames = getJSparamnames();
+		struct X3D_Script *snode;
+
+		snode = (struct X3D_Script*)node;
+
+		//sp = *(struct Shader_Script **)&((char*)node)[field->offset];
+		sp = (struct Shader_Script *)snode->__scriptObj;
+		sfields = sp->fields;
+		//fprintf(fp,"sp->fields->n = %d\n",sp->fields->n);
+		k = ifield;
+		if(k > -1 && k < sfields->n)
+		{
+			sfield = vector_get(struct ScriptFieldDecl *,sfields,k);
+			//if(sfield->ASCIIvalue) printf("Ascii value=%s\n",sfield->ASCIIvalue);
+			fdecl = sfield->fieldDecl;
+			*fieldname = fieldDecl_getShaderScriptName(fdecl);
+			*type = fdecl->fieldType;
+			*kind = fdecl->PKWmode;
+			*value = &(sfield->value);
+			iret = 1;
+		}
+		return iret;
+	}else if(node->_nodeType == NODE_Proto ) {
+		int k, mode;
+		struct ProtoFieldDecl* pfield;
+		struct X3D_Proto* pnode = (struct X3D_Proto*)node;
+		struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
+		if(pstruct){
+			if(pstruct->iface){
+				k = ifield;
+				if(k > -1 && k < vectorSize(pstruct->iface))
+				{
+					pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, k);
+					mode = pfield->mode;
+					*fieldname = pfield->cname;
+					*type = pfield->type;
+					*kind = pfield->mode;
+					if(pfield->mode == PKW_initializeOnly || pfield->mode == PKW_inputOutput)
+						*value = &(pfield->defaultVal);
+					iret = 1;
+				}
+			}
+		}
+		return iret;
+	}
+	//builtins on non-script, non-proto nodes (and also builtin fields like url on Script)
+	{
+		typedef struct field_info{
+			int nameIndex;
+			int offset;
+			int typeIndex;
+			int ioType;
+			int version;
+		} *finfo;
+
+		finfo offsets;
+		int k, kkind;
+
+		offsets = (finfo)NODE_OFFSETS[node->_nodeType];
+		for(k=0;k<=ifield;k++)
+			if(offsets[k].nameIndex == -1) return 0;
+		*fieldname = FIELDNAMES[offsets[ifield].nameIndex];
+		*type = offsets[ifield].typeIndex;
+		kkind = -1;
+		switch(offsets[ifield].ioType){
+			case KW_initializeOnly: kkind = PKW_initializeOnly; break;
+			case KW_inputOnly: kkind = PKW_inputOnly; break;
+			case KW_outputOnly: kkind = PKW_outputOnly; break;
+			case KW_inputOutput: kkind = PKW_inputOutput; break;
+		}
+		*kind = kkind;
+		*value = (union anyVrml*)&((char*)node)[offsets[ifield].offset];
+		return 1;
+	}
+}
+
+
 
 void broto_store_IS(struct X3D_Proto *proto,char *protofieldname,int pmode, int iprotofield, int type,
 					struct X3D_Node *node, char* nodefieldname, int mode, int ifield, int source)
@@ -6109,18 +6344,11 @@ BOOL found_IS_field(struct VRMLParser* me, struct X3D_Node *node)
 	f = NULL;
 	{
 		const char* pname = NULL;
-		struct Vector* usernames[4];
-		const char **userArr;
-		usernames[0] = me->lexer->user_initializeOnly;
-		usernames[1] = me->lexer->user_inputOnly;
-		usernames[2] = me->lexer->user_outputOnly;
-		usernames[3] = me->lexer->user_inputOutput;
 		iprotofield = -1;
 		for(i=0; i!=vectorSize(pdef->iface); ++i)
 		{
 			f=vector_get(struct ProtoFieldDecl*, pdef->iface, i);
-			userArr =&vector_get(const char*, usernames[X3DMODE(f->mode)], 0);
-			pname = userArr[f->name];
+			pname = f->cname;
 
 			foundProtoField = !strcmp(pname,protoFieldName) ? TRUE : FALSE;
 			if(foundProtoField ) {

@@ -32,9 +32,9 @@ UI declarations.
 extern "C" {
 #endif
 
-void endProtoDeclare(void);
+void endProtoDeclare(void *ud);
 void addToProtoCode(const char *name);
-void initScriptWithScript(void);
+void initScriptWithScript(void *ud);
 void endDumpProtoBody (const char *name);
 #ifdef __cplusplus
 }

@@ -62,7 +62,7 @@ X3DScene/X3DExecutionContext - functions not implemented relating to protos
 #include "fieldSet.h"
 #include "FWTYPE.h"
 
-void getFieldFromNodeAndIndex(struct X3D_Node* node, int iifield, const char **fieldname, int *type, int *kind, union anyVrml **value);
+
 
 
 /* The Browser's supportedComponents and supportedProfiles are statically defined 
@@ -475,7 +475,7 @@ int VrmlBrowserCreateVrmlFromURL(FWType fwtype, void * fwn, int argc, FWval fwpa
 	//from x3dnode, from char*field, to x3dnode, to char*field
 	return 0;
 }
-void getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *type, int *kind, int *iifield, union anyVrml **value);
+
 /* we add/remove routes with this call */
 void jsRegisterRoute(
 	struct X3D_Node* from, int fromOfs,

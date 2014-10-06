@@ -879,7 +879,7 @@ struct Multi_Vec3f *getCoordinate (struct X3D_Node *node, char *str);
 void replaceWorldNeeded(char* str);
 
 /* X3D C parser */
-int X3DParse(struct X3D_Group *parent, const char *inputstring);
+int X3DParse(struct X3D_Node *parent, const char *inputstring);
 void *createNewX3DNode (int nt);
 void *createNewX3DNode0 (int nt);
 
@@ -896,6 +896,7 @@ void profile_print_all();
 /*pack 4 flags into one int, using char */
 char ciflag_get(int flags, int index);
 int ciflag_set(int flags, char flag, int index );
+int indexChildrenName(struct X3D_Node *node);
 struct Multi_Node *childrenField(struct X3D_Node *node);
 int offsetofChildren(struct X3D_Node *node);
 #endif /* __FREEWRL_HEADERS_H__ */

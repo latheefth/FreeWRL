@@ -135,7 +135,7 @@ BOOL parser_vrmlScene(struct VRMLParser*);
 
 BOOL nodeTypeSupportsUserFields(struct X3D_Node *node);
 int PKW_from_KW(int KW_index);
-BOOL find_anyfield_by_nameAndRouteDir(struct VRMLLexer* lexer, struct X3D_Node* node, union anyVrml **anyptr, 
+BOOL find_anyfield_by_nameAndRouteDir( struct X3D_Node* node, union anyVrml **anyptr, 
 	int *imode, int *itype, char* nodeFieldName, int *isource, void** fdecl, int *ifield, int PKW_eventType);
 BOOL found_IS_field(struct VRMLParser* me, struct X3D_Node *node);
 BOOL isAvailableBroto(char *pname, struct X3D_Proto* currentContext, struct X3D_Proto **proto);
@@ -144,5 +144,8 @@ void shallow_copy_field(int typeIndex, union anyVrml* source, union anyVrml* des
 BOOL usingBrotos();
 int X3DMODE(int val);
 void load_externProtoInstance (struct X3D_Proto *node);
+int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *type, int *kind, int *iifield, union anyVrml **value);
+int getFieldFromNodeAndIndex(struct X3D_Node* node, int ifield, const char **fieldname, int *type, int *kind, union anyVrml **value);
+
 
 #endif /* __FREEWRL_CPARSE_PARSER_H__ */

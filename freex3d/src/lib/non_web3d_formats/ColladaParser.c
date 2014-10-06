@@ -146,7 +146,7 @@ printf ("CADAT_Text:%s:\n",CDATA_Text);
         }
 
         #ifdef COLLADAPARSERVERBOSE
-        printf ("startCDATA -parentIndex %d parserMode %s\n",parentIndex,parserModeStrings[getParserMode()]);
+        printf ("startCDATA -parentIndex %d parserMode %s\n",parentIndex,parserModeStrings[getMode(ud,TOP)]);
         #endif
         ((ppColladaParser)(gglobal()->ColladaParser.prv))->inCDATA = TRUE;
 }
@@ -154,7 +154,7 @@ printf ("CADAT_Text:%s:\n",CDATA_Text);
 static void XMLCALL endCDATA (void *userData, const xmlChar *value, int len) {
         #ifdef COLLADAPARSERVERBOSE
         printf ("endCDATA, cur index %d\n",CDATA_Text_curlen);
-        printf ("endCDATA -parentIndex %d parserMode %s\n",parentIndex,parserModeStrings[getParserMode()]);
+        printf ("endCDATA -parentIndex %d parserMode %s\n",parentIndex,parserModeStrings[getMode(ud,TOP)]);
         #endif
         ((ppColladaParser)(gglobal()->ColladaParser.prv))->inCDATA = FALSE;
 

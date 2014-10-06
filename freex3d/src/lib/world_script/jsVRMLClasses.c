@@ -249,6 +249,7 @@ JSFunctionSpec (SFRotationFunctions)[] = {
 	{"inverse", SFRotationInverse, 0},
 	{"multiply", SFRotationMultiply, 0},
 	{"multVec", SFRotationMultVec, 0},
+	{"multiVec", SFRotationMultVec, 0},
 	{"setAxis", SFRotationSetAxis, 0},
 	{"slerp", SFRotationSlerp, 0},
 	{"toString", SFRotationToString, 0},

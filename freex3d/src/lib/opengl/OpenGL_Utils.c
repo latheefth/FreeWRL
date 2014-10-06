@@ -4389,7 +4389,8 @@ void startOfLoopNodeUpdates(void) {
 	/* sort the rootNode, if it is Not NULL */
 	/* remember, the rootNode is not in the linearNodeTable, so we have to do this outside
 	   of that loop */
-	if (rootNode() != NULL && !usingBrotos()) {
+	//if (rootNode() != NULL && !usingBrotos()) {
+	if (rootNode() != NULL) {
 		struct Multi_Node *children, *_sortedChildren;
 		node = (struct X3D_Node*)rootNode();
 		if(node->_nodeType == NODE_Proto){
@@ -4656,6 +4657,8 @@ void startOfLoopNodeUpdates(void) {
 					CHILDREN_NODE(Transform)
 				END_NODE
 
+
+
 /*              BEGIN_NODE(NurbsGroup)
 					CHILDREN_NODE(NurbsGroup)
 				END_NODE
@@ -4813,7 +4816,9 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE(MetadataSFVec4d) CMD(SFVec4d,node); END_NODE
 				BEGIN_NODE(MetadataMFVec4d) CMD(MFVec4d,node); END_NODE
 			}
+
 		}
+
 
 		/* now, act on this node  for Sensitive nodes. here we tell the PARENTS that they are sensitive */
 		if (nParents != 0) {
@@ -5124,13 +5129,13 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 		if(user)
 		{
 			//lexer_stringUser_fieldName(me->lexer, name, mode);
-			struct VRMLParser* parser;
-			struct VRMLLexer* lexer;
+			//struct VRMLParser* parser;
+			//struct VRMLLexer* lexer;
 			ttglobal tg = gglobal();
-			lexer = NULL;
-			parser = tg->CParse.globalParser;
-			if (parser)
-				lexer = parser->lexer;
+			//lexer = NULL;
+			//parser = tg->CParse.globalParser;
+			//if (parser)
+			//	lexer = parser->lexer;
 
 			//user fields on user-field-capable nodes
 			switch(node->_nodeType)
@@ -5141,7 +5146,6 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 				case NODE_PackagedShader:
 					{
 						int j, nameIndex;
-						struct Vector* usernames[4];
 						struct ScriptFieldDecl* sfield;
 						struct Shader_Script* shader = NULL;
 
@@ -5152,26 +5156,12 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
   							case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields); break;
   							case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields); break;
 						}
-						if(lexer){
-							usernames[0] = lexer->user_initializeOnly;
-							usernames[1] = lexer->user_inputOnly;
-							usernames[2] = lexer->user_outputOnly;
-							usernames[3] = lexer->user_inputOutput;
-						}else{
-							usernames[0] = usernames[1] = usernames[2] = usernames[3] = NULL;
-						}
 						if (shader)
 							for(j=0; j!=vectorSize(shader->fields); ++j)
 							{
 								sfield= vector_get(struct ScriptFieldDecl*, shader->fields, j);
 								mode = sfield->fieldDecl->PKWmode;
-								fname = NULL;
-								if(lexer){
-									struct Vector *unames = usernames[X3DMODE(mode)];
-									nameIndex = sfield->fieldDecl->lexerNameIndex;
-									if(nameIndex < vectorSize(unames))
-										fname = vector_get(char *,unames,nameIndex);
-								}
+								fname = ScriptFieldDecl_getName(sfield);
 								type = sfield->fieldDecl->fieldType;
 								fieldPtr = &sfield->value;
 								source = node->_nodeType == NODE_Script ? 1 : 2;
@@ -5185,30 +5175,15 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 				case NODE_Proto:
 					{
 						int j, nameIndex;
-						struct Vector* usernames[4];
 						struct ProtoFieldDecl* pfield;
 						struct X3D_Proto* pnode = (struct X3D_Proto*)node;
 						struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
-						if(lexer){
-							usernames[0] = lexer->user_initializeOnly;
-							usernames[1] = lexer->user_inputOnly;
-							usernames[2] = lexer->user_outputOnly;
-							usernames[3] = lexer->user_inputOutput;
-						}else{
-							usernames[0] = usernames[1] = usernames[2] = usernames[3] = NULL;
-						}
 						if(pstruct)
 						for(j=0; j!=vectorSize(pstruct->iface); ++j)
 						{
 							pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, j);
 							mode = pfield->mode;
-							fname = NULL;
-							if(lexer){
-								struct Vector *unames = usernames[X3DMODE(mode)];
-								nameIndex = pfield->name;
-								if(nameIndex < vectorSize(unames))
-									fname = vector_get(char *,unames,nameIndex);
-							}
+							fname = pfield->cname;
 							type = pfield->type;
 							fieldPtr = &pfield->defaultVal;
 							source = 3;

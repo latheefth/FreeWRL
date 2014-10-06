@@ -74,6 +74,8 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_CPU_Routes_out",
 	"_GPU_Routes_out",
 	"__DEFnames",
+	"__EXPORTS",
+	"__IMPORTS",
 	"__IS",
 	"__ROUTES",
 	"__Samples",
@@ -1410,8 +1412,10 @@ const int MULTITEXTUREFUNCTION_COUNT = ARR_SIZE(MULTITEXTUREFUNCTION);
 
 /* Table of X3DSPECIAL keywords */
        const char *X3DSPECIAL[] = {
+	"EXPORT",
 	"ExternProtoDeclare",
 	"Header",
+	"IMPORT",
 	"IS",
 	"ProtoBody",
 	"ProtoDeclare",
@@ -1422,11 +1426,9 @@ const int MULTITEXTUREFUNCTION_COUNT = ARR_SIZE(MULTITEXTUREFUNCTION);
 	"X3D",
 	"component",
 	"connect",
-	"export",
 	"field",
 	"fieldValue",
 	"head",
-	"import",
 	"meta",
 };
 const int X3DSPECIAL_COUNT = ARR_SIZE(X3DSPECIAL);
@@ -3673,6 +3675,8 @@ const int OFFSETS_IndexedTriangleStripSet[] = {
 
 const int OFFSETS_Inline[] = {
 	(int) FIELDNAMES___DEFnames, (int) offsetof (struct X3D_Inline, __DEFnames),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___EXPORTS, (int) offsetof (struct X3D_Inline, __EXPORTS),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___IMPORTS, (int) offsetof (struct X3D_Inline, __IMPORTS),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___IS, (int) offsetof (struct X3D_Inline, __IS),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___ROUTES, (int) offsetof (struct X3D_Inline, __ROUTES),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___afterPound, (int) offsetof (struct X3D_Inline, __afterPound),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
@@ -4543,6 +4547,8 @@ const int OFFSETS_ProgramShader[] = {
 
 const int OFFSETS_Proto[] = {
 	(int) FIELDNAMES___DEFnames, (int) offsetof (struct X3D_Proto, __DEFnames),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___EXPORTS, (int) offsetof (struct X3D_Proto, __EXPORTS),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___IMPORTS, (int) offsetof (struct X3D_Proto, __IMPORTS),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___IS, (int) offsetof (struct X3D_Proto, __IS),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___ROUTES, (int) offsetof (struct X3D_Proto, __ROUTES),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___afterPound, (int) offsetof (struct X3D_Proto, __afterPound),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
@@ -7156,6 +7162,8 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_Inline * tmp2;
 			tmp2 = (struct X3D_Inline *) tmp;
 			tmp2->__DEFnames = 0;
+			tmp2->__EXPORTS = 0;
+			tmp2->__IMPORTS = 0;
 			tmp2->__IS = 0;
 			tmp2->__ROUTES = 0;
 			tmp2->__afterPound = 0;
@@ -8329,6 +8337,8 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_Proto * tmp2;
 			tmp2 = (struct X3D_Proto *) tmp;
 			tmp2->__DEFnames = 0;
+			tmp2->__EXPORTS = 0;
+			tmp2->__IMPORTS = 0;
 			tmp2->__IS = 0;
 			tmp2->__ROUTES = 0;
 			tmp2->__afterPound = 0;

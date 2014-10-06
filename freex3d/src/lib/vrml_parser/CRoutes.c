@@ -2448,7 +2448,7 @@ void propagate_events_B() {
 	lastFromNode = NULL; // "
 	last_markme = FALSE; // "
 	//#ifdef CRVERBOSE
-	debugRoutes = 0;
+	debugRoutes =0;
 	if(debugRoutes)printf("current time=%d routecount=%d\n",p->thisIntTimeStamp,p->CRoutes_Count);
 	//#endif
 	do {
