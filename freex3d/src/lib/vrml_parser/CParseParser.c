@@ -5497,7 +5497,7 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 						sdecl = protoDefinition_getFieldByNum(sp, k);
  						ddecl=newProtoFieldDecl(sdecl->mode, sdecl->type, sdecl->name);
 						//memcpy(ndecl,pdecl,sizeof(struct ProtoFieldDecl *)); //not just the pointer
-
+						ddecl->cname = sdecl->cname;
 						is_source = 3; 	//field isource: 0=builtin 1=script user field 2=shader_program user field 3=Proto/Broto user field 4=group __protoDef
 
 						
@@ -5561,7 +5561,9 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 				{
 					BOOL isInitialize;
 					dfield = MALLOC(struct ScriptFieldDecl*,sizeof(struct ScriptFieldDecl));
+					bzero(dfield,sizeof(struct ScriptFieldDecl));
 					dfield->fieldDecl = MALLOC(struct FieldDecl *,sizeof(struct FieldDecl));
+					bzero(dfield->fieldDecl,sizeof(struct FieldDecl));
 					is_source = 1; 	//field isource: 0=builtin 1=script user field 2=shader_program user field 3=Proto/Broto user field 4=group __protoDef
 					sfield = vector_get(struct ScriptFieldDecl *,sfields,k);
 
@@ -5662,7 +5664,8 @@ void initialize_one_script(struct Shader_Script* ss, const struct Multi_String *
 		field = vector_get(struct ScriptFieldDecl*,ss->fields,j);
 		//script_addField(ss,field);
 
-		scriptFieldDecl_jsFieldInit(field, ss->num); //saves it for initializeOnly work
+		//scriptFieldDecl_jsFieldInit(field, ss->num); //saves it for initializeOnly work
+		field->script = ss;
 		//printf("\t field index %d JSparamnameIndex %d name %s\n",
 		//	j,field->fieldDecl->JSparamNameIndex,JSparamnames[field->fieldDecl->JSparamNameIndex].name);
 		//Q. do I need this: - it mallocs something. Or is this just for initializeOnly?

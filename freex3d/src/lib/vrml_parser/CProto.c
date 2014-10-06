@@ -183,6 +183,7 @@ struct ProtoFieldDecl* newProtoFieldDecl(indexT mode, indexT type, indexT name)
  ret->name=name;
  ret->alreadySet=FALSE;
  ret->fieldString = NULL;
+ ret->cname = NULL;
 
  ret->scriptDests=newVector(struct ScriptFieldInstanceInfo*, 4);
  ASSERT(ret->scriptDests);
