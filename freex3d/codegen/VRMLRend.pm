@@ -1052,8 +1052,8 @@ our %X3DSpecialC = map {($_=>1)} qw/
 	field
 	fieldValue
 	component
-	import
-	export
+	IMPORT
+	EXPORT
 /;
 
 1;

@@ -1691,23 +1691,23 @@ const char *stringMULTITEXTUREFUNCTIONType(int st);
 /* Table of built-in X3DSPECIAL keywords */
 extern const char *X3DSPECIAL[];
 extern const int X3DSPECIAL_COUNT;
-#define X3DSP_ExternProtoDeclare	0
-#define X3DSP_Header	1
-#define X3DSP_IS	2
-#define X3DSP_ProtoBody	3
-#define X3DSP_ProtoDeclare	4
-#define X3DSP_ProtoInstance	5
-#define X3DSP_ProtoInterface	6
-#define X3DSP_ROUTE	7
-#define X3DSP_Scene	8
-#define X3DSP_X3D	9
-#define X3DSP_component	10
-#define X3DSP_connect	11
-#define X3DSP_export	12
-#define X3DSP_field	13
-#define X3DSP_fieldValue	14
-#define X3DSP_head	15
-#define X3DSP_import	16
+#define X3DSP_EXPORT	0
+#define X3DSP_ExternProtoDeclare	1
+#define X3DSP_Header	2
+#define X3DSP_IMPORT	3
+#define X3DSP_IS	4
+#define X3DSP_ProtoBody	5
+#define X3DSP_ProtoDeclare	6
+#define X3DSP_ProtoInstance	7
+#define X3DSP_ProtoInterface	8
+#define X3DSP_ROUTE	9
+#define X3DSP_Scene	10
+#define X3DSP_X3D	11
+#define X3DSP_component	12
+#define X3DSP_connect	13
+#define X3DSP_field	14
+#define X3DSP_fieldValue	15
+#define X3DSP_head	16
 #define X3DSP_meta	17
 
 const char *stringX3DSPECIALType(int st);

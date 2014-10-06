@@ -1348,8 +1348,41 @@ static void parseImport(char **atts) {
 /* do nothing right now */
 return;
 }
+void handleImport_B (struct X3D_Node *nodeptr, char *nodeName,char *nodeImport, char *as);
+static void parseImport_B(void *ud, char **atts) {
+	int i;
+	char *inlinedef, *exporteddef, *as;
+	struct X3D_Proto *context;
+	context = getContext(ud,TOP);
+
+	inlinedef = exporteddef = as = NULL;
+	for (i = 0; atts[i]; i += 2) {
+		printf("import field:%s=%s\n", atts[i], atts[i + 1]);
+		if(!strcmp(atts[i],"inlineDEF")) inlinedef = atts[i+1];
+		if(!strcmp(atts[i],"exportedDEF")) exporteddef = atts[i+1];
+		if(!strcmp(atts[i],"AS")) as = atts[i+1];
+
+	}
+	handleImport_B (context, inlinedef, exporteddef, as);
+}
 
 
+void handleExport_B (void *nodeptr, char *node, char *as);
+static void parseExport_B(void *ud, char **atts) {
+	// http://www.web3d.org/documents/specifications/19776-1/V3.3/Part01/concepts.html#IMPORT_EXPORTStatementSyntax
+	int i;
+	char *localdef, *as;
+	struct X3D_Proto *context;
+	context = getContext(ud,TOP);
+
+	localdef = as = NULL;
+	for (i = 0; atts[i]; i += 2) {
+		printf("export field:%s=%s\n", atts[i], atts[i + 1]);
+		if(!strcmp(atts[i],"localDEF")) localdef = atts[i+1];
+		if(!strcmp(atts[i],"AS")) as = atts[i+1];
+	}
+	handleExport_B(context,localdef, as);
+}
 /* parse a export statement, and send the results along */
 static void parseExport(char **atts) {
 	int i;
@@ -2440,8 +2473,13 @@ static void XMLCALL X3DstartElement(void *ud, const xmlChar *iname, const xmlCha
 				else parseScriptProtoField (ud, p->myLexer, myAtts); break;
 			case X3DSP_IS: parseIS(ud); break;
 			case X3DSP_component: parseComponent(myAtts); break;
-			case X3DSP_export: parseExport(myAtts); break;
-			case X3DSP_import: parseImport(myAtts); break;
+			case X3DSP_EXPORT: 
+				if(usingBrotos()) parseExport_B(ud,myAtts);
+				else parseExport(myAtts); 
+				break;
+			case X3DSP_IMPORT: 
+				if(usingBrotos()) parseImport_B(ud,myAtts);
+				else parseImport(myAtts); break;
 			case X3DSP_connect: 
 				if(usingBrotos()) parseConnect_B(ud,myAtts);
 				else parseConnect(ud,p->myLexer, myAtts,getAtt(ud,TOP)); 
@@ -2568,6 +2606,8 @@ static void XMLCALL X3DendElement(void *ud, const xmlChar *iname) {
 			case X3DSP_head:
 			case X3DSP_Header:
 			case X3DSP_component:
+			case X3DSP_EXPORT:
+			case X3DSP_IMPORT:
 			case X3DSP_X3D: break;
 			case X3DSP_field:
 				if(usingBrotos()) endScriptProtoField_B(ud);

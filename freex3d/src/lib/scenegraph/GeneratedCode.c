@@ -1412,8 +1412,10 @@ const int MULTITEXTUREFUNCTION_COUNT = ARR_SIZE(MULTITEXTUREFUNCTION);
 
 /* Table of X3DSPECIAL keywords */
        const char *X3DSPECIAL[] = {
+	"EXPORT",
 	"ExternProtoDeclare",
 	"Header",
+	"IMPORT",
 	"IS",
 	"ProtoBody",
 	"ProtoDeclare",
@@ -1424,11 +1426,9 @@ const int MULTITEXTUREFUNCTION_COUNT = ARR_SIZE(MULTITEXTUREFUNCTION);
 	"X3D",
 	"component",
 	"connect",
-	"export",
 	"field",
 	"fieldValue",
 	"head",
-	"import",
 	"meta",
 };
 const int X3DSPECIAL_COUNT = ARR_SIZE(X3DSPECIAL);
