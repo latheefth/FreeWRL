@@ -5950,7 +5950,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->leftUrl.n=0; tmp2->leftUrl.p=0;
 			tmp2->metadata = NULL;
 			tmp2->rightUrl.n=0; tmp2->rightUrl.p=0;
-			tmp2->set_bind = 0;
+			tmp2->set_bind = 100;
 			tmp2->skyAngle.n=0; tmp2->skyAngle.p=0;
 			tmp2->skyColor.p = MALLOC (struct SFColor *, sizeof(struct SFColor)*1);
 
@@ -6578,7 +6578,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->fogType = newASCIIString("LINEAR");
 			tmp2->isBound = FALSE;
 			tmp2->metadata = NULL;
-			tmp2->set_bind = 0;
+			tmp2->set_bind = 100;
 			tmp2->visibilityRange = 0.0f;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
@@ -6860,7 +6860,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->navType.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*2);tmp2->navType.p[0] = newASCIIString("EXAMINE");tmp2->navType.p[1] = newASCIIString("ANY");tmp2->navType.n=2; ;
 			tmp2->orientation.c[0] = 0;tmp2->orientation.c[1] = 0;tmp2->orientation.c[2] = 1;tmp2->orientation.c[3] = 0;;
 			tmp2->position.c[0] = 0;tmp2->position.c[1] = 0;tmp2->position.c[2] = 100000;;
-			tmp2->set_bind = 0;
+			tmp2->set_bind = 100;
 			tmp2->set_orientation.c[0] = IO_FLOAT;tmp2->set_orientation.c[1] = IO_FLOAT;tmp2->set_orientation.c[2] = IO_FLOAT;tmp2->set_orientation.c[3] = IO_FLOAT;;
 			tmp2->set_position.c[0] = IO_FLOAT;tmp2->set_position.c[1] = IO_FLOAT;tmp2->set_position.c[2] = IO_FLOAT;;
 			tmp2->speedFactor = 1.0f;
@@ -7901,7 +7901,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->headlight = TRUE;
 			tmp2->isBound = FALSE;
 			tmp2->metadata = NULL;
-			tmp2->set_bind = 0;
+			tmp2->set_bind = 100;
 			tmp2->speed = 1.0f;
 			tmp2->transitionComplete = FALSE;
 			tmp2->transitionTime = 1;
@@ -8150,7 +8150,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->orientation.c[0] = 0;tmp2->orientation.c[1] = 0;tmp2->orientation.c[2] = 1;tmp2->orientation.c[3] = 0;;
 			tmp2->position.c[0] = 0.0f;tmp2->position.c[1] = 0.0f;tmp2->position.c[2] = 10.0f;
 			tmp2->retainUserOffsets = FALSE;
-			tmp2->set_bind = 0;
+			tmp2->set_bind = 100;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -8750,7 +8750,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->leftTexture = NULL;
 			tmp2->metadata = NULL;
 			tmp2->rightTexture = NULL;
-			tmp2->set_bind = 0;
+			tmp2->set_bind = 100;
 			tmp2->skyAngle.n=0; tmp2->skyAngle.p=0;
 			tmp2->skyColor.p = MALLOC (struct SFColor *, sizeof(struct SFColor)*1);
 
@@ -9076,7 +9076,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->orientation.c[0] = 0;tmp2->orientation.c[1] = 0;tmp2->orientation.c[2] = 1;tmp2->orientation.c[3] = 0;;
 			tmp2->position.c[0] = 0.0f;tmp2->position.c[1] = 0.0f;tmp2->position.c[2] = 10.0f;
 			tmp2->retainUserOffsets = FALSE;
-			tmp2->set_bind = 0;
+			tmp2->set_bind = 100;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
