@@ -69,6 +69,8 @@ SoundSourceInit(int num,
 
 void
 SetAudioActive(int num, int stat);
-
+int haveSoundEngine();
+/* if a Sound {} can not be found... */
+#define BADAUDIOSOURCE -9999
 
 #endif /* __FREEWRL_SOUND_CLIENT_H__ */

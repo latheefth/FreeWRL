@@ -58,17 +58,11 @@ Interps are the "EventsProcessed" fields of interpolators.
 #include "SensInterps.h"
 
 
-/* if a Sound {} can not be found... */
-#define BADAUDIOSOURCE -9999
 
 /* when we get a new sound source, what is the number for this? */
 //int SoundSourceNumber = 0;
 typedef struct pSensInterps{
-	int SoundSourceNumber;
-/* this is used to return the duration of an audioclip to the perl
-   side of things. works, but need to figure out all
-   references, etc. to bypass this fudge JAS */
-	float AC_LastDuration[50];
+	int stub;
 }* ppSensInterps;
 void *SensInterps_constructor(){
 	void *v = malloc(sizeof(struct pSensInterps));
@@ -82,15 +76,6 @@ void SensInterps_init(struct tSensInterps *t)
 	t->prv = SensInterps_constructor();
 	{
 		ppSensInterps p = (ppSensInterps)t->prv;
-		p->SoundSourceNumber = 0;
-		/* this is used to return the duration of an audioclip to the perl
-		   side of things. works, but need to figure out all
-		   references, etc. to bypass this fudge JAS */
-		{
-			int i;
-			for(i=0;i<50;i++)
-				p->AC_LastDuration[i]  = -1.0f;
-		}
 	}
 }
 
@@ -98,19 +83,6 @@ void SensInterps_init(struct tSensInterps *t)
 /* function prototypes */
 void locateAudioSource (struct X3D_AudioClip *node);
 
-/* returns the audio duration, unscaled by pitch */
-double return_Duration (int indx) {
-	double retval;
-
-	if (indx < 0)  retval = 1.0;
-	else if (indx > 50) retval = 1.0;
-	else 
-	{
-		ppSensInterps p = (ppSensInterps)gglobal()->SensInterps.prv;
-		retval = p->AC_LastDuration[indx];
-	}
-	return retval;
-}
 
 /* time dependent sensor nodes- check/change activity state */
 void do_active_inactive (
@@ -1057,14 +1029,15 @@ void do_AudioTick(void *ptr) {
 		/* push @e, [$t, "isActive", node->{isActive}]; */
 		MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_AudioClip, isActive));
 		/* tell SoundEngine that this source has changed.  */
-	        if (!SoundEngineStarted) {
-        	        #ifdef SEVERBOSE
-			printf ("SetAudioActive: initializing SoundEngine\n");
-			#endif
-                	SoundEngineStarted = TRUE;
-                	SoundEngineInit();
-		}
-        	SetAudioActive (node->__sourceNumber,node->isActive);
+		//if (!SoundEngineStarted) {
+		//	#ifdef SEVERBOSE
+		//	printf ("SetAudioActive: initializing SoundEngine\n");
+		//	#endif
+		//	SoundEngineStarted = TRUE;
+		//	SoundEngineInit();
+		//}
+		if(haveSoundEngine())
+			SetAudioActive (node->__sourceNumber,node->isActive);
 	}
 #endif
 }
@@ -2090,36 +2063,4 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 		node->trackPoint_changed.c[2] = NORM_CUR_Z;
 		MARK_EVENT (ptr, offsetof (struct X3D_SphereSensor, trackPoint_changed));
 	}
-}
-void process_res_audio(resource_item_t *res){
-	struct X3D_AudioClip *node = res->whereToPlaceData;
-}
-void locateAudioSource (struct X3D_AudioClip *node) {
-	resource_item_t *res;
-	resource_item_t *parentPath;
-	ppSensInterps p = (ppSensInterps)gglobal()->SensInterps.prv;
-	node->__sourceNumber = p->SoundSourceNumber;
-	p->SoundSourceNumber++;
-
-	parentPath = (resource_item_t *)(node->_parentResource);
-
-	res = resource_create_multi(&node->url);
-
-	//resource_get_valid_url_from_multi(parentPath, res);
-	resource_identify(node->_parentResource, res);
-	res->media_type = resm_audio;
-	res->whereToPlaceData = node;
-	resitem_enqueue(ml_new(res));
-	//send_resource_to_parser(res);
-	//resource_wait(res);
-	//
-	//if (res->status == ress_loaded) {
-	//	/* TODO: check into the audio file ??? check what textures do in resource_get_valid_texture_from_multi */
-	//	return;
-	//}
-
-	//resource_destroy(res);	
-	
-	node->__sourceNumber = BADAUDIOSOURCE;
-
 }

@@ -46,6 +46,11 @@ X3D Sound Component
 typedef struct pComponent_Sound{
 	/* for printing warnings about Sound node problems - only print once per invocation */
 	int soundWarned;// = FALSE;
+	int SoundSourceNumber;
+/* this is used to return the duration of an audioclip to the perl
+   side of things. works, but need to figure out all
+   references, etc. to bypass this fudge JAS */
+	float AC_LastDuration[50];
 }* ppComponent_Sound;
 void *Component_Sound_constructor(){
 	void *v = malloc(sizeof(struct pComponent_Sound));
@@ -66,10 +71,63 @@ void Component_Sound_init(struct tComponent_Sound *t){
 		ppComponent_Sound p = (ppComponent_Sound)t->prv;
 		/* for printing warnings about Sound node problems - only print once per invocation */
 		p->soundWarned = FALSE;
-
+		p->SoundSourceNumber = 0;
+		/* this is used to return the duration of an audioclip to the perl
+		   side of things. works, but need to figure out all
+		   references, etc. to bypass this fudge JAS */
+		{
+			int i;
+			for(i=0;i<50;i++)
+				p->AC_LastDuration[i]  = -1.0f;
+		}
 	}
 }
 //ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
+void
+Sound_toserver(char *message)
+{}
+
+void
+SoundEngineInit(void)
+{}
+
+void
+waitformessage(void)
+{}
+
+void
+SoundEngineDestroy(void)
+{}
+
+int
+SoundSourceRegistered(int num)
+{ return FALSE;}
+
+float
+SoundSourceInit(int num,
+				int loop,
+				double pitch,
+				double start_time,
+				double stop_time,
+				char *url)
+{return 0.0f;}
+
+void
+SetAudioActive(int num, int stat)
+{}
+
+int haveSoundEngine(){
+	ttglobal tg = gglobal();
+
+	if (!tg->Component_Sound.SoundEngineStarted) {
+		#ifdef SEVERBOSE
+		printf ("SetAudioActive: initializing SoundEngine\n");
+		#endif
+		tg->Component_Sound.SoundEngineStarted = TRUE;
+		SoundEngineInit();
+	}
+	return tg->Component_Sound.SoundEngineStarted;
+}
 
 #ifdef OLDCODE
 OLDCODEvoid render_AudioControl (struct X3D_AudioControl *node) {
@@ -273,11 +331,13 @@ void render_Sound (struct X3D_Sound *node) {
 	double angle;
 	float midmin, midmax;
 	float amp;
+	int sound_from_audioclip;
 
 	struct X3D_AudioClip *acp = NULL;
 	struct X3D_MovieTexture *mcp = NULL;
 	struct X3D_Node *tmpN = NULL;
 	char mystring[256];
+	ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
 
 	/* why bother doing this if there is no source? */
 	if (node->source == NULL) return;
@@ -290,12 +350,13 @@ void render_Sound (struct X3D_Sound *node) {
 	/* did not find a valid source node, even after really looking at a PROTO def */
 	if (tmpN == NULL) return;
 
-	if (tmpN->_nodeType == NODE_AudioClip) 
+	sound_from_audioclip = FALSE;
+	if (tmpN->_nodeType == NODE_AudioClip) {
 		acp = (struct X3D_AudioClip *) tmpN;
-	else if (tmpN->_nodeType == NODE_MovieTexture)
+		sound_from_audioclip = TRUE;
+	}else if (tmpN->_nodeType == NODE_MovieTexture){
 		mcp = (struct X3D_MovieTexture *) tmpN;
-
-	else {
+	} else {
 		ConsoleMessage ("Sound node- source type of %s invalid",stringNodeType(tmpN->_nodeType));
 		node->source = NULL; /* stop messages from scrolling forever */
 		return;
@@ -346,9 +407,9 @@ void render_Sound (struct X3D_Sound *node) {
 
 		if ((fabs(node->minFront - node->minBack) > 0.5) ||
 			(fabs(node->maxFront - node->maxBack) > 0.5)) {
-			if (!soundWarned) {
+			if (!p->soundWarned) {
 				printf ("FreeWRL:Sound: Warning - minBack and maxBack ignored in this version\n");
-				soundWarned = TRUE;
+				p->soundWarned = TRUE;
 			}
 		}
 
@@ -421,7 +482,7 @@ void render_Sound (struct X3D_Sound *node) {
 			if (sound_from_audioclip) {
 				sprintf (mystring,"AMPL %d %f %f",acp->__sourceNumber,amp,angle);
 			} else {
-				sprintf (mystring,"MMPL %d %f %f",mcp->__sourceNumber,amp,angle);
+				sprintf (mystring,"MMPL %d %f %f",mcp->__textureTableIndex, amp, angle); //__sourceNumber,amp,angle);
 			}
 			Sound_toserver(mystring);
 		}
@@ -435,18 +496,22 @@ void render_AudioClip (struct X3D_AudioClip *node) {
 	/*  register an audioclip*/
 	float pitch,stime, sttime;
 	int loop;
+	int sound_from_audioclip;
 	unsigned char *filename = (unsigned char *)node->__localFileName;
+	ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
 
 	/* tell Sound that this is an audioclip */
 	sound_from_audioclip = TRUE;
 
 	/* printf ("_change %d _ichange %d\n",node->_change, node->_ichange);  */
 
-	if (!SoundEngineStarted) {
-		printf ("AudioClip: initializing SoundEngine\n");
-		SoundEngineStarted = TRUE;
-		SoundEngineInit();
-	}
+	//if (!SoundEngineStarted) {
+	//	printf ("AudioClip: initializing SoundEngine\n");
+	//	SoundEngineStarted = TRUE;
+	//	SoundEngineInit();
+	//}
+	if(!haveSoundEngine()) return;
+
 #ifndef JOHNSOUND
 	if (node->isActive == 0) return;  /*  not active, so just bow out*/
 #endif
@@ -462,11 +527,106 @@ void render_AudioClip (struct X3D_AudioClip *node) {
 		sttime = node->stopTime;
 		loop = node->loop;
 
-		AC_LastDuration[node->__sourceNumber] =
+		p->AC_LastDuration[node->__sourceNumber] =
 			SoundSourceInit (node->__sourceNumber, node->loop,
 			(double) pitch,(double) stime, (double) sttime, filename);
 		/* printf ("globalDuration source %d %f\n",
 				node->__sourceNumber,AC_LastDuration[node->__sourceNumber]);  */
 	}
 #endif /* MUST_RE_IMPLEMENT_SOUND_WITH_OPENAL */
+}
+
+int	parse_audioclip(struct X3D_AudioClip *node,char *buffer){
+	
+	return TRUE;
+}
+
+
+bool  process_res_audio(resource_item_t *res){
+	s_list_t *l;
+	openned_file_t *of;
+	struct Shader_Script* ss;
+	const char *buffer;
+	struct X3D_AudioClip *node;
+
+	buffer = NULL;
+
+	switch (res->type) {
+	case rest_invalid:
+		return FALSE;
+		break;
+
+	case rest_string:
+		buffer = res->URLrequest;
+		break;
+	case rest_url:
+	case rest_file:
+	case rest_multi:
+		//l = (s_list_t *) res->openned_files;
+		//if (!l) {
+		//	/* error */
+		//	return FALSE;
+		//}
+
+		//of = ml_elem(l);
+		of = res->openned_files;
+		if (!of) {
+			/* error */
+			return FALSE;
+		}
+
+		buffer = of->fileData;
+		break;
+	}
+
+	node = (struct X3D_AudioClip *) res->whereToPlaceData;
+	parse_audioclip(node,buffer);
+	return TRUE;
+}
+
+
+void locateAudioSource (struct X3D_AudioClip *node) {
+	resource_item_t *res;
+	resource_item_t *parentPath;
+	//ppSensInterps p = (ppSensInterps)gglobal()->SensInterps.prv;
+	ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
+
+	node->__sourceNumber = p->SoundSourceNumber;
+	p->SoundSourceNumber++;
+
+	parentPath = (resource_item_t *)(node->_parentResource);
+
+	res = resource_create_multi(&node->url);
+
+	//resource_get_valid_url_from_multi(parentPath, res);
+	resource_identify(node->_parentResource, res);
+	res->media_type = resm_audio;
+	res->whereToPlaceData = node;
+	resitem_enqueue(ml_new(res));
+	//send_resource_to_parser(res);
+	//resource_wait(res);
+	//
+	//if (res->status == ress_loaded) {
+	//	/* TODO: check into the audio file ??? check what textures do in resource_get_valid_texture_from_multi */
+	//	return;
+	//}
+
+	//resource_destroy(res);	
+	
+	node->__sourceNumber = BADAUDIOSOURCE;
+
+}
+/* returns the audio duration, unscaled by pitch */
+double return_Duration (int indx) {
+	double retval;
+
+	if (indx < 0)  retval = 1.0;
+	else if (indx > 50) retval = 1.0;
+	else 
+	{
+		//ppSensInterps p = (ppSensInterps)gglobal()->SensInterps.prv;
+		ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
+		retval = p->AC_LastDuration[indx];
+	}
+	return retval;
 }
