@@ -624,11 +624,11 @@ void render_Sound (struct X3D_Sound *node) {
 						if(istate != AL_PLAYING)
 							alSourcePlay(node->__sourceNumber);
 					}else{
-						if(istate != AL_STOPPED)
+						if(0) if(istate != AL_STOPPED)
 							alSourceStop(node->__sourceNumber);
 					}
 					if(acp->isPaused){
-						if(istate != AL_PAUSED)
+						if(0) if(istate != AL_PAUSED)
 							alSourcePause(node->__sourceNumber);
 					}
 				}
