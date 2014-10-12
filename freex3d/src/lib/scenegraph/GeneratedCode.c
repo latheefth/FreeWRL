@@ -112,6 +112,8 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__inRange",
 	"__inittime",
 	"__isX3D",
+	"__lastlocation",
+	"__lasttime",
 	"__leftTexture",
 	"__level",
 	"__loadResource",
@@ -4730,6 +4732,8 @@ const int OFFSETS_SignalPdu[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Sound[] = {
+	(int) FIELDNAMES___lastlocation, (int) offsetof (struct X3D_Sound, __lastlocation),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___lasttime, (int) offsetof (struct X3D_Sound, __lasttime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___sourceNumber, (int) offsetof (struct X3D_Sound, __sourceNumber),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_direction, (int) offsetof (struct X3D_Sound, direction),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_intensity, (int) offsetof (struct X3D_Sound, intensity),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -8556,6 +8560,8 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Sound : {
 			struct X3D_Sound * tmp2;
 			tmp2 = (struct X3D_Sound *) tmp;
+			tmp2->__lastlocation.c[0] = 0.0f;tmp2->__lastlocation.c[1] = 0.0f;tmp2->__lastlocation.c[2] = 0.0f;
+			tmp2->__lasttime = 0;
 			tmp2->__sourceNumber = -1;
 			tmp2->direction.c[0] = 0.0f;tmp2->direction.c[1] = 0.0f;tmp2->direction.c[2] = 1.0f;
 			tmp2->intensity = 1.0f;

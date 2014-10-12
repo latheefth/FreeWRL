@@ -856,8 +856,10 @@ our %Nodes = (
 		priority => ["SFFloat", 0, "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		source => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		spatialize => ["SFBool", "FALSE", "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		# openal source number
+		# openal sound source number
 		__sourceNumber => ["SFInt32", -1, "initializeOnly", 0],
+		__lastlocation => ["SFVec3f", [0, 0, 0], "initializeOnly",0],
+		__lasttime => ["SFTime", 0, "initializeOnly", 0],
 	},"X3DSoundSourceNode"),
 
 

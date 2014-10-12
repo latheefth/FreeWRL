@@ -89,6 +89,13 @@ void Component_Sound_init(struct tComponent_Sound *t){
 void Sound_toserver(char *message)
 {}
 
+// Position of the listener.
+float ListenerPos[] = { 0.0, 0.0, 0.0 };
+// Velocity of the listener.
+float ListenerVel[] = { 0.0, 0.0, 0.0 };
+// Orientation of the listener. (first 3 elements are "at", second 3 are "up")
+float ListenerOri[] = { 0.0, 0.0, -1.0, 0.0, 1.0, 0.0 };
+
 int SoundEngineInit(void)
 {
 	int retval = FALSE;
@@ -107,6 +114,27 @@ int SoundEngineInit(void)
 		retval = FALSE;
 	}
 #endif //HAVE_ALUT
+
+		//listener is avatar,
+		//we could move both listener and sources in world coordinates
+		//instead we'll work in avatar/local coordinates and
+		//freeze listener at 0,0,0 and update the position of the sound sources 
+		//relative to listener, on each frame
+		alListenerfv(AL_POSITION,    ListenerPos);
+		alListenerfv(AL_VELOCITY,    ListenerVel);
+		alListenerfv(AL_ORIENTATION, ListenerOri);
+		if(1){
+			//ALenum error;
+			if(TRUE) //meters)
+				alDopplerVelocity(345.0f); //m/s
+			else //feet
+				alDopplerVelocity(1132.0f); // using feet/second – change propagation velocity 
+			alDopplerFactor(1.2f); // exaggerate pitch shift by 20% 
+			//if ((error = alGetError()) != AL_NO_ERROR) DisplayALError("alDopplerX : ", error);
+		}
+		alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED); //here's what I think web3d wants
+		//alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED); //seems a bit faint
+
 #endif //HAVE_OPENAL
 	gglobal()->Component_Sound.SoundEngineStarted = retval;
 	return retval;
@@ -130,14 +158,6 @@ float SoundSourceInit(int num, int loop, double pitch, double start_time, double
 void SetAudioActive(int num, int stat)
 {}
 
-// Position of the listener.
-float ListenerPos[] = { 0.0, 0.0, 0.0 };
-
-// Velocity of the listener.
-float ListenerVel[] = { 0.0, 0.0, 0.0 };
-
-// Orientation of the listener. (first 3 elements are "at", second 3 are "up")
-float ListenerOri[] = { 0.0, 0.0, -1.0, 0.0, 1.0, 0.0 };
 
 int haveSoundEngine(){
 	ttglobal tg = gglobal();
@@ -147,16 +167,6 @@ int haveSoundEngine(){
 		printf ("SetAudioActive: initializing SoundEngine\n");
 		#endif
 		tg->Component_Sound.SoundEngineStarted = SoundEngineInit();
-#ifdef HAVE_OPENAL
-		//listener is avatar,
-		//we could move both listener and sources in world coordinates
-		//instead we'll work in avatar/local coordinates and
-		//freeze listener at 0,0,0 and update the position of the sound sources 
-		//relative to listener, on each frame
-		alListenerfv(AL_POSITION,    ListenerPos);
-		alListenerfv(AL_VELOCITY,    ListenerVel);
-		alListenerfv(AL_ORIENTATION, ListenerOri);
-#endif
 	}
 	return tg->Component_Sound.SoundEngineStarted;
 }
@@ -529,7 +539,13 @@ void render_Sound (struct X3D_Sound *node) {
 	}
 
 #ifdef HAVE_OPENAL
-
+	/*  4 sources of openAL explanations and examples:
+		- http://open-activewrl.sourceforge.net/data/OpenAL_PGuide.pdf  
+		- http://forum.devmaster.net/t  and type openal in the search box to get several lessons on openal
+		- http://kcat.strangesoft.net/openal.html  example code (win32 is using this openal-soft implementation of openal)
+		- http://en.wikipedia.org/wiki/OpenAL links
+		- <al.h> comments
+	*/
 	if(acp){
 		if(haveSoundEngine()){
 			if( acp->__sourceNumber < 0){
@@ -537,32 +553,70 @@ void render_Sound (struct X3D_Sound *node) {
 			}
 			if( acp->__sourceNumber > -1 ){
 				//have a buffer loaded
+				int i;
+				GLDOUBLE modelMatrix[16];
+				GLDOUBLE SourcePosd[3] = { 0.0f, 0.0f, 0.0f };
+				ALfloat SourcePos[3];
+
+				//transform source local coordinate 0,0,0 location into avatar/listener space
+				FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
+				transformAFFINEd(SourcePosd,SourcePosd,modelMatrix);
+				for(i=0;i<3;i++) SourcePos[i] = (ALfloat)SourcePosd[i];
+
 				if( node->__sourceNumber < 0){
 					//convert buffer to openAL sound source
 					ALint source;
 					source = 0;
 					alGenSources(1, &source);
 					alSourcei(source, AL_BUFFER, acp->__sourceNumber);
-					alSourcef (source, AL_PITCH,    acp->pitch);
-					alSourcef (source, AL_GAIN,     1.0f );
+					//alSourcef (source, AL_PITCH,    acp->pitch);
+					alSourcef (source, AL_GAIN,     node->intensity );
 					alSourcei (source, AL_LOOPING,  acp->loop);
 					alSourcei (source, AL_SOURCE_RELATIVE, AL_TRUE);  //we'll treat the avatar/listener as fixed, and the sources moving relative
+					//openAL will automatically mix multiple sources for one listener, there's no need for .priority hint
+					alSourcef (source, AL_MAX_DISTANCE, node->maxFront);
+					//no attempt is made to implement minBack, maxBack ellipsoidal as in web3d specs
+					//- just a spherical sound, and with spatialize attempt at a cone
+					node->__lasttime = TickTime();
+					veccopy3f(node->__lastlocation.c,SourcePos);
+
 					node->__sourceNumber = source;
 					assert(alGetError()==AL_NO_ERROR && "Failed to setup sound source");
 				}
 				if( node->__sourceNumber > -1){
-					int istate, i;
-					GLDOUBLE modelMatrix[16];
-					GLDOUBLE SourcePosd[3] = { 0.0f, 0.0f, 0.0f };
-					ALfloat SourcePos[3];
+					int istate;
 					ALfloat SourceVel[3] = { 0.0f, 0.0f, 0.0f };
-					FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
-					transformAFFINEd(SourcePosd,SourcePosd,modelMatrix);
+					float travelled[3];
+					double traveltime;
 
-					for(i=0;i<3;i++) SourcePos[i] = (ALfloat)SourcePosd[i];
 					alSourcefv(node->__sourceNumber, AL_POSITION, SourcePos);
-					//need velocity tracking
+
+					//velocity for doppler effect
+					vecdif3f(travelled,node->__lastlocation.c,SourcePos);
+					traveltime = TickTime() - node->__lasttime;
+					if(traveltime > 0.0)
+						vecscale3f(SourceVel,travelled,1.0/traveltime);
 					alSourcefv(node->__sourceNumber, AL_VELOCITY, SourceVel);
+
+					node->__lasttime = TickTime();
+					veccopy3f(node->__lastlocation.c,SourcePos);
+
+					//directional sound - I don't hear directional effects with openAL-Soft
+					//AL_CONE_OUTER_GAIN f the gain when outside the oriented cone 
+					//AL_CONE_INNER_ANGLE f, i the gain when inside the oriented cone 
+					//AL_CONE_OUTER_ANGLE f, i outer angle of the sound cone, in degrees default is 360 
+					if(node->spatialize){
+						double dird[3];
+						ALfloat dirf[3];
+						//transform source direction into avatar/listener space
+						for(i=0;i<3;i++) dird[i] = node->direction.c[i];
+						transformAFFINEd(dird,dird,modelMatrix);
+						for(i=0;i<3;i++) dirf[i] = dird[i];
+						alSourcefv(node->__sourceNumber, AL_DIRECTION, dirf);
+						alSourcef(node->__sourceNumber,AL_CONE_OUTER_GAIN,.5f);
+						alSourcef(node->__sourceNumber,AL_CONE_INNER_ANGLE,90.0f);
+						alSourcef(node->__sourceNumber,AL_CONE_OUTER_ANGLE,135.0f);
+					}
 
 					//execute audioclip state
 					alGetSourcei(node->__sourceNumber, AL_SOURCE_STATE,&istate);
