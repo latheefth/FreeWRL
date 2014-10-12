@@ -80,8 +80,8 @@ void SensInterps_init(struct tSensInterps *t)
 }
 
 
-/* function prototypes */
-void locateAudioSource (struct X3D_AudioClip *node);
+///* function prototypes */
+//void locateAudioSource (struct X3D_AudioClip *node);
 
 
 /* time dependent sensor nodes- check/change activity state */
@@ -992,7 +992,6 @@ void do_CollisionTick( void *ptr) {
 /* Audio AudioClip sensor code */
 /* void do_AudioTick(struct X3D_AudioClip *node) {*/
 void do_AudioTick(void *ptr) {
-#ifdef MUST_RE_IMPLEMENT_SOUND_WITH_OPENAL
 	struct X3D_AudioClip *node = (struct X3D_AudioClip *)ptr;
 	int 	oldstatus;
 	double pitch; /* gcc and params - make all doubles to do_active_inactive */
@@ -1007,16 +1006,17 @@ void do_AudioTick(void *ptr) {
 	oldstatus = node->isActive;
 	pitch = node->pitch;
 
-	/* is this audio wavelet initialized yet? */
-	if (node->__sourceNumber == -1) {
-		locateAudioSource (node);
-		/* printf ("do_AudioTick, node %d sn %d\n", node, node->__sourceNumber);  */
-	}
+	if(node->__sourceNumber < 0) return;
+	///* is this audio wavelet initialized yet? */
+	//if (node->__sourceNumber == -1) {
+	//	locateAudioSource (node);
+	//	/* printf ("do_AudioTick, node %d sn %d\n", node, node->__sourceNumber);  */
+	//}
 
-	/* is this audio ok? if so, the sourceNumber will range
-	 * between 0 and infinity; if it is BADAUDIOSOURCE, bad source.
-	 * check out locateAudioSource to find out reasons */
-	if (node->__sourceNumber == BADAUDIOSOURCE) return;
+	///* is this audio ok? if so, the sourceNumber will range
+	// * between 0 and infinity; if it is BADAUDIOSOURCE, bad source.
+	// * check out locateAudioSource to find out reasons */
+	//if (node->__sourceNumber == BADAUDIOSOURCE) return;
 
 	/* call common time sensor routine */
 	do_active_inactive (
@@ -1039,7 +1039,7 @@ void do_AudioTick(void *ptr) {
 		if(haveSoundEngine())
 			SetAudioActive (node->__sourceNumber,node->isActive);
 	}
-#endif
+
 }
 
 

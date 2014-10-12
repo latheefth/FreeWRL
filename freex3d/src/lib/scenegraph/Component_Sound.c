@@ -41,6 +41,9 @@ X3D Sound Component
 #include "LinearAlgebra.h"
 #include "sounds.h"
 
+#ifdef HAVE_OPENAL
+#include <AL/alhelpers.c>
+#endif
 
 
 typedef struct pComponent_Sound{
@@ -83,38 +86,58 @@ void Component_Sound_init(struct tComponent_Sound *t){
 	}
 }
 //ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
-void
-Sound_toserver(char *message)
+void Sound_toserver(char *message)
 {}
 
-void
-SoundEngineInit(void)
+int SoundEngineInit(void)
+{
+	int retval = FALSE;
+#ifdef HAVE_OPENAL
+	retval = TRUE;
+	/* Initialize OpenAL with the default device, and check for EFX support. */
+	if(InitAL() != 0){
+		ConsoleMessage("initAL failed\n");
+		retval = FALSE;
+	}
+#ifdef HAVE_ALUT
+	if(!alutInitWithoutContext(NULL,NULL)) //this does not create an AL context (simple)
+	{
+		ALenum error = alutGetError ();
+		ConsoleMessage("%s\n", alutGetErrorString (error));
+		retval = FALSE;
+	}
+#endif //HAVE_ALUT
+#endif //HAVE_OPENAL
+	gglobal()->Component_Sound.SoundEngineStarted = retval;
+	return retval;
+}
+
+void waitformessage(void)
 {}
 
-void
-waitformessage(void)
+void SoundEngineDestroy(void)
 {}
 
-void
-SoundEngineDestroy(void)
-{}
+int SoundSourceRegistered(int num)
+{ 
+	if(num > -1) return TRUE;
+	return FALSE;
+}
 
-int
-SoundSourceRegistered(int num)
-{ return FALSE;}
-
-float
-SoundSourceInit(int num,
-				int loop,
-				double pitch,
-				double start_time,
-				double stop_time,
-				char *url)
+float SoundSourceInit(int num, int loop, double pitch, double start_time, double stop_time, char *url)
 {return 0.0f;}
 
-void
-SetAudioActive(int num, int stat)
+void SetAudioActive(int num, int stat)
 {}
+
+// Position of the listener.
+float ListenerPos[] = { 0.0, 0.0, 0.0 };
+
+// Velocity of the listener.
+float ListenerVel[] = { 0.0, 0.0, 0.0 };
+
+// Orientation of the listener. (first 3 elements are "at", second 3 are "up")
+float ListenerOri[] = { 0.0, 0.0, -1.0, 0.0, 1.0, 0.0 };
 
 int haveSoundEngine(){
 	ttglobal tg = gglobal();
@@ -123,8 +146,17 @@ int haveSoundEngine(){
 		#ifdef SEVERBOSE
 		printf ("SetAudioActive: initializing SoundEngine\n");
 		#endif
-		tg->Component_Sound.SoundEngineStarted = TRUE;
-		SoundEngineInit();
+		tg->Component_Sound.SoundEngineStarted = SoundEngineInit();
+#ifdef HAVE_OPENAL
+		//listener is avatar,
+		//we could move both listener and sources in world coordinates
+		//instead we'll work in avatar/local coordinates and
+		//freeze listener at 0,0,0 and update the position of the sound sources 
+		//relative to listener, on each frame
+		alListenerfv(AL_POSITION,    ListenerPos);
+		alListenerfv(AL_VELOCITY,    ListenerVel);
+		alListenerfv(AL_ORIENTATION, ListenerOri);
+#endif
 	}
 	return tg->Component_Sound.SoundEngineStarted;
 }
@@ -322,21 +354,155 @@ OLDCODE	FW_GL_POP_MATRIX();
 OLDCODE}
 #endif // OLDCODE
 
+#define LOAD_INITIAL_STATE 0
+#define LOAD_REQUEST_RESOURCE 1
+#define LOAD_FETCHING_RESOURCE 2
+#define LOAD_PARSING 3
+#define LOAD_STABLE 10
+
+void locateAudioSource (struct X3D_AudioClip *node) {
+	resource_item_t *res;
+	resource_item_t *parentPath;
+	//ppSensInterps p = (ppSensInterps)gglobal()->SensInterps.prv;
+	ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
+
+	//node->__sourceNumber = -1; //BADAUDIOSOURCE;
+
+	//parentPath = (resource_item_t *)(node->_parentResource);
+
+	//res = resource_create_multi(&node->url);
+
+	////resource_get_valid_url_from_multi(parentPath, res);
+	//resource_identify(node->_parentResource, res);
+	//res->media_type = resm_audio;
+	//res->whereToPlaceData = node;
+	//resitem_enqueue(ml_new(res));
+	//printf("locating audiosource %s\n",res->URLrequest);
+
+	switch (node->__loadstatus) {
+		case LOAD_INITIAL_STATE: /* nothing happened yet */
+
+		if (node->url.n == 0) {
+			node->__loadstatus = LOAD_STABLE; /* a "do-nothing" approach */
+			break;
+		} else {
+			res = resource_create_multi(&(node->url));
+			res->media_type = resm_audio;
+			node->__loadstatus = LOAD_REQUEST_RESOURCE;
+			node->__loadResource = res;
+		}
+		printf("1");
+		break;
+
+		case LOAD_REQUEST_RESOURCE:
+		res = node->__loadResource;
+		resource_identify(node->_parentResource, res);
+		res->actions = resa_download | resa_load; //not resa_parse which we do below
+		res->whereToPlaceData = X3D_NODE(node);
+		//res->offsetFromWhereToPlaceData = offsetof (struct X3D_AudioClip, __FILEBLOB);
+		resitem_enqueue(ml_new(res));
+		node->__loadstatus = LOAD_FETCHING_RESOURCE;
+		printf("2");
+		break;
+
+		case LOAD_FETCHING_RESOURCE:
+		res = node->__loadResource;
+		/* printf ("load_Inline, we have type  %s  status %s\n",
+			resourceTypeToString(res->type), resourceStatusToString(res->status)); */
+		if(res->complete){
+			if (res->status == ress_loaded) {
+				res->actions = resa_process;
+				res->complete = FALSE;
+				resitem_enqueue(ml_new(res));
+			} else if ((res->status == ress_failed) || (res->status == ress_invalid)) {
+				//no hope left
+				printf ("resource failed to load\n");
+				node->__loadstatus = LOAD_STABLE; // a "do-nothing" approach 
+				node->__sourceNumber = BADAUDIOSOURCE;
+			} else	if (res->status == ress_parsed) {
+				node->__loadstatus = LOAD_STABLE; 
+			} //if (res->status == ress_parsed)
+		} //if(res->complete)
+		//end case LOAD_FETCHING_RESOURCE
+		printf("3");
+		break;
+
+		case LOAD_STABLE:
+		printf("4");
+		break;
+	}
+}
+
+void render_AudioClip (struct X3D_AudioClip *node) {
+/*  audio clip is a flat sound -no 3D- and a sound node (3D) refers to it
+	specs: if an audioclip can't be reached in the scenegraph, then it doesn't play
+*/
+
+	/* is this audio wavelet initialized yet? */
+	if (node->__loadstatus != LOAD_STABLE) {
+		locateAudioSource (node);
+	}
+	if(node->__loadstatus != LOAD_STABLE) return;
+	/* is this audio ok? if so, the sourceNumber will range
+	 * between 0 and infinity; if it is BADAUDIOSOURCE, bad source.
+	 * check out locateAudioSource to find out reasons */
+	if (node->__sourceNumber == BADAUDIOSOURCE) return;
+
+#ifdef HAVE_OPENAL
+
+#else //MUST_RE_IMPLEMENT_SOUND_WITH_OPENAL
+	/*  register an audioclip*/
+	float pitch,stime, sttime;
+	int loop;
+	int sound_from_audioclip;
+	unsigned char *filename = (unsigned char *)node->__localFileName;
+	ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
+
+	/* tell Sound that this is an audioclip */
+	sound_from_audioclip = TRUE;
+
+	/* printf ("_change %d _ichange %d\n",node->_change, node->_ichange);  */
+
+	if(!haveSoundEngine()) return;
+
+#ifndef JOHNSOUND
+	if (node->isActive == 0) return;  /*  not active, so just bow out*/
+#endif
+
+	if (!SoundSourceRegistered(node->__sourceNumber)) {
+
+		/*  printf ("AudioClip: registering clip %d loop %d p %f s %f st %f url %s\n",
+			node->__sourceNumber,  node->loop, node->pitch,node->startTime, node->stopTime,
+			filename); */
+
+		pitch = node->pitch;
+		stime = node->startTime;
+		sttime = node->stopTime;
+		loop = node->loop;
+
+		p->AC_LastDuration[node->__sourceNumber] =
+			SoundSourceInit (node->__sourceNumber, node->loop,
+			(double) pitch,(double) stime, (double) sttime, filename);
+		/* printf ("globalDuration source %d %f\n",
+				node->__sourceNumber,AC_LastDuration[node->__sourceNumber]);  */
+	}
+#endif /* MUST_RE_IMPLEMENT_SOUND_WITH_OPENAL */
+}
+
+
+
 void render_Sound (struct X3D_Sound *node) {
-#ifdef MUST_RE_IMPLEMENT_SOUND_WITH_OPENAL
-	GLDOUBLE mod[16];
-	GLDOUBLE proj[16];
-	struct point_XYZ vec, direction, location;
-	double len;
-	double angle;
-	float midmin, midmax;
-	float amp;
+/*  updates the position and velocity vector of the sound source relative to the listener/avatar
+	so 3D sound effects can be rendered: distance attenuation, stereo left/right volume balance, 
+	and doppler (pitch) effect
+	- refers to sound source ie audioclip or movie
+	- an audioclip may be DEFed and USEd in multiple Sounds, but will be playing the same tune at the same time
+*/
 	int sound_from_audioclip;
 
 	struct X3D_AudioClip *acp = NULL;
 	struct X3D_MovieTexture *mcp = NULL;
 	struct X3D_Node *tmpN = NULL;
-	char mystring[256];
 	ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
 
 	/* why bother doing this if there is no source? */
@@ -362,10 +528,77 @@ void render_Sound (struct X3D_Sound *node) {
 		return;
 	}
 
+#ifdef HAVE_OPENAL
+
+	if(acp){
+		if(haveSoundEngine()){
+			if( acp->__sourceNumber < 0){
+				render_AudioClip(acp);
+			}
+			if( acp->__sourceNumber > -1 ){
+				//have a buffer loaded
+				if( node->__sourceNumber < 0){
+					//convert buffer to openAL sound source
+					ALint source;
+					source = 0;
+					alGenSources(1, &source);
+					alSourcei(source, AL_BUFFER, acp->__sourceNumber);
+					alSourcef (source, AL_PITCH,    acp->pitch);
+					alSourcef (source, AL_GAIN,     1.0f );
+					alSourcei (source, AL_LOOPING,  acp->loop);
+					alSourcei (source, AL_SOURCE_RELATIVE, AL_TRUE);  //we'll treat the avatar/listener as fixed, and the sources moving relative
+					node->__sourceNumber = source;
+					assert(alGetError()==AL_NO_ERROR && "Failed to setup sound source");
+				}
+				if( node->__sourceNumber > -1){
+					int istate, i;
+					GLDOUBLE modelMatrix[16];
+					GLDOUBLE SourcePosd[3] = { 0.0f, 0.0f, 0.0f };
+					ALfloat SourcePos[3];
+					ALfloat SourceVel[3] = { 0.0f, 0.0f, 0.0f };
+					FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
+					transformAFFINEd(SourcePosd,SourcePosd,modelMatrix);
+
+					for(i=0;i<3;i++) SourcePos[i] = (ALfloat)SourcePosd[i];
+					alSourcefv(node->__sourceNumber, AL_POSITION, SourcePos);
+					//need velocity tracking
+					alSourcefv(node->__sourceNumber, AL_VELOCITY, SourceVel);
+
+					//execute audioclip state
+					alGetSourcei(node->__sourceNumber, AL_SOURCE_STATE,&istate);
+					if(acp->isActive){
+						if(istate != AL_PLAYING)
+							alSourcePlay(node->__sourceNumber);
+					}else{
+						if(istate != AL_STOPPED)
+							alSourceStop(node->__sourceNumber);
+					}
+					if(acp->isPaused){
+						if(istate != AL_PAUSED)
+							alSourcePause(node->__sourceNumber);
+					}
+				}
+			}
+		}
+	}
+
+
+#else //MUST_RE_IMPLEMENT_SOUND_WITH_OPENAL
+
+
 	/* printf ("sound, node %d, acp %d source %d\n",node, acp, acp->__sourceNumber); */
 	/*  MovieTextures NOT handled yet*/
 	/*  first - is there a node (any node!) attached here?*/
 	if (acp) {
+		GLDOUBLE mod[16];
+		GLDOUBLE proj[16];
+		struct point_XYZ vec, direction, location;
+		double len;
+		double angle;
+		float midmin, midmax;
+		float amp;
+		char mystring[256];
+
 		/*  do the sound registering first, and tell us if this is an audioclip*/
 		/*  or movietexture.*/
 
@@ -491,54 +724,21 @@ void render_Sound (struct X3D_Sound *node) {
 #endif /* MUST_RE_IMPLEMENT_SOUND_WITH_OPENAL */
 }
 
-void render_AudioClip (struct X3D_AudioClip *node) {
-#ifdef MUST_RE_IMPLEMENT_SOUND_WITH_OPENAL
-	/*  register an audioclip*/
-	float pitch,stime, sttime;
-	int loop;
-	int sound_from_audioclip;
-	unsigned char *filename = (unsigned char *)node->__localFileName;
-	ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
 
-	/* tell Sound that this is an audioclip */
-	sound_from_audioclip = TRUE;
-
-	/* printf ("_change %d _ichange %d\n",node->_change, node->_ichange);  */
-
-	//if (!SoundEngineStarted) {
-	//	printf ("AudioClip: initializing SoundEngine\n");
-	//	SoundEngineStarted = TRUE;
-	//	SoundEngineInit();
-	//}
-	if(!haveSoundEngine()) return;
-
-#ifndef JOHNSOUND
-	if (node->isActive == 0) return;  /*  not active, so just bow out*/
+int	parse_audioclip(struct X3D_AudioClip *node,char *bbuffer, int len){
+#ifdef HAVE_OPENAL
+	ALint buffer = -1;
+#ifdef HAVE_ALUT
+	buffer = alutCreateBufferFromFileImage (bbuffer, len);
+//#elif HAVE_SDL
 #endif
-
-	if (!SoundSourceRegistered(node->__sourceNumber)) {
-
-		/*  printf ("AudioClip: registering clip %d loop %d p %f s %f st %f url %s\n",
-			node->__sourceNumber,  node->loop, node->pitch,node->startTime, node->stopTime,
-			filename); */
-
-		pitch = node->pitch;
-		stime = node->startTime;
-		sttime = node->stopTime;
-		loop = node->loop;
-
-		p->AC_LastDuration[node->__sourceNumber] =
-			SoundSourceInit (node->__sourceNumber, node->loop,
-			(double) pitch,(double) stime, (double) sttime, filename);
-		/* printf ("globalDuration source %d %f\n",
-				node->__sourceNumber,AC_LastDuration[node->__sourceNumber]);  */
-	}
-#endif /* MUST_RE_IMPLEMENT_SOUND_WITH_OPENAL */
-}
-
-int	parse_audioclip(struct X3D_AudioClip *node,char *buffer){
-	
-	return TRUE;
+	if (buffer == AL_NONE)
+		buffer = BADAUDIOSOURCE;
+#else
+	int buffer = BADAUDIOSOURCE;
+#endif
+	printf("parse_audioclip buffer=%d\n",buffer);
+	return buffer;
 }
 
 
@@ -547,6 +747,7 @@ bool  process_res_audio(resource_item_t *res){
 	openned_file_t *of;
 	struct Shader_Script* ss;
 	const char *buffer;
+	int len;
 	struct X3D_AudioClip *node;
 
 	buffer = NULL;
@@ -576,46 +777,16 @@ bool  process_res_audio(resource_item_t *res){
 		}
 
 		buffer = of->fileData;
+		len = of->fileDataSize;
 		break;
 	}
 
 	node = (struct X3D_AudioClip *) res->whereToPlaceData;
-	parse_audioclip(node,buffer);
+	//node->__FILEBLOB = buffer;
+	node->__sourceNumber = parse_audioclip(node,buffer,len); //__sourceNumber will be openAL buffer number
 	return TRUE;
 }
 
-
-void locateAudioSource (struct X3D_AudioClip *node) {
-	resource_item_t *res;
-	resource_item_t *parentPath;
-	//ppSensInterps p = (ppSensInterps)gglobal()->SensInterps.prv;
-	ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
-
-	node->__sourceNumber = p->SoundSourceNumber;
-	p->SoundSourceNumber++;
-
-	parentPath = (resource_item_t *)(node->_parentResource);
-
-	res = resource_create_multi(&node->url);
-
-	//resource_get_valid_url_from_multi(parentPath, res);
-	resource_identify(node->_parentResource, res);
-	res->media_type = resm_audio;
-	res->whereToPlaceData = node;
-	resitem_enqueue(ml_new(res));
-	//send_resource_to_parser(res);
-	//resource_wait(res);
-	//
-	//if (res->status == ress_loaded) {
-	//	/* TODO: check into the audio file ??? check what textures do in resource_get_valid_texture_from_multi */
-	//	return;
-	//}
-
-	//resource_destroy(res);	
-	
-	node->__sourceNumber = BADAUDIOSOURCE;
-
-}
 /* returns the audio duration, unscaled by pitch */
 double return_Duration (int indx) {
 	double retval;
@@ -624,9 +795,27 @@ double return_Duration (int indx) {
 	else if (indx > 50) retval = 1.0;
 	else 
 	{
-		//ppSensInterps p = (ppSensInterps)gglobal()->SensInterps.prv;
+#ifdef HAVE_OPENAL
+		int ibuffer = indx;
+		int ibytes;
+		int ibits;
+		int ichannels;
+		int ifreq;
+		double framesize, bytespersecond;
+		alGetBufferi(ibuffer,AL_FREQUENCY,&ifreq);
+		alGetBufferi(ibuffer,AL_BITS,&ibits);
+		alGetBufferi(ibuffer,AL_CHANNELS,&ichannels);
+		alGetBufferi(ibuffer,AL_SIZE,&ibytes);
+		framesize = (double)(ibits * ichannels);
+		bytespersecond = framesize * (double)ifreq;
+		if(bytespersecond > 0.0)
+			retval = (double)(ibytes) / bytespersecond;
+		else
+			retval = 1.0;
+#else
 		ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
 		retval = p->AC_LastDuration[indx];
+#endif
 	}
 	return retval;
 }

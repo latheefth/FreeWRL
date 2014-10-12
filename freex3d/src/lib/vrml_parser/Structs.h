@@ -2123,6 +2123,8 @@ struct X3D_AudioClip {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	double __inittime;
+	void * __loadResource;
+	int __loadstatus;
 	void * __localFileName;
 	int __sourceNumber;
 	void * _parentResource;
@@ -6569,6 +6571,7 @@ struct X3D_Sound {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
+	int __sourceNumber;
 	struct SFVec3f direction;
 	float intensity;
 	struct SFVec3f location;
