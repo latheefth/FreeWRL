@@ -1019,12 +1019,12 @@ void do_AudioTick(void *ptr) {
 	//if (node->__sourceNumber == BADAUDIOSOURCE) return;
 
 	/* call common time sensor routine */
-	duration = return_Duration(node->__sourceNumber);
+	//duration = return_Duration(node->__sourceNumber);
+	duration = return_Duration(node);
 	do_active_inactive (
 		&node->isActive, &node->__inittime, &node->startTime,
 		&node->stopTime,node->loop,duration,
 		pitch);
-
 
 	if (oldstatus != node->isActive) {
 		/* push @e, [$t, "isActive", node->{isActive}]; */

@@ -623,19 +623,18 @@ void render_Sound (struct X3D_Sound *node) {
 					alSourcef (node->__sourceNumber, AL_PITCH,    acp->pitch);
 					alSourcef (node->__sourceNumber, AL_GAIN,     node->intensity );
 					alSourcei (node->__sourceNumber, AL_LOOPING,  acp->loop);
+					// update to audioclip start,stop,pause,resume is done in do_AudioTick()
 					if(acp->isPaused) alSourcePause(node->__sourceNumber);
 					//execute audioclip state
 					alGetSourcei(node->__sourceNumber, AL_SOURCE_STATE,&istate);
 					if(acp->isActive ){
-						if(istate != AL_PLAYING && !acp->isPaused)
+						if(istate != AL_PLAYING && !acp->isPaused){
 							alSourcePlay(node->__sourceNumber);
+							printf(".play.");
+						}
 					}else{
 						if(istate != AL_STOPPED)
 							alSourceStop(node->__sourceNumber);
-					}
-					if(acp->isPaused){
-						if(0) if(istate != AL_PAUSED)
-							alSourcePause(node->__sourceNumber);
 					}
 				}
 			}
@@ -801,7 +800,41 @@ int	parse_audioclip(struct X3D_AudioClip *node,char *bbuffer, int len){
 	return buffer;
 }
 
+double compute_duration(int ibuffer){
 
+	double retval;
+#ifdef HAVE_OPENAL
+	int ibytes;
+	int ibits;
+	int ichannels;
+	int ifreq;
+	double framesizebytes, bytespersecond;
+	alGetBufferi(ibuffer,AL_FREQUENCY,&ifreq);
+	alGetBufferi(ibuffer,AL_BITS,&ibits);
+	alGetBufferi(ibuffer,AL_CHANNELS,&ichannels);
+	alGetBufferi(ibuffer,AL_SIZE,&ibytes);
+	framesizebytes = (double)(ibits * ichannels)/8.0;
+	bytespersecond = framesizebytes * (double)ifreq;
+	if(bytespersecond > 0.0)
+		retval = (double)(ibytes) / bytespersecond;
+	else
+		retval = 1.0;
+#else
+	//not sure how this is supposed to work, havent compiled it, good luck
+	float pitch;
+	double stime, sttime;
+	int loop;
+	pitch = node->pitch;
+	stime = node->startTime;
+	sttime = node->stopTime;
+	loop = node->loop;
+
+	retval = SoundSourceInit (ibuffer, node->loop,
+		(double) pitch,(double) stime, (double) sttime, filename);
+	
+#endif
+	return retval;
+}
 bool  process_res_audio(resource_item_t *res){
 	s_list_t *l;
 	openned_file_t *of;
@@ -844,34 +877,25 @@ bool  process_res_audio(resource_item_t *res){
 	node = (struct X3D_AudioClip *) res->whereToPlaceData;
 	//node->__FILEBLOB = buffer;
 	node->__sourceNumber = parse_audioclip(node,buffer,len); //__sourceNumber will be openAL buffer number
+	if(node->__sourceNumber) {
+		node->duration_changed = compute_duration(node->__sourceNumber);
+		MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_AudioClip, duration_changed));
+	}
 	return TRUE;
 }
 
-/* returns the audio duration, unscaled by pitch */
-double return_Duration (int indx) {
-	double retval;
 
+/* returns the audio duration, unscaled by pitch */
+double return_Duration (struct X3D_AudioClip *node) {
+	double retval;
+	int indx;
+	indx = node->__sourceNumber;
 	if (indx < 0)  retval = 1.0;
 	else if (indx > 50) retval = 1.0;
 	else 
 	{
 #ifdef HAVE_OPENAL
-		int ibuffer = indx;
-		int ibytes;
-		int ibits;
-		int ichannels;
-		int ifreq;
-		double framesize, bytespersecond;
-		alGetBufferi(ibuffer,AL_FREQUENCY,&ifreq);
-		alGetBufferi(ibuffer,AL_BITS,&ibits);
-		alGetBufferi(ibuffer,AL_CHANNELS,&ichannels);
-		alGetBufferi(ibuffer,AL_SIZE,&ibytes);
-		framesize = (double)(ibits * ichannels);
-		bytespersecond = framesize * (double)ifreq;
-		if(bytespersecond > 0.0)
-			retval = (double)(ibytes) / bytespersecond;
-		else
-			retval = 1.0;
+		retval = node->duration_changed;
 #else
 		ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
 		retval = p->AC_LastDuration[indx];
