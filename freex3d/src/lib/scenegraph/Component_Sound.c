@@ -42,7 +42,55 @@ X3D Sound Component
 #include "sounds.h"
 
 #ifdef HAVE_OPENAL
-#include <AL/alhelpers.c>
+//#include <AL/alhelpers.c>
+/* InitAL opens the default device and sets up a context using default
+ * attributes, making the program ready to call OpenAL functions. */
+void* fwInitAL(void)
+{
+    ALCdevice *device;
+    ALCcontext *ctx;
+
+    /* Open and initialize a device with default settings */
+    device = alcOpenDevice(NULL);
+    if(!device)
+    {
+        fprintf(stderr, "Could not open a device!\n");
+        return NULL;
+    }
+
+    ctx = alcCreateContext(device, NULL);
+    if(ctx == NULL || alcMakeContextCurrent(ctx) == ALC_FALSE)
+    {
+        if(ctx != NULL)
+            alcDestroyContext(ctx);
+        alcCloseDevice(device);
+        fprintf(stderr, "Could not set a context!\n");
+        return NULL;
+    }
+
+    printf("Opened \"%s\"\n", alcGetString(device, ALC_DEVICE_SPECIFIER));
+    return ctx;
+}
+
+/* CloseAL closes the device belonging to the current context, and destroys the
+ * context. */
+void fwCloseAL(void *alctx)
+{
+    ALCdevice *device;
+    ALCcontext *ctx;
+
+    //ctx = alcGetCurrentContext();
+	ctx = alctx;
+    if(ctx == NULL)
+        return;
+
+    device = alcGetContextsDevice(ctx);
+
+    alcMakeContextCurrent(NULL);
+    alcDestroyContext(ctx);
+    alcCloseDevice(device);
+}
+
 #endif
 
 
@@ -50,6 +98,7 @@ typedef struct pComponent_Sound{
 	/* for printing warnings about Sound node problems - only print once per invocation */
 	int soundWarned;// = FALSE;
 	int SoundSourceNumber;
+	void *alContext;
 /* this is used to return the duration of an audioclip to the perl
    side of things. works, but need to figure out all
    references, etc. to bypass this fudge JAS */
@@ -75,6 +124,7 @@ void Component_Sound_init(struct tComponent_Sound *t){
 		/* for printing warnings about Sound node problems - only print once per invocation */
 		p->soundWarned = FALSE;
 		p->SoundSourceNumber = 0;
+		p->alContext = NULL;
 		/* this is used to return the duration of an audioclip to the perl
 		   side of things. works, but need to figure out all
 		   references, etc. to bypass this fudge JAS */
@@ -98,14 +148,18 @@ float ListenerOri[] = { 0.0, 0.0, -1.0, 0.0, 1.0, 0.0 };
 
 int SoundEngineInit(void)
 {
+	void *alctx;
 	int retval = FALSE;
+	ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
 #ifdef HAVE_OPENAL
 	retval = TRUE;
 	/* Initialize OpenAL with the default device, and check for EFX support. */
-	if(InitAL() != 0){
+	alctx = fwInitAL();
+	if(!alctx ){
 		ConsoleMessage("initAL failed\n");
 		retval = FALSE;
 	}
+	p->alContext = alctx;
 #ifdef HAVE_ALUT
 	if(!alutInitWithoutContext(NULL,NULL)) //this does not create an AL context (simple)
 	{
@@ -125,11 +179,11 @@ int SoundEngineInit(void)
 		alListenerfv(AL_ORIENTATION, ListenerOri);
 		if(1){
 			//ALenum error;
-			if(TRUE) //meters)
-				alDopplerVelocity(345.0f); //m/s
+			if(FALSE) //meters)
+				alSpeedOfSound(345.0f); //alDopplerVelocity(34.0f); //m/s
 			else //feet
-				alDopplerVelocity(1132.0f); // using feet/second – change propagation velocity 
-			alDopplerFactor(1.2f); // exaggerate pitch shift by 20% 
+				alSpeedOfSound(1132.0f); //alDopplerVelocity(1132.0f); // using feet/second – change propagation velocity 
+			alDopplerFactor(1.0f); // exaggerate pitch shift by 20% 
 			//if ((error = alGetError()) != AL_NO_ERROR) DisplayALError("alDopplerX : ", error);
 		}
 		alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED); //here's what I think web3d wants
