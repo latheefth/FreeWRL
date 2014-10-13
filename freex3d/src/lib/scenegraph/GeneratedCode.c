@@ -5922,7 +5922,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->duration_changed = -1;
 			tmp2->elapsedTime = 0;
 			tmp2->isActive = FALSE;
-			tmp2->isPaused = TRUE;
+			tmp2->isPaused = FALSE;
 			tmp2->loop = FALSE;
 			tmp2->metadata = NULL;
 			tmp2->pauseTime = 0;

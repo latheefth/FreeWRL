@@ -994,7 +994,7 @@ void do_CollisionTick( void *ptr) {
 void do_AudioTick(void *ptr) {
 	struct X3D_AudioClip *node = (struct X3D_AudioClip *)ptr;
 	int 	oldstatus;
-	double pitch; /* gcc and params - make all doubles to do_active_inactive */
+	double pitch, duration; /* gcc and params - make all doubles to do_active_inactive */
 
 	/* can we possibly have started yet? */
 	if (!node) return;
@@ -1019,9 +1019,10 @@ void do_AudioTick(void *ptr) {
 	//if (node->__sourceNumber == BADAUDIOSOURCE) return;
 
 	/* call common time sensor routine */
+	duration = return_Duration(node->__sourceNumber);
 	do_active_inactive (
 		&node->isActive, &node->__inittime, &node->startTime,
-		&node->stopTime,node->loop,return_Duration(node->__sourceNumber),
+		&node->stopTime,node->loop,duration,
 		pitch);
 
 
@@ -1036,8 +1037,20 @@ void do_AudioTick(void *ptr) {
 		//	SoundEngineStarted = TRUE;
 		//	SoundEngineInit();
 		//}
-		if(haveSoundEngine())
-			SetAudioActive (node->__sourceNumber,node->isActive);
+		//if(haveSoundEngine())
+		//	SetAudioActive (node->__sourceNumber,node->isActive);
+	}
+	
+	if(node->isActive){
+		if(node->pauseTime > node->startTime){
+			if( node->resumeTime < node->pauseTime && !node->isPaused){
+				node->isPaused = TRUE;
+				MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_AudioClip, isPaused));
+			}else if(node->resumeTime > node->pauseTime && node->isPaused){
+				node->isPaused = FALSE;
+				MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_AudioClip, isPaused));
+			}
+		}
 	}
 
 }

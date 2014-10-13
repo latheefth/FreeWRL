@@ -569,7 +569,7 @@ void render_Sound (struct X3D_Sound *node) {
 					source = 0;
 					alGenSources(1, &source);
 					alSourcei(source, AL_BUFFER, acp->__sourceNumber);
-					//alSourcef (source, AL_PITCH,    acp->pitch);
+					alSourcef (source, AL_PITCH,    acp->pitch);
 					alSourcef (source, AL_GAIN,     node->intensity );
 					alSourcei (source, AL_LOOPING,  acp->loop);
 					alSourcei (source, AL_SOURCE_RELATIVE, AL_TRUE);  //we'll treat the avatar/listener as fixed, and the sources moving relative
@@ -589,9 +589,10 @@ void render_Sound (struct X3D_Sound *node) {
 					float travelled[3];
 					double traveltime;
 
+					//update position
 					alSourcefv(node->__sourceNumber, AL_POSITION, SourcePos);
 
-					//velocity for doppler effect
+					//update velocity for doppler effect
 					vecdif3f(travelled,node->__lastlocation.c,SourcePos);
 					traveltime = TickTime() - node->__lasttime;
 					if(traveltime > 0.0)
@@ -618,13 +619,18 @@ void render_Sound (struct X3D_Sound *node) {
 						alSourcef(node->__sourceNumber,AL_CONE_OUTER_ANGLE,135.0f);
 					}
 
+					// for routed values going to audioclip, update values
+					alSourcef (node->__sourceNumber, AL_PITCH,    acp->pitch);
+					alSourcef (node->__sourceNumber, AL_GAIN,     node->intensity );
+					alSourcei (node->__sourceNumber, AL_LOOPING,  acp->loop);
+					if(acp->isPaused) alSourcePause(node->__sourceNumber);
 					//execute audioclip state
 					alGetSourcei(node->__sourceNumber, AL_SOURCE_STATE,&istate);
-					if(acp->isActive){
-						if(istate != AL_PLAYING)
+					if(acp->isActive ){
+						if(istate != AL_PLAYING && !acp->isPaused)
 							alSourcePlay(node->__sourceNumber);
 					}else{
-						if(0) if(istate != AL_STOPPED)
+						if(istate != AL_STOPPED)
 							alSourceStop(node->__sourceNumber);
 					}
 					if(acp->isPaused){
