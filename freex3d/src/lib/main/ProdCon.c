@@ -1106,7 +1106,7 @@ int frontendGetsFiles(){
 
 void process_res_texitem(resource_item_t *res);
 bool parser_process_res_SHADER(resource_item_t *res);
-void process_res_audio(resource_item_t *res);
+bool process_res_audio(resource_item_t *res);
 /**
  *   parser_process_res: for each resource state, advance the process of loading.
  *   this version assumes the item has been dequeued for processing,
@@ -1221,7 +1221,12 @@ static bool parser_process_res(s_list_t *item)
 			break;
 		case resm_audio:
 			res->complete = TRUE;
-			process_res_audio(res);
+			if(process_res_audio(res)){
+				res->status = ress_parsed;
+			}else{
+				retval = FALSE;
+				res->status = ress_failed;
+			}
 			break;
 		case resm_x3z:
 			process_x3z(res);

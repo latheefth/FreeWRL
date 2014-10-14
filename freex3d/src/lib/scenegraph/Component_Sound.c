@@ -427,21 +427,7 @@ OLDCODE}
 void locateAudioSource (struct X3D_AudioClip *node) {
 	resource_item_t *res;
 	resource_item_t *parentPath;
-	//ppSensInterps p = (ppSensInterps)gglobal()->SensInterps.prv;
 	ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
-
-	//node->__sourceNumber = -1; //BADAUDIOSOURCE;
-
-	//parentPath = (resource_item_t *)(node->_parentResource);
-
-	//res = resource_create_multi(&node->url);
-
-	////resource_get_valid_url_from_multi(parentPath, res);
-	//resource_identify(node->_parentResource, res);
-	//res->media_type = resm_audio;
-	//res->whereToPlaceData = node;
-	//resitem_enqueue(ml_new(res));
-	//printf("locating audiosource %s\n",res->URLrequest);
 
 	switch (node->__loadstatus) {
 		case LOAD_INITIAL_STATE: /* nothing happened yet */
@@ -514,7 +500,7 @@ void render_AudioClip (struct X3D_AudioClip *node) {
 
 #ifdef HAVE_OPENAL
 
-#else //MUST_RE_IMPLEMENT_SOUND_WITH_OPENAL
+#elif HAVE_OLDSOUND //MUST_RE_IMPLEMENT_SOUND_WITH_OPENAL
 	/*  register an audioclip*/
 	float pitch,stime, sttime;
 	int loop;
@@ -696,7 +682,7 @@ void render_Sound (struct X3D_Sound *node) {
 	}
 
 
-#else //MUST_RE_IMPLEMENT_SOUND_WITH_OPENAL
+#elif HAVE_OLDSOUND //MUST_RE_IMPLEMENT_SOUND_WITH_OPENAL
 
 
 	/* printf ("sound, node %d, acp %d source %d\n",node, acp, acp->__sourceNumber); */
@@ -840,7 +826,7 @@ void render_Sound (struct X3D_Sound *node) {
 
 int	parse_audioclip(struct X3D_AudioClip *node,char *bbuffer, int len){
 #ifdef HAVE_OPENAL
-	ALint buffer = -1;
+	ALint buffer = AL_NONE;
 #ifdef HAVE_ALUT
 	buffer = alutCreateBufferFromFileImage (bbuffer, len);
 //#elif HAVE_SDL
@@ -856,7 +842,7 @@ int	parse_audioclip(struct X3D_AudioClip *node,char *bbuffer, int len){
 
 double compute_duration(int ibuffer){
 
-	double retval;
+	double retval = 1.0;
 #ifdef HAVE_OPENAL
 	int ibytes;
 	int ibits;
@@ -873,7 +859,7 @@ double compute_duration(int ibuffer){
 		retval = (double)(ibytes) / bytespersecond;
 	else
 		retval = 1.0;
-#else
+#elif HAVE_OLDSOUND
 	//not sure how this is supposed to work, havent compiled it, good luck
 	float pitch;
 	double stime, sttime;
@@ -931,11 +917,12 @@ bool  process_res_audio(resource_item_t *res){
 	node = (struct X3D_AudioClip *) res->whereToPlaceData;
 	//node->__FILEBLOB = buffer;
 	node->__sourceNumber = parse_audioclip(node,buffer,len); //__sourceNumber will be openAL buffer number
-	if(node->__sourceNumber) {
+	if(node->__sourceNumber > -1) {
 		node->duration_changed = compute_duration(node->__sourceNumber);
 		MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_AudioClip, duration_changed));
-	}
-	return TRUE;
+		return TRUE;
+	} 
+	return FALSE;
 }
 
 
