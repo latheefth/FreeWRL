@@ -832,9 +832,11 @@ our %Nodes = (
 		duration_changed => ["SFTime", -1, "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		elapsedTime => ["SFTime",0,"outputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		isActive => ["SFBool", "FALSE", "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		isPaused => ["SFBool", "TRUE","outputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		isPaused => ["SFBool", "FALSE","outputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_parentResource =>["FreeWRLPTR",0,"initializeOnly", 0],
-		# internal sequence number
+		__loadstatus =>["SFInt32",0,"initializeOnly", 0],
+		__loadResource => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		# internal sequence number, openal buffer number
 		__sourceNumber => ["SFInt32", -1, "initializeOnly", 0],
 		# local name, as received on system
 		__localFileName => ["FreeWRLPTR", 0,"initializeOnly", 0],
@@ -854,6 +856,10 @@ our %Nodes = (
 		priority => ["SFFloat", 0, "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		source => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		spatialize => ["SFBool", "FALSE", "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		# openal sound source number
+		__sourceNumber => ["SFInt32", -1, "initializeOnly", 0],
+		__lastlocation => ["SFVec3f", [0, 0, 0], "initializeOnly",0],
+		__lasttime => ["SFTime", 0, "initializeOnly", 0],
 	},"X3DSoundSourceNode"),
 
 

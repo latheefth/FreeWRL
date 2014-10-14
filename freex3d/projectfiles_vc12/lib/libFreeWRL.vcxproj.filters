@@ -267,9 +267,6 @@
     <ClCompile Include="$(SRC)\lib\main\Snapshot.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SRC)\lib\main\SoundEngineClient.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SRC)\lib\scenegraph\statics.c">
       <Filter>Source Files</Filter>
     </ClCompile>

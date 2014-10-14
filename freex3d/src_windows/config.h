@@ -292,3 +292,6 @@ char *getWgetPath();
 #ifndef FRONTEND_GETS_URLS
 #define HAVE_WININET 1
 #endif
+
+#define HAVE_OPENAL 1
+#define HAVE_ALUT 1
