@@ -4393,6 +4393,8 @@ void startOfLoopNodeUpdates(void) {
 	if (rootNode() != NULL) {
 		struct Multi_Node *children, *_sortedChildren;
 		node = (struct X3D_Node*)rootNode();
+		children = NULL;
+		_sortedChildren = NULL;
 		if(node->_nodeType == NODE_Proto){
 			children = &X3D_PROTO(node)->__children;
 			_sortedChildren = &X3D_PROTO(node)->_sortedChildren;
