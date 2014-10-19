@@ -382,21 +382,23 @@ int fwvsnprintf(char *buffer, int buffer_length, const char *fmt, va_list ap)
 				break;
 			case 's':
 				s = va_arg(ap, char *);
-				/* limit string to a certain length */
-				if ((strlen(s) + count) > buffer_length) {
-					char tmpstr[100];
-					int ltc;
-					ltc = (int)strlen(s);
-					if (ltc>80) ltc = 80;
-					strncpy(tmpstr, s, ltc);
-					tmpstr[ltc] = '.'; ltc++;
-					tmpstr[ltc] = '.'; ltc++;
-					tmpstr[ltc] = '.'; ltc++;
-					tmpstr[ltc] = '\0';
+				if (s){
+					/* limit string to a certain length */
+					if ((strlen(s) + count) > buffer_length) {
+						char tmpstr[100];
+						int ltc;
+						ltc = (int)strlen(s);
+						if (ltc > 80) ltc = 80;
+						strncpy(tmpstr, s, ltc);
+						tmpstr[ltc] = '.'; ltc++;
+						tmpstr[ltc] = '.'; ltc++;
+						tmpstr[ltc] = '.'; ltc++;
+						tmpstr[ltc] = '\0';
 
-					count += sprintf(tempbuf, format, tmpstr);
+						count += sprintf(tempbuf, format, tmpstr);
+					}
+					else count += sprintf(tempbuf, format, s);
 				}
-				else count += sprintf(tempbuf, format, s);
 				break;
 			case 'f':
 			case 'e':

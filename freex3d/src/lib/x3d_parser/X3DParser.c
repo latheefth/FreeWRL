@@ -804,7 +804,7 @@ static void parseRoutes_B (void *ud, char **atts) {
 	context = getContext(ud,TOP);
 
 	char *ffield, *tfield, *fnode, *tnode;
-	ffield = tfield = ffield = tfield = NULL;
+	ffield = tfield = fnode = tnode = NULL;
 	for (i = 0; atts[i]; i += 2) {
 		if (strcmp("fromNode",atts[i]) == 0) {
 			fnode = atts[i+1];
@@ -1059,7 +1059,7 @@ c) look at atts containerField, and if not null and not children, use it.
 			value->sfnode = node;
 			ADD_PARENT(node,parent);
 		}else if(type == FIELDTYPE_MFNode){
-			union anyVrml *valueadd;
+			union anyVrml *valueadd = NULL;
 			ok = 0;
 			if(parent->_nodeType == NODE_Proto){
 				struct X3D_Proto *pparent = X3D_PROTO(parent);
@@ -1496,6 +1496,7 @@ static void parseFieldValue_B(void *ud, char **atts) {
 	}
 	ok = 0;
 	cname = NULL;
+	value = NULL;
 	if(fname){
 		ok = getFieldFromNodeAndName(node,fname,&type,&kind,&iifield,&value);
 		if(ok){

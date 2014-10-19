@@ -2272,6 +2272,9 @@ void proximity_GeoProximitySensor (struct X3D_GeoProximitySensor *node) {
 			&t_zvec.x,&t_zvec.y,&t_zvec.z); 
 		FW_GLU_UNPROJECT(yvec.x,yvec.y,yvec.z,modelMatrix,projMatrix,viewport, 
 			&t_yvec.x,&t_yvec.y,&t_yvec.z); 
+		VECDIFF(t_zvec, t_orig, dr1r2);  /* Z axis */
+		VECDIFF(t_yvec, t_orig, dr2r3);  /* Y axis */
+
 	}
 	matinverseAFFINE(view2prox,modelMatrix); 
 	if(1){
@@ -2279,6 +2282,8 @@ void proximity_GeoProximitySensor (struct X3D_GeoProximitySensor *node) {
 		transform(&t_orig,&orig,view2prox);
 		transform(&zvec,&zvec,view2prox);
 		transform(&yvec,&yvec,view2prox);
+		VECDIFF(zvec, t_orig, dr1r2);
+		VECDIFF(yvec, t_orig, dr2r3);
 	}
     transform(&t_center,&orig, view2prox); 
  
@@ -2307,8 +2312,6 @@ void proximity_GeoProximitySensor (struct X3D_GeoProximitySensor *node) {
 	((node->__t1).c[1]) = (float)t_center.y; 
 	((node->__t1).c[2]) = (float)t_center.z; 
  
-	VECDIFF(t_zvec,t_orig,dr1r2);  /* Z axis */ 
-	VECDIFF(t_yvec,t_orig,dr2r3);  /* Y axis */ 
  
 	/* printf ("      dr1r2 %lf %lf %lf\n",dr1r2.x, dr1r2.y, dr1r2.z); 
 	printf ("      dr2r3 %lf %lf %lf\n",dr2r3.x, dr2r3.y, dr2r3.z); 

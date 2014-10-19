@@ -2018,6 +2018,7 @@ void parseScriptProtoField_B(void *ud, char **atts) {
 	union anyVrml defaultValue, *value;
 	char *fname, *cname;
 	value = NULL;
+	cname = NULL;
 	mp_name = mp_accesstype = mp_type = mp_value = ID_UNDEFINED;
 	if(0) printf("start scriptProtoField\n");
 	/* have a "key" "value" pairing here. They can be in any order; put them into our order */

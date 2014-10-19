@@ -293,5 +293,5 @@ char *getWgetPath();
 #define HAVE_WININET 1
 #endif
 
-#define HAVE_OPENAL 1
-#define HAVE_ALUT 1
+//#define HAVE_OPENAL 1 //in lib preprocessor 
+//#define HAVE_ALUT 1
