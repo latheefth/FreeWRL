@@ -581,8 +581,8 @@ void render_Sound (struct X3D_Sound *node) {
 #ifdef HAVE_OPENAL
 	/*  4 sources of openAL explanations and examples:
 		- http://open-activewrl.sourceforge.net/data/OpenAL_PGuide.pdf  
-		- http://forum.devmaster.net/t  and type openal in the search box to get several lessons on openal
-		- http://kcat.strangesoft.net/openal.html  example code (win32 is using this openal-soft implementation of openal)
+		- http://forum.devmaster.net/t  and type 'openal' in the search box to get several lessons on openal
+		- http://kcat.strangesoft.net/openal.html  example code (win32 desktop is using this openal-soft implementation of openal)
 		- http://en.wikipedia.org/wiki/OpenAL links
 		- <al.h> comments
 	*/
@@ -653,8 +653,11 @@ void render_Sound (struct X3D_Sound *node) {
 						for(i=0;i<3;i++) dird[i] = node->direction.c[i];
 						transformAFFINEd(dird,dird,modelMatrix);
 						for(i=0;i<3;i++) dirf[i] = dird[i];
-						alSourcefv(node->__sourceNumber, AL_DIRECTION, dirf);
-						alSourcef(node->__sourceNumber,AL_CONE_OUTER_GAIN,.5f);
+						if (1)
+							alSourcefv(node->__sourceNumber, AL_DIRECTION, dirf);
+						else
+							alSource3f(node->__sourceNumber, AL_DIRECTION, dirf[0], dirf[1], dirf[2]);
+						alSourcef(node->__sourceNumber, AL_CONE_OUTER_GAIN, .5f);
 						alSourcef(node->__sourceNumber,AL_CONE_INNER_ANGLE,90.0f);
 						alSourcef(node->__sourceNumber,AL_CONE_OUTER_ANGLE,135.0f);
 					}
