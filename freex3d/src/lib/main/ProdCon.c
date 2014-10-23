@@ -312,7 +312,8 @@ int offsetofChildren(struct X3D_Node *node){
 				offs = offsetof(struct X3D_Billboard,children);
 				break;
 			case NODE_Proto:
-				offs = offsetof(struct X3D_Proto,__children);
+				//offs = offsetof(struct X3D_Proto,__children); //addRemoveChildren reallocs p, so mfnode .p field not stable enough for rendering thread
+				offs = offsetof(struct X3D_Proto,addChildren); //this is the designed way to add
 				break;
 			case NODE_Inline:  //Q. do I need this in here? Saw code in x3dparser.
 				offs = offsetof(struct X3D_Inline,__children);
