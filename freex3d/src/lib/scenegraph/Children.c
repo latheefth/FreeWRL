@@ -66,9 +66,10 @@ void localLightChildren(struct Multi_Node ch) {
 /* render all children, except the directionalight ones */
 void normalChildren(struct Multi_Node ch) {
 	int i;
+	struct X3D_Node *p;
 
 	for(i=0; i<ch.n; i++) {
-		struct X3D_Node *p = X3D_NODE(ch.p[i]);
+		p = X3D_NODE(ch.p[i]); //ATOMIC OP -if it bombs here with .n valid and .p junk, then addRemoveChildren has just expanded .p and FREEd the old one
 		//ConsoleMessage("NC, ch %d is %p",i,p);
 		if (p != NULL) {
 			/* printf ("child %d of %d is a %s\n",i,ch.n,stringNodeType(p->_nodeType)); */

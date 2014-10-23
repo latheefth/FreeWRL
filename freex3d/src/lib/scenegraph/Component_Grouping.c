@@ -360,7 +360,11 @@ void prep_Proto (struct X3D_Proto *node) {
 /* not sure why we would compile */
 void compile_Proto(struct X3D_Proto *node) {
 	if(0)printf("in compile_proto\n");
-	//REINITIALIZE_SORTED_NODES_FIELD(node->children,node->_sortedChildren);
+	unsigned char pflag = ciflag_get(node->__protoFlags,2);
+	if(pflag == 2){
+		//scene
+		REINITIALIZE_SORTED_NODES_FIELD(node->__children,node->_sortedChildren);
+	}
 	MARK_NODE_COMPILED
 }
 /* render the first node only */
@@ -437,8 +441,20 @@ printf ("child_Group,  children.n %d sortedChildren.n %d\n",node->children.n, no
 	//} else {
 	//	normalChildren(node->_sortedChildren);
 	//}
-	if(nc)
-		normalChildren(node->__children);
+	unsigned char sceneflag = ciflag_get(node->__protoFlags,2);
+	int renderFirstProtoChildOnlyAsPerSpecs = FALSE;
+	//I don't think inline.children comes through here, just scene and protoInstance
+	if(sceneflag == 2 ){ 
+		normalChildren(node->_sortedChildren);
+	}else{
+		if(renderFirstProtoChildOnlyAsPerSpecs && renderstate()->render_geom) {
+			(node->__children).n = 1;
+			normalChildren(node->__children);
+			(node->__children).n = nc;
+		} else {
+			normalChildren(node->__children);
+		}
+	}
 
 	LOCAL_LIGHT_OFF
 

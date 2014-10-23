@@ -440,7 +440,7 @@ void AddRemoveChildren (
 		char *file,
 		int line) {
 	int oldlen;
-	void *newmal;
+	void *newmal, *oldmal;
 	struct X3D_Node * *remchild;
 	struct X3D_Node * *remptr;
 	struct X3D_Node * *tmpptr;
@@ -453,6 +453,7 @@ void AddRemoveChildren (
 	printf ("AddRemove Children parent %p tn %p, len %d ar %d\n",parent,tn,len,ar);
 	printf ("called at %s:%d\n",file,line);
 	#endif
+	oldmal = NULL;
 
 	/* if no elements, just return */
 	if (len <=0) return;
@@ -527,10 +528,12 @@ void AddRemoveChildren (
 
 			/* set up the C structures for this new MFNode addition */
 			if(oldlen > 0) {
-				FREE_IF_NZ (tn->p);
+				//FREE_IF_NZ (tn->p); //see bottom of function
+				oldmal = tn->p;
 			}
 			tn->n = oldlen;
 			tn->p = newmal;
+			//FREE_IF_NZ(oldmal); //ATOMIC OP  but if the rendering thread is hanging onto mf->p for a long time, you'll be 'pulling the rug out' here - use addChildren
 		}else{
 			/*already alloced - just add to end*/
 			newmal = tn->p;
@@ -652,6 +655,8 @@ void AddRemoveChildren (
 	}
 
 	update_node(parent);
+	FREE_IF_NZ(oldmal); //ATOMIC OP  but if the rendering thread is hanging onto mf->p for a long time, you'll be 'pulling the rug out' here - use addChildren
+
 }
 
 

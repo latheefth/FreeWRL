@@ -5175,7 +5175,7 @@ void copy_field(int typeIndex, union anyVrml* source, union anyVrml* dest, struc
 		nele = mfs->n;
 		if( sftype == FIELDTYPE_SFNode ) nele = (int) upper_power_of_two(nele);
 		mfd->p = MALLOC (struct X3D_Node **, isize*nele);
-		mfd->n = mfs->n;
+		//mfd->n = mfs->n;
 		ps = (char *)mfs->p;
 		pd = (char *)mfd->p;
 		for(i=0;i<mfs->n;i++)
@@ -5184,7 +5184,7 @@ void copy_field(int typeIndex, union anyVrml* source, union anyVrml* dest, struc
 			ps += isize;
 			pd += isize;
 		}
-
+		mfd->n = mfs->n;  //ATOMIC OP
 	}else{ 
 		//isSF
 		switch(typeIndex)
