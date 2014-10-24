@@ -538,6 +538,7 @@ void load_Inline (struct X3D_Inline *node) {
 				//printf ("res complete %d\n",res->complete);
 				if(res->complete){
 					if (res->status == ress_parsed) {
+						/* this might be a good place to populate parent context IMPORT table with our EXPORT nodes? */
 						node->__loadstatus = INLINE_STABLE; 
 					} 
 				}
@@ -548,7 +549,10 @@ void load_Inline (struct X3D_Inline *node) {
 		}
 
 	} else {
+		if(node->__EXPORTS)
+			((struct Vector *)(node->__EXPORTS))->n = 0; //disable any parent context routing to inline's exports, before wiping out nodes
 		printf ("unloading Inline\n");
+		/* missing code to unload inline */
 	}
 }
 
