@@ -146,6 +146,20 @@ int X3DMODE(int val);
 void load_externProtoInstance (struct X3D_Proto *node);
 int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *type, int *kind, int *iifield, union anyVrml **value);
 int getFieldFromNodeAndIndex(struct X3D_Node* node, int ifield, const char **fieldname, int *type, int *kind, union anyVrml **value);
+void deep_copy_broto_body2(struct X3D_Proto** proto, struct X3D_Proto** dest);
+struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep);
+struct brotoDefpair{
+	struct X3D_Node* node;
+	char* name;
+};
+/* structure used for both import and export tables*/
+struct IMEXPORT {
+	struct X3D_Node *nodeptr; 
+	char *nodename;  //of inline
+	char *mxname;  //of node being exported or imported
+	char *as;  //nickname of mxname in local execution context
 
-
+};
+struct IMEXPORT *broto_search_IMPORTname(struct X3D_Proto *context, char *name);
+struct IMEXPORT *broto_search_EXPORTname(struct X3D_Proto *context, char *name);
 #endif /* __FREEWRL_CPARSE_PARSER_H__ */

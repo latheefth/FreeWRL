@@ -1226,14 +1226,14 @@ static BOOL parser_componentStatement(struct VRMLParser* me) {
     return TRUE;
 }
 
-/* structure used for both import and export tables*/
-struct IMEXPORT {
-	struct X3D_Node *nodeptr; 
-	char *nodename;  //of inline
-	char *mxname;  //of node being exported or imported
-	char *as;  //nickname of mxname in local execution context
-
-};
+///* structure used for both import and export tables*/  moved to header
+//struct IMEXPORT {
+//	struct X3D_Node *nodeptr; 
+//	char *nodename;  //of inline
+//	char *mxname;  //of node being exported or imported
+//	char *as;  //nickname of mxname in local execution context
+//
+//};
 void handleExport (char *node, char *as) {
 	/* handle export statements. as will be either a string pointer, or NULL */
 	
@@ -1266,8 +1266,10 @@ void handleExport_B (void *nodeptr, char *node, char *as) {
 	if(context){
 		struct IMEXPORT *mxport = malloc(sizeof(struct IMEXPORT));
 		if(!context->__EXPORTS) context->__EXPORTS = newVector(struct IMEXPORT *,4);
-		mxport->as = strdup(as);
 		mxport->nodename = strdup(node);
+		mxport->as = mxport->nodename;
+		if(as)
+			mxport->as = strdup(as);
 		mxport->nodeptr = nodeptr;
 		vector_pushBack(struct IMEXPORT*,context->__EXPORTS,mxport);
 	}
@@ -1299,9 +1301,11 @@ void handleImport_B (struct X3D_Node *nodeptr, char *nodeName,char *nodeImport, 
 	if(context){
 		struct IMEXPORT *mxport = malloc(sizeof(struct IMEXPORT));
 		if(!context->__IMPORTS) context->__IMPORTS = newVector(struct IMEXPORT *,4);
-		mxport->as = strdup(as);
 		mxport->nodename = strdup(nodeName);
 		mxport->mxname = strdup(nodeImport);
+		mxport->as = mxport->nodename;
+		if(as)
+			mxport->as = strdup(as);
 		mxport->nodeptr = NULL; //After Inline is loaded, before or during routing, something needs to look in the inline's export table to get its node
 		vector_pushBack(struct IMEXPORT*,context->__IMPORTS,mxport);
 	}
@@ -4392,14 +4396,15 @@ static BOOL parser_externbrotoStatement(struct VRMLParser* me)
 	- late might help with Inline IMPORT/EXPORT, where routes are declared
 		before the nodes appear.
 */
-struct brotoRoute
-{
-	struct X3D_Node* fromNode;
-	int fromOfs;
-	struct X3D_Node* toNode;
-	int toOfs;
-	int ft;
-};
+//see CRoutes.h
+//struct brotoRoute
+//{
+//	struct X3D_Node* fromNode;
+//	int fromOfs;
+//	struct X3D_Node* toNode;
+//	int toOfs;
+//	int ft;
+//};
 void broto_store_route(struct X3D_Proto* proto,
                           struct X3D_Node* fromNode, int fromOfs,
                           struct X3D_Node* toNode, int toOfs,
@@ -4690,10 +4695,11 @@ static BOOL parser_routeStatement_B(struct VRMLParser* me)
 			1 = externProtoInstance, externprotodeclare
 */
 
-struct brotoDefpair{
-	struct X3D_Node* node;
-	char* name;
-};
+//moved to header:
+//struct brotoDefpair{
+//	struct X3D_Node* node;
+//	char* name;
+//};
 void broto_store_DEF(struct X3D_Proto* proto,struct X3D_Node* node, char *name)
 {
 	Stack *defs;
@@ -4728,6 +4734,17 @@ struct IMEXPORT *broto_search_IMPORTname(struct X3D_Proto *context, char *name){
 	}
 	return NULL;
 }
+struct IMEXPORT *broto_search_EXPORTname(struct X3D_Proto *context, char *name){
+	int i;
+	struct IMEXPORT *def;
+	if(context->__EXPORTS)
+	for(i=0;i<vectorSize(context->__EXPORTS);i++){
+		def = vector_get(struct IMEXPORT *, context->__EXPORTS,i);
+		if(!strcmp(def->as,name)) return def;
+	}
+	return NULL;
+}
+
 
 BOOL isAvailableBroto(char *pname, struct X3D_Proto* currentContext, struct X3D_Proto **proto)
 {
@@ -5984,6 +6001,7 @@ int X3DMODE(int val)
 
 
 BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackData);
+//=========== find any field by name via walk_fields
 typedef struct cbDataExactName {
 	char *fname;
 	union anyVrml* fieldValue;
@@ -6025,6 +6043,7 @@ BOOL find_anyfield_by_name(struct VRMLLexer* lexer, struct X3D_Node* node, union
 	}
 	return found;
 }
+//========== find any field by name and route direction via walk_fields
 typedef struct cbDataRootNameAndRouteDir {
 	char *fname;
 	int PKW_eventType;
@@ -6070,6 +6089,23 @@ BOOL find_anyfield_by_nameAndRouteDir(struct X3D_Node* node, union anyVrml **any
 	}
 	return found;
 }
+//========== count public fields  via walk_fields, used by js fieldDefinitionArray
+
+BOOL cbCountFields(void *callbackData,struct X3D_Node* node,int jfield,union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,int publicfield)
+{
+	int found = FALSE;
+	int *count = (int*)callbackData;
+	(*count)++;
+	return found;
+}
+int count_fields(struct X3D_Node* node)
+{
+	int found;
+	int count = 0;
+	found = walk_fields(node,cbCountFields,&count);
+	return count;
+}
+//========
 
 //convenience wrappers to get details for built-in fields and -on script and protoInstance- dynamic fields
 int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *type, int *kind, int *iifield, union anyVrml **value){

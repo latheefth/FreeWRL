@@ -95,8 +95,14 @@ typedef struct WEB3DNATIVE {
 #define AUXTYPE_X3DRouteArray 1015
 #define AUXTYPE_X3DScene 1016
 #define AUXTYPE_X3DExecutionContext 1017
-#define AUXTYPE_X3DMatrix3 1018
-#define AUXTYPE_X3DMatrix4 1019
+#define AUXTYPE_X3DProto 1018
+#define AUXTYPE_X3DProtoArray 1019
+#define AUXTYPE_X3DExternProto 1020
+#define AUXTYPE_X3DExternProtoArray 1021
+#define AUXTYPE_X3DFieldDefinition 1022
+#define AUXTYPE_X3DFieldDefinitionArray 1023
+#define AUXTYPE_X3DMatrix3 1023
+#define AUXTYPE_X3DMatrix4 1024
 
 //our version of a variant, except in C types and our union anyVrml
 typedef struct FWVAL{

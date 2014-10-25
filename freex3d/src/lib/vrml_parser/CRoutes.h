@@ -59,6 +59,14 @@ struct CRStruct {
 
 };
 
+struct brotoRoute
+{
+	struct X3D_Node* fromNode;
+	int fromOfs;
+	struct X3D_Node* toNode;
+	int toOfs;
+	int ft;
+};
 
 #define REINITIALIZE_SORTED_NODES_FIELD(aaa,bbb) \
 	/* has this changed size? */ \

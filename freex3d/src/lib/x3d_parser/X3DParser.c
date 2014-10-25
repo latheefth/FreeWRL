@@ -1402,7 +1402,7 @@ static void parseImport_B(void *ud, char **atts) {
 		if(!strcmp(atts[i],"AS")) as = atts[i+1];
 
 	}
-	handleImport_B (context, inlinedef, exporteddef, as);
+	handleImport_B (X3D_NODE(context), inlinedef, exporteddef, as);
 }
 
 

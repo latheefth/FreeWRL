@@ -120,3 +120,19 @@ void* vector_releaseData_(int elSize, struct Vector* me) {
 
 	return ret;
 }
+
+void vector_removeElement(int elSize,struct Vector** myp, int element)
+{
+	struct Vector *me = *myp;
+	if(me){
+		if(me->data && me->n > 0 && element < me->n && element > -1) {
+			char *el0,*el1;
+			for(int i=element;i<me->n;i++){
+				el0 = (char *)(me->data) + i*elSize;
+				el1 = el0 + elSize;
+				memcpy(el0,el1,elSize);
+			}
+			me->n--;
+		}
+	}
+}
