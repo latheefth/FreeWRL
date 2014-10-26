@@ -1213,8 +1213,35 @@ String toVRMLString() Returns the X3D Classic VRML-encoded string that, if parse
 String toXMLString() Returns the X3D XML-encoded string that, if parsed as the value of an SFNode field, would produce this node. If the browser is unable to reproduce this node, a simple XML Element definition shall be returned. Additional information may be included as one or more XML comments. 
 - july 2014 not yet implemented
 */
+
+
+int SFNode_getNodeName(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	int found;
+	char *name = NULL;
+	int nr = 0;
+	struct X3D_Node* node = (struct X3D_Node*)fwn;
+	if(node){
+		//broto warning - DEF name list should be per-executionContext
+		if(usingBrotos()){
+			struct X3D_Proto *ec = (struct X3D_Proto *)node->_executionContext;
+			if(ec){
+				//broto_search_DEFname(ec, fwpars[0]._string);
+			}
+		}else{
+			//Q. where are the DEF names?
+			name = parser_getNameFromNode(node) ;
+		}
+		if(1){ //if(name){
+			fwretval->_string = name;  //Q should this be &node? to convert it from X3D_Node to anyVrml->sfnode?
+			fwretval->itype = 'S';
+			nr = 1;
+		}
+	}
+	return nr;
+}
+
 FWFunctionSpec (SFNodeFunctions)[] = {
-	//{"getNodeName",	SFNode_getNodeName, 'S',{0,0,0,NULL}},
+	{"getNodeName",	SFNode_getNodeName, 'S',{0,0,0,NULL}},
 	//{"getNodeType", SFNode_getNodeType, 'W',{0,0,0,NULL}},
 	//{"getFieldDefinitions", SFNode_getFieldDefinitions, 'P',{0,0,0,NULL}},
 	//{"toVRMLString", SFNode_toVRMLString, 'S',{0,0,0,NULL}},

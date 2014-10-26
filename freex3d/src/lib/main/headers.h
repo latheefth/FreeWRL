@@ -882,6 +882,7 @@ void replaceWorldNeeded(char* str);
 int X3DParse(struct X3D_Node *parent, const char *inputstring);
 void *createNewX3DNode (int nt);
 void *createNewX3DNode0 (int nt);
+void *createNewX3DNodeB(int nt, int intable, void *executionContext);
 
 char *findFIELDNAMESfromNodeOffset0(struct X3D_Node *node, int offset);
 void print_routes(FILE* fp);

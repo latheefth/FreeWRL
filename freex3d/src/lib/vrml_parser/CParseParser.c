@@ -6785,3 +6785,14 @@ void load_externProtoInstance (struct X3D_Proto *node) {
 		}
 	}
 }
+
+void *createNewX3DNodeB(int nt, int intable, void *executionContext){
+	struct X3D_Node *node;
+	if(intable)
+		node = createNewX3DNode(nt);
+	else
+		node = createNewX3DNode0(nt);
+	if(node && executionContext)
+		node->_executionContext = executionContext;
+	return node;
+}

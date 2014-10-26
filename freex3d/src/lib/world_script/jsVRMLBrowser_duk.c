@@ -1191,9 +1191,11 @@ int X3DExecutionContext_getNamedNode(FWType fwtype, void * fwn, int argc, FWval 
 		node = parser_getNodeFromName(fwpars[0]._string); //_web3dval.anyvrml->sfstring->strptr); 
 	}
 	if(node){
-		fwretval->_web3dval.native = node;  //Q should this be &node? to convert it from X3D_Node to anyVrml->sfnode?
+		//fwretval->_web3dval.native = node;  //Q should this be &node? to convert it from X3D_Node to anyVrml->sfnode?
+		fwretval->_web3dval.anyvrml = malloc(sizeof(union anyVrml));
+		fwretval->_web3dval.anyvrml->sfnode = node;
 		fwretval->_web3dval.fieldType = FIELDTYPE_SFNode;
-		fwretval->_web3dval.gc = 0;
+		fwretval->_web3dval.gc = 1;
 		fwretval->itype = 'W';
 		nr = 1;
 	}
@@ -1287,9 +1289,11 @@ int X3DExecutionContext_createProto(FWType fwtype, void * fwn, int argc, FWval f
 		}
 	}
 	if(node){
-		fwretval->_web3dval.native = node;  //Q should this be &node? to convert it from X3D_Node to anyVrml->sfnode?
+		//fwretval->_web3dval.native = node;  //Q should this be &node? to convert it from X3D_Node to anyVrml->sfnode?
+		fwretval->_web3dval.anyvrml = malloc(sizeof(union anyVrml));
+		fwretval->_web3dval.anyvrml->sfnode = node;
 		fwretval->_web3dval.fieldType = FIELDTYPE_SFNode;
-		fwretval->_web3dval.gc = 0;
+		fwretval->_web3dval.gc = 1;
 		fwretval->itype = 'W';
 		nr = 1;
 	}
@@ -1309,9 +1313,11 @@ int X3DExecutionContext_getImportedNode(FWType fwtype, void * fwn, int argc, FWv
 		}
 	}
 	if(node){
-		fwretval->_web3dval.native = node;  //Q should this be &node? to convert it from X3D_Node to anyVrml->sfnode?
+		//fwretval->_web3dval.native = node;  //Q should this be &node? to convert it from X3D_Node to anyVrml->sfnode?
+		fwretval->_web3dval.anyvrml = malloc(sizeof(union anyVrml));
+		fwretval->_web3dval.anyvrml->sfnode = node;
 		fwretval->_web3dval.fieldType = FIELDTYPE_SFNode;
-		fwretval->_web3dval.gc = 0;
+		fwretval->_web3dval.gc = 1;
 		fwretval->itype = 'W';
 		nr = 1;
 	}
@@ -1402,9 +1408,11 @@ int X3DScene_getExportedNode(FWType fwtype, void * fwn, int argc, FWval fwpars, 
 		}
 	}
 	if(node){
-		fwretval->_web3dval.native = node;  //Q should this be &node? to convert it from X3D_Node to anyVrml->sfnode?
+		//fwretval->_web3dval.native = node;  //Q should this be &node? to convert it from X3D_Node to anyVrml->sfnode?
+		fwretval->_web3dval.anyvrml = malloc(sizeof(union anyVrml));
+		fwretval->_web3dval.anyvrml->sfnode = node;
 		fwretval->_web3dval.fieldType = FIELDTYPE_SFNode;
-		fwretval->_web3dval.gc = 0;
+		fwretval->_web3dval.gc = 1;
 		fwretval->itype = 'W';
 		nr = 1;
 	}
@@ -1651,20 +1659,25 @@ int X3DRouteArrayGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 		fwretval->_integer = _length;
 		fwretval->itype = 'I';
 		nr = 1;
-	}else if(index > -1 && index < getCRouteCount() ){
+	}else if(index > -1 ){
 		if(usingBrotos()){
-			if(index < vectorSize(fwn))
+			if(index < vectorSize(fwn)){
 				fwretval->_pointer.native = vector_get(void *, fwn, index); //struct brotoRoute *
+				fwretval->_pointer.gc = 0;
+				fwretval->_pointer.fieldType = AUXTYPE_X3DRoute;
+				fwretval->itype = 'P';
+				nr = 1;
+			}
 		}else{
 			struct CRStruct *routes = getCRoutes();
-			if( index < getCRouteCount() )
+			if( index < getCRouteCount() ){
 				fwretval->_pointer.native = intdup(index+1);
+				fwretval->_pointer.gc = 1;
+				fwretval->_pointer.fieldType = AUXTYPE_X3DRoute;
+				fwretval->itype = 'P';
+				nr = 1;
+			}
 		}
-		fwretval->_pointer.gc = 1;
-		//getSpecificRoute (index,&fromNode, &fromOffset, &toNode, &toOffset);
-		fwretval->_pointer.fieldType = AUXTYPE_X3DRoute;
-		fwretval->itype = 'P';
-		nr = 1;
 	}
 	return nr;
 }
@@ -1728,9 +1741,12 @@ int X3DRouteGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	switch(index){
 	case 0: //fromNode
-		fwretval->_web3dval.native = (void*)fromNode; //route->routeFromNode;
+		//fwretval->_web3dval.native = (void*)fromNode; //route->routeFromNode;
+		//((union anyVrml*)fwpars[0]._web3dval.native)->sfnode
+		fwretval->_web3dval.anyvrml = malloc(sizeof(union anyVrml));
+		fwretval->_web3dval.anyvrml->sfnode = fromNode;
 		fwretval->_web3dval.fieldType = FIELDTYPE_SFNode;
-		fwretval->_web3dval.gc = 0;
+		fwretval->_web3dval.gc = 1;
 		fwretval->itype = 'W';
 		break;
 	case 1: //fromField
@@ -1740,10 +1756,12 @@ int X3DRouteGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 		fwretval->itype = 'S';
 		break;
 	case 2: //toNode
-		fwretval->_web3dval.native = (void*)toNode; //route->routeFromNode;
+		//fwretval->_web3dval.native = (void*)toNode; //route->routeFromNode;
+		fwretval->_web3dval.anyvrml = malloc(sizeof(union anyVrml));
+		fwretval->_web3dval.anyvrml->sfnode = toNode;
 		fwretval->_web3dval.fieldType = FIELDTYPE_SFNode;
 		fwretval->itype = 'W';
-		fwretval->_web3dval.gc = 0;
+		fwretval->_web3dval.gc = 1;
 		break;
 	case 3: //toField
 		//getFieldFromNodeAndIndex(route->tonodes[0].routeToNode,route->tonodes[0].foffset,&fieldname,&type,&kind,&value);
