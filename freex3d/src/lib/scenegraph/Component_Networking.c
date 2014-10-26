@@ -549,10 +549,19 @@ void load_Inline (struct X3D_Inline *node) {
 		}
 
 	} else {
-		if(node->__EXPORTS)
-			((struct Vector *)(node->__EXPORTS))->n = 0; //disable any parent context routing to inline's exports, before wiping out nodes
-		printf ("unloading Inline\n");
-		/* missing code to unload inline */
+		switch (node->__loadstatus) {
+			case INLINE_INITIAL_STATE: /* nothing happened yet */
+				break;
+			case INLINE_STABLE:
+				if(node->__EXPORTS)
+					((struct Vector *)(node->__EXPORTS))->n = 0; //disable any parent context routing to inline's exports, before wiping out nodes
+				printf ("unloading Inline\n");
+				/* missing code to unload inline */
+			node->__loadstatus = INLINE_INITIAL_STATE;
+			break;
+			default:
+				break; //if its part way loaded, we'll wait till it finishes.
+		}
 	}
 }
 
