@@ -1486,7 +1486,27 @@ int X3DScene_removeExportedNode(FWType fwtype, void * fwn, int argc, FWval fwpar
 	}
 	return nr;
 }
-
+int X3DScene_setMetaData(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	int nr = 0;
+	char *name, *value;
+	name = fwpars[0]._string;
+	value = fwpars[1]._string;
+	//strdup and put in a global or per-scene or per execution context (name,value) list
+	return nr;
+}
+int X3DScene_getMetaData(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	int nr = 0;
+	char *name, *value;
+	value = NULL;
+	name = fwpars[0]._string;
+	//do a search in the perscene/perexecution context array
+	if(value){
+		fwretval->_string = value;
+		fwretval->itype = 'S';
+		nr = 1;
+	}
+	return nr;
+}
 
 static FWFunctionSpec (X3DExecutionContextFunctions)[] = {
 	//executionContext
@@ -1501,8 +1521,8 @@ static FWFunctionSpec (X3DExecutionContextFunctions)[] = {
 	{"updateNamedNode", X3DExecutionContext_updateNamedNode, '0',{2,-1,0,"SW"}},
 	{"removeNamedNode", X3DExecutionContext_removeNamedNode, '0',{1,-1,0,"S"}},
 	////scene
-	//{"setMetaData", X3DScene_setMetaData, '0',{2,-1,0,"SS"}},
-	//{"getMetaData", X3DScene_getMetaData, 'S',{1,-1,0,"S"}},
+	{"setMetaData", X3DScene_setMetaData, '0',{2,-1,0,"SS"}},
+	{"getMetaData", X3DScene_getMetaData, 'S',{1,-1,0,"S"}},
 	{"getExportedNode", X3DScene_getExportedNode, 'W',{1,-1,0,"S"}},
 	{"updateExportedNode", X3DScene_updateExportedNode, '0',{2,-1,0,"SW"}},
 	{"removeExportedNode", X3DScene_removeExportedNode, '0',{1,-1,0,"S"}},
@@ -1640,7 +1660,7 @@ FWTYPE X3DExecutionContextType = {
 	X3DExecutionContextGetter,
 	NULL,
 	0,0, //takes int index in prop
-	NULL,
+	X3DExecutionContextFunctions,
 };
 
 struct CRStruct *getCRoutes();

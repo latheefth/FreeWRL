@@ -3571,6 +3571,7 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 			int idepth = 0; //if its old brotos (2013) don't do depth until sceneInstance. If 2014 broto2, don't do depth here if we're in a protoDeclare or externProtoDeclare
 			if(usingBrotos() ) idepth = pflagdepth == 1; //2014 broto2: if we're parsing a scene (or Inline) then deepcopy proto to instance it, else shallow
 			node=X3D_NODE(brotoInstance(proto,idepth));
+			node->_executionContext = me->ptr;
 			//moved below, for all nodes if(idepth) add_parent(node,X3D_NODE(currentContext),__FILE__,__LINE__); //helps propagate VF_Sensitive to parent of proto, if proto's 1st node is sensor
 			isBroto = TRUE;
 			ASSERT(node);
@@ -3654,8 +3655,11 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 					printf("ouch trying to caste a %d nodetype to inline or proto\n",X3D_NODE(me->ptr)->_nodeType);
 				X3D_INLINE(node)->__parentProto = me->ptr;
 			}
-		}else
+			node->_executionContext = me->ptr;
+		}else{
 			node=X3D_NODE(createNewX3DNode0((int)nodeTypeB)); //doesn't register node types in tables, for protoDeclare
+			node->_executionContext = me->ptr;
+		}
 		ASSERT(node);
 
 		/* if ind != ID_UNDEFINED, we have the first node of a DEF. Save this node pointer, in case
@@ -6275,21 +6279,35 @@ int getFieldFromNodeAndIndex(struct X3D_Node* node, int ifield, const char **fie
 
 		finfo offsets;
 		int k, kkind;
+		int kfield;
+
 
 		offsets = (finfo)NODE_OFFSETS[node->_nodeType];
-		for(k=0;k<=ifield;k++)
+		kfield = ifield;
+		//convert to index if in absolute offset
+		if(kfield >= offsets[0].offset){
+			int k = 0;
+			while(offsets[k].nameIndex > -1){
+				if(ifield == offsets[k].offset){
+					kfield = k;
+					break;
+				}
+				k++;
+			}
+		}
+		for(k=0;k<=kfield;k++)
 			if(offsets[k].nameIndex == -1) return 0;
-		*fieldname = FIELDNAMES[offsets[ifield].nameIndex];
-		*type = offsets[ifield].typeIndex;
+		*fieldname = FIELDNAMES[offsets[kfield].nameIndex];
+		*type = offsets[kfield].typeIndex;
 		kkind = -1;
-		switch(offsets[ifield].ioType){
+		switch(offsets[kfield].ioType){
 			case KW_initializeOnly: kkind = PKW_initializeOnly; break;
 			case KW_inputOnly: kkind = PKW_inputOnly; break;
 			case KW_outputOnly: kkind = PKW_outputOnly; break;
 			case KW_inputOutput: kkind = PKW_inputOutput; break;
 		}
 		*kind = kkind;
-		*value = (union anyVrml*)&((char*)node)[offsets[ifield].offset];
+		*value = (union anyVrml*)&((char*)node)[offsets[kfield].offset];
 		return 1;
 	}
 }
@@ -6786,13 +6804,13 @@ void load_externProtoInstance (struct X3D_Proto *node) {
 	}
 }
 
-void *createNewX3DNodeB(int nt, int intable, void *executionContext){
-	struct X3D_Node *node;
-	if(intable)
-		node = createNewX3DNode(nt);
-	else
-		node = createNewX3DNode0(nt);
-	if(node && executionContext)
-		node->_executionContext = executionContext;
-	return node;
-}
+//void *createNewX3DNodeB(int nt, int intable, void *executionContext){
+//	struct X3D_Node *node;
+//	if(intable)
+//		node = createNewX3DNode(nt);
+//	else
+//		node = createNewX3DNode0(nt);
+//	if(node && executionContext)
+//		node->_executionContext = executionContext;
+//	return node;
+//}

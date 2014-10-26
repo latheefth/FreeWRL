@@ -1601,12 +1601,13 @@ void JSCreateScriptContext(int num) {
 	//jsval rval;
 	duk_context *ctx; 	/* these are set here */
 	struct Shader_Script *script;
+	struct X3D_Node *scriptnode;
 	//JSObject *_globalObj; 	/* these are set here */
 	//BrowserNative *br; 	/* these are set here */
 	ppJScript p = (ppJScript)gglobal()->JScript.prv;
 	struct CRscriptStruct *ScriptControl = getScriptControl();
 	script = ScriptControl[num].script;
-
+	scriptnode = script->ShaderScriptNode;
 	//CREATE CONTEXT
 	ctx = duk_create_heap_default();
 
@@ -1620,8 +1621,9 @@ void JSCreateScriptContext(int num) {
 	*((int *)ScriptControl[num].glob) = iglobal; //we'll be careful not to pop our global for this context (till context cleanup)
 
 	//ADD HELPER PROPS AND FUNCTIONS
-	//duk_push_pointer(ctx,script); //I don't think we need to know the script this way, but in the future, you might
-	//duk_put_prop_string(ctx,iglobal,"__script");
+	duk_push_pointer(ctx,scriptnode); //I don't think we need to know the script this way, but in the future, you might
+	duk_put_prop_string(ctx,iglobal,"__script"); //oct 2014 the future arrived. sfnode.getNodeName needs the DEFnames from the broto context, and script seems to know its broto context
+
 	duk_push_string(ctx,eval_string_defineAccessor);
 	duk_eval(ctx);
 	duk_pop(ctx);
@@ -1648,6 +1650,10 @@ void JSCreateScriptContext(int num) {
 	CRoutes_js_new (num, JAVASCRIPT);
 
 	//tests, if something is broken these tests might help
+	if(0){
+		duk_eval_string(ctx,"print('this.__script='+this.__script);"); //checks the NodeScript availability
+		duk_pop(ctx);
+	}
 	if(0){
 		duk_eval_string(ctx,"print(Object.keys(Browser));"); //invokes ownKeys
 		duk_pop(ctx);
