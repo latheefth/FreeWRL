@@ -4410,24 +4410,24 @@ static BOOL parser_externbrotoStatement(struct VRMLParser* me)
 //	int ft;
 //};
 void broto_store_route(struct X3D_Proto* proto,
-                          struct X3D_Node* fromNode, int fromOfs,
-                          struct X3D_Node* toNode, int toOfs,
+                          struct X3D_Node* fromNode, int fromIndex,
+                          struct X3D_Node* toNode, int toIndex,
                           int ft)
 {
 	Stack* routes;
 	struct brotoRoute* route;
 	//struct X3D_Proto* protoDeclare = (struct X3D_Proto*)me->ptr;
     ASSERT(proto);
-	if ((fromOfs == ID_UNDEFINED) || (toOfs == ID_UNDEFINED)) {
+	if ((fromIndex == ID_UNDEFINED) || (toIndex == ID_UNDEFINED)) {
 		ConsoleMessage ("problem registering route - either fromField or toField invalid");
 		return;
 	}
 
 	route = MALLOC(struct brotoRoute*,sizeof(struct brotoRoute));
-	route->fromNode = fromNode;
-	route->fromOfs = fromOfs;
-	route->toNode = toNode;
-	route->toOfs = toOfs;
+	route->from.node = fromNode;
+	route->from.ifield = fromIndex;
+	route->to.node = toNode;
+	route->to.ifield = toIndex;
 	route->ft = ft;
 
 	routes = proto->__ROUTES;
@@ -4438,25 +4438,45 @@ void broto_store_route(struct X3D_Proto* proto,
 	stack_push(struct brotoRoute *, routes, route);
 	return;
 }
-struct ImportRoute
-{
-	char* fromNode;
-	char* fromField;
-	char* toNode;
-	char* toField;
-};
+//struct ImportRoute
+//{
+//	char* fromNode;
+//	char* fromField;
+//	char* toNode;
+//	char* toField;
+//};
+//void broto_store_ImportRoute_old(struct X3D_Proto* proto, char *fromNode, char *fromField, char *toNode, char* toField)
+//{
+//	struct ImportRoute* improute;
+//	if( proto->__IMPROUTES == NULL)
+//		proto->__IMPROUTES= newStack(struct ImportRoute *);
+//	improute = MALLOC(struct ImportRoute*,sizeof(struct ImportRoute));
+//	improute->fromNode = strdup(fromNode);
+//	improute->fromField = strdup(fromField);
+//	improute->toNode = strdup(toNode);
+//	improute->toField = strdup(toField);
+//	stack_push(struct ImportRoute *, proto->__IMPROUTES, improute);
+//}
 void broto_store_ImportRoute(struct X3D_Proto* proto, char *fromNode, char *fromField, char *toNode, char* toField)
 {
-	struct ImportRoute* improute;
-	if( proto->__IMPROUTES == NULL)
-		proto->__IMPROUTES= newStack(struct ImportRoute *);
-	improute = MALLOC(struct ImportRoute*,sizeof(struct ImportRoute));
-	improute->fromNode = strdup(fromNode);
-	improute->fromField = strdup(fromField);
-	improute->toNode = strdup(toNode);
-	improute->toField = strdup(toField);
-	stack_push(struct ImportRoute *, proto->__IMPROUTES, improute);
+	//there could be combinations of known/strong/node* and weak char* route ends - in that case split up this function
+	struct brotoRoute* route;
+	if( proto->__ROUTES == NULL)
+		proto->__ROUTES= newStack(struct brotoRoute *);
+	route = MALLOC(struct brotoRoute*,sizeof(struct brotoRoute));
+	route->ft = -1;
+	route->lastCommand = 0; //not added to CRoutes until inline loaded
+	route->from.weak = 1; //weak references to publish/from,subscribe/to ends not loaded yet
+	route->from.cnode = strdup(fromNode);
+	route->from.cfield = strdup(fromField);
+	route->from.ftype = -1; //unknown
+	route->to.weak = 1;
+	route->to.cnode = strdup(toNode);
+	route->to.cfield = strdup(toField);
+	route->to.ftype = -1; //unknown
+	stack_push(struct brotoRoute *, proto->__ROUTES, route);
 }
+
 
 //BOOL route_parse_nodefield(pre, eventType)
 //used by parser_routeStatement:
@@ -4843,13 +4863,13 @@ void copy_routes2(Stack *routes, struct X3D_Proto* target, struct Vector *p2p)
 		route = vector_get(struct brotoRoute*, routes, i);
 		//parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toType); //old way direct registration
 		//broto_store_route(me,fromNode,fromOfs,toNode,toOfs,toType); //new way delay until sceneInstance()
-		fromNode = p2p_lookup(route->fromNode,p2p);
-		toNode = p2p_lookup(route->toNode,p2p);
-       	CRoutes_RegisterSimple(fromNode, route->fromOfs, toNode, route->toOfs, route->ft);
+		fromNode = p2p_lookup(route->from.node,p2p);
+		toNode = p2p_lookup(route->to.node,p2p);
+       	CRoutes_RegisterSimpleB(fromNode, route->from.ifield, toNode, route->to.ifield, route->ft);
 		//we'll also store in the deep broto instance, although they aren't used there (yet), and
 		//if target is the main scene, they are abandoned. Maybe someday they'll be used.
 		//if( target )
-		broto_store_route(target,fromNode,route->fromOfs, toNode, route->toOfs, route->ft); 
+		broto_store_route(target,fromNode,route->from.ifield, toNode, route->to.ifield, route->ft); 
 	}
 }
 //copy broto defnames to single global scene defnames, for node* to defname lookup in parser_getNameFromNode
@@ -5054,9 +5074,9 @@ void copy_routes(Stack *routes, struct X3D_Proto* target, struct Vector *p2p)
 		route = vector_get(struct brotoRoute*, routes, i);
 		//parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toType); //old way direct registration
 		//broto_store_route(me,fromNode,fromOfs,toNode,toOfs,toType); //new way delay until sceneInstance()
-		fromNode = p2p_lookup(route->fromNode,p2p);
-		toNode = p2p_lookup(route->toNode,p2p);
-       	CRoutes_RegisterSimple(fromNode, route->fromOfs, toNode, route->toOfs, route->ft);
+		fromNode = p2p_lookup(route->from.node,p2p);
+		toNode = p2p_lookup(route->to.node,p2p);
+       	CRoutes_RegisterSimpleB(fromNode, route->from.ifield, toNode, route->to.ifield, route->ft);
 		//we'll also store in the deep broto instance, although they aren't used there (yet), and
 		//if target is the main scene, they are abandoned. Maybe someday they'll be used.
 		//if( target )
@@ -5097,27 +5117,68 @@ void copy_IS(Stack *istable, struct X3D_Proto* target, struct Vector *p2p)
 		//parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toType); //old way direct registration
 		//broto_store_route(me,fromNode,fromOfs,toNode,toOfs,toType); //new way delay until sceneInstance()
 		node = p2p_lookup(is->node,p2p);
+		is->node = node; //replace protodeclare's body node - we need the new one for unregistering these routes
 		pnode = X3D_NODE(target);
 		ifield = is->ifield;
-		if(node->_nodeType != NODE_Script && node->_nodeType != NODE_Proto)
-			ifield = NODE_OFFSETS[node->_nodeType][ifield*5 +1];
+		//if(node->_nodeType != NODE_Script && node->_nodeType != NODE_Proto)
+		//	ifield = NODE_OFFSETS[node->_nodeType][ifield*5 +1];
 		iprotofield = is->iprotofield;
 		//if(pnode->_nodeType != NODE_Script && pnode->_nodeType != NODE_Proto)
 		//	iprotofield = NODE_OFFSETS[node->_nodeType][offset*5 +1];
 		if(is->pmode == PKW_outputOnly){ //we should use pmode instead of mode, because pmode is more restrictive, so we don't route from pmode initializeOnly (which causes cycles in 10.wrl)
 			//idir = 0;
 			//if(node->_nodeType == NODE_Script) idir = FROM_SCRIPT;
-			 CRoutes_RegisterSimple(node, ifield, pnode, iprotofield, 0);
+			 CRoutes_RegisterSimpleB(node, ifield, pnode, iprotofield, 0);
 
 		}else if(is->pmode == PKW_inputOnly){
-			CRoutes_RegisterSimple(pnode, iprotofield, node, ifield, 0);
+			CRoutes_RegisterSimpleB(pnode, iprotofield, node, ifield, 0);
 		}else if(is->pmode == PKW_inputOutput){
-			CRoutes_RegisterSimple(node, ifield, pnode, iprotofield, 0);
-			CRoutes_RegisterSimple(pnode, iprotofield, node, ifield, 0);
+			CRoutes_RegisterSimpleB(node, ifield, pnode, iprotofield, 0);
+			CRoutes_RegisterSimpleB(pnode, iprotofield, node, ifield, 0);
 		}else{
 			//initialize Only - nothing to do routing wise
 		}
 	}
+}
+void unregister_IStableRoutes(Stack* istable, struct X3D_Proto* target){
+	// goal reverse browser route registering we did in copy_IS,
+	// for example if we unload an inline, and in the inline was protoInstance,
+	// then 'construction' routes like these injected for ISing will be left dangling
+	// in the route registry unless we unregister them here.
+	int i;
+	struct brotoIS *is;
+	struct X3D_Node *node, *pnode;
+	if(istable == NULL) return;
+	for(i=0;i<istable->n;i++)
+	{
+		int ifield, iprotofield;
+		is = vector_get(struct brotoIS*, istable, i);
+		//parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toType); //old way direct registration
+		//broto_store_route(me,fromNode,fromOfs,toNode,toOfs,toType); //new way delay until sceneInstance()
+		node = is->node;
+		is->node = node; //replace protodeclare's body node - we need the new one for unregistering these routes
+		pnode = X3D_NODE(target);
+		ifield = is->ifield;
+		//if(node->_nodeType != NODE_Script && node->_nodeType != NODE_Proto)
+		//	ifield = NODE_OFFSETS[node->_nodeType][ifield*5 +1];
+		iprotofield = is->iprotofield;
+		//if(pnode->_nodeType != NODE_Script && pnode->_nodeType != NODE_Proto)
+		//	iprotofield = NODE_OFFSETS[node->_nodeType][offset*5 +1];
+		if(is->pmode == PKW_outputOnly){ //we should use pmode instead of mode, because pmode is more restrictive, so we don't route from pmode initializeOnly (which causes cycles in 10.wrl)
+			//idir = 0;
+			//if(node->_nodeType == NODE_Script) idir = FROM_SCRIPT;
+			 CRoutes_RemoveSimpleB(node, ifield, pnode, iprotofield, 0);
+
+		}else if(is->pmode == PKW_inputOnly){
+			CRoutes_RemoveSimpleB(pnode, iprotofield, node, ifield, 0);
+		}else if(is->pmode == PKW_inputOutput){
+			CRoutes_RemoveSimpleB(node, ifield, pnode, iprotofield, 0);
+			CRoutes_RemoveSimpleB(pnode, iprotofield, node, ifield, 0);
+		}else{
+			//initialize Only - nothing to do routing wise
+		}
+	}
+	
 }
 void copy_IStable(Stack **sourceIS, Stack** destIS)
 {
@@ -5130,7 +5191,8 @@ void copy_IStable(Stack **sourceIS, Stack** destIS)
 		{
 			isd = MALLOC(struct brotoIS*,sizeof(struct brotoIS));
 			iss = vector_get(struct brotoIS*,*sourceIS,i);
-			(*isd) = (*iss); //deep copy struct brotoIS?
+			memcpy(isd,iss,sizeof(struct brotoIS));
+			//(*isd) = (*iss); //deep copy struct brotoIS?
 			stack_push(struct brotoIS*, *destIS, isd);
 		}
 	}

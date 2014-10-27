@@ -831,11 +831,11 @@ void QAandRegister_parsedRoute_B(struct X3D_Proto *context, char* fnode, char* f
 		okf = okt = FALSE;
 		if(fromNode && toNode && ffield && tfield){
 			okf = find_anyfield_by_nameAndRouteDir(fromNode,&fvalue,&fkind,&ftype,ffield,&fsource,&fdecl,&fifield,PKW_outputOnly);  //fieldSynonymCompare for set_ _changed
-			if(fsource == 0) //0= builtin 1=script 2=shader 3=proto
-				fifield = NODE_OFFSETS[(fromNode)->_nodeType][fifield*5 + 1]; //for builtins, convert from field index to byte offset
+			//if(fsource == 0) //0= builtin 1=script 2=shader 3=proto
+			//	fifield = NODE_OFFSETS[(fromNode)->_nodeType][fifield*5 + 1]; //for builtins, convert from field index to byte offset
 			okt = find_anyfield_by_nameAndRouteDir(toNode,&tvalue,&tkind,&ttype,tfield,&tsource,&tdecl,&tifield,PKW_inputOnly);
-			if(tsource == 0)
-				tifield = NODE_OFFSETS[(toNode)->_nodeType][tifield*5 + 1];
+			//if(tsource == 0)
+			//	tifield = NODE_OFFSETS[(toNode)->_nodeType][tifield*5 + 1];
 		}
 
 		if(okf && okt && ftype == ttype){
@@ -843,7 +843,7 @@ void QAandRegister_parsedRoute_B(struct X3D_Proto *context, char* fnode, char* f
 			char oldwayflag = ciflag_get(pflags,1); 
 			char instancingflag = ciflag_get(pflags,0);
 			if(oldwayflag || instancingflag)
-				CRoutes_RegisterSimple(fromNode, fifield, toNode, tifield, ftype);
+				CRoutes_RegisterSimpleB(fromNode, fifield, toNode, tifield, ftype);
 				//parser_registerRoute(NULL, fromNode, fifield, toNode, tifield, ftype); //old way direct registration
 			//else
 			broto_store_route(context,fromNode,fifield,toNode,tifield,ftype); //new way delay until sceneInstance()

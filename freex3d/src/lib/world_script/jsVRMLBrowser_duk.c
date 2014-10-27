@@ -668,10 +668,16 @@ void *addDeleteRoute0(void *fwn, char*callingFunc, struct X3D_Node* fromNode, ch
 		struct X3D_Proto *ec = (struct X3D_Proto*)fwn;
 		if(!strcmp(callingFunc,"addRoute")){
 			broute = malloc(sizeof(struct brotoRoute));
-			broute->fromNode = fromNode;
-			broute->fromOfs = fromOfs;
-			broute->toNode = toNode;
-			broute->toOfs = toOfs;
+			broute->from.node = fromNode;
+			broute->from.ifield = fromField;
+			broute->from.Ofs = fromOfs;
+			broute->from.ftype = fromType;
+			broute->to.node = toNode;
+			broute->to.ifield = toField;
+			broute->to.Ofs = toOfs;
+			broute->to.Ofs = toType;
+			broute->lastCommand = 1; //added above (won't be added if an import weak route)
+			broute->ft = fromType == toType ? fromType : -1;
 			if(!ec->__ROUTES)
 				ec->__ROUTES = newStack(struct brotoRoute *);
 			stack_push(struct brotoRoute *, ec->__ROUTES, broute);
@@ -681,8 +687,9 @@ void *addDeleteRoute0(void *fwn, char*callingFunc, struct X3D_Node* fromNode, ch
 			if(ec->__ROUTES)
 				for(int i=0;i<vectorSize(ec->__ROUTES);i++){
 					broute = vector_get(struct brotoRoute*,ec->__ROUTES,i);
-					if(broute->fromNode == fromNode && broute->fromOfs == fromOfs
-						&& broute->toNode == toNode && broute->toOfs == toOfs){
+					if(broute->from.node == fromNode && broute->from.ifield == fromField
+						&& broute->to.node == toNode && broute->to.ifield == toField){
+						broute->lastCommand = 0;
 						vector_remove_elem(struct brotoRoute*,ec->__ROUTES,i);
 						break;
 					}
@@ -731,7 +738,7 @@ int X3DExecutionContext_deleteRoute(FWType fwtype, void * fwn, int argc, FWval f
 	void *xroute;
 	struct X3D_Node *fromNode, *toNode;
 	char *fromField, *toField;
-	int fromOffset, toOffset;
+	int fromIfield, toIfield;
 	int ftype,kind;
 	union anyVrml *value;
 
@@ -739,18 +746,17 @@ int X3DExecutionContext_deleteRoute(FWType fwtype, void * fwn, int argc, FWval f
 
 	if(usingBrotos()){
 		struct brotoRoute* broute = (struct brotoRoute*)fwpars[0]._pointer.native;
-		fromNode = broute->fromNode;
-		fromOffset = broute->fromOfs;
-		toNode = broute->toNode;
-		toOffset = broute->toOfs;
+		fromNode = broute->from.node;
+		fromIfield = broute->from.ifield;
+		toNode = broute->to.node;
+		toIfield = broute->to.ifield;
 	}else{
 		//struct CRStruct *route = fwpars[0]._pointer.native;
 		int index = *(int*)(fwpars[0]._pointer.native);
-		getSpecificRoute (index,&fromNode, &fromOffset, &toNode, &toOffset);
+		getSpecificRoute (index,&fromNode, &fromIfield, &toNode, &toIfield);
 	}
-	getFieldFromNodeAndIndex(fromNode,fromOffset,&fromField,&ftype,&kind,&value);
-	getFieldFromNodeAndIndex(toNode,toOffset,&toField,&ftype,&kind,&value);
-
+	getFieldFromNodeAndIndex(fromNode,fromIfield,&fromField,&ftype,&kind,&value);
+	getFieldFromNodeAndIndex(toNode,toIfield,&toField,&ftype,&kind,&value);
 	xroute = addDeleteRoute0(fwn,"deleteRoute",fromNode, fromField, toNode, toField);
 	return nr;
 }
@@ -1514,7 +1520,7 @@ static FWFunctionSpec (X3DExecutionContextFunctions)[] = {
 	{"deleteRoute", X3DExecutionContext_deleteRoute,'0',{1,-1,0,"P"}},
 	{"createNode", VrmlBrowserCreateX3DFromString, 'W',{1,-1,0,"S"}},
 	{"createProto", X3DExecutionContext_createProto, 'W',{1,-1,0,"S"}},
-	{"getImportedNode", X3DExecutionContext_getImportedNode, 'W',{2,-1,0,"SS"}},
+	{"getImportedNode", X3DExecutionContext_getImportedNode, 'W',{1,-1,0,"S"}},
 	{"updateImportedNode", X3DExecutionContext_updateImportedNode, '0',{2,-1,0,"SS"}},
 	{"removeImportedNode", X3DExecutionContext_removeImportedNode, '0',{1,-1,0,"S"}},
 	{"getNamedNode", X3DExecutionContext_getNamedNode, 'W',{1,-1,0,"S"}},
@@ -1742,19 +1748,19 @@ int X3DRouteGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 	int type, kind;
 	char *fieldname, *sfromfield, *stofield;
 	struct X3D_Node *fromNode, *toNode;
-	int fromOffset, toOffset;
+	int fromIndex, toIndex;
 	int nr = 1;
 	if(usingBrotos()){
 		struct brotoRoute* broute = (struct brotoRoute*)fwn;
-		fromNode = broute->fromNode;
-		fromOffset = broute->fromOfs;
-		toNode = broute->toNode;
-		toOffset = broute->toOfs;
+		fromNode = broute->from.node;
+		fromIndex = broute->from.ifield;
+		toNode = broute->to.node;
+		toIndex = broute->to.ifield;
 	}else{
 		//route = (struct CRStruct *)fwn;
 		struct CRStruct *route;
 		int indexr = *(int *)fwn;
-		getSpecificRoute (indexr,&fromNode, &fromOffset, &toNode, &toOffset);
+		getSpecificRoute (indexr,&fromNode, &fromIndex, &toNode, &toIndex);
 	}
 	if(!fromNode || !toNode) return 0;
 
@@ -1771,7 +1777,7 @@ int X3DRouteGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 		break;
 	case 1: //fromField
 		//fieldname = findFIELDNAMESfromNodeOffset0(fromNode,fromOffset);
-		getFieldFromNodeAndIndex(fromNode,fromOffset,&fieldname,&type,&kind,&value);
+		getFieldFromNodeAndIndex(fromNode,fromIndex,&fieldname,&type,&kind,&value);
 		fwretval->_string = fieldname; //NULL;
 		fwretval->itype = 'S';
 		break;
@@ -1785,7 +1791,7 @@ int X3DRouteGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 		break;
 	case 3: //toField
 		//getFieldFromNodeAndIndex(route->tonodes[0].routeToNode,route->tonodes[0].foffset,&fieldname,&type,&kind,&value);
-		getFieldFromNodeAndIndex(toNode,toOffset,&fieldname,&type,&kind,&value);
+		getFieldFromNodeAndIndex(toNode,toIndex,&fieldname,&type,&kind,&value);
 		fwretval->_string = fieldname;
 		fwretval->itype = 'S';
 		break;

@@ -59,13 +59,27 @@ struct CRStruct {
 
 };
 
+struct brouteEnd{
+	int weak; //0-normal strong node* end 1=weak and not loaded 2=weak and loaded(so node* available now, but may vanish back to 1)
+	char *cnode; // char* node name if its a weak reference -used for routing to IMPORT nodes, which show up late, and can leave
+	char *cfield;  // char* field name      ditto
+	struct X3D_Node* node;  //if its a strong reference
+	int builtin; //flag 1 = builtin node, 0= script, proto with user fields (Q. what about routing to Script.url?)
+	int Ofs; //integer offset for builtin field, in bytes from node*
+	int ifield; //integer routable field index - for scripts,protos the index of user field, for builtins the index into OFFESTS[] array
+	int ftype; //field type
+};
+
 struct brotoRoute
 {
-	struct X3D_Node* fromNode;
-	int fromOfs;
-	struct X3D_Node* toNode;
-	int toOfs;
+	struct brouteEnd from;
+	struct brouteEnd to;
+	int lastCommand; //0-none or delete 1-add
 	int ft;
+	//struct X3D_Node* fromNode;
+	//int fromOfs;
+	//struct X3D_Node* toNode;
+	//int toOfs;
 };
 
 #define REINITIALIZE_SORTED_NODES_FIELD(aaa,bbb) \
