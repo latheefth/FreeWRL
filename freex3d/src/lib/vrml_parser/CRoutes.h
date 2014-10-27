@@ -64,8 +64,8 @@ struct brouteEnd{
 	char *cnode; // char* node name if its a weak reference -used for routing to IMPORT nodes, which show up late, and can leave
 	char *cfield;  // char* field name      ditto
 	struct X3D_Node* node;  //if its a strong reference
-	int builtin; //flag 1 = builtin node, 0= script, proto with user fields (Q. what about routing to Script.url?)
-	int Ofs; //integer offset for builtin field, in bytes from node*
+	//int builtin; //flag 1 = builtin node, 0= script, proto with user fields (Q. what about routing to Script.url?)
+	//int Ofs; //integer offset for builtin field, in bytes from node*
 	int ifield; //integer routable field index - for scripts,protos the index of user field, for builtins the index into OFFESTS[] array
 	int ftype; //field type
 };

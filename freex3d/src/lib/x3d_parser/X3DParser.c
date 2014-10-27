@@ -44,6 +44,7 @@
 #include "../vrml_parser/CParseLexer.h"
 #include "../vrml_parser/CProto.h"
 #include "../vrml_parser/CParse.h"
+#include "../vrml_parser/CRoutes.h"
 #include "../input/EAIHeaders.h"	/* resolving implicit declarations */
 #include "../input/EAIHelpers.h"	/* resolving implicit declarations */
 
@@ -788,77 +789,155 @@ int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *ty
 void broto_store_route(struct X3D_Proto* proto, struct X3D_Node* fromNode, int fromOfs, struct X3D_Node* toNode, int toOfs, int ft);
 struct IMEXPORT *broto_search_IMPORTname(struct X3D_Proto *context, char *name);
 void broto_store_ImportRoute(struct X3D_Proto* proto, char *fromNode, char *fromField, char *toNode, char* toField);
+struct brotoRoute *createNewBrotoRoute();
+void broto_store_broute(struct X3D_Proto* context,struct brotoRoute *route);
+int QA_routeEnd(struct X3D_Proto *context, char* cnode, char* cfield, struct brouteEnd* brend, int isFrom){
+	struct X3D_Node* node;
+	int found = 0;
+	node = broto_search_DEFname(context,cnode);
+	if(!node){
+		struct IMEXPORT *imp;
+		imp = broto_search_IMPORTname(context, cnode);
+		if(imp){
+			found = 1;
+			brend->weak = 1;
+			brend->cfield = cfield;
+			brend->cnode = cnode;
+		}
+	}else{
+		int idir;
+		int type,kind,ifield,source;
+		void *decl;
+		union anyVrml *value;
+		if(isFrom) idir = PKW_outputOnly;
+		else idir = PKW_inputOnly;
+		found = find_anyfield_by_nameAndRouteDir(node,&value,&kind,&type,cfield,&source,&decl,&ifield,idir);  //fieldSynonymCompare for set_ _changed
+		if(found){
+			brend->node = node;
+			brend->weak = 0;
+			brend->ftype = type;
+			brend->cfield = cfield;
+			brend->cnode = cnode;
+			brend->ifield = ifield;
+		}
+	}
+	return found;
+}
 void QAandRegister_parsedRoute_B(struct X3D_Proto *context, char* fnode, char* ffield, char* tnode, char* tfield){
-	struct X3D_Node *fromNode = NULL;
-	struct X3D_Node *toNode = NULL;	
-	int i, okf,okt, ftype,fkind,fifield,fsource,ttype,tkind,tifield,tsource;
-	union anyVrml *fvalue, *tvalue;
-	void *fdecl,*tdecl;
-	int error = FALSE;
-	int isImportRoute;
-	int fromType;
-	int toType;
+	//struct X3D_Node *fromNode = NULL;
+	//struct X3D_Node *toNode = NULL;	
+	//int i, okf,okt, ftype,fkind,fifield,fsource,ttype,tkind,tifield,tsource;
+	//union anyVrml *fvalue, *tvalue;
+	//void *fdecl,*tdecl;
+	//int error = FALSE;
+	//int isImportRoute;
+	//int fromType;
+	//int toType;
+	int haveFrom, haveTo, ok;
+	struct brotoRoute* route;
+	int ftf,ftt;
 
-	if(fnode && tnode ){
-		fromNode = broto_search_DEFname(context,fnode);
-		toNode = broto_search_DEFname(context,tnode);
-	}
-	isImportRoute = FALSE;
-	if(!fromNode || !toNode){
-		struct IMEXPORT *imf, *imt;
-		imf = imt = NULL;
-		if(!fromNode){
-			imf = broto_search_IMPORTname(context, fnode);
-			if(!imf){
-				ConsoleMessage("ROUTE bad from node %s",fnode);
-			}
-		}
-		if(!toNode){
-			imt = broto_search_IMPORTname(context, tnode);
-			if(!imt){
-				ConsoleMessage("ROUTE bad to node %s",tnode);
-			}
-		}
-		if((imf || fromNode) && (imt || toNode) ){
-			//its an import route
-			//printf("its an import route\n");
-			broto_store_ImportRoute(context,fnode,ffield,tnode,tfield); 
-			isImportRoute = TRUE;
-		}
-	}
-
-	if(!isImportRoute){
-		okf = okt = FALSE;
-		if(fromNode && toNode && ffield && tfield){
-			okf = find_anyfield_by_nameAndRouteDir(fromNode,&fvalue,&fkind,&ftype,ffield,&fsource,&fdecl,&fifield,PKW_outputOnly);  //fieldSynonymCompare for set_ _changed
-			//if(fsource == 0) //0= builtin 1=script 2=shader 3=proto
-			//	fifield = NODE_OFFSETS[(fromNode)->_nodeType][fifield*5 + 1]; //for builtins, convert from field index to byte offset
-			okt = find_anyfield_by_nameAndRouteDir(toNode,&tvalue,&tkind,&ttype,tfield,&tsource,&tdecl,&tifield,PKW_inputOnly);
-			//if(tsource == 0)
-			//	tifield = NODE_OFFSETS[(toNode)->_nodeType][tifield*5 + 1];
-		}
-
-		if(okf && okt && ftype == ttype){
+	ok = FALSE;
+	route = createNewBrotoRoute();
+	haveFrom = QA_routeEnd(context, fnode, ffield, &route->from, 1);
+	haveTo = QA_routeEnd(context, tnode, tfield, &route->to, 0);
+	if(haveFrom && haveTo){
+		ftf = -1;
+		ftt = -1;
+		if( !route->from.weak) ftf = route->from.ftype;
+		if( !route->to.weak) ftt = route->to.ftype;
+		route->ft = ftf > -1 ? ftf : ftt > -1? ftt : -1;
+		route->lastCommand = 0; //not registered
+		if(ftf == ftt && ftf > -1){
+			//regular route, register while we are hear
 			int pflags = context->__protoFlags;
 			char oldwayflag = ciflag_get(pflags,1); 
 			char instancingflag = ciflag_get(pflags,0);
-			if(oldwayflag || instancingflag)
-				CRoutes_RegisterSimpleB(fromNode, fifield, toNode, tifield, ftype);
-				//parser_registerRoute(NULL, fromNode, fifield, toNode, tifield, ftype); //old way direct registration
-			//else
-			broto_store_route(context,fromNode,fifield,toNode,tifield,ftype); //new way delay until sceneInstance()
-		}else if(!isImportRoute){
-			ConsoleMessage("Routing problem: ");
-			/* are the types the same? */
-			if (okf && okt && ftype != ttype) {
-				ConsoleMessage ("type mismatch %s != %s, ",stringFieldtypeType(ftype), stringFieldtypeType(ttype));
+			if(oldwayflag || instancingflag){
+				CRoutes_RegisterSimpleB(route->from.node, route->from.ifield, route->to.node, route->to.ifield, route->ft);
+				route->lastCommand = 1; //registered
 			}
-			if(!okf) ConsoleMessage(" _From_ ");
-			if(!okt) ConsoleMessage(" _To_ ");
-			ConsoleMessage ("from  %s %s, ",fnode,ffield);
-			ConsoleMessage ("to %s %s\n",tnode,tfield);
+			//broto_store_route(context,fromNode,fifield,toNode,tifield,ftype); //new way delay until sceneInstance()
+			broto_store_broute(context,route);
+			ok = TRUE;
+		}else if(route->to.weak || route->from.weak){
+			broto_store_broute(context,route);
+			ok = TRUE;
 		}
 	}
+	if(!ok){
+		ConsoleMessage("Routing problem: ");
+		/* are the types the same? */
+		//if (okf && okt && ftype != ttype) {
+		//	ConsoleMessage ("type mismatch %s != %s, ",stringFieldtypeType(ftype), stringFieldtypeType(ttype));
+		//}
+		//if(!okf) ConsoleMessage(" _From_ ");
+		//if(!okt) ConsoleMessage(" _To_ ");
+		//ConsoleMessage ("from  %s %s, ",fnode,ffield);
+		//ConsoleMessage ("to %s %s\n",tnode,tfield);
+	}
+
+
+	//if(fnode && tnode ){
+	//	fromNode = broto_search_DEFname(context,fnode);
+	//	toNode = broto_search_DEFname(context,tnode);
+	//}
+	//isImportRoute = FALSE;
+	//if(!fromNode || !toNode){
+	//	struct IMEXPORT *imf, *imt;
+	//	imf = imt = NULL;
+	//	if(!fromNode){
+	//		imf = broto_search_IMPORTname(context, fnode);
+	//		if(!imf){
+	//			ConsoleMessage("ROUTE bad from node %s",fnode);
+	//		}
+	//	}
+	//	if(!toNode){
+	//		imt = broto_search_IMPORTname(context, tnode);
+	//		if(!imt){
+	//			ConsoleMessage("ROUTE bad to node %s",tnode);
+	//		}
+	//	}
+	//	if((imf || fromNode) && (imt || toNode) ){
+	//		//its an import route
+	//		//printf("its an import route\n");
+	//		broto_store_ImportRoute(context,fnode,ffield,tnode,tfield); 
+	//		isImportRoute = TRUE;
+	//	}
+	//}
+
+	//if(!isImportRoute){
+	//	okf = okt = FALSE;
+	//		if(fromNode && toNode && ffield && tfield){
+	//		okf = find_anyfield_by_nameAndRouteDir(fromNode,&fvalue,&fkind,&ftype,ffield,&fsource,&fdecl,&fifield,PKW_outputOnly);  //fieldSynonymCompare for set_ _changed
+	//		//if(fsource == 0) //0= builtin 1=script 2=shader 3=proto
+	//		//	fifield = NODE_OFFSETS[(fromNode)->_nodeType][fifield*5 + 1]; //for builtins, convert from field index to byte offset
+	//		okt = find_anyfield_by_nameAndRouteDir(toNode,&tvalue,&tkind,&ttype,tfield,&tsource,&tdecl,&tifield,PKW_inputOnly);
+	//		//if(tsource == 0)
+	//		//	tifield = NODE_OFFSETS[(toNode)->_nodeType][tifield*5 + 1];
+	//	}
+
+	//	if(okf && okt && ftype == ttype){
+	//		int pflags = context->__protoFlags;
+	//		char oldwayflag = ciflag_get(pflags,1); 
+	//		char instancingflag = ciflag_get(pflags,0);
+	//		if(oldwayflag || instancingflag)
+	//			CRoutes_RegisterSimpleB(fromNode, fifield, toNode, tifield, ftype);
+	//			//parser_registerRoute(NULL, fromNode, fifield, toNode, tifield, ftype); //old way direct registration
+	//		//else
+	//		broto_store_route(context,fromNode,fifield,toNode,tifield,ftype); //new way delay until sceneInstance()
+	//	}else if(!isImportRoute){
+	//		ConsoleMessage("Routing problem: ");
+	//		/* are the types the same? */
+	//		if (okf && okt && ftype != ttype) {
+	//			ConsoleMessage ("type mismatch %s != %s, ",stringFieldtypeType(ftype), stringFieldtypeType(ttype));
+	//		}
+	//		if(!okf) ConsoleMessage(" _From_ ");
+	//		if(!okt) ConsoleMessage(" _To_ ");
+	//		ConsoleMessage ("from  %s %s, ",fnode,ffield);
+	//		ConsoleMessage ("to %s %s\n",tnode,tfield);
+	//	}
+	//}
 }
 /******************************************************************************************/
 /* parse a ROUTE statement. Should be like:

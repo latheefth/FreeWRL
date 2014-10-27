@@ -660,9 +660,6 @@ void *addDeleteRoute0(void *fwn, char*callingFunc, struct X3D_Node* fromNode, ch
 	}
 
 	len = returnRoutingElementLength(toType);
-	fromOfs = fromField > 999? fromField -1000 : fromField*5; // * sizeof(function list item)
-	toOfs = toField > 999? toField -1000 : toField*5;
-	jsRegisterRoute(fromNode, fromOfs, toNode, toOfs, len,callingFunc);
 	if(usingBrotos()){
 		struct brotoRoute *broute;
 		struct X3D_Proto *ec = (struct X3D_Proto*)fwn;
@@ -670,13 +667,14 @@ void *addDeleteRoute0(void *fwn, char*callingFunc, struct X3D_Node* fromNode, ch
 			broute = malloc(sizeof(struct brotoRoute));
 			broute->from.node = fromNode;
 			broute->from.ifield = fromField;
-			broute->from.Ofs = fromOfs;
+			//broute->from.Ofs = fromOfs;
 			broute->from.ftype = fromType;
 			broute->to.node = toNode;
 			broute->to.ifield = toField;
-			broute->to.Ofs = toOfs;
-			broute->to.Ofs = toType;
+			//broute->to.Ofs = toOfs;
+			broute->to.ftype = toType;
 			broute->lastCommand = 1; //added above (won't be added if an import weak route)
+			CRoutes_RegisterSimpleB(broute->from.node,broute->from.ifield,broute->to.node,broute->to.ifield,broute->ft);
 			broute->ft = fromType == toType ? fromType : -1;
 			if(!ec->__ROUTES)
 				ec->__ROUTES = newStack(struct brotoRoute *);
@@ -689,6 +687,8 @@ void *addDeleteRoute0(void *fwn, char*callingFunc, struct X3D_Node* fromNode, ch
 					broute = vector_get(struct brotoRoute*,ec->__ROUTES,i);
 					if(broute->from.node == fromNode && broute->from.ifield == fromField
 						&& broute->to.node == toNode && broute->to.ifield == toField){
+						if(broute->lastCommand == 1)
+							CRoutes_RemoveSimpleB(broute->from.node,broute->from.ifield,broute->to.node,broute->to.ifield,broute->ft);
 						broute->lastCommand = 0;
 						vector_remove_elem(struct brotoRoute*,ec->__ROUTES,i);
 						break;
@@ -712,6 +712,9 @@ void *addDeleteRoute0(void *fwn, char*callingFunc, struct X3D_Node* fromNode, ch
 		//	fwretval->itype = 'P';
 		//	return 1;
 		//}
+		fromOfs = fromField > 999? fromField -1000 : fromField*5; // * sizeof(function list item)
+		toOfs = toField > 999? toField -1000 : toField*5;
+		jsRegisterRoute(fromNode, fromOfs, toNode, toOfs, len,callingFunc);
 		retval = NULL;
 	}
 	return retval;

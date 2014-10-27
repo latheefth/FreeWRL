@@ -4476,7 +4476,17 @@ void broto_store_ImportRoute(struct X3D_Proto* proto, char *fromNode, char *from
 	route->to.ftype = -1; //unknown
 	stack_push(struct brotoRoute *, proto->__ROUTES, route);
 }
-
+struct brotoRoute *createNewBrotoRoute(){
+	struct brotoRoute* route;
+	route = MALLOC(struct brotoRoute*,sizeof(struct brotoRoute));
+	memset(route,0,sizeof(struct brotoRoute));
+	return route;
+}
+void broto_store_broute(struct X3D_Proto* context,struct brotoRoute *route){
+	if( context->__ROUTES == NULL)
+		context->__ROUTES= newStack(struct brotoRoute *);
+	stack_push(struct brotoRoute *, context->__ROUTES, route);
+}
 
 //BOOL route_parse_nodefield(pre, eventType)
 //used by parser_routeStatement:
