@@ -1223,7 +1223,8 @@ int SFNode_getNodeName(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval 
 	if(node){
 		//broto warning - DEF name list should be per-executionContext
 		if(usingBrotos()){
-			struct X3D_Proto *context = (struct X3D_Proto *)node->_executionContext;
+			struct X3D_Proto *context;
+			context = (struct X3D_Proto *)node->_executionContext;
 			if(context){
 				//broto_search_DEFname(ec, fwpars[0]._string);
 				int i;

@@ -1188,6 +1188,7 @@ FWTYPE ProfileInfoType = {
 
 
 struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, char *name);
+struct X3D_Node * broto_search_ALLnames(struct X3D_Proto *context, char *name, int *source);
 int X3DExecutionContext_getNamedNode(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
 	int nr = 0;
 	struct X3D_Node* node = NULL;
@@ -1316,10 +1317,13 @@ int X3DExecutionContext_getImportedNode(FWType fwtype, void * fwn, int argc, FWv
 	if(usingBrotos()){
 		struct X3D_Proto *ec = (struct X3D_Proto *)fwn;
 		struct IMEXPORT *mxp;
-		mxp = broto_search_IMPORTname(ec, fwpars[0]._string);
-		if(mxp){
-			node = mxp->nodeptr;
-		}
+		int source;
+		//mxp = broto_search_IMPORTname(ec, fwpars[0]._string);
+		//if(mxp){
+		//	node = mxp->nodeptr;
+		//}
+		node = broto_search_ALLnames(ec, fwpars[0]._string,&source);
+		if(source == 0) node = NULL;  //source ==1,2 is for IMPORT and EXPORT
 	}
 	if(node){
 		//fwretval->_web3dval.native = node;  //Q should this be &node? to convert it from X3D_Node to anyVrml->sfnode?
@@ -1335,31 +1339,32 @@ int X3DExecutionContext_getImportedNode(FWType fwtype, void * fwn, int argc, FWv
 
 
 int X3DExecutionContext_updateImportedNode(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+	// I think what they mean by updateImportedNode(string,string[,string]) is:
+	//   updateImportedNode(Inline DEF name, Inline's Export AS name [,optional Import AS name])
 	int nr = 0;
 	//broto warning - DEF name list should be per-executionContext
 	if(usingBrotos()){
 		struct X3D_Proto *ec = (struct X3D_Proto *)fwn;
 		struct X3D_Node* node = NULL;
 
-		char *defname;
+		char *mxname, *as, *nline;
 		int found = 0;
 		struct IMEXPORT *mxp;
 
-		defname = fwpars[0]._string;
+		nline = fwpars[0]._string;
+		mxname = fwpars[1]._string;
+		as = mxname;
+		if(argc == 3)
+			as = fwpars[2]._string;
 		node = X3D_NODE(fwpars[1]._web3dval.native);
 		if(ec->__IMPORTS){
 			for(int i=0;i<vectorSize(ec->__IMPORTS);i++){
 				mxp = vector_get(struct IMEXPORT *,ec->__IMPORTS,i);
 				//Q. is it the DEF we search for, and node we replace, OR
 				//   is it the node we search for, and DEF we replace?
-				if(!strcmp(mxp->as,defname)){
-					mxp->nodeptr = node;
+				if(!strcmp(nline,mxp->nodename) && !strcmp(mxp->mxname,mxname)){
+					mxp->as = as;
 					found = 1;
-					break;
-				}
-				if(mxp->nodeptr == node){
-					mxp->as = strdup(defname);
-					found = 2;
 					break;
 				}
 			}
@@ -1369,11 +1374,12 @@ int X3DExecutionContext_updateImportedNode(FWType fwtype, void * fwn, int argc, 
 			if(!ec->__IMPORTS)
 				ec->__IMPORTS = newVector(struct IMEXPORT *,4);
 			mxp = (struct IMEXPORT *)malloc(sizeof(struct IMEXPORT));
-			mxp->nodeptr = node;
-			mxp->mxname = strdup(defname);
-			mxp->as = mxp->mxname;
+			mxp->mxname = strdup(mxname);
+			mxp->as = strdup(as);
+			mxp->nodename = strdup(nline);
 			stack_push(struct IMEXPORT *,ec->__IMPORTS,mxp);
 		}
+		update_weakRoutes(ec);
 	}
 	return nr;
 }
@@ -1395,6 +1401,7 @@ int X3DExecutionContext_removeImportedNode(FWType fwtype, void * fwn, int argc, 
 				if(!strcmp(mxp->as,defname)){
 					//remove IMPORT name mapping:
 					vector_remove_elem(struct IMEXPORT *,ec->__IMPORTS,i);
+					update_weakRoutes(ec);
 					break;
 				}
 			}
@@ -1524,7 +1531,7 @@ static FWFunctionSpec (X3DExecutionContextFunctions)[] = {
 	{"createNode", VrmlBrowserCreateX3DFromString, 'W',{1,-1,0,"S"}},
 	{"createProto", X3DExecutionContext_createProto, 'W',{1,-1,0,"S"}},
 	{"getImportedNode", X3DExecutionContext_getImportedNode, 'W',{1,-1,0,"S"}},
-	{"updateImportedNode", X3DExecutionContext_updateImportedNode, '0',{2,-1,0,"SS"}},
+	{"updateImportedNode", X3DExecutionContext_updateImportedNode, '0',{3,-1,0,"SSS"}},
 	{"removeImportedNode", X3DExecutionContext_removeImportedNode, '0',{1,-1,0,"S"}},
 	{"getNamedNode", X3DExecutionContext_getNamedNode, 'W',{1,-1,0,"S"}},
 	{"updateNamedNode", X3DExecutionContext_updateNamedNode, '0',{2,-1,0,"SW"}},

@@ -64,7 +64,7 @@ void vector_ensureSpace_(int, struct Vector*);
 #define vector_set(type,me,element,value) \
         ((type*)((struct Vector *)  (me))->data)[element]=value
 
-void vector_removeElement(int elSize,struct Vector** myp, int element);
+void vector_removeElement(int elSize,struct Vector* myp, int element);
 #define vector_remove_elem(type,me,element) \
  vector_removeElement((int)sizeof(type),me,element)
 

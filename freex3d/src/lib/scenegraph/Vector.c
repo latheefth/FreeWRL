@@ -121,9 +121,9 @@ void* vector_releaseData_(int elSize, struct Vector* me) {
 	return ret;
 }
 
-void vector_removeElement(int elSize,struct Vector** myp, int element)
+void vector_removeElement(int elSize,struct Vector* myp, int element)
 {
-	struct Vector *me = *myp;
+	struct Vector *me = myp;
 	if(me){
 		if(me->data && me->n > 0 && element < me->n && element > -1) {
 			char *el0,*el1;

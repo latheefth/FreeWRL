@@ -1296,6 +1296,12 @@ int cfunction(duk_context *ctx) {
 		FWVAL fwretval;
 		convert_duk_to_fwvals(ctx, nargs, 0, fs->arglist, &pars, &argc);
 		//the object function call, using engine-agnostic parameters
+		//>>just SFNode function getNodeName needs to know the script node context (it can't use its own - it may be an IMPORT)
+		//duk_eval_string(ctx,"this.__script");
+		//void *scriptnode = duk_to_pointer(ctx,-1);
+		//duk_pop(ctx);
+		//fwt->metadata = scriptnode;
+		//<<
 		nr = fs->call(fwt,parent,argc,pars,&fwretval);
 		if(nr){
 			nr = fwval_duk_push(ctx,&fwretval,valueChanged);
@@ -1653,6 +1659,11 @@ void JSCreateScriptContext(int num) {
 	if(0){
 		duk_eval_string(ctx,"print('this.__script='+this.__script);"); //checks the NodeScript availability
 		duk_pop(ctx);
+		duk_eval_string(ctx,"this.__script");
+		void *scriptnode = duk_to_pointer(ctx,-1);
+		duk_pop(ctx);
+		struct X3D_Node *snode = (struct X3D_Node *)scriptnode;
+		printf("script node = %x",scriptnode);
 	}
 	if(0){
 		duk_eval_string(ctx,"print(Object.keys(Browser));"); //invokes ownKeys
