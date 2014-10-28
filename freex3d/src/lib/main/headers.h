@@ -565,8 +565,8 @@ int get_touched_flag(uintptr_t fptr, uintptr_t actualscript);
 void getMultiElementtype(char *strp, struct Multi_Vec3f *tn, int eletype);
 void CRoutes_RemoveSimple(struct X3D_Node* from, int fromOfs,
  struct X3D_Node* to, int toOfs, int len);
- void CRoutes_RemoveSimpleB(struct X3D_Node* from, int fromOfs,
- struct X3D_Node* to, int toOfs, int len);
+ void CRoutes_RemoveSimpleB(struct X3D_Node* from, int fromIndex,
+ struct X3D_Node* to, int toIndex, int len);
 void CRoutes_RegisterSimple(struct X3D_Node* from, int fromOfs,
  struct X3D_Node* to, int toOfs, int len);
  void CRoutes_RegisterSimpleB(
