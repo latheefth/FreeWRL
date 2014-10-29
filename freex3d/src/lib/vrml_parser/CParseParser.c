@@ -1266,8 +1266,8 @@ void handleExport_B (void *nodeptr, char *node, char *as) {
 	if(context){
 		struct IMEXPORT *mxport = malloc(sizeof(struct IMEXPORT));
 		if(!context->__EXPORTS) context->__EXPORTS = newVector(struct IMEXPORT *,4);
-		mxport->nodename = strdup(node);
-		mxport->as = mxport->nodename;
+		mxport->mxname = strdup(node);
+		mxport->as = mxport->mxname;
 		if(as)
 			mxport->as = strdup(as);
 		mxport->nodeptr = nodeptr;
@@ -1301,12 +1301,12 @@ void handleImport_B (struct X3D_Node *nodeptr, char *nodeName,char *nodeImport, 
 	if(context){
 		struct IMEXPORT *mxport = malloc(sizeof(struct IMEXPORT));
 		if(!context->__IMPORTS) context->__IMPORTS = newVector(struct IMEXPORT *,4);
-		mxport->nodename = strdup(nodeName);
 		mxport->mxname = strdup(nodeImport);
-		mxport->as = mxport->nodename;
+		mxport->inlinename = strdup(nodeName);
+		mxport->as = mxport->mxname;
 		if(as)
 			mxport->as = strdup(as);
-		mxport->nodeptr = NULL; //After Inline is loaded, before or during routing, something needs to look in the inline's export table to get its node
+		mxport->nodeptr = NULL; //IMPORT doesn't use this. Import is a char* mapping only.
 		vector_pushBack(struct IMEXPORT*,context->__IMPORTS,mxport);
 	}
 	
@@ -4457,7 +4457,7 @@ void broto_store_route(struct X3D_Proto* proto,
 //	improute->toField = strdup(toField);
 //	stack_push(struct ImportRoute *, proto->__IMPROUTES, improute);
 //}
-void broto_store_ImportRoute(struct X3D_Proto* proto, char *fromNode, char *fromField, char *toNode, char* toField)
+void broto_store_ImportRoute_obsolete(struct X3D_Proto* proto, char *fromNode, char *fromField, char *toNode, char* toField)
 {
 	//there could be combinations of known/strong/node* and weak char* route ends - in that case split up this function
 	struct brotoRoute* route;
@@ -4466,11 +4466,11 @@ void broto_store_ImportRoute(struct X3D_Proto* proto, char *fromNode, char *from
 	route = MALLOC(struct brotoRoute*,sizeof(struct brotoRoute));
 	route->ft = -1;
 	route->lastCommand = 0; //not added to CRoutes until inline loaded
-	route->from.weak = 1; //weak references to publish/from,subscribe/to ends not loaded yet
+	route->from.weak = 2; //weak references to publish/from,subscribe/to ends not loaded yet
 	route->from.cnode = strdup(fromNode);
 	route->from.cfield = strdup(fromField);
 	route->from.ftype = -1; //unknown
-	route->to.weak = 1;
+	route->to.weak = 2;
 	route->to.cnode = strdup(toNode);
 	route->to.cfield = strdup(toField);
 	route->to.ftype = -1; //unknown

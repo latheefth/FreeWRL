@@ -795,15 +795,18 @@ int QA_routeEnd(struct X3D_Proto *context, char* cnode, char* cfield, struct bro
 	//checks one end of a route during parsing
 	struct X3D_Node* node;
 	int found = 0;
+
+	brend->weak = 1;
+	brend->cfield = cfield;
+	brend->cnode = cnode;
+
 	node = broto_search_DEFname(context,cnode);
 	if(!node){
 		struct IMEXPORT *imp;
 		imp = broto_search_IMPORTname(context, cnode);
 		if(imp){
 			found = 1;
-			brend->weak = 1;
-			brend->cfield = cfield;
-			brend->cnode = cnode;
+			brend->weak = 2;
 		}
 	}else{
 		int idir;
@@ -817,8 +820,6 @@ int QA_routeEnd(struct X3D_Proto *context, char* cnode, char* cfield, struct bro
 			brend->node = node;
 			brend->weak = 0;
 			brend->ftype = type;
-			brend->cfield = cfield;
-			brend->cnode = cnode;
 			brend->ifield = ifield;
 		}
 	}
@@ -832,12 +833,13 @@ void QAandRegister_parsedRoute_B(struct X3D_Proto *context, char* fnode, char* f
 	int haveFrom, haveTo, ok;
 	struct brotoRoute* route;
 	int ftf,ftt;
+	int allowingVeryWeakRoutes = 1;  //this will store char* node, char* field on an end (or 2) for later import updating via js or late IMPORT statement
 
 	ok = FALSE;
 	route = createNewBrotoRoute();
 	haveFrom = QA_routeEnd(context, fnode, ffield, &route->from, 1);
 	haveTo = QA_routeEnd(context, tnode, tfield, &route->to, 0);
-	if(haveFrom && haveTo){
+	if((haveFrom && haveTo) || allowingVeryWeakRoutes){
 		ftf = -1;
 		ftt = -1;
 		if( !route->from.weak) ftf = route->from.ftype;
@@ -854,14 +856,16 @@ void QAandRegister_parsedRoute_B(struct X3D_Proto *context, char* fnode, char* f
 				route->lastCommand = 1; //registered
 			}
 			//broto_store_route(context,fromNode,fifield,toNode,tifield,ftype); //new way delay until sceneInstance()
-			broto_store_broute(context,route);
+			//broto_store_broute(context,route);
 			ok = TRUE;
 		}else if(route->to.weak || route->from.weak){
-			broto_store_broute(context,route);
+			//broto_store_broute(context,route);
 			ok = TRUE;
 		}
 	}
-	if(!ok){
+	if(ok || allowingVeryWeakRoutes)
+		broto_store_broute(context,route);
+	if(!ok || !(haveFrom && haveTo)){
 		ConsoleMessage("Routing problem: ");
 		/* are the types the same? */
 		if (haveFrom && haveTo && route->from.ftype != route->to.ftype) {

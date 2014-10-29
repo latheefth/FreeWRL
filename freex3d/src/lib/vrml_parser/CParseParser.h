@@ -154,10 +154,10 @@ struct brotoDefpair{
 };
 /* structure used for both import and export tables*/
 struct IMEXPORT {
-	struct X3D_Node *nodeptr; 
-	char *nodename;  //of inline
-	char *mxname;  //of node being exported or imported
-	char *as;  //nickname of mxname in local execution context
+	struct X3D_Node *nodeptr; //used in exports to point to exported node in inline body, not used in imports
+	char *inlinename;  //of inline, used only by imports
+	char *mxname;  //of node being exported or imported, without AS alias/nickname
+	char *as;  //nickname of mxname in local execution context as expressed by AS keyword, defaults to mxname if no AS, so normally use this when searching
 
 };
 struct IMEXPORT *broto_search_IMPORTname(struct X3D_Proto *context, char *name);

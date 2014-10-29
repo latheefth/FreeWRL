@@ -88,14 +88,14 @@ ecma primitive instead of one of the above, and never generate a new one of thes
 int type2SF(int itype);
 
 
-int SFFloat_valueOf(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+int SFFloat_valueOf(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	float *ptr = (float *)fwn;
 	fwretval->_numeric =  (double)*(ptr);
 	fwretval->itype = 'F';
 	return 1;
 }
-int SFFloat_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+int SFFloat_toString(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	char str[512];
 	float *ptr = (float *)fwn;
@@ -153,7 +153,7 @@ FWPropertySpec (MFW_Properties)[] = {
 	{"length", -1, 'I', 0},
 	{NULL,0,0,0},
 };
-int MFW_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+int MFW_Getter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	struct Multi_Any *ptr = (struct Multi_Any *)fwn;
 	int nr = 0;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
@@ -258,7 +258,7 @@ char *mfToString(FWType fwt, void * fwn){
 	return str;
 }
 
-int MFW_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int MFW_toString(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	char *str;
 	str = mfToString(fwtype,fwn);
 	fwretval->_string = str;
@@ -272,7 +272,7 @@ FWFunctionSpec (MFW_Functions)[] = {
 };
 
 
-int MFW_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+int MFW_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 	struct Multi_Any *ptr = (struct Multi_Any *)fwn;
 	int nelen, nold, nr = FALSE;
 	int elen = sizeofSF(fwt->itype);
@@ -382,7 +382,7 @@ void setAxis(SFVec3f vec) Sets the axis of rotation to the value passed in vec.
 SFRotation slerp(SFRotation dest, numeric t) Returns the value of the spherical linear interpolation between this object's rotation and dest at value 0 = t = 1. For t = 0, the value is this object`s rotation. For t = 1, the value is dest.  
 String toString() Returns a String containing the value of x, y, z, and angle encoding using the X3D Classic VRML encoding (see part 2 of ISO/IEC 19776). 
 */
-int SFRotation_getAxis(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFRotation_getAxis(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFRotation *ptr = (struct SFRotation *)fwn;
 	struct SFVec3f *res = malloc(sizeof(struct SFVec3f));
 	veccopy3f(res->c,ptr->c);
@@ -393,7 +393,7 @@ int SFRotation_getAxis(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval 
 	return 1;
 }
 
-int SFRotation_inverse(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFRotation_inverse(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFRotation *ptr = (struct SFRotation *)fwn;
 	struct SFRotation *res = malloc(sizeof(struct SFRotation));
 	Quaternion q1,qret;
@@ -421,7 +421,7 @@ int SFRotation_inverse(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval 
 	return 1;
 }
 
-int SFRotation_multiply(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFRotation_multiply(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFRotation *ptr = (struct SFRotation *)fwn;
 	struct SFRotation *rhs = (struct SFRotation *)fwpars[0]._web3dval.native;
 	struct SFRotation *res = malloc(sizeof(struct SFRotation));
@@ -453,7 +453,7 @@ int SFRotation_multiply(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval
 	return 1;
 }
 
-int SFRotation_multiVec(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFRotation_multiVec(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFRotation *ptr = (struct SFRotation *)fwn;
 	struct SFVec3f *v = (struct SFVec3f *)fwpars[0]._web3dval.native;
 	struct SFVec3f *res = malloc(sizeof(struct SFVec3f));
@@ -479,14 +479,14 @@ int SFRotation_multiVec(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval
 	return 1;
 }
 
-int SFRotation_setAxis(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFRotation_setAxis(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFRotation *ptr = (struct SFRotation *)fwn;
 	struct SFVec3f *v = (struct SFVec3f *)fwpars[0]._web3dval.native;
 	veccopy3f(ptr->c,v->c);
 	return 0;
 }
 
-int SFRotation_slerp(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFRotation_slerp(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFRotation *rot = (struct SFRotation *)fwn;
 	struct SFRotation *dest = (struct SFRotation *)fwpars[0]._web3dval.native;
 	double t = fwpars[1]._numeric;
@@ -534,7 +534,7 @@ int SFRotation_slerp(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fw
 	return 1;
 }
 
-int SFRotation_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFRotation_toString(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFRotation *ptr = (struct SFRotation *)fwn;
 	char buff[STRING], *str;
 	int len;
@@ -561,7 +561,7 @@ FWFunctionSpec (SFRotation_Functions)[] = {
 	{"toString", SFRotation_toString, 'S',{0,-1,0,NULL}},
 	{0}
 };
-int SFRotation_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+int SFRotation_Getter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	struct SFRotation *ptr = (struct SFRotation *)fwn;
 	int nr = 0;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
@@ -581,7 +581,7 @@ int SFRotation_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	fwretval->itype = 'F';
 	return nr;
 }
-int SFRotation_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+int SFRotation_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 	struct SFRotation *ptr = (struct SFRotation *)fwn;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index > -1 && index < 4){
@@ -684,7 +684,7 @@ String toString() Returns a String containing the value of x, y, and z encoded u
 */
 #include "../scenegraph/LinearAlgebra.h"
 //SFVec3f add(SFVec3f vec) Returns the value of the passed value added, component-wise, to the object. 
-int SFVec3f_add(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec3f_add(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
 	struct SFVec3f *rhs = fwpars[0]._web3dval.native;
 	struct SFVec3f *res = malloc(fwtype->size_of);
@@ -695,7 +695,7 @@ int SFVec3f_add(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretva
 	fwretval->itype = 'W';
 	return 1;
 }
-int SFVec3f_cross(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec3f_cross(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
 	struct SFVec3f *rhs = fwpars[0]._web3dval.native;
 	struct SFVec3f *res = malloc(fwtype->size_of);
@@ -706,7 +706,7 @@ int SFVec3f_cross(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwret
 	fwretval->itype = 'W';
 	return 1;
 }
-int SFVec3f_subtract(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec3f_subtract(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
 	struct SFVec3f *rhs = fwpars[0]._web3dval.native;
 	struct SFVec3f *res = malloc(fwtype->size_of);
@@ -717,7 +717,7 @@ int SFVec3f_subtract(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fw
 	fwretval->itype = 'W';
 	return 1;
 }
-int SFVec3f_divide(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec3f_divide(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
 	float rhs = fwpars[0]._numeric;
 	if(rhs == 0.0f){
@@ -732,7 +732,7 @@ int SFVec3f_divide(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwre
 	fwretval->itype = 'W';
 	return 1;
 }
-int SFVec3f_multiply(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec3f_multiply(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
 	float rhs = fwpars[0]._numeric;
 	struct SFVec3f *res = malloc(fwtype->size_of);
@@ -743,7 +743,7 @@ int SFVec3f_multiply(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fw
 	fwretval->itype = 'W';
 	return 1;
 }
-int SFVec3f_normalize(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec3f_normalize(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
 	struct SFVec3f *res = malloc(fwtype->size_of);
 	vecnormalize3f(res->c,ptr->c);
@@ -754,7 +754,7 @@ int SFVec3f_normalize(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval f
 	return 1;
 }
 
-int SFVec3f_negate(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec3f_negate(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
 	struct SFVec3f *res = malloc(fwtype->size_of);
 	vecscale3f(res->c,ptr->c,-1.0f);
@@ -764,7 +764,7 @@ int SFVec3f_negate(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwre
 	fwretval->itype = 'W';
 	return 1;
 }
-int SFVec3f_length(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec3f_length(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
 	float res;
 	res = veclength3f(ptr->c);
@@ -772,7 +772,7 @@ int SFVec3f_length(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwre
 	fwretval->itype = 'F';
 	return 1;
 }
-int SFVec3f_dot(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec3f_dot(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
 	struct SFVec3f *rhs = fwpars[0]._web3dval.native;
 	double res;
@@ -782,7 +782,7 @@ int SFVec3f_dot(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretva
 	return 1;
 }
 
-int SFVec3f_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec3f_toString(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
 	char buff[STRING], *str;
 	int len;
@@ -811,7 +811,7 @@ FWFunctionSpec (SFVec3f_Functions)[] = {
 	{0}
 };
 
-int SFVec3f_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+int SFVec3f_Getter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
 	int nr = 0;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
@@ -830,7 +830,7 @@ int SFVec3f_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	fwretval->itype = 'F';
 	return nr;
 }
-int SFVec3f_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+int SFVec3f_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index > -1 && index < 3){
@@ -897,14 +897,14 @@ FWTYPE MFVec3fType = {
 	MFW_Functions, //functions
 };
 
-int SFBool_valueOf(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+int SFBool_valueOf(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	int *ptr = (int *)fwn;
 	fwretval->_boolean =  *(ptr);
 	fwretval->itype = 'B';
 	return 1;
 }
-int SFBool_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+int SFBool_toString(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	char *str;
 	int *ptr = (int *)fwn;
@@ -982,14 +982,14 @@ FWTYPE MFBoolType = {
 	MFW_Functions, //functions
 };
 
-int SFInt32_valueOf(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+int SFInt32_valueOf(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	int *ptr = (int *)fwn;
 	fwretval->_integer =  *(ptr);
 	fwretval->itype = 'I';
 	return 1;
 }
-int SFInt32_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+int SFInt32_toString(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	char str[16];
 	int *ptr = (int *)fwn;
@@ -1088,7 +1088,7 @@ int SFNode_Iterator(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int
 	}
 	return -1;
 }
-int SFNode_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+int SFNode_Getter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	struct X3D_Node *node = ((union anyVrml*)fwn)->sfnode; 
 	int ftype, kind, ihave, nr;
 	const char *name;
@@ -1106,7 +1106,7 @@ int SFNode_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	return nr;
 }
 void medium_copy_field0(int itype, void* source, void* dest);
-int SFNode_Setter0(FWType fwt, int index, void * fwn, FWval fwval, int isCurrentScriptNode){
+int SFNode_Setter0(FWType fwt, int index, void *ec, void *fwn, FWval fwval, int isCurrentScriptNode){
 	// shared between fwSetterNS() and SFNode_Setter
 	//
 	struct X3D_Node *node = ((union anyVrml*)fwn)->sfnode; 
@@ -1162,8 +1162,8 @@ int SFNode_Setter0(FWType fwt, int index, void * fwn, FWval fwval, int isCurrent
 	return nr;
 
 }
-int SFNode_Setter(FWType fwt, int index, void * fwn, FWval fwval){
-	return SFNode_Setter0(fwt,index,fwn,fwval,FALSE);
+int SFNode_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
+	return SFNode_Setter0(fwt,index,ec,fwn,fwval,FALSE);
 }
 void * SFNode_Constructor(FWType fwtype, int nargs, FWval fwpars){
 	struct X3D_Node **ptr = NULL; // = malloc(fwtype->size_of); //garbage collector please
@@ -1215,7 +1215,7 @@ String toXMLString() Returns the X3D XML-encoded string that, if parsed as the v
 */
 
 
-int SFNode_getNodeName(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFNode_getNodeName(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	int found;
 	char *name = NULL;
 	int nr = 0;
@@ -1357,7 +1357,7 @@ void convertHSVtoRGB( double h, double s, double v ,double *r, double *g, double
 }
 
 
-int SFColor_getHSV(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFColor_getHSV(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	//argc should == 0 for getHSV
 	struct SFColor *ptr = (struct SFColor *)fwn;
 	double xp[3];
@@ -1373,7 +1373,7 @@ int SFColor_getHSV(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwre
 	return 1;
 }
 
-int SFColor_setHSV(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFColor_setHSV(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	//argc should == 3 for setHSV
 	struct SFColor *ptr = (struct SFColor *)fwn;
 	double xp[3];
@@ -1391,7 +1391,7 @@ FWFunctionSpec (SFColor_Functions)[] = {
 	{0}
 };
 
-int SFColor_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+int SFColor_Getter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	struct SFColor *ptr = (struct SFColor *)fwn;
 	int nr = 0;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
@@ -1410,7 +1410,7 @@ int SFColor_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	fwretval->itype = 'F';
 	return nr;
 }
-int SFColor_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+int SFColor_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 	struct SFColor *ptr = (struct SFColor *)fwn;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index > -1 && index < 3){
@@ -1485,7 +1485,7 @@ FWTYPE MFColorType = {
 };
 
 
-int SFColorRGBA_getHSV(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFColorRGBA_getHSV(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	//argc should == 0 for getHSV
 	struct SFColorRGBA *ptr = (struct SFColorRGBA *)fwn;
 	double xp[3];
@@ -1501,7 +1501,7 @@ int SFColorRGBA_getHSV(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval 
 	return 1;
 }
 
-int SFColorRGBA_setHSV(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFColorRGBA_setHSV(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	//argc should == 3 for setHSV
 	struct SFColorRGBA *ptr = (struct SFColorRGBA *)fwn;
 	double xp[3];
@@ -1520,7 +1520,7 @@ FWFunctionSpec (SFColorRGBA_Functions)[] = {
 	{0}
 };
 
-int SFColorRGBA_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+int SFColorRGBA_Getter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	struct SFColorRGBA *ptr = (struct SFColorRGBA *)fwn;
 	int nr = 0;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
@@ -1540,7 +1540,7 @@ int SFColorRGBA_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	fwretval->itype = 'F';
 	return nr;
 }
-int SFColorRGBA_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+int SFColorRGBA_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 	struct SFColorRGBA *ptr = (struct SFColorRGBA *)fwn;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index > -1 && index < 4){
@@ -1616,14 +1616,14 @@ FWTYPE MFColorRGBAType = {
 	MFW_Functions, //functions
 };
 
-int SFDouble_valueOf(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+int SFDouble_valueOf(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	double *ptr = (double *)fwn;
 	fwretval->_numeric =  *(ptr);
 	fwretval->itype = 'D';
 	return 1;
 }
-int SFDouble_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+int SFDouble_toString(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	char str[512];
 	double *ptr = (double *)fwn;
@@ -1695,14 +1695,14 @@ FWTYPE MFTimeType = {
 	MFW_Functions, //functions
 };
 
-int SFString_valueOf(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+int SFString_valueOf(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	struct Uni_String *ptr = (struct Uni_String *)fwn;
 	fwretval->_string =  ptr->strptr;
 	fwretval->itype = 'S';
 	return 1;
 }
-int SFString_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+int SFString_toString(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	struct Uni_String *ptr = (struct Uni_String *)fwn;
 	fwretval->_string =  strdup(ptr->strptr);
@@ -1815,7 +1815,7 @@ SFVec2f subtract(SFVec2f vec) Returns the value of the passed value subtracted, 
 String toString() Returns a String containing the value of x and y encoding using the X3D Classic VRML encoding (see part 2 of ISO/IEC 19776). 
 */
 
-int SFVec2f_add(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec2f_add(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec2f *ptr = (struct SFVec2f *)fwn;
 	struct SFVec2f *rhs = fwpars[0]._web3dval.native;
 	struct SFVec2f *res = malloc(fwtype->size_of);
@@ -1826,7 +1826,7 @@ int SFVec2f_add(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretva
 	fwretval->itype = 'W';
 	return 1;
 }
-int SFVec2f_subtract(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec2f_subtract(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec2f *ptr = (struct SFVec2f *)fwn;
 	struct SFVec2f *rhs = fwpars[0]._web3dval.native;
 	struct SFVec2f *res = malloc(fwtype->size_of);
@@ -1837,7 +1837,7 @@ int SFVec2f_subtract(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fw
 	fwretval->itype = 'W';
 	return 1;
 }
-int SFVec2f_divide(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec2f_divide(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec2f *ptr = (struct SFVec2f *)fwn;
 	double rhs = fwpars[0]._numeric;
 	if(rhs == 0.0){
@@ -1852,7 +1852,7 @@ int SFVec2f_divide(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwre
 	fwretval->itype = 'W';
 	return 1;
 }
-int SFVec2f_multiply(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec2f_multiply(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec2f *ptr = (struct SFVec2f *)fwn;
 	double rhs = fwpars[0]._numeric;
 	struct SFVec2f *res = malloc(fwtype->size_of);
@@ -1863,7 +1863,7 @@ int SFVec2f_multiply(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fw
 	fwretval->itype = 'W';
 	return 1;
 }
-int SFVec2f_normalize(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec2f_normalize(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec2f *ptr = (struct SFVec2f *)fwn;
 	struct SFVec2f *res = malloc(fwtype->size_of);
 	vecnormal2f(res->c,ptr->c);
@@ -1874,7 +1874,7 @@ int SFVec2f_normalize(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval f
 	return 1;
 }
 
-int SFVec2f_length(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec2f_length(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec2f *ptr = (struct SFVec2f *)fwn;
 	double res;
 	res = veclength2f(ptr->c);
@@ -1882,7 +1882,7 @@ int SFVec2f_length(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwre
 	fwretval->itype = 'F';
 	return 1;
 }
-int SFVec2f_dot(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec2f_dot(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec2f *ptr = (struct SFVec2f *)fwn;
 	struct SFVec2f *rhs = fwpars[0]._web3dval.native;
 	double res;
@@ -1892,7 +1892,7 @@ int SFVec2f_dot(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretva
 	return 1;
 }
 
-int SFVec2f_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec2f_toString(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec2f *ptr = (struct SFVec2f *)fwn;
 	char buff[STRING], *str;
 	int len;
@@ -1918,7 +1918,7 @@ FWFunctionSpec (SFVec2f_Functions)[] = {
 	{0}
 };
 
-int SFVec2f_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+int SFVec2f_Getter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	struct SFVec2f *ptr = (struct SFVec2f *)fwn;
 	int nr = 0;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
@@ -1936,7 +1936,7 @@ int SFVec2f_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	fwretval->itype = 'F';
 	return nr;
 }
-int SFVec2f_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+int SFVec2f_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 	struct SFVec2f *ptr = (struct SFVec2f *)fwn;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index > -1 && index < 2){
@@ -2017,7 +2017,7 @@ funcs
 String toString() Returns a String containing the  value of x, y, comp and array encoded using the Classic VRML encoding (see part 2 of ISO/IEC 19776). 
 */
 
-int SFImage_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFImage_toString(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	char *str;
 	FWType mfint32type = getFWTYPE(FIELDTYPE_MFInt32);
 	str = mfToString(mfint32type, fwn);
@@ -2031,7 +2031,7 @@ FWFunctionSpec (SFImage_Functions)[] = {
 	{0}
 };
 
-int SFImage_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+int SFImage_Getter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	struct Multi_Int32 *ptr = (struct Multi_Int32 *)fwn;
 	int nr = 0;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
@@ -2057,7 +2057,7 @@ int SFImage_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	}
 	return nr;
 }
-int SFImage_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+int SFImage_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 	struct Multi_Int32 *ptr = (struct Multi_Int32*)fwn;
 	int *p;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
@@ -2180,7 +2180,7 @@ SFVec3d subtract(SFVec3f vec) Returns the value of the passed value subtracted, 
 String toString() Returns a String containing the value of x, y, and z encoded using the X3D Classic VRML encoding (see part 2 of ISO/IEC 19776). 
 */
 //SFVec3d add(SFVec3d vec) Returns the value of the passed value added, component-wise, to the object. 
-int SFVec3d_add(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec3d_add(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
 	struct SFVec3d *rhs = fwpars[0]._web3dval.native;
 	struct SFVec3d *res = malloc(fwtype->size_of);
@@ -2191,7 +2191,7 @@ int SFVec3d_add(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretva
 	fwretval->itype = 'W';
 	return 1;
 }
-int SFVec3d_cross(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec3d_cross(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
 	struct SFVec3d *rhs = fwpars[0]._web3dval.native;
 	struct SFVec3d *res = malloc(fwtype->size_of);
@@ -2202,7 +2202,7 @@ int SFVec3d_cross(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwret
 	fwretval->itype = 'W';
 	return 1;
 }
-int SFVec3d_subtract(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec3d_subtract(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
 	struct SFVec3d *rhs = fwpars[0]._web3dval.native;
 	struct SFVec3d *res = malloc(fwtype->size_of);
@@ -2213,7 +2213,7 @@ int SFVec3d_subtract(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fw
 	fwretval->itype = 'W';
 	return 1;
 }
-int SFVec3d_divide(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec3d_divide(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
 	double rhs = fwpars[0]._numeric;
 	if(rhs == 0.0){
@@ -2228,7 +2228,7 @@ int SFVec3d_divide(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwre
 	fwretval->itype = 'W';
 	return 1;
 }
-int SFVec3d_multiply(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec3d_multiply(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
 	double rhs = fwpars[0]._numeric;
 	struct SFVec3d *res = malloc(fwtype->size_of);
@@ -2239,7 +2239,7 @@ int SFVec3d_multiply(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fw
 	fwretval->itype = 'W';
 	return 1;
 }
-int SFVec3d_normalize(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec3d_normalize(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
 	struct SFVec3d *res = malloc(fwtype->size_of);
 	vecnormald(res->c,ptr->c);
@@ -2250,7 +2250,7 @@ int SFVec3d_normalize(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval f
 	return 1;
 }
 
-int SFVec3d_negate(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec3d_negate(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
 	struct SFVec3d *res = malloc(fwtype->size_of);
 	vecscaled(res->c,ptr->c,-1.0);
@@ -2260,7 +2260,7 @@ int SFVec3d_negate(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwre
 	fwretval->itype = 'W';
 	return 1;
 }
-int SFVec3d_length(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec3d_length(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
 	double res;
 	res = veclengthd(ptr->c);
@@ -2268,7 +2268,7 @@ int SFVec3d_length(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwre
 	fwretval->itype = 'D';
 	return 1;
 }
-int SFVec3d_dot(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec3d_dot(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
 	struct SFVec3d *rhs = fwpars[0]._web3dval.native;
 	double res;
@@ -2278,7 +2278,7 @@ int SFVec3d_dot(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretva
 	return 1;
 }
 
-int SFVec3d_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec3d_toString(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
 	char buff[STRING], *str;
 	int len;
@@ -2307,7 +2307,7 @@ FWFunctionSpec (SFVec3d_Functions)[] = {
 	{0}
 };
 
-int SFVec3d_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+int SFVec3d_Getter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
 	int nr = 0;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
@@ -2326,7 +2326,7 @@ int SFVec3d_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	fwretval->itype = 'D';
 	return nr;
 }
-int SFVec3d_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+int SFVec3d_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index > -1 && index < 3){
@@ -2500,7 +2500,7 @@ I will implment july 2014 the rotations as scalar/primitive/numerics and do #2, 
 */
 
 
-int X3DMatrix3_setTransform(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DMatrix3_setTransform(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/group.html#Transform
 	// P' = T * C * R * SR * S * -SR * -C * P
 	int i,j;
@@ -2585,7 +2585,7 @@ int X3DMatrix3_setTransform(FWType fwtype, void * fwn, int argc, FWval fwpars, F
 	return 0;
 }
 
-int X3DMatrix3_getTransform(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DMatrix3_getTransform(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	//void getTransform(SFVec2f translation, SFVec3f rotation, SFVec2f scale) 
 	float angle = 0.0f;
 	int i;
@@ -2636,7 +2636,7 @@ int X3DMatrix3_getTransform(FWType fwtype, void * fwn, int argc, FWval fwpars, F
 	return 1;
 }
 
-int X3DMatrix3_inverse(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DMatrix3_inverse(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
 	struct SFMatrix3f *ret = malloc(sizeof(struct SFMatrix3f));
 
@@ -2648,7 +2648,7 @@ int X3DMatrix3_inverse(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval 
 	fwretval->itype = 'P';
 	return 1;
 }
-int X3DMatrix3_transpose(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DMatrix3_transpose(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
 	struct SFMatrix3f *ret = malloc(sizeof(struct SFMatrix3f));
 
@@ -2661,7 +2661,7 @@ int X3DMatrix3_transpose(FWType fwtype, void * fwn, int argc, FWval fwpars, FWva
 
 	return 1;
 }
-int X3DMatrix3_multLeft(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DMatrix3_multLeft(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
 	struct SFMatrix3f *lhs = (struct SFMatrix3f *)fwpars[0]._web3dval.native;
 	struct SFMatrix3f *ret = malloc(sizeof(struct SFMatrix3f));
@@ -2674,7 +2674,7 @@ int X3DMatrix3_multLeft(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval
 	fwretval->_pointer.gc = 'T';
 	return 1;
 }
-int X3DMatrix3_multRight(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DMatrix3_multRight(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
 	struct SFMatrix3f *rhs = (struct SFMatrix3f *)fwpars[0]._web3dval.native;
 	struct SFMatrix3f *ret = malloc(sizeof(struct SFMatrix3f));
@@ -2687,7 +2687,7 @@ int X3DMatrix3_multRight(FWType fwtype, void * fwn, int argc, FWval fwpars, FWva
 	fwretval->itype = 'P';
 	return 1;
 }
-int X3DMatrix3_multVecMatrix(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DMatrix3_multVecMatrix(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
 	struct SFVec2f *rhs = (struct SFVec2f *)fwpars[0]._web3dval.native;
 	struct SFVec2f *ret = malloc(sizeof(struct SFVec2f));
@@ -2708,7 +2708,7 @@ int X3DMatrix3_multVecMatrix(FWType fwtype, void * fwn, int argc, FWval fwpars, 
 	fwretval->itype = 'W';
 	return 1;
 }
-int X3DMatrix3_multMatrixVec(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DMatrix3_multMatrixVec(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
 	struct SFVec2f *rhs = (struct SFVec2f *)fwpars[0]._web3dval.native;
 	struct SFVec2f *ret = malloc(sizeof(struct SFVec2f));
@@ -2730,7 +2730,7 @@ int X3DMatrix3_multMatrixVec(FWType fwtype, void * fwn, int argc, FWval fwpars, 
 	return 1;
 }
 
-int X3DMatrix3_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DMatrix3_toString(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
 	char *str, *r;
 	int i;
@@ -2760,7 +2760,7 @@ FWFunctionSpec (X3DMatrix3_Functions)[] = {
 	{0}
 };
 
-int X3DMatrix3_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+int X3DMatrix3_Getter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
 	int nr = 0;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
@@ -2771,7 +2771,7 @@ int X3DMatrix3_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	fwretval->itype = 'F';
 	return nr;
 }
-int X3DMatrix3_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+int X3DMatrix3_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index > -1 && index < 9){
@@ -2846,7 +2846,7 @@ String toString()    Returns a String containing the matrix contents encoded usi
 
 */
 
-int X3DMatrix4_setTransform(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DMatrix4_setTransform(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	//void setTransform(SFVec3f translation, SFRotation rotation, SFVec3f scale, SFRotation scaleOrientation, SFVec3f center) 
 	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/group.html#Transform
 	// P' = T * C * R * SR * S * -SR * -C * P
@@ -2919,7 +2919,7 @@ int X3DMatrix4_setTransform(FWType fwtype, void * fwn, int argc, FWval fwpars, F
 	return 0;
 }
 
-int X3DMatrix4_getTransform(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DMatrix4_getTransform(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	//void getTransform(SFVec3f translation, SFRotation rotation, SFVec3f scale) 
 	int i;
 	struct SFMatrix4f *ptr = (struct SFMatrix4f *)fwn;
@@ -2974,7 +2974,7 @@ int X3DMatrix4_getTransform(FWType fwtype, void * fwn, int argc, FWval fwpars, F
 	return 0;
 }
 
-int X3DMatrix4_inverse(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DMatrix4_inverse(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	//Matrix4 inverse()
 	struct SFMatrix4f *ptr = (struct SFMatrix4f *)fwn;
 	struct SFMatrix4f *ret = malloc(sizeof(struct SFMatrix4f));
@@ -2987,7 +2987,7 @@ int X3DMatrix4_inverse(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval 
 	fwretval->itype = 'P';
 	return 1;
 }
-int X3DMatrix4_transpose(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DMatrix4_transpose(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	//Matrix4 transpose()    Returns a Matrix whose value is the transpose of this object. 
 	struct SFMatrix4f *ptr = (struct SFMatrix4f *)fwn;
 	struct SFMatrix4f *ret = malloc(sizeof(struct SFMatrix4f));
@@ -3001,7 +3001,7 @@ int X3DMatrix4_transpose(FWType fwtype, void * fwn, int argc, FWval fwpars, FWva
 
 	return 1;
 }
-int X3DMatrix4_multLeft(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DMatrix4_multLeft(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	//Matrix4 multLeft(Matrix4 matrix)   Returns a Matrix whose value is the object multiplied by the passed matrix on the left. 
 
 	struct SFMatrix4f *ptr = (struct SFMatrix4f *)fwn;
@@ -3016,7 +3016,7 @@ int X3DMatrix4_multLeft(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval
 	fwretval->itype = 'P';
 	return 1;
 }
-int X3DMatrix4_multRight(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DMatrix4_multRight(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	//Matrix4 multRight(Matrix4 matrix)    Returns a Matrix whose value is the object multiplied by the passed matrix on the right. 
 	struct SFMatrix4f *ptr = (struct SFMatrix4f *)fwn;
 	struct SFMatrix4f *rhs = (struct SFMatrix4f *)fwpars[0]._web3dval.native;
@@ -3030,7 +3030,7 @@ int X3DMatrix4_multRight(FWType fwtype, void * fwn, int argc, FWval fwpars, FWva
 	fwretval->itype = 'P';
 	return 1;
 }
-int X3DMatrix4_multVecMatrix(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DMatrix4_multVecMatrix(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	//SFVec3f multVecMatrix(SFVec3f vec)    Returns an SFVec3f whose value is the object multiplied by the passed row vector. 
 	struct SFMatrix4f *ptr = (struct SFMatrix4f *)fwn;
 	struct SFVec3f *rhs = (struct SFVec3f *)fwpars[0]._web3dval.native;
@@ -3052,7 +3052,7 @@ int X3DMatrix4_multVecMatrix(FWType fwtype, void * fwn, int argc, FWval fwpars, 
 	fwretval->itype = 'W';
 	return 1;
 }
-int X3DMatrix4_multMatrixVec(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DMatrix4_multMatrixVec(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	//SFVec3f multMatrixVec(SFVec3f vec)    Returns an SFVec3f whose value is the object multiplied by the passed column vector. 
 	struct SFMatrix4f *ptr = (struct SFMatrix4f *)fwn;
 	struct SFVec3f *rhs = (struct SFVec3f *)fwpars[0]._web3dval.native;
@@ -3076,7 +3076,7 @@ int X3DMatrix4_multMatrixVec(FWType fwtype, void * fwn, int argc, FWval fwpars, 
 	return 1;
 }
 
-int X3DMatrix4_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DMatrix4_toString(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFMatrix4f *ptr = (struct SFMatrix4f *)fwn;
 	char *str, *r;
 	int i;
@@ -3107,7 +3107,7 @@ FWFunctionSpec (X3DMatrix4_Functions)[] = {
 	{0}
 };
 
-int X3DMatrix4_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+int X3DMatrix4_Getter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
 	int nr = 0;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
@@ -3118,7 +3118,7 @@ int X3DMatrix4_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	fwretval->itype = 'F';
 	return nr;
 }
-int X3DMatrix4_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+int X3DMatrix4_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index > -1 && index < 9){
@@ -3176,7 +3176,7 @@ SFVec2d subtract(SFVec2d vec) Returns the value of the passed value subtracted, 
 String toString() Returns a String containing the value of x and y encoding using the X3D Classic VRML encoding (see part 2 of ISO/IEC 19776). 
 */
 
-int SFVec2d_add(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec2d_add(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec2d *ptr = (struct SFVec2d *)fwn;
 	struct SFVec2d *rhs = fwpars[0]._web3dval.native;
 	struct SFVec2d *res = malloc(fwtype->size_of);
@@ -3187,7 +3187,7 @@ int SFVec2d_add(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretva
 	fwretval->itype = 'W';
 	return 1;
 }
-int SFVec2d_subtract(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec2d_subtract(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec2d *ptr = (struct SFVec2d *)fwn;
 	struct SFVec2d *rhs = fwpars[0]._web3dval.native;
 	struct SFVec2d *res = malloc(fwtype->size_of);
@@ -3198,7 +3198,7 @@ int SFVec2d_subtract(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fw
 	fwretval->itype = 'W';
 	return 1;
 }
-int SFVec2d_divide(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec2d_divide(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec2d *ptr = (struct SFVec2d *)fwn;
 	double rhs = fwpars[0]._numeric;
 	if(rhs == 0.0){
@@ -3213,7 +3213,7 @@ int SFVec2d_divide(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwre
 	fwretval->itype = 'W';
 	return 1;
 }
-int SFVec2d_multiply(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec2d_multiply(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec2d *ptr = (struct SFVec2d *)fwn;
 	double rhs = fwpars[0]._numeric;
 	struct SFVec2d *res = malloc(fwtype->size_of);
@@ -3224,7 +3224,7 @@ int SFVec2d_multiply(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fw
 	fwretval->itype = 'W';
 	return 1;
 }
-int SFVec2d_normalize(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec2d_normalize(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec2d *ptr = (struct SFVec2d *)fwn;
 	struct SFVec2d *res = malloc(fwtype->size_of);
 	vecnormal2d(res->c,ptr->c);
@@ -3235,7 +3235,7 @@ int SFVec2d_normalize(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval f
 	return 1;
 }
 
-int SFVec2d_length(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec2d_length(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec2d *ptr = (struct SFVec2d *)fwn;
 	double res;
 	res = veclength2d(ptr->c);
@@ -3243,7 +3243,7 @@ int SFVec2d_length(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwre
 	fwretval->itype = 'D';
 	return 1;
 }
-int SFVec2d_dot(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec2d_dot(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec2d *ptr = (struct SFVec2d *)fwn;
 	struct SFVec2d *rhs = fwpars[0]._web3dval.native;
 	double res;
@@ -3252,7 +3252,7 @@ int SFVec2d_dot(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretva
 	fwretval->itype = 'D';
 	return 1;
 }
-int SFVec2d_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec2d_toString(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec2d *ptr = (struct SFVec2d *)fwn;
 	char buff[STRING], *str;
 	int len;
@@ -3278,7 +3278,7 @@ FWFunctionSpec (SFVec2d_Functions)[] = {
 	{0}
 };
 
-int SFVec2d_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+int SFVec2d_Getter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	struct SFVec2d *ptr = (struct SFVec2d *)fwn;
 	int nr = 0;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
@@ -3296,7 +3296,7 @@ int SFVec2d_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	fwretval->itype = 'D';
 	return nr;
 }
-int SFVec2d_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+int SFVec2d_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 	struct SFVec2d *ptr = (struct SFVec2d *)fwn;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index > -1 && index < 2){
@@ -3360,7 +3360,7 @@ FWTYPE MFVec2dType = {
 	MFW_Functions, //functions
 };
 
-int SFVec4f_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec4f_toString(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec4f *ptr = (struct SFVec4f *)fwn;
 	char buff[STRING], *str;
 	int len;
@@ -3380,7 +3380,7 @@ FWFunctionSpec (SFVec4f_Functions)[] = {
 	{0}
 };
 
-int SFVec4f_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+int SFVec4f_Getter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	struct SFVec4f *ptr = (struct SFVec4f *)fwn;
 	int nr = 0;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
@@ -3400,7 +3400,7 @@ int SFVec4f_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	fwretval->itype = 'F';
 	return nr;
 }
-int SFVec4f_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+int SFVec4f_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 	struct SFVec4f *ptr = (struct SFVec4f *)fwn;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index > -1 && index < 4){
@@ -3469,7 +3469,7 @@ FWTYPE MFVec4fType = {
 	MFW_Functions, //functions
 };
 
-int SFVec4d_toString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int SFVec4d_toString(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec4d *ptr = (struct SFVec4d *)fwn;
 	char buff[STRING], *str;
 	int len;
@@ -3488,7 +3488,7 @@ FWFunctionSpec (SFVec4d_Functions)[] = {
 	{0}
 };
 
-int SFVec4d_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
+int SFVec4d_Getter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
 	int nr = 0;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
@@ -3508,7 +3508,7 @@ int SFVec4d_Getter(FWType fwt, int index, void * fwn, FWval fwretval){
 	fwretval->itype = 'D';
 	return nr;
 }
-int SFVec4d_Setter(FWType fwt, int index, void * fwn, FWval fwval){
+int SFVec4d_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index > -1 && index < 4){

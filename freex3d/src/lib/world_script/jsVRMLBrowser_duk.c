@@ -326,7 +326,7 @@ struct string_int *lookup_string_int(struct string_int *table, char *searchkey, 
 	return NULL;
 }
 
-int X3DConstantsGetter(FWType fwt, int index, void * fwn, FWval fwretval){
+int X3DConstantsGetter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	int nr = 1;
 	fwretval->_integer = lookup_X3DConstants[index].i;
 	fwretval->itype = 'I';
@@ -368,19 +368,19 @@ FWTYPE X3DConstantsType = {
 
 
 
-int VrmlBrowserGetName(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserGetName(FWType fwtype, void *ec, void * fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	fwretval->_string = BrowserName;
 	fwretval->itype = 'S';
 	return 1;
 }
-int VrmlBrowserGetVersion(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserGetVersion(FWType fwtype, void *ec, void * fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	fwretval->_string = libFreeWRL_get_version();
 	fwretval->itype = 'S';
 	return 1;
 }
-int VrmlBrowserGetCurrentSpeed(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserGetCurrentSpeed(FWType fwtype, void *ec, void * fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	char string[1000];
 	sprintf (string,"%f",gglobal()->Mainloop.BrowserSpeed);
@@ -389,7 +389,7 @@ int VrmlBrowserGetCurrentSpeed(FWType fwtype, void * fwn, int argc, FWval fwpars
 	return 1;
 }
 
-int VrmlBrowserGetCurrentFrameRate(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserGetCurrentFrameRate(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	char string[1000];
 	sprintf (string,"%6.2f",gglobal()->Mainloop.BrowserFPS);
@@ -397,7 +397,7 @@ int VrmlBrowserGetCurrentFrameRate(FWType fwtype, void * fwn, int argc, FWval fw
 	fwretval->itype = 'S';
 	return 1;
 }
-int VrmlBrowserGetWorldURL(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserGetWorldURL(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	fwretval->_string = BrowserFullPath;
 	fwretval->itype = 'S';
@@ -455,7 +455,7 @@ const char *flexiString(FWval fwpars, char *buffer)
 	return _costr;
 }
 
-int VrmlBrowserReplaceWorld(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserReplaceWorld(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	char *tptr;
 	char*_costr;
@@ -535,7 +535,7 @@ void createLoadUrlString(char *out, int outLen, char *url, char *param) {
 	conCat (out,param);
 }
 struct X3D_Anchor* get_EAIEventsIn_AnchorNode();
-int VrmlBrowserLoadURL(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserLoadURL(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	char *url, *parameter;
 	char bufferUrl[1000];
@@ -556,14 +556,14 @@ int VrmlBrowserLoadURL(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval 
 		gglobal()->RenderFuncs.BrowserAction = TRUE;
 	return 0;
 }
-int VrmlBrowserSetDescription(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserSetDescription(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	const char *_costr = NULL;
 	if(fwpars[0].itype == 'S')
 		gglobal()->Mainloop.BrowserDescription = fwpars[0]._string;
 	return 0;
 }
-int VrmlBrowserCreateX3DFromString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserCreateX3DFromString(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	/* for the return of the nodes */
 	struct X3D_Group *retGroup;
@@ -593,7 +593,7 @@ int VrmlBrowserCreateX3DFromString(FWType fwtype, void * fwn, int argc, FWval fw
 	return 1;
 }
 //int jsrrunScript(duk_context *ctx, char *script, FWval retval);
-int VrmlBrowserCreateVrmlFromString(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserCreateVrmlFromString(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	/* for the return of the nodes */
 	struct X3D_Group *retGroup;
@@ -621,7 +621,7 @@ int VrmlBrowserCreateVrmlFromString(FWType fwtype, void * fwn, int argc, FWval f
 	return 1;
 
 }
-int VrmlBrowserCreateVrmlFromURL(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserCreateVrmlFromURL(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	//from x3dnode, from char*field, to x3dnode, to char*field
 	return 0;
@@ -735,7 +735,7 @@ void * addDeleteRoute(void *fwn, char* callingFunc, int argc, FWval fwpars, FWva
 	retval = addDeleteRoute0(fwn,callingFunc,fromNode, fromField, toNode, toField);
 	return retval;
 }
-int X3DExecutionContext_deleteRoute(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DExecutionContext_deleteRoute(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	//we're expecting an X3DRoute struct parameter.
 	int nr = 0;
 	void *xroute;
@@ -764,7 +764,7 @@ int X3DExecutionContext_deleteRoute(FWType fwtype, void * fwn, int argc, FWval f
 	return nr;
 }
 
-int VrmlBrowserAddRoute(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int VrmlBrowserAddRoute(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	void *xroute;
 	int nr = 0;
 	xroute = addDeleteRoute(fwn,"addRoute",argc,fwpars,fwretval);
@@ -777,13 +777,13 @@ int VrmlBrowserAddRoute(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval
 	}
 	return nr;
 }
-int VrmlBrowserDeleteRoute(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int VrmlBrowserDeleteRoute(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	void *xroute;
 	int nr = 0;
 	xroute = addDeleteRoute(fwn,"deleteRoute",argc,fwpars,fwretval);
 	return nr;
 }
-int VrmlBrowserPrint(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserPrint(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	const char *_costr = NULL;
 	if(fwpars[0].itype == 'S'){
@@ -793,7 +793,7 @@ int VrmlBrowserPrint(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fw
 	}
 	return 0;
 }
-int VrmlBrowserPrintln(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval)
+int VrmlBrowserPrintln(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	const char *_costr = NULL;
 	if(fwpars[0].itype == 'S'){
@@ -860,7 +860,7 @@ struct proftablestruct {
 };
 struct proftablestruct *getProfTable();
 int * getCapabilitiesTable();
-int BrowserGetter(FWType fwt, int index, void * fwn, FWval fwretval){
+int BrowserGetter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	int nr = 1;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	switch (index) {
@@ -898,7 +898,10 @@ int BrowserGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 			break;
 		case 7: //currentScene
 			fwretval->_web3dval.fieldType = AUXTYPE_X3DExecutionContext; //AUXTYPE_X3DScene;
-			fwretval->_web3dval.native = (void *)(struct X3D_Node*)rootNode(); //X3DScene || X3DExecutionContext
+			if(usingBrotos())
+				fwretval->_web3dval.native = (void *)(struct X3D_Node*)ec; //X3DScene || X3DExecutionContext
+			else
+				fwretval->_web3dval.native = (void *)(struct X3D_Node*)rootNode(); //X3DScene || X3DExecutionContext
 			fwretval->_web3dval.gc = 0;
 				//change this to (Script)._executionContext when brotos working fully
 			fwretval->itype = 'P';
@@ -908,7 +911,7 @@ int BrowserGetter(FWType fwt, int index, void * fwn, FWval fwretval){
 		}
 	return nr;
 }
-int BrowserSetter(FWType fwt, int index, void * fwn, FWval fwval){
+int BrowserSetter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 	switch (index) {
 		case 4: //description is settable
 			gglobal()->Mainloop.BrowserDescription = fwval->_string; //fwval->_web3dval.anyvrml->sfstring->strptr; 
@@ -974,7 +977,7 @@ int *intdup(int value){
 	memcpy(p,&value,sizeof(int));
 	return p;
 }
-int ComponentInfoArrayGetter(FWType fwt, int index, void * fwn, FWval fwretval){
+int ComponentInfoArrayGetter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	int *_table;
 	int nr = 1;
 	_table = (int *)fwn;
@@ -1026,7 +1029,7 @@ FWPropertySpec (ComponentInfoProperties)[] = {
 };
 
 
-int ComponentInfoGetter(FWType fwt, int index, void * fwn, FWval fwretval){
+int ComponentInfoGetter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	int nr, *tableEntry, nameIndex;
 	tableEntry = (int *)fwn;
 	nr = 1;
@@ -1076,7 +1079,7 @@ FWTYPE ComponentInfoType = {
 //}
 
 
-int ProfileInfoArrayGetter(FWType fwt, int index, void * fwn, FWval fwretval){
+int ProfileInfoArrayGetter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	struct proftablestruct *_table;
 	int nr = 1;
 	_table = (struct proftablestruct *)fwn;
@@ -1135,7 +1138,7 @@ FWPropertySpec (ProfileInfoProperties)[] = {
 };
 
 
-int ProfileInfoGetter(FWType fwt, int index, void * fwn, FWval fwretval){
+int ProfileInfoGetter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	int nr, nameIndex;
 	struct proftablestruct *tableEntry;
 	tableEntry = (struct proftablestruct *)fwn;
@@ -1189,12 +1192,12 @@ FWTYPE ProfileInfoType = {
 
 struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, char *name);
 struct X3D_Node * broto_search_ALLnames(struct X3D_Proto *context, char *name, int *source);
-int X3DExecutionContext_getNamedNode(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DExecutionContext_getNamedNode(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	int nr = 0;
 	struct X3D_Node* node = NULL;
 	//broto warning - DEF name list should be per-executionContext
 	if(usingBrotos()){
-		struct X3D_Proto *ec = (struct X3D_Proto *)fwn;
+		//struct X3D_Proto *ec = (struct X3D_Proto *)fwn; //we want the script node's parent context for imported nodes, I think
 		node = broto_search_DEFname(ec, fwpars[0]._string);
 
 	}else{
@@ -1212,7 +1215,7 @@ int X3DExecutionContext_getNamedNode(FWType fwtype, void * fwn, int argc, FWval 
 	return nr;
 }
 
-int X3DExecutionContext_updateNamedNode(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DExecutionContext_updateNamedNode(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	int nr = 0;
 	//broto warning - DEF name list should be per-executionContext
 	if(usingBrotos()){
@@ -1253,7 +1256,7 @@ int X3DExecutionContext_updateNamedNode(FWType fwtype, void * fwn, int argc, FWv
 	return nr;
 }
 
-int X3DExecutionContext_removeNamedNode(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DExecutionContext_removeNamedNode(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	int nr = 0;
 	//broto warning - DEF name list should be per-executionContext
 	if(usingBrotos()){
@@ -1280,7 +1283,7 @@ int X3DExecutionContext_removeNamedNode(FWType fwtype, void * fwn, int argc, FWv
 	return nr;
 }
 
-int X3DExecutionContext_createProto(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DExecutionContext_createProto(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	int nr = 0;
 	struct X3D_Node* node = NULL;
 	//broto warning - DEF name list should be per-executionContext
@@ -1310,7 +1313,7 @@ int X3DExecutionContext_createProto(FWType fwtype, void * fwn, int argc, FWval f
 	return nr;
 }
 
-int X3DExecutionContext_getImportedNode(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DExecutionContext_getImportedNode(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	int nr = 0;
 	struct X3D_Node* node = NULL;
 	//broto warning - DEF name list should be per-executionContext
@@ -1337,8 +1340,8 @@ int X3DExecutionContext_getImportedNode(FWType fwtype, void * fwn, int argc, FWv
 	return nr;
 }
 
-
-int X3DExecutionContext_updateImportedNode(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+void update_weakRoutes(struct X3D_Proto *context);
+int X3DExecutionContext_updateImportedNode(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	// I think what they mean by updateImportedNode(string,string[,string]) is:
 	//   updateImportedNode(Inline DEF name, Inline's Export AS name [,optional Import AS name])
 	int nr = 0;
@@ -1362,8 +1365,8 @@ int X3DExecutionContext_updateImportedNode(FWType fwtype, void * fwn, int argc, 
 				mxp = vector_get(struct IMEXPORT *,ec->__IMPORTS,i);
 				//Q. is it the DEF we search for, and node we replace, OR
 				//   is it the node we search for, and DEF we replace?
-				if(!strcmp(nline,mxp->nodename) && !strcmp(mxp->mxname,mxname)){
-					mxp->as = as;
+				if(!strcmp(nline,mxp->inlinename) && !strcmp(mxp->mxname,mxname)){
+					mxp->as = strdup(as);
 					found = 1;
 					break;
 				}
@@ -1376,7 +1379,7 @@ int X3DExecutionContext_updateImportedNode(FWType fwtype, void * fwn, int argc, 
 			mxp = (struct IMEXPORT *)malloc(sizeof(struct IMEXPORT));
 			mxp->mxname = strdup(mxname);
 			mxp->as = strdup(as);
-			mxp->nodename = strdup(nline);
+			mxp->inlinename = strdup(nline);
 			stack_push(struct IMEXPORT *,ec->__IMPORTS,mxp);
 		}
 		update_weakRoutes(ec);
@@ -1385,7 +1388,7 @@ int X3DExecutionContext_updateImportedNode(FWType fwtype, void * fwn, int argc, 
 }
 
 
-int X3DExecutionContext_removeImportedNode(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DExecutionContext_removeImportedNode(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	int nr = 0;
 	//broto warning - DEF name list should be per-executionContext
 	if(usingBrotos()){
@@ -1411,7 +1414,7 @@ int X3DExecutionContext_removeImportedNode(FWType fwtype, void * fwn, int argc, 
 }
 
 
-int X3DScene_getExportedNode(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DScene_getExportedNode(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	int nr = 0;
 	struct X3D_Node* node = NULL;
 	//broto warning - DEF name list should be per-executionContext
@@ -1435,7 +1438,7 @@ int X3DScene_getExportedNode(FWType fwtype, void * fwn, int argc, FWval fwpars, 
 	return nr;
 }
 
-int X3DScene_updateExportedNode(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DScene_updateExportedNode(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	int nr = 0;
 	//broto warning - DEF name list should be per-executionContext
 	if(usingBrotos()){
@@ -1447,7 +1450,7 @@ int X3DScene_updateExportedNode(FWType fwtype, void * fwn, int argc, FWval fwpar
 		struct IMEXPORT *mxp;
 
 		defname = fwpars[0]._string;
-		node = X3D_NODE(fwpars[1]._web3dval.native);
+		node = X3D_NODE(fwpars[1]._web3dval.anyvrml->sfnode);
 		if(ec->__EXPORTS){
 			for(int i=0;i<vectorSize(ec->__EXPORTS);i++){
 				mxp = vector_get(struct IMEXPORT *,ec->__EXPORTS,i);
@@ -1475,11 +1478,16 @@ int X3DScene_updateExportedNode(FWType fwtype, void * fwn, int argc, FWval fwpar
 			mxp->as = mxp->mxname;
 			stack_push(struct IMEXPORT *,ec->__EXPORTS,mxp);
 		}
+		if(ec->_executionContext){
+			//update weak routes in the importing context, which should be the parent context of the Inline node
+			//and the Inline should be our current context. I think.
+			update_weakRoutes(X3D_PROTO(ec->_executionContext));
+		}
 	}
 	return nr;
 }
 
-int X3DScene_removeExportedNode(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DScene_removeExportedNode(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	int nr = 0;
 	//broto warning - DEF name list should be per-executionContext
 	if(usingBrotos()){
@@ -1499,10 +1507,15 @@ int X3DScene_removeExportedNode(FWType fwtype, void * fwn, int argc, FWval fwpar
 				}
 			}
 		}
+		if(ec->_executionContext){
+			//update weak routes in the importing context, which should be the parent context of the Inline node
+			//and the Inline should be our current context. I think.
+			update_weakRoutes(X3D_PROTO(ec->_executionContext));
+		}
 	}
 	return nr;
 }
-int X3DScene_setMetaData(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DScene_setMetaData(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	int nr = 0;
 	char *name, *value;
 	name = fwpars[0]._string;
@@ -1510,7 +1523,7 @@ int X3DScene_setMetaData(FWType fwtype, void * fwn, int argc, FWval fwpars, FWva
 	//strdup and put in a global or per-scene or per execution context (name,value) list
 	return nr;
 }
-int X3DScene_getMetaData(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval){
+int X3DScene_getMetaData(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	int nr = 0;
 	char *name, *value;
 	value = NULL;
@@ -1564,10 +1577,10 @@ static FWPropertySpec (X3DExecutionContextProperties)[] = {
 };
 static int _TRUE = TRUE;
 static int _FALSE = FALSE;
-int X3DExecutionContextGetter(FWType fwt, int index, void * fwn, FWval fwretval){
-	struct X3D_Proto * ec;
+int X3DExecutionContextGetter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
+	struct X3D_Proto * ecc;
 	int nr = 1;
-	ec = (struct X3D_Proto*)fwn;
+	ecc = (struct X3D_Proto*)fwn;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	switch (index) {
 		case 0: //specificationVersion
@@ -1608,7 +1621,7 @@ int X3DExecutionContextGetter(FWType fwt, int index, void * fwn, FWval fwretval)
 			break;
 		case 5: //rootNodes
 			if(usingBrotos())
-				fwretval->_web3dval.native = (void *)&ec->__children;  //broto warning: inside a proto should be the rootnodes of the protobody
+				fwretval->_web3dval.native = (void *)&ecc->__children;  //broto warning: inside a proto should be the rootnodes of the protobody
 			else
 				fwretval->_web3dval.native = (void *)&((struct X3D_Group*)rootNode())->children;  //broto warning: inside a proto should be the rootnodes of the protobody
 			fwretval->_web3dval.fieldType = FIELDTYPE_MFNode;
@@ -1618,7 +1631,7 @@ int X3DExecutionContextGetter(FWType fwt, int index, void * fwn, FWval fwretval)
 		case 6: //protos
 			if(usingBrotos()){
 				fwretval->_pointer.fieldType = AUXTYPE_X3DProtoArray; 
-				fwretval->_pointer.native = (void*)ec->__protoDeclares; //broto: this should be a per-context array
+				fwretval->_pointer.native = (void*)ecc->__protoDeclares; //broto: this should be a per-context array
 				fwretval->_pointer.gc = 0;
 				fwretval->itype = 'P';
 			}else{
@@ -1629,7 +1642,7 @@ int X3DExecutionContextGetter(FWType fwt, int index, void * fwn, FWval fwretval)
 		case 7: //externprotos
 			if(usingBrotos()){
 				fwretval->_pointer.fieldType = AUXTYPE_X3DExternProtoArray; 
-				fwretval->_pointer.native = (void*)ec->__externProtoDeclares; //broto: this should be a per-context array
+				fwretval->_pointer.native = (void*)ecc->__externProtoDeclares; //broto: this should be a per-context array
 				fwretval->_pointer.gc = 0;
 				fwretval->itype = 'P';
 			}else{
@@ -1640,7 +1653,7 @@ int X3DExecutionContextGetter(FWType fwt, int index, void * fwn, FWval fwretval)
 		case 8: //routes
 			fwretval->_pointer.fieldType = AUXTYPE_X3DRouteArray; 
 			if(usingBrotos())
-				fwretval->_pointer.native = (void*)ec->__ROUTES; //broto: this should be a per-context array
+				fwretval->_pointer.native = (void*)ecc->__ROUTES; //broto: this should be a per-context array
 			else
 				fwretval->_pointer.native = NULL; 
 			fwretval->_pointer.gc = 0;
@@ -1650,7 +1663,7 @@ int X3DExecutionContextGetter(FWType fwt, int index, void * fwn, FWval fwretval)
 			//fwretval->_boolean = TRUE; //broto warning: should be false inside a protoinstance body
 			fwretval->itype = 'B';
 			if(usingBrotos()){
-				unsigned char flag = ciflag_get(ec->__protoFlags,2);
+				unsigned char flag = ciflag_get(ecc->__protoFlags,2);
 				if(flag == 2)
 					fwretval->_boolean = TRUE;
 				else
@@ -1682,7 +1695,7 @@ FWTYPE X3DExecutionContextType = {
 struct CRStruct *getCRoutes();
 int getCRouteCount();
 int *getCRouteCounter();
-int X3DRouteArrayGetter(FWType fwt, int index, void * fwn, FWval fwretval){
+int X3DRouteArrayGetter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	
 	int nr = 0;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
@@ -1753,7 +1766,7 @@ FWPropertySpec (X3DRouteProperties)[] = {
 	{"destinationField", 3, 'S', 'T'},
 	{NULL,0,0,0},
 };
-int X3DRouteGetter(FWType fwt, int index, void * fwn, FWval fwretval){
+int X3DRouteGetter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	union anyVrml *value;
 	int type, kind;
 	char *fieldname, *sfromfield, *stofield;
@@ -1829,7 +1842,7 @@ FWTYPE X3DRouteType = {
 
 
 
-int X3DProtoArrayGetter(FWType fwt, int index, void * fwn, FWval fwretval){
+int X3DProtoArrayGetter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	
 	int nr = 0;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
@@ -1906,7 +1919,7 @@ FWPropertySpec (X3DProtoProperties)[] = {
 	{"isExternProto", 2, 'B', 'T'},
 	{NULL,0,0,0},
 };
-int X3DProtoGetter(FWType fwt, int index, void * fwn, FWval fwretval){
+int X3DProtoGetter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	int nr = 0;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	switch(index){
@@ -1968,7 +1981,7 @@ FWTYPE X3DExternProtoType = {
 };
 
 int count_fields(struct X3D_Node* node);
-int X3DFieldDefinitionArrayGetter(FWType fwt, int index, void * fwn, FWval fwretval){
+int X3DFieldDefinitionArrayGetter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	
 	int nr = 0;
 	struct X3D_Node *node = (struct X3D_Node*)fwn;
@@ -2030,7 +2043,7 @@ FWPropertySpec (X3DFieldDefinitionProperties)[] = {
 	{"dataType", 2, 'I', 'T'},
 	{NULL,0,0,0},
 };
-int X3DFieldDefinitionGetter(FWType fwt, int index, void * fwn, FWval fwretval){
+int X3DFieldDefinitionGetter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	int ifield, type,kind, konstindex, nr = 0;
 	struct string_int * si;
 	union anyVrml *value;
