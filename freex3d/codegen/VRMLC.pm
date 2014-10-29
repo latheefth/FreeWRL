@@ -1131,6 +1131,7 @@ sub gen {
 	"	node->_intern = 0;\n".
 	"	node->_nodeType = nt; /* unique integer for each type */\n".
 	"	node->referenceCount = 1; /* we have requested this, we want it! */\n".
+	"	node->_executionContext = NULL; /* a few places like js need to know the executionContext if non-null */ \n".
 	"	\n";
 
 

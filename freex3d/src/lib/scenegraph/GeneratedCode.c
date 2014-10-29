@@ -76,7 +76,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__DEFnames",
 	"__EXPORTS",
 	"__IMPORTS",
-	"__IMPROUTES",
 	"__IS",
 	"__ROUTES",
 	"__Samples",
@@ -3682,7 +3681,6 @@ const int OFFSETS_Inline[] = {
 	(int) FIELDNAMES___DEFnames, (int) offsetof (struct X3D_Inline, __DEFnames),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___EXPORTS, (int) offsetof (struct X3D_Inline, __EXPORTS),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___IMPORTS, (int) offsetof (struct X3D_Inline, __IMPORTS),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES___IMPROUTES, (int) offsetof (struct X3D_Inline, __IMPROUTES),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___IS, (int) offsetof (struct X3D_Inline, __IS),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___ROUTES, (int) offsetof (struct X3D_Inline, __ROUTES),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___afterPound, (int) offsetof (struct X3D_Inline, __afterPound),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
@@ -4555,7 +4553,6 @@ const int OFFSETS_Proto[] = {
 	(int) FIELDNAMES___DEFnames, (int) offsetof (struct X3D_Proto, __DEFnames),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___EXPORTS, (int) offsetof (struct X3D_Proto, __EXPORTS),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___IMPORTS, (int) offsetof (struct X3D_Proto, __IMPORTS),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES___IMPROUTES, (int) offsetof (struct X3D_Proto, __IMPROUTES),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___IS, (int) offsetof (struct X3D_Proto, __IS),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___ROUTES, (int) offsetof (struct X3D_Proto, __ROUTES),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___afterPound, (int) offsetof (struct X3D_Proto, __afterPound),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
@@ -5854,6 +5851,7 @@ void *createNewX3DNode0 (int nt) {
 	node->_intern = 0;
 	node->_nodeType = nt; /* unique integer for each type */
 	node->referenceCount = 1; /* we have requested this, we want it! */
+	node->_executionContext = NULL; /* a few places like js need to know the executionContext if non-null */ 
 	
 	/* now, fill in the node specific stuff here. the defaults are in VRMLNodes.pm */
 	switch (nt) {
@@ -7176,7 +7174,6 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__DEFnames = 0;
 			tmp2->__EXPORTS = 0;
 			tmp2->__IMPORTS = 0;
-			tmp2->__IMPROUTES = 0;
 			tmp2->__IS = 0;
 			tmp2->__ROUTES = 0;
 			tmp2->__afterPound = 0;
@@ -8352,7 +8349,6 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__DEFnames = 0;
 			tmp2->__EXPORTS = 0;
 			tmp2->__IMPORTS = 0;
-			tmp2->__IMPROUTES = 0;
 			tmp2->__IS = 0;
 			tmp2->__ROUTES = 0;
 			tmp2->__afterPound = 0;

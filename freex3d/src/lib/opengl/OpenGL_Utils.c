@@ -4640,8 +4640,9 @@ void startOfLoopNodeUpdates(void) {
 #endif
 
 				BEGIN_NODE(Inline)
-                    //printf ("node inline - status %d for node %p\n",X3D_INLINE(node)->__loadstatus, node);
-					if (X3D_INLINE(node)->__loadstatus != INLINE_STABLE) {
+                    //printf ("node inline - status %d load %d for node %p\n",X3D_INLINE(node)->__loadstatus, X3D_INLINE(node)->load, node);
+					if (X3D_INLINE(node)->__loadstatus != INLINE_STABLE && X3D_INLINE(node)->load ||
+					    X3D_INLINE(node)->__loadstatus != INLINE_INITIAL_STATE && !X3D_INLINE(node)->load) {
 						/* schedule this after we have unlocked the memory table */
 						if (loadInlines == NULL) {
 							loadInlines = newVector(struct X3D_Inline*, 16);
