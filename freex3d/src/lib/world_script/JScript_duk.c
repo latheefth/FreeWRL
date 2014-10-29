@@ -1294,9 +1294,18 @@ int cfunction(duk_context *ctx) {
 		FWval pars;
 		int argc;
 		FWVAL fwretval;
+		void *ec = NULL;
 		convert_duk_to_fwvals(ctx, nargs, 0, fs->arglist, &pars, &argc);
 		//the object function call, using engine-agnostic parameters
-		nr = fs->call(fwt,parent,argc,pars,&fwretval);
+		
+		//>>just SFNode function getNodeName needs to know the script node context (it can't use its own - it may be an IMPORT)
+		duk_eval_string(ctx,"__script");
+		struct X3D_Node *scriptnode = (struct X3D_Node*) duk_to_pointer(ctx,-1);
+		duk_pop(ctx);
+		if(scriptnode)
+			ec = (void *)scriptnode->_executionContext;
+		//<<
+		nr = fs->call(fwt,ec,parent,argc,pars,&fwretval);
 		if(nr){
 			nr = fwval_duk_push(ctx,&fwretval,valueChanged);
 			if(nr && !strcmp(fwFunc,"toString")){
@@ -1427,7 +1436,16 @@ int cget(duk_context *ctx) {
 			}
 		}else if(found && fwt->Getter){
 			FWVAL fwretval;
-			nr = fwt->Getter(fwt,jndex,parent,&fwretval);
+			void *ec = NULL;
+			//>>just SFNode function getNodeName needs to know the script node context (it can't use its own - it may be an IMPORT)
+			duk_eval_string(ctx,"__script");
+			struct X3D_Node *scriptnode = (struct X3D_Node*) duk_to_pointer(ctx,-1);
+			duk_pop(ctx);
+			if(scriptnode)
+				ec = (void *)scriptnode->_executionContext;
+			//<<
+
+			nr = fwt->Getter(fwt,jndex,ec,parent,&fwretval);
 			if(nr){
 				nr = fwval_duk_push(ctx,&fwretval,valueChanged);
 			}
@@ -1511,7 +1529,16 @@ int cset(duk_context *ctx) {
 			arglist.iVarArgStartsAt = -1;
 			convert_duk_to_fwvals(ctx, 1, -2, arglist, &fwsetval, &argc);
 			if(argc == 1){
-				fwt->Setter(fwt,jndex,parent,fwsetval);
+				void *ec = NULL;
+				//>>just SFNode function getNodeName needs to know the script node context (it can't use its own - it may be an IMPORT)
+				duk_eval_string(ctx,"__script");
+				struct X3D_Node *scriptnode = (struct X3D_Node*) duk_to_pointer(ctx,-1);
+				duk_pop(ctx);
+				if(scriptnode)
+					ec = (void *)scriptnode->_executionContext;
+				//<<
+
+				fwt->Setter(fwt,jndex,ec,parent,fwsetval);
 				if(valueChanged)
 					(*valueChanged) = 1;
 			}
@@ -1601,12 +1628,13 @@ void JSCreateScriptContext(int num) {
 	//jsval rval;
 	duk_context *ctx; 	/* these are set here */
 	struct Shader_Script *script;
+	struct X3D_Node *scriptnode;
 	//JSObject *_globalObj; 	/* these are set here */
 	//BrowserNative *br; 	/* these are set here */
 	ppJScript p = (ppJScript)gglobal()->JScript.prv;
 	struct CRscriptStruct *ScriptControl = getScriptControl();
 	script = ScriptControl[num].script;
-
+	scriptnode = script->ShaderScriptNode;
 	//CREATE CONTEXT
 	ctx = duk_create_heap_default();
 
@@ -1620,8 +1648,9 @@ void JSCreateScriptContext(int num) {
 	*((int *)ScriptControl[num].glob) = iglobal; //we'll be careful not to pop our global for this context (till context cleanup)
 
 	//ADD HELPER PROPS AND FUNCTIONS
-	//duk_push_pointer(ctx,script); //I don't think we need to know the script this way, but in the future, you might
-	//duk_put_prop_string(ctx,iglobal,"__script");
+	duk_push_pointer(ctx,scriptnode); //I don't think we need to know the script this way, but in the future, you might
+	duk_put_prop_string(ctx,iglobal,"__script"); //oct 2014 the future arrived. sfnode.getNodeName needs the DEFnames from the broto context, and script seems to know its broto context
+
 	duk_push_string(ctx,eval_string_defineAccessor);
 	duk_eval(ctx);
 	duk_pop(ctx);
@@ -1648,6 +1677,15 @@ void JSCreateScriptContext(int num) {
 	CRoutes_js_new (num, JAVASCRIPT);
 
 	//tests, if something is broken these tests might help
+	if(1){
+		//duk_eval_string(ctx,"print('this.__script='+this.__script);"); //checks the NodeScript availability
+		//duk_pop(ctx);
+		duk_eval_string(ctx,"__script");
+		void *scriptnode = duk_to_pointer(ctx,-1);
+		duk_pop(ctx);
+		struct X3D_Node *snode = (struct X3D_Node *)scriptnode;
+		printf("script node = %x",scriptnode);
+	}
 	if(0){
 		duk_eval_string(ctx,"print(Object.keys(Browser));"); //invokes ownKeys
 		duk_pop(ctx);
@@ -1701,7 +1739,7 @@ void JSCreateScriptContext(int num) {
    one global>property for each script field, with the name of the script field on the property
 */
 
-int SFNode_Setter0(FWType fwt, int index, void * fwn, FWval fwval, int isCurrentScriptNode);
+int SFNode_Setter0(FWType fwt, int index, void *ec, void * fwn, FWval fwval, int isCurrentScriptNode);
 int fwsetterNS(duk_context *ctx) {
 	/* myfield = new SFVec3f(1,2,3); 
 	 * if myfield is a property we set on the global object, and we've assigned this setter to it,
@@ -1764,7 +1802,16 @@ int fwsetterNS(duk_context *ctx) {
 			arglist.iVarArgStartsAt = -1;
 			convert_duk_to_fwvals(ctx, 1, -2, arglist, &fwsetval, &argc);
 			if(argc == 1){
-				SFNode_Setter0(fwt,jndex,&any,fwsetval,TRUE);
+				void *ec = NULL;
+				//>>just SFNode function getNodeName needs to know the script node context (it can't use its own - it may be an IMPORT)
+				duk_eval_string(ctx,"__script");
+				struct X3D_Node *scriptnode = (struct X3D_Node*) duk_to_pointer(ctx,-1);
+				duk_pop(ctx);
+				if(scriptnode)
+					ec = (void *)scriptnode->_executionContext;
+				//<<
+
+				SFNode_Setter0(fwt,jndex,ec,&any,fwsetval,TRUE);
 				//if(valueChanged)
 				//	(*valueChanged) = 1; //DONE IN SFNODE_SETTER0
 			}
@@ -1860,7 +1907,16 @@ int fwgetter0(duk_context *ctx,void *parent,int itype, char *key, int *valueChan
 	found = fwhas_generic(fwt,parent,key,&jndex,&type,&readOnly); //SFNode_Iterator
 	if(found && fwt->Getter){
 		FWVAL fwretval;
-		nr = fwt->Getter(fwt,jndex,parent,&fwretval); //SFNode_Getter
+		void *ec = NULL;
+		//>>just SFNode function getNodeName needs to know the script node context (it can't use its own - it may be an IMPORT)
+		duk_eval_string(ctx,"__script");
+		struct X3D_Node *scriptnode = (struct X3D_Node*) duk_to_pointer(ctx,-1);
+		duk_pop(ctx);
+		if(scriptnode)
+			ec = (void *)scriptnode->_executionContext;
+		//<<
+
+		nr = fwt->Getter(fwt,jndex,ec,parent,&fwretval); //SFNode_Getter
 		if(nr){
 			nr = fwval_duk_push(ctx,&fwretval,valueChanged);
 		}

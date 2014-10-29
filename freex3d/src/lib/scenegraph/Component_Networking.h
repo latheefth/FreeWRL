@@ -33,6 +33,9 @@ Proximity sensor macro.
 #define INLINE_REQUEST_RESOURCE 1
 #define INLINE_FETCHING_RESOURCE 2
 #define INLINE_PARSING 3
+#define INLINE_IMPORTING 4
+#define INLINE_UN_IMPORTING 5
+#define INLINE_UNLOADING 6
 #define INLINE_STABLE 10
 
 /* function protos */

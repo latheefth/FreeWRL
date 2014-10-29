@@ -1226,13 +1226,14 @@ static BOOL parser_componentStatement(struct VRMLParser* me) {
     return TRUE;
 }
 
-struct IMEXPORT {
-	struct X3D_Node *nodeptr; 
-	char *nodename;
-	char *mxname;
-	char *as;
-
-};
+///* structure used for both import and export tables*/  moved to header
+//struct IMEXPORT {
+//	struct X3D_Node *nodeptr; 
+//	char *nodename;  //of inline
+//	char *mxname;  //of node being exported or imported
+//	char *as;  //nickname of mxname in local execution context
+//
+//};
 void handleExport (char *node, char *as) {
 	/* handle export statements. as will be either a string pointer, or NULL */
 	
@@ -1258,16 +1259,21 @@ struct X3D_Proto *hasContext(struct X3D_Node* node){
 		}
 	return context;
 }
+struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, char *name);
 
-void handleExport_B (void *nodeptr, char *node, char *as) {
+void handleExport_B (void *ctxnodeptr, char *nodename, char *as) {
 	/* handle export statements. as will be either a string pointer, or NULL */
-	struct X3D_Proto *context = hasContext(nodeptr);
+	struct X3D_Proto *context = hasContext(ctxnodeptr);
 	if(context){
+		struct X3D_Node *node = NULL;
 		struct IMEXPORT *mxport = malloc(sizeof(struct IMEXPORT));
 		if(!context->__EXPORTS) context->__EXPORTS = newVector(struct IMEXPORT *,4);
-		mxport->as = strdup(as);
-		mxport->nodename = strdup(node);
-		mxport->nodeptr = nodeptr;
+		mxport->mxname = strdup(nodename);
+		mxport->as = mxport->mxname;
+		if(as)
+			mxport->as = strdup(as);
+		node = broto_search_DEFname(context,mxport->mxname);
+		mxport->nodeptr = node;
 		vector_pushBack(struct IMEXPORT*,context->__EXPORTS,mxport);
 	}
 	#ifdef CAPABILITIESVERBOSE
@@ -1289,15 +1295,21 @@ void handleImport (char *nodeName,char *nodeImport, char *as) {
 }
 
 void handleImport_B (struct X3D_Node *nodeptr, char *nodeName,char *nodeImport, char *as) {
-	/* handle Import statements. as will be either a string pointer, or NULL */
+	/* handle Import statements. as will be either a string pointer, or NULL 
+		nodename - name of Inline node
+		nodeImport - name of inline's node we expect Inline to export to us
+		as - our execution context/scene's DEF name / alias - can be null in which case use nodeImport
+	*/
 	struct X3D_Proto *context = hasContext(nodeptr);
 	if(context){
 		struct IMEXPORT *mxport = malloc(sizeof(struct IMEXPORT));
 		if(!context->__IMPORTS) context->__IMPORTS = newVector(struct IMEXPORT *,4);
-		mxport->as = strdup(as);
-		mxport->nodename = strdup(nodeName);
 		mxport->mxname = strdup(nodeImport);
-		mxport->nodeptr = nodeptr;
+		mxport->inlinename = strdup(nodeName);
+		mxport->as = mxport->mxname;
+		if(as)
+			mxport->as = strdup(as);
+		mxport->nodeptr = NULL; //IMPORT doesn't use this. Import is a char* mapping only.
 		vector_pushBack(struct IMEXPORT*,context->__IMPORTS,mxport);
 	}
 	
@@ -3562,6 +3574,7 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 			int idepth = 0; //if its old brotos (2013) don't do depth until sceneInstance. If 2014 broto2, don't do depth here if we're in a protoDeclare or externProtoDeclare
 			if(usingBrotos() ) idepth = pflagdepth == 1; //2014 broto2: if we're parsing a scene (or Inline) then deepcopy proto to instance it, else shallow
 			node=X3D_NODE(brotoInstance(proto,idepth));
+			node->_executionContext = me->ptr;
 			//moved below, for all nodes if(idepth) add_parent(node,X3D_NODE(currentContext),__FILE__,__LINE__); //helps propagate VF_Sensitive to parent of proto, if proto's 1st node is sensor
 			isBroto = TRUE;
 			ASSERT(node);
@@ -3645,8 +3658,11 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 					printf("ouch trying to caste a %d nodetype to inline or proto\n",X3D_NODE(me->ptr)->_nodeType);
 				X3D_INLINE(node)->__parentProto = me->ptr;
 			}
-		}else
+			node->_executionContext = me->ptr;
+		}else{
 			node=X3D_NODE(createNewX3DNode0((int)nodeTypeB)); //doesn't register node types in tables, for protoDeclare
+			node->_executionContext = me->ptr;
+		}
 		ASSERT(node);
 
 		/* if ind != ID_UNDEFINED, we have the first node of a DEF. Save this node pointer, in case
@@ -4387,33 +4403,34 @@ static BOOL parser_externbrotoStatement(struct VRMLParser* me)
 	- late might help with Inline IMPORT/EXPORT, where routes are declared
 		before the nodes appear.
 */
-struct brotoRoute
-{
-	struct X3D_Node* fromNode;
-	int fromOfs;
-	struct X3D_Node* toNode;
-	int toOfs;
-	int ft;
-};
+//see CRoutes.h
+//struct brotoRoute
+//{
+//	struct X3D_Node* fromNode;
+//	int fromOfs;
+//	struct X3D_Node* toNode;
+//	int toOfs;
+//	int ft;
+//};
 void broto_store_route(struct X3D_Proto* proto,
-                          struct X3D_Node* fromNode, int fromOfs,
-                          struct X3D_Node* toNode, int toOfs,
+                          struct X3D_Node* fromNode, int fromIndex,
+                          struct X3D_Node* toNode, int toIndex,
                           int ft)
 {
 	Stack* routes;
 	struct brotoRoute* route;
 	//struct X3D_Proto* protoDeclare = (struct X3D_Proto*)me->ptr;
     ASSERT(proto);
-	if ((fromOfs == ID_UNDEFINED) || (toOfs == ID_UNDEFINED)) {
+	if ((fromIndex == ID_UNDEFINED) || (toIndex == ID_UNDEFINED)) {
 		ConsoleMessage ("problem registering route - either fromField or toField invalid");
 		return;
 	}
 
 	route = MALLOC(struct brotoRoute*,sizeof(struct brotoRoute));
-	route->fromNode = fromNode;
-	route->fromOfs = fromOfs;
-	route->toNode = toNode;
-	route->toOfs = toOfs;
+	route->from.node = fromNode;
+	route->from.ifield = fromIndex;
+	route->to.node = toNode;
+	route->to.ifield = toIndex;
 	route->ft = ft;
 
 	routes = proto->__ROUTES;
@@ -4424,9 +4441,59 @@ void broto_store_route(struct X3D_Proto* proto,
 	stack_push(struct brotoRoute *, routes, route);
 	return;
 }
+//struct ImportRoute
+//{
+//	char* fromNode;
+//	char* fromField;
+//	char* toNode;
+//	char* toField;
+//};
+//void broto_store_ImportRoute_old(struct X3D_Proto* proto, char *fromNode, char *fromField, char *toNode, char* toField)
+//{
+//	struct ImportRoute* improute;
+//	if( proto->__IMPROUTES == NULL)
+//		proto->__IMPROUTES= newStack(struct ImportRoute *);
+//	improute = MALLOC(struct ImportRoute*,sizeof(struct ImportRoute));
+//	improute->fromNode = strdup(fromNode);
+//	improute->fromField = strdup(fromField);
+//	improute->toNode = strdup(toNode);
+//	improute->toField = strdup(toField);
+//	stack_push(struct ImportRoute *, proto->__IMPROUTES, improute);
+//}
+void broto_store_ImportRoute_obsolete(struct X3D_Proto* proto, char *fromNode, char *fromField, char *toNode, char* toField)
+{
+	//there could be combinations of known/strong/node* and weak char* route ends - in that case split up this function
+	struct brotoRoute* route;
+	if( proto->__ROUTES == NULL)
+		proto->__ROUTES= newStack(struct brotoRoute *);
+	route = MALLOC(struct brotoRoute*,sizeof(struct brotoRoute));
+	route->ft = -1;
+	route->lastCommand = 0; //not added to CRoutes until inline loaded
+	route->from.weak = 2; //weak references to publish/from,subscribe/to ends not loaded yet
+	route->from.cnode = strdup(fromNode);
+	route->from.cfield = strdup(fromField);
+	route->from.ftype = -1; //unknown
+	route->to.weak = 2;
+	route->to.cnode = strdup(toNode);
+	route->to.cfield = strdup(toField);
+	route->to.ftype = -1; //unknown
+	stack_push(struct brotoRoute *, proto->__ROUTES, route);
+}
+struct brotoRoute *createNewBrotoRoute(){
+	struct brotoRoute* route;
+	route = MALLOC(struct brotoRoute*,sizeof(struct brotoRoute));
+	memset(route,0,sizeof(struct brotoRoute));
+	return route;
+}
+void broto_store_broute(struct X3D_Proto* context,struct brotoRoute *route){
+	if( context->__ROUTES == NULL)
+		context->__ROUTES= newStack(struct brotoRoute *);
+	stack_push(struct brotoRoute *, context->__ROUTES, route);
+}
 
 //BOOL route_parse_nodefield(pre, eventType)
 //used by parser_routeStatement:
+
 BOOL route_parse_nodefield(struct VRMLParser* me, int *NodeIndex, struct X3D_Node** Node, int KW_eventType, 
 						   int *Ofs, int *fieldType, struct ScriptFieldDecl** ScriptField)
 {
@@ -4519,33 +4586,58 @@ BOOL route_parse_nodefield(struct VRMLParser* me, int *NodeIndex, struct X3D_Nod
 	PARSER_FINALLY;  
 	return FALSE;  
 }
+struct IMEXPORT *broto_search_IMPORTname(struct X3D_Proto *context, char *name);
+BOOL route_parse_nodefield_B(struct VRMLParser* me, char **ssnode, char **ssfield)
+{
+	/* parse a route node.field
+		this _B version is designed to
+		1. be a little less tragic if things don't go well - just don't register a bad route, warn the user
+		2. look for DEF names in the proto context instead of global browser context, as per specs, if we aren't doing that already
+		3. to accomodate routes to/from late-arriving inline IMPORT nodes
+	*/
+	char *snode,*sfield;
+	struct X3D_Node* xnode;
+	int foundField;
+
+	/* Get the next token */
+	if(!lexer_setCurID(me->lexer))
+		 return FALSE;
+	ASSERT(me->lexer->curID);
+	snode = STRDUP(me->lexer->curID);
+	FREE_IF_NZ(me->lexer->curID);
 
 
-// modified by dug9 feb6, 2013
-// I had trouble following the old_ version, but 
-// the final output - a route to register - seemed simple.
-// so it seemed like a lot of the old one was quality checking
+	/* The next character has to be a '.' - skip over it */ 
+	if(!lexer_point(me->lexer)) {
+		CPARSE_ERROR_CURID("ERROR:ROUTE: Expected \".\" after the NODE name") 
+		PARSER_FINALLY;  
+		return FALSE;  
+	} 
+
+	/* get fieldName */
+	if(!lexer_setCurID(me->lexer)) return FALSE;
+	ASSERT(me->lexer->curID);
+	sfield = STRDUP(me->lexer->curID);
+	FREE_IF_NZ(me->lexer->curID);
+
+	*ssnode = snode;
+	*ssfield = sfield;
+
+	PARSER_FINALLY;  
+	return TRUE;  
+}
+
+
+void QAandRegister_parsedRoute_B(struct X3D_Proto *context, char* fnode, char* ffield, char* tnode, char* tfield);
+
+// modified by dug9 oct25, 2014
+// this one is designed not to crash if theres an IMPORT route
 static BOOL parser_routeStatement_B(struct VRMLParser* me)
 {
-	struct X3D_Node* fromNode;
-	int fromOfs;
-	int fromType;
-	int fromNodeIndex;
-	struct ScriptFieldDecl* fromScriptField;
+	char *sfnode, *sffield;
+	char *stnode, *stfield;
 
-	struct X3D_Node* toNode;
-	int toOfs;
-	int toType;
-	int toNodeIndex;
-	struct ScriptFieldDecl* toScriptField;
 	ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
-
-	fromOfs = 0;
-	fromType = 0;
-	toOfs = 0;
-	toType = 0;
-	toNode = NULL; fromNode = NULL; 
-	fromScriptField=NULL; toScriptField=NULL;
 
 	ASSERT(me->lexer);
 	lexer_skip(me->lexer);
@@ -4559,61 +4651,32 @@ static BOOL parser_routeStatement_B(struct VRMLParser* me)
     /* Parse the first part of a routing statement: DEFEDNODE.event by locating the node DEFEDNODE in either the builtin or user-defined name arrays
        and locating the event in the builtin or user-defined event name arrays */
     //ROUTE_PARSE_NODEFIELD(from, outputOnly);
-	if(!route_parse_nodefield(me,&fromNodeIndex,&fromNode,KW_outputOnly,&fromOfs,
-		&fromType,&fromScriptField)) return FALSE;
+	int foundfrom, foundto, gotTO;
+	foundfrom = route_parse_nodefield_B(me,&sfnode, &sffield);
 
-        /* Next token has to be "TO" */
-        if(!lexer_keyword(me->lexer, KW_TO)) {
-            /* try to make a better error message. */
-			char *buf = p->fw_outline;
-            strcpy (buf,"ERROR:ROUTE: Expected \"TO\" found \"");
-            if (me->lexer->curID != NULL) strcat (buf, me->lexer->curID); else strcat (buf, "(EOF)");
-            strcat (buf,"\" ");
-            if (fromNode != NULL) { strcat (buf, " from type:"); strcat (buf, stringNodeType(fromNode->_nodeType)); strcat (buf, " "); }
-            //if (fromFieldE != ID_UNDEFINED) { strcat (buf, ":"); strcat (buf, EXPOSED_FIELD[fromFieldE]); strcat (buf, " "); }
-            //if (fromFieldO != ID_UNDEFINED) { strcat (buf, ":"); strcat (buf, EVENT_OUT[fromFieldO]); strcat (buf, " "); }
-
-            /* PARSE_ERROR("Expected TO in ROUTE-statement!") */
-            CPARSE_ERROR_CURID(buf); 
-            PARSER_FINALLY; 
-	    return FALSE; 
-        }
+	/* Next token has to be "TO" */
+	gotTO = TRUE;
+	if(!lexer_keyword(me->lexer, KW_TO)) {
+		/* try to make a better error message. */
+		char *buf = p->fw_outline;
+		strcpy (buf,"ERROR:ROUTE: Expected \"TO\" found \"");
+		if (me->lexer->curID != NULL) strcat (buf, me->lexer->curID); else strcat (buf, "(EOF)");
+		CPARSE_ERROR_CURID(buf); 
+		PARSER_FINALLY; 
+		//return FALSE; 
+		gotTO = FALSE;
+	}
 /* Parse the second part of a routing statement: DEFEDNODE.event by locating the node DEFEDNODE in either the builtin or user-defined name arrays 
    and locating the event in the builtin or user-defined event name arrays */
 	//ROUTE_PARSE_NODEFIELD(to, inputOnly);
-	if(!route_parse_nodefield(me,&toNodeIndex,&toNode,KW_inputOnly,&toOfs,
-		&toType,&toScriptField)) return FALSE;
+	foundto = route_parse_nodefield_B(me,&stnode, &stfield);
 
-    /* We can only ROUTE between two equivalent fields.  If the size of one field value is different from the size of the other, we have problems (i.e. can't route SFInt to MFNode) */
-    if(fromType!=toType) {
-        /* try to make a better error message. */
-		char *buf = p->fw_outline;
-        strcpy (buf,"ERROR:Types mismatch in ROUTE: ");
-        if (fromNode != NULL) { strcat (buf, " from type:"); strcat(buf, stringNodeType(fromNode->_nodeType)); strcat (p->fw_outline, " "); }
-        //if (fromFieldE != ID_UNDEFINED) { strcat (buf, ":"); strcat(buf, EXPOSED_FIELD[fromFieldE]); strcat (p->fw_outline, " "); }
-        //if (fromFieldO != ID_UNDEFINED) { strcat (buf, ":"); strcat(buf, EVENT_OUT[fromFieldO]); strcat (p->fw_outline, " "); }
-
-        if (toNode != NULL) { strcat (buf, " to type:"); strcat(buf, stringNodeType(toNode->_nodeType)); strcat (buf, " "); }
-        //if (toFieldE != ID_UNDEFINED) { strcat(buf, ":"); strcat(buf, EXPOSED_FIELD[toFieldE]); strcat (buf, " "); }
-        //if (toFieldO != ID_UNDEFINED) { strcat(buf, ":"); strcat(buf, EVENT_IN[toFieldO]); strcat (buf, " "); }
-
-        /* PARSE_ERROR(fw_outline) */
-        CPARSE_ERROR_CURID(buf); 
+	if(!(foundfrom && gotTO && foundto)){
         PARSER_FINALLY; 
 		return FALSE; 
-    }
+	}
 
-    /* Finally, register the route. */
-    /* **************************** */
-
-    /* Built-in to built-in */
-	int pflags = ((struct X3D_Proto*)(me->ptr))->__protoFlags;
-	char oldwayflag = ciflag_get(pflags,1); //((char *)&pflags)[1];
-	char instancingflag = ciflag_get(pflags,0);//((char *)&pflags)[0];
-	if(oldwayflag || instancingflag)
-		parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toType); //old way direct registration
-	//else
-	broto_store_route((struct X3D_Proto*)me->ptr,fromNode,fromOfs,toNode,toOfs,toType); //new way delay until sceneInstance()
+	QAandRegister_parsedRoute_B(X3D_PROTO(me->ptr), sfnode, sffield, stnode, stfield);
 
     return TRUE;
 }
@@ -4642,7 +4705,7 @@ static BOOL parser_routeStatement_B(struct VRMLParser* me)
 			tables in the declare -such as routes and DEFs- are in terms of the Declare node*, and after new nodoes
 			are created for the protoInstance, the protoDeclare-to-protoInstance node* lookup can be done during
 			copying of the tables
-	Broto2: 5 things share an X3D_Proto node structure:
+	Broto2: 6 things share an X3D_Proto node structure:
 		1. ProtoInstance - the only one of these 5 that's shown as a node type in web3d.org specs
 		2. ProtoDeclare - we don't register the struct as a node when mallocing, and we don't expand (deepen) its contained protoInstances
 		3. ExternProtoInstance - in the specs, this would be just another ProtoInstance.
@@ -4650,6 +4713,7 @@ static BOOL parser_routeStatement_B(struct VRMLParser* me)
 		5. Scene - so that parsing can parse protoDeclares and Scene using the same code, we use the same struct. 
 			- Broto1 parsed the scene shallow, then in a second step sceneInstance() deepened the brotos while converting to old scene format
 			- Broto2 parses deep for scenes and inlines, shallow for protodeclares and externProtodeclares
+		6. Inline - declared as a separatey X3D_Inline type, but maintained as identical struct to X3D_Proto
 	To keep these 5 distinguished,
 		char *pflags = (char *)(int* &__protoFlags)
 		pflag[0]: deep parsing instruction
@@ -4667,10 +4731,11 @@ static BOOL parser_routeStatement_B(struct VRMLParser* me)
 			1 = externProtoInstance, externprotodeclare
 */
 
-struct brotoDefpair{
-	struct X3D_Node* node;
-	char* name;
-};
+//moved to header:
+//struct brotoDefpair{
+//	struct X3D_Node* node;
+//	char* name;
+//};
 void broto_store_DEF(struct X3D_Proto* proto,struct X3D_Node* node, char *name)
 {
 	Stack *defs;
@@ -4695,6 +4760,27 @@ struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, char *name){
 	}
 	return NULL;
 }
+struct IMEXPORT *broto_search_IMPORTname(struct X3D_Proto *context, char *name){
+	int i;
+	struct IMEXPORT *def;
+	if(context->__IMPORTS)
+	for(i=0;i<vectorSize(context->__IMPORTS);i++){
+		def = vector_get(struct IMEXPORT *, context->__IMPORTS,i);
+		if(!strcmp(def->as,name)) return def;
+	}
+	return NULL;
+}
+struct IMEXPORT *broto_search_EXPORTname(struct X3D_Proto *context, char *name){
+	int i;
+	struct IMEXPORT *def;
+	if(context->__EXPORTS)
+	for(i=0;i<vectorSize(context->__EXPORTS);i++){
+		def = vector_get(struct IMEXPORT *, context->__EXPORTS,i);
+		if(!strcmp(def->as,name)) return def;
+	}
+	return NULL;
+}
+
 
 BOOL isAvailableBroto(char *pname, struct X3D_Proto* currentContext, struct X3D_Proto **proto)
 {
@@ -4789,13 +4875,13 @@ void copy_routes2(Stack *routes, struct X3D_Proto* target, struct Vector *p2p)
 		route = vector_get(struct brotoRoute*, routes, i);
 		//parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toType); //old way direct registration
 		//broto_store_route(me,fromNode,fromOfs,toNode,toOfs,toType); //new way delay until sceneInstance()
-		fromNode = p2p_lookup(route->fromNode,p2p);
-		toNode = p2p_lookup(route->toNode,p2p);
-       	CRoutes_RegisterSimple(fromNode, route->fromOfs, toNode, route->toOfs, route->ft);
+		fromNode = p2p_lookup(route->from.node,p2p);
+		toNode = p2p_lookup(route->to.node,p2p);
+       	CRoutes_RegisterSimpleB(fromNode, route->from.ifield, toNode, route->to.ifield, route->ft);
 		//we'll also store in the deep broto instance, although they aren't used there (yet), and
 		//if target is the main scene, they are abandoned. Maybe someday they'll be used.
 		//if( target )
-		broto_store_route(target,fromNode,route->fromOfs, toNode, route->toOfs, route->ft); 
+		broto_store_route(target,fromNode,route->from.ifield, toNode, route->to.ifield, route->ft); 
 	}
 }
 //copy broto defnames to single global scene defnames, for node* to defname lookup in parser_getNameFromNode
@@ -5000,9 +5086,9 @@ void copy_routes(Stack *routes, struct X3D_Proto* target, struct Vector *p2p)
 		route = vector_get(struct brotoRoute*, routes, i);
 		//parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toType); //old way direct registration
 		//broto_store_route(me,fromNode,fromOfs,toNode,toOfs,toType); //new way delay until sceneInstance()
-		fromNode = p2p_lookup(route->fromNode,p2p);
-		toNode = p2p_lookup(route->toNode,p2p);
-       	CRoutes_RegisterSimple(fromNode, route->fromOfs, toNode, route->toOfs, route->ft);
+		fromNode = p2p_lookup(route->from.node,p2p);
+		toNode = p2p_lookup(route->to.node,p2p);
+       	CRoutes_RegisterSimpleB(fromNode, route->from.ifield, toNode, route->to.ifield, route->ft);
 		//we'll also store in the deep broto instance, although they aren't used there (yet), and
 		//if target is the main scene, they are abandoned. Maybe someday they'll be used.
 		//if( target )
@@ -5043,27 +5129,68 @@ void copy_IS(Stack *istable, struct X3D_Proto* target, struct Vector *p2p)
 		//parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toType); //old way direct registration
 		//broto_store_route(me,fromNode,fromOfs,toNode,toOfs,toType); //new way delay until sceneInstance()
 		node = p2p_lookup(is->node,p2p);
+		is->node = node; //replace protodeclare's body node - we need the new one for unregistering these routes
 		pnode = X3D_NODE(target);
 		ifield = is->ifield;
-		if(node->_nodeType != NODE_Script && node->_nodeType != NODE_Proto)
-			ifield = NODE_OFFSETS[node->_nodeType][ifield*5 +1];
+		//if(node->_nodeType != NODE_Script && node->_nodeType != NODE_Proto)
+		//	ifield = NODE_OFFSETS[node->_nodeType][ifield*5 +1];
 		iprotofield = is->iprotofield;
 		//if(pnode->_nodeType != NODE_Script && pnode->_nodeType != NODE_Proto)
 		//	iprotofield = NODE_OFFSETS[node->_nodeType][offset*5 +1];
 		if(is->pmode == PKW_outputOnly){ //we should use pmode instead of mode, because pmode is more restrictive, so we don't route from pmode initializeOnly (which causes cycles in 10.wrl)
 			//idir = 0;
 			//if(node->_nodeType == NODE_Script) idir = FROM_SCRIPT;
-			 CRoutes_RegisterSimple(node, ifield, pnode, iprotofield, 0);
+			 CRoutes_RegisterSimpleB(node, ifield, pnode, iprotofield, 0);
 
 		}else if(is->pmode == PKW_inputOnly){
-			CRoutes_RegisterSimple(pnode, iprotofield, node, ifield, 0);
+			CRoutes_RegisterSimpleB(pnode, iprotofield, node, ifield, 0);
 		}else if(is->pmode == PKW_inputOutput){
-			CRoutes_RegisterSimple(node, ifield, pnode, iprotofield, 0);
-			CRoutes_RegisterSimple(pnode, iprotofield, node, ifield, 0);
+			CRoutes_RegisterSimpleB(node, ifield, pnode, iprotofield, 0);
+			CRoutes_RegisterSimpleB(pnode, iprotofield, node, ifield, 0);
 		}else{
 			//initialize Only - nothing to do routing wise
 		}
 	}
+}
+void unregister_IStableRoutes(Stack* istable, struct X3D_Proto* target){
+	// goal reverse browser route registering we did in copy_IS,
+	// for example if we unload an inline, and in the inline was protoInstance,
+	// then 'construction' routes like these injected for ISing will be left dangling
+	// in the route registry unless we unregister them here.
+	int i;
+	struct brotoIS *is;
+	struct X3D_Node *node, *pnode;
+	if(istable == NULL) return;
+	for(i=0;i<istable->n;i++)
+	{
+		int ifield, iprotofield;
+		is = vector_get(struct brotoIS*, istable, i);
+		//parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toType); //old way direct registration
+		//broto_store_route(me,fromNode,fromOfs,toNode,toOfs,toType); //new way delay until sceneInstance()
+		node = is->node;
+		is->node = node; //replace protodeclare's body node - we need the new one for unregistering these routes
+		pnode = X3D_NODE(target);
+		ifield = is->ifield;
+		//if(node->_nodeType != NODE_Script && node->_nodeType != NODE_Proto)
+		//	ifield = NODE_OFFSETS[node->_nodeType][ifield*5 +1];
+		iprotofield = is->iprotofield;
+		//if(pnode->_nodeType != NODE_Script && pnode->_nodeType != NODE_Proto)
+		//	iprotofield = NODE_OFFSETS[node->_nodeType][offset*5 +1];
+		if(is->pmode == PKW_outputOnly){ //we should use pmode instead of mode, because pmode is more restrictive, so we don't route from pmode initializeOnly (which causes cycles in 10.wrl)
+			//idir = 0;
+			//if(node->_nodeType == NODE_Script) idir = FROM_SCRIPT;
+			 CRoutes_RemoveSimpleB(node, ifield, pnode, iprotofield, 0);
+
+		}else if(is->pmode == PKW_inputOnly){
+			CRoutes_RemoveSimpleB(pnode, iprotofield, node, ifield, 0);
+		}else if(is->pmode == PKW_inputOutput){
+			CRoutes_RemoveSimpleB(node, ifield, pnode, iprotofield, 0);
+			CRoutes_RemoveSimpleB(pnode, iprotofield, node, ifield, 0);
+		}else{
+			//initialize Only - nothing to do routing wise
+		}
+	}
+	
 }
 void copy_IStable(Stack **sourceIS, Stack** destIS)
 {
@@ -5076,7 +5203,8 @@ void copy_IStable(Stack **sourceIS, Stack** destIS)
 		{
 			isd = MALLOC(struct brotoIS*,sizeof(struct brotoIS));
 			iss = vector_get(struct brotoIS*,*sourceIS,i);
-			(*isd) = (*iss); //deep copy struct brotoIS?
+			memcpy(isd,iss,sizeof(struct brotoIS));
+			//(*isd) = (*iss); //deep copy struct brotoIS?
 			stack_push(struct brotoIS*, *destIS, isd);
 		}
 	}
@@ -5951,6 +6079,7 @@ int X3DMODE(int val)
 
 
 BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackData);
+//=========== find any field by name via walk_fields
 typedef struct cbDataExactName {
 	char *fname;
 	union anyVrml* fieldValue;
@@ -5992,6 +6121,7 @@ BOOL find_anyfield_by_name(struct VRMLLexer* lexer, struct X3D_Node* node, union
 	}
 	return found;
 }
+//========== find any field by name and route direction via walk_fields
 typedef struct cbDataRootNameAndRouteDir {
 	char *fname;
 	int PKW_eventType;
@@ -6037,6 +6167,23 @@ BOOL find_anyfield_by_nameAndRouteDir(struct X3D_Node* node, union anyVrml **any
 	}
 	return found;
 }
+//========== count public fields  via walk_fields, used by js fieldDefinitionArray
+
+BOOL cbCountFields(void *callbackData,struct X3D_Node* node,int jfield,union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,int publicfield)
+{
+	int found = FALSE;
+	int *count = (int*)callbackData;
+	(*count)++;
+	return found;
+}
+int count_fields(struct X3D_Node* node)
+{
+	int found;
+	int count = 0;
+	found = walk_fields(node,cbCountFields,&count);
+	return count;
+}
+//========
 
 //convenience wrappers to get details for built-in fields and -on script and protoInstance- dynamic fields
 int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *type, int *kind, int *iifield, union anyVrml **value){
@@ -6206,21 +6353,35 @@ int getFieldFromNodeAndIndex(struct X3D_Node* node, int ifield, const char **fie
 
 		finfo offsets;
 		int k, kkind;
+		int kfield;
+
 
 		offsets = (finfo)NODE_OFFSETS[node->_nodeType];
-		for(k=0;k<=ifield;k++)
+		kfield = ifield;
+		//convert to index if in absolute offset
+		if(kfield >= offsets[0].offset){
+			int k = 0;
+			while(offsets[k].nameIndex > -1){
+				if(ifield == offsets[k].offset){
+					kfield = k;
+					break;
+				}
+				k++;
+			}
+		}
+		for(k=0;k<=kfield;k++)
 			if(offsets[k].nameIndex == -1) return 0;
-		*fieldname = FIELDNAMES[offsets[ifield].nameIndex];
-		*type = offsets[ifield].typeIndex;
+		*fieldname = FIELDNAMES[offsets[kfield].nameIndex];
+		*type = offsets[kfield].typeIndex;
 		kkind = -1;
-		switch(offsets[ifield].ioType){
+		switch(offsets[kfield].ioType){
 			case KW_initializeOnly: kkind = PKW_initializeOnly; break;
 			case KW_inputOnly: kkind = PKW_inputOnly; break;
 			case KW_outputOnly: kkind = PKW_outputOnly; break;
 			case KW_inputOutput: kkind = PKW_inputOutput; break;
 		}
 		*kind = kkind;
-		*value = (union anyVrml*)&((char*)node)[offsets[ifield].offset];
+		*value = (union anyVrml*)&((char*)node)[offsets[kfield].offset];
 		return 1;
 	}
 }
@@ -6716,3 +6877,14 @@ void load_externProtoInstance (struct X3D_Proto *node) {
 		}
 	}
 }
+
+//void *createNewX3DNodeB(int nt, int intable, void *executionContext){
+//	struct X3D_Node *node;
+//	if(intable)
+//		node = createNewX3DNode(nt);
+//	else
+//		node = createNewX3DNode0(nt);
+//	if(node && executionContext)
+//		node->_executionContext = executionContext;
+//	return node;
+//}

@@ -107,7 +107,7 @@ BOOL cParse(void* ptr, unsigned ofs, const char* data) {
 			strcpy (finalChars,parser->lexer->nextIn);
 		}
 
-  		ConsoleMessage ("Parsing complete, but have unrecognized data at end of input:\"%s\"",finalChars);
+  		ConsoleMessage ("Parsing complete, but have unrecognized data at end of  input:\"%s\"",finalChars);
 	}
 
  	/* printf ("after parsing in cParse, VRMLParser->DEFinedNodes %u\n",parser->DEFedNodes); */

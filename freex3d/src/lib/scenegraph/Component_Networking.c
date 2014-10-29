@@ -470,11 +470,143 @@ void child_Anchor (struct X3D_Anchor *node) {
 	LOCAL_LIGHT_OFF
 }
 
+struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, char *name);
+struct IMEXPORT *broto_search_IMPORTname(struct X3D_Proto *context, char *name);
+struct IMEXPORT *broto_search_EXPORTname(struct X3D_Proto *context, char *name);
 
+struct X3D_Node * broto_search_ALLnames(struct X3D_Proto *context, char *name, int *source){
+	/*chain-of-command pattern looks in DEFnames and if not found looks in IMPORTS and if found
+		checks Inline's EXPORT table if available, and if found, checks Inline's DEF table to get node*
+		(name,node*) 'mapping': 
+			name -> DEF-> IMPORT -> DEF -> inline -> EXPORT -> node*  
+		- the Inline may be mentioned by char* name in IMPORT struct, so an exter DEFname lookup is needed to get Inline* node
+		-- that may change/be optimized if stable enough
+	*/
 
+	*source = 0; //main scene
+	struct X3D_Node *node = NULL;
+	//check scene's DEF table to see if it has become a normal node mapping
+	node = broto_search_DEFname(context,name);
+	if(!node){
+		//check scene's IMPORT table to see if it's listed there
+		struct IMEXPORT *im;
+		im = broto_search_IMPORTname(context,name);
+		if(im){
+			//if its listed in scene's import table, look to see if the mentioned Inline is loaded
+			*source = 1; //mentioned in IMPORTS
+			struct X3D_Node *nlinenode;
+			nlinenode = broto_search_DEFname(context,im->inlinename);
+			if(nlinenode && nlinenode->_nodeType == NODE_Inline ){
+				struct X3D_Inline *nline = X3D_INLINE(nlinenode);
+				if(nline->__loadstatus == INLINE_IMPORTING ||  nline->__loadstatus == INLINE_STABLE){
+					//check to see if the loaded inline exports the node
+					struct IMEXPORT *ex = broto_search_EXPORTname(X3D_PROTO(nline),im->mxname);
+					if(ex){
+						node = ex->nodeptr;
+						if(node)
+							*source = 2;
+						if(0){
+							//a script in the inline may have tinkered with the DEFnames, so re-lookup
+							//can't do this: the export can't act as a char* lookup for DEF -> DEFnames -> node* 
+							// because executionContext.updateExportedNode(char*,node*) doesn't have a separate DEF and AS)
+							node = broto_search_DEFname(X3D_PROTO(nline),ex->mxname);
+							if(node)
+								*source = 2; //found via IMPORTs
+						}
+					}
+				}
+			}
+		}
+	}
+	return node;
+}
+
+void update_weakRoute(struct X3D_Proto *context, struct brotoRoute *route){
+	/* we re-search for 'weak' (import node) route ends via (name,node*) 'mapping': 
+			name -> DEF-> IMPORT -> DEF -> inline -> EXPORT -> DEF -> node*
+	   so whatever parser created, whatever tinkering javascript has done to import names,
+	   whatever state inline is in, we'll get the latest mapping of name to node*
+	*/
+	struct X3D_Node* newnodef, *newnodet; 
+	int source, type, kind, ifield;
+	union anyVrml *value;
+
+	int changed = 0;
+	newnodef = route->from.node;
+	newnodet = route->to.node;
+	if(route->from.weak){
+		int ic = 0;
+		newnodef = broto_search_ALLnames(context,route->from.cnode,&source);
+		ic = newnodef != route->from.node;
+		changed = changed || ic;
+		if(newnodef && ic) {
+			route->from.weak = 3; //an extra marker indicating wether its currently 'satisified' or unknown
+			getFieldFromNodeAndName(newnodef,route->from.cfield,&type,&kind,&ifield,&value);
+			if(ifield < 0) ConsoleMessage("bad FROM field ROUTE %s.%s TO %s.%s\n",route->from.cnode,route->from.cfield,route->to.cnode,route->to.cfield);
+			route->from.ifield = ifield;
+			route->from.ftype = type;
+			route->ft = type;
+		}
+		else route->from.weak = 1;
+	}
+	if(route->to.weak){
+		int ic;
+		newnodet = broto_search_ALLnames(context,route->to.cnode,&source);
+		ic = newnodet != route->to.node;
+		changed = changed || ic;
+		if(newnodet && ic) {
+			route->to.weak = 3; //an extra marker indicating wether its currently 'satisified' or unknown
+			getFieldFromNodeAndName(newnodet,route->to.cfield,&type,&kind,&ifield,&value);
+			if(ifield < 0) 
+				ConsoleMessage("bad TO field ROUTE %s.%s TO %s.%s\n",route->from.cnode,route->from.cfield,route->to.cnode,route->to.cfield);
+			route->to.ifield = ifield;
+			route->to.ftype = type;
+			route->ft = type;
+		}
+		else route->to.weak = 1;
+	}
+	if(changed){
+		if(route->lastCommand){
+			//its registered, so unregister
+			CRoutes_RemoveSimpleB(route->from.node,route->from.ifield,route->to.node,route->to.ifield,route->ft);
+			route->lastCommand = 0;
+		}
+		route->from.node = newnodef;
+		route->to.node = newnodet;
+		if(route->from.node && route->to.node && route->from.ifield > -1 && route->to.ifield > -1){ //both satisfied
+			route->lastCommand = 1;
+			CRoutes_RegisterSimpleB(route->from.node,route->from.ifield,route->to.node,route->to.ifield,route->ft);
+		}
+	}
+}
+void update_weakRoutes(struct X3D_Proto *context){
+	/* Goal: update any routes relying on imports -registering or unregistering- that change as Inlines are loaded and unloaded,
+		and/or as javascript tinkers with import names or def names
+		Oct 2014 implementation: we don't have a way to recursively update all contexts once per frame.
+		So we need to catch any changes caused by parsing, inline load/unload, and javascript tinkering with DEF and IMPORT names.
+		This function is designed general (and wasteful) enough so that it can be called from anywhere
+		in the current context: during javascript tinkering, during parsing, and (future) during recursive per-frame context updating
+		PROBLEM: if an inline changes one of its exports, nothing triggers this update, because to call update_weakRoutes, it would need to know 
+		the importing scene context, which it doesn't.
+	*/
+	if(context && context->__ROUTES){
+		//in theory we could have a separate __WEAKROUTE vector with entries that point to any weak __ROUTES so it's not so wasteful,
+		//  but then we need to maintain that __WEAKROUTE vector, when adding/removing routes during parsing or javascript.
+		//  its handy to keep both strong and weak routes in one __ROUTES array for javascript currentScene.routes.length and routes[i].fromNode etc
+		//  for now (Oct 2014) we'll do a big wasteful loop over all routes.
+		for(int k=0;k<vectorSize(context->__ROUTES);k++){
+			struct brotoRoute *route = vector_get(struct brotoRoute *,context->__ROUTES,k);
+			if(route->from.weak || route->to.weak){
+				update_weakRoute(context,route);
+			}
+		}
+	}
+}
+struct X3D_Proto *hasContext(struct X3D_Node* node);
 /* note that we get the resources in a couple of steps; this tries to keep the scenegraph running */
 void load_Inline (struct X3D_Inline *node) {
 	resource_item_t *res;
+	struct X3D_Proto *context;
 	// printf ("load_Inline %u, loadStatus %d loadResource %u\n",node, node->__loadstatus, node->__loadResource);
 
     //printf ("load_Inline, node %p loadStatus %d\n",node,node->load);
@@ -538,17 +670,67 @@ void load_Inline (struct X3D_Inline *node) {
 				//printf ("res complete %d\n",res->complete);
 				if(res->complete){
 					if (res->status == ress_parsed) {
-						node->__loadstatus = INLINE_STABLE; 
+						/* this might be a good place to populate parent context IMPORT table with our EXPORT nodes? */
+						node->__loadstatus = INLINE_IMPORTING; //INLINE_STABLE; 
 					} 
 				}
 
+			break;
+			case INLINE_IMPORTING:
+				context = hasContext(node->_executionContext);
+				if(context)
+					update_weakRoutes(context);
+				node->__loadstatus = INLINE_STABLE;
 			break;
 			case INLINE_STABLE:
 			break;
 		}
 
 	} else {
-		printf ("unloading Inline\n");
+		switch (node->__loadstatus) {
+			case INLINE_INITIAL_STATE: /* nothing happened yet, not loaded */
+				break;
+			case INLINE_STABLE:
+				//if(node->__EXPORTS)
+				//	((struct Vector *)(node->__EXPORTS))->n = 0; //disable any parent context routing to inline's exports, before wiping out nodes
+				printf ("unloading Inline\n");
+				node->__loadstatus = INLINE_UN_IMPORTING; //INITIAL_STATE;
+			break;
+			case INLINE_UN_IMPORTING:
+				context = hasContext(node->_executionContext);
+				if(context)
+					update_weakRoutes(context); //remove any imported routes so no dangling route pointers
+				node->__loadstatus = INLINE_UNLOADING;
+				break;
+			case INLINE_UNLOADING:
+				/* missing code to unload inline 
+				  The same (missing) cleanup function could also be used to unload scene and protoInstances, and 
+				    the garbage collection part can be used on protoDeclares, externProtoDeclares,
+					and extern proto library scenes. All these use X3D_Proto == X3D_Inline struct 
+					with a few X3D_Proto.__protoFlags distinguishing their use at runtime.
+				A. unregister items registered in global/browser structs
+					a  remove registered sensors -need a __sensors array?
+					b. remove registered scripts -see __scripts
+					c. remove registered routes:
+						c.i regular routes -from __ROUTES table
+						c.ii IS construction routes - from __IStable - a function was developed but not yet tested: unregister_IStableRoutes
+					d unregister nodes from table used by startofloopnodeupdates - see createNewX3DNode vs createNewX3DNode0 in generatedCode.c
+				B. deallocate context-specific heap: 
+					a nodes allocated -need a context-specific nodes heap
+						a.0 recursively unload sub-contexts: inlines and protoInstances
+						a.1 builtin nodes
+					b. context vectors: __ROUTES, __IMPORTS, __EXPORTS, __DEFnames, __scripts, addChildren, removeChildren, _children
+					c prototypes declared: __protoDeclares, __externProtoDeclares - use same recursive unload
+					d string heap -need a string heap
+					e malloc heap used for elements of __ vectors - need a context-specific malloc and heap ie fmalloc(context,sizeof)
+				C. clear/reset scalar values so Inline can be re-used/re-loaded: (not sure, likely none to worry about)
+				*/
+				node->__children.n = 0; //this hack will make it look like it's unloaded, but chaos results with a subsequent reload
+				node->__loadstatus = INLINE_INITIAL_STATE;
+				break;
+			default:
+				break; //if its part way loaded, we'll wait till it finishes.
+		}
 	}
 }
 

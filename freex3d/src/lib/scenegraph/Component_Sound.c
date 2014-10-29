@@ -441,7 +441,7 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 			node->__loadstatus = LOAD_REQUEST_RESOURCE;
 			node->__loadResource = res;
 		}
-		printf("1");
+		//printf("1");
 		break;
 
 		case LOAD_REQUEST_RESOURCE:
@@ -452,7 +452,7 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 		//res->offsetFromWhereToPlaceData = offsetof (struct X3D_AudioClip, __FILEBLOB);
 		resitem_enqueue(ml_new(res));
 		node->__loadstatus = LOAD_FETCHING_RESOURCE;
-		printf("2");
+		//printf("2");
 		break;
 
 		case LOAD_FETCHING_RESOURCE:
@@ -474,11 +474,11 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 			} //if (res->status == ress_parsed)
 		} //if(res->complete)
 		//end case LOAD_FETCHING_RESOURCE
-		printf("3");
+		//printf("3");
 		break;
 
 		case LOAD_STABLE:
-		printf("4");
+		//printf("4");
 		break;
 	}
 }
