@@ -542,6 +542,7 @@ void update_weakRoute(struct X3D_Proto *context, struct brotoRoute *route){
 		if(newnodef && ic) {
 			route->from.weak = 3; //an extra marker indicating wether its currently 'satisified' or unknown
 			getFieldFromNodeAndName(newnodef,route->from.cfield,&type,&kind,&ifield,&value);
+			if(ifield < 0) ConsoleMessage("bad FROM field ROUTE %s.%s TO %s.%s\n",route->from.cnode,route->from.cfield,route->to.cnode,route->to.cfield);
 			route->from.ifield = ifield;
 			route->from.ftype = type;
 			route->ft = type;
@@ -556,6 +557,8 @@ void update_weakRoute(struct X3D_Proto *context, struct brotoRoute *route){
 		if(newnodet && ic) {
 			route->to.weak = 3; //an extra marker indicating wether its currently 'satisified' or unknown
 			getFieldFromNodeAndName(newnodet,route->to.cfield,&type,&kind,&ifield,&value);
+			if(ifield < 0) 
+				ConsoleMessage("bad TO field ROUTE %s.%s TO %s.%s\n",route->from.cnode,route->from.cfield,route->to.cnode,route->to.cfield);
 			route->to.ifield = ifield;
 			route->to.ftype = type;
 			route->ft = type;
@@ -570,7 +573,7 @@ void update_weakRoute(struct X3D_Proto *context, struct brotoRoute *route){
 		}
 		route->from.node = newnodef;
 		route->to.node = newnodet;
-		if(route->from.node && route->to.node){ //both satisfied
+		if(route->from.node && route->to.node && route->from.ifield > -1 && route->to.ifield > -1){ //both satisfied
 			route->lastCommand = 1;
 			CRoutes_RegisterSimpleB(route->from.node,route->from.ifield,route->to.node,route->to.ifield,route->ft);
 		}

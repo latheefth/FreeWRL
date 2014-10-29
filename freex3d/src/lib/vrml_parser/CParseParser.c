@@ -1259,18 +1259,21 @@ struct X3D_Proto *hasContext(struct X3D_Node* node){
 		}
 	return context;
 }
+struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, char *name);
 
-void handleExport_B (void *nodeptr, char *node, char *as) {
+void handleExport_B (void *ctxnodeptr, char *nodename, char *as) {
 	/* handle export statements. as will be either a string pointer, or NULL */
-	struct X3D_Proto *context = hasContext(nodeptr);
+	struct X3D_Proto *context = hasContext(ctxnodeptr);
 	if(context){
+		struct X3D_Node *node = NULL;
 		struct IMEXPORT *mxport = malloc(sizeof(struct IMEXPORT));
 		if(!context->__EXPORTS) context->__EXPORTS = newVector(struct IMEXPORT *,4);
-		mxport->mxname = strdup(node);
+		mxport->mxname = strdup(nodename);
 		mxport->as = mxport->mxname;
 		if(as)
 			mxport->as = strdup(as);
-		mxport->nodeptr = nodeptr;
+		node = broto_search_DEFname(context,mxport->mxname);
+		mxport->nodeptr = node;
 		vector_pushBack(struct IMEXPORT*,context->__EXPORTS,mxport);
 	}
 	#ifdef CAPABILITIESVERBOSE
@@ -4583,7 +4586,6 @@ BOOL route_parse_nodefield(struct VRMLParser* me, int *NodeIndex, struct X3D_Nod
 	PARSER_FINALLY;  
 	return FALSE;  
 }
-struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, char *name);
 struct IMEXPORT *broto_search_IMPORTname(struct X3D_Proto *context, char *name);
 BOOL route_parse_nodefield_B(struct VRMLParser* me, char **ssnode, char **ssfield)
 {
