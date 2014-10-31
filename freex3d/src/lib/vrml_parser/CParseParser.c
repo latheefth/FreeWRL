@@ -6958,10 +6958,10 @@ int	unregister_broutes(struct X3D_Proto * node){
 	}
 	return iret;
 }
-int unregister_bscripts(node){
-	//unregister scripts
-
-}
+//int unregister_bscripts(node){
+//	//unregister scripts
+//
+//}
 
 void unRegisterTexture(struct X3D_Node *tmp);
 void unRegisterX3DNode(struct X3D_Node * tmp);
@@ -6970,6 +6970,7 @@ void remove_OSCsensor(struct X3D_Node * node);
 void remove_picksensor(struct X3D_Node * node);
 void delete_first(struct X3D_Node *node);
 void removeNodeFromKeySensorList(struct X3D_Node* node);
+int	unInitializeScript(struct X3D_Node *node);
 int unRegisterX3DAnyNode(struct X3D_Node *node){
 	/* Undo any node registration(s)
 	From GeneratedCode.c createNewX3DNode():
@@ -7002,6 +7003,9 @@ int unRegisterX3DAnyNode(struct X3D_Node *node){
 	delete_first(node);
 	// possibly a KeySensor node? 
 	removeNodeFromKeySensorList(X3D_NODE(node));
+
+	//as with kill_nodes, disable scripts
+	unInitializeScript(node);
 	return TRUE;
 }
 
@@ -7039,7 +7043,7 @@ int unregister_broto_instance(struct X3D_Proto* node){
 			//unregister regular routes
 			unregister_broutes(node);
 			//unregister scripts
-			unregister_bscripts(node);
+			//unregister_bscripts(node);
 			//unregister sensors and nodes
 			if(node->__nodes){
 				for(int i=0;i<vectorSize(node->__nodes);i++){
@@ -7051,22 +7055,72 @@ int unregister_broto_instance(struct X3D_Proto* node){
 	}
 	return TRUE;
 }
+
 int gc_broto_instance(struct X3D_Proto* node){
-	int retval = TRUE;
+	int iret = TRUE;
 	//recurse to free subcontexts: protoInstances, externProtoInstances, Inlines (which may instance this context's protoDeclares)
 	//free protodeclares (recursive)
 	//free externprotodeclares (recursive)
 	//some of the following could be in a general GC malloc table per-context
 	//in that case, still set the vector pointer to null because Inline re-uses itself on subsequent Inline.load = true
 	//free routes
-	//free scipts
-	//free IStable
-	//free DEFnames
-	//free IMPORTS
-	//free EXPORTS
-	//free nodes
-	//free _children.p
-	return retval;
+	if(node && hasContext(X3D_NODE(node))){
+		node->__children.n = 0; //hide from other threads
+		if(node->__subcontexts){
+			int i;
+			struct X3D_Proto *subctx;
+			for(i=0;i<vectorSize(node->__subcontexts);i++){
+				subctx = vector_get(struct X3D_Proto*,node->__subcontexts,i);
+				gc_broto_instance(subctx);
+			}
+		}
+
+		if(node->__ROUTES)
+			deleteVector(struct brotoRoute *, node->__ROUTES);
+		//free scipts
+		if(node->__scripts)
+			deleteVector(struct X3D_Node *,node->__scripts);
+		//free IStable
+		if(node->__IS)
+			deleteVector(struct brotoIS *,node->__IS);
+		//free DEFnames
+		if(node->__DEFnames)
+			deleteVector(struct brotoDefpair *,node->__DEFnames);
+		//free IMPORTS
+		if(node->__IMPORTS)
+			deleteVector(struct EXIMPORT *,node->__IMPORTS);
+		//free EXPORTS
+		if(node->__EXPORTS)
+			deleteVector(struct EXIMPORT *,node->__EXPORTS);
+		//free nodes
+		if(node->__nodes){
+			deleteVector(struct X3D_Node *,node->__nodes);
+		}
+		if(node->__protoDeclares){
+			int i;
+			struct X3D_Proto *subctx;
+			for(i=0;i<vectorSize(node->__protoDeclares);i++){
+				subctx = vector_get(struct X3D_Proto*,node->__protoDeclares,i);
+				gc_broto_instance(subctx);
+			}
+			deleteVector(void*,node->__protoDeclares);
+		}
+		if(node->__externProtoDeclares){
+			int i;
+			struct X3D_Proto *subctx;
+			for(i=0;i<vectorSize(node->__externProtoDeclares);i++){
+				//wait - what if its in a shared libararyScene? 
+				//Those persist beyond the coming and going of scenes and inlines and protoinstances
+				if(0){
+					subctx = vector_get(struct X3D_Proto*,node->__externProtoDeclares,i);
+					gc_broto_instance(subctx);
+				}
+			}
+			deleteVector(void*,node->__externProtoDeclares);
+		}
+		iret = TRUE;
+	}
+	return iret;
 }
 int unload_broto(struct X3D_Proto* node){
 	/* code to unload a scene, inline, or protoInstance (a per-broto-context, recursive version of kill_nodes)
