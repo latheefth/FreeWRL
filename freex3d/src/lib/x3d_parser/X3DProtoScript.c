@@ -1092,6 +1092,7 @@ void compareExternProtoDeclareWithProto(char *buffer,char *pound) {
 }
 void broto_store_DEF(struct X3D_Proto* proto,struct X3D_Node* node, char *name);
 struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep);
+void add_node_to_broto_context(struct X3D_Proto *context,struct X3D_Node *node);
 void linkNodeIn_B(void *ud);
 void parseProtoInstance_B(void *ud, char **atts) {
 	/*broto version
@@ -1153,10 +1154,12 @@ void parseProtoInstance_B(void *ud, char **atts) {
 			int idepth = 0; //if its old brotos (2013) don't do depth until sceneInstance. If 2014 broto2, don't do depth here if we're in a protoDeclare or externProtoDeclare
 			if(usingBrotos() ) idepth = pflagdepth == 1; //2014 broto2: if we're parsing a scene (or Inline) then deepcopy proto to instance it, else shallow
 			node=X3D_NODE(brotoInstance(proto,idepth));
+			node->_executionContext = X3D_NODE(proto);
 			if (defNameIndex != INT_ID_UNDEFINED){
 				char * defname = STRDUP(atts[defNameIndex]);
 				broto_store_DEF(currentContext,node, defname);
 			}
+			add_node_to_broto_context(currentContext,node);
 
 			pushNode(ud,node);
 			char* containerfield = NULL;

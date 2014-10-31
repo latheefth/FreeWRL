@@ -271,9 +271,10 @@ required by the spec. From what I can see, the spec is silent on this regard */
 //static int keySinkCurMax = 0;
 
 typedef struct pComponent_KeyDevice{
-	struct X3D_Node **keySink;// = NULL;
-	int keySyncMallocLen;// = 0;
-	int keySinkCurMax;// = 0;
+	//struct X3D_Node **keySink;// = NULL;
+	//int keySyncMallocLen;// = 0;
+	//int keySinkCurMax;// = 0;
+	struct Vector *keySink;
 }* ppComponent_KeyDevice;
 void *Component_KeyDevice_constructor(){
 	void *v = malloc(sizeof(struct pComponent_KeyDevice));
@@ -287,8 +288,8 @@ void Component_KeyDevice_init(struct tComponent_KeyDevice *t){
 	{
 		ppComponent_KeyDevice p = (ppComponent_KeyDevice)t->prv;
 		p->keySink = NULL;
-		p->keySyncMallocLen = 0;
-		p->keySinkCurMax = 0;
+		//p->keySyncMallocLen = 0;
+		//p->keySinkCurMax = 0;
 
 	}
 }
@@ -297,30 +298,30 @@ void Component_KeyDevice_init(struct tComponent_KeyDevice *t){
 static void sendToSS(struct X3D_Node *wsk, int key, int upDown);
 static void sendToKS(struct X3D_Node* wsk, int key, int upDown);
 
-static void incrementKeySinkList() {
-	ppComponent_KeyDevice p = (ppComponent_KeyDevice)gglobal()->Component_KeyDevice.prv;
-	if (p->keySinkCurMax >= p->keySyncMallocLen) {
-		p->keySyncMallocLen += 10; /* arbitrary number */
-		p->keySink = REALLOC(p->keySink, sizeof (struct X3D_Node *) * p->keySyncMallocLen);
-	}
-}
+//static void incrementKeySinkList() {
+//	ppComponent_KeyDevice p = (ppComponent_KeyDevice)gglobal()->Component_KeyDevice.prv;
+//	if (p->keySinkCurMax >= p->keySyncMallocLen) {
+//		p->keySyncMallocLen += 10; /* arbitrary number */
+//		p->keySink = REALLOC(p->keySink, sizeof (struct X3D_Node *) * p->keySyncMallocLen);
+//	}
+//}
 
 int KeySensorNodePresent() {
 	int count;
+	struct X3D_Node *node;
 	ppComponent_KeyDevice p = (ppComponent_KeyDevice)gglobal()->Component_KeyDevice.prv;
 
 	/* no KeyDevice node present */
 	if (p->keySink == NULL) return FALSE;
 
-	for (count=0; count < p->keySinkCurMax; count++) {
+	for (count=0; count < vectorSize(p->keySink); count++) {
 		/* hmmm, there is one, but is it enabled? */
 		/* printf ("ks, checking %d\n",p->keySink[count]); */
-
-		if (p->keySink[count]->_nodeType == NODE_KeySensor) 
-			if (X3D_KEYSENSOR(p->keySink[count])->enabled) return TRUE;
-
-		if (p->keySink[count]->_nodeType == NODE_StringSensor) 
-			if (X3D_STRINGSENSOR(p->keySink[count])->enabled) return TRUE;
+		node = vector_get(struct X3D_Node*,p->keySink,count);
+		if(node && node->_nodeType == NODE_KeySensor) 
+			if (X3D_KEYSENSOR(node)->enabled) return TRUE;
+		if(node && node->_nodeType == NODE_StringSensor) 
+			if (X3D_STRINGSENSOR(node)->enabled) return TRUE;
 	}
 
 	return FALSE;
@@ -330,18 +331,31 @@ int KeySensorNodePresent() {
 void addNodeToKeySensorList(struct X3D_Node* node) {
 	if ((node->_nodeType == NODE_KeySensor) || (node->_nodeType == NODE_StringSensor)) {
 		ppComponent_KeyDevice p = (ppComponent_KeyDevice)gglobal()->Component_KeyDevice.prv;
-		incrementKeySinkList();
-		p->keySink[p->keySinkCurMax] = node;
-		p->keySinkCurMax ++;
+		//incrementKeySinkList();
+		if(!p->keySink)
+			p->keySink = newVector(struct X3D_Node*,4);
+		vector_pushBack(struct X3D_Node*,p->keySink,node);
+		//p->keySink[p->keySinkCurMax] = node;
+		//p->keySinkCurMax ++;
+	}
+}
+int removeNodeFromVector(int iaction, struct Vector *v, struct X3D_Node *node);
+void removeNodeFromKeySensorList(struct X3D_Node* node) {
+	if ((node->_nodeType == NODE_KeySensor) || (node->_nodeType == NODE_StringSensor)) {
+		ppComponent_KeyDevice p = (ppComponent_KeyDevice)gglobal()->Component_KeyDevice.prv;
+
+		if(p->keySink && node)
+			removeNodeFromVector(0, p->keySink, node);
 	}
 }
 
 void killKeySensorNodeList() {
 	ppComponent_KeyDevice p = (ppComponent_KeyDevice)gglobal()->Component_KeyDevice.prv;
 	FREE_IF_NZ(p->keySink);
-	p->keySyncMallocLen = 0; 
-	p->keySinkCurMax = 0;
-
+	//p->keySyncMallocLen = 0; 
+	//p->keySinkCurMax = 0;
+	if(p->keySink)
+		deleteVector(struct X3D_Node*, p->keySink);
 	#ifndef AQUA
 	shiftPressed = 0;
 	ctrlPressed = 0;
@@ -350,21 +364,22 @@ void killKeySensorNodeList() {
 
 void sendKeyToKeySensor(const char key, int upDown) {
 	int count;
+	struct X3D_Node *node;
 	ppComponent_KeyDevice p = (ppComponent_KeyDevice)gglobal()->Component_KeyDevice.prv;
 	if (p->keySink == NULL) return;
 
-	for (count=0; count < p->keySinkCurMax; count++) {
+	for (count=0; count < vectorSize(p->keySink); count++) {
 		#ifdef VERBOSE
 		printf ("sendKeyToKeySensor, sending key %d to %d of %d\n",key,count,p->keySinkCurMax);
 		#endif
-
+		node = vector_get(struct X3D_Node*,p->keySink,count);
         /* make sure this has not been deleted  - we should really re-create list, but
          so few keySensor X3D nodes are in use, who cares? */
-        if (checkNode(p->keySink[count],__FILE__,__LINE__)) {
+        if (checkNode(node,__FILE__,__LINE__)) {
 			if(upDown%10 == KEYDOWN || upDown%10 == KEYUP) //2 down, or 3 up
-				if (p->keySink[count]->_nodeType == NODE_KeySensor ) sendToKS(p->keySink[count], (int)key&0xFFFF, upDown);
+				if (node->_nodeType == NODE_KeySensor ) sendToKS(node, (int)key&0xFFFF, upDown);
 			if(upDown == KEYPRESS) //LINUX,WIN32 PRESS=1, AQUA PRESS=2
-				if (p->keySink[count]->_nodeType == NODE_StringSensor ) sendToSS(p->keySink[count], (int)key&0xFFFF, upDown);
+				if (node->_nodeType == NODE_StringSensor ) sendToSS(node, (int)key&0xFFFF, upDown);
 		}
     }
 }

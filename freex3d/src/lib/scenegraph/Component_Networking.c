@@ -285,9 +285,11 @@ void add_OSCsensor(struct X3D_Node * node) {
 
 	num_OSC_Nodes++;
 }
+void remove_OSCsensor(struct X3D_Node * node) {}
 /***************** END OF OSC node ***************************/
 #else
 void add_OSCsensor(struct X3D_Node * node) {}
+void remove_OSCsensor(struct X3D_Node * node) {}
 #endif
 
 
@@ -603,6 +605,9 @@ void update_weakRoutes(struct X3D_Proto *context){
 	}
 }
 struct X3D_Proto *hasContext(struct X3D_Node* node);
+
+
+int unload_broto(struct X3D_Proto* node);
 /* note that we get the resources in a couple of steps; this tries to keep the scenegraph running */
 void load_Inline (struct X3D_Inline *node) {
 	resource_item_t *res;
@@ -727,6 +732,7 @@ void load_Inline (struct X3D_Inline *node) {
 				*/
 				node->__children.n = 0; //this hack will make it look like it's unloaded, but chaos results with a subsequent reload
 				node->__loadstatus = INLINE_INITIAL_STATE;
+				unload_broto(X3D_PROTO(node));
 				break;
 			default:
 				break; //if its part way loaded, we'll wait till it finishes.

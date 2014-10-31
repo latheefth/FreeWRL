@@ -50,7 +50,7 @@ struct Vector* newVector_(int elSize, int initSize,char *,int);
 	#define deleteVector(type, me) deleteVector_(__FILE__,__LINE__,(int)sizeof(type), &(me))
 #else
 	void deleteVector_(int elSize, struct Vector**);
-	#define deleteVector(type, me) deleteVector_((int)sizeof(type), &(me))
+	#define deleteVector(type, me) deleteVector_((int)sizeof(type), &((struct Vector*)(me)))
 #endif
 
 /* Ensures there's at least one space free. */

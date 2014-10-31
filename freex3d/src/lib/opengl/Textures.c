@@ -432,7 +432,8 @@ ConsoleMessage (line);}
 
 /* is this node a texture node? if so, lets keep track of its textures. */
 /* worry about threads - do not make anything reallocable */
-void registerTexture(struct X3D_Node *tmp) {
+void registerTexture0(int iaction, struct X3D_Node *tmp) {
+	//iaction =1 add, =0 remove
 	struct X3D_ImageTexture *it;
 
 
@@ -444,74 +445,125 @@ void registerTexture(struct X3D_Node *tmp) {
 /* JAS - still to implement 
 		(it->_nodeType == NODE_GeneratedCubeMapTexture) ||
 */ 
-
 		(it->_nodeType == NODE_MovieTexture) 
         ) {
+		ppTextures p = (ppTextures)gglobal()->Textures.prv;
+		if(iaction){
+			//ADD
+			// for the index, stored in the X3D node.
+			int textureNumber;
+			// new texture table entry. Zero all data
+			textureTableIndexStruct_s * newTexture = MALLOC (textureTableIndexStruct_s *,sizeof (textureTableIndexStruct_s));
+			memset(newTexture,0,sizeof(textureTableIndexStruct_s));
 
-		// for the index, stored in the X3D node.
-		int textureNumber;
-		ppTextures p;
-		// new texture table entry. Zero all data
-		textureTableIndexStruct_s * newTexture = MALLOC (textureTableIndexStruct_s *,sizeof (textureTableIndexStruct_s));
-		memset(newTexture,0,sizeof(textureTableIndexStruct_s));
 
-		p = (ppTextures)gglobal()->Textures.prv;
+			if (p->activeTextureTable == NULL) {
+				p->activeTextureTable =newVector(textureTableIndexStruct_s *, 16);
+			}
 
-		if (p->activeTextureTable == NULL) {
-			p->activeTextureTable =newVector(textureTableIndexStruct_s *, 16);
-		}
+			// keep track of which texture this one is.
+			textureNumber = vectorSize(p->activeTextureTable);
 
-		// keep track of which texture this one is.
-		textureNumber = vectorSize(p->activeTextureTable);
+			//{char line[200]; sprintf (line,"registerTexture textureNumber %d",textureNumber); ConsoleMessage(line);}
 
-		//{char line[200]; sprintf (line,"registerTexture textureNumber %d",textureNumber); ConsoleMessage(line);}
+			DEBUG_TEX("CREATING TEXTURE NODE: type %d\n", it->_nodeType);
+			/* I need to know the texture "url" here... */
 
-		DEBUG_TEX("CREATING TEXTURE NODE: type %d\n", it->_nodeType);
-		/* I need to know the texture "url" here... */
-
-		switch (it->_nodeType) {
-		/* save this index in the scene graph node */
-		case NODE_ImageTexture:
-			it->__textureTableIndex = textureNumber;
-			break;
-		case NODE_PixelTexture: {
-			struct X3D_PixelTexture *pt;
-			pt = (struct X3D_PixelTexture *) tmp;
-			pt->__textureTableIndex = textureNumber;
-			break; }
-		case NODE_MovieTexture: {
-			struct X3D_MovieTexture *mt;
-			mt = (struct X3D_MovieTexture *) tmp;
-			mt->__textureTableIndex = textureNumber;
-			break; }
+			switch (it->_nodeType) {
+			/* save this index in the scene graph node */
+			case NODE_ImageTexture:
+				it->__textureTableIndex = textureNumber;
+				break;
+			case NODE_PixelTexture: {
+				struct X3D_PixelTexture *pt;
+				pt = (struct X3D_PixelTexture *) tmp;
+				pt->__textureTableIndex = textureNumber;
+				break; }
+			case NODE_MovieTexture: {
+				struct X3D_MovieTexture *mt;
+				mt = (struct X3D_MovieTexture *) tmp;
+				mt->__textureTableIndex = textureNumber;
+				break; }
                 
-/* JAS still to implement 
-		case NODE_GeneratedCubeMapTexture: {
-			struct X3D_GeneratedCubeMapTexture *v1t;
-			v1t = (struct X3D_GeneratedCubeMapTexture *) tmp;
-			v1t->__textureTableIndex = textureNumber; 
-			break;
-		}
-*/
-		case NODE_ImageCubeMapTexture: {
-			struct X3D_ImageCubeMapTexture *v1t;
-			v1t = (struct X3D_ImageCubeMapTexture *) tmp;
-			v1t->__textureTableIndex = textureNumber;
-			break;
-		}
-		}
+	/* JAS still to implement 
+			case NODE_GeneratedCubeMapTexture: {
+				struct X3D_GeneratedCubeMapTexture *v1t;
+				v1t = (struct X3D_GeneratedCubeMapTexture *) tmp;
+				v1t->__textureTableIndex = textureNumber; 
+				break;
+			}
+	*/
+			case NODE_ImageCubeMapTexture: {
+				struct X3D_ImageCubeMapTexture *v1t;
+				v1t = (struct X3D_ImageCubeMapTexture *) tmp;
+				v1t->__textureTableIndex = textureNumber;
+				break;
+			}
+			}
 
-		/* set the scenegraphNode here */
-		newTexture->nodeType = it->_nodeType;
-		newTexture->scenegraphNode = X3D_NODE(tmp);
+			/* set the scenegraphNode here */
+			newTexture->nodeType = it->_nodeType;
+			newTexture->scenegraphNode = X3D_NODE(tmp);
 
-		// save this to our texture table
-		vector_pushBack(textureTableIndexStruct_s *, p->activeTextureTable, newTexture);
+			// save this to our texture table
+			vector_pushBack(textureTableIndexStruct_s *, p->activeTextureTable, newTexture);
+		}else{
+			//REMOVE
+			//we're using int indexes so we can't compact the vector to remove the element
+			//we need to flag it some how, and many functions use tti *getTableIndex(int num) 
+			//and check if the returned value is null before trying to use it.
+			//we'll try using NULL as the signal its deleted.
+			textureTableIndexStruct_s * tti = NULL;
+			int *textureNumber = NULL;
+			switch (it->_nodeType) {
+			/* save this index in the scene graph node */
+			case NODE_ImageTexture:
+				textureNumber = &it->__textureTableIndex;
+				break;
+			case NODE_PixelTexture: {
+				struct X3D_PixelTexture *pt;
+				pt = (struct X3D_PixelTexture *) tmp;
+				textureNumber = &pt->__textureTableIndex;
+				break; }
+			case NODE_MovieTexture: {
+				struct X3D_MovieTexture *mt;
+				mt = (struct X3D_MovieTexture *) tmp;
+				textureNumber = &mt->__textureTableIndex;
+				break; }
+                
+	/* JAS still to implement 
+			case NODE_GeneratedCubeMapTexture: {
+				struct X3D_GeneratedCubeMapTexture *v1t;
+				v1t = (struct X3D_GeneratedCubeMapTexture *) tmp;
+				textureNumber = &v1t->__textureTableIndex; 
+				break; }
+	*/
+			case NODE_ImageCubeMapTexture: {
+				struct X3D_ImageCubeMapTexture *v1t;
+				v1t = (struct X3D_ImageCubeMapTexture *) tmp;
+				textureNumber = &v1t->__textureTableIndex;
+				break; }
+			}
+			if(textureNumber){
+				tti = getTableIndex(*textureNumber);
+				if(tti){
+					(*textureNumber) = -1; //is there a better flag?
+					vector_set(textureTableIndexStruct_s *,p->activeTextureTable,*textureNumber,NULL);
+					//unregister/unbind/deallocate anything else that was registered/bound/allocated above
+					FREE_IF_NZ(tti);
+				}
+			}
+		}
 	} else {
 		//ConsoleMessage ("registerTexture, ignoring this node");
 	}
 }
-
+void registerTexture(struct X3D_Node *tmp) {
+	registerTexture0(1,tmp);
+}
+void unRegisterTexture(struct X3D_Node *tmp) {
+	registerTexture0(0,tmp);
+}
 /* do TextureBackground textures, if possible */
 void loadBackgroundTextures (struct X3D_Background *node) {
 	struct X3D_ImageTexture *thistex;

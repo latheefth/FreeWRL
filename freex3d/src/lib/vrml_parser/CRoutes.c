@@ -1909,6 +1909,36 @@ void JSMaxAlloc() {
 		ScriptControl[count].script = NULL;
 	}
 }
+int	unInitializeScript(struct X3D_Node *node){
+	int iret = FALSE;
+	if(node && node->_nodeType == NODE_Script){
+		struct X3D_Script *scriptnode = (struct X3D_Script*)node;
+		struct Shader_Script *sscript = scriptnode->__scriptObj;
+		if(sscript){
+			int count;
+			ttglobal tg;
+			struct CRscriptStruct *ScriptControl = getScriptControl();
+			tg = gglobal();
+
+			//sscript->loaded = FALSE;
+			count = sscript->num;
+			tg->CRoutes.scr_act[count]= FALSE;
+			ScriptControl[count].thisScriptType = NOSCRIPT;
+			if (ScriptControl[count].cx != 0)
+				JSDeleteScriptContext(count);
+			ScriptControl[count].eventsProcessed = NULL;
+			ScriptControl[count].cx = 0;
+			ScriptControl[count].glob = 0;
+			ScriptControl[count]._initialized = FALSE;
+			ScriptControl[count].scriptOK = FALSE;
+			ScriptControl[count].scriptText = NULL;
+			ScriptControl[count].paramList = NULL;
+			ScriptControl[count].script = NULL;
+			iret = TRUE;
+		}
+	}
+	return iret;
+}
 
 /* set up table entry for this new script */
 void JSInit(struct Shader_Script *script) { /* int num) { */

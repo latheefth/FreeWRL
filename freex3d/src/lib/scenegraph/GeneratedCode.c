@@ -75,6 +75,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_GPU_Routes_out",
 	"__DEFnames",
 	"__EXPORTS",
+	"__GC",
 	"__IMPORTS",
 	"__IS",
 	"__ROUTES",
@@ -125,6 +126,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__movedOrientation",
 	"__movedPosition",
 	"__movedValue",
+	"__nodes",
 	"__normals",
 	"__numPoints",
 	"__occludeCheckCount",
@@ -164,6 +166,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__solid",
 	"__sourceNumber",
 	"__subTextures",
+	"__subcontexts",
 	"__t1",
 	"__t2",
 	"__texCoords",
@@ -3680,6 +3683,7 @@ const int OFFSETS_IndexedTriangleStripSet[] = {
 const int OFFSETS_Inline[] = {
 	(int) FIELDNAMES___DEFnames, (int) offsetof (struct X3D_Inline, __DEFnames),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___EXPORTS, (int) offsetof (struct X3D_Inline, __EXPORTS),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___GC, (int) offsetof (struct X3D_Inline, __GC),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___IMPORTS, (int) offsetof (struct X3D_Inline, __IMPORTS),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___IS, (int) offsetof (struct X3D_Inline, __IS),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___ROUTES, (int) offsetof (struct X3D_Inline, __ROUTES),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
@@ -3688,12 +3692,14 @@ const int OFFSETS_Inline[] = {
 	(int) FIELDNAMES___externProtoDeclares, (int) offsetof (struct X3D_Inline, __externProtoDeclares),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___loadResource, (int) offsetof (struct X3D_Inline, __loadResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___loadstatus, (int) offsetof (struct X3D_Inline, __loadstatus),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___nodes, (int) offsetof (struct X3D_Inline, __nodes),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___parentProto, (int) offsetof (struct X3D_Inline, __parentProto),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___protoDeclares, (int) offsetof (struct X3D_Inline, __protoDeclares),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___protoDef, (int) offsetof (struct X3D_Inline, __protoDef),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___protoFlags, (int) offsetof (struct X3D_Inline, __protoFlags),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___prototype, (int) offsetof (struct X3D_Inline, __prototype),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___scripts, (int) offsetof (struct X3D_Inline, __scripts),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___subcontexts, (int) offsetof (struct X3D_Inline, __subcontexts),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___typename, (int) offsetof (struct X3D_Inline, __typename),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__parentResource, (int) offsetof (struct X3D_Inline, _parentResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__sortedChildren, (int) offsetof (struct X3D_Inline, _sortedChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) 0,
@@ -4552,6 +4558,7 @@ const int OFFSETS_ProgramShader[] = {
 const int OFFSETS_Proto[] = {
 	(int) FIELDNAMES___DEFnames, (int) offsetof (struct X3D_Proto, __DEFnames),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___EXPORTS, (int) offsetof (struct X3D_Proto, __EXPORTS),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___GC, (int) offsetof (struct X3D_Proto, __GC),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___IMPORTS, (int) offsetof (struct X3D_Proto, __IMPORTS),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___IS, (int) offsetof (struct X3D_Proto, __IS),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___ROUTES, (int) offsetof (struct X3D_Proto, __ROUTES),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
@@ -4560,12 +4567,14 @@ const int OFFSETS_Proto[] = {
 	(int) FIELDNAMES___externProtoDeclares, (int) offsetof (struct X3D_Proto, __externProtoDeclares),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___loadResource, (int) offsetof (struct X3D_Proto, __loadResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___loadstatus, (int) offsetof (struct X3D_Proto, __loadstatus),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___nodes, (int) offsetof (struct X3D_Proto, __nodes),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___parentProto, (int) offsetof (struct X3D_Proto, __parentProto),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___protoDeclares, (int) offsetof (struct X3D_Proto, __protoDeclares),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___protoDef, (int) offsetof (struct X3D_Proto, __protoDef),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___protoFlags, (int) offsetof (struct X3D_Proto, __protoFlags),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___prototype, (int) offsetof (struct X3D_Proto, __prototype),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___scripts, (int) offsetof (struct X3D_Proto, __scripts),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___subcontexts, (int) offsetof (struct X3D_Proto, __subcontexts),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___typename, (int) offsetof (struct X3D_Proto, __typename),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__parentResource, (int) offsetof (struct X3D_Proto, _parentResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__sortedChildren, (int) offsetof (struct X3D_Proto, _sortedChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) 0,
@@ -7173,6 +7182,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_Inline *) tmp;
 			tmp2->__DEFnames = 0;
 			tmp2->__EXPORTS = 0;
+			tmp2->__GC = 0;
 			tmp2->__IMPORTS = 0;
 			tmp2->__IS = 0;
 			tmp2->__ROUTES = 0;
@@ -7181,12 +7191,14 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__externProtoDeclares = 0;
 			tmp2->__loadResource = 0;
 			tmp2->__loadstatus = 0;
+			tmp2->__nodes = 0;
 			tmp2->__parentProto = NULL;
 			tmp2->__protoDeclares = 0;
 			tmp2->__protoDef = 0;
 			tmp2->__protoFlags = 0;
 			tmp2->__prototype = NULL;
 			tmp2->__scripts = 0;
+			tmp2->__subcontexts = 0;
 			tmp2->__typename = 0;
 			tmp2->_parentResource = getInputResource();
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
@@ -8348,6 +8360,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_Proto *) tmp;
 			tmp2->__DEFnames = 0;
 			tmp2->__EXPORTS = 0;
+			tmp2->__GC = 0;
 			tmp2->__IMPORTS = 0;
 			tmp2->__IS = 0;
 			tmp2->__ROUTES = 0;
@@ -8356,12 +8369,14 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__externProtoDeclares = 0;
 			tmp2->__loadResource = 0;
 			tmp2->__loadstatus = 0;
+			tmp2->__nodes = 0;
 			tmp2->__parentProto = NULL;
 			tmp2->__protoDeclares = 0;
 			tmp2->__protoDef = 0;
 			tmp2->__protoFlags = 0;
 			tmp2->__prototype = NULL;
 			tmp2->__scripts = 0;
+			tmp2->__subcontexts = 0;
 			tmp2->__typename = 0;
 			tmp2->_parentResource = getInputResource();
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
