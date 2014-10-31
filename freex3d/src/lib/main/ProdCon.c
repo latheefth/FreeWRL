@@ -1482,3 +1482,81 @@ void registerBindable (struct X3D_Node *node) {
 
 	}
 }
+int removeNodeFromVector(int iaction, struct Vector *v, struct X3D_Node *node){
+	//iaction = 0 pack vector
+	//iaction = 1 set NULL
+	int iret = FALSE;
+	if(v && node){
+		struct X3D_Node *tn;
+		int i, idx;
+		idx = -1;
+		for(i=0;i<vectorSize(v);i++){
+			tn = vector_get(struct X3D_Node*,v,i);
+			if(tn == node){
+				idx = i;
+				iret = TRUE;
+			}
+		}
+		if(idx > -1){
+			if(iaction == 1)
+				vector_set(struct X3D_Node*,v,idx,NULL);
+			else if(iaction == 0)
+				vector_remove_elem(struct X3D_Node*,v,idx);
+		}
+	}
+	return iret;
+}
+void unRegisterBindable (struct X3D_Node *node) {
+	ppProdCon p;
+	struct tProdCon *t = &gglobal()->ProdCon;
+	p = (ppProdCon)t->prv;
+
+
+	switch (node->_nodeType) {
+		case NODE_Viewpoint:
+			X3D_VIEWPOINT(node)->set_bind = 100;
+			X3D_VIEWPOINT(node)->isBound = 0;
+			removeNodeFromVector(0, t->viewpointNodes, node);
+			break;
+		case NODE_OrthoViewpoint:
+			X3D_ORTHOVIEWPOINT(node)->set_bind = 100;
+			X3D_ORTHOVIEWPOINT(node)->isBound = 0;
+			removeNodeFromVector(0, t->viewpointNodes, node);
+			break;
+		case NODE_GeoViewpoint:
+			X3D_GEOVIEWPOINT(node)->set_bind = 100;
+			X3D_GEOVIEWPOINT(node)->isBound = 0;
+			removeNodeFromVector(0, t->viewpointNodes, node);
+			break;
+		case NODE_Background:
+			X3D_BACKGROUND(node)->set_bind = 100;
+			X3D_BACKGROUND(node)->isBound = 0;
+			vector_pushBack (struct X3D_Node*,p->backgroundNodes, node);
+			removeNodeFromVector(0, p->backgroundNodes, node);
+			break;
+		case NODE_TextureBackground:
+			X3D_TEXTUREBACKGROUND(node)->set_bind = 100;
+			X3D_TEXTUREBACKGROUND(node)->isBound = 0;
+			removeNodeFromVector(0, p->backgroundNodes, node);
+			break;
+		case NODE_NavigationInfo:
+			X3D_NAVIGATIONINFO(node)->set_bind = 100;
+			X3D_NAVIGATIONINFO(node)->isBound = 0;
+			removeNodeFromVector(0, p->navigationNodes, node);
+			break;
+		case NODE_Fog:
+			X3D_FOG(node)->set_bind = 100;
+			X3D_FOG(node)->isBound = 0;
+			vector_pushBack (struct X3D_Node*,p->fogNodes, node);
+			removeNodeFromVector(0, p->fogNodes, node);
+			break;
+		default: {
+			/* do nothing with this node */
+			/* printf ("got a registerBind on a node of type %s - ignoring\n",
+					stringNodeType(node->_nodeType));
+			*/
+			return;
+		}
+
+	}
+}

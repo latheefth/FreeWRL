@@ -1880,6 +1880,8 @@ void **shaderFields(struct X3D_Node* node){
 }
 void broto_store_DEF(struct X3D_Proto* proto,struct X3D_Node* node, char *name);
 void parseAttributes_B(void *ud, char **atts);
+add_node_to_broto_context(struct X3D_Proto *context,struct X3D_Node *node);
+
 static void startBuiltin_B(void *ud, int myNodeType, const xmlChar *name, char** atts) {
 	struct X3D_Node *node, *fromDEFtable;
 	struct X3D_Proto *context;
@@ -1969,6 +1971,8 @@ static void startBuiltin_B(void *ud, int myNodeType, const xmlChar *name, char**
 			
 		if(node->_nodeType == NODE_Inline)
 			X3D_INLINE(node)->__parentProto = X3D_NODE(context); //when searching for user proto declarations, apparently inlines can search the scene 
+		node->_executionContext = context;
+		add_node_to_broto_context(context,node);
 		
 		kids = indexChildrenName(node);
 		if(kids > -1)

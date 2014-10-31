@@ -3958,6 +3958,25 @@ if (!filledHole) ConsoleMessage ("registerX3DNode, no hole, phc %d for type %s",
 
 	UNLOCK_MEMORYTABLE
 }
+int removeNodeFromVector(int iaction, struct Vector *v, struct X3D_Node *node);
+void unRegisterX3DNode(struct X3D_Node * tmp){
+	struct X3D_Node *ns;
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+	int tc;
+	LOCK_MEMORYTABLE
+	if (p->linearNodeTable ) {
+		removeNodeFromVector(1, p->linearNodeTable, tmp);
+		//for (tc=0; tc<vectorSize(p->linearNodeTable); tc++){
+		//	ns = vector_get(struct X3D_Node *,p->linearNodeTable,tc);
+		//	if(ns == tmp) {
+		//		vector_set(struct X3D_Node *, p->linearNodeTable, tc, NULL);
+		//		break;
+		//	}
+		//}
+	}
+	UNLOCK_MEMORYTABLE
+}
+
 
 /*We don't register the first node created for reload reason*/
 void doNotRegisterThisNodeForDestroy(struct X3D_Node * nodePtr){

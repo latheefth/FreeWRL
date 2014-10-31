@@ -564,7 +564,7 @@ void other_Sphere (struct X3D_Sphere *node)
 		pick_Sphere(node);
 }
 
-
+void remove_picksensor(struct X3D_Node * node) {}
 #else // DJTRACK_PICKSENSORS
 /* PICKSENSOR stubs */
 void other_PointPickSensor (struct X3D_PointPickSensor *node) {}
@@ -573,5 +573,6 @@ void other_Sphere (struct X3D_Sphere *node) {}
 void child_PickableGroup (struct X3D_Group *node) {}
 void prep_PickableGroup (struct X3D_Group *node) {}
 void add_picksensor(struct X3D_Node * node) {}
+void remove_picksensor(struct X3D_Node * node) {}
 
 #endif // DJTRACK_PICKSENSORS
