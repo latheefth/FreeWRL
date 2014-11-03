@@ -1185,7 +1185,7 @@ void * SFNode_Constructor(FWType fwtype, int nargs, FWval fwpars){
 			/* do the call to make the VRML code  - create a new browser just for this string */
 			gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
 			retGroup = createNewX3DNode(NODE_Group);
-			ra = EAI_CreateVrml("String",_c,retGroup);
+			ra = EAI_CreateVrml("String",_c,retGroup,retGroup);
 			globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
 			//if(retGroup->children.n < 1) return 0;
 			ptr = malloc(sizeof(void *));

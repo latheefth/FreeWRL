@@ -305,7 +305,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, indexT c
 	      - that the destination node is not important (the NULL, offset 0) */
 
 	if (parser == NULL) {
-		parser=newParser(NULL, 0, TRUE);
+		parser=newParser(NULL,NULL, 0, TRUE);
 		//ConsoleMessage ("Parser_ScanStringValueToMem, new parser created");
 		// save it
 		((ppEAI_C_CommonFunctions)gglobal()->EAI_C_CommonFunctions.prv)->parser = parser;
@@ -523,7 +523,7 @@ void Parser_scanStringValueToMem_B(union anyVrml* any, indexT ctype, char *value
 	      - that the destination node is not important (the NULL, offset 0) */
 
 	if (parser == NULL) {
-		parser=newParser(NULL, 0, TRUE);
+		parser=newParser(NULL,NULL, 0, TRUE);
 		//ConsoleMessage ("Parser_ScanStringValueToMem, new parser created");
 		// save it
 		((ppEAI_C_CommonFunctions)gglobal()->EAI_C_CommonFunctions.prv)->parser = parser;
@@ -739,7 +739,7 @@ void Parser_scanStringValueToMem_C0(struct VRMLParser *parser, union anyVrml* an
 	      - that the destination node is not important (the NULL, offset 0) */
 
 	if (parser == NULL) {
-		parser=newParser(NULL, 0, TRUE);
+		parser=newParser(NULL,NULL, 0, TRUE);
 		//ConsoleMessage ("Parser_ScanStringValueToMem, new parser created");
 	}
 
@@ -940,7 +940,7 @@ void Parser_scanStringValueToMem_C(void *any0, int ctype0, char *value, int isXM
 	indexT ctype;
 	any = (union anyVrml*)any0;
 	ctype = (indexT)ctype0;
-	parser=newParser(NULL, 0, TRUE);
+	parser=newParser(NULL,NULL, 0, TRUE);
 	Parser_scanStringValueToMem_C0(parser, any, ctype, value, isXML);
 	if (parser != NULL) {
 		lexer_destroyData(parser->lexer);

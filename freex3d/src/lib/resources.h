@@ -106,6 +106,7 @@ typedef struct resource_item {
 	//  and is finished with the resitem (some actions may have failed - test with last status ie ress_failed etc)
 	bool complete;  
 	//for vrml/x3d media types:
+	void *ectx; //for parsing brotos - the X3D_Proto executionContext to put __ROUTES, __nodes, __subContext
 	void *whereToPlaceData;  // usually X3D_Node*, except for Scripts and Shaders, it's Shader_Script* (which is a sub-struct)
 	int offsetFromWhereToPlaceData; //usually field offset (not used for Scripts/Shaders)
 

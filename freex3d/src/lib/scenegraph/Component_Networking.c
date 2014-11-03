@@ -650,6 +650,7 @@ void load_Inline (struct X3D_Inline *node) {
 			if(res->complete){
 				if (res->status == ress_loaded) {
 					//determined during load process by resource_identify_type(): res->media_type = resm_vrml; //resm_unknown;
+					res->ectx = (void*)node;
 					res->whereToPlaceData = X3D_NODE(node);
 					res->offsetFromWhereToPlaceData = offsetof (struct X3D_Inline, __children);
 					res->actions = resa_process;

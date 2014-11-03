@@ -323,10 +323,11 @@ void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, 
 /* ************************************************************************** */
 /* Constructor and destructor */
 
-struct VRMLParser* newParser(void* ptr, unsigned ofs, int parsingX3DfromXML) {
+struct VRMLParser* newParser(void *ectx, void* ptr, unsigned ofs, int parsingX3DfromXML) {
     struct VRMLParser* ret=MALLOC(struct VRMLParser *, sizeof(struct VRMLParser));
     ret->lexer=newLexer();
     ASSERT(ret->lexer);
+	ret->ectx=ectx;
     ret->ptr=ptr;
     ret->ofs=ofs;
     ret->curPROTO=NULL;
@@ -337,7 +338,7 @@ struct VRMLParser* newParser(void* ptr, unsigned ofs, int parsingX3DfromXML) {
     return ret;
 }
 
-struct VRMLParser* reuseParser(void* ptr, unsigned ofs) {
+struct VRMLParser* reuseParser(void *ectx, void* ptr, unsigned ofs) {
     struct VRMLParser* ret;
 	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 
@@ -349,6 +350,7 @@ struct VRMLParser* reuseParser(void* ptr, unsigned ofs) {
        ret->lexer=newLexer();
     */
     ASSERT(ret->lexer);
+	ret->ectx=ectx;
     ret->ptr=ptr;
     ret->ofs=ofs;
 /* We now need to keep the PROTOS and DEFS around 
@@ -647,7 +649,7 @@ BOOL parser_vrmlScene_B(struct VRMLParser* me)
 BOOL parser_vrmlScene(struct VRMLParser* me)
 {
 	//ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
-	if(usingBrotos() && X3D_NODE(me->ptr)->_nodeType == NODE_Proto || X3D_NODE(me->ptr)->_nodeType == NODE_Inline) {
+	if(usingBrotos() && X3D_NODE(me->ectx)->_nodeType == NODE_Proto || X3D_NODE(me->ectx)->_nodeType == NODE_Inline) {
 		/* (sorry for documenting instead of refactoring)
 		 broto era: me->ptr is both the executionContext node (scene, proto, inline) 
 		 and the where node of the (where,offset) place to put the parsed nodes.
@@ -1357,7 +1359,7 @@ static BOOL parser_exportStatement(struct VRMLParser* me) {
 
     /* do the EXPORT */
 	if(usingBrotos())
-		handleExport_B(me->ptr,nodeToExport, alias);
+		handleExport_B(me->ectx,nodeToExport, alias);
 	else
 		handleExport(nodeToExport, alias);
 
@@ -1417,7 +1419,7 @@ static BOOL parser_importStatement(struct VRMLParser* me) {
 
     /* do the IMPORT */
 	if(usingBrotos())
-		handleImport_B(me->ptr,inlineNodeName, nodeToImport, alias);
+		handleImport_B(me->ectx,inlineNodeName, nodeToImport, alias);
 	else
 		handleImport(inlineNodeName, nodeToImport, alias);
 
@@ -2039,7 +2041,7 @@ static vrmlNodeT parse_KW_DEF(struct VRMLParser *me) {
 		//name = vector_get(char *,me->lexer->userNodeNames, ind);
 		if(p->useBrotos){
 			name = vector_get(char*, stack_top(struct Vector*, me->lexer->userNodeNames), ind);
-			broto_store_DEF((struct X3D_Proto*)(me->ptr),node, name);
+			broto_store_DEF((struct X3D_Proto*)(me->ectx),node, name);
 		}
 	}
 
@@ -3489,8 +3491,8 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 		struct Shader_Script* script=NULL;
 	#endif
 	struct Shader_Script* shader=NULL;
-	struct X3D_Node* what_am_I = X3D_NODE(me->ptr);
-	currentContext = (struct X3D_Proto*)me->ptr;
+	//struct X3D_Node* what_am_I = X3D_NODE(me->ptr);
+	currentContext = (struct X3D_Proto*)me->ectx;
 	pflagdepth = ciflag_get(currentContext->__protoFlags,0); //((char *)(&currentContext->__protoFlags))[0];
 
 	DECLAREUP
@@ -3663,9 +3665,9 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 		if(pflagdepth){
 			node=X3D_NODE(createNewX3DNode((int)nodeTypeB)); //registers node types like sensors, textures in tables for scene
 			if(node->_nodeType == NODE_Inline){
-				if(X3D_NODE(me->ptr)->_nodeType != NODE_Inline && X3D_NODE(me->ptr)->_nodeType != NODE_Proto)
-					printf("ouch trying to caste a %d nodetype to inline or proto\n",X3D_NODE(me->ptr)->_nodeType);
-				X3D_INLINE(node)->__parentProto = me->ptr;
+				if(X3D_NODE(me->ectx)->_nodeType != NODE_Inline && X3D_NODE(me->ectx)->_nodeType != NODE_Proto)
+					printf("ouch trying to caste a %d nodetype to inline or proto\n",X3D_NODE(me->ectx)->_nodeType);
+				X3D_INLINE(node)->__parentProto = me->ectx;
 			}
 		}else{
 			node=X3D_NODE(createNewX3DNode0((int)nodeTypeB)); //doesn't register node types in tables, for protoDeclare
@@ -4143,6 +4145,7 @@ static BOOL parser_brotoStatement(struct VRMLParser* me)
     //uintptr_t bodyLen;
 	struct X3D_Proto *proto, *parent;
 	void *ptr;
+	void *ectx;
 	DECLAREUP
 	unsigned int ofs;
 
@@ -4216,9 +4219,9 @@ static BOOL parser_brotoStatement(struct VRMLParser* me)
 	//create a ProtoDeclare
     proto = createNewX3DNode0(NODE_Proto);
 	//add it to the current context's list of declared protos
-	if(X3D_NODE(me->ptr)->_nodeType != NODE_Proto && X3D_NODE(me->ptr)->_nodeType != NODE_Inline )
-		printf("ouch trying to caste node type %d to proto\n",X3D_NODE(me->ptr)->_nodeType);
-	parent = (struct X3D_Proto*)me->ptr;
+	if(X3D_NODE(me->ectx)->_nodeType != NODE_Proto && X3D_NODE(me->ectx)->_nodeType != NODE_Inline )
+		printf("ouch trying to caste node type %d to proto\n",X3D_NODE(me->ectx)->_nodeType);
+	parent = (struct X3D_Proto*)me->ectx;
 	if(parent->__protoDeclares == NULL)
 		parent->__protoDeclares = newVector(struct X3D_Proto*,4);
 	vector_pushBack(struct X3D_Proto*,parent->__protoDeclares,proto);
@@ -4257,11 +4260,14 @@ static BOOL parser_brotoStatement(struct VRMLParser* me)
 #endif
 
         //me->curPROTO=obj;
+		ectx = me->ectx;
 		ptr = me->ptr;
 		ofs = me->ofs; //Q. does this change? Or are we always ofs of children in Proto? H: parseFromString different
+		me->ectx = proto;
 		me->ptr = proto;
 		me->ofs = offsetof(struct X3D_Proto, __children);
 		parse_proto_body(me);
+		me->ectx = ectx;
 		me->ptr = ptr;
 		me->ofs = ofs;
 
@@ -4371,7 +4377,7 @@ static BOOL parser_externbrotoStatement(struct VRMLParser* me)
 	//create a ProtoDeclare
     proto = createNewX3DNode0(NODE_Proto);
 	//add it to the current context's list of declared protos
-	parent = (struct X3D_Proto*)me->ptr;
+	parent = (struct X3D_Proto*)me->ectx;
 	if(parent->__externProtoDeclares == NULL)
 		parent->__externProtoDeclares = newVector(struct X3D_Proto*,4);
 	vector_pushBack(struct X3D_Proto*,parent->__externProtoDeclares,proto);
@@ -4685,7 +4691,7 @@ static BOOL parser_routeStatement_B(struct VRMLParser* me)
 		return FALSE; 
 	}
 
-	QAandRegister_parsedRoute_B(X3D_PROTO(me->ptr), sfnode, sffield, stnode, stfield);
+	QAandRegister_parsedRoute_B(X3D_PROTO(me->ectx), sfnode, sffield, stnode, stfield);
 
     return TRUE;
 }
@@ -6516,7 +6522,7 @@ BOOL found_IS_field(struct VRMLParser* me, struct X3D_Node *node)
 	5. what's its route field address: how does the is-table or route get to it: 
 		- integer field index for usernode
 	*/
-	proto = (struct X3D_Proto*)me->ptr;
+	proto = (struct X3D_Proto*)me->ectx;
 	pdef = (struct ProtoDefinition*)proto->__protoDef; //__brotoObj;
 	foundProtoField = FALSE;
 	f = NULL;
@@ -6715,6 +6721,7 @@ void load_externProtoDeclare (struct X3D_Proto *node) {
 					resourceTypeToString(res->type), resourceStatusToString(res->status)); */
 				res->actions = resa_download | resa_load; //not resa_parse which we do below
 				struct X3D_Proto *libraryScene = createNewX3DNode0(NODE_Proto);
+				res->ectx = (void*)libraryScene;
 				res->whereToPlaceData = X3D_NODE(libraryScene);
 				res->offsetFromWhereToPlaceData = offsetof (struct X3D_Proto, __children);
 				addLibrary(res->URLrequest,libraryScene,res);

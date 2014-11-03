@@ -114,7 +114,7 @@ struct PSStruct {
 	struct Uni_String *sv;			/* the SV for javascript		*/
 };
 
-static bool parser_do_parse_string(const unsigned char *input, const int len, struct X3D_Node *nRn);
+static bool parser_do_parse_string(const unsigned char *input, const int len, struct X3D_Node *ectx, struct X3D_Node *nRn);
 
 /* Bindables */
 typedef struct pProdCon{
@@ -328,7 +328,7 @@ int offsetofChildren(struct X3D_Node *node){
 /**
  *   parser_do_parse_string: actually calls the parser.
  */
-static bool parser_do_parse_string(const unsigned char *input, const int len, struct X3D_Node *nRn)
+static bool parser_do_parse_string(const unsigned char *input, const int len, struct X3D_Node *ectx, struct X3D_Node *nRn)
 {
 	bool ret;
 	int kids;
@@ -352,12 +352,12 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 	case IS_TYPE_XML_X3D:
 		if(kids){
 		//if(nRn->_nodeType == NODE_Group || nRn->_nodeType == NODE_Proto){
-			ret = X3DParse(X3D_NODE(nRn), (const char*)input);
+			ret = X3DParse(ectx, X3D_NODE(nRn), (const char*)input);
 		}
 		break;
 	case IS_TYPE_VRML:
 		if(kids){
-			ret = cParse(nRn, kids, (const char*)input);
+			ret = cParse(ectx, nRn, kids, (const char*)input);
 			p->haveParsedCParsed = TRUE;
 		}
 		break;
@@ -373,7 +373,7 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
         }}\
         ");
 		if(!usingBrotos()){
-			ret = cParse (nRn,(int) offsetof (struct X3D_Group, children), newData);
+			ret = cParse (ectx,nRn,(int) offsetof (struct X3D_Group, children), newData);
 			FREE_IF_NZ(newData);
 		}
 
@@ -420,7 +420,7 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 		if (gglobal()->internalc.global_strictParsing) { ConsoleMessage ("unknown text as input"); } else {
 			inputFileType = IS_TYPE_VRML;
 			inputFileVersion[0] = 2; /* try VRML V2 */
-			cParse (nRn,(int) offsetof (struct X3D_Proto, __children), (const char*)input);
+			cParse (ectx,nRn,(int) offsetof (struct X3D_Proto, __children), (const char*)input);
 			p->haveParsedCParsed = TRUE; }
 	}
 	}
@@ -642,6 +642,7 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 	s_list_t *l;
 	openned_file_t *of;
 	struct X3D_Node *nRn;
+	struct X3D_Node *ectx;
 	struct X3D_Node *insert_node;
 	int i;
 	int offsetInNode;
@@ -678,7 +679,7 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 
     if (!fromEAI_SAI) pushInputResource(res);
 
-
+	ectx = res->ectx;
 	/* OK Boyz - here we go... if this if from the EAI, just parse it, as it will be a simple string */
 	if (strcmp(res->parsed_request,EAI_Flag)==0) {
 
@@ -690,7 +691,7 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 		insert_node = X3D_NODE(res->whereToPlaceData); /* casting here for compiler */
 		offsetInNode = res->offsetFromWhereToPlaceData;
 
-		parsedOk = parser_do_parse_string((const unsigned char *)res->URLrequest,(const int)strlen(res->URLrequest), nRn);
+		parsedOk = parser_do_parse_string((const unsigned char *)res->URLrequest,(const int)strlen(res->URLrequest), ectx, nRn);
 		//printf("after parse_string in EAI/SAI parsing\n");
 	} else {
 		/* standard file parsing */
@@ -736,9 +737,9 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 
 		/* create a container so that the parser has a place to put the nodes */
 		if(usingBrotos()){
-			if(res->whereToPlaceData)
+			if(res->whereToPlaceData){
 				nRn = X3D_NODE(res->whereToPlaceData);
-			else{
+			}else{
 				struct X3D_Proto *sceneProto;
 				sceneProto = (struct X3D_Proto *) createNewX3DNode(NODE_Proto);
 				sceneProto->__protoFlags = ciflag_set(sceneProto->__protoFlags,1,0);
@@ -747,14 +748,16 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 					sceneProto->__protoFlags = ciflag_set(sceneProto->__protoFlags,2,2);
 				//}
 				nRn = X3D_NODE(sceneProto);
+				ectx = nRn;
 				setRootNode(X3D_NODE(sceneProto));
 			}
 		}else{
 			nRn = (struct X3D_Node *) createNewX3DNode(NODE_Group);
+			ectx = nRn; //or should it be null
 		}
 
 		/* ACTUALLY CALLS THE PARSER */
-		parsedOk = parser_do_parse_string(of->fileData, of->fileDataSize, nRn);
+		parsedOk = parser_do_parse_string(of->fileData, of->fileDataSize, ectx, nRn);
 		//printf("after parse_string in standard file parsing\n");
 
 		if ((res != tg->resources.root_res) && ((!tg->resources.root_res) ||(!tg->resources.root_res->complete))) {
@@ -834,7 +837,7 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 }
 
 /* interface for creating VRML for EAI */
-int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *where)
+int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Node *ectx, struct X3D_Group *where)
 {
 	resource_item_t *res;
 	char *newString;
@@ -844,6 +847,7 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *wh
 	if (strncmp(tp, "URL", 3) == 0) {
 
 		res = resource_create_single(inputstring);
+		res->ectx = ectx;
 		res->whereToPlaceData = where;
 		res->offsetFromWhereToPlaceData = (int) offsetof (struct X3D_Group, children);
 		/* printf ("EAI_CreateVrml, res->where is %u, root is %u parameter where %u\n",res->where, rootNode, where); */
@@ -865,6 +869,7 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *wh
 		res = resource_create_from_string(sendIn);
 		res->media_type=resm_vrml;
 		res->parsed_request = EAI_Flag;
+		res->ectx = ectx;
 		res->whereToPlaceData = where;
 		res->offsetFromWhereToPlaceData = (int) offsetof (struct X3D_Group, children);
 	}
@@ -876,7 +881,7 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *wh
 }
 
 /* interface for creating X3D for EAI - like above except x3d */
-int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Group *where)
+int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Node *ectx, struct X3D_Group *where)
 {
 	int retval;
 	resource_item_t *res;
@@ -887,6 +892,7 @@ int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Group *whe
 	if (strncmp(tp, "URL", 3) == 0) {
 
 		res = resource_create_single(inputstring);
+		res->ectx = ectx;
 		res->whereToPlaceData = where;
 		res->offsetFromWhereToPlaceData = (int) offsetof (struct X3D_Group, children);
 		/* printf ("EAI_CreateVrml, res->where is %u, root is %u parameter where %u\n",res->where, rootNode, where); */
@@ -907,6 +913,7 @@ int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Group *whe
 		res = resource_create_from_string(sendIn);
 		res->media_type=resm_x3d; //**different than vrml
 		res->parsed_request = EAI_Flag;
+		res->ectx = ectx;
 		res->whereToPlaceData = where;
 		res->offsetFromWhereToPlaceData = (int) offsetof (struct X3D_Group, children);
 	}
@@ -917,50 +924,6 @@ int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Group *whe
 	//FREE_IF_NZ(newString);
 	//return (res->status == ress_parsed);
 }
-
-/* for creating x3d nodes from a string, taking an ec executionContext and mfnode* target */
-int EAI_CreateX3d_B(const char *tp, const char *inputstring, struct X3D_Proto* context, struct Multi_Node *mfnwhere)
-{
-	int retval;
-	resource_item_t *res;
-	char *newString;
-
-	newString = NULL;
-
-	if (strncmp(tp, "URL", 3) == 0) {
-
-		res = resource_create_single(inputstring);
-		res->whereToPlaceData = mfnwhere;
-		res->offsetFromWhereToPlaceData = 0; //(int) offsetof (struct X3D_Group, children);
-		/* printf ("EAI_CreateVrml, res->where is %u, root is %u parameter where %u\n",res->where, rootNode, where); */
-
-	} else { // all other cases are inline code to parse... let the parser do the job ;P...
-
-		const char *sendIn;
-		// the x3dparser doesn't like multiple root xml elements
-		// and it doesn't seem to hurt to give it an extra wrapping in <x3d>
-		// that way you can have multiple root elements and they all get
-	    // put into the target children[] field
-		newString = MALLOC (char *, strlen(inputstring) + strlen ("<X3D>\n\n</X3D>\n") + 3);
-		strcpy(newString,"<X3D>\n");
-		strcat(newString,inputstring);
-		strcat(newString,"\n</X3D>\n");
-		sendIn = newString;
-		//printf("EAI_createX3d string[%s]\n",sendIn);
-		res = resource_create_from_string(sendIn);
-		res->media_type=resm_x3d; //**different than vrml
-		res->parsed_request = EAI_Flag;
-		res->whereToPlaceData = mfnwhere;
-		res->offsetFromWhereToPlaceData = 0; //(int) offsetof (struct X3D_Group, children);
-	}
-	return parser_process_res_VRML_X3D(res);
-
-	//send_resource_to_parser(res);
-	//resource_wait(res);
-	//FREE_IF_NZ(newString);
-	//return (res->status == ress_parsed);
-}
-
 
 
 /**

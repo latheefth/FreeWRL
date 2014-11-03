@@ -1081,7 +1081,7 @@ void compareExternProtoDeclareWithProto(char *buffer,char *pound) {
 
 	/* parse this text now */
 	myGroup = createNewX3DNode (NODE_Group);
-	if (X3DParse(X3D_NODE(myGroup),buffer)) {
+	if (X3DParse(X3D_NODE(myGroup),X3D_NODE(myGroup),buffer)) {
 		/* printf ("ExternProto parsed OK\n"); */
 	} else {
 		ConsoleMessage ("ExternProto retrieval of :%s: did not parse correctly",CPD.definedProtoName);
@@ -1565,7 +1565,7 @@ void expandProtoInstance(void *ud, struct VRMLLexer *myLexer, struct X3D_Group *
 	#endif
 
 	/* parse this string */
-	if (X3DParse (X3D_NODE(myGroup),protoInString)) {
+	if (X3DParse (X3D_NODE(myGroup),X3D_NODE(myGroup),protoInString)) {
 		#ifdef X3DPARSERVERBOSE
 		printf ("PARSED OK\n");
 		#endif
