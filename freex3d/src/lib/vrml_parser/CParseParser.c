@@ -5553,6 +5553,14 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 	//if((*source)->_nodeType == NODE_PlaneSensor)
 	//	printf("got a planesensor - going to allocate and register it\n");
 	*dest=X3D_NODE(createNewX3DNode( (*source)->_nodeType)); //will register sensors and viewpionts
+	if(!ctx->__nodes)
+		ctx->__nodes = newVector(struct X3D_Node*,4);
+	vector_pushBack(struct X3D_Node*,ctx->__nodes,(*dest)); //  ctx->__nodes
+	if((*dest)->_nodeType == NODE_Proto || (*dest)->_nodeType == NODE_Inline){
+		if(!ctx->__subcontexts)
+			ctx->__subcontexts = newVector(struct X3D_Node*,4);
+		vector_pushBack(struct X3D_Node*,ctx->__subcontexts,(*dest));
+	}
 	parent = *dest;
 	if((*source)->_nodeType == NODE_Script)
 		stack_push(struct X3D_Node*,instancedScripts,*dest);

@@ -579,17 +579,35 @@ int VrmlBrowserCreateX3DFromString(FWType fwtype, void *ec, void *fwn, int argc,
 	const char *_c = fwpars[0]._string; 
 
 	/* do the call to make the VRML code  - create a new browser just for this string */
-	gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
-	retGroup = createNewX3DNode(NODE_Group);
-	ra = EAI_CreateX3d("String",_c,retGroup);
-	globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
+	//if(usingBrotos()){
+	//	struct Multi_Node *mfn = (struct Multi_Node *)malloc(sizeof(struct Multi_Node));
+	//	mfn->n = 0;
+	//	mfn->p = NULL;
+	//	gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
+	//	ra = EAI_CreateX3d_B("String",_c,ec,mfn); //includes executionContext for __nodes and __subContexts
+	//	globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
+	//	if(mfn->n < 1) {
+	//		free(mfn);
+	//		return 0;
+	//	}
+	//	fwretval->_web3dval.native = mfn;
+	//	fwretval->_web3dval.fieldType = FIELDTYPE_MFNode; //Group
+	//	fwretval->_web3dval.gc = 1; //will be GCd by nodelist
+	//	fwretval->itype = 'W';
+	//}else{
+		retGroup = createNewX3DNode(NODE_Group);
+		gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
+		ra = EAI_CreateX3d("String",_c,retGroup);
+		globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
+		//fwretval->_web3dval.native = (void *)retGroup;
+		if(retGroup->children.n < 1) return 0;
+		fwretval->_web3dval.native = &retGroup->children;
+		fwretval->_web3dval.fieldType = FIELDTYPE_MFNode; //Group
+		fwretval->_web3dval.gc = 0; //will be GCd by nodelist
+		fwretval->itype = 'W';
 
-	//fwretval->_web3dval.native = (void *)retGroup;
-	if(retGroup->children.n < 1) return 0;
-	fwretval->_web3dval.native = &retGroup->children;
-	fwretval->_web3dval.fieldType = FIELDTYPE_MFNode; //Group
-	fwretval->_web3dval.gc = 0; //will be GCd by nodelist
-	fwretval->itype = 'W';
+	//}
+
 	return 1;
 }
 //int jsrrunScript(duk_context *ctx, char *script, FWval retval);
