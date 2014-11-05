@@ -4334,6 +4334,8 @@ void killNodes(){
 	}
 }
 //dug9 dec 13 <<
+int needs_updating_Inline(struct X3D_Node *node);
+void update_Inline(struct X3D_Inline *node);
 // Dec 14, 2012 new proto IS-A version (see below for older version)
 void startOfLoopNodeUpdates(void) {
 	struct X3D_Node* node;
@@ -4660,8 +4662,9 @@ void startOfLoopNodeUpdates(void) {
 
 				BEGIN_NODE(Inline)
                     //printf ("node inline - status %d load %d for node %p\n",X3D_INLINE(node)->__loadstatus, X3D_INLINE(node)->load, node);
-					if (X3D_INLINE(node)->__loadstatus != INLINE_STABLE && X3D_INLINE(node)->load ||
-					    X3D_INLINE(node)->__loadstatus != INLINE_INITIAL_STATE && !X3D_INLINE(node)->load) {
+					//if (X3D_INLINE(node)->__loadstatus != INLINE_STABLE && X3D_INLINE(node)->load ||
+					//    X3D_INLINE(node)->__loadstatus != INLINE_INITIAL_STATE && !X3D_INLINE(node)->load) {
+					if(needs_updating_Inline(node)){
 						/* schedule this after we have unlocked the memory table */
 						if (loadInlines == NULL) {
 							loadInlines = newVector(struct X3D_Inline*, 16);
@@ -4918,7 +4921,8 @@ void startOfLoopNodeUpdates(void) {
 		for (ind=0; ind<vectorSize(loadInlines); ind++) {
 			struct X3D_Inline *node;
 			node=vector_get(struct X3D_Inline*, loadInlines,ind);
-			load_Inline (node);
+			//load_Inline (node);
+			update_Inline(node);
 		}
 		deleteVector (struct X3D_Inline*, loadInlines);
 	}
