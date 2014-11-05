@@ -691,8 +691,8 @@ extern void   storeMPGFrameData(int latest_texture_number, int h_size, int v_siz
 void mpg_main(char *filename, int *x,int *y,int *depth,int *frameCount,void **ptr);
 void removeFilenameFromPath (char *path);
 
-int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *node);
-int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Group *where);
+int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Node *ectx, struct X3D_Group *node);
+int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Node *ectx, struct X3D_Group *where);
 void EAI_Route(char cmnd, const char *tf);
 
 void handle_aqua(const int mev, const unsigned int button, int x, int y);
@@ -885,7 +885,7 @@ struct Multi_Vec3f *getCoordinate (struct X3D_Node *node, char *str);
 void replaceWorldNeeded(char* str);
 
 /* X3D C parser */
-int X3DParse(struct X3D_Node *parent, const char *inputstring);
+int X3DParse(struct X3D_Node *ectx, struct X3D_Node *parent, const char *inputstring);
 void *createNewX3DNode (int nt);
 void *createNewX3DNode0 (int nt);
 void *createNewX3DNodeB(int nt, int intable, void *executionContext);

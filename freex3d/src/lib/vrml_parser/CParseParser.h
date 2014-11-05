@@ -67,8 +67,9 @@ struct VRMLParser
 {
  struct VRMLLexer* lexer;	/* The lexer used. */
  /* Where to put the parsed nodes? */
- void* ptr;
- unsigned ofs;
+ void *ectx; //broto executionContext
+ void* ptr; //node with mfnode field
+ unsigned ofs;  //offset of mfnode field from ptr
  /* Currently parsing a PROTO? */
  struct ProtoDefinition* curPROTO;
 
@@ -87,8 +88,8 @@ struct VRMLParser
 extern BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*);
 
 /* Constructor and destructor */
-struct VRMLParser* newParser(void*, unsigned, int isX3DFormat);
-struct VRMLParser* reuseParser(void*, unsigned);
+struct VRMLParser* newParser(void *ectx, void* ptr, unsigned, int isX3DFormat);
+struct VRMLParser* reuseParser(void *ectx, void* ptr, unsigned);
 void deleteParser(struct VRMLParser*);
 
 /* Other clean up */

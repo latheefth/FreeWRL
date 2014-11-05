@@ -616,19 +616,20 @@ void load_Inline (struct X3D_Inline *node) {
 
     //printf ("load_Inline, node %p loadStatus %d\n",node,node->load);
     
-	if (node->load) {
+	//if (node->load) {
 		/* printf ("loading Inline\n");  */
 
 		switch (node->__loadstatus) {
 			case INLINE_INITIAL_STATE: /* nothing happened yet */
-
-			if (node->url.n == 0) {
-				node->__loadstatus = INLINE_STABLE; /* a "do-nothing" approach */
-			} else {
-				res = resource_create_multi(&(node->url));
-				res->media_type = resm_unknown;
-				node->__loadstatus = INLINE_REQUEST_RESOURCE;
-				node->__loadResource = res;
+			if(node->load){
+				if (node->url.n == 0) {
+					node->__loadstatus = INLINE_STABLE; /* a "do-nothing" approach */
+				} else {
+					res = resource_create_multi(&(node->url));
+					res->media_type = resm_unknown;
+					node->__loadstatus = INLINE_REQUEST_RESOURCE;
+					node->__loadResource = res;
+				}
 			}
 			break;
 
@@ -650,6 +651,7 @@ void load_Inline (struct X3D_Inline *node) {
 			if(res->complete){
 				if (res->status == ress_loaded) {
 					//determined during load process by resource_identify_type(): res->media_type = resm_vrml; //resm_unknown;
+					res->ectx = (void*)node;
 					res->whereToPlaceData = X3D_NODE(node);
 					res->offsetFromWhereToPlaceData = offsetof (struct X3D_Inline, __children);
 					res->actions = resa_process;
@@ -688,19 +690,24 @@ void load_Inline (struct X3D_Inline *node) {
 				node->__loadstatus = INLINE_STABLE;
 			break;
 			case INLINE_STABLE:
-			break;
-		}
-
-	} else {
-		switch (node->__loadstatus) {
-			case INLINE_INITIAL_STATE: /* nothing happened yet, not loaded */
-				break;
-			case INLINE_STABLE:
-				//if(node->__EXPORTS)
-				//	((struct Vector *)(node->__EXPORTS))->n = 0; //disable any parent context routing to inline's exports, before wiping out nodes
+			if(!node->load){
 				printf ("unloading Inline\n");
 				node->__loadstatus = INLINE_UN_IMPORTING; //INITIAL_STATE;
+			}
+
 			break;
+	//	}
+
+	//} else {
+	//	switch (node->__loadstatus) {
+			//case INLINE_INITIAL_STATE: /* nothing happened yet, not loaded */
+			//	break;
+			//case INLINE_STABLE:
+			//	//if(node->__EXPORTS)
+			//	//	((struct Vector *)(node->__EXPORTS))->n = 0; //disable any parent context routing to inline's exports, before wiping out nodes
+			//	printf ("unloading Inline\n");
+			//	node->__loadstatus = INLINE_UN_IMPORTING; //INITIAL_STATE;
+			//break;
 			case INLINE_UN_IMPORTING:
 				context = hasContext(node->_executionContext);
 				if(context)
@@ -736,8 +743,44 @@ void load_Inline (struct X3D_Inline *node) {
 				break;
 			default:
 				break; //if its part way loaded, we'll wait till it finishes.
-		}
+		//}
 	}
+}
+
+int needs_updating_Inline(struct X3D_Inline *node){
+	int iret = 0;
+	if( NODE_NEEDS_COMPILING || (node->__loadstatus != INLINE_STABLE && node->load || node->__loadstatus != INLINE_INITIAL_STATE && !node->load)) {
+		iret = 1;
+	}
+	return iret;
+}
+void update_Inline(struct X3D_Inline *node){
+	/*called from startofloopnodeupdates() -not render_hier- so its updated even when 
+	  not reachable in the scenegraph 
+	  - there are no transform geometries needed here, just url and load flags
+	*/
+	//printf("compiling Inline\n");
+	/* do we need to re-generate our internal variables? */
+	if NODE_NEEDS_COMPILING {
+		int loadchanged, urlchanged;
+		MARK_NODE_COMPILED
+		// something in resource fetch sets the node changed flag, (not sure where or why) 
+		// and we aren't interested in that here,
+		// just in the url and load fields changing, so we compare to last recorded values
+		loadchanged = urlchanged = 0;
+		loadchanged = node->load != node->__oldload;
+		urlchanged = node->url.n != node->__oldurl.n || node->url.p != node->__oldurl.p;
+		if(loadchanged || urlchanged){
+			//whether we are loading a new url, or unloading, we always start with an unconditional unload
+			node->__loadstatus = INLINE_UN_IMPORTING;
+			if(loadchanged) node->__oldload = node->load;
+			if(urlchanged) node->__oldurl = node->url;  //we don't need to strdup the url strings, assuming the old p* from a malloc doesn't get re-used/remalloced for a new url
+		}
+	} 
+	if (node->__loadstatus != INLINE_STABLE && node->load || node->__loadstatus != INLINE_INITIAL_STATE && !node->load) {
+		load_Inline(node);
+	}
+
 }
 
 

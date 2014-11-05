@@ -1811,7 +1811,7 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, uintN argc, jsval *vp) {
 		/* do the call to make the VRML code  - create a new browser just for this string */
 		gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
 		retGroup = createNewX3DNode(NODE_Group);
-		ra = EAI_CreateVrml("String",_c,retGroup);
+		ra = EAI_CreateVrml("String",_c,X3D_NODE(retGroup),retGroup);
 		globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
 
 
@@ -1912,7 +1912,7 @@ VrmlBrowserCreateX3DFromString(JSContext *context, uintN argc, jsval *vp) {
 		/* do the call to make the VRML code  - create a new browser just for this string */
 		//gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
 		retGroup = createNewX3DNode(NODE_Group);
-		ra = EAI_CreateX3d("String",_c,retGroup);
+		ra = EAI_CreateX3d("String",_c,X3D_NODE(retGroup),retGroup);
 		//globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
 
 

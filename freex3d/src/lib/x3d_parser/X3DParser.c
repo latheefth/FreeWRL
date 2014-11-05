@@ -1971,7 +1971,7 @@ static void startBuiltin_B(void *ud, int myNodeType, const xmlChar *name, char**
 			
 		if(node->_nodeType == NODE_Inline)
 			X3D_INLINE(node)->__parentProto = X3D_NODE(context); //when searching for user proto declarations, apparently inlines can search the scene 
-		node->_executionContext = context;
+		node->_executionContext = X3D_NODE(context);
 		add_node_to_broto_context(context,node);
 		
 		kids = indexChildrenName(node);
@@ -2743,7 +2743,7 @@ static void shutdownX3DParser (void *ud) {
 	popMode(ud);
 }
 
-int X3DParse (struct X3D_Node* myParent, const char *inputstring) {
+int X3DParse (struct X3D_Node* ectx, struct X3D_Node* myParent, const char *inputstring) {
 	ttglobal tg = gglobal();
 	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 	p->currentX3DParser = initializeX3DParser();
@@ -2769,7 +2769,7 @@ int X3DParse (struct X3D_Node* myParent, const char *inputstring) {
 		p->user_data = new_xml_user_data();
 	}
 	if(usingBrotos()) {
-		pushContext(p->user_data,myParent);
+		pushContext(p->user_data,ectx);
 		if(myParent->_nodeType == NODE_Proto )
 			pushField(p->user_data,"__children");
 		else

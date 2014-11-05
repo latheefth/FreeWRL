@@ -567,6 +567,7 @@ int VrmlBrowserCreateX3DFromString(FWType fwtype, void *ec, void *fwn, int argc,
 {
 	/* for the return of the nodes */
 	struct X3D_Group *retGroup;
+	int iret = 0;
 	char *xstr; 
 	char *tmpstr;
 	char *separator;
@@ -579,18 +580,41 @@ int VrmlBrowserCreateX3DFromString(FWType fwtype, void *ec, void *fwn, int argc,
 	const char *_c = fwpars[0]._string; 
 
 	/* do the call to make the VRML code  - create a new browser just for this string */
-	gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
-	retGroup = createNewX3DNode(NODE_Group);
-	ra = EAI_CreateX3d("String",_c,retGroup);
-	globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
+	if(usingBrotos()){
+		retGroup = createNewX3DNode0(NODE_Group); //don't register, we'll gc here
+		gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
+		ra = EAI_CreateX3d("String",_c,ec,retGroup); //includes executionContext for __nodes and __subContexts
+		globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
+		if(retGroup->children.n > 0) {
+			struct Multi_Node *mfn = (struct Multi_Node *)malloc(sizeof(struct Multi_Node));
+			memcpy(mfn,&retGroup->children,sizeof(struct Multi_Node));
+			FREE_IF_NZ(retGroup);
+			for(int i=0;i<mfn->n;i++){
+				mfn->p[i]->_parentVector->n = 0; 
+			}
+			fwretval->_web3dval.native = mfn;
+			fwretval->_web3dval.fieldType = FIELDTYPE_MFNode; //Group
+			fwretval->_web3dval.gc = 1; //will be GCd by nodelist
+			fwretval->itype = 'W';
+			iret = 1;
+		}
+		FREE_IF_NZ(retGroup);
+	}else{
+		retGroup = createNewX3DNode(NODE_Group);
+		gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
+		ra = EAI_CreateX3d("String",_c,X3D_NODE(retGroup),retGroup);
+		globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
+		//fwretval->_web3dval.native = (void *)retGroup;
+		if(retGroup->children.n > 0){
+			fwretval->_web3dval.native = &retGroup->children;
+			fwretval->_web3dval.fieldType = FIELDTYPE_MFNode; //Group
+			fwretval->_web3dval.gc = 0; //will be GCd by nodelist
+			fwretval->itype = 'W';
+			iret = 1;
+		}
+	}
 
-	//fwretval->_web3dval.native = (void *)retGroup;
-	if(retGroup->children.n < 1) return 0;
-	fwretval->_web3dval.native = &retGroup->children;
-	fwretval->_web3dval.fieldType = FIELDTYPE_MFNode; //Group
-	fwretval->_web3dval.gc = 0; //will be GCd by nodelist
-	fwretval->itype = 'W';
-	return 1;
+	return iret;
 }
 //int jsrrunScript(duk_context *ctx, char *script, FWval retval);
 int VrmlBrowserCreateVrmlFromString(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
@@ -601,24 +625,47 @@ int VrmlBrowserCreateVrmlFromString(FWType fwtype, void *ec, void *fwn, int argc
 	char *tmpstr;
 	char *separator;
 	int ra;
-	int count;
+	int count, iret;
 	int wantedsize;
 	int MallocdSize;
 	ttglobal tg = gglobal();
 	struct VRMLParser *globalParser = (struct VRMLParser *)tg->CParse.globalParser;
 	const char *_c = fwpars[0]._string; //fwpars[0]._web3dval.anyvrml->sfstring->strptr; 
 
-	/* do the call to make the VRML code  - create a new browser just for this string */
-	gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
-	retGroup = createNewX3DNode(NODE_Group);
-	ra = EAI_CreateVrml("String",_c,retGroup);
-	globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
-	//if(retGroup->children.n < 1) return 0;
-	fwretval->_web3dval.native = &retGroup->children;
-	fwretval->_web3dval.fieldType = FIELDTYPE_MFNode; //Group
-	fwretval->_web3dval.gc = 0;
-	fwretval->itype = 'W';
-	return 1;
+	iret = 0;
+	if(usingBrotos()){
+		retGroup = createNewX3DNode0(NODE_Group); //don't register, we'll gc here
+		gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
+		ra = EAI_CreateVrml("String",_c,ec,retGroup); //includes executionContext for __nodes and __subContexts
+		globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
+		if(retGroup->children.n > 0) {
+			struct Multi_Node *mfn = (struct Multi_Node *)malloc(sizeof(struct Multi_Node));
+			memcpy(mfn,&retGroup->children,sizeof(struct Multi_Node));
+			FREE_IF_NZ(retGroup);
+			for(int i=0;i<mfn->n;i++){
+				mfn->p[i]->_parentVector->n = 0; 
+			}
+			fwretval->_web3dval.native = mfn;
+			fwretval->_web3dval.fieldType = FIELDTYPE_MFNode; //Group
+			fwretval->_web3dval.gc = 0; //will be GCd by nodelist
+			fwretval->itype = 'W';
+			iret = 1;
+		}
+		FREE_IF_NZ(retGroup);
+	}else{
+		/* do the call to make the VRML code  - create a new browser just for this string */
+		gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
+		retGroup = createNewX3DNode(NODE_Group);
+		ra = EAI_CreateVrml("String",_c,X3D_NODE(retGroup),retGroup);
+		globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
+		//if(retGroup->children.n < 1) return 0;
+		fwretval->_web3dval.native = &retGroup->children;
+		fwretval->_web3dval.fieldType = FIELDTYPE_MFNode; //Group
+		fwretval->_web3dval.gc = 0;
+		fwretval->itype = 'W';
+		iret = 1;
+	}
+	return iret;
 
 }
 int VrmlBrowserCreateVrmlFromURL(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)

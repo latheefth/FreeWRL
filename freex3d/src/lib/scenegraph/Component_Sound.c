@@ -448,6 +448,7 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 		res = node->__loadResource;
 		resource_identify(node->_parentResource, res);
 		res->actions = resa_download | resa_load; //not resa_parse which we do below
+		res->ectx = (void*)node->_executionContext;
 		res->whereToPlaceData = X3D_NODE(node);
 		//res->offsetFromWhereToPlaceData = offsetof (struct X3D_AudioClip, __FILEBLOB);
 		resitem_enqueue(ml_new(res));
