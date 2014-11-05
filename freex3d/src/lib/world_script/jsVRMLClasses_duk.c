@@ -1190,6 +1190,7 @@ void * SFNode_Constructor(FWType fwtype, int nargs, FWval fwpars){
 			//if(retGroup->children.n < 1) return 0;
 			ptr = malloc(sizeof(void *));
 			*ptr = retGroup->children.p[0]; 
+			(*ptr)->_parentVector->n = 0;
 		}else if(fwpars->itype = 'W'){
 			if(fwpars->_web3dval.fieldType == FIELDTYPE_SFNode){
 				ptr = malloc(sizeof(void *));

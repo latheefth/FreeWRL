@@ -589,6 +589,9 @@ int VrmlBrowserCreateX3DFromString(FWType fwtype, void *ec, void *fwn, int argc,
 			struct Multi_Node *mfn = (struct Multi_Node *)malloc(sizeof(struct Multi_Node));
 			memcpy(mfn,&retGroup->children,sizeof(struct Multi_Node));
 			FREE_IF_NZ(retGroup);
+			for(int i=0;i<mfn->n;i++){
+				mfn->p[i]->_parentVector->n = 0; 
+			}
 			fwretval->_web3dval.native = mfn;
 			fwretval->_web3dval.fieldType = FIELDTYPE_MFNode; //Group
 			fwretval->_web3dval.gc = 1; //will be GCd by nodelist
@@ -639,9 +642,12 @@ int VrmlBrowserCreateVrmlFromString(FWType fwtype, void *ec, void *fwn, int argc
 			struct Multi_Node *mfn = (struct Multi_Node *)malloc(sizeof(struct Multi_Node));
 			memcpy(mfn,&retGroup->children,sizeof(struct Multi_Node));
 			FREE_IF_NZ(retGroup);
+			for(int i=0;i<mfn->n;i++){
+				mfn->p[i]->_parentVector->n = 0; 
+			}
 			fwretval->_web3dval.native = mfn;
 			fwretval->_web3dval.fieldType = FIELDTYPE_MFNode; //Group
-			fwretval->_web3dval.gc = 1; //will be GCd by nodelist
+			fwretval->_web3dval.gc = 0; //will be GCd by nodelist
 			fwretval->itype = 'W';
 			iret = 1;
 		}
