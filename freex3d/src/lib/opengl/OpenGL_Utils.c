@@ -4200,6 +4200,19 @@ void zeroVisibilityFlag(void) {
 				else childrenPtr = &X3D_LODNODE(node)->children; \
 			}
 
+#define CHILDREN_ANY_NODE(thistype,thischildren) \
+			addChildren = NULL; removeChildren = NULL; \
+			offsetOfChildrenPtr = offsetof (struct X3D_##thistype, thischildren); \
+			if (((struct X3D_##thistype *)node)->addChildren.n > 0) { \
+				addChildren = &((struct X3D_##thistype *)node)->addChildren; \
+				childrenPtr = &((struct X3D_##thistype *)node)->thischildren; \
+			} \
+			if (((struct X3D_##thistype *)node)->removeChildren.n > 0) { \
+				removeChildren = &((struct X3D_##thistype *)node)->removeChildren; \
+				childrenPtr = &((struct X3D_##thistype *)node)->thischildren; \
+			}
+
+
 #define EVIN_AND_FIELD_SAME(thisfield, thistype) \
 			if ((((struct X3D_##thistype *)node)->set_##thisfield.n) > 0) { \
 				((struct X3D_##thistype *)node)->thisfield.n = 0; \
@@ -4664,6 +4677,9 @@ void startOfLoopNodeUpdates(void) {
                     //printf ("node inline - status %d load %d for node %p\n",X3D_INLINE(node)->__loadstatus, X3D_INLINE(node)->load, node);
 					//if (X3D_INLINE(node)->__loadstatus != INLINE_STABLE && X3D_INLINE(node)->load ||
 					//    X3D_INLINE(node)->__loadstatus != INLINE_INITIAL_STATE && !X3D_INLINE(node)->load) {
+					//node->_renderFlags |= VF_shouldSortChildren;
+					//sortChildren (__LINE__,&X3D_INLINE(node)->__children,&X3D_INLINE(node)->_sortedChildren,node->_renderFlags & VF_shouldSortChildren);
+					//node->_renderFlags = node->_renderFlags & (0xFFFF^VF_shouldSortChildren);
 					if(needs_updating_Inline(node)){
 						/* schedule this after we have unlocked the memory table */
 						if (loadInlines == NULL) {
@@ -4673,6 +4689,7 @@ void startOfLoopNodeUpdates(void) {
 					}
 
 					propagateExtent(X3D_NODE(node));
+					CHILDREN_ANY_NODE(Inline,__children)
 				END_NODE
 
 				BEGIN_NODE(Transform)

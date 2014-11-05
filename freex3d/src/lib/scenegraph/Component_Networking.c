@@ -786,7 +786,16 @@ void update_Inline(struct X3D_Inline *node){
 
 
 void child_Inline (struct X3D_Inline *node) {
-	int nc = (node->__children).n;
+	static int usingSortedChildren = 0;
+	struct Multi_Node * kids;
+	int nc;
+	kids = &node->__children;
+	if(usingSortedChildren) {
+		node->_renderFlags |= VF_shouldSortChildren;
+		REINITIALIZE_SORTED_NODES_FIELD(node->__children,node->_sortedChildren);
+		kids = &node->_sortedChildren;
+	}
+	nc = kids->n;
 
 	LOCAL_LIGHT_SAVE
 
@@ -805,10 +814,10 @@ void child_Inline (struct X3D_Inline *node) {
 	if (nc==0) return; 
 
 	/* do we have a local light for a child? */
-	LOCAL_LIGHT_CHILDREN(node->__children);
+	LOCAL_LIGHT_CHILDREN(*kids);
 
 	/* now, just render the non-directionalLight children */
-	normalChildren(node->__children);
+	normalChildren(*kids);
 
 	#ifdef CHILDVERBOSE
 	printf("RENDER INLINE END %d\n",node);
