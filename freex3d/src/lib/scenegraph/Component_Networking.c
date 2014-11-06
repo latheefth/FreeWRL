@@ -747,24 +747,67 @@ void load_Inline (struct X3D_Inline *node) {
 	}
 }
 
-int needs_updating_Inline(struct X3D_Inline *node){
-	int iret = 0;
-	if( NODE_NEEDS_COMPILING || (node->__loadstatus != INLINE_STABLE && node->load || node->__loadstatus != INLINE_INITIAL_STATE && !node->load)) {
-		iret = 1;
+//int needs_updating_Inline(struct X3D_Inline *node){
+//	int iret = 0;
+//	if( NODE_NEEDS_COMPILING || (node->__loadstatus != INLINE_STABLE && node->load || node->__loadstatus != INLINE_INITIAL_STATE && !node->load)) {
+//		iret = 1;
+//	}
+//	return iret;
+//}
+//void update_Inline(struct X3D_Inline *node){
+//	/*called from startofloopnodeupdates() -not render_hier- so its updated even when 
+//	  not reachable in the scenegraph 
+//	  - there are no transform geometries needed here, just url and load flags
+//	*/
+//	//printf("compiling Inline\n");
+//	/* do we need to re-generate our internal variables? */
+//
+//	//if NODE_NEEDS_COMPILING {
+//	//	int loadchanged, urlchanged;
+//	//	// something in resource fetch or startofloopnodeupdates sets the node changed flag,
+//	//	// (not sure where, but likely to indicate _children have changed and node needs compiling) 
+//	//	// and we aren't interested in that here,
+//	//	// just in the url and load fields changing, so we compare to last recorded values
+//	//	loadchanged = urlchanged = 0;
+//	//	loadchanged = node->load != node->__oldload;
+//	//	urlchanged = node->url.n != node->__oldurl.n || node->url.p != node->__oldurl.p;
+//	//	if(loadchanged || urlchanged){
+//	//		//whether we are loading a new url, or unloading, we always start with an unconditional unload
+//	//		node->__loadstatus = INLINE_UN_IMPORTING;
+//	//		if(loadchanged) node->__oldload = node->load;
+//	//		if(urlchanged) node->__oldurl = node->url;  //we don't need to strdup the url strings, assuming the old p* from a malloc doesn't get re-used/remalloced for a new url
+//	//		MARK_NODE_COMPILED
+//	//	}
+//	//} 
+//	COMPILE_IF_REQUIRED
+//	if (node->__loadstatus != INLINE_STABLE && node->load || node->__loadstatus != INLINE_INITIAL_STATE && !node->load) {
+//		load_Inline(node);
+//	}
+//
+//}
+
+void prep_Inline (struct X3D_Inline *node) {
+	if(0)printf("in prep_inline\n");
+	//load_externProtoInstance(node);
+	COMPILE_IF_REQUIRED
+	if (node->__loadstatus != INLINE_STABLE && node->load || node->__loadstatus != INLINE_INITIAL_STATE && !node->load) {
+		load_Inline(node);
 	}
-	return iret;
+
+	//RECORD_DISTANCE
 }
-void update_Inline(struct X3D_Inline *node){
-	/*called from startofloopnodeupdates() -not render_hier- so its updated even when 
-	  not reachable in the scenegraph 
-	  - there are no transform geometries needed here, just url and load flags
-	*/
-	//printf("compiling Inline\n");
-	/* do we need to re-generate our internal variables? */
-	if NODE_NEEDS_COMPILING {
+/* not sure why we would compile */
+void compile_Inline(struct X3D_Inline *node) {
+	if(0)printf("in compile_inline\n");
+	//unsigned char pflag = ciflag_get(node->__protoFlags,2);
+	//if(pflag == 2){
+		//scene
+		REINITIALIZE_SORTED_NODES_FIELD(node->__children,node->_sortedChildren);
+	//}
+	{
 		int loadchanged, urlchanged;
-		MARK_NODE_COMPILED
-		// something in resource fetch sets the node changed flag, (not sure where or why) 
+		// something in resource fetch or startofloopnodeupdates sets the node changed flag,
+		// (not sure where, but likely to indicate _children have changed and node needs compiling) 
 		// and we aren't interested in that here,
 		// just in the url and load fields changing, so we compare to last recorded values
 		loadchanged = urlchanged = 0;
@@ -775,53 +818,67 @@ void update_Inline(struct X3D_Inline *node){
 			node->__loadstatus = INLINE_UN_IMPORTING;
 			if(loadchanged) node->__oldload = node->load;
 			if(urlchanged) node->__oldurl = node->url;  //we don't need to strdup the url strings, assuming the old p* from a malloc doesn't get re-used/remalloced for a new url
+			//MARK_NODE_COMPILED
 		}
 	} 
-	if (node->__loadstatus != INLINE_STABLE && node->load || node->__loadstatus != INLINE_INITIAL_STATE && !node->load) {
-		load_Inline(node);
-	}
-
+	//the clearing of the changed flag here may conflict with clearing it for url or load change in update_inline
+	MARK_NODE_COMPILED
 }
 
-
-
 void child_Inline (struct X3D_Inline *node) {
+
 	static int usingSortedChildren = 0;
 	struct Multi_Node * kids;
-	int nc;
-	kids = &node->__children;
-	if(usingSortedChildren) {
-		node->_renderFlags |= VF_shouldSortChildren;
-		REINITIALIZE_SORTED_NODES_FIELD(node->__children,node->_sortedChildren);
-		kids = &node->_sortedChildren;
-	}
-	nc = kids->n;
-
+	//CHILDREN_COUNT
+	int nc = node->__children.n; //_sortedChildren.n;
 	LOCAL_LIGHT_SAVE
 
-	#ifdef CHILDVERBOSE
-	printf("RENDER INLINE START %d (%d)\n",node, nc);
-	printf ("	child_Inline, %u, loadStatus %d, nc %d\n",node,node->__loadstatus, nc);
-	#endif
+	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
-	#ifdef CHILDVERBOSE
-		{int i;
-			for (i=0; i<nc; i++) { printf ("ch %d %s ",i,stringNodeType(X3D_NODE(node->children.p[i])->_nodeType));} 
-		printf ("\n");}
-	#endif
+	/* do we have a DirectionalLight for a child? */
+	if(nc){
+		LOCAL_LIGHT_CHILDREN(node->__children);
+	}else{
+		LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
+	}
 
-	/* any children at all? */
-	if (nc==0) return; 
-
-	/* do we have a local light for a child? */
-	LOCAL_LIGHT_CHILDREN(*kids);
-
-	/* now, just render the non-directionalLight children */
-	normalChildren(*kids);
-
-	#ifdef CHILDVERBOSE
-	printf("RENDER INLINE END %d\n",node);
-	#endif
+	normalChildren(node->_sortedChildren);
 
 	LOCAL_LIGHT_OFF
+
+	//kids = &node->__children;
+	//if(usingSortedChildren) {
+	//	node->_renderFlags |= VF_shouldSortChildren;
+	//	REINITIALIZE_SORTED_NODES_FIELD(node->__children,node->_sortedChildren);
+	//	kids = &node->_sortedChildren;
+	//}
+	//nc = kids->n;
+
+	//LOCAL_LIGHT_SAVE
+
+	//#ifdef CHILDVERBOSE
+	//printf("RENDER INLINE START %d (%d)\n",node, nc);
+	//printf ("	child_Inline, %u, loadStatus %d, nc %d\n",node,node->__loadstatus, nc);
+	//#endif
+
+	//#ifdef CHILDVERBOSE
+	//	{int i;
+	//		for (i=0; i<nc; i++) { printf ("ch %d %s ",i,stringNodeType(X3D_NODE(node->children.p[i])->_nodeType));} 
+	//	printf ("\n");}
+	//#endif
+
+	///* any children at all? */
+	//if (nc==0) return; 
+
+	///* do we have a local light for a child? */
+	//LOCAL_LIGHT_CHILDREN(*kids);
+
+	///* now, just render the non-directionalLight children */
+	//normalChildren(*kids);
+
+	//#ifdef CHILDVERBOSE
+	//printf("RENDER INLINE END %d\n",node);
+	//#endif
+
+	//LOCAL_LIGHT_OFF
 }

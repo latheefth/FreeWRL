@@ -7081,6 +7081,7 @@ int gc_broto_instance(struct X3D_Proto* node){
 	//free routes
 	if(node && hasContext(X3D_NODE(node))){
 		node->__children.n = 0; //hide from other threads
+		node->_sortedChildren.n = 0;
 		if(node->__subcontexts){
 			int i;
 			struct X3D_Proto *subctx;

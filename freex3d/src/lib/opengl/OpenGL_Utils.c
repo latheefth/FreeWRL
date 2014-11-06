@@ -4678,15 +4678,16 @@ void startOfLoopNodeUpdates(void) {
 					//if (X3D_INLINE(node)->__loadstatus != INLINE_STABLE && X3D_INLINE(node)->load ||
 					//    X3D_INLINE(node)->__loadstatus != INLINE_INITIAL_STATE && !X3D_INLINE(node)->load) {
 					//node->_renderFlags |= VF_shouldSortChildren;
-					//sortChildren (__LINE__,&X3D_INLINE(node)->__children,&X3D_INLINE(node)->_sortedChildren,node->_renderFlags & VF_shouldSortChildren);
-					//node->_renderFlags = node->_renderFlags & (0xFFFF^VF_shouldSortChildren);
-					if(needs_updating_Inline(node)){
-						/* schedule this after we have unlocked the memory table */
-						if (loadInlines == NULL) {
-							loadInlines = newVector(struct X3D_Inline*, 16);
-						}
-						vector_pushBack(struct X3D_Inline *, loadInlines, X3D_INLINE(node));
-					}
+					sortChildren (__LINE__,&X3D_INLINE(node)->__children,&X3D_INLINE(node)->_sortedChildren,node->_renderFlags & VF_shouldSortChildren);
+					node->_renderFlags = node->_renderFlags & (0xFFFF^VF_shouldSortChildren);
+					//TURN_OFF_SHOULDSORTCHILDREN
+					//if(needs_updating_Inline(node)){
+					//	/* schedule this after we have unlocked the memory table */
+					//	if (loadInlines == NULL) {
+					//		loadInlines = newVector(struct X3D_Inline*, 16);
+					//	}
+					//	vector_pushBack(struct X3D_Inline *, loadInlines, X3D_INLINE(node));
+					//}
 
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_ANY_NODE(Inline,__children)
@@ -4931,18 +4932,18 @@ void startOfLoopNodeUpdates(void) {
 	UNLOCK_MEMORYTABLE
 
 	/* do we have Inlines to load here, outside of the memorytable lock? */
-	if (loadInlines != NULL) {
-		indexT ind;
-        //printf ("OpenGL_Utils.c - loadInlines size %d\n",vectorSize(loadInlines));
+	//if (loadInlines != NULL) {
+	//	indexT ind;
+ //       //printf ("OpenGL_Utils.c - loadInlines size %d\n",vectorSize(loadInlines));
 
-		for (ind=0; ind<vectorSize(loadInlines); ind++) {
-			struct X3D_Inline *node;
-			node=vector_get(struct X3D_Inline*, loadInlines,ind);
-			//load_Inline (node);
-			update_Inline(node);
-		}
-		deleteVector (struct X3D_Inline*, loadInlines);
-	}
+	//	for (ind=0; ind<vectorSize(loadInlines); ind++) {
+	//		struct X3D_Inline *node;
+	//		node=vector_get(struct X3D_Inline*, loadInlines,ind);
+	//		//load_Inline (node);
+	//		update_Inline(node);
+	//	}
+	//	deleteVector (struct X3D_Inline*, loadInlines);
+	//}
 
 	/* now, we can go and tell the grouping nodes which ones are the lucky ones that contain the current Viewpoint node */
 	if (vectorSize(tg->Bindable.viewpoint_stack) > 0) {

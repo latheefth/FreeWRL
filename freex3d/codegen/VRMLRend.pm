@@ -366,6 +366,7 @@ our %PrepC = map {($_=>1)} qw/
 	Billboard
 	Group
 	Proto
+	Inline
 	PickableGroup
 	PointLight
 	SpotLight
@@ -416,6 +417,7 @@ our %ChildC = map {($_=>1)} qw/
 	HAnimSite
 	Group
 	Proto
+	Inline
 	ViewpointGroup
 	StaticGroup
 	PickableGroup
@@ -424,7 +426,6 @@ our %ChildC = map {($_=>1)} qw/
 	Anchor
 	GeoLocation
 	GeoTransform
-	Inline
 	Switch
 	CADLayer
 	CADAssembly
@@ -451,6 +452,7 @@ our %CompileC = map {($_=>1)} qw/
 	Transform
 	Group
 	Proto
+	Inline
 	CADAssembly
 	CADPart
 	ViewpointGroup
