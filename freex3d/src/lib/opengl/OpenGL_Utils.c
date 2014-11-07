@@ -71,7 +71,7 @@
 
 void kill_rendering(void);
 
-static void killNode (int index);
+static void killNode_hide_obsolete (int index);
 
 static void mesa_Frustum(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ, GLDOUBLE *m);
 
@@ -4060,8 +4060,7 @@ static void sortChildren (int line, struct Multi_Node *ch, struct Multi_Node *so
 			/* check to see if a child is NULL - if so, skip it */
 			if (a && b) {
 				if (a->_dist > b->_dist) {
-					/* printf ("sortChildren at %lf, have to switch %d %d dists %lf %lf\n",TickTime(),i,j,
-a->_dist, b->_dist); */
+					// printf ("sortChildren at %lf, have to switch %d %d dists %lf %lf\n",TickTime(),i,j,a->_dist, b->_dist); 
 					c = a;
 					sortedCh->p[j-1] = b;
 					sortedCh->p[j] = c;
@@ -4200,6 +4199,19 @@ void zeroVisibilityFlag(void) {
 				else childrenPtr = &X3D_LODNODE(node)->children; \
 			}
 
+#define CHILDREN_ANY_NODE(thistype,thischildren) \
+			addChildren = NULL; removeChildren = NULL; \
+			offsetOfChildrenPtr = offsetof (struct X3D_##thistype, thischildren); \
+			if (((struct X3D_##thistype *)node)->addChildren.n > 0) { \
+				addChildren = &((struct X3D_##thistype *)node)->addChildren; \
+				childrenPtr = &((struct X3D_##thistype *)node)->thischildren; \
+			} \
+			if (((struct X3D_##thistype *)node)->removeChildren.n > 0) { \
+				removeChildren = &((struct X3D_##thistype *)node)->removeChildren; \
+				childrenPtr = &((struct X3D_##thistype *)node)->thischildren; \
+			}
+
+
 #define EVIN_AND_FIELD_SAME(thisfield, thistype) \
 			if ((((struct X3D_##thistype *)node)->set_##thisfield.n) > 0) { \
 				((struct X3D_##thistype *)node)->thisfield.n = 0; \
@@ -4325,7 +4337,8 @@ void killNodes(){
 		if (node != NULL) {
 			if (node->referenceCount <= 0) {
 				//ConsoleMessage ("%d ref %d\n",i,node->referenceCount);
-				killNode(i);
+				//killNode(i);
+				FREE_IF_NZ(node);
 			}
 			//else{
 			//	printf("%d ", i);
@@ -4377,7 +4390,7 @@ void startOfLoopNodeUpdates(void) {
 	profile_start("loopnodeupdt");
 	LOCK_MEMORYTABLE
 
-    //printf ("\n******************************************\nstartOfLoopNodeUpdates\n");
+	//printf ("\n******************************************\nstartOfLoopNodeUpdates\n");
 
 	/* go through the node table, and zero any bits of interest */
 
@@ -4386,7 +4399,8 @@ void startOfLoopNodeUpdates(void) {
 		if (node != NULL) {
 			if (node->referenceCount <= 0) {
 				//ConsoleMessage ("%d ref %d\n",i,node->referenceCount);
-				killNode(i);
+				//killNode(i);
+				FREE_IF_NZ(node);
 			} else {
 				/* turn OFF these flags */
 				node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Sensitive);
@@ -4599,24 +4613,24 @@ void startOfLoopNodeUpdates(void) {
 				END_NODE
 
 				BEGIN_NODE(CADLayer)
-                                       propagateExtent(X3D_NODE(node));
-                                       CHILDREN_NODE(Switch)
+					propagateExtent(X3D_NODE(node));
+					CHILDREN_NODE(Switch)
 				END_NODE
 
 
 				BEGIN_NODE(CADPart)
-                                        sortChildren (__LINE__,&X3D_CADPART(node)->children,&X3D_CADPART(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
-                                        TURN_OFF_SHOULDSORTCHILDREN
-                                        propagateExtent(X3D_NODE(node));
-                                        CHILDREN_NODE(CADPart)
+					sortChildren (__LINE__,&X3D_CADPART(node)->children,&X3D_CADPART(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
+					TURN_OFF_SHOULDSORTCHILDREN
+					propagateExtent(X3D_NODE(node));
+					CHILDREN_NODE(CADPart)
 				END_NODE
 
 
 				BEGIN_NODE(CADAssembly)
-                                        sortChildren (__LINE__,&X3D_CADASSEMBLY(node)->children,&X3D_CADASSEMBLY(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
-                                        TURN_OFF_SHOULDSORTCHILDREN
-                                        propagateExtent(X3D_NODE(node));
-                                        CHILDREN_NODE(CADAssembly)
+					sortChildren (__LINE__,&X3D_CADASSEMBLY(node)->children,&X3D_CADASSEMBLY(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
+					TURN_OFF_SHOULDSORTCHILDREN
+					propagateExtent(X3D_NODE(node));
+					CHILDREN_NODE(CADAssembly)
 				END_NODE
 
 				/* maybe this is the current Viewpoint? */
@@ -4640,7 +4654,6 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE(Group)
 					sortChildren (__LINE__,&X3D_GROUP(node)->children,&X3D_GROUP(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
 					TURN_OFF_SHOULDSORTCHILDREN
-
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Group)
 				END_NODE
@@ -4655,24 +4668,16 @@ void startOfLoopNodeUpdates(void) {
 				END_NODE
 				/* PointPickSensor needs its own flag sent up the chain */
 				BEGIN_NODE (PointPickSensor)
-                			if (X3D_POINTPICKSENSOR(node)->enabled) update_renderFlag(pnode,VF_PickingSensor);
+							if (X3D_POINTPICKSENSOR(node)->enabled) update_renderFlag(pnode,VF_PickingSensor);
 				END_NODE
 
 #endif
 
 				BEGIN_NODE(Inline)
-                    //printf ("node inline - status %d load %d for node %p\n",X3D_INLINE(node)->__loadstatus, X3D_INLINE(node)->load, node);
-					//if (X3D_INLINE(node)->__loadstatus != INLINE_STABLE && X3D_INLINE(node)->load ||
-					//    X3D_INLINE(node)->__loadstatus != INLINE_INITIAL_STATE && !X3D_INLINE(node)->load) {
-					if(needs_updating_Inline(node)){
-						/* schedule this after we have unlocked the memory table */
-						if (loadInlines == NULL) {
-							loadInlines = newVector(struct X3D_Inline*, 16);
-						}
-						vector_pushBack(struct X3D_Inline *, loadInlines, X3D_INLINE(node));
-					}
-
+					sortChildren (__LINE__,&X3D_INLINE(node)->__children,&X3D_INLINE(node)->_sortedChildren,node->_renderFlags & VF_shouldSortChildren);
+					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
+					CHILDREN_ANY_NODE(Inline,__children)
 				END_NODE
 
 				BEGIN_NODE(Transform)
@@ -4684,7 +4689,7 @@ void startOfLoopNodeUpdates(void) {
 
 
 
-/*              BEGIN_NODE(NurbsGroup)
+/*				BEGIN_NODE(NurbsGroup)
 					CHILDREN_NODE(NurbsGroup)
 				END_NODE
 */
@@ -4707,7 +4712,7 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE(Billboard)
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Billboard)
-                			update_renderFlag(pnode,VF_Proximity);
+					update_renderFlag(pnode,VF_Proximity);
 				END_NODE
 
 				BEGIN_NODE(Collision)
@@ -4723,13 +4728,13 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE(LOD)
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_LOD_NODE
-                			update_renderFlag(pnode,VF_Proximity);
+							update_renderFlag(pnode,VF_Proximity);
 				END_NODE
 
 				/* Material - transparency of materials */
 				BEGIN_NODE(Material) CHECK_MATERIAL_TRANSPARENCY END_NODE
-                BEGIN_NODE(TwoSidedMaterial) CHECK_TWOSIDED_MATERIAL_TRANSPARENCY END_NODE
-                BEGIN_NODE(FillProperties) CHECK_FILL_PROPERTY_FILLED END_NODE
+				BEGIN_NODE(TwoSidedMaterial) CHECK_TWOSIDED_MATERIAL_TRANSPARENCY END_NODE
+				BEGIN_NODE(FillProperties) CHECK_FILL_PROPERTY_FILLED END_NODE
 
 				/* Textures - check transparency  */
 				BEGIN_NODE(ImageTexture) CHECK_IMAGETEXTURE_TRANSPARENCY END_NODE
@@ -4763,7 +4768,7 @@ void startOfLoopNodeUpdates(void) {
 					X3D_VISIBILITYSENSOR(node)->__occludeCheckCount--;
 					/* VisibilitySensors have a transparent bounding box we have to render */
 
-                			update_renderFlag(pnode,VF_Blend & VF_shouldSortChildren);
+					update_renderFlag(pnode,VF_Blend & VF_shouldSortChildren);
 				END_NODE
 
 				/* ProximitySensor needs its own flag sent up the chain */
@@ -4773,7 +4778,7 @@ void startOfLoopNodeUpdates(void) {
 
 				/* GeoProximitySensor needs its own flag sent up the chain */
 				BEGIN_NODE (GeoProximitySensor)
-                			if (X3D_GEOPROXIMITYSENSOR(node)->enabled) update_renderFlag(pnode,VF_Proximity);
+					if (X3D_GEOPROXIMITYSENSOR(node)->enabled) update_renderFlag(pnode,VF_Proximity);
 				END_NODE
 
 				/* GeoLOD needs its own flag sent up the chain, and it has to push extent up, too */
@@ -4781,7 +4786,7 @@ void startOfLoopNodeUpdates(void) {
 					if (!(NODE_NEEDS_COMPILING)) {
 						handle_GeoLODRange(X3D_GEOLOD(node));
 					}
-                			/* update_renderFlag(pnode,VF_Proximity); */
+					/* update_renderFlag(pnode,VF_Proximity); */
 					propagateExtent(X3D_NODE(node));
 				END_NODE
 
@@ -4913,28 +4918,16 @@ void startOfLoopNodeUpdates(void) {
 
 	UNLOCK_MEMORYTABLE
 
-	/* do we have Inlines to load here, outside of the memorytable lock? */
-	if (loadInlines != NULL) {
-		indexT ind;
-        //printf ("OpenGL_Utils.c - loadInlines size %d\n",vectorSize(loadInlines));
-
-		for (ind=0; ind<vectorSize(loadInlines); ind++) {
-			struct X3D_Inline *node;
-			node=vector_get(struct X3D_Inline*, loadInlines,ind);
-			//load_Inline (node);
-			update_Inline(node);
-		}
-		deleteVector (struct X3D_Inline*, loadInlines);
-	}
-
 	/* now, we can go and tell the grouping nodes which ones are the lucky ones that contain the current Viewpoint node */
 	if (vectorSize(tg->Bindable.viewpoint_stack) > 0) {
 		//ConsoleMessage ("going to updateRF on viewpoint, stack is %d in size\n", vectorSize(tg->Bindable.viewpoint_stack));
 
-
-		update_renderFlag(vector_back(struct X3D_Node*,
-			tg->Bindable.viewpoint_stack), VF_Viewpoint);
-		calculateNearFarplanes(vector_back(struct X3D_Node*, tg->Bindable.viewpoint_stack));
+		struct X3D_Node *boundvp = vector_back(struct X3D_Node*,tg->Bindable.viewpoint_stack);
+		update_renderFlag(boundvp, VF_Viewpoint);
+		calculateNearFarplanes(boundvp);
+		//update_renderFlag(vector_back(struct X3D_Node*,
+		//	tg->Bindable.viewpoint_stack), VF_Viewpoint);
+		//calculateNearFarplanes(vector_back(struct X3D_Node*, tg->Bindable.viewpoint_stack));
 	} else {
 		/* keep these at the defaults, if no viewpoint is present. */
 		Viewer()->nearPlane = DEFAULT_NEARPLANE;
@@ -5434,7 +5427,7 @@ void unlink_node(struct X3D_Node* node)
 	}
 }
 /*delete node created*/
-static void killNode (int index) {
+static void killNode_hide_obsolete (int index) {
 	int j=0;
 	int *fieldOffsetsPtr;
 	char * fieldPtr;

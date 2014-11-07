@@ -612,159 +612,146 @@ int unload_broto(struct X3D_Proto* node);
 void load_Inline (struct X3D_Inline *node) {
 	resource_item_t *res;
 	struct X3D_Proto *context;
-	// printf ("load_Inline %u, loadStatus %d loadResource %u\n",node, node->__loadstatus, node->__loadResource);
-
     //printf ("load_Inline, node %p loadStatus %d\n",node,node->load);
-    
-	//if (node->load) {
-		/* printf ("loading Inline\n");  */
+	/* printf ("loading Inline\n");  */
 
-		switch (node->__loadstatus) {
-			case INLINE_INITIAL_STATE: /* nothing happened yet */
-			if(node->load){
-				if (node->url.n == 0) {
-					node->__loadstatus = INLINE_STABLE; /* a "do-nothing" approach */
-				} else {
-					res = resource_create_multi(&(node->url));
-					res->media_type = resm_unknown;
-					node->__loadstatus = INLINE_REQUEST_RESOURCE;
-					node->__loadResource = res;
-				}
+	switch (node->__loadstatus) {
+		case INLINE_INITIAL_STATE: /* nothing happened yet */
+		if(node->load){
+			if (node->url.n == 0) {
+				node->__loadstatus = INLINE_STABLE; /* a "do-nothing" approach */
+			} else {
+				res = resource_create_multi(&(node->url));
+				res->media_type = resm_unknown;
+				node->__loadstatus = INLINE_REQUEST_RESOURCE;
+				node->__loadResource = res;
 			}
-			break;
+		}
+		break;
 
-			case INLINE_REQUEST_RESOURCE:
-			res = node->__loadResource;
-			resource_identify(node->_parentResource, res);
-			/* printf ("load_Inline, we have type  %s  status %s\n",
-				resourceTypeToString(res->type), resourceStatusToString(res->status)); */
-			res->actions = resa_download | resa_load; //not resa_parse which we do below
-			//frontenditem_enqueue(ml_new(res));
-			resitem_enqueue(ml_new(res));
-			node->__loadstatus = INLINE_FETCHING_RESOURCE;
-			break;
+		case INLINE_REQUEST_RESOURCE:
+		res = node->__loadResource;
+		resource_identify(node->_parentResource, res);
+		/* printf ("load_Inline, we have type  %s  status %s\n",
+			resourceTypeToString(res->type), resourceStatusToString(res->status)); */
+		res->actions = resa_download | resa_load; //not resa_parse which we do below
+		//frontenditem_enqueue(ml_new(res));
+		resitem_enqueue(ml_new(res));
+		node->__loadstatus = INLINE_FETCHING_RESOURCE;
+		break;
 
-			case INLINE_FETCHING_RESOURCE:
+		case INLINE_FETCHING_RESOURCE:
+		res = node->__loadResource;
+		/* printf ("load_Inline, we have type  %s  status %s\n",
+			resourceTypeToString(res->type), resourceStatusToString(res->status)); */
+		if(res->complete){
+			if (res->status == ress_loaded) {
+				//determined during load process by resource_identify_type(): res->media_type = resm_vrml; //resm_unknown;
+				res->ectx = (void*)node;
+				res->whereToPlaceData = X3D_NODE(node);
+				res->offsetFromWhereToPlaceData = offsetof (struct X3D_Inline, __children);
+				res->actions = resa_process;
+				node->__loadstatus = INLINE_PARSING; // a "do-nothing" approach 
+				//tell it to instance (vs library)
+				node->__protoFlags = ciflag_set(node->__protoFlags,1,0);
+				res->complete = FALSE;
+				//send_resource_to_parser(res);
+				//send_resource_to_parser_if_available(res);
+				resitem_enqueue(ml_new(res));
+			} else if ((res->status == ress_failed) || (res->status == ress_invalid)) {
+				//no hope left
+				printf ("resource failed to load\n");
+				node->__loadstatus = INLINE_STABLE; // a "do-nothing" approach 
+			}
+		}
+		break;
+
+		case INLINE_PARSING:
 			res = node->__loadResource;
-			/* printf ("load_Inline, we have type  %s  status %s\n",
-				resourceTypeToString(res->type), resourceStatusToString(res->status)); */
+
+			//printf ("inline parsing.... %s\n",resourceStatusToString(res->status));
+			//printf ("res complete %d\n",res->complete);
 			if(res->complete){
-				if (res->status == ress_loaded) {
-					//determined during load process by resource_identify_type(): res->media_type = resm_vrml; //resm_unknown;
-					res->ectx = (void*)node;
-					res->whereToPlaceData = X3D_NODE(node);
-					res->offsetFromWhereToPlaceData = offsetof (struct X3D_Inline, __children);
-					res->actions = resa_process;
-					node->__loadstatus = INLINE_PARSING; // a "do-nothing" approach 
-					//tell it to instance (vs library)
-					node->__protoFlags = ciflag_set(node->__protoFlags,1,0);
-					res->complete = FALSE;
-					//send_resource_to_parser(res);
-					//send_resource_to_parser_if_available(res);
-					resitem_enqueue(ml_new(res));
-				} else if ((res->status == ress_failed) || (res->status == ress_invalid)) {
-					//no hope left
-					printf ("resource failed to load\n");
-					node->__loadstatus = INLINE_STABLE; // a "do-nothing" approach 
-				}
-			}
-			break;
-
-			case INLINE_PARSING:
-				res = node->__loadResource;
-
-				//printf ("inline parsing.... %s\n",resourceStatusToString(res->status));
-				//printf ("res complete %d\n",res->complete);
-				if(res->complete){
-					if (res->status == ress_parsed) {
-						/* this might be a good place to populate parent context IMPORT table with our EXPORT nodes? */
-						node->__loadstatus = INLINE_IMPORTING; //INLINE_STABLE; 
-					} 
-				}
-
-			break;
-			case INLINE_IMPORTING:
-				context = hasContext(node->_executionContext);
-				if(context)
-					update_weakRoutes(context);
-				node->__loadstatus = INLINE_STABLE;
-			break;
-			case INLINE_STABLE:
-			if(!node->load){
-				printf ("unloading Inline\n");
-				node->__loadstatus = INLINE_UN_IMPORTING; //INITIAL_STATE;
+				if (res->status == ress_parsed) {
+					/* this might be a good place to populate parent context IMPORT table with our EXPORT nodes? */
+					node->__loadstatus = INLINE_IMPORTING; //INLINE_STABLE; 
+				} 
 			}
 
-			break;
-	//	}
+		break;
+		case INLINE_IMPORTING:
+			context = hasContext(node->_executionContext);
+			if(context)
+				update_weakRoutes(context);
+			node->__loadstatus = INLINE_STABLE;
+		break;
+		case INLINE_STABLE:
+		if(!node->load){
+			printf ("unloading Inline\n");
+			node->__loadstatus = INLINE_UN_IMPORTING; //INITIAL_STATE;
+		}
 
-	//} else {
-	//	switch (node->__loadstatus) {
-			//case INLINE_INITIAL_STATE: /* nothing happened yet, not loaded */
-			//	break;
-			//case INLINE_STABLE:
-			//	//if(node->__EXPORTS)
-			//	//	((struct Vector *)(node->__EXPORTS))->n = 0; //disable any parent context routing to inline's exports, before wiping out nodes
-			//	printf ("unloading Inline\n");
-			//	node->__loadstatus = INLINE_UN_IMPORTING; //INITIAL_STATE;
-			//break;
-			case INLINE_UN_IMPORTING:
-				context = hasContext(node->_executionContext);
-				if(context)
-					update_weakRoutes(context); //remove any imported routes so no dangling route pointers
-				node->__loadstatus = INLINE_UNLOADING;
-				break;
-			case INLINE_UNLOADING:
-				/* missing code to unload inline 
-				  The same (missing) cleanup function could also be used to unload scene and protoInstances, and 
-				    the garbage collection part can be used on protoDeclares, externProtoDeclares,
-					and extern proto library scenes. All these use X3D_Proto == X3D_Inline struct 
-					with a few X3D_Proto.__protoFlags distinguishing their use at runtime.
-				A. unregister items registered in global/browser structs
-					a  remove registered sensors -need a __sensors array?
-					b. remove registered scripts -see __scripts
-					c. remove registered routes:
-						c.i regular routes -from __ROUTES table
-						c.ii IS construction routes - from __IStable - a function was developed but not yet tested: unregister_IStableRoutes
-					d unregister nodes from table used by startofloopnodeupdates - see createNewX3DNode vs createNewX3DNode0 in generatedCode.c
-				B. deallocate context-specific heap: 
-					a nodes allocated -need a context-specific nodes heap
-						a.0 recursively unload sub-contexts: inlines and protoInstances
-						a.1 builtin nodes
-					b. context vectors: __ROUTES, __IMPORTS, __EXPORTS, __DEFnames, __scripts, addChildren, removeChildren, _children
-					c prototypes declared: __protoDeclares, __externProtoDeclares - use same recursive unload
-					d string heap -need a string heap
-					e malloc heap used for elements of __ vectors - need a context-specific malloc and heap ie fmalloc(context,sizeof)
-				C. clear/reset scalar values so Inline can be re-used/re-loaded: (not sure, likely none to worry about)
-				*/
-				node->__children.n = 0; //this hack will make it look like it's unloaded, but chaos results with a subsequent reload
-				node->__loadstatus = INLINE_INITIAL_STATE;
-				unload_broto(X3D_PROTO(node));
-				break;
-			default:
-				break; //if its part way loaded, we'll wait till it finishes.
-		//}
+		break;
+		case INLINE_UN_IMPORTING:
+			context = hasContext(node->_executionContext);
+			if(context)
+				update_weakRoutes(context); //remove any imported routes so no dangling route pointers
+			node->__loadstatus = INLINE_UNLOADING;
+			break;
+		case INLINE_UNLOADING:
+			/* missing code to unload inline 
+				The same (missing) cleanup function could also be used to unload scene and protoInstances, and 
+				the garbage collection part can be used on protoDeclares, externProtoDeclares,
+				and extern proto library scenes. All these use X3D_Proto == X3D_Inline struct 
+				with a few X3D_Proto.__protoFlags distinguishing their use at runtime.
+			A. unregister items registered in global/browser structs
+				a  remove registered sensors -need a __sensors array?
+				b. remove registered scripts -see __scripts
+				c. remove registered routes:
+					c.i regular routes -from __ROUTES table
+					c.ii IS construction routes - from __IStable - a function was developed but not yet tested: unregister_IStableRoutes
+				d unregister nodes from table used by startofloopnodeupdates - see createNewX3DNode vs createNewX3DNode0 in generatedCode.c
+			B. deallocate context-specific heap: 
+				a nodes allocated -need a context-specific nodes heap
+					a.0 recursively unload sub-contexts: inlines and protoInstances
+					a.1 builtin nodes
+				b. context vectors: __ROUTES, __IMPORTS, __EXPORTS, __DEFnames, __scripts, addChildren, removeChildren, _children
+				c prototypes declared: __protoDeclares, __externProtoDeclares - use same recursive unload
+				d string heap -need a string heap
+				e malloc heap used for elements of __ vectors - need a context-specific malloc and heap ie fmalloc(context,sizeof)
+			C. clear/reset scalar values so Inline can be re-used/re-loaded: (not sure, likely none to worry about)
+			*/
+			node->__children.n = 0; //this hack will make it look like it's unloaded, but chaos results with a subsequent reload
+			node->__loadstatus = INLINE_INITIAL_STATE;
+			unload_broto(X3D_PROTO(node));
+			break;
+		default:
+			break; //if its part way loaded, we'll wait till it finishes.
 	}
 }
 
-int needs_updating_Inline(struct X3D_Inline *node){
-	int iret = 0;
-	if( NODE_NEEDS_COMPILING || (node->__loadstatus != INLINE_STABLE && node->load || node->__loadstatus != INLINE_INITIAL_STATE && !node->load)) {
-		iret = 1;
+void prep_Inline (struct X3D_Inline *node) {
+	if(0)printf("in prep_inline\n");
+	//load_externProtoInstance(node);
+	COMPILE_IF_REQUIRED
+	if (node->__loadstatus != INLINE_STABLE && node->load || node->__loadstatus != INLINE_INITIAL_STATE && !node->load) {
+		load_Inline(node);
 	}
-	return iret;
+	RECORD_DISTANCE
+
 }
-void update_Inline(struct X3D_Inline *node){
-	/*called from startofloopnodeupdates() -not render_hier- so its updated even when 
-	  not reachable in the scenegraph 
-	  - there are no transform geometries needed here, just url and load flags
-	*/
-	//printf("compiling Inline\n");
-	/* do we need to re-generate our internal variables? */
-	if NODE_NEEDS_COMPILING {
+/* not sure why we would compile */
+void compile_Inline(struct X3D_Inline *node) {
+	if(0)printf("in compile_inline\n");
+	//unsigned char pflag = ciflag_get(node->__protoFlags,2);
+	//if(pflag == 2){
+		//scene
+		REINITIALIZE_SORTED_NODES_FIELD(node->__children,node->_sortedChildren);
+	//}
+	{
 		int loadchanged, urlchanged;
-		MARK_NODE_COMPILED
-		// something in resource fetch sets the node changed flag, (not sure where or why) 
+		// something in resource fetch or startofloopnodeupdates sets the node changed flag,
+		// (not sure where, but likely to indicate _children have changed and node needs compiling) 
 		// and we aren't interested in that here,
 		// just in the url and load fields changing, so we compare to last recorded values
 		loadchanged = urlchanged = 0;
@@ -775,44 +762,26 @@ void update_Inline(struct X3D_Inline *node){
 			node->__loadstatus = INLINE_UN_IMPORTING;
 			if(loadchanged) node->__oldload = node->load;
 			if(urlchanged) node->__oldurl = node->url;  //we don't need to strdup the url strings, assuming the old p* from a malloc doesn't get re-used/remalloced for a new url
+			//MARK_NODE_COMPILED
 		}
 	} 
-	if (node->__loadstatus != INLINE_STABLE && node->load || node->__loadstatus != INLINE_INITIAL_STATE && !node->load) {
-		load_Inline(node);
-	}
-
+	MARK_NODE_COMPILED
 }
 
-
-
 void child_Inline (struct X3D_Inline *node) {
-	int nc = (node->__children).n;
 
+	static int usingSortedChildren = 0;
+	struct Multi_Node * kids;
+	CHILDREN_COUNT
+	//int nc = node->__children.n; //_sortedChildren.n;
 	LOCAL_LIGHT_SAVE
 
-	#ifdef CHILDVERBOSE
-	printf("RENDER INLINE START %d (%d)\n",node, nc);
-	printf ("	child_Inline, %u, loadStatus %d, nc %d\n",node,node->__loadstatus, nc);
-	#endif
+	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
-	#ifdef CHILDVERBOSE
-		{int i;
-			for (i=0; i<nc; i++) { printf ("ch %d %s ",i,stringNodeType(X3D_NODE(node->children.p[i])->_nodeType));} 
-		printf ("\n");}
-	#endif
+	LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
 
-	/* any children at all? */
-	if (nc==0) return; 
-
-	/* do we have a local light for a child? */
-	LOCAL_LIGHT_CHILDREN(node->__children);
-
-	/* now, just render the non-directionalLight children */
-	normalChildren(node->__children);
-
-	#ifdef CHILDVERBOSE
-	printf("RENDER INLINE END %d\n",node);
-	#endif
+	normalChildren(node->_sortedChildren);
 
 	LOCAL_LIGHT_OFF
+
 }

@@ -2040,8 +2040,10 @@ struct X3D_Virt virt_IndexedTriangleSet = { NULL,(void *)render_IndexedTriangleS
 void render_IndexedTriangleStripSet(struct X3D_IndexedTriangleStripSet *);
 struct X3D_Virt virt_IndexedTriangleStripSet = { NULL,(void *)render_IndexedTriangleStripSet,NULL,NULL,(void *)rendray_IndexedTriangleStripSet,(void *)make_IndexedTriangleStripSet,NULL,NULL,(void *)collide_IndexedTriangleStripSet,NULL};
 
+void prep_Inline(struct X3D_Inline *);
 void child_Inline(struct X3D_Inline *);
-struct X3D_Virt virt_Inline = { NULL,NULL,(void *)child_Inline,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_Inline(struct X3D_Inline *);
+struct X3D_Virt virt_Inline = { (void *)prep_Inline,NULL,(void *)child_Inline,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_Inline};
 
 struct X3D_Virt virt_IntegerSequencer = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
