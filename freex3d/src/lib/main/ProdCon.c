@@ -1516,24 +1516,35 @@ void registerBindable (struct X3D_Node *node) {
 int removeNodeFromVector(int iaction, struct Vector *v, struct X3D_Node *node){
 	//iaction = 0 pack vector
 	//iaction = 1 set NULL
-	int iret = FALSE;
+	int noisy, iret = FALSE;
+	noisy = FALSE;
 	if(v && node){
 		struct X3D_Node *tn;
-		int i, idx;
+		int i, ii, idx, n;
 		idx = -1;
-		for(i=0;i<vectorSize(v);i++){
-			tn = vector_get(struct X3D_Node*,v,i);
+		n = vectorSize(v);
+		for(i=0;i<n;i++){
+			ii = n - i - 1; //reverse walk, so we can remove without losing our loop counter
+			tn = vector_get(struct X3D_Node*,v,ii);
 			if(tn == node){
-				idx = i;
-				iret = TRUE;
+				iret++;
+				if(iaction == 1){
+					vector_set(struct X3D_Node*,v,ii,NULL);
+					if(noisy) printf("NULLing %d %p\n",ii,node);
+				}else if(iaction == 0){
+					if(noisy) printf("REMOVing %d %p\n",ii,node);
+					vector_remove_elem(struct X3D_Node*,v,ii);
+				}
 			}
 		}
-		if(idx > -1){
-			if(iaction == 1)
-				vector_set(struct X3D_Node*,v,idx,NULL);
-			else if(iaction == 0)
-				vector_remove_elem(struct X3D_Node*,v,idx);
+	}
+	if(!iret && noisy){
+		int i;
+		printf("not found in stack node=%p stack.n=%d:\n",node,vectorSize(v));
+		for(i=0;i<vectorSize(v);i++){
+			printf(" %p",vector_get(struct X3D_Node*,v,i));
 		}
+		printf("\n");
 	}
 	return iret;
 }
@@ -1547,22 +1558,26 @@ void unRegisterBindable (struct X3D_Node *node) {
 		case NODE_Viewpoint:
 			X3D_VIEWPOINT(node)->set_bind = 100;
 			X3D_VIEWPOINT(node)->isBound = 0;
+			//printf ("unRegisterBindable %p Viewpoint, description :%s:\n",node,X3D_VIEWPOINT(node)->description->strptr);
+			send_bind_to(node,0);
 			removeNodeFromVector(0, t->viewpointNodes, node);
 			break;
 		case NODE_OrthoViewpoint:
 			X3D_ORTHOVIEWPOINT(node)->set_bind = 100;
 			X3D_ORTHOVIEWPOINT(node)->isBound = 0;
+			send_bind_to(node,0);
 			removeNodeFromVector(0, t->viewpointNodes, node);
 			break;
 		case NODE_GeoViewpoint:
 			X3D_GEOVIEWPOINT(node)->set_bind = 100;
 			X3D_GEOVIEWPOINT(node)->isBound = 0;
+			send_bind_to(node,0);
 			removeNodeFromVector(0, t->viewpointNodes, node);
 			break;
 		case NODE_Background:
 			X3D_BACKGROUND(node)->set_bind = 100;
 			X3D_BACKGROUND(node)->isBound = 0;
-			vector_pushBack (struct X3D_Node*,p->backgroundNodes, node);
+			send_bind_to(node,0);
 			removeNodeFromVector(0, p->backgroundNodes, node);
 			break;
 		case NODE_TextureBackground:
@@ -1573,12 +1588,13 @@ void unRegisterBindable (struct X3D_Node *node) {
 		case NODE_NavigationInfo:
 			X3D_NAVIGATIONINFO(node)->set_bind = 100;
 			X3D_NAVIGATIONINFO(node)->isBound = 0;
+			send_bind_to(node,0);
 			removeNodeFromVector(0, p->navigationNodes, node);
 			break;
 		case NODE_Fog:
 			X3D_FOG(node)->set_bind = 100;
 			X3D_FOG(node)->isBound = 0;
-			vector_pushBack (struct X3D_Node*,p->fogNodes, node);
+			send_bind_to(node,0);
 			removeNodeFromVector(0, p->fogNodes, node);
 			break;
 		default: {

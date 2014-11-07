@@ -1163,7 +1163,7 @@ void fwl_RenderSceneUpdateScene() {
 #endif
 
 	/* first events (clock ticks, etc) if we have other things to do, yield */
-	if (p->doEvents) do_first (); //else sched_yield();
+	if(0) if (p->doEvents) do_first (); //else sched_yield();
 
 	/* ensure depth mask turned on here */
 	FW_GL_DEPTHMASK(GL_TRUE);
@@ -1298,7 +1298,8 @@ void fwl_RenderSceneUpdateScene() {
 		SEND_BIND_IF_REQUIRED(tg->ProdCon.setBackgroundBindInRender)
 		SEND_BIND_IF_REQUIRED(tg->ProdCon.setNavigationBindInRender)
 		/* handle ROUTES - at least the ones not generated in do_first() */
-		propagate_events();
+		if(0) propagate_events();
+		if(1) do_first();
 		/* Javascript events processed */
 		process_eventsProcessed();
 		#if !defined(EXCLUDE_EAI)
@@ -3341,12 +3342,17 @@ void dump_scenegraph(int method)
 	}
 //#endif
 }
-
+unload_broto(struct X3D_Proto* node);
 void fwl_clearWorld(){
 	//clear the scene to empty (and do cleanup on old scene);
 	ttglobal tg = gglobal();
-	tg->Mainloop.replaceWorldRequest = NULL;
-	tg->threads.flushing = 1;
+	if(usingBrotos()){
+		unload_broto(rootNode());
+		printf("unloaded scene as broto\n");
+	}else{
+		tg->Mainloop.replaceWorldRequest = NULL;
+		tg->threads.flushing = 1;
+	}
 	return;
 }
 

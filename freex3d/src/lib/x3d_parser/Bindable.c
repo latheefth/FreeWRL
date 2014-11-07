@@ -400,12 +400,37 @@ printf ("%p Viewpoint, description :%s:\n",oldTOS,X3D_VIEWPOINT(oldTOS)->descrip
 printf ("oldTOS, isBound %d, setBindPtr %d\n",*(offsetPointer_deref(int*, oldTOS, isboundofst(oldTOS))), 
 *(offsetPointer_deref(int*, oldTOS, setBindofst(oldTOS))));
 }
+				if(removeNodeFromVector(0, thisStack, node)){
+					if (node->_nodeType == NODE_Viewpoint)
+						printf("but found and removed from stack\n");
+				}else{
+					if (node->_nodeType == NODE_Viewpoint)
+						printf("and not found in stack\n");
+				}
 				return;
 			} else {
 				/* we are top of stack... */
 				/* get myself off of the stack */
+//if (node->_nodeType == NODE_Viewpoint) {
+//int j;
+//printf ("%p Viewpoint, description :%s:\n",node,X3D_VIEWPOINT(node)->description->strptr);
+//printf("stacksize before popping=%d ",vectorSize(thisStack));
+//for(j=0;j<vectorSize(thisStack);j++){
+//struct X3D_Viewpoint *vp = vector_get(struct X3D_Viewpoint *,thisStack,j);
+//printf ("index= %d %p Viewpoint, description :%s:\n",j,node,vp->description->strptr);
+//}
+//}
 				vector_popBack(struct X3D_Node *,thisStack);
-
+//if (node->_nodeType == NODE_Viewpoint) {
+//printf("stacksize after popping=%d ",vectorSize(thisStack));
+//				if(removeNodeFromVector(0, thisStack, node)){
+//					printf("but still found and removed from stack\n");
+//				}else{
+//					printf("and now not found in stack\n");
+//				}
+//
+//}
+				removeNodeFromVector(0, thisStack, node); //sometimes there are duplicates further down the stack. for unloading inlines, we need to get rid of all occurrances
 				if (vectorSize(thisStack)>0) {
 					/* get the older one back */
 					oldTOS = vector_back(struct X3D_Node *,thisStack);

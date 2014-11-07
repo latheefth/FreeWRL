@@ -71,7 +71,7 @@
 
 void kill_rendering(void);
 
-static void killNode (int index);
+static void killNode_hide_obsolete (int index);
 
 static void mesa_Frustum(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ, GLDOUBLE *m);
 
@@ -4337,7 +4337,8 @@ void killNodes(){
 		if (node != NULL) {
 			if (node->referenceCount <= 0) {
 				//ConsoleMessage ("%d ref %d\n",i,node->referenceCount);
-				killNode(i);
+				//killNode(i);
+				FREE_IF_NZ(node);
 			}
 			//else{
 			//	printf("%d ", i);
@@ -4398,7 +4399,8 @@ void startOfLoopNodeUpdates(void) {
 		if (node != NULL) {
 			if (node->referenceCount <= 0) {
 				//ConsoleMessage ("%d ref %d\n",i,node->referenceCount);
-				killNode(i);
+				//killNode(i);
+				FREE_IF_NZ(node);
 			} else {
 				/* turn OFF these flags */
 				node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Sensitive);
@@ -4920,10 +4922,12 @@ void startOfLoopNodeUpdates(void) {
 	if (vectorSize(tg->Bindable.viewpoint_stack) > 0) {
 		//ConsoleMessage ("going to updateRF on viewpoint, stack is %d in size\n", vectorSize(tg->Bindable.viewpoint_stack));
 
-
-		update_renderFlag(vector_back(struct X3D_Node*,
-			tg->Bindable.viewpoint_stack), VF_Viewpoint);
-		calculateNearFarplanes(vector_back(struct X3D_Node*, tg->Bindable.viewpoint_stack));
+		struct X3D_Node *boundvp = vector_back(struct X3D_Node*,tg->Bindable.viewpoint_stack);
+		update_renderFlag(boundvp, VF_Viewpoint);
+		calculateNearFarplanes(boundvp);
+		//update_renderFlag(vector_back(struct X3D_Node*,
+		//	tg->Bindable.viewpoint_stack), VF_Viewpoint);
+		//calculateNearFarplanes(vector_back(struct X3D_Node*, tg->Bindable.viewpoint_stack));
 	} else {
 		/* keep these at the defaults, if no viewpoint is present. */
 		Viewer()->nearPlane = DEFAULT_NEARPLANE;
@@ -5423,7 +5427,7 @@ void unlink_node(struct X3D_Node* node)
 	}
 }
 /*delete node created*/
-static void killNode (int index) {
+static void killNode_hide_obsolete (int index) {
 	int j=0;
 	int *fieldOffsetsPtr;
 	char * fieldPtr;

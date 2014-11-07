@@ -1058,7 +1058,7 @@ void print_routes_ready_to_register(FILE* fp)
 
 
 static void actually_do_CRoutes_Register() {
-	int insert_here, shifter;
+	int insert_here, check_here, shifter;
 	CRnodeStruct *to_ptr = NULL;
 	size_t toof;		/* used to help determine duplicate routes */
 	struct X3D_Node *toN;
@@ -1146,17 +1146,17 @@ static void actually_do_CRoutes_Register() {
 			p->CRoutes[insert_here].tonodes);
 		#endif
 	
-		if ((p->CRoutes[insert_here].routeFromNode==newEntry->from) &&
-			(p->CRoutes[insert_here].fnptr==newEntry->fromoffset) &&
-			(p->CRoutes[insert_here].interpptr==newEntry->intptr) &&
-			(p->CRoutes[insert_here].tonodes!=0)) {
-	
+		check_here = insert_here;
+		while ((p->CRoutes[check_here].routeFromNode==newEntry->from) &&
+			(p->CRoutes[check_here].fnptr==newEntry->fromoffset) &&
+			(newEntry->adrem == 0 || p->CRoutes[check_here].interpptr==newEntry->intptr) &&
+			(p->CRoutes[check_here].tonodes!=0)) {
 			/* possible duplicate route */
 			toN = newEntry->to; 
 			toof = newEntry->toOfs;
-
-			if ((toN == (p->CRoutes[insert_here].tonodes)->routeToNode) &&
-				(toof == (p->CRoutes[insert_here].tonodes)->foffset)) {
+			
+			if ((toN == (p->CRoutes[check_here].tonodes)->routeToNode) &&
+				(toof == (p->CRoutes[check_here].tonodes)->foffset)) {
 				/* this IS a duplicate, now, what to do? */
 	
 				#ifdef CRVERBOSE
@@ -1172,10 +1172,10 @@ static void actually_do_CRoutes_Register() {
 				} else {
 					/* this is a remove */
 	
-					for (shifter = insert_here; shifter < p->CRoutes_Count; shifter++) {
-					#ifdef CRVERBOSE 
+					for (shifter = check_here; shifter < p->CRoutes_Count; shifter++) {
+						#ifdef CRVERBOSE 
 						printf ("copying from %d to %d\n",shifter, shifter-1);
-					#endif
+						#endif
 						memcpy ((void *)&p->CRoutes[shifter],
 							(void *)&p->CRoutes[shifter+1],
 							sizeof (struct CRStruct));
@@ -1192,6 +1192,7 @@ static void actually_do_CRoutes_Register() {
 					/* return; */
 				}
 			}
+			check_here++;
 		}
 	
 		/* this is an Add; removes should be handled above. */
@@ -1263,6 +1264,18 @@ static void actually_do_CRoutes_Register() {
 		}
 	}
 	FREE_IF_NZ(p->routesToRegister);
+	#ifdef CRVERBOSE 
+		printf ("routing table now %d\n",p->CRoutes_Count);
+		for (shifter = 0; shifter < p->CRoutes_Count; shifter ++) {
+			printf ("%3d from: %p offset: %u Interp %p dir %d, len %d extra %d :\n",shifter,
+				p->CRoutes[shifter].routeFromNode, p->CRoutes[shifter].fnptr,
+				p->CRoutes[shifter].interpptr, p->CRoutes[shifter].direction_flag, p->CRoutes[shifter].len, p->CRoutes[shifter].extra);
+			for (insert_here = 0; insert_here < p->CRoutes[shifter].tonode_count; insert_here++) {
+				printf ("      to: %p %u\n",p->CRoutes[shifter].tonodes[insert_here].routeToNode,
+							p->CRoutes[shifter].tonodes[insert_here].foffset);
+			}
+		}
+	#endif
 
 }
 
@@ -2527,8 +2540,9 @@ void propagate_events_B() {
 	lastFromNode = NULL; // "
 	last_markme = FALSE; // "
 	//#ifdef CRVERBOSE
-	debugRoutes =0;
-	if(debugRoutes)printf("current time=%d routecount=%d\n",p->thisIntTimeStamp,p->CRoutes_Count);
+	debugRoutes =0;  //does a getchar() at bottom of function
+	if(debugRoutes)
+		printf("current time=%d routecount=%d\n",p->thisIntTimeStamp,p->CRoutes_Count);
 	//#endif
 	do {
 		havinterp=FALSE; /* assume no interpolators triggered */
@@ -2918,19 +2932,21 @@ void do_first() {
 	   to either field, so we don't need to bounds check here */
 	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
 
-	ne = p->num_ClockEvents;
-	for (counter =0; counter < ne; counter ++) {
-		ce = p->ClockEvents[counter]; 
-		if (ce.tonode)
-			ce.interpptr(ce.tonode);
-	}
-	//for (counter = 0; counter < p->num_ClockEvents; counter++) {
-	//	if (p->ClockEvents[counter].tonode)
-	//		p->ClockEvents[counter].interpptr(p->ClockEvents[counter].tonode);
-	//}
+	if(0){
+		ne = p->num_ClockEvents;
+		for (counter =0; counter < ne; counter ++) {
+			ce = p->ClockEvents[counter]; 
+			if (ce.tonode)
+				ce.interpptr(ce.tonode);
+		}
+		//for (counter = 0; counter < p->num_ClockEvents; counter++) {
+		//	if (p->ClockEvents[counter].tonode)
+		//		p->ClockEvents[counter].interpptr(p->ClockEvents[counter].tonode);
+		//}
 
-	/* now, propagate these events */
-	propagate_events();
+		/* now, propagate these events */
+		propagate_events();
+	}
 
 	/* any new routes waiting in the wings for buffering to happen? */
 	/* Note - rTr will be incremented by either parsing (in which case,
@@ -2964,6 +2980,23 @@ void do_first() {
 		UNLOCK_PREROUTETABLE
 		}
 	}
+
+	if(1){
+		ne = p->num_ClockEvents;
+		for (counter =0; counter < ne; counter ++) {
+			ce = p->ClockEvents[counter]; 
+			if (ce.tonode)
+				ce.interpptr(ce.tonode);
+		}
+		//for (counter = 0; counter < p->num_ClockEvents; counter++) {
+		//	if (p->ClockEvents[counter].tonode)
+		//		p->ClockEvents[counter].interpptr(p->ClockEvents[counter].tonode);
+		//}
+
+		/* now, propagate these events */
+		propagate_events();
+	}
+
 }
 
 
