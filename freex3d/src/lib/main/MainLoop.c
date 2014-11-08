@@ -1163,7 +1163,7 @@ void fwl_RenderSceneUpdateScene() {
 #endif
 
 	/* first events (clock ticks, etc) if we have other things to do, yield */
-	if(0) if (p->doEvents) do_first (); //else sched_yield();
+	if (p->doEvents) do_first (); //else sched_yield();
 
 	/* ensure depth mask turned on here */
 	FW_GL_DEPTHMASK(GL_TRUE);
