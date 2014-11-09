@@ -821,9 +821,14 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 
 		/* we either put things at the rootNode (ie, a new world) or we put them as a children to another node */
 		if (res->whereToPlaceData == NULL) {
-			ASSERT(rootNode());
-			insert_node = rootNode();
-			offsetInNode = (int) offsetof(struct X3D_Group, children);
+			if(!usingBrotos()){
+				ASSERT(rootNode());
+				insert_node = rootNode();
+				offsetInNode = (int) offsetof(struct X3D_Group, children);
+			}else{
+				//brotos have to maintain various lists, which is done in the parser. 
+				//therefore pass the rootnode / executioncontext into the parser
+			}
 		} else {
 			insert_node = X3D_NODE(res->whereToPlaceData); /* casting here for compiler */
 			offsetInNode = res->offsetFromWhereToPlaceData;

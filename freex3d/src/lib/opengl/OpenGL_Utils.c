@@ -4339,6 +4339,7 @@ void killNodes(){
 				//ConsoleMessage ("%d ref %d\n",i,node->referenceCount);
 				//killNode(i);
 				FREE_IF_NZ(node);
+				vector_set(struct X3D_Node *,p->linearNodeTable,i,NULL);
 			}
 			//else{
 			//	printf("%d ", i);
@@ -4401,6 +4402,7 @@ void startOfLoopNodeUpdates(void) {
 				//ConsoleMessage ("%d ref %d\n",i,node->referenceCount);
 				//killNode(i);
 				FREE_IF_NZ(node);
+				vector_set(struct X3D_Node *,p->linearNodeTable,i,NULL);
 			} else {
 				/* turn OFF these flags */
 				node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Sensitive);
