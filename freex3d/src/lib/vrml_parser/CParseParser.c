@@ -7033,7 +7033,6 @@ int unRegisterX3DAnyNode(struct X3D_Node *node){
 	unInitializeScript(node);
 	return TRUE;
 }
-
 int print_broto_stats(int level, struct X3D_Proto *node){
 	char spaces[256];
 	int i,nr,nn,nc;
@@ -7212,6 +7211,44 @@ int unload_broto(struct X3D_Proto* node){
 		retval = TRUE;
 	}
 	return retval;
+}
+int unRegisterNodeRoutes(struct X3D_Proto *context, struct X3D_Node* node){
+	//unregister any routes that are to/from a particular node
+	int iret = 0;
+	if(context && hasContext(X3D_NODE(context))){
+		if(context->__ROUTES){
+			int i,ii,nr;
+			nr = vectorSize(context->__ROUTES);
+			for(i=0;i<nr;i++){
+				ii = nr - i - 1; //start at end so we can pack without losing our index
+				struct brotoRoute *route = vector_get(struct brotoRoute*,context->__ROUTES,ii);
+				if(route->from.node == node || route->to.node == node){
+					if( route->lastCommand){
+						CRoutes_RemoveSimpleB(route->from.node,route->from.ifield,route->to.node,route->to.ifield,route->ft);
+						route->lastCommand = 0;
+					}
+					vector_remove_elem(struct X3D_Node*,context->__ROUTES,ii);
+					iret++;
+				}
+			}
+		}
+	}
+	return iret;
+}
+int remove_broto_node(struct X3D_Proto *context, struct X3D_Node* node){
+	// used by js/SAI > executionContext.removeNamedNode(DEF)
+	// to zap a node out of existence 
+	int iret = 0;
+	if(context && hasContext(X3D_NODE(context))){
+		if(node && hasContext(node))
+			unload_broto(X3D_PROTO(node)); //cleanup its guts if its an inline or protoInstance
+		unRegisterX3DAnyNode(node); //unregister from browser stacks and lists
+		unRegisterNodeRoutes(context,node); //unregister any routes that are to/from the deleted node
+		remove_node_from_broto_context(context,node); //remove from context.__nodes and __subcontexts
+		FREE_IF_NZ(node);
+		iret = 1;
+	}
+	return iret;
 }
 
 

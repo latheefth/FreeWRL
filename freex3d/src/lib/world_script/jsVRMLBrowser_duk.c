@@ -1302,7 +1302,7 @@ int X3DExecutionContext_updateNamedNode(FWType fwtype, void *ec, void *fwn, int 
 	}
 	return nr;
 }
-
+int remove_broto_node(struct X3D_Proto *context, struct X3D_Node* node);
 int X3DExecutionContext_removeNamedNode(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	int nr = 0;
 	//broto warning - DEF name list should be per-executionContext
@@ -1317,11 +1317,13 @@ int X3DExecutionContext_removeNamedNode(FWType fwtype, void *ec, void *fwn, int 
 			for(int i=0;i<vectorSize(ec->__DEFnames);i++){
 				bd = vector_get(struct brotoDefpair *,ec->__DEFnames,i);
 				if(!strcmp(bd->name,defname)){
-					//node = bd->node;
-					//Q. are we supposed to delete the node (crashing the program when it hits a null node)
+					node = bd->node;
+					//Q. are we supposed to delete the node 
 					//OR are we just supposed to remove the DEF name mapping?
 					//remove DEF name mapping:
 					vector_remove_elem(struct brotoDefpair *,ec->__DEFnames,i);
+					//remove node
+					remove_broto_node(ec,node);
 					break;
 				}
 			}
@@ -1329,7 +1331,7 @@ int X3DExecutionContext_removeNamedNode(FWType fwtype, void *ec, void *fwn, int 
 	}
 	return nr;
 }
-
+void add_node_to_broto_context(struct X3D_Proto *context,struct X3D_Node *node);
 int X3DExecutionContext_createProto(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	int nr = 0;
 	struct X3D_Node* node = NULL;
@@ -1342,6 +1344,8 @@ int X3DExecutionContext_createProto(FWType fwtype, void *ec, void *fwn, int argc
 		if( isAvailableBroto(fwpars[0]._string, ec, &proto))
 		{
 			node=X3D_NODE(brotoInstance(proto,1));
+			node->_executionContext = X3D_NODE(ec); //me->ptr;
+			add_node_to_broto_context(ec,node);
 			//during parsing, setting of fields would occur between instance and body, 
 			//so field values perculate down.
 			//here we elect default field values

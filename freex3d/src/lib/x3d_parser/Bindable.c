@@ -309,7 +309,7 @@ static size_t isboundofst(void *node) {
 	}
 	return 0;
 }
-
+int removeNodeFromVector(int iaction, struct Vector *v, struct X3D_Node *node);
 void bind_node (struct X3D_Node *node, struct Vector *thisStack) {
 	int *isBoundPtr;
 	int *setBindPtr;
