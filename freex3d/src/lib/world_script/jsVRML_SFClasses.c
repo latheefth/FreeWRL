@@ -1333,6 +1333,7 @@ SFNodeConstr(JSContext *cx, uintN argc, jsval *vp) {
 				struct X3D_Group *myGroup = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 				resource_item_t *res = resource_create_from_string(cString);
 				res->whereToPlaceData = myGroup;
+				res->ectx = myGroup;
 				res->media_type = resm_vrml;
 				res->parsed_request = "From the EAI bootcamp of life ";
 				res->offsetFromWhereToPlaceData = (int) offsetof (struct X3D_Group, children);

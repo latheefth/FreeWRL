@@ -1163,7 +1163,7 @@ void fwl_RenderSceneUpdateScene() {
 #endif
 
 	/* first events (clock ticks, etc) if we have other things to do, yield */
-	if(0) if (p->doEvents) do_first (); //else sched_yield();
+	if (p->doEvents) do_first (); //else sched_yield();
 
 	/* ensure depth mask turned on here */
 	FW_GL_DEPTHMASK(GL_TRUE);
@@ -3345,11 +3345,17 @@ void dump_scenegraph(int method)
 unload_broto(struct X3D_Proto* node);
 void fwl_clearWorld(){
 	//clear the scene to empty (and do cleanup on old scene);
+	int done = 0;
 	ttglobal tg = gglobal();
 	if(usingBrotos()){
-		unload_broto(rootNode());
-		printf("unloaded scene as broto\n");
-	}else{
+		struct X3D_Node *rn = rootNode();
+		if(hasContext(rn)){
+			unload_broto(X3D_PROTO(rn));
+			printf("unloaded scene as broto\n");
+			done = 1;
+		}
+	}
+	if(!done){
 		tg->Mainloop.replaceWorldRequest = NULL;
 		tg->threads.flushing = 1;
 	}

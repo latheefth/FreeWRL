@@ -1254,6 +1254,7 @@ int SFNode_getNodeName(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpar
 
 FWFunctionSpec (SFNodeFunctions)[] = {
 	{"getNodeName",	SFNode_getNodeName, 'S',{0,0,0,NULL}},
+	// nov 2014 dug9: I was too lazy to implement the following, good luck:
 	//{"getNodeType", SFNode_getNodeType, 'W',{0,0,0,NULL}},
 	//{"getFieldDefinitions", SFNode_getFieldDefinitions, 'P',{0,0,0,NULL}},
 	//{"toVRMLString", SFNode_toVRMLString, 'S',{0,0,0,NULL}},

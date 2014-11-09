@@ -1810,8 +1810,8 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, uintN argc, jsval *vp) {
 
 		/* do the call to make the VRML code  - create a new browser just for this string */
 		gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
-		retGroup = createNewX3DNode(NODE_Group);
-		ra = EAI_CreateVrml("String",_c,X3D_NODE(retGroup),retGroup);
+		retGroup = createNewX3DNode0(NODE_Group); //don't register
+		ra = EAI_CreateVrml("String",_c,X3D_NODE(rootNode()),retGroup);
 		globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
 
 
@@ -1837,7 +1837,7 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, uintN argc, jsval *vp) {
 			separator = ", ";
 		}
 		strcat (xstr,")");
-		markForDispose(X3D_NODE(retGroup),FALSE);
+		//markForDispose(X3D_NODE(retGroup),FALSE); //change in Nov 2014 does FREE_IF_NZ
 
 #if JS_VERSION >= 185
 		JS_free(context,_c);

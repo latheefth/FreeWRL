@@ -980,6 +980,7 @@ ConsoleMessage ("CRoutes_Register - adrem %d, from %p (%s) fromoffset %d to %p (
 	}
 
 /* Script to Script - we actually put a small node in, and route to/from this node so routing is a 2 step process */
+	if(!usingBrotos())   //H: it was needed for combinatorial source-destination propagate_events_A, not broto-era propagate_events_B which is 2-step
 	if (scrdir == SCRIPT_TO_SCRIPT) {
 		struct X3D_Node *chptr;
 		int set, changed;
