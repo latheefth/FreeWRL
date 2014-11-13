@@ -99,6 +99,26 @@ void CALLBACK nurbscurveEndcb(void *ud)
 }
 #endif
 
+int generateUniformKnotVector(int order, int ncontrol, float *knots){
+	//caller: please malloc knots = malloc( (ncontrol + order ) * sizeof(float))
+	int j,k,m, p = order -1;
+	float uniform;
+	m = ncontrol - p + 1;
+	k = 0;
+	uniform = 1.0f/(float)(ncontrol-p);
+	for(j=0;j<p;k++,j++){
+		knots[k] = 0.0f;
+	}
+	for(j=0;j<m;j++,k++){
+		knots[k] =uniform*(float)j;
+	}
+	for(j=0;j<p;j++,k++){
+		knots[k] = 1.0f;
+	}
+	return m;
+}
+
+
 void compile_NurbsCurve(struct X3D_NurbsCurve *node){
 	MARK_NODE_COMPILED
 #ifdef NURBS_LIB
@@ -144,13 +164,28 @@ void compile_NurbsCurve(struct X3D_NurbsCurve *node){
 		}else{
 			for(i=0;i<n;i++) xyzw[i*4 + 3] = 1.0;
 		}
-		if(node->knot.n ){ // && node->knot.n > n){
+		if(node->knot.n && node->knot.n == n + node->order ){
 			nk = node->knot.n;
 			knots = malloc(nk * sizeof(GLfloat));
 			for(i=0;i<nk;i++){
 				knots[i] = (GLfloat)node->knot.p[i];
 			}
+			//printf("good knot nk=%d\n",nk);
+			//for(int ii=0;ii<nk;ii++)
+			//	printf("[%d]=%f \n",ii,knots[ii]);
+
+		}else{
+			//generate uniform knot vector 
+			nk = n + node->order ;
+			//caller: please malloc knots = malloc( (ncontrol + order ) * sizeof(float))
+			knots = malloc(nk *sizeof(GLfloat));
+			generateUniformKnotVector(node->order,n, knots);
+			//printf("bad knot nk=%d\n",nk);
+			//for(int ii=0;ii<nk;ii++)
+			//	printf("[%d]=%f \n",ii,knots[ii]);
+			//nk = 0;
 		}
+
 		if(n && nk && nk >= n){
 			GLUnurbsObj *theNurb;
 			int ntess, mtess;
