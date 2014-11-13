@@ -1977,7 +1977,7 @@ our %Nodes = (
 
 	"CoordinateDouble" => new VRML::NodeType("CoordinateDouble", {
 			metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-			controlPoint => ["MFVec2d", [], "inputOutput","(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			point => ["MFVec3d", [], "inputOutput","(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		},"X3DCoordinateNode"),
 
 	"NurbsCurve" => new VRML::NodeType("NurbsCurve", {
@@ -1987,6 +1987,8 @@ our %Nodes = (
 			weight => ["MFDouble",[],"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			knot => ["MFDouble",[],"initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			order => ["SFInt32",3,"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			__points  =>["MFVec3f",[],"initializeOnly", 0],
+			__numPoints =>["SFInt32",0,"initializeOnly", 0],
 		},"X3DParametricGeometryNode"),
 
 	"NurbsCurve2D" => new VRML::NodeType("NurbsCurve2D", {

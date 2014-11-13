@@ -318,8 +318,8 @@ END_NODE(Coordinate)
 
 /* CoordinateDouble node */
 BEGIN_NODE(CoordinateDouble)
-EXPOSED_FIELD(CoordinateDouble,controlPoint,mfvec2d,controlPoint,FIELDTYPE_MFVec2d)
 EXPOSED_FIELD(CoordinateDouble,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(CoordinateDouble,point,mfvec3d,point,FIELDTYPE_MFVec3d)
 END_NODE(CoordinateDouble)
 
 /* CoordinateInterpolator node */

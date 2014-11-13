@@ -27,7 +27,7 @@ our %defaultContainerType = (
 	Proto			=>"children",
 
 	ContourPolyLine2D	=>"children",
-	NurbsCurve		=>"children",
+	NurbsCurve		=>"geometry",
 	NurbsCurve2D		=>"children",
 	NurbsPositionInterpolator	=>"children",
 	NurbsTrimmedSurface	=>"children",
@@ -319,7 +319,7 @@ our %RendC = map {($_=>1)} qw/
 	HAnimHumanoid
 	HAnimJoint
 	QuadSet
-
+	NurbsCurve
 /;
 
 #######################################################################
@@ -538,6 +538,7 @@ our %CompileC = map {($_=>1)} qw/
 	SpotLight
 	PointLight
 	DirectionalLight
+	NurbsCurve
 /;
 
 

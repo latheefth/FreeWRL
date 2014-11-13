@@ -2717,8 +2717,8 @@ struct X3D_CoordinateDouble {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Vec2d controlPoint;
 	struct X3D_Node *metadata;
+	struct Multi_Vec3d point;
 };
 extern struct X3D_Virt virt_CoordinateDouble;
 /***********************/
@@ -5562,6 +5562,8 @@ struct X3D_NurbsCurve {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
+	int __numPoints;
+	struct Multi_Vec3f __points;
 	struct X3D_Node *controlPoint;
 	struct Multi_Double knot;
 	struct X3D_Node *metadata;

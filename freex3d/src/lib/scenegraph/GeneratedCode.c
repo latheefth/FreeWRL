@@ -2232,7 +2232,9 @@ struct X3D_Virt virt_Normal = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NUL
 
 struct X3D_Virt virt_NormalInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_NurbsCurve = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void render_NurbsCurve(struct X3D_NurbsCurve *);
+void compile_NurbsCurve(struct X3D_NurbsCurve *);
+struct X3D_Virt virt_NurbsCurve = { NULL,(void *)render_NurbsCurve,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_NurbsCurve};
 
 struct X3D_Virt virt_NurbsCurve2D = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
@@ -2936,8 +2938,8 @@ const int OFFSETS_Coordinate[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_CoordinateDouble[] = {
-	(int) FIELDNAMES_controlPoint, (int) offsetof (struct X3D_CoordinateDouble, controlPoint),  (int) FIELDTYPE_MFVec2d, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_CoordinateDouble, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_point, (int) offsetof (struct X3D_CoordinateDouble, point),  (int) FIELDTYPE_MFVec3d, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_CoordinateInterpolator[] = {
@@ -4241,6 +4243,8 @@ const int OFFSETS_NormalInterpolator[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_NurbsCurve[] = {
+	(int) FIELDNAMES___numPoints, (int) offsetof (struct X3D_NurbsCurve, __numPoints),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___points, (int) offsetof (struct X3D_NurbsCurve, __points),  (int) FIELDTYPE_MFVec3f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_controlPoint, (int) offsetof (struct X3D_NurbsCurve, controlPoint),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_knot, (int) offsetof (struct X3D_NurbsCurve, knot),  (int) FIELDTYPE_MFDouble, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_NurbsCurve, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6259,8 +6263,8 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_CoordinateDouble : {
 			struct X3D_CoordinateDouble * tmp2;
 			tmp2 = (struct X3D_CoordinateDouble *) tmp;
-			tmp2->controlPoint.n=0; tmp2->controlPoint.p=0;
 			tmp2->metadata = NULL;
+			tmp2->point.n=0; tmp2->point.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -7964,13 +7968,15 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_NurbsCurve : {
 			struct X3D_NurbsCurve * tmp2;
 			tmp2 = (struct X3D_NurbsCurve *) tmp;
+			tmp2->__numPoints = 0;
+			tmp2->__points.n=0; tmp2->__points.p=0;
 			tmp2->controlPoint = NULL;
 			tmp2->knot.n=0; tmp2->knot.p=0;
 			tmp2->metadata = NULL;
 			tmp2->order = 3;
 			tmp2->tessellation = 0;
 			tmp2->weight.n=0; tmp2->weight.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_children;
+			tmp2->_defaultContainer = FIELDNAMES_geometry;
 		break;
 		}
 		case NODE_NurbsCurve2D : {
@@ -9615,11 +9621,11 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_CoordinateDouble *tmp;
 			tmp = (struct X3D_CoordinateDouble *) node;
 			UNUSED(tmp); // compiler warning mitigation
-			spacer fprintf (fp," controlPoint (MFVec2d):\n");
-			for (i=0; i<tmp->controlPoint.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->controlPoint.p[i]).c[0], (tmp->controlPoint.p[i]).c[1]); }
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
+			spacer fprintf (fp," point (MFVec3d):\n");
+			for (i=0; i<tmp->point.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->point.p[i]).c[0], (tmp->point.p[i]).c[1],(tmp->point.p[i]).c[2]); }
 		    break;
 		}
 		case NODE_CoordinateInterpolator : {
