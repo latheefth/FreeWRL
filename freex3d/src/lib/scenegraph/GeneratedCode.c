@@ -122,12 +122,14 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__loadstatus",
 	"__localFileName",
 	"__localOrient",
+	"__meshtype",
 	"__movedCoords",
 	"__movedOrientation",
 	"__movedPosition",
 	"__movedValue",
 	"__nodes",
 	"__normals",
+	"__numNormals",
 	"__numPoints",
 	"__occludeCheckCount",
 	"__oldChildren",
@@ -2240,7 +2242,11 @@ struct X3D_Virt virt_NurbsCurve2D = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NU
 
 struct X3D_Virt virt_NurbsOrientationInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_NurbsPatchSurface = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void render_NurbsPatchSurface(struct X3D_NurbsPatchSurface *);
+void rendray_NurbsPatchSurface(struct X3D_NurbsPatchSurface *);
+void collide_NurbsPatchSurface(struct X3D_NurbsPatchSurface *);
+void compile_NurbsPatchSurface(struct X3D_NurbsPatchSurface *);
+struct X3D_Virt virt_NurbsPatchSurface = { NULL,(void *)render_NurbsPatchSurface,NULL,NULL,(void *)rendray_NurbsPatchSurface,NULL,NULL,NULL,(void *)collide_NurbsPatchSurface,(void *)compile_NurbsPatchSurface};
 
 struct X3D_Virt virt_NurbsPositionInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
@@ -4273,6 +4279,11 @@ const int OFFSETS_NurbsOrientationInterpolator[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_NurbsPatchSurface[] = {
+	(int) FIELDNAMES___meshtype, (int) offsetof (struct X3D_NurbsPatchSurface, __meshtype),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___normals, (int) offsetof (struct X3D_NurbsPatchSurface, __normals),  (int) FIELDTYPE_MFVec3f, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___numNormals, (int) offsetof (struct X3D_NurbsPatchSurface, __numNormals),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___numPoints, (int) offsetof (struct X3D_NurbsPatchSurface, __numPoints),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___points, (int) offsetof (struct X3D_NurbsPatchSurface, __points),  (int) FIELDTYPE_MFVec3f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_controlPoint, (int) offsetof (struct X3D_NurbsPatchSurface, controlPoint),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_NurbsPatchSurface, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_solid, (int) offsetof (struct X3D_NurbsPatchSurface, solid),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -8007,6 +8018,11 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_NurbsPatchSurface : {
 			struct X3D_NurbsPatchSurface * tmp2;
 			tmp2 = (struct X3D_NurbsPatchSurface *) tmp;
+			tmp2->__meshtype = 0;
+			tmp2->__normals.n=0; tmp2->__normals.p=0;
+			tmp2->__numNormals = 0;
+			tmp2->__numPoints = 0;
+			tmp2->__points.n=0; tmp2->__points.p=0;
 			tmp2->controlPoint = NULL;
 			tmp2->metadata = NULL;
 			tmp2->solid = TRUE;
@@ -8022,7 +8038,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->vOrder = 3;
 			tmp2->vTessellation = 0;
 			tmp2->weight.n=0; tmp2->weight.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_children;
+			tmp2->_defaultContainer = FIELDNAMES_geometry;
 		break;
 		}
 		case NODE_NurbsPositionInterpolator : {

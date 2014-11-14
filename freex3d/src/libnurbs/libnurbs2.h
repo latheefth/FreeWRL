@@ -53,7 +53,7 @@ OLDCODE #include <limits.h>		/* LONG_MAX */
 #if defined (_ANDROID) || defined (IPHONE) || defined (QNX) || defined (ANGLEPROJECT)
 	#include <GLES2/gl2.h>
 	#define GLdouble double
-	#define USE_INTERNAL_EVAL
+	//#define USE_INTERNAL_EVAL
 	#define GL_QUAD_STRIP				0x0008
 #else
     #include <GL/gl.h>

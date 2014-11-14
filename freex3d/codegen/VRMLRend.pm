@@ -33,7 +33,7 @@ our %defaultContainerType = (
 	NurbsTrimmedSurface	=>"children",
 	CoordinateDouble	=>"children",
 	NurbsOrientationInterpolator	=>"children",
-	NurbsPatchSurface	=>"children",
+	NurbsPatchSurface	=>"geometry",
 	NurbsSet		=>"children",
 	NurbsSurfaceInterpolator	=>"children",
 	NurbsSweptSurface	=>"children",
@@ -320,6 +320,7 @@ our %RendC = map {($_=>1)} qw/
 	HAnimJoint
 	QuadSet
 	NurbsCurve
+	NurbsPatchSurface
 /;
 
 #######################################################################
@@ -539,6 +540,7 @@ our %CompileC = map {($_=>1)} qw/
 	PointLight
 	DirectionalLight
 	NurbsCurve
+	NurbsPatchSurface
 /;
 
 
@@ -629,6 +631,7 @@ our %CollisionC = map {($_=>1)} qw/
 	Extrusion
 	Text
 	GeoElevationGrid
+	NurbsPatchSurface
 /;
 
 #######################################################################
@@ -720,6 +723,7 @@ our %RendRayC = map {($_=>1)} qw/
 	TriangleSet
 	TriangleFanSet
 	TriangleStripSet
+	NurbsPatchSurface
 /;
 
 

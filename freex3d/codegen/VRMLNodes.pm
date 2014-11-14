@@ -2028,6 +2028,11 @@ our %Nodes = (
 			vDimension => ["SFInt32",0,"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			vKnot => ["MFDouble",[],"initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			vOrder => ["SFInt32",3,"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			__points  =>["MFVec3f",[],"initializeOnly", 0],
+			__normals  =>["MFVec3f",[],"initializeOnly", 0],
+			__numPoints =>["SFInt32",0,"initializeOnly", 0],
+			__numNormals =>["SFInt32",0,"initializeOnly", 0],
+			__meshtype =>["SFInt32",0,"initializeOnly", 0],
 		},"X3DNurbsSurfaceGeometryNode"),
 
 	"NurbsPositionInterpolator" => new VRML::NodeType("NurbsPositionInterpolator", {

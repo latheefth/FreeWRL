@@ -208,10 +208,11 @@ OpenGLSurfaceEvaluator::mapgrid2f(long nu, REAL u0, REAL u1, long nv, REAL v0, R
       global_grid_v1 = v1;
       global_grid_nv = nv;
     }
+#ifdef HAVE_GL_H
   else
     glMapGrid2d((GLint) nu, (GLdouble) u0, (GLdouble) u1, (GLint) nv,
 	    (GLdouble) v0, (GLdouble) v1);
-
+#endif
 #endif
 }
 
@@ -956,6 +957,7 @@ OpenGLSurfaceEvaluator::map2f(
 	   */
 	 }
      }
+#ifdef HAVE_GL_H
    else /*not output triangles*/
      {
        glMap2f((GLenum) _type, (GLfloat) _ulower, (GLfloat) _uupper,
@@ -963,7 +965,7 @@ OpenGLSurfaceEvaluator::map2f(
 	       (GLfloat) _vupper, (GLint) _vstride, (GLint) _vorder,
 	       (const GLfloat *) pts);
      }
-
+#endif
 #endif
 }
 
@@ -1038,6 +1040,7 @@ if(output_triangles)
   }
 #endif
 }
+#ifdef HAVE_GL_H
 else
 {
     switch(style) {
@@ -1056,7 +1059,7 @@ else
 	break;
     }
   }
-
+#endif
 #endif
 
 #ifdef STATISTICS
@@ -1118,9 +1121,10 @@ if(output_triangles)
   fv = (v == global_grid_nv)? global_grid_v1: (global_grid_v0 +v*dv);
   coord2f(fu,fv);
 }
+#ifdef HAVE_GL_H
 else
     glEvalPoint2((GLint) u, (GLint) v);
-
+#endif
 
 #endif
 
@@ -1146,9 +1150,10 @@ return;
 
 if(output_triangles)
     bezierPatchMeshInsertUV(global_bpm, u,v);
+#ifdef HAVE_GL_H
 else
     glEvalCoord2f((GLfloat) u, (GLfloat) v);
-
+#endif
 
 #endif
 
