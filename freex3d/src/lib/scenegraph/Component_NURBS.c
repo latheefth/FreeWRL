@@ -422,6 +422,10 @@ void CALLBACK nurbssurfEndcb(void *ud)
 	//printf("nurbssurfEnd #p %d #n %d\n",node->__numPoints, node->__numNormals);
 	// convert to polyrep points and triangles
 	printf("nurbssurfEnd #p %d #n %d\n",ss.pv.n, ss.nv.n);
+	for(int i=0;i<ss.pv.n;i++){
+		struct SFVec3f pp = vector_get(struct SFVec3f,&ss.pv,i);
+		printf("%f %f %f\n",pp.c[0],pp.c[1],pp.c[2]);
+	}
 
 }
 #endif
@@ -478,7 +482,7 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_PolyRep *rep){
 
 	npoints = nindex = 0;
 	for(i=0;i<strips->n;i++){
-		ss = vector_get(struct stripState,strips,strips->n -1);
+		ss = vector_get(struct stripState,strips,i);
 		npoints += ss.pv.n;
 		switch(ss.type){
 			case GL_QUAD_STRIP: nindex += (ss.pv.n -2)/2 * 5;break;
@@ -499,21 +503,22 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_PolyRep *rep){
 	ni = 0;
 	ntri = 0;
 	for(i=0;i<strips->n;i++){
-		ss = vector_get(struct stripState,strips,strips->n -1);
-		memcpy(&rep->actualCoord[np],ss.pv.data,ss.pv.n * 3 * sizeof(float));
-		memcpy(&rep->normal[np],ss.nv.data,ss.nv.n * 3 * sizeof(float));
+		ss = vector_get(struct stripState,strips,i);
+		memcpy(&rep->actualCoord[np*3],ss.pv.data,ss.pv.n * 3 * sizeof(float));
+		memcpy(&rep->normal[np*3],ss.nv.data,ss.nv.n * 3 * sizeof(float));
 		switch(ss.type){
 			case GL_QUAD_STRIP: 
 				for(j=0;j<ss.pv.n -2;j+=2){
 					rep->cindex[ni++] = np+j;
 					rep->cindex[ni++] = np+j+1;
 					rep->cindex[ni++] = np+j+3;
-					rep->cindex[ni++] = -1;
+					//rep->cindex[ni++] = -1;
 					rep->cindex[ni++] = np+j+3;
 					rep->cindex[ni++] = np+j+2;
 					rep->cindex[ni++] = np+j;
-					rep->cindex[ni++] = -1;
-					memcpy(&rep->norindex[ntri*4],&rep->cindex[ntri*4],2*4*sizeof(int));
+					//rep->cindex[ni++] = -1;
+					//memcpy(&rep->norindex[ntri*4],&rep->cindex[ntri*4],2*4*sizeof(int));
+					memcpy(&rep->norindex[ntri*3],&rep->cindex[ntri*3],2*4*sizeof(int));
 					ntri += 2;
 				}
 				break;
@@ -532,7 +537,20 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_PolyRep *rep){
 		np += ss.pv.n;
 	}
 	rep->ntri = ntri;
-
+	/*
+	// dump then can copy and paste to x3d or wrl IndexedFaceSet.coordIndex and Coordinate.point fields
+	FILE * fp = fopen("IFS_DUMP.txt","w+");
+	fprintf(fp,"#vertices %d\n",np);
+	for(i=0;i<np;i++){
+		fprintf(fp,"%f %f %f\n",rep->actualCoord[i*3 +0],rep->actualCoord[i*3 +1],rep->actualCoord[i*3 +2]);
+	}
+	fprintf(fp,"#face indices %d\n",ni);
+	for(i=0;i<ni;i++){
+		fprintf(fp,"%d ",rep->cindex[i]);
+	}
+	fprintf(fp,"\n");
+	fclose(fp);
+	*/
 }
 
 void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct X3D_TextureCoordinate *texCoordNode);
@@ -545,6 +563,12 @@ void compile_NurbsPatchSurface(struct X3D_NurbsPatchSurface *node){
 		GLfloat *xyzw, *knotsu, *knotsv;
 		nku = nkv = nu = nv = n = 0;
 		xyzw = knotsu = knotsv = NULL;
+		// I should call something like:
+		// struct Multi_Vec3f *getCoordinate (struct X3D_Node *innode, char *str);
+		// to get the control points - it will do proto expansion, compile the coordinate node if needed
+		// (should do something similar with texcoord when implemented, 
+		//    as it needs conversion from controlpoint spacing to sampling/tesselation spacing for use in polyrep)
+		// here's an amature shortcut that returns doubles
 		if(node->controlPoint){
 			if(node->controlPoint->_nodeType == NODE_CoordinateDouble){
 				struct Multi_Vec3d *mfd;
