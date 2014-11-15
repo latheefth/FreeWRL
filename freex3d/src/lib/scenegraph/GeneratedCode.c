@@ -6245,7 +6245,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->metadata = NULL;
 			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_geometry;
+			tmp2->_defaultContainer = FIELDNAMES_addTrimmingContour;
 		break;
 		}
 		case NODE_ContourPolyLine2D : {
@@ -8130,7 +8130,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->vOrder = 3;
 			tmp2->vTesselation = 0;
 			tmp2->weight.n=0; tmp2->weight.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_children;
+			tmp2->_defaultContainer = FIELDNAMES_geometry;
 		break;
 		}
 		case NODE_OSC_Sensor : {
