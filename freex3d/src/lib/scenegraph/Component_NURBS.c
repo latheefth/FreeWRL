@@ -547,6 +547,8 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_PolyRep *rep){
 	fprintf(fp,"#face indices %d\n",ni);
 	for(i=0;i<ni;i++){
 		fprintf(fp,"%d ",rep->cindex[i]);
+		if((ni+1) % 3 == 0)
+			fprintf(fp,"%d ",-1);
 	}
 	fprintf(fp,"\n");
 	fclose(fp);
@@ -567,7 +569,7 @@ void compile_NurbsPatchSurface(struct X3D_NurbsPatchSurface *node){
 		// struct Multi_Vec3f *getCoordinate (struct X3D_Node *innode, char *str);
 		// to get the control points - it will do proto expansion, compile the coordinate node if needed
 		// (should do something similar with texcoord when implemented, 
-		//    as it needs conversion from controlpoint spacing to sampling/tesselation spacing for use in polyrep)
+		//    as I think it needs conversion from controlpoint spacing to sampling/tesselation spacing for use in polyrep)
 		// here's an amature shortcut that returns doubles
 		if(node->controlPoint){
 			if(node->controlPoint->_nodeType == NODE_CoordinateDouble){
@@ -673,10 +675,6 @@ void compile_NurbsPatchSurface(struct X3D_NurbsPatchSurface *node){
 					mtessu = ntessu;
 				else if(ntessu < 0) 
 					mtessu = -ntessu;
-				node->__points.p = malloc(sizeof(struct SFVec3f)*(mtessu+1)*(mtessv+1));
-				node->__points.n = mtessu*mtessv;  //.n will be used for realloc test in callbacks
-				node->__normals.p = malloc(sizeof(struct SFVec3f)*(mtessu+1)*(mtessv+1));
-				node->__normals.n = mtessu*mtessv;  //.n will be used for realloc test in callbacks
 
 				gluNurbsProperty(theNurb, GLU_SAMPLING_TOLERANCE, (float)(mtessu)); //25.0);
 				if(ntessu < 0)
@@ -711,11 +709,6 @@ void compile_NurbsPatchSurface(struct X3D_NurbsPatchSurface *node){
 				else
 					mtessv = max(mtessv,2*nv + 1);
 
-				node->__points.p = malloc(sizeof(struct SFVec3f)*(mtessu+1)*(mtessv+1));
-				node->__points.n = mtessu*mtessv;  //.n will be used for realloc test in callbacks
-				node->__normals.p = malloc(sizeof(struct SFVec3f)*(mtessu+1)*(mtessv+1));
-				node->__normals.n = mtessu*mtessv;  //.n will be used for realloc test in callbacks
-
 				gluNurbsProperty(theNurb,GLU_SAMPLING_METHOD,GLU_DOMAIN_DISTANCE);
 				gluNurbsProperty(theNurb,GLU_U_STEP,(GLfloat)mtessu);
 				gluNurbsProperty(theNurb,GLU_V_STEP,(GLfloat)mtessv);
@@ -736,7 +729,6 @@ void compile_NurbsPatchSurface(struct X3D_NurbsPatchSurface *node){
 				gluNurbsSurface(theNurb,nku,knotsu,nkv,knotsv,4,4*nu,xyzw,node->uOrder,node->vOrder,GL_MAP2_VERTEX_4);
 			gluEndSurface(theNurb);
 			gluDeleteNurbsRenderer(theNurb);
-			node->__points.n = node->__numPoints;
 
 			//convert points to polyrep
 			convert_strips_to_polyrep(strips,node->_intern);
