@@ -556,7 +556,7 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_PolyRep *rep){
 }
 
 void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct X3D_TextureCoordinate *texCoordNode);
-void compile_NurbsPatchSurface(struct X3D_NurbsPatchSurface *node){
+void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node *trim){
 	ppComponent_NURBS p = (ppComponent_NURBS)gglobal()->Component_NURBS.prv;
 	MARK_NODE_COMPILED
 #ifdef NURBS_LIB
@@ -755,6 +755,10 @@ void render_ray_polyrep(void *node);
 void collide_genericfaceset(void *node);
 void render_polyrep(void *node);
 
+void compile_NurbsPatchSurface(struct X3D_NurbsPatchSurface *node){
+	MARK_NODE_COMPILED
+	compile_NurbsSurface(node, NULL);
+}
 void rendray_NurbsPatchSurface (struct X3D_NurbsPatchSurface *node) {
 		COMPILE_IF_REQUIRED
 		if (!node->_intern) return;
@@ -775,3 +779,27 @@ void render_NurbsPatchSurface (struct X3D_NurbsPatchSurface *node) {
 		render_polyrep(node);
 }
 
+void compile_NurbsTrimmedSurface(struct X3D_NurbsTrimmedSurface *node){
+	MARK_NODE_COMPILED
+	compile_NurbsSurface((struct X3D_NurbsPatchSurface *)node, &node->trimmingContour);
+}
+
+void rendray_NurbsTrimmedSurface (struct X3D_NurbsTrimmedSurface *node) {
+		COMPILE_IF_REQUIRED
+		if (!node->_intern) return;
+		render_ray_polyrep(node);
+}
+
+void collide_NurbsTrimmedSurface (struct X3D_NurbsTrimmedSurface *node) {
+		COMPILE_IF_REQUIRED
+		if (!node->_intern) return;
+		collide_genericfaceset(node);
+}
+
+void render_NurbsTrimmedSurface (struct X3D_NurbsTrimmedSurface *node) {
+		//COMPILE_POLY_IF_REQUIRED (node->coord, node->color, node->normal, node->texCoord)
+		COMPILE_IF_REQUIRED
+		if (!node->_intern) return;
+		CULL_FACE(node->solid)
+		render_polyrep(node);
+}

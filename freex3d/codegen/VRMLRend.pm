@@ -321,6 +321,7 @@ our %RendC = map {($_=>1)} qw/
 	QuadSet
 	NurbsCurve
 	NurbsPatchSurface
+	NurbsTrimmedSurface
 /;
 
 #######################################################################
@@ -541,6 +542,7 @@ our %CompileC = map {($_=>1)} qw/
 	DirectionalLight
 	NurbsCurve
 	NurbsPatchSurface
+	NurbsTrimmedSurface
 /;
 
 
@@ -632,6 +634,7 @@ our %CollisionC = map {($_=>1)} qw/
 	Text
 	GeoElevationGrid
 	NurbsPatchSurface
+	NurbsTrimmedSurface	
 /;
 
 #######################################################################
@@ -724,6 +727,7 @@ our %RendRayC = map {($_=>1)} qw/
 	TriangleFanSet
 	TriangleStripSet
 	NurbsPatchSurface
+	NurbsTrimmedSurface	
 /;
 
 

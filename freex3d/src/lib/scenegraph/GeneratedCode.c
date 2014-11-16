@@ -2258,7 +2258,11 @@ struct X3D_Virt virt_NurbsSwungSurface = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NU
 
 struct X3D_Virt virt_NurbsTextureCoordinate = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_NurbsTrimmedSurface = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void render_NurbsTrimmedSurface(struct X3D_NurbsTrimmedSurface *);
+void rendray_NurbsTrimmedSurface(struct X3D_NurbsTrimmedSurface *);
+void collide_NurbsTrimmedSurface(struct X3D_NurbsTrimmedSurface *);
+void compile_NurbsTrimmedSurface(struct X3D_NurbsTrimmedSurface *);
+struct X3D_Virt virt_NurbsTrimmedSurface = { NULL,(void *)render_NurbsTrimmedSurface,NULL,NULL,(void *)rendray_NurbsTrimmedSurface,NULL,NULL,NULL,(void *)collide_NurbsTrimmedSurface,(void *)compile_NurbsTrimmedSurface};
 
 struct X3D_Virt virt_OSC_Sensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
