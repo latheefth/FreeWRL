@@ -6249,7 +6249,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->metadata = NULL;
 			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_addTrimmingContour;
+			tmp2->_defaultContainer = FIELDNAMES_trimmingContour;
 		break;
 		}
 		case NODE_ContourPolyLine2D : {

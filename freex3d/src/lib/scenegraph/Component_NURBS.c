@@ -334,7 +334,6 @@ compile - custom: we will convert our parametric surface to a polyrep in here
 //  using the stored type as a guide
 void CALLBACK nurbssurfBegincb(GLenum type, void *ud)
 {
-	//struct X3D_NurbsPatchSurface *node = (struct X3D_NurbsPatchSurface *)ud;
 	struct stripState ss;
 	struct Vector * strips = (struct Vector *)ud;
 	printf("nurbssurfBegin type = ");
@@ -354,77 +353,43 @@ void CALLBACK nurbssurfBegincb(GLenum type, void *ud)
 	ss.pv.data = NULL;
 	ss.type = type;
 	vector_pushBack(struct stripState,strips,ss);
-	//node->__numPoints = 0;
-	//node->__numNormals = 0;
-	//node->__meshtype = type;
-	//we leave points.n and points, and just overwrite, to save reallocs
 	printf("\n");
 }
 void CALLBACK nurbssurfVertexcb(GLfloat *vertex, void *ud)
 {
-	//int i, np,ns;
 	struct stripState ss;
 	struct SFVec3f pp;
-	//struct X3D_NurbsPatchSurface *node = (struct X3D_NurbsPatchSurface *)ud;
 	struct Vector * strips = (struct Vector *)ud;
 	ss = vector_get(struct stripState,strips,strips->n -1);
 	memcpy(&pp,vertex,sizeof(struct SFVec3f));
 	vector_pushBack(struct SFVec3f,&ss.pv,pp);
 	vector_set(struct stripState,strips,strips->n-1,ss);
 
-	//ns = node->__points.n; 
-	//np = node->__numPoints;
-	//if(np+1 > ns) {
-	//	ns = np *2;
-	//	node->__points.p = realloc(node->__points.p,ns * sizeof(struct SFVec3f));
-	//	node->__points.n = ns;
-	//}
-	//pp = &node->__points.p[np];
-	//for(i=0;i<3;i++)
-	//	pp->c[i] = vertex[i];
-	//node->__numPoints ++;
-	//node->__points.n++;
-	printf("nurbssurfVertex %f %f %f\n",vertex[0],vertex[1],vertex[2]);
+	if(0) printf("nurbssurfVertex %f %f %f\n",vertex[0],vertex[1],vertex[2]);
 }
 void CALLBACK nurbssurfNormalcb(GLfloat *nml, void *ud)
 {
-	//int i, np,ns;
 	struct stripState ss;
 	struct SFVec3f pp;
-	//struct X3D_NurbsPatchSurface *node = (struct X3D_NurbsPatchSurface *)ud;
 	struct Vector * strips = (struct Vector *)ud;
 	ss = vector_get(struct stripState,strips,strips->n -1);
 	memcpy(&pp,nml,sizeof(struct SFVec3f));
 	vector_pushBack(struct SFVec3f,&ss.nv,pp);
 	vector_set(struct stripState,strips,strips->n-1,ss);
 
-	//ns = node->__normals.n; 
-	//np = node->__numNormals;
-	//if(np+1 > ns) {
-	//	ns = np *2;
-	//	node->__normals.p = realloc(node->__normals.p,ns * sizeof(struct SFVec3f));
-	//	node->__normals.n = ns;
-	//}
-	//pp = &node->__normals.p[np];
-	//for(i=0;i<3;i++)
-	//	pp->c[i] = nml[i];
-	//node->__numNormals ++;
-
-	printf("nurbssurfNormal\n");
+	if(0) printf("nurbssurfNormal\n");
 }
 void CALLBACK nurbssurfEndcb(void *ud)
 {
-	//struct X3D_NurbsPatchSurface *node = (struct X3D_NurbsPatchSurface *)ud;
 	struct stripState ss;
 	struct Vector * strips = (struct Vector *)ud;
 	ss = vector_get(struct stripState,strips,strips->n -1);
-	//node->__numPoints = node->__points.n;
-	//printf("nurbssurfEnd #p %d #n %d\n",node->__numPoints, node->__numNormals);
-	// convert to polyrep points and triangles
-	printf("nurbssurfEnd #p %d #n %d\n",ss.pv.n, ss.nv.n);
-	for(int i=0;i<ss.pv.n;i++){
-		struct SFVec3f pp = vector_get(struct SFVec3f,&ss.pv,i);
-		printf("%f %f %f\n",pp.c[0],pp.c[1],pp.c[2]);
+	if(0){
+		printf("nurbssurfEnd #p %d #n %d\n",ss.pv.n, ss.nv.n);
+		for(int i=0;i<ss.pv.n;i++){
+			struct SFVec3f pp = vector_get(struct SFVec3f,&ss.pv,i);
+			printf("%f %f %f\n",pp.c[0],pp.c[1],pp.c[2]);
+		}
 	}
 
 }
@@ -518,7 +483,7 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_PolyRep *rep){
 					rep->cindex[ni++] = np+j;
 					//rep->cindex[ni++] = -1;
 					//memcpy(&rep->norindex[ntri*4],&rep->cindex[ntri*4],2*4*sizeof(int));
-					memcpy(&rep->norindex[ntri*3],&rep->cindex[ntri*3],2*4*sizeof(int));
+					memcpy(&rep->norindex[ntri*3],&rep->cindex[ntri*3],2*3*sizeof(int));
 					ntri += 2;
 				}
 				break;
@@ -526,7 +491,14 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_PolyRep *rep){
 				nindex += (ss.pv.n -2);
 				break;
 			case GL_TRIANGLE_FAN: 
-				nindex += (ss.pv.n -2);
+				//nindex += (ss.pv.n -2);
+				for(j=0;j<ss.pv.n -2;j+=1){
+					rep->cindex[ni++] = np;
+					rep->cindex[ni++] = np+j+1;
+					rep->cindex[ni++] = np+j+2;
+					memcpy(&rep->norindex[ntri*3],&rep->cindex[ntri*3],3*sizeof(int));
+					ntri += 1;
+				}
 				break;
 			case GL_TRIANGLES: 
 				nindex += (ss.pv.n -2);
@@ -727,6 +699,125 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 
 			gluBeginSurface(theNurb);
 				gluNurbsSurface(theNurb,nku,knotsu,nkv,knotsv,4,4*nu,xyzw,node->uOrder,node->vOrder,GL_MAP2_VERTEX_4);
+				if(trim){
+					int i;
+					gluBeginTrim (theNurb);
+
+					//outside border
+					if(1){
+						// counter clockwise, simple 4 corner uv from redbook sample
+						GLfloat edgePt[5][2] = {{0.0, 0.0}, {1.0, 0.0}, {1.0, 1.0}, {0.0, 1.0}, {0.0, 0.0}};
+						gluPwlCurve (theNurb, 5, &edgePt[0][0], 2, GLU_MAP1_TRIM_2);
+					}else{
+						// 2 x (node.utessselation u + node.vtesselation v) + 1 edge values
+						// except I get a nurbs error with the following
+						GLfloat *edges = malloc( (2 * ntessu + 2 * ntessv) *2*sizeof(GLfloat));
+						GLfloat uspan, vspan;
+						uspan = 1.0/(float)(ntessu -1);
+						vspan = 1.0/(float)(ntessv -1);
+						for(i=0;i<ntessu-1;i++){
+							edges[i*2 +0] = (float)(i)*uspan;
+							edges[i*2 +1] = 0.0;
+							edges[(ntessu+ntessv+i)*2 + 0] = (float)(ntessu - 1 - i)*uspan;
+							edges[(ntessu+ntessv+i)*2 + 1] = 1.0;
+						}
+						for(i=0;i<ntessv;i++){
+							edges[(ntessu+i)*2 + 0] = 1.0;
+							edges[(ntessu+i)*2 + 1] = (float)(i)*vspan;
+							edges[(ntessu+ntessv+ntessu+i)*2 + 0] = 0.0;
+							edges[(ntessu+ntessv+ntessu+i)*2 + 1] = (float)(ntessv - 1 - i)*vspan;
+						}
+						//close curve
+						edges[((ntessu -1)*2 + (ntessv -1)*2)*2 + 0] = 0.0;
+						edges[((ntessu -1)*2 + (ntessv -1)*2)*2 + 1] = 0.0;
+						gluPwlCurve (theNurb, 2*(ntessu -1 + ntessv -1) +1, edges, 2, GLU_MAP1_TRIM_2);
+					}
+					gluEndTrim (theNurb);
+
+					//interior cutouts
+					if(0){
+						//redbook example trim curves - these work
+					   GLfloat curvePt[4][2] = /* clockwise */ 
+						  {{0.25, 0.5}, {0.25, 0.75}, {0.75, 0.75}, {0.75, 0.5}};
+					   GLfloat curveKnots[8] = 
+						  {0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0};
+					   GLfloat pwlPt[4][2] = /* clockwise */ 
+						  {{0.75, 0.5}, {0.5, 0.25}, {0.25, 0.5}};
+
+						gluBeginTrim (theNurb);
+						gluNurbsCurve (theNurb, 8, curveKnots, 2, 
+										&curvePt[0][0], 4, GLU_MAP1_TRIM_2);
+						gluPwlCurve (theNurb, 3, &pwlPt[0][0], 2, GLU_MAP1_TRIM_2);
+						gluEndTrim (theNurb);
+					}
+					if(1)
+					for(i=0;i<trim->n;i++){
+						int m;
+						struct X3D_Contour2D * tc = (struct X3D_Contour2D *)trim->p[i];
+						gluBeginTrim (theNurb);
+						for(m=0;m<tc->children.n;m++)
+						{
+							int j,k,dim;
+							struct X3D_ContourPolyLine2D *cp2d;
+							struct X3D_NurbsCurve2D *nc2d;
+							struct X3D_Node *ctr = tc->children.p[m]; //trim->p[i];
+							GLfloat *cknot, *ctrl, *cweight;
+							cknot = ctrl = cweight = NULL;
+							switch(ctr->_nodeType){
+								case NODE_ContourPolyLine2D:
+									cp2d = (struct X3D_ContourPolyLine2D *)ctr;
+									ctrl = malloc(cp2d->controlPoint.n * 2*sizeof(GLfloat));
+									for(j=0;j<cp2d->controlPoint.n;j++) {
+										for(k=0;k<2;k++)
+											ctrl[j*2 + k] = (float)cp2d->controlPoint.p[j].c[k];
+									}
+									gluPwlCurve (theNurb, cp2d->controlPoint.n, ctrl, 2, GLU_MAP1_TRIM_2);
+
+									break;
+								case NODE_NurbsCurve2D:
+									nc2d = (struct X3D_NurbsCurve2D *)ctr;
+									dim = 2;
+									ctrl = malloc(nc2d->controlPoint.n * dim*sizeof(GLfloat));
+									cknot = malloc(nc2d->knot.n * sizeof(GLfloat));
+									if(dim == 3){
+										cweight = malloc(nc2d->controlPoint.n * sizeof(GLfloat));
+										if(nc2d->weight.n == nc2d->controlPoint.n){
+											for(j=0;j<nc2d->weight.n;j++) cweight[j] = nc2d->weight.p[j];
+										}else{
+											for(j=0;j<nc2d->controlPoint.n;j++) cweight[j] = 1.0f;
+										}
+									}
+									for(j=0;j<nc2d->controlPoint.n;j++) {
+										for(k=0;k<2;k++){
+											ctrl[j*dim + k] = (float)nc2d->controlPoint.p[j].c[k];
+											if(dim == 3) ctrl[j*dim + k] *= cweight[j];
+										 }
+										if(dim == 3) ctrl[j*dim + dim-1] = (float)cweight[j];
+									}
+									printf("knot %d ={",nc2d->knot.n);
+									for(j=0;j<nc2d->knot.n;j++){
+										cknot[j] = (float)nc2d->knot.p[j];
+										printf("%f ",cknot[j]);
+									}
+									printf("}\n");
+									printf("control %d = {\n",nc2d->controlPoint.n);
+									for(j=0;j<nc2d->controlPoint.n;j++) {
+										for(k=0;k<dim;k++) printf("%f \n",ctrl[j*dim +k]);
+										printf("\n");
+									}
+									printf("}\n");
+									gluNurbsCurve (theNurb, nc2d->knot.n, cknot, dim, ctrl, nc2d->order, GLU_MAP1_TRIM_2);
+									break;
+								default:
+									ConsoleMessage("%s %d","unknown trimming contour node",ctr->_nodeType);
+							}
+							FREE_IF_NZ(ctrl);
+							FREE_IF_NZ(cknot);
+							FREE_IF_NZ(cweight);
+						}
+						gluEndTrim (theNurb);
+					}
+				}
 			gluEndSurface(theNurb);
 			gluDeleteNurbsRenderer(theNurb);
 
