@@ -869,9 +869,6 @@ FWFunctionSpec (BrowserFunctions)[] = {
 	{"print", VrmlBrowserPrint, '0',{1,-1,0,"S"}},
 	{"println", VrmlBrowserPrintln, '0',{1,-1,0,"S"}},
 
-	//{"replaceWorld", X3dBrowserReplaceWorld, 0},  //conflicts - X3DScene vs MFNode parameter - could detect?
-	//{"createX3DFromString", X3dBrowserCreateX3DFromString, 0}, //conflicts but above verion shouldn't be above, or could detect?
-	//{"createX3DFromURL", X3dBrowserCreateVrmlFromURL, 0}, //conflicts but above version shouldn't be above, or could detect?
 	//{importDocument, X3dBrowserImportDocument, 0), //not sure we need/want this, what does it do?
 	//{getRenderingProperty, X3dGetRenderingProperty, 0},
 	//{addBrowserListener, X3dAddBrowserListener, 0},
