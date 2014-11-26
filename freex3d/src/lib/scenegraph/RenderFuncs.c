@@ -1555,7 +1555,9 @@ void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *
 	nodefn(node, coord, color, normal, texCoord);
 }
 
-
+void do_NurbsPositionInterpolator (void *node);
+void do_NurbsOrientationInterpolator (void *node);
+void do_NurbsSurfaceInterpolator (void *node);
 /* for CRoutes, we need to have a function pointer to an interpolator to run, if we
    route TO an interpolator */
 void *returnInterpolatorPointer (const char *x) {
@@ -1568,6 +1570,9 @@ void *returnInterpolatorPointer (const char *x) {
 	} else if (strcmp("CoordinateInterpolator",x)==0) { return (void *)do_OintCoord;
 	} else if (strcmp("NormalInterpolator",x)==0) { return (void *)do_OintNormal;
 	} else if (strcmp("GeoPositionInterpolator",x)==0) { return (void *)do_GeoPositionInterpolator;
+	} else if (strcmp("NurbsPositionInterpolator",x)==0) { return (void *)do_NurbsPositionInterpolator;
+	} else if (strcmp("NurbsOrientationInterpolator",x)==0) { return (void *)do_NurbsPositionInterpolator;
+	} else if (strcmp("NurbsSurfaceInterpolator",x)==0) { return (void *)do_NurbsSurfaceInterpolator;
 	} else if (strcmp("BooleanFilter",x)==0) { return (void *)do_BooleanFilter;
 	} else if (strcmp("BooleanSequencer",x)==0) { return (void *)do_BooleanSequencer;
 	} else if (strcmp("BooleanToggle",x)==0) { return (void *)do_BooleanToggle;

@@ -1,0 +1,507 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="internals">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="nurbtess">
+      <UniqueIdentifier>{4074ec89-a00c-4c7e-b6a0-238c5bee3a5d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="interface">
+      <UniqueIdentifier>{8ec90b2d-85a7-4814-a19b-339ae6e7418f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\libnurbs\internals\arc.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\arcsorter.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\arctess.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\backend.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\basiccrveval.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\basicsurfeval.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\bin.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\bufpool.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\cachingeval.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\ccw.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\coveandtiler.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\curve.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\curvelist.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\curvesub.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\dataTransform.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\displaylist.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\flist.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\flistsorter.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\hull.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\intersect.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\knotvector.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\mapdesc.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\mapdescv.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\maplist.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\mesher.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\monotonizer.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\monoTriangulationBackend.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\mycode.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\nurbsinterfac.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\nurbstess.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\patch.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\patchlist.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\quilt.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\reader.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\renderhints.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\slicer.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\sorter.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\splitarcs.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\subdivider.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\tobezier.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\trimline.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\trimregion.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\trimvertpool.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\uarray.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\internals\varray.cc">
+      <Filter>internals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\directedLine.cc">
+      <Filter>nurbtess</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\gridWrap.cc">
+      <Filter>nurbtess</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\monoChain.cc">
+      <Filter>nurbtess</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\monoPolyPart.cc">
+      <Filter>nurbtess</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\monoTriangulation.cc">
+      <Filter>nurbtess</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\partitionX.cc">
+      <Filter>nurbtess</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\partitionY.cc">
+      <Filter>nurbtess</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\polyDBG.cc">
+      <Filter>nurbtess</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\polyUtil.cc">
+      <Filter>nurbtess</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\primitiveStream.cc">
+      <Filter>nurbtess</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\quicksort.cc">
+      <Filter>nurbtess</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\rectBlock.cc">
+      <Filter>nurbtess</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\sampleComp.cc">
+      <Filter>nurbtess</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\sampleCompBot.cc">
+      <Filter>nurbtess</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\sampleCompRight.cc">
+      <Filter>nurbtess</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\sampleCompTop.cc">
+      <Filter>nurbtess</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\sampledLine.cc">
+      <Filter>nurbtess</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\sampleMonoPoly.cc">
+      <Filter>nurbtess</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\searchTree.cc">
+      <Filter>nurbtess</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\interface\bezierEval.cc">
+      <Filter>interface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\interface\bezierPatch.cc">
+      <Filter>interface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\interface\bezierPatchMesh.cc">
+      <Filter>interface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\interface\glcurveval.cc">
+      <Filter>interface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\interface\glinterface.cc">
+      <Filter>interface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\interface\glrenderer.cc">
+      <Filter>interface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\interface\glsurfeval.cc">
+      <Filter>interface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\interface\incurveeval.cc">
+      <Filter>interface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libnurbs\interface\insurfeval.cc">
+      <Filter>interface</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\libnurbs\internals\arc.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\arcsorter.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\arctess.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\backend.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\basiccrveval.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\basicsurfeval.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\bezierarc.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\bin.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\bufpool.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\cachingeval.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\coveandtiler.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\curve.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\curvelist.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\dataTransform.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\defines.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\displaylist.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\displaymode.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\flist.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\flistsorter.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\gridline.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\gridtrimvertex.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\gridvertex.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\hull.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\jarcloc.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\knotvector.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\mapdesc.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\maplist.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\mesher.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\monotonizer.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\myassert.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\mymath.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\mysetjmp.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\mystring.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\nurbsconsts.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\nurbstess.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\patch.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\patchlist.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\pwlarc.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\quilt.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\reader.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\renderhints.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\simplemath.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\slicer.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\sorter.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\subdivider.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\trimline.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\trimregion.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\trimvertex.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\trimvertpool.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\types.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\uarray.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\internals\varray.h">
+      <Filter>internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\definitions.h">
+      <Filter>nurbtess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\directedLine.h">
+      <Filter>nurbtess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\glimports.h">
+      <Filter>nurbtess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\gridWrap.h">
+      <Filter>nurbtess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\monoChain.h">
+      <Filter>nurbtess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\monoPolyPart.h">
+      <Filter>nurbtess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\monoTriangulation.h">
+      <Filter>nurbtess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\mystdio.h">
+      <Filter>nurbtess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\mystdlib.h">
+      <Filter>nurbtess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\partitionX.h">
+      <Filter>nurbtess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\partitionY.h">
+      <Filter>nurbtess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\polyDBG.h">
+      <Filter>nurbtess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\polyUtil.h">
+      <Filter>nurbtess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\primitiveStream.h">
+      <Filter>nurbtess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\quicksort.h">
+      <Filter>nurbtess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\rectBlock.h">
+      <Filter>nurbtess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\sampleComp.h">
+      <Filter>nurbtess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\sampleCompBot.h">
+      <Filter>nurbtess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\sampleCompRight.h">
+      <Filter>nurbtess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\sampleCompTop.h">
+      <Filter>nurbtess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\sampledLine.h">
+      <Filter>nurbtess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\sampleMonoPoly.h">
+      <Filter>nurbtess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\searchTree.h">
+      <Filter>nurbtess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\zlassert.h">
+      <Filter>nurbtess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\interface\bezierEval.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\interface\bezierPatch.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\interface\bezierPatchMesh.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\interface\glcurveval.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\interface\glimports.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\interface\glrenderer.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\interface\glsurfeval.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\interface\mystdio.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\interface\mystdlib.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\gluos.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libnurbs\libnurbs2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

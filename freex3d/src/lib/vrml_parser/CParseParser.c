@@ -194,6 +194,9 @@ static BOOL parser_mfvec3fValue(struct VRMLParser*, void*);
 static BOOL parser_mfvec3dValue(struct VRMLParser*, void*);
 static BOOL parser_sfstringValue_(struct VRMLParser*, void*);
 static BOOL parser_sfimageValue(struct VRMLParser*, void*);
+static BOOL parser_mfvec2dValue(struct VRMLParser*, void*);
+static BOOL parser_mfvec4fValue(struct VRMLParser*, void*);
+static BOOL parser_mfvec4dValue(struct VRMLParser*, void*);
 
 
 
@@ -205,31 +208,31 @@ static BOOL parser_sfimageValue(struct VRMLParser*, void*);
 /* for those types not parsed yet, call this to print an error message */
 static BOOL parser_fieldTypeNotParsedYet(struct VRMLParser* me, void* ret);
 
-
+/*PARSE_TYPE[] entries must be sychnronized with the FIELDTYPES values in Structs.h */
 BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*)={
-    &parser_sffloatValue_, &parser_mffloatValue,
-    &parser_sfrotationValue, &parser_mfrotationValue,
-    &parser_sfcolorValue, &parser_mfvec3fValue,
-    &parser_sfboolValue, &parser_mfboolValue,
-    &parser_sfint32Value_, &parser_mfint32Value,
-    &parser_sfnodeValue, &parser_mfnodeValue,
-    &parser_sfcolorValue, &parser_mfcolorValue,
-    &parser_sfcolorrgbaValue, &parser_mfcolorrgbaValue,
-    &parser_sftimeValue, &parser_mftimeValue,
-    &parser_sfstringValue_, &parser_mfstringValue,
-    &parser_sfvec2fValue, &parser_mfvec2fValue,
-    &parser_sfimageValue,  /* SFImage */ 
-    &parser_fieldTypeNotParsedYet, /* FreeWRLPTR 23 */
-    &parser_sfvec3dValue, &parser_mfvec3dValue,
-    &parser_sftimeValue, &parser_mftimeValue,
-    &parser_sfmatrix3fValue, &parser_fieldTypeNotParsedYet, /* Matrix3f */
-    &parser_sfmatrix3dValue, &parser_fieldTypeNotParsedYet, /* Matrix3d */
-    &parser_sfmatrix4fValue, &parser_fieldTypeNotParsedYet, /* Matrix4f */
-    &parser_sfmatrix4dValue, &parser_fieldTypeNotParsedYet, /* Matrix4d */
-    &parser_sfvec2dValue, &parser_fieldTypeNotParsedYet, /* Vec2d */
-    &parser_sfvec4fValue, &parser_fieldTypeNotParsedYet, /* Vec4f */
-    &parser_sfvec4dValue, &parser_fieldTypeNotParsedYet, /* Vec4d */
-    &parser_fieldTypeNotParsedYet, /* FreeWRLThread */
+    &parser_sffloatValue_, &parser_mffloatValue,			// 0,1 float
+    &parser_sfrotationValue, &parser_mfrotationValue,		// 2,3 rotation
+    &parser_sfcolorValue, &parser_mfvec3fValue,				// 4,5 Vec3f
+    &parser_sfboolValue, &parser_mfboolValue,				// 6,7 Bool
+    &parser_sfint32Value_, &parser_mfint32Value,			// 8,9 Int32
+    &parser_sfnodeValue, &parser_mfnodeValue,				// 10,11 Node
+    &parser_sfcolorValue, &parser_mfcolorValue,				// 12,13 Color
+    &parser_sfcolorrgbaValue, &parser_mfcolorrgbaValue,		// 14,15 ColorRGBA
+    &parser_sftimeValue, &parser_mftimeValue,				// 16,17 Time
+    &parser_sfstringValue_, &parser_mfstringValue,			// 18,19 String
+    &parser_sfvec2fValue, &parser_mfvec2fValue,				// 20,21 Vec2f
+    &parser_sfimageValue,  /* SFImage */					// 22,   SFImage
+    &parser_fieldTypeNotParsedYet, /* FreeWRLPTR 23 */		//    23 FREEWRL_PTR
+    &parser_sfvec3dValue, &parser_mfvec3dValue,				// 24,25 Vec3d
+    &parser_sftimeValue, &parser_mftimeValue,				// 26,27 Double
+    &parser_sfmatrix3fValue, &parser_fieldTypeNotParsedYet, // 28,29 Matrix3f 
+    &parser_sfmatrix3dValue, &parser_fieldTypeNotParsedYet, // 30,31 Matrix3d 
+    &parser_sfmatrix4fValue, &parser_fieldTypeNotParsedYet, // 32,33 Matrix4f
+    &parser_sfmatrix4dValue, &parser_fieldTypeNotParsedYet, // 34,35 Matrix4d
+    &parser_sfvec2dValue, &parser_mfvec2dValue,				// 36,37 Vec2d  //&parser_fieldTypeNotParsedYet,
+    &parser_sfvec4fValue, &parser_mfvec4fValue,				// 38,39 Vec4f  //&parser_fieldTypeNotParsedYet,
+    &parser_sfvec4dValue, &parser_mfvec4dValue,				// 40,41 Vec4d  //&parser_fieldTypeNotParsedYet,
+    &parser_fieldTypeNotParsedYet,							// 42    FreeWRLThread
 };
 
 /* for error messages */
@@ -3138,6 +3141,9 @@ if((!lexer_openSquare(me->lexer)) && (!(me->parsingX3DfromXML))) { \
     PARSER_MFFIELD(vec2f, Vec2f)
     PARSER_MFFIELD(vec3f, Vec3f)
     PARSER_MFFIELD(vec3d, Vec3d)
+    PARSER_MFFIELD(vec2d, Vec2d)
+    PARSER_MFFIELD(vec4f, Vec4f)
+    PARSER_MFFIELD(vec4d, Vec4d)
 
 /* ************************************************************************** */
 /* SF* field values */

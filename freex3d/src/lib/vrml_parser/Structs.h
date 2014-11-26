@@ -947,39 +947,37 @@ extern const int FIELDNAMES_COUNT;
 #define FIELDNAMES_uDimension	625
 #define FIELDNAMES_uKnot	626
 #define FIELDNAMES_uOrder	627
-#define FIELDNAMES_uTesselation	628
-#define FIELDNAMES_uTessellation	629
-#define FIELDNAMES_ulimit	630
-#define FIELDNAMES_update	631
-#define FIELDNAMES_url	632
-#define FIELDNAMES_vClosed	633
-#define FIELDNAMES_vDimension	634
-#define FIELDNAMES_vKnot	635
-#define FIELDNAMES_vOrder	636
-#define FIELDNAMES_vTesselation	637
-#define FIELDNAMES_vTessellation	638
-#define FIELDNAMES_value	639
-#define FIELDNAMES_valueChanged	640
-#define FIELDNAMES_value_changed	641
-#define FIELDNAMES_vector	642
-#define FIELDNAMES_version	643
-#define FIELDNAMES_vertexCount	644
-#define FIELDNAMES_vertices	645
-#define FIELDNAMES_viewpoints	646
-#define FIELDNAMES_visibilityLimit	647
-#define FIELDNAMES_visibilityRange	648
-#define FIELDNAMES_visible	649
-#define FIELDNAMES_warhead	650
-#define FIELDNAMES_watchList	651
-#define FIELDNAMES_weight	652
-#define FIELDNAMES_whichChoice	653
-#define FIELDNAMES_whichGeometry	654
-#define FIELDNAMES_writeInterval	655
-#define FIELDNAMES_xDimension	656
-#define FIELDNAMES_xSpacing	657
-#define FIELDNAMES_yScale	658
-#define FIELDNAMES_zDimension	659
-#define FIELDNAMES_zSpacing	660
+#define FIELDNAMES_uTessellation	628
+#define FIELDNAMES_ulimit	629
+#define FIELDNAMES_update	630
+#define FIELDNAMES_url	631
+#define FIELDNAMES_vClosed	632
+#define FIELDNAMES_vDimension	633
+#define FIELDNAMES_vKnot	634
+#define FIELDNAMES_vOrder	635
+#define FIELDNAMES_vTessellation	636
+#define FIELDNAMES_value	637
+#define FIELDNAMES_valueChanged	638
+#define FIELDNAMES_value_changed	639
+#define FIELDNAMES_vector	640
+#define FIELDNAMES_version	641
+#define FIELDNAMES_vertexCount	642
+#define FIELDNAMES_vertices	643
+#define FIELDNAMES_viewpoints	644
+#define FIELDNAMES_visibilityLimit	645
+#define FIELDNAMES_visibilityRange	646
+#define FIELDNAMES_visible	647
+#define FIELDNAMES_warhead	648
+#define FIELDNAMES_watchList	649
+#define FIELDNAMES_weight	650
+#define FIELDNAMES_whichChoice	651
+#define FIELDNAMES_whichGeometry	652
+#define FIELDNAMES_writeInterval	653
+#define FIELDNAMES_xDimension	654
+#define FIELDNAMES_xSpacing	655
+#define FIELDNAMES_yScale	656
+#define FIELDNAMES_zDimension	657
+#define FIELDNAMES_zSpacing	658
 
 const char *stringFieldType(int st);
 
@@ -1393,30 +1391,28 @@ extern const int EXPOSED_FIELD_COUNT;
 #define EXPOSED_FIELD_type	279
 #define EXPOSED_FIELD_uDimension	280
 #define EXPOSED_FIELD_uOrder	281
-#define EXPOSED_FIELD_uTesselation	282
-#define EXPOSED_FIELD_uTessellation	283
-#define EXPOSED_FIELD_ulimit	284
-#define EXPOSED_FIELD_update	285
-#define EXPOSED_FIELD_url	286
-#define EXPOSED_FIELD_vDimension	287
-#define EXPOSED_FIELD_vOrder	288
-#define EXPOSED_FIELD_vTesselation	289
-#define EXPOSED_FIELD_vTessellation	290
-#define EXPOSED_FIELD_value	291
-#define EXPOSED_FIELD_vector	292
-#define EXPOSED_FIELD_version	293
-#define EXPOSED_FIELD_vertexCount	294
-#define EXPOSED_FIELD_vertices	295
-#define EXPOSED_FIELD_viewpoints	296
-#define EXPOSED_FIELD_visibilityLimit	297
-#define EXPOSED_FIELD_visibilityRange	298
-#define EXPOSED_FIELD_visible	299
-#define EXPOSED_FIELD_warhead	300
-#define EXPOSED_FIELD_watchList	301
-#define EXPOSED_FIELD_weight	302
-#define EXPOSED_FIELD_whichChoice	303
-#define EXPOSED_FIELD_whichGeometry	304
-#define EXPOSED_FIELD_writeInterval	305
+#define EXPOSED_FIELD_uTessellation	282
+#define EXPOSED_FIELD_ulimit	283
+#define EXPOSED_FIELD_update	284
+#define EXPOSED_FIELD_url	285
+#define EXPOSED_FIELD_vDimension	286
+#define EXPOSED_FIELD_vOrder	287
+#define EXPOSED_FIELD_vTessellation	288
+#define EXPOSED_FIELD_value	289
+#define EXPOSED_FIELD_vector	290
+#define EXPOSED_FIELD_version	291
+#define EXPOSED_FIELD_vertexCount	292
+#define EXPOSED_FIELD_vertices	293
+#define EXPOSED_FIELD_viewpoints	294
+#define EXPOSED_FIELD_visibilityLimit	295
+#define EXPOSED_FIELD_visibilityRange	296
+#define EXPOSED_FIELD_visible	297
+#define EXPOSED_FIELD_warhead	298
+#define EXPOSED_FIELD_watchList	299
+#define EXPOSED_FIELD_weight	300
+#define EXPOSED_FIELD_whichChoice	301
+#define EXPOSED_FIELD_whichGeometry	302
+#define EXPOSED_FIELD_writeInterval	303
 
 
 /* Table of built-in fieldIds */
@@ -2029,16 +2025,16 @@ struct X3D_Anchor {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	void * _parentResource;
 	struct Multi_Node addChildren;
-	struct SFVec3f bboxCenter;
-	struct SFVec3f bboxSize;
+	struct Multi_Node removeChildren;
 	struct Multi_Node children;
 	struct Uni_String *description;
 	struct X3D_Node *metadata;
 	struct Multi_String parameter;
-	struct Multi_Node removeChildren;
 	struct Multi_String url;
+	struct SFVec3f bboxCenter;
+	struct SFVec3f bboxSize;
+	void * _parentResource;
 };
 extern struct X3D_Virt virt_Anchor;
 /***********************/
@@ -2080,12 +2076,12 @@ struct X3D_Arc2D {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __numPoints;
-	struct Multi_Vec2f __points;
-	float endAngle;
 	struct X3D_Node *metadata;
+	float endAngle;
 	float radius;
 	float startAngle;
+	struct Multi_Vec2f __points;
+	int __numPoints;
 };
 extern struct X3D_Virt virt_Arc2D;
 /***********************/
@@ -2103,14 +2099,14 @@ struct X3D_ArcClose2D {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __numPoints;
-	struct Multi_Vec2f __points;
+	struct X3D_Node *metadata;
 	struct Uni_String *closureType;
 	float endAngle;
-	struct X3D_Node *metadata;
 	float radius;
 	int solid;
 	float startAngle;
+	struct Multi_Vec2f __points;
+	int __numPoints;
 };
 extern struct X3D_Virt virt_ArcClose2D;
 /***********************/
@@ -2128,17 +2124,7 @@ struct X3D_AudioClip {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	double __inittime;
-	void * __loadResource;
-	int __loadstatus;
-	void * __localFileName;
-	int __sourceNumber;
-	void * _parentResource;
 	struct Uni_String *description;
-	double duration_changed;
-	double elapsedTime;
-	int isActive;
-	int isPaused;
 	int loop;
 	struct X3D_Node *metadata;
 	double pauseTime;
@@ -2147,6 +2133,16 @@ struct X3D_AudioClip {
 	double startTime;
 	double stopTime;
 	struct Multi_String url;
+	double duration_changed;
+	double elapsedTime;
+	int isActive;
+	int isPaused;
+	void * _parentResource;
+	int __loadstatus;
+	void * __loadResource;
+	int __sourceNumber;
+	void * __localFileName;
+	double __inittime;
 };
 extern struct X3D_Virt virt_AudioClip;
 /***********************/
@@ -2164,33 +2160,33 @@ struct X3D_Background {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __VBO;
-	struct X3D_Node *__backTexture;
-	struct X3D_Node *__bottomTexture;
-	struct Multi_Color __colours;
-	struct X3D_Node *__frontTexture;
-	struct X3D_Node *__leftTexture;
-	struct Multi_Vec3f __points;
-	int __quadcount;
-	struct X3D_Node *__rightTexture;
-	int __textureright;
-	struct X3D_Node *__topTexture;
-	void * _parentResource;
-	struct Multi_String backUrl;
-	double bindTime;
-	struct Multi_String bottomUrl;
-	struct Multi_String frontUrl;
+	int set_bind;
 	struct Multi_Float groundAngle;
 	struct Multi_Color groundColor;
-	int isBound;
-	struct Multi_String leftUrl;
-	struct X3D_Node *metadata;
-	struct Multi_String rightUrl;
-	int set_bind;
 	struct Multi_Float skyAngle;
 	struct Multi_Color skyColor;
-	struct Multi_String topUrl;
+	double bindTime;
+	int isBound;
+	void * _parentResource;
+	struct Multi_Vec3f __points;
+	struct Multi_Color __colours;
+	int __quadcount;
 	float transparency;
+	struct Multi_String frontUrl;
+	struct Multi_String backUrl;
+	struct Multi_String topUrl;
+	struct Multi_String bottomUrl;
+	struct Multi_String leftUrl;
+	struct Multi_String rightUrl;
+	struct X3D_Node *metadata;
+	int __textureright;
+	struct X3D_Node *__frontTexture;
+	struct X3D_Node *__backTexture;
+	struct X3D_Node *__topTexture;
+	struct X3D_Node *__bottomTexture;
+	struct X3D_Node *__leftTexture;
+	struct X3D_Node *__rightTexture;
+	int __VBO;
 };
 extern struct X3D_Virt virt_Background;
 /***********************/
@@ -2208,14 +2204,14 @@ struct X3D_Billboard {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	double _rotationAngle;
 	struct Multi_Node addChildren;
+	struct Multi_Node removeChildren;
 	struct SFVec3f axisOfRotation;
+	struct Multi_Node children;
 	struct SFVec3f bboxCenter;
 	struct SFVec3f bboxSize;
-	struct Multi_Node children;
 	struct X3D_Node *metadata;
-	struct Multi_Node removeChildren;
+	double _rotationAngle;
 };
 extern struct X3D_Virt virt_Billboard;
 /***********************/
@@ -2233,11 +2229,11 @@ struct X3D_BooleanFilter {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
+	int set_boolean;
 	int inputFalse;
 	int inputNegate;
 	int inputTrue;
 	struct X3D_Node *metadata;
-	int set_boolean;
 };
 extern struct X3D_Virt virt_BooleanFilter;
 /***********************/
@@ -2255,13 +2251,13 @@ struct X3D_BooleanSequencer {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Float key;
-	struct Multi_Bool keyValue;
-	struct X3D_Node *metadata;
 	int next;
 	int previous;
 	float set_fraction;
+	struct Multi_Float key;
+	struct Multi_Bool keyValue;
 	int value_changed;
+	struct X3D_Node *metadata;
 };
 extern struct X3D_Virt virt_BooleanSequencer;
 /***********************/
@@ -2279,9 +2275,9 @@ struct X3D_BooleanToggle {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct X3D_Node *metadata;
 	int set_boolean;
 	int toggle;
+	struct X3D_Node *metadata;
 };
 extern struct X3D_Virt virt_BooleanToggle;
 /***********************/
@@ -2299,9 +2295,9 @@ struct X3D_BooleanTrigger {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct X3D_Node *metadata;
 	double set_triggerTime;
 	int triggerTrue;
+	struct X3D_Node *metadata;
 };
 extern struct X3D_Virt virt_BooleanTrigger;
 /***********************/
@@ -2319,10 +2315,10 @@ struct X3D_Box {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Vec3f __points;
 	struct X3D_Node *metadata;
 	struct SFVec3f size;
 	int solid;
+	struct Multi_Vec3f __points;
 };
 extern struct X3D_Virt virt_Box;
 /***********************/
@@ -2340,14 +2336,14 @@ struct X3D_CADAssembly {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Node _sortedChildren;
 	struct Multi_Node addChildren;
-	struct SFVec3f bboxCenter;
-	struct SFVec3f bboxSize;
+	struct Multi_Node removeChildren;
 	struct Multi_Node children;
 	struct X3D_Node *metadata;
 	struct Uni_String *name;
-	struct Multi_Node removeChildren;
+	struct SFVec3f bboxCenter;
+	struct SFVec3f bboxSize;
+	struct Multi_Node _sortedChildren;
 };
 extern struct X3D_Virt virt_CADAssembly;
 /***********************/
@@ -2365,11 +2361,11 @@ struct X3D_CADFace {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct SFVec3f bboxCenter;
-	struct SFVec3f bboxSize;
 	struct X3D_Node *metadata;
 	struct Uni_String *name;
 	struct X3D_Node *shape;
+	struct SFVec3f bboxCenter;
+	struct SFVec3f bboxSize;
 };
 extern struct X3D_Virt virt_CADFace;
 /***********************/
@@ -2388,13 +2384,13 @@ struct X3D_CADLayer {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
-	struct SFVec3f bboxCenter;
-	struct SFVec3f bboxSize;
+	struct Multi_Node removeChildren;
 	struct Multi_Node children;
 	struct X3D_Node *metadata;
 	struct Uni_String *name;
-	struct Multi_Node removeChildren;
 	struct Multi_Bool visible;
+	struct SFVec3f bboxCenter;
+	struct SFVec3f bboxSize;
 };
 extern struct X3D_Virt virt_CADLayer;
 /***********************/
@@ -2412,25 +2408,25 @@ struct X3D_CADPart {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __do_anything;
-	int __do_center;
-	int __do_rotation;
-	int __do_scale;
-	int __do_scaleO;
-	int __do_trans;
-	struct Multi_Node _sortedChildren;
 	struct Multi_Node addChildren;
-	struct SFVec3f bboxCenter;
-	struct SFVec3f bboxSize;
+	struct Multi_Node removeChildren;
 	struct SFVec3f center;
 	struct Multi_Node children;
 	struct X3D_Node *metadata;
 	struct Uni_String *name;
-	struct Multi_Node removeChildren;
 	struct SFRotation rotation;
 	struct SFVec3f scale;
 	struct SFRotation scaleOrientation;
 	struct SFVec3f translation;
+	struct SFVec3f bboxCenter;
+	struct SFVec3f bboxSize;
+	int __do_center;
+	int __do_trans;
+	int __do_rotation;
+	int __do_scaleO;
+	int __do_scale;
+	int __do_anything;
+	struct Multi_Node _sortedChildren;
 };
 extern struct X3D_Virt virt_CADPart;
 /***********************/
@@ -2448,10 +2444,10 @@ struct X3D_Circle2D {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __numPoints;
-	struct Multi_Vec2f __points;
 	struct X3D_Node *metadata;
 	float radius;
+	struct Multi_Vec2f __points;
+	int __numPoints;
 };
 extern struct X3D_Virt virt_Circle2D;
 /***********************/
@@ -2489,17 +2485,17 @@ struct X3D_Collision {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __hit;
 	struct Multi_Node addChildren;
+	struct Multi_Node removeChildren;
+	struct Multi_Node children;
+	int enabled;
+	int collide;
 	struct SFVec3f bboxCenter;
 	struct SFVec3f bboxSize;
-	struct Multi_Node children;
-	int collide;
-	double collideTime;
-	int enabled;
-	struct X3D_Node *metadata;
 	struct X3D_Node *proxy;
-	struct Multi_Node removeChildren;
+	double collideTime;
+	struct X3D_Node *metadata;
+	int __hit;
 };
 extern struct X3D_Virt virt_Collision;
 /***********************/
@@ -2536,10 +2532,10 @@ struct X3D_ColorInterpolator {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
+	float set_fraction;
 	struct Multi_Float key;
 	struct Multi_Color keyValue;
 	struct X3D_Node *metadata;
-	float set_fraction;
 	struct SFColor value_changed;
 };
 extern struct X3D_Virt virt_ColorInterpolator;
@@ -2577,14 +2573,14 @@ struct X3D_ComposedCubeMapTexture {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	void * _parentResource;
+	struct X3D_Node *metadata;
 	struct X3D_Node *back;
 	struct X3D_Node *bottom;
 	struct X3D_Node *front;
 	struct X3D_Node *left;
-	struct X3D_Node *metadata;
-	struct X3D_Node *right;
 	struct X3D_Node *top;
+	struct X3D_Node *right;
+	void * _parentResource;
 };
 extern struct X3D_Virt virt_ComposedCubeMapTexture;
 /***********************/
@@ -2602,17 +2598,17 @@ struct X3D_ComposedShader {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int _initialized;
-	int _retrievedURLData;
-	pthread_t _shaderLoadThread;
-	struct X3D_Node *_shaderUserDefinedFields;
-	int _shaderUserNumber;
 	int activate;
+	struct Multi_Node parts;
 	int isSelected;
 	int isValid;
 	struct Uni_String *language;
 	struct X3D_Node *metadata;
-	struct Multi_Node parts;
+	int _initialized;
+	struct X3D_Node *_shaderUserDefinedFields;
+	int _shaderUserNumber;
+	pthread_t _shaderLoadThread;
+	int _retrievedURLData;
 };
 extern struct X3D_Virt virt_ComposedShader;
 /***********************/
@@ -2630,17 +2626,17 @@ struct X3D_Cone {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Vec3f __botpoints;
-	int __coneTriangles;
-	int __coneVBO;
-	struct Multi_Vec3f __normals;
-	struct Multi_Vec3f __sidepoints;
+	struct X3D_Node *metadata;
 	int bottom;
 	float bottomRadius;
 	float height;
-	struct X3D_Node *metadata;
 	int side;
 	int solid;
+	struct Multi_Vec3f __sidepoints;
+	struct Multi_Vec3f __botpoints;
+	struct Multi_Vec3f __normals;
+	int __coneVBO;
+	int __coneTriangles;
 };
 extern struct X3D_Virt virt_Cone;
 /***********************/
@@ -2659,9 +2655,9 @@ struct X3D_Contour2D {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
+	struct Multi_Node removeChildren;
 	struct Multi_Node children;
 	struct X3D_Node *metadata;
-	struct Multi_Node removeChildren;
 };
 extern struct X3D_Virt virt_Contour2D;
 /***********************/
@@ -2679,8 +2675,8 @@ struct X3D_ContourPolyLine2D {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Vec2d controlPoint;
 	struct X3D_Node *metadata;
+	struct Multi_Vec2d controlPoint;
 };
 extern struct X3D_Virt virt_ContourPolyLine2D;
 /***********************/
@@ -2698,8 +2694,8 @@ struct X3D_Coordinate {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct X3D_Node *metadata;
 	struct Multi_Vec3f point;
+	struct X3D_Node *metadata;
 };
 extern struct X3D_Virt virt_Coordinate;
 /***********************/
@@ -2717,8 +2713,8 @@ struct X3D_CoordinateDouble {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Vec2d controlPoint;
 	struct X3D_Node *metadata;
+	struct Multi_Vec3d point;
 };
 extern struct X3D_Virt virt_CoordinateDouble;
 /***********************/
@@ -2736,15 +2732,15 @@ struct X3D_CoordinateInterpolator {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int _CPU_Routes_out;
-	int _GPU_Routes_out;
-	int _keyVBO;
-	int _keyValueVBO;
+	float set_fraction;
 	struct Multi_Float key;
 	struct Multi_Vec3f keyValue;
 	struct X3D_Node *metadata;
-	float set_fraction;
 	struct Multi_Vec3f value_changed;
+	int _GPU_Routes_out;
+	int _CPU_Routes_out;
+	int _keyVBO;
+	int _keyValueVBO;
 };
 extern struct X3D_Virt virt_CoordinateInterpolator;
 /***********************/
@@ -2762,10 +2758,10 @@ struct X3D_CoordinateInterpolator2D {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
+	float set_fraction;
 	struct Multi_Float key;
 	struct Multi_Vec2f keyValue;
 	struct X3D_Node *metadata;
-	float set_fraction;
 	struct Multi_Vec2f value_changed;
 };
 extern struct X3D_Virt virt_CoordinateInterpolator2D;
@@ -2784,17 +2780,17 @@ struct X3D_Cylinder {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __cylinderTriangles;
-	int __cylinderVBO;
-	struct Multi_Vec3f __normals;
-	struct Multi_Vec3f __points;
+	struct X3D_Node *metadata;
 	int bottom;
 	float height;
-	struct X3D_Node *metadata;
 	float radius;
 	int side;
 	int solid;
 	int top;
+	struct Multi_Vec3f __points;
+	struct Multi_Vec3f __normals;
+	int __cylinderVBO;
+	int __cylinderTriangles;
 };
 extern struct X3D_Virt virt_Cylinder;
 /***********************/
@@ -2812,25 +2808,25 @@ struct X3D_CylinderSensor {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __oldEnabled;
-	int _dlchange;
-	struct SFRotation _oldrotation;
-	struct SFVec3f _oldtrackPoint;
-	struct SFVec3f _origPoint;
-	float _radius;
 	int autoOffset;
 	struct SFRotation axisRotation;
-	struct Uni_String *description;
 	float diskAngle;
 	int enabled;
-	int isActive;
-	int isOver;
 	float maxAngle;
-	struct X3D_Node *metadata;
 	float minAngle;
 	float offset;
+	int isActive;
+	int isOver;
+	struct Uni_String *description;
 	struct SFRotation rotation_changed;
 	struct SFVec3f trackPoint_changed;
+	struct X3D_Node *metadata;
+	struct SFVec3f _oldtrackPoint;
+	struct SFRotation _oldrotation;
+	struct SFVec3f _origPoint;
+	float _radius;
+	int _dlchange;
+	int __oldEnabled;
 };
 extern struct X3D_Virt virt_CylinderSensor;
 /***********************/
@@ -2848,14 +2844,14 @@ struct X3D_DISEntityManager {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Node addedEntities;
 	struct Uni_String *address;
 	int applicationID;
 	struct Multi_Node mapping;
 	struct X3D_Node *metadata;
 	int port;
-	struct Multi_Node removedEntities;
 	int siteID;
+	struct Multi_Node addedEntities;
+	struct Multi_Node removedEntities;
 };
 extern struct X3D_Virt virt_DISEntityManager;
 /***********************/
@@ -2873,15 +2869,15 @@ struct X3D_DISEntityTypeMapping {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
+	struct X3D_Node *metadata;
+	struct Multi_String url;
 	int category;
 	int country;
 	int domain;
 	int extra;
 	int kind;
-	struct X3D_Node *metadata;
 	int specific;
 	int subcategory;
-	struct Multi_String url;
 };
 extern struct X3D_Virt virt_DISEntityTypeMapping;
 /***********************/
@@ -2899,9 +2895,6 @@ struct X3D_DirectionalLight {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct SFVec4f _amb;
-	struct SFVec4f _col;
-	struct SFVec4f _dir;
 	float ambientIntensity;
 	struct SFColor color;
 	struct SFVec3f direction;
@@ -2909,6 +2902,9 @@ struct X3D_DirectionalLight {
 	float intensity;
 	struct X3D_Node *metadata;
 	int on;
+	struct SFVec4f _dir;
+	struct SFVec4f _col;
+	struct SFVec4f _amb;
 };
 extern struct X3D_Virt virt_DirectionalLight;
 /***********************/
@@ -2926,14 +2922,14 @@ struct X3D_Disk2D {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __numPoints;
-	struct Multi_Vec2f __points;
-	int __simpleDisk;
-	void * __texCoords;
-	float innerRadius;
 	struct X3D_Node *metadata;
+	float innerRadius;
 	float outerRadius;
 	int solid;
+	struct Multi_Vec2f __points;
+	void * __texCoords;
+	int __numPoints;
+	int __simpleDisk;
 };
 extern struct X3D_Virt virt_Disk2D;
 /***********************/
@@ -2951,11 +2947,11 @@ struct X3D_EaseInEaseOut {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
+	float set_fraction;
 	struct Multi_Vec2f easeInEaseOut;
 	struct Multi_Float key;
 	struct X3D_Node *metadata;
 	float modifiedFraction_changed;
-	float set_fraction;
 };
 extern struct X3D_Virt virt_EaseInEaseOut;
 /***********************/
@@ -2973,24 +2969,24 @@ struct X3D_ElevationGrid {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Int32 _coordIndex;
+	struct Multi_Float set_height;
 	struct Multi_Node attrib;
-	int ccw;
 	struct X3D_Node *color;
-	int colorPerVertex;
-	float creaseAngle;
 	struct X3D_Node *fogCoord;
-	struct Multi_Float height;
 	struct X3D_Node *metadata;
 	struct X3D_Node *normal;
-	int normalPerVertex;
-	struct Multi_Float set_height;
-	int solid;
 	struct X3D_Node *texCoord;
+	int ccw;
+	int colorPerVertex;
+	float creaseAngle;
+	struct Multi_Float height;
+	int normalPerVertex;
+	int solid;
 	int xDimension;
 	float xSpacing;
 	int zDimension;
 	float zSpacing;
+	struct Multi_Int32 _coordIndex;
 };
 extern struct X3D_Virt virt_ElevationGrid;
 /***********************/
@@ -3009,30 +3005,27 @@ struct X3D_EspduTransform {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
+	struct Multi_Node removeChildren;
+	float set_articulationParameterValue0;
+	float set_articulationParameterValue1;
+	float set_articulationParameterValue2;
+	float set_articulationParameterValue3;
+	float set_articulationParameterValue4;
+	float set_articulationParameterValue5;
+	float set_articulationParameterValue6;
+	float set_articulationParameterValue7;
 	struct Uni_String *address;
 	int applicationID;
-	struct Multi_Float articulationParameterArray;
-	struct Multi_Int32 articulationParameterChangeIndicatorArr;
 	int articulationParameterCount;
 	struct Multi_Int32 articulationParameterDesignatorArray;
+	struct Multi_Int32 articulationParameterChangeIndicatorArr;
 	struct Multi_Int32 articulationParameterIdPartAttachedToAr;
 	struct Multi_Int32 articulationParameterTypeArray;
-	float articulationParameterValue0_changed;
-	float articulationParameterValue1_changed;
-	float articulationParameterValue2_changed;
-	float articulationParameterValue3_changed;
-	float articulationParameterValue4_changed;
-	float articulationParameterValue5_changed;
-	float articulationParameterValue6_changed;
-	float articulationParameterValue7_changed;
-	struct SFVec3f bboxCenter;
-	struct SFVec3f bboxSize;
+	struct Multi_Float articulationParameterArray;
 	struct SFVec3f center;
 	struct Multi_Node children;
-	double collideTime;
 	int collisionType;
 	int deadReckoning;
-	double detonateTime;
 	struct SFVec3f detonationLocation;
 	struct SFVec3f detonationRelativeLocation;
 	int detonationResult;
@@ -3049,23 +3042,15 @@ struct X3D_EspduTransform {
 	int eventEntityID;
 	int eventNumber;
 	int eventSiteID;
-	int fireMissionIndex;
 	int fired1;
 	int fired2;
-	double firedTime;
+	int fireMissionIndex;
 	float firingRange;
 	int firingRate;
 	int forceID;
 	int fuse;
-	int isActive;
-	int isCollided;
-	int isDetonated;
-	int isNetworkReader;
-	int isNetworkWriter;
-	int isRtpHeaderHeard;
-	int isStandAlone;
-	struct SFVec3f linearAcceleration;
 	struct SFVec3f linearVelocity;
+	struct SFVec3f linearAcceleration;
 	struct Uni_String *marking;
 	struct X3D_Node *metadata;
 	struct Uni_String *multicastRelayHost;
@@ -3079,24 +3064,35 @@ struct X3D_EspduTransform {
 	struct Uni_String *networkMode;
 	int port;
 	double readInterval;
-	struct Multi_Node removeChildren;
 	struct SFRotation rotation;
-	int rtpHeaderExpected;
 	struct SFVec3f scale;
 	struct SFRotation scaleOrientation;
-	float set_articulationParameterValue0;
-	float set_articulationParameterValue1;
-	float set_articulationParameterValue2;
-	float set_articulationParameterValue3;
-	float set_articulationParameterValue4;
-	float set_articulationParameterValue5;
-	float set_articulationParameterValue6;
-	float set_articulationParameterValue7;
 	int siteID;
-	double timestamp;
 	struct SFVec3f translation;
 	int warhead;
 	double writeInterval;
+	float articulationParameterValue0_changed;
+	float articulationParameterValue1_changed;
+	float articulationParameterValue2_changed;
+	float articulationParameterValue3_changed;
+	float articulationParameterValue4_changed;
+	float articulationParameterValue5_changed;
+	float articulationParameterValue6_changed;
+	float articulationParameterValue7_changed;
+	double collideTime;
+	double detonateTime;
+	double firedTime;
+	int isActive;
+	int isCollided;
+	int isDetonated;
+	int isNetworkReader;
+	int isNetworkWriter;
+	int isRtpHeaderHeard;
+	int isStandAlone;
+	double timestamp;
+	struct SFVec3f bboxCenter;
+	struct SFVec3f bboxSize;
+	int rtpHeaderExpected;
 };
 extern struct X3D_Virt virt_EspduTransform;
 /***********************/
@@ -3114,19 +3110,19 @@ struct X3D_Extrusion {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
+	struct Multi_Vec2f set_crossSection;
+	struct Multi_Rotation set_orientation;
+	struct Multi_Vec2f set_scale;
+	struct Multi_Vec3f set_spine;
+	struct X3D_Node *metadata;
 	int beginCap;
 	int ccw;
 	int convex;
 	float creaseAngle;
 	struct Multi_Vec2f crossSection;
 	int endCap;
-	struct X3D_Node *metadata;
 	struct Multi_Rotation orientation;
 	struct Multi_Vec2f scale;
-	struct Multi_Vec2f set_crossSection;
-	struct Multi_Rotation set_orientation;
-	struct Multi_Vec2f set_scale;
-	struct Multi_Vec3f set_spine;
 	int solid;
 	struct Multi_Vec3f spine;
 };
@@ -3146,13 +3142,13 @@ struct X3D_FillProperties {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int _enabled;
-	struct SFVec2f _hatchScale;
 	int filled;
 	struct SFColor hatchColor;
-	int hatchStyle;
 	int hatched;
+	int hatchStyle;
 	struct X3D_Node *metadata;
+	int _enabled;
+	struct SFVec2f _hatchScale;
 };
 extern struct X3D_Virt virt_FillProperties;
 /***********************/
@@ -3170,10 +3166,10 @@ struct X3D_FloatVertexAttribute {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct X3D_Node *metadata;
+	struct Multi_Float value;
 	struct Uni_String *name;
 	int numComponents;
-	struct Multi_Float value;
+	struct X3D_Node *metadata;
 };
 extern struct X3D_Virt virt_FloatVertexAttribute;
 /***********************/
@@ -3191,13 +3187,13 @@ struct X3D_Fog {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	double bindTime;
+	int set_bind;
 	struct SFColor color;
 	struct Uni_String *fogType;
+	float visibilityRange;
+	double bindTime;
 	int isBound;
 	struct X3D_Node *metadata;
-	int set_bind;
-	float visibilityRange;
 };
 extern struct X3D_Virt virt_Fog;
 /***********************/
@@ -3234,12 +3230,12 @@ struct X3D_FontStyle {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
+	struct X3D_Node *metadata;
 	struct Multi_String family;
 	int horizontal;
 	struct Multi_String justify;
 	struct Uni_String *language;
 	int leftToRight;
-	struct X3D_Node *metadata;
 	float size;
 	float spacing;
 	struct Uni_String *style;
@@ -3261,11 +3257,11 @@ struct X3D_GeneratedCubeMapTexture {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __textureTableIndex;
 	struct X3D_Node *metadata;
+	struct Uni_String *update;
 	int size;
 	struct X3D_Node *textureProperties;
-	struct Uni_String *update;
+	int __textureTableIndex;
 };
 extern struct X3D_Virt virt_GeneratedCubeMapTexture;
 /***********************/
@@ -3283,12 +3279,12 @@ struct X3D_GeoCoordinate {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Int32 __geoSystem;
-	struct Multi_Vec3f __movedCoords;
-	struct X3D_Node *geoOrigin;
-	struct Multi_String geoSystem;
 	struct X3D_Node *metadata;
 	struct Multi_Vec3d point;
+	struct X3D_Node *geoOrigin;
+	struct Multi_String geoSystem;
+	struct Multi_Int32 __geoSystem;
+	struct Multi_Vec3f __movedCoords;
 };
 extern struct X3D_Virt virt_GeoCoordinate;
 /***********************/
@@ -3306,27 +3302,27 @@ struct X3D_GeoElevationGrid {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Int32 __geoSystem;
-	struct Multi_Int32 _coordIndex;
-	int ccw;
+	struct Multi_Double set_height;
 	struct X3D_Node *color;
+	struct X3D_Node *metadata;
+	struct X3D_Node *normal;
+	struct X3D_Node *texCoord;
+	float yScale;
+	int ccw;
 	int colorPerVertex;
 	double creaseAngle;
 	struct SFVec3d geoGridOrigin;
 	struct X3D_Node *geoOrigin;
 	struct Multi_String geoSystem;
 	struct Multi_Double height;
-	struct X3D_Node *metadata;
-	struct X3D_Node *normal;
 	int normalPerVertex;
-	struct Multi_Double set_height;
 	int solid;
-	struct X3D_Node *texCoord;
 	int xDimension;
 	double xSpacing;
-	float yScale;
 	int zDimension;
 	double zSpacing;
+	struct Multi_Int32 _coordIndex;
+	struct Multi_Int32 __geoSystem;
 };
 extern struct X3D_Virt virt_GeoElevationGrid;
 /***********************/
@@ -3344,32 +3340,32 @@ struct X3D_GeoLOD {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct X3D_Node *__child1Node;
-	struct X3D_Node *__child2Node;
-	struct X3D_Node *__child3Node;
-	struct X3D_Node *__child4Node;
-	int __childloadstatus;
-	struct Multi_Int32 __geoSystem;
-	int __inRange;
-	int __level;
-	struct SFVec3d __movedCoords;
-	struct X3D_Node *__rootUrl;
-	int __rooturlloadstatus;
-	struct SFVec3f bboxCenter;
-	struct SFVec3f bboxSize;
+	struct X3D_Node *metadata;
+	struct Multi_Node children;
+	int level_changed;
 	struct SFVec3d center;
 	struct Multi_String child1Url;
 	struct Multi_String child2Url;
 	struct Multi_String child3Url;
 	struct Multi_String child4Url;
-	struct Multi_Node children;
 	struct X3D_Node *geoOrigin;
 	struct Multi_String geoSystem;
-	int level_changed;
-	struct X3D_Node *metadata;
 	float range;
-	struct Multi_Node rootNode;
 	struct Multi_String rootUrl;
+	struct Multi_Node rootNode;
+	struct SFVec3f bboxCenter;
+	struct SFVec3f bboxSize;
+	struct Multi_Int32 __geoSystem;
+	struct SFVec3d __movedCoords;
+	int __inRange;
+	struct X3D_Node *__child1Node;
+	struct X3D_Node *__child2Node;
+	struct X3D_Node *__child3Node;
+	struct X3D_Node *__child4Node;
+	struct X3D_Node *__rootUrl;
+	int __childloadstatus;
+	int __rooturlloadstatus;
+	int __level;
 };
 extern struct X3D_Virt virt_GeoLOD;
 /***********************/
@@ -3387,21 +3383,21 @@ struct X3D_GeoLocation {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Int32 __geoSystem;
-	struct SFVec4d __localOrient;
-	struct SFVec3d __movedCoords;
-	struct Multi_Node __oldChildren;
-	struct SFVec3d __oldgeoCoords;
-	struct Multi_Node _sortedChildren;
 	struct Multi_Node addChildren;
-	struct SFVec3f bboxCenter;
-	struct SFVec3f bboxSize;
+	struct Multi_Node removeChildren;
 	struct Multi_Node children;
 	struct SFVec3d geoCoords;
+	struct X3D_Node *metadata;
 	struct X3D_Node *geoOrigin;
 	struct Multi_String geoSystem;
-	struct X3D_Node *metadata;
-	struct Multi_Node removeChildren;
+	struct SFVec3f bboxCenter;
+	struct SFVec3f bboxSize;
+	struct Multi_Int32 __geoSystem;
+	struct SFVec3d __movedCoords;
+	struct SFVec4d __localOrient;
+	struct SFVec3d __oldgeoCoords;
+	struct Multi_Node __oldChildren;
+	struct Multi_Node _sortedChildren;
 };
 extern struct X3D_Virt virt_GeoLocation;
 /***********************/
@@ -3420,9 +3416,9 @@ struct X3D_GeoMetadata {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node data;
-	struct X3D_Node *metadata;
 	struct Multi_String summary;
 	struct Multi_String url;
+	struct X3D_Node *metadata;
 };
 extern struct X3D_Virt virt_GeoMetadata;
 /***********************/
@@ -3440,15 +3436,15 @@ struct X3D_GeoOrigin {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Int32 __geoSystem;
-	struct SFVec3d __movedCoords;
-	struct Multi_String __oldMFString;
-	struct SFVec3d __oldgeoCoords;
-	struct SFVec4d __rotyup;
 	struct SFVec3d geoCoords;
 	struct Multi_String geoSystem;
 	struct X3D_Node *metadata;
 	int rotateYUp;
+	struct Multi_Int32 __geoSystem;
+	struct SFVec3d __movedCoords;
+	struct SFVec3d __oldgeoCoords;
+	struct Multi_String __oldMFString;
+	struct SFVec4d __rotyup;
 };
 extern struct X3D_Virt virt_GeoOrigin;
 /***********************/
@@ -3466,18 +3462,18 @@ struct X3D_GeoPositionInterpolator {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
+	float set_fraction;
+	struct Multi_Float key;
+	struct Multi_Vec3d keyValue;
+	struct X3D_Node *metadata;
+	struct SFVec3d geovalue_changed;
+	struct SFVec3f value_changed;
+	struct X3D_Node *geoOrigin;
+	struct Multi_String geoSystem;
 	struct Multi_Int32 __geoSystem;
 	struct Multi_Vec3d __movedValue;
 	struct Multi_Float __oldKeyPtr;
 	struct Multi_Vec3d __oldKeyValuePtr;
-	struct X3D_Node *geoOrigin;
-	struct Multi_String geoSystem;
-	struct SFVec3d geovalue_changed;
-	struct Multi_Float key;
-	struct Multi_Vec3d keyValue;
-	struct X3D_Node *metadata;
-	float set_fraction;
-	struct SFVec3f value_changed;
 };
 extern struct X3D_Virt virt_GeoPositionInterpolator;
 /***********************/
@@ -3495,28 +3491,28 @@ struct X3D_GeoProximitySensor {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Int32 __geoSystem;
+	int enabled;
+	struct SFVec3d geoCenter;
+	struct X3D_Node *metadata;
+	struct SFVec3f size;
+	struct SFVec3f centerOfRotation_changed;
+	double enterTime;
+	double exitTime;
+	struct SFVec3d geoCoord_changed;
+	int isActive;
+	struct SFRotation orientation_changed;
+	struct SFVec3f position_changed;
+	struct X3D_Node *geoOrigin;
+	struct Multi_String geoSystem;
 	int __hit;
-	struct SFVec4d __localOrient;
+	struct SFVec3f __t1;
+	struct SFRotation __t2;
+	struct Multi_Int32 __geoSystem;
 	struct SFVec3d __movedCoords;
+	struct SFVec4d __localOrient;
 	int __oldEnabled;
 	struct SFVec3d __oldGeoCenter;
 	struct SFVec3f __oldSize;
-	struct SFVec3f __t1;
-	struct SFRotation __t2;
-	struct SFVec3f centerOfRotation_changed;
-	int enabled;
-	double enterTime;
-	double exitTime;
-	struct SFVec3d geoCenter;
-	struct SFVec3d geoCoord_changed;
-	struct X3D_Node *geoOrigin;
-	struct Multi_String geoSystem;
-	int isActive;
-	struct X3D_Node *metadata;
-	struct SFRotation orientation_changed;
-	struct SFVec3f position_changed;
-	struct SFVec3f size;
 };
 extern struct X3D_Virt virt_GeoProximitySensor;
 /***********************/
@@ -3534,23 +3530,23 @@ struct X3D_GeoTouchSensor {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Int32 __geoSystem;
-	int __oldEnabled;
-	struct SFVec3f _oldhitNormal;
-	struct SFVec3f _oldhitPoint;
-	struct SFVec2f _oldhitTexCoord;
 	struct Uni_String *description;
 	int enabled;
-	struct X3D_Node *geoOrigin;
-	struct Multi_String geoSystem;
-	struct SFVec3d hitGeoCoord_changed;
+	struct X3D_Node *metadata;
 	struct SFVec3f hitNormal_changed;
 	struct SFVec3f hitPoint_changed;
 	struct SFVec2f hitTexCoord_changed;
+	struct SFVec3d hitGeoCoord_changed;
 	int isActive;
 	int isOver;
-	struct X3D_Node *metadata;
 	double touchTime;
+	struct X3D_Node *geoOrigin;
+	struct Multi_String geoSystem;
+	struct Multi_Int32 __geoSystem;
+	struct SFVec3f _oldhitNormal;
+	struct SFVec3f _oldhitPoint;
+	struct SFVec2f _oldhitTexCoord;
+	int __oldEnabled;
 };
 extern struct X3D_Virt virt_GeoTouchSensor;
 /***********************/
@@ -3568,30 +3564,30 @@ struct X3D_GeoTransform {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __do_center;
-	int __do_rotation;
-	int __do_scale;
-	int __do_scaleO;
-	int __do_trans;
-	struct Multi_Int32 __geoSystem;
-	struct SFVec4d __localOrient;
-	struct SFVec3d __movedCoords;
-	struct Multi_Node __oldChildren;
-	struct SFVec3d __oldGeoCenter;
-	struct Multi_Node _sortedChildren;
 	struct Multi_Node addChildren;
-	struct SFVec3f bboxCenter;
-	struct SFVec3f bboxSize;
+	struct Multi_Node removeChildren;
 	struct Multi_Node children;
 	struct SFVec3d geoCenter;
-	struct X3D_Node *geoOrigin;
-	struct Multi_String geoSystem;
 	struct X3D_Node *metadata;
-	struct Multi_Node removeChildren;
 	struct SFRotation rotation;
 	struct SFVec3f scale;
 	struct SFRotation scaleOrientation;
 	struct SFVec3f translation;
+	struct SFVec3f bboxCenter;
+	struct SFVec3f bboxSize;
+	struct X3D_Node *geoOrigin;
+	struct Multi_String geoSystem;
+	int __do_center;
+	int __do_trans;
+	int __do_rotation;
+	int __do_scaleO;
+	int __do_scale;
+	struct Multi_Int32 __geoSystem;
+	struct SFVec3d __movedCoords;
+	struct SFVec4d __localOrient;
+	struct SFVec3d __oldGeoCenter;
+	struct Multi_Node __oldChildren;
+	struct Multi_Node _sortedChildren;
 };
 extern struct X3D_Virt virt_GeoTransform;
 /***********************/
@@ -3609,30 +3605,30 @@ struct X3D_GeoViewpoint {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
+	int set_bind;
+	struct SFRotation set_orientation;
+	struct SFVec3d set_position;
+	struct Uni_String *description;
+	float fieldOfView;
+	int headlight;
+	int jump;
+	struct X3D_Node *metadata;
+	struct Multi_String navType;
+	double bindTime;
+	int isBound;
+	struct X3D_Node *geoOrigin;
+	struct Multi_String geoSystem;
+	struct SFRotation orientation;
+	struct SFVec3d position;
+	float speedFactor;
 	struct Multi_Int32 __geoSystem;
-	struct SFRotation __movedOrientation;
 	struct SFVec3d __movedPosition;
+	struct SFRotation __movedOrientation;
+	struct Uni_String *__oldSFString;
 	float __oldFieldOfView;
 	int __oldHeadlight;
 	int __oldJump;
 	struct Multi_String __oldMFString;
-	struct Uni_String *__oldSFString;
-	double bindTime;
-	struct Uni_String *description;
-	float fieldOfView;
-	struct X3D_Node *geoOrigin;
-	struct Multi_String geoSystem;
-	int headlight;
-	int isBound;
-	int jump;
-	struct X3D_Node *metadata;
-	struct Multi_String navType;
-	struct SFRotation orientation;
-	struct SFVec3d position;
-	int set_bind;
-	struct SFRotation set_orientation;
-	struct SFVec3d set_position;
-	float speedFactor;
 };
 extern struct X3D_Virt virt_GeoViewpoint;
 /***********************/
@@ -3650,15 +3646,15 @@ struct X3D_Group {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Node FreeWRL_PROTOInterfaceNodes;
-	int FreeWRL__protoDef;
-	struct Multi_Node _sortedChildren;
 	struct Multi_Node addChildren;
-	struct SFVec3f bboxCenter;
-	struct SFVec3f bboxSize;
+	struct Multi_Node removeChildren;
 	struct Multi_Node children;
 	struct X3D_Node *metadata;
-	struct Multi_Node removeChildren;
+	struct SFVec3f bboxCenter;
+	struct SFVec3f bboxSize;
+	int FreeWRL__protoDef;
+	struct Multi_Node FreeWRL_PROTOInterfaceNodes;
+	struct Multi_Node _sortedChildren;
 };
 extern struct X3D_Virt virt_Group;
 /***********************/
@@ -3678,9 +3674,9 @@ struct X3D_HAnimDisplacer {
  	/*** node specific data: *****/
 	struct Multi_Int32 coordIndex;
 	struct Multi_Vec3f displacements;
-	struct X3D_Node *metadata;
 	struct Uni_String *name;
 	float weight;
+	struct X3D_Node *metadata;
 };
 extern struct X3D_Virt virt_HAnimDisplacer;
 /***********************/
@@ -3698,12 +3694,9 @@ struct X3D_HAnimHumanoid {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct SFVec3f bboxCenter;
-	struct SFVec3f bboxSize;
 	struct SFVec3f center;
 	struct Multi_String info;
 	struct Multi_Node joints;
-	struct X3D_Node *metadata;
 	struct Uni_String *name;
 	struct SFRotation rotation;
 	struct SFVec3f scale;
@@ -3717,6 +3710,9 @@ struct X3D_HAnimHumanoid {
 	struct SFVec3f translation;
 	struct Uni_String *version;
 	struct Multi_Node viewpoints;
+	struct SFVec3f bboxCenter;
+	struct SFVec3f bboxSize;
+	struct X3D_Node *metadata;
 };
 extern struct X3D_Virt virt_HAnimHumanoid;
 /***********************/
@@ -3734,30 +3730,30 @@ struct X3D_HAnimJoint {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __do_center;
-	int __do_rotation;
-	int __do_scale;
-	int __do_scaleO;
-	int __do_trans;
 	struct Multi_Node addChildren;
-	struct SFVec3f bboxCenter;
-	struct SFVec3f bboxSize;
-	struct SFVec3f center;
-	struct Multi_Node children;
-	struct Multi_Node displacers;
-	struct SFRotation limitOrientation;
-	struct Multi_Float llimit;
-	struct X3D_Node *metadata;
-	struct Uni_String *name;
 	struct Multi_Node removeChildren;
+	struct Multi_Node children;
+	struct SFVec3f center;
 	struct SFRotation rotation;
 	struct SFVec3f scale;
 	struct SFRotation scaleOrientation;
+	struct SFVec3f translation;
+	struct Multi_Node displacers;
+	struct SFRotation limitOrientation;
+	struct Multi_Float llimit;
+	struct Uni_String *name;
 	struct Multi_Int32 skinCoordIndex;
 	struct Multi_Float skinCoordWeight;
 	struct Multi_Float stiffness;
-	struct SFVec3f translation;
 	struct Multi_Float ulimit;
+	struct SFVec3f bboxCenter;
+	struct SFVec3f bboxSize;
+	struct X3D_Node *metadata;
+	int __do_center;
+	int __do_trans;
+	int __do_rotation;
+	int __do_scaleO;
+	int __do_scale;
 };
 extern struct X3D_Virt virt_HAnimJoint;
 /***********************/
@@ -3776,17 +3772,17 @@ struct X3D_HAnimSegment {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
+	struct Multi_Node removeChildren;
+	struct Multi_Node children;
+	struct Uni_String *name;
 	struct SFVec3f bboxCenter;
 	struct SFVec3f bboxSize;
 	struct SFVec3f centerOfMass;
-	struct Multi_Node children;
 	struct X3D_Node *coord;
 	struct Multi_Node displacers;
 	float mass;
-	struct X3D_Node *metadata;
 	struct Multi_Float momentsOfInertia;
-	struct Uni_String *name;
-	struct Multi_Node removeChildren;
+	struct X3D_Node *metadata;
 };
 extern struct X3D_Virt virt_HAnimSegment;
 /***********************/
@@ -3804,23 +3800,23 @@ struct X3D_HAnimSite {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __do_center;
-	int __do_rotation;
-	int __do_scale;
-	int __do_scaleO;
-	int __do_trans;
 	struct Multi_Node addChildren;
+	struct Multi_Node removeChildren;
+	struct Multi_Node children;
+	struct Uni_String *name;
 	struct SFVec3f bboxCenter;
 	struct SFVec3f bboxSize;
 	struct SFVec3f center;
-	struct Multi_Node children;
-	struct X3D_Node *metadata;
-	struct Uni_String *name;
-	struct Multi_Node removeChildren;
 	struct SFRotation rotation;
 	struct SFVec3f scale;
 	struct SFRotation scaleOrientation;
 	struct SFVec3f translation;
+	struct X3D_Node *metadata;
+	int __do_center;
+	int __do_trans;
+	int __do_rotation;
+	int __do_scaleO;
+	int __do_scale;
 };
 extern struct X3D_Virt virt_HAnimSite;
 /***********************/
@@ -3838,13 +3834,13 @@ struct X3D_ImageCubeMapTexture {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __regenSubTextures;
-	struct Multi_Node __subTextures;
+	struct X3D_Node *metadata;
+	struct Multi_String url;
+	struct X3D_Node *textureProperties;
 	int __textureTableIndex;
 	void * _parentResource;
-	struct X3D_Node *metadata;
-	struct X3D_Node *textureProperties;
-	struct Multi_String url;
+	struct Multi_Node __subTextures;
+	int __regenSubTextures;
 };
 extern struct X3D_Virt virt_ImageCubeMapTexture;
 /***********************/
@@ -3862,13 +3858,13 @@ struct X3D_ImageTexture {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __textureTableIndex;
-	void * _parentResource;
 	struct X3D_Node *metadata;
+	struct Multi_String url;
 	int repeatS;
 	int repeatT;
 	struct X3D_Node *textureProperties;
-	struct Multi_String url;
+	int __textureTableIndex;
+	void * _parentResource;
 };
 extern struct X3D_Virt virt_ImageTexture;
 /***********************/
@@ -3886,26 +3882,26 @@ struct X3D_IndexedFaceSet {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Node attrib;
-	int ccw;
-	struct X3D_Node *color;
-	struct Multi_Int32 colorIndex;
-	int colorPerVertex;
-	int convex;
-	struct X3D_Node *coord;
-	struct Multi_Int32 coordIndex;
-	float creaseAngle;
-	struct X3D_Node *fogCoord;
-	struct X3D_Node *metadata;
-	struct X3D_Node *normal;
-	struct Multi_Int32 normalIndex;
-	int normalPerVertex;
 	struct Multi_Int32 set_colorIndex;
 	struct Multi_Int32 set_coordIndex;
 	struct Multi_Int32 set_normalIndex;
 	struct Multi_Int32 set_texCoordIndex;
-	int solid;
+	struct Multi_Node attrib;
+	struct X3D_Node *color;
+	struct X3D_Node *coord;
+	struct X3D_Node *fogCoord;
+	struct X3D_Node *metadata;
+	struct X3D_Node *normal;
 	struct X3D_Node *texCoord;
+	int ccw;
+	struct Multi_Int32 colorIndex;
+	int colorPerVertex;
+	int convex;
+	struct Multi_Int32 coordIndex;
+	float creaseAngle;
+	struct Multi_Int32 normalIndex;
+	int normalPerVertex;
+	int solid;
 	struct Multi_Int32 texCoordIndex;
 };
 extern struct X3D_Virt virt_IndexedFaceSet;
@@ -3924,22 +3920,22 @@ struct X3D_IndexedLineSet {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	void * __colours;
-	int __segCount;
-	void * __vertArr;
-	void * __vertIndx;
-	void * __vertexCount;
-	void * __vertices;
-	struct Multi_Node attrib;
-	struct X3D_Node *color;
-	struct Multi_Int32 colorIndex;
-	int colorPerVertex;
-	struct X3D_Node *coord;
-	struct Multi_Int32 coordIndex;
-	struct X3D_Node *fogCoord;
-	struct X3D_Node *metadata;
 	struct Multi_Int32 set_colorIndex;
 	struct Multi_Int32 set_coordIndex;
+	struct Multi_Node attrib;
+	struct X3D_Node *color;
+	struct X3D_Node *coord;
+	struct X3D_Node *fogCoord;
+	struct X3D_Node *metadata;
+	struct Multi_Int32 colorIndex;
+	int colorPerVertex;
+	struct Multi_Int32 coordIndex;
+	void * __vertArr;
+	void * __vertIndx;
+	void * __colours;
+	void * __vertices;
+	void * __vertexCount;
+	int __segCount;
 };
 extern struct X3D_Virt virt_IndexedLineSet;
 /***********************/
@@ -3957,20 +3953,20 @@ struct X3D_IndexedQuadSet {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Int32 _coordIndex;
+	struct Multi_Int32 set_index;
 	struct Multi_Node attrib;
-	int ccw;
 	struct X3D_Node *color;
-	int colorPerVertex;
 	struct X3D_Node *coord;
 	struct X3D_Node *fogCoord;
-	struct Multi_Int32 index;
 	struct X3D_Node *metadata;
 	struct X3D_Node *normal;
-	int normalPerVertex;
-	struct Multi_Int32 set_index;
-	int solid;
 	struct X3D_Node *texCoord;
+	int ccw;
+	struct Multi_Int32 index;
+	int colorPerVertex;
+	int normalPerVertex;
+	int solid;
+	struct Multi_Int32 _coordIndex;
 };
 extern struct X3D_Virt virt_IndexedQuadSet;
 /***********************/
@@ -3988,20 +3984,20 @@ struct X3D_IndexedTriangleFanSet {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Int32 _coordIndex;
+	struct Multi_Int32 set_index;
 	struct Multi_Node attrib;
-	int ccw;
 	struct X3D_Node *color;
-	int colorPerVertex;
 	struct X3D_Node *coord;
 	struct X3D_Node *fogCoord;
-	struct Multi_Int32 index;
 	struct X3D_Node *metadata;
 	struct X3D_Node *normal;
-	int normalPerVertex;
-	struct Multi_Int32 set_index;
-	int solid;
 	struct X3D_Node *texCoord;
+	int ccw;
+	int colorPerVertex;
+	int normalPerVertex;
+	int solid;
+	struct Multi_Int32 index;
+	struct Multi_Int32 _coordIndex;
 };
 extern struct X3D_Virt virt_IndexedTriangleFanSet;
 /***********************/
@@ -4019,20 +4015,20 @@ struct X3D_IndexedTriangleSet {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Int32 _coordIndex;
+	struct Multi_Int32 set_index;
 	struct Multi_Node attrib;
-	int ccw;
 	struct X3D_Node *color;
-	int colorPerVertex;
 	struct X3D_Node *coord;
 	struct X3D_Node *fogCoord;
-	struct Multi_Int32 index;
 	struct X3D_Node *metadata;
 	struct X3D_Node *normal;
-	int normalPerVertex;
-	struct Multi_Int32 set_index;
-	int solid;
 	struct X3D_Node *texCoord;
+	int ccw;
+	int colorPerVertex;
+	int normalPerVertex;
+	int solid;
+	struct Multi_Int32 index;
+	struct Multi_Int32 _coordIndex;
 };
 extern struct X3D_Virt virt_IndexedTriangleSet;
 /***********************/
@@ -4050,20 +4046,20 @@ struct X3D_IndexedTriangleStripSet {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Int32 _coordIndex;
+	struct Multi_Int32 set_index;
 	struct Multi_Node attrib;
-	int ccw;
 	struct X3D_Node *color;
-	int colorPerVertex;
 	struct X3D_Node *coord;
 	struct X3D_Node *fogCoord;
-	struct Multi_Int32 index;
 	struct X3D_Node *metadata;
 	struct X3D_Node *normal;
-	int normalPerVertex;
-	struct Multi_Int32 set_index;
-	int solid;
 	struct X3D_Node *texCoord;
+	int ccw;
+	int colorPerVertex;
+	int normalPerVertex;
+	int solid;
+	struct Multi_Int32 index;
+	struct Multi_Int32 _coordIndex;
 };
 extern struct X3D_Virt virt_IndexedTriangleStripSet;
 /***********************/
@@ -4081,37 +4077,37 @@ struct X3D_Inline {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	void * __DEFnames;
-	void * __EXPORTS;
-	void * __GC;
-	void * __IMPORTS;
-	void * __IS;
-	void * __ROUTES;
-	void * __afterPound;
 	struct Multi_Node __children;
-	void * __externProtoDeclares;
-	void * __loadResource;
-	int __loadstatus;
-	void * __nodes;
-	int __oldload;
-	struct Multi_String __oldurl;
-	struct X3D_Node *__parentProto;
+	struct X3D_Node *metadata;
+	struct SFVec3f bboxCenter;
+	struct SFVec3f bboxSize;
+	struct Multi_Node _sortedChildren;
+	struct Multi_Node addChildren;
+	struct Multi_Node removeChildren;
 	void * __protoDeclares;
+	void * __externProtoDeclares;
+	void * __nodes;
+	void * __subcontexts;
+	void * __GC;
 	void * __protoDef;
 	int __protoFlags;
 	struct X3D_Node *__prototype;
+	struct X3D_Node *__parentProto;
+	void * __ROUTES;
+	void * __EXPORTS;
+	void * __IMPORTS;
+	void * __DEFnames;
+	void * __IS;
 	void * __scripts;
-	void * __subcontexts;
-	void * __typename;
-	void * _parentResource;
-	struct Multi_Node _sortedChildren;
-	struct Multi_Node addChildren;
-	struct SFVec3f bboxCenter;
-	struct SFVec3f bboxSize;
-	int load;
-	struct X3D_Node *metadata;
-	struct Multi_Node removeChildren;
 	struct Multi_String url;
+	struct Multi_String __oldurl;
+	void * __afterPound;
+	int __loadstatus;
+	void * _parentResource;
+	void * __loadResource;
+	void * __typename;
+	int load;
+	int __oldload;
 };
 extern struct X3D_Virt virt_Inline;
 /***********************/
@@ -4129,13 +4125,13 @@ struct X3D_IntegerSequencer {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Float key;
-	struct Multi_Int32 keyValue;
-	struct X3D_Node *metadata;
 	int next;
 	int previous;
 	float set_fraction;
+	struct Multi_Float key;
+	struct Multi_Int32 keyValue;
 	int value_changed;
+	struct X3D_Node *metadata;
 };
 extern struct X3D_Virt virt_IntegerSequencer;
 /***********************/
@@ -4153,10 +4149,10 @@ struct X3D_IntegerTrigger {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int integerKey;
-	struct X3D_Node *metadata;
 	int set_boolean;
+	int integerKey;
 	int triggerValue;
+	struct X3D_Node *metadata;
 };
 extern struct X3D_Virt virt_IntegerTrigger;
 /***********************/
@@ -4174,17 +4170,17 @@ struct X3D_KeySensor {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __oldEnabled;
+	int enabled;
 	int actionKeyPress;
 	int actionKeyRelease;
 	int altKey;
 	int controlKey;
-	int enabled;
 	int isActive;
 	struct Uni_String *keyPress;
 	struct Uni_String *keyRelease;
-	struct X3D_Node *metadata;
 	int shiftKey;
+	struct X3D_Node *metadata;
+	int __oldEnabled;
 };
 extern struct X3D_Virt virt_KeySensor;
 /***********************/
@@ -4202,19 +4198,19 @@ struct X3D_LOD {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __isX3D;
-	void * _selected;
 	struct Multi_Node addChildren;
+	struct Multi_Node removeChildren;
+	struct Multi_Node level;
+	struct Multi_Node children;
+	struct SFVec3f center;
+	struct Multi_Float range;
 	struct SFVec3f bboxCenter;
 	struct SFVec3f bboxSize;
-	struct SFVec3f center;
-	struct Multi_Node children;
-	int forceTransitions;
-	struct Multi_Node level;
-	int levelChanged;
 	struct X3D_Node *metadata;
-	struct Multi_Float range;
-	struct Multi_Node removeChildren;
+	int levelChanged;
+	int forceTransitions;
+	int __isX3D;
+	void * _selected;
 };
 extern struct X3D_Virt virt_LOD;
 /***********************/
@@ -4253,22 +4249,22 @@ struct X3D_LineSensor {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __oldEnabled;
+	int autoOffset;
+	struct SFVec3f direction;
+	int enabled;
+	float maxPosition;
+	float minPosition;
+	float offset;
+	int isActive;
+	int isOver;
+	struct Uni_String *description;
+	struct SFVec3f trackPoint_changed;
+	struct SFVec3f translation_changed;
+	struct X3D_Node *metadata;
 	struct SFVec3f _oldtrackPoint;
 	struct SFVec3f _oldtranslation;
 	struct SFVec3f _origPoint;
-	int autoOffset;
-	struct Uni_String *description;
-	struct SFVec3f direction;
-	int enabled;
-	int isActive;
-	int isOver;
-	float maxPosition;
-	struct X3D_Node *metadata;
-	float minPosition;
-	float offset;
-	struct SFVec3f trackPoint_changed;
-	struct SFVec3f translation_changed;
+	int __oldEnabled;
 };
 extern struct X3D_Virt virt_LineSensor;
 /***********************/
@@ -4286,15 +4282,15 @@ struct X3D_LineSet {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __segCount;
-	void * __vertArr;
-	void * __vertIndx;
 	struct Multi_Node attrib;
 	struct X3D_Node *color;
 	struct X3D_Node *coord;
-	struct X3D_Node *fogCoord;
 	struct X3D_Node *metadata;
+	struct X3D_Node *fogCoord;
 	struct Multi_Int32 vertexCount;
+	void * __vertArr;
+	void * __vertIndx;
+	int __segCount;
 };
 extern struct X3D_Virt virt_LineSet;
 /***********************/
@@ -4312,18 +4308,18 @@ struct X3D_LoadSensor {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	double __StartLoadTime;
-	int __finishedloading;
-	int __loading;
-	int __oldEnabled;
 	int enabled;
+	struct X3D_Node *metadata;
+	double timeOut;
+	struct Multi_Node watchList;
 	int isActive;
 	int isLoaded;
 	double loadTime;
-	struct X3D_Node *metadata;
 	float progress;
-	double timeOut;
-	struct Multi_Node watchList;
+	int __loading;
+	int __finishedloading;
+	double __StartLoadTime;
+	int __oldEnabled;
 };
 extern struct X3D_Virt virt_LoadSensor;
 /***********************/
@@ -4344,8 +4340,8 @@ struct X3D_LocalFog {
 	struct SFColor color;
 	int enabled;
 	struct Uni_String *fogType;
-	struct X3D_Node *metadata;
 	float visibilityRange;
+	struct X3D_Node *metadata;
 };
 extern struct X3D_Virt virt_LocalFog;
 /***********************/
@@ -4363,7 +4359,6 @@ struct X3D_Material {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Float _verifiedColor;
 	float ambientIntensity;
 	struct SFColor diffuseColor;
 	struct SFColor emissiveColor;
@@ -4371,6 +4366,7 @@ struct X3D_Material {
 	float shininess;
 	struct SFColor specularColor;
 	float transparency;
+	struct Multi_Float _verifiedColor;
 };
 extern struct X3D_Virt virt_Material;
 /***********************/
@@ -4388,9 +4384,9 @@ struct X3D_Matrix3VertexAttribute {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct X3D_Node *metadata;
-	struct Uni_String *name;
 	struct Multi_Matrix3f value;
+	struct Uni_String *name;
+	struct X3D_Node *metadata;
 };
 extern struct X3D_Virt virt_Matrix3VertexAttribute;
 /***********************/
@@ -4409,8 +4405,8 @@ struct X3D_Matrix4VertexAttribute {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
-	struct Uni_String *name;
 	struct Multi_Matrix4f value;
+	struct Uni_String *name;
 };
 extern struct X3D_Virt virt_Matrix4VertexAttribute;
 /***********************/
@@ -4491,10 +4487,10 @@ struct X3D_MetadataMFBool {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Bool setValue;
-	double tickTime;
 	struct Multi_Bool value;
 	struct Multi_Bool valueChanged;
+	struct Multi_Bool setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataMFBool;
 /***********************/
@@ -4512,10 +4508,10 @@ struct X3D_MetadataMFColor {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Color setValue;
-	double tickTime;
 	struct Multi_Color value;
 	struct Multi_Color valueChanged;
+	struct Multi_Color setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataMFColor;
 /***********************/
@@ -4533,10 +4529,10 @@ struct X3D_MetadataMFColorRGBA {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_ColorRGBA setValue;
-	double tickTime;
 	struct Multi_ColorRGBA value;
 	struct Multi_ColorRGBA valueChanged;
+	struct Multi_ColorRGBA setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataMFColorRGBA;
 /***********************/
@@ -4554,10 +4550,10 @@ struct X3D_MetadataMFDouble {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Double setValue;
-	double tickTime;
 	struct Multi_Double value;
 	struct Multi_Double valueChanged;
+	struct Multi_Double setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataMFDouble;
 /***********************/
@@ -4575,10 +4571,10 @@ struct X3D_MetadataMFFloat {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Float setValue;
-	double tickTime;
 	struct Multi_Float value;
 	struct Multi_Float valueChanged;
+	struct Multi_Float setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataMFFloat;
 /***********************/
@@ -4596,10 +4592,10 @@ struct X3D_MetadataMFInt32 {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Int32 setValue;
-	double tickTime;
 	struct Multi_Int32 value;
 	struct Multi_Int32 valueChanged;
+	struct Multi_Int32 setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataMFInt32;
 /***********************/
@@ -4617,10 +4613,10 @@ struct X3D_MetadataMFMatrix3d {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Matrix3d setValue;
-	double tickTime;
 	struct Multi_Matrix3d value;
 	struct Multi_Matrix3d valueChanged;
+	struct Multi_Matrix3d setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataMFMatrix3d;
 /***********************/
@@ -4638,10 +4634,10 @@ struct X3D_MetadataMFMatrix3f {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Matrix3f setValue;
-	double tickTime;
 	struct Multi_Matrix3f value;
 	struct Multi_Matrix3f valueChanged;
+	struct Multi_Matrix3f setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataMFMatrix3f;
 /***********************/
@@ -4659,10 +4655,10 @@ struct X3D_MetadataMFMatrix4d {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Matrix4d setValue;
-	double tickTime;
 	struct Multi_Matrix4d value;
 	struct Multi_Matrix4d valueChanged;
+	struct Multi_Matrix4d setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataMFMatrix4d;
 /***********************/
@@ -4680,10 +4676,10 @@ struct X3D_MetadataMFMatrix4f {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Matrix4f setValue;
-	double tickTime;
 	struct Multi_Matrix4f value;
 	struct Multi_Matrix4f valueChanged;
+	struct Multi_Matrix4f setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataMFMatrix4f;
 /***********************/
@@ -4701,10 +4697,10 @@ struct X3D_MetadataMFNode {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Node setValue;
-	double tickTime;
 	struct Multi_Node value;
 	struct Multi_Node valueChanged;
+	struct Multi_Node setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataMFNode;
 /***********************/
@@ -4722,10 +4718,10 @@ struct X3D_MetadataMFRotation {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Rotation setValue;
-	double tickTime;
 	struct Multi_Rotation value;
 	struct Multi_Rotation valueChanged;
+	struct Multi_Rotation setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataMFRotation;
 /***********************/
@@ -4743,10 +4739,10 @@ struct X3D_MetadataMFString {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_String setValue;
-	double tickTime;
 	struct Multi_String value;
 	struct Multi_String valueChanged;
+	struct Multi_String setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataMFString;
 /***********************/
@@ -4764,10 +4760,10 @@ struct X3D_MetadataMFTime {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Time setValue;
-	double tickTime;
 	struct Multi_Time value;
 	struct Multi_Time valueChanged;
+	struct Multi_Time setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataMFTime;
 /***********************/
@@ -4785,10 +4781,10 @@ struct X3D_MetadataMFVec2d {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Vec2d setValue;
-	double tickTime;
 	struct Multi_Vec2d value;
 	struct Multi_Vec2d valueChanged;
+	struct Multi_Vec2d setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataMFVec2d;
 /***********************/
@@ -4806,10 +4802,10 @@ struct X3D_MetadataMFVec2f {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Vec2f setValue;
-	double tickTime;
 	struct Multi_Vec2f value;
 	struct Multi_Vec2f valueChanged;
+	struct Multi_Vec2f setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataMFVec2f;
 /***********************/
@@ -4827,10 +4823,10 @@ struct X3D_MetadataMFVec3d {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Vec3d setValue;
-	double tickTime;
 	struct Multi_Vec3d value;
 	struct Multi_Vec3d valueChanged;
+	struct Multi_Vec3d setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataMFVec3d;
 /***********************/
@@ -4848,10 +4844,10 @@ struct X3D_MetadataMFVec3f {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Vec3f setValue;
-	double tickTime;
 	struct Multi_Vec3f value;
 	struct Multi_Vec3f valueChanged;
+	struct Multi_Vec3f setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataMFVec3f;
 /***********************/
@@ -4869,10 +4865,10 @@ struct X3D_MetadataMFVec4d {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Vec4d setValue;
-	double tickTime;
 	struct Multi_Vec4d value;
 	struct Multi_Vec4d valueChanged;
+	struct Multi_Vec4d setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataMFVec4d;
 /***********************/
@@ -4890,10 +4886,10 @@ struct X3D_MetadataMFVec4f {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Vec4f setValue;
-	double tickTime;
 	struct Multi_Vec4f value;
 	struct Multi_Vec4f valueChanged;
+	struct Multi_Vec4f setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataMFVec4f;
 /***********************/
@@ -4911,10 +4907,10 @@ struct X3D_MetadataSFBool {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int setValue;
-	double tickTime;
 	int value;
 	int valueChanged;
+	int setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataSFBool;
 /***********************/
@@ -4932,10 +4928,10 @@ struct X3D_MetadataSFColor {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct SFColor setValue;
-	double tickTime;
 	struct SFColor value;
 	struct SFColor valueChanged;
+	struct SFColor setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataSFColor;
 /***********************/
@@ -4953,10 +4949,10 @@ struct X3D_MetadataSFColorRGBA {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct SFColorRGBA setValue;
-	double tickTime;
 	struct SFColorRGBA value;
 	struct SFColorRGBA valueChanged;
+	struct SFColorRGBA setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataSFColorRGBA;
 /***********************/
@@ -4974,10 +4970,10 @@ struct X3D_MetadataSFDouble {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	double setValue;
-	double tickTime;
 	double value;
 	double valueChanged;
+	double setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataSFDouble;
 /***********************/
@@ -4995,10 +4991,10 @@ struct X3D_MetadataSFFloat {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	float setValue;
-	double tickTime;
 	float value;
 	float valueChanged;
+	float setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataSFFloat;
 /***********************/
@@ -5016,10 +5012,10 @@ struct X3D_MetadataSFImage {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Int32 setValue;
-	double tickTime;
 	struct Multi_Int32 value;
 	struct Multi_Int32 valueChanged;
+	struct Multi_Int32 setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataSFImage;
 /***********************/
@@ -5037,10 +5033,10 @@ struct X3D_MetadataSFInt32 {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int setValue;
-	double tickTime;
 	int value;
 	int valueChanged;
+	int setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataSFInt32;
 /***********************/
@@ -5058,10 +5054,10 @@ struct X3D_MetadataSFMatrix3d {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct SFMatrix3d setValue;
-	double tickTime;
 	struct SFMatrix3d value;
 	struct SFMatrix3d valueChanged;
+	struct SFMatrix3d setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataSFMatrix3d;
 /***********************/
@@ -5079,10 +5075,10 @@ struct X3D_MetadataSFMatrix3f {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct SFMatrix3f setValue;
-	double tickTime;
 	struct SFMatrix3f value;
 	struct SFMatrix3f valueChanged;
+	struct SFMatrix3f setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataSFMatrix3f;
 /***********************/
@@ -5100,10 +5096,10 @@ struct X3D_MetadataSFMatrix4d {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct SFMatrix4d setValue;
-	double tickTime;
 	struct SFMatrix4d value;
 	struct SFMatrix4d valueChanged;
+	struct SFMatrix4d setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataSFMatrix4d;
 /***********************/
@@ -5121,10 +5117,10 @@ struct X3D_MetadataSFMatrix4f {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct SFMatrix4f setValue;
-	double tickTime;
 	struct SFMatrix4f value;
 	struct SFMatrix4f valueChanged;
+	struct SFMatrix4f setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataSFMatrix4f;
 /***********************/
@@ -5142,10 +5138,10 @@ struct X3D_MetadataSFNode {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct X3D_Node *setValue;
-	double tickTime;
 	struct X3D_Node *value;
 	struct X3D_Node *valueChanged;
+	struct X3D_Node *setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataSFNode;
 /***********************/
@@ -5163,10 +5159,10 @@ struct X3D_MetadataSFRotation {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct SFRotation setValue;
-	double tickTime;
 	struct SFRotation value;
 	struct SFRotation valueChanged;
+	struct SFRotation setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataSFRotation;
 /***********************/
@@ -5184,10 +5180,10 @@ struct X3D_MetadataSFString {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Uni_String *setValue;
-	double tickTime;
 	struct Uni_String *value;
 	struct Uni_String *valueChanged;
+	struct Uni_String *setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataSFString;
 /***********************/
@@ -5205,10 +5201,10 @@ struct X3D_MetadataSFTime {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	double setValue;
-	double tickTime;
 	double value;
 	double valueChanged;
+	double setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataSFTime;
 /***********************/
@@ -5226,10 +5222,10 @@ struct X3D_MetadataSFVec2d {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct SFVec2d setValue;
-	double tickTime;
 	struct SFVec2d value;
 	struct SFVec2d valueChanged;
+	struct SFVec2d setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataSFVec2d;
 /***********************/
@@ -5247,10 +5243,10 @@ struct X3D_MetadataSFVec2f {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct SFVec2f setValue;
-	double tickTime;
 	struct SFVec2f value;
 	struct SFVec2f valueChanged;
+	struct SFVec2f setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataSFVec2f;
 /***********************/
@@ -5268,10 +5264,10 @@ struct X3D_MetadataSFVec3d {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct SFVec3d setValue;
-	double tickTime;
 	struct SFVec3d value;
 	struct SFVec3d valueChanged;
+	struct SFVec3d setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataSFVec3d;
 /***********************/
@@ -5289,10 +5285,10 @@ struct X3D_MetadataSFVec3f {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct SFVec3f setValue;
-	double tickTime;
 	struct SFVec3f value;
 	struct SFVec3f valueChanged;
+	struct SFVec3f setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataSFVec3f;
 /***********************/
@@ -5310,10 +5306,10 @@ struct X3D_MetadataSFVec4d {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct SFVec4d setValue;
-	double tickTime;
 	struct SFVec4d value;
 	struct SFVec4d valueChanged;
+	struct SFVec4d setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataSFVec4d;
 /***********************/
@@ -5331,10 +5327,10 @@ struct X3D_MetadataSFVec4f {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct SFVec4f setValue;
-	double tickTime;
 	struct SFVec4f value;
 	struct SFVec4f valueChanged;
+	struct SFVec4f setValue;
+	double tickTime;
 };
 extern struct X3D_Virt virt_MetadataSFVec4f;
 /***********************/
@@ -5394,24 +5390,24 @@ struct X3D_MovieTexture {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __textureTableIndex;
-	void * _parentResource;
 	struct Uni_String *description;
+	int loop;
+	struct X3D_Node *metadata;
+	double resumeTime;
+	double pauseTime;
+	float speed;
+	double startTime;
+	double stopTime;
+	struct Multi_String url;
 	double duration_changed;
 	double elapsedTime;
 	int isActive;
 	double isPaused;
-	int loop;
-	struct X3D_Node *metadata;
-	double pauseTime;
 	int repeatS;
 	int repeatT;
-	double resumeTime;
-	float speed;
-	double startTime;
-	double stopTime;
 	struct X3D_Node *textureProperties;
-	struct Multi_String url;
+	int __textureTableIndex;
+	void * _parentResource;
 };
 extern struct X3D_Virt virt_MovieTexture;
 /***********************/
@@ -5429,7 +5425,6 @@ struct X3D_MultiTexture {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	void * __params;
 	float alpha;
 	struct SFColor color;
 	struct Multi_String function;
@@ -5437,6 +5432,7 @@ struct X3D_MultiTexture {
 	struct Multi_String mode;
 	struct Multi_String source;
 	struct Multi_Node texture;
+	void * __params;
 };
 extern struct X3D_Virt virt_MultiTexture;
 /***********************/
@@ -5492,18 +5488,18 @@ struct X3D_NavigationInfo {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Float avatarSize;
-	double bindTime;
-	int headlight;
-	int isBound;
-	struct X3D_Node *metadata;
 	int set_bind;
+	struct Multi_Float avatarSize;
+	int headlight;
 	float speed;
-	int transitionComplete;
-	double transitionTime;
-	struct Multi_String transitionType;
 	struct Multi_String type;
 	float visibilityLimit;
+	int isBound;
+	struct Multi_String transitionType;
+	double bindTime;
+	struct X3D_Node *metadata;
+	double transitionTime;
+	int transitionComplete;
 };
 extern struct X3D_Virt virt_NavigationInfo;
 /***********************/
@@ -5540,10 +5536,10 @@ struct X3D_NormalInterpolator {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
+	float set_fraction;
 	struct Multi_Float key;
 	struct Multi_Vec3f keyValue;
 	struct X3D_Node *metadata;
-	float set_fraction;
 	struct Multi_Vec3f value_changed;
 };
 extern struct X3D_Virt virt_NormalInterpolator;
@@ -5562,12 +5558,14 @@ struct X3D_NurbsCurve {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct X3D_Node *controlPoint;
-	struct Multi_Double knot;
 	struct X3D_Node *metadata;
+	struct X3D_Node *controlPoint;
+	struct Multi_Double weight;
+	struct Multi_Double knot;
 	int order;
 	int tessellation;
-	struct Multi_Double weight;
+	struct Multi_Vec3f __points;
+	int __numPoints;
 };
 extern struct X3D_Virt virt_NurbsCurve;
 /***********************/
@@ -5585,12 +5583,12 @@ struct X3D_NurbsCurve2D {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Vec2d controlPoint;
-	struct Multi_Double knot;
 	struct X3D_Node *metadata;
+	struct Multi_Vec2d controlPoint;
+	struct Multi_Double weight;
+	struct Multi_Double knot;
 	int order;
 	int tessellation;
-	struct Multi_Double weight;
 };
 extern struct X3D_Virt virt_NurbsCurve2D;
 /***********************/
@@ -5608,13 +5606,13 @@ struct X3D_NurbsOrientationInterpolator {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct X3D_Node *controlPoint;
-	struct Multi_Double knot;
 	struct X3D_Node *metadata;
+	struct X3D_Node *controlPoint;
+	struct Multi_Double weight;
+	struct Multi_Double knot;
 	int order;
 	float set_fraction;
 	struct SFRotation value_changed;
-	struct Multi_Double weight;
 };
 extern struct X3D_Virt virt_NurbsOrientationInterpolator;
 /***********************/
@@ -5632,21 +5630,21 @@ struct X3D_NurbsPatchSurface {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct X3D_Node *controlPoint;
 	struct X3D_Node *metadata;
-	int solid;
-	struct X3D_Node *texCoord;
-	int uClosed;
-	int uDimension;
+	struct X3D_Node *controlPoint;
+	struct Multi_Double weight;
 	struct Multi_Double uKnot;
 	int uOrder;
+	int uDimension;
 	int uTessellation;
-	int vClosed;
-	int vDimension;
+	int uClosed;
 	struct Multi_Double vKnot;
 	int vOrder;
+	int vDimension;
 	int vTessellation;
-	struct Multi_Double weight;
+	int vClosed;
+	struct X3D_Node *texCoord;
+	int solid;
 };
 extern struct X3D_Virt virt_NurbsPatchSurface;
 /***********************/
@@ -5664,13 +5662,13 @@ struct X3D_NurbsPositionInterpolator {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct X3D_Node *controlPoint;
-	struct Multi_Double knot;
 	struct X3D_Node *metadata;
+	struct X3D_Node *controlPoint;
+	struct Multi_Double weight;
+	struct Multi_Double knot;
 	int order;
 	float set_fraction;
 	struct SFVec3f value_changed;
-	struct Multi_Double weight;
 };
 extern struct X3D_Virt virt_NurbsPositionInterpolator;
 /***********************/
@@ -5689,12 +5687,12 @@ struct X3D_NurbsSet {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addGeometry;
-	struct SFVec3f bboxCenter;
-	struct SFVec3f bboxSize;
+	struct Multi_Node removeGeometry;
 	struct Multi_Node geometry;
 	struct X3D_Node *metadata;
-	struct Multi_Node removeGeometry;
 	float tessellationScale;
+	struct SFVec3f bboxCenter;
+	struct SFVec3f bboxSize;
 };
 extern struct X3D_Virt virt_NurbsSet;
 /***********************/
@@ -5712,17 +5710,18 @@ struct X3D_NurbsSurfaceInterpolator {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct X3D_Node *controlPoint;
 	struct X3D_Node *metadata;
-	struct SFVec3f normal_changed;
-	struct SFVec3f position_changed;
-	struct SFVec2f set_fraction;
-	int uDimension;
+	struct X3D_Node *controlPoint;
+	struct Multi_Double weight;
 	struct Multi_Double uKnot;
 	int uOrder;
-	int vDimension;
+	int uDimension;
 	struct Multi_Double vKnot;
 	int vOrder;
+	int vDimension;
+	struct SFVec2f set_fraction;
+	struct SFVec3f position_changed;
+	struct SFVec3f normal_changed;
 };
 extern struct X3D_Virt virt_NurbsSurfaceInterpolator;
 /***********************/
@@ -5740,11 +5739,11 @@ struct X3D_NurbsSweptSurface {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int ccw;
 	struct X3D_Node *crossSectionCurve;
 	struct X3D_Node *metadata;
-	int solid;
 	struct X3D_Node *trajectoryCurve;
+	int ccw;
+	int solid;
 };
 extern struct X3D_Virt virt_NurbsSweptSurface;
 /***********************/
@@ -5762,11 +5761,11 @@ struct X3D_NurbsSwungSurface {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int ccw;
 	struct X3D_Node *metadata;
 	struct X3D_Node *profileCurve;
-	int solid;
 	struct X3D_Node *trajectoryCurve;
+	int ccw;
+	int solid;
 };
 extern struct X3D_Virt virt_NurbsSwungSurface;
 /***********************/
@@ -5784,15 +5783,15 @@ struct X3D_NurbsTextureCoordinate {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Vec2f controlPoint;
 	struct X3D_Node *metadata;
-	int uDimension;
+	struct Multi_Vec2f controlPoint;
+	struct Multi_Float weight;
 	struct Multi_Double uKnot;
 	int uOrder;
-	int vDimension;
+	int uDimension;
 	struct Multi_Double vKnot;
 	int vOrder;
-	struct Multi_Float weight;
+	int vDimension;
 };
 extern struct X3D_Virt virt_NurbsTextureCoordinate;
 /***********************/
@@ -5810,24 +5809,24 @@ struct X3D_NurbsTrimmedSurface {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Node addTrimmingContour;
-	struct X3D_Node *controlPoint;
 	struct X3D_Node *metadata;
-	struct Multi_Node removeTrimmingContour;
-	int solid;
-	struct X3D_Node *texCoord;
-	struct Multi_Node trimmingContour;
-	int uClosed;
-	int uDimension;
+	struct X3D_Node *controlPoint;
+	struct Multi_Double weight;
 	struct Multi_Double uKnot;
 	int uOrder;
-	int uTesselation;
-	int vClosed;
-	int vDimension;
+	int uDimension;
+	int uTessellation;
+	int uClosed;
 	struct Multi_Double vKnot;
 	int vOrder;
-	int vTesselation;
-	struct Multi_Double weight;
+	int vDimension;
+	int vTessellation;
+	int vClosed;
+	struct X3D_Node *texCoord;
+	int solid;
+	struct Multi_Node addTrimmingContour;
+	struct Multi_Node removeTrimmingContour;
+	struct Multi_Node trimmingContour;
 };
 extern struct X3D_Virt virt_NurbsTrimmedSurface;
 /***********************/
@@ -5845,29 +5844,29 @@ struct X3D_OSC_Sensor {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int FIFOsize;
-	struct X3D_Node *__oldmetadata;
-	void * _floatInpFIFO;
-	void * _floatOutFIFO;
-	void * _int32InpFIFO;
-	void * _int32OutFIFO;
-	int _status;
-	void * _stringInpFIFO;
-	void * _stringOutFIFO;
-	struct Multi_Node _talkToNodes;
-	struct Uni_String *description;
 	int enabled;
-	struct Uni_String *filter;
-	float floatInp;
-	int gotEvents;
-	struct Uni_String *handler;
-	int int32Inp;
-	struct Uni_String *listenfor;
-	struct X3D_Node *metadata;
-	int port;
+	struct Uni_String *description;
 	struct Uni_String *protocol;
-	struct Uni_String *stringInp;
+	struct Uni_String *listenfor;
+	int port;
+	struct Uni_String *filter;
+	struct Uni_String *handler;
 	struct Multi_String talksTo;
+	int FIFOsize;
+	int int32Inp;
+	float floatInp;
+	struct Uni_String *stringInp;
+	int gotEvents;
+	struct X3D_Node *metadata;
+	struct Multi_Node _talkToNodes;
+	int _status;
+	void * _int32InpFIFO;
+	void * _floatInpFIFO;
+	void * _stringInpFIFO;
+	void * _int32OutFIFO;
+	void * _floatOutFIFO;
+	void * _stringOutFIFO;
+	struct X3D_Node *__oldmetadata;
 };
 extern struct X3D_Virt virt_OSC_Sensor;
 /***********************/
@@ -5885,10 +5884,10 @@ struct X3D_OrientationInterpolator {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
+	float set_fraction;
 	struct Multi_Float key;
 	struct Multi_Rotation keyValue;
 	struct X3D_Node *metadata;
-	float set_fraction;
 	struct SFRotation value_changed;
 };
 extern struct X3D_Virt virt_OrientationInterpolator;
@@ -5907,17 +5906,17 @@ struct X3D_OrthoViewpoint {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	double bindTime;
+	int set_bind;
 	struct SFVec3f centerOfRotation;
 	struct Uni_String *description;
 	struct Multi_Float fieldOfView;
-	int isBound;
 	int jump;
 	struct X3D_Node *metadata;
 	struct SFRotation orientation;
 	struct SFVec3f position;
 	int retainUserOffsets;
-	int set_bind;
+	double bindTime;
+	int isBound;
 };
 extern struct X3D_Virt virt_OrthoViewpoint;
 /***********************/
@@ -5935,17 +5934,17 @@ struct X3D_PackagedShader {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int _initialized;
-	int _retrievedURLData;
-	pthread_t _shaderLoadThread;
-	struct X3D_Node *_shaderUserDefinedFields;
-	int _shaderUserNumber;
 	int activate;
+	struct X3D_Node *metadata;
+	struct Multi_String url;
 	int isSelected;
 	int isValid;
 	struct Uni_String *language;
-	struct X3D_Node *metadata;
-	struct Multi_String url;
+	int _initialized;
+	int _shaderUserNumber;
+	struct X3D_Node *_shaderUserDefinedFields;
+	pthread_t _shaderLoadThread;
+	int _retrievedURLData;
 };
 extern struct X3D_Virt virt_PackagedShader;
 /***********************/
@@ -5963,16 +5962,16 @@ struct X3D_PickableGroup {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Node FreeWRL_PROTOInterfaceNodes;
-	int FreeWRL__protoDef;
 	struct Multi_Node addChildren;
-	struct SFVec3f bboxCenter;
-	struct SFVec3f bboxSize;
+	struct Multi_Node removeChildren;
 	struct Multi_Node children;
 	struct X3D_Node *metadata;
 	struct Multi_String objectType;
 	int pickable;
-	struct Multi_Node removeChildren;
+	struct SFVec3f bboxCenter;
+	struct SFVec3f bboxSize;
+	int FreeWRL__protoDef;
+	struct Multi_Node FreeWRL_PROTOInterfaceNodes;
 };
 extern struct X3D_Virt virt_PickableGroup;
 /***********************/
@@ -5990,13 +5989,13 @@ struct X3D_PixelTexture {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __textureTableIndex;
-	void * _parentResource;
 	struct Multi_Int32 image;
 	struct X3D_Node *metadata;
 	int repeatS;
 	int repeatT;
 	struct X3D_Node *textureProperties;
+	void * _parentResource;
+	int __textureTableIndex;
 };
 extern struct X3D_Virt virt_PixelTexture;
 /***********************/
@@ -6014,22 +6013,22 @@ struct X3D_PlaneSensor {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __oldEnabled;
+	int autoOffset;
+	struct SFRotation axisRotation;
+	int enabled;
+	struct SFVec2f maxPosition;
+	struct SFVec2f minPosition;
+	struct SFVec3f offset;
+	int isActive;
+	int isOver;
+	struct Uni_String *description;
+	struct SFVec3f trackPoint_changed;
+	struct SFVec3f translation_changed;
+	struct X3D_Node *metadata;
 	struct SFVec3f _oldtrackPoint;
 	struct SFVec3f _oldtranslation;
 	struct SFVec3f _origPoint;
-	int autoOffset;
-	struct SFRotation axisRotation;
-	struct Uni_String *description;
-	int enabled;
-	int isActive;
-	int isOver;
-	struct SFVec2f maxPosition;
-	struct X3D_Node *metadata;
-	struct SFVec2f minPosition;
-	struct SFVec3f offset;
-	struct SFVec3f trackPoint_changed;
-	struct SFVec3f translation_changed;
+	int __oldEnabled;
 };
 extern struct X3D_Virt virt_PlaneSensor;
 /***********************/
@@ -6047,9 +6046,6 @@ struct X3D_PointLight {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct SFVec4f _amb;
-	struct SFVec4f _col;
-	struct SFVec4f _loc;
 	float ambientIntensity;
 	struct SFVec3f attenuation;
 	struct SFColor color;
@@ -6059,6 +6055,9 @@ struct X3D_PointLight {
 	struct X3D_Node *metadata;
 	int on;
 	float radius;
+	struct SFVec4f _loc;
+	struct SFVec4f _col;
+	struct SFVec4f _amb;
 };
 extern struct X3D_Virt virt_PointLight;
 /***********************/
@@ -6076,24 +6075,24 @@ struct X3D_PointPickSensor {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct SFVec3f _bboxCenter;
-	struct SFVec3f _bboxSize;
+	int enabled;
+	struct X3D_Node *metadata;
+	struct Multi_String objectType;
+	struct X3D_Node *pickingGeometry;
+	struct Multi_Node pickTarget;
+	int isActive;
+	struct Multi_Node pickedGeometry;
+	struct Multi_Vec3f pickedPoint;
+	struct Uni_String *set_intersectionType;
+	struct Uni_String *intersectionType;
+	struct Uni_String *set_sortOrder;
+	struct Uni_String *sortOrder;
 	int _oldisActive;
 	struct Multi_Node _oldpickTarget;
 	struct Multi_Node _oldpickedGeometry;
 	struct Multi_Vec3f _oldpickedPoint;
-	int enabled;
-	struct Uni_String *intersectionType;
-	int isActive;
-	struct X3D_Node *metadata;
-	struct Multi_String objectType;
-	struct Multi_Node pickTarget;
-	struct Multi_Node pickedGeometry;
-	struct Multi_Vec3f pickedPoint;
-	struct X3D_Node *pickingGeometry;
-	struct Uni_String *set_intersectionType;
-	struct Uni_String *set_sortOrder;
-	struct Uni_String *sortOrder;
+	struct SFVec3f _bboxCenter;
+	struct SFVec3f _bboxSize;
 };
 extern struct X3D_Virt virt_PointPickSensor;
 /***********************/
@@ -6111,15 +6110,15 @@ struct X3D_PointSet {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int _colourSize;
-	int _coloursVBO;
-	int _npoints;
-	int _pointsVBO;
 	struct Multi_Node attrib;
 	struct X3D_Node *color;
 	struct X3D_Node *coord;
 	struct X3D_Node *fogCoord;
 	struct X3D_Node *metadata;
+	int _pointsVBO;
+	int _coloursVBO;
+	int _npoints;
+	int _colourSize;
 };
 extern struct X3D_Virt virt_PointSet;
 /***********************/
@@ -6137,8 +6136,8 @@ struct X3D_Polyline2D {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Vec2f lineSegments;
 	struct X3D_Node *metadata;
+	struct Multi_Vec2f lineSegments;
 };
 extern struct X3D_Virt virt_Polyline2D;
 /***********************/
@@ -6175,10 +6174,10 @@ struct X3D_PositionInterpolator {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
+	float set_fraction;
 	struct Multi_Float key;
 	struct Multi_Vec3f keyValue;
 	struct X3D_Node *metadata;
-	float set_fraction;
 	struct SFVec3f value_changed;
 };
 extern struct X3D_Virt virt_PositionInterpolator;
@@ -6197,10 +6196,10 @@ struct X3D_PositionInterpolator2D {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
+	float set_fraction;
 	struct Multi_Float key;
 	struct Multi_Vec2f keyValue;
 	struct X3D_Node *metadata;
-	float set_fraction;
 	struct SFVec2f value_changed;
 };
 extern struct X3D_Virt virt_PositionInterpolator2D;
@@ -6219,16 +6218,16 @@ struct X3D_ProgramShader {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int _initialized;
-	int _retrievedURLData;
-	pthread_t _shaderLoadThread;
-	int _shaderUserNumber;
 	int activate;
+	struct X3D_Node *metadata;
+	struct Multi_Node programs;
 	int isSelected;
 	int isValid;
 	struct Uni_String *language;
-	struct X3D_Node *metadata;
-	struct Multi_Node programs;
+	int _initialized;
+	int _shaderUserNumber;
+	pthread_t _shaderLoadThread;
+	int _retrievedURLData;
 };
 extern struct X3D_Virt virt_ProgramShader;
 /***********************/
@@ -6246,37 +6245,37 @@ struct X3D_Proto {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	void * __DEFnames;
-	void * __EXPORTS;
-	void * __GC;
-	void * __IMPORTS;
-	void * __IS;
-	void * __ROUTES;
-	void * __afterPound;
 	struct Multi_Node __children;
-	void * __externProtoDeclares;
-	void * __loadResource;
-	int __loadstatus;
-	void * __nodes;
-	int __oldload;
-	struct Multi_String __oldurl;
-	struct X3D_Node *__parentProto;
+	struct X3D_Node *metadata;
+	struct SFVec3f bboxCenter;
+	struct SFVec3f bboxSize;
+	struct Multi_Node _sortedChildren;
+	struct Multi_Node addChildren;
+	struct Multi_Node removeChildren;
 	void * __protoDeclares;
+	void * __externProtoDeclares;
+	void * __nodes;
+	void * __subcontexts;
+	void * __GC;
 	void * __protoDef;
 	int __protoFlags;
 	struct X3D_Node *__prototype;
+	struct X3D_Node *__parentProto;
+	void * __ROUTES;
+	void * __EXPORTS;
+	void * __IMPORTS;
+	void * __DEFnames;
+	void * __IS;
 	void * __scripts;
-	void * __subcontexts;
-	void * __typename;
-	void * _parentResource;
-	struct Multi_Node _sortedChildren;
-	struct Multi_Node addChildren;
-	struct SFVec3f bboxCenter;
-	struct SFVec3f bboxSize;
-	int load;
-	struct X3D_Node *metadata;
-	struct Multi_Node removeChildren;
 	struct Multi_String url;
+	struct Multi_String __oldurl;
+	void * __afterPound;
+	int __loadstatus;
+	void * _parentResource;
+	void * __loadResource;
+	void * __typename;
+	int load;
+	int __oldload;
 };
 extern struct X3D_Virt virt_Proto;
 /***********************/
@@ -6294,20 +6293,20 @@ struct X3D_ProximitySensor {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __hit;
-	int __oldEnabled;
-	struct SFVec3f __t1;
-	struct SFRotation __t2;
 	struct SFVec3f center;
-	struct SFVec3f centerOfRotation_changed;
+	struct SFVec3f size;
 	int enabled;
+	int isActive;
+	struct SFVec3f position_changed;
+	struct SFRotation orientation_changed;
 	double enterTime;
 	double exitTime;
-	int isActive;
+	struct SFVec3f centerOfRotation_changed;
 	struct X3D_Node *metadata;
-	struct SFRotation orientation_changed;
-	struct SFVec3f position_changed;
-	struct SFVec3f size;
+	int __hit;
+	struct SFVec3f __t1;
+	struct SFRotation __t2;
+	int __oldEnabled;
 };
 extern struct X3D_Virt virt_ProximitySensor;
 /***********************/
@@ -6325,18 +6324,18 @@ struct X3D_QuadSet {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Int32 _coordIndex;
 	struct Multi_Node attrib;
-	int ccw;
 	struct X3D_Node *color;
-	int colorPerVertex;
 	struct X3D_Node *coord;
 	struct X3D_Node *fogCoord;
 	struct X3D_Node *metadata;
 	struct X3D_Node *normal;
+	struct X3D_Node *texCoord;
+	int ccw;
+	int colorPerVertex;
 	int normalPerVertex;
 	int solid;
-	struct X3D_Node *texCoord;
+	struct Multi_Int32 _coordIndex;
 };
 extern struct X3D_Virt virt_QuadSet;
 /***********************/
@@ -6356,15 +6355,8 @@ struct X3D_ReceiverPdu {
  	/*** node specific data: *****/
 	struct Uni_String *address;
 	int applicationID;
-	struct SFVec3f bboxCenter;
-	struct SFVec3f bboxSize;
 	int enabled;
 	int entityID;
-	int isActive;
-	int isNetworkReader;
-	int isNetworkWriter;
-	int isRtpHeaderHeard;
-	int isStandAlone;
 	struct X3D_Node *metadata;
 	struct Uni_String *multicastRelayHost;
 	int multicastRelayPort;
@@ -6376,13 +6368,20 @@ struct X3D_ReceiverPdu {
 	int receiverState;
 	int rtpHeaderExpected;
 	int siteID;
-	double timestamp;
 	int transmitterApplicationID;
 	int transmitterEntityID;
 	int transmitterRadioID;
 	int transmitterSiteID;
 	int whichGeometry;
 	float writeInterval;
+	int isActive;
+	int isNetworkReader;
+	int isNetworkWriter;
+	int isRtpHeaderHeard;
+	int isStandAlone;
+	double timestamp;
+	struct SFVec3f bboxCenter;
+	struct SFVec3f bboxSize;
 };
 extern struct X3D_Virt virt_ReceiverPdu;
 /***********************/
@@ -6400,11 +6399,11 @@ struct X3D_Rectangle2D {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __numPoints;
-	struct Multi_Vec3f __points;
 	struct X3D_Node *metadata;
 	struct SFVec2f size;
 	int solid;
+	struct Multi_Vec3f __points;
+	int __numPoints;
 };
 extern struct X3D_Virt virt_Rectangle2D;
 /***********************/
@@ -6422,10 +6421,10 @@ struct X3D_ScalarInterpolator {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
+	float set_fraction;
 	struct Multi_Float key;
 	struct Multi_Float keyValue;
 	struct X3D_Node *metadata;
-	float set_fraction;
 	float value_changed;
 };
 extern struct X3D_Virt virt_ScalarInterpolator;
@@ -6444,12 +6443,12 @@ struct X3D_Script {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
+	struct Multi_String url;
+	int directOutput;
+	int mustEvaluate;
+	struct X3D_Node *metadata;
 	void * __scriptObj;
 	void * _parentResource;
-	int directOutput;
-	struct X3D_Node *metadata;
-	int mustEvaluate;
-	struct Multi_String url;
 };
 extern struct X3D_Virt virt_Script;
 /***********************/
@@ -6467,13 +6466,13 @@ struct X3D_ShaderPart {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	void * __loadResource;
+	struct X3D_Node *metadata;
+	struct Multi_String url;
+	struct Uni_String *type;
 	int __loadstatus;
 	void * _parentResource;
+	void * __loadResource;
 	struct X3D_Node *_shaderUserDefinedFields;
-	struct X3D_Node *metadata;
-	struct Uni_String *type;
-	struct Multi_String url;
 };
 extern struct X3D_Virt virt_ShaderPart;
 /***********************/
@@ -6491,13 +6490,13 @@ struct X3D_ShaderProgram {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	void * __loadResource;
+	struct X3D_Node *metadata;
+	struct Multi_String url;
+	struct Uni_String *type;
 	int __loadstatus;
 	void * _parentResource;
+	void * __loadResource;
 	struct X3D_Node *_shaderUserDefinedFields;
-	struct X3D_Node *metadata;
-	struct Uni_String *type;
-	struct Multi_String url;
 };
 extern struct X3D_Virt virt_ShaderProgram;
 /***********************/
@@ -6515,15 +6514,15 @@ struct X3D_Shape {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __Samples;
-	int __occludeCheckCount;
-	int __visible;
-	int _shaderTableEntry;
 	struct X3D_Node *appearance;
-	struct SFVec3f bboxCenter;
-	struct SFVec3f bboxSize;
 	struct X3D_Node *geometry;
 	struct X3D_Node *metadata;
+	struct SFVec3f bboxCenter;
+	struct SFVec3f bboxSize;
+	int __visible;
+	int __occludeCheckCount;
+	int __Samples;
+	int _shaderTableEntry;
 };
 extern struct X3D_Virt virt_Shape;
 /***********************/
@@ -6543,18 +6542,11 @@ struct X3D_SignalPdu {
  	/*** node specific data: *****/
 	struct Uni_String *address;
 	int applicationID;
-	struct SFVec3f bboxCenter;
-	struct SFVec3f bboxSize;
 	struct Multi_Int32 data;
 	int dataLength;
 	int enabled;
 	int encodingScheme;
 	int entityID;
-	int isActive;
-	int isNetworkReader;
-	int isNetworkWriter;
-	int isRtpHeaderHeard;
-	int isStandAlone;
 	struct X3D_Node *metadata;
 	struct Uni_String *multicastRelayHost;
 	int multicastRelayPort;
@@ -6567,9 +6559,16 @@ struct X3D_SignalPdu {
 	int samples;
 	int siteID;
 	int tdlType;
-	double timestamp;
 	int whichGeometry;
 	float writeInterval;
+	int isActive;
+	int isNetworkReader;
+	int isNetworkWriter;
+	int isRtpHeaderHeard;
+	int isStandAlone;
+	double timestamp;
+	struct SFVec3f bboxCenter;
+	struct SFVec3f bboxSize;
 };
 extern struct X3D_Virt virt_SignalPdu;
 /***********************/
@@ -6587,9 +6586,6 @@ struct X3D_Sound {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct SFVec3f __lastlocation;
-	double __lasttime;
-	int __sourceNumber;
 	struct SFVec3f direction;
 	float intensity;
 	struct SFVec3f location;
@@ -6601,6 +6597,9 @@ struct X3D_Sound {
 	float priority;
 	struct X3D_Node *source;
 	int spatialize;
+	int __sourceNumber;
+	struct SFVec3f __lastlocation;
+	double __lasttime;
 };
 extern struct X3D_Virt virt_Sound;
 /***********************/
@@ -6618,12 +6617,12 @@ struct X3D_Sphere {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __SphereIndxVBO;
-	struct Multi_Vec3f __points;
-	int _sideVBO;
 	struct X3D_Node *metadata;
 	float radius;
 	int solid;
+	struct Multi_Vec3f __points;
+	int _sideVBO;
+	int __SphereIndxVBO;
 };
 extern struct X3D_Virt virt_Sphere;
 /***********************/
@@ -6641,21 +6640,21 @@ struct X3D_SphereSensor {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __oldEnabled;
-	struct SFRotation _oldrotation;
-	struct SFVec3f _oldtrackPoint;
-	struct SFVec3f _origNormalizedPoint;
-	struct SFVec3f _origPoint;
-	float _radius;
 	int autoOffset;
-	struct Uni_String *description;
 	int enabled;
-	int isActive;
-	int isOver;
-	struct X3D_Node *metadata;
 	struct SFRotation offset;
+	int isActive;
 	struct SFRotation rotation_changed;
 	struct SFVec3f trackPoint_changed;
+	struct SFVec3f _oldtrackPoint;
+	struct SFRotation _oldrotation;
+	int isOver;
+	struct Uni_String *description;
+	struct X3D_Node *metadata;
+	struct SFVec3f _origPoint;
+	struct SFVec3f _origNormalizedPoint;
+	float _radius;
+	int __oldEnabled;
 };
 extern struct X3D_Virt virt_SphereSensor;
 /***********************/
@@ -6673,13 +6672,13 @@ struct X3D_SplinePositionInterpolator {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
+	float set_fraction;
 	int closed;
 	struct Multi_Float key;
 	struct Multi_Vec3f keyValue;
 	struct Multi_Vec3f keyVelocity;
 	struct X3D_Node *metadata;
 	int normalizeVelocity;
-	float set_fraction;
 	struct SFVec3f value_changed;
 };
 extern struct X3D_Virt virt_SplinePositionInterpolator;
@@ -6698,13 +6697,13 @@ struct X3D_SplinePositionInterpolator2D {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
+	float set_fraction;
 	int closed;
 	struct Multi_Float key;
 	struct Multi_Vec2f keyValue;
 	struct Multi_Vec2f keyVelocity;
 	struct X3D_Node *metadata;
 	int normalizeVelocity;
-	float set_fraction;
 	struct SFVec2f value_changed;
 };
 extern struct X3D_Virt virt_SplinePositionInterpolator2D;
@@ -6723,13 +6722,13 @@ struct X3D_SplineScalarInterpolator {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
+	float set_fraction;
 	int closed;
 	struct Multi_Float key;
 	struct Multi_Float keyValue;
 	struct Multi_Float keyVelocity;
 	struct X3D_Node *metadata;
 	int normalizeVelocity;
-	float set_fraction;
 	float value_changed;
 };
 extern struct X3D_Virt virt_SplineScalarInterpolator;
@@ -6748,10 +6747,6 @@ struct X3D_SpotLight {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct SFVec4f _amb;
-	struct SFVec4f _col;
-	struct SFVec4f _dir;
-	struct SFVec4f _loc;
 	float ambientIntensity;
 	struct SFVec3f attenuation;
 	float beamWidth;
@@ -6764,6 +6759,10 @@ struct X3D_SpotLight {
 	struct X3D_Node *metadata;
 	int on;
 	float radius;
+	struct SFVec4f _dir;
+	struct SFVec4f _loc;
+	struct SFVec4f _col;
+	struct SFVec4f _amb;
 };
 extern struct X3D_Virt virt_SpotLight;
 /***********************/
@@ -6781,11 +6780,11 @@ struct X3D_SquadOrientationInterpolator {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
+	float set_fraction;
 	struct Multi_Float key;
 	struct Multi_Rotation keyValue;
 	struct X3D_Node *metadata;
 	int normalizeVelocity;
-	float set_fraction;
 	struct SFRotation value_changed;
 };
 extern struct X3D_Virt virt_SquadOrientationInterpolator;
@@ -6804,13 +6803,13 @@ struct X3D_StaticGroup {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __solid;
-	int __transparency;
-	struct Multi_Node _sortedChildren;
+	struct X3D_Node *metadata;
+	struct Multi_Node children;
 	struct SFVec3f bboxCenter;
 	struct SFVec3f bboxSize;
-	struct Multi_Node children;
-	struct X3D_Node *metadata;
+	int __transparency;
+	int __solid;
+	struct Multi_Node _sortedChildren;
 };
 extern struct X3D_Virt virt_StaticGroup;
 /***********************/
@@ -6828,14 +6827,14 @@ struct X3D_StringSensor {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __oldEnabled;
-	int _initialized;
 	int deletionAllowed;
 	int enabled;
 	struct Uni_String *enteredText;
 	struct Uni_String *finalText;
 	int isActive;
 	struct X3D_Node *metadata;
+	int _initialized;
+	int __oldEnabled;
 };
 extern struct X3D_Virt virt_StringSensor;
 /***********************/
@@ -6853,15 +6852,15 @@ struct X3D_Switch {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __isX3D;
 	struct Multi_Node addChildren;
+	struct Multi_Node removeChildren;
+	struct Multi_Node choice;
+	struct Multi_Node children;
+	struct X3D_Node *metadata;
+	int whichChoice;
 	struct SFVec3f bboxCenter;
 	struct SFVec3f bboxSize;
-	struct Multi_Node children;
-	struct Multi_Node choice;
-	struct X3D_Node *metadata;
-	struct Multi_Node removeChildren;
-	int whichChoice;
+	int __isX3D;
 };
 extern struct X3D_Virt virt_Switch;
 /***********************/
@@ -6879,16 +6878,16 @@ struct X3D_Text {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __rendersub;
 	struct X3D_Node *fontStyle;
 	struct Multi_Float length;
-	struct Multi_Vec2f lineBounds;
 	float maxExtent;
 	struct X3D_Node *metadata;
+	struct Multi_String string;
+	struct Multi_Vec2f lineBounds;
 	struct SFVec3f origin;
 	int solid;
-	struct Multi_String string;
 	struct SFVec2f textBounds;
+	int __rendersub;
 };
 extern struct X3D_Virt virt_Text;
 /***********************/
@@ -6906,25 +6905,25 @@ struct X3D_TextureBackground {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __VBO;
-	struct Multi_Vec3f __colours;
-	struct Multi_Vec3f __points;
-	int __quadcount;
-	void * _parentResource;
-	struct X3D_Node *backTexture;
-	double bindTime;
-	struct X3D_Node *bottomTexture;
-	struct X3D_Node *frontTexture;
+	int set_bind;
 	struct Multi_Float groundAngle;
 	struct Multi_Color groundColor;
-	int isBound;
-	struct X3D_Node *leftTexture;
-	struct X3D_Node *metadata;
-	struct X3D_Node *rightTexture;
-	int set_bind;
 	struct Multi_Float skyAngle;
 	struct Multi_Color skyColor;
+	double bindTime;
+	int isBound;
+	struct X3D_Node *metadata;
+	void * _parentResource;
+	struct Multi_Vec3f __points;
+	struct Multi_Vec3f __colours;
+	int __quadcount;
+	int __VBO;
+	struct X3D_Node *frontTexture;
+	struct X3D_Node *backTexture;
 	struct X3D_Node *topTexture;
+	struct X3D_Node *bottomTexture;
+	struct X3D_Node *leftTexture;
+	struct X3D_Node *rightTexture;
 	struct Multi_Float transparency;
 };
 extern struct X3D_Virt virt_TextureBackground;
@@ -6985,15 +6984,15 @@ struct X3D_TextureProperties {
 	float anisotropicDegree;
 	struct SFColorRGBA borderColor;
 	int borderWidth;
-	struct Uni_String *boundaryModeR;
 	struct Uni_String *boundaryModeS;
 	struct Uni_String *boundaryModeT;
-	int generateMipMaps;
+	struct Uni_String *boundaryModeR;
 	struct Uni_String *magnificationFilter;
 	struct X3D_Node *metadata;
 	struct Uni_String *minificationFilter;
 	struct Uni_String *textureCompression;
 	float texturePriority;
+	int generateMipMaps;
 };
 extern struct X3D_Virt virt_TextureProperties;
 /***********************/
@@ -7033,23 +7032,23 @@ struct X3D_TimeSensor {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	double __ctflag;
-	double __inittime;
-	int __oldEnabled;
 	double cycleInterval;
-	double cycleTime;
-	double elapsedTime;
 	int enabled;
-	float fraction_changed;
-	int isActive;
-	double isPaused;
 	int loop;
 	struct X3D_Node *metadata;
 	double pauseTime;
 	double resumeTime;
 	double startTime;
 	double stopTime;
+	double cycleTime;
+	double elapsedTime;
+	float fraction_changed;
+	int isActive;
+	double isPaused;
 	double time;
+	double __inittime;
+	double __ctflag;
+	int __oldEnabled;
 };
 extern struct X3D_Virt virt_TimeSensor;
 /***********************/
@@ -7067,9 +7066,9 @@ struct X3D_TimeTrigger {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct X3D_Node *metadata;
 	int set_boolean;
 	double triggerTime;
+	struct X3D_Node *metadata;
 };
 extern struct X3D_Virt virt_TimeTrigger;
 /***********************/
@@ -7087,19 +7086,19 @@ struct X3D_TouchSensor {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __oldEnabled;
-	struct SFVec3f _oldhitNormal;
-	struct SFVec3f _oldhitPoint;
-	struct SFVec2f _oldhitTexCoord;
-	struct Uni_String *description;
 	int enabled;
 	struct SFVec3f hitNormal_changed;
 	struct SFVec3f hitPoint_changed;
 	struct SFVec2f hitTexCoord_changed;
+	struct SFVec3f _oldhitNormal;
+	struct SFVec3f _oldhitPoint;
+	struct SFVec2f _oldhitTexCoord;
 	int isActive;
 	int isOver;
-	struct X3D_Node *metadata;
+	struct Uni_String *description;
 	double touchTime;
+	struct X3D_Node *metadata;
+	int __oldEnabled;
 };
 extern struct X3D_Virt virt_TouchSensor;
 /***********************/
@@ -7117,24 +7116,24 @@ struct X3D_Transform {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __do_anything;
-	int __do_center;
-	int __do_rotation;
-	int __do_scale;
-	int __do_scaleO;
-	int __do_trans;
-	struct Multi_Node _sortedChildren;
 	struct Multi_Node addChildren;
-	struct SFVec3f bboxCenter;
-	struct SFVec3f bboxSize;
+	struct Multi_Node removeChildren;
 	struct SFVec3f center;
 	struct Multi_Node children;
 	struct X3D_Node *metadata;
-	struct Multi_Node removeChildren;
 	struct SFRotation rotation;
 	struct SFVec3f scale;
 	struct SFRotation scaleOrientation;
 	struct SFVec3f translation;
+	struct SFVec3f bboxCenter;
+	struct SFVec3f bboxSize;
+	int __do_center;
+	int __do_trans;
+	int __do_rotation;
+	int __do_scaleO;
+	int __do_scale;
+	int __do_anything;
+	struct Multi_Node _sortedChildren;
 };
 extern struct X3D_Virt virt_Transform;
 /***********************/
@@ -7157,19 +7156,12 @@ struct X3D_TransmitterPdu {
 	int antennaPatternLength;
 	int antennaPatternType;
 	int applicationID;
-	struct SFVec3f bboxCenter;
-	struct SFVec3f bboxSize;
 	int cryptoKeyID;
 	int cryptoSystem;
 	int enabled;
 	int entityID;
 	int frequency;
 	int inputSource;
-	int isActive;
-	int isNetworkReader;
-	int isNetworkWriter;
-	int isRtpHeaderHeard;
-	int isStandAlone;
 	int lengthOfModulationParameters;
 	struct X3D_Node *metadata;
 	int modulationTypeDetail;
@@ -7192,11 +7184,18 @@ struct X3D_TransmitterPdu {
 	struct SFVec3f relativeAntennaLocation;
 	int rtpHeaderExpected;
 	int siteID;
-	double timestamp;
 	float transmitFrequencyBandwidth;
 	int transmitState;
 	int whichGeometry;
 	float writeInterval;
+	int isActive;
+	int isNetworkReader;
+	int isNetworkWriter;
+	int isRtpHeaderHeard;
+	int isStandAlone;
+	double timestamp;
+	struct SFVec3f bboxCenter;
+	struct SFVec3f bboxSize;
 };
 extern struct X3D_Virt virt_TransmitterPdu;
 /***********************/
@@ -7214,19 +7213,19 @@ struct X3D_TriangleFanSet {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Int32 _coordIndex;
 	struct Multi_Node attrib;
-	int ccw;
 	struct X3D_Node *color;
-	int colorPerVertex;
 	struct X3D_Node *coord;
 	struct Multi_Int32 fanCount;
 	struct X3D_Node *fogCoord;
 	struct X3D_Node *metadata;
 	struct X3D_Node *normal;
+	struct X3D_Node *texCoord;
+	int ccw;
+	int colorPerVertex;
 	int normalPerVertex;
 	int solid;
-	struct X3D_Node *texCoord;
+	struct Multi_Int32 _coordIndex;
 };
 extern struct X3D_Virt virt_TriangleFanSet;
 /***********************/
@@ -7244,18 +7243,18 @@ struct X3D_TriangleSet {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Int32 _coordIndex;
 	struct Multi_Node attrib;
-	int ccw;
 	struct X3D_Node *color;
-	int colorPerVertex;
 	struct X3D_Node *coord;
 	struct X3D_Node *fogCoord;
 	struct X3D_Node *metadata;
 	struct X3D_Node *normal;
+	struct X3D_Node *texCoord;
+	int ccw;
+	int colorPerVertex;
 	int normalPerVertex;
 	int solid;
-	struct X3D_Node *texCoord;
+	struct Multi_Int32 _coordIndex;
 };
 extern struct X3D_Virt virt_TriangleSet;
 /***********************/
@@ -7273,10 +7272,10 @@ struct X3D_TriangleSet2D {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	void * __texCoords;
 	struct X3D_Node *metadata;
-	int solid;
 	struct Multi_Vec2f vertices;
+	int solid;
+	void * __texCoords;
 };
 extern struct X3D_Virt virt_TriangleSet2D;
 /***********************/
@@ -7294,19 +7293,19 @@ struct X3D_TriangleStripSet {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Int32 _coordIndex;
 	struct Multi_Node attrib;
-	int ccw;
 	struct X3D_Node *color;
-	int colorPerVertex;
 	struct X3D_Node *coord;
 	struct X3D_Node *fogCoord;
 	struct X3D_Node *metadata;
 	struct X3D_Node *normal;
-	int normalPerVertex;
-	int solid;
 	struct Multi_Int32 stripCount;
 	struct X3D_Node *texCoord;
+	int ccw;
+	int colorPerVertex;
+	int normalPerVertex;
+	int solid;
+	struct Multi_Int32 _coordIndex;
 };
 extern struct X3D_Virt virt_TriangleStripSet;
 /***********************/
@@ -7324,8 +7323,6 @@ struct X3D_TwoSidedMaterial {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Float _verifiedBackColor;
-	struct Multi_Float _verifiedFrontColor;
 	float ambientIntensity;
 	float backAmbientIntensity;
 	struct SFColor backDiffuseColor;
@@ -7336,10 +7333,12 @@ struct X3D_TwoSidedMaterial {
 	struct SFColor diffuseColor;
 	struct SFColor emissiveColor;
 	struct X3D_Node *metadata;
-	int separateBackColor;
 	float shininess;
+	int separateBackColor;
 	struct SFColor specularColor;
 	float transparency;
+	struct Multi_Float _verifiedFrontColor;
+	struct Multi_Float _verifiedBackColor;
 };
 extern struct X3D_Virt virt_TwoSidedMaterial;
 /***********************/
@@ -7357,17 +7356,17 @@ struct X3D_Viewpoint {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	double bindTime;
+	int set_bind;
 	struct SFVec3f centerOfRotation;
 	struct Uni_String *description;
 	float fieldOfView;
-	int isBound;
 	int jump;
 	struct X3D_Node *metadata;
 	struct SFRotation orientation;
 	struct SFVec3f position;
 	int retainUserOffsets;
-	int set_bind;
+	double bindTime;
+	int isBound;
 };
 extern struct X3D_Virt virt_Viewpoint;
 /***********************/
@@ -7385,7 +7384,6 @@ struct X3D_ViewpointGroup {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct X3D_Node *__proxNode;
 	struct SFVec3f center;
 	struct Multi_Node children;
 	struct Uni_String *description;
@@ -7393,6 +7391,7 @@ struct X3D_ViewpointGroup {
 	struct X3D_Node *metadata;
 	int retainUserOffsets;
 	struct SFVec3f size;
+	struct X3D_Node *__proxNode;
 };
 extern struct X3D_Virt virt_ViewpointGroup;
 /***********************/
@@ -7410,18 +7409,18 @@ struct X3D_VisibilitySensor {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	int __Samples;
-	int __occludeCheckCount;
-	int __oldEnabled;
-	struct Multi_Vec3f __points;
-	int __visible;
 	struct SFVec3f center;
 	int enabled;
+	struct SFVec3f size;
 	double enterTime;
 	double exitTime;
 	int isActive;
 	struct X3D_Node *metadata;
-	struct SFVec3f size;
+	int __visible;
+	int __occludeCheckCount;
+	struct Multi_Vec3f __points;
+	int __Samples;
+	int __oldEnabled;
 };
 extern struct X3D_Virt virt_VisibilitySensor;
 /***********************/
@@ -7440,8 +7439,8 @@ struct X3D_WorldInfo {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_String info;
-	struct X3D_Node *metadata;
 	struct Uni_String *title;
+	struct X3D_Node *metadata;
 };
 extern struct X3D_Virt virt_WorldInfo;
 extern struct X3D_Virt* virtTable[];

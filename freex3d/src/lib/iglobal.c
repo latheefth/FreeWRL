@@ -48,6 +48,7 @@ void Component_EnvironSensor_init(struct tComponent_EnvironSensor *t);
 void Component_Geometry3D_init(struct tComponent_Geometry3D *t);
 void Component_Geospatial_init(struct tComponent_Geospatial *t);
 void Component_HAnim_init(struct tComponent_HAnim *t);
+void Component_NURBS_init(struct tComponent_NURBS *t);
 void Component_KeyDevice_init(struct tComponent_KeyDevice *t);
 
 #ifdef OLDCODE
@@ -160,6 +161,7 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	Component_Geometry3D_init(&iglobal->Component_Geometry3D);
 	Component_Geospatial_init(&iglobal->Component_Geospatial);
 	Component_HAnim_init(&iglobal->Component_HAnim);
+	Component_NURBS_init(&iglobal->Component_NURBS);
 	Component_KeyDevice_init(&iglobal->Component_KeyDevice);
 #ifdef OLDCODE
 OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
@@ -244,6 +246,7 @@ void iglobal_destructor(ttglobal tg)
 OLDCODE	FREE_IF_NZ(tg->Component_Networking.prv);
 #endif
 	FREE_IF_NZ(tg->Component_KeyDevice.prv);
+	FREE_IF_NZ(tg->Component_NURBS.prv);
 	FREE_IF_NZ(tg->Component_HAnim.prv);
 	FREE_IF_NZ(tg->Component_Geospatial.prv);
 	FREE_IF_NZ(tg->Component_Geometry3D.prv);

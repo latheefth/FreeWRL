@@ -696,7 +696,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"uDimension",
 	"uKnot",
 	"uOrder",
-	"uTesselation",
 	"uTessellation",
 	"ulimit",
 	"update",
@@ -705,7 +704,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"vDimension",
 	"vKnot",
 	"vOrder",
-	"vTesselation",
 	"vTessellation",
 	"value",
 	"valueChanged",
@@ -1144,14 +1142,12 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"type",
 	"uDimension",
 	"uOrder",
-	"uTesselation",
 	"uTessellation",
 	"ulimit",
 	"update",
 	"url",
 	"vDimension",
 	"vOrder",
-	"vTesselation",
 	"vTessellation",
 	"value",
 	"vector",
@@ -2232,13 +2228,19 @@ struct X3D_Virt virt_Normal = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NUL
 
 struct X3D_Virt virt_NormalInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_NurbsCurve = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void render_NurbsCurve(struct X3D_NurbsCurve *);
+void compile_NurbsCurve(struct X3D_NurbsCurve *);
+struct X3D_Virt virt_NurbsCurve = { NULL,(void *)render_NurbsCurve,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_NurbsCurve};
 
 struct X3D_Virt virt_NurbsCurve2D = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 struct X3D_Virt virt_NurbsOrientationInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_NurbsPatchSurface = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void render_NurbsPatchSurface(struct X3D_NurbsPatchSurface *);
+void rendray_NurbsPatchSurface(struct X3D_NurbsPatchSurface *);
+void collide_NurbsPatchSurface(struct X3D_NurbsPatchSurface *);
+void compile_NurbsPatchSurface(struct X3D_NurbsPatchSurface *);
+struct X3D_Virt virt_NurbsPatchSurface = { NULL,(void *)render_NurbsPatchSurface,NULL,NULL,(void *)rendray_NurbsPatchSurface,NULL,NULL,NULL,(void *)collide_NurbsPatchSurface,(void *)compile_NurbsPatchSurface};
 
 struct X3D_Virt virt_NurbsPositionInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
@@ -2252,7 +2254,11 @@ struct X3D_Virt virt_NurbsSwungSurface = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NU
 
 struct X3D_Virt virt_NurbsTextureCoordinate = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_NurbsTrimmedSurface = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void render_NurbsTrimmedSurface(struct X3D_NurbsTrimmedSurface *);
+void rendray_NurbsTrimmedSurface(struct X3D_NurbsTrimmedSurface *);
+void collide_NurbsTrimmedSurface(struct X3D_NurbsTrimmedSurface *);
+void compile_NurbsTrimmedSurface(struct X3D_NurbsTrimmedSurface *);
+struct X3D_Virt virt_NurbsTrimmedSurface = { NULL,(void *)render_NurbsTrimmedSurface,NULL,NULL,(void *)rendray_NurbsTrimmedSurface,NULL,NULL,NULL,(void *)collide_NurbsTrimmedSurface,(void *)compile_NurbsTrimmedSurface};
 
 struct X3D_Virt virt_OSC_Sensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
@@ -2936,8 +2942,8 @@ const int OFFSETS_Coordinate[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_CoordinateDouble[] = {
-	(int) FIELDNAMES_controlPoint, (int) offsetof (struct X3D_CoordinateDouble, controlPoint),  (int) FIELDTYPE_MFVec2d, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_CoordinateDouble, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_point, (int) offsetof (struct X3D_CoordinateDouble, point),  (int) FIELDTYPE_MFVec3d, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_CoordinateInterpolator[] = {
@@ -4241,6 +4247,8 @@ const int OFFSETS_NormalInterpolator[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_NurbsCurve[] = {
+	(int) FIELDNAMES___numPoints, (int) offsetof (struct X3D_NurbsCurve, __numPoints),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___points, (int) offsetof (struct X3D_NurbsCurve, __points),  (int) FIELDTYPE_MFVec3f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_controlPoint, (int) offsetof (struct X3D_NurbsCurve, controlPoint),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_knot, (int) offsetof (struct X3D_NurbsCurve, knot),  (int) FIELDTYPE_MFDouble, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_NurbsCurve, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4318,6 +4326,7 @@ const int OFFSETS_NurbsSurfaceInterpolator[] = {
 	(int) FIELDNAMES_vDimension, (int) offsetof (struct X3D_NurbsSurfaceInterpolator, vDimension),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_vKnot, (int) offsetof (struct X3D_NurbsSurfaceInterpolator, vKnot),  (int) FIELDTYPE_MFDouble, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_vOrder, (int) offsetof (struct X3D_NurbsSurfaceInterpolator, vOrder),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_weight, (int) offsetof (struct X3D_NurbsSurfaceInterpolator, weight),  (int) FIELDTYPE_MFDouble, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_NurbsSweptSurface[] = {
@@ -4360,12 +4369,12 @@ const int OFFSETS_NurbsTrimmedSurface[] = {
 	(int) FIELDNAMES_uDimension, (int) offsetof (struct X3D_NurbsTrimmedSurface, uDimension),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_uKnot, (int) offsetof (struct X3D_NurbsTrimmedSurface, uKnot),  (int) FIELDTYPE_MFDouble, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_uOrder, (int) offsetof (struct X3D_NurbsTrimmedSurface, uOrder),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_uTesselation, (int) offsetof (struct X3D_NurbsTrimmedSurface, uTesselation),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_uTessellation, (int) offsetof (struct X3D_NurbsTrimmedSurface, uTessellation),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_vClosed, (int) offsetof (struct X3D_NurbsTrimmedSurface, vClosed),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_vDimension, (int) offsetof (struct X3D_NurbsTrimmedSurface, vDimension),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_vKnot, (int) offsetof (struct X3D_NurbsTrimmedSurface, vKnot),  (int) FIELDTYPE_MFDouble, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_vOrder, (int) offsetof (struct X3D_NurbsTrimmedSurface, vOrder),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_vTesselation, (int) offsetof (struct X3D_NurbsTrimmedSurface, vTesselation),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_vTessellation, (int) offsetof (struct X3D_NurbsTrimmedSurface, vTessellation),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_weight, (int) offsetof (struct X3D_NurbsTrimmedSurface, weight),  (int) FIELDTYPE_MFDouble, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
@@ -6237,7 +6246,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->metadata = NULL;
 			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_geometry;
+			tmp2->_defaultContainer = FIELDNAMES_trimmingContour;
 		break;
 		}
 		case NODE_ContourPolyLine2D : {
@@ -6259,8 +6268,8 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_CoordinateDouble : {
 			struct X3D_CoordinateDouble * tmp2;
 			tmp2 = (struct X3D_CoordinateDouble *) tmp;
-			tmp2->controlPoint.n=0; tmp2->controlPoint.p=0;
 			tmp2->metadata = NULL;
+			tmp2->point.n=0; tmp2->point.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -7964,13 +7973,15 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_NurbsCurve : {
 			struct X3D_NurbsCurve * tmp2;
 			tmp2 = (struct X3D_NurbsCurve *) tmp;
+			tmp2->__numPoints = 0;
+			tmp2->__points.n=0; tmp2->__points.p=0;
 			tmp2->controlPoint = NULL;
 			tmp2->knot.n=0; tmp2->knot.p=0;
 			tmp2->metadata = NULL;
 			tmp2->order = 3;
 			tmp2->tessellation = 0;
 			tmp2->weight.n=0; tmp2->weight.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_children;
+			tmp2->_defaultContainer = FIELDNAMES_geometry;
 		break;
 		}
 		case NODE_NurbsCurve2D : {
@@ -8016,7 +8027,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->vOrder = 3;
 			tmp2->vTessellation = 0;
 			tmp2->weight.n=0; tmp2->weight.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_children;
+			tmp2->_defaultContainer = FIELDNAMES_geometry;
 		break;
 		}
 		case NODE_NurbsPositionInterpolator : {
@@ -8059,6 +8070,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->vDimension = 0;
 			tmp2->vKnot.n=0; tmp2->vKnot.p=0;
 			tmp2->vOrder = 3;
+			tmp2->weight.n=0; tmp2->weight.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -8113,14 +8125,14 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->uDimension = 0;
 			tmp2->uKnot.n=0; tmp2->uKnot.p=0;
 			tmp2->uOrder = 3;
-			tmp2->uTesselation = 0;
+			tmp2->uTessellation = 0;
 			tmp2->vClosed = FALSE;
 			tmp2->vDimension = 0;
 			tmp2->vKnot.n=0; tmp2->vKnot.p=0;
 			tmp2->vOrder = 3;
-			tmp2->vTesselation = 0;
+			tmp2->vTessellation = 0;
 			tmp2->weight.n=0; tmp2->weight.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_children;
+			tmp2->_defaultContainer = FIELDNAMES_geometry;
 		break;
 		}
 		case NODE_OSC_Sensor : {
@@ -9615,11 +9627,11 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_CoordinateDouble *tmp;
 			tmp = (struct X3D_CoordinateDouble *) node;
 			UNUSED(tmp); // compiler warning mitigation
-			spacer fprintf (fp," controlPoint (MFVec2d):\n");
-			for (i=0; i<tmp->controlPoint.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->controlPoint.p[i]).c[0], (tmp->controlPoint.p[i]).c[1]); }
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
+			spacer fprintf (fp," point (MFVec3d):\n");
+			for (i=0; i<tmp->point.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->point.p[i]).c[0], (tmp->point.p[i]).c[1],(tmp->point.p[i]).c[2]); }
 		    break;
 		}
 		case NODE_CoordinateInterpolator : {
@@ -11360,6 +11372,8 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			spacer fprintf (fp," uOrder (SFInt32) \t%d\n",tmp->uOrder);
 			spacer fprintf (fp," vDimension (SFInt32) \t%d\n",tmp->vDimension);
 			spacer fprintf (fp," vOrder (SFInt32) \t%d\n",tmp->vOrder);
+			spacer fprintf (fp," weight (MFDouble):\n");
+			for (i=0; i<tmp->weight.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->weight.p[i]); }
 		    break;
 		}
 		case NODE_NurbsSweptSurface : {
@@ -11414,10 +11428,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			for (i=0; i<tmp->trimmingContour.n; i++) { dump_scene(fp,level+1,tmp->trimmingContour.p[i]); }
 			spacer fprintf (fp," uDimension (SFInt32) \t%d\n",tmp->uDimension);
 			spacer fprintf (fp," uOrder (SFInt32) \t%d\n",tmp->uOrder);
-			spacer fprintf (fp," uTesselation (SFInt32) \t%d\n",tmp->uTesselation);
+			spacer fprintf (fp," uTessellation (SFInt32) \t%d\n",tmp->uTessellation);
 			spacer fprintf (fp," vDimension (SFInt32) \t%d\n",tmp->vDimension);
 			spacer fprintf (fp," vOrder (SFInt32) \t%d\n",tmp->vOrder);
-			spacer fprintf (fp," vTesselation (SFInt32) \t%d\n",tmp->vTesselation);
+			spacer fprintf (fp," vTessellation (SFInt32) \t%d\n",tmp->vTessellation);
 			spacer fprintf (fp," weight (MFDouble):\n");
 			for (i=0; i<tmp->weight.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->weight.p[i]); }
 		    break;
