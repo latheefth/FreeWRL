@@ -696,7 +696,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"uDimension",
 	"uKnot",
 	"uOrder",
-	"uTesselation",
 	"uTessellation",
 	"ulimit",
 	"update",
@@ -705,7 +704,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"vDimension",
 	"vKnot",
 	"vOrder",
-	"vTesselation",
 	"vTessellation",
 	"value",
 	"valueChanged",
@@ -1144,14 +1142,12 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"type",
 	"uDimension",
 	"uOrder",
-	"uTesselation",
 	"uTessellation",
 	"ulimit",
 	"update",
 	"url",
 	"vDimension",
 	"vOrder",
-	"vTesselation",
 	"vTessellation",
 	"value",
 	"vector",
@@ -4330,6 +4326,7 @@ const int OFFSETS_NurbsSurfaceInterpolator[] = {
 	(int) FIELDNAMES_vDimension, (int) offsetof (struct X3D_NurbsSurfaceInterpolator, vDimension),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_vKnot, (int) offsetof (struct X3D_NurbsSurfaceInterpolator, vKnot),  (int) FIELDTYPE_MFDouble, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_vOrder, (int) offsetof (struct X3D_NurbsSurfaceInterpolator, vOrder),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_weight, (int) offsetof (struct X3D_NurbsSurfaceInterpolator, weight),  (int) FIELDTYPE_MFDouble, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_NurbsSweptSurface[] = {
@@ -4372,12 +4369,12 @@ const int OFFSETS_NurbsTrimmedSurface[] = {
 	(int) FIELDNAMES_uDimension, (int) offsetof (struct X3D_NurbsTrimmedSurface, uDimension),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_uKnot, (int) offsetof (struct X3D_NurbsTrimmedSurface, uKnot),  (int) FIELDTYPE_MFDouble, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_uOrder, (int) offsetof (struct X3D_NurbsTrimmedSurface, uOrder),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_uTesselation, (int) offsetof (struct X3D_NurbsTrimmedSurface, uTesselation),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_uTessellation, (int) offsetof (struct X3D_NurbsTrimmedSurface, uTessellation),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_vClosed, (int) offsetof (struct X3D_NurbsTrimmedSurface, vClosed),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_vDimension, (int) offsetof (struct X3D_NurbsTrimmedSurface, vDimension),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_vKnot, (int) offsetof (struct X3D_NurbsTrimmedSurface, vKnot),  (int) FIELDTYPE_MFDouble, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_vOrder, (int) offsetof (struct X3D_NurbsTrimmedSurface, vOrder),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_vTesselation, (int) offsetof (struct X3D_NurbsTrimmedSurface, vTesselation),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_vTessellation, (int) offsetof (struct X3D_NurbsTrimmedSurface, vTessellation),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_weight, (int) offsetof (struct X3D_NurbsTrimmedSurface, weight),  (int) FIELDTYPE_MFDouble, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
@@ -8073,6 +8070,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->vDimension = 0;
 			tmp2->vKnot.n=0; tmp2->vKnot.p=0;
 			tmp2->vOrder = 3;
+			tmp2->weight.n=0; tmp2->weight.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -8127,12 +8125,12 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->uDimension = 0;
 			tmp2->uKnot.n=0; tmp2->uKnot.p=0;
 			tmp2->uOrder = 3;
-			tmp2->uTesselation = 0;
+			tmp2->uTessellation = 0;
 			tmp2->vClosed = FALSE;
 			tmp2->vDimension = 0;
 			tmp2->vKnot.n=0; tmp2->vKnot.p=0;
 			tmp2->vOrder = 3;
-			tmp2->vTesselation = 0;
+			tmp2->vTessellation = 0;
 			tmp2->weight.n=0; tmp2->weight.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_geometry;
 		break;
@@ -11374,6 +11372,8 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			spacer fprintf (fp," uOrder (SFInt32) \t%d\n",tmp->uOrder);
 			spacer fprintf (fp," vDimension (SFInt32) \t%d\n",tmp->vDimension);
 			spacer fprintf (fp," vOrder (SFInt32) \t%d\n",tmp->vOrder);
+			spacer fprintf (fp," weight (MFDouble):\n");
+			for (i=0; i<tmp->weight.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->weight.p[i]); }
 		    break;
 		}
 		case NODE_NurbsSweptSurface : {
@@ -11428,10 +11428,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			for (i=0; i<tmp->trimmingContour.n; i++) { dump_scene(fp,level+1,tmp->trimmingContour.p[i]); }
 			spacer fprintf (fp," uDimension (SFInt32) \t%d\n",tmp->uDimension);
 			spacer fprintf (fp," uOrder (SFInt32) \t%d\n",tmp->uOrder);
-			spacer fprintf (fp," uTesselation (SFInt32) \t%d\n",tmp->uTesselation);
+			spacer fprintf (fp," uTessellation (SFInt32) \t%d\n",tmp->uTessellation);
 			spacer fprintf (fp," vDimension (SFInt32) \t%d\n",tmp->vDimension);
 			spacer fprintf (fp," vOrder (SFInt32) \t%d\n",tmp->vOrder);
-			spacer fprintf (fp," vTesselation (SFInt32) \t%d\n",tmp->vTesselation);
+			spacer fprintf (fp," vTessellation (SFInt32) \t%d\n",tmp->vTessellation);
 			spacer fprintf (fp," weight (MFDouble):\n");
 			for (i=0; i<tmp->weight.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->weight.p[i]); }
 		    break;

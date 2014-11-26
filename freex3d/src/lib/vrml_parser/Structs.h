@@ -947,39 +947,37 @@ extern const int FIELDNAMES_COUNT;
 #define FIELDNAMES_uDimension	625
 #define FIELDNAMES_uKnot	626
 #define FIELDNAMES_uOrder	627
-#define FIELDNAMES_uTesselation	628
-#define FIELDNAMES_uTessellation	629
-#define FIELDNAMES_ulimit	630
-#define FIELDNAMES_update	631
-#define FIELDNAMES_url	632
-#define FIELDNAMES_vClosed	633
-#define FIELDNAMES_vDimension	634
-#define FIELDNAMES_vKnot	635
-#define FIELDNAMES_vOrder	636
-#define FIELDNAMES_vTesselation	637
-#define FIELDNAMES_vTessellation	638
-#define FIELDNAMES_value	639
-#define FIELDNAMES_valueChanged	640
-#define FIELDNAMES_value_changed	641
-#define FIELDNAMES_vector	642
-#define FIELDNAMES_version	643
-#define FIELDNAMES_vertexCount	644
-#define FIELDNAMES_vertices	645
-#define FIELDNAMES_viewpoints	646
-#define FIELDNAMES_visibilityLimit	647
-#define FIELDNAMES_visibilityRange	648
-#define FIELDNAMES_visible	649
-#define FIELDNAMES_warhead	650
-#define FIELDNAMES_watchList	651
-#define FIELDNAMES_weight	652
-#define FIELDNAMES_whichChoice	653
-#define FIELDNAMES_whichGeometry	654
-#define FIELDNAMES_writeInterval	655
-#define FIELDNAMES_xDimension	656
-#define FIELDNAMES_xSpacing	657
-#define FIELDNAMES_yScale	658
-#define FIELDNAMES_zDimension	659
-#define FIELDNAMES_zSpacing	660
+#define FIELDNAMES_uTessellation	628
+#define FIELDNAMES_ulimit	629
+#define FIELDNAMES_update	630
+#define FIELDNAMES_url	631
+#define FIELDNAMES_vClosed	632
+#define FIELDNAMES_vDimension	633
+#define FIELDNAMES_vKnot	634
+#define FIELDNAMES_vOrder	635
+#define FIELDNAMES_vTessellation	636
+#define FIELDNAMES_value	637
+#define FIELDNAMES_valueChanged	638
+#define FIELDNAMES_value_changed	639
+#define FIELDNAMES_vector	640
+#define FIELDNAMES_version	641
+#define FIELDNAMES_vertexCount	642
+#define FIELDNAMES_vertices	643
+#define FIELDNAMES_viewpoints	644
+#define FIELDNAMES_visibilityLimit	645
+#define FIELDNAMES_visibilityRange	646
+#define FIELDNAMES_visible	647
+#define FIELDNAMES_warhead	648
+#define FIELDNAMES_watchList	649
+#define FIELDNAMES_weight	650
+#define FIELDNAMES_whichChoice	651
+#define FIELDNAMES_whichGeometry	652
+#define FIELDNAMES_writeInterval	653
+#define FIELDNAMES_xDimension	654
+#define FIELDNAMES_xSpacing	655
+#define FIELDNAMES_yScale	656
+#define FIELDNAMES_zDimension	657
+#define FIELDNAMES_zSpacing	658
 
 const char *stringFieldType(int st);
 
@@ -1393,30 +1391,28 @@ extern const int EXPOSED_FIELD_COUNT;
 #define EXPOSED_FIELD_type	279
 #define EXPOSED_FIELD_uDimension	280
 #define EXPOSED_FIELD_uOrder	281
-#define EXPOSED_FIELD_uTesselation	282
-#define EXPOSED_FIELD_uTessellation	283
-#define EXPOSED_FIELD_ulimit	284
-#define EXPOSED_FIELD_update	285
-#define EXPOSED_FIELD_url	286
-#define EXPOSED_FIELD_vDimension	287
-#define EXPOSED_FIELD_vOrder	288
-#define EXPOSED_FIELD_vTesselation	289
-#define EXPOSED_FIELD_vTessellation	290
-#define EXPOSED_FIELD_value	291
-#define EXPOSED_FIELD_vector	292
-#define EXPOSED_FIELD_version	293
-#define EXPOSED_FIELD_vertexCount	294
-#define EXPOSED_FIELD_vertices	295
-#define EXPOSED_FIELD_viewpoints	296
-#define EXPOSED_FIELD_visibilityLimit	297
-#define EXPOSED_FIELD_visibilityRange	298
-#define EXPOSED_FIELD_visible	299
-#define EXPOSED_FIELD_warhead	300
-#define EXPOSED_FIELD_watchList	301
-#define EXPOSED_FIELD_weight	302
-#define EXPOSED_FIELD_whichChoice	303
-#define EXPOSED_FIELD_whichGeometry	304
-#define EXPOSED_FIELD_writeInterval	305
+#define EXPOSED_FIELD_uTessellation	282
+#define EXPOSED_FIELD_ulimit	283
+#define EXPOSED_FIELD_update	284
+#define EXPOSED_FIELD_url	285
+#define EXPOSED_FIELD_vDimension	286
+#define EXPOSED_FIELD_vOrder	287
+#define EXPOSED_FIELD_vTessellation	288
+#define EXPOSED_FIELD_value	289
+#define EXPOSED_FIELD_vector	290
+#define EXPOSED_FIELD_version	291
+#define EXPOSED_FIELD_vertexCount	292
+#define EXPOSED_FIELD_vertices	293
+#define EXPOSED_FIELD_viewpoints	294
+#define EXPOSED_FIELD_visibilityLimit	295
+#define EXPOSED_FIELD_visibilityRange	296
+#define EXPOSED_FIELD_visible	297
+#define EXPOSED_FIELD_warhead	298
+#define EXPOSED_FIELD_watchList	299
+#define EXPOSED_FIELD_weight	300
+#define EXPOSED_FIELD_whichChoice	301
+#define EXPOSED_FIELD_whichGeometry	302
+#define EXPOSED_FIELD_writeInterval	303
 
 
 /* Table of built-in fieldIds */
@@ -5562,12 +5558,12 @@ struct X3D_NurbsCurve {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct X3D_Node *controlPoint;
 	struct X3D_Node *metadata;
-	int tessellation;
+	struct X3D_Node *controlPoint;
 	struct Multi_Double weight;
 	struct Multi_Double knot;
 	int order;
+	int tessellation;
 	struct Multi_Vec3f __points;
 	int __numPoints;
 };
@@ -5587,12 +5583,12 @@ struct X3D_NurbsCurve2D {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Vec2d controlPoint;
 	struct X3D_Node *metadata;
-	int tessellation;
+	struct Multi_Vec2d controlPoint;
 	struct Multi_Double weight;
 	struct Multi_Double knot;
 	int order;
+	int tessellation;
 };
 extern struct X3D_Virt virt_NurbsCurve2D;
 /***********************/
@@ -5610,12 +5606,12 @@ struct X3D_NurbsOrientationInterpolator {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	float set_fraction;
-	struct X3D_Node *controlPoint;
-	struct Multi_Double knot;
 	struct X3D_Node *metadata;
-	int order;
+	struct X3D_Node *controlPoint;
 	struct Multi_Double weight;
+	struct Multi_Double knot;
+	int order;
+	float set_fraction;
 	struct SFRotation value_changed;
 };
 extern struct X3D_Virt virt_NurbsOrientationInterpolator;
@@ -5634,21 +5630,21 @@ struct X3D_NurbsPatchSurface {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct X3D_Node *controlPoint;
 	struct X3D_Node *metadata;
-	struct X3D_Node *texCoord;
-	int uTessellation;
-	int vTessellation;
+	struct X3D_Node *controlPoint;
 	struct Multi_Double weight;
-	int solid;
-	int uClosed;
-	int uDimension;
 	struct Multi_Double uKnot;
 	int uOrder;
-	int vClosed;
-	int vDimension;
+	int uDimension;
+	int uTessellation;
+	int uClosed;
 	struct Multi_Double vKnot;
 	int vOrder;
+	int vDimension;
+	int vTessellation;
+	int vClosed;
+	struct X3D_Node *texCoord;
+	int solid;
 };
 extern struct X3D_Virt virt_NurbsPatchSurface;
 /***********************/
@@ -5666,12 +5662,12 @@ struct X3D_NurbsPositionInterpolator {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	float set_fraction;
-	struct X3D_Node *controlPoint;
-	struct Multi_Double knot;
 	struct X3D_Node *metadata;
-	int order;
+	struct X3D_Node *controlPoint;
 	struct Multi_Double weight;
+	struct Multi_Double knot;
+	int order;
+	float set_fraction;
 	struct SFVec3f value_changed;
 };
 extern struct X3D_Virt virt_NurbsPositionInterpolator;
@@ -5714,17 +5710,18 @@ struct X3D_NurbsSurfaceInterpolator {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct SFVec2f set_fraction;
-	struct X3D_Node *controlPoint;
 	struct X3D_Node *metadata;
-	struct SFVec3f position_changed;
-	struct SFVec3f normal_changed;
-	int uDimension;
+	struct X3D_Node *controlPoint;
+	struct Multi_Double weight;
 	struct Multi_Double uKnot;
 	int uOrder;
-	int vDimension;
+	int uDimension;
 	struct Multi_Double vKnot;
 	int vOrder;
+	int vDimension;
+	struct SFVec2f set_fraction;
+	struct SFVec3f position_changed;
+	struct SFVec3f normal_changed;
 };
 extern struct X3D_Virt virt_NurbsSurfaceInterpolator;
 /***********************/
@@ -5786,15 +5783,15 @@ struct X3D_NurbsTextureCoordinate {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct Multi_Vec2f controlPoint;
 	struct X3D_Node *metadata;
+	struct Multi_Vec2f controlPoint;
 	struct Multi_Float weight;
-	int uDimension;
 	struct Multi_Double uKnot;
 	int uOrder;
-	int vDimension;
+	int uDimension;
 	struct Multi_Double vKnot;
 	int vOrder;
+	int vDimension;
 };
 extern struct X3D_Virt virt_NurbsTextureCoordinate;
 /***********************/
@@ -5812,21 +5809,21 @@ struct X3D_NurbsTrimmedSurface {
        int _defaultContainer; /* holds the container */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
-	struct X3D_Node *controlPoint;
 	struct X3D_Node *metadata;
-	struct X3D_Node *texCoord;
-	int uTesselation;
-	int vTesselation;
+	struct X3D_Node *controlPoint;
 	struct Multi_Double weight;
-	int solid;
-	int uClosed;
-	int uDimension;
 	struct Multi_Double uKnot;
 	int uOrder;
-	int vClosed;
-	int vDimension;
+	int uDimension;
+	int uTessellation;
+	int uClosed;
 	struct Multi_Double vKnot;
 	int vOrder;
+	int vDimension;
+	int vTessellation;
+	int vClosed;
+	struct X3D_Node *texCoord;
+	int solid;
 	struct Multi_Node addTrimmingContour;
 	struct Multi_Node removeTrimmingContour;
 	struct Multi_Node trimmingContour;

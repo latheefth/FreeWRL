@@ -834,14 +834,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 #endif
 }
 
-//void compile_NurbsPatchSurface (struct X3D_NurbsPatchSurface * node) {
-//
-//	#ifdef VERBOSE
-//	printf ("compiling NurbsPatchSurface\n");
-//	#endif
-//
-//	MARK_NODE_COMPILED
-//}
+
 void render_ray_polyrep(void *node);
 void collide_genericfaceset(void *node);
 void render_polyrep(void *node);
@@ -863,7 +856,6 @@ void collide_NurbsPatchSurface (struct X3D_NurbsPatchSurface *node) {
 }
 
 void render_NurbsPatchSurface (struct X3D_NurbsPatchSurface *node) {
-		//COMPILE_POLY_IF_REQUIRED (node->coord, node->color, node->normal, node->texCoord)
 		COMPILE_IF_REQUIRED
 		if (!node->_intern) return;
 		CULL_FACE(node->solid)
@@ -888,9 +880,194 @@ void collide_NurbsTrimmedSurface (struct X3D_NurbsTrimmedSurface *node) {
 }
 
 void render_NurbsTrimmedSurface (struct X3D_NurbsTrimmedSurface *node) {
-		//COMPILE_POLY_IF_REQUIRED (node->coord, node->color, node->normal, node->texCoord)
 		COMPILE_IF_REQUIRED
 		if (!node->_intern) return;
 		CULL_FACE(node->solid)
 		render_polyrep(node);
+}
+
+void do_NurbsPositionInterpolator (void *node) {
+	struct X3D_NurbsPositionInterpolator *px;
+	int kin, kvin, counter, tmp;
+	struct SFVec3f *kVs; 
+
+	if (!node) return;
+	px = (struct X3D_NurbsPositionInterpolator *) node;
+
+	//kvin = px->controlPoint->.n;
+	//kVs = px->controlPoint.p;
+
+	MARK_EVENT (node, offsetof (struct X3D_NurbsPositionInterpolator, value_changed)); 
+
+	// make sure we have the keys and keyValues 
+	if ((kvin == 0) || (kin == 0)) {
+		vecset3f(px->value_changed.c,0.0f,0.0f,0.0f);
+		return;
+	}
+
+	if (kin>kvin) kin=kvin; // means we don't use whole of keyValue, but... 
+
+	// set_fraction less than or greater than keys 
+	//if (px->set_fraction <= ((px->key).p[0])) {
+	//	memcpy ((void *)&px->value_changed, (void *)&kVs[0], sizeof (struct SFVec3f));
+	//} else if (px->set_fraction >= px->key.p[kin-1]) {
+	//	memcpy ((void *)&px->value_changed, (void *)&kVs[kvin-1], sizeof (struct SFVec3f));
+	//} else {
+	//	// have to go through and find the key before 
+	//	counter = find_key(kin,((float)(px->set_fraction)),px->key.p);
+	//	for (tmp=0; tmp<3; tmp++) {
+	//		px->value_changed.c[tmp] =
+	//			(px->set_fraction - px->key.p[counter-1]) /
+	//			(px->key.p[counter] - px->key.p[counter-1]) *
+	//			(kVs[counter].c[tmp] - kVs[counter-1].c[tmp]) + kVs[counter-1].c[tmp];
+	//	}
+	//}
+	#ifdef SEVERBOSE
+	printf ("Pos/Col, new value (%f %f %f)\n",
+		px->value_changed.c[0],px->value_changed.c[1],px->value_changed.c[2]);
+	#endif
+}
+
+/* NurbsOrientationInterpolator				 		
+ Called during the "events_processed" section of the event loop,	
+ so this is called ONLY when there is something required to do, thus	
+ there is no need to look at whether it is active or not
+ */
+#include "quaternion.h"
+void do_NurbsOrientationInterpolator (void *node) {
+/*
+	struct X3D_NurbsOrientationInterpolator *px;
+	int kin, kvin;
+	struct SFRotation *kVs;
+	int counter;
+	float interval;		// where we are between 2 values 
+	// UNUSED?? int stzero;
+	// UNUSED?? int endzero;	// starting and/or ending angles zero? 
+
+	Quaternion st, fin, final;
+	double x,y,z,a;
+
+	if (!node) return;
+	px = (struct X3D_NurbsOrientationInterpolator *) node;
+	kin = ((px->key).n);
+	kvin = ((px->keyValue).n);
+	kVs = ((px->keyValue).p);
+
+	#ifdef SEVERBOSE
+	printf ("starting do_Oint4; keyValue count %d and key count %d\n",
+				kvin, kin);
+	#endif
+
+
+	MARK_EVENT (node, offsetof (struct X3D_NurbsOrientationInterpolator, value_changed));
+
+	// make sure we have the keys and keyValues 
+	if ((kvin == 0) || (kin == 0)) {
+		px->value_changed.c[0] = (float) 0.0;
+		px->value_changed.c[1] = (float) 0.0;
+		px->value_changed.c[2] = (float) 0.0;
+		px->value_changed.c[3] = (float) 0.0;
+		return;
+	}
+	if (kin>kvin) kin=kvin; // means we don't use whole of keyValue, but... 
+
+
+	// set_fraction less than or greater than keys 
+	if (px->set_fraction <= ((px->key).p[0])) {
+		memcpy ((void *)&px->value_changed,
+				(void *)&kVs[0], sizeof (struct SFRotation));
+	} else if (px->set_fraction >= ((px->key).p[kin-1])) {
+		memcpy ((void *)&px->value_changed,
+				(void *)&kVs[kvin-1], sizeof (struct SFRotation));
+	} else {
+		counter = find_key(kin,(float)(px->set_fraction),px->key.p);
+		interval = (px->set_fraction - px->key.p[counter-1]) /
+				(px->key.p[counter] - px->key.p[counter-1]);
+
+		
+		// are either the starting or ending angles zero? 
+		// unused? stzero = APPROX(kVs[counter-1].c[3],0.0);
+		// unused? endzero = APPROX(kVs[counter].c[3],0.0);
+		#ifdef SEVERBOSE
+			printf ("counter %d interval %f\n",counter,interval);
+			printf ("angles %f %f %f %f, %f %f %f %f\n",
+				kVs[counter-1].c[0],
+				kVs[counter-1].c[1],
+				kVs[counter-1].c[2],
+				kVs[counter-1].c[3],
+				kVs[counter].c[0],
+				kVs[counter].c[1],
+				kVs[counter].c[2],
+				kVs[counter].c[3]);
+		#endif
+		vrmlrot_to_quaternion (&st, kVs[counter-1].c[0],
+                                kVs[counter-1].c[1], kVs[counter-1].c[2], kVs[counter-1].c[3]);
+		vrmlrot_to_quaternion (&fin,kVs[counter].c[0],
+                                kVs[counter].c[1], kVs[counter].c[2], kVs[counter].c[3]);
+
+		quaternion_slerp(&final, &st, &fin, (double)interval);
+		quaternion_to_vrmlrot(&final,&x, &y, &z, &a);
+		px->value_changed.c[0] = (float) x;
+		px->value_changed.c[1] = (float) y;
+		px->value_changed.c[2] = (float) z;
+		px->value_changed.c[3] = (float) a;
+
+		#ifdef SEVERBOSE
+		printf ("Oint, new angle %f %f %f %f\n",px->value_changed.c[0],
+			px->value_changed.c[1],px->value_changed.c[2], px->value_changed.c[3]);
+		#endif
+	}
+*/
+}
+
+void do_NurbsSurfaceInterpolator (void *node) {
+/*
+	struct X3D_NurbsSurfaceInterpolator *px;
+	int kin, kvin, counter, tmp;
+	struct SFVec3f *kVs; 
+
+	if (!node) return;
+	px = (struct X3D_NurbsSurfaceInterpolator *) node;
+
+	kvin = px->keyValue.n;
+	kVs = px->keyValue.p;
+	kin = px->key.n;
+
+	MARK_EVENT (node, offsetof (struct X3D_NurbsSurfaceInterpolator, position_changed)); 
+	MARK_EVENT (node, offsetof (struct X3D_NurbsSurfaceInterpolator, normal_changed)); 
+
+	#ifdef SEVERBOSE
+		printf("do_PositionInt: Position/Vec3f interp, node %u kin %d kvin %d set_fraction %f\n",
+			   node, kin, kvin, px->set_fraction);
+	#endif
+
+	// make sure we have the keys and keyValues 
+	if ((kvin == 0) || (kin == 0)) {
+		vecset3f(px->position_changed.c,0.0f,0.0f,0.0f);
+		vecset3f(px->normal_changed.c,0.0f,0.0f,0.0f);
+		return;
+	}
+
+	if (kin>kvin) kin=kvin; // means we don't use whole of keyValue, but... 
+
+	// set_fraction less than or greater than keys 
+	if (px->set_fraction <= ((px->key).p[0])) {
+		memcpy ((void *)&px->value_changed, (void *)&kVs[0], sizeof (struct SFVec3f));
+	} else if (px->set_fraction >= px->key.p[kin-1]) {
+		memcpy ((void *)&px->value_changed, (void *)&kVs[kvin-1], sizeof (struct SFVec3f));
+	} else {
+		// have to go through and find the key before 
+		counter = find_key(kin,((float)(px->set_fraction)),px->key.p);
+		for (tmp=0; tmp<3; tmp++) {
+			px->value_changed.c[tmp] =
+				(px->set_fraction - px->key.p[counter-1]) /
+				(px->key.p[counter] - px->key.p[counter-1]) *
+				(kVs[counter].c[tmp] - kVs[counter-1].c[tmp]) + kVs[counter-1].c[tmp];
+		}
+	}
+	#ifdef SEVERBOSE
+	printf ("Pos/Col, new value (%f %f %f)\n",
+		px->value_changed.c[0],px->value_changed.c[1],px->value_changed.c[2]);
+	#endif
+*/
 }

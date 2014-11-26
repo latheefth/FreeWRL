@@ -281,6 +281,7 @@
     <ClInclude Include="$(SRC)\lib\system.h" />
     <ClInclude Include="$(SRC)\lib\scenegraph\Vector.h" />
     <ClInclude Include="$(SRC)\lib\scenegraph\Viewer.h" />
+    <ClInclude Include="..\..\src\lib\scenegraph\LinearAlgebra.h" />
     <ClInclude Include="..\..\src\lib\ui\statusbar.h" />
     <ClInclude Include="..\..\src\lib\x3d_parser\X3DParser.h" />
     <ClInclude Include="..\..\src\lib\x3d_parser\X3DProtoScript.h" />
