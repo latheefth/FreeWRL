@@ -45,6 +45,7 @@
 
 #include "Component_Shape.h"
 #include "../scenegraph/RenderFuncs.h"
+#include "../vrml_parser/CRoutes.h"
 
 #include <float.h>
 #if defined(_MSC_VER) && _MSC_VER < 1500
@@ -440,7 +441,9 @@ struct X3D_PolyRep * create_polyrep(){
 	/* printf ("they are %u %u %u %u\n",polyrep->VBO_buffers[0],polyrep->VBO_buffers[1],polyrep->VBO_buffers[2],polyrep->VBO_buffers[3]); */
 	return polyrep;
 }
-
+#ifndef NURBS_LIB
+#define GL_QUAD_STRIP				0x0008
+#endif
 void convert_strips_to_polyrep(struct Vector * strips,struct X3D_PolyRep *rep){
 	int i, j, npoints, np, ni, ntri, nindex;
 	struct stripState ss;
