@@ -612,7 +612,7 @@ int unload_broto(struct X3D_Proto* node);
 void load_Inline (struct X3D_Inline *node) {
 	resource_item_t *res;
 	struct X3D_Proto *context;
-    //printf ("load_Inline, node %p loadStatus %d\n",node,node->load);
+    //printf ("load_Inline, node %p loadStatus %d url %s\n",node,node->__loadstatus,node->url.p[0]->strptr);
 	/* printf ("loading Inline\n");  */
 
 	switch (node->__loadstatus) {
@@ -637,6 +637,7 @@ void load_Inline (struct X3D_Inline *node) {
 		res->actions = resa_download | resa_load; //not resa_parse which we do below
 		//frontenditem_enqueue(ml_new(res));
 		resitem_enqueue(ml_new(res));
+		//printf("fetching..");
 		node->__loadstatus = INLINE_FETCHING_RESOURCE;
 		break;
 
@@ -658,9 +659,10 @@ void load_Inline (struct X3D_Inline *node) {
 				//send_resource_to_parser(res);
 				//send_resource_to_parser_if_available(res);
 				resitem_enqueue(ml_new(res));
+				//printf("parsing..");
 			} else if ((res->status == ress_failed) || (res->status == ress_invalid)) {
 				//no hope left
-				printf ("resource failed to load\n");
+				//printf ("resource failed to load\n");
 				node->__loadstatus = INLINE_STABLE; // a "do-nothing" approach 
 			}
 		}
@@ -680,6 +682,7 @@ void load_Inline (struct X3D_Inline *node) {
 
 		break;
 		case INLINE_IMPORTING:
+			//printf("importing..");
 			context = hasContext(node->_executionContext);
 			if(context)
 				update_weakRoutes(context);
@@ -687,18 +690,20 @@ void load_Inline (struct X3D_Inline *node) {
 		break;
 		case INLINE_STABLE:
 		if(!node->load){
-			printf ("unloading Inline\n");
+			//printf ("unloading Inline..\n");
 			node->__loadstatus = INLINE_UN_IMPORTING; //INITIAL_STATE;
 		}
 
 		break;
 		case INLINE_UN_IMPORTING:
+			//printf("un-importing..");
 			context = hasContext(node->_executionContext);
 			if(context)
 				update_weakRoutes(context); //remove any imported routes so no dangling route pointers
 			node->__loadstatus = INLINE_UNLOADING;
 			break;
 		case INLINE_UNLOADING:
+			//printf("unloading ..");
 			/* missing code to unload inline 
 				The same (missing) cleanup function could also be used to unload scene and protoInstances, and 
 				the garbage collection part can be used on protoDeclares, externProtoDeclares,
@@ -721,9 +726,10 @@ void load_Inline (struct X3D_Inline *node) {
 				e malloc heap used for elements of __ vectors - need a context-specific malloc and heap ie fmalloc(context,sizeof)
 			C. clear/reset scalar values so Inline can be re-used/re-loaded: (not sure, likely none to worry about)
 			*/
-			node->__children.n = 0; //this hack will make it look like it's unloaded, but chaos results with a subsequent reload
-			node->__loadstatus = INLINE_INITIAL_STATE;
+			//node->__children.n = 0; //this hack will make it look like it's unloaded, but chaos results with a subsequent reload
 			unload_broto(X3D_PROTO(node));
+			node->__loadstatus = INLINE_INITIAL_STATE;
+			//printf("unloaded..\n");
 			break;
 		default:
 			break; //if its part way loaded, we'll wait till it finishes.
