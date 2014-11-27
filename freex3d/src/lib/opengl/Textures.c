@@ -564,6 +564,7 @@ void registerTexture(struct X3D_Node *tmp) {
 void unRegisterTexture(struct X3D_Node *tmp) {
 	registerTexture0(0,tmp);
 }
+void add_node_to_broto_context(struct X3D_Proto *currentContext,struct X3D_Node *node);
 /* do TextureBackground textures, if possible */
 void loadBackgroundTextures (struct X3D_Background *node) {
 	struct X3D_ImageTexture *thistex;
@@ -592,6 +593,12 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 				int i;
 				thistex = createNewX3DNode(NODE_ImageTexture);
 				thistp = createNewX3DNode (NODE_TextureProperties);
+				if(usingBrotos()){
+					if(node->_executionContext){
+						add_node_to_broto_context(node->_executionContext,thistex);
+						add_node_to_broto_context(node->_executionContext,thistp);
+					}
+				}
 
 				/* set up TextureProperties, and link it in */
 
@@ -669,6 +676,11 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 					case NODE_ImageTexture: {
 						if (X3D_IMAGETEXTURE(thistex)->textureProperties == NULL) {
 							thistp = createNewX3DNode (NODE_TextureProperties);
+							if(usingBrotos()){
+								if(node->_executionContext){
+									add_node_to_broto_context(node->_executionContext,thistp);
+								}
+							}
 							X3D_IMAGETEXTURE(thistex)->textureProperties = X3D_NODE(thistp);
 							ADD_PARENT(X3D_NODE(thistp),thistex);
 						}
@@ -678,6 +690,11 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 					case NODE_PixelTexture: {
 						if (X3D_PIXELTEXTURE(thistex)->textureProperties == NULL) {
 							thistp = createNewX3DNode (NODE_TextureProperties);
+							if(usingBrotos()){
+								if(node->_executionContext){
+									add_node_to_broto_context(node->_executionContext,thistp);
+								}
+							}
 							X3D_PIXELTEXTURE(thistex)->textureProperties = X3D_NODE(thistp);
 							ADD_PARENT(X3D_NODE(thistp),thistex);
 						}
