@@ -423,6 +423,7 @@ void render_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
  * look carefully at the call to unpackImageCubeMap...
  *
  ****************************************************************************/
+ void add_node_to_broto_context(struct X3D_Proto *currentContext,struct X3D_Node *node);
 
 void compile_ImageCubeMapTexture (struct X3D_ImageCubeMapTexture *node) {
 	if (node->__subTextures.n == 0) {
@@ -433,6 +434,10 @@ void compile_ImageCubeMapTexture (struct X3D_ImageCubeMapTexture *node) {
 		node->__subTextures.p = MALLOC(struct X3D_Node  **,  6 * sizeof (struct X3D_PixelTexture *));
 		for (i=0; i<6; i++) {
 			node->__subTextures.p[i] = createNewX3DNode(NODE_PixelTexture);
+			if(usingBrotos()){
+				if(node->_executionContext)
+					add_node_to_broto_context(node->_executionContext,node->__subTextures.p[i]);
+			}
 		}
 		node->__subTextures.n=6;
 	}
