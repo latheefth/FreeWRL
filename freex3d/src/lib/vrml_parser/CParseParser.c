@@ -7096,7 +7096,7 @@ int unregister_broto_instance(struct X3D_Proto* node){
 			//unregister_bscripts(node);
 			//unregister sensors and nodes
 			if(node->__nodes){
-				printf("unregister size of __nodes=%d\n",vectorSize(node->__nodes));
+				//printf("unregister size of __nodes=%d\n",vectorSize(node->__nodes));
 				for(int i=0;i<vectorSize(node->__nodes);i++){
 					struct X3D_Node* ns = vector_get(struct X3D_Node*,node->__nodes,i);
 					unRegisterX3DAnyNode(ns);
@@ -7211,7 +7211,7 @@ int unload_broto(struct X3D_Proto* node){
 	*/
 	int retval = FALSE;
 	if(node && hasContext(X3D_NODE(node))){
-		print_broto_stats(0, node);
+		//print_broto_stats(0, node);
 		unregister_broto_instance(node);
 		gc_broto_instance(node);
 		retval = TRUE;

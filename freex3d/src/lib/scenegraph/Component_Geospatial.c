@@ -1806,6 +1806,7 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
 /************************************************************************/
 /* GeoLOD								*/
 /************************************************************************/
+void add_node_to_broto_context(struct X3D_Proto *currentContext,struct X3D_Node *node);
 
 #define LOAD_CHILD(childNode,childUrl) \
 		/* printf ("start of LOAD_CHILD, url has %d strings\n",node->childUrl.n); */ \
@@ -1813,6 +1814,10 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
 			/* create new inline node, link it in */ \
 			if (node->childNode == NULL) { \
 				node->childNode = createNewX3DNode(NODE_Inline); \
+				if(usingBrotos()){ \
+					if(node->_executionContext) \
+						add_node_to_broto_context(node->_executionContext,node->childNode); \
+				} \
 				ADD_PARENT(X3D_NODE(node->childNode), X3D_NODE(node)); \
  			}\
 			/* copy over the URL from parent */ \
@@ -1824,15 +1829,19 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
 			/* printf ("loading, and urlCount is %d\n",node->childUrl.n); */ \
 			X3D_INLINE(node->childNode)->url.n = node->childUrl.n; \
 			X3D_INLINE(node->childNode)->load = TRUE; \
-		}  \
+		}  
+
+#define UNLOAD_CHILD(childNode) \
+	if (node->childNode != NULL) \
+			X3D_INLINE(node->childNode)->load = FALSE; 
 
 
 static void GeoLODchildren (struct X3D_GeoLOD *node) {
 	int load = node->__inRange;
 	int i;
 
-        /* lets see if we still have to load this one... */
-        if (((node->__childloadstatus)==0) && (load)) {
+	/* lets see if we still have to load this one... */
+	if (((node->__childloadstatus)==0) && (load)) {
 		#ifdef VERBOSE
 		ppComponent_Geospatial p = (ppComponent_Geospatial)gglobal()->Component_Geospatial.prv;
 
@@ -1843,7 +1852,7 @@ static void GeoLODchildren (struct X3D_GeoLOD *node) {
 		LOAD_CHILD(__child2Node,child2Url)
 		LOAD_CHILD(__child3Node,child3Url)
 		LOAD_CHILD(__child4Node,child4Url)
-                node->__childloadstatus = 1;
+		node->__childloadstatus = 1;
 	}
 }
 //void GeoLODchildren1 (struct X3D_GeoLOD *node) {
@@ -1852,14 +1861,18 @@ static void GeoLODchildren (struct X3D_GeoLOD *node) {
 static void GeoUnLODchildren (struct X3D_GeoLOD *node) {
 	int load = node->__inRange;
 
-        if (!(load) && ((node->__childloadstatus) != 0)) {
+	if (!(load) && ((node->__childloadstatus) != 0)) {
 		#ifdef VERBOSE
 			ppComponent_Geospatial p = (ppComponent_Geospatial)gglobal()->Component_Geospatial.prv;
-                printf ("GeoLODloadChildren, removing children from node %u level %d\n",node,p->geoLodLevel);
+			printf ("GeoLODloadChildren, removing children from node %u level %d\n",node,p->geoLodLevel);
 		#endif
+		UNLOAD_CHILD(__child1Node)
+		UNLOAD_CHILD(__child2Node)
+		UNLOAD_CHILD(__child3Node)
+		UNLOAD_CHILD(__child4Node)
 
-                node->__childloadstatus = 0;
-        }
+		node->__childloadstatus = 0;
+	}
 }
 
 
@@ -1867,15 +1880,15 @@ static void GeoLODrootUrl (struct X3D_GeoLOD *node) {
 	int load = node->__inRange == 0; //dug9 it's when you are out of range that you should get the rootnode
 	int i;
 
-        /* lets see if we still have to load this one... */
-        if (((node->__rooturlloadstatus)==0) && (load)) {
+	/* lets see if we still have to load this one... */
+	if (((node->__rooturlloadstatus)==0) && (load)) {
 		#ifdef VERBOSE
 		printf ("GeoLODrootUrl - have to LOAD_CHILD for node %u\n",node); 
 		#endif
 
 		LOAD_CHILD(__rootUrl, rootUrl)
 
-                node->__rooturlloadstatus = 1;
+		node->__rooturlloadstatus = 1;
 	}
 }
 
@@ -1883,12 +1896,12 @@ static void GeoLODrootUrl (struct X3D_GeoLOD *node) {
 static void GeoUnLODrootUrl (struct X3D_GeoLOD *node) {
 	int load = node->__inRange;
 
-        if (!(load) && ((node->__rooturlloadstatus) != 0)) {
+	if (!(load) && ((node->__rooturlloadstatus) != 0)) {
 		#ifdef VERBOSE
-                printf ("GeoLODloadChildren, removing rootUrl\n");
+		printf ("GeoLODloadChildren, removing rootUrl\n");
 		#endif
-                node->__childloadstatus = 0;
-        }
+		node->__childloadstatus = 0;
+	}
 }
 
 
@@ -1935,7 +1948,7 @@ void compile_GeoLOD (struct X3D_GeoLOD * node) {
 
 
 void child_GeoLOD (struct X3D_GeoLOD *node) {
-        int i;
+	int i;
 	ppComponent_Geospatial p = (ppComponent_Geospatial)gglobal()->Component_Geospatial.prv;
 
 	INITIALIZE_GEOSPATIAL(node)
