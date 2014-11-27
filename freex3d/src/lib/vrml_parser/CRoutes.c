@@ -1059,7 +1059,7 @@ void print_routes_ready_to_register(FILE* fp)
 
 
 static void actually_do_CRoutes_Register() {
-	int insert_here, check_here, shifter;
+	int insert_here, check_here, shifter, isDuplicate;
 	CRnodeStruct *to_ptr = NULL;
 	size_t toof;		/* used to help determine duplicate routes */
 	struct X3D_Node *toN;
@@ -1148,6 +1148,7 @@ static void actually_do_CRoutes_Register() {
 		#endif
 	
 		check_here = insert_here;
+		isDuplicate = 0;
 		while ((p->CRoutes[check_here].routeFromNode==newEntry->from) &&
 			(p->CRoutes[check_here].fnptr==newEntry->fromoffset) &&
 			(newEntry->adrem == 0 || p->CRoutes[check_here].interpptr==newEntry->intptr) &&
@@ -1169,7 +1170,9 @@ static void actually_do_CRoutes_Register() {
 					#ifdef CRVERBOSE
 						printf ("definite duplicate, returning\n");
 					#endif
-					continue; //return;
+					//continue; //return;
+					isDuplicate = 1;
+					break;
 				} else {
 					/* this is a remove */
 	
@@ -1197,7 +1200,7 @@ static void actually_do_CRoutes_Register() {
 		}
 	
 		/* this is an Add; removes should be handled above. */
-		if (newEntry->adrem == 1)  {
+		if (newEntry->adrem == 1 && !isDuplicate)  {
 			#ifdef CRVERBOSE 
 				printf ("CRoutes, inserting at %d\n",insert_here);
 			#endif

@@ -3658,6 +3658,7 @@ struct X3D_Node* getRayHit() {
 
         if(tg->RenderFuncs.hitPointDist >= 0) {
 			struct currayhit * rh = (struct currayhit *)tg->RenderFuncs.rayHit;
+			if (rh->hitNode == NULL) return NULL;  //this prevents unnecessary matrix inversion non-singularity
 
 			if(!tg->RenderFuncs.usingAffinePickmatrix){
 				FW_GLU_UNPROJECT(tg->RenderFuncs.hp.x,tg->RenderFuncs.hp.y,tg->RenderFuncs.hp.z,rh->modelMatrix,rh->projMatrix,viewport,&x,&y,&z);

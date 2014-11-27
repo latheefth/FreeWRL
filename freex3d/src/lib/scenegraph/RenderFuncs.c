@@ -920,7 +920,7 @@ for (i=0; i<16; i++) printf ("%4.3lf ",projMatrix[i]); printf ("\n");
 		//in case we need a viewpoint-y-up vector transform viewpoint y to geometry-local 
 		FW_GLU_UNPROJECT(r3.x,r3.y,r3.z,modelMatrix,projMatrix,viewport,
 				 &t_r3.x,&t_r3.y,&t_r3.z);
-		if(1){
+		if(0){
 			//r2 is A, r1 is B relative to A in pickray [A,B)
 			//we prove it here by moving B along the ray, to distance 1.0 from A, and no change to picking
 			vecdiff(&t_r1,&t_r1,&t_r2);
@@ -952,9 +952,11 @@ for (i=0; i<16; i++) printf ("%4.3lf ",projMatrix[i]); printf ("\n");
 		transform(&t_r3,&r3,mvpi);
 		//r2 is A, r1 is B relative to A in pickray [A,B)
 		//we prove it here by moving B along the ray, to distance 1.0 from A, and no change to picking
-		vecdiff(&t_r1,&t_r1,&t_r2);
-		vecnormal(&t_r1,&t_r1);
-		vecadd(&t_r1,&t_r1,&t_r2);
+		if(0){
+			vecdiff(&t_r1,&t_r1,&t_r2);
+			vecnormal(&t_r1,&t_r1);
+			vecadd(&t_r1,&t_r1,&t_r2);
+		}
 		//printf("Upd_ray new: (%f %f %f) (%f %f %f) \n",	t_r1.x,t_r1.y,t_r1.z,t_r2.x,t_r2.y,t_r2.z);
 	}
 
