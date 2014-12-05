@@ -2794,7 +2794,12 @@ void setup_viewpoint_slerp(double* center, double pivot_radius, double vp_radius
 			//quatEnd = quatPitch*quatYaw*quatStart
 			quaternion_multiply(&qtmp,&qyaw,&qpitch);
 			quaternion_multiply(&p->Viewer.endSLERPQuat,&qtmp,&p->Viewer.startSLERPQuat);
-
+			if(p->Viewer.LookatMode == 3){
+				if(p->Viewer.type == VIEWER_LOOKAT)
+					fwl_set_viewer_type(VIEWER_LOOKAT); //toggle off LOOKAT
+				p->Viewer.LookatMode = 0; //VIEWER_EXPLORE
+			}
+			viewer_lastP_clear(); //not sure I need this - its for wall penetration
 		}else{
 			quaternion_to_matrix(matQuat, &p->Viewer.startSLERPQuat);
 			pointxyz2double(rpos,&qq);
@@ -2841,8 +2846,8 @@ void setup_viewpoint_slerp(double* center, double pivot_radius, double vp_radius
 			quaternion_normalize(&sq);
 			quaternion_multiply(&p->Viewer.endSLERPQuat,&sq,&p->Viewer.endSLERPQuat);
 			quaternion_normalize(&p->Viewer.endSLERPQuat);
+			fwl_set_viewer_type(VIEWER_LOOKAT); //toggle off LOOKAT
 		}
-		fwl_set_viewer_type(VIEWER_LOOKAT); //toggle off LOOKAT
 
 	} else {
 		//if(p->Viewer.type == VIEWER_EXPLORE)
