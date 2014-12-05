@@ -466,8 +466,12 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 
 bool imagery_load(resource_item_t *res){
 	bool retval;
-	struct textureTableIndexStruct *entry = res->whereToPlaceData;
+	int textureNumber;
+	struct textureTableIndexStruct *entry; // = res->whereToPlaceData;
+	textureNumber = res->textureNumber;
 	if(res->status == ress_downloaded){
+		entry = getTableIndex(textureNumber);
+		if(entry)
 		if (texture_load_from_file(entry, res->actual_file)) {
 			entry->status = TEX_READ; /* tell the texture thread to convert data to OpenGL-format */
 			res->status = ress_loaded;
