@@ -47,6 +47,7 @@ struct textureTableIndexStruct {
     unsigned char *texdata;
     GLint  Src;
     GLint  Trc;
+	int textureNumber;
 };
 typedef struct textureTableIndexStruct textureTableIndexStruct_s;
 

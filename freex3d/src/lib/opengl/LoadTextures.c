@@ -748,6 +748,7 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 	res->media_type = resm_image; /* quick hack */
 	resource_identify(parentPath, res);
 	res->whereToPlaceData = entry;
+	res->textureNumber = entry->textureNumber;
 	resitem_enqueue(ml_new(res));
 	return TRUE;
 
@@ -850,8 +851,13 @@ void send_texture_to_loader(textureTableIndexStruct_s *entry)
 void process_res_texitem(resource_item_t *res){
 	//resitem after download+load -> texture thread
 	textureTableIndexStruct_s *entry;
-	entry = res->whereToPlaceData;
-	texitem_enqueue(ml_new(entry));
+	int textureNumber;
+	textureNumber = res->textureNumber;
+	//check in case texture has been deleted due to inline unloading during image download
+	//entry = res->whereToPlaceData;
+	entry = getTableIndex(textureNumber);
+	if(entry)
+		texitem_enqueue(ml_new(entry));
 }
 
 /**

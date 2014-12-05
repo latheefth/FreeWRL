@@ -109,7 +109,7 @@ typedef struct resource_item {
 	void *ectx; //for parsing brotos - the X3D_Proto executionContext to put __ROUTES, __nodes, __subContext
 	void *whereToPlaceData;  // usually X3D_Node*, except for Scripts and Shaders, it's Shader_Script* (which is a sub-struct)
 	int offsetFromWhereToPlaceData; //usually field offset (not used for Scripts/Shaders)
-
+	int textureNumber; //Dec 2014 textures don't use wheretoplacedata now, because the *tti might be zapped during inline unload before the image is downloaded ie Mars dataset
 	/* We can be feed with a Multi_String list of requests */
 	s_list_t *m_request;
 

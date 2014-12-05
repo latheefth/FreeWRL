@@ -504,7 +504,7 @@ void registerTexture0(int iaction, struct X3D_Node *tmp) {
 			/* set the scenegraphNode here */
 			newTexture->nodeType = it->_nodeType;
 			newTexture->scenegraphNode = X3D_NODE(tmp);
-
+			newTexture->textureNumber = textureNumber;
 			// save this to our texture table
 			vector_pushBack(textureTableIndexStruct_s *, p->activeTextureTable, newTexture);
 		}else{
@@ -547,9 +547,19 @@ void registerTexture0(int iaction, struct X3D_Node *tmp) {
 			if(textureNumber){
 				tti = getTableIndex(*textureNumber);
 				if(tti){
-					(*textureNumber) = -1; //is there a better flag?
+					// (*textureNumber) = -1; //is there a better flag?
 					vector_set(textureTableIndexStruct_s *,p->activeTextureTable,*textureNumber,NULL);
 					//unregister/unbind/deallocate anything else that was registered/bound/allocated above
+					
+					//Problem: when unloading an inline (including geoLOD inlines) with images that haven't yet loaded, 
+					// load_inline > unload_broto > unregister_broto_instance > unRegisterX3DAnyNode > unRegisterTexture > registerTexture0 (here)
+					// if we zap the tti, then when the resource thread finishes downloading the image and goes to paste
+					// into wheretoplacedata* which is a tti* that's been zapped, we crash.
+					//Solution: 
+					// quick fix: don't zap tti here, leave a memory leak TRIED, WORKED AS BANDAID
+					// proper fix: redesign resource fetch so it has a way to check if tti still exists, IMPLEMENTED Dec5,2014
+					//  for example, have it use the table index number instead of a pointer directly to *tti,
+					//  and here leave a NULL in the table at that index so resource thread can check if its been zapped
 					FREE_IF_NZ(tti);
 				}
 			}
