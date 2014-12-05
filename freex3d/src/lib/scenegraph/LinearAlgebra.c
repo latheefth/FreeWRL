@@ -1574,3 +1574,10 @@ void general_slerp(double *ret, double *p1, double *p2, int size, const double t
 	for(i=0;i<size;i++)
 		ret[i] = scale0 * p1[i] + scale1 * p2[i];
 }
+void point_XYZ_slerp(struct point_XYZ *ret, struct point_XYZ *p1, struct point_XYZ *p2, const double t){
+	double pret[3], pp1[3], pp2[3];
+	pointxyz2double(pp1, p1);
+	pointxyz2double(pp2, p2);
+	general_slerp(pret, pp1, pp2, 3, t);
+	double2pointxyz(ret,pret);
+}
