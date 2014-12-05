@@ -244,6 +244,8 @@ typedef struct viewer {
 	int SLERPing;
 	double startSLERPtime;
 
+	int SLERPing3; 
+
 	int type; 	/* eg, VIEWER_EXAMINE, etc */
 	int lastType; /* LOOKAT saves previous type, and recovers it when done */
 	int LookatMode; //0 = not, 1= mainloop should do a node pick operation then set this back to 0 */
@@ -257,6 +259,11 @@ typedef struct viewer {
 	Quaternion startSLERPbindTimeQuat;
 	Quaternion prepVPQuat;
 	Quaternion startSLERPprepVPQuat;
+
+	double startSLERPDist, endSLERPDist;
+	struct point_XYZ endSLERPPos;
+	Quaternion endSLERPQuat;
+
 
 	struct X3D_GeoViewpoint *GeoSpatialNode; /* NULL, unless we are a GeoViewpoint */
 

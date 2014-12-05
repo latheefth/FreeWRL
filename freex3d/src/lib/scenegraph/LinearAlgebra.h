@@ -280,5 +280,5 @@ void loadIdentityMatrix (double *mat);
 double *matcopy(double *r, double*mat);
 void printmatrix2(GLDOUBLE* mat,char* description );
 void general_slerp(double *ret, double *p1, double *p2, int size, const double t);
-
+void point_XYZ_slerp(struct point_XYZ *ret, struct point_XYZ *p1, struct point_XYZ *p2, const double t);
 #endif /* __FREEWRL_LINEAR_ALGEBRA_H__ */
