@@ -2622,15 +2622,16 @@ void slerp_viewpoint()
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
 	if(p->Viewer.SLERPing3){
-			double tickFrac;
-			//navigation 'm' LOOKAT and 'g' EXPLORE non-vpbind slerping (slerps viewer.pos, .quat, .dist)
-			tickFrac = (TickTime() - p->Viewer.startSLERPtime)/p->Viewer.transitionTime;
-			tickFrac = min(1.0,tickFrac); //clamp to max 1.0 otherwise a slow frame rate will overshoot
-			quaternion_slerp(&p->Viewer.Quat,&p->Viewer.startSLERPQuat,&p->Viewer.endSLERPQuat,tickFrac);
-			point_XYZ_slerp(&p->Viewer.Pos,&p->Viewer.startSLERPPos,&p->Viewer.endSLERPPos,tickFrac);
-			general_slerp(&p->Viewer.Dist,&p->Viewer.startSLERPDist,&p->Viewer.endSLERPDist,1,tickFrac);
-			if(tickFrac >= 1.0) 	p->Viewer.SLERPing3 = 0;
-			//now we let normal rendering use the viewer quat, pos, dist during rendering
+		//navigation 'm' LOOKAT and 'g' EXPLORE non-vp-bind slerping comes through here
+		// slerps: viewer.pos, .quat, .dist 
+		double tickFrac;
+		tickFrac = (TickTime() - p->Viewer.startSLERPtime)/p->Viewer.transitionTime;
+		tickFrac = min(1.0,tickFrac); //clamp to max 1.0 otherwise a slow frame rate will overshoot
+		quaternion_slerp(&p->Viewer.Quat,&p->Viewer.startSLERPQuat,&p->Viewer.endSLERPQuat,tickFrac);
+		point_XYZ_slerp(&p->Viewer.Pos,&p->Viewer.startSLERPPos,&p->Viewer.endSLERPPos,tickFrac);
+		general_slerp(&p->Viewer.Dist,&p->Viewer.startSLERPDist,&p->Viewer.endSLERPDist,1,tickFrac);
+		if(tickFrac >= 1.0) 	p->Viewer.SLERPing3 = 0;
+		//now we let normal rendering use the viewer quat, pos, dist during rendering
 	}else if(p->Viewer.SLERPing2 && p->vp2rnSaved) {
 		if(p->Viewer.SLERPing2justStarted)
 		{
@@ -2696,11 +2697,6 @@ void slerp_viewpoint()
 			if(tickFrac > .99)
 			{
 				p->Viewer.SLERPing2 = FALSE;
-				if(p->Viewer.LookatMode == 3){
-					if(p->Viewer.type == VIEWER_LOOKAT)
-						fwl_set_viewer_type(VIEWER_LOOKAT); //toggle off LOOKAT
-					p->Viewer.LookatMode = 0; //VIEWER_EXPLORE
-				}
 				//printf(" done\n");
 			}
 		}
@@ -2735,212 +2731,72 @@ void setup_viewpoint_slerp(double* center, double pivot_radius, double vp_radius
 
 	p->Viewer.SLERPing3 = 1;
 
-	if(p->Viewer.SLERPing3){
-		//Dec 2014 another attempt at non-bind viewpoint slerping 
-		//method: 
-		// 1. snapshot the current viewer.quat, viewer.pos, viewer.dist as startSLERP 
-		// 2. compute ending pos, quat, dist and set as endSLERP .Pos, .Quat .Dist
-		// 3. in viewpoint_slerp(), slerp from starting to ending
+	//Dec 2014 another attempt at non-bind viewpoint slerping 
+	//method: 
+	// 1. snapshot the current viewer.quat, viewer.pos, viewer.dist as startSLERP 
+	// 2. compute ending pos, quat, dist and set as endSLERP .Pos, .Quat .Dist
+	// 3. in viewpoint_slerp(), slerp from starting to ending
 
-		// 1. snapshot current viewer quat,pos,dist as startSLERP
-		p->Viewer.startSLERPPos = p->Viewer.Pos;
-		p->Viewer.startSLERPQuat = p->Viewer.Quat;
-		p->Viewer.startSLERPDist = p->Viewer.Dist;
-		p->Viewer.startSLERPtime = TickTime();
+	// 1. snapshot current viewer quat,pos,dist as startSLERP
+	p->Viewer.startSLERPPos = p->Viewer.Pos;
+	p->Viewer.startSLERPQuat = p->Viewer.Quat;
+	p->Viewer.startSLERPDist = p->Viewer.Dist;
+	p->Viewer.startSLERPtime = TickTime();
 		
-		// 2. compute end pos,quat,dist as endSLERP
-		// generally we have a vector center, and a pitch,roll 
-		// end = start + center,pitch,roll
-		// except we need to do proper transform concatonation:
-		/*
-		0.World
-			1. viewpoint
-				2. avatar position .Pos
-					3. avatar orientation .Quat
-						our center, pitch, yaw are observed here
-		Order of transforms:
-			.Pos += inverse(.Quat)*center
-		*/
-		p->Viewer.endSLERPDist = vp_radius;
+	// 2. compute end pos,quat,dist as endSLERP
+	// generally we have a vector center, and a pitch,roll 
+	// end = start + center,pitch,roll
+	// except we need to do proper transform concatonation:
+	/*
+	0.World
+		1. viewpoint
+			2. avatar position .Pos
+				3. avatar orientation .Quat
+					our center, pitch, yaw are observed here
+	Order of transforms:
+		.Pos += inverse(.Quat)*center
+	*/
+	p->Viewer.endSLERPDist = vp_radius;
 
-		// end = start + ...
-		// endPos = startPos + inverse(startQuat)*center
-		quaternion_normalize(&p->Viewer.startSLERPQuat);
-		quaternion_inverse( &q_i,&p->Viewer.startSLERPQuat);
-		vecdifd(pos,center,pos);
-		double2pointxyz(&pp,pos);
-		quaternion_rotation(&qq, &q_i, &pp);
-		vecadd(&p->Viewer.endSLERPPos,&p->Viewer.startSLERPPos,&qq);
+	// end = start + ...
+	// endPos = startPos + inverse(startQuat)*center
+	quaternion_normalize(&p->Viewer.startSLERPQuat);
+	quaternion_inverse( &q_i,&p->Viewer.startSLERPQuat);
+	vecdifd(pos,center,pos);
+	double2pointxyz(&pp,pos);
+	quaternion_rotation(&qq, &q_i, &pp);
+	vecadd(&p->Viewer.endSLERPPos,&p->Viewer.startSLERPPos,&qq);
 
-		if(1){
-			// endQuat = startQuat*toQuat(yaw)*toQuat(pitch)
-			//when you pick, your pickray and shape object isn't usually dead center in the viewport. In that case,
-			//besides translating the viewer, you also want to turn the camera to look at the 
-			//center of the shape (turning somewhat toward the pickray direction, but more precisely to the shape object ccenter)
-			Quaternion qyaw, qpitch, qtmp;
-			struct point_XYZ PC;
-			//compute yaw from our pickray
-			veccopyd(C,pos);
-			if( APPROX( vecnormald(C,C), 0.0) )
-				C[2] = 1.0;
-			//if we are too close, we don't want to turn 180 to move away, we just want to back up
-			if(C[2] < 0.0) 
-				vecscaled(C,C,-1.0);
-			yaw = -atan2(C[0],C[2]);
-			//apply the yaw to the pickray, so that all that's left of the pickray is the pitch part
-			vrmlrot_to_quaternion(&qyaw, 0.0,1.0,0.0,yaw);
-			double2pointxyz(&PC,C);
-			quaternion_rotation(&PC,&qyaw,&PC);
-			//compute pitch from yaw-transformed pickray
-			pitch = atan2(PC.y,PC.z);
-			vrmlrot_to_quaternion(&qpitch,1.0,0.0,0.0,pitch);
-			//quatEnd = quatPitch*quatYaw*quatStart
-			quaternion_multiply(&qtmp,&qyaw,&qpitch);
-			quaternion_multiply(&p->Viewer.endSLERPQuat,&qtmp,&p->Viewer.startSLERPQuat);
-			if(p->Viewer.LookatMode == 3){
-				if(p->Viewer.type == VIEWER_LOOKAT)
-					fwl_set_viewer_type(VIEWER_LOOKAT); //toggle off LOOKAT
-				p->Viewer.LookatMode = 0; //VIEWER_EXPLORE
-			}
-			//viewer_lastP_clear(); //not sure I need this - its for wall penetration
-		}else{
-			quaternion_to_matrix(matQuat, &p->Viewer.startSLERPQuat);
-			pointxyz2double(rpos,&qq);
-
-			//when you pick, your pickray and shape object isn't usually dead center in the viewport. In that case,
-			//besides translating the viewer, you also want to turn the camera to look at the 
-			//center of the shape (turning somewhat toward the pickray direction, but more precisely to the shape object ccenter)
-			veccopyd(C,pos);
-			if(0) printf("Cdif raw %f %f %f\n",C[0],C[1],C[2]);
-			if( APPROX( vecnormald(C,C), 0.0) ) C[2] = 1.0;
-			if(0) printf("Cdif nrm %f %f %f\n",C[0],C[1],C[2]);
-			//C[2] = fabs(C[2]); //if we are too close, we don't want to turn 180 to move away, we just want to back up
-			if(C[2] < 0.0) vecscaled(C,C,-1.0);
-			if(0) printf("Cdif abs %f %f %f\n",C[0],C[1],C[2]);
-			yaw = -atan2(C[0],C[2]);
-			//if(APPROX(C[2],0.0) && APPROX(C[0],0.0)) yaw = 0.0; //atan2(0,0) goes crazy
-			matrixFromAxisAngle4d(R1, -yaw, 0.0, 1.0, 0.0);
-			if(1){
-				transformAFFINEd(C,C,R1);
-				if(0) printf("Yawed Cdif %f %f %f\n",C[0],C[1],C[2]);
-				pitch = -atan2(C[1],C[2]);
-				//if(APPROX(C[2],0.0) && APPROX(C[1],0.0)) pitch = 0.0; //atan2(0,0) goes crazy
-			}else{
-				double hypotenuse = sqrt(C[0]*C[0] + C[2]*C[2]);
-				pitch = -atan2(C[1],hypotenuse);
-				//if(APPROX(hypotenuse,0.0) && APPROX(C[1],0.0)) pitch = 0.0; //atan2(0,0) goes crazy
-			}
-			if(0) printf("atan2 yaw=%f pitch=%f\n",yaw,pitch);
-
-			pitch = -pitch;
-			if(1) printf("[yaw=%f pitch=%f\n",yaw,pitch);
-			if(0){
-				matrotate(R1, -pitch, 1.0, 0.0, 0.0);
-				matrotate(R2, -yaw, 0.0, 1.0, 0.0);
-			}else{
-				matrixFromAxisAngle4d(R1, pitch, 1.0, 0.0, 0.0);
-				if(0) printmatrix2(R1,"pure R1");
-				matrixFromAxisAngle4d(R2, yaw, 0.0, 1.0, 0.0);
-				if(0) printmatrix2(R2,"pure R2");
-			}
-			matmultiplyAFFINE(R3,R1,R2);
-			matinverseAFFINE(R3i,R3);
-			matrix_to_quaternion(&sq,R3i);
-			quaternion_normalize(&sq);
-			quaternion_multiply(&p->Viewer.endSLERPQuat,&sq,&p->Viewer.endSLERPQuat);
-			quaternion_normalize(&p->Viewer.endSLERPQuat);
+	// endQuat = startQuat*toQuat(yaw)*toQuat(pitch)
+	//when you pick, your pickray and shape object isn't usually dead center in the viewport. In that case,
+	//besides translating the viewer, you also want to turn the camera to look at the 
+	//center of the shape (turning somewhat toward the pickray direction, but more precisely to the shape object ccenter)
+	Quaternion qyaw, qpitch, qtmp;
+	struct point_XYZ PC;
+	//compute yaw from our pickray
+	veccopyd(C,pos);
+	if( APPROX( vecnormald(C,C), 0.0) )
+		C[2] = 1.0;
+	//if we are too close, we don't want to turn 180 to move away, we just want to back up
+	if(C[2] < 0.0) 
+		vecscaled(C,C,-1.0);
+	yaw = -atan2(C[0],C[2]);
+	//apply the yaw to the pickray, so that all that's left of the pickray is the pitch part
+	vrmlrot_to_quaternion(&qyaw, 0.0,1.0,0.0,yaw);
+	double2pointxyz(&PC,C);
+	quaternion_rotation(&PC,&qyaw,&PC);
+	//compute pitch from yaw-transformed pickray
+	pitch = atan2(PC.y,PC.z);
+	vrmlrot_to_quaternion(&qpitch,1.0,0.0,0.0,pitch);
+	//quatEnd = quatPitch*quatYaw*quatStart
+	quaternion_multiply(&qtmp,&qyaw,&qpitch);
+	quaternion_multiply(&p->Viewer.endSLERPQuat,&qtmp,&p->Viewer.startSLERPQuat);
+	if(p->Viewer.LookatMode == 3){
+		if(p->Viewer.type == VIEWER_LOOKAT)
 			fwl_set_viewer_type(VIEWER_LOOKAT); //toggle off LOOKAT
-		}
-
-	} else {
-		//if(p->Viewer.type == VIEWER_EXPLORE)
-		//	p->Viewer.exploreDist = vp_radius;
-		//else
-			p->Viewer.Dist = vp_radius; //dradius;
-		if(0) printf("center=%f %f %f\n",center[0],center[1],center[2]);
-		if(0) printf("vp_radius=%f dradius=%f\n", vp_radius, dradius);
-		//printf("view->quat = %f %f %f %f",p->Viewer.Quat.x,p->Viewer.Quat.y,p->Viewer.Quat.z,p->Viewer.Quat.w);
-		//printf("view->pos= %f %f %f\n",p->Viewer.Pos.x,p->Viewer.Pos.y,p->Viewer.Pos.z);
-
-		quaternion_normalize(&p->Viewer.Quat);
-		quaternion_to_matrix(matQuat, &p->Viewer.Quat);
-
-		vecdifd(pos,center,pos);
-		double2pointxyz(&pp,pos);
-		//attempt to correct the position by viewer.quat or .antiquat before adding to Viewer.Pos
-		q_i = p->Viewer.AntiQuat;
-
-		quaternion_inverse( &q_i,&p->Viewer.Quat);
-		quaternion_rotation(&qq, &q_i, &pp);
-		vecadd(&p->Viewer.Pos,&p->Viewer.Pos,&qq);
-		pointxyz2double(rpos,&qq);
-
-		//when you pick, your pickray and shape object isn't usually dead center in the viewport. In that case,
-		//besides translating the viewer, you also want to turn the camera to look at the 
-		//center of the shape (turning somewhat toward the pickray direction, but more precisely to the shape object ccenter)
-		veccopyd(C,pos);
-		if(0) printf("Cdif raw %f %f %f\n",C[0],C[1],C[2]);
-		if( APPROX( vecnormald(C,C), 0.0) ) C[2] = 1.0;
-		if(0) printf("Cdif nrm %f %f %f\n",C[0],C[1],C[2]);
-		//C[2] = fabs(C[2]); //if we are too close, we don't want to turn 180 to move away, we just want to back up
-		if(C[2] < 0.0) vecscaled(C,C,-1.0);
-		if(0) printf("Cdif abs %f %f %f\n",C[0],C[1],C[2]);
-		yaw = -atan2(C[0],C[2]);
-		//if(APPROX(C[2],0.0) && APPROX(C[0],0.0)) yaw = 0.0; //atan2(0,0) goes crazy
-		matrixFromAxisAngle4d(R1, -yaw, 0.0, 1.0, 0.0);
-		if(1){
-			transformAFFINEd(C,C,R1);
-			if(0) printf("Yawed Cdif %f %f %f\n",C[0],C[1],C[2]);
-			pitch = -atan2(C[1],C[2]);
-			//if(APPROX(C[2],0.0) && APPROX(C[1],0.0)) pitch = 0.0; //atan2(0,0) goes crazy
-		}else{
-			double hypotenuse = sqrt(C[0]*C[0] + C[2]*C[2]);
-			pitch = -atan2(C[1],hypotenuse);
-			//if(APPROX(hypotenuse,0.0) && APPROX(C[1],0.0)) pitch = 0.0; //atan2(0,0) goes crazy
-		}
-		if(0) printf("atan2 yaw=%f pitch=%f\n",yaw,pitch);
-
-		pitch = -pitch;
-		if(1) printf("[yaw=%f pitch=%f\n",yaw,pitch);
-		if(0){
-			matrotate(R1, -pitch, 1.0, 0.0, 0.0);
-			matrotate(R2, -yaw, 0.0, 1.0, 0.0);
-		}else{
-			matrixFromAxisAngle4d(R1, pitch, 1.0, 0.0, 0.0);
-			if(0) printmatrix2(R1,"pure R1");
-			matrixFromAxisAngle4d(R2, yaw, 0.0, 1.0, 0.0);
-			if(0) printmatrix2(R2,"pure R2");
-		}
-		matmultiplyAFFINE(R3,R1,R2);
-		matinverseAFFINE(R3i,R3);
-		matrix_to_quaternion(&sq,R3i);
-		quaternion_normalize(&sq);
-		quaternion_multiply(&p->Viewer.Quat,&sq,&p->Viewer.Quat);
-		quaternion_normalize(&p->Viewer.Quat);
-
-		if(0) resolve_pos(); //in examine mode, sets up examine origin
-
-		if(1){
-			//start slerping
-			//as of Sept 8, 2014 it jumps at the start of the slerp, 
-			//and that means I don't have viewpointnew2rootnode transform
-			//constructed properly
-			loadIdentityMatrix(p->viewpoint2rootnode);
-			//loadIdentityMatrix(p->viewpointnew2rootnode);
-			mattranslate(T,rpos[0],rpos[1],rpos[2]);
-			matmultiplyAFFINE(matTarget,R3,T);
-			matinverseAFFINE(p->viewpointnew2rootnode,matTarget);
-
-			p->Viewer.startSLERPtime = TickTime(); 
-			/* slerp Mark II */
-			p->Viewer.SLERPing2 = TRUE;
-			p->Viewer.SLERPing2justStarted = TRUE;
-			p->vp2rnSaved = TRUE; 
-		}else{
-			//just jump to final Pos, Quat
-			fwl_set_viewer_type(VIEWER_LOOKAT); //toggle off LOOKAT
-		}
+		p->Viewer.LookatMode = 0; //VIEWER_EXPLORE
 	}
+	//viewer_lastP_clear(); //not sure I need this - its for wall penetration
 }
 /* We have a Viewpoint node being bound. (not a GeoViewpoint node) */
 void bind_Viewpoint (struct X3D_Viewpoint *vp) {
