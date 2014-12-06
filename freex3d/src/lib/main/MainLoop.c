@@ -3613,7 +3613,7 @@ int getRayHitAndSetLookatTarget() {
 			if(Viewer()->type == VIEWER_LOOKAT){
 				//use the center of the object, and its radius
 				GLDOUBLE smin[3], smax[3], shapeMBBmin[3], shapeMBBmax[3];
-				double dradius;
+				double dradius, viewerdist;
 				node = rh->hitNode;
 				for(i=0;i<3;i++)
 				{
@@ -3627,7 +3627,8 @@ int getRayHitAndSetLookatTarget() {
 					center[i] = (smax[i] + smin[i])*.5;
 					radius = max(radius,(max(abs(smax[i]-center[i]),abs(smin[i]-center[i]))));
 				}
-				vp_radius = max(Viewer()->Dist, radius + 5.0);
+				viewerdist = Viewer()->Dist;
+				vp_radius = max(viewerdist, radius + 5.0);
 				//distance = veclengthd(center);
 				//distance = (distance - dradius)/distance;
 				//radius = distance;
