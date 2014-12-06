@@ -2625,6 +2625,7 @@ void slerp_viewpoint()
 			double tickFrac;
 			//navigation 'm' LOOKAT and 'g' EXPLORE non-vpbind slerping (slerps viewer.pos, .quat, .dist)
 			tickFrac = (TickTime() - p->Viewer.startSLERPtime)/p->Viewer.transitionTime;
+			tickFrac = min(1.0,tickFrac); //clamp to max 1.0 otherwise a slow frame rate will overshoot
 			quaternion_slerp(&p->Viewer.Quat,&p->Viewer.startSLERPQuat,&p->Viewer.endSLERPQuat,tickFrac);
 			point_XYZ_slerp(&p->Viewer.Pos,&p->Viewer.startSLERPPos,&p->Viewer.endSLERPPos,tickFrac);
 			general_slerp(&p->Viewer.Dist,&p->Viewer.startSLERPDist,&p->Viewer.endSLERPDist,1,tickFrac);
@@ -2780,9 +2781,11 @@ void setup_viewpoint_slerp(double* center, double pivot_radius, double vp_radius
 			struct point_XYZ PC;
 			//compute yaw from our pickray
 			veccopyd(C,pos);
-			if( APPROX( vecnormald(C,C), 0.0) ) C[2] = 1.0;
+			if( APPROX( vecnormald(C,C), 0.0) )
+				C[2] = 1.0;
 			//if we are too close, we don't want to turn 180 to move away, we just want to back up
-			if(C[2] < 0.0) vecscaled(C,C,-1.0);
+			if(C[2] < 0.0) 
+				vecscaled(C,C,-1.0);
 			yaw = -atan2(C[0],C[2]);
 			//apply the yaw to the pickray, so that all that's left of the pickray is the pitch part
 			vrmlrot_to_quaternion(&qyaw, 0.0,1.0,0.0,yaw);
@@ -2799,7 +2802,7 @@ void setup_viewpoint_slerp(double* center, double pivot_radius, double vp_radius
 					fwl_set_viewer_type(VIEWER_LOOKAT); //toggle off LOOKAT
 				p->Viewer.LookatMode = 0; //VIEWER_EXPLORE
 			}
-			viewer_lastP_clear(); //not sure I need this - its for wall penetration
+			//viewer_lastP_clear(); //not sure I need this - its for wall penetration
 		}else{
 			quaternion_to_matrix(matQuat, &p->Viewer.startSLERPQuat);
 			pointxyz2double(rpos,&qq);
