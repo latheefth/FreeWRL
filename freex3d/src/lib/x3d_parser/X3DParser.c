@@ -1880,7 +1880,7 @@ void **shaderFields(struct X3D_Node* node){
 }
 void broto_store_DEF(struct X3D_Proto* proto,struct X3D_Node* node, char *name);
 void parseAttributes_B(void *ud, char **atts);
-add_node_to_broto_context(struct X3D_Proto *context,struct X3D_Node *node);
+void add_node_to_broto_context(struct X3D_Proto *context,struct X3D_Node *node);
 
 static void startBuiltin_B(void *ud, int myNodeType, const xmlChar *name, char** atts) {
 	struct X3D_Node *node, *fromDEFtable;
