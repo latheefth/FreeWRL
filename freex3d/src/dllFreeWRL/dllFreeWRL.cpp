@@ -307,7 +307,9 @@ int CdllFreeWRL::getUpdatedCursorStyle()
 	fwl_clearCurrentHandle();
 	return cstyle;
 }
-
+#if !defined(nullptr) 
+#define nullptr (char*)0
+#endif
 void* CdllFreeWRL::frontenditem_dequeue()
 {
 	void *item = nullptr;

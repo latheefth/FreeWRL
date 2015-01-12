@@ -896,7 +896,7 @@ void do_NurbsPositionInterpolator (void *node) {
 
 	if (!node) return;
 	px = (struct X3D_NurbsPositionInterpolator *) node;
-
+	kvin = kin = 0;
 	//kvin = px->controlPoint->.n;
 	//kVs = px->controlPoint.p;
 

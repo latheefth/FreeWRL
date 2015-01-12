@@ -3497,11 +3497,11 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 		struct Shader_Script* script=NULL;
 	#endif
 	struct Shader_Script* shader=NULL;
+	DECLAREUP
 	//struct X3D_Node* what_am_I = X3D_NODE(me->ptr);
 	currentContext = (struct X3D_Proto*)me->ectx;
 	pflagdepth = ciflag_get(currentContext->__protoFlags,0); //((char *)(&currentContext->__protoFlags))[0];
 
-	DECLAREUP
 
 	ASSERT(me->lexer);
 	*ret=node; /* set this to NULL, for now... if this is a real node, it will return a node pointer */
@@ -3841,7 +3841,14 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 			//copying the body _after_ the protoInstance field values have been parsed 
 			//allows ISd fields in body nodes to get the pkw_initializeOnly/inputOutput value
 			//from the protoInstance interface
-			deep_copy_broto_body2(&X3D_PROTO(X3D_PROTO(node)->__prototype),&X3D_PROTO(node));
+			//if(1){
+			//	deep_copy_broto_body2(&X3D_PROTO(X3D_PROTO(node)->__prototype),&X3D_PROTO(node));
+			//}else{
+				struct X3D_Proto *ptype, *pdest;
+				ptype = X3D_PROTO(X3D_PROTO(node)->__prototype);
+				pdest = X3D_PROTO(node);
+				deep_copy_broto_body2(&ptype,&pdest);
+			//}
 		}
 		// if(pflagdepth) add_parent(node,parent??,__FILE__,__LINE__); //helps propagate VF_Sensitive to parent of proto, if proto's 1st node is sensor. We do in macro PROCESS_FIELD_B
 
@@ -4309,9 +4316,9 @@ static BOOL parser_externbrotoStatement(struct VRMLParser* me)
     //char *initCP;
     //uintptr_t bodyLen;
 	struct X3D_Proto *proto, *parent;
-	void *ptr;
+	//void *ptr;
 	DECLAREUP
-	unsigned int ofs;
+	//unsigned int ofs;
 
 
     /* Really a EXTERNPROTO? */
@@ -4402,10 +4409,10 @@ static BOOL parser_externbrotoStatement(struct VRMLParser* me)
 
 	/* EXTERNPROTO url */
 	{
-		struct Multi_String url;
-		unsigned char *buffer;
-		char *pound;
-		resource_item_t *res;
+		//struct Multi_String url;
+		//unsigned char *buffer;
+		//char *pound;
+		//resource_item_t *res;
 
 		/* get the URL string */
 		if (!parser_mfstringValue(me,&proto->url)) {
@@ -4617,8 +4624,8 @@ BOOL route_parse_nodefield_B(struct VRMLParser* me, char **ssnode, char **ssfiel
 		3. to accomodate routes to/from late-arriving inline IMPORT nodes
 	*/
 	char *snode,*sfield;
-	struct X3D_Node* xnode;
-	int foundField;
+	//struct X3D_Node* xnode;
+	//int foundField;
 
 	/* Get the next token */
 	if(!lexer_setCurID(me->lexer))
@@ -4657,6 +4664,7 @@ static BOOL parser_routeStatement_B(struct VRMLParser* me)
 {
 	char *sfnode, *sffield;
 	char *stnode, *stfield;
+	int foundfrom, foundto, gotTO;
 
 	ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
 
@@ -4672,7 +4680,6 @@ static BOOL parser_routeStatement_B(struct VRMLParser* me)
     /* Parse the first part of a routing statement: DEFEDNODE.event by locating the node DEFEDNODE in either the builtin or user-defined name arrays
        and locating the event in the builtin or user-defined event name arrays */
     //ROUTE_PARSE_NODEFIELD(from, outputOnly);
-	int foundfrom, foundto, gotTO;
 	foundfrom = route_parse_nodefield_B(me,&sfnode, &sffield);
 
 	/* Next token has to be "TO" */
@@ -4911,7 +4918,7 @@ void copy_routes2(Stack *routes, struct X3D_Proto* target, struct Vector *p2p)
 //this version for 2014 broto2
 void copy_defnames2(Stack *defnames, struct X3D_Proto* target, struct Vector *p2p)
 {
-	Stack* defs;
+	//Stack* defs;
 	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 
 	//defs = globalParser->brotoDEFedNodes;
@@ -5032,11 +5039,12 @@ struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep)
 	struct ProtoFieldDecl *pdecl,*ndecl;
 	struct X3D_Proto *p;
 	if(ideep){
+		int pflags;
 		p = createNewX3DNode(NODE_Proto);
 		//memcpy(p,proto,sizeof(struct X3D_Proto)); //dangerous, make sure you re-instance all pointer variables
 		p->__children.n = 0; //don't copy children in here - see below
 		p->__children.p = NULL;
-		int pflags = 0;
+		pflags = 0;
 		//char pflags[4];
 		pflags = ciflag_set(pflags,1,0); //pflags[0] = 1; //deep
 		//pflags[1] = 0; //new way/brotos
@@ -6726,10 +6734,11 @@ void load_externProtoDeclare (struct X3D_Proto *node) {
 			if(res2){
 				node->__loadResource = res2;
 			}else{
+				struct X3D_Proto *libraryScene;
 				/* printf ("load_Inline, we have type  %s  status %s\n",
 					resourceTypeToString(res->type), resourceStatusToString(res->status)); */
 				res->actions = resa_download | resa_load; //not resa_parse which we do below
-				struct X3D_Proto *libraryScene = createNewX3DNode0(NODE_Proto);
+				libraryScene = createNewX3DNode0(NODE_Proto);
 				res->ectx = (void*)libraryScene;
 				res->whereToPlaceData = X3D_NODE(libraryScene);
 				res->offsetFromWhereToPlaceData = offsetof (struct X3D_Proto, __children);
@@ -6811,7 +6820,7 @@ void load_externProtoDeclare (struct X3D_Proto *node) {
 	} 
 }
 void load_externProtoInstance (struct X3D_Proto *node) {
-	resource_item_t *res;
+	//resource_item_t *res;
 	// printf ("load_externProto %u, loadStatus %d loadResource %u\n",node, node->__loadstatus, node->__loadResource);
 
     //printf ("load_externProto, node %p loadStatus %d\n",node,node->load);
@@ -6833,12 +6842,14 @@ void load_externProtoInstance (struct X3D_Proto *node) {
 					int n = vectorSize(pnode->__protoDeclares);
 					if(n){
 						struct X3D_Proto *pdeclare, *pinstance;
+						struct X3D_Node *nnode;
 						pdeclare = vector_get(struct X3D_Proto*,pnode->__protoDeclares,0);
 						pinstance = brotoInstance(pdeclare,1);
 						if (pinstance != NULL) {
 							struct ProtoDefinition *ed, *pd;
 							struct Vector *ei, *pi;
 							struct ProtoFieldDecl *ef, *pf;
+
 							ed = node->__protoDef;
 							ei = ed->iface;
 							pd = pinstance->__protoDef;
@@ -6849,6 +6860,8 @@ void load_externProtoInstance (struct X3D_Proto *node) {
 							{
 								int i,j;
 								char *ename, *pname;
+								struct Vector *p2p;
+								struct pointer2pointer *p2pentry;
 
 								//match fields to create IStable
 								for(i=0;i<ei->n;i++){
@@ -6870,8 +6883,8 @@ void load_externProtoInstance (struct X3D_Proto *node) {
 									}
 								}
 								//convert IStable to browser routes
-								struct Vector *p2p = newVector(struct pointer2pointer*,1);
-								struct pointer2pointer *p2pentry = malloc(sizeof(struct pointer2pointer));
+								p2p = newVector(struct pointer2pointer*,1);
+								p2pentry = malloc(sizeof(struct pointer2pointer));
 								//nothing to look up, nuisance to re-use copy_IS
 								p2pentry->pp = X3D_NODE(pinstance);
 								p2pentry->pn = X3D_NODE(pinstance);
@@ -6887,7 +6900,7 @@ void load_externProtoInstance (struct X3D_Proto *node) {
 								for(i=0;i<istable->n;i++)
 								{
 									struct brotoIS* is;
-									int ifield, iprotofield;
+									//int ifield, iprotofield;
 									is = vector_get(struct brotoIS*, istable, i);
 									if(is->pmode == PKW_inputOutput || is->pmode == PKW_initializeOnly){ 
 										if(is->mode == PKW_inputOutput || is->mode == PKW_initializeOnly){
@@ -6902,7 +6915,8 @@ void load_externProtoInstance (struct X3D_Proto *node) {
 							}
 							//now copy broto body, which should cascade inital values down
 							deep_copy_broto_body2(&pdeclare,&pinstance);
-                			AddRemoveChildren(X3D_NODE(node), &node->__children, &X3D_NODE(pinstance), 1, 1,__FILE__,__LINE__);
+							nnode = X3D_NODE(pinstance);
+                			AddRemoveChildren(X3D_NODE(node), &node->__children, &nnode, 1, 1,__FILE__,__LINE__);
 							add_parent(X3D_NODE(pinstance),X3D_NODE(node),__FILE__,__LINE__);
 						} //if (pinstance != NULL) 
 					}
@@ -6923,14 +6937,16 @@ void add_node_to_broto_context(struct X3D_Proto *context,struct X3D_Node *node){
 			- javascript SAI addNode, removeNode, addProto, removeProto ...
 	*/
 	if(context && hasContext(X3D_NODE(context))){
+		Stack *__nodes;
 		if(!context->__nodes)
 			context->__nodes = newVector(struct X3D_Node*,4);
-		Stack *__nodes = context->__nodes;
+		__nodes = context->__nodes;
 		stack_push(struct X3D_Node*,__nodes,node);
 		if(hasContext(node)){
+			Stack *__subctxs;
 			if(!context->__subcontexts)
 				context->__subcontexts = newVector(struct X3D_Node*,4);
-			Stack *__subctxs = context->__subcontexts;
+			__subctxs = context->__subcontexts;
 			stack_push(struct X3D_Node*,__subctxs,node);
 		}
 	}
@@ -6947,7 +6963,8 @@ void remove_node_from_broto_context(struct X3D_Proto *context,struct X3D_Node *n
 	*/
 	if(context && hasContext(X3D_NODE(context))){
 		if(context->__nodes){
-			for(int i=0;i<vectorSize(context->__nodes);i++){
+			int i;
+			for(i=0;i<vectorSize(context->__nodes);i++){
 				struct X3D_Node *ns = vector_get(struct X3D_Node*,context->__nodes,i);
 				if(ns == node){
 					vector_remove_elem(struct X3D_Node*,context->__nodes,i);
@@ -6956,7 +6973,8 @@ void remove_node_from_broto_context(struct X3D_Proto *context,struct X3D_Node *n
 			}
 		}
 		if(context->__subcontexts && hasContext(node) ){
-			for(int i=0;i<vectorSize(context->__subcontexts);i++){
+			int i;
+			for(i=0;i<vectorSize(context->__subcontexts);i++){
 				struct X3D_Node *ns = vector_get(struct X3D_Node*,context->__subcontexts,i);
 				if(ns == node){
 					vector_remove_elem(struct X3D_Node*,context->__subcontexts,i);
@@ -7083,7 +7101,8 @@ int unregister_broto_instance(struct X3D_Proto* node){
 			/* live scenery, registered */
 			//recurse to subcontexts
 			if(node->__subcontexts){
-				for(int i=0;i<vectorSize(node->__subcontexts);i++){
+				int i;
+				for(i=0;i<vectorSize(node->__subcontexts);i++){
 					struct X3D_Proto* subcontext = vector_get(struct X3D_Proto*,node->__subcontexts,i);
 					unregister_broto_instance(subcontext);
 				}
@@ -7097,7 +7116,8 @@ int unregister_broto_instance(struct X3D_Proto* node){
 			//unregister sensors and nodes
 			if(node->__nodes){
 				//printf("unregister size of __nodes=%d\n",vectorSize(node->__nodes));
-				for(int i=0;i<vectorSize(node->__nodes);i++){
+				int i;
+				for(i=0;i<vectorSize(node->__nodes);i++){
 					struct X3D_Node* ns = vector_get(struct X3D_Node*,node->__nodes,i);
 					unRegisterX3DAnyNode(ns);
 				}
@@ -7226,8 +7246,9 @@ int unRegisterNodeRoutes(struct X3D_Proto *context, struct X3D_Node* node){
 			int i,ii,nr;
 			nr = vectorSize(context->__ROUTES);
 			for(i=0;i<nr;i++){
+				struct brotoRoute *route;
 				ii = nr - i - 1; //start at end so we can pack without losing our index
-				struct brotoRoute *route = vector_get(struct brotoRoute*,context->__ROUTES,ii);
+				route = vector_get(struct brotoRoute*,context->__ROUTES,ii);
 				if(route->from.node == node || route->to.node == node){
 					if( route->lastCommand){
 						CRoutes_RemoveSimpleB(route->from.node,route->from.ifield,route->to.node,route->to.ifield,route->ft);

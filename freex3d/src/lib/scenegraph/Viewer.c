@@ -931,7 +931,7 @@ void handle_turntable(const int mev, const unsigned int button, float x, float y
 		Quaternion qyaw, qpitch;
 		double dyaw, dpitch;
 		struct point_XYZ pp, yaxis;
-		double dist, yaw, pitch;
+		double yaw, pitch; //dist, 
 		Quaternion quat;
 
 		if (button == 1 || button == 3){
@@ -1198,7 +1198,7 @@ void handle_explore(const int mev, const unsigned int button, float x, float y) 
 		Quaternion qyaw, qpitch;
 		double dyaw, dpitch;
 		struct point_XYZ pp, yaxis;
-		double dist, yaw, pitch;
+		double yaw, pitch; //dist, 
 		Quaternion quat;
 
 		if (button == 1 || button == 3){
@@ -1330,8 +1330,8 @@ void handle_tplane(const int mev, const unsigned int button, float x, float y) {
 	   (about camera-axis/Z)
 	*/
 	X3D_Viewer_InPlane *inplane;
-	double frameRateAdjustment,xx,yy;
-	struct point_XYZ xyz;
+	double frameRateAdjustment;//,xx,yy;
+	//struct point_XYZ xyz;
 	ppViewer p;
 	ttglobal tg = gglobal();
 	p = (ppViewer)gglobal()->Viewer.prv;
@@ -1346,8 +1346,8 @@ void handle_tplane(const int mev, const unsigned int button, float x, float y) {
 		inplane->x = x; //x;
 		inplane->y = y; //y;
 	} else if (mev == MotionNotify) {
-		inplane->xx = .15 * xsign_quadratic(x - inplane->x,5.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment;
-		inplane->yy = -.15 * xsign_quadratic(y - inplane->y,5.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment;
+		inplane->xx =  .15 * xsign_quadratic(x - inplane->x,5.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment;
+		inplane->yy = -.15f * xsign_quadratic(y - inplane->y,5.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment;
  	} else if(mev == ButtonRelease){
 		inplane->xx = 0.0f;
 		inplane->yy = 0.0f;
@@ -1355,7 +1355,7 @@ void handle_tplane(const int mev, const unsigned int button, float x, float y) {
 }
 void handle_tick_tplane(){
 	X3D_Viewer_InPlane *inplane;
-	Quaternion quatr, quatt, quat;
+	//Quaternion quatr, quatt, quat;
 	struct point_XYZ pp;
 	ttglobal tg;
 	ppViewer p;
@@ -1422,7 +1422,7 @@ void handle_rtplane(const int mev, const unsigned int button, float x, float y) 
 void handle_tick_rplane(){
 	X3D_Viewer_InPlane *inplane;
 	Quaternion quatr;
-	struct point_XYZ pp;
+	//struct point_XYZ pp;
 	ttglobal tg;
 	ppViewer p;
 	tg = gglobal();
@@ -1439,7 +1439,7 @@ void handle_tick_rplane(){
 void handle_tick_tilt() {
 	X3D_Viewer_InPlane *inplane;
 	Quaternion quatt;
-	struct point_XYZ pp;
+	//struct point_XYZ pp;
 	ttglobal tg;
 	ppViewer p;
 	tg = gglobal();
@@ -1566,14 +1566,14 @@ int isFlyKey(char key){
 void handle_key(const char key, double keytime)
 {
 	char _key;
-	int i;
+	//int i;
 	X3D_Viewer_Fly *fly; 
+	struct flykey_lookup_type *flykey;
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
 	fly = &p->Viewer.fly;
-	printf("%c",key);
+	//printf("%c",key);
 	//if (p->Viewer.type == VIEWER_FLY) {   //Navigation-key_and_drag
-		struct flykey_lookup_type *flykey;
 		/* $key = lc $key; */
 		_key = (char) tolower((int) key);
 		if(!isFlyKey(_key)) return;
@@ -1592,8 +1592,9 @@ void handle_key(const char key, double keytime)
 void handle_keyrelease(const char key, double keytime)
 {
 	char _key;
-	int i;
+	//int i;
 	X3D_Viewer_Fly *fly;
+	struct flykey_lookup_type *flykey;
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	/* my($this,$time,$key) = @_; */
 
@@ -1601,7 +1602,6 @@ void handle_keyrelease(const char key, double keytime)
 
 	//if (p->Viewer.type == VIEWER_FLY) { //Navigation-key_and_drag
 		/* $key = lc $key; */
-		struct flykey_lookup_type *flykey;
 		_key = (char) tolower((int) key);
 		if(!isFlyKey(_key)) return;
 		flykey = getFlyIndex(_key);
@@ -1998,8 +1998,9 @@ static void handle_tick_fly()
 		}
 		if(fly->ndown[1][i]){ 
 			//there were some keydowns that happened between ticktimes, add their effects here
+			int k;
 			double rps = radians_per_second * .33;
-			for(int k=0; k<fly->ndown[1][i]; k++){
+			for(k=0; k<fly->ndown[1][i]; k++){
 				double era = fly->wasDown[1][i][k].era; //unused keydown time
 				double pressedEra = fly->wasDown[1][i][k].epoch; //total pressedTime
 				//printf("+%f %f \n",era,pressedTime);
@@ -2708,16 +2709,18 @@ void setup_viewpoint_slerp(double* center, double pivot_radius, double vp_radius
 		setup_viewpoint_slerp(pointInEyespace, radiusOfShapeInEyespace)
 		
 	*/
-	GLDOUBLE matTarget[16],matTargeti[16], mv[16];
-	double distance, dradius;
-	double yaw, pitch, R1[16], R2[16], R3[16], R3i[16], T[16], matQuat[16], matAntiQuat[16];
+	//GLDOUBLE matTargeti[16]; //, matTarget[16], mv[16];
+	double dradius; //distance, 
+	double yaw, pitch; //, R1[16], R2[16], R3[16], R3i[16]; //, T[16], matQuat[16]; //, matAntiQuat[16];
 	double C[3];
-	Quaternion sq;
+	//Quaternion sq;
 	Quaternion q_i;
+	Quaternion qyaw, qpitch, qtmp;
+	struct point_XYZ PC;
 
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
-	double rpos[3], pos[3] = {0.0,0.0,0.0};
+	double  pos[3] = {0.0,0.0,0.0}; //rpos[3],
 	struct point_XYZ pp,qq;
 
 	veccopyd(pos,center);
@@ -2771,8 +2774,6 @@ void setup_viewpoint_slerp(double* center, double pivot_radius, double vp_radius
 	//when you pick, your pickray and shape object isn't usually dead center in the viewport. In that case,
 	//besides translating the viewer, you also want to turn the camera to look at the 
 	//center of the shape (turning somewhat toward the pickray direction, but more precisely to the shape object ccenter)
-	Quaternion qyaw, qpitch, qtmp;
-	struct point_XYZ PC;
 	//compute yaw from our pickray
 	veccopyd(C,pos);
 	if( APPROX( vecnormald(C,C), 0.0) )

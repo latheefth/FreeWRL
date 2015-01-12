@@ -64,7 +64,7 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
 	size_t origsize = strlen(fname) + 1;
 	char* fname2 = (char*) malloc(origsize);
 	strcpy(fname2,fname);
-	for(int jj=0;jj<strlen(fname2);jj++)
+	for(int jj=0;jj<(int)strlen(fname2);jj++)
 		if(fname2[jj] == '/' ) fname2[jj] = '\\';
 
     const size_t newsize = 225;
@@ -120,7 +120,7 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
 
    Rect rect(0,0,bitmap->GetWidth(),bitmap->GetHeight());
    if(flipVertically)
-		bitmapData->Stride = -bitmap->GetWidth()*4;
+		bitmapData->Stride = -(int)bitmap->GetWidth()*4;
    else
 	   bitmapData->Stride = bitmap->GetWidth()*4;
    bitmapData->Width = bitmap->GetWidth();

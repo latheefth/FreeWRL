@@ -484,9 +484,9 @@ struct X3D_Node * broto_search_ALLnames(struct X3D_Proto *context, char *name, i
 		- the Inline may be mentioned by char* name in IMPORT struct, so an exter DEFname lookup is needed to get Inline* node
 		-- that may change/be optimized if stable enough
 	*/
-
+	struct X3D_Node *node;
 	*source = 0; //main scene
-	struct X3D_Node *node = NULL;
+	node = NULL;
 	//check scene's DEF table to see if it has become a normal node mapping
 	node = broto_search_DEFname(context,name);
 	if(!node){
@@ -495,8 +495,8 @@ struct X3D_Node * broto_search_ALLnames(struct X3D_Proto *context, char *name, i
 		im = broto_search_IMPORTname(context,name);
 		if(im){
 			//if its listed in scene's import table, look to see if the mentioned Inline is loaded
-			*source = 1; //mentioned in IMPORTS
 			struct X3D_Node *nlinenode;
+			*source = 1; //mentioned in IMPORTS
 			nlinenode = broto_search_DEFname(context,im->inlinename);
 			if(nlinenode && nlinenode->_nodeType == NODE_Inline ){
 				struct X3D_Inline *nline = X3D_INLINE(nlinenode);
@@ -596,7 +596,8 @@ void update_weakRoutes(struct X3D_Proto *context){
 		//  but then we need to maintain that __WEAKROUTE vector, when adding/removing routes during parsing or javascript.
 		//  its handy to keep both strong and weak routes in one __ROUTES array for javascript currentScene.routes.length and routes[i].fromNode etc
 		//  for now (Oct 2014) we'll do a big wasteful loop over all routes.
-		for(int k=0;k<vectorSize(context->__ROUTES);k++){
+		int k;
+		for(k=0;k<vectorSize(context->__ROUTES);k++){
 			struct brotoRoute *route = vector_get(struct brotoRoute *,context->__ROUTES,k);
 			if(route->from.weak || route->to.weak){
 				update_weakRoute(context,route);
@@ -777,7 +778,7 @@ void compile_Inline(struct X3D_Inline *node) {
 void child_Inline (struct X3D_Inline *node) {
 
 	static int usingSortedChildren = 0;
-	struct Multi_Node * kids;
+	//struct Multi_Node * kids;
 	CHILDREN_COUNT
 	//int nc = node->__children.n; //_sortedChildren.n;
 	LOCAL_LIGHT_SAVE

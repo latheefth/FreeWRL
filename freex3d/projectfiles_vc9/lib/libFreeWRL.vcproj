@@ -475,6 +475,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\lib\desktop.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src_windows\dialogs.c"
 				>
 			</File>
@@ -636,10 +640,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\lib\scenegraph\quaternion.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\lib\opengl\RasterFont.c"
 				>
 			</File>
 			<File

@@ -127,7 +127,8 @@ void vector_removeElement(int elSize,struct Vector* myp, int element)
 	if(me){
 		if(me->data && me->n > 0 && element < me->n && element > -1) {
 			char *el0,*el1;
-			for(int i=element;i<me->n;i++){
+			int i;
+			for(i=element;i<me->n;i++){
 				el0 = (char *)(me->data) + i*elSize;
 				el1 = el0 + elSize;
 				memcpy(el0,el1,elSize);
