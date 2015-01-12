@@ -146,7 +146,7 @@ struct X3D_Proto* getContext(void *userData, int index);
 struct X3D_Node* getNode(void *userData, int index);
 void* getAtt(void *userData, int index);
 void setAtt(void *userData, int index, void* att);
-int getNodeTop(ud);
+int getNodeTop(void *ud);
 int getMode(void *userData, int index);
 void popContext(void *userData);
 void popNode(void *userData);

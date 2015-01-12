@@ -2633,7 +2633,7 @@ void print_field_value(FILE *fp, int typeIndex, union anyVrml* value)
 			sfmat4d->c[12],sfmat4d->c[13],sfmat4d->c[14],sfmat4d->c[15]);
 			break;
 		}
-		case FIELDTYPE_MFMatrix4d:	break;
+		case FIELDTYPE_MFMatrix4d:	
 		{
 			struct Multi_Matrix4d *mfmat4d = (struct Multi_Matrix4d*)value;
 			fprintf (fp,"{");
@@ -2920,7 +2920,7 @@ void print_field(FILE *fp,int level, int typeIndex, const char* fieldName, union
 			sfmat4d->c[12],sfmat4d->c[13],sfmat4d->c[14],sfmat4d->c[15]);
 			break;
 		}
-		case FIELDTYPE_MFMatrix4d:	break;
+		case FIELDTYPE_MFMatrix4d:	
 		{
 			struct Multi_Matrix4d *mfmat4d = (struct Multi_Matrix4d*)value;
 			fprintf (fp," :\n");
@@ -3249,6 +3249,7 @@ int consoleMenuActive()
 #define KEYDOWN 2
 #endif
 
+/*
 void addMenuChar(kp,type)
 {
 	char str[100];
@@ -3282,6 +3283,7 @@ void addMenuChar(kp,type)
 	}
 	}
 }
+*/
 void setConsoleMenu(void *yourData, char *prompt, void (*callback), char* dfault)
 {
 	ConsoleMenuState.f = callback;
@@ -3342,7 +3344,8 @@ void dump_scenegraph(int method)
 	}
 //#endif
 }
-unload_broto(struct X3D_Proto* node);
+int unload_broto(struct X3D_Proto* node);
+struct X3D_Proto *hasContext(struct X3D_Node* node);
 void fwl_clearWorld(){
 	//clear the scene to empty (and do cleanup on old scene);
 	int done = 0;
@@ -3668,7 +3671,7 @@ struct X3D_Node* getRayHit() {
 				GLDOUBLE mvp[16], mvpi[16];
 				GLDOUBLE *pickMatrix = getPickrayMatrix(0);
 				GLDOUBLE *pickMatrixi = getPickrayMatrix(1);
-				struct point_XYZ r11 = {0.0,0.0,1.0}; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
+				//struct point_XYZ r11 = {0.0,0.0,1.0}; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 				struct point_XYZ tp; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 
 				if(0){
@@ -4620,6 +4623,7 @@ int fwl_draw()
 	fwl_setCurrentHandle(tg, __FILE__, __LINE__);
 	p = (ppMainloop)tg->Mainloop.prv;
 
+	more = FALSE;
 	if (!p->draw_initialized){
 		view_initialize = view_initialize0; //defined above, with ifdefs
 		view_update = view_update0; //defined above with ifdefs
