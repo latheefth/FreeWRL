@@ -50,7 +50,7 @@ struct Vector* newVector_(int elSize, int initSize,char *,int);
 	#define deleteVector(type, me) deleteVector_(__FILE__,__LINE__,(int)sizeof(type), &(me))
 #else
 	void deleteVector_(int elSize, struct Vector**);
-	#define deleteVector(type, me) deleteVector_((int)sizeof(type), &((struct Vector*)(me)))
+	#define deleteVector(type, me) deleteVector_((int)sizeof(type), ((struct Vector**)(&me)))
 #endif
 
 /* Ensures there's at least one space free. */
@@ -120,9 +120,11 @@ typedef struct Vector Stack;
 
 /* Constructor and destructor */
 #define newStack(type) \
- newVector((int) sizeof(type), 4)
+ newVector(type, 4)
+ //newVector((int) sizeof(type), 4)
 #define deleteStack(type, me) \
- deleteVector((int) sizeof(type), me)
+ deleteVector(type, me)
+ //deleteVector((int) sizeof(type), me)
 
 /* Push and pop */
 #define stack_push(type, me, el) \

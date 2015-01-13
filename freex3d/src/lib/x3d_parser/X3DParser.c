@@ -885,17 +885,17 @@ static void parseRoutes_B (void *ud, char **atts) {
 	struct X3D_Proto *context;
 	struct X3D_Node *fromNode = NULL;
 	struct X3D_Node *toNode = NULL;	
-	int i, okf,okt, ftype,fkind,fifield,fsource,ttype,tkind,tifield,tsource;
-	union anyVrml *fvalue, *tvalue;
-	void *fdecl,*tdecl;
+	int i; //, okf,okt, ftype,fkind,fifield,fsource,ttype,tkind,tifield,tsource;
+	//union anyVrml *fvalue, *tvalue;
+	//void *fdecl,*tdecl;
 	int error = FALSE;
-	int isImportRoute;
-	int fromType;
-	int toType;
+	//int isImportRoute;
+	//int fromType;
+	//int toType;
+	char *ffield, *tfield, *fnode, *tnode;
 	
 	context = getContext(ud,TOP);
 
-	char *ffield, *tfield, *fnode, *tnode;
 	ffield = tfield = fnode = tnode = NULL;
 	for (i = 0; atts[i]; i += 2) {
 		if (strcmp("fromNode",atts[i]) == 0) {
@@ -1057,9 +1057,13 @@ b) get the parent's suggested fieldname off stack, and if not null,
 c) look at atts containerField, and if not null and not children, use it.
 	- scene author is trying to over-ride defaults.
 */
-	int defaultContainer, instanceContainer, i;
+	int defaultContainer; //, instanceContainer, i;
 	struct X3D_Node *node, *parent;
-	char *ic,  *parentsSuggestion;
+	char *parentsSuggestion; //*ic,  
+	int type, kind, iifield, ok;
+	union anyVrml *value;
+	const char *fname;
+
 	node = getNode(ud,TOP);
 	parent = getNode(ud,TOP-1);
 	if(!node || !parent)return;
@@ -1070,9 +1074,8 @@ c) look at atts containerField, and if not null and not children, use it.
 	//3.a)
 	defaultContainer = node->_defaultContainer;
 	if(defaultContainer == FIELDNAMES_children) defaultContainer = 0;
-	int type, kind, iifield, ok;
-	union anyVrml *value = NULL;
-	char *fname = NULL;
+	value = NULL;
+	fname = NULL;
 	if(defaultContainer){
 		fname = FIELDNAMES[defaultContainer];
 		ok = getFieldFromNodeAndName(parent,fname,&type,&kind,&iifield,&value);
@@ -1689,6 +1692,8 @@ static void endExternProtoDeclareTag(void *ud) {
 
 static void endProtoDeclareTag_B(void *ud) {
 	/* ending <ProtoDeclare> */
+	struct X3D_Proto * proto;
+	struct Multi_Node *cptr;
 
 	if (getMode(ud,TOP) != PARSING_PROTODECLARE) {
 		ConsoleMessage ("endProtoDeclareTag: got a </ProtoDeclare> but not parsing one at line %d",LINE);
@@ -1696,8 +1701,8 @@ static void endProtoDeclareTag_B(void *ud) {
 	}
 	if(0) printf("end protoDeclare\n");
 	// set defaultContainer based on 1st child
-	struct X3D_Proto * proto = X3D_PROTO(getNode(ud,TOP));
-	struct Multi_Node *cptr = NULL;
+	proto = X3D_PROTO(getNode(ud,TOP));
+	cptr = NULL;
 	if(proto->__children.n)
 		cptr = &proto->__children;
 	else if(proto->addChildren.n)
@@ -1739,7 +1744,9 @@ static void endProtoInstance_B(void *ud, const char *name) {
 				//copying the body _after_ the protoInstance field values have been parsed 
 				//allows ISd fields in body nodes to get the pkw_initializeOnly/inputOutput value
 				//from the protoInstance interface
-				deep_copy_broto_body2(&X3D_PROTO(pnode->__prototype),&pnode);
+				struct X3D_Proto *pdeclare;
+				pdeclare = X3D_PROTO(pnode->__prototype);
+				deep_copy_broto_body2(&pdeclare,&pnode);
 			}
 		}
 		linkNodeIn_B(ud);
@@ -1879,7 +1886,7 @@ void **shaderFields(struct X3D_Node* node){
 	return shaderfield;
 }
 void broto_store_DEF(struct X3D_Proto* proto,struct X3D_Node* node, char *name);
-void parseAttributes_B(void *ud, char **atts);
+static void parseAttributes_B(void *ud, char **atts);
 void add_node_to_broto_context(struct X3D_Proto *context,struct X3D_Node *node);
 
 static void startBuiltin_B(void *ud, int myNodeType, const xmlChar *name, char** atts) {
@@ -2160,7 +2167,7 @@ static void parseAttributes_B(void *ud, char **atts) {
 }
 
 static void parseAttributes(void *ud) {
-	size_t ind;
+	int ind;
 	struct nameValuePairs *nvp;
 	struct X3D_Node *thisNode;
 	struct Vector *childAttributes;
@@ -2622,6 +2629,7 @@ static void XMLCALL X3DendElement(void *ud, const xmlChar *iname) {
 		if(usingBrotos()){
 			endBuiltin_B(ud,iname);
 		}else{
+			struct Vector *childAttributes;
 			/* printf ("endElement - normalNode :%s:\n",name); */
 			if (myNodeIndex == NODE_Script) {
 				#ifdef HAVE_JAVASCRIPT
@@ -2632,7 +2640,7 @@ static void XMLCALL X3DendElement(void *ud, const xmlChar *iname) {
 			linkNodeIn(ud,__FILE__,__LINE__);
 
 
-			struct Vector *childAttributes = getAtt(ud,TOP);
+			childAttributes = getAtt(ud,TOP);
 			if (childAttributes!=NULL) deleteVector (struct nameValuePairs*, childAttributes);
 			setAtt(ud,TOP,NULL);
 

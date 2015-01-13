@@ -985,14 +985,14 @@ int pickrayHitsMBB(struct X3D_Node *node){
 		int i, isIn;
 		//if using new Sept 2014 pickmatrix, we can test the pickray against the shape node's bounding box
 		//and if no hit, then no need to run through rendray testing all triangles
-		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 		//feature-AFFINE_GLU_UNPROJECT
 		//FLOPs	112 double:	matmultiplyAFFINE 36, matinverseAFFINE 49, 3x transform (affine) 9 =27
-		GLDOUBLE mvp[16], mvpi[16];
+		GLDOUBLE mvp[16]; //, mvpi[16];
 		GLDOUBLE smin[3], smax[3], shapeMBBmin[3], shapeMBBmax[3];
 		GLDOUBLE *pickMatrix = getPickrayMatrix(0);
 		GLDOUBLE *pickMatrixi = getPickrayMatrix(1);
 		//struct point_XYZ r11 = {0.0,0.0,-1.0}; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
+		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
 		if(1){
 			//pickMatrix is inverted in setup_projection

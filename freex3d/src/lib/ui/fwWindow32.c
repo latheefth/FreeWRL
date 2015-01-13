@@ -268,7 +268,7 @@ bool fv_create_and_bind_GLcontext(freewrl_params_t* d)
 	/* create GL context */
 	//fwl_thread_dump();
 	printf("starting createcontext32b\n");
-	hWnd = d->winToEmbedInto;
+	hWnd = (HWND)d->winToEmbedInto;
 	hDC = GetDC(hWnd); 
 	printf("got hdc\n");
 	if (!bSetupPixelFormat(hDC))
@@ -1039,7 +1039,7 @@ void fv_setGeometry_from_cmdline(const char *gstring)
 	char *str = malloc(sizeof(gstring)+1);
 	strcpy(str,gstring);
 	tok[0] = str;
-	for(i=0;i<strlen(gstring);i++)
+	for(i=0;i<(int)strlen(gstring);i++)
 		if(str[i] == 'x' || str[i] == 'X')
 		{
 			str[i] = '\0';

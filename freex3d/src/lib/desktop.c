@@ -131,7 +131,7 @@ w3dx.manifest:
  */
 bool resource_fetch(resource_item_t *res)
 {
-	char* pound;
+	//char* pound;
 	DEBUG_RES("fetching resource: %s, %s resource %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status) ,res->URLrequest);
 
 	ASSERT(res);
@@ -264,7 +264,7 @@ int url2file(resource_item_t *res){
 void file2blob_task(s_list_t *item);
 extern int async_thread_count;
 static void *thread_download_async (void *args){
-	int downloaded;
+	int downloaded, tactic;
 	resource_item_t *res = (resource_item_t *)args;
 	async_thread_count++;
 	printf("{%d}",async_thread_count);
@@ -272,7 +272,7 @@ static void *thread_download_async (void *args){
 
 	downloaded = url2file(res);
 
-	int tactic = file2blob_task_chain;
+	tactic = file2blob_task_chain;
 	if(downloaded)
 		file2blob_task(ml_new(res));
 	async_thread_count--;
@@ -356,7 +356,9 @@ void _displayThread(void *globalcontext)
 	//printf("Ending display thread gracefully\n");
 	return;
 }
-
+#ifdef _MSC_VER
+void sync();
+#endif
 //#if !defined (FRONTEND_HANDLES_DISPLAY_THREAD)
 void fwl_initializeDisplayThread()
 {

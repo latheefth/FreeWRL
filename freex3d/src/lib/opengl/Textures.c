@@ -605,8 +605,8 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 				thistp = createNewX3DNode (NODE_TextureProperties);
 				if(usingBrotos()){
 					if(node->_executionContext){
-						add_node_to_broto_context(node->_executionContext,thistex);
-						add_node_to_broto_context(node->_executionContext,thistp);
+						add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(thistex));
+						add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(thistp));
 					}
 				}
 
@@ -688,7 +688,7 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 							thistp = createNewX3DNode (NODE_TextureProperties);
 							if(usingBrotos()){
 								if(node->_executionContext){
-									add_node_to_broto_context(node->_executionContext,thistp);
+									add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(thistp));
 								}
 							}
 							X3D_IMAGETEXTURE(thistex)->textureProperties = X3D_NODE(thistp);
@@ -702,7 +702,7 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 							thistp = createNewX3DNode (NODE_TextureProperties);
 							if(usingBrotos()){
 								if(node->_executionContext){
-									add_node_to_broto_context(node->_executionContext,thistp);
+									add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(thistp));
 								}
 							}
 							X3D_PIXELTEXTURE(thistex)->textureProperties = X3D_NODE(thistp);

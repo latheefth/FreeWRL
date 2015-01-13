@@ -543,6 +543,7 @@ void parseConnect_B(void *ud, char **atts) {
 			okp = 0;
 		}
 		if(okp && okn){
+			int source;
 			//we have an IS that's compatible/jives
 			//a) copy the value if it's an initializeOnly or inputOutput
 			if(pkind == PKW_initializeOnly || pkind == PKW_inputOutput)
@@ -550,7 +551,7 @@ void parseConnect_B(void *ud, char **atts) {
 				shallow_copy_field(ntype, pvalue , nvalue);
 			}
 			//b) register it in the IS-table for our context
-			int source = node->_nodeType == NODE_Proto ? 3 : node->_nodeType == NODE_Script ? 1 : nodeTypeSupportsUserFields(node) ? 2 : 0;
+			source = node->_nodeType == NODE_Proto ? 3 : node->_nodeType == NODE_Script ? 1 : nodeTypeSupportsUserFields(node) ? 2 : 0;
 			//Q. do I need to convert builtin from field index to offset? if( source == 0) nifield *=5;
 			broto_store_IS(context,protofield,pkind,pifield,ptype,
 							node,nodefield,nkind,nifield,source);
@@ -560,8 +561,8 @@ void parseConnect_B(void *ud, char **atts) {
 void parseConnect(void *ud, struct VRMLLexer *myLexer, char **atts, struct Vector *tos) {
 	int i;
 	struct nameValuePairs *nvp;
-	size_t ind;
-	size_t nodeind;
+	int ind;
+	int nodeind;
 	int nfInd;
 	int pfInd;
 	struct Shader_Script* myObj;
@@ -958,7 +959,7 @@ void endDumpProtoBody (const char *name) {
 static void verifyExternAndProtoFields(void) {
 	int extPro;
 	int curPro;
-	size_t curInd, extInd;
+	int curInd, extInd;
 	struct Shader_Script *extProF;
 	struct Shader_Script *curProF;
 	struct ScriptFieldDecl* curField;
@@ -1149,7 +1150,8 @@ void parseProtoInstance_B(void *ud, char **atts) {
 		struct X3D_Proto *proto;
 		if( isAvailableBroto(protoname, currentContext , &proto))
 		{
-			struct X3D_Node *parent;
+			//struct X3D_Node *parent;
+			char* containerfield;
 			/* its a binary proto, new in 2013 */
 			int idepth = 0; //if its old brotos (2013) don't do depth until sceneInstance. If 2014 broto2, don't do depth here if we're in a protoDeclare or externProtoDeclare
 			if(usingBrotos() ) idepth = pflagdepth == 1; //2014 broto2: if we're parsing a scene (or Inline) then deepcopy proto to instance it, else shallow
@@ -1162,7 +1164,7 @@ void parseProtoInstance_B(void *ud, char **atts) {
 			add_node_to_broto_context(currentContext,node);
 
 			pushNode(ud,node);
-			char* containerfield = NULL;
+			containerfield = NULL;
 			for (i = 0; atts[i]; i += 2) {
 				if(!strcmp(atts[i],"containerField")) containerfield = atts[i+1];
 			}
@@ -1386,7 +1388,7 @@ static void fixXmlString(char *fvout, char* fvin)
 						fvout = realloc(fvout,strlen(fvout)+1000);
 						nadd = 0;
 					}
-					for(k=0;k<strlen(fixtable[j]);k++)
+					for(k=0;k<(int)strlen(fixtable[j]);k++)
 					{
 						*c = fixtable[j][k];
 						c++;
@@ -1725,35 +1727,38 @@ void parseProtoDeclare_B (void *ud, char **atts) {
 		5.push on node stack awaiting interface and body
 	*/
 	int i;
-	char *typename, *appinfo, *documentation, *containerfield;
-	typename = appinfo = documentation = containerfield = NULL;
+	struct X3D_Proto* proto;
+	char *type_name, *appinfo, *documentation, *containerfield;
+	struct ProtoDefinition* obj;
+	struct X3D_Proto* parent;
+
+	type_name = appinfo = documentation = containerfield = NULL;
 	if(0) printf("in start protoDeclare\n");
 
-	struct X3D_Proto* proto = createNewX3DNode0(NODE_Proto);
+	proto = createNewX3DNode0(NODE_Proto);
 	for (i = 0; atts[i]; i += 2) {
 		#ifdef X3DPARSERVERBOSE
 		TTY_SPACE
 		printf ("parseProtoDeclare: field:%s=%s\n", atts[i], atts[i+1]);
 		#endif
 
-		if (!strcmp("name",atts[i]) ) typename = atts[i+1];
+		if (!strcmp("name",atts[i]) ) type_name = atts[i+1];
 		else if(!strcmp("containerField",atts[i])) containerfield = atts[i+1];
 		else if(!strcmp("appInfo",atts[i])) appinfo = atts[i+1];
 		else if(!strcmp("documentation",atts[i])) documentation = atts[i+1];
 	}
 
-	struct ProtoDefinition* obj;
-	struct X3D_Proto* parent = (struct X3D_Proto*)getContext(ud,TOP);
+	parent = (struct X3D_Proto*)getContext(ud,TOP);
 	obj=newProtoDefinition();
 
 	/* did we find the name? */
-	if (typename) {
-		obj->protoName = STRDUP(typename);
+	if (type_name) {
+		obj->protoName = STRDUP(type_name);
 	} else {
 		printf ("warning - have proto but no name, so just copying a default string in\n");
 		obj->protoName = STRDUP("noProtoNameDefined");
 	}
-	typename = obj->protoName;
+	type_name = obj->protoName;
 
 	if(parent->__protoDeclares == NULL)
 		parent->__protoDeclares = newVector(struct X3D_Proto*,4);
@@ -1829,36 +1834,38 @@ void parseExternProtoDeclare_B (void *ud, char **atts) {
 		5.push on node stack awaiting interface (with no initial values)
 	*/
 	int i;
-	char *typename, *appinfo, *documentation, *containerfield, *url;
-	typename = appinfo = documentation = containerfield = url = NULL;
+	char *type_name, *appinfo, *documentation, *containerfield, *url;
+	struct ProtoDefinition* obj;
+	struct X3D_Proto* proto;
+	struct X3D_Proto* parent;
+	type_name = appinfo = documentation = containerfield = url = NULL;
 	if(0) printf("in parseExternProtoDeclare_B\n");
 
-	struct X3D_Proto* proto = createNewX3DNode0(NODE_Proto);
+	proto = createNewX3DNode0(NODE_Proto);
 	for (i = 0; atts[i]; i += 2) {
 		#ifdef X3DPARSERVERBOSE
 		TTY_SPACE
 		printf ("parseProtoDeclare: field:%s=%s\n", atts[i], atts[i+1]);
 		#endif
 
-		if (!strcmp("name",atts[i]) ) typename = atts[i+1];
+		if (!strcmp("name",atts[i]) ) type_name = atts[i+1];
 		else if(!strcmp("containerField",atts[i])) containerfield = atts[i+1];
 		else if(!strcmp("appInfo",atts[i])) appinfo = atts[i+1];
 		else if(!strcmp("documentation",atts[i])) documentation = atts[i+1];
 		else if(!strcmp("url",atts[i])) url = atts[i+1];
 	}
 
-	struct ProtoDefinition* obj;
-	struct X3D_Proto* parent = (struct X3D_Proto*)getContext(ud,TOP);
+	parent = (struct X3D_Proto*)getContext(ud,TOP);
 	obj=newProtoDefinition();
 
 	/* did we find the name? */
-	if (typename) {
-		obj->protoName = STRDUP(typename);
+	if (type_name) {
+		obj->protoName = STRDUP(type_name);
 	} else {
 		printf ("warning - have proto but no name, so just copying a default string in\n");
 		obj->protoName = STRDUP("noProtoNameDefined");
 	}
-	typename = obj->protoName;
+	type_name = obj->protoName;
 
 	if(parent->__externProtoDeclares == NULL)
 		parent->__externProtoDeclares = newVector(struct X3D_Proto*,4);
@@ -2015,7 +2022,7 @@ void parseScriptProtoField_B(void *ud, char **atts) {
 		- Script field may have fieldValue as child element, or IS/connect as peer
 		- ProtoDeclare may have fieldValue as child element
 	*/ 
-	struct X3D_Node *node;
+	//struct X3D_Node *node;
 	int mp_name, mp_accesstype, mp_type, mp_value, i;
 	int pkwmode, type;
 	union anyVrml defaultValue, *value;
@@ -2070,6 +2077,7 @@ void parseScriptProtoField_B(void *ud, char **atts) {
 			}else{
 				struct Shader_Script* shader = NULL;
 				struct ScriptFieldDecl* sfield;
+				int jsname;
 				switch(node->_nodeType) 
 				{ 
 					case NODE_Script:         shader =(struct Shader_Script *)(X3D_SCRIPT(node)->__scriptObj); break;
@@ -2077,7 +2085,7 @@ void parseScriptProtoField_B(void *ud, char **atts) {
 					case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields); break;
 					case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields); break;
 				}
-				int jsname = JSparamIndex (fname, atts[mp_type]);
+				jsname = JSparamIndex (fname, atts[mp_type]);
 				cname = getJSparamnames()[jsname].name;
 				//sfield = newScriptFieldDecl() // too hard to fathom, I'll break it out:
 				sfield = MALLOC(struct ScriptFieldDecl *, sizeof(struct ScriptFieldDecl));

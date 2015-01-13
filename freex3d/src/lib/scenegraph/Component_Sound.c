@@ -148,25 +148,26 @@ float ListenerOri[] = { 0.0, 0.0, -1.0, 0.0, 1.0, 0.0 };
 
 int SoundEngineInit(void)
 {
-	void *alctx;
 	int retval = FALSE;
 	ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
 #ifdef HAVE_OPENAL
-	retval = TRUE;
-	/* Initialize OpenAL with the default device, and check for EFX support. */
-	alctx = fwInitAL();
-	if(!alctx ){
-		ConsoleMessage("initAL failed\n");
-		retval = FALSE;
-	}
-	p->alContext = alctx;
-#ifdef HAVE_ALUT
-	if(!alutInitWithoutContext(NULL,NULL)) //this does not create an AL context (simple)
 	{
-		ALenum error = alutGetError ();
-		ConsoleMessage("%s\n", alutGetErrorString (error));
-		retval = FALSE;
-	}
+		void *alctx;
+		retval = TRUE;
+		/* Initialize OpenAL with the default device, and check for EFX support. */
+		alctx = fwInitAL();
+		if(!alctx ){
+			ConsoleMessage("initAL failed\n");
+			retval = FALSE;
+		}
+		p->alContext = alctx;
+#ifdef HAVE_ALUT
+		if(!alutInitWithoutContext(NULL,NULL)) //this does not create an AL context (simple)
+		{
+			ALenum error = alutGetError ();
+			ConsoleMessage("%s\n", alutGetErrorString (error));
+			retval = FALSE;
+		}
 #endif //HAVE_ALUT
 
 		//listener is avatar,
@@ -188,7 +189,7 @@ int SoundEngineInit(void)
 		}
 		alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED); //here's what I think web3d wants
 		//alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED); //seems a bit faint
-
+	}
 #endif //HAVE_OPENAL
 	gglobal()->Component_Sound.SoundEngineStarted = retval;
 	return retval;
@@ -426,7 +427,7 @@ OLDCODE}
 
 void locateAudioSource (struct X3D_AudioClip *node) {
 	resource_item_t *res;
-	resource_item_t *parentPath;
+	//resource_item_t *parentPath;
 	ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
 
 	switch (node->__loadstatus) {
@@ -880,9 +881,9 @@ double compute_duration(int ibuffer){
 	return retval;
 }
 bool  process_res_audio(resource_item_t *res){
-	s_list_t *l;
+	//s_list_t *l;
 	openned_file_t *of;
-	struct Shader_Script* ss;
+	//struct Shader_Script* ss;
 	const char *buffer;
 	int len;
 	struct X3D_AudioClip *node;

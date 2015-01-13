@@ -78,7 +78,7 @@ static const struct point_XYZ zero = {0,0,0};
 
 typedef struct pcollision{
 	float* prd_newc_floats;// = NULL;
-	int prd_newc_floats_size;// = 0;
+	unsigned int prd_newc_floats_size;// = 0;
 	struct point_XYZ* prd_normals;// = NULL;
 	int prd_normals_size;// = 0;
 	struct point_XYZ* clippedPoly1;// = NULL;
@@ -1729,7 +1729,7 @@ static int counter = 0;
 */
 struct point_XYZ polyrep_disp2(struct X3D_PolyRep pr, GLDOUBLE* mat, prflags flags) {
     int i;
-    int maxc;
+    unsigned int maxc;
 	ppcollision pp = (ppcollision)gglobal()->collision.prv;
 
 #ifdef POLYREP_DISP2_PERFORMANCE
@@ -1902,7 +1902,7 @@ static struct point_XYZ planar_polyrep_disp_rec(double y1, double y2, double yst
 
 struct point_XYZ planar_polyrep_disp(double y1, double y2, double ystep, double r, struct X3D_PolyRep pr, GLDOUBLE* mat, prflags flags, struct point_XYZ n) {
     int i;
-    int maxc;
+    unsigned int maxc;
 	ppcollision pp = (ppcollision)gglobal()->collision.prv;
 
 

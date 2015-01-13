@@ -358,7 +358,7 @@ static double geoidCorrection(double latitudeDeg, double longitudeDeg)
 	//  Apply option 'WGS84' (geoid) option to your topographic data GeoCoordinate GeoSystem (except GeoOrigin).
 	//  Then touch up when viewing them in the same scene by adjusting your local topographic geoOrigin height.
 	int il, ip, il1, ip1;
-	float dl, dp, d00, d01, d10, d11, d;
+	double dl, dp, d00, d01, d10, d11, d;
 	//step 1: find the cell indexes
 	il = (int)(longitudeDeg/10.0) + 18 -1; //longitude cell
 	ip = 18 - ((int)(latitudeDeg/10.0) + 9);  //latitude cell
@@ -1816,7 +1816,7 @@ void add_node_to_broto_context(struct X3D_Proto *currentContext,struct X3D_Node 
 				node->childNode = createNewX3DNode(NODE_Inline); \
 				if(usingBrotos()){ \
 					if(node->_executionContext) \
-						add_node_to_broto_context(node->_executionContext,node->childNode); \
+						add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(node->childNode)); \
 				} \
 				ADD_PARENT(X3D_NODE(node->childNode), X3D_NODE(node)); \
  			}\

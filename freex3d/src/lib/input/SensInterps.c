@@ -1307,8 +1307,8 @@ void do_LineSensor(void *ptr, int ev, int but1, int over) {
 	*/
 	struct X3D_LineSensor *node;
 	float trackpoint[3], translation[3], xxx;
-	struct SFColor tr;
-	int tmp;
+	//struct SFColor tr;
+	//int tmp;
 	ttglobal tg;
 	UNUSED(over);
 	node = (struct X3D_LineSensor *)ptr;
@@ -1345,7 +1345,7 @@ void do_LineSensor(void *ptr, int ev, int but1, int over) {
 		// B/norm is a point, so to get a direction vector: v = B - A
 		float tt;
 		float origin [] = { 0.0f, 0.0f, 0.0f };
-		float footpoint2[3], footpoint1[3], v1[3], temp[3], temp2[3];
+		float footpoint2[3], footpoint1[3], v1[3]; //, temp[3], temp2[3];
 		vecdif3f(v1, tg->RenderFuncs.hyp_save_norm.c, tg->RenderFuncs.hyp_save_posn.c);
 		vecnormalize3f(v1, v1);
 		if (!line_intersect_line_3f(tg->RenderFuncs.hyp_save_posn.c, v1,
@@ -1380,7 +1380,7 @@ void do_LineSensor(void *ptr, int ev, int but1, int over) {
 	}
 	else if ((ev == MotionNotify) && (node->isActive) && but1) {
 		float xxxoffset, xxxorigin;
-		float diroffset[3], nondiroffset[3];
+		//float diroffset[3], nondiroffset[3];
 		/* trackpoint changed */
 		node->_oldtrackPoint.c[0] = trackpoint[0];
 		node->_oldtrackPoint.c[1] = trackpoint[1];
@@ -1636,7 +1636,8 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 	struct X3D_CylinderSensor *node = (struct X3D_CylinderSensor *)ptr;
 	double rot, radius, ang, length;
 	double det, pos, neg, temp;
-	float acute_angle, disk_angle, height, Y[3] = { 0.0f, 1.0f, 0.0f }, ZERO[3] = { 0.0f, 0.0f, 0.0f };
+	double acute_angle, disk_angle, height;
+	float Y[3] = { 0.0f, 1.0f, 0.0f }, ZERO[3] = { 0.0f, 0.0f, 0.0f };
 	float as[3], bs[3], v[3], rps[3]; 
 
 	int imethod;
@@ -1702,10 +1703,10 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 				if (det3f(v, dif, Y) > 0.0f) travelled = -travelled; //which side of cylinder axis is our bearing on? v x dif will point a different direction (up or down) depending on which side, so dot with Y to get a sign
 				disk_angle = travelled / (2.0f * PI * radius) * (2.0f * PI); //don't need the 2PI except to show how we converted to radians: travelled is a fraction of circumference, and circumference is 2PI
 			}
-			node->_radius = radius; //store for later use on mouse-moves
+			node->_radius = (float)radius; //store for later use on mouse-moves
 			//origPoint - we get to store whatever we need later mouse-moves. 
-			origPoint.c[0] = disk_angle;
-			origPoint.c[1] = -height; //Q. why -height? don't know but it works
+			origPoint.c[0] = (float)disk_angle;
+			origPoint.c[1] = (float)-height; //Q. why -height? don't know but it works
 			memcpy((void *)&node->_origPoint,(void *)&origPoint, sizeof(struct SFColor));
 		}
 		/* set isActive true */
@@ -1830,7 +1831,7 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 				disk_angle = -atan2(diskpoint[2], diskpoint[0]);
 				//printf("D");
 			}else {
-				float pi1[3], cylpoint[3];
+				float cylpoint[3]; //pi1[3], 
 				//cylinder wall
 				//ray-intersect-cylinder is too hard for us, a quadratic (but is done in rendray_Cylinder)
 				//if (line_intersect_cylinder_3f(as, v, radius, cylpoint)){ //didn't work - wrong sol1,sol2 or ???

@@ -753,7 +753,7 @@ float* matinverse4f(float* res, float* mm)
     }
 
     Deta = det3f(&m[0],&m[4],&m[8]); //det3x3(m);
-	Deta = 1.0 / Deta;
+	Deta = 1.0f / Deta;
 
     res[0] = (-m[9]*m[6] +m[5]*m[10])*Deta;
     res[4] = (+m[8]*m[6] -m[4]*m[10])*Deta;
@@ -898,7 +898,7 @@ GLDOUBLE* matmultiplyAFFINE(GLDOUBLE* r, GLDOUBLE* nn , GLDOUBLE* mm)
 	FLOPs 36 double: 3x3x4 */
     GLDOUBLE tm[16],tn[16];
 	GLDOUBLE *m, *n;
-	int i,j,k;
+	int i; //,j,k;
     /* prevent self-multiplication problems.*/
 	m = mm;
 	n = nn;
@@ -1052,7 +1052,7 @@ float *matidentity3f(float *b){
 }
 float *axisangle2matrix4f(float *b, float *axisangle){
 	//untested as of july 2014
-	int i,j;
+	int i; //,j;
 	float *mat[4];
 	for(i=0;i<4;i++)
 		mat[i] = &b[i*4];
@@ -1071,6 +1071,8 @@ void matrixFromAxisAngle4d(double *mat, double rangle, double x, double y, doubl
 	int i;
 	double c, s, t;
 	double *m[4];
+    double tmp1;
+    double tmp2;
 
     c = cos(rangle);
     s = sin(rangle);
@@ -1095,8 +1097,8 @@ void matrixFromAxisAngle4d(double *mat, double rangle, double x, double y, doubl
     m[2][2] = c + z*z*t;
 
 
-    double tmp1 = x*y*t;
-    double tmp2 = z*s;
+    tmp1 = x*y*t;
+    tmp2 = z*s;
     m[1][0] = tmp1 + tmp2;
     m[0][1] = tmp1 - tmp2;
     tmp1 = x*z*t;

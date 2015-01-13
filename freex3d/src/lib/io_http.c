@@ -238,15 +238,18 @@ char* download_url_WinInet(resource_item_t *res)
 	{
 		DWORD dataLength, len;
 		HINTERNET hOpenUrl;
+		DWORD buflen;
+		//DWORD dwError;
+		DWORD InfoLevel, Index;
+		char buffer[1024];
+
 		if(0){
 			static FILE* fp = NULL;
 			if (!fp) fp = fopen("http_log.txt", "w+");
 			fprintf(fp,"[%s]\n", res->parsed_request);
 		}
 		hOpenUrl=InternetOpenUrl(hWinInet,res->parsed_request,NULL,0,0,0); //INTERNET_FLAG_NO_UI|INTERNET_FLAG_RELOAD/*|INTERNET_FLAG_IGNORE_CERT_CN_INVALID install the cert instead*/,0);
-		DWORD buflen = 1023;
-		DWORD dwError;
-		char buffer[1024];
+		buflen = 1023;
 		//if(InternetGetLastResponseInfo(&dwError,buffer,&buflen)){
 		//	printf("error=%s\n",buffer);
 		//}else{
@@ -260,7 +263,6 @@ char* download_url_WinInet(resource_item_t *res)
 //  _Inout_  LPDWORD lpdwIndex
 //);
 		//http://msdn.microsoft.com/en-us/library/aa384238(v=vs.85).aspx
-		DWORD InfoLevel, Index;
 		buflen = 1023;
 		Index = 0;
 		InfoLevel = HTTP_QUERY_RAW_HEADERS_CRLF;

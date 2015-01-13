@@ -467,7 +467,7 @@ void compile_ViewpointGroup (struct X3D_ViewpointGroup *node) {
 		pn = (struct X3D_ProximitySensor *) createNewX3DNode(NODE_ProximitySensor);
 		if(usingBrotos()){
 			if(node->_executionContext)
-				add_node_to_broto_context(node->_executionContext,pn);
+				add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(pn));
 		}
 
 		/* any changes needed here?? */

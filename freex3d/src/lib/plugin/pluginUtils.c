@@ -227,7 +227,6 @@ int doBrowserAction()
 	struct Multi_String Anchor_url;
 	char *description;
 	resource_item_t * parentPath;
-	s_list_t *head_of_list;
 	pppluginUtils p;
 	ttglobal tg = gglobal();
 	p = (pppluginUtils)tg->pluginUtils.prv;
@@ -262,7 +261,8 @@ int doBrowserAction()
 		/* We have a url, lets go and get the first one of them */
 		parentPath = (resource_item_t *)AnchorsAnchor()->_parentResource;
 		p->plugin_res = resource_create_multi0(&AnchorsAnchor()->url);
-#ifdef TRUE //EXPERIMENT_FAILED
+#define DO_THIS_BLOC 1
+#ifdef DO_THIS_BLOC //EXPERIMENT_FAILED
 		{
 			/*Goal: avoid blocking UI thread
 			  Method: schedule a scene change whereby the file part gets sent to the resource worker thread
@@ -279,7 +279,7 @@ int doBrowserAction()
 			}
 		}
 #else //EXPERIMENT
-
+	
 #ifdef TEXVERBOSE
 		PRINTF("url: ");
 		Multi_String_print(&AnchorsAnchor()->url);
@@ -288,6 +288,8 @@ int doBrowserAction()
 		PRINTF("file resource: \n");
 		resource_dump(p->plugin_res);
 #endif
+		{
+		s_list_t *head_of_list;
 
 		/* hold on to the top of the list so we can delete it later */
 		head_of_list = p->plugin_res->m_request;
@@ -359,6 +361,7 @@ int doBrowserAction()
 		if (p->plugin_res->status != ress_loaded) {
 			ERROR_MSG("Could not load new world: %s\n", p->plugin_res->actual_file);
 			return FALSE;
+		}
 		}
 #endif //EXPERIMENT
 

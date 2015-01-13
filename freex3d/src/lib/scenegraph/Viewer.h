@@ -173,8 +173,8 @@ typedef struct viewer_ypz {
 } X3D_Viewer_YawPitchZoom;
 
 typedef struct viewer_inplane {
-	float x,y;
-	float xx,yy;
+	double x,y;
+	double xx,yy;
 	int on;
 } X3D_Viewer_InPlane;
 

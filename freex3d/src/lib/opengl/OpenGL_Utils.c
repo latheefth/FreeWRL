@@ -2627,11 +2627,11 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 		{
 			//using lighsource arrays - see shader
 			char uniformName[100];
-			char* sndx;
 			me->haveLightInShader = false;
 #ifdef USING_SHADER_LIGHT_ARRAY_METHOD
 
 			for (i = 0; i<MAX_LIGHTS; i++) {
+				char* sndx;
 				/* go through and modify the array for each variable */
 				strcpy(uniformName, "lightambient[0]");
 				sndx = strstr(uniformName, "["); 
@@ -3972,13 +3972,13 @@ if (!filledHole) ConsoleMessage ("registerX3DNode, no hole, phc %d for type %s",
 }
 int removeNodeFromVector(int iaction, struct Vector *v, struct X3D_Node *node);
 void unRegisterX3DNode(struct X3D_Node * tmp){
-	struct X3D_Node *ns;
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
-	int tc;
 	LOCK_MEMORYTABLE
 	if (p->linearNodeTable ) {
 		removeNodeFromVector(1, p->linearNodeTable, tmp);
+		//int tc;
 		//for (tc=0; tc<vectorSize(p->linearNodeTable); tc++){
+		//	struct X3D_Node *ns;
 		//	ns = vector_get(struct X3D_Node *,p->linearNodeTable,tc);
 		//	if(ns == tmp) {
 		//		vector_set(struct X3D_Node *, p->linearNodeTable, tc, NULL);
@@ -5178,7 +5178,7 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 				case NODE_ShaderProgram :
 				case NODE_PackagedShader:
 					{
-						int j, nameIndex;
+						int j; //, nameIndex;
 						struct ScriptFieldDecl* sfield;
 						struct Shader_Script* shader = NULL;
 
@@ -5207,7 +5207,7 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 					break;
 				case NODE_Proto:
 					{
-						int j, nameIndex;
+						int j; //, nameIndex;
 						struct ProtoFieldDecl* pfield;
 						struct X3D_Proto* pnode = (struct X3D_Proto*)node;
 						struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;

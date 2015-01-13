@@ -359,8 +359,9 @@ void prep_Proto (struct X3D_Proto *node) {
 }
 /* not sure why we would compile */
 void compile_Proto(struct X3D_Proto *node) {
+	unsigned char pflag;
 	if(0)printf("in compile_proto\n");
-	unsigned char pflag = ciflag_get(node->__protoFlags,2);
+	pflag = ciflag_get(node->__protoFlags,2);
 	if(pflag == 2){
 		//scene
 		REINITIALIZE_SORTED_NODES_FIELD(node->__children,node->_sortedChildren);
@@ -369,10 +370,13 @@ void compile_Proto(struct X3D_Proto *node) {
 }
 /* render the first node only */
 void child_Proto (struct X3D_Proto *node) {
+	int nc;
+	unsigned char sceneflag;
+	int renderFirstProtoChildOnlyAsPerSpecs;
+	LOCAL_LIGHT_SAVE
 	if(0)printf("in child_proto\n");
 	//CHILDREN_COUNT
-	int nc = node->__children.n; //_sortedChildren.n;
-	LOCAL_LIGHT_SAVE
+	nc = node->__children.n; //_sortedChildren.n;
 /*
 printf ("chldGroup %p (root %p), flags %x children %d ",node,rootNode,node->_renderFlags,node->children.n);
 if ((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) printf ("VF_Viewpoint ");
@@ -441,8 +445,8 @@ printf ("child_Group,  children.n %d sortedChildren.n %d\n",node->children.n, no
 	//} else {
 	//	normalChildren(node->_sortedChildren);
 	//}
-	unsigned char sceneflag = ciflag_get(node->__protoFlags,2);
-	int renderFirstProtoChildOnlyAsPerSpecs = FALSE;
+	sceneflag = ciflag_get(node->__protoFlags,2);
+	renderFirstProtoChildOnlyAsPerSpecs = FALSE;
 	//I don't think inline.children comes through here, just scene and protoInstance
 	if(sceneflag == 2 ){ 
 		normalChildren(node->_sortedChildren);

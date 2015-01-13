@@ -1980,11 +1980,11 @@ void setup_projection(int pick, int x, int y)
 			double mvident[16], pickMatrix[16], pmi[16], proj[16], R1[16], R2[16], R3[16], T[16];
 			int viewport[4];
 			double A[3], B[3], C[3], a[3], b[3];
-			double yaw, pitch;
+			double yaw, pitch, yy;
 			loadIdentityMatrix(mvident);
 			FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
 			FW_GL_GETINTEGERV(GL_VIEWPORT,viewport);
-			double yy = (float)viewport[3]  -y + bottom +top;
+			yy = (float)viewport[3]  -y + bottom +top;
 			//nearside point
 			a[0] = x; a[1] = yy;  a[2] = 0.0;
 			FW_GLU_UNPROJECT(a[0], a[1], a[2], mvident, proj, viewport,
@@ -3597,7 +3597,7 @@ int getRayHitAndSetLookatTarget() {
 		- get the center and size of the picked shape node, and send the viewpoint to it
 		- return to normal navigation
 	*/
-    double x,y,z, pivot_radius, vp_radius;
+    double pivot_radius, vp_radius; //x,y,z, 
     int i;
 	ppMainloop p;
 	ttglobal tg = gglobal();
@@ -3611,12 +3611,13 @@ int getRayHitAndSetLookatTarget() {
         if (rh->hitNode == NULL) {
 			Viewer()->LookatMode = 0; //give up, turn off lookat cursor
 		}else{
-			GLDOUBLE matTarget[16];
-			double center[3], pos[3], radius;
+			//GLDOUBLE matTarget[16];
+			double center[3], radius; //pos[3], 
 			if(Viewer()->type == VIEWER_LOOKAT){
 				//use the center of the object, and its radius
 				GLDOUBLE smin[3], smax[3], shapeMBBmin[3], shapeMBBmax[3];
-				double dradius, viewerdist;
+				double viewerdist;
+				//double dradius, pos[3], distance;
 				node = rh->hitNode;
 				for(i=0;i<3;i++)
 				{
@@ -3624,11 +3625,10 @@ int getRayHitAndSetLookatTarget() {
 					shapeMBBmax[i] = node->_extent[i*2];
 				}
 				transformMBB(smin,smax,rh->modelMatrix,shapeMBBmin,shapeMBBmax); //transform shape's MBB into eye space
-				double pos[3], distance;
 				radius = 0.0;
 				for(i=0;i<3;i++){
 					center[i] = (smax[i] + smin[i])*.5;
-					radius = max(radius,(max(abs(smax[i]-center[i]),abs(smin[i]-center[i]))));
+					radius = max(radius,(max(fabs(smax[i]-center[i]),fabs(smin[i]-center[i]))));
 				}
 				viewerdist = Viewer()->Dist;
 				vp_radius = max(viewerdist, radius + 5.0);

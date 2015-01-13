@@ -420,9 +420,9 @@ static void sendValueToShader(struct ScriptFieldDecl* myField) {
 void getField_ToShader(struct X3D_Node *node, int num) {
 	struct Shader_Script *myObj[2];
     int numObjs = 1;
-	unsigned int to_counter;
+	int to_counter;
 	int fromFieldID;
-	size_t i,j;
+	int i,j;
 	GLfloat* sourceData;
 	GLuint currentShader = 0;	
 	struct CRStruct *CRoutes = getCRoutes();
@@ -438,7 +438,6 @@ void getField_ToShader(struct X3D_Node *node, int num) {
         struct X3D_Appearance *ap = vector_get(struct X3D_Appearance *,node->_parentVector, i);
         //ConsoleMessage ("and, parent is type %s",stringNodeType(ap->_nodeType));
         if (ap->_nodeType == NODE_Appearance) {
-            int j;
             for (j=0; j<vectorSize(ap->_parentVector); j++) {
             struct X3D_Shape *sh = vector_get(struct X3D_Shape *, ap->_parentVector, j);
             //ConsoleMessage ("and parent of appearance is %s",stringNodeType(sh->_nodeType));
@@ -1006,7 +1005,7 @@ static int shader_initCode(struct X3D_ShaderProgram *node, char* buffer){
 
 bool parser_process_res_SHADER(resource_item_t *res)
 {
-	s_list_t *l;
+	//s_list_t *l;
 	openned_file_t *of;
 	struct X3D_ShaderProgram* ss;
 	const char *buffer;

@@ -847,7 +847,7 @@ void send_texture_to_loader(textureTableIndexStruct_s *entry)
 {
 	texitem_enqueue(ml_new(entry));
 }
-
+textureTableIndexStruct_s *getTableIndex(int i);
 void process_res_texitem(resource_item_t *res){
 	//resitem after download+load -> texture thread
 	textureTableIndexStruct_s *entry;

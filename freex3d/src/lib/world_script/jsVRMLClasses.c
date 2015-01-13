@@ -1352,7 +1352,7 @@ JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *
 	/* PixelTextures are stored in Javascript as MFInt32s but in FreeWRL/Perl as an ascii string.
 	   we have to remove some characters to make it into a valid VRML image string */
 	if (isImage) {
-		for (i=0; i<strlen(_buff); i++) {
+		for (i=0; i<(int)strlen(_buff); i++) {
 			if (_buff[i] == ',') _buff[i]=' ';
 			if (_buff[i] == ']') _buff[i]=' ';
 			if (_buff[i] == '[') _buff[i]=' ';

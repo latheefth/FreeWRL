@@ -834,8 +834,8 @@ FXY screen2normalizedScreenScale( GLfloat x, GLfloat y)
 	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
 
 	//convert to -1 to 1 range
-	xy.x = ((GLfloat)x/(GLfloat)p->screenWidth * 2.0);
-	xy.y = ((GLfloat)y/(GLfloat)p->screenHeight * 2.0);
+	xy.x = ((GLfloat)x/(GLfloat)p->screenWidth * 2.0f);
+	xy.y = ((GLfloat)y/(GLfloat)p->screenHeight * 2.0f);
 	return xy;
 }
 FXY screen2normalizedScreen( GLfloat x, GLfloat y)
@@ -1115,8 +1115,8 @@ void hudSetConsoleMessage(char *buffer)
 {
 	s_list_t* last;
 	/*calling program passes ownership of buffer here, where we free when scrolling off */
-	char *ln;
-	int linelen;
+	//char *ln;
+	//int linelen;
 	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
 
 	//printf("+%s\n", buffer);
@@ -1255,7 +1255,7 @@ void convertPng2hexAlpha()
 			//unsigned char row, a, bit;
 			char butname[30];
 			strcpy(butname,butFnames[ii]);
-			for(j=0;j<strlen(butname);j++)
+			for(j=0;j<(int)strlen(butname);j++)
 				if(butname[j] == '.') {butname[j] = '\0'; break;}
 			fprintf(out,"GLubyte %s[] = {\n",butname); 
 			//2012 1 byte per pixel method (nicer)

@@ -1362,59 +1362,57 @@ void embedEXTERNPROTO(struct VRMLLexer *me, const char *myName, char *buffer, ch
    an external file */
 
 void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
-        char *myName = NULL;
-        int mode;
-        int type;
-        struct Multi_String url;
-        unsigned char *buffer;
-		char *pound;
+	char *myName = NULL;
+	int mode;
+	int type;
+	struct Multi_String url;
 
 	resource_item_t *res;
 
-        /* expect the EXTERNPROTO proto name */
-        if (lexer_setCurID(me)) {
-                /* printf ("next token is %s\n",me->curID); */
-                myName = STRDUP(me->curID);
-                FREE_IF_NZ(me->curID);
-        } else {
-                PARSE_ERROR ("EXTERNPROTO - expected a PROTO name\n");
-        }
+	/* expect the EXTERNPROTO proto name */
+	if (lexer_setCurID(me)) {
+			/* printf ("next token is %s\n",me->curID); */
+			myName = STRDUP(me->curID);
+			FREE_IF_NZ(me->curID);
+	} else {
+			PARSE_ERROR ("EXTERNPROTO - expected a PROTO name\n");
+	}
 
-        /* go through and save the parameters and types. */
+	/* go through and save the parameters and types. */
 
-        if (!lexer_openSquare(me))
-                PARSE_ERROR ("EXTERNPROTO - expected a '['");
-
-
-        /* XXX - we should save these mode/type/name pairs, and compare them to the
-           ones in the EXTERNPROTO definition. But, for now, we don't */
-
-        /* get the Name/Type value pairs and save them */
-        while (lexer_protoFieldMode(me, &mode)) {
-                /* printf ("mode is %d\n",mode); */
-
-                if(!lexer_fieldType(me, &type))
-                        PARSE_ERROR("Expected fieldType after proto-field keyword!")
-
-                /* printf ("type is %d\n",type); */
+	if (!lexer_openSquare(me))
+		PARSE_ERROR ("EXTERNPROTO - expected a '['");
 
 
-                if (lexer_setCurID(me)) {
-                        /* printf ("param name is %s\n",me->curID); */
-                        FREE_IF_NZ(me->curID);
-                } else {
-                        PARSE_ERROR ("EXTERNPROTO - expected a PROTO name\n");
-                }
-        }
+	/* XXX - we should save these mode/type/name pairs, and compare them to the
+		ones in the EXTERNPROTO definition. But, for now, we don't */
 
-        /* now, check for closed square */
-        if (!lexer_closeSquare(me))
-                PARSE_ERROR ("EXTERNPROTO - expected a ']'");
+	/* get the Name/Type value pairs and save them */
+	while (lexer_protoFieldMode(me, &mode)) {
+		/* printf ("mode is %d\n",mode); */
 
-        /* get the URL string */
-        if (!lexer_EXTERNPROTO_mfstringValue(me,&url)) {
-                PARSE_ERROR ("EXTERNPROTO - problem reading URL string");
-        }
+		if(!lexer_fieldType(me, &type))
+			PARSE_ERROR("Expected fieldType after proto-field keyword!")
+
+		/* printf ("type is %d\n",type); */
+
+
+		if (lexer_setCurID(me)) {
+			/* printf ("param name is %s\n",me->curID); */
+			FREE_IF_NZ(me->curID);
+		} else {
+			PARSE_ERROR ("EXTERNPROTO - expected a PROTO name\n");
+		}
+	}
+
+	/* now, check for closed square */
+	if (!lexer_closeSquare(me))
+		PARSE_ERROR ("EXTERNPROTO - expected a ']'");
+
+	/* get the URL string */
+	if (!lexer_EXTERNPROTO_mfstringValue(me,&url)) {
+		PARSE_ERROR ("EXTERNPROTO - problem reading URL string");
+	}
 
 	res = resource_create_multi(&url);
 	resource_identify(gglobal()->resources.root_res, res);
@@ -1422,6 +1420,8 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
 	if (res->type != rest_invalid) {
 #ifdef HAD_RESOURCE_LOAD
 		if (resource_fetch(res)) {
+			unsigned char *buffer;
+			char *pound;
  			pound = strchr(res->URLrequest, '#'); 
 			if (resource_load(res)) {
 				s_list_t *l;
@@ -1433,8 +1433,8 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
 			}
 		}
 #else
-			res->status = ress_failed;
-			printf("externProto not currently supported\n");
+		res->status = ress_failed;
+		printf("externProto not currently supported\n");
 #endif
 	}
 	
@@ -1444,13 +1444,13 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
 		res->complete = TRUE;
 	} else {
 		/* failure, FIXME: remove res from root_res... */
-/* 		resource_destroy(res); */
+		/* 		resource_destroy(res); */
 	}
 
-        /* so, lets continue. Maybe this EXTERNPROTO is never referenced?? */
-        lexer_setCurID(me);
-        /* printf ("so, curID is :%s: and rest is :%s:\n",me->curID, me->nextIn); */
-        return;
+	/* so, lets continue. Maybe this EXTERNPROTO is never referenced?? */
+	lexer_setCurID(me);
+	/* printf ("so, curID is :%s: and rest is :%s:\n",me->curID, me->nextIn); */
+	return;
 }
 
 

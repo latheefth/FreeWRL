@@ -639,7 +639,7 @@ void dump_parser_wait_queue()
  */
 bool parser_process_res_VRML_X3D(resource_item_t *res)
 {
-	s_list_t *l;
+	//s_list_t *l;
 	openned_file_t *of;
 	struct X3D_Node *nRn;
 	struct X3D_Node *ectx;
@@ -913,7 +913,7 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Node *ect
 /* interface for creating X3D for EAI - like above except x3d */
 int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Node *ectx, struct X3D_Group *where)
 {
-	int retval;
+	//int retval;
 	resource_item_t *res;
 	char *newString;
 
@@ -961,7 +961,7 @@ int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Node *ectx
  */
 static bool parser_process_res_SCRIPT(resource_item_t *res)
 {
-	s_list_t *l;
+	//s_list_t *l;
 	openned_file_t *of;
 	struct Shader_Script* ss;
 	const char *buffer;

@@ -1583,7 +1583,7 @@ static void gatherScriptEventOuts(void) {
 
 	int fromalready=FALSE;	 /* we have already got the from value string */
 	int touched_flag=FALSE;
-	unsigned int to_counter;
+	int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 	ppCRoutes p;
 	ttglobal tg = gglobal();
