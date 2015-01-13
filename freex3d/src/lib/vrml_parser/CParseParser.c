@@ -4992,7 +4992,7 @@ void deep_copy_broto_body2(struct X3D_Proto** proto, struct X3D_Proto** dest)
 	prototype = (struct X3D_Proto*)(*proto)->__prototype;
 
 	p->__prototype = X3D_NODE(prototype);
-	//p->__protoFlags = prototype->__protoFlags;  //done in brotoInstance
+	p->__protoFlags = prototype->__protoFlags;  //done in brotoInstance
 	p->__protoFlags = ciflag_set(p->__protoFlags,1,2); //deep instancing of protoInstances inside a protoDeclare 
 
 	//prototype = (struct X3D_Proto*)p->__prototype;

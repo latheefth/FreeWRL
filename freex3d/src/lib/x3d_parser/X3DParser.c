@@ -2167,7 +2167,7 @@ static void parseAttributes_B(void *ud, char **atts) {
 }
 
 static void parseAttributes(void *ud) {
-	size_t ind;
+	int ind;
 	struct nameValuePairs *nvp;
 	struct X3D_Node *thisNode;
 	struct Vector *childAttributes;

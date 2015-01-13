@@ -891,8 +891,8 @@ void render_NurbsTrimmedSurface (struct X3D_NurbsTrimmedSurface *node) {
 
 void do_NurbsPositionInterpolator (void *node) {
 	struct X3D_NurbsPositionInterpolator *px;
-	int kin, kvin, counter, tmp;
-	struct SFVec3f *kVs; 
+	int kin, kvin; //, counter, tmp;
+	//struct SFVec3f *kVs; 
 
 	if (!node) return;
 	px = (struct X3D_NurbsPositionInterpolator *) node;

@@ -147,7 +147,7 @@ char *strBackslash2fore(char *str)
 {
 #ifdef _MSC_VER
 	int jj;
-	for( jj=0;jj<strlen(str);jj++)
+	for( jj=0;jj<(int)strlen(str);jj++)
 		if(str[jj] == '\\' ) str[jj] = '/';
 #endif
 	return str;
@@ -861,13 +861,14 @@ BOOL tdirectory_remove_all(TCHAR *sPath){
 	return retval;
 }
 void tremove_file_or_folder(TCHAR *path){
-	int iret, isDir;
-	DWORD finfo, err;
+	int isDir; //iret, 
+	DWORD finfo; //, err;
 #if _MSC_VER > 1500
 	// http://msdn.microsoft.com/en-us/library/windows/desktop/aa364946(v=vs.85).aspx
 	WIN32_FILE_ATTRIBUTE_DATA fad;
 	finfo = GetFileAttributesEx(path, GetFileExInfoStandard, &fad);
 	if (!finfo){
+		DWORD err;
 		err = GetLastError();
 		//FormatMessage()
 		ConsoleMessage("GetFileAttribuesEx err=%d maxpath%d pathlen%d", (int)err,MAX_PATH,_tcslen(path)); //http://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx
@@ -896,10 +897,10 @@ void remove_file_or_folder(const char *path){
     TCHAR wcstring[MAX_PATH];
 	char fname2[MAX_PATH];
 	size_t origsize; //= strlen(fname) + 1;
-	BOOL retval;
+	//BOOL retval;
 	origsize = strlen(path) + 1;
 	strcpy(fname2,path);
-	for(jj=0;jj<strlen(fname2);jj++)
+	for(jj=0;jj<(int)strlen(fname2);jj++)
 		if(fname2[jj] == '/' ) fname2[jj] = '\\';
 
 #ifdef _UNICODE

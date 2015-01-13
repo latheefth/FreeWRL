@@ -1416,7 +1416,7 @@ void createLoadUrlString(char *out, int outLen, char *url, char *param) {
 	commacount1 = commacount1 / 2;
 	commacount2 = commacount2 / 2;
 
-	if ((	strlen(url) +
+	if ((int)(strlen(url) +
 		strlen(param) +
 		(commacount1 * strlen (" :loadURLStringBreak:")) +
 		(commacount2 * strlen (" :loadURLStringBreak:"))) > (outLen - 20)) {
@@ -2195,7 +2195,7 @@ VrmlBrowserPrint(JSContext *context, uintN argc, jsval *vp) {
         JSObject *obj = JS_THIS_OBJECT(context,vp);
         jsval *argv = JS_ARGV(context,vp);
 #endif
-	int count;
+	unsigned int count;
 	JSString *_str;
 	char *_id_c;
 

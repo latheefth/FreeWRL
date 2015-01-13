@@ -436,7 +436,7 @@ void compile_ImageCubeMapTexture (struct X3D_ImageCubeMapTexture *node) {
 			node->__subTextures.p[i] = createNewX3DNode(NODE_PixelTexture);
 			if(usingBrotos()){
 				if(node->_executionContext)
-					add_node_to_broto_context(node->_executionContext,node->__subTextures.p[i]);
+					add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(node->__subTextures.p[i]));
 			}
 		}
 		node->__subTextures.n=6;

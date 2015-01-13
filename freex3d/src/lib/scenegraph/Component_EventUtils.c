@@ -86,7 +86,7 @@ void do_BooleanSequencer (void *node){
 
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
-		px->value_changed = (float) 0.0;
+		px->value_changed = 0; //(float) 0.0;
 		return;
 	}
 	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */
@@ -105,7 +105,12 @@ void do_BooleanSequencer (void *node){
 		/* have to go through and find the key before */
 		counter=find_key(kin,(float)(px->set_fraction),px->key.p);
 		/* printf ("counter %d\n",counter); */
-		px->value_changed = px->key.p[counter];
+		//px->value_changed = px->key.p[counter]; //yikes - key is a MF float
+		//should it be keyvalue? like integer_sequencer?:
+		/* bounds check */
+		if (counter >= px->keyValue.n) counter = px->keyValue.n-1;
+		px->value_changed =	px->keyValue.p[counter];
+
 	}
 
 	if (oldValue != px->value_changed) {

@@ -567,11 +567,11 @@ static void X3D_MF_TO_JS(JSContext *cx, JSObject *obj, void *Data, int dataType,
 			case FIELDTYPE_MFTime: script = "new MFTime()"; break;
 			case FIELDTYPE_MFInt32: script = "new MFInt32()"; break;
 			case FIELDTYPE_SFImage: script = "new SFImage()"; break;
-        	        case FIELDTYPE_MFVec3f: script = "new MFVec3f()"; break;
-        	        case FIELDTYPE_MFColor: script = "new MFColor()"; break;
-        	        case FIELDTYPE_MFNode: script = "new MFNode()"; break;
-        	        case FIELDTYPE_MFVec2f: script = "new MFVec2f()"; break;
-        	        case FIELDTYPE_MFRotation: script = "new MFRotation()"; break;
+			case FIELDTYPE_MFVec3f: script = "new MFVec3f()"; break;
+			case FIELDTYPE_MFColor: script = "new MFColor()"; break;
+			case FIELDTYPE_MFNode: script = "new MFNode()"; break;
+			case FIELDTYPE_MFVec2f: script = "new MFVec2f()"; break;
+			case FIELDTYPE_MFRotation: script = "new MFRotation()"; break;
 			default: printf ("invalid type in X3D_MF_TO_JS\n"); return;
 		}
 
@@ -603,11 +603,11 @@ static void X3D_MF_TO_JS(JSContext *cx, JSObject *obj, void *Data, int dataType,
 
 	fieldNameAsJSVAL = STRING_TO_JSVAL(JS_NewStringCopyZ(cx,fieldName));
 
-        if (!JS_DefineProperty(cx, JSVAL_TO_OBJECT(*newval), "_parentField", fieldNameAsJSVAL, 
-			JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB5, JSPROP_READONLY)) {
-                printf("JS_DefineProperty failed for \"%s\" in X3D_MF_TO_JS.\n", fieldName);
-                return;
-       	}
+	if (!JS_DefineProperty(cx, JSVAL_TO_OBJECT(*newval), "_parentField", fieldNameAsJSVAL, 
+		JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB5, JSPROP_READONLY)) {
+		printf("JS_DefineProperty failed for \"%s\" in X3D_MF_TO_JS.\n", fieldName);
+		return;
+	}
 
 
 	#ifdef JSVRMLCLASSESVERBOSE
@@ -620,31 +620,31 @@ static void X3D_MF_TO_JS(JSContext *cx, JSObject *obj, void *Data, int dataType,
 		case FIELDTYPE_MFInt32:
 			MIptr = (struct Multi_Int32*) Data;
 			for (i=0; i<MIptr->n; i++) {
-                		if (!JS_DefineElement(cx, JSVAL_TO_OBJECT(*newval), (jsint) i, INT_TO_JSVAL(MIptr->p[i]),
-                        		  JS_GET_PROPERTY_STUB, setSF_in_MF, JSPROP_ENUMERATE)) {
-                        		printf( "JS_DefineElement failed for arg %u in MFInt32Constr.\n", i);
-                        		return;
-                		}
+				if (!JS_DefineElement(cx, JSVAL_TO_OBJECT(*newval), (jsint) i, INT_TO_JSVAL(MIptr->p[i]),
+				  JS_GET_PROPERTY_STUB, setSF_in_MF, JSPROP_ENUMERATE)) {
+					printf( "JS_DefineElement failed for arg %u in MFInt32Constr.\n", i);
+					return;
+				}
 			}
 			break;
 		case FIELDTYPE_MFFloat:
 			MFptr = (struct Multi_Float*) Data;
 			for (i=0; i<MFptr->n; i++) {
-                		if (!JS_DefineElement(cx, JSVAL_TO_OBJECT(*newval), (jsint) i, INT_TO_JSVAL(MFptr->p[i]),
-                        		  JS_GET_PROPERTY_STUB, setSF_in_MF, JSPROP_ENUMERATE)) {
-                        		printf( "JS_DefineElement failed for arg %u in MFFloatConstr.\n", i);
-                        		return;
-                		}
+				if (!JS_DefineElement(cx, JSVAL_TO_OBJECT(*newval), (jsint) i, INT_TO_JSVAL(MFptr->p[i]),
+				  JS_GET_PROPERTY_STUB, setSF_in_MF, JSPROP_ENUMERATE)) {
+					printf( "JS_DefineElement failed for arg %u in MFFloatConstr.\n", i);
+					return;
+				}
 			}
 			break;
 		case FIELDTYPE_MFTime:
 			MTptr = (struct Multi_Time*) Data;
 			for (i=0; i<MTptr->n; i++) {
-                		if (!JS_DefineElement(cx, JSVAL_TO_OBJECT(*newval), (jsint) i, INT_TO_JSVAL(MTptr->p[i]),
-                        		  JS_GET_PROPERTY_STUB, setSF_in_MF, JSPROP_ENUMERATE)) {
-                        		printf( "JS_DefineElement failed for arg %u in MFTimeConstr.\n", i);
-                        		return;
-                		}
+				if (!JS_DefineElement(cx, JSVAL_TO_OBJECT(*newval), (jsint) i, INT_TO_JSVAL(MTptr->p[i]),
+				  JS_GET_PROPERTY_STUB, setSF_in_MF, JSPROP_ENUMERATE)) {
+					printf( "JS_DefineElement failed for arg %u in MFTimeConstr.\n", i);
+					return;
+				}
 			}
 			break;
                 case FIELDTYPE_MFColor:
@@ -663,11 +663,11 @@ static void X3D_MF_TO_JS(JSContext *cx, JSObject *obj, void *Data, int dataType,
 					printf ("error creating the new object in X3D_MF_TO_JS string :%s:\n",newline);
 					return;
 				}
-                		if (!JS_DefineElement(cx, JSVAL_TO_OBJECT(*newval), (jsint) i, xf,
-                        		  JS_GET_PROPERTY_STUB, setSF_in_MF, JSPROP_ENUMERATE)) {
-                        		printf( "JS_DefineElement failed for arg %u .\n", i);
-                        		return;
-                		}
+				if (!JS_DefineElement(cx, JSVAL_TO_OBJECT(*newval), (jsint) i, xf,
+				  JS_GET_PROPERTY_STUB, setSF_in_MF, JSPROP_ENUMERATE)) {
+					printf( "JS_DefineElement failed for arg %u .\n", i);
+					return;
+				}
 			}
 		} break;
 
@@ -683,11 +683,11 @@ static void X3D_MF_TO_JS(JSContext *cx, JSObject *obj, void *Data, int dataType,
 					printf ("error creating the new object in X3D_MF_TO_JS string :%s:\n",newline);
 					return;
 				}
-                		if (!JS_DefineElement(cx, JSVAL_TO_OBJECT(*newval), (jsint) i, xf,
-                        		  JS_GET_PROPERTY_STUB, setSF_in_MF, JSPROP_ENUMERATE)) {
-                        		printf( "JS_DefineElement failed for arg %u .\n", i);
-                        		return;
-                		}
+				if (!JS_DefineElement(cx, JSVAL_TO_OBJECT(*newval), (jsint) i, xf,
+				  JS_GET_PROPERTY_STUB, setSF_in_MF, JSPROP_ENUMERATE)) {
+					printf( "JS_DefineElement failed for arg %u .\n", i);
+					return;
+				}
 			}
 		} break;
 		case FIELDTYPE_MFRotation: {
@@ -702,11 +702,11 @@ static void X3D_MF_TO_JS(JSContext *cx, JSObject *obj, void *Data, int dataType,
 					printf ("error creating the new object in X3D_MF_TO_JS string :%s:\n",newline);
 					return;
 				}
-                		if (!JS_DefineElement(cx, JSVAL_TO_OBJECT(*newval), (jsint) i, xf,
-                        		  JS_GET_PROPERTY_STUB, setSF_in_MF, JSPROP_ENUMERATE)) {
-                        		printf( "JS_DefineElement failed for arg %u .\n", i);
-                        		return;
-                		}
+				if (!JS_DefineElement(cx, JSVAL_TO_OBJECT(*newval), (jsint) i, xf,
+					JS_GET_PROPERTY_STUB, setSF_in_MF, JSPROP_ENUMERATE)) {
+					printf( "JS_DefineElement failed for arg %u .\n", i);
+					return;
+				}
 			}
 		} break;
 
@@ -726,11 +726,11 @@ static void X3D_MF_TO_JS(JSContext *cx, JSObject *obj, void *Data, int dataType,
 					printf ("error creating the new object in X3D_MF_TO_JS string :%s:\n",newline);
 					return;
 				}
-                		if (!JS_DefineElement(cx, JSVAL_TO_OBJECT(*newval), (jsint) i, xf,
-                        		  JS_GET_PROPERTY_STUB, setSF_in_MF, JSPROP_ENUMERATE)) {
-                        		printf( "JS_DefineElement failed for arg %u .\n", i);
-                        		return;
-                		}
+				if (!JS_DefineElement(cx, JSVAL_TO_OBJECT(*newval), (jsint) i, xf,
+				  JS_GET_PROPERTY_STUB, setSF_in_MF, JSPROP_ENUMERATE)) {
+					printf( "JS_DefineElement failed for arg %u .\n", i);
+					return;
+				}
 				} else {
 					/* printf ("X3DMF, ignoring NULL node here \n"); */
 				}
@@ -761,11 +761,11 @@ static void X3D_MF_TO_JS(JSContext *cx, JSObject *obj, void *Data, int dataType,
 					printf ("error creating the new object in X3D_MF_TO_JS string :%s:\n",newline);
 					return;
 				}
-                		if (!JS_DefineElement(cx, JSVAL_TO_OBJECT(*newval), (jsint) i, xf,
-                        		  JS_GET_PROPERTY_STUB, setSF_in_MF, JSPROP_ENUMERATE)) {
-                        		printf( "JS_DefineElement failed for arg %u .\n", i);
-                        		return;
-                		}
+				if (!JS_DefineElement(cx, JSVAL_TO_OBJECT(*newval), (jsint) i, xf,
+				  JS_GET_PROPERTY_STUB, setSF_in_MF, JSPROP_ENUMERATE)) {
+					printf( "JS_DefineElement failed for arg %u .\n", i);
+					return;
+				}
 			}
 		} break;
 

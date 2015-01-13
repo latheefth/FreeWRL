@@ -663,10 +663,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\lib\main\SoundEngineClient.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\lib\scenegraph\statics.c"
 				>
 				<FileConfiguration

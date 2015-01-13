@@ -1077,7 +1077,7 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 							sprintf (thisValue,"%f",*DoublePtr); DoublePtr++;
 						} else if (SVPtr != NULL) {
 							sptr[0] = *SVPtr; SVPtr++;
-							if(strlen(sptr[0]->strptr)+2 > tdim-1)
+							if((int)strlen(sptr[0]->strptr)+2 > tdim-1)
 							{	
 								tdim = (int) strlen(sptr[0]->strptr) + 1 + 100;
 								thisValue = realloc(thisValue,tdim);
@@ -2676,8 +2676,8 @@ void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int
 	char scriptline[20000];
 
 	/* for PixelTextures we have: */
-	struct X3D_PixelTexture *mePix;
-	struct Multi_Int32 image;
+	//struct X3D_PixelTexture *mePix;
+	//struct Multi_Int32 image;
 
 	/* for MFStrings we have: */
 	char *chptr;

@@ -1632,7 +1632,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 	JSString *_idStr, *_valStr;
 	char *_id_c, *_val_c;
 	SFNodeNative *ptr;
-	int val_len;
+	size_t val_len;
 	size_t tmp;
 #if JS_VERSION >= 185
 	jsval id;

@@ -795,23 +795,23 @@ void compile_TwoSidedMaterial (struct X3D_TwoSidedMaterial *node) {
 	}
 
 	/* first, put in the transparency */
-	trans = 1.0 - node->transparency;
-        node->_verifiedFrontColor.p[3] = trans;
-        node->_verifiedFrontColor.p[7] = trans;
-        node->_verifiedFrontColor.p[11] = trans;
-        node->_verifiedFrontColor.p[15] = trans;
-	trans = 1.0 - node->backTransparency;
-        node->_verifiedBackColor.p[3] = trans;
-        node->_verifiedBackColor.p[7] = trans;
-        node->_verifiedBackColor.p[11] = trans;
-        node->_verifiedBackColor.p[15] = trans;
-                
+	trans = 1.0f - node->transparency;
+	node->_verifiedFrontColor.p[3] = trans;
+	node->_verifiedFrontColor.p[7] = trans;
+	node->_verifiedFrontColor.p[11] = trans;
+	node->_verifiedFrontColor.p[15] = trans;
+	trans = 1.0f - node->backTransparency;
+	node->_verifiedBackColor.p[3] = trans;
+	node->_verifiedBackColor.p[7] = trans;
+	node->_verifiedBackColor.p[11] = trans;
+	node->_verifiedBackColor.p[15] = trans;
+
 
 	/* DiffuseColor */
 	memcpy((void *)(&node->_verifiedFrontColor.p[8]), node->diffuseColor.c, sizeof (float) * 3);
 
 	/* Ambient  - diffuseFrontColor * ambientIntensity */
-        for(i=0; i<4; i++) { node->_verifiedFrontColor.p[i+4] = node->_verifiedFrontColor.p[i+8] * node->ambientIntensity; }
+	for(i=0; i<4; i++) { node->_verifiedFrontColor.p[i+4] = node->_verifiedFrontColor.p[i+8] * node->ambientIntensity; }
 
 	/* Specular */
 	memcpy((void *)(&node->_verifiedFrontColor.p[12]), node->specularColor.c, sizeof (float) * 3);
@@ -820,13 +820,13 @@ void compile_TwoSidedMaterial (struct X3D_TwoSidedMaterial *node) {
 	memcpy((void *)(&node->_verifiedFrontColor.p[0]), node->emissiveColor.c, sizeof (float) * 3);
 
 	/* Shininess */
-        node->_verifiedFrontColor.p[16] = node->shininess * 128.0f;
+	node->_verifiedFrontColor.p[16] = node->shininess * 128.0f;
 
 #define MAX_SHIN 128.0f
 #define MIN_SHIN 0.01f
-        if ((node->_verifiedFrontColor.p[16] > MAX_SHIN) || (node->_verifiedFrontColor.p[16] < MIN_SHIN)) {
-                if (node->_verifiedFrontColor.p[16]>MAX_SHIN){node->_verifiedFrontColor.p[16] = MAX_SHIN;}else{node->_verifiedFrontColor.p[16]=MIN_SHIN;}
-        }
+	if ((node->_verifiedFrontColor.p[16] > MAX_SHIN) || (node->_verifiedFrontColor.p[16] < MIN_SHIN)) {
+		if (node->_verifiedFrontColor.p[16]>MAX_SHIN){node->_verifiedFrontColor.p[16] = MAX_SHIN;}else{node->_verifiedFrontColor.p[16]=MIN_SHIN;}
+	}
 #undef MAX_SHIN
 #undef MIN_SHIN
 
@@ -836,7 +836,7 @@ void compile_TwoSidedMaterial (struct X3D_TwoSidedMaterial *node) {
 		memcpy((void *)(&node->_verifiedBackColor.p[8]), node->backDiffuseColor.c, sizeof (float) * 3);
 	
 		/* Ambient  - diffuseBackColor * ambientIntensity */
-	        for(i=0; i<3; i++) { node->_verifiedBackColor.p[i+4] = node->_verifiedBackColor.p[i+8] * node->ambientIntensity; }
+		for(i=0; i<3; i++) { node->_verifiedBackColor.p[i+4] = node->_verifiedBackColor.p[i+8] * node->ambientIntensity; }
 	
 		/* Specular */
 		memcpy((void *)(&node->_verifiedBackColor.p[12]), node->backSpecularColor.c, sizeof (float) * 3);
@@ -845,13 +845,13 @@ void compile_TwoSidedMaterial (struct X3D_TwoSidedMaterial *node) {
 		memcpy((void *)(&node->_verifiedBackColor.p[0]), node->backEmissiveColor.c, sizeof (float) * 3);
 	
 		/* Shininess */
-	        node->_verifiedBackColor.p[16] = node->shininess * 128.0f;
+		node->_verifiedBackColor.p[16] = node->shininess * 128.0f;
 	
 #define MAX_SHIN 128.0f
 #define MIN_SHIN 0.01f
-	        if ((node->_verifiedBackColor.p[16] > MAX_SHIN) || (node->_verifiedBackColor.p[16] < MIN_SHIN)) {
-	                if (node->_verifiedBackColor.p[16]>MAX_SHIN){node->_verifiedBackColor.p[16] = MAX_SHIN;}else{node->_verifiedBackColor.p[16]=MIN_SHIN;}
-	        }
+		if ((node->_verifiedBackColor.p[16] > MAX_SHIN) || (node->_verifiedBackColor.p[16] < MIN_SHIN)) {
+			if (node->_verifiedBackColor.p[16]>MAX_SHIN){node->_verifiedBackColor.p[16] = MAX_SHIN;}else{node->_verifiedBackColor.p[16]=MIN_SHIN;}
+		}
 #undef MAX_SHIN
 #undef MIN_SHIN
 
