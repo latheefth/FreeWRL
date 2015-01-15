@@ -4992,7 +4992,7 @@ void deep_copy_broto_body2(struct X3D_Proto** proto, struct X3D_Proto** dest)
 	prototype = (struct X3D_Proto*)(*proto)->__prototype;
 
 	p->__prototype = X3D_NODE(prototype);
-	p->__protoFlags = prototype->__protoFlags;  //done in brotoInstance
+	//p->__protoFlags = prototype->__protoFlags;  //done in brotoInstance
 	p->__protoFlags = ciflag_set(p->__protoFlags,1,2); //deep instancing of protoInstances inside a protoDeclare 
 
 	//prototype = (struct X3D_Proto*)p->__prototype;
@@ -5067,6 +5067,8 @@ struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep)
 		//pflags[3] = 0; //not an extern
 		//memcpy(&p->__protoFlags,pflags,sizeof(int));
 		p->__protoFlags = 0;
+		//if(ciflag_get(proto->__protoFlags,3)==1) //+ Jan 2015
+		//	p->__protoFlags = ciflag_set(p->__protoFlags,1,3); //+ Jan 2015, its an externProtoInstance
 	}
 	//memcpy(p,proto,sizeof(struct X3D_Proto)); //dangerous, make sure you re-instance all pointer variables
 	p->__prototype = proto->__prototype;
@@ -5572,7 +5574,10 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 	//create new Node
 	//if((*source)->_nodeType == NODE_PlaneSensor)
 	//	printf("got a planesensor - going to allocate and register it\n");
-	*dest=X3D_NODE(createNewX3DNode( (*source)->_nodeType)); //will register sensors and viewpionts
+	if((*source)->_nodeType == NODE_Proto)
+		*dest = X3D_NODE(brotoInstance(X3D_PROTO(X3D_PROTO(*source)->__prototype),ciflag_get(ctx->__protoFlags,0)));
+	else
+		*dest=X3D_NODE(createNewX3DNode( (*source)->_nodeType)); //will register sensors and viewpionts
 	add_node_to_broto_context(ctx,(*dest));
 	//if(!ctx->__nodes)
 	//	ctx->__nodes = newVector(struct X3D_Node*,4);
@@ -5649,11 +5654,12 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 				s = (struct X3D_Proto*)*source;
 				d = (struct X3D_Proto*)*dest;
 				sp = s->__protoDef;
-				dp = NULL;
+				dp = d->__protoDef; //Jan 2015 = NULL;
 
 				if(sp){ //are there any Proto fields? Not for the Scene - this may not be malloced for the scene
 					//dp = MALLOC(struct ProtoDefinition*,sizeof(struct ProtoDefinition));
-					dp = newProtoDefinition();
+					if(dp == NULL) //Jan 2015
+						dp = newProtoDefinition();
 					//memcpy(dp,sp,sizeof(struct ProtoDefinition));
 					dp->iface = newVector(struct ProtoFieldDecl *, sp->iface->n);
 					dp->protoName = strdup(sp->protoName);
@@ -5810,8 +5816,11 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 		struct X3D_Proto *pdest;
 		unsigned char pdepthflag;
 		pdest = X3D_PROTO(*dest);
-		pdepthflag = ciflag_get(ctx->__protoFlags,0);
-		pdest->__protoFlags = ciflag_set(pdest->__protoFlags,pdepthflag,0); //upgrade depth flag to that of containing context ie deep == 1 live scenery (vs 0 for still protodeclare)
+		if(0){
+			//Jan 2015 - depth is upgraded in brotoInstance above
+			pdepthflag = ciflag_get(ctx->__protoFlags,0);
+			pdest->__protoFlags = ciflag_set(pdest->__protoFlags,pdepthflag,0); //upgrade depth flag to that of containing context ie deep == 1 live scenery (vs 0 for still protodeclare)
+		}
 		deep_copy_broto_body2((struct X3D_Proto**)source,(struct X3D_Proto**)dest);
 	}
 }
