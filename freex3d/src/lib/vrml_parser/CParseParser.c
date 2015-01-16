@@ -5752,7 +5752,8 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 
 						sp = ctx->__protoDef;
 						sdecl = protoDefinition_getFieldByNum(sp, isrecord->iprotofield);
-						dfield->ASCIIvalue = STRDUP(sdecl->fieldString);
+						if(sdecl->fieldString)
+							dfield->ASCIIvalue = STRDUP(sdecl->fieldString);
 						memcpy(dfield->fieldDecl,sfield->fieldDecl,sizeof(struct FieldDecl));
 						//ddecl = dfield->fieldDecl;
 						//ddecl->fieldType = sdecl->type;
@@ -5768,7 +5769,8 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 						registerParentIfManagedField(sdecl->type, sdecl->mode, 1, dest_field, *dest);
 
 					}else{
-						dfield->ASCIIvalue = STRDUP(sfield->ASCIIvalue);
+						if(sfield->ASCIIvalue)
+							dfield->ASCIIvalue = STRDUP(sfield->ASCIIvalue);
 						//*(output->fieldDecl) = *(sfield->fieldDecl);
 						memcpy(dfield->fieldDecl,sfield->fieldDecl,sizeof(struct FieldDecl));
 						/* shallow copy for testing some scenarios*/

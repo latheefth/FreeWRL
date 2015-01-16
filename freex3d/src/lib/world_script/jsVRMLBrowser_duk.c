@@ -567,7 +567,7 @@ int VrmlBrowserCreateX3DFromString(FWType fwtype, void *ec, void *fwn, int argc,
 {
 	/* for the return of the nodes */
 	struct X3D_Group *retGroup;
-	int iret = 0;
+	int i, iret = 0;
 	char *xstr; 
 	char *tmpstr;
 	char *separator;
@@ -589,7 +589,7 @@ int VrmlBrowserCreateX3DFromString(FWType fwtype, void *ec, void *fwn, int argc,
 			struct Multi_Node *mfn = (struct Multi_Node *)malloc(sizeof(struct Multi_Node));
 			memcpy(mfn,&retGroup->children,sizeof(struct Multi_Node));
 			FREE_IF_NZ(retGroup);
-			for(int i=0;i<mfn->n;i++){
+			for(i=0;i<mfn->n;i++){
 				mfn->p[i]->_parentVector->n = 0; 
 			}
 			fwretval->_web3dval.native = mfn;
@@ -624,7 +624,7 @@ int VrmlBrowserCreateVrmlFromString(FWType fwtype, void *ec, void *fwn, int argc
 	char *xstr; 
 	char *tmpstr;
 	char *separator;
-	int ra;
+	int i, ra;
 	int count, iret;
 	int wantedsize;
 	int MallocdSize;
@@ -642,7 +642,7 @@ int VrmlBrowserCreateVrmlFromString(FWType fwtype, void *ec, void *fwn, int argc
 			struct Multi_Node *mfn = (struct Multi_Node *)malloc(sizeof(struct Multi_Node));
 			memcpy(mfn,&retGroup->children,sizeof(struct Multi_Node));
 			FREE_IF_NZ(retGroup);
-			for(int i=0;i<mfn->n;i++){
+			for(i=0;i<mfn->n;i++){
 				mfn->p[i]->_parentVector->n = 0; 
 			}
 			fwretval->_web3dval.native = mfn;
@@ -692,7 +692,7 @@ void jsRegisterRoute(
 void *addDeleteRoute0(void *fwn, char*callingFunc, struct X3D_Node* fromNode, char *sfromField, struct X3D_Node* toNode, char *stoField){
 	void *retval;
 	int fromType,toType,fromKind,toKind,fromField,toField;
-	int len, fromOfs, toOfs;
+	int i, len, fromOfs, toOfs;
 	union anyVrml *fromValue, *toValue;
 
 	getFieldFromNodeAndName(fromNode,sfromField,&fromType,&fromKind,&fromField,&fromValue);
@@ -730,7 +730,7 @@ void *addDeleteRoute0(void *fwn, char*callingFunc, struct X3D_Node* fromNode, ch
 		}else{  
 			//deleteRoute
 			if(ec->__ROUTES)
-				for(int i=0;i<vectorSize(ec->__ROUTES);i++){
+				for(i=0;i<vectorSize(ec->__ROUTES);i++){
 					broute = vector_get(struct brotoRoute*,ec->__ROUTES,i);
 					if(broute->from.node == fromNode && broute->from.ifield == fromField
 						&& broute->to.node == toNode && broute->to.ifield == toField){
@@ -1260,7 +1260,7 @@ int X3DExecutionContext_getNamedNode(FWType fwtype, void *ec, void *fwn, int arg
 }
 
 int X3DExecutionContext_updateNamedNode(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
-	int nr = 0;
+	int i, nr = 0;
 	//broto warning - DEF name list should be per-executionContext
 	if(usingBrotos()){
 		struct X3D_Proto *ec = (struct X3D_Proto *)fwn;
@@ -1271,7 +1271,7 @@ int X3DExecutionContext_updateNamedNode(FWType fwtype, void *ec, void *fwn, int 
 		defname = fwpars[0]._string;
 		node = X3D_NODE(fwpars[1]._web3dval.native);
 		if(ec->__DEFnames){
-			for(int i=0;i<vectorSize(ec->__DEFnames);i++){
+			for(i=0;i<vectorSize(ec->__DEFnames);i++){
 				bd = vector_get(struct brotoDefpair *,ec->__DEFnames,i);
 				//Q. is it the DEF we search for, and node we replace, OR
 				//   is it the node we search for, and DEF we replace?
@@ -1301,7 +1301,7 @@ int X3DExecutionContext_updateNamedNode(FWType fwtype, void *ec, void *fwn, int 
 }
 int remove_broto_node(struct X3D_Proto *context, struct X3D_Node* node);
 int X3DExecutionContext_removeNamedNode(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
-	int nr = 0;
+	int i, nr = 0;
 	//broto warning - DEF name list should be per-executionContext
 	if(usingBrotos()){
 		struct X3D_Proto *ec = (struct X3D_Proto *)fwn;
@@ -1311,7 +1311,7 @@ int X3DExecutionContext_removeNamedNode(FWType fwtype, void *ec, void *fwn, int 
 		defname = fwpars[0]._string;
 		if(ec->__DEFnames){
 			struct brotoDefpair *bd;
-			for(int i=0;i<vectorSize(ec->__DEFnames);i++){
+			for(i=0;i<vectorSize(ec->__DEFnames);i++){
 				bd = vector_get(struct brotoDefpair *,ec->__DEFnames,i);
 				if(!strcmp(bd->name,defname)){
 					node = bd->node;
@@ -1392,7 +1392,7 @@ void update_weakRoutes(struct X3D_Proto *context);
 int X3DExecutionContext_updateImportedNode(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	// I think what they mean by updateImportedNode(string,string[,string]) is:
 	//   updateImportedNode(Inline DEF name, Inline's Export AS name [,optional Import AS name])
-	int nr = 0;
+	int i, nr = 0;
 	//broto warning - DEF name list should be per-executionContext
 	if(usingBrotos()){
 		struct X3D_Proto *ec = (struct X3D_Proto *)fwn;
@@ -1409,7 +1409,7 @@ int X3DExecutionContext_updateImportedNode(FWType fwtype, void *ec, void *fwn, i
 			as = fwpars[2]._string;
 		node = X3D_NODE(fwpars[1]._web3dval.native);
 		if(ec->__IMPORTS){
-			for(int i=0;i<vectorSize(ec->__IMPORTS);i++){
+			for(i=0;i<vectorSize(ec->__IMPORTS);i++){
 				mxp = vector_get(struct IMEXPORT *,ec->__IMPORTS,i);
 				//Q. is it the DEF we search for, and node we replace, OR
 				//   is it the node we search for, and DEF we replace?
@@ -1437,7 +1437,7 @@ int X3DExecutionContext_updateImportedNode(FWType fwtype, void *ec, void *fwn, i
 
 
 int X3DExecutionContext_removeImportedNode(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
-	int nr = 0;
+	int i,nr = 0;
 	//broto warning - DEF name list should be per-executionContext
 	if(usingBrotos()){
 		struct X3D_Proto *ec = (struct X3D_Proto *)fwn;
@@ -1447,7 +1447,7 @@ int X3DExecutionContext_removeImportedNode(FWType fwtype, void *ec, void *fwn, i
 		defname = fwpars[0]._string;
 		if(ec->__IMPORTS){
 			struct IMEXPORT *mxp;
-			for(int i=0;i<vectorSize(ec->__IMPORTS);i++){
+			for(i=0;i<vectorSize(ec->__IMPORTS);i++){
 				mxp = vector_get(struct IMEXPORT *,ec->__IMPORTS,i);
 				if(!strcmp(mxp->as,defname)){
 					//remove IMPORT name mapping:
@@ -1487,7 +1487,7 @@ int X3DScene_getExportedNode(FWType fwtype, void *ec, void *fwn, int argc, FWval
 }
 
 int X3DScene_updateExportedNode(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
-	int nr = 0;
+	int i, nr = 0;
 	//broto warning - DEF name list should be per-executionContext
 	if(usingBrotos()){
 		struct X3D_Proto *ec = (struct X3D_Proto *)fwn;
@@ -1500,7 +1500,7 @@ int X3DScene_updateExportedNode(FWType fwtype, void *ec, void *fwn, int argc, FW
 		defname = fwpars[0]._string;
 		node = X3D_NODE(fwpars[1]._web3dval.anyvrml->sfnode);
 		if(ec->__EXPORTS){
-			for(int i=0;i<vectorSize(ec->__EXPORTS);i++){
+			for(i=0;i<vectorSize(ec->__EXPORTS);i++){
 				mxp = vector_get(struct IMEXPORT *,ec->__EXPORTS,i);
 				//Q. is it the DEF we search for, and node we replace, OR
 				//   is it the node we search for, and DEF we replace?
@@ -1536,7 +1536,7 @@ int X3DScene_updateExportedNode(FWType fwtype, void *ec, void *fwn, int argc, FW
 }
 
 int X3DScene_removeExportedNode(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
-	int nr = 0;
+	int i, nr = 0;
 	//broto warning - DEF name list should be per-executionContext
 	if(usingBrotos()){
 		struct X3D_Proto *ec = (struct X3D_Proto *)fwn;
@@ -1546,7 +1546,7 @@ int X3DScene_removeExportedNode(FWType fwtype, void *ec, void *fwn, int argc, FW
 		defname = fwpars[0]._string;
 		if(ec->__EXPORTS){
 			struct IMEXPORT *mxp;
-			for(int i=0;i<vectorSize(ec->__EXPORTS);i++){
+			for(i=0;i<vectorSize(ec->__EXPORTS);i++){
 				mxp = vector_get(struct IMEXPORT *,ec->__EXPORTS,i);
 				if(!strcmp(mxp->as,defname)){
 					//remove EXPORT name mapping:
