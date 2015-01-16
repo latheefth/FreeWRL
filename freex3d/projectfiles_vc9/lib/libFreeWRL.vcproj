@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\src\libminizip;..\..\..\..\lib_windows\js185\include;..\..\src\libtess;..\..\src\Lib;..\..\src_windows;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\zlib\include;..\..\..\..\lib_windows\jpeg\include;..\..\..\..\lib_windows\freetype2\include;..\..\..\..\lib_windows\png\include;..\..\..\..\lib_windows\angleproject\include;..\..\..\..\lib_windows\libxml2\include"
-				PreprocessorDefinitions="ANGLEPROJECT;W_DEBUG;WIN32;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;DO_COLLISION_GPU_no;STATIC_EXPORTABLE_JS_API;HAVE_PTHREAD_CANCEL"
+				PreprocessorDefinitions="ANGLEPROJECT;W_DEBUG;WIN32;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;DO_COLLISION_GPU_no;STATIC_EXPORTABLE_JS_API;HAVE_PTHREAD_CANCEL;JAVASCRIPT_DUK"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -543,6 +543,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\lib\world_script\include_duktape.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\lib\input\InputFunctions.c"
 				>
 			</File>
@@ -563,6 +567,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\lib\world_script\JScript_duk.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\lib\world_script\JScript_stub.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\lib\world_script\jsUtils.c"
 				>
 			</File>
@@ -579,7 +591,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\lib\world_script\jsVRMLBrowser_duk.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\lib\world_script\jsVRMLClasses.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\lib\world_script\jsVRMLClasses_duk.c"
 				>
 			</File>
 			<File

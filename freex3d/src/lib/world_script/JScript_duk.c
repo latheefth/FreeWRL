@@ -107,10 +107,13 @@ int fwiterator_generic(int index, FWTYPE *fwt, void *pointer, const char **name,
 	//start iterating by passing -1 for index. When you get -1 back, you are done.
 	//FWPointer is for SFNode: it will have an instance-specific result from its custom iterator
 	//next property
-	int lenp, lenf;
+	int lenp, lenf, ifindex;
+	FWPropertySpec *ps;
+	FWIterator iterator;
+	FWFunctionSpec *fs;
 	(*jndex) = 0;
-	FWPropertySpec *ps = fwt->Properties;
-	FWIterator iterator = fwt->iterator;
+	ps = fwt->Properties;
+	iterator = fwt->iterator;
 	if(ps){
 		index ++;
 		lenp = len_properties(ps);
@@ -130,9 +133,9 @@ int fwiterator_generic(int index, FWTYPE *fwt, void *pointer, const char **name,
 		index++; //may not have properties (or iterator) like SFFloat, which has a valueOf function
 	}
 	//next function
-	FWFunctionSpec *fs = fwt->Functions;
+	fs = fwt->Functions;
 	lenf = len_functions(fs);
-	int ifindex = index - 1 - (*lastProp);
+	ifindex = index - 1 - (*lastProp);
 	if(ifindex < lenf){
 		(*name) = fs[ifindex].name;
 		(*type) = 'f';
@@ -143,9 +146,9 @@ int fwiterator_generic(int index, FWTYPE *fwt, void *pointer, const char **name,
 }
 
 int fwhas_generic(FWTYPE *fwt, void *pointer, const char *key, int *jndex, char *type, char *readOnly){
+	char *name;
 	int lastProp, index = -1;
 	lastProp = -1;
-	char *name;
 	while( (index = fwiterator_generic(index,fwt,pointer,&name, &lastProp, jndex, type, readOnly)) > -1){
 		if(!strcmp(name,key)){
 			//found it
@@ -400,7 +403,7 @@ int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *ty
 int get_valueChanged_flag (int fptr, int actualscript){
 	char *fullname;
 	union anyVrml* value;
-	int type, kind, ifield;
+	int type, kind, ifield, found;
 	struct X3D_Node *node;
 	struct Shader_Script *script;
 	struct ScriptFieldDecl *field;
@@ -410,7 +413,7 @@ int get_valueChanged_flag (int fptr, int actualscript){
 	script = scriptcontrol->script;
 	node = script->ShaderScriptNode;
 	fullname = JSparamnames[fptr].name;
-	int found = getFieldFromNodeAndName(node,fullname,&type,&kind,&ifield,&value);
+	found = getFieldFromNodeAndName(node,fullname,&type,&kind,&ifield,&value);
 	if(found){
 		field = Shader_Script_getScriptField(script, ifield);
 		gglobal()->JScript.JSglobal_return_val = (void *)&field->value;
@@ -422,7 +425,7 @@ int get_valueChanged_flag (int fptr, int actualscript){
 void resetScriptTouchedFlag(int actualscript, int fptr){
 	char *fullname;
 	union anyVrml* value;
-	int type, kind, ifield;
+	int type, kind, ifield, found;
 	struct X3D_Node *node;
 	struct Shader_Script *script;
 	struct ScriptFieldDecl *field;
@@ -432,7 +435,7 @@ void resetScriptTouchedFlag(int actualscript, int fptr){
 	script = scriptcontrol->script;
 	node = script->ShaderScriptNode;
 	fullname = JSparamnames[fptr].name;
-	int found = getFieldFromNodeAndName(node,fullname,&type,&kind,&ifield,&value);
+	found = getFieldFromNodeAndName(node,fullname,&type,&kind,&ifield,&value);
 	if(found){
 		field = Shader_Script_getScriptField(script, ifield);
 		field->valueChanged = 0;
@@ -444,13 +447,13 @@ void resetScriptTouchedFlag(int actualscript, int fptr){
 //const char *stringFieldtypeType (int st); //in generatedcode
 //const char *stringNodeType (int st);
 int fwType2itype(const char *fwType){
-	int isSF, isMF, ifield = -1;
+	int i, isSF, isMF, ifield = -1;
 	const char *suffix;
 	isSF = !strncmp(fwType,"SF",2);
 	isMF = !strncmp(fwType,"MF",2);
 	if(isSF || isMF){
 		suffix = &fwType[2]; //skip SF/MF part
-		int i = 0;
+		i = 0;
 		while(lookup_fieldType[i].c){
 			if(!strcmp(suffix,lookup_fieldType[i].c)){
 				ifield = lookup_fieldType[i].i;
@@ -587,11 +590,11 @@ const char *duk_type_to_string(int duktype){
 
 void show_stack(duk_context *ctx, char* comment)
 {
-	int rc, itop = duk_get_top(ctx);
+	int i, rc, itop = duk_get_top(ctx);
 	if(comment) printf("%s top=%d\n",comment,itop);
 	//printf("%10s%10s%10s\n","position","type","more");
 	printf("%10s%10s\n","position","type");
-	for(int i=0;i<itop;i++){
+	for(i=0;i<itop;i++){
 		int ipos = -(i+1);
 		int t = duk_get_type(ctx, ipos);
 		char *stype = NULL;
@@ -751,17 +754,18 @@ int push_typed_proxy2(duk_context *ctx, int itype, int kind, void *fwpointer, in
 
 void convert_duk_to_fwvals(duk_context *ctx, int nargs, int istack, struct ArgListType arglist, FWval *args, int *argc){
 	int nUsable,nNeeded, i, ii;
+	FWval pars;
 	struct Uni_String *uni;
 	nUsable = arglist.iVarArgStartsAt > -1 ? nargs : arglist.nfixedArg;
 	nNeeded = max(nUsable,arglist.nfixedArg);
-	FWval pars = malloc(nNeeded*sizeof(FWVAL));
+	pars = malloc(nNeeded*sizeof(FWVAL));
 	(*args) = pars;
 	//QC and genericization of incoming parameters
 	(*argc) = nNeeded;
 	for(i=0;i<nUsable;i++){
 		const char* str;
-		ii = istack + i;
 		char ctype;
+		ii = istack + i;
 		if(i < arglist.nfixedArg) 
 			ctype = arglist.argtypes[i];
 		else 
@@ -878,7 +882,10 @@ void convert_duk_to_fwvals(duk_context *ctx, int nargs, int istack, struct ArgLi
 
 
 int cfwconstructor(duk_context *ctx) {
-	int rc, nargs;
+	int i, j, rc, nargs, argc, ifound;
+	FWTYPE *fwt;
+	FWval args;
+	void *fwpointer;
 	int *valueChanged = NULL; //so called 'internal' variables inside the script context don't point to a valueChanged
 	int itype = -1;
 	nargs = duk_get_top(ctx);
@@ -894,11 +901,11 @@ int cfwconstructor(duk_context *ctx) {
 	//show_stack(ctx,"cfwconstructor after push and pop current function");
 
 	if(itype < 0) return 0; //no itype means it's not one of ours
-	FWTYPE *fwt = getFWTYPE(itype);
+	fwt = getFWTYPE(itype);
 	if(!fwt->Constructor) return 0; ///AUXTYPE_s not constructable (except route?)
 
 	//find the contructor that matches the args best
-	int ifound, i = 0;
+	i = 0;
 	ifound = -1;
 	while(fwt->ConstructorArgs[i].nfixedArg > -1){
 		int nfixed = fwt->ConstructorArgs[i].nfixedArg;
@@ -909,7 +916,7 @@ int cfwconstructor(duk_context *ctx) {
 			//nargs is a match
 			int allOK = TRUE;
 			//check each narg for compatible type
-			for(int j=0;j<nargs;j++){
+			for(j=0;j<nargs;j++){
 				char neededType;
 				int isOK, RHS_duk_type = duk_get_type(ctx, j);
 				isOK = FALSE;
@@ -960,7 +967,7 @@ int cfwconstructor(duk_context *ctx) {
 				allOK = allOK && isOK;
 			}
 			if(fill)
-				for(int j=nargs;j<nfixed;j++){
+				for(j=nargs;j<nfixed;j++){
 					allOK = allOK && 1;
 				}
 			if(allOK){
@@ -974,8 +981,7 @@ int cfwconstructor(duk_context *ctx) {
 		printf("matching constructor not found, you have %d args for %s\n",nargs,fwt->name);
 		return 0;
 	}
-	FWval args = NULL;
-	int argc;
+	args = NULL;
 	convert_duk_to_fwvals(ctx, nargs, 0, fwt->ConstructorArgs[i], &args, &argc);
 	if(fwt->ConstructorArgs[ifound].fillMissingFixedWithZero == 'T' && nargs < fwt->ConstructorArgs[ifound].nfixedArg){
 		int nfixed = fwt->ConstructorArgs[ifound].nfixedArg;
@@ -983,7 +989,7 @@ int cfwconstructor(duk_context *ctx) {
 		char *neededTypes = fwt->ConstructorArgs[ifound].argtypes;
 		int fill = fwt->ConstructorArgs[ifound].fillMissingFixedWithZero == 'T';
 		args = realloc(args,nfixed * sizeof(FWVAL));
-		for(int j=nargs;j<nfixed;j++){
+		for(j=nargs;j<nfixed;j++){
 			switch(neededTypes[j]){
 			case 'B':
 				args[j]._boolean = FALSE; break;
@@ -1003,7 +1009,7 @@ int cfwconstructor(duk_context *ctx) {
 		argc = nfixed;
 	}
 
-	void *fwpointer = fwt->Constructor(fwt,argc,args);
+	fwpointer = fwt->Constructor(fwt,argc,args);
 	free(args);
 	push_typed_proxy(ctx,itype, fwpointer, valueChanged);
 
@@ -1011,6 +1017,10 @@ int cfwconstructor(duk_context *ctx) {
 }
 int chas(duk_context *ctx) {
 	int rc, itype, *valueChanged;
+	const char *key;
+	int nr, index;
+	char type, readOnly;
+	FWTYPE *fwt;
 	union anyVrml *parent = NULL;
 
 	/* get type of parent object for this property*/
@@ -1025,13 +1035,11 @@ int chas(duk_context *ctx) {
 	rc = duk_get_prop_string(ctx,0,"fwChanged");
 	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
 	duk_pop(ctx);
-	const char *key = duk_require_string(ctx,-1);
+	key = duk_require_string(ctx,-1);
 	//printf("key=%s\n",key);
 
-	int nr, index;
-	char type, readOnly;
 	nr = 1;
-	FWTYPE *fwt = getFWTYPE(itype);
+	fwt = getFWTYPE(itype);
 	if(fwhas_generic(fwt,parent,key,&index,&type,&readOnly)){
 		duk_push_true(ctx);
 	}else{
@@ -1043,8 +1051,14 @@ int chas(duk_context *ctx) {
     return nr;
 }
 int cownKeys(duk_context *ctx) {
-	int rc, itype, *valueChanged;
+	int rc, itype, *valueChanged, arr_idx;
 	void *parent = NULL;
+	int i;
+	char *fieldname;
+	int lastProp, isFunc, jndex;
+	char type, readOnly;
+	//FWTYPE *getFWTYPE(int itype)
+	FWTYPE *fwt;
 	itype = -1;
 
 	/* get type of parent object for this property*/
@@ -1060,15 +1074,11 @@ int cownKeys(duk_context *ctx) {
 	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
 	duk_pop(ctx);
 
-	int arr_idx = duk_push_array(ctx);
+	arr_idx = duk_push_array(ctx);
 	if(itype < 0 || (itype < AUXTYPE_X3DConstants && parent == NULL))
 		return 1; //return empty array
-	int i = -1;
-	char *fieldname;
-	int lastProp, isFunc, jndex;
-	char type, readOnly;
-	//FWTYPE *getFWTYPE(int itype)
-	FWTYPE *fwt = getFWTYPE(itype);
+	i = -1;
+	fwt = getFWTYPE(itype);
 	//fwiterator_generic(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex)
 	while( (i = fwiterator_generic(i,fwt,parent,&fieldname,&lastProp,&jndex,&type,&readOnly)) > -1 ){
 		duk_push_string(ctx, fieldname);
@@ -1080,6 +1090,12 @@ int cownKeys(duk_context *ctx) {
 int cenumerate(duk_context *ctx) {
 	int rc, itype, *valueChanged;
 	union anyVrml *parent = NULL;
+	int next, i;
+	char *fieldname;
+	int isFunc, lastProp, jndex;
+	char type, readOnly;
+	FWTYPE *fwt;
+	int arr_idx;
 
 	/* get type of parent object for this property*/
 	rc = duk_get_prop_string(ctx,0,"fwItype");
@@ -1094,13 +1110,9 @@ int cenumerate(duk_context *ctx) {
 	if(rc == 1) valueChanged = duk_to_pointer(ctx,-1);
 	duk_pop(ctx);
 
-	int arr_idx = duk_push_array(ctx);
-	int next, i = -1;
-	char *fieldname;
-	int isFunc, lastProp, jndex;
-	char type, readOnly;
-	//FWTYPE *getFWTYPE(int itype)
-	FWTYPE *fwt = getFWTYPE(itype);
+	arr_idx = duk_push_array(ctx);
+	i = -1;
+	fwt = getFWTYPE(itype);
 	//fwiterator_generic(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex)
 	while( (i = fwiterator_generic(i,fwt,parent,&fieldname,&lastProp,&jndex,&type,&readOnly)) > -1 ){
 		//isFunc = i > lastProp;
@@ -1210,14 +1222,14 @@ int fwval_duk_push(duk_context *ctx, FWval fwretval, int *valueChanged){
 }
 
 int ctypefunction(duk_context *ctx) {
-	int rc, nr, itype, kind;
+	int rc, nr, itype, kind, nargs;
 	const char *fwFunc = NULL;
 	union anyVrml* field = NULL;
 	FWTYPE *fwt;
 
 	itype = -1;
 	kind = -1;
-	int nargs = duk_get_top(ctx);
+	nargs = duk_get_top(ctx);
 	//show_stack(ctx,"in cfuction");
 	duk_push_current_function(ctx);
 	/* get type of parent object for this property*/
@@ -1257,7 +1269,7 @@ int ctypefunction(duk_context *ctx) {
 	return nr;
 }
 int cfunction(duk_context *ctx) {
-	int rc, nr, itype, *valueChanged = NULL;
+	int i, rc, nr, itype, *valueChanged = NULL;
 	const char *fwFunc = NULL;
 	union anyVrml* parent = NULL;
 	union anyVrml* field = NULL;
@@ -1286,7 +1298,7 @@ int cfunction(duk_context *ctx) {
 	duk_pop(ctx); //durrent function
 
 	nr = 0;
-	int i;
+
 	fwt = getFWTYPE(itype);
 	//check functions - if its a function push the type's specfic function
 	fs = getFWFunc(fwt,fwFunc);
@@ -1294,13 +1306,14 @@ int cfunction(duk_context *ctx) {
 		FWval pars;
 		int argc;
 		FWVAL fwretval;
+		struct X3D_Node *scriptnode;
 		void *ec = NULL;
 		convert_duk_to_fwvals(ctx, nargs, 0, fs->arglist, &pars, &argc);
 		//the object function call, using engine-agnostic parameters
 		
 		//>>just SFNode function getNodeName needs to know the script node context (it can't use its own - it may be an IMPORT)
 		duk_eval_string(ctx,"__script");
-		struct X3D_Node *scriptnode = (struct X3D_Node*) duk_to_pointer(ctx,-1);
+		scriptnode = (struct X3D_Node*) duk_to_pointer(ctx,-1);
 		duk_pop(ctx);
 		if(scriptnode)
 			ec = (void *)scriptnode->_executionContext;
@@ -1436,10 +1449,11 @@ int cget(duk_context *ctx) {
 			}
 		}else if(found && fwt->Getter){
 			FWVAL fwretval;
+			struct X3D_Node *scriptnode;
 			void *ec = NULL;
 			//>>just SFNode function getNodeName needs to know the script node context (it can't use its own - it may be an IMPORT)
 			duk_eval_string(ctx,"__script");
-			struct X3D_Node *scriptnode = (struct X3D_Node*) duk_to_pointer(ctx,-1);
+			scriptnode = (struct X3D_Node*) duk_to_pointer(ctx,-1);
 			duk_pop(ctx);
 			if(scriptnode)
 				ec = (void *)scriptnode->_executionContext;
@@ -1529,10 +1543,11 @@ int cset(duk_context *ctx) {
 			arglist.iVarArgStartsAt = -1;
 			convert_duk_to_fwvals(ctx, 1, -2, arglist, &fwsetval, &argc);
 			if(argc == 1){
+				struct X3D_Node *scriptnode;
 				void *ec = NULL;
 				//>>just SFNode function getNodeName needs to know the script node context (it can't use its own - it may be an IMPORT)
 				duk_eval_string(ctx,"__script");
-				struct X3D_Node *scriptnode = (struct X3D_Node*) duk_to_pointer(ctx,-1);
+				scriptnode = (struct X3D_Node*) duk_to_pointer(ctx,-1);
 				duk_pop(ctx);
 				if(scriptnode)
 					ec = (void *)scriptnode->_executionContext;
@@ -1624,7 +1639,7 @@ function defineAccessor(obj, key, set, get) { \
 /* create the script context for this script. This is called from the thread
    that handles script calling in the fwl_RenderSceneUpdateScene */
 void JSCreateScriptContext(int num) {
-	int iglobal, rc;
+	int i, iglobal, rc;
 	//jsval rval;
 	duk_context *ctx; 	/* these are set here */
 	struct Shader_Script *script;
@@ -1660,7 +1675,7 @@ void JSCreateScriptContext(int num) {
 	//add types that can be newed ie var a = new SFVec3f();
 	//  they will have a non-null constructor function
 	//  generally, it's all our SF and MF field types
-	for(int i=0;i<FWTYPES_COUNT;i++)
+	for(i=0;i<FWTYPES_COUNT;i++)
 		if(fwtypesArray[i]->Constructor)
 			addCustomProxyType(ctx,iglobal,fwtypesArray[i]->name);
 	//show_stack(ctx,"before adding Browser");
@@ -1678,12 +1693,14 @@ void JSCreateScriptContext(int num) {
 
 	//tests, if something is broken these tests might help
 	if(1){
+		void *scriptnode;
+		struct X3D_Node *snode;
 		//duk_eval_string(ctx,"print('this.__script='+this.__script);"); //checks the NodeScript availability
 		//duk_pop(ctx);
 		duk_eval_string(ctx,"__script");
-		void *scriptnode = duk_to_pointer(ctx,-1);
+		scriptnode = duk_to_pointer(ctx,-1);
 		duk_pop(ctx);
-		struct X3D_Node *snode = (struct X3D_Node *)scriptnode;
+		snode = (struct X3D_Node *)scriptnode;
 		printf("script node = %x",scriptnode);
 	}
 	if(0){
@@ -1750,6 +1767,7 @@ int fwsetterNS(duk_context *ctx) {
 	int nargs, nr;
 	int rc, itype, *valueChanged;
 	union anyVrml *field;
+	const char *key;
 	struct X3D_Node* parent = NULL;
 	nargs = duk_get_top(ctx);
 
@@ -1757,7 +1775,7 @@ int fwsetterNS(duk_context *ctx) {
 	//show_stack(ctx,"in fwsetterNS");
    // nativeValue = duk_require_string(ctx, 0);
     //implicit key by setter C function //char *key = duk_require_string(ctx, 1);
-	const char *key = duk_require_string(ctx,1); //"myprop";
+	key = duk_require_string(ctx,1); //"myprop";
 	//printf("\nfwsetterNS, key=%s value=%s\n",key,nativeValue);
 
 	itype = -1;
@@ -1802,10 +1820,11 @@ int fwsetterNS(duk_context *ctx) {
 			arglist.iVarArgStartsAt = -1;
 			convert_duk_to_fwvals(ctx, 1, -2, arglist, &fwsetval, &argc);
 			if(argc == 1){
+				struct X3D_Node *scriptnode;
 				void *ec = NULL;
 				//>>just SFNode function getNodeName needs to know the script node context (it can't use its own - it may be an IMPORT)
 				duk_eval_string(ctx,"__script");
-				struct X3D_Node *scriptnode = (struct X3D_Node*) duk_to_pointer(ctx,-1);
+				scriptnode = (struct X3D_Node*) duk_to_pointer(ctx,-1);
 				duk_pop(ctx);
 				if(scriptnode)
 					ec = (void *)scriptnode->_executionContext;
@@ -1907,10 +1926,11 @@ int fwgetter0(duk_context *ctx,void *parent,int itype, char *key, int *valueChan
 	found = fwhas_generic(fwt,parent,key,&jndex,&type,&readOnly); //SFNode_Iterator
 	if(found && fwt->Getter){
 		FWVAL fwretval;
+		struct X3D_Node *scriptnode;
 		void *ec = NULL;
 		//>>just SFNode function getNodeName needs to know the script node context (it can't use its own - it may be an IMPORT)
 		duk_eval_string(ctx,"__script");
-		struct X3D_Node *scriptnode = (struct X3D_Node*) duk_to_pointer(ctx,-1);
+		scriptnode = (struct X3D_Node*) duk_to_pointer(ctx,-1);
 		duk_pop(ctx);
 		if(scriptnode)
 			ec = (void *)scriptnode->_executionContext;
@@ -1934,6 +1954,7 @@ int fwgetterNS(duk_context *ctx) {
 	int nargs, nr;
 	int rc, itype, mode, *valueChanged = NULL;
 	const char *fwName = NULL;
+	const char *fieldname;
 	struct X3D_Node *thisScriptNode = NULL;
 	union anyVrml *field;
 
@@ -1941,7 +1962,7 @@ int fwgetterNS(duk_context *ctx) {
 
 	/* retrieve key from nonstandard arg */
 	//show_stack(ctx,"in fwgetterNS at start");
-	const char *fieldname = duk_require_string(ctx,0);
+	fieldname = duk_require_string(ctx,0);
 	//printf("\nfwgetterNS key=%s\n",key);
 
 	/* retrieve field pointer from Cfunc */
@@ -2126,16 +2147,18 @@ void SaveScriptField (int num, indexT kind, indexT type, const char* field, unio
 static int duk_once = 0;
 void process_eventsProcessed(){
 	duk_context *ctx;
-	int rc;
+	int rc, counter;
+	struct CRscriptStruct *scriptcontrol;
+	ttglobal tg;
+	ppJScript p;
+
 	if(!duk_once) printf("in process_eventsProcessed\n");
 	//call function eventsProcessed () {
 
 	duk_once++;
 
-	int counter;
-	struct CRscriptStruct *scriptcontrol;
-	ttglobal tg = gglobal();
-	ppJScript p = (ppJScript)tg->JScript.prv;
+	tg = gglobal();
+	p = (ppJScript)tg->JScript.prv;
 	for (counter = 0; counter <= tg->CRoutes.max_script_found_and_initialized; counter++) {
 		scriptcontrol = getScriptControlIndex(counter);
 		//if (scriptcontrol->eventsProcessed == NULL) {
@@ -2285,7 +2308,7 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen)
 	duk_context *ctx;
 	int obj, rc;
 	int itype;
-
+	void *datacopy;
 	struct CRscriptStruct *ScriptControl = getScriptControl();
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
@@ -2297,7 +2320,7 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen)
 	duk_eval_string(ctx,JSparamnames[tnfield].name); //gets the evenin function on the stack
 	itype = JSparamnames[tnfield].type;
 	//medium copy
-	void *datacopy = NULL;
+	datacopy = NULL;
 	medium_copy_field(itype,Data,&datacopy);
 	push_typed_proxy2(ctx,itype,PKW_inputOutput,datacopy,NULL,'T');
 	duk_push_number(ctx,TickTime());
@@ -2320,6 +2343,10 @@ void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int
 	int obj;
 	int itype;
 	union anyVrml *any;
+	void *datacopy = NULL;
+	//char *source = (char *)Data - sizeof(int); //backup so we get the whole MF including .n
+	struct Multi_Any maData;
+	char *source;
 	struct CRscriptStruct *ScriptControl = getScriptControl();
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
@@ -2331,12 +2358,9 @@ void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int
 	duk_eval_string(ctx,JSparamnames[toname].name); //gets the evenin function on the stack
 	itype = dataType; //JSparamnames[toname].type;
 	//medium copy
-	void *datacopy = NULL;
-	//char *source = (char *)Data - sizeof(int); //backup so we get the whole MF including .n
-	struct Multi_Any maData;
 	maData.n = datalen;
 	maData.p = Data;
-	char *source = (char *)&maData;
+	source = (char *)&maData;
 	any = (void*)source;
 	medium_copy_field(itype,source,&datacopy);
 	any = datacopy;
@@ -2462,19 +2486,19 @@ int runQueuedDirectOutputs()
 	ttglobal tg = gglobal();
 	struct Shader_Script *script;
 	struct ScriptFieldDecl *field;
-	int i,nfields, kind, itype;
+	int i,num,nfields, kind, itype;
 	const char *fieldname;
+	static int doneOnce = 0;
+	int moreAction;
 	struct CRscriptStruct *ScriptControlArray, *scriptcontrol;
 	ScriptControlArray = getScriptControl();
 	
-
-	static int doneOnce = 0;
 	if(!doneOnce){
 		printf("in runQueuedDirectOutputs\n");
 		doneOnce++;
 	}
-	int moreAction = FALSE;
-	for(int num=0;num< tg->CRoutes.max_script_found_and_initialized;num++){
+	moreAction = FALSE;
+	for(num=0;num< tg->CRoutes.max_script_found_and_initialized;num++){
 		scriptcontrol = &ScriptControlArray[num];
 		script = scriptcontrol->script;
 		if(scriptcontrol->thisScriptType != NOSCRIPT && script){
@@ -2487,10 +2511,10 @@ int runQueuedDirectOutputs()
 					itype = ScriptFieldDecl_getType(field);
 					if(field->eventInSet){
 						if( (kind == PKW_inputOnly || kind == PKW_inputOutput)){
+							int isMF, sftype, len, isize;
 							int JSparamNameIndex = field->fieldDecl->JSparamNameIndex;
 							mark_script(script->num);
 							//run script eventIn function with field->value and tickTime
-							int isMF, sftype, len, isize;
 							isMF = itype % 2; //WRONG - use a function to lookup
 							sftype = itype - isMF;
 							//from EAI_C_CommonFunctions.c

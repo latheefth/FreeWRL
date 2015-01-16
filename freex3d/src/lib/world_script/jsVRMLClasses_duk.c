@@ -135,15 +135,16 @@ ArgListType (MFW_ConstructorArgs)[] = {
 };
 int sizeofSF(int itype); //thunks MF to SF (usually itype-1) and gets sizeof SF
 void * MFW_Constructor(FWType fwtype, int argc, FWval fwpars){
-	int lenSF;
+	int i, lenSF;
+	char *p;
 	struct Multi_Any *ptr = malloc(sizeof(struct Multi_Any));  ///malloc in 2 parts for MF
 	lenSF = sizeofSF(fwtype->itype); 
 	ptr->n = argc;
 	ptr->p = NULL;
 	if(ptr->n)
 		ptr->p = malloc(ptr->n * lenSF); // This second part is resizable ie MF[i] = new SF() if i >= (.length), .length is expanded to accomodate
-	char *p = ptr->p;
-	for(int i=0;i<ptr->n;i++){
+	p = ptr->p;
+	for(i=0;i<ptr->n;i++){
 		memcpy(p,fwpars[i]._web3dval.native,lenSF);
 		p += lenSF;
 	}
@@ -217,7 +218,8 @@ char *sfToString(FWType fwt, void *fwn){
 			if(!strcmp(fwt->Functions[i].name,"toString")){
 				FWval fwpars = NULL;
 				FWVAL fwretval;
-				fwt->Functions[i].call(fwt,fwn,0,fwpars,&fwretval);
+				//typedef int (* FWFunction)(FWType fwtype, void* ec, void * fwn, int argc, FWval fwpars, FWval fwretval);
+				fwt->Functions[i].call(fwt,NULL,fwn,1,fwpars,&fwretval);
 				str = fwretval._string;
 				break;
 			}
@@ -231,18 +233,20 @@ int type2SF(int itype);
 char *mfToString(FWType fwt, void * fwn){
 	//caller must free / gc the return string
 	int i, sftype, len, showType, elen;
-	char *p;
+	char *p, *str;
+	FWTYPE *fwtsf;
+
 	struct Multi_Any *ptr = (struct Multi_Any *)fwn;
 	showType = 1; //=1 to see MFColor[], =0 to see []
 	len = strlen("[ ");
 	if(showType) len += strlen(fwt->name);
-	char *str = malloc(len +1);
+	str = malloc(len +1);
 	str[0] = 0;
 	if(showType) strcat(str,fwt->name);
 	str = strcat(str,"[ ");
 	//sftype = mf2sf(fwt->itype);
 	sftype = type2SF(fwt->itype);
-	FWTYPE *fwtsf = getFWTYPE(sftype);
+	fwtsf = getFWTYPE(sftype);
 	p = (char *)ptr->p;
 	elen = sizeofSF(fwt->itype);
 	for(i=0;i<ptr->n;i++)
@@ -321,15 +325,16 @@ int MFW_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 }
 
 void * MFFloat_Constructor(FWType fwtype, int argc, FWval fwpars){
-	int lenSF;
+	int i, lenSF;
+	char *p;
 	struct Multi_Any *ptr = malloc(sizeof(struct Multi_Any));  ///malloc in 2 parts for MF
 	lenSF = sizeofSF(fwtype->itype); 
 	ptr->n = argc;
 	ptr->p = NULL;
 	if(ptr->n)
 		ptr->p = malloc(ptr->n * lenSF); // This second part is resizable ie MF[i] = new SF() if i >= (.length), .length is expanded to accomodate
-	char *p = ptr->p;
-	for(int i=0;i<ptr->n;i++){
+	p = ptr->p;
+	for(i=0;i<ptr->n;i++){
 		if(fwpars[i].itype == 'W' && fwpars[i]._web3dval.fieldType == FIELDTYPE_SFFloat)
 			memcpy(p,&fwpars[i]._web3dval.native,lenSF);
 		else if(fwpars[i].itype == 'F'){
@@ -459,6 +464,7 @@ int SFRotation_multiVec(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpa
 	struct SFVec3f *res = malloc(sizeof(struct SFVec3f));
 	struct SFVec3f c1, c2, r;
 	double rl,angle,s,c;
+	int i;
 
 	veccopy3f(r.c,ptr->c);
 	rl = veclength3f(r.c);
@@ -469,7 +475,7 @@ int SFRotation_multiVec(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpa
 	vecscale3f(c1.c,c1.c,1.0/rl);
 	veccross3f(c2.c,r.c,c1.c);
 	vecscale3f(c2.c,c2.c,1.0/rl);
-	for(int i=0;i<3;i++)
+	for(i=0;i<3;i++)
 		res->c[i] = (float) (v->c[i] + s * c1.c[i] + (1.0-c) * c2.c[i]);
 
 	fwretval->_web3dval.native = res; 
@@ -599,9 +605,10 @@ int SFRotation_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 }
 //typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
 void * SFRotation_Constructor(FWType fwtype, int ic, FWval fwpars){
+	int i;
 	struct SFRotation *ptr = malloc(fwtype->size_of); //garbage collector please
 	if(ic == 4){
-		for(int i=0;i<4;i++)
+		for(i=0;i<4;i++)
 			ptr->c[i] =  fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
 	}else if(ic == 2 && fwpars[1].itype == 'F'){
 		//SFVec3f axis, float angle
@@ -718,13 +725,14 @@ int SFVec3f_subtract(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars,
 	return 1;
 }
 int SFVec3f_divide(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec3f *res;
 	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
 	float rhs = fwpars[0]._numeric;
 	if(rhs == 0.0f){
 		return 0;
 	}
 	rhs = 1.0/rhs;
-	struct SFVec3f *res = malloc(fwtype->size_of);
+	res = malloc(fwtype->size_of);
 	vecscale3f(res->c,ptr->c,rhs);
 	fwretval->_web3dval.native = res; 
 	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3f;
@@ -847,8 +855,9 @@ int SFVec3f_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 }
 //typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
 void * SFVec3f_Constructor(FWType fwtype, int ic, FWval fwpars){
+	int i;
 	struct SFVec3f *ptr = malloc(fwtype->size_of); //garbage collector please
-	for(int i=0;i<3;i++)
+	for(i=0;i<3;i++)
 		ptr->c[i] =  fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
 	return (void *)ptr;
 }
@@ -941,15 +950,16 @@ FWTYPE SFBoolType = {
 
 
 void * MFBool_Constructor(FWType fwtype, int argc, FWval fwpars){
-	int lenSF;
+	int i, lenSF;
+	char *p;
 	struct Multi_Any *ptr = malloc(sizeof(struct Multi_Any));  ///malloc in 2 parts for MF
 	lenSF = sizeofSF(fwtype->itype); 
 	ptr->n = argc;
 	ptr->p = NULL;
 	if(ptr->n)
 		ptr->p = malloc(ptr->n * lenSF); // This second part is resizable ie MF[i] = new SF() if i >= (.length), .length is expanded to accomodate
-	char *p = ptr->p;
-	for(int i=0;i<ptr->n;i++){
+	p = ptr->p;
+	for(i=0;i<ptr->n;i++){
 		//float ff = (float)fwpars[i]._numeric; //fwpars[i]._web3dval.native;
 		if(fwpars[i].itype == 'W')
 			memcpy(p,&fwpars[i]._web3dval.native,lenSF);
@@ -1021,15 +1031,16 @@ FWTYPE SFInt32Type = {
 
 
 void * MFInt32_Constructor(FWType fwtype, int argc, FWval fwpars){
-	int lenSF;
+	int i, lenSF;
+	char *p;
 	struct Multi_Any *ptr = malloc(sizeof(struct Multi_Any));  ///malloc in 2 parts for MF
 	lenSF = sizeofSF(fwtype->itype); 
 	ptr->n = argc;
 	ptr->p = NULL;
 	if(ptr->n)
 		ptr->p = malloc(ptr->n * lenSF); // This second part is resizable ie MF[i] = new SF() if i >= (.length), .length is expanded to accomodate
-	char *p = ptr->p;
-	for(int i=0;i<ptr->n;i++){
+	p = ptr->p;
+	for(i=0;i<ptr->n;i++){
 		if(fwpars[i].itype == 'W')
 			memcpy(p,&fwpars[i]._web3dval.native,lenSF);
 		else if(fwpars[i].itype == 'I')
@@ -1063,12 +1074,12 @@ FWTYPE MFInt32Type = {
 int getFieldFromNodeAndIndex(struct X3D_Node* node, int iifield, const char **fieldname, int *type, int *kind, union anyVrml **value);
 int SFNode_Iterator(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex, char *type, char *readOnly){
 	struct X3D_Node *node = ((union anyVrml*)pointer)->sfnode;
-	int ftype, kind, ihave;
+	int ftype, kind, ihave, iifield;
 	char ctype;
 	union anyVrml *value;
 	index ++;
 	(*jndex) = 0;
-	int iifield = index;
+	iifield = index;
 	ihave = getFieldFromNodeAndIndex(node, index, name, &ftype, &kind, &value);
 	switch(ftype){
 		case FIELDTYPE_SFBool: ctype = 'B'; break;
@@ -1361,12 +1372,13 @@ void convertHSVtoRGB( double h, double s, double v ,double *r, double *g, double
 
 int SFColor_getHSV(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	//argc should == 0 for getHSV
+	struct SFVec3d *sf3d;
 	struct SFColor *ptr = (struct SFColor *)fwn;
 	double xp[3];
 	/* convert rgb to hsv */
 	convertRGBtoHSV((double)ptr->c[0], (double)ptr->c[1], (double)ptr->c[2],&xp[0],&xp[1],&xp[2]);
 	//supposed to return numeric[3] - don't have that set up so sfvec3d
-	struct SFVec3d *sf3d = malloc(sizeof(struct SFVec3d)); //garbage collector please
+	sf3d = malloc(sizeof(struct SFVec3d)); //garbage collector please
 	memcpy(sf3d->c,xp,sizeof(double)*3);
 	fwretval->_web3dval.native = sf3d; 
 	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3d;
@@ -1429,9 +1441,10 @@ int SFColor_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 }
 //typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
 void * SFColor_Constructor(FWType fwtype, int ic, FWval fwpars){
+	int i;
 	struct SFColor *ptr = malloc(fwtype->size_of); //garbage collector please
 	if(fwtype->ConstructorArgs[0].nfixedArg == 3)
-	for(int i=0;i<3;i++)
+	for(i=0;i<3;i++)
 		ptr->c[i] =  fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
 	return (void *)ptr;
 }
@@ -1489,12 +1502,13 @@ FWTYPE MFColorType = {
 
 int SFColorRGBA_getHSV(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	//argc should == 0 for getHSV
+	struct SFVec3d *sf3d;
 	struct SFColorRGBA *ptr = (struct SFColorRGBA *)fwn;
 	double xp[3];
 	/* convert rgb to hsv */
 	convertRGBtoHSV((double)ptr->c[0], (double)ptr->c[1], (double)ptr->c[2],&xp[0],&xp[1],&xp[2]);
 	//supposed to return numeric[3] - don't have that set up so sfvec3d
-	struct SFVec3d *sf3d = malloc(sizeof(struct SFVec3d)); //garbage collector please
+	sf3d = malloc(sizeof(struct SFVec3d)); //garbage collector please
 	memcpy(sf3d->c,xp,sizeof(double)*3);
 	fwretval->_web3dval.native = sf3d; 
 	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3d;
@@ -1560,9 +1574,10 @@ int SFColorRGBA_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 }
 //typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
 void * SFColorRGBA_Constructor(FWType fwtype, int ic, FWval fwpars){
+	int i;
 	struct SFColorRGBA *ptr = malloc(fwtype->size_of); //garbage collector please
 	if(ic == 4)
-	for(int i=0;i<4;i++)
+	for(i=0;i<4;i++)
 		ptr->c[i] =  fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
 	return (void *)ptr;
 }
@@ -1658,15 +1673,16 @@ FWTYPE SFTimeType = {
 };
 
 void * MFTime_Constructor(FWType fwtype, int argc, FWval fwpars){
-	int lenSF;
+	int i, lenSF;
+	char *p;
 	struct Multi_Any *ptr = malloc(sizeof(struct Multi_Any));  ///malloc in 2 parts for MF
 	lenSF = sizeofSF(fwtype->itype); 
 	ptr->n = argc;
 	ptr->p = NULL;
 	if(ptr->n)
 		ptr->p = malloc(ptr->n * lenSF); // This second part is resizable ie MF[i] = new SF() if i >= (.length), .length is expanded to accomodate
-	char *p = ptr->p;
-	for(int i=0;i<ptr->n;i++){
+	p = ptr->p;
+	for(i=0;i<ptr->n;i++){
 		if(fwpars[i].itype == 'W')
 			memcpy(p,&fwpars[i]._web3dval.native,lenSF);
 		else if(fwpars[i].itype == 'D')
@@ -1735,15 +1751,16 @@ FWTYPE SFStringType = {
 };
 
 void * MFString_Constructor(FWType fwtype, int argc, FWval fwpars){
-	int lenSF;
+	int i, lenSF;
+	char *p;
 	struct Multi_Any *ptr = malloc(sizeof(struct Multi_Any));  ///malloc in 2 parts for MF
 	lenSF = sizeofSF(fwtype->itype); 
 	ptr->n = argc;
 	ptr->p = NULL;
 	if(ptr->n)
 		ptr->p = malloc(ptr->n * lenSF); // This second part is resizable ie MF[i] = new SF() if i >= (.length), .length is expanded to accomodate
-	char *p = ptr->p;
-	for(int i=0;i<ptr->n;i++){
+	p = ptr->p;
+	for(i=0;i<ptr->n;i++){
 		//float ff = (float)fwpars[i]._numeric; //fwpars[i]._web3dval.native;
 		if(fwpars[i].itype == 'W' && fwpars[i]._web3dval.fieldType == FIELDTYPE_SFString)
 			memcpy(p,&fwpars[i]._web3dval.native,lenSF);
@@ -1840,13 +1857,14 @@ int SFVec2f_subtract(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars,
 	return 1;
 }
 int SFVec2f_divide(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec2f *res;
 	struct SFVec2f *ptr = (struct SFVec2f *)fwn;
 	double rhs = fwpars[0]._numeric;
 	if(rhs == 0.0){
 		return 0;
 	}
 	rhs = 1.0/rhs;
-	struct SFVec2f *res = malloc(fwtype->size_of);
+	res = malloc(fwtype->size_of);
 	vecscale2f(res->c,ptr->c,rhs);
 	fwretval->_web3dval.native = res; 
 	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec2f;
@@ -1954,8 +1972,9 @@ int SFVec2f_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 }
 //typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
 void * SFVec2f_Constructor(FWType fwtype, int ic, FWval fwpars){
+	int i;
 	struct SFVec2f *ptr = malloc(fwtype->size_of); //garbage collector please
-	for(int i=0;i<2;i++)
+	for(i=0;i<2;i++)
 		ptr->c[i] =  fwpars[i]._numeric; 
 	return (void *)ptr;
 }
@@ -2216,13 +2235,14 @@ int SFVec3d_subtract(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars,
 	return 1;
 }
 int SFVec3d_divide(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec3d *res;
 	struct SFVec3d *ptr = (struct SFVec3d *)fwn;
 	double rhs = fwpars[0]._numeric;
 	if(rhs == 0.0){
 		return 0;
 	}
 	rhs = 1.0/rhs;
-	struct SFVec3d *res = malloc(fwtype->size_of);
+	res = malloc(fwtype->size_of);
 	vecscaled(res->c,ptr->c,rhs);
 	fwretval->_web3dval.native = res; 
 	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec3d;
@@ -2345,8 +2365,9 @@ int SFVec3d_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 }
 //typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
 void * SFVec3d_Constructor(FWType fwtype, int ic, FWval fwpars){
+	int i;
 	struct SFVec3d *ptr = malloc(fwtype->size_of); //garbage collector please
-	for(int i=0;i<3;i++)
+	for(i=0;i<3;i++)
 		ptr->c[i] =  fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
 	return (void *)ptr;
 }
@@ -2413,15 +2434,16 @@ FWTYPE SFDoubleType = {
 };
 
 void * MFDouble_Constructor(FWType fwtype, int argc, FWval fwpars){
-	int lenSF;
+	int i, lenSF;
+	char *p;
 	struct Multi_Any *ptr = malloc(sizeof(struct Multi_Any));  ///malloc in 2 parts for MF
 	lenSF = sizeofSF(fwtype->itype); 
 	ptr->n = argc;
 	ptr->p = NULL;
 	if(ptr->n)
 		ptr->p = malloc(ptr->n * lenSF); // This second part is resizable ie MF[i] = new SF() if i >= (.length), .length is expanded to accomodate
-	char *p = ptr->p;
-	for(int i=0;i<ptr->n;i++){
+	p = ptr->p;
+	for(i=0;i<ptr->n;i++){
 		if(fwpars[i].itype == 'W')
 			memcpy(p,&fwpars[i]._web3dval.native,lenSF);
 		else if(fwpars[i].itype == 'D')
@@ -2507,6 +2529,11 @@ int X3DMatrix3_setTransform(FWType fwtype, void *ec, void *fwn, int argc, FWval 
 	// P' = T * C * R * SR * S * -SR * -C * P
 	int i,j;
 	float angle, scaleangle;
+	struct SFVec2f *scale;
+	struct SFVec3f *scaleOrientation;
+	struct SFVec2f *center;
+	float *matrix[3], m2[9], *mat[3];
+
 	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
 	struct SFVec2f *translation = fwpars[0]._web3dval.native;
 	struct SFVec3f *rotation = NULL;
@@ -2516,16 +2543,15 @@ int X3DMatrix3_setTransform(FWType fwtype, void *ec, void *fwn, int argc, FWval 
 	}
 	if(fwpars[1].itype == 'F')
 		angle = (float)fwpars[1]._numeric;
-	struct SFVec2f *scale = fwpars[2]._web3dval.native;
-	struct SFVec3f *scaleOrientation = NULL;
+	scale = fwpars[2]._web3dval.native;
+	scaleOrientation = NULL;
 	if(fwpars[3].itype == 'W' && fwpars[3]._web3dval.fieldType == FIELDTYPE_SFVec3f){
 		scaleOrientation = fwpars[3]._web3dval.native;
 		scaleangle = scaleOrientation->c[0]; //your guess is as good as mine what they meant
 	}
 	if(fwpars[3].itype == 'F')
 		scaleangle = (float)fwpars[3]._numeric;
-	struct SFVec2f *center = fwpars[4]._web3dval.native;
-	float *matrix[3], m2[9], *mat[3];
+	center = fwpars[4]._web3dval.native;
 	for(i=0;i<3;i++){
 		matrix[0] = &ptr->c[i*3];
 		mat[i] = &m2[i*3];
@@ -2591,6 +2617,9 @@ int X3DMatrix3_getTransform(FWType fwtype, void *ec, void *fwn, int argc, FWval 
 	//void getTransform(SFVec2f translation, SFVec3f rotation, SFVec2f scale) 
 	float angle = 0.0f;
 	int i;
+	struct SFVec2f *scale;
+    float *matrix[3], retscale[2];
+
 	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
 	struct SFVec2f *translation = fwpars[0]._web3dval.native;
 	struct SFVec3f *rotation = NULL;
@@ -2600,8 +2629,7 @@ int X3DMatrix3_getTransform(FWType fwtype, void *ec, void *fwn, int argc, FWval 
 	}else if(fwpars[1].itype == 'F'){
 		angle = (float)fwpars[1]._numeric;
 	}
-	struct SFVec2f *scale = fwpars[2]._web3dval.native;
-    float *matrix[3], retscale[2];
+	scale = fwpars[2]._web3dval.native;
 	for(i=0;i<3;i++)
 		matrix[i] = &ptr->c[i*3];
 
@@ -2786,8 +2814,9 @@ int X3DMatrix3_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 }
 //typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
 void * X3DMatrix3_Constructor(FWType fwtype, int ic, FWval fwpars){
+	int i;
 	struct SFVec3d *ptr = malloc(fwtype->size_of); //garbage collector please
-	for(int i=0;i<3;i++)
+	for(i=0;i<3;i++)
 		ptr->c[i] =  fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
 	return (void *)ptr;
 }
@@ -3133,8 +3162,9 @@ int X3DMatrix4_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 }
 //typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
 void * X3DMatrix4_Constructor(FWType fwtype, int ic, FWval fwpars){
+	int i;
 	struct SFVec3d *ptr = malloc(fwtype->size_of); //garbage collector please
-	for(int i=0;i<3;i++)
+	for(i=0;i<3;i++)
 		ptr->c[i] =  fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
 	return (void *)ptr;
 }
@@ -3201,13 +3231,14 @@ int SFVec2d_subtract(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars,
 	return 1;
 }
 int SFVec2d_divide(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFVec2d *res;
 	struct SFVec2d *ptr = (struct SFVec2d *)fwn;
 	double rhs = fwpars[0]._numeric;
 	if(rhs == 0.0){
 		return 0;
 	}
 	rhs = 1.0/rhs;
-	struct SFVec2d *res = malloc(fwtype->size_of);
+	res = malloc(fwtype->size_of);
 	vecscale2d(res->c,ptr->c,rhs);
 	fwretval->_web3dval.native = res; 
 	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec2d;
@@ -3314,8 +3345,9 @@ int SFVec2d_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 }
 //typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
 void * SFVec2d_Constructor(FWType fwtype, int ic, FWval fwpars){
+	int i;
 	struct SFVec2d *ptr = malloc(fwtype->size_of); //garbage collector please
-	for(int i=0;i<3;i++)
+	for(i=0;i<3;i++)
 		ptr->c[i] =  fwpars[i]._numeric; 
 	return (void *)ptr;
 }
@@ -3420,8 +3452,9 @@ int SFVec4f_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 }
 //typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
 void * SFVec4f_Constructor(FWType fwtype, int ic, FWval fwpars){
+	int i;
 	struct SFVec4f *ptr = malloc(fwtype->size_of); //garbage collector please
-	for(int i=0;i<4;i++)
+	for(i=0;i<4;i++)
 		ptr->c[i] =  (float)fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
 	return (void *)ptr;
 }
@@ -3528,8 +3561,9 @@ int SFVec4d_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 }
 //typedef int (* FWConstructor)(FWType fwtype, int argc, FWval fwpars);
 void * SFVec4d_Constructor(FWType fwtype, int ic, FWval fwpars){
+	int i;
 	struct SFVec3d *ptr = malloc(fwtype->size_of); //garbage collector please
-	for(int i=0;i<4;i++)
+	for(i=0;i<4;i++)
 		ptr->c[i] =  fwpars[i]._numeric; 
 	return (void *)ptr;
 }
