@@ -129,6 +129,7 @@ w3dx.manifest:
  *   resource_fetch: download remote url or check for local file access.
 
  */
+//#define DEBUG_RES printf
 bool resource_fetch(resource_item_t *res)
 {
 	//char* pound;
