@@ -1202,7 +1202,7 @@ void * SFNode_Constructor(FWType fwtype, int nargs, FWval fwpars){
 			ptr = malloc(sizeof(void *));
 			*ptr = retGroup->children.p[0]; 
 			(*ptr)->_parentVector->n = 0;
-		}else if(fwpars->itype = 'W'){
+		}else if(fwpars->itype == 'W'){
 			if(fwpars->_web3dval.fieldType == FIELDTYPE_SFNode){
 				ptr = malloc(sizeof(void *));
 				*ptr = ((union anyVrml*)fwpars[0]._web3dval.native)->sfnode; 
@@ -2805,7 +2805,7 @@ int X3DMatrix3_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index > -1 && index < 9){
-		if(fwval->itype = 'F'){
+		if(fwval->itype == 'F'){
 			ptr->c[index] = fwval->_numeric; //fwval->_web3dval.anyvrml->sffloat; 
 			return TRUE;
 		}
@@ -3153,7 +3153,7 @@ int X3DMatrix4_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 	struct SFMatrix3f *ptr = (struct SFMatrix3f *)fwn;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index > -1 && index < 9){
-		if(fwval->itype = 'F'){
+		if(fwval->itype == 'F'){
 			ptr->c[index] = fwval->_numeric; //fwval->_web3dval.anyvrml->sffloat; 
 			return TRUE;
 		}

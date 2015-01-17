@@ -176,7 +176,7 @@ void JScript_init(struct tJScript *t){
 	//private
 	t->prv = JScript_constructor();
 	{
-		ppJScript p = (ppJScript)t->prv;
+		//ppJScript p = (ppJScript)t->prv;
 		//initialize statics
 		if(!FWTYPES_COUNT) initFWTYPEs();
 	}
@@ -306,7 +306,7 @@ int sizeofSForMF(int itype){
 	case FIELDTYPE_SFColor:	iz = sizeof(struct SFColor); break;
 	case FIELDTYPE_SFColorRGBA:	iz = sizeof(struct SFColorRGBA); break;
 	case FIELDTYPE_SFTime:	iz = sizeof(double); break;
-	case FIELDTYPE_SFString: iz = sizeof(struct Uni_string *); break;  //sizeof(void *) because nodes that have a string field declare it struct Uni_String *, so when copying to a node, you copy sizeof(void*). H: if the char *string is const, then uni_string is const (they may hang out as pals for life, or char *string may outlive its uni_string pal
+	case FIELDTYPE_SFString: iz = sizeof(struct Uni_String *); break;  //sizeof(void *) because nodes that have a string field declare it struct Uni_String *, so when copying to a node, you copy sizeof(void*). H: if the char *string is const, then uni_string is const (they may hang out as pals for life, or char *string may outlive its uni_string pal
 	case FIELDTYPE_SFVec2f:	iz = sizeof(struct SFVec2f); break;
 	//case FIELDTYPE_SFImage:	iz = sizeof(void*); break;
 	case FIELDTYPE_SFVec3d:	iz = sizeof(struct SFVec3d); break;
@@ -985,9 +985,9 @@ int cfwconstructor(duk_context *ctx) {
 	convert_duk_to_fwvals(ctx, nargs, 0, fwt->ConstructorArgs[i], &args, &argc);
 	if(fwt->ConstructorArgs[ifound].fillMissingFixedWithZero == 'T' && nargs < fwt->ConstructorArgs[ifound].nfixedArg){
 		int nfixed = fwt->ConstructorArgs[ifound].nfixedArg;
-		int ivarsa = fwt->ConstructorArgs[ifound].iVarArgStartsAt;
+		//int ivarsa = fwt->ConstructorArgs[ifound].iVarArgStartsAt;
 		char *neededTypes = fwt->ConstructorArgs[ifound].argtypes;
-		int fill = fwt->ConstructorArgs[ifound].fillMissingFixedWithZero == 'T';
+		//int fill = fwt->ConstructorArgs[ifound].fillMissingFixedWithZero == 'T';
 		args = realloc(args,nfixed * sizeof(FWVAL));
 		for(j=nargs;j<nfixed;j++){
 			switch(neededTypes[j]){
@@ -1023,6 +1023,7 @@ int chas(duk_context *ctx) {
 	FWTYPE *fwt;
 	union anyVrml *parent = NULL;
 
+	itype = 0;
 	/* get type of parent object for this property*/
 	rc = duk_get_prop_string(ctx,0,"fwItype");
 	if(rc==1) itype = duk_get_int(ctx,-1);
@@ -1097,6 +1098,7 @@ int cenumerate(duk_context *ctx) {
 	FWTYPE *fwt;
 	int arr_idx;
 
+	itype =0;
 	/* get type of parent object for this property*/
 	rc = duk_get_prop_string(ctx,0,"fwItype");
 	if(rc==1) itype = duk_get_int(ctx,-1);
@@ -1132,7 +1134,7 @@ int push_duk_fieldvalueECMA(duk_context *ctx, int itype, union anyVrml *fieldval
 	  - return our field-type-specific object/proxy-wrapper, pointing to our global.field, for the others.
 	*/
 	int nr;
-	int isOK = FALSE;
+	//int isOK = FALSE;
 	nr = 1;
 	switch(itype){
     case FIELDTYPE_SFBool:
@@ -1224,7 +1226,7 @@ int fwval_duk_push(duk_context *ctx, FWval fwretval, int *valueChanged){
 int ctypefunction(duk_context *ctx) {
 	int rc, nr, itype, kind, nargs;
 	const char *fwFunc = NULL;
-	union anyVrml* field = NULL;
+	//union anyVrml* field = NULL;
 	FWTYPE *fwt;
 
 	itype = -1;
@@ -1272,10 +1274,11 @@ int cfunction(duk_context *ctx) {
 	int i, rc, nr, itype, *valueChanged = NULL;
 	const char *fwFunc = NULL;
 	union anyVrml* parent = NULL;
-	union anyVrml* field = NULL;
+	//union anyVrml* field = NULL;
 	FWTYPE *fwt;
 	FWFunctionSpec *fs;
 
+	itype = 0;
 	int nargs = duk_get_top(ctx);
 	//show_stack(ctx,"in cfuction");
 	duk_push_current_function(ctx);
@@ -1338,7 +1341,7 @@ int cget(duk_context *ctx) {
 	int rc, nr, itype, kind, *valueChanged = NULL;
 	//show_stack(ctx,"in cget");
 	union anyVrml* parent = NULL;
-	union anyVrml* field = NULL;
+	//union anyVrml* field = NULL;
 
 	/* get type of parent object for this property*/
 	itype = -1;
@@ -1364,7 +1367,7 @@ int cget(duk_context *ctx) {
 	//printf("indexer is%s\n",duk_type_to_string(duk_get_type(ctx,-2)));
 	switch(duk_get_type(ctx,-2)){
 	case DUK_TYPE_NUMBER:{
-		int ikey = duk_get_int(ctx,-2);
+		//int ikey = duk_get_int(ctx,-2);
 		//printf("key=[%d]",ikey);
 		}
 		break;
@@ -1406,6 +1409,7 @@ int cget(duk_context *ctx) {
 		FWTYPE *fwt = getFWTYPE(itype);
 		int jndex, found;
 		char type, readOnly;
+		found = 0;
 
 		//check numeric indexer
 		if(duk_is_number(ctx,-2)){
@@ -1487,12 +1491,12 @@ int cset(duk_context *ctx) {
 
 	switch(duk_get_type(ctx,-3)){
 	case DUK_TYPE_NUMBER:{
-		int ikey = duk_get_int(ctx,-3);
+		//int ikey = duk_get_int(ctx,-3);
 		//printf("key=[%d] ",ikey);
 		}
 		break;
 	default: {
-		const char *key = duk_require_string(ctx,-3);
+		//const char *key = duk_require_string(ctx,-3);
 		//printf("key=%s ",key);
 		}
 		break;
@@ -1646,7 +1650,7 @@ void JSCreateScriptContext(int num) {
 	struct X3D_Node *scriptnode;
 	//JSObject *_globalObj; 	/* these are set here */
 	//BrowserNative *br; 	/* these are set here */
-	ppJScript p = (ppJScript)gglobal()->JScript.prv;
+	//ppJScript p = (ppJScript)gglobal()->JScript.prv;
 	struct CRscriptStruct *ScriptControl = getScriptControl();
 	script = ScriptControl[num].script;
 	scriptnode = script->ShaderScriptNode;
@@ -1872,7 +1876,7 @@ int push_duk_fieldvalue(duk_context *ctx, int itype, int mode, const char* field
 	int nr;
 	nr = 0;
 	if(field){
-		int isOK = FALSE;
+		//int isOK = FALSE;
 		nr = 1;
 		switch(itype){
         case FIELDTYPE_SFBool:
@@ -1953,13 +1957,13 @@ int fwgetterNS(duk_context *ctx) {
 	*/
 	int nargs, nr;
 	int rc, itype, mode, *valueChanged = NULL;
-	const char *fwName = NULL;
+	//const char *fwName = NULL;
 	const char *fieldname;
 	struct X3D_Node *thisScriptNode = NULL;
 	union anyVrml *field;
 
 	nargs = duk_get_top(ctx);
-
+	itype = 0;
 	/* retrieve key from nonstandard arg */
 	//show_stack(ctx,"in fwgetterNS at start");
 	fieldname = duk_require_string(ctx,0);
