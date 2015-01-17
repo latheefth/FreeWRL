@@ -311,7 +311,7 @@ struct string_int lookup_X3DConstants[] = {
 
 struct string_int *lookup_string_int(struct string_int *table, char *searchkey, int *index){
 	int i;
-	struct string_int *retval = NULL;
+	//struct string_int *retval = NULL;
 	*index = -1;
 	if(!table) return NULL;
 	i = 0;
@@ -558,7 +558,7 @@ int VrmlBrowserLoadURL(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpar
 }
 int VrmlBrowserSetDescription(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
-	const char *_costr = NULL;
+	//const char *_costr = NULL;
 	if(fwpars[0].itype == 'S')
 		gglobal()->Mainloop.BrowserDescription = fwpars[0]._string;
 	return 0;
@@ -1340,13 +1340,16 @@ int X3DExecutionContext_createProto(FWType fwtype, void *ec, void *fwn, int argc
 
 		if( isAvailableBroto(fwpars[0]._string, ec, &proto))
 		{
+			struct X3D_Proto *source, *dest;
 			node=X3D_NODE(brotoInstance(proto,1));
 			node->_executionContext = X3D_NODE(ec); //me->ptr;
 			add_node_to_broto_context(ec,node);
 			//during parsing, setting of fields would occur between instance and body, 
 			//so field values perculate down.
 			//here we elect default field values
-			deep_copy_broto_body2(&X3D_PROTO(X3D_PROTO(node)->__prototype),&X3D_PROTO(node));
+			source = X3D_PROTO(X3D_PROTO(node)->__prototype);
+			dest = X3D_PROTO(node);
+			deep_copy_broto_body2(&source,&dest);
 		}
 	}
 	if(node){
@@ -1441,7 +1444,7 @@ int X3DExecutionContext_removeImportedNode(FWType fwtype, void *ec, void *fwn, i
 	//broto warning - DEF name list should be per-executionContext
 	if(usingBrotos()){
 		struct X3D_Proto *ec = (struct X3D_Proto *)fwn;
-		struct X3D_Node* node = NULL;
+		//struct X3D_Node* node = NULL;
 
 		char *defname;
 		defname = fwpars[0]._string;
@@ -1540,7 +1543,7 @@ int X3DScene_removeExportedNode(FWType fwtype, void *ec, void *fwn, int argc, FW
 	//broto warning - DEF name list should be per-executionContext
 	if(usingBrotos()){
 		struct X3D_Proto *ec = (struct X3D_Proto *)fwn;
-		struct X3D_Node* node = NULL;
+		//struct X3D_Node* node = NULL;
 
 		char *defname;
 		defname = fwpars[0]._string;
@@ -1766,7 +1769,7 @@ int X3DRouteArrayGetter(FWType fwt, int index, void *ec, void *fwn, FWval fwretv
 				nr = 1;
 			}
 		}else{
-			struct CRStruct *routes = getCRoutes();
+			//struct CRStruct *routes = getCRoutes();
 			if( index < getCRouteCount() ){
 				fwretval->_pointer.native = intdup(index+1);
 				fwretval->_pointer.gc = 1;
