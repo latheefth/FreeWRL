@@ -42,8 +42,6 @@
 //#include "main/ProdCon.h"
 
 
-
-
 #ifdef _MSC_VER
 #define strncasecmp _strnicmp
 #endif
@@ -107,9 +105,9 @@ bool is_url(const char *url)
 
 #include <curl/curl.h>
 
-static CURL *curl_h = NULL;
-
 int with_libcurl = TRUE;
+
+int curl_initialized = 0;
 
 /*
   libCurl needs to be initialized once.
@@ -122,16 +120,10 @@ void init_curl()
 
     if ( (c=curl_global_init(CURL_GLOBAL_ALL)) != 0 ) {
 	ERROR_MSG("Curl init failed: %d\n", (int)c);
+        curl_initialized = 0;
 	exit(1);
-    }
-
-    ASSERT(curl_h == NULL);
-
-    curl_h = curl_easy_init( );
-
-    if (!curl_h) {
-	ERROR_MSG("Curl easy_init failed\n");
-	exit(1);
+    } else {
+        curl_initialized = 1;
     }
 }
 
@@ -139,6 +131,7 @@ void init_curl()
 /* old char* download_url_curl(const char *url, const char *tmp) */
 char* download_url_curl(resource_item_t *res)
 {
+    CURL *curl_h = NULL;
     CURLcode success;
     char *temp;
     FILE *file;
@@ -158,11 +151,13 @@ char* download_url_curl(resource_item_t *res)
 	free(temp);
 	ERROR_MSG("Cannot create temp file (fopen)\n");
 	return NULL;	
-    }
+    }   
 
-    if (!curl_h) {
+    if (curl_initialized != 0) {
 	init_curl();
     }
+
+    curl_h = curl_easy_init();
 
     /*
       Ask libCurl to download one url at once,
@@ -174,18 +169,19 @@ char* download_url_curl(resource_item_t *res)
 
     success = curl_easy_perform(curl_h); 
 
-    if (success == 0) {
+    if (success != CURLE_OK) {
+        ERROR_MSG("Download failed for url %s\n", res->parsed_request);
+        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(success));
+        fclose(file);
+        unlink(temp);
+        FREE(temp);
+        return NULL;
+    } else {
 #ifdef TRACE_DOWNLOADS
 	TRACE_MSG("Download sucessfull [curl] for url %s\n", res->parsed_request);
 #endif
 	fclose(file);
 	return temp;
-    } else {
-	ERROR_MSG("Download failed for url %s (%d)\n", res->parsed_request, (int) success);
-	fclose(file);
-	unlink(temp);
-	FREE(temp);
-	return NULL;
     }
 }
 
