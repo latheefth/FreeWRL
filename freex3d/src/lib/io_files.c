@@ -1255,7 +1255,7 @@ void loadAsync (resource_item_t *res) {
 void file2blob_task(s_list_t *item){
 	//chain, spawn async/thread, or re-enqueue FILE2BLOB to some work thread
 	resource_item_t *res = item->elem;
-	int tactic = file2blob_task_chain; //file2blob_task_spawn;
+	int tactic = file2blob_task_enqueue; // linux>imlib2 likes to stay on same thread //file2blob_task_chain; //file2blob_task_spawn;
 	if(tactic == file2blob_task_chain){
 		//chain FILE2BLOB
 		if(res->media_type == resm_image){
