@@ -1840,8 +1840,8 @@ extern const int FIELDTYPES_COUNT;
 #define FIELDTYPE_MFString	19
 #define FIELDTYPE_SFVec2f	20
 #define FIELDTYPE_MFVec2f	21
-#define FIELDTYPE_SFImage	22
-#define FIELDTYPE_FreeWRLPTR	23
+#define FIELDTYPE_FreeWRLPTR	22
+#define FIELDTYPE_SFImage	23
 #define FIELDTYPE_SFVec3d	24
 #define FIELDTYPE_MFVec3d	25
 #define FIELDTYPE_SFDouble	26

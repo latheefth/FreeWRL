@@ -44,8 +44,8 @@ our @Fields = qw/
 	MFString
 	SFVec2f
 	MFVec2f
-	SFImage
 	FreeWRLPTR
+	SFImage
 	SFVec3d
 	MFVec3d
 	SFDouble

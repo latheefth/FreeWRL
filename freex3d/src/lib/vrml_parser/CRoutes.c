@@ -2583,7 +2583,8 @@ void propagate_events_B() {
 						isMF = type % 2;
 						sftype = type - isMF;
 						//from EAI_C_CommonFunctions.c
-						isize = returnElementLength(sftype) * returnElementRowSize(sftype);
+						//isize = returnElementLength(sftype) * returnElementRowSize(sftype);
+						isize = sizeofSForMF(sftype);
 						if(isMF) len = sizeof(int) + sizeof(void*);
 						else len = isize;
 						modeFrom = sfield->fieldDecl->PKWmode;
@@ -2649,7 +2650,8 @@ void propagate_events_B() {
 			isMF = type % 2;
 			sftype = type - isMF;
 			//from EAI_C_CommonFunctions.c
-			isize = returnElementLength(sftype) * returnElementRowSize(sftype);
+			//isize = returnElementLength(sftype) * returnElementRowSize(sftype);
+			isize = sizeofSForMF(sftype);
 			if(isMF) len = sizeof(int) + sizeof(void*);
 			else len = isize;
 			
