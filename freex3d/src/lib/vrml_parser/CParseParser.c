@@ -221,8 +221,8 @@ BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*)={
     &parser_sftimeValue, &parser_mftimeValue,				// 16,17 Time
     &parser_sfstringValue_, &parser_mfstringValue,			// 18,19 String
     &parser_sfvec2fValue, &parser_mfvec2fValue,				// 20,21 Vec2f
-    &parser_sfimageValue,  /* SFImage */					// 22,   SFImage
-    &parser_fieldTypeNotParsedYet, /* FreeWRLPTR 23 */		//    23 FREEWRL_PTR
+    &parser_fieldTypeNotParsedYet, /* FreeWRLPTR 23 */		// 22,   FREEWRL_PTR
+    &parser_sfimageValue,  /* SFImage */					//    23 SFImage
     &parser_sfvec3dValue, &parser_mfvec3dValue,				// 24,25 Vec3d
     &parser_sftimeValue, &parser_mftimeValue,				// 26,27 Double
     &parser_sfmatrix3fValue, &parser_fieldTypeNotParsedYet, // 28,29 Matrix3f 
@@ -5323,7 +5323,8 @@ void copy_field(int typeIndex, union anyVrml* source, union anyVrml* dest, struc
 	isMF = typeIndex % 2;  //this is wrong - you need a functional lookup or re-arrange the #defines
 	sftype = typeIndex - isMF;
 	//from EAI_C_CommonFunctions.c
-	isize = returnElementLength(sftype) * returnElementRowSize(sftype);
+	//isize = returnElementLength(sftype) * returnElementRowSize(sftype);
+	isize = sizeofSForMF(sftype); 
 	if(isMF)
 	{
 		int nele;
@@ -5452,7 +5453,8 @@ void shallow_copy_field(int typeIndex, union anyVrml* source, union anyVrml* des
 	isMF = typeIndex % 2;
 	sftype = typeIndex - isMF;
 	//from EAI_C_CommonFunctions.c
-	isize = returnElementLength(sftype) * returnElementRowSize(sftype);
+	//isize = returnElementLength(sftype) * returnElementRowSize(sftype);
+	isize = sizeofSForMF(sftype);
 	if(isMF)
 	{
 		int nele;

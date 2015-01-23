@@ -161,6 +161,7 @@ int  returnElementLength(int type) {
 		case FIELDTYPE_MFMatrix4d:
 		case FIELDTYPE_SFTime :
     		case FIELDTYPE_MFTime : return (int) sizeof(double); break;
+			case FIELDTYPE_SFImage:
     		case FIELDTYPE_MFInt32: return (int) sizeof(int)   ; break;
 		case FIELDTYPE_FreeWRLPTR:
 		case FIELDTYPE_MFString:
@@ -274,6 +275,163 @@ int returnElementRowSize (int type) {
 	return 1;
 
 }
+
+
+
+int mf2sf(int itype){
+	//luckily the fieldtype defines are consistently mf = sf+1
+	//return convertToSFType(itype); //this is more reliable -converts and sf to itself- but bulky
+	if(itype == FIELDTYPE_SFImage)
+		return FIELDTYPE_SFInt32;
+	return itype -1;
+}
+int sf2mf(int itype){
+	//luckily the fieldtype defines are consistently mf = sf+1
+	return itype +1;
+}
+
+/*we seem to be missing something in generated code/structs that would allow me to
+  look up how big something is. I suspect it's ##MACRO-ized elsewhere.
+*/
+
+
+int isSForMFType(int itype){
+	//sadly the fieldtype defines aren't reliably even or odd for sf or mf, so we'll do a switch case
+	//-1 unknown /not a fieldtype
+	//0 SF
+	//1 MF
+	int iret;
+	switch(itype){
+		case FIELDTYPE_SFFloat: 
+		case FIELDTYPE_SFRotation:	
+		case FIELDTYPE_SFVec3f:	
+		case FIELDTYPE_SFBool:	
+		case FIELDTYPE_SFInt32:	
+		case FIELDTYPE_SFNode:	
+		case FIELDTYPE_SFColor:	
+		case FIELDTYPE_SFColorRGBA:	
+		case FIELDTYPE_SFTime:	
+		case FIELDTYPE_SFString: 
+		case FIELDTYPE_SFVec2f:	
+		//case FIELDTYPE_SFImage:
+		case FIELDTYPE_SFVec3d:	
+		case FIELDTYPE_SFDouble: 
+		case FIELDTYPE_SFMatrix3f: 
+		case FIELDTYPE_SFMatrix3d: 
+		case FIELDTYPE_SFMatrix4f: 
+		case FIELDTYPE_SFMatrix4d: 
+		case FIELDTYPE_SFVec2d: 
+		case FIELDTYPE_SFVec4f:	
+		case FIELDTYPE_SFVec4d:	
+			iret = 0;
+			break;
+
+		case FIELDTYPE_MFFloat: 
+		case FIELDTYPE_MFRotation:	
+		case FIELDTYPE_MFVec3f:	
+		case FIELDTYPE_MFBool:	
+		case FIELDTYPE_MFInt32:	
+		case FIELDTYPE_MFNode:	
+		case FIELDTYPE_MFColor:	
+		case FIELDTYPE_MFColorRGBA:	
+		case FIELDTYPE_MFTime:	
+		case FIELDTYPE_MFString: 
+		case FIELDTYPE_MFVec2f:	
+		case FIELDTYPE_SFImage: //
+		case FIELDTYPE_MFVec3d:	
+		case FIELDTYPE_MFDouble: 
+		case FIELDTYPE_MFMatrix3f: 
+		case FIELDTYPE_MFMatrix3d: 
+		case FIELDTYPE_MFMatrix4f: 
+		case FIELDTYPE_MFMatrix4d: 
+		case FIELDTYPE_MFVec2d: 
+		case FIELDTYPE_MFVec4f:	
+		case FIELDTYPE_MFVec4d:	
+			iret = 1; break;
+		default:
+			iret = -1; break;
+	}
+	return iret;
+}
+int type2SF(int itype){
+	//unconditionally returns sf type
+	int jtype, sformf = isSForMFType(itype);
+	if(sformf < 0) return -1;
+	jtype = itype;
+	if(sformf == 1) jtype = mf2sf(itype);
+	return jtype;
+}
+int isSFType(int itype){
+	return (isSForMFType(itype) == 0) ? 1 : 0;
+}
+#define FIELDTYPE_MFImage	43 
+int sizeofSForMF(int itype){
+	//goal get the offset for MF.p[i] in bytes
+	//or also this is the 'shallow size' for field copying
+	int iz;
+	switch(itype){
+	case FIELDTYPE_SFFloat: iz = sizeof(float); break;
+	case FIELDTYPE_SFRotation:	iz = sizeof(struct SFRotation); break;
+	case FIELDTYPE_SFVec3f:	iz = sizeof(struct SFVec3f);break;
+	case FIELDTYPE_SFBool:	iz = sizeof(int); break;
+	case FIELDTYPE_SFInt32:	iz = sizeof(int); break;
+	case FIELDTYPE_SFNode:	iz = sizeof(void*); break;
+	case FIELDTYPE_SFColor:	iz = sizeof(struct SFColor); break;
+	case FIELDTYPE_SFColorRGBA:	iz = sizeof(struct SFColorRGBA); break;
+	case FIELDTYPE_SFTime:	iz = sizeof(double); break;
+	case FIELDTYPE_SFString: iz = sizeof(struct Uni_String *); break;  //sizeof(void *) because nodes that have a string field declare it struct Uni_String *, so when copying to a node, you copy sizeof(void*). H: if the char *string is const, then uni_string is const (they may hang out as pals for life, or char *string may outlive its uni_string pal
+	case FIELDTYPE_SFVec2f:	iz = sizeof(struct SFVec2f); break;
+	//case FIELDTYPE_SFImage:	iz = sizeof(void*); break;
+	case FIELDTYPE_SFVec3d:	iz = sizeof(struct SFVec3d); break;
+	case FIELDTYPE_SFDouble: iz = sizeof(double); break;
+	case FIELDTYPE_SFMatrix3f: iz = sizeof(struct SFMatrix3f); break;
+	case FIELDTYPE_SFMatrix3d: iz = sizeof(struct SFMatrix3d); break;
+	case FIELDTYPE_SFMatrix4f: iz = sizeof(struct SFMatrix4f); break;
+	case FIELDTYPE_SFMatrix4d: iz = sizeof(struct SFMatrix4d); break;
+	case FIELDTYPE_SFVec2d: iz = sizeof(struct SFVec2d); break;
+	case FIELDTYPE_SFVec4f:	iz = sizeof(struct SFVec4f); break;
+	case FIELDTYPE_SFVec4d:	iz = sizeof(struct SFVec4d); break;
+
+	case FIELDTYPE_SFImage: //same as MFInt32
+	case FIELDTYPE_MFFloat: 
+	case FIELDTYPE_MFRotation:	
+	case FIELDTYPE_MFVec3f:	
+	case FIELDTYPE_MFBool:	
+	case FIELDTYPE_MFInt32:	
+	case FIELDTYPE_MFNode:	
+	case FIELDTYPE_MFColor:	
+	case FIELDTYPE_MFColorRGBA:	
+	case FIELDTYPE_MFTime:	
+	case FIELDTYPE_MFString: 
+	case FIELDTYPE_MFVec2f:	
+	case FIELDTYPE_MFImage:
+	case FIELDTYPE_MFVec3d:	
+	case FIELDTYPE_MFDouble: 
+	case FIELDTYPE_MFMatrix3f: 
+	case FIELDTYPE_MFMatrix3d: 
+	case FIELDTYPE_MFMatrix4f: 
+	case FIELDTYPE_MFMatrix4d: 
+	case FIELDTYPE_MFVec2d: 
+	case FIELDTYPE_MFVec4f:	
+	case FIELDTYPE_MFVec4d:	
+		iz = sizeof(struct Multi_Node);
+		break;
+	default:
+		//unknown
+		iz = sizeof(void*);
+		break;
+	}
+	return iz;
+}
+int sizeofSF(int itype){
+	int jtype;
+	int sformf = isSForMFType(itype);
+	if( sformf < 0) return 0;
+	jtype = itype;
+	if( sformf == 1 ) jtype = mf2sf(itype);
+	return sizeofSForMF(jtype);
+}
+
 
 //static struct VRMLParser *parser = NULL;
 
