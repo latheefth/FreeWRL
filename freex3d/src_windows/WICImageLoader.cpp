@@ -281,7 +281,7 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
    tti->texdata = blob; 
    if(!blob)
 	   printf("ouch in %s L.%d - no image data\n",__FILE__,__LINE__);
-   tti->hasAlpha = 0; //the townsite_withHud.x3d scene's HUD image transparency slidebar makes terrain transparent with hasAlpha. hasAlpha;
+   tti->hasAlpha = 1; //the townsite_withHud.x3d scene's HUD image transparency slidebar makes terrain transparent with hasAlpha. hasAlpha; Not now though.
 
 #ifdef verbose
    for(UINT row = 0; row < 23; ++row)

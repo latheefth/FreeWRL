@@ -50,6 +50,7 @@ Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, 
 #include "../scenegraph/Component_ProgrammableShaders.h"
 #include "../scenegraph/Component_Shape.h"
 #include "../ui/common.h"
+#include "../scenegraph/LinearAlgebra.h"
 
 /* for Background spheres */
 struct MyVertex
@@ -308,7 +309,7 @@ static size_t isboundofst(void *node) {
 	}
 	return 0;
 }
-
+int removeNodeFromVector(int iaction, struct Vector *v, struct X3D_Node *node);
 void bind_node (struct X3D_Node *node, struct Vector *thisStack) {
 	int *isBoundPtr;
 	int *setBindPtr;
@@ -399,12 +400,37 @@ printf ("%p Viewpoint, description :%s:\n",oldTOS,X3D_VIEWPOINT(oldTOS)->descrip
 printf ("oldTOS, isBound %d, setBindPtr %d\n",*(offsetPointer_deref(int*, oldTOS, isboundofst(oldTOS))), 
 *(offsetPointer_deref(int*, oldTOS, setBindofst(oldTOS))));
 }
+				if(removeNodeFromVector(0, thisStack, node)){
+					if (node->_nodeType == NODE_Viewpoint)
+						printf("but found and removed from stack\n");
+				}else{
+					if (node->_nodeType == NODE_Viewpoint)
+						printf("and not found in stack\n");
+				}
 				return;
 			} else {
 				/* we are top of stack... */
 				/* get myself off of the stack */
+//if (node->_nodeType == NODE_Viewpoint) {
+//int j;
+//printf ("%p Viewpoint, description :%s:\n",node,X3D_VIEWPOINT(node)->description->strptr);
+//printf("stacksize before popping=%d ",vectorSize(thisStack));
+//for(j=0;j<vectorSize(thisStack);j++){
+//struct X3D_Viewpoint *vp = vector_get(struct X3D_Viewpoint *,thisStack,j);
+//printf ("index= %d %p Viewpoint, description :%s:\n",j,node,vp->description->strptr);
+//}
+//}
 				vector_popBack(struct X3D_Node *,thisStack);
-
+//if (node->_nodeType == NODE_Viewpoint) {
+//printf("stacksize after popping=%d ",vectorSize(thisStack));
+//				if(removeNodeFromVector(0, thisStack, node)){
+//					printf("but still found and removed from stack\n");
+//				}else{
+//					printf("and now not found in stack\n");
+//				}
+//
+//}
+				removeNodeFromVector(0, thisStack, node); //sometimes there are duplicates further down the stack. for unloading inlines, we need to get rid of all occurrances
 				if (vectorSize(thisStack)>0) {
 					/* get the older one back */
 					oldTOS = vector_back(struct X3D_Node *,thisStack);
@@ -539,24 +565,57 @@ static void moveBackgroundCentre () {
 
 	FW_GL_PUSH_MATRIX();
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, mod);
-	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
-	/* Get origin */
-	FW_GLU_UNPROJECT(0.0f,0.0f,0.0f,mod,proj,viewport,&x,&y,&z);
-	FW_GL_TRANSLATE_D(x,y,z);
+	if(0){
+		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
+		/* Get origin */
+		FW_GLU_UNPROJECT(0.0f,0.0f,0.0f,mod,proj,viewport,&x,&y,&z);
+		FW_GL_TRANSLATE_D(x,y,z);
 
-	LIGHTING_OFF
+		LIGHTING_OFF
 
-	FW_GLU_UNPROJECT(0.0f,0.0f,0.0f,mod,unit,viewport,&x,&y,&z);
-	/* Get scale */
-	FW_GLU_PROJECT(x+1,y,z,mod,unit,viewport,&x1,&y1,&z1);
-	sx = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
-	FW_GLU_PROJECT(x,y+1,z,mod,unit,viewport,&x1,&y1,&z1);
-	sy = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
-	FW_GLU_PROJECT(x,y,z+1,mod,unit,viewport,&x1,&y1,&z1);
-	sz = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
+		FW_GLU_UNPROJECT(0.0f,0.0f,0.0f,mod,unit,viewport,&x,&y,&z);
+		/* Get scale */
+		FW_GLU_PROJECT(x+1,y,z,mod,unit,viewport,&x1,&y1,&z1);
+		sx = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
+		FW_GLU_PROJECT(x,y+1,z,mod,unit,viewport,&x1,&y1,&z1);
+		sy = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
+		FW_GLU_PROJECT(x,y,z+1,mod,unit,viewport,&x1,&y1,&z1);
+		sz = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
 
-	/* Undo the translation and scale effects */
-	FW_GL_SCALE_D(sx,sy,sz);
+		/* Undo the translation and scale effects */
+		FW_GL_SCALE_D(sx,sy,sz);
+		//printf("moveBackground old T %f %f %f old S %f %f %f\n",x,y,z,sx,sy,sz);
+	}
+	if(1){
+		//feature-AFFINE_GLU_UNPROJECT
+		//translation, scale same as glu_unproject (no 4*z needed for this way)
+		double modi[16];
+		struct point_XYZ p, q;
+		p.x = p.y = p.z = 0.0;
+		matinverseAFFINE(modi,mod);
+		transform(&p,&p,modi);
+		FW_GL_TRANSLATE_D(p.x,p.y,p.z);
+
+		LIGHTING_OFF
+
+		/* Get scale */
+		q = p;
+		q.x += 1.0;
+		transform(&q,&q,mod);
+		sx = 1.0/sqrt( q.x*q.x + q.y*q.y + q.z*q.z );
+		q = p;
+		q.y += 1.0;
+		transform(&q,&q,mod);
+		sy = 1.0/sqrt( q.x*q.x + q.y*q.y + q.z*q.z );
+		q = p;
+		q.z += 1.0;
+		transform(&q,&q,mod);
+		sz = 1.0/sqrt( q.x*q.x + q.y*q.y + q.z*q.z );
+		/* Undo the translation and scale effects */
+		FW_GL_SCALE_D(sx,sy,sz);
+		//printf("moveBackground new T %f %f %f new S %f %f %f\n",x,y,z,sx,sy,sz);
+		//printf("\n");
+	}
 }
 
 static void recalculateBackgroundVectors(struct X3D_Background *node) {
@@ -858,7 +917,10 @@ void render_Background (struct X3D_Background *node) {
 	}
 
 	/* we have a sphere (maybe one and a half, as the sky and ground are different) so scale it up so that
-	   all geometry fits within the spheres */
+	   all geometry fits within the spheres 
+		dug9 Sept 2014: background could in theory be a tiny box or sphere that wraps around the avatar, if
+		you can draw it first on each frame _and_ turn off 'depth' when you draw it.   
+	*/
 	FW_GL_SCALE_D (viewer->backgroundPlane, viewer->backgroundPlane, viewer->backgroundPlane);
 
 		enableGlobalShader(getMyShader(COLOUR_MATERIAL_SHADER));

@@ -156,6 +156,8 @@ typedef struct iiglobal //InstanceGlobal
 		int HaveSensitive;// = FALSE;
 		int trisThisLoop;
 		int clipPlane;// = 0;
+		int SHIFT; //state of shift key up = 0, down = 1
+		int CTRL; //state of ctrl key up = 0, down = 1
 		int currentX[20], currentY[20];                 /*  current mouse position.*/
 		void *prv;
 		char *tmpFileLocation;
@@ -252,6 +254,9 @@ typedef struct iiglobal //InstanceGlobal
 	struct tComponent_HAnim{
 		void *prv;
 	}Component_HAnim;
+	struct tComponent_NURBS{
+		void *prv;
+	}Component_NURBS;
 	struct tComponent_KeyDevice{
 		void *prv;
 	}Component_KeyDevice;
@@ -304,6 +309,7 @@ iOLDCODE	}Component_Networking;
 		void *rayHit;
 		void *rayHitHyper;
 		struct point_XYZ t_r1,t_r2,t_r3; /* transformed ray */
+		int usingAffinePickmatrix; /*instead of GLU_UNPROJECT feature-AFFINE_GLU_UNPROJECT*/
 		int	lightingOn;		/* do we need to restore lighting in Shape? */
 		int	have_transparency;//=FALSE;/* did any Shape have transparent material? */
 		/* material node usage depends on texture depth; if rgb (depth1) we blend color field

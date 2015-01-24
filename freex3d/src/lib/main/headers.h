@@ -565,8 +565,14 @@ int get_touched_flag(uintptr_t fptr, uintptr_t actualscript);
 void getMultiElementtype(char *strp, struct Multi_Vec3f *tn, int eletype);
 void CRoutes_RemoveSimple(struct X3D_Node* from, int fromOfs,
  struct X3D_Node* to, int toOfs, int len);
+ void CRoutes_RemoveSimpleB(struct X3D_Node* from, int fromIndex,
+ struct X3D_Node* to, int toIndex, int len);
 void CRoutes_RegisterSimple(struct X3D_Node* from, int fromOfs,
  struct X3D_Node* to, int toOfs, int len);
+ void CRoutes_RegisterSimpleB(
+	struct X3D_Node* from, int fromIndex,
+	struct X3D_Node* to, int toIndex,
+	int type);
 void CRoutes_Register(int adrem,        struct X3D_Node *from,
                                  int fromoffset,
 				 struct X3D_Node *to,
@@ -640,8 +646,17 @@ void render_polyrep(void *node);
 #endif
 
 //extern struct X3D_Group *rootNode;
-struct X3D_Group *rootNode();
-void setRootNode(struct X3D_Group *rn);
+struct X3D_Node *rootNode();
+void setRootNode(struct X3D_Node *rn);
+typedef struct void3 {
+	void *one;
+	void *two;
+	void *three;
+} void3;
+struct Vector *libraries();
+void setLibraries(struct Vector *);
+void addLibrary(char *url, struct X3D_Proto *library, void* res);
+void3 *librarySearch(char *absoluteUniUrlNoPound);
 
 extern int isPerlParsing(void);
 /* extern int isURLLoaded(void);	/\* initial scene loaded? Robert Sim *\/ */
@@ -676,8 +691,8 @@ extern void   storeMPGFrameData(int latest_texture_number, int h_size, int v_siz
 void mpg_main(char *filename, int *x,int *y,int *depth,int *frameCount,void **ptr);
 void removeFilenameFromPath (char *path);
 
-int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *node);
-int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Group *where);
+int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Node *ectx, struct X3D_Group *node);
+int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Node *ectx, struct X3D_Group *where);
 void EAI_Route(char cmnd, const char *tf);
 
 void handle_aqua(const int mev, const unsigned int button, int x, int y);
@@ -870,9 +885,10 @@ struct Multi_Vec3f *getCoordinate (struct X3D_Node *node, char *str);
 void replaceWorldNeeded(char* str);
 
 /* X3D C parser */
-int X3DParse(struct X3D_Group *parent, const char *inputstring);
+int X3DParse(struct X3D_Node *ectx, struct X3D_Node *parent, const char *inputstring);
 void *createNewX3DNode (int nt);
 void *createNewX3DNode0 (int nt);
+void *createNewX3DNodeB(int nt, int intable, void *executionContext);
 
 char *findFIELDNAMESfromNodeOffset0(struct X3D_Node *node, int offset);
 void print_routes(FILE* fp);
@@ -883,4 +899,11 @@ void profile_start(char *);
 void profile_end(char *);
 void profile_print_all();
 
+
+/*pack 4 flags into one int, using char */
+char ciflag_get(int flags, int index);
+int ciflag_set(int flags, char flag, int index );
+int indexChildrenName(struct X3D_Node *node);
+struct Multi_Node *childrenField(struct X3D_Node *node);
+int offsetofChildren(struct X3D_Node *node);
 #endif /* __FREEWRL_HEADERS_H__ */

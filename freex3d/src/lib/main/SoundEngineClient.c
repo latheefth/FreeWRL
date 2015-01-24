@@ -46,9 +46,7 @@ void
 Sound_toserver(char *message)
 {}
 
-void
-SoundEngineInit(void)
-{}
+int SoundEngineInit(void){ return 0;}
 
 void
 waitformessage(void)

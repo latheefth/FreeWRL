@@ -267,9 +267,6 @@
     <ClCompile Include="$(SRC)\lib\main\Snapshot.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SRC)\lib\main\SoundEngineClient.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SRC)\lib\scenegraph\statics.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -393,6 +390,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\lib\ui\statusbar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\lib\x3d_parser\X3DParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\lib\x3d_parser\X3DProtoScript.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\lib\scenegraph\LinearAlgebra.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

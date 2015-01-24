@@ -106,9 +106,10 @@ typedef struct resource_item {
 	//  and is finished with the resitem (some actions may have failed - test with last status ie ress_failed etc)
 	bool complete;  
 	//for vrml/x3d media types:
+	void *ectx; //for parsing brotos - the X3D_Proto executionContext to put __ROUTES, __nodes, __subContext
 	void *whereToPlaceData;  // usually X3D_Node*, except for Scripts and Shaders, it's Shader_Script* (which is a sub-struct)
 	int offsetFromWhereToPlaceData; //usually field offset (not used for Scripts/Shaders)
-
+	int textureNumber; //Dec 2014 textures don't use wheretoplacedata now, because the *tti might be zapped during inline unload before the image is downloaded ie Mars dataset
 	/* We can be feed with a Multi_String list of requests */
 	s_list_t *m_request;
 
@@ -175,7 +176,7 @@ typedef struct resource_item {
 	int treat_as_root; //bandaid for .x3z doc.x3d to be seen as root res equivalent
 	void *_loadThread; //pthread_t * used for async_loading in middleLayer ML
 	void *tg; //gglobal context
-	int (*_loadFunc)(void *);
+	int (*_loadFunc)(void *); //used for some experiments where the backend loads, but the frontend injects a load function
 } resource_item_t;
 
 extern resource_item_t *root_res;

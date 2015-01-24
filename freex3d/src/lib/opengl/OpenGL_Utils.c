@@ -71,7 +71,7 @@
 
 void kill_rendering(void);
 
-static void killNode (int index);
+static void killNode_hide_obsolete (int index);
 
 static void mesa_Frustum(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ, GLDOUBLE *m);
 
@@ -129,10 +129,12 @@ typedef struct pOpenGL_Utils{
 	MATRIX4 FW_ModelView[MAX_LARGE_MATRIX_STACK];
 	MATRIX4 FW_ProjectionView[MAX_SMALL_MATRIX_STACK];
 	MATRIX4 FW_TextureView[MAX_SMALL_MATRIX_STACK];
+	MATRIX4 FW_PickrayView[MAX_SMALL_MATRIX_STACK];
 
 	int modelviewTOS;// = 0;
 	int projectionviewTOS;// = 0;
 	int textureviewTOS;// = 0;
+	//int pickrayviewTOS;// = 0;
 
 	int whichMode;// = GL_MODELVIEW;
 	GLDOUBLE *currentMatrix;// = FW_ModelView[0];
@@ -184,6 +186,7 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
 		p->modelviewTOS = 0;
 		p->projectionviewTOS = 0;
 		p->textureviewTOS = 0;
+		//p->pickrayviewTOS = 0;
 
 		p->whichMode = GL_MODELVIEW;
 		p->currentMatrix = p->FW_ModelView[0];
@@ -192,6 +195,8 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
         loadIdentityMatrix(p->FW_ModelView[0]);
         loadIdentityMatrix(p->FW_ProjectionView[0]);
         loadIdentityMatrix(p->FW_TextureView[0]);
+        loadIdentityMatrix(p->FW_PickrayView[0]);
+
 
         // create room for some shaders. The order in this table is
         // the order in which they are first referenced.
@@ -215,6 +220,21 @@ GLEWContext * glewGetContext()
 	return &(p->glewC);
 }
 #endif
+
+GLDOUBLE *getPickrayMatrix(int index)
+{
+	//didn't do this in FW_GL_GETDOUBLEV(GL_PICKRAY_MATRIX,) because glew uses standard opengl stack names, 
+	//  although could I have squeezed it in to a known stack?
+	//feature-AFFINE_GLU_UNPROJECT
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+	return p->FW_PickrayView[index];
+}
+void setPickrayMatrix(int index, GLDOUBLE *mat)
+{
+	//feature-AFFINE_GLU_UNPROJECT
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+	memcpy(p->FW_PickrayView[index], mat, 16*sizeof(GLDOUBLE));
+}
 
 // we have a new world, get rid of any old user defined shaders here
 void kill_userDefinedShaders() {
@@ -2607,11 +2627,11 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 		{
 			//using lighsource arrays - see shader
 			char uniformName[100];
-			char* sndx;
 			me->haveLightInShader = false;
 #ifdef USING_SHADER_LIGHT_ARRAY_METHOD
 
 			for (i = 0; i<MAX_LIGHTS; i++) {
+				char* sndx;
 				/* go through and modify the array for each variable */
 				strcpy(uniformName, "lightambient[0]");
 				sndx = strstr(uniformName, "["); 
@@ -2967,7 +2987,7 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 #endif
 
 	int ci;
-    struct X3D_Group* rn = rootNode();
+    struct X3D_Node* rn = rootNode();
 	ttglobal tg = gglobal();
 	X3D_Viewer *viewer = Viewer();
 
@@ -3365,6 +3385,7 @@ void fw_glMatrixMode(GLint mode) {
 		case GL_PROJECTION: p->currentMatrix = (GLDOUBLE *) &p->FW_ProjectionView[p->projectionviewTOS]; break;
 		case GL_MODELVIEW: p->currentMatrix = (GLDOUBLE *) &p->FW_ModelView[p->modelviewTOS]; break;
 		case GL_TEXTURE: p->currentMatrix = (GLDOUBLE *) &p->FW_TextureView[p->textureviewTOS]; break;
+		//case GL_PICKRAY: p->currentMatrix = (GLDOUBLE *) &p->FW_PickrayView[p->pickrayviewTOS]; break;
 		default: printf ("invalid mode sent in it is %d, expected one of %d %d %d\n",p->whichMode, GL_PROJECTION,GL_MODELVIEW,GL_TEXTURE);
 	}
 
@@ -3407,6 +3428,7 @@ void fw_glPushMatrix(void) {
 	case GL_PROJECTION: p->currentMatrix = *PushMat(GL_PROJECTION, &p->projectionviewTOS, MAX_SMALL_MATRIX_STACK, p->FW_ProjectionView); break;
 	case GL_MODELVIEW:  p->currentMatrix = *PushMat(GL_MODELVIEW, &p->modelviewTOS, MAX_LARGE_MATRIX_STACK, p->FW_ModelView); break;
 	case GL_TEXTURE:	p->currentMatrix = *PushMat(GL_TEXTURE, &p->textureviewTOS, MAX_SMALL_MATRIX_STACK, p->FW_TextureView); break;
+	//case GL_PICKRAY:    p->currentMatrix = *PushMat(GL_PICKRAY, &p->pickrayviewTOS, MAX_SMALL_MATRIX_STACK, p->FW_PickrayView); break;
 	default:printf("wrong mode in popMatrix\n");
 	}
 	p->maxStackUsed = max(p->maxStackUsed, p->modelviewTOS);
@@ -3442,6 +3464,8 @@ void fw_glPopMatrix(void) {
 	case GL_PROJECTION: p->currentMatrix = *PopMat(GL_PROJECTION, &p->projectionviewTOS, p->FW_ProjectionView); break;
 	case GL_MODELVIEW:  p->currentMatrix = *PopMat(GL_MODELVIEW, &p->modelviewTOS, p->FW_ModelView); break;
 	case GL_TEXTURE:   p->currentMatrix = *PopMat(GL_TEXTURE, &p->textureviewTOS, p->FW_TextureView); break;
+	//case GL_PICKRAY:   p->currentMatrix = *PopMat(GL_PICKRAY, &p->pickrayviewTOS, p->FW_PickrayView); break;
+
 	default: printf ("wrong mode in popMatrix\n");
 	}
 
@@ -3523,7 +3547,7 @@ void fw_glRotateRad (GLDOUBLE angle, GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
 	matrotate(myMat,angle,x,y,z);
 
 	//printmatrix2 (myMat, "rotation matrix");
-	matmultiply(p->currentMatrix,myMat,p->currentMatrix);
+	matmultiplyAFFINE(p->currentMatrix,myMat,p->currentMatrix);
 
 	//printmatrix2 (p->currentMatrix,"currentMatrix after rotate");
 
@@ -3569,7 +3593,7 @@ void fw_glRotated (GLDOUBLE angle, GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
 		return;
 	}
 	matrotate(myMat,radAng,x,y,z);
-	matmultiply(p->currentMatrix,p->currentMatrix,myMat);
+	matmultiplyAFFINE(p->currentMatrix,p->currentMatrix,myMat);
 
 	FW_GL_LOADMATRIX(p->currentMatrix);
 }
@@ -3621,6 +3645,7 @@ void fw_glGetDoublev (int ty, GLDOUBLE *mat) {
 		case GL_PROJECTION_MATRIX: dp = p->FW_ProjectionView[p->projectionviewTOS]; break;
 		case GL_MODELVIEW_MATRIX: dp = p->FW_ModelView[p->modelviewTOS]; break;
 		case GL_TEXTURE_MATRIX: dp = p->FW_TextureView[p->textureviewTOS]; break;
+		//case GL_PICKRAY_MATRIX: dp = p->FW_PickrayView[p->pickrayviewTOS]; break;
 		default: {
 			loadIdentityMatrix(mat);
 		printf ("invalid mode sent in it is %d, expected one of %d %d %d\n",ty,GL_PROJECTION_MATRIX,GL_MODELVIEW_MATRIX,GL_TEXTURE_MATRIX);
@@ -3689,15 +3714,31 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 
     /* mark all rootNode children for Dispose */
     if (rootNode() != NULL) {
-        if ((rootNode()->children.p) != NULL) {
-            for (i=0; i<rootNode()->children.n; i++) {
-                markForDispose(rootNode()->children.p[i], TRUE);
+		struct Multi_Node *children, *sortedChildren;
+
+		if(usingBrotos()>1) {
+			children = &X3D_PROTO(rootNode())->__children;
+			sortedChildren = &X3D_PROTO(rootNode())->_sortedChildren;
+		}else{
+			children = &X3D_GROUP(rootNode())->children;
+			sortedChildren = &X3D_GROUP(rootNode())->_sortedChildren;
+		}
+		//children = childrenField(rootNode());
+        if (children->n != 0) {
+            for (i=0; i<children->n; i++) {
+                markForDispose(children->p[i], TRUE);
             }
         }
+        //if (sortedChildren->n != 0) {
+        //    for (i=0; i<sortedChildren->n; i++) {
+        //        markForDispose(sortedChildren->p[i], TRUE);
+        //    }
+        //}
 
 
         /* stop rendering */
-        rootNode()->children.n = 0;
+		sortedChildren->n = 0;
+        children->n = 0;
     }
 
 	/* close the Console Message system, if required. */
@@ -3929,6 +3970,25 @@ if (!filledHole) ConsoleMessage ("registerX3DNode, no hole, phc %d for type %s",
 
 	UNLOCK_MEMORYTABLE
 }
+int removeNodeFromVector(int iaction, struct Vector *v, struct X3D_Node *node);
+void unRegisterX3DNode(struct X3D_Node * tmp){
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+	LOCK_MEMORYTABLE
+	if (p->linearNodeTable ) {
+		removeNodeFromVector(1, p->linearNodeTable, tmp);
+		//int tc;
+		//for (tc=0; tc<vectorSize(p->linearNodeTable); tc++){
+		//	struct X3D_Node *ns;
+		//	ns = vector_get(struct X3D_Node *,p->linearNodeTable,tc);
+		//	if(ns == tmp) {
+		//		vector_set(struct X3D_Node *, p->linearNodeTable, tc, NULL);
+		//		break;
+		//	}
+		//}
+	}
+	UNLOCK_MEMORYTABLE
+}
+
 
 /*We don't register the first node created for reload reason*/
 void doNotRegisterThisNodeForDestroy(struct X3D_Node * nodePtr){
@@ -4012,8 +4072,7 @@ static void sortChildren (int line, struct Multi_Node *ch, struct Multi_Node *so
 			/* check to see if a child is NULL - if so, skip it */
 			if (a && b) {
 				if (a->_dist > b->_dist) {
-					/* printf ("sortChildren at %lf, have to switch %d %d dists %lf %lf\n",TickTime(),i,j,
-a->_dist, b->_dist); */
+					// printf ("sortChildren at %lf, have to switch %d %d dists %lf %lf\n",TickTime(),i,j,a->_dist, b->_dist); 
 					c = a;
 					sortedCh->p[j-1] = b;
 					sortedCh->p[j] = c;
@@ -4152,6 +4211,19 @@ void zeroVisibilityFlag(void) {
 				else childrenPtr = &X3D_LODNODE(node)->children; \
 			}
 
+#define CHILDREN_ANY_NODE(thistype,thischildren) \
+			addChildren = NULL; removeChildren = NULL; \
+			offsetOfChildrenPtr = offsetof (struct X3D_##thistype, thischildren); \
+			if (((struct X3D_##thistype *)node)->addChildren.n > 0) { \
+				addChildren = &((struct X3D_##thistype *)node)->addChildren; \
+				childrenPtr = &((struct X3D_##thistype *)node)->thischildren; \
+			} \
+			if (((struct X3D_##thistype *)node)->removeChildren.n > 0) { \
+				removeChildren = &((struct X3D_##thistype *)node)->removeChildren; \
+				childrenPtr = &((struct X3D_##thistype *)node)->thischildren; \
+			}
+
+
 #define EVIN_AND_FIELD_SAME(thisfield, thistype) \
 			if ((((struct X3D_##thistype *)node)->set_##thisfield.n) > 0) { \
 				((struct X3D_##thistype *)node)->thisfield.n = 0; \
@@ -4245,11 +4317,11 @@ struct X3D_Node* getTypeNode(struct X3D_Node *node)
 			{
 				struct X3D_Proto *pn = (struct X3D_Proto*)node;
 				//if(pn->FreeWRL__protoDef != INT_ID_UNDEFINED)
-				if(1) //some flag to say it's not the scene, but a protoInstance where only the first node is rendered
+				if(1) //some flag to say it's not the scene, but a protoInstance where only the first node is rendered - see isProto
 				{
 					//the first node in a protobody determines its type
-					if(pn->_children.n > 0)
-						dnode = getTypeNode(pn->_children.p[0]);
+					if(pn->__children.n > 0)
+						dnode = getTypeNode(pn->__children.p[0]);
 					else
 						dnode = NULL;
 				}
@@ -4277,7 +4349,9 @@ void killNodes(){
 		if (node != NULL) {
 			if (node->referenceCount <= 0) {
 				//ConsoleMessage ("%d ref %d\n",i,node->referenceCount);
-				killNode(i);
+				//killNode(i);
+				FREE_IF_NZ(node);
+				vector_set(struct X3D_Node *,p->linearNodeTable,i,NULL);
 			}
 			//else{
 			//	printf("%d ", i);
@@ -4286,6 +4360,8 @@ void killNodes(){
 	}
 }
 //dug9 dec 13 <<
+int needs_updating_Inline(struct X3D_Node *node);
+void update_Inline(struct X3D_Inline *node);
 // Dec 14, 2012 new proto IS-A version (see below for older version)
 void startOfLoopNodeUpdates(void) {
 	struct X3D_Node* node;
@@ -4327,7 +4403,7 @@ void startOfLoopNodeUpdates(void) {
 	profile_start("loopnodeupdt");
 	LOCK_MEMORYTABLE
 
-    //printf ("\n******************************************\nstartOfLoopNodeUpdates\n");
+	//printf ("\n******************************************\nstartOfLoopNodeUpdates\n");
 
 	/* go through the node table, and zero any bits of interest */
 
@@ -4336,7 +4412,9 @@ void startOfLoopNodeUpdates(void) {
 		if (node != NULL) {
 			if (node->referenceCount <= 0) {
 				//ConsoleMessage ("%d ref %d\n",i,node->referenceCount);
-				killNode(i);
+				//killNode(i);
+				FREE_IF_NZ(node);
+				vector_set(struct X3D_Node *,p->linearNodeTable,i,NULL);
 			} else {
 				/* turn OFF these flags */
 				node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Sensitive);
@@ -4349,7 +4427,7 @@ void startOfLoopNodeUpdates(void) {
 	}
 	/* turn OFF these flags */
 	{
-		struct X3D_Group* rn = rootNode();
+		struct X3D_Node* rn = rootNode();
 		rn->_renderFlags = rn->_renderFlags & (0xFFFF^VF_Sensitive);
 		rn->_renderFlags = rn->_renderFlags & (0xFFFF^VF_Viewpoint);
 		rn->_renderFlags = rn->_renderFlags & (0xFFFF^VF_localLight);
@@ -4360,11 +4438,41 @@ void startOfLoopNodeUpdates(void) {
 	/* sort the rootNode, if it is Not NULL */
 	/* remember, the rootNode is not in the linearNodeTable, so we have to do this outside
 	   of that loop */
+	//if (rootNode() != NULL && !usingBrotos()) {
 	if (rootNode() != NULL) {
-		sortChildren (__LINE__,&rootNode()->children, &rootNode()->_sortedChildren,rootNode()->_renderFlags & VF_shouldSortChildren);
-		rootNode()->_renderFlags=rootNode()->_renderFlags & (0xFFFF^VF_shouldSortChildren);
+		struct Multi_Node *children, *_sortedChildren;
 		node = (struct X3D_Node*)rootNode();
-		CHILDREN_NODE(Group)
+		children = NULL;
+		_sortedChildren = NULL;
+		if(node->_nodeType == NODE_Proto){
+			children = &X3D_PROTO(node)->__children;
+			_sortedChildren = &X3D_PROTO(node)->_sortedChildren;
+		}
+		if(node->_nodeType == NODE_Group) {
+			children = &X3D_GROUP(node)->children;
+			_sortedChildren = &X3D_GROUP(node)->_sortedChildren;
+		}
+		sortChildren (__LINE__,children, _sortedChildren,rootNode()->_renderFlags & VF_shouldSortChildren);
+		rootNode()->_renderFlags=rootNode()->_renderFlags & (0xFFFF^VF_shouldSortChildren);
+		if(node->_nodeType == NODE_Proto){
+			//CHILDREN_NODE(Proto)
+			/* DRracer/t85.wrl has 'children' user fields on protos. This works with other browsers.
+				But not freewrl. Unless I hide the children field as _children. Then it works.
+			*/
+			addChildren = NULL; removeChildren = NULL; 
+			offsetOfChildrenPtr = offsetof (struct X3D_Proto, __children); 
+			if (((struct X3D_Proto *)node)->addChildren.n > 0) { 
+				addChildren = &((struct X3D_Proto *)node)->addChildren; 
+				childrenPtr = &((struct X3D_Proto *)node)->__children; 
+			} 
+			if (((struct X3D_Proto *)node)->removeChildren.n > 0) { 
+				removeChildren = &((struct X3D_Proto *)node)->removeChildren; 
+				childrenPtr = &((struct X3D_Proto *)node)->__children; 
+			}
+
+		}else{
+			CHILDREN_NODE(Group)
+		}
 		/* this node possibly has to do add/remove children? */
 		if (childrenPtr != NULL) {
 			if (addChildren != NULL) {
@@ -4393,6 +4501,25 @@ void startOfLoopNodeUpdates(void) {
 		if (node->referenceCount > 0) {
 			pnode = node;
 			node = getTypeNode(node); //+ dug9 dec 13
+			if(node == NULL && pnode != NULL)  //+ dug9 sept 2014
+				if(pnode->_nodeType == NODE_Proto){
+					UNLOCK_MEMORYTABLE
+					/*dug9 sept 2014: I put load_EPI (externProtoInstance) here because I designed it like Inline
+						where we check and give a time slice to loading when we visit the node instance during render().
+						But that doesn't work for EPIs which have no concrete NODE type, nor VF_ flag
+						so render_hier/render() never visits them until they are loaded and we can
+						see the concrete type of their first node, and perculate VF_ flags up to the EPI
+						There were other options such as event queue, or following a cascade of protoInstance arrays
+						down the context heirarchy, or tinkering with the VF_ flag visitation rules in render()
+						or inventing a VF_Proto flag, or expanding the role of the resource thread to do more work 
+						and keep a list of subscribers with the EPD (externProtoDeclare).
+						And any of those might work too. This was just convenient/easy/quick 
+						for me, so feel free to move it.
+					*/
+					load_externProtoInstance(X3D_PROTO(pnode));
+					LOCK_MEMORYTABLE
+					node = getTypeNode(pnode);
+				}
 			if (node != NULL)
 			//switch (node->_nodeType) { //- dug9 dec 13
 			switch (node->_nodeType) { //+ dug9 dec 13
@@ -4500,24 +4627,24 @@ void startOfLoopNodeUpdates(void) {
 				END_NODE
 
 				BEGIN_NODE(CADLayer)
-                                       propagateExtent(X3D_NODE(node));
-                                       CHILDREN_NODE(Switch)
+					propagateExtent(X3D_NODE(node));
+					CHILDREN_NODE(Switch)
 				END_NODE
 
 
 				BEGIN_NODE(CADPart)
-                                        sortChildren (__LINE__,&X3D_CADPART(node)->children,&X3D_CADPART(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
-                                        TURN_OFF_SHOULDSORTCHILDREN
-                                        propagateExtent(X3D_NODE(node));
-                                        CHILDREN_NODE(CADPart)
+					sortChildren (__LINE__,&X3D_CADPART(node)->children,&X3D_CADPART(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
+					TURN_OFF_SHOULDSORTCHILDREN
+					propagateExtent(X3D_NODE(node));
+					CHILDREN_NODE(CADPart)
 				END_NODE
 
 
 				BEGIN_NODE(CADAssembly)
-                                        sortChildren (__LINE__,&X3D_CADASSEMBLY(node)->children,&X3D_CADASSEMBLY(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
-                                        TURN_OFF_SHOULDSORTCHILDREN
-                                        propagateExtent(X3D_NODE(node));
-                                        CHILDREN_NODE(CADAssembly)
+					sortChildren (__LINE__,&X3D_CADASSEMBLY(node)->children,&X3D_CADASSEMBLY(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
+					TURN_OFF_SHOULDSORTCHILDREN
+					propagateExtent(X3D_NODE(node));
+					CHILDREN_NODE(CADAssembly)
 				END_NODE
 
 				/* maybe this is the current Viewpoint? */
@@ -4541,7 +4668,6 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE(Group)
 					sortChildren (__LINE__,&X3D_GROUP(node)->children,&X3D_GROUP(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
 					TURN_OFF_SHOULDSORTCHILDREN
-
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Group)
 				END_NODE
@@ -4556,22 +4682,16 @@ void startOfLoopNodeUpdates(void) {
 				END_NODE
 				/* PointPickSensor needs its own flag sent up the chain */
 				BEGIN_NODE (PointPickSensor)
-                			if (X3D_POINTPICKSENSOR(node)->enabled) update_renderFlag(pnode,VF_PickingSensor);
+							if (X3D_POINTPICKSENSOR(node)->enabled) update_renderFlag(pnode,VF_PickingSensor);
 				END_NODE
 
 #endif
 
 				BEGIN_NODE(Inline)
-                    //printf ("node inline - status %d for node %p\n",X3D_INLINE(node)->__loadstatus, node);
-					if (X3D_INLINE(node)->__loadstatus != INLINE_STABLE) {
-						/* schedule this after we have unlocked the memory table */
-						if (loadInlines == NULL) {
-							loadInlines = newVector(struct X3D_Inline*, 16);
-						}
-						vector_pushBack(struct X3D_Inline *, loadInlines, X3D_INLINE(node));
-					}
-
+					sortChildren (__LINE__,&X3D_INLINE(node)->__children,&X3D_INLINE(node)->_sortedChildren,node->_renderFlags & VF_shouldSortChildren);
+					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
+					CHILDREN_ANY_NODE(Inline,__children)
 				END_NODE
 
 				BEGIN_NODE(Transform)
@@ -4581,7 +4701,9 @@ void startOfLoopNodeUpdates(void) {
 					CHILDREN_NODE(Transform)
 				END_NODE
 
-/*              BEGIN_NODE(NurbsGroup)
+
+
+/*				BEGIN_NODE(NurbsGroup)
 					CHILDREN_NODE(NurbsGroup)
 				END_NODE
 */
@@ -4604,7 +4726,7 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE(Billboard)
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Billboard)
-                			update_renderFlag(pnode,VF_Proximity);
+					update_renderFlag(pnode,VF_Proximity);
 				END_NODE
 
 				BEGIN_NODE(Collision)
@@ -4620,13 +4742,13 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE(LOD)
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_LOD_NODE
-                			update_renderFlag(pnode,VF_Proximity);
+							update_renderFlag(pnode,VF_Proximity);
 				END_NODE
 
 				/* Material - transparency of materials */
 				BEGIN_NODE(Material) CHECK_MATERIAL_TRANSPARENCY END_NODE
-                BEGIN_NODE(TwoSidedMaterial) CHECK_TWOSIDED_MATERIAL_TRANSPARENCY END_NODE
-                BEGIN_NODE(FillProperties) CHECK_FILL_PROPERTY_FILLED END_NODE
+				BEGIN_NODE(TwoSidedMaterial) CHECK_TWOSIDED_MATERIAL_TRANSPARENCY END_NODE
+				BEGIN_NODE(FillProperties) CHECK_FILL_PROPERTY_FILLED END_NODE
 
 				/* Textures - check transparency  */
 				BEGIN_NODE(ImageTexture) CHECK_IMAGETEXTURE_TRANSPARENCY END_NODE
@@ -4660,7 +4782,7 @@ void startOfLoopNodeUpdates(void) {
 					X3D_VISIBILITYSENSOR(node)->__occludeCheckCount--;
 					/* VisibilitySensors have a transparent bounding box we have to render */
 
-                			update_renderFlag(pnode,VF_Blend & VF_shouldSortChildren);
+					update_renderFlag(pnode,VF_Blend & VF_shouldSortChildren);
 				END_NODE
 
 				/* ProximitySensor needs its own flag sent up the chain */
@@ -4670,7 +4792,7 @@ void startOfLoopNodeUpdates(void) {
 
 				/* GeoProximitySensor needs its own flag sent up the chain */
 				BEGIN_NODE (GeoProximitySensor)
-                			if (X3D_GEOPROXIMITYSENSOR(node)->enabled) update_renderFlag(pnode,VF_Proximity);
+					if (X3D_GEOPROXIMITYSENSOR(node)->enabled) update_renderFlag(pnode,VF_Proximity);
 				END_NODE
 
 				/* GeoLOD needs its own flag sent up the chain, and it has to push extent up, too */
@@ -4678,7 +4800,7 @@ void startOfLoopNodeUpdates(void) {
 					if (!(NODE_NEEDS_COMPILING)) {
 						handle_GeoLODRange(X3D_GEOLOD(node));
 					}
-                			/* update_renderFlag(pnode,VF_Proximity); */
+					/* update_renderFlag(pnode,VF_Proximity); */
 					propagateExtent(X3D_NODE(node));
 				END_NODE
 
@@ -4738,7 +4860,9 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE(MetadataSFVec4d) CMD(SFVec4d,node); END_NODE
 				BEGIN_NODE(MetadataMFVec4d) CMD(MFVec4d,node); END_NODE
 			}
+
 		}
+
 
 		/* now, act on this node  for Sensitive nodes. here we tell the PARENTS that they are sensitive */
 		if (nParents != 0) {
@@ -4808,27 +4932,16 @@ void startOfLoopNodeUpdates(void) {
 
 	UNLOCK_MEMORYTABLE
 
-	/* do we have Inlines to load here, outside of the memorytable lock? */
-	if (loadInlines != NULL) {
-		indexT ind;
-        //printf ("OpenGL_Utils.c - loadInlines size %d\n",vectorSize(loadInlines));
-
-		for (ind=0; ind<vectorSize(loadInlines); ind++) {
-			struct X3D_Inline *node;
-			node=vector_get(struct X3D_Inline*, loadInlines,ind);
-			load_Inline (node);
-		}
-		deleteVector (struct X3D_Inline*, loadInlines);
-	}
-
 	/* now, we can go and tell the grouping nodes which ones are the lucky ones that contain the current Viewpoint node */
 	if (vectorSize(tg->Bindable.viewpoint_stack) > 0) {
 		//ConsoleMessage ("going to updateRF on viewpoint, stack is %d in size\n", vectorSize(tg->Bindable.viewpoint_stack));
 
-
-		update_renderFlag(vector_back(struct X3D_Node*,
-			tg->Bindable.viewpoint_stack), VF_Viewpoint);
-		calculateNearFarplanes(vector_back(struct X3D_Node*, tg->Bindable.viewpoint_stack));
+		struct X3D_Node *boundvp = vector_back(struct X3D_Node*,tg->Bindable.viewpoint_stack);
+		update_renderFlag(boundvp, VF_Viewpoint);
+		calculateNearFarplanes(boundvp);
+		//update_renderFlag(vector_back(struct X3D_Node*,
+		//	tg->Bindable.viewpoint_stack), VF_Viewpoint);
+		//calculateNearFarplanes(vector_back(struct X3D_Node*, tg->Bindable.viewpoint_stack));
 	} else {
 		/* keep these at the defaults, if no viewpoint is present. */
 		Viewer()->nearPlane = DEFAULT_NEARPLANE;
@@ -4848,7 +4961,7 @@ void markForDispose(struct X3D_Node *node, int recursive){
 	char * fieldPtr;
 
 	if (node==NULL) return;
-	if (node==X3D_NODE(rootNode())) {
+	if (node==X3D_NODE(rootNode()) && node->_nodeType != NODE_Proto) {
 		ConsoleMessage ("not disposing rootNode");
 		return;
 	}
@@ -5006,7 +5119,7 @@ void markForDispose(struct X3D_Node *node, int recursive){
 	}
 
 //#define WRLMODE(val) (((val) % 4)+4) //jan 2013 codegen PROTOKEYWORDS[] was ordered with x3d synonyms first, wrl last
-#define X3DMODE(val)  ((val) % 4)
+//#define X3DMODE(val)  ((val) % 4)
 BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackData)
 {
 	//field isource: 0=builtin 1=script user field 2=shader_program user field 3=Proto/Broto user field 4=group __protoDef
@@ -5049,13 +5162,13 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 		if(user)
 		{
 			//lexer_stringUser_fieldName(me->lexer, name, mode);
-			struct VRMLParser* parser;
-			struct VRMLLexer* lexer;
+			//struct VRMLParser* parser;
+			//struct VRMLLexer* lexer;
 			ttglobal tg = gglobal();
-			lexer = NULL;
-			parser = tg->CParse.globalParser;
-			if (parser)
-				lexer = parser->lexer;
+			//lexer = NULL;
+			//parser = tg->CParse.globalParser;
+			//if (parser)
+			//	lexer = parser->lexer;
 
 			//user fields on user-field-capable nodes
 			switch(node->_nodeType)
@@ -5065,8 +5178,7 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 				case NODE_ShaderProgram :
 				case NODE_PackagedShader:
 					{
-						int j, nameIndex;
-						struct Vector* usernames[4];
+						int j; //, nameIndex;
 						struct ScriptFieldDecl* sfield;
 						struct Shader_Script* shader = NULL;
 
@@ -5077,26 +5189,12 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
   							case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields); break;
   							case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields); break;
 						}
-						if(lexer){
-							usernames[0] = lexer->user_initializeOnly;
-							usernames[1] = lexer->user_inputOnly;
-							usernames[2] = lexer->user_outputOnly;
-							usernames[3] = lexer->user_inputOutput;
-						}else{
-							usernames[0] = usernames[1] = usernames[2] = usernames[3] = NULL;
-						}
 						if (shader)
 							for(j=0; j!=vectorSize(shader->fields); ++j)
 							{
 								sfield= vector_get(struct ScriptFieldDecl*, shader->fields, j);
 								mode = sfield->fieldDecl->PKWmode;
-								fname = NULL;
-								if(lexer){
-									struct Vector *unames = usernames[X3DMODE(mode)];
-									nameIndex = sfield->fieldDecl->lexerNameIndex;
-									if(nameIndex < vectorSize(unames))
-										fname = vector_get(char *,unames,nameIndex);
-								}
+								fname = ScriptFieldDecl_getName(sfield);
 								type = sfield->fieldDecl->fieldType;
 								fieldPtr = &sfield->value;
 								source = node->_nodeType == NODE_Script ? 1 : 2;
@@ -5109,30 +5207,16 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 					break;
 				case NODE_Proto:
 					{
-						int j, nameIndex;
-						struct Vector* usernames[4];
+						int j; //, nameIndex;
 						struct ProtoFieldDecl* pfield;
 						struct X3D_Proto* pnode = (struct X3D_Proto*)node;
 						struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
-						if(lexer){
-							usernames[0] = lexer->user_initializeOnly;
-							usernames[1] = lexer->user_inputOnly;
-							usernames[2] = lexer->user_outputOnly;
-							usernames[3] = lexer->user_inputOutput;
-						}else{
-							usernames[0] = usernames[1] = usernames[2] = usernames[3] = NULL;
-						}
+						if(pstruct)
 						for(j=0; j!=vectorSize(pstruct->iface); ++j)
 						{
 							pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, j);
 							mode = pfield->mode;
-							fname = NULL;
-							if(lexer){
-								struct Vector *unames = usernames[X3DMODE(mode)];
-								nameIndex = pfield->name;
-								if(nameIndex < vectorSize(unames))
-									fname = vector_get(char *,unames,nameIndex);
-							}
+							fname = pfield->cname;
 							type = pfield->type;
 							fieldPtr = &pfield->defaultVal;
 							source = 3;
@@ -5357,7 +5441,7 @@ void unlink_node(struct X3D_Node* node)
 	}
 }
 /*delete node created*/
-static void killNode (int index) {
+static void killNode_hide_obsolete (int index) {
 	int j=0;
 	int *fieldOffsetsPtr;
 	char * fieldPtr;
@@ -5477,7 +5561,12 @@ static void killNode (int index) {
 			if (*fieldOffsetsPtr == FIELDNAMES_children) break;
 		}
 
-		/* nope, not a special field, lets just get rid of it as best we can */
+		/* nope, not a special field, lets just get rid of it as best we can 
+			dug9 sept 2014: GC garbage collection: I wonder if it would be easier/simpler when we malloc something,
+			to put it into a flat scene-GC list (and inline-GC list?) - as we do for a few things already, like nodes - 
+			and don't GC here for fields on occassionally removed nodes, just when we change scenes
+			wipe out the whole GC table(s)?
+		*/
 		switch(*(fieldOffsetsPtr+2)){
 			case FIELDTYPE_MFFloat:
 				MFloat=(struct Multi_Float *)fieldPtr;
@@ -5929,6 +6018,9 @@ void fw_gluUnProject(GLDOUBLE winx, GLDOUBLE winy, GLDOUBLE winz,
                 const GLint viewport[4],
 	        GLDOUBLE *objx, GLDOUBLE *objy, GLDOUBLE *objz)
 {
+	/* https://www.opengl.org/sdk/docs/man2/xhtml/gluUnProject.xml
+	FLOPs 196 double: full matmult 64, full mat inverse 102, full transform 16, miscalaneous 8
+	*/
     GLDOUBLE finalMatrix[16];
     GLDOUBLE in[4];
     GLDOUBLE out[4];
@@ -5981,20 +6073,6 @@ void fw_Ortho (GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLD
 	FW_GL_LOADMATRIX(dp);
 }
 
-void printmatrix2(GLDOUBLE* mat,char* description ) {
-    int i,j;
-    printf("mat %s {\n",description);
-    for(i = 0; i< 4; i++) {
-		printf("mat [%2d-%2d] = ",i*4,(i*4)+3);
-		for(j=0;j<4;j++)
-			printf(" %f ",mat[(i*4)+j]);
-			//printf("mat[%d] = %f%s;\n",i,mat[i],i==12 ? " +disp.x" : i==13? " +disp.y" : i==14? " +disp.z" : "");
-		printf("\n");
-    }
-    printf("}\n");
-
-}
-
 
 /* gluPerspective replacement */
 void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE zFar) {
@@ -6024,7 +6102,7 @@ void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE 
 	//printmatrix2(ndp2,"ndp2 = transpose(ndp)");
 	//JAS printmatrix2(dp,"dp");
 
-	matmultiply(ndp,ndp2,dp);
+	matmultiplyFULL(ndp,ndp2,dp);
 
 	//printmatrix2(ndp,"ndp = ndp2*dp");
 
@@ -6059,7 +6137,7 @@ void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE 
     m[2*4+3] = -1;
     m[3*4+2] = -2 * zNear * zFar / deltaZ;
     m[3*4+3] = 0;
-	matmultiply(m,m,dp);
+	matmultiplyFULL(m,m,dp);
 	if(method==2)
 	  FW_GL_LOADMATRIX(m);
 

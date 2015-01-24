@@ -1416,7 +1416,7 @@ void createLoadUrlString(char *out, int outLen, char *url, char *param) {
 	commacount1 = commacount1 / 2;
 	commacount2 = commacount2 / 2;
 
-	if ((	strlen(url) +
+	if ((int)(strlen(url) +
 		strlen(param) +
 		(commacount1 * strlen (" :loadURLStringBreak:")) +
 		(commacount2 * strlen (" :loadURLStringBreak:"))) > (outLen - 20)) {
@@ -1810,8 +1810,8 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, uintN argc, jsval *vp) {
 
 		/* do the call to make the VRML code  - create a new browser just for this string */
 		gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
-		retGroup = createNewX3DNode(NODE_Group);
-		ra = EAI_CreateVrml("String",_c,retGroup);
+		retGroup = createNewX3DNode0(NODE_Group); //don't register
+		ra = EAI_CreateVrml("String",_c,X3D_NODE(rootNode()),retGroup);
 		globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
 
 
@@ -1837,7 +1837,7 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, uintN argc, jsval *vp) {
 			separator = ", ";
 		}
 		strcat (xstr,")");
-		markForDispose(X3D_NODE(retGroup),FALSE);
+		//markForDispose(X3D_NODE(retGroup),FALSE); //change in Nov 2014 does FREE_IF_NZ
 
 #if JS_VERSION >= 185
 		JS_free(context,_c);
@@ -1912,7 +1912,7 @@ VrmlBrowserCreateX3DFromString(JSContext *context, uintN argc, jsval *vp) {
 		/* do the call to make the VRML code  - create a new browser just for this string */
 		//gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
 		retGroup = createNewX3DNode(NODE_Group);
-		ra = EAI_CreateX3d("String",_c,retGroup);
+		ra = EAI_CreateX3d("String",_c,X3D_NODE(retGroup),retGroup);
 		//globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
 
 
@@ -2195,7 +2195,7 @@ VrmlBrowserPrint(JSContext *context, uintN argc, jsval *vp) {
         JSObject *obj = JS_THIS_OBJECT(context,vp);
         jsval *argv = JS_ARGV(context,vp);
 #endif
-	int count;
+	unsigned int count;
 	JSString *_str;
 	char *_id_c;
 

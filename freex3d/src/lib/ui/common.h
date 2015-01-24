@@ -39,6 +39,7 @@ void loadCursors();
 void setCursor();
 void setArrowCursor();
 void setSensorCursor();
+void setLookatCursor();
 void setWindowTitle0();
 void setWindowTitle();
 char *getMessageBar();

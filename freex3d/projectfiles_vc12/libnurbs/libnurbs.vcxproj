@@ -1,0 +1,241 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\libnurbs\interface\bezierEval.cc" />
+    <ClCompile Include="..\..\src\libnurbs\interface\bezierPatch.cc" />
+    <ClCompile Include="..\..\src\libnurbs\interface\bezierPatchMesh.cc" />
+    <ClCompile Include="..\..\src\libnurbs\interface\glcurveval.cc" />
+    <ClCompile Include="..\..\src\libnurbs\interface\glinterface.cc" />
+    <ClCompile Include="..\..\src\libnurbs\interface\glrenderer.cc" />
+    <ClCompile Include="..\..\src\libnurbs\interface\glsurfeval.cc" />
+    <ClCompile Include="..\..\src\libnurbs\interface\incurveeval.cc" />
+    <ClCompile Include="..\..\src\libnurbs\interface\insurfeval.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\arc.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\arcsorter.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\arctess.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\backend.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\basiccrveval.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\basicsurfeval.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\bin.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\bufpool.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\cachingeval.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\ccw.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\coveandtiler.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\curve.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\curvelist.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\curvesub.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\dataTransform.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\displaylist.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\flist.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\flistsorter.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\hull.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\intersect.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\knotvector.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\mapdesc.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\mapdescv.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\maplist.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\mesher.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\monotonizer.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\monoTriangulationBackend.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\mycode.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\nurbsinterfac.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\nurbstess.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\patch.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\patchlist.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\quilt.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\reader.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\renderhints.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\slicer.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\sorter.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\splitarcs.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\subdivider.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\tobezier.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\trimline.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\trimregion.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\trimvertpool.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\uarray.cc" />
+    <ClCompile Include="..\..\src\libnurbs\internals\varray.cc" />
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\directedLine.cc" />
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\gridWrap.cc" />
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\monoChain.cc" />
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\monoPolyPart.cc" />
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\monoTriangulation.cc" />
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\partitionX.cc" />
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\partitionY.cc" />
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\polyDBG.cc" />
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\polyUtil.cc" />
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\primitiveStream.cc" />
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\quicksort.cc" />
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\rectBlock.cc" />
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\sampleComp.cc" />
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\sampleCompBot.cc" />
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\sampleCompRight.cc" />
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\sampleCompTop.cc" />
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\sampledLine.cc" />
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\sampleMonoPoly.cc" />
+    <ClCompile Include="..\..\src\libnurbs\nurbtess\searchTree.cc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\libnurbs\gluos.h" />
+    <ClInclude Include="..\..\src\libnurbs\interface\bezierEval.h" />
+    <ClInclude Include="..\..\src\libnurbs\interface\bezierPatch.h" />
+    <ClInclude Include="..\..\src\libnurbs\interface\bezierPatchMesh.h" />
+    <ClInclude Include="..\..\src\libnurbs\interface\glcurveval.h" />
+    <ClInclude Include="..\..\src\libnurbs\interface\glimports.h" />
+    <ClInclude Include="..\..\src\libnurbs\interface\glrenderer.h" />
+    <ClInclude Include="..\..\src\libnurbs\interface\glsurfeval.h" />
+    <ClInclude Include="..\..\src\libnurbs\interface\mystdio.h" />
+    <ClInclude Include="..\..\src\libnurbs\interface\mystdlib.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\arc.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\arcsorter.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\arctess.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\backend.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\basiccrveval.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\basicsurfeval.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\bezierarc.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\bin.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\bufpool.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\cachingeval.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\coveandtiler.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\curve.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\curvelist.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\dataTransform.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\defines.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\displaylist.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\displaymode.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\flist.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\flistsorter.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\gridline.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\gridtrimvertex.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\gridvertex.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\hull.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\jarcloc.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\knotvector.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\mapdesc.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\maplist.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\mesher.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\monotonizer.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\myassert.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\mymath.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\mysetjmp.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\mystring.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\nurbsconsts.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\nurbstess.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\patch.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\patchlist.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\pwlarc.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\quilt.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\reader.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\renderhints.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\simplemath.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\slicer.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\sorter.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\subdivider.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\trimline.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\trimregion.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\trimvertex.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\trimvertpool.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\types.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\uarray.h" />
+    <ClInclude Include="..\..\src\libnurbs\internals\varray.h" />
+    <ClInclude Include="..\..\src\libnurbs\libnurbs2.h" />
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\definitions.h" />
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\directedLine.h" />
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\glimports.h" />
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\gridWrap.h" />
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\monoChain.h" />
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\monoPolyPart.h" />
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\monoTriangulation.h" />
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\mystdio.h" />
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\mystdlib.h" />
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\partitionX.h" />
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\partitionY.h" />
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\polyDBG.h" />
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\polyUtil.h" />
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\primitiveStream.h" />
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\quicksort.h" />
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\rectBlock.h" />
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\sampleComp.h" />
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\sampleCompBot.h" />
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\sampleCompRight.h" />
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\sampleCompTop.h" />
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\sampledLine.h" />
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\sampleMonoPoly.h" />
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\searchTree.h" />
+    <ClInclude Include="..\..\src\libnurbs\nurbtess\zlassert.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{A826D111-0526-4DC9-9459-995294F4DA62}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>libnurbs</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>ANGLEPROJECT;WIN32;_DEBUG;_LIB;LIBRARYBUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\Public\dev\source2\lib_windows_vc12\angleproject\include;C:\Users\Public\dev\source2\freewrl\freex3d\src_windows;C:\Users\Public\dev\source2\freewrl\freex3d\src\libnurbs;C:\Users\Public\dev\source2\freewrl\freex3d\src\libnurbs\nurbtess;C:\Users\Public\dev\source2\freewrl\freex3d\src\libnurbs\internals;C:\Users\Public\dev\source2\freewrl\freex3d\src\libnurbs\interface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -237,7 +237,7 @@ static void android_save_log(char *thislog) {
 	ttglobal tg = gglobal();
 	ppConsoleMessage p = (ppConsoleMessage)tg->ConsoleMessage.prv;
 	// sanity check the string, otherwise dalvik can croak if invalid chars
-	for (i = 0; i<strlen(thislog); i++) {
+	for (i = 0; i<(int)strlen(thislog); i++) {
 		thislog[i] = thislog[i] & 0x7f;
 	}
 
@@ -292,7 +292,7 @@ static void android_save_log(char *thislog) {
 			}
 
 			//check for line length and wrap-around if necessary
-			if (strlen(p->androidMessageSlot[p->androidFreeSlot]) > p->maxLineLength){
+			if ((int)strlen(p->androidMessageSlot[p->androidFreeSlot]) > p->maxLineLength){
 				buf = strdup(&p->androidMessageSlot[p->androidFreeSlot][p->maxLineLength - 2]); //how remember to delete this?
 				free(thislog);
 				thislog = buf;
@@ -382,21 +382,23 @@ int fwvsnprintf(char *buffer, int buffer_length, const char *fmt, va_list ap)
 				break;
 			case 's':
 				s = va_arg(ap, char *);
-				/* limit string to a certain length */
-				if ((strlen(s) + count) > buffer_length) {
-					char tmpstr[100];
-					int ltc;
-					ltc = (int)strlen(s);
-					if (ltc>80) ltc = 80;
-					strncpy(tmpstr, s, ltc);
-					tmpstr[ltc] = '.'; ltc++;
-					tmpstr[ltc] = '.'; ltc++;
-					tmpstr[ltc] = '.'; ltc++;
-					tmpstr[ltc] = '\0';
+				if (s){
+					/* limit string to a certain length */
+					if ((int)(strlen(s) + count) > buffer_length) {
+						char tmpstr[100];
+						int ltc;
+						ltc = (int)strlen(s);
+						if (ltc > 80) ltc = 80;
+						strncpy(tmpstr, s, ltc);
+						tmpstr[ltc] = '.'; ltc++;
+						tmpstr[ltc] = '.'; ltc++;
+						tmpstr[ltc] = '.'; ltc++;
+						tmpstr[ltc] = '\0';
 
-					count += sprintf(tempbuf, format, tmpstr);
+						count += sprintf(tempbuf, format, tmpstr);
+					}
+					else count += sprintf(tempbuf, format, s);
 				}
-				else count += sprintf(tempbuf, format, s);
 				break;
 			case 'f':
 			case 'e':
@@ -420,7 +422,7 @@ int fwvsnprintf(char *buffer, int buffer_length, const char *fmt, va_list ap)
 				ERROR_MSG("ConsoleMessage: invalid format specifier: %c\n", format[j]);
 			}
 		}
-		if ((strlen(tempbuf) + strlen(buffer)) < (buffer_length)-10)
+		if ((int)(strlen(tempbuf) + strlen(buffer)) < (buffer_length)-10)
 		{
 			strcat(buffer, tempbuf);
 		}

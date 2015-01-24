@@ -244,11 +244,11 @@ void fiducialDraw(int ID, int x, int y, float angle)
 	fxy = screen2normalized((GLfloat)xy.x,(GLfloat)xy.y);
 
 	//I was hoping for a little v at the top
-	p[0][0] = fxy.x - .01;
+	p[0][0] = fxy.x - .01f;
 	p[0][1] = fxy.y;
 	p[1][0] = fxy.x ;
-	p[1][1] = fxy.y - .01;
-	p[2][0] = fxy.x + .01;
+	p[1][1] = fxy.y - .01f;
+	p[2][0] = fxy.x + .01f;
 	p[2][1] = fxy.y;
 	FW_GL_DEPTHMASK(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);

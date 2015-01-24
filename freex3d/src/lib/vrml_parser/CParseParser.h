@@ -67,8 +67,9 @@ struct VRMLParser
 {
  struct VRMLLexer* lexer;	/* The lexer used. */
  /* Where to put the parsed nodes? */
- void* ptr;
- unsigned ofs;
+ void *ectx; //broto executionContext
+ void* ptr; //node with mfnode field
+ unsigned ofs;  //offset of mfnode field from ptr
  /* Currently parsing a PROTO? */
  struct ProtoDefinition* curPROTO;
 
@@ -87,8 +88,8 @@ struct VRMLParser
 extern BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*);
 
 /* Constructor and destructor */
-struct VRMLParser* newParser(void*, unsigned, int isX3DFormat);
-struct VRMLParser* reuseParser(void*, unsigned);
+struct VRMLParser* newParser(void *ectx, void* ptr, unsigned, int isX3DFormat);
+struct VRMLParser* reuseParser(void *ectx, void* ptr, unsigned);
 void deleteParser(struct VRMLParser*);
 
 /* Other clean up */
@@ -135,12 +136,31 @@ BOOL parser_vrmlScene(struct VRMLParser*);
 
 BOOL nodeTypeSupportsUserFields(struct X3D_Node *node);
 int PKW_from_KW(int KW_index);
-BOOL find_anyfield_by_nameAndRouteDir(struct VRMLLexer* lexer, struct X3D_Node* node, union anyVrml **anyptr, 
+BOOL find_anyfield_by_nameAndRouteDir( struct X3D_Node* node, union anyVrml **anyptr, 
 	int *imode, int *itype, char* nodeFieldName, int *isource, void** fdecl, int *ifield, int PKW_eventType);
 BOOL found_IS_field(struct VRMLParser* me, struct X3D_Node *node);
 BOOL isAvailableBroto(char *pname, struct X3D_Proto* currentContext, struct X3D_Proto **proto);
 void registerParentIfManagedField(int type, int mode, int isPublic, union anyVrml* any, struct X3D_Node* parent);
 void shallow_copy_field(int typeIndex, union anyVrml* source, union anyVrml* dest);
 BOOL usingBrotos();
+int X3DMODE(int val);
+void load_externProtoInstance (struct X3D_Proto *node);
+int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *type, int *kind, int *iifield, union anyVrml **value);
+int getFieldFromNodeAndIndex(struct X3D_Node* node, int ifield, const char **fieldname, int *type, int *kind, union anyVrml **value);
+void deep_copy_broto_body2(struct X3D_Proto** proto, struct X3D_Proto** dest);
+struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep);
+struct brotoDefpair{
+	struct X3D_Node* node;
+	char* name;
+};
+/* structure used for both import and export tables*/
+struct IMEXPORT {
+	struct X3D_Node *nodeptr; //used in exports to point to exported node in inline body, not used in imports
+	char *inlinename;  //of inline, used only by imports
+	char *mxname;  //of node being exported or imported, without AS alias/nickname
+	char *as;  //nickname of mxname in local execution context as expressed by AS keyword, defaults to mxname if no AS, so normally use this when searching
 
+};
+struct IMEXPORT *broto_search_IMPORTname(struct X3D_Proto *context, char *name);
+struct IMEXPORT *broto_search_EXPORTname(struct X3D_Proto *context, char *name);
 #endif /* __FREEWRL_CPARSE_PARSER_H__ */

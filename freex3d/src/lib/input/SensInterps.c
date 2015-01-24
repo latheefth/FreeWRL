@@ -58,17 +58,11 @@ Interps are the "EventsProcessed" fields of interpolators.
 #include "SensInterps.h"
 
 
-/* if a Sound {} can not be found... */
-#define BADAUDIOSOURCE -9999
 
 /* when we get a new sound source, what is the number for this? */
 //int SoundSourceNumber = 0;
 typedef struct pSensInterps{
-	int SoundSourceNumber;
-/* this is used to return the duration of an audioclip to the perl
-   side of things. works, but need to figure out all
-   references, etc. to bypass this fudge JAS */
-	float AC_LastDuration[50];
+	int stub;
 }* ppSensInterps;
 void *SensInterps_constructor(){
 	void *v = malloc(sizeof(struct pSensInterps));
@@ -82,35 +76,13 @@ void SensInterps_init(struct tSensInterps *t)
 	t->prv = SensInterps_constructor();
 	{
 		ppSensInterps p = (ppSensInterps)t->prv;
-		p->SoundSourceNumber = 0;
-		/* this is used to return the duration of an audioclip to the perl
-		   side of things. works, but need to figure out all
-		   references, etc. to bypass this fudge JAS */
-		{
-			int i;
-			for(i=0;i<50;i++)
-				p->AC_LastDuration[i]  = -1.0f;
-		}
 	}
 }
 
 
-/* function prototypes */
-void locateAudioSource (struct X3D_AudioClip *node);
+///* function prototypes */
+//void locateAudioSource (struct X3D_AudioClip *node);
 
-/* returns the audio duration, unscaled by pitch */
-double return_Duration (int indx) {
-	double retval;
-
-	if (indx < 0)  retval = 1.0;
-	else if (indx > 50) retval = 1.0;
-	else 
-	{
-		ppSensInterps p = (ppSensInterps)gglobal()->SensInterps.prv;
-		retval = p->AC_LastDuration[indx];
-	}
-	return retval;
-}
 
 /* time dependent sensor nodes- check/change activity state */
 void do_active_inactive (
@@ -1020,10 +992,9 @@ void do_CollisionTick( void *ptr) {
 /* Audio AudioClip sensor code */
 /* void do_AudioTick(struct X3D_AudioClip *node) {*/
 void do_AudioTick(void *ptr) {
-#ifdef MUST_RE_IMPLEMENT_SOUND_WITH_OPENAL
 	struct X3D_AudioClip *node = (struct X3D_AudioClip *)ptr;
 	int 	oldstatus;
-	double pitch; /* gcc and params - make all doubles to do_active_inactive */
+	double pitch, duration; /* gcc and params - make all doubles to do_active_inactive */
 
 	/* can we possibly have started yet? */
 	if (!node) return;
@@ -1035,38 +1006,53 @@ void do_AudioTick(void *ptr) {
 	oldstatus = node->isActive;
 	pitch = node->pitch;
 
-	/* is this audio wavelet initialized yet? */
-	if (node->__sourceNumber == -1) {
-		locateAudioSource (node);
-		/* printf ("do_AudioTick, node %d sn %d\n", node, node->__sourceNumber);  */
-	}
+	if(node->__sourceNumber < 0) return;
+	///* is this audio wavelet initialized yet? */
+	//if (node->__sourceNumber == -1) {
+	//	locateAudioSource (node);
+	//	/* printf ("do_AudioTick, node %d sn %d\n", node, node->__sourceNumber);  */
+	//}
 
-	/* is this audio ok? if so, the sourceNumber will range
-	 * between 0 and infinity; if it is BADAUDIOSOURCE, bad source.
-	 * check out locateAudioSource to find out reasons */
-	if (node->__sourceNumber == BADAUDIOSOURCE) return;
+	///* is this audio ok? if so, the sourceNumber will range
+	// * between 0 and infinity; if it is BADAUDIOSOURCE, bad source.
+	// * check out locateAudioSource to find out reasons */
+	//if (node->__sourceNumber == BADAUDIOSOURCE) return;
 
 	/* call common time sensor routine */
+	//duration = return_Duration(node->__sourceNumber);
+	duration = return_Duration(node);
 	do_active_inactive (
 		&node->isActive, &node->__inittime, &node->startTime,
-		&node->stopTime,node->loop,return_Duration(node->__sourceNumber),
+		&node->stopTime,node->loop,duration,
 		pitch);
-
 
 	if (oldstatus != node->isActive) {
 		/* push @e, [$t, "isActive", node->{isActive}]; */
 		MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_AudioClip, isActive));
 		/* tell SoundEngine that this source has changed.  */
-	        if (!SoundEngineStarted) {
-        	        #ifdef SEVERBOSE
-			printf ("SetAudioActive: initializing SoundEngine\n");
-			#endif
-                	SoundEngineStarted = TRUE;
-                	SoundEngineInit();
-		}
-        	SetAudioActive (node->__sourceNumber,node->isActive);
+		//if (!SoundEngineStarted) {
+		//	#ifdef SEVERBOSE
+		//	printf ("SetAudioActive: initializing SoundEngine\n");
+		//	#endif
+		//	SoundEngineStarted = TRUE;
+		//	SoundEngineInit();
+		//}
+		//if(haveSoundEngine())
+		//	SetAudioActive (node->__sourceNumber,node->isActive);
 	}
-#endif
+	
+	if(node->isActive){
+		if(node->pauseTime > node->startTime){
+			if( node->resumeTime < node->pauseTime && !node->isPaused){
+				node->isPaused = TRUE;
+				MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_AudioClip, isPaused));
+			}else if(node->resumeTime > node->pauseTime && node->isPaused){
+				node->isPaused = FALSE;
+				MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_AudioClip, isPaused));
+			}
+		}
+	}
+
 }
 
 
@@ -1321,8 +1307,8 @@ void do_LineSensor(void *ptr, int ev, int but1, int over) {
 	*/
 	struct X3D_LineSensor *node;
 	float trackpoint[3], translation[3], xxx;
-	struct SFColor tr;
-	int tmp;
+	//struct SFColor tr;
+	//int tmp;
 	ttglobal tg;
 	UNUSED(over);
 	node = (struct X3D_LineSensor *)ptr;
@@ -1359,7 +1345,7 @@ void do_LineSensor(void *ptr, int ev, int but1, int over) {
 		// B/norm is a point, so to get a direction vector: v = B - A
 		float tt;
 		float origin [] = { 0.0f, 0.0f, 0.0f };
-		float footpoint2[3], footpoint1[3], v1[3], temp[3], temp2[3];
+		float footpoint2[3], footpoint1[3], v1[3]; //, temp[3], temp2[3];
 		vecdif3f(v1, tg->RenderFuncs.hyp_save_norm.c, tg->RenderFuncs.hyp_save_posn.c);
 		vecnormalize3f(v1, v1);
 		if (!line_intersect_line_3f(tg->RenderFuncs.hyp_save_posn.c, v1,
@@ -1394,7 +1380,7 @@ void do_LineSensor(void *ptr, int ev, int but1, int over) {
 	}
 	else if ((ev == MotionNotify) && (node->isActive) && but1) {
 		float xxxoffset, xxxorigin;
-		float diroffset[3], nondiroffset[3];
+		//float diroffset[3], nondiroffset[3];
 		/* trackpoint changed */
 		node->_oldtrackPoint.c[0] = trackpoint[0];
 		node->_oldtrackPoint.c[1] = trackpoint[1];
@@ -1650,7 +1636,8 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 	struct X3D_CylinderSensor *node = (struct X3D_CylinderSensor *)ptr;
 	double rot, radius, ang, length;
 	double det, pos, neg, temp;
-	float acute_angle, disk_angle, height, Y[3] = { 0.0f, 1.0f, 0.0f }, ZERO[3] = { 0.0f, 0.0f, 0.0f };
+	double acute_angle, disk_angle, height;
+	float Y[3] = { 0.0f, 1.0f, 0.0f }, ZERO[3] = { 0.0f, 0.0f, 0.0f };
 	float as[3], bs[3], v[3], rps[3]; 
 
 	int imethod;
@@ -1716,10 +1703,10 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 				if (det3f(v, dif, Y) > 0.0f) travelled = -travelled; //which side of cylinder axis is our bearing on? v x dif will point a different direction (up or down) depending on which side, so dot with Y to get a sign
 				disk_angle = travelled / (2.0f * PI * radius) * (2.0f * PI); //don't need the 2PI except to show how we converted to radians: travelled is a fraction of circumference, and circumference is 2PI
 			}
-			node->_radius = radius; //store for later use on mouse-moves
+			node->_radius = (float)radius; //store for later use on mouse-moves
 			//origPoint - we get to store whatever we need later mouse-moves. 
-			origPoint.c[0] = disk_angle;
-			origPoint.c[1] = -height; //Q. why -height? don't know but it works
+			origPoint.c[0] = (float)disk_angle;
+			origPoint.c[1] = (float)-height; //Q. why -height? don't know but it works
 			memcpy((void *)&node->_origPoint,(void *)&origPoint, sizeof(struct SFColor));
 		}
 		/* set isActive true */
@@ -1844,7 +1831,7 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 				disk_angle = -atan2(diskpoint[2], diskpoint[0]);
 				//printf("D");
 			}else {
-				float pi1[3], cylpoint[3];
+				float cylpoint[3]; //pi1[3], 
 				//cylinder wall
 				//ray-intersect-cylinder is too hard for us, a quadratic (but is done in rendray_Cylinder)
 				//if (line_intersect_cylinder_3f(as, v, radius, cylpoint)){ //didn't work - wrong sol1,sol2 or ???
@@ -2090,36 +2077,4 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 		node->trackPoint_changed.c[2] = NORM_CUR_Z;
 		MARK_EVENT (ptr, offsetof (struct X3D_SphereSensor, trackPoint_changed));
 	}
-}
-void process_res_audio(resource_item_t *res){
-	struct X3D_AudioClip *node = res->whereToPlaceData;
-}
-void locateAudioSource (struct X3D_AudioClip *node) {
-	resource_item_t *res;
-	resource_item_t *parentPath;
-	ppSensInterps p = (ppSensInterps)gglobal()->SensInterps.prv;
-	node->__sourceNumber = p->SoundSourceNumber;
-	p->SoundSourceNumber++;
-
-	parentPath = (resource_item_t *)(node->_parentResource);
-
-	res = resource_create_multi(&node->url);
-
-	//resource_get_valid_url_from_multi(parentPath, res);
-	resource_identify(node->_parentResource, res);
-	res->media_type = resm_audio;
-	res->whereToPlaceData = node;
-	resitem_enqueue(ml_new(res));
-	//send_resource_to_parser(res);
-	//resource_wait(res);
-	//
-	//if (res->status == ress_loaded) {
-	//	/* TODO: check into the audio file ??? check what textures do in resource_get_valid_texture_from_multi */
-	//	return;
-	//}
-
-	//resource_destroy(res);	
-	
-	node->__sourceNumber = BADAUDIOSOURCE;
-
 }

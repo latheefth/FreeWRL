@@ -33,7 +33,6 @@ libFreeWRL_la_SOURCES = \
 main/headers.h \
 main/MainLoop.c \
 main/MainLoop.h \
-main/SoundEngineClient.c \
 main/ProdCon.c \
 main/ProdCon.h \
 main/Snapshot.h \

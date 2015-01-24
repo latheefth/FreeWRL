@@ -463,10 +463,15 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 		  res->parent, (res->parent ? res->parent->URLbase : "N/A"));
 	return;
 }
+textureTableIndexStruct_s *getTableIndex(int i);
 bool imagery_load(resource_item_t *res){
 	bool retval;
-	struct textureTableIndexStruct *entry = res->whereToPlaceData;
+	int textureNumber;
+	struct textureTableIndexStruct *entry; // = res->whereToPlaceData;
+	textureNumber = res->textureNumber;
 	if(res->status == ress_downloaded){
+		entry = getTableIndex(textureNumber);
+		if(entry)
 		if (texture_load_from_file(entry, res->actual_file)) {
 			entry->status = TEX_READ; /* tell the texture thread to convert data to OpenGL-format */
 			res->status = ress_loaded;
@@ -596,7 +601,7 @@ void resource_identify_type(resource_item_t *res)
 	unsigned char *test_it = NULL;
     int test_it_len = 0;
     
-	s_list_t *l;
+	//s_list_t *l;
 	openned_file_t *of;
 	int t;
 
@@ -685,7 +690,7 @@ void resource_identify_type(resource_item_t *res)
  */
 void remove_file_or_folder(const char *path);
 
-static void resource_remove_cached_file(s_list_t *cfe)
+void resource_remove_cached_file(s_list_t *cfe)
 {
 	const char *cached_file;
 	cached_file = (const char *) cfe->elem;
@@ -826,7 +831,7 @@ void resource_unlink_cachedfiles(resource_item_t *res)
 
 void resource_close_files(resource_item_t *res)
 {
-	s_list_t *of;
+	//s_list_t *of;
 
 	if(!res) return;
 	DEBUG_RES("closing resource file: %d, %d\n", res->type, res->status);
@@ -1333,9 +1338,21 @@ void fwl_resitem_enqueuNextMulti(void *resp){
 char *strBackslash2fore(char *);
 int file2blob(resource_item_t *res);
 void fwl_resitem_setLocalPath(void *resp, char* path){
+	int delete_after_load;
 	resource_item_t *res = (resource_item_t *)resp;
 	res->status = ress_downloaded;
 	res->actual_file = strBackslash2fore(STRDUP(path));
+	delete_after_load = 1;
+	if (delete_after_load){
+		//warning this will delete the actual_file setLocalPath is for downloaded/copied/cached files only, 
+		//not direct intranet files as with desktop.c
+		s_list_t *item;
+		item = ml_new(res->actual_file);
+		if (!res->cached_files)
+			res->cached_files = (void *)item;
+		else
+			res->cached_files = ml_append(res->cached_files, item);
+	}
 	res->_loadFunc = file2blob;
 }
 int	fwl_resitem_getStatus(void *resp){

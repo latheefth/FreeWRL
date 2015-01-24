@@ -32,7 +32,7 @@ SensInterps ???
 #define ASLEN 500
 
 
-double return_Duration(int indx);
+double return_Duration(struct X3D_AudioClip *);
 
 void
 do_active_inactive(int *act,

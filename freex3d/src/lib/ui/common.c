@@ -188,6 +188,12 @@ void setArrowCursor()
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 	p->cursorStyle = ACURSE;
 }
+void setLookatCursor()
+{
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	p->cursorStyle = SCURSE;  // need a special cursor just for lookat
+}
+
 void setSensorCursor()
 {
 	ppcommon p = (ppcommon)gglobal()->common.prv;

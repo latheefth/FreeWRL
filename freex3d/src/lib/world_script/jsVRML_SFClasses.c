@@ -1333,6 +1333,7 @@ SFNodeConstr(JSContext *cx, uintN argc, jsval *vp) {
 				struct X3D_Group *myGroup = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 				resource_item_t *res = resource_create_from_string(cString);
 				res->whereToPlaceData = myGroup;
+				res->ectx = myGroup;
 				res->media_type = resm_vrml;
 				res->parsed_request = "From the EAI bootcamp of life ";
 				res->offsetFromWhereToPlaceData = (int) offsetof (struct X3D_Group, children);
@@ -1631,7 +1632,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 	JSString *_idStr, *_valStr;
 	char *_id_c, *_val_c;
 	SFNodeNative *ptr;
-	int val_len;
+	size_t val_len;
 	size_t tmp;
 #if JS_VERSION >= 185
 	jsval id;

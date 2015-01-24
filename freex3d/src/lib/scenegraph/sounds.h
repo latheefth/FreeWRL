@@ -28,6 +28,13 @@ Sound engine client code
 #ifndef __FREEWRL_SOUND_CLIENT_H__
 #define __FREEWRL_SOUND_CLIENT_H__
 
+#ifdef HAVE_OPENAL
+#include <AL/al.h>
+#include <AL/alc.h>
+#ifdef HAVE_ALUT
+#include <AL/alut.h>
+#endif
+#endif
 
 #define SNDMAXMSGSIZE 256
 
@@ -44,31 +51,26 @@ typedef struct {
 } FWSNDMSG;
 
 
-void
-Sound_toserver(char *message);
+void Sound_toserver(char *message);
 
-void
-SoundEngineInit(void);
+int SoundEngineInit(void);
 
-void
-waitformessage(void);
+void waitformessage(void);
 
-void
-SoundEngineDestroy(void);
+void SoundEngineDestroy(void);
 
-int
-SoundSourceRegistered(int num);
+int SoundSourceRegistered(int num);
 
-float
-SoundSourceInit(int num,
+float SoundSourceInit(int num,
 				int loop,
 				double pitch,
 				double start_time,
 				double stop_time,
 				char *url);
 
-void
-SetAudioActive(int num, int stat);
-
+void SetAudioActive(int num, int stat);
+int haveSoundEngine();
+/* if a Sound {} can not be found... */
+#define BADAUDIOSOURCE -9999
 
 #endif /* __FREEWRL_SOUND_CLIENT_H__ */

@@ -66,9 +66,10 @@ void localLightChildren(struct Multi_Node ch) {
 /* render all children, except the directionalight ones */
 void normalChildren(struct Multi_Node ch) {
 	int i;
+	struct X3D_Node *p;
 
 	for(i=0; i<ch.n; i++) {
-		struct X3D_Node *p = X3D_NODE(ch.p[i]);
+		p = X3D_NODE(ch.p[i]); //ATOMIC OP -if it bombs here with .n valid and .p junk, then addRemoveChildren has just expanded .p and FREEd the old one
 		//ConsoleMessage("NC, ch %d is %p",i,p);
 		if (p != NULL) {
 			/* printf ("child %d of %d is a %s\n",i,ch.n,stringNodeType(p->_nodeType)); */
@@ -79,7 +80,8 @@ void normalChildren(struct Multi_Node ch) {
 			} else if (p->_nodeType == NODE_SpotLight) {
 				if (X3D_SPOTLIGHT(p)->global == TRUE) render_node(p);
 			} else if (p->_nodeType == NODE_PointLight) {
-				if (X3D_POINTLIGHT(p)->global == TRUE) render_node(p);
+				if (X3D_POINTLIGHT(p)->global == TRUE) 
+					render_node(p);
 			} else render_node(p);
 		}
 	}
@@ -129,7 +131,7 @@ void  update_renderFlagB (struct X3D_Node *p, int flag) {
 			return;
 		}
 
-		/* printf ("node %d has %d for a parent\n",p,p->_parents[i]);  */
+		// printf ("node %d type %s has node %d  type %s for a parent\n",p,stringNodeType(p->_nodeType),me,stringNodeType(me->_nodeType));  
 		switch (me->_nodeType) {
 
 			case NODE_Switch:

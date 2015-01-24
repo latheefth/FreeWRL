@@ -36,7 +36,7 @@ VRML-parsing routines in C.
 #define IS_ID_FIRST(c) \
  (IS_ID_REST(c) && (c<0x30 || c>0x39) && c!=0x2B && c!=0x2D)
 
-BOOL cParse(void*, unsigned, const char*);
+BOOL cParse(void *ectx, void* ptr, unsigned offset, const char* cdata);
 
 /* Destroy all data associated with the currently parsed world kept. */
 #define destroyCParserData(me) \

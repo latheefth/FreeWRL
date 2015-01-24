@@ -98,7 +98,6 @@ uintptr_t _fw_instance = 0;
 
 /*******************************/
 
-#define PARSE_STRING(input,len,where) parser_do_parse_string(input,len,where)
 
 struct PSStruct {
 	unsigned type;		/* what is this task? 			*/
@@ -115,7 +114,7 @@ struct PSStruct {
 	struct Uni_String *sv;			/* the SV for javascript		*/
 };
 
-static bool parser_do_parse_string(const unsigned char *input, const int len, struct X3D_Group *nRn);
+static bool parser_do_parse_string(const unsigned char *input, const int len, struct X3D_Node *ectx, struct X3D_Node *nRn);
 
 /* Bindables */
 typedef struct pProdCon{
@@ -238,12 +237,101 @@ void sceneInstance(struct X3D_Proto* proto, struct X3D_Group *scene);
 /* BOOL usingBrotos(); -- moved to CParseParser.h */
 void dump_scene2(FILE *fp, int level, struct X3D_Node* node, int recurse, Stack *DEFedNodes) ;
 
+int indexChildrenName(struct X3D_Node *node){
+	int index = -1; //we'll have it work like a bool too, and I don't think any of our children field are at 0
+	if(node)
+		switch(node->_nodeType){
+			case NODE_Group:
+				index = FIELDNAMES_children;
+				break;
+			case NODE_Transform:
+				index = FIELDNAMES_children;
+				break;
+			case NODE_Switch:
+				index = FIELDNAMES_children;
+				break;
+			case NODE_Billboard:
+				index = FIELDNAMES_children;
+				break;
+			case NODE_Proto:
+				index = FIELDNAMES___children;
+				break;
+			case NODE_Inline:  //Q. do I need this in here? Saw code in x3dparser.
+				index = FIELDNAMES___children;
+				break;
+			//case NODE_GeoLOD:  //Q. do I need this in here? A. No - leave null and the correct field is found for geoOrigin (otherwise it puts it in rootNode which is a kind of parent node field -sick - see glod1/b.x3d)
+			//	index = FIELDNAMES_rootNode;
+			//	break;
+			//switch?
+		}
+	return index;
+
+}
+struct Multi_Node *childrenField(struct X3D_Node *node){
+	struct Multi_Node *childs = NULL;
+	if(node)
+		switch(node->_nodeType){
+			case NODE_Group:
+				childs = offsetPointer_deref(void*, node,  offsetof(struct X3D_Group,children));
+				break;
+			case NODE_Transform:
+				childs = offsetPointer_deref(void*, node,  offsetof(struct X3D_Transform,children));
+				break;
+			case NODE_Switch:
+				childs = offsetPointer_deref(void*, node,  offsetof(struct X3D_Switch,children));
+				break;
+			case NODE_Billboard:
+				childs = offsetPointer_deref(void*, node,  offsetof(struct X3D_Billboard,children));
+				break;
+			case NODE_Proto:
+				childs = offsetPointer_deref(void*, node,  offsetof(struct X3D_Proto,__children));
+				break;
+			case NODE_Inline:  //Q. do I need this in here? Saw code in x3dparser.
+				childs = offsetPointer_deref(void*, node,  offsetof(struct X3D_Inline,__children));
+				break;
+			case NODE_GeoLOD:  //Q. do I need this in here?
+				childs = offsetPointer_deref(void*, node, offsetof(struct X3D_GeoLOD,rootNode));
+				break;
+		}
+	return childs;
+}
+int offsetofChildren(struct X3D_Node *node){
+	int offs = 0; //we'll have it work like a bool too, and I don't think any of our children field are at 0
+	if(node)
+		switch(node->_nodeType){
+			case NODE_Group:
+				offs = offsetof(struct X3D_Group,children);
+				break;
+			case NODE_Transform:
+				offs = offsetof(struct X3D_Transform,children);
+				break;
+			case NODE_Switch:
+				offs = offsetof(struct X3D_Switch,children);
+				break;
+			case NODE_Billboard:
+				offs = offsetof(struct X3D_Billboard,children);
+				break;
+			case NODE_Proto:
+				//offs = offsetof(struct X3D_Proto,__children); //addRemoveChildren reallocs p, so mfnode .p field not stable enough for rendering thread
+				offs = offsetof(struct X3D_Proto,addChildren); //this is the designed way to add
+				break;
+			case NODE_Inline:  //Q. do I need this in here? Saw code in x3dparser.
+				offs = offsetof(struct X3D_Inline,addChildren); //__children);
+				break;
+			case NODE_GeoLOD:  //Q. do I need this in here? Saw code in x3dparser.
+				offs = offsetof(struct X3D_GeoLOD,rootNode);
+				break;
+		}
+	return offs;
+}
+
 /**
  *   parser_do_parse_string: actually calls the parser.
  */
-static bool parser_do_parse_string(const unsigned char *input, const int len, struct X3D_Group *nRn)
+static bool parser_do_parse_string(const unsigned char *input, const int len, struct X3D_Node *ectx, struct X3D_Node *nRn)
 {
 	bool ret;
+	int kids;
 	ppProdCon p = (ppProdCon)gglobal()->ProdCon.prv;
 
 
@@ -258,39 +346,18 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 	inputFileType = determineFileType(input,len);
 	DEBUG_MSG("PARSE STRING, ft %d, fv %d.%d.%d\n",
 		  inputFileType, inputFileVersion[0], inputFileVersion[1], inputFileVersion[2]);
-
+	kids = offsetofChildren(nRn);
 
 	switch (inputFileType) {
 	case IS_TYPE_XML_X3D:
-		ret = X3DParse(nRn, (const char*)input);
+		if(kids){
+		//if(nRn->_nodeType == NODE_Group || nRn->_nodeType == NODE_Proto){
+			ret = X3DParse(ectx, X3D_NODE(nRn), (const char*)input);
+		}
 		break;
 	case IS_TYPE_VRML:
-		if(usingBrotos()){
-			struct X3D_Proto *sceneProto = createNewX3DNode0(NODE_Proto);
-			sceneProto->__prototype = X3D_NODE(sceneProto);
-			sceneProto->__protoFlags = 1; // bit flags: 1=scene
-			//sceneProto->__protoFlags |= 2; //2=oldway (0 new way) set to 2 for oldway, 0 for new way
-			ret = cParse(sceneProto,(int) offsetof (struct X3D_Proto, _children), (const char*)input);
-			p->haveParsedCParsed = TRUE;
-			if (ret) {
-				if(0) {
-					Stack * DEFedNodes = newVector(struct X3D_Node*, 2);
-					dump_scene2(stdout, 0, (struct X3D_Node*) sceneProto,1,DEFedNodes);
-					deleteVector(struct X3D_Node*,DEFedNodes);
-				}
-				ConsoleMessage("starting scene Instancing...\n");
-				sceneInstance(sceneProto,nRn);
-				if(0) {
-					Stack * DEFedNodes = newVector(struct X3D_Node*, 2);
-					dump_scene2(stdout, 0, (struct X3D_Node*) nRn,1,DEFedNodes);
-					deleteVector(struct X3D_Node*,DEFedNodes);
-				}
-				if(0) print_DEFed_node_names_and_pointers(stdout);
-				if(0) print_routes(stdout);
-				ConsoleMessage("...finished scene Instancing\n");
-			}
-		}else{
-			ret = cParse(nRn,(int) offsetof (struct X3D_Group, children), (const char*)input);
+		if(kids){
+			ret = cParse(ectx, nRn, kids, (const char*)input);
 			p->haveParsedCParsed = TRUE;
 		}
 		break;
@@ -305,18 +372,8 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
             }\
         }}\
         ");
-		if(usingBrotos()){
-			struct X3D_Proto *sceneProto = createNewX3DNode0(NODE_Proto);
-			sceneProto->__prototype = X3D_NODE(sceneProto);
-			ret = cParse (sceneProto,(int) offsetof (struct X3D_Proto, _children), newData);
-			p->haveParsedCParsed = TRUE;
-			if (ret) {
-				ConsoleMessage("starting scene Instancing...\n");
-				sceneInstance(sceneProto,nRn);
-				ConsoleMessage("...finished scene Instancing\n");
-			}
-		}else{
-			ret = cParse (nRn,(int) offsetof (struct X3D_Group, children), newData);
+		if(!usingBrotos()){
+			ret = cParse (ectx,nRn,(int) offsetof (struct X3D_Group, children), newData);
 			FREE_IF_NZ(newData);
 		}
 
@@ -363,7 +420,7 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 		if (gglobal()->internalc.global_strictParsing) { ConsoleMessage ("unknown text as input"); } else {
 			inputFileType = IS_TYPE_VRML;
 			inputFileVersion[0] = 2; /* try VRML V2 */
-			cParse (nRn,(int) offsetof (struct X3D_Proto, _children), (const char*)input);
+			cParse (ectx,nRn,(int) offsetof (struct X3D_Proto, __children), (const char*)input);
 			p->haveParsedCParsed = TRUE; }
 	}
 	}
@@ -466,16 +523,21 @@ void new_root(){
 
 	//ConsoleMessage("send_resource_to_parser, new_root\n");
     	/* mark all rootNode children for Dispose */
-    	for (i=0; i<rootNode()->children.n; i++) {
-            	markForDispose(rootNode()->children.p[i], TRUE);
+	{
+		struct Multi_Node *children;
+		//if(usingBrotos()>1) children = &X3D_PROTO(rootNode())->_children;
+		//else children = &X3D_GROUP(rootNode())->children;
+		children = childrenField(rootNode());
+    	for (i=0; i<children->n; i++) {
+            	markForDispose(children->p[i], TRUE);
     	}
 
-	// force rootNode to have 0 children, compile_Group will make
-	// the _sortedChildren field mimic the children field.
-	rootNode()->children.n = 0; rootNode()->_change ++;
-
+		// force rootNode to have 0 children, compile_Group will make
+		// the _sortedChildren field mimic the children field.
+		children->n = 0; rootNode()->_change ++;
+	}
 	// set the extents back to initial
-	{ struct X3D_Group *node = rootNode();
+	{ struct X3D_Node *node = rootNode();
 		INITIALIZE_EXTENT;
 	}
 
@@ -577,13 +639,14 @@ void dump_parser_wait_queue()
  */
 bool parser_process_res_VRML_X3D(resource_item_t *res)
 {
-	s_list_t *l;
+	//s_list_t *l;
 	openned_file_t *of;
-	struct X3D_Group *nRn;
-	struct X3D_Group *insert_node;
+	struct X3D_Node *nRn;
+	struct X3D_Node *ectx;
+	struct X3D_Node *insert_node;
 	int i;
 	int offsetInNode;
-	int shouldBind;
+	int shouldBind, shouldUnBind;
     int parsedOk = FALSE; // results from parser
     bool fromEAI_SAI = FALSE;
 	/* we only bind to new nodes, if we are adding via Inlines, etc */
@@ -601,6 +664,7 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 	/* printf("processing VRML/X3D resource: %s\n", res->URLrequest);  */
 
 	shouldBind = FALSE;
+	shouldUnBind = FALSE;
 	origFogNodes = vectorSize(p->fogNodes);
 	origBackgroundNodes = vectorSize(p->backgroundNodes);
 	origNavigationNodes = vectorSize(p->navigationNodes);
@@ -616,19 +680,19 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 
     if (!fromEAI_SAI) pushInputResource(res);
 
-
+	ectx = res->ectx;
 	/* OK Boyz - here we go... if this if from the EAI, just parse it, as it will be a simple string */
 	if (strcmp(res->parsed_request,EAI_Flag)==0) {
 
 		/* EAI/SAI parsing */
 		/* printf ("have the actual text here \n"); */
 		/* create a container so that the parser has a place to put the nodes */
-		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
+		nRn = (struct X3D_Node *) createNewX3DNode(NODE_Group);
 
-		insert_node = X3D_GROUP(res->whereToPlaceData); /* casting here for compiler */
+		insert_node = X3D_NODE(res->whereToPlaceData); /* casting here for compiler */
 		offsetInNode = res->offsetFromWhereToPlaceData;
 
-		parsedOk = PARSE_STRING((const unsigned char *)res->URLrequest,(const int)strlen(res->URLrequest), nRn);
+		parsedOk = parser_do_parse_string((const unsigned char *)res->URLrequest,(const int)strlen(res->URLrequest), ectx, nRn);
 		//printf("after parse_string in EAI/SAI parsing\n");
 	} else {
 		/* standard file parsing */
@@ -661,6 +725,7 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 			kill_bindables();
 			//kill_oldWorld(TRUE, TRUE, TRUE, __FILE__, __LINE__);
 			shouldBind = TRUE;
+			shouldUnBind = TRUE;
 			origFogNodes = origBackgroundNodes = origNavigationNodes = origViewpointNodes = 0;
 			//ConsoleMessage ("pc - shouldBind");
 		} else {
@@ -673,10 +738,32 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 		}
 
 		/* create a container so that the parser has a place to put the nodes */
-		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
+		if(usingBrotos()){
+			if(res->whereToPlaceData){
+				nRn = X3D_NODE(res->whereToPlaceData);
+				//if(nRn->_nodeType == NODE_Inline){
+					shouldBind = TRUE; 
+					shouldUnBind = FALSE; //brotos > Inlines > additively bind (not sure about other things like externProto 17.wrl)
+				//}
+			}else{
+				struct X3D_Proto *sceneProto;
+				sceneProto = (struct X3D_Proto *) createNewX3DNode(NODE_Proto);
+				sceneProto->__protoFlags = ciflag_set(sceneProto->__protoFlags,1,0);
+				//if(usingBrotos() > 1){
+					//((char *)(&sceneProto->__protoFlags))[2] = 2; // 2=scene type object, render all children
+					sceneProto->__protoFlags = ciflag_set(sceneProto->__protoFlags,2,2);
+				//}
+				nRn = X3D_NODE(sceneProto);
+				ectx = nRn;
+				setRootNode(X3D_NODE(sceneProto));
+			}
+		}else{
+			nRn = (struct X3D_Node *) createNewX3DNode(NODE_Group);
+			ectx = nRn; //or should it be null
+		}
 
 		/* ACTUALLY CALLS THE PARSER */
-		parsedOk = PARSE_STRING(of->fileData, of->fileDataSize, nRn);
+		parsedOk = parser_do_parse_string(of->fileData, of->fileDataSize, ectx, nRn);
 		//printf("after parse_string in standard file parsing\n");
 
 		if ((res != tg->resources.root_res) && ((!tg->resources.root_res) ||(!tg->resources.root_res->complete))) {
@@ -684,42 +771,66 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 		}
 
 		if (shouldBind) {
-			if (vectorSize(p->fogNodes) > 0) {
-				for (i=origFogNodes; i < vectorSize(p->fogNodes); ++i)
-					send_bind_to(vector_get(struct X3D_Node*,p->fogNodes,i), 0);
+			if(shouldUnBind){
+				if (vectorSize(p->fogNodes) > 0) {
+					for (i=origFogNodes; i < vectorSize(p->fogNodes); ++i)
+						send_bind_to(vector_get(struct X3D_Node*,p->fogNodes,i), 0);
 					/* Initialize binding info */
-				t->setFogBindInRender = vector_get(struct X3D_Node*, p->fogNodes,0);
-			}
-			if (vectorSize(p->backgroundNodes) > 0) {
-				for (i=origBackgroundNodes; i < vectorSize(p->backgroundNodes); ++i)
-					send_bind_to(vector_get(struct X3D_Node*,p->backgroundNodes,i), 0);
+					t->setFogBindInRender = vector_get(struct X3D_Node*, p->fogNodes,0);
+				}
+				if (vectorSize(p->backgroundNodes) > 0) {
+					for (i=origBackgroundNodes; i < vectorSize(p->backgroundNodes); ++i)
+						send_bind_to(vector_get(struct X3D_Node*,p->backgroundNodes,i), 0);
 					/* Initialize binding info */
-				t->setBackgroundBindInRender = vector_get(struct X3D_Node*, p->backgroundNodes,0);
-			}
-			if (vectorSize(p->navigationNodes) > 0) {
-				for (i=origNavigationNodes; i < vectorSize(p->navigationNodes); ++i)
-					send_bind_to(vector_get(struct X3D_Node*,p->navigationNodes,i), 0);
+					t->setBackgroundBindInRender = vector_get(struct X3D_Node*, p->backgroundNodes,0);
+				}
+				if (vectorSize(p->navigationNodes) > 0) {
+					for (i=origNavigationNodes; i < vectorSize(p->navigationNodes); ++i)
+						send_bind_to(vector_get(struct X3D_Node*,p->navigationNodes,i), 0);
 					/* Initialize binding info */
-				t->setNavigationBindInRender = vector_get(struct X3D_Node*, p->navigationNodes,0);
-			}
-			if (vectorSize(t->viewpointNodes) > 0) {
-				for (i = origViewpointNodes; i < vectorSize(t->viewpointNodes); ++i)
-					send_bind_to(vector_get(struct X3D_Node*, t->viewpointNodes, i), 0);
+					t->setNavigationBindInRender = vector_get(struct X3D_Node*, p->navigationNodes,0);
+				}
+				if (vectorSize(t->viewpointNodes) > 0) {
+					for (i = origViewpointNodes; i < vectorSize(t->viewpointNodes); ++i)
+						send_bind_to(vector_get(struct X3D_Node*, t->viewpointNodes, i), 0);
 
 					/* Initialize binding info */
-				t->setViewpointBindInRender = vector_get(struct X3D_Node*, t->viewpointNodes,0);
-				if (res->afterPoundCharacters)
-					fwl_gotoViewpoint(res->afterPoundCharacters);
+					t->setViewpointBindInRender = vector_get(struct X3D_Node*, t->viewpointNodes,0);
+					if (res->afterPoundCharacters)
+						fwl_gotoViewpoint(res->afterPoundCharacters);
+				}
+			}else{
+				// for broto inlines, we want to add to what's in the main scene, and bind to the last item if its new
+				if (vectorSize(p->fogNodes) > origFogNodes) {
+					t->setFogBindInRender = vector_get(struct X3D_Node*, p->fogNodes,origFogNodes);
+				}
+				if (vectorSize(p->backgroundNodes) > origBackgroundNodes) {
+					t->setBackgroundBindInRender = vector_get(struct X3D_Node*, p->backgroundNodes,origBackgroundNodes);
+				}
+				if (vectorSize(p->navigationNodes) > origNavigationNodes) {
+					t->setNavigationBindInRender = vector_get(struct X3D_Node*, p->navigationNodes,origNavigationNodes);
+				}
+				if (vectorSize(t->viewpointNodes) > origViewpointNodes) {
+					t->setViewpointBindInRender = vector_get(struct X3D_Node*, t->viewpointNodes,origViewpointNodes); 
+					if (res->afterPoundCharacters)
+						fwl_gotoViewpoint(res->afterPoundCharacters);
+				}
+
 			}
 		}
 
 		/* we either put things at the rootNode (ie, a new world) or we put them as a children to another node */
 		if (res->whereToPlaceData == NULL) {
-			ASSERT(rootNode());
-			insert_node = rootNode();
-			offsetInNode = (int) offsetof(struct X3D_Group, children);
+			if(!usingBrotos()){
+				ASSERT(rootNode());
+				insert_node = rootNode();
+				offsetInNode = (int) offsetof(struct X3D_Group, children);
+			}else{
+				//brotos have to maintain various lists, which is done in the parser. 
+				//therefore pass the rootnode / executioncontext into the parser
+			}
 		} else {
-			insert_node = X3D_GROUP(res->whereToPlaceData); /* casting here for compiler */
+			insert_node = X3D_NODE(res->whereToPlaceData); /* casting here for compiler */
 			offsetInNode = res->offsetFromWhereToPlaceData;
 		}
 	}
@@ -730,16 +841,19 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 	/* add the new nodes to wherever the caller wanted */
 
 	/* take the nodes from the nRn node, and put them into the place where we have decided to put them */
-	AddRemoveChildren(X3D_NODE(insert_node),
-			  offsetPointer_deref(void*, insert_node, offsetInNode),
-			  (struct X3D_Node * *)nRn->children.p,
-			  nRn->children.n, 1, __FILE__,__LINE__);
+	//if(!usingBrotos() ){
+	if(X3D_NODE(nRn)->_nodeType == NODE_Group){
+		struct X3D_Group *nRng = X3D_GROUP(nRn);
+		AddRemoveChildren(X3D_NODE(insert_node),
+				  offsetPointer_deref(void*, insert_node, offsetInNode),
+				  (struct X3D_Node * *)nRng->children.p,
+				  nRng->children.n, 1, __FILE__,__LINE__);
 
-	/* and, remove them from this nRn node, so that they are not multi-parented */
-	AddRemoveChildren(X3D_NODE(nRn),
-			  (struct Multi_Node *)((char *)nRn + offsetof (struct X3D_Group, children)),
-			  (struct X3D_Node* *)nRn->children.p,nRn->children.n,2,__FILE__,__LINE__);
-
+		/* and, remove them from this nRn node, so that they are not multi-parented */
+		AddRemoveChildren(X3D_NODE(nRng),
+				  (struct Multi_Node *)((char *)nRng + offsetof (struct X3D_Group, children)),
+				  (struct X3D_Node* *)nRng->children.p,nRng->children.n,2,__FILE__,__LINE__);
+	}
 	res->complete = TRUE;
 
 
@@ -753,7 +867,7 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 }
 
 /* interface for creating VRML for EAI */
-int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *where)
+int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Node *ectx, struct X3D_Group *where)
 {
 	resource_item_t *res;
 	char *newString;
@@ -763,6 +877,7 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *wh
 	if (strncmp(tp, "URL", 3) == 0) {
 
 		res = resource_create_single(inputstring);
+		res->ectx = ectx;
 		res->whereToPlaceData = where;
 		res->offsetFromWhereToPlaceData = (int) offsetof (struct X3D_Group, children);
 		/* printf ("EAI_CreateVrml, res->where is %u, root is %u parameter where %u\n",res->where, rootNode, where); */
@@ -784,6 +899,7 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *wh
 		res = resource_create_from_string(sendIn);
 		res->media_type=resm_vrml;
 		res->parsed_request = EAI_Flag;
+		res->ectx = ectx;
 		res->whereToPlaceData = where;
 		res->offsetFromWhereToPlaceData = (int) offsetof (struct X3D_Group, children);
 	}
@@ -795,9 +911,9 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *wh
 }
 
 /* interface for creating X3D for EAI - like above except x3d */
-int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Group *where)
+int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Node *ectx, struct X3D_Group *where)
 {
-	int retval;
+	//int retval;
 	resource_item_t *res;
 	char *newString;
 
@@ -806,6 +922,7 @@ int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Group *whe
 	if (strncmp(tp, "URL", 3) == 0) {
 
 		res = resource_create_single(inputstring);
+		res->ectx = ectx;
 		res->whereToPlaceData = where;
 		res->offsetFromWhereToPlaceData = (int) offsetof (struct X3D_Group, children);
 		/* printf ("EAI_CreateVrml, res->where is %u, root is %u parameter where %u\n",res->where, rootNode, where); */
@@ -826,6 +943,7 @@ int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Group *whe
 		res = resource_create_from_string(sendIn);
 		res->media_type=resm_x3d; //**different than vrml
 		res->parsed_request = EAI_Flag;
+		res->ectx = ectx;
 		res->whereToPlaceData = where;
 		res->offsetFromWhereToPlaceData = (int) offsetof (struct X3D_Group, children);
 	}
@@ -838,13 +956,12 @@ int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Group *whe
 }
 
 
-
 /**
  *   parser_process_res_SHADER: this is the final parser (loader) stage, then call the real parser.
  */
 static bool parser_process_res_SCRIPT(resource_item_t *res)
 {
-	s_list_t *l;
+	//s_list_t *l;
 	openned_file_t *of;
 	struct Shader_Script* ss;
 	const char *buffer;
@@ -1026,7 +1143,7 @@ int frontendGetsFiles(){
 
 void process_res_texitem(resource_item_t *res);
 bool parser_process_res_SHADER(resource_item_t *res);
-void process_res_audio(resource_item_t *res);
+bool process_res_audio(resource_item_t *res);
 /**
  *   parser_process_res: for each resource state, advance the process of loading.
  *   this version assumes the item has been dequeued for processing,
@@ -1141,7 +1258,12 @@ static bool parser_process_res(s_list_t *item)
 			break;
 		case resm_audio:
 			res->complete = TRUE;
-			process_res_audio(res);
+			if(process_res_audio(res)){
+				res->status = ress_parsed;
+			}else{
+				retval = FALSE;
+				res->status = ress_failed;
+			}
 			break;
 		case resm_x3z:
 			process_x3z(res);
@@ -1385,6 +1507,100 @@ void registerBindable (struct X3D_Node *node) {
 			X3D_FOG(node)->set_bind = 100;
 			X3D_FOG(node)->isBound = 0;
 			vector_pushBack (struct X3D_Node*,p->fogNodes, node);
+			break;
+		default: {
+			/* do nothing with this node */
+			/* printf ("got a registerBind on a node of type %s - ignoring\n",
+					stringNodeType(node->_nodeType));
+			*/
+			return;
+		}
+
+	}
+}
+int removeNodeFromVector(int iaction, struct Vector *v, struct X3D_Node *node){
+	//iaction = 0 pack vector
+	//iaction = 1 set NULL
+	int noisy, iret = FALSE;
+	noisy = FALSE;
+	if(v && node){
+		struct X3D_Node *tn;
+		int i, ii, idx, n;
+		idx = -1;
+		n = vectorSize(v);
+		for(i=0;i<n;i++){
+			ii = n - i - 1; //reverse walk, so we can remove without losing our loop counter
+			tn = vector_get(struct X3D_Node*,v,ii);
+			if(tn == node){
+				iret++;
+				if(iaction == 1){
+					vector_set(struct X3D_Node*,v,ii,NULL);
+					if(noisy) printf("NULLing %d %p\n",ii,node);
+				}else if(iaction == 0){
+					if(noisy) printf("REMOVing %d %p\n",ii,node);
+					vector_remove_elem(struct X3D_Node*,v,ii);
+				}
+			}
+		}
+	}
+	if(!iret && noisy){
+		int i;
+		printf("not found in stack node=%p stack.n=%d:\n",node,vectorSize(v));
+		for(i=0;i<vectorSize(v);i++){
+			printf(" %p",vector_get(struct X3D_Node*,v,i));
+		}
+		printf("\n");
+	}
+	return iret;
+}
+void unRegisterBindable (struct X3D_Node *node) {
+	ppProdCon p;
+	struct tProdCon *t = &gglobal()->ProdCon;
+	p = (ppProdCon)t->prv;
+
+
+	switch (node->_nodeType) {
+		case NODE_Viewpoint:
+			X3D_VIEWPOINT(node)->set_bind = 100;
+			X3D_VIEWPOINT(node)->isBound = 0;
+			//printf ("unRegisterBindable %p Viewpoint, description :%s:\n",node,X3D_VIEWPOINT(node)->description->strptr);
+			send_bind_to(node,0);
+			removeNodeFromVector(0, t->viewpointNodes, node);
+			break;
+		case NODE_OrthoViewpoint:
+			X3D_ORTHOVIEWPOINT(node)->set_bind = 100;
+			X3D_ORTHOVIEWPOINT(node)->isBound = 0;
+			send_bind_to(node,0);
+			removeNodeFromVector(0, t->viewpointNodes, node);
+			break;
+		case NODE_GeoViewpoint:
+			X3D_GEOVIEWPOINT(node)->set_bind = 100;
+			X3D_GEOVIEWPOINT(node)->isBound = 0;
+			send_bind_to(node,0);
+			removeNodeFromVector(0, t->viewpointNodes, node);
+			break;
+		case NODE_Background:
+			X3D_BACKGROUND(node)->set_bind = 100;
+			X3D_BACKGROUND(node)->isBound = 0;
+			send_bind_to(node,0);
+			removeNodeFromVector(0, p->backgroundNodes, node);
+			break;
+		case NODE_TextureBackground:
+			X3D_TEXTUREBACKGROUND(node)->set_bind = 100;
+			X3D_TEXTUREBACKGROUND(node)->isBound = 0;
+			removeNodeFromVector(0, p->backgroundNodes, node);
+			break;
+		case NODE_NavigationInfo:
+			X3D_NAVIGATIONINFO(node)->set_bind = 100;
+			X3D_NAVIGATIONINFO(node)->isBound = 0;
+			send_bind_to(node,0);
+			removeNodeFromVector(0, p->navigationNodes, node);
+			break;
+		case NODE_Fog:
+			X3D_FOG(node)->set_bind = 100;
+			X3D_FOG(node)->isBound = 0;
+			send_bind_to(node,0);
+			removeNodeFromVector(0, p->fogNodes, node);
 			break;
 		default: {
 			/* do nothing with this node */

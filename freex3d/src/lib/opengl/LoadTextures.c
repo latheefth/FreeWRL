@@ -486,27 +486,52 @@ ConsoleMessage(me);}
 
 /* LINUX */
 #if !defined (_MSC_VER) && !defined (TARGET_AQUA) && !defined(_ANDROID)
-    Imlib_Image image;
+	Imlib_Image image;
+	Imlib_Load_Error error_return;
 
-    image = imlib_load_image_immediately(filename);
-    if (!image) {
-	ERROR_MSG("load_texture_from_file: failed to load image: %s\n", filename);
-	return FALSE;
-    }
-    DEBUG_TEX("load_texture_from_file: Imlib2 succeeded to load image: %s\n", filename);
+	//image = imlib_load_image_immediately(filename);
+	//image = imlib_load_image(filename);
+	image = imlib_load_image_with_error_return(filename,&error_return);
 
-    imlib_context_set_image(image);
-    imlib_image_flip_vertical(); /* FIXME: do we really need this ? */
+	if (!image) {
+		char *es = NULL;
+		switch(error_return){
+			case IMLIB_LOAD_ERROR_NONE: es = "IMLIB_LOAD_ERROR_NONE";break;
+			case IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST: es = "IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST";break;
+			case IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY: es = "IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY";break;
+			case IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_READ: es = "IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_READ";break;
+			case IMLIB_LOAD_ERROR_NO_LOADER_FOR_FILE_FORMAT: es = "IMLIB_LOAD_ERROR_NO_LOADER_FOR_FILE_FORMAT";break;
+			case IMLIB_LOAD_ERROR_PATH_TOO_LONG: es = "IMLIB_LOAD_ERROR_PATH_TOO_LONG";break;
+			case IMLIB_LOAD_ERROR_PATH_COMPONENT_NON_EXISTANT: es = "IMLIB_LOAD_ERROR_PATH_COMPONENT_NON_EXISTANT";break;
+			case IMLIB_LOAD_ERROR_PATH_COMPONENT_NOT_DIRECTORY: es = "IMLIB_LOAD_ERROR_PATH_COMPONENT_NOT_DIRECTORY";break;
+			case IMLIB_LOAD_ERROR_PATH_POINTS_OUTSIDE_ADDRESS_SPACE: es = "IMLIB_LOAD_ERROR_PATH_POINTS_OUTSIDE_ADDRESS_SPACE";break;
+			case IMLIB_LOAD_ERROR_TOO_MANY_SYMBOLIC_LINKS: es = "IMLIB_LOAD_ERROR_TOO_MANY_SYMBOLIC_LINKS";break;
+			case IMLIB_LOAD_ERROR_OUT_OF_MEMORY: es = "IMLIB_LOAD_ERROR_OUT_OF_MEMORY";break;
+			case IMLIB_LOAD_ERROR_OUT_OF_FILE_DESCRIPTORS: es = "IMLIB_LOAD_ERROR_OUT_OF_FILE_DESCRIPTORS";break;
+			case IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_WRITE: es = "IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_WRITE";break;
+			case IMLIB_LOAD_ERROR_OUT_OF_DISK_SPACE: es = "IMLIB_LOAD_ERROR_OUT_OF_DISK_SPACE";break;
+			case IMLIB_LOAD_ERROR_UNKNOWN:
+			default:
+			es = "IMLIB_LOAD_ERROR_UNKNOWN";break;
+		}
+		ERROR_MSG("imlib load error = %d %s\n",error_return,es);
+		ERROR_MSG("load_texture_from_file: failed to load image: %s\n", filename);
+		return FALSE;
+	}
+	DEBUG_TEX("load_texture_from_file: Imlib2 succeeded to load image: %s\n", filename);
 
-    /* store actual filename, status, ... */
-    this_tex->filename = filename;
-    this_tex->hasAlpha = (imlib_image_has_alpha() == 1);
-    this_tex->frames = 1;
-    this_tex->x = imlib_image_get_width();
-    this_tex->y = imlib_image_get_height();
+	imlib_context_set_image(image);
+	imlib_image_flip_vertical(); /* FIXME: do we really need this ? */
 
-    this_tex->texdata = (unsigned char *) imlib_image_get_data_for_reading_only(); 
-    return TRUE;
+	/* store actual filename, status, ... */
+	this_tex->filename = filename;
+	this_tex->hasAlpha = (imlib_image_has_alpha() == 1);
+	this_tex->frames = 1;
+	this_tex->x = imlib_image_get_width();
+	this_tex->y = imlib_image_get_height();
+
+	this_tex->texdata = (unsigned char *) imlib_image_get_data_for_reading_only(); 
+	return TRUE;
 #endif
 
 /* OSX */
@@ -748,6 +773,7 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 	res->media_type = resm_image; /* quick hack */
 	resource_identify(parentPath, res);
 	res->whereToPlaceData = entry;
+	res->textureNumber = entry->textureNumber;
 	resitem_enqueue(ml_new(res));
 	return TRUE;
 
@@ -846,12 +872,17 @@ void send_texture_to_loader(textureTableIndexStruct_s *entry)
 {
 	texitem_enqueue(ml_new(entry));
 }
-
+textureTableIndexStruct_s *getTableIndex(int i);
 void process_res_texitem(resource_item_t *res){
 	//resitem after download+load -> texture thread
 	textureTableIndexStruct_s *entry;
-	entry = res->whereToPlaceData;
-	texitem_enqueue(ml_new(entry));
+	int textureNumber;
+	textureNumber = res->textureNumber;
+	//check in case texture has been deleted due to inline unloading during image download
+	//entry = res->whereToPlaceData;
+	entry = getTableIndex(textureNumber);
+	if(entry)
+		texitem_enqueue(ml_new(entry));
 }
 
 /**

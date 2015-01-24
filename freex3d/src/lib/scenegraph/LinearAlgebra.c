@@ -197,6 +197,7 @@ void veccross(struct point_XYZ *c, struct point_XYZ a, struct point_XYZ b)
 }
 float *veccross3f(float *c, float *a, float *b)
 {
+	/*FLOPs 6 float*/
     c[0] = a[1]*b[2] - a[2]*b[1];
     c[1] = a[2]*b[0] - a[0]*b[2];
     c[2] = a[0]*b[1] - a[1]*b[0];
@@ -208,6 +209,7 @@ float veclength( struct point_XYZ p )
 }
 float vecdot3f( float *a, float *b )
 {
+	/*FLOPs 3 float */
     return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
 }
 float vecdot4f( float *a, float *b )
@@ -316,12 +318,14 @@ GLDOUBLE det3x3(GLDOUBLE* data)
 }
 float det3f(float *a, float *b, float *c)
 {
+	/*FLOPs 9 float: dot 3, cross 6 */
 	float temp[3];
 	return vecdot3f(a,veccross3f(temp,b, c));
 }
 
 struct point_XYZ* transform(struct point_XYZ* r, const struct point_XYZ* a, const GLDOUBLE* b)
 {
+	//FLOPs 9 double
     struct point_XYZ tmp; /* JAS*/
 
     if(r != a) { /*protect from self-assignments */
@@ -336,6 +340,25 @@ struct point_XYZ* transform(struct point_XYZ* r, const struct point_XYZ* a, cons
 	r->z = b[2]*tmp.x +b[6]*tmp.y +b[10]*tmp.z +b[14];
     }
     return r;
+}
+struct point_XYZ* transformAFFINE(struct point_XYZ* r, const struct point_XYZ* a, const GLDOUBLE* b){
+	//FLOPs 9 double
+	return transform(r,a,b);
+}
+GLDOUBLE* pointxyz2double(double* r, struct point_XYZ *p){
+	r[0] = p->x; r[1] = p->y; r[2] = p->z;
+	return r;
+}
+struct point_XYZ* double2pointxyz(struct point_XYZ* r, double* p){
+	r->x = p[0]; r->y = p[1]; r->z = p[2];
+	return r;
+}
+double *transformAFFINEd(double *r, double *a, const GLDOUBLE* mat){
+	struct point_XYZ pa, pr;
+	double2pointxyz(&pa,a);
+	transformAFFINE(&pr,&pa,mat);
+	pointxyz2double(r,&pr);
+	return r;
 }
 
 float* transformf(float* r, const float* a, const GLDOUBLE* b)
@@ -677,8 +700,9 @@ float* mattranspose3f(float* res, float* mm)
 	return res;
 }
 
-GLDOUBLE* matinverse(GLDOUBLE* res, GLDOUBLE* mm)
+GLDOUBLE* matinverse98(GLDOUBLE* res, GLDOUBLE* mm)
 {
+	/*FLOPs 98 double: det3 9, 1/det 1, adj3x3 9x4=36, inv*T 13x4=52 */
     double Deta;
     GLDOUBLE mcpy[16];
 	GLDOUBLE *m;
@@ -716,6 +740,8 @@ GLDOUBLE* matinverse(GLDOUBLE* res, GLDOUBLE* mm)
 }
 float* matinverse4f(float* res, float* mm)
 {
+	/*FLOPs 98 float: det3 9, 1/det 1, adj3x3 9x4=36, inv*T 13x4=52 */
+
     float Deta;
     float mcpy[16];
 	float *m;
@@ -727,7 +753,7 @@ float* matinverse4f(float* res, float* mm)
     }
 
     Deta = det3f(&m[0],&m[4],&m[8]); //det3x3(m);
-	Deta = 1.0 / Deta;
+	Deta = 1.0f / Deta;
 
     res[0] = (-m[9]*m[6] +m[5]*m[10])*Deta;
     res[4] = (+m[8]*m[6] -m[4]*m[10])*Deta;
@@ -815,8 +841,10 @@ GLDOUBLE* mattranslate(GLDOUBLE* r, double dx, double dy, double dz)
     return r;
 }
 
-GLDOUBLE* matmultiply(GLDOUBLE* r, GLDOUBLE* mm , GLDOUBLE* nn)
+GLDOUBLE* matmultiplyFULL(GLDOUBLE* r, GLDOUBLE* mm , GLDOUBLE* nn)
 {
+	/* full 4x4, will do perspectives 
+	FLOPs 64 double: 4x4x4 */
     GLDOUBLE tm[16],tn[16];
 	GLDOUBLE *m, *n;
 	int i,j,k;
@@ -831,6 +859,28 @@ GLDOUBLE* matmultiply(GLDOUBLE* r, GLDOUBLE* mm , GLDOUBLE* nn)
 	memcpy(tn,n,sizeof(GLDOUBLE)*16);
 	n = tn;
     }
+	if(0){
+		if(1) for(i=0;i<3;i++){
+			if(mm[i +12] != 0.0){
+				double p = mm[i +12];
+				printf("Ft[%d]%f ",i,p);
+			}
+			if(nn[i + 12] != 0.0){
+				double p = nn[i +12];
+				printf("FT[%d]%f ",i,p);
+			}
+		}
+		if(1) for(i=0;i<3;i++){
+			if(mm[i*4 + 3] != 0.0){
+				double p = mm[i*4 + 3];
+				printf("Fp[%d]%f ",i,p);
+			}
+			if(nn[i*4 + 3] != 0.0){
+				double p = nn[i*4 + 3];
+				printf("FP[%d]%f ",i,p);
+			}
+		}
+	}
 	/* assume 4x4 homgenous transform */
 	for(i=0;i<4;i++)
 		for(j=0;j<4;j++)
@@ -840,27 +890,78 @@ GLDOUBLE* matmultiply(GLDOUBLE* r, GLDOUBLE* mm , GLDOUBLE* nn)
 				r[i*4+j] += m[i*4+k]*n[k*4+j];
 		}
 	return r;
+}
+
+GLDOUBLE* matmultiplyAFFINE(GLDOUBLE* r, GLDOUBLE* nn , GLDOUBLE* mm)
+{
+	/* AFFINE subset - ignores perspectives, use for MODELVIEW 
+	FLOPs 36 double: 3x3x4 */
+    GLDOUBLE tm[16],tn[16];
+	GLDOUBLE *m, *n;
+	int i; //,j,k;
+    /* prevent self-multiplication problems.*/
+	m = mm;
+	n = nn;
+    if(r == m) {
+	memcpy(tm,m,sizeof(GLDOUBLE)*16);
+	m = tm;
+    }
+    if(r == n) {
+	memcpy(tn,n,sizeof(GLDOUBLE)*16);
+	n = tn;
+    }
+	if(0){
+		if(0) for(i=0;i<3;i++){
+			if(mm[i +12] != 0.0){
+				double p = mm[i +12];
+				printf("At[%d]%lf ",i,p);
+			}
+			if(nn[i + 12] != 0.0){
+				double p = nn[i +12];
+				printf("AT[%d]%lf ",i,p);
+			}
+		}
+		if(1) for(i=0;i<3;i++){
+			if(mm[i*4 + 3] != 0.0){
+				double p = mm[i*4 + 3];
+				printf("Ap[%d]%lf ",i,p);
+			}
+			if(nn[i*4 + 3] != 0.0){
+				double p = nn[i*4 + 3];
+				printf("AP[%d]%lf ",i,p);
+			}
+		}
+	}
+
+
 	/* this method ignors the perspectives */
-    r[0] = m[0]*n[0]+m[4]*n[1]+m[8]*n[2];
-    r[4] = m[0]*n[4]+m[4]*n[5]+m[8]*n[6];
-    r[8] = m[0]*n[8]+m[4]*n[9]+m[8]*n[10];
-    r[12]= m[0]*n[12]+m[4]*n[13]+m[8]*n[14]+m[12];
+    r[0] = m[0]*n[0] +m[4]*n[1] +m[8]*n[2];
+    r[4] = m[0]*n[4] +m[4]*n[5] +m[8]*n[6];
+    r[8] = m[0]*n[8] +m[4]*n[9] +m[8]*n[10];
+    r[12]= m[0]*n[12]+m[4]*n[13]+m[8]*n[14] +m[12];
 
-    r[1] = m[1]*n[0]+m[5]*n[1]+m[9]*n[2];
-    r[5] = m[1]*n[4]+m[5]*n[5]+m[9]*n[6];
-    r[9] = m[1]*n[8]+m[5]*n[9]+m[9]*n[10];
-    r[13]= m[1]*n[12]+m[5]*n[13]+m[9]*n[14]+m[13];
+    r[1] = m[1]*n[0] +m[5]*n[1] +m[9]*n[2];
+    r[5] = m[1]*n[4] +m[5]*n[5] +m[9]*n[6];
+    r[9] = m[1]*n[8] +m[5]*n[9] +m[9]*n[10];
+    r[13]= m[1]*n[12]+m[5]*n[13]+m[9]*n[14] +m[13];
 
-    r[2] = m[2]*n[0]+m[6]*n[1]+m[10]*n[2];
-    r[6] = m[2]*n[4]+m[6]*n[5]+m[10]*n[6];
-    r[10]= m[2]*n[8]+m[6]*n[9]+m[10]*n[10];
-    r[14]= m[2]*n[12]+m[6]*n[13]+m[10]*n[14]+m[14];
+    r[2] = m[2]*n[0]+ m[6]*n[1] +m[10]*n[2];
+    r[6] = m[2]*n[4]+ m[6]*n[5] +m[10]*n[6];
+    r[10]= m[2]*n[8]+ m[6]*n[9] +m[10]*n[10];
+    r[14]= m[2]*n[12]+m[6]*n[13]+m[10]*n[14] +m[14];
+
+	r[3] = r[7] = r[11] = 0.0;
+	r[15] = 1.0;
 
     return r;
+}
+GLDOUBLE* matmultiply(GLDOUBLE* r, GLDOUBLE* mm , GLDOUBLE* nn){
+	return matmultiplyFULL(r,mm,nn);
 }
 
 float* matmultiply4f(float* r, float* mm , float* nn)
 {
+	/* FLOPs 64 float: N^3 = 4x4x4 */
     float tm[16],tn[16];
 	float *m, *n;
 	int i,j,k;
@@ -887,6 +988,7 @@ float* matmultiply4f(float* r, float* mm , float* nn)
 }
 float* matmultiply3f(float* r, float* mm , float* nn)
 {
+	/* FLOPs 27 float: N^3 = 3x3x3 */
     float tm[9],tn[9];
 	float *m, *n;
 	int i,j,k;
@@ -950,7 +1052,7 @@ float *matidentity3f(float *b){
 }
 float *axisangle2matrix4f(float *b, float *axisangle){
 	//untested as of july 2014
-	int i,j;
+	int i; //,j;
 	float *mat[4];
 	for(i=0;i<4;i++)
 		mat[i] = &b[i*4];
@@ -960,6 +1062,54 @@ float *axisangle2matrix4f(float *b, float *axisangle){
 		axisangle_rotate3f(mat[i], mat[i], axisangle);
 	}
 	return b;
+}
+
+void matrixFromAxisAngle4d(double *mat, double rangle, double x, double y, double z) 
+{
+
+	// http://www.euclideanspace.com/maths/geometry/rotations/conversions/angleToMatrix/
+	int i;
+	double c, s, t;
+	double *m[4];
+    double tmp1;
+    double tmp2;
+
+    c = cos(rangle);
+    s = sin(rangle);
+    t = 1.0 - c;
+	//row indexes
+	m[0] = &mat[0];
+	m[1] = &mat[4];
+	m[2] = &mat[8];
+	m[3] = &mat[12];
+	//identity
+	for(i=0;i<16;i++) mat[i] = 0.0;
+	for(i=0;i<4;i++) m[i][i] = 1.0;
+	//  if axis is not already normalised then uncomment this
+	// double magnitude = Math.sqrt(a1.x*a1.x + a1.y*a1.y + a1.z*a1.z);
+	// if (magnitude==0) throw error;
+	// a1.x /= magnitude;
+	// a1.y /= magnitude;
+	// a1.z /= magnitude;
+
+    m[0][0] = c + x*x*t;
+    m[1][1] = c + y*y*t;
+    m[2][2] = c + z*z*t;
+
+
+    tmp1 = x*y*t;
+    tmp2 = z*s;
+    m[1][0] = tmp1 + tmp2;
+    m[0][1] = tmp1 - tmp2;
+    tmp1 = x*z*t;
+    tmp2 = y*s;
+    m[2][0] = tmp1 - tmp2;
+    m[0][2] = tmp1 + tmp2;    
+	tmp1 = y*z*t;
+    tmp2 = x*s;
+    m[2][1] = tmp1 + tmp2;
+    m[1][2] = tmp1 - tmp2;
+
 }
 
 void rotate_v2v_axisAngled(double* axis, double* angle, double *orig, double *result)
@@ -1007,7 +1157,7 @@ double matrotate2v(GLDOUBLE* res, struct point_XYZ iv/*original*/, struct point_
 }
 
 
-
+#define SHOW_NONSINGULARS 0  //or 1 for noisy
 /****
  * hacked from a graphics gem
  * Returned value:
@@ -1018,6 +1168,7 @@ double matrotate2v(GLDOUBLE* res, struct point_XYZ iv/*original*/, struct point_
 
 BOOL matrix3x3_inverse_float(float *inn, float *outt)
 {
+	/*FLOPs 40 float: det3 12, 1/det 1, adj3x3 9x3=27 */
 	
     float    det_1;
     float    pos, /* neg, */ temp;
@@ -1065,7 +1216,8 @@ BOOL matrix3x3_inverse_float(float *inn, float *outt)
 	if(APPROX(det_1,0.0f)){
 
         /* Matrix M has no inverse */
-        fprintf (stderr, "affine_matrix4_inverse: singular matrix\n");
+
+        if(SHOW_NONSINGULARS) fprintf (stderr, "affine_matrix4_inverse: singular matrix\n");
         return FALSE;
     }
 
@@ -1086,6 +1238,187 @@ BOOL matrix3x3_inverse_float(float *inn, float *outt)
         return TRUE;
     }
 }
+BOOL affine_matrix4x4_inverse_float(float *inn, float *outt)
+{
+	/*FLOPs 49 float: det3 12, 1/det 1, adj3x3 9x3=27, INV*T=9 */
+	/* faithful transcription of GraphicsGem II, p.604, Wu
+		use this for modelview matrix which has no perspectives (vs FULL 4x4 100 FLOPs)
+	 */
+
+    float    det_1;
+    float    pos, /* neg, */ temp;
+	float *in[4], *out[4];
+
+/*#define ACCUMULATE    \
+//    if (temp >= 0.0)  \
+//        pos += temp;  \
+//    else              \
+        neg += temp;
+*/
+
+#define ACCUMULATE pos += temp;
+
+//#define PRECISION_LIMIT 1.0e-7 //(1.0e-15)
+	in[0] = &inn[0];
+	in[1] = &inn[4];
+	in[2] = &inn[8];
+	in[3] = &inn[12];
+	out[0] = &outt[0];
+	out[1] = &outt[4];
+	out[2] = &outt[8];
+	out[3] = &outt[12];
+
+    /*
+     * Calculate the determinant of submatrix A and determine if the
+     * the matrix is singular as limited by the double precision
+     * floating-point data representation.
+     */
+    pos = 0.0f; //neg = 0.0;
+    temp =  in[0][0] * in[1][1] * in[2][2];
+    ACCUMULATE
+    temp =  in[0][1] * in[1][2] * in[2][0];
+    ACCUMULATE
+    temp =  in[0][2] * in[1][0] * in[2][1];
+    ACCUMULATE
+    temp = -in[0][2] * in[1][1] * in[2][0];
+    ACCUMULATE
+    temp = -in[0][1] * in[1][0] * in[2][2];
+    ACCUMULATE
+    temp = -in[0][0] * in[1][2] * in[2][1];
+    ACCUMULATE
+    det_1 = pos; // + neg;
+
+    /* Is the submatrix A singular? */
+    //if ((det_1 == 0.0) || (abs(det_1 / (pos - neg)) < PRECISION_LIMIT)) {
+	if(APPROX(det_1,0.0f)){
+
+        /* Matrix M has no inverse */
+        if(SHOW_NONSINGULARS) fprintf (stderr, "affine_matrix4_inverse: singular matrix\n");
+        return FALSE;
+    }
+
+    else {
+
+        /* Calculate inverse(A) = adj(A) / det(A) */
+        det_1 = 1.0f / det_1;
+        out[0][0] =  (in[1][1] * in[2][2] - in[1][2] * in[2][1] ) * det_1;
+        out[1][0] = -(in[1][0] * in[2][2] - in[1][2] * in[2][0] ) * det_1;
+        out[2][0] =  (in[1][0] * in[2][1] - in[1][1] * in[2][0] ) * det_1;
+        out[0][1] = -(in[0][1] * in[2][2] - in[0][2] * in[2][1] ) * det_1;
+        out[1][1] =  (in[0][0] * in[2][2] - in[0][2] * in[2][0] ) * det_1;
+        out[2][1] = -(in[0][0] * in[2][1] - in[0][1] * in[2][0] ) * det_1;
+        out[0][2] =  (in[0][1] * in[1][2] - in[0][2] * in[1][1] ) * det_1;
+        out[1][2] = -(in[0][0] * in[1][2] - in[0][2] * in[1][0] ) * det_1;
+        out[2][2] =  (in[0][0] * in[1][1] - in[0][1] * in[1][0] ) * det_1;
+
+		/* Calculat -C * inverse(A) */
+		out[3][0] = -(in[3][0] * out[0][0] + in[3][1]*out[1][0] + in[3][2]*out[2][0]);
+		out[3][1] = -(in[3][0] * out[0][1] + in[3][1]*out[1][1] + in[3][2]*out[2][1]);
+		out[3][2] = -(in[3][0] * out[0][2] + in[3][1]*out[1][2] + in[3][2]*out[2][2]);
+
+		/* Fill in last column */
+		out[0][3] = out[1][3] = out[2][3] = 0.0f;
+		out[3][3] = 1.0f;
+        return TRUE;
+    }
+}
+
+BOOL affine_matrix4x4_inverse_double(double *inn, double *outt)
+{
+	/*FLOPs 49 double: det3 12, 1/det 1, adj3x3 9x3=27, INV*T=9 */
+	/* faithful transcription of Graphics Gems II, p.604, Wu, FAST MATRIX INVERSION
+		use this for modelview matrix which has no perspectives (vs FULL 4x4 inverse 102 FLOPs)
+	*/
+    double    det_1;
+    double    pos, /* neg, */ temp;
+	double *in[4], *out[4];
+
+/*#define ACCUMULATE    \
+//    if (temp >= 0.0)  \
+//        pos += temp;  \
+//    else              \
+        neg += temp;
+*/
+
+#define ACCUMULATE pos += temp;
+
+//#define PRECISION_LIMIT 1.0e-7 //(1.0e-15)
+	in[0] = &inn[0];
+	in[1] = &inn[4];
+	in[2] = &inn[8];
+	in[3] = &inn[12];
+	out[0] = &outt[0];
+	out[1] = &outt[4];
+	out[2] = &outt[8];
+	out[3] = &outt[12];
+
+    /*
+     * Calculate the determinant of submatrix A and determine if the
+     * the matrix is singular as limited by the double precision
+     * floating-point data representation.
+     */
+    pos = 0.0; //neg = 0.0;
+    temp =  in[0][0] * in[1][1] * in[2][2];
+    ACCUMULATE
+    temp =  in[0][1] * in[1][2] * in[2][0];
+    ACCUMULATE
+    temp =  in[0][2] * in[1][0] * in[2][1];
+    ACCUMULATE
+    temp = -in[0][2] * in[1][1] * in[2][0];
+    ACCUMULATE
+    temp = -in[0][1] * in[1][0] * in[2][2];
+    ACCUMULATE
+    temp = -in[0][0] * in[1][2] * in[2][1];
+    ACCUMULATE
+    det_1 = pos; // + neg;
+
+    /* Is the submatrix A singular? */
+    //if ((det_1 == 0.0) || (abs(det_1 / (pos - neg)) < PRECISION_LIMIT)) {
+	if(APPROX(det_1,0.0)){
+
+        /* Matrix M has no inverse */
+        if(SHOW_NONSINGULARS) fprintf (stderr, "affine_matrix4_inverse: singular matrix\n");
+        return FALSE;
+    }
+
+    else {
+
+        /* Calculate inverse(A) = adj(A) / det(A) */
+        det_1 = 1.0 / det_1;
+        out[0][0] =  (in[1][1] * in[2][2] - in[1][2] * in[2][1] ) * det_1;
+        out[1][0] = -(in[1][0] * in[2][2] - in[1][2] * in[2][0] ) * det_1;
+        out[2][0] =  (in[1][0] * in[2][1] - in[1][1] * in[2][0] ) * det_1;
+        out[0][1] = -(in[0][1] * in[2][2] - in[0][2] * in[2][1] ) * det_1;
+        out[1][1] =  (in[0][0] * in[2][2] - in[0][2] * in[2][0] ) * det_1;
+        out[2][1] = -(in[0][0] * in[2][1] - in[0][1] * in[2][0] ) * det_1;
+        out[0][2] =  (in[0][1] * in[1][2] - in[0][2] * in[1][1] ) * det_1;
+        out[1][2] = -(in[0][0] * in[1][2] - in[0][2] * in[1][0] ) * det_1;
+        out[2][2] =  (in[0][0] * in[1][1] - in[0][1] * in[1][0] ) * det_1;
+
+		/* Calculat -C * inverse(A) */
+		out[3][0] = -(in[3][0] * out[0][0] + in[3][1]*out[1][0] + in[3][2]*out[2][0]);
+		out[3][1] = -(in[3][0] * out[0][1] + in[3][1]*out[1][1] + in[3][2]*out[2][1]);
+		out[3][2] = -(in[3][0] * out[0][2] + in[3][1]*out[1][2] + in[3][2]*out[2][2]);
+
+		/* Fill in last column */
+		out[0][3] = out[1][3] = out[2][3] = 0.0;
+		out[3][3] = 1.0;
+        return TRUE;
+    }
+}
+GLDOUBLE* matinverseAFFINE(GLDOUBLE* res, GLDOUBLE* mm){
+	affine_matrix4x4_inverse_double(mm, res);
+	return res;
+}
+GLDOUBLE* matinverseFULL(GLDOUBLE* res, GLDOUBLE* mm){
+	matinverse98(res,mm);
+	return res;
+}
+GLDOUBLE* matinverse(GLDOUBLE* res, GLDOUBLE* mm){
+	matinverseFULL(res,mm);
+	return res;
+}
+
 
 
 #ifdef COMMENT
@@ -1164,6 +1497,25 @@ static double identity[] = { 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1
 void loadIdentityMatrix (double *mat) {
         memcpy((void *)mat, (void *)identity, sizeof(double)*16);
 }
+double *matcopy(double *r, double*mat){
+	memcpy((void*)r, (void*)mat,sizeof(double)*16);
+	return r;
+}
+
+void printmatrix2(GLDOUBLE* mat,char* description ) {
+    int i,j;
+    printf("mat %s {\n",description);
+    for(i = 0; i< 4; i++) {
+		printf("mat [%2d-%2d] = ",i*4,(i*4)+3);
+		for(j=0;j<4;j++)
+			printf(" %f ",mat[(i*4)+j]);
+			//printf("mat[%d] = %f%s;\n",i,mat[i],i==12 ? " +disp.x" : i==13? " +disp.y" : i==14? " +disp.z" : "");
+		printf("\n");
+    }
+    printf("}\n");
+
+}
+
 
 #ifdef OLDCODE
 OLDCODEvoid point_XYZ_slerp(struct point_XYZ *ret, struct point_XYZ *p1, struct point_XYZ *p2, const double t)
@@ -1223,4 +1575,11 @@ void general_slerp(double *ret, double *p1, double *p2, int size, const double t
 	}
 	for(i=0;i<size;i++)
 		ret[i] = scale0 * p1[i] + scale1 * p2[i];
+}
+void point_XYZ_slerp(struct point_XYZ *ret, struct point_XYZ *p1, struct point_XYZ *p2, const double t){
+	double pret[3], pp1[3], pp2[3];
+	pointxyz2double(pp1, p1);
+	pointxyz2double(pp2, p2);
+	general_slerp(pret, pp1, pp2, 3, t);
+	double2pointxyz(ret,pret);
 }

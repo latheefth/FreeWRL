@@ -27,13 +27,14 @@ our %defaultContainerType = (
 	Proto			=>"children",
 
 	ContourPolyLine2D	=>"children",
-	NurbsCurve		=>"children",
+	NurbsCurve		=>"geometry",
 	NurbsCurve2D		=>"children",
+	Contour2D 		=>"trimmingContour",
 	NurbsPositionInterpolator	=>"children",
-	NurbsTrimmedSurface	=>"children",
+	NurbsTrimmedSurface	=>"geometry",
 	CoordinateDouble	=>"children",
 	NurbsOrientationInterpolator	=>"children",
-	NurbsPatchSurface	=>"children",
+	NurbsPatchSurface	=>"geometry",
 	NurbsSet		=>"children",
 	NurbsSurfaceInterpolator	=>"children",
 	NurbsSweptSurface	=>"children",
@@ -73,7 +74,6 @@ our %defaultContainerType = (
 	ColorInterpolator 	=>"children",
 	ColorRGBA 		=>"color",
 	Cone 			=>"geometry",
-	Contour2D 		=>"geometry",
 	Coordinate 		=>"coord",
 	FogCoordinate 		=>"coord",
 	CoordinateDeformer 	=>"children",
@@ -319,7 +319,9 @@ our %RendC = map {($_=>1)} qw/
 	HAnimHumanoid
 	HAnimJoint
 	QuadSet
-
+	NurbsCurve
+	NurbsPatchSurface
+	NurbsTrimmedSurface
 /;
 
 #######################################################################
@@ -366,6 +368,7 @@ our %PrepC = map {($_=>1)} qw/
 	Billboard
 	Group
 	Proto
+	Inline
 	PickableGroup
 	PointLight
 	SpotLight
@@ -416,6 +419,7 @@ our %ChildC = map {($_=>1)} qw/
 	HAnimSite
 	Group
 	Proto
+	Inline
 	ViewpointGroup
 	StaticGroup
 	PickableGroup
@@ -424,7 +428,6 @@ our %ChildC = map {($_=>1)} qw/
 	Anchor
 	GeoLocation
 	GeoTransform
-	Inline
 	Switch
 	CADLayer
 	CADAssembly
@@ -451,6 +454,7 @@ our %CompileC = map {($_=>1)} qw/
 	Transform
 	Group
 	Proto
+	Inline
 	CADAssembly
 	CADPart
 	ViewpointGroup
@@ -536,6 +540,9 @@ our %CompileC = map {($_=>1)} qw/
 	SpotLight
 	PointLight
 	DirectionalLight
+	NurbsCurve
+	NurbsPatchSurface
+	NurbsTrimmedSurface
 /;
 
 
@@ -566,6 +573,7 @@ our %OtherC = map {($_=>1)} qw/
 	PickableGroup
 	Sphere
 /;
+
 
 
 #######################################################################
@@ -625,6 +633,8 @@ our %CollisionC = map {($_=>1)} qw/
 	Extrusion
 	Text
 	GeoElevationGrid
+	NurbsPatchSurface
+	NurbsTrimmedSurface	
 /;
 
 #######################################################################
@@ -716,7 +726,10 @@ our %RendRayC = map {($_=>1)} qw/
 	TriangleSet
 	TriangleFanSet
 	TriangleStripSet
+	NurbsPatchSurface
+	NurbsTrimmedSurface	
 /;
+
 
 #######################################################################
 #######################################################################
@@ -1052,8 +1065,8 @@ our %X3DSpecialC = map {($_=>1)} qw/
 	field
 	fieldValue
 	component
-	import
-	export
+	IMPORT
+	EXPORT
 /;
 
 1;

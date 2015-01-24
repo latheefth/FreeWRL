@@ -170,6 +170,7 @@ double veclengthd( double *p );
 double vecdotd(double *a, double *b);
 double* vecscaled(double* r, double* v, double s);
 double vecnormald(double *r, double *v);
+double *veccopyd(double *c, double *a);
 
 double * vecadd2d(double *c, double *a, double *b);
 double *vecdif2d(double *c, double* a, double *b);
@@ -218,6 +219,12 @@ BOOL matrix3x3_inverse_float(float *inn, float *outt);
 float* vecmultmat4f(float* r4, float *a4, float *mat4);
 float* matmultvec4f(float* r4, float *mat4, float* a4 );
 
+
+struct point_XYZ* transformAFFINE(struct point_XYZ* r, const struct point_XYZ* a, const GLDOUBLE* b);
+GLDOUBLE* pointxyz2double(double* r, struct point_XYZ *p); /* instead of casting struct to array, this is more rigorous */
+struct point_XYZ* double2pointxyz(struct point_XYZ* r, double* p); /* ditto */
+double *transformAFFINEd(double *r, double *a, const GLDOUBLE* mat); /* same as transformAFFINE which is the same as transform() - just different parameter types */
+
 /*only transforms using the rotation component.
   Usefull for transforming normals, and optimizing when you know there's no translation */
 struct point_XYZ* transform3x3(struct point_XYZ* r, const struct point_XYZ* a, const GLDOUBLE* b);
@@ -238,6 +245,9 @@ struct point_XYZ* vecdiff(struct point_XYZ* r, struct point_XYZ* v, struct point
 void make_orthogonal_vector_space(struct point_XYZ* i, struct point_XYZ* j, struct point_XYZ n);
 
 GLDOUBLE* matinverse(GLDOUBLE* res, GLDOUBLE* m);
+GLDOUBLE* matinverseFULL(GLDOUBLE* res, GLDOUBLE* m);
+GLDOUBLE* matinverseAFFINE(GLDOUBLE* res, GLDOUBLE* m);
+
 float* matinverse4f(float* res, float* mm);
 GLDOUBLE* mattranspose(GLDOUBLE* res, GLDOUBLE* m);
 float* mattranspose4f(float* res, float* mm);
@@ -258,12 +268,17 @@ void rotate_v2v_axisAngled(double* axis, double* angle, double *orig, double *re
 GLDOUBLE* mattranslate(GLDOUBLE* r, double dx, double dy, double dz);
 
 GLDOUBLE* matmultiply(GLDOUBLE* r, GLDOUBLE* m , GLDOUBLE* n);
+GLDOUBLE* matmultiplyFULL(GLDOUBLE* r, GLDOUBLE* m , GLDOUBLE* n);
+GLDOUBLE* matmultiplyAFFINE(GLDOUBLE* r, GLDOUBLE* m , GLDOUBLE* n);
 float* matmultiply4f(float* r, float* mm , float* nn);
 float *axisangle2matrix4f(float *b, float *axisangle);
 float *matidentity4f(float *b);
+void matrixFromAxisAngle4d(double *mat, double rangle, double x, double y, double z);
 
 void scale_to_matrix (double *mat, struct point_XYZ *scale);
 void loadIdentityMatrix (double *mat);
+double *matcopy(double *r, double*mat);
+void printmatrix2(GLDOUBLE* mat,char* description );
 void general_slerp(double *ret, double *p1, double *p2, int size, const double t);
-
+void point_XYZ_slerp(struct point_XYZ *ret, struct point_XYZ *p1, struct point_XYZ *p2, const double t);
 #endif /* __FREEWRL_LINEAR_ALGEBRA_H__ */

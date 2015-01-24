@@ -250,11 +250,13 @@ void ml_delete_all(s_list_t *list)
 void ml_delete_all2(s_list_t *list, f_free_t f)
 {
     s_list_t *begin, *next;
+	f_free_t *FF;
     begin = list;
-    if (!f) f = free;
+	FF = f;
+    if (!FF) FF = free;
     while (list) {
         if (ml_elem(list)) {
-            f(ml_elem(list));
+            FF(ml_elem(list));
         } else {
 		ERROR_MSG("ml_delete_all2: *error* deleting empty item %p from list %p\n", list, begin);
 	}
@@ -500,12 +502,14 @@ void cdl_delete_all(cd_list_t *head)
 void cdl_delete_all2(cd_list_t *head, f_free_t f)
 {
     cd_list_t *list, *next;
+	f_free_t *FF;
     list = head;
-    if (!f) f = free;
+	FF = f;
+    if (!FF) FF = free;
 	if(head)
     do{
         if (cdl_elem(list)) {
-            f(cdl_elem(list));
+            FF(cdl_elem(list));
         } else {
 			ERROR_MSG("cdl_delete_all2: *error* deleting empty item %p from list %p\n", list, head);
 		}

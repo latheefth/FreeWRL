@@ -147,7 +147,7 @@ char *strBackslash2fore(char *str)
 {
 #ifdef _MSC_VER
 	int jj;
-	for( jj=0;jj<strlen(str);jj++)
+	for( jj=0;jj<(int)strlen(str);jj++)
 		if(str[jj] == '\\' ) str[jj] = '/';
 #endif
 	return str;
@@ -861,13 +861,14 @@ BOOL tdirectory_remove_all(TCHAR *sPath){
 	return retval;
 }
 void tremove_file_or_folder(TCHAR *path){
-	int iret, isDir;
-	DWORD finfo, err;
+	int isDir; //iret, 
+	DWORD finfo; //, err;
 #if _MSC_VER > 1500
 	// http://msdn.microsoft.com/en-us/library/windows/desktop/aa364946(v=vs.85).aspx
 	WIN32_FILE_ATTRIBUTE_DATA fad;
 	finfo = GetFileAttributesEx(path, GetFileExInfoStandard, &fad);
 	if (!finfo){
+		DWORD err;
 		err = GetLastError();
 		//FormatMessage()
 		ConsoleMessage("GetFileAttribuesEx err=%d maxpath%d pathlen%d", (int)err,MAX_PATH,_tcslen(path)); //http://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx
@@ -896,10 +897,10 @@ void remove_file_or_folder(const char *path){
     TCHAR wcstring[MAX_PATH];
 	char fname2[MAX_PATH];
 	size_t origsize; //= strlen(fname) + 1;
-	BOOL retval;
+	//BOOL retval;
 	origsize = strlen(path) + 1;
 	strcpy(fname2,path);
-	for(jj=0;jj<strlen(fname2);jj++)
+	for(jj=0;jj<(int)strlen(fname2);jj++)
 		if(fname2[jj] == '/' ) fname2[jj] = '\\';
 
 #ifdef _UNICODE
@@ -1206,6 +1207,24 @@ enum {
 	file2blob_task_enqueue,
 } file2blob_task_tactic;
 
+void resource_remove_cached_file(s_list_t *cfe);
+void delete_temp_file(resource_item_t *res){
+	/*we delete a temp file immediately after it's loaded (ie after FILE2BLOB)
+	  (versus cleaning up on program exit. Bombing, killing and some configurations of mobile don't exit cleanly).
+	  stub this function if you want to see the temp files being created during a run.
+	  .x3z files need to hang around longer, for unzipping, and get cleaned up hopefully on exit.
+	*/
+	s_list_t *cf;
+	if(res->media_type != resm_x3z){
+		cf = (s_list_t *)res->cached_files;
+		if (cf) {
+			ml_foreach(cf, resource_remove_cached_file(__l));
+			//should clean up list items (but are contained strings constants/used elsewhere or strduped)
+			res->cached_files = NULL;
+		}
+	}
+}
+
 int file2blob(resource_item_t *res){
 	int retval;
 	if(res->media_type == resm_image){
@@ -1213,6 +1232,7 @@ int file2blob(resource_item_t *res){
 	}else{
 		retval = resource_load(res);  //FILE2BLOB
 	}
+	delete_temp_file(res);
 	return retval;
 }
 int async_thread_count = 0;
@@ -1232,11 +1252,10 @@ void loadAsync (resource_item_t *res) {
 	if(!res->_loadThread) res->_loadThread = malloc(sizeof(pthread_t));
 	pthread_create ((pthread_t*)res->_loadThread, NULL,&thread_load_async, (void *)res);
 }
-
 void file2blob_task(s_list_t *item){
 	//chain, spawn async/thread, or re-enqueue FILE2BLOB to some work thread
 	resource_item_t *res = item->elem;
-	int tactic = file2blob_task_chain; //file2blob_task_spawn;
+	int tactic = file2blob_task_enqueue; // linux>imlib2 likes to stay on same thread //file2blob_task_chain; //file2blob_task_spawn;
 	if(tactic == file2blob_task_chain){
 		//chain FILE2BLOB
 		if(res->media_type == resm_image){
@@ -1245,6 +1264,7 @@ void file2blob_task(s_list_t *item){
 			resource_load(res);  //FILE2BLOB
 		}
 		//enqueue BLOB to BE
+		delete_temp_file(res);
 		resitem_enqueue(item);
 	}else if(tactic == file2blob_task_enqueue){
 		//set BE load function to non-null

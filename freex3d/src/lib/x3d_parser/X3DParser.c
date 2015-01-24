@@ -44,6 +44,7 @@
 #include "../vrml_parser/CParseLexer.h"
 #include "../vrml_parser/CProto.h"
 #include "../vrml_parser/CParse.h"
+#include "../vrml_parser/CRoutes.h"
 #include "../input/EAIHeaders.h"	/* resolving implicit declarations */
 #include "../input/EAIHelpers.h"	/* resolving implicit declarations */
 
@@ -63,11 +64,133 @@ typedef xmlSAXHandler* XML_Parser;
 //OLDCODE #define XML_GetErrorCode(aaa)
 //OLDCODE #define XML_ErrorString(aaa) "errors not currently being reported by libxml port"
 
+struct xml_user_data{
+	Stack *context;
+	Stack *nodes;
+	Stack *atts;
+	Stack *modes;
+	Stack *fields;
+};
+struct xml_user_data *new_xml_user_data(){
+	struct xml_user_data *ud = malloc(sizeof(struct xml_user_data));
+	ud->context = ud->nodes = ud->atts  = ud->modes = ud->fields = NULL;
+	ud->context = newVector(struct X3D_Node*,256);
+	ud->context->n = 0;
+	ud->nodes = newVector(struct X3D_Node*,256);
+	ud->nodes->n = 0;
+	ud->atts = newVector(void*,256);
+	ud->atts->n = 0;
+	ud->modes = newVector(int,256);
+	ud->modes->n = 0;
+	ud->fields = newVector(char *,256);
+	ud->fields->n = 0;
+	return ud;
+}
+//for push,pop,get the index is the vector index range 0, n-1. 
+// Or going from the top top= -1, parent to top = -2.
+#define TOP -1
+#define BOTTOM 0
 
-static int XML_ParseFile(xmlSAXHandler *me, const char *myinput, int myinputlen, int recovery) {
-	int notUsed;
+//currently context isn't a separate struct, its part of X3D_Proto and X3D_Inline, which have
+//the same structure, and can be cross-cast, and represent a web3d executionContext or context for short
+//and that includes DEFnames, ROUTES, protoDeclares, externProtoDeclares, IMPORTS,EXPORTS,scripts
+void pushContext(void *userData, struct X3D_Node* context){
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	if(context->_nodeType != NODE_Proto && context->_nodeType != NODE_Inline)
+		printf("attempt to cast a node of type %d to Proto\n",context->_nodeType);
+	stack_push(struct X3D_Proto*,ud->context,X3D_PROTO(context));
+}
+struct X3D_Proto* getContext(void *userData, int index){
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	//return stack_top(struct X3D_Node*,ud->context);
+	if(index < 0)
+		return vector_get(struct X3D_Proto*,ud->context, vectorSize(ud->context)+index);
+	else
+		return vector_get(struct X3D_Proto*,ud->context, index);
+}
+void popContext(void *userData){
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	stack_pop(struct X3D_Proto*,ud->context);
+}
 
-	if (xmlSAXUserParseMemory(me, &notUsed, myinput,myinputlen) == 0) return 0;
+void pushNode(void *userData,struct X3D_Node* node){
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	stack_push(struct X3D_Node*,ud->nodes,node);
+	stack_push(void* ,ud->atts,NULL);
+}
+struct X3D_Node* getNode(void *userData, int index){
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	if(index < 0)
+		return vector_get(struct X3D_Node*,ud->nodes, vectorSize(ud->nodes)+index);
+	else
+		return vector_get(struct X3D_Node*,ud->nodes, index);
+}
+void* getAtt(void *userData, int index){
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	//return stack_top(void*,ud->atts);
+	if(index < 0)
+		return vector_get(void* ,ud->atts, vectorSize(ud->atts)+index);
+	else
+		return vector_get(void* ,ud->atts, index);
+}
+void popNode(void *userData){
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	stack_pop(struct X3D_Node*,ud->nodes);
+	stack_pop(void* ,ud->atts);
+	//stack_pop(void* ,ud->childs);
+}
+int getNodeTop(void *userData){
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	return vectorSize(ud->nodes)-1;
+}
+void setAtt(void *userData, int index, void *att){
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	//return stack_top(void*,ud->atts);
+	if(index < 0)
+		vector_set(void* ,ud->atts, vectorSize(ud->atts)+index, att);
+	else
+		vector_set(void* ,ud->atts, index, att);
+}
+void pushMode(void *userData, int parsingmode){
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	stack_push(int,ud->modes,parsingmode);
+}
+int getMode(void *userData, int index){
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	//return stack_top(int,ud->modes);
+	if(index < 0)
+		return vector_get(int,ud->modes, vectorSize(ud->modes)+index);
+	else
+		return vector_get(int,ud->modes, index);
+}
+void popMode(void *userData){
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	stack_pop(int,ud->modes);
+}
+
+void pushField(void *userData, char *fname){
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	stack_push(char *,ud->fields,fname);
+	if(0) printf("push n=%d\n",ud->fields->n);
+}
+char * getField(void *userData, int index){
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	if(0) printf("get n=%d\n",ud->fields->n);
+	if(index < 0)
+		return vector_get(char *,ud->fields, vectorSize(ud->fields)+index);
+	else
+		return vector_get(char *,ud->fields, index);
+}
+
+void popField(void *userData){
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	stack_pop(char *,ud->fields);
+	if(0) printf("pop n=%d\n",ud->fields->n);
+}
+
+static int XML_ParseFile(xmlSAXHandler *me, void *user_data, const char *myinput, int myinputlen, int recovery) {
+
+	if (xmlSAXUserParseMemory(me, user_data, myinput,myinputlen) == 0) return 0;
 	return XML_STATUS_ERROR;
 }
 
@@ -77,10 +200,9 @@ static int XML_ParseFile(xmlSAXHandler *me, const char *myinput, int myinputlen,
 	aaa = MALLOC(xmlSAXHandler *, sizeof (xmlSAXHandler)); \
 	bzero (aaa,sizeof(xmlSAXHandler));
 
-/* elements */
 #define XML_SetElementHandler(aaa,bbb,ccc) \
-        aaa->startElement = bbb; \
-        aaa->endElement = ccc; 
+	aaa->startElement = bbb; \
+	aaa->endElement = ccc; 
 
 /* CDATA handling */
 #define XML_SetDefaultHandler(aaa,bbb) /* this is CDATA related too */
@@ -100,32 +222,9 @@ static int XML_ParseFile(xmlSAXHandler *me, const char *myinput, int myinputlen,
 
 #define MAX_CHILD_ATTRIBUTE_DEPTH 32
 
-//char *CDATA_Text = NULL;
-//int CDATA_Text_curlen = 0;
-
-//static int CDATA_TextMallocSize = 0;
-///* for testing Johannes Behrs fieldValue hack for getting data in */
-//static int in3_3_fieldValue = FALSE;
-//static int in3_3_fieldIndex = INT_ID_UNDEFINED;
-
-#ifdef OLDCODE
-OLDCODE /* this ifdef sequence is kept around, for a possible Microsoft Vista port */
-OLDCODE #ifdef XML_LARGE_SIZE
-OLDCODE #if defined(XML_USE_MSC_EXTENSIONS) && _MSC_VER < 1400
-OLDCODE #define XML_FMT_INT_MOD "I64"
-OLDCODE #else
-OLDCODE #define XML_FMT_INT_MOD "ll"
-OLDCODE #endif
-OLDCODE #else
-OLDCODE #define XML_FMT_INT_MOD "l"
-OLDCODE #endif
-#endif //OLDCODE
-
-
 typedef struct pX3DParser{
 	struct VRMLLexer *myLexer;// = NULL;
 	Stack* DEFedNodes;// = NULL;
-	struct Vector** childAttributes;//= NULL;
 	int CDATA_TextMallocSize;// = 0;
 	/* for testing Johannes Behrs fieldValue hack for getting data in */
 	int in3_3_fieldValue;// = FALSE;
@@ -137,6 +236,7 @@ typedef struct pX3DParser{
 
 	int currentParserMode[PROTOINSTANCE_MAX_LEVELS];
 	int currentParserModeIndex;// = 0; //INT_ID_UNDEFINED;
+	struct xml_user_data *user_data;
 
 }* ppX3DParser;
 void *X3DParser_constructor(){
@@ -155,39 +255,23 @@ void X3DParser_init(struct tX3DParser *t){
 		ppX3DParser p = (ppX3DParser)t->prv;
 		p->myLexer = NULL;
 		p->DEFedNodes = NULL;
-		p->childAttributes= NULL;
+		//p->childAttributes= NULL;
 		p->CDATA_TextMallocSize = 0;
 		/* for testing Johannes Behrs fieldValue hack for getting data in */
 		p->in3_3_fieldValue = FALSE;
 		p->in3_3_fieldIndex = INT_ID_UNDEFINED;
 		/* XML parser variables */
 		p->X3DParserRecurseLevel = INT_ID_UNDEFINED;
-		//p->x3dparser[PROTOINSTANCE_MAX_LEVELS];
 		p->currentX3DParser = NULL;
 
-		//p->currentParserMode[PROTOINSTANCE_MAX_LEVELS];
 		p->currentParserModeIndex = 0; //INT_ID_UNDEFINED;
+		p->user_data = NULL;
 
 	}
 }
 	//ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
 
 
-void setChildAttributes(int index,void *ptr)
-{
-	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
-	p->childAttributes[index] = ptr;
-}
-void *getChildAttributes(int index)
-{
-	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
-	return p->childAttributes[index];
-}
-void deleteChildAttributes(int index)
-{
-	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
-	deleteVector (struct nameValuePairs*, p->childAttributes[index]);
-}
 
 
 #ifdef X3DPARSERVERBOSE
@@ -206,40 +290,6 @@ static const char *parserModeStrings[] = {
 #endif
 #undef X3DPARSERVERBOSE
 		
-//int currentParserMode = PARSING_NODES;
-
-///* XML parser variables */
-//static int X3DParserRecurseLevel = INT_ID_UNDEFINED;
-//static XML_Parser x3dparser[PROTOINSTANCE_MAX_LEVELS];
-//static XML_Parser currentX3DParser = NULL;
-//
-//static int currentParserMode[PROTOINSTANCE_MAX_LEVELS];
-//static int currentParserModeIndex = 0; //INT_ID_UNDEFINED;
-void debugpushParserMode(int newmode, char *fle, int line) {
-	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
-	p->currentParserModeIndex++;
-	p->currentParserMode[p->currentParserModeIndex] = newmode; //Q. need 2D [currentParserModeIndex][X3DParserRecurseLevel] or keep using same stack for nested expansions? Same stack for now
-#ifdef X3DPARSERVERBOSE
-	printf("pushParserMode index=%d ",currentParserModeIndex);
-	printf (" mode %s at %s:%d\n",parserModeStrings[newmode],fle,line);
-#endif
-}
-void debugpopParserMode(char *fle, int line)
-{
-	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
-#ifdef X3DPARSERVERBOSE
-	printf("popParserMode index=%d mode %s at %s:%d\n",currentParserModeIndex,parserModeStrings[currentParserMode[currentParserModeIndex]],fle,line);
-#endif
-	p->currentParserMode[p->currentParserModeIndex] = 0;
-	p->currentParserModeIndex--;
-	if(p->currentParserModeIndex < 0) 
-	{ConsoleMessage("stack underflow in popParserMode\n");getchar();getchar();getchar();}
-}
-int getParserMode(void) { 
-	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
-	return p->currentParserMode[p->currentParserModeIndex]; 
-}
-
 
 /* get the line number of the current parser for error purposes */
 int freewrl_XML_GetCurrentLineNumber(void) {
@@ -254,6 +304,8 @@ int freewrl_XML_GetCurrentLineNumber(void) {
 
 
 /*
+in3_3:
+
 2b) Allow <fieldValue> + extension for all node-types
 -------------------------------------------------------------
 There is already a fieldValue element in current X3D-XML
@@ -296,6 +348,7 @@ con:
 - Introduces one additional element in the code; data looks not as compact as 2a
 - Allowing attribute and element-data for a single field is redundant; Need to specify how to handle ambiguities
 
+
 */
 
 /* add this data to the end of the current CData array for later use */
@@ -315,15 +368,15 @@ static void appendDataToFieldValue(char *data, int len) {
 	tg->X3DParser.CDATA_Text[tg->X3DParser.CDATA_Text_curlen]='\0';
 }
 
-void endProtoInstanceFieldTypeNode(const char *name);
-static void endProtoInstanceField(const char *name);
+void endProtoInstanceFieldTypeNode(void *ud, const char *name);
+static void endProtoInstanceField(void *ud, const char *name);
 /* we are finished with a 3.3 fieldValue, tie it in */
-static void setFieldValueDataActive(const char* name) {
+static void setFieldValueDataActive(void *ud,const char* name) {
 	ttglobal tg = gglobal();
 	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 
 	if (!p->in3_3_fieldValue) 
-		endProtoInstanceField(name);
+		endProtoInstanceField(ud,name);
 	else
 	{
 		//printf ("expected this to be in a fieldValue\n");
@@ -336,7 +389,7 @@ static void setFieldValueDataActive(const char* name) {
 				stringFieldType(in3_3_fieldIndex),stringNodeType(parentStack[parentIndex]->_nodeType)); 
 #endif
 
-			setField_fromJavascript (tg->X3DParser.parentStack[tg->X3DParser.parentIndex], (char *) stringFieldType(p->in3_3_fieldIndex),
+			setField_fromJavascript (getNode(ud,TOP), (char *) stringFieldType(p->in3_3_fieldIndex),
 				tg->X3DParser.CDATA_Text, TRUE);
 		} else {
 
@@ -395,8 +448,8 @@ void kill_X3DDefs(void) {
 	int i;
 	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
 
-	FREE_IF_NZ(p->childAttributes);
-	p->childAttributes = NULL;
+	//FREE_IF_NZ(p->childAttributes);
+	//p->childAttributes = NULL;
 
 	if (p->DEFedNodes != NULL) {
 		for (i=0; i<vectorSize(p->DEFedNodes); i++) {
@@ -541,64 +594,59 @@ int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs,
 		break; }
 	case NODE_ComposedShader: {
 		*myObj = (struct Shader_Script *) X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields;
-        error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));
+		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));
 		break; }
-            
-            
 	case NODE_ShaderProgram: {
 		*myObj = (struct Shader_Script *) X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields;
 		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));        
 		break; }
-             
-            
 	case NODE_PackagedShader: {
 		*myObj = (struct Shader_Script *) X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields;
 		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));
 		break; }
     case NODE_ProgramShader: {
-            int i;
-            
-            // assume we have an error, unless we find this in the PackagedShader field
-            error = true;
-            
-            // a ProgramShader has potentially lots of ShaderPrograms in the "programs" field...
-            //ConsoleMessage ("have a PRogramShder here, it has %d programs ",X3D_PROGRAMSHADER(node)->programs.n);
-            for (i=0; i<X3D_PROGRAMSHADER(node)->programs.n; i++) {
-                struct X3D_ShaderProgram *ps = X3D_SHADERPROGRAM(X3D_PROGRAMSHADER(node)->programs.p[i]);
-                //ConsoleMessage ("ProgramShader program %d is %p",i,ps);
-                if (ps != NULL) {
-                    int tmpOfs, tmpType, terror;
+			int i;
 
-                    //ConsoleMessage ("ProgramShader, child %d is a %s",i,stringNodeType(ps->_nodeType));
-                    *myObj = (struct Shader_Script *) ps->_shaderUserDefinedFields;
-                    //ConsoleMessage (".... and the userDefinedFields for this one is %p",*myObj);
-                    terror = !(getFieldFromScript (myLexer, name,*myObj,&tmpOfs,&tmpType,accessType));
-                    //ConsoleMessage ("have error %s",terror?" ok ":" not ok" );
-                
-                    if (!terror) {
-                        //ConsoleMessage ("found it");
-                        *offs = tmpOfs; *type = tmpType;
-                        error = false; // ie, no error
-                    }
+			// assume we have an error, unless we find this in the PackagedShader field
+			error = true;
 
-                }
-            }
-            break;}
+			// a ProgramShader has potentially lots of ShaderPrograms in the "programs" field...
+			//ConsoleMessage ("have a PRogramShder here, it has %d programs ",X3D_PROGRAMSHADER(node)->programs.n);
+			for (i=0; i<X3D_PROGRAMSHADER(node)->programs.n; i++) {
+				struct X3D_ShaderProgram *ps = X3D_SHADERPROGRAM(X3D_PROGRAMSHADER(node)->programs.p[i]);
+				//ConsoleMessage ("ProgramShader program %d is %p",i,ps);
+				if (ps != NULL) {
+					int tmpOfs, tmpType, terror;
+
+					//ConsoleMessage ("ProgramShader, child %d is a %s",i,stringNodeType(ps->_nodeType));
+					*myObj = (struct Shader_Script *) ps->_shaderUserDefinedFields;
+					//ConsoleMessage (".... and the userDefinedFields for this one is %p",*myObj);
+					terror = !(getFieldFromScript (myLexer, name,*myObj,&tmpOfs,&tmpType,accessType));
+					//ConsoleMessage ("have error %s",terror?" ok ":" not ok" );
+
+					if (!terror) {
+						//ConsoleMessage ("found it");
+						*offs = tmpOfs; *type = tmpType;
+						error = false; // ie, no error
+					}
+
+				}
+			}
+			break;}
 	default:
 		*myObj=NULL;
-    
-            /* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
-            fieldInt = findRoutedFieldInFIELDNAMES (node, name, routeTo);
 
-            if (fieldInt >=0) { findFieldInOFFSETS(node->_nodeType, 
-                                                   fieldInt, offs, type, accessType);
-            } else {
-                /* do NOT set error here; this might be a PROTO expansion and more work is needed */
-                *offs=INT_ID_UNDEFINED;
-                *type=INT_ID_UNDEFINED;
-            }
+		/* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
+		fieldInt = findRoutedFieldInFIELDNAMES (node, name, routeTo);
+
+		if (fieldInt >=0) { findFieldInOFFSETS(node->_nodeType,fieldInt, offs, type, accessType);
+		} else {
+			/* do NOT set error here; this might be a PROTO expansion and more work is needed */
+			*offs=INT_ID_UNDEFINED;
+			*type=INT_ID_UNDEFINED;
+		}
 	}
-    //if (error) ConsoleMessage ("getRoutingInfo an error"); else ConsoleMessage ("getRoutingInfo ok");
+	//if (error) ConsoleMessage ("getRoutingInfo an error"); else ConsoleMessage ("getRoutingInfo ok");
 
 	return error;
 }
@@ -613,12 +661,12 @@ static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node **innode, i
 
 	node = *innode; /* ease of use - contents of pointer in param line */
  
-    //printf ("start of getRouteField...\n");
-    
+	//printf ("start of getRouteField...\n");
+
 	error = getRoutingInfo(myLexer,node,offs,type,&accessType, &holder, name,routeTo);
-    
-    //if (error) ConsoleMessage ("getRouteField,  after getRoutingInfo an error"); else ConsoleMessage ("getRouteField, getRoutingInfo ok");
-    //printf ("getRouteField, offs %d type %d\n",*offs, *type); 
+
+	//if (error) ConsoleMessage ("getRouteField,  after getRoutingInfo an error"); else ConsoleMessage ("getRouteField, getRoutingInfo ok");
+	//printf ("getRouteField, offs %d type %d\n",*offs, *type); 
 
 	if ((*offs <0) && isProto(node)) 
 	{
@@ -710,7 +758,7 @@ static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node **innode, i
 		//}
 	}
 
-    //if (error) ConsoleMessage ("getRouteField,  an error"); else ConsoleMessage ("getRouteField,  ok");
+	//if (error) ConsoleMessage ("getRouteField,  an error"); else ConsoleMessage ("getRouteField,  ok");
 
 
 	if (*offs <0) {
@@ -720,7 +768,7 @@ static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node **innode, i
 	}
 
 	/* can we route with this direction with this field? This might be already checked, but lets
-	   make sure once and for all... */
+		make sure once and for all... */
 	if (routeTo) {
 		if ((accessType != KW_inputOnly) && (accessType != KW_inputOutput)) {
 			ConsoleMessage ("ROUTE: line %d: can not route TO a type of %s\n",LINE,stringKeywordType(accessType));
@@ -732,16 +780,136 @@ static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node **innode, i
 			error = TRUE;
 		}
 	}
-    //if (error) ConsoleMessage ("getRouteField, returning an error"); else ConsoleMessage ("getRouteField, returning ok");
+	//if (error) ConsoleMessage ("getRouteField, returning an error"); else ConsoleMessage ("getRouteField, returning ok");
 	return error;
 }
 
+struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, char *name);
+int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *type, int *kind, int *iifield, union anyVrml **value);
+void broto_store_route(struct X3D_Proto* proto, struct X3D_Node* fromNode, int fromOfs, struct X3D_Node* toNode, int toOfs, int ft);
+struct IMEXPORT *broto_search_IMPORTname(struct X3D_Proto *context, char *name);
+void broto_store_ImportRoute(struct X3D_Proto* proto, char *fromNode, char *fromField, char *toNode, char* toField);
+struct brotoRoute *createNewBrotoRoute();
+void broto_store_broute(struct X3D_Proto* context,struct brotoRoute *route);
+int QA_routeEnd(struct X3D_Proto *context, char* cnode, char* cfield, struct brouteEnd* brend, int isFrom){
+	//checks one end of a route during parsing
+	struct X3D_Node* node;
+	int found = 0;
 
+	brend->weak = 1;
+	brend->cfield = cfield;
+	brend->cnode = cnode;
+
+	node = broto_search_DEFname(context,cnode);
+	if(!node){
+		struct IMEXPORT *imp;
+		imp = broto_search_IMPORTname(context, cnode);
+		if(imp){
+			found = 1;
+			brend->weak = 2;
+		}
+	}else{
+		int idir;
+		int type,kind,ifield,source;
+		void *decl;
+		union anyVrml *value;
+		if(isFrom) idir = PKW_outputOnly;
+		else idir = PKW_inputOnly;
+		found = find_anyfield_by_nameAndRouteDir(node,&value,&kind,&type,cfield,&source,&decl,&ifield,idir);  //fieldSynonymCompare for set_ _changed
+		if(found){
+			brend->node = node;
+			brend->weak = 0;
+			brend->ftype = type;
+			brend->ifield = ifield;
+		}
+	}
+	return found;
+}
+void QAandRegister_parsedRoute_B(struct X3D_Proto *context, char* fnode, char* ffield, char* tnode, char* tfield){
+	// used by both x3d and vrml parsers if usingBrotos(), to quality check each end of a route for validity,
+	//  store in context->__ROUTES, and -if instancing scenery- register the route
+	//  this version accomodates regular routes and routes starting and/or ending on an IMPORTed node, which 
+	//  may not show up until the inline is loaded, and which may disappear when the inline is unloaded.
+	int haveFrom, haveTo, ok;
+	struct brotoRoute* route;
+	int ftf,ftt;
+	int allowingVeryWeakRoutes = 1;  //this will store char* node, char* field on an end (or 2) for later import updating via js or late IMPORT statement
+
+	ok = FALSE;
+	route = createNewBrotoRoute();
+	haveFrom = QA_routeEnd(context, fnode, ffield, &route->from, 1);
+	haveTo = QA_routeEnd(context, tnode, tfield, &route->to, 0);
+	if((haveFrom && haveTo) || allowingVeryWeakRoutes){
+		ftf = -1;
+		ftt = -1;
+		if( !route->from.weak) ftf = route->from.ftype;
+		if( !route->to.weak) ftt = route->to.ftype;
+		route->ft = ftf > -1 ? ftf : ftt > -1? ftt : -1;
+		route->lastCommand = 0; //not registered
+		if(ftf == ftt && ftf > -1){
+			//regular route, register while we are hear
+			int pflags = context->__protoFlags;
+			char oldwayflag = ciflag_get(pflags,1); 
+			char instancingflag = ciflag_get(pflags,0);
+			if(oldwayflag || instancingflag){
+				CRoutes_RegisterSimpleB(route->from.node, route->from.ifield, route->to.node, route->to.ifield, route->ft);
+				route->lastCommand = 1; //registered
+			}
+			//broto_store_route(context,fromNode,fifield,toNode,tifield,ftype); //new way delay until sceneInstance()
+			//broto_store_broute(context,route);
+			ok = TRUE;
+		}else if(route->to.weak || route->from.weak){
+			//broto_store_broute(context,route);
+			ok = TRUE;
+		}
+	}
+	if(ok || allowingVeryWeakRoutes)
+		broto_store_broute(context,route);
+	if(!ok || !(haveFrom && haveTo)){
+		ConsoleMessage("Routing problem: ");
+		/* are the types the same? */
+		if (haveFrom && haveTo && route->from.ftype != route->to.ftype) {
+			ConsoleMessage ("type mismatch %s != %s, ",stringFieldtypeType(route->from.ftype), stringFieldtypeType(route->to.ftype));
+		}
+		if(!haveFrom) ConsoleMessage(" _From_ ");
+		if(!haveTo) ConsoleMessage(" _To_ ");
+		ConsoleMessage ("from  %s %s, ",fnode,ffield);
+		ConsoleMessage ("to %s %s\n",tnode,tfield);
+	}
+}
 /******************************************************************************************/
 /* parse a ROUTE statement. Should be like:
 	<ROUTE fromField="fraction_changed"  fromNode="TIME0" toField="set_fraction" toNode="COL_INTERP"/>
 */
+static void parseRoutes_B (void *ud, char **atts) {
+	struct X3D_Proto *context;
+	struct X3D_Node *fromNode = NULL;
+	struct X3D_Node *toNode = NULL;	
+	int i; //, okf,okt, ftype,fkind,fifield,fsource,ttype,tkind,tifield,tsource;
+	//union anyVrml *fvalue, *tvalue;
+	//void *fdecl,*tdecl;
+	int error = FALSE;
+	//int isImportRoute;
+	//int fromType;
+	//int toType;
+	char *ffield, *tfield, *fnode, *tnode;
+	
+	context = getContext(ud,TOP);
 
+	ffield = tfield = fnode = tnode = NULL;
+	for (i = 0; atts[i]; i += 2) {
+		if (strcmp("fromNode",atts[i]) == 0) {
+			fnode = atts[i+1];
+		} else if (strcmp("toNode",atts[i]) == 0) {
+			tnode = atts[i+1];
+		} else if (strcmp("fromField",atts[i])==0) {
+			ffield = atts[i+1];
+		} else if (strcmp("toField",atts[i]) ==0) {
+			tfield = atts[i+1];
+		}
+	}
+	QAandRegister_parsedRoute_B(context, fnode, ffield, tnode, tfield);
+}
 static void parseRoutes (char **atts) {
 	struct X3D_Node *fromNode = NULL;
 	struct X3D_Node *toNode = NULL;	
@@ -799,7 +967,7 @@ static void parseRoutes (char **atts) {
 		} else if (strcmp("toField",atts[i]) ==0) {
 			error = getRouteField(p->myLexer, &toNode, &toOffset, &toType, (char *)atts[i+1],1);
 		}
-	}	
+	}
 
 	/* get out of here if an error is found */
 	if (error) return;
@@ -808,7 +976,7 @@ static void parseRoutes (char **atts) {
 	printf ("now routing from a %s to a %s \n",stringFieldtypeType(fromType), stringFieldtypeType(toType));
 	printf ("	pointers %d %d to %d %d\n",fromNode, fromOffset, toNode, toOffset);
 	#endif
-    
+
 
 	/* are the types the same? */
 	if (fromType != toType) {
@@ -830,19 +998,18 @@ static void parseRoutes (char **atts) {
 
 WARNING - PROTOS have a two extra groups put in; one to hold while parsing, and one Group that is always there. 
 
- <Scene>
-
-  <ProtoDeclare name='txt001'>
-  <ProtoBody>
-    <Material ambientIntensity='0' diffuseColor='1 0.85 0.7' specularColor='1 0.85 0.7' shininess='0.3'/>
-  </ProtoBody>
-  </ProtoDeclare>
-  <Shape>
-        <Cone/>
-     <Appearance>
-                <ProtoInstance  name='txt001'/>
-</Appearance>
-  </Shape>
+<Scene>
+	<ProtoDeclare name='txt001'>
+	<ProtoBody>
+		<Material ambientIntensity='0' diffuseColor='1 0.85 0.7' specularColor='1 0.85 0.7' shininess='0.3'/>
+	</ProtoBody>
+	</ProtoDeclare>
+	<Shape>
+		<Cone/>
+		<Appearance>
+			<ProtoInstance  name='txt001'/>
+		</Appearance>
+	</Shape>
 </Scene>
 
 is a good test to see what happens for these nodes. 
@@ -868,10 +1035,109 @@ Note that if we are dealing with Groups as Proto Expansions, none of the above i
 need to put a node into something other than the "children" field.
 
 */
+int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *type, int *kind, int *iifield, union anyVrml **value);
+int indexChildrenName(struct X3D_Node *node);
+struct Multi_Node *childrenField(struct X3D_Node *node);
+void linkNodeIn_B(void *ud) {
+/*	Assumes you have parsed a node, and have it pushed onto the node stack, and 
+	now you want to put it in a field in it's parent
+	'children' is a weak field recommendation from either the parent or current node
+	more specific recommendations take priority
+1. when parsing a node, ProtoInstance, field, or fieldvalue, 
+	pushField the char* name or fieldoffset of the most likely default field, or NULL if no recommendation for a default
+	Shape would have no default. Transform has children. Inline has __children. GeoLOD has rootnodes.
+2. PopField when coming out of node, ProtoInstance, fieldValue, or field end
+3. In CDATA, startNode, startProtoInstance 
+a) in node or protoinstance, look if there's a _defaultContainer for currentNode, 
+	and if not null, and not children, look it up in the parent node 
+	(may be null, ie geometry might be trying to find a field in a Proto)
+b) get the parent's suggested fieldname off stack, and if not null, 
+	lookup in topnode to get type, offsetof and over-ride (example, proto would steer geometry into its __children)
+	- and field or fieldValue would be very specific
+c) look at atts containerField, and if not null and not children, use it.
+	- scene author is trying to over-ride defaults.
+*/
+	int defaultContainer; //, instanceContainer, i;
+	struct X3D_Node *node, *parent;
+	char *parentsSuggestion; //*ic,  
+	int type, kind, iifield, ok;
+	union anyVrml *value;
+	const char *fname;
 
+	node = getNode(ud,TOP);
+	parent = getNode(ud,TOP-1);
+	if(!node || !parent)return;
+	parentsSuggestion = getField(ud,TOP-1);
+	//for(i=0;i<10;i++)
+	//	printf("getField %d = %s",i,getField(ud,i));
 
+	//3.a)
+	defaultContainer = node->_defaultContainer;
+	if(defaultContainer == FIELDNAMES_children) defaultContainer = 0;
+	value = NULL;
+	fname = NULL;
+	if(defaultContainer){
+		fname = FIELDNAMES[defaultContainer];
+		ok = getFieldFromNodeAndName(parent,fname,&type,&kind,&iifield,&value);
+	}
+	if(!value && node->_defaultContainer == FIELDNAMES_children){
+		//if you try and put a transform into a proto, or LOD, or Inline (or switch?) you'll come in
+		//here to get the equivalent-to-children field
+		ok = getFieldFromNodeAndName(parent,"children",&type,&kind,&iifield,&value);
+		if(!ok){
+			int kids = indexChildrenName(parent);
+			if(kids > 0){
+				 value = (union anyVrml*)childrenField(parent);
+				 type = FIELDTYPE_MFNode;
+			}
+		}
+	}
+	//3.b)
+	if(parentsSuggestion) {
+		//if you're parsing a fieldValue, and your value is an SF or MFnode in a child xml element,
+		//<fieldValue name='myTransform'>
+		//	<Transform USE='tommysTransform'/>
+		//</fieldValue>
+		//you'll come in here
+		ok =getFieldFromNodeAndName(parent,parentsSuggestion,&type,&kind,&iifield,&value);
+	}
+			
+	if(!value && parent){
+		ok = getFieldFromNodeAndName(parent,"children",&type,&kind,&iifield,&value);
+		if(!ok){
+			int kids = indexChildrenName(parent);
+			if(kids > 0){
+				 value = (union anyVrml*)childrenField(parent);
+				 type = FIELDTYPE_MFNode;
+			}
+		}
+	}
 
-void linkNodeIn(char *where, int lineno) {
+	if(value){
+		if(type == FIELDTYPE_SFNode){
+			value->sfnode = node;
+			ADD_PARENT(node,parent);
+		}else if(type == FIELDTYPE_MFNode){
+			union anyVrml *valueadd = NULL;
+			ok = 0;
+			if(parent->_nodeType == NODE_Proto){
+				struct X3D_Proto *pparent = X3D_PROTO(parent);
+				char cflag = ciflag_get(pparent->__protoFlags,2);
+				if(cflag == 2)  //scene
+					ok = getFieldFromNodeAndName(parent,"addChildren",&type,&kind,&iifield,&valueadd);
+			}
+			if(ok)
+				AddRemoveChildren(parent,&valueadd->mfnode,&node,1,1,NULL,0);
+			else
+				AddRemoveChildren(parent,&value->mfnode,&node,1,1,NULL,0);
+		}
+	}else{
+		printf("no where to put node in parent\n");
+	}
+
+}
+
+void linkNodeIn(void *ud, char *where, int lineno) {
 	int coffset;
 	int ctype;
 	int ctmp;
@@ -881,15 +1147,15 @@ void linkNodeIn(char *where, int lineno) {
 	ttglobal tg = gglobal();
 
 	/* did we have a valid node here? Things like ProtoDeclares are NOT valid nodes, and we can ignore them,
-	   because there will be no code associated with them */
+		because there will be no code associated with them */
 	
 	/* bounds check */
-	if (tg->X3DParser.parentIndex < 1) {
-		ConsoleMessage ("linkNodeIn: stack underflow");
-		return;
-	}
+	//if (tg->X3DParser.parentIndex < 1) {
+	//	ConsoleMessage ("linkNodeIn: stack underflow");
+	//	return;
+	//}
 
-	if ((tg->X3DParser.parentStack[tg->X3DParser.parentIndex] == NULL) || (tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1] == NULL)) {
+	if ((getNode(ud,TOP) == NULL) || (getNode(ud,TOP-1) == NULL)) {
 		ConsoleMessage ("linkNodeIn: NULL found in stack");
 		return;
 	}
@@ -898,10 +1164,10 @@ void linkNodeIn(char *where, int lineno) {
 /*
 	printf ("linkNodeIn at %s:%d: parserMode %s parentIndex %d, ",
 			where,lineno,
-			parserModeStrings[getParserMode()],parentIndex);
+			parserModeStrings[getMode(ud,TOP)],parentIndex);
 */
 	printf ("linkNodeIn parserMode %s parentIndex %d, ",
-			parserModeStrings[getParserMode()],parentIndex);
+			parserModeStrings[getMode(ud,TOP)],parentIndex);
 	printf ("linking in %s (%u) to %s (%u), field %s (%d)\n",
 		stringNodeType(parentStack[parentIndex]->_nodeType),
 		parentStack[parentIndex],
@@ -928,29 +1194,34 @@ void linkNodeIn(char *where, int lineno) {
 	#endif
 
 	/* where to put this node... */
-	myContainer = tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_defaultContainer;
+	myContainer = getNode(ud,TOP)->_defaultContainer;
 	
 	/* kid swap - any parent nodes -like GeoLOD- that have a children field, but intend 
-	   to put _defaultContainer=FIELDNAMES_children xml child nodes 
-	   into a different field can do it here
+		to put _defaultContainer=FIELDNAMES_children xml child nodes 
+		into a different field can do it here
 	*/
 	defaultContainer = myContainer;
 	/* GeoLOD - put into rootNode field */
-	if(myContainer == FIELDNAMES_children && tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1]->_nodeType == NODE_GeoLOD)
+	if(myContainer == FIELDNAMES_children) //&& getNode(ud,TOP-1)->_nodeType == NODE_GeoLOD)
 	{
-		defaultContainer = FIELDNAMES_rootNode; 
+		switch(getNode(ud,TOP-1)->_nodeType){
+		case NODE_GeoLOD:
+			defaultContainer = FIELDNAMES_rootNode; break;
+		case NODE_Proto:
+			defaultContainer = FIELDNAMES___children; break; 
+		}
 	}
 
 	/* Link it in; the parent containerField should exist, and should be an SF or MFNode  */
-	findFieldInOFFSETS(tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1]->_nodeType, 
+	findFieldInOFFSETS(getNode(ud,TOP-1)->_nodeType, 
 		defaultContainer, &coffset, &ctype, &ctmp);
 		//parentStack[parentIndex]->_defaultContainer, &coffset, &ctype, &ctmp);
 
 	/* PROTOS - we will have a Group node here */
 	/* first case, assigning a node to a PROTO Group expansion - eg, in the above example, 
-	   Material should go to appearance, but FORCE it go to children here. */
+		Material should go to appearance, but FORCE it go to children here. */
 
-	if ((ctype == INT_ID_UNDEFINED) && (tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1]->_nodeType == NODE_Group)) {
+	if ((ctype == INT_ID_UNDEFINED) && (getNode(ud,TOP-1)->_nodeType == NODE_Group)) {
 		/* printf ("problem finding field %d in a Group %u, so we are pretending this is a PROTO for now\n",
 			stringFieldType(parentStack[parentIndex-1],
 			stringFieldType(myContainer)); */
@@ -959,15 +1230,15 @@ void linkNodeIn(char *where, int lineno) {
 		/* lets see if we have a base node with a PROTO Group flag. */
 		if (tg->X3DParser.parentIndex>=2) {
 			/* printf ("we have enough space...\n"); */
-			if(tg->X3DParser.parentStack[tg->X3DParser.parentIndex-2]->_nodeType == NODE_Group) {
+			if(getNode(ud,TOP-2)->_nodeType == NODE_Group) {
 				/* printf ("and we have a group->group\n"); */
-				if (X3D_GROUP(tg->X3DParser.parentStack[tg->X3DParser.parentIndex-2])->FreeWRL__protoDef == PROTO_MARKER) {
+				if (X3D_GROUP(getNode(ud,TOP-2))->FreeWRL__protoDef == PROTO_MARKER) {
 					/* printf ("proto, step1, were going to go to a %s, not to children\n",stringFieldType(myContainer)); */
 					findFieldInOFFSETS(NODE_Group, 
 						FIELDNAMES_children, &coffset, &ctype, &ctmp);
 					/* printf ("changed it to ctype %d\n",ctype); */
 				}
-			}else if(tg->X3DParser.parentStack[tg->X3DParser.parentIndex-2]->_nodeType == NODE_Script) {
+			}else if(getNode(ud,TOP-2)->_nodeType == NODE_Script) {
 				/* Script SFNode fields are set up with Group nodes as containers - so allow a default container to be group's children */
 					findFieldInOFFSETS(NODE_Group, 
 						FIELDNAMES_children, &coffset, &ctype, &ctmp);
@@ -976,13 +1247,13 @@ void linkNodeIn(char *where, int lineno) {
 	}
 
 	/* PROTOS, second case: we have the PROTO group, and it is going to an invalid container field.... */
-	if ((ctype == INT_ID_UNDEFINED) && (tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType == NODE_Group)) {
+	if ((ctype == INT_ID_UNDEFINED) && (getNode(ud,TOP)->_nodeType == NODE_Group)) {
 		/* is this linking in the PROTO? */
-		if (X3D_GROUP(tg->X3DParser.parentStack[tg->X3DParser.parentIndex])->FreeWRL__protoDef == PROTO_MARKER) {
+		if (X3D_GROUP(getNode(ud,TOP))->FreeWRL__protoDef == PROTO_MARKER) {
 			/* printf ("WE HAVE PROTODEF %d\n",X3D_GROUP(parentStack[parentIndex])->FreeWRL__protoDef);
 			printf ("GROUP has %d children\n",X3D_GROUP(parentStack[parentIndex])->children.n); */
-			if (X3D_GROUP(tg->X3DParser.parentStack[tg->X3DParser.parentIndex])->children.n>0) {
-				struct X3D_Group *firstCh = X3D_GROUP(X3D_GROUP(tg->X3DParser.parentStack[tg->X3DParser.parentIndex])->children.p[0]);
+			if (X3D_GROUP(getNode(ud,TOP))->children.n>0) {
+				struct X3D_Group *firstCh = X3D_GROUP(X3D_GROUP(getNode(ud,TOP))->children.p[0]);
 
 				/* printf ("first child is of type %s\n", stringNodeType(firstCh->_nodeType)); */
 
@@ -1002,14 +1273,14 @@ void linkNodeIn(char *where, int lineno) {
 					stringFieldType(parentStack[parentIndex+2]->_defaultContainer));
 					*/
 					
-					myContainer = tg->X3DParser.parentStack[tg->X3DParser.parentIndex+2]->_defaultContainer;
+					myContainer = getNode(ud,TOP+2)->_defaultContainer;
 					
 					/*
 					printf ("and, we are going to look for container %s\n",stringFieldType(myContainer));
 					printf ("in a node type of %s\n",stringNodeType(X3D_NODE(parentStack[parentIndex-1])->_nodeType));
 					*/
 
-					findFieldInOFFSETS(X3D_NODE(tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1])->_nodeType, myContainer,
+					findFieldInOFFSETS(X3D_NODE(getNode(ud,TOP-1))->_nodeType, myContainer,
 						&coffset, &ctype, &ctmp);
 				}
 			}
@@ -1019,11 +1290,11 @@ void linkNodeIn(char *where, int lineno) {
 	/* strict parsing on - lets see if this is a Metadatafield not following guidelines */
 
 	if ((coffset <= 0) && (!tg->internalc.global_strictParsing)) {
-		if ((tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType == NODE_MetadataFloat) ||
-		    (tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType == NODE_MetadataString) ||
-		    (tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType == NODE_MetadataDouble) ||
-		    (tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType == NODE_MetadataInteger)) {
-			findFieldInOFFSETS(tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1]->_nodeType, 
+		if ((getNode(ud,TOP)->_nodeType == NODE_MetadataFloat) ||
+			(getNode(ud,TOP)->_nodeType == NODE_MetadataString) ||
+			(getNode(ud,TOP)->_nodeType == NODE_MetadataDouble) ||
+			(getNode(ud,TOP)->_nodeType == NODE_MetadataInteger)) {
+			findFieldInOFFSETS(getNode(ud,TOP-1)->_nodeType, 
 				FIELDNAMES_metadata, &coffset, &ctype, &ctmp);
 
 			/*
@@ -1035,7 +1306,7 @@ void linkNodeIn(char *where, int lineno) {
 
 		}
 		if (coffset <= 0) {
-		    /* this is stated better below 
+			/* this is stated better below 
 			ConsoleMessage ("X3DParser - trouble finding field %s in node %s\n",
 			stringFieldType(parentStack[parentIndex]->_defaultContainer),
 			stringNodeType(parentStack[parentIndex-1]->_nodeType));
@@ -1043,7 +1314,7 @@ void linkNodeIn(char *where, int lineno) {
 		} else {
 			printf ("X3DParser - warning line %d, incorrect Metadata; \"%s\" defaultContainer changed to \"metadata\"\n",
 				LINE,
-				stringNodeType(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType));
+				stringNodeType(getNode(ud,TOP)->_nodeType));
 		}
 	}
 
@@ -1052,32 +1323,61 @@ void linkNodeIn(char *where, int lineno) {
 	if ((ctype != FIELDTYPE_MFNode) && (ctype != FIELDTYPE_SFNode)) {
 		ConsoleMessage ("X3DParser: warning, line %d: trouble linking to containerField :%s: of parent node type :%s: (specified in a :%s: node)", LINE,
 			stringFieldType(myContainer),
-			stringNodeType(tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1]->_nodeType),
-			stringNodeType(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType));
+			stringNodeType(getNode(ud,TOP-1)->_nodeType),
+			stringNodeType(getNode(ud,TOP)->_nodeType));
 		return;
 	}
-	memptr = offsetPointer_deref (char *, tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1],coffset);
+	memptr = offsetPointer_deref (char *, getNode(ud,TOP-1),coffset);
 	if (ctype == FIELDTYPE_SFNode) {
+		void *temp = getNode(ud,TOP);
 		/* copy over a single memory pointer */
-		memcpy (memptr, &tg->X3DParser.parentStack[tg->X3DParser.parentIndex],sizeof(struct X3D_Node *));
-		ADD_PARENT(tg->X3DParser.parentStack[tg->X3DParser.parentIndex], tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1]);
+		//memcpy (memptr, &getNode(ud,TOP),sizeof(struct X3D_Node *));
+		memcpy (memptr, &temp,sizeof(struct X3D_Node *));
+		ADD_PARENT(getNode(ud,TOP), getNode(ud,TOP-1));
 	} else {
+		struct X3D_Node *temp = getNode(ud,TOP);
 		AddRemoveChildren (
-			tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1], /* parent */
+			getNode(ud,TOP-1), /* parent */
 			(struct Multi_Node *) memptr,			/* where the children field is */
-			&(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]),	/* this child, 1 node */
-                1, 1,__FILE__,__LINE__);
+			&temp, //&(getNode(ud,TOP)),	/* this child, 1 node */
+				1, 1,__FILE__,__LINE__);
+	}
+}
+void Parser_scanStringValueToMem_B(union anyVrml* any, indexT ctype, char *value, int isXML);
+void endCDATA_B (void *ud, const xmlChar *string, int len) {
+	char *fieldname = getField(ud,TOP);
+	struct X3D_Node *node = getNode(ud,TOP);
+	int type, kind, iifield, ok, handled;
+	union anyVrml *value;
+	ok = getFieldFromNodeAndName(node,fieldname,&type,&kind,&iifield,&value);
+	if(ok){
+		handled = FALSE;
+		if(!strcmp(fieldname,"url")){
+			//Script javascript doesn't parse well as an MFString
+			if(strstr(string,"script")){
+				handled = TRUE;
+				value->mfstring.n = 1;
+				value->mfstring.p = malloc(sizeof(void *));
+				value->mfstring.p[0] = newASCIIString(string);
+				if(0) printf("copied cdata string= [%s]\n",(struct Uni_String*)(value->mfstring.p[0])->strptr);
+			}
+		}
+		if(!handled)
+			Parser_scanStringValueToMem_B(value, type,string, TRUE);
 	}
 }
 
-
-void endCDATA (void *user_data, const xmlChar *string, int len) {
+void endCDATA (void *ud, const xmlChar *string, int len) {
 	ttglobal tg = gglobal();
 	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
+	if(usingBrotos()){
+		endCDATA_B(ud,string,len);
+		return;
+	}
 	/* JAS printf ("cdata_element, :%s:\n",string); */
-        if (getParserMode() == PARSING_PROTOBODY) {
-                dumpCDATAtoProtoBody ((char *)string);
-        } else if (p->in3_3_fieldValue) {
+	if (getMode(ud,TOP) == PARSING_PROTOBODY) {
+		dumpCDATAtoProtoBody ((char *)string);
+	} else if (p->in3_3_fieldValue) {
 		appendDataToFieldValue((char *)string,len);
 	} else {
 		/* most likely we have a script here */
@@ -1101,27 +1401,60 @@ void endCDATA (void *user_data, const xmlChar *string, int len) {
 static void parseImport(char **atts) {
 	int i;
 
-        for (i = 0; atts[i]; i += 2) {
+	for (i = 0; atts[i]; i += 2) {
 		printf("import field:%s=%s\n", atts[i], atts[i + 1]);
 	}
 /* do nothing right now */
 return;
 }
+void handleImport_B (struct X3D_Node *nodeptr, char *nodeName,char *nodeImport, char *as);
+static void parseImport_B(void *ud, char **atts) {
+	int i;
+	char *inlinedef, *exporteddef, *as;
+	struct X3D_Proto *context;
+	context = getContext(ud,TOP);
+
+	inlinedef = exporteddef = as = NULL;
+	for (i = 0; atts[i]; i += 2) {
+		printf("import field:%s=%s\n", atts[i], atts[i + 1]);
+		if(!strcmp(atts[i],"inlineDEF")) inlinedef = atts[i+1];
+		if(!strcmp(atts[i],"exportedDEF")) exporteddef = atts[i+1];
+		if(!strcmp(atts[i],"AS")) as = atts[i+1];
+
+	}
+	handleImport_B (X3D_NODE(context), inlinedef, exporteddef, as);
+}
 
 
+void handleExport_B (void *nodeptr, char *node, char *as);
+static void parseExport_B(void *ud, char **atts) {
+	// http://www.web3d.org/documents/specifications/19776-1/V3.3/Part01/concepts.html#IMPORT_EXPORTStatementSyntax
+	int i;
+	char *localdef, *as;
+	struct X3D_Proto *context;
+	context = getContext(ud,TOP);
+
+	localdef = as = NULL;
+	for (i = 0; atts[i]; i += 2) {
+		printf("export field:%s=%s\n", atts[i], atts[i + 1]);
+		if(!strcmp(atts[i],"localDEF")) localdef = atts[i+1];
+		if(!strcmp(atts[i],"AS")) as = atts[i+1];
+	}
+	handleExport_B(context,localdef, as);
+}
 /* parse a export statement, and send the results along */
 static void parseExport(char **atts) {
 	int i;
-        char *nodeToExport = NULL;
-        char *alias = NULL;
+	char *nodeToExport = NULL;
+	char *alias = NULL;
 
-        for (i = 0; atts[i]; i += 2) {
+	for (i = 0; atts[i]; i += 2) {
 		printf("export field:%s=%s\n", atts[i], atts[i + 1]);
 	}
 /* do nothing right now */
 return;
 
-        	handleExport(nodeToExport, alias);
+	handleExport(nodeToExport, alias);
 }
 
 /* parse a component statement, and send the results along */
@@ -1165,7 +1498,7 @@ static void parseX3Dhead(char **atts) {
 	int myProfile = -10000; /* something negative, not INT_ID_UNDEFINED... */
 	int versionIndex = INT_ID_UNDEFINED;
 
-        for (i = 0; atts[i]; i += 2) {
+	for (i = 0; atts[i]; i += 2) {
 		/* printf("parseX3Dhead: field:%s=%s\n", atts[i], atts[i + 1]); */
 		if (strcmp("profile",atts[i]) == 0) {
 			myProfile = findFieldInPROFILES(atts[i+1]);
@@ -1191,35 +1524,75 @@ static void parseX3Dhead(char **atts) {
 
 static void parseHeader(char **atts) {
 	int i;
-        for (i = 0; atts[i]; i += 2) {
+	for (i = 0; atts[i]; i += 2) {
 		/* printf("parseHeader: field:%s=%s\n", atts[i], atts[i + 1]); */
 	}
 }
 static void parseScene(char **atts) {
 	int i;
-        for (i = 0; atts[i]; i += 2) {
+	for (i = 0; atts[i]; i += 2) {
 		/* printf("parseScene: field:%s=%s\n", atts[i], atts[i + 1]); */
 	}
 }
 static void parseMeta(char **atts) {
 	int i;
-        for (i = 0; atts[i]; i += 2) {
+	for (i = 0; atts[i]; i += 2) {
 		/* printf("parseMeta field:%s=%s\n", atts[i], atts[i + 1]); */
 	}
 }
 
+static void parseFieldValue_B(void *ud, char **atts) {
+	int i, type, kind, iifield, ok;
+	char *fname, *svalue, *cname;
+	union anyVrml *value;
+	struct X3D_Node *node = getNode(ud,TOP);
+
+	if(0) printf("parseFieldValue\n");
+	fname = svalue = NULL;
+	for(i=0;atts[i];i+=2){
+		if(!strcmp(atts[i],"name")) fname = atts[i+1];
+		if(!strcmp(atts[i],"value")) svalue = atts[i+1];
+	}
+	ok = 0;
+	cname = NULL;
+	value = NULL;
+	if(fname){
+		ok = getFieldFromNodeAndName(node,fname,&type,&kind,&iifield,&value);
+		if(ok){
+			//get a pointer to a heap version of the field name (because atts vanishes on return)
+			ok = getFieldFromNodeAndIndex(node, iifield, &cname, &type, &kind, &value);
+		}
+	}
+	if(cname && value && svalue){
+		Parser_scanStringValueToMem_B(value,type,svalue,TRUE);
+		if(node->_nodeType == NODE_Proto){
+			struct X3D_Proto *pnode;
+			struct ProtoFieldDecl* pfield;
+			struct ProtoDefinition* pstruct;
+			pnode = X3D_PROTO(node);
+			pstruct = (struct ProtoDefinition*) pnode->__protoDef;
+			pfield = vector_get(struct ProtoFieldDecl*,pstruct->iface,iifield);
+			pfield->alreadySet = TRUE;
+		}
+	}
+	pushField(ud,cname); //in case there's no value, because its SF or MFNodes in child xml, or in CDATA
+}
+static void endFieldValue_B(void *ud){
+	if(0) printf("endFieldValue\n");
+	popField(ud);
+}
 /* we have a fieldValue, should be in a PROTO expansion */
-static void parseFieldValue(const char *name, char **atts) {
+static void parseFieldValue(void *ud, const char *name, char **atts) {
 	int i;
 	int nameIndex = INT_ID_UNDEFINED;
 	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
 
 
 	#ifdef X3DPARSERVERBOSE
-	printf ("parseFieldValue, mode %s\n",parserModeStrings[getParserMode()]);  
+	printf ("parseFieldValue, mode %s\n",parserModeStrings[getMode(ud,TOP)]);  
 	#endif
 
-        for (i = 0; atts[i]; i += 2) {
+	for (i = 0; atts[i]; i += 2) {
 		#ifdef X3DPARSERVERBOSE
 		printf("parseFieldValue field:%s=%s\n", atts[i], atts[i + 1]);
 		#endif
@@ -1227,8 +1600,8 @@ static void parseFieldValue(const char *name, char **atts) {
 		if (strcmp(atts[i],"name") == 0) nameIndex= i+1;
 	}
 
-	if ((getParserMode() == PARSING_EXTERNPROTODECLARE) || (getParserMode() == PARSING_PROTOINSTANCE)) {
-		parseProtoInstanceFields(name,atts);
+	if ((getMode(ud,TOP) == PARSING_EXTERNPROTODECLARE) || (getMode(ud,TOP) == PARSING_PROTOINSTANCE)) {
+		parseProtoInstanceFields(ud,name,atts);
 	} else {
 		if (p->in3_3_fieldValue) printf ("parseFieldValue - did not expect in3_3_fieldValue to be set\n");
 		p->in3_3_fieldValue = TRUE;
@@ -1245,42 +1618,49 @@ static void parseFieldValue(const char *name, char **atts) {
 }
 
 
-static void parseIS() {
+static void parseIS(void *ud) {
 	#ifdef X3DPARSERVERBOSE
-	printf ("parseIS mode is %s\n",parserModeStrings[getParserMode()]); 
+	printf ("parseIS mode is %s\n",parserModeStrings[getMode(ud,TOP)]); 
 	#endif
-	pushParserMode(PARSING_IS);
+	pushMode(ud,PARSING_IS);
 
 }
 
 
 
-static void endIS() {
+static void endIS(void *ud) {
 	#ifdef X3DPARSERVERBOSE
-	printf ("endIS mode is %s\n",parserModeStrings[getParserMode()]); 
+	printf ("endIS mode is %s\n",parserModeStrings[getMode(ud,TOP)]); 
 	#endif
-	popParserMode();
+	popMode(ud);
 }
 
 
 
-static void endProtoInterfaceTag() {
-	if (getParserMode() != PARSING_PROTOINTERFACE) {
+static void endProtoInterfaceTag(void *ud) {
+	if (getMode(ud,TOP) != PARSING_PROTOINTERFACE) {
 		ConsoleMessage ("endProtoInterfaceTag: got a </ProtoInterface> but not parsing one at line %d",LINE);
 	}
 	/* now, a ProtoInterface should be within a ProtoDeclare, so, make the expected mode PARSING_PROTODECLARE */
 	//setParserMode(PARSING_PROTODECLARE);
-	popParserMode();
+	popMode(ud);
 }
-
-static void endProtoBodyTag(const char *name) {
+static void endProtoBodyTag_B(void *ud, const char *name) {
+	//pop context
+	if (getMode(ud,TOP) != PARSING_PROTOBODY) {
+		ConsoleMessage ("endProtoBodyTag: got a </ProtoBody> but not parsing one at line %d",LINE);
+	}
+	popMode(ud);
+	popContext(ud);
+}
+static void endProtoBodyTag(void *ud, const char *name) {
 	/* ending <ProtoBody> */
 	
 	#ifdef X3DPARSERVERBOSE
-	printf ("endProtoBody, mode is %s\n",parserModeStrings[getParserMode()]);
+	printf ("endProtoBody, mode is %s\n",parserModeStrings[getMode(ud,TOP)]);
 	#endif
 
-	if (getParserMode() != PARSING_PROTOBODY) {
+	if (getMode(ud,TOP) != PARSING_PROTOBODY) {
 		ConsoleMessage ("endProtoBodyTag: got a </ProtoBody> but not parsing one at line %d",LINE);
 	}
 
@@ -1288,36 +1668,94 @@ static void endProtoBodyTag(const char *name) {
 
 	/* now, a ProtoBody should be within a ProtoDeclare, so, make the expected mode PARSING_PROTODECLARE */
 	//setParserMode(PARSING_PROTODECLARE);
-	popParserMode();
+	popMode(ud);
 }
 
-static void endExternProtoDeclareTag() {
+static void endExternProtoDeclareTag_B(void *ud) {
+	popMode(ud);
+	popNode(ud);
+	popField(ud);
+}
+static void endExternProtoDeclareTag(void *ud) {
 	/* ending <ExternProtoDeclare> */
 
-	if (getParserMode() != PARSING_EXTERNPROTODECLARE) {
+	if (getMode(ud,TOP) != PARSING_EXTERNPROTODECLARE) {
 		ConsoleMessage ("endExternProtoDeclareTag: got a </ExternProtoDeclare> but not parsing one at line %d",LINE);
 		//setParserMode(PARSING_EXTERNPROTODECLARE);
-		pushParserMode(PARSING_EXTERNPROTODECLARE);
+		pushMode(ud,PARSING_EXTERNPROTODECLARE);
 	}
 	
 	/* we do the DECREMENT_PARENTINDEX here because successful parsing of the included ProtoDeclare leaves it too high */
-	endExternProtoDeclare();
-	popParserMode(); //+
+	endExternProtoDeclare(ud);
+	popMode(ud); //+
 }
 
-static void endProtoDeclareTag() {
+static void endProtoDeclareTag_B(void *ud) {
+	/* ending <ProtoDeclare> */
+	struct X3D_Proto * proto;
+	struct Multi_Node *cptr;
+
+	if (getMode(ud,TOP) != PARSING_PROTODECLARE) {
+		ConsoleMessage ("endProtoDeclareTag: got a </ProtoDeclare> but not parsing one at line %d",LINE);
+		pushMode(ud,PARSING_PROTODECLARE);
+	}
+	if(0) printf("end protoDeclare\n");
+	// set defaultContainer based on 1st child
+	proto = X3D_PROTO(getNode(ud,TOP));
+	cptr = NULL;
+	if(proto->__children.n)
+		cptr = &proto->__children;
+	else if(proto->addChildren.n)
+		cptr = &proto->addChildren;
+	if(cptr){
+		struct X3D_Node *c1 = cptr->p[0];
+		if(c1->_defaultContainer > INT_ID_UNDEFINED) 
+			proto->_defaultContainer = c1->_defaultContainer;
+	}
+	popField(ud);
+	popNode(ud); //I think I should pop the X3DProto off the stack
+	popMode(ud);
+}
+
+static void endProtoDeclareTag(void *ud) {
 	/* ending <ProtoDeclare> */
 
-	if (getParserMode() != PARSING_PROTODECLARE) {
+	if (getMode(ud,TOP) != PARSING_PROTODECLARE) {
 		ConsoleMessage ("endProtoDeclareTag: got a </ProtoDeclare> but not parsing one at line %d",LINE);
-		pushParserMode(PARSING_PROTODECLARE);
+		pushMode(ud,PARSING_PROTODECLARE);
 	}
 
-	endProtoDeclare();
-	popParserMode();
+	endProtoDeclare(ud);
+	popMode(ud);
 }
+void deep_copy_broto_body2(struct X3D_Proto** proto, struct X3D_Proto** dest);
+static void endProtoInstance_B(void *ud, const char *name) {
+	//now that initial field values are set, deep copy the broto body
+	struct X3D_Node *node;
+	if(0) printf("endProtoInstance_B\n");
 
-static void endProtoInstanceField(const char *name) {
+	node = getNode(ud,TOP);
+	if(node){
+		if(node->_nodeType == NODE_Proto || node->_nodeType == NODE_Inline ){
+			char pflagdepth;
+			struct X3D_Proto *pnode = X3D_PROTO(node);
+			pflagdepth = ciflag_get(pnode->__protoFlags,0); //0 - we're in a protodeclare, 1 - we are instancing live scenery
+			if( pflagdepth){
+				//copying the body _after_ the protoInstance field values have been parsed 
+				//allows ISd fields in body nodes to get the pkw_initializeOnly/inputOutput value
+				//from the protoInstance interface
+				struct X3D_Proto *pdeclare;
+				pdeclare = X3D_PROTO(pnode->__prototype);
+				deep_copy_broto_body2(&pdeclare,&pnode);
+			}
+		}
+		linkNodeIn_B(ud);
+	}
+	popField(ud);
+	popNode(ud);
+	popMode(ud);
+}
+static void endProtoInstanceField(void *ud, const char *name) {
 	struct X3D_Group *protoExpGroup = NULL;
 	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
 
@@ -1330,7 +1768,7 @@ static void endProtoInstanceField(const char *name) {
 	if (strcmp(name,"ProtoInstance")==0) {
 		/* we should just be assuming that we are parsing regular nodes for the scene graph now */
 		//setParserMode(PARSING_NODES);
-		pushParserMode(PARSING_NODES);
+		pushMode(ud,PARSING_NODES);
 	
 		protoExpGroup = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 		protoExpGroup->FreeWRL__protoDef = PROTO_MARKER;
@@ -1353,8 +1791,8 @@ static void endProtoInstanceField(const char *name) {
 			}
 			#endif
 	
-		expandProtoInstance(p->myLexer, protoExpGroup);
-		popParserMode();
+		expandProtoInstance(ud, p->myLexer, protoExpGroup);
+		popMode(ud);
 	
 #ifdef X3DPARSERVERBOSE
 		printf ("after expandProtoInstance, my group (%u)has %d children, %d Meta nodes, and is protodef %d\n",
@@ -1373,11 +1811,11 @@ static void endProtoInstanceField(const char *name) {
 			}
 		}
 #endif
-		popParserMode(); //+ but was something pushed?
+		popMode(ud); //+ but was something pushed?
 	} else if (strcmp(name,"fieldValue")==0) {
 		/* printf ("endProtoInstanceField, got %s, ignoring it\n",name);*/
 		///BIGPOP
-		endProtoInstanceFieldTypeNode(name);
+		endProtoInstanceFieldTypeNode(ud,name);
 	} else {
 		/* this could be something like the ending of shape in the following:
 		   <fieldValue...> <Shape> <Box/> </Shape> </fieldValue> */
@@ -1391,28 +1829,30 @@ static void endProtoInstanceField(const char *name) {
 
 
 /* did we get a USE in a proto instance, like:
-               <ProtoInstance name='CamLoader' DEF='Camera1_Bgpic'>
-                    <fieldValue name='imageName' value='Default.jpg'/>
-                    <fieldValue name='relay'>
-                        <Script USE='CameraRelay'/>
-                    </fieldValue>
-                    <fieldValue name='yscale' value='3.0'/>
-                </ProtoInstance>
+<ProtoInstance name='CamLoader' DEF='Camera1_Bgpic'>
+	<fieldValue name='imageName' value='Default.jpg'/>
+	<fieldValue name='relay'>
+		<Script USE='CameraRelay'/>
+	</fieldValue>
+	<fieldValue name='yscale' value='3.0'/>
+</ProtoInstance>
 
 if so, we will be here for the USE fields.
 
 
 */
-static void saveProtoInstanceFields (const char *name, char **atts) {
+
+
+static void saveProtoInstanceFields (void *ud, const char *name, char **atts) {
 	#ifdef X3DPARSERVERBOSE
 		printf ("saveProtoInstanceFields, have node :%s:\n",name);
 	#endif
 
 	if (strcmp(name,"fieldValue") == 0) {
-		parseFieldValue(name,atts);
+		parseFieldValue(ud,name,atts);
 	} else {
 		/* printf ("warning - saveProtoInstanceFields - dont know what to do with %s\n",name); */
-		parseFieldValue(name,atts);
+		parseFieldValue(ud,name,atts);
 	}
 	#ifdef X3DPARSERVERBOSE
 		printf ("saveProtoInstanceFields END\n");
@@ -1428,23 +1868,171 @@ static void saveProtoInstanceFields (const char *name, char **atts) {
 		p->childAttributes[gglobal()->X3DParser.parentIndex] = newVector (struct nameValuePairs *, 8); \
 	}
 
+void **shaderFields(struct X3D_Node* node){
+	void **shaderfield;
+	switch(node->_nodeType){
+	case NODE_Script:
+		shaderfield = &X3D_SCRIPT(node)->__scriptObj;
+		break;
+	case NODE_ComposedShader:
+		shaderfield = &X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields;
+	case NODE_ShaderProgram:
+		shaderfield = &X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields;
+	case NODE_PackagedShader:
+		shaderfield = &X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields;
+	default:
+		shaderfield = NULL;
+	}
+	return shaderfield;
+}
+void broto_store_DEF(struct X3D_Proto* proto,struct X3D_Node* node, char *name);
+static void parseAttributes_B(void *ud, char **atts);
+void add_node_to_broto_context(struct X3D_Proto *context,struct X3D_Node *node);
 
-static void saveAttributes(int myNodeType, const xmlChar *name, char** atts) {
+static void startBuiltin_B(void *ud, int myNodeType, const xmlChar *name, char** atts) {
+	struct X3D_Node *node, *fromDEFtable;
+	struct X3D_Proto *context;
+	void **shaderfield;
+	char pflagdepth;
+	int kids, i, isUSE;
+	char *defname, *suggestedChildField, *containerfield;
+
+	suggestedChildField = containerfield = NULL;
+	context = getContext(ud,TOP);
+	pflagdepth = ciflag_get(context->__protoFlags,0); //0 - we're in a protodeclare, 1 - we are instancing live scenery
+	if(0) printf("start builtin %s\n",name);
+	node = NULL;
+	defname = NULL;
+	isUSE = FALSE;
+	/* go through the attributes; do some here, do others later (in case of PROTO IS fields found) */
+	for (i = 0; atts[i]; i += 2) {
+		/* is this a DEF name? if so, record the name and then ignore the field */
+		if (strcmp ("DEF",atts[i]) == 0) {
+			/* printf ("saveAttributes, this is a DEF, name %s\n",atts[i+1]); */
+			defname = atts[i+1];
+			//fromDEFtable = DEFNameIndex ((char *)atts[i+1],node, TRUE);
+			fromDEFtable = broto_search_DEFname(context,defname);
+			if (fromDEFtable) {
+				#ifdef X3DPARSERVERBOSE
+				printf ("Warning - line %d duplicate DEF name: \'%s\'\n",LINE,atts[i+1]);
+				#endif
+			}
+		} else if (strcmp ("USE",atts[i]) == 0) {
+			#ifdef X3DPARSERVERBOSE
+			printf ("this is a USE, name %s\n",atts[i+1]);
+			#endif
+
+			//fromDEFtable = DEFNameIndex ((char *)atts[i+1],node, FALSE);
+			fromDEFtable = broto_search_DEFname(context,atts[i+1]);
+			if (!fromDEFtable) {
+				ConsoleMessage ("Warning - line %d DEF name: \'%s\' not found",LINE,atts[i+1]);
+			} else {
+				#ifdef X3DPARSERVERBOSE
+				printf ("copying for field %s defName %s\n",atts[i], atts[i+1]);
+				#endif
+
+				/* if (fromDEFtable->_nodeType != fromDEFtable->_nodeType) { */
+				if (myNodeType != fromDEFtable->_nodeType) {
+					ConsoleMessage ("Warning, line %d DEF/USE mismatch, '%s', %s != %s", LINE,
+						atts[i+1],stringNodeType(fromDEFtable->_nodeType), stringNodeType (myNodeType));
+				} else {
+					/* Q. should thisNode.referenceCount be decremented or ??? */
+					node = fromDEFtable;
+					node->referenceCount++; //dug9 added but should???
+					//getNode(ud,TOP) = thisNode; 
+					#ifdef X3DPARSERVERBOSE
+					printf ("successful copying for field %s defName %s\n",atts[i], atts[i+1]);
+					#endif
+					isUSE = TRUE;
+				}
+			}
+		} else if(!strcmp(atts[i],"containerField")) containerfield = atts[i+1];
+	}
+
+	if(!isUSE){
+		if(pflagdepth)
+			node = createNewX3DNode(myNodeType);
+		else
+			node = createNewX3DNode0(myNodeType);
+		if(defname)
+			broto_store_DEF(context,node,defname);
+	}
+	pushNode(ud,node);
+	
+	if(containerfield) {
+		//int builtinField = findFieldInARR(containerfield,FIELDNAMES,FIELDNAMES_COUNT); 
+		int builtinField = findFieldInFIELDNAMES(containerfield);
+		if(builtinField > INT_ID_UNDEFINED){
+			node->_defaultContainer = builtinField;
+		}
+	}
+
+	//linkNodeIn_B(ud);
+
+	if(!isUSE){
+		shaderfield = shaderFields(node);
+		if(shaderfield)
+			(*shaderfield) = (void *)new_Shader_ScriptB(node);
+		//if(node->_nodeType == NODE_Script && pflagdepth)
+			//initialize script - wait till end element
+			
+		if(node->_nodeType == NODE_Inline)
+			X3D_INLINE(node)->__parentProto = X3D_NODE(context); //when searching for user proto declarations, apparently inlines can search the scene 
+		node->_executionContext = X3D_NODE(context);
+		add_node_to_broto_context(context,node);
+		
+		kids = indexChildrenName(node);
+		if(kids > -1)
+			suggestedChildField = FIELDNAMES[kids];
+		if(node->_nodeType == NODE_Script)
+			suggestedChildField = FIELDNAMES[FIELDNAMES_url]; //for CDATA 
+		pushField(ud,suggestedChildField);
+
+		parseAttributes_B(ud,atts);
+	}else{
+		pushField(ud,NULL); //we pop in endBuiltin, so we have to push something
+	}
+
+}
+void initialize_one_script(struct Shader_Script* ss, const struct Multi_String *url);
+void endBuiltin_B(void *ud, const xmlChar *name){
+	struct X3D_Node *node;
+	struct X3D_Proto *context;
+	char pflagdepth;
+	node = getNode(ud,TOP);
+	context = getContext(ud,TOP);
+	if(0)printf("end builtin %s\n",name);
+	pflagdepth = ciflag_get(context->__protoFlags,0); //0 - we're in a protodeclare, 1 - we are instancing live scenery
+	if(node->_nodeType == NODE_Script && pflagdepth){
+		struct X3D_Script *sn = X3D_SCRIPT(node);
+		//overkill -duplicates new_Shader_Script 
+		initialize_one_script(sn->__scriptObj,&sn->url);
+		//script_initCodeFromMFUri(sn->__scriptObj, &sn->url);
+	}
+	linkNodeIn_B(ud);
+
+	popNode(ud);
+	popField(ud);
+
+}
+static void saveAttributes(void *ud, int myNodeType, const xmlChar *name, char** atts) {
 	struct nameValuePairs* nvp;
 	int i;
 	struct X3D_Node *thisNode;
 	struct X3D_Node *fromDEFtable;
+	struct Vector *childAttributes;
 	ttglobal tg = gglobal();
 	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 
 	DEBUG_X3DPARSER ("	saveAttributes, parentIndex %d parentIndex %d\n",tg->X3DParser.parentIndex,tg->X3DParser.parentIndex);
 	
 	/* create the scenegraph node for this one */
-        thisNode = createNewX3DNode(myNodeType);
-        tg->X3DParser.parentStack[tg->X3DParser.parentIndex] = thisNode;
+	thisNode = createNewX3DNode(myNodeType);
+	childAttributes = newVector(struct nameValuePairs*,8);
+	//getNode(ud,TOP) = thisNode;
 
-    //printf ("saveAttributes, node type %s\n",stringNodeType(myNodeType));
-    
+	//printf ("saveAttributes, node type %s\n",stringNodeType(myNodeType));
+
 	if (myNodeType == NODE_Script) {
 		#ifdef HAVE_JAVASCRIPT
 		struct Shader_Script *myObj;
@@ -1474,7 +2062,7 @@ static void saveAttributes(int myNodeType, const xmlChar *name, char** atts) {
 
  
 	/* go through the attributes; do some here, do others later (in case of PROTO IS fields found) */
-        for (i = 0; atts[i]; i += 2) {
+	for (i = 0; atts[i]; i += 2) {
 		/* is this a DEF name? if so, record the name and then ignore the field */
 		if (strcmp ("DEF",atts[i]) == 0) {
 			/* printf ("saveAttributes, this is a DEF, name %s\n",atts[i+1]); */
@@ -1507,7 +2095,7 @@ static void saveAttributes(int myNodeType, const xmlChar *name, char** atts) {
 					thisNode->referenceCount--; //dug9 added but should???
 					thisNode = fromDEFtable;
 					thisNode->referenceCount++; //dug9 added but should???
-					tg->X3DParser.parentStack[tg->X3DParser.parentIndex] = thisNode; 
+					//getNode(ud,TOP) = thisNode; 
 					#ifdef X3DPARSERVERBOSE
 					printf ("successful copying for field %s defName %s\n",atts[i], atts[i+1]);
 					#endif
@@ -1522,15 +2110,18 @@ static void saveAttributes(int myNodeType, const xmlChar *name, char** atts) {
 			nvp->fieldValue=STRDUP(atts[i+1]);
 			//ConsoleMessage("name[%s] value[%s]\n",atts[i], atts[i+1]);
 			nvp->fieldType = 0;
-			vector_pushBack(struct nameValuePairs*, p->childAttributes[tg->X3DParser.parentIndex], nvp);
+			//vector_pushBack(struct nameValuePairs*, p->childAttributes[tg->X3DParser.parentIndex], nvp);
+			vector_pushBack(struct nameValuePairs*,childAttributes, nvp);
 		}
 	}
+	pushNode(ud,thisNode);
+	setAtt(ud,TOP,childAttributes);
 }
 
 static xmlChar* fixAmp(const unsigned char *InFieldValue)
 {
-    char *fieldValue = (char *)InFieldValue;
-    
+	char *fieldValue = (char *)InFieldValue;
+
 	//for x3d string '"&amp;"' libxml2 gives us &#38; 
 	//we want & like other browsers get
 	//we do it by left-shifting over the #38;
@@ -1556,19 +2147,42 @@ static xmlChar* fixAmp(const unsigned char *InFieldValue)
 	}
 	return (xmlChar *)fieldValue;
 }
+static void parseAttributes_B(void *ud, char **atts) {
+	int i, type, kind, iifield;
+	struct X3D_Node *node;
+	char *name, *svalue, *ignore [] = {"containerField","USE", "DEF"};
+	union anyVrml *value;
 
-static void parseAttributes() {
-	size_t ind;
+	node = getNode(ud,TOP);
+	for (i=0; atts[i]; i+=2) {
+		name = atts[i];
+		svalue = atts[i+1];
+		/* see if we have a containerField here */
+		if(findFieldInARR(name,ignore,3) == INT_ID_UNDEFINED){
+			if(getFieldFromNodeAndName(node,name,&type,&kind,&iifield,&value)){
+				Parser_scanStringValueToMem_B(value, type,svalue, TRUE);
+			}
+		}
+	}
+}
+
+static void parseAttributes(void *ud) {
+	int ind;
 	struct nameValuePairs *nvp;
 	struct X3D_Node *thisNode;
+	struct Vector *childAttributes;
 	ttglobal tg = gglobal();
 	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 
-	thisNode = tg->X3DParser.parentStack[tg->X3DParser.parentIndex];
+	thisNode = getNode(ud,TOP);
+	childAttributes = getAtt(ud,TOP);
 	 /* printf  ("parseAttributes..level %d for node type %s\n",parentIndex,stringNodeType(thisNode->_nodeType));  */
-	if(p->childAttributes[tg->X3DParser.parentIndex])
-	for (ind=0; ind<vectorSize(p->childAttributes[tg->X3DParser.parentIndex]); ind++) {
-		nvp = vector_get(struct nameValuePairs*, p->childAttributes[tg->X3DParser.parentIndex],ind);
+	//if(p->childAttributes[tg->X3DParser.parentIndex])
+	if(childAttributes)
+	//for (ind=0; ind<vectorSize(p->childAttributes[tg->X3DParser.parentIndex]); ind++) {
+	for (ind=0; ind<vectorSize(childAttributes); ind++) {
+		//nvp = vector_get(struct nameValuePairs*, p->childAttributes[tg->X3DParser.parentIndex],ind);
+		nvp = vector_get(struct nameValuePairs*, childAttributes,ind);
 		 /* printf ("	nvp %ld, fieldName:%s fieldValue:%s\n",ind,nvp->fieldName,nvp->fieldValue); */
 
 		/* see if we have a containerField here */
@@ -1671,13 +2285,13 @@ static void parseAttributes() {
 										else if(nvp->fieldType == FIELDTYPE_MFNode || nvp->fieldType == FIELDTYPE_SFNode )  
 										{
 											/*dug9 added July 18, 2010 (search for BIGPUSH / BIGPOP to find where data set)
-											  we have an MFNode field already in binary form 
-											  <fieldValue name="Buildings">
-												<Transform USE="House1"/>
-												<Transform USE="House2">
-											   </fieldValue>
-											   the House transforms have been parsed as regular nodes and 
-											   the top level nodes listed in an MFNode
+												we have an MFNode field already in binary form 
+												<fieldValue name="Buildings">
+													<Transform USE="House1"/>
+													<Transform USE="House2">
+												</fieldValue>
+												the House transforms have been parsed as regular nodes and 
+												the top level nodes listed in an MFNode
 											*/
 											union anyVrml* av;
 											if(sscanf(nvp->fieldValue,"%p",&av) != 1)
@@ -1701,8 +2315,8 @@ static void parseAttributes() {
 													else if(nvp->fieldType == FIELDTYPE_MFNode)
 													{
 														/* this came from the ProtoInstance fieldValue where did not know the type
-														   and we guessed at MFNode to be most general. But we were wrong in this
-														   case - so down-convert first node in MFNode to SFNode and forget the rest */
+															and we guessed at MFNode to be most general. But we were wrong in this
+															case - so down-convert first node in MFNode to SFNode and forget the rest */
 														//struct X3D_Transform *tt = (struct X3D_Transform*)((struct Multi_Node *)av)->p[0];
 														struct X3D_Node *tt = (struct X3D_Node*)((struct Multi_Node *)av)->p[0];
 														memcpy(value,&tt,sizeof(struct X3D_Node*));
@@ -1729,7 +2343,7 @@ static void parseAttributes() {
 						}
 					} else {
 						/* some fields, eg "PackagedShader language field" or any other field that is not a field,
-						   is just a normal field as defined in the spec, so make it so */
+							is just a normal field as defined in the spec, so make it so */
 						setField_fromJavascript (thisNode, nvp->fieldName,nvp->fieldValue, TRUE);
 					}
 				}
@@ -1746,7 +2360,7 @@ static void parseAttributes() {
 					{
 						/* not currently implemented, but reserved for DEF index style
 						?? itoa(DEF index)
-		                ?? np = getEAINodeFromTable(atoi(value), -1);
+						?? np = getEAINodeFromTable(atoi(value), -1);
 						*/
 					}
 					else if(nvp->fieldType == FIELDTYPE_MFNode)  
@@ -1813,7 +2427,7 @@ static void parseAttributes() {
 					}
 					else //if(nvp->fieldType == 0)
 					{
-                        //I get -85529292 so some branches arent setting .value or .fieldValue to 0.
+						//I get -85529292 so some branches arent setting .value or .fieldValue to 0.
 						//printf("Unknown fieldType %d\n",nvp->fieldType);
 						setField_fromJavascript (thisNode, nvp->fieldName,nvp->fieldValue, TRUE);
 
@@ -1827,13 +2441,13 @@ static void parseAttributes() {
 		FREE_IF_NZ(nvp);
 	}
 }
-
-static void XMLCALL X3DstartElement(void *unused, const xmlChar *iname, const xmlChar **atts) {
+void parseConnect_B(void *ud, char **atts);
+static void XMLCALL X3DstartElement(void *ud, const xmlChar *iname, const xmlChar **atts) {
 	int myNodeIndex;
 	char **myAtts;
 	int i;
 	char *blankAtts[] = {NULL,NULL};
-    const char *name = (const char*) iname;  // get around compiler warnings on iPhone, etc...
+	const char *name = (const char*) iname;  // get around compiler warnings on iPhone, etc...
 	ttglobal tg = gglobal();
 	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 
@@ -1842,13 +2456,13 @@ static void XMLCALL X3DstartElement(void *unused, const xmlChar *iname, const xm
 	else myAtts = (char **) atts;
 	
 	#ifdef X3DPARSERVERBOSE
-	//printf ("startElement: %s : level %d parserMode: %s \n",name,parentIndex,parserModeStrings[getParserMode()]);
-    printf ("X3DstartElement: %s: atts %p\n",name,atts);
-//printf ("startElement, myAtts :%p contents %p\n",myAtts,myAtts[0]);
-{ int i;
-        for (i = 0; myAtts[i]; i += 2) {
-                printf("	      X3DStartElement field:%s=%s\n", myAtts[i], atts[i + 1]);
-}}
+	//printf ("startElement: %s : level %d parserMode: %s \n",name,parentIndex,parserModeStrings[getMode(ud,TOP)]);
+	printf ("X3DstartElement: %s: atts %p\n",name,atts);
+	//printf ("startElement, myAtts :%p contents %p\n",myAtts,myAtts[0]);
+	{ int i;
+			for (i = 0; myAtts[i]; i += 2) {
+					printf("	      X3DStartElement field:%s=%s\n", myAtts[i], atts[i + 1]);
+	}}
 
 	//printf ("X3DstartElement - finished looking at myAtts\n\n");
 	#endif
@@ -1859,53 +2473,89 @@ static void XMLCALL X3DstartElement(void *unused, const xmlChar *iname, const xm
 		}
 	
 	/* are we storing a PROTO body?? */
-	if (getParserMode() == PARSING_PROTOBODY) {
+	if(!usingBrotos())
+	if (getMode(ud,TOP) == PARSING_PROTOBODY) {
 		dumpProtoBody(name,myAtts);
 		return;
 	}
 
 	/* maybe we are doing a Proto Instance?? */
-	if (getParserMode() == PARSING_PROTOINSTANCE) {
-		saveProtoInstanceFields(name,myAtts);
+	if(!usingBrotos())
+	if (getMode(ud,TOP) == PARSING_PROTOINSTANCE) {
+		saveProtoInstanceFields(ud,name,myAtts);
 		return;
-        }
+	}
 
 
 
 	myNodeIndex = findFieldInNODES(name);
-    
+
 	/* is this a "normal" node that can be found in x3d, x3dv and wrl files? */
 	if (myNodeIndex != INT_ID_UNDEFINED) {
-		INCREMENT_PARENTINDEX 
-		DEBUG_X3DPARSER ("	creating new vector for parentIndex %d\n",tg->X3DParser.parentIndex); 
-		INCREMENT_CHILDREN_LEVEL
-		saveAttributes(myNodeIndex,(const xmlChar *)name,myAtts);
+		if(usingBrotos()){
+			startBuiltin_B(ud,myNodeIndex,(const xmlChar *)name,myAtts);
+		}else{
+			DEBUG_X3DPARSER ("	creating new vector for parentIndex %d\n",tg->X3DParser.parentIndex); 
+			saveAttributes(ud,myNodeIndex,(const xmlChar *)name,myAtts);
+		}
 		return;
 	}
+	/*in theory, you could search broto prototype typenames here, and if found
+		assume it's instanced with builtin syntax (instead of ProtoInstance syntax)
+		if( isAvailableBroto(name, getContext(ud,TOP) , &proto))
+	*/
 
 	/* no, it is not. Lets see what else it could be... */
 	myNodeIndex = findFieldInX3DSPECIAL(name);
 	if (myNodeIndex != INT_ID_UNDEFINED) {
 		switch (myNodeIndex) {
-			case X3DSP_ProtoDeclare: parseProtoDeclare(myAtts); break;
-			case X3DSP_ExternProtoDeclare: parseExternProtoDeclare(myAtts); break;
-			case X3DSP_ProtoBody: parseProtoBody(myAtts); break;
-			case X3DSP_ProtoInterface: parseProtoInterface(myAtts); break;
-			case X3DSP_ProtoInstance: parseProtoInstance(myAtts); break;
-			case X3DSP_ROUTE: parseRoutes(myAtts); break;
+			case X3DSP_ProtoDeclare: 
+				if(usingBrotos()) parseProtoDeclare_B(ud,myAtts);
+				else parseProtoDeclare(ud,myAtts); 
+				break;
+			case X3DSP_ExternProtoDeclare: 
+				if(usingBrotos()) parseExternProtoDeclare_B(ud,myAtts);
+				else parseExternProtoDeclare(ud,myAtts); 
+				break;
+			case X3DSP_ProtoBody: 
+				if(usingBrotos()) parseProtoBody_B(ud,myAtts); 
+				else parseProtoBody(ud,myAtts); 
+				break;
+			case X3DSP_ProtoInterface: 
+				parseProtoInterface(ud,myAtts); break;
+			case X3DSP_ProtoInstance: 
+				if(usingBrotos()) parseProtoInstance_B(ud,myAtts); 
+				else parseProtoInstance(ud,myAtts); 
+				break;
+			case X3DSP_ROUTE: 
+				if(usingBrotos()) parseRoutes_B(ud,myAtts);
+				else parseRoutes(myAtts); 
+				break;
 			case X3DSP_meta: parseMeta(myAtts); break;
 			case X3DSP_Scene: parseScene(myAtts); break;
 			case X3DSP_head:
 			case X3DSP_Header: parseHeader(myAtts); break;
 			case X3DSP_X3D: parseX3Dhead(myAtts); break;
-			case X3DSP_fieldValue:  parseFieldValue(name,myAtts); break;
+			case X3DSP_fieldValue:  
+				if(usingBrotos()) parseFieldValue_B(ud,myAtts);
+				else parseFieldValue(ud,name,myAtts); 
+				break;
 			case X3DSP_field: 
-				parseScriptProtoField (p->myLexer, myAtts); break;
-			case X3DSP_IS: parseIS(); break;
+				if(usingBrotos()) parseScriptProtoField_B (ud, myAtts);
+				else parseScriptProtoField (ud, p->myLexer, myAtts); break;
+			case X3DSP_IS: parseIS(ud); break;
 			case X3DSP_component: parseComponent(myAtts); break;
-			case X3DSP_export: parseExport(myAtts); break;
-			case X3DSP_import: parseImport(myAtts); break;
-			case X3DSP_connect: parseConnect(p->myLexer, myAtts,p->childAttributes[gglobal()->X3DParser.parentIndex]); break;
+			case X3DSP_EXPORT: 
+				if(usingBrotos()) parseExport_B(ud,myAtts);
+				else parseExport(myAtts); 
+				break;
+			case X3DSP_IMPORT: 
+				if(usingBrotos()) parseImport_B(ud,myAtts);
+				else parseImport(myAtts); break;
+			case X3DSP_connect: 
+				if(usingBrotos()) parseConnect_B(ud,myAtts);
+				else parseConnect(ud,p->myLexer, myAtts,getAtt(ud,TOP)); 
+				break;
 
 			default: printf ("	huh? startElement, X3DSPECIAL, but not handled?? %d, :%s:\n",myNodeIndex,X3DSPECIAL[myNodeIndex]);
 		}
@@ -1914,22 +2564,24 @@ static void XMLCALL X3DstartElement(void *unused, const xmlChar *iname, const xm
 
 	printf ("startElement name  do not currently handle this one :%s: index %d\n",name,myNodeIndex); 
 }
-void endScriptProtoField(); //struct VRMLLexer* myLexer);
+void endScriptProtoField(void *ud); //struct VRMLLexer* myLexer);
+void endScriptProtoField_B(void *ud); //struct VRMLLexer* myLexer);
 
-static void XMLCALL X3DendElement(void *unused, const xmlChar *iname) {
+static void XMLCALL X3DendElement(void *ud, const xmlChar *iname) {
 	int myNodeIndex;
     const char*name = (const char*) iname;
 	ttglobal tg = gglobal();
 	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 
-    /* printf ("X3DEndElement for %s\n",name); */
-    
+	/* printf ("X3DEndElement for %s\n",name); */
+
 	#ifdef X3DPARSERVERBOSE
-	printf ("endElement: %s : parentIndex %d mode %s\n",name,parentIndex,parserModeStrings[getParserMode()]); 
+	printf ("endElement: %s : parentIndex %d mode %s\n",name,parentIndex,parserModeStrings[getMode(ud,TOP)]); 
 	#endif
 
 	/* are we storing a PROTO body?? */
-	if (getParserMode() == PARSING_PROTOBODY) {
+	if(!usingBrotos())
+	if (getMode(ud,TOP) == PARSING_PROTOBODY) {
 		/* are we finished with this ProtoBody? */
 		if (strcmp("ProtoBody",name)==0) {
 			/* do nothing... setParserMode(PARSING_PROTODECLARE); */
@@ -1940,28 +2592,30 @@ static void XMLCALL X3DendElement(void *unused, const xmlChar *iname) {
 	}
 
 	/* are we parsing a PROTO Instance still? */
-	if (getParserMode() == PARSING_PROTOINSTANCE) {
-		endProtoInstanceField(name);
+	if(!usingBrotos())
+	if (getMode(ud,TOP) == PARSING_PROTOINSTANCE) {
+		endProtoInstanceField(ud,name);
 		return;
 	}
 
 	/* is this an SFNode for a Script field? */
-	if (getParserMode() == PARSING_SCRIPT) {
-		switch (tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1]->_nodeType) {
+	if(!usingBrotos())
+	if (getMode(ud,TOP) == PARSING_SCRIPT) {
+		switch (getNode(ud,TOP-1)->_nodeType) {
 			case NODE_Script:
 
 /* I wonder if there is a better way of handling this case */
 			#ifdef X3DPARSERVERBOSE
 			printf ("linkNodeIn, got parsing script, have to link node into script body\n");
-        	printf ("linking in %s to %s, field %s (%d)\n",
-                	stringNodeType(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType),
-                	stringNodeType(tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1]->_nodeType),
-                	stringFieldType(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_defaultContainer),
-                	tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_defaultContainer);
-		printf ("but skipping this\n");
+			printf ("linking in %s to %s, field %s (%d)\n",
+				stringNodeType(getNode(ud,TOP)->_nodeType),
+				stringNodeType(getNode(ud,TOP-1)->_nodeType),
+				stringFieldType(getNode(ud,TOP)->_defaultContainer),
+				getNode(ud,TOP)->_defaultContainer);
+			printf ("but skipping this\n");
 			#endif
 
-			DECREMENT_PARENTINDEX
+			popNode(ud);
 			return;
 			break;
 
@@ -1972,51 +2626,52 @@ static void XMLCALL X3DendElement(void *unused, const xmlChar *iname) {
 
 	myNodeIndex = findFieldInNODES(name);
 	if (myNodeIndex != INT_ID_UNDEFINED) {
-		/* printf ("endElement - normalNode :%s:\n",name); */
-//#define OLDCODELINKEDIN 1
-#define NEWCODELINKEDIN 1
-#ifdef NEWCODELINKEDIN
-		if (myNodeIndex == NODE_Script) {
-			#ifdef HAVE_JAVASCRIPT
-			initScriptWithScript();
-			#endif
+		if(usingBrotos()){
+			endBuiltin_B(ud,iname);
+		}else{
+			struct Vector *childAttributes;
+			/* printf ("endElement - normalNode :%s:\n",name); */
+			if (myNodeIndex == NODE_Script) {
+				#ifdef HAVE_JAVASCRIPT
+				initScriptWithScript(ud);
+				#endif
+			}
+			parseAttributes(ud);
+			linkNodeIn(ud,__FILE__,__LINE__);
+
+
+			childAttributes = getAtt(ud,TOP);
+			if (childAttributes!=NULL) deleteVector (struct nameValuePairs*, childAttributes);
+			setAtt(ud,TOP,NULL);
+
+			popNode(ud);
 		}
-		parseAttributes();
-		linkNodeIn(__FILE__,__LINE__);
-#endif
-#ifdef OLDCODELINKEDIN
-		switch (myNodeIndex) {
-			#ifdef HAVE_JAVASCRIPT
-			case NODE_Script: initScriptWithScript(); break;
-			#endif /* HAVE_JAVASCRIPT */
-			default: linkNodeIn(__FILE__,__LINE__);
-		}
-		parseAttributes();
-
-#endif
-
-
-		//setParserMode(PARSING_NODES);
-		//popParserMode();
-
-		if (p->childAttributes[tg->X3DParser.parentIndex]!=NULL) deleteVector (struct nameValuePairs*, p->childAttributes[gglobal()->X3DParser.parentIndex]);
-		p->childAttributes[tg->X3DParser.parentIndex] = NULL;
-
-		DECREMENT_PARENTINDEX
-		DEBUG_X3DPARSER (" 	destroying vector for parentIndex %d\n",gglobal()->X3DParser.parentIndex); 
 		return;
+
 	}
 
+		
 
 	/* no, it is not. Lets see what else it could be... */
 	myNodeIndex = findFieldInX3DSPECIAL(name);
 	if (myNodeIndex != INT_ID_UNDEFINED) {
 		switch (myNodeIndex) {
-			case X3DSP_ProtoInterface: endProtoInterfaceTag(); break;
-			case X3DSP_ProtoBody: endProtoBodyTag(name); break;
-			case X3DSP_ProtoDeclare: endProtoDeclareTag(); break;
-			case X3DSP_ExternProtoDeclare: endExternProtoDeclareTag(); break;
-			case X3DSP_IS: endIS(); break;
+			case X3DSP_ProtoInstance: 
+				if(usingBrotos()) endProtoInstance_B(ud,name);
+				break;
+			case X3DSP_ProtoInterface: endProtoInterfaceTag(ud); break;
+			case X3DSP_ProtoBody: 
+				if(usingBrotos()) endProtoBodyTag_B(ud,name);
+				else endProtoBodyTag(ud,name); break;
+			case X3DSP_ProtoDeclare: 
+				if(usingBrotos()) endProtoDeclareTag_B(ud);
+				else endProtoDeclareTag(ud); 
+				break;
+			case X3DSP_ExternProtoDeclare: 
+				if(usingBrotos()) endExternProtoDeclareTag_B(ud);
+				else endExternProtoDeclareTag(ud); 
+				break;
+			case X3DSP_IS: endIS(ud); break;
 			case X3DSP_connect:
 			case X3DSP_ROUTE: 
 			case X3DSP_meta:
@@ -2024,13 +2679,16 @@ static void XMLCALL X3DendElement(void *unused, const xmlChar *iname) {
 			case X3DSP_head:
 			case X3DSP_Header:
 			case X3DSP_component:
+			case X3DSP_EXPORT:
+			case X3DSP_IMPORT:
 			case X3DSP_X3D: break;
 			case X3DSP_field:
-				endScriptProtoField(); //dug9 added July 18,2010
+				if(usingBrotos()) endScriptProtoField_B(ud);
+				else endScriptProtoField(ud);
 				break;
 			case X3DSP_fieldValue:
-				//endProtoInstanceField(name);
-				setFieldValueDataActive(name);
+				if(usingBrotos()) endFieldValue_B(ud);
+				else setFieldValueDataActive(ud,name);
 				break;
 			
 			/* should never do this: */
@@ -2061,11 +2719,10 @@ static XML_Parser initializeX3DParser () {
 		XML_SetUserData(p->x3dparser[p->X3DParserRecurseLevel], &parentIndex);
 	}
 	/* printf ("initializeX3DParser, level %d, parser %u\n",x3dparser[X3DParserRecurseLevel]); */
-	pushParserMode(PARSING_NODES);
 	return p->x3dparser[p->X3DParserRecurseLevel];
 }
 
-static void shutdownX3DParser () {
+static void shutdownX3DParser (void *ud) {
 	ttglobal tg = gglobal();
 	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 
@@ -2086,28 +2743,20 @@ static void shutdownX3DParser () {
 	}
 
 	/* CDATA text space, free it up */
-        FREE_IF_NZ(tg->X3DParser.CDATA_Text);
-        p->CDATA_TextMallocSize = 0; 
+	FREE_IF_NZ(tg->X3DParser.CDATA_Text);
+	p->CDATA_TextMallocSize = 0; 
 	if (p->X3DParserRecurseLevel > INT_ID_UNDEFINED)
 		p->currentX3DParser = p->x3dparser[p->X3DParserRecurseLevel];
 	/* printf ("shutdownX3DParser, current X3DParser %u\n",currentX3DParser); */
-	popParserMode();
+	popMode(ud);
 }
 
-int X3DParse (struct X3D_Group* myParent, const char *inputstring) {
+int X3DParse (struct X3D_Node* ectx, struct X3D_Node* myParent, const char *inputstring) {
 	ttglobal tg = gglobal();
 	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 	p->currentX3DParser = initializeX3DParser();
 
 	/* printf ("X3DParse, current X3DParser is %u\n",currentX3DParser); */
-
-	if (p->childAttributes == NULL) {
-		int count;
-		DEBUG_X3DPARSER ("initializing childAttributes stack \n");
-		p->childAttributes = MALLOC(struct Vector**, sizeof(struct Vector*) * MAX_CHILD_ATTRIBUTE_DEPTH);
-		for (count=0; count<MAX_CHILD_ATTRIBUTE_DEPTH; count++) p->childAttributes[count] = NULL;
-	}
-
 
 	/* Use classic parser Lexer for storing DEF name info */
 	if (p->myLexer == NULL) p->myLexer = newLexer();
@@ -2121,11 +2770,23 @@ int X3DParse (struct X3D_Group* myParent, const char *inputstring) {
 	}
 
 
-	INCREMENT_PARENTINDEX
-	tg->X3DParser.parentStack[tg->X3DParser.parentIndex] = X3D_NODE(myParent);
-
 	DEBUG_X3DPARSER ("X3DPARSE on :\n%s:\n",inputstring);
-	if (XML_ParseFile(p->currentX3DParser, inputstring, (int) strlen(inputstring), TRUE) == XML_STATUS_ERROR) {
+	if(p->user_data == NULL){
+		//just once. We are re-entrant when parsing text protos (trotos)
+		// and want to keep the stack for the parent scene
+		p->user_data = new_xml_user_data();
+	}
+	if(usingBrotos()) {
+		pushContext(p->user_data,ectx);
+		if(myParent->_nodeType == NODE_Proto )
+			pushField(p->user_data,"__children");
+		else
+			pushField(p->user_data,"children");
+	}
+	pushNode(p->user_data,myParent);
+	pushMode(p->user_data,PARSING_NODES);
+
+	if (XML_ParseFile(p->currentX3DParser, p->user_data, inputstring, (int) strlen(inputstring), TRUE) == XML_STATUS_ERROR) {
 		// http://xmlsoft.org/html/libxml-xmlerror.html
 		xmlErrorPtr xe = xmlGetLastError();
 		ConsoleMessage("Xml Error %s \n",xe->message);
@@ -2135,9 +2796,12 @@ int X3DParse (struct X3D_Group* myParent, const char *inputstring) {
 			XML_ErrorString(XML_GetErrorCode(currentX3DParser)),
 			XML_GetCurrentLineNumber(currentX3DParser));
 		*/
-		shutdownX3DParser();
+		if(usingBrotos()) popField(p->user_data);
+		shutdownX3DParser(p->user_data);
+
 		return FALSE;
 	}
-	shutdownX3DParser();
+	if(usingBrotos()) popField(p->user_data);
+	shutdownX3DParser(p->user_data);
 	return TRUE;
 }

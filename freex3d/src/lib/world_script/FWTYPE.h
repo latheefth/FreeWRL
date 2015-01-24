@@ -44,11 +44,15 @@ typedef struct ArgListType {
 	char *argtypes; //if varargs, then argtypes[nfixedArg] == type of varArg, and all varargs are assumed the same type
 } ArgListType;
 
-typedef int (* FWFunction)();
-typedef int (* FWGet)();
-typedef int (* FWSet)();
-typedef int (* FWIterator)();
-typedef void *(* FWConstructor)();
+typedef struct FWTYPE *FWType;
+typedef struct FWVAL *FWval;
+typedef struct WEB3DNATIVE FWPointer;
+
+typedef void * (* FWConstructor)(FWType fwtype, int ic, FWval fwpars);
+typedef int (* FWFunction)(FWType fwtype, void* ec, void * fwn, int argc, FWval fwpars, FWval fwretval);
+typedef int (* FWGet)(FWType fwtype, int index, void *ec, void * fwn, FWval fwretval);
+typedef int (* FWSet)(FWType fwtype, int index, void *ec, void * fwn, FWval fwsetval);
+typedef int (* FWIterator)(int index, FWType fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex, char *type, char *readOnly);
 
 typedef struct FWFunctionSpec {
     const char		*name;
@@ -95,8 +99,14 @@ typedef struct WEB3DNATIVE {
 #define AUXTYPE_X3DRouteArray 1015
 #define AUXTYPE_X3DScene 1016
 #define AUXTYPE_X3DExecutionContext 1017
-#define AUXTYPE_X3DMatrix3 1018
-#define AUXTYPE_X3DMatrix4 1019
+#define AUXTYPE_X3DProto 1018
+#define AUXTYPE_X3DProtoArray 1019
+#define AUXTYPE_X3DExternProto 1020
+#define AUXTYPE_X3DExternProtoArray 1021
+#define AUXTYPE_X3DFieldDefinition 1022
+#define AUXTYPE_X3DFieldDefinitionArray 1023
+#define AUXTYPE_X3DMatrix3 1023
+#define AUXTYPE_X3DMatrix4 1024
 
 //our version of a variant, except in C types and our union anyVrml
 typedef struct FWVAL{
@@ -116,11 +126,6 @@ typedef struct FWVAL{
 } FWVAL, *FWval;
 FWval FWvalsNew(int argc);
 
-typedef void * (* FWConstructor)(FWType fwtype, int ic, FWval fwpars);
-typedef int (* FWFunction)(FWType fwtype, void * fwn, int argc, FWval fwpars, FWval fwretval);
-typedef int (* FWGet)(FWType fwtype, int index, void * fwn, FWval fwretval);
-typedef int (* FWSet)(FWType fwtype, int index, void * fwn, FWval fwsetval);
-typedef int (* FWIterator)(int index, FWType fwt, FWPointer *pointer, char **name, int *lastProp, int *jndex, char *type, char *readOnly);
 //typedef void (* FWFinalizer)(FWType fwtype, FWNative fwn);
 struct Multi_Any {int n; char *p;}; //should be same size as {int n, double *p} or {int n, struct X3D_Node **p} - an int and a pointer
 

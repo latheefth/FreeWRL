@@ -318,8 +318,8 @@ END_NODE(Coordinate)
 
 /* CoordinateDouble node */
 BEGIN_NODE(CoordinateDouble)
-EXPOSED_FIELD(CoordinateDouble,controlPoint,mfvec2d,controlPoint,FIELDTYPE_MFVec2d)
 EXPOSED_FIELD(CoordinateDouble,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(CoordinateDouble,point,mfvec3d,point,FIELDTYPE_MFVec3d)
 END_NODE(CoordinateDouble)
 
 /* CoordinateInterpolator node */
@@ -995,10 +995,12 @@ END_NODE(IndexedTriangleStripSet)
 
 /* Inline node */
 BEGIN_NODE(Inline)
+EVENT_IN(Inline,addChildren,mfnode,addChildren,FIELDTYPE_MFNode)
 FIELD(Inline,bboxCenter,sfvec3f,bboxCenter,FIELDTYPE_SFVec3f)
 FIELD(Inline,bboxSize,sfvec3f,bboxSize,FIELDTYPE_SFVec3f)
-FIELD(Inline,load,sfbool,load,FIELDTYPE_SFBool)
+EXPOSED_FIELD(Inline,load,sfbool,load,FIELDTYPE_SFBool)
 EXPOSED_FIELD(Inline,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EVENT_IN(Inline,removeChildren,mfnode,removeChildren,FIELDTYPE_MFNode)
 EXPOSED_FIELD(Inline,url,mfstring,url,FIELDTYPE_MFString)
 END_NODE(Inline)
 
@@ -1657,6 +1659,7 @@ EXPOSED_FIELD(NurbsSurfaceInterpolator,uOrder,sfint32,uOrder,FIELDTYPE_SFInt32)
 EXPOSED_FIELD(NurbsSurfaceInterpolator,vDimension,sfint32,vDimension,FIELDTYPE_SFInt32)
 FIELD(NurbsSurfaceInterpolator,vKnot,mfdouble,vKnot,FIELDTYPE_MFDouble)
 EXPOSED_FIELD(NurbsSurfaceInterpolator,vOrder,sfint32,vOrder,FIELDTYPE_SFInt32)
+EXPOSED_FIELD(NurbsSurfaceInterpolator,weight,mfdouble,weight,FIELDTYPE_MFDouble)
 END_NODE(NurbsSurfaceInterpolator)
 
 /* NurbsSweptSurface node */
@@ -1703,12 +1706,12 @@ FIELD(NurbsTrimmedSurface,uClosed,sfbool,uClosed,FIELDTYPE_SFBool)
 EXPOSED_FIELD(NurbsTrimmedSurface,uDimension,sfint32,uDimension,FIELDTYPE_SFInt32)
 FIELD(NurbsTrimmedSurface,uKnot,mfdouble,uKnot,FIELDTYPE_MFDouble)
 EXPOSED_FIELD(NurbsTrimmedSurface,uOrder,sfint32,uOrder,FIELDTYPE_SFInt32)
-EXPOSED_FIELD(NurbsTrimmedSurface,uTesselation,sfint32,uTesselation,FIELDTYPE_SFInt32)
+EXPOSED_FIELD(NurbsTrimmedSurface,uTessellation,sfint32,uTessellation,FIELDTYPE_SFInt32)
 FIELD(NurbsTrimmedSurface,vClosed,sfbool,vClosed,FIELDTYPE_SFBool)
 EXPOSED_FIELD(NurbsTrimmedSurface,vDimension,sfint32,vDimension,FIELDTYPE_SFInt32)
 FIELD(NurbsTrimmedSurface,vKnot,mfdouble,vKnot,FIELDTYPE_MFDouble)
 EXPOSED_FIELD(NurbsTrimmedSurface,vOrder,sfint32,vOrder,FIELDTYPE_SFInt32)
-EXPOSED_FIELD(NurbsTrimmedSurface,vTesselation,sfint32,vTesselation,FIELDTYPE_SFInt32)
+EXPOSED_FIELD(NurbsTrimmedSurface,vTessellation,sfint32,vTessellation,FIELDTYPE_SFInt32)
 EXPOSED_FIELD(NurbsTrimmedSurface,weight,mfdouble,weight,FIELDTYPE_MFDouble)
 END_NODE(NurbsTrimmedSurface)
 
@@ -1883,9 +1886,13 @@ END_NODE(ProgramShader)
 
 /* Proto node */
 BEGIN_NODE(Proto)
+EVENT_IN(Proto,addChildren,mfnode,addChildren,FIELDTYPE_MFNode)
 FIELD(Proto,bboxCenter,sfvec3f,bboxCenter,FIELDTYPE_SFVec3f)
 FIELD(Proto,bboxSize,sfvec3f,bboxSize,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(Proto,load,sfbool,load,FIELDTYPE_SFBool)
 EXPOSED_FIELD(Proto,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EVENT_IN(Proto,removeChildren,mfnode,removeChildren,FIELDTYPE_MFNode)
+EXPOSED_FIELD(Proto,url,mfstring,url,FIELDTYPE_MFString)
 END_NODE(Proto)
 
 /* ProximitySensor node */

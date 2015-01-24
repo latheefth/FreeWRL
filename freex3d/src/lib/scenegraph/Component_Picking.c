@@ -160,7 +160,7 @@ void pick_PointPickSensor (struct X3D_PointPickSensor *node) {
 		GLDOUBLE picksensor2viewpoint[16];
 		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, picksensor2viewpoint); 
 		
-		matmultiply(p->PickSensors[i].picksensor2world,picksensor2viewpoint,p->viewpoint2world);
+		matmultiplyAFFINE(p->PickSensors[i].picksensor2world,picksensor2viewpoint,p->viewpoint2world);
 		//matinverse(PickSensors[i].world2picksensor,PickSensors[i].picksensor2world);
 
  		/* loop through target nodes and flag them as targets for the next pass*/
@@ -454,8 +454,8 @@ void pick_Sphere (struct X3D_Sphere *node) {
 
 	/* get the transformed position of the Sphere, and the scale-corrected radius. */
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, shape2viewpoint);
-	matmultiply(shape2world,shape2viewpoint,viewpoint2world);
-	matinverse(world2shape,shape2world);
+	matmultiplyAFFINE(shape2world,shape2viewpoint,viewpoint2world);
+	matinverseAFFINE(world2shape,shape2world);
 
 	for(i=0;i<p->num_PickSensors;i++)
 	{
@@ -465,7 +465,7 @@ void pick_Sphere (struct X3D_Sphere *node) {
 
             picksensor2world = p->PickSensors[i].picksensor2world;
 		
-            matmultiply(shape2picksensor,picksensor2world,world2shape);
+            matmultiplyAFFINE(shape2picksensor,picksensor2world,world2shape);
             switch (picksensor->_nodeType) {
                 case NODE_PointPickSensor:  
                 {
@@ -564,7 +564,7 @@ void other_Sphere (struct X3D_Sphere *node)
 		pick_Sphere(node);
 }
 
-
+void remove_picksensor(struct X3D_Node * node) {}
 #else // DJTRACK_PICKSENSORS
 /* PICKSENSOR stubs */
 void other_PointPickSensor (struct X3D_PointPickSensor *node) {}
@@ -573,5 +573,6 @@ void other_Sphere (struct X3D_Sphere *node) {}
 void child_PickableGroup (struct X3D_Group *node) {}
 void prep_PickableGroup (struct X3D_Group *node) {}
 void add_picksensor(struct X3D_Node * node) {}
+void remove_picksensor(struct X3D_Node * node) {}
 
 #endif // DJTRACK_PICKSENSORS

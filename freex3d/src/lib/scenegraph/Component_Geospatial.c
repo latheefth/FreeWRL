@@ -358,7 +358,7 @@ static double geoidCorrection(double latitudeDeg, double longitudeDeg)
 	//  Apply option 'WGS84' (geoid) option to your topographic data GeoCoordinate GeoSystem (except GeoOrigin).
 	//  Then touch up when viewing them in the same scene by adjusting your local topographic geoOrigin height.
 	int il, ip, il1, ip1;
-	float dl, dp, d00, d01, d10, d11, d;
+	double dl, dp, d00, d01, d10, d11, d;
 	//step 1: find the cell indexes
 	il = (int)(longitudeDeg/10.0) + 18 -1; //longitude cell
 	ip = 18 - ((int)(latitudeDeg/10.0) + 9);  //latitude cell
@@ -1806,6 +1806,7 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
 /************************************************************************/
 /* GeoLOD								*/
 /************************************************************************/
+void add_node_to_broto_context(struct X3D_Proto *currentContext,struct X3D_Node *node);
 
 #define LOAD_CHILD(childNode,childUrl) \
 		/* printf ("start of LOAD_CHILD, url has %d strings\n",node->childUrl.n); */ \
@@ -1813,6 +1814,10 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
 			/* create new inline node, link it in */ \
 			if (node->childNode == NULL) { \
 				node->childNode = createNewX3DNode(NODE_Inline); \
+				if(usingBrotos()){ \
+					if(node->_executionContext) \
+						add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(node->childNode)); \
+				} \
 				ADD_PARENT(X3D_NODE(node->childNode), X3D_NODE(node)); \
  			}\
 			/* copy over the URL from parent */ \
@@ -1824,15 +1829,19 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
 			/* printf ("loading, and urlCount is %d\n",node->childUrl.n); */ \
 			X3D_INLINE(node->childNode)->url.n = node->childUrl.n; \
 			X3D_INLINE(node->childNode)->load = TRUE; \
-		}  \
+		}  
+
+#define UNLOAD_CHILD(childNode) \
+	if (node->childNode != NULL) \
+			X3D_INLINE(node->childNode)->load = FALSE; 
 
 
 static void GeoLODchildren (struct X3D_GeoLOD *node) {
 	int load = node->__inRange;
 	int i;
 
-        /* lets see if we still have to load this one... */
-        if (((node->__childloadstatus)==0) && (load)) {
+	/* lets see if we still have to load this one... */
+	if (((node->__childloadstatus)==0) && (load)) {
 		#ifdef VERBOSE
 		ppComponent_Geospatial p = (ppComponent_Geospatial)gglobal()->Component_Geospatial.prv;
 
@@ -1843,7 +1852,7 @@ static void GeoLODchildren (struct X3D_GeoLOD *node) {
 		LOAD_CHILD(__child2Node,child2Url)
 		LOAD_CHILD(__child3Node,child3Url)
 		LOAD_CHILD(__child4Node,child4Url)
-                node->__childloadstatus = 1;
+		node->__childloadstatus = 1;
 	}
 }
 //void GeoLODchildren1 (struct X3D_GeoLOD *node) {
@@ -1852,14 +1861,18 @@ static void GeoLODchildren (struct X3D_GeoLOD *node) {
 static void GeoUnLODchildren (struct X3D_GeoLOD *node) {
 	int load = node->__inRange;
 
-        if (!(load) && ((node->__childloadstatus) != 0)) {
+	if (!(load) && ((node->__childloadstatus) != 0)) {
 		#ifdef VERBOSE
 			ppComponent_Geospatial p = (ppComponent_Geospatial)gglobal()->Component_Geospatial.prv;
-                printf ("GeoLODloadChildren, removing children from node %u level %d\n",node,p->geoLodLevel);
+			printf ("GeoLODloadChildren, removing children from node %u level %d\n",node,p->geoLodLevel);
 		#endif
+		UNLOAD_CHILD(__child1Node)
+		UNLOAD_CHILD(__child2Node)
+		UNLOAD_CHILD(__child3Node)
+		UNLOAD_CHILD(__child4Node)
 
-                node->__childloadstatus = 0;
-        }
+		node->__childloadstatus = 0;
+	}
 }
 
 
@@ -1867,15 +1880,15 @@ static void GeoLODrootUrl (struct X3D_GeoLOD *node) {
 	int load = node->__inRange == 0; //dug9 it's when you are out of range that you should get the rootnode
 	int i;
 
-        /* lets see if we still have to load this one... */
-        if (((node->__rooturlloadstatus)==0) && (load)) {
+	/* lets see if we still have to load this one... */
+	if (((node->__rooturlloadstatus)==0) && (load)) {
 		#ifdef VERBOSE
 		printf ("GeoLODrootUrl - have to LOAD_CHILD for node %u\n",node); 
 		#endif
 
 		LOAD_CHILD(__rootUrl, rootUrl)
 
-                node->__rooturlloadstatus = 1;
+		node->__rooturlloadstatus = 1;
 	}
 }
 
@@ -1883,12 +1896,12 @@ static void GeoLODrootUrl (struct X3D_GeoLOD *node) {
 static void GeoUnLODrootUrl (struct X3D_GeoLOD *node) {
 	int load = node->__inRange;
 
-        if (!(load) && ((node->__rooturlloadstatus) != 0)) {
+	if (!(load) && ((node->__rooturlloadstatus) != 0)) {
 		#ifdef VERBOSE
-                printf ("GeoLODloadChildren, removing rootUrl\n");
+		printf ("GeoLODloadChildren, removing rootUrl\n");
 		#endif
-                node->__childloadstatus = 0;
-        }
+		node->__childloadstatus = 0;
+	}
 }
 
 
@@ -1935,7 +1948,7 @@ void compile_GeoLOD (struct X3D_GeoLOD * node) {
 
 
 void child_GeoLOD (struct X3D_GeoLOD *node) {
-        int i;
+	int i;
 	ppComponent_Geospatial p = (ppComponent_Geospatial)gglobal()->Component_Geospatial.prv;
 
 	INITIALIZE_GEOSPATIAL(node)
@@ -2264,14 +2277,27 @@ void proximity_GeoProximitySensor (struct X3D_GeoProximitySensor *node) {
 	 * this gives the orientation of the viewer relative to the sensor. 
 	 */ 
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix); 
-	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix); 
-	FW_GLU_UNPROJECT(orig.x,orig.y,orig.z,modelMatrix,projMatrix,viewport, 
-		&t_orig.x,&t_orig.y,&t_orig.z); 
-	FW_GLU_UNPROJECT(zvec.x,zvec.y,zvec.z,modelMatrix,projMatrix,viewport, 
-		&t_zvec.x,&t_zvec.y,&t_zvec.z); 
-	FW_GLU_UNPROJECT(yvec.x,yvec.y,yvec.z,modelMatrix,projMatrix,viewport, 
-		&t_yvec.x,&t_yvec.y,&t_yvec.z); 
-	matinverse(view2prox,modelMatrix); 
+	if(0){
+		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix); 
+		FW_GLU_UNPROJECT(orig.x,orig.y,orig.z,modelMatrix,projMatrix,viewport, 
+			&t_orig.x,&t_orig.y,&t_orig.z); 
+		FW_GLU_UNPROJECT(zvec.x,zvec.y,zvec.z,modelMatrix,projMatrix,viewport, 
+			&t_zvec.x,&t_zvec.y,&t_zvec.z); 
+		FW_GLU_UNPROJECT(yvec.x,yvec.y,yvec.z,modelMatrix,projMatrix,viewport, 
+			&t_yvec.x,&t_yvec.y,&t_yvec.z); 
+		VECDIFF(t_zvec, t_orig, dr1r2);  /* Z axis */
+		VECDIFF(t_yvec, t_orig, dr2r3);  /* Y axis */
+
+	}
+	matinverseAFFINE(view2prox,modelMatrix); 
+	if(1){
+		//feature-AFFINE_GLU_UNPROJECT
+		transform(&t_orig,&orig,view2prox);
+		transform(&zvec,&zvec,view2prox);
+		transform(&yvec,&yvec,view2prox);
+		VECDIFF(zvec, t_orig, dr1r2);
+		VECDIFF(yvec, t_orig, dr2r3);
+	}
     transform(&t_center,&orig, view2prox); 
  
  
@@ -2299,8 +2325,6 @@ void proximity_GeoProximitySensor (struct X3D_GeoProximitySensor *node) {
 	((node->__t1).c[1]) = (float)t_center.y; 
 	((node->__t1).c[2]) = (float)t_center.z; 
  
-	VECDIFF(t_zvec,t_orig,dr1r2);  /* Z axis */ 
-	VECDIFF(t_yvec,t_orig,dr2r3);  /* Y axis */ 
  
 	/* printf ("      dr1r2 %lf %lf %lf\n",dr1r2.x, dr1r2.y, dr1r2.z); 
 	printf ("      dr2r3 %lf %lf %lf\n",dr2r3.x, dr2r3.y, dr2r3.z); 

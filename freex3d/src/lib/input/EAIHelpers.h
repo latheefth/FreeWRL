@@ -52,5 +52,12 @@ void outBufferCat (char *str);
 
 int EAI_GetNodeParents(int cNode, int **parentNodesAdr);
 
+
+int isSForMFType(int itype);
+int sizeofSF(int itype);
+int isSFType(int itype);
+int sizeofSForMF(int itype);
+int type2SF(int itype);
+
 #endif /* __FREEWRL_EAI_HELPERS_H__ */
 

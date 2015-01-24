@@ -623,9 +623,9 @@ However, nowadays we do not read any sockets directly....
 
 						*EOT = 0; /* take off the EOT marker*/
 						if(command==CREATEVS)
-							ra = EAI_CreateVrml("String",(&EAI_BUFFER_CUR),retGroup);
+							ra = EAI_CreateVrml("String",(&EAI_BUFFER_CUR),rootNode(),retGroup);
 						else //CREATEXS
-							ra = EAI_CreateX3d("String",(&EAI_BUFFER_CUR),retGroup);
+							ra = EAI_CreateX3d("String",(&EAI_BUFFER_CUR),rootNode(),retGroup);
 						/* finish this, note the pointer maths */
 						bufPtr = (int) (EOT+3-tg->EAICore.EAIbuffer);
 					}
@@ -657,7 +657,7 @@ However, nowadays we do not read any sockets directly....
 /* 						printf ("CREATEVU %s\n",filename); */
 /* 					}	 */
 
-					ra = EAI_CreateVrml("URL", mypath, retGroup);
+					ra = EAI_CreateVrml("URL", mypath, rootNode(), retGroup);
 /* 					FREE_IF_NZ(filename); */
 					FREE_IF_NZ(mypath);
 				}
@@ -897,10 +897,10 @@ However, nowadays we do not read any sockets directly....
 						/* set ra to 0 so that the sprintf below is not used */
 						ra = 0;
 					} else {
-						ra = EAI_CreateVrml("CREATENODE",ctmp,retGroup); 
+						ra = EAI_CreateVrml("CREATENODE",ctmp,rootNode(),retGroup); 
 					}
 				} else if (command == CREATEPROTO)
-					ra = EAI_CreateVrml("CREATEPROTO",ctmp,retGroup); 
+					ra = EAI_CreateVrml("CREATEPROTO",ctmp,rootNode(),retGroup); 
 				else 
 					printf ("eai - huh????\n");
 

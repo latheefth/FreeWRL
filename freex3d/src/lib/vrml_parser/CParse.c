@@ -70,7 +70,7 @@ void CParse_init(struct tCParse *t){
 //ppCParse p = (ppCParse)gglobal()->CParse.prv;
 
 #undef TIMING
-BOOL cParse(void* ptr, unsigned ofs, const char* data) {
+BOOL cParse(void *ectx, void* ptr, unsigned ofs, const char* data) {
 	struct VRMLParser* parser;
 	ttglobal tg = gglobal();
 
@@ -81,11 +81,11 @@ BOOL cParse(void* ptr, unsigned ofs, const char* data) {
  	if (!tg->CParse.globalParser) {
 		/* printf ("cParse, new parser\n"); */
 		/* the FALSE in the newParser call signifies that we are using "VRML" formatted strings */
- 		parser=newParser(ptr, ofs, FALSE);
+ 		parser=newParser(ectx, ptr, ofs, FALSE);
 		tg->CParse.globalParser = (void *)parser;
  	} else {
 		/* printf ("cParse, using old parser\n"); */
-		parser=reuseParser(ptr,ofs);
+		parser=reuseParser(ectx, ptr,ofs);
  	}
 
 	resetParseSuccessfullyFlag();
@@ -107,7 +107,7 @@ BOOL cParse(void* ptr, unsigned ofs, const char* data) {
 			strcpy (finalChars,parser->lexer->nextIn);
 		}
 
-  		ConsoleMessage ("Parsing complete, but have unrecognized data at end of input:\"%s\"",finalChars);
+  		ConsoleMessage ("Parsing complete, but have unrecognized data at end of  input:\"%s\"",finalChars);
 	}
 
  	/* printf ("after parsing in cParse, VRMLParser->DEFinedNodes %u\n",parser->DEFedNodes); */

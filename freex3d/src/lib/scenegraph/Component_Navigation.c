@@ -191,9 +191,16 @@ void prep_Billboard (struct X3D_Billboard *node) {
 	FW_GL_PUSH_MATRIX();
 
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, mod);
-	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
-	FW_GLU_UNPROJECT(orig.x, orig.y, orig.z, mod, proj, viewport, &vpos.x, &vpos.y, &vpos.z);
-
+	if(0){
+		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
+		FW_GLU_UNPROJECT(orig.x, orig.y, orig.z, mod, proj, viewport, &vpos.x, &vpos.y, &vpos.z);
+	}
+	if(1){
+		//feature-AFFINE_GLU_UNPROJECT
+		double modi[16];
+		matinverseAFFINE(modi,mod);
+		transform(&vpos,&orig,modi);
+	}
 	len = VECSQ(vpos);
 	if (APPROX(len, 0)) { return; }
 	VECSCALE(vpos, 1/sqrt(len));
@@ -364,7 +371,6 @@ if ((selno->_renderFlags & VF_shouldSortChildren) == VF_shouldSortChildren) prin
 printf ("\n");
 }
 */
-
         render_node(node->_selected);
 }
 
@@ -395,9 +401,23 @@ void proximity_LOD (struct X3D_LOD *node) {
 
         /* calculate which one to display */
         FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, mod);
-        /* printf ("LOD, mat %f %f %f\n",mod[12],mod[13],mod[14]); */
-        FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
-        FW_GLU_UNPROJECT(0,0,0,mod,proj,viewport, &vec.x,&vec.y,&vec.z);
+		if(0){
+			//this is centered on the front face of the frustum, about .1 away from avatar center (approximately correct)
+			/* printf ("LOD, mat %f %f %f\n",mod[12],mod[13],mod[14]); */
+			FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
+			FW_GLU_UNPROJECT(0,0,0,mod,proj,viewport, &vec.x,&vec.y,&vec.z);
+			//printf("old vec= %f %f %f\n", vec.x,vec.y,vec.z);
+		}
+		if(1){
+			//feature-AFFINE_GLU_UNPROJECT
+			//this is centered on the avatar (correct)
+			double modi[16];
+			struct point_XYZ orig = {0.0,0.0,0.0};
+			matinverseAFFINE(modi,mod);
+			transform(&vec,&orig,modi);
+			//printf("new vec= %f %f %f\n", vec.x,vec.y,vec.z);
+			//printf("\n");
+		}
         vec.x -= (node->center).c[0];
         vec.y -= (node->center).c[1];
         vec.z -= (node->center).c[2];
@@ -436,7 +456,8 @@ void proximity_LOD (struct X3D_LOD *node) {
  * ViewpointGroup Node 
  *
  ************************************************************************/
- 
+ void add_node_to_broto_context(struct X3D_Proto *currentContext,struct X3D_Node *node);
+
 void compile_ViewpointGroup (struct X3D_ViewpointGroup *node) {
 	struct X3D_ProximitySensor *pn;
 
@@ -444,6 +465,10 @@ void compile_ViewpointGroup (struct X3D_ViewpointGroup *node) {
 	if (node->__proxNode == NULL) {
 		/* create proximity */
 		pn = (struct X3D_ProximitySensor *) createNewX3DNode(NODE_ProximitySensor);
+		if(usingBrotos()){
+			if(node->_executionContext)
+				add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(pn));
+		}
 
 		/* any changes needed here?? */
 		node->__proxNode = (void *)pn;

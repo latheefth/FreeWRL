@@ -71,7 +71,9 @@ sub gen_struct {
 	# sort the field array, so that we can ensure the order of structure
 	# elements.
 
-	my @sf = sort(@unsortedfields);
+	#my @sf = sort(@unsortedfields);  
+	my $fnames = $node->{fnames};
+	my @sf = @$fnames; #@($node->{fnames});
 	my $nf = scalar @sf;
 	# /* Store actual point etc. later */
        my $s = "/***********************/\nstruct X3D_$name {\n" . $interalNodeCommonFields;
@@ -1131,6 +1133,7 @@ sub gen {
 	"	node->_intern = 0;\n".
 	"	node->_nodeType = nt; /* unique integer for each type */\n".
 	"	node->referenceCount = 1; /* we have requested this, we want it! */\n".
+	"	node->_executionContext = NULL; /* a few places like js need to know the executionContext if non-null */ \n".
 	"	\n";
 
 

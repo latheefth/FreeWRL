@@ -193,7 +193,7 @@ char *strForeslash2back(char *str)
 {
 #ifdef _MSC_VER
 	int jj;
-	for( jj=0;jj<strlen(str);jj++)
+	for( jj=0;jj<(int)strlen(str);jj++)
 		if(str[jj] == '/' ) str[jj] = '\\';
 #endif
 	return str;
