@@ -334,6 +334,60 @@ char* download_url_WinInet(resource_item_t *res)
 
 #ifdef HAVE_WGET
 
+// we need to substitute %20 for ' ', as well replace other unsafe chars
+// ftp://ftp.gnu.org/old-gnu/Manuals/wget-1.8.1/html_chapter/wget_2.html#SEC3
+// http://www.rfc-base.org/txt/rfc-1738.txt
+
+static char *RFC1738_unsafe = " <>{}|\\^~[]`#%";
+int is_unsafe(char c){
+	int j, unsafe = 0;
+	if(c < 32 || c > 126) 
+		unsafe = 1;
+	else{
+		for(j=0;j<strlen(RFC1738_unsafe);j++){
+			if( c == RFC1738_unsafe[j]){
+				unsafe = 1;
+				break; //from j loop
+			}
+		}
+	}
+	return unsafe;
+}
+int count_unsafe(char *str){
+	int i, count, len;
+	len = (int)strlen(str);
+	count = 0;
+	for(i=0;i<len;i++)
+		if(is_unsafe(str[i])) 
+			count++;
+	return count;
+}
+char *hexdigits = "0123456789ABCDEF";
+char *replace_unsafe(char *str){
+	int i,j,n, len;
+	char *s;
+	len = (int)strlen(str);
+	n = count_unsafe(str);
+	if(n == 0) return strdup(str);
+	//printf("unsafe string=[%s]\n",str);
+	s = malloc(n*3 + len - n +1);
+	j = 0;
+	for(i=0;i<len;i++){
+		if(is_unsafe(str[i])){
+			s[j] = '%';
+			s[j+1] = hexdigits[str[i] >> 4];
+			s[j+2] = hexdigits[str[i] & 0x0f];
+			//if(str[i] != ' ') 
+				//printf("unsafe char=%d %c\n",(int)str[i],str[i]);
+			j += 3;
+		}else{
+			s[j] = str[i];
+			j++;
+		}
+	}
+	s[j] = 0;
+	return s;
+}
 /**
  *   launch wget to download requested url
  *   if tmp is not NULL then use that tempnam
@@ -341,7 +395,7 @@ char* download_url_WinInet(resource_item_t *res)
  */
 char* download_url_wget(resource_item_t *res)
 {
-    char *temp, *wgetcmd;
+    char *temp, *wgetcmd, *safe;
     int ret;
 
 #if defined (TARGET_AQUA)
@@ -365,18 +419,19 @@ char* download_url_wget(resource_item_t *res)
     }
 
     // create wget command line
+	safe = replace_unsafe(res->parsed_request);
     wgetcmd = malloc( strlen(WGET) +
 	                    strlen(WGET_OPTIONS) + 
-	                    strlen(res->parsed_request) +
+	                    strlen(safe) +
                             strlen(temp) + 6 +1+1);
 
 #if defined (TARGET_AQUA)
     /* AQUA - we DO NOT have the options, but we can not have the space - it screws the freewrlSystem up */
-    sprintf(wgetcmd, "%s %s %s %s", WGET, res->parsed_request, WGET_OUTPUT_DIRECT, temp);
+    sprintf(wgetcmd, "%s %s %s %s", WGET, safe, WGET_OUTPUT_DIRECT, temp);
 #else
-    sprintf(wgetcmd, "%s %s %s %s %s", WGET, WGET_OPTIONS, res->parsed_request, WGET_OUTPUT_DIRECT, temp);
+    sprintf(wgetcmd, "%s %s %s %s %s", WGET, WGET_OPTIONS, safe, WGET_OUTPUT_DIRECT, temp);
 #endif
-
+	free(safe);
     /* printf ("wgetcmd is %s\n",wgetcmd); */
 
     // call wget

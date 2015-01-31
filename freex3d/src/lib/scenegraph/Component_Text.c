@@ -544,7 +544,8 @@ void FW_make_fontname(int num) {
         printf("<debug> no set? wha?\n");
     }
     FcPatternDestroy(FW_fp);
-    FcPatternDestroy(set);
+    //FcPatternDestroy(set); bad - corrupts heap, set isn't a Pattern
+	if (set) FcFontSetSortDestroy(set);
     #endif
 }
 
