@@ -1685,6 +1685,7 @@ if (backFacing) { \n \
 //============= USING_SHADER_LIGHT_ARRAY_METHOD FOR LIGHTS==================
 //used for angleproject winRT d3d11 (which can't/doesn't convert GLSL struct[] array to HLSL properly - just affects lights)
 //will break custom shader node vertex/pixel shaders that try to use gl_LightSource[] ie teapot-Toon.wrl
+
 static const GLchar *lightDefinesArrayMethod = "\
 struct fw_MaterialParameters {\n\
   vec4 emission;\n\
@@ -3398,13 +3399,13 @@ void fw_glLoadIdentity(void) {
 	FW_GL_LOADMATRIX(p->currentMatrix);
 }
 
-#define PUSHMAT(a,b,c,d) case a: \
-	b++;\
-	if (b>=c) {b=c-1; \
-		printf ("stack overflow, whichmode %d\n",p->whichMode); } \
-	memcpy ((void *)d[b], (void *)d[b-1],sizeof(GLDOUBLE)*16);\
-	p->currentMatrix = d[b];\
-	break;
+//#define PUSHMAT(a,b,c,d) case a: \
+//	b++;\
+//	if (b>=c) {b=c-1; \
+//		printf ("stack overflow, whichmode %d\n",p->whichMode); } \
+//	memcpy ((void *)d[b], (void *)d[b-1],sizeof(GLDOUBLE)*16);\
+//	p->currentMatrix = d[b];\
+//	break;
 
 MATRIX4* PushMat( int a, int *b, int c, MATRIX4 *d){
 	(*b)++;
@@ -3446,9 +3447,9 @@ void fw_glPushMatrix(void) {
 //
 // 	FW_GL_LOADMATRIX(p->currentMatrix);
 //}
-#undef PUSHMAT
+//#undef PUSHMAT
 
-#define POPMAT(a,b,c) case a: b--; if (b<0) {b=0;printf ("popMatrix, stack underflow, whichMode %d\n",p->whichMode);} p->currentMatrix = c[b]; break;
+//#define POPMAT(a,b,c) case a: b--; if (b<0) {b=0;printf ("popMatrix, stack underflow, whichMode %d\n",p->whichMode);} p->currentMatrix = c[b]; break;
 MATRIX4 *PopMat(int a, int *b, MATRIX4 *c){
 	(*b)--;
 	if (*b < 0) {
@@ -3483,7 +3484,7 @@ void fw_glPopMatrix(void) {
 //
 //	FW_GL_LOADMATRIX(p->currentMatrix);
 //}
-#undef POPMAT
+//#undef POPMAT
 
 
 void fw_glTranslated(GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
@@ -4378,7 +4379,7 @@ void startOfLoopNodeUpdates(void) {
 	size_t offsetOfChildrenPtr;
 
 	/* process one inline per loop; do it outside of the lock/unlock memory table */
-	struct Vector *loadInlines;
+	//struct Vector *loadInlines;
 	ppOpenGL_Utils p;
 	ttglobal tg = gglobal();
 	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
@@ -4390,7 +4391,7 @@ void startOfLoopNodeUpdates(void) {
 	removeChildren = NULL;
 	childrenPtr = NULL;
 	parentVector = NULL;
-	loadInlines = NULL;
+	//loadInlines = NULL;
 	offsetOfChildrenPtr = 0;
 
 	/* assume that we do not have any sensitive nodes at all... */
@@ -5164,7 +5165,7 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 			//lexer_stringUser_fieldName(me->lexer, name, mode);
 			//struct VRMLParser* parser;
 			//struct VRMLLexer* lexer;
-			ttglobal tg = gglobal();
+			//ttglobal tg = gglobal();
 			//lexer = NULL;
 			//parser = tg->CParse.globalParser;
 			//if (parser)
@@ -5440,7 +5441,7 @@ void unlink_node(struct X3D_Node* node)
 		}
 	}
 }
-/*delete node created*/
+/*delete node created
 static void killNode_hide_obsolete (int index) {
 	int j=0;
 	int *fieldOffsetsPtr;
@@ -5469,9 +5470,9 @@ static void killNode_hide_obsolete (int index) {
 	//ConsoleMessage("killNode - looking for node %p of type %s in one of the stacks\n", structptr,stringNodeType(structptr->_nodeType));
 
 	if( structptr->referenceCount > -1 ){
-		/* unlinking the node from special arrays, parents and children
-		   we just need to do this once, and early in the kill process
-		   - I wish we had a sentinal value for 'unlinked' */
+		// unlinking the node from special arrays, parents and children
+		//   we just need to do this once, and early in the kill process
+		//   - I wish we had a sentinal value for 'unlinked' 
 		DELETE_IF_IN_STACK(viewpoint_stack);
 		DELETE_IF_IN_STACK(background_stack);
 		DELETE_IF_IN_STACK(fog_stack);
@@ -5484,14 +5485,14 @@ static void killNode_hide_obsolete (int index) {
 		//print_node_links(structptr);
 	}
 
-	/* give this time for things to "settle" in terms of rendering, etc
-	JAS: "OpenGL - old code called flush() or finish(), but when the front-end does the actual rendering,
-	what happens is that the GL calls get queued up for the GPU, then run when possible. So, there
-	is a "hidden" multi-threading going on there. IIRC, I gave it 10 rendering loops for an unused
-	node before deleting any of the items in it; really 1 or 2 loops should be fine. (1, but don't
-	know about double buffering; 10 is a safe overkill) Without that, having OpenGL issues was a
-	random certainty when removing nodes, and data from these nodes."
-	*/
+	// give this time for things to "settle" in terms of rendering, etc
+	//JAS: "OpenGL - old code called flush() or finish(), but when the front-end does the actual rendering,
+	//what happens is that the GL calls get queued up for the GPU, then run when possible. So, there
+	//is a "hidden" multi-threading going on there. IIRC, I gave it 10 rendering loops for an unused
+	//node before deleting any of the items in it; really 1 or 2 loops should be fine. (1, but don't
+	//know about double buffering; 10 is a safe overkill) Without that, having OpenGL issues was a
+	//random certainty when removing nodes, and data from these nodes."
+	
 	structptr->referenceCount --;
 	if (structptr->referenceCount > -10) {
 		//ConsoleMessage ("ref count for %p is just %d, waiting\n",structptr,structptr->referenceCount);
@@ -5507,38 +5508,38 @@ static void killNode_hide_obsolete (int index) {
 	printf("Node Type	= %s",stringNodeType(structptr->_nodeType));
 	} printf ("\n");
 	#endif
-	/* node must be already unlinked with unlink_node() when we get here */
-	/* delete parent vector. */
+	// node must be already unlinked with unlink_node() when we get here 
+	// delete parent vector. 
  	deleteVector(char*, structptr->_parentVector);
-	/* clear child vector - done below */
+	// clear child vector - done below 
 
 	fieldOffsetsPtr = (int *)NODE_OFFSETS[structptr->_nodeType];
-	/*go thru all field*/
+	//go thru all field
 	while (*fieldOffsetsPtr != -1) {
 		fieldPtr = offsetPointer_deref(char *, structptr,*(fieldOffsetsPtr+1));
 		#ifdef VERBOSE
 		printf ("looking at field %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]);
 		#endif
 
-		/* some fields we skip, as the pointers are duplicated, and we CAN NOT free both */
+		// some fields we skip, as the pointers are duplicated, and we CAN NOT free both 
 		if (*fieldOffsetsPtr == FIELDNAMES_setValue)
-			break; /* can be a duplicate SF/MFNode pointer */
+			break; // can be a duplicate SF/MFNode pointer 
 
 		if (*fieldOffsetsPtr == FIELDNAMES_valueChanged)
-			break; /* can be a duplicate SF/MFNode pointer */
+			break; // can be a duplicate SF/MFNode pointer 
 
 		if (*fieldOffsetsPtr == FIELDNAMES__parentResource)
-			break; /* can be a duplicate SF/MFNode pointer */
+			break; // can be a duplicate SF/MFNode pointer 
 
 
 		if (*fieldOffsetsPtr == FIELDNAMES___oldmetadata)
-			break; /* can be a duplicate SFNode pointer */
+			break; // can be a duplicate SFNode pointer 
 
 		if (*fieldOffsetsPtr == FIELDNAMES__selected)
-			break; /* can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD */
+			break; // can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD 
 
 		if (*fieldOffsetsPtr == FIELDNAMES___oldChildren)
-			break; /* can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD */
+			break; // can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD 
 
 		if (*fieldOffsetsPtr == FIELDNAMES___oldMFString)
 			break;
@@ -5550,23 +5551,23 @@ static void killNode_hide_obsolete (int index) {
 			break;
 
 		if (*fieldOffsetsPtr == FIELDNAMES___oldKeyPtr)
-			break; /* used for seeing if interpolator values change */
+			break; // used for seeing if interpolator values change 
 
 		if (*fieldOffsetsPtr == FIELDNAMES___oldKeyValuePtr)
-			break; /* used for seeing if interpolator values change */
+			break; // used for seeing if interpolator values change 
 
 
-		/* GeoLOD nodes, the children field exports either the rootNode, or the list of child nodes */
+		// GeoLOD nodes, the children field exports either the rootNode, or the list of child nodes 
 		if (structptr->_nodeType == NODE_GeoLOD) {
 			if (*fieldOffsetsPtr == FIELDNAMES_children) break;
 		}
 
-		/* nope, not a special field, lets just get rid of it as best we can 
-			dug9 sept 2014: GC garbage collection: I wonder if it would be easier/simpler when we malloc something,
-			to put it into a flat scene-GC list (and inline-GC list?) - as we do for a few things already, like nodes - 
-			and don't GC here for fields on occassionally removed nodes, just when we change scenes
-			wipe out the whole GC table(s)?
-		*/
+		// nope, not a special field, lets just get rid of it as best we can 
+		//	dug9 sept 2014: GC garbage collection: I wonder if it would be easier/simpler when we malloc something,
+		//	to put it into a flat scene-GC list (and inline-GC list?) - as we do for a few things already, like nodes - 
+		//	and don't GC here for fields on occassionally removed nodes, just when we change scenes
+		//	wipe out the whole GC table(s)?
+		//
 		switch(*(fieldOffsetsPtr+2)){
 			case FIELDTYPE_MFFloat:
 				MFloat=(struct Multi_Float *)fieldPtr;
@@ -5596,7 +5597,7 @@ static void killNode_hide_obsolete (int index) {
 			case FIELDTYPE_MFNode:
 				MNode=(struct Multi_Node *)fieldPtr;
 				#ifdef VERBOSE
-				/* verify node structure. Each child should point back to me. */
+				//verify node structure. Each child should point back to me. 
 				{
 					int i;
 					struct X3D_Node *tp;
@@ -5661,7 +5662,7 @@ static void killNode_hide_obsolete (int index) {
 				FREE_IF_NZ(MyS);
 				break;
 
-			default:; /* do nothing - field not malloc'd */
+			default:; // do nothing - field not malloc'd 
 		}
 		fieldOffsetsPtr+=5;
 	}
@@ -5671,7 +5672,7 @@ static void killNode_hide_obsolete (int index) {
 	p->potentialHoleCount++;
 	//ConsoleMessage ("kill, index %d, phc %d",index,p->potentialHoleCount);
 }
-
+*/
 
 #ifdef DEBUG_FW_LOADMAT
 	static void fw_glLoadMatrixd(GLDOUBLE *val,char *where, int line) {

@@ -576,7 +576,7 @@ BOOL line_intersect_cylinder_3f(float *p, float *v, float radius, float *pi)
 	und = b*b - 4*c;
 	if(und > 0) { /* HITS the infinite cylinder */
 		float t2[3];
-		float sol1 = (-b+(float) sqrt(und))/2;
+		//float sol1 = (-b+(float) sqrt(und))/2;
 		float sol2 = (-b-(float) sqrt(und))/2;
 		float sol = sol2;// sol1 < sol2 ? sol1 : sol2; //take the one closest to p (but should these be abs? what about direction 
 		vecadd3f(pp, p, vecscale3f(t2, v, sol));

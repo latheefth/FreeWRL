@@ -934,6 +934,7 @@ void handle_turntable(const int mev, const unsigned int button, float x, float y
 		double yaw, pitch; //dist, 
 		Quaternion quat;
 
+		pitch = yaw = 0.0;
 		if (button == 1 || button == 3){
 			yaxis.x = yaxis.z = 0.0;
 			yaxis.y = 1.0;
@@ -966,7 +967,7 @@ void handle_turntable(const int mev, const unsigned int button, float x, float y
 			}
 			if(1) {
 				//handle_tick_explore quadratic
-				double quadratic = -xsign_quadratic(y - ypz->y,5.0,10.0,0.0);
+				//double quadratic = -xsign_quadratic(y - ypz->y,5.0,10.0,0.0);
 				ypz->ypz[1] = xsign_quadratic(y - ypz->y,100.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment *.15;
 				//printf("quad=%f y-y %f s=%f fra=%f\n",quadratic,y-ypz->y,p->Viewer.speed,frameRateAdjustment);
 			}
@@ -1201,6 +1202,7 @@ void handle_explore(const int mev, const unsigned int button, float x, float y) 
 		double yaw, pitch; //dist, 
 		Quaternion quat;
 
+		yaw = pitch = 0.0;
 		if (button == 1 || button == 3){
 			struct point_XYZ dd,ddr;
 			yaxis.x = yaxis.z = 0.0;
@@ -1256,7 +1258,7 @@ void handle_explore(const int mev, const unsigned int button, float x, float y) 
 			}
 			if(1) {
 				//handle_tick_explore quadratic
-				double quadratic = -xsign_quadratic(y - ypz->y,5.0,10.0,0.0);
+				//double quadratic = -xsign_quadratic(y - ypz->y,5.0,10.0,0.0);
 				ypz->ypz[1] = xsign_quadratic(y - ypz->y,100.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment *.15;
 				//printf("quad=%f y-y %f s=%f fra=%f\n",quadratic,y-ypz->y,p->Viewer.speed,frameRateAdjustment);
 			}
@@ -1528,19 +1530,19 @@ static struct flykey_lookup_type {
 	int axis; //0=x,1=y,2=z
 	int sign; //-1 left 1 right
 } flykey_lookup [] = {
-	'j', 0, 0, -1,
-	'l', 0, 0,  1,
-	'p', 0, 1, -1,
-	';', 0, 1,  1,
-	'a', 0, 2, -1,
-	'z', 0, 2,  1,
+	{'j', 0, 0, -1},
+	{'l', 0, 0,  1},
+	{'p', 0, 1, -1},
+	{';', 0, 1,  1},
+	{'a', 0, 2, -1},
+	{'z', 0, 2,  1},
 
-	'k', 1, 0, -1,
-	'8', 1, 0,  1,
-	'u', 1, 1, -1,
-	'o', 1, 1,  1,
-	'7', 1, 2, -1,
-	'9', 1, 2,  1,
+	{'k', 1, 0, -1},
+	{'8', 1, 0,  1},
+	{'u', 1, 1, -1},
+	{'o', 1, 1,  1},
+	{'7', 1, 2, -1},
+	{'9', 1, 2,  1}
 };
 
 struct flykey_lookup_type *getFlyIndex(char key){
@@ -1989,7 +1991,7 @@ static void handle_tick_fly()
 		}else{
 			//the key is currently being held down, use a bit of it here
 			double rps = radians_per_second;
-			double pressedEra = fly->lasttime - fly->down[1][i].epoch; //rEra[i];
+			//double pressedEra = fly->lasttime - fly->down[1][i].epoch; //rEra[i];
 			//normally not a chirp, but could be - a chirp here will hardly show, so no harm in double doing chirps here and below
 			double era = fly->lasttime - fly->down[1][i].era; //- .25; //save a chirp worth because it gets chirped below when the key comes up
 			fly->Velocity[1][i] += era * fly->down[1][i].direction * rps; // * 0.025;
@@ -2710,7 +2712,7 @@ void setup_viewpoint_slerp(double* center, double pivot_radius, double vp_radius
 		
 	*/
 	//GLDOUBLE matTargeti[16]; //, matTarget[16], mv[16];
-	double dradius; //distance, 
+	//double dradius; //distance, 
 	double yaw, pitch; //, R1[16], R2[16], R3[16], R3i[16]; //, T[16], matQuat[16]; //, matAntiQuat[16];
 	double C[3];
 	//Quaternion sq;
@@ -2730,7 +2732,7 @@ void setup_viewpoint_slerp(double* center, double pivot_radius, double vp_radius
 	//distance = (distance - dradius)/distance;
 	vecnormald(pos,pos);
 	vecscaled(pos,pos,vp_radius); //distance);
-	dradius = veclengthd(pos);
+	//dradius = veclengthd(pos);
 
 	p->Viewer.SLERPing3 = 1;
 

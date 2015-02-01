@@ -706,7 +706,7 @@ void resource_remove_cached_file(s_list_t *cfe)
  */
 void resource_destroy(resource_item_t *res)
 {
-	s_list_t *of, *cf;
+	s_list_t *cf; // *of,
 
 	if(!res) return;
 	DEBUG_RES("destroying resource: %d, %d\n", res->type, res->status);
@@ -734,7 +734,7 @@ void resource_destroy(resource_item_t *res)
 		if(0){
 			/* Remove openned file ? */
 			//of = (s_list_t *) res->openned_files;
-			of = res->openned_files;
+			//of = res->openned_files;
 			//if (of) {
 			//	/* close any openned file */
 			//	close( ((openned_file_t*)of->elem)->fileDescriptor );
@@ -1353,7 +1353,7 @@ void fwl_resitem_setLocalPath(void *resp, char* path){
 		else
 			res->cached_files = ml_append(res->cached_files, item);
 	}
-	res->_loadFunc = file2blob;
+	res->_loadFunc = &file2blob;
 }
 int	fwl_resitem_getStatus(void *resp){
 	resource_item_t *res = (resource_item_t *)resp;

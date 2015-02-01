@@ -446,10 +446,10 @@ BOOL script_initCode(struct Shader_Script* me, const char* code)
 static bool script_initCodeFromBLOB(struct Shader_Script* me, const char* uri, char** crv)
 {
 	size_t i;
-	int rv;
+	//int rv;
 	//ConsoleMessage ("script_initCodeFromUri starting");
 
-	rv = FALSE; /* initialize it */
+	//rv = FALSE; /* initialize it */
 
 	/* strip off whitespace at the beginning JAS */
 	while ((*uri<= ' ') && (*uri>0)) uri++;
@@ -505,9 +505,10 @@ static void script_initCodeFromMFUri_download(struct Shader_Script* me, struct M
 		resitem_enqueue(ml_new(res));
 	}
 }
+/* //not a valid option?
 static void shader_initCodeFromMFUri_download(struct Shader_Script* me, struct Multi_String *s){
-	 /* Not a valid script text in this MFString. Lets see if this
-		is this a possible file that we have to get? */
+	 // Not a valid script text in this MFString. Lets see if this
+	//	is this a possible file that we have to get? 
 	resource_item_t *res, *parentres;
 
 	DEBUG_CPARSER("script_initCodeFromUri, uri is %s\n", uri); 
@@ -528,12 +529,12 @@ static void shader_initCodeFromMFUri_download(struct Shader_Script* me, struct M
 		resitem_enqueue(ml_new(res));
 	}
 }
-
+*/
 
 /* initialize a script from a url. Expects valid input */
 BOOL script_initCodeFromMFUri(struct Shader_Script* me, const struct Multi_String* s) {
 	size_t i;
-	int *isURL = malloc(sizeof(int)*s->n);
+	//int *isURL = malloc(sizeof(int)*s->n);
 	//struct Multi_String *multires = MALLOC(struct Multi_String *,sizeof(struct Multi_String));
 	//multires->p = MALLOC(struct Uni_String**,sizeof(struct Uni_String)*s->n);
 	//tmp2->family.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);tmp2->family.p[0] = newASCIIString("SERIF");tmp2->family.n=1; ;

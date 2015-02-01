@@ -1269,7 +1269,7 @@ void file2blob_task(s_list_t *item){
 	}else if(tactic == file2blob_task_enqueue){
 		//set BE load function to non-null
 		//a) res->load_func = imagery_load or resource_load or file2blob
-		res->_loadFunc = file2blob;
+		res->_loadFunc = &file2blob;
 		//b) backend_setloadfunction(file2blob) or backend_setimageryloadfunction(imagery_load) and backend_setresourceloadfunction(resource_load)
 		//enqueue downloaded FILE
 		resitem_enqueue(item);

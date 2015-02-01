@@ -89,7 +89,7 @@ struct xml_user_data *new_xml_user_data(){
 //for push,pop,get the index is the vector index range 0, n-1. 
 // Or going from the top top= -1, parent to top = -2.
 #define TOP -1
-#define BOTTOM 0
+//#define BOTTOM 0
 
 //currently context isn't a separate struct, its part of X3D_Proto and X3D_Inline, which have
 //the same structure, and can be cross-cast, and represent a web3d executionContext or context for short
@@ -220,7 +220,7 @@ static int XML_ParseFile(xmlSAXHandler *me, void *user_data, const char *myinput
  #define XMLCALL
 #endif /* XMLCALL */
 
-#define MAX_CHILD_ATTRIBUTE_DEPTH 32
+//#define MAX_CHILD_ATTRIBUTE_DEPTH 32
 
 typedef struct pX3DParser{
 	struct VRMLLexer *myLexer;// = NULL;
@@ -883,12 +883,12 @@ void QAandRegister_parsedRoute_B(struct X3D_Proto *context, char* fnode, char* f
 */
 static void parseRoutes_B (void *ud, char **atts) {
 	struct X3D_Proto *context;
-	struct X3D_Node *fromNode = NULL;
-	struct X3D_Node *toNode = NULL;	
+	//struct X3D_Node *fromNode = NULL;
+	//struct X3D_Node *toNode = NULL;	
 	int i; //, okf,okt, ftype,fkind,fifield,fsource,ttype,tkind,tifield,tsource;
 	//union anyVrml *fvalue, *tvalue;
 	//void *fdecl,*tdecl;
-	int error = FALSE;
+	//int error = FALSE;
 	//int isImportRoute;
 	//int fromType;
 	//int toType;
@@ -1359,7 +1359,7 @@ void endCDATA_B (void *ud, const xmlChar *string, int len) {
 				value->mfstring.n = 1;
 				value->mfstring.p = malloc(sizeof(void *));
 				value->mfstring.p[0] = newASCIIString(string);
-				if(0) printf("copied cdata string= [%s]\n",(struct Uni_String*)(value->mfstring.p[0])->strptr);
+				//if(0) printf("copied cdata string= [%s]\n",(struct Uni_String*)(value->mfstring.p[0])->strptr);
 			}
 		}
 		if(!handled)
@@ -1862,11 +1862,11 @@ static void saveProtoInstanceFields (void *ud, const char *name, char **atts) {
 
 /********************************************************/
 
-#define INCREMENT_CHILDREN_LEVEL \
-	{ \
-		if ((gglobal()->X3DParser.parentIndex <0) || (gglobal()->X3DParser.parentIndex > MAX_CHILD_ATTRIBUTE_DEPTH)) {printf ("stack overflow\n"); return;} \
-		p->childAttributes[gglobal()->X3DParser.parentIndex] = newVector (struct nameValuePairs *, 8); \
-	}
+//#define INCREMENT_CHILDREN_LEVEL \
+//	{ \
+//		if ((gglobal()->X3DParser.parentIndex <0) || (gglobal()->X3DParser.parentIndex > MAX_CHILD_ATTRIBUTE_DEPTH)) {printf ("stack overflow\n"); return;} \
+//		p->childAttributes[gglobal()->X3DParser.parentIndex] = newVector (struct nameValuePairs *, 8); \
+//	}
 
 void **shaderFields(struct X3D_Node* node){
 	void **shaderfield;
@@ -1875,11 +1875,11 @@ void **shaderFields(struct X3D_Node* node){
 		shaderfield = &X3D_SCRIPT(node)->__scriptObj;
 		break;
 	case NODE_ComposedShader:
-		shaderfield = &X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields;
+		shaderfield = (void**)&X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields;
 	case NODE_ShaderProgram:
-		shaderfield = &X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields;
+		shaderfield = (void**)&X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields;
 	case NODE_PackagedShader:
-		shaderfield = &X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields;
+		shaderfield = (void**)&X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields;
 	default:
 		shaderfield = NULL;
 	}
@@ -2022,7 +2022,7 @@ static void saveAttributes(void *ud, int myNodeType, const xmlChar *name, char**
 	struct X3D_Node *fromDEFtable;
 	struct Vector *childAttributes;
 	ttglobal tg = gglobal();
-	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
+	//ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 
 	DEBUG_X3DPARSER ("	saveAttributes, parentIndex %d parentIndex %d\n",tg->X3DParser.parentIndex,tg->X3DParser.parentIndex);
 	
@@ -2571,7 +2571,7 @@ static void XMLCALL X3DendElement(void *ud, const xmlChar *iname) {
 	int myNodeIndex;
     const char*name = (const char*) iname;
 	ttglobal tg = gglobal();
-	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
+	//ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 
 	/* printf ("X3DEndElement for %s\n",name); */
 

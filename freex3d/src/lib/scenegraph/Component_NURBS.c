@@ -532,12 +532,13 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_PolyRep *rep){
 
 void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct X3D_TextureCoordinate *texCoordNode);
 void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node *trim){
-	ppComponent_NURBS p = (ppComponent_NURBS)gglobal()->Component_NURBS.prv;
 	MARK_NODE_COMPILED
 #ifdef NURBS_LIB
 	{
 		int i,j, n, nu, nv, nku, nkv;
 		GLfloat *xyzw, *knotsu, *knotsv;
+		ppComponent_NURBS p = (ppComponent_NURBS)gglobal()->Component_NURBS.prv;
+
 		nku = nkv = nu = nv = n = 0;
 		xyzw = knotsu = knotsv = NULL;
 		// I should call something like:
