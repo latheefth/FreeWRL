@@ -23,6 +23,8 @@ typedef int indexT;
 typedef union anyVrml{
 	int nothing;
 } anyVrml;
+typedef struct X3D_Node;
+typedef struct X3D_Proto;
 #include "JScript.h"
 void JScript_init(void *t){}
 void jsVRMLBrowser_init(void *t){}

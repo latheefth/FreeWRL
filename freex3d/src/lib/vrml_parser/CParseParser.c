@@ -652,7 +652,7 @@ BOOL parser_vrmlScene_B(struct VRMLParser* me)
 BOOL parser_vrmlScene(struct VRMLParser* me)
 {
 	//ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
-	if(usingBrotos() && X3D_NODE(me->ectx)->_nodeType == NODE_Proto || X3D_NODE(me->ectx)->_nodeType == NODE_Inline) {
+	if(usingBrotos() && ((X3D_NODE(me->ectx)->_nodeType == NODE_Proto) || (X3D_NODE(me->ectx)->_nodeType == NODE_Inline))) {
 		/* (sorry for documenting instead of refactoring)
 		 broto era: me->ptr is both the executionContext node (scene, proto, inline) 
 		 and the where node of the (where,offset) place to put the parsed nodes.
@@ -4919,7 +4919,7 @@ void copy_routes2(Stack *routes, struct X3D_Proto* target, struct Vector *p2p)
 void copy_defnames2(Stack *defnames, struct X3D_Proto* target, struct Vector *p2p)
 {
 	//Stack* defs;
-	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
+	//struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 
 	//defs = globalParser->brotoDEFedNodes;
 	//if( defs == NULL)
@@ -6231,9 +6231,10 @@ BOOL cbCountFields(void *callbackData,struct X3D_Node* node,int jfield,union any
 }
 int count_fields(struct X3D_Node* node)
 {
-	int found;
+	//int found;
 	int count = 0;
-	found = walk_fields(node,cbCountFields,&count);
+	//found = 
+	walk_fields(node,cbCountFields,&count);
 	return count;
 }
 //========
@@ -6274,7 +6275,7 @@ int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *ty
 			}
 		}
 	}else if(node->_nodeType == NODE_Proto) {
-		int k, mode;
+		int k; //, mode;
 		struct ProtoFieldDecl* pfield;
 		struct X3D_Proto* pnode = (struct X3D_Proto*)node;
 		struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
@@ -6284,7 +6285,7 @@ int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *ty
 			{
 				const char *fieldName;
 				pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, k);
-				mode = pfield->mode;
+				//mode = pfield->mode;
 				fieldName = pfield->cname;
 				if(!strcmp(fieldName,fieldname)){
 					*type = pfield->type;
@@ -6372,7 +6373,7 @@ int getFieldFromNodeAndIndex(struct X3D_Node* node, int ifield, const char **fie
 		}
 		return iret;
 	}else if(node->_nodeType == NODE_Proto ) {
-		int k, mode;
+		int k; //, mode;
 		struct ProtoFieldDecl* pfield;
 		struct X3D_Proto* pnode = (struct X3D_Proto*)node;
 		struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
@@ -6382,7 +6383,7 @@ int getFieldFromNodeAndIndex(struct X3D_Node* node, int ifield, const char **fie
 				if(k > -1 && k < vectorSize(pstruct->iface))
 				{
 					pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, k);
-					mode = pfield->mode;
+					//mode = pfield->mode;
 					*fieldname = pfield->cname;
 					*type = pfield->type;
 					*kind = pfield->mode;
@@ -6681,7 +6682,7 @@ resource_item_t * resLibraryAlreadyRequested(resource_item_t *res){
 #define LOAD_INITIAL_STATE 0
 #define LOAD_REQUEST_RESOURCE 1
 #define LOAD_FETCHING_RESOURCE 2
-#define LOAD_PARSING 3
+//#define LOAD_PARSING 3
 #define LOAD_STABLE 10
 /* dug9 Sept 2014 wrapper technique for externProto for useBrotos:
 	PD - proto declare - a type declaration (shallow copies of contained protos; allocated nodes not registered)
@@ -7107,7 +7108,7 @@ int unregister_broto_instance(struct X3D_Proto* node){
 
 
 	*/
-	int retval = FALSE;
+	int retval = TRUE;
 	if(node && hasContext(X3D_NODE(node))){
 		unsigned char depthflag = ciflag_get(node->__protoFlags,0);
 		if(depthflag){
@@ -7137,7 +7138,7 @@ int unregister_broto_instance(struct X3D_Proto* node){
 			}
 		}
 	}
-	return TRUE;
+	return retval;
 }
 
 int gc_broto_instance(struct X3D_Proto* node){

@@ -1574,7 +1574,7 @@ void handle_Xevents(XEvent event) {
 
 	int keysyms_per_keycode_return;
 
-	int count;
+	//int count;
 	int actionKey;
 	ppMainloop p;
 	ttglobal tg = gglobal();
@@ -3040,7 +3040,7 @@ void dump_scene2(FILE *fp, int level, struct X3D_Node* node, int recurse, Stack 
 				}
 				else if(node->_nodeType == NODE_Proto && !strcmp(FIELDNAMES[field->nameIndex],"__protoDef") )
 				{
-					int k, mode;
+					int k; //, mode;
 					struct ProtoFieldDecl* pfield;
 					struct X3D_Proto* pnode = (struct X3D_Proto*)node;
 					struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
@@ -3052,7 +3052,7 @@ void dump_scene2(FILE *fp, int level, struct X3D_Node* node, int recurse, Stack 
 						{
 							const char *fieldName;
 							pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, k);
-							mode = pfield->mode;
+							//mode = pfield->mode;
 							fieldName = pfield->cname;
 							spacer
 							fprintf(fp," %p ",(void*)pfield);
@@ -3156,7 +3156,7 @@ char *findFIELDNAMESfromNodeOffset0(struct X3D_Node *node, int offset)
 	{
 		if( node->_nodeType == NODE_Proto )
 		{
-			int mode;
+			//int mode;
 			struct ProtoFieldDecl* pfield;
 			struct X3D_Proto* pnode = (struct X3D_Proto*)node;
 			struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
@@ -3166,7 +3166,7 @@ char *findFIELDNAMESfromNodeOffset0(struct X3D_Node *node, int offset)
 				    {
 					//JAS const char *fieldName;
 					pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, offset);
-					mode = pfield->mode;
+					//mode = pfield->mode;
 					return pfield->cname;
 				    } else return NULL;
 				}
@@ -3243,11 +3243,6 @@ int consoleMenuActive()
 {
 	return ConsoleMenuState.active;
 }
-#ifdef _MSC_VER
-#define KEYPRESS 1
-#else
-#define KEYDOWN 2
-#endif
 
 /*
 void addMenuChar(kp,type)
@@ -3367,6 +3362,8 @@ void fwl_clearWorld(){
 
 void sendKeyToKeySensor(const char key, int upDown);
 /* handle a keypress. "man freewrl" shows all the recognized keypresses */
+
+
 #define KEYDOWN 2
 #define KEYUP 3
 #ifdef AQUA
@@ -3599,9 +3596,9 @@ int getRayHitAndSetLookatTarget() {
 	*/
     double pivot_radius, vp_radius; //x,y,z, 
     int i;
-	ppMainloop p;
+	//ppMainloop p;
 	ttglobal tg = gglobal();
-	p = (ppMainloop)tg->Mainloop.prv;
+	//p = (ppMainloop)tg->Mainloop.prv;
 
     if(tg->RenderFuncs.hitPointDist >= 0) {
 		struct X3D_Node * node;
@@ -3613,6 +3610,7 @@ int getRayHitAndSetLookatTarget() {
 		}else{
 			//GLDOUBLE matTarget[16];
 			double center[3], radius; //pos[3], 
+			vp_radius = 10.0;
 			if(Viewer()->type == VIEWER_LOOKAT){
 				//use the center of the object, and its radius
 				GLDOUBLE smin[3], smax[3], shapeMBBmin[3], shapeMBBmax[3];

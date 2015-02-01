@@ -75,7 +75,7 @@ void SensInterps_init(struct tSensInterps *t)
 	//private
 	t->prv = SensInterps_constructor();
 	{
-		ppSensInterps p = (ppSensInterps)t->prv;
+		//ppSensInterps p = (ppSensInterps)t->prv;
 	}
 }
 

@@ -87,7 +87,7 @@ void ConsoleMessage_init(struct tConsoleMessage *t){
 }
 
 
-#define MAXMESSAGES 5 
+//#define MAXMESSAGES 5 
 void closeConsoleMessage() {
 	gglobal()->ConsoleMessage.consMsgCount = 0;
 }
@@ -246,7 +246,7 @@ static void android_save_log(char *thislog) {
 	while (more)
 	{
 		BOOL eol = FALSE;
-		int len, ipos = 0;
+		int len; //, ipos = 0;
 		ln = strchr(buf, '\n');
 		len = strlen(buf);
 		if (ln)
@@ -315,8 +315,9 @@ static void android_save_log(char *thislog) {
 				/* go to next slot, wrap around*/
 				p->androidFreeSlot++;
 				if (p->androidFreeSlot >= p->maxLines) p->androidFreeSlot = 0;
-				if (p->androidMessageSlot[p->androidFreeSlot] != NULL) 
+				if (p->androidMessageSlot[p->androidFreeSlot] != NULL) {
 					FREE_IF_NZ(p->androidMessageSlot[p->androidFreeSlot]);
+				}
 				p->androidHaveUnreadMessages++;
 			}
 		}

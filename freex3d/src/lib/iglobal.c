@@ -37,7 +37,9 @@ void STL_Handler_init (struct tSTLHandler *t);
 void Frustum_init(struct tFrustum *t);
 void LoadTextures_init(struct tLoadTextures *t);
 void OpenGL_Utils_init(struct tOpenGL_Utils *t);
+#ifdef HAVE_OPENCL
 void OpenCL_Utils_init(struct tOpenCL_Utils *t);
+#endif
 //void RasterFont_init(struct tRasterFont *t);
 void RenderTextures_init(struct tRenderTextures *t);
 void Textures_init(struct tTextures *t);

@@ -1724,14 +1724,14 @@ static BOOL gatherScriptEventOut_B(union anyVrml* any, struct Shader_Script *sha
 	int actualscript;
 	//unsigned int to_counter;
 	//CRnodeStruct *to_ptr = NULL;
-	ppCRoutes p;
+	//ppCRoutes p;
 	ttglobal tg = gglobal();
 	
 	#ifdef CRVERBOSE
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 	#endif
 
-	p = (ppCRoutes)tg->CRoutes.prv;
+	//p = (ppCRoutes)tg->CRoutes.prv;
 
 	/* NOTE - parts of things in here might need to be wrapped by BeginRequest ??? */
 

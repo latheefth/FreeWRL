@@ -662,7 +662,8 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
     //printf ("entering parser_process_res_VRML_X3D\n");
 
 	/* printf("processing VRML/X3D resource: %s\n", res->URLrequest);  */
-
+	offsetInNode = 0;
+	insert_node = NULL;
 	shouldBind = FALSE;
 	shouldUnBind = FALSE;
 	origFogNodes = vectorSize(p->fogNodes);
@@ -1154,9 +1155,9 @@ static bool parser_process_res(s_list_t *item)
 	bool remove_it = FALSE;
     bool retval = TRUE;
 	resource_item_t *res;
-	ppProdCon p;
+	//ppProdCon p;
 	ttglobal tg = gglobal();
-	p = (ppProdCon)tg->ProdCon.prv;
+	//p = (ppProdCon)tg->ProdCon.prv;
 
 	if (!item || !item->elem)
 		return retval;
@@ -1342,7 +1343,7 @@ void _inputParseThread(void *globalcontext)
 
 		for (;;) {
 			void *elem;
-       		bool result = TRUE;
+       		//bool result = TRUE;
 			s_list_t* item = resitem_dequeue();
 			elem = ml_elem(item);
 			if (elem == &res_command_exit){
@@ -1354,7 +1355,8 @@ void _inputParseThread(void *globalcontext)
 				continue;
 			}
 			p->inputThreadParsing = TRUE;
-			result = parser_process_res(item); //,&p->resource_list_to_parse);
+			//result = 
+			parser_process_res(item); //,&p->resource_list_to_parse);
 			p->inputThreadParsing = FALSE;
 			//#if defined (IPHONE) || defined (_ANDROID)
    //         		if (result) setMenuStatus ("ok"); else setMenuStatus("not ok");
@@ -1525,8 +1527,8 @@ int removeNodeFromVector(int iaction, struct Vector *v, struct X3D_Node *node){
 	noisy = FALSE;
 	if(v && node){
 		struct X3D_Node *tn;
-		int i, ii, idx, n;
-		idx = -1;
+		int i, ii, n; //idx, 
+		//idx = -1;
 		n = vectorSize(v);
 		for(i=0;i<n;i++){
 			ii = n - i - 1; //reverse walk, so we can remove without losing our loop counter
