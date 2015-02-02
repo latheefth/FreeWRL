@@ -382,10 +382,9 @@ void FW_make_fontname(int num) {
 
     // check whether we have a config file
     char* configfile = (char*)FcConfigFilename(0);
-    int configexists = 0;
     FILE*fi = fopen(configfile, "rb");
     if(fi) {
-        configexists = 1;fclose(fi);
+        fclose(fi);
 	//printf("<debug> Initializing FontConfig (configfile=%s)\n", configfile);
     } else {
 	//printf("<debug> Initializing FontConfig (no configfile)\n");
@@ -424,7 +423,7 @@ void FW_make_fontname(int num) {
     case 0x05: 			/* Serif Bold */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"serif",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
-	FcPatternAddString(FW_fp,FC_STYLE,"bold");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold");
 	#else
 	strcat (p->thisfontname,"/VeraSeBd.ttf");
 	#endif
@@ -432,8 +431,8 @@ void FW_make_fontname(int num) {
     case 0x06:			/* Serif Ital */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"serif",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
-	FcPatternAddString(FW_fp,FC_STYLE,"italic");
-	FcPatternAddString(FW_fp,FC_STYLE,"oblique");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"italic");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"oblique");
 	#else
 	strcat (p->thisfontname,"/VeraSe.ttf");
 	#endif
@@ -441,8 +440,8 @@ void FW_make_fontname(int num) {
     case 0x07:			/* Serif Bold Ital */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"serif",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
-	FcPatternAddString(FW_fp,FC_STYLE,"bold italic");
-	FcPatternAddString(FW_fp,FC_STYLE,"bold oblique");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold italic");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold oblique");
 	#else
 	strcat (p->thisfontname,"/VeraSeBd.ttf");
 	#endif
@@ -457,7 +456,7 @@ void FW_make_fontname(int num) {
     case 0x09: 			/* Sans Bold */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"sans",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
-	FcPatternAddString(FW_fp,FC_STYLE,"bold");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold");
 	#else
 	strcat (p->thisfontname,"/VeraBd.ttf");
 	#endif
@@ -465,8 +464,8 @@ void FW_make_fontname(int num) {
     case 0x0a: 			/* Sans Ital */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"sans",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
-	FcPatternAddString(FW_fp,FC_STYLE,"italic");
-	FcPatternAddString(FW_fp,FC_STYLE,"oblique");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"italic");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"oblique");
 	#else
 	strcat (p->thisfontname,"/VeraIt.ttf");
 	#endif
@@ -474,8 +473,8 @@ void FW_make_fontname(int num) {
     case 0x0b: 			/* Sans Bold Ital */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"sans",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
-	FcPatternAddString(FW_fp,FC_STYLE,"bold italic");
-	FcPatternAddString(FW_fp,FC_STYLE,"bold oblique");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold italic");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold oblique");
 	#else
 	strcat (p->thisfontname,"/VeraBI.ttf");
 	#endif
@@ -490,7 +489,7 @@ void FW_make_fontname(int num) {
     case 0x11: 			/* Monospace Bold */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
-	FcPatternAddString(FW_fp,FC_STYLE,"bold");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold");
 	#else
 	strcat (p->thisfontname,"/VeraMoBd.ttf");
 	#endif
@@ -498,8 +497,8 @@ void FW_make_fontname(int num) {
     case 0x12: /* Monospace Ital */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
-	FcPatternAddString(FW_fp,FC_STYLE,"italic");
-	FcPatternAddString(FW_fp,FC_STYLE,"oblique");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"italic");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"oblique");
 	#else
 	strcat (p->thisfontname,"/VeraMoIt.ttf");
 	#endif
@@ -507,8 +506,8 @@ void FW_make_fontname(int num) {
     case 0x13: /* Monospace Bold Ital */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
-	FcPatternAddString(FW_fp,FC_STYLE,"bold italic");
-	FcPatternAddString(FW_fp,FC_STYLE,"bold oblique");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold italic");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold oblique");
 	#else
 	strcat (p->thisfontname,"/VeraMoBI.ttf");
 	#endif
@@ -536,7 +535,7 @@ void FW_make_fontname(int num) {
               // printf("<debug> setting p->thisfontname to %s\n", FW_file);
 	      /* strcpy didn't work, use strncpy and set the null character by hand */
               strncpy(p->thisfontname,(char *)FW_file,strlen((char *)FW_file));
-              p->thisfontname[strlen((char *)FW_file)] = NULL;
+              p->thisfontname[strlen((char *)FW_file)] = '\0';
               break;
            }
 	}
