@@ -71,7 +71,7 @@
 
 void kill_rendering(void);
 
-static void killNode_hide_obsolete (int index);
+//static void killNode_hide_obsolete (int index);
 
 static void mesa_Frustum(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ, GLDOUBLE *m);
 
@@ -5096,6 +5096,7 @@ void markForDispose(struct X3D_Node *node, int recursive){
 		} \
 	}
 
+#ifdef OLDCODE
 #define DELETE_IF_IN_STACK(aaa) \
 	if (tg->Bindable.aaa) { \
 		bool foundIt = FALSE; \
@@ -5118,6 +5119,7 @@ void markForDispose(struct X3D_Node *node, int recursive){
 			tg->Bindable.aaa = newStack; \
 		} \
 	}
+#endif
 
 //#define WRLMODE(val) (((val) % 4)+4) //jan 2013 codegen PROTOKEYWORDS[] was ordered with x3d synonyms first, wrl last
 //#define X3DMODE(val)  ((val) % 4)

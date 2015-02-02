@@ -127,8 +127,8 @@ void JScript_init(struct tJScript *t){
 
 #ifdef HAVE_JAVASCRIPT
 void js_cleanup_script_context(int counter){
-	ttglobal tg = gglobal();
-	ppJScript p = (ppJScript)tg->JScript.prv;
+	//ttglobal tg = gglobal();
+	//ppJScript p = (ppJScript)tg->JScript.prv;
 	//CLEANUP_JAVASCRIPT(p->ScriptControl[counter].cx);
 	CLEANUP_JAVASCRIPT(getScriptControlIndex(counter)->cx);
 }
@@ -149,7 +149,7 @@ void process_eventsProcessed() {
 	jsval retval;
 	struct CRscriptStruct *scriptcontrol;
 	ttglobal tg = gglobal();
-	ppJScript p = (ppJScript)tg->JScript.prv;
+	//ppJScript p = (ppJScript)tg->JScript.prv;
 	for (counter = 0; counter <= tg->CRoutes.max_script_found_and_initialized; counter++) {
 		scriptcontrol = getScriptControlIndex(counter);
 		if (scriptcontrol->eventsProcessed == NULL) {
@@ -281,7 +281,7 @@ int jsIsRunning(){
 }
 void JSDeleteScriptContext(int num){
 	struct CRscriptStruct *ScriptControl;
-	ppJScript p = (ppJScript)gglobal()->JScript.prv;
+	//ppJScript p = (ppJScript)gglobal()->JScript.prv;
 	/* printf ("kill_javascript, context is %p\n",ScriptControl[i].cx); */
 	ScriptControl = getScriptControlIndex(num);
 #if JS_VERSION >= 185
@@ -1445,10 +1445,10 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 	JSObject *interpobj;
 	char *fullname;
 	int touched;
-	ppJScript p;
+	//ppJScript p;
 	ttglobal tg = gglobal();
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
-	p = (ppJScript)tg->JScript.prv;
+	//p = (ppJScript)tg->JScript.prv;
 
 	touched = FALSE;
 	scriptcontrol = getScriptControlIndex(actualscript);
@@ -1576,7 +1576,7 @@ void resetScriptTouchedFlag(int actualscript, int fptr) {
 	struct CRscriptStruct *scriptcontrol;
 	ttglobal tg = gglobal();
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
-	ppJScript p = (ppJScript)tg->JScript.prv;
+	//ppJScript p = (ppJScript)tg->JScript.prv;
 	#ifdef CRVERBOSE
 	printf ("resetScriptTouchedFlag, name %s type %s script %d, fptr %d\n",JSparamnames[fptr].name, stringFieldtypeType(JSparamnames[fptr].type), actualscript, fptr);
 	#endif
@@ -1669,7 +1669,7 @@ void JSInitializeScriptAndFields (int num) {
 	struct ScriptFieldDecl *field;
 
 	script = ScriptControl[num].script;
-	printf("adding fields from script %x\n",script);
+	//printf("adding fields from script %x\n",script);
 	nfields = Shader_Script_getScriptFieldCount(script);
 	for(i=0;i<nfields;i++){
 		field = Shader_Script_getScriptField(script,i);

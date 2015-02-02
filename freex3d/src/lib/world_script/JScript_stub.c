@@ -25,10 +25,10 @@ union anyVrml{
 } anyVrml;
 struct X3D_Node;
 struct X3D_Proto;
-#ifndef BOOL
-#define BOOL int
-#endif
-#include "JScript.h"
+//#ifndef BOOL
+//#define BOOL int
+//#endif
+//#include "JScript.h"
 void JScript_init(void *t){}
 void jsVRMLBrowser_init(void *t){}
 void jsUtils_init(void *t){}

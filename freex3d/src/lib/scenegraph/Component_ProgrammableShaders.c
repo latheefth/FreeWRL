@@ -1008,7 +1008,7 @@ bool parser_process_res_SHADER(resource_item_t *res)
 	//s_list_t *l;
 	openned_file_t *of;
 	struct X3D_ShaderProgram* ss;
-	const char *buffer;
+	char *buffer;
 
 	buffer = NULL;
 
@@ -1036,7 +1036,7 @@ bool parser_process_res_SHADER(resource_item_t *res)
 			return FALSE;
 		}
 
-		buffer = of->fileData;
+		buffer = (char*)of->fileData;
 		break;
 	}
 
