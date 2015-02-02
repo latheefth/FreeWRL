@@ -1354,16 +1354,16 @@ void endCDATA_B (void *ud, const xmlChar *string, int len) {
 		handled = FALSE;
 		if(!strcmp(fieldname,"url")){
 			//Script javascript doesn't parse well as an MFString
-			if(strstr(string,"script")){
+			if(strstr((char*)string,"script")){
 				handled = TRUE;
 				value->mfstring.n = 1;
 				value->mfstring.p = malloc(sizeof(void *));
-				value->mfstring.p[0] = newASCIIString(string);
+				value->mfstring.p[0] = newASCIIString((char *)string);
 				//if(0) printf("copied cdata string= [%s]\n",(struct Uni_String*)(value->mfstring.p[0])->strptr);
 			}
 		}
 		if(!handled)
-			Parser_scanStringValueToMem_B(value, type,string, TRUE);
+			Parser_scanStringValueToMem_B(value, type,(char *)string, TRUE);
 	}
 }
 
@@ -2021,7 +2021,7 @@ static void saveAttributes(void *ud, int myNodeType, const xmlChar *name, char**
 	struct X3D_Node *thisNode;
 	struct X3D_Node *fromDEFtable;
 	struct Vector *childAttributes;
-	ttglobal tg = gglobal();
+	//ttglobal tg = gglobal();
 	//ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 
 	DEBUG_X3DPARSER ("	saveAttributes, parentIndex %d parentIndex %d\n",tg->X3DParser.parentIndex,tg->X3DParser.parentIndex);
@@ -2570,7 +2570,7 @@ void endScriptProtoField_B(void *ud); //struct VRMLLexer* myLexer);
 static void XMLCALL X3DendElement(void *ud, const xmlChar *iname) {
 	int myNodeIndex;
     const char*name = (const char*) iname;
-	ttglobal tg = gglobal();
+	//ttglobal tg = gglobal();
 	//ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 
 	/* printf ("X3DEndElement for %s\n",name); */
