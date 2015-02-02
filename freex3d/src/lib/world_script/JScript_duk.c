@@ -1122,7 +1122,7 @@ int ctypefunction(duk_context *ctx) {
 	return nr;
 }
 int cfunction(duk_context *ctx) {
-	int i, rc, nr, itype, *valueChanged = NULL;
+	int i, rc, nr, itype, nargs, *valueChanged = NULL;
 	const char *fwFunc = NULL;
 	union anyVrml* parent = NULL;
 	//union anyVrml* field = NULL;
@@ -1130,7 +1130,7 @@ int cfunction(duk_context *ctx) {
 	FWFunctionSpec *fs;
 
 	itype = 0;
-	int nargs = duk_get_top(ctx);
+	nargs = duk_get_top(ctx);
 	//show_stack(ctx,"in cfuction");
 	duk_push_current_function(ctx);
 	/* get type of parent object for this property*/

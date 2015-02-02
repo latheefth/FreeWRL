@@ -993,7 +993,7 @@ static bool parser_process_res_SCRIPT(resource_item_t *res)
 			return FALSE;
 		}
 
-		buffer = of->fileData;
+		buffer = (const char*)of->fileData;
 		break;
 	}
 
@@ -1156,7 +1156,7 @@ static bool parser_process_res(s_list_t *item)
     bool retval = TRUE;
 	resource_item_t *res;
 	//ppProdCon p;
-	ttglobal tg = gglobal();
+	//ttglobal tg = gglobal();
 	//p = (ppProdCon)tg->ProdCon.prv;
 
 	if (!item || !item->elem)

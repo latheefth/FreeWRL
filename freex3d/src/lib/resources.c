@@ -1353,7 +1353,7 @@ void fwl_resitem_setLocalPath(void *resp, char* path){
 		else
 			res->cached_files = ml_append(res->cached_files, item);
 	}
-	res->_loadFunc = &file2blob;
+	res->_loadFunc = (void *)file2blob; //msvc can also do &file2blob
 }
 int	fwl_resitem_getStatus(void *resp){
 	resource_item_t *res = (resource_item_t *)resp;
