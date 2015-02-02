@@ -75,16 +75,6 @@ case $platform in
 
 # 	cflags="$cflags -D_GNU_SOURCE"
 
-	if [ -f /etc/debian_version ] ; then
-	    echo "Distribution: Debian / Ubuntu"
-	    if [ -d /usr/share/fonts/truetype/ttf-bitstream-vera ] ; then
-		fontsdir=/usr/share/fonts/truetype/ttf-bitstream-vera
-	    fi
-	else
-	    echo "Please install the ttf-bitstream-vera font package."
-	    exit 0
-	fi
-
 	case $motif in
 		0) target=x11;;
 		1) target=motif;;
