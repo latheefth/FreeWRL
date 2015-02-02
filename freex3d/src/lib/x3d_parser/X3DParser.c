@@ -1862,11 +1862,6 @@ static void saveProtoInstanceFields (void *ud, const char *name, char **atts) {
 
 /********************************************************/
 
-//#define INCREMENT_CHILDREN_LEVEL \
-//	{ \
-//		if ((gglobal()->X3DParser.parentIndex <0) || (gglobal()->X3DParser.parentIndex > MAX_CHILD_ATTRIBUTE_DEPTH)) {printf ("stack overflow\n"); return;} \
-//		p->childAttributes[gglobal()->X3DParser.parentIndex] = newVector (struct nameValuePairs *, 8); \
-//	}
 
 void **shaderFields(struct X3D_Node* node){
 	void **shaderfield;

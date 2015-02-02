@@ -189,7 +189,7 @@ fi
 # ======================================
 #javascriptopt = sm
 AC_ARG_WITH([javascriptopt],
-        [AS_HELP_STRING([--with-javascriptopt=OPT],[Select javascript option -- 'stub' for none, 'sm' (default) for spidermonkey or 'duk' for ducktape])],
+        [AS_HELP_STRING([--with-javascriptopt=OPT],[javascriptopt OPT (stub,sm,duk) for none,spidermonkey or duktape])],
         [javascriptopt="$withval"],
         [javascriptopt="sm"])
 
@@ -211,7 +211,7 @@ esac
 # seamonkey (firefox-2.0 equivalent packaging)
 # firefox (2.0 or 1.5)
 # firefox (firefox-2.0 possible alternate packaging)
-if "$javascriptopt" = sm; then
+if test "$javascriptopt" = "sm"; then
   AC_MSG_NOTICE([Determining Javascript engine to build against])
   found_JAVASCRIPT_ENGINE=no
   case "$os_type" in
