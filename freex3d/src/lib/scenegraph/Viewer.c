@@ -41,6 +41,12 @@ CProto ???
 #include "quaternion.h"
 #include "Viewer.h"
 
+enum {
+	CHORD_YAWZ,
+	CHORD_YAWPITCH,
+	CHORD_ROLL,
+	CHORD_XY
+} input_chords;
 
 static void init_stereodefaults(X3D_Viewer *Viewer)
 {
@@ -90,6 +96,8 @@ typedef struct pViewer{
 	double tickFrac;
 	Quaternion sq;
 	double sp[3];
+	int keychord;
+	int dragchord;
 
 }* ppViewer;
 void *Viewer_constructor(){
@@ -125,7 +133,8 @@ void Viewer_init(struct tViewer *t){
 		p->tickFrac = 0.0; //for debugging slowly
 		init_stereodefaults(&p->Viewer);
 		p->StereoInitializedOnce = 1;
-
+		p->keychord = CHORD_XY; // default on startup
+		p->dragchord = CHORD_YAWZ;
 	}
 }
 //ppViewer p = (ppViewer)gglobal()->Viewer.prv;
@@ -1535,12 +1544,7 @@ int indexArrowkey(int key){
 		if(key == arrowkeys[i]) iret = i;
 	return iret;
 }
-enum {
-	CHORD_YAWZ,
-	CHORD_YAWPITCH,
-	CHORD_ROLL,
-	CHORD_XY
-};
+
 //movements of the camera (with respect to the scene)
 enum {
 	FLY_X_LEFT,
@@ -1571,6 +1575,13 @@ Key fly_normalkeys [] = {
 	{'9',FLY_ROLL_CLOCKWISE},
 };
 
+//enum {
+//	CHORD_YAWZ,
+//	CHORD_YAWPITCH,
+//	CHORD_ROLL,
+//	CHORD_XY
+//} input_chords;
+char *chordnames [] = {"YAWZ","YAWPITCH","ROLL","XY"};
 //the flychord table is bloated with redundancies, but explicit. FLYCHORDMAP2 int[4][4] would be briefer, but harder to trace.
 typedef struct flychord {
 	int chord;
@@ -1583,19 +1594,39 @@ flychord FLYCHORDREMAP2 [] = {
 	{CHORD_XY,		{{FLY_X_LEFT,LEFT_KEY},{FLY_X_RIGHT,RIGHT_KEY},{FLY_Y_UP,UP_KEY},{FLY_Y_DOWN,DOWN_KEY}}},
 };
 
-int keychord = CHORD_YAWPITCH; // default on startup
+int viewer_getKeyChord(){
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	return p->keychord;
+}
+void viewer_setKeyChord(int chord){
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	p->keychord = chord;
+}
+char *fwl_getKeyChord(){
+	return chordnames[viewer_getKeyChord()];
+}
+void fwl_setKeyChord(char *chordname){
+	int i;
+	for(i=0;i<4;i++){
+		if(!strcmp(chordname,chordnames[i])){
+			viewer_setKeyChord(i); //or should I expand from i to CHORD_YAWZ etc
+			break;
+		}
+	}
+}
 //next: in lookup_fly_key we would check if its an arrow key, and if so, use the current keychord to lookup the keyfly command.
 // from that we would look up the normal key
 int lookup_fly_arrow(int key){
 	//check if this is an arrow key. If so lookup in the current chord to get the motion command
 	//and from motion command lookup the 'normal' equivalent key
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	int idxarrow, idxnormal;
 	char nc;
 	int iret = 0;
 	idxarrow = indexArrowkey(key);
 	if(idxarrow > -1){
 		//rather than 2 nested loops, comparing, we will trust the ordering and index in
-		idxnormal = FLYCHORDREMAP2[keychord].arrows[idxarrow].key;
+		idxnormal = FLYCHORDREMAP2[p->keychord].arrows[idxarrow].key;
 		//same here - we'll trust the order and index in
 		iret = fly_normalkeys[idxnormal].key;
 	}
