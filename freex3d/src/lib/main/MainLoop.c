@@ -3434,6 +3434,7 @@ void fwl_do_keyPress0(int key, int type) {
 #endif //FRONTEND_DOES_SNAPSHOTS
 
 				default:
+					printf("didn't handle key=[%c][%d] type=%d\n",lkp,(int)lkp,type);
 					handled = 0;
 					break;
 			}

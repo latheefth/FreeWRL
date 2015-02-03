@@ -1511,7 +1511,98 @@ void handle0(const int mev, const unsigned int button, const float x, const floa
 
 #define FLYREMAP {{'a',NUM0},{'z',NUMDEC},{'j',LEFT_KEY},{'l',RIGHT_KEY},{'p',UP_KEY},{';',DOWN_KEY},{'8',NUM8},{'k',NUM2},{'u',NUM4},{'o',NUM6 },{'7',NUM7},{'9',NUM9}}
 
-char lookup_fly_key(int key){
+//BEGIN dug9 Feb2015 >>>
+//GOAL for this refactoring: CHORD mappings of arrow keys for keyboard navigation and mouse xy drags for FLY navigation
+// and keeping in mind mobile devices may not want a keyboard on the screen, but they may have 4 arrow keys
+// - and -if no change to UI menus/no use of chords by user- the default behaviour is what we do now
+Key FLYREMAP2 [] = {{'a',NUM0},{'z',NUMDEC},{'j',LEFT_KEY},{'l',RIGHT_KEY},{'p',UP_KEY},{';',DOWN_KEY},{'8',NUM8},{'k',NUM2},{'u',NUM4},{'o',NUM6 },{'7',NUM7},{'9',NUM9}};
+int FLYREMAP2SIZE = 12;
+Key FLYCHORDREMAP [] = {
+{'j',LEFT_KEY},{'l',RIGHT_KEY},{'p',UP_KEY},{';',DOWN_KEY}
+};
+int arrowkeys [] = {LEFT_KEY,RIGHT_KEY,UP_KEY,DOWN_KEY};
+//int isArrowkey(int key){
+//	int iret, i;
+//	iret = 0;
+//	for(i=0;i<4;i++) 
+//		if(key == arrowkeys[i]) iret = 1;
+//	return iret;
+//}
+int indexArrowkey(int key){
+	int iret, i;
+	iret = -1;
+	for(i=0;i<4;i++) 
+		if(key == arrowkeys[i]) iret = i;
+	return iret;
+}
+enum {
+	CHORD_YAWZ,
+	CHORD_YAWPITCH,
+	CHORD_ROLL,
+	CHORD_XY
+};
+//movements of the camera (with respect to the scene)
+enum {
+	FLY_X_LEFT,
+	FLY_X_RIGHT,
+	FLY_Y_DOWN,
+	FLY_Y_UP,
+	FLY_Z_FORWARD,
+	FLY_Z_REVERSE,
+	FLY_PITCH_UP,
+	FLY_PITCH_DOWN,
+	FLY_YAW_LEFT,
+	FLY_YAW_RIGHT,
+	FLY_ROLL_COUNTERCLOCKWISE,
+	FLY_ROLL_CLOCKWISE,
+} fly_key_command;
+Key fly_normalkeys [] = {
+	{'j',FLY_X_LEFT},
+	{'l',FLY_X_RIGHT},
+	{';',FLY_Y_DOWN},
+	{'p',FLY_Y_UP},
+	{'a',FLY_Z_FORWARD},
+	{'z',FLY_Z_REVERSE},
+	{'k',FLY_PITCH_UP},
+	{'8',FLY_PITCH_DOWN},
+	{'u',FLY_YAW_LEFT},
+	{'o',FLY_YAW_RIGHT},
+	{'7',FLY_ROLL_COUNTERCLOCKWISE},
+	{'9',FLY_ROLL_CLOCKWISE},
+};
+
+//the flychord table is bloated with redundancies, but explicit. FLYCHORDMAP2 int[4][4] would be briefer, but harder to trace.
+typedef struct flychord {
+	int chord;
+	Key arrows[4];
+} flychord;
+flychord FLYCHORDREMAP2 [] = {
+	{CHORD_YAWZ,	{{FLY_YAW_LEFT,LEFT_KEY},{FLY_YAW_RIGHT,RIGHT_KEY},{FLY_Z_FORWARD,UP_KEY},{FLY_Z_REVERSE,DOWN_KEY}}},
+	{CHORD_YAWPITCH,{{FLY_YAW_LEFT,LEFT_KEY},{FLY_YAW_RIGHT,RIGHT_KEY},{FLY_PITCH_UP,UP_KEY},{FLY_PITCH_DOWN,DOWN_KEY}}},
+	{CHORD_ROLL,	{{FLY_ROLL_COUNTERCLOCKWISE,LEFT_KEY},{FLY_ROLL_CLOCKWISE,RIGHT_KEY},{FLY_ROLL_COUNTERCLOCKWISE,UP_KEY},{FLY_ROLL_CLOCKWISE,DOWN_KEY}}},
+	{CHORD_XY,		{{FLY_X_LEFT,LEFT_KEY},{FLY_X_RIGHT,RIGHT_KEY},{FLY_Y_UP,UP_KEY},{FLY_Y_DOWN,DOWN_KEY}}},
+};
+
+int keychord = CHORD_YAWPITCH; // default on startup
+//next: in lookup_fly_key we would check if its an arrow key, and if so, use the current keychord to lookup the keyfly command.
+// from that we would look up the normal key
+int lookup_fly_arrow(int key){
+	//check if this is an arrow key. If so lookup in the current chord to get the motion command
+	//and from motion command lookup the 'normal' equivalent key
+	int idxarrow, idxnormal;
+	char nc;
+	int iret = 0;
+	idxarrow = indexArrowkey(key);
+	if(idxarrow > -1){
+		//rather than 2 nested loops, comparing, we will trust the ordering and index in
+		idxnormal = FLYCHORDREMAP2[keychord].arrows[idxarrow].key;
+		//same here - we'll trust the order and index in
+		iret = fly_normalkeys[idxnormal].key;
+	}
+	return iret;
+}
+//<<< END dug9 Feb2015
+char lookup_fly_extended(int key){
 	int i;
 	char kp = 0;
 	Key ps[KEYS_HANDLED] = FLYREMAP;
@@ -1523,27 +1614,38 @@ char lookup_fly_key(int key){
 	}
 	return kp;
 }
-
+char lookup_fly_key(int key){
+	//check for special/extended characters related to fly mode, such as numpad and arrow keys
+	char kp = 0;
+	kp = lookup_fly_arrow(key); //check arrow keys first
+	if(!kp)
+		kp = lookup_fly_extended(key); //else other extended characters
+	return kp;
+}
 static struct flykey_lookup_type {
 	char key;
 	int motion; //translation 0, rotation 1
 	int axis; //0=x,1=y,2=z
 	int sign; //-1 left 1 right
+	int command;
 } flykey_lookup [] = {
-	{'j', 0, 0, -1},
-	{'l', 0, 0,  1},
-	{'p', 0, 1, -1},
-	{';', 0, 1,  1},
-	{'a', 0, 2, -1},
-	{'z', 0, 2,  1},
+	{'j', 0, 0, -1, FLY_X_LEFT},
+	{'l', 0, 0,  1, FLY_X_RIGHT},
+	{';', 0, 1, -1, FLY_Y_DOWN},
+	{'p', 0, 1,  1, FLY_Y_UP,},
+	{'a', 0, 2, -1, FLY_Z_FORWARD},
+	{'z', 0, 2,  1, FLY_Z_REVERSE},
 
-	{'k', 1, 0, -1},
-	{'8', 1, 0,  1},
-	{'u', 1, 1, -1},
-	{'o', 1, 1,  1},
-	{'7', 1, 2, -1},
-	{'9', 1, 2,  1}
+	{'k', 1, 0, -1, FLY_YAW_LEFT},
+	{'8', 1, 0,  1, FLY_YAW_RIGHT},
+	{'u', 1, 1, -1, FLY_PITCH_UP},
+	{'o', 1, 1,  1, FLY_PITCH_DOWN},
+	{'7', 1, 2, -1, FLY_ROLL_COUNTERCLOCKWISE},
+	{'9', 1, 2,  1, FLY_ROLL_CLOCKWISE}
 };
+	
+	
+	
 
 struct flykey_lookup_type *getFlyIndex(char key){
 	struct flykey_lookup_type *flykey;
@@ -1558,6 +1660,8 @@ struct flykey_lookup_type *getFlyIndex(char key){
 }
 int isFlyKey(char key){
 	int i, index = -1;
+	index = indexArrowkey(key);
+	if(index == -1)
 	for(i=0;i<KEYS_HANDLED;i++)
 		if(key == flykey_lookup[i].key ){
 			index = i;
@@ -1578,8 +1682,11 @@ void handle_key(const char key, double keytime)
 	//if (p->Viewer.type == VIEWER_FLY) {   //Navigation-key_and_drag
 		/* $key = lc $key; */
 		_key = (char) tolower((int) key);
-		if(!isFlyKey(_key)) return;
-
+		if(!isFlyKey(_key)){
+			printf("not fly key\n");
+			return;
+		}
+		printf("is flykey\n");
 		flykey = getFlyIndex(_key);
 		if(flykey){
 			fly->down[flykey->motion][flykey->axis].direction = flykey->sign;
