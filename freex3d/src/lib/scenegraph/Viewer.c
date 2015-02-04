@@ -1675,8 +1675,6 @@ static struct flykey_lookup_type {
 	{'9', 1, 2,  1, FLY_ROLL_CLOCKWISE}
 };
 	
-	
-	
 
 struct flykey_lookup_type *getFlyIndex(char key){
 	struct flykey_lookup_type *flykey;
@@ -2197,7 +2195,22 @@ handle_tick()
 		break;
 	case VIEWER_FLY:
 		if(0) handle_tick_walk(); //Navigation-key_and_drag: collision shuts off Gravity in VIEWER_FLY, otherwise, just like walk: (WALK - G)
-		if(1) handle_tick_fly2();  //fly2 like (WALK - G) except no RMB PAN, drags aligned to Viewer (vs walk aligned to bound Viewpoint vertical)
+		if(1) {
+			switch(p->dragchord){
+				case CHORD_YAWPITCH:
+					handle_tick_tilt();
+					break;
+				case CHORD_ROLL:
+					handle_tick_rplane();
+					break;
+				case CHORD_XY:
+					handle_tick_tplane();
+				case CHORD_YAWZ:
+				default:
+					handle_tick_fly2();  //fly2 like (WALK - G) except no RMB PAN, drags aligned to Viewer (vs walk aligned to bound Viewpoint vertical)
+					break;
+			}
+		}
 		break;
 	case VIEWER_FLY2:
 		handle_tick_fly2();
