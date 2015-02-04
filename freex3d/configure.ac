@@ -513,6 +513,19 @@ PKG_CHECK_MODULES(PNG, libpng)
 # Imlib2
 PKG_CHECK_MODULES(IMLIB2, imlib2)
 
+## OpenAL check
+PKG_CHECK_MODULES([OPENAL], [openal], [
+                    AC_DEFINE([HAVE_OPENAL], [1], [Define if you have OpenAL installed.])
+                    CFLAGS="$CFLAGS $OPENAL_CFLAGS"
+                    LDFLAGS="$LDFLAGS $OPENAL_LIBS"
+                  ],[])
+
+## freeALUT check
+PKG_CHECK_MODULES([ALUT], [freealut], [
+                    AC_DEFINE([HAVE_ALUT], [1], [Define if you have freeALUT installed.])
+                    LDFLAGS="$LDFLAGS $ALUT_LIBS"
+                  ],[])
+
 # ======================================
 # LibFreeWRLEAI configuration
 # ======================================
