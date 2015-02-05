@@ -38,7 +38,7 @@
 				AdditionalDependencies="mfcs71d.lib MSVCRTD.lib dllFreeWRL.lib"
 				OutputFile="../Debug/freeWRLAx.ocx"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="../../projectfiles_vc12/Debug_glew"
+				AdditionalLibraryDirectories="../../projectfiles_vc12/Debug"
 				IgnoreDefaultLibraryNames="mfcs71d.lib;MSVCRTD.lib"
 				ModuleDefinitionFile=".\freeWRLAx.def"
 				GenerateDebugInformation="TRUE"
@@ -53,8 +53,8 @@
 				HeaderFileName="$(ProjectName)idl.h"/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="copying files to vc12 and registering tlb,ocx"
-				CommandLine="..\post_build.bat $(ConfigurationName)"/>
+				Description="copying files to vc12  - plead run RegisterFwAx.bat to register"
+				CommandLine="post_build.bat $(ConfigurationName)"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
@@ -99,7 +99,7 @@
 				AdditionalDependencies="mfcs71.lib MSVCRT.lib dllFreeWRL.lib"
 				OutputFile="../Release/freeWRLAx.ocx"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\Release"
+				AdditionalLibraryDirectories="../../projectfiles_vc12/Release"
 				IgnoreDefaultLibraryNames="mfcs71.lib;MSVCRT.lib"
 				ModuleDefinitionFile=".\freeWRLAx.def"
 				GenerateDebugInformation="FALSE"
@@ -116,8 +116,8 @@
 				HeaderFileName="$(ProjectName)idl.h"/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="copying files to vc12 and registering tlb,ocx"
-				CommandLine="..\post_build.bat $(ConfigurationName)"/>
+				Description="copying files to vc12  - please run RegisterFwAx.bat to register"
+				CommandLine="post_build.bat $(ConfigurationName)"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
@@ -140,8 +140,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release_glew|Win32"
-			OutputDirectory="$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			OutputDirectory="Release_glew"
+			IntermediateDirectory="Release_glew"
 			ConfigurationType="2"
 			UseOfMFC="2"
 			CharacterSet="2">
@@ -160,7 +160,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="mfcs71.lib MSVCRT.lib dllFreeWRL.lib"
-				OutputFile="$(OutDir)/$(ProjectName).ocx"
+				OutputFile="../Release_glew/freeWRLAx.ocx.ocx"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\projectfiles_vc9\Release_glew"
 				IgnoreDefaultLibraryNames="mfcs71.lib;MSVCRT.lib"
@@ -179,8 +179,8 @@
 				HeaderFileName="$(ProjectName)idl.h"/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="copying files to vc12 and registering tlb,ocx"
-				CommandLine="..\post_build.bat $(ConfigurationName)"/>
+				Description="copying files to vc12  - please run RegisterFwAx.bat to register"
+				CommandLine="post_build.bat $(ConfigurationName)"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
@@ -188,6 +188,70 @@
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"
+				AdditionalIncludeDirectories="$(IntDir)"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Debug_glew|Win32"
+			OutputDirectory="Debug_glew"
+			IntermediateDirectory="Debug_glew"
+			ConfigurationType="2"
+			UseOfMFC="2"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\src\dllFreeWRL"
+				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG;_USRDLL"
+				MinimalRebuild="TRUE"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				TreatWChar_tAsBuiltInType="TRUE"
+				UsePrecompiledHeader="3"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="mfcs71d.lib MSVCRTD.lib dllFreeWRL.lib"
+				OutputFile="../Debug_glew/freeWRLAx.ocx"
+				LinkIncremental="2"
+				AdditionalLibraryDirectories="../../projectfiles_vc12/Debug_glew"
+				IgnoreDefaultLibraryNames="mfcs71d.lib;MSVCRTD.lib"
+				ModuleDefinitionFile=".\freeWRLAx.def"
+				GenerateDebugInformation="TRUE"
+				SubSystem="2"
+				ImportLibrary="../Debug/freeWRLAx.lib"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="FALSE"
+				TypeLibraryName="$(IntDir)/$(ProjectName).tlb"
+				HeaderFileName="$(ProjectName)idl.h"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="copying files to vc12  - please run RegisterFwAx.bat to register"
+				CommandLine="post_build.bat $(ConfigurationName)"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
 				Culture="1033"
 				AdditionalIncludeDirectories="$(IntDir)"/>
 			<Tool
@@ -229,6 +293,12 @@
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="0"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_glew|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\freeWRLAx.cpp">
@@ -261,6 +331,12 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release_glew|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_glew|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="1"/>

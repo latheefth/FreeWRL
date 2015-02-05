@@ -1867,14 +1867,13 @@ void **shaderFields(struct X3D_Node* node){
 	void **shaderfield;
 	switch(node->_nodeType){
 	case NODE_Script:
-		shaderfield = &X3D_SCRIPT(node)->__scriptObj;
-		break;
+		shaderfield = &X3D_SCRIPT(node)->__scriptObj; break;
 	case NODE_ComposedShader:
-		shaderfield = (void**)&X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields;
+		shaderfield = (void**)&X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields; break;
 	case NODE_ShaderProgram:
-		shaderfield = (void**)&X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields;
+		shaderfield = (void**)&X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields; break;
 	case NODE_PackagedShader:
-		shaderfield = (void**)&X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields;
+		shaderfield = (void**)&X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields; break;
 	default:
 		shaderfield = NULL;
 	}

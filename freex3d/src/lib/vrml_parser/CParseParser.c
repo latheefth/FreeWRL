@@ -6042,7 +6042,7 @@ BOOL nodeTypeSupportsUserFields(struct X3D_Node *node)
 {
 	BOOL user = FALSE;
 	user = node->_nodeType == NODE_Proto || node->_nodeType == NODE_Script || 
-		   node->_nodeType == NODE_ShaderProgram ||  node->_nodeType == NODE_ComposedShader ||
+		   node->_nodeType == NODE_ComposedShader || node->_nodeType == NODE_ShaderProgram ||  
 		   node->_nodeType == NODE_PackagedShader ? TRUE : FALSE;
 	if(!user &&  !usingBrotos() && node->_nodeType == NODE_Group){
 		struct X3D_Group* grp = (struct X3D_Group*)node;

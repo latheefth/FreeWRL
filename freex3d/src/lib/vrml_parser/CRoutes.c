@@ -2844,7 +2844,7 @@ void propagate_events_B() {
 								}
 								// note, "shader" can not be NULL here...
 								// otherwise we'd never be here in this switch
-								getField_ToShader(toNode, shader->num);
+								getField_ToShader(toNode, counter); //feb2015 shader->num);
 								havinterp = TRUE;
 							}
 							break;
