@@ -100,6 +100,7 @@ STDAPI DllRegisterServer(void)
     const char* pszMTFullPage = "EnableFullPage";
 
 	AFX_MANAGE_STATE(_afxModuleAddrThis);
+    //MessageBox(0, "Trying to register freeWRLAx_ocx player for web3d mime types", "Registration Error", MB_OK);
 
 	if (!COleObjectFactoryEx::UpdateRegistryAll(TRUE)){
 		MessageBox(0, "Cannot update registry", "Registration Error", MB_OK);

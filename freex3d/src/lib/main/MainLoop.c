@@ -3434,6 +3434,7 @@ void fwl_do_keyPress0(int key, int type) {
 #endif //FRONTEND_DOES_SNAPSHOTS
 
 				default:
+					printf("didn't handle key=[%c][%d] type=%d\n",lkp,(int)lkp,type);
 					handled = 0;
 					break;
 			}
@@ -4528,14 +4529,15 @@ int checkReplaceWorldRequest(){
 }
 static int exitRequest = 0; //static because we want to exit the process, not just a freewrl instance (I think).
 int checkExitRequest(){
-	if(!exitRequest){
-		ttglobal tg = gglobal();
-		if (tg->threads.MainLoopQuit == 1){
-			tg->threads.flushing = 1;
-			exitRequest = 1;
-		}
-	}
 	return exitRequest;
+}
+
+int checkQuitRequest(){
+	ttglobal tg = gglobal();
+	if (tg->threads.MainLoopQuit == 1){
+		tg->threads.flushing = 1;
+	}
+	return tg->threads.MainLoopQuit;
 }
 void doReplaceWorldRequest()
 {
@@ -4657,7 +4659,7 @@ int fwl_draw()
 			//}
 			PRINT_GL_ERROR_IF_ANY("XEvents::render");
 			checkReplaceWorldRequest(); //will set flushing=1
-			checkExitRequest(); //will set flushing=1
+			checkQuitRequest(); //will set flushing=1
 			break;
 		case 1:
 			if (workers_waiting()) //one way to tell if workers finished flushing is if their queues are empty, and they are not busy
