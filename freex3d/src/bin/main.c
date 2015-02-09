@@ -122,7 +122,8 @@ int main (int argc, char **argv)
 		static char *fdir;
 		fdir = malloc(MAX_PATH); 
 		strcpy(fdir,"FREEWRL_FONTS_DIR=");
-		strcat(fdir,"C:/Windows/Fonts");
+		//strcat(fdir,"C:/Windows/Fonts");
+		strcat(fdir,"../../../appleOSX/OSX_Specific/fonts");
 		_putenv( fdir );
 	}
 	else
