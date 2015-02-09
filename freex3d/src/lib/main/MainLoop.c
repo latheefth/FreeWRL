@@ -219,6 +219,8 @@ typedef struct pMainloop{
 	int logging;
 	int keySensorMode;
 	int draw_initialized;
+	int keywait;
+	char keywaitstring[25];
 }* ppMainloop;
 void *Mainloop_constructor(){
 	void *v = malloc(sizeof(struct pMainloop));
@@ -326,6 +328,8 @@ void Mainloop_init(struct tMainloop *t){
 		p->logging = 0;
 		p->keySensorMode = 1; //by default on, so it works 'out of the gate' if Key or StringSensor in scene, then ESC to toggle off
 		p->draw_initialized = FALSE;
+		p->keywait = FALSE;
+		p->keywaitstring[0] = (char)0;
 	}
 }
 
@@ -3124,6 +3128,7 @@ void print_DEFed_node_names_and_pointers(FILE* fp)
 	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 
 	fprintf(fp,"DEFedNodes ");
+	if(!globalParser) return;
 	if(globalParser->DEFedNodes == NULL)
 	{
 		fprintf(fp," NULL\n");
@@ -3375,6 +3380,28 @@ void sendKeyToKeySensor(const char key, int upDown);
 #endif
 char lookup_fly_key(int key);
 //#endif
+int fwl_setDragChord(char *chordname);
+int fwl_setKeyChord(char *chordname);
+
+struct command {
+	char *key;
+	int (*cmdfunc)(char *val);
+} commands [] = {
+	{"dragchord",fwl_setDragChord}, //lower case: "YAWZ","YAWPITCH","ROLL","XY"
+	{"keychord", fwl_setKeyChord},
+	{NULL,NULL},
+};
+int fwl_set(char *key, char *val){
+	int i, ok = 0;
+	i = 0;
+	while(commands[i].key){
+		if(!strcmp(key,commands[i].key)){
+			ok = commands[i].cmdfunc(val); break;
+		}
+		i++;
+	}
+	return ok;
+}
 void fwl_do_keyPress0(int key, int type) {
 	int lkp;
 	ppMainloop p;
@@ -3392,9 +3419,48 @@ void fwl_do_keyPress0(int key, int type) {
 		sendKeyToKeySensor(key,type); //some keysensor test files show no opengl graphics, so we need a logfile
 	} else {
 		int handled = isAQUA;
+		if(p->keywait){
+			if(type == KEYPRESS){
+				//key,value commands
+				//here's a little hack so you can set any (pre-programmed) value from the keyboard in freewrl
+				//by specifying key,value pair
+				//to get the commandline, hit spacebar
+				//then type the key, then the value, then hit Enter.
+				//don't make mistakes typing - there's no backspace handling yet
+				int len = strlen(p->keywaitstring);
+				lkp = key;
+				len = min(24,len); //dimensioned to 25
+				if(lkp == '\r'){
+					char *sep = strchr(p->keywaitstring,' ');
+					if(!sep) sep = strchr(p->keywaitstring,',');
+					if(sep){
+						char *key, *val;
+						val = &sep[1];
+						(*sep) = '\0';
+						key = p->keywaitstring;
+						fwl_set(key,val);
+					}
+					p->keywait = FALSE;
+					p->keywaitstring[0] = '\0';
+					ConsoleMessage("%c",'\n');
+				}else{
+					ConsoleMessage("%c",lkp);
+					if(lkp == '\b' && len){
+						p->keywaitstring[len-1] = '\0';
+					}else{
+						p->keywaitstring[len] = lkp;
+						p->keywaitstring[len+1] = '\0';
+					}
+				}
+			}
+			handled = TRUE;
+			return;
+		}
+
 		if(type == KEYPRESS)
 		{
 			lkp = key;
+			//normal key
 			//if(kp>='A' && kp <='Z') lkp = tolower(kp);
 			switch (lkp) {
 				case 'n': {  fwl_clearWorld(); break; }
@@ -3415,7 +3481,6 @@ void fwl_do_keyPress0(int key, int type) {
 				case '+': { dump_scenegraph(4); break; }
 				case '-': { dump_scenegraph(5); break; }
 				case '`': { toggleLogfile(); break; }
-
 				case '$': resource_tree_dump(0, tg->resources.root_res); break;
 				case '*': resource_tree_list_files(0, tg->resources.root_res); break;
 				case 'q': { if (!RUNNINGASPLUGIN) {
@@ -3427,6 +3492,7 @@ void fwl_do_keyPress0(int key, int type) {
 				case 'v': {fwl_Next_ViewPoint(); break;}
 				case 'b': {fwl_Prev_ViewPoint(); break;}
 				case '.': {profile_print_all(); break;}
+				case ' ': p->keywait = TRUE; ConsoleMessage("\n%c",':'); p->keywaitstring[0] = '\0'; break;
 
 #if !defined(FRONTEND_DOES_SNAPSHOTS)
 				case 's': {fwl_toggleSnapshot(); break;}
