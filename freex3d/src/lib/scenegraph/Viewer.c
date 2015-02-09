@@ -795,7 +795,7 @@ static void handle_walk(const int mev, const unsigned int button, const float x,
 		if (button == 1) {
 			/* July31,2010 new quadratic speed: allows you slow speed with small mouse motions, or 
 			   fast speeds with large mouse motions. The .05, 5.0 etc are tuning parameters - I tinkered / experimented
-			   using the townsite scene http://dug9.users.sourceforge.net/townsite.zip
+			   using the townsite scene http://dug9.users.sourceforge.net/web3d/townsite_2014/townsite.x3d
 			   which has the default navigationInfo speed (1.0) and is to geographic scale in meters.
 			   If the tuning params don't work for you please fix/iterate/re-tune/change back/put a switch
 			   I find them amply speedy, maybe yaw a bit too fast 
@@ -1341,30 +1341,32 @@ void handle_tplane(const int mev, const unsigned int button, float x, float y) {
 	   (about camera-axis/Z)
 	*/
 	X3D_Viewer_InPlane *inplane;
-	double frameRateAdjustment;//,xx,yy;
+	//double frameRateAdjustment;//,xx,yy;
 	//struct point_XYZ xyz;
 	ppViewer p;
-	ttglobal tg = gglobal();
+	//ttglobal tg = gglobal();
 	p = (ppViewer)gglobal()->Viewer.prv;
 	inplane = &p->Viewer.inplane;
 
-	if( tg->Mainloop.BrowserFPS > 0)
-		frameRateAdjustment = 20.0 / tg->Mainloop.BrowserFPS; /* lets say 20FPS is our speed benchmark for developing tuning parameters */
-	else
-		frameRateAdjustment = 1.0;
+	//if( tg->Mainloop.BrowserFPS > 0)
+	//	frameRateAdjustment = 20.0 / tg->Mainloop.BrowserFPS; /* lets say 20FPS is our speed benchmark for developing tuning parameters */
+	//else
+	//	frameRateAdjustment = 1.0;
 
 	if (mev == ButtonPress) {
 		inplane->x = x; //x;
 		inplane->y = y; //y;
+		inplane->on = 1;
 	} else if (mev == MotionNotify) {
-		inplane->xx =  .15 * xsign_quadratic(x - inplane->x,5.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment;
-		inplane->yy = -.15f * xsign_quadratic(y - inplane->y,5.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment;
+		inplane->xx =  x; //.15 * xsign_quadratic(x - inplane->x,5.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment;
+		inplane->yy =  y; //-.15f * xsign_quadratic(y - inplane->y,5.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment;
  	} else if(mev == ButtonRelease){
 		inplane->xx = 0.0f;
 		inplane->yy = 0.0f;
+		inplane->on = 0;
 	}
 }
-void handle_tick_tplane(){
+void handle_tick_tplane(double dtime){
 	X3D_Viewer_InPlane *inplane;
 	//Quaternion quatr, quatt, quat;
 	struct point_XYZ pp;
@@ -1374,12 +1376,13 @@ void handle_tick_tplane(){
 	p = (ppViewer)tg->Viewer.prv;
 
 	inplane = &p->Viewer.inplane;
-	pp.x = inplane->xx;
-	pp.y = inplane->yy;
-	pp.z = 0.0;
-
-	//vecadd(&p->Viewer.Pos,&p->Viewer.Pos,&pp);
-	increment_pos(&pp);
+	if(inplane->on){
+		pp.x =  xsign_quadratic(inplane->xx - inplane->x,300.0,100.0,0.0) *dtime;
+		pp.y = -xsign_quadratic(inplane->yy - inplane->y,300.0,100.0,0.0) *dtime;
+		pp.z = 0.0;
+		//vecadd(&p->Viewer.Pos,&p->Viewer.Pos,&pp);
+		increment_pos(&pp);
+	}
 }
 
 void handle_rtplane(const int mev, const unsigned int button, float x, float y) {
@@ -1430,38 +1433,45 @@ void handle_rtplane(const int mev, const unsigned int button, float x, float y) 
  	}
 }
 
-void handle_tick_rplane(){
+void handle_tick_rplane(double dtime){
 	X3D_Viewer_InPlane *inplane;
 	Quaternion quatr;
 	//struct point_XYZ pp;
+	double roll;
 	ttglobal tg;
 	ppViewer p;
 	tg = gglobal();
 	p = (ppViewer)tg->Viewer.prv;
 
 	inplane = &p->Viewer.inplane;
-
-	vrmlrot_to_quaternion (&quatr,0.0,0.0,0.1,0.4*inplane->xx); //roll about z axis
-
-	quaternion_multiply(&(p->Viewer.Quat), &quatr,  &(p->Viewer.Quat)); 
-	quaternion_normalize(&(p->Viewer.Quat));
+	if(inplane->on){
+		roll = xsign_quadratic(inplane->xx - inplane->x,2.0,2.0,0.0)*dtime;
+		vrmlrot_to_quaternion (&quatr,0.0,0.0,1.0,roll); //roll about z axis
+		quaternion_multiply(&(p->Viewer.Quat), &quatr,  &(p->Viewer.Quat)); 
+		quaternion_normalize(&(p->Viewer.Quat));
+	}
 
 }
-void handle_tick_tilt() {
+void handle_tick_tilt(double dtime) {
 	X3D_Viewer_InPlane *inplane;
 	Quaternion quatt;
 	//struct point_XYZ pp;
+	double yaw, pitch;
 	ttglobal tg;
 	ppViewer p;
 	tg = gglobal();
 	p = (ppViewer)tg->Viewer.prv;
 
 	inplane = &p->Viewer.inplane;
-
-	vrmlrot_to_quaternion (&quatt,1.0,0.0,0.0,0.4*inplane->yy); //tilt about x axis
-
-	quaternion_multiply(&(p->Viewer.Quat), &quatt, &(p->Viewer.Quat)); 
-	quaternion_normalize(&(p->Viewer.Quat));
+	if(inplane->on){
+		yaw = xsign_quadratic(inplane->xx - inplane->x,2.0,2.0,0.0)*dtime;
+		vrmlrot_to_quaternion (&quatt,0.0,1.0,0.0,yaw); //tilt about x axis
+		quaternion_multiply(&(p->Viewer.Quat), &quatt, &(p->Viewer.Quat)); 
+		pitch = xsign_quadratic(inplane->yy - inplane->y,2.0,2.0,0.0)*dtime;
+		vrmlrot_to_quaternion (&quatt,1.0,0.0,0.0,pitch); //tilt about x axis
+		quaternion_multiply(&(p->Viewer.Quat), &quatt, &(p->Viewer.Quat)); 
+		quaternion_normalize(&(p->Viewer.Quat));
+	}
 }
 
 /************************************************************************************/
@@ -1605,15 +1615,46 @@ void viewer_setKeyChord(int chord){
 char *fwl_getKeyChord(){
 	return chordnames[viewer_getKeyChord()];
 }
-void fwl_setKeyChord(char *chordname){
-	int i;
+#ifdef _MSC_VER
+#define strcasecmp _stricmp
+#endif
+
+int fwl_setKeyChord(char *chordname){
+	int i, ok;
+	ok = FALSE;
 	for(i=0;i<4;i++){
-		if(!strcmp(chordname,chordnames[i])){
+		if(!strcasecmp(chordname,chordnames[i])){
 			viewer_setKeyChord(i); //or should I expand from i to CHORD_YAWZ etc
+			ok = TRUE;
 			break;
 		}
 	}
+	return ok;
 }
+int viewer_getDragChord(){
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	return p->dragchord;
+}
+void viewer_setDragChord(int chord){
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	p->dragchord = chord;
+}
+char *fwl_getDragChord(){
+	return chordnames[viewer_getDragChord()];
+}
+int fwl_setDragChord(char *chordname){
+	int i, ok;
+	ok = FALSE;
+	for(i=0;i<4;i++){
+		if(!strcasecmp(chordname,chordnames[i])){
+			viewer_setDragChord(i); //or should I expand from i to CHORD_YAWZ etc
+			ok = TRUE;
+			break;
+		}
+	}
+	return ok;
+}
+
 //next: in lookup_fly_key we would check if its an arrow key, and if so, use the current keychord to lookup the keyfly command.
 // from that we would look up the normal key
 int lookup_fly_arrow(int key){
@@ -1712,10 +1753,10 @@ void handle_key(const char key, double keytime)
 		/* $key = lc $key; */
 		_key = (char) tolower((int) key);
 		if(!isFlyKey(_key)){
-			printf("not fly key\n");
+			//printf("not fly key\n");
 			return;
 		}
-		printf("is flykey\n");
+		//printf("is flykey\n");
 		flykey = getFlyIndex(_key);
 		if(flykey){
 			fly->down[flykey->motion][flykey->axis].direction = flykey->sign;
@@ -2180,7 +2221,23 @@ static void handle_tick_fly()
 void
 handle_tick()
 {
+	double lasttime, dtime, time_diff;
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	lasttime = p->Viewer.lasttime;
+
+	time_diff = 0.0; 
+	//sleep(400); //slow frame rate to test frame-rate-dependent actions
+	if (lasttime < 0) {
+		p->Viewer.lasttime = TickTime(); 
+		return;
+	} else {
+		dtime = TickTime();
+		time_diff = dtime - p->Viewer.lasttime; //TickTime is computed once per frame, and handle_tick() is called once per frame
+		if (APPROX(time_diff, 0)) {
+			return;
+		}
+		p->Viewer.lasttime = dtime;
+	}
 	 
 	switch(p->Viewer.type) {
 	case VIEWER_NONE:
@@ -2198,13 +2255,14 @@ handle_tick()
 		if(1) {
 			switch(p->dragchord){
 				case CHORD_YAWPITCH:
-					handle_tick_tilt();
+					handle_tick_tilt(time_diff);
 					break;
 				case CHORD_ROLL:
-					handle_tick_rplane();
+					handle_tick_rplane(time_diff);
 					break;
 				case CHORD_XY:
-					handle_tick_tplane();
+					handle_tick_tplane(time_diff);
+					break;
 				case CHORD_YAWZ:
 				default:
 					handle_tick_fly2();  //fly2 like (WALK - G) except no RMB PAN, drags aligned to Viewer (vs walk aligned to bound Viewpoint vertical)
@@ -2219,13 +2277,13 @@ handle_tick()
 		handle_tick_lookat();
 		break;
 	case VIEWER_TPLANE:
-		handle_tick_tplane();
+		handle_tick_tplane(dtime);
 		break;
 	case VIEWER_RPLANE:
-		handle_tick_rplane();
+		handle_tick_rplane(dtime);
 		break;
 	case VIEWER_TILT:
-		handle_tick_tilt();
+		handle_tick_tilt(dtime);
 		break;
 	case VIEWER_EXPLORE:
 		handle_tick_explore();

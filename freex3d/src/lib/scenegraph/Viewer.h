@@ -251,6 +251,7 @@ typedef struct viewer {
 	int LookatMode; //0 = not, 1= mainloop should do a node pick operation then set this back to 0 */
 	int transitionType;   	/* going from one viewpoint to another */
 	double transitionTime;
+	double lasttime;
 
 	struct point_XYZ startSLERPPos;
 	struct point_XYZ startSLERPAntiPos;
