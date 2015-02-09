@@ -3673,6 +3673,7 @@ void kill_rendering() {
 
 void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	int i;
+	struct X3D_Node* rootnode;
 	#ifndef AQUA
         char mystring[20];
 	#endif
@@ -3714,32 +3715,37 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 
 
     /* mark all rootNode children for Dispose */
-    if (rootNode() != NULL) {
-		struct Multi_Node *children, *sortedChildren;
-
-		if(usingBrotos()>1) {
-			children = &X3D_PROTO(rootNode())->__children;
-			sortedChildren = &X3D_PROTO(rootNode())->_sortedChildren;
+	rootnode = rootNode();
+    if (rootnode != NULL) {
+		if(usingBrotos()>1 && rootnode->_nodeType == NODE_Proto){
+			unload_broto(rootnode);
 		}else{
-			children = &X3D_GROUP(rootNode())->children;
-			sortedChildren = &X3D_GROUP(rootNode())->_sortedChildren;
+			struct Multi_Node *children, *sortedChildren;
+
+			if(usingBrotos()>1) {
+				children = &X3D_PROTO(rootNode())->__children;
+				sortedChildren = &X3D_PROTO(rootNode())->_sortedChildren;
+			}else{
+				children = &X3D_GROUP(rootNode())->children;
+				sortedChildren = &X3D_GROUP(rootNode())->_sortedChildren;
+			}
+			//children = childrenField(rootNode());
+			if (children->n != 0) {
+				for (i=0; i<children->n; i++) {
+					markForDispose(children->p[i], TRUE);
+				}
+			}
+			//if (sortedChildren->n != 0) {
+			//    for (i=0; i<sortedChildren->n; i++) {
+			//        markForDispose(sortedChildren->p[i], TRUE);
+			//    }
+			//}
+
+
+			/* stop rendering */
+			sortedChildren->n = 0;
+			children->n = 0;
 		}
-		//children = childrenField(rootNode());
-        if (children->n != 0) {
-            for (i=0; i<children->n; i++) {
-                markForDispose(children->p[i], TRUE);
-            }
-        }
-        //if (sortedChildren->n != 0) {
-        //    for (i=0; i<sortedChildren->n; i++) {
-        //        markForDispose(sortedChildren->p[i], TRUE);
-        //    }
-        //}
-
-
-        /* stop rendering */
-		sortedChildren->n = 0;
-        children->n = 0;
     }
 
 	/* close the Console Message system, if required. */
