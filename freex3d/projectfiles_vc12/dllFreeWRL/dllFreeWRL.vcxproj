@@ -97,12 +97,12 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SRC)\lib;..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SRC)\lib;..\;../../src_windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATUSBAR_HUD;WIN32;_DEBUG;_WINDOWS;_USRDLL;DLLFREEWRL_EXPORTS;GLEW_MX;STATIC_EXPORTABLE_JS_API;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
@@ -125,7 +125,7 @@
       <PreprocessorDefinitions>STATUSBAR_HUD;WIN32;NDEBUG;_WINDOWS;_USRDLL;DLLFREEWRL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level2</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
@@ -143,12 +143,12 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_glew|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SRC)\lib;..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SRC)\lib;..\;../../src_windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATUSBAR_HUD;WIN32;_DEBUG;_WINDOWS;_USRDLL;DLLFREEWRL_EXPORTS;GLEW_MX;STATIC_EXPORTABLE_JS_API;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
@@ -171,7 +171,7 @@
       <PreprocessorDefinitions>STATUSBAR_HUD;WIN32;NDEBUG;_WINDOWS;_USRDLL;DLLFREEWRL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level2</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
@@ -187,7 +187,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SRC)\dllFreeWRL\dllFreeWRL.cpp" />
+    <ClCompile Include="..\..\src\dllFreeWRL\dllFreeWRL.cpp" />
     <ClCompile Include="$(SRC)\dllFreeWRL\dllmain.cpp" />
     <ClCompile Include="$(SRC)\dllFreeWRL\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_glew|Win32'">Create</PrecompiledHeader>
@@ -195,11 +195,23 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_glew|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\src\dllFreeWRL\cdllFreeWRL.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_glew|Win32'">NotUsing</PrecompiledHeader>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_glew|Win32'">
+      </ExcludedFromBuild>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(SRC)\dllFreeWRL\dllFreeWRL.h" />
+    <ClInclude Include="$(SRC)\dllFreeWRL\dllFreeWRL.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_glew|Win32'">
+      </ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="$(SRC)\dllFreeWRL\stdafx.h" />
     <ClInclude Include="$(SRC)\dllFreeWRL\targetver.h" />
+    <ClInclude Include="..\..\src\dllFreeWRL\cdllFreeWRL.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_glew|Win32'">
+      </ExcludedFromBuild>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="$(SRC)\dllFreeWRL\ReadMe.txt" />
