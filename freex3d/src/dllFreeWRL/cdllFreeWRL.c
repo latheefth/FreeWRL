@@ -8,23 +8,26 @@
   Here we'll use a pointer to iglobal as a context handle.
 
 */ 
-#include "stdafx.h"
 #include "cdllFreeWRL.h"
+
+#ifdef _MSC_VER
+#include "stdafx.h"
 #include <windows.h>
+#include <WinUser.h>
 #if _MSC_VER > 1700
 #include "winapifamily.h"
 #endif
+#endif
+#include <config.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <wtypes.h>
 #include <sys/types.h>
-#include "../../src_windows/config.h"
 #include "system.h"
 
 #include "libFreeWRL.h"
 #include "ui/statusbar.h"
-void initConsoleH(DWORD pid);
-//char *strBackslash2fore(char *str);
+// a few function prototypes from around libfreewrl
 void fwl_setConsole_writePrimitive(int ibool);
 void statusbar_set_window_size(int width, int height);
 void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY);
@@ -40,9 +43,7 @@ int file2blob(void *res);
 
 
 #include <malloc.h>
-#include <WinUser.h>
 #include <stdlib.h>
-
 
 // This is the constructor of a class that has been exported.
 // see dllFreeWRL.h for the class definition

@@ -17,8 +17,6 @@
 // This class is exported from the dllFreeWRL.dll
 class DLLFREEWRL_API CdllFreeWRL {
 public:
-	void *windowhandle;
-	void *globalcontexthandle;
 	CdllFreeWRL();
 	CdllFreeWRL(int width, int height, void* windowhandle=0, bool bEai = false);
 	CdllFreeWRL(char *scene_url, int width, int height, void* windowhandle=0, bool bEai = false);
@@ -56,6 +54,6 @@ public:
 	void resitem_load(void *res);
 	
 private:
-	char *url;
+	void *globalcontexthandle;
 };
 
