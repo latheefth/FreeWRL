@@ -264,6 +264,7 @@
     <ClCompile Include="..\..\src\lib\desktop.c" />
     <ClCompile Include="..\..\src\lib\world_script\jsVRMLBrowser_duk.c" />
     <ClCompile Include="..\..\src\lib\world_script\jsVRMLClasses_duk.c" />
+    <ClCompile Include="..\..\src_windows\SSRhelper.c" />
     <ClCompile Include="..\..\src_windows\view_platform_win32.c" />
   </ItemGroup>
   <ItemGroup>
