@@ -306,7 +306,94 @@ static void* load_file_mmap(const char *filename)
 /**
  * (internal)   load_file_read: implement load_file with read.
  */
+ int load_file_blob(const char *filename, char **blob, int *len){
+ 	struct stat ss;
+	int fd;
+	unsigned char *text, *current;
+	int left2read; //need signed int for math below
+#ifdef _MSC_VER
+	size_t blocksz, readsz; //, left2read;
+#else
+	ssize_t blocksz, readsz; //, left2read;
+#endif
+
+	if (stat(filename, &ss) < 0) {
+		PERROR_MSG("load_file_read: could not stat: %s\n", filename);
+		return 0;
+	}
+#ifdef _MSC_VER
+	fd = open(filename, O_RDONLY | O_BINARY);
+#else
+	fd = open(filename, O_RDONLY | O_NONBLOCK);
+#endif
+	if (fd < 0) {
+		PERROR_MSG("load_file_read: could not open: %s\n", filename);
+		return 0;
+	}
+	if (!ss.st_size) {
+		ERROR_MSG("load_file_read: file is empty %s\n", filename);
+		close(fd);
+		return 0;
+	}
+
+	text = current = MALLOC(unsigned char *, ss.st_size +1); /* include space for a null terminating character */
+	if (!text) {
+		ERROR_MSG("load_file_read: cannot allocate memory to read file %s\n", filename);
+		close(fd);
+		return 0;
+	}
+
+	if (ss.st_size > SSIZE_MAX) {
+		/* file is greater that read's max block size: we must make a loop */
+		blocksz = SSIZE_MAX;
+	} else {
+		blocksz = ss.st_size+1;
+	}
+
+	left2read = ss.st_size; //+1;
+	readsz = 0;
+
+	while (left2read > 0) {
+		readsz = read(fd, current, blocksz);
+		if (readsz > 0) {
+			/* ok, we have read a block, continue */
+			current += blocksz;
+			left2read -= blocksz;
+		} else {
+			/* is this the end of the file ? */
+			if (readsz == 0) {
+				/* yes */
+				break;
+			} else {
+				/* error */
+				PERROR_MSG("load_file_read: error reading file %s\n", filename);
+				/* cleanup */
+				FREE(text);
+				close(fd);
+				return 0;
+			}
+		}
+	}
+	/* null terminate this string */
+	text[ss.st_size] = '\0';
+	close(fd);
+	fd = 0; //NULL;
+	*blob = text;
+	*len = ss.st_size+1;
+	return 1;
+}
 static openned_file_t* load_file_read(const char *filename)
+{
+	char *blob;
+	int len;
+	openned_file_t *retval = NULL;
+	if( load_file_blob(filename, &blob, &len))
+	{
+		retval = create_openned_file(filename, 0, len, blob,0,0,FALSE);
+	}
+	return retval;
+}
+static openned_file_t* load_file_read_old(const char *filename)
 {
 	struct stat ss;
 	int fd;

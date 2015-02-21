@@ -16,8 +16,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "list.h"
+//from Prodcon.c L.1100
 void threadsafe_enqueue_item(s_list_t *item, s_list_t** queue, pthread_mutex_t* queue_lock);
 s_list_t* threadsafe_dequeue_item(s_list_t** queue, pthread_mutex_t *queue_lock );
+//from io_files.c L.310
+int load_file_blob(const char *filename, char **blob, int *len);
+
 typedef struct iiglobal *ttglobal;
 static s_list_t *ssr_queue = NULL;
 static pthread_mutex_t ssr_queue_mutex;
@@ -96,14 +100,13 @@ static char *snapshot_filename = "snapshot.png";
 #endif
 void SSR_reply_snapshot(SSR_request *request)
 {
+	int iret;
 	char *blob;
 	Snapshot();
-	//if(convert_command){
-	//	//_exel("convert.exe",convert_command);
-	//	system(convert_command);
-	//}
-	//blob = file_load("snapshot.png");
-	//request->snapshot_filename = snapshot_filename;
+	iret = load_file_blob(snapshot_filename,request->blob,request->len);
+	if(!iret) 
+		printf("snapshot file not found %s\n",snapshot_filename);
+	
 }
 void SSR_reply(ttglobal tg){
 	//called by D: _DisplayThread at end of draw loop (or just before SSR_dequeue_request at start of next loop)
