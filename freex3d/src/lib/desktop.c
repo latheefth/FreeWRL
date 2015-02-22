@@ -325,6 +325,10 @@ void frontend_dequeue_get_enqueue(void *tg){
 	//fwl_clearCurrentHandle(); don't unset, in case we are in a BE/ML thread ie _displayThread
 }
 
+#ifdef SSR_SERVER
+void SSR_reply(void * tg);
+void dequeue_SSR_request(void * tg);
+#endif
 
 void _displayThread(void *globalcontext)
 {
@@ -348,6 +352,10 @@ void _displayThread(void *globalcontext)
 
 	do{
 		//if(frontendGetsFiles()==2) 
+#ifdef SSR_SERVER
+		SSR_reply(globalcontext);
+		dequeue_SSR_request(globalcontext);
+#endif
 		frontend_dequeue_get_enqueue(globalcontext); //this is non-blocking (returns immediately) if queue empty
 		more = fwl_draw();
 		/* swap the rendering area */

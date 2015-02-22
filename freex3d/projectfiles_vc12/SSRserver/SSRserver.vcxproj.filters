@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{34a47954-3e27-418b-9f0b-0607cc62e512}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Html Files">
+      <UniqueIdentifier>{043eeecf-a2c1-435f-b1aa-d1315437999f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\SSR\SSRServer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\src\SSR\favicon.ico">
+      <Filter>Html Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\SSR\gl-matrix.js">
+      <Filter>Html Files</Filter>
+    </None>
+    <None Include="..\..\src\SSR\gl-matrix-min.js">
+      <Filter>Html Files</Filter>
+    </None>
+    <None Include="..\..\src\SSR\SSRClient.html">
+      <Filter>Html Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>

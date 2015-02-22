@@ -56,6 +56,10 @@ DLLFREEWRL_API void dllFreeWRL_resitem_setLocalPath(void *fwctx, void *res, char
 DLLFREEWRL_API void dllFreeWRL_resitem_enqueue(void *fwctx, void *res);
 DLLFREEWRL_API void dllFreeWRL_resitem_load(void *fwctx, void *res);
 
+#ifdef SSR_SERVER
+DLLFREEWRL_API void dllFreeWRL_SSRserver_enqueue_request_and_wait(void *fwctx, void *request);
+#endif //SSR_SERVER
+
 #ifdef __cplusplus
 }
 #endif

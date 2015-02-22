@@ -485,6 +485,12 @@ void Snapshot ()
 	saveSnapshotBMP(thisRawFile, imgbuf, 3, gglobal()->display.screenWidth, gglobal()->display.screenHeight);
 	FREE(imgbuf);
 }
+void Snapshot1(char *fname){
+	char *imgbuf;
+	imgbuf = grabScreen(3,0,0,gglobal()->display.screenWidth,gglobal()->display.screenHeight);
+	saveSnapshotBMP(fname, imgbuf, 3, gglobal()->display.screenWidth, gglobal()->display.screenHeight);
+	FREE(imgbuf);
+}
 #endif /*ifdef win32*/
 #if !(defined(_MSC_VER) || defined(IPHONE))
 
