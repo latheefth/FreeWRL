@@ -753,6 +753,9 @@ printf ("togl, after inverse, %lf %lf %lf\n",inverseMatrix[12],inverseMatrix[13]
 */
 }
 
+
+
+
 double quadratic(double x,double a,double b,double c)
 {
 	/* y = a*x*x + b*x + c; */
@@ -3010,6 +3013,15 @@ void setup_viewpoint_slerp(double* center, double pivot_radius, double vp_radius
 	}
 	//viewer_lastP_clear(); //not sure I need this - its for wall penetration
 }
+
+//an external program or app may want to set or get the viewer pose, with no slerping
+//SSR
+void viewer_setpose(double *pose){
+	
+}
+void viewer_getpose(double *pose){
+}
+
 /* We have a Viewpoint node being bound. (not a GeoViewpoint node) */
 void bind_Viewpoint (struct X3D_Viewpoint *vp) {
 	Quaternion q_i;
