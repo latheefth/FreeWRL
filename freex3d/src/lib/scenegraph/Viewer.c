@@ -1973,6 +1973,30 @@ static void handle_tick_walk()
 	//CALCULATE_EXAMINE_DISTANCE
 }
 
+//an external program or app may want to set or get the viewer pose, with no slerping
+//SSR - these set/getpose are called from _DisplayThread
+void viewer_setpose( double *quat4, double *vec3){
+	ttglobal tg = (ttglobal) gglobal();
+	ppViewer p = (ppViewer)tg->Viewer.prv;
+	p->Viewer.Pos.x = -vec3[0];
+	p->Viewer.Pos.y = -vec3[1];
+	p->Viewer.Pos.z = -vec3[2];
+	p->Viewer.Quat.x = quat4[0];
+	p->Viewer.Quat.y = quat4[1];
+	p->Viewer.Quat.z = quat4[2];
+	p->Viewer.Quat.w = quat4[3];
+}
+void viewer_getpose( double *quat4, double *vec3){
+	ttglobal tg = (ttglobal) gglobal();
+	ppViewer p = (ppViewer)tg->Viewer.prv;
+	vec3[0] = -p->Viewer.Pos.x;
+	vec3[1] = -p->Viewer.Pos.y;
+	vec3[2] = -p->Viewer.Pos.z;
+	quat4[0] = p->Viewer.Quat.x;
+	quat4[1] = p->Viewer.Quat.y;
+	quat4[2] = p->Viewer.Quat.z;
+	quat4[3] = p->Viewer.Quat.w;
+}
 
 /* formerly package VRML::Viewer::ExFly
  * entered via the "f" key.
@@ -3014,13 +3038,7 @@ void setup_viewpoint_slerp(double* center, double pivot_radius, double vp_radius
 	//viewer_lastP_clear(); //not sure I need this - its for wall penetration
 }
 
-//an external program or app may want to set or get the viewer pose, with no slerping
-//SSR
-void viewer_setpose(double *pose){
-	
-}
-void viewer_getpose(double *pose){
-}
+
 
 /* We have a Viewpoint node being bound. (not a GeoViewpoint node) */
 void bind_Viewpoint (struct X3D_Viewpoint *vp) {

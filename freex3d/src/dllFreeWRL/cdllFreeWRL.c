@@ -40,7 +40,10 @@ void fwl_resitem_enqueuNextMulti(void *res);
 void fwl_resitem_setLocalPath(void *res, char* path);
 void fwl_resitem_enqueue(void *res);
 int file2blob(void *res);
-
+#ifdef SSR_SERVER
+//SSR (Server-side rendering)
+void SSRserver_enqueue_request_and_wait(void *fwctx, void *request);
+#endif //SSR_SERVER
 
 #include <malloc.h>
 #include <stdlib.h>
@@ -291,3 +294,11 @@ DLLFREEWRL_API void dllFreeWRL_resitem_enqueue(void *fwctx, void *res){
 	fwl_clearCurrentHandle();
 }
 
+#ifdef SSR_SERVER
+DLLFREEWRL_API void dllFreeWRL_SSRserver_enqueue_request_and_wait(void *fwctx, void *request){
+	if (fwl_setCurrentHandle(fwctx, __FILE__, __LINE__)){
+		SSRserver_enqueue_request_and_wait(fwctx, request);
+	}
+	fwl_clearCurrentHandle();
+}
+#endif //SSR_SERVER
