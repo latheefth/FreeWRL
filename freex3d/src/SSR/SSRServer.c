@@ -1,6 +1,26 @@
 
-// include the headers of your operating system that define the size_t, fd_set, socklen_t and struct sockaddr data types and define MHD_PLATFORM_H
-// license MIT or similar
+/*	win32: include the headers of your operating system that define the size_t, fd_set, socklen_t and struct sockaddr data types and define MHD_PLATFORM_H
+	linux: don't define MHD_PLATFORM_H and it will figure it out
+	license MIT or similar - hack away, have fun
+	SSR - server-side rendering - the user drags on a webgl canvas featuring a simple grid, and when
+		they lift their mousebutton/touchfinger the client code ajaxes (asynchronous javascript and xml, via xmlhttprequest)
+		the viewpoint pose to the server
+		the server reponds by correcting the pose for gravity/collision and sends back
+		then the client sends the corrected pose and asks via  for a snapshot
+		the server takes a screen snapshot and sends back to clien
+		the client shows the snapshot over the grid and waits for the next mousedown/touch to show the grid again
+	SSRServer.exe this commandline program that takes Port (ie 8080 or your choice) on the command line,
+		- runs linked-in libmicrohttpd C web server to listen and call functions below
+		- you need to run this program in src/SSR/public to server SSRClient.html
+		- serves SSRClient.html when in a browser you go: http://localhost:8080/SSRClient.html or -via your noip/dyndns hostname http://myhostname:8080/SSRClient.html
+	Current state Feb 25, 2015:
+		* works a bit on win32 and in up-to-date desktop web browsers IE, Chrome, FF
+		x doesn't work in iPhone, BBPlaybook webbrowsers 
+				- needs shims/polyfills in SSRClient.html for a few modern things window.requestNextAnimationFrame and xhr2 xmlhttprequest JSON/blob payloads
+		* tested with free noip.com account, which re-directed to home server computer behind DSL modem
+			- DSL modem had settings Advanced > DDNS (dynamic dns) > no-ip auto-update feature,
+				and PortForwarding (set to our chosen PORT  8080 on WAN and LAN)
+*/
 
 
 #ifdef _MSC_VER
@@ -29,10 +49,11 @@
 #define write _write
 //END WIN32
 #endif
-#define scene_path "C:/Users/Public/dev/source2/placeholders/townsite_2014/townsite.x3d"
+// in theory scene_path could/should be a command line arg, or something the server helps the user upload or select on another page
+#define scene_path "http://dug9.users.sourceforge.net/web3d/townsite_2014/townsite.x3d" //"C:/Users/Public/dev/source2/placeholders/townsite_2014/townsite.x3d"
 #include <cdllFreeWRL.h>
 #define SSR_SERVER 1
-#include <SSRhelper.h>
+#include "../lib/SSRhelper.h"
 int run_fw = 1;
 void *fwctx = NULL;
 int runFW(){

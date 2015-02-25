@@ -13,20 +13,4 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
-  <ItemGroup>
-    <Image Include="..\..\src\SSR\favicon.ico">
-      <Filter>Html Files</Filter>
-    </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\src\SSR\gl-matrix.js">
-      <Filter>Html Files</Filter>
-    </None>
-    <None Include="..\..\src\SSR\gl-matrix-min.js">
-      <Filter>Html Files</Filter>
-    </None>
-    <None Include="..\..\src\SSR\SSRClient.html">
-      <Filter>Html Files</Filter>
-    </None>
-  </ItemGroup>
 </Project>
