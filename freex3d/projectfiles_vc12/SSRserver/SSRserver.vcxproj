@@ -13,14 +13,6 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\SSR\SSRServer.c" />
   </ItemGroup>
-  <ItemGroup>
-    <Image Include="..\..\src\SSR\favicon.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\src\SSR\gl-matrix-min.js" />
-    <None Include="..\..\src\SSR\gl-matrix.js" />
-    <None Include="..\..\src\SSR\SSRClient.html" />
-  </ItemGroup>
   <PropertyGroup Label="fwCustom">
     <LIB>../</LIB>
     <SRC>C:\Users\Public\dev\source2\freewrl\freex3d\src</SRC>

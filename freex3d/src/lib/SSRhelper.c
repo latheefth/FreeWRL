@@ -1,3 +1,5 @@
+
+#ifdef SSR_SERVER
 /*	
 	D. SSR: server-side rendering
 	SSRhelper: supplies the libfreewrl parts:
@@ -85,12 +87,7 @@ void SSR_reply_pose(SSR_request *request)
 {
 	viewer_getpose(request->quat4,request->vec3);
 }
-//#ifdef _MSC_VER
-//static char * convert_command = "convert snapshot.bmp -png"; 
-//#else
-//static char * convert_command = "convert snapshot.bmp -png"; 
-//#endif
-//#include <process.h>
+
 #ifdef _MSC_VER
 static char *snapshot_filename = "snapshot.bmp"; //option: get this from the snapshot.c module after saving
 #else
@@ -99,7 +96,7 @@ static char *snapshot_filename = "snapshot.png";
 void SSR_reply_snapshot(SSR_request *request)
 {
 	int iret;
-	Snapshot1(snapshot_filename);
+	Snapshot1(snapshot_filename); //win32 has Snapshot1 with filename, need to add to linux
 	iret = load_file_blob(snapshot_filename,&request->blob,&request->len);
 	if(!iret) 
 		printf("snapshot file not found %s\n",snapshot_filename);
@@ -126,3 +123,4 @@ void SSR_reply(){
 		ssr_current_request = NULL;
 	}
 }
+#endif //SSR_SERVER
