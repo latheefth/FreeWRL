@@ -152,6 +152,7 @@ void process_eventsProcessed() {
 	//ppJScript p = (ppJScript)tg->JScript.prv;
 	for (counter = 0; counter <= tg->CRoutes.max_script_found_and_initialized; counter++) {
 		scriptcontrol = getScriptControlIndex(counter);
+		if(scriptcontrol->thisScriptType != NOSCRIPT ){
 		if (scriptcontrol->eventsProcessed == NULL) {
 #if defined(JS_THREADSAFE)
 			JS_BeginRequest(scriptcontrol->cx);
@@ -186,6 +187,7 @@ void process_eventsProcessed() {
 #if defined(JS_THREADSAFE)
 		JS_EndRequest(scriptcontrol->cx);
 #endif
+		}
 
 	}
 #endif /* HAVE_JAVASCRIPT */

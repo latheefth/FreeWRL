@@ -245,7 +245,7 @@ void fwl_set_MaxImages(int max);
 void fwl_setCurXY(int x, int y);
 void fwl_do_keyPress(char kp, int type);
 void fwl_doQuit();
-//void fwl_doQuitInstance();
+void fwl_doQuitAndWait();
 void fwl_set_viewer_type(const int type);
 void fwl_set_modeRecord();
 void fwl_set_modeFixture();

@@ -4870,6 +4870,14 @@ void fwl_doQuit()
 	tg->threads.MainLoopQuit = max(1,tg->threads.MainLoopQuit); //make sure we don't go backwards in the quit process with a double 'q'
 }
 
+void fwl_doQuitAndWait(){
+	pthread_t displaythread;
+	ttglobal tg = gglobal();
+	displaythread = tg->threads.DispThrd;
+	fwl_doQuit();
+	pthread_join(displaythread,NULL);
+
+}
 // tmp files are on a per-invocation basis on Android, and possibly other locations.
 // note that the "tempnam" function will accept NULL as the directory on many platforms,
 // so this function does not really need to be called on many platforms.
