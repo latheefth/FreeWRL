@@ -205,7 +205,8 @@ DLLFREEWRL_API void dllFreeWRL_onClose(void *fwctx)
 	   it returns here immediately, but it takes a while for libfreewrl to finish parking threads, deleting resources
    */
 	if(fwl_setCurrentHandle(fwctx, __FILE__, __LINE__)){
-		fwl_doQuit();
+		//fwl_doQuit();
+		fwl_doQuitAndWait();
 	}
 	fwl_clearCurrentHandle();
 }
