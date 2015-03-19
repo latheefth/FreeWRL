@@ -120,8 +120,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_glew|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SRC)\libminizip;$(LIBWIN)\js185\include;$(SRC)\libtess;$(SRC)\Lib;$(SRCWIN);$(LIBWIN)\pthread\include;$(LIBWIN)\zlib\include;$(LIBWIN)\jpeg\include;$(LIBWIN)\freetype2\include;$(LIBWIN)\png\include;$(LIBWIN)\glew\include;$(LIBWIN)\libxml2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>W_DEBUG;WIN32;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;DO_COLLISION_GPU_no;STATIC_EXPORTABLE_JS_API;HAVE_PTHREAD_CANCEL;SSR_SERVER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(LIBWIN)\freeALUT\include;$(LIBWIN)\openALsoft\include;$(SRC)\libminizip;$(LIBWIN)\js185\include;$(SRC)\libtess;$(SRC)\libnurbs;$(SRC)\Lib;$(SRCWIN);$(LIBWIN)\pthread\include;$(LIBWIN)\zlib\include;$(LIBWIN)\jpeg\include;$(LIBWIN)\freetype2\include;$(LIBWIN)\png\include;$(LIBWIN)\glew\include;$(LIBWIN)\libxml2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NURBS_LIB;JAVASCRIPT_DUK;W_DEBUG;WIN32;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;DO_COLLISION_GPU_no;STATIC_EXPORTABLE_JS_API;HAVE_PTHREAD_CANCEL;SSR_SERVER;HAVE_OPENAL;HAVE_ALUT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -137,8 +137,8 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SRC)\libminizip;$(LIBWIN)\js185\include;$(SRC)\libtess;$(SRC)\lib;$(SRCWIN);$(LIBWIN)\pthread\include;$(LIBWIN)\zlib\include;$(LIBWIN)\jpeg\include;$(LIBWIN)\freetype2\include;$(LIBWIN)\png\include;$(LIBWIN)\glew\include;$(LIBWIN)\libxml2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;STATIC_EXPORTABLE_JS_API;HAVE_PTHREAD_CANCEL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(LIBWIN)\freeALUT\include;$(LIBWIN)\openALsoft\include;$(SRC)\libminizip;$(LIBWIN)\js185\include;$(SRC)\libtess;$(SRC)\libnurbs;$(SRC)\lib;$(SRCWIN);$(LIBWIN)\pthread\include;$(LIBWIN)\zlib\include;$(LIBWIN)\jpeg\include;$(LIBWIN)\freetype2\include;$(LIBWIN)\png\include;$(LIBWIN)\glew\include;$(LIBWIN)\libxml2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NURBS_LIB;JAVASCRIPT_DUK;WIN32;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;STATIC_EXPORTABLE_JS_API;HAVE_PTHREAD_CANCEL;HAVE_OPENAL;HAVE_ALUT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <WarningLevel>Level1</WarningLevel>

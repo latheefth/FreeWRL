@@ -461,13 +461,17 @@ static int ahc_echo(void * cls,
 // tutorials: http://www.gnu.org/software/libmicrohttpd/tutorial.html
 int main0(int argc, char ** argv) {
 	struct MHD_Daemon * d;
+	char *portstr;
 	if (argc != 2) {
-		printf("%s PORT\n",argv[0]);
-		return 1;
+		portstr = "8080";
+		printf("%s PORT\n",portstr);
+		//return 1;
+	}else{
+		portstr = argv[1];
 	}
 	if(0)
 	d = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION,
-		atoi(argv[1]),
+		atoi(portstr),
 		NULL,
 		NULL,
 		&ahc_echo,
@@ -475,7 +479,7 @@ int main0(int argc, char ** argv) {
 		MHD_OPTION_END);
 	if(1)
 	d = MHD_start_daemon (MHD_USE_THREAD_PER_CONNECTION, //MHD_USE_SELECT_INTERNALLY
-		atoi(argv[1]), //PORT, 
+		atoi(portstr), //PORT, 
 		NULL, 
 		NULL,
 		&answer_to_connection, 
@@ -494,6 +498,7 @@ int main0(int argc, char ** argv) {
 	return 0;
 }
 int main(int argc, char ** argv) {
+	chdir("./Public");
 	int iret = main0(argc, argv);
 	if(iret){
 		printf("Press Enter to exit:");

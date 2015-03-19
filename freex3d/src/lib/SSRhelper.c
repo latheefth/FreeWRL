@@ -1,4 +1,4 @@
-
+#include <config.h>
 #ifdef SSR_SERVER
 /*	
 	D. SSR: server-side rendering

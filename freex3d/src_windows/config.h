@@ -291,6 +291,11 @@ char *getWgetPath();
 #ifndef FRONTEND_GETS_URLS
 #define HAVE_WININET 1
 #endif
-
+#if (_MSC_VER > 1500) 
+#include <winapifamily.h>
+#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
+#define SSR_SERVER 1
+#endif
+#endif
 //#define HAVE_OPENAL 1 //in lib preprocessor 
 //#define HAVE_ALUT 1

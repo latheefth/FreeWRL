@@ -145,7 +145,7 @@ void CdllFreeWRL::resitem_enqueue(void *res){
 
 
 #ifdef _MSC_VER
-#include "stdafx.h"
+//#include "stdafx.h"
 #include <windows.h>
 #include <WinUser.h>
 #if _MSC_VER > 1700
