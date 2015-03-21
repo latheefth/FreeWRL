@@ -56,11 +56,11 @@
 #include "../lib/SSRhelper.h"
 int run_fw = 1;
 void *fwctx = NULL;
-int runFW(){
+int runFW(char *url){
 	if(run_fw){
 		fwctx = dllFreeWRL_dllFreeWRL();
 		dllFreeWRL_onInit(fwctx,400,300,NULL,FALSE,FALSE);
-		dllFreeWRL_onLoad(fwctx,scene_path); 
+		dllFreeWRL_onLoad(fwctx,url); 
 	}
 	return 0;
 }
@@ -461,13 +461,18 @@ static int ahc_echo(void * cls,
 // tutorials: http://www.gnu.org/software/libmicrohttpd/tutorial.html
 int main0(int argc, char ** argv) {
 	struct MHD_Daemon * d;
-	char *portstr;
-	if (argc != 2) {
+	char *portstr, *url;
+	if (argc < 2) {
 		portstr = "8080";
 		printf("%s PORT\n",portstr);
+		url = scene_path;
 		//return 1;
 	}else{
 		portstr = argv[1];
+		if(argc < 3)
+			url = scene_path;
+		else
+			url = argv[2];
 	}
 	if(0)
 	d = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION,
@@ -490,7 +495,7 @@ int main0(int argc, char ** argv) {
 		MHD_OPTION_END);
 	if (d == NULL)
 		return 1;
-	runFW();
+	runFW(url);
 	printf("Press Enter to stop libmicrohttp deamon and exit:");
 	getchar();
 	stopFW();
