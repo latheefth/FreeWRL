@@ -3422,6 +3422,9 @@ void fwl_do_keyPress0(int key, int type) {
 		if(p->keywait){
 			if(type == KEYPRESS){
 				//key,value commands
+				//example: hit spacebar, then at the : prompt type keychord,yawz so it looks on the console:
+				//:keychord,yawz
+				//then press enter. Then if you use the arrow keys <> should turn left right, and ^v should go back/forth
 				//here's a little hack so you can set any (pre-programmed) value from the keyboard in freewrl
 				//by specifying key,value pair
 				//to get the commandline, hit spacebar

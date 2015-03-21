@@ -1126,7 +1126,7 @@ void handle_tick_fly2() {
 		memcpy(&q,&p->Viewer.Quat,sizeof(Quaternion));
 		vrmlrot_to_quaternion (&nq,0.0,1.0,0.0,0.4*rot);
 		viewer_lastQ_set(&nq); //wall penetration - last avatar pose is stored before updating
-		quaternion_multiply(&(p->Viewer.Quat), &q, &nq); //Quat = walk->RD * Quat
+		quaternion_multiply(&(p->Viewer.Quat), &nq, &q); //Quat = walk->RD * Quat
 		//does the Z gets transformed by the quat?
 		increment_pos(&xyz);
 		//inplane->x = x;
