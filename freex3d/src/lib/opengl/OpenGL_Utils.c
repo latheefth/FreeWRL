@@ -3128,14 +3128,14 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
     }
 
 	/* lets use these values; leave room for a Background or TextureBackground node here */
-	viewer->nearPlane = cnp;
+	viewer->nearPlane = min(cnp,DEFAULT_NEARPLANE);
 	/* backgroundPlane goes between the farthest geometry, and the farPlane */
 	if (vectorSize(tg->Bindable.background_stack)!= 0) {
-		viewer->farPlane = cfp * 10.0;
-		viewer->backgroundPlane = cfp*5.0;
+		viewer->farPlane = max(cfp * 10.0,DEFAULT_FARPLANE);
+		viewer->backgroundPlane = max(cfp*5.0,DEFAULT_BACKGROUNDPLANE);
 	} else {
-		viewer->farPlane = cfp;
-		viewer->backgroundPlane = cfp; /* just set it to something */
+		viewer->farPlane = max(cfp,DEFAULT_FARPLANE);
+		viewer->backgroundPlane = max(cfp,DEFAULT_BACKGROUNDPLANE); /* just set it to something */
 	}
 }
 
