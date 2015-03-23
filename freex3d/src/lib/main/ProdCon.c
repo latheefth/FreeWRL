@@ -259,9 +259,9 @@ int indexChildrenName(struct X3D_Node *node){
 			case NODE_Inline:  //Q. do I need this in here? Saw code in x3dparser.
 				index = FIELDNAMES___children;
 				break;
-			//case NODE_GeoLOD:  //Q. do I need this in here? A. No - leave null and the correct field is found for geoOrigin (otherwise it puts it in rootNode which is a kind of parent node field -sick - see glod1/b.x3d)
-			//	index = FIELDNAMES_rootNode;
-			//	break;
+			case NODE_GeoLOD:  //Q. do I need this in here? A. No - leave null and the correct field is found for geoOrigin (otherwise it puts it in rootNode which is a kind of parent node field -sick - see glod1/b.x3d)
+				index = FIELDNAMES_rootNode;
+				break;
 			//switch?
 		}
 	return index;

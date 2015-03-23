@@ -208,7 +208,6 @@
     <ClCompile Include="$(SRC)\lib\opengl\Frustum.c" />
     <ClCompile Include="$(SRCWIN)\fwVersion.c" />
     <ClCompile Include="$(SRC)\lib\ui\fwWindow32.c" />
-    <ClCompile Include="$(SRCWIN)\WICImageLoader.cpp" />
     <ClCompile Include="$(SRC)\lib\scenegraph\GeneratedCode.c" />
     <ClCompile Include="$(SRC)\lib\scenegraph\GenPolyRep.c" />
     <ClCompile Include="$(SRC)\lib\iglobal.c" />
@@ -261,11 +260,12 @@
     <ClCompile Include="$(SRC)\lib\world_script\jsVRMLClasses.c" />
     <ClCompile Include="$(SRC)\lib\world_script\jsVRML_MFClasses.c" />
     <ClCompile Include="$(SRC)\lib\world_script\jsVRML_SFClasses.c" />
-    <ClCompile Include="..\..\src\lib\desktop.c" />
-    <ClCompile Include="..\..\src\lib\SSRhelper.c" />
-    <ClCompile Include="..\..\src\lib\world_script\jsVRMLBrowser_duk.c" />
-    <ClCompile Include="..\..\src\lib\world_script\jsVRMLClasses_duk.c" />
-    <ClCompile Include="..\..\src_windows\view_platform_win32.c" />
+    <ClCompile Include="$(SRC)\lib\desktop.c" />
+    <ClCompile Include="$(SRC)\lib\SSRhelper.c" />
+    <ClCompile Include="$(SRC)\lib\world_script\jsVRMLBrowser_duk.c" />
+    <ClCompile Include="$(SRC)\lib\world_script\jsVRMLClasses_duk.c" />
+    <ClCompile Include="$(SRCWIN)\gdiPlusImageLoader.cpp" />
+    <ClCompile Include="$(SRCWIN)\view_platform_win32.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(SRC)\lib\scenegraph\Component_Picking.h" />
@@ -282,10 +282,10 @@
     <ClInclude Include="$(SRC)\lib\system.h" />
     <ClInclude Include="$(SRC)\lib\scenegraph\Vector.h" />
     <ClInclude Include="$(SRC)\lib\scenegraph\Viewer.h" />
-    <ClInclude Include="..\..\src\lib\scenegraph\LinearAlgebra.h" />
-    <ClInclude Include="..\..\src\lib\ui\statusbar.h" />
-    <ClInclude Include="..\..\src\lib\x3d_parser\X3DParser.h" />
-    <ClInclude Include="..\..\src\lib\x3d_parser\X3DProtoScript.h" />
+    <ClInclude Include="$(SRC)\lib\scenegraph\LinearAlgebra.h" />
+    <ClInclude Include="$(SRC)\lib\ui\statusbar.h" />
+    <ClInclude Include="$(SRC)\lib\x3d_parser\X3DParser.h" />
+    <ClInclude Include="$(SRC)\lib\x3d_parser\X3DProtoScript.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libminizip\libminizip.vcxproj">
@@ -298,7 +298,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\..\src_windows\winGLES2.rc" />
+    <ResourceCompile Include="$(SRCWIN)\winGLES2.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -303,12 +303,6 @@
     <ClCompile Include="$(SRCWIN)\model_platform_win32.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src_windows\view_platform_win32.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SRCWIN)\WICImageLoader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SRC)\lib\world_script\include_duktape.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -336,16 +330,22 @@
     <ClCompile Include="$(SRC)\lib\world_script\jsVRML_SFClasses.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\world_script\jsVRMLBrowser_duk.c">
+    <ClCompile Include="$(SRC)\lib\desktop.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\world_script\jsVRMLClasses_duk.c">
+    <ClCompile Include="$(SRC)\lib\SSRhelper.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\desktop.c">
+    <ClCompile Include="$(SRC)\lib\world_script\jsVRMLBrowser_duk.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\SSRhelper.c">
+    <ClCompile Include="$(SRC)\lib\world_script\jsVRMLClasses_duk.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SRCWIN)\gdiPlusImageLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SRCWIN)\view_platform_win32.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -392,21 +392,21 @@
     <ClInclude Include="$(SRC)\lib\scenegraph\Viewer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\lib\ui\statusbar.h">
+    <ClInclude Include="$(SRC)\lib\scenegraph\LinearAlgebra.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\lib\x3d_parser\X3DParser.h">
+    <ClInclude Include="$(SRC)\lib\ui\statusbar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\lib\x3d_parser\X3DProtoScript.h">
+    <ClInclude Include="$(SRC)\lib\x3d_parser\X3DParser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\lib\scenegraph\LinearAlgebra.h">
+    <ClInclude Include="$(SRC)\lib\x3d_parser\X3DProtoScript.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\..\src_windows\winGLES2.rc">
+    <ResourceCompile Include="$(SRCWIN)\winGLES2.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

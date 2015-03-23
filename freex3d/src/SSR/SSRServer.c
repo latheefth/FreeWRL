@@ -503,7 +503,18 @@ int main0(int argc, char ** argv) {
 	return 0;
 }
 int main(int argc, char ** argv) {
-	chdir("./Public");
+	if(strstr(argv[0],"projectfiles")){
+		//developer folders, use src/SSR/public for Client.html
+		char *pf, *path;
+		path = strdup(argv[0]);
+		pf = strstr(path,"projectfiles");
+		strcpy(pf,"src/SSR/public");
+		printf("%s\n",path);
+		chdir(path);
+	}else{
+		//installed, use folder beside ssrserver.exe (PS installer please install public folder with binary distro)
+		chdir("./public");
+	}
 	int iret = main0(argc, argv);
 	if(iret){
 		printf("Press Enter to exit:");

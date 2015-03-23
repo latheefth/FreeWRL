@@ -190,7 +190,7 @@ static void myScaleImage(int srcX,int srcY,int destX,int destY,unsigned char *sr
 	}
 }
 
-
+void malloc_profile_add(char *use, int bytes);
 static void GenMipMap2D( GLubyte *src, GLubyte **dst, int srcWidth, int srcHeight, int *dstWidth, int *dstHeight )
 {
    int x,
@@ -206,6 +206,7 @@ static void GenMipMap2D( GLubyte *src, GLubyte **dst, int srcWidth, int srcHeigh
       *dstHeight = 1;
 
    *dst = malloc ( sizeof(GLubyte) * texelSize * (*dstWidth) * (*dstHeight) );
+   malloc_profile_add("texturemip",texelSize * (*dstWidth) * (*dstHeight));
    if ( *dst == NULL )
       return;
 
@@ -255,7 +256,6 @@ static void GenMipMap2D( GLubyte *src, GLubyte **dst, int srcWidth, int srcHeigh
       }
    }
 }
-
 /* create the MIPMAPS ourselves, as the OpenGL ES 2.0 can not do it */
 static void myTexImage2D (int generateMipMaps, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, GLubyte *pixels) {
 	GLubyte *prevImage = NULL;
@@ -271,6 +271,7 @@ static void myTexImage2D (int generateMipMaps, GLenum target, GLint level, GLint
 	/* go and create a bunch of mipmaps */
 
 	prevImage = MALLOC(GLubyte *, width * height * 4);
+	malloc_profile_add("texture1",width*height*4);
 	memcpy (prevImage, pixels, width * height * 4);
 	
 	/* from the OpenGL-ES 2.0 book, page 189 */

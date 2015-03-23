@@ -1097,6 +1097,38 @@ void update_node(struct X3D_Node *node) {
 //static int renderLevel = 0;
 //#define RENDERVERBOSE
 
+/*poor man's memory profiler */
+static int malloc_n_uses = 0;
+static char *malloc_uses[100];
+static int malloc_bytes[100];
+void malloc_profile_add(char *use, int bytes){
+	int i, ifound;
+	ifound = -1;
+	for(i=0;i<malloc_n_uses;i++){
+		if(!strcmp(use,malloc_uses[i])){
+			ifound = i;
+			break;
+		}
+	}
+	if(ifound == -1 && malloc_n_uses < 100){
+		malloc_uses[malloc_n_uses] = strdup(use);
+		malloc_bytes[malloc_n_uses] = 0;
+		ifound = malloc_n_uses;
+		malloc_n_uses++;
+	}
+	if(ifound > -1){
+		malloc_bytes[ifound] += bytes;
+	}
+}
+void malloc_profile_print(){
+	if(malloc_n_uses){
+		int i;
+		printf("%15s %12s\n","mem use","bytes");
+		for(i=0;i<malloc_n_uses;i++){
+			printf("%15s %12d\n",malloc_uses[i],malloc_bytes[i]);
+		}
+	}
+}
 
 /* poor-man's performance profiler:
    wrap a section of code like this
@@ -1169,6 +1201,7 @@ void profile_print_all(){
 			ConsoleMessage("%15s %10d %15.3f %10.2f\n", pe[i].name, pe[i].hits, pe[i].accum, pe[i].accum / pe[0].accum*100.0);
 		}
 	}
+	malloc_profile_print();
 }
 void render_node(struct X3D_Node *node) {
 	struct X3D_Virt *virt;
