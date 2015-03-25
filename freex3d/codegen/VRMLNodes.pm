@@ -1651,7 +1651,7 @@ our %Nodes = (
 			# we can have only one field, the EXPOSED_FIELD_children
 			#children => ["MFNode",[],"outputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 
-			children => ["MFNode", [], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			children => ["MFNode", [], "outputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			level_changed =>["SFInt32",0,"outputOnly", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 
 			center => ["SFVec3d",[0,0,0],"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file

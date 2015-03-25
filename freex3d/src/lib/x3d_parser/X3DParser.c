@@ -1076,14 +1076,17 @@ c) look at atts containerField, and if not null and not children, use it.
 	if(defaultContainer == FIELDNAMES_children) defaultContainer = 0;
 	value = NULL;
 	fname = NULL;
+	ok = 0;
 	if(defaultContainer){
 		fname = FIELDNAMES[defaultContainer];
 		ok = getFieldFromNodeAndName(parent,fname,&type,&kind,&iifield,&value);
+		ok = ok && (kind == PKW_initializeOnly || kind == PKW_inputOutput); //not inputOnly or outputOnly - we can't park nodes there
 	}
 	if(!value && node->_defaultContainer == FIELDNAMES_children){
 		//if you try and put a transform into a proto, or LOD, or Inline (or switch?) you'll come in
 		//here to get the equivalent-to-children field
 		ok = getFieldFromNodeAndName(parent,"children",&type,&kind,&iifield,&value);
+		ok = ok && (kind == PKW_initializeOnly || kind == PKW_inputOutput); //not inputOnly or outputOnly - we can't park nodes there
 		if(!ok){
 			int kids = indexChildrenName(parent);
 			if(kids > 0){
@@ -1093,12 +1096,14 @@ c) look at atts containerField, and if not null and not children, use it.
 		}
 	}
 	//3.b)
-	if(parentsSuggestion) {
+	//if(parentsSuggestion) {
+	if(!ok && parentsSuggestion) {
 		//if you're parsing a fieldValue, and your value is an SF or MFnode in a child xml element,
 		//<fieldValue name='myTransform'>
 		//	<Transform USE='tommysTransform'/>
 		//</fieldValue>
 		//you'll come in here
+		//don't want to come in here for metadata
 		ok =getFieldFromNodeAndName(parent,parentsSuggestion,&type,&kind,&iifield,&value);
 	}
 			
