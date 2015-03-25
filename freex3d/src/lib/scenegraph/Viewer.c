@@ -1762,10 +1762,12 @@ void handle_key(const char key, double keytime)
 		//printf("is flykey\n");
 		flykey = getFlyIndex(_key);
 		if(flykey){
-			fly->down[flykey->motion][flykey->axis].direction = flykey->sign;
-			fly->down[flykey->motion][flykey->axis].epoch = keytime; //initial keydown
-			fly->down[flykey->motion][flykey->axis].era = keytime;  //will decrement as we apply velocity in fly
-			fly->down[flykey->motion][flykey->axis].once = 1;
+			if(flykey->motion > -1 && flykey->motion < 2 && flykey->axis > -1 && flykey->axis < 2){
+				fly->down[flykey->motion][flykey->axis].direction = flykey->sign;
+				fly->down[flykey->motion][flykey->axis].epoch = keytime; //initial keydown
+				fly->down[flykey->motion][flykey->axis].era = keytime;  //will decrement as we apply velocity in fly
+				fly->down[flykey->motion][flykey->axis].once = 1;
+			}
 		}
 	//} //Navigation-key_and_drag
 }
@@ -1788,16 +1790,18 @@ void handle_keyrelease(const char key, double keytime)
 		if(!isFlyKey(_key)) return;
 		flykey = getFlyIndex(_key);
 		if(flykey){
-			int *ndown = &fly->ndown[flykey->motion][flykey->axis];
-			if((*ndown) < 10){
-				//up to 20 key chirps per axis are stored, with their elapsed time down measured in the keyboard's thread
-				fly->wasDown[flykey->motion][flykey->axis][*ndown].direction = fly->down[flykey->motion][flykey->axis].direction;
-				fly->wasDown[flykey->motion][flykey->axis][*ndown].epoch = keytime - fly->down[flykey->motion][flykey->axis].epoch; //total pressedTime
-				fly->wasDown[flykey->motion][flykey->axis][*ndown].era = keytime - fly->down[flykey->motion][flykey->axis].era; //unused keydown time
-				fly->wasDown[flykey->motion][flykey->axis][*ndown].once = fly->down[flykey->motion][flykey->axis].once;  //a flag for the handle_tick to play with
-				(*ndown)++;
+			if(flykey->motion > -1 && flykey->motion < 2 && flykey->axis > -1 && flykey->axis < 2){
+				int *ndown = &fly->ndown[flykey->motion][flykey->axis];
+				if((*ndown) < 10){
+					//up to 20 key chirps per axis are stored, with their elapsed time down measured in the keyboard's thread
+					fly->wasDown[flykey->motion][flykey->axis][*ndown].direction = fly->down[flykey->motion][flykey->axis].direction;
+					fly->wasDown[flykey->motion][flykey->axis][*ndown].epoch = keytime - fly->down[flykey->motion][flykey->axis].epoch; //total pressedTime
+					fly->wasDown[flykey->motion][flykey->axis][*ndown].era = keytime - fly->down[flykey->motion][flykey->axis].era; //unused keydown time
+					fly->wasDown[flykey->motion][flykey->axis][*ndown].once = fly->down[flykey->motion][flykey->axis].once;  //a flag for the handle_tick to play with
+					(*ndown)++;
+				}
+				fly->down[flykey->motion][flykey->axis].direction = 0;
 			}
-			fly->down[flykey->motion][flykey->axis].direction = 0;
 		}
 	//} //Navigation-key_and_drag
 }

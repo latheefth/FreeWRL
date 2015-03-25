@@ -516,6 +516,10 @@ void registerTexture0(int iaction, struct X3D_Node *tmp) {
 			//we'll try using NULL as the signal its deleted.
 			textureTableIndexStruct_s * tti = NULL;
 			int *textureNumber = NULL;
+
+			releaseTexture(tmp); //Mar 23, 2015 added, to zap from gl texture name list (and its texture storage)
+								//otherwise for geoLOD and inline, the OS MEM usage keeps going up after unload/load cycle
+
 			switch (it->_nodeType) {
 			/* save this index in the scene graph node */
 			case NODE_ImageTexture:

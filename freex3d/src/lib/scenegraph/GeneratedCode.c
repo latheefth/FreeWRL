@@ -747,6 +747,7 @@ const int FIELDNAMES_COUNT = ARR_SIZE(FIELDNAMES);
 	"articulationParameterValue7_changed",
 	"bindTime",
 	"centerOfRotation_changed",
+	"children",
 	"collideTime",
 	"controlKey",
 	"cycleTime",
@@ -3293,7 +3294,7 @@ const int OFFSETS_GeoLOD[] = {
 	(int) FIELDNAMES_child2Url, (int) offsetof (struct X3D_GeoLOD, child2Url),  (int) FIELDTYPE_MFString, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_child3Url, (int) offsetof (struct X3D_GeoLOD, child3Url),  (int) FIELDTYPE_MFString, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_child4Url, (int) offsetof (struct X3D_GeoLOD, child4Url),  (int) FIELDTYPE_MFString, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_children, (int) offsetof (struct X3D_GeoLOD, children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_children, (int) offsetof (struct X3D_GeoLOD, children),  (int) FIELDTYPE_MFNode, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_geoOrigin, (int) offsetof (struct X3D_GeoLOD, geoOrigin),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_geoSystem, (int) offsetof (struct X3D_GeoLOD, geoSystem),  (int) FIELDTYPE_MFString, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_level_changed, (int) offsetof (struct X3D_GeoLOD, level_changed),  (int) FIELDTYPE_SFInt32, (int) KW_outputOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -10029,8 +10030,6 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			spacer fprintf (fp," center (SFVec3d): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->center.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp," children (MFNode):\n");
-			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
