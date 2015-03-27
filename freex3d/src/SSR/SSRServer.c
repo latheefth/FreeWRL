@@ -31,8 +31,8 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include <ws2tcpip.h>
-#define ssize_t int
-#define off_t int
+#define ssize_t size_t
+#define off_t ptrdiff_t
 #include <sys/stat.h>
 #include <limits.h> 
 #include <io.h>
@@ -502,6 +502,10 @@ int main0(int argc, char ** argv) {
 	MHD_stop_daemon(d);
 	return 0;
 }
+#ifdef _MSC_VER
+#include <direct.h>
+#define chdir _chdir
+#endif
 int main(int argc, char ** argv) {
 	if(strstr(argv[0],"projectfiles")){
 		//developer folders, use src/SSR/public for Client.html
