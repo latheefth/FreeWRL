@@ -15,81 +15,81 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\libtess\dict.c">
+    <ClCompile Include="$(SRC)\libtess\dict.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libtess\geom.c">
+    <ClCompile Include="$(SRC)\libtess\geom.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libtess\memalloc.c">
+    <ClCompile Include="$(SRC)\libtess\memalloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libtess\mesh.c">
+    <ClCompile Include="$(SRC)\libtess\mesh.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libtess\normal.c">
+    <ClCompile Include="$(SRC)\libtess\normal.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libtess\priorityq.c">
+    <ClCompile Include="$(SRC)\libtess\priorityq.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libtess\render.c">
+    <ClCompile Include="$(SRC)\libtess\render.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libtess\sweep.c">
+    <ClCompile Include="$(SRC)\libtess\sweep.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libtess\tess.c">
+    <ClCompile Include="$(SRC)\libtess\tess.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libtess\tessmono.c">
+    <ClCompile Include="$(SRC)\libtess\tessmono.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\libtess\dict-list.h">
+    <ClInclude Include="$(SRC)\libtess\dict-list.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\libtess\dict.h">
+    <ClInclude Include="$(SRC)\libtess\dict.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\libtess\geom.h">
+    <ClInclude Include="$(SRC)\libtess\geom.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\libtess\gluos.h">
+    <ClInclude Include="$(SRC)\libtess\gluos.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\libtess\libtess2.h">
+    <ClInclude Include="$(SRC)\libtess\libtess2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\libtess\memalloc.h">
+    <ClInclude Include="$(SRC)\libtess\memalloc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\libtess\mesh.h">
+    <ClInclude Include="$(SRC)\libtess\mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\libtess\normal.h">
+    <ClInclude Include="$(SRC)\libtess\normal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\libtess\priorityq-heap.h">
+    <ClInclude Include="$(SRC)\libtess\priorityq-heap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\libtess\priorityq-sort.h">
+    <ClInclude Include="$(SRC)\libtess\priorityq-sort.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\libtess\priorityq.h">
+    <ClInclude Include="$(SRC)\libtess\priorityq.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\libtess\render.h">
+    <ClInclude Include="$(SRC)\libtess\render.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\libtess\sweep.h">
+    <ClInclude Include="$(SRC)\libtess\sweep.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\libtess\tess.h">
+    <ClInclude Include="$(SRC)\libtess\tess.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\libtess\tessmono.h">
+    <ClInclude Include="$(SRC)\libtess\tessmono.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

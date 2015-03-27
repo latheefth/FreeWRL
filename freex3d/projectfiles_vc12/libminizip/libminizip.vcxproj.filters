@@ -15,24 +15,24 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\libminizip\ioapi.c">
+    <ClCompile Include="$(SRC)\libminizip\ioapi.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libminizip\unzip.c">
+    <ClCompile Include="$(SRC)\libminizip\unzip.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libminizip\zip.c">
+    <ClCompile Include="$(SRC)\libminizip\zip.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\libminizip\ioapi.h">
+    <ClInclude Include="$(SRC)\libminizip\ioapi.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\libminizip\unzip.h">
+    <ClInclude Include="$(SRC)\libminizip\unzip.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\libminizip\zip.h">
+    <ClInclude Include="$(SRC)\libminizip\zip.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
