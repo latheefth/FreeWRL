@@ -2142,7 +2142,7 @@ void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY)
 	}
 }
 char *getMessageBar(); //in common.c
-
+char *fwl_getKeyChord();
 void fwl_setClipPlane(int height);
 void drawStatusBarSide()
 {
@@ -2247,13 +2247,17 @@ M       void toggle_collision()                             //"
 			p->hadString = 1;
 		}
 		{
-			char *strfps, *strstatus;
+			int len;
+			char *strfps, *strstatus, *strAkeys;
 			FXY xy;
 			xy = screen2normalizedScreenScale((GLfloat)p->bmWH.x, (GLfloat)p->bmWH.y);
 			strfps = getMessageBar();
 			strstatus = &strfps[15];
 			printString2(-1.0f + xy.x*25.0f, side_bottom_f, strfps);
 			printString2(-1.0f + xy.x*35.0f, side_bottom_f, strstatus);
+			strAkeys = fwl_getKeyChord();
+			len = strlen(strAkeys);
+			printString2(1.0f - xy.x*len, side_bottom_f, strAkeys);
 		}
 
 

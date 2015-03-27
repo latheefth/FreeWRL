@@ -1612,8 +1612,12 @@ int viewer_getKeyChord(){
 	return p->keychord;
 }
 void viewer_setKeyChord(int chord){
+	int chord1;
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
-	p->keychord = chord;
+	chord1 = chord;
+	if(chord1 > 3) chord1 = 0;
+	if(chord1 < 0) chord1 = 3;
+	p->keychord = chord1;
 }
 char *fwl_getKeyChord(){
 	return chordnames[viewer_getKeyChord()];
@@ -1762,7 +1766,7 @@ void handle_key(const char key, double keytime)
 		//printf("is flykey\n");
 		flykey = getFlyIndex(_key);
 		if(flykey){
-			if(flykey->motion > -1 && flykey->motion < 2 && flykey->axis > -1 && flykey->axis < 2){
+			if(flykey->motion > -1 && flykey->motion < 2 && flykey->axis > -1 && flykey->axis < 3){
 				fly->down[flykey->motion][flykey->axis].direction = flykey->sign;
 				fly->down[flykey->motion][flykey->axis].epoch = keytime; //initial keydown
 				fly->down[flykey->motion][flykey->axis].era = keytime;  //will decrement as we apply velocity in fly
@@ -1790,7 +1794,7 @@ void handle_keyrelease(const char key, double keytime)
 		if(!isFlyKey(_key)) return;
 		flykey = getFlyIndex(_key);
 		if(flykey){
-			if(flykey->motion > -1 && flykey->motion < 2 && flykey->axis > -1 && flykey->axis < 2){
+			if(flykey->motion > -1 && flykey->motion < 2 && flykey->axis > -1 && flykey->axis < 3){
 				int *ndown = &fly->ndown[flykey->motion][flykey->axis];
 				if((*ndown) < 10){
 					//up to 20 key chirps per axis are stored, with their elapsed time down measured in the keyboard's thread

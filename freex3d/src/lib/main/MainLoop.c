@@ -3529,11 +3529,22 @@ void fwl_do_keyPress0(int key, int type) {
 				}
 			}
 			if(kp){
-				double keytime = Time1970sec();
-				if(type%10 == KEYDOWN)
-					handle_key(kp,keytime);  //keydown for fly
-				if(type%10 == KEYUP)
-					handle_keyrelease(kp,keytime); //keyup for fly
+				if(tg->Mainloop.SHIFT){
+					if(type%10 == KEYDOWN && (key == LEFT_KEY || key == RIGHT_KEY)){
+						int ichord;
+						//shift arrow left or right changes keychord
+						ichord = viewer_getKeyChord();
+						if(key == LEFT_KEY) ichord--;
+						if(key == RIGHT_KEY) ichord++;
+						viewer_setKeyChord(ichord);
+					}
+				}else{
+					double keytime = Time1970sec();
+					if(type%10 == KEYDOWN)
+						handle_key(kp,keytime);  //keydown for fly
+					if(type%10 == KEYUP)
+						handle_keyrelease(kp,keytime); //keyup for fly
+				}
 			}
 		}
 	}
