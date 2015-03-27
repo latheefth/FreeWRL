@@ -1885,16 +1885,16 @@ void renderButtons()
 			GLfloat rgba[4] = {1.0, 1.0, 1.0, 1.0};
 			bool highlightIt = p->pmenu.items[i].butStatus;
 
-#if !defined(QNX) && !defined(TOUCH)
-			// touch screens don't benefit from isOver highlighting because
-			// your finger is blocking your view of the button anyway
-			if(i==p->isOver){
-				rgba[0] = 1.0f; rgba[1] = 1.0f; rgba[2] = 1.0f;
-				highlightIt = true;
-			}
-#endif
+//#if !defined(QNX) && !defined(TOUCH)
+//			// touch screens don't benefit from isOver highlighting because
+//			// your finger is blocking your view of the button anyway
+//			if(0) if(i==p->isOver){
+//				rgba[0] = 1.0f; rgba[1] = 1.0f; rgba[2] = 1.0f;  //BUTTON BACKGROUND COLOR
+//				highlightIt = true;
+//			}
+//#endif
 			if(p->pmenu.items[i].butStatus) 
-				rgba[0] *= .95f; rgba[1] *= .95f; rgba[2] *= .95f; //1.0f; //darker windowing gray
+				rgba[0] = .7f; rgba[1] = .7f; rgba[2] = .7f; //DEPRESSED/TOGGLED BUTTON BACKGROUND COLOR
 			if(highlightIt) //i==p->isOver || p->pmenu.items[i].butStatus)
 			{
 				/*draw a background highlight rectangle*/
@@ -1919,14 +1919,13 @@ void renderButtons()
 	{
 			// render triangles
 
-
 			// Load the vertex position
 			glVertexAttribPointer ( p->positionLoc, 3, GL_FLOAT, 
 								   GL_FALSE, 0, p->pmenu.vert );
 			// Load the texture coordinate
 			glVertexAttribPointer ( p->texCoordLoc, 2, GL_FLOAT,
 								   GL_FALSE, 0, p->pmenu.tex );  //fails - p->texCoordLoc is 429xxxxx - garbage
-			glUniform4f(p->color4fLoc,0.7f,0.7f,0.9f,1.0f);
+			glUniform4f(p->color4fLoc,0.37f,0.37f,0.9f,1.0f);  //BLUE ICON SHAPE COLOR
 			glEnableVertexAttribArray ( p->positionLoc );
 			glEnableVertexAttribArray ( p->texCoordLoc );
 
