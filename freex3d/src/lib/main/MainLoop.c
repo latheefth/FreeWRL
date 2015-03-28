@@ -1835,7 +1835,7 @@ void setup_projection(int pick, int x, int y)
 	bottom = tg->Mainloop.clipPlane;
 	top = 0;
 	screenheight = tg->display.screenHeight - bottom;
-	if(viewer->type==VIEWER_YAWPITCHZOOM)
+	if(viewer->type==VIEWER_SPHERICAL)
 		fieldofview2*=viewer->fovZoom;
 	if(viewer->isStereo)
 	{
@@ -3389,6 +3389,7 @@ struct command {
 } commands [] = {
 	{"dragchord",fwl_setDragChord}, //lower case: "YAWZ","YAWPITCH","ROLL","XY"
 	{"keychord", fwl_setKeyChord},
+	{"navmode",fwl_setNavMode},
 	{NULL,NULL},
 };
 int fwl_set(char *key, char *val){
@@ -3471,7 +3472,7 @@ void fwl_do_keyPress0(int key, int type) {
 				case 'w': { fwl_set_viewer_type (VIEWER_WALK); break; }
 				case 'd': { fwl_set_viewer_type (VIEWER_FLY); break; }
 				case 'f': { fwl_set_viewer_type (VIEWER_EXFLY); break; }
-				case 'y': { fwl_set_viewer_type (VIEWER_YAWPITCHZOOM); break; }
+				case 'y': { fwl_set_viewer_type (VIEWER_SPHERICAL); break; }
 				case 't': { fwl_set_viewer_type(VIEWER_TURNTABLE); break; }
 				case 'm': { fwl_set_viewer_type(VIEWER_LOOKAT); break; }
 				case 'g': { fwl_set_viewer_type(VIEWER_EXPLORE); break; }

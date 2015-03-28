@@ -78,7 +78,7 @@ typedef struct pViewer{
 	X3D_Viewer_Walk viewer_walk;
 	X3D_Viewer_Examine viewer_examine;
 	X3D_Viewer_Fly viewer_fly;
-	X3D_Viewer_YawPitchZoom viewer_ypz;
+	X3D_Viewer_Spherical viewer_ypz;
 
 	FILE *exfly_in_file;
 	struct point_XYZ viewer_lastP;
@@ -187,7 +187,7 @@ void viewer_default() {
 	memcpy (&p->Viewer.walk, &p->viewer_walk,sizeof (X3D_Viewer_Walk));
 	memcpy (&p->Viewer.examine, &p->viewer_examine, sizeof (X3D_Viewer_Examine));
 	memcpy (&p->Viewer.fly, &p->viewer_fly, sizeof (X3D_Viewer_Fly));
-	memcpy (&p->Viewer.ypz,&p->viewer_ypz, sizeof (X3D_Viewer_YawPitchZoom));
+	memcpy (&p->Viewer.ypz,&p->viewer_ypz, sizeof (X3D_Viewer_Spherical));
 
 	fwl_set_viewer_type(VIEWER_EXAMINE);
 	p->Viewer.LookatMode = 0;
@@ -233,7 +233,7 @@ void viewer_init (X3D_Viewer *viewer, int type) {
         memcpy (&viewer->walk, &p->viewer_walk,sizeof (X3D_Viewer_Walk));
         memcpy (&viewer->examine, &p->viewer_examine, sizeof (X3D_Viewer_Examine));
         memcpy (&viewer->fly, &p->viewer_fly, sizeof (X3D_Viewer_Fly));
-        memcpy (&viewer->ypz,&p->viewer_ypz, sizeof (X3D_Viewer_YawPitchZoom));
+        memcpy (&viewer->ypz,&p->viewer_ypz, sizeof (X3D_Viewer_Spherical));
 
 
 		/* SLERP code for moving between viewpoints */
@@ -381,7 +381,7 @@ void fwl_set_viewer_type(const int type) {
 	case VIEWER_RPLANE:
 	case VIEWER_TILT:
 	case VIEWER_FLY2:
-	case VIEWER_YAWPITCHZOOM:
+	case VIEWER_SPHERICAL:
 	case VIEWER_TURNTABLE:
 	case VIEWER_EXPLORE:
 	case VIEWER_FLY:
@@ -422,41 +422,107 @@ void fwl_set_viewer_type(const int type) {
 	//setMenuButton_navModes(p->Viewer.type);
 
 }
+
+
+//#define VIEWER_STRING(type) ( \
+//	type == VIEWER_NONE ? "NONE" : ( \
+//	type == VIEWER_EXAMINE ? "EXAMINE" : ( \
+//	type == VIEWER_WALK ? "WALK" : ( \
+//	type == VIEWER_EXFLY ? "EXFLY" : ( \
+//	type == VIEWER_SPHERICAL ? "SPHERICAL" : (\
+//	type == VIEWER_TURNTABLE ? "TURNTABLE" : (\
+//	type == VIEWER_FLY ? "FLY" : "UNKNOWN"))))))
+#ifdef _MSC_VER
+#define strcasecmp _stricmp
+#endif
+
+struct navmode {
+	char *key;
+	int type;
+} navmodes [] = {
+	{"NONE",VIEWER_NONE},
+	{"WALK",VIEWER_WALK},
+	{"FLY",VIEWER_FLY},
+	{"EXAMINE",VIEWER_EXAMINE},
+	{"SPHERICAL",VIEWER_SPHERICAL},
+	{"TURNTABLE",VIEWER_TURNTABLE},
+	{"EXPLORE",VIEWER_EXPLORE},
+	{"LOOKAT",VIEWER_LOOKAT},
+	{"YAWZ",VIEWER_YAWZ},
+	{"XY",VIEWER_XY},
+	{"YAWPITCH",VIEWER_YAWPITCH},
+	{"ROLL",VIEWER_ROLL},
+	{NULL,0},
+};
+char * lookup_navmodestring(int navmode){
+	int i;
+	char *retval;
+	struct navmode *nm;
+	i = 0;
+	retval = NULL;
+	do{
+		nm = &navmodes[i];
+		if(nm->type == navmode){
+			retval = nm->key;
+			break;
+		}
+		i++;
+	}while(navmodes[i].key);
+	if(!retval) retval = "NONE";
+	return retval;
+}
+int lookup_navmode(char *cmode){
+	int i;
+	int retval;
+	struct navmode *nm;
+	i = 0;
+	retval = 0;
+	do{
+		nm = &navmodes[i];
+		if(!strcasecmp(nm->key,cmode)){
+			retval = nm->type;
+			break;
+		}
+		i++;
+	}while(navmodes[i].key);
+	return retval;
+}
 char* fwl_getNavModeStr()
 {
 	ttglobal tg = gglobal();
 	ppViewer p = (ppViewer)tg->Viewer.prv;
-	switch(p->Viewer.type) {
-	case VIEWER_NONE:
-		return "NONE";
-	case VIEWER_EXAMINE:
-		return "EXAMINE";
-	case VIEWER_WALK:
-		return "WALK";
-	case VIEWER_EXFLY:
-		return "EXFLY";
-	case VIEWER_TPLANE:
-		return "TPLANE";
-	case VIEWER_RPLANE:
-		return "RPLANE";
-	case VIEWER_TILT:
-		return "TILT";
-	case VIEWER_FLY2:
-		return "FLY2";
-	case VIEWER_YAWPITCHZOOM:
-		return "YAWPITCHZOOM";
-	case VIEWER_TURNTABLE:
-		return "TURNTABLE";
-	case VIEWER_FLY:
-		return "FLY";
-	case VIEWER_LOOKAT:
-		return "LOOKAT";
-	case VIEWER_EXPLORE:
-		return "EXPLORE";
-	default:
-		return "NONE";
-	}
-	return "NONE";
+	return lookup_navmodestring(p->Viewer.type);
+	//switch(p->Viewer.type) {
+	//case VIEWER_NONE:
+	//	return "NONE";
+	//case VIEWER_EXAMINE:
+	//	return "EXAMINE";
+	//case VIEWER_WALK:
+	//	return "WALK";
+	//case VIEWER_EXFLY:
+	//	return "EXFLY";
+	//case VIEWER_TPLANE:
+	//	return "TPLANE";
+	//case VIEWER_RPLANE:
+	//	return "RPLANE";
+	//case VIEWER_TILT:
+	//	return "TILT";
+	//case VIEWER_FLY2:
+	//	return "FLY2";
+	//case VIEWER_SPHERICAL:
+	//	return "SPHERICAL";
+	//case VIEWER_TURNTABLE:
+	//	return "TURNTABLE";
+	//case VIEWER_FLY:
+	//	return "FLY";
+	//case VIEWER_LOOKAT:
+	//	return "LOOKAT";
+	//case VIEWER_EXPLORE:
+	//	return "EXPLORE";
+	//default:
+	//	return "NONE";
+	//}
+	//return "NONE";
 }
 int fwl_getNavMode()
 {
@@ -464,7 +530,11 @@ int fwl_getNavMode()
 	ppViewer p = (ppViewer)tg->Viewer.prv;
 	return p->Viewer.type;
 }
-
+int fwl_setNavMode(char *mode){
+	int imode = lookup_navmode(mode);
+	fwl_set_viewer_type(imode);
+	return 0;
+}
 
 //int use_keys() {
 //	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
@@ -919,7 +989,7 @@ void handle_turntable(const int mev, const unsigned int button, float x, float y
 	Like handle_yawpitchzoom, except:
 	move the viewer.Pos in the opposite direction from where we are looking
 	*/
-	X3D_Viewer_YawPitchZoom *ypz;
+	X3D_Viewer_Spherical *ypz;
 	double frameRateAdjustment;
 	ppViewer p;
 	ttglobal tg = gglobal();
@@ -1013,12 +1083,12 @@ void handle_turntable(const int mev, const unsigned int button, float x, float y
 
 }
 
-void handle_yawpitchzoom(const int mev, const unsigned int button, float x, float y) {
+void handle_spherical(const int mev, const unsigned int button, float x, float y) {
 	/* handle_examine almost works except we don't want roll-tilt, and we want to zoom */
 	Quaternion qyaw, qpitch;
 	double dyaw,dpitch;
 	/* unused double dzoom; */
-	X3D_Viewer_YawPitchZoom *ypz;
+	X3D_Viewer_Spherical *ypz;
 	ppViewer p;
 	ttglobal tg = gglobal();
 	p = (ppViewer)gglobal()->Viewer.prv;
@@ -1175,12 +1245,12 @@ void handle_tick_lookat() {
 
 void handle_explore(const int mev, const unsigned int button, float x, float y) {
 	/*
-	Like handle_yawpitchzoom, except:
+	Like handle_spherical, except:
 	move the viewer.Pos in the opposite direction from where we are looking
 	*/
 	int ctrl;
 	double frameRateAdjustment;
-	X3D_Viewer_YawPitchZoom *ypz;
+	X3D_Viewer_Spherical *ypz;
 	ppViewer p;
 	ttglobal tg = gglobal();
 	p = (ppViewer)gglobal()->Viewer.prv;
@@ -1305,7 +1375,7 @@ void handle_explore(const int mev, const unsigned int button, float x, float y) 
 
 
 void handle_tick_explore() {
-	X3D_Viewer_YawPitchZoom *ypz;
+	X3D_Viewer_Spherical *ypz;
 	Quaternion quat;
 	struct point_XYZ pp;
 	ttglobal tg;
@@ -1514,8 +1584,8 @@ void handle0(const int mev, const unsigned int button, const float x, const floa
 	case VIEWER_TPLANE:
 		handle_tplane(mev,button,((float) x),((float)y)); //translation in the viewer plane
 		break;
-	case VIEWER_YAWPITCHZOOM:
-		handle_yawpitchzoom(mev,button,((float) x),((float)y)); //spherical panorama
+	case VIEWER_SPHERICAL:
+		handle_spherical(mev,button,((float) x),((float)y)); //spherical panorama
 		break;
 	case VIEWER_TURNTABLE:
 		handle_turntable(mev, button, ((float)x), ((float)y));  //examine without roll around world 0,0,0 origin - like a 3D editor with authoring plane
@@ -1622,9 +1692,6 @@ void viewer_setKeyChord(int chord){
 char *fwl_getKeyChord(){
 	return chordnames[viewer_getKeyChord()];
 }
-#ifdef _MSC_VER
-#define strcasecmp _stricmp
-#endif
 
 int fwl_setKeyChord(char *chordname){
 	int i, ok;
@@ -2323,7 +2390,7 @@ handle_tick()
 	case VIEWER_EXPLORE:
 		handle_tick_explore();
 		break;
-	case VIEWER_YAWPITCHZOOM:
+	case VIEWER_SPHERICAL:
 		//do nothing special on tick
 		break;
 	case VIEWER_TURNTABLE:

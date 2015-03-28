@@ -1183,8 +1183,14 @@ ACTION_TPLANE,
 ACTION_RPLANE,
 ACTION_FLY,
 ACTION_EXAMINE,
-ACTION_YAWPITCHZOOM,
+ACTION_EXPLORE,
+ACTION_SPHERICAL,
 ACTION_TURNTABLE,
+ACTION_LOOKAT,
+ACTION_YAWZ,
+ACTION_YAWPITCH,
+ACTION_ROLL,
+ACTION_XY,
 ACTION_LEVEL,
 ACTION_HEADLIGHT,
 ACTION_COLLISION,
@@ -1201,8 +1207,8 @@ ACTION_BLANK
 void convertPng2hexAlpha()
 {
 	int w,h,ii,size;
-	static int mbuts = 1; // 17;
-	static char * butFnames[] = {"tilt.png"}; //{"tplane.png","rplane.png","walk.png","fly.png","examine.png","level.png","headlight.png","collision.png","prev.png","next.png","help.png","messages.png","options.png","reload.png","url.png","file.png","blank.png"};//"flyEx.png",
+	static int mbuts = 8; // 17;
+	static char * butFnames[] = {"lookat.png","explore.png","spherical.png","turntable.png","XY.png","ROLL.png","YAWPITCH.png","YAWZ.png"}; //{"tilt.png"}; //{"tplane.png","rplane.png","walk.png","fly.png","examine.png","level.png","headlight.png","collision.png","prev.png","next.png","help.png","messages.png","options.png","reload.png","url.png","file.png","blank.png"};//"flyEx.png",
 	textureTableIndexStruct_s butts;
 
 	FILE* out = fopen("hudIcons_octalpha_h","w+");
@@ -1353,17 +1359,20 @@ void initButtons()
 
 #elif defined(_MSC_VER)
 
-		static GLubyte * buttonlist [] = { walk, fly, examine, level, headlight,
+		static GLubyte * buttonlist [] = { walk, fly, examine, explore, spherical, turntable, lookat, level, headlight,
 			collision, prev, next, help, messages, options, reload, url, file, blank };
 		static int actionlist [] = { ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
+			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, //< new mar 2015
 			ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
 			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS, 
 			ACTION_RELOAD, ACTION_URL, ACTION_FILE, ACTION_BLANK};
-		static int radiosets [][7] = {{3,ACTION_FLY,ACTION_WALK,ACTION_EXAMINE},
+		static int radiosets [][8] = {{7,ACTION_FLY,ACTION_WALK,ACTION_EXAMINE,ACTION_EXPLORE,ACTION_SPHERICAL,ACTION_TURNTABLE,ACTION_LOOKAT},
 			{3,ACTION_MESSAGES,ACTION_OPTIONS,ACTION_HELP}, {0}};
 		static int toggles [] = {ACTION_COLLISION,ACTION_HEADLIGHT,
 			ACTION_HELP,ACTION_MESSAGES,ACTION_OPTIONS,0}; 
-		p->pmenu.nitems = 15;
+// not implemented yet		static GLubyte * togglebuttonfly [] = {yawz,xy,yawpitch,roll};
+// not implemented yet			static int togglebuttonsets[][7] = {{4,ACTION_YAWZ,ACTION_XY,ACTION_YAWPITCH,ACTION_ROLL}};
+		p->pmenu.nitems = 19;
 		p->pmenu.top = false;
 
 #else
@@ -1576,6 +1585,7 @@ void setMenuButton_collision(int val){
 	if(i > -1)
 		p->pmenu.items[i].butStatus = val;
 }
+
 void setMenuButton_texSize(int size){ 
 	/* this isn't called in my configuration so I don't know what the range is */
 	printf("text size=%d\n",size);
@@ -1606,6 +1616,22 @@ void setMenuButton_navModes(int type)
 			break;
 		case VIEWER_WALK:
 			iaction = ACTION_WALK;
+			newval = 1;
+			break;
+		case VIEWER_TURNTABLE:
+			iaction = ACTION_TURNTABLE;
+			newval = 1;
+			break;
+		case VIEWER_LOOKAT:
+			iaction = ACTION_LOOKAT;
+			newval = 1;
+			break;
+		case VIEWER_EXPLORE:
+			iaction = ACTION_EXPLORE;
+			newval = 1;
+			break;
+		case VIEWER_SPHERICAL:
+			iaction = ACTION_SPHERICAL;
 			newval = 1;
 			break;
 		case VIEWER_FLY:
@@ -1639,15 +1665,17 @@ void updateButtonStatus()
 	// Here we take our UI current state from the scene state. 
 	// For FRONTEND_HANDLES_DISPLAY_THREAD configurations, the frontend should do 
 	// the equivalent of the following once per frame (poll state and set UI)
-	int headlight, collision, navmode;
+	int headlight, collision, navmode, lookatMode;
 	//poll model state:
 	headlight = fwl_get_headlight();
 	collision = fwl_getCollision();
 	navmode = fwl_getNavMode();
+	//lookatMode = fwl_getLookatMode();
 	//update UI(view):
 	setMenuButton_navModes(navmode);
 	setMenuButton_headlight(headlight);
 	setMenuButton_collision(collision);
+	//setMenuButton_lookat(lookatMode);
 }
 
 void updateConsoleStatus()
@@ -1700,7 +1728,8 @@ void toggleMenu(int val)
 	p = (ppstatusbar)tg->statusbar.prv;
 	p->showButtons = val > 0 ? 1 : 0;
 }
-int handleButtonPress(int mouseX, int mouseY)
+
+int handleButtonRelease(int mouseX, int mouseY)
 {
 	/* called from mainloop > to 
 	a) detect a button hit and 
@@ -1750,10 +1779,14 @@ int handleButtonPress(int mouseX, int mouseY)
 					fwl_set_viewer_type (VIEWER_RPLANE); break; 
 				case ACTION_FLY:	
 					fwl_set_viewer_type(VIEWER_FLY); break;
+				case ACTION_EXPLORE:
+					fwl_set_viewer_type(VIEWER_EXPLORE); break;
+				case ACTION_LOOKAT:
+					fwl_set_viewer_type(VIEWER_LOOKAT); break;
 				case ACTION_EXAMINE:
 					fwl_set_viewer_type (VIEWER_EXAMINE); break; 
-				case ACTION_YAWPITCHZOOM:
-					fwl_set_viewer_type(VIEWER_YAWPITCHZOOM); break;
+				case ACTION_SPHERICAL:
+					fwl_set_viewer_type(VIEWER_SPHERICAL); break;
 				case ACTION_TURNTABLE:
 					fwl_set_viewer_type(VIEWER_TURNTABLE); break;
 				case ACTION_LEVEL:	 viewer_level_to_bound(); break;
@@ -2048,8 +2081,10 @@ int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY, int* clippla
 		int ihit = 0;
 		if (p->showButtons)
 		{
-			if (mev == ButtonPress)
-				ihit = handleButtonPress(mouseX,mouseY);
+			if (mev == ButtonRelease)
+				ihit = handleButtonRelease(mouseX,mouseY);
+			else
+				ihit = 1; //ButtonPress
 			//return 1;
 		}
 		//if(p->showOptions)
