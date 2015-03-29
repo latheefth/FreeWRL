@@ -1421,31 +1421,59 @@ void initButtons()
 			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, 
 			ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
 			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS, 
-			ACTION_RELOAD, ACTION_URL, ACTION_FILE,
+			//ACTION_RELOAD, ACTION_URL, 
+			ACTION_FILE,
 			};
 		static int togglesets [][8] = {{ACTION_FLY,4,ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL},{0}};
-// not implemented yet		static GLubyte * togglebuttonfly [] = {yawz,xy,yawpitch,roll};
-// not implemented yet			static int togglebuttonsets[][7] = {{4,ACTION_YAWZ,ACTION_XY,ACTION_YAWPITCH,ACTION_ROLL}};
 		p->pmenu.nitems = 23;
-		p->pmenu.nbitems = 18;
+		p->pmenu.nbitems = 16;// 18;
 		p->pmenu.top = false;
-		p->pmenu.nbitems = 18; 
 
 
 
 #else
-		static GLubyte * buttonlist [] = { walk, fly, examine, level, headlight, 
-			collision, prev, next, help, messages, options, reload, blank };
-		static int actionlist [] = { ACTION_WALK, ACTION_FLY, ACTION_EXAMINE, 
-			ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV, 
+		//LINUX
+		//buttonlist and actionlist are/mustbe synchronized, will become part of pmenitem tuple together
+		static GLubyte * buttonlist [] = {
+			walk, fly, examine,
+			yawz, xy, yawpitch, roll,
+			explore, spherical, turntable, lookat,
+			level, headlight,
+			collision, prev, next, help, messages, options, reload, url, file, blank
+			};
+		static int actionlist [] = {
+			ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
+			ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL,
+			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT,
+			ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
+			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS,
+			ACTION_RELOAD, ACTION_URL, ACTION_FILE, ACTION_BLANK,
+			};
+		//radiosets are to indicate what things are deselected (if any) when another thing is selected
+		static int radiosets [][8] = {
+			{7,ACTION_FLY,ACTION_WALK,ACTION_EXAMINE,ACTION_EXPLORE,ACTION_SPHERICAL,ACTION_TURNTABLE,ACTION_LOOKAT},
+			{3,ACTION_MESSAGES,ACTION_OPTIONS,ACTION_HELP}, 
+			//{4,ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL}, 
+			{0},
+			};
+		static int toggles [] = {
+			ACTION_COLLISION,ACTION_HEADLIGHT,
+			ACTION_HELP,ACTION_MESSAGES,ACTION_OPTIONS,0
+			}; 
+		//main menubar initial layout new mar 2015
+		static int mainbar [] = {
+			ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
+			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, 
+			ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
 			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS, 
-			ACTION_RELOAD, ACTION_BLANK};
-		static int radiosets [][7] = {{3,ACTION_FLY,ACTION_WALK,ACTION_EXAMINE},
-			{3,ACTION_MESSAGES,ACTION_OPTIONS,ACTION_HELP}, {0}};
-		static int toggles [] = {ACTION_COLLISION,ACTION_HEADLIGHT,
-			ACTION_HELP,ACTION_MESSAGES,ACTION_OPTIONS,0}; 
-		p->pmenu.nitems = 13; //leave off url and file for now- need callbacks
+			//ACTION_RELOAD, ACTION_URL, 
+			//ACTION_FILE,
+			};
+		static int togglesets [][8] = {{ACTION_FLY,4,ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL},{0}};
+		p->pmenu.nitems = 23;
+		p->pmenu.nbitems = 15;// 18;
 		p->pmenu.top = false;
+
 #endif
 		//convert to lumalpha
 		//p->pmenu.items = (pmenuItem_t *)malloc(16 * sizeof(pmenuItem_t)); done in module init
