@@ -154,6 +154,11 @@ bool Anchor_ReplaceWorld();
 #define VIEWER_YAWPITCH 15
 #define VIEWER_ROLL 16
 
+#define CHORD_YAWZ 0
+#define CHORD_YAWPITCH 1
+#define CHORD_ROLL 2
+#define CHORD_XY 3
+
 void setStereoBufferStyle(int);
 
 
@@ -357,10 +362,6 @@ void fwl_setButDown(int button, int value);
 
 
 /* IS - moving from main/headers.h to here for use in front-ends (bin/main.c calls some of these) */
-void setMenuButton_collision (int val);
-void setMenuButton_headlight (int val);
-void setMenuButton_navModes (int type);
-void setMenuButton_texSize (int size);
 int fwl_get_headlight();
 char* fwl_getNavModeStr();
 int fwl_getNavMode();

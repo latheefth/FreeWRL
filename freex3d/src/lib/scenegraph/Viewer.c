@@ -41,12 +41,13 @@ CProto ???
 #include "quaternion.h"
 #include "Viewer.h"
 
-enum {
-	CHORD_YAWZ,
-	CHORD_YAWPITCH,
-	CHORD_ROLL,
-	CHORD_XY
-} input_chords;
+//moved to libfreewrl.h
+//enum {
+//	CHORD_YAWZ,
+//	CHORD_YAWPITCH,
+//	CHORD_ROLL,
+//	CHORD_XY
+//} input_chords;
 
 static void init_stereodefaults(X3D_Viewer *Viewer)
 {
@@ -1575,7 +1576,7 @@ void handle0(const int mev, const unsigned int button, const float x, const floa
 		handle_fly2(mev, button, ((float) x), ((float) y)); //feature-Navigation_key_and_drag
 		break;
 	case VIEWER_FLY2:
-		handle_fly2(mev,button,((float) x),((float)y));
+		handle_fly2(mev,button,((float) x),((float)y)); 
 		break;
 	case VIEWER_TILT:
 	case VIEWER_RPLANE:
