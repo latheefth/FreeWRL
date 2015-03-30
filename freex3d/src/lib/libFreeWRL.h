@@ -141,7 +141,7 @@ bool Anchor_ReplaceWorld();
 #define VIEWER_WALK 2
 #define VIEWER_EXFLY 3
 #define VIEWER_FLY 4
-#define VIEWER_YAWPITCHZOOM 5
+#define VIEWER_SPHERICAL 5
 #define VIEWER_FLY2 6
 #define VIEWER_TILT 7
 #define VIEWER_TPLANE 8
@@ -149,6 +149,15 @@ bool Anchor_ReplaceWorld();
 #define VIEWER_TURNTABLE 10
 #define VIEWER_LOOKAT 11
 #define VIEWER_EXPLORE 12
+#define VIEWER_YAWZ 13
+#define VIEWER_XY 14
+#define VIEWER_YAWPITCH 15
+#define VIEWER_ROLL 16
+
+#define CHORD_YAWZ 0
+#define CHORD_YAWPITCH 1
+#define CHORD_ROLL 2
+#define CHORD_XY 3
 
 void setStereoBufferStyle(int);
 
@@ -353,13 +362,10 @@ void fwl_setButDown(int button, int value);
 
 
 /* IS - moving from main/headers.h to here for use in front-ends (bin/main.c calls some of these) */
-void setMenuButton_collision (int val);
-void setMenuButton_headlight (int val);
-void setMenuButton_navModes (int type);
-void setMenuButton_texSize (int size);
 int fwl_get_headlight();
 char* fwl_getNavModeStr();
 int fwl_getNavMode();
+int fwl_getLookatMode();
 int	fwl_getCollision();
 void fwl_setCollision(int state);
 int fwl_getAnaglyphSide(int whichSide);

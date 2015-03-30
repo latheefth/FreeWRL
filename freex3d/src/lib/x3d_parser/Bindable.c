@@ -134,9 +134,17 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 			viewer->oktypes[VIEWER_EXFLY] = TRUE;
 			if (i==0) fwl_set_viewer_type(VIEWER_EXFLY);
 		}
-		if (strcmp(typeptr,"YAWPITCHZOOM") == 0) {
-			viewer->oktypes[VIEWER_YAWPITCHZOOM] = TRUE;
-			if (i==0) fwl_set_viewer_type(VIEWER_YAWPITCHZOOM);
+		if (strcmp(typeptr,"EXPLORE") == 0) {
+			viewer->oktypes[VIEWER_EXPLORE] = TRUE;
+			if (i==0) fwl_set_viewer_type(VIEWER_EXPLORE);
+		}
+		if (strcmp(typeptr,"LOOKAT") == 0) {
+			viewer->oktypes[VIEWER_LOOKAT] = TRUE;
+			//if (i==0) fwl_set_viewer_type(VIEWER_LOOKAT);
+		}
+		if (strcmp(typeptr,"SPHERICAL") == 0) {
+			viewer->oktypes[VIEWER_SPHERICAL] = TRUE;
+			if (i==0) fwl_set_viewer_type(VIEWER_SPHERICAL);
 		}
 		if (strcmp(typeptr, "TURNTABLE") == 0) {
 			viewer->oktypes[VIEWER_TURNTABLE] = TRUE;
@@ -147,6 +155,10 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 			viewer->oktypes[VIEWER_WALK] = TRUE;
 			viewer->oktypes[VIEWER_EXFLY] = TRUE;
 			viewer->oktypes[VIEWER_FLY] = TRUE;
+			viewer->oktypes[VIEWER_EXPLORE] = TRUE;
+			viewer->oktypes[VIEWER_LOOKAT] = TRUE;
+			viewer->oktypes[VIEWER_SPHERICAL] = TRUE;
+			viewer->oktypes[VIEWER_TURNTABLE] = TRUE;
 			if (i==0) fwl_set_viewer_type (VIEWER_WALK); /*  just choose one */
 		}
 	}
