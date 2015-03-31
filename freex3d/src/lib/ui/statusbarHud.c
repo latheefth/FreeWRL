@@ -43,7 +43,56 @@ savePng2dotc = 1; // if you read png and want to save to a bitmap .c struct, put
 //#define KIOSK 1
 //#define TOUCH 1
 
-
+// StatusbarHud color schemes:
+//#define OLDCOLORS 1
+//#define MIDNIGHT 1
+//#define ANGRY 1
+//#define FREEWRLICO 1
+//#define AQUA 1
+#define NEON 1
+static GLfloat colorCursor[4]			= {.7f,.7f,.9f,1.0f};		//sidebyside stereo eyebase cursor (is this still used, or is there something in mainloop.c now?)
+#ifdef OLDCOLORS
+static GLfloat colorClear[4]			= {.922f,.91f,.844f,1.0f};  //behind menu and statusbar
+static GLfloat colorButtonHighlight[4]	= {.7f,.7f,.7f,1.0f};		//when a button is toggled on, behind the icon
+static GLfloat colorButtonIcon[4]		= {0.37f,0.37f,0.9f,1.0f};
+static GLfloat colorStatusbarText[4]	= {.2f, .2f, .2f, 1.0f};	
+static GLfloat colorMessageText[4]		= {1.0f, 1.0f, 1.0f, 1.0f}; //over VRML window, which is often black
+#elif MIDNIGHT 
+static GLfloat colorClear[4]			= {0.0f,0.0f,0.0f,1.0f};
+static GLfloat colorButtonHighlight[4]	= {.35f,.35f,.35f,.5f};
+static GLfloat colorButtonIcon[4]		= {1.f,1.f,1.0f,1.0f};
+static GLfloat colorStatusbarText[4]	= {1.0f, 1.0f, 1.0f, 1.0f};
+static GLfloat colorMessageText[4]		= {1.0f, 1.0f, 1.0f, 1.0f}; //over VRML window, which is often black
+#elif ANGRY 
+static GLfloat colorClear[4]			= {0.0f,0.2f,0.2f,1.0f};
+static GLfloat colorButtonHighlight[4]	= {.5f,.5f,.5f,.5f};
+static GLfloat colorButtonIcon[4]		= {1.0f, 0.0f, 0.0f, 1.0f};
+static GLfloat colorStatusbarText[4]	= {1.0f, 0.0f, 0.0f, 1.0f};
+static GLfloat colorMessageText[4]		= {1.0f, 0.0f, 0.0f, 1.0f}; //over VRML window, which is often black
+#elif FREEWRLICO 
+static GLfloat colorClear[4]			= {0.0f,0.25f,0.45f,1.0f};
+static GLfloat colorButtonHighlight[4]	= {.5f,.5f,.5f,.5f};
+static GLfloat colorButtonIcon[4]		= {.57f, 0.8f, 0.94f, 1.0f};
+static GLfloat colorStatusbarText[4]	= {1.0f, 0.47f, 0.0f, 1.0f};
+static GLfloat colorMessageText[4]		= {1.0f, 0.47f, 0.0f, 1.0f}; //over VRML window, which is often black
+#elif AQUA 
+static GLfloat colorClear[4]			= {0.75f,0.83f,0.74f,1.0f};
+static GLfloat colorButtonHighlight[4]	= {.5f,.5f,.5f,.5f};
+static GLfloat colorButtonIcon[4]		= {.0f, 0.44f, 0.52f, 1.0f};
+static GLfloat colorStatusbarText[4]	= {.32f, 0.45f, 0.43f, 1.0f};
+static GLfloat colorMessageText[4]		= {.06f, 0.69f, 0.8f, 1.0f}; //over VRML window, which is often black
+#elif NEON 
+static GLfloat colorClear[4]			= {0.24f,0.27f,0.34f,1.0f};  //steely grey
+static GLfloat colorButtonHighlight[4]	= {.5f,.5f,.5f,.5f};
+#define LIME {.8f,1.0f,0.0f,1.0f}
+#define YELLOW {1.0f,1.0f,.2f,1.0f}
+#define CYAN {0.0f,1.0f,1.0f,1.0f}
+#define PINK {1.0f,.47f,1.0f,1.0f}
+#define HIGHLIGHT LIME
+static GLfloat colorButtonIcon[4]		= HIGHLIGHT;
+static GLfloat colorStatusbarText[4]	= HIGHLIGHT;
+static GLfloat colorMessageText[4]		= HIGHLIGHT; //over VRML window, which is often black
+#endif
 static   GLbyte vShaderStr[] =  
       "attribute vec4 a_position;   \n"
       "attribute vec2 a_texCoord;   \n"
@@ -2092,7 +2141,8 @@ void renderButtons()
 	glScissor(0,(int)p->pmenu.yoffset+p->side_bottom,p->screenWidth,p->buttonSize); //tg->Mainloop.clipPlane*2);
 
 	glEnable(GL_SCISSOR_TEST);
-	glClearColor(.922f,.91f,.844f,1.0f); //windowing gray
+	//glClearColor(.922f,.91f,.844f,1.0f); //windowing gray
+	glClearColor(colorClear[0],colorClear[1],colorClear[2],colorClear[3]);
 	//glClearColor(.754f,.82f,.93f,1.0f); //193.0f/256.0f,210.0f/256.0f,238.0f/256.0f,1.0f); //windowing blue
 	glClear(GL_COLOR_BUFFER_BIT);
 	glDisable(GL_SCISSOR_TEST);
@@ -2113,7 +2163,8 @@ void renderButtons()
 		{
 			/*draw a background highlight rectangle*/
 
-			glUniform4f(p->color4fLoc,rgba[0],rgba[1],rgba[2],rgba[3]); //..8f,.87f,.97f,1.0f);
+			//glUniform4f(p->color4fLoc,rgba[0],rgba[1],rgba[2],rgba[3]); //..8f,.87f,.97f,1.0f);
+			glUniform4f(p->color4fLoc,colorButtonHighlight[0],colorButtonHighlight[1],colorButtonHighlight[2],colorButtonHighlight[3]);
 			glVertexAttribPointer ( p->positionLoc, 3, GL_FLOAT, 
 						GL_FALSE, 0, &(p->pmenu.vert[i*3*4]) );
 			// Load the texture coordinate
@@ -2138,7 +2189,8 @@ void renderButtons()
 			glVertexAttribPointer ( p->texCoordLoc, 2, GL_FLOAT,
 							GL_FALSE, 0, p->pmenu.bitems[i].item->tex );   //nitems -1 should be the blank texture
 		}
-		glUniform4f(p->color4fLoc,0.37f,0.37f,0.9f,1.0f);  //BLUE ICON SHAPE COLOR
+		//glUniform4f(p->color4fLoc,0.37f,0.37f,0.9f,1.0f);  //BLUE ICON SHAPE COLOR
+		glUniform4f(p->color4fLoc,colorButtonIcon[0],colorButtonIcon[1],colorButtonIcon[2],colorButtonIcon[3]);
 		glEnableVertexAttribArray ( p->positionLoc );
 		glEnableVertexAttribArray ( p->texCoordLoc );
 		glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, p->pmenu.ind ); //first 6 should be 0 1 3 0 3 2
@@ -2448,7 +2500,8 @@ M       void toggle_collision()                             //"
 		/* unconditionally clear the statusbar area */
 		glScissor(0, p->side_bottom, p->screenWidth, p->clipPlane);
 		glEnable(GL_SCISSOR_TEST);
-		glClearColor(.922f, .91f, .844f, 1.0f); //windowing gray
+		//glClearColor(.922f, .91f, .844f, 1.0f); //windowing gray
+		glClearColor(colorClear[0],colorClear[1],colorClear[2],colorClear[3]);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glDisable(GL_SCISSOR_TEST);
 
@@ -2456,8 +2509,8 @@ M       void toggle_collision()                             //"
 		glDepthMask(FALSE);
 		glDisable(GL_DEPTH_TEST);
 
-		glUniform4f(p->color4fLoc, .2f, .2f, .2f, 1.0f);
-
+		//glUniform4f(p->color4fLoc, .2f, .2f, .2f, 1.0f);
+		glUniform4f(p->color4fLoc,colorStatusbarText[0],colorStatusbarText[1],colorStatusbarText[2],colorStatusbarText[3]);
 		{
 			FXY xy;
 			xy = screen2normalizedScreenScale((GLfloat)p->bmWH.x, (GLfloat)p->bmWH.y);
@@ -2481,7 +2534,8 @@ M       void toggle_collision()                             //"
 		}
 
 
-		glUniform4f(p->color4fLoc, 1.0f, 1.0f, 1.0f, 1.0f);
+		//glUniform4f(p->color4fLoc, 1.0f, 1.0f, 1.0f, 1.0f);
+		glUniform4f(p->color4fLoc,colorMessageText[0],colorMessageText[1],colorMessageText[2],colorMessageText[3]);
 
 		if (showAction(p, ACTION_HELP))
 			printKeyboardHelp(p);
