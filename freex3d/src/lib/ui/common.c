@@ -56,6 +56,8 @@ typedef struct pcommon{
 	int promptForFile;
 	int sb_hasString;// = FALSE;
 	char buffer[200];
+	void *colorScheme;
+	int colorSchemeChanged;
 }*ppcommon;
 void *common_constructor(){
 	void *v = malloc(sizeof(struct pcommon));
@@ -71,6 +73,8 @@ void common_init(struct tcommon *t){
 		p->myFps = (float) 0.0;
 		p->cursorStyle = ACURSE;
 		p->sb_hasString = FALSE;
+		p->colorScheme = NULL;
+		p->colorSchemeChanged = 0;
 	}
 }
 //ppcommon p = (ppcommon)gglobal()->common.prv;
@@ -207,4 +211,205 @@ int getCursorStyle()
 		return p->cursorStyle;
 	else
 		return ACURSE;
+}
+
+//======color scheme for ui==========
+
+// StatusbarHud color schemes:
+
+typedef struct colorScheme {
+	char *name;
+	char *panel;
+	char *menuIcon;
+	char *statusText;
+	char *messageText;
+} colorScheme;
+static colorScheme colorSchemes [] = {
+{ 
+"original",
+"#EBE8D7", //{.922f,.91f,.844f,1.0f}; 235 232 215  //offwhite
+"#5E5EE6", //{0.37f,0.37f,0.9f,1.0f};  94 94 230//medium blue
+"#333333", //{.2f, .2f, .2f, 1.0f};	51 //very dark grey
+"#FFFFFF", //{1.0f, 1.0f, 1.0f, 1.0f}; 255 //white
+},
+{
+"midnight",
+"#000000",
+"#FFFFFF",
+"#FFFFFF",
+"#FFFFFF",
+},
+{
+"angry",
+"#003333", //= {0.0f,0.2f,0.2f,1.0f};  //slightly blue-green black
+"#FF0000", // {1.0f, 0.0f, 0.0f, 1.0f}; //red
+"#FF0000", //{1.0f, 0.0f, 0.0f, 1.0f}; //red
+"#FF0000", // {1.0f, 0.0f, 0.0f, 1.0f}; //red
+},
+{
+"favicon", 
+"#004073", // {0.0f,0.25f,0.45f,1.0f}; 0 64 115//indigo
+"#91CCF0", // {.57f, 0.8f, 0.94f, 1.0f}; 145 204 240//light aqua
+"#FF7800", // {1.0f, 0.47f, 0.0f, 1.0f}; 255 120 0//orange
+"#FF7800", // {1.0f, 0.47f, 0.0f, 1.0f}; 255 120 0//orange
+},
+{
+"aqua",
+"#BFD4BD", // {0.75f,0.83f,0.74f,1.0f}; 191 212 189//clamshell
+"#007085", //{.0f, 0.44f, 0.52f, 1.0f};  0 112 133//dark aqua/indigo
+"#52736E", // {.32f, 0.45f, 0.43f, 1.0f};  82 115 110//dark clamshell
+"#0FB0CC", // {.06f, 0.69f, 0.8f, 1.0f}; 15 176 204//aqua
+},
+{
+"neon:lime",
+"#3D4557", //= {0.24f,0.27f,0.34f,1.0f};  61 69 87//steely grey
+"#CCFF00", //LIME {.8f,1.0f,0.0f,1.0f} 204 255 0
+"#CCFF00", //LIME {.8f,1.0f,0.0f,1.0f} 204 255 0
+"#CCFF00", //LIME {.8f,1.0f,0.0f,1.0f} 204 255 0
+},
+{
+"neon:yellow",
+"#3D4557", //= {0.24f,0.27f,0.34f,1.0f};  61 69 87//steely grey
+"#FFFF33", //YELLOW {1.0f,1.0f,.2f,1.0f} 255 255 51
+"#FFFF33", //YELLOW {1.0f,1.0f,.2f,1.0f} 255 255 51
+"#FFFF33", //YELLOW {1.0f,1.0f,.2f,1.0f} 255 255 51
+},
+{
+"neon:cyan",
+"#3D4557", //= {0.24f,0.27f,0.34f,1.0f};  61 69 87//steely grey
+"#00FFFF", //CYAN {0.0f,1.0f,1.0f,1.0f} 0 255 255
+"#00FFFF", //CYAN {0.0f,1.0f,1.0f,1.0f} 0 255 255
+"#00FFFF", //CYAN {0.0f,1.0f,1.0f,1.0f} 0 255 255
+},
+{
+"neon:pink",
+"#3D4557", //= {0.24f,0.27f,0.34f,1.0f};  61 69 87//steely grey
+"#FF78FF", //PINK {1.0f,.47f,1.0f,1.0f} 255 120  255
+"#FF78FF", //PINK {1.0f,.47f,1.0f,1.0f} 255 120  255
+"#FF78FF", //PINK {1.0f,.47f,1.0f,1.0f} 255 120  255
+},
+{
+"custom",
+NULL,
+NULL,
+NULL,
+NULL,
+},
+{NULL,NULL,NULL,NULL},
+};
+
+void color_html2rgb(char *html, float *rgb){
+	//converts one html color in "#FFFFFF" or "FFFFFF" format
+	//int float[3] rgb colors in range 0.0f-1.0f suitable for  use in opengl
+	int ir, ig, ib;
+	int ic,ii;
+	char *shex;
+	shex = html;
+	if(shex[0] == '#') shex = &shex[1];
+	ic = strtol(shex,NULL,16);
+	ib = (ic & 0xFF);
+	ig = (ic & 0xFF00) >> 8;
+	ir = (ic & 0xFF0000) >> 16;
+	rgb[0] = (float)ir/255.0f;
+	rgb[1] = (float)ig/255.0f;
+	rgb[2] = (float)ib/255.0f;
+}
+char *hexpermitted = " #0123456789ABCDEFabcdef";
+#include <malloc.h>
+#include <string.h>
+int colorsoption2colorscheme(const char *optionstring, colorScheme *cs){
+	//converts html colors given for freewrl command line option:
+	// --ui_colors "#FFFFFF,#FFFFFF,#FFFFFF,#FFFFFF" (for panel, menuicon, statusText, messageText)
+	//into 4 float [0-1] rgb colors suitable for use in opengl calls
+	//returns number of successfully parsed numbers
+	int len,i,count;
+	char *str, *html, *stok; //4 colors per color scheme
+	len = strlen(optionstring);
+	str = alloca(len+1); //alloca on stack so its freed automatically at end of function, _msc can't do str[len]
+	strcpy(str,optionstring);
+	//clean string
+	for(i=0;i<len;i++){
+		if(!strchr(hexpermitted,str[i])){
+			str[i] = ' ';
+		}
+	}
+	//find color substrings ie strtok
+	count = 0;
+	stok = str;
+	for(i=0;i<4;i++){
+		html = strtok(stok," ");
+		if(!html) {
+			if(cs->menuIcon) html = cs->menuIcon;
+			else html = "#FFFFFF";
+		}
+		switch(i){
+			case 0: cs->panel = strdup(html); break;
+			case 1: cs->menuIcon = strdup(html); break;
+			case 2: cs->statusText = strdup(html); break;
+			case 3: cs->messageText = strdup(html); break;
+			default:
+				break;
+		}
+		count++;
+		stok = NULL;
+	}
+	return count;
+}
+
+colorScheme *search_ui_colorscheme(char *colorschemename){
+	int i;
+	colorScheme *cs = NULL;
+	i = 0;
+	do{
+		if(!strcmp(colorSchemes[i].name,colorschemename)){
+			cs = &colorSchemes[i];
+			break;
+		}
+		i++;
+	}while(colorSchemes[i].name);
+	return cs;
+}
+void fwl_set_ui_colorscheme(char *colorschemename){
+	colorScheme *cs;
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	cs = search_ui_colorscheme(colorschemename);
+	if(cs) {
+		p->colorScheme = cs;
+		p->colorSchemeChanged;
+	}
+}
+// set here from commandline options
+// --ui_colorscheme "angry"
+// --ui_colors "#FFFFFF,#FFFFFF,#FFFFFF,#FFFFFF"  panel, menuIcon, statusText, messsageText
+
+void fwl_set_ui_colors(char *fourhtmlcolors){
+	colorScheme *cs;
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	cs = search_ui_colorscheme("custom");
+	colorsoption2colorscheme(fourhtmlcolors, cs);
+	p->colorScheme = (void *)cs;
+	p->colorSchemeChanged++;
+}
+void fwl_get_ui_color(char *use, float *rgb){
+	colorScheme *cs;
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	if(!p->colorScheme){
+		p->colorScheme = search_ui_colorscheme("original");
+		p->colorSchemeChanged++;
+	}
+	cs = p->colorScheme;
+	if(!strcmp(use,"panel")){
+		color_html2rgb(cs->panel, rgb);
+	}else if(!strcmp(use,"menuIcon")){
+		color_html2rgb(cs->menuIcon, rgb);
+	}else if(!strcmp(use,"statusText")){
+		color_html2rgb(cs->statusText, rgb);
+	}else if(!strcmp(use,"messageText")){
+		color_html2rgb(cs->messageText, rgb);
+	}
+}
+int fwl_get_ui_color_changed(){
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	return p->colorSchemeChanged;
+
 }
