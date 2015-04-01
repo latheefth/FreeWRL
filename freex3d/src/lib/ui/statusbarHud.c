@@ -1143,13 +1143,13 @@ char * keyboardShortcutHelp[19] = {
 "(this Help)",
 "Console messages from the program",
 "Options"
-#elif defined(_MSC_VER)
-int lenhelp = 13;
-char * keyboardShortcutHelp[13] = {
+#elif defined(_MSC_VER_NOT)
+int lenhelp = 16;
+char * keyboardShortcutHelp[16] = {
 "WALK Mode",
 "   movement: drag left/right for turns;",
 "             drag up/down for forward/backward", 
-"FLY Mode",
+"Keyboard FLY Mode",
 "   use the keyboard for these motions:",
 "   8 k rotation down/up",
 "   u o rotation left/right",
@@ -1157,24 +1157,28 @@ char * keyboardShortcutHelp[13] = {
 "   a z translation forwards/backwards",
 "   j l translation left/right",
 "   p ; translation up/down",
+" or use arrow keys. to change keychord: press SHIFT->",
 "EXAMINE Mode",
-"   rotation: drag left/right or up/down"
+"   rotation: drag left/right or up/down",
+"EXPLORE Mode - use CTRL-click to recenter",
+"hit spacebar to get console prompt :, then type help"
 #else
-int lenhelp = 27;
-char * keyboardShortcutHelp[27] = {
+int lenhelp = 30;
+char * keyboardShortcutHelp[30] = {
 "EXAMINE Mode",
 "   LMB rotation: MX rotation around Y axis; MY rotation around X axis",
 "   RMB zooms", // On Apple computers with one button mice, press and hold the "control" key, and use your mouse. 
 "WALK Mode",
 "   LMB movement: MX left/right turns; MY walk forward/backward", 
 "   RMB height", //se Button 3 moves you up/down (changes your height above the ground). On Apple computers with one button mice, press and hold the "control" key, and use your mouse. 
-"FLY Mode",
+"Keyboard FLY Mode",
 "   8 k rotation down/up",
 "   u o rotation left/right",
 "   7 9 rotation about the Z axis",
 "   a z translation forwards/backwards",
 "   j l translation left/right",
 "   p ; translation up/down",
+" or use arrow keys. to change keychord: press SHIFT->",
 "EXFLY Mode",
 "   takes input from the file /tmp/inpdev",
 "all modes",
@@ -1188,7 +1192,9 @@ char * keyboardShortcutHelp[27] = {
 "  h Toggle headlight",
 "  c Toggle collision detection",
 "  x Snapshot",
-"  q Quit browser"
+"  q Quit browser",
+"EXPLORE Mode - use CTRL-click to recenter",
+"hit spacebar to get console prompt :, then type help",
 #endif
 };
 const char *libFreeWRL_get_version();
