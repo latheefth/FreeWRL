@@ -213,7 +213,7 @@ int getCursorStyle()
 		return ACURSE;
 }
 
-//======color scheme for ui==========
+// start ui color scheme >>>>>>>>>>>
 
 // StatusbarHud color schemes:
 
@@ -390,11 +390,15 @@ void fwl_set_ui_colors(char *fourhtmlcolors){
 	p->colorScheme = (void *)cs;
 	p->colorSchemeChanged++;
 }
+//want to compile-in the default color scheme? just define UI_COLORSCHEME_DEFAULT in your config.h
+#ifndef UI_COLORSCHEME_DEFAULT
+#define UI_COLORSCHEME_DEFAULT "neon:yellow" //"original" "favicon" "midnight" "aqua" "angry" "neon:cyan" "neon:yellow" "neon:lime" "neon:pink"
+#endif
 void fwl_get_ui_color(char *use, float *rgb){
 	colorScheme *cs;
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 	if(!p->colorScheme){
-		p->colorScheme = search_ui_colorscheme("original");
+		p->colorScheme = search_ui_colorscheme(UI_COLORSCHEME_DEFAULT); //"original");
 		p->colorSchemeChanged++;
 	}
 	cs = p->colorScheme;
@@ -413,3 +417,4 @@ int fwl_get_ui_color_changed(){
 	return p->colorSchemeChanged;
 
 }
+// end ui colors <<<<<<<<<<<<<<<
