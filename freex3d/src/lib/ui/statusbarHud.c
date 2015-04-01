@@ -464,7 +464,7 @@ typedef struct pstatusbar{
 	char messagebar[200];
 	int bmfontsize;// = 2; /* 0,1 or 2 */
 	int optionsLoaded;// = 0;
-	char * optionsVal[15];
+	char * optionsVal[17];
 	int osystem;// = 3; //mac 1btn = 0, mac nbutton = 1, linux game descent = 2, windows =3
 	XY bmWH;// = {10,15}; /* simple bitmap font from redbook above, width and height in pixels */
 	int bmScale; //1 or 2 for the hud pixel fonts, changes between ..ForOptions and ..Regular 
@@ -803,8 +803,8 @@ void render_init(void);
 //}
 
 /* start cheapskate widgets >>>> */
-int lenOptions = 14;
-char * optionsText[14] = {
+int lenOptions   = 16;
+char * optionsText[16] = {
 "stereovision:",
 "  side-by-side",
 "  up-down",
@@ -818,7 +818,9 @@ char * optionsText[14] = {
 " RGB",
 "     left",
 "     right",
-"     neither"
+"     neither",
+"  pin statusbar",
+"  pin menubar",
 };
 //int optionsLoaded = 0;
 //char * optionsVal[15];
@@ -861,6 +863,8 @@ void initOptionsVal()
 			p->optionsVal[11+i][j+1] = (k ? 035 : ' ');
 		}
 	}
+	p->optionsVal[14][0] = p->statusbar_pinned ? 035 : 034; 
+	p->optionsVal[15][0] = p->menubar_pinned ? 035 : 034; 
 
 	p->optionsLoaded = 1;
 }
@@ -871,21 +875,23 @@ void updateOptionsVal()
 	initOptionsVal();
 }
 /* the optionsCase char is used in a switch case later to involk the appropriate function */
-char * optionsCase[14] = {
+char * optionsCase[16] = {
 "             ",
 "22222222222222",
 "44444444",
 "33333333",
 "11111111",
 "       ",
-"556666677",
+"55     66",
 "              ",
 "DDEEEEEFF",
 "        ",
 "       ",
 " rst     ",
 " uvw      ",
-" xyz      "
+" xyz      ",
+"77777777",
+"88888888",
 };
 
 XY mouse2screen(int x, int y)
@@ -1012,6 +1018,12 @@ int handleOptionPress(int mouseX, int mouseY)
 	case '4': 
 		toggleOrSetStereo(opt-'0');
 		break;
+	case '7': 
+		p->statusbar_pinned = 1 - p->statusbar_pinned;
+		break;
+	case '8': 
+		p->menubar_pinned = 1 - p->menubar_pinned;
+		break;
 	case 'r': 
 	case 's': 
 	case 't': 
@@ -1035,11 +1047,6 @@ int handleOptionPress(int mouseX, int mouseY)
 		updateEyehalf();
 		break;}
 	case '6': {
-		/* eyebase */
-		printf("set eyebase");
-	    //fwl_set_EyeDist(optarg);
-		break;}
-	case '7': {
 		/* eyebase */
 		printf("increase eyebase");
 		viewer->eyedist *= 1.1;
@@ -2493,9 +2500,9 @@ M       void toggle_collision()                             //"
 	glViewport(0, 0, p->screenWidth, p->screenHeight);
    
 	//p->showButtons = 1;
-	p->menubar_pinned = 0;
-	p->statusbar_pinned = 1;
-	p->show_status = (p->statusbar_pinned && !p->showButtons) || (!p->statusbar_pinned && p->showButtons) || (p->menubar_pinned) || showAction(p, ACTION_OPTIONS);
+	//p->menubar_pinned = 0;
+	//p->statusbar_pinned = 1;
+	p->show_status = (p->statusbar_pinned && !p->showButtons) || (!p->statusbar_pinned && p->showButtons) || (p->menubar_pinned); // || showAction(p, ACTION_OPTIONS);
 	p->show_menu = p->menubar_pinned || p->showButtons;
 	p->yoff_status = 0;
 	p->pmenu.yoffset = (p->menubar_pinned || !p->statusbar_pinned) ? p->statusBarSize : 0;
@@ -2570,17 +2577,17 @@ M       void toggle_collision()                             //"
 				printString2(1.0f - xy.x*len, side_bottom_f, strAkeys);
 			}
 
-
-			//glUniform4f(p->color4fLoc, 1.0f, 1.0f, 1.0f, 1.0f);
-			glUniform4f(p->color4fLoc,colorMessageText[0],colorMessageText[1],colorMessageText[2],colorMessageText[3]);
-
-			if (showAction(p, ACTION_HELP))
-				printKeyboardHelp(p);
-			if (showAction(p, ACTION_MESSAGES))
-				printConsoleText();
-			if (showAction(p, ACTION_OPTIONS))
-				printOptions();
 		}
+
+		//glUniform4f(p->color4fLoc, 1.0f, 1.0f, 1.0f, 1.0f);
+		glUniform4f(p->color4fLoc,colorMessageText[0],colorMessageText[1],colorMessageText[2],colorMessageText[3]);
+
+		if (showAction(p, ACTION_HELP))
+			printKeyboardHelp(p);
+		if (showAction(p, ACTION_MESSAGES))
+			printConsoleText();
+		if (showAction(p, ACTION_OPTIONS))
+			printOptions();
 	}
 	glClearColor(0.0f,0.0f,0.0f,1.0f); 
 	glDepthMask(TRUE);
