@@ -372,5 +372,8 @@ int fwl_getAnaglyphSide(int whichSide);
 int fwl_draw(); //use when frontend_handles_display_thread
 void fwl_tmpFileLocation(char *tmpFileLocation);
 void fwl_fontFileLocation(char *fontFileLocation);
-
+void fwl_set_ui_colorscheme(char *colorschemename);
+void fwl_set_ui_colors(char *fourhtmlcolors);
+void fwl_get_ui_color(char *use, float *rgb);
+int fwl_get_ui_color_changed();
 #endif /* __LIBFREEWRL_API_H__ */

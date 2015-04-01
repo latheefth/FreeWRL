@@ -51,39 +51,36 @@ savePng2dotc = 1; // if you read png and want to save to a bitmap .c struct, put
 //#define AQUA 1
 #define NEON 1
 static GLfloat colorCursor[4]			= {.7f,.7f,.9f,1.0f};		//sidebyside stereo eyebase cursor (is this still used, or is there something in mainloop.c now?)
+static GLfloat colorButtonHighlight[4]	= {.5f,.5f,.5f,.5f};
+
 #ifdef OLDCOLORS
-static GLfloat colorClear[4]			= {.922f,.91f,.844f,1.0f};  //behind menu and statusbar
-static GLfloat colorButtonHighlight[4]	= {.7f,.7f,.7f,1.0f};		//when a button is toggled on, behind the icon
-static GLfloat colorButtonIcon[4]		= {0.37f,0.37f,0.9f,1.0f};
-static GLfloat colorStatusbarText[4]	= {.2f, .2f, .2f, 1.0f};	
-static GLfloat colorMessageText[4]		= {1.0f, 1.0f, 1.0f, 1.0f}; //over VRML window, which is often black
+static GLfloat colorClear[4]			= {.922f,.91f,.844f,1.0f};  //offwhite
+static GLfloat colorButtonIcon[4]		= {0.37f,0.37f,0.9f,1.0f};  //medium blue
+static GLfloat colorStatusbarText[4]	= {.2f, .2f, .2f, 1.0f};	//very dark grey
+static GLfloat colorMessageText[4]		= {1.0f, 1.0f, 1.0f, 1.0f}; //white
 #elif MIDNIGHT 
-static GLfloat colorClear[4]			= {0.0f,0.0f,0.0f,1.0f};
-static GLfloat colorButtonHighlight[4]	= {.35f,.35f,.35f,.5f};
-static GLfloat colorButtonIcon[4]		= {1.f,1.f,1.0f,1.0f};
-static GLfloat colorStatusbarText[4]	= {1.0f, 1.0f, 1.0f, 1.0f};
-static GLfloat colorMessageText[4]		= {1.0f, 1.0f, 1.0f, 1.0f}; //over VRML window, which is often black
+static GLfloat colorClear[4]			= {0.0f,0.0f,0.0f,1.0f};  //bleck
+static GLfloat colorButtonIcon[4]		= {1.f,1.f,1.0f,1.0f}; //white
+static GLfloat colorStatusbarText[4]	= {1.0f, 1.0f, 1.0f, 1.0f}; //white
+static GLfloat colorMessageText[4]		= {1.0f, 1.0f, 1.0f, 1.0f}; //white
 #elif ANGRY 
-static GLfloat colorClear[4]			= {0.0f,0.2f,0.2f,1.0f};
-static GLfloat colorButtonHighlight[4]	= {.5f,.5f,.5f,.5f};
-static GLfloat colorButtonIcon[4]		= {1.0f, 0.0f, 0.0f, 1.0f};
-static GLfloat colorStatusbarText[4]	= {1.0f, 0.0f, 0.0f, 1.0f};
-static GLfloat colorMessageText[4]		= {1.0f, 0.0f, 0.0f, 1.0f}; //over VRML window, which is often black
+static GLfloat colorClear[4]			= {0.0f,0.2f,0.2f,1.0f};  //slightly blue-green black
+static GLfloat colorButtonIcon[4]		= {1.0f, 0.0f, 0.0f, 1.0f}; //red
+static GLfloat colorStatusbarText[4]	= {1.0f, 0.0f, 0.0f, 1.0f}; //red
+static GLfloat colorMessageText[4]		= {1.0f, 0.0f, 0.0f, 1.0f}; //red
 #elif FREEWRLICO 
-static GLfloat colorClear[4]			= {0.0f,0.25f,0.45f,1.0f};
-static GLfloat colorButtonHighlight[4]	= {.5f,.5f,.5f,.5f};
-static GLfloat colorButtonIcon[4]		= {.57f, 0.8f, 0.94f, 1.0f};
-static GLfloat colorStatusbarText[4]	= {1.0f, 0.47f, 0.0f, 1.0f};
-static GLfloat colorMessageText[4]		= {1.0f, 0.47f, 0.0f, 1.0f}; //over VRML window, which is often black
+static GLfloat colorClear[4]			= {0.0f,0.25f,0.45f,1.0f}; //indigo
+static GLfloat colorButtonIcon[4]		= {.57f, 0.8f, 0.94f, 1.0f}; //light aqua
+static GLfloat colorStatusbarText[4]	= {1.0f, 0.47f, 0.0f, 1.0f}; //orange
+static GLfloat colorMessageText[4]		= {1.0f, 0.47f, 0.0f, 1.0f}; //orange
 #elif AQUA 
-static GLfloat colorClear[4]			= {0.75f,0.83f,0.74f,1.0f};
-static GLfloat colorButtonHighlight[4]	= {.5f,.5f,.5f,.5f};
-static GLfloat colorButtonIcon[4]		= {.0f, 0.44f, 0.52f, 1.0f};
-static GLfloat colorStatusbarText[4]	= {.32f, 0.45f, 0.43f, 1.0f};
-static GLfloat colorMessageText[4]		= {.06f, 0.69f, 0.8f, 1.0f}; //over VRML window, which is often black
+static GLfloat colorClear[4]			= {0.75f,0.83f,0.74f,1.0f}; //clamshell
+static GLfloat colorButtonIcon[4]		= {.0f, 0.44f, 0.52f, 1.0f};  //dark aqua/indigo
+static GLfloat colorStatusbarText[4]	= {.32f, 0.45f, 0.43f, 1.0f};  //dark clamshell
+static GLfloat colorMessageText[4]		= {.06f, 0.69f, 0.8f, 1.0f}; //aqua
+which is often black
 #elif NEON 
 static GLfloat colorClear[4]			= {0.24f,0.27f,0.34f,1.0f};  //steely grey
-static GLfloat colorButtonHighlight[4]	= {.5f,.5f,.5f,.5f};
 #define LIME {.8f,1.0f,0.0f,1.0f}
 #define YELLOW {1.0f,1.0f,.2f,1.0f}
 #define CYAN {0.0f,1.0f,1.0f,1.0f}
@@ -93,6 +90,21 @@ static GLfloat colorButtonIcon[4]		= HIGHLIGHT;
 static GLfloat colorStatusbarText[4]	= HIGHLIGHT;
 static GLfloat colorMessageText[4]		= HIGHLIGHT; //over VRML window, which is often black
 #endif
+
+static int ui_color_changed = -1;
+
+void update_ui_colors(){
+	int ic;
+	ic = fwl_get_ui_color_changed();
+	if( ic != ui_color_changed){
+		fwl_get_ui_color("panel",colorClear);
+		fwl_get_ui_color("menuIcon",colorButtonIcon);
+		fwl_get_ui_color("statusText",colorStatusbarText);
+		fwl_get_ui_color("messageText",colorMessageText);
+		ui_color_changed = ic;
+	}
+}
+
 static   GLbyte vShaderStr[] =  
       "attribute vec4 a_position;   \n"
       "attribute vec2 a_texCoord;   \n"
@@ -2456,6 +2468,7 @@ M       void toggle_collision()                             //"
 	//init-once things are done everytime for convenience
 	fwl_setClipPlane(p->statusBarSize);
 	if(!p->fontInitialized) initFont();
+	update_ui_colors();
 	if(p->programObject == 0) initProgramObject();
 
 	//MVC statusbarHud is in View and Controller just called us and told us 
