@@ -439,6 +439,11 @@ typedef struct pstatusbar{
 	int hadString;// = 0;
 	int initDone;
 	int showButtons;// =0;
+	int statusbar_pinned;
+	int menubar_pinned;
+	int show_status;
+	int show_menu;
+	int yoff_status;
 	//textureTableIndexStruct_s butts[mbuts][2];
 	int butsLoaded;// = 0;
 	int isOver;// = -1;
@@ -459,7 +464,7 @@ typedef struct pstatusbar{
 	char messagebar[200];
 	int bmfontsize;// = 2; /* 0,1 or 2 */
 	int optionsLoaded;// = 0;
-	char * optionsVal[15];
+	char * optionsVal[17];
 	int osystem;// = 3; //mac 1btn = 0, mac nbutton = 1, linux game descent = 2, windows =3
 	XY bmWH;// = {10,15}; /* simple bitmap font from redbook above, width and height in pixels */
 	int bmScale; //1 or 2 for the hud pixel fonts, changes between ..ForOptions and ..Regular 
@@ -496,6 +501,8 @@ void statusbar_init(struct tstatusbar *t){
 		p->hadString = 0;
 
 		p->showButtons =1;
+		p->statusbar_pinned = 1;
+		p->menubar_pinned = 0;
 		p->butsLoaded = 0;
 		p->isOver = -1;
 		p->iconSize = 32;
@@ -796,8 +803,8 @@ void render_init(void);
 //}
 
 /* start cheapskate widgets >>>> */
-int lenOptions = 14;
-char * optionsText[14] = {
+int lenOptions   = 16;
+char * optionsText[16] = {
 "stereovision:",
 "  side-by-side",
 "  up-down",
@@ -811,7 +818,9 @@ char * optionsText[14] = {
 " RGB",
 "     left",
 "     right",
-"     neither"
+"     neither",
+"  pin statusbar",
+"  pin menubar",
 };
 //int optionsLoaded = 0;
 //char * optionsVal[15];
@@ -854,6 +863,8 @@ void initOptionsVal()
 			p->optionsVal[11+i][j+1] = (k ? 035 : ' ');
 		}
 	}
+	p->optionsVal[14][0] = p->statusbar_pinned ? 035 : 034; 
+	p->optionsVal[15][0] = p->menubar_pinned ? 035 : 034; 
 
 	p->optionsLoaded = 1;
 }
@@ -864,21 +875,23 @@ void updateOptionsVal()
 	initOptionsVal();
 }
 /* the optionsCase char is used in a switch case later to involk the appropriate function */
-char * optionsCase[14] = {
+char * optionsCase[16] = {
 "             ",
 "22222222222222",
 "44444444",
 "33333333",
 "11111111",
 "       ",
-"556666677",
+"55     66",
 "              ",
 "DDEEEEEFF",
 "        ",
 "       ",
 " rst     ",
 " uvw      ",
-" xyz      "
+" xyz      ",
+"77777777",
+"88888888",
 };
 
 XY mouse2screen(int x, int y)
@@ -1005,6 +1018,12 @@ int handleOptionPress(int mouseX, int mouseY)
 	case '4': 
 		toggleOrSetStereo(opt-'0');
 		break;
+	case '7': 
+		p->statusbar_pinned = 1 - p->statusbar_pinned;
+		break;
+	case '8': 
+		p->menubar_pinned = 1 - p->menubar_pinned;
+		break;
 	case 'r': 
 	case 's': 
 	case 't': 
@@ -1028,11 +1047,6 @@ int handleOptionPress(int mouseX, int mouseY)
 		updateEyehalf();
 		break;}
 	case '6': {
-		/* eyebase */
-		printf("set eyebase");
-	    //fwl_set_EyeDist(optarg);
-		break;}
-	case '7': {
 		/* eyebase */
 		printf("increase eyebase");
 		viewer->eyedist *= 1.1;
@@ -1129,13 +1143,13 @@ char * keyboardShortcutHelp[19] = {
 "(this Help)",
 "Console messages from the program",
 "Options"
-#elif defined(_MSC_VER)
-int lenhelp = 13;
-char * keyboardShortcutHelp[13] = {
+#elif defined(_MSC_VER_NOT)
+int lenhelp = 16;
+char * keyboardShortcutHelp[16] = {
 "WALK Mode",
 "   movement: drag left/right for turns;",
 "             drag up/down for forward/backward", 
-"FLY Mode",
+"Keyboard FLY Mode",
 "   use the keyboard for these motions:",
 "   8 k rotation down/up",
 "   u o rotation left/right",
@@ -1143,24 +1157,28 @@ char * keyboardShortcutHelp[13] = {
 "   a z translation forwards/backwards",
 "   j l translation left/right",
 "   p ; translation up/down",
+" or use arrow keys. to change keychord: press SHIFT->",
 "EXAMINE Mode",
-"   rotation: drag left/right or up/down"
+"   rotation: drag left/right or up/down",
+"EXPLORE Mode - use CTRL-click to recenter",
+"hit spacebar to get console prompt :, then type help"
 #else
-int lenhelp = 27;
-char * keyboardShortcutHelp[27] = {
+int lenhelp = 30;
+char * keyboardShortcutHelp[30] = {
 "EXAMINE Mode",
 "   LMB rotation: MX rotation around Y axis; MY rotation around X axis",
 "   RMB zooms", // On Apple computers with one button mice, press and hold the "control" key, and use your mouse. 
 "WALK Mode",
 "   LMB movement: MX left/right turns; MY walk forward/backward", 
 "   RMB height", //se Button 3 moves you up/down (changes your height above the ground). On Apple computers with one button mice, press and hold the "control" key, and use your mouse. 
-"FLY Mode",
+"Keyboard FLY Mode",
 "   8 k rotation down/up",
 "   u o rotation left/right",
 "   7 9 rotation about the Z axis",
 "   a z translation forwards/backwards",
 "   j l translation left/right",
 "   p ; translation up/down",
+" or use arrow keys. to change keychord: press SHIFT->",
 "EXFLY Mode",
 "   takes input from the file /tmp/inpdev",
 "all modes",
@@ -1174,7 +1192,9 @@ char * keyboardShortcutHelp[27] = {
 "  h Toggle headlight",
 "  c Toggle collision detection",
 "  x Snapshot",
-"  q Quit browser"
+"  q Quit browser",
+"EXPLORE Mode - use CTRL-click to recenter",
+"hit spacebar to get console prompt :, then type help",
 #endif
 };
 const char *libFreeWRL_get_version();
@@ -1935,7 +1955,7 @@ int handleButtonOver(int mouseX, int mouseY)
 	if (p->pmenu.top)
 		y = mouseY;
 	else
-		y = p->screenHeight - mouseY;
+		y = p->screenHeight - mouseY - p->pmenu.yoffset;
 	p->isOver = -1;
 	for (i = 0; i<p->pmenu.nbitems; i++)
 	if (x > p->pmenu.bitems[i].butrect[0] && x < p->pmenu.bitems[i].butrect[2]
@@ -1986,7 +2006,7 @@ int handleButtonRelease(int mouseX, int mouseY)
 	if(p->pmenu.top)
 		y = mouseY;
 	else
-		y = p->screenHeight - mouseY;
+		y = p->screenHeight - mouseY - p->pmenu.yoffset;
 	ihit = -1;
 	for(i=0;i<p->pmenu.nbitems;i++)
 	{
@@ -2114,8 +2134,8 @@ void updateButtonVertices()
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
 
-	p->pmenu.yoffset = 0.0f;
-	if(p->pmenu.top) p->pmenu.yoffset = (float)(p->screenHeight - p->buttonSize); //32.0f;
+	//p->pmenu.yoffset = (float) yoff_button; //0.0f;
+	if(p->pmenu.top) p->pmenu.yoffset = (float)(p->screenHeight - p->buttonSize - p->pmenu.yoffset); //32.0f;
 
 	for(i=0;i<p->pmenu.nbitems;i++)
 	{
@@ -2317,13 +2337,14 @@ bool showAction(ppstatusbar p, int action)
 	return false;
 }
 
-int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY, int* clipplane)
+int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY)
 {
+	int mouseYY;
 	ppstatusbar p;
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
 
-
+	mouseYY = mouseY; // - p->pmenu.yoffset;
 	if ((mev == ButtonPress) || (mev == ButtonRelease))
 	{
 		/* record which button is down */
@@ -2332,7 +2353,7 @@ int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY, int* clippla
 		if (p->showButtons)
 		{
 			if (mev == ButtonRelease)
-				ihit = handleButtonRelease(mouseX,mouseY);
+				ihit = handleButtonRelease(mouseX,mouseYY);
 			else
 				ihit = 1; //ButtonPress
 			//return 1;
@@ -2341,7 +2362,7 @@ int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY, int* clippla
 		if (!ihit && showAction(p, ACTION_OPTIONS))
 		{
 			if (mev == ButtonPress)
-				ihit = handleOptionPress(mouseX,mouseY);
+				ihit = handleOptionPress(mouseX,mouseYY);
 			//return 1;
 		}
 		if (ihit) return 1;
@@ -2355,7 +2376,7 @@ int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY, int* clippla
 			//if input device is a mouse, mouse over statusbar to bring down menu
 			//else call toggleMenu from main program on some window event
 			static int lastover;
-			if (p->screenHeight - mouseY < 16)
+			if (p->screenHeight - mouseYY < 16)
 			{
 				if (!lastover)
 					toggleMenu(1 - p->showButtons);
@@ -2370,24 +2391,26 @@ int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY, int* clippla
 				int ihit;
 				updateViewCursorStyle(ACURSE);
 				//setArrowCursor();
-				ihit = handleButtonOver(mouseX,mouseY);
+				ihit = handleButtonOver(mouseX,mouseYY);
 				if (ihit) return 1;
 				//return 1; /* don't process for navigation */
 			}
 		}
 		else{
 			/* buttons at bottom, menu triggered by mouse-over */
-			int clipline;
-			(*clipplane) = p->statusBarSize; //16;
+			//int clipline;
+			//(*clipplane) = p->statusBarSize; //16;
 			/* >>> statusbar hud */
-			clipline = *clipplane;
-			if (p->showButtons) clipline = p->buttonSize; //2*(*clipplane);
-			if (p->screenHeight - mouseY < clipline)
+			//clipline = p->clipPlane;
+			//if (p->showButtons) clipline = p->pmenu.yoffset + p->buttonSize; //2*(*clipplane);
+			if (p->screenHeight - mouseY < p->clipPlane) //clipline)
 			{
 				p->showButtons = 1;
+				if( p->screenHeight - mouseYY > 0 ){
+					//setArrowCursor();
+					handleButtonOver(mouseX,mouseYY);
+				}
 				updateViewCursorStyle(ACURSE);
-				//setArrowCursor();
-				handleButtonOver(mouseX,mouseY);
 				return 1; /* don't process for navigation */
 			}
 			else
@@ -2418,7 +2441,7 @@ void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY)
 {
 	ttglobal tg = gglobal();
 	ppstatusbar p = (ppstatusbar)tg->statusbar.prv;
-	if (!handleStatusbarHud(mev, butnum, mouseX, mouseY, &p->clipPlane)){
+	if (!handleStatusbarHud(mev, butnum, mouseX, mouseY)){
 		fwl_set_frontend_using_cursor(FALSE);
 		fwl_handle_aqua(mev, butnum, mouseX, mouseY); /* ,gcWheelDelta); */
 	}else{
@@ -2466,7 +2489,7 @@ M       void toggle_collision()                             //"
 	p = (ppstatusbar)tg->statusbar.prv;
 
 	//init-once things are done everytime for convenience
-	fwl_setClipPlane(p->statusBarSize);
+	//fwl_setClipPlane(p->statusBarSize);
 	if(!p->fontInitialized) initFont();
 	update_ui_colors();
 	if(p->programObject == 0) initProgramObject();
@@ -2482,6 +2505,19 @@ M       void toggle_collision()                             //"
 	glUseProgram ( p->programObject );
 	glViewport(0, 0, p->screenWidth, p->screenHeight);
    
+	//p->showButtons = 1;
+	//p->menubar_pinned = 0;
+	//p->statusbar_pinned = 1;
+	p->show_status = (p->statusbar_pinned && !p->showButtons) || (!p->statusbar_pinned && p->showButtons) || (p->menubar_pinned); // || showAction(p, ACTION_OPTIONS);
+	p->show_menu = p->menubar_pinned || p->showButtons;
+	p->yoff_status = 0;
+	p->pmenu.yoffset = (p->menubar_pinned || !p->statusbar_pinned) ? p->statusBarSize : 0;
+
+	p->clipPlane = (p->show_menu ?  p->buttonSize : 0) + p->statusBarSize; //(p->show_status ? p->statusBarSize : 0);
+	//int mouseplane = p->showButtons ? p->clipPlane : p->statusBarSize;
+	int vrml_clipplane = (p->statusbar_pinned ? p->statusBarSize : 0) + (p->menubar_pinned? p->buttonSize : 0);
+	fwl_setClipPlane(vrml_clipplane); //p->clipPlane);
+
 	nsides = 1;
 	if (Viewer()->updown) nsides = 2; //one stereo mode updown draws the menubar and/or statusbar twice, once for each stereo side
 	for (i = 0; i < nsides; i++)
@@ -2496,7 +2532,7 @@ M       void toggle_collision()                             //"
 			if(i == 0) side_bottom_f = 0.0f;
 		}
 
-		if (p->showButtons)
+		if (p->show_menu) //p->showButtons)
 		{
 			renderButtons();
 #ifndef KIOSK
@@ -2504,48 +2540,50 @@ M       void toggle_collision()                             //"
 			if (p->posType == 1) {
 				glEnable(GL_DEPTH_TEST);
 			}
-			continue;
+			//continue;
 #endif
 		}
-
-
-		/* OK time to update the status bar */
-		/* unconditionally clear the statusbar area */
-		glScissor(0, p->side_bottom, p->screenWidth, p->clipPlane);
-		glEnable(GL_SCISSOR_TEST);
-		//glClearColor(.922f, .91f, .844f, 1.0f); //windowing gray
-		glClearColor(colorClear[0],colorClear[1],colorClear[2],colorClear[3]);
-		glClear(GL_COLOR_BUFFER_BIT);
-		glDisable(GL_SCISSOR_TEST);
-
-		// you must call drawStatusBar() from render() just before swapbuffers 
-		glDepthMask(FALSE);
-		glDisable(GL_DEPTH_TEST);
-
-		//glUniform4f(p->color4fLoc, .2f, .2f, .2f, 1.0f);
-		glUniform4f(p->color4fLoc,colorStatusbarText[0],colorStatusbarText[1],colorStatusbarText[2],colorStatusbarText[3]);
+		if(p->show_status)
 		{
-			FXY xy;
-			xy = screen2normalizedScreenScale((GLfloat)p->bmWH.x, (GLfloat)p->bmWH.y);
-			pp = get_status(); // p->buffer;
-			/* print status bar text - things like PLANESENSOR */
-			printString2(-1.0f + xy.x*5.0f, side_bottom_f, pp);
-			p->hadString = 1;
-		}
-		{
-			int len;
-			char *strfps, *strstatus, *strAkeys;
-			FXY xy;
-			xy = screen2normalizedScreenScale((GLfloat)p->bmWH.x, (GLfloat)p->bmWH.y);
-			strfps = getMessageBar();
-			strstatus = &strfps[15];
-			printString2(-1.0f + xy.x*25.0f, side_bottom_f, strfps);
-			printString2(-1.0f + xy.x*35.0f, side_bottom_f, strstatus);
-			strAkeys = fwl_getKeyChord();
-			len = strlen(strAkeys);
-			printString2(1.0f - xy.x*len, side_bottom_f, strAkeys);
-		}
 
+			/* OK time to update the status bar */
+			/* unconditionally clear the statusbar area */
+			glScissor(0, p->side_bottom, p->screenWidth, p->statusBarSize); //p->clipPlane);
+			glEnable(GL_SCISSOR_TEST);
+			//glClearColor(.922f, .91f, .844f, 1.0f); //windowing gray
+			glClearColor(colorClear[0],colorClear[1],colorClear[2],colorClear[3]);
+			glClear(GL_COLOR_BUFFER_BIT);
+			glDisable(GL_SCISSOR_TEST);
+
+			// you must call drawStatusBar() from render() just before swapbuffers 
+			glDepthMask(FALSE);
+			glDisable(GL_DEPTH_TEST);
+
+			//glUniform4f(p->color4fLoc, .2f, .2f, .2f, 1.0f);
+			glUniform4f(p->color4fLoc,colorStatusbarText[0],colorStatusbarText[1],colorStatusbarText[2],colorStatusbarText[3]);
+			{
+				FXY xy;
+				xy = screen2normalizedScreenScale((GLfloat)p->bmWH.x, (GLfloat)p->bmWH.y);
+				pp = get_status(); // p->buffer;
+				/* print status bar text - things like PLANESENSOR */
+				printString2(-1.0f + xy.x*5.0f, side_bottom_f, pp);
+				p->hadString = 1;
+			}
+			{
+				int len;
+				char *strfps, *strstatus, *strAkeys;
+				FXY xy;
+				xy = screen2normalizedScreenScale((GLfloat)p->bmWH.x, (GLfloat)p->bmWH.y);
+				strfps = getMessageBar();
+				strstatus = &strfps[15];
+				printString2(-1.0f + xy.x*25.0f, side_bottom_f, strfps);
+				printString2(-1.0f + xy.x*35.0f, side_bottom_f, strstatus);
+				strAkeys = fwl_getKeyChord();
+				len = strlen(strAkeys);
+				printString2(1.0f - xy.x*len, side_bottom_f, strAkeys);
+			}
+
+		}
 
 		//glUniform4f(p->color4fLoc, 1.0f, 1.0f, 1.0f, 1.0f);
 		glUniform4f(p->color4fLoc,colorMessageText[0],colorMessageText[1],colorMessageText[2],colorMessageText[3]);
