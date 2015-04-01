@@ -439,6 +439,11 @@ typedef struct pstatusbar{
 	int hadString;// = 0;
 	int initDone;
 	int showButtons;// =0;
+	int statusbar_pinned;
+	int menubar_pinned;
+	int show_status;
+	int show_menu;
+	int yoff_status;
 	//textureTableIndexStruct_s butts[mbuts][2];
 	int butsLoaded;// = 0;
 	int isOver;// = -1;
@@ -496,6 +501,8 @@ void statusbar_init(struct tstatusbar *t){
 		p->hadString = 0;
 
 		p->showButtons =1;
+		p->statusbar_pinned = 1;
+		p->menubar_pinned = 0;
 		p->butsLoaded = 0;
 		p->isOver = -1;
 		p->iconSize = 32;
@@ -1935,7 +1942,7 @@ int handleButtonOver(int mouseX, int mouseY)
 	if (p->pmenu.top)
 		y = mouseY;
 	else
-		y = p->screenHeight - mouseY;
+		y = p->screenHeight - mouseY - p->pmenu.yoffset;
 	p->isOver = -1;
 	for (i = 0; i<p->pmenu.nbitems; i++)
 	if (x > p->pmenu.bitems[i].butrect[0] && x < p->pmenu.bitems[i].butrect[2]
@@ -1986,7 +1993,7 @@ int handleButtonRelease(int mouseX, int mouseY)
 	if(p->pmenu.top)
 		y = mouseY;
 	else
-		y = p->screenHeight - mouseY;
+		y = p->screenHeight - mouseY - p->pmenu.yoffset;
 	ihit = -1;
 	for(i=0;i<p->pmenu.nbitems;i++)
 	{
@@ -2114,8 +2121,8 @@ void updateButtonVertices()
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
 
-	p->pmenu.yoffset = 0.0f;
-	if(p->pmenu.top) p->pmenu.yoffset = (float)(p->screenHeight - p->buttonSize); //32.0f;
+	//p->pmenu.yoffset = (float) yoff_button; //0.0f;
+	if(p->pmenu.top) p->pmenu.yoffset = (float)(p->screenHeight - p->buttonSize - p->pmenu.yoffset); //32.0f;
 
 	for(i=0;i<p->pmenu.nbitems;i++)
 	{
@@ -2317,13 +2324,14 @@ bool showAction(ppstatusbar p, int action)
 	return false;
 }
 
-int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY, int* clipplane)
+int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY)
 {
+	int mouseYY;
 	ppstatusbar p;
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
 
-
+	mouseYY = mouseY; // - p->pmenu.yoffset;
 	if ((mev == ButtonPress) || (mev == ButtonRelease))
 	{
 		/* record which button is down */
@@ -2332,7 +2340,7 @@ int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY, int* clippla
 		if (p->showButtons)
 		{
 			if (mev == ButtonRelease)
-				ihit = handleButtonRelease(mouseX,mouseY);
+				ihit = handleButtonRelease(mouseX,mouseYY);
 			else
 				ihit = 1; //ButtonPress
 			//return 1;
@@ -2341,7 +2349,7 @@ int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY, int* clippla
 		if (!ihit && showAction(p, ACTION_OPTIONS))
 		{
 			if (mev == ButtonPress)
-				ihit = handleOptionPress(mouseX,mouseY);
+				ihit = handleOptionPress(mouseX,mouseYY);
 			//return 1;
 		}
 		if (ihit) return 1;
@@ -2355,7 +2363,7 @@ int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY, int* clippla
 			//if input device is a mouse, mouse over statusbar to bring down menu
 			//else call toggleMenu from main program on some window event
 			static int lastover;
-			if (p->screenHeight - mouseY < 16)
+			if (p->screenHeight - mouseYY < 16)
 			{
 				if (!lastover)
 					toggleMenu(1 - p->showButtons);
@@ -2370,24 +2378,26 @@ int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY, int* clippla
 				int ihit;
 				updateViewCursorStyle(ACURSE);
 				//setArrowCursor();
-				ihit = handleButtonOver(mouseX,mouseY);
+				ihit = handleButtonOver(mouseX,mouseYY);
 				if (ihit) return 1;
 				//return 1; /* don't process for navigation */
 			}
 		}
 		else{
 			/* buttons at bottom, menu triggered by mouse-over */
-			int clipline;
-			(*clipplane) = p->statusBarSize; //16;
+			//int clipline;
+			//(*clipplane) = p->statusBarSize; //16;
 			/* >>> statusbar hud */
-			clipline = *clipplane;
-			if (p->showButtons) clipline = p->buttonSize; //2*(*clipplane);
-			if (p->screenHeight - mouseY < clipline)
+			//clipline = p->clipPlane;
+			//if (p->showButtons) clipline = p->pmenu.yoffset + p->buttonSize; //2*(*clipplane);
+			if (p->screenHeight - mouseY < p->clipPlane) //clipline)
 			{
 				p->showButtons = 1;
+				if( p->screenHeight - mouseYY > 0 ){
+					//setArrowCursor();
+					handleButtonOver(mouseX,mouseYY);
+				}
 				updateViewCursorStyle(ACURSE);
-				//setArrowCursor();
-				handleButtonOver(mouseX,mouseY);
 				return 1; /* don't process for navigation */
 			}
 			else
@@ -2418,7 +2428,7 @@ void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY)
 {
 	ttglobal tg = gglobal();
 	ppstatusbar p = (ppstatusbar)tg->statusbar.prv;
-	if (!handleStatusbarHud(mev, butnum, mouseX, mouseY, &p->clipPlane)){
+	if (!handleStatusbarHud(mev, butnum, mouseX, mouseY)){
 		fwl_set_frontend_using_cursor(FALSE);
 		fwl_handle_aqua(mev, butnum, mouseX, mouseY); /* ,gcWheelDelta); */
 	}else{
@@ -2466,7 +2476,7 @@ M       void toggle_collision()                             //"
 	p = (ppstatusbar)tg->statusbar.prv;
 
 	//init-once things are done everytime for convenience
-	fwl_setClipPlane(p->statusBarSize);
+	//fwl_setClipPlane(p->statusBarSize);
 	if(!p->fontInitialized) initFont();
 	update_ui_colors();
 	if(p->programObject == 0) initProgramObject();
@@ -2482,6 +2492,19 @@ M       void toggle_collision()                             //"
 	glUseProgram ( p->programObject );
 	glViewport(0, 0, p->screenWidth, p->screenHeight);
    
+	//p->showButtons = 1;
+	p->menubar_pinned = 0;
+	p->statusbar_pinned = 1;
+	p->show_status = (p->statusbar_pinned && !p->showButtons) || (!p->statusbar_pinned && p->showButtons) || (p->menubar_pinned) || showAction(p, ACTION_OPTIONS);
+	p->show_menu = p->menubar_pinned || p->showButtons;
+	p->yoff_status = 0;
+	p->pmenu.yoffset = (p->menubar_pinned || !p->statusbar_pinned) ? p->statusBarSize : 0;
+
+	p->clipPlane = (p->show_menu ?  p->buttonSize : 0) + p->statusBarSize; //(p->show_status ? p->statusBarSize : 0);
+	//int mouseplane = p->showButtons ? p->clipPlane : p->statusBarSize;
+	int vrml_clipplane = (p->statusbar_pinned ? p->statusBarSize : 0) + (p->menubar_pinned? p->buttonSize : 0);
+	fwl_setClipPlane(vrml_clipplane); //p->clipPlane);
+
 	nsides = 1;
 	if (Viewer()->updown) nsides = 2; //one stereo mode updown draws the menubar and/or statusbar twice, once for each stereo side
 	for (i = 0; i < nsides; i++)
@@ -2496,7 +2519,7 @@ M       void toggle_collision()                             //"
 			if(i == 0) side_bottom_f = 0.0f;
 		}
 
-		if (p->showButtons)
+		if (p->show_menu) //p->showButtons)
 		{
 			renderButtons();
 #ifndef KIOSK
@@ -2504,58 +2527,60 @@ M       void toggle_collision()                             //"
 			if (p->posType == 1) {
 				glEnable(GL_DEPTH_TEST);
 			}
-			continue;
+			//continue;
 #endif
 		}
-
-
-		/* OK time to update the status bar */
-		/* unconditionally clear the statusbar area */
-		glScissor(0, p->side_bottom, p->screenWidth, p->clipPlane);
-		glEnable(GL_SCISSOR_TEST);
-		//glClearColor(.922f, .91f, .844f, 1.0f); //windowing gray
-		glClearColor(colorClear[0],colorClear[1],colorClear[2],colorClear[3]);
-		glClear(GL_COLOR_BUFFER_BIT);
-		glDisable(GL_SCISSOR_TEST);
-
-		// you must call drawStatusBar() from render() just before swapbuffers 
-		glDepthMask(FALSE);
-		glDisable(GL_DEPTH_TEST);
-
-		//glUniform4f(p->color4fLoc, .2f, .2f, .2f, 1.0f);
-		glUniform4f(p->color4fLoc,colorStatusbarText[0],colorStatusbarText[1],colorStatusbarText[2],colorStatusbarText[3]);
+		if(p->show_status)
 		{
-			FXY xy;
-			xy = screen2normalizedScreenScale((GLfloat)p->bmWH.x, (GLfloat)p->bmWH.y);
-			pp = get_status(); // p->buffer;
-			/* print status bar text - things like PLANESENSOR */
-			printString2(-1.0f + xy.x*5.0f, side_bottom_f, pp);
-			p->hadString = 1;
+
+			/* OK time to update the status bar */
+			/* unconditionally clear the statusbar area */
+			glScissor(0, p->side_bottom, p->screenWidth, p->statusBarSize); //p->clipPlane);
+			glEnable(GL_SCISSOR_TEST);
+			//glClearColor(.922f, .91f, .844f, 1.0f); //windowing gray
+			glClearColor(colorClear[0],colorClear[1],colorClear[2],colorClear[3]);
+			glClear(GL_COLOR_BUFFER_BIT);
+			glDisable(GL_SCISSOR_TEST);
+
+			// you must call drawStatusBar() from render() just before swapbuffers 
+			glDepthMask(FALSE);
+			glDisable(GL_DEPTH_TEST);
+
+			//glUniform4f(p->color4fLoc, .2f, .2f, .2f, 1.0f);
+			glUniform4f(p->color4fLoc,colorStatusbarText[0],colorStatusbarText[1],colorStatusbarText[2],colorStatusbarText[3]);
+			{
+				FXY xy;
+				xy = screen2normalizedScreenScale((GLfloat)p->bmWH.x, (GLfloat)p->bmWH.y);
+				pp = get_status(); // p->buffer;
+				/* print status bar text - things like PLANESENSOR */
+				printString2(-1.0f + xy.x*5.0f, side_bottom_f, pp);
+				p->hadString = 1;
+			}
+			{
+				int len;
+				char *strfps, *strstatus, *strAkeys;
+				FXY xy;
+				xy = screen2normalizedScreenScale((GLfloat)p->bmWH.x, (GLfloat)p->bmWH.y);
+				strfps = getMessageBar();
+				strstatus = &strfps[15];
+				printString2(-1.0f + xy.x*25.0f, side_bottom_f, strfps);
+				printString2(-1.0f + xy.x*35.0f, side_bottom_f, strstatus);
+				strAkeys = fwl_getKeyChord();
+				len = strlen(strAkeys);
+				printString2(1.0f - xy.x*len, side_bottom_f, strAkeys);
+			}
+
+
+			//glUniform4f(p->color4fLoc, 1.0f, 1.0f, 1.0f, 1.0f);
+			glUniform4f(p->color4fLoc,colorMessageText[0],colorMessageText[1],colorMessageText[2],colorMessageText[3]);
+
+			if (showAction(p, ACTION_HELP))
+				printKeyboardHelp(p);
+			if (showAction(p, ACTION_MESSAGES))
+				printConsoleText();
+			if (showAction(p, ACTION_OPTIONS))
+				printOptions();
 		}
-		{
-			int len;
-			char *strfps, *strstatus, *strAkeys;
-			FXY xy;
-			xy = screen2normalizedScreenScale((GLfloat)p->bmWH.x, (GLfloat)p->bmWH.y);
-			strfps = getMessageBar();
-			strstatus = &strfps[15];
-			printString2(-1.0f + xy.x*25.0f, side_bottom_f, strfps);
-			printString2(-1.0f + xy.x*35.0f, side_bottom_f, strstatus);
-			strAkeys = fwl_getKeyChord();
-			len = strlen(strAkeys);
-			printString2(1.0f - xy.x*len, side_bottom_f, strAkeys);
-		}
-
-
-		//glUniform4f(p->color4fLoc, 1.0f, 1.0f, 1.0f, 1.0f);
-		glUniform4f(p->color4fLoc,colorMessageText[0],colorMessageText[1],colorMessageText[2],colorMessageText[3]);
-
-		if (showAction(p, ACTION_HELP))
-			printKeyboardHelp(p);
-		if (showAction(p, ACTION_MESSAGES))
-			printConsoleText();
-		if (showAction(p, ACTION_OPTIONS))
-			printOptions();
 	}
 	glClearColor(0.0f,0.0f,0.0f,1.0f); 
 	glDepthMask(TRUE);
