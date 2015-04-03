@@ -168,6 +168,7 @@ typedef struct viewer_inplane {
 	double x,y;
 	double xx,yy;
 	int on;
+	int ibut;
 } X3D_Viewer_InPlane;
 
 typedef struct key {
