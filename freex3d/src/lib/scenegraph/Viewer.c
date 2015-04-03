@@ -87,7 +87,7 @@ typedef struct pViewer{
 	int StereoInitializedOnce;//. = 0;
 	GLboolean acMask[3][3]; //anaglyphChannelMask
 	X3D_Viewer Viewer; /* has to be defined somewhere, so it found itself stuck here */
-
+	int pow5; //more aggressive speed scaling on mouse drags
 	/* viewpoint slerping */
 	double viewpoint2rootnode[16];
 	double viewpointnew2rootnode[16];
@@ -136,6 +136,7 @@ void Viewer_init(struct tViewer *t){
 		p->StereoInitializedOnce = 1;
 		p->keychord = CHORD_XY; // default on startup
 		p->dragchord = CHORD_YAWZ;
+		p->pow5 = 1;
 	}
 }
 //ppViewer p = (ppViewer)gglobal()->Viewer.prv;
@@ -1186,8 +1187,30 @@ void handle_tick_fly2() {
 	if (inplane->on) {
 		xx = inplane->xx - inplane->x;
 		yy = inplane->yy - inplane->y;
-		zz = xsign_quadratic(yy,.05,5.0,0.0)*p->Viewer.speed * frameRateAdjustment;
-		zz *= 0.15;
+		if(p->pow5){
+			//theories:
+			// 1: using a odd-power means you don't have to fiddle with the sign since xx, yy are -1 to 1
+			// 2: a high power means you can be nano-slow with small drags, and astro fast with large drags
+			//    corrollary: users should seldom need to tinker with avatar speed, should stay at 1
+			//		but if they _do_ need to change the speed, it will be by something substantial like a power of 10
+			// 3: for a give drag size, if the frame rate varies, the computed speed should remain constant
+			//    corrollary: there should be no time used to compute speed, it should be a function of drag size only
+			//        then distance[m] = speed[m/s] * time[s] adjusts for the frame rate
+			double zspeed, deltatms;
+			deltatms = (TickTime() - lastTime())*1000.0; //to get in milliseconds
+			if(deltatms < 1.0) //more than 1000 FPS
+				deltatms = 1.0;
+
+			yy *= p->Viewer.speed; //let users do the power of 10 ie .1 100. //pow(10.0,1.0 - p->Viewer.speed);
+			yy *= 100;	//scale from (-1,1) range to (-100,100) range so 99% is > 1.0 and gets powed to a larger number
+						// (vs < 1 gets powed to a smaller number)
+			zspeed = pow(yy,5.0);
+			zspeed *= 1.e-9; //take back some of the 100**5 = 10**10
+			zz = zspeed * deltatms;
+		}else{
+			zz = xsign_quadratic(yy,.05,5.0,0.0)*p->Viewer.speed * frameRateAdjustment;
+			zz *= 0.15;
+		}
 		xyz.x = 0.0;
 		xyz.y = 0.0;
 		xyz.z = zz;
@@ -1451,8 +1474,37 @@ void handle_tick_tplane(double dtime){
 
 	inplane = &p->Viewer.inplane;
 	if(inplane->on){
-		pp.x =  xsign_quadratic(inplane->xx - inplane->x,300.0,100.0,0.0) *dtime;
-		pp.y = -xsign_quadratic(inplane->yy - inplane->y,300.0,100.0,0.0) *dtime;
+		if(p->pow5){
+			//theories:
+			// 1: using a odd-power means you don't have to fiddle with the sign since xx, yy are -1 to 1
+			// 2: a high power means you can be nano-slow with small drags, and astro fast with large drags
+			//    corrollary: users should seldom need to tinker with avatar speed, should stay at 1
+			//		but if they _do_ need to change the speed, it will be by something substantial like a power of 10
+			// 3: for a give drag size, if the frame rate varies, the computed speed should remain constant
+			//    corrollary: there should be no time used to compute speed, it should be a function of drag size only
+			//        then distance[m] = speed[m/s] * time[s] adjusts for the frame rate
+			//
+			double xx,yy,xspeed,yspeed, deltatms;
+			deltatms = dtime*1000.0; //to get in milliseconds
+			if(deltatms < 1.0) //more than 1000 FPS, some clocks have resolution of 20ms, so may start to 00
+				deltatms = 1.0;
+			xx = inplane->xx - inplane->x;
+			yy = inplane->yy - inplane->y;
+			xx *= p->Viewer.speed;
+			yy *= p->Viewer.speed; //let users do the power of 10 ie .1 100. //pow(10.0,1.0 - p->Viewer.speed);
+			xx *= 100;
+			yy *= 100;	//scale from (-1,1) range to (-100,100) range so 99% is > 1.0 and gets powed to a larger number
+						// (vs < 1 gets powed to a smaller number)
+			xspeed = pow(xx,5.0);
+			xspeed *= 1.e-9; //take back some of the 100**5 = 10**10
+			yspeed = pow(yy,5.0);
+			yspeed *= 1.e-9; //take back some of the 100**5 = 10**10
+			pp.x = xspeed * deltatms;
+			pp.y = -yspeed * deltatms;
+		}else{
+			pp.x =  xsign_quadratic(inplane->xx - inplane->x,300.0,100.0,0.0) *dtime;
+			pp.y = -xsign_quadratic(inplane->yy - inplane->y,300.0,100.0,0.0) *dtime;
+		}
 		pp.z = 0.0;
 		//vecadd(&p->Viewer.Pos,&p->Viewer.Pos,&pp);
 		increment_pos(&pp);
