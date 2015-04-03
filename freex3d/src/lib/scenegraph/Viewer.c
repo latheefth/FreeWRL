@@ -149,10 +149,11 @@ X3D_Viewer *Viewer()
 
 
 
-static void handle_tick_walk(void);
+//static void handle_tick_walk(void);
+static void handle_tick_walk2(double dtime);
 static void handle_tick_fly(void);
 static void handle_tick_exfly(void);
-static void handle_tick_fly2(void);
+static void handle_tick_fly2(double dtime);
 
 /* used for EAI calls to get the current speed. Not used for general calcs */
 /* we DO NOT return as a float, as some gccs have trouble with this causing segfaults */
@@ -898,6 +899,36 @@ static void handle_walk(const int mev, const unsigned int button, const float x,
 	}
 }
 
+void handle_walk2(const int mev, const unsigned int button, float x, float y) {
+	/* there's a handle_tick_fly2() so handle_fly2() must turn on/off the
+		tick action based on mev (mouse up/down/move)
+	*/
+	ttglobal tg;
+	ppViewer p;
+	X3D_Viewer_InPlane *inplane;
+	tg = gglobal();
+	p = (ppViewer)tg->Viewer.prv;
+	inplane = &p->Viewer.inplane;
+	
+	if (mev == ButtonPress) {
+		inplane->x = x;
+		inplane->y = y;
+		inplane->xx = x;
+		inplane->yy = y;
+		inplane->on = 1;
+		inplane->ibut = button;
+	} else if (mev == MotionNotify) {
+		inplane->xx = x;
+		inplane->yy = y;
+		inplane->ibut = button;
+	} else if (mev == ButtonRelease ) {
+		inplane->on = 0;
+		inplane->ibut = button;
+	}
+	
+}
+
+
 static double
   norm(const Quaternion *quat)
   {
@@ -1168,7 +1199,7 @@ void handle_fly2(const int mev, const unsigned int button, float x, float y) {
 
 
 
-void handle_tick_fly2() {
+void handle_tick_fly2(double dtime) {
 	ttglobal tg;
 	ppViewer p;
 	X3D_Viewer_InPlane *inplane;
@@ -1197,12 +1228,12 @@ void handle_tick_fly2() {
 			//    corrollary: there should be no time used to compute speed, it should be a function of drag size only
 			//        then distance[m] = speed[m/s] * time[s] adjusts for the frame rate
 			double zspeed, deltatms;
-			deltatms = (TickTime() - lastTime())*1000.0; //to get in milliseconds
+			deltatms = (dtime)*1000.0; //to get in milliseconds
 			if(deltatms < 1.0) //more than 1000 FPS
 				deltatms = 1.0;
 
 			yy *= p->Viewer.speed; //let users do the power of 10 ie .1 100. //pow(10.0,1.0 - p->Viewer.speed);
-			yy *= 100;	//scale from (-1,1) range to (-100,100) range so 99% is > 1.0 and gets powed to a larger number
+			yy *= 100.0;	//scale from (-1,1) range to (-100,100) range so 99% is > 1.0 and gets powed to a larger number
 						// (vs < 1 gets powed to a smaller number)
 			zspeed = pow(yy,5.0);
 			zspeed *= 1.e-9; //take back some of the 100**5 = 10**10
@@ -1492,8 +1523,8 @@ void handle_tick_tplane(double dtime){
 			yy = inplane->yy - inplane->y;
 			xx *= p->Viewer.speed;
 			yy *= p->Viewer.speed; //let users do the power of 10 ie .1 100. //pow(10.0,1.0 - p->Viewer.speed);
-			xx *= 100;
-			yy *= 100;	//scale from (-1,1) range to (-100,100) range so 99% is > 1.0 and gets powed to a larger number
+			xx *= 100.0;
+			yy *= 100.0;	//scale from (-1,1) range to (-100,100) range so 99% is > 1.0 and gets powed to a larger number
 						// (vs < 1 gets powed to a smaller number)
 			xspeed = pow(xx,5.0);
 			xspeed *= 1.e-9; //take back some of the 100**5 = 10**10
@@ -1620,7 +1651,10 @@ void handle0(const int mev, const unsigned int button, const float x, const floa
 		handle_examine(mev, button, ((float) x), ((float) y));
 		break;
 	case VIEWER_WALK:
-		handle_walk(mev, button, ((float) x), ((float) y));
+		if(p->pow5)
+			handle_walk2(mev, button, ((float) x), ((float) y));
+		else
+			handle_walk(mev, button, ((float) x), ((float) y));
 		break;
 	case VIEWER_EXFLY:
 		break;
@@ -2100,6 +2134,79 @@ static void handle_tick_walk()
 	/* make sure Viewer.Dist is configured properly for Examine mode */
 	//CALCULATE_EXAMINE_DISTANCE
 }
+static void handle_tick_walk2(double dtime){
+/*
+ * walk.xd,zd are in a plane parallel to the scene/global horizon.
+ * walk.yd is vertical in the global/scene
+ * walk.rd is an angle in the global/scene horizontal plane (around vertical axis)
+*/
+	X3D_Viewer_InPlane *inplane;
+	X3D_Viewer_Walk *walk; 
+	int button;
+	double xx,yy,frameRateAdjustment;
+	ppViewer p;
+	ttglobal tg = gglobal();
+	p = (ppViewer)tg->Viewer.prv;
+	walk = &p->Viewer.walk;
+
+	inplane = &p->Viewer.inplane;
+
+	frameRateAdjustment = 1.0;
+	if( tg->Mainloop.BrowserFPS > 0)
+		frameRateAdjustment = 20.0 / tg->Mainloop.BrowserFPS; 
+	
+	if (inplane->on) {
+		//theories:
+		// 1: using a odd-power means you don't have to fiddle with the sign since xx, yy are -1 to 1
+		// 2: a high power means you can be nano-slow with small drags, and astro fast with large drags
+		//    corrollary: users should seldom need to tinker with avatar speed, should stay at 1
+		//		but if they _do_ need to change the speed, it will be by something substantial like a power of 10
+		// 3: for a give drag size, if the frame rate varies, the computed speed should remain constant
+		//    corrollary: there should be no time used to compute speed, it should be a function of drag size only
+		//        then distance[m] = speed[m/s] * time[s] adjusts for the frame rate
+		double xspeed,yspeed,rspeed, deltatms;
+		deltatms = (dtime)*1000.0; //to get in milliseconds
+		if(deltatms < 1.0) //more than 1000 FPS
+			deltatms = 1.0;
+		button = inplane->ibut;
+		xx = inplane->xx - inplane->x;
+		yy = inplane->yy - inplane->y;
+
+		xx *= p->Viewer.speed; //let users do the power of 10 ie .1 100. //pow(10.0,1.0 - p->Viewer.speed);
+		xx *= 100.0;	//scale from (-1,1) range to (-100,100) range so 99% is > 1.0 and gets powed to a larger number
+					// (vs < 1 gets powed to a smaller number)
+		if(button == 1){
+			//xspeed = pow(xx,3.0);
+			//xspeed *= 1.e-7; //take back some of the 100**5 = 10**6
+			xspeed = pow(xx,1.0);
+			xspeed *= 1.e-4; //take back some of the 100**2 = 10**2
+		}else{
+			xspeed = pow(xx,3.0);
+			xspeed *= 1.e-7; //take back some of the 100**5 = 10**10
+		}
+		xx = xspeed * deltatms;
+
+		yy *= p->Viewer.speed; //let users do the power of 10 ie .1 100. //pow(10.0,1.0 - p->Viewer.speed);
+		yy *= 100.0;	//scale from (-1,1) range to (-100,100) range so 99% is > 1.0 and gets powed to a larger number
+					// (vs < 1 gets powed to a smaller number)
+		yspeed = pow(yy,3.0);
+		yspeed *= 1.e-7; //take back some of the 100**5 = 10**10
+		//yspeed = pow(yy,5.0);
+		//yspeed *= 1.e-9; //take back some of the 100**5 = 10**10
+		yy = yspeed * deltatms;
+
+
+		walk->XD = walk->YD = walk->ZD = walk->RD = 0.0;
+		if (button == 1) {
+			walk->ZD = yy/.015; //take off tuning parameters in handle_tick_walk()
+			walk->RD = xx/.4;
+		} else if (button == 3) {
+			walk->XD =  xx/.015;
+			walk->YD = -yy/.015;
+		}
+		handle_tick_walk();
+	}
+}
 
 //an external program or app may want to set or get the viewer pose, with no slerping
 //SSR - these set/getpose are called from _DisplayThread
@@ -2400,7 +2507,10 @@ handle_tick()
 	case VIEWER_EXAMINE:
 		break;
 	case VIEWER_WALK:
-		handle_tick_walk();
+		if(p->pow5)
+			handle_tick_walk2(time_diff);
+		else
+			handle_tick_walk();
 		break;
 	case VIEWER_EXFLY:
 		handle_tick_exfly();
@@ -2420,13 +2530,13 @@ handle_tick()
 					break;
 				case CHORD_YAWZ:
 				default:
-					handle_tick_fly2();  //fly2 like (WALK - G) except no RMB PAN, drags aligned to Viewer (vs walk aligned to bound Viewpoint vertical)
+					handle_tick_fly2(time_diff);  //fly2 like (WALK - G) except no RMB PAN, drags aligned to Viewer (vs walk aligned to bound Viewpoint vertical)
 					break;
 			}
 		}
 		break;
 	case VIEWER_FLY2:
-		handle_tick_fly2();
+		handle_tick_fly2(time_diff);
 		break;
 	case VIEWER_LOOKAT:
 		handle_tick_lookat();
