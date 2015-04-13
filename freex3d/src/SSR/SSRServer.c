@@ -2,6 +2,7 @@
 /*	win32: include the headers of your operating system that define the size_t, fd_set, socklen_t and struct sockaddr data types and define MHD_PLATFORM_H
 	linux: don't define MHD_PLATFORM_H and it will figure it out
 	license MIT or similar - hack away, have fun
+
 	SSR - server-side rendering - the user drags on a webgl canvas featuring a simple grid, and when
 		they lift their mousebutton/touchfinger the client code ajaxes (asynchronous javascript and xml, via xmlhttprequest)
 		the viewpoint pose to the server
@@ -20,6 +21,34 @@
 		* tested with free noip.com account, which re-directed to home server computer behind DSL modem
 			- DSL modem had settings Advanced > DDNS (dynamic dns) > no-ip auto-update feature,
 				and PortForwarding (set to our chosen PORT  8080 on WAN and LAN)
+	Apr 10, 2015:
+		* ZoneBalancer:
+			- will be adding a geographic zoneserver/loadbalancer/reverseproxy/gateway
+			- ZoneBalancer acts as a gateway between LAN and internet
+			- gets request from an internet client
+			- sniffs the request content for geographic coords
+			- looks up in a table of {polygon,IP:PORT} using point-in-polygon algorithm 
+				to determine which zone polygon the client's viewer is in, then uses 
+				the associated IP and port number to call regular SSRserver,
+				wait for response, then relay response back to internet client
+			- benefit: more CPUs, GPUs and memory slots can be used for very large 3D datasets
+				allowing the solution to scale up using ordinary desktop computers which these days 
+				have 32GB RAM limit (4x8GB). So if your data has a 96GB footprint in memory, you could use
+				3 SSRservers and 1 ZoneBalancer to distribute the load
+			- for programmer convenience the ZoneBalancer will be just a runtime configuration of SSRserver
+		In SSRserver.c response handler pseudocode:
+		if( static html) {
+			serve directly (ie SSRClient.html)
+		} else if working as SSRserver {
+			render snapshot and return response - the original SSRserver configuration
+		} else if working as zone balancer {
+			1. sniff request for geographic coords of client's ViewPose/avatar
+			2. do point-in-polygon on a list of polygons to determine which zone the avatar is in
+				and which IP:Port / SSRServer instance to relay to
+			3. open a TCP connection using sockets, and forward the request
+			4. wait for response from SSR on the ZoneBalancer's request handler thread
+			5. when response arrives, copy it to the zoneBalancer's response and return response to client
+		}
 */
 
 
@@ -69,6 +98,215 @@ int stopFW(){
 		dllFreeWRL_onClose(fwctx);
 	return 0;
 }
+
+//=========ZONE BALANCER==>>>>>>>>>>>>
+static int running_as_zonebalancer = 0;
+#ifdef _MSC_VER
+#include <direct.h>
+#define chdir _chdir
+#define strcasecmp _stricmp
+#endif
+
+//POINT IN POLY
+typedef struct Point {
+	double x;
+	double y;
+} Point;
+
+typedef struct zone {
+	char *name;
+	Point center;
+	Point *poly;
+	int n;
+	char * ssrname;
+	void * ssr;
+	void * next;
+} zone;
+typedef struct ssr {
+	char *name;
+	char *ip;
+	char *port;
+	void *next;
+} ssr;
+static zone *zones = NULL;
+static ssr *ssrs = NULL;
+void ssr_list_add(ssr *s){
+	if(!ssrs){
+		ssrs = s;
+		s->next = NULL;
+	}else{
+		ssr *cur = ssrs;
+		while(cur->next)
+			cur = cur->next;
+		cur->next = s;
+		s->next = NULL;
+	}
+}
+void zone_list_add(zone *z){
+	if(!zones){
+		zones = z;
+		z->next = NULL;
+	}else{
+		zone *cur = zones;
+		while(cur->next)
+			cur = cur->next;
+		cur->next = z;
+		z->next = NULL;
+	}
+}
+
+
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+static void print_element_names(xmlNode * a_node)
+{
+    xmlNode *cur_node = NULL;
+
+    for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
+        if (cur_node->type == XML_ELEMENT_NODE) {
+			struct _xmlAttr *cp;
+            printf("node type: Element, name: %s\n", cur_node->name);
+			for(cp = cur_node->properties; cp; cp = cp->next) {
+				// http://www.xmlsoft.org/html/libxml-tree.html
+				printf("\tname=%s value=%s\n",cp->name,xmlGetNoNsProp(cur_node,cp->name));
+			}
+        }
+
+        print_element_names(cur_node->children);
+    }
+}
+
+static void load_zone_elements(xmlNode * a_node)
+{
+    xmlNode *cur_node = NULL;
+
+    for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
+        if (cur_node->type == XML_ELEMENT_NODE) {
+			struct _xmlAttr *cp;
+			char *value;
+            printf("node type: Element, name: %s\n", cur_node->name);
+			if(!strcasecmp(cur_node->name,"zone")){
+				//add to zone list
+				zone *z = malloc(sizeof(zone));
+				for(cp = cur_node->properties; cp; cp = cp->next) {
+					// http://www.xmlsoft.org/html/libxml-tree.html
+					value = xmlGetNoNsProp(cur_node,cp->name);
+					printf("\tname=%s value=%s\n",cp->name,value);
+					if(!strcasecmp(cp->name,"ssr")){
+						z->ssrname = strdup(value);
+					}else if(!strcmp(cp->name,"name")){
+						z->name = strdup(value);
+					}else if(!strcasecmp(cp->name,"center")){
+						double x,y,zz;
+						sscanf(value,"%lf %lf %lf",&x,&y,&zz);
+						z->center.x = x;
+						z->center.y = y; 
+					}else if(!strcasecmp(cp->name,"polygon")){
+						double x,y;
+						Point points[1000];
+						int n, m;
+						char *p, *q;
+						q = value;
+						n = 0;
+						while(q){
+							m = sscanf(q,"%lf %lf",&x,&y);
+							if(m==2){
+								points[n].x = x;
+								points[n].y = y;
+								n++;
+							}else{
+								break;
+							}
+							q = strchr(q,',');
+							if(!q) break;
+							q++;
+						}
+						z->n = n;
+						z->poly = malloc(n*sizeof(Point));
+						memcpy(z->poly,points,n*sizeof(Point));
+					}
+				}
+
+				zone_list_add(z);
+			}else if(!strcasecmp(cur_node->name,"ssrserver")){
+				//add to ssr list
+				ssr *s = malloc(sizeof(ssr));
+				for(cp = cur_node->properties; cp; cp = cp->next) {
+					value = xmlGetNoNsProp(cur_node,cp->name);
+					printf("\tname=%s value=%s\n",cp->name,value);
+					if(!strcasecmp(cp->name,"name")){
+						s->name = strdup(value);
+					}else if(!strcasecmp(cp->name,"ip")){
+						s->ip = strdup(value);
+					}else if(!strcasecmp(cp->name,"port")){
+						s->port = strdup(value);
+					}
+				}
+				ssr_list_add(s);
+			}
+        }
+		//recurse
+        load_zone_elements(cur_node->children);
+    }
+}
+zone *find_zone_by_name(char *name){
+	zone *z = zones;
+	while(z){
+		if(!strcmp(z->name,name))
+			break;
+		z=z->next;
+	}
+	return z;
+}
+int cn_PnPoly( Point P, Point *V, int n );
+zone *find_zone_by_point(Point P){
+	int inside;
+	zone *z;
+	z = zones;
+	while(z){
+		inside = cn_PnPoly( P, z->poly, z->n -1 );
+		if(inside)
+			break;
+		z = z->next;
+	}
+	return z;
+}
+void test_pointinpoly(){
+	zone *z, *zn;
+	int inside;
+	Point p;
+	zn = find_zone_by_name("StrandEnDuin"); //("Afrikaanderwuk");
+	z = NULL;
+	if(zn){
+		p.x = zn->center.x;
+		p.y = zn->center.y;
+		z = find_zone_by_point(p);
+		if(z){
+			printf("inside polygon %s\n",z->name);
+		}else{
+			printf("polygon not found\n");
+		}
+	}
+
+}
+static int testing_pointinpoly = 1;
+void load_polys(char *filename){
+    xmlDocPtr doc; /* the resulting document tree */
+    xmlNodePtr root_node = NULL, node = NULL, node1 = NULL;/* node pointers */
+    doc = xmlReadFile(filename, NULL, 0);
+    if (doc == NULL) {
+        fprintf(stderr, "Failed to parse %s\n", filename);
+	return;
+    }
+    root_node = xmlDocGetRootElement(doc);
+	//print_element_names(root_node);
+	load_zone_elements(root_node);
+    xmlFreeDoc(doc);	
+	if(testing_pointinpoly)
+		test_pointinpoly();
+
+}
+//<<<<<<<<===ZONE BALANCER===========
 
 
 
@@ -460,6 +698,14 @@ static int ahc_echo(void * cls,
 // http://www.gnu.org/software/libmicrohttpd/
 // tutorials: http://www.gnu.org/software/libmicrohttpd/tutorial.html
 int main0(int argc, char ** argv) {
+/* 
+How to run SSR Server
+SSRServer.exe 8081 "C:/myscenes/sceneA.x3d"
+
+How to run ZoneBalancer:
+SSRServer.exe 8080 --zonebalancer
+	- it attempts to read zonebalancer.xml from the folder above the current working directory
+*/
 	struct MHD_Daemon * d;
 	char *portstr, *url;
 	if (argc < 2) {
@@ -471,28 +717,37 @@ int main0(int argc, char ** argv) {
 		portstr = argv[1];
 		if(argc < 3)
 			url = scene_path;
-		else
+		else{
 			url = argv[2];
+			if(!strcmp(url,"--zonebalancer")){
+				load_polys("..\\zonebalancer.xml");
+				running_as_zonebalancer = 1;
+			}
+		}
 	}
-	if(0)
-	d = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION,
-		atoi(portstr),
-		NULL,
-		NULL,
-		&ahc_echo,
-		PAGE,
-		MHD_OPTION_END);
-	if(1)
-	d = MHD_start_daemon (MHD_USE_THREAD_PER_CONNECTION, //MHD_USE_SELECT_INTERNALLY
-		atoi(portstr), //PORT, 
-		NULL, 
-		NULL,
-		&answer_to_connection, 
-		PAGE, 
-		MHD_OPTION_NOTIFY_COMPLETED, 
-		&request_completed, 
-		NULL,
-		MHD_OPTION_END);
+	if(0) {
+		//simple echo of incoming request
+		d = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION,
+			atoi(portstr),
+			NULL,
+			NULL,
+			&ahc_echo,
+			PAGE,
+			MHD_OPTION_END);
+	}
+	if(1){
+		//our special SSRServer request handler
+		d = MHD_start_daemon (MHD_USE_THREAD_PER_CONNECTION, //MHD_USE_SELECT_INTERNALLY
+			atoi(portstr), //PORT, 
+			NULL, 
+			NULL,
+			&answer_to_connection, 
+			PAGE, 
+			MHD_OPTION_NOTIFY_COMPLETED, 
+			&request_completed, 
+			NULL,
+			MHD_OPTION_END);
+	}
 	if (d == NULL)
 		return 1;
 	runFW(url);
@@ -502,10 +757,8 @@ int main0(int argc, char ** argv) {
 	MHD_stop_daemon(d);
 	return 0;
 }
-#ifdef _MSC_VER
-#include <direct.h>
-#define chdir _chdir
-#endif
+
+
 int main(int argc, char ** argv) {
 	if(strstr(argv[0],"projectfiles")){
 		//developer folders, use src/SSR/public for Client.html

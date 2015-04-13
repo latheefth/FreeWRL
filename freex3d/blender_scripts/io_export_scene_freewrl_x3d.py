@@ -31,19 +31,29 @@ bl_info = {
     "support": 'freewrl',
     "category": "Import-Export"}
 
-# Contributors: "Bart:Campbell Barton (orig); freewrl(mindom,nested)
+# Contributors: "Bart:Campbell Barton (orig); dug9:freewrl(mindom,nested,polyline2D)
 """
-This script exports to X3D format.
+This script exports from Blender.org to X3D format for freewrl.sourceforge.net
+To run without installing, in Blender > Python Console:
+>>> filename = "C:/freewrl/freex3d/blender_scripts/io_export_scene_freewrl_x3d.py"
+>>> exec(compile(open(filename).read(), filename, 'exec'))
+then 3DView > Export > X3D freewrl
+To install, in Blender > User Preferences > addons
+- choose install from file
+- check to enable
+- save user preferences
+- then 3D View > Export > X3D freewrl
 
 Usage:
-
-Run this script from "File->Export" menu.  A pop-up will ask whether you
-want to export only selected or all relevant objects.
-Nested: will maintain outliner transform heirarchy in x3d file
+Run this script from "File->Export X3D freewrl" menu.
+Submenu
+- selected
+- Nested: will maintain outliner transform heirarchy in x3d file
+- polyline2D: Circles have no faces, freewrl can render lines as Polyline2D
 
 Known issues:
-	Doesn't handle multiple materials (don't use material indices);<br>
-	Doesn't handle multiple UV textures on a single mesh (create a mesh for each texture);<br>
+	Doesn't handle multiple materials (don't use material indices);
+	Doesn't handle multiple UV textures on a single mesh (create a mesh for each texture);
 	Can't get the texture array associated with material * not the UV ones;
 """
 
@@ -91,7 +101,7 @@ class x3d_class():
         self.tilenode = 0
         self.verbose=2	 # level of verbosity in console 0-none, 1-some, 2-most
         self.cp=3		  # decimals for material color values	 0.000 - 1.000
-        self.vp=3		  # decimals for vertex coordinate values  0.000 - n.000
+        self.vp=6		  # decimals for vertex coordinate values  0.000 - n.000
         self.tp=3		  # decimals for texture coordinate values 0.000 - 1.000
         self.it=3
         self.groupwrap = 1 #puts an extra Transform around mesh objects for easy reparenting in fluxstudio
@@ -331,7 +341,7 @@ class x3d_class():
                 fog = self.doc.createElement('Fog')
                 fog.setAttribute('fogType',self.namesFog[mtype])
                 fog.setAttribute('color',"%s %s %s" % (round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)))
-                fog.setAttribute('visibilityRange',"%s" % round(mparam.depth,self.cp))
+                fog.setAttribute('visibilityRange',"%s" % round(mparam.depth,self.vp))
 
         return fog
 
@@ -368,12 +378,12 @@ class x3d_class():
         radius = lamp.distance*math.cos(beamWidth)
         lit = self.doc.createElement('SpotLight')
         lit.setAttribute('DEF',"%s" % safeName)
-        lit.setAttribute('radius',"%s" % (round(radius,self.cp)))
+        lit.setAttribute('radius',"%s" % (round(radius,self.vp)))
         lit.setAttribute('ambientIntensity',"%s" % (round(ambientIntensity,self.cp)))
         lit.setAttribute('intensity',"%s" % (round(intensity,self.cp)))
         lit.setAttribute('color',"%s %s %s" % (round(lamp.color[0],self.cp), round(lamp.color[1],self.cp), round(lamp.color[2],self.cp)))
-        lit.setAttribute('beamWidth',"%s" % (round(beamWidth,self.cp)))
-        lit.setAttribute('cutOffAngle',"%s" % (round(cutOffAngle,self.cp)))
+        lit.setAttribute('beamWidth',"%s" % (round(beamWidth,self.vp)))
+        lit.setAttribute('cutOffAngle',"%s" % (round(cutOffAngle,self.vp)))
         lit.setAttribute('direction',"%s %s %s" % (0,0,0))
         lit.setAttribute('location',"%s %s %s" % (0,0,0))
         return lit
@@ -407,7 +417,7 @@ class x3d_class():
         lit.setAttribute('ambientIntensity',"%s" % (round(ambientIntensity,self.cp)))
         lit.setAttribute('intensity',"%s" % (round(intensity,self.cp)))
         lit.setAttribute('color',"%s %s %s" % (round(lamp.color[0],self.cp), round(lamp.color[1],self.cp), round(lamp.color[2],self.cp)))
-        lit.setAttribute('direction',"%s %s %s" % (round(dx,4),round(dy,4),round(dz,4))) #so when blender rotations(0,0,0) direction is down
+        lit.setAttribute('direction',"%s %s %s" % (round(dx,self.vp),round(dy,self.vp),round(dz,self.vp))) #so when blender rotations(0,0,0) direction is down
         return lit
 
 
@@ -515,7 +525,7 @@ class x3d_class():
             blender2x3dScaleFudgeFactor = 1.2 #flux
             blender2x3dScaleFudgeFactor = .85 #freewrl
             extent = len(body)*tcu.spacing*blender2x3dScaleFudgeFactor
-            txt.setAttribute('maxExtent',"%s" % (round(extent,self.cp)))
+            txt.setAttribute('maxExtent',"%s" % (round(extent,self.vp)))
             fs = self.doc.createElement('FontStyle')
             fs.setAttribute('containerField',"fontStyle")
             """
@@ -523,7 +533,7 @@ class x3d_class():
             #fs.setAttribute('style',ob.data.
             """
             text_size = tcu.text_size * blender2x3dScaleFudgeFactor
-            fs.setAttribute('size',"%s" % (round(text_size,self.cp)))
+            fs.setAttribute('size',"%s" % (round(text_size,self.vp)))
             al = tcu.spacemode
             ju = "LEFT"
             if al == 'LEFT':
@@ -701,7 +711,7 @@ class x3d_class():
                         break
                 if issmooth==1:
                     creaseAngle=(mesh.autosmooth_angle)*(math.pi/180.0)
-                    ifs.setAttribute('creaseAngle',"%s" % (round(creaseAngle,self.cp)))
+                    ifs.setAttribute('creaseAngle',"%s" % (round(creaseAngle,self.vp)))
 
                 #--- output textureCoordinates if UV texture used
                 if mesh_active_uv_texture:
@@ -845,13 +855,13 @@ class x3d_class():
 
         meshME = self.xName(mesh)
         mesh_polys = mesh.polygons
-        print("mesh_polys = %d " % len(mesh_polys))
+        #print("mesh_polys = %d " % len(mesh_polys))
         mesh_vertices = mesh.vertices
         mesh_edges = mesh.edges
         mesh_loops = mesh.loops
-        print("mesh_vertices = %d " % len(mesh_vertices))
-        print("mesh_loops = %d " % len(mesh_loops))
-        print("mesh_edges = %d " % len(mesh_edges))
+        #print("mesh_vertices = %d " % len(mesh_vertices))
+        #print("mesh_loops = %d " % len(mesh_loops))
+        #print("mesh_edges = %d " % len(mesh_edges))
         mesh_faces = mesh_polys
 
         #organize edges into contiguous polylines
@@ -897,10 +907,10 @@ class x3d_class():
             shp.setAttribute('DEF',meshME)
             self.meshNames[meshME]=1
             maters = mesh.materials
-            print('materials=')
-            print(maters)
-            print('len materials=')
-            print(len(maters))
+            #print('materials=')
+            #print(maters)
+            #print('len materials=')
+            #print(len(maters))
             hasImageTexture=0
             issmooth=0
 
@@ -926,12 +936,13 @@ class x3d_class():
                     k = 1
                 vidx = edge.vertices[k] #first point of each edge
                 vx = mesh_vertices[vidx]
-                cstr = cstr + "%s %s," % (round(vx.co[0],self.tp), round(vx.co[1],self.tp))
+                #print('vx= %f %f rnd= %f %f str= %s %s' % (vx.co[0],vx.co[1],round(vx.co[0]),round(vx.co[1]),vx.co[0],vx.co[1]))
+                cstr = cstr + "%s %s," % (round(vx.co[0],self.vp), round(vx.co[1],self.vp))
                 if edge == last and last != seq[0]:
                     #if not closed polygon, write out last point
                     vidx = edge.vertices[1-k] #last point of last edge
                     vx = mesh_vertices[vidx]
-                    cstr = cstr + "%s %s," % (round(vx.co[0],self.tp), round(vx.co[1],self.tp))
+                    cstr = cstr + "%s %s," % (round(vx.co[0],self.vp), round(vx.co[1],self.vp))
             ifs.setAttribute('lineSegments',cstr)
             shp.appendChild(ifs)
         for edge in mesh_edges:
@@ -1308,7 +1319,7 @@ class x3d_class():
         matw = self.doc.createElement("Transform")
         matw.setAttribute('DEF','MATWORLD')
         """ rotation="-1.000000 0.000000 0.000000 1.570796"> """
-        matw.setAttribute('rotation',"-1.000000 0.000000 0.000000 1.570796")
+        #matw.setAttribute('rotation',"-1.000000 0.000000 0.000000 1.570796")
         x3dscene.appendChild(matw)
         x3dscene = matw
 
