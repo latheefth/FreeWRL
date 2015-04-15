@@ -525,6 +525,30 @@ if (iResult != 0) {
 	//sockwrite(sock,"hi",2);
 	return sock;
 }
+
+static char * fakepostpose = "POST /pose HTTP/1.1\r\nHost: localhost:8080\r\nConnection: keep-alive\r\nContent-Length: 100\r\nOrigin: http://localhost:8080\r\nUser-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.118 Safari/537.36\r\nContent-type: application/x-www-form-urlencoded\r\nAccept: */*\r\nReferer: http://localhost:8080/SSRClient.html\r\nAccept-Encoding: gzip, deflate\r\nAccept-Language: en-US,en;q=0.8\r\n\r\nposepose=[0, -0.9977955222129822, 0, -0.06639080494642258, -161.7969512939453, 0,284.27691650390625]";
+static char * fakepostsnap = "POST /pose HTTP/1.1\r\nHost: localhost:8080\r\nConnection: keep-alive\r\nContent-Length: 100\r\nOrigin: http://localhost:8080\r\nUser-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.118 Safari/537.36\r\nContent-type: application/x-www-form-urlencoded\r\nAccept: */*\r\nReferer: http://localhost:8080/SSRClient.html\r\nAccept-Encoding: gzip, deflate\r\nAccept-Language: en-US,en;q=0.8\r\n\r\nposesnapshot=[0, -0.9977955222129822, 0, -0.06639080494642258, -161.7969512939453, 0,284.27691650390625]";
+int build_http_post(char *post, char *host, int port, int lencontent, char *useragent, char *origin, char *referer)
+{
+	int len;
+	char *post_fmt;
+	if(0){
+		post_fmt = "POST /pose HTTP/1.1\r\nHost: %s:%d\r\nConnection: keep-alive\r\nContent-Length: %d\r\nUser-Agent: %s\r\nOrigin: %s\r\nContent-type: application/x-www-form-urlencoded\r\nAccept: */*\r\nReferer: %s\r\nAccept-Encoding: gzip, deflate\r\nAccept-Language: en-US,en;q=0.8\r\n\r\n";
+		sprintf(post, post_fmt, host, port, lencontent, useragent, origin, referer);
+	}
+	if(0){
+		post_fmt = "POST /pose HTTP/1.1\r\nHost: %s:%d\r\nConnection: keep-alive\r\nContent-Length: %d\r\nContent-type: application/x-www-form-urlencoded\r\nAccept: */*\r\nAccept-Encoding: gzip, deflate\r\nAccept-Language: en-US,en;q=0.8\r\n\r\n";
+		sprintf(post, post_fmt, host, port, lencontent);
+	}
+	if(1){
+		post_fmt = "POST /pose HTTP/1.1\r\nHost: %s:%d\r\nConnection: keep-alive\r\nContent-Length: %d\r\nContent-type: application/x-www-form-urlencoded\r\nAccept: */*\r\nAccept-Encoding: gzip, deflate\r\nAccept-Language: en-US,en;q=0.8\r\n\r\n";
+		sprintf(post, post_fmt, host, port,lencontent);
+	}
+	len = strlen(post);
+	return len;
+}
+
+
 #define BUFFER_SIZE 32768
 
 static char *request_line_format = "POST /%s HTTP/1.1\n";
@@ -573,6 +597,19 @@ if (fd == INVALID_SOCKET) {
 		//lh = strlen(temp);
 		//sockwrite(fd,temp,lh); // write(fd, char[]*, len);  
 		if(1){
+			char post[8192];
+			int lenpost;
+			int lencontent = size + strlen(key) + 1;
+			lenpost = build_http_post(post, host, atoi(port), lencontent, NULL, NULL, NULL);
+			sprintf(&post[lenpost],"%s=",key);
+			lenpost += strlen(key)+1;
+			memcpy(&post[lenpost],request,size);
+			lenpost += size;
+			memcpy(&post[lenpost],"\r\n",3);
+			printf("%s",post);
+			sockwrite(fd,post,lenpost);
+		}
+		if(0){
 			char * fakepostpose = "POST /pose HTTP/1.1\r\nHost: localhost:8080\r\nConnection: keep-alive\r\nContent-Length: 100\r\nOrigin: http://localhost:8080\r\nUser-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.118 Safari/537.36\r\nContent-type: application/x-www-form-urlencoded\r\nAccept: */*\r\nReferer: http://localhost:8080/SSRClient.html\r\nAccept-Encoding: gzip, deflate\r\nAccept-Language: en-US,en;q=0.8\r\n\r\nposepose=[0, -0.9977955222129822, 0, -0.06639080494642258, -161.7969512939453, 0,284.27691650390625]";
 
 			char * fakepostsnap = "POST /pose HTTP/1.1\r\nHost: localhost:8080\r\nConnection: keep-alive\r\nContent-Length: 100\r\nOrigin: http://localhost:8080\r\nUser-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.118 Safari/537.36\r\nContent-type: application/x-www-form-urlencoded\r\nAccept: */*\r\nReferer: http://localhost:8080/SSRClient.html\r\nAccept-Encoding: gzip, deflate\r\nAccept-Language: en-US,en;q=0.8\r\n\r\nposesnapshot=[0, -0.9977955222129822, 0, -0.06639080494642258, -161.7969512939453, 0,284.27691650390625]";
@@ -581,8 +618,10 @@ if (fd == INVALID_SOCKET) {
 				fakepost = fakepostpose;
 			else 
 				fakepost = fakepostsnap;
+
 			sockwrite(fd,fakepost,strlen(fakepost));
-		}else{
+		}
+		if(0){
 			sockwrite(fd,request_line,strlen(request_line));
 			printf("wrote request\n");
 			//lh = strlen(request_header);
@@ -649,8 +688,9 @@ if (fd == INVALID_SOCKET) {
 					if(cd) offcontent = cd - answer;
 				}
 			}
-			
-			if(li < BUFFER_SIZE -1) break;
+			if(lencontent && offcontent)
+				if(lr >= offcontent + lencontent) break;
+			//if(li < BUFFER_SIZE -1) break;
 			icount++;
 		}
  		shutdown(fd, SHUT_RDWR); 
