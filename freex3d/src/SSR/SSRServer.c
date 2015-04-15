@@ -105,6 +105,17 @@ static int running_as_zonebalancer = 0;
 #include <direct.h>
 #define chdir _chdir
 #define strcasecmp _stricmp
+WSADATA wsaData;
+void initialize_sockets(){
+	int iResult;
+	// Initialize Winsock
+	iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+	if (iResult != 0) {
+		printf("WSAStartup failed: %d\n", iResult);
+	}
+}
+#else
+void initialize_sockets(){}
 #endif
 
 //POINT IN POLY
@@ -289,6 +300,22 @@ void test_pointinpoly(){
 	}
 
 }
+void assign_ssr_by_name(){
+	zone *z;
+	ssr *s;
+	z = zones;
+	while(z){
+		z->ssr = NULL;
+		s = ssrs;
+		while(s){
+			if(!strcasecmp(z->ssrname,s->name)){
+				z->ssr = s;
+				break;
+			}
+		}
+		z = z->next;
+	}
+}
 static int testing_pointinpoly = 1;
 void load_polys(char *filename){
     xmlDocPtr doc; /* the resulting document tree */
@@ -301,10 +328,11 @@ void load_polys(char *filename){
     root_node = xmlDocGetRootElement(doc);
 	//print_element_names(root_node);
 	load_zone_elements(root_node);
+	assign_ssr_by_name();
     xmlFreeDoc(doc);	
 	if(testing_pointinpoly)
 		test_pointinpoly();
-
+	printf("done test_pointinpoly\n");
 }
 //<<<<<<<<===ZONE BALANCER===========
 
@@ -417,12 +445,323 @@ static char* getSnapshot(int *len){
 	return blob;
 
 }
+#ifdef WIN32
+	#ifndef WIN32_LEAN_AND_MEAN
+		#define WIN32_LEAN_AND_MEAN
+	#endif
+	#define strdup _strdup
+	#include <winsock2.h>	
+	#include <ws2tcpip.h> /* for TCPIP - are we using tcp? */
+	#define SHUT_RDWR SD_BOTH
+	#include <windows.h>
+	#define snprintf _snprintf
+	//#define sscanf sscanf_s
+	#define STRTOK_S strtok_s
+int sockwrite(SOCKET s, const char *buf, int len){
+	return send(s,buf,len,0);
+}
+int sockread(SOCKET s, const char *buf, int len){
+	return recv(s,buf,len,0);
+}
+
+#else
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+	#include <netdb.h>
+	#define STRTOK_S strtok_r
+int sockwrite(SOCKET s, const char *buf, int len){
+	return write(s,buf,len);
+}
+int sockread(SOCKET s, const char *buf, int len){
+	return recv(s,buf,len,0);
+}
+#endif
+
+int socket_connect(char *host, int port){
+	struct hostent *hp;
+	struct sockaddr_in addr;
+	int on = 1, sock;     
+	unsigned short port16;
+	struct addrinfo *result = NULL,
+                *ptr = NULL,
+                hints;
+	int iResult;
+
+ZeroMemory( &hints, sizeof(hints) );
+hints.ai_family = AF_UNSPEC;
+hints.ai_socktype = SOCK_STREAM;
+hints.ai_protocol = IPPROTO_TCP;
+
+iResult = getaddrinfo("localhost","8081", &hints, &result);
+if (iResult != 0) {
+    printf("getaddrinfo failed: %d\n", iResult);
+    //WSACleanup();
+    return 0;
+} 
+	//if((hp = gethostbyname(host)) == NULL){
+	if((hp = gethostbyname("localhost")) == NULL){
+		perror("gethostbyname");
+		return 0;
+	}
+	//memcpy(hp->h_addr, &addr.sin_addr, hp->h_length);
+	memcpy(&addr.sin_addr,hp->h_addr, hp->h_length);
+	port16 = port; //long to unsigned short
+	addr.sin_port = htons(port); //unsigned short to network byte order
+	addr.sin_family = AF_INET;
+	sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+	setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (const char *)&on, sizeof(int));
+ 
+	if(sock == -1){
+		perror("setsockopt");
+		return 0;
+	}
+	
+	if(connect(sock, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1){
+		perror("connect");
+		return 0;
+ 
+	}
+	//write(sock,"hi",2); // write(fd, char[]*, len);
+	//sockwrite(sock,"hi",2);
+	return sock;
+}
+#define BUFFER_SIZE 32768
+
+static char *request_line_format = "POST /%s HTTP/1.1\n";
+static char *request_header_format = "Host: %s\nConnection: Keep-Alive\nAccept: */*\nAccept-Language: us-en\nContent-Length: %d\n\n";
+static char *request_line = NULL;
+static char *request_header = NULL;
+char * content_type = "Content_type: application/x-www-form-urlencoded\n";
+char * content_length_format = "Content-Length: %d\n";
+int reverse_proxy(char *host, char *port, char *ssr_command, char *key, char *request, int size, char **response) 
+{
+	int fd, li,lr;
+	char *r;
+	char buffer[BUFFER_SIZE];
+	char content_length[100];
+	if(!request_line)
+		request_line = malloc(500);
+	sprintf(request_line,request_line_format,ssr_command); //port);
+
+	if(!request_header)
+		request_header = malloc(500);
+	sprintf(request_header,request_header_format,"localhost",strlen(request));
+    *response = NULL;
+	fd = socket_connect(host, atoi(port)); 
+if (fd == INVALID_SOCKET) {
+    printf("Error at socket(): %ld\n", WSAGetLastError());
+    //freeaddrinfo(result);
+   // WSACleanup();
+    //return 1;
+	return 0;
+}
+
+	if(fd){
+		int lh;
+		char *answer, *temp;
+		int answermax = BUFFER_SIZE;
+		answer = malloc(answermax);
+
+		//POST request-URI HTTP-version
+		//Content-Type: mime-type
+		//Content-Length: number-of-bytes
+		//(other optional request headers)
+		//  
+		//(URL-encoded query string)
+
+		//temp = "POST /\r\n";
+		//lh = strlen(temp);
+		//sockwrite(fd,temp,lh); // write(fd, char[]*, len);  
+		if(1){
+			char * fakepostpose = "POST /pose HTTP/1.1\r\nHost: localhost:8080\r\nConnection: keep-alive\r\nContent-Length: 100\r\nOrigin: http://localhost:8080\r\nUser-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.118 Safari/537.36\r\nContent-type: application/x-www-form-urlencoded\r\nAccept: */*\r\nReferer: http://localhost:8080/SSRClient.html\r\nAccept-Encoding: gzip, deflate\r\nAccept-Language: en-US,en;q=0.8\r\n\r\nposepose=[0, -0.9977955222129822, 0, -0.06639080494642258, -161.7969512939453, 0,284.27691650390625]";
+
+			char * fakepostsnap = "POST /pose HTTP/1.1\r\nHost: localhost:8080\r\nConnection: keep-alive\r\nContent-Length: 100\r\nOrigin: http://localhost:8080\r\nUser-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.118 Safari/537.36\r\nContent-type: application/x-www-form-urlencoded\r\nAccept: */*\r\nReferer: http://localhost:8080/SSRClient.html\r\nAccept-Encoding: gzip, deflate\r\nAccept-Language: en-US,en;q=0.8\r\n\r\nposesnapshot=[0, -0.9977955222129822, 0, -0.06639080494642258, -161.7969512939453, 0,284.27691650390625]";
+			char *fakepost;
+			if(!strcmp(key,"posepose"))
+				fakepost = fakepostpose;
+			else 
+				fakepost = fakepostsnap;
+			sockwrite(fd,fakepost,strlen(fakepost));
+		}else{
+			sockwrite(fd,request_line,strlen(request_line));
+			printf("wrote request\n");
+			//lh = strlen(request_header);
+			lh = strlen(content_type); // = "application/x-www-form-urlencoded"
+			sockwrite(fd,content_type,lh);
+			char key_str[100];
+			sprintf(key_str,"%s=",key);
+			int lks = strlen(key_str);
+			char *wholestring = "posepose=[1.0 0.0 0.0 0.0, 1.0, 1.0, 0.0]\n";
+			int lkwhole = strlen(wholestring);
+
+			sprintf(content_length,content_length_format,lkwhole); //size+lks);
+			lh = strlen(content_length);
+			sockwrite(fd,content_length,lh);
+			printf(content_length);
+			sockwrite(fd,"\n",1); //blank line
+			sockwrite(fd,wholestring,lkwhole);
+			//sockwrite(fd,key_str,lks);
+			//sockwrite(fd,request,size);
+			//sockwrite(fd,"\n",1);
+		}
+		//shutdown(fd, SD_SEND); //shutdown the client's side of the connection (SSR server side can still send)
+		memset(buffer,0, BUFFER_SIZE); //we need \0 on the end of each read, so we can safely do strstr below
+		r = answer;
+		lr = 0;
+		int icount = 0;
+		//char *content = NULL;
+		int lencontent = 0;
+		int offcontent = 0;
+		while( li = sockread(fd, buffer, BUFFER_SIZE - 1) ){  //subtract one because we need \0 on the end for strstr below
+			if(lr + li > answermax ){
+				answermax *= 2;
+				answer = realloc(answer,answermax);
+				r = &answer[lr];
+			}
+			memcpy(r,buffer,li);
+			lr += li;
+			r += li;
+			//if(1){
+			//	//H: ssr server / libmicrohttpd isn't shutting down connection, so we hang
+			//	memset(buffer,0, BUFFER_SIZE);
+			//	li = sockread(fd, buffer, BUFFER_SIZE - 1);
+			//}else{
+			//	break; //so we'll exit after first chunk
+			//}
+			memset(buffer,0, BUFFER_SIZE);
+			if(!offcontent){
+				//first time reading, lets get the Content-Length and \n\n linebreak pointer to data
+				if(!lencontent){
+					char *cl = strstr(answer,"Content-Length:");
+					if(cl){
+						cl += strlen("Content-Length:");
+						int lc = atoi(cl);
+						lencontent = lc;
+					}
+				}
+				if(lencontent && !offcontent){
+					char *cd = strstr(answer,"\r\n\r\n"); //linebreak
+					if(cd) cd +=4;
+					if(!cd){
+						cd = strstr(answer,"\n\n");
+						if(cd) cd +=2;
+					}
+					if(cd) offcontent = cd - answer;
+				}
+			}
+			
+			if(li < BUFFER_SIZE -1) break;
+			icount++;
+		}
+ 		shutdown(fd, SHUT_RDWR); 
+		//close(fd); 	
+		if(lencontent && offcontent){
+			char *finalanswer = malloc(lencontent+1);
+			memcpy(finalanswer,&answer[offcontent],lencontent);
+			finalanswer[lencontent] = '\0';
+			lr = lencontent;
+			free(answer);
+			answer = finalanswer;
+		}
+		*response = answer;
+	}
+	return lr;
+}
+int sniff_and_foreward(char *ssr_command, char *key, char *data, int size, char **answerstring)
+{
+	int len;
+	double quat4[4];
+	double vec3[3];
+	Point posexy;
+	zone *z;
+
+	//sniff request for map coordinates
+	jsonPose2double(quat4,vec3,data);
+	posexy.x = vec3[0];
+	posexy.y = vec3[1];
+	//lookup zone 
+	z = find_zone_by_point(posexy);
+	if(!z) z = zones;
+	if(z){
+		ssr *ssri;
+		//get the host:port address of the running ssr server to forward to
+		ssri = (ssr*)z->ssr;
+		//forward request, wait for response
+		len = reverse_proxy(ssri->ip, ssri->port, ssr_command, key, data, size, answerstring);
+		//if we got a response, return it
+	}
+	return len;
+}
+
+/*zonebalancer version of iterate_post, acts like a load balancer and gateway
+1. sniffs request for geographic coords
+2. looks up SSR in zone table
+3. acts as reverse proxy and forwards request, waits for response
+4  copies response to zonebalancer response
+*/
+static int iterate_post_zb (void *coninfo_cls, enum MHD_ValueKind kind, const char *key,
+	const char *filename, const char *content_type,
+	const char *transfer_encoding, const char *data, 
+	uint64_t off, size_t size)
+{
+	struct connection_info_struct *con_info = coninfo_cls;
+	printf("Key=%s\n",key);
+	printf("filename=%s\n",filename);
+	printf("content_type=%s\n",content_type);
+	printf("transfer_encoding=%s\n",transfer_encoding);
+	printf("data=%s\n",data);
+	if (0 == strcmp (key, "posepose"))
+	{
+		if ((size > 0) && (size <= MAXPOSESIZE)) //MAXNAMESIZE
+		{
+			char *answerstring;
+			int len;
+			SSR_request ssr_req;
+
+			//answerstring = malloc (MAXANSWERSIZE);
+			answerstring = NULL;
+			ssr_req.type = SSR_POSEPOSE;
+			len = sniff_and_foreward("pose",key,data,size,&answerstring);
+			con_info->answerstring = answerstring;  
+			con_info->len = len;    
+		} 
+		else con_info->answerstring = NULL;
+
+		return MHD_NO;
+	}
+	if (0 == strcmp (key, "posesnapshot"))
+	{
+		if ((size > 0) && (size <= MAXPOSESIZE)) //MAXNAMESIZE
+		{
+   			char *answerstring;
+			int len;
+			SSR_request ssr_req;
+			ssr_req.type = SSR_POSESNAPSHOT;
+			answerstring = NULL;
+			len = sniff_and_foreward("pose",key,data,size,&answerstring);
+			con_info->answerstring = answerstring;  
+			con_info->len = len;    
+		} 
+		else con_info->answerstring = NULL;
+
+		return MHD_NO;
+	}
+
+	return MHD_YES;
+}
+
+
 static int iterate_post (void *coninfo_cls, enum MHD_ValueKind kind, const char *key,
 	const char *filename, const char *content_type,
 	const char *transfer_encoding, const char *data, 
 	uint64_t off, size_t size)
 {
 	struct connection_info_struct *con_info = coninfo_cls;
+	printf("Key=%s\n",key);
+	printf("filename=%s\n",filename);
+	printf("content_type=%s\n",content_type);
+	printf("transfer_encoding=%s\n",transfer_encoding);
+	printf("data=%s\n",data);
 
 	if (0 == strcmp (key, "posepose"))
 	{
@@ -514,6 +853,10 @@ static int answer_to_connection (void *cls, struct MHD_Connection *connection,
 	const char *upload_data, 
 	size_t *upload_data_size, void **con_cls)
 {
+	printf("\nurl=%s\n",url);
+	printf("method=%s\n",method);
+	printf("version=%s\n",version);
+	printf("upload_data=%s\n",upload_data);
 	if(NULL == *con_cls) 
 	{
 		struct connection_info_struct *con_info;
@@ -525,8 +868,12 @@ static int answer_to_connection (void *cls, struct MHD_Connection *connection,
 
 		if (0 == strcmp (method, "POST")) 
 		{      
-			con_info->postprocessor = MHD_create_post_processor (connection, POSTBUFFERSIZE, 
-				iterate_post, (void*) con_info);   
+			if(running_as_zonebalancer)
+				con_info->postprocessor = MHD_create_post_processor (connection, POSTBUFFERSIZE, 
+					iterate_post_zb, (void*) con_info);   
+			else
+				con_info->postprocessor = MHD_create_post_processor (connection, POSTBUFFERSIZE, 
+					iterate_post, (void*) con_info);   
 			if (NULL == con_info->postprocessor) 
 			{
 				free (con_info); 
@@ -625,6 +972,9 @@ static int ahc_echo(void * cls,
 		//POST handler - we'll come in here for our special goodies:
 		// come in with viewpoint pose matrix, leave with screen snapshot and updated pose matrix
 		printf("url=%s\n",url);
+		printf("method=%s\n",method);
+		printf("version=%s\n",version);
+		printf("upload_data=%s\n",upload_data);
 	}
 
 	if(!strcmp(method, "GET"))
@@ -708,6 +1058,7 @@ SSRServer.exe 8080 --zonebalancer
 */
 	struct MHD_Daemon * d;
 	char *portstr, *url;
+	int iaction;
 	if (argc < 2) {
 		portstr = "8080";
 		printf("%s PORT\n",portstr);
@@ -722,10 +1073,14 @@ SSRServer.exe 8080 --zonebalancer
 			if(!strcmp(url,"--zonebalancer")){
 				load_polys("..\\zonebalancer.xml");
 				running_as_zonebalancer = 1;
+				initialize_sockets();
 			}
 		}
 	}
-	if(0) {
+	iaction = 2;
+	if(running_as_zonebalancer)
+		iaction = 2;
+	if(iaction == 1) {
 		//simple echo of incoming request
 		d = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION,
 			atoi(portstr),
@@ -735,7 +1090,7 @@ SSRServer.exe 8080 --zonebalancer
 			PAGE,
 			MHD_OPTION_END);
 	}
-	if(1){
+	if(iaction == 2){
 		//our special SSRServer request handler
 		d = MHD_start_daemon (MHD_USE_THREAD_PER_CONNECTION, //MHD_USE_SELECT_INTERNALLY
 			atoi(portstr), //PORT, 
@@ -750,7 +1105,8 @@ SSRServer.exe 8080 --zonebalancer
 	}
 	if (d == NULL)
 		return 1;
-	runFW(url);
+	if(!running_as_zonebalancer)
+		runFW(url);
 	printf("Press Enter to stop libmicrohttp deamon and exit:");
 	getchar();
 	stopFW();
