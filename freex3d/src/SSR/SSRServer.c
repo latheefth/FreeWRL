@@ -312,6 +312,7 @@ void assign_ssr_by_name(){
 				z->ssr = s;
 				break;
 			}
+			s = s->next;
 		}
 		z = z->next;
 	}
