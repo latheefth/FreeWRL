@@ -527,24 +527,14 @@ if (iResult != 0) {
 	return sock;
 }
 
-static char * fakepostpose = "POST /pose HTTP/1.1\r\nHost: localhost:8080\r\nConnection: keep-alive\r\nContent-Length: 100\r\nOrigin: http://localhost:8080\r\nUser-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.118 Safari/537.36\r\nContent-type: application/x-www-form-urlencoded\r\nAccept: */*\r\nReferer: http://localhost:8080/SSRClient.html\r\nAccept-Encoding: gzip, deflate\r\nAccept-Language: en-US,en;q=0.8\r\n\r\nposepose=[0, -0.9977955222129822, 0, -0.06639080494642258, -161.7969512939453, 0,284.27691650390625]";
-static char * fakepostsnap = "POST /pose HTTP/1.1\r\nHost: localhost:8080\r\nConnection: keep-alive\r\nContent-Length: 100\r\nOrigin: http://localhost:8080\r\nUser-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.118 Safari/537.36\r\nContent-type: application/x-www-form-urlencoded\r\nAccept: */*\r\nReferer: http://localhost:8080/SSRClient.html\r\nAccept-Encoding: gzip, deflate\r\nAccept-Language: en-US,en;q=0.8\r\n\r\nposesnapshot=[0, -0.9977955222129822, 0, -0.06639080494642258, -161.7969512939453, 0,284.27691650390625]";
+//static char * fakepostpose = "POST /pose HTTP/1.1\r\nHost: localhost:8080\r\nConnection: keep-alive\r\nContent-Length: 100\r\nOrigin: http://localhost:8080\r\nUser-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.118 Safari/537.36\r\nContent-type: application/x-www-form-urlencoded\r\nAccept: */*\r\nReferer: http://localhost:8080/SSRClient.html\r\nAccept-Encoding: gzip, deflate\r\nAccept-Language: en-US,en;q=0.8\r\n\r\nposepose=[0, -0.9977955222129822, 0, -0.06639080494642258, -161.7969512939453, 0,284.27691650390625]";
+//static char * fakepostsnap = "POST /pose HTTP/1.1\r\nHost: localhost:8080\r\nConnection: keep-alive\r\nContent-Length: 100\r\nOrigin: http://localhost:8080\r\nUser-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.118 Safari/537.36\r\nContent-type: application/x-www-form-urlencoded\r\nAccept: */*\r\nReferer: http://localhost:8080/SSRClient.html\r\nAccept-Encoding: gzip, deflate\r\nAccept-Language: en-US,en;q=0.8\r\n\r\nposesnapshot=[0, -0.9977955222129822, 0, -0.06639080494642258, -161.7969512939453, 0,284.27691650390625]";
 int build_http_post(char *post, char *host, int port, int lencontent, char *useragent, char *origin, char *referer)
 {
 	int len;
 	char *post_fmt;
-	if(0){
-		post_fmt = "POST /pose HTTP/1.1\r\nHost: %s:%d\r\nConnection: keep-alive\r\nContent-Length: %d\r\nUser-Agent: %s\r\nOrigin: %s\r\nContent-type: application/x-www-form-urlencoded\r\nAccept: */*\r\nReferer: %s\r\nAccept-Encoding: gzip, deflate\r\nAccept-Language: en-US,en;q=0.8\r\n\r\n";
-		sprintf(post, post_fmt, host, port, lencontent, useragent, origin, referer);
-	}
-	if(0){
-		post_fmt = "POST /pose HTTP/1.1\r\nHost: %s:%d\r\nConnection: keep-alive\r\nContent-Length: %d\r\nContent-type: application/x-www-form-urlencoded\r\nAccept: */*\r\nAccept-Encoding: gzip, deflate\r\nAccept-Language: en-US,en;q=0.8\r\n\r\n";
-		sprintf(post, post_fmt, host, port, lencontent);
-	}
-	if(1){
-		post_fmt = "POST /pose HTTP/1.1\r\nHost: %s:%d\r\nConnection: keep-alive\r\nContent-Length: %d\r\nContent-type: application/x-www-form-urlencoded\r\nAccept: */*\r\nAccept-Encoding: gzip, deflate\r\nAccept-Language: en-US,en;q=0.8\r\n\r\n";
-		sprintf(post, post_fmt, host, port,lencontent);
-	}
+	post_fmt = "POST /pose HTTP/1.1\r\nHost: %s:%d\r\nConnection: keep-alive\r\nContent-Length: %d\r\nContent-type: application/x-www-form-urlencoded\r\nAccept: */*\r\nAccept-Encoding: gzip, deflate\r\nAccept-Language: en-US,en;q=0.8\r\n\r\n";
+	sprintf(post, post_fmt, host, port,lencontent);
 	len = strlen(post);
 	return len;
 }
@@ -552,25 +542,25 @@ int build_http_post(char *post, char *host, int port, int lencontent, char *user
 
 #define BUFFER_SIZE 32768
 
-static char *request_line_format = "POST /%s HTTP/1.1\n";
-static char *request_header_format = "Host: %s\nConnection: Keep-Alive\nAccept: */*\nAccept-Language: us-en\nContent-Length: %d\n\n";
-static char *request_line = NULL;
-static char *request_header = NULL;
-char * content_type = "Content_type: application/x-www-form-urlencoded\n";
-char * content_length_format = "Content-Length: %d\n";
+//static char *request_line_format = "POST /%s HTTP/1.1\n";
+//static char *request_header_format = "Host: %s\nConnection: Keep-Alive\nAccept: */*\nAccept-Language: us-en\nContent-Length: %d\n\n";
+//static char *request_line = NULL;
+//static char *request_header = NULL;
+//char * content_type = "Content_type: application/x-www-form-urlencoded\n";
+//char * content_length_format = "Content-Length: %d\n";
 int reverse_proxy(char *host, char *port, char *ssr_command, char *key, char *request, int size, char **response) 
 {
 	int fd, li,lr;
 	char *r;
 	char buffer[BUFFER_SIZE];
 	char content_length[100];
-	if(!request_line)
-		request_line = malloc(500);
-	sprintf(request_line,request_line_format,ssr_command); //port);
+	//if(!request_line)
+	//	request_line = malloc(500);
+	//sprintf(request_line,request_line_format,ssr_command); //port);
 
-	if(!request_header)
-		request_header = malloc(500);
-	sprintf(request_header,request_header_format,"localhost",strlen(request));
+	//if(!request_header)
+	//	request_header = malloc(500);
+	//sprintf(request_header,request_header_format,"localhost",strlen(request));
     *response = NULL;
 	fd = socket_connect(host, atoi(port)); 
 if (fd == INVALID_SOCKET) {
@@ -594,9 +584,6 @@ if (fd == INVALID_SOCKET) {
 		//  
 		//(URL-encoded query string)
 
-		//temp = "POST /\r\n";
-		//lh = strlen(temp);
-		//sockwrite(fd,temp,lh); // write(fd, char[]*, len);  
 		if(1){
 			char post[8192];
 			int lenpost;
@@ -607,43 +594,10 @@ if (fd == INVALID_SOCKET) {
 			memcpy(&post[lenpost],request,size);
 			lenpost += size;
 			memcpy(&post[lenpost],"\r\n",3);
-			printf("%s",post);
+			//printf("%s",post);
 			sockwrite(fd,post,lenpost);
 		}
-		if(0){
-			char * fakepostpose = "POST /pose HTTP/1.1\r\nHost: localhost:8080\r\nConnection: keep-alive\r\nContent-Length: 100\r\nOrigin: http://localhost:8080\r\nUser-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.118 Safari/537.36\r\nContent-type: application/x-www-form-urlencoded\r\nAccept: */*\r\nReferer: http://localhost:8080/SSRClient.html\r\nAccept-Encoding: gzip, deflate\r\nAccept-Language: en-US,en;q=0.8\r\n\r\nposepose=[0, -0.9977955222129822, 0, -0.06639080494642258, -161.7969512939453, 0,284.27691650390625]";
-
-			char * fakepostsnap = "POST /pose HTTP/1.1\r\nHost: localhost:8080\r\nConnection: keep-alive\r\nContent-Length: 100\r\nOrigin: http://localhost:8080\r\nUser-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.118 Safari/537.36\r\nContent-type: application/x-www-form-urlencoded\r\nAccept: */*\r\nReferer: http://localhost:8080/SSRClient.html\r\nAccept-Encoding: gzip, deflate\r\nAccept-Language: en-US,en;q=0.8\r\n\r\nposesnapshot=[0, -0.9977955222129822, 0, -0.06639080494642258, -161.7969512939453, 0,284.27691650390625]";
-			char *fakepost;
-			if(!strcmp(key,"posepose"))
-				fakepost = fakepostpose;
-			else 
-				fakepost = fakepostsnap;
-
-			sockwrite(fd,fakepost,strlen(fakepost));
-		}
-		if(0){
-			sockwrite(fd,request_line,strlen(request_line));
-			printf("wrote request\n");
-			//lh = strlen(request_header);
-			lh = strlen(content_type); // = "application/x-www-form-urlencoded"
-			sockwrite(fd,content_type,lh);
-			char key_str[100];
-			sprintf(key_str,"%s=",key);
-			int lks = strlen(key_str);
-			char *wholestring = "posepose=[1.0 0.0 0.0 0.0, 1.0, 1.0, 0.0]\n";
-			int lkwhole = strlen(wholestring);
-
-			sprintf(content_length,content_length_format,lkwhole); //size+lks);
-			lh = strlen(content_length);
-			sockwrite(fd,content_length,lh);
-			printf(content_length);
-			sockwrite(fd,"\n",1); //blank line
-			sockwrite(fd,wholestring,lkwhole);
-			//sockwrite(fd,key_str,lks);
-			//sockwrite(fd,request,size);
-			//sockwrite(fd,"\n",1);
-		}
+		//I learned http uses content-length rather than shutdown signals to end recv loop
 		//shutdown(fd, SD_SEND); //shutdown the client's side of the connection (SSR server side can still send)
 		memset(buffer,0, BUFFER_SIZE); //we need \0 on the end of each read, so we can safely do strstr below
 		r = answer;
@@ -661,13 +615,6 @@ if (fd == INVALID_SOCKET) {
 			memcpy(r,buffer,li);
 			lr += li;
 			r += li;
-			//if(1){
-			//	//H: ssr server / libmicrohttpd isn't shutting down connection, so we hang
-			//	memset(buffer,0, BUFFER_SIZE);
-			//	li = sockread(fd, buffer, BUFFER_SIZE - 1);
-			//}else{
-			//	break; //so we'll exit after first chunk
-			//}
 			memset(buffer,0, BUFFER_SIZE);
 			if(!offcontent){
 				//first time reading, lets get the Content-Length and \n\n linebreak pointer to data
@@ -691,11 +638,10 @@ if (fd == INVALID_SOCKET) {
 			}
 			if(lencontent && offcontent)
 				if(lr >= offcontent + lencontent) break;
-			//if(li < BUFFER_SIZE -1) break;
 			icount++;
 		}
  		shutdown(fd, SHUT_RDWR); 
-		//close(fd); 	
+		//closesocket(fd); 	//might need this
 		if(lencontent && offcontent){
 			char *finalanswer = malloc(lencontent+1);
 			memcpy(finalanswer,&answer[offcontent],lencontent);
@@ -746,11 +692,13 @@ static int iterate_post_zb (void *coninfo_cls, enum MHD_ValueKind kind, const ch
 	uint64_t off, size_t size)
 {
 	struct connection_info_struct *con_info = coninfo_cls;
-	printf("Key=%s\n",key);
-	printf("filename=%s\n",filename);
-	printf("content_type=%s\n",content_type);
-	printf("transfer_encoding=%s\n",transfer_encoding);
-	printf("data=%s\n",data);
+	if(0){
+		printf("Key=%s\n",key);
+		printf("filename=%s\n",filename);
+		printf("content_type=%s\n",content_type);
+		printf("transfer_encoding=%s\n",transfer_encoding);
+		printf("data=%s\n",data);
+	}
 	if (0 == strcmp (key, "posepose"))
 	{
 		if ((size > 0) && (size <= MAXPOSESIZE)) //MAXNAMESIZE
@@ -798,12 +746,13 @@ static int iterate_post (void *coninfo_cls, enum MHD_ValueKind kind, const char 
 	uint64_t off, size_t size)
 {
 	struct connection_info_struct *con_info = coninfo_cls;
-	printf("Key=%s\n",key);
-	printf("filename=%s\n",filename);
-	printf("content_type=%s\n",content_type);
-	printf("transfer_encoding=%s\n",transfer_encoding);
-	printf("data=%s\n",data);
-
+	if(0){
+		printf("Key=%s\n",key);
+		printf("filename=%s\n",filename);
+		printf("content_type=%s\n",content_type);
+		printf("transfer_encoding=%s\n",transfer_encoding);
+		printf("data=%s\n",data);
+	}
 	if (0 == strcmp (key, "posepose"))
 	{
 		if ((size > 0) && (size <= MAXPOSESIZE)) //MAXNAMESIZE
@@ -894,10 +843,12 @@ static int answer_to_connection (void *cls, struct MHD_Connection *connection,
 	const char *upload_data, 
 	size_t *upload_data_size, void **con_cls)
 {
-	printf("\nurl=%s\n",url);
-	printf("method=%s\n",method);
-	printf("version=%s\n",version);
-	printf("upload_data=%s\n",upload_data);
+	if(0){
+		printf("\nurl=%s\n",url);
+		printf("method=%s\n",method);
+		printf("version=%s\n",version);
+		printf("upload_data=%s\n",upload_data);
+	}
 	if(NULL == *con_cls) 
 	{
 		struct connection_info_struct *con_info;
@@ -1092,10 +1043,15 @@ int main0(int argc, char ** argv) {
 /* 
 How to run SSR Server
 SSRServer.exe 8081 "C:/myscenes/sceneA.x3d"
+- use a different port for each SSR
 
 How to run ZoneBalancer:
 SSRServer.exe 8080 --zonebalancer
 	- it attempts to read zonebalancer.xml from the folder above the current working directory
+		- in xml, it says how many SSRs, and what geographic zones each SSR covers
+		- a zone is demarcated with a polygon
+	- then your html client will talk to zonebalancer, and zonebalancer will talk to the SSRs
+	- currently zonebalancer doesn't launch -or kill- SSRs, you need to do each of those some other way, such as shell script
 */
 	struct MHD_Daemon * d;
 	char *portstr, *url;
@@ -1150,7 +1106,8 @@ SSRServer.exe 8080 --zonebalancer
 		runFW(url);
 	printf("Press Enter to stop libmicrohttp deamon and exit:");
 	getchar();
-	stopFW();
+	if(!running_as_zonebalancer)
+		stopFW();
 	MHD_stop_daemon(d);
 	return 0;
 }
