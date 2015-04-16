@@ -2,6 +2,7 @@
 /*	win32: include the headers of your operating system that define the size_t, fd_set, socklen_t and struct sockaddr data types and define MHD_PLATFORM_H
 	linux: don't define MHD_PLATFORM_H and it will figure it out
 	license MIT or similar - hack away, have fun
+
 	SSR - server-side rendering - the user drags on a webgl canvas featuring a simple grid, and when
 		they lift their mousebutton/touchfinger the client code ajaxes (asynchronous javascript and xml, via xmlhttprequest)
 		the viewpoint pose to the server
@@ -20,6 +21,34 @@
 		* tested with free noip.com account, which re-directed to home server computer behind DSL modem
 			- DSL modem had settings Advanced > DDNS (dynamic dns) > no-ip auto-update feature,
 				and PortForwarding (set to our chosen PORT  8080 on WAN and LAN)
+	Apr 10, 2015:
+		* ZoneBalancer:
+			- will be adding a geographic zoneserver/loadbalancer/reverseproxy/gateway
+			- ZoneBalancer acts as a gateway between LAN and internet
+			- gets request from an internet client
+			- sniffs the request content for geographic coords
+			- looks up in a table of {polygon,IP:PORT} using point-in-polygon algorithm 
+				to determine which zone polygon the client's viewer is in, then uses 
+				the associated IP and port number to call regular SSRserver,
+				wait for response, then relay response back to internet client
+			- benefit: more CPUs, GPUs and memory slots can be used for very large 3D datasets
+				allowing the solution to scale up using ordinary desktop computers which these days 
+				have 32GB RAM limit (4x8GB). So if your data has a 96GB footprint in memory, you could use
+				3 SSRservers and 1 ZoneBalancer to distribute the load
+			- for programmer convenience the ZoneBalancer will be just a runtime configuration of SSRserver
+		In SSRserver.c response handler pseudocode:
+		if( static html) {
+			serve directly (ie SSRClient.html)
+		} else if working as SSRserver {
+			render snapshot and return response - the original SSRserver configuration
+		} else if working as zone balancer {
+			1. sniff request for geographic coords of client's ViewPose/avatar
+			2. do point-in-polygon on a list of polygons to determine which zone the avatar is in
+				and which IP:Port / SSRServer instance to relay to
+			3. open a TCP connection using sockets, and forward the request
+			4. wait for response from SSR on the ZoneBalancer's request handler thread
+			5. when response arrives, copy it to the zoneBalancer's response and return response to client
+		}
 */
 
 
@@ -69,6 +98,244 @@ int stopFW(){
 		dllFreeWRL_onClose(fwctx);
 	return 0;
 }
+
+//=========ZONE BALANCER==>>>>>>>>>>>>
+static int running_as_zonebalancer = 0;
+#ifdef _MSC_VER
+#include <direct.h>
+#define chdir _chdir
+#define strcasecmp _stricmp
+WSADATA wsaData;
+void initialize_sockets(){
+	int iResult;
+	// Initialize Winsock
+	iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+	if (iResult != 0) {
+		printf("WSAStartup failed: %d\n", iResult);
+	}
+}
+#else
+void initialize_sockets(){}
+#endif
+
+//POINT IN POLY
+typedef struct Point {
+	double x;
+	double y;
+} Point;
+
+typedef struct zone {
+	char *name;
+	Point center;
+	Point *poly;
+	int n;
+	char * ssrname;
+	void * ssr;
+	void * next;
+} zone;
+typedef struct ssr {
+	char *name;
+	char *ip;
+	char *port;
+	void *next;
+} ssr;
+static zone *zones = NULL;
+static ssr *ssrs = NULL;
+void ssr_list_add(ssr *s){
+	if(!ssrs){
+		ssrs = s;
+		s->next = NULL;
+	}else{
+		ssr *cur = ssrs;
+		while(cur->next)
+			cur = cur->next;
+		cur->next = s;
+		s->next = NULL;
+	}
+}
+void zone_list_add(zone *z){
+	if(!zones){
+		zones = z;
+		z->next = NULL;
+	}else{
+		zone *cur = zones;
+		while(cur->next)
+			cur = cur->next;
+		cur->next = z;
+		z->next = NULL;
+	}
+}
+
+
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+static void print_element_names(xmlNode * a_node)
+{
+    xmlNode *cur_node = NULL;
+
+    for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
+        if (cur_node->type == XML_ELEMENT_NODE) {
+			struct _xmlAttr *cp;
+            printf("node type: Element, name: %s\n", cur_node->name);
+			for(cp = cur_node->properties; cp; cp = cp->next) {
+				// http://www.xmlsoft.org/html/libxml-tree.html
+				printf("\tname=%s value=%s\n",cp->name,xmlGetNoNsProp(cur_node,cp->name));
+			}
+        }
+
+        print_element_names(cur_node->children);
+    }
+}
+
+static void load_zone_elements(xmlNode * a_node)
+{
+    xmlNode *cur_node = NULL;
+
+    for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
+        if (cur_node->type == XML_ELEMENT_NODE) {
+			struct _xmlAttr *cp;
+			char *value;
+            printf("node type: Element, name: %s\n", cur_node->name);
+			if(!strcasecmp(cur_node->name,"zone")){
+				//add to zone list
+				zone *z = malloc(sizeof(zone));
+				for(cp = cur_node->properties; cp; cp = cp->next) {
+					// http://www.xmlsoft.org/html/libxml-tree.html
+					value = xmlGetNoNsProp(cur_node,cp->name);
+					printf("\tname=%s value=%s\n",cp->name,value);
+					if(!strcasecmp(cp->name,"ssr")){
+						z->ssrname = strdup(value);
+					}else if(!strcmp(cp->name,"name")){
+						z->name = strdup(value);
+					}else if(!strcasecmp(cp->name,"center")){
+						double x,y,zz;
+						sscanf(value,"%lf %lf %lf",&x,&y,&zz);
+						z->center.x = x;
+						z->center.y = y; 
+					}else if(!strcasecmp(cp->name,"polygon")){
+						double x,y;
+						Point points[1000];
+						int n, m;
+						char *p, *q;
+						q = value;
+						n = 0;
+						while(q){
+							m = sscanf(q,"%lf %lf",&x,&y);
+							if(m==2){
+								points[n].x = x;
+								points[n].y = y;
+								n++;
+							}else{
+								break;
+							}
+							q = strchr(q,',');
+							if(!q) break;
+							q++;
+						}
+						z->n = n;
+						z->poly = malloc(n*sizeof(Point));
+						memcpy(z->poly,points,n*sizeof(Point));
+					}
+				}
+
+				zone_list_add(z);
+			}else if(!strcasecmp(cur_node->name,"ssrserver")){
+				//add to ssr list
+				ssr *s = malloc(sizeof(ssr));
+				for(cp = cur_node->properties; cp; cp = cp->next) {
+					value = xmlGetNoNsProp(cur_node,cp->name);
+					printf("\tname=%s value=%s\n",cp->name,value);
+					if(!strcasecmp(cp->name,"name")){
+						s->name = strdup(value);
+					}else if(!strcasecmp(cp->name,"ip")){
+						s->ip = strdup(value);
+					}else if(!strcasecmp(cp->name,"port")){
+						s->port = strdup(value);
+					}
+				}
+				ssr_list_add(s);
+			}
+        }
+		//recurse
+        load_zone_elements(cur_node->children);
+    }
+}
+zone *find_zone_by_name(char *name){
+	zone *z = zones;
+	while(z){
+		if(!strcmp(z->name,name))
+			break;
+		z=z->next;
+	}
+	return z;
+}
+int cn_PnPoly( Point P, Point *V, int n );
+zone *find_zone_by_point(Point P){
+	int inside;
+	zone *z;
+	z = zones;
+	while(z){
+		inside = cn_PnPoly( P, z->poly, z->n -1 );
+		if(inside)
+			break;
+		z = z->next;
+	}
+	return z;
+}
+void test_pointinpoly(){
+	zone *z, *zn;
+	int inside;
+	Point p;
+	zn = find_zone_by_name("StrandEnDuin"); //("Afrikaanderwuk");
+	z = NULL;
+	if(zn){
+		p.x = zn->center.x;
+		p.y = zn->center.y;
+		z = find_zone_by_point(p);
+		if(z){
+			printf("inside polygon %s\n",z->name);
+		}else{
+			printf("polygon not found\n");
+		}
+	}
+
+}
+void assign_ssr_by_name(){
+	zone *z;
+	ssr *s;
+	z = zones;
+	while(z){
+		z->ssr = NULL;
+		s = ssrs;
+		while(s){
+			if(!strcasecmp(z->ssrname,s->name)){
+				z->ssr = s;
+				break;
+			}
+			s = s->next;
+		}
+		z = z->next;
+	}
+}
+static int testing_pointinpoly = 1;
+void load_polys(char *filename){
+    xmlDocPtr doc; /* the resulting document tree */
+    xmlNodePtr root_node = NULL, node = NULL, node1 = NULL;/* node pointers */
+    doc = xmlReadFile(filename, NULL, 0);
+    if (doc == NULL) {
+        fprintf(stderr, "Failed to parse %s\n", filename);
+	return;
+    }
+    root_node = xmlDocGetRootElement(doc);
+	//print_element_names(root_node);
+	load_zone_elements(root_node);
+	assign_ssr_by_name();
+    xmlFreeDoc(doc);	
+	if(testing_pointinpoly)
+		test_pointinpoly();
+	printf("done test_pointinpoly\n");
+}
+//<<<<<<<<===ZONE BALANCER===========
 
 
 
@@ -179,13 +446,313 @@ static char* getSnapshot(int *len){
 	return blob;
 
 }
+#ifdef WIN32
+	#ifndef WIN32_LEAN_AND_MEAN
+		#define WIN32_LEAN_AND_MEAN
+	#endif
+	#define strdup _strdup
+	#include <winsock2.h>	
+	#include <ws2tcpip.h> /* for TCPIP - are we using tcp? */
+	#define SHUT_RDWR SD_BOTH
+	#include <windows.h>
+	#define snprintf _snprintf
+	//#define sscanf sscanf_s
+	#define STRTOK_S strtok_s
+int sockwrite(SOCKET s, const char *buf, int len){
+	return send(s,buf,len,0);
+}
+int sockread(SOCKET s, const char *buf, int len){
+	return recv(s,buf,len,0);
+}
+
+#else
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+	#include <netdb.h>
+	#define STRTOK_S strtok_r
+int sockwrite(SOCKET s, const char *buf, int len){
+	return write(s,buf,len);
+}
+int sockread(SOCKET s, const char *buf, int len){
+	return recv(s,buf,len,0);
+}
+#endif
+
+int socket_connect(char *host, int port){
+	struct hostent *hp;
+	struct sockaddr_in addr;
+	int on = 1, sock;     
+	unsigned short port16;
+	struct addrinfo *result = NULL,
+                *ptr = NULL,
+                hints;
+	int iResult;
+
+ZeroMemory( &hints, sizeof(hints) );
+hints.ai_family = AF_UNSPEC;
+hints.ai_socktype = SOCK_STREAM;
+hints.ai_protocol = IPPROTO_TCP;
+
+iResult = getaddrinfo("localhost","8081", &hints, &result);
+if (iResult != 0) {
+    printf("getaddrinfo failed: %d\n", iResult);
+    //WSACleanup();
+    return 0;
+} 
+	//if((hp = gethostbyname(host)) == NULL){
+	if((hp = gethostbyname("localhost")) == NULL){
+		perror("gethostbyname");
+		return 0;
+	}
+	//memcpy(hp->h_addr, &addr.sin_addr, hp->h_length);
+	memcpy(&addr.sin_addr,hp->h_addr, hp->h_length);
+	port16 = port; //long to unsigned short
+	addr.sin_port = htons(port); //unsigned short to network byte order
+	addr.sin_family = AF_INET;
+	sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+	setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (const char *)&on, sizeof(int));
+ 
+	if(sock == -1){
+		perror("setsockopt");
+		return 0;
+	}
+	
+	if(connect(sock, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1){
+		perror("connect");
+		return 0;
+ 
+	}
+	//write(sock,"hi",2); // write(fd, char[]*, len);
+	//sockwrite(sock,"hi",2);
+	return sock;
+}
+
+//static char * fakepostpose = "POST /pose HTTP/1.1\r\nHost: localhost:8080\r\nConnection: keep-alive\r\nContent-Length: 100\r\nOrigin: http://localhost:8080\r\nUser-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.118 Safari/537.36\r\nContent-type: application/x-www-form-urlencoded\r\nAccept: */*\r\nReferer: http://localhost:8080/SSRClient.html\r\nAccept-Encoding: gzip, deflate\r\nAccept-Language: en-US,en;q=0.8\r\n\r\nposepose=[0, -0.9977955222129822, 0, -0.06639080494642258, -161.7969512939453, 0,284.27691650390625]";
+//static char * fakepostsnap = "POST /pose HTTP/1.1\r\nHost: localhost:8080\r\nConnection: keep-alive\r\nContent-Length: 100\r\nOrigin: http://localhost:8080\r\nUser-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.118 Safari/537.36\r\nContent-type: application/x-www-form-urlencoded\r\nAccept: */*\r\nReferer: http://localhost:8080/SSRClient.html\r\nAccept-Encoding: gzip, deflate\r\nAccept-Language: en-US,en;q=0.8\r\n\r\nposesnapshot=[0, -0.9977955222129822, 0, -0.06639080494642258, -161.7969512939453, 0,284.27691650390625]";
+int build_http_post(char *post, char *host, int port, int lencontent, char *useragent, char *origin, char *referer)
+{
+	int len;
+	char *post_fmt;
+	post_fmt = "POST /pose HTTP/1.1\r\nHost: %s:%d\r\nConnection: keep-alive\r\nContent-Length: %d\r\nContent-type: application/x-www-form-urlencoded\r\nAccept: */*\r\nAccept-Encoding: gzip, deflate\r\nAccept-Language: en-US,en;q=0.8\r\n\r\n";
+	sprintf(post, post_fmt, host, port,lencontent);
+	len = strlen(post);
+	return len;
+}
+
+
+#define BUFFER_SIZE 32768
+
+//static char *request_line_format = "POST /%s HTTP/1.1\n";
+//static char *request_header_format = "Host: %s\nConnection: Keep-Alive\nAccept: */*\nAccept-Language: us-en\nContent-Length: %d\n\n";
+//static char *request_line = NULL;
+//static char *request_header = NULL;
+//char * content_type = "Content_type: application/x-www-form-urlencoded\n";
+//char * content_length_format = "Content-Length: %d\n";
+int reverse_proxy(char *host, char *port, char *ssr_command, char *key, char *request, int size, char **response) 
+{
+	int fd, li,lr;
+	char *r;
+	char buffer[BUFFER_SIZE];
+	char content_length[100];
+	//if(!request_line)
+	//	request_line = malloc(500);
+	//sprintf(request_line,request_line_format,ssr_command); //port);
+
+	//if(!request_header)
+	//	request_header = malloc(500);
+	//sprintf(request_header,request_header_format,"localhost",strlen(request));
+    *response = NULL;
+	fd = socket_connect(host, atoi(port)); 
+if (fd == INVALID_SOCKET) {
+    printf("Error at socket(): %ld\n", WSAGetLastError());
+    //freeaddrinfo(result);
+   // WSACleanup();
+    //return 1;
+	return 0;
+}
+
+	if(fd){
+		int lh;
+		char *answer, *temp;
+		int answermax = BUFFER_SIZE;
+		answer = malloc(answermax);
+
+		//POST request-URI HTTP-version
+		//Content-Type: mime-type
+		//Content-Length: number-of-bytes
+		//(other optional request headers)
+		//  
+		//(URL-encoded query string)
+
+		if(1){
+			char post[8192];
+			int lenpost;
+			int lencontent = size + strlen(key) + 1;
+			lenpost = build_http_post(post, host, atoi(port), lencontent, NULL, NULL, NULL);
+			sprintf(&post[lenpost],"%s=",key);
+			lenpost += strlen(key)+1;
+			memcpy(&post[lenpost],request,size);
+			lenpost += size;
+			memcpy(&post[lenpost],"\r\n",3);
+			//printf("%s",post);
+			sockwrite(fd,post,lenpost);
+		}
+		//I learned http uses content-length rather than shutdown signals to end recv loop
+		//shutdown(fd, SD_SEND); //shutdown the client's side of the connection (SSR server side can still send)
+		memset(buffer,0, BUFFER_SIZE); //we need \0 on the end of each read, so we can safely do strstr below
+		r = answer;
+		lr = 0;
+		int icount = 0;
+		//char *content = NULL;
+		int lencontent = 0;
+		int offcontent = 0;
+		while( li = sockread(fd, buffer, BUFFER_SIZE - 1) ){  //subtract one because we need \0 on the end for strstr below
+			if(lr + li > answermax ){
+				answermax *= 2;
+				answer = realloc(answer,answermax);
+				r = &answer[lr];
+			}
+			memcpy(r,buffer,li);
+			lr += li;
+			r += li;
+			memset(buffer,0, BUFFER_SIZE);
+			if(!offcontent){
+				//first time reading, lets get the Content-Length and \n\n linebreak pointer to data
+				if(!lencontent){
+					char *cl = strstr(answer,"Content-Length:");
+					if(cl){
+						cl += strlen("Content-Length:");
+						int lc = atoi(cl);
+						lencontent = lc;
+					}
+				}
+				if(lencontent && !offcontent){
+					char *cd = strstr(answer,"\r\n\r\n"); //linebreak
+					if(cd) cd +=4;
+					if(!cd){
+						cd = strstr(answer,"\n\n");
+						if(cd) cd +=2;
+					}
+					if(cd) offcontent = cd - answer;
+				}
+			}
+			if(lencontent && offcontent)
+				if(lr >= offcontent + lencontent) break;
+			icount++;
+		}
+ 		shutdown(fd, SHUT_RDWR); 
+		//closesocket(fd); 	//might need this
+		if(lencontent && offcontent){
+			char *finalanswer = malloc(lencontent+1);
+			memcpy(finalanswer,&answer[offcontent],lencontent);
+			finalanswer[lencontent] = '\0';
+			lr = lencontent;
+			free(answer);
+			answer = finalanswer;
+		}
+		*response = answer;
+	}
+	return lr;
+}
+int sniff_and_foreward(char *ssr_command, char *key, char *data, int size, char **answerstring)
+{
+	int len;
+	double quat4[4];
+	double vec3[3];
+	Point posexy;
+	zone *z;
+
+	//sniff request for map coordinates
+	jsonPose2double(quat4,vec3,data);
+	posexy.x = vec3[0];
+	posexy.y = vec3[1];
+	//lookup zone 
+	z = find_zone_by_point(posexy);
+	if(!z) z = zones;
+	if(z){
+		ssr *ssri;
+		//get the host:port address of the running ssr server to forward to
+		ssri = (ssr*)z->ssr;
+		//forward request, wait for response
+		len = reverse_proxy(ssri->ip, ssri->port, ssr_command, key, data, size, answerstring);
+		//if we got a response, return it
+	}
+	return len;
+}
+
+/*zonebalancer version of iterate_post, acts like a load balancer and gateway
+1. sniffs request for geographic coords
+2. looks up SSR in zone table
+3. acts as reverse proxy and forwards request, waits for response
+4  copies response to zonebalancer response
+*/
+static int iterate_post_zb (void *coninfo_cls, enum MHD_ValueKind kind, const char *key,
+	const char *filename, const char *content_type,
+	const char *transfer_encoding, const char *data, 
+	uint64_t off, size_t size)
+{
+	struct connection_info_struct *con_info = coninfo_cls;
+	if(0){
+		printf("Key=%s\n",key);
+		printf("filename=%s\n",filename);
+		printf("content_type=%s\n",content_type);
+		printf("transfer_encoding=%s\n",transfer_encoding);
+		printf("data=%s\n",data);
+	}
+	if (0 == strcmp (key, "posepose"))
+	{
+		if ((size > 0) && (size <= MAXPOSESIZE)) //MAXNAMESIZE
+		{
+			char *answerstring;
+			int len;
+			SSR_request ssr_req;
+
+			//answerstring = malloc (MAXANSWERSIZE);
+			answerstring = NULL;
+			ssr_req.type = SSR_POSEPOSE;
+			len = sniff_and_foreward("pose",key,data,size,&answerstring);
+			con_info->answerstring = answerstring;  
+			con_info->len = len;    
+		} 
+		else con_info->answerstring = NULL;
+
+		return MHD_NO;
+	}
+	if (0 == strcmp (key, "posesnapshot"))
+	{
+		if ((size > 0) && (size <= MAXPOSESIZE)) //MAXNAMESIZE
+		{
+   			char *answerstring;
+			int len;
+			SSR_request ssr_req;
+			ssr_req.type = SSR_POSESNAPSHOT;
+			answerstring = NULL;
+			len = sniff_and_foreward("pose",key,data,size,&answerstring);
+			con_info->answerstring = answerstring;  
+			con_info->len = len;    
+		} 
+		else con_info->answerstring = NULL;
+
+		return MHD_NO;
+	}
+
+	return MHD_YES;
+}
+
+
 static int iterate_post (void *coninfo_cls, enum MHD_ValueKind kind, const char *key,
 	const char *filename, const char *content_type,
 	const char *transfer_encoding, const char *data, 
 	uint64_t off, size_t size)
 {
 	struct connection_info_struct *con_info = coninfo_cls;
-
+	if(0){
+		printf("Key=%s\n",key);
+		printf("filename=%s\n",filename);
+		printf("content_type=%s\n",content_type);
+		printf("transfer_encoding=%s\n",transfer_encoding);
+		printf("data=%s\n",data);
+	}
 	if (0 == strcmp (key, "posepose"))
 	{
 		if ((size > 0) && (size <= MAXPOSESIZE)) //MAXNAMESIZE
@@ -276,6 +843,12 @@ static int answer_to_connection (void *cls, struct MHD_Connection *connection,
 	const char *upload_data, 
 	size_t *upload_data_size, void **con_cls)
 {
+	if(0){
+		printf("\nurl=%s\n",url);
+		printf("method=%s\n",method);
+		printf("version=%s\n",version);
+		printf("upload_data=%s\n",upload_data);
+	}
 	if(NULL == *con_cls) 
 	{
 		struct connection_info_struct *con_info;
@@ -287,8 +860,12 @@ static int answer_to_connection (void *cls, struct MHD_Connection *connection,
 
 		if (0 == strcmp (method, "POST")) 
 		{      
-			con_info->postprocessor = MHD_create_post_processor (connection, POSTBUFFERSIZE, 
-				iterate_post, (void*) con_info);   
+			if(running_as_zonebalancer)
+				con_info->postprocessor = MHD_create_post_processor (connection, POSTBUFFERSIZE, 
+					iterate_post_zb, (void*) con_info);   
+			else
+				con_info->postprocessor = MHD_create_post_processor (connection, POSTBUFFERSIZE, 
+					iterate_post, (void*) con_info);   
 			if (NULL == con_info->postprocessor) 
 			{
 				free (con_info); 
@@ -387,6 +964,9 @@ static int ahc_echo(void * cls,
 		//POST handler - we'll come in here for our special goodies:
 		// come in with viewpoint pose matrix, leave with screen snapshot and updated pose matrix
 		printf("url=%s\n",url);
+		printf("method=%s\n",method);
+		printf("version=%s\n",version);
+		printf("upload_data=%s\n",upload_data);
 	}
 
 	if(!strcmp(method, "GET"))
@@ -460,8 +1040,22 @@ static int ahc_echo(void * cls,
 // http://www.gnu.org/software/libmicrohttpd/
 // tutorials: http://www.gnu.org/software/libmicrohttpd/tutorial.html
 int main0(int argc, char ** argv) {
+/* 
+How to run SSR Server
+SSRServer.exe 8081 "C:/myscenes/sceneA.x3d"
+- use a different port for each SSR
+
+How to run ZoneBalancer:
+SSRServer.exe 8080 --zonebalancer
+	- it attempts to read zonebalancer.xml from the folder above the current working directory
+		- in xml, it says how many SSRs, and what geographic zones each SSR covers
+		- a zone is demarcated with a polygon
+	- then your html client will talk to zonebalancer, and zonebalancer will talk to the SSRs
+	- currently zonebalancer doesn't launch -or kill- SSRs, you need to do each of those some other way, such as shell script
+*/
 	struct MHD_Daemon * d;
 	char *portstr, *url;
+	int iaction;
 	if (argc < 2) {
 		portstr = "8080";
 		printf("%s PORT\n",portstr);
@@ -471,41 +1065,54 @@ int main0(int argc, char ** argv) {
 		portstr = argv[1];
 		if(argc < 3)
 			url = scene_path;
-		else
+		else{
 			url = argv[2];
+			if(!strcmp(url,"--zonebalancer")){
+				load_polys("..\\zonebalancer.xml");
+				running_as_zonebalancer = 1;
+				initialize_sockets();
+			}
+		}
 	}
-	if(0)
-	d = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION,
-		atoi(portstr),
-		NULL,
-		NULL,
-		&ahc_echo,
-		PAGE,
-		MHD_OPTION_END);
-	if(1)
-	d = MHD_start_daemon (MHD_USE_THREAD_PER_CONNECTION, //MHD_USE_SELECT_INTERNALLY
-		atoi(portstr), //PORT, 
-		NULL, 
-		NULL,
-		&answer_to_connection, 
-		PAGE, 
-		MHD_OPTION_NOTIFY_COMPLETED, 
-		&request_completed, 
-		NULL,
-		MHD_OPTION_END);
+	iaction = 2;
+	if(running_as_zonebalancer)
+		iaction = 2;
+	if(iaction == 1) {
+		//simple echo of incoming request
+		d = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION,
+			atoi(portstr),
+			NULL,
+			NULL,
+			&ahc_echo,
+			PAGE,
+			MHD_OPTION_END);
+	}
+	if(iaction == 2){
+		//our special SSRServer request handler
+		d = MHD_start_daemon (MHD_USE_THREAD_PER_CONNECTION, //MHD_USE_SELECT_INTERNALLY
+			atoi(portstr), //PORT, 
+			NULL, 
+			NULL,
+			&answer_to_connection, 
+			PAGE, 
+			MHD_OPTION_NOTIFY_COMPLETED, 
+			&request_completed, 
+			NULL,
+			MHD_OPTION_END);
+	}
 	if (d == NULL)
 		return 1;
-	runFW(url);
+	if(!running_as_zonebalancer)
+		runFW(url);
 	printf("Press Enter to stop libmicrohttp deamon and exit:");
 	getchar();
-	stopFW();
+	if(!running_as_zonebalancer)
+		stopFW();
 	MHD_stop_daemon(d);
 	return 0;
 }
-#ifdef _MSC_VER
-#include <direct.h>
-#define chdir _chdir
-#endif
+
+
 int main(int argc, char ** argv) {
 	if(strstr(argv[0],"projectfiles")){
 		//developer folders, use src/SSR/public for Client.html
