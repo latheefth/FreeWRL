@@ -4758,6 +4758,7 @@ int fwl_draw()
 		//tell worker threads to stop gracefully
 		workers_stop();
 		killNodes(); //deallocates nodes MarkForDisposed
+		// kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 		tg->threads.MainLoopQuit++;
 		break;
 	case 3:

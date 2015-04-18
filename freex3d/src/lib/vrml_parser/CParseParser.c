@@ -7034,6 +7034,7 @@ void remove_picksensor(struct X3D_Node * node);
 void delete_first(struct X3D_Node *node);
 void removeNodeFromKeySensorList(struct X3D_Node* node);
 int	unInitializeScript(struct X3D_Node *node);
+void delete_polyrep(struct X3D_Node *node);
 int unRegisterX3DAnyNode(struct X3D_Node *node){
 	/* Undo any node registration(s)
 	From GeneratedCode.c createNewX3DNode():
@@ -7069,6 +7070,9 @@ int unRegisterX3DAnyNode(struct X3D_Node *node){
 
 	//as with kill_nodes, disable scripts
 	unInitializeScript(node);
+
+	//only live scenery has polyreps prepared, remove the polyrep
+	// delete_polyrep(node);
 	return TRUE;
 }
 int print_broto_stats(int level, struct X3D_Proto *node){
@@ -7140,7 +7144,7 @@ int unregister_broto_instance(struct X3D_Proto* node){
 	}
 	return retval;
 }
-
+void freeMallocedNodeFields(struct X3D_Node* node);
 int gc_broto_instance(struct X3D_Proto* node){
 	int iret = TRUE;
 	//recurse to free subcontexts: protoInstances, externProtoInstances, Inlines (which may instance this context's protoDeclares)
@@ -7191,6 +7195,7 @@ int gc_broto_instance(struct X3D_Proto* node){
 			if(crash_challenge) 
 			for(i=0;i<vectorSize(node->__nodes);i++){
 				nx = vector_get(struct X3D_Node*,node->__nodes,i);
+				// freeMallocedNodeFields(nx);
 				FREE_IF_NZ(nx);
 			}
 			deleteVector(struct X3D_Node *,node->__nodes);

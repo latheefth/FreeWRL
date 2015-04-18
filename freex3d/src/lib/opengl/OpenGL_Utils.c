@@ -5449,6 +5449,93 @@ void unlink_node(struct X3D_Node* node)
 		}
 	}
 }
+BOOL cbFreeMallocedNonuserField(void *callbackData,struct X3D_Node* node,int jfield,
+	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,int publicfield)
+{
+	
+	if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
+		//#define FIELDTYPE_FreeWRLPTR	22
+		//#define FIELDTYPE_SFImage	23
+		if(type == FIELDTYPE_FreeWRLPTR){
+
+			FREE_IF_NZ(fieldPtr);
+		}
+		if(type == FIELDTYPE_SFImage){
+		}
+	}
+	return FALSE; //false to keep walking fields, true to break out
+}
+BOOL cbFreeMallocedUserField(void *callbackData,struct X3D_Node* node,int jfield,
+	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,int publicfield)
+{
+	if(source > 0){
+		//user field in source = {script=1, shaders etc 2, protos = 3}
+		if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
+			int isMF = type % 2;
+			if(type == FIELDTYPE_FreeWRLPTR){
+				//#define FIELDTYPE_FreeWRLPTR	22
+				FREE_IF_NZ(fieldPtr);
+			}else if(isMF){
+				//#define FIELDTYPE_SFImage	23 - it's an MFInt32
+				FREE_IF_NZ(fieldPtr->mfbool.p);
+			}
+		}
+	}
+	return FALSE; //false to keep walking fields, true to break out
+}
+struct Shader_Script *getShader(struct X3D_Node *node){
+	struct Shader_Script *shader = NULL;
+	switch(node->_nodeType)
+	{
+  		case NODE_Script:         shader =(struct Shader_Script *)(X3D_SCRIPT(node)->__scriptObj); break;
+  		case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields); break;
+  		case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields); break;
+  		case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields); break;
+	}
+	return shader;
+}
+void setShader(struct X3D_Node *node, struct Shader_Script *shader){
+	switch(node->_nodeType)
+	{
+  		case NODE_Script:         X3D_SCRIPT(node)->__scriptObj = (void *)shader; break;
+  		case NODE_ComposedShader: X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields = (void *)shader;; break;
+  		case NODE_ShaderProgram:  X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields = (void *)shader;; break;
+  		case NODE_PackagedShader: X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields = (void *)shader;; break;
+	}
+
+}
+void freeMallocedNodeFields(struct X3D_Node* node){
+	//assume node->_intern = polyrep and other common private fields are already done
+	//then this walks over node-specific fields, free-ing any malloced fields
+	//except SFNode (and SFNode contents of MFNode) which are garbage collected from 
+	//a per-broto/executioncontext node table
+	if(node){
+		int isScriptType, isBrotoType, hasUserFields;
+		isScriptType = NODE_Script || node->_nodeType == NODE_ComposedShader || node->_nodeType == NODE_ShaderProgram || node->_nodeType == NODE_PackagedShader;
+		isBrotoType = node->_nodeType == NODE_Proto; //inlines have no fields, freed elsewhere || node->_nodeType == NODE_Inline;
+		hasUserFields = isScriptType || isBrotoType;
+		if(hasUserFields){
+			walk_fields(node,cbFreeMallocedUserField,NULL);
+			if(isScriptType){
+				struct Shader_Script *shader = getShader(node);
+				if (shader){
+					deleteVector(struct Shader_Script *, shader);
+					setShader(node,NULL);
+				}
+			}else if(isBrotoType){
+				struct X3D_Proto* pnode = (struct X3D_Proto*)node;
+				struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
+				if(pstruct){
+					deleteVector(struct ProtoDefinition*,pstruct);
+					pnode->__protoDef = NULL;
+				}
+			}
+		}
+		/* free malloced public fields */
+		walk_fields(node,cbFreeMallocedNonuserField,NULL);
+	}
+}
+
 /*delete node created
 static void killNode_hide_obsolete (int index) {
 	int j=0;
