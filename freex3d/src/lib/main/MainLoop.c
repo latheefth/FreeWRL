@@ -4693,6 +4693,24 @@ void view_update0(void){
 	#endif
 	updateViewCursorStyle(getCursorStyle()); /* in fwWindow32 where cursors are loaded */
 }
+
+void end_of_run_tests(){
+	//miscalaneous malloc, buffer, resource cleanup testing at end of run
+	//press Enter on console after viewing results
+	if(0){
+		int i, notfreed, notfreedt;
+		//see if there are any opengl buffers not freed
+		notfreed = 0;
+		notfreedt = 0;
+		for(i=0;i<100000;i++){
+			if(glIsBuffer(i)) {notfreed++; printf("b%d ",i);}
+			if(glIsTexture(i)) {notfreedt++; printf("t%d ",i);}
+		}
+		printf("\ngl buffers not freed = %d\n",notfreed);
+		printf("gl textures not freed = %d\n",notfreedt);
+		getchar();
+	}
+}
 void killNodes();
 
 /* fwl_draw() call from frontend when frontend_handles_display_thread */
@@ -4757,13 +4775,14 @@ int fwl_draw()
 	case 2:
 		//tell worker threads to stop gracefully
 		workers_stop();
-		killNodes(); //deallocates nodes MarkForDisposed
-		// kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+		//killNodes(); //deallocates nodes MarkForDisposed
+		kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 		tg->threads.MainLoopQuit++;
 		break;
 	case 3:
 		//check if worker threads have exited
 		more = workers_running();
+		end_of_run_tests();
 		break;
 	}
 	return more;

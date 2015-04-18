@@ -136,7 +136,7 @@ void Viewer_init(struct tViewer *t){
 		p->StereoInitializedOnce = 1;
 		p->keychord = CHORD_XY; // default on startup
 		p->dragchord = CHORD_YAWZ;
-		p->pow5 = 1;
+		p->pow5 = 0;
 	}
 }
 //ppViewer p = (ppViewer)gglobal()->Viewer.prv;

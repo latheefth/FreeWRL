@@ -5456,11 +5456,13 @@ BOOL cbFreeMallocedNonuserField(void *callbackData,struct X3D_Node* node,int jfi
 	if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
 		//#define FIELDTYPE_FreeWRLPTR	22
 		//#define FIELDTYPE_SFImage	23
+		int isMF = type % 2;
 		if(type == FIELDTYPE_FreeWRLPTR){
 
-			FREE_IF_NZ(fieldPtr);
-		}
-		if(type == FIELDTYPE_SFImage){
+			if(0) FREE_IF_NZ(fieldPtr);
+		} else if(isMF) { 
+			//if(type == FIELDTYPE_SFImage){
+			FREE_IF_NZ(fieldPtr->mfbool.p);
 		}
 	}
 	return FALSE; //false to keep walking fields, true to break out
@@ -5474,7 +5476,7 @@ BOOL cbFreeMallocedUserField(void *callbackData,struct X3D_Node* node,int jfield
 			int isMF = type % 2;
 			if(type == FIELDTYPE_FreeWRLPTR){
 				//#define FIELDTYPE_FreeWRLPTR	22
-				FREE_IF_NZ(fieldPtr);
+				if(0) FREE_IF_NZ(fieldPtr);
 			}else if(isMF){
 				//#define FIELDTYPE_SFImage	23 - it's an MFInt32
 				FREE_IF_NZ(fieldPtr->mfbool.p);
