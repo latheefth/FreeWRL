@@ -52,7 +52,7 @@ struct Vector* newVector_(int elSize, int initSize,char *fi, int line) {
  	ret->allocn=initSize;
  	ret->data=MALLOC(void *, elSize*ret->allocn);
  	ASSERT(ret->data);
-	#ifdef DEBUG_MALLOC
+	#ifdef DEBUG_MALLOC2
 		ConsoleMessage ("vector, new  %x, data %x, size %d at %s:%d",ret, ret->data, initSize,fi,line);
 	#endif
 	

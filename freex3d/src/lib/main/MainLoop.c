@@ -4697,7 +4697,7 @@ void view_update0(void){
 void end_of_run_tests(){
 	//miscalaneous malloc, buffer, resource cleanup testing at end of run
 	//press Enter on console after viewing results
-	if(0){
+	if(1){
 		int i, notfreed, notfreedt;
 		//see if there are any opengl buffers not freed
 		notfreed = 0;

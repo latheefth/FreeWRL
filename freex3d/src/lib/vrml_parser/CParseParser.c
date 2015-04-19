@@ -7073,6 +7073,7 @@ int unRegisterX3DAnyNode(struct X3D_Node *node){
 
 	//only live scenery has polyreps prepared, remove the polyrep
 	delete_polyrep(node);
+	//deleteVector(sizeof(void*),node->_parentVector); //perhaps unlink first
 	return TRUE;
 }
 int print_broto_stats(int level, struct X3D_Proto *node){
@@ -7191,12 +7192,14 @@ int gc_broto_instance(struct X3D_Proto* node){
 			//if not, and we free() them, freewrl browser will crash - in routing, 
 			//in startofloopnodeupdates, with binding stacks - anywhere we didn't deregister/clean up
 			//which is a good test to make sure we cleaned up.
+			//Apr 2015 also crashes if the same node is listed multiple times in the __nodes list, 2nd free(node) bombs
 			int crash_challenge = 1;  
-			if(crash_challenge) 
-			for(i=0;i<vectorSize(node->__nodes);i++){
-				nx = vector_get(struct X3D_Node*,node->__nodes,i);
-				// freeMallocedNodeFields(nx);
-				FREE_IF_NZ(nx);
+			if(crash_challenge) {
+				for(i=0;i<vectorSize(node->__nodes);i++){
+					nx = vector_get(struct X3D_Node*,node->__nodes,i);
+					freeMallocedNodeFields(nx);
+					FREE_IF_NZ(nx);
+				}
 			}
 			deleteVector(struct X3D_Node *,node->__nodes);
 		}

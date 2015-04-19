@@ -5449,20 +5449,32 @@ void unlink_node(struct X3D_Node* node)
 		}
 	}
 }
-BOOL cbFreeMallocedNonuserField(void *callbackData,struct X3D_Node* node,int jfield,
+void clearASCIIString(struct Uni_String *us);
+void freeASCIIString(struct Uni_String **us);
+void clearMFString(struct Multi_String *ms);
+void freeMFString(struct Multi_String **ms);
+
+BOOL cbFreeMallocedBuiltinField(void *callbackData,struct X3D_Node* node,int jfield,
 	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,int publicfield)
 {
-	
-	if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
-		//#define FIELDTYPE_FreeWRLPTR	22
-		//#define FIELDTYPE_SFImage	23
-		int isMF = type % 2;
-		if(type == FIELDTYPE_FreeWRLPTR){
-
-			if(0) FREE_IF_NZ(fieldPtr);
-		} else if(isMF) { 
-			//if(type == FIELDTYPE_SFImage){
-			FREE_IF_NZ(fieldPtr->mfbool.p);
+	if(source == 0){
+		if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
+			//#define FIELDTYPE_FreeWRLPTR	22
+			//#define FIELDTYPE_SFImage	23
+			if(strncmp(fieldName,"__",2)) {
+				//skip double underscore prefixed fields, which we will treat as not-to-be-deleted, because duplicates like GeoViewpoint __oldMFString which is a duplicate of navType
+				int isMF = type % 2;
+				if(type == FIELDTYPE_FreeWRLPTR){
+					if(0) FREE_IF_NZ(fieldPtr);
+				} else if(type == FIELDTYPE_SFString){
+					if(0) clearASCIIString(fieldPtr);
+				}else if(type == FIELDTYPE_MFString){
+					clearMFString(fieldPtr);
+				} else if(isMF) { 
+					//if(type == FIELDTYPE_SFImage){
+					FREE_IF_NZ(fieldPtr->mfbool.p);
+				}
+			}
 		}
 	}
 	return FALSE; //false to keep walking fields, true to break out
@@ -5473,13 +5485,19 @@ BOOL cbFreeMallocedUserField(void *callbackData,struct X3D_Node* node,int jfield
 	if(source > 0){
 		//user field in source = {script=1, shaders etc 2, protos = 3}
 		if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
-			int isMF = type % 2;
-			if(type == FIELDTYPE_FreeWRLPTR){
-				//#define FIELDTYPE_FreeWRLPTR	22
-				if(0) FREE_IF_NZ(fieldPtr);
-			}else if(isMF){
-				//#define FIELDTYPE_SFImage	23 - it's an MFInt32
-				FREE_IF_NZ(fieldPtr->mfbool.p);
+			if(strncmp(fieldName,"__",2)) {
+				//skip double underscore prefixed fields, which we will treat as not-to-be-deleted, because duplicates like GeoViewpoint __oldMFString which is a duplicate of navType
+				int isMF = type % 2;
+				if(type == FIELDTYPE_FreeWRLPTR){
+					if(0) FREE_IF_NZ(fieldPtr);
+				} else if(type == FIELDTYPE_SFString){
+					clearASCIIString(fieldPtr);
+				}else if(type == FIELDTYPE_MFString){
+					clearMFString(fieldPtr);
+				} else if(isMF) { 
+					//if(type == FIELDTYPE_SFImage){
+					FREE_IF_NZ(fieldPtr->mfbool.p);
+				}
 			}
 		}
 	}
@@ -5513,7 +5531,7 @@ void freeMallocedNodeFields(struct X3D_Node* node){
 	//a per-broto/executioncontext node table
 	if(node){
 		int isScriptType, isBrotoType, hasUserFields;
-		isScriptType = NODE_Script || node->_nodeType == NODE_ComposedShader || node->_nodeType == NODE_ShaderProgram || node->_nodeType == NODE_PackagedShader;
+		isScriptType = node->_nodeType == NODE_Script || node->_nodeType == NODE_ComposedShader || node->_nodeType == NODE_ShaderProgram || node->_nodeType == NODE_PackagedShader;
 		isBrotoType = node->_nodeType == NODE_Proto; //inlines have no fields, freed elsewhere || node->_nodeType == NODE_Inline;
 		hasUserFields = isScriptType || isBrotoType;
 		if(hasUserFields){
@@ -5534,7 +5552,7 @@ void freeMallocedNodeFields(struct X3D_Node* node){
 			}
 		}
 		/* free malloced public fields */
-		walk_fields(node,cbFreeMallocedNonuserField,NULL);
+		walk_fields(node,cbFreeMallocedBuiltinField,NULL);
 	}
 }
 

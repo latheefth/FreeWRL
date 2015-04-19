@@ -106,7 +106,7 @@ Geodetic to Geocentric:
 
 /* defines used to get a SFVec3d into/outof a function that expects a MFVec3d */
 #define MF_SF_TEMPS	struct Multi_Vec3d mIN; struct Multi_Vec3d  mOUT; struct Multi_Vec3d gdCoords;
-#define FREE_MF_SF_TEMPS FREE_IF_NZ(gdCoords.p); FREE_IF_NZ(mOUT.p);
+#define FREE_MF_SF_TEMPS FREE_IF_NZ(gdCoords.p); FREE_IF_NZ(mOUT.p); FREE_IF_NZ(mIN.p);
 
 
 #define INIT_MF_FROM_SF(myNode, myField) \
@@ -1628,7 +1628,7 @@ int checkX3DGeoElevationGridFields (struct X3D_GeoElevationGrid *node, float **p
 		newpoints += 3;
 		}
 	}
-	FREE_MF_SF_TEMPS
+	FREE_MF_SF_TEMPS;
 	return TRUE;
 }
 

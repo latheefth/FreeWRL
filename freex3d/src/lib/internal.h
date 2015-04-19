@@ -375,7 +375,7 @@ int DEBUG_MSG(const char *fmt, ...)
 /**
  * Those macro get defined only when debugging is enabled
  */
-#if defined(FW_DEBUG) && defined(DEBUG_MALLOC)
+#if defined(DEBUG_MALLOC) // &&  defined(FW_DEBUG)
 
 void *freewrlMalloc(int line, char *file, size_t sz, int zeroData);
 void *freewrlRealloc(int line, char *file, void *ptr, size_t size);
@@ -392,6 +392,7 @@ void *freewrlStrdup(int line, char *file, char *str);
 
 # define STRDUP(_a)          freewrlStrdup(__LINE__, __FILE__, _a)
 
+#ifdef FW_DEBUG
 # define UNLINK(_fdd) do { \
 		           TRACE_MSG("TRACE: unlink %s at %s:%d\n",_fdd,__FILE__,__LINE__); \
 		           unlink (_fdd); \
@@ -404,12 +405,18 @@ void *freewrlStrdup(int line, char *file, char *str);
 # define ASSERT(_ptr) do { if (!(_ptr)) { \
                            ERROR_MSG("ERROR: assert failed: %s (%s:%d)\n", #_ptr, __FILE__, __LINE__); } \
                       } while (0)
-
+#else
+# define UNLINK unlink
+# define TEMPNAM tempnam
+# define ASSERT(_whatever)
+#endif
 /* JAS */
+#ifndef TEMPNAM
 #if defined(_MSC_VER)
 # define TEMPNAM _tempnam
 #else
 # define TEMPNAM tempnam
+#endif
 #endif
 
 
