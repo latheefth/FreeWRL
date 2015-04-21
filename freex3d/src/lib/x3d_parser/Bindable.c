@@ -74,7 +74,13 @@ void Bindable_init(struct tBindable *t){
 	t->fog_stack = newVector(struct X3D_Node*, 2);
 	t->navigation_stack = newVector(struct X3D_Node*, 2);
 }
-
+void Bindable_clear(struct tBindable *t){
+	//public
+	 deleteVector(struct X3D_Node*, t->background_stack);
+	 deleteVector(struct X3D_Node*, t->viewpoint_stack);
+	 deleteVector(struct X3D_Node*, t->fog_stack);
+	 deleteVector(struct X3D_Node*, t->navigation_stack);
+}
 /* common entry routine for setting avatar size */
 void set_naviWidthHeightStep(double wid, double hei, double step) {
 	ttglobal tg = gglobal();

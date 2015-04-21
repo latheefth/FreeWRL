@@ -23,6 +23,7 @@ void SensInterps_init(struct tSensInterps *t);
 void ConsoleMessage_init(struct tConsoleMessage *t);
 void Mainloop_init(struct tMainloop *t);
 void ProdCon_init(struct tProdCon *t);
+void ProdCon_clear(struct tProdCon *t);
 
 #if defined (INCLUDE_NON_WEB3D_FORMATS)
 void ColladaParser_init(struct tColladaParser *t);
@@ -78,6 +79,7 @@ void CParse_init(struct tCParse *t);
 void CParseParser_init(struct tCParseParser *t);
 void CProto_init(struct tCProto *t);
 void CRoutes_init(struct tCRoutes *t);
+void CRoutes_clear(struct tCRoutes *t);
 void CScripts_init(struct tCScripts *t);
 void JScript_init(struct tJScript *t);
 
@@ -87,7 +89,10 @@ void jsVRMLBrowser_init(struct tjsVRMLBrowser *t);
 void jsVRMLClasses_init(struct tjsVRMLClasses *t);
 #endif
 void Bindable_init(struct tBindable *t);
+void Bindable_clear(struct tBindable *t);
 void X3DParser_init(struct tX3DParser *t);
+void X3DParser_clear(struct tX3DParser *t);
+
 void X3DProtoScript_init(struct tX3DProtoScript *t);
 void common_init(struct tcommon *t);
 void CursorDraw_init(struct tCursorDraw *t);
@@ -211,7 +216,6 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 	return iglobal;
 }
 
-void X3DParser_clear(void  *t);
 
 void remove_iglobal_from_table(ttglobal tg);
 void iglobal_destructor(ttglobal tg)
@@ -222,8 +226,8 @@ void iglobal_destructor(ttglobal tg)
 	FREE_IF_NZ(tg->CursorDraw.prv);
 	FREE_IF_NZ(tg->common.prv);
 	FREE_IF_NZ(tg->X3DProtoScript.prv);
-	X3DParser_clear(&tg->X3DParser);//	FREE_IF_NZ(tg->X3DParser.prv);
-	FREE_IF_NZ(tg->Bindable.prv);
+	X3DParser_clear(&tg->X3DParser); FREE_IF_NZ(tg->X3DParser.prv);
+	Bindable_clear(&tg->Bindable); FREE_IF_NZ(tg->Bindable.prv);
 #ifdef HAVE_JAVASCRIPT
 	FREE_IF_NZ(tg->jsVRMLClasses.prv);
 	FREE_IF_NZ(tg->jsVRMLBrowser.prv);
@@ -231,7 +235,7 @@ void iglobal_destructor(ttglobal tg)
 #endif
 	FREE_IF_NZ(tg->JScript.prv);
 	FREE_IF_NZ(tg->CScripts.prv);
-	FREE_IF_NZ(tg->CRoutes.prv);
+	CRoutes_clear(&tg->CRoutes); FREE_IF_NZ(tg->CRoutes.prv);
 	FREE_IF_NZ(tg->CProto.prv);
 	FREE_IF_NZ(tg->CParseParser.prv);
 	FREE_IF_NZ(tg->CParse.prv);
@@ -273,7 +277,7 @@ OLDCODE	FREE_IF_NZ(tg->Component_Networking.prv);
 	FREE_IF_NZ(tg->STLHandler.prv);
 #endif // INCLUDE_STL_FILES
     
-	FREE_IF_NZ(tg->ProdCon.prv);
+	ProdCon_clear(&tg->ProdCon);FREE_IF_NZ(tg->ProdCon.prv);
 	FREE_IF_NZ(tg->Mainloop.prv);
 	FREE_IF_NZ(tg->ConsoleMessage.prv);
 	FREE_IF_NZ(tg->SensInterps.prv);

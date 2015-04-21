@@ -294,6 +294,13 @@ void CRoutes_init(struct tCRoutes *t){
 
 	}
 }
+void CRoutes_clear(struct tCRoutes *t){
+	if(t){
+		ppCRoutes p = (ppCRoutes)t->prv;
+		FREE_IF_NZ(p->ClockEvents);
+		FREE_IF_NZ(p->preEvents);
+	}
+}
 //	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
 struct CRStruct *getCRoutes()
 {

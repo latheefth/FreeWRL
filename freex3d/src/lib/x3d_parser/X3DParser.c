@@ -283,7 +283,6 @@ void X3DParser_clear(struct tX3DParser *t){
 	if(t){
 		ppX3DParser p = (ppX3DParser)t->prv;
 		free_xml_user_data(p->user_data);
-		FREE_IF_NZ(t->prv);
 	}
 }
 

@@ -192,6 +192,16 @@ void ProdCon_init(struct tProdCon *t)
 
 	}
 }
+void ProdCon_clear(struct tProdCon *t){
+	deleteVector(struct X3D_Node *,t->viewpointNodes);
+	if(t->prv)
+	{
+		ppProdCon p = (ppProdCon)t->prv;
+		deleteVector(struct X3D_Node *, p->fogNodes);
+		deleteVector(struct X3D_Node *, p->backgroundNodes);
+		deleteVector(struct X3D_Node *, p->navigationNodes);
+	}
+}
 ///* is the inputParse thread created? */
 //static int inputParseInitialized=FALSE;
 //
