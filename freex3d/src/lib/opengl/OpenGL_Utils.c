@@ -5450,13 +5450,28 @@ void unlink_node(struct X3D_Node* node)
 	}
 }
 void clearASCIIString(struct Uni_String *us);
-void freeASCIIString(struct Uni_String **us);
+void freeASCIIString(struct Uni_String *us);
 void clearMFString(struct Multi_String *ms);
 void freeMFString(struct Multi_String **ms);
-
+//struct fieldFree {
+//	char *name;
+//	int type;
+//	int mode;
+//	void *ptr;
+//};
+//BOOL alreadyFreed(){
+//
+//}
+//void setFreed(){
+//
+//}
 BOOL cbFreeMallocedBuiltinField(void *callbackData,struct X3D_Node* node,int jfield,
 	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,int publicfield)
 {
+	//for builtins, the field is malloced as part of the node size, so we don't free the field itself
+	// .. just if its a complex field type holding a malloced pointer
+	// .. like MF.p or SFString.ptr
+	// and only if the node owns the pointer, which we determine by if the field is initializeOnly or inputOutput
 	if(source == 0){
 		if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
 			//#define FIELDTYPE_FreeWRLPTR	22
@@ -5465,14 +5480,20 @@ BOOL cbFreeMallocedBuiltinField(void *callbackData,struct X3D_Node* node,int jfi
 				//skip double underscore prefixed fields, which we will treat as not-to-be-deleted, because duplicates like GeoViewpoint __oldMFString which is a duplicate of navType
 				int isMF = type % 2;
 				if(type == FIELDTYPE_FreeWRLPTR){
+					//depends what it's pointing to. If it was a straightforward malloc then:
 					if(0) FREE_IF_NZ(fieldPtr);
+					//else if it was a *vector or other compound type, then we need to know the type to free its pointers
 				} else if(type == FIELDTYPE_SFString){
-					if(0) clearASCIIString(fieldPtr);
+					struct Uni_String *us;
+					//union anyVrml holds a struct Uni_String * (a pointer to Uni_String)
+					us = fieldPtr->sfstring;
+					clearASCIIString(us); //fieldPtr);
 				}else if(type == FIELDTYPE_MFString){
 					clearMFString(fieldPtr);
 				} else if(isMF) { 
 					//if(type == FIELDTYPE_SFImage){
 					FREE_IF_NZ(fieldPtr->mfbool.p);
+					fieldPtr->mfbool.n = 0;
 				}
 			}
 		}
@@ -5482,6 +5503,13 @@ BOOL cbFreeMallocedBuiltinField(void *callbackData,struct X3D_Node* node,int jfi
 BOOL cbFreeMallocedUserField(void *callbackData,struct X3D_Node* node,int jfield,
 	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,int publicfield)
 {
+	//for userFields (ie on Script, Proto), the field is malloced as part of a bigger struct
+	// .. so we free any pointers contained in the field like MF.p or SFString.ptr
+	// and only if the node owns the pointer, which we determine by if the field is initializeOnly or inputOutput
+	// .. but we don't free the anyVrml* pointer itself
+	// .. we rely on something freeing the user fields elsewhere to free the vector of userfields and
+	// .. a few of their malloced contents
+
 	if(source > 0){
 		//user field in source = {script=1, shaders etc 2, protos = 3}
 		if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
@@ -5491,12 +5519,16 @@ BOOL cbFreeMallocedUserField(void *callbackData,struct X3D_Node* node,int jfield
 				if(type == FIELDTYPE_FreeWRLPTR){
 					if(0) FREE_IF_NZ(fieldPtr);
 				} else if(type == FIELDTYPE_SFString){
-					clearASCIIString(fieldPtr);
+					struct Uni_String *us;
+					//union anyVrml holds a struct Uni_String * (a pointer to Uni_String)
+					us = fieldPtr->sfstring;
+					clearASCIIString(us); //fieldPtr);
 				}else if(type == FIELDTYPE_MFString){
 					clearMFString(fieldPtr);
 				} else if(isMF) { 
 					//if(type == FIELDTYPE_SFImage){
 					FREE_IF_NZ(fieldPtr->mfbool.p);
+					fieldPtr->mfbool.n = 0;
 				}
 			}
 		}
@@ -5524,9 +5556,15 @@ void setShader(struct X3D_Node *node, struct Shader_Script *shader){
 	}
 
 }
+//static struct Vector freed;
+//static struct fieldFree ffs[100];
 void freeMallocedNodeFields(struct X3D_Node* node){
-	//assume node->_intern = polyrep and other common private fields are already done
-	//then this walks over node-specific fields, free-ing any malloced fields
+	//PIMPL Idiom in C is like objects in C++ - each object should know how to delete itself
+	//we don't have good pimpl habits yet in freewrl
+	//Here we try and generically free what a node may have allocated
+	//(a pimpl alternative might be node-type specific freeing)
+	//assume node->_intern = polyrep, node->_parents vector, and other common private fields are already done
+	//then this walks over node-specific fields, attempting to free any potentially malloced fields
 	//except SFNode (and SFNode contents of MFNode) which are garbage collected from 
 	//a per-broto/executioncontext node table
 	if(node){
@@ -5534,11 +5572,15 @@ void freeMallocedNodeFields(struct X3D_Node* node){
 		isScriptType = node->_nodeType == NODE_Script || node->_nodeType == NODE_ComposedShader || node->_nodeType == NODE_ShaderProgram || node->_nodeType == NODE_PackagedShader;
 		isBrotoType = node->_nodeType == NODE_Proto; //inlines have no fields, freed elsewhere || node->_nodeType == NODE_Inline;
 		hasUserFields = isScriptType || isBrotoType;
+		//freed.data = ffs;
+		//freed.allocn = 100;
+		//freed.n = 0;
 		if(hasUserFields){
-			walk_fields(node,cbFreeMallocedUserField,NULL);
+			walk_fields(node,cbFreeMallocedUserField,NULL); //&freed);
 			if(isScriptType){
 				struct Shader_Script *shader = getShader(node);
 				if (shader){
+					//for vectorget.n field->malloced stuff
 					deleteVector(struct Shader_Script *, shader);
 					setShader(node,NULL);
 				}
@@ -5546,13 +5588,14 @@ void freeMallocedNodeFields(struct X3D_Node* node){
 				struct X3D_Proto* pnode = (struct X3D_Proto*)node;
 				struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
 				if(pstruct){
+					//for vectorget.n field->malloced stuff
 					deleteVector(struct ProtoDefinition*,pstruct);
 					pnode->__protoDef = NULL;
 				}
 			}
 		}
 		/* free malloced public fields */
-		walk_fields(node,cbFreeMallocedBuiltinField,NULL);
+		walk_fields(node,cbFreeMallocedBuiltinField,NULL); //&freed);
 	}
 }
 

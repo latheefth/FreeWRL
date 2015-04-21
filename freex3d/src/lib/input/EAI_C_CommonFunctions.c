@@ -118,7 +118,7 @@ struct Uni_String *newASCIIString(char *str) {
 
 
 void clearASCIIString(struct Uni_String *us);
-void freeASCIIString(struct Uni_String **us);
+void freeASCIIString(struct Uni_String *us);
 void clearMFString(struct Multi_String *ms);
 void freeMFString(struct Multi_String **ms);
 
@@ -126,15 +126,15 @@ void clearASCIIString(struct Uni_String *us){
 	FREE_IF_NZ(us->strptr);
 	us->len = 0;
 }
-void freeASCIIString(struct Uni_String **us){
-	clearASCIIString(*us);
-	FREE_IF_NZ(*us);
+void freeASCIIString(struct Uni_String *us){
+	clearASCIIString(us);
+	FREE_IF_NZ(us);
 }
 void clearMFString(struct Multi_String *ms){
 	if(ms){
 		int i;
 		for(i=0;i<ms->n;i++){
-			clearASCIIString(ms->p[i]);
+			freeASCIIString(ms->p[i]);
 		}
 		ms->n = 0;
 		FREE_IF_NZ(ms->p);

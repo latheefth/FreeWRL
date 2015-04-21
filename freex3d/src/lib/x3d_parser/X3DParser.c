@@ -86,6 +86,16 @@ struct xml_user_data *new_xml_user_data(){
 	ud->fields->n = 0;
 	return ud;
 }
+void free_xml_user_data(struct xml_user_data *ud){
+	if(ud){
+		deleteVector(struct X3D_Node*,ud->context);
+		deleteVector(struct X3D_Node*,ud->nodes);
+		deleteVector(void*,ud->atts);
+		deleteVector(void*,ud->modes);
+		deleteVector(void*,ud->fields);
+	}
+	FREE_IF_NZ(ud);
+}
 //for push,pop,get the index is the vector index range 0, n-1. 
 // Or going from the top top= -1, parent to top = -2.
 #define TOP -1
@@ -269,6 +279,14 @@ void X3DParser_init(struct tX3DParser *t){
 
 	}
 }
+void X3DParser_clear(struct tX3DParser *t){
+	if(t){
+		ppX3DParser p = (ppX3DParser)t->prv;
+		free_xml_user_data(p->user_data);
+		FREE_IF_NZ(t->prv);
+	}
+}
+
 	//ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
 
 
@@ -2748,6 +2766,14 @@ static void shutdownX3DParser (void *ud) {
 		p->currentX3DParser = p->x3dparser[p->X3DParserRecurseLevel];
 	/* printf ("shutdownX3DParser, current X3DParser %u\n",currentX3DParser); */
 	popMode(ud);
+	/*
+    * Cleanup function for the XML library.
+    */
+   xmlCleanupParser();
+   /*
+    * this is to debug memory for regression tests
+    */
+   xmlMemoryDump();
 }
 
 int X3DParse (struct X3D_Node* ectx, struct X3D_Node* myParent, const char *inputstring) {

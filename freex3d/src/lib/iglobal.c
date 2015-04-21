@@ -211,6 +211,8 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 	return iglobal;
 }
 
+void X3DParser_clear(void  *t);
+
 void remove_iglobal_from_table(ttglobal tg);
 void iglobal_destructor(ttglobal tg)
 {
@@ -220,7 +222,7 @@ void iglobal_destructor(ttglobal tg)
 	FREE_IF_NZ(tg->CursorDraw.prv);
 	FREE_IF_NZ(tg->common.prv);
 	FREE_IF_NZ(tg->X3DProtoScript.prv);
-	FREE_IF_NZ(tg->X3DParser.prv);
+	X3DParser_clear(&tg->X3DParser);//	FREE_IF_NZ(tg->X3DParser.prv);
 	FREE_IF_NZ(tg->Bindable.prv);
 #ifdef HAVE_JAVASCRIPT
 	FREE_IF_NZ(tg->jsVRMLClasses.prv);

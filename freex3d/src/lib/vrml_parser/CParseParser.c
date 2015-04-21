@@ -7073,7 +7073,7 @@ int unRegisterX3DAnyNode(struct X3D_Node *node){
 
 	//only live scenery has polyreps prepared, remove the polyrep
 	delete_polyrep(node);
-	//deleteVector(sizeof(void*),node->_parentVector); //perhaps unlink first
+	deleteVector(sizeof(void*),node->_parentVector); //perhaps unlink first
 	return TRUE;
 }
 int print_broto_stats(int level, struct X3D_Proto *node){
