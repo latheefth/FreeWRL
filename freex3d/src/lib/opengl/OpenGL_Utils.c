@@ -5592,8 +5592,7 @@ void freeMallocedNodeFields(struct X3D_Node* node){
 			if(isScriptType){
 				struct Shader_Script *shader = getShader(node);
 				if (shader){
-					//for vectorget.n field->malloced stuff
-					deleteVector(struct Shader_Script *, shader);
+					deleteVector(struct ScriptFieldDecl*, shader->fields);
 					setShader(node,NULL);
 				}
 			}else if(isBrotoType){
