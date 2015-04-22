@@ -102,7 +102,7 @@ typedef struct pViewer{
 
 }* ppViewer;
 void *Viewer_constructor(){
-	void *v = malloc(sizeof(struct pViewer));
+	void *v = MALLOCV(sizeof(struct pViewer));
 	memset(v,0,sizeof(struct pViewer));
 	return v;
 }

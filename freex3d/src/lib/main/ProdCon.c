@@ -143,7 +143,7 @@ typedef struct pProdCon{
 
 }* ppProdCon;
 void *ProdCon_constructor(){
-	void *v = malloc(sizeof(struct pProdCon));
+	void *v = MALLOCV(sizeof(struct pProdCon));
 	memset(v,0,sizeof(struct pProdCon));
 	return v;
 }

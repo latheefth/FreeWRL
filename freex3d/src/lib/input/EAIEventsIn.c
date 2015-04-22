@@ -134,7 +134,7 @@ struct X3D_Anchor EAI_AnchorNode;
 }* ppEAIEventsIn;
 void *EAIEventsIn_constructor()
 {
-	void *v = malloc(sizeof(struct pEAIEventsIn));
+	void *v = MALLOCV(sizeof(struct pEAIEventsIn));
 	memset(v,0,sizeof(struct pEAIEventsIn));
 	return v;
 }
@@ -164,7 +164,7 @@ typedef struct pEAICore{
 
 void *EAICore_constructor()
 {
-	void *v = malloc(sizeof(struct pEAICore));
+	void *v = MALLOCV(sizeof(struct pEAICore));
 	memset(v,0,sizeof(struct pEAICore));
 	return v;
 }

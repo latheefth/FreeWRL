@@ -61,7 +61,7 @@ typedef struct pEAI_C_CommonFunctions{
 }* ppEAI_C_CommonFunctions;
 void *EAI_C_CommonFunctions_constructor()
 {
-	void * v = malloc(sizeof(struct pEAI_C_CommonFunctions));
+	void *v = MALLOCV(sizeof(struct pEAI_C_CommonFunctions));
 	memset(v,0,sizeof(struct pEAI_C_CommonFunctions));
 	return v;
 }

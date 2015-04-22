@@ -250,7 +250,7 @@ typedef struct pX3DParser{
 
 }* ppX3DParser;
 void *X3DParser_constructor(){
-	void *v = malloc(sizeof(struct pX3DParser));
+	void *v = MALLOCV(sizeof(struct pX3DParser));
 	memset(v,0,sizeof(struct pX3DParser));
 	return v;
 }

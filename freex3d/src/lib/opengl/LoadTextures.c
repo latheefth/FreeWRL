@@ -88,7 +88,7 @@ typedef struct pLoadTextures{
 	int TextureParsing; // = FALSE;
 }* ppLoadTextures;
 void *LoadTextures_constructor(){
-	void *v = malloc(sizeof(struct pLoadTextures));
+	void *v = MALLOCV(sizeof(struct pLoadTextures));
 	memset(v,0,sizeof(struct pLoadTextures));
 	return v;
 }

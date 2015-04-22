@@ -155,7 +155,7 @@ typedef struct pOpenGL_Utils{
 
 
 void *OpenGL_Utils_constructor(){
-	void *v = malloc(sizeof(struct pOpenGL_Utils));
+	void *v = MALLOCV(sizeof(struct pOpenGL_Utils));
 	memset(v,0,sizeof(struct pOpenGL_Utils));
 	return v;
 }

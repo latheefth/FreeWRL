@@ -143,7 +143,7 @@ typedef struct pComponent_Text{
 
 }* ppComponent_Text;
 void *Component_Text_constructor(){
-	void *v = malloc(sizeof(struct pComponent_Text));
+	void *v = MALLOCV(sizeof(struct pComponent_Text));
 	memset(v,0,sizeof(struct pComponent_Text));
 	return v;
 }

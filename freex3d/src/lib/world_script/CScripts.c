@@ -72,7 +72,7 @@ typedef struct pCScripts{
 
 }* ppCScripts;
 void *CScripts_constructor(){
-	void *v = malloc(sizeof(struct pCScripts));
+	void *v = MALLOCV(sizeof(struct pCScripts));
 	memset(v,0,sizeof(struct pCScripts));
 	return v;
 }

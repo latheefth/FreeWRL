@@ -307,7 +307,7 @@ typedef struct pComponent_Geospatial{
 
 }* ppComponent_Geospatial;
 void *Component_Geospatial_constructor(){
-	void *v = malloc(sizeof(struct pComponent_Geospatial));
+	void *v = MALLOCV(sizeof(struct pComponent_Geospatial));
 	memset(v,0,sizeof(struct pComponent_Geospatial));
 	return v;
 }

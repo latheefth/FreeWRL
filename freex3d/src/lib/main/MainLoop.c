@@ -223,7 +223,7 @@ typedef struct pMainloop{
 	char keywaitstring[25];
 }* ppMainloop;
 void *Mainloop_constructor(){
-	void *v = malloc(sizeof(struct pMainloop));
+	void *v = MALLOCV(sizeof(struct pMainloop));
 	memset(v,0,sizeof(struct pMainloop));
 	return v;
 }

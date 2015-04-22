@@ -113,7 +113,7 @@ typedef struct pColladaParser{
 
 }* ppColladaParser;
 void *ColladaParser_constructor(){
-	void *v = malloc(sizeof(struct pColladaParser));
+	void *v = MALLOCV(sizeof(struct pColladaParser));
 	memset(v,0,sizeof(struct pColladaParser));
 	return v;
 }

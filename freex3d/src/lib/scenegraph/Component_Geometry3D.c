@@ -62,7 +62,7 @@ typedef struct pComponent_Geometry3D{
 	//SphereGeomVBO ShpereIndxVBO - are these per-instance or sharable?
 }* ppComponent_Geometry3D;
 void *Component_Geometry3D_constructor(){
-	void *v = malloc(sizeof(struct pComponent_Geometry3D));
+	void *v = MALLOCV(sizeof(struct pComponent_Geometry3D));
 	memset(v,0,sizeof(struct pComponent_Geometry3D));
 	return v;
 }

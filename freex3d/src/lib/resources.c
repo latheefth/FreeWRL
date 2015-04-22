@@ -58,7 +58,7 @@ typedef struct presources{
 }* presources;
 void *resources_constructor()
 {
-	void* v = malloc(sizeof(struct presources));
+	void *v = MALLOCV(sizeof(struct presources));
 	memset(v,0,sizeof(struct presources));
 	return v;
 }

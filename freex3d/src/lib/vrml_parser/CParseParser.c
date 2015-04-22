@@ -69,7 +69,7 @@ typedef struct pCParseParser{
 
 }* ppCParseParser;
 void *CParseParser_constructor(){
-	void *v = malloc(sizeof(struct pCParseParser));
+	void *v = MALLOCV(sizeof(struct pCParseParser));
 	memset(v,0,sizeof(struct pCParseParser));
 	return v;
 }

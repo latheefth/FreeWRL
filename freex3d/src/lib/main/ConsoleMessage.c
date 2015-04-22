@@ -63,7 +63,7 @@ typedef struct pConsoleMessage{
 	void(*callback[2])(char *);
 }* ppConsoleMessage;
 static void *ConsoleMessage_constructor(){
-	void *v = malloc(sizeof(struct pConsoleMessage));
+	void *v = MALLOCV(sizeof(struct pConsoleMessage));
 	memset(v,0,sizeof(struct pConsoleMessage));
 	return v;
 }

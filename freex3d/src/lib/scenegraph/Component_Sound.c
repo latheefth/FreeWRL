@@ -105,7 +105,7 @@ typedef struct pComponent_Sound{
 	float AC_LastDuration[50];
 }* ppComponent_Sound;
 void *Component_Sound_constructor(){
-	void *v = malloc(sizeof(struct pComponent_Sound));
+	void *v = MALLOCV(sizeof(struct pComponent_Sound));
 	memset(v,0,sizeof(struct pComponent_Sound));
 	return v;
 }

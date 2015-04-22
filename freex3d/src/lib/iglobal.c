@@ -120,7 +120,7 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	//3. for each of those 3 items:
 	//   - set thread2global[threadID] = global
 	// pthread_t uiThread;
-	ttglobal iglobal = malloc(sizeof(struct iiglobal));
+	ttglobal iglobal = MALLOCV(sizeof(struct iiglobal));
 	memset(iglobal,0,sizeof(struct iiglobal)); //set to zero/null by default
 
 
@@ -302,7 +302,7 @@ OLDCODE	FREE_IF_NZ(tg->Component_Networking.prv);
 	FREE_IF_NZ(tg->display.prv);
 
 	//destroy iglobal
-	free(tg);
+	FREE_IF_NZ(tg);
 	//remove_iglobal_from_table(tg);
 	fwl_clearCurrentHandle(__FILE__,__LINE__);
 

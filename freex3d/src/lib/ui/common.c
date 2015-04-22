@@ -60,7 +60,7 @@ typedef struct pcommon{
 	int colorSchemeChanged;
 }*ppcommon;
 void *common_constructor(){
-	void *v = malloc(sizeof(struct pcommon));
+	void *v = MALLOCV(sizeof(struct pcommon));
 	memset(v,0,sizeof(struct pcommon));
 	return v;
 }

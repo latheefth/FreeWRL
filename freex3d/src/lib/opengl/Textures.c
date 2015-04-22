@@ -97,7 +97,7 @@ typedef struct pTextures{
 
 
 void *Textures_constructor(){
-	void *v = malloc(sizeof(struct pTextures));
+	void *v = MALLOCV(sizeof(struct pTextures));
 	memset(v,0,sizeof(struct pTextures));
 	return v;
 }

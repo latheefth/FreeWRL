@@ -249,7 +249,7 @@ typedef struct pCRoutes{
 
 }* ppCRoutes;
 void *CRoutes_constructor(){
-	void *v = malloc(sizeof(struct pCRoutes));
+	void *v = MALLOCV(sizeof(struct pCRoutes));
 	memset(v,0,sizeof(struct pCRoutes));
 	return v;
 }

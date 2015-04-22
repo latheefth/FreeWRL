@@ -382,6 +382,7 @@ void *freewrlRealloc(int line, char *file, void *ptr, size_t size);
 void freewrlFree(int line, char *file, void *a);
 void *freewrlStrdup(int line, char *file, char *str);
 
+# define MALLOCV(_sz) (freewrlMalloc(__LINE__, __FILE__, _sz, FALSE))
 # define MALLOC(t,_sz)         ((t)freewrlMalloc(__LINE__, __FILE__, _sz, FALSE))
 # define CALLOC(_fill, _sz)  freewrlMalloc(__LINE__, __FILE__, _fill * _sz, TRUE);
 # define REALLOC(_a,_b)     freewrlRealloc(__LINE__, __FILE__, _a, _b) 
@@ -422,7 +423,7 @@ void *freewrlStrdup(int line, char *file, char *str);
 
 #else /* defined(FW_DEBUG) && defined(DEBUG_MALLOC) */
 
-
+# define MALLOCV(_sz) (malloc(_sz))
 # define MALLOC(t,_sz) ((t)malloc(_sz))
 # define REALLOC realloc
 # define FREE free

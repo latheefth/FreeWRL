@@ -73,7 +73,7 @@ typedef struct ppluginUtils{
 	resource_item_t *plugin_res;// = NULL; 	/* If this res is valid, then we can replace root_res with it */
 }* pppluginUtils;
 void *pluginUtils_constructor(){
-	void *v = malloc(sizeof(struct ppluginUtils));
+	void *v = MALLOCV(sizeof(struct ppluginUtils));
 	memset(v,0,sizeof(struct ppluginUtils));
 	return v;
 }

@@ -69,7 +69,7 @@ typedef struct pTess{
 	int global_IFS_Coords[TESS_MAX_COORDS]; //200,000
 }* ppTess;
 void *Tess_constructor(){
-	void *v = malloc(sizeof(struct pTess));
+	void *v = MALLOCV(sizeof(struct pTess));
 	memset(v,0,sizeof(struct pTess));
 	return v;
 }

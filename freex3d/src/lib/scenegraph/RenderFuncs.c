@@ -108,7 +108,7 @@ typedef struct pRenderFuncs{
 
 }* ppRenderFuncs;
 void *RenderFuncs_constructor(){
-	void *v = malloc(sizeof(struct pRenderFuncs));
+	void *v = MALLOCV(sizeof(struct pRenderFuncs));
 	memset(v,0,sizeof(struct pRenderFuncs));
 	return v;
 }

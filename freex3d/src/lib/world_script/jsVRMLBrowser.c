@@ -1330,7 +1330,7 @@ typedef struct pjsVRMLBrowser{
 
 }* ppjsVRMLBrowser;
 void *jsVRMLBrowser_constructor(){
-	void *v = malloc(sizeof(struct pjsVRMLBrowser));
+	void *v = MALLOCV(sizeof(struct pjsVRMLBrowser));
 	memset(v,0,sizeof(struct pjsVRMLBrowser));
 	return v;
 }
