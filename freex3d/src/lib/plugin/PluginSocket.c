@@ -67,7 +67,7 @@ typedef struct pPluginSocket{
 
 }* ppPluginSocket;
 void *PluginSocket_constructor(){
-	void *v = malloc(sizeof(struct pPluginSocket));
+	void *v = MALLOCV(sizeof(struct pPluginSocket));
 	memset(v,0,sizeof(struct pPluginSocket));
 	return v;
 }

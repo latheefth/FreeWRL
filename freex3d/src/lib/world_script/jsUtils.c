@@ -86,7 +86,7 @@ typedef struct pjsUtils{
 
 }* ppjsUtils;
 void *jsUtils_constructor(){
-	void *v = malloc(sizeof(struct pjsUtils));
+	void *v = MALLOCV(sizeof(struct pjsUtils));
 	memset(v,0,sizeof(struct pjsUtils));
 	return v;
 }

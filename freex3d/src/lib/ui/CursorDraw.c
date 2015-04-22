@@ -192,7 +192,7 @@ typedef struct pCursorDraw{
 	int done;
 }* ppCursorDraw;
 void *CursorDraw_constructor(){
-	void *v = malloc(sizeof(struct pCursorDraw));
+	void *v = MALLOCV(sizeof(struct pCursorDraw));
 	memset(v,0,sizeof(struct pCursorDraw));
 	return v;
 }

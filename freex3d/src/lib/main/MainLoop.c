@@ -223,7 +223,7 @@ typedef struct pMainloop{
 	char keywaitstring[25];
 }* ppMainloop;
 void *Mainloop_constructor(){
-	void *v = malloc(sizeof(struct pMainloop));
+	void *v = MALLOCV(sizeof(struct pMainloop));
 	memset(v,0,sizeof(struct pMainloop));
 	return v;
 }
@@ -332,7 +332,12 @@ void Mainloop_init(struct tMainloop *t){
 		p->keywaitstring[0] = (char)0;
 	}
 }
-
+void Mainloop_clear(struct tMainloop *t){
+	FREE_IF_NZ(t->scene_name);
+	FREE_IF_NZ(t->scene_suff);
+	FREE_IF_NZ(t->tmpFileLocation);
+	//ppMainloop p = (ppMainloop)t->prv;
+}
 //true statics:
 int isBrowserPlugin = FALSE; //I can't think of a scenario where sharing this across instances would be a problem
 ///* are we displayed, or iconic? */
@@ -4576,6 +4581,23 @@ int workers_running(){
 	more = tg->threads.ResourceThreadRunning || tg->threads.TextureThreadRunning;
 	return more;
 }
+void end_of_run_tests(){
+	//miscalaneous malloc, buffer, resource cleanup testing at end of run
+	//press Enter on console after viewing results
+	if(1){
+		int i, notfreed, notfreedt;
+		//see if there are any opengl buffers not freed
+		notfreed = 0;
+		notfreedt = 0;
+		for(i=0;i<100000;i++){
+			if(glIsBuffer(i)) {notfreed++; printf("b%d ",i);}
+			if(glIsTexture(i)) {notfreedt++; printf("t%d ",i);}
+		}
+		printf("\ngl buffers not freed = %d\n",notfreed);
+		printf("gl textures not freed = %d\n",notfreedt);
+		getchar();
+	}
+}
 
 void finalizeRenderSceneUpdateScene() {
 	//C. delete instance data
@@ -4588,12 +4610,16 @@ void finalizeRenderSceneUpdateScene() {
 #endif
 	/* kill any remaining children processes like sound processes or consoles */
 	killErrantChildren();
+	/* tested on win32 console program July9,2011 seems OK */
+#ifdef DEBUG_MALLOC
+	end_of_run_tests();
+#endif
+	iglobal_destructor(tg);
 #ifdef DEBUG_MALLOC
 	void scanMallocTableOnQuit(void);
 	scanMallocTableOnQuit();
 #endif
-	/* tested on win32 console program July9,2011 seems OK */
-	iglobal_destructor(tg);
+
 }
 
 
@@ -4693,6 +4719,7 @@ void view_update0(void){
 	#endif
 	updateViewCursorStyle(getCursorStyle()); /* in fwWindow32 where cursors are loaded */
 }
+
 void killNodes();
 
 /* fwl_draw() call from frontend when frontend_handles_display_thread */
@@ -4757,7 +4784,8 @@ int fwl_draw()
 	case 2:
 		//tell worker threads to stop gracefully
 		workers_stop();
-		killNodes(); //deallocates nodes MarkForDisposed
+		//killNodes(); //deallocates nodes MarkForDisposed
+		kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 		tg->threads.MainLoopQuit++;
 		break;
 	case 3:

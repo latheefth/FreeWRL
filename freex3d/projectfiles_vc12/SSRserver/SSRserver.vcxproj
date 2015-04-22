@@ -131,13 +131,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;SSR_SERVER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(LIBWIN)\pthread\include;$(SRC)\dllFreeWRL;$(LIBWIN)\libmicrohttpd\include;$(SRCWIN)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(LIBWIN)\pthread\include;$(SRC)\dllFreeWRL;$(LIBWIN)\libxml2\include;$(LIBWIN)\libmicrohttpd\include;$(SRCWIN)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(LIBWIN)\libmicrohttpd\lib\win32;$(Outdir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libmicrohttpd-dll.lib;dllFreeWRL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libmicrohttpd-dll.lib;dllFreeWRL.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_glew|x64'">

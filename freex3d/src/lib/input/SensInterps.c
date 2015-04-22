@@ -65,7 +65,7 @@ typedef struct pSensInterps{
 	int stub;
 }* ppSensInterps;
 void *SensInterps_constructor(){
-	void *v = malloc(sizeof(struct pSensInterps));
+	void *v = MALLOCV(sizeof(struct pSensInterps));
 	memset(v,0,sizeof(struct pSensInterps));
 	return v;
 }

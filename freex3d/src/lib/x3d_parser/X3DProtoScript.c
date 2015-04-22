@@ -134,7 +134,7 @@ typedef struct pX3DProtoScript{
 	struct fieldNodeState fieldNodeParsingStateB[PARENTSTACKSIZE];
 }* ppX3DProtoScript;
 void *X3DProtoScript_constructor(){
-	void *v = malloc(sizeof(struct pX3DProtoScript));
+	void *v = MALLOCV(sizeof(struct pX3DProtoScript));
 	memset(v,0,sizeof(struct pX3DProtoScript));
 	return v;
 }

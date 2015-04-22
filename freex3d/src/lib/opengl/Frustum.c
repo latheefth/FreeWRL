@@ -110,7 +110,7 @@ typedef struct pFrustum{
 
 }* ppFrustum;
 void *Frustum_constructor(){
-	void *v = malloc(sizeof(struct pFrustum));
+	void *v = MALLOCV(sizeof(struct pFrustum));
 	memset(v,0,sizeof(struct pFrustum));
 	return v;
 }

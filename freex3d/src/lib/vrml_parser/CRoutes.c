@@ -249,7 +249,7 @@ typedef struct pCRoutes{
 
 }* ppCRoutes;
 void *CRoutes_constructor(){
-	void *v = malloc(sizeof(struct pCRoutes));
+	void *v = MALLOCV(sizeof(struct pCRoutes));
 	memset(v,0,sizeof(struct pCRoutes));
 	return v;
 }
@@ -292,6 +292,13 @@ void CRoutes_init(struct tCRoutes *t){
 		/* Script name/type table */
 		p->JSparamnames = NULL;
 
+	}
+}
+void CRoutes_clear(struct tCRoutes *t){
+	if(t){
+		ppCRoutes p = (ppCRoutes)t->prv;
+		FREE_IF_NZ(p->ClockEvents);
+		FREE_IF_NZ(p->preEvents);
 	}
 }
 //	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;

@@ -105,7 +105,7 @@ typedef struct pJScript{
 
 
 void *JScript_constructor(){
-	void *v = malloc(sizeof(struct pJScript));
+	void *v = MALLOCV(sizeof(struct pJScript));
 	memset(v,0,sizeof(struct pJScript));
 	return v;
 }

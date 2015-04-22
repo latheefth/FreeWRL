@@ -143,7 +143,7 @@ typedef struct pProdCon{
 
 }* ppProdCon;
 void *ProdCon_constructor(){
-	void *v = malloc(sizeof(struct pProdCon));
+	void *v = MALLOCV(sizeof(struct pProdCon));
 	memset(v,0,sizeof(struct pProdCon));
 	return v;
 }
@@ -190,6 +190,16 @@ void ProdCon_init(struct tProdCon *t)
                 p->lastSTLScaling = 0.1;
 #endif
 
+	}
+}
+void ProdCon_clear(struct tProdCon *t){
+	deleteVector(struct X3D_Node *,t->viewpointNodes);
+	if(t->prv)
+	{
+		ppProdCon p = (ppProdCon)t->prv;
+		deleteVector(struct X3D_Node *, p->fogNodes);
+		deleteVector(struct X3D_Node *, p->backgroundNodes);
+		deleteVector(struct X3D_Node *, p->navigationNodes);
 	}
 }
 ///* is the inputParse thread created? */
@@ -1295,6 +1305,14 @@ static bool parser_process_res(s_list_t *item)
 
 	if (remove_it) {
 		/* Remove the parsed resource from the list */
+		if(res->status == ress_parsed){
+			//just x3d and vrml. if you clear images nothing shows up
+			if(res->openned_files){
+				openned_file_t *of = res->openned_files;
+				//remove BLOB
+				FREE_IF_NZ(of->fileData);
+			}
+		}
 		FREE_IF_NZ(item);
 	}else{
 		// chain command by adding it back into the queue

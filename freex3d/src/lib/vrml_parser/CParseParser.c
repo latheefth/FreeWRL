@@ -69,7 +69,7 @@ typedef struct pCParseParser{
 
 }* ppCParseParser;
 void *CParseParser_constructor(){
-	void *v = malloc(sizeof(struct pCParseParser));
+	void *v = MALLOCV(sizeof(struct pCParseParser));
 	memset(v,0,sizeof(struct pCParseParser));
 	return v;
 }
@@ -7034,6 +7034,7 @@ void remove_picksensor(struct X3D_Node * node);
 void delete_first(struct X3D_Node *node);
 void removeNodeFromKeySensorList(struct X3D_Node* node);
 int	unInitializeScript(struct X3D_Node *node);
+void delete_polyrep(struct X3D_Node *node);
 int unRegisterX3DAnyNode(struct X3D_Node *node){
 	/* Undo any node registration(s)
 	From GeneratedCode.c createNewX3DNode():
@@ -7069,6 +7070,10 @@ int unRegisterX3DAnyNode(struct X3D_Node *node){
 
 	//as with kill_nodes, disable scripts
 	unInitializeScript(node);
+
+	//only live scenery has polyreps prepared, remove the polyrep
+	delete_polyrep(node);
+	deleteVector(sizeof(void*),node->_parentVector); //perhaps unlink first
 	return TRUE;
 }
 int print_broto_stats(int level, struct X3D_Proto *node){
@@ -7140,7 +7145,7 @@ int unregister_broto_instance(struct X3D_Proto* node){
 	}
 	return retval;
 }
-
+void freeMallocedNodeFields(struct X3D_Node* node);
 int gc_broto_instance(struct X3D_Proto* node){
 	int iret = TRUE;
 	//recurse to free subcontexts: protoInstances, externProtoInstances, Inlines (which may instance this context's protoDeclares)
@@ -7187,11 +7192,14 @@ int gc_broto_instance(struct X3D_Proto* node){
 			//if not, and we free() them, freewrl browser will crash - in routing, 
 			//in startofloopnodeupdates, with binding stacks - anywhere we didn't deregister/clean up
 			//which is a good test to make sure we cleaned up.
+			//Apr 2015 also crashes if the same node is listed multiple times in the __nodes list, 2nd free(node) bombs
 			int crash_challenge = 1;  
-			if(crash_challenge) 
-			for(i=0;i<vectorSize(node->__nodes);i++){
-				nx = vector_get(struct X3D_Node*,node->__nodes,i);
-				FREE_IF_NZ(nx);
+			if(crash_challenge) {
+				for(i=0;i<vectorSize(node->__nodes);i++){
+					nx = vector_get(struct X3D_Node*,node->__nodes,i);
+					freeMallocedNodeFields(nx);
+					FREE_IF_NZ(nx);
+				}
 			}
 			deleteVector(struct X3D_Node *,node->__nodes);
 		}

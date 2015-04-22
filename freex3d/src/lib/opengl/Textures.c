@@ -97,7 +97,7 @@ typedef struct pTextures{
 
 
 void *Textures_constructor(){
-	void *v = malloc(sizeof(struct pTextures));
+	void *v = MALLOCV(sizeof(struct pTextures));
 	memset(v,0,sizeof(struct pTextures));
 	return v;
 }
@@ -116,7 +116,15 @@ void Textures_init(struct tTextures *t){
 		p->textureInProcess = -1;
 	}
 }
+void Textures_clear(struct tTextures *t){
+	//public
 
+	//private
+	{
+		ppTextures p = (ppTextures)t->prv;
+		deleteVector(textureTableIndexStruct_s *, p->activeTextureTable);
+	}
+}
 #if defined(AQUA) /* for AQUA OS X sharing of OpenGL Contexts */
 
 #elif defined(_MSC_VER)

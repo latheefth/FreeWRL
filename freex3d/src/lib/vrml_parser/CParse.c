@@ -53,7 +53,7 @@ typedef struct pCParse{
 	int ijunk;
 }* ppCParse;
 void *CParse_constructor(){
-	void *v = malloc(sizeof(struct pCParse));
+	void *v = MALLOCV(sizeof(struct pCParse));
 	memset(v,0,sizeof(struct pCParse));
 	return v;
 }

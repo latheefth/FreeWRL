@@ -58,7 +58,7 @@ typedef struct presources{
 }* presources;
 void *resources_constructor()
 {
-	void* v = malloc(sizeof(struct presources));
+	void *v = MALLOCV(sizeof(struct presources));
 	memset(v,0,sizeof(struct presources));
 	return v;
 }
@@ -69,6 +69,14 @@ void resources_init(struct tresources* t)
 	//presources p;
 	t->prv = resources_constructor();
 	//p = (presources)t->prv);
+}
+void resources_clear(struct tresources* t)
+{
+	//public
+	//private
+	presources p;
+	p = (presources)t->prv;
+	deleteVector(void *,p->resStack);
 }
 
 
@@ -787,24 +795,31 @@ void resource_destroy(resource_item_t *res)
 		FREE_IF_NZ(res->parsed_request);
 		break;
 
-	case rest_multi:
-		/* Free the list */
-		ml_delete_all2(res->m_request, free);
-		res->m_request = NULL;
-		break;
+	//case rest_multi:
+	//	/* Free the list */
+	//	ml_delete_all2(res->m_request, free);
+	//	res->m_request = NULL;
+	//	break;
 
 	case rest_string:
 		/* Nothing to do */
 		break;
 	}
 
-	if (!res->parent) {
-		/* Remove base */
-		FREE_IF_NZ(res->URLbase);
-	} else {
-		/* We used parent's base, so remove us from parent's childs */
-		//resource_remove_child(res->parent, res);
-	}
+	/* Free the list */
+	ml_delete_all2(res->m_request, free);
+	res->m_request = NULL;
+
+	FREE_IF_NZ(res->URLbase);
+	FREE_IF_NZ(res->openned_files);
+	//if (!res->parent) {
+	//	/* Remove base */
+	//	FREE_IF_NZ(res->URLbase);
+	//} else {
+	//	/* We used parent's base, so remove us from parent's childs */
+	//	//resource_remove_child(res->parent, res);
+	//}
+
 	FREE_IF_NZ(res->URLrequest);
 	FREE_IF_NZ(res);
 }

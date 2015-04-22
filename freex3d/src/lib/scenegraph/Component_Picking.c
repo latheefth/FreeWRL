@@ -84,7 +84,7 @@ typedef struct pComponent_Picking{
 
 }* ppComponent_Picking;
 void *Component_Picking_constructor(){
-	void *v = malloc(sizeof(struct pComponent_Picking));
+	void *v = MALLOCV(sizeof(struct pComponent_Picking));
 	memset(v,0,sizeof(struct pComponent_Picking));
 	return v;
 }

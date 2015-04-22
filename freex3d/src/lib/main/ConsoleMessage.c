@@ -63,7 +63,7 @@ typedef struct pConsoleMessage{
 	void(*callback[2])(char *);
 }* ppConsoleMessage;
 static void *ConsoleMessage_constructor(){
-	void *v = malloc(sizeof(struct pConsoleMessage));
+	void *v = MALLOCV(sizeof(struct pConsoleMessage));
 	memset(v,0,sizeof(struct pConsoleMessage));
 	return v;
 }
@@ -316,7 +316,11 @@ static void android_save_log(char *thislog) {
 				p->androidFreeSlot++;
 				if (p->androidFreeSlot >= p->maxLines) p->androidFreeSlot = 0;
 				if (p->androidMessageSlot[p->androidFreeSlot] != NULL) {
-					FREE_IF_NZ(p->androidMessageSlot[p->androidFreeSlot]);
+					//FREE_IF_NZ(p->androidMessageSlot[p->androidFreeSlot]);
+					if(p->androidMessageSlot[p->androidFreeSlot]){
+						free(p->androidMessageSlot[p->androidFreeSlot]);
+						p->androidMessageSlot[p->androidFreeSlot] = NULL;
+					}
 				}
 				p->androidHaveUnreadMessages++;
 			}
@@ -445,7 +449,7 @@ int ConsoleMessage0(const char *fmt, va_list args){
 			p->callback[0](p->FWbuffer);
 		if (p->callback[1])
 			p->callback[1](p->FWbuffer);
-		android_save_log(STRDUP(p->FWbuffer)); //passing ownerhsip in
+		android_save_log(strdup(p->FWbuffer)); //passing ownerhsip in
 	}
 	return retval;
 }

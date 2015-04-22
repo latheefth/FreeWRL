@@ -110,7 +110,7 @@ typedef struct pcollision{
 
 }* ppcollision;
 void *collision_constructor(){
-	void *v = malloc(sizeof(struct pcollision));
+	void *v = MALLOCV(sizeof(struct pcollision));
 	memset(v,0,sizeof(struct pcollision));
 	return v;
 }

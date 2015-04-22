@@ -1142,3 +1142,32 @@ void compile_polyrep(void *innode, void *coord, void *color, void *normal, struc
 	polyrep->irep_change = node->_change;
 }
 
+void delete_polyrep(struct X3D_Node *node){
+	// see if node has _intern, if so it's live scenery
+	// delete opengl buffers used by polyrep
+	// delete internal malloced items in polyrep
+	// delete polyrep
+	// null node's _intern field
+	struct X3D_PolyRep *pr;
+	if(!node) return;
+	pr = node->_intern;
+	if(pr){
+		// ? apr 2015 I think the node->_intern = polyrep will only be populated 
+		// in the case of live scenery, not in ProtoDeclares, so if we are in here, 
+		// we should have live scenery, and that means gl buffers were assigned
+		glDeleteBuffers(VBO_COUNT,pr->VBO_buffers);
+
+		/* indicies for arrays. OpenGL ES 2.0 - unsigned short for the DrawArrays call */
+		FREE_IF_NZ(pr->cindex);   /* triples (per triangle) */
+		FREE_IF_NZ(pr->colindex);   /* triples (per triangle) */
+		FREE_IF_NZ(pr->norindex);
+		FREE_IF_NZ(pr->tcindex); /* triples or null */
+
+		FREE_IF_NZ(pr->actualCoord); /* triples (per point) */
+		FREE_IF_NZ(pr->color); /* triples or null */
+		FREE_IF_NZ(pr->normal); /* triples or null */
+		FREE_IF_NZ(pr->GeneratedTexCoords);	/* triples (per triangle) of texture coords if there is no texCoord node */
+		FREE_IF_NZ(pr);
+		node->_intern = NULL;
+	}
+};

@@ -130,7 +130,7 @@ typedef struct pCProto{
 	struct Vector *protoDefVec;// = NULL;
 }* ppCProto;
 void *CProto_constructor(){
-	void *v = malloc(sizeof(struct pCProto));
+	void *v = MALLOCV(sizeof(struct pCProto));
 	memset(v,0,sizeof(struct pCProto));
 	return v;
 }

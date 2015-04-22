@@ -100,7 +100,7 @@ typedef struct pEAIHelpers{
 } * ppEAIHelpers;
 void *EAIHelpers_constructor()
 {
-	void *v = malloc(sizeof(struct pEAIHelpers));
+	void *v = MALLOCV(sizeof(struct pEAIHelpers));
 	memset(v,0,sizeof(struct pEAIHelpers));
 	return v;
 }

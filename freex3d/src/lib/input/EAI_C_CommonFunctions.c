@@ -61,7 +61,7 @@ typedef struct pEAI_C_CommonFunctions{
 }* ppEAI_C_CommonFunctions;
 void *EAI_C_CommonFunctions_constructor()
 {
-	void * v = malloc(sizeof(struct pEAI_C_CommonFunctions));
+	void *v = MALLOCV(sizeof(struct pEAI_C_CommonFunctions));
 	memset(v,0,sizeof(struct pEAI_C_CommonFunctions));
 	return v;
 }
@@ -113,6 +113,36 @@ struct Uni_String *newASCIIString(char *str) {
 	/* printf ("newASCIIString, returning UniString %x, strptr %u for string :%s:\n",retval, retval->strptr,str); */
 
 	return retval;
+}
+
+
+
+void clearASCIIString(struct Uni_String *us);
+void freeASCIIString(struct Uni_String *us);
+void clearMFString(struct Multi_String *ms);
+void freeMFString(struct Multi_String **ms);
+
+void clearASCIIString(struct Uni_String *us){
+	FREE_IF_NZ(us->strptr);
+	us->len = 0;
+}
+void freeASCIIString(struct Uni_String *us){
+	clearASCIIString(us);
+	FREE_IF_NZ(us);
+}
+void clearMFString(struct Multi_String *ms){
+	if(ms){
+		int i;
+		for(i=0;i<ms->n;i++){
+			freeASCIIString(ms->p[i]);
+		}
+		ms->n = 0;
+		FREE_IF_NZ(ms->p);
+	}
+}
+void freeMFString(struct Multi_String **ms){
+	clearMFString(*ms);
+	FREE_IF_NZ(*ms);
 }
 
 /* do these strings differ?? If so, copy the new string over the old, and 
@@ -872,6 +902,8 @@ MF_TYPE(MFNode, mfnode, Node)
 
 	/* tell the parser that we have done with the input - it will FREE the data */
 	lexer_forceStringCleanup(parser->lexer);
+
+	FREE_IF_NZ(mfstringtmp);
 
 	/* and, reset the XML flag */
 	parser->parsingX3DfromXML = oldXMLflag;

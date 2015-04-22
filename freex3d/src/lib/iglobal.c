@@ -5,6 +5,7 @@
 void display_init(struct tdisplay* d);
 void internalc_init(struct tinternalc* ic);
 void resources_init(struct tresources* t);
+void resources_clear(struct tresources* t);
 void threads_init(struct tthreads* t);
 
 #if !defined(FRONTEND_DOES_SNAPSHOTS)
@@ -22,7 +23,9 @@ void EAICore_init(struct tEAICore* t);
 void SensInterps_init(struct tSensInterps *t);
 void ConsoleMessage_init(struct tConsoleMessage *t);
 void Mainloop_init(struct tMainloop *t);
+void Mainloop_clear(struct tMainloop *t);
 void ProdCon_init(struct tProdCon *t);
+void ProdCon_clear(struct tProdCon *t);
 
 #if defined (INCLUDE_NON_WEB3D_FORMATS)
 void ColladaParser_init(struct tColladaParser *t);
@@ -37,12 +40,14 @@ void STL_Handler_init (struct tSTLHandler *t);
 void Frustum_init(struct tFrustum *t);
 void LoadTextures_init(struct tLoadTextures *t);
 void OpenGL_Utils_init(struct tOpenGL_Utils *t);
+void OpenGL_Utils_clear(struct tOpenGL_Utils *t);
 #ifdef HAVE_OPENCL
 void OpenCL_Utils_init(struct tOpenCL_Utils *t);
 #endif
 //void RasterFont_init(struct tRasterFont *t);
 void RenderTextures_init(struct tRenderTextures *t);
 void Textures_init(struct tTextures *t);
+void Textures_clear(struct tTextures *t);
 void PluginSocket_init(struct tPluginSocket *t);
 void pluginUtils_init(struct tpluginUtils *t);
 void collision_init(struct tcollision *t);
@@ -66,18 +71,21 @@ void Component_Sound_init(struct tComponent_Sound *t);
 void Component_Text_init(struct tComponent_Text *t);
 
 void RenderFuncs_init(struct tRenderFuncs *t);
+void RenderFuncs_clear(struct tRenderFuncs *t);
 void StreamPoly_init(struct tStreamPoly *t);
 void Tess_init(struct tTess *t);
 void Viewer_init(struct tViewer *t);
 
 #if defined(STATUSBAR_HUD)
 void statusbar_init(struct tstatusbar *t);
+void statusbar_clear(struct tstatusbar *t);
 #endif
 
 void CParse_init(struct tCParse *t);
 void CParseParser_init(struct tCParseParser *t);
 void CProto_init(struct tCProto *t);
 void CRoutes_init(struct tCRoutes *t);
+void CRoutes_clear(struct tCRoutes *t);
 void CScripts_init(struct tCScripts *t);
 void JScript_init(struct tJScript *t);
 
@@ -87,7 +95,10 @@ void jsVRMLBrowser_init(struct tjsVRMLBrowser *t);
 void jsVRMLClasses_init(struct tjsVRMLClasses *t);
 #endif
 void Bindable_init(struct tBindable *t);
+void Bindable_clear(struct tBindable *t);
 void X3DParser_init(struct tX3DParser *t);
+void X3DParser_clear(struct tX3DParser *t);
+
 void X3DProtoScript_init(struct tX3DProtoScript *t);
 void common_init(struct tcommon *t);
 void CursorDraw_init(struct tCursorDraw *t);
@@ -109,7 +120,7 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	//3. for each of those 3 items:
 	//   - set thread2global[threadID] = global
 	// pthread_t uiThread;
-	ttglobal iglobal = malloc(sizeof(struct iiglobal));
+	ttglobal iglobal = MALLOCV(sizeof(struct iiglobal));
 	memset(iglobal,0,sizeof(struct iiglobal)); //set to zero/null by default
 
 
@@ -211,6 +222,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 	return iglobal;
 }
 
+
 void remove_iglobal_from_table(ttglobal tg);
 void iglobal_destructor(ttglobal tg)
 {
@@ -220,8 +232,8 @@ void iglobal_destructor(ttglobal tg)
 	FREE_IF_NZ(tg->CursorDraw.prv);
 	FREE_IF_NZ(tg->common.prv);
 	FREE_IF_NZ(tg->X3DProtoScript.prv);
-	FREE_IF_NZ(tg->X3DParser.prv);
-	FREE_IF_NZ(tg->Bindable.prv);
+	X3DParser_clear(&tg->X3DParser); FREE_IF_NZ(tg->X3DParser.prv);
+	Bindable_clear(&tg->Bindable); FREE_IF_NZ(tg->Bindable.prv);
 #ifdef HAVE_JAVASCRIPT
 	FREE_IF_NZ(tg->jsVRMLClasses.prv);
 	FREE_IF_NZ(tg->jsVRMLBrowser.prv);
@@ -229,16 +241,19 @@ void iglobal_destructor(ttglobal tg)
 #endif
 	FREE_IF_NZ(tg->JScript.prv);
 	FREE_IF_NZ(tg->CScripts.prv);
-	FREE_IF_NZ(tg->CRoutes.prv);
+	CRoutes_clear(&tg->CRoutes); FREE_IF_NZ(tg->CRoutes.prv);
 	FREE_IF_NZ(tg->CProto.prv);
 	FREE_IF_NZ(tg->CParseParser.prv);
 	FREE_IF_NZ(tg->CParse.prv);
+#if defined(STATUSBAR_HUD)
+	statusbar_clear(&tg->statusbar);
+#endif
 	FREE_IF_NZ(tg->statusbar.prv);
 	FREE_IF_NZ(tg->Viewer.prv);
 	FREE_IF_NZ(tg->Tess.prv);
 	FREE_IF_NZ(tg->StreamPoly.prv);
 	FREE_IF_NZ(tg->Component_Sound.prv);
-	FREE_IF_NZ(tg->RenderFuncs.prv);
+	RenderFuncs_clear(&tg->RenderFuncs); FREE_IF_NZ(tg->RenderFuncs.prv);
 	FREE_IF_NZ(tg->Component_Text.prv);
 	FREE_IF_NZ(tg->Component_Shape.prv);
 #ifdef DJTRACK_PICKSENSORS
@@ -256,10 +271,10 @@ OLDCODE	FREE_IF_NZ(tg->Component_Networking.prv);
 	FREE_IF_NZ(tg->collision.prv);
 	FREE_IF_NZ(tg->pluginUtils.prv);
 	FREE_IF_NZ(tg->PluginSocket.prv);
-	FREE_IF_NZ(tg->Textures.prv);
+	Textures_clear(&tg->Textures); FREE_IF_NZ(tg->Textures.prv);
 	FREE_IF_NZ(tg->RenderTextures.prv);
 	//FREE_IF_NZ(tg->RasterFont.prv);
-	FREE_IF_NZ(tg->OpenGL_Utils.prv);
+	OpenGL_Utils_clear(&tg->OpenGL_Utils); FREE_IF_NZ(tg->OpenGL_Utils.prv);
 	FREE_IF_NZ(tg->LoadTextures.prv);
 	FREE_IF_NZ(tg->Frustum.prv);
     
@@ -271,8 +286,8 @@ OLDCODE	FREE_IF_NZ(tg->Component_Networking.prv);
 	FREE_IF_NZ(tg->STLHandler.prv);
 #endif // INCLUDE_STL_FILES
     
-	FREE_IF_NZ(tg->ProdCon.prv);
-	FREE_IF_NZ(tg->Mainloop.prv);
+	ProdCon_clear(&tg->ProdCon); FREE_IF_NZ(tg->ProdCon.prv);
+	Mainloop_clear(&tg->Mainloop); FREE_IF_NZ(tg->Mainloop.prv);
 	FREE_IF_NZ(tg->ConsoleMessage.prv);
 	FREE_IF_NZ(tg->SensInterps.prv);
 	FREE_IF_NZ(tg->EAICore.prv);
@@ -282,12 +297,12 @@ OLDCODE	FREE_IF_NZ(tg->Component_Networking.prv);
 	FREE_IF_NZ(tg->Snapshot.prv);
     
 	FREE_IF_NZ(tg->threads.prv);
-	FREE_IF_NZ(tg->resources.prv);
+	resources_clear(&tg->resources); FREE_IF_NZ(tg->resources.prv);
 	FREE_IF_NZ(tg->internalc.prv);
 	FREE_IF_NZ(tg->display.prv);
 
 	//destroy iglobal
-	free(tg);
+	FREE_IF_NZ(tg);
 	//remove_iglobal_from_table(tg);
 	fwl_clearCurrentHandle(__FILE__,__LINE__);
 

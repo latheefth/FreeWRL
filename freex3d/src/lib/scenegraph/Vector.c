@@ -46,13 +46,24 @@
 /* Constructor/destructor */
 
 struct Vector* newVector_(int elSize, int initSize,char *fi, int line) {
- 	struct Vector* ret=MALLOC(struct Vector *, sizeof(struct Vector));
+ 	struct Vector* ret;
+#ifdef DEBUG_MALLOC
+	//inherit __line__ and __file__ from particular spot in code that does newVector
+	ret=(struct Vector *)freewrlMalloc(line,fi,sizeof(struct Vector), FALSE);
+#else
+	ret=MALLOC(struct Vector *, sizeof(struct Vector));
+#endif
  	ASSERT(ret);
  	ret->n=0;
  	ret->allocn=initSize;
+#ifdef DEBUG_MALLOC
+	//inherit __line__ and __file__ from particular spot in code that does newVector
+	ret->data=(void *)freewrlMalloc(line, fi,elSize*ret->allocn, FALSE);
+#else
  	ret->data=MALLOC(void *, elSize*ret->allocn);
+#endif
  	ASSERT(ret->data);
-	#ifdef DEBUG_MALLOC
+	#ifdef DEBUG_MALLOC2
 		ConsoleMessage ("vector, new  %x, data %x, size %d at %s:%d",ret, ret->data, initSize,fi,line);
 	#endif
 	
@@ -74,7 +85,7 @@ void deleteVector_(int elSize, struct Vector** myp) {
 
 	ASSERT(me);
 	#ifdef DEBUG_MALLOC
-		ConsoleMessage ("vector, deleting me %x data %x at %s:%d\n",me,me->data,file,line);
+		printf("vector, deleting me %x data %x at %s:%d\n",me,me->data,file,line);
 	#endif
 	if(me->data) {FREE_IF_NZ(me->data);}
 	FREE_IF_NZ(me);
@@ -82,13 +93,17 @@ void deleteVector_(int elSize, struct Vector** myp) {
 }
 
 /* Ensures there's at least one space free. */
-void vector_ensureSpace_(int elSize, struct Vector* me) {
+void vector_ensureSpace_(int elSize, struct Vector* me, char *fi, int line) {
 	ASSERT(me);
 	if(me->n==me->allocn) {
 		if(me->allocn) me->allocn*=2;
 		else me->allocn=1;
 
+#ifdef DEBUG_MALLOC
+		me->data=freewrlRealloc(line, fi,me->data, elSize*me->allocn);
+#else
 		me->data=REALLOC(me->data, elSize*me->allocn);
+#endif
 		#ifdef DEBUG_MALLOC
 			printf ("vector, ensureSpace, me %x, data %x\n",me, me->data);
 		#endif

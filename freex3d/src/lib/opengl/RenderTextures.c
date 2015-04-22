@@ -59,7 +59,7 @@ texture enabling - works for single texture, for multitexture.
 
 
 void *RenderTextures_constructor(){
-	void *v = malloc(sizeof(struct pRenderTextures));
+	void *v = MALLOCV(sizeof(struct pRenderTextures));
 	memset(v,0,sizeof(struct pRenderTextures));
 	return v;
 }

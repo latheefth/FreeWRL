@@ -88,7 +88,7 @@ typedef struct pLoadTextures{
 	int TextureParsing; // = FALSE;
 }* ppLoadTextures;
 void *LoadTextures_constructor(){
-	void *v = malloc(sizeof(struct pLoadTextures));
+	void *v = MALLOCV(sizeof(struct pLoadTextures));
 	memset(v,0,sizeof(struct pLoadTextures));
 	return v;
 }
@@ -798,9 +798,9 @@ So you might have a global variable bool waiting = false.
 */
 
 /**
- *   texture_process_list: walk through the list of texture we have to process.
+ *   texture_process_list_item: process a texture_list item
  */
-static void texture_process_list(s_list_t *item)
+static void texture_process_list_item(s_list_t *item)
 {
 	bool remove_it = FALSE;
 	textureTableIndexStruct_s *entry;
@@ -839,8 +839,9 @@ static void texture_process_list(s_list_t *item)
 	}
 		
 	if (remove_it) {
-		/* Remove the parsed resource from the list */
-		p->texture_list = ml_delete_self(p->texture_list, item);
+		/* free the parsed resource and list item */
+		//p->texture_list = ml_delete_self(p->texture_list, item);
+		ml_free(item);
 	}
 }
 
@@ -928,7 +929,7 @@ void _textureThread(void *globalcontext)
 				continue;
 			}
 			p->TextureParsing = TRUE;
-			texture_process_list(item);
+			texture_process_list_item(item);
 			p->TextureParsing = FALSE;
 		}
 	}

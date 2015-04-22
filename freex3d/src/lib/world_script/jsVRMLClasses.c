@@ -80,7 +80,7 @@ typedef struct pjsVRMLClasses{
 	int maxECMAVal;// = 0;
 }* ppjsVRMLClasses;
 void *jsVRMLClasses_constructor(){
-	void *v = malloc(sizeof(struct pjsVRMLClasses));
+	void *v = MALLOCV(sizeof(struct pjsVRMLClasses));
 	memset(v,0,sizeof(struct pjsVRMLClasses));
 	return v;
 }

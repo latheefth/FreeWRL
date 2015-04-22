@@ -58,7 +58,7 @@ typedef struct pComponent_NURBS{
 
 }* ppComponent_NURBS;
 void *Component_NURBS_constructor(){
-	void *v = malloc(sizeof(struct pComponent_NURBS));
+	void *v = MALLOCV(sizeof(struct pComponent_NURBS));
 	memset(v,0,sizeof(struct pComponent_NURBS));
 	return v;
 }

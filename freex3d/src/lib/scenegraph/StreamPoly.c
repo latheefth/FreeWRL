@@ -85,7 +85,7 @@ typedef struct pStreamPoly{
 	GLfloat Ssize;
 }* ppStreamPoly;
 void *StreamPoly_constructor(){
-	void *v = malloc(sizeof(struct pStreamPoly));
+	void *v = MALLOCV(sizeof(struct pStreamPoly));
 	memset(v,0,sizeof(struct pStreamPoly));
 	return v;
 }

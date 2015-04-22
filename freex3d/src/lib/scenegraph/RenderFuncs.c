@@ -108,7 +108,7 @@ typedef struct pRenderFuncs{
 
 }* ppRenderFuncs;
 void *RenderFuncs_constructor(){
-	void *v = malloc(sizeof(struct pRenderFuncs));
+	void *v = MALLOCV(sizeof(struct pRenderFuncs));
 	memset(v,0,sizeof(struct pRenderFuncs));
 	return v;
 }
@@ -154,7 +154,10 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 
 	//setLightType(HEADLIGHT_LIGHT,2); // ensure that this is a DirectionalLight.
 }
-
+void RenderFuncs_clear(struct tRenderFuncs *t){
+	ppRenderFuncs p = (ppRenderFuncs)t->prv;
+	deleteVector(void3 *,p->libraries);
+}
 void clearLightTable(){ //unsigned int loop_count){
 	//int i;
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;

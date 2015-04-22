@@ -54,7 +54,7 @@ struct Vector* newVector_(int elSize, int initSize,char *,int);
 #endif
 
 /* Ensures there's at least one space free. */
-void vector_ensureSpace_(int, struct Vector*);
+void vector_ensureSpace_(int, struct Vector*, char *fi, int line);
 
 /* Element retrieval. */
 #define vector_get(type, me, ind) \
@@ -88,7 +88,7 @@ void vector_shrink_(int, struct Vector*);
 /* Push back operation. */
 #define vector_pushBack(type, me, el) \
  { \
-  vector_ensureSpace_((int)sizeof(type), me); \
+  vector_ensureSpace_((int)sizeof(type), me,__FILE__,__LINE__); \
   ASSERT(((struct Vector*)me)->n<((struct Vector*)me)->allocn); \
   vector_get(type, me, ((struct Vector*)me)->n)=el; \
   ++((struct Vector*)me)->n; \
