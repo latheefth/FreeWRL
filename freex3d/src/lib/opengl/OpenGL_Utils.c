@@ -5486,7 +5486,7 @@ BOOL cbFreeMallocedBuiltinField(void *callbackData,struct X3D_Node* node,int jfi
 		if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
 			//#define FIELDTYPE_FreeWRLPTR	22
 			//#define FIELDTYPE_SFImage	23
-			if(strncmp(fieldName,"__",2)) {
+			if(strcmp(fieldName,"__oldurl") && strcmp(fieldName,"__oldSFString") && strcmp(fieldName,"__oldMFString")) {
 			//if(1){
 				//skip double underscore prefixed fields, which we will treat as not-to-be-deleted, because duplicates like GeoViewpoint __oldMFString which is a duplicate of navType
 				int isMF = type % 2;
