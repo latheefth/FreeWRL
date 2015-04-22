@@ -332,7 +332,12 @@ void Mainloop_init(struct tMainloop *t){
 		p->keywaitstring[0] = (char)0;
 	}
 }
-
+void Mainloop_clear(struct tMainloop *t){
+	FREE_IF_NZ(t->scene_name);
+	FREE_IF_NZ(t->scene_suff);
+	FREE_IF_NZ(t->tmpFileLocation);
+	//ppMainloop p = (ppMainloop)t->prv;
+}
 //true statics:
 int isBrowserPlugin = FALSE; //I can't think of a scenario where sharing this across instances would be a problem
 ///* are we displayed, or iconic? */

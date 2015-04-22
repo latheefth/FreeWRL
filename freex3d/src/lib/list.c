@@ -36,6 +36,15 @@
 /**
  * ml_new: create a new list item with a contained element 'elem'
  */
+#ifdef DEBUG_MALLOC
+s_list_t* _ml_new(const void *elem, int line, char *fi)
+{
+    s_list_t *item;
+	item = freewrlMalloc(line, fi, sizeof(s_list_t), TRUE);
+    ml_elem(item) = (void *) elem;
+    return item;
+}
+#else
 s_list_t* ml_new(const void *elem)
 {
     s_list_t *item;
@@ -43,6 +52,7 @@ s_list_t* ml_new(const void *elem)
     ml_elem(item) = (void *) elem;
     return item;
 }
+#endif
 
 /**
  * ml_count: count the number of items in 'list'
@@ -191,7 +201,10 @@ s_list_t* ml_dequeue(s_list_t **list){
 	return item;
 }
 
-
+/*when known to be a singlton with next=null, just free it*/
+void ml_free(s_list_t *item){
+	XFREE(item);
+}
 /**
  * ml_delete_self: destroy 'item' from 'list', even if item is the first
  * when 'item' holds a single value not to be freed

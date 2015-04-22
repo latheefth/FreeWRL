@@ -354,7 +354,7 @@ void splitpath_local_suffix(const char *url, char **local_name, char **suff)
 			for(i=len-1;i>=0;i--){
 				if(localname[i] == '.') {
 					localname[i] = '\0';
-					*suff = &localname[i+1];
+					*suff = STRDUP(&localname[i+1]);
 					break;
 				}
 			}

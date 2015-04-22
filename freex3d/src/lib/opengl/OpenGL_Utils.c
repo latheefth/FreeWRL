@@ -212,7 +212,17 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
 		p->maxStackUsed = 0;
 	}
 }
-
+void OpenGL_Utils_clear(struct tOpenGL_Utils *t)
+{
+	//public
+	//private
+	{
+		ppOpenGL_Utils p = (ppOpenGL_Utils)t->prv;
+		deleteVector(struct X3D_Node*,p->linearNodeTable);
+		deleteVector(struct shaderTableEntry *, p->myShaderTable);
+		deleteVector(struct shaderTableEntry *,p->myShaderTable);
+	}
+}
 #ifdef GLEW_MX
 GLEWContext * glewGetContext()
 {
@@ -5477,6 +5487,7 @@ BOOL cbFreeMallocedBuiltinField(void *callbackData,struct X3D_Node* node,int jfi
 			//#define FIELDTYPE_FreeWRLPTR	22
 			//#define FIELDTYPE_SFImage	23
 			if(strncmp(fieldName,"__",2)) {
+			//if(1){
 				//skip double underscore prefixed fields, which we will treat as not-to-be-deleted, because duplicates like GeoViewpoint __oldMFString which is a duplicate of navType
 				int isMF = type % 2;
 				if(type == FIELDTYPE_FreeWRLPTR){
@@ -5513,7 +5524,8 @@ BOOL cbFreeMallocedUserField(void *callbackData,struct X3D_Node* node,int jfield
 	if(source > 0){
 		//user field in source = {script=1, shaders etc 2, protos = 3}
 		if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
-			if(strncmp(fieldName,"__",2)) {
+			//if(strncmp(fieldName,"__",2)) {
+			if(1){
 				//skip double underscore prefixed fields, which we will treat as not-to-be-deleted, because duplicates like GeoViewpoint __oldMFString which is a duplicate of navType
 				int isMF = type % 2;
 				if(type == FIELDTYPE_FreeWRLPTR){

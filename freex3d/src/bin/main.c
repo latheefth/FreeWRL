@@ -150,7 +150,7 @@ int main (int argc, char **argv)
 		strcat(fdir,"/Fonts");
 		_putenv( fdir );
 	}
-	get_current_dir();
+	//get_current_dir();
 	/* VBO preference - comment out for vbos (vertex buffer objects - a rendering optimization) */
 	_putenv("FREEWRL_NO_VBOS=1"); 
 	//_putenv("FREEWRL_USE_VBOS=1");

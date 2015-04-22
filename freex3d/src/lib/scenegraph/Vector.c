@@ -85,7 +85,7 @@ void deleteVector_(int elSize, struct Vector** myp) {
 
 	ASSERT(me);
 	#ifdef DEBUG_MALLOC
-		ConsoleMessage ("vector, deleting me %x data %x at %s:%d\n",me,me->data,file,line);
+		printf("vector, deleting me %x data %x at %s:%d\n",me,me->data,file,line);
 	#endif
 	if(me->data) {FREE_IF_NZ(me->data);}
 	FREE_IF_NZ(me);

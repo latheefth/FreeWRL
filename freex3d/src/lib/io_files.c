@@ -166,7 +166,8 @@ char *get_current_dir()
 			cwd[ll+1] = '\0';
 	} else {
 		printf("Unable to establish current working directory in %s,%d errno=%d",__FILE__,__LINE__,errno) ;
-		cwd = strdup("./"); // "/tmp/";
+		FREE_IF_NZ(cwd);
+		cwd = STRDUP("./"); // "/tmp/";
 	}
 	return cwd;
 }

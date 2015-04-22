@@ -547,6 +547,7 @@ void statusbar_init(struct tstatusbar *t){
 		p->clipPlane = p->statusBarSize;
 	}
 }
+
 //ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
 
 void initProgramObject(){
@@ -561,7 +562,15 @@ void initProgramObject(){
    p->textureLoc = glGetUniformLocation ( p->programObject, "Texture0" );
    p->color4fLoc = glGetUniformLocation ( p->programObject, "Color4f" );
 }
-
+void statusbar_clear(struct tstatusbar *t){
+	//public
+	//private
+	{
+		ppstatusbar p = (ppstatusbar)t->prv;
+		if(p->conlist)
+			ml_delete_all(p->conlist);
+	}
+}
 void fwMakeRasterFonts()
 {
 	int i,j,k,m,w,h,bytewidth,bit;
