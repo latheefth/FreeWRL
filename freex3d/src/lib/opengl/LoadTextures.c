@@ -379,7 +379,7 @@ int loadImage(textureTableIndexStruct_s* tti, char* fname)
 				unsigned char *sourcerow, *destrow;
 				unsigned char * blob;
 				rowcount = tti->x * 4;
-				blob = malloc(img.h * rowcount);
+				blob = MALLOCV(img.h * rowcount);
 				for(i=0;i<img.h;i++) {
 					ii = tti->y - 1 - i;
 					sourcerow = &tti->texdata[i*rowcount];

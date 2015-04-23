@@ -4611,6 +4611,12 @@ void finalizeRenderSceneUpdateScene() {
 	/* kill any remaining children processes like sound processes or consoles */
 	killErrantChildren();
 	/* tested on win32 console program July9,2011 seems OK */
+	struct X3D_Node* rn = rootNode();
+	if(rn)
+		deleteVector(sizeof(void*),rn->_parentVector); //perhaps unlink first
+	freeMallocedNodeFields(rn);
+	FREE_IF_NZ(rn);
+	setRootNode(NULL);
 #ifdef DEBUG_MALLOC
 	end_of_run_tests();
 #endif
@@ -4817,7 +4823,10 @@ void fwl_initialize_parser()
 
 	/* create the root node */
 	if (rootNode() == NULL) {
-		setRootNode( createNewX3DNode (NODE_Group) );
+		if(usingBrotos())
+			setRootNode( createNewX3DNode (NODE_Proto) );
+		else
+			setRootNode( createNewX3DNode (NODE_Group) );
 		/*remove this node from the deleting list*/
 		doNotRegisterThisNodeForDestroy(X3D_NODE(rootNode()));
 	}

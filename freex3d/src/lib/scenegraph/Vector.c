@@ -79,7 +79,7 @@ void deleteVector_(int elSize, struct Vector** myp) {
 	struct Vector *me = *myp;
 
 	if (!me) {
-		ConsoleMessage ("Vector - already empty");
+		//ConsoleMessage ("Vector - already empty");
 		return;
 	}
 

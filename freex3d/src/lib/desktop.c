@@ -266,7 +266,8 @@ void file2blob_task(s_list_t *item);
 extern int async_thread_count;
 static void *thread_download_async (void *args){
 	int downloaded; //, tactic;
-	resource_item_t *res = (resource_item_t *)args;
+	s_list_t *item = (s_list_t *)args;
+	resource_item_t *res = (resource_item_t *)item->elem;
 	async_thread_count++;
 	printf("{%d}",async_thread_count);
 	if(fwl_setCurrentHandle(res->tg, __FILE__, __LINE__));
@@ -275,13 +276,14 @@ static void *thread_download_async (void *args){
 
 	//tactic = file2blob_task_chain;
 	if(downloaded)
-		file2blob_task(ml_new(res));
+		file2blob_task(item); //ml_new(res));
 	async_thread_count--;
 	return NULL;
 }
-void downloadAsync (resource_item_t *res) {
+void downloadAsync (s_list_t *item) {
+	resource_item_t *res = (resource_item_t *)item->elem;
 	if(!res->_loadThread) res->_loadThread = malloc(sizeof(pthread_t));
-	pthread_create ((pthread_t*)res->_loadThread, NULL,&thread_download_async, (void *)res);
+	pthread_create ((pthread_t*)res->_loadThread, NULL,&thread_download_async, (void *)item);
 }
 
 
@@ -315,7 +317,7 @@ void frontend_dequeue_get_enqueue(void *tg){
 					frontenditem_enqueue(item);
 				}
 			}else if(tactic == url2file_task_spawn){
-				downloadAsync(res); //res already has res->tg with global context
+				downloadAsync(item); //res already has res->tg with global context
 			}
 		}
 		if(res->status == ress_downloaded){
