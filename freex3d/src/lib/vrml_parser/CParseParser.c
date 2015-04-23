@@ -1274,7 +1274,7 @@ void handleExport_B (void *ctxnodeptr, char *nodename, char *as) {
 	struct X3D_Proto *context = hasContext(ctxnodeptr);
 	if(context){
 		struct X3D_Node *node = NULL;
-		struct IMEXPORT *mxport = malloc(sizeof(struct IMEXPORT));
+		struct IMEXPORT *mxport = MALLOCV(sizeof(struct IMEXPORT));
 		if(!context->__EXPORTS) context->__EXPORTS = newVector(struct IMEXPORT *,4);
 		mxport->mxname = strdup(nodename);
 		mxport->as = mxport->mxname;
@@ -1310,7 +1310,7 @@ void handleImport_B (struct X3D_Node *nodeptr, char *nodeName,char *nodeImport, 
 	*/
 	struct X3D_Proto *context = hasContext(nodeptr);
 	if(context){
-		struct IMEXPORT *mxport = malloc(sizeof(struct IMEXPORT));
+		struct IMEXPORT *mxport = MALLOCV(sizeof(struct IMEXPORT));
 		if(!context->__IMPORTS) context->__IMPORTS = newVector(struct IMEXPORT *,4);
 		mxport->mxname = strdup(nodeImport);
 		mxport->inlinename = strdup(nodeName);
@@ -6898,7 +6898,7 @@ void load_externProtoInstance (struct X3D_Proto *node) {
 								}
 								//convert IStable to browser routes
 								p2p = newVector(struct pointer2pointer*,1);
-								p2pentry = malloc(sizeof(struct pointer2pointer));
+								p2pentry = MALLOCV(sizeof(struct pointer2pointer));
 								//nothing to look up, nuisance to re-use copy_IS
 								p2pentry->pp = X3D_NODE(pinstance);
 								p2pentry->pn = X3D_NODE(pinstance);

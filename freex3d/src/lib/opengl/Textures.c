@@ -213,7 +213,7 @@ static void GenMipMap2D( GLubyte *src, GLubyte **dst, int srcWidth, int srcHeigh
    if ( *dstHeight <= 0 )
       *dstHeight = 1;
 
-   *dst = malloc ( sizeof(GLubyte) * texelSize * (*dstWidth) * (*dstHeight) );
+   *dst = MALLOCV ( sizeof(GLubyte) * texelSize * (*dstWidth) * (*dstHeight) );
    malloc_profile_add("texturemip",texelSize * (*dstWidth) * (*dstHeight));
    if ( *dst == NULL )
       return;

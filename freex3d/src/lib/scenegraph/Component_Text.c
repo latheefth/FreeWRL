@@ -797,7 +797,7 @@ unsigned int *utf8_to_utf32(unsigned char *utf8string, unsigned int *len32)
 	unsigned char *start, *end;
 	int lenchar, l32;
 	lenchar = (int)strlen((const char *)utf8string);
-	to0 = to = (unsigned int*)malloc((lenchar + 1)*sizeof(unsigned int));
+	to0 = to = MALLOC(unsigned int*,(lenchar + 1)*sizeof(unsigned int));
 	start = utf8string;
 	end = (unsigned char *)&utf8string[lenchar];
 	l32 = 0;
@@ -1007,7 +1007,7 @@ p->myff = 4;
 			for(i=0;i<len32;i++)
 				FW_Load_Char(utf32[i]);
 			char_count += len32;
-			free(utf32);
+			FREE_IF_NZ(utf32);
 
 		}
     }

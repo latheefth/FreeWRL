@@ -758,6 +758,7 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 				//}
 			}else{
 				struct X3D_Proto *sceneProto;
+				struct X3D_Node *rn;
 				sceneProto = (struct X3D_Proto *) createNewX3DNode(NODE_Proto);
 				sceneProto->__protoFlags = ciflag_set(sceneProto->__protoFlags,1,0);
 				//if(usingBrotos() > 1){
@@ -766,7 +767,13 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 				//}
 				nRn = X3D_NODE(sceneProto);
 				ectx = nRn;
+				rn = rootNode();
 				setRootNode(X3D_NODE(sceneProto));
+				if(rn)
+					deleteVector(sizeof(void*),rn->_parentVector); //perhaps unlink first
+				freeMallocedNodeFields(rn);
+				FREE_IF_NZ(rn);
+
 			}
 		}else{
 			nRn = (struct X3D_Node *) createNewX3DNode(NODE_Group);

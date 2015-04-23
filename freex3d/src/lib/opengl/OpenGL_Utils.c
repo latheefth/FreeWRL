@@ -220,7 +220,6 @@ void OpenGL_Utils_clear(struct tOpenGL_Utils *t)
 		ppOpenGL_Utils p = (ppOpenGL_Utils)t->prv;
 		deleteVector(struct X3D_Node*,p->linearNodeTable);
 		deleteVector(struct shaderTableEntry *, p->myShaderTable);
-		deleteVector(struct shaderTableEntry *,p->myShaderTable);
 	}
 }
 #ifdef GLEW_MX
@@ -268,7 +267,9 @@ void kill_userDefinedShaders() {
 	for (i=0; i <vectorSize(p->myShaderTable); i++) {
         	struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,p->myShaderTable, i);
 		FREE_IF_NZ(me->myCapabilities);
-		me->whichOne = 0;
+	
+		//me->whichOne = 0;
+		FREE_IF_NZ(me);
 	}
 
 	// set the vector to 0 size. we will keep the Vector around, for the next set
