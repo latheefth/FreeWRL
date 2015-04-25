@@ -693,6 +693,11 @@ void initFont(void)
 void printString(char *s){}
 FXY screen2normalizedScreen( GLfloat x, GLfloat y);
 FXY screen2normalizedScreenScale( GLfloat x, GLfloat y);
+#ifndef DISABLER
+#include <malloc.h>
+#else
+#include <malloc/malloc.h>
+#endif
 void printString2(GLfloat sx, GLfloat sy, char *s)
 {
 	int i, j;
@@ -713,9 +718,9 @@ void printString2(GLfloat sx, GLfloat sy, char *s)
 	sizeofvert = len * sizeof(GLfloat) * 4 * 3;
 	sizeoftex = len * sizeof(GLfloat) * 4 * 2;
 	sizeofind = len * sizeof(GLshort) * 2 * 3;
-	vert = MALLOC(GLfloat *, sizeofvert); //2 new vertex, 3D
-	tex  = MALLOC(GLfloat *,sizeoftex); //4 new texture coords, 2D
-	ind  = MALLOC(GLushort *,sizeofind); //2 triangles, 3 points each
+	vert = (GLfloat*)alloca(sizeofvert); //2 new vertex, 3D
+	tex  = (GLfloat*)alloca(sizeoftex); //4 new texture coords, 2D
+	ind  = (GLshort*)alloca(sizeofind); //2 triangles, 3 points each
 	x=y=z = 0.0f;
 	x = sx;
 	y = sy;
@@ -775,9 +780,9 @@ void printString2(GLfloat sx, GLfloat sy, char *s)
 	// Set the base map sampler to texture unit to 0
 	glUniform1i ( p->textureLoc, 0 );
 	glDrawElements ( GL_TRIANGLES, i*3*2, GL_UNSIGNED_SHORT, ind );
-	FREE(vert);
-	FREE(tex);
-	FREE(ind);
+	//FREE(vert);
+	//FREE(tex);
+	//FREE(ind);
 
 
 }
