@@ -562,13 +562,29 @@ void initProgramObject(){
    p->textureLoc = glGetUniformLocation ( p->programObject, "Texture0" );
    p->color4fLoc = glGetUniformLocation ( p->programObject, "Color4f" );
 }
+static int lenOptions   = 16;
 void statusbar_clear(struct tstatusbar *t){
 	//public
 	//private
 	{
 		ppstatusbar p = (ppstatusbar)t->prv;
+		int i;
 		if(p->conlist)
 			ml_delete_all(p->conlist);
+		if(p->optionsVal)
+		for(i=0;i<lenOptions;i++)
+		{
+			if(p->optionsVal[i])
+				FREE_IF_NZ(p->optionsVal[i]);
+		}
+		if(p->pmenu.items)
+			for(i=0;i<p->pmenu.nitems;i++)
+				FREE_IF_NZ(p->pmenu.items[i].lumalpha);
+		FREE_IF_NZ(p->pmenu.lumalpha);
+		FREE_IF_NZ(p->pmenu.items);
+		FREE_IF_NZ(p->pmenu.vert);
+		FREE_IF_NZ(p->pmenu.ind);
+		FREE_IF_NZ(p->pfont.lumalpha);
 	}
 }
 void fwMakeRasterFonts()
@@ -817,7 +833,7 @@ void render_init(void);
 //}
 
 /* start cheapskate widgets >>>> */
-int lenOptions   = 16;
+//static int lenOptions   = 16;
 char * optionsText[16] = {
 "stereovision:",
 "  side-by-side",
@@ -851,7 +867,8 @@ void initOptionsVal()
 
 	for(i=0;i<lenOptions;i++)
 	{
-		p->optionsVal[i] = MALLOC(char*, 9);
+		if(!p->optionsVal[i])
+			p->optionsVal[i] = MALLOC(char*, 9);
 		for(j=0;j<9;j++) p->optionsVal[i][j] = ' ';
 		p->optionsVal[i][8] = '\0';
 	}
@@ -1244,11 +1261,12 @@ void hudSetConsoleMessage(char *buffer)
 	//printf("+%s\n", buffer);
 	if(!p->conlist)
 	{
-		char * line;
-		line = MALLOC(char *, 2);
-		line[0] = '\0';
-		p->conlist = ml_new(line);
-		p->concount = 1;
+		//char * line;
+		//line = MALLOC(char *, 2);
+		//line[0] = '\0';
+		//p->conlist = ml_new(line);
+		//p->concount = 1;
+		p->concount = 0;
 	}
 	last = ml_new(buffer);
 	if (!p->conlist)
