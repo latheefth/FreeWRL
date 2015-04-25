@@ -1046,6 +1046,10 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	/* fudge factor - leave space for 1 more triangle just in case we have errors on input */
 	ntri++;
 
+    FREE_IF_NZ(rep_->cindex);
+    FREE_IF_NZ(rep_->colindex);
+    FREE_IF_NZ(rep_->norindex);
+    
 	cindex = rep_->cindex = MALLOC(GLuint *, sizeof(*(rep_->cindex))*3*(ntri));
 	colindex = rep_->colindex = MALLOC(GLuint *, sizeof(*(rep_->colindex))*3*(ntri));
 	norindex = rep_->norindex = MALLOC(GLuint *,sizeof(*(rep_->norindex))*3*ntri);
@@ -1054,6 +1058,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	bzero (colindex,sizeof(*(rep_->colindex))*3*(ntri));
 	bzero (norindex,sizeof(*(rep_->colindex))*3*(ntri));
 
+    FREE_IF_NZ(rep_->normal);
 	/* if we calculate normals, we use a normal per point, NOT per triangle */
 	if (!nnormals) {  		/* 3 vertexes per triangle, and 3 floats per tri */
 		normalArraySize = 3*3*ntri;
@@ -1062,7 +1067,8 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 		rep_->normal = MALLOC(float *, 1);
 	}
 
-
+    FREE_IF_NZ(rep_->tcindex);
+    
 	tcindex = rep_->tcindex = MALLOC(GLuint*, sizeof(*(rep_->tcindex))*3*(ntri));
 
 	/* Concave faces - use the OpenGL Triangulator to give us the triangles */
@@ -2319,9 +2325,9 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 	  /* first triangle  calculate pointfaces, etc, for this face */
 	  Elev_Tri(triind*3, this_face, D,A,E, TRUE , rep_, facenormals, pointfaces,ccw);
 
-		tcindex[triind*3] = Dtex;
-		tcindex[triind*3+2] = Etex;
-		tcindex[triind*3+1] = Atex;
+		tcindex[triind*3] = (GLuint)Dtex;
+		tcindex[triind*3+2] = (GLuint)Etex;
+		tcindex[triind*3+1] = (GLuint)Atex;
 
 	  defaultface[triind] = this_face;
 	  triind++;
@@ -2330,9 +2336,9 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 	  /* second triangle - pointfaces, etc,for this face  */
 	  Elev_Tri(triind*3, this_face, B, C, F, TRUE, rep_, facenormals, pointfaces,ccw);
 
-		tcindex[triind*3] = Btex;
-		tcindex[triind*3+1] = Ctex;
-		tcindex[triind*3+2] = Ftex;
+		tcindex[triind*3] = (GLuint)Btex;
+		tcindex[triind*3+1] = (GLuint)Ctex;
+		tcindex[triind*3+2] = (GLuint)Ftex;
 
 	  if ((triind*3+2) >= tcindexsize)
 		printf ("INTERNAL ERROR: Extrusion  - tcindex size too small!\n");
@@ -2354,7 +2360,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 			rep_->normal[tmp*3+1] = (float) facenormals[defaultface[tmp/3]].y;
 			rep_->normal[tmp*3+2] = (float) facenormals[defaultface[tmp/3]].z;
 		}
-		rep_->norindex[tmp] = tmp;
+		rep_->norindex[tmp] = (GLuint)tmp;
 	}
 	/* keep track of where the sides end, triangle count-wise, for Normal mapping */
 	end_of_sides = triind*3;
@@ -2506,7 +2512,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 		rep_->normal[tmp*3+0] = (float) facenormals[defaultface[tmp/3]].x;
 		rep_->normal[tmp*3+1] = (float) facenormals[defaultface[tmp/3]].y;
 		rep_->normal[tmp*3+2] = (float) facenormals[defaultface[tmp/3]].z;
-		rep_->norindex[tmp] = tmp;
+		rep_->norindex[tmp] = (GLuint)tmp;
 	}
 
 	/* do texture mapping calculations for sides */

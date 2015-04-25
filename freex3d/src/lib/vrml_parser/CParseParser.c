@@ -84,10 +84,10 @@ void CParseParser_init(struct tCParseParser *t){
 	}
 }
 	//ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
-BOOL usingBrotos()
+int usingBrotos()
 {
 	ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
-	return (BOOL)p->useBrotos;
+	return p->useBrotos;
 }
 //static int foundInputErrors = 0;
 void resetParseSuccessfullyFlag(void) { 
@@ -254,7 +254,6 @@ BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*)={
 
 #define EVENT_END_NODE(myn,fieldString) \
   default: \
-printf ("EVENT_END_NODE no %s at %s:%d\n",fieldString,__FILE__,__LINE__); \
 	CPARSE_ERROR_FIELDSTRING("ERROR: Unsupported event ",fieldString); \
         PARSER_FINALLY;  \
         return FALSE;  \
@@ -688,7 +687,7 @@ BOOL parser_vrmlScene(struct VRMLParser* me)
 static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefinition* proto, struct Shader_Script* script) {
     int mode;
     int type;
-    int name;
+    int name = 0;
 	int externproto;
     union anyVrml defaultVal;
 	DECLAREUP
@@ -771,7 +770,7 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
 #endif
 
 		pdecl=newProtoFieldDecl(mode, type, name);
-		pdecl->cname = strdup(protoFieldDecl_getStringName(me->lexer, pdecl));
+		pdecl->cname = STRDUP(protoFieldDecl_getStringName(me->lexer, pdecl));
 		//pdecl->fieldString = STRDUP(lexer_stringUser_fieldName(me->lexer, name, mode));
 		externproto = proto->isExtern;
 #ifdef CPARSERVERBOSE
@@ -923,8 +922,11 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
 
 				FREE_IF_NZ(pdecl->fieldString);
 				pdecl->fieldString = MALLOC (char *, sz + 2);
+				if (NULL != pdecl->fieldString)
+				{
 				strncpy(pdecl->fieldString,startOfField,sz);
 				pdecl->fieldString[sz]='\0';
+				}
 			} else {
 				int i;
 				size_t sz;
@@ -1276,10 +1278,10 @@ void handleExport_B (void *ctxnodeptr, char *nodename, char *as) {
 		struct X3D_Node *node = NULL;
 		struct IMEXPORT *mxport = MALLOCV(sizeof(struct IMEXPORT));
 		if(!context->__EXPORTS) context->__EXPORTS = newVector(struct IMEXPORT *,4);
-		mxport->mxname = strdup(nodename);
+		mxport->mxname = STRDUP(nodename);
 		mxport->as = mxport->mxname;
 		if(as)
-			mxport->as = strdup(as);
+			mxport->as = STRDUP(as);
 		node = broto_search_DEFname(context,mxport->mxname);
 		mxport->nodeptr = node;
 		vector_pushBack(struct IMEXPORT*,context->__EXPORTS,mxport);
@@ -1312,11 +1314,11 @@ void handleImport_B (struct X3D_Node *nodeptr, char *nodeName,char *nodeImport, 
 	if(context){
 		struct IMEXPORT *mxport = MALLOCV(sizeof(struct IMEXPORT));
 		if(!context->__IMPORTS) context->__IMPORTS = newVector(struct IMEXPORT *,4);
-		mxport->mxname = strdup(nodeImport);
-		mxport->inlinename = strdup(nodeName);
+		mxport->mxname = STRDUP(nodeImport);
+		mxport->inlinename = STRDUP(nodeName);
 		mxport->as = mxport->mxname;
 		if(as)
-			mxport->as = strdup(as);
+			mxport->as = STRDUP(as);
 		mxport->nodeptr = NULL; //IMPORT doesn't use this. Import is a char* mapping only.
 		vector_pushBack(struct IMEXPORT*,context->__IMPORTS,mxport);
 	}
@@ -2647,7 +2649,6 @@ static BOOL parser_field_A(struct VRMLParser* me, struct X3D_Node* node)
    if(!parser_fieldValue(me, \
     X3D_NODE(node2), (int) offsetof(struct X3D_##node, var), \
     FTIND_##fieldType, fe, FALSE, NULL, NULL)) {\
-    printf ("error in parser_fieldValue by call 2\n"); \
         PARSE_ERROR("Expected " #fieldType " Value for a fieldtype!") }\
    INIT_CODE_##fieldType(var) \
    return TRUE;
@@ -2835,7 +2836,6 @@ static BOOL parser_field_B(struct VRMLParser* me, struct X3D_Node* node)
    if(!parser_fieldValue(me, \
     X3D_NODE(node2), (int) offsetof(struct X3D_##node, var), \
     FTIND_##fieldType, fe, FALSE, NULL, NULL)) {\
-    printf ("error in parser_fieldValue by call 2\n"); \
         PARSE_ERROR("Expected " #fieldType " Value for a fieldtype!") }\
 	INIT_CODE_##fieldType(var) \
    return TRUE;
@@ -3314,7 +3314,7 @@ static BOOL parser_sfboolValue(struct VRMLParser* me, void* ret) {
 
 
 static BOOL parser_sfnodeValue(struct VRMLParser* me, void* ret) {
-    uintptr_t tmp;
+    intptr_t tmp;
     vrmlNodeT* rv;
 
     ASSERT(me->lexer);
@@ -3330,7 +3330,11 @@ static BOOL parser_sfnodeValue(struct VRMLParser* me, void* ret) {
         return parser_nodeStatement(me, rv);
     } else {
         /* expect something like a number (memory pointer) to be here */
+        #ifndef DISABLER
         if (sscanf(me->lexer->startOfStringPtr[me->lexer->lexerInputLevel], "%u",  &tmp) != 1) {
+        #else
+        if (sscanf(me->lexer->startOfStringPtr[me->lexer->lexerInputLevel], "%lu",  (unsigned long *)&tmp) != 1) {
+        #endif
             CPARSE_ERROR_FIELDSTRING ("error finding SFNode id on line :%s:",me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]);
             *rv=NULL;
             return FALSE;
@@ -4249,7 +4253,7 @@ static BOOL parser_brotoStatement(struct VRMLParser* me)
 	//set ProtoDefinition *obj
 	proto->__protoDef = obj;
 	proto->__prototype = X3D_NODE(proto); //point to self, so shallow and deep instances will inherit this value
-	proto->__typename = strdup(obj->protoName);
+	proto->__typename = STRDUP(obj->protoName);
 
     /* PROTO body */
     /* Make sure that the next oken is a '{'.  Skip over it. */
@@ -4314,7 +4318,7 @@ static BOOL parser_externbrotoStatement(struct VRMLParser* me)
     //char *startOfBody;
     //char *endOfBody;
     //char *initCP;
-    //uintptr_t bodyLen;
+    //intptr_t bodyLen;
 	struct X3D_Proto *proto, *parent;
 	//void *ptr;
 	DECLAREUP
@@ -4405,7 +4409,7 @@ static BOOL parser_externbrotoStatement(struct VRMLParser* me)
 	//set ProtoDefinition *obj
 	proto->__protoDef = obj;
 	proto->__prototype = X3D_NODE(proto); //point to self, so shallow and deep instances will inherit this value
-	proto->__typename = (void *)strdup(obj->protoName);
+	proto->__typename = (void *)STRDUP(obj->protoName);
 
 	/* EXTERNPROTO url */
 	{
@@ -4498,12 +4502,12 @@ void broto_store_ImportRoute_obsolete(struct X3D_Proto* proto, char *fromNode, c
 	route->ft = -1;
 	route->lastCommand = 0; //not added to CRoutes until inline loaded
 	route->from.weak = 2; //weak references to publish/from,subscribe/to ends not loaded yet
-	route->from.cnode = strdup(fromNode);
-	route->from.cfield = strdup(fromField);
+	route->from.cnode = STRDUP(fromNode);
+	route->from.cfield = STRDUP(fromField);
 	route->from.ftype = -1; //unknown
 	route->to.weak = 2;
-	route->to.cnode = strdup(toNode);
-	route->to.cfield = strdup(toField);
+	route->to.cnode = STRDUP(toNode);
+	route->to.cfield = STRDUP(toField);
 	route->to.ftype = -1; //unknown
 	stack_push(struct brotoRoute *, proto->__ROUTES, route);
 }
@@ -4563,8 +4567,7 @@ BOOL route_parse_nodefield(struct VRMLParser* me, int *NodeIndex, struct X3D_Nod
 
 
 	/* Check that there are DEFedNodes in the DEFedNodes vector, and that the index given for this node is valid */ 
-	ASSERT(me->DEFedNodes && !stack_empty(me->DEFedNodes) && 
-	NodeIndex<vectorSize(stack_top(struct Vector*, me->DEFedNodes))); 
+	ASSERT(me->DEFedNodes && !stack_empty(me->DEFedNodes) && *NodeIndex<vectorSize(stack_top(struct Vector*, me->DEFedNodes)));
 	/* Get the X3D_Node structure for the DEFed node we just looked up in the userNodeNames list */ 
 	*Node=vector_get(struct X3D_Node*, 
 	stack_top(struct Vector*, me->DEFedNodes), 
@@ -4767,24 +4770,24 @@ static BOOL parser_routeStatement_B(struct VRMLParser* me)
 void broto_store_DEF(struct X3D_Proto* proto,struct X3D_Node* node, char *name)
 {
 	Stack *defs;
-	struct brotoDefpair *def = MALLOC(struct brotoDefpair*,sizeof(struct brotoDefpair)); //gc option: make this a local struct (not *)..
-	def->node = node;
-	def->name = STRDUP(name); //I don't know if the lexer clears its arrays after parsing, so DUP here.
+	struct brotoDefpair def;
+	def.node = node;
+	def.name = STRDUP(name);
 	defs = proto->__DEFnames;
 	if( defs == NULL)
 	{
-		defs = newStack(struct brotoDefpair *);
+		defs = newStack(struct brotoDefpair);
 		proto->__DEFnames = defs;
 	}
-	stack_push(struct brotoDefpair*, defs, def); //..then push the local struct and it should deep copy it, mallocing if it needs space, and reclaiming on vectorDelete
+	stack_push(struct brotoDefpair, defs, def);
 }
 struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, char *name){
 	int i;
-	struct brotoDefpair *def;
+	struct brotoDefpair def;
 	if(context->__DEFnames)
 	for(i=0;i<vectorSize(context->__DEFnames);i++){
-		def = vector_get(struct brotoDefpair*, context->__DEFnames,i);
-		if(!strcmp(def->name,name)) return def->node;
+		def = vector_get(struct brotoDefpair, context->__DEFnames,i);
+		if(!strcmp(def.name, name)) return def.node;
 	}
 	return NULL;
 }
@@ -4928,19 +4931,18 @@ void copy_defnames2(Stack *defnames, struct X3D_Proto* target, struct Vector *p2
 	//	globalParser->brotoDEFedNodes = defs;
 	//}
 	if(target->__DEFnames == NULL)
-		target->__DEFnames = newStack(struct brotoDefpair *);
+		target->__DEFnames = newStack(struct brotoDefpair);
 	if(defnames)
 	{
 		int i,n;
-		struct brotoDefpair* def, *def2;
+		struct brotoDefpair def, def2;
 		n = vectorSize(defnames);
 		for(i=0;i<n;i++){
-			def = vector_get(struct brotoDefpair*,defnames,i);
-			def2 = MALLOC(struct brotoDefpair*,sizeof(struct brotoDefpair));
-			def2->name = def->name; //I wonder who owns this name
-			def2->node = p2p_lookup(def->node, p2p);
+			def = vector_get(struct brotoDefpair,defnames,i);
+			def2.name = STRDUP(def.name); //I wonder who owns this name
+			def2.node = p2p_lookup(def.node, p2p);
 			//stack_push(struct brotoDefpair*, defs, def2);
-			stack_push(struct brotoDefpair*, target->__DEFnames, def2); //added for broto2
+			stack_push(struct brotoDefpair, target->__DEFnames, def2); //added for broto2
 		}
 	}
 }
@@ -5525,8 +5527,8 @@ int PKW_from_KW(int KW_index)
 	}
 	return pkw;
 }
-int isManagedField(int mode, int type, int isPublic);
-void registerParentIfManagedField(int type, int mode, int isPublic, union anyVrml* any, struct X3D_Node* parent)
+BOOL isManagedField(int mode, int type, BOOL isPublic);
+void registerParentIfManagedField(int type, int mode, BOOL isPublic, union anyVrml* any, struct X3D_Node* parent)
 {
 	//puts what you say is the parent of the sfnode/mfnodes into the parentVector of each sfnode/mfnodes
 	// if its a managed field.
@@ -5664,7 +5666,7 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 						dp = newProtoDefinition();
 					//memcpy(dp,sp,sizeof(struct ProtoDefinition));
 					dp->iface = newVector(struct ProtoFieldDecl *, sp->iface->n);
-					dp->protoName = strdup(sp->protoName);
+					dp->protoName = STRDUP(sp->protoName);
 					dp->isCopy = TRUE;
 					for(k=0;k<sp->iface->n;k++)
 					{
@@ -6130,8 +6132,12 @@ int X3DMODE(int val)
 	return iret;
 }
 
-
+#ifndef DISABLER
 BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackData);
+#else
+BOOL walk_fields(struct X3D_Node* node, BOOL (*callbackFunc)(void *callbackData,struct X3D_Node* node,int jfield,union anyVrml *fieldPtr,
+                                            const char *fieldName, indexT mode, indexT type,int isource,BOOL publicfield), void* callbackData);
+#endif
 //=========== find any field by name via walk_fields
 typedef struct cbDataExactName {
 	char *fname;
@@ -6140,9 +6146,9 @@ typedef struct cbDataExactName {
 	int type;
 	int jfield;
 	int source;
-	int publicfield;
+	BOOL publicfield;
 } s_cbDataExactName;
-BOOL cbExactName(void *callbackData,struct X3D_Node* node,int jfield,union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,int publicfield)
+BOOL cbExactName(void *callbackData,struct X3D_Node* node,int jfield,union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,BOOL publicfield)
 {
 	BOOL found;
 	s_cbDataExactName *cbd = (s_cbDataExactName*)callbackData;
@@ -6183,13 +6189,13 @@ typedef struct cbDataRootNameAndRouteDir {
 	int type;
 	int jfield;
 	int source;
-	int publicfield;
+	BOOL publicfield;
 } s_cbDataRootNameAndRouteDir;
 
-BOOL cbRootNameAndRouteDir(void *callbackData,struct X3D_Node* node,int jfield,union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,int publicfield)
+BOOL cbRootNameAndRouteDir(void *callbackData,struct X3D_Node* node,int jfield,union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,BOOL publicfield)
 {
 
-	int found;
+	BOOL found;
 	s_cbDataRootNameAndRouteDir *cbd = (s_cbDataRootNameAndRouteDir*)callbackData;
 	found = !fieldSynonymCompare(fieldName,cbd->fname) ? TRUE : FALSE;
 	found = found && (mode == cbd->PKW_eventType || mode == PKW_inputOutput);
@@ -6222,7 +6228,7 @@ BOOL find_anyfield_by_nameAndRouteDir(struct X3D_Node* node, union anyVrml **any
 }
 //========== count public fields  via walk_fields, used by js fieldDefinitionArray
 
-BOOL cbCountFields(void *callbackData,struct X3D_Node* node,int jfield,union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,int publicfield)
+BOOL cbCountFields(void *callbackData,struct X3D_Node* node,int jfield,union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,BOOL publicfield)
 {
 	int found = FALSE;
 	int *count = (int*)callbackData;
@@ -6487,8 +6493,8 @@ BOOL found_IS_field(struct VRMLParser* me, struct X3D_Node *node)
 	char *protoFieldName;
 	char *nodeFieldName;
 	DECLAREUP
-	int foundField;
-	int foundProtoField;
+	BOOL foundField;
+	BOOL foundProtoField;
 	struct ProtoFieldDecl* f;
 	union anyVrml *fieldPtr;
 	void *fdecl;
@@ -6656,6 +6662,9 @@ BOOL found_IS_field(struct VRMLParser* me, struct X3D_Node *node)
 	
 	//
 	FREEUP
+    FREE_IF_NZ(nodeFieldName);
+    FREE_IF_NZ(protoFieldName);
+
 	return TRUE;
 
 }
@@ -7035,6 +7044,7 @@ void delete_first(struct X3D_Node *node);
 void removeNodeFromKeySensorList(struct X3D_Node* node);
 int	unInitializeScript(struct X3D_Node *node);
 void delete_polyrep(struct X3D_Node *node);
+void unRegisterPolyRep(struct X3D_Node *node);
 int unRegisterX3DAnyNode(struct X3D_Node *node){
 	/* Undo any node registration(s)
 	From GeneratedCode.c createNewX3DNode():
@@ -7053,6 +7063,8 @@ int unRegisterX3DAnyNode(struct X3D_Node *node){
 	// possibly a KeySensor node? 
 	addNodeToKeySensorList(X3D_NODE(tmp));
 	*/
+    
+    	//unRegisterPolyRep(node); //attn Disabler
 	// is this a texture holding node? 
 	unRegisterTexture(node);
 	// Node Tracking 
@@ -7113,7 +7125,7 @@ int unregister_broto_instance(struct X3D_Proto* node){
 
 
 	*/
-	int retval = TRUE;
+	int retval = 1; //TRUE;
 	if(node && hasContext(X3D_NODE(node))){
 		unsigned char depthflag = ciflag_get(node->__protoFlags,0);
 		if(depthflag){

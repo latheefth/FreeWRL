@@ -148,7 +148,7 @@ char* download_url_curl(resource_item_t *res)
 
     file = fopen(temp, "w");
     if (!file) {
-	free(temp);
+	FREE(temp);
 	ERROR_MSG("Cannot create temp file (fopen)\n");
 	return NULL;	
     }   
@@ -300,7 +300,7 @@ char* download_url_WinInet(resource_item_t *res)
 
 			file = fopen(temp, "wb");
 			if (!file) {
-				free(temp);
+				FREE(temp);
 				ERROR_MSG("Cannot create temp file (fopen)\n");
 				return NULL;	
 			}
@@ -310,12 +310,12 @@ char* download_url_WinInet(resource_item_t *res)
 
 			while((InternetQueryDataAvailable(hOpenUrl,&dataLength,0,0))&&(dataLength>0))
 			{
-				void *block = malloc(dataLength);
+				void *block = MALLOC(void *, dataLength);
 				if ((InternetReadFile(hOpenUrl,(void*)block,dataLength,&len))&&(len>0))
 				{
 					fwrite(block,dataLength,1,file);
 				}
-				free(block);
+				FREE(block);
 			}
 			InternetCloseHandle(hOpenUrl); 
 			hOpenUrl=NULL;
@@ -420,7 +420,7 @@ char* download_url_wget(resource_item_t *res)
 
     // create wget command line
 	safe = replace_unsafe(res->parsed_request);
-    wgetcmd = malloc( strlen(WGET) +
+    wgetcmd = MALLOC(void *, strlen(WGET) +
 	                    strlen(WGET_OPTIONS) + 
 	                    strlen(safe) +
                             strlen(temp) + 6 +1+1);
@@ -431,7 +431,7 @@ char* download_url_wget(resource_item_t *res)
 #else
     sprintf(wgetcmd, "%s %s %s %s %s", WGET, WGET_OPTIONS, safe, WGET_OUTPUT_DIRECT, temp);
 #endif
-	free(safe);
+	FREE_IF_NZ(safe);
     /* printf ("wgetcmd is %s\n",wgetcmd); */
 
     // call wget

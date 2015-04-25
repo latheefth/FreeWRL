@@ -1257,7 +1257,8 @@ void compile_ProgramShader (struct X3D_ProgramShader *node) {
 		}else{
 			//synchronous - doesn't work
 			thread_compile_ProgramShader(args);
-		}
+            FREE_IF_NZ(args);
+        }
 	}
 }
 

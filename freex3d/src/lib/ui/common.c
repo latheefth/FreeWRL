@@ -302,7 +302,7 @@ void color_html2rgb(char *html, float *rgb){
 	//converts one html color in "#FFFFFF" or "FFFFFF" format
 	//int float[3] rgb colors in range 0.0f-1.0f suitable for  use in opengl
 	int ir, ig, ib;
-	int ic,ii;
+	long ic;
 	char *shex;
 	shex = html;
 	if(shex[0] == '#') shex = &shex[1];
@@ -315,7 +315,11 @@ void color_html2rgb(char *html, float *rgb){
 	rgb[2] = (float)ib/255.0f;
 }
 char *hexpermitted = " #0123456789ABCDEFabcdef";
+#ifndef DISABLER
 #include <malloc.h>
+#else
+#include <malloc/malloc.h>
+#endif
 #include <string.h>
 int colorsoption2colorscheme(const char *optionstring, colorScheme *cs){
 	//converts html colors given for freewrl command line option:

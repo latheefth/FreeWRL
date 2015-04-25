@@ -196,38 +196,40 @@ static void texture_load_from_pixelTexture (textureTableIndexStruct_s* this_tex,
 	this_tex->status = TEX_NEEDSBINDING;
 
 	tctr = 0;
-	for (count = 0; count < (wid*hei); count++) {
-		switch (depth) {
-			case 1: {
-				   texture[tctr++] = *iptr & 0xff;
-				   texture[tctr++] = *iptr & 0xff;
-				   texture[tctr++] = *iptr & 0xff;
-				   texture[tctr++] = 0xff; /*alpha, but force it to be ff */
-				   break;
-			   }
-			case 2: {
-				   texture[tctr++] = (*iptr>>8) & 0xff;	 /*G*/
-				   texture[tctr++] = (*iptr>>8) & 0xff;	 /*G*/
-				   texture[tctr++] = (*iptr>>8) & 0xff;	 /*G*/
-				   texture[tctr++] = (*iptr>>0) & 0xff; /*A*/
-				   break;
-			   }
-			case 3: {
-				   texture[tctr++] = (*iptr>>0) & 0xff; /*B*/
-				   texture[tctr++] = (*iptr>>8) & 0xff;	 /*G*/
-				   texture[tctr++] = (*iptr>>16) & 0xff; /*R*/
-				   texture[tctr++] = 0xff; /*alpha, but force it to be ff */
-				   break;
-			   }
-			case 4: {
-				   texture[tctr++] = (*iptr>>8) & 0xff;	 /*B*/
-				   texture[tctr++] = (*iptr>>16) & 0xff; /*G*/
-				   texture[tctr++] = (*iptr>>24) & 0xff; /*R*/
-				   texture[tctr++] = (*iptr>>0) & 0xff; /*A*/
-				   break;
-			   }
+	if(texture != NULL){
+		for (count = 0; count < (wid*hei); count++) {
+			switch (depth) {
+				case 1: {
+					   texture[tctr++] = *iptr & 0xff;
+					   texture[tctr++] = *iptr & 0xff;
+					   texture[tctr++] = *iptr & 0xff;
+					   texture[tctr++] = 0xff; /*alpha, but force it to be ff */
+					   break;
+				   }
+				case 2: {
+					   texture[tctr++] = (*iptr>>8) & 0xff;	 /*G*/
+					   texture[tctr++] = (*iptr>>8) & 0xff;	 /*G*/
+					   texture[tctr++] = (*iptr>>8) & 0xff;	 /*G*/
+					   texture[tctr++] = (*iptr>>0) & 0xff; /*A*/
+					   break;
+				   }
+				case 3: {
+					   texture[tctr++] = (*iptr>>0) & 0xff; /*B*/
+					   texture[tctr++] = (*iptr>>8) & 0xff;	 /*G*/
+					   texture[tctr++] = (*iptr>>16) & 0xff; /*R*/
+					   texture[tctr++] = 0xff; /*alpha, but force it to be ff */
+					   break;
+				   }
+				case 4: {
+					   texture[tctr++] = (*iptr>>8) & 0xff;	 /*B*/
+					   texture[tctr++] = (*iptr>>16) & 0xff; /*G*/
+					   texture[tctr++] = (*iptr>>24) & 0xff; /*R*/
+					   texture[tctr++] = (*iptr>>0) & 0xff; /*A*/
+					   break;
+				   }
+			}
+			iptr++;
 		}
-		iptr++;
 	}
 }
 
@@ -275,7 +277,6 @@ CGContextRef CreateARGBBitmapContext (CGImageRef inImage) {
 
 	CGContextRef    context = NULL;
 	CGColorSpaceRef colorSpace;
-	void *          bitmapData;
 	int             bitmapByteCount;
 	int             bitmapBytesPerRow;
 	CGBitmapInfo	bitmapInfo;
@@ -292,7 +293,7 @@ CGContextRef CreateARGBBitmapContext (CGImageRef inImage) {
 	bitmapByteCount     = (bitmapBytesPerRow * pixelsHigh);
 
 	// Use the generic RGB color space.
-colorSpace = CGColorSpaceCreateDeviceRGB();
+    colorSpace = CGColorSpaceCreateDeviceRGB();
 	if (colorSpace == NULL)
 	{
 	    fprintf(stderr, "Error allocating color space\n");
@@ -304,31 +305,19 @@ colorSpace = CGColorSpaceCreateDeviceRGB();
 	bitsPerComponent = CGImageGetBitsPerComponent(inImage);
 
 	if (bitsPerComponent >= 8) {
-		CGRect rect = {{0,0},{pixelsWide, pixelsHigh}};
+		CGRect rect = CGRectMake(0., 0., pixelsWide, pixelsHigh);
 		bitmapInfo = kCGImageAlphaNoneSkipLast;
 
 		bitmapInfo = kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Host;
-
-		/* Allocate memory for image data. This is the destination in memory
-		   where any drawing to the bitmap context will be rendered. */
-		bitmapData = MALLOC(void *, bitmapByteCount );
-
-		if (bitmapData == NULL) {
-		    fprintf (stderr, "Memory not allocated!");
-		    CGColorSpaceRelease( colorSpace );
-		    return NULL;
-		}
-		bzero (bitmapData, bitmapByteCount);
 	
 		/* Create the bitmap context. We want pre-multiplied ARGB, 8-bits
 		  per component. Regardless of what the source image format is
 		  (CMYK, Grayscale, and so on) it will be converted over to the format
 		  specified here by CGBitmapContextCreate. */
-		context = CGBitmapContextCreate (bitmapData, pixelsWide, pixelsHigh,
+		context = CGBitmapContextCreate (NULL, pixelsWide, pixelsHigh,
 			bitsPerComponent, bitmapBytesPerRow, colorSpace, bitmapInfo); 
 	
 		if (context == NULL) {
-		    free (bitmapData);
 		    fprintf (stderr, "Context not created!");
 		} else {
 	
@@ -337,7 +326,10 @@ colorSpace = CGColorSpaceCreateDeviceRGB();
 			CGContextScaleCTM (context,1.0, -1.0);
 		}
 		CGContextDrawImage(context, rect,inImage);
-	} else {
+	}
+    else
+    {
+        CGColorSpaceRelease(colorSpace);
 		printf ("bits per component of %d not handled\n",(int) bitsPerComponent);
 		return NULL;
 	}
@@ -407,7 +399,7 @@ char* download_file(char* filename);
 
 
 
-
+void close_openned_file(openned_file_t *file);
 
 bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 {
@@ -419,10 +411,10 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 	int i;
 
 	openned_file_t *myFile = load_file (filename);
-
+    bool result = FALSE;
 	/* if we got null for data, lets assume that there was not a file there */
 	if (myFile->fileData == NULL) {
-		return FALSE;
+		result = FALSE;
 	} else {
 		//this_tex->texdata = MALLOC(unsigned char*,myFile->fileDataSize);
 		//memcpy(this_tex->texdata,myFile->fileData,myFile->fileDataSize);
@@ -439,9 +431,12 @@ ConsoleMessage(me);}
 		this_tex->frames = 1;
 		this_tex->x = myFile->imageWidth;
 		this_tex->y = myFile->imageHeight;
-
-		return TRUE;
+		result = TRUE;
 	}
+    
+    close_openned_file(myFile);
+    FREE_IF_NZ(myFile);
+    return result;
 
 #endif //ANDROID
 
@@ -452,7 +447,7 @@ ConsoleMessage(me);}
 	char *fname;
 	int ret;
 
-	fname = strdup(filename);
+	fname = STRDUP(filename);
 	ret = loadImage(this_tex, fname);
     if (!ret) {
 		ERROR_MSG("load_texture_from_file: failed to load image: %s\n", fname);
@@ -478,7 +473,7 @@ ConsoleMessage(me);}
 			}
 #endif
 	}
-	free(fname);
+	FREE(fname);
 	return (ret != 0);
 
 #endif
@@ -569,7 +564,8 @@ ConsoleMessage(me);}
 		sourceRef = NULL;
 		image = NULL;
 	} else {
-		CFDataRef localData = CFDataCreate(NULL,(const UInt8 *)myFile->fileData,myFile->fileDataSize);
+		//CFDataRef localData = CFDataCreate(NULL,(const UInt8 *)myFile->fileData,myFile->fileDataSize);
+		CFDataRef localData = CFDataCreateWithBytesNoCopy(kCFAllocatorDefault, (const UInt8 *)myFile->fileData,myFile->fileDataSize, kCFAllocatorNull);
 		sourceRef = CGImageSourceCreateWithData(localData,NULL);
 		CFRelease(localData);
 	}
@@ -687,17 +683,36 @@ ConsoleMessage(me);}
 			this_tex->frames = 1;
 			this_tex->x = image_width;
 			this_tex->y = image_height;
-			this_tex->texdata = data;
+            
+            int bitmapBytesPerRow = (image_width * 4);
+            size_t bitmapByteCount = (bitmapBytesPerRow * image_height);
+            
+            unsigned char *	texdata = MALLOC(unsigned char*, bitmapByteCount);
+            memcpy(texdata, data, bitmapByteCount);
+            
+			this_tex->texdata = texdata;
 		}
 	
 		CGContextRelease(cgctx);
+		CGImageRelease(image);
+#ifdef FRONTEND_GETS_FILES
+        close_openned_file(myFile);
+#endif
 		return TRUE;
 	} else {
+#ifdef FRONTEND_GETS_FILES
+        close_openned_file(myFile);
+        FREE_IF_NZ(myFile);
+#endif
 		/* is this, possibly, a dds file for an ImageCubeMap? */
 		return textureIsDDS(this_tex, filename);
 	}
+#ifdef FRONTEND_GETS_FILES
+        close_openned_file(myFile);
+        FREE_IF_NZ(myFile);
 #endif
-
+    
+#endif
 	return FALSE;
 }
 

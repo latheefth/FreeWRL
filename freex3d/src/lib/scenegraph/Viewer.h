@@ -342,5 +342,7 @@ void viewer_level_to_bound(void);
 
 int getAnaglyphPrimarySide(int primary, int iside);
 void setAnaglyphPrimarySide(int primary, int iside);
+int viewer_getKeyChord();
+void viewer_setKeyChord(int chord);
 
 #endif /* __FREEWRL_VIEWER_H__ */

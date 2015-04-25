@@ -56,6 +56,399 @@ const char* freewrl_get_browser_program()
     return tmp;
 }
 
+#ifdef DISABLER
+// ================ nice new code by disabler. use while tg still alive===============
+#ifdef _ANDROID
+#define WRAP_MALLOC 1
+
+#ifdef DEBUG
+int DROIDDEBUG( const char*pFmtStr, ...);
+#define printf DROIDDEBUG
+#endif
+
+#endif
+
+/**
+ * This code get compiled only when debugging is enabled
+ */
+
+#if defined(WRAP_MALLOC) || defined(DEBUG_MALLOC)
+
+#define FWL_NOT_FOUND_IN_MEM_TABLE -1
+
+void __free_memtable_elem(void *ptr);
+void __free_memtable_elem_with_data(void *ptr);
+int __match_memtable_elem(void *elem1, void *elem2);
+
+typedef struct fwl_memtable_elem
+{
+    void *ptr;
+    int lineNubmer;
+    char *fileName;
+} fwl_memtable_elem;
+
+
+static ttglobal sLastSeenGlobal = NULL;
+
+void __freeWholeMemTable(ttglobal gg)
+{
+    if (gg->__memTable != NULL)
+    {
+        gg->__memTable->free = &__free_memtable_elem_with_data;
+        dbl_list_destroy(gg->__memTable);
+        gg->__memTable = NULL;
+    }
+}
+
+int __removeFromMemTable(ttglobal gg, void *ptr, char *file, int line)
+{
+    int retVal = FWL_NOT_FOUND_IN_MEM_TABLE;
+	if (gg->__memTable != NULL)
+    {
+        fwl_memtable_elem searchedElem;
+        searchedElem.ptr = ptr;
+        dbl_list_node_t *node = dbl_list_find(gg->__memTable, &searchedElem);
+        if (node)
+        {
+            retVal = 0;
+            dbl_list_remove(gg->__memTable, node);
+        }
+        else
+        {
+            printf ("freewrlFree - did not find 0x%016llx at %s:%d\n", (unsigned long long)ptr,file,line);
+        }
+    }
+    
+    return retVal;
+}
+
+void __reserveInMemTable(ttglobal gg, void *ptr, char *file, int line)
+{
+	if (gg->__memTable != NULL)
+    {
+        fwl_memtable_elem searchedElem;
+        searchedElem.ptr = ptr;
+        dbl_list_node_t *node = dbl_list_find(gg->__memTable, &searchedElem);
+        if (node)
+        {
+            fwl_memtable_elem *foundElem = (fwl_memtable_elem *)node->val;
+            
+            printf ("freewrl__ReserveInMemTable - ptr already in the table 0x%016llx at %s:%d, added at %s:%d\n", (unsigned long long)ptr, file, line, foundElem->fileName, foundElem->lineNubmer);
+
+        }
+        else
+        {
+            fwl_memtable_elem *newElem = malloc(sizeof(fwl_memtable_elem));
+            newElem->fileName = file;
+            newElem->lineNubmer = line;
+            newElem->ptr = ptr;
+            dbl_list_rpush(gg->__memTable, dbl_list_node_new(newElem));
+        }
+    }
+}
+
+#define LOCK_GLOBAL_MEMORYTABLE 		if (tg) pthread_mutex_lock(&tg->__memTableGlobalLock);
+#define UNLOCK_GLOBAL_MEMORYTABLE		if (tg) pthread_mutex_unlock(&tg->__memTableGlobalLock);
+
+ttglobal freewrlGetActualGlobal()
+{
+    ttglobal tg = gglobal0();
+    if (tg)
+    {
+        sLastSeenGlobal = tg;
+    }
+    else
+    {
+        tg = sLastSeenGlobal;
+    }
+    
+    return tg;
+}
+
+void freewrlInitMemTable()
+{
+    ttglobal tg = freewrlGetActualGlobal();
+    if (tg)
+    {
+        pthread_mutex_init(&(tg->__memTableGlobalLock), NULL);
+    }
+    LOCK_GLOBAL_MEMORYTABLE
+    
+    if (tg && !tg->__memTable_CheckInit) {
+        
+        tg->__memTable = dbl_list_new();
+        tg->__memTable->free = &__free_memtable_elem;
+        tg->__memTable->match = &__match_memtable_elem;
+        tg->__memTable_CheckInit = TRUE;
+    }
+    
+    UNLOCK_GLOBAL_MEMORYTABLE
+}
+
+void __free_memtable_elem_with_data(void *ptr)
+{
+    fwl_memtable_elem *elem = (fwl_memtable_elem *)ptr;
+    #ifdef DEBUG_MALLOC
+        printf ("freewrl MemTable disposing ptr 0x%016llx\n", (unsigned long long)elem->ptr);
+    #endif
+    free(elem->ptr);
+    free(elem);
+}
+
+void __free_memtable_elem(void *ptr)
+{
+    free(ptr);
+}
+
+int __match_memtable_elem(void *elem1, void *elem2)
+{
+    return ((fwl_memtable_elem *)elem1)->ptr == ((fwl_memtable_elem *)elem2)->ptr;
+}
+
+void freewrlDisposeMemTable()
+{
+    ttglobal tg = freewrlGetActualGlobal();
+    if (tg)
+    {
+        pthread_mutex_destroy(&(tg->__memTableGlobalLock));
+        if (sLastSeenGlobal == tg)
+        {
+            sLastSeenGlobal = NULL;
+        }
+    }
+}
+
+void freewrlFree(int line, char *file, void *a)
+{
+    ttglobal tg = freewrlGetActualGlobal();
+    LOCK_GLOBAL_MEMORYTABLE
+    if (tg)
+    {
+        #ifdef DEBUG_MALLOC
+            printf ("freewrlFree 0x%016llx xfree at %s:%d\n", (unsigned long long)a, file,line);
+        #endif
+        
+        __removeFromMemTable(tg, a,file,line);
+    }
+    
+    UNLOCK_GLOBAL_MEMORYTABLE
+    free(a);
+}
+
+void scanMallocTableOnQuit()
+{
+    ttglobal tg = freewrlGetActualGlobal();
+    LOCK_GLOBAL_MEMORYTABLE
+    if (tg)
+    {
+        dbl_list_iterator_t *it = dbl_list_iterator_new(tg->__memTable, LIST_HEAD);
+        dbl_list_node_t *node;
+        while ((node = dbl_list_iterator_next(it))) {
+            fwl_memtable_elem *elem = ((fwl_memtable_elem *)node->val);
+            printf ("unfreed memory %016llx created at %s:%d \n", (unsigned long long)elem->ptr, elem->fileName, elem->lineNubmer);
+        }
+        dbl_list_iterator_destroy(it);
+    }
+    UNLOCK_GLOBAL_MEMORYTABLE
+}
+
+void freewrlSetShouldRegisterAllocation(bool shouldRegisterAllocation)
+{
+    ttglobal tg = freewrlGetActualGlobal();
+    LOCK_GLOBAL_MEMORYTABLE
+    if (tg)
+    {
+        tg->__memTable_ShouldRegisterAllocation = shouldRegisterAllocation;
+    }
+    UNLOCK_GLOBAL_MEMORYTABLE
+}
+
+bool freewrlIsRegisteringAllocation()
+{
+    ttglobal tg = freewrlGetActualGlobal();
+    
+    if (tg)
+    {
+        return tg->__memTable_ShouldRegisterAllocation;
+    }
+    
+    return FALSE;
+}
+
+void freewrlFreeAllRegisteredAllocations()
+{
+    ttglobal tg = freewrlGetActualGlobal();
+    LOCK_GLOBAL_MEMORYTABLE
+    if (tg)
+    {
+        __freeWholeMemTable(tg);
+    }
+    UNLOCK_GLOBAL_MEMORYTABLE
+}
+
+/**
+ * Check all mallocs
+ */
+void *freewrlMalloc(int line, char *file, size_t sz, int zeroData)
+{
+    void *rv;
+    
+    ttglobal tg = freewrlGetActualGlobal();
+    LOCK_GLOBAL_MEMORYTABLE
+    
+    rv = malloc(sz);
+    if (zeroData) bzero (rv, sz);
+    
+    #ifdef DEBUG_MALLOC
+        if (rv == NULL)
+        {
+            char myline[400];
+            sprintf (myline, "MALLOC PROBLEM - out of memory at %s:%d for %zu",file,line,sz);
+            outOfMemory (myline);
+        }
+
+        printf ("freewrlMalloc 0x%016llx size %zu at %s:%d\n", (unsigned long long)rv,sz,file,line);
+    #endif
+
+    if (tg && tg->__memTable_ShouldRegisterAllocation)
+    {
+        __reserveInMemTable(tg, rv,file,line);
+    }
+    
+    UNLOCK_GLOBAL_MEMORYTABLE
+    
+    return rv;
+}
+
+void *freewrlRealloc(int line, char *file, void *ptr, size_t size)
+{
+    void *rv;
+    
+    ttglobal tg = freewrlGetActualGlobal();
+    LOCK_GLOBAL_MEMORYTABLE
+
+//    printf ("%016llx xfree (from realloc) at %s:%d\n",ptr,file,line);
+    rv = realloc (ptr,size);
+    
+    #ifdef DEBUG_MALLOC
+        if (rv == NULL)
+        {
+            if (size != 0)
+            {
+                char myline[400];
+                sprintf (myline, "REALLOC PROBLEM - out of memory at %s:%d size %zu",file,line,size);
+                outOfMemory (myline);
+            }
+        }
+    
+        printf ("freewrlRealloc 0x%016llx to 0x%016llx size %zu at %s:%d\n", (unsigned long long)ptr, (unsigned long long)rv, size, file, line);
+    #endif
+    
+    if (tg)
+    {
+        int result = 0;
+        if (NULL != ptr)
+        {
+            result = __removeFromMemTable(tg, ptr,file,line);
+        }
+        if (result != FWL_NOT_FOUND_IN_MEM_TABLE) // If we were tracking this ptr previously
+        {
+            if (tg->__memTable_ShouldRegisterAllocation)
+            {
+                __reserveInMemTable(tg, rv,file,line);
+            }
+        }
+        else
+        {
+            printf ("0x%016llx FOR REALLOC NOT FOUND for size %zu at %s:%d\n", (unsigned long long)ptr,size,file,line);
+        }
+    }
+    
+	UNLOCK_GLOBAL_MEMORYTABLE
+    return rv;
+}
+
+
+void *freewrlStrdup (int line, char *file, const char *str)
+{
+    void *rv;
+
+    ttglobal tg = freewrlGetActualGlobal();
+    LOCK_GLOBAL_MEMORYTABLE
+    rv = strdup (str);
+    
+    #ifdef DEBUG_MALLOC
+        printf("freewrlStrdup 0x%016llx, at line %d file %s\n",(unsigned long long)rv, line,file);
+        if (rv == NULL)
+        {
+            char myline[400];
+            sprintf (myline, "STRDUP PROBLEM - out of memory at %s:%d ",file,line);
+            outOfMemory (myline);
+        }
+    #endif
+    
+    if (tg && tg->__memTable_ShouldRegisterAllocation)
+    {
+        __reserveInMemTable(tg, rv,file,line);
+    }
+    UNLOCK_GLOBAL_MEMORYTABLE
+    return rv;
+}
+
+void *freewrlStrndup (int line, char *file, const char *str, size_t n)
+{
+    void *rv;
+    ttglobal tg = freewrlGetActualGlobal();
+    LOCK_GLOBAL_MEMORYTABLE
+
+    rv = strndup (str, n);
+    
+    #ifdef DEBUG_MALLOC
+        printf("freewrlStrndup 0x%016llx count at line %d file %s\n", (unsigned long long)rv, line,file);
+        if (rv == NULL)
+        {
+            char myline[400];
+            sprintf (myline, "STRNDUP PROBLEM - out of memory at %s:%d ",file,line);
+            outOfMemory (myline);
+        }
+    #endif
+    
+    if (tg && tg->__memTable_ShouldRegisterAllocation)
+    {
+        __reserveInMemTable(tg, rv,file,line);
+    }
+    UNLOCK_GLOBAL_MEMORYTABLE
+    return rv;
+}
+
+#endif /* defined(WRAP_MALLOC) || defined(DEBUG_MALLOC) */
+
+/**
+ * function to debug multi strings
+ * we need to find where to put it....
+ */
+void Multi_String_print(struct Multi_String *url)
+{
+	if (url) {
+		if (!url->p) {
+			PRINTF("multi url: <empty>");
+		} else {
+			int i;
+
+			PRINTF("multi url: ");
+			for (i = 0; i < url->n; i++) {
+				struct Uni_String *s = url->p[i];
+				PRINTF("[%d] %s", i, s->strptr);
+			}
+		}
+		PRINTF("\n");
+	}
+}
+#endif
+
+//================ older code hacked by dug9, can work after tg disposed================
+#ifndef DISABLER
+
 /**
  * This code get compiled only when debugging is enabled
  */
@@ -64,7 +457,7 @@ const char* freewrl_get_browser_program()
 
 #define FREETABLE(a,file,line) mcount=0; \
 	while ((mcount<(MAXMALLOCSTOKEEP-1)) && (mcheck[mcount]!=a)) mcount++; \
-		if (mcheck[mcount]!=a) printf ("freewrlFree - did not find %x at %s:%d\n",a,file,line); \
+		if (mcheck[mcount]!=a) printf ("freewrlFree - did not find %p at %s:%d\n",a,file,line); \
 		else { \
 			/* printf ("found %d in mcheck table\n"); */ \
 			mcheck[mcount] = NULL; \
@@ -93,7 +486,7 @@ static int mcount;
 
 void freewrlFree(int line, char *file, void *a)
 {
-    printf ("freewrlFree %x xfree at %s:%d\n",a,file,line); 
+    printf ("freewrlFree %p xfree at %s:%d\n",a,file,line); 
     FREETABLE(a,file,line);
     free(a);
 }
@@ -102,7 +495,7 @@ void scanMallocTableOnQuit_old()
 {
     for (mcount=0; mcount<MAXMALLOCSTOKEEP;mcount++) {
 	if (mcheck[mcount]!=NULL) {
-	    printf ("unfreed memory %x created at %s:%d \n",mcheck[mcount], mplace[mcount],mlineno[mcount]);
+	    printf ("unfreed memory %p created at %s:%d \n",mcheck[mcount], mplace[mcount],mlineno[mcount]);
 	}
     }
 }
@@ -180,7 +573,7 @@ void *freewrlMalloc(int line, char *file, size_t sz, int zeroData)
 	sprintf (myline, "MALLOC PROBLEM - out of memory at %s:%d for %d",file,line,sz);
 	outOfMemory (myline);
     }
-    printf ("%x malloc %d at %s:%d\n",rv,sz,file,line); 
+    printf ("%p malloc %d at %s:%d\n",rv,sz,file,line); 
     RESERVETABLE(rv,file,line,sz);
 
     if (zeroData) bzero (rv, sz);
@@ -192,7 +585,7 @@ void *freewrlRealloc (int line, char *file, void *ptr, size_t size)
     void *rv;
     char myline[400];
 
-    printf ("%x xfree (from realloc) at %s:%d\n",ptr,file,line);
+    printf ("%p xfree (from realloc) at %s:%d\n",ptr,file,line);
     rv = realloc (ptr,size);
     if (rv==NULL) {
 	if (size != 0) {
@@ -249,3 +642,5 @@ void Multi_String_print(struct Multi_String *url)
 		PRINTF("\n");
 	}
 }
+
+#endif

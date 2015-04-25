@@ -793,9 +793,9 @@ void setLibraries(struct Vector *libvector){
 	p->libraries = libvector;
 }
 void addLibrary(char *url, struct X3D_Proto *library, void *res){
-	void3 *ul = malloc(sizeof(void3));
+	void3 *ul = MALLOC(void3 *,sizeof(void3));
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;	
-	ul->one = (void *)strdup(url);
+	ul->one = (void *)STRDUP(url);
 	ul->two = (void *)library;
 	ul->three = res;
 	vector_pushBack(void3 *,p->libraries,ul);
@@ -1669,8 +1669,8 @@ void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent) {
 
 				if (offsetptr[2] == FIELDTYPE_SFNode) {
 					/* get the field as a POINTER VALUE, not just a pointer... */
-					voidptr = (uintptr_t *) memptr;
-					voidptr = (uintptr_t *) *voidptr;
+					voidptr = (intptr_t *) memptr;
+					voidptr = (intptr_t *) *voidptr;
 
 					/* is there a node here? */
 					if (voidptr != NULL) {

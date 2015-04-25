@@ -1556,7 +1556,7 @@ void JSCreateScriptContext(int num) {
 		scriptnode = duk_to_pointer(ctx,-1);
 		duk_pop(ctx);
 		snode = (struct X3D_Node *)scriptnode;
-		printf("script node = %x",scriptnode);
+		printf("script node = %p",scriptnode);
 	}
 	if(0){
 		duk_eval_string(ctx,"print(Object.keys(Browser));"); //invokes ownKeys
@@ -1927,7 +1927,7 @@ void JSInitializeScriptAndFields (int num) {
 
 	/* run through fields in order of entry in the X3D file */
 	script = scriptcontrol->script;
-	printf("adding fields from script %x\n",script);
+	printf("adding fields from script %p\n",script);
 	nfields = Shader_Script_getScriptFieldCount(script);
 	for(i=0;i<nfields;i++){
 		field = Shader_Script_getScriptField(script,i);

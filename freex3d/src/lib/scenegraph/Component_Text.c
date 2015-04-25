@@ -79,7 +79,7 @@ include FT_GLYPH_H */
 
 typedef struct pComponent_Text{
 
-#ifdef _ANDROID
+#if defined(_ANDROID) || defined(IPHONE)
 	// Android UI sends in file descriptors and open file for fonts.
 	// files are in the assets folder; we assume that the fd is open and fseek'd properly.
 
@@ -188,7 +188,7 @@ static void FW_draw_outline(FT_OutlineGlyph oglyph);
 static void FW_draw_character(FT_Glyph glyph);
 static int open_font(void);
 
-#ifdef _ANDROID
+#if defined(_ANDROID) || defined(IPHONE)
 /* Android UI finds the font file(s) and sends them in here */
 void fwg_AndroidFontFile(FILE *myFile,int len) {
 	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
@@ -580,7 +580,7 @@ ConsoleMessage ("TEXT INITIALIZATION - checking on the font file before doing an
 
     // ConsoleMessage("FT_Open_Face looks ok to go");
 
-    unsigned char *myFileData = malloc (p->fileLen+1);
+    unsigned char *myFileData = MALLOC(void *, p->fileLen+1);
     size_t frv;
     frv = fread (myFileData, (size_t)p->fileLen, (size_t)1, p->androidFontFile);
     myArgs.flags  = FT_OPEN_MEMORY;

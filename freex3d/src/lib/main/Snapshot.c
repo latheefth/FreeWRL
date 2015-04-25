@@ -168,7 +168,7 @@ void fwl_set_SeqFile(const char* file)
     /* need to re-implement this for OSX generating QTVR */
 	//struct pSnapshot* p = (struct pSnapshot*)gglobal()->Snapshot.prv;
 	ppSnapshot p = (ppSnapshot)gglobal()->Snapshot.prv;
-    p->snapseqB = strdup(file);
+    p->snapseqB = STRDUP(file);
     printf("snapseqB is %s\n", p->snapseqB);
 #else
     WARN_MSG("Call to fwl_set_SeqFile when Snapshot Sequence not compiled in.\n");
@@ -179,7 +179,7 @@ void fwl_set_SnapFile(const char* file)
 {
 	ppSnapshot p = (ppSnapshot)gglobal()->Snapshot.prv;
 
-	p->snapsnapB = strdup(file);
+	p->snapsnapB = STRDUP(file);
     TRACE_MSG("snapsnapB set to %s\n", p->snapsnapB);
 	printf("%s\n",p->snapsnapB);
 }
@@ -209,11 +209,11 @@ void fwl_set_SnapTmp(const char* file)
 		ttglobal tg = gglobal();
 		tg->Snapshot.doSnapshot = FALSE;
 		//{
-		//	((ppSnapshot)tg->Snapshot.prv)->seqtmp = strdup(file);
+		//	((ppSnapshot)tg->Snapshot.prv)->seqtmp = STRDUP(file);
 		//}
 		{
 			ppSnapshot p = (ppSnapshot)tg->Snapshot.prv;
-			p->seqtmp = strdup(file);
+			p->seqtmp = STRDUP(file);
 			TRACE_MSG("seqtmp set to %s\n", p->seqtmp);
 		}
 
@@ -222,18 +222,18 @@ void fwl_set_SnapTmp(const char* file)
 	//	ttSnapshot t = TSNAPSHOT;
 	//	ppSnapshot p = PSNAPSHOT;
 	//	t->doSnapshot = FALSE;
-	//	p->seqtmp = strdup(file);
+	//	p->seqtmp = STRDUP(file);
 	//	TRACE_MSG("seqtmp set to %s\n", p->seqtmp);
 	//}
 	//{
 	//	struct tSnapshot* t = &gglobal()->Snapshot;
 	//	struct pSnapshot* p = (struct pSnapshot*)t->prv;
-	//	p->seqtmp = strdup(file);
+	//	p->seqtmp = STRDUP(file);
 	//	TRACE_MSG("seqtmp set to %s\n", p->seqtmp);
 	//}
 	//{
 	//	struct pSnapshot* p = (struct pSnapshot*)gglobal()->Snapshot.prv;
-	//	p->seqtmp = strdup(file);
+	//	p->seqtmp = STRDUP(file);
 	//	TRACE_MSG("seqtmp set to %s\n", p->seqtmp);
 	//}
 }
@@ -599,7 +599,7 @@ CGContextRef MyCreateBitmapContext(int pixelsWide, int pixelsHigh, unsigned char
 	bitmapBytesPerRow =(pixelsWide*4); 
 	bitmapByteCount =(bitmapBytesPerRow*pixelsHigh); 
 	colorSpace=CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB); 
-	bitmapData=(unsigned char*) malloc(bitmapByteCount); 
+	bitmapData=(unsigned char*) MALLOC(void *, bitmapByteCount); 
 
 	if(bitmapData==NULL) 
 	{ 
@@ -623,7 +623,7 @@ CGContextRef MyCreateBitmapContext(int pixelsWide, int pixelsHigh, unsigned char
 		kCGImageAlphaPremultipliedLast); 
 	if (context== NULL) 
 	{ 
-		free (bitmapData); 
+		FREE(bitmapData);
 		fprintf (stderr, "Context not created!"); 
 		return NULL; 
 	} 
@@ -743,7 +743,7 @@ void Snapshot () {
 		char *bitmapData = CGBitmapContextGetData(myBitmapContext); 
 
 		CGContextRelease (myBitmapContext); 
-		if (bitmapData) free(bitmapData); 
+		if (bitmapData) FREE(bitmapData);
 
 
 		p->snapGoodCount++;

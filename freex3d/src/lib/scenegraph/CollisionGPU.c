@@ -40,8 +40,9 @@ Render the children of nodes.
 
 #include "LinearAlgebra.h"
 #include "Collision.h"
+#if !defined(_ANDROID) && !defined(IPHONE)
 #include "../opencl/OpenCL_Utils.h"
-
+#endif
 #ifdef HAVE_OPENCL
 
 static const char* collide_non_walk_kernel;

@@ -122,8 +122,18 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	// pthread_t uiThread;
 	ttglobal iglobal = MALLOCV(sizeof(struct iiglobal));
 	memset(iglobal,0,sizeof(struct iiglobal)); //set to zero/null by default
+#ifdef DISABLER
+    if(!done_main_UI_thread_once){
+		pthread_key_create(&threadSpecificKey, NULL);
+		done_main_UI_thread_once = 1; //this assumes the iglobal is created in the shared UI main thread
+	}
+	fwl_setCurrentHandle(iglobal,__FILE__,__LINE__); //probably redundant but no harm
 
-
+#if defined(WRAP_MALLOC) || defined(DEBUG_MALLOC)
+    iglobal->__memTable_ShouldRegisterAllocation = TRUE;
+    freewrlInitMemTable();
+#endif
+#endif
 	//call initializer for each sub-struct
 	display_init(&iglobal->display);
 	internalc_init(&iglobal->internalc);
@@ -165,10 +175,12 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	//RasterFont_init(&iglobal->RasterFont);
 	RenderTextures_init(&iglobal->RenderTextures);
 	Textures_init(&iglobal->Textures);
+#ifndef DISABLER	
 #ifndef NO_PLUGINSOCKET
 	PluginSocket_init(&iglobal->PluginSocket);
 #endif
 	pluginUtils_init(&iglobal->pluginUtils);
+#endif	
 	collision_init(&iglobal->collision);
 	Component_EnvironSensor_init(&iglobal->Component_EnvironSensor);
 	Component_Geometry3D_init(&iglobal->Component_Geometry3D);
@@ -209,6 +221,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 	X3DParser_init(&iglobal->X3DParser);
 	X3DProtoScript_init(&iglobal->X3DProtoScript);
 	common_init(&iglobal->common);
+#ifndef DISABLER	
 	CursorDraw_init(&iglobal->CursorDraw);
 
 	//uiThread = pthread_self();
@@ -219,15 +232,23 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 		done_main_UI_thread_once = 1; //this assumes the iglobal is created in the shared UI main thread
 	}
 	fwl_setCurrentHandle(iglobal,__FILE__,__LINE__); //probably redundant but no harm
+#endif	
 	return iglobal;
 }
 
-
+void __iglobal_fields_destructor(ttglobal tg);
 void remove_iglobal_from_table(ttglobal tg);
+void __iglobal_destructor(ttglobal tg);
+
 void iglobal_destructor(ttglobal tg)
 {
+    __iglobal_fields_destructor(tg);
+	__iglobal_destructor(tg);
+}
 
-	/* you should have stopped any worker threads for this instance */
+void __iglobal_fields_destructor(ttglobal tg)
+{
+    /* you should have stopped any worker threads for this instance */
 	//call individual destructors in reverse order to constructor
 	FREE_IF_NZ(tg->CursorDraw.prv);
 	FREE_IF_NZ(tg->common.prv);
@@ -300,9 +321,16 @@ OLDCODE	FREE_IF_NZ(tg->Component_Networking.prv);
 	resources_clear(&tg->resources); FREE_IF_NZ(tg->resources.prv);
 	FREE_IF_NZ(tg->internalc.prv);
 	FREE_IF_NZ(tg->display.prv);
+}
 
-	//destroy iglobal
+void __iglobal_destructor(ttglobal tg)
+{
+    //destroy iglobal
+#ifndef DISABLER    
 	FREE_IF_NZ(tg);
+#else	
+	free(tg);
+#endif
 	//remove_iglobal_from_table(tg);
 	fwl_clearCurrentHandle(__FILE__,__LINE__);
 
@@ -330,9 +358,13 @@ void fwl_clearCurrentHandle(char *fi, int li)
 
 }
 ttglobal gglobal(char *fi, int *li){
-	ttglobal tg;
-	tg = (ttglobal)pthread_getspecific(threadSpecificKey); 
-	if(!tg){
+	ttglobal tg = NULL;
+#ifdef DISABLER	
+    if (done_main_UI_thread_once)
+#endif    
+         tg = (ttglobal)pthread_getspecific(threadSpecificKey);
+	if(!tg)
+    {
 		printf("Ouch - no state for this thread -- hit a key to exit\n");
 #ifdef _MSC_VER
         	printf ("more info - thread %p\n\n",(void *)pthread_self().p);
@@ -344,6 +376,14 @@ ttglobal gglobal(char *fi, int *li){
 	}
 	return tg;
 }
-ttglobal gglobal0(){
+
+ttglobal gglobal0()
+{
+#ifdef DISABLER
+    if (!done_main_UI_thread_once)
+    {
+        return NULL;
+    }
+#endif    
 	return (ttglobal)pthread_getspecific(threadSpecificKey); 
 }

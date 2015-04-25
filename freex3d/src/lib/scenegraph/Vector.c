@@ -70,7 +70,7 @@ struct Vector* newVector_(int elSize, int initSize,char *fi, int line) {
 	return ret;
 }
 
-#ifdef DEBUG_MALLOC
+#if defined(WRAP_MALLOC) || defined(DEBUG_MALLOC)
 void deleteVector_(char *file, int line, int elSize, struct Vector** myp) {
 #else
 void deleteVector_(int elSize, struct Vector** myp) {
@@ -85,7 +85,7 @@ void deleteVector_(int elSize, struct Vector** myp) {
 
 	ASSERT(me);
 	#ifdef DEBUG_MALLOC
-		printf("vector, deleting me %x data %x at %s:%d\n",me,me->data,file,line);
+		printf("vector, deleting me %p data %p at %s:%d\n",me,me->data,file,line);
 	#endif
 	if(me->data) {FREE_IF_NZ(me->data);}
 	FREE_IF_NZ(me);
@@ -95,9 +95,20 @@ void deleteVector_(int elSize, struct Vector** myp) {
 /* Ensures there's at least one space free. */
 void vector_ensureSpace_(int elSize, struct Vector* me, char *fi, int line) {
 	ASSERT(me);
+    if (me->n>me->allocn)
+    {
+        ASSERT(FALSE);
+    }
 	if(me->n==me->allocn) {
-		if(me->allocn) me->allocn*=2;
-		else me->allocn=1;
+		if(me->allocn)
+        {
+            me->allocn*=2;
+        }
+		else
+        {
+            me->allocn=1;
+            me->n = 0;
+        }
 
 #ifdef DEBUG_MALLOC
 		me->data=freewrlRealloc(line, fi,me->data, elSize*me->allocn);
@@ -105,11 +116,21 @@ void vector_ensureSpace_(int elSize, struct Vector* me, char *fi, int line) {
 		me->data=REALLOC(me->data, elSize*me->allocn);
 #endif
 		#ifdef DEBUG_MALLOC
-			printf ("vector, ensureSpace, me %x, data %x\n",me, me->data);
+			printf ("vector, ensureSpace, me %p, data %p\n",me, me->data);
 		#endif
 		ASSERT(me->data);
 	}
 	ASSERT(me->n<me->allocn);
+}
+
+void vector_popBack_(struct Vector* me, size_t count)
+{
+    ASSERT(!vector_empty(me));
+    me->n -= count;
+
+    #ifdef DEBUG_MALLOC
+        printf ("vector, popping back, me 0x%016llx, data 0x%016llx n %zu\n", (unsigned long long)me, (unsigned long long)me->data, me->n);
+    #endif
 }
 
 /* Shrinks the vector to allocn==n. */
@@ -119,7 +140,17 @@ void vector_shrink_(int elSize, struct Vector* me) {
 	if(me->n==me->allocn) return;
 
 	me->allocn=me->n;
-	me->data=REALLOC(me->data, elSize*me->allocn);
+    void *oldData = me->data;
+	me->data=REALLOC(oldData, elSize*me->allocn);
+    
+    #ifdef DEBUG_MALLOC
+        printf ("vector, shrink, me 0x%016llx, data 0x%016llx\n size %zu allocatedSize %zu", (unsigned long long)me, (unsigned long long)me->data, me->n, me->allocn);
+    #endif
+    
+    //if (!me->data)
+    //{
+    //    FREE_IF_NZ(oldData); //bombs in win32 due to REALLOC above doing the equivalent of freeing the memory, so oldData is pointing to invalid memory
+    //}
 	ASSERT(!me->allocn || me->data);
 }
 
@@ -129,10 +160,12 @@ void* vector_releaseData_(int elSize, struct Vector* me) {
 	vector_shrink_(elSize, me);
 	ret=me->data;
 	#ifdef DEBUG_MALLOC
-		printf ("vector, me %x data %x\n",me, me->data);
+		printf ("vector, me %p data %p\n",me, me->data);
 	#endif
-	me->data=NULL;
-
+	
+    me->data=NULL;
+    me->n = 0;
+    me->allocn = 0;
 	return ret;
 }
 
@@ -149,6 +182,12 @@ void vector_removeElement(int elSize,struct Vector* myp, int element)
 				memcpy(el0,el1,elSize);
 			}
 			me->n--;
+            
+            #ifdef DEBUG_MALLOC
+                printf ("vector, removing element me 0x%016llx data 0x%016llx\n", (unsigned long long)me, (unsigned long long)me->data);
+            #endif
+			
+            me->n--;
 		}
 	}
 }

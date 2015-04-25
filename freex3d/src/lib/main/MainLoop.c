@@ -569,7 +569,21 @@ int isSnapshotModeTesting();
 void splitpath_local_suffix(const char *url, char **local_name, char **suff);
 #endif //FRONTEND_DOES_SNAPSHOTS
 
+void fwl_gotoCurrentViewPoint()
+{
+	struct tProdCon *t = &gglobal()->ProdCon;
 
+	struct X3D_Node *cn;
+	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, vector_get(struct X3D_Node*, t->viewpointNodes, t->currboundvpno),cn);
+
+	/* printf ("NVP, %d of %d, looking at %d\n",ind, totviewpointnodes, t->currboundvpno);
+	printf ("looking at node :%s:\n",X3D_VIEWPOINT(cn)->description->strptr); */
+
+	if (vpGroupActive((struct X3D_ViewpointGroup *) cn)) {
+		t->setViewpointBindInRender = vector_get(struct X3D_Node*,t->viewpointNodes, t->currboundvpno);
+		return;
+	}
+}
 
 int fw_exit(int val)
 {
@@ -665,7 +679,7 @@ void fwl_RenderSceneUpdateScene() {
 			if(namingMethod==0)
 				strcat(recordingName,"recording");
 			strcat(recordingName,".fwplay"); //1_wrl.fwplay
-			p->recordingFName = strdup(recordingName);
+			p->recordingFName = STRDUP(recordingName);
 
 			if(p->modeFixture  || p->modePlayback){
 				if(!p->modeRecord){
@@ -701,7 +715,7 @@ void fwl_RenderSceneUpdateScene() {
 								char* suff = NULL;
 								char* local_name = NULL;
 								char* url = NULL;
-								if(strlen(sceneName)) url = strdup(sceneName);
+								if(strlen(sceneName)) url = STRDUP(sceneName);
 								if(url){
 									splitpath_local_suffix(url, &local_name, &suff);
 									gglobal()->Mainloop.url = url;
@@ -1043,9 +1057,11 @@ void fwl_RenderSceneUpdateScene() {
 
 
 	/* BrowserAction required? eg, anchors, etc */
+#ifndef DISABLER
 	if (tg->RenderFuncs.BrowserAction) {
 		tg->RenderFuncs.BrowserAction = doBrowserAction ();
 	}
+#endif
 
 	/* has the default background changed? */
 	if (tg->OpenGL_Utils.cc_changed) doglClearColor();
@@ -1352,12 +1368,12 @@ void fwl_RenderSceneUpdateScene() {
 							* and the reply is synchronous.
 							*/
 						replyData = fwl_EAI_handleBuffer(tempEAIdata);
-						free(tempEAIdata) ;
+						FREE(tempEAIdata) ;
 						EAI_StillToDo = 1;
 						do {
 							if(replyData != NULL && strlen(replyData) != 0) {
 								fwlio_RxTx_sendbuffer(__FILE__,__LINE__,CHANNEL_EAI, replyData) ;
-								free(replyData) ;
+								FREE(replyData) ;
 								/*
 									* Note: fwlio_RxTx_sendbuffer() can also be called async
 									* due to a listener trigger within routing, but it is
@@ -2165,11 +2181,12 @@ OLDCODE#endif
 
 //#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
 		if (Viewer()->isStereo) {
-
+#ifndef DISABLER
 			if (Viewer()->sidebyside){
 				//cursorDraw(1, p->viewpointScreenX[count], p->viewpointScreenY[count], 0.0f); //draw a fiducial mark where centre of viewpoint is
 				fiducialDraw(1,p->viewpointScreenX[count],p->viewpointScreenY[count],0.0f); //draw a fiducial mark where centre of viewpoint is
 			}
+#endif
 			if (Viewer()->anaglyph)
 				glColorMask(1,1,1,1); /*restore, for statusbarHud etc*/
 		}
@@ -2182,13 +2199,13 @@ OLDCODE#endif
 
 //#endif
 
-	if(p->EMULATE_MULTITOUCH) {
-        int i;
-
-		for(i=0;i<20;i++)
-			if(p->touchlist[i].isDown > 0)
-				cursorDraw(p->touchlist[i].ID,p->touchlist[i].x,p->touchlist[i].y,p->touchlist[i].angle);
-    }
+//	if(p->EMULATE_MULTITOUCH) {
+//        int i;
+//
+//		for(i=0;i<20;i++)
+//			if(p->touchlist[i].isDown > 0)
+//				cursorDraw(p->touchlist[i].ID,p->touchlist[i].x,p->touchlist[i].y,p->touchlist[i].angle);
+//    }
 }
 
 static int currentViewerLandPort = 0;
@@ -2323,7 +2340,7 @@ void toggleLogfile()
 				strcat(logfilename,"logfile");
 			}
 			strcat(logfilename,".log");
-			p->logfname = strdup(logfilename);
+			p->logfname = STRDUP(logfilename);
 		}
 		printf("logging to %s\n",p->logfname);
 		p->logfile = freopen(p->logfname, mode, stdout );
@@ -2341,7 +2358,7 @@ void fwl_set_logfile(char *lname){
 	if (strncasecmp(lname, "-", 1) == 0) {
 	    printf("FreeWRL: output to stdout/stderr\n");
 	} else {
-		p->logfname = strdup(lname);
+		p->logfname = STRDUP(lname);
 		toggleLogfile();
 	 //   printf ("FreeWRL: redirect stdout and stderr to %s\n", logFileName);
 	 //   fp = freopen(logFileName, "a", stdout);
@@ -3306,7 +3323,7 @@ void deep_copy_defname(void *myData, char *defname)
 	ConsoleMessage("you entered defname: %s\n",defname);
 	memcpy(&iopt,myData,4);
 	deep_copy2(iopt,defname);
-	free(myData);
+	FREE(myData);
 }
 void deep_copy_option(void* yourData, char *opt)
 {
@@ -3316,7 +3333,7 @@ void deep_copy_option(void* yourData, char *opt)
 	if(iopt == 0) return;
 	if(iopt == 1 || iopt == 3)
 	{
-		void* myData = malloc(4); //could store in gglobal->mainloop or wherever, then don't free in deep_copy_defname
+		void* myData = MALLOC(void *, 4); //could store in gglobal->mainloop or wherever, then don't free in deep_copy_defname
 		memcpy(myData,&iopt,4);
 		setConsoleMenu(myData,"Enter DEFname or node address:", deep_copy_defname, "");
 	}
@@ -3681,7 +3698,7 @@ int getRayHitAndSetLookatTarget() {
 		- get the center and size of the picked shape node, and send the viewpoint to it
 		- return to normal navigation
 	*/
-    double pivot_radius, vp_radius; //x,y,z, 
+    double pivot_radius, vp_radius; //x,y,z,
     int i;
 	//ppMainloop p;
 	ttglobal tg = gglobal();
@@ -4663,6 +4680,7 @@ void doReplaceWorldRequest()
 	tg->Mainloop.replaceWorldRequest = NULL;
 	if (req){
 		kill_oldWorld(TRUE, TRUE, __FILE__, __LINE__);
+        if(0) setRootNode(NULL); //I free the node now when the new scene is parsed, so there's always a rootnode
 		res = resource_create_single(req);
 		//send_resource_to_parser_async(res);
 		resitem_enqueue(ml_new(res));
@@ -4671,6 +4689,7 @@ void doReplaceWorldRequest()
 	if (resm){
 		tg->Mainloop.replaceWorldRequestMulti = NULL;
 		kill_oldWorld(TRUE, TRUE, __FILE__, __LINE__);
+		if(0) setRootNode(NULL);
 		resm->new_root = true;
 		gglobal()->resources.root_res = resm;
 		//send_resource_to_parser_async(resm);
@@ -4778,6 +4797,7 @@ int fwl_draw()
 		case 1:
 			if (workers_waiting()) //one way to tell if workers finished flushing is if their queues are empty, and they are not busy
 			{
+                //if (!tg->Mainloop.replaceWorldRequest || tg->threads.MainLoopQuit) //attn Disabler
 				kill_oldWorld(TRUE, TRUE, __FILE__, __LINE__); //does a MarkForDispose on nodes, wipes out binding stacks and route table, javascript
 				tg->threads.flushing = 0;
 				if (tg->threads.MainLoopQuit)
@@ -4797,6 +4817,11 @@ int fwl_draw()
 	case 3:
 		//check if worker threads have exited
 		more = workers_running();
+        if(0) if (more == 0) //attn Disabler
+        {
+            finalizeRenderSceneUpdateScene();
+        }
+
 		break;
 	}
 	return more;
@@ -4847,7 +4872,7 @@ void fwl_set_LineWidth(float lwidth) {
 void fwl_set_KeyString(const char* kstring)
 {
 	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
-    p->keypress_string = strdup(kstring);
+    p->keypress_string = STRDUP(kstring);
 }
 
 void fwl_set_modeRecord()
@@ -4868,7 +4893,7 @@ void fwl_set_modePlayback()
 void fwl_set_nameTest(char *nameTest)
 {
 	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
-    p->nameTest = strdup(nameTest);
+    p->nameTest = STRDUP(nameTest);
 }
 
 /* if we had an exit(EXIT_FAILURE) anywhere in this C code - it means
@@ -4907,9 +4932,52 @@ void fwl_doQuitInstance()
 }
 #endif
 //OLDCODE #endif //ANDROID
-
+void _disposeThread(void *globalcontext);
 
 /* quit key pressed, or Plugin sends SIGQUIT */
+void fwl_doQuitInstance(void *tg_remote)
+{
+    ttglobal tg = gglobal();
+    if (tg_remote == tg)
+    {
+        fwl_doQuit();
+        fwl_draw();
+        workers_stop();
+        fwl_clearCurrentHandle();
+#ifdef DISABLER
+        pthread_create(&tg->threads.disposeThread, NULL, (void *(*)(void *))&_disposeThread, tg);
+#endif
+    }
+}
+
+void __iglobal_destructor(ttglobal tg);
+
+void _disposeThread(void *globalcontext)
+{
+    ttglobal tg = globalcontext;
+    fwl_setCurrentHandle(tg, __FILE__, __LINE__);
+    int more = 0;
+    while((more = workers_running()) && more > 0)
+    {
+        usleep(100);
+    }
+    if (more == 0)
+    {
+        markForDispose(rootNode(), TRUE);
+        killNodes(); //deallocates nodes MarkForDisposed
+        
+        
+        finalizeRenderSceneUpdateScene();
+#ifdef DISABLER
+#if defined(WRAP_MALLOC) || defined(DEBUG_MALLOC)
+        freewrlFreeAllRegisteredAllocations();
+        freewrlDisposeMemTable();
+#endif
+        __iglobal_destructor(tg);
+#endif
+    }
+}
+
 void fwl_doQuit()
 {
 	ttglobal tg = gglobal();
@@ -5280,14 +5348,14 @@ void fwl_Android_replaceWorldNeeded() {
 	if (rootNode() != NULL) {
 
 		/* mark all rootNode children for Dispose */
-		for (i=0; i<rootNode()->children.n; i++) {
-			markForDispose(rootNode()->children.p[i], TRUE);
+		for (i=0; i<proto->__children.n; i++) {
+			markForDispose(proto->__children.p[i], TRUE);
 		}
 
 		/* stop rendering. This should be done when the new resource is loaded, and new_root is set,
 		but lets do it here just to make sure */
-		rootNode()->children.n = 0; // no children, but _sortedChildren not made;
-		rootNode()->_change ++; // force the rootNode()->_sortedChildren to be made
+		proto->__children.n = 0; // no children, but _sortedChildren not made;
+		proto->_change ++; // force the rootNode()->_sortedChildren to be made
 	}
 
 	/* close the Console Message system, if required. */
@@ -5359,7 +5427,7 @@ char *strBackslash2fore(char *);
 void fwl_replaceWorldNeeded(char* str)
 {
 	ConsoleMessage("file to load: %s\n",str);
-
+    FREE_IF_NZ(gglobal()->Mainloop.replaceWorldRequest);
 	gglobal()->Mainloop.replaceWorldRequest = strBackslash2fore(STRDUP(str));
 }
 void fwl_replaceWorldNeededRes(resource_item_t *multiResWithParent){
@@ -5458,7 +5526,7 @@ struct X3D_IndexedLineSet *fwl_makeRootBoundingBox() {
 	struct X3D_Node *shape, *app, *mat, *ils = NULL;
 	struct X3D_Node *bbCoord = NULL;
 
-	struct X3D_Group *rn = rootNode();
+	struct X3D_Group *rn = rootNode(); //attn Disabler, rootNode() is now always X3D_Proto
         float emis[] = {0.8, 1.0, 0.6};
         float myp[] = {
             -2.0, 1.0, 1.0,
@@ -5529,7 +5597,7 @@ struct X3D_IndexedLineSet *fwl_makeRootBoundingBox() {
 
 void fwl_update_boundingBox(struct X3D_IndexedLineSet* node) {
 
-	struct X3D_Group *rn = rootNode();
+	struct X3D_Group *rn = rootNode(); //attn Disabler, rootNode() is now always X3D_Proto
 	struct SFVec3f newbbc[8];
 
 	if (node==NULL) return;

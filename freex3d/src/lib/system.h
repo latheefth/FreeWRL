@@ -24,7 +24,7 @@ Internal header: system dependencies.
     You should have received a copy of the GNU General Public License
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
-
+#include <config.h>
 
 #ifndef __LIBFREEWRL_SYSTEM_H__
 #define __LIBFREEWRL_SYSTEM_H__
@@ -153,21 +153,13 @@ char *__fw_strndup(const char *s, size_t n);
 #endif
 
 /* Those macro may not be declared everywhere */
-#ifndef IPHONE
+
 #if !defined(min)
-# define min(X, Y)                     \
-     ({ typeof (X) __x = (X), __y = (Y);   \
-        (__x < __y) ? __x : __y; })
+    #define min(A,B)	({ __typeof__(A) __a = (A); __typeof__(B) __b = (B); __a < __b ? __a : __b; })
 #endif
 
 #if !defined(max)
-# define max(X, Y)                     \
-     ({ typeof (X) __x = (X), __y = (Y);   \
-        (__x > __y) ? __x : __y; })
-#endif
-#else
-#define min MIN
-#define max MAX
+    #define max(A,B)	({ __typeof__(A) __a = (A); __typeof__(B) __b = (B); __a < __b ? __b : __a; })
 #endif
 
 

@@ -53,9 +53,10 @@ RingBuffer * NewRingBuffer (int elCount) {
 
 	RingBuffer * buffer ;
 
-	buffer = malloc(sizeof(RingBuffer)) ;
+	buffer = MALLOC(RingBuffer *,sizeof(RingBuffer)) ;
 
 	rbItem * data = malloc(sizeof(rbItem)*(FORCE_GUARD_ELEMENT+elCount));
+	rbItem * data = MALLOC(rbItem *, sizeof(rbItem)*(FORCE_GUARD_ELEMENT+elCount));
 
 	buffer -> head = 0 ;
 	buffer -> tail = 0 ;
@@ -178,7 +179,7 @@ void RingBuffer_makeEmpty(RingBuffer * buffer) {
 
 void RingBuffer_freeDataArea(RingBuffer * buffer) {
 	if(buffer->data == NULL) return ;
-	free(buffer->data) ;
+	FREE(buffer->data) ;
 	buffer->data = NULL;
 }
 

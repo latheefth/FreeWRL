@@ -998,8 +998,11 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
 				quaternion_multiply(&(p->Viewer.Quat), &arc, &(examine->OQuat));
 			}
 		} else if (button == 3) {
+			#ifndef DISABLER
 			p->Viewer.Dist = examine->ODist * exp(examine->SY - y);
-
+			#else
+			p->Viewer.Dist = (0 != y) ? examine->ODist * examine->SY / y : 0;
+			#endif
 		}
  	}
 
@@ -1046,7 +1049,7 @@ void handle_turntable(const int mev, const unsigned int button, float x, float y
 		Quaternion qyaw, qpitch;
 		double dyaw, dpitch;
 		struct point_XYZ pp, yaxis;
-		double yaw, pitch; //dist, 
+		double yaw, pitch; //dist,
 		Quaternion quat;
 
 		pitch = yaw = 0.0;
@@ -1336,7 +1339,7 @@ void handle_explore(const int mev, const unsigned int button, float x, float y) 
 		Quaternion qyaw, qpitch;
 		double dyaw, dpitch;
 		struct point_XYZ pp, yaxis;
-		double yaw, pitch; //dist, 
+		double yaw, pitch; //dist,
 		Quaternion quat;
 
 		yaw = pitch = 0.0;

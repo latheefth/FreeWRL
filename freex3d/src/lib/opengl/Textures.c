@@ -213,7 +213,7 @@ static void GenMipMap2D( GLubyte *src, GLubyte **dst, int srcWidth, int srcHeigh
    if ( *dstHeight <= 0 )
       *dstHeight = 1;
 
-   *dst = MALLOCV ( sizeof(GLubyte) * texelSize * (*dstWidth) * (*dstHeight) );
+   *dst = MALLOC(void *, sizeof(GLubyte) * texelSize * (*dstWidth) * (*dstHeight) );
    malloc_profile_add("texturemip",texelSize * (*dstWidth) * (*dstHeight));
    if ( *dst == NULL )
       return;
@@ -587,6 +587,18 @@ void registerTexture(struct X3D_Node *tmp) {
 void unRegisterTexture(struct X3D_Node *tmp) {
 	registerTexture0(0,tmp);
 }
+
+void free_polyrep(struct X3D_PolyRep *rep);
+
+void unRegisterPolyRep(struct X3D_Node *tmp)
+{
+    if (tmp->_intern)
+    {
+        free_polyrep(tmp->_intern);
+    }
+}
+
+
 void add_node_to_broto_context(struct X3D_Proto *currentContext,struct X3D_Node *node);
 /* do TextureBackground textures, if possible */
 void loadBackgroundTextures (struct X3D_Background *node) {
@@ -1362,7 +1374,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
                     
 					/* try this texture on for size, keep scaling down until we can do it */
 					/* all textures are 4 bytes/pixel */
-					dest = MALLOC(unsigned char *, (unsigned) 4 * rx * ry);
+					dest = MALLOC(unsigned char *, 4 * rx * ry);
 
 						myScaleImage(x,y,rx,ry,mytexdata,dest);
 				}

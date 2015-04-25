@@ -442,15 +442,20 @@ int ConsoleMessage0(const char *fmt, va_list args){
 	ttglobal tg = gglobal();
 	if (!tg) return 0;
 	p = (ppConsoleMessage)tg->ConsoleMessage.prv;
-
+	if(p){
 	retval = fwvsnprintf(p->FWbuffer, STRING_LENGTH - 1, fmt, args); /*hope STRING_LENGTH is long enough, else -1 skip */
 	if (retval >= 0){
 		if (p->callback[0])
 			p->callback[0](p->FWbuffer);
 		if (p->callback[1])
 			p->callback[1](p->FWbuffer);
+    #ifdef _ANDROID
+            DROIDDEBUG(STRDUP(p->FWbuffer)); //passing ownerhsip in
+	#else
 		android_save_log(strdup(p->FWbuffer)); //passing ownerhsip in
-	}
+    #endif
+        }
+    }
 	return retval;
 }
 

@@ -271,7 +271,7 @@ static void JS_ECMA_TO_X3D(JSContext *cx, void *Data, unsigned datalen, int data
         		_id_c = JS_EncodeString(cx,_idStr);
 #endif
 
-			oldS = (struct Uni_String *) *((uintptr_t *)Data);
+			oldS = (struct Uni_String *) *((intptr_t *)Data);
 
 			#ifdef JSVRMLCLASSESVERBOSE
 			printf ("JS_ECMA_TO_X3D, replacing \"%s\" with \"%s\" \n", oldS->strptr, _id_c);
@@ -910,7 +910,7 @@ static int *getFOP (struct X3D_Node *node, const char *str) {
 					printf ("%s:%d dummy name=%s\n",__FILE__,__LINE__,name);
 					#endif
 
-					str1 = malloc(1+strlen(name));
+					str1 = MALLOC(void *, 1+strlen(name));
 					strcpy(str1,name) ;
 					/* discard Proto_0xnnnnn_*/
 					token = strtok_r(str1, "_", &saveptr1);
@@ -1383,7 +1383,7 @@ int JS_DefineSFNodeSpecificProperties (JSContext *context, JSObject *object, str
 					printf ("%s:%d dummy name=%s\n",__FILE__,__LINE__,name);
 					#endif
 
-					str1 = malloc(1+strlen(name));
+					str1 = MALLOC(void *, 1+strlen(name));
 					strcpy(str1,name) ;
 					/* discard Proto_0xnnnnn_*/
 					token = strtok_r(str1, "_", &saveptr1);

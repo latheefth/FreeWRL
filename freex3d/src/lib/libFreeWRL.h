@@ -201,7 +201,7 @@ void fwl_set_logfile(char *);
 void fwl_set_nameTest(char *);
 
 #if defined(_ANDROID)
-void DROIDDEBUG( const char*pFmtStr, ...);
+int DROIDDEBUG( const char*pFmtStr, ...);
 void PRINTF_ALL( const char*pFmtStr, ...);
 #endif
 
@@ -254,6 +254,8 @@ void fwl_set_MaxImages(int max);
 void fwl_setCurXY(int x, int y);
 void fwl_do_keyPress(char kp, int type);
 void fwl_doQuit();
+void fwl_doQuitInstance(void *instance);
+void fwl_updateScreenDim(int wi, int he);
 void fwl_doQuitAndWait();
 void fwl_set_viewer_type(const int type);
 void fwl_set_modeRecord();
@@ -333,16 +335,22 @@ void fwl_resource_push_single_request(const char *request);
 void fwl_OSX_initializeParameters(const char* initialURL);
 void fwl_resource_push_single_request_IE_main_scene(const char *request);
 
-void fwg_frontEndReturningData(unsigned char* fileData,int length,int width,int height,bool hasAlpha);
+void fwg_frontEndReturningData(char* fileData,int length,int width,int height,bool hasAlpha);
 
 /* from main/ConsoleMessage.c */
 void fwg_setConsoleParam_maxLines(int);
 void fwg_setConsoleParam_maxLineLength(int);
 void fwg_setConsoleParam_replaceTabs(int);
 
+void fwg_setFrontEndOnX3DFileLoadedListener(void (*frontEndOnX3DFileLoadedListener)(char *));
+
+#ifdef FRONTEND_GETS_FILES
+void fwg_setFrontEndOnResourceRequiredListener(void (*frontEndOnResourceRequiredListener)(char *));
+#endif //FRONTEND_GETS_FILES
 
 void fwg_frontEndReturningLocalFile(char *localfile, int iret);
 void fwl_RenderSceneUpdateScene(void);
+void fwl_gotoCurrentViewPoint();
 void fwl_setScreenDim(int wi, int he);
 bool fwl_initialize_GL(void);
 void fwl_setLastMouseEvent(int etype);

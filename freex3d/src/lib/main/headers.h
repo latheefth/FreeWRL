@@ -552,7 +552,7 @@ void *returnInterpolatorPointer (const char *x);
 #define X3DNurbsControlCurveNode		56
 #define X3DNurbsSurfaceGeometryNode		57
 
-int isManagedField(int mode, int type, int isPublic);
+BOOL isManagedField(int mode, int type, BOOL isPublic);
 
 void AddRemoveChildren (struct X3D_Node *parent, struct Multi_Node *tn, struct X3D_Node * *nodelist, int len, int ar, char * where, int lin);
 

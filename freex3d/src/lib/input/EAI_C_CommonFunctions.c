@@ -561,7 +561,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, indexT c
 				if(*v == '"') nq++;
 				v++;
 			}
-			mfstringtmp = (char *)malloc(strlen(value)+nq+1);
+			mfstringtmp = (char *)MALLOC(void *, strlen(value)+nq+1);
 			v = value;
 			pv = NULL;
 			mv = mfstringtmp;
@@ -779,7 +779,7 @@ void Parser_scanStringValueToMem_B(union anyVrml* any, indexT ctype, char *value
 				if(*v == '"') nq++;
 				v++;
 			}
-			mfstringtmp = (char *)malloc(strlen(value)+nq+1);
+			mfstringtmp = (char *)MALLOC(void *, strlen(value)+nq+1);
 			v = value;
 			pv = NULL;
 			mv = mfstringtmp;
@@ -995,7 +995,7 @@ void Parser_scanStringValueToMem_C0(struct VRMLParser *parser, union anyVrml* an
 				if(*v == '"') nq++;
 				v++;
 			}
-			mfstringtmp = (char *)malloc(strlen(value)+nq+1);
+			mfstringtmp = (char *)MALLOC(void *, strlen(value)+nq+1);
 			v = value;
 			pv = NULL;
 			mv = mfstringtmp;

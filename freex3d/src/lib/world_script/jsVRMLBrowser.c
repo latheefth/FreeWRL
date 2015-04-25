@@ -322,8 +322,8 @@ ComponentInfoArrayGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 		}else if(index > -1 && index < COMPONENTS_COUNT )
 		{
 			JSObject *_obj;
-			IntTableIndex tableindex = malloc(sizeof(struct intTableIndex));
-			//int* _index = malloc(sizeof(int));
+			IntTableIndex tableindex = MALLOC(void *, sizeof(struct intTableIndex));
+			//int* _index = MALLOC(void *, sizeof(int));
 			_obj = JS_NewObject(cx,&ComponentInfoClass,NULL,obj);
 			tableindex->index = index;
 			tableindex->table = _table;
@@ -540,7 +540,7 @@ ProfileInfoArrayGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 		//if(index < getNumberOfProfiles() )
 		{
 			JSObject *_obj;
-			int* _index = malloc(sizeof(int));
+			int* _index = MALLOC(void *, sizeof(int));
 			_obj = JS_NewObject(cx,&ProfileInfoClass,NULL,obj);
 			*_index = index;
 			if (!JS_DefineProperties(cx, _obj, ProfileInfoProperties)) {
@@ -655,7 +655,7 @@ X3DRouteGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 				//route.routeFromNode
 				{
 					JSObject *_obj;
-					SFNodeNative *sfnn = malloc(sizeof(SFNodeNative));
+					SFNodeNative *sfnn = MALLOC(void *, sizeof(SFNodeNative));
 					memset(sfnn,0,sizeof(SFNodeNative)); //I don't know if I'm supposed to set something else dug9 aug5,2013
 					if(index==0)
 						sfnn->handle = fromNode;
@@ -780,7 +780,7 @@ RouteArrayGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 		//if(index < getNumberOfProfiles() )
 		{
 			JSObject *_obj;
-			int* _index = malloc(sizeof(int));
+			int* _index = MALLOC(void *, sizeof(int));
 			_obj = JS_NewObject(cx,&X3DRouteClass,NULL,obj);
 			*_index = index;
 			if (!JS_DefineProperties(cx, _obj, X3DRouteProperties)) {
@@ -934,7 +934,7 @@ ExecutionContextGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 				int index = gglobal()->Mainloop.scene_profile;
 
 				JSObject *_obj;
-				int* _index = malloc(sizeof(int));
+				int* _index = MALLOC(void *, sizeof(int));
 				_obj = JS_NewObject(cx,&ProfileInfoClass,NULL,obj);
 				*_index = index;
 				if (!JS_DefineProperties(cx, _obj, ProfileInfoProperties)) {
@@ -996,7 +996,7 @@ ExecutionContextGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 
 				//scene->children;
 				//somehow return children as an MFNode
-				//mfn = malloc(sizeof(MFNodeNative));
+				//mfn = MALLOC(void *, sizeof(MFNodeNative));
 				_obj = JS_NewObject(cx,&MFNodeClass,NULL,obj);
 
 				//mfn->handle = (struct X3D_Node*)rootNode(); //change this to (Script)._executionContext when brotos working fully
@@ -1229,7 +1229,7 @@ BrowserGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 			//H: I have to return an ExecutionContextNative here with its guts set to our rootNode or ???
 			{
 				JSObject *_obj;
-				ExecutionContextNative ec = malloc(sizeof(ExecutionContextNative));
+				ExecutionContextNative ec = MALLOC(void *, sizeof(ExecutionContextNative));
 				_obj = JS_NewObject(cx,&ExecutionContextClass,NULL,obj);
 
 				//ec->handle = (struct X3D_Node*)rootNode(); //change this to (Script)._executionContext when brotos working fully
@@ -1330,7 +1330,7 @@ typedef struct pjsVRMLBrowser{
 
 }* ppjsVRMLBrowser;
 void *jsVRMLBrowser_constructor(){
-	void *v = MALLOCV(sizeof(struct pjsVRMLBrowser));
+	void *v = MALLOC(void *, sizeof(struct pjsVRMLBrowser));
 	memset(v,0,sizeof(struct pjsVRMLBrowser));
 	return v;
 }

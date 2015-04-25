@@ -55,9 +55,11 @@
 #include <limits.h>   /* SSIZE_MAX */
 
 #include "main/ProdCon.h"
+#if !defined(IPHONE) && !defined(_ANDROID)
 #include "input/InputFunctions.h"
 #include "plugin/pluginUtils.h"
 #include "plugin/PluginSocket.h"
+#endif
 
 #if defined (INCLUDE_STL_FILES)
 #include "input/convertSTL.h"
@@ -137,7 +139,7 @@ printf ("remove_filename_from_path going to copy %d\n", ((int)slash-(int)path)+1
 		*slash = '\0';
 printf ("remove_filename_from_path, returning :%s:\n",rv);
 #else
-		rv = strndup(path, (size_t)slash - (size_t)path + 1);
+		rv = STRNDUP(path, (size_t)slash - (size_t)path + 1);
 #endif
 
 	}
@@ -250,10 +252,22 @@ void of_dump(openned_file_t *of)
  *                        and data buffer} into an openned file object.
  *                        Purpose: to be able to close and free all that stuff.
  */
-static openned_file_t* create_openned_file(const char *filename, int fd, int dataSize, unsigned char *data, int imageHeight, int imageWidth, bool imageAlpha)
+static openned_file_t* create_openned_file(const char *filename, int fd, int dataSize, char *data, int imageHeight, int imageWidth, bool imageAlpha)
 {
 	openned_file_t *of;
-
+#ifdef DISABLER	
+    char *fileData = NULL;
+    if (dataSize > 0 && data)
+    {
+        fileData = MALLOC (char *, dataSize+1);
+        if (NULL != fileData)
+        {
+            memcpy (fileData, data, dataSize);
+            fileData[dataSize] = '\0';
+            data = fileData;
+        }
+    }
+#endif
 	of = XALLOC(openned_file_t);
 	of->fileFileName = filename;
 	of->fileDescriptor = fd;
@@ -473,7 +487,7 @@ static openned_file_t* load_file_read_old(const char *filename)
 
 #ifdef FRONTEND_GETS_FILES
 /* these variables are used on return of data from front end, and are passed on to create_openned_file */
-static unsigned char *fileText = NULL;
+static char *fileText = NULL;
 static char *fileToGet = NULL;
 static int frontend_return_status = 0;
 static int fileSize = 0;
@@ -500,7 +514,7 @@ char *fwg_frontEndWantsFileName() {
 	return fileToGet;
 }
 
-void fwg_frontEndReturningData(unsigned char* fileData,int len,int width,int height,bool hasAlpha) {
+void fwg_frontEndReturningData(char* fileData,int len,int width,int height,bool hasAlpha) {
 
 	MUTEX_LOCK_FILE_RETRIEVAL
     
@@ -515,8 +529,13 @@ void fwg_frontEndReturningData(unsigned char* fileData,int len,int width,int hei
 	} else {
 		// printf ("fwg_frontEndReturningData, returning ok\n");
     		/* note the "+1" ....*/
-		fileText = MALLOC (unsigned char *, len+1);
-		memcpy (fileText, fileData, len);
+        FREE_IF_NZ(fileText);
+        
+		fileText = MALLOC (char *, len+1);
+        if (NULL != fileText)
+        {
+            memcpy (fileText, fileData, len);
+        }
 		fileSize = len;
 		imageWidth = width;
 		imageHeight = height;
@@ -530,9 +549,6 @@ void fwg_frontEndReturningData(unsigned char* fileData,int len,int width,int hei
 
 	    fileText[len] = '\0';  /* the string terminator */
          //printf ("fwg_frontEndReturningData: returning data, but fileToGet setting to NULL, was %s\n",fileToGet);
-        
-        
-		fileToGet = NULL; /* not freed as only passed by pointer */
 
 		frontend_return_status = 0;
 		/* got the file, send along a message */
@@ -546,7 +562,7 @@ void fwg_frontEndReturningData(unsigned char* fileData,int len,int width,int hei
 
 #else
 char *fwg_frontEndWantsFileName() {return NULL;}
-void fwg_frontEndReturningData(unsigned char* fileData,int length,int width,int height,bool hasAlpha) {}
+void fwg_frontEndReturningData(char* fileData,int length,int width,int height,bool hasAlpha) {}
 #endif
 
 
@@ -557,6 +573,9 @@ void fwg_frontEndReturningData(unsigned char* fileData,int length,int width,int 
  */
 openned_file_t* load_file(const char *filename)
 {
+	if (NULL == filename) {
+		return NULL;
+	}
 
     openned_file_t *of = NULL;
 
@@ -578,19 +597,26 @@ openned_file_t* load_file(const char *filename)
     
 	//JAS - we keep this around until done with resource FREE_IF_NZ(fileText);
 
-	fileToGet = (char *)filename;
-    //printf ("load_file, fileToGet set to :%s:\n",filename);
-    
-    
+
+    FREE_IF_NZ(fileToGet);
+    fileToGet = STRDUP(filename);
+
+    ttglobal tg = gglobal();
+    if (tg->ProdCon._frontEndOnResourceRequiredListener) {
+    		tg->ProdCon._frontEndOnResourceRequiredListener(fileToGet);
+    }
+
     WAIT_FOR_FILE_SIGNAL
 
 	MUTEX_FREE_LOCK_FILE_RETRIEVAL
 
- 
-    
+	FREE_IF_NZ(fileToGet);
+	fileToGet = NULL; /* not freed as only passed by pointer */
+
 	if(frontend_return_status == -1) of = NULL;
-    else of = create_openned_file(filename, -1, fileSize, fileText, imageHeight, imageWidth, imageAlpha);
-    
+    else of = create_openned_file(STRDUP(filename), -1, fileSize, fileText, imageHeight, imageWidth, imageAlpha);
+    FREE_IF_NZ(fileText);
+    fileText = NULL;
     UNLOCK_LOAD_FILE_FUNCTION  
     return of;
     
@@ -619,9 +645,9 @@ openned_file_t* load_file(const char *filename)
 /**
  *   check the first few lines to see if this is an XMLified file
  */
-int determineFileType(const unsigned char *buffer, const int len)
+int determineFileType(const char *buffer, const int len)
 {
-	const unsigned char *rv;
+	const char *rv;
 	int count;
 	int foundStart = FALSE;
     
@@ -1028,7 +1054,7 @@ int directory_remove_all(const char *path)
 				continue;
 			}
 			len = path_len + strlen(p->d_name) + 2; 
-			buf = malloc(len);
+			buf = MALLOC(void *, len);
 			if (buf)
 			{
 				struct stat statbuf;
@@ -1044,7 +1070,7 @@ int directory_remove_all(const char *path)
 						r2 = unlink(buf);
 					}
 				}
-				free(buf);
+				FREE(buf);
 			}
 			r = r2;
 		}
@@ -1139,7 +1165,7 @@ int unzip_archive_to_temp_folder(const char *zipfilename, const char* tempfolder
 				}
 
 				size_buf = WRITEBUFFERSIZE;
-				buf = (void*)malloc(size_buf);
+				buf = (void*)MALLOC(void *, size_buf);
 				if (buf==NULL)
 				{
 					printf("Error allocating memory\n");
@@ -1223,7 +1249,7 @@ int unzip_archive_to_temp_folder(const char *zipfilename, const char* tempfolder
 						unzCloseCurrentFile(uf); /* don't lose the error */
 				}
 
-				free(buf);
+				FREE(buf);
 			}
 			if(err) break;
 
@@ -1316,6 +1342,9 @@ void delete_temp_file(resource_item_t *res){
 int file2blob(resource_item_t *res){
 	int retval;
 	if(res->media_type == resm_image){
+#ifdef DISABLER	
+		printf("FREEWRL LOADING IMAGERY: %s", res->actual_file);
+#endif		
 		retval = imagery_load(res); //FILE2TEXBLOB
 	}else{
 		retval = resource_load(res);  //FILE2BLOB
@@ -1347,6 +1376,9 @@ void file2blob_task(s_list_t *item){
 	if(tactic == file2blob_task_chain){
 		//chain FILE2BLOB
 		if(res->media_type == resm_image){
+#ifdef DISABLER		
+			printf("FREEWRL LOADING IMAGERY: %s", res->actual_file);
+#endif			
 			imagery_load(res); //FILE2TEXBLOB
 		}else{
 			resource_load(res);  //FILE2BLOB
@@ -1357,7 +1389,7 @@ void file2blob_task(s_list_t *item){
 	}else if(tactic == file2blob_task_enqueue){
 		//set BE load function to non-null
 		//a) res->load_func = imagery_load or resource_load or file2blob
-		res->_loadFunc = (void*)file2blob; //msvc can also do &file2blob
+		res->_loadFunc = (int(*)(void*))file2blob; //msvc can also do &file2blob
 		//b) backend_setloadfunction(file2blob) or backend_setimageryloadfunction(imagery_load) and backend_setresourceloadfunction(resource_load)
 		//enqueue downloaded FILE
 		resitem_enqueue(item);

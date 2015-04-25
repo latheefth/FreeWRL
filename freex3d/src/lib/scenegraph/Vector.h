@@ -45,7 +45,7 @@ struct Vector* newVector_(int elSize, int initSize,char *,int);
 #define newVector(type, initSize) \
  newVector_((int)sizeof(type), initSize,__FILE__,__LINE__)
 
-#ifdef DEBUG_MALLOC
+#if defined(WRAP_MALLOC) || defined(DEBUG_MALLOC)
 	void deleteVector_(char *file, int line, int elSize, struct Vector**);
 	#define deleteVector(type, me) deleteVector_(__FILE__,__LINE__,(int)sizeof(type), &(me))
 #else
@@ -95,6 +95,7 @@ void vector_shrink_(int, struct Vector*);
  }
 
 /* Pop back operation */
+void vector_popBack_(struct Vector*, size_t count);
 #define vector_popBack(type, me) \
  { \
   ASSERT(!vector_empty(me)); \
@@ -121,10 +122,8 @@ typedef struct Vector Stack;
 /* Constructor and destructor */
 #define newStack(type) \
  newVector(type, 4)
- //newVector((int) sizeof(type), 4)
 #define deleteStack(type, me) \
  deleteVector(type, me)
- //deleteVector((int) sizeof(type), me)
 
 /* Push and pop */
 #define stack_push(type, me, el) \

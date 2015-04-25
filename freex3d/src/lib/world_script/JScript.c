@@ -742,7 +742,7 @@ static char* re_strcat(char *_Dest, char *_Source, int *destLen, int *destDim)
 	if(*destLen > *destDim -1)
 	{
 		*destDim = *destDim + srclen + 1 + 100;
-		_Dest = realloc(_Dest,*destDim);
+		_Dest = REALLOC(_Dest,*destDim);
 	}
 	_Dest = strcat(_Dest,_Source);
 	return _Dest;
@@ -1083,7 +1083,7 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 							if((int)strlen(sptr[0]->strptr)+2 > tdim-1)
 							{	
 								tdim = (int) strlen(sptr[0]->strptr) + 1 + 100;
-								thisValue = realloc(thisValue,tdim);
+								thisValue = REALLOC(thisValue,tdim);
 							}
 							sprintf (thisValue,"\"%s\"",sptr[0]->strptr);
 						} else { /* must be a Void */
@@ -2248,7 +2248,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 
 		case FIELDTYPE_SFString: {
 			struct Uni_String *ms;
-			uintptr_t *newptr;
+			intptr_t *newptr;
 
 			strval = JS_ValueToString(scriptContext, *(jsval*)(tg->JScript.JSglobal_return_val));
 #if JS_VERSION < 185
@@ -2260,7 +2260,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 			/* copy the string over, delete the old one, if need be */
 			/* printf ("fieldSet SFString, tn %d tptr %d offset from struct %d\n",
 				tn, tptr, offsetof (struct X3D_TextureCoordinateGenerator, mode)); */
-			newptr = (uintptr_t *)memptr;
+			newptr = (intptr_t *)memptr;
 			ms = (struct Uni_String*) *newptr;
 			verify_Uni_String (ms,strp);
 #if JS_VERSION >= 185
@@ -2456,7 +2456,7 @@ void setField_javascriptEventOut_B(union anyVrml* any,
 
 		case FIELDTYPE_SFString: {
 			struct Uni_String *ms;
-			uintptr_t *newptr;
+			intptr_t *newptr;
 
 			strval = JS_ValueToString(scriptContext, *(jsval*)(tg->JScript.JSglobal_return_val));
 #if JS_VERSION < 185
@@ -2468,7 +2468,7 @@ void setField_javascriptEventOut_B(union anyVrml* any,
 			/* copy the string over, delete the old one, if need be */
 			/* printf ("fieldSet SFString, tn %d tptr %d offset from struct %d\n",
 				tn, tptr, offsetof (struct X3D_TextureCoordinateGenerator, mode)); */
-			newptr = (uintptr_t *)memptr;
+			newptr = (intptr_t *)memptr;
 			ms = (struct Uni_String*) *newptr;
 			verify_Uni_String (ms,strp);
 #if JS_VERSION >= 185

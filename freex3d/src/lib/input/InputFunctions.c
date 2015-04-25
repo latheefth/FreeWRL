@@ -88,7 +88,7 @@ char* makeFontDirectory()
 	if (do_dir_exists(tmp)) {
 		/* do not return directory the string
 		as it may be static, but make a copy */
-		return strdup(tmp);
+		return STRDUP(tmp);
 	}
 
 	/* No directory found */
