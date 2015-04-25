@@ -156,6 +156,15 @@ extern int fprintf_with_colored_threads(FILE *stream, const char *format, ...);
 #include <stdio.h>
 
 void fw_perror(FILE *f, const char *format, ...);
+#ifdef DISABLER
+#if defined(WRAP_MALLOC) || defined(DEBUG_MALLOC)
+void freewrlFreeAllRegisteredAllocations();
+bool freewrlIsRegisteringAllocation();
+void freewrlSetShouldRegisterAllocation(bool shouldRegisterAllocation);
+void freewrlInitMemTable();
+void freewrlDisposeMemTable();
+#endif
+#endif
 
 /* To conform C99 ISO C (do not use GCC extension) */
 #if defined(_MSC_VER)
@@ -375,12 +384,13 @@ int DEBUG_MSG(const char *fmt, ...)
 /**
  * Those macro get defined only when debugging is enabled
  */
-#if defined(DEBUG_MALLOC) // &&  defined(FW_DEBUG)
+#if defined(WRAP_MALLOC) || defined(DEBUG_MALLOC)
 
 void *freewrlMalloc(int line, char *file, size_t sz, int zeroData);
 void *freewrlRealloc(int line, char *file, void *ptr, size_t size);
 void freewrlFree(int line, char *file, void *a);
 void *freewrlStrdup(int line, char *file, char *str);
+void *freewrlStrndup(int line, char *file, const char *str, size_t n);
 
 # define MALLOCV(_sz) (freewrlMalloc(__LINE__, __FILE__, _sz, FALSE))
 # define MALLOC(t,_sz)         ((t)freewrlMalloc(__LINE__, __FILE__, _sz, FALSE))
@@ -393,24 +403,30 @@ void *freewrlStrdup(int line, char *file, char *str);
 
 # define STRDUP(_a)          freewrlStrdup(__LINE__, __FILE__, _a)
 
+# define STRNDUP(_a, _n)           freewrlStrndup(__LINE__, __FILE__, _a, _n)
 #ifdef FW_DEBUG
 # define UNLINK(_fdd) do { \
 		           TRACE_MSG("TRACE: unlink %s at %s:%d\n",_fdd,__FILE__,__LINE__); \
 		           unlink (_fdd); \
-		      } while (0)
+		      } while (0);
 
 # define TEMPNAM(_dir,_pfx) tempnam(_dir, _pfx); do { \
 				TRACE_MSG("TRACE: tempnam %s/%s at %s:%d\n", _dir, _pfx, __FILE__, __LINE__); \
-				} while (0)
+				} while (0);
 
 # define ASSERT(_ptr) do { if (!(_ptr)) { \
                            ERROR_MSG("ERROR: assert failed: %s (%s:%d)\n", #_ptr, __FILE__, __LINE__); } \
-                      } while (0)
+                      } while (0);
 #else
 # define UNLINK unlink
 # define TEMPNAM tempnam
-# define ASSERT(_whatever)
-#endif
+
+
+# define ASSERT(_ptr) do { if (!(_ptr)) { \
+                           ERROR_MSG("ERROR: assert failed: %s (%s:%d)\n", #_ptr, __FILE__, __LINE__); } \
+                      } while (0);
+
+#endif // FW_DEBUG
 /* JAS */
 #ifndef TEMPNAM
 #if defined(_MSC_VER)
@@ -421,10 +437,10 @@ void *freewrlStrdup(int line, char *file, char *str);
 #endif
 
 
-#else /* defined(FW_DEBUG) && defined(DEBUG_MALLOC) */
+#else /* defined(WRAP_MALLOC) || defined(DEBUG_MALLOC) */
 
 # define MALLOCV(_sz) (malloc(_sz))
-# define MALLOC(t,_sz) ((t)malloc(_sz))
+# define MALLOC(t,_sz) ((_sz > 0) ? (t)malloc(_sz) : NULL)
 # define REALLOC realloc
 # define FREE free
 
@@ -432,12 +448,13 @@ void *freewrlStrdup(int line, char *file, char *str);
 # define XFREE(_ptr)      {if (_ptr) { free(_ptr); _ptr = NULL; }}
 
 # define STRDUP strdup
+# define STRNDUP strndup
 # define UNLINK unlink
 # define TEMPNAM tempnam
 
 # define ASSERT(_whatever)
 
-#endif /* defined(FW_DEBUG) && defined(DEBUG_MALLOC) */
+#endif /* defined(WRAP_MALLOC) || defined(DEBUG_MALLOC) */
 
 /* This get always defined, but ERROR_MSG is no-op without _DEBUG */
 
@@ -464,7 +481,7 @@ void *freewrlStrdup(int line, char *file, char *str);
 	}								\
 	} else {							\
 		DEBUG_MSG("replacing ptr with the same value (warning)\n"); \
-	} } while (0)
+	} } while (0);
 
 #define PTR_REPLACE_DUP(_ptr,_newptr) do {				\
 	if (_ptr != _newptr) {						\
@@ -478,7 +495,7 @@ void *freewrlStrdup(int line, char *file, char *str);
 	}								\
 	} else {							\
 		DEBUG_MSG("replacing ptr with the same value (warning)\n"); \
-	} } while (0)
+	} } while (0);
 
 
 /* THIS HAS TO BE FIXED TOO :) */

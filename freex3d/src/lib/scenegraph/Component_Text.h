@@ -24,13 +24,14 @@ X3D Text Component
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
+#include <stdio.h>
 
 #ifndef __FREEWRL_SCENEGRAPH_TEXT_H__
 #define __FREEWRL_SCENEGRAPH_TEXT_H__
 
 void render_Text (struct X3D_Text * node);
 
-#ifdef _ANDROID
+#if defined(_ANDROID) || defined(IPHONE)
 void fwg_AndroidFontFile(FILE *myFile,int len);
 #endif //ANDROID
 

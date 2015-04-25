@@ -106,7 +106,7 @@ typedef struct pFrustum{
 	//		GLint queryCounterBits;
 	//	#endif
 
-	GLint OccResultsAvailable;// = FALSE;
+	GLuint OccResultsAvailable;// = FALSE;
 
 }* ppFrustum;
 void *Frustum_constructor(){
@@ -899,7 +899,7 @@ void OcclusionStartofRenderSceneUpdateScene() {
 
 				p->occluderNodePointer = MALLOC (void **, sizeof (void *) * p->OccQuerySize);
 				p->OccQueries = MALLOC (GLuint *, sizeof(GLuint) * p->OccQuerySize);
-                glGenQueries(p->OccQuerySize,p->OccQueries);
+                FW_GL_GENQUERIES(p->OccQuerySize,p->OccQueries);
                 //ConsoleMessage ("generated %d queries, pointer %p",p->OccQuerySize,p->OccQueries);
 				p->OccInitialized = TRUE;
 				for (i=0; i<p->OccQuerySize; i++) {
@@ -933,14 +933,14 @@ void OcclusionStartofRenderSceneUpdateScene() {
 
 			/* possibly previous had zero occluders, lets just not bother deleting for zero */
 			if (p->OccQuerySize > 0) {
-				glDeleteQueries (p->OccQuerySize, p->OccQueries);
+				FW_GL_DELETEQUERIES (p->OccQuerySize, p->OccQueries);
 				FW_GL_FLUSH();
 			}
 
 			p->OccQuerySize = p->maxOccludersFound + 1000;
 			p->occluderNodePointer = REALLOC (p->occluderNodePointer,sizeof (void *) * p->OccQuerySize);
-			p->OccQueries = REALLOC (p->OccQueries,sizeof (int) * p->OccQuerySize);
-            glGenQueries(p->OccQuerySize,p->OccQueries);
+			p->OccQueries = REALLOC (p->OccQueries,sizeof (GLuint) * p->OccQuerySize);
+            FW_GL_GENQUERIES(p->OccQuerySize,p->OccQueries);
                 ConsoleMessage ("reinitialized queries... now %p",p->OccQueries);
 			for (i=0; i<p->OccQuerySize; i++) {
 				p->occluderNodePointer[i] = 0;
@@ -968,7 +968,7 @@ void OcclusionCulling ()  {
 	struct X3D_Shape *shapePtr;
 	struct X3D_VisibilitySensor *visSenPtr;
 	int checkCount;
-	GLint samples;
+	GLuint samples;
 	ppFrustum p;
 	ttglobal tg = gglobal();
 	p = (ppFrustum)tg->Frustum.prv;
@@ -1032,16 +1032,16 @@ void OcclusionCulling ()  {
 
 		/* an Occlusion test will have been run on this one */
 
-		FW_GL_GETQUERYOBJECTIV(p->OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&p->OccResultsAvailable);
-		PRINT_GL_ERROR_IF_ANY("FW_GL_GETQUERYOBJECTIV::QUERY_RESULTS_AVAIL");
+		FW_GL_GETQUERYOBJECTUIV(p->OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&p->OccResultsAvailable);
+		PRINT_GL_ERROR_IF_ANY("FW_GL_GETQUERYOBJECTUIV::QUERY_RESULTS_AVAIL");
 
 		#define SLEEP_FOR_QUERY_RESULTS
 		#ifdef SLEEP_FOR_QUERY_RESULTS
 		/* for now, lets loop to see when we get results */
 		while (p->OccResultsAvailable == GL_FALSE) {
 			usleep(100);
-			FW_GL_GETQUERYOBJECTIV(p->OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&p->OccResultsAvailable);
-			PRINT_GL_ERROR_IF_ANY("FW_GL_GETQUERYOBJECTIV::QUERY_RESULTS_AVAIL");
+			FW_GL_GETQUERYOBJECTUIV(p->OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&p->OccResultsAvailable);
+			PRINT_GL_ERROR_IF_ANY("FW_GL_GETQUERYOBJECTUIV::QUERY_RESULTS_AVAIL");
 		}
 		#endif
 
@@ -1054,8 +1054,8 @@ void OcclusionCulling ()  {
 		/* if we are NOT ready; we keep the count going, but we do NOT change the results of VisibilitySensors */
 		if (p->OccResultsAvailable == GL_FALSE) samples = 10000;  
 			
-	        FW_GL_GETQUERYOBJECTIV (p->OccQueries[i], GL_QUERY_RESULT, &samples);
-		PRINT_GL_ERROR_IF_ANY("FW_GL_GETQUERYOBJECTIV::QUERY");
+	        FW_GL_GETQUERYOBJECTUIV (p->OccQueries[i], GL_QUERY_RESULT, &samples);
+		PRINT_GL_ERROR_IF_ANY("FW_GL_GETQUERYOBJECTUIV::QUERY");
 				
 		#ifdef OCCLUSIONVERBOSE
 		printf ("i %d checkc %d samples %d\n",i,checkCount,samples);
@@ -1147,18 +1147,19 @@ void zeroOcclusion(void) {
                 printf ("checking node %d of %d\n",i, p->potentialOccluderCount);
 #endif
 
-                FW_GL_GETQUERYOBJECTIV(p->OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&p->OccResultsAvailable);
-                PRINT_GL_ERROR_IF_ANY("FW_GL_GETQUERYOBJECTIV::QUERY_RESULTS_AVAIL");
-
+                FW_GL_GETQUERYOBJECTUIV(p->OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&p->OccResultsAvailable);
+                PRINT_GL_ERROR_IF_ANY("FW_GL_GETQUERYOBJECTUIV::QUERY_RESULTS_AVAIL");
+#ifdef SLEEP_FOR_QUERY_RESULTS
                 /* for now, lets loop to see when we get results */
                 while (p->OccResultsAvailable == GL_FALSE) {
 #ifdef OCCLUSIONVERBOSE
                         printf ("zero - waiting and looping for results\n"); 
 #endif
                         usleep(1000);
-                        FW_GL_GETQUERYOBJECTIV(p->OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&p->OccResultsAvailable);
-                        PRINT_GL_ERROR_IF_ANY("FW_GL_GETQUERYOBJECTIV::QUERY_RESULTS_AVAIL");
+                        FW_GL_GETQUERYOBJECTUIV(p->OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&p->OccResultsAvailable);
+                        PRINT_GL_ERROR_IF_ANY("FW_GL_GETQUERYOBJECTUIV::QUERY_RESULTS_AVAIL");
                 }
+#endif
 	}
 #ifdef OCCLUSIONVERBOSE
 	printf ("zeroOcclusion - done waiting\n");

@@ -27,7 +27,7 @@
 #ifndef __LIBFREEWRL_IO_FILES_H__
 #define __LIBFREEWRL_IO_FILES_H__
 
-void fwg_frontEndReturningData(unsigned char* fileData,int length,int width,int height,bool hasAlpha);
+void fwg_frontEndReturningData(char* fileData,int length,int width,int height,bool hasAlpha);
 void fwg_frontEndReturningLocalFile(char *localfile, int iret);
 void process_x3z(resource_item_t *res);
 
@@ -42,10 +42,10 @@ bool do_file_readable(const char *filename);
 bool do_dir_exists(const char *dir);
 
 typedef struct openned_file {
-	const char *fileFileName;
+	char *fileFileName;
 	int fileDescriptor;
 	int fileDataSize;
-	unsigned char *fileData;
+	char *fileData;
 	int imageHeight;
 	int imageWidth;
 	bool imageAlpha;
@@ -79,7 +79,7 @@ openned_file_t* load_file(const char *filename);
 extern int inputFileType;
 extern int inputFileVersion[];
 
-int determineFileType(const unsigned char *buffer, const int len);
+int determineFileType(const char *buffer, const int len);
 
 
 /* borrowed from headers.h -- need a clean-up */

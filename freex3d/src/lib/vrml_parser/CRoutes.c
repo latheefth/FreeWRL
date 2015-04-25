@@ -531,7 +531,7 @@ void AddRemoveChildren (
 			newmal = MALLOC (void *, (po2)*sizeof(struct X3D_Node *));
 
 			/* copy the old stuff over */
-			if (oldlen > 0) memcpy (newmal,tn->p,oldlen*sizeof(void *));
+			if (newmal != NULL && oldlen > 0) memcpy (newmal,tn->p,oldlen*sizeof(void *));
 
 			/* set up the C structures for this new MFNode addition */
 			if(oldlen > 0) {
@@ -555,7 +555,7 @@ void AddRemoveChildren (
 			#ifdef CRVERBOSE
 			printf ("AddRemove, count %d of %d, node %p parent %p\n",counter, len,nodelist[counter],parent);
 			#endif
-			if (nodelist[counter] != NULL) {
+			if (tmpptr != NULL && nodelist[counter] != NULL) {
 				//add a new node to the children list
 				*tmpptr = nodelist[counter];
 				tmpptr ++;
@@ -712,7 +712,10 @@ void add_first(struct X3D_Node * node) {
 		//so we break realloc into more atomic steps (and reduce frequency of reallocs with pre-allocated size_ )
 		struct FirstStruct *old_ce, *ce;
 		ce = MALLOC(struct FirstStruct *, sizeof (struct FirstStruct) * p->size_ClockEvents * 2);
+		if (ce != NULL)
+		{
 		memcpy(ce, p->ClockEvents, sizeof (struct FirstStruct) * p->num_ClockEvents);
+		}
 		p->size_ClockEvents *= 2; //power-of-two resizing means less memory fragmentation for large counts
 		old_ce = p->ClockEvents;
 		p->ClockEvents = ce;
@@ -2427,7 +2430,7 @@ union anyVrml* get_anyVrml(struct X3D_Node* node, int offset, int *type, int *mo
 	return fromAny;
 }
 
-void cleanFieldIfManaged(int type,int mode,int isPublic, struct X3D_Node* parent, int offset)
+void cleanFieldIfManaged(int type,int mode,BOOL isPublic, struct X3D_Node* parent, int offset)
 {
 	//there should be a shallow_clean_field(type,toAny) that releases old mallocs 
 	//  in UniString,MF p*, unlinks and/or killNodes

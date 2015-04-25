@@ -57,6 +57,8 @@ typedef struct textureTableIndexStruct textureTableIndexStruct_s;
 /* Vertex Array to Vertex Buffer Object migration - used to have a passedInGenTex() 
    when we had (for instance) Cone textures - put this as part of the VBO. */
 
+textureTableIndexStruct_s *getTableIndex(int indx);
+
 struct textureVertexInfo {
     GLfloat *pre_canned_textureCoords;
 	GLint TC_size; 		/* glTexCoordPointer - size param */

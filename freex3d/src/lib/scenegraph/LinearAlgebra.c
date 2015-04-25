@@ -1116,7 +1116,19 @@ void rotate_v2v_axisAngled(double* axis, double* angle, double *orig, double *re
 {
     double cvl;
 	double dv[3], iv[3], cv[3];
-
+    
+    dv[0] = 0;
+    dv[1] = 0;
+    dv[2] = 0;
+    
+    iv[0] = 0;
+    iv[1] = 0;
+    iv[2] = 0;
+    
+    cv[0] = 0;
+    cv[1] = 0;
+    cv[2] = 0;
+    
 	/* step 1 get sin of angle between 2 vectors using cross product rule: ||u x v|| = ||u||*||v||*sin(theta) */
     vecnormald(dv,orig); /*normalizes vector to unit length U -> u^ (length 1) */
     vecnormald(iv,result);

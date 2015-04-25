@@ -149,7 +149,7 @@ int defaultOSC_handler(const char *path, const char *types, lo_arg **argv, int a
 					#if TRACK_OSC_MSG
 					printf(" %c:%s", types[i], (char *)argv[i]) ;
 					#endif
-					if (realnode->stringInp != NULL) {free(realnode->stringInp);}
+					if (realnode->stringInp != NULL) {FREE(realnode->stringInp);}
 					realnode->stringInp = newASCIIString((char *)argv[i]);
 					if (realnode->FIFOsize > 0) {
 						#if TRACK_OSC_MSG

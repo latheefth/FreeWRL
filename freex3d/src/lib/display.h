@@ -48,8 +48,8 @@ Functions:
 #endif
 
 #ifdef GL_ES_VERSION_2_0
-#define MAX_LIGHTS 5
-#define STR_MAX_LIGHTS "\n#define MAX_LIGHTS 5\n "
+#define MAX_LIGHTS 6
+#define STR_MAX_LIGHTS "\n#define MAX_LIGHTS 6\n "
 #define MAX_LIGHT_STACK 8 //making this larger than MAX_LIGHTS means we can visit all the local lights and use the last one on the stack/most local (or 2 if headlight off)
 #define HEADLIGHT_LIGHT (MAX_LIGHT_STACK-1)
 #else
@@ -67,6 +67,8 @@ Functions:
 #ifdef IPHONE
 #include <OpenGLES/ES2/gl.h>
 #include <OpenGLES/ES2/glext.h>
+#include <OpenGLES/ES3/gl.h>
+#include <OpenGLES/ES3/glext.h>
 #else
 
 #include <OpenGL/OpenGL.h>
@@ -88,7 +90,7 @@ GLEWContext * glewGetContext();
 #define ERROR 0
 #endif /* TARGET_WIN32 */
 
-#ifdef __linux__
+#if defined(__linux__) && !defined(_ANDROID)
 #  define GL_GLEXT_PROTOTYPES 1
 #  include <GL/gl.h>
 //JAS #  include <GL/glu.h>
@@ -103,9 +105,11 @@ GLEWContext * glewGetContext();
 	 include <GL/glx.h> */
 #endif
 
-#if defined (IPHONE) || defined (_ANDROID) || defined (QNX) || defined(ANGLEPROJECT)
+#if defined (_ANDROID) || defined (QNX) || defined(ANGLEPROJECT)
 	#include <GLES2/gl2.h>
 	#include <GLES2/gl2ext.h>
+//    #include <GLES3/gl3.h>
+//	#include <GLES3/gl3ext.h>
 #endif
 
 

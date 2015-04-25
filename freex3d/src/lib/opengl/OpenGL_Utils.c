@@ -91,6 +91,8 @@ struct shaderTableEntry {
 
 };
 
+int unload_broto(struct X3D_Proto* node);
+
 static void mesa_Ortho(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ, GLDOUBLE *m);
 static void getShaderCommonInterfaces (s_shader_capabilities_t *me);
 static void makeAndCompileShader(struct shaderTableEntry *,bool);
@@ -151,8 +153,56 @@ typedef struct pOpenGL_Utils{
 	int maxStackUsed;
 }* ppOpenGL_Utils;
 
-
-
+#ifdef DISABLER
+void fwl_glGenQueries(GLsizei n, GLuint* ids)
+{
+#if defined(IPHONE)
+    ttglobal tg = gglobal();
+    if (tg->display.rdr_caps.have_GL_VERSION_3_0)
+    {
+        glGenQueries(n, ids);
+    }
+    else
+    {
+        glGenQueriesEXT(n, ids);
+    }
+#else
+    glGenQueries(n, ids);
+#endif
+}
+void fwl_glDeleteQueries(GLsizei n, const GLuint* ids)
+{
+#if defined(IPHONE)
+    ttglobal tg = gglobal();
+    if (tg->display.rdr_caps.have_GL_VERSION_3_0)
+    {
+        glDeleteQueries(n, ids);
+    }
+    else
+    {
+        glDeleteQueriesEXT(n, ids);
+    }
+#else
+    glDeleteQueries(n, ids);
+#endif
+}
+void fwl_glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint* params)
+{
+#if defined(IPHONE)
+    ttglobal tg = gglobal();
+    if (tg->display.rdr_caps.have_GL_VERSION_3_0)
+    {
+        glGetQueryObjectuiv(id, pname, params);
+    }
+    else
+    {
+        glGetQueryObjectuivEXT(id, pname, params);
+    }
+#else
+    glGetQueryObjectuiv(id, pname, params);
+#endif
+}
+#endif
 
 void *OpenGL_Utils_constructor(){
 	void *v = MALLOCV(sizeof(struct pOpenGL_Utils));
@@ -175,9 +225,9 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
 		ppOpenGL_Utils p = (ppOpenGL_Utils)t->prv;
 		p->linearNodeTable = NULL;
 		p->potentialHoleCount = 0;
-		p->cc_red = 0.0f;
-		p->cc_green = 0.0f;
-		p->cc_blue = 0.0f;
+		p->cc_red = 1.0f;
+		p->cc_green = 1.0f;
+		p->cc_blue = 1.0f;
 		p->cc_alpha = 1.0f;
 		//p->memtablelock = PTHREAD_MUTEX_INITIALIZER;
 		pthread_mutex_init(&(p->memtablelock), NULL);
@@ -531,16 +581,16 @@ void fwl_set_FillPropStatus (struct Vector **shapeNodes, int whichEntry, int yes
 			ap = createNewX3DNode(NODE_Appearance);
 			AddRemoveSFNodeFieldChild(node,
 				offsetPointer_deref(struct X3D_Node **,node,offsetof (struct X3D_Shape, appearance)),
-				ap,0,__FILE__,__LINE__);
+				X3D_NODE(ap),0,__FILE__,__LINE__);
 
 			mat = createNewX3DNode(NODE_Material);
-			AddRemoveSFNodeFieldChild(ap,
+			AddRemoveSFNodeFieldChild(X3D_NODE(ap),
 				offsetPointer_deref(struct X3D_Node **,ap,offsetof (struct X3D_Appearance, material)),
-				mat,0,__FILE__,__LINE__);
+				X3D_NODE(mat),0,__FILE__,__LINE__);
 
 		}
 
-		ap = X3D_SHAPE(node)->appearance;
+		ap = X3D_APPEARANCE(X3D_SHAPE(node)->appearance);
 
 		// create the node, then "set" it in place. If a node previously existed in the
 		// fillProperties field, then it gets removed by AddRemoveChild
@@ -548,7 +598,7 @@ void fwl_set_FillPropStatus (struct Vector **shapeNodes, int whichEntry, int yes
 		if (ap->fillProperties == NULL) {
 			//ConsoleMessage ("fwl_set_FillPropStatus, creating a FillProperties");
 			fp = X3D_FILLPROPERTIES(createNewX3DNode(NODE_FillProperties));
-			AddRemoveSFNodeFieldChild(ap,
+			AddRemoveSFNodeFieldChild(X3D_NODE(ap),
 				offsetPointer_deref(struct X3D_Node **,X3D_NODE(ap),offsetof (struct X3D_Appearance, fillProperties)),
 				X3D_NODE(fp),0,__FILE__,__LINE__);
 		} else {
@@ -568,7 +618,7 @@ void fwl_set_FillPropStatus (struct Vector **shapeNodes, int whichEntry, int yes
 			offsetPointer_deref(struct X3D_Node **,X3D_NODE(X3D_SHAPE(node)->appearance),offsetof (struct X3D_Appearance, fillProperties)),
 			X3D_NODE(fp),2,__FILE__,__LINE__);
 		*/
-		ap = X3D_SHAPE(node)->appearance;
+		ap = X3D_APPEARANCE(X3D_SHAPE(node)->appearance);
 		if (ap != NULL) {
 			if (ap->fillProperties != NULL) {
 				struct X3D_FillProperties *fp = X3D_FILLPROPERTIES(ap->fillProperties);
@@ -811,15 +861,15 @@ int fwl_set_MaterialExisting(struct Vector **shapeNodes, int whichEntry) {
 		ap = createNewX3DNode(NODE_Appearance);
 		AddRemoveSFNodeFieldChild(node,
 			offsetPointer_deref(struct X3D_Node **,node,offsetof (struct X3D_Shape, appearance)),
-			ap,0,__FILE__,__LINE__);
+			X3D_NODE(ap),0,__FILE__,__LINE__);
 
 		mat = createNewX3DNode(NODE_TwoSidedMaterial);
-		AddRemoveSFNodeFieldChild(ap,
+		AddRemoveSFNodeFieldChild(X3D_NODE(ap),
 			offsetPointer_deref(struct X3D_Node **,ap,offsetof (struct X3D_Appearance, material)),
-			mat,0,__FILE__,__LINE__);
+			X3D_NODE(mat),0,__FILE__,__LINE__);
 	}
 
-	ap = X3D_SHAPE(node)->appearance;
+	ap = X3D_APPEARANCE(X3D_SHAPE(node)->appearance);
 	//ConsoleMessage ("so, at this point in time, we have an appearance, type %s",stringNodeType(ap->_nodeType));
 
 	// create the node, then "set" it in place. If a node previously existed in the
@@ -827,10 +877,10 @@ int fwl_set_MaterialExisting(struct Vector **shapeNodes, int whichEntry) {
 
 	if (ap->material == NULL) {
 		//ConsoleMessage ("fwl_set_MaterialPropStatus, creating a MaterialProperties");
-		fp = X3D_TWOSIDEDMATERIAL(createNewX3DNode(NODE_TwoSidedMaterial));
-		AddRemoveSFNodeFieldChild(ap,
+		tsm = X3D_TWOSIDEDMATERIAL(createNewX3DNode(NODE_TwoSidedMaterial));
+		AddRemoveSFNodeFieldChild(X3D_NODE(ap),
 			offsetPointer_deref(struct X3D_Node **,X3D_NODE(ap),offsetof (struct X3D_Appearance, material)),
-			X3D_NODE(fp),0,__FILE__,__LINE__);
+			X3D_NODE(tsm),0,__FILE__,__LINE__);
 	}
 
 	tsm = X3D_TWOSIDEDMATERIAL(ap->material);
@@ -838,7 +888,7 @@ int fwl_set_MaterialExisting(struct Vector **shapeNodes, int whichEntry) {
 
 	// do we have to change a Material to TwoSidedMaterial??
 	if (tsm->_nodeType != NODE_TwoSidedMaterial) {
-		struct X3D_Material *mat = tsm;
+		struct X3D_Material *mat = X3D_MATERIAL(tsm);
 		struct X3D_TwoSidedMaterial *ntsm = createNewX3DNode(NODE_TwoSidedMaterial);
 		if (mat->_nodeType == NODE_Material) {
 			//copy over the fields
@@ -860,9 +910,9 @@ int fwl_set_MaterialExisting(struct Vector **shapeNodes, int whichEntry) {
 		}
 
 		// now, make the child our TwoSidedMaterial node
-		AddRemoveSFNodeFieldChild(ap,
+		AddRemoveSFNodeFieldChild(X3D_NODE(ap),
 			offsetPointer_deref(struct X3D_Node **,ap,offsetof (struct X3D_Appearance, material)),
-			ntsm,0,__FILE__,__LINE__);
+						X3D_NODE(ntsm),0,__FILE__,__LINE__);
 	} else {
 		// We DO have a TwoSidedMaterial...
 		twoSided = X3D_TWOSIDEDMATERIAL(tsm)->separateBackColor;
@@ -1693,6 +1743,7 @@ if (backFacing) { \n \
   return clamp(vec4(vec3(ambient+diffuse+specular+emissive),myAlph), 0.0, 1.0);\n\
 }\n\
 ";
+#ifdef USING_SHADER_LIGHT_ARRAY_METHOD
 //============= USING_SHADER_LIGHT_ARRAY_METHOD FOR LIGHTS==================
 //used for angleproject winRT d3d11 (which can't/doesn't convert GLSL struct[] array to HLSL properly - just affects lights)
 //will break custom shader node vertex/pixel shaders that try to use gl_LightSource[] ie teapot-Toon.wrl
@@ -1840,6 +1891,8 @@ if (backFacing) { \n \
   return clamp(vec4(vec3(ambient+diffuse+specular+emissive),myAlph), 0.0, 1.0);\n\
 }\n\
 ";
+
+#endif
 
 /* FRAGMENT bits */
 //#if defined (GL_HIGH_FLOAT) &&  defined(GL_MEDIUM_FLOAT)
@@ -2641,7 +2694,7 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 			char uniformName[100];
 			me->haveLightInShader = false;
 #ifdef USING_SHADER_LIGHT_ARRAY_METHOD
-
+			char* sndx;
 			for (i = 0; i<MAX_LIGHTS; i++) {
 				char* sndx;
 				/* go through and modify the array for each variable */
@@ -2872,7 +2925,7 @@ static void handle_GeoLODRange(struct X3D_GeoLOD *node) {
 		#endif
 
 		/* initialize the "children" field, if required */
-		if (node->children.p == NULL) node->children.p=MALLOC(void *,sizeof(void *) * 4);
+		if (node->children.p == NULL) node->children.p=MALLOC(struct X3D_Node **,sizeof(struct X3D_Node *) * 4);
 
 		if (node->__inRange == TRUE) { //dug9 FALSE) {
 			#ifdef VERBOSE
@@ -3680,7 +3733,7 @@ void kill_rendering() {
    ones, really, it's just replace the rootNode children, as WE DO NOT KNOW
    what the user has programmed, and what nodes are (re) used in the Scene Graph */
 
-
+void killNodes();
 
 void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	int i;
@@ -3729,7 +3782,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	rootnode = rootNode();
     if (rootnode != NULL) {
 		if(usingBrotos()>1 && rootnode->_nodeType == NODE_Proto){
-			unload_broto(rootnode);
+			unload_broto(X3D_PROTO(rootnode));
 		}else{
 			struct Multi_Node *children, *sortedChildren;
 
@@ -4141,7 +4194,9 @@ void zeroVisibilityFlag(void) {
 				node->_renderFlags = node->_renderFlags | VF_hasVisibleChildren;
 			}
 		}
-	} else {
+	}
+    else if (p->linearNodeTable)
+    {
 		/* we do... lets zero the hasVisibleChildren flag */
 		for (i=0; i<vectorSize(p->linearNodeTable); i++){
 			node = vector_get(struct X3D_Node *,p->linearNodeTable,i);
@@ -4355,7 +4410,11 @@ void printStatsNodes(){
 
 	ConsoleMessage("%25s %d\n","Nodes count", p->linearNodeTable->n);
 }
-void killNodes(){
+
+int unRegisterX3DAnyNode(struct X3D_Node *node);
+
+void killNodes()
+{
 	int i;
 	struct X3D_Node* node;
 	ppOpenGL_Utils p;
@@ -4368,6 +4427,7 @@ void killNodes(){
 			if (node->referenceCount <= 0) {
 				//ConsoleMessage ("%d ref %d\n",i,node->referenceCount);
 				//killNode(i);
+				unRegisterX3DAnyNode(node);
 				FREE_IF_NZ(node);
 				vector_set(struct X3D_Node *,p->linearNodeTable,i,NULL);
 			}
@@ -5140,10 +5200,16 @@ void markForDispose(struct X3D_Node *node, int recursive){
 
 //#define WRLMODE(val) (((val) % 4)+4) //jan 2013 codegen PROTOKEYWORDS[] was ordered with x3d synonyms first, wrl last
 //#define X3DMODE(val)  ((val) % 4)
-BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackData)
+#ifndef DISABLER
+BOOL walk_fields(struct X3D_Node* node, BOOL (*callbackFunc)(), void* callbackData)
+#else
+BOOL walk_fields(struct X3D_Node* node, BOOL (*callbackFunc)(void *callbackData,struct X3D_Node* node,int jfield,union anyVrml *fieldPtr,
+                                            const char *fieldName, indexT mode, indexT type,int isource,BOOL publicfield), void* callbackData)
+#endif
 {
 	//field isource: 0=builtin 1=script user field 2=shader_program user field 3=Proto/Broto user field 4=group __protoDef
-	int type,mode,source,publicfield;
+	int type,mode,source;
+	BOOL publicfield;
 	int *fieldOffsetsPtr;
 	int jfield;
 	union anyVrml *fieldPtr;
@@ -5313,9 +5379,9 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 		and whether or not it's routed anywhere, the script is not put into the nodes' parent list)
 	HTH
 */
-int isManagedField(int mode, int type, int isPublic)
+BOOL isManagedField(int mode, int type, BOOL isPublic)
 {
-	int isManaged = (type == FIELDTYPE_SFNode || type == FIELDTYPE_MFNode);
+	BOOL isManaged = (type == FIELDTYPE_SFNode || type == FIELDTYPE_MFNode);
 	isManaged = isManaged && (mode == PKW_initializeOnly || mode == PKW_inputOutput);
 	isManaged = isManaged && isPublic;
 	return isManaged;
@@ -5334,7 +5400,7 @@ void indentf(int indent){
 
 void print_node_links0(struct X3D_Node* sfn, int *level);
 BOOL cbPrintLinks(void *callbackData,struct X3D_Node* node,int jfield,
-	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,int publicfield)
+	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,BOOL publicfield)
 {
 	int *level = (int*)callbackData;
 	(*level)++;
@@ -5407,7 +5473,7 @@ void print_node_links(struct X3D_Node* sfn)
 
 
 BOOL cbUnlinkChild(void *callbackData,struct X3D_Node* node,int jfield,
-	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,int publicfield)
+	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,BOOL publicfield)
 {
 	if(isManagedField(mode,type,publicfield)){
 		if(type == FIELDTYPE_SFNode){
@@ -5423,7 +5489,7 @@ BOOL cbUnlinkChild(void *callbackData,struct X3D_Node* node,int jfield,
 	return FALSE; //false to keep walking fields, true to break out
 }
 BOOL cbUnlinkParent(void *callbackData,struct X3D_Node* parent,int jfield,
-	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,int publicfield)
+	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,BOOL publicfield)
 {
 	struct X3D_Node* node = X3D_NODE(callbackData);
 	if(isManagedField(mode,type,publicfield)){
@@ -5477,7 +5543,7 @@ void freeMFString(struct Multi_String **ms);
 //
 //}
 BOOL cbFreeMallocedBuiltinField(void *callbackData,struct X3D_Node* node,int jfield,
-	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,int publicfield)
+	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,BOOL publicfield)
 {
 	//for builtins, the field is malloced as part of the node size, so we don't free the field itself
 	// .. just if its a complex field type holding a malloced pointer
@@ -5513,7 +5579,7 @@ BOOL cbFreeMallocedBuiltinField(void *callbackData,struct X3D_Node* node,int jfi
 	return FALSE; //false to keep walking fields, true to break out
 }
 BOOL cbFreeMallocedUserField(void *callbackData,struct X3D_Node* node,int jfield,
-	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,int publicfield)
+	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,BOOL publicfield)
 {
 	//for userFields (ie on Script, Proto), the field is malloced as part of a bigger struct
 	// .. so we free any pointers contained in the field like MF.p or SFString.ptr
@@ -5628,7 +5694,7 @@ static void killNode_hide_obsolete (int index) {
 	struct Multi_Time* MTime;
 	struct Multi_String* MString;
 	struct Multi_Vec2f* MVec2f;
-	uintptr_t * VPtr;
+	intptr_t * VPtr;
 	struct Uni_String *MyS;
  	int i;
 
@@ -5820,12 +5886,12 @@ static void killNode_hide_obsolete (int index) {
 				FREE_IF_NZ(MVec2f->p);
 				break;
 			case FIELDTYPE_FreeWRLPTR:
-				VPtr = (uintptr_t *) fieldPtr;
-				VPtr = (uintptr_t *) (*VPtr);
+				VPtr = (intptr_t *) fieldPtr;
+				VPtr = (intptr_t *) (*VPtr);
 				FREE_IF_NZ(VPtr);
 				break;
 			case FIELDTYPE_SFString:
-				VPtr = (uintptr_t *) fieldPtr;
+				VPtr = (intptr_t *) fieldPtr;
 				MyS = (struct Uni_String *) *VPtr;
 				MyS->len = 0;
 				FREE_IF_NZ(MyS->strptr);

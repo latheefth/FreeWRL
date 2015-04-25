@@ -2257,10 +2257,10 @@ void proximity_GeoProximitySensor (struct X3D_GeoProximitySensor *node) {
 	struct point_XYZ dr2r3; 
 	struct point_XYZ nor1,nor2; 
 	struct point_XYZ ins; 
-	static const struct point_XYZ yvec = {0,0.05,0}; 
-	static const struct point_XYZ zvec = {0,0,-0.05}; 
-	static const struct point_XYZ zpvec = {0,0,0.05}; 
-	static const struct point_XYZ orig = {0,0,0}; 
+	static struct point_XYZ yvec = {0,0.05,0}; 
+	static struct point_XYZ zvec = {0,0,-0.05}; 
+	static struct point_XYZ zpvec = {0,0,0.05}; 
+	static struct point_XYZ orig = {0,0,0};
 	struct point_XYZ t_zvec, t_yvec, t_orig, t_center; 
 	GLDOUBLE modelMatrix[16]; 
 	GLDOUBLE projMatrix[16]; 

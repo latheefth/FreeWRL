@@ -146,10 +146,10 @@ int fwlio_RxTx_control(int channel, int action) {
 		}
 
 		if (service_connected[channel] && channel == CHANNEL_EAI) {
-			char *tmpstr = malloc(10);
+			char *tmpstr = MALLOC(void *, 10);
 			strcpy(tmpstr,"QUIT\n\n\n");
 			fwlio_RxTx_sendbuffer(__FILE__,__LINE__,channel, tmpstr); //"QUIT\n\n\n");
-			free(tmpstr);
+			FREE(tmpstr);
 		}
 		service_status[channel]=RxTx_STOP;
 	}
@@ -193,7 +193,7 @@ int fwlio_RxTx_control(int channel, int action) {
 				service_status[channel] = RxTx_REFRESH;
 			}
 		}
-		if (!service_connected[channel] > 1) {
+		if (!(service_connected[channel] > 1)) {
 			if (service_verbose[channel]) { 
 				printf ("Still no client connection on channel %d\n",channel);
 			}

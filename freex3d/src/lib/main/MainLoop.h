@@ -37,4 +37,6 @@ void finalizeRenderSceneUpdateScene(void);
 
 void fwl_replaceWorldNeededRes(resource_item_t *multiResWithParent);
 
+void fwl_gotoCurrentViewPoint();
+
 #endif /* __FREEWRL_MAINLOOP_MAIN_H__ */

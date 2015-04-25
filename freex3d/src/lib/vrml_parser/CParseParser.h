@@ -149,6 +149,7 @@ int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *ty
 int getFieldFromNodeAndIndex(struct X3D_Node* node, int ifield, const char **fieldname, int *type, int *kind, union anyVrml **value);
 void deep_copy_broto_body2(struct X3D_Proto** proto, struct X3D_Proto** dest);
 struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep);
+struct X3D_Proto *hasContext(struct X3D_Node* node);
 struct brotoDefpair{
 	struct X3D_Node* node;
 	char* name;

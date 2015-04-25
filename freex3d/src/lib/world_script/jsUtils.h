@@ -71,10 +71,10 @@ int JS_DefineSFNodeSpecificProperties (JSContext *context, JSObject *object, str
 
 #ifdef JAVASCRIPTVERBOSE
 # define ACTUALRUNSCRIPT(a,b,c) ActualrunScript(a,b,c,__FILE__,__LINE__)
-/* now in JScript.h -- int ActualrunScript(uintptr_t num, char *script, jsval *rval, char *fn, int line); */
+/* now in JScript.h -- int ActualrunScript(intptr_t num, char *script, jsval *rval, char *fn, int line); */
 #else
 # define ACTUALRUNSCRIPT(a,b,c) ActualrunScript(a,b,c)
-/* now in JScript.h -- int ActualrunScript(uintptr_t num, char *script, jsval *rval); */
+/* now in JScript.h -- int ActualrunScript(intptr_t num, char *script, jsval *rval); */
 #endif
 
 void

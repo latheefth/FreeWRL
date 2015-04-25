@@ -530,9 +530,9 @@ void Elev_Tri (
 	}
 
 
-	this_Elev->cindex[vertex_ind] = A;
-	this_Elev->cindex[vertex_ind+1] = D;
-	this_Elev->cindex[vertex_ind+2] = E;
+	this_Elev->cindex[vertex_ind] = (GLuint)A;
+	this_Elev->cindex[vertex_ind+1] = (GLuint)D;
+	this_Elev->cindex[vertex_ind+2] = (GLuint)E;
 
 	/*
 	printf ("Elev_Tri, vertices for vertex_ind %d are:",vertex_ind);
@@ -611,9 +611,9 @@ void Extru_tex(
 	if (!(ccw)) { j = B; B = C; C = j; }
 
 	/* ok, we have to do textures; lets do the tcindexes and record min/max */
-	tcindex[vertex_ind] = tci_ct+A;
-	tcindex[vertex_ind+1] =tci_ct+B;
-	tcindex[vertex_ind+2] =tci_ct+C;
+	tcindex[vertex_ind] = (GLuint)(tci_ct+A);
+	tcindex[vertex_ind+1] =(GLuint)(tci_ct+B);
+	tcindex[vertex_ind+2] =(GLuint)(tci_ct+C);
 }
 
 

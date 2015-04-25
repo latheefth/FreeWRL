@@ -78,8 +78,8 @@ static GLfloat colorClear[4]			= {0.75f,0.83f,0.74f,1.0f}; //clamshell
 static GLfloat colorButtonIcon[4]		= {.0f, 0.44f, 0.52f, 1.0f};  //dark aqua/indigo
 static GLfloat colorStatusbarText[4]	= {.32f, 0.45f, 0.43f, 1.0f};  //dark clamshell
 static GLfloat colorMessageText[4]		= {.06f, 0.69f, 0.8f, 1.0f}; //aqua
-which is often black
-#elif NEON 
+//which is often black
+#elif NEON
 static GLfloat colorClear[4]			= {0.24f,0.27f,0.34f,1.0f};  //steely grey
 #define LIME {.8f,1.0f,0.0f,1.0f}
 #define YELLOW {1.0f,1.0f,.2f,1.0f}
@@ -156,12 +156,12 @@ GLuint esLoadShader ( GLenum type, const char *shaderSrc )
       
       if ( infoLen > 1 )
       {
-         char* infoLog = malloc (sizeof(char) * infoLen );
+         char* infoLog = MALLOC(void *, sizeof(char) * infoLen );
 
          glGetShaderInfoLog ( shader, infoLen, NULL, infoLog );
          printf ( "Error compiling shader:\n%s\n", infoLog );            
          
-         free ( infoLog );
+         FREE( infoLog );
       }
 
       glDeleteShader ( shader );
@@ -214,12 +214,12 @@ GLuint esLoadProgram ( const char *vertShaderSrc, const char *fragShaderSrc )
       
       if ( infoLen > 1 )
       {
-         char* infoLog = malloc (sizeof(char) * infoLen );
+         char* infoLog = MALLOC(void *, sizeof(char) * infoLen );
 
          glGetProgramInfoLog ( programObject, infoLen, NULL, infoLog );
          printf ( "Error linking program:\n%s\n", infoLog );            
          
-         free ( infoLog );
+         FREE( infoLog );
       }
 
       glDeleteProgram ( programObject );
@@ -534,7 +534,7 @@ void statusbar_init(struct tstatusbar *t){
 		p->pfont.cheight = 0;
 		p->pfont.cwidth = 0;
 		p->pfont.lumalpha = NULL;
-		p->pmenu.items = (pmenuItem_t *)malloc(25 * sizeof(pmenuItem_t));
+		p->pmenu.items = MALLOC(pmenuItem_t *, 25 * sizeof(pmenuItem_t));
 		for(i=0;i<25;i++) p->pmenu.items[i].butStatus = 0;
 		p->pmenu.bitems = (barItem *)malloc(25 * sizeof(barItem));
 		bzero(p->pmenu.bitems,25 * sizeof(barItem));
@@ -598,7 +598,7 @@ void fwMakeRasterFonts()
 	icolwidth = 8;
 	isize = iheight * iwidth * 2; //(p->pfont.cheight *16) * (p->pfont.cwidth * 16) * 2;
 
-	p->pfont.lumalpha = (GLubyte *)malloc(isize);
+	p->pfont.lumalpha = MALLOC(GLubyte *, isize);
 	//memset(p->pfont.lumalpha,0,isize);
 	memset(p->pfont.lumalpha,0,isize);
 	white[0] = white[1] = (GLubyte)255;
@@ -713,9 +713,9 @@ void printString2(GLfloat sx, GLfloat sy, char *s)
 	sizeofvert = len * sizeof(GLfloat) * 4 * 3;
 	sizeoftex = len * sizeof(GLfloat) * 4 * 2;
 	sizeofind = len * sizeof(GLshort) * 2 * 3;
-	vert = malloc(sizeofvert); //2 new vertex, 3D
-	tex  = malloc(sizeoftex); //4 new texture coords, 2D
-	ind  = malloc(sizeofind); //2 triangles, 3 points each
+	vert = MALLOC(GLfloat *, sizeofvert); //2 new vertex, 3D
+	tex  = MALLOC(GLfloat *,sizeoftex); //4 new texture coords, 2D
+	ind  = MALLOC(GLushort *,sizeofind); //2 triangles, 3 points each
 	x=y=z = 0.0f;
 	x = sx;
 	y = sy;
@@ -775,9 +775,9 @@ void printString2(GLfloat sx, GLfloat sy, char *s)
 	// Set the base map sampler to texture unit to 0
 	glUniform1i ( p->textureLoc, 0 );
 	glDrawElements ( GL_TRIANGLES, i*3*2, GL_UNSIGNED_SHORT, ind );
-	free(vert);
-	free(tex);
-	free(ind);
+	FREE(vert);
+	FREE(tex);
+	FREE(ind);
 
 
 }
@@ -846,7 +846,7 @@ void initOptionsVal()
 
 	for(i=0;i<lenOptions;i++)
 	{
-		p->optionsVal[i] = (char*)malloc(9);
+		p->optionsVal[i] = MALLOC(char*, 9);
 		for(j=0;j<9;j++) p->optionsVal[i][j] = ' ';
 		p->optionsVal[i][8] = '\0';
 	}
@@ -1240,7 +1240,7 @@ void hudSetConsoleMessage(char *buffer)
 	if(!p->conlist)
 	{
 		char * line;
-		line = malloc(2);
+		line = MALLOC(char *, 2);
 		line[0] = '\0';
 		p->conlist = ml_new(line);
 		p->concount = 1;
@@ -1254,7 +1254,7 @@ void hudSetConsoleMessage(char *buffer)
 	if( p->concount > 50 ) // > MAXMESSAGES number of scrolling lines
 	{
 		//printf("-%s\n", (char*)p->conlist->elem);
-		free((char*)p->conlist->elem); //free a previous buffer now scrolled up off the screen
+		FREE((char*)p->conlist->elem); //free a previous buffer now scrolled up off the screen
 		p->conlist = ml_delete_self(p->conlist, p->conlist); /*delete from top*/
 		p->concount--;
 	}
@@ -1572,11 +1572,11 @@ void initButtons()
 		buttonAtlasSizeCol = 8; // 8x4 grid of buttons
 		buttonAtlasSizeRow = 4;
 		buttonAtlasSquared = buttonAtlasSizeCol*buttonAtlasSizeRow;
-		p->pmenu.lumalpha = (GLubyte*)malloc(32*32*2 *buttonAtlasSquared); //4x4 grid of icons each 32x32x2
+		p->pmenu.lumalpha = MALLOC(GLubyte*, 32*32*2 *buttonAtlasSquared); //4x4 grid of icons each 32x32x2
 		memset(p->pmenu.lumalpha,0,32*32*2 *buttonAtlasSquared);
-		p->pmenu.vert= (GLfloat*)malloc(3*4*buttonAtlasSquared*sizeof(GLfloat));
-		//p->pmenu.tex = (GLfloat*)malloc(2*4*buttonAtlasSquared*sizeof(GLfloat));
-		p->pmenu.ind = (GLushort*)malloc(3*2*buttonAtlasSquared*sizeof(GLushort));
+		p->pmenu.vert= MALLOC(GLfloat*, 3*4*buttonAtlasSquared*sizeof(GLfloat));
+//		p->pmenu.tex = MALLOC(GLfloat*, 2*4*buttonAtlasSquared*sizeof(GLfloat));
+		p->pmenu.ind = MALLOC(GLushort*, 3*2*buttonAtlasSquared*sizeof(GLushort));
 		p->pmenu.yoffset = 0.0f;
 		if(p->pmenu.top) p->pmenu.yoffset = (float)(p->screenHeight - p->buttonSize); //32.0f;
 		for(i=0;i<p->pmenu.nitems;i++)
@@ -1616,7 +1616,7 @@ void initButtons()
 
 			p->pmenu.items[i].height = 32;
 			p->pmenu.items[i].width = 32;
-			p->pmenu.items[i].lumalpha = (GLubyte*)malloc(32 * 32 * 2);
+			p->pmenu.items[i].lumalpha = MALLOC(GLubyte*, 32 * 32 * 2);
 			for(j=0;j<32;j++) //pixel row within image
 			{
 				for(k=0;k<32;k++) //pixel column within image
@@ -2096,7 +2096,7 @@ int handleButtonRelease(int mouseX, int mouseY)
 						if(fname)
 						{
 							fwl_replaceWorldNeeded(fname);
-							free(fname);
+							FREE(fname);
 						}
 					}
 					#endif
@@ -2114,7 +2114,7 @@ int handleButtonRelease(int mouseX, int mouseY)
 						if(fname)
 						{
 							fwl_replaceWorldNeeded(fname);
-							free(fname);
+							FREE(fname);
 						}
 					}
 					#endif

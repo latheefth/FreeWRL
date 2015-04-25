@@ -69,7 +69,7 @@ typedef struct pstatusbar{
 }* ppstatusbar;
 
 void *statusbar_constructor(){
-	void *v = malloc(sizeof(struct pstatusbar));
+	void *v = MALLOC(struct pstatusbar *, sizeof(struct pstatusbar));
 	memset(v,0,sizeof(struct pstatusbar));
 	return v;
 }

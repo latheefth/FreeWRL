@@ -602,7 +602,7 @@ static void deletePointerHash(struct PointerHash* me)
 /* Query the hash */
 static struct X3D_Node* pointerHash_get(struct PointerHash* me, struct X3D_Node* o)
 {
- size_t pos=((unsigned long)o)%POINTER_HASH_SIZE;
+ size_t pos=((uintptr_t)o)%POINTER_HASH_SIZE;
  size_t i;
 
  if(!me->data[pos])
@@ -623,7 +623,7 @@ static struct X3D_Node* pointerHash_get(struct PointerHash* me, struct X3D_Node*
 static void pointerHash_add(struct PointerHash* me,
  struct X3D_Node* o, struct X3D_Node* c)
 {
- size_t pos=((unsigned long)o)%POINTER_HASH_SIZE;
+ size_t pos=((uintptr_t)o)%POINTER_HASH_SIZE;
  struct PointerHashEntry entry;
 
  ASSERT(!pointerHash_get(me, o));

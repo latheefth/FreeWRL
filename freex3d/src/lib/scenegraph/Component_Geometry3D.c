@@ -1078,8 +1078,8 @@ static void collisionSphere_init(struct X3D_Sphere *node)
 	*/
 
 	collisionSphere.npts = SPHDIV*(SPHDIV+1);
-	collisionSphere.pts = malloc(collisionSphere.npts * sizeof(struct point_XYZ));
-	collisionSphere.tpts = malloc(collisionSphere.npts * sizeof(struct point_XYZ));
+	collisionSphere.pts = MALLOC(void *, collisionSphere.npts * sizeof(struct point_XYZ));
+	collisionSphere.tpts = MALLOC(void *, collisionSphere.npts * sizeof(struct point_XYZ));
 	/* undo radius field on node so radius == 1 (generic, for all spheres, scale back later) */
 	radinverse = 1.0;
 	if( !APPROX(node->radius,0.0) ) radinverse = 1.0/node->radius;
@@ -1092,7 +1092,7 @@ static void collisionSphere_init(struct X3D_Sphere *node)
 
 
 	collisionSphere.ntris = SPHDIV * SPHDIV;
-	collisionSphere.tris = malloc(collisionSphere.ntris * sizeof(ctri));
+	collisionSphere.tris = MALLOC(void *, collisionSphere.ntris * sizeof(ctri));
 	collisionSphere.nquads = 0;
 	count = 0;
 	for(i = 0; i < SPHDIV/2; i ++)  
@@ -1459,11 +1459,11 @@ static void collisionCone_init(struct X3D_Cone *node)
 		(there are sidepoints too, but duplicate the points in botpoints) 
 	*/
 	collisionCone.npts = CONEDIV+2;
-	collisionCone.pts = malloc(collisionCone.npts * sizeof(struct point_XYZ));
-	collisionCone.tpts = malloc(collisionCone.npts * sizeof(struct point_XYZ));
+	collisionCone.pts = MALLOC(void *, collisionCone.npts * sizeof(struct point_XYZ));
+	collisionCone.tpts = MALLOC(void *, collisionCone.npts * sizeof(struct point_XYZ));
 
 	collisionCone.ntris = CONEDIV *2;
-	collisionCone.tris = malloc(collisionCone.ntris * sizeof(ctri));
+	collisionCone.tris = MALLOC(void *, collisionCone.ntris * sizeof(ctri));
 	count = 0;
 	h = (node->height); ///2;
 	r = node->bottomRadius;
@@ -1724,13 +1724,13 @@ static void collisionCylinder_init(struct X3D_Cylinder *node)
 			pt[CYLDIV*2+3] - centre of bottom
 	*/
 	collisionCylinder.npts = CYLDIV*2+2+2;
-	collisionCylinder.pts = malloc(collisionCylinder.npts * sizeof(struct point_XYZ));
-	collisionCylinder.tpts = malloc(collisionCylinder.npts * sizeof(struct point_XYZ));
+	collisionCylinder.pts = MALLOC(void *, collisionCylinder.npts * sizeof(struct point_XYZ));
+	collisionCylinder.tpts = MALLOC(void *, collisionCylinder.npts * sizeof(struct point_XYZ));
 
 	collisionCylinder.ntris = CYLDIV *2;
-	collisionCylinder.tris = malloc(collisionCylinder.ntris * sizeof(ctri));
+	collisionCylinder.tris = MALLOC(void *, collisionCylinder.ntris * sizeof(ctri));
 	collisionCylinder.nquads = CYLDIV;
-	collisionCylinder.quads = malloc(collisionCylinder.nquads * sizeof(cquad));
+	collisionCylinder.quads = MALLOC(void *, collisionCylinder.nquads * sizeof(cquad));
 
 	tcount = 0;
 	qcount = 0;
