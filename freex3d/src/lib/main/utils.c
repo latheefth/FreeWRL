@@ -522,7 +522,14 @@ void scanMallocTableOnQuit()
 			//printf ("unfreed memory %x created at %s:%d \n",mcheck[mcount], mplace[mcount],mlineno[mcount]);
 			iloc = -1;
 			for(j=0;j<nlocs;j++){
-				if(!strcmp(mplace[mcount],mlocs[j].fname) && (mlineno[mcount] == mlocs[j].line) ){
+				char *file;
+				int line;
+				file = mplace[mcount];
+				line = mlineno[mcount];
+				if(!file)
+					printf("line %d",line);
+				else
+				if(!strcmp(file,mlocs[j].fname) && (mlineno[mcount] == mlocs[j].line) ){
 					mlocs[j].count ++;
 					mlocs[j].size += msize[mcount];
 					iloc = j;
@@ -574,6 +581,8 @@ void *freewrlMalloc(int line, char *file, size_t sz, int zeroData)
 		outOfMemory (myline);
     }
     if(_noisy)printf ("%p malloc %d at %s:%d\n",rv,sz,file,line); 
+	if(!file)
+		printf("");
     RESERVETABLE(rv,file,line,sz);
 
     if (zeroData) bzero (rv, sz);
@@ -595,6 +604,8 @@ void *freewrlRealloc (int line, char *file, void *ptr, size_t size)
     }
     
     /* printf ("%x malloc (from realloc) %d at %s:%d\n",rv,size,file,line); */
+	if(!file)
+		printf("");
     FREETABLE(ptr,file,line);
     RESERVETABLE(rv,file,line,size);
 	
@@ -614,7 +625,8 @@ void *freewrlStrdup (int line, char *file, char *str)
 		outOfMemory (myline);
     }
 	if(_noisy) printf ("freewrlStrdup, before reservetable\n");
-
+	if(!file)
+		printf("");
     RESERVETABLE(rv,file,line,strlen(str)+1);
     return rv;
 }

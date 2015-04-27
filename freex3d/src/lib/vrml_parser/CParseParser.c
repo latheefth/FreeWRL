@@ -3366,8 +3366,12 @@ void cParseErrorCurID(struct VRMLParser *me, char *str) {
 	char fw_outline[OUTLINELEN];
 	ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
 
-	if (strlen(str) > FROMSRC) str[FROMSRC] = '\0';
-	strcpy(fw_outline,str);
+	if (strlen(str) > FROMSRC) { //str[FROMSRC] = '\0';
+		strncpy(fw_outline,str,FROMSRC);
+		fw_outline[FROMSRC-1] = '\0';
+	}else{
+		strcpy(fw_outline,str);
+	}
 	if (me->lexer->curID != ((void *)0)) {
 		strcat (fw_outline, "; current token :");
 		strcat (fw_outline, me->lexer->curID); 

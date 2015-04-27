@@ -263,6 +263,8 @@ static void android_save_log(char *thislog) {
 		//problem: strdup and strcat fragment memory if used a lot
 		if (len || eol)
 		{
+			int llen;
+			char *lstr;
 			if (p->androidMessageSlot[p->androidFreeSlot]){
 				//do no-end-of-line-on-last-one continuation line concatonation
 				char *catsize, *oldsize;
@@ -292,9 +294,13 @@ static void android_save_log(char *thislog) {
 			}
 
 			//check for line length and wrap-around if necessary
-			if ((int)strlen(p->androidMessageSlot[p->androidFreeSlot]) > p->maxLineLength){
-				buf = strdup(&p->androidMessageSlot[p->androidFreeSlot][p->maxLineLength - 2]); //how remember to delete this?
-				free(thislog);
+			lstr = p->androidMessageSlot[p->androidFreeSlot];
+			llen = strlen(lstr);
+			if ( llen > p->maxLineLength){
+				char *remainder = &lstr[p->maxLineLength - 2]; 
+				buf = strdup(remainder); //how remember to delete this?
+				if(thislog)
+					free(thislog);
 				thislog = buf;
 				p->androidMessageSlot[p->androidFreeSlot][p->maxLineLength - 2] = '\n';
 				p->androidMessageSlot[p->androidFreeSlot][p->maxLineLength - 1] = '\0';
