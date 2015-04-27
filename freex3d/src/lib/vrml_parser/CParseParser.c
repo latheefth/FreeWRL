@@ -4074,13 +4074,19 @@ static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
 	/* get nodeFieldName */
 	if(!lexer_setCurID(me->lexer)) return FALSE;
 	ASSERT(me->lexer->curID);
-	nodeFieldName = STRDUP(me->lexer->curID);
+	//nodeFieldName = STRDUP(me->lexer->curID);
+	nodeFieldName= me->lexer->curID;
+	//if(!nodeFieldName){
+	//	nodeFieldName = "";
+	//}
+		
 	//BACKUP;
-	FREE_IF_NZ(me->lexer->curID);
+	//FREE_IF_NZ(me->lexer->curID);
 
 	//retrieve field mode, type
 	targetVal = NULL;
 	if(!find_anyfield_by_name(me->lexer,node,&targetVal,&mode,&type,nodeFieldName,&source,&fdecl,&ifield)){
+	//if(!find_anyfield_by_name(me->lexer,node,&targetVal,&mode,&type,me->lexer->curID,&source,&fdecl,&ifield)){
 		BACKUP
 		return FALSE; //couldn't find field in user or builtin fields anywhere
 	}
@@ -4142,6 +4148,7 @@ static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
 	#ifdef CPARSERVERBOSE
 	printf ("end of parser_user_field\n");
 	#endif
+	FREE_IF_NZ(me->lexer->curID);
 	FREEUP
     return TRUE;
 }
@@ -4780,6 +4787,36 @@ void broto_store_DEF(struct X3D_Proto* proto,struct X3D_Node* node, char *name)
 		proto->__DEFnames = defs;
 	}
 	stack_push(struct brotoDefpair, defs, def);
+}
+int broto_search_DEF_index_by_node(struct X3D_Proto* proto, struct X3D_Node *node){
+	int index;
+	Stack *defs = proto->__DEFnames;
+	index = -1;
+	if(defs){
+		int i;
+		for(i=0;i<vectorSize(defs);i++){
+			struct brotoDefpair def = vector_get(struct brotoDefpair,defs,i);
+			if(def.node == node){
+				index = i;
+				break;
+			}
+		}
+	}
+	return index;
+}
+
+void broto_clear_DEF_by_node(struct X3D_Proto* proto,struct X3D_Node* node)
+{
+	int index;
+	Stack *defs;
+	struct brotoDefpair def;
+	index = broto_search_DEF_index_by_node(proto,node);
+	if(index > -1){
+		defs = proto->__DEFnames;
+		def = vector_get(struct brotoDefpair,defs,index);
+		FREE_IF_NZ(def.name);
+		vector_removeElement(sizeof(struct brotoDefpair),defs,index);
+	}
 }
 struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, char *name){
 	int i;
@@ -7035,6 +7072,7 @@ int	unregister_broutes(struct X3D_Proto * node){
 //
 //}
 
+
 void unRegisterTexture(struct X3D_Node *tmp);
 void unRegisterX3DNode(struct X3D_Node * tmp);
 void unRegisterBindable (struct X3D_Node *node);
@@ -7151,6 +7189,7 @@ int unregister_broto_instance(struct X3D_Proto* node){
 				for(i=0;i<vectorSize(node->__nodes);i++){
 					struct X3D_Node* ns = vector_get(struct X3D_Node*,node->__nodes,i);
 					unRegisterX3DAnyNode(ns);
+					broto_clear_DEF_by_node(node,ns);
 				}
 			}
 		}
@@ -7189,7 +7228,7 @@ int gc_broto_instance(struct X3D_Proto* node){
 			deleteVector(struct brotoIS *,node->__IS);
 		//free DEFnames
 		if(node->__DEFnames)
-			deleteVector(struct brotoDefpair *,node->__DEFnames);
+			deleteVector(struct brotoDefpair,node->__DEFnames);
 		//free IMPORTS
 		if(node->__IMPORTS)
 			deleteVector(struct EXIMPORT *,node->__IMPORTS);

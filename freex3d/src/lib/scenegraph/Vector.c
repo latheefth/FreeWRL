@@ -187,7 +187,7 @@ void vector_removeElement(int elSize,struct Vector* myp, int element)
                 if(_noisy) printf ("vector, removing element me 0x%016llx data 0x%016llx\n", (unsigned long long)me, (unsigned long long)me->data);
             #endif
 			
-            me->n--;
+            //me->n--; two of these
 		}
 	}
 }
