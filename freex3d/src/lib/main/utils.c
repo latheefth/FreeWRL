@@ -454,7 +454,7 @@ void Multi_String_print(struct Multi_String *url)
  */
 
 #ifdef DEBUG_MALLOC
-
+static int _noisy = 0; //=1 if more printfs during malloc and free, 0 if just summary on exit
 #define FREETABLE(a,file,line) mcount=0; \
 	while ((mcount<(MAXMALLOCSTOKEEP-1)) && (mcheck[mcount]!=a)) mcount++; \
 		if (mcheck[mcount]!=a) printf ("freewrlFree - did not find %p at %s:%d\n",a,file,line); \
@@ -486,7 +486,7 @@ static int mcount;
 
 void freewrlFree(int line, char *file, void *a)
 {
-    printf ("freewrlFree %p xfree at %s:%d\n",a,file,line); 
+    if(_noisy) printf ("freewrlFree %p xfree at %s:%d\n",a,file,line); 
     FREETABLE(a,file,line);
     free(a);
 }
@@ -570,10 +570,10 @@ void *freewrlMalloc(int line, char *file, size_t sz, int zeroData)
 
     rv = malloc(sz);
     if (rv==NULL) {
-	sprintf (myline, "MALLOC PROBLEM - out of memory at %s:%d for %d",file,line,sz);
-	outOfMemory (myline);
+		sprintf (myline, "MALLOC PROBLEM - out of memory at %s:%d for %d",file,line,sz);
+		outOfMemory (myline);
     }
-    printf ("%p malloc %d at %s:%d\n",rv,sz,file,line); 
+    if(_noisy)printf ("%p malloc %d at %s:%d\n",rv,sz,file,line); 
     RESERVETABLE(rv,file,line,sz);
 
     if (zeroData) bzero (rv, sz);
@@ -585,7 +585,7 @@ void *freewrlRealloc (int line, char *file, void *ptr, size_t size)
     void *rv;
     char myline[400];
 
-    printf ("%p xfree (from realloc) at %s:%d\n",ptr,file,line);
+    if(_noisy) printf ("%p xfree (from realloc) at %s:%d\n",ptr,file,line);
     rv = realloc (ptr,size);
     if (rv==NULL) {
 	if (size != 0) {
@@ -607,13 +607,13 @@ void *freewrlStrdup (int line, char *file, char *str)
     void *rv;
     char myline[400];
 
-    printf("freewrlStrdup, at line %d file %s\n",line,file);
+    if(_noisy) printf("freewrlStrdup, at line %d file %s\n",line,file);
     rv = strdup (str);
     if (rv==NULL) {
-	sprintf (myline, "STRDUP PROBLEM - out of memory at %s:%d ",file,line);
-	outOfMemory (myline);
+		sprintf (myline, "STRDUP PROBLEM - out of memory at %s:%d ",file,line);
+		outOfMemory (myline);
     }
-printf ("freewrlStrdup, before reservetable\n");
+	if(_noisy) printf ("freewrlStrdup, before reservetable\n");
 
     RESERVETABLE(rv,file,line,strlen(str)+1);
     return rv;

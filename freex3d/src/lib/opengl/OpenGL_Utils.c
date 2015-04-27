@@ -4117,6 +4117,7 @@ static void sortChildren (int line, struct Multi_Node *ch, struct Multi_Node *so
 		FREE_IF_NZ(sortedCh->p); //Mar 11, 2014:
 		sortedCh->p = MALLOC(void *, sizeof (struct X3DNode *) * nc);
 		memcpy(sortedCh->p, ch->p, sizeof(struct X3DNode *) * nc); //ATOMIC-OP - ch->p gets realloced frequently, we need a snapshot which may be bigger than nc above
+		sortedCh->n = nc;
 	}
 
 	#ifdef VERBOSE
