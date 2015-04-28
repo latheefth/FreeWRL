@@ -399,8 +399,9 @@ void parser_destroyData(struct VRMLParser* me)
         me->PROTOs=NULL;
     }
     ASSERT(!me->PROTOs);
-
-    lexer_destroyData(me->lexer);
+	if(me->lexer)
+		lexer_destroyData(me->lexer);
+	FREE_IF_NZ(me->lexer);
 
     /* zero script count */
     zeroScriptHandles ();       
@@ -7060,6 +7061,7 @@ void remove_node_from_broto_context(struct X3D_Proto *context,struct X3D_Node *n
 		}
 	}
 }
+void lock_and_do_routes_register();
 int	unregister_broutes(struct X3D_Proto * node){
 	//unregister regular routes from broto context
 	int iret = FALSE;
@@ -7081,6 +7083,7 @@ int	unregister_broutes(struct X3D_Proto * node){
 			}
 		}
 	}
+	lock_and_do_routes_register();
 	return iret;
 }
 //int unregister_bscripts(node){

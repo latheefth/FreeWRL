@@ -3865,7 +3865,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	if (globalParser != NULL) {
 		parser_destroyData(globalParser);
 		//globalParser = NULL;
-		gglobal()->CParse.globalParser = NULL;
+		//moved to CParse_clear gglobal()->CParse.globalParser = NULL;
 	}
 
 	kill_X3DDefs();

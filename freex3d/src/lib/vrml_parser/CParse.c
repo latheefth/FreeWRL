@@ -67,6 +67,12 @@ void CParse_init(struct tCParse *t){
 		//p->globalParser = NULL;
 	}
 }
+void CParse_clear(struct tCParse *t){
+	//public
+	FREE_IF_NZ(t->globalParser);
+	//private
+	return;
+}
 //ppCParse p = (ppCParse)gglobal()->CParse.prv;
 
 #undef TIMING
