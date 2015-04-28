@@ -4635,7 +4635,7 @@ void finalizeRenderSceneUpdateScene() {
 	FREE_IF_NZ(rn);
 	setRootNode(NULL);
 #ifdef DEBUG_MALLOC
-	end_of_run_tests();
+	end_of_run_tests(); //with glew mx, we get the glew context from tg, so have to do the glIsBuffer, glIsTexture before deleting tg
 #endif
 	iglobal_destructor(tg);
 #ifdef DEBUG_MALLOC
