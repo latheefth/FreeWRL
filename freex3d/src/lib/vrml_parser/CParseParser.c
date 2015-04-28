@@ -7099,6 +7099,7 @@ void removeNodeFromKeySensorList(struct X3D_Node* node);
 int	unInitializeScript(struct X3D_Node *node);
 void delete_polyrep(struct X3D_Node *node);
 void unRegisterPolyRep(struct X3D_Node *node);
+void delete_glbuffers(struct X3D_Node *node);
 int unRegisterX3DAnyNode(struct X3D_Node *node){
 	/* Undo any node registration(s)
 	From GeneratedCode.c createNewX3DNode():
@@ -7139,6 +7140,7 @@ int unRegisterX3DAnyNode(struct X3D_Node *node){
 
 	//only live scenery has polyreps prepared, remove the polyrep
 	delete_polyrep(node);
+	delete_glbuffers(node);
 	deleteVector(sizeof(void*),node->_parentVector); //perhaps unlink first
 	return TRUE;
 }

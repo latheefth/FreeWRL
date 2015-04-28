@@ -386,6 +386,11 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 }
+void clear_Cylinder (struct X3D_Node *node) {
+	struct X3D_Cylinder *tnode = (struct X3D_Cylinder *)node;
+	if(tnode->__cylinderVBO)
+		glDeleteBuffers(1,&tnode->__cylinderVBO);
+}
 
 void render_Cylinder (struct X3D_Cylinder * node) {
 	extern GLfloat cylsidetex[];		/*  in CFuncs/statics.c*/
@@ -556,6 +561,11 @@ void compile_Cone (struct X3D_Cone *node) {
 		FREE_IF_NZ(node->__botpoints.p);
 		FREE_IF_NZ(node->__sidepoints.p);
 		FREE_IF_NZ(node->__normals.p);    
+}
+void clear_Cone (struct X3D_Node *node) {
+	struct X3D_Cone *tnode = (struct X3D_Cone *)node;
+	if(tnode->__coneVBO)
+		glDeleteBuffers(1,&tnode->__coneVBO);
 }
 
 void render_Cone (struct X3D_Cone *node) {
@@ -737,6 +747,13 @@ void compile_Sphere (struct X3D_Sphere *node) {
 	node->__points.p = ptr;
 }
 
+void clear_Sphere (struct X3D_Node *node) {
+	struct X3D_Sphere *tnode = (struct X3D_Sphere *)node;
+	if(tnode->_sideVBO)
+		glDeleteBuffers(1,&tnode->_sideVBO);
+	if(tnode->__SphereIndxVBO)
+		glDeleteBuffers(1,&tnode->__SphereIndxVBO);
+}
 
 
 void render_Sphere (struct X3D_Sphere *node) {
@@ -2311,5 +2328,19 @@ void rendray_Cone (struct X3D_Cone *node) {
 				rayhit(yrat0, cx, -y, cz, 0, -1, 0, -1, -1, "conbot");
 			}
 		}
+	}
+}
+
+void delete_glbuffers(struct X3D_Node *node){
+	//polyrep done in delete_polyrep
+	switch(node->_nodeType){
+		case NODE_Cylinder:
+			clear_Cylinder(node); break;
+		case NODE_Cone:
+			clear_Cone(node); break;
+		case NODE_Sphere:
+			clear_Sphere(node); break;
+		default:
+			break;
 	}
 }
