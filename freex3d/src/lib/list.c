@@ -36,7 +36,8 @@
 /**
  * ml_new: create a new list item with a contained element 'elem'
  */
-#ifdef DEBUG_MALLOC
+
+#if defined(DEBUG_MALLOC) && defined(DEBUG_MALLOC_LIST)
 s_list_t* _ml_new(const void *elem, int line, char *fi)
 {
     s_list_t *item;

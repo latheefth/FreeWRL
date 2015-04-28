@@ -4047,7 +4047,11 @@ static BOOL parser_interfaceDeclarationB(struct VRMLParser* me, struct ProtoDefi
 
 BOOL find_anyfield_by_name(struct VRMLLexer* lexer, struct X3D_Node* node, union anyVrml **anyptr, int *imode, int *itype, char* nodeFieldName, int *isource, void **fdecl, int *ifield);
 void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, int num);
-
+#ifndef DISABLER
+#include <malloc.h>
+#else
+#include <malloc/malloc.h>
+#endif
 static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
     int mode;
     int type;
@@ -4055,6 +4059,7 @@ static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
 	int source;
 	int ifield;
 	char *nodeFieldName;
+	int len;
 	DECLAREUP
 	//struct ProtoDefinition* proto;
 	//struct Shader_Script* shader;
@@ -4078,24 +4083,30 @@ static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
 	/* get nodeFieldName */
 	if(!lexer_setCurID(me->lexer)) return FALSE;
 	ASSERT(me->lexer->curID);
-	//nodeFieldName = STRDUP(me->lexer->curID);
-	nodeFieldName= me->lexer->curID;
+	len = strlen(me->lexer->curID);
+	//nodeFieldName = alloca(len+1); //this also works but hard to verify cleanup
+	//nodeFieldName = MALLOCV(len+1); //also works
+	//strcpy(nodeFieldName,me->lexer->curID);
+	nodeFieldName = STRDUP(me->lexer->curID);
+	//nodeFieldName= me->lexer->curID;
 	//if(!nodeFieldName){
 	//	nodeFieldName = "";
 	//}
 		
 	//BACKUP;
-	//FREE_IF_NZ(me->lexer->curID);
+	FREE_IF_NZ(me->lexer->curID);
 
 	//retrieve field mode, type
 	targetVal = NULL;
 	if(!find_anyfield_by_name(me->lexer,node,&targetVal,&mode,&type,nodeFieldName,&source,&fdecl,&ifield)){
 	//if(!find_anyfield_by_name(me->lexer,node,&targetVal,&mode,&type,me->lexer->curID,&source,&fdecl,&ifield)){
 		BACKUP
+		FREE_IF_NZ(nodeFieldName);
 		return FALSE; //couldn't find field in user or builtin fields anywhere
 	}
 	if(source < 1){
 		BACKUP
+		FREE_IF_NZ(nodeFieldName);
 		return FALSE; //we don't want builtins -handled elsewhere- just user fields
 	}
 
@@ -4114,6 +4125,7 @@ static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
 			CPARSE_ERROR_CURID("Expected default value for field!");
 			//if(pdecl) deleteProtoFieldDecl(pdecl);
 			//if(sdecl) deleteScriptFieldDecl(sdecl);
+			FREE_IF_NZ(nodeFieldName);
 			return FALSE;
 		}
 		if(source==3){
@@ -4152,8 +4164,8 @@ static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
 	#ifdef CPARSERVERBOSE
 	printf ("end of parser_user_field\n");
 	#endif
-	FREE_IF_NZ(me->lexer->curID);
 	FREEUP
+	FREE_IF_NZ(nodeFieldName);
     return TRUE;
 }
 

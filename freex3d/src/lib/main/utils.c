@@ -55,7 +55,6 @@ const char* freewrl_get_browser_program()
     }
     return tmp;
 }
-
 #ifdef DISABLER
 // ================ nice new code by disabler. use while tg still alive===============
 #ifdef _ANDROID
@@ -452,29 +451,12 @@ void Multi_String_print(struct Multi_String *url)
 /**
  * This code get compiled only when debugging is enabled
  */
+pthread_mutex_t __memTableGlobalLock = PTHREAD_MUTEX_INITIALIZER;
+#define LOCK_GLOBAL_MEMORYTABLE 		pthread_mutex_lock(&__memTableGlobalLock);
+#define UNLOCK_GLOBAL_MEMORYTABLE		pthread_mutex_unlock(&__memTableGlobalLock);
 
 #ifdef DEBUG_MALLOC
 static int _noisy = 0; //=1 if more printfs during malloc and free, 0 if just summary on exit
-#define FREETABLE(a,file,line) mcount=0; \
-	while ((mcount<(MAXMALLOCSTOKEEP-1)) && (mcheck[mcount]!=a)) mcount++; \
-		if (mcheck[mcount]!=a) printf ("freewrlFree - did not find %p at %s:%d\n",a,file,line); \
-		else { \
-			/* printf ("found %d in mcheck table\n"); */ \
-			mcheck[mcount] = NULL; \
-			mlineno[mcount] = 0; \
-			if (mplace[mcount]!=NULL) free(mplace[mcount]); \
-			mplace[mcount]=NULL; \
-		} 
-
-#define RESERVETABLE(a,file,line,size) mcount=0; \
-	while ((mcount<(MAXMALLOCSTOKEEP-1)) && (mcheck[mcount]!=NULL)) mcount++; \
-		if (mcheck[mcount]!=NULL) printf ("freewrlMalloc - out of malloc check store\n");\
-		else {\
-			mcheck[mcount] = a;\
-			mlineno[mcount] = line;\
-			mplace[mcount] = strdup(file);\
-			msize[mcount] = size;\
-		}
 
 #define MAXMALLOCSTOKEEP 100000
 static int mcheckinit = FALSE;
@@ -484,9 +466,57 @@ static int mlineno[MAXMALLOCSTOKEEP];
 static size_t msize[MAXMALLOCSTOKEEP];
 static int mcount;
 
+static mcheck_init(){
+    if (!mcheckinit) {
+		for (mcount=0; mcount < MAXMALLOCSTOKEEP; mcount++) {
+			mcheck[mcount] = NULL;
+			mplace[mcount] = NULL;
+			mlineno[mcount] = 0;
+		}
+		mcheckinit = TRUE;
+    }
+
+}
+
+void FREETABLE(void *a,char *file,int line) {
+	LOCK_GLOBAL_MEMORYTABLE
+	mcount=0;
+	while ((mcount<(MAXMALLOCSTOKEEP-1)) && (mcheck[mcount]!=a)) mcount++;
+		if (mcheck[mcount]!=a) {
+			printf ("freewrlFree - did not find %p at %s:%d\n",a,file,line);
+			printf("mcount = %d\n",mcount);
+		} else {
+			/* printf ("found %d in mcheck table\n"); */
+			mcheck[mcount] = NULL;
+			mlineno[mcount] = 0;
+			if (mplace[mcount]!=NULL) free(mplace[mcount]);
+			mplace[mcount]=NULL;
+		}
+	UNLOCK_GLOBAL_MEMORYTABLE 
+}
+
+void RESERVETABLE(void *a, char *file,int line,int size) {
+	LOCK_GLOBAL_MEMORYTABLE
+    mcount=0;
+	while ((mcount<(MAXMALLOCSTOKEEP-1)) && (mcheck[mcount]!=NULL)) mcount++;
+		if (mcheck[mcount]!=NULL) {
+		 printf ("freewrlMalloc - out of malloc check store\n");
+		 printf("mcount=%d\n",mcount);
+		 printf("a=%p\n",a);
+		} else {
+			mcheck[mcount] = a;
+			mlineno[mcount] = line;
+			mplace[mcount] = strdup(file);
+			msize[mcount] = size;
+		}
+	UNLOCK_GLOBAL_MEMORYTABLE 
+}
+
 void freewrlFree(int line, char *file, void *a)
 {
+	mcheck_init();
     if(_noisy) printf ("freewrlFree %p xfree at %s:%d\n",a,file,line); 
+	if(a)
     FREETABLE(a,file,line);
     free(a);
 }
@@ -522,14 +552,22 @@ void scanMallocTableOnQuit()
 			//printf ("unfreed memory %x created at %s:%d \n",mcheck[mcount], mplace[mcount],mlineno[mcount]);
 			iloc = -1;
 			for(j=0;j<nlocs;j++){
-				char *file;
-				int line;
+				char *file, *mfile;
+				int line, mline;
 				file = mplace[mcount];
 				line = mlineno[mcount];
-				if(!file)
+				mfile = mlocs[j].fname;
+				mline = mlocs[j].line;
+				if(!file){
 					printf("line %d",line);
-				else
-				if(!strcmp(file,mlocs[j].fname) && (mlineno[mcount] == mlocs[j].line) ){
+					if(mfile) printf("mfile=%s",mfile);
+				}
+				if(!mfile){
+					printf("line %d",line);
+					if(file) printf("file=%s",file);
+				}
+				if(mline && mfile)
+				if(!strcmp(file,mfile) && (line == mline) ){
 					mlocs[j].count ++;
 					mlocs[j].size += msize[mcount];
 					iloc = j;
@@ -539,6 +577,8 @@ void scanMallocTableOnQuit()
 			if(iloc == -1){
 				mlocs[nlocs].count = 1;
 				mlocs[nlocs].fname = mplace[mcount];
+				if(!mplace[mcount])
+					printf("adding null place\n");
 				mlocs[nlocs].line = mlineno[mcount];
 				mlocs[nlocs].size = msize[mcount];
 				nlocs++;
@@ -566,14 +606,7 @@ void *freewrlMalloc(int line, char *file, size_t sz, int zeroData)
     void *rv;
     char myline[400];
 
-    if (!mcheckinit) {
-	for (mcount=0; mcount < MAXMALLOCSTOKEEP; mcount++) {
-	    mcheck[mcount] = NULL;
-	    mplace[mcount] = NULL;
-	    mlineno[mcount] = 0;
-	}
-	mcheckinit = TRUE;
-    }
+	mcheck_init();
 
     rv = malloc(sz);
     if (rv==NULL) {
@@ -594,13 +627,15 @@ void *freewrlRealloc (int line, char *file, void *ptr, size_t size)
     void *rv;
     char myline[400];
 
+	mcheck_init();
+
     if(_noisy) printf ("%p xfree (from realloc) at %s:%d\n",ptr,file,line);
     rv = realloc (ptr,size);
     if (rv==NULL) {
-	if (size != 0) {
-	    sprintf (myline, "REALLOC PROBLEM - out of memory at %s:%d size %d",file,line,size);
-	    outOfMemory (myline);
-	}
+		if (size != 0) {
+			sprintf (myline, "REALLOC PROBLEM - out of memory at %s:%d size %d",file,line,size);
+			outOfMemory (myline);
+		}
     }
     
     /* printf ("%x malloc (from realloc) %d at %s:%d\n",rv,size,file,line); */
@@ -617,7 +652,7 @@ void *freewrlStrdup (int line, char *file, char *str)
 {
     void *rv;
     char myline[400];
-
+	mcheck_init();
     if(_noisy) printf("freewrlStrdup, at line %d file %s\n",line,file);
     rv = strdup (str);
     if (rv==NULL) {
