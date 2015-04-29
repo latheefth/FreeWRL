@@ -569,6 +569,8 @@ void statusbar_clear(struct tstatusbar *t){
 	{
 		ppstatusbar p = (ppstatusbar)t->prv;
 		int i;
+	    glDeleteTextures(1, &(p->pfont.textureID));
+		glDeleteTextures(1, &(p->pmenu.textureID));
 		if(p->conlist)
 			ml_delete_all(p->conlist);
 		if(p->optionsVal)

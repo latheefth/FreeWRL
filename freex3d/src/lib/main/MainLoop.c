@@ -4635,7 +4635,7 @@ void finalizeRenderSceneUpdateScene() {
 	FREE_IF_NZ(rn);
 	setRootNode(NULL);
 #ifdef DEBUG_MALLOC
-	end_of_run_tests();
+	end_of_run_tests(); //with glew mx, we get the glew context from tg, so have to do the glIsBuffer, glIsTexture before deleting tg
 #endif
 	iglobal_destructor(tg);
 #ifdef DEBUG_MALLOC
@@ -4679,8 +4679,7 @@ void doReplaceWorldRequest()
 	req = tg->Mainloop.replaceWorldRequest;
 	tg->Mainloop.replaceWorldRequest = NULL;
 	if (req){
-		kill_oldWorld(TRUE, TRUE, __FILE__, __LINE__);
-        if(0) setRootNode(NULL); //I free the node now when the new scene is parsed, so there's always a rootnode
+		//kill_oldWorldB(__FILE__,__LINE__);
 		res = resource_create_single(req);
 		//send_resource_to_parser_async(res);
 		resitem_enqueue(ml_new(res));
@@ -4688,8 +4687,7 @@ void doReplaceWorldRequest()
 	resm = (resource_item_t *)tg->Mainloop.replaceWorldRequestMulti;
 	if (resm){
 		tg->Mainloop.replaceWorldRequestMulti = NULL;
-		kill_oldWorld(TRUE, TRUE, __FILE__, __LINE__);
-		if(0) setRootNode(NULL);
+		//kill_oldWorldB(__FILE__, __LINE__);
 		resm->new_root = true;
 		gglobal()->resources.root_res = resm;
 		//send_resource_to_parser_async(resm);
@@ -4798,7 +4796,7 @@ int fwl_draw()
 			if (workers_waiting()) //one way to tell if workers finished flushing is if their queues are empty, and they are not busy
 			{
                 //if (!tg->Mainloop.replaceWorldRequest || tg->threads.MainLoopQuit) //attn Disabler
-				kill_oldWorld(TRUE, TRUE, __FILE__, __LINE__); //does a MarkForDispose on nodes, wipes out binding stacks and route table, javascript
+				kill_oldWorldB(__FILE__, __LINE__); //cleans up old scene while leaving gglobal intact ready to load new scene
 				tg->threads.flushing = 0;
 				if (tg->threads.MainLoopQuit)
 					tg->threads.MainLoopQuit++; //quiting takes priority over replacing
@@ -4811,17 +4809,17 @@ int fwl_draw()
 		//tell worker threads to stop gracefully
 		workers_stop();
 		//killNodes(); //deallocates nodes MarkForDisposed
-		kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+		//killed above kill_oldWorldB(__FILE__,__LINE__);
 		tg->threads.MainLoopQuit++;
 		break;
 	case 3:
 		//check if worker threads have exited
 		more = workers_running();
-        if(0) if (more == 0) //attn Disabler
+        if (more == 0)
         {
+			//moved from desktop.c for disabler
             finalizeRenderSceneUpdateScene();
         }
-
 		break;
 	}
 	return more;

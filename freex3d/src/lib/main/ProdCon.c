@@ -767,6 +767,9 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 					shouldUnBind = FALSE; //brotos > Inlines > additively bind (not sure about other things like externProto 17.wrl)
 				//}
 			}else{
+				// we do a kind of hot-swap: we parse into a new broto,
+				// then delete the old rootnode broto, then register the new one
+				// assumes uload_broto(old root node) has already been done elsewhere
 				struct X3D_Proto *sceneProto;
 				struct X3D_Node *rn;
 				sceneProto = (struct X3D_Proto *) createNewX3DNode(NODE_Proto);
@@ -777,13 +780,15 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 				//}
 				nRn = X3D_NODE(sceneProto);
 				ectx = nRn;
-				rn = rootNode();
-				setRootNode(X3D_NODE(sceneProto));
-				if(rn)
+				rn = rootNode(); //save a pointer to old rootnode
+				setRootNode(X3D_NODE(sceneProto)); //set new rootnode
+				if(rn){
+					//old root node cleanup
 					deleteVector(sizeof(void*),rn->_parentVector); //perhaps unlink first
-				freeMallocedNodeFields(rn);
-				FREE_IF_NZ(rn);
-
+					freeMallocedNodeFields(rn);
+					unRegisterX3DNode(rn);
+					FREE_IF_NZ(rn);
+				}
 			}
 		}else{
 			nRn = (struct X3D_Node *) createNewX3DNode(NODE_Group);

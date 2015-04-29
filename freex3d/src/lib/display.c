@@ -351,7 +351,7 @@ bool initialize_rdr_caps()
             rdr_caps.versionf = (float) atof(versionPTR);
             //free(version);
         }
-#ifdef GL_ES_VERSION_2_0
+#if defined(GL_ES_VERSION_2_0) && !defined(ANGLEPROJECT)
         if (0 == rdr_caps.version)
         {
             //Try define version with 3.x api

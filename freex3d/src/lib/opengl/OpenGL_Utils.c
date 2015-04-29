@@ -3742,7 +3742,6 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
         char mystring[20];
 	#endif
 	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
-
     //printf ("kill_oldWorld called...\n");
 
 
@@ -3865,7 +3864,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	if (globalParser != NULL) {
 		parser_destroyData(globalParser);
 		//globalParser = NULL;
-		gglobal()->CParse.globalParser = NULL;
+		//moved to CParse_clear gglobal()->CParse.globalParser = NULL;
 	}
 
 	kill_X3DDefs();
@@ -3874,7 +3873,29 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	viewer_default();
 	setMenuStatus("NONE");
 }
-
+void unload_globalParser() {
+	// unload any string tables, and signal to any replacworld scene that it needs a new parser+lexer struct
+	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
+	if(globalParser){
+		parser_destroyData(globalParser); //destroys lexer data too
+		FREE_IF_NZ(globalParser->lexer);
+	}
+	FREE_IF_NZ(globalParser);
+	gglobal()->CParse.globalParser = NULL; //set to null to trigger a fresh createParser on replaceworld
+}
+void kill_oldWorldB(char *file, int line){
+	// erase old world but keep gglobal in good shape, ie everything in _init() functions still good
+	// -gglobal is erased elsewhere in finalizeRenderSceneUpdateScene()
+	struct X3D_Node *rootnode = rootNode();
+    if (rootnode != NULL) {
+		if(usingBrotos()>1 && rootnode->_nodeType == NODE_Proto){
+			unload_broto(X3D_PROTO(rootnode));
+			unload_globalParser();
+		}else{
+			kill_oldWorld(TRUE,TRUE,file,line);
+		}
+	}
+}
 
 
 #if  defined (_ANDROID)
@@ -4117,6 +4138,7 @@ static void sortChildren (int line, struct Multi_Node *ch, struct Multi_Node *so
 		FREE_IF_NZ(sortedCh->p); //Mar 11, 2014:
 		sortedCh->p = MALLOC(void *, sizeof (struct X3DNode *) * nc);
 		memcpy(sortedCh->p, ch->p, sizeof(struct X3DNode *) * nc); //ATOMIC-OP - ch->p gets realloced frequently, we need a snapshot which may be bigger than nc above
+		sortedCh->n = nc;
 	}
 
 	#ifdef VERBOSE
@@ -4489,6 +4511,8 @@ void startOfLoopNodeUpdates(void) {
 		node = vector_get(struct X3D_Node *,p->linearNodeTable,i);
 		if (node != NULL) {
 			if (node->referenceCount <= 0) {
+				//unload_brotos -a new way to clean out an old scene of 2014- doesn't rely on reference counting 
+				// when cleaning up a scene - it calls unregisterX3Dnode()
 				//ConsoleMessage ("%d ref %d\n",i,node->referenceCount);
 				//killNode(i);
 				FREE_IF_NZ(node);

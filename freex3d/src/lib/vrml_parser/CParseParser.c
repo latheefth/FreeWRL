@@ -399,8 +399,9 @@ void parser_destroyData(struct VRMLParser* me)
         me->PROTOs=NULL;
     }
     ASSERT(!me->PROTOs);
-
-    lexer_destroyData(me->lexer);
+	if(me->lexer)
+		lexer_destroyData(me->lexer);
+	//FREE_IF_NZ(me->lexer);
 
     /* zero script count */
     zeroScriptHandles ();       
@@ -3366,8 +3367,12 @@ void cParseErrorCurID(struct VRMLParser *me, char *str) {
 	char fw_outline[OUTLINELEN];
 	ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
 
-	if (strlen(str) > FROMSRC) str[FROMSRC] = '\0';
-	strcpy(fw_outline,str);
+	if (strlen(str) > FROMSRC) { //str[FROMSRC] = '\0';
+		strncpy(fw_outline,str,FROMSRC);
+		fw_outline[FROMSRC-1] = '\0';
+	}else{
+		strcpy(fw_outline,str);
+	}
 	if (me->lexer->curID != ((void *)0)) {
 		strcat (fw_outline, "; current token :");
 		strcat (fw_outline, me->lexer->curID); 
@@ -4043,7 +4048,11 @@ static BOOL parser_interfaceDeclarationB(struct VRMLParser* me, struct ProtoDefi
 
 BOOL find_anyfield_by_name(struct VRMLLexer* lexer, struct X3D_Node* node, union anyVrml **anyptr, int *imode, int *itype, char* nodeFieldName, int *isource, void **fdecl, int *ifield);
 void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, int num);
-
+#ifndef DISABLER
+#include <malloc.h>
+#else
+#include <malloc/malloc.h>
+#endif
 static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
     int mode;
     int type;
@@ -4051,6 +4060,7 @@ static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
 	int source;
 	int ifield;
 	char *nodeFieldName;
+	int len;
 	DECLAREUP
 	//struct ProtoDefinition* proto;
 	//struct Shader_Script* shader;
@@ -4074,18 +4084,30 @@ static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
 	/* get nodeFieldName */
 	if(!lexer_setCurID(me->lexer)) return FALSE;
 	ASSERT(me->lexer->curID);
+	len = strlen(me->lexer->curID);
+	//nodeFieldName = alloca(len+1); //this also works but hard to verify cleanup
+	//nodeFieldName = MALLOCV(len+1); //also works
+	//strcpy(nodeFieldName,me->lexer->curID);
 	nodeFieldName = STRDUP(me->lexer->curID);
+	//nodeFieldName= me->lexer->curID;
+	//if(!nodeFieldName){
+	//	nodeFieldName = "";
+	//}
+		
 	//BACKUP;
 	FREE_IF_NZ(me->lexer->curID);
 
 	//retrieve field mode, type
 	targetVal = NULL;
 	if(!find_anyfield_by_name(me->lexer,node,&targetVal,&mode,&type,nodeFieldName,&source,&fdecl,&ifield)){
+	//if(!find_anyfield_by_name(me->lexer,node,&targetVal,&mode,&type,me->lexer->curID,&source,&fdecl,&ifield)){
 		BACKUP
+		FREE_IF_NZ(nodeFieldName);
 		return FALSE; //couldn't find field in user or builtin fields anywhere
 	}
 	if(source < 1){
 		BACKUP
+		FREE_IF_NZ(nodeFieldName);
 		return FALSE; //we don't want builtins -handled elsewhere- just user fields
 	}
 
@@ -4104,6 +4126,7 @@ static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
 			CPARSE_ERROR_CURID("Expected default value for field!");
 			//if(pdecl) deleteProtoFieldDecl(pdecl);
 			//if(sdecl) deleteScriptFieldDecl(sdecl);
+			FREE_IF_NZ(nodeFieldName);
 			return FALSE;
 		}
 		if(source==3){
@@ -4143,6 +4166,7 @@ static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
 	printf ("end of parser_user_field\n");
 	#endif
 	FREEUP
+	FREE_IF_NZ(nodeFieldName);
     return TRUE;
 }
 
@@ -4780,6 +4804,36 @@ void broto_store_DEF(struct X3D_Proto* proto,struct X3D_Node* node, char *name)
 		proto->__DEFnames = defs;
 	}
 	stack_push(struct brotoDefpair, defs, def);
+}
+int broto_search_DEF_index_by_node(struct X3D_Proto* proto, struct X3D_Node *node){
+	int index;
+	Stack *defs = proto->__DEFnames;
+	index = -1;
+	if(defs){
+		int i;
+		for(i=0;i<vectorSize(defs);i++){
+			struct brotoDefpair def = vector_get(struct brotoDefpair,defs,i);
+			if(def.node == node){
+				index = i;
+				break;
+			}
+		}
+	}
+	return index;
+}
+
+void broto_clear_DEF_by_node(struct X3D_Proto* proto,struct X3D_Node* node)
+{
+	int index;
+	Stack *defs;
+	struct brotoDefpair def;
+	index = broto_search_DEF_index_by_node(proto,node);
+	if(index > -1){
+		defs = proto->__DEFnames;
+		def = vector_get(struct brotoDefpair,defs,index);
+		FREE_IF_NZ(def.name);
+		vector_removeElement(sizeof(struct brotoDefpair),defs,index);
+	}
 }
 struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, char *name){
 	int i;
@@ -7007,6 +7061,7 @@ void remove_node_from_broto_context(struct X3D_Proto *context,struct X3D_Node *n
 		}
 	}
 }
+void lock_and_do_routes_register();
 int	unregister_broutes(struct X3D_Proto * node){
 	//unregister regular routes from broto context
 	int iret = FALSE;
@@ -7028,12 +7083,14 @@ int	unregister_broutes(struct X3D_Proto * node){
 			}
 		}
 	}
+	lock_and_do_routes_register();
 	return iret;
 }
 //int unregister_bscripts(node){
 //	//unregister scripts
 //
 //}
+
 
 void unRegisterTexture(struct X3D_Node *tmp);
 void unRegisterX3DNode(struct X3D_Node * tmp);
@@ -7045,6 +7102,7 @@ void removeNodeFromKeySensorList(struct X3D_Node* node);
 int	unInitializeScript(struct X3D_Node *node);
 void delete_polyrep(struct X3D_Node *node);
 void unRegisterPolyRep(struct X3D_Node *node);
+void delete_glbuffers(struct X3D_Node *node);
 int unRegisterX3DAnyNode(struct X3D_Node *node){
 	/* Undo any node registration(s)
 	From GeneratedCode.c createNewX3DNode():
@@ -7085,6 +7143,7 @@ int unRegisterX3DAnyNode(struct X3D_Node *node){
 
 	//only live scenery has polyreps prepared, remove the polyrep
 	delete_polyrep(node);
+	delete_glbuffers(node);
 	deleteVector(sizeof(void*),node->_parentVector); //perhaps unlink first
 	return TRUE;
 }
@@ -7151,6 +7210,7 @@ int unregister_broto_instance(struct X3D_Proto* node){
 				for(i=0;i<vectorSize(node->__nodes);i++){
 					struct X3D_Node* ns = vector_get(struct X3D_Node*,node->__nodes,i);
 					unRegisterX3DAnyNode(ns);
+					broto_clear_DEF_by_node(node,ns);
 				}
 			}
 		}
@@ -7189,7 +7249,7 @@ int gc_broto_instance(struct X3D_Proto* node){
 			deleteVector(struct brotoIS *,node->__IS);
 		//free DEFnames
 		if(node->__DEFnames)
-			deleteVector(struct brotoDefpair *,node->__DEFnames);
+			deleteVector(struct brotoDefpair,node->__DEFnames);
 		//free IMPORTS
 		if(node->__IMPORTS)
 			deleteVector(struct EXIMPORT *,node->__IMPORTS);

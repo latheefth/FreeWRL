@@ -118,7 +118,7 @@ void Textures_init(struct tTextures *t){
 }
 void Textures_clear(struct tTextures *t){
 	//public
-
+	glDeleteBuffers (1,&t->defaultBlankTexture);
 	//private
 	{
 		ppTextures p = (ppTextures)t->prv;

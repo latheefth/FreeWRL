@@ -294,9 +294,26 @@ void CRoutes_init(struct tCRoutes *t){
 
 	}
 }
+
+void lock_and_do_routes_register();
+void free_routes(){
+	int i,count;
+	struct CRStruct *routes;
+	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
+
+	//there can be some routes to unregister, on quit
+	lock_and_do_routes_register();
+	
+	p->CRoutes_Count = 0;
+	p->CRoutes_MAX = 0;
+	FREE_IF_NZ(p->CRoutes);
+	p->CRoutes = NULL;
+
+}
 void CRoutes_clear(struct tCRoutes *t){
 	if(t){
 		ppCRoutes p = (ppCRoutes)t->prv;
+		free_routes();
 		FREE_IF_NZ(p->ClockEvents);
 		FREE_IF_NZ(p->preEvents);
 	}
@@ -1030,6 +1047,19 @@ ConsoleMessage ("CRoutes_Register - adrem %d, from %p (%s) fromoffset %d to %p (
 	MUTEX_FREE_LOCK_ROUTING_UPDATES
 
 }
+void free_routes_to_register(struct Vector * routesToRegister){
+	
+	if(routesToRegister){
+		struct CR_RegStruct *r;
+		int i;
+		for(i=0;i<vectorSize(routesToRegister);i++){
+			r = vector_get(struct CR_RegStruct*,routesToRegister,i);
+			FREE_IF_NZ(r);
+		}
+		deleteVector(struct CR_RegStruct *,routesToRegister);
+		FREE_IF_NZ(routesToRegister);
+	}
+}
 
 void print_routes_ready_to_register(FILE* fp)
 {
@@ -1185,7 +1215,7 @@ static void actually_do_CRoutes_Register() {
 					break;
 				} else {
 					/* this is a remove */
-	
+					FREE_IF_NZ(p->CRoutes[check_here].tonodes);
 					for (shifter = check_here; shifter < p->CRoutes_Count; shifter++) {
 						#ifdef CRVERBOSE 
 						printf ("copying from %d to %d\n",shifter, shifter-1);
@@ -1274,10 +1304,11 @@ static void actually_do_CRoutes_Register() {
 					printf ("\n");
 				}
 	#endif
-		FREE_IF_NZ(newEntry);
+		//FREE_IF_NZ(newEntry);
 		}
 	}
-	FREE_IF_NZ(p->routesToRegister);
+	free_routes_to_register(p->routesToRegister); //free all newEntries
+	p->routesToRegister = NULL;
 	#ifdef CRVERBOSE 
 		printf ("routing table now %d\n",p->CRoutes_Count);
 		for (shifter = 0; shifter < p->CRoutes_Count; shifter ++) {
@@ -1292,6 +1323,14 @@ static void actually_do_CRoutes_Register() {
 	#endif
 
 }
+void lock_and_do_routes_register()
+{
+	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
+	MUTEX_LOCK_ROUTING_UPDATES
+	actually_do_CRoutes_Register();
+	MUTEX_FREE_LOCK_ROUTING_UPDATES
+}
+
 
 #ifdef DEBUG_VALIDNODE
 /* only if DEBUG_VALIDNODE is defined; helps us find memory/routing problems */

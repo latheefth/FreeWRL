@@ -67,6 +67,16 @@ void CParse_init(struct tCParse *t){
 		//p->globalParser = NULL;
 	}
 }
+void CParse_clear(struct tCParse *t){
+	//public
+	struct VRMLParser* globalParser = (struct VRMLParser* )t->globalParser;
+	// some of this should already be done in kill_oldworldB > uload_globalParser
+	if(globalParser)
+		FREE_IF_NZ(globalParser->lexer);
+	FREE_IF_NZ(t->globalParser);
+	//private
+	return;
+}
 //ppCParse p = (ppCParse)gglobal()->CParse.prv;
 
 #undef TIMING

@@ -38,7 +38,7 @@
 
 #include "Vector.h"
 
-
+static int _noisy = 0;
 /* ************************************************************************** */
 /* ******************************** Vector ********************************** */
 /* ************************************************************************** */
@@ -85,7 +85,7 @@ void deleteVector_(int elSize, struct Vector** myp) {
 
 	ASSERT(me);
 	#ifdef DEBUG_MALLOC
-		printf("vector, deleting me %p data %p at %s:%d\n",me,me->data,file,line);
+		if(_noisy) printf("vector, deleting me %p data %p at %s:%d\n",me,me->data,file,line);
 	#endif
 	if(me->data) {FREE_IF_NZ(me->data);}
 	FREE_IF_NZ(me);
@@ -116,7 +116,7 @@ void vector_ensureSpace_(int elSize, struct Vector* me, char *fi, int line) {
 		me->data=REALLOC(me->data, elSize*me->allocn);
 #endif
 		#ifdef DEBUG_MALLOC
-			printf ("vector, ensureSpace, me %p, data %p\n",me, me->data);
+			if(_noisy) printf ("vector, ensureSpace, me %p, data %p\n",me, me->data);
 		#endif
 		ASSERT(me->data);
 	}
@@ -129,7 +129,7 @@ void vector_popBack_(struct Vector* me, size_t count)
     me->n -= count;
 
     #ifdef DEBUG_MALLOC
-        printf ("vector, popping back, me 0x%016llx, data 0x%016llx n %zu\n", (unsigned long long)me, (unsigned long long)me->data, me->n);
+        if(_noisy) printf ("vector, popping back, me 0x%016llx, data 0x%016llx n %zu\n", (unsigned long long)me, (unsigned long long)me->data, me->n);
     #endif
 }
 
@@ -144,7 +144,7 @@ void vector_shrink_(int elSize, struct Vector* me) {
 	me->data=REALLOC(oldData, elSize*me->allocn);
     
     #ifdef DEBUG_MALLOC
-        printf ("vector, shrink, me 0x%016llx, data 0x%016llx\n size %zu allocatedSize %zu", (unsigned long long)me, (unsigned long long)me->data, me->n, me->allocn);
+        if(_noisy) printf ("vector, shrink, me 0x%016llx, data 0x%016llx\n size %zu allocatedSize %zu", (unsigned long long)me, (unsigned long long)me->data, me->n, me->allocn);
     #endif
     
     //if (!me->data)
@@ -160,7 +160,7 @@ void* vector_releaseData_(int elSize, struct Vector* me) {
 	vector_shrink_(elSize, me);
 	ret=me->data;
 	#ifdef DEBUG_MALLOC
-		printf ("vector, me %p data %p\n",me, me->data);
+		if(_noisy) printf ("vector, me %p data %p\n",me, me->data);
 	#endif
 	
     me->data=NULL;
@@ -184,10 +184,10 @@ void vector_removeElement(int elSize,struct Vector* myp, int element)
 			me->n--;
             
             #ifdef DEBUG_MALLOC
-                printf ("vector, removing element me 0x%016llx data 0x%016llx\n", (unsigned long long)me, (unsigned long long)me->data);
+                if(_noisy) printf ("vector, removing element me 0x%016llx data 0x%016llx\n", (unsigned long long)me, (unsigned long long)me->data);
             #endif
 			
-            me->n--;
+            //me->n--; two of these
 		}
 	}
 }

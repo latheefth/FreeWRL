@@ -82,6 +82,7 @@ void statusbar_clear(struct tstatusbar *t);
 #endif
 
 void CParse_init(struct tCParse *t);
+void CParse_clear(struct tCParse *t);
 void CParseParser_init(struct tCParseParser *t);
 void CProto_init(struct tCProto *t);
 void CRoutes_init(struct tCRoutes *t);
@@ -265,7 +266,7 @@ void __iglobal_fields_destructor(ttglobal tg)
 	CRoutes_clear(&tg->CRoutes); FREE_IF_NZ(tg->CRoutes.prv);
 	FREE_IF_NZ(tg->CProto.prv);
 	FREE_IF_NZ(tg->CParseParser.prv);
-	FREE_IF_NZ(tg->CParse.prv);
+	CParse_clear(&tg->CParse); FREE_IF_NZ(tg->CParse.prv);
 #if defined(STATUSBAR_HUD)
 	statusbar_clear(&tg->statusbar);
 #endif
