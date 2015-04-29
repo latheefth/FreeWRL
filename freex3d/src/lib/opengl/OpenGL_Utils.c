@@ -3742,7 +3742,6 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
         char mystring[20];
 	#endif
 	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
-
     //printf ("kill_oldWorld called...\n");
 
 
@@ -3875,6 +3874,18 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	setMenuStatus("NONE");
 }
 
+void kill_oldWorldB(char *file, int line){
+	// erase old world but keep gglobal in good shape, ie everything in _init() functions still good
+	// -gglobal is erased elsewhere in finalizeRenderSceneUpdateScene()
+	struct X3D_Node *rootnode = rootNode();
+    if (rootnode != NULL) {
+		if(usingBrotos()>1 && rootnode->_nodeType == NODE_Proto){
+			unload_broto(X3D_PROTO(rootnode));
+		}else{
+			kill_oldWorld(TRUE,TRUE,file,line);
+		}
+	}
+}
 
 
 #if  defined (_ANDROID)
@@ -4490,6 +4501,8 @@ void startOfLoopNodeUpdates(void) {
 		node = vector_get(struct X3D_Node *,p->linearNodeTable,i);
 		if (node != NULL) {
 			if (node->referenceCount <= 0) {
+				//unload_brotos -a new way to clean out an old scene of 2014- doesn't rely on reference counting 
+				// when cleaning up a scene - it calls unregisterX3Dnode()
 				//ConsoleMessage ("%d ref %d\n",i,node->referenceCount);
 				//killNode(i);
 				FREE_IF_NZ(node);

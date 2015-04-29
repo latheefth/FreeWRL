@@ -401,7 +401,7 @@ void parser_destroyData(struct VRMLParser* me)
     ASSERT(!me->PROTOs);
 	if(me->lexer)
 		lexer_destroyData(me->lexer);
-	FREE_IF_NZ(me->lexer);
+	//FREE_IF_NZ(me->lexer);
 
     /* zero script count */
     zeroScriptHandles ();       
