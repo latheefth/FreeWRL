@@ -283,6 +283,10 @@ void X3DParser_clear(struct tX3DParser *t){
 	if(t){
 		ppX3DParser p = (ppX3DParser)t->prv;
 		free_xml_user_data(p->user_data);
+		if(p->myLexer){
+			lexer_destroyData(p->myLexer);
+			FREE_IF_NZ(p->myLexer);
+		}
 	}
 }
 
@@ -2822,10 +2826,11 @@ int X3DParse (struct X3D_Node* ectx, struct X3D_Node* myParent, const char *inpu
 		*/
 		if(usingBrotos()) popField(p->user_data);
 		shutdownX3DParser(p->user_data);
-
+		Parser_deleteParserForScanStringValueToMem();
 		return FALSE;
 	}
 	if(usingBrotos()) popField(p->user_data);
 	shutdownX3DParser(p->user_data);
+	Parser_deleteParserForScanStringValueToMem();
 	return TRUE;
 }
