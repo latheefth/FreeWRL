@@ -607,9 +607,9 @@ void scanMallocTableOnQuit()
 		}
     }
 	//sort by file, count or size
-	if(1) qsort(mlocs,nlocs,sizeof(malloc_location),comp_file);
+	if(0) qsort(mlocs,nlocs,sizeof(malloc_location),comp_file);
 	if(0) qsort(mlocs,nlocs,sizeof(malloc_location),comp_count);
-	if(0) qsort(mlocs,nlocs,sizeof(malloc_location),comp_size);
+	if(1) qsort(mlocs,nlocs,sizeof(malloc_location),comp_size);
 	printf("unfreed:\n");
 	printf("%5s %8s %4s %55s\n","count","size","line","file");
 	total = 0;
