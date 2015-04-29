@@ -3873,7 +3873,16 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	viewer_default();
 	setMenuStatus("NONE");
 }
-
+void unload_globalParser() {
+	// unload any string tables, and signal to any replacworld scene that it needs a new parser+lexer struct
+	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
+	if(globalParser){
+		parser_destroyData(globalParser); //destroys lexer data too
+		FREE_IF_NZ(globalParser->lexer);
+	}
+	FREE_IF_NZ(globalParser);
+	gglobal()->CParse.globalParser = NULL; //set to null to trigger a fresh createParser on replaceworld
+}
 void kill_oldWorldB(char *file, int line){
 	// erase old world but keep gglobal in good shape, ie everything in _init() functions still good
 	// -gglobal is erased elsewhere in finalizeRenderSceneUpdateScene()
@@ -3881,6 +3890,7 @@ void kill_oldWorldB(char *file, int line){
     if (rootnode != NULL) {
 		if(usingBrotos()>1 && rootnode->_nodeType == NODE_Proto){
 			unload_broto(X3D_PROTO(rootnode));
+			unload_globalParser();
 		}else{
 			kill_oldWorld(TRUE,TRUE,file,line);
 		}

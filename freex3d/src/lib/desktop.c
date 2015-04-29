@@ -361,9 +361,10 @@ void _displayThread(void *globalcontext)
 		frontend_dequeue_get_enqueue(globalcontext); //this is non-blocking (returns immediately) if queue empty
 		more = fwl_draw();
 		/* swap the rendering area */
-		FW_GL_SWAPBUFFERS;
+		if(more)
+			FW_GL_SWAPBUFFERS;
 	} while (more);
-	finalizeRenderSceneUpdateScene(); //Model end
+	// moved to fwl_draw for disabler finalizeRenderSceneUpdateScene(); //Model end
 	//printf("Ending display thread gracefully\n");
 	return;
 }

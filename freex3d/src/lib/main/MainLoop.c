@@ -4679,7 +4679,7 @@ void doReplaceWorldRequest()
 	req = tg->Mainloop.replaceWorldRequest;
 	tg->Mainloop.replaceWorldRequest = NULL;
 	if (req){
-		kill_oldWorldB(__FILE__,__LINE__);
+		//kill_oldWorldB(__FILE__,__LINE__);
 		res = resource_create_single(req);
 		//send_resource_to_parser_async(res);
 		resitem_enqueue(ml_new(res));
@@ -4687,7 +4687,7 @@ void doReplaceWorldRequest()
 	resm = (resource_item_t *)tg->Mainloop.replaceWorldRequestMulti;
 	if (resm){
 		tg->Mainloop.replaceWorldRequestMulti = NULL;
-		kill_oldWorldB(__FILE__, __LINE__);
+		//kill_oldWorldB(__FILE__, __LINE__);
 		resm->new_root = true;
 		gglobal()->resources.root_res = resm;
 		//send_resource_to_parser_async(resm);
@@ -4796,7 +4796,7 @@ int fwl_draw()
 			if (workers_waiting()) //one way to tell if workers finished flushing is if their queues are empty, and they are not busy
 			{
                 //if (!tg->Mainloop.replaceWorldRequest || tg->threads.MainLoopQuit) //attn Disabler
-				kill_oldWorldB(__FILE__, __LINE__); //does a MarkForDispose on nodes, wipes out binding stacks and route table, javascript
+				kill_oldWorldB(__FILE__, __LINE__); //cleans up old scene while leaving gglobal intact ready to load new scene
 				tg->threads.flushing = 0;
 				if (tg->threads.MainLoopQuit)
 					tg->threads.MainLoopQuit++; //quiting takes priority over replacing
@@ -4815,11 +4815,11 @@ int fwl_draw()
 	case 3:
 		//check if worker threads have exited
 		more = workers_running();
-        if(0) if (more == 0) //attn Disabler
+        if (more == 0)
         {
+			//moved from desktop.c for disabler
             finalizeRenderSceneUpdateScene();
         }
-
 		break;
 	}
 	return more;
