@@ -5321,20 +5321,23 @@ BOOL walk_fields(struct X3D_Node* node, BOOL (*callbackFunc)(void *callbackData,
 						int j; //, nameIndex;
 						struct ProtoFieldDecl* pfield;
 						struct X3D_Proto* pnode = (struct X3D_Proto*)node;
-						struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
-						if(pstruct)
-						for(j=0; j!=vectorSize(pstruct->iface); ++j)
-						{
-							pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, j);
-							mode = pfield->mode;
-							fname = pfield->cname;
-							type = pfield->type;
-							fieldPtr = &pfield->defaultVal;
-							source = 3;
-							jfield = j;
-							foundField = callbackFunc(callbackData,node,jfield,fieldPtr,fname,mode,type,source,publicfield);
-							if( foundField)
-								break;
+						if(pnode) {
+							struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
+							if(pstruct)
+							if(pstruct->iface)
+							for(j=0; j!=vectorSize(pstruct->iface); ++j)
+							{
+								pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, j);
+								mode = pfield->mode;
+								fname = pfield->cname;
+								type = pfield->type;
+								fieldPtr = &pfield->defaultVal;
+								source = 3;
+								jfield = j;
+								foundField = callbackFunc(callbackData,node,jfield,fieldPtr,fname,mode,type,source,publicfield);
+								if( foundField)
+									break;
+							}
 						}
 					}
 				case NODE_Group:
@@ -5594,7 +5597,6 @@ BOOL cbFreeMallocedBuiltinField(void *callbackData,struct X3D_Node* node,int jfi
 				}else if(type == FIELDTYPE_MFString){
 					clearMFString(fieldPtr);
 				} else if(isMF) { 
-					//if(type == FIELDTYPE_SFImage){
 					FREE_IF_NZ(fieldPtr->mfbool.p);
 					fieldPtr->mfbool.n = 0;
 				}
@@ -5660,6 +5662,21 @@ void setShader(struct X3D_Node *node, struct Shader_Script *shader){
 	}
 
 }
+void deleteShaderDefinition(struct Shader_Script *shader){
+	if(shader){
+		if(shader->fields){
+			int i;
+			for(i=0;i<vectorSize(shader->fields);i++){
+				struct ScriptFieldDecl *field = vector_get(struct ScriptFieldDecl*,shader->fields,i);
+				deleteScriptFieldDecl(field);
+			
+			}
+			deleteVector(struct ScriptFieldDecl*,shader->fields);
+			FREE_IF_NZ(shader->fields);
+		}
+		FREE_IF_NZ(shader);
+	}
+}
 //static struct Vector freed;
 //static struct fieldFree ffs[100];
 void freeMallocedNodeFields(struct X3D_Node* node){
@@ -5684,17 +5701,19 @@ void freeMallocedNodeFields(struct X3D_Node* node){
 			if(isScriptType){
 				struct Shader_Script *shader = getShader(node);
 				if (shader){
-					deleteVector(struct ScriptFieldDecl*, shader->fields);
+					deleteShaderDefinition(shader);
 					setShader(node,NULL);
 				}
 			}else if(isBrotoType){
 				struct X3D_Proto* pnode = (struct X3D_Proto*)node;
-				struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
-				if(pstruct){
-					//for vectorget.n field->malloced stuff
-					deleteVector(struct ProtoDefinition*,pstruct);
-					pnode->__protoDef = NULL;
-				}
+				deleteProtoDefinition(pnode->__protoDef);
+				FREE_IF_NZ(pnode->__protoDef);
+				//struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
+				//if(pstruct){
+				//	//for vectorget.n field->malloced stuff
+				//	deleteVector(struct ProtoDefinition*,pstruct);
+				//	pnode->__protoDef = NULL;
+				//}
 			}
 		}
 		/* free malloced public fields */

@@ -5284,7 +5284,7 @@ void copy_IStable(Stack **sourceIS, Stack** destIS)
 	int i;
 	if(*sourceIS){
 		struct brotoIS *iss, *isd;
-		*destIS = newStack(struct brotoIS); 
+		*destIS = newStack(struct brotoIS*); 
 
 		for(i=0;i<(*sourceIS)->n;i++)
 		{
@@ -7219,7 +7219,7 @@ int unregister_broto_instance(struct X3D_Proto* node){
 }
 void freeMallocedNodeFields(struct X3D_Node* node);
 int gc_broto_instance(struct X3D_Proto* node){
-	int iret = TRUE;
+	int i, iret = TRUE;
 	//recurse to free subcontexts: protoInstances, externProtoInstances, Inlines (which may instance this context's protoDeclares)
 	//free protodeclares (recursive)
 	//free externprotodeclares (recursive)
@@ -7230,7 +7230,6 @@ int gc_broto_instance(struct X3D_Proto* node){
 		node->__children.n = 0; //hide from other threads
 		node->_sortedChildren.n = 0;
 		if(node->__subcontexts){
-			int i;
 			struct X3D_Proto *subctx;
 			for(i=0;i<vectorSize(node->__subcontexts);i++){
 				subctx = vector_get(struct X3D_Proto*,node->__subcontexts,i);
@@ -7239,17 +7238,32 @@ int gc_broto_instance(struct X3D_Proto* node){
 			deleteVector(struct X3D_Proto*,node->__subcontexts);
 		}
 
-		if(node->__ROUTES)
+		if(node->__ROUTES){
+			for(i=0;i<vectorSize(node->__ROUTES);i++){
+				struct brotoRoute* route = vector_get(struct brotoRoute*,node->__ROUTES,i);
+				FREE_IF_NZ(route);
+			}
 			deleteVector(struct brotoRoute *, node->__ROUTES);
+		}
 		//free scipts
 		if(node->__scripts)
 			deleteVector(struct X3D_Node *,node->__scripts);
 		//free IStable
-		if(node->__IS)
+		if(node->__IS){
+			for(i=0;i<vectorSize(node->__IS);i++) {
+				struct brotoIS * bi = vector_get(struct brotoIS*,node->__IS,i);
+				FREE_IF_NZ(bi);
+			}
 			deleteVector(struct brotoIS *,node->__IS);
+		}
 		//free DEFnames
-		if(node->__DEFnames)
+		if(node->__DEFnames) {
+			for(i=0;i<vectorSize(node->__DEFnames);i++) {
+				struct brotoDefpair def = vector_get(struct brotoDefpair,node->__DEFnames,i);
+				FREE_IF_NZ(def.name);
+			}
 			deleteVector(struct brotoDefpair,node->__DEFnames);
+		}
 		//free IMPORTS
 		if(node->__IMPORTS)
 			deleteVector(struct EXIMPORT *,node->__IMPORTS);
@@ -7281,6 +7295,8 @@ int gc_broto_instance(struct X3D_Proto* node){
 			for(i=0;i<vectorSize(node->__protoDeclares);i++){
 				subctx = vector_get(struct X3D_Proto*,node->__protoDeclares,i);
 				gc_broto_instance(subctx);
+				freeMallocedNodeFields(subctx);
+				FREE_IF_NZ(subctx);
 			}
 			deleteVector(void*,node->__protoDeclares);
 		}

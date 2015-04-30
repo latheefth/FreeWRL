@@ -240,7 +240,22 @@ struct ProtoDefinition* newProtoDefinition()
 
  return ret;
 }
-
+void deleteProtoDefinition(struct ProtoDefinition *ret) {
+	if(ret){
+		if(ret->iface){
+			int i;
+			for(i=0;i<vectorSize(ret->iface);i++) {
+				struct ProtoFieldDecl* iface = vector_get(struct ProtoFieldDecl*,ret->iface,i);
+				if(iface){
+					deleteProtoFieldDecl(iface);
+				}
+			}
+		}
+		deleteVector(struct ProtoFieldDecl*,ret->iface);
+		//FREE_IF_NZ(ret->protoName);
+	}
+	//FREE_IF_NZ(ret);
+}
 /* Other members */
 /* ************* */
 
