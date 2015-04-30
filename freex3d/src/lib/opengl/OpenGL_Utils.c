@@ -3891,6 +3891,7 @@ void kill_oldWorldB(char *file, int line){
 		if(usingBrotos()>1 && rootnode->_nodeType == NODE_Proto){
 			unload_broto(X3D_PROTO(rootnode));
 			unload_globalParser();
+			resource_tree_destroy();
 		}else{
 			kill_oldWorld(TRUE,TRUE,file,line);
 		}

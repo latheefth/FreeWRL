@@ -4936,12 +4936,12 @@ struct X3D_Node* inPointerTable(struct X3D_Node* source,struct Vector *p2p)
 {
 	int i;
 	struct X3D_Node *dest = NULL;
-	struct pointer2pointer *pair;
+	struct pointer2pointer pair;
 	for(i=0;i<p2p->n;i++)
 	{
-		pair = vector_get(struct pointer2pointer*, p2p, i);
-		if(pair->pp == source){
-			dest = pair->pn;
+		pair = vector_get(struct pointer2pointer, p2p, i);
+		if(pair.pp == source){
+			dest = pair.pn;
 			break;
 		}
 	}
@@ -5038,7 +5038,7 @@ void deep_copy_broto_body2(struct X3D_Proto** proto, struct X3D_Proto** dest)
 	struct X3D_Proto *prototype, *p;
 	struct X3D_Node *parent;
 	Stack *instancedScripts;
-	struct Vector *p2p = newVector(struct pointer2pointer*,10);
+	struct Vector *p2p = newVector(struct pointer2pointer,10);
 	
 	//2. copy body from source's _prototype.children to dest.children, ISing initialvalues as we go
 	p=(*dest);
@@ -5079,7 +5079,7 @@ void deep_copy_broto_body2(struct X3D_Proto** proto, struct X3D_Proto** dest)
 	initialize_scripts(instancedScripts);
 
 	//*dest = p;
-	//free p2p
+	deleteVector(struct pointer2pointer,p2p); //free p2p
 	return;
 }
 struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep)
@@ -5153,11 +5153,11 @@ struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep)
 struct X3D_Node *p2p_lookup(struct X3D_Node *pnode, struct Vector *p2p)
 {
 	int i;
-	struct pointer2pointer* pair;
+	struct pointer2pointer pair;
 	for(i=0;i<p2p->n;i++)
 	{
-		pair = vector_get(struct pointer2pointer*, p2p, i);
-		if(pnode == pair->pp) return pair->pn;
+		pair = vector_get(struct pointer2pointer, p2p, i);
+		if(pnode == pair.pp) return pair.pn;
 	}
 	return NULL;
 }
@@ -5465,7 +5465,7 @@ void deep_copy_broto_body(struct X3D_Proto** proto, struct X3D_Proto** dest, Sta
 
 	struct X3D_Proto *prototype, *p;
 	struct X3D_Node *parent;
-	struct Vector *p2p = newVector(struct pointer2pointer*,10);
+	struct Vector *p2p = newVector(struct pointer2pointer,10);
 	
 	//2. copy body from source's _prototype.children to dest.children, ISing initialvalues as we go
 	p=(*dest);
@@ -5620,7 +5620,7 @@ void registerParentIfManagedField(int type, int mode, BOOL isPublic, union anyVr
 void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vector *p2p, Stack *instancedScripts, 
 					struct X3D_Proto* ctx)
 {
-	struct pointer2pointer *pair;
+	struct pointer2pointer pair;
 	struct X3D_Node* parent;
 	if(*source == NULL){
 		*dest = NULL;
@@ -5649,10 +5649,10 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 	if((*source)->_nodeType == NODE_Script)
 		stack_push(struct X3D_Node*,instancedScripts,*dest);
 	//register in pointer lookup table
-	pair = MALLOC(struct pointer2pointer*,sizeof(struct pointer2pointer));
-	pair->pp = *source;
-	pair->pn = *dest;
-	vector_pushBack(struct pointer2pointer*, p2p, pair);
+	//pair = MALLOC(struct pointer2pointer*,sizeof(struct pointer2pointer));
+	pair.pp = *source;
+	pair.pn = *dest;
+	vector_pushBack(struct pointer2pointer, p2p, pair);
 	//copy fields
 	{
 		typedef struct field_info{
@@ -6022,7 +6022,7 @@ void sceneInstance(struct X3D_Proto* sceneProto, struct X3D_Node *sceneInstance)
 	struct X3D_Proto *scenePlaceholderProto;
 	struct X3D_Node *parent;
 	struct Multi_Node *children;
-	struct Vector *p2p = newVector(struct pointer2pointer*,10);
+	struct Vector *p2p = newVector(struct pointer2pointer,10);
 	Stack *instancedScripts = newStack(struct X3D_Node*);
 	children = childrenField(sceneInstance);
 	children->n = 0;
@@ -6938,7 +6938,7 @@ void load_externProtoInstance (struct X3D_Proto *node) {
 								int i,j;
 								char *ename, *pname;
 								struct Vector *p2p;
-								struct pointer2pointer *p2pentry;
+								struct pointer2pointer p2pentry;
 
 								//match fields to create IStable
 								for(i=0;i<ei->n;i++){
@@ -6960,12 +6960,12 @@ void load_externProtoInstance (struct X3D_Proto *node) {
 									}
 								}
 								//convert IStable to browser routes
-								p2p = newVector(struct pointer2pointer*,1);
-								p2pentry = MALLOCV(sizeof(struct pointer2pointer));
+								p2p = newVector(struct pointer2pointer,1);
+								//p2pentry = MALLOCV(sizeof(struct pointer2pointer));
 								//nothing to look up, nuisance to re-use copy_IS
-								p2pentry->pp = X3D_NODE(pinstance);
-								p2pentry->pn = X3D_NODE(pinstance);
-								vector_pushBack(struct pointer2pointer*,p2p,p2pentry);
+								p2pentry.pp = X3D_NODE(pinstance);
+								p2pentry.pn = X3D_NODE(pinstance);
+								vector_pushBack(struct pointer2pointer,p2p,p2pentry);
 								copy_IS(node->__IS, node, p2p);
 							}
 							//copy EPI field initial values to contained PI
