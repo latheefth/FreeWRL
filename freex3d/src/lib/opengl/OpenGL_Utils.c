@@ -5629,12 +5629,16 @@ BOOL cbFreeMallocedUserField(void *callbackData,struct X3D_Node* node,int jfield
 					//union anyVrml holds a struct Uni_String * (a pointer to Uni_String)
 					us = fieldPtr->sfstring;
 					clearASCIIString(us); //fieldPtr);
+					fieldPtr->sfstring->strptr = NULL;
+					fieldPtr->sfstring->len = 0;
 				}else if(type == FIELDTYPE_MFString){
 					clearMFString(fieldPtr);
+					fieldPtr->mfstring.p = NULL;
+					fieldPtr->mfstring.n = 0;
 				} else if(isMF) { 
 					//if(type == FIELDTYPE_SFImage){
-					FREE_IF_NZ(fieldPtr->mfbool.p);
-					fieldPtr->mfbool.n = 0;
+					FREE_IF_NZ(fieldPtr->mfnode.p);
+					fieldPtr->mfnode.n = 0;
 				}
 			}
 		}
@@ -5679,7 +5683,7 @@ void deleteShaderDefinition(struct Shader_Script *shader){
 }
 //static struct Vector freed;
 //static struct fieldFree ffs[100];
-void freeMallocedNodeFields(struct X3D_Node* node){
+void freeMallocedNodeFields0(struct X3D_Node* node){
 	//PIMPL Idiom in C is like objects in C++ - each object should know how to delete itself
 	//we don't have good pimpl habits yet in freewrl
 	//Here we try and generically free what a node may have allocated
@@ -5720,7 +5724,12 @@ void freeMallocedNodeFields(struct X3D_Node* node){
 		walk_fields(node,cbFreeMallocedBuiltinField,NULL); //&freed);
 	}
 }
-
+void freeMallocedNodeFields(struct X3D_Node* node){
+	if(node){
+		deleteVector(sizeof(void*),node->_parentVector);
+		freeMallocedNodeFields0(node);
+	}
+}
 /*delete node created
 static void killNode_hide_obsolete (int index) {
 	int j=0;

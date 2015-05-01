@@ -184,10 +184,24 @@ struct ProtoFieldDecl* newProtoFieldDecl(indexT mode, indexT type, indexT name)
  ret->alreadySet=FALSE;
  ret->fieldString = NULL;
  ret->cname = NULL;
-
- ret->scriptDests=newVector(struct ScriptFieldInstanceInfo*, 4);
- ASSERT(ret->scriptDests);
+ ret->scriptDests = NULL;
+ if(!usingBrotos()){
+	//used for KW_IS / is for non-broto / old-style text protos when a script is inside a protobody
+	//(broto has separate table for IS)
+	ret->scriptDests=newVector(struct ScriptFieldInstanceInfo*, 4);
+	ASSERT(ret->scriptDests);
+ }
  return ret;
+}
+struct ProtoFieldDecl* copy_ProtoFieldDecl(struct ProtoFieldDecl *sdecl) {
+	struct ProtoFieldDecl *ddecl;
+	ddecl = newProtoFieldDecl(sdecl->mode,sdecl->type,sdecl->name);
+	if(sdecl->cname)
+		ddecl->cname = strdup(sdecl->cname);
+	if(sdecl->mode == PKW_inputOnly || sdecl->mode == PKW_inputOutput){
+		shallow_copy_field(sdecl->type,&(sdecl->defaultVal),&(ddecl->defaultVal));
+	}
+	return ddecl;
 }
 
 void deleteProtoFieldDecl(struct ProtoFieldDecl* me)

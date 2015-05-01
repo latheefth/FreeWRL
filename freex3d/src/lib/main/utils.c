@@ -575,12 +575,36 @@ int comp_fileline (const void * elem1, const void * elem2)
 		iret = comp_line(elem1,elem2);
 	return iret;
 }
-
+void scanForVectorTypes(){
+    for (mcount=0; mcount<MAXMALLOCSTOKEEP;mcount++) {
+		if (mcheck[mcount]!=NULL) {
+			if(mlineno[mcount]==5873){ //strstr("GeneratedCode.c",mplace[mcount]) && 
+				//pexky _parentVector
+				struct Vector * v = (struct Vector*)mcheck[mcount];
+				printf("!%d!",v->n);
+			}
+		}
+	}
+}
+void scanForFieldTypes(){
+    for (mcount=0; mcount<MAXMALLOCSTOKEEP;mcount++) {
+		if (mcheck[mcount]!=NULL) {
+			if(mlineno[mcount]==5393){ //strstr("GeneratedCode.c",mplace[mcount]) && 
+				//pexky _parentVector
+				union anyVrml u;
+				u.mfnode.p = mcheck[mcount];
+				printf("!%p!",u.mfnode.p);
+			}
+		}
+	}
+}
 void scanMallocTableOnQuit()
 {
 	//this version will sum up the lines were the mallocs are occuring that aren't freed
 	int nlocs,j,iloc;
 	size_t total;
+	//scanForVectorTypes();
+	scanForFieldTypes();
 	malloc_location *mlocs = malloc(sizeof(malloc_location)*MAXMALLOCSTOKEEP);
 	memset(mlocs,0,sizeof(malloc_location)*MAXMALLOCSTOKEEP);
 	nlocs = 0;

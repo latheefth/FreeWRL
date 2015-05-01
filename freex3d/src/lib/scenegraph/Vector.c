@@ -58,7 +58,7 @@ struct Vector* newVector_(int elSize, int initSize,char *fi, int line) {
  	ret->allocn=initSize;
 #ifdef DEBUG_MALLOC
 	//inherit __line__ and __file__ from particular spot in code that does newVector
-	ret->data=(void *)freewrlMalloc(line, fi,elSize*ret->allocn, FALSE);
+	ret->data=(void *)freewrlMalloc(line+1, fi,elSize*ret->allocn, FALSE);
 #else
  	ret->data=MALLOC(void *, elSize*ret->allocn);
 #endif
