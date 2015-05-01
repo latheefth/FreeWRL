@@ -316,6 +316,7 @@ void CRoutes_clear(struct tCRoutes *t){
 		free_routes();
 		FREE_IF_NZ(p->ClockEvents);
 		FREE_IF_NZ(p->preEvents);
+		FREE_IF_NZ(p->ScriptControl);
 	}
 }
 //	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
