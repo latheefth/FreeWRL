@@ -4053,6 +4053,7 @@ void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, int num);
 #else
 #include <malloc/malloc.h>
 #endif
+void deleteMallocedFieldValue(int type,union anyVrml *fieldPtr);
 static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
     int mode;
     int type;
@@ -4120,7 +4121,7 @@ static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
 		/* set the defaultVal to something - we might have a problem if the parser expects this to be
 		a MF*, and there is "garbage" in there, as it will expect to free it. */
 		//bzero (&defaultVal, sizeof (union anyVrml)); //default val pulled from existing field default
-
+		deleteMallocedFieldValue(type,targetVal);
 		if (!parseType(me, type, targetVal)) {
 			/* Invalid default value parsed.  Delete the proto or script declaration. */
 			CPARSE_ERROR_CURID("Expected default value for field!");

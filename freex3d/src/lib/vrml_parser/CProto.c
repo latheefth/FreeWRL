@@ -204,6 +204,30 @@ struct ProtoFieldDecl* copy_ProtoFieldDecl(struct ProtoFieldDecl *sdecl) {
 	//}
 	return ddecl;
 }
+void clearASCIIString(struct Uni_String *us);
+void freeASCIIString(struct Uni_String *us);
+void clearMFString(struct Multi_String *ms);
+void freeMFString(struct Multi_String **ms);
+void deleteMallocedFieldValue(int type,union anyVrml *fieldPtr)
+{
+	//deletes just the malloced part, assuming another replacement value will be deep copied in its place
+	int isMF;
+	isMF =type % 2;
+	if(type == FIELDTYPE_FreeWRLPTR){
+		if(0) FREE_IF_NZ(fieldPtr);
+	} else if(type == FIELDTYPE_SFString){
+		struct Uni_String *us;
+		//union anyVrml holds a struct Uni_String * (a pointer to Uni_String)
+		us = fieldPtr->sfstring;
+		clearASCIIString(us); //fieldPtr);
+	}else if(type == FIELDTYPE_MFString){
+		clearMFString(&fieldPtr->mfstring);
+	} else if(isMF) { 
+		//if(type == FIELDTYPE_SFImage){
+		FREE_IF_NZ(fieldPtr->mfnode.p);
+		fieldPtr->mfnode.n = 0;
+	}
+}
 
 void deleteProtoFieldDecl(struct ProtoFieldDecl* me)
 {
@@ -213,26 +237,7 @@ void deleteProtoFieldDecl(struct ProtoFieldDecl* me)
 	FREE_IF_NZ(me->fieldString);
 	fieldPtr = &(me->defaultVal);
 	type = me->type;
-	isMF =type % 2;
-	if(type == FIELDTYPE_FreeWRLPTR){
-		if(0) FREE_IF_NZ(fieldPtr);
-	} else if(type == FIELDTYPE_SFString){
-		struct Uni_String *us;
-		//union anyVrml holds a struct Uni_String * (a pointer to Uni_String)
-		us = fieldPtr->sfstring;
-		clearASCIIString(us); //fieldPtr);
-		fieldPtr->sfstring->strptr = NULL;
-		fieldPtr->sfstring->len = 0;
-	}else if(type == FIELDTYPE_MFString){
-		clearMFString(fieldPtr);
-		fieldPtr->mfstring.p = NULL;
-		fieldPtr->mfstring.n = 0;
-	} else if(isMF) { 
-		//if(type == FIELDTYPE_SFImage){
-		FREE_IF_NZ(fieldPtr->mfnode.p);
-		fieldPtr->mfnode.n = 0;
-	}
-
+	deleteMallocedFieldValue(type,fieldPtr);
 	FREE_IF_NZ(me);
 }
 
