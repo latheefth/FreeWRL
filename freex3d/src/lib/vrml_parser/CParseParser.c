@@ -5136,6 +5136,8 @@ struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep)
 		nobj = MALLOC(struct ProtoDefinition*,sizeof(struct ProtoDefinition));
 		memcpy(nobj,pobj,sizeof(struct ProtoDefinition));
 		nobj->iface = newVector(struct ProtoFieldDecl *, pobj->iface->n);
+		if(pobj->protoName)
+			nobj->protoName = STRDUP(pobj->protoName);
 		for(i=0;i<pobj->iface->n;i++)
 		{
 			pdecl = protoDefinition_getFieldByNum(pobj, i);

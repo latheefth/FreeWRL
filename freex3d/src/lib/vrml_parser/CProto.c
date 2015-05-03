@@ -293,7 +293,7 @@ void deleteProtoDefinition(struct ProtoDefinition *ret) {
 			}
 		}
 		deleteVector(struct ProtoFieldDecl*,ret->iface);
-		//FREE_IF_NZ(ret->protoName);
+		FREE_IF_NZ(ret->protoName);
 	}
 	//FREE_IF_NZ(ret);
 }
