@@ -5581,7 +5581,7 @@ BOOL cbFreeMallocedBuiltinField(void *callbackData,struct X3D_Node* node,int jfi
 		if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
 			//#define FIELDTYPE_FreeWRLPTR	22
 			//#define FIELDTYPE_SFImage	23
-			if(strcmp(fieldName,"__oldurl") && strcmp(fieldName,"__oldSFString") && strcmp(fieldName,"__oldMFString")) {
+			if(strcmp(fieldName,"__oldurl") && strcmp(fieldName,"__oldSFString") && strcmp(fieldName,"__oldMFString") && strcmp(fieldName,"_parentVector")) {
 			//if(1){
 				//skip double underscore prefixed fields, which we will treat as not-to-be-deleted, because duplicates like GeoViewpoint __oldMFString which is a duplicate of navType
 				int isMF = type % 2;
@@ -5594,11 +5594,54 @@ BOOL cbFreeMallocedBuiltinField(void *callbackData,struct X3D_Node* node,int jfi
 					//union anyVrml holds a struct Uni_String * (a pointer to Uni_String)
 					us = fieldPtr->sfstring;
 					clearASCIIString(us); //fieldPtr);
+					fieldPtr->sfstring->strptr = NULL;
 				}else if(type == FIELDTYPE_MFString){
 					clearMFString(fieldPtr);
+					fieldPtr->mfstring.n = 0;
+					fieldPtr->mfstring.p = NULL;
 				} else if(isMF) { 
-					FREE_IF_NZ(fieldPtr->mfbool.p);
-					fieldPtr->mfbool.n = 0;
+					FREE_IF_NZ(fieldPtr->mfnode.p);
+					fieldPtr->mfnode.n = 0;
+					fieldPtr->mfnode.p = NULL;
+				}
+			}
+		}
+	}
+	return FALSE; //false to keep walking fields, true to break out
+}
+BOOL cbFreePublicMallocedBuiltinField(void *callbackData,struct X3D_Node* node,int jfield,
+	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,BOOL publicfield)
+{
+	//for builtins, the field is malloced as part of the node size, so we don't free the field itself
+	// .. just if its a complex field type holding a malloced pointer
+	// .. like MF.p or SFString.ptr
+	// and only if the node owns the pointer, which we determine by if the field is initializeOnly or inputOutput
+	if(source == 0){
+		if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
+			//#define FIELDTYPE_FreeWRLPTR	22
+			//#define FIELDTYPE_SFImage	23
+			if(strncmp(fieldName,"_",1)) { //only public fields, skip _ and __ private fields
+			//if(1){
+				//skip double underscore prefixed fields, which we will treat as not-to-be-deleted, because duplicates like GeoViewpoint __oldMFString which is a duplicate of navType
+				int isMF = type % 2;
+				if(type == FIELDTYPE_FreeWRLPTR){
+					//depends what it's pointing to. If it was a straightforward malloc then:
+					if(0) FREE_IF_NZ(fieldPtr);
+					//else if it was a *vector or other compound type, then we need to know the type to free its pointers
+				} else if(type == FIELDTYPE_SFString){
+					struct Uni_String *us;
+					//union anyVrml holds a struct Uni_String * (a pointer to Uni_String)
+					us = fieldPtr->sfstring;
+					clearASCIIString(us); //fieldPtr);
+					fieldPtr->sfstring->strptr = NULL;
+				}else if(type == FIELDTYPE_MFString){
+					clearMFString(fieldPtr);
+					fieldPtr->mfstring.n = 0;
+					fieldPtr->mfstring.p = NULL;
+				} else if(isMF) { 
+					FREE_IF_NZ(fieldPtr->mfnode.p);
+					fieldPtr->mfnode.n = 0;
+					fieldPtr->mfnode.p = NULL;
 				}
 			}
 		}
@@ -5723,6 +5766,10 @@ void freeMallocedNodeFields0(struct X3D_Node* node){
 		/* free malloced public fields */
 		walk_fields(node,cbFreeMallocedBuiltinField,NULL); //&freed);
 	}
+}
+void freePublicBuiltinNodeFields(struct X3D_Node* node){
+	if(node)
+		walk_fields(node,cbFreePublicMallocedBuiltinField,NULL); //&freed);
 }
 void freeMallocedNodeFields(struct X3D_Node* node){
 	if(node){

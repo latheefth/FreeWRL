@@ -5139,7 +5139,7 @@ struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep)
 		for(i=0;i<pobj->iface->n;i++)
 		{
 			pdecl = protoDefinition_getFieldByNum(pobj, i);
-			if(1){
+			if(0){
  				ndecl=newProtoFieldDecl(pdecl->mode, pdecl->type, pdecl->name);
 				//memcpy(ndecl,pdecl,sizeof(struct ProtoFieldDecl *)); //not just the pointer
 				memcpy(ndecl,pdecl,sizeof(struct ProtoFieldDecl));  //.. the whole struct
@@ -5631,6 +5631,8 @@ void registerParentIfManagedField(int type, int mode, BOOL isPublic, union anyVr
 	}
 }
 void freeMallocedNodeFields(struct X3D_Node* node);
+void deleteProtoDefinition(struct ProtoDefinition *ret);
+void freePublicBuiltinNodeFields(struct X3D_Node* node);
 void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vector *p2p, Stack *instancedScripts, 
 					struct X3D_Proto* ctx)
 {
@@ -5646,11 +5648,14 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 	//create new Node
 	//problem with both brotoInstance and createNewX3DNode in deep_copy:
 	//	default field values are malloced, but we don't need or use them, -we copy below- so we need to gc them
-	if((*source)->_nodeType == NODE_Proto)
+	if((*source)->_nodeType == NODE_Proto){
 		*dest = X3D_NODE(brotoInstance(X3D_PROTO(X3D_PROTO(*source)->__prototype),ciflag_get(ctx->__protoFlags,0)));
-	else
+		deleteProtoDefinition(X3D_PROTO(*dest)->__protoDef);
+	}else{
 		*dest=X3D_NODE(createNewX3DNode( (*source)->_nodeType)); //will register sensors and viewpionts
-	//freeMallocedNodeFields0(*dest); //frees field which we are going to recreate below.
+		//freeMallocedNodeFields0(*dest); //frees field which we are going to recreate below.
+		freePublicBuiltinNodeFields(*dest);
+	}
 	add_node_to_broto_context(ctx,(*dest));
 	//if(!ctx->__nodes)
 	//	ctx->__nodes = newVector(struct X3D_Node*,4);
@@ -5737,7 +5742,7 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 					//usually brotoInstance or newProtoDefinition creates iface
 					//however brotoInstance populates with default initializeOnly values
 					//and here we are going to copy over the/any non-default brotoInstance over-ride values
-					//if(!dp->iface) 
+					if(!dp->iface) 
 						dp->iface = newVector(struct ProtoFieldDecl *, sp->iface->n);
 					dp->protoName = STRDUP(sp->protoName);
 					dp->isCopy = TRUE;

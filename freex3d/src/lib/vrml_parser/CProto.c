@@ -198,9 +198,10 @@ struct ProtoFieldDecl* copy_ProtoFieldDecl(struct ProtoFieldDecl *sdecl) {
 	ddecl = newProtoFieldDecl(sdecl->mode,sdecl->type,sdecl->name);
 	if(sdecl->cname)
 		ddecl->cname = strdup(sdecl->cname);
-	if(sdecl->mode == PKW_inputOnly || sdecl->mode == PKW_inputOutput){
-		shallow_copy_field(sdecl->type,&(sdecl->defaultVal),&(ddecl->defaultVal));
-	}
+	//if(sdecl->mode == PKW_inputOnly || sdecl->mode == PKW_inputOutput){
+	//I seem to need unconditional otherwise something bombs when cleaning up / freeing
+	shallow_copy_field(sdecl->type,&(sdecl->defaultVal),&(ddecl->defaultVal));
+	//}
 	return ddecl;
 }
 
