@@ -176,22 +176,25 @@ static struct ProtoElementPointer* newProtoElementPointer(void) {
 /* Without default value (event) */
 struct ProtoFieldDecl* newProtoFieldDecl(indexT mode, indexT type, indexT name)
 {
- struct ProtoFieldDecl* ret=MALLOC(struct ProtoFieldDecl*, sizeof(struct ProtoFieldDecl));
-  /* printf("creating ProtoFieldDecl %p\n", ret);  */
- ret->mode=mode;
- ret->type=type;
- ret->name=name;
- ret->alreadySet=FALSE;
- ret->fieldString = NULL;
- ret->cname = NULL;
- ret->scriptDests = NULL;
- if(!usingBrotos()){
-	//used for KW_IS / is for non-broto / old-style text protos when a script is inside a protobody
-	//(broto has separate table for IS)
-	ret->scriptDests=newVector(struct ScriptFieldInstanceInfo*, 4);
-	ASSERT(ret->scriptDests);
- }
- return ret;
+	struct ProtoFieldDecl* ret=MALLOC(struct ProtoFieldDecl*, sizeof(struct ProtoFieldDecl));
+	bzero(ret,sizeof(struct ProtoFieldDecl));
+	/* printf("creating ProtoFieldDecl %p\n", ret);  */
+	ret->mode=mode;
+	ret->type=type;
+	ret->name=name;
+	ret->alreadySet=FALSE;
+	ret->fieldString = NULL;
+	ret->cname = NULL;
+	ret->scriptDests = NULL;
+	ret->defaultVal.mfnode.p = NULL;
+	ret->defaultVal.mfnode.n = 0;
+	if(!usingBrotos()){
+		//used for KW_IS / is for non-broto / old-style text protos when a script is inside a protobody
+		//(broto has separate table for IS)
+		ret->scriptDests=newVector(struct ScriptFieldInstanceInfo*, 4);
+		ASSERT(ret->scriptDests);
+	}
+	return ret;
 }
 struct ProtoFieldDecl* copy_ProtoFieldDecl(struct ProtoFieldDecl *sdecl) {
 	struct ProtoFieldDecl *ddecl;
@@ -211,21 +214,24 @@ void freeMFString(struct Multi_String **ms);
 void deleteMallocedFieldValue(int type,union anyVrml *fieldPtr)
 {
 	//deletes just the malloced part, assuming another replacement value will be deep copied in its place
-	int isMF;
-	isMF =type % 2;
-	if(type == FIELDTYPE_FreeWRLPTR){
-		if(0) FREE_IF_NZ(fieldPtr);
-	} else if(type == FIELDTYPE_SFString){
-		struct Uni_String *us;
-		//union anyVrml holds a struct Uni_String * (a pointer to Uni_String)
-		us = fieldPtr->sfstring;
-		clearASCIIString(us); //fieldPtr);
-	}else if(type == FIELDTYPE_MFString){
-		clearMFString(&fieldPtr->mfstring);
-	} else if(isMF) { 
-		//if(type == FIELDTYPE_SFImage){
-		FREE_IF_NZ(fieldPtr->mfnode.p);
-		fieldPtr->mfnode.n = 0;
+	if(fieldPtr) {
+		int isMF;
+		isMF =type % 2;
+		if(type == FIELDTYPE_FreeWRLPTR){
+			if(0) FREE_IF_NZ(fieldPtr);
+		} else if(type == FIELDTYPE_SFString){
+			struct Uni_String *us;
+			//union anyVrml holds a struct Uni_String * (a pointer to Uni_String)
+			us = fieldPtr->sfstring;
+			clearASCIIString(us); //fieldPtr);
+		}else if(type == FIELDTYPE_MFString){
+			clearMFString(&fieldPtr->mfstring);
+			fieldPtr->mfstring.n = 0;
+		} else if(isMF) { 
+			//if(type == FIELDTYPE_SFImage){
+			FREE_IF_NZ(fieldPtr->mfnode.p);
+			fieldPtr->mfnode.n = 0;
+		}
 	}
 }
 

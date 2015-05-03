@@ -5529,6 +5529,7 @@ void shallow_copy_field(int typeIndex, union anyVrml* source, union anyVrml* des
 		mfs = (struct Multi_Node*)source;
 		mfd = (struct Multi_Node*)dest;
 		//we need to malloc and do more copying
+		deleteMallocedFieldValue(typeIndex,dest);
 		nele = mfs->n;
 		if( sftype == FIELDTYPE_SFNode ) nele = (int) upper_power_of_two(nele);
 		if(!nele){
@@ -5536,6 +5537,7 @@ void shallow_copy_field(int typeIndex, union anyVrml* source, union anyVrml* des
 			mfd->n = 0;
 		}else{
 			mfd->p = MALLOC (struct X3D_Node **, isize*nele);
+			bzero(mfd->p,isize*nele);
 			mfd->n = mfs->n;
 			ps = (char *)mfs->p;
 			pd = (char *)mfd->p;
@@ -5554,6 +5556,7 @@ void shallow_copy_field(int typeIndex, union anyVrml* source, union anyVrml* des
 				{
 					//go deep, same as copy_field
 					struct Uni_String **ss, *sd;
+					deleteMallocedFieldValue(typeIndex,dest);
 					ss = (struct Uni_String **)source;
 					sd = (struct Uni_String *)MALLOC (struct Uni_String*, sizeof(struct Uni_String));
 					memcpy(sd,*ss,sizeof(struct Uni_String));
