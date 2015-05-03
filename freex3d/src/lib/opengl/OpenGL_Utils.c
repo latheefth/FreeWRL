@@ -5578,7 +5578,8 @@ BOOL cbFreeMallocedBuiltinField(void *callbackData,struct X3D_Node* node,int jfi
 	// .. like MF.p or SFString.ptr
 	// and only if the node owns the pointer, which we determine by if the field is initializeOnly or inputOutput
 	if(source == 0){
-		if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
+		//if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
+		if(1){
 			//#define FIELDTYPE_FreeWRLPTR	22
 			//#define FIELDTYPE_SFImage	23
 			if(strcmp(fieldName,"__oldurl") && strcmp(fieldName,"__oldSFString") && strcmp(fieldName,"__oldMFString") && strcmp(fieldName,"_parentVector")) {
@@ -5594,7 +5595,8 @@ BOOL cbFreeMallocedBuiltinField(void *callbackData,struct X3D_Node* node,int jfi
 					//union anyVrml holds a struct Uni_String * (a pointer to Uni_String)
 					us = fieldPtr->sfstring;
 					clearASCIIString(us); //fieldPtr);
-					fieldPtr->sfstring->strptr = NULL;
+					FREE_IF_NZ(fieldPtr->sfstring);
+					//fieldPtr->sfstring->strptr = NULL;
 				}else if(type == FIELDTYPE_MFString){
 					clearMFString(fieldPtr);
 					fieldPtr->mfstring.n = 0;
@@ -5617,7 +5619,8 @@ BOOL cbFreePublicMallocedBuiltinField(void *callbackData,struct X3D_Node* node,i
 	// .. like MF.p or SFString.ptr
 	// and only if the node owns the pointer, which we determine by if the field is initializeOnly or inputOutput
 	if(source == 0){
-		if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
+		//if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
+		if(1){
 			//#define FIELDTYPE_FreeWRLPTR	22
 			//#define FIELDTYPE_SFImage	23
 			if(strncmp(fieldName,"_",1)) { //only public fields, skip _ and __ private fields
@@ -5633,7 +5636,7 @@ BOOL cbFreePublicMallocedBuiltinField(void *callbackData,struct X3D_Node* node,i
 					//union anyVrml holds a struct Uni_String * (a pointer to Uni_String)
 					us = fieldPtr->sfstring;
 					clearASCIIString(us); //fieldPtr);
-					fieldPtr->sfstring->strptr = NULL;
+					//fieldPtr->sfstring->strptr = NULL;
 					FREE_IF_NZ(fieldPtr->sfstring);
 				}else if(type == FIELDTYPE_MFString){
 					clearMFString(fieldPtr);
