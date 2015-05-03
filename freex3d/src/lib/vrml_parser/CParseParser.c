@@ -5751,7 +5751,7 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 						sdecl = protoDefinition_getFieldByNum(sp, k);
  						ddecl=newProtoFieldDecl(sdecl->mode, sdecl->type, sdecl->name);
 						//memcpy(ndecl,pdecl,sizeof(struct ProtoFieldDecl *)); //not just the pointer
-						ddecl->cname = sdecl->cname;
+						ddecl->cname = STRDUP(sdecl->cname);
 						is_source = 3; 	//field isource: 0=builtin 1=script user field 2=shader_program user field 3=Proto/Broto user field 4=group __protoDef
 
 						
@@ -7251,6 +7251,8 @@ int unregister_broto_instance(struct X3D_Proto* node){
 int gc_broto_instance(struct X3D_Proto* node){
 	int i, iret = TRUE;
 	//used for both live scenery -after unregistered from browser- and for protodeclarations and proto library scenes
+	//does not free the __protoDef outward facing fields of a protoInstance, protoDeclare, nor the node itself
+	// -- you do that generically from the containing context
 	//recurse to free subcontexts: protoInstances, externProtoInstances, Inlines (which may instance this context's protoDeclares)
 	//free protodeclares (recursive)
 	//free externprotodeclares (recursive)

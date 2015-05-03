@@ -197,7 +197,7 @@ struct ProtoFieldDecl* copy_ProtoFieldDecl(struct ProtoFieldDecl *sdecl) {
 	struct ProtoFieldDecl *ddecl;
 	ddecl = newProtoFieldDecl(sdecl->mode,sdecl->type,sdecl->name);
 	if(sdecl->cname)
-		ddecl->cname = strdup(sdecl->cname);
+		ddecl->cname = STRDUP(sdecl->cname);
 	//if(sdecl->mode == PKW_inputOnly || sdecl->mode == PKW_inputOutput){
 	//I seem to need unconditional otherwise something bombs when cleaning up / freeing
 	shallow_copy_field(sdecl->type,&(sdecl->defaultVal),&(ddecl->defaultVal));
@@ -207,7 +207,33 @@ struct ProtoFieldDecl* copy_ProtoFieldDecl(struct ProtoFieldDecl *sdecl) {
 
 void deleteProtoFieldDecl(struct ProtoFieldDecl* me)
 {
- FREE_IF_NZ(me);
+	int isMF, type;
+	union anyVrml *fieldPtr;
+	FREE_IF_NZ(me->cname);
+	FREE_IF_NZ(me->fieldString);
+	fieldPtr = &(me->defaultVal);
+	type = me->type;
+	isMF =type % 2;
+	if(type == FIELDTYPE_FreeWRLPTR){
+		if(0) FREE_IF_NZ(fieldPtr);
+	} else if(type == FIELDTYPE_SFString){
+		struct Uni_String *us;
+		//union anyVrml holds a struct Uni_String * (a pointer to Uni_String)
+		us = fieldPtr->sfstring;
+		clearASCIIString(us); //fieldPtr);
+		fieldPtr->sfstring->strptr = NULL;
+		fieldPtr->sfstring->len = 0;
+	}else if(type == FIELDTYPE_MFString){
+		clearMFString(fieldPtr);
+		fieldPtr->mfstring.p = NULL;
+		fieldPtr->mfstring.n = 0;
+	} else if(isMF) { 
+		//if(type == FIELDTYPE_SFImage){
+		FREE_IF_NZ(fieldPtr->mfnode.p);
+		fieldPtr->mfnode.n = 0;
+	}
+
+	FREE_IF_NZ(me);
 }
 
 
