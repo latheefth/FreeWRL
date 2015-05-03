@@ -4469,6 +4469,7 @@ static BOOL parser_externbrotoStatement(struct VRMLParser* me)
 //	int toOfs;
 //	int ft;
 //};
+struct brotoRoute *createNewBrotoRoute();
 void broto_store_route(struct X3D_Proto* proto,
                           struct X3D_Node* fromNode, int fromIndex,
                           struct X3D_Node* toNode, int toIndex,
@@ -4483,11 +4484,12 @@ void broto_store_route(struct X3D_Proto* proto,
 		return;
 	}
 
-	route = MALLOC(struct brotoRoute*,sizeof(struct brotoRoute));
+	route = createNewBrotoRoute();
 	route->from.node = fromNode;
 	route->from.ifield = fromIndex;
 	route->to.node = toNode;
 	route->to.ifield = toIndex;
+	route->lastCommand = 1; //??
 	route->ft = ft;
 
 	routes = proto->__ROUTES;
@@ -4523,7 +4525,7 @@ void broto_store_ImportRoute_obsolete(struct X3D_Proto* proto, char *fromNode, c
 	struct brotoRoute* route;
 	if( proto->__ROUTES == NULL)
 		proto->__ROUTES= newStack(struct brotoRoute *);
-	route = MALLOC(struct brotoRoute*,sizeof(struct brotoRoute));
+	route = createNewBrotoRoute();
 	route->ft = -1;
 	route->lastCommand = 0; //not added to CRoutes until inline loaded
 	route->from.weak = 2; //weak references to publish/from,subscribe/to ends not loaded yet
@@ -4547,7 +4549,14 @@ void broto_store_broute(struct X3D_Proto* context,struct brotoRoute *route){
 		context->__ROUTES= newStack(struct brotoRoute *);
 	stack_push(struct brotoRoute *, context->__ROUTES, route);
 }
-
+void free_brouteEnd(struct brouteEnd *bend){
+	FREE_IF_NZ(bend->cnode);
+	FREE_IF_NZ(bend->cfield);
+}
+void free_broute(struct brotoRoute *route){
+	free_brouteEnd(&route->from);
+	free_brouteEnd(&route->to);
+}
 //BOOL route_parse_nodefield(pre, eventType)
 //used by parser_routeStatement:
 
@@ -4671,7 +4680,8 @@ BOOL route_parse_nodefield_B(struct VRMLParser* me, char **ssnode, char **ssfiel
 	} 
 
 	/* get fieldName */
-	if(!lexer_setCurID(me->lexer)) return FALSE;
+	if(!lexer_setCurID(me->lexer)) 
+		return FALSE;
 	ASSERT(me->lexer->curID);
 	sfield = STRDUP(me->lexer->curID);
 	FREE_IF_NZ(me->lexer->curID);
@@ -4728,11 +4738,19 @@ static BOOL parser_routeStatement_B(struct VRMLParser* me)
 	foundto = route_parse_nodefield_B(me,&stnode, &stfield);
 
 	if(!(foundfrom && gotTO && foundto)){
+		FREE_IF_NZ(sfnode);
+		FREE_IF_NZ(sffield);
+		FREE_IF_NZ(stnode);
+		FREE_IF_NZ(stfield);
         PARSER_FINALLY; 
 		return FALSE; 
 	}
 
 	QAandRegister_parsedRoute_B(X3D_PROTO(me->ectx), sfnode, sffield, stnode, stfield);
+	FREE_IF_NZ(sfnode);
+	FREE_IF_NZ(sffield);
+	FREE_IF_NZ(stnode);
+	FREE_IF_NZ(stfield);
 
     return TRUE;
 }
@@ -7278,6 +7296,7 @@ int gc_broto_instance(struct X3D_Proto* node){
 		if(node->__ROUTES){
 			for(i=0;i<vectorSize(node->__ROUTES);i++){
 				struct brotoRoute* route = vector_get(struct brotoRoute*,node->__ROUTES,i);
+				free_broute(route);
 				FREE_IF_NZ(route);
 			}
 			deleteVector(struct brotoRoute *, node->__ROUTES);

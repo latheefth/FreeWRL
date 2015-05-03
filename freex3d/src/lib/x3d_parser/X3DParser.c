@@ -818,8 +818,8 @@ int QA_routeEnd(struct X3D_Proto *context, char* cnode, char* cfield, struct bro
 	int found = 0;
 
 	brend->weak = 1;
-	brend->cfield = cfield;
-	brend->cnode = cnode;
+	brend->cfield = STRDUP(cfield);
+	brend->cnode = STRDUP(cnode);
 
 	node = broto_search_DEFname(context,cnode);
 	if(!node){

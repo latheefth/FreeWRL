@@ -5755,6 +5755,7 @@ void freeMallocedNodeFields0(struct X3D_Node* node){
 				struct X3D_Proto* pnode = (struct X3D_Proto*)node;
 				deleteProtoDefinition(pnode->__protoDef);
 				FREE_IF_NZ(pnode->__protoDef);
+				FREE_IF_NZ(pnode->__typename);
 				//struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
 				//if(pstruct){
 				//	//for vectorget.n field->malloced stuff

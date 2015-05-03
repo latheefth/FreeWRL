@@ -711,7 +711,7 @@ void *addDeleteRoute0(void *fwn, char*callingFunc, struct X3D_Node* fromNode, ch
 		struct brotoRoute *broute;
 		struct X3D_Proto *ec = (struct X3D_Proto*)fwn;
 		if(!strcmp(callingFunc,"addRoute")){
-			broute = malloc(sizeof(struct brotoRoute));
+			broute = createNewBrotoRoute();
 			broute->from.node = fromNode;
 			broute->from.ifield = fromField;
 			//broute->from.Ofs = fromOfs;
