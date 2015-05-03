@@ -50,6 +50,7 @@
 struct FieldDecl* newFieldDecl(indexT mode, indexT type, indexT name, int JSname, int shv)
 {
  struct FieldDecl* ret=MALLOC(struct FieldDecl *, sizeof(struct FieldDecl));
+ bzero(ret,sizeof(struct FieldDecl));
  ret->PKWmode=mode;
  ret->fieldType=type;
  ret->lexerNameIndex=name;

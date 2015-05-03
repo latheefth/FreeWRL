@@ -5634,6 +5634,7 @@ BOOL cbFreePublicMallocedBuiltinField(void *callbackData,struct X3D_Node* node,i
 					us = fieldPtr->sfstring;
 					clearASCIIString(us); //fieldPtr);
 					fieldPtr->sfstring->strptr = NULL;
+					FREE_IF_NZ(fieldPtr->sfstring);
 				}else if(type == FIELDTYPE_MFString){
 					clearMFString(fieldPtr);
 					fieldPtr->mfstring.n = 0;
@@ -5674,6 +5675,7 @@ BOOL cbFreeMallocedUserField(void *callbackData,struct X3D_Node* node,int jfield
 					clearASCIIString(us); //fieldPtr);
 					fieldPtr->sfstring->strptr = NULL;
 					fieldPtr->sfstring->len = 0;
+					FREE_IF_NZ(fieldPtr->sfstring);
 				}else if(type == FIELDTYPE_MFString){
 					clearMFString(fieldPtr);
 					fieldPtr->mfstring.p = NULL;

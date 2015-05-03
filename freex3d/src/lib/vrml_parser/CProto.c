@@ -224,6 +224,8 @@ void deleteMallocedFieldValue(int type,union anyVrml *fieldPtr)
 			//union anyVrml holds a struct Uni_String * (a pointer to Uni_String)
 			us = fieldPtr->sfstring;
 			clearASCIIString(us); //fieldPtr);
+			FREE_IF_NZ(fieldPtr->sfstring);
+			//fieldPtr->sfstring = NULL;
 		}else if(type == FIELDTYPE_MFString){
 			clearMFString(&fieldPtr->mfstring);
 			fieldPtr->mfstring.n = 0;
