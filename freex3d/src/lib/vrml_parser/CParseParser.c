@@ -2413,7 +2413,7 @@ void mfnode_add_parent(struct Multi_Node* node, struct X3D_Node* parent)
 /* Passed pointer to the parser, an offsetPointer structure pointing to the current node and an offset to the field being parsed, type of the event value (i.e. MFString) index in FIELDTYPES, */
 /* index of the field in the FIELDNAMES (or equivalent) array */
 /* Parses a field value of a certain type (literally or IS) */
-
+void deleteMallocedFieldValue(int type,union anyVrml *fieldPtr);
 static BOOL parser_fieldValue(struct VRMLParser* me, struct X3D_Node *node, int offs,
                        int type, int origFieldE, BOOL protoExpansion, struct ProtoDefinition* pdef, struct ProtoFieldDecl* origField)
 {
@@ -2434,7 +2434,7 @@ static BOOL parser_fieldValue(struct VRMLParser* me, struct X3D_Node *node, int 
  ((t)(((char*)(node))+offs))
 
         void* directRet=myOffsetPointer_deref(void*, ret);
-
+		deleteMallocedFieldValue(type,directRet);
         /* we could print out a type, as shown below for the first element of a Multi_Color:
            { struct Multi_Color * mc;
            mc = (struct Multi_Color *) directRet;
@@ -4053,7 +4053,6 @@ void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, int num);
 #else
 #include <malloc/malloc.h>
 #endif
-void deleteMallocedFieldValue(int type,union anyVrml *fieldPtr);
 static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
     int mode;
     int type;

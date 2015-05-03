@@ -5664,9 +5664,10 @@ BOOL cbFreeMallocedUserField(void *callbackData,struct X3D_Node* node,int jfield
 
 	if(source > 0){
 		//user field in source = {script=1, shaders etc 2, protos = 3}
-		if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
-			//if(strncmp(fieldName,"__",2)) {
-			if(1){
+		//if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
+		if(1){
+			if(strncmp(fieldName,"__",2)) {
+			//if(1){
 				//skip double underscore prefixed fields, which we will treat as not-to-be-deleted, because duplicates like GeoViewpoint __oldMFString which is a duplicate of navType
 				int isMF = type % 2;
 				if(type == FIELDTYPE_FreeWRLPTR){
