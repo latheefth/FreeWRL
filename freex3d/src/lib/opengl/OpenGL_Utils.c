@@ -5579,6 +5579,8 @@ BOOL cbFreeMallocedBuiltinField(void *callbackData,struct X3D_Node* node,int jfi
 			if(strcmp(fieldName,"__oldurl") && strcmp(fieldName,"__oldSFString") && strcmp(fieldName,"__oldMFString") && strcmp(fieldName,"_parentVector")) {
 			//if(1){
 				//skip double underscore prefixed fields, which we will treat as not-to-be-deleted, because duplicates like GeoViewpoint __oldMFString which is a duplicate of navType
+				if(!strcmp(fieldName,"__points"))
+					printf("yes, trying to free points\n");
 				deleteMallocedFieldValue(type,fieldPtr);
 			}
 		}
@@ -5624,26 +5626,6 @@ BOOL cbFreeMallocedUserField(void *callbackData,struct X3D_Node* node,int jfield
 			//if(1){
 				//skip double underscore prefixed fields, which we will treat as not-to-be-deleted, because duplicates like GeoViewpoint __oldMFString which is a duplicate of navType
 				deleteMallocedFieldValue(type,fieldPtr);
-				//int isMF = type % 2;
-				//if(type == FIELDTYPE_FreeWRLPTR){
-				//	if(0) FREE_IF_NZ(fieldPtr);
-				//} else if(type == FIELDTYPE_SFString){
-				//	struct Uni_String *us;
-				//	//union anyVrml holds a struct Uni_String * (a pointer to Uni_String)
-				//	us = fieldPtr->sfstring;
-				//	clearASCIIString(us); //fieldPtr);
-				//	fieldPtr->sfstring->strptr = NULL;
-				//	fieldPtr->sfstring->len = 0;
-				//	FREE_IF_NZ(fieldPtr->sfstring);
-				//}else if(type == FIELDTYPE_MFString){
-				//	clearMFString(fieldPtr);
-				//	fieldPtr->mfstring.p = NULL;
-				//	fieldPtr->mfstring.n = 0;
-				//} else if(isMF) { 
-				//	//if(type == FIELDTYPE_SFImage){
-				//	FREE_IF_NZ(fieldPtr->mfnode.p);
-				//	fieldPtr->mfnode.n = 0;
-				//}
 			}
 		}
 	}

@@ -3043,7 +3043,7 @@ const int OFFSETS_Disk2D[] = {
 	(int) FIELDNAMES___numPoints, (int) offsetof (struct X3D_Disk2D, __numPoints),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___points, (int) offsetof (struct X3D_Disk2D, __points),  (int) FIELDTYPE_MFVec2f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___simpleDisk, (int) offsetof (struct X3D_Disk2D, __simpleDisk),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES___texCoords, (int) offsetof (struct X3D_Disk2D, __texCoords),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___texCoords, (int) offsetof (struct X3D_Disk2D, __texCoords),  (int) FIELDTYPE_MFVec2f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_innerRadius, (int) offsetof (struct X3D_Disk2D, innerRadius),  (int) FIELDTYPE_SFFloat, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_Disk2D, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_outerRadius, (int) offsetof (struct X3D_Disk2D, outerRadius),  (int) FIELDTYPE_SFFloat, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -5108,7 +5108,7 @@ const int OFFSETS_TriangleSet[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_TriangleSet2D[] = {
-	(int) FIELDNAMES___texCoords, (int) offsetof (struct X3D_TriangleSet2D, __texCoords),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___texCoords, (int) offsetof (struct X3D_TriangleSet2D, __texCoords),  (int) FIELDTYPE_MFVec2f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_TriangleSet2D, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_solid, (int) offsetof (struct X3D_TriangleSet2D, solid),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_vertices, (int) offsetof (struct X3D_TriangleSet2D, vertices),  (int) FIELDTYPE_MFVec2f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6396,7 +6396,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__numPoints = 0;
 			tmp2->__points.n=0; tmp2->__points.p=0;
 			tmp2->__simpleDisk = TRUE;
-			tmp2->__texCoords = 0;
+			tmp2->__texCoords.n=0; tmp2->__texCoords.p=0;
 			tmp2->innerRadius = 0.0f;
 			tmp2->metadata = NULL;
 			tmp2->outerRadius = 1.0f;
@@ -9031,7 +9031,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_TriangleSet2D : {
 			struct X3D_TriangleSet2D * tmp2;
 			tmp2 = (struct X3D_TriangleSet2D *) tmp;
-			tmp2->__texCoords = 0;
+			tmp2->__texCoords.n=0; tmp2->__texCoords.p=0;
 			tmp2->metadata = NULL;
 			tmp2->solid = FALSE;
 			tmp2->vertices.n=0; tmp2->vertices.p=0;

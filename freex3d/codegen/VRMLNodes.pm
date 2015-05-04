@@ -775,7 +775,7 @@ our %Nodes = (
 		outerRadius => ["SFFloat", 1.0, "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		solid => ["SFBool", "FALSE", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__points  =>["MFVec2f",[],"initializeOnly", 0],
-		__texCoords  =>["FreeWRLPTR",0,"initializeOnly", 0],
+		__texCoords  =>["MFVec2f",[],"initializeOnly", 0],
 		__numPoints =>["SFInt32",0,"initializeOnly", 0],
 		__simpleDisk => ["SFBool", "TRUE","initializeOnly", 0],
 	],"X3DGeometryNode"),
@@ -803,7 +803,7 @@ our %Nodes = (
                 metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 	    	vertices => ["MFVec2f", [], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		solid => ["SFBool", "FALSE", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		__texCoords  =>["FreeWRLPTR",0,"initializeOnly", 0],
+		__texCoords  =>["MFVec2f",[],"initializeOnly", 0],
  	],"X3DGeometryNode"),
 
 	###################################################################################

@@ -2928,7 +2928,7 @@ struct X3D_Disk2D {
 	float outerRadius;
 	int solid;
 	struct Multi_Vec2f __points;
-	void * __texCoords;
+	struct Multi_Vec2f __texCoords;
 	int __numPoints;
 	int __simpleDisk;
 };
@@ -7276,7 +7276,7 @@ struct X3D_TriangleSet2D {
 	struct X3D_Node *metadata;
 	struct Multi_Vec2f vertices;
 	int solid;
-	void * __texCoords;
+	struct Multi_Vec2f __texCoords;
 };
 extern struct X3D_Virt virt_TriangleSet2D;
 /***********************/
