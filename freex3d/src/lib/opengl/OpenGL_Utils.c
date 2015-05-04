@@ -269,7 +269,15 @@ void OpenGL_Utils_clear(struct tOpenGL_Utils *t)
 	{
 		ppOpenGL_Utils p = (ppOpenGL_Utils)t->prv;
 		deleteVector(struct X3D_Node*,p->linearNodeTable);
-		deleteVector(struct shaderTableEntry *, p->myShaderTable);
+		if(p->myShaderTable){
+			int i;
+			for(i=0;i<vectorSize(p->myShaderTable);i++){
+				struct shaderTableEntry *entry = vector_get(struct shaderTableEntry *,p->myShaderTable,i);
+				FREE_IF_NZ(entry->myCapabilities);
+				FREE_IF_NZ(entry);
+			}
+			deleteVector(struct shaderTableEntry *, p->myShaderTable);
+		}
 	}
 }
 #ifdef GLEW_MX
@@ -3891,6 +3899,7 @@ void kill_oldWorldB(char *file, int line){
 		if(usingBrotos()>1 && rootnode->_nodeType == NODE_Proto){
 			unload_broto(X3D_PROTO(rootnode));
 			unload_globalParser();
+			resource_tree_destroy();
 		}else{
 			kill_oldWorld(TRUE,TRUE,file,line);
 		}
@@ -5320,20 +5329,23 @@ BOOL walk_fields(struct X3D_Node* node, BOOL (*callbackFunc)(void *callbackData,
 						int j; //, nameIndex;
 						struct ProtoFieldDecl* pfield;
 						struct X3D_Proto* pnode = (struct X3D_Proto*)node;
-						struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
-						if(pstruct)
-						for(j=0; j!=vectorSize(pstruct->iface); ++j)
-						{
-							pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, j);
-							mode = pfield->mode;
-							fname = pfield->cname;
-							type = pfield->type;
-							fieldPtr = &pfield->defaultVal;
-							source = 3;
-							jfield = j;
-							foundField = callbackFunc(callbackData,node,jfield,fieldPtr,fname,mode,type,source,publicfield);
-							if( foundField)
-								break;
+						if(pnode) {
+							struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
+							if(pstruct)
+							if(pstruct->iface)
+							for(j=0; j!=vectorSize(pstruct->iface); ++j)
+							{
+								pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, j);
+								mode = pfield->mode;
+								fname = pfield->cname;
+								type = pfield->type;
+								fieldPtr = &pfield->defaultVal;
+								source = 3;
+								jfield = j;
+								foundField = callbackFunc(callbackData,node,jfield,fieldPtr,fname,mode,type,source,publicfield);
+								if( foundField)
+									break;
+							}
 						}
 					}
 				case NODE_Group:
@@ -5574,10 +5586,11 @@ BOOL cbFreeMallocedBuiltinField(void *callbackData,struct X3D_Node* node,int jfi
 	// .. like MF.p or SFString.ptr
 	// and only if the node owns the pointer, which we determine by if the field is initializeOnly or inputOutput
 	if(source == 0){
-		if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
+		//if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
+		if(1){
 			//#define FIELDTYPE_FreeWRLPTR	22
 			//#define FIELDTYPE_SFImage	23
-			if(strcmp(fieldName,"__oldurl") && strcmp(fieldName,"__oldSFString") && strcmp(fieldName,"__oldMFString")) {
+			if(strcmp(fieldName,"__oldurl") && strcmp(fieldName,"__oldSFString") && strcmp(fieldName,"__oldMFString") && strcmp(fieldName,"_parentVector")) {
 			//if(1){
 				//skip double underscore prefixed fields, which we will treat as not-to-be-deleted, because duplicates like GeoViewpoint __oldMFString which is a duplicate of navType
 				int isMF = type % 2;
@@ -5590,12 +5603,57 @@ BOOL cbFreeMallocedBuiltinField(void *callbackData,struct X3D_Node* node,int jfi
 					//union anyVrml holds a struct Uni_String * (a pointer to Uni_String)
 					us = fieldPtr->sfstring;
 					clearASCIIString(us); //fieldPtr);
+					FREE_IF_NZ(fieldPtr->sfstring);
+					//fieldPtr->sfstring->strptr = NULL;
 				}else if(type == FIELDTYPE_MFString){
 					clearMFString(fieldPtr);
+					fieldPtr->mfstring.n = 0;
+					fieldPtr->mfstring.p = NULL;
 				} else if(isMF) { 
-					//if(type == FIELDTYPE_SFImage){
-					FREE_IF_NZ(fieldPtr->mfbool.p);
-					fieldPtr->mfbool.n = 0;
+					FREE_IF_NZ(fieldPtr->mfnode.p);
+					fieldPtr->mfnode.n = 0;
+					fieldPtr->mfnode.p = NULL;
+				}
+			}
+		}
+	}
+	return FALSE; //false to keep walking fields, true to break out
+}
+BOOL cbFreePublicMallocedBuiltinField(void *callbackData,struct X3D_Node* node,int jfield,
+	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,BOOL publicfield)
+{
+	//for builtins, the field is malloced as part of the node size, so we don't free the field itself
+	// .. just if its a complex field type holding a malloced pointer
+	// .. like MF.p or SFString.ptr
+	// and only if the node owns the pointer, which we determine by if the field is initializeOnly or inputOutput
+	if(source == 0){
+		//if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
+		if(1){
+			//#define FIELDTYPE_FreeWRLPTR	22
+			//#define FIELDTYPE_SFImage	23
+			if(strncmp(fieldName,"_",1)) { //only public fields, skip _ and __ private fields
+			//if(1){
+				//skip double underscore prefixed fields, which we will treat as not-to-be-deleted, because duplicates like GeoViewpoint __oldMFString which is a duplicate of navType
+				int isMF = type % 2;
+				if(type == FIELDTYPE_FreeWRLPTR){
+					//depends what it's pointing to. If it was a straightforward malloc then:
+					if(0) FREE_IF_NZ(fieldPtr);
+					//else if it was a *vector or other compound type, then we need to know the type to free its pointers
+				} else if(type == FIELDTYPE_SFString){
+					struct Uni_String *us;
+					//union anyVrml holds a struct Uni_String * (a pointer to Uni_String)
+					us = fieldPtr->sfstring;
+					clearASCIIString(us); //fieldPtr);
+					//fieldPtr->sfstring->strptr = NULL;
+					FREE_IF_NZ(fieldPtr->sfstring);
+				}else if(type == FIELDTYPE_MFString){
+					clearMFString(fieldPtr);
+					fieldPtr->mfstring.n = 0;
+					fieldPtr->mfstring.p = NULL;
+				} else if(isMF) { 
+					FREE_IF_NZ(fieldPtr->mfnode.p);
+					fieldPtr->mfnode.n = 0;
+					fieldPtr->mfnode.p = NULL;
 				}
 			}
 		}
@@ -5614,9 +5672,10 @@ BOOL cbFreeMallocedUserField(void *callbackData,struct X3D_Node* node,int jfield
 
 	if(source > 0){
 		//user field in source = {script=1, shaders etc 2, protos = 3}
-		if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
-			//if(strncmp(fieldName,"__",2)) {
-			if(1){
+		//if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
+		if(1){
+			if(strncmp(fieldName,"__",2)) {
+			//if(1){
 				//skip double underscore prefixed fields, which we will treat as not-to-be-deleted, because duplicates like GeoViewpoint __oldMFString which is a duplicate of navType
 				int isMF = type % 2;
 				if(type == FIELDTYPE_FreeWRLPTR){
@@ -5626,12 +5685,17 @@ BOOL cbFreeMallocedUserField(void *callbackData,struct X3D_Node* node,int jfield
 					//union anyVrml holds a struct Uni_String * (a pointer to Uni_String)
 					us = fieldPtr->sfstring;
 					clearASCIIString(us); //fieldPtr);
+					fieldPtr->sfstring->strptr = NULL;
+					fieldPtr->sfstring->len = 0;
+					FREE_IF_NZ(fieldPtr->sfstring);
 				}else if(type == FIELDTYPE_MFString){
 					clearMFString(fieldPtr);
+					fieldPtr->mfstring.p = NULL;
+					fieldPtr->mfstring.n = 0;
 				} else if(isMF) { 
 					//if(type == FIELDTYPE_SFImage){
-					FREE_IF_NZ(fieldPtr->mfbool.p);
-					fieldPtr->mfbool.n = 0;
+					FREE_IF_NZ(fieldPtr->mfnode.p);
+					fieldPtr->mfnode.n = 0;
 				}
 			}
 		}
@@ -5659,9 +5723,24 @@ void setShader(struct X3D_Node *node, struct Shader_Script *shader){
 	}
 
 }
+void deleteShaderDefinition(struct Shader_Script *shader){
+	if(shader){
+		if(shader->fields){
+			int i;
+			for(i=0;i<vectorSize(shader->fields);i++){
+				struct ScriptFieldDecl *field = vector_get(struct ScriptFieldDecl*,shader->fields,i);
+				deleteScriptFieldDecl(field);
+			
+			}
+			deleteVector(struct ScriptFieldDecl*,shader->fields);
+			FREE_IF_NZ(shader->fields);
+		}
+		FREE_IF_NZ(shader);
+	}
+}
 //static struct Vector freed;
 //static struct fieldFree ffs[100];
-void freeMallocedNodeFields(struct X3D_Node* node){
+void freeMallocedNodeFields0(struct X3D_Node* node){
 	//PIMPL Idiom in C is like objects in C++ - each object should know how to delete itself
 	//we don't have good pimpl habits yet in freewrl
 	//Here we try and generically free what a node may have allocated
@@ -5683,24 +5762,36 @@ void freeMallocedNodeFields(struct X3D_Node* node){
 			if(isScriptType){
 				struct Shader_Script *shader = getShader(node);
 				if (shader){
-					deleteVector(struct ScriptFieldDecl*, shader->fields);
+					deleteShaderDefinition(shader);
 					setShader(node,NULL);
 				}
 			}else if(isBrotoType){
 				struct X3D_Proto* pnode = (struct X3D_Proto*)node;
-				struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
-				if(pstruct){
-					//for vectorget.n field->malloced stuff
-					deleteVector(struct ProtoDefinition*,pstruct);
-					pnode->__protoDef = NULL;
-				}
+				deleteProtoDefinition(pnode->__protoDef);
+				FREE_IF_NZ(pnode->__protoDef);
+				FREE_IF_NZ(pnode->__typename);
+				//struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
+				//if(pstruct){
+				//	//for vectorget.n field->malloced stuff
+				//	deleteVector(struct ProtoDefinition*,pstruct);
+				//	pnode->__protoDef = NULL;
+				//}
 			}
 		}
 		/* free malloced public fields */
 		walk_fields(node,cbFreeMallocedBuiltinField,NULL); //&freed);
 	}
 }
-
+void freePublicBuiltinNodeFields(struct X3D_Node* node){
+	if(node)
+		walk_fields(node,cbFreePublicMallocedBuiltinField,NULL); //&freed);
+}
+void freeMallocedNodeFields(struct X3D_Node* node){
+	if(node){
+		deleteVector(sizeof(void*),node->_parentVector);
+		freeMallocedNodeFields0(node);
+	}
+}
 /*delete node created
 static void killNode_hide_obsolete (int index) {
 	int j=0;

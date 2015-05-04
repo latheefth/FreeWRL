@@ -123,8 +123,11 @@ void clearMFString(struct Multi_String *ms);
 void freeMFString(struct Multi_String **ms);
 
 void clearASCIIString(struct Uni_String *us){
-	FREE_IF_NZ(us->strptr);
-	us->len = 0;
+	if(us){
+		FREE_IF_NZ(us->strptr);
+		us->strptr = NULL;
+		us->len = 0;
+	}
 }
 void freeASCIIString(struct Uni_String *us){
 	clearASCIIString(us);

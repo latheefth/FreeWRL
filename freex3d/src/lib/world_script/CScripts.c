@@ -99,8 +99,8 @@ void CScripts_init(struct tCScripts *t){
 struct ScriptFieldDecl* newScriptFieldDecl(struct VRMLLexer* me, indexT mod, indexT type, indexT name)
 {
  struct ScriptFieldDecl* ret=MALLOC(struct ScriptFieldDecl *, sizeof(struct ScriptFieldDecl));
-
  ASSERT(ret);
+ bzero(ret,sizeof(struct ScriptFieldDecl));
 
  ASSERT(mod!=PKW_inputOutput);
 

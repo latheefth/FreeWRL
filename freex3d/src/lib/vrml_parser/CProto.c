@@ -176,23 +176,77 @@ static struct ProtoElementPointer* newProtoElementPointer(void) {
 /* Without default value (event) */
 struct ProtoFieldDecl* newProtoFieldDecl(indexT mode, indexT type, indexT name)
 {
- struct ProtoFieldDecl* ret=MALLOC(struct ProtoFieldDecl*, sizeof(struct ProtoFieldDecl));
-  /* printf("creating ProtoFieldDecl %p\n", ret);  */
- ret->mode=mode;
- ret->type=type;
- ret->name=name;
- ret->alreadySet=FALSE;
- ret->fieldString = NULL;
- ret->cname = NULL;
-
- ret->scriptDests=newVector(struct ScriptFieldInstanceInfo*, 4);
- ASSERT(ret->scriptDests);
- return ret;
+	struct ProtoFieldDecl* ret=MALLOC(struct ProtoFieldDecl*, sizeof(struct ProtoFieldDecl));
+	bzero(ret,sizeof(struct ProtoFieldDecl));
+	/* printf("creating ProtoFieldDecl %p\n", ret);  */
+	ret->mode=mode;
+	ret->type=type;
+	ret->name=name;
+	ret->alreadySet=FALSE;
+	ret->fieldString = NULL;
+	ret->cname = NULL;
+	ret->scriptDests = NULL;
+	ret->defaultVal.mfnode.p = NULL;
+	ret->defaultVal.mfnode.n = 0;
+	if(!usingBrotos()){
+		//used for KW_IS / is for non-broto / old-style text protos when a script is inside a protobody
+		//(broto has separate table for IS)
+		ret->scriptDests=newVector(struct ScriptFieldInstanceInfo*, 4);
+		ASSERT(ret->scriptDests);
+	}
+	return ret;
+}
+struct ProtoFieldDecl* copy_ProtoFieldDecl(struct ProtoFieldDecl *sdecl) {
+	struct ProtoFieldDecl *ddecl;
+	ddecl = newProtoFieldDecl(sdecl->mode,sdecl->type,sdecl->name);
+	if(sdecl->cname)
+		ddecl->cname = STRDUP(sdecl->cname);
+	//if(sdecl->mode == PKW_inputOnly || sdecl->mode == PKW_inputOutput){
+	//I seem to need unconditional otherwise something bombs when cleaning up / freeing
+	shallow_copy_field(sdecl->type,&(sdecl->defaultVal),&(ddecl->defaultVal));
+	//}
+	return ddecl;
+}
+void clearASCIIString(struct Uni_String *us);
+void freeASCIIString(struct Uni_String *us);
+void clearMFString(struct Multi_String *ms);
+void freeMFString(struct Multi_String **ms);
+void deleteMallocedFieldValue(int type,union anyVrml *fieldPtr)
+{
+	//deletes just the malloced part, assuming another replacement value will be deep copied in its place
+	if(fieldPtr) {
+		int isMF;
+		isMF =type % 2;
+		if(type == FIELDTYPE_FreeWRLPTR){
+			if(0) FREE_IF_NZ(fieldPtr);
+		} else if(type == FIELDTYPE_SFString){
+			struct Uni_String *us;
+			//union anyVrml holds a struct Uni_String * (a pointer to Uni_String)
+			us = fieldPtr->sfstring;
+			clearASCIIString(us); //fieldPtr);
+			FREE_IF_NZ(fieldPtr->sfstring);
+			//fieldPtr->sfstring = NULL;
+		}else if(type == FIELDTYPE_MFString){
+			clearMFString(&fieldPtr->mfstring);
+			fieldPtr->mfstring.n = 0;
+		} else if(isMF) { 
+			//if(type == FIELDTYPE_SFImage){
+			FREE_IF_NZ(fieldPtr->mfnode.p);
+			fieldPtr->mfnode.n = 0;
+		}
+	}
 }
 
 void deleteProtoFieldDecl(struct ProtoFieldDecl* me)
 {
- FREE_IF_NZ(me);
+	int isMF, type;
+	union anyVrml *fieldPtr;
+	FREE_IF_NZ(me->cname);
+	FREE_IF_NZ(me->fieldString);
+	fieldPtr = &(me->defaultVal);
+	type = me->type;
+	deleteMallocedFieldValue(type,fieldPtr);
+	FREE_IF_NZ(me);
 }
 
 
@@ -240,7 +294,22 @@ struct ProtoDefinition* newProtoDefinition()
 
  return ret;
 }
-
+void deleteProtoDefinition(struct ProtoDefinition *ret) {
+	if(ret){
+		if(ret->iface){
+			int i;
+			for(i=0;i<vectorSize(ret->iface);i++) {
+				struct ProtoFieldDecl* iface = vector_get(struct ProtoFieldDecl*,ret->iface,i);
+				if(iface){
+					deleteProtoFieldDecl(iface);
+				}
+			}
+		}
+		deleteVector(struct ProtoFieldDecl*,ret->iface);
+		FREE_IF_NZ(ret->protoName);
+	}
+	//FREE_IF_NZ(ret);
+}
 /* Other members */
 /* ************* */
 

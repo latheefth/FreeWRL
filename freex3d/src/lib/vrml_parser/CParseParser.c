@@ -2413,7 +2413,7 @@ void mfnode_add_parent(struct Multi_Node* node, struct X3D_Node* parent)
 /* Passed pointer to the parser, an offsetPointer structure pointing to the current node and an offset to the field being parsed, type of the event value (i.e. MFString) index in FIELDTYPES, */
 /* index of the field in the FIELDNAMES (or equivalent) array */
 /* Parses a field value of a certain type (literally or IS) */
-
+void deleteMallocedFieldValue(int type,union anyVrml *fieldPtr);
 static BOOL parser_fieldValue(struct VRMLParser* me, struct X3D_Node *node, int offs,
                        int type, int origFieldE, BOOL protoExpansion, struct ProtoDefinition* pdef, struct ProtoFieldDecl* origField)
 {
@@ -2434,7 +2434,7 @@ static BOOL parser_fieldValue(struct VRMLParser* me, struct X3D_Node *node, int 
  ((t)(((char*)(node))+offs))
 
         void* directRet=myOffsetPointer_deref(void*, ret);
-
+		deleteMallocedFieldValue(type,directRet);
         /* we could print out a type, as shown below for the first element of a Multi_Color:
            { struct Multi_Color * mc;
            mc = (struct Multi_Color *) directRet;
@@ -4120,7 +4120,7 @@ static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
 		/* set the defaultVal to something - we might have a problem if the parser expects this to be
 		a MF*, and there is "garbage" in there, as it will expect to free it. */
 		//bzero (&defaultVal, sizeof (union anyVrml)); //default val pulled from existing field default
-
+		deleteMallocedFieldValue(type,targetVal);
 		if (!parseType(me, type, targetVal)) {
 			/* Invalid default value parsed.  Delete the proto or script declaration. */
 			CPARSE_ERROR_CURID("Expected default value for field!");
@@ -4468,6 +4468,7 @@ static BOOL parser_externbrotoStatement(struct VRMLParser* me)
 //	int toOfs;
 //	int ft;
 //};
+struct brotoRoute *createNewBrotoRoute();
 void broto_store_route(struct X3D_Proto* proto,
                           struct X3D_Node* fromNode, int fromIndex,
                           struct X3D_Node* toNode, int toIndex,
@@ -4482,11 +4483,12 @@ void broto_store_route(struct X3D_Proto* proto,
 		return;
 	}
 
-	route = MALLOC(struct brotoRoute*,sizeof(struct brotoRoute));
+	route = createNewBrotoRoute();
 	route->from.node = fromNode;
 	route->from.ifield = fromIndex;
 	route->to.node = toNode;
 	route->to.ifield = toIndex;
+	route->lastCommand = 1; //??
 	route->ft = ft;
 
 	routes = proto->__ROUTES;
@@ -4522,7 +4524,7 @@ void broto_store_ImportRoute_obsolete(struct X3D_Proto* proto, char *fromNode, c
 	struct brotoRoute* route;
 	if( proto->__ROUTES == NULL)
 		proto->__ROUTES= newStack(struct brotoRoute *);
-	route = MALLOC(struct brotoRoute*,sizeof(struct brotoRoute));
+	route = createNewBrotoRoute();
 	route->ft = -1;
 	route->lastCommand = 0; //not added to CRoutes until inline loaded
 	route->from.weak = 2; //weak references to publish/from,subscribe/to ends not loaded yet
@@ -4546,7 +4548,14 @@ void broto_store_broute(struct X3D_Proto* context,struct brotoRoute *route){
 		context->__ROUTES= newStack(struct brotoRoute *);
 	stack_push(struct brotoRoute *, context->__ROUTES, route);
 }
-
+void free_brouteEnd(struct brouteEnd *bend){
+	FREE_IF_NZ(bend->cnode);
+	FREE_IF_NZ(bend->cfield);
+}
+void free_broute(struct brotoRoute *route){
+	free_brouteEnd(&route->from);
+	free_brouteEnd(&route->to);
+}
 //BOOL route_parse_nodefield(pre, eventType)
 //used by parser_routeStatement:
 
@@ -4670,7 +4679,8 @@ BOOL route_parse_nodefield_B(struct VRMLParser* me, char **ssnode, char **ssfiel
 	} 
 
 	/* get fieldName */
-	if(!lexer_setCurID(me->lexer)) return FALSE;
+	if(!lexer_setCurID(me->lexer)) 
+		return FALSE;
 	ASSERT(me->lexer->curID);
 	sfield = STRDUP(me->lexer->curID);
 	FREE_IF_NZ(me->lexer->curID);
@@ -4727,11 +4737,19 @@ static BOOL parser_routeStatement_B(struct VRMLParser* me)
 	foundto = route_parse_nodefield_B(me,&stnode, &stfield);
 
 	if(!(foundfrom && gotTO && foundto)){
+		FREE_IF_NZ(sfnode);
+		FREE_IF_NZ(sffield);
+		FREE_IF_NZ(stnode);
+		FREE_IF_NZ(stfield);
         PARSER_FINALLY; 
 		return FALSE; 
 	}
 
 	QAandRegister_parsedRoute_B(X3D_PROTO(me->ectx), sfnode, sffield, stnode, stfield);
+	FREE_IF_NZ(sfnode);
+	FREE_IF_NZ(sffield);
+	FREE_IF_NZ(stnode);
+	FREE_IF_NZ(stfield);
 
     return TRUE;
 }
@@ -4936,12 +4954,12 @@ struct X3D_Node* inPointerTable(struct X3D_Node* source,struct Vector *p2p)
 {
 	int i;
 	struct X3D_Node *dest = NULL;
-	struct pointer2pointer *pair;
+	struct pointer2pointer pair;
 	for(i=0;i<p2p->n;i++)
 	{
-		pair = vector_get(struct pointer2pointer*, p2p, i);
-		if(pair->pp == source){
-			dest = pair->pn;
+		pair = vector_get(struct pointer2pointer, p2p, i);
+		if(pair.pp == source){
+			dest = pair.pn;
 			break;
 		}
 	}
@@ -5038,7 +5056,7 @@ void deep_copy_broto_body2(struct X3D_Proto** proto, struct X3D_Proto** dest)
 	struct X3D_Proto *prototype, *p;
 	struct X3D_Node *parent;
 	Stack *instancedScripts;
-	struct Vector *p2p = newVector(struct pointer2pointer*,10);
+	struct Vector *p2p = newVector(struct pointer2pointer,10);
 	
 	//2. copy body from source's _prototype.children to dest.children, ISing initialvalues as we go
 	p=(*dest);
@@ -5079,7 +5097,7 @@ void deep_copy_broto_body2(struct X3D_Proto** proto, struct X3D_Proto** dest)
 	initialize_scripts(instancedScripts);
 
 	//*dest = p;
-	//free p2p
+	deleteVector(struct pointer2pointer,p2p); //free p2p
 	return;
 }
 struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep)
@@ -5136,12 +5154,18 @@ struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep)
 		nobj = MALLOC(struct ProtoDefinition*,sizeof(struct ProtoDefinition));
 		memcpy(nobj,pobj,sizeof(struct ProtoDefinition));
 		nobj->iface = newVector(struct ProtoFieldDecl *, pobj->iface->n);
+		if(pobj->protoName)
+			nobj->protoName = STRDUP(pobj->protoName);
 		for(i=0;i<pobj->iface->n;i++)
 		{
 			pdecl = protoDefinition_getFieldByNum(pobj, i);
- 			ndecl=newProtoFieldDecl(pdecl->mode, pdecl->type, pdecl->name);
-			//memcpy(ndecl,pdecl,sizeof(struct ProtoFieldDecl *)); //not just the pointer
-			memcpy(ndecl,pdecl,sizeof(struct ProtoFieldDecl));  //.. the whole struct
+			if(0){
+ 				ndecl=newProtoFieldDecl(pdecl->mode, pdecl->type, pdecl->name);
+				//memcpy(ndecl,pdecl,sizeof(struct ProtoFieldDecl *)); //not just the pointer
+				memcpy(ndecl,pdecl,sizeof(struct ProtoFieldDecl));  //.. the whole struct
+			}else{
+				ndecl = copy_ProtoFieldDecl(pdecl);
+			}
 			protoDefinition_addIfaceField(nobj, ndecl);
 		}
 		p->__protoDef = nobj;
@@ -5153,11 +5177,11 @@ struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep)
 struct X3D_Node *p2p_lookup(struct X3D_Node *pnode, struct Vector *p2p)
 {
 	int i;
-	struct pointer2pointer* pair;
+	struct pointer2pointer pair;
 	for(i=0;i<p2p->n;i++)
 	{
-		pair = vector_get(struct pointer2pointer*, p2p, i);
-		if(pnode == pair->pp) return pair->pn;
+		pair = vector_get(struct pointer2pointer, p2p, i);
+		if(pnode == pair.pp) return pair.pn;
 	}
 	return NULL;
 }
@@ -5284,7 +5308,7 @@ void copy_IStable(Stack **sourceIS, Stack** destIS)
 	int i;
 	if(*sourceIS){
 		struct brotoIS *iss, *isd;
-		*destIS = newStack(struct brotoIS); 
+		*destIS = newStack(struct brotoIS*); 
 
 		for(i=0;i<(*sourceIS)->n;i++)
 		{
@@ -5387,18 +5411,24 @@ void copy_field(int typeIndex, union anyVrml* source, union anyVrml* dest, struc
 		char *ps, *pd;
 		mfs = (struct Multi_Node*)source;
 		mfd = (struct Multi_Node*)dest;
+		deleteMallocedFieldValue(typeIndex,dest);
 		//we need to malloc and do more copying
 		nele = mfs->n;
 		if( sftype == FIELDTYPE_SFNode ) nele = (int) upper_power_of_two(nele);
-		mfd->p = MALLOC (struct X3D_Node **, isize*nele);
-		//mfd->n = mfs->n;
-		ps = (char *)mfs->p;
-		pd = (char *)mfd->p;
-		for(i=0;i<mfs->n;i++)
-		{
-			copy_field(sftype,(union anyVrml*)ps,(union anyVrml*)pd,p2p,instancedScripts,ctx,parent);
-			ps += isize;
-			pd += isize;
+		if(!nele){
+			mfd->p = NULL;
+		}else{
+			mfd->p = MALLOC (struct X3D_Node **, isize*nele);
+			bzero(mfd->p,isize*nele);
+			//mfd->n = mfs->n;
+			ps = (char *)mfs->p;
+			pd = (char *)mfd->p;
+			for(i=0;i<mfs->n;i++)
+			{
+				copy_field(sftype,(union anyVrml*)ps,(union anyVrml*)pd,p2p,instancedScripts,ctx,parent);
+				ps += isize;
+				pd += isize;
+			}
 		}
 		mfd->n = mfs->n;  //ATOMIC OP
 	}else{ 
@@ -5418,6 +5448,7 @@ void copy_field(int typeIndex, union anyVrml* source, union anyVrml* dest, struc
 			case FIELDTYPE_SFString:
 				{
 					struct Uni_String **ss, *sd;
+					deleteMallocedFieldValue(typeIndex,dest);
 					ss = (struct Uni_String **)source;
 					sd = (struct Uni_String *)MALLOC (struct Uni_String*, sizeof(struct Uni_String));
 					memcpy(sd,*ss,sizeof(struct Uni_String));
@@ -5465,7 +5496,7 @@ void deep_copy_broto_body(struct X3D_Proto** proto, struct X3D_Proto** dest, Sta
 
 	struct X3D_Proto *prototype, *p;
 	struct X3D_Node *parent;
-	struct Vector *p2p = newVector(struct pointer2pointer*,10);
+	struct Vector *p2p = newVector(struct pointer2pointer,10);
 	
 	//2. copy body from source's _prototype.children to dest.children, ISing initialvalues as we go
 	p=(*dest);
@@ -5518,17 +5549,24 @@ void shallow_copy_field(int typeIndex, union anyVrml* source, union anyVrml* des
 		mfs = (struct Multi_Node*)source;
 		mfd = (struct Multi_Node*)dest;
 		//we need to malloc and do more copying
+		deleteMallocedFieldValue(typeIndex,dest);
 		nele = mfs->n;
 		if( sftype == FIELDTYPE_SFNode ) nele = (int) upper_power_of_two(nele);
-		mfd->p = MALLOC (struct X3D_Node **, isize*nele);
-		mfd->n = mfs->n;
-		ps = (char *)mfs->p;
-		pd = (char *)mfd->p;
-		for(i=0;i<mfs->n;i++)
-		{
-			shallow_copy_field(sftype,(union anyVrml*)ps,(union anyVrml*)pd);
-			ps += isize;
-			pd += isize;
+		if(!nele){
+			mfd->p = NULL;
+			mfd->n = 0;
+		}else{
+			mfd->p = MALLOC (struct X3D_Node **, isize*nele);
+			bzero(mfd->p,isize*nele);
+			mfd->n = mfs->n;
+			ps = (char *)mfs->p;
+			pd = (char *)mfd->p;
+			for(i=0;i<mfs->n;i++)
+			{
+				shallow_copy_field(sftype,(union anyVrml*)ps,(union anyVrml*)pd);
+				ps += isize;
+				pd += isize;
+			}
 		}
 	}else{ 
 		//isSF
@@ -5538,6 +5576,7 @@ void shallow_copy_field(int typeIndex, union anyVrml* source, union anyVrml* des
 				{
 					//go deep, same as copy_field
 					struct Uni_String **ss, *sd;
+					deleteMallocedFieldValue(typeIndex,dest);
 					ss = (struct Uni_String **)source;
 					sd = (struct Uni_String *)MALLOC (struct Uni_String*, sizeof(struct Uni_String));
 					memcpy(sd,*ss,sizeof(struct Uni_String));
@@ -5617,10 +5656,13 @@ void registerParentIfManagedField(int type, int mode, BOOL isPublic, union anyVr
 		}
 	}
 }
+void freeMallocedNodeFields(struct X3D_Node* node);
+void deleteProtoDefinition(struct ProtoDefinition *ret);
+void freePublicBuiltinNodeFields(struct X3D_Node* node);
 void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vector *p2p, Stack *instancedScripts, 
 					struct X3D_Proto* ctx)
 {
-	struct pointer2pointer *pair;
+	struct pointer2pointer pair;
 	struct X3D_Node* parent;
 	if(*source == NULL){
 		*dest = NULL;
@@ -5630,29 +5672,27 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 	if(*dest) 
 		return; //already created and we're likely at what would be a USE in the original ProtoDeclare body
 	//create new Node
-	//if((*source)->_nodeType == NODE_PlaneSensor)
-	//	printf("got a planesensor - going to allocate and register it\n");
-	if((*source)->_nodeType == NODE_Proto)
+	//problem with both brotoInstance and createNewX3DNode in deep_copy:
+	//	default field values are malloced, but we don't need or use them, -we copy below- so we need to gc them
+	// solution - in copy_field or shallow_copy_field, call deleteMallocedFieldValue(type,unionAnyvrml)
+	if((*source)->_nodeType == NODE_Proto){
 		*dest = X3D_NODE(brotoInstance(X3D_PROTO(X3D_PROTO(*source)->__prototype),ciflag_get(ctx->__protoFlags,0)));
-	else
+		//deleteProtoDefinition(X3D_PROTO(*dest)->__protoDef);
+	}else{
 		*dest=X3D_NODE(createNewX3DNode( (*source)->_nodeType)); //will register sensors and viewpionts
+		//freeMallocedNodeFields0(*dest); //frees field which we are going to recreate below.
+		//freePublicBuiltinNodeFields(*dest);
+	}
 	add_node_to_broto_context(ctx,(*dest));
-	//if(!ctx->__nodes)
-	//	ctx->__nodes = newVector(struct X3D_Node*,4);
-	//vector_pushBack(struct X3D_Node*,ctx->__nodes,(*dest)); //  ctx->__nodes
-	//if((*dest)->_nodeType == NODE_Proto || (*dest)->_nodeType == NODE_Inline){
-	//	if(!ctx->__subcontexts)
-	//		ctx->__subcontexts = newVector(struct X3D_Node*,4);
-	//	vector_pushBack(struct X3D_Node*,ctx->__subcontexts,(*dest));
-	//}
+
 	parent = *dest;
 	if((*source)->_nodeType == NODE_Script)
 		stack_push(struct X3D_Node*,instancedScripts,*dest);
 	//register in pointer lookup table
-	pair = MALLOC(struct pointer2pointer*,sizeof(struct pointer2pointer));
-	pair->pp = *source;
-	pair->pn = *dest;
-	vector_pushBack(struct pointer2pointer*, p2p, pair);
+	//pair = MALLOC(struct pointer2pointer*,sizeof(struct pointer2pointer));
+	pair.pp = *source;
+	pair.pn = *dest;
+	vector_pushBack(struct pointer2pointer, p2p, pair);
 	//copy fields
 	{
 		typedef struct field_info{
@@ -5712,22 +5752,27 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 				s = (struct X3D_Proto*)*source;
 				d = (struct X3D_Proto*)*dest;
 				sp = s->__protoDef;
-				dp = d->__protoDef; //Jan 2015 = NULL;
+				dp = d->__protoDef; //Jan 2015 = NULL; May 2015 not null, default broto field values
 
 				if(sp){ //are there any Proto fields? Not for the Scene - this may not be malloced for the scene
 					//dp = MALLOC(struct ProtoDefinition*,sizeof(struct ProtoDefinition));
 					if(dp == NULL) //Jan 2015
 						dp = newProtoDefinition();
 					//memcpy(dp,sp,sizeof(struct ProtoDefinition));
-					dp->iface = newVector(struct ProtoFieldDecl *, sp->iface->n);
-					dp->protoName = STRDUP(sp->protoName);
+					//usually brotoInstance or newProtoDefinition creates iface
+					//however brotoInstance populates with default initializeOnly values
+					//and here we are going to copy over the/any non-default brotoInstance over-ride values
+					if(!dp->iface) //may 2015 should not be null
+						dp->iface = newVector(struct ProtoFieldDecl *, sp->iface->n);
+					//dp->protoName = STRDUP(sp->protoName);
 					dp->isCopy = TRUE;
 					for(k=0;k<sp->iface->n;k++)
 					{
 						sdecl = protoDefinition_getFieldByNum(sp, k);
- 						ddecl=newProtoFieldDecl(sdecl->mode, sdecl->type, sdecl->name);
+						ddecl = protoDefinition_getFieldByNum(dp, k);
+ 						//ddecl=newProtoFieldDecl(sdecl->mode, sdecl->type, sdecl->name);
 						//memcpy(ndecl,pdecl,sizeof(struct ProtoFieldDecl *)); //not just the pointer
-						ddecl->cname = sdecl->cname;
+						//ddecl->cname = STRDUP(sdecl->cname);
 						is_source = 3; 	//field isource: 0=builtin 1=script user field 2=shader_program user field 3=Proto/Broto user field 4=group __protoDef
 
 						
@@ -5766,7 +5811,7 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 								copy_field(sdecl->type,source_field,dest_field,p2p,instancedScripts,ctx,parent);
 							}
 						}
-						protoDefinition_addIfaceField(dp, ddecl);
+						//protoDefinition_addIfaceField(dp, ddecl);
 					}
 					d->__protoDef = dp;
 				}
@@ -6022,7 +6067,7 @@ void sceneInstance(struct X3D_Proto* sceneProto, struct X3D_Node *sceneInstance)
 	struct X3D_Proto *scenePlaceholderProto;
 	struct X3D_Node *parent;
 	struct Multi_Node *children;
-	struct Vector *p2p = newVector(struct pointer2pointer*,10);
+	struct Vector *p2p = newVector(struct pointer2pointer,10);
 	Stack *instancedScripts = newStack(struct X3D_Node*);
 	children = childrenField(sceneInstance);
 	children->n = 0;
@@ -6938,7 +6983,7 @@ void load_externProtoInstance (struct X3D_Proto *node) {
 								int i,j;
 								char *ename, *pname;
 								struct Vector *p2p;
-								struct pointer2pointer *p2pentry;
+								struct pointer2pointer p2pentry;
 
 								//match fields to create IStable
 								for(i=0;i<ei->n;i++){
@@ -6960,12 +7005,12 @@ void load_externProtoInstance (struct X3D_Proto *node) {
 									}
 								}
 								//convert IStable to browser routes
-								p2p = newVector(struct pointer2pointer*,1);
-								p2pentry = MALLOCV(sizeof(struct pointer2pointer));
+								p2p = newVector(struct pointer2pointer,1);
+								//p2pentry = MALLOCV(sizeof(struct pointer2pointer));
 								//nothing to look up, nuisance to re-use copy_IS
-								p2pentry->pp = X3D_NODE(pinstance);
-								p2pentry->pn = X3D_NODE(pinstance);
-								vector_pushBack(struct pointer2pointer*,p2p,p2pentry);
+								p2pentry.pp = X3D_NODE(pinstance);
+								p2pentry.pn = X3D_NODE(pinstance);
+								vector_pushBack(struct pointer2pointer,p2p,p2pentry);
 								copy_IS(node->__IS, node, p2p);
 							}
 							//copy EPI field initial values to contained PI
@@ -7104,6 +7149,13 @@ void delete_polyrep(struct X3D_Node *node);
 void unRegisterPolyRep(struct X3D_Node *node);
 void delete_glbuffers(struct X3D_Node *node);
 int unRegisterX3DAnyNode(struct X3D_Node *node){
+	//this is for 'live' scenery, not protoDeclarations or proto library scenes
+	//web3d has a concept of a browser. A browser contains and renders a scene.
+	//as of early 2015, freewrl's browser consists of scattered 'tables' -simple flat arrays or vectors
+	// scattered around global instance. During rendering, it does not 'recurse into sub-contexts' for 
+	// things like sensors, routes, node updating. Rather during parsing, live scenery is 'registered' 
+	// in the browser tables, and later/here unregisterd, for example when unloading an inline or scene
+
 	/* Undo any node registration(s)
 	From GeneratedCode.c createNewX3DNode():
 	// is this a texture holding node? 
@@ -7144,7 +7196,6 @@ int unRegisterX3DAnyNode(struct X3D_Node *node){
 	//only live scenery has polyreps prepared, remove the polyrep
 	delete_polyrep(node);
 	delete_glbuffers(node);
-	deleteVector(sizeof(void*),node->_parentVector); //perhaps unlink first
 	return TRUE;
 }
 int print_broto_stats(int level, struct X3D_Proto *node){
@@ -7217,9 +7268,12 @@ int unregister_broto_instance(struct X3D_Proto* node){
 	}
 	return retval;
 }
-void freeMallocedNodeFields(struct X3D_Node* node);
+
 int gc_broto_instance(struct X3D_Proto* node){
-	int iret = TRUE;
+	int i, iret = TRUE;
+	//used for both live scenery -after unregistered from browser- and for protodeclarations and proto library scenes
+	//does not free the __protoDef outward facing fields of a protoInstance, protoDeclare, nor the node itself
+	// -- you do that generically from the containing context
 	//recurse to free subcontexts: protoInstances, externProtoInstances, Inlines (which may instance this context's protoDeclares)
 	//free protodeclares (recursive)
 	//free externprotodeclares (recursive)
@@ -7230,7 +7284,6 @@ int gc_broto_instance(struct X3D_Proto* node){
 		node->__children.n = 0; //hide from other threads
 		node->_sortedChildren.n = 0;
 		if(node->__subcontexts){
-			int i;
 			struct X3D_Proto *subctx;
 			for(i=0;i<vectorSize(node->__subcontexts);i++){
 				subctx = vector_get(struct X3D_Proto*,node->__subcontexts,i);
@@ -7239,17 +7292,33 @@ int gc_broto_instance(struct X3D_Proto* node){
 			deleteVector(struct X3D_Proto*,node->__subcontexts);
 		}
 
-		if(node->__ROUTES)
+		if(node->__ROUTES){
+			for(i=0;i<vectorSize(node->__ROUTES);i++){
+				struct brotoRoute* route = vector_get(struct brotoRoute*,node->__ROUTES,i);
+				free_broute(route);
+				FREE_IF_NZ(route);
+			}
 			deleteVector(struct brotoRoute *, node->__ROUTES);
+		}
 		//free scipts
 		if(node->__scripts)
 			deleteVector(struct X3D_Node *,node->__scripts);
 		//free IStable
-		if(node->__IS)
+		if(node->__IS){
+			for(i=0;i<vectorSize(node->__IS);i++) {
+				struct brotoIS * bi = vector_get(struct brotoIS*,node->__IS,i);
+				FREE_IF_NZ(bi);
+			}
 			deleteVector(struct brotoIS *,node->__IS);
+		}
 		//free DEFnames
-		if(node->__DEFnames)
+		if(node->__DEFnames) {
+			for(i=0;i<vectorSize(node->__DEFnames);i++) {
+				struct brotoDefpair def = vector_get(struct brotoDefpair,node->__DEFnames,i);
+				FREE_IF_NZ(def.name);
+			}
 			deleteVector(struct brotoDefpair,node->__DEFnames);
+		}
 		//free IMPORTS
 		if(node->__IMPORTS)
 			deleteVector(struct EXIMPORT *,node->__IMPORTS);
@@ -7280,7 +7349,10 @@ int gc_broto_instance(struct X3D_Proto* node){
 			struct X3D_Proto *subctx;
 			for(i=0;i<vectorSize(node->__protoDeclares);i++){
 				subctx = vector_get(struct X3D_Proto*,node->__protoDeclares,i);
+				//
 				gc_broto_instance(subctx);
+				freeMallocedNodeFields(X3D_NODE(subctx));
+				FREE_IF_NZ(subctx);
 			}
 			deleteVector(void*,node->__protoDeclares);
 		}

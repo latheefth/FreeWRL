@@ -69,6 +69,7 @@ void Component_Picking_init(struct tComponent_Picking *t);
 void Component_Shape_init(struct tComponent_Shape *t);
 void Component_Sound_init(struct tComponent_Sound *t);
 void Component_Text_init(struct tComponent_Text *t);
+void Component_Text_clear(struct tComponent_Text *t);
 
 void RenderFuncs_init(struct tRenderFuncs *t);
 void RenderFuncs_clear(struct tRenderFuncs *t);
@@ -276,7 +277,7 @@ void __iglobal_fields_destructor(ttglobal tg)
 	FREE_IF_NZ(tg->StreamPoly.prv);
 	FREE_IF_NZ(tg->Component_Sound.prv);
 	RenderFuncs_clear(&tg->RenderFuncs); FREE_IF_NZ(tg->RenderFuncs.prv);
-	FREE_IF_NZ(tg->Component_Text.prv);
+	Component_Text_clear(&tg->Component_Text); FREE_IF_NZ(tg->Component_Text.prv);
 	FREE_IF_NZ(tg->Component_Shape.prv);
 #ifdef DJTRACK_PICKSENSORS
 	FREE_IF_NZ(tg->Component_Picking.prv);

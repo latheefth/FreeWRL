@@ -539,13 +539,6 @@ typedef struct malloc_location {
 #ifdef _MSC_VER
 #define alloca _alloca
 #endif
-int comp_file (const void * elem1, const void * elem2) 
-{
-    malloc_location *e1, *e2;
-	e1 = (malloc_location*)elem1;
-	e2 = (malloc_location*)elem2;
-    return strcmp(e1->fname,e2->fname);
-}
 int comp_count (const void * elem1, const void * elem2) 
 {
     malloc_location *e1, *e2;
@@ -560,11 +553,58 @@ int comp_size (const void * elem1, const void * elem2)
 	e2 = (malloc_location*)elem2;
     return e1->size < e2->size ?  -1 : e1->size > e2->size ? 1 : 0;
 }
+int comp_file (const void * elem1, const void * elem2) 
+{
+    malloc_location *e1, *e2;
+	e1 = (malloc_location*)elem1;
+	e2 = (malloc_location*)elem2;
+    return strcmp(e1->fname,e2->fname);
+}
+int comp_line (const void * elem1, const void * elem2) 
+{
+    malloc_location *e1, *e2;
+	e1 = (malloc_location*)elem1;
+	e2 = (malloc_location*)elem2;
+    return e1->line < e2->line ?  -1 : e1->line > e2->line ? 1 : 0;
+}
+int comp_fileline (const void * elem1, const void * elem2) 
+{
+	int iret;
+    iret = comp_file(elem1,elem2);
+	if(iret == 0)
+		iret = comp_line(elem1,elem2);
+	return iret;
+}
+void scanForVectorTypes(){
+    for (mcount=0; mcount<MAXMALLOCSTOKEEP;mcount++) {
+		if (mcheck[mcount]!=NULL) {
+			if(mlineno[mcount]==5873){ //strstr("GeneratedCode.c",mplace[mcount]) && 
+				//pexky _parentVector
+				struct Vector * v = (struct Vector*)mcheck[mcount];
+				printf("!%d!",v->n);
+			}
+		}
+	}
+}
+void scanForFieldTypes(){
+    for (mcount=0; mcount<MAXMALLOCSTOKEEP;mcount++) {
+		if (mcheck[mcount]!=NULL) {
+			if(mlineno[mcount]==5393){ //strstr("GeneratedCode.c",mplace[mcount]) && 
+				//pexky _parentVector
+				union anyVrml u;
+				u.mfnode.p = mcheck[mcount];
+				printf("!%p!",u.mfnode.p);
+			}
+		}
+	}
+}
 void scanMallocTableOnQuit()
 {
 	//this version will sum up the lines were the mallocs are occuring that aren't freed
 	int nlocs,j,iloc;
 	size_t total;
+	//scanForVectorTypes();
+	scanForFieldTypes();
 	malloc_location *mlocs = malloc(sizeof(malloc_location)*MAXMALLOCSTOKEEP);
 	memset(mlocs,0,sizeof(malloc_location)*MAXMALLOCSTOKEEP);
 	nlocs = 0;
@@ -607,9 +647,11 @@ void scanMallocTableOnQuit()
 		}
     }
 	//sort by file, count or size
+	if(1) qsort(mlocs,nlocs,sizeof(malloc_location),comp_fileline);
+	if(0) qsort(mlocs,nlocs,sizeof(malloc_location),comp_line);
 	if(0) qsort(mlocs,nlocs,sizeof(malloc_location),comp_file);
 	if(0) qsort(mlocs,nlocs,sizeof(malloc_location),comp_count);
-	if(1) qsort(mlocs,nlocs,sizeof(malloc_location),comp_size);
+	if(0) qsort(mlocs,nlocs,sizeof(malloc_location),comp_size);
 	printf("unfreed:\n");
 	printf("%5s %8s %4s %55s\n","count","size","line","file");
 	total = 0;

@@ -2069,7 +2069,7 @@ void parseScriptProtoField_B(void *ud, char **atts) {
 				pnode = X3D_PROTO(node);
 				pstruct = (struct ProtoDefinition*) pnode->__protoDef;
 				pfield = newProtoFieldDecl(pkwmode,type,0);
-				pfield->cname = strdup(fname);
+				pfield->cname = STRDUP(fname);
 				cname = pfield->cname;
 				memcpy(&pfield->defaultVal,&defaultValue,sizeof(union anyVrml));
 				vector_pushBack(struct ProtoFieldDecl*, pstruct->iface, pfield);

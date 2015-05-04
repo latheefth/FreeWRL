@@ -818,8 +818,8 @@ int QA_routeEnd(struct X3D_Proto *context, char* cnode, char* cfield, struct bro
 	int found = 0;
 
 	brend->weak = 1;
-	brend->cfield = cfield;
-	brend->cnode = cnode;
+	brend->cfield = STRDUP(cfield);
+	brend->cnode = STRDUP(cnode);
 
 	node = broto_search_DEFname(context,cnode);
 	if(!node){
@@ -1566,7 +1566,7 @@ static void parseMeta(char **atts) {
 		/* printf("parseMeta field:%s=%s\n", atts[i], atts[i + 1]); */
 	}
 }
-
+void deleteMallocedFieldValue(int type,union anyVrml *fieldPtr);
 static void parseFieldValue_B(void *ud, char **atts) {
 	int i, type, kind, iifield, ok;
 	char *fname, *svalue, *cname;
@@ -1590,6 +1590,7 @@ static void parseFieldValue_B(void *ud, char **atts) {
 		}
 	}
 	if(cname && value && svalue){
+		deleteMallocedFieldValue(type,value);
 		Parser_scanStringValueToMem_B(value,type,svalue,TRUE);
 		if(node->_nodeType == NODE_Proto){
 			struct X3D_Proto *pnode;
@@ -2180,6 +2181,7 @@ static void parseAttributes_B(void *ud, char **atts) {
 		/* see if we have a containerField here */
 		if(findFieldInARR(name,ignore,3) == INT_ID_UNDEFINED){
 			if(getFieldFromNodeAndName(node,name,&type,&kind,&iifield,&value)){
+				deleteMallocedFieldValue(type,value);
 				Parser_scanStringValueToMem_B(value, type,svalue, TRUE);
 			}
 		}
