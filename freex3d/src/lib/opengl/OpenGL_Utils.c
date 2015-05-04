@@ -269,7 +269,15 @@ void OpenGL_Utils_clear(struct tOpenGL_Utils *t)
 	{
 		ppOpenGL_Utils p = (ppOpenGL_Utils)t->prv;
 		deleteVector(struct X3D_Node*,p->linearNodeTable);
-		deleteVector(struct shaderTableEntry *, p->myShaderTable);
+		if(p->myShaderTable){
+			int i;
+			for(i=0;i<vectorSize(p->myShaderTable);i++){
+				struct shaderTableEntry *entry = vector_get(struct shaderTableEntry *,p->myShaderTable,i);
+				FREE_IF_NZ(entry->myCapabilities);
+				FREE_IF_NZ(entry);
+			}
+			deleteVector(struct shaderTableEntry *, p->myShaderTable);
+		}
 	}
 }
 #ifdef GLEW_MX
