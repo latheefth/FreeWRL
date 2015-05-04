@@ -2771,6 +2771,16 @@ static void shutdownX3DParser (void *ud) {
 		p->currentX3DParser = p->x3dparser[p->X3DParserRecurseLevel];
 	/* printf ("shutdownX3DParser, current X3DParser %u\n",currentX3DParser); */
 	popMode(ud);
+
+	if(p->DEFedNodes){
+		int i;
+		for(i=0;i<vectorSize(p->DEFedNodes);i++){
+			struct Vector* vd = vector_get(struct Vector*,p->DEFedNodes,i);
+			deleteVector(struct X3D_Node*,vd);
+		}
+		deleteVector(struct Vector*, p->DEFedNodes);
+	}
+
 	/*
     * Cleanup function for the XML library.
     */
@@ -2788,15 +2798,17 @@ int X3DParse (struct X3D_Node* ectx, struct X3D_Node* myParent, const char *inpu
 
 	/* printf ("X3DParse, current X3DParser is %u\n",currentX3DParser); */
 
-	/* Use classic parser Lexer for storing DEF name info */
-	if (p->myLexer == NULL) p->myLexer = newLexer();
-	if (p->DEFedNodes == NULL) {
-		p->DEFedNodes = newStack(struct Vector*);
-		ASSERT(p->DEFedNodes);
-		#define DEFMEM_INIT_SIZE 16
-		stack_push(struct Vector*, p->DEFedNodes,
-        	       newVector(struct X3D_Node*, DEFMEM_INIT_SIZE));
-		ASSERT(!stack_empty(p->DEFedNodes));
+	if(!usingBrotos()) {
+		/* Use classic parser Lexer for storing DEF name info */
+		if (p->myLexer == NULL) p->myLexer = newLexer();
+		if (p->DEFedNodes == NULL) {
+			p->DEFedNodes = newStack(struct Vector*);
+			ASSERT(p->DEFedNodes);
+			#define DEFMEM_INIT_SIZE 16
+			stack_push(struct Vector*, p->DEFedNodes,
+        			   newVector(struct X3D_Node*, DEFMEM_INIT_SIZE));
+			ASSERT(!stack_empty(p->DEFedNodes));
+		}
 	}
 
 

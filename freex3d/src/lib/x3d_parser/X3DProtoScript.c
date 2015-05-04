@@ -1158,7 +1158,7 @@ void parseProtoInstance_B(void *ud, char **atts) {
 			node=X3D_NODE(brotoInstance(proto,idepth));
 			node->_executionContext = X3D_NODE(proto);
 			if (defNameIndex != INT_ID_UNDEFINED){
-				char * defname = STRDUP(atts[defNameIndex]);
+				char * defname = atts[defNameIndex]; //gets STRDUP();'d inside broto_store_DEF
 				broto_store_DEF(currentContext,node, defname);
 			}
 			add_node_to_broto_context(currentContext,node);
