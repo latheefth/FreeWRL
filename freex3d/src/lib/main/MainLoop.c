@@ -336,7 +336,10 @@ void Mainloop_clear(struct tMainloop *t){
 	FREE_IF_NZ(t->scene_name);
 	FREE_IF_NZ(t->scene_suff);
 	FREE_IF_NZ(t->tmpFileLocation);
-	//ppMainloop p = (ppMainloop)t->prv;
+	{
+		ppMainloop p = (ppMainloop)t->prv;
+		FREE_IF_NZ(p->SensorEvents);
+	}
 }
 //true statics:
 int isBrowserPlugin = FALSE; //I can't think of a scenario where sharing this across instances would be a problem

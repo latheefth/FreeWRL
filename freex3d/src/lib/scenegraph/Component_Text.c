@@ -160,6 +160,14 @@ void Component_Text_init(struct tComponent_Text *t){
 		p->started = FALSE;
 	}
 }
+void Component_Text_clear(struct tComponent_Text *t){
+	//public
+	//private
+	{
+		ppComponent_Text p = (ppComponent_Text)t->prv;
+		FREE_IF_NZ(p->font_directory);
+	}
+}
 //	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
 
 void fwl_fontFileLocation(char *fontFileLocation) {
