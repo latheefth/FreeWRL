@@ -313,6 +313,7 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 			res->URLrequest = (char *) l->elem;
 			/* Point to the next... */
 			res->m_request = res->m_request->next;
+			ml_free(l);
 		} else {
 			/* list empty */
 			ERROR_MSG("resource_identify: ERROR: empty multi string as input\n");
