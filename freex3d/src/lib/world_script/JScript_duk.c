@@ -364,6 +364,7 @@ void medium_copy_field0(int itype, void* source, void* dest)
 		mfs = (struct Multi_Any*)source;
 		mfd = (struct Multi_Any*)dest;
 		//we need to malloc and do more copying
+		deleteMallocedFieldValue(itype,dest);
 		nele = mfs->n;
 		if( sftype == FIELDTYPE_SFNode ) nele = (int) upper_power_of_two(nele); //upper power of 2 is a convention for children[] to solve a realloc memory fragmentation issue during parsing of extremely large and flat files
 		mfd->p = malloc(sfsize*nele);
