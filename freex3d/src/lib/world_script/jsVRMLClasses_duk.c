@@ -62,6 +62,9 @@ X3DMatrix3,4 - code implemented but never tested
 #define STRING 512
 #define SMALLSTRING 128
 
+#define malloc(A) MALLOCV(A)
+#define free(A) FREE_IF_NZ(A)
+#define realloc(A,B) REALLOC(A,B)
 
 /********************************************************/
 /*							*/

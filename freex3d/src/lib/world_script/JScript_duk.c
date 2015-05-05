@@ -48,6 +48,11 @@
 #define FIELDTYPE_MFImage	43 
 typedef int indexT;
 
+
+#define malloc(A) MALLOCV(A)
+#define free(A) FREE_IF_NZ(A)
+#define realloc(A,B) REALLOC(A,B)
+
 FWTYPE *fwtypesArray[60];  //true statics - they only need to be defined once per process, we have about 50 types as of july 2014
 int FWTYPES_COUNT = 0;
 
@@ -321,9 +326,9 @@ int fwType2itype(const char *fwType){
 	return ifield;
 }
 void freeField(int itype, void* any){
-	if(isSForMFType(itype) == 0)
+	if(isSForMFType(itype) == 0){
 		free(any); //SF
-	else if(isSForMFType(itype) == 1){
+	}else if(isSForMFType(itype) == 1){
 		//MF
 		struct Multi_Any* mf = (struct Multi_Any*)any;
 		free(mf->p);  //if bombs, it could be because I'm not deep copying or medium_copy_field() everywhere I should
@@ -1514,8 +1519,9 @@ void JSCreateScriptContext(int num) {
 
 	//SAVE OUR CONTEXT IN OUR PROGRAM'S SCRIPT NODE FOR LATER RE-USE
 	ScriptControl[num].cx =  ctx;
-	ScriptControl[num].glob =  (void *)malloc(sizeof(int)); 
-	*((int *)ScriptControl[num].glob) = iglobal; //we'll be careful not to pop our global for this context (till context cleanup)
+	//ScriptControl[num].glob =  (void *)malloc(sizeof(int)); 
+	//*((int *)ScriptControl[num].glob) = iglobal; //we'll be careful not to pop our global for this context (till context cleanup)
+	((int *)&ScriptControl[num].glob)[0] = iglobal; //we'll be careful not to pop our global for this context (till context cleanup)
 
 	//ADD HELPER PROPS AND FUNCTIONS
 	duk_push_pointer(ctx,scriptnode); //I don't think we need to know the script this way, but in the future, you might
@@ -1964,7 +1970,8 @@ int jsActualrunScript(int num, char *script){
 
 	/* get context and global object for this script */
 	ctx = (duk_context *)ScriptControl[num].cx;
-	iglobal = *((int *)ScriptControl[num].glob);
+	//iglobal = *((int *)ScriptControl[num].glob);
+	iglobal = ((int *)&ScriptControl[num].glob)[0];
 
 	//CLEANUP_JAVASCRIPT(_context)
 
@@ -2091,7 +2098,8 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 
 	/* get context and global object for this script */
 	ctx =  (duk_context *)ScriptControl[tonode].cx;
-	obj = *(int*)ScriptControl[tonode].glob; //don't need
+	//obj = *(int*)ScriptControl[tonode].glob; //don't need
+	obj = ((int*)&ScriptControl[tonode].glob)[0]; //don't need
 
 
 	//get function by name
@@ -2168,7 +2176,8 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen)
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
 	ctx =  (duk_context *)ScriptControl[tonode].cx;
-	obj = *(int*)ScriptControl[tonode].glob;
+	//obj = *(int*)ScriptControl[tonode].glob;
+	obj = ((int*)&ScriptControl[tonode].glob)[0];
 	
 	//printf("in set_one_MultiElementType\n");
 	//get function by name
@@ -2206,7 +2215,8 @@ void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
 	ctx =  (duk_context *)ScriptControl[tonode].cx;
-	obj = *(int*)ScriptControl[tonode].glob;
+	//obj = *(int*)ScriptControl[tonode].glob;
+	obj = ((int*)&ScriptControl[tonode].glob)[0];
 	
 	//printf("in set_one_MFElementType\n");
 	//get function by name

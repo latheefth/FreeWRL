@@ -63,6 +63,9 @@ X3DScene/X3DExecutionContext - functions not implemented relating to protos
 #include "FWTYPE.h"
 
 
+#define malloc(A) MALLOCV(A)
+#define free(A) FREE_IF_NZ(A)
+#define realloc(A,B) REALLOC(A,B)
 
 
 /* The Browser's supportedComponents and supportedProfiles are statically defined 
