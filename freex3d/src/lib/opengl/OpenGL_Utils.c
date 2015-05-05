@@ -5579,8 +5579,6 @@ BOOL cbFreeMallocedBuiltinField(void *callbackData,struct X3D_Node* node,int jfi
 			if(strcmp(fieldName,"__oldurl") && strcmp(fieldName,"__oldSFString") && strcmp(fieldName,"__oldMFString") && strcmp(fieldName,"_parentVector")) {
 			//if(1){
 				//skip double underscore prefixed fields, which we will treat as not-to-be-deleted, because duplicates like GeoViewpoint __oldMFString which is a duplicate of navType
-				if(!strcmp(fieldName,"__points"))
-					printf("yes, trying to free points\n");
 				deleteMallocedFieldValue(type,fieldPtr);
 			}
 		}

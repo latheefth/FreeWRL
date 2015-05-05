@@ -6625,6 +6625,7 @@ BOOL found_IS_field(struct VRMLParser* me, struct X3D_Node *node)
 	if(!(foundField))
 	{
 		BACKUP
+		FREE_IF_NZ(nodeFieldName);
 		return FALSE;  /* not a field or event */
 	}
 
