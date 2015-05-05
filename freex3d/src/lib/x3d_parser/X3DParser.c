@@ -72,7 +72,7 @@ struct xml_user_data{
 	Stack *fields;
 };
 struct xml_user_data *new_xml_user_data(){
-	struct xml_user_data *ud = malloc(sizeof(struct xml_user_data));
+	struct xml_user_data *ud = MALLOCV(sizeof(struct xml_user_data));
 	ud->context = ud->nodes = ud->atts  = ud->modes = ud->fields = NULL;
 	ud->context = newVector(struct X3D_Node*,256);
 	ud->context->n = 0;
@@ -93,8 +93,8 @@ void free_xml_user_data(struct xml_user_data *ud){
 		deleteVector(void*,ud->atts);
 		deleteVector(void*,ud->modes);
 		deleteVector(void*,ud->fields);
+		FREE_IF_NZ(ud);
 	}
-	FREE_IF_NZ(ud);
 }
 //for push,pop,get the index is the vector index range 0, n-1. 
 // Or going from the top top= -1, parent to top = -2.
@@ -1383,7 +1383,7 @@ void endCDATA_B (void *ud, const xmlChar *string, int len) {
 			if(strstr((char*)string,"script")){
 				handled = TRUE;
 				value->mfstring.n = 1;
-				value->mfstring.p = malloc(sizeof(void *));
+				value->mfstring.p = MALLOCV(sizeof(void *));
 				value->mfstring.p[0] = newASCIIString((char *)string);
 				//if(0) printf("copied cdata string= [%s]\n",(struct Uni_String*)(value->mfstring.p[0])->strptr);
 			}

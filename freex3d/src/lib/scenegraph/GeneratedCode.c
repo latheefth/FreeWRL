@@ -181,6 +181,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__vertexCount",
 	"__vertices",
 	"__visible",
+	"__xcolours",
 	"__xparams",
 	"_amb",
 	"_bboxCenter",
@@ -3604,12 +3605,12 @@ const int OFFSETS_IndexedFaceSet[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_IndexedLineSet[] = {
-	(int) FIELDNAMES___colours, (int) offsetof (struct X3D_IndexedLineSet, __colours),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___segCount, (int) offsetof (struct X3D_IndexedLineSet, __segCount),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___vertArr, (int) offsetof (struct X3D_IndexedLineSet, __vertArr),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___vertIndx, (int) offsetof (struct X3D_IndexedLineSet, __vertIndx),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___vertexCount, (int) offsetof (struct X3D_IndexedLineSet, __vertexCount),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___vertices, (int) offsetof (struct X3D_IndexedLineSet, __vertices),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___xcolours, (int) offsetof (struct X3D_IndexedLineSet, __xcolours),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_attrib, (int) offsetof (struct X3D_IndexedLineSet, attrib),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_color, (int) offsetof (struct X3D_IndexedLineSet, color),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_colorIndex, (int) offsetof (struct X3D_IndexedLineSet, colorIndex),  (int) FIELDTYPE_MFInt32, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -7095,12 +7096,12 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_IndexedLineSet : {
 			struct X3D_IndexedLineSet * tmp2;
 			tmp2 = (struct X3D_IndexedLineSet *) tmp;
-			tmp2->__colours = 0;
 			tmp2->__segCount = 0;
 			tmp2->__vertArr = 0;
 			tmp2->__vertIndx = 0;
 			tmp2->__vertexCount = 0;
 			tmp2->__vertices = 0;
+			tmp2->__xcolours = 0;
 			tmp2->attrib.n=0; tmp2->attrib.p=0;
 			tmp2->color = NULL;
 			tmp2->colorIndex.n=0; tmp2->colorIndex.p=0;

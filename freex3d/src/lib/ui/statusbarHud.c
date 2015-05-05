@@ -1279,7 +1279,7 @@ void hudSetConsoleMessage(char *buffer)
 	if( p->concount > 50 ) // > MAXMESSAGES number of scrolling lines
 	{
 		//printf("-%s\n", (char*)p->conlist->elem);
-		FREE((char*)p->conlist->elem); //free a previous buffer now scrolled up off the screen
+		free((char*)p->conlist->elem); //free a previous buffer now scrolled up off the screen
 		p->conlist = ml_delete_self(p->conlist, p->conlist); /*delete from top*/
 		p->concount--;
 	}

@@ -1772,7 +1772,7 @@ void parseProtoDeclare_B (void *ud, char **atts) {
 	//set ProtoDefinition *obj
 	proto->__protoDef = obj;
 	proto->__prototype = X3D_NODE(proto); //point to self, so shallow and deep instances will inherit this value
-	proto->__typename = strdup(obj->protoName);
+	proto->__typename = STRDUP(obj->protoName);
 	if(containerfield){
 		int builtinField = findFieldInFIELDNAMES(containerfield);
 		if(builtinField > -1){
@@ -1879,7 +1879,7 @@ void parseExternProtoDeclare_B (void *ud, char **atts) {
 	//set ProtoDefinition *obj
 	proto->__protoDef = obj;
 	proto->__prototype = X3D_NODE(proto); //point to self, so shallow and deep instances will inherit this value
-	proto->__typename = strdup(obj->protoName);
+	proto->__typename = STRDUP(obj->protoName);
 	if(containerfield){
 		int builtinField = findFieldInFIELDNAMES(containerfield);
 		if(builtinField > -1){
