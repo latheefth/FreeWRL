@@ -5580,6 +5580,11 @@ BOOL cbFreeMallocedBuiltinField(void *callbackData,struct X3D_Node* node,int jfi
 			//if(1){
 				//skip double underscore prefixed fields, which we will treat as not-to-be-deleted, because duplicates like GeoViewpoint __oldMFString which is a duplicate of navType
 				deleteMallocedFieldValue(type,fieldPtr);
+				if(type == FIELDTYPE_FreeWRLPTR){
+					if(!strncmp(fieldName,"__x",3) || !strncmp(fieldName,"__v",3)) {  //May 2015 special field name prefixes __x and __v signals OK to FREE_IF_NZ
+						FREE_IF_NZ(fieldPtr->sfnode); //free it as a pointer
+					}
+				}
 			}
 		}
 	}

@@ -993,7 +993,7 @@ our %Nodes = (
 		mode =>["MFString",[],"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		source =>["MFString",[],"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		texture=>["MFNode",undef,"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		__params => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		__xparams => ["FreeWRLPTR", 0, "initializeOnly", 0],
 	],"X3DTextureNode"),
 
 	"MultiTextureCoordinate" => new VRML::NodeType("MultiTextureCoordinate", [

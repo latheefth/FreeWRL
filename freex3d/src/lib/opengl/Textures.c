@@ -831,16 +831,16 @@ static void compileMultiTexture (struct X3D_MultiTexture *node) {
     MARK_NODE_COMPILED;
     
     /* alloc fields, if required - only do this once, even if node changes */
-    if (node->__params == 0) {
+    if (node->__xparams == 0) {
         /* printf ("loadMulti, MALLOCing for params\n"); */
-        node->__params = MALLOC (void *, sizeof (struct multiTexParams) * gglobal()->display.rdr_caps.texture_units);
+        node->__xparams = MALLOC (void *, sizeof (struct multiTexParams) * gglobal()->display.rdr_caps.texture_units);
         
        // printf ("just mallocd %ld in size for __params\n",sizeof (struct multiTexParams) * gglobal()->display.rdr_caps.texture_units);
     
         
         //printf ("paramPtr is %p\n",(int *)node->__params);
         
-        paramPtr = (struct multiTexParams*) node->__params;
+        paramPtr = (struct multiTexParams*) node->__xparams;
         
         /* set defaults for these fields */
         for (count = 0; count < gglobal()->display.rdr_caps.texture_units; count++) {
@@ -860,7 +860,7 @@ static void compileMultiTexture (struct X3D_MultiTexture *node) {
         ConsoleMessage ("currently, MultiTexture source and function parameters defaults used");
     }
     /* go through the params, and change string name into an int */
-    paramPtr = (struct multiTexParams*) node->__params;
+    paramPtr = (struct multiTexParams*) node->__xparams;
     for (count = 0; count < max; count++) {
         param = node->mode.p[count]->strptr;
         paramPtr->multitex_mode = findFieldInMULTITEXTUREMODE(param);
@@ -916,7 +916,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
     
     
 	/* go through and get all of the textures */
-	paramPtr = (struct multiTexParams *) node->__params;
+	paramPtr = (struct multiTexParams *) node->__xparams;
     
 #ifdef TEXVERBOSE
     printf ("loadMultiTExture, param stack:\n");

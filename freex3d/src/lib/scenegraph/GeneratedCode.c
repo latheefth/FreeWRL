@@ -145,7 +145,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__oldload",
 	"__oldmetadata",
 	"__oldurl",
-	"__params",
 	"__parentProto",
 	"__points",
 	"__protoDeclares",
@@ -182,6 +181,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__vertexCount",
 	"__vertices",
 	"__visible",
+	"__xparams",
 	"_amb",
 	"_bboxCenter",
 	"_bboxSize",
@@ -4199,7 +4199,7 @@ const int OFFSETS_MovieTexture[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_MultiTexture[] = {
-	(int) FIELDNAMES___params, (int) offsetof (struct X3D_MultiTexture, __params),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___xparams, (int) offsetof (struct X3D_MultiTexture, __xparams),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_alpha, (int) offsetof (struct X3D_MultiTexture, alpha),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_color, (int) offsetof (struct X3D_MultiTexture, color),  (int) FIELDTYPE_SFColor, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_function, (int) offsetof (struct X3D_MultiTexture, function),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -7903,7 +7903,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MultiTexture : {
 			struct X3D_MultiTexture * tmp2;
 			tmp2 = (struct X3D_MultiTexture *) tmp;
-			tmp2->__params = 0;
+			tmp2->__xparams = 0;
 			tmp2->alpha = 1.0f;
 			tmp2->color.c[0] = 1.0f;tmp2->color.c[1] = 1.0f;tmp2->color.c[2] = 1.0f;;
 			tmp2->function.n=0; tmp2->function.p=0;
