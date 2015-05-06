@@ -285,12 +285,12 @@ void render_Polypoint2D (struct X3D_Polypoint2D *node){
 
 void compile_Disk2D (struct X3D_Disk2D *node){
         /*  have to regen the shape*/
-	struct SFVec2f *fp;
-	GLfloat *tp;
-	struct SFVec2f *sfp;
-	GLfloat *stp;
-	struct SFVec2f *ofp;
-	GLfloat *otp;
+	struct SFVec2f *fp, *tp;
+	//GLfloat *tp;
+	struct SFVec2f *sfp, *stp;
+	//GLfloat *stp;
+	struct SFVec2f *ofp, *otp;
+	//GLfloat *otp;
 	int i;
 	GLfloat id;
 	GLfloat od;
@@ -313,24 +313,25 @@ void compile_Disk2D (struct X3D_Disk2D *node){
 	if (simpleDisc) {
 		tmpint = SEGMENTS_PER_CIRCLE+2;
 		fp = sfp = MALLOC (struct SFVec2f *, sizeof(struct SFVec2f) * (tmpint));
-		tp = stp = MALLOC (GLfloat *, sizeof(GLfloat) * 2 * (tmpint));
+		tp = stp = MALLOC (struct SFVec2f *, sizeof(struct SFVec2f) * (tmpint)); //(GLfloat *, sizeof(GLfloat) * 2 * (tmpint));
 
 		/* initial TriangleFan point */
 		(*fp).c[0] = 0.0f; (*fp).c[1] = 0.0f; fp++;
-		*tp = 0.5f; tp++; *tp = 0.5f; tp++;
+		(*tp).c[0] = 0.5f; (*tp).c[1] = 0.5f; tp++;
 		id = 2.0f;
 
 		for (i=SEGMENTS_PER_CIRCLE; i >= 0; i--) {
 			(*fp).c[0] = node->outerRadius * sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));
 			(*fp).c[1] = node->outerRadius * cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
 			fp++;
-			*tp = 0.5f + (sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	tp++;
-			*tp = 0.5f + (cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	tp++;
+			(*tp).c[0] = 0.5f + (sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);
+			(*tp).c[1] = 0.5f + (cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	
+			tp++;
 		}
 	} else {
 		tmpint = (SEGMENTS_PER_CIRCLE+1) * 2;
 		fp = sfp = MALLOC (struct SFVec2f *, sizeof(struct SFVec2f) * 2 * tmpint);
-		tp = stp = MALLOC (GLfloat *, sizeof(GLfloat) * 2 * tmpint);
+		tp = stp = MALLOC (struct SFVec2f *, sizeof(struct SFVec2f) * (tmpint)); //MALLOC (GLfloat *, sizeof(GLfloat) * 2 * tmpint);
 
 
 		/* texture scaling params */
@@ -344,10 +345,12 @@ void compile_Disk2D (struct X3D_Disk2D *node){
 			(*fp).c[0] = node->outerRadius * (float) sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));
 			(*fp).c[1] = node->outerRadius * (float) cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
 			fp++;
-			*tp = 0.5f + ((float)sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	tp++;
-			*tp = 0.5f + ((float)cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	tp++;
-			*tp = 0.5f + ((float)sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/od);	tp++;
-			*tp = 0.5f + ((float)cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/od);	tp++;
+			(*tp).c[0] = 0.5f + ((float)sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);
+			(*tp).c[1] = 0.5f + ((float)cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	
+			tp++;
+			(*tp).c[0] = 0.5f + ((float)sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/od);
+			(*tp).c[1] = 0.5f + ((float)cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/od);
+			tp++;
 		}
 	}
 
@@ -355,9 +358,9 @@ void compile_Disk2D (struct X3D_Disk2D *node){
 	/* compiling done, set up for rendering. thread safe */
 	node->__numPoints = 0;
 	ofp = node->__points.p;
-	otp = node->__texCoords;
+	otp = node->__texCoords.p;
 	node->__points.p = sfp;
-	node->__texCoords = stp;
+	node->__texCoords.p = stp;
 	node->__simpleDisk = simpleDisc;
 	node->__numPoints = tmpint;
 	FREE_IF_NZ (ofp);
@@ -373,7 +376,7 @@ void compile_Disk2D (struct X3D_Disk2D *node){
 void render_Disk2D (struct X3D_Disk2D *node){
 	COMPILE_IF_REQUIRED
 	if (node->__numPoints>0) {	
-		struct textureVertexInfo mtf = {(GLfloat *)node->__texCoords,2,GL_FLOAT,0,NULL};
+		struct textureVertexInfo mtf = {(GLfloat *)node->__texCoords.p,2,GL_FLOAT,0,NULL};
 		/* for BoundingBox calculations */
 		setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, 
 			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0f,0.0f,X3D_NODE(node));
@@ -406,7 +409,7 @@ void compile_TriangleSet2D (struct X3D_TriangleSet2D *node){
 	GLfloat maxY, minY;
 	GLfloat Ssize, Tsize;
 	int i;
-	GLfloat *fp;
+	struct SFVec2f *fp; //GLfloat *fp;
 	int tmpint;
 
 	MARK_NODE_COMPILED
@@ -422,9 +425,9 @@ void compile_TriangleSet2D (struct X3D_TriangleSet2D *node){
 	node->vertices.n = 0;
 
 	/* ok, now if renderer renders (threading) it'll see zero, so we are safe */
-	FREE_IF_NZ (node->__texCoords);
-	node->__texCoords = fp = MALLOC (GLfloat *, sizeof (GLfloat) * tmpint * 2);
-
+	FREE_IF_NZ (node->__texCoords.p);
+	node->__texCoords.p = fp = MALLOC (struct SFVec2f *, sizeof(struct SFVec2f) * (tmpint)); //MALLOC (GLfloat *, sizeof (GLfloat) * tmpint * 2);
+	node->__texCoords.n = tmpint;
 	/* find min/max values for X and Y axes */
 	minY = minX = FLT_MAX;
 	maxY = maxX = -FLT_MAX;
@@ -447,8 +450,9 @@ void compile_TriangleSet2D (struct X3D_TriangleSet2D *node){
 	/* printf ("ssize %f tsize %f\n",Ssize, Tsize); */
 
 	for (i=0; i<tmpint; i++) {
-		*fp = (node->vertices.p[i].c[0] - minX) / Ssize; fp++;
-		*fp = (node->vertices.p[i].c[1] - minY) / Tsize; fp++;
+		(*fp).c[0] = (node->vertices.p[i].c[0] - minX) / Ssize;
+		(*fp).c[1] = (node->vertices.p[i].c[1] - minY) / Tsize; 
+		fp++;
 	}
 
 	/* restore, so we know how many tris there are */
@@ -458,7 +462,7 @@ void compile_TriangleSet2D (struct X3D_TriangleSet2D *node){
 void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
 	COMPILE_IF_REQUIRED
 	if (node->vertices.n>0) {	
-		struct textureVertexInfo mtf = {(GLfloat *)node->__texCoords,2,GL_FLOAT,0,NULL};
+		struct textureVertexInfo mtf = {(GLfloat *)node->__texCoords.p,2,GL_FLOAT,0,NULL};
 		/* for BoundingBox calculations */
 		setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, 
 			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0f,0.0f,X3D_NODE(node));

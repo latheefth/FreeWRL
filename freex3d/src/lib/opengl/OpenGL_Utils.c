@@ -5562,22 +5562,8 @@ void unlink_node(struct X3D_Node* node)
 		}
 	}
 }
-void clearASCIIString(struct Uni_String *us);
-void freeASCIIString(struct Uni_String *us);
-void clearMFString(struct Multi_String *ms);
-void freeMFString(struct Multi_String **ms);
-//struct fieldFree {
-//	char *name;
-//	int type;
-//	int mode;
-//	void *ptr;
-//};
-//BOOL alreadyFreed(){
-//
-//}
-//void setFreed(){
-//
-//}
+
+void deleteMallocedFieldValue(int type,union anyVrml *fieldPtr);
 BOOL cbFreeMallocedBuiltinField(void *callbackData,struct X3D_Node* node,int jfield,
 	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,BOOL publicfield)
 {
@@ -5593,26 +5579,11 @@ BOOL cbFreeMallocedBuiltinField(void *callbackData,struct X3D_Node* node,int jfi
 			if(strcmp(fieldName,"__oldurl") && strcmp(fieldName,"__oldSFString") && strcmp(fieldName,"__oldMFString") && strcmp(fieldName,"_parentVector")) {
 			//if(1){
 				//skip double underscore prefixed fields, which we will treat as not-to-be-deleted, because duplicates like GeoViewpoint __oldMFString which is a duplicate of navType
-				int isMF = type % 2;
+				deleteMallocedFieldValue(type,fieldPtr);
 				if(type == FIELDTYPE_FreeWRLPTR){
-					//depends what it's pointing to. If it was a straightforward malloc then:
-					if(0) FREE_IF_NZ(fieldPtr);
-					//else if it was a *vector or other compound type, then we need to know the type to free its pointers
-				} else if(type == FIELDTYPE_SFString){
-					struct Uni_String *us;
-					//union anyVrml holds a struct Uni_String * (a pointer to Uni_String)
-					us = fieldPtr->sfstring;
-					clearASCIIString(us); //fieldPtr);
-					FREE_IF_NZ(fieldPtr->sfstring);
-					//fieldPtr->sfstring->strptr = NULL;
-				}else if(type == FIELDTYPE_MFString){
-					clearMFString(fieldPtr);
-					fieldPtr->mfstring.n = 0;
-					fieldPtr->mfstring.p = NULL;
-				} else if(isMF) { 
-					FREE_IF_NZ(fieldPtr->mfnode.p);
-					fieldPtr->mfnode.n = 0;
-					fieldPtr->mfnode.p = NULL;
+					if(!strncmp(fieldName,"__x",3) || !strncmp(fieldName,"__v",3)) {  //May 2015 special field name prefixes __x and __v signals OK to FREE_IF_NZ
+						FREE_IF_NZ(fieldPtr->sfnode); //free it as a pointer
+					}
 				}
 			}
 		}
@@ -5634,27 +5605,7 @@ BOOL cbFreePublicMallocedBuiltinField(void *callbackData,struct X3D_Node* node,i
 			if(strncmp(fieldName,"_",1)) { //only public fields, skip _ and __ private fields
 			//if(1){
 				//skip double underscore prefixed fields, which we will treat as not-to-be-deleted, because duplicates like GeoViewpoint __oldMFString which is a duplicate of navType
-				int isMF = type % 2;
-				if(type == FIELDTYPE_FreeWRLPTR){
-					//depends what it's pointing to. If it was a straightforward malloc then:
-					if(0) FREE_IF_NZ(fieldPtr);
-					//else if it was a *vector or other compound type, then we need to know the type to free its pointers
-				} else if(type == FIELDTYPE_SFString){
-					struct Uni_String *us;
-					//union anyVrml holds a struct Uni_String * (a pointer to Uni_String)
-					us = fieldPtr->sfstring;
-					clearASCIIString(us); //fieldPtr);
-					//fieldPtr->sfstring->strptr = NULL;
-					FREE_IF_NZ(fieldPtr->sfstring);
-				}else if(type == FIELDTYPE_MFString){
-					clearMFString(fieldPtr);
-					fieldPtr->mfstring.n = 0;
-					fieldPtr->mfstring.p = NULL;
-				} else if(isMF) { 
-					FREE_IF_NZ(fieldPtr->mfnode.p);
-					fieldPtr->mfnode.n = 0;
-					fieldPtr->mfnode.p = NULL;
-				}
+				deleteMallocedFieldValue(type,fieldPtr);
 			}
 		}
 	}
@@ -5677,26 +5628,7 @@ BOOL cbFreeMallocedUserField(void *callbackData,struct X3D_Node* node,int jfield
 			if(strncmp(fieldName,"__",2)) {
 			//if(1){
 				//skip double underscore prefixed fields, which we will treat as not-to-be-deleted, because duplicates like GeoViewpoint __oldMFString which is a duplicate of navType
-				int isMF = type % 2;
-				if(type == FIELDTYPE_FreeWRLPTR){
-					if(0) FREE_IF_NZ(fieldPtr);
-				} else if(type == FIELDTYPE_SFString){
-					struct Uni_String *us;
-					//union anyVrml holds a struct Uni_String * (a pointer to Uni_String)
-					us = fieldPtr->sfstring;
-					clearASCIIString(us); //fieldPtr);
-					fieldPtr->sfstring->strptr = NULL;
-					fieldPtr->sfstring->len = 0;
-					FREE_IF_NZ(fieldPtr->sfstring);
-				}else if(type == FIELDTYPE_MFString){
-					clearMFString(fieldPtr);
-					fieldPtr->mfstring.p = NULL;
-					fieldPtr->mfstring.n = 0;
-				} else if(isMF) { 
-					//if(type == FIELDTYPE_SFImage){
-					FREE_IF_NZ(fieldPtr->mfnode.p);
-					fieldPtr->mfnode.n = 0;
-				}
+				deleteMallocedFieldValue(type,fieldPtr);
 			}
 		}
 	}
@@ -5782,10 +5714,10 @@ void freeMallocedNodeFields0(struct X3D_Node* node){
 		walk_fields(node,cbFreeMallocedBuiltinField,NULL); //&freed);
 	}
 }
-void freePublicBuiltinNodeFields(struct X3D_Node* node){
-	if(node)
-		walk_fields(node,cbFreePublicMallocedBuiltinField,NULL); //&freed);
-}
+//void freePublicBuiltinNodeFields(struct X3D_Node* node){
+//	if(node)
+//		walk_fields(node,cbFreePublicMallocedBuiltinField,NULL); //&freed);
+//}
 void freeMallocedNodeFields(struct X3D_Node* node){
 	if(node){
 		deleteVector(sizeof(void*),node->_parentVector);

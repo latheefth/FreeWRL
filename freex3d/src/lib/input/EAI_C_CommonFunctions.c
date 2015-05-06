@@ -136,7 +136,10 @@ void freeASCIIString(struct Uni_String *us){
 void clearMFString(struct Multi_String *ms){
 	if(ms){
 		int i;
+		//printf("ms.n=%d\n",ms->n);
 		for(i=0;i<ms->n;i++){
+			struct Uni_String *us = ms->p[i];
+			//printf("us[%d]='%s'\n",i,us->strptr);
 			freeASCIIString(ms->p[i]);
 		}
 		ms->n = 0;

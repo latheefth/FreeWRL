@@ -72,7 +72,7 @@ struct xml_user_data{
 	Stack *fields;
 };
 struct xml_user_data *new_xml_user_data(){
-	struct xml_user_data *ud = malloc(sizeof(struct xml_user_data));
+	struct xml_user_data *ud = MALLOCV(sizeof(struct xml_user_data));
 	ud->context = ud->nodes = ud->atts  = ud->modes = ud->fields = NULL;
 	ud->context = newVector(struct X3D_Node*,256);
 	ud->context->n = 0;
@@ -93,8 +93,8 @@ void free_xml_user_data(struct xml_user_data *ud){
 		deleteVector(void*,ud->atts);
 		deleteVector(void*,ud->modes);
 		deleteVector(void*,ud->fields);
+		FREE_IF_NZ(ud);
 	}
-	FREE_IF_NZ(ud);
 }
 //for push,pop,get the index is the vector index range 0, n-1. 
 // Or going from the top top= -1, parent to top = -2.
@@ -1383,7 +1383,7 @@ void endCDATA_B (void *ud, const xmlChar *string, int len) {
 			if(strstr((char*)string,"script")){
 				handled = TRUE;
 				value->mfstring.n = 1;
-				value->mfstring.p = malloc(sizeof(void *));
+				value->mfstring.p = MALLOCV(sizeof(void *));
 				value->mfstring.p[0] = newASCIIString((char *)string);
 				//if(0) printf("copied cdata string= [%s]\n",(struct Uni_String*)(value->mfstring.p[0])->strptr);
 			}
@@ -2771,6 +2771,16 @@ static void shutdownX3DParser (void *ud) {
 		p->currentX3DParser = p->x3dparser[p->X3DParserRecurseLevel];
 	/* printf ("shutdownX3DParser, current X3DParser %u\n",currentX3DParser); */
 	popMode(ud);
+
+	if(p->DEFedNodes){
+		int i;
+		for(i=0;i<vectorSize(p->DEFedNodes);i++){
+			struct Vector* vd = vector_get(struct Vector*,p->DEFedNodes,i);
+			deleteVector(struct X3D_Node*,vd);
+		}
+		deleteVector(struct Vector*, p->DEFedNodes);
+	}
+
 	/*
     * Cleanup function for the XML library.
     */
@@ -2788,15 +2798,17 @@ int X3DParse (struct X3D_Node* ectx, struct X3D_Node* myParent, const char *inpu
 
 	/* printf ("X3DParse, current X3DParser is %u\n",currentX3DParser); */
 
-	/* Use classic parser Lexer for storing DEF name info */
-	if (p->myLexer == NULL) p->myLexer = newLexer();
-	if (p->DEFedNodes == NULL) {
-		p->DEFedNodes = newStack(struct Vector*);
-		ASSERT(p->DEFedNodes);
-		#define DEFMEM_INIT_SIZE 16
-		stack_push(struct Vector*, p->DEFedNodes,
-        	       newVector(struct X3D_Node*, DEFMEM_INIT_SIZE));
-		ASSERT(!stack_empty(p->DEFedNodes));
+	if(!usingBrotos()) {
+		/* Use classic parser Lexer for storing DEF name info */
+		if (p->myLexer == NULL) p->myLexer = newLexer();
+		if (p->DEFedNodes == NULL) {
+			p->DEFedNodes = newStack(struct Vector*);
+			ASSERT(p->DEFedNodes);
+			#define DEFMEM_INIT_SIZE 16
+			stack_push(struct Vector*, p->DEFedNodes,
+        			   newVector(struct X3D_Node*, DEFMEM_INIT_SIZE));
+			ASSERT(!stack_empty(p->DEFedNodes));
+		}
 	}
 
 

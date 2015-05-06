@@ -458,12 +458,12 @@ void *freewrlStrndup(int line, char *file, const char *str, size_t n);
 
 /* This get always defined, but ERROR_MSG is no-op without _DEBUG */
 
-#define FREE_IF_NZ(_ptr) if (_ptr) { \
+#define FREE_IF_NZ(_ptr) {if (_ptr) { \
                              FREE(_ptr); \
                              _ptr = 0; } \
                          else { \
                              DEBUG_MEM("double free: %s:%d\n", __FILE__, __LINE__); \
-                         }
+                         }}
 
 
 /* New ptr/string guarded code:

@@ -1158,7 +1158,7 @@ void parseProtoInstance_B(void *ud, char **atts) {
 			node=X3D_NODE(brotoInstance(proto,idepth));
 			node->_executionContext = X3D_NODE(proto);
 			if (defNameIndex != INT_ID_UNDEFINED){
-				char * defname = STRDUP(atts[defNameIndex]);
+				char * defname = atts[defNameIndex]; //gets STRDUP();'d inside broto_store_DEF
 				broto_store_DEF(currentContext,node, defname);
 			}
 			add_node_to_broto_context(currentContext,node);
@@ -1772,7 +1772,7 @@ void parseProtoDeclare_B (void *ud, char **atts) {
 	//set ProtoDefinition *obj
 	proto->__protoDef = obj;
 	proto->__prototype = X3D_NODE(proto); //point to self, so shallow and deep instances will inherit this value
-	proto->__typename = strdup(obj->protoName);
+	proto->__typename = STRDUP(obj->protoName);
 	if(containerfield){
 		int builtinField = findFieldInFIELDNAMES(containerfield);
 		if(builtinField > -1){
@@ -1879,7 +1879,7 @@ void parseExternProtoDeclare_B (void *ud, char **atts) {
 	//set ProtoDefinition *obj
 	proto->__protoDef = obj;
 	proto->__prototype = X3D_NODE(proto); //point to self, so shallow and deep instances will inherit this value
-	proto->__typename = strdup(obj->protoName);
+	proto->__typename = STRDUP(obj->protoName);
 	if(containerfield){
 		int builtinField = findFieldInFIELDNAMES(containerfield);
 		if(builtinField > -1){

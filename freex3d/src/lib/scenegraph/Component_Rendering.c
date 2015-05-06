@@ -257,10 +257,10 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 		/* we resort the color nodes so that we have an RGBA color node per vertex */
 
 
-		FREE_IF_NZ (node->__colours);
-		node->__colours = MALLOC (struct SFColorRGBA *, sizeof(struct SFColorRGBA)*(nVertices+1));
+		FREE_IF_NZ (node->__xcolours);
+		node->__xcolours = MALLOC (struct SFColorRGBA *, sizeof(struct SFColorRGBA)*(nVertices+1));
 
-		newcolors = (struct SFColorRGBA *) node->__colours;
+		newcolors = (struct SFColorRGBA *) node->__xcolours;
 			POSSIBLE_PROTO_EXPANSION(struct X3D_Color *, node->color,cc)
                		/* cc = (struct X3D_Color *) node->color; */
                		if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
@@ -369,8 +369,8 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	if (node->__segCount > 0) {
 		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,node->__vertices);
 
-		if (node->__colours) {
-			FW_GL_COLOR_POINTER (4,GL_FLOAT,0,node->__colours);
+		if (node->__xcolours) {
+			FW_GL_COLOR_POINTER (4,GL_FLOAT,0,node->__xcolours);
 		}
 
         indxStartPtr = (ushort **)node->__vertIndx;

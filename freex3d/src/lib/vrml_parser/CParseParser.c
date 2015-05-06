@@ -5677,11 +5677,8 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 	// solution - in copy_field or shallow_copy_field, call deleteMallocedFieldValue(type,unionAnyvrml)
 	if((*source)->_nodeType == NODE_Proto){
 		*dest = X3D_NODE(brotoInstance(X3D_PROTO(X3D_PROTO(*source)->__prototype),ciflag_get(ctx->__protoFlags,0)));
-		//deleteProtoDefinition(X3D_PROTO(*dest)->__protoDef);
 	}else{
 		*dest=X3D_NODE(createNewX3DNode( (*source)->_nodeType)); //will register sensors and viewpionts
-		//freeMallocedNodeFields0(*dest); //frees field which we are going to recreate below.
-		//freePublicBuiltinNodeFields(*dest);
 	}
 	add_node_to_broto_context(ctx,(*dest));
 
@@ -6628,6 +6625,7 @@ BOOL found_IS_field(struct VRMLParser* me, struct X3D_Node *node)
 	if(!(foundField))
 	{
 		BACKUP
+		FREE_IF_NZ(nodeFieldName);
 		return FALSE;  /* not a field or event */
 	}
 

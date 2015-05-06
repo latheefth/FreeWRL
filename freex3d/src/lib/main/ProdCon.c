@@ -904,6 +904,7 @@ int EAI_CreateVrml(const char *tp, const char *inputstring,
 		struct X3D_Node *ectx, struct X3D_Group *where) {
 	resource_item_t *res;
 	char *newString;
+	bool retval = FALSE;
 
 	newString = NULL;
 
@@ -936,7 +937,9 @@ int EAI_CreateVrml(const char *tp, const char *inputstring,
 		res->whereToPlaceData = where;
 		res->offsetFromWhereToPlaceData = (int) offsetof (struct X3D_Group, children);
 	}
-	return parser_process_res_VRML_X3D(res);
+	retval = parser_process_res_VRML_X3D(res);
+	FREE_IF_NZ(newString);
+	return retval;
 	//send_resource_to_parser(res);
 	//resource_wait(res);
 	//FREE_IF_NZ(newString);

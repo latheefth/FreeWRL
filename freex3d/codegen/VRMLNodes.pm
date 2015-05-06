@@ -384,7 +384,7 @@ our %Nodes = (
 		coordIndex => ["MFInt32", [], "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__vertArr  =>["FreeWRLPTR",0,"initializeOnly", 0],
 		__vertIndx  =>["FreeWRLPTR",0,"initializeOnly", 0],
-		__colours  =>["FreeWRLPTR",0,"initializeOnly", 0],
+		__xcolours  =>["FreeWRLPTR",0,"initializeOnly", 0],
 		__vertices  =>["FreeWRLPTR",0,"initializeOnly", 0],
 		__vertexCount =>["FreeWRLPTR",0,"initializeOnly", 0],
 		__segCount =>["SFInt32",0,"initializeOnly", 0],
@@ -775,7 +775,7 @@ our %Nodes = (
 		outerRadius => ["SFFloat", 1.0, "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		solid => ["SFBool", "FALSE", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__points  =>["MFVec2f",[],"initializeOnly", 0],
-		__texCoords  =>["FreeWRLPTR",0,"initializeOnly", 0],
+		__texCoords  =>["MFVec2f",[],"initializeOnly", 0],
 		__numPoints =>["SFInt32",0,"initializeOnly", 0],
 		__simpleDisk => ["SFBool", "TRUE","initializeOnly", 0],
 	],"X3DGeometryNode"),
@@ -803,7 +803,7 @@ our %Nodes = (
                 metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 	    	vertices => ["MFVec2f", [], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		solid => ["SFBool", "FALSE", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		__texCoords  =>["FreeWRLPTR",0,"initializeOnly", 0],
+		__texCoords  =>["MFVec2f",[],"initializeOnly", 0],
  	],"X3DGeometryNode"),
 
 	###################################################################################
@@ -993,7 +993,7 @@ our %Nodes = (
 		mode =>["MFString",[],"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		source =>["MFString",[],"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		texture=>["MFNode",undef,"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		__params => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		__xparams => ["FreeWRLPTR", 0, "initializeOnly", 0],
 	],"X3DTextureNode"),
 
 	"MultiTextureCoordinate" => new VRML::NodeType("MultiTextureCoordinate", [
