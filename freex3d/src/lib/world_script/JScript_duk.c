@@ -1237,6 +1237,13 @@ int cget(duk_context *ctx) {
 			nr = 1;
 			return nr;
 		}
+		if(!strcmp(key,"fwGC")){
+			//someone else is asking a proxy for its fwGC (for example LHS = RHSProxy) 
+			//if there's no fwGC already on it, then the answer is FALSE
+			duk_push_boolean(ctx,FALSE);
+			nr = 1;
+			return nr;
+		}
 		if(!strcmp(key,"fwField")){
 			//someone is asking a proxy for its fwField
 			duk_push_pointer(ctx,parent);
@@ -2242,7 +2249,10 @@ int jsIsRunning(){
 	return 1;
 }
 void JSDeleteScriptContext(int num){
+	struct CRscriptStruct *ScriptControl;
 	//printf("in JSDeleteScriptContext\n");
+	ScriptControl = getScriptControlIndex(num);
+	duk_destroy_heap(ScriptControl->cx);
 	return;
 }
 void jsShutdown(){
