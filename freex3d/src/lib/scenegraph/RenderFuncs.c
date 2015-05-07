@@ -154,9 +154,45 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 
 	//setLightType(HEADLIGHT_LIGHT,2); // ensure that this is a DirectionalLight.
 }
+void unload_libraryscenes();
 void RenderFuncs_clear(struct tRenderFuncs *t){
 	ppRenderFuncs p = (ppRenderFuncs)t->prv;
+	unload_libraryscenes();
 	deleteVector(void3 *,p->libraries);
+}
+void unload_libraryscenes(){
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	//freeing these library scenes should be done during exit procedures before gglobal gc, perhaps in 
+	// finalizeRenderSceneUpdateScene
+	// or perhaps when changing scenes. Perhaps libraries should be in a Scene context. 
+	// One old idea not implemented: all scenes should first be parsed to libraryScene (nothing registered, empty protoInstance bodies)
+	// then scene instanced like a proto. That would speed up Anchoring between scene files ie between rooms. 
+	// (Avatar state would be carried between scenes in browser key,value attributes like metadata
+	if(p->libraries){
+		int i;
+		for(i=0;i<vectorSize(p->libraries);i++){
+			struct X3D_Proto *libscn;
+			char *url;
+			resource_item_t *res;
+			void3 *ul;
+			ul = vector_get(struct void3*,p->libraries,i);
+			if(ul){
+				url = (char *)ul->one;
+				libscn = (struct X3D_Proto*) ul->two;
+				res = (resource_item_t*)ul->three;
+				//unload_broto(libscn); //nothing to un-register - library scenes aren't registered
+				gc_broto_instance(libscn);
+				deleteVector(struct X3D_Node*,libscn->_parentVector);
+				freeMallocedNodeFields(libscn);
+				FREE_IF_NZ(libscn);
+				FREE_IF_NZ(url);
+				FREE_IF_NZ(ul);
+				//FREE_IF_NZ(res);
+				vector_set(struct void3*,p->libraries,i,NULL);
+			}
+		}
+		p->libraries->n = 0;
+	}
 }
 void clearLightTable(){ //unsigned int loop_count){
 	//int i;
@@ -782,16 +818,16 @@ void setRootNode(struct X3D_Node *rn)
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 	p->rootNode = rn;
 }
-struct Vector *libraries(){
-	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-	if(!p->libraries) p->libraries = newVector(void3 *,1)	;
-	return p->libraries;
-}
-void setLibraries(struct Vector *libvector){
-	//might use this in KILL_oldWorld to NULL the library vector?
-	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;	
-	p->libraries = libvector;
-}
+//struct Vector *libraries(){
+//	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+//	if(!p->libraries) p->libraries = newVector(void3 *,1)	;
+//	return p->libraries;
+//}
+//void setLibraries(struct Vector *libvector){
+//	//might use this in KILL_oldWorld to NULL the library vector?
+//	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;	
+//	p->libraries = libvector;
+//}
 void addLibrary(char *url, struct X3D_Proto *library, void *res){
 	void3 *ul = MALLOC(void3 *,sizeof(void3));
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;	
@@ -801,13 +837,15 @@ void addLibrary(char *url, struct X3D_Proto *library, void *res){
 	vector_pushBack(void3 *,p->libraries,ul);
 }
 void3 *librarySearch(char *absoluteUniUrlNoPound){
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;	
 	void3 *ul;
 	struct Vector* libs;
 	int n, i;
-	libs = libraries();
+	libs = p->libraries;
 	n = vectorSize(libs);
 	for(i=0;i<n;i++){
 		ul = vector_get(void3 *,libs,i);
+		if(ul)
 		if(!strcmp(absoluteUniUrlNoPound,ul->one)){
 			return ul; //return res
 		}

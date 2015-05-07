@@ -3891,17 +3891,22 @@ void unload_globalParser() {
 	FREE_IF_NZ(globalParser);
 	gglobal()->CParse.globalParser = NULL; //set to null to trigger a fresh createParser on replaceworld
 }
-void kill_oldWorldB(char *file, int line){
+void unload_libraryscenes();
+void freeMallocedNodeFields(struct X3D_Node* node);
+void reset_Browser(){
 	// erase old world but keep gglobal in good shape, ie everything in _init() functions still good
 	// -gglobal is erased elsewhere in finalizeRenderSceneUpdateScene()
+	// also don't erase browser metadata key,value pairs, which could be avatar state to be 
+	// carried over between room-scenes in multi-scene game
 	struct X3D_Node *rootnode = rootNode();
     if (rootnode != NULL) {
 		if(usingBrotos()>1 && rootnode->_nodeType == NODE_Proto){
-			unload_broto(X3D_PROTO(rootnode));
+			unload_broto(X3D_PROTO(rootnode)); //we still want a rootnode: empty and waiting for parsing (destroy in finalizeRenderSceneUpdateScene only on exit)
 			unload_globalParser();
 			resource_tree_destroy();
+			unload_libraryscenes(); //debate: should proto libraryscenes hang around in case the same protos are used in a different, anchored-to scene?
 		}else{
-			kill_oldWorld(TRUE,TRUE,file,line);
+			kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 		}
 	}
 }

@@ -919,6 +919,7 @@ void resource_destroy(resource_item_t *res)
 	res->m_request = NULL;
 
 	FREE_IF_NZ(res->URLbase);
+	FREE_IF_NZ(res->afterPoundCharacters);
 	FREE_IF_NZ(res->openned_files);
 	//if (!res->parent) {
 	//	/* Remove base */
@@ -1028,6 +1029,7 @@ void resource_tree_destroy()
 		ml_foreach(root->children,resource_unlink_cachedfiles((resource_item_t*)ml_elem(__l)));
 		ml_foreach(root->children,resource_destroy((resource_item_t*)ml_elem(__l)));
 		ml_foreach(root->children,resource_remove_child(root,(resource_item_t*)ml_elem(__l)));
+		ml_foreach(root->children,ml_free(__l));
 		resource_close_files(root);
 		resource_unlink_cachedfiles(root);
 		destroy_root_res();
