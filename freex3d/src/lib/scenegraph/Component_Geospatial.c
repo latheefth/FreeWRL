@@ -1808,7 +1808,7 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
 /************************************************************************/
 void add_node_to_broto_context(struct X3D_Proto *currentContext,struct X3D_Node *node);
 
-#define LOAD_CHILD(childNode,childUrl) \
+#define LOAD_CHILD_OLD(childNode,childUrl) \
 		/* printf ("start of LOAD_CHILD, url has %d strings\n",node->childUrl.n); */ \
 		if (node->childUrl.n > 0) { \
 			/* create new inline node, link it in */ \
@@ -1831,6 +1831,33 @@ void add_node_to_broto_context(struct X3D_Proto *currentContext,struct X3D_Node 
 			X3D_INLINE(node->childNode)->load = TRUE; \
 		}  
 
+void deleteMallocedFieldValue(int type,union anyVrml *fieldPtr);
+void LOAD_CHILD(struct X3D_GeoLOD *node, struct X3D_Node **childNode, struct Multi_String *childUrl) {
+	/* printf ("start of LOAD_CHILD, url has %d strings\n",node->childUrl.n); */
+	int i;
+	if (childUrl->n > 0) {
+		/* create new inline node, link it in */
+		if (*childNode == NULL) {
+			*childNode = createNewX3DNode(NODE_Inline);
+			if(usingBrotos()){
+				if(node->_executionContext)
+					add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(*childNode));
+			}
+			ADD_PARENT(X3D_NODE(*childNode), X3D_NODE(node));
+ 		}
+		/* copy over the URL from parent */
+		deleteMallocedFieldValue(FIELDTYPE_MFString,(union anyVrml*)&X3D_INLINE(*childNode)->url);
+		X3D_INLINE(*childNode)->url.p = MALLOC(struct Uni_String **, sizeof(struct Uni_String)*childUrl->n);
+		for (i=0; i<childUrl->n; i++) {
+			/* printf ("copying over url %s\n",node->childUrl.p[i]->strptr); */
+			X3D_INLINE(*childNode)->url.p[i] = newASCIIString(childUrl->p[i]->strptr);
+		}
+		/* printf ("loading, and urlCount is %d\n",node->childUrl.n); */
+		X3D_INLINE(*childNode)->url.n = childUrl->n;
+		X3D_INLINE(*childNode)->load = TRUE;
+	}  
+}
+
 #define UNLOAD_CHILD(childNode) \
 	if (node->childNode != NULL) \
 			X3D_INLINE(node->childNode)->load = FALSE; 
@@ -1848,10 +1875,15 @@ static void GeoLODchildren (struct X3D_GeoLOD *node) {
 		printf ("GeoLODchildren - have to LOAD_CHILD for node %u (level %d)\n",node,p->geoLodLevel); 
 		#endif
 
-		LOAD_CHILD(__child1Node,child1Url)
-		LOAD_CHILD(__child2Node,child2Url)
-		LOAD_CHILD(__child3Node,child3Url)
-		LOAD_CHILD(__child4Node,child4Url)
+		LOAD_CHILD(node,&node->__child1Node,&node->child1Url);
+		LOAD_CHILD(node,&node->__child2Node,&node->child2Url);
+		LOAD_CHILD(node,&node->__child3Node,&node->child3Url);
+		LOAD_CHILD(node,&node->__child4Node,&node->child4Url);
+
+		//LOAD_CHILD(__child1Node,child1Url)
+		//LOAD_CHILD(__child2Node,child2Url)
+		//LOAD_CHILD(__child3Node,child3Url)
+		//LOAD_CHILD(__child4Node,child4Url)
 		node->__childloadstatus = 1;
 	}
 }
@@ -1886,7 +1918,8 @@ static void GeoLODrootUrl (struct X3D_GeoLOD *node) {
 		printf ("GeoLODrootUrl - have to LOAD_CHILD for node %u\n",node); 
 		#endif
 
-		LOAD_CHILD(__rootUrl, rootUrl)
+		LOAD_CHILD(node,&node->__rootUrl, &node->rootUrl);
+		//LOAD_CHILD(__rootUrl, rootUrl)
 
 		node->__rooturlloadstatus = 1;
 	}
@@ -2087,7 +2120,8 @@ void compile_GeoOrigin (struct X3D_GeoOrigin * node) {
 	/* events */
 	/* MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoOrigin, metadata)) */
 	MARK_SFVEC3D_INOUT_EVENT(node->geoCoords,node->__oldgeoCoords,offsetof (struct X3D_GeoOrigin, geoCoords))
-	MARK_MFSTRING_INOUT_EVENT(node->geoSystem,node->__oldMFString,offsetof (struct X3D_GeoOrigin, geoSystem))
+	//dug9 may 2015 commented out __old.. see also geoViewpoint
+	//MARK_MFSTRING_INOUT_EVENT(node->geoSystem,node->__oldMFString,offsetof (struct X3D_GeoOrigin, geoSystem))
 }
 
 /************************************************************************/
@@ -2698,9 +2732,13 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 	MARK_SFFLOAT_INOUT_EVENT(node->fieldOfView, node->__oldFieldOfView, offsetof (struct X3D_GeoViewpoint, fieldOfView))
 	MARK_SFBOOL_INOUT_EVENT(node->headlight, node->__oldHeadlight, offsetof (struct X3D_GeoViewpoint, headlight))
 	MARK_SFBOOL_INOUT_EVENT(node->jump, node->__oldJump, offsetof (struct X3D_GeoViewpoint, jump))
+	/* 
+	//dug9 may 2015 I'm not sure what the __old stuff was for (H: debugging) but 
+	//shallow copying a string pointer -or MFString or SFString- makes it hard to generically free during exit
+	//see opengl_utils.c in cbFreeMallocedBuiltinField 
 	MARK_SFSTRING_INOUT_EVENT(node->description,node->__oldSFString, offsetof(struct X3D_GeoViewpoint, description))
 	MARK_MFSTRING_INOUT_EVENT(node->navType,node->__oldMFString, offsetof(struct X3D_GeoViewpoint, navType))
-
+	*/
 	#ifdef VERBOSE
 	printf ("compiled GeoViewpoint\n\n");
 	#endif

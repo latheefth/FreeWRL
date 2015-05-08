@@ -224,12 +224,14 @@ void closeWinInetHandle()
 /* char* download_url_WinInet(const char *url, const char *tmp) */
 char* download_url_WinInet(resource_item_t *res)
 {
+	char *temp;
+	temp = NULL;
 	if(!hWinInet)
 	{
 		hWinInet = winInetInit();
 	}
 	if(!hWinInet) 
-		return NULL;
+		return temp;
 	else
 	{
 		DWORD dataLength, len;
@@ -267,7 +269,7 @@ char* download_url_WinInet(resource_item_t *res)
 			if(strstr(buffer,"404 Not Found")){
 				//HTTP/1.1 404 Not Found
 				ERROR_MSG("Download failed for url %s\n", res->parsed_request);
-				return NULL;
+				return temp;
 			}
 			//else 200 OK
 		}
@@ -280,11 +282,10 @@ char* download_url_WinInet(resource_item_t *res)
 		if (!(hOpenUrl))
 		{
 			ERROR_MSG("Download failed for url %s\n", res->parsed_request);
-			return NULL;
+			return temp;
 		}
 		else
 		{
-			char *temp;
 			FILE *file;
 
 			if (res->temp_dir) {
@@ -294,15 +295,15 @@ char* download_url_WinInet(resource_item_t *res)
 				temp = _tempnam(NULL, "freewrl_download_XXXXXXXX");
 				if (!temp) {
 					PERROR_MSG("download_url: can't create temporary name.\n");
-					return NULL;	
+					return temp;	
 				}
 			}
 
 			file = fopen(temp, "wb");
 			if (!file) {
-				FREE(temp);
+				FREE_IF_NZ(temp);
 				ERROR_MSG("Cannot create temp file (fopen)\n");
-				return NULL;	
+				return temp;	
 			}
 
 			dataLength=0;
@@ -322,7 +323,8 @@ char* download_url_WinInet(resource_item_t *res)
 			fclose(file);
 			return temp;
 		}
-    } 
+    }
+	return temp;
 }
 
 #endif
