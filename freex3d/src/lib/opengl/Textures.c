@@ -573,6 +573,8 @@ void registerTexture0(int iaction, struct X3D_Node *tmp) {
 					// proper fix: redesign resource fetch so it has a way to check if tti still exists, IMPLEMENTED Dec5,2014
 					//  for example, have it use the table index number instead of a pointer directly to *tti,
 					//  and here leave a NULL in the table at that index so resource thread can check if its been zapped
+					FREE_IF_NZ(tti->texdata);
+					//->filename is not strduped, just a pointer to actual_file which is freed in resource
 					FREE_IF_NZ(tti);
 				}
 			}
