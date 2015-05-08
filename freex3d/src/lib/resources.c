@@ -915,7 +915,7 @@ void resource_destroy(resource_item_t *res)
 	}
 
 	/* Free the list */
-	ml_delete_all2(res->m_request, free);
+	ml_delete_all2(res->m_request, ml_free);
 	res->m_request = NULL;
 
 	FREE_IF_NZ(res->URLbase);
