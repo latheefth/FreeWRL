@@ -1396,5 +1396,6 @@ void file2blob_task(s_list_t *item){
 	}else if(tactic == file2blob_task_spawn){
 		//spawn thread
 		loadAsync(res); //res already has res->tg with global context
+		ml_free(item);
 	}
 }

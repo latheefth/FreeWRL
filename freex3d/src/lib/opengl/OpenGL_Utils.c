@@ -2935,7 +2935,7 @@ static void handle_GeoLODRange(struct X3D_GeoLOD *node) {
 		/* initialize the "children" field, if required */
 		if (node->children.p == NULL) node->children.p=MALLOC(struct X3D_Node **,sizeof(struct X3D_Node *) * 4);
 
-		if (node->__inRange == TRUE) { //dug9 FALSE) {
+		if (node->__inRange ==  TRUE) { 
 			#ifdef VERBOSE
 			printf ("GeoLOD %u level %d, inRange set to FALSE, range %lf\n",node, node->__level, node->range);
 			#endif

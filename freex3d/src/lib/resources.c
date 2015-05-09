@@ -309,7 +309,8 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 		if (res->m_request) {
 			s_list_t *l;
 			l = res->m_request;
-			/* Pick up next request in our list */			
+			/* Pick up next request in our list */
+			FREE_IF_NZ(res->URLrequest);
 			res->URLrequest = (char *) l->elem;
 			/* Point to the next... */
 			res->m_request = res->m_request->next;
@@ -452,7 +453,9 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 	}
 
 	/* record the url, and the path to the url */
+	FREE_IF_NZ(res->parsed_request);
 	res->parsed_request = url;
+	FREE_IF_NZ(res->URLbase);
 	res->URLbase = STRDUP(url);
 	removeFilenameFromPath(res->URLbase);
 

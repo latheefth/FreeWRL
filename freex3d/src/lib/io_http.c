@@ -268,7 +268,7 @@ char* download_url_WinInet(resource_item_t *res)
 			//printf("query buffer=%s\n",buffer);
 			if(strstr(buffer,"404 Not Found")){
 				//HTTP/1.1 404 Not Found
-				ERROR_MSG("Download failed for url %s\n", res->parsed_request);
+				ERROR_MSG("Download failed1 for url %s\n", res->parsed_request);
 				return temp;
 			}
 			//else 200 OK
@@ -281,7 +281,7 @@ char* download_url_WinInet(resource_item_t *res)
 		//DWORD err = GetLastError();
 		if (!(hOpenUrl))
 		{
-			ERROR_MSG("Download failed for url %s\n", res->parsed_request);
+			ERROR_MSG("Download failed2 for url %s\n", res->parsed_request);
 			return temp;
 		}
 		else

@@ -1860,7 +1860,7 @@ void LOAD_CHILD(struct X3D_GeoLOD *node, struct X3D_Node **childNode, struct Mul
 
 #define UNLOAD_CHILD(childNode) \
 	if (node->childNode != NULL) \
-			X3D_INLINE(node->childNode)->load = FALSE; 
+			X3D_INLINE(node->childNode)->load = FALSE;
 
 
 static void GeoLODchildren (struct X3D_GeoLOD *node) {
