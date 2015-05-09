@@ -863,7 +863,7 @@ void resource_destroy(resource_item_t *res)
 			}
 		}
 			/* free the actual file  */
-			FREE(res->actual_file);
+			FREE_IF_NZ(res->actual_file);
 #endif			
 			break;
 		}

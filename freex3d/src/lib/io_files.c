@@ -1334,6 +1334,7 @@ void delete_temp_file(resource_item_t *res){
 		if (cf) {
 			ml_foreach(cf, resource_remove_cached_file(__l));
 			//should clean up list items (but are contained strings constants/used elsewhere or strduped)
+			ml_foreach(cf, ml_free(__l));
 			res->cached_files = NULL;
 		}
 	}
