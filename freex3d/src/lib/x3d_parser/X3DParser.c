@@ -1153,9 +1153,9 @@ c) look at atts containerField, and if not null and not children, use it.
 					ok = getFieldFromNodeAndName(parent,"addChildren",&type,&kind,&iifield,&valueadd);
 			}
 			if(ok)
-				AddRemoveChildren(parent,&valueadd->mfnode,&node,1,1,NULL,0);
+				AddRemoveChildren(parent,&valueadd->mfnode,&node,1,1,__FILE__,__LINE__);
 			else
-				AddRemoveChildren(parent,&value->mfnode,&node,1,1,NULL,0);
+				AddRemoveChildren(parent,&value->mfnode,&node,1,1,__FILE__,__LINE__);
 		}
 	}else{
 		printf("no where to put node in parent\n");

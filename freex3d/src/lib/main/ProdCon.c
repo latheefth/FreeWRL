@@ -1187,6 +1187,7 @@ bool process_res_audio(resource_item_t *res);
 static bool parser_process_res(s_list_t *item)
 {
 	bool remove_it = FALSE;
+	bool destroy_it = FALSE;
 	bool retval = TRUE;
 	resource_item_t *res;
 	//ppProdCon p;
@@ -1251,6 +1252,7 @@ static bool parser_process_res(s_list_t *item)
 		retval = FALSE;
 		remove_it = TRUE;
 		res->complete = TRUE; //J30
+		destroy_it = TRUE;
 		break;
 
 	case ress_loaded:

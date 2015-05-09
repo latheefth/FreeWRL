@@ -309,7 +309,8 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 		if (res->m_request) {
 			s_list_t *l;
 			l = res->m_request;
-			/* Pick up next request in our list */			
+			/* Pick up next request in our list */
+			FREE_IF_NZ(res->URLrequest);
 			res->URLrequest = (char *) l->elem;
 			/* Point to the next... */
 			res->m_request = res->m_request->next;
@@ -452,7 +453,9 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 	}
 
 	/* record the url, and the path to the url */
+	FREE_IF_NZ(res->parsed_request);
 	res->parsed_request = url;
+	FREE_IF_NZ(res->URLbase);
 	res->URLbase = STRDUP(url);
 	removeFilenameFromPath(res->URLbase);
 
@@ -860,7 +863,7 @@ void resource_destroy(resource_item_t *res)
 			}
 		}
 			/* free the actual file  */
-			FREE(res->actual_file);
+			FREE_IF_NZ(res->actual_file);
 #endif			
 			break;
 		}
@@ -915,10 +918,11 @@ void resource_destroy(resource_item_t *res)
 	}
 
 	/* Free the list */
-	ml_delete_all2(res->m_request, free);
+	ml_delete_all2(res->m_request, ml_free);
 	res->m_request = NULL;
 
 	FREE_IF_NZ(res->URLbase);
+	FREE_IF_NZ(res->afterPoundCharacters);
 	FREE_IF_NZ(res->openned_files);
 	//if (!res->parent) {
 	//	/* Remove base */
@@ -1028,6 +1032,7 @@ void resource_tree_destroy()
 		ml_foreach(root->children,resource_unlink_cachedfiles((resource_item_t*)ml_elem(__l)));
 		ml_foreach(root->children,resource_destroy((resource_item_t*)ml_elem(__l)));
 		ml_foreach(root->children,resource_remove_child(root,(resource_item_t*)ml_elem(__l)));
+		ml_foreach(root->children,ml_free(__l));
 		resource_close_files(root);
 		resource_unlink_cachedfiles(root);
 		destroy_root_res();

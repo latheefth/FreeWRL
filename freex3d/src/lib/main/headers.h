@@ -230,19 +230,19 @@ struct X3D_Node* getTypeNode(struct X3D_Node *node);
                 save = good; \
         }
 
-#define MARK_SFSTRING_INOUT_EVENT(good,save,offset) \
-        if (good->strptr!=save->strptr) { \
-                MARK_EVENT(X3D_NODE(node), offset);\
-                save->strptr = good->strptr; \
-        }
-
-#define MARK_MFSTRING_INOUT_EVENT(good,save,offset) \
-	/* assumes that the good pointer has been updated */ \
-	if (good.p != save.p) { \
-                MARK_EVENT(X3D_NODE(node), offset);\
-		save.n = good.n; \
-		save.p = good.p; \
-        }
+//#define MARK_SFSTRING_INOUT_EVENT_HIDE(good,save,offset) \
+//        if (good->strptr!=save->strptr) { \
+//                MARK_EVENT(X3D_NODE(node), offset);\
+//                save->strptr = good->strptr; \
+//        }
+//
+//#define MARK_MFSTRING_INOUT_EVENT_HIDE(good,save,offset) \
+//	/* assumes that the good pointer has been updated */ \
+//	if (good.p != save.p) { \
+//                MARK_EVENT(X3D_NODE(node), offset);\
+//		save.n = good.n; \
+//		save.p = good.p; \
+//        }
 
 #define MARK_SFVEC3F_INOUT_EVENT(good,save,offset) \
         if ((!APPROX(good.c[0],save.c[0])) || (!APPROX(good.c[1],save.c[1])) || (!APPROX(good.c[2],save.c[2]))) { \
@@ -846,7 +846,7 @@ void kill_routing(void);
 void kill_bindables(void);
 void kill_javascript(void);
 void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line);
-void kill_oldWorldB(char *file, int line);
+void reset_Browser();
 void kill_clockEvents(void);
 //void kill_openGLTextures(void);
 void kill_X3DDefs(void);

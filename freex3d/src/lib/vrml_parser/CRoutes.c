@@ -546,16 +546,20 @@ void AddRemoveChildren (
 			printf("[%d]{%u}",oldlen,upper_power_of_two(old_len));
 			#endif
 			//newmal = MALLOC (void *, (oldlen+len)*sizeof(struct X3D_Node *));
+#if defined(DEBUG_MALLOC) && defined(DEBUG_MALLOC_LIST)
+			newmal = (void*)freewrlMalloc(line, file, (po2)*sizeof(struct X3D_Node *), FALSE);
+#else
 			newmal = MALLOC (void *, (po2)*sizeof(struct X3D_Node *));
+#endif
 
 			/* copy the old stuff over */
 			if (newmal != NULL && oldlen > 0) memcpy (newmal,tn->p,oldlen*sizeof(void *));
 
 			/* set up the C structures for this new MFNode addition */
-			if(oldlen > 0) {
+			//if(oldlen > 0) {
 				//FREE_IF_NZ (tn->p); //see bottom of function
-				oldmal = tn->p;
-			}
+				oldmal = tn->p; //may 2015 - needs to be unconditionally freed, for geoLod which can pull tricks with geoLod.rootNode.p
+			//}
 			tn->n = oldlen;
 			tn->p = newmal;
 			//FREE_IF_NZ(oldmal); //ATOMIC OP  but if the rendering thread is hanging onto mf->p for a long time, you'll be 'pulling the rug out' here - use addChildren

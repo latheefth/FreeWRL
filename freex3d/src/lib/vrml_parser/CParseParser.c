@@ -7010,6 +7010,7 @@ void load_externProtoInstance (struct X3D_Proto *node) {
 								p2pentry.pn = X3D_NODE(pinstance);
 								vector_pushBack(struct pointer2pointer,p2p,p2pentry);
 								copy_IS(node->__IS, node, p2p);
+								deleteVector(struct pointer2pointer,p2p);
 							}
 							//copy EPI field initial values to contained PI
 							{
@@ -7345,6 +7346,10 @@ int gc_broto_instance(struct X3D_Proto* node){
 		if(node->__protoDeclares){
 			int i;
 			struct X3D_Proto *subctx;
+			char flagInstance, flagExtern;
+			flagInstance = ciflag_get(node->__protoFlags,2);
+			flagExtern = ciflag_get(node->__protoFlags,3);
+			if(!(flagExtern && !flagInstance)) //don't delete library protos - we'll get them when we delete the library
 			for(i=0;i<vectorSize(node->__protoDeclares);i++){
 				subctx = vector_get(struct X3D_Proto*,node->__protoDeclares,i);
 				//
@@ -7357,13 +7362,18 @@ int gc_broto_instance(struct X3D_Proto* node){
 		if(node->__externProtoDeclares){
 			int i;
 			struct X3D_Proto *subctx;
+			char flagInstance, flagExtern;
+			flagInstance = ciflag_get(node->__protoFlags,2);
+			flagExtern = ciflag_get(node->__protoFlags,3);
+			if(!(flagExtern && !flagInstance)) //don't delete library protos - we'll get them when we delete the library
 			for(i=0;i<vectorSize(node->__externProtoDeclares);i++){
-				//wait - what if its in a shared libararyScene? 
+				//Q. wait - what if its in a shared libararyScene? 
 				//Those persist beyond the coming and going of scenes and inlines and protoinstances
-				if(0){
-					subctx = vector_get(struct X3D_Proto*,node->__externProtoDeclares,i);
-					gc_broto_instance(subctx);
-				}
+				//A. externProto is a local scene proxy for a libraryscene protodeclare
+				subctx = vector_get(struct X3D_Proto*,node->__externProtoDeclares,i);
+				gc_broto_instance(subctx);
+				freeMallocedNodeFields(X3D_NODE(subctx));
+				FREE_IF_NZ(subctx);
 			}
 			deleteVector(void*,node->__externProtoDeclares);
 		}

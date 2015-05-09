@@ -277,6 +277,8 @@ static void *thread_download_async (void *args){
 	//tactic = file2blob_task_chain;
 	if(downloaded)
 		file2blob_task(item); //ml_new(res));
+	else
+		resitem_enqueue(item); //for garbage collection
 	async_thread_count--;
 	return NULL;
 }

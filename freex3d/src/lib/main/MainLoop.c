@@ -4633,7 +4633,7 @@ void finalizeRenderSceneUpdateScene() {
 	/* tested on win32 console program July9,2011 seems OK */
 	struct X3D_Node* rn = rootNode();
 	if(rn)
-		deleteVector(sizeof(void*),rn->_parentVector); //perhaps unlink first
+		deleteVector(struct X3D_Node*,rn->_parentVector); //perhaps unlink first
 	freeMallocedNodeFields(rn);
 	FREE_IF_NZ(rn);
 	setRootNode(NULL);
@@ -4799,7 +4799,8 @@ int fwl_draw()
 			if (workers_waiting()) //one way to tell if workers finished flushing is if their queues are empty, and they are not busy
 			{
                 //if (!tg->Mainloop.replaceWorldRequest || tg->threads.MainLoopQuit) //attn Disabler
-				kill_oldWorldB(__FILE__, __LINE__); //cleans up old scene while leaving gglobal intact ready to load new scene
+				//kill_oldWorldB(__FILE__, __LINE__); //cleans up old scene while leaving gglobal intact ready to load new scene
+				reset_Browser(); //rename
 				tg->threads.flushing = 0;
 				if (tg->threads.MainLoopQuit)
 					tg->threads.MainLoopQuit++; //quiting takes priority over replacing

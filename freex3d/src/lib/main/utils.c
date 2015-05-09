@@ -589,11 +589,24 @@ void scanForVectorTypes(){
 void scanForFieldTypes(){
     for (mcount=0; mcount<MAXMALLOCSTOKEEP;mcount++) {
 		if (mcheck[mcount]!=NULL) {
-			if(mlineno[mcount]==5393){ //strstr("GeneratedCode.c",mplace[mcount]) && 
+			if(mlineno[mcount]==105){ //strstr("GeneratedCode.c",mplace[mcount]) && 
 				//pexky _parentVector
 				union anyVrml u;
-				u.mfnode.p = mcheck[mcount];
-				printf("!%p!",u.mfnode.p);
+				struct Uni_String *us;
+				//u.mfstring.p = mcheck[mcount];
+				us = (struct Uni_String*)mcheck[mcount];
+				printf("#%s#",us->strptr);
+				//printf("!%p!",u.mfnode.p);
+			}
+		}
+	}
+}
+void scanForCstringTypes(){
+    for (mcount=0; mcount<MAXMALLOCSTOKEEP;mcount++) {
+		if (mcheck[mcount]!=NULL) {
+			if(mlineno[mcount]==456 || mlineno[mcount]==117){ 
+				char *s = (char*)mcheck[mcount];
+				printf(">%s<",s);
 			}
 		}
 	}
@@ -604,7 +617,8 @@ void scanMallocTableOnQuit()
 	int nlocs,j,iloc;
 	size_t total;
 	//scanForVectorTypes();
-	scanForFieldTypes();
+	//scanForFieldTypes();
+	scanForCstringTypes();
 	malloc_location *mlocs = malloc(sizeof(malloc_location)*MAXMALLOCSTOKEEP);
 	memset(mlocs,0,sizeof(malloc_location)*MAXMALLOCSTOKEEP);
 	nlocs = 0;

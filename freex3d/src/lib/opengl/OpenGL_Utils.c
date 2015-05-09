@@ -2935,7 +2935,7 @@ static void handle_GeoLODRange(struct X3D_GeoLOD *node) {
 		/* initialize the "children" field, if required */
 		if (node->children.p == NULL) node->children.p=MALLOC(struct X3D_Node **,sizeof(struct X3D_Node *) * 4);
 
-		if (node->__inRange == TRUE) { //dug9 FALSE) {
+		if (node->__inRange ==  TRUE) { 
 			#ifdef VERBOSE
 			printf ("GeoLOD %u level %d, inRange set to FALSE, range %lf\n",node, node->__level, node->range);
 			#endif
@@ -3891,17 +3891,22 @@ void unload_globalParser() {
 	FREE_IF_NZ(globalParser);
 	gglobal()->CParse.globalParser = NULL; //set to null to trigger a fresh createParser on replaceworld
 }
-void kill_oldWorldB(char *file, int line){
+void unload_libraryscenes();
+void freeMallocedNodeFields(struct X3D_Node* node);
+void reset_Browser(){
 	// erase old world but keep gglobal in good shape, ie everything in _init() functions still good
 	// -gglobal is erased elsewhere in finalizeRenderSceneUpdateScene()
+	// also don't erase browser metadata key,value pairs, which could be avatar state to be 
+	// carried over between room-scenes in multi-scene game
 	struct X3D_Node *rootnode = rootNode();
     if (rootnode != NULL) {
 		if(usingBrotos()>1 && rootnode->_nodeType == NODE_Proto){
-			unload_broto(X3D_PROTO(rootnode));
+			unload_broto(X3D_PROTO(rootnode)); //we still want a rootnode: empty and waiting for parsing (destroy in finalizeRenderSceneUpdateScene only on exit)
 			unload_globalParser();
 			resource_tree_destroy();
+			unload_libraryscenes(); //debate: should proto libraryscenes hang around in case the same protos are used in a different, anchored-to scene?
 		}else{
-			kill_oldWorld(TRUE,TRUE,file,line);
+			kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 		}
 	}
 }
@@ -5576,7 +5581,8 @@ BOOL cbFreeMallocedBuiltinField(void *callbackData,struct X3D_Node* node,int jfi
 		if(1){
 			//#define FIELDTYPE_FreeWRLPTR	22
 			//#define FIELDTYPE_SFImage	23
-			if(strcmp(fieldName,"__oldurl") && strcmp(fieldName,"__oldSFString") && strcmp(fieldName,"__oldMFString") && strcmp(fieldName,"_parentVector")) {
+			//if(strcmp(fieldName,"__oldurl") && strcmp(fieldName,"__oldSFString") && strcmp(fieldName,"__oldMFString") && strcmp(fieldName,"_parentVector")) {
+			if(strcmp(fieldName,"__oldurl") && strcmp(fieldName,"_parentVector")) {
 			//if(1){
 				//skip double underscore prefixed fields, which we will treat as not-to-be-deleted, because duplicates like GeoViewpoint __oldMFString which is a duplicate of navType
 				deleteMallocedFieldValue(type,fieldPtr);

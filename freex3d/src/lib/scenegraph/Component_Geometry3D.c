@@ -57,9 +57,31 @@ struct MyVertex
    struct SFVec2f tc;         //Texcoord0
  };
 
+ typedef int cquad[4];
+typedef int ctri[3];
+struct sCollisionGeometry
+{
+	struct point_XYZ *pts;
+	struct point_XYZ *tpts;
+	ctri *tris;
+	int ntris;
+	cquad *quads;
+	int nquads;
+	int npts;
+	double smin[3],smax[3];
+};
+
+
+
 typedef struct pComponent_Geometry3D{
 	int junk; //filler, no variables unless/untill vbos done
 	//SphereGeomVBO ShpereIndxVBO - are these per-instance or sharable?
+	struct sCollisionGeometry collisionSphere;
+	struct sCollisionGeometry collisionCylinder;
+	struct sCollisionGeometry collisionCone;
+	//struct point_XYZ *collisionSphere_tpts;
+	//struct point_XYZ *collisionCylinder_tpts;
+	//struct point_XYZ *collisionCone_tpts;
 }* ppComponent_Geometry3D;
 void *Component_Geometry3D_constructor(){
 	void *v = MALLOCV(sizeof(struct pComponent_Geometry3D));
@@ -70,13 +92,40 @@ void Component_Geometry3D_init(struct tComponent_Geometry3D *t){
 	//public
 	//private
 	t->prv = Component_Geometry3D_constructor();
-	// JAS {ppComponent_Geometry3D p = (ppComponent_Geometry3D)t->prv;}
+	{
+		ppComponent_Geometry3D p = (ppComponent_Geometry3D)t->prv;
+		//generic geometry could in theory be static -its read only- but because we calculate it we malloc it,
+		// and because we malloc it we need to free it, and because of that we make it 1:1 with gglobal / browser
+		// so it can be freed on clear_.
+		bzero(&p->collisionSphere,sizeof(struct sCollisionGeometry)); //= {NULL,NULL,NULL,0,NULL,0,0, {0.0,0.0,0.0},{0.0,0.0,0.0}};
+		bzero(&p->collisionCylinder,sizeof(struct sCollisionGeometry)); // = {NULL,NULL,NULL,0,NULL,0,0, {0.0,0.0,0.0},{0.0,0.0,0.0}};
+		bzero(&p->collisionCone,sizeof(struct sCollisionGeometry)); //=  {NULL,NULL,NULL,0,NULL,0,0, {0.0,0.0,0.0},{0.0,0.0,0.0}};
+		//transformed points are not read only -computed once on each frame- and _must_ be per gglobal
+		//p->collisionSphere_tpts;
+		//p->collisionCylinder_tpts;
+		//p->collisionCone_tpts;
+	}
+}
+void Component_Geometry3D_clear(struct tComponent_Geometry3D *t){
+	//public
+	//private
+	{
+		ppComponent_Geometry3D p = (ppComponent_Geometry3D)t->prv;
+		FREE_IF_NZ(p->collisionCone.tpts);
+		FREE_IF_NZ(p->collisionCylinder.tpts);
+		FREE_IF_NZ(p->collisionSphere.tpts);
+
+		FREE_IF_NZ(p->collisionCone.tris);
+		FREE_IF_NZ(p->collisionCylinder.quads);
+		FREE_IF_NZ(p->collisionCylinder.tris);
+		FREE_IF_NZ(p->collisionSphere.tris);
+
+		FREE_IF_NZ(p->collisionCone.pts);
+		FREE_IF_NZ(p->collisionCylinder.pts);
+		FREE_IF_NZ(p->collisionSphere.pts);
+	}
 }
 //ppComponent_Geometry3D p = (ppComponent_Geometry3D)gglobal()->Component_Geometry3D.prv;
-
-
-
-
 
 
 static GLfloat VBO_coneSideTexParams[]={
@@ -451,116 +500,116 @@ void compile_Cone (struct X3D_Cone *node) {
 	MARK_NODE_COMPILED
 
 
-		if (node->__coneVBO == 0) {
-			glGenBuffers(1,(GLuint *) &node->__coneVBO);
+	if (node->__coneVBO == 0) {
+		glGenBuffers(1,(GLuint *) &node->__coneVBO);
+	}
+
+	/* we create two triangle fans - the cone, and the bottom. */
+	/* first, the flat bit on the bottom */
+	indx=0;
+
+	if (node->bottom) {
+		for (i=0; i<CONEDIV; i++) {
+			double angle = PI*2*i/(double)CONEDIV;
+			double next_angle = PI*2*(i+1)/(double)CONEDIV;
+			/* vertex #1 */
+			coneVert[indx].vert.c[0] = r* (float) sin(angle);
+			coneVert[indx].vert.c[1] = (float) -h;
+			coneVert[indx].vert.c[2] = r* (float) cos(angle);
+			coneVert[indx].norm.c[0] = 0.0f; 
+			coneVert[indx].norm.c[1] = -1.0f; 
+			coneVert[indx].norm.c[2] = 0.0f;
+			coneVert[indx].tc.c[0] = 0.5f+0.5f* (float) sin(angle); 
+			coneVert[indx].tc.c[1] = 0.5f+0.5f* (float) cos(angle); 
+			indx++;
+	
+			/* vertex #2 - in the centre */
+			coneVert[indx].vert.c[0] = 0.0f;
+			coneVert[indx].vert.c[1] = (float) -h;
+			coneVert[indx].vert.c[2] = 0.0f;
+			coneVert[indx].norm.c[0] = 0.0f; 
+			coneVert[indx].norm.c[1] = -1.0f; 
+			coneVert[indx].norm.c[2] = 0.0f;
+			coneVert[indx].tc.c[0] = 0.5f; 
+			coneVert[indx].tc.c[1] = 0.5f; 
+			indx++;
+	
+			/* vertex #3 */
+			coneVert[indx].vert.c[0] = r* (float) sin(next_angle);
+			coneVert[indx].vert.c[1] = (float) -h;
+			coneVert[indx].vert.c[2] = r* (float) cos(next_angle);
+			coneVert[indx].norm.c[0] = 0.0f; 
+			coneVert[indx].norm.c[1] = -1.0f; 
+			coneVert[indx].norm.c[2] = 0.0f;
+			coneVert[indx].tc.c[0] = 0.5f+0.5f* (float) sin(next_angle); 
+			coneVert[indx].tc.c[1] = 0.5f+0.5f* (float) cos(next_angle); 
+			indx++;
+		}
+	}
+
+
+	/* now, the sides */
+	if (node->side) {
+		GLfloat *tcp =  VBO_coneSideTexParams;
+
+		for (i=0; i<CONEDIV; i++) {
+			double angle;
+
+			/* vertex #1 */
+			angle = (double) (PI * 2 * (i+1.0f)) / (double) (CONEDIV);
+			coneVert[indx].vert.c[0] = r* (float) sin(angle);
+			coneVert[indx].vert.c[1] = (float) -h;
+			coneVert[indx].vert.c[2] = r* (float) cos(angle);
+			coneVert[indx].norm.c[0] = (float) sin(angle);
+			coneVert[indx].norm.c[1] = (float)h/(r*2);
+			coneVert[indx].norm.c[2] = (float) cos(angle);
+
+			angle = (double) (PI * 2 * (i+0.0f)) / (double) (CONEDIV);
+			coneVert[indx].tc.c[0] = *tcp; tcp++;
+			coneVert[indx].tc.c[1] = 0.0f; 
+			indx++;
+	
+			/* vertex #2 - in the centre */
+			angle = (float) (PI * 2 * (i+0.5f)) / (double)(CONEDIV);
+			coneVert[indx].vert.c[0] = 0.0f;
+			coneVert[indx].vert.c[1] = (float) h;
+			coneVert[indx].vert.c[2] = 0.0f;
+			coneVert[indx].norm.c[0] = (float) sin(angle); 
+			coneVert[indx].norm.c[1] = (float)h/(r*2);
+			coneVert[indx].norm.c[2] = (float) cos(angle);
+
+			coneVert[indx].tc.c[0] = *tcp; tcp++; 
+			coneVert[indx].tc.c[1] = 1.0f;
+			indx++;
+	
+			/* vertex #3 */
+			angle = (float) (PI * 2 * (i+0.0f)) / (double) (CONEDIV);
+			coneVert[indx].vert.c[0] = r* (float) sin(angle);
+			coneVert[indx].vert.c[1] = (float) -h;
+			coneVert[indx].vert.c[2] = r* (float) cos(angle);
+			coneVert[indx].norm.c[0] = (float) sin(angle); 
+			coneVert[indx].norm.c[1] = (float)h/(r*2);
+			coneVert[indx].norm.c[2] = (float) cos(angle);
+
+			angle = (float) (PI * 2 * (i+1.0f)) / (double) (CONEDIV);
+			coneVert[indx].tc.c[0] = *tcp; tcp++; 
+			coneVert[indx].tc.c[1] = 0.0f; 
+			indx++;
 		}
 
-		/* we create two triangle fans - the cone, and the bottom. */
-		/* first, the flat bit on the bottom */
-		indx=0;
+	}
 
-		if (node->bottom) {
-			for (i=0; i<CONEDIV; i++) {
-				double angle = PI*2*i/(double)CONEDIV;
-				double next_angle = PI*2*(i+1)/(double)CONEDIV;
-				/* vertex #1 */
-				coneVert[indx].vert.c[0] = r* (float) sin(angle);
-				coneVert[indx].vert.c[1] = (float) -h;
-				coneVert[indx].vert.c[2] = r* (float) cos(angle);
-				coneVert[indx].norm.c[0] = 0.0f; 
-				coneVert[indx].norm.c[1] = -1.0f; 
-				coneVert[indx].norm.c[2] = 0.0f;
-				coneVert[indx].tc.c[0] = 0.5f+0.5f* (float) sin(angle); 
-				coneVert[indx].tc.c[1] = 0.5f+0.5f* (float) cos(angle); 
-				indx++;
-	
-				/* vertex #2 - in the centre */
-				coneVert[indx].vert.c[0] = 0.0f;
-				coneVert[indx].vert.c[1] = (float) -h;
-				coneVert[indx].vert.c[2] = 0.0f;
-				coneVert[indx].norm.c[0] = 0.0f; 
-				coneVert[indx].norm.c[1] = -1.0f; 
-				coneVert[indx].norm.c[2] = 0.0f;
-				coneVert[indx].tc.c[0] = 0.5f; 
-				coneVert[indx].tc.c[1] = 0.5f; 
-				indx++;
-	
-				/* vertex #3 */
-				coneVert[indx].vert.c[0] = r* (float) sin(next_angle);
-				coneVert[indx].vert.c[1] = (float) -h;
-				coneVert[indx].vert.c[2] = r* (float) cos(next_angle);
-				coneVert[indx].norm.c[0] = 0.0f; 
-				coneVert[indx].norm.c[1] = -1.0f; 
-				coneVert[indx].norm.c[2] = 0.0f;
-				coneVert[indx].tc.c[0] = 0.5f+0.5f* (float) sin(next_angle); 
-				coneVert[indx].tc.c[1] = 0.5f+0.5f* (float) cos(next_angle); 
-				indx++;
-			}
-		}
+	node->__coneTriangles = indx;
 
+	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, (GLuint) node->__coneVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(struct MyVertex)*indx, coneVert, GL_STATIC_DRAW);
 
-		/* now, the sides */
-		if (node->side) {
-			GLfloat *tcp =  VBO_coneSideTexParams;
+	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 
-			for (i=0; i<CONEDIV; i++) {
-				double angle;
-
-				/* vertex #1 */
-				angle = (double) (PI * 2 * (i+1.0f)) / (double) (CONEDIV);
-				coneVert[indx].vert.c[0] = r* (float) sin(angle);
-				coneVert[indx].vert.c[1] = (float) -h;
-				coneVert[indx].vert.c[2] = r* (float) cos(angle);
-				coneVert[indx].norm.c[0] = (float) sin(angle);
-				coneVert[indx].norm.c[1] = (float)h/(r*2);
-				coneVert[indx].norm.c[2] = (float) cos(angle);
-
-				angle = (double) (PI * 2 * (i+0.0f)) / (double) (CONEDIV);
-				coneVert[indx].tc.c[0] = *tcp; tcp++;
-				coneVert[indx].tc.c[1] = 0.0f; 
-				indx++;
-	
-				/* vertex #2 - in the centre */
-				angle = (float) (PI * 2 * (i+0.5f)) / (double)(CONEDIV);
-				coneVert[indx].vert.c[0] = 0.0f;
-				coneVert[indx].vert.c[1] = (float) h;
-				coneVert[indx].vert.c[2] = 0.0f;
-				coneVert[indx].norm.c[0] = (float) sin(angle); 
-				coneVert[indx].norm.c[1] = (float)h/(r*2);
-				coneVert[indx].norm.c[2] = (float) cos(angle);
-
-				coneVert[indx].tc.c[0] = *tcp; tcp++; 
-				coneVert[indx].tc.c[1] = 1.0f;
-				indx++;
-	
-				/* vertex #3 */
-				angle = (float) (PI * 2 * (i+0.0f)) / (double) (CONEDIV);
-				coneVert[indx].vert.c[0] = r* (float) sin(angle);
-				coneVert[indx].vert.c[1] = (float) -h;
-				coneVert[indx].vert.c[2] = r* (float) cos(angle);
-				coneVert[indx].norm.c[0] = (float) sin(angle); 
-				coneVert[indx].norm.c[1] = (float)h/(r*2);
-				coneVert[indx].norm.c[2] = (float) cos(angle);
-
-				angle = (float) (PI * 2 * (i+1.0f)) / (double) (CONEDIV);
-				coneVert[indx].tc.c[0] = *tcp; tcp++; 
-				coneVert[indx].tc.c[1] = 0.0f; 
-				indx++;
-			}
-
-		}
-
-		node->__coneTriangles = indx;
-
-		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, (GLuint) node->__coneVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(struct MyVertex)*indx, coneVert, GL_STATIC_DRAW);
-
-		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
-
-		/* no longer needed */
-		FREE_IF_NZ(node->__botpoints.p);
-		FREE_IF_NZ(node->__sidepoints.p);
-		FREE_IF_NZ(node->__normals.p);    
+	/* no longer needed */
+	FREE_IF_NZ(node->__botpoints.p);
+	FREE_IF_NZ(node->__sidepoints.p);
+	FREE_IF_NZ(node->__normals.p);    
 }
 void clear_Cone (struct X3D_Node *node) {
 	struct X3D_Cone *tnode = (struct X3D_Cone *)node;
@@ -585,27 +634,27 @@ void render_Cone (struct X3D_Cone *node) {
 	CULL_FACE(node->solid)
 	/*  OK - we have vertex data, so lets just render it.*/
 	/*  Always assume GL_VERTEX_ARRAY and GL_NORMAL_ARRAY are enabled.*/
-		// taken from the OpenGL.org website:
-		#define BUFFER_OFFSET(i) ((char *)NULL + (i))
+	// taken from the OpenGL.org website:
+	#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
-		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, node->__coneVBO);
+	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, node->__coneVBO);
 
-		FW_GL_VERTEX_POINTER(3, GL_FLOAT, (GLsizei) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
-		FW_GL_NORMAL_POINTER(GL_FLOAT, (GLsizei) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
+	FW_GL_VERTEX_POINTER(3, GL_FLOAT, (GLsizei) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
+	FW_GL_NORMAL_POINTER(GL_FLOAT, (GLsizei) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
 
-		/* set up texture drawing for this guy */
-        mtf.pre_canned_textureCoords = NULL;
-		mtf.TC_size = 2;
-		mtf.TC_type = GL_FLOAT;
-		mtf.TC_stride = sizeof(struct MyVertex);
-		mtf.TC_pointer = BUFFER_OFFSET(24);
-		textureDraw_start(&mtf);
+	/* set up texture drawing for this guy */
+    mtf.pre_canned_textureCoords = NULL;
+	mtf.TC_size = 2;
+	mtf.TC_type = GL_FLOAT;
+	mtf.TC_stride = sizeof(struct MyVertex);
+	mtf.TC_pointer = BUFFER_OFFSET(24);
+	textureDraw_start(&mtf);
 PRINT_GL_ERROR_IF_ANY("END1 render_geom");
-		sendArraysToGPU(GL_TRIANGLES,0,node->__coneTriangles);
+	sendArraysToGPU(GL_TRIANGLES,0,node->__coneTriangles);
 PRINT_GL_ERROR_IF_ANY("END2 render_geom");
-		/* turn off */
-		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
-		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
+	/* turn off */
+	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
+	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 	textureDraw_end();
 }
 
@@ -669,8 +718,8 @@ void compile_Sphere (struct X3D_Sphere *node) {
 		extern float spheretex[];		/*  in CFuncs/statics.c*/
 
 		int myVertexVBOSize = (int) (sizeof(struct SFVec3f) +
-                                         sizeof(struct SFVec3f) +
-                                         sizeof(struct SFVec2f)) * SPHDIV * (SPHDIV+1) * 2;
+									sizeof(struct SFVec3f) +
+									sizeof(struct SFVec2f)) * SPHDIV * (SPHDIV+1) * 2;
 
 		struct MyVertex *SphVBO = MALLOC(struct MyVertex *, myVertexVBOSize);
 		struct SFVec3f *myNorms = (struct SFVec3f*)spherenorms;
@@ -708,9 +757,9 @@ void compile_Sphere (struct X3D_Sphere *node) {
 				memcpy (SphVBO[count].tc.c, myTex[count].c, sizeof (struct SFVec2f));
 				count++;
 			}
-		}	
+		}
 
- 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, (GLuint) node->_sideVBO);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, (GLuint) node->_sideVBO);
 		glBufferData(GL_ARRAY_BUFFER, myVertexVBOSize, SphVBO, GL_STATIC_DRAW);
 
 		if (node->__SphereIndxVBO == 0) {
@@ -741,7 +790,7 @@ void compile_Sphere (struct X3D_Sphere *node) {
 
 
 		FREE_IF_NZ(SphVBO);
-                FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 	}
 	/* finished - for threading */
 	node->__points.p = ptr;
@@ -779,27 +828,27 @@ void render_Sphere (struct X3D_Sphere *node) {
 
 	/*  Display the shape*/
 
-		// taken from the OpenGL.org website:
-		#define BUFFER_OFFSET(i) ((char *)NULL + (i))
+	// taken from the OpenGL.org website:
+	#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
-		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, (GLuint) node->_sideVBO);
+	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, (GLuint) node->_sideVBO);
 
-		FW_GL_VERTEX_POINTER(3, GL_FLOAT, sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
-		FW_GL_NORMAL_POINTER(GL_FLOAT, sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
-                mtf.pre_canned_textureCoords = NULL;
-                mtf.TC_size = 2;
-                mtf.TC_type = GL_FLOAT;
-                mtf.TC_stride = sizeof(struct MyVertex);
-                mtf.TC_pointer = BUFFER_OFFSET(24);
-		textureDraw_start(&mtf);
+	FW_GL_VERTEX_POINTER(3, GL_FLOAT, sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
+	FW_GL_NORMAL_POINTER(GL_FLOAT, sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
+	mtf.pre_canned_textureCoords = NULL;
+	mtf.TC_size = 2;
+	mtf.TC_type = GL_FLOAT;
+	mtf.TC_stride = sizeof(struct MyVertex);
+	mtf.TC_pointer = BUFFER_OFFSET(24);
+	textureDraw_start(&mtf);
 
-		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, node->__SphereIndxVBO);
+	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, node->__SphereIndxVBO);
 		
-		sendElementsToGPU (GL_TRIANGLES, TRISINSPHERE, (ushort *)BUFFER_OFFSET(0));   //The starting point of the IBO
+	sendElementsToGPU (GL_TRIANGLES, TRISINSPHERE, (ushort *)BUFFER_OFFSET(0));   //The starting point of the IBO
 
-		/* turn off */
-		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
-		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
+	/* turn off */
+	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
+	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	textureDraw_end();
 
@@ -830,22 +879,22 @@ void render_Sphere (struct X3D_Sphere *node) {
 }
 
 void render_IndexedFaceSet (struct X3D_IndexedFaceSet *node) {
-		COMPILE_POLY_IF_REQUIRED (node->coord, node->color, node->normal, node->texCoord)
-		if (!node->_intern) return;
-		CULL_FACE(node->solid)
-		render_polyrep(node);
+	COMPILE_POLY_IF_REQUIRED (node->coord, node->color, node->normal, node->texCoord)
+	if (!node->_intern) return;
+	CULL_FACE(node->solid)
+	render_polyrep(node);
 }
 
 void render_ElevationGrid (struct X3D_ElevationGrid *node) {
-		COMPILE_POLY_IF_REQUIRED (NULL, node->color, node->normal, node->texCoord)
-		CULL_FACE(node->solid)
-		render_polyrep(node);
+	COMPILE_POLY_IF_REQUIRED (NULL, node->color, node->normal, node->texCoord)
+	CULL_FACE(node->solid)
+	render_polyrep(node);
 }
 
 void render_Extrusion (struct X3D_Extrusion *node) {
-		COMPILE_POLY_IF_REQUIRED (NULL,NULL,NULL,NULL)
-		CULL_FACE(node->solid)
-		render_polyrep(node);
+	COMPILE_POLY_IF_REQUIRED (NULL,NULL,NULL,NULL)
+	CULL_FACE(node->solid)
+	render_polyrep(node);
 }
 
 /* Fast culling possibilities:
@@ -900,16 +949,12 @@ int avatarCollisionVolumeIntersectMBB(double *modelMatrix, double *prminvals, do
 				fi->checkPenetration = overlapMBBs(fi->penMin,fi->penMax,prminvals,prmaxvals);
 			if(!fi->checkCylinder && !fi->checkFall && !fi->checkPenetration){/*printf("$");*/ return 0;} 
 		}
-
 	}
 	else
 	{
 		/* examine/fly spherical avatar collision volume */
 		GLDOUBLE awidth = tg->Bindable.naviinfo.width; /*avatar width - used as avatar sphere radius*/
-
-
-			if( !fast_sphere_MBB_intersect_collisionSpace(awidth, modelMatrix, prminvals, prmaxvals )) return 0;
-
+		if( !fast_sphere_MBB_intersect_collisionSpace(awidth, modelMatrix, prminvals, prmaxvals )) return 0;
 	}
 	return 1;
 }
@@ -928,155 +973,134 @@ int avatarCollisionVolumeIntersectMBBf(double *modelMatrix, float *minVals, floa
 }
 
 void collide_genericfaceset (struct X3D_IndexedFaceSet *node ){
-	       GLDOUBLE modelMatrix[16];
-	       struct point_XYZ delta = {0,0,0};
+	GLDOUBLE modelMatrix[16];
+	struct point_XYZ delta = {0,0,0};
+	#ifdef RENDERVERBOSE
+	struct point_XYZ t_orig = {0,0,0};
+	#endif
+	struct X3D_PolyRep pr;
+	prflags flags = 0;
+	int change = 0;
 
-		#ifdef RENDERVERBOSE
-		struct point_XYZ t_orig = {0,0,0};
-		#endif
+	/* JAS - first pass, intern is probably zero */
+	if (node->_intern == NULL) return;
 
+	/* JAS - no triangles in this text structure */
+	if (node->_intern->ntri == 0) return;
 
-	       struct X3D_PolyRep pr;
-	       prflags flags = 0;
-	       int change = 0;
-
-		/* JAS - first pass, intern is probably zero */
-		if (node->_intern == NULL) return;
-
-		/* JAS - no triangles in this text structure */
-		if (node->_intern->ntri == 0) return;
-
-	       /*save changed state.*/
-	       if(node->_intern) change = node->_intern->irep_change;
-		COMPILE_POLY_IF_REQUIRED (NULL, NULL, NULL, NULL)
+	/*save changed state.*/
+	if(node->_intern) change = node->_intern->irep_change;
+	COMPILE_POLY_IF_REQUIRED (NULL, NULL, NULL, NULL)
 
 
-	       if(node->_intern) node->_intern->irep_change = change;
-	       /*restore changes state, invalidates mk_polyrep work done, so it can be done
-	         correclty in the RENDER pass */
+	if(node->_intern) node->_intern->irep_change = change;
+	/*restore changes state, invalidates mk_polyrep work done, so it can be done
+		correclty in the RENDER pass */
 
-	       if(!node->solid) {
-		   flags = flags | PR_DOUBLESIDED;
-	       }
+	if(!node->solid) {
+		flags = flags | PR_DOUBLESIDED;
+	}
 
-	       pr = *(node->_intern);
-
-
-		/* IndexedFaceSets are "different", in that the user specifies points, among
-		   other things.  The rendering pass takes these external points, and streams
-		   them to make rendering much faster on hardware accel. We have to check to
-		   see whether we have got here before the first rendering of a possibly new
-		   IndexedFaceSet */
-		if (!pr.actualCoord) {
-			struct Multi_Vec3f* tmp;
-			tmp = getCoordinate(node->coord,"Collision");
-			pr.actualCoord = (float *) tmp->p;
-		}
-
-	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
-		   /* 
-			For examine and fly navigation modes, there's no gravity direction. 
-			Avatar collision volume is aligned to avatar and is spherical and 
-			symmetrically directional. This is the simple case. Specifications say for 
-			walk navigation mode gravity vector is down {0,-1,0} with respect to (wrt) the 
-			currently bound viewpoint, not including the viewpoint's orientation 
-			field and not including avatar navigation/tilt away from its parent 
-			bound-viewpoint pose. When you collide in walk mode, the avatar collision
-			volume is aligned to bound-viewpoint. This is a slightly more complex case.
-			To generalize the 2 cases, some	Definitions:
-			Spaces:
-				Avatar space 
-					- gravity is avatar-down
-					- Avatar is at {0,0,0} and +Y up is as you see up in your current view, 
-					  +Z aft and +X to the right
-				BoundViewpoint space - currently bound viewpoint (transform parent to avatar)
-				BVVA space - Bound-Viewpoint-Vertically-aligned Avatar-centric 
-					- same as Avatar space with avatar at {0,0,0} except tilted so that gravity 
-					  is in the direction of down {0,-1,0} for the currently bound viewpoint 
-					  (instead for avatar), as per specs
-					- gravity is bound-viewpoint down
-				Collision space - Fly/Examine mode: Avatar space. Walk mode: BVVA space
-					- the avatar collision volume - height, stepsize, width - are defined for 
-					  collision space and axes aligned with it
-				Shape space - raw shape <Coordinate> space
-			Transforms:
-				Bound2Avatar     - transforms from BoundViewpoint space to Avatar space 
-				                 - computed from viewer.quat,viewer.pos
-				Avatar2BVVA,BVVA2Avatar 
-								- computed from downvector in BoundViewpoint space transformed
-								   via Bound2Avatar into Avatar space
-								- constant for a frame, computable once navigation mode and 
-								   avatar pose is know for the frame
-				Avatar2Collision - Fly/Examine: Identity,    Walk: Avatar2BVVA
-				Collision2Avatar - Fly/Examine: Identity,    Walk: BVVA2Avatar
-				Shape2Collision  - Fly/Examine: modelMatrix, Walk: Avatar2BVVA*modelMatrix
-
-			goal: transform shape geometry into Collision space. (The avatar collision 
-			         volume is by definition in collision space.)
-			      Do some collisions between shape and avatar.
-				  Transform collision correction deltas from collision space to avatar space, 
-				      apply deltas to avatar position.
-		    implementation:
-				transform shape into collision space - Fly/Examine:modelMatrix 
-				        or Walk:(Avatar2BVVA * modelMatrix)
-				transform collision correction deltas from collision space to avatar space: 
-					- done in Mainloop.c get_collisionoffset() with FallInfo.collision2avatar
-		   */
-
-			matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
-			//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
+	pr = *(node->_intern);
 
 
-			#ifdef RENDERVERBOSE
-                           t_orig.x = modelMatrix[12];
-                           t_orig.y = modelMatrix[13];
-                           t_orig.z = modelMatrix[14];
-			#endif
+	/* IndexedFaceSets are "different", in that the user specifies points, among
+		other things.  The rendering pass takes these external points, and streams
+		them to make rendering much faster on hardware accel. We have to check to
+		see whether we have got here before the first rendering of a possibly new
+		IndexedFaceSet */
+	if (!pr.actualCoord) {
+		struct Multi_Vec3f* tmp;
+		tmp = getCoordinate(node->coord,"Collision");
+		pr.actualCoord = (float *) tmp->p;
+	}
 
-		   /* at this point, whichever method - modelMatrix is Shape2Collision 
-		         and upvecmat is Collision2Avatar 
-		   - pr.actualCoord - these are Shape space coordinates
-			They will be transformed into CollisionSpace coordinates by the modelMatrix transform.
-		   */
-			if(!avatarCollisionVolumeIntersectMBBf(modelMatrix, pr.minVals, pr.maxVals))return;
-		   /* passed fast test. Now for gruelling test */
-			delta = polyrep_disp2(pr,modelMatrix,flags); //polyrep_disp(abottom,atop,astep,awidth,pr,modelMatrix,flags);
-		   /* delta is in collision space */
-			/* lets say you are floating above ground by 3 units + avatar.height 1.75 = 4.75. 
-			Then delta = (0,3,0)*/
-	       vecscale(&delta,&delta,-1);
-	       accumulate_disp(CollisionInfo(),delta); /* we are accumulating in collision space (fly/examine: avatar space, walk: BVVA space) */
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
+	/* 
+	For examine and fly navigation modes, there's no gravity direction. 
+	Avatar collision volume is aligned to avatar and is spherical and 
+	symmetrically directional. This is the simple case. Specifications say for 
+	walk navigation mode gravity vector is down {0,-1,0} with respect to (wrt) the 
+	currently bound viewpoint, not including the viewpoint's orientation 
+	field and not including avatar navigation/tilt away from its parent 
+	bound-viewpoint pose. When you collide in walk mode, the avatar collision
+	volume is aligned to bound-viewpoint. This is a slightly more complex case.
+	To generalize the 2 cases, some	Definitions:
+	Spaces:
+		Avatar space 
+			- gravity is avatar-down
+			- Avatar is at {0,0,0} and +Y up is as you see up in your current view, 
+				+Z aft and +X to the right
+		BoundViewpoint space - currently bound viewpoint (transform parent to avatar)
+		BVVA space - Bound-Viewpoint-Vertically-aligned Avatar-centric 
+			- same as Avatar space with avatar at {0,0,0} except tilted so that gravity 
+				is in the direction of down {0,-1,0} for the currently bound viewpoint 
+				(instead for avatar), as per specs
+			- gravity is bound-viewpoint down
+		Collision space - Fly/Examine mode: Avatar space. Walk mode: BVVA space
+			- the avatar collision volume - height, stepsize, width - are defined for 
+				collision space and axes aligned with it
+		Shape space - raw shape <Coordinate> space
+	Transforms:
+		Bound2Avatar     - transforms from BoundViewpoint space to Avatar space 
+				            - computed from viewer.quat,viewer.pos
+		Avatar2BVVA,BVVA2Avatar 
+						- computed from downvector in BoundViewpoint space transformed
+							via Bound2Avatar into Avatar space
+						- constant for a frame, computable once navigation mode and 
+							avatar pose is know for the frame
+		Avatar2Collision - Fly/Examine: Identity,    Walk: Avatar2BVVA
+		Collision2Avatar - Fly/Examine: Identity,    Walk: BVVA2Avatar
+		Shape2Collision  - Fly/Examine: modelMatrix, Walk: Avatar2BVVA*modelMatrix
 
-		#ifdef RENDERVERBOSE
-	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
-/*		   printmatrix(modelMatrix);*/
-		   fprintf(stderr,"COLLISION_IFS: (%f %f %f) (%f %f %f)\n",
-			  t_orig.x, t_orig.y, t_orig.z,
-			  delta.x, delta.y, delta.z
-			  );
+	goal: transform shape geometry into Collision space. (The avatar collision 
+			    volume is by definition in collision space.)
+			Do some collisions between shape and avatar.
+			Transform collision correction deltas from collision space to avatar space, 
+				apply deltas to avatar position.
+	implementation:
+		transform shape into collision space - Fly/Examine:modelMatrix 
+				or Walk:(Avatar2BVVA * modelMatrix)
+		transform collision correction deltas from collision space to avatar space: 
+			- done in Mainloop.c get_collisionoffset() with FallInfo.collision2avatar
+	*/
 
-	       }
-		#endif
+	matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+	//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
+
+
+	#ifdef RENDERVERBOSE
+	t_orig.x = modelMatrix[12];
+	t_orig.y = modelMatrix[13];
+	t_orig.z = modelMatrix[14];
+	#endif
+
+	/* at this point, whichever method - modelMatrix is Shape2Collision 
+		and upvecmat is Collision2Avatar 
+		- pr.actualCoord - these are Shape space coordinates
+		They will be transformed into CollisionSpace coordinates by the modelMatrix transform.
+	*/
+	if(!avatarCollisionVolumeIntersectMBBf(modelMatrix, pr.minVals, pr.maxVals))return;
+	/* passed fast test. Now for gruelling test */
+	delta = polyrep_disp2(pr,modelMatrix,flags); //polyrep_disp(abottom,atop,astep,awidth,pr,modelMatrix,flags);
+	/* delta is in collision space */
+	/* lets say you are floating above ground by 3 units + avatar.height 1.75 = 4.75. 
+	Then delta = (0,3,0)*/
+	vecscale(&delta,&delta,-1);
+	accumulate_disp(CollisionInfo(),delta); /* we are accumulating in collision space (fly/examine: avatar space, walk: BVVA space) */
+
+#ifdef RENDERVERBOSE
+	if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
+		/*		   printmatrix(modelMatrix);*/
+		fprintf(stderr,"COLLISION_IFS: (%f %f %f) (%f %f %f)\n",
+			t_orig.x, t_orig.y, t_orig.z,
+			delta.x, delta.y, delta.z
+			);
+	}
+#endif
 
 }
 
-typedef int cquad[4];
-typedef int ctri[3];
-struct sCollisionGeometry
-{
-	struct point_XYZ *pts;
-	struct point_XYZ *tpts;
-	ctri *tris;
-	int ntris;
-	cquad *quads;
-	int nquads;
-	int npts;
-	double smin[3],smax[3];
-};
-
-static struct sCollisionGeometry collisionSphere = {NULL,NULL,NULL,0,NULL,0,0, {0.0,0.0,0.0},{0.0,0.0,0.0}};
-static struct sCollisionGeometry collisionCylinder = {NULL,NULL,NULL,0,NULL,0,0, {0.0,0.0,0.0},{0.0,0.0,0.0}};
-static struct sCollisionGeometry collisionCone = {NULL,NULL,NULL,0,NULL,0,0, {0.0,0.0,0.0},{0.0,0.0,0.0}};
 
 static void collisionSphere_init(struct X3D_Sphere *node)
 {
@@ -1084,6 +1108,7 @@ static void collisionSphere_init(struct X3D_Sphere *node)
 	/* for debug int k, biggestNum; */
 	double radinverse;
 	struct SFVec3f *pts = node->__points.p;
+	ppComponent_Geometry3D p = (ppComponent_Geometry3D)gglobal()->Component_Geometry3D.prv;
 
 	/*  re-using the compile_sphere node->__points data which is organized into GL_QUAD_STRIPS
 		my understanding: there are SPHDIV/2 quad strips. Each quadstrip has SPHDIV quads, and enough points to do that many quads
@@ -1094,23 +1119,23 @@ static void collisionSphere_init(struct X3D_Sphere *node)
 		num tris = quads x 2 = SPHDIV X SPHDIV 
 	*/
 
-	collisionSphere.npts = SPHDIV*(SPHDIV+1);
-	collisionSphere.pts = MALLOC(void *, collisionSphere.npts * sizeof(struct point_XYZ));
-	collisionSphere.tpts = MALLOC(void *, collisionSphere.npts * sizeof(struct point_XYZ));
+	p->collisionSphere.npts = SPHDIV*(SPHDIV+1);
+	p->collisionSphere.pts = MALLOC(void *, p->collisionSphere.npts * sizeof(struct point_XYZ));
+	p->collisionSphere.tpts = MALLOC(void *, p->collisionSphere.npts * sizeof(struct point_XYZ));
 	/* undo radius field on node so radius == 1 (generic, for all spheres, scale back later) */
 	radinverse = 1.0;
 	if( !APPROX(node->radius,0.0) ) radinverse = 1.0/node->radius;
-	for(i=0;i<collisionSphere.npts;i++)
+	for(i=0;i<p->collisionSphere.npts;i++)
 	{
-		collisionSphere.pts[i].x = pts[i].c[0] * radinverse;
-		collisionSphere.pts[i].y = pts[i].c[1] * radinverse;
-		collisionSphere.pts[i].z = pts[i].c[2] * radinverse;
+		p->collisionSphere.pts[i].x = pts[i].c[0] * radinverse;
+		p->collisionSphere.pts[i].y = pts[i].c[1] * radinverse;
+		p->collisionSphere.pts[i].z = pts[i].c[2] * radinverse;
 	}
 
 
-	collisionSphere.ntris = SPHDIV * SPHDIV;
-	collisionSphere.tris = MALLOC(void *, collisionSphere.ntris * sizeof(ctri));
-	collisionSphere.nquads = 0;
+	p->collisionSphere.ntris = SPHDIV * SPHDIV;
+	p->collisionSphere.tris = MALLOC(void *, p->collisionSphere.ntris * sizeof(ctri));
+	p->collisionSphere.nquads = 0;
 	count = 0;
 	for(i = 0; i < SPHDIV/2; i ++)  
 	{ 
@@ -1118,14 +1143,14 @@ static void collisionSphere_init(struct X3D_Sphere *node)
 		for(j=0;j<(2*SPHDIV);j+=2) //=+)
 		{
 			/* first triangle */
-			collisionSphere.tris[count][0] = i*(SPHDIV+1)*2 + j;
-			collisionSphere.tris[count][1] = i*(SPHDIV+1)*2 + j+1;
-			collisionSphere.tris[count][2] = i*(SPHDIV+1)*2 + j+2; 
+			p->collisionSphere.tris[count][0] = i*(SPHDIV+1)*2 + j;
+			p->collisionSphere.tris[count][1] = i*(SPHDIV+1)*2 + j+1;
+			p->collisionSphere.tris[count][2] = i*(SPHDIV+1)*2 + j+2; 
 			count ++;
 			/* second triangle */
-			collisionSphere.tris[count][0] = i*(SPHDIV+1)*2 + j+3; 
-			collisionSphere.tris[count][1] = i*(SPHDIV+1)*2 + j+2; 
-			collisionSphere.tris[count][2] = i*(SPHDIV+1)*2 + j+1; 
+			p->collisionSphere.tris[count][0] = i*(SPHDIV+1)*2 + j+3; 
+			p->collisionSphere.tris[count][1] = i*(SPHDIV+1)*2 + j+2; 
+			p->collisionSphere.tris[count][2] = i*(SPHDIV+1)*2 + j+1; 
 			count ++;
 		}
 	}
@@ -1139,8 +1164,8 @@ static void collisionSphere_init(struct X3D_Sphere *node)
 	/* MBB */
 	for(i=0;i<3;i++)
 	{
-		collisionSphere.smin[i] = -1.0; //rad;
-		collisionSphere.smax[i] =  1.0; //rad;
+		p->collisionSphere.smin[i] = -1.0; //rad;
+		p->collisionSphere.smax[i] =  1.0; //rad;
 	}
 
 }
@@ -1172,280 +1197,258 @@ DEBUGGING_CODE}
 struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ n);
 #define FLOAT_TOLERANCE 0.00000001
 void collide_Sphere (struct X3D_Sphere *node) {
-	       struct point_XYZ t_orig = {0,0,0}; /*transformed origin*/
-	       struct point_XYZ p_orig= {0,0,0} ; /*projected transformed origin */
-	       struct point_XYZ n_orig = {0,0,0}; /*normal(unit length) transformed origin */
-	       GLDOUBLE modelMatrix[16];
-	       GLDOUBLE dist2;
-	       struct point_XYZ delta = {0,0,0};
-	       GLDOUBLE radius;
-			ttglobal tg = gglobal();
-	       /*easy access, naviinfo.step unused for sphere collisions */
-	       GLDOUBLE awidth = tg->Bindable.naviinfo.width; /*avatar width*/
-	       GLDOUBLE atop = tg->Bindable.naviinfo.width; /*top of avatar (relative to eyepoint)*/
-	       GLDOUBLE abottom = -tg->Bindable.naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	struct point_XYZ t_orig = {0,0,0}; /*transformed origin*/
+	struct point_XYZ p_orig= {0,0,0} ; /*projected transformed origin */
+	struct point_XYZ n_orig = {0,0,0}; /*normal(unit length) transformed origin */
+	GLDOUBLE modelMatrix[16];
+	GLDOUBLE dist2;
+	struct point_XYZ delta = {0,0,0};
+	GLDOUBLE radius;
+	ttglobal tg = gglobal();
+	ppComponent_Geometry3D p = (ppComponent_Geometry3D)gglobal()->Component_Geometry3D.prv;
+
+	/*easy access, naviinfo.step unused for sphere collisions */
+	GLDOUBLE awidth = tg->Bindable.naviinfo.width; /*avatar width*/
+	GLDOUBLE atop = tg->Bindable.naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	GLDOUBLE abottom = -tg->Bindable.naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
 
 		/* this sucker initialized yet? */
 		if (node->__points.p == NULL) return;
 
 
-	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
-	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
+	/* get the transformed position of the Sphere, and the scale-corrected radius. */
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-		/* apply radius to generic r=1 sphere */
-		//radscale.x = radscale.y = radscale.z = node->radius;
-		//scale_to_matrix (modelMatrix, &radscale);
-		//matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+	/* apply radius to generic r=1 sphere */
+	//radscale.x = radscale.y = radscale.z = node->radius;
+	//scale_to_matrix (modelMatrix, &radscale);
+	//matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
 
-		if(FallInfo()->walking)
+	if(FallInfo()->walking)
+	{
+		/* mesh method */
+
+		int i;
+		double disp;
+		struct point_XYZ n;
+		struct point_XYZ a,b, dispv, maxdispv = {0,0,0};
+		struct point_XYZ radscale;
+		double maxdisp = 0;
+		radscale.x = radscale.y = radscale.z = node->radius;
+		scale_to_matrix (modelMatrix, &radscale);
+		matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+		//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
+
+		if(!p->collisionSphere.npts) collisionSphere_init(node);
+		if( !avatarCollisionVolumeIntersectMBB(modelMatrix, p->collisionSphere.smin,p->collisionSphere.smax)) return;
+
+		for(i=0;i<p->collisionSphere.npts;i++)
+			transform(&p->collisionSphere.tpts[i],&p->collisionSphere.pts[i],modelMatrix);
+
+		for(i = 0; i < p->collisionSphere.ntris; i++) 
 		{
-			/* mesh method */
-
-			int i;
-			double disp;
-			struct point_XYZ n;
-			struct point_XYZ a,b, dispv, maxdispv = {0,0,0};
-			struct point_XYZ radscale;
-			double maxdisp = 0;
-			radscale.x = radscale.y = radscale.z = node->radius;
-			scale_to_matrix (modelMatrix, &radscale);
-			matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
-			//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
-
-			if(!collisionSphere.npts) collisionSphere_init(node);
-			if( !avatarCollisionVolumeIntersectMBB(modelMatrix, collisionSphere.smin,collisionSphere.smax)) return;
-
-			for(i=0;i<collisionSphere.npts;i++)
-				transform(&collisionSphere.tpts[i],&collisionSphere.pts[i],modelMatrix);
-
-			for(i = 0; i < collisionSphere.ntris; i++) 
+			/*only clip faces "facing" origin */
+			//if(vecdot(&n[ci],&middle) < 0.) 
 			{
-				/*only clip faces "facing" origin */
-				//if(vecdot(&n[ci],&middle) < 0.) 
-				{
-					struct point_XYZ pts[3];
-					pts[0] = collisionSphere.tpts[collisionSphere.tris[i][0]];
-					pts[1] = collisionSphere.tpts[collisionSphere.tris[i][1]];
-					pts[2] = collisionSphere.tpts[collisionSphere.tris[i][2]];
-					/* compute normal - could compute once in shapespace then transform */
-					VECDIFF(pts[1],pts[0],a);
-					VECDIFF(pts[2],pts[1],b); /* or [2] [0] direction not sensitive for some functions */
-					veccross(&n,a,b); /* 6 multiplies */
-					vecnormal(&n,&n); 
-					dispv = get_poly_disp_2(pts,3,n);
-					disp = vecdot(&dispv,&dispv);
-					if( (disp > FLOAT_TOLERANCE) && (disp > maxdisp) ){
-						maxdisp = disp;
-						maxdispv = dispv;
-					}
+				struct point_XYZ pts[3];
+				pts[0] = p->collisionSphere.tpts[p->collisionSphere.tris[i][0]];
+				pts[1] = p->collisionSphere.tpts[p->collisionSphere.tris[i][1]];
+				pts[2] = p->collisionSphere.tpts[p->collisionSphere.tris[i][2]];
+				/* compute normal - could compute once in shapespace then transform */
+				VECDIFF(pts[1],pts[0],a);
+				VECDIFF(pts[2],pts[1],b); /* or [2] [0] direction not sensitive for some functions */
+				veccross(&n,a,b); /* 6 multiplies */
+				vecnormal(&n,&n); 
+				dispv = get_poly_disp_2(pts,3,n);
+				disp = vecdot(&dispv,&dispv);
+				if( (disp > FLOAT_TOLERANCE) && (disp > maxdisp) ){
+					maxdisp = disp;
+					maxdispv = dispv;
 				}
 			}
-			delta = maxdispv;
-		        vecscale(&delta,&delta,-1);
 		}
-		else
-		{
-			/* easy analytical sphere-sphere stuff */
-			matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
-			//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
+		delta = maxdispv;
+		    vecscale(&delta,&delta,-1);
+	}else{
+		/* easy analytical sphere-sphere stuff */
+		matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+		//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
-			t_orig.x = modelMatrix[12];
-			t_orig.y = modelMatrix[13];
-			t_orig.z = modelMatrix[14];
-			radius = pow(det3x3(modelMatrix),1./3.) * node->radius;
+		t_orig.x = modelMatrix[12];
+		t_orig.y = modelMatrix[13];
+		t_orig.z = modelMatrix[14];
+		radius = pow(det3x3(modelMatrix),1./3.) * node->radius;
 
-			/* squared distance to center of sphere (on the y plane)*/
-			dist2 = t_orig.x * t_orig.x + t_orig.z * t_orig.z;
+		/* squared distance to center of sphere (on the y plane)*/
+		dist2 = t_orig.x * t_orig.x + t_orig.z * t_orig.z;
 
-			/* easy tests. clip as if sphere was a box */
-			/*clip with cylinder */
+		/* easy tests. clip as if sphere was a box */
+		/*clip with cylinder */
 
-			if(dist2 - (radius + awidth) * (radius +awidth) > 0) {
-				return;
-			}
-			/*clip with bottom plane */
-			if(t_orig.y + radius < abottom) {
-				return;
-			}
-			/*clip with top plane */
-			if(t_orig.y-radius > atop) {
-				return;
-			}
+		if(dist2 - (radius + awidth) * (radius +awidth) > 0) {
+			return;
+		}
+		/*clip with bottom plane */
+		if(t_orig.y + radius < abottom) {
+			return;
+		}
+		/*clip with top plane */
+		if(t_orig.y-radius > atop) {
+			return;
+		}
 
-			/* project onto (y x t_orig) plane */
-			p_orig.x = sqrt(dist2);
-			p_orig.y = t_orig.y;
-			p_orig.z = 0;
-			/* we need this to unproject rapidly */
-			/* n_orig is t_orig.y projected on the y plane, then normalized. */
-			n_orig.x = t_orig.x;
-			n_orig.y = 0.0;
-			n_orig.z = t_orig.z;
-			VECSCALE(n_orig,1.0/p_orig.x); /*equivalent to vecnormal(n_orig);, but faster */
-			#ifdef RENDERVERBOSE
-			printf ("sphere, p_orig %lf %lf %lf, n_orig %lf %lf %lf\n",p_orig.x, p_orig.y, p_orig.z, n_orig.x, n_orig.y, n_orig.z);
-			#endif
+		/* project onto (y x t_orig) plane */
+		p_orig.x = sqrt(dist2);
+		p_orig.y = t_orig.y;
+		p_orig.z = 0;
+		/* we need this to unproject rapidly */
+		/* n_orig is t_orig.y projected on the y plane, then normalized. */
+		n_orig.x = t_orig.x;
+		n_orig.y = 0.0;
+		n_orig.z = t_orig.z;
+		VECSCALE(n_orig,1.0/p_orig.x); /*equivalent to vecnormal(n_orig);, but faster */
+		#ifdef RENDERVERBOSE
+		printf ("sphere, p_orig %lf %lf %lf, n_orig %lf %lf %lf\n",p_orig.x, p_orig.y, p_orig.z, n_orig.x, n_orig.y, n_orig.z);
+		#endif
 
-			   /* 5 cases : sphere is over, over side, side, under and side, under (relative to y axis) */
-			   /* these 5 cases correspond to the 5 vornoi regions of the cylinder */
-			   if(p_orig.y > atop) {
-
-			   if(p_orig.x < awidth) {
+		/* 5 cases : sphere is over, over side, side, under and side, under (relative to y axis) */
+		/* these 5 cases correspond to the 5 vornoi regions of the cylinder */
+		if(p_orig.y > atop) {
+			if(p_orig.x < awidth) {
 				#ifdef RENDERVERBOSE
-				   printf(" /* over, we push down. */ \n");
+				printf(" /* over, we push down. */ \n");
 				#endif
-
-				   delta.y = (p_orig.y - radius) - (atop);
-			   } else {
-				   struct point_XYZ d2s;
-		                   GLDOUBLE ratio;
-				   #ifdef RENDERVERBOSE
+				delta.y = (p_orig.y - radius) - (atop);
+			} else {
+				struct point_XYZ d2s;
+				GLDOUBLE ratio;
+				#ifdef RENDERVERBOSE
 				printf(" /* over side */ \n");
 				#endif
-
-				   /* distance vector from corner to center of sphere*/
-				   d2s.x = p_orig.x - awidth;
-				   d2s.y = p_orig.y - (atop);
-				   d2s.z = 0;
-
-				   ratio = 1- radius/sqrt(d2s.x * d2s.x + d2s.y * d2s.y);
-
-				   if(ratio >= 0) {
-				   /* no collision */
-				   return;
-				   }
-
-				   /* distance vector from corner to surface of sphere, (do the math) */
-				   VECSCALE(d2s, ratio );
-
-				   /* unproject, this is the fastest way */
-				   delta.y = d2s.y;
-				   delta.x = d2s.x* n_orig.x;
-				   delta.z = d2s.x* n_orig.z;
-			   }
-			   } else if(p_orig.y < abottom) {
-			   if(p_orig.x < awidth) {
-				#ifdef RENDERVERBOSE
-				   printf(" /* under, we push up. */ \n");
-				#endif
-
-				   delta.y = (p_orig.y + radius) -abottom;
-			   } else {
-				   struct point_XYZ d2s;
-		                 GLDOUBLE ratio;
-				#ifdef RENDERVERBOSE
-				   printf(" /* under side */ \n");
-				#endif
-
-				   /* distance vector from corner to center of sphere*/
-				   d2s.x = p_orig.x - awidth;
-				   d2s.y = p_orig.y - abottom;
-				   d2s.z = 0;
-
-				   ratio = 1- radius/sqrt(d2s.x * d2s.x + d2s.y * d2s.y);
-
-				   if(ratio >= 0) {
-				   /* no collision */
-				   return;
-				   }
-
-				   /* distance vector from corner to surface of sphere, (do the math) */
-				   VECSCALE(d2s, ratio );
-
-				   /* unproject, this is the fastest way */
-				   delta.y = d2s.y;
-				   delta.x = d2s.x* n_orig.x;
-				   delta.z = d2s.x* n_orig.z;
-			   }
-
-			   } else {
-			   #ifdef RENDERVERBOSE
-				printf(" /* side */ \n");
-			   #endif
-
-			   /* push to side */
-			   delta.x = ((p_orig.x - radius)- awidth) * n_orig.x;
-			   delta.z = ((p_orig.x - radius)- awidth) * n_orig.z;
-			   }
-
+				/* distance vector from corner to center of sphere*/
+				d2s.x = p_orig.x - awidth;
+				d2s.y = p_orig.y - (atop);
+				d2s.z = 0;
+				ratio = 1- radius/sqrt(d2s.x * d2s.x + d2s.y * d2s.y);
+				if(ratio >= 0) {
+					/* no collision */
+					return;
+				}
+				/* distance vector from corner to surface of sphere, (do the math) */
+				VECSCALE(d2s, ratio );
+				/* unproject, this is the fastest way */
+				delta.y = d2s.y;
+				delta.x = d2s.x* n_orig.x;
+				delta.z = d2s.x* n_orig.z;
 			}
-	       accumulate_disp(CollisionInfo(),delta);
+		} else if(p_orig.y < abottom) {
+			if(p_orig.x < awidth) {
+				#ifdef RENDERVERBOSE
+				printf(" /* under, we push up. */ \n");
+				#endif
+				delta.y = (p_orig.y + radius) -abottom;
+			} else {
+				struct point_XYZ d2s;
+				GLDOUBLE ratio;
+				#ifdef RENDERVERBOSE
+				printf(" /* under side */ \n");
+				#endif
+				/* distance vector from corner to center of sphere*/
+				d2s.x = p_orig.x - awidth;
+				d2s.y = p_orig.y - abottom;
+				d2s.z = 0;
+				ratio = 1- radius/sqrt(d2s.x * d2s.x + d2s.y * d2s.y);
+				if(ratio >= 0) {
+					/* no collision */
+					return;
+				}
 
-		#ifdef RENDERVERBOSE
-	       if((delta.x != 0. || delta.y != 0. || delta.z != 0.))
-	           printf("COLLISION_SPH: (%f %f %f) (%f %f %f) (px=%f nx=%f nz=%f)\n",
-			  t_orig.x, t_orig.y, t_orig.z,
-			  delta.x, delta.y, delta.z,
-			  p_orig.x, n_orig.x, n_orig.z
-			  );
-		#endif
+				/* distance vector from corner to surface of sphere, (do the math) */
+				VECSCALE(d2s, ratio );
+
+				/* unproject, this is the fastest way */
+				delta.y = d2s.y;
+				delta.x = d2s.x* n_orig.x;
+				delta.z = d2s.x* n_orig.z;
+			}
+		} else {
+			#ifdef RENDERVERBOSE
+			printf(" /* side */ \n");
+			#endif
+			/* push to side */
+			delta.x = ((p_orig.x - radius)- awidth) * n_orig.x;
+			delta.z = ((p_orig.x - radius)- awidth) * n_orig.z;
+		}
+	}
+	accumulate_disp(CollisionInfo(),delta);
+
+	#ifdef RENDERVERBOSE
+	if((delta.x != 0. || delta.y != 0. || delta.z != 0.))
+		printf("COLLISION_SPH: (%f %f %f) (%f %f %f) (px=%f nx=%f nz=%f)\n",
+		t_orig.x, t_orig.y, t_orig.z,
+		delta.x, delta.y, delta.z,
+		p_orig.x, n_orig.x, n_orig.z
+		);
+	#endif
 }
 
 
 void collide_Box (struct X3D_Box *node) {
-	       /*easy access, naviinfo.step unused for sphere collisions */
-			ttglobal tg = gglobal();
-	       GLDOUBLE awidth = tg->Bindable.naviinfo.width; /*avatar width*/
-	       GLDOUBLE atop = tg->Bindable.naviinfo.width; /*top of avatar (relative to eyepoint)*/
-	       GLDOUBLE abottom = -tg->Bindable.naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-	       GLDOUBLE astep = -tg->Bindable.naviinfo.height+tg->Bindable.naviinfo.step;
+	/*easy access, naviinfo.step unused for sphere collisions */
+	ttglobal tg = gglobal();
+	GLDOUBLE awidth = tg->Bindable.naviinfo.width; /*avatar width*/
+	GLDOUBLE atop = tg->Bindable.naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	GLDOUBLE abottom = -tg->Bindable.naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	GLDOUBLE astep = -tg->Bindable.naviinfo.height+tg->Bindable.naviinfo.step;
+	GLDOUBLE modelMatrix[16];
+	struct point_XYZ iv = {0,0,0};
+	struct point_XYZ jv = {0,0,0};
+	struct point_XYZ kv = {0,0,0};
+	struct point_XYZ ov = {0,0,0};
+	struct point_XYZ delta;
 
-	       GLDOUBLE modelMatrix[16];
-	       struct point_XYZ iv = {0,0,0};
-	       struct point_XYZ jv = {0,0,0};
-	       struct point_XYZ kv = {0,0,0};
-	       struct point_XYZ ov = {0,0,0};
+	iv.x = ((node->size).c[0]);
+	jv.y = ((node->size).c[1]);
+	kv.z = ((node->size).c[2]);
+	ov.x = -((node->size).c[0])/2; ov.y = -((node->size).c[1])/2; ov.z = -((node->size).c[2])/2;
 
-	       struct point_XYZ delta;
+	/* get the transformed position of the Box, and the scale-corrected radius. */
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
+	matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+	//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
+	{
+		int i;
+		double shapeMBBmin[3],shapeMBBmax[3];
+		for(i=0;i<3;i++)
+		{
+			shapeMBBmin[i] = DOUBLE_MIN(-(node->size).c[i]*.5,(node->size).c[i]*.5);
+			shapeMBBmax[i] = DOUBLE_MAX(-(node->size).c[i]*.5,(node->size).c[i]*.5);
+		}
+		if( !avatarCollisionVolumeIntersectMBB(modelMatrix, shapeMBBmin,shapeMBBmax)) return;
+	}
+	/* get transformed box edges and position */
+	transform(&ov,&ov,modelMatrix);
+	transform3x3(&iv,&iv,modelMatrix);
+	transform3x3(&jv,&jv,modelMatrix);
+	transform3x3(&kv,&kv,modelMatrix);
 
+	delta = box_disp(abottom,atop,astep,awidth,ov,iv,jv,kv);
+	vecscale(&delta,&delta,-1);
+	accumulate_disp(CollisionInfo(),delta);
 
-                iv.x = ((node->size).c[0]);
-                jv.y = ((node->size).c[1]);
-                kv.z = ((node->size).c[2]);
-                ov.x = -((node->size).c[0])/2; ov.y = -((node->size).c[1])/2; ov.z = -((node->size).c[2])/2;
-
-
-	       /* get the transformed position of the Box, and the scale-corrected radius. */
-	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
-			matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
-			//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
-			{
-				int i;
-				double shapeMBBmin[3],shapeMBBmax[3];
-				for(i=0;i<3;i++)
-				{
-					shapeMBBmin[i] = DOUBLE_MIN(-(node->size).c[i]*.5,(node->size).c[i]*.5);
-					shapeMBBmax[i] = DOUBLE_MAX(-(node->size).c[i]*.5,(node->size).c[i]*.5);
-				}
-
-				if( !avatarCollisionVolumeIntersectMBB(modelMatrix, shapeMBBmin,shapeMBBmax)) return;
-			}
-	       /* get transformed box edges and position */
-	       transform(&ov,&ov,modelMatrix);
-	       transform3x3(&iv,&iv,modelMatrix);
-	       transform3x3(&jv,&jv,modelMatrix);
-	       transform3x3(&kv,&kv,modelMatrix);
-
-
-	       delta = box_disp(abottom,atop,astep,awidth,ov,iv,jv,kv);
-
-	       vecscale(&delta,&delta,-1);
-
-	       accumulate_disp(CollisionInfo(),delta);
-
-		#ifdef RENDERVERBOSE
-	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
-	           printf("COLLISION_BOX: (%f %f %f) (%f %f %f)\n",
-			  ov.x, ov.y, ov.z,
-			  delta.x, delta.y, delta.z
-			  );
-	       if((fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.))
-	           printf("iv=(%f %f %f) jv=(%f %f %f) kv=(%f %f %f)\n",
-			  iv.x, iv.y, iv.z,
-			  jv.x, jv.y, jv.z,
-			  kv.x, kv.y, kv.z
-			  );
-		#endif
+	#ifdef RENDERVERBOSE
+	if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
+		printf("COLLISION_BOX: (%f %f %f) (%f %f %f)\n",
+		ov.x, ov.y, ov.z,
+		delta.x, delta.y, delta.z
+		);
+	if((fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.))
+		printf("iv=(%f %f %f) jv=(%f %f %f) kv=(%f %f %f)\n",
+		iv.x, iv.y, iv.z,
+		jv.x, jv.y, jv.z,
+		kv.x, kv.y, kv.z
+		);
+	#endif
 }
 
 
@@ -1453,6 +1456,8 @@ void collide_Box (struct X3D_Box *node) {
 
 static void collisionCone_init(struct X3D_Cone *node)
 {
+	//we pass in a node instance, so we don't have to split up the compile_ code that generates
+	// geometry - we can just copy some
 	/* for debug ctri ct; */
 	/* for debug struct point_XYZ a,b,n; */
 	int i,count;
@@ -1461,6 +1466,7 @@ static void collisionCone_init(struct X3D_Cone *node)
 	struct SFVec3f *pts;// = node->__botpoints;
 	struct SFVec3f *pt;
 	struct Multi_Vec3f botpoints;
+	ppComponent_Geometry3D p = (ppComponent_Geometry3D)gglobal()->Component_Geometry3D.prv;
     	
 	/*  re-using the compile_cone node->__points data which is organized into GL_TRAIANGLE_FAN (bottom) and GL_TRIANGLES (side)
 
@@ -1475,85 +1481,85 @@ static void collisionCone_init(struct X3D_Cone *node)
 			pt[CONEDIV+1] - centre of bottom
 		(there are sidepoints too, but duplicate the points in botpoints) 
 	*/
-	collisionCone.npts = CONEDIV+2;
-	collisionCone.pts = MALLOC(void *, collisionCone.npts * sizeof(struct point_XYZ));
-	collisionCone.tpts = MALLOC(void *, collisionCone.npts * sizeof(struct point_XYZ));
+	p->collisionCone.npts = CONEDIV+2;
+	p->collisionCone.pts = MALLOC(void *, p->collisionCone.npts * sizeof(struct point_XYZ));
+	p->collisionCone.tpts = MALLOC(void *, p->collisionCone.npts * sizeof(struct point_XYZ));
 
-	collisionCone.ntris = CONEDIV *2;
-	collisionCone.tris = MALLOC(void *, collisionCone.ntris * sizeof(ctri));
+	p->collisionCone.ntris = CONEDIV *2;
+	p->collisionCone.tris = MALLOC(void *, p->collisionCone.ntris * sizeof(ctri));
 	count = 0;
-	h = (node->height); ///2;
+	h = (node->height); ///2; //we inverse this to get back to normal geometry
 	r = node->bottomRadius;
 	inverseh = 1.0;
 	inverser = 1.0;
 	if( !APPROX(h,0.0) ) inverseh = 1.0/h;
 	if( !APPROX(r,0.0) ) inverser = 1.0/r;
 
-    
-		/* ok - we copy the non-VBO code here so that Doug Sandens Cylinder Collision code
-		   uses the same algorithm whether running in VBO mode or not */
 
-		/*  MALLOC memory (if possible)*/
-		botpoints.p = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*(CONEDIV+3));
+	/* ok - we copy the non-VBO code here so that Doug Sandens Cylinder Collision code
+		uses the same algorithm whether running in VBO mode or not */
 
-		/*  generate the vertexes for the triangles; top point first. (note: top point no longer used)*/
-		pt = botpoints.p;
-		pt[0].c[0] = 0.0f; pt[0].c[1] = (float) h; pt[0].c[2] = 0.0f;
-		for (i=1; i<=CONEDIV; i++) {
-			pt[i].c[0] = (float) (r* sin(PI*2*i/(float)CONEDIV));
-			pt[i].c[1] = (float) -h;
-			pt[i].c[2] = (float) (r* cos(PI*2*i/(float)CONEDIV));
-		}
-		/*  and throw another point that is centre of bottom*/
-		pt[CONEDIV+1].c[0] = 0.0f; pt[CONEDIV+1].c[1] = (float) -h; pt[CONEDIV+1].c[2] = 0.0f;
+	/*  MALLOC memory (if possible)*/
+	botpoints.p = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*(CONEDIV+3));
 
-		/*  and, for the bottom, [CONEDIV] = [CONEDIV+2]; but different texture coords, so...*/
-		memcpy (&pt[CONEDIV+2].c[0],&pt[CONEDIV].c[0],sizeof (struct SFVec3f));
+	/*  generate the vertexes for the triangles; top point first. (note: top point no longer used)*/
+	pt = botpoints.p;
+	pt[0].c[0] = 0.0f; pt[0].c[1] = (float) h; pt[0].c[2] = 0.0f;
+	for (i=1; i<=CONEDIV; i++) {
+		pt[i].c[0] = (float) (r* sin(PI*2*i/(float)CONEDIV));
+		pt[i].c[1] = (float) -h;
+		pt[i].c[2] = (float) (r* cos(PI*2*i/(float)CONEDIV));
+	}
+	/*  and throw another point that is centre of bottom*/
+	pt[CONEDIV+1].c[0] = 0.0f; pt[CONEDIV+1].c[1] = (float) -h; pt[CONEDIV+1].c[2] = 0.0f;
+
+	/*  and, for the bottom, [CONEDIV] = [CONEDIV+2]; but different texture coords, so...*/
+	memcpy (&pt[CONEDIV+2].c[0],&pt[CONEDIV].c[0],sizeof (struct SFVec3f));
 
 #ifdef fwIGNORE
-		/*  side triangles. Make 3 seperate points per triangle... makes sendArraysToGPU with normals*/
-		/*  easier to handle.*/
-		/*  rearrange bottom points into this array; top, bottom, left.*/
-		spt = sidepoints.p;
-		for (i=0; i<CONEDIV; i++) {
-			/*  top point*/
-			spt[i*3].c[0] = 0.0f; spt[i*3].c[1] = (float) h; spt[i*3].c[2] = 0.0f;
-			/*  left point*/
-			memcpy (&spt[i*3+1].c[0],&pt[i+1].c[0],sizeof (struct SFVec3f));
-			/* right point*/
-			memcpy (&spt[i*3+2].c[0],&pt[i+2].c[0],sizeof (struct SFVec3f));
-		}
+	/*  side triangles. Make 3 seperate points per triangle... makes sendArraysToGPU with normals*/
+	/*  easier to handle.*/
+	/*  rearrange bottom points into this array; top, bottom, left.*/
+	spt = sidepoints.p;
+	for (i=0; i<CONEDIV; i++) {
+		/*  top point*/
+		spt[i*3].c[0] = 0.0f; spt[i*3].c[1] = (float) h; spt[i*3].c[2] = 0.0f;
+		/*  left point*/
+		memcpy (&spt[i*3+1].c[0],&pt[i+1].c[0],sizeof (struct SFVec3f));
+		/* right point*/
+		memcpy (&spt[i*3+2].c[0],&pt[i+2].c[0],sizeof (struct SFVec3f));
+	}
 
-		/*  wrap bottom point around once again... ie, final right point = initial left point*/
-		memcpy (&spt[(CONEDIV-1)*3+2].c[0],&pt[1].c[0],sizeof (struct SFVec3f));
+	/*  wrap bottom point around once again... ie, final right point = initial left point*/
+	memcpy (&spt[(CONEDIV-1)*3+2].c[0],&pt[1].c[0],sizeof (struct SFVec3f));
 #endif
 	
 
 
-		pts = botpoints.p;
-		for(i=0;i<(CONEDIV+2);i++)
-		{
-			/* points */
-			collisionCone.pts[i].x = pts[i].c[0]*inverser;
-			collisionCone.pts[i].y = pts[i].c[1]*inverseh;
-			collisionCone.pts[i].z = pts[i].c[2]*inverser;
-		}
-		for(i=0;i<CONEDIV;i++)
-		{
-			/* side triangles */
-			collisionCone.tris[count][0] = 0;   /* top point */
-			collisionCone.tris[count][1] = i +1;
-			collisionCone.tris[count][2] = i > (CONEDIV-2)? 1 : i+2; /*wrap-around, normally i+2 */
-			count ++;
-		}
-		for(i=0;i<CONEDIV;i++)
-		{
-			/* bottom triangles */
-			collisionCone.tris[count][0] = CONEDIV+1; /* bottom center point */
-			collisionCone.tris[count][1] = i +1;
-			collisionCone.tris[count][2] = i > (CONEDIV-2)?  1 : i+2; 
-			count ++;
-		}
+	pts = botpoints.p;
+	for(i=0;i<(CONEDIV+2);i++)
+	{
+		/* points */
+		p->collisionCone.pts[i].x = pts[i].c[0]*inverser;
+		p->collisionCone.pts[i].y = pts[i].c[1]*inverseh;
+		p->collisionCone.pts[i].z = pts[i].c[2]*inverser;
+	}
+	for(i=0;i<CONEDIV;i++)
+	{
+		/* side triangles */
+		p->collisionCone.tris[count][0] = 0;   /* top point */
+		p->collisionCone.tris[count][1] = i +1;
+		p->collisionCone.tris[count][2] = i > (CONEDIV-2)? 1 : i+2; /*wrap-around, normally i+2 */
+		count ++;
+	}
+	for(i=0;i<CONEDIV;i++)
+	{
+		/* bottom triangles */
+		p->collisionCone.tris[count][0] = CONEDIV+1; /* bottom center point */
+		p->collisionCone.tris[count][1] = i +1;
+		p->collisionCone.tris[count][2] = i > (CONEDIV-2)?  1 : i+2; 
+		count ++;
+	}
 
 
 	/* count should == num triangles 
@@ -1566,16 +1572,15 @@ static void collisionCone_init(struct X3D_Cone *node)
 	/* MBB */
 	for(i=0;i<3;i+=2)
 	{
-		collisionCone.smin[i] = -1.0; //r;
-		collisionCone.smax[i] =  1.0; //r;
+		p->collisionCone.smin[i] = -1.0; //r;
+		p->collisionCone.smax[i] =  1.0; //r;
 	}
-	collisionCone.smin[1] = -1.0; //-h;
-	collisionCone.smax[1] =  1.0; //h;
+	p->collisionCone.smin[1] = -1.0; //-h;
+	p->collisionCone.smax[1] =  1.0; //h;
 	
 	/* ok - we copy the non-VBO code here so that Doug Sandens Cylinder Collision code
-	   uses the same algorithm whether running in VBO mode or not */
+		uses the same algorithm whether running in VBO mode or not */
 	FREE_IF_NZ(botpoints.p);
-    
 }
 #ifdef DEBUG_COLLISIONCONE
 int collisionCone_render(double r, double h)
@@ -1599,121 +1604,116 @@ int collisionCone_render(double r, double h)
 }
 #endif
 void collide_Cone (struct X3D_Cone *node) {
+	/*easy access, naviinfo.step unused for sphere collisions */
+	ttglobal tg = gglobal();
+	ppComponent_Geometry3D p = (ppComponent_Geometry3D)tg->Component_Geometry3D.prv;
 
-	       /*easy access, naviinfo.step unused for sphere collisions */
-			ttglobal tg = gglobal();
-	       GLDOUBLE awidth = tg->Bindable.naviinfo.width; /*avatar width*/
-	       GLDOUBLE atop = tg->Bindable.naviinfo.width; /*top of avatar (relative to eyepoint)*/
-	       GLDOUBLE abottom = -tg->Bindable.naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-	       GLDOUBLE astep = -tg->Bindable.naviinfo.height+tg->Bindable.naviinfo.step;
+	GLDOUBLE awidth = tg->Bindable.naviinfo.width; /*avatar width*/
+	GLDOUBLE atop = tg->Bindable.naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	GLDOUBLE abottom = -tg->Bindable.naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	GLDOUBLE astep = -tg->Bindable.naviinfo.height+tg->Bindable.naviinfo.step;
 
+	float h = (node->height) /2;
+	float r = (node->bottomRadius) ;
 
-                float h = (node->height) /2;
-                float r = (node->bottomRadius) ;
+	GLDOUBLE modelMatrix[16];
+	struct point_XYZ iv = {0,0,0};
+	struct point_XYZ jv = {0,0,0};
+	GLDOUBLE scale = 0.0; /* FIXME: won''t work for non-uniform scales. */
+	struct point_XYZ t_orig = {0,0,0};
+	struct point_XYZ delta;
 
-	       GLDOUBLE modelMatrix[16];
-	       struct point_XYZ iv = {0,0,0};
-	       struct point_XYZ jv = {0,0,0};
-	       GLDOUBLE scale = 0.0; /* FIXME: won''t work for non-uniform scales. */
-	       struct point_XYZ t_orig = {0,0,0};
+	/* is this node initialized? if not, get outta here and do this later */
+	if (node->__coneVBO == 0) return;
 
-	       struct point_XYZ delta;
+	iv.y = h; jv.y = -h;
 
-                /* is this node initialized? if not, get outta here and do this later */
+	/* get the transformed position of the Sphere, and the scale-corrected radius. */
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-		
-			if (node->__coneVBO == 0) return;
+	//matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+	if(FallInfo()->walking)
+	{
+		/* mesh method */
+		int i;
+		double disp;
+		struct point_XYZ n;
+		struct point_XYZ a,b, dispv, maxdispv = {0,0,0};
+		double maxdisp = 0;
+		struct point_XYZ radscale;
 
-	       iv.y = h; jv.y = -h;
-
-	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
-	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
-
-			//matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
-			if(FallInfo()->walking)
-			{
-				/* mesh method */
-				int i;
-				double disp;
-				struct point_XYZ n;
-				struct point_XYZ a,b, dispv, maxdispv = {0,0,0};
-				double maxdisp = 0;
-				struct point_XYZ radscale;
-
-				if(!collisionCone.npts) collisionCone_init(node);
+		if(!p->collisionCone.npts) collisionCone_init(node);
 #ifdef DEBUG_COLLISIONCONE
-collisionCone_render(5.0,5.0);
+		collisionCone_render(5.0,5.0);
 #endif
-				radscale.x = radscale.z = node->bottomRadius;
-				radscale.y = node->height;
-				scale_to_matrix (modelMatrix, &radscale);
-				matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
-				//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
-				if( !avatarCollisionVolumeIntersectMBB(modelMatrix, collisionCone.smin,collisionCone.smax)) return;
+		radscale.x = radscale.z = node->bottomRadius;
+		radscale.y = node->height;
+		scale_to_matrix (modelMatrix, &radscale);
+		matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+		//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
+		if( !avatarCollisionVolumeIntersectMBB(modelMatrix, p->collisionCone.smin,p->collisionCone.smax)) return;
 
 
-				for(i=0;i<collisionCone.npts;i++)
-					transform(&collisionCone.tpts[i],&collisionCone.pts[i],modelMatrix);
-				for(i = 0; i < collisionCone.ntris; i++) 
-				{
-					/*only clip faces "facing" origin */
-					//if(vecdot(&n[ci],&middle) < 0.) {
-					{
-						struct point_XYZ pts[3];
-						pts[0] = collisionCone.tpts[collisionCone.tris[i][0]];
-						pts[1] = collisionCone.tpts[collisionCone.tris[i][1]];
-						pts[2] = collisionCone.tpts[collisionCone.tris[i][2]];
-						/* compute normal - could compute once in shapespace then transform */
-						VECDIFF(pts[1],pts[0],a);
-						VECDIFF(pts[2],pts[1],b); /* or [2] [0] direction not sensitive for some functions */
-						veccross(&n,a,b); /* 6 multiplies */
-						vecnormal(&n,&n); 
-						dispv = get_poly_disp_2(pts,3,n);
-					    disp = vecdot(&dispv,&dispv);
-						if( (disp > FLOAT_TOLERANCE) && (disp > maxdisp) ){
-							maxdisp = disp;
-							maxdispv = dispv;
-						}
-					}
-				}
-				delta = maxdispv;
-			}
-			else
+		for(i=0;i<p->collisionCone.npts;i++)
+			transform(&p->collisionCone.tpts[i],&p->collisionCone.pts[i],modelMatrix);
+		for(i = 0; i < p->collisionCone.ntris; i++) 
+		{
+			/*only clip faces "facing" origin */
+			//if(vecdot(&n[ci],&middle) < 0.) {
 			{
-			   /* values for rapid test */
-				matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
-				//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
-
-			   t_orig.x = modelMatrix[12];
-			   t_orig.y = modelMatrix[13];
-			   t_orig.z = modelMatrix[14];
-			   scale = pow(det3x3(modelMatrix),1./3.);
-
-			   if(!fast_ycylinder_cone_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return;
-
-			   /* get transformed box edges and position */
-			   transform(&iv,&iv,modelMatrix);
-			   transform(&jv,&jv,modelMatrix);
-
-			   delta = cone_disp(abottom,atop,astep,awidth,jv,iv,scale*r);
+				struct point_XYZ pts[3];
+				pts[0] = p->collisionCone.tpts[p->collisionCone.tris[i][0]];
+				pts[1] = p->collisionCone.tpts[p->collisionCone.tris[i][1]];
+				pts[2] = p->collisionCone.tpts[p->collisionCone.tris[i][2]];
+				/* compute normal - could compute once in shapespace then transform */
+				VECDIFF(pts[1],pts[0],a);
+				VECDIFF(pts[2],pts[1],b); /* or [2] [0] direction not sensitive for some functions */
+				veccross(&n,a,b); /* 6 multiplies */
+				vecnormal(&n,&n); 
+				dispv = get_poly_disp_2(pts,3,n);
+				disp = vecdot(&dispv,&dispv);
+				if( (disp > FLOAT_TOLERANCE) && (disp > maxdisp) ){
+					maxdisp = disp;
+					maxdispv = dispv;
+				}
 			}
-	       vecscale(&delta,&delta,-1);
+		}
+		delta = maxdispv;
+	}else{
+		/* values for rapid test */
+		matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+		//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
-	       accumulate_disp(CollisionInfo(),delta);
+		t_orig.x = modelMatrix[12];
+		t_orig.y = modelMatrix[13];
+		t_orig.z = modelMatrix[14];
+		scale = pow(det3x3(modelMatrix),1./3.);
 
-		#ifdef RENDERVERBOSE
-	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
-	           printf("COLLISION_CON: (%f %f %f) (%f %f %f)\n",
-			  iv.x, iv.y, iv.z,
-			  delta.x, delta.y, delta.z
-			  );
-	       if((fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.))
-	           printf("iv=(%f %f %f) jv=(%f %f %f) bR=%f\n",
-			  iv.x, iv.y, iv.z,
-			  jv.x, jv.y, jv.z,
-			  scale*r
-			  );
-		#endif
+		if(!fast_ycylinder_cone_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return;
+
+		/* get transformed box edges and position */
+		transform(&iv,&iv,modelMatrix);
+		transform(&jv,&jv,modelMatrix);
+
+		delta = cone_disp(abottom,atop,astep,awidth,jv,iv,scale*r);
+	}
+	vecscale(&delta,&delta,-1);
+
+	accumulate_disp(CollisionInfo(),delta);
+
+	#ifdef RENDERVERBOSE
+		if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
+			printf("COLLISION_CON: (%f %f %f) (%f %f %f)\n",
+			iv.x, iv.y, iv.z,
+			delta.x, delta.y, delta.z
+			);
+		if((fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.))
+			printf("iv=(%f %f %f) jv=(%f %f %f) bR=%f\n",
+			iv.x, iv.y, iv.z,
+			jv.x, jv.y, jv.z,
+			scale*r
+			);
+	#endif
 }
 
 static void collisionCylinder_init(struct X3D_Cylinder *node)
@@ -1724,9 +1724,10 @@ static void collisionCylinder_init(struct X3D_Cylinder *node)
 	/* for debug - int j,k,biggestNum; */
 	double h,r,inverseh,inverser;
 	struct SFVec3f *pts;// = node->__botpoints;
+	ppComponent_Geometry3D p = (ppComponent_Geometry3D)gglobal()->Component_Geometry3D.prv;
 	
 	/*  re-using the compile_cylinder node->__points data which is organized into GL_TRAIANGLE_FAN (bottom and top)
-	    and GL_QUADS (side)
+		and GL_QUADS (side)
 
 		my understanding: 
 		bottom and top: there are CYLDIV triangles arranged in a fan around a center point, with CYLDIV perimeter points 
@@ -1740,14 +1741,14 @@ static void collisionCylinder_init(struct X3D_Cylinder *node)
 			pt[CYLDIV*2+2] - top center point of cylinder
 			pt[CYLDIV*2+3] - centre of bottom
 	*/
-	collisionCylinder.npts = CYLDIV*2+2+2;
-	collisionCylinder.pts = MALLOC(void *, collisionCylinder.npts * sizeof(struct point_XYZ));
-	collisionCylinder.tpts = MALLOC(void *, collisionCylinder.npts * sizeof(struct point_XYZ));
+	p->collisionCylinder.npts = CYLDIV*2+2+2;
+	p->collisionCylinder.pts = MALLOC(void *, p->collisionCylinder.npts * sizeof(struct point_XYZ));
+	p->collisionCylinder.tpts = MALLOC(void *, p->collisionCylinder.npts * sizeof(struct point_XYZ));
 
-	collisionCylinder.ntris = CYLDIV *2;
-	collisionCylinder.tris = MALLOC(void *, collisionCylinder.ntris * sizeof(ctri));
-	collisionCylinder.nquads = CYLDIV;
-	collisionCylinder.quads = MALLOC(void *, collisionCylinder.nquads * sizeof(cquad));
+	p->collisionCylinder.ntris = CYLDIV *2;
+	p->collisionCylinder.tris = MALLOC(void *, p->collisionCylinder.ntris * sizeof(ctri));
+	p->collisionCylinder.nquads = CYLDIV;
+	p->collisionCylinder.quads = MALLOC(void *, p->collisionCylinder.nquads * sizeof(cquad));
 
 	tcount = 0;
 	qcount = 0;
@@ -1780,20 +1781,20 @@ static void collisionCylinder_init(struct X3D_Cylinder *node)
 		pts[CYLDIV*2+2].c[0] = 0.0f; pts[CYLDIV*2+2].c[1] = (float) h; pts[CYLDIV*2+2].c[2] = 0.0f;
 		pts[CYLDIV*2+3].c[0] = 0.0f; pts[CYLDIV*2+3].c[1] = (float)-h; pts[CYLDIV*2+3].c[2] = 0.0f;
 	}
-	for(i=0;i<collisionCylinder.npts;i++)
+	for(i=0;i<p->collisionCylinder.npts;i++)
 	{
 		/* points */
-		collisionCylinder.pts[i].x = pts[i].c[0]*inverser;
-		collisionCylinder.pts[i].y = pts[i].c[1]*inverseh;
-		collisionCylinder.pts[i].z = pts[i].c[2]*inverser;
+		p->collisionCylinder.pts[i].x = pts[i].c[0]*inverser;
+		p->collisionCylinder.pts[i].y = pts[i].c[1]*inverseh;
+		p->collisionCylinder.pts[i].z = pts[i].c[2]*inverser;
 	}
 	for(i=0;i<CYLDIV;i++)
 	{
 		/* side quads */
-		collisionCylinder.quads[qcount][0] = i*2;   /* top point */
-		collisionCylinder.quads[qcount][1] = i*2 +1;
-		collisionCylinder.quads[qcount][2] = i*2 +3; /*wrap-around, normally i+2 */
-		collisionCylinder.quads[qcount][3] = i*2 +2;
+		p->collisionCylinder.quads[qcount][0] = i*2;   /* top point */
+		p->collisionCylinder.quads[qcount][1] = i*2 +1;
+		p->collisionCylinder.quads[qcount][2] = i*2 +3; /*wrap-around, normally i+2 */
+		p->collisionCylinder.quads[qcount][3] = i*2 +2;
 		qcount ++;
 	}
 	//pt[CYLDIV*2+2].c[0] = 0.0; pt[CYLDIV*2+2].c[1] = (float) h; pt[CYLDIV*2+2].c[2] = 0.0;
@@ -1802,20 +1803,19 @@ static void collisionCylinder_init(struct X3D_Cylinder *node)
 	for(i=0;i<CYLDIV;i++)
 	{
 		/* bottom triangles */
-		collisionCylinder.tris[tcount][0] = CYLDIV*2+3; /* bottom center point */
-		collisionCylinder.tris[tcount][1] = i*2 +1;
-		collisionCylinder.tris[tcount][2] = (i+1)*2 +1; 
+		p->collisionCylinder.tris[tcount][0] = CYLDIV*2+3; /* bottom center point */
+		p->collisionCylinder.tris[tcount][1] = i*2 +1;
+		p->collisionCylinder.tris[tcount][2] = (i+1)*2 +1; 
 		tcount ++;
 	}
 	for(i=0;i<CYLDIV;i++)
 	{
 		/* top triangles */
-		collisionCylinder.tris[tcount][0] = CYLDIV*2+2; /* top center point */
-		collisionCylinder.tris[tcount][1] = i*2;
-		collisionCylinder.tris[tcount][2] = (i+1)*2; 
+		p->collisionCylinder.tris[tcount][0] = CYLDIV*2+2; /* top center point */
+		p->collisionCylinder.tris[tcount][1] = i*2;
+		p->collisionCylinder.tris[tcount][2] = (i+1)*2; 
 		tcount ++;
 	}
-
 
 	/* count should == num triangles 
 	debug check on indexing - biggestNum should == npts -1 
@@ -1827,15 +1827,13 @@ static void collisionCylinder_init(struct X3D_Cylinder *node)
 	/* MBB */
 	for(i=0;i<3;i+=2)
 	{
-		collisionCylinder.smin[i] = -1.0; //r;
-		collisionCylinder.smax[i] =  1.0; //r;
+		p->collisionCylinder.smin[i] = -1.0; //r;
+		p->collisionCylinder.smax[i] =  1.0; //r;
 	}
-	collisionCylinder.smin[1] = -1.0; //-h/2;
-	collisionCylinder.smax[1] =  1.0; //h/2;
+	p->collisionCylinder.smin[1] = -1.0; //-h/2;
+	p->collisionCylinder.smax[1] =  1.0; //h/2;
 
-
-		FREE_IF_NZ(pts);
-	
+	FREE_IF_NZ(pts);
 }
 
 #ifdef DEBUGGING_CODE
@@ -1874,241 +1872,226 @@ DEBUGGING_CODE}
 
 
 void collide_Cylinder (struct X3D_Cylinder *node) {
-	       /*easy access, naviinfo.step unused for sphere collisions */
-			ttglobal tg = gglobal();
-	       GLDOUBLE awidth = tg->Bindable.naviinfo.width; /*avatar width*/
-	       GLDOUBLE atop = tg->Bindable.naviinfo.width; /*top of avatar (relative to eyepoint)*/
-	       GLDOUBLE abottom = -tg->Bindable.naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-	       GLDOUBLE astep = -tg->Bindable.naviinfo.height+tg->Bindable.naviinfo.step;
+	/*easy access, naviinfo.step unused for sphere collisions */
+	ttglobal tg = gglobal();
+	ppComponent_Geometry3D p = (ppComponent_Geometry3D)tg->Component_Geometry3D.prv;
 
-                float h = (node->height)/2;
-                float r = (node->radius);
+	GLDOUBLE awidth = tg->Bindable.naviinfo.width; /*avatar width*/
+	GLDOUBLE atop = tg->Bindable.naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	GLDOUBLE abottom = -tg->Bindable.naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	GLDOUBLE astep = -tg->Bindable.naviinfo.height+tg->Bindable.naviinfo.step;
+
+	float h = (node->height)/2;
+	float r = (node->radius);
 
 
-	       GLDOUBLE modelMatrix[16];
-	       struct point_XYZ iv = {0,0,0};
-	       struct point_XYZ jv = {0,0,0};
-	       GLDOUBLE scale=0.0; /* FIXME: won''t work for non-uniform scales. */
-	       struct point_XYZ t_orig = {0,0,0};
+	GLDOUBLE modelMatrix[16];
+	struct point_XYZ iv = {0,0,0};
+	struct point_XYZ jv = {0,0,0};
+	GLDOUBLE scale=0.0; /* FIXME: won''t work for non-uniform scales. */
+	struct point_XYZ t_orig = {0,0,0};
 
-	       struct point_XYZ delta;
+	struct point_XYZ delta;
 
-		iv.y = h;
-		jv.y = -h;
+	iv.y = h;
+	jv.y = -h;
 
-	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
-	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
+	/* get the transformed position of the Sphere, and the scale-corrected radius. */
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-			//matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
-			if(FallInfo()->walking)
-			{
-				/* mesh method */
-				int i;
-				double disp;
-				struct point_XYZ n;
-				struct point_XYZ a,b, dispv, radscale, maxdispv = {0,0,0};
-				double maxdisp = 0;
+	//matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+	if(FallInfo()->walking)
+	{
+		/* mesh method */
+		int i;
+		double disp;
+		struct point_XYZ n;
+		struct point_XYZ a,b, dispv, radscale, maxdispv = {0,0,0};
+		double maxdisp = 0;
 
-				if(!collisionCylinder.npts) 
-					collisionCylinder_init(node);
-				radscale.x = radscale.z = node->radius;
-				radscale.y = node->height;
-				scale_to_matrix (modelMatrix, &radscale);
-				matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
-				//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
-				if( !avatarCollisionVolumeIntersectMBB(modelMatrix, collisionCylinder.smin,collisionCylinder.smax)) return;
+		if(!p->collisionCylinder.npts) 
+			collisionCylinder_init(node);
+		radscale.x = radscale.z = node->radius;
+		radscale.y = node->height;
+		scale_to_matrix (modelMatrix, &radscale);
+		matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+		//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
+		if( !avatarCollisionVolumeIntersectMBB(modelMatrix, p->collisionCylinder.smin,p->collisionCylinder.smax)) return;
 
-				for(i=0;i<collisionCylinder.npts;i++)
-					transform(&collisionCylinder.tpts[i],&collisionCylinder.pts[i],modelMatrix);
+		for(i=0;i<p->collisionCylinder.npts;i++)
+			transform(&p->collisionCylinder.tpts[i],&p->collisionCylinder.pts[i],modelMatrix);
 
-				for(i = 0; i < collisionCylinder.ntris; i++) 
-				{
-					struct point_XYZ pts[3];
-					pts[0] = collisionCylinder.tpts[collisionCylinder.tris[i][0]];
-					pts[1] = collisionCylinder.tpts[collisionCylinder.tris[i][1]];
-					pts[2] = collisionCylinder.tpts[collisionCylinder.tris[i][2]];
-					/* compute normal - could compute once in shapespace then transform */
-					VECDIFF(pts[1],pts[0],a);
-					VECDIFF(pts[2],pts[1],b); /* or [2] [0] direction not sensitive for some functions */
-					veccross(&n,a,b); /* 6 multiplies */
-					vecnormal(&n,&n); 
-					dispv = get_poly_disp_2(pts,3,n);
-				    disp = vecdot(&dispv,&dispv);
-					if( (disp > FLOAT_TOLERANCE) && (disp > maxdisp) ){
-						maxdisp = disp;
-						maxdispv = dispv;
-					}
-				}
-				for(i = 0; i < collisionCylinder.nquads; i++) 
-				{
-					struct point_XYZ pts[4];
-					pts[0] = collisionCylinder.tpts[collisionCylinder.quads[i][0]];
-					pts[1] = collisionCylinder.tpts[collisionCylinder.quads[i][1]];
-					pts[2] = collisionCylinder.tpts[collisionCylinder.quads[i][2]];
-					pts[3] = collisionCylinder.tpts[collisionCylinder.quads[i][3]];
-					/* compute normal - could compute once in shapespace then transform */
-					VECDIFF(pts[1],pts[0],a);
-					VECDIFF(pts[2],pts[1],b); /* or [2] [0] direction not sensitive for some functions */
-					veccross(&n,a,b); /* 6 multiplies */
-					vecnormal(&n,&n); 
-					dispv = get_poly_disp_2(pts,4,n);
-				    disp = vecdot(&dispv,&dispv);
-					if( (disp > FLOAT_TOLERANCE) && (disp > maxdisp) ){
-						maxdisp = disp;
-						maxdispv = dispv;
-					}
-				}
-				delta = maxdispv;
+		for(i = 0; i < p->collisionCylinder.ntris; i++) 
+		{
+			struct point_XYZ pts[3];
+			pts[0] = p->collisionCylinder.tpts[p->collisionCylinder.tris[i][0]];
+			pts[1] = p->collisionCylinder.tpts[p->collisionCylinder.tris[i][1]];
+			pts[2] = p->collisionCylinder.tpts[p->collisionCylinder.tris[i][2]];
+			/* compute normal - could compute once in shapespace then transform */
+			VECDIFF(pts[1],pts[0],a);
+			VECDIFF(pts[2],pts[1],b); /* or [2] [0] direction not sensitive for some functions */
+			veccross(&n,a,b); /* 6 multiplies */
+			vecnormal(&n,&n); 
+			dispv = get_poly_disp_2(pts,3,n);
+			disp = vecdot(&dispv,&dispv);
+			if( (disp > FLOAT_TOLERANCE) && (disp > maxdisp) ){
+				maxdisp = disp;
+				maxdispv = dispv;
 			}
-			else
-			{
-
-			   /* values for rapid test */
-				matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
-				//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
-			   t_orig.x = modelMatrix[12];
-			   t_orig.y = modelMatrix[13];
-			   t_orig.z = modelMatrix[14];
-			   scale = pow(det3x3(modelMatrix),1./3.);
-			   if(!fast_ycylinder_cone_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return;
-
-
-
-			   /* get transformed box edges and position */
-			   transform(&iv,&iv,modelMatrix);
-			   transform(&jv,&jv,modelMatrix);
-
-
-			   delta = cylinder_disp(abottom,atop,astep,awidth,jv,iv,scale*r);
+		}
+		for(i = 0; i < p->collisionCylinder.nquads; i++) 
+		{
+			struct point_XYZ pts[4];
+			pts[0] = p->collisionCylinder.tpts[p->collisionCylinder.quads[i][0]];
+			pts[1] = p->collisionCylinder.tpts[p->collisionCylinder.quads[i][1]];
+			pts[2] = p->collisionCylinder.tpts[p->collisionCylinder.quads[i][2]];
+			pts[3] = p->collisionCylinder.tpts[p->collisionCylinder.quads[i][3]];
+			/* compute normal - could compute once in shapespace then transform */
+			VECDIFF(pts[1],pts[0],a);
+			VECDIFF(pts[2],pts[1],b); /* or [2] [0] direction not sensitive for some functions */
+			veccross(&n,a,b); /* 6 multiplies */
+			vecnormal(&n,&n); 
+			dispv = get_poly_disp_2(pts,4,n);
+			disp = vecdot(&dispv,&dispv);
+			if( (disp > FLOAT_TOLERANCE) && (disp > maxdisp) ){
+				maxdisp = disp;
+				maxdispv = dispv;
 			}
-	       vecscale(&delta,&delta,-1);
-
-	       accumulate_disp(CollisionInfo(),delta);
-
-		#ifdef RENDERVERBOSE
-	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
-	           printf("COLLISION_CYL: (%f %f %f) (%f %f %f)\n",
-			  iv.x, iv.y, iv.z,
-			  delta.x, delta.y, delta.z
-			  );
-	       if((fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.))
-	           printf("iv=(%f %f %f) jv=(%f %f %f) bR=%f\n",
-			  iv.x, iv.y, iv.z,
-			  jv.x, jv.y, jv.z,
-			  scale*r
-			  );
-		#endif
+		}
+		delta = maxdispv;
+	}else{
+		/* values for rapid test */
+		matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+		//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
+		t_orig.x = modelMatrix[12];
+		t_orig.y = modelMatrix[13];
+		t_orig.z = modelMatrix[14];
+		scale = pow(det3x3(modelMatrix),1./3.);
+		if(!fast_ycylinder_cone_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return;
+		/* get transformed box edges and position */
+		transform(&iv,&iv,modelMatrix);
+		transform(&jv,&jv,modelMatrix);
+		delta = cylinder_disp(abottom,atop,astep,awidth,jv,iv,scale*r);
+	}
+	vecscale(&delta,&delta,-1);
+	accumulate_disp(CollisionInfo(),delta);
+	#ifdef RENDERVERBOSE
+		if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
+			printf("COLLISION_CYL: (%f %f %f) (%f %f %f)\n",
+			iv.x, iv.y, iv.z,
+			delta.x, delta.y, delta.z
+			);
+		if((fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.))
+			printf("iv=(%f %f %f) jv=(%f %f %f) bR=%f\n",
+			iv.x, iv.y, iv.z,
+			jv.x, jv.y, jv.z,
+			scale*r
+			);
+	#endif
 }
 
 void collide_Extrusion (struct X3D_Extrusion *node) {
-	       GLDOUBLE modelMatrix[16];
-	       struct point_XYZ delta = {0,0,0};
+	GLDOUBLE modelMatrix[16];
+	struct point_XYZ delta = {0,0,0};
+	#ifdef RENDERVERBOSE
+	struct point_XYZ t_orig = {0,0,0};
+	#endif
+	struct X3D_PolyRep pr;
+	prflags flags = 0;
+	int change = 0;
 
-		#ifdef RENDERVERBOSE
-		struct point_XYZ t_orig = {0,0,0};
-		#endif
+	/* JAS - first pass, intern is probably zero */
+	if (node->_intern == NULL) return;
+	/* JAS - no triangles in this text structure */
+	if (node->_intern->ntri == 0) return;
 
+	/*save changed state.*/
+	if(node->_intern) change = node->_intern->irep_change;
+	COMPILE_POLY_IF_REQUIRED(NULL, NULL, NULL, NULL)
+	if(node->_intern) node->_intern->irep_change = change;
+	/*restore changes state, invalidates compile_polyrep work done, so it can be done
+	correclty in the RENDER pass */
 
-	       struct X3D_PolyRep pr;
-	       prflags flags = 0;
-	       int change = 0;
+	if(!node->solid) {
+		flags = flags | PR_DOUBLESIDED;
+	}
+	/*	printf("_PolyRep = %d\n",node->_intern);*/
+	pr = *(node->_intern);
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-		/* JAS - first pass, intern is probably zero */
-		if (node->_intern == NULL) return;
+	matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+	//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
-		/* JAS - no triangles in this text structure */
-		if (node->_intern->ntri == 0) return;
+	#ifdef RENDERVERBOSE
+	t_orig.x = modelMatrix[12];
+	t_orig.y = modelMatrix[13];
+	t_orig.z = modelMatrix[14];
+	#endif
 
-	       /*save changed state.*/
-	       if(node->_intern) change = node->_intern->irep_change;
-                COMPILE_POLY_IF_REQUIRED(NULL, NULL, NULL, NULL)
- 	       if(node->_intern) node->_intern->irep_change = change;
-	       /*restore changes state, invalidates compile_polyrep work done, so it can be done
-	         correclty in the RENDER pass */
+	if(!avatarCollisionVolumeIntersectMBBf(modelMatrix, pr.minVals, pr.maxVals))return;
+	delta = polyrep_disp2(pr,modelMatrix,flags); 
+	vecscale(&delta,&delta,-1);
+	accumulate_disp(CollisionInfo(),delta);
 
-	       if(!node->solid) {
-		   flags = flags | PR_DOUBLESIDED;
-	       }
-/*	       printf("_PolyRep = %d\n",node->_intern);*/
-	       pr = *(node->_intern);
-	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
-
-   			matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
-			//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
-
-			#ifdef RENDERVERBOSE
-                           t_orig.x = modelMatrix[12];
-                           t_orig.y = modelMatrix[13];
-                           t_orig.z = modelMatrix[14];
-			#endif
-
-			if(!avatarCollisionVolumeIntersectMBBf(modelMatrix, pr.minVals, pr.maxVals))return;
-
-	       delta = polyrep_disp2(pr,modelMatrix,flags); 
-
-	       vecscale(&delta,&delta,-1);
-
-	       accumulate_disp(CollisionInfo(),delta);
-
-		#ifdef RENDERVERBOSE
-	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
-/*		   printmatrix(modelMatrix);*/
-		   fprintf(stderr,"COLLISION_EXT: (%f %f %f) (%f %f %f)\n",
-			  t_orig.x, t_orig.y, t_orig.z,
-			  delta.x, delta.y, delta.z
-			  );
-	       }
-		#endif
+#ifdef RENDERVERBOSE
+	if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
+/*		printmatrix(modelMatrix);*/
+	fprintf(stderr,"COLLISION_EXT: (%f %f %f) (%f %f %f)\n",
+		t_orig.x, t_orig.y, t_orig.z,
+		delta.x, delta.y, delta.z
+		);
+	}
+#endif
 }
 
 
 
 void rendray_Sphere (struct X3D_Sphere *node) {
 	struct point_XYZ t_r1,t_r2;
-        float r = node->radius;
-        /* Center is at zero. t_r1 to t_r2 and t_r1 to zero are the vecs */
-		ttglobal tg = gglobal();
-        float tr1sq;// = (float) VECSQ(t_r1);
-        struct point_XYZ dr2r1;
-        float dlen;
-        float a,b,c,disc;
-		VECCOPY(t_r1,tg->RenderFuncs.t_r1);
-		VECCOPY(t_r2,tg->RenderFuncs.t_r2);
-        tr1sq = (float) VECSQ(t_r1);
+	float r = node->radius;
+	/* Center is at zero. t_r1 to t_r2 and t_r1 to zero are the vecs */
+	ttglobal tg = gglobal();
+	float tr1sq;// = (float) VECSQ(t_r1);
+	struct point_XYZ dr2r1;
+	float dlen;
+	float a,b,c,disc;
+	VECCOPY(t_r1,tg->RenderFuncs.t_r1);
+	VECCOPY(t_r2,tg->RenderFuncs.t_r2);
+	tr1sq = (float) VECSQ(t_r1);
 
-        VECDIFF(t_r2,t_r1,dr2r1);
-        dlen = (float) VECSQ(dr2r1);
+	VECDIFF(t_r2,t_r1,dr2r1);
+	dlen = (float) VECSQ(dr2r1);
 
-        a = dlen; /* tr1sq - 2*tr1tr2 + tr2sq; */
-        b = 2.0f*((float)VECPT(dr2r1, t_r1));
-        c = tr1sq - r*r;
+	a = dlen; /* tr1sq - 2*tr1tr2 + tr2sq; */
+	b = 2.0f*((float)VECPT(dr2r1, t_r1));
+	c = tr1sq - r*r;
 
-        disc = b*b - 4*a*c; /* The discriminant */
+	disc = b*b - 4*a*c; /* The discriminant */
 
-        if(disc > 0) { /* HITS */
-                float q ;
-                float sol1 ;
-                float sol2 ;
-                float cx,cy,cz;
-                q = (float) sqrt(disc);
-                /* q = (-b+(b>0)?q:-q)/2; */
-                sol1 = (-b+q)/(2*a);
-                sol2 = (-b-q)/(2*a);
-                /*
-                printf("SPHSOL0: (%f %f %f) (%f %f %f)\n",
-                        t_r1.x, t_r1.y, t_r1.z, t_r2.x, t_r2.y, t_r2.z);
-                printf("SPHSOL: (%f %f %f) (%f) (%f %f) (%f) (%f %f)\n",
-                        tr1sq, tr2sq, tr1tr2, a, b, c, und, sol1, sol2);
-                */ 
-                cx = (float) MRATX(sol1);
-                cy = (float) MRATY(sol1);
-                cz = (float) MRATZ(sol1);
-                rayhit(sol1, cx,cy,cz, cx/r,cy/r,cz/r, -1,-1, "sphere 0");
-                cx = (float) MRATX(sol2);
-                cy = (float) MRATY(sol2);
-                cz = (float) MRATZ(sol2);
-                rayhit(sol2, cx,cy,cz, cx/r,cy/r,cz/r, -1,-1, "sphere 1");
-        }
+	if(disc > 0) { /* HITS */
+		float q ;
+		float sol1 ;
+		float sol2 ;
+		float cx,cy,cz;
+		q = (float) sqrt(disc);
+		/* q = (-b+(b>0)?q:-q)/2; */
+		sol1 = (-b+q)/(2*a);
+		sol2 = (-b-q)/(2*a);
+		/*
+		printf("SPHSOL0: (%f %f %f) (%f %f %f)\n",
+				t_r1.x, t_r1.y, t_r1.z, t_r2.x, t_r2.y, t_r2.z);
+		printf("SPHSOL: (%f %f %f) (%f) (%f %f) (%f) (%f %f)\n",
+				tr1sq, tr2sq, tr1tr2, a, b, c, und, sol1, sol2);
+		*/ 
+		cx = (float) MRATX(sol1);
+		cy = (float) MRATY(sol1);
+		cz = (float) MRATZ(sol1);
+		rayhit(sol1, cx,cy,cz, cx/r,cy/r,cz/r, -1,-1, "sphere 0");
+		cx = (float) MRATX(sol2);
+		cy = (float) MRATY(sol2);
+		cz = (float) MRATZ(sol2);
+		rayhit(sol2, cx,cy,cz, cx/r,cy/r,cz/r, -1,-1, "sphere 1");
+	}
 
 }
 
@@ -2217,60 +2200,59 @@ void rendray_Cylinder (struct X3D_Cylinder *node) {
 	VECCOPY(t_r1,tg->RenderFuncs.t_r1);
 	VECCOPY(t_r2,tg->RenderFuncs.t_r2);
 
-        h = (node->height) /*cget*//2; /* pos and neg dir. */
-        r = (node->radius) /*cget*/;
-        y = h;
-        /* Caps */
-        if(!YEQ) {
-                float yrat0 = (float) YRAT(y);
-                float yrat1 = (float) YRAT(-y);
-                if(TRAT(yrat0)) {
-                        float cx = (float) MRATX(yrat0);
-                        float cz = (float) MRATZ(yrat0);
-                        if(r*r > cx*cx+cz*cz) {
-                                rayhit(yrat0, cx,y,cz, 0,1,0, -1,-1, "cylcap 0");
-                        }
-                }
-                if(TRAT(yrat1)) {
-                        float cx = (float) MRATX(yrat1);
-                        float cz = (float) MRATZ(yrat1);
-                        if(r*r > cx*cx+cz*cz) {
-                                rayhit(yrat1, cx,-y,cz, 0,-1,0, -1,-1, "cylcap 1");
-                        }
-                }
-        }
-        /* Body -- do same as for sphere, except no y axis in distance */
-        if((!XEQ) && (!ZEQ)) {
-                float dx = (float)(t_r2.x-t_r1.x); 
-                float dz = (float)(t_r2.z-t_r1.z);
-                float a = (float)(dx*dx + dz*dz);
-                float b = (float) (2*(dx * t_r1.x + dz * t_r1.z));
-                float c = (float) (t_r1.x * t_r1.x + t_r1.z * t_r1.z - r*r);
-                float und;
-                b /= a; c /= a;
-                und = b*b - 4*c;
-                if(und > 0) { /* HITS the infinite cylinder */
-                        float sol1 = (-b+(float) sqrt(und))/2;
-                        float sol2 = (-b-(float) sqrt(und))/2;
-                        float cy,cx,cz;
-                        cy = (float) MRATY(sol1);
-                        if(cy > -h && cy < h) {
-                                cx = (float) MRATX(sol1);
-                                cz = (float) MRATZ(sol1);
-                                rayhit(sol1, cx,cy,cz, cx/r,0,cz/r, -1,-1, "cylside 1");
-                        }
-                        cy = (float) MRATY(sol2);
-                        if(cy > -h && cy < h) {
-                                cx = (float) MRATX(sol2);
-                                cz = (float) MRATZ(sol2);
-                                rayhit(sol2, cx,cy,cz, cx/r,0,cz/r, -1,-1, "cylside 2");
-                        }
-                }
-        }
+	h = (node->height) /*cget*//2; /* pos and neg dir. */
+	r = (node->radius) /*cget*/;
+	y = h;
+	/* Caps */
+	if(!YEQ) {
+		float yrat0 = (float) YRAT(y);
+		float yrat1 = (float) YRAT(-y);
+		if(TRAT(yrat0)) {
+			float cx = (float) MRATX(yrat0);
+			float cz = (float) MRATZ(yrat0);
+			if(r*r > cx*cx+cz*cz) {
+				rayhit(yrat0, cx,y,cz, 0,1,0, -1,-1, "cylcap 0");
+			}
+		}
+		if(TRAT(yrat1)) {
+			float cx = (float) MRATX(yrat1);
+			float cz = (float) MRATZ(yrat1);
+			if(r*r > cx*cx+cz*cz) {
+				rayhit(yrat1, cx,-y,cz, 0,-1,0, -1,-1, "cylcap 1");
+			}
+		}
+	}
+	/* Body -- do same as for sphere, except no y axis in distance */
+	if((!XEQ) && (!ZEQ)) {
+		float dx = (float)(t_r2.x-t_r1.x); 
+		float dz = (float)(t_r2.z-t_r1.z);
+		float a = (float)(dx*dx + dz*dz);
+		float b = (float) (2*(dx * t_r1.x + dz * t_r1.z));
+		float c = (float) (t_r1.x * t_r1.x + t_r1.z * t_r1.z - r*r);
+		float und;
+		b /= a; c /= a;
+		und = b*b - 4*c;
+		if(und > 0) { /* HITS the infinite cylinder */
+			float sol1 = (-b+(float) sqrt(und))/2;
+			float sol2 = (-b-(float) sqrt(und))/2;
+			float cy,cx,cz;
+			cy = (float) MRATY(sol1);
+			if(cy > -h && cy < h) {
+				cx = (float) MRATX(sol1);
+				cz = (float) MRATZ(sol1);
+				rayhit(sol1, cx,cy,cz, cx/r,0,cz/r, -1,-1, "cylside 1");
+			}
+			cy = (float) MRATY(sol2);
+			if(cy > -h && cy < h) {
+				cx = (float) MRATX(sol2);
+				cz = (float) MRATZ(sol2);
+				rayhit(sol2, cx,cy,cz, cx/r,0,cz/r, -1,-1, "cylside 2");
+			}
+		}
+	}
 }
 
 void rendray_Cone (struct X3D_Cone *node) {
-
 	float h,y,r,dx,dy,dz,a,b,c,tmp,und;
 	struct point_XYZ t_r1,t_r2;
 	ttglobal tg = gglobal();
