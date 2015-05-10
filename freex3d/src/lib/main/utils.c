@@ -617,8 +617,8 @@ void scanMallocTableOnQuit()
 	int nlocs,j,iloc;
 	size_t total;
 	//scanForVectorTypes();
-	//scanForFieldTypes();
-	scanForCstringTypes();
+	scanForFieldTypes();
+	//scanForCstringTypes();
 	malloc_location *mlocs = malloc(sizeof(malloc_location)*MAXMALLOCSTOKEEP);
 	memset(mlocs,0,sizeof(malloc_location)*MAXMALLOCSTOKEEP);
 	nlocs = 0;
