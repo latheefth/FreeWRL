@@ -644,16 +644,16 @@ int VrmlBrowserCreateVrmlFromString(FWType fwtype, void *ec, void *fwn, int argc
 		if(retGroup->children.n > 0) {
 			struct Multi_Node *mfn = (struct Multi_Node *)malloc(sizeof(struct Multi_Node));
 			memcpy(mfn,&retGroup->children,sizeof(struct Multi_Node));
-			FREE_IF_NZ(retGroup);
 			for(i=0;i<mfn->n;i++){
 				mfn->p[i]->_parentVector->n = 0; 
 			}
 			fwretval->_web3dval.native = mfn;
 			fwretval->_web3dval.fieldType = FIELDTYPE_MFNode; //Group
-			fwretval->_web3dval.gc = 0; //will be GCd by nodelist
+			fwretval->_web3dval.gc = 1; //will be GCd by nodelist
 			fwretval->itype = 'W';
 			iret = 1;
 		}
+		deleteVector(struct X3D_Node*,retGroup->_parentVector);
 		FREE_IF_NZ(retGroup);
 	}else{
 		/* do the call to make the VRML code  - create a new browser just for this string */

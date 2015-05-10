@@ -661,6 +661,7 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 	//s_list_t *l;
 	openned_file_t *of;
 	struct X3D_Node *nRn;
+	struct X3D_Node *nRnfree;
 	struct X3D_Node *ectx;
 	struct X3D_Node *insert_node;
 	int i;
@@ -683,6 +684,7 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 	/* printf("processing VRML/X3D resource: %s\n", res->URLrequest);  */
 	offsetInNode = 0;
 	insert_node = NULL;
+	nRnfree = NULL;
 	shouldBind = FALSE;
 	shouldUnBind = FALSE;
 	origFogNodes = vectorSize(p->fogNodes);
@@ -708,8 +710,8 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 		/* EAI/SAI parsing */
 		/* printf ("have the actual text here \n"); */
 		/* create a container so that the parser has a place to put the nodes */
-		nRn = (struct X3D_Node *) createNewX3DNode(NODE_Group);
-
+		nRn = (struct X3D_Node *) createNewX3DNode0(NODE_Group);
+		nRnfree = nRn;
 		insert_node = X3D_NODE(res->whereToPlaceData); /* casting here for compiler */
 		offsetInNode = res->offsetFromWhereToPlaceData;
 
@@ -889,6 +891,11 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 	}
 	res->complete = TRUE;
 
+	if(nRnfree){
+		deleteVector(sizeof(void*),nRnfree->_parentVector); //perhaps unlink first
+		freeMallocedNodeFields(nRnfree);
+		FREE_IF_NZ(nRnfree);
+	}
 
 	/* remove this resource from the stack */
 	if (!fromEAI_SAI)
