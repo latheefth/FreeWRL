@@ -3905,6 +3905,7 @@ void reset_Browser(){
 			unload_globalParser();
 			resource_tree_destroy();
 			unload_libraryscenes(); //debate: should proto libraryscenes hang around in case the same protos are used in a different, anchored-to scene?
+			kill_javascript();
 		}else{
 			kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 		}

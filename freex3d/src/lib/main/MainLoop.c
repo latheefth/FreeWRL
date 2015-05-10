@@ -335,6 +335,7 @@ void Mainloop_init(struct tMainloop *t){
 void Mainloop_clear(struct tMainloop *t){
 	FREE_IF_NZ(t->scene_name);
 	FREE_IF_NZ(t->scene_suff);
+	FREE_IF_NZ(t->replaceWorldRequest);
 	FREE_IF_NZ(t->tmpFileLocation);
 	{
 		ppMainloop p = (ppMainloop)t->prv;
@@ -4686,6 +4687,7 @@ void doReplaceWorldRequest()
 		res = resource_create_single(req);
 		//send_resource_to_parser_async(res);
 		resitem_enqueue(ml_new(res));
+		FREE_IF_NZ(req);
 	}
 	resm = (resource_item_t *)tg->Mainloop.replaceWorldRequestMulti;
 	if (resm){
