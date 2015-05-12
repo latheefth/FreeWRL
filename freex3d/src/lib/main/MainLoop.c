@@ -4192,6 +4192,55 @@ What I think we could do better:
 	d) Neither/Non-Sensitized geom nodes: transform geometry xyz hits to bearing-local
 		using modelview+pick-proj [model]
 	[viewport coordinates are only needed once per frame to project the mouse into bearing-world]
+
+Update May 2015 - dug9
+	- we've been using AffinePickMatrix method since fall 2014, 8 months, and with LOOKAT and EXPLORE navigation modes
+		and its been working fine.
+	- clarifications of some points above:
+		- we do our ray-geometry intersections in geometry-local coordinates. That requires us to 
+			keep (a copy of) the pick ray transformed into geometry-local as we move down the transform stack in render_node()
+			we do that in upd_ray(), and it requires a matrix inverse. Currently we call upd_ray() during descent, and
+			also during ascent in render_node(). It could be a stack instead, pushed on the way down and popped on the way back 
+			to save an inverse. 
+		- We recompute upd_ray() on each vf_sensitive recursion into render_node. But in theory it should/could be just when 
+			we've chnaged the modelview transform by passing through a transform (or geotransform or group) node.
+			I'm not sure the best place/way to detect that. Perhaps just before ->children(node).
+					bool pushed_ray = false
+					if(node.type == transform type) pushed_ray = true
+					if(pushed_ray) upd_ray_and_push()
+					node->children(node)
+					if(pushed_ray) pop_ray()
+		- then if/when we have an intersection/hit point, we transform it back into bearing-local space for comparison
+			with the best-hit so far on the frame (which is closest/not occluded). This transform uses no inverse.
+		- One might argue whether it would be easier / somehow better to transform all geometry points 
+			into ray/bearing local space instead, requiring no inverse, and simplifying some of the intersection math.
+			For drawing, this transform is done on the gpu. I don't know which is better. 
+			OpenCL might help, transforming in parallel, analogous to drawing.
+		- Or for each transform when compile_transform the 4x4 from translation, rotation, scale, also compute its inverse and
+			store with the transform. Then when updating modelview during scengraph traversing, also multiply the inverses 
+			to get inverse(modelview). 49 FLOPS in an AFFINE inverse (ie inverting cumulative modelview at each level), 
+			vs. 36 in AFFINE matrix multiply. You save 13 FLOPS per transform level during VFSensitve pass, but need to
+			pre-compute the inverses, likely once for most, in compile_transform.
+		- we have to intersect _all_ geometry, not just sensitive. That's because non-sensitive geometry can occlude.
+			we do an extent/MBB (minimum bounding box) intersection test first, but we need the upd_ray() with inverse to do that.
+		- LOOKAT and EXPLORE use this intersecting all geometry to find the closest point of all geometry along the ray, 
+			even when no sensitive nodes in the scene. They only do it on passes where someone has indicated they 
+			want to pick a new location (for viewpoint slerping to) (versus sensitive nodes in scene which cause 
+			us to always be checking for hits)
+		- for dragsensor nodes, on mouse-down we want to save/snapshot the modelview matrix from viewpoint to sensor-local
+			- then use this sensor-local transform to place the sensor-geometry ie cylinder, sphere, plane [,line]
+				for intersecting as we move/drag with mousedown
+			- since we don't know if or which dragsensor hit will be the winner (on a frame) when visiting a sensor,
+				we save it if its the best-so-far and over-write with any subsequent better hits
+		- if there are multiple sensors in the same scengraph branch, the one closest to the hit emits the events
+			- there could/should be a stack for 'current sensor' pushed when descending, and popping on the way back
+	- An alternative to a cluttered render_node() function would be to change virt->children(node) functions
+		to accept a function pointer ie children(node,func). Same with normal_children(node,func).
+		Then use separate render_node(node), sensor_node(node), and collision_node(node) functions. 
+		They are done on separate passes now anyway.
+		On the other hand, someone may find a way to combine passes for better efficiency/reduced transform FLOPs per frame.
+	- Multitouch - there is currently nothing in the specs. But if there was, it might apply to (modfied / special) touch 
+		and drag sensors. And for us that might mean simulataneously or iterating over a list of touches.
 */
 
 /*	get_hyperhit()
