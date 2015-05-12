@@ -411,19 +411,15 @@ void bind_node (struct X3D_Node *node, struct Vector *thisStack) {
 			/* printf ("already have a node here...have to unbind it %p %p\n",node,oldTOS); */
 
 			if (oldTOS != node) { 
-				printf ("can not pop from stack, not top (%p != %p)\n",node,oldTOS);
-if (node->_nodeType == NODE_Viewpoint) {
-printf ("%p Viewpoint, description :%s:\n",node,X3D_VIEWPOINT(node)->description->strptr);
-printf ("%p Viewpoint, description :%s:\n",oldTOS,X3D_VIEWPOINT(oldTOS)->description->strptr);
-printf ("oldTOS, isBound %d, setBindPtr %d\n",*(offsetPointer_deref(int*, oldTOS, isboundofst(oldTOS))), 
-*(offsetPointer_deref(int*, oldTOS, setBindofst(oldTOS))));
-}
-				if(removeNodeFromVector(0, thisStack, node)){
-					if (node->_nodeType == NODE_Viewpoint)
-						printf("but found and removed from stack\n");
-				}else{
-					if (node->_nodeType == NODE_Viewpoint)
+				if(!removeNodeFromVector(0, thisStack, node)){
+					if (node->_nodeType == NODE_Viewpoint){
+						printf ("can not pop from stack, not top (%p != %p)\n",node,oldTOS);
+						printf ("%p Viewpoint, description :%s:\n",node,X3D_VIEWPOINT(node)->description->strptr);
+						printf ("%p Viewpoint, description :%s:\n",oldTOS,X3D_VIEWPOINT(oldTOS)->description->strptr);
+						printf ("oldTOS, isBound %d, setBindPtr %d\n",*(offsetPointer_deref(int*, oldTOS, isboundofst(oldTOS))), 
+						*(offsetPointer_deref(int*, oldTOS, setBindofst(oldTOS))));
 						printf("and not found in stack\n");
+					}
 				}
 				return;
 			} else {
