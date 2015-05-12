@@ -48,10 +48,11 @@
 #define FIELDTYPE_MFImage	43 
 typedef int indexT;
 
-
+#ifdef DEBUG_MALLOC
 #define malloc(A) MALLOCV(A)
 #define free(A) FREE_IF_NZ(A)
 #define realloc(A,B) REALLOC(A,B)
+#endif
 
 FWTYPE *fwtypesArray[60];  //true statics - they only need to be defined once per process, we have about 50 types as of july 2014
 int FWTYPES_COUNT = 0;

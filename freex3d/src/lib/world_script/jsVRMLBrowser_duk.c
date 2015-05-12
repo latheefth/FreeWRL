@@ -62,11 +62,11 @@ X3DScene/X3DExecutionContext - functions not implemented relating to protos
 #include "fieldSet.h"
 #include "FWTYPE.h"
 
-
+#ifdef DEBUG_MALLOC
 #define malloc(A) MALLOCV(A)
 #define free(A) FREE_IF_NZ(A)
 #define realloc(A,B) REALLOC(A,B)
-
+#endif
 
 /* The Browser's supportedComponents and supportedProfiles are statically defined 
    in 'bits and pieces' in generatedCode.c and capabilitiesHandler.c and Structs.h.

@@ -4198,7 +4198,7 @@ Update May 2015 - dug9
 		and its been working fine.
 	- clarifications of some points above:
 		- we do our ray-geometry intersections in geometry-local coordinates. That requires us to 
-			keep (a copy of) the pick ray transformed into geometry-local as we move down the transform stack in render_node()
+			transform (a copy of) the pick ray into geometry-local as we move down the transform stack in render_node()
 			we do that in upd_ray(), and it requires a matrix inverse. Currently we call upd_ray() during descent, and
 			also during ascent in render_node(). It could be a stack instead, pushed on the way down and popped on the way back 
 			to save an inverse. 
