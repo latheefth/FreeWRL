@@ -573,11 +573,12 @@ void fwg_frontEndReturningData(char* fileData,int length,int width,int height,bo
  */
 openned_file_t* load_file(const char *filename)
 {
+	openned_file_t *of;
 	if (NULL == filename) {
 		return NULL;
 	}
 
-    openned_file_t *of = NULL;
+    of = NULL;
 
 
     

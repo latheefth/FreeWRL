@@ -135,12 +135,13 @@ void vector_popBack_(struct Vector* me, size_t count)
 
 /* Shrinks the vector to allocn==n. */
 void vector_shrink_(int elSize, struct Vector* me) {
+	void *oldData;
 	ASSERT(me);
 	ASSERT(me->allocn>=me->n);
 	if(me->n==me->allocn) return;
 
 	me->allocn=me->n;
-    void *oldData = me->data;
+    oldData = me->data;
 	me->data=REALLOC(oldData, elSize*me->allocn);
     
     #ifdef DEBUG_MALLOC

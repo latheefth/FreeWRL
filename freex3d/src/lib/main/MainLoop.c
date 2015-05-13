@@ -4671,6 +4671,7 @@ void end_of_run_tests(){
 
 void finalizeRenderSceneUpdateScene() {
 	//C. delete instance data
+	struct X3D_Node* rn;
 	ttglobal tg = gglobal();
 	printf ("finalizeRenderSceneUpdateScene\n");
 
@@ -4681,7 +4682,7 @@ void finalizeRenderSceneUpdateScene() {
 	/* kill any remaining children processes like sound processes or consoles */
 	killErrantChildren();
 	/* tested on win32 console program July9,2011 seems OK */
-	struct X3D_Node* rn = rootNode();
+	rn = rootNode();
 	if(rn)
 		deleteVector(struct X3D_Node*,rn->_parentVector); //perhaps unlink first
 	freeMallocedNodeFields(rn);
@@ -5007,9 +5008,10 @@ void __iglobal_destructor(ttglobal tg);
 
 void _disposeThread(void *globalcontext)
 {
+	int more;
     ttglobal tg = globalcontext;
     fwl_setCurrentHandle(tg, __FILE__, __LINE__);
-    int more = 0;
+    more = 0;
     while((more = workers_running()) && more > 0)
     {
         usleep(100);

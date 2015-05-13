@@ -177,13 +177,9 @@
 	var ar = .000001;
 	var vMatrix = mat4.create();
 	var mMatrix = mat4.create();
-	var gridTrans = vec3.fromValues(0.0,0.0,0.0);
 	function toMvMatrix(){
 		mat4.fromQuat(vMatrix,cumQuat);
-		gridTrans[0] = cumTrans[0] % 70.0;
-		gridTrans[1] = cumTrans[1]; // % 100.0;
-		gridTrans[2] = cumTrans[2] % 70.0;
-		mat4.translate(vMatrix,vMatrix,gridTrans);
+		mat4.translate(vMatrix,vMatrix,cumTrans);
 		mat4.multiply(mvMatrix,vMatrix,mMatrix);
 	}
 	function ontick_mouse(now) {

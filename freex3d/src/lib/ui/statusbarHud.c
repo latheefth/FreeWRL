@@ -1715,14 +1715,16 @@ void initButtons()
 				nact = togset[1];
 				for(k=0;k<p->pmenu.nitems;k++){
 					if(ipact == p->pmenu.items[k].action){
+						int m;
 						p->pmenu.items[k].buttonset = malloc(sizeof(buttonSet));
 						p->pmenu.items[k].buttonset->n = nact;
 						p->pmenu.items[k].buttonset->index = 0; //first one by default
 						p->pmenu.items[k].buttonset->items = malloc(nact * sizeof(void*));
-						for(int m=0;m<nact;m++){
+						for(m=0;m<nact;m++){
+							int n;
 							p->pmenu.items[k].buttonset->items[m] = NULL;
 							iact = togset[m+2];
-							for(int n=0;n<p->pmenu.nitems;n++){
+							for(n=0;n<p->pmenu.nitems;n++){
 								if(iact == p->pmenu.items[n].action){
 									p->pmenu.items[k].buttonset->items[m] = &p->pmenu.items[n];
 								}
@@ -2516,7 +2518,7 @@ M	viewer_level_to_bound();							//"
 M       void toggle_collision()                             //"
     */
 	char *pp; 
-	int i,nsides;
+	int i,nsides, vrml_clipplane;
 	GLfloat side_bottom_f;
 	ppstatusbar p;
 	ttglobal tg = gglobal();
@@ -2549,7 +2551,7 @@ M       void toggle_collision()                             //"
 
 	p->clipPlane = (p->show_menu ?  p->buttonSize : 0) + p->statusBarSize; //(p->show_status ? p->statusBarSize : 0);
 	//int mouseplane = p->showButtons ? p->clipPlane : p->statusBarSize;
-	int vrml_clipplane = (p->statusbar_pinned ? p->statusBarSize : 0) + (p->menubar_pinned? p->buttonSize : 0);
+	vrml_clipplane = (p->statusbar_pinned ? p->statusBarSize : 0) + (p->menubar_pinned? p->buttonSize : 0);
 	fwl_setClipPlane(vrml_clipplane); //p->clipPlane);
 
 	nsides = 1;

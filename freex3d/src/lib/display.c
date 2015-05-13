@@ -345,9 +345,9 @@ bool initialize_rdr_caps()
         const char *openGLPrefix = "OpenGL ES ";
         if (NULL != rdr_caps.version && strstr(rdr_caps.version, openGLPrefix))
         {
-            char version[256];
+            char version[256], *versionPTR;
             sprintf(version, "%s", rdr_caps.version);
-            char *versionPTR = version + strlen(openGLPrefix);
+            versionPTR = version + strlen(openGLPrefix);
             rdr_caps.versionf = (float) atof(versionPTR);
             //free(version);
         }
