@@ -58,6 +58,8 @@ typedef struct pcommon{
 	char buffer[200];
 	void *colorScheme;
 	int colorSchemeChanged;
+	int pin_statusbar;
+	int pin_menubar;
 }*ppcommon;
 void *common_constructor(){
 	void *v = MALLOCV(sizeof(struct pcommon));
@@ -75,6 +77,8 @@ void common_init(struct tcommon *t){
 		p->sb_hasString = FALSE;
 		p->colorScheme = NULL;
 		p->colorSchemeChanged = 0;
+		p->pin_statusbar = 1;
+		p->pin_menubar = 0;
 	}
 }
 //ppcommon p = (ppcommon)gglobal()->common.prv;
@@ -213,6 +217,23 @@ int getCursorStyle()
 		return ACURSE;
 }
 
+void fwl_set_sbh_pin_option(char *optarg){
+	if(optarg && strlen(optarg) > 1){
+		ppcommon p = (ppcommon)gglobal()->common.prv;
+		p->pin_statusbar = (optarg[0] == 'T' || optarg[0] == 't') ? 1 : 0;
+		p->pin_menubar = (optarg[1] == 'T' || optarg[1] == 't') ? 1 : 0;
+	}
+}
+void fwl_set_sbh_pin(int sb, int mb){
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	p->pin_statusbar = sb;
+	p->pin_menubar = mb;
+}
+void fwl_get_sbh_pin(int *sb, int *mb){
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	*sb = p->pin_statusbar;
+	*mb = p->pin_menubar;
+}
 // start ui color scheme >>>>>>>>>>>
 
 // StatusbarHud color schemes:

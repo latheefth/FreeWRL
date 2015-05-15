@@ -104,7 +104,6 @@ void update_ui_colors(){
 		ui_color_changed = ic;
 	}
 }
-
 static   GLbyte vShaderStr[] =  
       "attribute vec4 a_position;   \n"
       "attribute vec2 a_texCoord;   \n"
@@ -501,8 +500,8 @@ void statusbar_init(struct tstatusbar *t){
 		p->hadString = 0;
 
 		p->showButtons =1;
-		p->statusbar_pinned = 1;
-		p->menubar_pinned = 0;
+		//p->statusbar_pinned = 1;
+		//p->menubar_pinned = 0;
 		p->butsLoaded = 0;
 		p->isOver = -1;
 		p->iconSize = 32;
@@ -896,6 +895,7 @@ void initOptionsVal()
 			p->optionsVal[11+i][j+1] = (k ? 035 : ' ');
 		}
 	}
+	fwl_get_sbh_pin(&p->statusbar_pinned,&p->menubar_pinned);
 	p->optionsVal[14][0] = p->statusbar_pinned ? 035 : 034; 
 	p->optionsVal[15][0] = p->menubar_pinned ? 035 : 034; 
 
@@ -1052,10 +1052,14 @@ int handleOptionPress(int mouseX, int mouseY)
 		toggleOrSetStereo(opt-'0');
 		break;
 	case '7': 
+		fwl_get_sbh_pin(&p->statusbar_pinned,&p->menubar_pinned);
 		p->statusbar_pinned = 1 - p->statusbar_pinned;
+		fwl_set_sbh_pin(p->statusbar_pinned,p->menubar_pinned);
 		break;
 	case '8': 
+		fwl_get_sbh_pin(&p->statusbar_pinned,&p->menubar_pinned);
 		p->menubar_pinned = 1 - p->menubar_pinned;
+		fwl_set_sbh_pin(p->statusbar_pinned,p->menubar_pinned);
 		break;
 	case 'r': 
 	case 's': 
@@ -2490,6 +2494,13 @@ void fwl_setClipPlane(int height);
 void drawStatusBarSide()
 {
 }
+void update_pinned(){
+	ppstatusbar p;
+	ttglobal tg = gglobal();
+	p = (ppstatusbar)tg->statusbar.prv;
+	fwl_get_sbh_pin(&p->statusbar_pinned,&p->menubar_pinned);
+}
+
 void drawStatusBar() 
 {
 	/* drawStatusBar() is called just before swapbuffers in mainloop so anything that you want to render 2D
@@ -2528,6 +2539,7 @@ M       void toggle_collision()                             //"
 	//fwl_setClipPlane(p->statusBarSize);
 	if(!p->fontInitialized) initFont();
 	update_ui_colors();
+	update_pinned();
 	if(p->programObject == 0) initProgramObject();
 
 	//MVC statusbarHud is in View and Controller just called us and told us 
@@ -2623,7 +2635,7 @@ M       void toggle_collision()                             //"
 
 		//glUniform4f(p->color4fLoc, 1.0f, 1.0f, 1.0f, 1.0f);
 		glUniform4f(p->color4fLoc,colorMessageText[0],colorMessageText[1],colorMessageText[2],colorMessageText[3]);
-
+		glDisable(GL_SCISSOR_TEST); //ideally this would scissor everything but statusbar+menu so we don't overwrite bars
 		if (showAction(p, ACTION_HELP))
 			printKeyboardHelp(p);
 		if (showAction(p, ACTION_MESSAGES))

@@ -384,4 +384,7 @@ void fwl_set_ui_colorscheme(char *colorschemename);
 void fwl_set_ui_colors(char *fourhtmlcolors);
 void fwl_get_ui_color(char *use, float *rgb);
 int fwl_get_ui_color_changed();
+void fwl_set_sbh_pin_option(char *optarg);
+void fwl_set_sbh_pin(int sb, int mb);
+void fwl_get_sbh_pin(int *sb, int *mb);
 #endif /* __LIBFREEWRL_API_H__ */

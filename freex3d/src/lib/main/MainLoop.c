@@ -1858,8 +1858,11 @@ void setup_projection(int pick, int x, int y)
 	scissorxr = screenwidth2;
 	fieldofview2 = viewer->fieldofview;
 	bottom = tg->Mainloop.clipPlane;
+
 	top = 0;
 	screenheight = tg->display.screenHeight - bottom;
+	aspect2 = (double)(scissorxr - scissorxl)/(double)(screenheight);
+
 	if(viewer->type==VIEWER_SPHERICAL)
 		fieldofview2*=viewer->fovZoom;
 	if(viewer->isStereo)
