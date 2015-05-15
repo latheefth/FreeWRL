@@ -400,7 +400,7 @@ void fwl_set_ui_colorscheme(char *colorschemename){
 	cs = search_ui_colorscheme(colorschemename);
 	if(cs) {
 		p->colorScheme = cs;
-		p->colorSchemeChanged;
+		p->colorSchemeChanged++;
 	}
 }
 // set here from commandline options
@@ -415,6 +415,37 @@ void fwl_set_ui_colors(char *fourhtmlcolors){
 	p->colorScheme = (void *)cs;
 	p->colorSchemeChanged++;
 }
+char *fwl_get_ui_colorschemename(){
+	colorScheme *cs;
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	cs = (colorScheme*)p->colorScheme;
+	return cs->name;
+}
+void fwl_next_ui_colorscheme(){
+	int i;
+	colorScheme *cs;
+	char *colorschemename;
+	//ppcommon p = (ppcommon)gglobal()->common.prv;
+
+	colorschemename = fwl_get_ui_colorschemename();
+	i = 0;
+	do{
+		if(!strcmp(colorSchemes[i].name,colorschemename)){
+			cs = &colorSchemes[i+1];
+			if(!cs->name){
+				cs = &colorSchemes[0]; //start over
+			}
+			if(!strcmp(cs->name,"custom")){
+				cs = &colorSchemes[0]; //skip custom and start over
+			}
+			fwl_set_ui_colorscheme(cs->name);
+			break;
+		}
+		i++;
+	}while(colorSchemes[i].name);
+
+}
+
 //want to compile-in the default color scheme? just define UI_COLORSCHEME_DEFAULT in your config.h
 #ifndef UI_COLORSCHEME_DEFAULT
 #define UI_COLORSCHEME_DEFAULT "neon:yellow" //"original" "favicon" "midnight" "aqua" "angry" "neon:cyan" "neon:yellow" "neon:lime" "neon:pink"
@@ -440,6 +471,5 @@ void fwl_get_ui_color(char *use, float *rgb){
 int fwl_get_ui_color_changed(){
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 	return p->colorSchemeChanged;
-
 }
 // end ui colors <<<<<<<<<<<<<<<

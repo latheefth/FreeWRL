@@ -463,7 +463,7 @@ typedef struct pstatusbar{
 	char messagebar[200];
 	int bmfontsize;// = 2; /* 0,1 or 2 */
 	int optionsLoaded;// = 0;
-	char * optionsVal[17];
+	char * optionsVal[19];
 	int osystem;// = 3; //mac 1btn = 0, mac nbutton = 1, linux game descent = 2, windows =3
 	XY bmWH;// = {10,15}; /* simple bitmap font from redbook above, width and height in pixels */
 	int bmScale; //1 or 2 for the hud pixel fonts, changes between ..ForOptions and ..Regular 
@@ -561,7 +561,7 @@ void initProgramObject(){
    p->textureLoc = glGetUniformLocation ( p->programObject, "Texture0" );
    p->color4fLoc = glGetUniformLocation ( p->programObject, "Color4f" );
 }
-static int lenOptions   = 16;
+static int lenOptions   = 18;
 void statusbar_clear(struct tstatusbar *t){
 	//public
 	//private
@@ -835,7 +835,7 @@ void render_init(void);
 
 /* start cheapskate widgets >>>> */
 //static int lenOptions   = 16;
-char * optionsText[16] = {
+char * optionsText[] = {
 "stereovision:",
 "  side-by-side",
 "  up-down",
@@ -852,12 +852,26 @@ char * optionsText[16] = {
 "     neither",
 "  pin statusbar",
 "  pin menubar",
+"colorScheme:",
+NULL,
 };
 //int optionsLoaded = 0;
 //char * optionsVal[15];
 void setOptionsVal()
 {
 }
+char *colorschemenames [] = {
+"original",
+"midnight",
+"angry",
+"favicon",
+"aqua",
+"neon:lime",
+"neon:yellow",
+"neon:cyan",
+"neon:pink",
+NULL,
+};
 
 void initOptionsVal()
 {
@@ -869,7 +883,7 @@ void initOptionsVal()
 	for(i=0;i<lenOptions;i++)
 	{
 		if(!p->optionsVal[i])
-			p->optionsVal[i] = MALLOC(char*, 9);
+			p->optionsVal[i] = MALLOC(char*, 15);
 		for(j=0;j<9;j++) p->optionsVal[i][j] = ' ';
 		p->optionsVal[i][8] = '\0';
 	}
@@ -898,7 +912,7 @@ void initOptionsVal()
 	fwl_get_sbh_pin(&p->statusbar_pinned,&p->menubar_pinned);
 	p->optionsVal[14][0] = p->statusbar_pinned ? 035 : 034; 
 	p->optionsVal[15][0] = p->menubar_pinned ? 035 : 034; 
-
+	sprintf(p->optionsVal[17]," %s ",fwl_get_ui_colorschemename());
 	p->optionsLoaded = 1;
 }
 void updateOptionsVal()
@@ -908,7 +922,7 @@ void updateOptionsVal()
 	initOptionsVal();
 }
 /* the optionsCase char is used in a switch case later to involk the appropriate function */
-char * optionsCase[16] = {
+char * optionsCase[] = {
 "             ",
 "22222222222222",
 "44444444",
@@ -925,6 +939,9 @@ char * optionsCase[16] = {
 " xyz      ",
 "77777777",
 "88888888",
+"        ",
+"99999999",
+NULL,
 };
 
 XY mouse2screen(int x, int y)
@@ -1060,6 +1077,9 @@ int handleOptionPress(int mouseX, int mouseY)
 		fwl_get_sbh_pin(&p->statusbar_pinned,&p->menubar_pinned);
 		p->menubar_pinned = 1 - p->menubar_pinned;
 		fwl_set_sbh_pin(p->statusbar_pinned,p->menubar_pinned);
+		break;
+	case '9':
+		fwl_next_ui_colorscheme();
 		break;
 	case 'r': 
 	case 's': 
