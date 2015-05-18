@@ -1156,7 +1156,7 @@ int handleOptionPress(int mouseX, int mouseY)
 //int osystem = 3; //mac 1btn = 0, mac nbutton = 1, linux game descent = 2, windows =3
 #if defined(QNX) //|| defined(_MSC_VER)
 int lenhelp = 21;
-char * keyboardShortcutHelp[21] = {
+char * keyboardShortcutHelp[] = {
 "WALK Mode",
 "   movement: drag left/right for turns;",
 "             drag up/down for forward/backward", 
@@ -1180,7 +1180,7 @@ char * keyboardShortcutHelp[21] = {
 "Enter URL of .x3d or .wrl scene"
 #elif defined(KIOSK) //|| defined(_MSC_VER)
 int lenhelp = 19;
-char * keyboardShortcutHelp[19] = {
+char * keyboardShortcutHelp[] = {
 "WALK Mode",
 "   movement: drag left/right for turns;",
 "             drag up/down for forward/backward", 
@@ -1202,7 +1202,7 @@ char * keyboardShortcutHelp[19] = {
 "Options"
 #elif defined(_MSC_VER_NOT)
 int lenhelp = 16;
-char * keyboardShortcutHelp[16] = {
+char * keyboardShortcutHelp[] = {
 "WALK Mode",
 "   movement: drag left/right for turns;",
 "             drag up/down for forward/backward", 
@@ -1220,27 +1220,19 @@ char * keyboardShortcutHelp[16] = {
 "EXPLORE Mode - use CTRL-click to recenter",
 "hit spacebar to get console prompt :, then type help"
 #else
-int lenhelp = 30;
-char * keyboardShortcutHelp[30] = {
+int lenhelp = 20;
+char * keyboardShortcutHelp[] = {
 "EXAMINE Mode",
 "   LMB rotation: MX rotation around Y axis; MY rotation around X axis",
 "   RMB zooms", // On Apple computers with one button mice, press and hold the "control" key, and use your mouse. 
 "WALK Mode",
 "   LMB movement: MX left/right turns; MY walk forward/backward", 
 "   RMB height", //se Button 3 moves you up/down (changes your height above the ground). On Apple computers with one button mice, press and hold the "control" key, and use your mouse. 
-"Keyboard FLY Mode",
-"   8 k rotation down/up",
-"   u o rotation left/right",
-"   7 9 rotation about the Z axis",
-"   a z translation forwards/backwards",
-"   j l translation left/right",
-"   p ; translation up/down",
-" or use arrow keys. to change keychord: press SHIFT->",
-"EXFLY Mode",
-"   takes input from the file /tmp/inpdev",
-"all modes",
-"  d Switch to Fly (Keyboard input) navigation mode", 
-"  f Switch to Fly (External Sensor input) navigation mode",
+"EXPLORE Mode",
+" - use CTRL-click to recenter",
+"Keyboard navigation",
+" - use arrow keys. to change keychord: press SHIFT> or SHIFT<",
+"other",
 "  e Switch to Examine navigation mode",
 "  w Switch to Walk navigation mode",
 "  v Go to next viewpoint in the scene",
@@ -1250,9 +1242,8 @@ char * keyboardShortcutHelp[30] = {
 "  c Toggle collision detection",
 "  x Snapshot",
 "  q Quit browser",
-"EXPLORE Mode - use CTRL-click to recenter",
-"hit spacebar to get console prompt :, then type help",
 #endif
+NULL,
 };
 const char *libFreeWRL_get_version();
 void printKeyboardHelp(ppstatusbar p)

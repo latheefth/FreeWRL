@@ -380,13 +380,14 @@ int fwl_getAnaglyphSide(int whichSide);
 int fwl_draw(); //use when frontend_handles_display_thread
 void fwl_tmpFileLocation(char *tmpFileLocation);
 void fwl_fontFileLocation(char *fontFileLocation);
-void fwl_set_ui_colorscheme(char *colorschemename);
+int fwl_set_ui_colorscheme(char *colorschemename);
 void fwl_set_ui_colors(char *fourhtmlcolors);
 void fwl_get_ui_color(char *use, float *rgb);
 char *fwl_get_ui_colorschemename();
 void fwl_next_ui_colorscheme();
 int fwl_get_ui_color_changed();
-void fwl_set_sbh_pin_option(char *optarg);
+int fwl_set_sbh_pin_option(char *optarg);
 void fwl_set_sbh_pin(int sb, int mb);
 void fwl_get_sbh_pin(int *sb, int *mb);
+int fwl_commandline(char *cmdline);
 #endif /* __LIBFREEWRL_API_H__ */

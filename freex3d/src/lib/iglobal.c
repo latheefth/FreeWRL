@@ -105,6 +105,7 @@ void X3DParser_clear(struct tX3DParser *t);
 
 void X3DProtoScript_init(struct tX3DProtoScript *t);
 void common_init(struct tcommon *t);
+void common_clear(struct tcommon *t);
 void CursorDraw_init(struct tCursorDraw *t);
 
 //static ttglobal iglobal; //<< for initial development witn single instance
@@ -255,7 +256,7 @@ void __iglobal_fields_destructor(ttglobal tg)
     /* you should have stopped any worker threads for this instance */
 	//call individual destructors in reverse order to constructor
 	FREE_IF_NZ(tg->CursorDraw.prv);
-	FREE_IF_NZ(tg->common.prv);
+	common_clear(&tg->common); FREE_IF_NZ(tg->common.prv);
 	FREE_IF_NZ(tg->X3DProtoScript.prv);
 	X3DParser_clear(&tg->X3DParser); FREE_IF_NZ(tg->X3DParser.prv);
 	Bindable_clear(&tg->Bindable); FREE_IF_NZ(tg->Bindable.prv);

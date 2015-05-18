@@ -3409,29 +3409,7 @@ void sendKeyToKeySensor(const char key, int upDown);
 #endif
 char lookup_fly_key(int key);
 //#endif
-int fwl_setDragChord(char *chordname);
-int fwl_setKeyChord(char *chordname);
 
-struct command {
-	char *key;
-	int (*cmdfunc)(char *val);
-} commands [] = {
-	{"dragchord",fwl_setDragChord}, //lower case: "YAWZ","YAWPITCH","ROLL","XY"
-	{"keychord", fwl_setKeyChord},
-	{"navmode",fwl_setNavMode},
-	{NULL,NULL},
-};
-int fwl_set(char *key, char *val){
-	int i, ok = 0;
-	i = 0;
-	while(commands[i].key){
-		if(!strcmp(key,commands[i].key)){
-			ok = commands[i].cmdfunc(val); break;
-		}
-		i++;
-	}
-	return ok;
-}
 void fwl_do_keyPress0(int key, int type) {
 	int lkp;
 	ppMainloop p;
@@ -3464,15 +3442,7 @@ void fwl_do_keyPress0(int key, int type) {
 				lkp = key;
 				len = min(24,len); //dimensioned to 25
 				if(lkp == '\r'){
-					char *sep = strchr(p->keywaitstring,' ');
-					if(!sep) sep = strchr(p->keywaitstring,',');
-					if(sep){
-						char *key, *val;
-						val = &sep[1];
-						(*sep) = '\0';
-						key = p->keywaitstring;
-						fwl_set(key,val);
-					}
+					fwl_commandline(p->keywaitstring);
 					p->keywait = FALSE;
 					p->keywaitstring[0] = '\0';
 					ConsoleMessage("%c",'\n');
