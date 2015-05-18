@@ -26,6 +26,7 @@
 #include <libFreeWRL.h>
 #include <iglobal.h>
 #include "../ui/common.h"
+#include <scenegraph/Vector.h>
 
 #if defined (_MSC_VER)
 #include "../../buildversion.h"
@@ -45,6 +46,11 @@ const char *libFreeWRL_get_version(void) {return FW_BUILD_VERSION_STR;}
 
 #define MAXTITLE 200
 
+typedef struct keyval {
+	char *key;
+	char *val;
+} keyval;
+
 /* textual status messages */
 typedef struct pcommon{
 	float myFps; // = (float) 0.0;
@@ -58,6 +64,9 @@ typedef struct pcommon{
 	char buffer[200];
 	void *colorScheme;
 	int colorSchemeChanged;
+	int pin_statusbar;
+	int pin_menubar;
+	struct Vector *keyvals;
 }*ppcommon;
 void *common_constructor(){
 	void *v = MALLOCV(sizeof(struct pcommon));
@@ -75,8 +84,28 @@ void common_init(struct tcommon *t){
 		p->sb_hasString = FALSE;
 		p->colorScheme = NULL;
 		p->colorSchemeChanged = 0;
+		p->pin_statusbar = 1;
+		p->pin_menubar = 0;
+		p->keyvals = NULL;
 	}
 }
+void common_clear(struct tcommon *t){
+	//public
+	//private
+	{
+		ppcommon p = (ppcommon)t->prv;
+		if(p->keyvals){
+			int i;
+			for(i=0;i<vectorSize(p->keyvals);i++){
+				keyval k_v = vector_get(keyval,p->keyvals,i);
+				FREE_IF_NZ(k_v.key);
+				FREE_IF_NZ(k_v.val);
+			}
+			deleteVector(keyval,p->keyvals);
+		}
+	}
+}
+
 //ppcommon p = (ppcommon)gglobal()->common.prv;
 
 /* Status update functions (generic = all platform) */
@@ -213,6 +242,24 @@ int getCursorStyle()
 		return ACURSE;
 }
 
+int fwl_set_sbh_pin_option(char *optarg){
+	if(optarg && strlen(optarg) > 1){
+		ppcommon p = (ppcommon)gglobal()->common.prv;
+		p->pin_statusbar = (optarg[0] == 'T' || optarg[0] == 't') ? 1 : 0;
+		p->pin_menubar = (optarg[1] == 'T' || optarg[1] == 't') ? 1 : 0;
+	}
+	return 1;
+}
+void fwl_set_sbh_pin(int sb, int mb){
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	p->pin_statusbar = sb;
+	p->pin_menubar = mb;
+}
+void fwl_get_sbh_pin(int *sb, int *mb){
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	*sb = p->pin_statusbar;
+	*mb = p->pin_menubar;
+}
 // start ui color scheme >>>>>>>>>>>
 
 // StatusbarHud color schemes:
@@ -373,14 +420,15 @@ colorScheme *search_ui_colorscheme(char *colorschemename){
 	}while(colorSchemes[i].name);
 	return cs;
 }
-void fwl_set_ui_colorscheme(char *colorschemename){
+int fwl_set_ui_colorscheme(char *colorschemename){
 	colorScheme *cs;
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 	cs = search_ui_colorscheme(colorschemename);
 	if(cs) {
 		p->colorScheme = cs;
-		p->colorSchemeChanged;
+		p->colorSchemeChanged++;
 	}
+	return 1;
 }
 // set here from commandline options
 // --ui_colorscheme "angry"
@@ -394,6 +442,37 @@ void fwl_set_ui_colors(char *fourhtmlcolors){
 	p->colorScheme = (void *)cs;
 	p->colorSchemeChanged++;
 }
+char *fwl_get_ui_colorschemename(){
+	colorScheme *cs;
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	cs = (colorScheme*)p->colorScheme;
+	return cs->name;
+}
+void fwl_next_ui_colorscheme(){
+	int i;
+	colorScheme *cs;
+	char *colorschemename;
+	//ppcommon p = (ppcommon)gglobal()->common.prv;
+
+	colorschemename = fwl_get_ui_colorschemename();
+	i = 0;
+	do{
+		if(!strcmp(colorSchemes[i].name,colorschemename)){
+			cs = &colorSchemes[i+1];
+			if(!cs->name){
+				cs = &colorSchemes[0]; //start over
+			}
+			if(!strcmp(cs->name,"custom")){
+				cs = &colorSchemes[0]; //skip custom and start over
+			}
+			fwl_set_ui_colorscheme(cs->name);
+			break;
+		}
+		i++;
+	}while(colorSchemes[i].name);
+
+}
+
 //want to compile-in the default color scheme? just define UI_COLORSCHEME_DEFAULT in your config.h
 #ifndef UI_COLORSCHEME_DEFAULT
 #define UI_COLORSCHEME_DEFAULT "neon:yellow" //"original" "favicon" "midnight" "aqua" "angry" "neon:cyan" "neon:yellow" "neon:lime" "neon:pink"
@@ -419,6 +498,201 @@ void fwl_get_ui_color(char *use, float *rgb){
 int fwl_get_ui_color_changed(){
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 	return p->colorSchemeChanged;
-
 }
 // end ui colors <<<<<<<<<<<<<<<
+
+
+// fwl_command() >>>>>>>>>>
+/* generally: I'm tired of writing fwl_setThisOrThat() functions. I want a simpler interface.
+	one idea is to have a set_keyval(key,val) function and a set_command(key) function.
+	another idea is to have a set_commandline(commandline) function and it would split 
+	on a separator like ',' or ' ' and decide if it has a parameter or not.
+	Now from your front end you can call:
+		fwl_commandline("pin,FF");
+	Or if calling through the dllfreewrl api wrapper:
+		dllFreeWRL_commandline(fwctx,"pin,FF");
+
+	PS. A benefit of storing View settings/preferences like colorscheme and pinning
+	in the Model part of MVC is that several Views can be setting and/or polling 
+	the settings on each frame.
+	For example commandline options can set, then javascript Browser.keyvalue can set or get,
+	then statusbarHud can poll or set, then Motif or .net Gui can poll or set. And they have
+	a common place to set, and poll. If there's no statusbarHud, and no GUI, nothing 
+	breaks: commandline options still has a place to put the values. Even though they
+	aren't used in the backend/Model.
+*/
+#include <scenegraph/viewer.h>
+
+int fwl_setDragChord(char *chordname);
+int fwl_setKeyChord(char *chordname);
+int print_help();
+int fwl_keyval(char *key, char *val);
+
+int searchkeyvals(char *key){
+	int i, iret;
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	if(!p->keyvals)
+		p->keyvals = newVector(keyval,4);
+	iret = -1;
+	for(i=0;i<vectorSize(p->keyvals);i++){
+		keyval k_v = vector_get(keyval,p->keyvals,i);
+		if(!strcmp(k_v.key,key)){
+			iret = i;
+			break;
+		}
+	}
+	return iret;
+}
+int set_key_val(char *key, char *val){
+	int index;
+	keyval k_v;
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+
+	index = searchkeyvals(key);
+	if(index < 0){
+		if(!p->keyvals)
+			p->keyvals = newVector(keyval,4);
+		k_v.key = STRDUP(key);
+		k_v.val = STRDUP(val);
+		vector_pushBack(keyval,p->keyvals,k_v);
+	}else{
+		k_v = vector_get(keyval,p->keyvals,index);
+		FREE_IF_NZ(k_v.val);
+		k_v.val = STRDUP(val);
+		vector_set(keyval,p->keyvals,index,k_v);
+	}
+	return 1;
+}
+int set_keyval(char *keyval){
+	//save arbitrary char* keyval = "key,val" pairs, 
+	// for later retrieval with print_keyval or get_key_val
+	int i, iret;
+	char kv[100];
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	if(!p->keyvals)
+		p->keyvals = newVector(keyval,4);
+	i = strlen(keyval);
+	iret = 0;
+	if(i > 100) 
+		iret = -1;
+	else
+	{
+		strcpy(kv,keyval);
+		char *sep = strchr(kv,' ');
+		if(!sep) sep = strchr(kv,',');
+		if(sep){
+			char *key, *val;
+			val = &sep[1];
+			(*sep) = '\0';
+			key = kv;
+			set_key_val(key,val);
+			iret = 1;
+		}
+	}
+	return iret;
+}
+char *get_key_val(char *key){
+	int index;
+	keyval k_v;
+	char *ret = NULL;
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+
+	index = searchkeyvals(key);
+	if(index < 0) return NULL;
+	k_v = vector_get(keyval,p->keyvals,index);
+	return k_v.val; //warning not strduped here, caller doesn't own, just looking
+}
+int print_keyval(char *key){
+	int index;
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	index = searchkeyvals(key);
+	if(index < 0)
+		ConsoleMessage("\n key %s not found\n",key);
+	else{
+		keyval k_v;
+		k_v = vector_get(keyval,p->keyvals,index);
+		ConsoleMessage("\n key=%s val=%s\n",key,k_v.val);
+	}
+	return 1;
+}
+struct command {
+	char *key;
+	int (*cmdfunc)();
+	int (*valfunc)(char *val);
+	char *helpstring;
+} commands [] = {
+	{"dragchord",NULL,fwl_setDragChord,"[yawz,yawpitch,roll,xy]"},
+	{"keychord", NULL,fwl_setKeyChord,"[yawz,yawpitch,roll,xy]"},
+	{"navmode",NULL,fwl_setNavMode,"[walk,fly,examine,explore,spherical,turntable,lookat]"},
+	{"help",print_help,NULL,NULL},
+	{"pin",NULL,fwl_set_sbh_pin_option,"[tf,tt,ft,ff]"},
+	{"colorscheme",NULL,fwl_set_ui_colorscheme,"[original,midnight,angry,favicon,aqua,neon:lime,neon:yellow,neon:cyan,neon:pink]"},
+	{"set_keyval",NULL,set_keyval,"key,val"},
+	{"print_keyval",NULL,print_keyval,"key"},
+	{"",print_help,NULL,NULL}, //bootstrap user knowhow by spacebarEnter lucky sequence
+	{NULL,NULL,NULL},
+};
+int print_help(){
+	int i, ret = 1;
+	ConsoleMessage("\n%s\n","spacebar commands: spacebar:key[,val]Enter");
+	i = 0;
+	while(commands[i].key){
+		if(commands[i].helpstring) 
+			ConsoleMessage(" %s,%s\n",commands[i].key,commands[i].helpstring);
+		else
+			ConsoleMessage(" %s\n",commands[i].key);
+		i++;
+	}
+	return ret;
+}
+struct command *getCommand(char *key){
+	struct command *ret;
+	int i, ok = 0;
+	i = 0;
+	ret = NULL;
+	while(commands[i].key){
+		if(!strcmp(key,commands[i].key)){
+			ret = &commands[i];
+			break;
+		}
+		i++;
+	}
+	return ret;
+}
+int fwl_keyval(char *key, char *val){
+	struct command *cmd;
+	int ok = 0;
+	cmd = getCommand(key);
+	if(cmd){
+		if(cmd->valfunc)
+			ok = cmd->valfunc(val);
+	}
+	return ok;
+}
+int fwl_command(char *key){
+	struct command *cmd;
+	int ok = 0;
+	cmd = getCommand(key);
+	if(cmd){
+		if(cmd->cmdfunc)
+			ok = cmd->cmdfunc();
+	}
+	return ok;
+}
+int fwl_commandline(char *cmdline){
+	char *sep = strchr(cmdline,' ');
+	if(!sep) sep = strchr(cmdline,',');
+	if(sep){
+		char *key, *val;
+		val = &sep[1];
+		(*sep) = '\0';
+		key = cmdline;
+		fwl_keyval(key,val);
+	}else{
+		//not key,val, just command
+		fwl_command(cmdline);
+	}
+	return 1;
+}
+
+// fwl_command() <<<<<<<<<<

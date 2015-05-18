@@ -303,3 +303,10 @@ DLLFREEWRL_API void dllFreeWRL_SSRserver_enqueue_request_and_wait(void *fwctx, v
 	fwl_clearCurrentHandle();
 }
 #endif //SSR_SERVER
+
+DLLFREEWRL_API void dllFreeWRL_commandline(void *fwctx, char *cmdline){
+	if (fwl_setCurrentHandle(fwctx, __FILE__, __LINE__)){
+		fwl_commandline(cmdline);
+	}
+	fwl_clearCurrentHandle();
+}

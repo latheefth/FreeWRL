@@ -1858,8 +1858,11 @@ void setup_projection(int pick, int x, int y)
 	scissorxr = screenwidth2;
 	fieldofview2 = viewer->fieldofview;
 	bottom = tg->Mainloop.clipPlane;
+
 	top = 0;
 	screenheight = tg->display.screenHeight - bottom;
+	aspect2 = (double)(scissorxr - scissorxl)/(double)(screenheight);
+
 	if(viewer->type==VIEWER_SPHERICAL)
 		fieldofview2*=viewer->fovZoom;
 	if(viewer->isStereo)
@@ -3406,29 +3409,7 @@ void sendKeyToKeySensor(const char key, int upDown);
 #endif
 char lookup_fly_key(int key);
 //#endif
-int fwl_setDragChord(char *chordname);
-int fwl_setKeyChord(char *chordname);
 
-struct command {
-	char *key;
-	int (*cmdfunc)(char *val);
-} commands [] = {
-	{"dragchord",fwl_setDragChord}, //lower case: "YAWZ","YAWPITCH","ROLL","XY"
-	{"keychord", fwl_setKeyChord},
-	{"navmode",fwl_setNavMode},
-	{NULL,NULL},
-};
-int fwl_set(char *key, char *val){
-	int i, ok = 0;
-	i = 0;
-	while(commands[i].key){
-		if(!strcmp(key,commands[i].key)){
-			ok = commands[i].cmdfunc(val); break;
-		}
-		i++;
-	}
-	return ok;
-}
 void fwl_do_keyPress0(int key, int type) {
 	int lkp;
 	ppMainloop p;
@@ -3461,15 +3442,7 @@ void fwl_do_keyPress0(int key, int type) {
 				lkp = key;
 				len = min(24,len); //dimensioned to 25
 				if(lkp == '\r'){
-					char *sep = strchr(p->keywaitstring,' ');
-					if(!sep) sep = strchr(p->keywaitstring,',');
-					if(sep){
-						char *key, *val;
-						val = &sep[1];
-						(*sep) = '\0';
-						key = p->keywaitstring;
-						fwl_set(key,val);
-					}
+					fwl_commandline(p->keywaitstring);
 					p->keywait = FALSE;
 					p->keywaitstring[0] = '\0';
 					ConsoleMessage("%c",'\n');
@@ -4671,6 +4644,7 @@ void end_of_run_tests(){
 
 void finalizeRenderSceneUpdateScene() {
 	//C. delete instance data
+	struct X3D_Node* rn;
 	ttglobal tg = gglobal();
 	printf ("finalizeRenderSceneUpdateScene\n");
 
@@ -4681,7 +4655,7 @@ void finalizeRenderSceneUpdateScene() {
 	/* kill any remaining children processes like sound processes or consoles */
 	killErrantChildren();
 	/* tested on win32 console program July9,2011 seems OK */
-	struct X3D_Node* rn = rootNode();
+	rn = rootNode();
 	if(rn)
 		deleteVector(struct X3D_Node*,rn->_parentVector); //perhaps unlink first
 	freeMallocedNodeFields(rn);
@@ -5007,9 +4981,10 @@ void __iglobal_destructor(ttglobal tg);
 
 void _disposeThread(void *globalcontext)
 {
+	int more;
     ttglobal tg = globalcontext;
     fwl_setCurrentHandle(tg, __FILE__, __LINE__);
-    int more = 0;
+    more = 0;
     while((more = workers_running()) && more > 0)
     {
         usleep(100);

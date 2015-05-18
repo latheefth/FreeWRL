@@ -90,6 +90,7 @@ int runFW(char *url){
 		fwctx = dllFreeWRL_dllFreeWRL();
 		dllFreeWRL_onInit(fwctx,400,300,NULL,FALSE,FALSE);
 		dllFreeWRL_onLoad(fwctx,url); 
+		dllFreeWRL_commandline(fwctx,"pin,FF");
 	}
 	return 0;
 }
