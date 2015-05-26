@@ -49,6 +49,105 @@
 			4. wait for response from SSR on the ZoneBalancer's request handler thread
 			5. when response arrives, copy it to the zoneBalancer's response and return response to client
 		}
+	May 26, 2015:
+		revamping SSR_API using json (via cson lib/functions)
+		making SSRservers into a tree-like cascade, with nodes and leafs of overviews and LOD (level of detail)
+		SSRClient.html -- zoneserver -- SSRserver - leaf scene
+									 -- SSRserver - leaf
+									 -- SSRserver - leaf
+											-- SSRserver - leaf
+											-- SSRserver - leaf
+												 -- SSRserver - leaf
+		each SSRserver instance will be responsible for knowing its:
+			 service volume -extent and/or polygon extrusion (polgon2D, -height, +height) and/or shape
+			 placemark tree (placemark is "name",x,y or more generally "name",level, pose {.position, .orientation))
+				including aggregating child SSR placemarks
+				so placemarks show up as clickable links or pulldown list in html client
+			 transform, if any 
+				- usually just optional x,y offset of scene origin, 
+					so geonodes aren't needed in the scene to get double SFVec3d, 
+					floats / SFVec3f will be sufficient in the scene, and doubles added/subtracted by the SSR code
+					so html client uses absolute coordinates (ie GIS/geographic/mapping-plane coords) in doubles
+		each SSR html client being sessionless, will transmit its desired LOD level and its position so ZoneServer 
+			will know which child SSR to relay it to, and avatarSize.height so libfreewrl will know how to 
+			apply gravity to the avatar before rendering the snapshot
+
+Proposed SSR API JSON
+Get: (POST)
+- initial_pose() 
+	//generally, its the 'most absolute' pose of the (currently bound) viewpoint as positioned in the scene
+	// Client -- ZoneServer -- SSR +shifts -- libfreewrl_scene geoViewpoint ? geoCoords : (ViewMatrix x viewpoint.position)
+	//										  where ViewMatrix is the sceene-root to Viewpoint part of modelView matrix
+	//another client may have moved the view, so this would make sure its the .pos, .quat = 0 or inital
+	//or if no viewpoint in the scene freewrl and vivaty make viewpoint.pos.z = 10, then at least the client will know z=10 and can sync
+	request: {"command":"initial_pose", "level":0} 
+	response: {"command":"initial_pose", "status":"OK", "pose": { "position":[x,y,z], "orientation": [q0,q1,q2,q3]}
+- levels available 
+	//a fuzzy concept, of whether an overview or more detailed scene is desired at a given position
+	request: {"command":"levels_available"}
+	response: {"command":"levels_available", "status":"OK", "value":1}
+- placemark tree
+	//html client can request placemarks and get a tree list, showing overviews and more detailed LOD sub-scenes 
+	// and can click on a placemark like a link, or choose from a pulldown list, to navigate to the placemark's pose
+	request: {"command":"placemark_tree"} 
+	response: {"command":" placemark_tree", "status":"OK", 
+	"placemarks": [
+		{..tree..},
+		{"placemark": {
+			"name": "overzicht", 
+			"pose":{ "position":[x,y,z], "orientation": [q0,q1,q2,q3]},
+
+			"children":[
+				{"placemark": {
+					"name": "Afrikaanderwuk", 
+					"pose":{ "position":[x,y,z], "orientation": [q0,q1,q2,q3]}
+				}
+			]
+			}
+		},
+		{..tree..}.
+	]}
+- adjusted pose 
+	- needs to deliver previous pose, so wall and ground penetration can be done, and an adjusted pose returned to client
+	{"command":"posepose", "level":0, "height":1234.567, 
+		"pose":{ "position":[x,y,z], "orientation": [q0,q1,q2,q3]}}
+	{"command":"posepose", "status":"OK", 
+		"pose":{ "position":[x,y,z], "orientation": [q0,q1,q2,q3]}}
+- snapshot
+	- assumes the pose has been adjusted already, because the return is not in json. Its a blob representing the image.
+	{"command":"posesnapshot", "level":0, "height":1234.567, 
+		"pose":{ "position":[x,y,z], "orientation": [q0,q1,q2,q3]}}
+	blob = .response; //not json
+
+- service volume
+	//the client talks to a single ZoneServer, and the Zoneserver sniffs the coordinates
+	//of the client's request to decide which SSRserver instance (host:port) to forward the request to
+	//zoneserver decides by testing the client's position against each SSR's service volume
+	// - a kind of advanced point-in-polygon test
+	// EITHER during startup, ZoneServer will ask each SSR once for its service volume
+	// OR asks just for the UNION of extents of its leaf and sub-SSRs on startup,
+	//   and thereafter when in doubt asks each SSR to give detailed check if
+	//   a given position is in its (more detailed) service volume
+	//html client won't ask or perform tests. It assumes its inside the service volume of 
+	// the zoneserver (or directly SSR) it's talking to
+	//so the default action by html client and ssr server ie when no intermediaries, is to 
+	//assume the client is within the extent of the SSRserver leaf scene
+	{"command":"service_volume", "level":0, "position":[x,y,z] }	
+	{"command":"service_volume", "status":"OK", "volumes": [
+		"extent":[x,y,z,x,y,z],
+		"extrusion":{ "polygon":[x,y,z,x,y,z...x,y,z], "bottom":-z, "top":+z},
+		"shape": {"indexes":[0 1 2 -1 3 4 5 -1], "vertices":[x,y,z,x,y,z...]}
+		]
+	}
+- maybe fov (and aspect)?
+	//if the scene has a navigationInfo it can adjust the fov
+	// so to synchronize the client will need to know fov to set it in webgl
+	// in theory if there's a bunch of SSRs running with different scenes, the fov could be different in each
+	{"command":"fov", "level":0, "position":[x,y,z] }	
+	{"command":"fov", "status":"OK", "fov":123.456}	
+x Set: (POST) - there's no such thing because we are (currently) sessionless.
+	- resend any client-specific data with any needy request
+
 */
 
 
@@ -83,6 +182,7 @@
 #include <cdllFreeWRL.h>
 #define SSR_SERVER 1
 #include "../lib/SSRhelper.h"
+#include "cson/fw_cson.h"
 int run_fw = 1;
 void *fwctx = NULL;
 int runFW(char *url){
@@ -99,6 +199,197 @@ int stopFW(){
 		dllFreeWRL_onClose(fwctx);
 	return 0;
 }
+
+
+//===========CSON JSON>>>>>>>>>>>>>>>>>>>>
+//typedef int (*cbkey_cson)(const char *key, int index, cson_value *val, void *cbdata);
+//typedef int (*cbval_cson)(cson_value *val, int index, void *cbdata);
+struct keyval {
+	char *key;
+	cson_value *cv;
+};
+typedef struct walk_cbdata {
+	int (*fkey)(const char *key, int index, cson_value *val, void *cbdata);
+	int (*fval)(cson_value *val, int index, void *cbdata);
+	void *data;
+	//int level; //could increment before descending, decrement after ascending, in case a cb wants it
+	//cson_object *parent; //could set before descending in case a cb wants it
+} walk_cbdata;
+int walk_array_cson(cson_array *arr, void *cbdata);
+
+
+int walk_obj_cson(cson_object *obj, void *cbdata){
+	int i;
+	cson_object_iterator iter;
+	walk_cbdata *wcbd = (walk_cbdata*)cbdata;
+	int rc = cson_object_iter_init( obj, &iter );
+	if( 0 != rc ) { 
+		printf("error, but can only fail if obj is NULL\n");
+	}
+	cson_kvp * kvp; // key/value pair
+	i = 0;
+	while( (kvp = cson_object_iter_next(&iter)) )
+	{
+		cson_string const * ckey = cson_kvp_key(kvp);
+		cson_value * v = cson_kvp_value(kvp);
+		rc = wcbd->fkey(cson_string_cstr(ckey),i,v,cbdata);
+		if(!rc)
+			rc = wcbd->fval(v,0,cbdata);
+		if(rc) break;
+		i++;
+	}
+	return rc;
+}
+int walk_array_cson(cson_array *arr, void *cbdata){
+	int len, i, rc;
+	walk_cbdata *wcbd = (walk_cbdata*)cbdata;
+	len = cson_array_length_get(arr);
+	rc = 0;
+	for( i = 0; i < len; ++i ) {
+		cson_value *vi;
+		vi = cson_array_get( arr, i );
+		rc = wcbd->fval(vi,i,cbdata);
+		if(rc) break;
+	}
+	return rc;
+}
+int cb_print_key(const char *key, int index, cson_value *val, void *cbdata){
+	int indent;
+	walk_cbdata *wcbd = (walk_cbdata*)cbdata;
+	indent = *((int*)(wcbd->data));
+	if(index) printf(",");
+	printf("\"%s\":", key );
+	return 0;
+}
+int cb_print_val(cson_value *val, int index, void *cbdata){
+	int rc;
+	int indent;
+	walk_cbdata *wcbd = (walk_cbdata*)cbdata;
+
+	indent = *((int*)wcbd->data);
+	rc = 0;
+	if(index) printf(",");
+	switch(cson_value_type_id(val))
+	{
+	case CSON_TYPE_UNDEF:
+	case CSON_TYPE_NULL:
+		printf("null");
+		break;
+	case CSON_TYPE_BOOL:
+		{
+			if(cson_value_get_bool(val))
+				printf("true");
+			else
+				printf("false");
+		}
+		break;
+	case CSON_TYPE_INTEGER:
+		{
+			cson_int_t ii;
+			rc = cson_value_fetch_integer(val, &ii );
+			printf("%lld",ii);
+		}
+		break;
+	case CSON_TYPE_DOUBLE:
+		{
+			cson_double_t dd;
+			rc = cson_value_fetch_double(val, &dd );
+			printf("%lf",dd);
+		}
+		break;
+	case CSON_TYPE_STRING:
+		{
+			cson_string *str;
+			rc = cson_value_fetch_string(val, &str );
+			printf("\"%s\"",cson_string_cstr(str));
+		}
+		break;
+	case CSON_TYPE_OBJECT:
+		{
+			cson_object * obji = cson_value_get_object(val);
+			printf("{");
+			rc = walk_obj_cson(obji,cbdata);
+			printf("}");
+		}
+		break;
+	case CSON_TYPE_ARRAY:
+		{
+			cson_array *ar;
+			rc = cson_value_fetch_array(val,&ar);
+			if(!rc){
+				printf("[");
+				rc = walk_array_cson(ar,cbdata);
+				printf("]");
+			}
+		}
+		break;
+	default:
+		break;
+	}
+	return rc;
+}
+int print_json_tree(cson_object *obj){
+	walk_cbdata cbdata;
+	int indent = 0;
+	cbdata.data = &indent;
+	cbdata.fkey = cb_print_key;
+	cbdata.fval = cb_print_val;
+	printf("{");
+	walk_obj_cson(obj,&cbdata);
+	printf("}");
+	return 0;
+}
+int cb_sniff_key(const char *key, int index, cson_value *val, void *cbdata){
+	struct keyval *kv;
+	walk_cbdata *wcbd = (walk_cbdata*)cbdata;
+	kv = (struct keyval *)(wcbd->data);
+	if(!strcmp(kv->key,key))
+		kv->cv = val;
+	return 0;
+}
+int cb_sniff_val(cson_value *val, int index, void *cbdata){
+	int rc;
+	walk_cbdata *wcbd = (walk_cbdata*)cbdata;
+
+	rc = 0;
+	switch(cson_value_type_id(val))
+	{
+	case CSON_TYPE_OBJECT:
+		{
+			cson_object * obji = cson_value_get_object(val);
+			rc = walk_obj_cson(obji,cbdata);
+		}
+		break;
+	case CSON_TYPE_ARRAY:
+		{
+			cson_array *ar;
+			rc = cson_value_fetch_array(val,&ar);
+			if(!rc){
+				rc = walk_array_cson(ar,cbdata);
+			}
+		}
+		break;
+	default:
+		break;
+	}
+	return rc;
+}
+int sniff_json_tree(char *key, cson_object *obj){
+	walk_cbdata cbdata;
+	struct keyval kv;
+	kv.key = key;
+	kv.cv = NULL;
+	cbdata.data = &kv;
+	cbdata.fkey = cb_sniff_key;
+	cbdata.fval = cb_sniff_val;
+	walk_obj_cson(obj,&cbdata);
+	if(kv.cv) printf("sniffed key: %s\n",key);
+	return 0;
+}
+//<<<<<<<<<<<CSON JSON======================
+
+
+
 
 //=========ZONE BALANCER==>>>>>>>>>>>>
 static int running_as_zonebalancer = 0;
@@ -489,17 +780,17 @@ int socket_connect(char *host, int port){
                 hints;
 	int iResult;
 
-ZeroMemory( &hints, sizeof(hints) );
-hints.ai_family = AF_UNSPEC;
-hints.ai_socktype = SOCK_STREAM;
-hints.ai_protocol = IPPROTO_TCP;
+	ZeroMemory( &hints, sizeof(hints) );
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
 
-iResult = getaddrinfo("localhost","8081", &hints, &result);
-if (iResult != 0) {
-    printf("getaddrinfo failed: %d\n", iResult);
-    //WSACleanup();
-    return 0;
-} 
+	iResult = getaddrinfo("localhost","8081", &hints, &result);
+	if (iResult != 0) {
+		printf("getaddrinfo failed: %d\n", iResult);
+		//WSACleanup();
+		return 0;
+	} 
 	//if((hp = gethostbyname(host)) == NULL){
 	if((hp = gethostbyname("localhost")) == NULL){
 		perror("gethostbyname");
@@ -564,13 +855,13 @@ int reverse_proxy(char *host, char *port, char *ssr_command, char *key, char *re
 	//sprintf(request_header,request_header_format,"localhost",strlen(request));
     *response = NULL;
 	fd = socket_connect(host, atoi(port)); 
-if (fd == INVALID_SOCKET) {
-    printf("Error at socket(): %ld\n", WSAGetLastError());
-    //freeaddrinfo(result);
-   // WSACleanup();
-    //return 1;
-	return 0;
-}
+	if (fd == INVALID_SOCKET) {
+		printf("Error at socket(): %ld\n", WSAGetLastError());
+		//freeaddrinfo(result);
+	   // WSACleanup();
+		//return 1;
+		return 0;
+	}
 
 	if(fd){
 		int lh;
