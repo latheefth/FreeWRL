@@ -301,11 +301,13 @@ print_viewer()
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
 	quaternion_to_vrmlrot(&(p->Viewer.Quat), &(ori.x),&(ori.y),&(ori.z), &(ori.a));
-	ConsoleMessage("Viewer {\n");
+	ConsoleMessage("Viewpoint local{\n");
 	ConsoleMessage("\tPosition[%.4f, %.4f, %.4f]\n", (p->Viewer.Pos).x, (p->Viewer.Pos).y, (p->Viewer.Pos).z);
 	ConsoleMessage("\tQuaternion[%.4f, %.4f, %.4f, %.4f]\n", (p->Viewer.Quat).w, (p->Viewer.Quat).x, (p->Viewer.Quat).y, (p->Viewer.Quat).z);
 	ConsoleMessage("\tOrientation[%.4f, %.4f, %.4f, %.4f]\n", ori.x, ori.y, ori.z, ori.a);
 	ConsoleMessage("}\n");
+	getCurrentPosInModel(FALSE);
+	ConsoleMessage("World Coordinates of Avatar [%.4f, %.4f %.4f]\n",p->Viewer.currentPosInModel.x,p->Viewer.currentPosInModel.y,p->Viewer.currentPosInModel.z);
 	printStats();
 }
 
@@ -2069,6 +2071,17 @@ static void handle_tick_walk()
 					(collisions currently done here), input device XY mapped to XYZ motion here
 	Notice the order of transforms is the same for Fly mode:
 		.Pos += inverse(.Quat)*inputXYZ - see increment_pos()
+
+	(dug9 May 2015) in a bit more detail:
+	Shape
+	Model part of ModelView transform
+	(world coordinates)
+	View part of ModelView transform
+	viewpoint
+	viewpoint.position
+	viewpoint.rotation
+	opengl camera
+
 	*/
 
 	q.w = (p->Viewer.Quat).w;

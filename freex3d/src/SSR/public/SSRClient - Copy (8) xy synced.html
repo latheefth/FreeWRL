@@ -222,17 +222,11 @@
 		quat.rotateY(cumQuat,cumQuat,yaw);
 		quat.identity(vpQuat);
 		quat.rotateX(vpQuat,vpQuat,pitch);
-		quat.rotateY(vpQuat,vpQuat,yaw);
+		quat.rotateZ(vpQuat,vpQuat,yaw);
 		//quat.multiply(vpQuat,vpQuat,cumQuat);
 
-		//quat.invert(cumQuat,cumQuat);
-		//cumTrans = vec3.transformQuat(cumTrans,worldTrans,cumQuat);
-		//cumTrans = worldTrans;
-		var trTrans = vec3.create();
-		var invQuat = quat.create();
-		quat.invert(invQuat,cumQuat);
-		vec3.transformQuat(trTrans,incTrans,invQuat);
-		vec3.add(cumTrans,cumTrans,trTrans);
+		quat.invert(cumQuat,cumQuat);
+		cumTrans = vec3.transformQuat(cumTrans,worldTrans,cumQuat);
 		//console.log("worldTrans="+worldTrans[0]+" "+worldTrans[1]+" "+worldTrans[2]);
 		//console.log("cumTrans="+cumTrans[0]+" "+cumTrans[1]+" "+cumTrans[2]);
 		//the server scene usually has a bound viewport (VP) 
@@ -258,10 +252,9 @@
 		switch(navMode){
 		case 0: //yawz
 			var ZD = deltaY*deltaY*deltaY*az*deltaT*speed/1000.0;
-			//var XD = ZD * Math.sin(yaw);
-			//var YD = ZD * Math.cos(yaw);
-			//vec3.set(incTrans,XD,YD,0.0);
-			vec3.set(incTrans,0.0,0.0,ZD);
+			var XD = ZD * Math.sin(yaw);
+			var YD = ZD * Math.cos(yaw);
+			vec3.set(incTrans,XD,YD,0.0);
 			yaw += deltaX*deltaX*deltaX*ar*deltaT/1000.0;
 			break;
 		case 1: //xy
@@ -270,7 +263,7 @@
 			vec3.set(incTrans,XD,YD,0.0);
 			break;
 		}
-		//vec3.add(worldTrans,worldTrans,incTrans);
+		vec3.add(worldTrans,worldTrans,incTrans);
 		//worldTrans[2] = 0.0; //height;
 		toMvMatrix();
 	}
