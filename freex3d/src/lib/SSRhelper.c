@@ -21,6 +21,8 @@
 //from Prodcon.c L.1100
 void threadsafe_enqueue_item(s_list_t *item, s_list_t** queue, pthread_mutex_t* queue_lock);
 s_list_t* threadsafe_dequeue_item(s_list_t** queue, pthread_mutex_t *queue_lock );
+void threadsafe_enqueue_item_signal(s_list_t *item, s_list_t** queue, pthread_mutex_t* queue_lock, pthread_cond_t *queue_nonzero);
+s_list_t* threadsafe_dequeue_item_wait(s_list_t** queue, pthread_mutex_t *queue_lock, pthread_cond_t *queue_nonzero, int *waiting );
 //from io_files.c L.310
 int load_file_blob(const char *filename, char **blob, int *len);
 //from Viewer.c L.1978
@@ -28,11 +30,13 @@ void viewer_setpose(double *quat4, double *vec3);
 void viewer_getpose(double *quat4, double *vec3);
 
 
+#define FALSE 0
+#define TRUE 1
 typedef struct iiglobal *ttglobal;
 static s_list_t *ssr_queue = NULL;
 static pthread_mutex_t ssr_queue_mutex = PTHREAD_MUTEX_INITIALIZER;
-
-
+static pthread_cond_t ssr_queue_condition = PTHREAD_COND_INITIALIZER;
+static int ssr_server_waiting = FALSE;
 
 void SSRserver_enqueue_request_and_wait(void *fwctx, SSR_request *request){
 	//called by A -> B -> C
@@ -46,7 +50,8 @@ void SSRserver_enqueue_request_and_wait(void *fwctx, SSR_request *request){
 	request->answered = 0;
 	request->blob = NULL;
 	request->len = 0;
-	threadsafe_enqueue_item(item,&ssr_queue, &ssr_queue_mutex);
+	if(1)threadsafe_enqueue_item(item,&ssr_queue, &ssr_queue_mutex);
+	if(0)threadsafe_enqueue_item_signal(item,&ssr_queue, &ssr_queue_mutex,&ssr_queue_condition);
 	while (request->answered == 0){
 		pthread_cond_wait(&request->requester_condition, &request->requester_mutex);
 	}
@@ -60,24 +65,46 @@ void SSR_set_pose(SSR_request *request)
 	viewer_setpose(request->quat4, request->vec3);
 }
 static SSR_request *ssr_current_request = NULL; //held for one draw loop
+int isSceneLoaded();
 void dequeue_SSR_request(ttglobal tg)
 {
 	//called by D: _DisplayThread, should be in backend thread, gglobal() should work
+	s_list_t *item;
 	SSR_request *request = NULL;
-	if(ssr_queue){
-		s_list_t *item = threadsafe_dequeue_item(&ssr_queue, &ssr_queue_mutex );
-		if(item){
-			request = item->elem;
-			//free(item);
-			switch(request->type)
-			{
-				case SSR_POSEPOSE:
-				case SSR_POSESNAPSHOT:
-					SSR_set_pose(request);
-					break;
-				default:
-					break;
+	item = NULL;
+	if(isSceneLoaded()){
+		//item = threadsafe_dequeue_item_wait(&ssr_queue, &ssr_queue_mutex,&ssr_queue_condition,&ssr_server_waiting);
+		//item = threadsafe_dequeue_item_timed_wait(&ssr_queue, &ssr_queue_mutex,&ssr_queue_condition,&ssr_server_waiting);
+		//pthread timed wait seems complicated, so I'll use usleep in a loop - laziness
+		//Goal: allow a bit of server work to continue (not frozen)
+		// while freeing CPU cores and GPU from senseless drawing,
+		// allowing many/100s of SSR process instances to be running on the same server. 
+		// And when a/the client requests something the server is quick to respond.
+		int slept;
+		int sleepincus = 1000; //1ms maximum to sleep in one shot - small enough server remains responsive to client
+		int maxsleepus = 1000000; //1s - max to sleep when no SSRClient requets, between fwl_draw()s
+		slept = 0;
+		while(!item && slept < maxsleepus) {
+			item = threadsafe_dequeue_item(&ssr_queue, &ssr_queue_mutex );
+			if(!item){
+				usleep(sleepincus);
+				slept += sleepincus;
 			}
+		}
+	}else if(ssr_queue){
+		item = threadsafe_dequeue_item(&ssr_queue, &ssr_queue_mutex );
+	}
+	if(item){
+		request = item->elem;
+		//free(item);
+		switch(request->type)
+		{
+			case SSR_POSEPOSE:
+			case SSR_POSESNAPSHOT:
+				SSR_set_pose(request);
+				break;
+			default:
+				break;
 		}
 	}
 	ssr_current_request = request;

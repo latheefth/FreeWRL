@@ -12,4 +12,13 @@ typedef struct SSR_request {
 	char *blob;
 	int len;
 	int answered;
+	//added for ssr2 api
+	int LOD;
+	int levels_available;
+	int status;
+	double extent[6];
+	int isInside;
+	double avatarHeight;
+	double fov;
+	//double aspect;
 } SSR_request;

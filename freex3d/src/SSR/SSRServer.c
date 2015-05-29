@@ -139,12 +139,26 @@ Get: (POST)
 		"shape": {"indexes":[0 1 2 -1 3 4 5 -1], "vertices":[x,y,z,x,y,z...]}
 		]
 	}
+- inside
+	//if the service volume responses above are limited to Extents and extent testing, then
+	// we would need another command to ask each extent-success SSR to check
+	// again against finer granularity service volume definition, 
+	// such as polygon extrusion or general surface shape
+	{"command":"inside", "level":0, "position":[x,y,z] }
+	{"command":"inside", "isInside":true }
+
 - maybe fov (and aspect)?
 	//if the scene has a navigationInfo it can adjust the fov
 	// so to synchronize the client will need to know fov to set it in webgl
 	// in theory if there's a bunch of SSRs running with different scenes, the fov could be different in each
 	{"command":"fov", "level":0, "position":[x,y,z] }	
 	{"command":"fov", "status":"OK", "fov":123.456}	
+- quit	
+	//disabled for internet-facing outer SSR/Zoneserver, just for use by internal 
+	//option: put on another port, contrlled by a per-server-node launcher utility
+	{"command":"quit"}
+	{"command":"quit", "status":"OK"}
+
 x Set: (POST) - there's no such thing because we are (currently) sessionless.
 	- resend any client-specific data with any needy request
 
@@ -430,6 +444,8 @@ typedef struct ssr {
 	char *ip;
 	char *port;
 	void *next;
+	double extent[6]; //added for ssr2
+	int levels_available;
 } ssr;
 static zone *zones = NULL;
 static ssr *ssrs = NULL;
@@ -628,6 +644,37 @@ void load_polys(char *filename){
 	printf("done test_pointinpoly\n");
 }
 //<<<<<<<<===ZONE BALANCER===========
+
+
+
+//===========LEAF SSR >>>>>>>>>>>>>>>>>>>>>>>
+/*	currently each SSR instance can have 1 leaf scene (when acting as SSR) 
+	and many children scenes (when acting as zoneserver)
+	ssr_leaf 1:1 ssr process 1:1 static
+	we could leave the leaf scene items as scattered statics, but
+	we gather them here in ssr_leaf{} for conceptual clarity, and maintenance convenience
+*/
+typedef struct polygon {
+	int n;
+	double *pts; //xyz, so polygon can have varying z
+} polygon;
+typedef struct extrusion {
+	polygon poly;
+	double below;
+	double above;
+} extrusion;
+static struct ssr_leaf {
+	double transform[16]; //each SSR can have an xy offset, or more generally a transform, 
+			//so a scene with no geo nodes can stay float/SFVec3f, and the offset here will expand to double absolute coords
+	double inverse[16];   //and its inverse when going the other way, prepared on init
+	double extent[6]; //of leaf scene
+	extrusion volume; //more detailed than extent, used for 3D version of point-in-polygon test
+	int volume_type;
+	double extents[6]; //union of extents of leaf and children scenes
+};
+
+//<<<<<<<<<<<<<<<LEAF SSR ==================
+
 
 
 
