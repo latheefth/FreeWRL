@@ -99,6 +99,8 @@ void dequeue_SSR_request(ttglobal tg)
 		//free(item);
 		switch(request->type)
 		{
+			case SSR_INITPOSE:
+				break;
 			case SSR_POSEPOSE:
 			case SSR_POSESNAPSHOT:
 				SSR_set_pose(request);
@@ -137,6 +139,7 @@ void SSR_reply(){
 	if(ssr_current_request){
 		SSR_request *request = ssr_current_request;
 		switch(request->type){
+			case SSR_INITPOSE:
 			case SSR_POSEPOSE:
 				SSR_reply_pose(request); break;
 			case SSR_POSESNAPSHOT:

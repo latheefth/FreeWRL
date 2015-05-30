@@ -140,6 +140,9 @@
 	var mouseY = null;
 	var lastTime = null;
 	function onMouseDown(event) {
+		console.log("mousexy="+event.clientX+" "+event.clientY);
+		if(event.clientX > 0 && event.clientX < 400 && event.clientY > 0 && event.clientY < 300)
+		{
 		mouseDown = true;
 		showGrid();
 		drawScene();
@@ -148,12 +151,16 @@
 		mouseX = mouseX0;
 		mouseY = mouseY0;
 		lastTime = performance.now();
+		}
 	}
 
 	function onMouseUp(event) {
+		if(mouseDown)
+		{
 		mouseDown = false;
 		showPhoto();
 		ajaxPosePose();
+		}
 	}
 	function onMouseMove(event) {
 		if (!mouseDown) {
@@ -293,6 +300,7 @@
 		document.onmouseup = onMouseUp;
 		document.onmousemove = onMouseMove;
 		window.requestAnimationFrame(step);
+		//ajaxInit_Pose();
 	}
 	function showPhoto()
 	{
@@ -347,10 +355,18 @@
 	function pose2jsonstr()
 	{
 		// 7 values [quat rotation 4, vec3 translation 3] = [num,num, num, ...] string
+		if(true){
 		var str = "[";
 		str += cumQuat[0] + ", " + cumQuat[1] + ", "+cumQuat[2] + ", " + cumQuat[3] + ", ";
 		str += cumTrans[0] + ", " + cumTrans[1] + "," + cumTrans[2];
 		str = str + "]";
+		}
+		if(false){
+		  var obj = new Object();
+		  obj.command = "initial_pose";
+		  obj.level = 0;
+		  str = JSON.stringify(obj);
+		}
 		console.log(str);
 		return str;
 	}
@@ -377,9 +393,10 @@
 		//http://www.w3schools.com/ajax/ajax_xmlhttprequest_send.asp
 		xhr.open("POST","pose",true);
 		xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-		xhr.responseType = 'JSON'; 
+		xhr.responseType = 'json'; 
 		xhr.onload = function(e) {
 			if (this.status == 200) { 
+				console.log("response=#"+this.response+"#");
 				jsonstr2pose(this.response); //or this.responseText?
 				//continuation
 				ajaxPoseSnapshot();
@@ -388,6 +405,43 @@
 		var posestr = pose2jsonstr();
 		console.log(posestr);
 		xhr.send("posepose="+posestr);
+	}
+	function ajaxInit_Pose()
+	{
+		//modern variant, where you can ajax blobs
+		//http://www.html5rocks.com/en/tutorials/file/xhr2/
+		var xhr = new XMLHttpRequest(); 
+		//xhr.open('GET', '/1.jpg', true);
+		//when to use POST instead of GET:
+		//http://www.w3schools.com/ajax/ajax_xmlhttprequest_send.asp
+		xhr.open("POST","pose",true);
+		xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded"); //or multipart. No application/json allowed in http POST.
+		//so you do key=value&key=value&... for urlencoded. 
+		//for us with json, that looks key={json} ie. init_pose={"command":"init_pose","level":0} 
+		xhr.responseType = 'text'; //if set ='text' then call JSON.parse(response), else if set ='json' response will come out as object tree
+		xhr.onload = function(e) {
+			if (this.status == 200) { 
+				console.log("response=#"+this.response+"#");
+				//console.log(this.response);
+				jsonstr2pose(this.response); //or this.responseText?
+				//continuation
+				ajaxPoseSnapshot();
+		 	}
+		}; 
+		var obj = new Object();
+		obj.command = "init_pose";
+		obj.level = 0;
+		var posestr = "init_pose="+ JSON.stringify(obj) + '\n' + '\0'; 
+		//posestr = "init_pose="+'{"command":"init_pose","level":0}' + '\n' + '\0';
+		console.log("posestr.length="+posestr.length);
+		//unsafe xhr.setRequestHeader("Content-length",posestr.length);
+		console.log(posestr);
+		xhr.send(posestr);
+		//xhr.send(""+'\0');
+	}
+	function testOnClick(){
+		ajaxInit_Pose();
+		//ajaxPosePose();
 	}
 	</script>
 	<style>
@@ -418,6 +472,7 @@
 </div>
 <div id='huddiv'>
 	<br>
+	<input type="button" id="testbut" onclick="testOnClick()"><label>test</label><br>
 	<input type="checkbox" id="navYAWZ" onclick="toggleNav(0)" checked><label>yawz</label><br>
 	<input type="checkbox" id="navXY" onclick="toggleNav(1)"><label>xy</label><br>
 	<label>Pitch: </label>Nadir <input type="range" id="sliderPitch" min="-90" max="90" step="5" value="0" onchange="changePitch(this.value)"/>Zenith<br>

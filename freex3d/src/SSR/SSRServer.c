@@ -228,6 +228,8 @@ typedef struct walk_cbdata {
 	void *data;
 	//int level; //could increment before descending, decrement after ascending, in case a cb wants it
 	//cson_object *parent; //could set before descending in case a cb wants it
+	void *arr; //points to array
+	int arrtype; //0 double, 1 int, 2 char*
 } walk_cbdata;
 int walk_array_cson(cson_array *arr, void *cbdata);
 
@@ -399,6 +401,105 @@ int sniff_json_tree(char *key, cson_object *obj){
 	walk_obj_cson(obj,&cbdata);
 	if(kv.cv) printf("sniffed key: %s\n",key);
 	return 0;
+}
+
+int cb_gather_key(const char *key, int index, cson_value *val, void *cbdata){
+	int rc;
+	SSR_request *req;
+	walk_cbdata *wcbd = (walk_cbdata*)cbdata;
+	req = (SSR_request *)(wcbd->data);
+	if(!strcmp(key,"command")){
+		
+		if(!strcmp(key,"init_pose")){
+			req->type = SSR_INITPOSE;
+		}else if(!strcmp(key,"posepose")){
+			req->type = SSR_POSEPOSE;
+		}else if(!strcmp(key,"posesnapshot")){
+			req->type = SSR_POSESNAPSHOT;
+		}else if(!strcmp(key,"")){
+		}else if(!strcmp(key,"")){
+		}else if(!strcmp(key,"")){
+		}else if(!strcmp(key,"")){
+		}else if(!strcmp(key,"")){
+		}else if(!strcmp(key,"")){
+		}
+
+	}else if(!strcmp(key,"level")){
+		cson_int_t ii;
+		rc = cson_value_fetch_integer(val, &ii );
+		req->LOD = (int)ii;
+	}else if(!strcmp(key,"position")){
+		wcbd->arr = req->vec3;
+		wcbd->arrtype = 0; //double
+	}else if(!strcmp(key,"orientation")){
+		wcbd->arr = req->quat4;
+		wcbd->arrtype = 0; //double
+	}else if(!strcmp(key,"")){
+	}else if(!strcmp(key,"")){
+	}
+	return 0;
+}
+int cb_gather_val(cson_value *val, int index, void *cbdata){
+	int rc;
+	walk_cbdata *wcbd = (walk_cbdata*)cbdata;
+
+	rc = 0;
+	switch(cson_value_type_id(val))
+	{
+	case CSON_TYPE_OBJECT:
+		{
+			cson_object * obji = cson_value_get_object(val);
+			rc = walk_obj_cson(obji,cbdata);
+		}
+		break;
+	case CSON_TYPE_ARRAY:
+		{
+			cson_array *ar;
+			rc = cson_value_fetch_array(val,&ar);
+			if(!rc){
+				rc = walk_array_cson(ar,cbdata);
+			}
+		}
+		break;
+	case CSON_TYPE_DOUBLE:
+		{
+			cson_double_t dd;
+			rc = cson_value_fetch_double(val, &dd );
+			((double *)wcbd->arr)[index] = dd;
+		}
+		break;
+	default:
+		break;
+	}
+	return rc;
+}
+int gather_ssr_req(cson_object *obj, SSR_request *ssr_req ){
+	walk_cbdata cbdata;
+	cbdata.data = ssr_req;
+	cbdata.fkey = cb_gather_key;
+	cbdata.fval = cb_gather_val;
+	walk_obj_cson(obj,&cbdata);
+
+	return 0;
+}
+int	parse_json_and_gather_ssr_req(char *strdata, SSR_request *ssr_req){
+	int rc;
+	cson_value *root;
+	cson_parse_info info;
+	memset(&info,0,sizeof(cson_parse_info));
+	rc = cson_parse_string(&root,strdata,strlen(strdata),NULL,&info); //opt,info);
+	if(!rc){
+		if( cson_value_is_object(root) ) {
+			cson_object * obj = cson_value_get_object(root);
+			//print_json_obj_cson(obj);
+			//print_json_tree(obj);
+			//find_my_key("coords2",obj);
+			//sniff_json_tree("coords2",obj);
+			gather_ssr_req(root,ssr_req);
+		}
+		cson_value_free(root);
+	}
+	return rc;
 }
 //<<<<<<<<<<<CSON JSON======================
 
@@ -746,6 +847,73 @@ static void doublePose2json(double *quat4, double *vec3, char *data, int MAX){
 		quat4[0],quat4[1],quat4[2],quat4[3],
 		vec3[0],vec3[1],vec3[2]);
 }
+static void doublePose2jsonB(double *quat4, double *vec3, char *data, int MAX){
+	//a gruelling workout with cson to generate and stringify some json
+	//-compare with simpler sprintf above. Should get something like:
+	// {"position":[2500333.123456,510444.123456,1022.9876],"orientation":[0.0,0.001,-0.005,0.99998]}
+	//-goal is to generalize, and provide sample code for more complex API functions, more complex projects
+	int i, rc;
+	// Create a root object:
+	cson_value * objroot = cson_value_new_object();
+	// Objects, Arrays, and Strings are represented by higher-level
+	// objects owned by their containing cson_value, so we fetch
+	// that Object:
+	cson_object * obj = cson_value_get_object(objroot);
+	// Achuntg: destroying objV will also invalidate/destroy obj.
+
+	//// Add some values to it:
+	//cson_object_set( obj, "myInt", cson_value_new_integer(42) );
+	//cson_object_set( obj, "myDouble", cson_value_new_double(42.24) );
+
+	{
+		//1. create object tree
+		// Add an array:
+		cson_array *ar;
+		cson_value *arori, *arpos;
+		arpos = cson_value_new_array();
+		cson_object_set( obj, "position", arpos ); // transfers ownership of arpos to obj
+		ar = cson_value_get_array(arpos);
+		for(i=0;i<3;i++)
+			cson_array_set( ar, i, cson_value_new_double(vec3[i]) );
+		arori = cson_value_new_array();
+		cson_object_set( obj, "orientation", arori ); // transfers ownership of arori to obj
+		ar = cson_value_get_array(arori);
+		for(i=0;i<4;i++)
+			cson_array_set( ar, i, cson_value_new_double(quat4[i]) );
+	}
+	{
+		//2. stringify
+		cson_buffer buf = cson_buffer_empty;
+		rc = cson_output_buffer( objroot, &buf, NULL );
+		if( 0 != rc ) { 
+			//... error ... 
+		} else {
+		   //JSON data is the first (buf.used) bytes of (buf.mem).
+		}
+		// Regardless of success or failure, make sure to either
+		// clean up the buffer:
+		//3. copy string to our buf
+		if(buf.used < MAX){
+			memcpy(data,buf.mem,buf.used);
+			data[buf.used] = '\0';
+		}
+		//4. free cson stringify buf
+		cson_buffer_reserve( &buf, 0 );
+	}
+	// or take over ownership of its bytes:
+	//{
+	//   char * mem = (char *)buf.mem;
+	//   // mem is (buf.capacity) bytes long, of which (buf.used)
+	//   // are "used" (they contain the JSON data in this case).
+	//   buf = cson_buffer_empty;
+	//   //... you now own the buffer's memory and must eventually free() it ...
+	//}
+
+	//5. Free cson obj tree: root and all child values it owns:
+	cson_value_free( objroot );
+}
+
+
 static char* getSnapshot(int *len){
 	struct stat ss;
 	int fd;
@@ -1031,7 +1199,7 @@ static int iterate_post_zb (void *coninfo_cls, enum MHD_ValueKind kind, const ch
 	uint64_t off, size_t size)
 {
 	struct connection_info_struct *con_info = coninfo_cls;
-	if(0){
+	if(1){
 		printf("Key=%s\n",key);
 		printf("filename=%s\n",filename);
 		printf("content_type=%s\n",content_type);
@@ -1079,19 +1247,55 @@ static int iterate_post_zb (void *coninfo_cls, enum MHD_ValueKind kind, const ch
 }
 
 
+// this is the non-zonebalancer , regular SSR response
 static int iterate_post (void *coninfo_cls, enum MHD_ValueKind kind, const char *key,
 	const char *filename, const char *content_type,
 	const char *transfer_encoding, const char *data, 
 	uint64_t off, size_t size)
 {
 	struct connection_info_struct *con_info = coninfo_cls;
-	if(0){
-		printf("Key=%s\n",key);
-		printf("filename=%s\n",filename);
-		printf("content_type=%s\n",content_type);
-		printf("transfer_encoding=%s\n",transfer_encoding);
-		printf("data=%s\n",data);
+	if(1){
+		fprintf(stdout,"Key=%s\n",key);
+		fprintf(stdout,"filename=%s\n",filename);
+		fprintf(stdout,"content_type=%s\n",content_type);
+		fprintf(stdout,"transfer_encoding=%s\n",transfer_encoding);
+		fprintf(stdout,"data=%s\n",data);
 	}
+	
+	if (0 == strcmp (key, "init_pose"))
+	{
+		fprintf(stdout,"A");
+		if ((size > 0) && (size <= MAXPOSESIZE)) //MAXNAMESIZE
+		{
+			char *answerstring;
+			//double quat4[4], vec3[3];
+			SSR_request ssr_req;
+			answerstring = malloc (MAXANSWERSIZE);
+			fprintf(stdout,"B");
+			if (!answerstring) 
+				return MHD_NO;
+			ssr_req.type = SSR_INITPOSE;
+			//in here we should use cson to parse, and our walk_ to gather into ssr_req
+			//parse_json_and_gather_ssr_req(data,&ssr_req);
+			ssr_req.LOD = 0;
+			//jsonPose2double(ssr_req.quat4,ssr_req.vec3,data);
+			fprintf(stdout,"C");
+			dllFreeWRL_SSRserver_enqueue_request_and_wait(fwctx, &ssr_req);
+			fprintf(stdout,"D");
+			doublePose2json(ssr_req.quat4,ssr_req.vec3, answerstring, MAXANSWERSIZE);
+			fprintf(stdout,"E");
+			//_snprintf (answerstring, MAXANSWERSIZE, greetingpage, data);
+			con_info->answerstring = answerstring;  
+			con_info->len = strlen(answerstring); 
+			for(int k=0;k<con_info->len;k++)
+				fprintf(stdout,"%c",con_info->answerstring[k]);
+			fprintf(stdout," len=%d\n",con_info->len);
+		} 
+		else con_info->answerstring = NULL;
+
+		return MHD_NO;
+	}
+
 	if (0 == strcmp (key, "posepose"))
 	{
 		if ((size > 0) && (size <= MAXPOSESIZE)) //MAXNAMESIZE
@@ -1107,7 +1311,8 @@ static int iterate_post (void *coninfo_cls, enum MHD_ValueKind kind, const char 
 			doublePose2json(ssr_req.quat4,ssr_req.vec3, answerstring, MAXANSWERSIZE);
 			//_snprintf (answerstring, MAXANSWERSIZE, greetingpage, data);
 			con_info->answerstring = answerstring;  
-			con_info->len = strlen(answerstring);    
+			con_info->len = strlen(answerstring);  
+			  
 		} 
 		else con_info->answerstring = NULL;
 
@@ -1182,10 +1387,10 @@ static int answer_to_connection (void *cls, struct MHD_Connection *connection,
 	const char *upload_data, 
 	size_t *upload_data_size, void **con_cls)
 {
-	if(0){
+	if(1){
 		printf("\nurl=%s\n",url);
 		printf("method=%s\n",method);
-		printf("version=%s\n",version);
+		printf("version=%s\n\n",version);
 		printf("upload_data=%s\n",upload_data);
 	}
 	if(NULL == *con_cls) 
@@ -1193,7 +1398,8 @@ static int answer_to_connection (void *cls, struct MHD_Connection *connection,
 		struct connection_info_struct *con_info;
 
 		con_info = malloc (sizeof (struct connection_info_struct));
-		if (NULL == con_info) return MHD_NO;
+		if (NULL == con_info) 
+			return MHD_NO;
 		con_info->answerstring = NULL;
 	//If the new request is a POST, the postprocessor must be created now. In addition, the type of the request is stored for convenience.
 

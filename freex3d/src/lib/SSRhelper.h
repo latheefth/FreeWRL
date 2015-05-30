@@ -1,7 +1,8 @@
 #include <pthread.h>
 enum {
-	SSR_POSEPOSE = 0,
-	SSR_POSESNAPSHOT = 1
+	SSR_INITPOSE = 0,
+	SSR_POSEPOSE = 1,
+	SSR_POSESNAPSHOT = 2,
 };
 typedef struct SSR_request {
 	int type;
