@@ -393,7 +393,7 @@
 		//http://www.w3schools.com/ajax/ajax_xmlhttprequest_send.asp
 		xhr.open("POST","pose",true);
 		xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-		xhr.responseType = 'json'; 
+		xhr.responseType = 'text'; //if set ='text' then call JSON.parse(response), else if set ='json' response will come out as object tree
 		xhr.onload = function(e) {
 			if (this.status == 200) { 
 				console.log("response=#"+this.response+"#");

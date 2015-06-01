@@ -60,9 +60,73 @@ void SSRserver_enqueue_request_and_wait(void *fwctx, SSR_request *request){
 
 	return;
 }
+#define BOOL	int
+#define GLDOUBLE double
+#include "../lib/scenegraph/quaternion.h"
+#include "../lib/scenegraph/LinearAlgebra.h"
+static double view[16], inv_view[16];
+static Quaternion viewQuat, inv_viewQuat;
+static int vp2world_initialized = FALSE;
+static int use_vp2world = 1;
+void double2quaternion(Quaternion *quat, double *q4){
+	//freewrl puts w as first element, client-side gl-matrix.js puts it last
+	quat->w = q4[3];
+	quat->x = q4[0];
+	quat->y = q4[1];
+	quat->z = q4[2];
+}
+void quaternion2double(double *q4, Quaternion *quat){
+	//freewrl puts w as first element, client-side gl-matrix.js puts it last
+	q4[3] = quat->w;
+	q4[0] = quat->x;
+	q4[1] = quat->y;
+	q4[2] = quat->z;
+}
+void vp2world_initialize()
+{
+	/* world - View - Viewpoint - .position - .orientation
+		get ViewMatrix for worldcoordinates to bound-viewpoint-relative transformations
+		Assume View doesn't change through life of scene:
+			- no viewpoint animation 
+			- no switching bound viewpionts
+			-> then we only call this once on init ie ssr's init_pose (it's a bit heavy with inverses)
+		and assume this call is being made from outside render_hier()
+			- after seeking the view matrix
+			- so just the view matrix is in opengl's modelview matrix
+			- (do I have that correct?)
+	*/
+	if(!vp2world_initialized){
+		viewer_getview(view);  //gets modelview matrix and assumes it is ViewMatrix
+		matinverseAFFINE(inv_view, view); //we'll prepare inverse so we can transform position both ways
+		matrix_to_quaternion(&viewQuat, view); //wrong - should convert struct Quaternion to double* explicitly
+		quaternion_inverse(&inv_viewQuat,&viewQuat); //prepare inverse in a way we can also transform .orientation in the form of a quaternion
+		vp2world_initialized = TRUE;
+	}
+}
 void SSR_set_pose(SSR_request *request)
 {
-	viewer_setpose(request->quat4, request->vec3);
+	/* world - View - Viewpoint - .position - .orientation
+		tranform .pos and .ori from world coordinates to bound-viewpoint-relative 
+		Assume View doesn't change through life of scene:
+			- no viewpoint animation 
+			- no switching bound viewpionts
+	*/
+	if(use_vp2world){
+		//convert world2boundviewpoint
+		// .pos, .quat world (scene root) coordinate system to bound viewpoint relative
+		// by applying ViewMatrix
+		double quat4[4], vec3[3];
+		Quaternion qtmp, q4;
+		vp2world_initialize();
+		transformAFFINEd(vec3,request->vec3,view);
+		double2quaternion(&q4,quat4);
+		quaternion_multiply(&qtmp,&viewQuat,&q4);
+		quaternion2double(quat4,&qtmp);
+		viewer_setpose(quat4,vec3);
+	}else{
+		//assume View is identity / at scene root / no bound viewpoint
+		viewer_setpose(request->quat4, request->vec3);
+	}
 }
 static SSR_request *ssr_current_request = NULL; //held for one draw loop
 int isSceneLoaded();
@@ -112,9 +176,32 @@ void dequeue_SSR_request(ttglobal tg)
 	ssr_current_request = request;
 
 }
+
 void SSR_reply_pose(SSR_request *request)
 {
-	viewer_getpose(request->quat4,request->vec3);
+	/* world - View - Viewpoint - .position - .orientation
+		tranform .pos and .ori into world coordinates before sending to SSRClient.html, which
+		is expecting to work in world system
+		Assume View doesn't change through life of scene:
+			- no viewpoint animation 
+			- no switching bound viewpionts
+	*/
+	if(use_vp2world){
+		//convert boundviewpoint2world
+		// .pos, .quat to world (scene root) coordinate system by applying inv(ViewMatrix) 
+		double quat4[4], vec3[3];
+		Quaternion qtmp, q4;
+		vp2world_initialize();
+		viewer_getpose(quat4,vec3);
+		transformAFFINEd(request->vec3, vec3, inv_view);
+		double2quaternion(&q4,quat4);
+		quaternion_multiply(&qtmp,&inv_viewQuat,&q4);
+		quaternion2double(request->quat4,&qtmp);
+	}else{
+		//assume View is identity/at scene root/no bound viewpoint
+		// send bound viewpoint relative .position,  .orientaiton
+		viewer_getpose(request->quat4,request->vec3);
+	}
 }
 
 #ifdef _MSC_VER

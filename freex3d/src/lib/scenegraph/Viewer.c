@@ -2248,6 +2248,9 @@ void viewer_getpose( double *quat4, double *vec3){
 	quat4[2] = p->Viewer.Quat.z;
 	quat4[3] = p->Viewer.Quat.w;
 }
+void viewer_getview( double *viewMatrix){
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, viewMatrix);
+}
 
 /* formerly package VRML::Viewer::ExFly
  * entered via the "f" key.
