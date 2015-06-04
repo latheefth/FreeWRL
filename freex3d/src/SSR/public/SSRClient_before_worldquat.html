@@ -72,6 +72,7 @@
 		var far = 1000.0;
 		mat4.perspective(pMatrix, fovy, aspect, near, far);
 		mat4.identity(mMatrix);
+		mat4.translate(mMatrix,mMatrix,vec3.fromValues(0,0,-10.0)); //move grid away from camera so we can see it
 		mat4.scale(mMatrix,mMatrix,vec3.fromValues(50.0,25.0,50.0)); //arbitrary scale to make our grid a bit bigger
 		toMvMatrix();
 		setMatrixUniforms();
@@ -172,8 +173,7 @@
 
 	//WIDGETS >>
 	var pitch = 0.0;
-	//var yaw = 0.0;
-	var incYaw = 0.0;
+	var yaw = 0.0;
 	//var roll - no roll allowed
 	var height = 1.75; //Z of viewpoint above Z=0 plane
 	var speed = 1.0;
@@ -212,47 +212,47 @@
 	//on each frame we update the world rotations and translations for client side
 	//then use them to compute updated server-side .position, .rotation values
 
-	//var vpQuat = quat.create();
+	var vpQuat = quat.create();
 	//cubic mouse acceleration factors
 	var az = .00005;
 	var ar = .000001;
-	var qMatrix = mat4.create();
-	var tMatrix = mat4.create();
+	var vMatrix = mat4.create();
 	var mMatrix = mat4.create();
-	var qtMatrix = mat4.create();
 	var gridTrans = vec3.fromValues(0.0,0.0,0.0);
 	var incTrans = vec3.create();
-	var incQuat = quat.create();
-	var invQuat = quat.create();
 	function toMvMatrix(){
-		//mvMatrix is used to draw the grid on the client side, = world2vp
-		//cumQuat,cumTrans is used for the pose on the server side = world2vp
-		//incQuat, incTrans are in vp coord system, increments from mouse motion
-		//cumQuat += incQuat
-		//invQuat = inv(cumQuat)  changes it to vp2world direction
-		//cumTrans += invQuat x inv(incTrans)  - cumTrans in world coords, in direction of world2vp
+		//mvMatrix is used to draw the grid on the client side
+		//cumQuat,cumTrans is used for the pose on the server side
 
-		//quat.multiply(incQuat,incQuat,invQuat);
-		quat.multiply(cumQuat,incQuat,cumQuat);
-		//cumTrans += vp2world x incTrans, so cumTrans in world
-		quat.invert(invQuat,cumQuat);
+		cumQuat = quat.identity(cumQuat);
+		quat.rotateX(cumQuat,cumQuat,-pitch);
+		quat.rotateY(cumQuat,cumQuat,yaw);
+		quat.identity(vpQuat);
+		quat.rotateX(vpQuat,vpQuat,pitch);
+		quat.rotateY(vpQuat,vpQuat,yaw);
+		//quat.multiply(vpQuat,vpQuat,cumQuat);
+
+		//quat.invert(cumQuat,cumQuat);
+		//cumTrans = vec3.transformQuat(cumTrans,worldTrans,cumQuat);
+		//cumTrans = worldTrans;
 		var trTrans = vec3.create();
-		vec3.transformQuat(trTrans,incTrans,invQuat); 
+		var invQuat = quat.create();
+		quat.invert(invQuat,cumQuat);
+		vec3.transformQuat(trTrans,incTrans,invQuat);
 		vec3.add(cumTrans,cumTrans,trTrans);
-
-		//vpGrid = world2vp x worldGrid
-		//vpGrid = cumQuat x f(cumTrans) x mGrid x Grid
-		//where f(cumTrans) is the modulus function 
-		mat4.identity(tMatrix);
+		//console.log("worldTrans="+worldTrans[0]+" "+worldTrans[1]+" "+worldTrans[2]);
+		//console.log("cumTrans="+cumTrans[0]+" "+cumTrans[1]+" "+cumTrans[2]);
+		//the server scene usually has a bound viewport (VP) 
+		//that is aligned (rotated about camera X) so that vp Y is up
+		//our grid is Z-up. So we emulate the bound vp here
+		//with a 90 degree rotation to our client camera
+		mat4.fromQuat(vMatrix,vpQuat);
 		gridTrans[0] = cumTrans[0] % 70.0;
 		gridTrans[1] = cumTrans[1] % 70.0;
 		gridTrans[2] = cumTrans[2]; // % 70.0;
 		//console.log("gridTrans="+gridTrans[0]+" "+gridTrans[1]+" "+gridTrans[2]);
-		mat4.translate(tMatrix,tMatrix,gridTrans);
-		mat4.fromQuat(qMatrix,cumQuat);
-		//world2vp = mvMatrix = cumQuat x f(cumTrans) x mGrid
-		mat4.multiply(qtMatrix,qMatrix,tMatrix); 
-		mat4.multiply(mvMatrix,qtMatrix,mMatrix);
+		mat4.translate(vMatrix,vMatrix,gridTrans);
+		mat4.multiply(mvMatrix,vMatrix,mMatrix);
 	}
 	function ontick_mouse(now) {
 		if (!mouseDown) {
@@ -261,26 +261,21 @@
 		var deltaT = now - lastTime;
 		lastTime = now;
 		var deltaX = mouseX - mouseX0;	
-		var deltaY = -(mouseY - mouseY0); //make mouse Y-up
-		var incYaw = 0.0;
-		quat.identity(incQuat);
+		var deltaY = -(mouseY - mouseY0);
 		switch(navMode){
 		case 0: //yawz
-			//sign is -ve because when we go forward, we drag mouse up (+delta)
-			//but in viewpoint coord system, foreward is -Z
-			var ZD = -deltaY*deltaY*deltaY*az*deltaT*speed/1000.0;
+			var ZD = deltaY*deltaY*deltaY*az*deltaT*speed/1000.0;
+			//var XD = ZD * Math.sin(yaw);
+			//var YD = ZD * Math.cos(yaw);
+			//vec3.set(incTrans,XD,YD,0.0);
 			vec3.set(incTrans,0.0,0.0,ZD);
-			incYaw = -deltaX*deltaX*deltaX*ar*deltaT/1000.0;
-			quat.rotateY(incQuat,incQuat,incYaw);
+			yaw += deltaX*deltaX*deltaX*ar*deltaT/1000.0;
 			break;
 		case 1: //xy
-			var XD = deltaX*deltaX*deltaX*ar*deltaT*speed/1000.0;
-			var YD = deltaY*deltaY*deltaY*az*deltaT*speed/1000.0;
+			var XD = -deltaX*deltaX*deltaX*ar*deltaT*speed/1000.0;
+			var YD = -deltaY*deltaY*deltaY*az*deltaT*speed/1000.0;
 			vec3.set(incTrans,XD,YD,0.0);
 			break;
-		default:
-			vec3.set(incTrans,0.0,0.0,0.0);
-			incYaw = 0.0;
 		}
 		//vec3.add(worldTrans,worldTrans,incTrans);
 		//worldTrans[2] = 0.0; //height;
@@ -398,8 +393,7 @@
 		//http://www.w3schools.com/ajax/ajax_xmlhttprequest_send.asp
 		xhr.open("POST","pose",true);
 		xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-		xhr.responseType = 'text'; //if set ='text' then call JSON.parse(response), 
-			// else if set ='json' response will come out as object tree
+		xhr.responseType = 'text'; //if set ='text' then call JSON.parse(response), else if set ='json' response will come out as object tree
 		xhr.onload = function(e) {
 			if (this.status == 200) { 
 				console.log("response=#"+this.response+"#");
@@ -421,12 +415,10 @@
 		//when to use POST instead of GET:
 		//http://www.w3schools.com/ajax/ajax_xmlhttprequest_send.asp
 		xhr.open("POST","pose",true);
-		xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded"); 
-			//or multipart. No application/json allowed in http POST.
+		xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded"); //or multipart. No application/json allowed in http POST.
 		//so you do key=value&key=value&... for urlencoded. 
 		//for us with json, that looks key={json} ie. init_pose={"command":"init_pose","level":0} 
-		xhr.responseType = 'text'; //if set ='text' then call JSON.parse(response), 
-			//else if set ='json' response will come out as object tree
+		xhr.responseType = 'text'; //if set ='text' then call JSON.parse(response), else if set ='json' response will come out as object tree
 		xhr.onload = function(e) {
 			if (this.status == 200) { 
 				console.log("response=#"+this.response+"#");

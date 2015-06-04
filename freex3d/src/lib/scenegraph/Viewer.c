@@ -697,6 +697,23 @@ void viewer_togl(double fieldofview)
 	/* goal: take the curring Viewer pose (.Pos, .Quat) and set openGL transforms
 	   to prepare for a separate call to move the viewpoint - 
 	   (currently done in Mainloop.c setup_viewpoint())
+	Explanation of AntiPos, AntiQuat:
+		If there's a viewpoint vp, We want to 
+			a) navigate away from the initial bind_viewpoint transform + (.position,.orientation) pose
+			b) start navigation from where vp.position, vp.orientation tell us.
+			c) remain responsive if there are changes to .position or .orientation. during run
+			- either javascript or routing may change vp.position, .orientation
+		To accomodate all this we:
+			a) create variables Viewer.Pos, .Quat to hold the navigation 
+			b) initially set Viewer.Pos, .Quat to vp.position, .orientation
+			- see INITIALIZE_POSE_ANTIPOSE and its use in bind_viewpoint
+			c) subtract off initially bound .position, .orientation and add on current .position, .orientation 
+			- below, AntiPos and AntiQuat hold the original .orientation, .position values set during bind_viewpoint
+			- prep_viewpoint in module Component_Navigation then adds back on 
+				the current (javascript/routing changed) .position, .orientation
+			- if no change to .position, .orientation after binding, then these 2 
+				(AntiPos,AntiQuat) and (vp.position,vp.orientation) are equal and cancel
+				leaving the .Pos, .Quat -initially with .position, .orientation- in the modelview matrix stack
     */
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
@@ -2223,33 +2240,101 @@ static void handle_tick_walk2(double dtime){
 		handle_tick_walk();
 	}
 }
-
+void double2quat(Quaternion *quat, double *quat4){
+	quat->x = quat4[0];
+	quat->y = quat4[1];
+	quat->z = quat4[2];
+	quat->w = quat4[3];
+}
+void quat2double(double *quat4,Quaternion *quat){
+	quat4[0] = quat->x;
+	quat4[1] = quat->y;
+	quat4[2] = quat->z;
+	quat4[3] = quat->w;
+}
 //an external program or app may want to set or get the viewer pose, with no slerping
 //SSR - these set/getpose are called from _DisplayThread
 void viewer_setpose( double *quat4, double *vec3){
+	/* sign change on pos, but not quat, because freewrl conventions are different
+		+Quat goes in direction vp2world
+		-Pos goes in direction vp2world
+	*/
 	ttglobal tg = (ttglobal) gglobal();
 	ppViewer p = (ppViewer)tg->Viewer.prv;
-	p->Viewer.Pos.x = -vec3[0];
-	p->Viewer.Pos.y = -vec3[1];
-	p->Viewer.Pos.z = -vec3[2];
-	p->Viewer.Quat.x = quat4[0];
-	p->Viewer.Quat.y = quat4[1];
-	p->Viewer.Quat.z = quat4[2];
-	p->Viewer.Quat.w = quat4[3];
+	if(1){
+		p->Viewer.Pos.x = -vec3[0];
+		p->Viewer.Pos.y = -vec3[1];
+		p->Viewer.Pos.z = -vec3[2];
+		p->Viewer.Quat.x = quat4[0];
+		p->Viewer.Quat.y = quat4[1];
+		p->Viewer.Quat.z = quat4[2];
+		p->Viewer.Quat.w = quat4[3];
+	}else{
+		Quaternion qq;
+		double2quat(&qq,quat4);
+		quaternion_inverse(&p->Viewer.Quat,&qq);
+
+		p->Viewer.Pos.x = vec3[0];
+		p->Viewer.Pos.y = vec3[1];
+		p->Viewer.Pos.z = vec3[2];
+	}
 }
 void viewer_getpose( double *quat4, double *vec3){
 	ttglobal tg = (ttglobal) gglobal();
 	ppViewer p = (ppViewer)tg->Viewer.prv;
-	vec3[0] = -p->Viewer.Pos.x;
-	vec3[1] = -p->Viewer.Pos.y;
-	vec3[2] = -p->Viewer.Pos.z;
-	quat4[0] = p->Viewer.Quat.x;
-	quat4[1] = p->Viewer.Quat.y;
-	quat4[2] = p->Viewer.Quat.z;
-	quat4[3] = p->Viewer.Quat.w;
+	if(1){
+		vec3[0] = -p->Viewer.Pos.x;
+		vec3[1] = -p->Viewer.Pos.y;
+		vec3[2] = -p->Viewer.Pos.z;
+		quat4[0] = p->Viewer.Quat.x;
+		quat4[1] = p->Viewer.Quat.y;
+		quat4[2] = p->Viewer.Quat.z;
+		quat4[3] = p->Viewer.Quat.w;
+	}else{
+		Quaternion qq;
+		vec3[0] = p->Viewer.Pos.x;
+		vec3[1] = p->Viewer.Pos.y;
+		vec3[2] = p->Viewer.Pos.z;
+		quaternion_inverse(&qq,&p->Viewer.Quat);
+		quat2double(quat4,&qq);
+	}
+}
+void viewer_getbindpose( double *quat4, double *vec3){
+/*	The bind-time-equivalent viewpoint pose can be got 
+	from the Anti variables intialized by INITIATE_POSITION_ANTIPOSITION macro
+	which copies the .position, .orientation values from the viewpoint node fields
+	(if a viewpoint is bound, otherwise defaults are set during startup)
+*/
+	Quaternion q_i;
+	ttglobal tg = (ttglobal) gglobal();
+	ppViewer p = (ppViewer)tg->Viewer.prv;
+	if(1){
+		vec3[0] = -p->Viewer.AntiPos.x;
+		vec3[1] = -p->Viewer.AntiPos.y;
+		vec3[2] = -p->Viewer.AntiPos.z;
+		quaternion_inverse(&q_i,&p->Viewer.AntiQuat);
+		quat4[0] = q_i.x;
+		quat4[1] = q_i.y;
+		quat4[2] = q_i.z;
+		quat4[3] = q_i.w;
+	}else{
+		vec3[0] = p->Viewer.AntiPos.x;
+		vec3[1] = p->Viewer.AntiPos.y;
+		vec3[2] = p->Viewer.AntiPos.z;
+		quat2double(quat4,&p->Viewer.AntiQuat);
+	}
 }
 void viewer_getview( double *viewMatrix){
+	/* world - View - Viewpoint - .position - .orientation */
+	//view matrix includes Transform(s) * viewpoint.position * viewpoint.orientation
+	//we need to separate the Transforms from the .position and .orientation
+	//double vec3[3], quat4[4];
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, viewMatrix);
+	//viewer_getpose(quat4,vec3);
+	//viewMatrix *= inv_quat4
+	//viewMatrix *= inv_vec3
+
+
 }
 
 /* formerly package VRML::Viewer::ExFly
