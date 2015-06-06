@@ -2254,6 +2254,7 @@ void quat2double(double *quat4,Quaternion *quat){
 }
 //an external program or app may want to set or get the viewer pose, with no slerping
 //SSR - these set/getpose are called from _DisplayThread
+static int no_xyz_reflection = 0;
 void viewer_setpose( double *quat4, double *vec3){
 	/* sign change on pos, but not quat, because freewrl conventions are different
 		+Quat goes in direction vp2world
@@ -2265,6 +2266,7 @@ void viewer_setpose( double *quat4, double *vec3){
 		p->Viewer.Pos.x = -vec3[0];
 		p->Viewer.Pos.y = -vec3[1];
 		p->Viewer.Pos.z = -vec3[2];
+		if(no_xyz_reflection) double2pointxyz(&p->Viewer.Pos,vec3); //no -ve
 		p->Viewer.Quat.x = quat4[0];
 		p->Viewer.Quat.y = quat4[1];
 		p->Viewer.Quat.z = quat4[2];
@@ -2286,6 +2288,7 @@ void viewer_getpose( double *quat4, double *vec3){
 		vec3[0] = -p->Viewer.Pos.x;
 		vec3[1] = -p->Viewer.Pos.y;
 		vec3[2] = -p->Viewer.Pos.z;
+		if(no_xyz_reflection) pointxyz2double(vec3,&p->Viewer.Pos); //no -ve
 		quat4[0] = p->Viewer.Quat.x;
 		quat4[1] = p->Viewer.Quat.y;
 		quat4[2] = p->Viewer.Quat.z;
@@ -2312,6 +2315,7 @@ void viewer_getbindpose( double *quat4, double *vec3){
 		vec3[0] = -p->Viewer.AntiPos.x;
 		vec3[1] = -p->Viewer.AntiPos.y;
 		vec3[2] = -p->Viewer.AntiPos.z;
+		if(no_xyz_reflection) pointxyz2double(vec3,&p->Viewer.AntiPos); //no -ve
 		quaternion_inverse(&q_i,&p->Viewer.AntiQuat);
 		quat4[0] = q_i.x;
 		quat4[1] = q_i.y;

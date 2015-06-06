@@ -121,7 +121,6 @@ void vp2world_initialize()
 		matrotate(mat2,2.0*acos(quat4[3]),quat4[0],quat4[1],quat4[2]);
 		mattranslate(mat3,vec3[0],vec3[1],vec3[2]);
 		matmultiply(mat4,mat2,mat3);
-
 		matinverseAFFINE(mat,mat4);
 		matmultiply(view,mat,view);
 		printmatrix2(view,"view - no .pos .ori");
