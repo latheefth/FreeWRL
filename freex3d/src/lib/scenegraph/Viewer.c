@@ -2282,6 +2282,11 @@ void viewer_setpose( double *quat4, double *vec3){
 	}
 }
 void viewer_getpose( double *quat4, double *vec3){
+	/*	Freewrl initializes .Quat, .Pos from viewpoint.position, viewpoint.orientation during viewpoint binding
+			(or gives a default if no bound viewpoint)
+		Viewer.Quat = inverse(vp.orientation) //changes sense from x3d vp2world, to opengl sense world2vp
+		Viewer.Pos = vp.position //remains in x3d sense vp2world
+	*/
 	ttglobal tg = (ttglobal) gglobal();
 	ppViewer p = (ppViewer)tg->Viewer.prv;
 	if(1){

@@ -236,11 +236,11 @@
 	var modulus_grid = true; //appear to add more grid when navigating toward a grid edge
 	function toMvMatrix(){
 		//mvMatrix is used to draw the grid on the client side, = world2vp
-		//cumQuat,cumTrans is used for the pose on the server side = vp2world //world2vp
+		//cumQuat,cumTrans is used for the pose on the server side = world2vp
 		//incQuat, incTrans are in vp coord system, increments from mouse motion
 		//cumQuat += incQuat
-		//invQuat = inv(cumQuat)  changes it to world2vp //vp2world direction
-		//cumTrans += invQuat x inv(incTrans)  - cumTrans in world coords, in direction of vp2world //world2vp
+		//invQuat = inv(cumQuat)  changes it to vp2world direction
+		//cumTrans += invQuat x inv(incTrans)  - cumTrans in world coords, in direction of world2vp
 
 		//quat.multiply(incQuat,incQuat,invQuat);
 		quat.multiply(cumQuat,incQuat,cumQuat);

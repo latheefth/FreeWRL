@@ -94,37 +94,54 @@ void vp2world_initialize()
 			- after seeking the view matrix
 			- so just the view matrix is in opengl's modelview matrix
 			- (do I have that correct?)
-		The sense/direction of the view is to transform from vp to world (or eventually to shape in freewrl)
-		For example a translation of 10,0,0 in a Transform around bound vp will translate vp to the right in the world
-			 (or world to the left wrt vp). a vp.position=10,0,0 has the same sense and magnitude.
-		To get this effect in an opengl modelview matrix transforming vp2world, freewrl subtracts 10 / uses -10 when
+		The sense/direction of the view is the opengl sense of modelview: transform world2vp. 
+		(a glTranslate(0,0,-5) will	translate an object in world coordinates by -5 along camera/viewpoint Z axis. 
+		Viewpoint/camera Z axis +backward, so -5 on object shifts the object 5 further away from camera 
+		assuming it starts in front of the camera. In this interpretation, object at world 0,0,0 gets transformed to 
+		camera/viewpoint 0,0,-5, and modelview matrix is in the sense of world to camera, or world2vp)
+		X3D's transform stack between root/world and viewpoint -the View matrix equivalent- 
+		is declared in X3D in the sense of (leaf object) to world or in our case (viewpoint) to world, or vp2world
+		X3D.s viewpoint .position, .orientation is also declared in the vp2world sense
+		freewrl reverses the x3d sense when building the View part of the Modelview, to put it in the opengl world2vp sense
+			- see INITIATE_POSITION_ANTIPOSITION macro, as used in bind_viewpoint()
+			- see fin_transform() for render_vp/VF_Viewpoint pass
+
+		For example a translation of 10,0,0 in a Transform around bound vp will translate vp to the right in the world, that's a vp2world sense
+		A vp.position=10,0,0 has the same sense and magnitude, vp2world
+		To get this effect in an opengl modelview matrix transforming world2vp, freewrl subtracts 10 / uses -10 when
 			creating the opengl matrix.
-		View (vp2world sense) = (mobile device screen orientation) x (.Quat, .Pos) x (.AntiPos, .AntiQuat) x (.orientation, .position) x Transforms(in vp2world direction)
+		And when converting .orientation to Quat, it inverts the direction. 
+		And when using .Pos = .position, it negates ie glTranslate(-position.x,-position.y,-position.z) and -.Pos.x, -Pos.y, -Pos.z
+		
+		View (world2vp sense) = (mobile device screen orientation) x world2vp(.Quat, .Pos) x vp2world(.AntiPos, .AntiQuat) x world2vp(.orientation, .position) x Transforms(in vp2world direction)
 		assuming no screen orientation, and (.AntiPos,.AntiQuat) == (cancels) .orientation,.position, this simiplfies to:
-		View (vp2world sense) = .Quat, .Pos x Transforms(in vp2world sense)
-		View' = inverse(.pos,.quat) x View (vp2world sense)
+		View (world2vp sense) =  Transforms(in world2vp sense) x (.Quat in world2vp, -(.Pos in vp2world))
+
+		So we can go back, we also initialize the inverses, to get the vp2world sense.
+
 		dug9: after theory came up short, I worked out the formulas below by trial and error, 
 			combinations and permutations, until:
 				1. client, server were cycling (single click on client would refresh from server to same pose in model)
 				2. synced (client grid and server model going same way for yaw,x,y,z)
 	*/
 	if(!vp2world_initialized){
-		//vp2world sense of view
+		//world2vp sense of view
 		double mat[16], mat2[16], mat3[16], mat4[16], quat4[4], vec3[3];
-		viewer_getview(view);  //gets modelview matrix and assumes it is ViewMatrix
+		viewer_getview(view);  //gets modelview matrix and assumes it is ViewMatrix, and in opengl sense world2vp
 		printmatrix2(view,"view with .pos .ori");
-		//problem: view matrix also has .position, .orientation in it. We'd like to keep them separate.
+		//problem: view matrix also has world2vp(.position, .orientation) in it. We'd like to keep them separate.
 		//solution: construct a few matrices with vec3, quat4, invert, and multiply view by them
+		//View' =  View x inverse(.Quat,-.Pos)  //world2vp
 		loadIdentityMatrix(mat);
-		viewer_getpose(quat4,vec3);
+		viewer_getpose(quat4,vec3); //viewer.position,.orientation, in sense of world2vp (vec3 = -.Pos, .Pos = .position, quat4 = .Quat = inv(.orientation)
 		printf("fixing view, current pose vec3=%lf %lf %lf\n",vec3[0],vec3[1],vec3[2]);
 		matrotate(mat2,2.0*acos(quat4[3]),quat4[0],quat4[1],quat4[2]);
 		mattranslate(mat3,vec3[0],vec3[1],vec3[2]);
 		matmultiply(mat4,mat2,mat3);
 		matinverseAFFINE(mat,mat4);
-		matmultiply(view,mat,view);
+		matmultiply(view,mat,view); //take off effect of .Pos, .Quat from View)
 		printmatrix2(view,"view - no .pos .ori");
-		//now view should not have the .position, .orientation in it - just the transform stack from vp to world
+		//now view should not have the .position, .orientation in it - just the transform stack from world to vp
 		matinverseAFFINE(inv_view, view); //we'll prepare inverse so we can transform position both ways
 		matrix_to_quaternion(&viewQuat, inv_view); 
 		quaternion_inverse(&inv_viewQuat,&viewQuat); //prepare inverse in a way we can also transform .orientation in the form of a quaternion
@@ -141,7 +158,7 @@ void SSR_set_pose(SSR_request *request)
 			- no switching bound viewpionts
 	*/
 	if(use_vp2world){
-		//convert world2boundviewpoint
+		//convert world2boundviewpoint / world2vp
 		// .pos, .quat world (scene root) coordinate system to bound viewpoint relative
 		// by applying ViewMatrix
 		double quat4[4], vec3[3];
@@ -158,6 +175,71 @@ void SSR_set_pose(SSR_request *request)
 		viewer_setpose(request->quat4, request->vec3);
 	}
 }
+void SSR_reply_pose(SSR_request *request, int initialpose)
+{
+	/* client's pose(vec3,quat4) - world - View - (Viewpoint node) - .Pos - ..Quat  - vp
+		Thinking of vec3,quat4 as things to transform:
+			transform server's scene bound-viewpoint-relative pose(Viewer.Pos,.Quat) to client's world coords pose(vec3,quat4)
+		Or thinking of vec3,quat4 as part of a transform chain:
+			add on View part of (quat4,vec3) transform to get from world2vp
+			(except we don't need any View scale on the client - it has its own scale for moving around, 
+				so the 'vp as a point to be transformed' way of thinking above makes more sense)
+		Assume View doesn't change through life of scene:
+			- no viewpoint animation 
+			- no switching bound viewpionts
+		initialpose - TRUE: for init_pose() reutrn the bind-time .pos,.quat
+			- FALSE: for posepose, return adjusted pose sent with posepose request
+	*/
+	if(use_vp2world){
+		//convert boundviewpoint2world
+		// viewpoint-local .pos, .quat to world (scene root) coordinate system by applying inv(ViewMatrix) 
+		// the .position/.Pos is on the world side of the .orientation/quat
+		// view matrix can be thought of as (Rot) x (translation)
+		// if you want to change the order to translation' x Rot, 
+		// remember rotations and translations are not commutative. Then:
+		// translation' = invrse(Rot) x translation
+		// then View = (translation') x (Rot)
+		// vp = Quat x Pos x ViewTrans x ViewRot x world
+		// to gather the translations together, so we have
+		// vp = TotalQuat x TotalVec x world
+		// TotalQuat = Quat x ViewRot  //3D rotations are not commutative, so their order needs to be maintained
+		// TotalVec = inverse(ViewRot) x (Pos + ViewTrans)
+		double quat4[4], vec3[3];
+		Quaternion qtmp, q4;
+		vp2world_initialize();
+		if(initialpose){
+			viewer_getbindpose(quat4,vec3);
+			printf("getting initial viewpoint pose:\n");
+		}else{
+			viewer_getpose(quat4,vec3);
+			printf("getting current viewpoint pose:\n");
+		}
+		printf(" quat4=[%lf %lf %lf %lf] vec3=[%lf %lf %lf]\n",
+		quat4[0],quat4[1],quat4[2],quat4[3],vec3[0],vec3[1],vec3[2]);
+
+		//am I missing the translation part of view here? 
+		//Should I be using just the rotation inverse here?, 
+		//or does inv_view contain the translation part I need to add to vec3?
+		printf("in reply_pose\n");
+		printmatrix2(inv_view,"inv_view");
+		printf("vec3 before=%d %d %d\n",vec3[0],vec3[1],vec3[2]);
+		transformAFFINEd(request->vec3, vec3, inv_view); 
+		printf("vec3 after=%d %d %d\n",request->vec3[0],request->vec3[1],request->vec3[2]);
+
+		double2quaternion(&q4,quat4);
+		quaternion_multiply(&qtmp,&q4, &inv_viewQuat);
+		quaternion2double(request->quat4,&qtmp);
+		memcpy(vec3,request->vec3,3*sizeof(double));
+		memcpy(quat4,request->quat4,4*sizeof(double));
+		printf("getting server pose quat4=[%lf %lf %lf %lf] vec3=[%lf %lf %lf]\n",
+		quat4[0],quat4[1],quat4[2],quat4[3],vec3[0],vec3[1],vec3[2]);
+	}else{
+		//assume View is identity/at scene root/no bound viewpoint
+		// send bound viewpoint relative .position,  .orientaiton
+		viewer_getpose(request->quat4,request->vec3);
+	}
+}
+
 static SSR_request *ssr_current_request = NULL; //held for one draw loop
 int isSceneLoaded();
 void dequeue_SSR_request(ttglobal tg)
@@ -207,45 +289,6 @@ void dequeue_SSR_request(ttglobal tg)
 
 }
 
-void SSR_reply_pose(SSR_request *request, int initialpose)
-{
-	/* client's pose(vec3,quat4) - world - View - (Viewpoint node) - .Pos - ..Quat  - vp
-		tranform server's scene bound-viewpoint-relative pose(Viewer.Pos,.Quat) to client's world coords pose(vec3,quat4)
-		Assume View doesn't change through life of scene:
-			- no viewpoint animation 
-			- no switching bound viewpionts
-		initialpose - TRUE: for init_pose() reutrn the bind-time .pos,.quat
-			- FALSE: for posepose, return adjusted pose sent with posepose request
-	*/
-	if(use_vp2world){
-		//convert boundviewpoint2world
-		// .pos, .quat to world (scene root) coordinate system by applying inv(ViewMatrix) 
-		double quat4[4], vec3[3];
-		Quaternion qtmp, q4;
-		vp2world_initialize();
-		if(initialpose){
-			viewer_getbindpose(quat4,vec3);
-			printf("getting initial viewpoint pose:\n");
-		}else{
-			viewer_getpose(quat4,vec3);
-			printf("getting current viewpoint pose:\n");
-		}
-		printf(" quat4=[%lf %lf %lf %lf] vec3=[%lf %lf %lf]\n",
-		quat4[0],quat4[1],quat4[2],quat4[3],vec3[0],vec3[1],vec3[2]);
-		double2quaternion(&q4,quat4);
-		transformAFFINEd(request->vec3, vec3, inv_view);
-		quaternion_multiply(&qtmp,&q4, &inv_viewQuat);
-		quaternion2double(request->quat4,&qtmp);
-		memcpy(vec3,request->vec3,3*sizeof(double));
-		memcpy(quat4,request->quat4,4*sizeof(double));
-		printf("getting server pose quat4=[%lf %lf %lf %lf] vec3=[%lf %lf %lf]\n",
-		quat4[0],quat4[1],quat4[2],quat4[3],vec3[0],vec3[1],vec3[2]);
-	}else{
-		//assume View is identity/at scene root/no bound viewpoint
-		// send bound viewpoint relative .position,  .orientaiton
-		viewer_getpose(request->quat4,request->vec3);
-	}
-}
 
 #ifdef _MSC_VER
 static char *snapshot_filename = "snapshot.bmp"; //option: get this from the snapshot.c module after saving
