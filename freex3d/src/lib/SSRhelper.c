@@ -82,6 +82,10 @@ void quaternion2double(double *q4, Quaternion *quat){
 	q4[1] = quat->y;
 	q4[2] = quat->z;
 }
+#include <math.h>
+static int reverse_sense_init = 0; //0 conceptually correct
+static int reverse_sense = 0; //0 conceptually correct
+static int reverse_order = 0; //0 conceptually correct
 void vp2world_initialize()
 {
 	/* world - View - Viewpoint - .position - .orientation
@@ -118,11 +122,33 @@ void vp2world_initialize()
 		View (world2vp sense) =  Transforms(in world2vp sense) x (.Quat in world2vp, -(.Pos in vp2world))
 
 		So we can go back, we also initialize the inverses, to get the vp2world sense.
+		
+		conceptually correct transforms:
+		viewpoint < cumQuat < cumPos < worldGrid
+		viewpoint  < .Quat  <    -.Pos  <  View'  <  world
+		- all the above transforms cumQuat,cumPos, .Quat, .Pos, View conceptually should have the world2vp sense '<'
+		server_side
+		A.vp2world_initialize
+			1) view = modelview at top of glmatrix stack, at scene root, after VF_Viewpoint pass
+					- includes .Quat, -.Pos
+			2) a) view' = f(view .Quat, .Pos)
+				b) view' = inv(-Pos) x (inv(.Quat)xView) = inv(-Pos)xinv(.Quat)xView = inv(Quat x (-Pos)) x view
+			3) viewQuat' = matrix_to_quaternion(view')
+		B.reply_pose
+			1) cumPos   = f(view',.Quat,.Pos) = -.Pos x view'
+			2) cumQuat = f(view',.Quat,.Pos) = .Quat x viewQuat
+		C.set_pose
+			1) .Pos = f(view',cumQuat,cumPos)  = -cumPos x inv(view')
+				post-mulitplying each side of B1 by inv(view'):
+				cumPos x inv(view') = -.Pos x view' x inv(view')
+							= -.Pos x I = -.Pos
+				.Pos = -cumPos x inv(view')
+			2) .Quat = f(view',cumQuat,cumPos) =  cumQuat x inv(viewQuat)
+				post-mulitplying each side of B2 by inv(viewQuat):
+				cumQuat x inv(viewQuat) = .Quat x viewQuat x inv(viewQuat)
+								= .Quat x I = .Quat
+				.Quat = cumQuat x inv(viewQuat)
 
-		dug9: after theory came up short, I worked out the formulas below by trial and error, 
-			combinations and permutations, until:
-				1. client, server were cycling (single click on client would refresh from server to same pose in model)
-				2. synced (client grid and server model going same way for yaw,x,y,z)
 	*/
 	if(!vp2world_initialized){
 		//world2vp sense of view
@@ -135,46 +161,70 @@ void vp2world_initialize()
 		loadIdentityMatrix(mat);
 		viewer_getpose(quat4,vec3); //viewer.position,.orientation, in sense of world2vp (vec3 = -.Pos, .Pos = .position, quat4 = .Quat = inv(.orientation)
 		printf("fixing view, current pose vec3=%lf %lf %lf\n",vec3[0],vec3[1],vec3[2]);
-		matrotate(mat2,2.0*acos(quat4[3]),quat4[0],quat4[1],quat4[2]);
+
+		if(1){
+			Quaternion qq;
+			double2quat(&qq,quat4);
+			loadIdentityMatrix(mat2);
+			quaternion_to_matrix(mat2, &qq);
+			printmatrix2(mat2,"matqq using quaternion_to_matrix");
+		}
+		else
+		{
+			loadIdentityMatrix(mat2);
+			printf("quat xyzw [%lf %lf %lf %lf]",quat4[0],quat4[1],quat4[2],quat4[3]);
+			matrotate(mat2,2.0*acos(quat4[3]),quat4[0],quat4[1],quat4[2]); 
+			printmatrix2(mat2,"mat2 using matrotate 2*cos(quat4[3])");
+		}
+		loadIdentityMatrix(mat3);
 		mattranslate(mat3,vec3[0],vec3[1],vec3[2]);
-		matmultiply(mat4,mat2,mat3);
-		matinverseAFFINE(mat,mat4);
-		matmultiply(view,mat,view); //take off effect of .Pos, .Quat from View)
+		printmatrix2(mat3,"mat3 vec3 translation");
+		if(0){
+			if(1)matmultiply(mat4,mat2,mat3); //conceptually correct
+			else matmultiplyAFFINE(mat4,mat2,mat3);
+			printmatrix2(mat4,"combined quat x vec3");
+			matinverseAFFINE(mat,mat4);
+			printmatrix2(mat,"inv(quat x vec3) = inv(vec3)xinv(quat)");
+		}else{
+			double matinvpos[16],matinvquat[16];
+			matinverseAFFINE(matinvquat,mat2);
+			matinverseAFFINE(matinvpos,mat3);
+			if(1) matmultiply(mat,matinvpos,matinvquat); //conceptually correct
+			else matmultiply(mat,matinvquat,matinvpos);
+			printmatrix2(mat,"inv(vec3) x inv(quat)");
+		}
+
+		if(1)
+			matmultiply(view,mat,view); //conceptually correct - take off effect of .Pos, .Quat from View)
+		else
+			matmultiply(view,view,mat);
 		printmatrix2(view,"view - no .pos .ori");
 		//now view should not have the .position, .orientation in it - just the transform stack from world to vp
 		matinverseAFFINE(inv_view, view); //we'll prepare inverse so we can transform position both ways
-		matrix_to_quaternion(&viewQuat, inv_view); 
-		quaternion_inverse(&inv_viewQuat,&viewQuat); //prepare inverse in a way we can also transform .orientation in the form of a quaternion
+		if(reverse_sense_init){
+			matrix_to_quaternion(&viewQuat, inv_view); 
+			quaternion_inverse(&inv_viewQuat,&viewQuat); //prepare inverse in a way we can also transform .orientation in the form of a quaternion
+		}else{
+			//Quaternion q2;
+			//double ppii;
+			matrix_to_quaternion(&viewQuat, view); //conceptually correct
+			quaternion_normalize(&viewQuat);
+			//quaternion_print(&viewQuat,"viewQuat");
+			//ppii = acos(-1.0);
+			//printf("pi=%lf\n",ppii);
+			//vrmlrot_to_quaternion(&q2, 1.0, 0.0, 0.0, ppii * .5);
+			//quaternion_print(&q2,"rotateX(pi/2)");
+			if(0){
+				quaternion_inverse(&inv_viewQuat,&viewQuat); //prepare inverse in a way we can also transform .orientation in the form of a quaternion
+			}else{
+				matrix_to_quaternion(&inv_viewQuat,inv_view); //s.b. equavalent
+				quaternion_normalize(&inv_viewQuat);
+			}
+		}
 		vp2world_initialized = TRUE;
 	}
 }
 struct point_XYZ {GLDOUBLE x,y,z;};
-void SSR_set_pose(SSR_request *request)
-{
-	/* request->quat4,vec3 - world - View - (Viewpoint node) - .Pos - .Quat - vp
-		tranform client's pose from its world coordinates to scene's bound-viewpoint-relative vp coords
-		Assume View doesn't change through life of scene:
-			- no viewpoint animation 
-			- no switching bound viewpionts
-	*/
-	if(use_vp2world){
-		//convert world2boundviewpoint / world2vp
-		// .pos, .quat world (scene root) coordinate system to bound viewpoint relative
-		// by applying ViewMatrix
-		double quat4[4], vec3[3];
-		Quaternion qtmp, q4;
-		vp2world_initialize();
-		transformAFFINEd(vec3,request->vec3,view);
-		double2quaternion(&q4,request->quat4);
-		quaternion_multiply(&qtmp,&q4,&viewQuat);
-		quaternion2double(quat4,&qtmp);
-		printf("setting server pose quat4=[%lf %lf %lf %lf] vec3=[%lf %lf %lf]\n",quat4[0],quat4[1],quat4[2],quat4[3],vec3[0],vec3[1],vec3[2]);
-		viewer_setpose(quat4,vec3);
-	}else{
-		//assume View is identity / at scene root / no bound viewpoint
-		viewer_setpose(request->quat4, request->vec3);
-	}
-}
 void SSR_reply_pose(SSR_request *request, int initialpose)
 {
 	/* client's pose(vec3,quat4) - world - View - (Viewpoint node) - .Pos - ..Quat  - vp
@@ -223,11 +273,25 @@ void SSR_reply_pose(SSR_request *request, int initialpose)
 		printf("in reply_pose\n");
 		printmatrix2(inv_view,"inv_view");
 		printf("vec3 before=%d %d %d\n",vec3[0],vec3[1],vec3[2]);
-		transformAFFINEd(request->vec3, vec3, inv_view); 
+		if(reverse_sense){
+			transformAFFINEd(request->vec3, vec3, inv_view); 
+		}else{
+			transformAFFINEd(request->vec3, vec3, view); 
+		}
 		printf("vec3 after=%d %d %d\n",request->vec3[0],request->vec3[1],request->vec3[2]);
 
 		double2quaternion(&q4,quat4);
-		quaternion_multiply(&qtmp,&q4, &inv_viewQuat);
+		if(reverse_sense){
+			if(reverse_order)
+				quaternion_multiply(&qtmp,&q4, &inv_viewQuat);
+			else
+				quaternion_multiply(&qtmp,&inv_viewQuat,&q4);
+		}else{
+			if(reverse_order)
+				quaternion_multiply(&qtmp,&viewQuat,&q4);
+			else
+				quaternion_multiply(&qtmp,&q4, &viewQuat); //conceptually correct
+		}
 		quaternion2double(request->quat4,&qtmp);
 		memcpy(vec3,request->vec3,3*sizeof(double));
 		memcpy(quat4,request->quat4,4*sizeof(double));
@@ -237,6 +301,73 @@ void SSR_reply_pose(SSR_request *request, int initialpose)
 		//assume View is identity/at scene root/no bound viewpoint
 		// send bound viewpoint relative .position,  .orientaiton
 		viewer_getpose(request->quat4,request->vec3);
+	}
+}
+void SSR_test_cumulative_pose(){
+	SSR_request r;
+	vp2world_initialize();
+	SSR_reply_pose(&r,FALSE);
+	//create M = f(cumQuat, cumTrans) like the SSRClient.html does, and set it as View matrix.
+	//mat4.identity(tMatrix);
+	//mat4.translate(tMatrix,tMatrix,gridTrans);
+	//mat4.fromQuat(qMatrix,cumQuat);
+	////world2vp = mvMatrix = cumQuat x f(cumTrans) x mGrid
+	//mat4.multiply(qtMatrix,qMatrix,tMatrix); 
+	//mat4.multiply(mvMatrix,qtMatrix,mMatrix);
+	{
+		double tMatrix[16], qMatrix[16], mvMatrix[16], rawView[16];
+		Quaternion cumQuat;
+
+		viewer_getview(rawView);
+		printmatrix2(rawView,"rawView");
+		loadIdentityMatrix(tMatrix);
+		mattranslate(tMatrix,r.vec3[0],r.vec3[1],r.vec3[2]);
+		double2quat(&cumQuat,r.quat4);
+		loadIdentityMatrix(qMatrix);
+		quaternion_to_matrix(qMatrix, &cumQuat);
+		matmultiply(mvMatrix,qMatrix,tMatrix);
+		printmatrix2(mvMatrix,"mvMatrix");
+		viewer_setview(mvMatrix);
+	}
+}
+void SSR_set_pose(SSR_request *request)
+{
+	/* request->quat4,vec3 - world - View - (Viewpoint node) - .Pos - .Quat - vp
+		tranform client's pose from its world coordinates to scene's bound-viewpoint-relative vp coords
+		Assume View doesn't change through life of scene:
+			- no viewpoint animation 
+			- no switching bound viewpionts
+	*/
+	if(use_vp2world){
+		//convert world2boundviewpoint / world2vp
+		// .pos, .quat world (scene root) coordinate system to bound viewpoint relative
+		// by applying ViewMatrix
+		double quat4[4], vec3[3];
+		Quaternion qtmp, q4;
+		vp2world_initialize();
+		if(reverse_sense){
+			transformAFFINEd(vec3,request->vec3,view);
+		}else{
+			transformAFFINEd(vec3,request->vec3,inv_view); //conceptually correct
+		}
+		double2quaternion(&q4,request->quat4);
+		if(reverse_sense){
+			if(reverse_order)
+				quaternion_multiply(&qtmp,&q4,&viewQuat);
+			else
+				quaternion_multiply(&qtmp,&viewQuat,&q4);
+		}else{
+			if(reverse_order)
+				quaternion_multiply(&qtmp,&inv_viewQuat,&q4);
+			else
+				quaternion_multiply(&qtmp,&q4,&inv_viewQuat); //conceptually correct
+		}
+		quaternion2double(quat4,&qtmp);
+		printf("setting server pose quat4=[%lf %lf %lf %lf] vec3=[%lf %lf %lf]\n",quat4[0],quat4[1],quat4[2],quat4[3],vec3[0],vec3[1],vec3[2]);
+		viewer_setpose(quat4,vec3);
+	}else{
+		//assume View is identity / at scene root / no bound viewpoint
+		viewer_setpose(request->quat4, request->vec3);
 	}
 }
 

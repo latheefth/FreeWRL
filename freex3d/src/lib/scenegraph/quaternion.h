@@ -138,6 +138,9 @@ quaternion_slerp(Quaternion *ret,
 	  const Quaternion *q1,
 	  const Quaternion *q2,
 	  const double t);
+void quaternion_print(const Quaternion *quat, char* description );
+void double2quat(Quaternion *quat, double *quat4);
+void quat2double(double *quat4,Quaternion *quat);
 
 void loadIdentityMatrix (double *);
 void vrmlrot_multiply(float* ret, float *a, float *b);

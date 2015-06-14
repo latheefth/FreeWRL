@@ -5,8 +5,11 @@
 		SSR - server-side rendering
 		connected to libfreewrl via webserver in C called SSR, running libmicrohttpd
 	-->
-	<!-- http://glmatrix.net/docs/2.2.0/ -->
-	<script type="text/javascript" src="gl-matrix-min.js"></script>
+	<!-- http://glmatrix.net/docs/2.2.0/ 
+		I recommend not using the min-js in the download, found diff in quat.fromMat3
+		wrong sign, in min-js, that wasn't in the non-min
+	-->
+	<script type="text/javascript" src="gl-matrix.js"></script>
 	<script type="text/javascript">
 
 	var fragShaderSource = "\
@@ -234,6 +237,7 @@
 	var incQuat = quat.create();
 	var invQuat = quat.create();
 	var modulus_grid = true; //appear to add more grid when navigating toward a grid edge
+
 	function toMvMatrix(){
 		//mvMatrix is used to draw the grid on the client side, = world2vp
 		//cumQuat,cumTrans is used for the pose on the server side = vp2world //world2vp
@@ -241,7 +245,6 @@
 		//cumQuat += incQuat
 		//invQuat = inv(cumQuat)  changes it to world2vp //vp2world direction
 		//cumTrans += invQuat x inv(incTrans)  - cumTrans in world coords, in direction of vp2world //world2vp
-
 		//quat.multiply(incQuat,incQuat,invQuat);
 		quat.multiply(cumQuat,incQuat,cumQuat);
 		//cumTrans += vp2world x incTrans, so cumTrans in world
@@ -259,11 +262,11 @@
 		if(modulus_grid){
 			console.log("gridTrans before="+gridTrans[0]+" "+gridTrans[1]+" "+gridTrans[2]);
 			//printmat4(invmMatrix,"invmMatrix");
-			vec3.transformMat4(gridTrans,gridTrans,invmMatrix);
+			vec3.transformMat4(gridTrans,gridTrans,invmMatrix); //scales xyz inc from world to grid space
 			gridTrans[0] = gridTrans[0] % 0.1;
 			gridTrans[1] = gridTrans[1] % 0.1;
 			//printmat4(mMatrix,"mMatrix");
-			vec3.transformMat4(gridTrans,gridTrans,mMatrix);
+			vec3.transformMat4(gridTrans,gridTrans,mMatrix); //scales modulus grid back to world
 			console.log("gridTrans after="+gridTrans[0]+" "+gridTrans[1]+" "+gridTrans[2]);
 		}
 		mat4.identity(tMatrix);

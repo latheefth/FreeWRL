@@ -2222,7 +2222,7 @@ static int currentViewerLandPort = 0;
 static int rotatingCCW = FALSE;
 static double currentViewerAngle = 0.0;
 static double requestedViewerAngle = 0.0;
-
+void SSR_test_cumulative_pose();
 static void setup_viewpoint() {
 
 
@@ -2286,6 +2286,21 @@ static void setup_viewpoint() {
         render_hier(rootNode(), VF_Viewpoint);
 		profile_end("vp_hier");
         PRINT_GL_ERROR_IF_ANY("XEvents::setup_viewpoint");
+#ifdef SSR_SERVER
+		//just for a diagnostic test of transforms - replaces modelview matrix with one formed from cumQuat,cumTrans
+		if(0){
+			static double toggleTime = 0.0;
+			static int runTest = 0;
+			double dtime;
+			dtime = TickTime();
+			if(dtime - toggleTime > 5.0){
+				//alternate between ordinary view and test view every 5 seconds, to visually compare
+				runTest = 1 - runTest;
+				toggleTime = dtime;
+			}
+			if(runTest) SSR_test_cumulative_pose();
+		}
+#endif
 
 	/*
 	{ GLDOUBLE projMatrix[16];

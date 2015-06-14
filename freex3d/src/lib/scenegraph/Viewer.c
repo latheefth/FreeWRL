@@ -2240,18 +2240,7 @@ static void handle_tick_walk2(double dtime){
 		handle_tick_walk();
 	}
 }
-void double2quat(Quaternion *quat, double *quat4){
-	quat->x = quat4[0];
-	quat->y = quat4[1];
-	quat->z = quat4[2];
-	quat->w = quat4[3];
-}
-void quat2double(double *quat4,Quaternion *quat){
-	quat4[0] = quat->x;
-	quat4[1] = quat->y;
-	quat4[2] = quat->z;
-	quat4[3] = quat->w;
-}
+
 //an external program or app may want to set or get the viewer pose, with no slerping
 //SSR - these set/getpose are called from _DisplayThread
 static int no_xyz_reflection = 0;
@@ -2342,8 +2331,9 @@ void viewer_getview( double *viewMatrix){
 	//viewer_getpose(quat4,vec3);
 	//viewMatrix *= inv_quat4
 	//viewMatrix *= inv_vec3
-
-
+}
+void viewer_setview( double *viewMatrix){
+	FW_GL_SETDOUBLEV(GL_MODELVIEW_MATRIX, viewMatrix);
 }
 
 /* formerly package VRML::Viewer::ExFly

@@ -443,6 +443,22 @@ quaternion_slerp(Quaternion *ret, const Quaternion *q1, const Quaternion *q2, co
 	ret->z = scale0 * q1->z + scale1 * q2_array[2];
 	ret->w = scale0 * q1->w + scale1 * q2_array[3];
 }
+void quaternion_print(const Quaternion *quat, char* description ){
+	printf("quat %s",description);
+	printf(" xyzw=[%lf %lf %lf %lf]\n",quat->x,quat->y,quat->z,quat->w);
+}
+void double2quat(Quaternion *quat, double *quat4){
+	quat->x = quat4[0];
+	quat->y = quat4[1];
+	quat->z = quat4[2];
+	quat->w = quat4[3];
+}
+void quat2double(double *quat4,Quaternion *quat){
+	quat4[0] = quat->x;
+	quat4[1] = quat->y;
+	quat4[2] = quat->z;
+	quat4[3] = quat->w;
+}
 void vrmlrot_normalize(float *ret)
 {
 	float s = ret[0]*ret[0] + ret[1]*ret[1] + ret[2]*ret[2];
@@ -478,3 +494,4 @@ void vrmlrot_multiply(float* ret, float *a, float *b)
    ret[2] = ret[2]/ret[3];
    //vrmlrot_normalize(ret);
 }
+

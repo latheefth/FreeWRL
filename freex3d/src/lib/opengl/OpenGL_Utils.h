@@ -156,6 +156,7 @@ void fw_glRotatef (float a, float b, float c, float d);
 void fw_glScaled (GLDOUBLE a, GLDOUBLE b, GLDOUBLE c);
 void fw_glScalef (float a, float b, float c);
 void fw_glGetDoublev (int ty, GLDOUBLE *mat);
+void fw_glSetDoublev (int ty, GLDOUBLE *mat);
 
 /* OpenGL-ES specifics for Materials and Vertices */
 void fw_iphone_enableClientState(GLenum aaa);
