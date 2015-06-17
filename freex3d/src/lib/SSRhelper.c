@@ -16,6 +16,7 @@
 */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "list.h"
 #include "SSRhelper.h"
 //from Prodcon.c L.1100
@@ -84,70 +85,156 @@ void quaternion2double(double *q4, Quaternion *quat){
 }
 #include <math.h>
 static int reverse_sense_init = 0; //0 conceptually correct
-static int reverse_sense = 0; //0 conceptually correct
-static int reverse_order = 0; //0 conceptually correct
+static int reverse_sense_quat4 = 0; //0 conceptually correct
+static int reverse_sense_vec3 = 0;
+static int reverse_order_quat4 = 1; //0 conceptually correct
 void vp2world_initialize()
 {
-	/* world - View - Viewpoint - .position - .orientation
-		get ViewMatrix for worldcoordinates to bound-viewpoint-relative transformations
-		Assume View doesn't change through life of scene:
+	/*  
+		Computes the View' and inverseView' transforms where View' is View except without the .Quat, .Pos effects
+			View' = inv(.Quat) x inv(.Pos) x View
+		- then SSR_reply_pose() and SSR_set_pose() can transform client-side quat4,vec3 to/from viewer.Quat,.Pos:
+			(vec3,quat4) = (.Pos,.Quat) x View'
+			(.Pos,.Quat) = (vec3,quat4) x invView'
+		For SSR, assume View doesn't change through life of scene:
 			- no viewpoint animation 
 			- no switching bound viewpionts
 			-> then we only call this once on init ie ssr's init_pose (it's a bit heavy with inverses)
 		and assume this call is being made from outside render_hier()
 			- after seeking the view matrix
 			- so just the view matrix is in opengl's modelview matrix
-			- (do I have that correct?)
+
+		Colum-major vs Row-Major notation - it's a notion in the mind, and either way is correct
+			https://www.opengl.org/archives/resources/faq/technical/transformations.htm
+			opengl matrices elements 12,13,14 are the translations; 
+			3,7,11 are perspectives (zero for modelview, nonzero for projection); 15 == 1
+			OpenGL manuals show column major which is a bit counter-intuitive for C programmers:
+			[x]    [ 0  4  8 12]   [x]
+			[y]  = [ 1  5  9 13] x [y]    Column major notation, as OGL manuals show
+			[z]    [ 2  6 10 14]   [z]    4x1 = 4x4 x 4x1
+			[w]    [ 3  7 11 15]   [1]
+			Equivalent C row major order:
+			[x y z w] = [x y z 1] x [ 0  1  2  3]
+			.                       [ 4  5  6  7]   Row major notation
+			.                       [ 8  9 10 11]    1x4 = 1x4 x 4x4
+			.                       [12 13 14 15]
+		Note the notational order on right hand side is opposite. Below we will use the opengl column major ordering 
+			transform(r,a,M): r =  M x [a,1] //note vector in column form on right of matrix
+			matmultiply(r,a,b): r = a x b
+		(client gl-matrix.js is in opengl matrix order, same transform, but reverses order in matrix multiply)
+
 		The sense/direction of the view is the opengl sense of modelview: transform world2vp. 
+
+		vp2world sense:
+			world - View - Viewpoint - .position - .orientation - vp
+		world2vp sense (what is stored in opengl modelview matrix):
+			[vp xyz] =  world2vpMatrix x [world xyz] =  ViewMatrix x [world]
+			[vp xyz] =   viewMatrix x modelMatrix x [shape xyz]
+		ViewMatrix in world2vp sense (and opengl row-major order):
+		ViewMatrix =  viewer.Quat x -viewer.Pos  x viewer.AntiPos  x viewer.AntiQuat x -vp.orientation x -vp.position x -transforms 
+		View (world2vp sense, row major order) =  (mobile device screen orientation) x  world2vp(.Quat, .Pos) x vp2world(.AntiPos, .AntiQuat) x world2vp(.orientation, .position) x Transforms(in vp2world direction) 
+		assuming no screen orientation, and (.AntiPos,.AntiQuat) == (cancels) .orientation,.position, this simiplfies to:
+		View (world2vp sense, row major order) =  x (.Quat in world2vp, -(.Pos in vp2world)) x Transforms(in world2vp sense) 
+
+		opengl sense:
 		(a glTranslate(0,0,-5) will	translate an object in world coordinates by -5 along camera/viewpoint Z axis. 
 		Viewpoint/camera Z axis +backward, so -5 on object shifts the object 5 further away from camera 
 		assuming it starts in front of the camera. In this interpretation, object at world 0,0,0 gets transformed to 
 		camera/viewpoint 0,0,-5, and modelview matrix is in the sense of world to camera, or world2vp)
+		a glRotate(+angle,1,0,0) will rotate counter clockwise about the axis as seen looking down the axis toward the origin
+			-or what is normally called 'right hand rule': align the thumb on your right hand with the axis, and the
+			 way the fingers curl is the direction of rotation
+			-rotates world2vp
+		
+		x3d sense:
 		X3D's transform stack between root/world and viewpoint -the View matrix equivalent- 
 		is declared in X3D in the sense of (leaf object) to world or in our case (viewpoint) to world, or vp2world
 		X3D.s viewpoint .position, .orientation is also declared in the vp2world sense
 		freewrl reverses the x3d sense when building the View part of the Modelview, to put it in the opengl world2vp sense
-			- see INITIATE_POSITION_ANTIPOSITION macro, as used in bind_viewpoint()
+			- see INITIATE_POSITION_ANTIPOSITION macro, as used in bind_viewpoint() 
+			- see viewpoint_togl() as called from setup_viewpoint()
 			- see fin_transform() for render_vp/VF_Viewpoint pass
 
-		For example a translation of 10,0,0 in a Transform around bound vp will translate vp to the right in the world, that's a vp2world sense
+		For example a translation of 10,0,0 in a Transform around bound vp will translate vp to the right in the world, 
+		   that's a vp2world sense
 		A vp.position=10,0,0 has the same sense and magnitude, vp2world
 		To get this effect in an opengl modelview matrix transforming world2vp, freewrl subtracts 10 / uses -10 when
 			creating the opengl matrix.
 		And when converting .orientation to Quat, it inverts the direction. 
 		And when using .Pos = .position, it negates ie glTranslate(-position.x,-position.y,-position.z) and -.Pos.x, -Pos.y, -Pos.z
-		
-		View (world2vp sense) = (mobile device screen orientation) x world2vp(.Quat, .Pos) x vp2world(.AntiPos, .AntiQuat) x world2vp(.orientation, .position) x Transforms(in vp2world direction)
-		assuming no screen orientation, and (.AntiPos,.AntiQuat) == (cancels) .orientation,.position, this simiplfies to:
-		View (world2vp sense) =  Transforms(in world2vp sense) x (.Quat in world2vp, -(.Pos in vp2world))
 
-		So we can go back, we also initialize the inverses, to get the vp2world sense.
+		Note on quaternion commutivity: qa * qb != qb * qa -in general 3D rotations are non-commutative.
+		If you want to reverse the order of matrices C = A*B to get equivalent C = B'*A, you compute:
+			B'*A = A*B
+			multiply each side by inv(A)
+			inv(A)*B'A = inv(A)*A*B = Identity*B = B
+			rearranging:
+			B = inv(A)*B'*A
+			post-multiply each side by inv(A)
+			B*inv(A) = inv(A)*B'*A*inv(A) = inv(A)*B'*Identity = inv(A)*B'
+			multiply each side by A
+			A*B*inv(A) = A*inv(A)*B' = Identity*B' = B'
+			changing sides
+			B' = A*B*inv(A)
+			check by substituting in C=B'*A
+			C = A*B*inv(A)*A = A*B*Identity = A*B
+		If you want to reverse the order of quaternions qc = qa * qb = qb' * qa,
+			qb' * qa = qa * qb
+			qb' * qa * conj(qa) = qa * qb * conj(qa)
+			qb' = Identity = qa * qb * conj(qa)
+			qb' = qa * qb * conj(qa)   //method A
+			Numerically you can test, comparing to textbook formulas
+			qa*qb = conj(conj(qb)*conj(qa))   //method B
+				== qb'*qa ?
+			qb'*qa = conj(conj(qb)*conj(qa))
+			qb'*qa*conj(qa) = conj(conj(qb)*conj(qa))*conj(qa)
+			qb' = conj(conj(qb)*conj(qa))*conj(qa) ?
+
+
+		conceptually correct transforms, in row-major-notation order:
+		client (html javascript using gl-matrix.js):
+			viewpoint < cumQuat < cumPos < worldGrid
+			viewpoint =  cumQuat x cumPos x  [worldGrid]
+		server (freewrl):
+			viewpoint  < .Quat  <   -.Pos  <  View'  <  world
+			viewpoint = .Quat x -.Pos x View' x [world]
+		All the above transforms cumQuat,cumPos, .Quat, .Pos, View conceptually should have the world2vp sense '<'
+		To reverse the sense of the equation from vp2world to world2vp we multiply each side by the inverse of the 
+		 last-applied/first-notational transform on the right side, then inverse-something x something = Identity/I/1.0
+			invQuat x viewpoint = invQuat x Quat x -Pos x View' x [world] 
+							= Identity x -Pos x View' x [world] 
+							= -Pos x View' x [world]
+			inv(-Pos) x invQuat x viewpoint = inv(-Pos) x -Pos x View' x [world] 
+										= View' x [world]
+			invView' x inv(-Pos) x invQuat x viewpoint = invView' x View' x [world] = [world]
+			changing sides:
+			[world] = invView' x inv(-Pos) x invQuat x viewpoint 
 		
-		conceptually correct transforms:
-		viewpoint < cumQuat < cumPos < worldGrid
-		viewpoint  < .Quat  <    -.Pos  <  View'  <  world
-		- all the above transforms cumQuat,cumPos, .Quat, .Pos, View conceptually should have the world2vp sense '<'
+		Details:
 		server_side
 		A.vp2world_initialize
-			1) view = modelview at top of glmatrix stack, at scene root, after VF_Viewpoint pass
+			1) view = modelview at top of glmatrix stack, at scene root, in setup_viewpoint()
+				after viewer_togl() and render_heir() VF_Viewpoint pass
 					- includes .Quat, -.Pos
 			2) a) view' = f(view .Quat, .Pos)
-				b) view' = inv(-Pos) x (inv(.Quat)xView) = inv(-Pos)xinv(.Quat)xView = inv(Quat x (-Pos)) x view
+			   b) view' = inv(-Pos) x inv(.Quat) x View 
+						= inv(Quat x (-Pos)) x View
 			3) viewQuat' = matrix_to_quaternion(view')
+			4) invView = inv(view'), invQuat = inv(viewQuat') //converts from world2vp sense to vp2world sense
 		B.reply_pose
-			1) cumPos   = f(view',.Quat,.Pos) = -.Pos x view'
-			2) cumQuat = f(view',.Quat,.Pos) = .Quat x viewQuat
+			1) cumPos  = f(view',.Quat,.Pos) =  invView x -.Pos //we want .pos to be more 'worldly'
+			2) cumQuat = f(view',.Quat,.Pos) =  ViewQuat x .Quat //we just want to concatonate 2 quats, keeping the same sense
 		C.set_pose
-			1) .Pos = f(view',cumQuat,cumPos)  = -cumPos x inv(view')
-				post-mulitplying each side of B1 by inv(view'):
-				cumPos x inv(view') = -.Pos x view' x inv(view')
-							= -.Pos x I = -.Pos
-				.Pos = -cumPos x inv(view')
-			2) .Quat = f(view',cumQuat,cumPos) =  cumQuat x inv(viewQuat)
-				post-mulitplying each side of B2 by inv(viewQuat):
-				cumQuat x inv(viewQuat) = .Quat x viewQuat x inv(viewQuat)
-								= .Quat x I = .Quat
-				.Quat = cumQuat x inv(viewQuat)
+			1) .Pos = f(view',cumQuat,cumPos)  
+				mulitplying each side of B1 by view':
+				view' x cumPos = view' x invView' x -.Pos
+							=  Identity x -.Pos = -.Pos
+				.Pos =  view' x -cumPos
+			2) .Quat = f(view',cumQuat,cumPos)
+				mulitplying each side of B2 by inv(viewQuat):
+				inv(viewQuat) x cumQuat = inv(viewQuat) x viewQuat x .Quat
+								= Identity x .Quat = .Quat
+				.Quat = inv(viewQuat) x cumQuat
 
 	*/
 	if(!vp2world_initialized){
@@ -272,22 +359,22 @@ void SSR_reply_pose(SSR_request *request, int initialpose)
 		//or does inv_view contain the translation part I need to add to vec3?
 		printf("in reply_pose\n");
 		printmatrix2(inv_view,"inv_view");
-		printf("vec3 before=%d %d %d\n",vec3[0],vec3[1],vec3[2]);
-		if(reverse_sense){
+		printf("vec3 before=%lf %lf %lf\n",vec3[0],vec3[1],vec3[2]);
+		if(reverse_sense_vec3){
 			transformAFFINEd(request->vec3, vec3, inv_view); 
 		}else{
 			transformAFFINEd(request->vec3, vec3, view); 
 		}
-		printf("vec3 after=%d %d %d\n",request->vec3[0],request->vec3[1],request->vec3[2]);
+		printf("vec3 after=%lf %lf %lf\n",request->vec3[0],request->vec3[1],request->vec3[2]);
 
 		double2quaternion(&q4,quat4);
-		if(reverse_sense){
-			if(reverse_order)
+		if(reverse_sense_quat4){
+			if(reverse_order_quat4)
 				quaternion_multiply(&qtmp,&q4, &inv_viewQuat);
 			else
 				quaternion_multiply(&qtmp,&inv_viewQuat,&q4);
 		}else{
-			if(reverse_order)
+			if(reverse_order_quat4)
 				quaternion_multiply(&qtmp,&viewQuat,&q4);
 			else
 				quaternion_multiply(&qtmp,&q4, &viewQuat); //conceptually correct
@@ -303,8 +390,80 @@ void SSR_reply_pose(SSR_request *request, int initialpose)
 		viewer_getpose(request->quat4,request->vec3);
 	}
 }
+static ssr_test_initialized = FALSE;
+static run_ssr_test = FALSE;
+char *get_key_val(char *key);
+static double incYaw;
+static double incTrans[3];
+static int haveInc = FALSE;
+void ssr_test_key_val(char *key, char *val){
+	double dval;
+	int ok;
+	incTrans[0] = incTrans[1] = incTrans[2] = incYaw = 0.0;
+
+	ok = sscanf(val,"%lf",&dval);
+	if(!strcmp(key,"yaw")){
+		incYaw = dval;
+	} else
+	if(!strcmp(key,"z")){
+		incTrans[2] = dval;
+	} else
+	if(!strcmp(key,"x")){
+		incTrans[0] = dval;
+	} else
+	if(!strcmp(key,"y")){
+		incTrans[1] = dval;
+	}
+	haveInc = TRUE;
+}
+//#include <stdio.h>
+//#include <string.h>
+
+
+int ssr_test(char *keyval){
+	//save arbitrary char* keyval = "key,val" pairs, 
+	// for later retrieval with print_keyval or get_key_val
+	int i, iret;
+	char kv[100];
+	i = strlen(keyval);
+	iret = 0;
+	if(i > 100) 
+		iret = -1;
+	else
+	{
+		char *sep;
+		strcpy(kv,keyval);
+		sep = strchr(kv,',');
+		if(!sep) sep = strchr(kv,' ');
+		if(sep){
+			char *key, *val;
+			val = &sep[1];
+			(*sep) = '\0';
+			key = kv;
+			ssr_test_key_val(key,val);
+			iret = 1;
+		}
+	}
+	return iret;
+}
+void SSR_set_pose(SSR_request *request);
 void SSR_test_cumulative_pose(){
 	SSR_request r;
+	static int test_replace_view = 1; // replaces the view matrix with one from client-side-equivalent cumQuat,cumTrans
+	static int test_replace_quatpos = 1; //allows spacebar command ssrtest,yaw,.707 increments to cumQuat, cumTrans, then replaces viewer.quat,.pos
+	//we don't want to run this test when doing SSR, just when running normal freewrl. Its a kind of SSR client emulator test.
+	if(!ssr_test_initialized)
+	{
+		char *running_ssr = get_key_val("SSR");
+		run_ssr_test = TRUE;
+		if(running_ssr)
+			if(!strcmp(running_ssr,"true"))
+				run_ssr_test = FALSE;
+		ssr_test_initialized = TRUE;
+	}
+	if(!run_ssr_test) return;
+
+	vp2world_initialized = FALSE;
 	vp2world_initialize();
 	SSR_reply_pose(&r,FALSE);
 	//create M = f(cumQuat, cumTrans) like the SSRClient.html does, and set it as View matrix.
@@ -317,19 +476,86 @@ void SSR_test_cumulative_pose(){
 	{
 		double tMatrix[16], qMatrix[16], mvMatrix[16], rawView[16];
 		Quaternion cumQuat;
+		double cumTrans[3];
 
+		if(0){
+			//test freewrl/linearalgebra matmultiply order
+			double C[16],A[16],B[16], ppii;
+			ppii = acos(-1.0);
+			loadIdentityMatrix(A);
+			loadIdentityMatrix(B);
+			matrotate(A,ppii/2.0,1.0,0.0,0.0); //rotate about x by pi/2
+			matrotate(B,ppii/2.0,0.0,1.0,0.0); //rotate about y by pi/2
+			matmultiply(C,A,B);
+			printmatrix2(A,"A");
+			printmatrix2(B,"B");
+			printmatrix2(C,"C=AxB");
+		}
+
+		veccopyd(cumTrans,r.vec3);
 		viewer_getview(rawView);
 		printmatrix2(rawView,"rawView");
-		loadIdentityMatrix(tMatrix);
-		mattranslate(tMatrix,r.vec3[0],r.vec3[1],r.vec3[2]);
 		double2quat(&cumQuat,r.quat4);
+		if(haveInc){
+			Quaternion incQuat,invQuat,aQuat,bQuat;
+			vrmlrot_to_quaternion(&incQuat, 0.0,1.0,0.0,incYaw);
+			switch(1){
+			case 0:
+				//normally the incYaw is in vp space, and so we just keep multiplying cumQuat by incQuat.
+				// - like we do during navigation in Viewer.c
+				//but do we multiply on the left or the right? Or does it matter?
+				//Left - as with opengl columnwise notation, vp = vpspace x world2vp x [world], and ours is in vp space
+				quaternion_multiply(&cumQuat,&incQuat,&cumQuat);
+				break;
+			case 1:
+				//Right
+				quaternion_multiply(&cumQuat,&cumQuat,&incQuat);
+				break;
+			case 2:
+				//I can't think of a good reason why, but maybe we start on the 
+				// right, and want to get incQuat on the left of cumQuat before we multiply 
+				//qb' * qa = qa * qb
+				//qb' = qa * qb * conj(qa)   //method A
+				quaternion_multiply(&aQuat,&cumQuat,&incQuat); //qa * qb
+				quaternion_multiply(&cumQuat,&aQuat,&invQuat); //*conj(qa)
+				break;
+			case 3:
+				//another way to get incQuat from the right to the left side of cumQuat
+				//before multiplying
+				//qb' * qa = qa * qb
+				//qa*qb = conj(conj(qb)*conj(qa))   //method B
+				quaternion_inverse(&aQuat,&incQuat);  //conj(qb)
+				quaternion_multiply(&bQuat,&aQuat,&invQuat); //qb'*qa'
+				quaternion_inverse(&cumQuat,&bQuat); //conj(qb'*qa')
+				break;
+			default:
+				break;
+			}
+				
+			quaternion_normalize(&cumQuat);
+			quaternion_inverse(&invQuat,&cumQuat);
+			quaternion_rotationd(incTrans,&invQuat,incTrans);
+			vecaddd(cumTrans,incTrans,cumTrans);
+		}
+		loadIdentityMatrix(tMatrix);
+		mattranslate(tMatrix,cumTrans[0],cumTrans[1],cumTrans[2]);
+
 		loadIdentityMatrix(qMatrix);
 		quaternion_to_matrix(qMatrix, &cumQuat);
 		matmultiply(mvMatrix,qMatrix,tMatrix);
 		printmatrix2(mvMatrix,"mvMatrix");
-		viewer_setview(mvMatrix);
+		if(test_replace_view)
+			viewer_setview(mvMatrix);
+		if(test_replace_quatpos && haveInc){
+			SSR_request r;
+			veccopyd(r.vec3,cumTrans);
+			quaternion2double(r.quat4,&cumQuat);
+			SSR_set_pose(&r);
+			haveInc = FALSE;
+		}
 	}
 }
+
 void SSR_set_pose(SSR_request *request)
 {
 	/* request->quat4,vec3 - world - View - (Viewpoint node) - .Pos - .Quat - vp
@@ -345,23 +571,52 @@ void SSR_set_pose(SSR_request *request)
 		double quat4[4], vec3[3];
 		Quaternion qtmp, q4;
 		vp2world_initialize();
-		if(reverse_sense){
+		if(reverse_sense_vec3){
 			transformAFFINEd(vec3,request->vec3,view);
 		}else{
 			transformAFFINEd(vec3,request->vec3,inv_view); //conceptually correct
 		}
 		double2quaternion(&q4,request->quat4);
-		if(reverse_sense){
-			if(reverse_order)
-				quaternion_multiply(&qtmp,&q4,&viewQuat);
-			else
-				quaternion_multiply(&qtmp,&viewQuat,&q4);
-		}else{
-			if(reverse_order)
-				quaternion_multiply(&qtmp,&inv_viewQuat,&q4);
-			else
-				quaternion_multiply(&qtmp,&q4,&inv_viewQuat); //conceptually correct
+		if(0){
+			if(reverse_sense_quat4){
+				if(reverse_order_quat4)
+					quaternion_multiply(&qtmp,&q4,&viewQuat);
+				else
+					quaternion_multiply(&qtmp,&viewQuat,&q4);
+			}else{
+				if(reverse_order_quat4)
+					quaternion_multiply(&qtmp,&inv_viewQuat,&q4);
+				else
+					quaternion_multiply(&qtmp,&q4,&inv_viewQuat); //conceptually correct
+			}
 		}
+		switch(2){
+			//we want to know quat such that cumQuat = ViewQuat x quat.
+			//we have cumQuat, viewQuat.
+			//  viewquat' x cumQuat = viewquat' x viewquat x quat = Identity x quat = quat
+			// quat = viewquat' x cumQuat
+
+		case 0:
+			//best guess
+			quaternion_multiply(&qtmp,&inv_viewQuat,&q4);
+			break;
+		case 1:
+			//reverse order
+			quaternion_multiply(&qtmp,&q4,&inv_viewQuat);
+			break;
+		case 2:
+			//another way to get incQuat from the right to the left side of cumQuat
+			//before multiplying
+			//qb' * qa = qa * qb
+			//qa*qb = conj(conj(qb)*conj(qa))   //method B
+			quaternion_inverse(&q4,&q4);  //conj(qb)
+			quaternion_multiply(&q4,&q4,&inv_viewQuat); //qb'*qa'
+			quaternion_inverse(&qtmp,&q4); //conj(qb'*qa')
+			break;
+		default:
+			break;
+		}
+
 		quaternion2double(quat4,&qtmp);
 		printf("setting server pose quat4=[%lf %lf %lf %lf] vec3=[%lf %lf %lf]\n",quat4[0],quat4[1],quat4[2],quat4[3],vec3[0],vec3[1],vec3[2]);
 		viewer_setpose(quat4,vec3);

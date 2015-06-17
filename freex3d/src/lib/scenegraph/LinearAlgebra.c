@@ -326,6 +326,7 @@ float det3f(float *a, float *b, float *c)
 struct point_XYZ* transform(struct point_XYZ* r, const struct point_XYZ* a, const GLDOUBLE* b)
 {
 	//FLOPs 9 double
+	// r = a x b
     struct point_XYZ tmp; /* JAS*/
 
     if(r != a) { /*protect from self-assignments */
@@ -343,6 +344,7 @@ struct point_XYZ* transform(struct point_XYZ* r, const struct point_XYZ* a, cons
 }
 struct point_XYZ* transformAFFINE(struct point_XYZ* r, const struct point_XYZ* a, const GLDOUBLE* b){
 	//FLOPs 9 double
+	// r = a x b
 	return transform(r,a,b);
 }
 GLDOUBLE* pointxyz2double(double* r, struct point_XYZ *p){
@@ -354,6 +356,7 @@ struct point_XYZ* double2pointxyz(struct point_XYZ* r, double* p){
 	return r;
 }
 double *transformAFFINEd(double *r, double *a, const GLDOUBLE* mat){
+	// r = a x mat
 	struct point_XYZ pa, pr;
 	double2pointxyz(&pa,a);
 	transformAFFINE(&pr,&pa,mat);
@@ -363,6 +366,7 @@ double *transformAFFINEd(double *r, double *a, const GLDOUBLE* mat){
 
 float* transformf(float* r, const float* a, const GLDOUBLE* b)
 {
+	//r = a x b
     float tmp[3];  /* JAS*/
 
     if(r != a) { /*protect from self-assignments */
@@ -844,7 +848,9 @@ GLDOUBLE* mattranslate(GLDOUBLE* r, double dx, double dy, double dz)
 GLDOUBLE* matmultiplyFULL(GLDOUBLE* r, GLDOUBLE* mm , GLDOUBLE* nn)
 {
 	/* full 4x4, will do perspectives 
-	FLOPs 64 double: 4x4x4 */
+	FLOPs 64 double: 4x4x4 
+	r = mm x nn
+	*/
     GLDOUBLE tm[16],tn[16];
 	GLDOUBLE *m, *n;
 	int i,j,k;
@@ -895,7 +901,9 @@ GLDOUBLE* matmultiplyFULL(GLDOUBLE* r, GLDOUBLE* mm , GLDOUBLE* nn)
 GLDOUBLE* matmultiplyAFFINE(GLDOUBLE* r, GLDOUBLE* nn , GLDOUBLE* mm)
 {
 	/* AFFINE subset - ignores perspectives, use for MODELVIEW 
-	FLOPs 36 double: 3x3x4 */
+	FLOPs 36 double: 3x3x4 
+	r = nn x mm
+	*/
     GLDOUBLE tm[16],tn[16];
 	GLDOUBLE *m, *n;
 	int i; //,j,k;
@@ -961,7 +969,9 @@ GLDOUBLE* matmultiply(GLDOUBLE* r, GLDOUBLE* mm , GLDOUBLE* nn){
 
 float* matmultiply4f(float* r, float* mm , float* nn)
 {
-	/* FLOPs 64 float: N^3 = 4x4x4 */
+	/* FLOPs 64 float: N^3 = 4x4x4 
+	r = mm x nn
+	*/
     float tm[16],tn[16];
 	float *m, *n;
 	int i,j,k;
@@ -988,7 +998,9 @@ float* matmultiply4f(float* r, float* mm , float* nn)
 }
 float* matmultiply3f(float* r, float* mm , float* nn)
 {
-	/* FLOPs 27 float: N^3 = 3x3x3 */
+	/* FLOPs 27 float: N^3 = 3x3x3 
+	r = mm x nn
+	*/
     float tm[9],tn[9];
 	float *m, *n;
 	int i,j,k;
@@ -1513,19 +1525,30 @@ double *matcopy(double *r, double*mat){
 	memcpy((void*)r, (void*)mat,sizeof(double)*16);
 	return r;
 }
-
-void printmatrix2(GLDOUBLE* mat,char* description ) {
+void printmatrix3(GLDOUBLE *mat, char *description, int row_major){
     int i,j;
     printf("mat %s {\n",description);
-    for(i = 0; i< 4; i++) {
-		printf("mat [%2d-%2d] = ",i*4,(i*4)+3);
-		for(j=0;j<4;j++)
-			printf(" %f ",mat[(i*4)+j]);
-			//printf("mat[%d] = %f%s;\n",i,mat[i],i==12 ? " +disp.x" : i==13? " +disp.y" : i==14? " +disp.z" : "");
-		printf("\n");
-    }
+	if(row_major){
+		//prints in C row-major order, element numbers remain correct/same
+		for(i = 0; i< 4; i++) {
+			printf("mat [%2d-%2d] = ",i*4,(i*4)+3);
+			for(j=0;j<4;j++)
+				printf(" %lf ",mat[(i*4)+j]);
+			printf("\n");
+		}
+	}
+	if(!row_major){
+		//prints in opengl column-major order, element numbers remain correct/same
+		for(i=0;i<4;i++){
+			printf("mat [%2d %2d %2d %2d] =",i,i+4,i+8,i+12);
+			printf(" %lf %lf %lf %lf\n",mat[i],mat[i+4],mat[i+8],mat[i+12]);
+		}
+	}
     printf("}\n");
-
+}
+void printmatrix2(GLDOUBLE* mat,char* description ) {
+	static int row_major = FALSE;
+	printmatrix3(mat,description,row_major);
 }
 
 

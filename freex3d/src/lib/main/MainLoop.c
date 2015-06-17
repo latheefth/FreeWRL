@@ -2288,7 +2288,7 @@ static void setup_viewpoint() {
         PRINT_GL_ERROR_IF_ANY("XEvents::setup_viewpoint");
 #ifdef SSR_SERVER
 		//just for a diagnostic test of transforms - replaces modelview matrix with one formed from cumQuat,cumTrans
-		if(0){
+		if(1){
 			static double toggleTime = 0.0;
 			static int runTest = 0;
 			double dtime;

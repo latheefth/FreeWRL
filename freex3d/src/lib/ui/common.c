@@ -615,6 +615,7 @@ int print_keyval(char *key){
 	}
 	return 1;
 }
+int ssr_test(char *keyval);
 struct command {
 	char *key;
 	int (*cmdfunc)();
@@ -629,6 +630,7 @@ struct command {
 	{"colorscheme",NULL,fwl_set_ui_colorscheme,"[original,midnight,angry,favicon,aqua,neon:lime,neon:yellow,neon:cyan,neon:pink]"},
 	{"set_keyval",NULL,set_keyval,"key,val"},
 	{"print_keyval",NULL,print_keyval,"key"},
+	{"ssrtest",NULL,ssr_test,"nav,val"},
 	{"",print_help,NULL,NULL}, //bootstrap user knowhow by spacebarEnter lucky sequence
 	{NULL,NULL,NULL},
 };
