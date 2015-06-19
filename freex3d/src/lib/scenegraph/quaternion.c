@@ -332,10 +332,13 @@ void quaternion_add(Quaternion *ret, const Quaternion *q1, const Quaternion *q2)
 void
 quaternion_multiply(Quaternion *ret, const Quaternion *q1, const Quaternion *q2)
 {
-	ret->w = (q1->w * q2->w) - (q1->x * q2->x) - (q1->y * q2->y) - (q1->z * q2->z);
-	ret->x = (q1->w * q2->x) + (q1->x * q2->w) + (q1->y * q2->z) - (q1->z * q2->y);
-	ret->y = (q1->w * q2->y) + (q1->y * q2->w) - (q1->x * q2->z) + (q1->z * q2->x);
-	ret->z = (q1->w * q2->z) + (q1->z * q2->w) + (q1->x * q2->y) - (q1->y * q2->x);
+	Quaternion qa, qb;
+	quaternion_set(&qa,q1);
+	quaternion_set(&qb,q2);
+	ret->w = (qa.w * qb.w) - (qa.x * qb.x) - (qa.y * qb.y) - (qa.z * qb.z);
+	ret->x = (qa.w * qb.x) + (qa.x * qb.w) + (qa.y * qb.z) - (qa.z * qb.y);
+	ret->y = (qa.w * qb.y) + (qa.y * qb.w) - (qa.x * qb.z) + (qa.z * qb.x);
+	ret->z = (qa.w * qb.z) + (qa.z * qb.w) + (qa.x * qb.y) - (qa.y * qb.x);
 /* 	printf("Quaternion multiply: ret = {%f, %f, %f, %f}, q1 = {%f, %f, %f, %f}, q2 = {%f, %f, %f, %f}\n", ret->w, ret->x, ret->y, ret->z, q1->w, q1->x, q1->y, q1->z, q2->w, q2->x, q2->y, q2->z); */
 }
 
