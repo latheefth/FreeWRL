@@ -277,15 +277,23 @@ void vp2world_initialize()
 			double matinvpos[16],matinvquat[16];
 			matinverseAFFINE(matinvquat,mat2);
 			matinverseAFFINE(matinvpos,mat3);
-			if(1) matmultiply(mat,matinvpos,matinvquat); //conceptually correct
-			else matmultiply(mat,matinvquat,matinvpos);
+			//	view' x pos x invpos = ivew x invquat x invpos
+			//	view' = view x invquat x invpos = view x inv(pos x quat)
+			if(0) matmultiply(mat,matinvpos,matinvquat); //WRONG 
+			else matmultiply(mat,matinvquat,matinvpos); //RIGHT
 			printmatrix2(mat,"inv(vec3) x inv(quat)");
 		}
 
-		if(1)
-			matmultiply(view,mat,view); //conceptually correct - take off effect of .Pos, .Quat from View)
-		else
-			matmultiply(view,view,mat);
+		if(0)
+			matmultiply(view,mat,view); //WRONG - take off effect of .Pos, .Quat from View)
+		else{
+			/*	view' x pos x quat = view
+				view' x pos x quat x invquat = view x invquat
+				view' x pos x invpos = ivew x invquat x invpos
+				view' = view x invquat x invpos = view x inv(pos x quat)
+			*/
+			matmultiply(view,view,mat);  //RIGHT
+		}
 		printmatrix2(view,"view - no .pos .ori");
 		//now view should not have the .position, .orientation in it - just the transform stack from world to vp
 		matinverseAFFINE(inv_view, view); //we'll prepare inverse so we can transform position both ways
@@ -399,25 +407,37 @@ static run_ssr_test = FALSE;
 char *get_key_val(char *key);
 static double incYaw;
 static double incTrans[3];
+static double incWtrans[3];
 static int haveInc = FALSE;
 void ssr_test_key_val(char *key, char *val){
 	double dval;
 	int ok;
 	incTrans[0] = incTrans[1] = incTrans[2] = incYaw = 0.0;
+	incWtrans[0] = incWtrans[1] = incWtrans[2] = 0.0;
 
 	ok = sscanf(val,"%lf",&dval);
 	if(!strcmp(key,"yaw")){
 		incYaw = dval;
-	} else
-	if(!strcmp(key,"z")){
-		incTrans[2] = dval;
 	} else
 	if(!strcmp(key,"x")){
 		incTrans[0] = dval;
 	} else
 	if(!strcmp(key,"y")){
 		incTrans[1] = dval;
+	} else
+	if(!strcmp(key,"z")){
+		incTrans[2] = dval;
+	} else
+	if(!strcmp(key,"wx")){
+		incWtrans[0] = dval;
+	} else
+	if(!strcmp(key,"wy")){
+		incWtrans[1] = dval;
+	} else
+	if(!strcmp(key,"wz")){
+		incWtrans[2] = dval;
 	}
+
 	haveInc = TRUE;
 }
 //#include <stdio.h>
@@ -501,15 +521,10 @@ void SSR_test_cumulative_pose(){
 		viewer_getpose(quat4,vec3);
 		zero3[0] = zero3[1] = zero3[2] = 0.0; //vp in vp space = 0,0,0
 
-		if(1){
-			if(0){
-				loadIdentityMatrix(mata);
-				mattranslate(mata,vec3[0],vec3[1],vec3[2]);
-				matmultiply(mata,view,mata);
-				transformAFFINEd(cumpos,zero3,mata);
-			}else{
-				transformAFFINEd(cumpos,vec3,inv_view);
-			}
+		if(0){
+			//this cycles and applies incTrans, incQuat almost perfectly (z is wrong sign)
+			// but doesn't have world coords as an intemediate stage - incWtrans in crazy directions
+			transformAFFINEd(cumpos,vec3,inv_view);
 			double2quat(&qa,quat4);
 			quaternion_normalize(&qa);
 			if(1) quaternion_multiply(&cumquat,&viewQuat,&qa);
@@ -518,208 +533,60 @@ void SSR_test_cumulative_pose(){
 
 			//Step 2 add on global increments like SSRClient.html does
 			if(haveInc){
-				int ii;
-				//double iyaw = acos(-1.0)*.25; //.0001;
-				//for(ii=0;ii<1;ii++){
-					vrmlrot_to_quaternion(&incQuat,0.0,1.0,0.0,incYaw);
-					quaternion_normalize(&incQuat);
-					quaternion_multiply(&cumquat,&cumquat,&incQuat);
-					quaternion_normalize(&cumquat);
-				//}
+				vrmlrot_to_quaternion(&incQuat,0.0,1.0,0.0,incYaw);
+				quaternion_normalize(&incQuat);
+				quaternion_multiply(&cumquat,&cumquat,&incQuat);
+				quaternion_normalize(&cumquat);
 				quaternion_inverse(&cumquatinv,&cumquat);
 				if(0) quaternion_rotationd(incTrans,&cumquatinv,incTrans);
-				if(1) quaternion_rotationd(incTrans,&cumquat,incTrans);
+				if(1) quaternion_rotationd(incTrans,&cumquat,incTrans); //works but makes no sense, incTrans in vp, and cumquat in world2vp sense
 				vecaddd(cumpos,incTrans,cumpos);
+				vecaddd(cumpos,incWtrans,cumpos);
 
 				haveInc = FALSE;
 			}
 			//Step 3 convert back to quat, pos
 			//quat = inv_view x quat4
-			if(1) quaternion_multiply(&qb,&inv_viewQuat,&cumquat);
-			if(0) quaternion_multiply(&qb,&cumquat,&inv_viewQuat);
+			quaternion_multiply(&qb,&inv_viewQuat,&cumquat);
+			quaternion_normalize(&qb);
+			quat2double(quat4b,&qb);
+			//pos = inv_view x vec3 x quat4 x inv_quat
+			transformAFFINEd(vec3b,cumpos,view);
+		}else{
+			//goal: get incWtrans world coord +- working, without breaking inctrans
+			transformAFFINEd(cumpos,vec3,inv_view);
+			double2quat(&qa,quat4);
+			quaternion_normalize(&qa);
+			if(1) quaternion_multiply(&cumquat,&viewQuat,&qa); //cumquat should be in world2vp sense like view
+			if(0) quaternion_multiply(&cumquat,&qa,&viewQuat); 
+			quaternion_normalize(&cumquat);
+
+			//Step 2 add on global increments like SSRClient.html does
+			if(haveInc){
+				//incYaw, incTrans should be in vp coords
+				vrmlrot_to_quaternion(&incQuat,0.0,1.0,0.0,incYaw);
+				quaternion_normalize(&incQuat);
+				quaternion_multiply(&cumquat,&cumquat,&incQuat);
+				quaternion_normalize(&cumquat);
+				quaternion_inverse(&cumquatinv,&cumquat);
+				//transform incTrans from vp to world
+				if(0) quaternion_rotationd(incTrans,&cumquatinv,incTrans);
+				if(1) quaternion_rotationd(incTrans,&cumquat,incTrans); //works but makes no sense, incTrans in vp, and cumquat in world2vp sense
+				vecaddd(cumpos,incTrans,cumpos);
+				//incWtrans should be in world coords
+				vecaddd(cumpos,incWtrans,cumpos);
+
+				haveInc = FALSE;
+			}
+			//Step 3 convert back to quat, pos
+			//quat = inv_view x quat4
+			quaternion_multiply(&qb,&inv_viewQuat,&cumquat);
 			quaternion_normalize(&qb);
 			quat2double(quat4b,&qb);
 			//pos = inv_view x vec3 x quat4 x inv_quat
 			transformAFFINEd(vec3b,cumpos,view);
 		}
-		if(0){
-			//Step 1 convert .quat, .pos to global
-			
-			//quat4 = view x quat
-			double2quat(&qa,quat4);
-			quaternion_multiply(&cumquat,&viewQuat,&qa);
-			
-			//vec3 = view x pos x quat x invquat4
-			quaternion_inverse(&cumquatinv,&cumquat);
-			//zero3[0] = zero3[1] = zero3[2] = 0.0; //vp in vp space = 0,0,0
-			////quaternion_rotationd(vecpos,&cumquatinv,zero3); //zero rotated is still zero
-			////vecaddd(vecpos,vec3,vecpos); //zero added is still zero
-			///veccopyd(vecpos,vec3);
-			////transformAFFINEd(cumpos,vecpos,view); //seems very wrong
-			quaternion_multiply(&qb,&qa,&cumquatinv);
-			loadIdentityMatrix(mata);
-			quaternion_to_matrix(mata,&qb);
-			mattranslate(mata,vec3[0],vec3[1],vec3[2]);
-			matmultiply(mata,view,mata);
-			//mata is combined lot of stuff. Do we need to change thing
-			matrix_to_quaternion(&qc,mata);
-
-
-			
-			//Step 2 add on global increments like SSRClient.html does
-			if(haveInc){
-			}
-			//Step 3 convert back to quat, pos
-			//quat = inv_view x quat4
-			quaternion_multiply(&qb,&inv_viewQuat,&cumquat);
-			quat2double(quat4b,&qb);
-
-			//pos = inv_view x vec3 x quat4 x inv_quat
-			transformAFFINEd(vec3b,cumpos,inv_view);
-			quaternion_rotationd(vec3b,&cumquat,vec3b);
-			quaternion_inverse(&qa_inv,&qa);
-			quaternion_rotationd(vec3b,&qa_inv,vec3b);
-		}
-		//Or???
-		//vp x invquat = world x view x pos x quat x invquat = wordd x view x pos
-		//vp x invquat x invpos = word x view x pos x invpos = world x view
-		//vp x invquat x invpos x invview = world x view x invvew = world
-		//world = vp x invquat x invpos x invview
-		if(0){
-			//Step 1 convert .quat, .pos to global
-			double2quat(&qa,quat4);
-			loadIdentityMatrix(matquat);
-			quaternion_to_matrix(matquat,&qa);
-			loadIdentityMatrix(matvec);
-			mattranslate(matvec,vec3[0],vec3[1],vec3[2]); 
-			//assumes row-major ordering so vp = [world] x mat, with world-most components of mat on left
-			matmultiply(mata,matquat,matvec); // mata = quat x pos
-			matmultiply(matcum,view,mata);  // cum = view x quat x pos
-			matinverseAFFINE(matcuminv,matcum); //cuminv = inv(cum) = inv(view x pos x quat) = inv(quat) x inv(pos) x inv(view)
-			//matcuminv - vp2world
-			zero3[0] = zero3[1] = zero3[2] = 0.0; //vp in vp space = 0,0,0
-			transformAFFINEd(cumpos,zero3,matcuminv); //get vp position on the world side of the rotation
-			matrix_to_quaternion(&cumquat,matcum); // cumquat = view x quat in world2vp sense
-			loadIdentityMatrix(matcumquat);
-			quaternion_to_matrix(matcumquat,&cumquat);
-
-			//Step 2 add on global increments like SSRClient.html does
-			if(haveInc){
-				matinverseAFFINE(matcumquatinv,matcumquat);
-				transformAFFINEd(incTransb,incTrans,matcumquatinv); //get incTrans on world side of quat
-				//vecaddd(vec3,incTransb,vec3);
-				loadIdentityMatrix(matb);
-				mattranslate(matb,incTransb[0],incTransb[1],incTransb[2]);
-				matrotate(matb,incYaw,0.0,1.0,0.0);
-				matmultiply(matcum,matcum,matb);
-				haveInc = FALSE;
-			}
-
-			//Step 3 convert back to quat, pos
-			matinverseAFFINE(matcuminv,matcumquat);
-			if(0) transformAFFINEd(vec3b,zero3,matcuminv); //is this right, or a bad hack? Why zero in world space?
-			if(1) transformAFFINEd(vec3b,cumpos,matcuminv); //world 2 vp
-
-			matmultiply(matcum,inv_view,matcum);
-			matrix_to_quaternion(&qb,matcum);
-			quat2double(quat4b,&qb);
-			loadIdentityMatrix(matqb);
-			quaternion_to_matrix(matqb,&qb);
-			transformAFFINEd(vec3b,vec3b,matqb);
-		}
 		viewer_setpose(quat4b,vec3b);
-	}else{
-		SSR_reply_pose(&r,FALSE);
-		//create M = f(cumQuat, cumTrans) like the SSRClient.html does, and set it as View matrix.
-		//mat4.identity(tMatrix);
-		//mat4.translate(tMatrix,tMatrix,gridTrans);
-		//mat4.fromQuat(qMatrix,cumQuat);
-		////world2vp = mvMatrix = cumQuat x f(cumTrans) x mGrid
-		//mat4.multiply(qtMatrix,qMatrix,tMatrix); 
-		//mat4.multiply(mvMatrix,qtMatrix,mMatrix);
-		{
-			double tMatrix[16], qMatrix[16], mvMatrix[16], rawView[16];
-			Quaternion cumQuat;
-			double cumTrans[3];
-
-			if(0){
-				//test freewrl/linearalgebra matmultiply order
-				double C[16],A[16],B[16], ppii;
-				ppii = acos(-1.0);
-				loadIdentityMatrix(A);
-				loadIdentityMatrix(B);
-				matrotate(A,ppii/2.0,1.0,0.0,0.0); //rotate about x by pi/2
-				matrotate(B,ppii/2.0,0.0,1.0,0.0); //rotate about y by pi/2
-				matmultiply(C,A,B);
-				printmatrix2(A,"A");
-				printmatrix2(B,"B");
-				printmatrix2(C,"C=AxB");
-			}
-
-			veccopyd(cumTrans,r.vec3);
-			viewer_getview(rawView);
-			printmatrix2(rawView,"rawView");
-			double2quat(&cumQuat,r.quat4);
-			if(haveInc){
-				Quaternion incQuat,invQuat,aQuat,bQuat;
-				vrmlrot_to_quaternion(&incQuat, 0.0,1.0,0.0,incYaw);
-				switch(1){
-				case 0:
-					//normally the incYaw is in vp space, and so we just keep multiplying cumQuat by incQuat.
-					// - like we do during navigation in Viewer.c
-					//but do we multiply on the left or the right? Or does it matter?
-					//Left - as with opengl columnwise notation, vp = vpspace x world2vp x [world], and ours is in vp space
-					quaternion_multiply(&cumQuat,&incQuat,&cumQuat);
-					break;
-				case 1:
-					//Right
-					quaternion_multiply(&cumQuat,&cumQuat,&incQuat);
-					break;
-				case 2:
-					//I can't think of a good reason why, but maybe we start on the 
-					// right, and want to get incQuat on the left of cumQuat before we multiply 
-					//qb' * qa = qa * qb
-					//qb' = qa * qb * conj(qa)   //method A
-					quaternion_multiply(&aQuat,&cumQuat,&incQuat); //qa * qb
-					quaternion_multiply(&cumQuat,&aQuat,&invQuat); //*conj(qa)
-					break;
-				case 3:
-					//another way to get incQuat from the right to the left side of cumQuat
-					//before multiplying
-					//qb' * qa = qa * qb
-					//qa*qb = conj(conj(qb)*conj(qa))   //method B
-					quaternion_inverse(&aQuat,&incQuat);  //conj(qb)
-					quaternion_multiply(&bQuat,&aQuat,&invQuat); //qb'*qa'
-					quaternion_inverse(&cumQuat,&bQuat); //conj(qb'*qa')
-					break;
-				default:
-					break;
-				}
-				
-				quaternion_normalize(&cumQuat);
-				quaternion_inverse(&invQuat,&cumQuat);
-				quaternion_rotationd(incTrans,&invQuat,incTrans);
-				vecaddd(cumTrans,incTrans,cumTrans);
-
-
-			}
-			loadIdentityMatrix(tMatrix);
-			mattranslate(tMatrix,cumTrans[0],cumTrans[1],cumTrans[2]);
-
-			loadIdentityMatrix(qMatrix);
-			quaternion_to_matrix(qMatrix, &cumQuat);
-			matmultiply(mvMatrix,qMatrix,tMatrix);
-			printmatrix2(mvMatrix,"mvMatrix");
-			if(test_replace_view)
-				viewer_setview(mvMatrix);
-			if(test_replace_quatpos && haveInc){
-				SSR_request r;
-				veccopyd(r.vec3,cumTrans);
-				quaternion2double(r.quat4,&cumQuat);
-				SSR_set_pose(&r);
-				haveInc = FALSE;
-			}
-		}
 	}
 }
 
