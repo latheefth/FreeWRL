@@ -356,42 +356,20 @@ void SSR_reply_pose(SSR_request *request, int initialpose)
 		vp2world_initialize();
 		if(initialpose){
 			viewer_getbindpose(quat4,vec3);
-			printf("getting initial viewpoint pose:\n");
+			//printf("getting initial viewpoint pose:\n");
 		}else{
 			viewer_getpose(quat4,vec3);
-			printf("getting current viewpoint pose:\n");
+			//printf("getting current viewpoint pose:\n");
 		}
-		printf(" quat4=[%lf %lf %lf %lf] vec3=[%lf %lf %lf]\n",
-		quat4[0],quat4[1],quat4[2],quat4[3],vec3[0],vec3[1],vec3[2]);
 		
-		//am I missing the translation part of view here? 
-		//Should I be using just the rotation inverse here?, 
-		//or does inv_view contain the translation part I need to add to vec3?
-		printf("in reply_pose\n");
-		printmatrix2(inv_view,"inv_view");
-		printf("vec3 before=%lf %lf %lf\n",vec3[0],vec3[1],vec3[2]);
-		if(reverse_sense_vec3){
-			transformAFFINEd(request->vec3, vec3, inv_view); 
-		}else{
-			transformAFFINEd(request->vec3, vec3, view); 
-		}
-		printf("vec3 after=%lf %lf %lf\n",request->vec3[0],request->vec3[1],request->vec3[2]);
+		transformAFFINEd(request->vec3, vec3, inv_view); 
 
 		double2quaternion(&q4,quat4);
 		quaternion_normalize(&q4);
-		if(reverse_sense_quat4){
-			if(reverse_order_quat4)
-				quaternion_multiply(&qtmp,&q4, &inv_viewQuat);
-			else
-				quaternion_multiply(&qtmp,&inv_viewQuat,&q4);
-		}else{
-			if(reverse_order_quat4)
-				quaternion_multiply(&qtmp,&viewQuat,&q4);
-			else
-				quaternion_multiply(&qtmp,&q4, &viewQuat); //conceptually correct
-		}
+		quaternion_multiply(&qtmp,&viewQuat,&q4);
 		quaternion_normalize(&qtmp);
 		quaternion2double(request->quat4,&qtmp);
+
 		memcpy(vec3,request->vec3,3*sizeof(double));
 		memcpy(quat4,request->quat4,4*sizeof(double));
 		printf("getting server pose quat4=[%lf %lf %lf %lf] vec3=[%lf %lf %lf]\n",
@@ -521,71 +499,38 @@ void SSR_test_cumulative_pose(){
 		viewer_getpose(quat4,vec3);
 		zero3[0] = zero3[1] = zero3[2] = 0.0; //vp in vp space = 0,0,0
 
-		if(0){
-			//this cycles and applies incTrans, incQuat almost perfectly (z is wrong sign)
-			// but doesn't have world coords as an intemediate stage - incWtrans in crazy directions
-			transformAFFINEd(cumpos,vec3,inv_view);
-			double2quat(&qa,quat4);
-			quaternion_normalize(&qa);
-			if(1) quaternion_multiply(&cumquat,&viewQuat,&qa);
-			if(0) quaternion_multiply(&cumquat,&qa,&viewQuat);
+		//goal: get incWtrans world coord +- working, without breaking inctrans
+		transformAFFINEd(cumpos,vec3,inv_view);
+		double2quat(&qa,quat4);
+		quaternion_normalize(&qa);
+		quaternion_multiply(&cumquat,&viewQuat,&qa); //cumquat should be in world2vp sense like view
+		quaternion_normalize(&cumquat);
+
+		//Step 2 add on global increments like SSRClient.html does
+		if(haveInc){
+			//incYaw, incTrans should be in vp coords
+			vrmlrot_to_quaternion(&incQuat,0.0,1.0,0.0,incYaw);
+			quaternion_normalize(&incQuat);
+			quaternion_multiply(&cumquat,&cumquat,&incQuat);
 			quaternion_normalize(&cumquat);
+			quaternion_inverse(&cumquatinv,&cumquat);
+			//transform incTrans from vp to world
+			if(0) quaternion_rotationd(incTrans,&cumquatinv,incTrans);
+			if(1) quaternion_rotationd(incTrans,&cumquat,incTrans); //works but makes no sense, incTrans in vp, and cumquat in world2vp sense
+			vecaddd(cumpos,incTrans,cumpos);
+			//incWtrans should be in world coords
+			vecaddd(cumpos,incWtrans,cumpos);
 
-			//Step 2 add on global increments like SSRClient.html does
-			if(haveInc){
-				vrmlrot_to_quaternion(&incQuat,0.0,1.0,0.0,incYaw);
-				quaternion_normalize(&incQuat);
-				quaternion_multiply(&cumquat,&cumquat,&incQuat);
-				quaternion_normalize(&cumquat);
-				quaternion_inverse(&cumquatinv,&cumquat);
-				if(0) quaternion_rotationd(incTrans,&cumquatinv,incTrans);
-				if(1) quaternion_rotationd(incTrans,&cumquat,incTrans); //works but makes no sense, incTrans in vp, and cumquat in world2vp sense
-				vecaddd(cumpos,incTrans,cumpos);
-				vecaddd(cumpos,incWtrans,cumpos);
-
-				haveInc = FALSE;
-			}
-			//Step 3 convert back to quat, pos
-			//quat = inv_view x quat4
-			quaternion_multiply(&qb,&inv_viewQuat,&cumquat);
-			quaternion_normalize(&qb);
-			quat2double(quat4b,&qb);
-			//pos = inv_view x vec3 x quat4 x inv_quat
-			transformAFFINEd(vec3b,cumpos,view);
-		}else{
-			//goal: get incWtrans world coord +- working, without breaking inctrans
-			transformAFFINEd(cumpos,vec3,inv_view);
-			double2quat(&qa,quat4);
-			quaternion_normalize(&qa);
-			if(1) quaternion_multiply(&cumquat,&viewQuat,&qa); //cumquat should be in world2vp sense like view
-			if(0) quaternion_multiply(&cumquat,&qa,&viewQuat); 
-			quaternion_normalize(&cumquat);
-
-			//Step 2 add on global increments like SSRClient.html does
-			if(haveInc){
-				//incYaw, incTrans should be in vp coords
-				vrmlrot_to_quaternion(&incQuat,0.0,1.0,0.0,incYaw);
-				quaternion_normalize(&incQuat);
-				quaternion_multiply(&cumquat,&cumquat,&incQuat);
-				quaternion_normalize(&cumquat);
-				quaternion_inverse(&cumquatinv,&cumquat);
-				//transform incTrans from vp to world
-				if(0) quaternion_rotationd(incTrans,&cumquatinv,incTrans);
-				if(1) quaternion_rotationd(incTrans,&cumquat,incTrans); //works but makes no sense, incTrans in vp, and cumquat in world2vp sense
-				vecaddd(cumpos,incTrans,cumpos);
-				//incWtrans should be in world coords
-				vecaddd(cumpos,incWtrans,cumpos);
-
-				haveInc = FALSE;
-			}
-			//Step 3 convert back to quat, pos
-			//quat = inv_view x quat4
-			quaternion_multiply(&qb,&inv_viewQuat,&cumquat);
-			quaternion_normalize(&qb);
-			quat2double(quat4b,&qb);
-			//pos = inv_view x vec3 x quat4 x inv_quat
-			transformAFFINEd(vec3b,cumpos,view);
+			haveInc = FALSE;
 		}
+
+		//Step 3 convert back to quat, pos
+		//quat = inv_view x quat4
+		quaternion_multiply(&qb,&inv_viewQuat,&cumquat);
+		quaternion_normalize(&qb);
+		quat2double(quat4b,&qb);
+		//pos = inv_view x vec3 x quat4 x inv_quat
+		transformAFFINEd(vec3b,cumpos,view);
 		viewer_setpose(quat4b,vec3b);
 	}
 }
@@ -605,52 +550,9 @@ void SSR_set_pose(SSR_request *request)
 		double quat4[4], vec3[3];
 		Quaternion qtmp, q4;
 		vp2world_initialize();
-		if(reverse_sense_vec3){
-			transformAFFINEd(vec3,request->vec3,view);
-		}else{
-			transformAFFINEd(vec3,request->vec3,inv_view); //conceptually correct
-		}
+		transformAFFINEd(vec3,request->vec3,view);
 		double2quaternion(&q4,request->quat4);
-		if(0){
-			if(reverse_sense_quat4){
-				if(reverse_order_quat4)
-					quaternion_multiply(&qtmp,&q4,&viewQuat);
-				else
-					quaternion_multiply(&qtmp,&viewQuat,&q4);
-			}else{
-				if(reverse_order_quat4)
-					quaternion_multiply(&qtmp,&inv_viewQuat,&q4);
-				else
-					quaternion_multiply(&qtmp,&q4,&inv_viewQuat); //conceptually correct
-			}
-		}
-		switch(2){
-			//we want to know quat such that cumQuat = ViewQuat x quat.
-			//we have cumQuat, viewQuat.
-			//  viewquat' x cumQuat = viewquat' x viewquat x quat = Identity x quat = quat
-			// quat = viewquat' x cumQuat
-
-		case 0:
-			//best guess
-			quaternion_multiply(&qtmp,&inv_viewQuat,&q4);
-			break;
-		case 1:
-			//reverse order
-			quaternion_multiply(&qtmp,&q4,&inv_viewQuat);
-			break;
-		case 2:
-			//another way to get incQuat from the right to the left side of cumQuat
-			//before multiplying
-			//qb' * qa = qa * qb
-			//qa*qb = conj(conj(qb)*conj(qa))   //method B
-			quaternion_inverse(&q4,&q4);  //conj(qb)
-			quaternion_multiply(&q4,&q4,&inv_viewQuat); //qb'*qa'
-			quaternion_inverse(&qtmp,&q4); //conj(qb'*qa')
-			break;
-		default:
-			break;
-		}
-
+		quaternion_multiply(&qtmp,&inv_viewQuat,&q4);
 		quaternion2double(quat4,&qtmp);
 		printf("setting server pose quat4=[%lf %lf %lf %lf] vec3=[%lf %lf %lf]\n",quat4[0],quat4[1],quat4[2],quat4[3],vec3[0],vec3[1],vec3[2]);
 		viewer_setpose(quat4,vec3);

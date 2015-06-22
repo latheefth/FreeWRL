@@ -82,7 +82,7 @@
 		var far = 1000.0;
 		mat4.perspective(pMatrix, fovy, aspect, near, far);
 		mat4.identity(mMatrix);
-		mat4.scale(mMatrix,mMatrix,vec3.fromValues(50.0,25.0,50.0)); //arbitrary scale to make our grid a bit bigger
+		mat4.scale(mMatrix,mMatrix,vec3.fromValues(300.0,150.0,300.0)); //arbitrary scale to make our grid a bit bigger
 		mat4.invert(invmMatrix,mMatrix);
 		//printmat4(mMatrix,"mMatrix");
 		//printmat4(invmMatrix,"invmMatrix");
@@ -102,6 +102,7 @@
 		var sscale = 1.0;
 		var n = 10; //10 makes 21x21 grid ie 2*n+1 per direction
 		var nline = (2*n + 1)*2;
+		nline += 4; //for +X, +Z,Z', +Y ground/world axes for testing 
 		var vert = new Array(nline * 6);
 		for(var i=-n;i<=n;i++){
 			for(var j=0;j<2;j++)
@@ -125,6 +126,43 @@
 				k++;
 			}
 		}
+		//+Z ground axis
+		vert[k*3 + 0] = 0.0;
+		vert[k*3 + 1] = 0.0;
+		vert[k*3 + 2] = 0.0;
+		k++;
+		vert[k*3 + 0] = 0.0;
+		vert[k*3 + 1] = 0.0;
+		vert[k*3 + 2] = 100.0;
+		k++;
+		//+Z' ground axis (offset slightly, to thicken Z axis to make sure its not Y axis)
+		vert[k*3 + 0] = 0.01;
+		vert[k*3 + 1] = 0.0;
+		vert[k*3 + 2] = 0.0;
+		k++;
+		vert[k*3 + 0] = 0.01;
+		vert[k*3 + 1] = 0.0;
+		vert[k*3 + 2] = 100.0;
+		k++;
+		//+Y ground axis
+		vert[k*3 + 0] = 0.0;
+		vert[k*3 + 1] = 0.0;
+		vert[k*3 + 2] = 0.0;
+		k++;
+		vert[k*3 + 0] = 0.0;
+		vert[k*3 + 1] = 100.0;
+		vert[k*3 + 2] = 0.0;
+		k++;
+		//+Y ground axis
+		vert[k*3 + 0] = 0.0;
+		vert[k*3 + 1] = 0.0;
+		vert[k*3 + 2] = 0.0;
+		k++;
+		vert[k*3 + 0] = 100.0;
+		vert[k*3 + 1] = 0.0;
+		vert[k*3 + 2] = 0.0;
+		k++;
+
 		gridlines = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, gridlines);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vert), gl.STATIC_DRAW);
@@ -191,18 +229,18 @@
 	var height = 1.75; //Z of viewpoint above Z=0 plane
 	var speed = 1.0;
 	var navMode = 0; //0=yawz, 1=xy
+	var navElements = new Array("navYAWZ","navXY", "navWXY");
 	function toggleNav(value){
 		//radio buttons via 2 checkboxes
-		switch(value){
-			case 0: //yawz
-				navMode = document.getElementById('navYAWZ').checked ? 0 : 1;
-				document.getElementById('navXY').checked = navMode;
-				break;
-			case 1: //xy
-				navMode = document.getElementById('navXY').checked ? 1 : 0;
-				document.getElementById('navYAWZ').checked = 1-navMode;
-				break;
-		}
+		var oldnav = navMode;
+		var checked = false;
+		checked = document.getElementById(navElements[value]).checked;
+		if(checked)
+			navMode = value;
+		else
+			navMode = -1;
+		if(navMode != oldnav)
+			document.getElementById(navElements[oldnav]).checked = false;
 	}
 	function changePitch(value){
 		pitch = value * Math.PI / 180.0
@@ -234,29 +272,30 @@
 	var qtMatrix = mat4.create();
 	var gridTrans = vec3.fromValues(0.0,0.0,0.0);
 	var incTrans = vec3.create();
+	var incWtrans = vec3.create();
 	var incQuat = quat.create();
 	var invQuat = quat.create();
-	var modulus_grid = true; //appear to add more grid when navigating toward a grid edge
-	var reverse_order_quat4 = false;
-	var reverse_order_qt = false;
-	var reverse_sense_incTrans = false;
-	var reverse_order_mv = false;
-	var transform_trans = true;
-	var combo_num = 0; //0-15 for 4
+	var modulus_grid = false; //appear to add more grid when navigating toward a grid edge
+	var cA = false;
+	var cB = false;
+	var cC = false;
+	var cD = false;
+	var combo_num = 3; //0-15 for 4
 	//             0      1      2      3       4      5      6      7       8      9      10     11      12     13     14     15
 	var combos = ["0000","1000","0100","0010", "0001","1100","1010","1001", "1110","1101","1111","0101", "0110","0111","0011","0001"];
-	var combo_set = true;
+	var combo_set = false;
 	function setCombo(){
 		if(!combo_set){
-			if(combos[combo_num].charAt(0) == '1') reverse_order_quat4 = true;
-			if(combos[combo_num].charAt(1) == '1') reverse_order_qt = true;
-			if(combos[combo_num].charAt(2) == '1') reverse_sense_incTrans = true;
-			if(combos[combo_num].charAt(3) == '1') reverse_order_mv = true;
-			console.log("settings="+reverse_order_quat4+" "+reverse_order_qt+" "+reverse_sense_incTrans+" "+reverse_order_mv);
+			if(combos[combo_num].charAt(0) == '1') cA = true;
+			if(combos[combo_num].charAt(1) == '1') cB = true;
+			if(combos[combo_num].charAt(2) == '1') cC = true;
+			if(combos[combo_num].charAt(3) == '1') cD = true;
+			console.log("settings="+cA+" "+cB+" "+cC+" "+cD);
 			combo_set = true;
 		}
 	}
 	function toMvMatrix(){
+		setCombo();
 		//mvMatrix is used to draw the grid on the client side, = world2vp
 		//cumQuat,cumTrans is used for the pose on the server side = vp2world //world2vp
 		//incQuat, incTrans are in vp coord system, increments from mouse motion
@@ -264,52 +303,50 @@
 		//invQuat = inv(cumQuat)  changes it to world2vp //vp2world direction
 		//cumTrans += invQuat x inv(incTrans)  - cumTrans in world coords, in direction of vp2world //world2vp
 		//quat.multiply(incQuat,incQuat,invQuat);
-		setCombo();
-		if(reverse_order_quat4)
-			quat.multiply(cumQuat,cumQuat,incQuat);
-		else
-			quat.multiply(cumQuat,incQuat,cumQuat);
+		quat.multiply(cumQuat,cumQuat,incQuat);
+		quat.normalize(cumQuat,cumQuat);
 		//cumTrans += vp2world x incTrans, so cumTrans in world
-		quat.invert(invQuat,cumQuat);
+		//quat.invert(invQuat,cumQuat);
 		var trTrans = vec3.create();
-		if(transform_trans){
-			if(reverse_sense_incTrans)
-				vec3.transformQuat(trTrans,incTrans,cumQuat); 
-			else
-				vec3.transformQuat(trTrans,incTrans,invQuat); 
-		}else{
-			vec3.copy(trTrans,incTrans);
-		}
+		vec3.transformQuat(trTrans,incTrans,cumQuat); 
 		vec3.add(cumTrans,cumTrans,trTrans);
-
+		vec3.add(cumTrans,incWtrans,cumTrans);
 		//vpGrid = world2vp x worldGrid
 		//vpGrid = cumQuat x cumTrans x mGrid x Grid
 		//if doing a modulus grid - finite, but stays under avatar- then:
 		//vpGrid = cumQuat x mGrid x modulus(invmGrid x cumTrans) x Grid
 		vec3.copy(gridTrans,cumTrans);
 
+		modulus_grid = false;
 		if(modulus_grid){
-			console.log("gridTrans before="+gridTrans[0]+" "+gridTrans[1]+" "+gridTrans[2]);
+			//console.log("gridTrans before="+gridTrans[0]+" "+gridTrans[1]+" "+gridTrans[2]);
 			//printmat4(invmMatrix,"invmMatrix");
 			vec3.transformMat4(gridTrans,gridTrans,invmMatrix); //scales xyz inc from world to grid space
 			gridTrans[0] = gridTrans[0] % 0.1;
 			gridTrans[1] = gridTrans[1] % 0.1;
 			//printmat4(mMatrix,"mMatrix");
 			vec3.transformMat4(gridTrans,gridTrans,mMatrix); //scales modulus grid back to world
-			console.log("gridTrans after="+gridTrans[0]+" "+gridTrans[1]+" "+gridTrans[2]);
+			//console.log("gridTrans after="+gridTrans[0]+" "+gridTrans[1]+" "+gridTrans[2]);
 		}
 		mat4.identity(tMatrix);
 		mat4.translate(tMatrix,tMatrix,gridTrans);
-		mat4.fromQuat(qMatrix,cumQuat);
+		quat.invert(invQuat,cumQuat);
+		mat4.identity(qtMatrix);
+		mat4.identity(qMatrix);
+		if(cA) //true conceptually correct, false works
+			mat4.fromQuat(qMatrix,cumQuat);
+		else
+			mat4.fromQuat(qMatrix,invQuat);
 		//world2vp = mvMatrix = cumQuat x f(cumTrans) x mGrid
-		if(reverse_order_qt)
+		if(cB) //true conceptually correct, false works
 			mat4.multiply(qtMatrix,tMatrix,qMatrix); 
 		else
 			mat4.multiply(qtMatrix,qMatrix,tMatrix); 
-		if(reverse_order_mv)
-			mat4.multiply(mvMatrix,mMatrix,qtMatrix);
-		else
+		if(cC) //true conceptually correct, true works
 			mat4.multiply(mvMatrix,qtMatrix,mMatrix);
+		else
+			mat4.multiply(mvMatrix,mMatrix,qtMatrix);
+		if(cD) mat4.invert(mvMatrix,mvMatrix); //false conceptually correct, false works
 	}
 	function ontick_mouse(now) {
 		if (!mouseDown) {
@@ -321,23 +358,32 @@
 		var deltaY = -(mouseY - mouseY0); //make mouse Y-up
 		var incYaw = 0.0;
 		quat.identity(incQuat);
+		vec3.set(incWtrans,0.0,0.0,0.0);
+		vec3.set(incTrans,0.0,0.0,0.0);
+		incYaw = 0.0;
+		
 		switch(navMode){
 		case 0: //yawz
 			//sign is -ve because when we go forward, we drag mouse up (+delta)
 			//but in viewpoint coord system, foreward is -Z
 			var ZD = -deltaY*deltaY*deltaY*az*deltaT*speed/1000.0;
-			vec3.set(incTrans,0.0,0.0,-ZD);
-			incYaw = -deltaX*deltaX*deltaX*ar*deltaT/1000.0;
-			quat.rotateY(incQuat,incQuat,-incYaw);
+			vec3.set(incTrans,0.0,0.0,ZD);
+			incYaw = deltaX*deltaX*deltaX*ar*deltaT/1000.0;
+			quat.rotateY(incQuat,incQuat,incYaw);
+			quat.normalize(incQuat,incQuat);
 			break;
 		case 1: //xy
-			var XD = deltaX*deltaX*deltaX*ar*deltaT*speed/1000.0;
+			var XD = -deltaX*deltaX*deltaX*ar*deltaT*speed/1000.0;
 			var YD = deltaY*deltaY*deltaY*az*deltaT*speed/1000.0;
-			vec3.set(incTrans,-XD,-YD,0.0);
+			vec3.set(incTrans,XD,YD,0.0);
+			break;
+		case 2: //world xy
+			var XD = -deltaX*deltaX*deltaX*az*deltaT*speed/1000.0;
+			var YD = -deltaY*deltaY*deltaY*az*deltaT*speed/1000.0;
+			vec3.set(incWtrans,XD,YD,0.0);
 			break;
 		default:
-			vec3.set(incTrans,0.0,0.0,0.0);
-			incYaw = 0.0;
+			break;
 		}
 		//vec3.add(worldTrans,worldTrans,incTrans);
 		//worldTrans[2] = 0.0; //height;
@@ -540,6 +586,7 @@
 	<input type="button" id="testbut" onclick="testOnClick()"><label>test</label><br>
 	<input type="checkbox" id="navYAWZ" onclick="toggleNav(0)" checked><label>yawz</label><br>
 	<input type="checkbox" id="navXY" onclick="toggleNav(1)"><label>xy</label><br>
+	<input type="checkbox" id="navWXY" onclick="toggleNav(2)"><label>world xy</label><br>
 	<label>Pitch: </label>Nadir <input type="range" id="sliderPitch" min="-90" max="90" step="5" value="0" onchange="changePitch(this.value)"/>Zenith<br>
 	<label>Height: </label>Ground <input type="range" id="sliderHeight" min="1.32" max="100" step="1" value="1.32" onchange="changeHeight(this.value)"/>10km<br>
 	<label>Speed: </label>Slow <input type="range" id="sliderSpeed" min="-2" max="2" step=".2" value="0" onchange="changeSpeed(this.value)"/>Fast<br>
