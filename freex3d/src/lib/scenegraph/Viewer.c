@@ -2243,32 +2243,20 @@ static void handle_tick_walk2(double dtime){
 
 //an external program or app may want to set or get the viewer pose, with no slerping
 //SSR - these set/getpose are called from _DisplayThread
-static int no_xyz_reflection = 0;
 void viewer_setpose( double *quat4, double *vec3){
 	/* sign change on pos, but not quat, because freewrl conventions are different
-		+Quat goes in direction vp2world
-		-Pos goes in direction vp2world
+		+Quat goes in direction world2vp
+		-Pos goes in direction world2vp
 	*/
 	ttglobal tg = (ttglobal) gglobal();
 	ppViewer p = (ppViewer)tg->Viewer.prv;
-	if(1){
-		p->Viewer.Pos.x = -vec3[0];
-		p->Viewer.Pos.y = -vec3[1];
-		p->Viewer.Pos.z = -vec3[2];
-		if(no_xyz_reflection) double2pointxyz(&p->Viewer.Pos,vec3); //no -ve
-		p->Viewer.Quat.x = quat4[0];
-		p->Viewer.Quat.y = quat4[1];
-		p->Viewer.Quat.z = quat4[2];
-		p->Viewer.Quat.w = quat4[3];
-	}else{
-		Quaternion qq;
-		double2quat(&qq,quat4);
-		quaternion_inverse(&p->Viewer.Quat,&qq);
-
-		p->Viewer.Pos.x = vec3[0];
-		p->Viewer.Pos.y = vec3[1];
-		p->Viewer.Pos.z = vec3[2];
-	}
+	p->Viewer.Pos.x = -vec3[0];
+	p->Viewer.Pos.y = -vec3[1];
+	p->Viewer.Pos.z = -vec3[2];
+	p->Viewer.Quat.x = quat4[0];
+	p->Viewer.Quat.y = quat4[1];
+	p->Viewer.Quat.z = quat4[2];
+	p->Viewer.Quat.w = quat4[3];
 }
 void viewer_getpose( double *quat4, double *vec3){
 	/*	Freewrl initializes .Quat, .Pos from viewpoint.position, viewpoint.orientation during viewpoint binding
@@ -2278,23 +2266,13 @@ void viewer_getpose( double *quat4, double *vec3){
 	*/
 	ttglobal tg = (ttglobal) gglobal();
 	ppViewer p = (ppViewer)tg->Viewer.prv;
-	if(1){
-		vec3[0] = -p->Viewer.Pos.x;
-		vec3[1] = -p->Viewer.Pos.y;
-		vec3[2] = -p->Viewer.Pos.z;
-		if(no_xyz_reflection) pointxyz2double(vec3,&p->Viewer.Pos); //no -ve
-		quat4[0] = p->Viewer.Quat.x;
-		quat4[1] = p->Viewer.Quat.y;
-		quat4[2] = p->Viewer.Quat.z;
-		quat4[3] = p->Viewer.Quat.w;
-	}else{
-		Quaternion qq;
-		vec3[0] = p->Viewer.Pos.x;
-		vec3[1] = p->Viewer.Pos.y;
-		vec3[2] = p->Viewer.Pos.z;
-		quaternion_inverse(&qq,&p->Viewer.Quat);
-		quat2double(quat4,&qq);
-	}
+	vec3[0] = -p->Viewer.Pos.x;
+	vec3[1] = -p->Viewer.Pos.y;
+	vec3[2] = -p->Viewer.Pos.z;
+	quat4[0] = p->Viewer.Quat.x;
+	quat4[1] = p->Viewer.Quat.y;
+	quat4[2] = p->Viewer.Quat.z;
+	quat4[3] = p->Viewer.Quat.w;
 }
 void viewer_getbindpose( double *quat4, double *vec3){
 /*	The bind-time-equivalent viewpoint pose can be got 
@@ -2305,22 +2283,14 @@ void viewer_getbindpose( double *quat4, double *vec3){
 	Quaternion q_i;
 	ttglobal tg = (ttglobal) gglobal();
 	ppViewer p = (ppViewer)tg->Viewer.prv;
-	if(1){
-		vec3[0] = -p->Viewer.AntiPos.x;
-		vec3[1] = -p->Viewer.AntiPos.y;
-		vec3[2] = -p->Viewer.AntiPos.z;
-		if(no_xyz_reflection) pointxyz2double(vec3,&p->Viewer.AntiPos); //no -ve
-		quaternion_inverse(&q_i,&p->Viewer.AntiQuat);
-		quat4[0] = q_i.x;
-		quat4[1] = q_i.y;
-		quat4[2] = q_i.z;
-		quat4[3] = q_i.w;
-	}else{
-		vec3[0] = p->Viewer.AntiPos.x;
-		vec3[1] = p->Viewer.AntiPos.y;
-		vec3[2] = p->Viewer.AntiPos.z;
-		quat2double(quat4,&p->Viewer.AntiQuat);
-	}
+	vec3[0] = -p->Viewer.AntiPos.x;
+	vec3[1] = -p->Viewer.AntiPos.y;
+	vec3[2] = -p->Viewer.AntiPos.z;
+	quaternion_inverse(&q_i,&p->Viewer.AntiQuat);
+	quat4[0] = q_i.x;
+	quat4[1] = q_i.y;
+	quat4[2] = q_i.z;
+	quat4[3] = q_i.w;
 }
 void viewer_getview( double *viewMatrix){
 	/* world - View - Viewpoint - .position - .orientation */

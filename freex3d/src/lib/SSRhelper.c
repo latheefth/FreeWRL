@@ -65,24 +65,10 @@ void SSRserver_enqueue_request_and_wait(void *fwctx, SSR_request *request){
 #define GLDOUBLE double
 #include "../lib/scenegraph/quaternion.h"
 #include "../lib/scenegraph/LinearAlgebra.h"
-static double view[16], inv_view[16];
+static double view[16], inv_view[16], matOri[16];
 static Quaternion viewQuat, inv_viewQuat;
 static int vp2world_initialized = FALSE;
 static int use_vp2world = TRUE;
-void double2quaternion(Quaternion *quat, double *q4){
-	//freewrl puts w as first element, client-side gl-matrix.js puts it last
-	quat->w = q4[3];
-	quat->x = q4[0];
-	quat->y = q4[1];
-	quat->z = q4[2];
-}
-void quaternion2double(double *q4, Quaternion *quat){
-	//freewrl puts w as first element, client-side gl-matrix.js puts it last
-	q4[3] = quat->w;
-	q4[0] = quat->x;
-	q4[1] = quat->y;
-	q4[2] = quat->z;
-}
 #include <math.h>
 static int reverse_sense_init = 0; //0 conceptually correct
 static int reverse_sense_quat4 = 0; //0 conceptually correct
@@ -249,7 +235,7 @@ void vp2world_initialize()
 		viewer_getpose(quat4,vec3); //viewer.position,.orientation, in sense of world2vp (vec3 = -.Pos, .Pos = .position, quat4 = .Quat = inv(.orientation)
 		printf("fixing view, current pose vec3=%lf %lf %lf\n",vec3[0],vec3[1],vec3[2]);
 
-		if(1){
+		{
 			Quaternion qq;
 			double2quat(&qq,quat4);
 			quaternion_normalize(&qq);
@@ -257,36 +243,20 @@ void vp2world_initialize()
 			quaternion_to_matrix(mat2, &qq);
 			printmatrix2(mat2,"matqq using quaternion_to_matrix");
 		}
-		else
-		{
-			loadIdentityMatrix(mat2);
-			printf("quat xyzw [%lf %lf %lf %lf]",quat4[0],quat4[1],quat4[2],quat4[3]);
-			matrotate(mat2,2.0*acos(quat4[3]),quat4[0],quat4[1],quat4[2]); 
-			printmatrix2(mat2,"mat2 using matrotate 2*cos(quat4[3])");
-		}
 		loadIdentityMatrix(mat3);
 		mattranslate(mat3,vec3[0],vec3[1],vec3[2]);
 		printmatrix2(mat3,"mat3 vec3 translation");
-		if(0){
-			if(1)matmultiply(mat4,mat2,mat3); //conceptually correct
-			else matmultiplyAFFINE(mat4,mat2,mat3);
-			printmatrix2(mat4,"combined quat x vec3");
-			matinverseAFFINE(mat,mat4);
-			printmatrix2(mat,"inv(quat x vec3) = inv(vec3)xinv(quat)");
-		}else{
+		{
 			double matinvpos[16],matinvquat[16];
 			matinverseAFFINE(matinvquat,mat2);
 			matinverseAFFINE(matinvpos,mat3);
 			//	view' x pos x invpos = ivew x invquat x invpos
 			//	view' = view x invquat x invpos = view x inv(pos x quat)
-			if(0) matmultiply(mat,matinvpos,matinvquat); //WRONG 
-			else matmultiply(mat,matinvquat,matinvpos); //RIGHT
+			matmultiply(mat,matinvquat,matinvpos); //RIGHT
 			printmatrix2(mat,"inv(vec3) x inv(quat)");
 		}
 
-		if(0)
-			matmultiply(view,mat,view); //WRONG - take off effect of .Pos, .Quat from View)
-		else{
+		{
 			/*	view' x pos x quat = view
 				view' x pos x quat x invquat = view x invquat
 				view' x pos x invpos = ivew x invquat x invpos
@@ -302,21 +272,31 @@ void vp2world_initialize()
 			quaternion_normalize(&viewQuat);
 			quaternion_inverse(&inv_viewQuat,&viewQuat); //prepare inverse in a way we can also transform .orientation in the form of a quaternion
 		}else{
-			//Quaternion q2;
-			//double ppii;
 			matrix_to_quaternion(&viewQuat, view); //conceptually correct
 			quaternion_normalize(&viewQuat);
-			//quaternion_print(&viewQuat,"viewQuat");
-			//ppii = acos(-1.0);
-			//printf("pi=%lf\n",ppii);
-			//vrmlrot_to_quaternion(&q2, 1.0, 0.0, 0.0, ppii * .5);
-			//quaternion_print(&q2,"rotateX(pi/2)");
 			if(0){
 				quaternion_inverse(&inv_viewQuat,&viewQuat); //prepare inverse in a way we can also transform .orientation in the form of a quaternion
 			}else{
 				matrix_to_quaternion(&inv_viewQuat,inv_view); //s.b. equavalent
 				quaternion_normalize(&inv_viewQuat);
 			}
+		}
+		if(1){
+			//verify, by computing total quat as we do below in get_pose, and verifying
+			//. cumQuat -> matrix matches original ivew with pos/ori
+			Quaternion q4,qtmp;
+			double matQtmp[16];
+			viewer_getpose(quat4,vec3);
+			//printf("getting current viewpoint pose:\n");
+			double2quat(&q4,quat4);
+			quaternion_normalize(&q4);
+			if(0) quaternion_multiply(&qtmp,&viewQuat,&q4);
+			if(1) quaternion_multiply(&qtmp,&q4, &viewQuat);
+			quaternion_normalize(&qtmp);
+
+			loadIdentityMatrix(matQtmp);
+			quaternion_to_matrix(matQtmp,&qtmp);
+			printmatrix2(matQtmp,"matQtmp - should look like view with pos, ori in 3x3");
 		}
 		vp2world_initialized = TRUE;
 	}
@@ -364,11 +344,12 @@ void SSR_reply_pose(SSR_request *request, int initialpose)
 		
 		transformAFFINEd(request->vec3, vec3, inv_view); 
 
-		double2quaternion(&q4,quat4);
+		double2quat(&q4,quat4);
 		quaternion_normalize(&q4);
-		quaternion_multiply(&qtmp,&viewQuat,&q4);
+		if(0) quaternion_multiply(&qtmp,&viewQuat,&q4);
+		if(1) quaternion_multiply(&qtmp,&q4,&viewQuat); //like test
 		quaternion_normalize(&qtmp);
-		quaternion2double(request->quat4,&qtmp);
+		quat2double(request->quat4,&qtmp);
 
 		memcpy(vec3,request->vec3,3*sizeof(double));
 		memcpy(quat4,request->quat4,4*sizeof(double));
@@ -503,30 +484,53 @@ void SSR_test_cumulative_pose(){
 		transformAFFINEd(cumpos,vec3,inv_view);
 		double2quat(&qa,quat4);
 		quaternion_normalize(&qa);
-		quaternion_multiply(&cumquat,&viewQuat,&qa); //cumquat should be in world2vp sense like view
+		if(0) quaternion_multiply(&cumquat,&viewQuat,&qa); //cumquat should be in world2vp sense like view
+		if(1) quaternion_multiply(&cumquat,&qa,&viewQuat); //cumquat should be in world2vp sense like view
 		quaternion_normalize(&cumquat);
 
 		//Step 2 add on global increments like SSRClient.html does
 		if(haveInc){
 			//incYaw, incTrans should be in vp coords
-			vrmlrot_to_quaternion(&incQuat,0.0,1.0,0.0,incYaw);
-			quaternion_normalize(&incQuat);
-			quaternion_multiply(&cumquat,&cumquat,&incQuat);
-			quaternion_normalize(&cumquat);
-			quaternion_inverse(&cumquatinv,&cumquat);
-			//transform incTrans from vp to world
-			if(0) quaternion_rotationd(incTrans,&cumquatinv,incTrans);
-			if(1) quaternion_rotationd(incTrans,&cumquat,incTrans); //works but makes no sense, incTrans in vp, and cumquat in world2vp sense
-			vecaddd(cumpos,incTrans,cumpos);
-			//incWtrans should be in world coords
-			vecaddd(cumpos,incWtrans,cumpos);
+			if(1){
+				//quat method
+				vrmlrot_to_quaternion(&incQuat,0.0,1.0,0.0,incYaw);
+				quaternion_normalize(&incQuat);
+				if(1) quaternion_multiply(&cumquat,&incQuat,&cumquat);
+				if(0) quaternion_multiply(&cumquat,&cumquat,&incQuat);
+				quaternion_normalize(&cumquat);
+				quaternion_inverse(&cumquatinv,&cumquat);
+				//transform incTrans from vp to world
+				if(1) quaternion_rotationd(incTrans,&cumquatinv,incTrans);
+				if(0) quaternion_rotationd(incTrans,&cumquat,incTrans); //works but makes no sense, incTrans in vp, and cumquat in world2vp sense
+				vecaddd(cumpos,incTrans,cumpos);
+				//incWtrans should be in world coords
+				vecaddd(cumpos,incWtrans,cumpos);
+			}else{
+				//matrix method - incomplete, doesn't accumulate yaw
+				//double matyaw[16], matr[16];
+				//loadIdentityMatrix(matyaw);
+				//matrotate(matyaw,incYaw,0.0,1.0,0.0);
+				//matmultiply(matr,matOri,matyaw);
+				double matorii[16];
+				loadIdentityMatrix(matOri);
+				quaternion_to_matrix(matOri,&cumquat);
+				printmatrix2(matOri,"matOri");
+				matinverseAFFINE(matorii,matOri);
+				printmatrix2(matorii,"inverse matOri");
+				printf("before incTrans=[%lf %lf %lf]\n",incTrans[0],incTrans[1],incTrans[2]);
+				transformAFFINEd(incTrans,incTrans,matOri);
+				printf("after  incTrans=[%lf %lf %lf]\n",incTrans[0],incTrans[1],incTrans[2]);
+				vecaddd(cumpos,incTrans,cumpos);
+				vecaddd(cumpos,incWtrans,cumpos);
+			}
 
 			haveInc = FALSE;
 		}
 
 		//Step 3 convert back to quat, pos
 		//quat = inv_view x quat4
-		quaternion_multiply(&qb,&inv_viewQuat,&cumquat);
+		if(0) quaternion_multiply(&qb,&inv_viewQuat,&cumquat);
+		if(1) quaternion_multiply(&qb,&cumquat,&inv_viewQuat);
 		quaternion_normalize(&qb);
 		quat2double(quat4b,&qb);
 		//pos = inv_view x vec3 x quat4 x inv_quat
@@ -551,9 +555,11 @@ void SSR_set_pose(SSR_request *request)
 		Quaternion qtmp, q4;
 		vp2world_initialize();
 		transformAFFINEd(vec3,request->vec3,view);
-		double2quaternion(&q4,request->quat4);
-		quaternion_multiply(&qtmp,&inv_viewQuat,&q4);
-		quaternion2double(quat4,&qtmp);
+		double2quat(&q4,request->quat4);
+		if(0) quaternion_multiply(&qtmp,&inv_viewQuat,&q4);
+		if(1) quaternion_multiply(&qtmp,&q4,&inv_viewQuat); //like test
+		quaternion_normalize(&qtmp);
+		quat2double(quat4,&qtmp);
 		printf("setting server pose quat4=[%lf %lf %lf %lf] vec3=[%lf %lf %lf]\n",quat4[0],quat4[1],quat4[2],quat4[3],vec3[0],vec3[1],vec3[2]);
 		viewer_setpose(quat4,vec3);
 	}else{

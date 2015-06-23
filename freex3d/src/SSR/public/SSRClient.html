@@ -280,7 +280,7 @@
 	var cB = false;
 	var cC = false;
 	var cD = false;
-	var combo_num = 3; //0-15 for 4
+	var combo_num = 6; //0-15 for 4
 	//             0      1      2      3       4      5      6      7       8      9      10     11      12     13     14     15
 	var combos = ["0000","1000","0100","0010", "0001","1100","1010","1001", "1110","1101","1111","0101", "0110","0111","0011","0001"];
 	var combo_set = false;
@@ -302,13 +302,14 @@
 		//cumQuat += incQuat
 		//invQuat = inv(cumQuat)  changes it to world2vp //vp2world direction
 		//cumTrans += invQuat x inv(incTrans)  - cumTrans in world coords, in direction of vp2world //world2vp
-		//quat.multiply(incQuat,incQuat,invQuat);
-		quat.multiply(cumQuat,cumQuat,incQuat);
+		if(false) quat.multiply(cumQuat,cumQuat,incQuat);
+		if(true) quat.multiply(cumQuat,incQuat,cumQuat); //server test order
 		quat.normalize(cumQuat,cumQuat);
 		//cumTrans += vp2world x incTrans, so cumTrans in world
-		//quat.invert(invQuat,cumQuat);
+		quat.invert(invQuat,cumQuat);
 		var trTrans = vec3.create();
-		vec3.transformQuat(trTrans,incTrans,cumQuat); 
+		if(false) vec3.transformQuat(trTrans,incTrans,cumQuat); 
+		if(true) vec3.transformQuat(trTrans,incTrans,invQuat);
 		vec3.add(cumTrans,cumTrans,trTrans);
 		vec3.add(cumTrans,incWtrans,cumTrans);
 		//vpGrid = world2vp x worldGrid
@@ -316,8 +317,9 @@
 		//if doing a modulus grid - finite, but stays under avatar- then:
 		//vpGrid = cumQuat x mGrid x modulus(invmGrid x cumTrans) x Grid
 		vec3.copy(gridTrans,cumTrans);
-
-		modulus_grid = false;
+		if(false) vec3.negate(gridTrans,gridTrans);
+		if(false) gridTrans[2] = -gridTrans[2]
+		modulus_grid = true;
 		if(modulus_grid){
 			//console.log("gridTrans before="+gridTrans[0]+" "+gridTrans[1]+" "+gridTrans[2]);
 			//printmat4(invmMatrix,"invmMatrix");
@@ -330,7 +332,6 @@
 		}
 		mat4.identity(tMatrix);
 		mat4.translate(tMatrix,tMatrix,gridTrans);
-		quat.invert(invQuat,cumQuat);
 		mat4.identity(qtMatrix);
 		mat4.identity(qMatrix);
 		if(cA) //true conceptually correct, false works
@@ -366,7 +367,7 @@
 		case 0: //yawz
 			//sign is -ve because when we go forward, we drag mouse up (+delta)
 			//but in viewpoint coord system, foreward is -Z
-			var ZD = -deltaY*deltaY*deltaY*az*deltaT*speed/1000.0;
+			var ZD = deltaY*deltaY*deltaY*az*deltaT*speed/1000.0;
 			vec3.set(incTrans,0.0,0.0,ZD);
 			incYaw = deltaX*deltaX*deltaX*ar*deltaT/1000.0;
 			quat.rotateY(incQuat,incQuat,incYaw);
@@ -374,7 +375,7 @@
 			break;
 		case 1: //xy
 			var XD = -deltaX*deltaX*deltaX*ar*deltaT*speed/1000.0;
-			var YD = deltaY*deltaY*deltaY*az*deltaT*speed/1000.0;
+			var YD = -deltaY*deltaY*deltaY*az*deltaT*speed/1000.0;
 			vec3.set(incTrans,XD,YD,0.0);
 			break;
 		case 2: //world xy
