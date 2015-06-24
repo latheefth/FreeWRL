@@ -317,7 +317,7 @@
 		//if doing a modulus grid - finite, but stays under avatar- then:
 		//vpGrid = cumQuat x mGrid x modulus(invmGrid x cumTrans) x Grid
 		vec3.copy(gridTrans,cumTrans);
-		if(false) vec3.negate(gridTrans,gridTrans);
+		if(true) vec3.negate(gridTrans,gridTrans);
 		if(false) gridTrans[2] = -gridTrans[2]
 		modulus_grid = true;
 		if(modulus_grid){
@@ -367,20 +367,20 @@
 		case 0: //yawz
 			//sign is -ve because when we go forward, we drag mouse up (+delta)
 			//but in viewpoint coord system, foreward is -Z
-			var ZD = deltaY*deltaY*deltaY*az*deltaT*speed/1000.0;
+			var ZD = -deltaY*deltaY*deltaY*az*deltaT*speed/1000.0;
 			vec3.set(incTrans,0.0,0.0,ZD);
 			incYaw = deltaX*deltaX*deltaX*ar*deltaT/1000.0;
 			quat.rotateY(incQuat,incQuat,incYaw);
 			quat.normalize(incQuat,incQuat);
 			break;
 		case 1: //xy
-			var XD = -deltaX*deltaX*deltaX*ar*deltaT*speed/1000.0;
-			var YD = -deltaY*deltaY*deltaY*az*deltaT*speed/1000.0;
+			var XD = deltaX*deltaX*deltaX*ar*deltaT*speed/1000.0;
+			var YD = deltaY*deltaY*deltaY*az*deltaT*speed/1000.0;
 			vec3.set(incTrans,XD,YD,0.0);
 			break;
 		case 2: //world xy
-			var XD = -deltaX*deltaX*deltaX*az*deltaT*speed/1000.0;
-			var YD = -deltaY*deltaY*deltaY*az*deltaT*speed/1000.0;
+			var XD = deltaX*deltaX*deltaX*az*deltaT*speed/1000.0;
+			var YD = deltaY*deltaY*deltaY*az*deltaT*speed/1000.0;
 			vec3.set(incWtrans,XD,YD,0.0);
 			break;
 		default:

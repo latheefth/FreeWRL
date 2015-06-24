@@ -469,7 +469,7 @@ void SSR_test_cumulative_pose(){
 	if(test_count < 100)
 		vp2world_initialized = FALSE;
 	vp2world_initialize();
-	if(1){
+	if(0){
 		//does full cycle math right here
 		double matquat[16], matvec[16], mata[16], matcum[16], matb[16], matcuminv[16], matcumquat[16], matcumquatinv[16], matqb[16];
 		double quat4[4],vec3[3],quat4b[4],vec3b[3],zero3[3],cumpos[3],incTransb[3],vecpos[3];
@@ -538,7 +538,7 @@ void SSR_test_cumulative_pose(){
 		if(1) vecnegated(vec3b,vec3b);
 		if(1) viewer_setpose(quat4b,vec3b);
 	}
-	if(0){
+	if(1){
 		//tests SSR_set_pose, SSR_request_pose and does just the haveInc here
 		SSR_request request;
 		double cumpos[3];
