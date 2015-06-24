@@ -143,6 +143,13 @@ double *veccopyd(double *c, double *a)
 	c[2] = a[2];
 	return c;
 }
+double *vecnegated(double *b, double *a)
+{
+	b[0] = -a[0];
+	b[1] = -a[1];
+	b[2] = -a[2];
+	return b;
+}
 float *veccopy3f(float *b, float *a)
 {
 	b[0] = a[0];
@@ -159,9 +166,12 @@ float *veccopy2f(float *b, float *a)
 
 double * veccrossd(double *c, double *a, double *b)
 {
-    c[0] = a[1] * b[2] - a[2] * b[1];
-    c[1] = a[2] * b[0] - a[0] * b[2];
-    c[2] = a[0] * b[1] - a[1] * b[0];
+	double aa[3], bb[3];
+	veccopyd(aa,a);
+	veccopyd(bb,b);
+    c[0] = aa[1] * bb[2] - aa[2] * bb[1];
+    c[1] = aa[2] * bb[0] - aa[0] * bb[2];
+    c[2] = aa[0] * bb[1] - aa[1] * bb[0];
 	return c;
 }
 double veclengthd( double *p )

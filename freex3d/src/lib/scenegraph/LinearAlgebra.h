@@ -171,6 +171,7 @@ double vecdotd(double *a, double *b);
 double* vecscaled(double* r, double* v, double s);
 double vecnormald(double *r, double *v);
 double *veccopyd(double *c, double *a);
+double *vecnegated(double *b, double *a);
 
 double * vecadd2d(double *c, double *a, double *b);
 double *vecdif2d(double *c, double* a, double *b);

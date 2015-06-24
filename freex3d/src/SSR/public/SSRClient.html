@@ -309,7 +309,7 @@
 		quat.invert(invQuat,cumQuat);
 		var trTrans = vec3.create();
 		if(false) vec3.transformQuat(trTrans,incTrans,cumQuat); 
-		if(true) vec3.transformQuat(trTrans,incTrans,invQuat);
+		if(true) vec3.transformQuat(trTrans,incTrans,invQuat); //server test (sb invquat to go vp2world)
 		vec3.add(cumTrans,cumTrans,trTrans);
 		vec3.add(cumTrans,incWtrans,cumTrans);
 		//vpGrid = world2vp x worldGrid
