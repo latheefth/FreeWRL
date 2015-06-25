@@ -276,40 +276,19 @@
 	var incQuat = quat.create();
 	var invQuat = quat.create();
 	var modulus_grid = false; //appear to add more grid when navigating toward a grid edge
-	var cA = false;
-	var cB = false;
-	var cC = false;
-	var cD = false;
-	var combo_num = 6; //0-15 for 4
-	//             0      1      2      3       4      5      6      7       8      9      10     11      12     13     14     15
-	var combos = ["0000","1000","0100","0010", "0001","1100","1010","1001", "1110","1101","1111","0101", "0110","0111","0011","0001"];
-	var combo_set = false;
-	function setCombo(){
-		if(!combo_set){
-			if(combos[combo_num].charAt(0) == '1') cA = true;
-			if(combos[combo_num].charAt(1) == '1') cB = true;
-			if(combos[combo_num].charAt(2) == '1') cC = true;
-			if(combos[combo_num].charAt(3) == '1') cD = true;
-			console.log("settings="+cA+" "+cB+" "+cC+" "+cD);
-			combo_set = true;
-		}
-	}
 	function toMvMatrix(){
-		setCombo();
 		//mvMatrix is used to draw the grid on the client side, = world2vp
 		//cumQuat,cumTrans is used for the pose on the server side = vp2world //world2vp
 		//incQuat, incTrans are in vp coord system, increments from mouse motion
 		//cumQuat += incQuat
 		//invQuat = inv(cumQuat)  changes it to world2vp //vp2world direction
 		//cumTrans += invQuat x inv(incTrans)  - cumTrans in world coords, in direction of vp2world //world2vp
-		if(false) quat.multiply(cumQuat,cumQuat,incQuat);
-		if(true) quat.multiply(cumQuat,incQuat,cumQuat); //server test order
+		quat.multiply(cumQuat,incQuat,cumQuat); //server test order
 		quat.normalize(cumQuat,cumQuat);
 		//cumTrans += vp2world x incTrans, so cumTrans in world
 		quat.invert(invQuat,cumQuat);
 		var trTrans = vec3.create();
-		if(false) vec3.transformQuat(trTrans,incTrans,cumQuat); 
-		if(true) vec3.transformQuat(trTrans,incTrans,invQuat); //server test (sb invquat to go vp2world)
+		vec3.transformQuat(trTrans,incTrans,invQuat); //server test (sb invquat to go vp2world)
 		vec3.add(cumTrans,cumTrans,trTrans);
 		vec3.add(cumTrans,incWtrans,cumTrans);
 		//vpGrid = world2vp x worldGrid
@@ -317,8 +296,7 @@
 		//if doing a modulus grid - finite, but stays under avatar- then:
 		//vpGrid = cumQuat x mGrid x modulus(invmGrid x cumTrans) x Grid
 		vec3.copy(gridTrans,cumTrans);
-		if(true) vec3.negate(gridTrans,gridTrans);
-		if(false) gridTrans[2] = -gridTrans[2]
+		vec3.negate(gridTrans,gridTrans);
 		modulus_grid = true;
 		if(modulus_grid){
 			//console.log("gridTrans before="+gridTrans[0]+" "+gridTrans[1]+" "+gridTrans[2]);
@@ -334,20 +312,10 @@
 		mat4.translate(tMatrix,tMatrix,gridTrans);
 		mat4.identity(qtMatrix);
 		mat4.identity(qMatrix);
-		if(cA) //true conceptually correct, false works
-			mat4.fromQuat(qMatrix,cumQuat);
-		else
-			mat4.fromQuat(qMatrix,invQuat);
+		mat4.fromQuat(qMatrix,cumQuat);
 		//world2vp = mvMatrix = cumQuat x f(cumTrans) x mGrid
-		if(cB) //true conceptually correct, false works
-			mat4.multiply(qtMatrix,tMatrix,qMatrix); 
-		else
-			mat4.multiply(qtMatrix,qMatrix,tMatrix); 
-		if(cC) //true conceptually correct, true works
-			mat4.multiply(mvMatrix,qtMatrix,mMatrix);
-		else
-			mat4.multiply(mvMatrix,mMatrix,qtMatrix);
-		if(cD) mat4.invert(mvMatrix,mvMatrix); //false conceptually correct, false works
+		mat4.multiply(qtMatrix,qMatrix,tMatrix); 
+		mat4.multiply(mvMatrix,qtMatrix,mMatrix);
 	}
 	function ontick_mouse(now) {
 		if (!mouseDown) {

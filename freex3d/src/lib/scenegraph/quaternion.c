@@ -139,48 +139,6 @@ matrix_to_quaternion (Quaternion *quat, double *mat) {
 	quat->w = W;
 }
 
-double *mat4_fromQuat(double *out, double *q) {
-	//hacked from gl-matrix.js
-	double x,y,z,w,x2,y2,z2,xx,yx,yy,zx,zy,zz,wx,wy,wz;
-	 x = q[0]; y = q[1]; z = q[2]; w = q[3];
-        x2 = x + x;
-        y2 = y + y;
-        z2 = z + z;
-
-        xx = x * x2;
-        yx = y * x2;
-        yy = y * y2;
-        zx = z * x2;
-        zy = z * y2;
-        zz = z * z2;
-        wx = w * x2;
-        wy = w * y2;
-        wz = w * z2;
-
-    out[0] = 1.0 - yy - zz;
-    out[1] = yx + wz;
-    out[2] = zx - wy;
-    out[3] = 0.0;
-
-    out[4] = yx - wz;
-    out[5] = 1.0 - xx - zz;
-    out[6] = zy + wx;
-    out[7] = 0.0;
-
-    out[8] = zx + wy;
-    out[9] = zy - wx;
-    out[10] = 1.0 - xx - yy;
-    out[11] = 0.0;
-
-    out[12] = 0.0;
-    out[13] = 0.0;
-    out[14] = 0.0;
-    out[15] = 1.0;
-
-    return out;
-};
-
-
 /* http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/index.htm */
 /* note that the above web site uses "mathematicians" not "opengl" method of matrix id */
 void
