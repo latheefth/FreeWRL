@@ -504,157 +504,40 @@ void SSR_test_cumulative_pose(){
 		//Step 2 add on global increments like SSRClient.html does
 		if(haveInc){
 			if(1){
-				//here we're going to try and get pitch to be the last angle applied
-				//world = transform > Pos > Yaw > Pitch > vp
-				double ypr[3];
-				Quaternion qyaw, qpitch, cumyaw, cumpitch, cqinv;
-				quaternion_inverse(&cqinv,&cumquat);
-				quaternion_to_euler(ypr,&cqinv); //&cumquat);
-				vrmlrot_to_quaternion(&qyaw,0.0,1.0,0.0,ypr[0]);
-				vrmlrot_to_quaternion(&qpitch,1.0,0.0,0.0,ypr[1]);
-				//incYaw, incTrans should be in vp coords
-				vrmlrot_to_quaternion(&incQuat,0.0,1.0,0.0,incYaw);
-				quaternion_normalize(&incQuat);
-				quaternion_multiply(&cumyaw,&incQuat,&qyaw);
-				quaternion_normalize(&cumyaw);
-				//incPitch
-				vrmlrot_to_quaternion(&incQuat,1.0,0.0,0.0,incPitch);
-				quaternion_normalize(&incQuat);
-				quaternion_multiply(&cumpitch,&incQuat,&qpitch);
-				quaternion_normalize(&cumpitch);
-				if(0) quaternion_multiply(&cumquat,&cumyaw,&cumpitch);
-			}
-			if(1){
 				//yaw + pitch, attempt to add pitch to the end without 
 				// splitting quat:
 				// world = incYaw x Yaw x Pitch x incPitch x vp
 				//incYaw, incTrans should be in vp coords
-				int opt = 2;
+				Quaternion icum, iinc, iprod;
 				vrmlrot_to_quaternion(&incQuat,1.0,0.0,0.0,incPitch);
 				quaternion_normalize(&incQuat);
-				switch(opt){
-				case 0:
-					quaternion_multiply(&cumquat,&incQuat,&cumquat);
-					break;
-				case 1:
-					quaternion_multiply(&cumquat,&cumquat,&incQuat);
-					break;
-				case 2:
-					{
-						// B x A = conj(conj(A)xconj(B))
-						Quaternion icum, iinc, iprod;
-						quaternion_inverse(&icum,&cumquat);
-						quaternion_inverse(&iinc,&incQuat);
-						if(1)
-							quaternion_multiply(&iprod,&icum,&iinc); //this works for pitch (but then yawing tilts)
-						else
-							quaternion_multiply(&iprod,&iinc,&icum);
-						quaternion_inverse(&cumquat,&iprod);
-
-					}
-					break;
-				default:
-					//same as case 0
-					quaternion_multiply(&cumquat,&incQuat,&cumquat);
-					break;
-				}
+				// B x A = conj(conj(A)xconj(B))
+				quaternion_inverse(&icum,&cumquat);
+				quaternion_inverse(&iinc,&incQuat);
+				quaternion_multiply(&iprod,&icum,&iinc);
+				quaternion_inverse(&cumquat,&iprod);
 				quaternion_normalize(&cumquat);
 
 			}
 			if(1){
 				//yaw-only, but tries to add the incYaw to the world side of the chain
 				//world = incyaw x yaw x pitch x incPitch x vp
-				int opt = 4;
+				Quaternion cqinv, qpitch,qpitchi;
+				double ypr[3]; 
 				vrmlrot_to_quaternion(&incQuat,0.0,1.0,0.0,incYaw);
 				quaternion_normalize(&incQuat);
-				switch(opt){
-				case 0:
-					quaternion_multiply(&cumquat,&incQuat,&cumquat);
-					break;
-				case 1:
-					quaternion_multiply(&cumquat,&cumquat,&incQuat);
-					break;
-				case 2:
-					{
-						// B x A = conj(conj(A)xconj(B))
-						Quaternion icum, iinc, iprod;
-						quaternion_inverse(&icum,&cumquat);
-						quaternion_inverse(&iinc,&incQuat);
-						if(1)
-							quaternion_multiply(&iprod,&icum,&iinc); //this works for pitch (but then yawing tilts)
-						else
-							quaternion_multiply(&iprod,&iinc,&icum);
-						quaternion_inverse(&cumquat,&iprod);
-
-					}
-					break;
-				case 3:
-					{
-						//unlike walk in vrml that uses bound-viewpoint as up reference,
-						//  we'll use world Z as up.
-						// then we can take off pitch, do yaw, and add pitch back on.
-						// cumquat *= i90
-						// cumquat *= incYaw
-						// cumquat *= q90
-						Quaternion q90, i90;
-						int jopt;
-						vrmlrot_to_quaternion(&q90,1.0,0.0,0.0,acos(-1.0) * .5);
-						vrmlrot_to_quaternion(&i90,1.0,0.0,0.0,-acos(-1.0) * .5);
-						if(1) quaternion_multiply(&cumquat,&cumquat,&i90);
-						else quaternion_multiply(&cumquat,&i90,&cumquat);
-						
-						jopt = 1;
-						switch(jopt){
-						case 0:
-							if(0) quaternion_multiply(&cumquat,&cumquat,&incQuat);
-							else quaternion_multiply(&cumquat,&incQuat,&cumquat);
-							break;
-						case 1:
-						{
-							// B x A = conj(conj(A)xconj(B))
-							Quaternion icum, iinc, iprod;
-							quaternion_inverse(&icum,&cumquat);
-							quaternion_inverse(&iinc,&incQuat);
-							if(0)
-								quaternion_multiply(&iprod,&icum,&iinc); //this works for pitch (but then yawing tilts)
-							else
-								quaternion_multiply(&iprod,&iinc,&icum); //close but no cigar
-							quaternion_inverse(&cumquat,&iprod);
-
-						}
-						break;
-						default:
-						break;
-						}
-						if(1) quaternion_multiply(&cumquat,&cumquat,&q90);
-						else quaternion_multiply(&cumquat,&q90,&cumquat);
-
-					}
-				case 4:
-					{
-						//like case 3 - take off 90 - but also take off all pitch relative to 90, add yaw,
-						//WORKS
-						Quaternion cqinv, qpitch,qpitchi;
-						double ypr[3]; 
-						quaternion_to_euler(ypr,&cumquat); //&cumquat);
-						vrmlrot_to_quaternion(&qpitch,1.0,0.0,0.0,acos(-1)*.5 - ypr[1]);
-						quaternion_inverse(&qpitchi,&qpitch);
-						quaternion_multiply(&cumquat,&qpitchi,&cumquat);
-						if(0) quaternion_multiply(&cumquat,&cumquat,&incQuat);
-						else quaternion_multiply(&cumquat,&incQuat,&cumquat);
-						quaternion_multiply(&cumquat,&qpitch,&cumquat);
-					}
-					break;
-				default:
-					//same as case 0
-					quaternion_multiply(&cumquat,&incQuat,&cumquat);
-					break;
-				}
+				//like case 3 - take off 90 - but also take off all pitch relative to 90, add yaw,
+				//WORKS
+				quaternion_to_euler(ypr,&cumquat); //&cumquat);
+				vrmlrot_to_quaternion(&qpitch,1.0,0.0,0.0,acos(-1)*.5 - ypr[1]);
+				quaternion_inverse(&qpitchi,&qpitch);
+				quaternion_multiply(&cumquat,&qpitchi,&cumquat);
+				quaternion_multiply(&cumquat,&incQuat,&cumquat);
+				quaternion_multiply(&cumquat,&qpitch,&cumquat);
 				quaternion_normalize(&cumquat);
 
-			} else
-			if(1){
-				//yaw-only
+			} else {
+				//old-style yaw-only
 				//incYaw, incTrans should be in vp coords
 				vrmlrot_to_quaternion(&incQuat,0.0,1.0,0.0,incYaw);
 				quaternion_normalize(&incQuat);
