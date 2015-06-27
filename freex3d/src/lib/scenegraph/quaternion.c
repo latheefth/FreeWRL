@@ -139,6 +139,58 @@ matrix_to_quaternion (Quaternion *quat, double *mat) {
 	quat->w = W;
 }
 
+double quaternion_to_pitch(Quaternion *q)
+{
+	//pitch around x axis
+	return -asin(2.0*(q->w*q->x - q->y*q->z));
+	//return -asin(2.0*(q->w*q->y - q->x*q->z));
+}
+
+double quaternion_to_yaw(Quaternion *q)
+{
+	//yaw around y axis
+	return atan2(2.0*(q->w*q->y + q->x*q->z), q->w*q->w + q->x*q->x - q->y*q->y - q->z*q->z);
+	//return atan2(2.0*(q->w*q->z + q->x*q->y), q->w*q->w + q->x*q->x - q->y*q->y - q->z*q->z);
+}
+
+double quaternion_to_roll(Quaternion *q)
+{
+	//roll around z axis
+	return -atan2(2.0*(q->w*q->z + q->y*q->x), -q->w*q->w + q->x*q->x + q->y*q->y - q->z*q->z);
+	//return -atan2(2.0*(q->w*q->x + q->y*q->z), -q->w*q->w + q->x*q->x + q->y*q->y - q->z*q->z);
+}
+#define DEGREES_PER_RADIAN (double)57.2957795130823208768
+void quaternion_to_euler(double *ypr, Quaternion *q){
+	Quaternion tmp, de;
+	static int irev = 1;
+	static double isgn = -1.0;
+	quaternion_set(&tmp,q);
+
+	ypr[0] = quaternion_to_yaw(&tmp);
+	vrmlrot_to_quaternion(&de,0.0,1.0,0.0,isgn*ypr[0]);
+	if(irev) quaternion_multiply(&tmp,&tmp,&de);
+	else quaternion_multiply(&tmp,&de,&tmp);
+	quaternion_normalize(&tmp);
+
+	ypr[1] = quaternion_to_pitch(&tmp);
+	vrmlrot_to_quaternion(&de,1.0,0.0,0.0,isgn*ypr[1]);
+	if(irev) quaternion_multiply(&tmp,&tmp,&de);
+	else quaternion_multiply(&tmp,&de,&tmp);
+	quaternion_normalize(&tmp);
+
+
+	ypr[2] = quaternion_to_roll(q);
+	vrmlrot_to_quaternion(&de,0.0,0.0,1.0,isgn*ypr[2]);
+	if(irev) quaternion_multiply(&tmp,&tmp,&de);
+	else quaternion_multiply(&tmp,&de,&tmp); //take out roll
+	quaternion_normalize(&tmp);
+
+	if(1){
+		printf("yaw %lf pitch %lf roll %lf\n",ypr[0]*DEGREES_PER_RADIAN,ypr[1]*DEGREES_PER_RADIAN,ypr[2]*DEGREES_PER_RADIAN);
+		quaternion_print(&tmp,"in quaternion_to_euler: should be no rotations");
+	}
+}
+
 /* http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/index.htm */
 /* note that the above web site uses "mathematicians" not "opengl" method of matrix id */
 void
@@ -375,7 +427,7 @@ quaternion_rotation(struct point_XYZ *ret, const Quaternion *quat, const struct 
  	/* printf("Quaternion rotation: ret = {%f, %f, %f}, quat = {%f, %f, %f, %f}, v = {%f, %f, %f}\n", ret->x, ret->y, ret->z, quat->w, quat->x, quat->y, quat->z, v->x, v->y, v->z); */
 }
 void
-quaternion_rotationd(double *ret, const Quaternion *quat, const double *v){
+quaternion_rotationd(double *ret, Quaternion *quat, double *v){
 	struct point_XYZ rp,vp;
 	double2pointxyz(&vp,v);
 	quaternion_rotation(&rp,quat,&vp);

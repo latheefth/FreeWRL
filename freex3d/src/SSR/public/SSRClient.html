@@ -229,7 +229,7 @@
 	var height = 1.75; //Z of viewpoint above Z=0 plane
 	var speed = 1.0;
 	var navMode = 0; //0=yawz, 1=xy
-	var navElements = new Array("navYAWZ","navXY", "navWXY");
+	var navElements = new Array("navYAWZ","navXY", "navPITCH","navWXY","navWZ");
 	function toggleNav(value){
 		//radio buttons via 2 checkboxes
 		var oldnav = navMode;
@@ -326,6 +326,7 @@
 		var deltaX = mouseX - mouseX0;	
 		var deltaY = -(mouseY - mouseY0); //make mouse Y-up
 		var incYaw = 0.0;
+		var incPitch = 0.0;
 		quat.identity(incQuat);
 		vec3.set(incWtrans,0.0,0.0,0.0);
 		vec3.set(incTrans,0.0,0.0,0.0);
@@ -346,10 +347,19 @@
 			var YD = deltaY*deltaY*deltaY*az*deltaT*speed/1000.0;
 			vec3.set(incTrans,XD,YD,0.0);
 			break;
-		case 2: //world xy
+		case 2://pitch
+			incPitch = deltaY*deltaY*deltaY*ar*deltaT/1000.0;
+			quat.rotateX(incQuat,incQuat,incPitch);
+			quat.normalize(incQuat,incQuat);
+			break;
+		case 3: //world xy
 			var XD = deltaX*deltaX*deltaX*az*deltaT*speed/1000.0;
 			var YD = deltaY*deltaY*deltaY*az*deltaT*speed/1000.0;
 			vec3.set(incWtrans,XD,YD,0.0);
+			break;
+		case 4: //world z
+			var ZD = deltaY*deltaY*deltaY*az*deltaT*speed/1000.0;
+			vec3.set(incWtrans,0.0,0.0,ZD);
 			break;
 		default:
 			break;
@@ -555,7 +565,9 @@
 	<input type="button" id="testbut" onclick="testOnClick()"><label>test</label><br>
 	<input type="checkbox" id="navYAWZ" onclick="toggleNav(0)" checked><label>yawz</label><br>
 	<input type="checkbox" id="navXY" onclick="toggleNav(1)"><label>xy</label><br>
-	<input type="checkbox" id="navWXY" onclick="toggleNav(2)"><label>world xy</label><br>
+	<input type="checkbox" id="navPITCH" onclick="toggleNav(2)"><label>pitch</label><br>
+	<input type="checkbox" id="navWXY" onclick="toggleNav(3)"><label>world xy</label><br>
+	<input type="checkbox" id="navWZ" onclick="toggleNav(4)"><label>world z</label><br>
 	<label>Pitch: </label>Nadir <input type="range" id="sliderPitch" min="-90" max="90" step="5" value="0" onchange="changePitch(this.value)"/>Zenith<br>
 	<label>Height: </label>Ground <input type="range" id="sliderHeight" min="1.32" max="100" step="1" value="1.32" onchange="changeHeight(this.value)"/>10km<br>
 	<label>Speed: </label>Slow <input type="range" id="sliderSpeed" min="-2" max="2" step=".2" value="0" onchange="changeSpeed(this.value)"/>Fast<br>
