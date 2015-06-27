@@ -443,6 +443,9 @@ int ssr_test(char *keyval){
 	return iret;
 }
 void SSR_set_pose(SSR_request *request);
+#ifndef MATH_PI
+#define MATH_PI 3.14159265358979323846
+#endif
 void SSR_test_cumulative_pose(){
 	SSR_request r;
 	//we don't want to run this test when doing SSR, just when running normal freewrl. 
@@ -464,7 +467,7 @@ void SSR_test_cumulative_pose(){
 	if(test_count < 100)
 		vp2world_initialized = FALSE;
 	vp2world_initialize();
-	test_full_cycle_here = TRUE;
+	test_full_cycle_here =	FALSE;
 	if(test_full_cycle_here){
 		//does full cycle math right here
 		double matquat[16], matvec[16], mata[16], matcum[16], matb[16], matcuminv[16], matcumquat[16], matcumquatinv[16], matqb[16];
@@ -503,39 +506,43 @@ void SSR_test_cumulative_pose(){
 
 		//Step 2 add on global increments like SSRClient.html does
 		if(haveInc){
+			//client assumes world Z is up, and yaw is around world Z axis
+			// and pitch is relative to world horizon plane XY
 			if(1){
-				//yaw + pitch, attempt to add pitch to the end without 
-				// splitting quat:
-				// world = incYaw x Yaw x Pitch x incPitch x vp
-				//incYaw, incTrans should be in vp coords
-				Quaternion icum, iinc, iprod;
-				vrmlrot_to_quaternion(&incQuat,1.0,0.0,0.0,incPitch);
-				quaternion_normalize(&incQuat);
-				// B x A = conj(conj(A)xconj(B))
-				quaternion_inverse(&icum,&cumquat);
-				quaternion_inverse(&iinc,&incQuat);
-				quaternion_multiply(&iprod,&icum,&iinc);
-				quaternion_inverse(&cumquat,&iprod);
-				quaternion_normalize(&cumquat);
+				{
+					//pitch part: attempt to add pitch to the end without 
+					// splitting quat:
+					// world = incYaw x Yaw x Pitch x incPitch x vp
+					//incYaw, incTrans should be in vp coords
+					Quaternion icum, iinc, iprod;
+					vrmlrot_to_quaternion(&incQuat,1.0,0.0,0.0,incPitch);
+					quaternion_normalize(&incQuat);
+					// B x A = conj(conj(A)xconj(B))
+					quaternion_inverse(&icum,&cumquat);
+					quaternion_inverse(&iinc,&incQuat);
+					quaternion_multiply(&iprod,&icum,&iinc);
+					quaternion_inverse(&cumquat,&iprod);
+					quaternion_normalize(&cumquat);
+				}
+				{
+					//yaw-part, but tries to add the incYaw to the world side of the chain
+					//world = incyaw x yaw x pitch x incPitch x vp
 
-			}
-			if(1){
-				//yaw-only, but tries to add the incYaw to the world side of the chain
-				//world = incyaw x yaw x pitch x incPitch x vp
-				Quaternion cqinv, qpitch,qpitchi;
-				double ypr[3]; 
-				vrmlrot_to_quaternion(&incQuat,0.0,1.0,0.0,incYaw);
-				quaternion_normalize(&incQuat);
-				//like case 3 - take off 90 - but also take off all pitch relative to 90, add yaw,
-				//WORKS
-				quaternion_to_euler(ypr,&cumquat); //&cumquat);
-				vrmlrot_to_quaternion(&qpitch,1.0,0.0,0.0,acos(-1)*.5 - ypr[1]);
-				quaternion_inverse(&qpitchi,&qpitch);
-				quaternion_multiply(&cumquat,&qpitchi,&cumquat);
-				quaternion_multiply(&cumquat,&incQuat,&cumquat);
-				quaternion_multiply(&cumquat,&qpitch,&cumquat);
-				quaternion_normalize(&cumquat);
-
+					Quaternion cqinv, qpitch,qpitchi;
+					double dpitch;
+					vrmlrot_to_quaternion(&incQuat,0.0,1.0,0.0,incYaw);
+					quaternion_normalize(&incQuat);
+					//take off all pitch relative to 90, add yaw increment, add back pitch relative to 90
+					//WORKS
+					//quaternion_to_euler(ypr,&cumquat); //&cumquat);
+					dpitch = quaternion_to_pitch(&cumquat);
+					vrmlrot_to_quaternion(&qpitch,1.0,0.0,0.0,MATH_PI*.5 - dpitch);
+					quaternion_inverse(&qpitchi,&qpitch);
+					quaternion_multiply(&cumquat,&qpitchi,&cumquat);
+					quaternion_multiply(&cumquat,&incQuat,&cumquat);
+					quaternion_multiply(&cumquat,&qpitch,&cumquat);
+					quaternion_normalize(&cumquat);
+				}
 			} else {
 				//old-style yaw-only
 				//incYaw, incTrans should be in vp coords
@@ -576,11 +583,52 @@ void SSR_test_cumulative_pose(){
 		//Step 2 add on global increments like SSRClient.html does
 		//(an increment being a navigation-caused increment to x,y,z,yaw in vp space, or wx,wy,wz in world space)
 		if(haveInc){
-			//incYaw, incTrans should be in vp coords
-			vrmlrot_to_quaternion(&incQuat,0.0,1.0,0.0,incYaw);
-			quaternion_normalize(&incQuat);
-			quaternion_multiply(&cumquat,&incQuat,&cumquat);
-			quaternion_normalize(&cumquat);
+			//client assumes world Z is up, and yaw is around world Z axis
+			// and pitch is relative to world horizon plane XY
+			if(1){
+				{
+					//pitch part: attempt to add pitch to the end without 
+					// splitting quat:
+					// world = incYaw x Yaw x Pitch x incPitch x vp
+					//incYaw, incTrans should be in vp coords
+					Quaternion icum, iinc, iprod;
+					vrmlrot_to_quaternion(&incQuat,1.0,0.0,0.0,incPitch);
+					quaternion_normalize(&incQuat);
+					// B x A = conj(conj(A)xconj(B))
+					quaternion_inverse(&icum,&cumquat);
+					quaternion_inverse(&iinc,&incQuat);
+					quaternion_multiply(&iprod,&icum,&iinc);
+					quaternion_inverse(&cumquat,&iprod);
+					quaternion_normalize(&cumquat);
+				}
+				{
+					//yaw-part, but tries to add the incYaw to the world side of the chain
+					//world = incyaw x yaw x pitch x incPitch x vp
+
+					Quaternion cqinv, qpitch,qpitchi;
+					double dpitch;
+					vrmlrot_to_quaternion(&incQuat,0.0,1.0,0.0,incYaw);
+					quaternion_normalize(&incQuat);
+					//take off all pitch relative to 90, add yaw increment, add back pitch relative to 90
+					//WORKS
+					//quaternion_to_euler(ypr,&cumquat); //&cumquat);
+					dpitch = quaternion_to_pitch(&cumquat);
+					vrmlrot_to_quaternion(&qpitch,1.0,0.0,0.0,MATH_PI*.5 - dpitch);
+					quaternion_inverse(&qpitchi,&qpitch);
+					quaternion_multiply(&cumquat,&qpitchi,&cumquat);
+					quaternion_multiply(&cumquat,&incQuat,&cumquat);
+					quaternion_multiply(&cumquat,&qpitch,&cumquat);
+					quaternion_normalize(&cumquat);
+				}
+			} else {
+				//old-style yaw-only
+				//incYaw, incTrans should be in vp coords
+				vrmlrot_to_quaternion(&incQuat,0.0,1.0,0.0,incYaw);
+				quaternion_normalize(&incQuat);
+				quaternion_multiply(&cumquat,&incQuat,&cumquat);
+				quaternion_normalize(&cumquat);
+			}
+
 			quaternion_inverse(&cumquatinv,&cumquat);
 			//transform incTrans from vp to world
 			quaternion_rotationd(incTrans,&cumquatinv,incTrans);

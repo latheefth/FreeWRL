@@ -520,6 +520,9 @@ void quat2double(double *quat4,Quaternion *quat){
 	quat4[2] = quat->z;
 	quat4[3] = quat->w;
 }
+#ifndef MATH_PI
+#define MATH_PI 3.14159265358979323846
+#endif
 void vrmlrot_normalize(float *ret)
 {
 	float s = ret[0]*ret[0] + ret[1]*ret[1] + ret[2]*ret[2];
@@ -535,7 +538,7 @@ void vrmlrot_normalize(float *ret)
 	{
 		ret[2] = 1.0f;
 	}
-	ret[3] = (float) fmod(ret[3],acos(-1.0));
+	ret[3] = (float) fmod(ret[3],MATH_PI); //acos(-1.0));
 }
 
 void vrmlrot_multiply(float* ret, float *a, float *b) 

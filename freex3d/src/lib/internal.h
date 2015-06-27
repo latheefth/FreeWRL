@@ -505,7 +505,9 @@ void *freewrlStrndup(int line, char *file, const char *str, size_t n);
 #include <stddef.h> /* for offsetof(...) */
 /* textures.c > jpeg > jmorecfg.h tries to redefine booleand but you can say you have it */
 #define HAVE_BOOLEAN 1    
-#define M_PI acos(-1.0)
+#ifndef M_PI
+#define M_PI 3.14159265358979323846 //acos(-1.0)
+#endif
 #endif
 
 #ifdef IPHONE
