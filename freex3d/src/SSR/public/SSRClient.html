@@ -278,19 +278,6 @@
 	var modulus_grid = false; //appear to add more grid when navigating toward a grid edge
 	function toMvMatrix(){
 		//mvMatrix is used to draw the grid on the client side, = world2vp
-		//cumQuat,cumTrans is used for the pose on the server side = vp2world //world2vp
-		//incQuat, incTrans are in vp coord system, increments from mouse motion
-		//cumQuat += incQuat
-		//invQuat = inv(cumQuat)  changes it to world2vp //vp2world direction
-		//cumTrans += invQuat x inv(incTrans)  - cumTrans in world coords, in direction of vp2world //world2vp
-		quat.multiply(cumQuat,incQuat,cumQuat); //server test order
-		quat.normalize(cumQuat,cumQuat);
-		//cumTrans += vp2world x incTrans, so cumTrans in world
-		quat.invert(invQuat,cumQuat);
-		var trTrans = vec3.create();
-		vec3.transformQuat(trTrans,incTrans,invQuat); //server test (sb invquat to go vp2world)
-		vec3.add(cumTrans,cumTrans,trTrans);
-		vec3.add(cumTrans,incWtrans,cumTrans);
 		//vpGrid = world2vp x worldGrid
 		//vpGrid = cumQuat x cumTrans x mGrid x Grid
 		//if doing a modulus grid - finite, but stays under avatar- then:
@@ -317,6 +304,93 @@
 		mat4.multiply(qtMatrix,qMatrix,tMatrix); 
 		mat4.multiply(mvMatrix,qtMatrix,mMatrix);
 	}
+
+	// http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/
+	// - says vrml yz is interchanged, but not quite: theirs is RHS too, so x->y, y->z, z->x 
+	// - I fixed by re-assigning their heading, attitude, bank to our yaw-pitch-roll (ypr)
+	/** assumes q1 is a normalised quaternion */
+	function quat2euler0(axyz, q1) {
+		var heading, attitude, bank, sqx, sqy,sqz;
+		var test = q1[0]*q1[1] + q1[2]*q1[3];
+		if (test > 0.5) { // singularity at north pole
+			heading = 2 * Math.atan2(q1[0],q1[2]);
+			attitude = Math.PI/2.0;
+			bank = 0;
+			axyz[0] = bank;
+			axyz[1] = heading;
+			axyz[2] = attitude;
+			return;
+		}
+		if (test < -0.5) { // singularity at south pole
+			heading = -2 * Math.atan2(q1[0],q1[3]);
+			attitude = - Math.PI/2.0;
+			bank = 0;
+			axyz[0] = bank;
+			axyz[1] = heading;
+			axyz[2] = attitude;
+			return;
+		}
+	    sqx = q1[0]*q1[0];
+	    sqy = q1[1]*q1[1];
+	    sqz = q1[2]*q1[2];
+	    heading = Math.atan2(2*q1[1]*q1[3] - 2*q1[0]*q1[2] , 1.0 - 2*sqy - 2*sqz);
+		attitude = Math.asin(2*test);
+		bank = Math.atan2(2*q1[0]*q1[3] - 2*q1[1]*q1[2] , 1.0 - 2*sqx - 2*sqz);
+		axyz[0] = bank;
+		axyz[1] = heading;
+		axyz[2] = attitude;
+	
+	}
+	function iprev(icur, max){
+		var ip = icur - 1;
+		if(ip < 0) ip = max;
+		return ip;
+	}
+	function inext(icur, max){
+		var ip = icur + 1;
+		if(ip > max) ip = 0;
+		return ip;
+	}
+	function quat2euler(rxyz, iaxis_halfcircle, q){
+		// the quaternion to euler formula aren't perfectly symmetrical. 
+		// One axis uses an asin()/half-circle instead of atan2(,) with a singularity at +-90 degrees
+		// and depending on which axis you want the singularity/half-circle on you would roll axes forward and back in
+		// a function like this.
+		// In this function we want singularity to show up on the iaxis_halfcircle [0,1, or 2] axis 
+		// normally you would pick an axis like x=0 and stick with it
+		//returns angle about x, y, and z axes (what some would call pitch, roll, yaw)
+		var i0,i1,i2;
+		var q1 = quat.create();
+		var axyz = vec3.create();
+		i2 = iaxis_halfcircle;
+		i1 = iprev(i2,2);
+		i0 = iprev(i1,2);
+		console.log("i0,i1,i2="+i0+" "+i1+" "+i2);
+		q1[3] = q[3];
+		q1[0] = q[i0];
+		q1[1] = q[i1];
+		q1[2] = q[i2]; //half-circle
+		quat2euler0(axyz,q1);
+		rxyz[i0] = axyz[0];
+		rxyz[i1] = axyz[1]; 
+		rxyz[i2] = axyz[2]; //half-circle
+	}	
+	function quat_toPitch(q){
+		var rxyz = vec3.create();
+		quat2euler(rxyz,1,q);
+		return rxyz[0];
+	}
+	function quat_toPitch_old(q){
+		var aval = 2.0*(q[3]*q[0] - q[1]*q[2]);
+		var bval = Math.abs(aval);
+		if(bval > 1.0){
+			if(aval > 0)
+				return -Math.asin(1.0);
+			else
+				return -Math.asin(-1.0);
+		}
+		return -Math.asin(2.0*(q[3]*q[0] - q[1]*q[2]));
+	}
 	function ontick_mouse(now) {
 		if (!mouseDown) {
 			return;
@@ -331,6 +405,7 @@
 		vec3.set(incWtrans,0.0,0.0,0.0);
 		vec3.set(incTrans,0.0,0.0,0.0);
 		incYaw = 0.0;
+		quat.invert(invQuat,cumQuat);
 		
 		switch(navMode){
 		case 0: //yawz
@@ -340,7 +415,31 @@
 			vec3.set(incTrans,0.0,0.0,ZD);
 			incYaw = deltaX*deltaX*deltaX*ar*deltaT/1000.0;
 			quat.rotateY(incQuat,incQuat,incYaw);
-			quat.normalize(incQuat,incQuat);
+			if(true){
+				//new yaw + pitch, the yaw part:
+				//console.log('cumQuat before'+quat.str(cumQuat));
+				if(Math.abs(incYaw) > 0.0) {
+					quat.normalize(cumQuat,cumQuat);
+					var dpitch = quat_toPitch(invQuat);
+					console.log("dpitch ="+dpitch);
+					var qpitch = quat.create();
+					quat.rotateX(qpitch,qpitch,Math.PI*.5 - dpitch);
+					//quat.normalize(qpitch,qpitch);
+					var qpitchi = quat.create();
+					quat.invert(qpitchi,qpitch);
+					//quat.normalize(qpitchi,qpitchi);
+					quat.multiply(cumQuat,qpitchi,cumQuat);
+					//quat.normalize(cumQuat,cumQuat);
+					quat.multiply(cumQuat,incQuat,cumQuat);
+					//quat.normalize(cumQuat,cumQuat);
+					quat.multiply(cumQuat,qpitch,cumQuat);
+					
+					//console.log('cumQuat after'+quat.str(cumQuat));
+				}
+			}else{
+				//old yaw-only
+				quat.multiply(cumQuat,incQuat,cumQuat); //server test order
+			}
 			break;
 		case 1: //xy
 			var XD = deltaX*deltaX*deltaX*ar*deltaT*speed/1000.0;
@@ -351,6 +450,13 @@
 			incPitch = deltaY*deltaY*deltaY*ar*deltaT/1000.0;
 			quat.rotateX(incQuat,incQuat,incPitch);
 			quat.normalize(incQuat,incQuat);
+			// B x A = conj(conj(A)xconj(B))
+			var iinc = quat.create();
+			quat.invert(iinc,incQuat);
+			var iprod = quat.create();
+			quat.multiply(iprod,invQuat,iinc);
+			quat.invert(cumQuat,iprod);
+			if(false) quat.multiply(cumQuat,incQuat,cumQuat); //server test order
 			break;
 		case 3: //world xy
 			var XD = deltaX*deltaX*deltaX*az*deltaT*speed/1000.0;
@@ -364,8 +470,19 @@
 		default:
 			break;
 		}
-		//vec3.add(worldTrans,worldTrans,incTrans);
-		//worldTrans[2] = 0.0; //height;
+		//cumQuat,cumTrans is used for the pose on the server side = vp2world //world2vp
+		//incQuat, incTrans are in vp coord system, increments from mouse motion
+		//cumQuat += incQuat
+		//invQuat = inv(cumQuat)  changes it to world2vp //vp2world direction
+		//cumTrans += invQuat x inv(incTrans)  - cumTrans in world coords, in direction of vp2world //world2vp
+		quat.normalize(cumQuat,cumQuat);
+		//cumTrans += vp2world x incTrans, so cumTrans in world
+		quat.invert(invQuat,cumQuat);
+		var trTrans = vec3.create();
+		vec3.transformQuat(trTrans,incTrans,invQuat); //server test (sb invquat to go vp2world)
+		vec3.add(cumTrans,cumTrans,trTrans);
+		vec3.add(cumTrans,incWtrans,cumTrans);
+
 		toMvMatrix();
 	}
 

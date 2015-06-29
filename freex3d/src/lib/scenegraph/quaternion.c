@@ -39,6 +39,9 @@
 #include "LinearAlgebra.h"
 #include "quaternion.h"
 
+#ifndef MATH_PI
+#define MATH_PI 3.14159265358979323846
+#endif
 
 /*
  * Quaternion math ported from Perl to C
@@ -139,11 +142,91 @@ matrix_to_quaternion (Quaternion *quat, double *mat) {
 	quat->w = W;
 }
 
+// http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/
+// - says vrml yz is interchanged, but not quite: theirs is RHS too, so x->y, y->z, z->x 
+// - I fixed by re-assigning their heading, attitude, bank to our yaw-pitch-roll (ypr)
+/** assumes q1 is a normalised quaternion */
+void quat2euler0(double *axyz, Quaternion *q1) {
+	double heading, attitude, bank, sqx, sqy,sqz;
+	double test = q1->x*q1->y + q1->z*q1->w;
+	if (test > 0.499) { // singularity at north pole
+		heading = 2 * atan2(q1->x,q1->w);
+		attitude = MATH_PI/2.0;
+		bank = 0;
+		axyz[0] = bank;
+		axyz[1] = heading;
+		axyz[2] = attitude;
+		return;
+	}
+	if (test < -0.499) { // singularity at south pole
+		heading = -2 * atan2(q1->x,q1->w);
+		attitude = - MATH_PI/2.0;
+		bank = 0;
+		axyz[0] = bank;
+		axyz[1] = heading;
+		axyz[2] = attitude;
+		return;
+	}
+    sqx = q1->x*q1->x;
+    sqy = q1->y*q1->y;
+    sqz = q1->z*q1->z;
+    heading = atan2(2*q1->y*q1->w - 2*q1->x*q1->z , 1.0 - 2*sqy - 2*sqz);
+	attitude = asin(2*test);
+	bank = atan2(2*q1->x*q1->w - 2*q1->y*q1->z , 1.0 - 2*sqx - 2*sqz);
+	axyz[0] = bank;
+	axyz[1] = heading;
+	axyz[2] = attitude;
+
+}
+int iprev(int icur, int max){
+	int ip = icur - 1;
+	if(ip < 0) ip = max;
+	return ip;
+}
+int inext(int icur, int max){
+	int ip = icur + 1;
+	if(ip > max) ip = 0;
+	return ip;
+}
+void quat2euler(double *rxyz, int iaxis_halfcircle, Quaternion *q){
+	// the quaternion to euler formula aren't perfectly symmetrical. 
+	// One axis uses an asin()/half-circle instead of atan2(,) with a singularity at +-90 degrees
+	// and depending on which axis you want the singularity/half-circle on you would roll axes forward and back in
+	// a function like this.
+	// In this function we want singularity to show up on the iaxis_halfcircle [0,1, or 2] axis 
+	// normally you would pick an axis like x=0 and stick with it
+	//returns angle about x, y, and z axes (what some would call pitch, roll, yaw)
+	int i0,i1,i2;
+	Quaternion q1;
+	double axyz[3], q4[4],q14[4];
+	quat2double(q4,q);
+	i2 = iaxis_halfcircle;
+	i1 = iprev(i2,2);
+	i0 = iprev(i1,2);
+	q14[3] = q4[3];
+	q14[0] = q4[i0];
+	q14[1] = q4[i1];
+	q14[2] = q4[i2]; //half-circle
+	double2quat(&q1,q14);
+	quat2euler0(axyz,&q1);
+	rxyz[i0] = axyz[0];
+	rxyz[i1] = axyz[1]; 
+	rxyz[i2] = axyz[2]; //half-circle
+}
+double quaternion_to_pitch0(Quaternion *q)
+{
+	//pitch around x axis, half circle
+	return -asin(2.0*(q->w*q->x - q->y*q->z));
+	//return -asin(2.0*(q->w*q->y - q->x*q->z));
+}
 double quaternion_to_pitch(Quaternion *q)
 {
 	//pitch around x axis
-	return -asin(2.0*(q->w*q->x - q->y*q->z));
-	//return -asin(2.0*(q->w*q->y - q->x*q->z));
+	double rxyz[3];
+	quat2euler(rxyz, 0, q);
+	return rxyz[0];
+	//return atan2(2.0*(q->w*q->x + q->y*q->z), -q->w*q->w - q->x*q->x + q->y*q->y + q->z*q->z);
+	////return atan2(2.0*(q->w*q->z + q->x*q->y), q->w*q->w + q->x*q->x - q->y*q->y - q->z*q->z);
 }
 
 double quaternion_to_yaw(Quaternion *q)
@@ -189,6 +272,47 @@ void quaternion_to_euler(double *ypr, Quaternion *q){
 		printf("yaw %lf pitch %lf roll %lf\n",ypr[0]*DEGREES_PER_RADIAN,ypr[1]*DEGREES_PER_RADIAN,ypr[2]*DEGREES_PER_RADIAN);
 		quaternion_print(&tmp,"in quaternion_to_euler: should be no rotations");
 	}
+}
+
+void test_euler(){
+	double aval,bval,dval,ypr[3];
+	Quaternion q1;
+	aval = -MATH_PI/3.0;
+
+	vrmlrot_to_quaternion(&q1,1.0,0.0,0.0,aval);
+	quaternion_normalize(&q1);
+	bval = quaternion_to_pitch(&q1);
+	dval = aval - bval;
+	if(fabs(dval) > .00001) 
+		printf("ouch quaternion_to_pitch off by %lf\n",dval);
+	quat2euler(ypr,0,&q1);
+	printf("pitch ypr= %lf %lf %lf\n",ypr[0],ypr[1],ypr[2]);
+
+	bval = quaternion_to_pitch0(&q1);
+	dval = aval - bval;
+	if(fabs(dval) > .00001) 
+		printf("ouch quaternion_to_pitch0 off by %lf\n",dval);
+	quat2euler(ypr,0,&q1);
+	printf("x pry = %lf %lf %lf\n",ypr[0],ypr[1],ypr[2]);
+
+	vrmlrot_to_quaternion(&q1,0.0,1.0,0.0,aval);
+	quaternion_normalize(&q1);
+	bval = quaternion_to_yaw(&q1);
+	dval = aval - bval;
+	if(fabs(dval) > .00001) 
+		printf("ouch quaternion_to_yaw off by %lf\n",dval);
+	quat2euler(ypr,0,&q1);
+	printf("y pry= %lf %lf %lf\n",ypr[0],ypr[1],ypr[2]);
+
+	vrmlrot_to_quaternion(&q1,0.0,0.0,1.0,aval);
+	quaternion_normalize(&q1);
+	bval = quaternion_to_roll(&q1);
+	dval = aval - bval;
+	if(fabs(dval) > .00001) 
+		printf("ouch quaternion_to_roll off by %lf\n",dval);
+	quat2euler(ypr,0,&q1);
+	printf("z pry= %lf %lf %lf\n",ypr[0],ypr[1],ypr[2]);
+	printf("\n");
 }
 
 /* http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/index.htm */
@@ -520,9 +644,7 @@ void quat2double(double *quat4,Quaternion *quat){
 	quat4[2] = quat->z;
 	quat4[3] = quat->w;
 }
-#ifndef MATH_PI
-#define MATH_PI 3.14159265358979323846
-#endif
+
 void vrmlrot_normalize(float *ret)
 {
 	float s = ret[0]*ret[0] + ret[1]*ret[1] + ret[2]*ret[2];

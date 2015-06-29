@@ -147,6 +147,7 @@ double quaternion_to_pitch(Quaternion *q);
 double quaternion_to_yaw(Quaternion *q);
 double quaternion_to_roll(Quaternion *q);
 void quaternion_to_euler(double *rpy, Quaternion *q);
+void quat2euler(double *rxyz, int iaxis_halfcircle, Quaternion *q);
 
 void loadIdentityMatrix (double *);
 void vrmlrot_multiply(float* ret, float *a, float *b);
