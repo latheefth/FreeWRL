@@ -194,6 +194,7 @@
 		if(event.clientX > 0 && event.clientX < 400 && event.clientY > 0 && event.clientY < 300)
 		{
 		mouseDown = true;
+		quat2yawpitch();
 		showGrid();
 		drawScene();
 		mouseX0 = event.clientX;
@@ -207,6 +208,7 @@
 	function onMouseUp(event) {
 		if(mouseDown)
 		{
+		yawpitch2quat();
 		mouseDown = false;
 		showPhoto();
 		ajaxPosePose();
@@ -370,6 +372,8 @@
 		q1[0] = q[i0];
 		q1[1] = q[i1];
 		q1[2] = q[i2]; //half-circle
+		console.log("q2e q1="+quat.str(q1));
+		console.log("q= "+quat.str(q));
 		quat2euler0(axyz,q1);
 		rxyz[i0] = axyz[0];
 		rxyz[i1] = axyz[1]; 
@@ -390,6 +394,127 @@
 				return -Math.asin(-1.0);
 		}
 		return -Math.asin(2.0*(q[3]*q[0] - q[1]*q[2]));
+	}
+	// http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/
+	function euler2quat(qout, heading, attitude, bank) {
+		// Assuming the angles are in radians.
+		var c1 = Math.cos(heading/2);
+		var s1 = Math.sin(heading/2);
+		var c2 = Math.cos(attitude/2);
+		var s2 = Math.sin(attitude/2);
+		var c3 = Math.cos(bank/2);
+		var s3 = Math.sin(bank/2);
+		var c1c2 = c1*c2;
+		var s1s2 = s1*s2;
+		qout[3] =c1c2*c3 - s1s2*s3; //w
+		qout[0] =c1c2*s3 + s1s2*c3; //x
+		qout[1] =s1*c2*c3 + c1*s2*s3; //y
+		qout[2] =c1*s2*c3 - s1*c2*s3; //z
+	}	
+	var dyaw;
+	var dpitch;
+	function rad2deg(rad){
+		return rad * 180.0 / Math.PI;
+	}
+	function quat2yawpitch0(ypr, q){
+		//uses unit vectors to solve for yaw pitch
+		var xaxis = vec3.fromValues(1.0,0.0,0.0);
+		var zaxis = vec3.fromValues(0.0,0.0,1.0);
+		vec3.transformQuat(xaxis,xaxis,q);
+		vec3.transformQuat(zaxis,zaxis,q);
+		ypr[0] = Math.atan2(xaxis[1],xaxis[0]);
+		ypr[1] = Math.PI*.5 - Math.atan2(zaxis[2],Math.sqrt(zaxis[0]*zaxis[0]+zaxis[1]*zaxis[1])) ;
+		ypr[2] = 0.0;
+	}	
+	function quat2yawpitch(){
+		var rxyz = vec3.create();
+		var iq = quat.create();
+		quat.invert(iq,cumQuat);
+		if(false){
+			//kinda works but a reflection
+			quat2euler(rxyz,0,iq);
+			dyaw = rxyz[2];
+			dpitch = rxyz[0];
+		}
+		if(false){
+			quat2euler(rxyz,0,iq);
+			dyaw = -rxyz[2];
+			dpitch = -rxyz[0];
+		}
+		if(true){
+			var ypr = vec3.create();
+			quat2yawpitch0(ypr,iq);
+			dyaw = -ypr[0];
+			dpitch = -ypr[1];
+		}
+		if(false){
+			quat2euler(rxyz,0,iq);
+			dyaw = rxyz[1]-rxyz[2];
+			dpitch = -(rxyz[1]+rxyz[0]);
+			//console.log("in q2e first rxyz= "+rad2deg(rxyz[0])+" "+rad2deg(rxyz[1])+" "+rad2deg(rxyz[2]));
+			//quat2euler(rxyz,2,iq);
+			//dpitch = rxyz[0];
+		}
+		if(false){
+			quat2euler(rxyz,2,iq);
+			dyaw =  (rxyz[1]+rxyz[2]);
+			dpitch =  rxyz[0];
+		}
+		console.log("in q2e rxyz= "+rad2deg(rxyz[0])+" "+rad2deg(rxyz[1])+" "+rad2deg(rxyz[2]));
+		console.log("in q2e yaw, pitch= "+rad2deg(dyaw)+" "+rad2deg(dpitch));
+	}
+	function yawpitch2quat(){
+		var qpitch = quat.create();
+		var qyaw = quat.create();
+		var qyp = quat.create();
+		quat.identity(qpitch);
+		quat.rotateX(qpitch,qpitch,dpitch);
+		console.log("in yawpitch2quat dpitch="+dpitch);
+		quat.rotateY(qyaw,qyaw,dyaw);
+		if(false) quat.multiply(cumQuat,qyaw,qpitch);
+		if(false) quat.multiply(cumQuat,qpitch,qyaw);
+		if(false){
+			quat.multiply(qyp,qyaw,qpitch);
+			quat.invert(cumQuat,qyp);
+		}
+		if(false){
+			quat.multiply(qyp,qpitch,qyaw);
+			quat.invert(cumQuat,qyp);
+		}
+		if(false){
+			quat.identity(qpitch);
+			var q90 = quat.create();
+			var r90 = Math.PI *.5;
+			quat.identity(q90);
+			quat.rotateX(q90,q90,r90);
+			quat.rotateX(qpitch,qpitch,dpitch-r90);
+			quat.multiply(cumQuat,qyaw,q90);
+			quat.multiply(cumQuat,dpitch,cumQuat);
+			//quat.rotateX(cumQuat,cumQuat,dpitch-r90);
+		}
+		if(false){
+			euler2quat(cumQuat,dyaw,0.0,dpitch);
+		}
+		if(true){
+			//kinda works
+			var qi = quat.create();
+			console.log("in e2q dyaw, dpitch ="+rad2deg(dyaw)+" "+rad2deg(dpitch));
+			euler2quat(qi,0.0,-dyaw,-dpitch);
+			quat.invert(cumQuat,qi);
+		}
+		if(false){
+			var qi = quat.create();
+			console.log("in e2q dyaw, dpitch ="+rad2deg(dyaw)+" "+rad2deg(dpitch));
+			euler2quat(qi,0.0,dyaw,dpitch);
+			quat.invert(cumQuat,qi);
+		}
+		
+		if(false){
+			euler2quat(cumQuat,pitch,0.0,dyaw);
+		}
+		if(false){
+			euler2quat(cumQuat,0.0,dyaw,dpitch);
+		}
 	}
 	function ontick_mouse(now) {
 		if (!mouseDown) {
@@ -414,31 +539,34 @@
 			var ZD = -deltaY*deltaY*deltaY*az*deltaT*speed/1000.0;
 			vec3.set(incTrans,0.0,0.0,ZD);
 			incYaw = deltaX*deltaX*deltaX*ar*deltaT/1000.0;
-			quat.rotateY(incQuat,incQuat,incYaw);
-			if(true){
-				//new yaw + pitch, the yaw part:
-				//console.log('cumQuat before'+quat.str(cumQuat));
-				if(Math.abs(incYaw) > 0.0) {
-					quat.normalize(cumQuat,cumQuat);
-					var dpitch = quat_toPitch(invQuat);
-					console.log("dpitch ="+dpitch);
-					var qpitch = quat.create();
-					quat.rotateX(qpitch,qpitch,Math.PI*.5 - dpitch);
-					//quat.normalize(qpitch,qpitch);
-					var qpitchi = quat.create();
-					quat.invert(qpitchi,qpitch);
-					//quat.normalize(qpitchi,qpitchi);
-					quat.multiply(cumQuat,qpitchi,cumQuat);
-					//quat.normalize(cumQuat,cumQuat);
-					quat.multiply(cumQuat,incQuat,cumQuat);
-					//quat.normalize(cumQuat,cumQuat);
-					quat.multiply(cumQuat,qpitch,cumQuat);
-					
-					//console.log('cumQuat after'+quat.str(cumQuat));
+			dyaw += incYaw;
+			if(false){
+				quat.rotateY(incQuat,incQuat,incYaw);
+				if(true){
+					//new yaw + pitch, the yaw part:
+					//console.log('cumQuat before'+quat.str(cumQuat));
+					if(Math.abs(incYaw) > 0.0) {
+						quat.normalize(cumQuat,cumQuat);
+						var pitch = quat_toPitch(invQuat);
+						console.log("pitch ="+pitch);
+						var qpitch = quat.create();
+						quat.rotateX(qpitch,qpitch,Math.PI*.5 - pitch);
+						//quat.normalize(qpitch,qpitch);
+						var qpitchi = quat.create();
+						quat.invert(qpitchi,qpitch);
+						//quat.normalize(qpitchi,qpitchi);
+						quat.multiply(cumQuat,qpitchi,cumQuat);
+						//quat.normalize(cumQuat,cumQuat);
+						quat.multiply(cumQuat,incQuat,cumQuat);
+						//quat.normalize(cumQuat,cumQuat);
+						quat.multiply(cumQuat,qpitch,cumQuat);
+						
+						//console.log('cumQuat after'+quat.str(cumQuat));
+					}
+				}else{
+					//old yaw-only
+					quat.multiply(cumQuat,incQuat,cumQuat); //server test order
 				}
-			}else{
-				//old yaw-only
-				quat.multiply(cumQuat,incQuat,cumQuat); //server test order
 			}
 			break;
 		case 1: //xy
@@ -447,16 +575,20 @@
 			vec3.set(incTrans,XD,YD,0.0);
 			break;
 		case 2://pitch
-			incPitch = deltaY*deltaY*deltaY*ar*deltaT/1000.0;
-			quat.rotateX(incQuat,incQuat,incPitch);
-			quat.normalize(incQuat,incQuat);
-			// B x A = conj(conj(A)xconj(B))
-			var iinc = quat.create();
-			quat.invert(iinc,incQuat);
-			var iprod = quat.create();
-			quat.multiply(iprod,invQuat,iinc);
-			quat.invert(cumQuat,iprod);
-			if(false) quat.multiply(cumQuat,incQuat,cumQuat); //server test order
+			incPitch = -deltaY*deltaY*deltaY*ar*deltaT/1000.0;
+			dpitch += incPitch;
+			console.log("in case pitch incPitch="+incPitch);
+			if(false){
+				quat.rotateX(incQuat,incQuat,incPitch);
+				quat.normalize(incQuat,incQuat);
+				// B x A = conj(conj(A)xconj(B))
+				var iinc = quat.create();
+				quat.invert(iinc,incQuat);
+				var iprod = quat.create();
+				quat.multiply(iprod,invQuat,iinc);
+				quat.invert(cumQuat,iprod);
+				if(false) quat.multiply(cumQuat,incQuat,cumQuat); //server test order
+			}
 			break;
 		case 3: //world xy
 			var XD = deltaX*deltaX*deltaX*az*deltaT*speed/1000.0;
@@ -475,6 +607,7 @@
 		//cumQuat += incQuat
 		//invQuat = inv(cumQuat)  changes it to world2vp //vp2world direction
 		//cumTrans += invQuat x inv(incTrans)  - cumTrans in world coords, in direction of vp2world //world2vp
+		yawpitch2quat();
 		quat.normalize(cumQuat,cumQuat);
 		//cumTrans += vp2world x incTrans, so cumTrans in world
 		quat.invert(invQuat,cumQuat);

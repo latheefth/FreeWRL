@@ -450,9 +450,7 @@ void SSR_set_pose(SSR_request *request);
 #define DEGREES_PER_RADIAN (double)57.2957795130823208768
 #endif
 void test_euler();
-double rad2deg(double rad){
-	return rad * DEGREES_PER_RADIAN;
-}
+
 void SSR_test_cumulative_pose(){
 	SSR_request r;
 	//we don't want to run this test when doing SSR, just when running normal freewrl. 
@@ -546,7 +544,7 @@ void SSR_test_cumulative_pose(){
 					//take off all pitch relative to 90, add yaw increment, add back pitch relative to 90
 					//WORKS
 					//quaternion_to_euler(ypr,&cumquat); //&cumquat);
-					//test_euler();
+					test_euler();
 					//dpitch = quaternion_to_pitch(&cumquat);
 					//quat2euler(rxyz,2,&cumquat);
 					//printf("in yaw-part, eulers= %lf %lf %lf\n",rad2deg(rxyz[0]),rad2deg(rxyz[1]),rad2deg(rxyz[2]));
