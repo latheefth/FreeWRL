@@ -143,11 +143,10 @@ quaternion_slerp(Quaternion *ret,
 void quaternion_print(const Quaternion *quat, char* description );
 void double2quat(Quaternion *quat, double *quat4);
 void quat2double(double *quat4,Quaternion *quat);
-double quaternion_to_pitch(Quaternion *q);
-double quaternion_to_yaw(Quaternion *q);
-double quaternion_to_roll(Quaternion *q);
-void quaternion_to_euler(double *rpy, Quaternion *q);
 void quat2euler(double *rxyz, int iaxis_halfcircle, Quaternion *q);
+void quat2yawpitch(double *ypr, Quaternion *q);
+void euler2quat1(Quaternion *qout, double *axyz);
+void euler2quat(Quaternion *qout, double heading, double attitude, double bank);
 
 double rad2deg(double rad);
 void loadIdentityMatrix (double *);

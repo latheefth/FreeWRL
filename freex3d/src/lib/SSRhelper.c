@@ -450,7 +450,31 @@ void SSR_set_pose(SSR_request *request);
 #define DEGREES_PER_RADIAN (double)57.2957795130823208768
 #endif
 void test_euler();
-
+/*
+void quat2yawpitch(){
+	var iq = quat.create();
+	quat.invert(iq,cumQuat);
+	var ypr = vec3.create();
+	quat2yawpitch0(ypr,iq);
+	dyaw = -ypr[0];
+	dpitch = -ypr[1];
+	//console.log("in q2e yaw, pitch= "+rad2deg(dyaw)+" "+rad2deg(dpitch));
+}
+void yawpitch2quat(){
+	var qpitch = quat.create();
+	var qyaw = quat.create();
+	var qyp = quat.create();
+	quat.identity(qpitch);
+	quat.rotateX(qpitch,qpitch,dpitch);
+	//console.log("in yawpitch2quat dpitch="+dpitch);
+	quat.rotateY(qyaw,qyaw,dyaw);
+	//kinda works
+	var qi = quat.create();
+	//console.log("in e2q dyaw, dpitch ="+rad2deg(dyaw)+" "+rad2deg(dpitch));
+	euler2quat(qi,0.0,-dyaw,-dpitch);
+	quat.invert(cumQuat,qi);
+}
+*/
 void SSR_test_cumulative_pose(){
 	SSR_request r;
 	//we don't want to run this test when doing SSR, just when running normal freewrl. 
@@ -472,7 +496,7 @@ void SSR_test_cumulative_pose(){
 	if(test_count < 100)
 		vp2world_initialized = FALSE;
 	vp2world_initialize();
-	test_full_cycle_here =	TRUE;
+	test_full_cycle_here =	FALSE;
 	if(test_full_cycle_here){
 		//does full cycle math right here
 		double matquat[16], matvec[16], mata[16], matcum[16], matb[16], matcuminv[16], matcumquat[16], matcumquatinv[16], matqb[16];
@@ -513,62 +537,23 @@ void SSR_test_cumulative_pose(){
 		if(haveInc){
 			//client assumes world Z is up, and yaw is around world Z axis
 			// and pitch is relative to world horizon plane XY
-			if(1){
-				{
-					//pitch part: attempt to add pitch to the end without 
-					// splitting quat:
-					// world = incYaw x Yaw x Pitch x incPitch x vp
-					//incYaw, incTrans should be in vp coords
-					Quaternion icum, iinc, iprod;
-					vrmlrot_to_quaternion(&incQuat,1.0,0.0,0.0,incPitch);
-					quaternion_normalize(&incQuat);
-					if(1){
-						// B x A = conj(conj(A)xconj(B))
-						quaternion_inverse(&icum,&cumquat);
-						quaternion_inverse(&iinc,&incQuat);
-						quaternion_multiply(&iprod,&icum,&iinc);
-						quaternion_inverse(&cumquat,&iprod);
-					}else{
-						quaternion_multiply(&cumquat,&incQuat,&cumquat);
-					}
-					quaternion_normalize(&cumquat);
-				}
-				{
-					//yaw-part, but tries to add the incYaw to the world side of the chain
-					//world = incyaw x yaw x pitch x incPitch x vp
-
-					Quaternion cqinv, qpitch,qpitchi,ivcum;
-					double dpitch, rxyz[3];
-					vrmlrot_to_quaternion(&incQuat,0.0,1.0,0.0,incYaw);
-					quaternion_normalize(&incQuat);
-					//take off all pitch relative to 90, add yaw increment, add back pitch relative to 90
-					//WORKS
-					//quaternion_to_euler(ypr,&cumquat); //&cumquat);
-					test_euler();
-					//dpitch = quaternion_to_pitch(&cumquat);
-					//quat2euler(rxyz,2,&cumquat);
-					//printf("in yaw-part, eulers= %lf %lf %lf\n",rad2deg(rxyz[0]),rad2deg(rxyz[1]),rad2deg(rxyz[2]));
-					quaternion_inverse(&ivcum,&cumquat);
-					quat2euler(rxyz,2,&ivcum);
-					dpitch = rxyz[0];
-					//printf("in yaw-part, eulers= %lf %lf %lf\n",rad2deg(rxyz[0]),rad2deg(rxyz[1]),rad2deg(rxyz[2]));
-					vrmlrot_to_quaternion(&qpitch,1.0,0.0,0.0,MATH_PI*.5 - dpitch);
-					quaternion_inverse(&qpitchi,&qpitch);
-					quaternion_multiply(&cumquat,&qpitchi,&cumquat);
-					quaternion_multiply(&cumquat,&incQuat,&cumquat);
-					quaternion_multiply(&cumquat,&qpitch,&cumquat);
-					quaternion_normalize(&cumquat);
-				}
-			} else {
-				//old-style yaw-only
-				//incYaw, incTrans should be in vp coords
-				vrmlrot_to_quaternion(&incQuat,0.0,1.0,0.0,incYaw);
-				quaternion_normalize(&incQuat);
-				quaternion_multiply(&cumquat,&incQuat,&cumquat);
-				quaternion_normalize(&cumquat);
-			}
-
+			//quat2yawpitch
+			double ypr[3], axyz[3], dyaw, dpitch;
+			quaternion_print(&cumquat,"cumquat before");
 			quaternion_inverse(&cumquatinv,&cumquat);
+
+			quat2yawpitch(ypr,&cumquatinv);
+			dyaw = -ypr[0];
+			dpitch = -ypr[1];
+			printf("1. yp =[%lf %lf]\n",rad2deg(dyaw),rad2deg(dpitch));
+			dyaw += incYaw;
+			dpitch += incPitch;
+			printf("2. yp =[%lf %lf]\n",rad2deg(dyaw),rad2deg(dpitch));
+
+			euler2quat(&cumquatinv,0.0,-dyaw,-dpitch);
+			quaternion_print(&cumquatinv,"qi after euler2quat");
+			quaternion_inverse(&cumquat,&cumquatinv);
+			quaternion_print(&cumquat,"cumquat after");
 			//transform incTrans from vp to world
 			quaternion_rotationd(incTrans,&cumquatinv,incTrans);
 			vecaddd(cumpos,incTrans,cumpos);
@@ -601,58 +586,23 @@ void SSR_test_cumulative_pose(){
 		if(haveInc){
 			//client assumes world Z is up, and yaw is around world Z axis
 			// and pitch is relative to world horizon plane XY
-			if(1){
-				{
-					//pitch part: attempt to add pitch to the end without 
-					// splitting quat:
-					// world = incYaw x Yaw x Pitch x incPitch x vp
-					//incYaw, incTrans should be in vp coords
-					Quaternion icum, iinc, iprod;
-					vrmlrot_to_quaternion(&incQuat,1.0,0.0,0.0,incPitch);
-					quaternion_normalize(&incQuat);
-					// B x A = conj(conj(A)xconj(B))
-					quaternion_inverse(&icum,&cumquat);
-					quaternion_inverse(&iinc,&incQuat);
-					quaternion_multiply(&iprod,&icum,&iinc);
-					quaternion_inverse(&cumquat,&iprod);
-					quaternion_normalize(&cumquat);
-				}
-				{
-					//yaw-part, but tries to add the incYaw to the world side of the chain
-					//world = incyaw x yaw x pitch x incPitch x vp
-
-					Quaternion cqinv, qpitch,qpitchi,ivcum;
-					double dpitch, rxyz[3];
-					vrmlrot_to_quaternion(&incQuat,0.0,1.0,0.0,incYaw);
-					quaternion_normalize(&incQuat);
-					//take off all pitch relative to 90, add yaw increment, add back pitch relative to 90
-					//WORKS
-					//quaternion_to_euler(ypr,&cumquat); //&cumquat);
-					//test_euler();
-					//dpitch = quaternion_to_pitch(&cumquat);
-					//quat2euler(rxyz,2,&cumquat);
-					//printf("in yaw-part, eulers= %lf %lf %lf\n",rad2deg(rxyz[0]),rad2deg(rxyz[1]),rad2deg(rxyz[2]));
-					quaternion_inverse(&ivcum,&cumquat);
-					quat2euler(rxyz,0,&ivcum);
-					dpitch = rxyz[0];
-					//printf("in yaw-part, eulers= %lf %lf %lf\n",rad2deg(rxyz[0]),rad2deg(rxyz[1]),rad2deg(rxyz[2]));
-					vrmlrot_to_quaternion(&qpitch,1.0,0.0,0.0,MATH_PI*.5 - dpitch);
-					quaternion_inverse(&qpitchi,&qpitch);
-					quaternion_multiply(&cumquat,&qpitchi,&cumquat);
-					quaternion_multiply(&cumquat,&incQuat,&cumquat);
-					quaternion_multiply(&cumquat,&qpitch,&cumquat);
-					quaternion_normalize(&cumquat);
-				}
-			} else {
-				//old-style yaw-only
-				//incYaw, incTrans should be in vp coords
-				vrmlrot_to_quaternion(&incQuat,0.0,1.0,0.0,incYaw);
-				quaternion_normalize(&incQuat);
-				quaternion_multiply(&cumquat,&incQuat,&cumquat);
-				quaternion_normalize(&cumquat);
-			}
-
+			//quat2yawpitch
+			double ypr[3], axyz[3], dyaw, dpitch;
+			quaternion_print(&cumquat,"cumquat before");
 			quaternion_inverse(&cumquatinv,&cumquat);
+
+			quat2yawpitch(ypr,&cumquatinv);
+			dyaw = -ypr[0];
+			dpitch = -ypr[1];
+			printf("1. yp =[%lf %lf]\n",rad2deg(dyaw),rad2deg(dpitch));
+			dyaw += incYaw;
+			dpitch += incPitch;
+			printf("2. yp =[%lf %lf]\n",rad2deg(dyaw),rad2deg(dpitch));
+
+			euler2quat(&cumquatinv,0.0,-dyaw,-dpitch);
+			quaternion_print(&cumquatinv,"qi after euler2quat");
+			quaternion_inverse(&cumquat,&cumquatinv);
+			quaternion_print(&cumquat,"cumquat after");
 			//transform incTrans from vp to world
 			quaternion_rotationd(incTrans,&cumquatinv,incTrans);
 			vecaddd(cumpos,incTrans,cumpos);

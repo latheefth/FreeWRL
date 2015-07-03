@@ -187,13 +187,9 @@ void quat2euler0(double *axyz, Quaternion *q1) {
 
 }
 // http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/
-void euler2quat(Quaternion *qout, double *axyz)  {
+void euler2quat(Quaternion *qout, double heading, double attitude, double bank)  {
 	// Assuming the angles are in radians.
 	double c1,s1,c2,s2,c3,s3,c1c2,s1s2;
-	double bank, heading, attitude;
-	bank = axyz[0];
-	heading = axyz[1];
-	attitude = axyz[2];
 
 	c1 = cos(heading *.5);
 	s1 = sin(heading *.5);
@@ -208,6 +204,14 @@ void euler2quat(Quaternion *qout, double *axyz)  {
 	qout->y =s1*c2*c3 + c1*s2*s3; //y
 	qout->z =c1*s2*c3 - s1*c2*s3; //z
 }	
+void euler2quat1(Quaternion *qout, double *axyz)  {
+	double bank, heading, attitude;
+	bank = axyz[0];
+	heading = axyz[1];
+	attitude = axyz[2];
+	printf("euler2quat bank= %lf heading= %lf attitude= %lf\n",bank,heading,attitude);
+
+}
 
 int iprev(int icur, int max){
 	int ip = icur - 1;
@@ -220,6 +224,8 @@ int inext(int icur, int max){
 	return ip;
 }
 void quat2euler(double *rxyz, int iaxis_halfcircle, Quaternion *q){
+	// interesting, but if I just want yaw, pitch I still get roll, with roll 
+	//  eating into the yaw or pitch. I don't recommend this function.
 	// the quaternion to euler formula aren't perfectly symmetrical. 
 	// One axis uses an asin()/half-circle instead of atan2(,) with a singularity at +-90 degrees
 	// and depending on which axis you want the singularity/half-circle on you would roll axes forward and back in
@@ -245,68 +251,11 @@ void quat2euler(double *rxyz, int iaxis_halfcircle, Quaternion *q){
 	rxyz[i1] = axyz[1]; 
 	rxyz[i2] = axyz[2]; //half-circle
 }
-double quaternion_to_pitch0(Quaternion *q)
-{
-	//pitch around x axis, half circle
-	return -asin(2.0*(q->w*q->x - q->y*q->z));
-	//return -asin(2.0*(q->w*q->y - q->x*q->z));
-}
-double quaternion_to_pitch(Quaternion *q)
-{
-	//pitch around x axis
-	double rxyz[3];
-	quat2euler(rxyz, 0, q);
-	return rxyz[0];
-	//return atan2(2.0*(q->w*q->x + q->y*q->z), -q->w*q->w - q->x*q->x + q->y*q->y + q->z*q->z);
-	////return atan2(2.0*(q->w*q->z + q->x*q->y), q->w*q->w + q->x*q->x - q->y*q->y - q->z*q->z);
-}
-
-double quaternion_to_yaw(Quaternion *q)
-{
-	//yaw around y axis
-	return atan2(2.0*(q->w*q->y + q->x*q->z), q->w*q->w + q->x*q->x - q->y*q->y - q->z*q->z);
-	//return atan2(2.0*(q->w*q->z + q->x*q->y), q->w*q->w + q->x*q->x - q->y*q->y - q->z*q->z);
-}
-
-double quaternion_to_roll(Quaternion *q)
-{
-	//roll around z axis
-	return -atan2(2.0*(q->w*q->z + q->y*q->x), -q->w*q->w + q->x*q->x + q->y*q->y - q->z*q->z);
-	//return -atan2(2.0*(q->w*q->x + q->y*q->z), -q->w*q->w + q->x*q->x + q->y*q->y - q->z*q->z);
-}
-
-void quaternion_to_euler(double *ypr, Quaternion *q){
-	Quaternion tmp, de;
-	static int irev = 1;
-	static double isgn = -1.0;
-	quaternion_set(&tmp,q);
-
-	ypr[0] = quaternion_to_yaw(&tmp);
-	vrmlrot_to_quaternion(&de,0.0,1.0,0.0,isgn*ypr[0]);
-	if(irev) quaternion_multiply(&tmp,&tmp,&de);
-	else quaternion_multiply(&tmp,&de,&tmp);
-	quaternion_normalize(&tmp);
-
-	ypr[1] = quaternion_to_pitch(&tmp);
-	vrmlrot_to_quaternion(&de,1.0,0.0,0.0,isgn*ypr[1]);
-	if(irev) quaternion_multiply(&tmp,&tmp,&de);
-	else quaternion_multiply(&tmp,&de,&tmp);
-	quaternion_normalize(&tmp);
 
 
-	ypr[2] = quaternion_to_roll(q);
-	vrmlrot_to_quaternion(&de,0.0,0.0,1.0,isgn*ypr[2]);
-	if(irev) quaternion_multiply(&tmp,&tmp,&de);
-	else quaternion_multiply(&tmp,&de,&tmp); //take out roll
-	quaternion_normalize(&tmp);
-
-	if(1){
-		printf("yaw %lf pitch %lf roll %lf\n",ypr[0]*DEGREES_PER_RADIAN,ypr[1]*DEGREES_PER_RADIAN,ypr[2]*DEGREES_PER_RADIAN);
-		quaternion_print(&tmp,"in quaternion_to_euler: should be no rotations");
-	}
-}
 void quat2yawpitch(double *ypr, Quaternion *q){
 	//uses unit vectors to solve for yaw pitch
+	//this works for SSR
 	double xaxis[3], zaxis[3];
 	xaxis[1] = xaxis[2] = zaxis[0] = zaxis[1] = 0.0;
 	xaxis[0] = 1.0;
@@ -322,43 +271,6 @@ void test_euler(){
 	Quaternion q1;
 	aval = -MATH_PI/3.0;
 
-	if(0){
-		//simple < 90 tests
-		vrmlrot_to_quaternion(&q1,1.0,0.0,0.0,aval);
-		quaternion_normalize(&q1);
-		bval = quaternion_to_pitch(&q1);
-		dval = aval - bval;
-		if(fabs(dval) > .00001) 
-			printf("ouch quaternion_to_pitch off by %lf\n",dval);
-		quat2euler(ypr,0,&q1);
-		printf("pitch ypr= %lf %lf %lf\n",ypr[0],ypr[1],ypr[2]);
-
-		bval = quaternion_to_pitch0(&q1);
-		dval = aval - bval;
-		if(fabs(dval) > .00001) 
-			printf("ouch quaternion_to_pitch0 off by %lf\n",dval);
-		quat2euler(ypr,0,&q1);
-		printf("x pry = %lf %lf %lf\n",ypr[0],ypr[1],ypr[2]);
-
-		vrmlrot_to_quaternion(&q1,0.0,1.0,0.0,aval);
-		quaternion_normalize(&q1);
-		bval = quaternion_to_yaw(&q1);
-		dval = aval - bval;
-		if(fabs(dval) > .00001) 
-			printf("ouch quaternion_to_yaw off by %lf\n",dval);
-		quat2euler(ypr,0,&q1);
-		printf("y pry= %lf %lf %lf\n",ypr[0],ypr[1],ypr[2]);
-
-		vrmlrot_to_quaternion(&q1,0.0,0.0,1.0,aval);
-		quaternion_normalize(&q1);
-		bval = quaternion_to_roll(&q1);
-		dval = aval - bval;
-		if(fabs(dval) > .00001) 
-			printf("ouch quaternion_to_roll off by %lf\n",dval);
-		quat2euler(ypr,0,&q1);
-		printf("z pry= %lf %lf %lf\n",ypr[0],ypr[1],ypr[2]);
-		printf("\n");
-	}
 	if(0){
 		//compound > 90 test (failed in version 1)
 		Quaternion qpitch, qyaw, qyp;
@@ -410,7 +322,7 @@ void test_euler(){
 				axyz[0] = dpitch,
 				axyz[1] = droll;
 				axyz[2] = dyaw;
-				euler2quat(&qyp,axyz);
+				euler2quat1(&qyp,axyz);
 			}
 			quaternion_print(&qyp,"qyp");
 			quat2euler(rxyz,0,&qyp);
