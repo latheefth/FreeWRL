@@ -89,11 +89,45 @@
 		toMvMatrix();
 		setMatrixUniforms();
 		gl.enable(gl.DEPTH_TEST);
-		generateGridLines()
+		generateGridLines();
+		createNorthCircle();
 	}
-    	var gridlines;
+    var gridlines;
 	var numItems;
 	var itemSize;
+	var matNorthCircle = mat4.create();
+	var north;
+	var circle;
+	function createNorthCircle(){
+		var northvert = [-0.1490601, 0.6913803, 0, -0.1466526, 1.231242, 0, 0.1884439, 0.6797975, 0, 0.1909397, 1.23947, 0];
+		var circlevert = [-0.3826835, 0.9238795, 0, -0.7071068, 0.7071068, 0, -0.9238795, 0.3826834, 0,
+			 -1, 0, 0, -0.9238795, -0.3826835, 0, -0.7071068, -0.7071068, 0, 
+			 -0.3826835, -0.9238795, 0, 0, -1, 0, 0.3826832, -0.9238796, 0, 
+			 0.7071066, -0.707107, 0, 0.9238795, -0.3826836, 0, 1, 0, 0, 
+			 0.9238795, 0.3826836, 0, 0.7071065, 0.707107, 0, 0.382683, 0.9238798, 0];
+		north = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, north);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(northvert), gl.STATIC_DRAW);
+		circle = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, circle);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(circlevert), gl.STATIC_DRAW);
+		
+	}
+	function drawNorthCircle(){
+		mat4.identity(matNorthCircle);
+		mat4.translate(matNorthCircle,matNorthCircle,vec3.fromValues(2.2,1.8,-5.0));
+		mat4.scale(matNorthCircle,matNorthCircle,vec3.fromValues(.2,.2,1.0));
+		mat4.rotateZ(matNorthCircle,matNorthCircle,dyaw);
+		//mat4.copy(mvMatrix,matNorthCircle);
+		gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, matNorthCircle);		
+		gl.bindBuffer(gl.ARRAY_BUFFER, north);
+		gl.vertexAttribPointer(shaderProgram.aposAttrib, itemSize, gl.FLOAT, false, 0, 0);
+		gl.drawArrays(gl.LINE_STRIP, 0, 4);
+		gl.bindBuffer(gl.ARRAY_BUFFER, circle);
+		gl.vertexAttribPointer(shaderProgram.aposAttrib, itemSize, gl.FLOAT, false, 0, 0);
+		gl.drawArrays(gl.LINE_STRIP, 0, 15);
+		
+	}
  	function generateGridLines()
 	{
 		var z = 0.0; //-10.75;
@@ -182,6 +216,7 @@
 		gl.lineWidth(1.0);
 		gl.uniform4f(shaderProgram.colorUniform, .6, .6, .6, .8); //line color
 		drawgrid();
+		drawNorthCircle();
 	}
 	var mouseDown = false;
 	var mouseX0 = null;
