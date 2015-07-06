@@ -209,6 +209,8 @@
 		if(mouseDown)
 		{
 		yawpitch2quat();
+		document.getElementById('sliderPitch').value = -dpitch*180.0/Math.PI;
+		document.getElementById('sliderHeight').value = Math.sqrt(cumTrans[2]);
 		mouseDown = false;
 		showPhoto();
 		ajaxPosePose();
@@ -245,10 +247,15 @@
 			document.getElementById(navElements[oldnav]).checked = false;
 	}
 	function changePitch(value){
-		pitch = value * Math.PI / 180.0
+		dpitch = -value * Math.PI / 180.0
+		yawpitch2quat();
+		toMvMatrix();
+		ajaxPosePose();	
 	}
 	function changeHeight(value){
-		height = value*value; //non-linear
+		cumTrans[2] = value*value; //non-linear
+		toMvMatrix();
+		ajaxPosePose();	
 	}
 	function changeSpeed(value){
 		speed = Math.pow(10.0,value)*height;
@@ -417,7 +424,6 @@
 		//invQuat = inv(cumQuat)  changes it to world2vp //vp2world direction
 		//cumTrans += invQuat x inv(incTrans)  - cumTrans in world coords, in direction of vp2world //world2vp
 		yawpitch2quat();
-		quat.normalize(cumQuat,cumQuat);
 		//cumTrans += vp2world x incTrans, so cumTrans in world
 		quat.invert(invQuat,cumQuat);
 		var trTrans = vec3.create();
@@ -527,6 +533,9 @@
 		cumTrans[1] = farr[5]; //y
 		cumTrans[2] = farr[6]; //z
 		//console.log("server cumtrans="+cumTrans[0]+" "+cumTrans[1]+" "+cumTrans[2]);
+		quat2yawpitch(); //need this now for the pitch slidebar and level button
+		document.getElementById('sliderPitch').value = -dpitch*180.0/Math.PI;
+		document.getElementById('sliderHeight').value = Math.sqrt(cumTrans[2]);
 		toMvMatrix();
 	}
 	function ajaxPosePose()
@@ -574,7 +583,9 @@
 				//console.log(this.response);
 				jsonstr2pose(this.response); //or this.responseText?
 				//continuation
-				ajaxPoseSnapshot();
+				//ajaxPoseSnapshot();
+				showPhoto();
+				ajaxPosePose();				
 		 	}
 		}; 
 		var obj = new Object();
@@ -588,9 +599,15 @@
 		xhr.send(posestr);
 		//xhr.send(""+'\0');
 	}
-	function testOnClick(){
+	function initOnClick(){
 		ajaxInit_Pose();
 		//ajaxPosePose();
+	}
+	function levelOnClick(){
+		dpitch = -Math.PI *.5;
+		yawpitch2quat();
+		toMvMatrix();
+		ajaxPosePose();	
 	}
 	</script>
 	<style>
@@ -621,15 +638,18 @@
 </div>
 <div id='huddiv'>
 	<br>
-	<input type="button" id="testbut" onclick="testOnClick()"><label>test</label><br>
+	<input type="button" id="initbut" onclick="initOnClick()"><label>Initialize</label><br>
 	<input type="checkbox" id="navYAWZ" onclick="toggleNav(0)" checked><label>yawz</label><br>
 	<input type="checkbox" id="navXY" onclick="toggleNav(1)"><label>xy</label><br>
 	<input type="checkbox" id="navPITCH" onclick="toggleNav(2)"><label>pitch</label><br>
+	<input type="button" id="level" onclick="levelOnClick()" value="level"><br>
 	<input type="checkbox" id="navWXY" onclick="toggleNav(3)"><label>world xy</label><br>
 	<input type="checkbox" id="navWZ" onclick="toggleNav(4)"><label>world z</label><br>
-	<label>Pitch: </label>Nadir <input type="range" id="sliderPitch" min="-90" max="90" step="5" value="0" onchange="changePitch(this.value)"/>Zenith<br>
+	<label>Pitch: </label>Nadir <input type="range" id="sliderPitch" min="0" max="180" step="5" value="90" onchange="changePitch(this.value)"/>Zenith<br>
 	<label>Height: </label>Ground <input type="range" id="sliderHeight" min="1.32" max="100" step="1" value="1.32" onchange="changeHeight(this.value)"/>10km<br>
+	<!--
 	<label>Speed: </label>Slow <input type="range" id="sliderSpeed" min="-2" max="2" step=".2" value="0" onchange="changeSpeed(this.value)"/>Fast<br>
+	-->
 </div>
 
 </body>

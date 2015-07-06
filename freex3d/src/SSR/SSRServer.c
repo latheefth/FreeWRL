@@ -109,6 +109,8 @@ Get: (POST)
 	]}
 - adjusted pose 
 	- needs to deliver previous pose, so wall and ground penetration can be done, and an adjusted pose returned to client
+	July 3, 2015 update: forget wall penetration for now, and forget previous pose. Problem if previous and current pose 
+		are in different leaf scenes, freewrl wall penetration calculation can't happen
 	{"command":"posepose", "level":0, "height":1234.567, 
 		"pose":{ "position":[x,y,z], "orientation": [q0,q1,q2,q3]}}
 	{"command":"posepose", "status":"OK", 
@@ -162,6 +164,11 @@ Get: (POST)
 x Set: (POST) - there's no such thing because we are (currently) sessionless.
 	- resend any client-specific data with any needy request
 
+July 3, 2015 update
+	SSRClient and SSRServer can do yaw, pitch, height/world-z, vp and world xy.
+	Pitch = 0 is looking Nadir/down.
+	Scene can have a Transform with rotations, translations, and Viewpoint can have .postion, .orientation.
+	Scale in the transform is untested, and client can't/doesn't do scale, just translation and orientation of viewpoint.
 */
 
 

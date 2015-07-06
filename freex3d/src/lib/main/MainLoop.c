@@ -1810,7 +1810,7 @@ static void render_pre() {
 
 #ifdef SSR_SERVER
 		//just for a diagnostic test of transforms - replaces modelview matrix with one formed from cumQuat,cumTrans
-		if(1){
+		if(0){
 			static double toggleTime = 0.0;
 			static int runTest = 0;
 			double dtime;

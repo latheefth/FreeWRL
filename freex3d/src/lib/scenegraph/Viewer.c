@@ -2284,7 +2284,7 @@ void viewer_getbindpose( double *quat4, double *vec3){
 	Quaternion q_i;
 	ttglobal tg = (ttglobal) gglobal();
 	ppViewer p = (ppViewer)tg->Viewer.prv;
-	pointxyz2double(vec3,&p->Viewer.Pos);
+	pointxyz2double(vec3,&p->Viewer.AntiPos); //.Pos
 	if(negate_pos)
 		vecnegated(vec3,vec3);
 	quaternion_inverse(&q_i,&p->Viewer.AntiQuat);
