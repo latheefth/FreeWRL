@@ -64,6 +64,7 @@
 	var pMatrix = mat4.create(); //projection matrix
  	var mMatrix = mat4.create();
 	var invmMatrix = mat4.create();
+	var mscale3 = vec3.fromValues(300.0,150.0,300.0);
 	function setMatrixUniforms() {
 		gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
 		gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
@@ -79,14 +80,13 @@
 		var fovy = 45.0 * Math.PI / 180.0;
 		var aspect = 400.0/300.0;
 		var near = .1;
-		var far = 1000.0;
+		var far = 100000.0;
 		mat4.perspective(pMatrix, fovy, aspect, near, far);
 		mat4.identity(mMatrix);
-		mat4.scale(mMatrix,mMatrix,vec3.fromValues(300.0,150.0,300.0)); //arbitrary scale to make our grid a bit bigger
+		mat4.scale(mMatrix,mMatrix,mscale3); //arbitrary scale to make our grid a bit bigger
 		mat4.invert(invmMatrix,mMatrix);
 		//printmat4(mMatrix,"mMatrix");
 		//printmat4(invmMatrix,"invmMatrix");
-		toMvMatrix();
 		setMatrixUniforms();
 		gl.enable(gl.DEPTH_TEST);
 		generateGridLines();
@@ -98,6 +98,8 @@
 	var matNorthCircle = mat4.create();
 	var north;
 	var circle;
+	var dot;
+	var f32dotvert; 
 	function createNorthCircle(){
 		var northvert = [-0.1490601, 0.6913803, 0, -0.1466526, 1.231242, 0, 0.1884439, 0.6797975, 0, 0.1909397, 1.23947, 0];
 		var circlevert = [-0.3826835, 0.9238795, 0, -0.7071068, 0.7071068, 0, -0.9238795, 0.3826834, 0,
@@ -105,13 +107,18 @@
 			 -0.3826835, -0.9238795, 0, 0, -1, 0, 0.3826832, -0.9238796, 0, 
 			 0.7071066, -0.707107, 0, 0.9238795, -0.3826836, 0, 1, 0, 0, 
 			 0.9238795, 0.3826836, 0, 0.7071065, 0.707107, 0, 0.382683, 0.9238798, 0];
+		var dotvert = [0.0, 0.0, 0.0, .1, 0.0, 0.0];
 		north = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, north);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(northvert), gl.STATIC_DRAW);
 		circle = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, circle);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(circlevert), gl.STATIC_DRAW);
-		
+		dot = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, dot);
+		f32dotvert = new Float32Array(dotvert);
+		gl.bufferData(gl.ARRAY_BUFFER, f32dotvert, gl.STATIC_DRAW);
+
 	}
 	function drawNorthCircle(){
 		mat4.identity(matNorthCircle);
@@ -126,6 +133,21 @@
 		gl.bindBuffer(gl.ARRAY_BUFFER, circle);
 		gl.vertexAttribPointer(shaderProgram.aposAttrib, itemSize, gl.FLOAT, false, 0, 0);
 		gl.drawArrays(gl.LINE_STRIP, 0, 15);
+		//put green dot where placemark is
+		var diff = vec3.create();
+		vec3.subtract(diff,initTrans,cumTrans);
+		diff[2] = 0.0;
+		vec3.normalize(diff,diff);
+		gl.uniform4f(shaderProgram.colorUniform, .0, .6, .0, .8); //line color	
+		gl.bindBuffer(gl.ARRAY_BUFFER, dot);
+		//var f32 = new Float32Array(dotvert);
+		f32dotvert[3] = diff[0];
+		f32dotvert[4] = diff[1];
+		//gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(dotvert), gl.STATIC_DRAW);		
+		gl.bufferData(gl.ARRAY_BUFFER, f32dotvert, gl.STATIC_DRAW);		
+		gl.vertexAttribPointer(shaderProgram.aposAttrib, itemSize, gl.FLOAT, false, 0, 0);
+		gl.drawArrays(gl.LINES, 0, 2);
+		
 		
 	}
  	function generateGridLines()
@@ -201,13 +223,61 @@
 		gl.bindBuffer(gl.ARRAY_BUFFER, gridlines);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vert), gl.STATIC_DRAW);
 		itemSize = 3;
-		numItems = k;
+		numItems = k; //with X,Y,Z axes
+		numItems = k -8; //no XYZ axes
 	}
 	function drawgrid()
 	{
+		//white fine grid
+		toMvMatrixGrid(1.0);
 		gl.bindBuffer(gl.ARRAY_BUFFER, gridlines);
 		gl.vertexAttribPointer(shaderProgram.aposAttrib, itemSize, gl.FLOAT, false, 0, 0);
 		gl.drawArrays(gl.LINES, 0, numItems);
+		if(cumTrans[2] > 100.0){
+			//red medium grid
+			toMvMatrixGrid(10.0);
+			gl.uniform4f(shaderProgram.colorUniform, .6, .0, .0, .8); //line color
+			gl.drawArrays(gl.LINES, 0, numItems);
+			if(cumTrans[2] > 1000.0){
+				//blue course grid
+				toMvMatrixGrid(100.0);
+				gl.uniform4f(shaderProgram.colorUniform, .0, .0, .6, .8); //line color
+				gl.drawArrays(gl.LINES, 0, numItems);
+			}
+		}
+	}
+	var placemark = -1;
+	function updatePlacemark(){
+		if(placemark == -1){
+			placemark = gl.createBuffer();
+			var vert = new Array(6);
+			vert[0] = vert[3] = 0.0;
+			vert[1] = vert[4] = 0.0;
+			vert[2] = 0.0;
+			vert[5] = 1000.0;
+			
+			gl.bindBuffer(gl.ARRAY_BUFFER, placemark);
+			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vert), gl.STATIC_DRAW);
+		}
+	}
+	var mvPlacemark = mat4.create();
+	function drawPlacemark(){
+		//something to remember where we started, a vertical line from initial vp up to z = 1000
+		updatePlacemark();
+		var diffTrans = vec3.create();
+		vec3.subtract(diffTrans,initTrans,cumTrans);
+		mat4.identity(tMatrix);
+		mat4.translate(tMatrix,tMatrix,diffTrans);
+		mat4.identity(qtMatrix);
+		mat4.identity(qMatrix);
+		mat4.fromQuat(qMatrix,cumQuat);
+		//world2vp = mvMatrix = cumQuat x f(cumTrans) x mGrid
+		mat4.multiply(mvPlacemark,qMatrix,tMatrix); 
+		gl.uniform4f(shaderProgram.colorUniform, .0, .6, .0, .8); //line color
+		gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvPlacemark);		
+		gl.bindBuffer(gl.ARRAY_BUFFER, placemark);
+		gl.vertexAttribPointer(shaderProgram.aposAttrib, itemSize, gl.FLOAT, false, 0, 0);
+		gl.drawArrays(gl.LINES, 0, 2);
 	}
 	function drawScene()
 	{
@@ -216,7 +286,9 @@
 		gl.lineWidth(1.0);
 		gl.uniform4f(shaderProgram.colorUniform, .6, .6, .6, .8); //line color
 		drawgrid();
+		gl.uniform4f(shaderProgram.colorUniform, .6, .6, .6, .8); //line color
 		drawNorthCircle();
+		drawPlacemark();
 	}
 	var mouseDown = false;
 	var mouseX0 = null;
@@ -225,7 +297,7 @@
 	var mouseY = null;
 	var lastTime = null;
 	function onMouseDown(event) {
-		console.log("mousexy="+event.clientX+" "+event.clientY);
+		//console.log("mousexy="+event.clientX+" "+event.clientY);
 		if(event.clientX > 0 && event.clientX < 400 && event.clientY > 0 && event.clientY < 300)
 		{
 		mouseDown = true;
@@ -284,12 +356,10 @@
 	function changePitch(value){
 		dpitch = -value * Math.PI / 180.0
 		yawpitch2quat();
-		toMvMatrix();
 		ajaxPosePose();	
 	}
 	function changeHeight(value){
 		cumTrans[2] = value*value; //non-linear
-		toMvMatrix();
 		ajaxPosePose();	
 	}
 	function changeSpeed(value){
@@ -299,6 +369,7 @@
 
 	//viewpoint.rotation viewpoint.position camera-space values for server-side
 	var cumTrans = vec3.fromValues(0.0,0.0,0.0); //cumulative translation
+	var initTrans = vec3.fromValues(0.0,0.0,0.0); //will save the initial location for drawing navigation placemark
 	var cumQuat = quat.create(); //cumulative rotation around vertical, radians
 	var cumQuatInv = quat.create(); //temp for processing
 	//world.translation, world.rotation of the camera for client-side
@@ -315,12 +386,14 @@
 	var tMatrix = mat4.create();
 	var qtMatrix = mat4.create();
 	var gridTrans = vec3.fromValues(0.0,0.0,0.0);
+	var gridTrans2 = vec3.fromValues(0.0,0.0,0.0);
+	var gridTrans3 = vec3.fromValues(0.0,0.0,0.0);
 	var incTrans = vec3.create();
 	var incWtrans = vec3.create();
 	var incQuat = quat.create();
 	var invQuat = quat.create();
 	var modulus_grid = false; //appear to add more grid when navigating toward a grid edge
-	function toMvMatrix(){
+	function toMvMatrixGrid(modfactor){
 		//mvMatrix is used to draw the grid on the client side, = world2vp
 		//vpGrid = world2vp x worldGrid
 		//vpGrid = cumQuat x cumTrans x mGrid x Grid
@@ -328,16 +401,13 @@
 		//vpGrid = cumQuat x mGrid x modulus(invmGrid x cumTrans) x Grid
 		vec3.copy(gridTrans,cumTrans);
 		vec3.negate(gridTrans,gridTrans);
+		//var mscale3 = vec3.fromValues(300.0,150.0,300.0);
+		var mscale3b = vec3.create();
+		vec3.scale(mscale3b,mscale3,modfactor);
 		modulus_grid = true;
 		if(modulus_grid){
-			//console.log("gridTrans before="+gridTrans[0]+" "+gridTrans[1]+" "+gridTrans[2]);
-			//printmat4(invmMatrix,"invmMatrix");
-			vec3.transformMat4(gridTrans,gridTrans,invmMatrix); //scales xyz inc from world to grid space
-			gridTrans[0] = gridTrans[0] % 0.1;
-			gridTrans[1] = gridTrans[1] % 0.1;
-			//printmat4(mMatrix,"mMatrix");
-			vec3.transformMat4(gridTrans,gridTrans,mMatrix); //scales modulus grid back to world
-			//console.log("gridTrans after="+gridTrans[0]+" "+gridTrans[1]+" "+gridTrans[2]);
+			gridTrans[0] = gridTrans[0] % (0.1*mscale3b[0]);
+			gridTrans[1] = gridTrans[1] % (0.1*mscale3b[1]);
 		}
 		mat4.identity(tMatrix);
 		mat4.translate(tMatrix,tMatrix,gridTrans);
@@ -347,6 +417,9 @@
 		//world2vp = mvMatrix = cumQuat x f(cumTrans) x mGrid
 		mat4.multiply(qtMatrix,qMatrix,tMatrix); 
 		mat4.multiply(mvMatrix,qtMatrix,mMatrix);
+		mat4.scale(mvMatrix,mvMatrix,vec3.fromValues(modfactor,modfactor,modfactor));
+		gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);		
+
 	}
 
 	// http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/
@@ -439,7 +512,7 @@
 		case 2://pitch
 			incPitch = -deltaY*deltaY*deltaY*ar*deltaT/1000.0;
 			dpitch += incPitch;
-			console.log("in case pitch incPitch="+incPitch);
+			//console.log("in case pitch incPitch="+incPitch);
 			break;
 		case 3: //world xy
 			var XD = deltaX*deltaX*deltaX*az*deltaT*speed/1000.0;
@@ -466,7 +539,6 @@
 		vec3.add(cumTrans,cumTrans,trTrans);
 		vec3.add(cumTrans,incWtrans,cumTrans);
 
-		toMvMatrix();
 	}
 
 	function step(timestamp) {
@@ -554,7 +626,7 @@
 		  obj.level = 0;
 		  str = JSON.stringify(obj);
 		}
-		console.log(str);
+		//console.log(str);
 		return str;
 	}
 	function jsonstr2pose(str)
@@ -571,7 +643,6 @@
 		quat2yawpitch(); //need this now for the pitch slidebar and level button
 		document.getElementById('sliderPitch').value = -dpitch*180.0/Math.PI;
 		document.getElementById('sliderHeight').value = Math.sqrt(cumTrans[2]);
-		toMvMatrix();
 	}
 	function ajaxPosePose()
 	{
@@ -587,14 +658,14 @@
 			// else if set ='json' response will come out as object tree
 		xhr.onload = function(e) {
 			if (this.status == 200) { 
-				console.log("response=#"+this.response+"#");
+				//console.log("response=#"+this.response+"#");
 				jsonstr2pose(this.response); //or this.responseText?
 				//continuation
 				ajaxPoseSnapshot();
 		 	}
 		}; 
 		var posestr = pose2jsonstr();
-		console.log(posestr);
+		//console.log(posestr);
 		xhr.send("posepose="+posestr+'\0');
 	}
 	function ajaxInit_Pose()
@@ -614,11 +685,12 @@
 			//else if set ='json' response will come out as object tree
 		xhr.onload = function(e) {
 			if (this.status == 200) { 
-				console.log("response=#"+this.response+"#");
+				//console.log("response=#"+this.response+"#");
 				//console.log(this.response);
 				jsonstr2pose(this.response); //or this.responseText?
 				//continuation
 				//ajaxPoseSnapshot();
+				vec3.copy(initTrans,cumTrans);
 				showPhoto();
 				ajaxPosePose();				
 		 	}
@@ -628,9 +700,9 @@
 		obj.level = 0;
 		var posestr = "init_pose="+ JSON.stringify(obj) + '\n' + '\0'; 
 		//posestr = "init_pose="+'{"command":"init_pose","level":0}' + '\n' + '\0';
-		console.log("posestr.length="+posestr.length);
+		//console.log("posestr.length="+posestr.length);
 		//unsafe xhr.setRequestHeader("Content-length",posestr.length);
-		console.log(posestr);
+		//console.log(posestr);
 		xhr.send(posestr);
 		//xhr.send(""+'\0');
 	}
@@ -641,7 +713,6 @@
 	function levelOnClick(){
 		dpitch = -Math.PI *.5;
 		yawpitch2quat();
-		toMvMatrix();
 		ajaxPosePose();	
 	}
 	</script>
