@@ -125,6 +125,8 @@ void
 quaternion_rotation(struct point_XYZ *ret,
 		 const Quaternion *quat,
 		 const struct point_XYZ *v);
+void
+quaternion_rotationd(double *ret, Quaternion *quat, double *v);
 
 void
 quaternion_togl(Quaternion *quat);
@@ -138,7 +140,15 @@ quaternion_slerp(Quaternion *ret,
 	  const Quaternion *q1,
 	  const Quaternion *q2,
 	  const double t);
+void quaternion_print(const Quaternion *quat, char* description );
+void double2quat(Quaternion *quat, double *quat4);
+void quat2double(double *quat4,Quaternion *quat);
+void quat2euler(double *rxyz, int iaxis_halfcircle, Quaternion *q);
+void quat2yawpitch(double *ypr, Quaternion *q);
+void euler2quat1(Quaternion *qout, double *axyz);
+void euler2quat(Quaternion *qout, double heading, double attitude, double bank);
 
+double rad2deg(double rad);
 void loadIdentityMatrix (double *);
 void vrmlrot_multiply(float* ret, float *a, float *b);
 void vrmlrot_normalize(float *ret);

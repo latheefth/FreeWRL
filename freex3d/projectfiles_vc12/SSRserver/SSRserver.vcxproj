@@ -27,6 +27,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\SSR\cson\cson_amalgamation_core.c" />
     <ClCompile Include="..\..\src\SSR\point_in_poly.c" />
     <ClCompile Include="..\..\src\SSR\SSRServer.c" />
   </ItemGroup>

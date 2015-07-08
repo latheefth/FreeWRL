@@ -373,7 +373,7 @@ unsigned int setField_FromEAI (char *ptr);
 #define UNUSED(v) ((void) v)
 #define ISUSED(v) ((void) v)
 
-#define PI 3.141592653589793f
+#define PI 3.14159265358979323846
 
 /* return TRUE if numbers are very close */
 #define APPROX(a,b) (fabs((a)-(b))<0.00000001)

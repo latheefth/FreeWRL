@@ -1684,7 +1684,7 @@ vec4.normalize = function(out, a) {
         w = a[3];
     var len = x*x + y*y + z*z + w*w;
     if (len > 0) {
-        len = 1 / Math.sqrt(len);
+        len = 1.0 / Math.sqrt(len);
         out[0] = a[0] * len;
         out[1] = a[1] * len;
         out[2] = a[2] * len;

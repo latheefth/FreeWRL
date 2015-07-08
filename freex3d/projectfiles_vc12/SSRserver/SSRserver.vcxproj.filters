@@ -15,5 +15,8 @@
     <ClCompile Include="..\..\src\SSR\point_in_poly.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\SSR\cson\cson_amalgamation_core.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

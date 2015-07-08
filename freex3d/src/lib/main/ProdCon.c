@@ -135,7 +135,7 @@ typedef struct pProdCon {
 		/* is the parsing thread active? this is read-only, used as a "flag" by other tasks */
 		int inputThreadParsing; //=FALSE;
 		int haveParsedCParsed; // = FALSE; 	/* used to tell when we need to call destroyCParserData  as destroyCParserData can segfault otherwise */
-
+		int frontend_res_count;
 #if defined (INCLUDE_STL_FILES)
 		/* stl files have no implicit scale. This scale will make it fit into a reasonable boundingBox */
 		float lastSTLScaling;
@@ -188,7 +188,7 @@ void ProdCon_init(struct tProdCon *t)
 		p->inputThreadParsing=FALSE;
 		p->haveParsedCParsed = FALSE; 	/* used to tell when we need to call destroyCParserData
 				   as destroyCParserData can segfault otherwise */
-
+		p->frontend_res_count = 0;
 #if defined (INCLUDE_STL_FILES)
                 /* stl files have no implicit scale. This scale will make it fit into a reasonable boundingBox */
                 p->lastSTLScaling = 0.1;
@@ -1069,6 +1069,7 @@ void Parser_thread_exit_handler(int sig) {
 //s_list_t *ml_dequeue(s_list_t **list);
 
 
+
 void *getProdConQueueContentStatus() {
 
 	/*void resitem_enqueue(s_list_t *item){ */
@@ -1144,7 +1145,6 @@ void frontenditem_enqueue(s_list_t *item){
 	ppProdCon p;
 	ttglobal tg = gglobal();
 	p = (ppProdCon)tg->ProdCon.prv;
-
 	threadsafe_enqueue_item(item,&p->frontend_list_to_get, &tg->threads.mutex_frontend_list );
 }
 void frontenditem_enqueue_tg(s_list_t *item, void *tg){

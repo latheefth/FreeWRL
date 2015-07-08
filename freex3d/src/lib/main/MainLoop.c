@@ -177,6 +177,7 @@ typedef struct pMainloop{
 	int bufferarray[2];// = {GL_BACK,0};
 
 	double BrowserStartTime;        /* start of calculating FPS     */
+	double BrowserInitTime;		/* time of first frame */
 
 	//int quitThread;// = FALSE;
 	int keypress_wait_for_settle;// = 100;     /* JAS - change keypress to wait, then do 1 per loop */
@@ -187,7 +188,6 @@ typedef struct pMainloop{
     unsigned int loop_count;// = 0;
     unsigned int slowloop_count;// = 0;
 	double waitsec;
-
 	//scene
 	//window
 	//2D_inputdevice
@@ -288,6 +288,7 @@ void Mainloop_init(struct tMainloop *t){
 		p->bufferarray[1] = 0;
 		/* current time and other time related stuff */
 		//p->BrowserStartTime;        /* start of calculating FPS     */
+		p->BrowserInitTime = 0.0; /* time of first frame */
 
 		//p->quitThread = FALSE;
 		p->keypress_wait_for_settle = 100;     /* JAS - change keypress to wait, then do 1 per loop */
@@ -1027,6 +1028,8 @@ void fwl_RenderSceneUpdateScene() {
 		p->BrowserStartTime = dtime; //Time1970sec();
 		tg->Mainloop.TickTime = p->BrowserStartTime;
 		tg->Mainloop.lastTime = tg->Mainloop.TickTime - 0.01; /* might as well not invoke the usleep below */
+		if(p->BrowserInitTime == 0.0)
+			p->BrowserInitTime = dtime;
 	} else {
 		/* NOTE: front ends now sync with the monitor, meaning, this sleep is no longer needed unless
 			something goes totally wrong */
@@ -1784,7 +1787,7 @@ void handle_Xevents(XEvent event) {
 void do_pickSensors();
 int enabled_picksensors();
 #endif
-
+void SSR_test_cumulative_pose();
 static void render_pre() {
 	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 
@@ -1804,6 +1807,23 @@ static void render_pre() {
 
         /* 3. Viewpoint */
         setup_viewpoint();      /*  need this to render collisions correctly*/
+
+#ifdef SSR_SERVER
+		//just for a diagnostic test of transforms - replaces modelview matrix with one formed from cumQuat,cumTrans
+		if(0){
+			static double toggleTime = 0.0;
+			static int runTest = 0;
+			double dtime;
+			dtime = TickTime();
+			if(dtime - toggleTime > 5.0){
+				//alternate between ordinary view and test view every 5 seconds, to visually compare
+				runTest = 1 - runTest;
+				toggleTime = dtime;
+			}
+			if(runTest) SSR_test_cumulative_pose();
+		}
+#endif
+
 
         /* 4. Collisions */
         if (fwl_getCollision() == 1) {
@@ -4624,6 +4644,38 @@ int workers_running(){
 	more = tg->threads.ResourceThreadRunning || tg->threads.TextureThreadRunning;
 	return more;
 }
+
+int isSceneLoaded()
+{
+	//have all the resoruces been loaded and parsed and the scene is stable?
+	//some other web3d browseers have a way to tell, and you can delay rendering till all resources are loaded
+	//freewrl -after 2014 rework by dug9- has been reworked to be 'lazy loading' meaning it might not 
+	//request a resource until it visits a node that needs it, perhaps several times - see load_inline() (extern proto is similar)
+
+	//need: in our case we want SSR (server-side rendering) to loop normally until the scene
+	//is (lazy?) loaded and parsed and ready, then go into a render-one-frame-for-each-client-request mode
+	//how do we tell? this may change if we have a more reliable cycle for resources.
+	//for now we'll check if our worker threads are waiting, and frontend has no res items in its possession (not downloading one)
+	//		p->doEvents = (!fwl_isinputThreadParsing()) && (!fwl_isTextureParsing()) && fwl_isInputThreadInitialized();
+
+	int ret;
+	double dtime, curtime;
+	//ppProdCon p;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+	//p = (ppProdCon) tg->ProdCon.prv;
+	//ret = 0;
+	//ret = workers_waiting() && !p->frontend_list_to_get;
+	//ret = ret && tg->Mainloop.
+	//printf("[%d %d %p]",tg->threads.ResourceThreadWaiting,tg->threads.TextureThreadWaiting,p->frontend_list_to_get);
+	ret = (!fwl_isinputThreadParsing()) && (!fwl_isTextureParsing()) && fwl_isInputThreadInitialized();
+	ret = ret && workers_waiting();
+	//curtime = TickTime();
+	dtime = tg->Mainloop.TickTime - p->BrowserInitTime;
+	ret = ret && (dtime > 10.0); //wait 10 seconds
+	return ret;
+}
+
 void end_of_run_tests(){
 	//miscalaneous malloc, buffer, resource cleanup testing at end of run
 	//press Enter on console after viewing results

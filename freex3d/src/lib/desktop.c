@@ -333,7 +333,7 @@ void frontend_dequeue_get_enqueue(void *tg){
 void SSR_reply(void * tg);
 void dequeue_SSR_request(void * tg);
 #endif
-
+char *get_key_val(char *key);
 void _displayThread(void *globalcontext)
 {
 	/* C CONTROLLER - used in configurations such as C main programs, and browser plugins with no loop of their own
@@ -351,14 +351,26 @@ void _displayThread(void *globalcontext)
 	rather than using mutex conditions.
 	*/
 	int more;
+	int run_ssr;
+	run_ssr = FALSE;
 	fwl_setCurrentHandle(globalcontext, __FILE__, __LINE__);
 	ENTER_THREAD("display");
-
+#ifdef SSR_SERVER
+	{
+		//if this is ssr server running, it does a few quirky things like doing slow looping
+		char *running_ssr = get_key_val("SSR");
+		if(running_ssr)
+			if(!strcmp(running_ssr,"true"))
+				run_ssr = TRUE;
+	}
+#endif
 	do{
 		//if(frontendGetsFiles()==2) 
 #ifdef SSR_SERVER
-		SSR_reply(globalcontext);
-		dequeue_SSR_request(globalcontext);
+		if(run_ssr){
+			SSR_reply(globalcontext);
+			dequeue_SSR_request(globalcontext);
+		}
 #endif
 		frontend_dequeue_get_enqueue(globalcontext); //this is non-blocking (returns immediately) if queue empty
 		more = fwl_draw();

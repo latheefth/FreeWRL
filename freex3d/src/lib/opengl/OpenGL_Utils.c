@@ -3727,6 +3727,30 @@ void fw_glGetDoublev (int ty, GLDOUBLE *mat) {
 	memcpy((void *)mat, (void *) dp, sizeof (GLDOUBLE) * MATRIX_SIZE);
 }
 
+void fw_glSetDoublev (int ty, GLDOUBLE *mat) {
+	GLDOUBLE *dp;
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+
+/*
+	switch (ty) {
+		case GL_PROJECTION_MATRIX: printf ("getDoublev(GL_PROJECTION_MATRIX)\n"); break;
+		case GL_MODELVIEW_MATRIX: printf ("getDoublev(GL_MODELVIEW_MATRIX)\n"); break;
+		case GL_TEXTURE_MATRIX: printf ("getDoublev(GL_TEXTURE_MATRIX)\n"); break;
+	}
+*/
+
+	switch (ty) {
+		case GL_PROJECTION_MATRIX: dp = p->FW_ProjectionView[p->projectionviewTOS]; break;
+		case GL_MODELVIEW_MATRIX: dp = p->FW_ModelView[p->modelviewTOS]; break;
+		case GL_TEXTURE_MATRIX: dp = p->FW_TextureView[p->textureviewTOS]; break;
+		//case GL_PICKRAY_MATRIX: dp = p->FW_PickrayView[p->pickrayviewTOS]; break;
+		default: {
+		printf ("invalid mode sent in it is %d, expected one of %d %d %d\n",ty,GL_PROJECTION_MATRIX,GL_MODELVIEW_MATRIX,GL_TEXTURE_MATRIX);
+			return;}
+	}
+	memcpy((void *) dp, (void *)mat, sizeof (GLDOUBLE) * MATRIX_SIZE);
+}
+
 
 /* for Sarah's front end - should be removed sometime... */
 void kill_rendering() {

@@ -692,6 +692,7 @@ void resetGeometry();
 
 
 	#define FW_GL_GETDOUBLEV(aaa,bbb) fw_glGetDoublev(aaa,bbb);
+	#define FW_GL_SETDOUBLEV(aaa,bbb) fw_glSetDoublev(aaa,bbb);
 	#define FW_GL_LOAD_IDENTITY fw_glLoadIdentity
 	#define FW_GL_POP_MATRIX() fw_glPopMatrix()
 	#define FW_GL_PUSH_MATRIX() fw_glPushMatrix()
