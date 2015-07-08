@@ -339,6 +339,7 @@
 	//var roll - no roll allowed
 	var height = 1.75; //Z of viewpoint above Z=0 plane
 	var speed = 1.0;
+	var speedfactor = 1.0;
 	var navMode = 0; //0=yawz, 1=xy
 	var navElements = new Array("navYAWZ","navXY", "navPITCH","navWXY","navWZ");
 	function toggleNav(value){
@@ -362,8 +363,12 @@
 		cumTrans[2] = value*value; //non-linear
 		ajaxPosePose();	
 	}
+	function updateSpeed(){
+		speed = Math.pow(10.0,speedfactor)*Math.log(cumTrans[2]);
+	}
 	function changeSpeed(value){
-		speed = Math.pow(10.0,value)*height;
+		speedfactor = value;
+		updateSpeed();
 	}
 	//<<WIDGETS
 
@@ -538,6 +543,7 @@
 		vec3.transformQuat(trTrans,incTrans,invQuat); //server test (sb invquat to go vp2world)
 		vec3.add(cumTrans,cumTrans,trTrans);
 		vec3.add(cumTrans,incWtrans,cumTrans);
+		updateSpeed();
 
 	}
 
@@ -753,9 +759,7 @@
 	<input type="checkbox" id="navWZ" onclick="toggleNav(4)"><label>world z</label><br>
 	<label>Pitch: </label>Nadir <input type="range" id="sliderPitch" min="0" max="180" step="5" value="90" onchange="changePitch(this.value)"/>Zenith<br>
 	<label>Height: </label>Ground <input type="range" id="sliderHeight" min="1.32" max="100" step="1" value="1.32" onchange="changeHeight(this.value)"/>10km<br>
-	<!--
 	<label>Speed: </label>Slow <input type="range" id="sliderSpeed" min="-2" max="2" step=".2" value="0" onchange="changeSpeed(this.value)"/>Fast<br>
-	-->
 </div>
 
 </body>
