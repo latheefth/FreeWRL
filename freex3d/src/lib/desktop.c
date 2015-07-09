@@ -356,12 +356,13 @@ void _displayThread(void *globalcontext)
 	fwl_setCurrentHandle(globalcontext, __FILE__, __LINE__);
 	ENTER_THREAD("display");
 #ifdef SSR_SERVER
-	{
+	if(!run_ssr) {
 		//if this is ssr server running, it does a few quirky things like doing slow looping
 		char *running_ssr = get_key_val("SSR");
 		if(running_ssr)
 			if(!strcmp(running_ssr,"true"))
 				run_ssr = TRUE;
+		printf("in desktop.c run_ssr = %d\n",run_ssr);
 	}
 #endif
 	do{

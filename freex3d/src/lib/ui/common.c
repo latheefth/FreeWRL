@@ -685,11 +685,17 @@ int fwl_commandline(char *cmdline){
 	char *sep = strchr(cmdline,' ');
 	if(!sep) sep = strchr(cmdline,',');
 	if(sep){
+		int keylen;
 		char *key, *val;
-		val = &sep[1];
-		(*sep) = '\0';
-		key = cmdline;
+		val = strdup(&sep[1]);
+		keylen = (int)(sep - cmdline);
+		//(*sep) = '\0';
+		key = strndup(cmdline,keylen +1);
+		key[keylen] = '\0';
+		printf("key=[%s] val=[%s]\n",key,val);
 		fwl_keyval(key,val);
+		free(key);
+		free(val);
 	}else{
 		//not key,val, just command
 		fwl_command(cmdline);

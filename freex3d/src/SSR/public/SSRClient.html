@@ -91,6 +91,7 @@
 		gl.enable(gl.DEPTH_TEST);
 		generateGridLines();
 		createNorthCircle();
+		ajaxInit_Pose();
 	}
     var gridlines;
 	var numItems;
@@ -623,7 +624,7 @@
 		if(true){
 		var str = "[";
 		str += cumQuat[0] + ", " + cumQuat[1] + ", "+cumQuat[2] + ", " + cumQuat[3] + ", ";
-		str += cumTrans[0] + ", " + cumTrans[1] + "," + cumTrans[2];
+		str += cumTrans[0] + ", " + cumTrans[1] + ", " + cumTrans[2];
 		str = str + "]";
 		}
 		if(false){
