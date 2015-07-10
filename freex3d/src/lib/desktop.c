@@ -362,7 +362,7 @@ void _displayThread(void *globalcontext)
 		if(running_ssr)
 			if(!strcmp(running_ssr,"true"))
 				run_ssr = TRUE;
-		printf("in desktop.c run_ssr = %d\n",run_ssr);
+		//printf("in desktop.c run_ssr = %d\n",run_ssr);
 	}
 #endif
 	do{

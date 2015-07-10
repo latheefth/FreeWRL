@@ -365,7 +365,11 @@
 		ajaxPosePose();	
 	}
 	function updateSpeed(){
-		speed = Math.pow(10.0,speedfactor)*Math.log(cumTrans[2]);
+		//var hfactor = Math.abs(cumTrans[2]);
+		//hfactor = hfactor < 1.0 ? 1.0 : hfactor;
+		//speed = Math.pow(10.0,speedfactor + Math.log(hfactor));
+		speed = Math.pow(10,0,speedfactor);
+		console.log("speed="+speed);
 	}
 	function changeSpeed(value){
 		speedfactor = value;
@@ -751,7 +755,7 @@
 </div>
 <div id='huddiv'>
 	<br>
-	<input type="button" id="initbut" onclick="initOnClick()"><label>Initialize</label><br>
+	<input type="button" id="initbut" onclick="initOnClick()" value="Re-Initialize"><br>
 	<input type="checkbox" id="navYAWZ" onclick="toggleNav(0)" checked><label>yawz</label><br>
 	<input type="checkbox" id="navXY" onclick="toggleNav(1)"><label>xy</label><br>
 	<input type="checkbox" id="navPITCH" onclick="toggleNav(2)"><label>pitch</label><br>

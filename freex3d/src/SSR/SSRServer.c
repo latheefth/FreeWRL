@@ -775,7 +775,7 @@ typedef struct extrusion {
 static struct ssr_leaf {
 	//double transform[16]; //each SSR can have an xy offset, or more generally a transform, 
 			//so a scene with no geo nodes can stay float/SFVec3f, and the offset here will expand to double absolute coords
-	double xoff, yoff;
+	double xoff, yoff,zoff;
 	double inverse[16];   //and its inverse when going the other way, prepared on init
 	double extent[6]; //of leaf scene
 	extrusion volume; //more detailed than extent, used for 3D version of point-in-polygon test
@@ -1293,6 +1293,7 @@ static int iterate_post (void *coninfo_cls, enum MHD_ValueKind kind, const char 
 			fprintf(stdout,"D");
 			ssr_req.vec3[0] += ssrleaf.xoff;
 			ssr_req.vec3[1] += ssrleaf.yoff;
+			ssr_req.vec3[2] += ssrleaf.zoff;
 			doublePose2json(ssr_req.quat4,ssr_req.vec3, answerstring, MAXANSWERSIZE);
 			fprintf(stdout,"E");
 			//_snprintf (answerstring, MAXANSWERSIZE, greetingpage, data);
@@ -1320,9 +1321,11 @@ static int iterate_post (void *coninfo_cls, enum MHD_ValueKind kind, const char 
 			jsonPose2double(ssr_req.quat4,ssr_req.vec3,data);
 			ssr_req.vec3[0] -= ssrleaf.xoff;
 			ssr_req.vec3[1] -= ssrleaf.yoff;
+			ssr_req.vec3[2] -= ssrleaf.zoff;
 			dllFreeWRL_SSRserver_enqueue_request_and_wait(fwctx, &ssr_req);
 			ssr_req.vec3[0] += ssrleaf.xoff;
 			ssr_req.vec3[1] += ssrleaf.yoff;
+			ssr_req.vec3[2] += ssrleaf.zoff;
 			doublePose2json(ssr_req.quat4,ssr_req.vec3, answerstring, MAXANSWERSIZE);
 			//_snprintf (answerstring, MAXANSWERSIZE, greetingpage, data);
 			con_info->answerstring = answerstring;  
@@ -1345,6 +1348,7 @@ static int iterate_post (void *coninfo_cls, enum MHD_ValueKind kind, const char 
 			jsonPose2double(ssr_req.quat4,ssr_req.vec3,data);
 			ssr_req.vec3[0] -= ssrleaf.xoff;
 			ssr_req.vec3[1] -= ssrleaf.yoff;
+			ssr_req.vec3[2] -= ssrleaf.zoff;
 			dllFreeWRL_SSRserver_enqueue_request_and_wait(fwctx, &ssr_req);
 			con_info->answerstring = ssr_req.blob;
 			con_info->len = ssr_req.len;    
@@ -1643,6 +1647,8 @@ SSRServer.exe 8080 --zonebalancer
 							sscanf(&arg[7],"%lf",&ssrleaf.xoff);
 						}else if(!strncmp(&arg[2],"y",1)){
 							sscanf(&arg[7],"%lf",&ssrleaf.yoff);
+						}else if(!strncmp(&arg[2],"z",1)){
+							sscanf(&arg[7],"%lf",&ssrleaf.zoff);
 						}
 					}
 			}
