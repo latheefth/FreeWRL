@@ -19,6 +19,37 @@ double Time1970sec()
 	//*/
 	SYSTEMTIME mytimet; /*winNT and beyond */
 
+#ifdef TRUE //HAVE_ULARGE_INTEGER
+	if(1){
+		/*freewrl blackscreens overnight, the '/' viewpoint and world coordinates go to NaNs:
+			Position[0.0000, 0.0000, 10.0000]
+			Quaternion[-1.#IND, -1.#IND, -1.#IND, -1.#IND]
+			Orientation[-1.#IND, -1.#IND, -1.#IND, -1.#IND]
+			World Coordinates of Avatar [1.#QNB, 1.#QNB -1.#IND]
+		one hypothesis: -ve delta time or zero time throws off calculation at midnight
+		MS docs say don't subtract filetimes - convert to __int64 first
+		*/
+		FILETIME mytimef;
+		ULARGE_INTEGER mytimeu;
+		static ULARGE_INTEGER mystarttimeu = {0};
+		double dtime;
+
+		GetSystemTime(&mytimet);
+		SystemTimeToFileTime(&mytimet,&mytimef);
+		//milli 10-3 micro 10-6 nano 10-9 pico 10-12 femto 10-15 atto 10-18
+		//filetime is 64bit int in 100 nano seconds since year 1600
+		mytimeu.HighPart = mytimef.dwHighDateTime;
+		mytimeu.LowPart = mytimef.dwLowDateTime;
+		if(mystarttimeu.QuadPart == 0){
+			mystarttimeu.QuadPart = mytimeu.QuadPart;
+		}
+		mytimeu.QuadPart -= mystarttimeu.QuadPart;
+		dtime = (double)(mytimeu.QuadPart);
+		dtime = dtime * .0000001; //100 nano to seconds
+		return dtime;
+	}
+#endif
+
 	 GetLocalTime(&mytimet);
 	 return (double) mytimet.wHour*3600.0 + (double)mytimet.wMinute*60.0 + (double)mytimet.wSecond + (double)mytimet.wMilliseconds/1000.0;
 	//FILETIME ft;
