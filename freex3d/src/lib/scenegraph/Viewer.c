@@ -2448,6 +2448,7 @@ static void handle_tick_fly()
 			return;
 		}
 		fly->lasttime = dtime;
+		if(time_diff < 0.0) return; //skip a frame if the clock wraps around
 	}
 
 
@@ -2570,6 +2571,7 @@ handle_tick()
 			return;
 		}
 		p->Viewer.lasttime = dtime;
+		if(time_diff < 0.0) return; //skip a frame if the clock wraps around
 	}
 	 
 	switch(p->Viewer.type) {
