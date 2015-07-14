@@ -1306,7 +1306,7 @@ void fwl_RenderSceneUpdateScene() {
 			render_hier(rootNode(),VF_Sensitive  | VF_Geom);
 			getRayHitAndSetLookatTarget();
 		}
-		if(Viewer()->LookatMode > 2)
+		if(Viewer()->LookatMode == 0) ///> 2)
 			setArrowCursor();
 	}else{
 		//normal or navigation mode

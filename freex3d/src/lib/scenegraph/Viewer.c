@@ -386,14 +386,14 @@ void fwl_set_viewer_type(const int type) {
 	case VIEWER_FLY2:
 	case VIEWER_SPHERICAL:
 	case VIEWER_TURNTABLE:
-	case VIEWER_EXPLORE:
 	case VIEWER_DIST:
 	case VIEWER_FLY:
 		p->Viewer.type = type;
 		break;
+	case VIEWER_EXPLORE:
 	case VIEWER_LOOKAT:
-		if(p->Viewer.type == VIEWER_LOOKAT){
-			//this is a request to toggle off LOOKAT mode
+		if(p->Viewer.type == type){
+			//this is a request to toggle off LOOKAT/ EXPLORE mode
 			p->Viewer.type = p->Viewer.lastType;
 			p->Viewer.LookatMode = 0;
 		}else{
@@ -1574,7 +1574,8 @@ void handle0(const int mev, const unsigned int button, const float x, const floa
 		handle_lookat(mev, button, ((float)x), ((float)y)); //as per navigationInfo specs, you toggle on, then click an object and it flys you there
 		break;
 	case VIEWER_EXPLORE:
-		handle_explore(mev, button, ((float)x), ((float)y)); //as per specs, like turntable around any point you pick with CTRL click
+		handle_lookat(mev, button, ((float)x), ((float)y)); //as per navigationInfo specs, you toggle on, then click an object and it flys you there
+		//handle_explore(mev, button, ((float)x), ((float)y)); //as per specs, like turntable around any point you pick with CTRL click
 		break;
 	case VIEWER_DIST:
 		handle_dist(mev,button,(float)x,(float)y);
@@ -3136,6 +3137,8 @@ void setup_viewpoint_slerp(double* center, double pivot_radius, double vp_radius
 	if(p->Viewer.LookatMode == 3){
 		if(p->Viewer.type == VIEWER_LOOKAT)
 			fwl_set_viewer_type(VIEWER_LOOKAT); //toggle off LOOKAT
+		if(p->Viewer.type == VIEWER_EXPLORE)
+			fwl_set_viewer_type(VIEWER_EXPLORE); //toggle off LOOKAT
 		p->Viewer.LookatMode = 0; //VIEWER_EXPLORE
 	}
 	//viewer_lastP_clear(); //not sure I need this - its for wall penetration
