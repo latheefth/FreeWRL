@@ -391,9 +391,23 @@ void fwl_set_viewer_type(const int type) {
 		p->Viewer.type = type;
 		break;
 	case VIEWER_EXPLORE:
+		if(p->Viewer.type == type){
+			//this is a request to toggle on/off CTRL for EXPLORE mode
+			if(tg->Mainloop.CTRL){
+				tg->Mainloop.CTRL = FALSE;
+				p->Viewer.LookatMode = 0;
+			}else{
+				tg->Mainloop.CTRL = TRUE;
+				p->Viewer.LookatMode = 1; //tells mainloop to turn off sensitive
+			}
+		}else{
+			//request to toggle on EXPLORE mode
+			p->Viewer.type = type;
+		}
+		break;
 	case VIEWER_LOOKAT:
 		if(p->Viewer.type == type){
-			//this is a request to toggle off LOOKAT/ EXPLORE mode
+			//this is a request to toggle off LOOKAT mode
 			p->Viewer.type = p->Viewer.lastType;
 			p->Viewer.LookatMode = 0;
 		}else{
@@ -1574,8 +1588,7 @@ void handle0(const int mev, const unsigned int button, const float x, const floa
 		handle_lookat(mev, button, ((float)x), ((float)y)); //as per navigationInfo specs, you toggle on, then click an object and it flys you there
 		break;
 	case VIEWER_EXPLORE:
-		handle_lookat(mev, button, ((float)x), ((float)y)); //as per navigationInfo specs, you toggle on, then click an object and it flys you there
-		//handle_explore(mev, button, ((float)x), ((float)y)); //as per specs, like turntable around any point you pick with CTRL click
+		handle_explore(mev, button, ((float)x), ((float)y)); //as per specs, like turntable around any point you pick with CTRL click
 		break;
 	case VIEWER_DIST:
 		handle_dist(mev,button,(float)x,(float)y);
