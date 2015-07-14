@@ -374,6 +374,18 @@ void fwl_set_viewer_type(const int type) {
 	ttglobal tg = gglobal();
 	ppViewer p = (ppViewer)tg->Viewer.prv;
 
+	if(p->Viewer.type != type){
+		tg->Mainloop.CTRL = FALSE; //turn off any leftover 3-state toggle
+		switch(p->Viewer.type){
+			case VIEWER_LOOKAT:
+			case VIEWER_EXPLORE:
+				p->Viewer.LookatMode = 0; //turn off leftover lookatMode
+				break;
+			default:
+				break;
+		}
+	}
+
 	switch(type) {
 	case VIEWER_EXAMINE:
 		resolve_pos2();
@@ -384,13 +396,28 @@ void fwl_set_viewer_type(const int type) {
 	case VIEWER_RPLANE:
 	case VIEWER_TILT:
 	case VIEWER_FLY2:
-	case VIEWER_SPHERICAL:
 	case VIEWER_TURNTABLE:
 	case VIEWER_DIST:
 	case VIEWER_FLY:
 		p->Viewer.type = type;
 		break;
+	case VIEWER_SPHERICAL:
+		//3 state toggle stack
+		if(p->Viewer.type == type){
+			//this is a request to toggle on/off FOV (field-of-view) adjustment for SPHERICAL mode
+			if(tg->Mainloop.CTRL){
+				tg->Mainloop.CTRL = FALSE;
+			}else{
+				tg->Mainloop.CTRL = TRUE; //in handle_spherical, check if button==3 (RMB) or CTRL + button==1
+			}
+		}else{
+			//request to toggle on EXPLORE mode
+			p->Viewer.type = type;
+		}
+		break;
+
 	case VIEWER_EXPLORE:
+		//3 state toggle stack
 		if(p->Viewer.type == type){
 			//this is a request to toggle on/off CTRL for EXPLORE mode
 			if(tg->Mainloop.CTRL){
@@ -406,6 +433,7 @@ void fwl_set_viewer_type(const int type) {
 		}
 		break;
 	case VIEWER_LOOKAT:
+		//2 state toggle
 		if(p->Viewer.type == type){
 			//this is a request to toggle off LOOKAT mode
 			p->Viewer.type = p->Viewer.lastType;
@@ -1036,26 +1064,29 @@ void handle_dist(const int mev, const unsigned int button, float x, float y) {
 	Quaternion q, q_i, arc;
 	struct point_XYZ pp = { 0, 0, 0};
 	double squat_norm;
+	float yy;
 	ppViewer p;
 	X3D_Viewer_Examine *examine;
 	p = (ppViewer)gglobal()->Viewer.prv;
 	examine = &p->Viewer.examine;
 	pp.z=p->Viewer.Dist;
 
+	yy = 1.0 - y;
+	printf(" yy=%f ",yy);
 	if (mev == ButtonPress) {
 		if (button == 1) {
 			resolve_pos2();
-			examine->SY = y;
+			examine->SY = yy;
 			examine->ODist = max(0.1,p->Viewer.Dist);
 		}
 	} else if (mev == MotionNotify) {
 		if (button == 1) {
 			#ifndef DISABLER
-			p->Viewer.Dist = examine->ODist * exp(examine->SY - y);
+			p->Viewer.Dist = examine->ODist * exp(2.0 * (examine->SY - yy));
 			#else
-			p->Viewer.Dist = (0 != y) ? examine->ODist * examine->SY / y : 0;
+			p->Viewer.Dist = (0 != yy) ? examine->ODist * examine->SY / yy : 0;
 			#endif
-			printf("v.dist=%lf\n",p->Viewer.Dist);
+			//printf("v.dist=%lf\n",p->Viewer.Dist);
 		}
 	}
 	quaternion_inverse(&q_i, &(p->Viewer.Quat));
@@ -1199,6 +1230,7 @@ void handle_turntable(const int mev, const unsigned int button, float x, float y
 
 void handle_spherical(const int mev, const unsigned int button, float x, float y) {
 	/* handle_examine almost works except we don't want roll-tilt, and we want to zoom */
+	int ibutton;
 	Quaternion qyaw, qpitch;
 	double dyaw,dpitch;
 	/* unused double dzoom; */
@@ -1207,14 +1239,16 @@ void handle_spherical(const int mev, const unsigned int button, float x, float y
 	ttglobal tg = gglobal();
 	p = (ppViewer)gglobal()->Viewer.prv;
 	ypz = &p->Viewer.ypz;
+	ibutton = button;
+	if(ibutton == 1 && tg->Mainloop.CTRL) ibutton = 3; //RMB method for mobile/touch
 
 	if (mev == ButtonPress) {
-		if (button == 1 || button == 3) {
+		if (ibutton == 1 || ibutton == 3) {
 			ypz->x = x;
 			ypz->y = y;
 		}
 	} else if (mev == MotionNotify) {
-		if (button == 1) {
+		if (ibutton == 1) {
 			double yaw, pitch;
 			Quaternion quat;
 			struct point_XYZ dd, ddr, yaxis;
@@ -1244,14 +1278,14 @@ void handle_spherical(const int mev, const unsigned int button, float x, float y
 
 			quaternion_set(&(p->Viewer.Quat), &quat);
 
-		} else if (button == 3) {
+		} else if (ibutton == 3) {
 			double d, fac;
 			d = (y - ypz->y)*.5;
 			fac = pow(10.0,d);
 			p->Viewer.fovZoom = p->Viewer.fovZoom * fac;
 			//p->Viewer.fovZoom = DOUBLE_MIN(2.0,DOUBLE_MAX(.125,p->Viewer.fovZoom));  
 		}
-		if(button == 1 || button == 3){
+		if(ibutton == 1 || ibutton == 3){
 			ypz->x = x;
 			ypz->y = y;
 		}
