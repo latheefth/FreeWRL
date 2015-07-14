@@ -387,6 +387,7 @@ void fwl_set_viewer_type(const int type) {
 	case VIEWER_SPHERICAL:
 	case VIEWER_TURNTABLE:
 	case VIEWER_EXPLORE:
+	case VIEWER_DIST:
 	case VIEWER_FLY:
 		p->Viewer.type = type;
 		break;
@@ -455,6 +456,7 @@ struct navmode {
 	{"XY",VIEWER_XY},
 	{"YAWPITCH",VIEWER_YAWPITCH},
 	{"ROLL",VIEWER_ROLL},
+	{"DIST",VIEWER_DIST},
 	{NULL,0},
 };
 char * lookup_navmodestring(int navmode){
@@ -967,7 +969,7 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
 
 		} else if (button == 3) {
 			examine->SY = y;
-			examine->ODist = p->Viewer.Dist;
+			examine->ODist = max(0.1,p->Viewer.Dist);
 		}
 	} else if (mev == MotionNotify) {
 		if (button == 1) {
@@ -1011,6 +1013,48 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
 printf ("examine->origin %4.3f %4.3f %4.3f\n",examine->Origin.x, examine->Origin.y, examine->Origin.z);
 */
 }
+
+void handle_dist(const int mev, const unsigned int button, float x, float y) {
+	/* different than z, this adjusts the viewer.Dist value for examine, turntable, explore, lookat
+		- all without using RMB (right mouse button), so mobile friendly
+	*/
+	//examine variant - doesn't move the vp/.pos
+	Quaternion q, q_i, arc;
+	struct point_XYZ pp = { 0, 0, 0};
+	double squat_norm;
+	ppViewer p;
+	X3D_Viewer_Examine *examine;
+	p = (ppViewer)gglobal()->Viewer.prv;
+	examine = &p->Viewer.examine;
+	pp.z=p->Viewer.Dist;
+
+	if (mev == ButtonPress) {
+		if (button == 1) {
+			resolve_pos2();
+			examine->SY = y;
+			examine->ODist = max(0.1,p->Viewer.Dist);
+		}
+	} else if (mev == MotionNotify) {
+		if (button == 1) {
+			#ifndef DISABLER
+			p->Viewer.Dist = examine->ODist * exp(examine->SY - y);
+			#else
+			p->Viewer.Dist = (0 != y) ? examine->ODist * examine->SY / y : 0;
+			#endif
+			printf("v.dist=%lf\n",p->Viewer.Dist);
+		}
+	}
+	quaternion_inverse(&q_i, &(p->Viewer.Quat));
+	quaternion_rotation(&(p->Viewer.Pos), &q_i, &pp);
+/*
+	printf ("bp, after quat rotation, pos %4.3f %4.3f %4.3f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z);
+*/
+	p->Viewer.Pos.x += (examine->Origin).x;
+	p->Viewer.Pos.y += (examine->Origin).y;
+	p->Viewer.Pos.z += (examine->Origin).z;
+
+}
+
 
 void handle_turntable(const int mev, const unsigned int button, float x, float y) {
 	/*
@@ -1532,6 +1576,8 @@ void handle0(const int mev, const unsigned int button, const float x, const floa
 	case VIEWER_EXPLORE:
 		handle_explore(mev, button, ((float)x), ((float)y)); //as per specs, like turntable around any point you pick with CTRL click
 		break;
+	case VIEWER_DIST:
+		handle_dist(mev,button,(float)x,(float)y);
 	default:
 		break;
 	}
@@ -2373,6 +2419,8 @@ handle_tick()
 		break;
 	case VIEWER_TURNTABLE:
 		break;
+	case VIEWER_DIST:
+		break;
 	default:
 		break;
 	}
@@ -2921,7 +2969,10 @@ void slerp_viewpoint()
 		quaternion_slerp(&p->Viewer.Quat,&p->Viewer.startSLERPQuat,&p->Viewer.endSLERPQuat,tickFrac);
 		point_XYZ_slerp(&p->Viewer.Pos,&p->Viewer.startSLERPPos,&p->Viewer.endSLERPPos,tickFrac);
 		general_slerp(&p->Viewer.Dist,&p->Viewer.startSLERPDist,&p->Viewer.endSLERPDist,1,tickFrac);
-		if(tickFrac >= 1.0) 	p->Viewer.SLERPing3 = 0;
+		if(tickFrac >= 1.0) {
+			p->Viewer.SLERPing3 = 0;
+			resolve_pos2(); //may not need this if examine etc do it
+		}
 		//now we let normal rendering use the viewer quat, pos, dist during rendering
 	}else if(p->Viewer.SLERPing2 && p->vp2rnSaved) {
 		if(p->Viewer.SLERPing2justStarted)

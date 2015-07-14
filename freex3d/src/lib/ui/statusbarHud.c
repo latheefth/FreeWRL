@@ -1348,6 +1348,7 @@ ACTION_YAWZ,
 ACTION_YAWPITCH,
 ACTION_ROLL,
 ACTION_XY,
+ACTION_DIST,
 ACTION_LEVEL,
 ACTION_HEADLIGHT,
 ACTION_COLLISION,
@@ -1365,11 +1366,16 @@ void convertPng2hexAlpha()
 {
 	int w,h,ii,size;
 	static int mbuts = 1; //8; // 17;
-	static char * butFnames[] = {"YAWZ.png"}; // {"lookat.png","explore.png","spherical.png","turntable.png","XY.png","ROLL.png","YAWPITCH.png","YAWZ.png"}; //{"tilt.png"}; //{"tplane.png","rplane.png","walk.png","fly.png","examine.png","level.png","headlight.png","collision.png","prev.png","next.png","help.png","messages.png","options.png","reload.png","url.png","file.png","blank.png"};//"flyEx.png",
+	static char * butFnames[] = {"distance.png"}; //{"YAWZ.png"}; // {"lookat.png","explore.png","spherical.png","turntable.png","XY.png","ROLL.png","YAWPITCH.png","YAWZ.png"}; //{"tilt.png"}; //{"tplane.png","rplane.png","walk.png","fly.png","examine.png","level.png","headlight.png","collision.png","prev.png","next.png","help.png","messages.png","options.png","reload.png","url.png","file.png","blank.png"};//"flyEx.png",
 	textureTableIndexStruct_s butts;
 
 	FILE* out = fopen("hudIcons_octalpha_h","w+");
-
+	//{
+	//	//where to put .png, windows desktop
+	//	char dirname[1024];
+	//	GetCurrentDirectory(1000,dirname); //not supported in winRT
+	//	printf("current directory:%s\n",dirname);
+	//}
 	/* png icon files (can have transparency) problem: you need to put them in the current working directory*/
 	for(ii=0;ii<mbuts;ii++)
 	{
@@ -1522,21 +1528,21 @@ void initButtons()
 		static GLubyte * buttonlist [] = {
 			walk, fly, examine,
 			yawz, xy, yawpitch, roll,
-			explore, spherical, turntable, lookat,
+			explore, spherical, turntable, lookat, distance,
 			level, headlight,
 			collision, prev, next, help, messages, options, reload, url, file, blank
 			};
 		static int actionlist [] = {
 			ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
 			ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL,
-			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT,
+			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, ACTION_DIST,
 			ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
 			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS,
 			ACTION_RELOAD, ACTION_URL, ACTION_FILE, ACTION_BLANK,
 			};
 		//radiosets are to indicate what things are deselected (if any) when another thing is selected
-		static int radiosets [][8] = {
-			{7,ACTION_FLY,ACTION_WALK,ACTION_EXAMINE,ACTION_EXPLORE,ACTION_SPHERICAL,ACTION_TURNTABLE,ACTION_LOOKAT},
+		static int radiosets [][9] = {
+			{8,ACTION_FLY,ACTION_WALK,ACTION_EXAMINE,ACTION_EXPLORE,ACTION_SPHERICAL,ACTION_TURNTABLE,ACTION_LOOKAT,ACTION_DIST},
 			{3,ACTION_MESSAGES,ACTION_OPTIONS,ACTION_HELP}, 
 			//{4,ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL}, 
 			{0},
@@ -1548,15 +1554,15 @@ void initButtons()
 		//main menubar initial layout new mar 2015
 		static int mainbar [] = {
 			ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
-			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, 
+			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, ACTION_DIST,
 			ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
 			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS, 
 			//ACTION_RELOAD, ACTION_URL, 
 			ACTION_FILE,
 			};
 		static int togglesets [][8] = {{ACTION_FLY,4,ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL},{0}};
-		p->pmenu.nitems = 23;
-		p->pmenu.nbitems = 16;// 18;
+		p->pmenu.nitems = 24;
+		p->pmenu.nbitems = 17;// 18;
 		p->pmenu.top = false;
 
 
@@ -1567,21 +1573,21 @@ void initButtons()
 		static GLubyte * buttonlist [] = {
 			walk, fly, examine,
 			yawz, xy, yawpitch, roll,
-			explore, spherical, turntable, lookat,
+			explore, spherical, turntable, lookat, distance,
 			level, headlight,
 			collision, prev, next, help, messages, options, reload, url, file, blank
 			};
 		static int actionlist [] = {
 			ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
 			ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL,
-			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT,
+			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, ACTION_DIST,
 			ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
 			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS,
 			ACTION_RELOAD, ACTION_URL, ACTION_FILE, ACTION_BLANK,
 			};
 		//radiosets are to indicate what things are deselected (if any) when another thing is selected
-		static int radiosets [][8] = {
-			{7,ACTION_FLY,ACTION_WALK,ACTION_EXAMINE,ACTION_EXPLORE,ACTION_SPHERICAL,ACTION_TURNTABLE,ACTION_LOOKAT},
+		static int radiosets [][9] = {
+			{8,ACTION_FLY,ACTION_WALK,ACTION_EXAMINE,ACTION_EXPLORE,ACTION_SPHERICAL,ACTION_TURNTABLE,ACTION_LOOKAT,ACTION_DIST},
 			{3,ACTION_MESSAGES,ACTION_OPTIONS,ACTION_HELP}, 
 			//{4,ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL}, 
 			{0},
@@ -1593,15 +1599,15 @@ void initButtons()
 		//main menubar initial layout new mar 2015
 		static int mainbar [] = {
 			ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
-			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, 
+			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, ACTION_DIST,
 			ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
 			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS, 
 			//ACTION_RELOAD, ACTION_URL, 
 			//ACTION_FILE,
 			};
 		static int togglesets [][8] = {{ACTION_FLY,4,ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL},{0}};
-		p->pmenu.nitems = 23;
-		p->pmenu.nbitems = 15;// 18;
+		p->pmenu.nitems = 24;
+		p->pmenu.nbitems = 16;// 18;
 		p->pmenu.top = false;
 
 #endif
@@ -1910,6 +1916,10 @@ void setMenuButton_navModes(int type, int dragchord)
 			iaction = ACTION_SPHERICAL;
 			newval = 1;
 			break;
+		case VIEWER_DIST:
+			iaction = ACTION_DIST;
+			newval = 1;
+			break;
 		case VIEWER_FLY:
 #if defined(QNX) || defined(KIOSK)//|| defined(_MSC_VER)
 			iaction = ACTION_FLY2;
@@ -2113,6 +2123,8 @@ int handleButtonRelease(int mouseX, int mouseY)
 					fwl_set_viewer_type(VIEWER_SPHERICAL); break;
 				case ACTION_TURNTABLE:
 					fwl_set_viewer_type(VIEWER_TURNTABLE); break;
+				case ACTION_DIST:
+					fwl_set_viewer_type(VIEWER_DIST); break;
 				case ACTION_LEVEL:	 viewer_level_to_bound(); break;
 				case ACTION_HEADLIGHT: fwl_toggle_headlight(); break;
 				case ACTION_COLLISION: toggle_collision(); break; 

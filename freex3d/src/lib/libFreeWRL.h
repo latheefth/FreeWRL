@@ -153,6 +153,7 @@ bool Anchor_ReplaceWorld();
 #define VIEWER_XY 14
 #define VIEWER_YAWPITCH 15
 #define VIEWER_ROLL 16
+#define VIEWER_DIST 17
 
 #define CHORD_YAWZ 0
 #define CHORD_YAWPITCH 1
