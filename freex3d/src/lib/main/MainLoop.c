@@ -3569,6 +3569,20 @@ void fwl_do_keyPress0(int key, int type) {
 		}
 	}
 }
+int fwl_getShift(){
+	ttglobal tg = gglobal();
+	return tg->Mainloop.SHIFT;
+}
+void fwl_setShift(int ishift){
+	ttglobal tg = gglobal();
+	tg->Mainloop.SHIFT = ishift;
+}
+
+int fwl_getCtrl(){
+	ttglobal tg = gglobal();
+	return tg->Mainloop.CTRL;
+}
+
 void queueKeyPress(ppMainloop p, int key, int type){
 	if(p->keypressQueueCount < 50){
 		p->keypressQueue[p->keypressQueueCount].key = key;

@@ -1072,7 +1072,6 @@ void handle_dist(const int mev, const unsigned int button, float x, float y) {
 	pp.z=p->Viewer.Dist;
 
 	yy = 1.0 - y;
-	printf(" yy=%f ",yy);
 	if (mev == ButtonPress) {
 		if (button == 1) {
 			resolve_pos2();

@@ -391,4 +391,7 @@ int fwl_set_sbh_pin_option(char *optarg);
 void fwl_set_sbh_pin(int sb, int mb);
 void fwl_get_sbh_pin(int *sb, int *mb);
 int fwl_commandline(char *cmdline);
+int fwl_getShift();
+void fwl_setShift(int ishift);
+int fwl_getCtrl();
 #endif /* __LIBFREEWRL_API_H__ */
