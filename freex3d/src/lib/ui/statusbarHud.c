@@ -1507,38 +1507,14 @@ void initButtons()
 	}
 	if(p->buttonType == 1)
 	{
-#if defined(QNX) //|| defined(_MSC_VER)
-		static GLubyte * buttonlist [] = { walk, fly, tilt, tplane, rplane,  examine, level, headlight, 
-			collision, prev, next, help, messages, options, reload, url, blank };
-		static int actionlist [] = { ACTION_WALK, ACTION_FLY2, ACTION_TILT, ACTION_TPLANE, ACTION_RPLANE, ACTION_EXAMINE, 
-			ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV, 
-			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS, 
-			ACTION_RELOAD,	ACTION_URL, ACTION_BLANK};
-		static int radiosets [][7] = {{6,ACTION_WALK,ACTION_FLY2, ACTION_TILT, ACTION_TPLANE,ACTION_RPLANE,ACTION_EXAMINE},
-			{3,ACTION_MESSAGES,ACTION_OPTIONS,ACTION_HELP}, {0}};
-		static int toggles [] = {ACTION_COLLISION,ACTION_HEADLIGHT,
-			ACTION_HELP,ACTION_MESSAGES,ACTION_OPTIONS,0}; 
-		p->pmenu.nitems = 17; //leave file for now
+#if defined(QNX) || defined(KIOSK)
 		p->pmenu.top = true;
+#else
+		p->pmenu.top = false;
+#endif
 
-#elif defined(KIOSK)
-
-		static GLubyte * buttonlist [] = { walk, fly, tilt, tplane, rplane,  examine, level, headlight, 
-			collision, prev, next, help, messages, options, blank };
-		static int actionlist [] = { ACTION_WALK, ACTION_FLY2, ACTION_TILT, ACTION_TPLANE, ACTION_RPLANE, ACTION_EXAMINE, 
-			ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV, 
-			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS, 
-			ACTION_BLANK};
-		static int radiosets [][7] = {{6,ACTION_WALK,ACTION_FLY2, ACTION_TILT, ACTION_TPLANE,ACTION_RPLANE,ACTION_EXAMINE},
-			{3,ACTION_MESSAGES,ACTION_OPTIONS,ACTION_HELP}, {0}};
-		static int toggles [] = {ACTION_COLLISION,ACTION_HEADLIGHT,
-			ACTION_HELP,ACTION_MESSAGES,ACTION_OPTIONS,0}; 
-		p->pmenu.nitems = 15; //leave file for now
-		p->pmenu.top = true;
-
-#elif defined(_MSC_VER)
-
-		//buttonlist and actionlist are/mustbe synchronized, will become part of pmenitem tuple together
+		//buttonlist, actionlist and NACTION are/mustbe synchronized, will become part of pmenitem tuple together
+		// - include all buttons and actions here (filter out ones you don't want in mainbar)
 		static GLubyte * buttonlist [] = {
 			walk, fly, examine,
 			yawz, xy, yawpitch, roll,
@@ -1554,6 +1530,7 @@ void initButtons()
 			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS,
 			ACTION_RELOAD, ACTION_URL, ACTION_FILE, ACTION_BLANK,
 			};
+		static int NACTION = 25; //must match buttonlist and actionlist count
 		//radiosets are to indicate what things are deselected (if any) when another thing is selected
 		static int radiosets [][9] = {
 			{8,ACTION_FLY,ACTION_WALK,ACTION_EXAMINE,ACTION_EXPLORE,ACTION_SPHERICAL,ACTION_TURNTABLE,ACTION_LOOKAT,ACTION_DIST},
@@ -1567,66 +1544,43 @@ void initButtons()
 			ACTION_COLLISION,ACTION_HEADLIGHT,ACTION_SHIFT,
 			ACTION_HELP,ACTION_MESSAGES,ACTION_OPTIONS,0
 			}; 
+		static int togglesets [][8] = {{ACTION_FLY,4,ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL},{0}};
 		//main menubar initial layout new mar 2015
-		static int mainbar [] = {
+		static int mainbar_withFileOpen [] = {
 			ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
 			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, ACTION_DIST, 
 			ACTION_SHIFT, ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
 			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS, 
 			//ACTION_RELOAD, ACTION_URL, 
 			ACTION_FILE,
+			-1,
 			};
-		static int togglesets [][8] = {{ACTION_FLY,4,ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL},{0}};
-		p->pmenu.nitems = 25;  //tinker
-		p->pmenu.nbitems = 18;//tinker
-		p->pmenu.top = false;
-
-
-
-#else
-		//LINUX
-		//buttonlist and actionlist are/mustbe synchronized, will become part of pmenitem tuple together
-		static GLubyte * buttonlist [] = {
-			walk, fly, examine,
-			yawz, xy, yawpitch, roll,
-			explore, spherical, turntable, lookat, distance,
-			shift, level, headlight,
-			collision, prev, next, help, messages, options, reload, url, file, blank
-			};
-		static int actionlist [] = {
+		static int mainbar_linux [] = {
 			ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
-			ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL,
 			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, ACTION_DIST,
 			ACTION_SHIFT, ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
-			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS,
-			ACTION_RELOAD, ACTION_URL, ACTION_FILE, ACTION_BLANK,
-			};
-		//radiosets are to indicate what things are deselected (if any) when another thing is selected
-		static int radiosets [][9] = {
-			{8,ACTION_FLY,ACTION_WALK,ACTION_EXAMINE,ACTION_EXPLORE,ACTION_SPHERICAL,ACTION_TURNTABLE,ACTION_LOOKAT,ACTION_DIST},
-			{3,ACTION_MESSAGES,ACTION_OPTIONS,ACTION_HELP}, 
-			//{4,ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL}, 
-			{0},
-			};
-		static int toggles [] = {
-			ACTION_COLLISION,ACTION_HEADLIGHT, ACTION_SHIFT,
-			ACTION_HELP,ACTION_MESSAGES,ACTION_OPTIONS,0
-			}; 
-		//main menubar initial layout new mar 2015
-		static int mainbar [] = {
-			ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
-			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, ACTION_DIST,
-			ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
 			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS, 
 			//ACTION_RELOAD, ACTION_URL, 
 			//ACTION_FILE,
+			-1,
 			};
-		static int togglesets [][8] = {{ACTION_FLY,4,ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL},{0}};
-		p->pmenu.nitems = 25; //tinker
-		p->pmenu.nbitems = 17;//tinker
+		static int *mainbar = NULL;
+
+		p->pmenu.nitems = NACTION; //number of action items, even if not shown on menubar
+		mainbar = mainbar_linux;
+#ifdef _MSC_VER
+		mainbar = mainbar_withFileOpen;
+#endif
+		//count number of menubar items, assuming last item is -1 sentinal value
+		i=0;
+		do{
+			i++;
+			p->pmenu.nbitems = i;
+		}while(mainbar[i]>-1);
+		//p->pmenu.nbitems = 18;
 		p->pmenu.top = false;
 
-#endif
+
 		//convert to lumalpha
 		//p->pmenu.items = (pmenuItem_t *)malloc(16 * sizeof(pmenuItem_t)); done in module init
 		//may 1, 2012: QNX GLES2 needs power-of-2 image dimensions, but doesn't need to be square
