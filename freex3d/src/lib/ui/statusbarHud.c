@@ -52,6 +52,7 @@ savePng2dotc = 1; // if you read png and want to save to a bitmap .c struct, put
 #define NEON 1
 static GLfloat colorCursor[4]			= {.7f,.7f,.9f,1.0f};		//sidebyside stereo eyebase cursor (is this still used, or is there something in mainloop.c now?)
 static GLfloat colorButtonHighlight[4]	= {.5f,.5f,.5f,.5f};
+static GLfloat colorButtonCTRL[4]		= {.6f,.6f,.6f,.5f};
 
 #ifdef OLDCOLORS
 static GLfloat colorClear[4]			= {.922f,.91f,.844f,1.0f};  //offwhite
@@ -2255,7 +2256,7 @@ void updateButtonVertices()
 void renderButtons()
 {
 	/* called from drawStatusBar() to render the user buttons like walk/fly, headlight, collision etc. */
-	int i,loaded;
+	int i,loaded,ctrl;
 	ppstatusbar p;
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
@@ -2282,10 +2283,13 @@ void renderButtons()
 
 	glBindTexture ( GL_TEXTURE_2D, p->pmenu.textureID );
 
+	ctrl = fwl_getCtrl();
 	for(i=0;i<p->pmenu.nbitems;i++)
 	{
+		int do_ctrl;
 		GLfloat rgba[4] = {1.0, 1.0, 1.0, 1.0};
 		bool highlightIt = p->pmenu.bitems[i].item->butStatus;
+		do_ctrl = ctrl && i < 8;
 
 		if(p->pmenu.bitems[i].item->butStatus) 
 			rgba[0] = .7f; rgba[1] = .7f; rgba[2] = .7f; //DEPRESSED/TOGGLED BUTTON BACKGROUND COLOR
@@ -2294,7 +2298,10 @@ void renderButtons()
 			/*draw a background highlight rectangle*/
 
 			//glUniform4f(p->color4fLoc,rgba[0],rgba[1],rgba[2],rgba[3]); //..8f,.87f,.97f,1.0f);
-			glUniform4f(p->color4fLoc,colorButtonHighlight[0],colorButtonHighlight[1],colorButtonHighlight[2],colorButtonHighlight[3]);
+			if(do_ctrl)
+				glUniform4f(p->color4fLoc,colorButtonCTRL[0],colorButtonCTRL[1],colorButtonCTRL[2],colorButtonCTRL[3]);
+			else
+				glUniform4f(p->color4fLoc,colorButtonHighlight[0],colorButtonHighlight[1],colorButtonHighlight[2],colorButtonHighlight[3]);
 			glVertexAttribPointer ( p->positionLoc, 3, GL_FLOAT, 
 						GL_FALSE, 0, &(p->pmenu.vert[i*3*4]) );
 			// Load the texture coordinate
