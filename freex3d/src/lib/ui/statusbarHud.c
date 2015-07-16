@@ -43,6 +43,9 @@ savePng2dotc = 1; // if you read png and want to save to a bitmap .c struct, put
 //#define KIOSK 1
 //#define TOUCH 1
 
+/*the colors listed here are for a default. But are over-ridden now by colors and default 
+	listed in common.c in freewrl
+*/
 // StatusbarHud color schemes:
 //#define OLDCOLORS 1
 //#define MIDNIGHT 1
@@ -52,6 +55,7 @@ savePng2dotc = 1; // if you read png and want to save to a bitmap .c struct, put
 #define NEON 1
 static GLfloat colorCursor[4]			= {.7f,.7f,.9f,1.0f};		//sidebyside stereo eyebase cursor (is this still used, or is there something in mainloop.c now?)
 static GLfloat colorButtonHighlight[4]	= {.5f,.5f,.5f,.5f};
+static GLfloat colorButtonCTRL[4]		= {.6f,.6f,.6f,.5f};
 
 #ifdef OLDCOLORS
 static GLfloat colorClear[4]			= {.922f,.91f,.844f,1.0f};  //offwhite
@@ -352,9 +356,7 @@ GLubyte fwLetters8x15[][22] = {
 {255,0,0,0,0,0,0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0}
 };
 //the buttons need to be larger for fingers on touch devices
-#if defined(QNX) //|| defined(_MSC_VER)
-#define BUTSIZE 48
-#elif defined(KIOSK)
+#if defined(QNX) || defined(KIOSK)
 #define BUTSIZE 48
 #else
 #define BUTSIZE 32
@@ -1348,6 +1350,8 @@ ACTION_YAWZ,
 ACTION_YAWPITCH,
 ACTION_ROLL,
 ACTION_XY,
+ACTION_DIST,
+ACTION_SHIFT,
 ACTION_LEVEL,
 ACTION_HEADLIGHT,
 ACTION_COLLISION,
@@ -1363,13 +1367,30 @@ ACTION_BLANK
 } button_actions;
 void convertPng2hexAlpha()
 {
+	/* How to make new button icons:
+		1. design a button gray or white over alpha in something like blender
+		2. render to 32x32 .png with alpha channel
+		3. p->buttonType = 0 in function that calls convertPng2hexAlpha
+		4. change mbuts to 1 if doing just one button
+		5. put the name of button for butFnames[] = {"mybutname.png"};
+		6. put your mybutname.png in the folder where freewrl runs from (see diagnostic GetCurrentDirectory below)
+		7. build and run freewrl once - should get hudicons_octalpha_h output file
+		8. copy and paste from hudicons_octalpha_h to freewrl's hudicons_octalpha.h at the bottom (leave existing buttons)
+		9. // p->buttonType = 0 - comment back out in function below
+		10. tinker with code in statusbarhud.c in several places to get the button to show and do things
+	*/
 	int w,h,ii,size;
-	static int mbuts = 1; //8; // 17;
-	static char * butFnames[] = {"YAWZ.png"}; // {"lookat.png","explore.png","spherical.png","turntable.png","XY.png","ROLL.png","YAWPITCH.png","YAWZ.png"}; //{"tilt.png"}; //{"tplane.png","rplane.png","walk.png","fly.png","examine.png","level.png","headlight.png","collision.png","prev.png","next.png","help.png","messages.png","options.png","reload.png","url.png","file.png","blank.png"};//"flyEx.png",
+	static int mbuts = 2; //8; // 17;
+	static char * butFnames[] = {"shift.png","sensor.png"}; //{"YAWZ.png"}; // {"lookat.png","explore.png","spherical.png","turntable.png","XY.png","ROLL.png","YAWPITCH.png","YAWZ.png"}; //{"tilt.png"}; //{"tplane.png","rplane.png","walk.png","fly.png","examine.png","level.png","headlight.png","collision.png","prev.png","next.png","help.png","messages.png","options.png","reload.png","url.png","file.png","blank.png"};//"flyEx.png",
 	textureTableIndexStruct_s butts;
 
 	FILE* out = fopen("hudIcons_octalpha_h","w+");
-
+	//{
+	//	//where to put .png, windows desktop
+	//	char dirname[1024];
+	//	GetCurrentDirectory(1000,dirname); //not supported in winRT
+	//	printf("current directory:%s\n",dirname);
+	//}
 	/* png icon files (can have transparency) problem: you need to put them in the current working directory*/
 	for(ii=0;ii<mbuts;ii++)
 	{
@@ -1480,131 +1501,87 @@ void initButtons()
 	ppstatusbar p = (ppstatusbar)tg->statusbar.prv;
 	p->clipPlane = p->statusBarSize; //16;
 	
-	///p->buttonType = 0; //uncomment this like to convert png buttons to hudIcons_octalpha_h header format
+	///p->buttonType = 0; //uncomment this line to convert png buttons to hudIcons_octalpha_h header format
 	if(p->buttonType == 0){
 		convertPng2hexAlpha();
 		exit(0);
 	}
 	if(p->buttonType == 1)
 	{
-#if defined(QNX) //|| defined(_MSC_VER)
-		static GLubyte * buttonlist [] = { walk, fly, tilt, tplane, rplane,  examine, level, headlight, 
-			collision, prev, next, help, messages, options, reload, url, blank };
-		static int actionlist [] = { ACTION_WALK, ACTION_FLY2, ACTION_TILT, ACTION_TPLANE, ACTION_RPLANE, ACTION_EXAMINE, 
-			ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV, 
-			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS, 
-			ACTION_RELOAD,	ACTION_URL, ACTION_BLANK};
-		static int radiosets [][7] = {{6,ACTION_WALK,ACTION_FLY2, ACTION_TILT, ACTION_TPLANE,ACTION_RPLANE,ACTION_EXAMINE},
-			{3,ACTION_MESSAGES,ACTION_OPTIONS,ACTION_HELP}, {0}};
-		static int toggles [] = {ACTION_COLLISION,ACTION_HEADLIGHT,
-			ACTION_HELP,ACTION_MESSAGES,ACTION_OPTIONS,0}; 
-		p->pmenu.nitems = 17; //leave file for now
+#if defined(QNX) || defined(KIOSK)
 		p->pmenu.top = true;
+#else
+		p->pmenu.top = false;
+#endif
 
-#elif defined(KIOSK)
-
-		static GLubyte * buttonlist [] = { walk, fly, tilt, tplane, rplane,  examine, level, headlight, 
-			collision, prev, next, help, messages, options, blank };
-		static int actionlist [] = { ACTION_WALK, ACTION_FLY2, ACTION_TILT, ACTION_TPLANE, ACTION_RPLANE, ACTION_EXAMINE, 
-			ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV, 
-			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS, 
-			ACTION_BLANK};
-		static int radiosets [][7] = {{6,ACTION_WALK,ACTION_FLY2, ACTION_TILT, ACTION_TPLANE,ACTION_RPLANE,ACTION_EXAMINE},
-			{3,ACTION_MESSAGES,ACTION_OPTIONS,ACTION_HELP}, {0}};
-		static int toggles [] = {ACTION_COLLISION,ACTION_HEADLIGHT,
-			ACTION_HELP,ACTION_MESSAGES,ACTION_OPTIONS,0}; 
-		p->pmenu.nitems = 15; //leave file for now
-		p->pmenu.top = true;
-
-#elif defined(_MSC_VER)
-
-		//buttonlist and actionlist are/mustbe synchronized, will become part of pmenitem tuple together
+		//buttonlist, actionlist and NACTION are/mustbe synchronized, will become part of pmenitem tuple together
+		// - include all buttons and actions here (filter out ones you don't want in mainbar)
 		static GLubyte * buttonlist [] = {
 			walk, fly, examine,
 			yawz, xy, yawpitch, roll,
-			explore, spherical, turntable, lookat,
-			level, headlight,
+			explore, spherical, turntable, lookat, distance, 
+			shift, level, headlight,
 			collision, prev, next, help, messages, options, reload, url, file, blank
 			};
 		static int actionlist [] = {
 			ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
 			ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL,
-			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT,
-			ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
+			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, ACTION_DIST, 
+			ACTION_SHIFT, ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
 			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS,
 			ACTION_RELOAD, ACTION_URL, ACTION_FILE, ACTION_BLANK,
 			};
+		static int NACTION = 25; //must match buttonlist and actionlist count
 		//radiosets are to indicate what things are deselected (if any) when another thing is selected
-		static int radiosets [][8] = {
-			{7,ACTION_FLY,ACTION_WALK,ACTION_EXAMINE,ACTION_EXPLORE,ACTION_SPHERICAL,ACTION_TURNTABLE,ACTION_LOOKAT},
+		static int radiosets [][9] = {
+			{8,ACTION_FLY,ACTION_WALK,ACTION_EXAMINE,ACTION_EXPLORE,ACTION_SPHERICAL,ACTION_TURNTABLE,ACTION_LOOKAT,ACTION_DIST},
 			{3,ACTION_MESSAGES,ACTION_OPTIONS,ACTION_HELP}, 
 			//{4,ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL}, 
 			{0},
 			};
+		//not sure we need to toggle in the View, the Model holds the state, and
+		//controller checks once per frame
 		static int toggles [] = {
-			ACTION_COLLISION,ACTION_HEADLIGHT,
+			ACTION_COLLISION,ACTION_HEADLIGHT,ACTION_SHIFT,
 			ACTION_HELP,ACTION_MESSAGES,ACTION_OPTIONS,0
 			}; 
+		static int togglesets [][8] = {{ACTION_FLY,4,ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL},{0}};
 		//main menubar initial layout new mar 2015
-		static int mainbar [] = {
+		static int mainbar_withFileOpen [] = {
 			ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
-			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, 
-			ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
+			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, ACTION_DIST, 
+			ACTION_SHIFT, ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
 			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS, 
 			//ACTION_RELOAD, ACTION_URL, 
 			ACTION_FILE,
+			-1,
 			};
-		static int togglesets [][8] = {{ACTION_FLY,4,ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL},{0}};
-		p->pmenu.nitems = 23;
-		p->pmenu.nbitems = 16;// 18;
-		p->pmenu.top = false;
-
-
-
-#else
-		//LINUX
-		//buttonlist and actionlist are/mustbe synchronized, will become part of pmenitem tuple together
-		static GLubyte * buttonlist [] = {
-			walk, fly, examine,
-			yawz, xy, yawpitch, roll,
-			explore, spherical, turntable, lookat,
-			level, headlight,
-			collision, prev, next, help, messages, options, reload, url, file, blank
-			};
-		static int actionlist [] = {
+		static int mainbar_linux [] = {
 			ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
-			ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL,
-			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT,
-			ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
-			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS,
-			ACTION_RELOAD, ACTION_URL, ACTION_FILE, ACTION_BLANK,
-			};
-		//radiosets are to indicate what things are deselected (if any) when another thing is selected
-		static int radiosets [][8] = {
-			{7,ACTION_FLY,ACTION_WALK,ACTION_EXAMINE,ACTION_EXPLORE,ACTION_SPHERICAL,ACTION_TURNTABLE,ACTION_LOOKAT},
-			{3,ACTION_MESSAGES,ACTION_OPTIONS,ACTION_HELP}, 
-			//{4,ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL}, 
-			{0},
-			};
-		static int toggles [] = {
-			ACTION_COLLISION,ACTION_HEADLIGHT,
-			ACTION_HELP,ACTION_MESSAGES,ACTION_OPTIONS,0
-			}; 
-		//main menubar initial layout new mar 2015
-		static int mainbar [] = {
-			ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
-			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, 
-			ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
+			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, ACTION_DIST,
+			ACTION_SHIFT, ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
 			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS, 
 			//ACTION_RELOAD, ACTION_URL, 
 			//ACTION_FILE,
+			-1,
 			};
-		static int togglesets [][8] = {{ACTION_FLY,4,ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL},{0}};
-		p->pmenu.nitems = 23;
-		p->pmenu.nbitems = 15;// 18;
+		static int *mainbar = NULL;
+
+		p->pmenu.nitems = NACTION; //number of action items, even if not shown on menubar
+		mainbar = mainbar_linux;
+//#ifdef _MSC_VER
+//		mainbar = mainbar_withFileOpen;
+//#endif
+		//count number of menubar items, assuming last item is -1 sentinal value
+		i=0;
+		do{
+			i++;
+			p->pmenu.nbitems = i;
+		}while(mainbar[i]>-1);
+		//p->pmenu.nbitems = 18;
 		p->pmenu.top = false;
 
-#endif
+
 		//convert to lumalpha
 		//p->pmenu.items = (pmenuItem_t *)malloc(16 * sizeof(pmenuItem_t)); done in module init
 		//may 1, 2012: QNX GLES2 needs power-of-2 image dimensions, but doesn't need to be square
@@ -1873,6 +1850,19 @@ void setMenuButton_headlight(int val){
 	if(i > -1)
 		p->pmenu.items[i].butStatus = val;
 }
+void setMenuButton_shift(int val){
+	int i;
+	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
+	i = getMenuItemByAction(ACTION_SHIFT);
+	if(i > -1)
+		p->pmenu.items[i].butStatus = val;
+}
+void setMenuButton_ctrl(ctrl){
+	//not used yet - ctrl affects 3-state buttons like Explore (goes into pick mode when pressed 2x), 
+	//and examine, spherical (ctrl + LMB == RMB)
+	// could be used to highlight double-pressed button so user knows to toggle off
+}
+
 static int chord2action [] = {ACTION_YAWZ,ACTION_YAWPITCH,ACTION_ROLL,ACTION_XY};
 
 void setMenuButton_navModes(int type, int dragchord)
@@ -1908,6 +1898,10 @@ void setMenuButton_navModes(int type, int dragchord)
 			break;
 		case VIEWER_SPHERICAL:
 			iaction = ACTION_SPHERICAL;
+			newval = 1;
+			break;
+		case VIEWER_DIST:
+			iaction = ACTION_DIST;
 			newval = 1;
 			break;
 		case VIEWER_FLY:
@@ -1957,20 +1951,26 @@ void viewer_setDragChord(int chord);
 /* handle all the displaying and event loop stuff. */
 void updateButtonStatus()
 {
-	//checks collision, headlight and navmode 
+	//checks collision, headlight and navmode in the model
+	//in MVC -model,view,controller- terminology, this is the controller,
+	// and it checks the model (libfreewrl ie fwl functions), and updates the view (statusbar hud)
 	//-these can be set by either the UI (this statusbar), keyboard hits, or from 
 	// events inside vrml. 
 	// Here we take our UI current state from the scene state. 
 	// For FRONTEND_HANDLES_DISPLAY_THREAD configurations, the frontend should do 
 	// the equivalent of the following once per frame (poll state and set UI)
-	int headlight, collision, navmode, dragchord, lookatMode;
+	int headlight, collision, navmode, dragchord, lookatMode, ctrl, shift;
 	//poll model state:
 	headlight = fwl_get_headlight();
 	collision = fwl_getCollision();
 	navmode = fwl_getNavMode();
 	dragchord = viewer_getDragChord();
+	shift = fwl_getShift();
+	ctrl = fwl_getCtrl();
 	//lookatMode = fwl_getLookatMode();
 	//update UI(view):
+	setMenuButton_shift(shift);
+	setMenuButton_ctrl(ctrl);
 	setMenuButton_navModes(navmode,dragchord);
 	setMenuButton_headlight(headlight);
 	setMenuButton_collision(collision);
@@ -2113,6 +2113,9 @@ int handleButtonRelease(int mouseX, int mouseY)
 					fwl_set_viewer_type(VIEWER_SPHERICAL); break;
 				case ACTION_TURNTABLE:
 					fwl_set_viewer_type(VIEWER_TURNTABLE); break;
+				case ACTION_DIST:
+					fwl_set_viewer_type(VIEWER_DIST); break;
+				case ACTION_SHIFT:	 fwl_setShift(p->pmenu.bitems[i].item->butStatus); break;
 				case ACTION_LEVEL:	 viewer_level_to_bound(); break;
 				case ACTION_HEADLIGHT: fwl_toggle_headlight(); break;
 				case ACTION_COLLISION: toggle_collision(); break; 
@@ -2208,7 +2211,7 @@ void updateButtonVertices()
 void renderButtons()
 {
 	/* called from drawStatusBar() to render the user buttons like walk/fly, headlight, collision etc. */
-	int i,loaded;
+	int i,loaded,ctrl;
 	ppstatusbar p;
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
@@ -2235,10 +2238,13 @@ void renderButtons()
 
 	glBindTexture ( GL_TEXTURE_2D, p->pmenu.textureID );
 
+	ctrl = fwl_getCtrl();
 	for(i=0;i<p->pmenu.nbitems;i++)
 	{
+		int do_ctrl;
 		GLfloat rgba[4] = {1.0, 1.0, 1.0, 1.0};
 		bool highlightIt = p->pmenu.bitems[i].item->butStatus;
+		do_ctrl = ctrl && i < 8;
 
 		if(p->pmenu.bitems[i].item->butStatus) 
 			rgba[0] = .7f; rgba[1] = .7f; rgba[2] = .7f; //DEPRESSED/TOGGLED BUTTON BACKGROUND COLOR
@@ -2247,7 +2253,10 @@ void renderButtons()
 			/*draw a background highlight rectangle*/
 
 			//glUniform4f(p->color4fLoc,rgba[0],rgba[1],rgba[2],rgba[3]); //..8f,.87f,.97f,1.0f);
-			glUniform4f(p->color4fLoc,colorButtonHighlight[0],colorButtonHighlight[1],colorButtonHighlight[2],colorButtonHighlight[3]);
+			if(do_ctrl)
+				glUniform4f(p->color4fLoc,colorButtonCTRL[0],colorButtonCTRL[1],colorButtonCTRL[2],colorButtonCTRL[3]);
+			else
+				glUniform4f(p->color4fLoc,colorButtonHighlight[0],colorButtonHighlight[1],colorButtonHighlight[2],colorButtonHighlight[3]);
 			glVertexAttribPointer ( p->positionLoc, 3, GL_FLOAT, 
 						GL_FALSE, 0, &(p->pmenu.vert[i*3*4]) );
 			// Load the texture coordinate

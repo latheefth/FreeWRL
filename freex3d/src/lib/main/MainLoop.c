@@ -1306,7 +1306,7 @@ void fwl_RenderSceneUpdateScene() {
 			render_hier(rootNode(),VF_Sensitive  | VF_Geom);
 			getRayHitAndSetLookatTarget();
 		}
-		if(Viewer()->LookatMode > 2)
+		if(Viewer()->LookatMode == 0) ///> 2)
 			setArrowCursor();
 	}else{
 		//normal or navigation mode
@@ -3569,6 +3569,20 @@ void fwl_do_keyPress0(int key, int type) {
 		}
 	}
 }
+int fwl_getShift(){
+	ttglobal tg = gglobal();
+	return tg->Mainloop.SHIFT;
+}
+void fwl_setShift(int ishift){
+	ttglobal tg = gglobal();
+	tg->Mainloop.SHIFT = ishift;
+}
+
+int fwl_getCtrl(){
+	ttglobal tg = gglobal();
+	return tg->Mainloop.CTRL;
+}
+
 void queueKeyPress(ppMainloop p, int key, int type){
 	if(p->keypressQueueCount < 50){
 		p->keypressQueue[p->keypressQueueCount].key = key;

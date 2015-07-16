@@ -475,7 +475,7 @@ void fwl_next_ui_colorscheme(){
 
 //want to compile-in the default color scheme? just define UI_COLORSCHEME_DEFAULT in your config.h
 #ifndef UI_COLORSCHEME_DEFAULT
-#define UI_COLORSCHEME_DEFAULT "neon:yellow" //"original" "favicon" "midnight" "aqua" "angry" "neon:cyan" "neon:yellow" "neon:lime" "neon:pink"
+#define UI_COLORSCHEME_DEFAULT "neon:lime" //"original" "favicon" "midnight" "aqua" "angry" "neon:cyan" "neon:yellow" "neon:lime" "neon:pink"
 #endif
 void fwl_get_ui_color(char *use, float *rgb){
 	colorScheme *cs;
@@ -685,11 +685,17 @@ int fwl_commandline(char *cmdline){
 	char *sep = strchr(cmdline,' ');
 	if(!sep) sep = strchr(cmdline,',');
 	if(sep){
+		int keylen;
 		char *key, *val;
-		val = &sep[1];
-		(*sep) = '\0';
-		key = cmdline;
+		val = strdup(&sep[1]);
+		keylen = (int)(sep - cmdline);
+		//(*sep) = '\0';
+		key = strndup(cmdline,keylen +1);
+		key[keylen] = '\0';
+		printf("key=[%s] val=[%s]\n",key,val);
 		fwl_keyval(key,val);
+		free(key);
+		free(val);
 	}else{
 		//not key,val, just command
 		fwl_command(cmdline);

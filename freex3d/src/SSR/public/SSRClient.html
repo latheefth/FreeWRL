@@ -91,6 +91,7 @@
 		gl.enable(gl.DEPTH_TEST);
 		generateGridLines();
 		createNorthCircle();
+		ajaxInit_Pose();
 	}
     var gridlines;
 	var numItems;
@@ -364,7 +365,11 @@
 		ajaxPosePose();	
 	}
 	function updateSpeed(){
-		speed = Math.pow(10.0,speedfactor)*Math.log(cumTrans[2]);
+		//var hfactor = Math.abs(cumTrans[2]);
+		//hfactor = hfactor < 1.0 ? 1.0 : hfactor;
+		//speed = Math.pow(10.0,speedfactor + Math.log(hfactor));
+		speed = Math.pow(10,0,speedfactor);
+		console.log("speed="+speed);
 	}
 	function changeSpeed(value){
 		speedfactor = value;
@@ -623,7 +628,7 @@
 		if(true){
 		var str = "[";
 		str += cumQuat[0] + ", " + cumQuat[1] + ", "+cumQuat[2] + ", " + cumQuat[3] + ", ";
-		str += cumTrans[0] + ", " + cumTrans[1] + "," + cumTrans[2];
+		str += cumTrans[0] + ", " + cumTrans[1] + ", " + cumTrans[2];
 		str = str + "]";
 		}
 		if(false){
@@ -749,14 +754,15 @@
 </span>
 </div>
 <div id='huddiv'>
+	<label>(drag on above image to move in scene)</label><br>
 	<br>
-	<input type="button" id="initbut" onclick="initOnClick()"><label>Initialize</label><br>
-	<input type="checkbox" id="navYAWZ" onclick="toggleNav(0)" checked><label>yawz</label><br>
-	<input type="checkbox" id="navXY" onclick="toggleNav(1)"><label>xy</label><br>
-	<input type="checkbox" id="navPITCH" onclick="toggleNav(2)"><label>pitch</label><br>
+	<input type="button" id="initbut" onclick="initOnClick()" value="Re-Initialize"><br>
+	<input type="checkbox" id="navYAWZ" onclick="toggleNav(0)" checked><label>yaw z (turn left/right, fore/aft)</label><br>
+	<input type="checkbox" id="navXY" onclick="toggleNav(1)"><label>xy (left-right,up-down)</label><br>
+	<input type="checkbox" id="navPITCH" onclick="toggleNav(2)"><label>pitch (look up/down)</label><br>
 	<input type="button" id="level" onclick="levelOnClick()" value="level"><br>
-	<input type="checkbox" id="navWXY" onclick="toggleNav(3)"><label>world xy</label><br>
-	<input type="checkbox" id="navWZ" onclick="toggleNav(4)"><label>world z</label><br>
+	<input type="checkbox" id="navWXY" onclick="toggleNav(3)"><label>world xy (east-west,north-south)</label><br>
+	<input type="checkbox" id="navWZ" onclick="toggleNav(4)"><label>world z (height)</label><br>
 	<label>Pitch: </label>Nadir <input type="range" id="sliderPitch" min="0" max="180" step="5" value="90" onchange="changePitch(this.value)"/>Zenith<br>
 	<label>Height: </label>Ground <input type="range" id="sliderHeight" min="1.32" max="100" step="1" value="1.32" onchange="changeHeight(this.value)"/>10km<br>
 	<label>Speed: </label>Slow <input type="range" id="sliderSpeed" min="-2" max="2" step=".2" value="0" onchange="changeSpeed(this.value)"/>Fast<br>

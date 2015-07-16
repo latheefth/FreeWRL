@@ -87,7 +87,6 @@ typedef struct pViewer{
 	int StereoInitializedOnce;//. = 0;
 	GLboolean acMask[3][3]; //anaglyphChannelMask
 	X3D_Viewer Viewer; /* has to be defined somewhere, so it found itself stuck here */
-	int pow5; //more aggressive speed scaling on mouse drags
 	/* viewpoint slerping */
 	double viewpoint2rootnode[16];
 	double viewpointnew2rootnode[16];
@@ -136,7 +135,6 @@ void Viewer_init(struct tViewer *t){
 		p->StereoInitializedOnce = 1;
 		p->keychord = CHORD_XY; // default on startup
 		p->dragchord = CHORD_YAWZ;
-		p->pow5 = 0;
 	}
 }
 //ppViewer p = (ppViewer)gglobal()->Viewer.prv;
@@ -376,6 +374,18 @@ void fwl_set_viewer_type(const int type) {
 	ttglobal tg = gglobal();
 	ppViewer p = (ppViewer)tg->Viewer.prv;
 
+	if(p->Viewer.type != type){
+		tg->Mainloop.CTRL = FALSE; //turn off any leftover 3-state toggle
+		switch(p->Viewer.type){
+			case VIEWER_LOOKAT:
+			case VIEWER_EXPLORE:
+				p->Viewer.LookatMode = 0; //turn off leftover lookatMode
+				break;
+			default:
+				break;
+		}
+	}
+
 	switch(type) {
 	case VIEWER_EXAMINE:
 		resolve_pos2();
@@ -386,14 +396,45 @@ void fwl_set_viewer_type(const int type) {
 	case VIEWER_RPLANE:
 	case VIEWER_TILT:
 	case VIEWER_FLY2:
-	case VIEWER_SPHERICAL:
 	case VIEWER_TURNTABLE:
-	case VIEWER_EXPLORE:
+	case VIEWER_DIST:
 	case VIEWER_FLY:
 		p->Viewer.type = type;
 		break;
+	case VIEWER_SPHERICAL:
+		//3 state toggle stack
+		if(p->Viewer.type == type){
+			//this is a request to toggle on/off FOV (field-of-view) adjustment for SPHERICAL mode
+			if(tg->Mainloop.CTRL){
+				tg->Mainloop.CTRL = FALSE;
+			}else{
+				tg->Mainloop.CTRL = TRUE; //in handle_spherical, check if button==3 (RMB) or CTRL + button==1
+			}
+		}else{
+			//request to toggle on EXPLORE mode
+			p->Viewer.type = type;
+		}
+		break;
+
+	case VIEWER_EXPLORE:
+		//3 state toggle stack
+		if(p->Viewer.type == type){
+			//this is a request to toggle on/off CTRL for EXPLORE mode
+			if(tg->Mainloop.CTRL){
+				tg->Mainloop.CTRL = FALSE;
+				p->Viewer.LookatMode = 0;
+			}else{
+				tg->Mainloop.CTRL = TRUE;
+				p->Viewer.LookatMode = 1; //tells mainloop to turn off sensitive
+			}
+		}else{
+			//request to toggle on EXPLORE mode
+			p->Viewer.type = type;
+		}
+		break;
 	case VIEWER_LOOKAT:
-		if(p->Viewer.type == VIEWER_LOOKAT){
+		//2 state toggle
+		if(p->Viewer.type == type){
 			//this is a request to toggle off LOOKAT mode
 			p->Viewer.type = p->Viewer.lastType;
 			p->Viewer.LookatMode = 0;
@@ -457,6 +498,7 @@ struct navmode {
 	{"XY",VIEWER_XY},
 	{"YAWPITCH",VIEWER_YAWPITCH},
 	{"ROLL",VIEWER_ROLL},
+	{"DIST",VIEWER_DIST},
 	{NULL,0},
 };
 char * lookup_navmodestring(int navmode){
@@ -923,35 +965,6 @@ static void handle_walk(const int mev, const unsigned int button, const float x,
 	}
 }
 
-void handle_walk2(const int mev, const unsigned int button, float x, float y) {
-	/* there's a handle_tick_fly2() so handle_fly2() must turn on/off the
-		tick action based on mev (mouse up/down/move)
-	*/
-	ttglobal tg;
-	ppViewer p;
-	X3D_Viewer_InPlane *inplane;
-	tg = gglobal();
-	p = (ppViewer)tg->Viewer.prv;
-	inplane = &p->Viewer.inplane;
-	
-	if (mev == ButtonPress) {
-		inplane->x = x;
-		inplane->y = y;
-		inplane->xx = x;
-		inplane->yy = y;
-		inplane->on = 1;
-		inplane->ibut = button;
-	} else if (mev == MotionNotify) {
-		inplane->xx = x;
-		inplane->yy = y;
-		inplane->ibut = button;
-	} else if (mev == ButtonRelease ) {
-		inplane->on = 0;
-		inplane->ibut = button;
-	}
-	
-}
-
 
 static double
   norm(const Quaternion *quat)
@@ -998,7 +1011,7 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
 
 		} else if (button == 3) {
 			examine->SY = y;
-			examine->ODist = p->Viewer.Dist;
+			examine->ODist = max(0.1,p->Viewer.Dist);
 		}
 	} else if (mev == MotionNotify) {
 		if (button == 1) {
@@ -1043,18 +1056,66 @@ printf ("examine->origin %4.3f %4.3f %4.3f\n",examine->Origin.x, examine->Origin
 */
 }
 
+void handle_dist(const int mev, const unsigned int button, float x, float y) {
+	/* different than z, this adjusts the viewer.Dist value for examine, turntable, explore, lookat
+		- all without using RMB (right mouse button), so mobile friendly
+	*/
+	//examine variant - doesn't move the vp/.pos
+	Quaternion q, q_i, arc;
+	struct point_XYZ pp = { 0, 0, 0};
+	double squat_norm;
+	float yy;
+	ppViewer p;
+	X3D_Viewer_Examine *examine;
+	p = (ppViewer)gglobal()->Viewer.prv;
+	examine = &p->Viewer.examine;
+	pp.z=p->Viewer.Dist;
+
+	yy = 1.0 - y;
+	if (mev == ButtonPress) {
+		if (button == 1) {
+			resolve_pos2();
+			examine->SY = yy;
+			examine->ODist = max(0.1,p->Viewer.Dist);
+		}
+	} else if (mev == MotionNotify) {
+		if (button == 1) {
+			#ifndef DISABLER
+			p->Viewer.Dist = examine->ODist * exp(2.0 * (examine->SY - yy));
+			#else
+			p->Viewer.Dist = (0 != yy) ? examine->ODist * examine->SY / yy : 0;
+			#endif
+			//printf("v.dist=%lf\n",p->Viewer.Dist);
+		}
+	}
+	quaternion_inverse(&q_i, &(p->Viewer.Quat));
+	quaternion_rotation(&(p->Viewer.Pos), &q_i, &pp);
+/*
+	printf ("bp, after quat rotation, pos %4.3f %4.3f %4.3f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z);
+*/
+	p->Viewer.Pos.x += (examine->Origin).x;
+	p->Viewer.Pos.y += (examine->Origin).y;
+	p->Viewer.Pos.z += (examine->Origin).z;
+
+}
+
 
 void handle_turntable(const int mev, const unsigned int button, float x, float y) {
 	/*
-	Like handle_yawpitchzoom, except:
+	Like handle_spherical, except:
 	move the viewer.Pos in the opposite direction from where we are looking
 	*/
-	X3D_Viewer_Spherical *ypz;
 	double frameRateAdjustment;
+	X3D_Viewer_Spherical *ypz;
 	ppViewer p;
 	ttglobal tg = gglobal();
 	p = (ppViewer)gglobal()->Viewer.prv;
 	ypz = &p->Viewer.ypz; //just a place to store last mouse xy during drag
+
+	if(APPROX(p->Viewer.Dist,0.0)){
+		//no pivot point yet
+		p->Viewer.Dist = 10.0;
+	}
 
 	if( tg->Mainloop.BrowserFPS > 0)
 		frameRateAdjustment = 20.0 / tg->Mainloop.BrowserFPS; /* lets say 20FPS is our speed benchmark for developing tuning parameters */
@@ -1076,12 +1137,31 @@ void handle_turntable(const int mev, const unsigned int button, float x, float y
 		double yaw, pitch; //dist,
 		Quaternion quat;
 
-		pitch = yaw = 0.0;
+		yaw = pitch = 0.0;
 		if (button == 1 || button == 3){
+			struct point_XYZ dd,ddr;
 			yaxis.x = yaxis.z = 0.0;
 			yaxis.y = 1.0;
-			pp = p->Viewer.Pos;
-			p->Viewer.Dist = veclength(pp);
+			//pp = p->Viewer.Pos;
+			//if(0) resolve_pos2();
+			//if(1) {
+				//(examine->Origin).x = (p->Viewer.Pos).x - p->Viewer.Dist * rot.x;
+				dd.x = dd.y = 0.0; dd.z = p->Viewer.Dist; //exploreDist;
+				quat = p->Viewer.Quat;
+				quaternion_inverse(&quat,&quat);
+				quaternion_rotation(&ddr, &quat, &dd);
+				vecdiff(&p->Viewer.examine.Origin,&p->Viewer.Pos,&ddr);
+			//}
+
+			//if(0) vecdiff(&pp,&p->Viewer.examine.Origin,&p->Viewer.Pos);
+			//if(1) vecdiff(&pp,&p->Viewer.Pos,&p->Viewer.examine.Origin);
+			pp = ddr;
+			//if(0) printf("D=%f O=%f %f %f P=%f %f %f pp=%f %f %f\n", p->Viewer.Dist,
+			//p->Viewer.examine.Origin.x,p->Viewer.examine.Origin.y,p->Viewer.examine.Origin.z,
+			//p->Viewer.Pos.x,p->Viewer.Pos.y,p->Viewer.Pos.z,
+			//pp.x,pp.y,pp.z
+			//);
+			//dist = veclength(pp);
 			vecnormal(&pp, &pp);
 			yaw = -atan2(pp.x, pp.z);
 			pitch = -(acos(vecdot(&pp, &yaxis)) - PI*.5);
@@ -1089,6 +1169,10 @@ void handle_turntable(const int mev, const unsigned int button, float x, float y
 		if (button == 1) {
 			dyaw = -(ypz->x - x) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom * tg->display.screenRatio;
 			dpitch = -(ypz->y - y) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom;
+			//if(0){
+			//	dyaw = -dyaw;
+			//	dpitch = -dpitch;
+			//}
 			yaw += dyaw;
 			pitch += dpitch;
 		}else if (button == 3) {
@@ -1120,31 +1204,32 @@ void handle_turntable(const int mev, const unsigned int button, float x, float y
 			vrmlrot_to_quaternion(&qpitch, 1.0, 0.0, 0.0, pitch);
 			quaternion_multiply(&quat, &qpitch, &qyaw);
 			quaternion_normalize(&quat);
+
 			quaternion_set(&(p->Viewer.Quat), &quat);
 			//move the viewer.pos in the opposite direction that we are looking
 			quaternion_inverse(&quat, &quat);
 			pp.x = 0.0;
 			pp.y = 0.0;
-			pp.z = p->Viewer.Dist;
+			pp.z = p->Viewer.Dist; //dist;
 			quaternion_rotation(&(p->Viewer.Pos), &quat, &pp);
-
-		}
-		if(button == 1){
 			//remember the last drag coords for next motion
+			vecadd(&p->Viewer.Pos,&p->Viewer.examine.Origin,&p->Viewer.Pos);
+		}
+		if( button == 1){
 			ypz->x = x;
 			ypz->y = y;
-
 		}
 	}else if(mev == ButtonRelease) {
 		if (button == 3) {
 			ypz->ypz[1] = 0.0;
 		}
 	}
-
 }
+
 
 void handle_spherical(const int mev, const unsigned int button, float x, float y) {
 	/* handle_examine almost works except we don't want roll-tilt, and we want to zoom */
+	int ibutton;
 	Quaternion qyaw, qpitch;
 	double dyaw,dpitch;
 	/* unused double dzoom; */
@@ -1153,37 +1238,55 @@ void handle_spherical(const int mev, const unsigned int button, float x, float y
 	ttglobal tg = gglobal();
 	p = (ppViewer)gglobal()->Viewer.prv;
 	ypz = &p->Viewer.ypz;
+	ibutton = button;
+	if(ibutton == 1 && tg->Mainloop.CTRL) ibutton = 3; //RMB method for mobile/touch
 
 	if (mev == ButtonPress) {
-		if (button == 1) {
-			ypz->ypz0[0] = ypz->ypz[0];
-			ypz->ypz0[1] = ypz->ypz[1];
+		if (ibutton == 1 || ibutton == 3) {
 			ypz->x = x;
 			ypz->y = y;
-		} else if (button == 3) {
-			ypz->x = x;
 		}
 	} else if (mev == MotionNotify) {
-		if (button == 1) {
+		if (ibutton == 1) {
+			double yaw, pitch;
+			Quaternion quat;
+			struct point_XYZ dd, ddr, yaxis;
+
+			//step 1 convert Viewer.Quat to yaw, pitch (discard any roll)
+			yaxis.x = yaxis.z = 0.0;
+			yaxis.y = 1.0;
+
+			dd.x = dd.y = 0.0; dd.z = 1.0; 
+			quat = p->Viewer.Quat;
+			quaternion_inverse(&quat,&quat);
+			quaternion_rotation(&ddr, &quat, &dd);
+			yaw = -atan2(ddr.x,ddr.z);
+			pitch = -(acos(vecdot(&ddr, &yaxis)) - PI*.5);
+
+			//step 2 add on any mouse motion as yaw,pitch chord
 			dyaw   = (ypz->x - x) * p->Viewer.fieldofview*PI/180.0*p->Viewer.fovZoom * tg->display.screenRatio; 
 			dpitch = (ypz->y - y) * p->Viewer.fieldofview*PI/180.0*p->Viewer.fovZoom;
-			ypz->ypz[0] = ypz->ypz0[0] + dyaw;
-			ypz->ypz[1] = ypz->ypz0[1] + dpitch;
-			vrmlrot_to_quaternion(&qyaw, 0.0, 1.0, 0.0, ypz->ypz[0]);
-			vrmlrot_to_quaternion(&qpitch,1.0,0.0,0.0,ypz->ypz[1]);
-			quaternion_multiply(&(p->Viewer.Quat), &qpitch, &qyaw);
-		} else if (button == 3) {
+			yaw += dyaw;
+			pitch += dpitch;
+
+			//step 3 convert yaw, pitch back to Viewer.Quat
+			vrmlrot_to_quaternion(&qyaw, 0.0, 1.0, 0.0, yaw);
+			vrmlrot_to_quaternion(&qpitch, 1.0, 0.0, 0.0, pitch);
+			quaternion_multiply(&quat, &qpitch, &qyaw);
+			quaternion_normalize(&quat);
+
+			quaternion_set(&(p->Viewer.Quat), &quat);
+
+		} else if (ibutton == 3) {
 			double d, fac;
-			d = (x - ypz->x)*.25;
-			if(d > 0.0)
-				fac = ((d *  2.0) + (1.0 - d) * 1.0);
-			else
-			{
-				d = fabs(d);
-				fac = ((d * .5) + (1.0 - d) * 1.0);
-			}
+			d = (y - ypz->y)*.5;
+			fac = pow(10.0,d);
 			p->Viewer.fovZoom = p->Viewer.fovZoom * fac;
-			p->Viewer.fovZoom = DOUBLE_MIN(2.0,DOUBLE_MAX(.125,p->Viewer.fovZoom));  
+			//p->Viewer.fovZoom = DOUBLE_MIN(2.0,DOUBLE_MAX(.125,p->Viewer.fovZoom));  
+		}
+		if(ibutton == 1 || ibutton == 3){
+			ypz->x = x;
+			ypz->y = y;
 		}
  	}
 }
@@ -1245,30 +1348,9 @@ void handle_tick_fly2(double dtime) {
 	if (inplane->on) {
 		xx = inplane->xx - inplane->x;
 		yy = inplane->yy - inplane->y;
-		if(p->pow5){
-			//theories:
-			// 1: using a odd-power means you don't have to fiddle with the sign since xx, yy are -1 to 1
-			// 2: a high power means you can be nano-slow with small drags, and astro fast with large drags
-			//    corrollary: users should seldom need to tinker with avatar speed, should stay at 1
-			//		but if they _do_ need to change the speed, it will be by something substantial like a power of 10
-			// 3: for a give drag size, if the frame rate varies, the computed speed should remain constant
-			//    corrollary: there should be no time used to compute speed, it should be a function of drag size only
-			//        then distance[m] = speed[m/s] * time[s] adjusts for the frame rate
-			double zspeed, deltatms;
-			deltatms = (dtime)*1000.0; //to get in milliseconds
-			if(deltatms < 1.0) //more than 1000 FPS
-				deltatms = 1.0;
+		zz = xsign_quadratic(yy,.05,5.0,0.0)*p->Viewer.speed * frameRateAdjustment;
+		zz *= 0.15;
 
-			yy *= p->Viewer.speed; //let users do the power of 10 ie .1 100. //pow(10.0,1.0 - p->Viewer.speed);
-			yy *= 100.0;	//scale from (-1,1) range to (-100,100) range so 99% is > 1.0 and gets powed to a larger number
-						// (vs < 1 gets powed to a smaller number)
-			zspeed = pow(yy,5.0);
-			zspeed *= 1.e-9; //take back some of the 100**5 = 10**10
-			zz = zspeed * deltatms;
-		}else{
-			zz = xsign_quadratic(yy,.05,5.0,0.0)*p->Viewer.speed * frameRateAdjustment;
-			zz *= 0.15;
-		}
 		xyz.x = 0.0;
 		xyz.y = 0.0;
 		xyz.z = zz;
@@ -1324,7 +1406,6 @@ void handle_tick_lookat() {
 	}
 }
 
-
 void handle_explore(const int mev, const unsigned int button, float x, float y) {
 	/*
 	Like handle_spherical, except:
@@ -1345,148 +1426,12 @@ void handle_explore(const int mev, const unsigned int button, float x, float y) 
 		handle_lookat(mev,button,x,y);
 		return;
 	}
-
-	if( tg->Mainloop.BrowserFPS > 0)
-		frameRateAdjustment = 20.0 / tg->Mainloop.BrowserFPS; /* lets say 20FPS is our speed benchmark for developing tuning parameters */
-	else
-		frameRateAdjustment = 1.0;
-
-
-	if (mev == ButtonPress) {
-		if (button == 1 || button == 3) {
-			ypz->x = x;
-			ypz->y = y;
-		}
+	if(APPROX(p->Viewer.Dist,0.0)){
+		//no pivot point yet
+		handle_spherical(mev,button,x,y);
+		return;
 	}
-	else if (mev == MotionNotify) 
-	{
-		Quaternion qyaw, qpitch;
-		double dyaw, dpitch;
-		struct point_XYZ pp, yaxis;
-		double yaw, pitch; //dist,
-		Quaternion quat;
-
-		yaw = pitch = 0.0;
-		if (button == 1 || button == 3){
-			struct point_XYZ dd,ddr;
-			yaxis.x = yaxis.z = 0.0;
-			yaxis.y = 1.0;
-			//pp = p->Viewer.Pos;
-			if(0) resolve_pos2();
-			if(1) {
-				//(examine->Origin).x = (p->Viewer.Pos).x - p->Viewer.Dist * rot.x;
-				dd.x = dd.y = 0.0; dd.z = p->Viewer.Dist; //exploreDist;
-				quat = p->Viewer.Quat;
-				quaternion_inverse(&quat,&quat);
-				quaternion_rotation(&ddr, &quat, &dd);
-				vecdiff(&p->Viewer.examine.Origin,&p->Viewer.Pos,&ddr);
-			}
-
-			if(0) vecdiff(&pp,&p->Viewer.examine.Origin,&p->Viewer.Pos);
-			if(1) vecdiff(&pp,&p->Viewer.Pos,&p->Viewer.examine.Origin);
-			pp = ddr;
-			if(0) printf("D=%f O=%f %f %f P=%f %f %f pp=%f %f %f\n", p->Viewer.Dist,
-			p->Viewer.examine.Origin.x,p->Viewer.examine.Origin.y,p->Viewer.examine.Origin.z,
-			p->Viewer.Pos.x,p->Viewer.Pos.y,p->Viewer.Pos.z,
-			pp.x,pp.y,pp.z
-			);
-			//dist = veclength(pp);
-			vecnormal(&pp, &pp);
-			yaw = -atan2(pp.x, pp.z);
-			pitch = -(acos(vecdot(&pp, &yaxis)) - PI*.5);
-		}
-		if (button == 1) {
-			dyaw = -(ypz->x - x) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom * tg->display.screenRatio;
-			dpitch = -(ypz->y - y) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom;
-			if(0){
-				dyaw = -dyaw;
-				dpitch = -dpitch;
-			}
-			yaw += dyaw;
-			pitch += dpitch;
-		}else if (button == 3) {
-			//distance drag
-			if(0){
-				//peddling
-				double d, fac;
-				d = (y - ypz->y)*.5; // .25;
-				if (d > 0.0)
-					fac = ((d *  2.0) + (1.0 - d) * 1.0);
-				else
-				{
-					d = fabs(d);
-					fac = ((d * .5) + (1.0 - d) * 1.0);
-				}
-				//dist *= fac;
-				p->Viewer.Dist *= fac;
-			}
-			if(1) {
-				//handle_tick_explore quadratic
-				//double quadratic = -xsign_quadratic(y - ypz->y,5.0,10.0,0.0);
-				ypz->ypz[1] = xsign_quadratic(y - ypz->y,100.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment *.15;
-				//printf("quad=%f y-y %f s=%f fra=%f\n",quadratic,y-ypz->y,p->Viewer.speed,frameRateAdjustment);
-			}
-		}
-		if (button == 1 || button == 3)
-		{
-			vrmlrot_to_quaternion(&qyaw, 0.0, 1.0, 0.0, yaw);
-			vrmlrot_to_quaternion(&qpitch, 1.0, 0.0, 0.0, pitch);
-			quaternion_multiply(&quat, &qpitch, &qyaw);
-			quaternion_normalize(&quat);
-
-			quaternion_set(&(p->Viewer.Quat), &quat);
-			//move the viewer.pos in the opposite direction that we are looking
-			quaternion_inverse(&quat, &quat);
-			pp.x = 0.0;
-			pp.y = 0.0;
-			pp.z = p->Viewer.Dist; //dist;
-			quaternion_rotation(&(p->Viewer.Pos), &quat, &pp);
-			//remember the last drag coords for next motion
-			vecadd(&p->Viewer.Pos,&p->Viewer.examine.Origin,&p->Viewer.Pos);
-		}
-		if( button == 1){
-			ypz->x = x;
-			ypz->y = y;
-		}
-	}else if(mev == ButtonRelease) {
-		if (button == 3) {
-			ypz->ypz[1] = 0.0;
-		}
-	}
-}
-
-
-void handle_tick_explore() {
-	X3D_Viewer_Spherical *ypz;
-	Quaternion quat;
-	struct point_XYZ pp;
-	ttglobal tg;
-	ppViewer p;
-	tg = gglobal();
-	p = (ppViewer)tg->Viewer.prv;
-	ypz = &p->Viewer.ypz; //just a place to store last mouse xy during drag
-
-
-	//stub in case we need the viewer or viewpoint transition here	
-	switch(p->Viewer.LookatMode){
-		case 0: //not in use
-			resolve_pos2();
-			p->Viewer.Dist += ypz->ypz[1];
-			//move the viewer.pos in the opposite direction that we are looking
-			quaternion_inverse(&quat, &(p->Viewer.Quat));
-			pp.x = 0.0;
-			pp.y = 0.0;
-			pp.z = p->Viewer.Dist; //dist;
-			quaternion_rotation(&(p->Viewer.Pos), &quat, &pp);
-			vecadd(&p->Viewer.Pos,&p->Viewer.examine.Origin,&p->Viewer.Pos);
-		//printf("ddist=%f\n",ypz->ypz[1]);
-		break;
-		case 1: //someone set viewer to lookat mode: mainloop shuts off sensitive, turns on lookat cursor
-		case 2: //mouseup tells mainloop to pick a node at current mousexy, turn off lookatcursor
-		case 3: //mainloop picked a node, now transition
-		case 4: //transition complete, restore previous nav type
-		break;
-	}
+	handle_turntable(mev, button, x, y);
 }
 
 void handle_tplane(const int mev, const unsigned int button, float x, float y) {
@@ -1532,37 +1477,8 @@ void handle_tick_tplane(double dtime){
 
 	inplane = &p->Viewer.inplane;
 	if(inplane->on){
-		if(p->pow5){
-			//theories:
-			// 1: using a odd-power means you don't have to fiddle with the sign since xx, yy are -1 to 1
-			// 2: a high power means you can be nano-slow with small drags, and astro fast with large drags
-			//    corrollary: users should seldom need to tinker with avatar speed, should stay at 1
-			//		but if they _do_ need to change the speed, it will be by something substantial like a power of 10
-			// 3: for a give drag size, if the frame rate varies, the computed speed should remain constant
-			//    corrollary: there should be no time used to compute speed, it should be a function of drag size only
-			//        then distance[m] = speed[m/s] * time[s] adjusts for the frame rate
-			//
-			double xx,yy,xspeed,yspeed, deltatms;
-			deltatms = dtime*1000.0; //to get in milliseconds
-			if(deltatms < 1.0) //more than 1000 FPS, some clocks have resolution of 20ms, so may start to 00
-				deltatms = 1.0;
-			xx = inplane->xx - inplane->x;
-			yy = inplane->yy - inplane->y;
-			xx *= p->Viewer.speed;
-			yy *= p->Viewer.speed; //let users do the power of 10 ie .1 100. //pow(10.0,1.0 - p->Viewer.speed);
-			xx *= 100.0;
-			yy *= 100.0;	//scale from (-1,1) range to (-100,100) range so 99% is > 1.0 and gets powed to a larger number
-						// (vs < 1 gets powed to a smaller number)
-			xspeed = pow(xx,5.0);
-			xspeed *= 1.e-9; //take back some of the 100**5 = 10**10
-			yspeed = pow(yy,5.0);
-			yspeed *= 1.e-9; //take back some of the 100**5 = 10**10
-			pp.x = xspeed * deltatms;
-			pp.y = -yspeed * deltatms;
-		}else{
-			pp.x =  xsign_quadratic(inplane->xx - inplane->x,300.0,100.0,0.0) *dtime;
-			pp.y = -xsign_quadratic(inplane->yy - inplane->y,300.0,100.0,0.0) *dtime;
-		}
+		pp.x =  xsign_quadratic(inplane->xx - inplane->x,300.0,100.0,0.0) *dtime;
+		pp.y = -xsign_quadratic(inplane->yy - inplane->y,300.0,100.0,0.0) *dtime;
 		pp.z = 0.0;
 		//vecadd(&p->Viewer.Pos,&p->Viewer.Pos,&pp);
 		increment_pos(&pp);
@@ -1678,10 +1594,7 @@ void handle0(const int mev, const unsigned int button, const float x, const floa
 		handle_examine(mev, button, ((float) x), ((float) y));
 		break;
 	case VIEWER_WALK:
-		if(p->pow5)
-			handle_walk2(mev, button, ((float) x), ((float) y));
-		else
-			handle_walk(mev, button, ((float) x), ((float) y));
+		handle_walk(mev, button, ((float) x), ((float) y));
 		break;
 	case VIEWER_EXFLY:
 		break;
@@ -1710,6 +1623,8 @@ void handle0(const int mev, const unsigned int button, const float x, const floa
 	case VIEWER_EXPLORE:
 		handle_explore(mev, button, ((float)x), ((float)y)); //as per specs, like turntable around any point you pick with CTRL click
 		break;
+	case VIEWER_DIST:
+		handle_dist(mev,button,(float)x,(float)y);
 	default:
 		break;
 	}
@@ -2172,79 +2087,6 @@ static void handle_tick_walk()
 	/* make sure Viewer.Dist is configured properly for Examine mode */
 	//CALCULATE_EXAMINE_DISTANCE
 }
-static void handle_tick_walk2(double dtime){
-/*
- * walk.xd,zd are in a plane parallel to the scene/global horizon.
- * walk.yd is vertical in the global/scene
- * walk.rd is an angle in the global/scene horizontal plane (around vertical axis)
-*/
-	X3D_Viewer_InPlane *inplane;
-	X3D_Viewer_Walk *walk; 
-	int button;
-	double xx,yy,frameRateAdjustment;
-	ppViewer p;
-	ttglobal tg = gglobal();
-	p = (ppViewer)tg->Viewer.prv;
-	walk = &p->Viewer.walk;
-
-	inplane = &p->Viewer.inplane;
-
-	frameRateAdjustment = 1.0;
-	if( tg->Mainloop.BrowserFPS > 0)
-		frameRateAdjustment = 20.0 / tg->Mainloop.BrowserFPS; 
-	
-	if (inplane->on) {
-		//theories:
-		// 1: using a odd-power means you don't have to fiddle with the sign since xx, yy are -1 to 1
-		// 2: a high power means you can be nano-slow with small drags, and astro fast with large drags
-		//    corrollary: users should seldom need to tinker with avatar speed, should stay at 1
-		//		but if they _do_ need to change the speed, it will be by something substantial like a power of 10
-		// 3: for a give drag size, if the frame rate varies, the computed speed should remain constant
-		//    corrollary: there should be no time used to compute speed, it should be a function of drag size only
-		//        then distance[m] = speed[m/s] * time[s] adjusts for the frame rate
-		double xspeed,yspeed,rspeed, deltatms;
-		deltatms = (dtime)*1000.0; //to get in milliseconds
-		if(deltatms < 1.0) //more than 1000 FPS
-			deltatms = 1.0;
-		button = inplane->ibut;
-		xx = inplane->xx - inplane->x;
-		yy = inplane->yy - inplane->y;
-
-		xx *= p->Viewer.speed; //let users do the power of 10 ie .1 100. //pow(10.0,1.0 - p->Viewer.speed);
-		xx *= 100.0;	//scale from (-1,1) range to (-100,100) range so 99% is > 1.0 and gets powed to a larger number
-					// (vs < 1 gets powed to a smaller number)
-		if(button == 1){
-			//xspeed = pow(xx,3.0);
-			//xspeed *= 1.e-7; //take back some of the 100**5 = 10**6
-			xspeed = pow(xx,1.0);
-			xspeed *= 1.e-4; //take back some of the 100**2 = 10**2
-		}else{
-			xspeed = pow(xx,3.0);
-			xspeed *= 1.e-7; //take back some of the 100**5 = 10**10
-		}
-		xx = xspeed * deltatms;
-
-		yy *= p->Viewer.speed; //let users do the power of 10 ie .1 100. //pow(10.0,1.0 - p->Viewer.speed);
-		yy *= 100.0;	//scale from (-1,1) range to (-100,100) range so 99% is > 1.0 and gets powed to a larger number
-					// (vs < 1 gets powed to a smaller number)
-		yspeed = pow(yy,3.0);
-		yspeed *= 1.e-7; //take back some of the 100**5 = 10**10
-		//yspeed = pow(yy,5.0);
-		//yspeed *= 1.e-9; //take back some of the 100**5 = 10**10
-		yy = yspeed * deltatms;
-
-
-		walk->XD = walk->YD = walk->ZD = walk->RD = 0.0;
-		if (button == 1) {
-			walk->ZD = yy/.015; //take off tuning parameters in handle_tick_walk()
-			walk->RD = xx/.4;
-		} else if (button == 3) {
-			walk->XD =  xx/.015;
-			walk->YD = -yy/.015;
-		}
-		handle_tick_walk();
-	}
-}
 
 //an external program or app may want to set or get the viewer pose, with no slerping
 //SSR - these set/getpose are called from _DisplayThread
@@ -2448,6 +2290,7 @@ static void handle_tick_fly()
 			return;
 		}
 		fly->lasttime = dtime;
+		if(time_diff < 0.0) return; //skip a frame if the clock wraps around
 	}
 
 
@@ -2570,6 +2413,7 @@ handle_tick()
 			return;
 		}
 		p->Viewer.lasttime = dtime;
+		if(time_diff < 0.0) return; //skip a frame if the clock wraps around
 	}
 	 
 	switch(p->Viewer.type) {
@@ -2578,36 +2422,30 @@ handle_tick()
 	case VIEWER_EXAMINE:
 		break;
 	case VIEWER_WALK:
-		if(p->pow5)
-			handle_tick_walk2(time_diff);
-		else
-			handle_tick_walk();
+		handle_tick_walk();
 		break;
 	case VIEWER_EXFLY:
 		handle_tick_exfly();
 		break;
 	case VIEWER_FLY:
-		if(0) handle_tick_walk(); //Navigation-key_and_drag: collision shuts off Gravity in VIEWER_FLY, otherwise, just like walk: (WALK - G)
-		if(1) {
-			switch(p->dragchord){
-				case CHORD_YAWPITCH:
-					handle_tick_tilt(time_diff);
-					break;
-				case CHORD_ROLL:
-					handle_tick_rplane(time_diff);
-					break;
-				case CHORD_XY:
-					handle_tick_tplane(time_diff);
-					break;
-				case CHORD_YAWZ:
-				default:
-					handle_tick_fly2(time_diff);  //fly2 like (WALK - G) except no RMB PAN, drags aligned to Viewer (vs walk aligned to bound Viewpoint vertical)
-					break;
-			}
+		switch(p->dragchord){
+			case CHORD_YAWPITCH:
+				handle_tick_tilt(time_diff);
+				break;
+			case CHORD_ROLL:
+				handle_tick_rplane(time_diff);
+				break;
+			case CHORD_XY:
+				handle_tick_tplane(time_diff);
+				break;
+			case CHORD_YAWZ:
+			default:
+				handle_tick_fly2(time_diff);  //fly2 like (WALK - G) except no RMB PAN, drags aligned to Viewer (vs walk aligned to bound Viewpoint vertical)
+				break;
 		}
 		break;
 	case VIEWER_FLY2:
-		handle_tick_fly2(time_diff);
+		handle_tick_fly2(time_diff); //yawz
 		break;
 	case VIEWER_LOOKAT:
 		handle_tick_lookat();
@@ -2622,13 +2460,13 @@ handle_tick()
 		handle_tick_tilt(dtime);
 		break;
 	case VIEWER_EXPLORE:
-		handle_tick_explore();
 		break;
 	case VIEWER_SPHERICAL:
 		//do nothing special on tick
 		break;
 	case VIEWER_TURNTABLE:
-		handle_tick_explore(); //same code for tick turntable/explore
+		break;
+	case VIEWER_DIST:
 		break;
 	default:
 		break;
@@ -3178,7 +3016,10 @@ void slerp_viewpoint()
 		quaternion_slerp(&p->Viewer.Quat,&p->Viewer.startSLERPQuat,&p->Viewer.endSLERPQuat,tickFrac);
 		point_XYZ_slerp(&p->Viewer.Pos,&p->Viewer.startSLERPPos,&p->Viewer.endSLERPPos,tickFrac);
 		general_slerp(&p->Viewer.Dist,&p->Viewer.startSLERPDist,&p->Viewer.endSLERPDist,1,tickFrac);
-		if(tickFrac >= 1.0) 	p->Viewer.SLERPing3 = 0;
+		if(tickFrac >= 1.0) {
+			p->Viewer.SLERPing3 = 0;
+			resolve_pos2(); //may not need this if examine etc do it
+		}
 		//now we let normal rendering use the viewer quat, pos, dist during rendering
 	}else if(p->Viewer.SLERPing2 && p->vp2rnSaved) {
 		if(p->Viewer.SLERPing2justStarted)
@@ -3342,6 +3183,8 @@ void setup_viewpoint_slerp(double* center, double pivot_radius, double vp_radius
 	if(p->Viewer.LookatMode == 3){
 		if(p->Viewer.type == VIEWER_LOOKAT)
 			fwl_set_viewer_type(VIEWER_LOOKAT); //toggle off LOOKAT
+		if(p->Viewer.type == VIEWER_EXPLORE)
+			fwl_set_viewer_type(VIEWER_EXPLORE); //toggle off LOOKAT
 		p->Viewer.LookatMode = 0; //VIEWER_EXPLORE
 	}
 	//viewer_lastP_clear(); //not sure I need this - its for wall penetration
