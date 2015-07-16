@@ -2445,7 +2445,7 @@ handle_tick()
 		}
 		break;
 	case VIEWER_FLY2:
-		handle_tick_fly2(time_diff);
+		handle_tick_fly2(time_diff); //yawz
 		break;
 	case VIEWER_LOOKAT:
 		handle_tick_lookat();

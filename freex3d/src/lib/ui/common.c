@@ -475,7 +475,7 @@ void fwl_next_ui_colorscheme(){
 
 //want to compile-in the default color scheme? just define UI_COLORSCHEME_DEFAULT in your config.h
 #ifndef UI_COLORSCHEME_DEFAULT
-#define UI_COLORSCHEME_DEFAULT "neon:yellow" //"original" "favicon" "midnight" "aqua" "angry" "neon:cyan" "neon:yellow" "neon:lime" "neon:pink"
+#define UI_COLORSCHEME_DEFAULT "neon:lime" //"original" "favicon" "midnight" "aqua" "angry" "neon:cyan" "neon:yellow" "neon:lime" "neon:pink"
 #endif
 void fwl_get_ui_color(char *use, float *rgb){
 	colorScheme *cs;

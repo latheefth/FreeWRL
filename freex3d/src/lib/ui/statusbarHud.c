@@ -43,6 +43,9 @@ savePng2dotc = 1; // if you read png and want to save to a bitmap .c struct, put
 //#define KIOSK 1
 //#define TOUCH 1
 
+/*the colors listed here are for a default. But are over-ridden now by colors and default 
+	listed in common.c in freewrl
+*/
 // StatusbarHud color schemes:
 //#define OLDCOLORS 1
 //#define MIDNIGHT 1
@@ -353,9 +356,7 @@ GLubyte fwLetters8x15[][22] = {
 {255,0,0,0,0,0,0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0}
 };
 //the buttons need to be larger for fingers on touch devices
-#if defined(QNX) //|| defined(_MSC_VER)
-#define BUTSIZE 48
-#elif defined(KIOSK)
+#if defined(QNX) || defined(KIOSK)
 #define BUTSIZE 48
 #else
 #define BUTSIZE 32
@@ -1568,9 +1569,9 @@ void initButtons()
 
 		p->pmenu.nitems = NACTION; //number of action items, even if not shown on menubar
 		mainbar = mainbar_linux;
-#ifdef _MSC_VER
-		mainbar = mainbar_withFileOpen;
-#endif
+//#ifdef _MSC_VER
+//		mainbar = mainbar_withFileOpen;
+//#endif
 		//count number of menubar items, assuming last item is -1 sentinal value
 		i=0;
 		do{
