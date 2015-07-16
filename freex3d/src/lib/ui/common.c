@@ -630,7 +630,9 @@ struct command {
 	{"colorscheme",NULL,fwl_set_ui_colorscheme,"[original,midnight,angry,favicon,aqua,neon:lime,neon:yellow,neon:cyan,neon:pink]"},
 	{"set_keyval",NULL,set_keyval,"key,val"},
 	{"print_keyval",NULL,print_keyval,"key"},
+#ifdef SSR_SERVER
 	{"ssrtest",NULL,ssr_test,"nav,val"},
+#endif
 	{"",print_help,NULL,NULL}, //bootstrap user knowhow by spacebarEnter lucky sequence
 	{NULL,NULL,NULL},
 };
