@@ -1061,10 +1061,9 @@ void handle_dist(const int mev, const unsigned int button, float x, float y) {
 		- all without using RMB (right mouse button), so mobile friendly
 	*/
 	//examine variant - doesn't move the vp/.pos
-	Quaternion q, q_i, arc;
+	Quaternion q_i;
 	struct point_XYZ pp = { 0, 0, 0};
-	double squat_norm;
-	float yy;
+	double yy;
 	ppViewer p;
 	X3D_Viewer_Examine *examine;
 	p = (ppViewer)gglobal()->Viewer.prv;
@@ -1412,7 +1411,6 @@ void handle_explore(const int mev, const unsigned int button, float x, float y) 
 	move the viewer.Pos in the opposite direction from where we are looking
 	*/
 	int ctrl;
-	double frameRateAdjustment;
 	X3D_Viewer_Spherical *ypz;
 	ppViewer p;
 	ttglobal tg = gglobal();
@@ -1765,7 +1763,6 @@ int lookup_fly_arrow(int key){
 	//and from motion command lookup the 'normal' equivalent key
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	int idxarrow, idxnormal;
-	char nc;
 	int iret = 0;
 	idxarrow = indexArrowkey(key);
 	if(idxarrow > -1){

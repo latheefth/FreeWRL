@@ -1508,11 +1508,6 @@ void initButtons()
 	}
 	if(p->buttonType == 1)
 	{
-#if defined(QNX) || defined(KIOSK)
-		p->pmenu.top = true;
-#else
-		p->pmenu.top = false;
-#endif
 
 		//buttonlist, actionlist and NACTION are/mustbe synchronized, will become part of pmenitem tuple together
 		// - include all buttons and actions here (filter out ones you don't want in mainbar)
@@ -1579,7 +1574,11 @@ void initButtons()
 			p->pmenu.nbitems = i;
 		}while(mainbar[i]>-1);
 		//p->pmenu.nbitems = 18;
+#if defined(QNX) || defined(KIOSK)
+		p->pmenu.top = true;
+#else
 		p->pmenu.top = false;
+#endif
 
 
 		//convert to lumalpha

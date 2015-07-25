@@ -577,8 +577,9 @@ int set_keyval(char *keyval){
 		iret = -1;
 	else
 	{
+		char *sep;
 		strcpy(kv,keyval);
-		char *sep = strchr(kv,' ');
+		sep = strchr(kv,' ');
 		if(!sep) sep = strchr(kv,',');
 		if(sep){
 			char *key, *val;

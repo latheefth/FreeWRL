@@ -296,6 +296,9 @@ char *getWgetPath();
 #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
 #define SSR_SERVER 1
 #endif
+#if (_MSC_VER > 1800) 
+#define HAVE_STRUCT_TIMESPEC 1
+#endif
 #endif
 //#define HAVE_OPENAL 1 //in lib preprocessor 
 //#define HAVE_ALUT 1
