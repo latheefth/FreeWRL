@@ -521,7 +521,7 @@ int fwl_get_ui_color_changed(){
 	breaks: commandline options still has a place to put the values. Even though they
 	aren't used in the backend/Model.
 */
-#include <scenegraph/viewer.h>
+#include <scenegraph/Viewer.h>
 
 int fwl_setDragChord(char *chordname);
 int fwl_setKeyChord(char *chordname);
