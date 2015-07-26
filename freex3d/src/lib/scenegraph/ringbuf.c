@@ -55,7 +55,7 @@ RingBuffer * NewRingBuffer (int elCount) {
 
 	buffer = MALLOC(RingBuffer *,sizeof(RingBuffer)) ;
 
-	rbItem * data = malloc(sizeof(rbItem)*(FORCE_GUARD_ELEMENT+elCount));
+	//rbItem * data = malloc(sizeof(rbItem)*(FORCE_GUARD_ELEMENT+elCount));
 	rbItem * data = MALLOC(rbItem *, sizeof(rbItem)*(FORCE_GUARD_ELEMENT+elCount));
 
 	buffer -> head = 0 ;
