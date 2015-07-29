@@ -265,12 +265,25 @@ struct X3D_Node* getTypeNode(struct X3D_Node *node);
         }
 
 
-#define MARK_MFNODE_INOUT_EVENT(good,save,offset) \
+#define MARK_MFNODE_INOUT_EVENT_PRE_JULY29_2015(good,save,offset) \
 	/* assumes that the good pointer has been updated */ \
 	if (good.p != save.p) { \
                 MARK_EVENT(X3D_NODE(node), offset);\
 		save.n = good.n; \
 		save.p = good.p; \
+        }
+
+#define MARK_MFNODE_INOUT_EVENT(good,save,offset) \
+	/* assumes that the good pointer has been updated - the old version crashed during exit due to freeing a .p twice*/ \
+	if (good.p != save.p) { \
+                MARK_EVENT(X3D_NODE(node), offset);\
+				save.n = 0; \
+				save.p = NULL; \
+				if(good.n && good.p){ \
+					save.p = MALLOCV(good.n * sizeof(void*)); \
+					memcpy(save.p,good.p,good.n * sizeof(void*)); \
+					save.n = good.n; \
+				} \
         }
 
 /* for deciding on using set_ SF fields, with nodes with explicit "set_" fields...  note that MF fields are handled by
