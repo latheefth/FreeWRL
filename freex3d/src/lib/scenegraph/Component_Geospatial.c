@@ -1293,6 +1293,8 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 			if (i != this_srf_ind) {
 				if (strcmp ("S",args->p[i]->strptr) == 0) {
 					srf->p[3] = FALSE;
+				} else if (strcmp ("N",args->p[i]->strptr) == 0) {
+					srf->p[3] = TRUE; // default
 				} else if (args->p[i]->strptr[0] == 'Z') {
 					int zone = -1;
 					sscanf(args->p[i]->strptr,"Z%d",&zone);
