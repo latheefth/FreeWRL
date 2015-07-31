@@ -187,7 +187,6 @@ typedef struct pMainloop{
 
     unsigned int loop_count;// = 0;
     unsigned int slowloop_count;// = 0;
-	double waitsec;
 	//scene
 	//window
 	//2D_inputdevice
@@ -221,6 +220,7 @@ typedef struct pMainloop{
 	int draw_initialized;
 	int keywait;
 	char keywaitstring[25];
+	int fps_sleep_remainder;
 }* ppMainloop;
 void *Mainloop_constructor(){
 	void *v = MALLOCV(sizeof(struct pMainloop));
@@ -298,7 +298,6 @@ void Mainloop_init(struct tMainloop *t){
 
         p->loop_count = 0;
         p->slowloop_count = 0;
-		//p->waitsec;
 
 		//scene
 		//window
@@ -331,6 +330,7 @@ void Mainloop_init(struct tMainloop *t){
 		p->draw_initialized = FALSE;
 		p->keywait = FALSE;
 		p->keywaitstring[0] = (char)0;
+		p->fps_sleep_remainder = 0;
 	}
 }
 void Mainloop_clear(struct tMainloop *t){
@@ -487,7 +487,6 @@ static void stopPCThread()
 	}
 }
 #endif
-//static double waitsec;
 
 #if !defined(_MSC_VER)
 
@@ -997,6 +996,7 @@ void fwl_RenderSceneUpdateScene() {
 	}
 	fwl_RenderSceneUpdateScene0(dtime);
 }
+
 void fwl_RenderSceneUpdateScene0(double dtime) {
 
 #else //FRONTEND_DOES_SNAPSHOTS
@@ -1032,19 +1032,53 @@ void fwl_RenderSceneUpdateScene() {
 			p->BrowserInitTime = dtime;
 	} else {
 		/* NOTE: front ends now sync with the monitor, meaning, this sleep is no longer needed unless
-			something goes totally wrong */
+			something goes totally wrong.
+			Perhaps could be moved up a level, since mobile controls in frontend, but npapi and activex plugins also need displaythread  */
 #ifndef FRONTEND_HANDLES_DISPLAY_THREAD
-		if(0) if(!tg->display.params.frontend_handles_display_thread){
-			/* we see how long it took to do the last loop; now that the frame rate is synced to the
+		if(!tg->display.params.frontend_handles_display_thread){
+			/* 	some users report their device overheats if frame rate is a zillion, so this will limit it to a target number
+				statusbarHud options has an option to set.
+				we see how long it took to do the last loop; now that the frame rate is synced to the
 				vertical retrace of the screens, we should not get more than 60-70fps. We calculate the
 				time here, if it is more than 200fps, we sleep for 1/100th of a second - we should NOT
 				need this, but in case something goes pear-shaped (british expression, there!) we do not
-				consume thousands of frames per second */
+				consume thousands of frames per second 
+				frames-per-second = FPS = 1/time-per-frame[s];  [s] means seconds, [ms] millisec [us] microseconds [f] frames
+				target_time_per_frame[s] = 1[f]/target_FPS[f/s];
+				suggested_wait_time[s] = target_time_per_frame[s] - elapsed_time_since_last_frame[s];
+										= 1[f]/target_FPS[f/s]    - elapsed_time_since_last_frame[s];
+				if suggested_wait_time < 0 then we can't keep up, no wait time
 
-			p->waitsec = TickTime() - lastTime();
-			if (p->waitsec < 0.005) {
-				usleep(10000);
+			*/
+			double elapsed_time_per_frame, suggested_wait_time, target_time_per_frame, average_fps;
+			int wait_time_micro_sec, target_frames_per_second, kludgefactor;
+			kludgefactor = 2.0; //2 works on win8.1 with intel i5
+			target_frames_per_second = fwl_get_target_fps();
+			elapsed_time_per_frame = TickTime() - lastTime();
+			/*
+			if(1){
+				//do you trust the statusbar FPS? Here's a double-check.
+				static double cumulative_frame_time = 0.001;
+				static double cumulative_frames = 0.0;
+				cumulative_frames += 1.0;
+				cumulative_frame_time += elapsed_time_per_frame;
+				average_fps = cumulative_frames / cumulative_frame_time;
+				printf("\r%10.5lf",average_fps);
 			}
+			*/
+			if(target_frames_per_second > 0)
+				target_time_per_frame = 1.0/(double)target_frames_per_second;
+			else
+				target_time_per_frame = 1.0/30.0;
+			suggested_wait_time = target_time_per_frame - elapsed_time_per_frame;
+			suggested_wait_time *= kludgefactor;
+
+			wait_time_micro_sec = (int)(suggested_wait_time * 1000000.0);
+			if(wait_time_micro_sec > 1)
+				usleep(wait_time_micro_sec);
+			//if (waitsec < 0.005) {
+			//	usleep(10000);
+			//}
 		}
 #endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 	}

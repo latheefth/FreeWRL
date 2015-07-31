@@ -278,6 +278,7 @@ struct X3D_Node* getTypeNode(struct X3D_Node *node);
 	if (good.p != save.p) { \
                 MARK_EVENT(X3D_NODE(node), offset);\
 				save.n = 0; \
+				FREE_IF_NZ(save.p); \
 				save.p = NULL; \
 				if(good.n && good.p){ \
 					save.p = MALLOCV(good.n * sizeof(void*)); \
