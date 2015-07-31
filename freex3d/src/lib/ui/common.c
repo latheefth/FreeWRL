@@ -54,6 +54,7 @@ typedef struct keyval {
 /* textual status messages */
 typedef struct pcommon{
 	float myFps; // = (float) 0.0;
+	int target_frames_per_second;
 	char myMenuStatus[MAXSTAT];
 	char messagebar[MAXSTAT];
 	char window_title[MAXTITLE];
@@ -87,6 +88,7 @@ void common_init(struct tcommon *t){
 		p->pin_statusbar = 1;
 		p->pin_menubar = 0;
 		p->keyvals = NULL;
+		p->target_frames_per_second = 30;
 	}
 }
 void common_clear(struct tcommon *t){
@@ -259,6 +261,14 @@ void fwl_get_sbh_pin(int *sb, int *mb){
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 	*sb = p->pin_statusbar;
 	*mb = p->pin_menubar;
+}
+void fwl_set_target_fps(int target_fps){
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	p->target_frames_per_second = max(1,target_fps);
+}
+int fwl_get_target_fps(){
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	return p->target_frames_per_second;
 }
 // start ui color scheme >>>>>>>>>>>
 

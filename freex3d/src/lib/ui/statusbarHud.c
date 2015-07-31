@@ -465,7 +465,7 @@ typedef struct pstatusbar{
 	char messagebar[200];
 	int bmfontsize;// = 2; /* 0,1 or 2 */
 	int optionsLoaded;// = 0;
-	char * optionsVal[19];
+	char * optionsVal[20];
 	int osystem;// = 3; //mac 1btn = 0, mac nbutton = 1, linux game descent = 2, windows =3
 	XY bmWH;// = {10,15}; /* simple bitmap font from redbook above, width and height in pixels */
 	int bmScale; //1 or 2 for the hud pixel fonts, changes between ..ForOptions and ..Regular 
@@ -563,7 +563,7 @@ void initProgramObject(){
    p->textureLoc = glGetUniformLocation ( p->programObject, "Texture0" );
    p->color4fLoc = glGetUniformLocation ( p->programObject, "Color4f" );
 }
-static int lenOptions   = 18;
+static int lenOptions   = 19;
 void statusbar_clear(struct tstatusbar *t){
 	//public
 	//private
@@ -855,6 +855,8 @@ char * optionsText[] = {
 "  pin statusbar",
 "  pin menubar",
 "colorScheme:",
+"",
+"target FPS \36    \37",
 NULL,
 };
 //int optionsLoaded = 0;
@@ -885,7 +887,7 @@ void initOptionsVal()
 	for(i=0;i<lenOptions;i++)
 	{
 		if(!p->optionsVal[i])
-			p->optionsVal[i] = MALLOC(char*, 15);
+			p->optionsVal[i] = MALLOC(char*, 20);
 		for(j=0;j<9;j++) p->optionsVal[i][j] = ' ';
 		p->optionsVal[i][8] = '\0';
 	}
@@ -915,6 +917,7 @@ void initOptionsVal()
 	p->optionsVal[14][0] = p->statusbar_pinned ? 035 : 034; 
 	p->optionsVal[15][0] = p->menubar_pinned ? 035 : 034; 
 	sprintf(p->optionsVal[17]," %s ",fwl_get_ui_colorschemename());
+	sprintf(p->optionsVal[18],"            %4d",fwl_get_target_fps());
 	p->optionsLoaded = 1;
 }
 void updateOptionsVal()
@@ -943,6 +946,7 @@ char * optionsCase[] = {
 "88888888",
 "        ",
 "99999999",
+"          KK    LL",
 NULL,
 };
 
@@ -1147,6 +1151,19 @@ int handleOptionPress(int mouseX, int mouseY)
 			viewer->stereoParameter = min(viewer->stereoParameter,.01);  //toe-in is dangerous in sidebyside because it can force you to go wall-eyed
 		updateEyehalf();
 		break;}
+	case 'K':
+	case 'L':
+		{
+			//for target frames_per_second choices, we'd like a nice pow2 series like 7, 15, 30, 60, 120, 240 FPS
+			int i15, tfps;
+			tfps = fwl_get_target_fps();
+			i15 = (int)((double)tfps / 15.0 + .5);
+			if(opt == 'K') i15 /= 2;
+			if(opt == 'L') i15 = max(1,i15*2);
+			if(i15 < 1) tfps = 7;
+			else tfps = min(3840,(int)15*i15);
+			fwl_set_target_fps(tfps);
+		}
 	default: {break;}
 	}
 	return 1;
