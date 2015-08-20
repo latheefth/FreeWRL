@@ -15,7 +15,9 @@
 #include <windows.h>
 #include <WinUser.h>
 #if _MSC_VER > 1700
+#ifdef WINAPI_FAMILY
 #include "winapifamily.h"
+#endif
 #endif
 #endif
 #include <config.h>

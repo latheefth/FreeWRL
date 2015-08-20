@@ -1608,8 +1608,12 @@ static int ahc_echo(void * cls,
 int main0(int argc, char ** argv) {
 /* 
 How to run SSR Server
-SSRServer.exe 8081 "C:/myscenes/sceneA.x3d"
+SSRServer.exe 8081 "C:/myscenes/sceneA.x3d" --xoff 123.45 --yoff 345.67 --zoff 789.01 --publicpath "C:\abc\def"
 - use a different port for each SSR
+- xoff,yoff,zoff are applied to world coordinates going one way, and stripped off going the other
+	- so you can get the effect of double precision coordinates 
+--publicpath - /public folder that contains SSRClient.html, DragHere.jpg, favicon.ico, gl-matrix.js
+	(if not given, ssrserver has a guess for win32 developer running from projectfiles_*)
 
 How to run ZoneBalancer:
 SSRServer.exe 8080 --zonebalancer
@@ -1620,8 +1624,23 @@ SSRServer.exe 8080 --zonebalancer
 	- currently zonebalancer doesn't launch -or kill- SSRs, you need to do each of those some other way, such as shell script
 */
 	struct MHD_Daemon * d;
-	char *portstr, *url;
+	char *portstr, *url, *publicpath;
 	int iaction;
+	if(strstr(argv[0],"projectfiles")){
+		//developer folders, use src/SSR/public for Client.html
+		char *pf;
+		publicpath = strdup(argv[0]);
+		pf = strstr(publicpath,"projectfiles");
+		strcpy(pf,"src/SSR/public");
+	}else{
+		//installed, use folder beside ssrserver.exe (PS installer please install public folder with binary distro)
+		char *pf;
+		publicpath = strdup(argv[0]);
+		pf = strstr(publicpath,"SSRserver.exe");
+		strcpy(pf,"public");
+	}
+
+
 	if (argc < 2) {
 		portstr = "8080";
 		printf("%s PORT\n",portstr);
@@ -1651,6 +1670,12 @@ SSRServer.exe 8080 --zonebalancer
 							sscanf(&arg[7],"%lf",&ssrleaf.zoff);
 						}
 					}
+					if(!strcmp(arg,"--publicpath")){
+						if(argc > k){
+							publicpath = strdup(argv[k+1]);
+							k++;
+						}
+					}
 			}
 		}
 	}
@@ -1658,6 +1683,7 @@ SSRServer.exe 8080 --zonebalancer
 	if(running_as_zonebalancer)
 		iaction = 2;
 	if(iaction == 1) {
+
 		//simple echo of incoming request
 		d = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION,
 			atoi(portstr),
@@ -1668,6 +1694,9 @@ SSRServer.exe 8080 --zonebalancer
 			MHD_OPTION_END);
 	}
 	if(iaction == 2){
+		printf("public path: %s\n",publicpath);
+		chdir(publicpath);
+
 		//our special SSRServer request handler
 		d = MHD_start_daemon (MHD_USE_THREAD_PER_CONNECTION, //MHD_USE_SELECT_INTERNALLY
 			atoi(portstr), //PORT, 
@@ -1694,18 +1723,6 @@ SSRServer.exe 8080 --zonebalancer
 
 
 int main(int argc, char ** argv) {
-	if(strstr(argv[0],"projectfiles")){
-		//developer folders, use src/SSR/public for Client.html
-		char *pf, *path;
-		path = strdup(argv[0]);
-		pf = strstr(path,"projectfiles");
-		strcpy(pf,"src/SSR/public");
-		printf("%s\n",path);
-		chdir(path);
-	}else{
-		//installed, use folder beside ssrserver.exe (PS installer please install public folder with binary distro)
-		chdir("./public");
-	}
 	int iret = main0(argc, argv);
 	if(iret){
 		printf("Press Enter to exit:");

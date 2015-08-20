@@ -160,7 +160,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="mfcs71.lib MSVCRT.lib dllFreeWRL.lib"
-				OutputFile="../Release_glew/freeWRLAx.ocx"
+				OutputFile="..\Release_glew\freeWRLAx.ocx"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\projectfiles_vc12\Release_glew"
 				IgnoreDefaultLibraryNames="mfcs71.lib;MSVCRT.lib"

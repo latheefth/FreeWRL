@@ -7,7 +7,10 @@
 #include <olectl.h>
 #include <idispids.h>
 
-[ uuid(7E8586C1-3869-453d-8230-626807876F82), version(2.0), //version 2.0 //uuid(656FC6F3-9CF2-4674-B332-B2550852E644), version(1.0), //version 1.22.12_pre2
+[ 
+	uuid(DCD27C9F-770B-49D8-A2A8-A8D3029D7339), version(3.0), //version 3.0 - this is the typelib _tlid guid from freewrlAx.cpp
+//uuid(7E8586C1-3869-453d-8230-626807876F82), version(2.0), //version 2.0 
+//uuid(656FC6F3-9CF2-4674-B332-B2550852E644), version(1.0), //version 1.22.12_pre2
   helpfile("freeWRLAx.hlp"),
   helpstring("freeWRLAx ActiveX Control module"),
   control ]
@@ -16,8 +19,9 @@ library freeWRLAxLib
 	importlib(STDOLE_TLB);
 
 	//  Primary dispatch interface for CfreeWRLCtrl
-
-	[ uuid(B066822F-ED4C-4cf0-8E83-103B729A3803), //version 2.0 //uuid(C3C32307-89C2-4C1A-B7F1-D561AA0653A3), //version 1.22.12_pre2
+	[ uuid(208F68F7-FD80-4265-A236-E442F9F561D3), //version 3.0
+		//B066822F-ED4C-4cf0-8E83-103B729A3803), //version 2.0 
+		//uuid(C3C32307-89C2-4C1A-B7F1-D561AA0653A3), //version 1.22.12_pre2
 	  helpstring("Dispatch interface for freeWRL Control")]
 	dispinterface _DfreeWRLAx
 	{
@@ -27,7 +31,9 @@ library freeWRLAxLib
 
 	//  Event dispatch interface for CfreeWRLCtrl
 
-	[ uuid(637CAF03-A846-4eb1-A7A6-C6562688DFF7), //version 2.0 //uuid(91DEB0AA-9E7D-43F4-80C4-125C535B30EC),//version 1.22.12_pre2
+	[ uuid(758AB406-BC75-4EA2-AEB4-8FC9483A7BA5), //version 3.0
+	  //637CAF03-A846-4eb1-A7A6-C6562688DFF7), //version 2.0 
+	  //uuid(91DEB0AA-9E7D-43F4-80C4-125C535B30EC),//version 1.22.12_pre2
 	  helpstring("Event interface for freeWRL Control") ]
 	dispinterface _DfreeWRLAxEvents
 	{
@@ -37,9 +43,11 @@ library freeWRLAxLib
 		methods:
 	};
 
-	//  Class information for CfreeWRLCtrl
+	//  Class information for CfreeWRLCtrl - copy from freewrlAx.cpp
 
-	[ uuid(4E814FCE-B546-4d91-8EA8-358264E5D423),//version 2 //(582C9301-A2C8-45FC-831B-654DE7F3AF11), //version 1.22.12_pre2
+	[ uuid(28C209BE-D3AE-493A-82B6-CD36A2E6D9A7), //version 3 
+		//4E814FCE-B546-4d91-8EA8-358264E5D423),//version 2 
+		//(582C9301-A2C8-45FC-831B-654DE7F3AF11), //version 1.22.12_pre2
 	  helpstring("freeWRL Control"), control ]
 	coclass freeWRLAx
 	{

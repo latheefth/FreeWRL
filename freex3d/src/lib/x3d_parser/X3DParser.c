@@ -2832,6 +2832,7 @@ int X3DParse (struct X3D_Node* ectx, struct X3D_Node* myParent, const char *inpu
 		// http://xmlsoft.org/html/libxml-xmlerror.html
 		xmlErrorPtr xe = xmlGetLastError();
 		ConsoleMessage("Xml Error %s \n",xe->message);
+		ConsoleMessage("Line %d\n",xe->line);
 		/*
 		fprintf(stderr,
 			"%s at line %d\n",
