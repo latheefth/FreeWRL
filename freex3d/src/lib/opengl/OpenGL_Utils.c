@@ -1400,8 +1400,10 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap0) {
       if (!haveDoneThis) {
           haveDoneThis = true;
           if (!b) {
-	      ConsoleMessage("NO SHADER COMPILER - have to sometime figure out binary shader distros");
-	      return NULL;
+			//I found desktop openGL version 2.1.2  comes in here, but does still render OK
+			//ConsoleMessage("NO SHADER COMPILER - have to sometime figure out binary shader distros");
+			ConsoleMessage("no shader compiler\n");
+			return NULL;
           }
       }
 #endif
