@@ -88,7 +88,7 @@ void common_init(struct tcommon *t){
 		p->pin_statusbar = 1;
 		p->pin_menubar = 0;
 		p->keyvals = NULL;
-		p->target_frames_per_second = 30;
+		p->target_frames_per_second = 120;  //is 120 FPS a good target FPS?
 	}
 }
 void common_clear(struct tcommon *t){
