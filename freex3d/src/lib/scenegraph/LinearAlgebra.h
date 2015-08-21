@@ -171,6 +171,7 @@ double vecdotd(double *a, double *b);
 double* vecscaled(double* r, double* v, double s);
 double vecnormald(double *r, double *v);
 double *veccopyd(double *c, double *a);
+double *vecnegated(double *b, double *a);
 
 double * vecadd2d(double *c, double *a, double *b);
 double *vecdif2d(double *c, double* a, double *b);
@@ -279,6 +280,7 @@ void scale_to_matrix (double *mat, struct point_XYZ *scale);
 void loadIdentityMatrix (double *mat);
 double *matcopy(double *r, double*mat);
 void printmatrix2(GLDOUBLE* mat,char* description );
+void printmatrix3(GLDOUBLE *mat, char *description, int row_major);
 void general_slerp(double *ret, double *p1, double *p2, int size, const double t);
 void point_XYZ_slerp(struct point_XYZ *ret, struct point_XYZ *p1, struct point_XYZ *p2, const double t);
 #endif /* __FREEWRL_LINEAR_ALGEBRA_H__ */

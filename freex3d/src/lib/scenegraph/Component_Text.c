@@ -79,7 +79,7 @@ include FT_GLYPH_H */
 
 typedef struct pComponent_Text{
 
-#ifdef _ANDROID
+#if defined(_ANDROID) || defined(IPHONE)
 	// Android UI sends in file descriptors and open file for fonts.
 	// files are in the assets folder; we assume that the fd is open and fseek'd properly.
 
@@ -143,7 +143,7 @@ typedef struct pComponent_Text{
 
 }* ppComponent_Text;
 void *Component_Text_constructor(){
-	void *v = malloc(sizeof(struct pComponent_Text));
+	void *v = MALLOCV(sizeof(struct pComponent_Text));
 	memset(v,0,sizeof(struct pComponent_Text));
 	return v;
 }
@@ -158,6 +158,14 @@ void Component_Text_init(struct tComponent_Text *t){
 		p->font_directory = NULL;
 		/* flag to determine if we need to call the open_font call */
 		p->started = FALSE;
+	}
+}
+void Component_Text_clear(struct tComponent_Text *t){
+	//public
+	//private
+	{
+		ppComponent_Text p = (ppComponent_Text)t->prv;
+		FREE_IF_NZ(p->font_directory);
 	}
 }
 //	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
@@ -188,7 +196,7 @@ static void FW_draw_outline(FT_OutlineGlyph oglyph);
 static void FW_draw_character(FT_Glyph glyph);
 static int open_font(void);
 
-#ifdef _ANDROID
+#if defined(_ANDROID) || defined(IPHONE)
 /* Android UI finds the font file(s) and sends them in here */
 void fwg_AndroidFontFile(FILE *myFile,int len) {
 	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
@@ -382,10 +390,9 @@ void FW_make_fontname(int num) {
 
     // check whether we have a config file
     char* configfile = (char*)FcConfigFilename(0);
-    int configexists = 0;
     FILE*fi = fopen(configfile, "rb");
     if(fi) {
-        configexists = 1;fclose(fi);
+        fclose(fi);
 	//printf("<debug> Initializing FontConfig (configfile=%s)\n", configfile);
     } else {
 	//printf("<debug> Initializing FontConfig (no configfile)\n");
@@ -424,7 +431,7 @@ void FW_make_fontname(int num) {
     case 0x05: 			/* Serif Bold */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"serif",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
-	FcPatternAddString(FW_fp,FC_STYLE,"bold");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold");
 	#else
 	strcat (p->thisfontname,"/VeraSeBd.ttf");
 	#endif
@@ -432,8 +439,8 @@ void FW_make_fontname(int num) {
     case 0x06:			/* Serif Ital */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"serif",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
-	FcPatternAddString(FW_fp,FC_STYLE,"italic");
-	FcPatternAddString(FW_fp,FC_STYLE,"oblique");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"italic");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"oblique");
 	#else
 	strcat (p->thisfontname,"/VeraSe.ttf");
 	#endif
@@ -441,8 +448,8 @@ void FW_make_fontname(int num) {
     case 0x07:			/* Serif Bold Ital */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"serif",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
-	FcPatternAddString(FW_fp,FC_STYLE,"bold italic");
-	FcPatternAddString(FW_fp,FC_STYLE,"bold oblique");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold italic");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold oblique");
 	#else
 	strcat (p->thisfontname,"/VeraSeBd.ttf");
 	#endif
@@ -457,7 +464,7 @@ void FW_make_fontname(int num) {
     case 0x09: 			/* Sans Bold */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"sans",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
-	FcPatternAddString(FW_fp,FC_STYLE,"bold");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold");
 	#else
 	strcat (p->thisfontname,"/VeraBd.ttf");
 	#endif
@@ -465,8 +472,8 @@ void FW_make_fontname(int num) {
     case 0x0a: 			/* Sans Ital */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"sans",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
-	FcPatternAddString(FW_fp,FC_STYLE,"italic");
-	FcPatternAddString(FW_fp,FC_STYLE,"oblique");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"italic");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"oblique");
 	#else
 	strcat (p->thisfontname,"/VeraIt.ttf");
 	#endif
@@ -474,8 +481,8 @@ void FW_make_fontname(int num) {
     case 0x0b: 			/* Sans Bold Ital */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"sans",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
-	FcPatternAddString(FW_fp,FC_STYLE,"bold italic");
-	FcPatternAddString(FW_fp,FC_STYLE,"bold oblique");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold italic");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold oblique");
 	#else
 	strcat (p->thisfontname,"/VeraBI.ttf");
 	#endif
@@ -490,7 +497,7 @@ void FW_make_fontname(int num) {
     case 0x11: 			/* Monospace Bold */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
-	FcPatternAddString(FW_fp,FC_STYLE,"bold");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold");
 	#else
 	strcat (p->thisfontname,"/VeraMoBd.ttf");
 	#endif
@@ -498,8 +505,8 @@ void FW_make_fontname(int num) {
     case 0x12: /* Monospace Ital */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
-	FcPatternAddString(FW_fp,FC_STYLE,"italic");
-	FcPatternAddString(FW_fp,FC_STYLE,"oblique");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"italic");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"oblique");
 	#else
 	strcat (p->thisfontname,"/VeraMoIt.ttf");
 	#endif
@@ -507,8 +514,8 @@ void FW_make_fontname(int num) {
     case 0x13: /* Monospace Bold Ital */
 	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
-	FcPatternAddString(FW_fp,FC_STYLE,"bold italic");
-	FcPatternAddString(FW_fp,FC_STYLE,"bold oblique");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold italic");
+	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold oblique");
 	#else
 	strcat (p->thisfontname,"/VeraMoBI.ttf");
 	#endif
@@ -536,7 +543,7 @@ void FW_make_fontname(int num) {
               // printf("<debug> setting p->thisfontname to %s\n", FW_file);
 	      /* strcpy didn't work, use strncpy and set the null character by hand */
               strncpy(p->thisfontname,(char *)FW_file,strlen((char *)FW_file));
-              p->thisfontname[strlen((char *)FW_file)] = NULL;
+              p->thisfontname[strlen((char *)FW_file)] = '\0';
               break;
            }
 	}
@@ -581,7 +588,7 @@ ConsoleMessage ("TEXT INITIALIZATION - checking on the font file before doing an
 
     // ConsoleMessage("FT_Open_Face looks ok to go");
 
-    unsigned char *myFileData = malloc (p->fileLen+1);
+    unsigned char *myFileData = MALLOC(void *, p->fileLen+1);
     size_t frv;
     frv = fread (myFileData, (size_t)p->fileLen, (size_t)1, p->androidFontFile);
     myArgs.flags  = FT_OPEN_MEMORY;
@@ -798,7 +805,7 @@ unsigned int *utf8_to_utf32(unsigned char *utf8string, unsigned int *len32)
 	unsigned char *start, *end;
 	int lenchar, l32;
 	lenchar = (int)strlen((const char *)utf8string);
-	to0 = to = (unsigned int*)malloc((lenchar + 1)*sizeof(unsigned int));
+	to0 = to = MALLOC(unsigned int*,(lenchar + 1)*sizeof(unsigned int));
 	start = utf8string;
 	end = (unsigned char *)&utf8string[lenchar];
 	l32 = 0;
@@ -1008,7 +1015,7 @@ p->myff = 4;
 			for(i=0;i<len32;i++)
 				FW_Load_Char(utf32[i]);
 			char_count += len32;
-			free(utf32);
+			FREE_IF_NZ(utf32);
 
 		}
     }
@@ -1208,7 +1215,7 @@ int open_font()
     /* where are the fonts stored? */
 	if(!p->font_directory)
 		p->font_directory = makeFontDirectory();
-	ConsoleMessage("font directory=%s\n",p->font_directory);
+	//ConsoleMessage("font directory=%s\n",p->font_directory);
     /* were fonts not found? */
     if (p->font_directory == NULL) {
 #ifdef AQUA

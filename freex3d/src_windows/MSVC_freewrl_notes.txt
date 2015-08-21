@@ -1,68 +1,69 @@
  
 Instructions are posted at:
 http://freewrl.sourceforge.net/windowsBuild.html 
+Code and libraries are at:
+http://sourceforge.net/projects/freewrl/files/freewrl-win32
 
-Updated Sept 7, 2011
+Updated Feb 4, 2014
+3 MSVC versions are currently used, in freewrl/freex3d/
+- /projectfiles_vc9 (VS 2008) - used to build for windows XP (except ActiveX control)
+--- XP uses glew/opengl32.dll/desktop-opengl, and directsound for sound/audio
+--- and for windows developer(s) to check their code for linux gcc friendliness
+- /projectfiles_vc12 (VS 2013) - builds for vista, win7, win8.1 desktop (except ActiveX control)
+--- vista+ uses angleproject GLES2 (opengl-es-2.0) wrapper over directx for graphics, and directsound for sound/audio
+- /projectfiles_vc7 (VS 2003) - used to build only ActiveX control
+All are 32 bit builds, and run on 64 bit systems as win32 programs.
+
+ACTIVEX CONTROL/PLUGIN NOTES:
 To build the ActiveX project with a MS Visual C (MSVC) newer than 2003/vc7, 
 edit the project parameters > linker and change any references to mfcs71.lib to 
 mfcs??.lib where ?? is 90 for 2008/VC9 ie mfsc90.lib
 
+The projectfiles_vc7/freewrlAx project is for the ActiveX control, which is the InternetExplorer plugin for freewrl. 
+You need something more than the free express edition of Visual C++ to build it.
+- there are special headers and dlls needed for ActiveX controls, that the express versions don't have.
+The project initiator/current-maintainer dug9 had purchased a Visual C++ 2003 Standard Edition 12 years ago for $200.
+-- that had the needed dlls and headers for ActiveX development, so that's what it's currently checked in with. 
 
-Updated May 21, 2011
-ACTIVEX CONTROL/PLUGIN NOTES:
-The freewrlAx project is for the ActiveX control, which is the InternetExplorer plugin for freewrl. 
-You need something more than the free express edition of Visual C++ to build it (there are dlls etc it needs for ActiveX controls).
-The project initiator had Visual C++ 2003 Standard Edition kicking around, so that's what it's currently checked in with. 
-And freewrlAx depends on libfreewrl built slightly differently than for the console program (but you can build it with MSVC express).
-To build the libfreewrl for the ActiveX control you need to change the following compiler settings:
-In libfreeWRL > Property Pages > Configuration Properties > C/C++ > Preprocessor > Preprocessor Definitions
-change the following:
-COMPILING_ACTIVEX_FRONTEND_no
-FRONTEND_HANDLES_DISPLAY_THREAD_no
-FRONTEND_GETS_FILES_no
-to:
-COMPILING_ACTIVEX_FRONTEND
-FRONTEND_HANDLES_DISPLAY_THREAD
-FRONTEND_GETS_FILES
-Then when building for everything else, change those back.
-Otherwise the regular freewrl will just exit without showing anything.
 
-GENERAL WIN32 TO DO:
-To do/not done yet: 
--  libeai / EAI / SAI   
--  sound not attempted
--  fullscreen not properly implemented
--  Internet Explorer plugin (ActiveX control) is in-process but not complete  
--  in theory the main program should have the popup window, and call into the library (right now
-   the popup window code is in the library)
+
 When you build the freewrlAx project, it should 'register' the activex control in the system registry, 
-as the handler for .x3d and .wrl file types and related MIME types. A recent version of the freewrl_launcher 
-has a panel to control / reset what handles what in InternetExplorer, in case you have some other downloads
-handling .x3d and .wrl too.
+as the handler for .x3d and .wrl file types and related MIME types model/x3d+xml model/vrml. 
+OLD:
+//A recent version of the freewrl_launcher 
+//has a panel to control / reset what handles what in InternetExplorer, in case you have some other downloads
+//handling .x3d and .wrl too.
+
 (Launcher is a separate source download in SupportFiles at http://sourceforge.net/projects/freewrl/files/freewrl-win32/ 
 or you can use the one that gets installed during binary .msi installation)
 Then to test, you open an html file in internetExplorer that has an embed, object or href with a url.x3d/.wrl.
 
 
 ABOUT THE LIBRARIES IN LIB_WINDOWS:
-MSVC compatible libraries - you got them from the link on the windowsbuild page (or as of sept 16, 2010 http://dug9.users.sourceforge.net/lib_windows.zip)
-Then if you cvs check out freewrl\freex3d cvs to your directory 'source' then put the lib_windows and fonts directories in 'source' too:
+the .vcproj in projectfiles_vc7, _vc9 and _vc12 point to headers and .libs in lib_windows or lib_windows_vc12 folder
+- you download the contents of these folders from http://sourceforge.net/projects/freewrl/files/freewrl-win32
+Then if you git clone freewrl to your directory 'source' then put the lib_windows directories in 'source' too:
 ie 
-c:\source\freewrl ... source code as CVS checked out
-c:\source\fonts
-c:\source\lib_windows
+c:\source\freewrl ... source code as git cloned and checked out, or as you unzipped
+c:\source\lib_windows  (for vc9)
+c:\source\lib_windows_vc12
 
-But where did I get them?
-gdiplus.lib/.dll - .lib seems to be on my system somewhere
+A few more that should be in your windows system already.
+gdiplus.lib/.dll - .lib seems to be on my system somewhere, or:
 http://www.microsoft.com/downloads/details.aspx?FamilyID=6a63ab9c-df12-4d41-933c-be590feaa05a&DisplayLang=en  GDI+ redistributable download - gdiplus.dll 2MB 
+MSopenGL - found in my windows system directories opengl32.dll
 
-MSopenGL - my windows system directories, for a msvc 6.0A directory (not sure what it was installed with. Just opengl 2.1)
-zlib - yafaray^ see below
-pthreads - http://sourceware.org/pthreads-win32/
-openexr_static - yafaray
-libxml2 - yafaray
-freetype2 - http://freetype.sourceforge.net/index2.html  (has a build directory for VS2008)
-expat - likely: http://sourceforge.net/projects/expat/ which has a 2007 download which is the datestamp on my files
-glew - http://glew.sourceforge.net/  
-JS (javascript) - I got from an older freewrl source .tar and tinkered
-^  www.yafaray.org - has vs2008 .sln files 
+OLD / UNDER REVIEW:
+// And freewrlAx depends on libfreewrl built slightly differently than for the console program (but you can build it with MSVC express).
+// To build the libfreewrl for the ActiveX control you need to change the following compiler settings:
+// In libfreeWRL > Property Pages > Configuration Properties > C/C++ > Preprocessor > Preprocessor Definitions
+// change the following:
+// COMPILING_ACTIVEX_FRONTEND_no
+// FRONTEND_HANDLES_DISPLAY_THREAD_no
+// FRONTEND_GETS_FILES_no
+// to:
+// COMPILING_ACTIVEX_FRONTEND
+// FRONTEND_HANDLES_DISPLAY_THREAD
+// FRONTEND_GETS_FILES
+// Then when building for everything else, change those back.
+// Otherwise the regular freewrl will just exit without showing anything.

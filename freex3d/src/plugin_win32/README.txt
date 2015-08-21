@@ -31,6 +31,16 @@ To build the solution, see the short but clear page at: http://freewrl.sourcefor
 ---- to the fw lib versions in dllFreeWRL (as we did here) or use the fw versions we prebuilt in our 
 ---- lib_windows.zip (folder with all the non-windows binary libs and includes we build with)
 
+HOW TO DEBUG
+0. see the MozillaPlugins section below first
+1. you put the Path REG_SZ to point to your visual studio /Debug_glew folder version of your np_freeWRL.dll
+	where all your dlls are	including np_freeWRL.dll's debug .pdb
+2. run FireFox, navigate to a test file ie http://...../1.x3d a popup dialog should say 'You may now attach a debugger' 
+3. in visual studio, set your Debug_glew np_dllfreewrl project as Startup project, then under Debug, Attach to Process
+4. in the Process picker panel, a) shun Auto, and set Native b) shun firefox and select np_freeWRL plugin process(1)
+5. in your code search for 'You may now attach a debugger' (without the quotes, and set a breakpoint after that line
+6. in the firefox popup, say OK. 
+in visual studio, it should go to your breakpoint.
 
 HOW TO INSTALL
 First the dll library containing the plugin interface must have the prefix "np_" (in our case is "np_freeX3D.dll")

@@ -110,7 +110,7 @@ typedef struct pcollision{
 
 }* ppcollision;
 void *collision_constructor(){
-	void *v = malloc(sizeof(struct pcollision));
+	void *v = MALLOCV(sizeof(struct pcollision));
 	memset(v,0,sizeof(struct pcollision));
 	return v;
 }
@@ -160,7 +160,15 @@ void collision_init(struct tcollision *t){
 		#endif
 	}
 }
-
+void collision_clear(struct tcollision *t){
+	//public
+	//private
+	{
+		ppcollision p = (ppcollision)t->prv;
+		FREE_IF_NZ(p->prd_newc_floats);
+		FREE_IF_NZ(p->prd_normals);
+	}
+}
 
 // ppcollision p = (ppcollision)gglobal()->collision.prv;
 struct sCollisionInfo* CollisionInfo()

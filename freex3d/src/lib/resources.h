@@ -29,6 +29,18 @@
 
 #include "list.h"
 
+#ifdef AQUA
+#include <system_threads.h>
+#endif
+
+#ifdef _MSC_VER
+#include <system_threads.h>
+#endif
+
+#ifdef _ANDROID
+#include <system_threads.h>
+#endif
+
 /* is this file name relative to another path, or is it really, really, a direct file name? */
 #if defined(_MSC_VER)
 #define IF_cleanedURL_IS_ABSOLUTE if(strchr(cleanedURL,':')) // if(cleanedURL[0] != '\0' && cleanedURL[1]== ':')
@@ -174,7 +186,7 @@ typedef struct resource_item {
 
 	resource_media_type_t media_type;
 	int treat_as_root; //bandaid for .x3z doc.x3d to be seen as root res equivalent
-	void *_loadThread; //pthread_t * used for async_loading in middleLayer ML
+	pthread_t *_loadThread; //pthread_t * used for async_loading in middleLayer ML
 	void *tg; //gglobal context
 	int (*_loadFunc)(void *); //used for some experiments where the backend loads, but the frontend injects a load function
 } resource_item_t;
@@ -198,6 +210,7 @@ bool resource_fetch(resource_item_t *res);
 void resitem_enqueue(s_list_t *resitem);
 bool resource_load(resource_item_t *res);
 void resource_identify_type(resource_item_t *res);
+bool resource_fetch(resource_item_t *res);
 void resource_destroy(resource_item_t *res);
 void destroy_root_res();
 

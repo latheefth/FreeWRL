@@ -51,6 +51,7 @@
 //#define DEBUG_RES printf
 static void possiblyUnzip (openned_file_t *of);
 
+void close_openned_file(openned_file_t *file);
 
 typedef struct presources{
 	struct Vector *resStack; //=NULL;
@@ -58,7 +59,7 @@ typedef struct presources{
 }* presources;
 void *resources_constructor()
 {
-	void* v = malloc(sizeof(struct presources));
+	void *v = MALLOCV(sizeof(struct presources));
 	memset(v,0,sizeof(struct presources));
 	return v;
 }
@@ -69,6 +70,14 @@ void resources_init(struct tresources* t)
 	//presources p;
 	t->prv = resources_constructor();
 	//p = (presources)t->prv);
+}
+void resources_clear(struct tresources* t)
+{
+	//public
+	//private
+	presources p;
+	p = (presources)t->prv;
+	deleteVector(void *,p->resStack);
 }
 
 
@@ -128,6 +137,7 @@ resource_item_t* resource_create_single0(const char *request)
 
 	item = newResourceItem();
 	item->URLrequest = STRDUP(request);
+    item->_loadThread = NULL;
 	return item;
 }
 
@@ -299,10 +309,12 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 		if (res->m_request) {
 			s_list_t *l;
 			l = res->m_request;
-			/* Pick up next request in our list */			
+			/* Pick up next request in our list */
+			FREE_IF_NZ(res->URLrequest);
 			res->URLrequest = (char *) l->elem;
 			/* Point to the next... */
 			res->m_request = res->m_request->next;
+			ml_free(l);
 		} else {
 			/* list empty */
 			ERROR_MSG("resource_identify: ERROR: empty multi string as input\n");
@@ -441,7 +453,9 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 	}
 
 	/* record the url, and the path to the url */
+	FREE_IF_NZ(res->parsed_request);
 	res->parsed_request = url;
+	FREE_IF_NZ(res->URLbase);
 	res->URLbase = STRDUP(url);
 	removeFilenameFromPath(res->URLbase);
 
@@ -483,6 +497,75 @@ bool imagery_load(resource_item_t *res){
 	retval = FALSE;
 	return retval;
 }
+#ifdef FRONTEND_GETS_FILES
+/**
+ *   resource_fetch: download remote url or check for local file access.
+ */
+bool resource_fetch(resource_item_t *res)
+{
+	DEBUG_RES("fetching resource: %s, %s resource %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status) ,res->URLrequest);
+
+	ASSERT(res);
+
+	switch (res->type) {
+
+	case rest_invalid:
+		res->status = ress_invalid;
+		ERROR_MSG("resource_fetch: can't fetch an invalid resource: %s\n", res->URLrequest);
+		break;
+
+	case rest_url:
+		switch (res->status) {
+		case ress_none:
+		case ress_starts_good:
+			DEBUG_RES ("resource_fetch, calling download_url\n");
+			download_url(res);
+			break;
+		default:
+			/* error */
+			break;
+		}
+		break;
+
+	case rest_file:
+		switch (res->status) {
+		case ress_none:
+		case ress_starts_good:
+			/* SJD If this is a PROTO expansion, need to take of trailing part after # */
+#ifdef FRONTEND_GETS_FILES
+			res->status = ress_downloaded;
+			res->actual_file = STRDUP(res->parsed_request);
+			if (res->media_type == resm_image) {
+				res->_loadFunc = (int(*)(void*))imagery_load;
+			} else {
+				res->_loadFunc = (int(*)(void*))resource_load;
+			}
+
+			/* copy the name out, so that Anchors can go to correct Viewpoint */
+			res->afterPoundCharacters = '\0';
+#endif //FRONTEND_GETS_FILES
+
+			break;
+		default:
+			/* error */
+			break;
+		}
+		break;
+
+	case rest_multi:
+	case rest_string:
+		/* Nothing to do */
+		break;
+	}
+	DEBUG_RES ("resource_fetch (end): network=%s type=%s status=%s"
+		  " request=<%s> base=<%s> url=<%s> [parent %p, %s]\n",
+		  BOOL_STR(res->network), resourceTypeToString(res->type),
+		  resourceStatusToString(res->status), res->URLrequest,
+		  res->URLbase, res->parsed_request,
+		  res->parent, (res->parent ? res->parent->URLbase : "N/A"));
+	return (res->status == ress_downloaded);
+}
+#endif
 
 /**
  *   resource_load: load the actual file into memory, add it to openned files list.
@@ -598,7 +681,7 @@ bool resource_load(resource_item_t *res)
  */
 void resource_identify_type(resource_item_t *res)
 {
-	unsigned char *test_it = NULL;
+	char *test_it = NULL;
     int test_it_len = 0;
     
 	//s_list_t *l;
@@ -617,7 +700,7 @@ void resource_identify_type(resource_item_t *res)
 			return;
 			break;
 		case rest_string:
-			test_it = (unsigned char*)res->URLrequest;
+			test_it = (char*)res->URLrequest;
                 ConsoleMessage ("test_it is :%s:",test_it);
             test_it_len = (int)strlen(res->URLrequest);
 			break;
@@ -704,9 +787,36 @@ void resource_remove_cached_file(s_list_t *cfe)
  *   resource_destroy: destroy this object (and all contained allocated data).
  *                     It may not be used anymore.
  */
+#ifdef DISABLER
+void resource_on_did_not_parse(resource_item_t *res) {
+	s_list_t *of, *cf;
+	of = (s_list_t *) res->openned_files;
+	if (!of) {
+		/* error */
+		return;
+	}
+
+	ml_foreach(of, close_openned_file(__l->elem));
+
+	/* Remove cached file ? */
+	cf = (s_list_t *) res->cached_files;
+	if (cf) {
+		/* remove any cached file:
+		   TODO: reference counter on cached files...
+		 */
+		ml_foreach(cf, resource_remove_cached_file(__l->elem));
+	}
+
+	/* free the actual file  */
+	FREE(res->actual_file);
+	res->actual_file = NULL;
+}
+#endif
+void _resourceFreeCallback(void *resource);
+
 void resource_destroy(resource_item_t *res)
 {
-	s_list_t *of, *cf;
+	s_list_t *cf; // *of,
 
 	if(!res) return;
 	DEBUG_RES("destroying resource: %d, %d\n", res->type, res->status);
@@ -731,10 +841,13 @@ void resource_destroy(resource_item_t *res)
 		case ress_not_loaded:
 		case ress_parsed:
 		case ress_not_parsed:
+#ifdef DISABLER            
+            resource_on_did_not_parse(res);
+#else            
 		if(0){
 			/* Remove openned file ? */
 			//of = (s_list_t *) res->openned_files;
-			of = res->openned_files;
+			//of = res->openned_files;
 			//if (of) {
 			//	/* close any openned file */
 			//	close( ((openned_file_t*)of->elem)->fileDescriptor );
@@ -750,7 +863,8 @@ void resource_destroy(resource_item_t *res)
 			}
 		}
 			/* free the actual file  */
-			FREE(res->actual_file);
+			FREE_IF_NZ(res->actual_file);
+#endif			
 			break;
 		}
 
@@ -772,6 +886,9 @@ void resource_destroy(resource_item_t *res)
 		case ress_not_loaded:
 		case ress_parsed:
 		case ress_not_parsed:
+#ifdef DISABLER		
+			resource_on_did_not_parse(res);
+#else			
 			/* Remove openned file ? */
 			//of = (s_list_t *) res->openned_files;
 			//if (of) {
@@ -780,34 +897,60 @@ void resource_destroy(resource_item_t *res)
 
 			/* free the actual file  */
 			FREE(res->actual_file);
+#endif			
 			break;
 		}
 
 		/* free the parsed_request url */
 		FREE_IF_NZ(res->parsed_request);
 		break;
-
+#ifdef DISABLER
 	case rest_multi:
 		/* Free the list */
-		ml_delete_all2(res->m_request, free);
+		ml_delete_all2(res->m_request, &_resourceFreeCallback);
 		res->m_request = NULL;
 		break;
+#endif
 
 	case rest_string:
 		/* Nothing to do */
 		break;
 	}
 
-	if (!res->parent) {
-		/* Remove base */
-		FREE_IF_NZ(res->URLbase);
-	} else {
-		/* We used parent's base, so remove us from parent's childs */
-		//resource_remove_child(res->parent, res);
-	}
+	/* Free the list */
+	ml_delete_all2(res->m_request, ml_free);
+	res->m_request = NULL;
+
+	FREE_IF_NZ(res->URLbase);
+	FREE_IF_NZ(res->afterPoundCharacters);
+	FREE_IF_NZ(res->openned_files);
+	//if (!res->parent) {
+	//	/* Remove base */
+	//	FREE_IF_NZ(res->URLbase);
+	//} else {
+	//	/* We used parent's base, so remove us from parent's childs */
+	//	//resource_remove_child(res->parent, res);
+	//}
+
 	FREE_IF_NZ(res->URLrequest);
 	FREE_IF_NZ(res);
 }
+#ifdef DISABLER
+void _resourceFreeCallback(void *resource)
+{
+    FREE_IF_NZ(resource);
+}
+
+void close_openned_file(openned_file_t *file) {
+	if (file->fileDescriptor != 0) {
+		close(file->fileDescriptor );
+	}
+    FREE_IF_NZ(file->fileData);
+    file->fileData = NULL;
+    FREE_IF_NZ(file->fileFileName);
+    file->fileFileName = NULL;
+}
+#endif
 
 void resource_unlink_cachedfiles(resource_item_t *res)
 {
@@ -824,14 +967,18 @@ void resource_unlink_cachedfiles(resource_item_t *res)
 		/* remove any cached file:
 		   TODO: reference counter on cached files...
 		 */
+#ifdef DISABLER		 
+		ml_foreach(cf, resource_remove_cached_file(__l->elem));
+#else
 		ml_foreach(cf, resource_remove_cached_file(__l));
+#endif
 	}
 
 }
 
 void resource_close_files(resource_item_t *res)
 {
-	//s_list_t *of;
+	s_list_t *of;
 
 	if(!res) return;
 	DEBUG_RES("closing resource file: %d, %d\n", res->type, res->status);
@@ -839,14 +986,13 @@ void resource_close_files(resource_item_t *res)
 	ASSERT(res);
 
 	/* Remove openned file ? */
-	//of = (s_list_t *) res->openned_files;
-	//if (of) {
-	//	/* close any openned file */
-	//	int fd = ((openned_file_t*)of->elem)->fileDescriptor;
-	//	if (fd)
-	//		close( fd );
-	//}
-
+#ifdef DISABLER	
+	of = (s_list_t *) res->openned_files;
+    if (NULL != of)
+        ml_foreach(of, close_openned_file(__l->elem));
+    FREE_IF_NZ(of);
+    res->openned_files = NULL;
+#endif
 }
 
 
@@ -886,6 +1032,7 @@ void resource_tree_destroy()
 		ml_foreach(root->children,resource_unlink_cachedfiles((resource_item_t*)ml_elem(__l)));
 		ml_foreach(root->children,resource_destroy((resource_item_t*)ml_elem(__l)));
 		ml_foreach(root->children,resource_remove_child(root,(resource_item_t*)ml_elem(__l)));
+		ml_foreach(root->children,ml_free(__l));
 		resource_close_files(root);
 		resource_unlink_cachedfiles(root);
 		destroy_root_res();
@@ -898,8 +1045,9 @@ void resource_tree_destroy()
 void resource_dump(resource_item_t *res)
 {
 	s_list_t *cf;
+	//openned_file_t *of;
 	//s_list_t *of;
-	openned_file_t *of;
+	void *ofv;
 
 	PRINTF ("resource_dump: %p\n"
 		  "request: %s\n"
@@ -917,10 +1065,15 @@ void resource_dump(resource_item_t *res)
 	PRINTF("\nopenned files: ");
 
 	//of = (s_list_t *) res->openned_files;
-	of = res->openned_files;
-	if (of) {
-		//ml_foreach(of, PRINTF("%s ", (char *) ((openned_file_t *)ml_elem(__l))->fileFileName));
+	ofv = res->openned_files;
+	if (ofv) {
+#ifdef DISABLER
+		s_list_t *of = (s_list_t*)ofv;	
+		ml_foreach(of, PRINTF("%s ", (char *) ((openned_file_t *)ml_elem(__l))->fileFileName));
+#else		
+		openned_file_t *of = (openned_file_t*)ofv;
 		PRINTF("%s ", of->fileFileName);
+#endif		
 	} else {
 		PRINTF("none");
 	}
@@ -1353,7 +1506,7 @@ void fwl_resitem_setLocalPath(void *resp, char* path){
 		else
 			res->cached_files = ml_append(res->cached_files, item);
 	}
-	res->_loadFunc = file2blob;
+	res->_loadFunc = (void *)file2blob; //msvc can also do &file2blob
 }
 int	fwl_resitem_getStatus(void *resp){
 	resource_item_t *res = (resource_item_t *)resp;

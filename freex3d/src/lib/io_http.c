@@ -148,7 +148,7 @@ char* download_url_curl(resource_item_t *res)
 
     file = fopen(temp, "w");
     if (!file) {
-	free(temp);
+	FREE(temp);
 	ERROR_MSG("Cannot create temp file (fopen)\n");
 	return NULL;	
     }   
@@ -224,12 +224,14 @@ void closeWinInetHandle()
 /* char* download_url_WinInet(const char *url, const char *tmp) */
 char* download_url_WinInet(resource_item_t *res)
 {
+	char *temp;
+	temp = NULL;
 	if(!hWinInet)
 	{
 		hWinInet = winInetInit();
 	}
 	if(!hWinInet) 
-		return NULL;
+		return temp;
 	else
 	{
 		DWORD dataLength, len;
@@ -266,8 +268,8 @@ char* download_url_WinInet(resource_item_t *res)
 			//printf("query buffer=%s\n",buffer);
 			if(strstr(buffer,"404 Not Found")){
 				//HTTP/1.1 404 Not Found
-				ERROR_MSG("Download failed for url %s\n", res->parsed_request);
-				return NULL;
+				ERROR_MSG("Download failed1 for url %s\n", res->parsed_request);
+				return temp;
 			}
 			//else 200 OK
 		}
@@ -279,30 +281,32 @@ char* download_url_WinInet(resource_item_t *res)
 		//DWORD err = GetLastError();
 		if (!(hOpenUrl))
 		{
-			ERROR_MSG("Download failed for url %s\n", res->parsed_request);
-			return NULL;
+			ERROR_MSG("Download failed2 for url %s\n", res->parsed_request);
+			return temp;
 		}
 		else
 		{
-			char *temp;
 			FILE *file;
 
 			if (res->temp_dir) {
 				temp = STRDUP(res->temp_dir);
 			} else {
 				//temp = _tempnam(gglobal()->Mainloop.tmpFileLocation, "freewrl_download_XXXXXXXX");
-				temp = _tempnam(NULL, "freewrl_download_XXXXXXXX");
-				if (!temp) {
+				char *tmp1;
+				tmp1 = _tempnam(NULL, "freewrl_download_XXXXXXXX");
+				if (!tmp1) {
 					PERROR_MSG("download_url: can't create temporary name.\n");
-					return NULL;	
+					return tmp1;	
 				}
+				temp = STRDUP(tmp1); //these 2 lines help DEBUG_MALLOC because later we use FREE_IF_NZ on actual_file
+				free(tmp1);
 			}
 
 			file = fopen(temp, "wb");
 			if (!file) {
-				free(temp);
+				FREE_IF_NZ(temp);
 				ERROR_MSG("Cannot create temp file (fopen)\n");
-				return NULL;	
+				return temp;	
 			}
 
 			dataLength=0;
@@ -310,19 +314,20 @@ char* download_url_WinInet(resource_item_t *res)
 
 			while((InternetQueryDataAvailable(hOpenUrl,&dataLength,0,0))&&(dataLength>0))
 			{
-				void *block = malloc(dataLength);
+				void *block = MALLOC(void *, dataLength);
 				if ((InternetReadFile(hOpenUrl,(void*)block,dataLength,&len))&&(len>0))
 				{
 					fwrite(block,dataLength,1,file);
 				}
-				free(block);
+				FREE(block);
 			}
 			InternetCloseHandle(hOpenUrl); 
 			hOpenUrl=NULL;
 			fclose(file);
 			return temp;
 		}
-    } 
+    }
+	return temp;
 }
 
 #endif
@@ -420,7 +425,7 @@ char* download_url_wget(resource_item_t *res)
 
     // create wget command line
 	safe = replace_unsafe(res->parsed_request);
-    wgetcmd = malloc( strlen(WGET) +
+    wgetcmd = MALLOC(void *, strlen(WGET) +
 	                    strlen(WGET_OPTIONS) + 
 	                    strlen(safe) +
                             strlen(temp) + 6 +1+1);
@@ -431,7 +436,7 @@ char* download_url_wget(resource_item_t *res)
 #else
     sprintf(wgetcmd, "%s %s %s %s %s", WGET, WGET_OPTIONS, safe, WGET_OUTPUT_DIRECT, temp);
 #endif
-	free(safe);
+	FREE_IF_NZ(safe);
     /* printf ("wgetcmd is %s\n",wgetcmd); */
 
     // call wget

@@ -249,7 +249,7 @@ typedef struct pCRoutes{
 
 }* ppCRoutes;
 void *CRoutes_constructor(){
-	void *v = malloc(sizeof(struct pCRoutes));
+	void *v = MALLOCV(sizeof(struct pCRoutes));
 	memset(v,0,sizeof(struct pCRoutes));
 	return v;
 }
@@ -292,6 +292,31 @@ void CRoutes_init(struct tCRoutes *t){
 		/* Script name/type table */
 		p->JSparamnames = NULL;
 
+	}
+}
+
+void lock_and_do_routes_register();
+void free_routes(){
+	int i,count;
+	struct CRStruct *routes;
+	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
+
+	//there can be some routes to unregister, on quit
+	lock_and_do_routes_register();
+	
+	p->CRoutes_Count = 0;
+	p->CRoutes_MAX = 0;
+	FREE_IF_NZ(p->CRoutes);
+	p->CRoutes = NULL;
+
+}
+void CRoutes_clear(struct tCRoutes *t){
+	if(t){
+		ppCRoutes p = (ppCRoutes)t->prv;
+		free_routes();
+		FREE_IF_NZ(p->ClockEvents);
+		FREE_IF_NZ(p->preEvents);
+		FREE_IF_NZ(p->ScriptControl);
 	}
 }
 //	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
@@ -521,16 +546,20 @@ void AddRemoveChildren (
 			printf("[%d]{%u}",oldlen,upper_power_of_two(old_len));
 			#endif
 			//newmal = MALLOC (void *, (oldlen+len)*sizeof(struct X3D_Node *));
+#if defined(DEBUG_MALLOC) && defined(DEBUG_MALLOC_LIST)
+			newmal = (void*)freewrlMalloc(line, file, (po2)*sizeof(struct X3D_Node *), FALSE);
+#else
 			newmal = MALLOC (void *, (po2)*sizeof(struct X3D_Node *));
+#endif
 
 			/* copy the old stuff over */
-			if (oldlen > 0) memcpy (newmal,tn->p,oldlen*sizeof(void *));
+			if (newmal != NULL && oldlen > 0) memcpy (newmal,tn->p,oldlen*sizeof(void *));
 
 			/* set up the C structures for this new MFNode addition */
-			if(oldlen > 0) {
+			//if(oldlen > 0) {
 				//FREE_IF_NZ (tn->p); //see bottom of function
-				oldmal = tn->p;
-			}
+				oldmal = tn->p; //may 2015 - needs to be unconditionally freed, for geoLod which can pull tricks with geoLod.rootNode.p
+			//}
 			tn->n = oldlen;
 			tn->p = newmal;
 			//FREE_IF_NZ(oldmal); //ATOMIC OP  but if the rendering thread is hanging onto mf->p for a long time, you'll be 'pulling the rug out' here - use addChildren
@@ -548,7 +577,7 @@ void AddRemoveChildren (
 			#ifdef CRVERBOSE
 			printf ("AddRemove, count %d of %d, node %p parent %p\n",counter, len,nodelist[counter],parent);
 			#endif
-			if (nodelist[counter] != NULL) {
+			if (tmpptr != NULL && nodelist[counter] != NULL) {
 				//add a new node to the children list
 				*tmpptr = nodelist[counter];
 				tmpptr ++;
@@ -705,7 +734,10 @@ void add_first(struct X3D_Node * node) {
 		//so we break realloc into more atomic steps (and reduce frequency of reallocs with pre-allocated size_ )
 		struct FirstStruct *old_ce, *ce;
 		ce = MALLOC(struct FirstStruct *, sizeof (struct FirstStruct) * p->size_ClockEvents * 2);
+		if (ce != NULL)
+		{
 		memcpy(ce, p->ClockEvents, sizeof (struct FirstStruct) * p->num_ClockEvents);
+		}
 		p->size_ClockEvents *= 2; //power-of-two resizing means less memory fragmentation for large counts
 		old_ce = p->ClockEvents;
 		p->ClockEvents = ce;
@@ -1020,6 +1052,19 @@ ConsoleMessage ("CRoutes_Register - adrem %d, from %p (%s) fromoffset %d to %p (
 	MUTEX_FREE_LOCK_ROUTING_UPDATES
 
 }
+void free_routes_to_register(struct Vector * routesToRegister){
+	
+	if(routesToRegister){
+		struct CR_RegStruct *r;
+		int i;
+		for(i=0;i<vectorSize(routesToRegister);i++){
+			r = vector_get(struct CR_RegStruct*,routesToRegister,i);
+			FREE_IF_NZ(r);
+		}
+		deleteVector(struct CR_RegStruct *,routesToRegister);
+		FREE_IF_NZ(routesToRegister);
+	}
+}
 
 void print_routes_ready_to_register(FILE* fp)
 {
@@ -1175,7 +1220,7 @@ static void actually_do_CRoutes_Register() {
 					break;
 				} else {
 					/* this is a remove */
-	
+					FREE_IF_NZ(p->CRoutes[check_here].tonodes);
 					for (shifter = check_here; shifter < p->CRoutes_Count; shifter++) {
 						#ifdef CRVERBOSE 
 						printf ("copying from %d to %d\n",shifter, shifter-1);
@@ -1264,10 +1309,11 @@ static void actually_do_CRoutes_Register() {
 					printf ("\n");
 				}
 	#endif
-		FREE_IF_NZ(newEntry);
+		//FREE_IF_NZ(newEntry);
 		}
 	}
-	FREE_IF_NZ(p->routesToRegister);
+	free_routes_to_register(p->routesToRegister); //free all newEntries
+	p->routesToRegister = NULL;
 	#ifdef CRVERBOSE 
 		printf ("routing table now %d\n",p->CRoutes_Count);
 		for (shifter = 0; shifter < p->CRoutes_Count; shifter ++) {
@@ -1282,6 +1328,14 @@ static void actually_do_CRoutes_Register() {
 	#endif
 
 }
+void lock_and_do_routes_register()
+{
+	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
+	MUTEX_LOCK_ROUTING_UPDATES
+	actually_do_CRoutes_Register();
+	MUTEX_FREE_LOCK_ROUTING_UPDATES
+}
+
 
 #ifdef DEBUG_VALIDNODE
 /* only if DEBUG_VALIDNODE is defined; helps us find memory/routing problems */
@@ -1724,14 +1778,14 @@ static BOOL gatherScriptEventOut_B(union anyVrml* any, struct Shader_Script *sha
 	int actualscript;
 	//unsigned int to_counter;
 	//CRnodeStruct *to_ptr = NULL;
-	ppCRoutes p;
+	//ppCRoutes p;
 	ttglobal tg = gglobal();
 	
 	#ifdef CRVERBOSE
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 	#endif
 
-	p = (ppCRoutes)tg->CRoutes.prv;
+	//p = (ppCRoutes)tg->CRoutes.prv;
 
 	/* NOTE - parts of things in here might need to be wrapped by BeginRequest ??? */
 
@@ -2420,7 +2474,7 @@ union anyVrml* get_anyVrml(struct X3D_Node* node, int offset, int *type, int *mo
 	return fromAny;
 }
 
-void cleanFieldIfManaged(int type,int mode,int isPublic, struct X3D_Node* parent, int offset)
+void cleanFieldIfManaged(int type,int mode,BOOL isPublic, struct X3D_Node* parent, int offset)
 {
 	//there should be a shallow_clean_field(type,toAny) that releases old mallocs 
 	//  in UniString,MF p*, unlinks and/or killNodes
@@ -2844,7 +2898,7 @@ void propagate_events_B() {
 								}
 								// note, "shader" can not be NULL here...
 								// otherwise we'd never be here in this switch
-								getField_ToShader(toNode, shader->num);
+								getField_ToShader(toNode, counter); //feb2015 shader->num);
 								havinterp = TRUE;
 							}
 							break;

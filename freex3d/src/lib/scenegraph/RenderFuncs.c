@@ -62,8 +62,11 @@ struct profile_entry {
 	int hits;
 };
 
-
-
+struct point_XYZ3 {
+	struct point_XYZ p1;
+	struct point_XYZ p2;
+	struct point_XYZ p3;
+};
 
 typedef struct pRenderFuncs{
 	int profile_entry_count;
@@ -91,7 +94,7 @@ typedef struct pRenderFuncs{
 	GLint lightOnOff[MAX_LIGHT_STACK];
 	GLint lightChanged[MAX_LIGHT_STACK]; //optimization
 	GLint lastShader;
-	int cur_hits;//=0;
+	//int cur_hits;//=0;
 	void *empty_group;//=0;
 	//struct point_XYZ ht1, ht2; not used
 	struct point_XYZ hyper_r1,hyper_r2; /* Transformed ray for the hypersensitive node */
@@ -105,10 +108,12 @@ typedef struct pRenderFuncs{
 
 	// which Shader is currently in use?
 	GLint currentShader;
-
+	Stack *render_geom_stack;
+	Stack *sensor_stack;
+	Stack *ray_stack;
 }* ppRenderFuncs;
 void *RenderFuncs_constructor(){
-	void *v = malloc(sizeof(struct pRenderFuncs));
+	void *v = MALLOCV(sizeof(struct pRenderFuncs));
 	memset(v,0,sizeof(struct pRenderFuncs));
 	return v;
 }
@@ -138,7 +143,7 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 		/* Rearrange to take advantage of headlight when off */
 		p->nextFreeLight = 0;
 		//p->firstLight = 0;
-		p->cur_hits=0;
+		//p->cur_hits=0;
 		p->empty_group=0;
 		p->rootNode=NULL;	/* scene graph root node */
 		p->libraries=newVector(void3 *,1);
@@ -150,11 +155,57 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 		p->currentLoop = 0;
 		p->lastLoop = 10000000;
 		p->sendCount = 0;
+		p->render_geom_stack = newStack(int);
+		p->sensor_stack = newStack(struct currayhit);
+		p->ray_stack = newStack(struct point_XYZ3);
+
 	}
 
 	//setLightType(HEADLIGHT_LIGHT,2); // ensure that this is a DirectionalLight.
 }
-
+void unload_libraryscenes();
+void RenderFuncs_clear(struct tRenderFuncs *t){
+	ppRenderFuncs p = (ppRenderFuncs)t->prv;
+	unload_libraryscenes();
+	deleteVector(void3 *,p->libraries);
+	deleteVector(int,p->render_geom_stack);
+	deleteVector(struct currayhit,p->sensor_stack);
+	deleteVector(struct point_XYZ3,p->ray_stack);
+}
+void unload_libraryscenes(){
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	//freeing these library scenes should be done during exit procedures before gglobal gc, perhaps in 
+	// finalizeRenderSceneUpdateScene
+	// or perhaps when changing scenes. Perhaps libraries should be in a Scene context. 
+	// One old idea not implemented: all scenes should first be parsed to libraryScene (nothing registered, empty protoInstance bodies)
+	// then scene instanced like a proto. That would speed up Anchoring between scene files ie between rooms. 
+	// (Avatar state would be carried between scenes in browser key,value attributes like metadata
+	if(p->libraries){
+		int i;
+		for(i=0;i<vectorSize(p->libraries);i++){
+			struct X3D_Proto *libscn;
+			char *url;
+			resource_item_t *res;
+			void3 *ul;
+			ul = vector_get(struct void3*,p->libraries,i);
+			if(ul){
+				url = (char *)ul->one;
+				libscn = (struct X3D_Proto*) ul->two;
+				res = (resource_item_t*)ul->three;
+				//unload_broto(libscn); //nothing to un-register - library scenes aren't registered
+				gc_broto_instance(libscn);
+				deleteVector(struct X3D_Node*,libscn->_parentVector);
+				freeMallocedNodeFields(libscn);
+				FREE_IF_NZ(libscn);
+				FREE_IF_NZ(url);
+				FREE_IF_NZ(ul);
+				//FREE_IF_NZ(res);
+				vector_set(struct void3*,p->libraries,i,NULL);
+			}
+		}
+		p->libraries->n = 0;
+	}
+}
 void clearLightTable(){ //unsigned int loop_count){
 	//int i;
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
@@ -779,32 +830,34 @@ void setRootNode(struct X3D_Node *rn)
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 	p->rootNode = rn;
 }
-struct Vector *libraries(){
-	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-	if(!p->libraries) p->libraries = newVector(void3 *,1)	;
-	return p->libraries;
-}
-void setLibraries(struct Vector *libvector){
-	//might use this in KILL_oldWorld to NULL the library vector?
-	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;	
-	p->libraries = libvector;
-}
+//struct Vector *libraries(){
+//	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+//	if(!p->libraries) p->libraries = newVector(void3 *,1)	;
+//	return p->libraries;
+//}
+//void setLibraries(struct Vector *libvector){
+//	//might use this in KILL_oldWorld to NULL the library vector?
+//	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;	
+//	p->libraries = libvector;
+//}
 void addLibrary(char *url, struct X3D_Proto *library, void *res){
-	void3 *ul = malloc(sizeof(void3));
+	void3 *ul = MALLOC(void3 *,sizeof(void3));
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;	
-	ul->one = (void *)strdup(url);
+	ul->one = (void *)STRDUP(url);
 	ul->two = (void *)library;
 	ul->three = res;
 	vector_pushBack(void3 *,p->libraries,ul);
 }
 void3 *librarySearch(char *absoluteUniUrlNoPound){
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;	
 	void3 *ul;
 	struct Vector* libs;
 	int n, i;
-	libs = libraries();
+	libs = p->libraries;
 	n = vectorSize(libs);
 	for(i=0;i<n;i++){
 		ul = vector_get(void3 *,libs,i);
+		if(ul)
 		if(!strcmp(absoluteUniUrlNoPound,ul->one)){
 			return ul; //return res
 		}
@@ -891,8 +944,8 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 	for use in virt->rendray_<geometry> calculations, on VF_Sensitive pass
 	bearing-local == pick-viewport-local
 */
-void upd_ray() {
-	struct point_XYZ t_r1,t_r2,t_r3;
+void upd_ray0(struct point_XYZ *t_r1, struct point_XYZ *t_r2, struct point_XYZ *t_r3) {
+	//struct point_XYZ t_r1,t_r2,t_r3;
 	GLDOUBLE modelMatrix[16];
 	ttglobal tg = gglobal();
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
@@ -913,19 +966,19 @@ for (i=0; i<16; i++) printf ("%4.3lf ",projMatrix[i]); printf ("\n");
 		//FLOPS 588 double: 3x glu_unproject 196
 		//r1 = {0,0,-1} means WinZ = -1 in glu_unproject. It's expecting coords in 0-1 range. So -1 would be behind viewer? But x,y still foreward?
 		FW_GLU_UNPROJECT(r1.x, r1.y, r1.z, modelMatrix, projMatrix, viewport,
-				 &t_r1.x,&t_r1.y,&t_r1.z);
+				 &t_r1->x,&t_r1->y,&t_r1->z);
 		//transform viewpoint A (0,0,0) in pick-ray-viewport-local to geometry-local
 		FW_GLU_UNPROJECT(r2.x, r2.y, r2.z, modelMatrix, projMatrix, viewport,
-				 &t_r2.x,&t_r2.y,&t_r2.z);
+				 &t_r2->x,&t_r2->y,&t_r2->z);
 		//in case we need a viewpoint-y-up vector transform viewpoint y to geometry-local 
 		FW_GLU_UNPROJECT(r3.x,r3.y,r3.z,modelMatrix,projMatrix,viewport,
-				 &t_r3.x,&t_r3.y,&t_r3.z);
+				 &t_r3->x,&t_r3->y,&t_r3->z);
 		if(0){
 			//r2 is A, r1 is B relative to A in pickray [A,B)
 			//we prove it here by moving B along the ray, to distance 1.0 from A, and no change to picking
-			vecdiff(&t_r1,&t_r1,&t_r2);
-			vecnormal(&t_r1,&t_r1);
-			vecadd(&t_r1,&t_r1,&t_r2);
+			vecdiff(t_r1,t_r1,t_r2);
+			vecnormal(t_r1,t_r1);
+			vecadd(t_r1,t_r1,t_r2);
 		}
 		//printf("Upd_ray old: (%f %f %f) (%f %f %f) \n",	t_r1.x,t_r1.y,t_r1.z,t_r2.x,t_r2.y,t_r2.z);
 	}
@@ -947,19 +1000,24 @@ for (i=0; i<16; i++) printf ("%4.3lf ",projMatrix[i]); printf ("\n");
 			matinverseAFFINE(mvi,modelMatrix);
 			matmultiplyAFFINE(mvpi,pickMatrix,mvi);
 		}
-		transform(&t_r1,&r11,mvpi);
-		transform(&t_r2,&r2,mvpi);
-		transform(&t_r3,&r3,mvpi);
+		transform(t_r1,&r11,mvpi);
+		transform(t_r2,&r2,mvpi);
+		transform(t_r3,&r3,mvpi);
 		//r2 is A, r1 is B relative to A in pickray [A,B)
 		//we prove it here by moving B along the ray, to distance 1.0 from A, and no change to picking
 		if(0){
-			vecdiff(&t_r1,&t_r1,&t_r2);
-			vecnormal(&t_r1,&t_r1);
-			vecadd(&t_r1,&t_r1,&t_r2);
+			vecdiff(t_r1,t_r1,t_r2);
+			vecnormal(t_r1,t_r1);
+			vecadd(t_r1,t_r1,t_r2);
 		}
 		//printf("Upd_ray new: (%f %f %f) (%f %f %f) \n",	t_r1.x,t_r1.y,t_r1.z,t_r2.x,t_r2.y,t_r2.z);
 	}
+}
+void upd_ray() {
+	struct point_XYZ t_r1,t_r2,t_r3;
+	ttglobal tg = gglobal();
 
+	upd_ray0(&t_r1,&t_r2,&t_r3);
 	VECCOPY(tg->RenderFuncs.t_r1,t_r1);
 	VECCOPY(tg->RenderFuncs.t_r2,t_r2);
 	VECCOPY(tg->RenderFuncs.t_r3,t_r3);
@@ -1097,6 +1155,38 @@ void update_node(struct X3D_Node *node) {
 //static int renderLevel = 0;
 //#define RENDERVERBOSE
 
+/*poor man's memory profiler */
+static int malloc_n_uses = 0;
+static char *malloc_uses[100];
+static int malloc_bytes[100];
+void malloc_profile_add(char *use, int bytes){
+	int i, ifound;
+	ifound = -1;
+	for(i=0;i<malloc_n_uses;i++){
+		if(!strcmp(use,malloc_uses[i])){
+			ifound = i;
+			break;
+		}
+	}
+	if(ifound == -1 && malloc_n_uses < 100){
+		malloc_uses[malloc_n_uses] = strdup(use);
+		malloc_bytes[malloc_n_uses] = 0;
+		ifound = malloc_n_uses;
+		malloc_n_uses++;
+	}
+	if(ifound > -1){
+		malloc_bytes[ifound] += bytes;
+	}
+}
+void malloc_profile_print(){
+	if(malloc_n_uses){
+		int i;
+		printf("%15s %12s\n","mem use","bytes");
+		for(i=0;i<malloc_n_uses;i++){
+			printf("%15s %12d\n",malloc_uses[i],malloc_bytes[i]);
+		}
+	}
+}
 
 /* poor-man's performance profiler:
    wrap a section of code like this
@@ -1169,14 +1259,93 @@ void profile_print_all(){
 			ConsoleMessage("%15s %10d %15.3f %10.2f\n", pe[i].name, pe[i].hits, pe[i].accum, pe[i].accum / pe[0].accum*100.0);
 		}
 	}
+	malloc_profile_print();
+}
+//struct point_XYZ3 {
+//	struct point_XYZ p1;
+//	struct point_XYZ p2;
+//	struct point_XYZ p3;
+//};
+void push_ray(){
+	//upd_ray();
+	struct point_XYZ t_r1,t_r2,t_r3;
+	struct point_XYZ3 r123;
+	ttglobal tg = gglobal();
+	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
+	r123.p1 = tg->RenderFuncs.t_r1;
+	r123.p2 = tg->RenderFuncs.t_r2;
+	r123.p3 = tg->RenderFuncs.t_r3;
+
+	stack_push(struct point_XYZ3,p->ray_stack,r123);
+
+	upd_ray0(&t_r1,&t_r2,&t_r3);
+	VECCOPY(tg->RenderFuncs.t_r1,t_r1);
+	VECCOPY(tg->RenderFuncs.t_r2,t_r2);
+	VECCOPY(tg->RenderFuncs.t_r3,t_r3);
+
+}
+void pop_ray(){
+	struct point_XYZ t_r1,t_r2,t_r3;
+	struct point_XYZ3 r123;
+	ttglobal tg = gglobal();
+	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
+	//upd_ray();
+	r123 = stack_top(struct point_XYZ3,p->ray_stack);
+	stack_pop(struct point_XYZ3,p->ray_stack);
+	tg->RenderFuncs.t_r1 = r123.p1;
+	tg->RenderFuncs.t_r2 = r123.p2;
+	tg->RenderFuncs.t_r3 = r123.p3;
+
+}
+void push_render_geom(int igeom){
+	ttglobal tg = gglobal();
+	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
+	stack_push(int,p->render_geom_stack,p->renderstate.render_geom);
+	p->renderstate.render_geom = igeom;
+}
+void pop_render_geom(){
+	int igeom;
+	ttglobal tg = gglobal();
+	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
+	igeom = stack_top(int,p->render_geom_stack);
+	stack_pop(int,p->render_geom_stack);
+	p->renderstate.render_geom = igeom;
+}
+void push_sensor(struct X3D_Node *node){
+	ttglobal tg = gglobal();
+	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
+
+	push_render_geom(1);
+	stack_push(struct currayhit,p->sensor_stack,p->rayph);
+	//srh = MALLOC(struct currayhit *,sizeof(struct currayhit));
+	////srh = p->rayph;
+	//memcpy(srh,&p->rayph,sizeof(struct currayhit));
+	p->rayph.hitNode = node; //will be the parent Transform or Group to a PointingDevice (Touch,Drag) Sensor node
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, p->rayph.modelMatrix); //snapshot of sensor's modelview matrix
+	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, p->rayph.projMatrix);
+	//PRINT_GL_ERROR_IF_ANY("render_sensitive"); PRINT_NODE(node,virt);
+}
+void pop_sensor(){
+	ttglobal tg = gglobal();
+	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
+
+	//memcpy(&p->rayph,srh,sizeof(struct currayhit));
+	//FREE_IF_NZ(srh);
+	p->rayph = stack_top(struct currayhit,p->sensor_stack);
+	stack_pop(struct currayhit,p->sensor_stack);
+	pop_render_geom();
+
 }
 void render_node(struct X3D_Node *node) {
 	struct X3D_Virt *virt;
 
-	int srg = 0;
-	int sch = 0;
+	//int srg = 0;
+	//int sch = 0;
 	int justGeom = 0;
-	struct currayhit *srh = NULL;
+	int pushed_ray;
+	int pushed_render_geom;
+	int pushed_sensor;
+	//struct currayhit *srh = NULL;
 	ppRenderFuncs p;
 	ttglobal tg = gglobal();
 	p = (ppRenderFuncs)tg->RenderFuncs.prv;
@@ -1252,17 +1421,22 @@ void render_node(struct X3D_Node *node) {
                 }
         }
 	justGeom = p->renderstate.render_geom && !p->renderstate.render_sensitive && !p->renderstate.render_blend;
+	pushed_ray = FALSE;
+	pushed_render_geom = FALSE;
+	pushed_sensor = FALSE;
 	if(virt->prep) {
+		//transform types will pushmatrix and multiply in their translation.rotation,scale here (and popmatrix in virt->fin)
 		DEBUG_RENDER("rs 2\n");
 		profile_start("prep");
 		if(justGeom)
 			profile_start("prepgeom");
-		virt->prep(node);
+		virt->prep(node);  
 		profile_end("prep");
 		if(justGeom)
 			profile_end("prepgeom");
 		if(p->renderstate.render_sensitive && !tg->RenderFuncs.hypersensitive) {
-			upd_ray(); 
+			push_ray(); //upd_ray(); 
+			pushed_ray = TRUE;
 		}
 		PRINT_GL_ERROR_IF_ANY("prep"); PRINT_NODE(node,virt);
 	}
@@ -1303,19 +1477,8 @@ void render_node(struct X3D_Node *node) {
 	if(p->renderstate.render_sensitive && ((node->_renderFlags & VF_Sensitive)|| Viewer()->LookatMode ==2)) {
 		DEBUG_RENDER("rs 5\n");
 		profile_start("sensitive");
-		srg = p->renderstate.render_geom;
-		p->renderstate.render_geom = 1;
-		DEBUG_RENDER("CH1 %d: %d\n",node, p->cur_hits, node->_hit);
-		sch = p->cur_hits;
-		p->cur_hits = 0;
-		/* HP */
-		srh = MALLOC(struct currayhit *,sizeof(struct currayhit));
-		//srh = p->rayph;
-		memcpy(srh,&p->rayph,sizeof(struct currayhit));
-		p->rayph.hitNode = node; //will be the parent Transform or Group to a PointingDevice (Touch,Drag) Sensor node
-		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, p->rayph.modelMatrix); //snapshot of sensor's modelview matrix
-		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, p->rayph.projMatrix);
-		PRINT_GL_ERROR_IF_ANY("render_sensitive"); PRINT_NODE(node,virt);
+		push_sensor(node);
+		pushed_sensor = TRUE;
 		profile_end("sensitive");
 	}
 
@@ -1350,19 +1513,8 @@ void render_node(struct X3D_Node *node) {
 #endif
 	}
 
-	if(p->renderstate.render_sensitive && ((node->_renderFlags & VF_Sensitive) || Viewer()->LookatMode ==2) ) {
-		DEBUG_RENDER("rs 9\n");
-		profile_start("sensitive2");
-
-		p->renderstate.render_geom = srg;
-		p->cur_hits = sch;
-		DEBUG_RENDER("CH3: %d %d\n",p->cur_hits, node->_hit);
-		/* HP */
-		//p->rayph = srh;
-		memcpy(&p->rayph,srh,sizeof(struct currayhit));
-		FREE_IF_NZ(srh);
-		profile_end("sensitive2");
-	}
+	if(pushed_sensor)
+		pop_sensor();
 
 	if(virt->fin) {
 		DEBUG_RENDER("rs A\n");
@@ -1374,11 +1526,13 @@ void render_node(struct X3D_Node *node) {
 		profile_end("fin");
 		if(justGeom)
 			profile_end("fingeom");
-		if(p->renderstate.render_sensitive && virt == &virt_Transform) {
-			upd_ray();
-		}
+		//if(p->renderstate.render_sensitive && virt == &virt_Transform) {
+		//	upd_ray();
+		//}
 		PRINT_GL_ERROR_IF_ANY("fin"); PRINT_NODE(node,virt);
 	}
+	if(pushed_ray)
+		pop_ray();
 
 #ifdef RENDERVERBOSE 
 	{
@@ -1460,10 +1614,6 @@ render_hier(struct X3D_Node *g, int rwhat) {
 	/// not needed now - see below struct point_XYZ upvec = {0,1,0};
 	/// not needed now - see below GLDOUBLE modelMatrix[16];
 
-#ifdef render_pre_profile
-	/*  profile */
-	double xx,yy,zz,aa,bb,cc,dd,ee,ff;
-#endif
 	ppRenderFuncs p;
 	ttglobal tg = gglobal();
 	ttrenderstate rs;
@@ -1487,11 +1637,6 @@ render_hier(struct X3D_Node *g, int rwhat) {
 	tg->RenderFuncs.hitPointDist = -1;
 
 
-#ifdef render_pre_profile
-	if (rs->render_geom) {
-		aa = Time1970sec();
-	}
-#endif
 #ifdef RENDERVERBOSE
 	 printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
 	   rs->render_vp,rs->render_geom,rs->render_light,rs->render_sensitive,rs->render_blend,rs->render_proximity,rs->render_collision);  
@@ -1507,35 +1652,15 @@ render_hier(struct X3D_Node *g, int rwhat) {
 	printf("Render_hier node=%d what=%d\n", g, rwhat);
 #endif
 
-#ifdef render_pre_profile
-	if (rs->render_geom) {
-		bb = Time1970sec();
-	}
-#endif
 
 	if (rs->render_sensitive) {
 		upd_ray();
 	}
 
-#ifdef render_pre_profile
-	if (rs->render_geom) {
-		cc = Time1970sec();
-	}
-#endif
-	//if(!rs->render_geom || rs->render_blend || rs->render_sensitive)
-	//if(!rs->render_geom || rs->render_blend )
-	//if(!rs->render_geom || rs->render_sensitive)
-	//if(!rs->render_geom || rs->render_blend || rs->render_sensitive)
-	//if(!rs->render_blend && !rs->render_sensitive)
 	profile_start("render_hier");
 	render_node(X3D_NODE(g));
 	profile_end("render_hier");
-#ifdef render_pre_profile
-	if (rs->render_geom) {
-		dd = Time1970sec();
-		printf ("render_geom status %f ray %f geom %f\n",bb-aa, cc-bb, dd-cc);
-	}
-#endif
+
 }
 
 
@@ -1633,8 +1758,8 @@ void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent) {
 
 				if (offsetptr[2] == FIELDTYPE_SFNode) {
 					/* get the field as a POINTER VALUE, not just a pointer... */
-					voidptr = (uintptr_t *) memptr;
-					voidptr = (uintptr_t *) *voidptr;
+					voidptr = (intptr_t *) memptr;
+					voidptr = (intptr_t *) *voidptr;
 
 					/* is there a node here? */
 					if (voidptr != NULL) {

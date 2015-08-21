@@ -230,19 +230,19 @@ struct X3D_Node* getTypeNode(struct X3D_Node *node);
                 save = good; \
         }
 
-#define MARK_SFSTRING_INOUT_EVENT(good,save,offset) \
-        if (good->strptr!=save->strptr) { \
-                MARK_EVENT(X3D_NODE(node), offset);\
-                save->strptr = good->strptr; \
-        }
-
-#define MARK_MFSTRING_INOUT_EVENT(good,save,offset) \
-	/* assumes that the good pointer has been updated */ \
-	if (good.p != save.p) { \
-                MARK_EVENT(X3D_NODE(node), offset);\
-		save.n = good.n; \
-		save.p = good.p; \
-        }
+//#define MARK_SFSTRING_INOUT_EVENT_HIDE(good,save,offset) \
+//        if (good->strptr!=save->strptr) { \
+//                MARK_EVENT(X3D_NODE(node), offset);\
+//                save->strptr = good->strptr; \
+//        }
+//
+//#define MARK_MFSTRING_INOUT_EVENT_HIDE(good,save,offset) \
+//	/* assumes that the good pointer has been updated */ \
+//	if (good.p != save.p) { \
+//                MARK_EVENT(X3D_NODE(node), offset);\
+//		save.n = good.n; \
+//		save.p = good.p; \
+//        }
 
 #define MARK_SFVEC3F_INOUT_EVENT(good,save,offset) \
         if ((!APPROX(good.c[0],save.c[0])) || (!APPROX(good.c[1],save.c[1])) || (!APPROX(good.c[2],save.c[2]))) { \
@@ -265,12 +265,26 @@ struct X3D_Node* getTypeNode(struct X3D_Node *node);
         }
 
 
-#define MARK_MFNODE_INOUT_EVENT(good,save,offset) \
+#define MARK_MFNODE_INOUT_EVENT_PRE_JULY29_2015(good,save,offset) \
 	/* assumes that the good pointer has been updated */ \
 	if (good.p != save.p) { \
                 MARK_EVENT(X3D_NODE(node), offset);\
 		save.n = good.n; \
 		save.p = good.p; \
+        }
+
+#define MARK_MFNODE_INOUT_EVENT(good,save,offset) \
+	/* assumes that the good pointer has been updated - the old version crashed during exit due to freeing a .p twice*/ \
+	if (good.p != save.p) { \
+                MARK_EVENT(X3D_NODE(node), offset);\
+				save.n = 0; \
+				FREE_IF_NZ(save.p); \
+				save.p = NULL; \
+				if(good.n && good.p){ \
+					save.p = MALLOCV(good.n * sizeof(void*)); \
+					memcpy(save.p,good.p,good.n * sizeof(void*)); \
+					save.n = good.n; \
+				} \
         }
 
 /* for deciding on using set_ SF fields, with nodes with explicit "set_" fields...  note that MF fields are handled by
@@ -373,7 +387,7 @@ unsigned int setField_FromEAI (char *ptr);
 #define UNUSED(v) ((void) v)
 #define ISUSED(v) ((void) v)
 
-#define PI 3.141592653589793f
+#define PI 3.14159265358979323846
 
 /* return TRUE if numbers are very close */
 #define APPROX(a,b) (fabs((a)-(b))<0.00000001)
@@ -552,7 +566,7 @@ void *returnInterpolatorPointer (const char *x);
 #define X3DNurbsControlCurveNode		56
 #define X3DNurbsSurfaceGeometryNode		57
 
-int isManagedField(int mode, int type, int isPublic);
+BOOL isManagedField(int mode, int type, BOOL isPublic);
 
 void AddRemoveChildren (struct X3D_Node *parent, struct Multi_Node *tn, struct X3D_Node * *nodelist, int len, int ar, char * where, int lin);
 
@@ -846,8 +860,9 @@ void kill_routing(void);
 void kill_bindables(void);
 void kill_javascript(void);
 void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line);
+void reset_Browser();
 void kill_clockEvents(void);
-void kill_openGLTextures(void);
+//void kill_openGLTextures(void);
 void kill_X3DDefs(void);
 //extern int currentFileVersion;
 

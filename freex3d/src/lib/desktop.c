@@ -265,23 +265,27 @@ int url2file(resource_item_t *res){
 void file2blob_task(s_list_t *item);
 extern int async_thread_count;
 static void *thread_download_async (void *args){
-	int downloaded, tactic;
-	resource_item_t *res = (resource_item_t *)args;
+	int downloaded; //, tactic;
+	s_list_t *item = (s_list_t *)args;
+	resource_item_t *res = (resource_item_t *)item->elem;
 	async_thread_count++;
 	printf("{%d}",async_thread_count);
 	if(fwl_setCurrentHandle(res->tg, __FILE__, __LINE__));
 
 	downloaded = url2file(res);
 
-	tactic = file2blob_task_chain;
+	//tactic = file2blob_task_chain;
 	if(downloaded)
-		file2blob_task(ml_new(res));
+		file2blob_task(item); //ml_new(res));
+	else
+		resitem_enqueue(item); //for garbage collection
 	async_thread_count--;
 	return NULL;
 }
-void downloadAsync (resource_item_t *res) {
+void downloadAsync (s_list_t *item) {
+	resource_item_t *res = (resource_item_t *)item->elem;
 	if(!res->_loadThread) res->_loadThread = malloc(sizeof(pthread_t));
-	pthread_create ((pthread_t*)res->_loadThread, NULL,&thread_download_async, (void *)res);
+	pthread_create ((pthread_t*)res->_loadThread, NULL,&thread_download_async, (void *)item);
 }
 
 
@@ -315,7 +319,7 @@ void frontend_dequeue_get_enqueue(void *tg){
 					frontenditem_enqueue(item);
 				}
 			}else if(tactic == url2file_task_spawn){
-				downloadAsync(res); //res already has res->tg with global context
+				downloadAsync(item); //res already has res->tg with global context
 			}
 		}
 		if(res->status == ress_downloaded){
@@ -325,7 +329,11 @@ void frontend_dequeue_get_enqueue(void *tg){
 	//fwl_clearCurrentHandle(); don't unset, in case we are in a BE/ML thread ie _displayThread
 }
 
-
+#ifdef SSR_SERVER
+void SSR_reply(void * tg);
+void dequeue_SSR_request(void * tg);
+#endif
+char *get_key_val(char *key);
 void _displayThread(void *globalcontext)
 {
 	/* C CONTROLLER - used in configurations such as C main programs, and browser plugins with no loop of their own
@@ -343,17 +351,35 @@ void _displayThread(void *globalcontext)
 	rather than using mutex conditions.
 	*/
 	int more;
+	int run_ssr;
+	run_ssr = FALSE;
 	fwl_setCurrentHandle(globalcontext, __FILE__, __LINE__);
 	ENTER_THREAD("display");
-
+#ifdef SSR_SERVER
+	if(!run_ssr) {
+		//if this is ssr server running, it does a few quirky things like doing slow looping
+		char *running_ssr = get_key_val("SSR");
+		if(running_ssr)
+			if(!strcmp(running_ssr,"true"))
+				run_ssr = TRUE;
+		//printf("in desktop.c run_ssr = %d\n",run_ssr);
+	}
+#endif
 	do{
 		//if(frontendGetsFiles()==2) 
+#ifdef SSR_SERVER
+		if(run_ssr){
+			SSR_reply(globalcontext);
+			dequeue_SSR_request(globalcontext);
+		}
+#endif
 		frontend_dequeue_get_enqueue(globalcontext); //this is non-blocking (returns immediately) if queue empty
 		more = fwl_draw();
 		/* swap the rendering area */
-		FW_GL_SWAPBUFFERS;
+		if(more)
+			FW_GL_SWAPBUFFERS;
 	} while (more);
-	finalizeRenderSceneUpdateScene(); //Model end
+	// moved to fwl_draw for disabler finalizeRenderSceneUpdateScene(); //Model end
 	//printf("Ending display thread gracefully\n");
 	return;
 }

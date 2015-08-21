@@ -1036,7 +1036,7 @@ void fv_setGeometry_from_cmdline(const char *gstring)
 {
 	int w,h,i;
 	char *tok[2];
-	char *str = malloc(sizeof(gstring)+1);
+	char *str = MALLOC(void *, sizeof(gstring)+1);
 	strcpy(str,gstring);
 	tok[0] = str;
 	for(i=0;i<(int)strlen(gstring);i++)
@@ -1050,7 +1050,7 @@ void fv_setGeometry_from_cmdline(const char *gstring)
 	sscanf(tok[1],"%d",&h);
 	gglobal()->display.params.width = w; 
     gglobal()->display.params.height = h; 
-	free(str);
+	FREE(str);
 
 }
 /*======== "VIRTUAL FUNCTIONS" ==============*/

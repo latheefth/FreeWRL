@@ -43,7 +43,71 @@ savePng2dotc = 1; // if you read png and want to save to a bitmap .c struct, put
 //#define KIOSK 1
 //#define TOUCH 1
 
+/*the colors listed here are for a default. But are over-ridden now by colors and default 
+	listed in common.c in freewrl
+*/
+// StatusbarHud color schemes:
+//#define OLDCOLORS 1
+//#define MIDNIGHT 1
+//#define ANGRY 1
+//#define FREEWRLICO 1
+//#define AQUA 1
+#define NEON 1
+static GLfloat colorCursor[4]			= {.7f,.7f,.9f,1.0f};		//sidebyside stereo eyebase cursor (is this still used, or is there something in mainloop.c now?)
+static GLfloat colorButtonHighlight[4]	= {.5f,.5f,.5f,.5f};
+static GLfloat colorButtonCTRL[4]		= {.6f,.6f,.6f,.5f};
 
+#ifdef OLDCOLORS
+static GLfloat colorClear[4]			= {.922f,.91f,.844f,1.0f};  //offwhite
+static GLfloat colorButtonIcon[4]		= {0.37f,0.37f,0.9f,1.0f};  //medium blue
+static GLfloat colorStatusbarText[4]	= {.2f, .2f, .2f, 1.0f};	//very dark grey
+static GLfloat colorMessageText[4]		= {1.0f, 1.0f, 1.0f, 1.0f}; //white
+#elif MIDNIGHT 
+static GLfloat colorClear[4]			= {0.0f,0.0f,0.0f,1.0f};  //bleck
+static GLfloat colorButtonIcon[4]		= {1.f,1.f,1.0f,1.0f}; //white
+static GLfloat colorStatusbarText[4]	= {1.0f, 1.0f, 1.0f, 1.0f}; //white
+static GLfloat colorMessageText[4]		= {1.0f, 1.0f, 1.0f, 1.0f}; //white
+#elif ANGRY 
+static GLfloat colorClear[4]			= {0.0f,0.2f,0.2f,1.0f};  //slightly blue-green black
+static GLfloat colorButtonIcon[4]		= {1.0f, 0.0f, 0.0f, 1.0f}; //red
+static GLfloat colorStatusbarText[4]	= {1.0f, 0.0f, 0.0f, 1.0f}; //red
+static GLfloat colorMessageText[4]		= {1.0f, 0.0f, 0.0f, 1.0f}; //red
+#elif FREEWRLICO 
+static GLfloat colorClear[4]			= {0.0f,0.25f,0.45f,1.0f}; //indigo
+static GLfloat colorButtonIcon[4]		= {.57f, 0.8f, 0.94f, 1.0f}; //light aqua
+static GLfloat colorStatusbarText[4]	= {1.0f, 0.47f, 0.0f, 1.0f}; //orange
+static GLfloat colorMessageText[4]		= {1.0f, 0.47f, 0.0f, 1.0f}; //orange
+#elif AQUA 
+static GLfloat colorClear[4]			= {0.75f,0.83f,0.74f,1.0f}; //clamshell
+static GLfloat colorButtonIcon[4]		= {.0f, 0.44f, 0.52f, 1.0f};  //dark aqua/indigo
+static GLfloat colorStatusbarText[4]	= {.32f, 0.45f, 0.43f, 1.0f};  //dark clamshell
+static GLfloat colorMessageText[4]		= {.06f, 0.69f, 0.8f, 1.0f}; //aqua
+//which is often black
+#elif NEON
+static GLfloat colorClear[4]			= {0.24f,0.27f,0.34f,1.0f};  //steely grey
+#define LIME {.8f,1.0f,0.0f,1.0f}
+#define YELLOW {1.0f,1.0f,.2f,1.0f}
+#define CYAN {0.0f,1.0f,1.0f,1.0f}
+#define PINK {1.0f,.47f,1.0f,1.0f}
+#define HIGHLIGHT LIME
+static GLfloat colorButtonIcon[4]		= HIGHLIGHT;
+static GLfloat colorStatusbarText[4]	= HIGHLIGHT;
+static GLfloat colorMessageText[4]		= HIGHLIGHT; //over VRML window, which is often black
+#endif
+
+static int ui_color_changed = -1;
+
+void update_ui_colors(){
+	int ic;
+	ic = fwl_get_ui_color_changed();
+	if( ic != ui_color_changed){
+		fwl_get_ui_color("panel",colorClear);
+		fwl_get_ui_color("menuIcon",colorButtonIcon);
+		fwl_get_ui_color("statusText",colorStatusbarText);
+		fwl_get_ui_color("messageText",colorMessageText);
+		ui_color_changed = ic;
+	}
+}
 static   GLbyte vShaderStr[] =  
       "attribute vec4 a_position;   \n"
       "attribute vec2 a_texCoord;   \n"
@@ -95,12 +159,12 @@ GLuint esLoadShader ( GLenum type, const char *shaderSrc )
       
       if ( infoLen > 1 )
       {
-         char* infoLog = malloc (sizeof(char) * infoLen );
+         char* infoLog = MALLOC(void *, sizeof(char) * infoLen );
 
          glGetShaderInfoLog ( shader, infoLen, NULL, infoLog );
          printf ( "Error compiling shader:\n%s\n", infoLog );            
          
-         free ( infoLog );
+         FREE( infoLog );
       }
 
       glDeleteShader ( shader );
@@ -153,12 +217,12 @@ GLuint esLoadProgram ( const char *vertShaderSrc, const char *fragShaderSrc )
       
       if ( infoLen > 1 )
       {
-         char* infoLog = malloc (sizeof(char) * infoLen );
+         char* infoLog = MALLOC(void *, sizeof(char) * infoLen );
 
          glGetProgramInfoLog ( programObject, infoLen, NULL, infoLog );
          printf ( "Error linking program:\n%s\n", infoLog );            
          
-         free ( infoLog );
+         FREE( infoLog );
       }
 
       glDeleteProgram ( programObject );
@@ -292,9 +356,7 @@ GLubyte fwLetters8x15[][22] = {
 {255,0,0,0,0,0,0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0}
 };
 //the buttons need to be larger for fingers on touch devices
-#if defined(QNX) //|| defined(_MSC_VER)
-#define BUTSIZE 48
-#elif defined(KIOSK)
+#if defined(QNX) || defined(KIOSK)
 #define BUTSIZE 48
 #else
 #define BUTSIZE 32
@@ -309,30 +371,53 @@ typedef struct {
 	GLubyte *lumalpha;
 	GLuint textureID;
 } pfont_t;
+
+typedef struct buttonSet buttonSet;
 typedef struct {
 	int width;
 	int height;
 	GLfloat tex0[2][2];
 	GLfloat owh[2][2];
-	GLfloat vert[12];
+	//GLfloat vert[12];
 	GLfloat tex[8];
 	GLubyte *lumalpha;
 	char *name;
 	int action; //ACTION_
-	int butrect[4];
 	int butStatus;
 	bool isToggle;
 	bool isRadio;
 	int *radioset;
+	buttonSet *buttonset;
 } pmenuItem_t;
+
+typedef struct buttonSet {
+	int n;
+	int index;
+	pmenuItem_t ** items;
+} buttonSet;
+//Mar 2015 separate menubar from list of menuitems
+//  menuitmes - icons and actions which are prepared and can be placed on a menubar
+//  menubar - (new) container holding a runtime-changable arrangement of menuitems
+//    - benefit: FLY2 > dragchords > {yawz,xy,yawpitch,roll} can share one menubar button, 
+//      with 2 click modes: a) change FLY2 chord (a toggle mode, new) and b) switch to FLY2 from another (normal)
+
+typedef struct {
+	pmenuItem_t *item;   //holds icon specifics, and meaning: Action
+	GLfloat vert[12];	//bar designed coordinates
+	int action; //over-ride of the menuitem action if needed
+	int butrect[4];
+} barItem;
+
 typedef struct {
 	pmenuItem_t *items;
-	int nitems;
-	int nactive;
+	int nitems;  
+	barItem *bitems; //new
+	int nbitems; //new
+	//int nactive; //now refers to bitems
 	GLubyte *lumalpha;
 	GLuint textureID;
 	GLfloat *vert;
-	GLfloat *tex;
+	//GLfloat *tex;
 	GLushort *ind;
 	int blankItem;
 	bool top; // true: menu appears at top of screen, else bottom
@@ -340,6 +425,8 @@ typedef struct {
 	int **radiosets;
 	int *toggles;
 } pmenu_t;
+
+
 
 typedef struct {int x; int y;} XY;
 typedef struct {
@@ -353,6 +440,11 @@ typedef struct pstatusbar{
 	int hadString;// = 0;
 	int initDone;
 	int showButtons;// =0;
+	int statusbar_pinned;
+	int menubar_pinned;
+	int show_status;
+	int show_menu;
+	int yoff_status;
 	//textureTableIndexStruct_s butts[mbuts][2];
 	int butsLoaded;// = 0;
 	int isOver;// = -1;
@@ -373,7 +465,7 @@ typedef struct pstatusbar{
 	char messagebar[200];
 	int bmfontsize;// = 2; /* 0,1 or 2 */
 	int optionsLoaded;// = 0;
-	char * optionsVal[15];
+	char * optionsVal[20];
 	int osystem;// = 3; //mac 1btn = 0, mac nbutton = 1, linux game descent = 2, windows =3
 	XY bmWH;// = {10,15}; /* simple bitmap font from redbook above, width and height in pixels */
 	int bmScale; //1 or 2 for the hud pixel fonts, changes between ..ForOptions and ..Regular 
@@ -395,7 +487,7 @@ typedef struct pstatusbar{
 	int side_top, side_bottom;
 }* ppstatusbar;
 void *statusbar_constructor(){
-	void *v = malloc(sizeof(struct pstatusbar));
+	void *v = MALLOCV(sizeof(struct pstatusbar));
 	memset(v,0,sizeof(struct pstatusbar));
 	return v;
 }
@@ -410,6 +502,8 @@ void statusbar_init(struct tstatusbar *t){
 		p->hadString = 0;
 
 		p->showButtons =1;
+		//p->statusbar_pinned = 1;
+		//p->menubar_pinned = 0;
 		p->butsLoaded = 0;
 		p->isOver = -1;
 		p->iconSize = 32;
@@ -441,8 +535,10 @@ void statusbar_init(struct tstatusbar *t){
 		p->pfont.cheight = 0;
 		p->pfont.cwidth = 0;
 		p->pfont.lumalpha = NULL;
-		p->pmenu.items = (pmenuItem_t *)malloc(25 * sizeof(pmenuItem_t));
+		p->pmenu.items = MALLOC(pmenuItem_t *, 25 * sizeof(pmenuItem_t));
 		for(i=0;i<25;i++) p->pmenu.items[i].butStatus = 0;
+		p->pmenu.bitems = (barItem *)malloc(25 * sizeof(barItem));
+		bzero(p->pmenu.bitems,25 * sizeof(barItem));
 
 		//p->showOptions = p->butStatus[10] = 1; //for debugging hud text
 		p->buttonSize = BUTSIZE;
@@ -452,6 +548,7 @@ void statusbar_init(struct tstatusbar *t){
 		p->clipPlane = p->statusBarSize;
 	}
 }
+
 //ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
 
 void initProgramObject(){
@@ -466,7 +563,33 @@ void initProgramObject(){
    p->textureLoc = glGetUniformLocation ( p->programObject, "Texture0" );
    p->color4fLoc = glGetUniformLocation ( p->programObject, "Color4f" );
 }
-
+static int lenOptions   = 19;
+void statusbar_clear(struct tstatusbar *t){
+	//public
+	//private
+	{
+		ppstatusbar p = (ppstatusbar)t->prv;
+		int i;
+	    glDeleteTextures(1, &(p->pfont.textureID));
+		glDeleteTextures(1, &(p->pmenu.textureID));
+		if(p->conlist)
+			ml_delete_all(p->conlist);
+		if(p->optionsVal)
+		for(i=0;i<lenOptions;i++)
+		{
+			if(p->optionsVal[i])
+				FREE_IF_NZ(p->optionsVal[i]);
+		}
+		if(p->pmenu.items)
+			for(i=0;i<p->pmenu.nitems;i++)
+				FREE_IF_NZ(p->pmenu.items[i].lumalpha);
+		FREE_IF_NZ(p->pmenu.lumalpha);
+		FREE_IF_NZ(p->pmenu.items);
+		FREE_IF_NZ(p->pmenu.vert);
+		FREE_IF_NZ(p->pmenu.ind);
+		FREE_IF_NZ(p->pfont.lumalpha);
+	}
+}
 void fwMakeRasterFonts()
 {
 	int i,j,k,m,w,h,bytewidth,bit;
@@ -494,7 +617,7 @@ void fwMakeRasterFonts()
 	icolwidth = 8;
 	isize = iheight * iwidth * 2; //(p->pfont.cheight *16) * (p->pfont.cwidth * 16) * 2;
 
-	p->pfont.lumalpha = (GLubyte *)malloc(isize);
+	p->pfont.lumalpha = MALLOC(GLubyte *, isize);
 	//memset(p->pfont.lumalpha,0,isize);
 	memset(p->pfont.lumalpha,0,isize);
 	white[0] = white[1] = (GLubyte)255;
@@ -589,6 +712,11 @@ void initFont(void)
 void printString(char *s){}
 FXY screen2normalizedScreen( GLfloat x, GLfloat y);
 FXY screen2normalizedScreenScale( GLfloat x, GLfloat y);
+#ifndef DISABLER
+#include <malloc.h>
+#else
+#include <malloc/malloc.h>
+#endif
 void printString2(GLfloat sx, GLfloat sy, char *s)
 {
 	int i, j;
@@ -609,9 +737,9 @@ void printString2(GLfloat sx, GLfloat sy, char *s)
 	sizeofvert = len * sizeof(GLfloat) * 4 * 3;
 	sizeoftex = len * sizeof(GLfloat) * 4 * 2;
 	sizeofind = len * sizeof(GLshort) * 2 * 3;
-	vert = malloc(sizeofvert); //2 new vertex, 3D
-	tex  = malloc(sizeoftex); //4 new texture coords, 2D
-	ind  = malloc(sizeofind); //2 triangles, 3 points each
+	vert = (GLfloat*)alloca(sizeofvert); //2 new vertex, 3D
+	tex  = (GLfloat*)alloca(sizeoftex); //4 new texture coords, 2D
+	ind  = (GLshort*)alloca(sizeofind); //2 triangles, 3 points each
 	x=y=z = 0.0f;
 	x = sx;
 	y = sy;
@@ -671,9 +799,9 @@ void printString2(GLfloat sx, GLfloat sy, char *s)
 	// Set the base map sampler to texture unit to 0
 	glUniform1i ( p->textureLoc, 0 );
 	glDrawElements ( GL_TRIANGLES, i*3*2, GL_UNSIGNED_SHORT, ind );
-	free(vert);
-	free(tex);
-	free(ind);
+	//FREE(vert);
+	//FREE(tex);
+	//FREE(ind);
 
 
 }
@@ -708,8 +836,8 @@ void render_init(void);
 //}
 
 /* start cheapskate widgets >>>> */
-int lenOptions = 14;
-char * optionsText[14] = {
+//static int lenOptions   = 16;
+char * optionsText[] = {
 "stereovision:",
 "  side-by-side",
 "  up-down",
@@ -723,13 +851,31 @@ char * optionsText[14] = {
 " RGB",
 "     left",
 "     right",
-"     neither"
+"     neither",
+"  pin statusbar",
+"  pin menubar",
+"colorScheme:",
+"",
+"target FPS \36    \37",
+NULL,
 };
 //int optionsLoaded = 0;
 //char * optionsVal[15];
 void setOptionsVal()
 {
 }
+char *colorschemenames [] = {
+"original",
+"midnight",
+"angry",
+"favicon",
+"aqua",
+"neon:lime",
+"neon:yellow",
+"neon:cyan",
+"neon:pink",
+NULL,
+};
 
 void initOptionsVal()
 {
@@ -740,7 +886,8 @@ void initOptionsVal()
 
 	for(i=0;i<lenOptions;i++)
 	{
-		p->optionsVal[i] = (char*)malloc(9);
+		if(!p->optionsVal[i])
+			p->optionsVal[i] = MALLOC(char*, 20);
 		for(j=0;j<9;j++) p->optionsVal[i][j] = ' ';
 		p->optionsVal[i][8] = '\0';
 	}
@@ -766,7 +913,11 @@ void initOptionsVal()
 			p->optionsVal[11+i][j+1] = (k ? 035 : ' ');
 		}
 	}
-
+	fwl_get_sbh_pin(&p->statusbar_pinned,&p->menubar_pinned);
+	p->optionsVal[14][0] = p->statusbar_pinned ? 035 : 034; 
+	p->optionsVal[15][0] = p->menubar_pinned ? 035 : 034; 
+	sprintf(p->optionsVal[17]," %s ",fwl_get_ui_colorschemename());
+	sprintf(p->optionsVal[18],"            %4d",fwl_get_target_fps());
 	p->optionsLoaded = 1;
 }
 void updateOptionsVal()
@@ -776,21 +927,27 @@ void updateOptionsVal()
 	initOptionsVal();
 }
 /* the optionsCase char is used in a switch case later to involk the appropriate function */
-char * optionsCase[14] = {
+char * optionsCase[] = {
 "             ",
 "22222222222222",
 "44444444",
 "33333333",
 "11111111",
 "       ",
-"556666677",
+"55     66",
 "              ",
 "DDEEEEEFF",
 "        ",
 "       ",
 " rst     ",
 " uvw      ",
-" xyz      "
+" xyz      ",
+"77777777",
+"88888888",
+"        ",
+"99999999",
+"          KK    LL",
+NULL,
 };
 
 XY mouse2screen(int x, int y)
@@ -917,6 +1074,19 @@ int handleOptionPress(int mouseX, int mouseY)
 	case '4': 
 		toggleOrSetStereo(opt-'0');
 		break;
+	case '7': 
+		fwl_get_sbh_pin(&p->statusbar_pinned,&p->menubar_pinned);
+		p->statusbar_pinned = 1 - p->statusbar_pinned;
+		fwl_set_sbh_pin(p->statusbar_pinned,p->menubar_pinned);
+		break;
+	case '8': 
+		fwl_get_sbh_pin(&p->statusbar_pinned,&p->menubar_pinned);
+		p->menubar_pinned = 1 - p->menubar_pinned;
+		fwl_set_sbh_pin(p->statusbar_pinned,p->menubar_pinned);
+		break;
+	case '9':
+		fwl_next_ui_colorscheme();
+		break;
 	case 'r': 
 	case 's': 
 	case 't': 
@@ -940,11 +1110,6 @@ int handleOptionPress(int mouseX, int mouseY)
 		updateEyehalf();
 		break;}
 	case '6': {
-		/* eyebase */
-		printf("set eyebase");
-	    //fwl_set_EyeDist(optarg);
-		break;}
-	case '7': {
 		/* eyebase */
 		printf("increase eyebase");
 		viewer->eyedist *= 1.1;
@@ -986,6 +1151,19 @@ int handleOptionPress(int mouseX, int mouseY)
 			viewer->stereoParameter = min(viewer->stereoParameter,.01);  //toe-in is dangerous in sidebyside because it can force you to go wall-eyed
 		updateEyehalf();
 		break;}
+	case 'K':
+	case 'L':
+		{
+			//for target frames_per_second choices, we'd like a nice pow2 series like 7, 15, 30, 60, 120, 240 FPS
+			int i15, tfps;
+			tfps = fwl_get_target_fps();
+			i15 = (int)((double)tfps / 15.0 + .5);
+			if(opt == 'K') i15 /= 2;
+			if(opt == 'L') i15 = max(1,i15*2);
+			if(i15 < 1) tfps = 7;
+			else tfps = min(3840,(int)15*i15);
+			fwl_set_target_fps(tfps);
+		}
 	default: {break;}
 	}
 	return 1;
@@ -997,7 +1175,7 @@ int handleOptionPress(int mouseX, int mouseY)
 //int osystem = 3; //mac 1btn = 0, mac nbutton = 1, linux game descent = 2, windows =3
 #if defined(QNX) //|| defined(_MSC_VER)
 int lenhelp = 21;
-char * keyboardShortcutHelp[21] = {
+char * keyboardShortcutHelp[] = {
 "WALK Mode",
 "   movement: drag left/right for turns;",
 "             drag up/down for forward/backward", 
@@ -1021,7 +1199,7 @@ char * keyboardShortcutHelp[21] = {
 "Enter URL of .x3d or .wrl scene"
 #elif defined(KIOSK) //|| defined(_MSC_VER)
 int lenhelp = 19;
-char * keyboardShortcutHelp[19] = {
+char * keyboardShortcutHelp[] = {
 "WALK Mode",
 "   movement: drag left/right for turns;",
 "             drag up/down for forward/backward", 
@@ -1041,13 +1219,13 @@ char * keyboardShortcutHelp[19] = {
 "(this Help)",
 "Console messages from the program",
 "Options"
-#elif defined(_MSC_VER)
-int lenhelp = 13;
-char * keyboardShortcutHelp[13] = {
+#elif defined(_MSC_VER_NOT)
+int lenhelp = 16;
+char * keyboardShortcutHelp[] = {
 "WALK Mode",
 "   movement: drag left/right for turns;",
 "             drag up/down for forward/backward", 
-"FLY Mode",
+"Keyboard FLY Mode",
 "   use the keyboard for these motions:",
 "   8 k rotation down/up",
 "   u o rotation left/right",
@@ -1055,29 +1233,25 @@ char * keyboardShortcutHelp[13] = {
 "   a z translation forwards/backwards",
 "   j l translation left/right",
 "   p ; translation up/down",
+" or use arrow keys. to change keychord: press SHIFT->",
 "EXAMINE Mode",
-"   rotation: drag left/right or up/down"
+"   rotation: drag left/right or up/down",
+"EXPLORE Mode - use CTRL-click to recenter",
+"hit spacebar to get console prompt :, then type help"
 #else
-int lenhelp = 27;
-char * keyboardShortcutHelp[27] = {
+int lenhelp = 20;
+char * keyboardShortcutHelp[] = {
 "EXAMINE Mode",
 "   LMB rotation: MX rotation around Y axis; MY rotation around X axis",
 "   RMB zooms", // On Apple computers with one button mice, press and hold the "control" key, and use your mouse. 
 "WALK Mode",
 "   LMB movement: MX left/right turns; MY walk forward/backward", 
 "   RMB height", //se Button 3 moves you up/down (changes your height above the ground). On Apple computers with one button mice, press and hold the "control" key, and use your mouse. 
-"FLY Mode",
-"   8 k rotation down/up",
-"   u o rotation left/right",
-"   7 9 rotation about the Z axis",
-"   a z translation forwards/backwards",
-"   j l translation left/right",
-"   p ; translation up/down",
-"EXFLY Mode",
-"   takes input from the file /tmp/inpdev",
-"all modes",
-"  d Switch to Fly (Keyboard input) navigation mode", 
-"  f Switch to Fly (External Sensor input) navigation mode",
+"EXPLORE Mode",
+" - use CTRL-click to recenter",
+"Keyboard navigation",
+" - use arrow keys. to change keychord: press SHIFT> or SHIFT<",
+"other",
 "  e Switch to Examine navigation mode",
 "  w Switch to Walk navigation mode",
 "  v Go to next viewpoint in the scene",
@@ -1086,8 +1260,9 @@ char * keyboardShortcutHelp[27] = {
 "  h Toggle headlight",
 "  c Toggle collision detection",
 "  x Snapshot",
-"  q Quit browser"
+"  q Quit browser",
 #endif
+NULL,
 };
 const char *libFreeWRL_get_version();
 void printKeyboardHelp(ppstatusbar p)
@@ -1122,11 +1297,12 @@ void hudSetConsoleMessage(char *buffer)
 	//printf("+%s\n", buffer);
 	if(!p->conlist)
 	{
-		char * line;
-		line = malloc(2);
-		line[0] = '\0';
-		p->conlist = ml_new(line);
-		p->concount = 1;
+		//char * line;
+		//line = MALLOC(char *, 2);
+		//line[0] = '\0';
+		//p->conlist = ml_new(line);
+		//p->concount = 1;
+		p->concount = 0;
 	}
 	last = ml_new(buffer);
 	if (!p->conlist)
@@ -1183,8 +1359,16 @@ ACTION_TPLANE,
 ACTION_RPLANE,
 ACTION_FLY,
 ACTION_EXAMINE,
-ACTION_YAWPITCHZOOM,
+ACTION_EXPLORE,
+ACTION_SPHERICAL,
 ACTION_TURNTABLE,
+ACTION_LOOKAT,
+ACTION_YAWZ,
+ACTION_YAWPITCH,
+ACTION_ROLL,
+ACTION_XY,
+ACTION_DIST,
+ACTION_SHIFT,
 ACTION_LEVEL,
 ACTION_HEADLIGHT,
 ACTION_COLLISION,
@@ -1200,13 +1384,30 @@ ACTION_BLANK
 } button_actions;
 void convertPng2hexAlpha()
 {
+	/* How to make new button icons:
+		1. design a button gray or white over alpha in something like blender
+		2. render to 32x32 .png with alpha channel
+		3. p->buttonType = 0 in function that calls convertPng2hexAlpha
+		4. change mbuts to 1 if doing just one button
+		5. put the name of button for butFnames[] = {"mybutname.png"};
+		6. put your mybutname.png in the folder where freewrl runs from (see diagnostic GetCurrentDirectory below)
+		7. build and run freewrl once - should get hudicons_octalpha_h output file
+		8. copy and paste from hudicons_octalpha_h to freewrl's hudicons_octalpha.h at the bottom (leave existing buttons)
+		9. // p->buttonType = 0 - comment back out in function below
+		10. tinker with code in statusbarhud.c in several places to get the button to show and do things
+	*/
 	int w,h,ii,size;
-	static int mbuts = 1; // 17;
-	static char * butFnames[] = {"tilt.png"}; //{"tplane.png","rplane.png","walk.png","fly.png","examine.png","level.png","headlight.png","collision.png","prev.png","next.png","help.png","messages.png","options.png","reload.png","url.png","file.png","blank.png"};//"flyEx.png",
+	static int mbuts = 2; //8; // 17;
+	static char * butFnames[] = {"shift.png","sensor.png"}; //{"YAWZ.png"}; // {"lookat.png","explore.png","spherical.png","turntable.png","XY.png","ROLL.png","YAWPITCH.png","YAWZ.png"}; //{"tilt.png"}; //{"tplane.png","rplane.png","walk.png","fly.png","examine.png","level.png","headlight.png","collision.png","prev.png","next.png","help.png","messages.png","options.png","reload.png","url.png","file.png","blank.png"};//"flyEx.png",
 	textureTableIndexStruct_s butts;
 
 	FILE* out = fopen("hudIcons_octalpha_h","w+");
-
+	//{
+	//	//where to put .png, windows desktop
+	//	char dirname[1024];
+	//	GetCurrentDirectory(1000,dirname); //not supported in winRT
+	//	printf("current directory:%s\n",dirname);
+	//}
 	/* png icon files (can have transparency) problem: you need to put them in the current working directory*/
 	for(ii=0;ii<mbuts;ii++)
 	{
@@ -1317,69 +1518,86 @@ void initButtons()
 	ppstatusbar p = (ppstatusbar)tg->statusbar.prv;
 	p->clipPlane = p->statusBarSize; //16;
 	
-	//p->buttonType = 0; //uncomment this like to convert png buttons to hudIcons_octalpha_h header format
-	if(p->buttonType == 0)
+	///p->buttonType = 0; //uncomment this line to convert png buttons to hudIcons_octalpha_h header format
+	if(p->buttonType == 0){
 		convertPng2hexAlpha();
+		exit(0);
+	}
 	if(p->buttonType == 1)
 	{
-#if defined(QNX) //|| defined(_MSC_VER)
-		static GLubyte * buttonlist [] = { walk, fly, tilt, tplane, rplane,  examine, level, headlight, 
-			collision, prev, next, help, messages, options, reload, url, blank };
-		static int actionlist [] = { ACTION_WALK, ACTION_FLY2, ACTION_TILT, ACTION_TPLANE, ACTION_RPLANE, ACTION_EXAMINE, 
-			ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV, 
+
+		//buttonlist, actionlist and NACTION are/mustbe synchronized, will become part of pmenitem tuple together
+		// - include all buttons and actions here (filter out ones you don't want in mainbar)
+		static GLubyte * buttonlist [] = {
+			walk, fly, examine,
+			yawz, xy, yawpitch, roll,
+			explore, spherical, turntable, lookat, distance, 
+			shift, level, headlight,
+			collision, prev, next, help, messages, options, reload, url, file, blank
+			};
+		static int actionlist [] = {
+			ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
+			ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL,
+			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, ACTION_DIST, 
+			ACTION_SHIFT, ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
+			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS,
+			ACTION_RELOAD, ACTION_URL, ACTION_FILE, ACTION_BLANK,
+			};
+		static int NACTION = 25; //must match buttonlist and actionlist count
+		//radiosets are to indicate what things are deselected (if any) when another thing is selected
+		static int radiosets [][9] = {
+			{8,ACTION_FLY,ACTION_WALK,ACTION_EXAMINE,ACTION_EXPLORE,ACTION_SPHERICAL,ACTION_TURNTABLE,ACTION_LOOKAT,ACTION_DIST},
+			{3,ACTION_MESSAGES,ACTION_OPTIONS,ACTION_HELP}, 
+			//{4,ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL}, 
+			{0},
+			};
+		//not sure we need to toggle in the View, the Model holds the state, and
+		//controller checks once per frame
+		static int toggles [] = {
+			ACTION_COLLISION,ACTION_HEADLIGHT,ACTION_SHIFT,
+			ACTION_HELP,ACTION_MESSAGES,ACTION_OPTIONS,0
+			}; 
+		static int togglesets [][8] = {{ACTION_FLY,4,ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL},{0}};
+		//main menubar initial layout new mar 2015
+		static int mainbar_withFileOpen [] = {
+			ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
+			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, ACTION_DIST, 
+			ACTION_SHIFT, ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
 			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS, 
-			ACTION_RELOAD,	ACTION_URL, ACTION_BLANK};
-		static int radiosets [][7] = {{6,ACTION_WALK,ACTION_FLY2, ACTION_TILT, ACTION_TPLANE,ACTION_RPLANE,ACTION_EXAMINE},
-			{3,ACTION_MESSAGES,ACTION_OPTIONS,ACTION_HELP}, {0}};
-		static int toggles [] = {ACTION_COLLISION,ACTION_HEADLIGHT,
-			ACTION_HELP,ACTION_MESSAGES,ACTION_OPTIONS,0}; 
-		p->pmenu.nitems = 17; //leave file for now
+			//ACTION_RELOAD, ACTION_URL, 
+			ACTION_FILE,
+			-1,
+			};
+		static int mainbar_linux [] = {
+			ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
+			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, ACTION_DIST,
+			ACTION_SHIFT, ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
+			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS, 
+			//ACTION_RELOAD, ACTION_URL, 
+			//ACTION_FILE,
+			-1,
+			};
+		static int *mainbar = NULL;
+
+		p->pmenu.nitems = NACTION; //number of action items, even if not shown on menubar
+		mainbar = mainbar_linux;
+//#ifdef _MSC_VER
+//		mainbar = mainbar_withFileOpen;
+//#endif
+		//count number of menubar items, assuming last item is -1 sentinal value
+		i=0;
+		do{
+			i++;
+			p->pmenu.nbitems = i;
+		}while(mainbar[i]>-1);
+		//p->pmenu.nbitems = 18;
+#if defined(QNX) || defined(KIOSK)
 		p->pmenu.top = true;
-
-#elif defined(KIOSK)
-
-		static GLubyte * buttonlist [] = { walk, fly, tilt, tplane, rplane,  examine, level, headlight, 
-			collision, prev, next, help, messages, options, blank };
-		static int actionlist [] = { ACTION_WALK, ACTION_FLY2, ACTION_TILT, ACTION_TPLANE, ACTION_RPLANE, ACTION_EXAMINE, 
-			ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV, 
-			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS, 
-			ACTION_BLANK};
-		static int radiosets [][7] = {{6,ACTION_WALK,ACTION_FLY2, ACTION_TILT, ACTION_TPLANE,ACTION_RPLANE,ACTION_EXAMINE},
-			{3,ACTION_MESSAGES,ACTION_OPTIONS,ACTION_HELP}, {0}};
-		static int toggles [] = {ACTION_COLLISION,ACTION_HEADLIGHT,
-			ACTION_HELP,ACTION_MESSAGES,ACTION_OPTIONS,0}; 
-		p->pmenu.nitems = 15; //leave file for now
-		p->pmenu.top = true;
-
-#elif defined(_MSC_VER)
-
-		static GLubyte * buttonlist [] = { walk, fly, examine, level, headlight,
-			collision, prev, next, help, messages, options, reload, url, file, blank };
-		static int actionlist [] = { ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
-			ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
-			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS, 
-			ACTION_RELOAD, ACTION_URL, ACTION_FILE, ACTION_BLANK};
-		static int radiosets [][7] = {{3,ACTION_FLY,ACTION_WALK,ACTION_EXAMINE},
-			{3,ACTION_MESSAGES,ACTION_OPTIONS,ACTION_HELP}, {0}};
-		static int toggles [] = {ACTION_COLLISION,ACTION_HEADLIGHT,
-			ACTION_HELP,ACTION_MESSAGES,ACTION_OPTIONS,0}; 
-		p->pmenu.nitems = 15;
-		p->pmenu.top = false;
-
 #else
-		static GLubyte * buttonlist [] = { walk, fly, examine, level, headlight, 
-			collision, prev, next, help, messages, options, reload, blank };
-		static int actionlist [] = { ACTION_WALK, ACTION_FLY, ACTION_EXAMINE, 
-			ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV, 
-			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS, 
-			ACTION_RELOAD, ACTION_BLANK};
-		static int radiosets [][7] = {{3,ACTION_FLY,ACTION_WALK,ACTION_EXAMINE},
-			{3,ACTION_MESSAGES,ACTION_OPTIONS,ACTION_HELP}, {0}};
-		static int toggles [] = {ACTION_COLLISION,ACTION_HEADLIGHT,
-			ACTION_HELP,ACTION_MESSAGES,ACTION_OPTIONS,0}; 
-		p->pmenu.nitems = 13; //leave off url and file for now- need callbacks
 		p->pmenu.top = false;
 #endif
+
+
 		//convert to lumalpha
 		//p->pmenu.items = (pmenuItem_t *)malloc(16 * sizeof(pmenuItem_t)); done in module init
 		//may 1, 2012: QNX GLES2 needs power-of-2 image dimensions, but doesn't need to be square
@@ -1387,12 +1605,11 @@ void initButtons()
 		buttonAtlasSizeCol = 8; // 8x4 grid of buttons
 		buttonAtlasSizeRow = 4;
 		buttonAtlasSquared = buttonAtlasSizeCol*buttonAtlasSizeRow;
-		p->pmenu.nactive = p->pmenu.nitems - 1; //don't draw or pick blank
-		p->pmenu.lumalpha = (GLubyte*)malloc(32*32*2 *buttonAtlasSquared); //4x4 grid of icons each 32x32x2
+		p->pmenu.lumalpha = MALLOC(GLubyte*, 32*32*2 *buttonAtlasSquared); //4x4 grid of icons each 32x32x2
 		memset(p->pmenu.lumalpha,0,32*32*2 *buttonAtlasSquared);
-		p->pmenu.vert= (GLfloat*)malloc(3*4*buttonAtlasSquared*sizeof(GLfloat));
-		p->pmenu.tex = (GLfloat*)malloc(2*4*buttonAtlasSquared*sizeof(GLfloat));
-		p->pmenu.ind = (GLushort*)malloc(3*2*buttonAtlasSquared*sizeof(GLushort));
+		p->pmenu.vert= MALLOC(GLfloat*, 3*4*buttonAtlasSquared*sizeof(GLfloat));
+//		p->pmenu.tex = MALLOC(GLfloat*, 2*4*buttonAtlasSquared*sizeof(GLfloat));
+		p->pmenu.ind = MALLOC(GLushort*, 3*2*buttonAtlasSquared*sizeof(GLushort));
 		p->pmenu.yoffset = 0.0f;
 		if(p->pmenu.top) p->pmenu.yoffset = (float)(p->screenHeight - p->buttonSize); //32.0f;
 		for(i=0;i<p->pmenu.nitems;i++)
@@ -1403,6 +1620,7 @@ void initButtons()
 			FXY xyxy[2];
 			p->pmenu.items[i].action = actionlist[i];
 			p->pmenu.items[i].isToggle = false;
+			p->pmenu.items[i].buttonset = NULL;
 			j=0;
 			while(toggles[j] > 0)
 			{
@@ -1431,7 +1649,7 @@ void initButtons()
 
 			p->pmenu.items[i].height = 32;
 			p->pmenu.items[i].width = 32;
-			p->pmenu.items[i].lumalpha = (GLubyte*)malloc(32 * 32 * 2);
+			p->pmenu.items[i].lumalpha = MALLOC(GLubyte*, 32 * 32 * 2);
 			for(j=0;j<32;j++) //pixel row within image
 			{
 				for(k=0;k<32;k++) //pixel column within image
@@ -1470,8 +1688,79 @@ void initButtons()
 			//Q. how will I flexibly do the highlight?
 			//I think I would loop through the buttons to do the highlighting, but then the buttons themselves
 			//can be done with a single mesh.
-			mv = i*3*4;
 			mt = i*2*4;
+			kt = 0;
+			// 1 3   vertex order
+			// 0 2
+			for(j=0;j<2;j++) //row 
+			{
+				for(k=0;k<2;k++) //column
+				{
+					//texture coords
+					//p->pmenu.items[i].tex[kt +0] = p->pmenu.tex[mt+kt + 0] = p->pmenu.items[i].tex0[0][j];
+					//p->pmenu.items[i].tex[kt +1] = p->pmenu.tex[mt+kt + 1] = p->pmenu.items[i].tex0[1][k];
+					p->pmenu.items[i].tex[kt +0] = p->pmenu.items[i].tex0[0][j];
+					p->pmenu.items[i].tex[kt +1] = p->pmenu.items[i].tex0[1][k];
+					kt+=2;
+				}
+			}
+		}
+		glGenTextures(1, &(p->pmenu.textureID));
+	    glBindTexture(GL_TEXTURE_2D, p->pmenu.textureID);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, 32*buttonAtlasSizeCol, 32*buttonAtlasSizeRow, 0, GL_LUMINANCE_ALPHA , GL_UNSIGNED_BYTE, p->pmenu.lumalpha);
+
+		{
+			//fill out any sub-button togglebutton toggleset actions
+			int *togset, kset;
+			kset = 0;
+			togset = togglesets[kset];
+			while(togset[0]){
+				int j,k, ipact, nact, iact;
+				ipact = togset[0];
+				nact = togset[1];
+				for(k=0;k<p->pmenu.nitems;k++){
+					if(ipact == p->pmenu.items[k].action){
+						int m;
+						p->pmenu.items[k].buttonset = malloc(sizeof(buttonSet));
+						p->pmenu.items[k].buttonset->n = nact;
+						p->pmenu.items[k].buttonset->index = 0; //first one by default
+						p->pmenu.items[k].buttonset->items = malloc(nact * sizeof(void*));
+						for(m=0;m<nact;m++){
+							int n;
+							p->pmenu.items[k].buttonset->items[m] = NULL;
+							iact = togset[m+2];
+							for(n=0;n<p->pmenu.nitems;n++){
+								if(iact == p->pmenu.items[n].action){
+									p->pmenu.items[k].buttonset->items[m] = &p->pmenu.items[n];
+								}
+							}
+						}
+					}
+				}
+				nact = togset[1];
+				kset++;
+				togset = togglesets[kset];
+			}
+		}
+
+
+		for(i=0;i<p->pmenu.nbitems;i++)
+		{
+			int j, k, mi, mv, kv, kt;
+			GLfloat dx;
+			FXY xyxy[2];
+			int bz = p->buttonSize;
+		
+			//pixel coord boxes, for mouse picking of buttons
+			p->pmenu.bitems[i].butrect[0] = 5+(i*bz);	/* lower left  x */
+			p->pmenu.bitems[i].butrect[1] = 0;			/* lower left  y */
+			p->pmenu.bitems[i].butrect[2] = 5+(i*bz)+bz;/* upper right x */
+			p->pmenu.bitems[i].butrect[3] = bz;			/* upper right y */
+
+			mv = i*3*4;
 			mi = i*3*2;
 			kv = 0;
 			kt = 0;
@@ -1492,16 +1781,16 @@ void initButtons()
 				for(k=0;k<2;k++) //column
 				{
 					//vertex coords
-					p->pmenu.items[i].vert[kv +0] = p->pmenu.vert[mv+kv +0] = xyxy[j].x + (GLfloat)(i*dx);
-					p->pmenu.items[i].vert[kv +1] = p->pmenu.vert[mv+kv +1] = xyxy[k].y;
-					p->pmenu.items[i].vert[kv +2] = p->pmenu.vert[mv+kv +2] = 0.0f;
+					p->pmenu.bitems[i].vert[kv +0] = p->pmenu.vert[mv+kv +0] = xyxy[j].x + (GLfloat)(i*dx);
+					p->pmenu.bitems[i].vert[kv +1] = p->pmenu.vert[mv+kv +1] = xyxy[k].y;
+					p->pmenu.bitems[i].vert[kv +2] = p->pmenu.vert[mv+kv +2] = 0.0f;
+					//p->pmenu.bitems[i].vert[kv +0] = xyxy[j].x + (GLfloat)(i*dx);
+					//p->pmenu.bitems[i].vert[kv +1] = xyxy[k].y;
+					//p->pmenu.bitems[i].vert[kv +2] = 0.0f;
 					kv+=3;
-					//texture coords
-					p->pmenu.items[i].tex[kt +0] = p->pmenu.tex[mt+kt + 0] = p->pmenu.items[i].tex0[0][j];
-					p->pmenu.items[i].tex[kt +1] = p->pmenu.tex[mt+kt + 1] = p->pmenu.items[i].tex0[1][k];
-					kt+=2;
 				}
 			}
+
 			// triangle indices
 			// 1-3
 			// |/|
@@ -1512,39 +1801,27 @@ void initButtons()
 			p->pmenu.ind[mi +3] = (GLushort)(i*4) +0;
 			p->pmenu.ind[mi +4] = (GLushort)(i*4) +3;
 			p->pmenu.ind[mi +5] = (GLushort)(i*4) +2;
+
+			//assign icon+action to menubar button location
+			for(j=0;j<p->pmenu.nitems;j++){
+				if(mainbar[i] == p->pmenu.items[j].action){
+					p->pmenu.bitems[i].item = &p->pmenu.items[j];
+					break;
+				}
+			}
 		}
-		glGenTextures(1, &(p->pmenu.textureID));
-	    glBindTexture(GL_TEXTURE_2D, p->pmenu.textureID);
-		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, 32*buttonAtlasSizeCol, 32*buttonAtlasSizeRow, 0, GL_LUMINANCE_ALPHA , GL_UNSIGNED_BYTE, p->pmenu.lumalpha);
-
-	}
-	for(i=0;i<p->pmenu.nitems;i++)
-	{
-		int bz = p->buttonSize;
-//		p->pmenu.items[i].butrect[0] = 5+(i*32);			/* lower left  x */
-//		p->pmenu.items[i].butrect[1] = 0 + p->pmenu.yoffset;/* lower left  y */
-//		p->pmenu.items[i].butrect[2] = 5+(i*32)+32;			/* upper right x */
-//		p->pmenu.items[i].butrect[3] = 32+ p->pmenu.yoffset;/* upper right y */
-		
-		p->pmenu.items[i].butrect[0] = 5+(i*bz);			/* lower left  x */
-		//p->pmenu.items[i].butrect[1] = 0 + p->pmenu.yoffset;/* lower left  y */
-		p->pmenu.items[i].butrect[1] = 0;/* lower left  y */
-		p->pmenu.items[i].butrect[2] = 5+(i*bz)+bz;			/* upper right x */
-		//p->pmenu.items[i].butrect[3] = bz+ p->pmenu.yoffset;/* upper right y */
-		p->pmenu.items[i].butrect[3] = bz;/* upper right y */
 	}
 	p->butsLoaded = 1;
 }
 /* the following setMenuButton_ were defined for some other front end and called from various locations
-   - re-using here*/
+   - re-using here
+   - mar 2015: this still refers-to/indexes-into the longer items[] list, not the shorter mainbuttonbar []  
+*/
 int getMenuItemByAction(int iaction)
 {
 	int i;
 	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
-	for(i=0;i<p->pmenu.nactive;i++)
+	for(i=0;i<p->pmenu.nitems;i++)
 		if(p->pmenu.items[i].action == iaction)
 			return i;
 	return -1;
@@ -1576,6 +1853,7 @@ void setMenuButton_collision(int val){
 	if(i > -1)
 		p->pmenu.items[i].butStatus = val;
 }
+
 void setMenuButton_texSize(int size){ 
 	/* this isn't called in my configuration so I don't know what the range is */
 	printf("text size=%d\n",size);
@@ -1588,8 +1866,22 @@ void setMenuButton_headlight(int val){
 	if(i > -1)
 		p->pmenu.items[i].butStatus = val;
 }
+void setMenuButton_shift(int val){
+	int i;
+	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
+	i = getMenuItemByAction(ACTION_SHIFT);
+	if(i > -1)
+		p->pmenu.items[i].butStatus = val;
+}
+void setMenuButton_ctrl(ctrl){
+	//not used yet - ctrl affects 3-state buttons like Explore (goes into pick mode when pressed 2x), 
+	//and examine, spherical (ctrl + LMB == RMB)
+	// could be used to highlight double-pressed button so user knows to toggle off
+}
 
-void setMenuButton_navModes(int type)
+static int chord2action [] = {ACTION_YAWZ,ACTION_YAWPITCH,ACTION_ROLL,ACTION_XY};
+
+void setMenuButton_navModes(int type, int dragchord)
 {
 	int i, newval, iaction;
 	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
@@ -1608,6 +1900,26 @@ void setMenuButton_navModes(int type)
 			iaction = ACTION_WALK;
 			newval = 1;
 			break;
+		case VIEWER_TURNTABLE:
+			iaction = ACTION_TURNTABLE;
+			newval = 1;
+			break;
+		case VIEWER_LOOKAT:
+			iaction = ACTION_LOOKAT;
+			newval = 1;
+			break;
+		case VIEWER_EXPLORE:
+			iaction = ACTION_EXPLORE;
+			newval = 1;
+			break;
+		case VIEWER_SPHERICAL:
+			iaction = ACTION_SPHERICAL;
+			newval = 1;
+			break;
+		case VIEWER_DIST:
+			iaction = ACTION_DIST;
+			newval = 1;
+			break;
 		case VIEWER_FLY:
 #if defined(QNX) || defined(KIOSK)//|| defined(_MSC_VER)
 			iaction = ACTION_FLY2;
@@ -1622,6 +1934,26 @@ void setMenuButton_navModes(int type)
 	if(iaction > -1){
 		i = getMenuItemByAction(iaction);
 		if(i>-1){
+			if(p->pmenu.items[i].buttonset){
+				//its a fancy toggle button that rolls through different icons; need to update the sub-icon
+				if(iaction == p->pmenu.items[i].action){
+					int j;
+					//pressing a button already pressed if its a togglebutton, means incrementing the toggle
+					switch(iaction){
+						case ACTION_FLY:
+							if(p->pmenu.items[i].buttonset){
+								for(j=0;j<p->pmenu.items[i].buttonset->n;j++){
+									if(p->pmenu.items[i].buttonset->items[j]->action == chord2action[dragchord]){
+										p->pmenu.items[i].buttonset->index = j;
+									}
+								}
+							}
+							break;
+						default:
+							break;
+					}
+				}
+			}
 			if(p->pmenu.items[i].isRadio)
 				setRadioPalsOff(p->pmenu.items[i].radioset,iaction);
 			p->pmenu.items[i].butStatus = newval;
@@ -1629,25 +1961,36 @@ void setMenuButton_navModes(int type)
 	}
 return;
 }
+int viewer_getDragChord();
+void viewer_setDragChord(int chord);
 
 /* handle all the displaying and event loop stuff. */
 void updateButtonStatus()
 {
-	//checks collision, headlight and navmode 
+	//checks collision, headlight and navmode in the model
+	//in MVC -model,view,controller- terminology, this is the controller,
+	// and it checks the model (libfreewrl ie fwl functions), and updates the view (statusbar hud)
 	//-these can be set by either the UI (this statusbar), keyboard hits, or from 
 	// events inside vrml. 
 	// Here we take our UI current state from the scene state. 
 	// For FRONTEND_HANDLES_DISPLAY_THREAD configurations, the frontend should do 
 	// the equivalent of the following once per frame (poll state and set UI)
-	int headlight, collision, navmode;
+	int headlight, collision, navmode, dragchord, lookatMode, ctrl, shift;
 	//poll model state:
 	headlight = fwl_get_headlight();
 	collision = fwl_getCollision();
 	navmode = fwl_getNavMode();
+	dragchord = viewer_getDragChord();
+	shift = fwl_getShift();
+	ctrl = fwl_getCtrl();
+	//lookatMode = fwl_getLookatMode();
 	//update UI(view):
-	setMenuButton_navModes(navmode);
+	setMenuButton_shift(shift);
+	setMenuButton_ctrl(ctrl);
+	setMenuButton_navModes(navmode,dragchord);
 	setMenuButton_headlight(headlight);
 	setMenuButton_collision(collision);
+	//setMenuButton_lookat(lookatMode);
 }
 
 void updateConsoleStatus()
@@ -1679,11 +2022,11 @@ int handleButtonOver(int mouseX, int mouseY)
 	if (p->pmenu.top)
 		y = mouseY;
 	else
-		y = p->screenHeight - mouseY;
+		y = p->screenHeight - mouseY - p->pmenu.yoffset;
 	p->isOver = -1;
-	for (i = 0; i<p->pmenu.nactive; i++)
-	if (x > p->pmenu.items[i].butrect[0] && x < p->pmenu.items[i].butrect[2]
-		&& y > p->pmenu.items[i].butrect[1] && y < p->pmenu.items[i].butrect[3])
+	for (i = 0; i<p->pmenu.nbitems; i++)
+	if (x > p->pmenu.bitems[i].butrect[0] && x < p->pmenu.bitems[i].butrect[2]
+		&& y > p->pmenu.bitems[i].butrect[1] && y < p->pmenu.bitems[i].butrect[3])
 	{
 		/* printf("%d",i); */  /* is over */
 		p->isOver = i;
@@ -1700,7 +2043,20 @@ void toggleMenu(int val)
 	p = (ppstatusbar)tg->statusbar.prv;
 	p->showButtons = val > 0 ? 1 : 0;
 }
-int handleButtonPress(int mouseX, int mouseY)
+
+int action2chord(int iaction){
+	int ichord = CHORD_YAWZ;
+	switch(iaction){
+		case ACTION_YAWZ:	ichord = CHORD_YAWZ; break;
+		case ACTION_XY:		ichord = CHORD_XY; break;
+		case ACTION_YAWPITCH: ichord = CHORD_YAWPITCH; break;
+		case ACTION_ROLL:	ichord = CHORD_ROLL; break;
+		default: ichord = 0; break;
+	}
+	return ichord;
+}
+
+int handleButtonRelease(int mouseX, int mouseY)
 {
 	/* called from mainloop > to 
 	a) detect a button hit and 
@@ -1717,25 +2073,30 @@ int handleButtonPress(int mouseX, int mouseY)
 	if(p->pmenu.top)
 		y = mouseY;
 	else
-		y = p->screenHeight - mouseY;
+		y = p->screenHeight - mouseY - p->pmenu.yoffset;
 	ihit = -1;
-	for(i=0;i<p->pmenu.nactive;i++)
+	for(i=0;i<p->pmenu.nbitems;i++)
 	{
-		if(x > p->pmenu.items[i].butrect[0] && x < p->pmenu.items[i].butrect[2]
-		&& y > p->pmenu.items[i].butrect[1] && y < p->pmenu.items[i].butrect[3] )
+		if(x > p->pmenu.bitems[i].butrect[0] && x < p->pmenu.bitems[i].butrect[2]
+		&& y > p->pmenu.bitems[i].butrect[1] && y < p->pmenu.bitems[i].butrect[3] )
 		{
 			ihit = i;
-			iaction = p->pmenu.items[i].action;
-			if(p->pmenu.items[i].isRadio)
-			{
-				setRadioPalsOff(p->pmenu.items[i].radioset,iaction);
-				if(p->pmenu.items[i].isToggle )
-					p->pmenu.items[i].butStatus = 1 - p->pmenu.items[i].butStatus;
-				else
-					p->pmenu.items[i].butStatus = 1;
+			iaction = p->pmenu.bitems[i].item->action;
+			if(p->pmenu.bitems[i].item->butStatus && p->pmenu.bitems[i].item->buttonset ){
+				//fancy toggle button, need to increment to next button in buttonset whenever the button is pressed when already active
+				p->pmenu.bitems[i].item->buttonset->index++;
+				p->pmenu.bitems[i].item->buttonset->index = (p->pmenu.bitems[i].item->buttonset->index % 4);
 			}
-			else if(p->pmenu.items[i].isToggle)
-				p->pmenu.items[i].butStatus = 1 - p->pmenu.items[i].butStatus;
+			if(p->pmenu.bitems[i].item->isRadio)
+			{
+				setRadioPalsOff(p->pmenu.bitems[i].item->radioset,iaction);
+				if(p->pmenu.bitems[i].item->isToggle )
+					p->pmenu.bitems[i].item->butStatus = 1 - p->pmenu.bitems[i].item->butStatus;
+				else
+					p->pmenu.bitems[i].item->butStatus = 1;
+			}
+			else if(p->pmenu.bitems[i].item->isToggle)
+				p->pmenu.bitems[i].item->butStatus = 1 - p->pmenu.bitems[i].item->butStatus;
 			switch(iaction)
 			{
 				case ACTION_WALK:	
@@ -1749,13 +2110,28 @@ int handleButtonPress(int mouseX, int mouseY)
 				case ACTION_RPLANE:	
 					fwl_set_viewer_type (VIEWER_RPLANE); break; 
 				case ACTION_FLY:	
-					fwl_set_viewer_type(VIEWER_FLY); break;
+					fwl_set_viewer_type(VIEWER_FLY); 
+					if(p->pmenu.bitems[i].item->buttonset){
+						int iact, idx, ichord;
+						idx = p->pmenu.bitems[i].item->buttonset->index;
+						iact = p->pmenu.bitems[i].item->buttonset->items[idx]->action;
+						ichord = action2chord(iact);
+						viewer_setDragChord(ichord);
+					}
+					break;
+				case ACTION_EXPLORE:
+					fwl_set_viewer_type(VIEWER_EXPLORE); break;
+				case ACTION_LOOKAT:
+					fwl_set_viewer_type(VIEWER_LOOKAT); break;
 				case ACTION_EXAMINE:
 					fwl_set_viewer_type (VIEWER_EXAMINE); break; 
-				case ACTION_YAWPITCHZOOM:
-					fwl_set_viewer_type(VIEWER_YAWPITCHZOOM); break;
+				case ACTION_SPHERICAL:
+					fwl_set_viewer_type(VIEWER_SPHERICAL); break;
 				case ACTION_TURNTABLE:
 					fwl_set_viewer_type(VIEWER_TURNTABLE); break;
+				case ACTION_DIST:
+					fwl_set_viewer_type(VIEWER_DIST); break;
+				case ACTION_SHIFT:	 fwl_setShift(p->pmenu.bitems[i].item->butStatus); break;
 				case ACTION_LEVEL:	 viewer_level_to_bound(); break;
 				case ACTION_HEADLIGHT: fwl_toggle_headlight(); break;
 				case ACTION_COLLISION: toggle_collision(); break; 
@@ -1781,7 +2157,7 @@ int handleButtonPress(int mouseX, int mouseY)
 						if(fname)
 						{
 							fwl_replaceWorldNeeded(fname);
-							free(fname);
+							FREE(fname);
 						}
 					}
 					#endif
@@ -1799,7 +2175,7 @@ int handleButtonPress(int mouseX, int mouseY)
 						if(fname)
 						{
 							fwl_replaceWorldNeeded(fname);
-							free(fname);
+							FREE(fname);
 						}
 					}
 					#endif
@@ -1828,17 +2204,17 @@ void updateButtonVertices()
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
 
-	p->pmenu.yoffset = 0.0f;
-	if(p->pmenu.top) p->pmenu.yoffset = (float)(p->screenHeight - p->buttonSize); //32.0f;
+	//p->pmenu.yoffset = (float) yoff_button; //0.0f;
+	if(p->pmenu.top) p->pmenu.yoffset = (float)(p->screenHeight - p->buttonSize - p->pmenu.yoffset); //32.0f;
 
-	for(i=0;i<p->pmenu.nitems;i++)
+	for(i=0;i<p->pmenu.nbitems;i++)
 	{
 		kv = 0;
 		for(j=0;j<2;j++)
 			for(k=0;k<2;k++)
 			{
-				xx = p->pmenu.items[i].vert[kv +0];
-				yy = p->pmenu.items[i].vert[kv +1];
+				xx = p->pmenu.bitems[i].vert[kv +0];
+				yy = p->pmenu.bitems[i].vert[kv +1];
 				xy = screen2normalizedScreen(xx,yy + p->pmenu.yoffset + p->side_bottom);
 				mv = i*3*4;
 				p->pmenu.vert[mv+kv +0] = xy.x;
@@ -1851,7 +2227,7 @@ void updateButtonVertices()
 void renderButtons()
 {
 	/* called from drawStatusBar() to render the user buttons like walk/fly, headlight, collision etc. */
-	int i,loaded;
+	int i,loaded,ctrl;
 	ppstatusbar p;
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
@@ -1867,7 +2243,8 @@ void renderButtons()
 	glScissor(0,(int)p->pmenu.yoffset+p->side_bottom,p->screenWidth,p->buttonSize); //tg->Mainloop.clipPlane*2);
 
 	glEnable(GL_SCISSOR_TEST);
-	glClearColor(.922f,.91f,.844f,1.0f); //windowing gray
+	//glClearColor(.922f,.91f,.844f,1.0f); //windowing gray
+	glClearColor(colorClear[0],colorClear[1],colorClear[2],colorClear[3]);
 	//glClearColor(.754f,.82f,.93f,1.0f); //193.0f/256.0f,210.0f/256.0f,238.0f/256.0f,1.0f); //windowing blue
 	glClear(GL_COLOR_BUFFER_BIT);
 	glDisable(GL_SCISSOR_TEST);
@@ -1877,73 +2254,74 @@ void renderButtons()
 
 	glBindTexture ( GL_TEXTURE_2D, p->pmenu.textureID );
 
-	for(i=0;i<p->pmenu.nactive;i++)
+	ctrl = fwl_getCtrl();
+	for(i=0;i<p->pmenu.nbitems;i++)
 	{
-		if(p->buttonType==1) loaded = p->butsLoaded;
-		if( loaded) // butts[i][0].status == 2)
+		int do_ctrl;
+		GLfloat rgba[4] = {1.0, 1.0, 1.0, 1.0};
+		bool highlightIt = p->pmenu.bitems[i].item->butStatus;
+		do_ctrl = ctrl && i < 8;
+
+		if(p->pmenu.bitems[i].item->butStatus) 
+			rgba[0] = .7f; rgba[1] = .7f; rgba[2] = .7f; //DEPRESSED/TOGGLED BUTTON BACKGROUND COLOR
+		if(highlightIt) //i==p->isOver || p->pmenu.items[i].butStatus)
 		{
-			GLfloat rgba[4] = {1.0, 1.0, 1.0, 1.0};
-			bool highlightIt = p->pmenu.items[i].butStatus;
+			/*draw a background highlight rectangle*/
 
-#if !defined(QNX) && !defined(TOUCH)
-			// touch screens don't benefit from isOver highlighting because
-			// your finger is blocking your view of the button anyway
-			if(i==p->isOver){
-				rgba[0] = 1.0f; rgba[1] = 1.0f; rgba[2] = 1.0f;
-				highlightIt = true;
-			}
-#endif
-			if(p->pmenu.items[i].butStatus) 
-				rgba[0] *= .95f; rgba[1] *= .95f; rgba[2] *= .95f; //1.0f; //darker windowing gray
-			if(highlightIt) //i==p->isOver || p->pmenu.items[i].butStatus)
-			{
-				/*draw a background highlight rectangle*/
-
-				glUniform4f(p->color4fLoc,rgba[0],rgba[1],rgba[2],rgba[3]); //..8f,.87f,.97f,1.0f);
-				glVertexAttribPointer ( p->positionLoc, 3, GL_FLOAT, 
-								 //  GL_FALSE, 0, p->pmenu.items[i].vert );
-								   GL_FALSE, 0, &(p->pmenu.vert[i*3*4]) );
-
-				// Load the texture coordinate
-				glVertexAttribPointer ( p->texCoordLoc, 2, GL_FLOAT,
-								   GL_FALSE, 0, p->pmenu.items[p->pmenu.nitems-1].tex );   //nitems -1 should be the blank texture
-
-				glEnableVertexAttribArray ( p->positionLoc );
-				glEnableVertexAttribArray ( p->texCoordLoc );
-				glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, p->pmenu.ind ); //first 6 should be 0 1 3 0 3 2
-			//glDisableVertexAttribArray(p->texCoordLoc);
-			//glDisableVertexAttribArray(p->positionLoc);
-			}
-		}
-	}
-	{
-			// render triangles
-
-
-			// Load the vertex position
+			//glUniform4f(p->color4fLoc,rgba[0],rgba[1],rgba[2],rgba[3]); //..8f,.87f,.97f,1.0f);
+			if(do_ctrl)
+				glUniform4f(p->color4fLoc,colorButtonCTRL[0],colorButtonCTRL[1],colorButtonCTRL[2],colorButtonCTRL[3]);
+			else
+				glUniform4f(p->color4fLoc,colorButtonHighlight[0],colorButtonHighlight[1],colorButtonHighlight[2],colorButtonHighlight[3]);
 			glVertexAttribPointer ( p->positionLoc, 3, GL_FLOAT, 
-								   GL_FALSE, 0, p->pmenu.vert );
+						GL_FALSE, 0, &(p->pmenu.vert[i*3*4]) );
 			// Load the texture coordinate
 			glVertexAttribPointer ( p->texCoordLoc, 2, GL_FLOAT,
-								   GL_FALSE, 0, p->pmenu.tex );  //fails - p->texCoordLoc is 429xxxxx - garbage
-			glUniform4f(p->color4fLoc,0.7f,0.7f,0.9f,1.0f);
+						GL_FALSE, 0, p->pmenu.items[p->pmenu.nitems-1].tex );   //nitems -1 should be the blank texture
 			glEnableVertexAttribArray ( p->positionLoc );
 			glEnableVertexAttribArray ( p->texCoordLoc );
+			glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, p->pmenu.ind ); //first 6 should be 0 1 3 0 3 2
+		}
+		// render triangles
 
-			//// Bind the base map - see above
-			//glActiveTexture ( GL_TEXTURE0 );
-			//glBindTexture ( GL_TEXTURE_2D, p->pmenu.textureID );
+		glVertexAttribPointer ( p->positionLoc, 3, GL_FLOAT, 
+							GL_FALSE, 0, &(p->pmenu.vert[i*3*4]) );
 
-			// Set the base map sampler to texture unit to 0
-			glUniform1i ( p->textureLoc, 0 );
-			glDrawElements ( GL_TRIANGLES, p->pmenu.nactive*3*2, GL_UNSIGNED_SHORT, p->pmenu.ind ); //just render the active ones
-		//glDisableVertexAttribArray ( p->positionLoc );
-		//glDisableVertexAttribArray ( p->texCoordLoc );
+						
+		// Load the texture coordinate
+		if(p->pmenu.bitems[i].item->buttonset){
+			//fancy togglebutton buttonset
+			glVertexAttribPointer ( p->texCoordLoc, 2, GL_FLOAT,
+							GL_FALSE, 0, p->pmenu.bitems[i].item->buttonset->items[p->pmenu.bitems[i].item->buttonset->index]->tex );   //nitems -1 should be the blank texture
+		}else{
+			glVertexAttribPointer ( p->texCoordLoc, 2, GL_FLOAT,
+							GL_FALSE, 0, p->pmenu.bitems[i].item->tex );   //nitems -1 should be the blank texture
+		}
+		//glUniform4f(p->color4fLoc,0.37f,0.37f,0.9f,1.0f);  //BLUE ICON SHAPE COLOR
+		glUniform4f(p->color4fLoc,colorButtonIcon[0],colorButtonIcon[1],colorButtonIcon[2],colorButtonIcon[3]);
+		glEnableVertexAttribArray ( p->positionLoc );
+		glEnableVertexAttribArray ( p->texCoordLoc );
+		glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, p->pmenu.ind ); //first 6 should be 0 1 3 0 3 2
 
+		/* old one-shot
+		// Load the vertex position
+		glVertexAttribPointer ( p->positionLoc, 3, GL_FLOAT, 
+								GL_FALSE, 0, p->pmenu.vert );
+		// Load the texture coordinate
+		glVertexAttribPointer ( p->texCoordLoc, 2, GL_FLOAT,
+								GL_FALSE, 0, p->pmenu.tex );  //fails - p->texCoordLoc is 429xxxxx - garbage
+		glUniform4f(p->color4fLoc,0.37f,0.37f,0.9f,1.0f);  //BLUE ICON SHAPE COLOR
+		glEnableVertexAttribArray ( p->positionLoc );
+		glEnableVertexAttribArray ( p->texCoordLoc );
+
+		// Set the base map sampler to texture unit to 0
+		glUniform1i ( p->textureLoc, 0 );
+		glDrawElements ( GL_TRIANGLES, p->pmenu.nbitems*3*2, GL_UNSIGNED_SHORT, p->pmenu.ind ); //render the main menu bar
+		*/
 	}
-FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
-
-FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
+	//clean up
+	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
+	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 	p->hadString = 1;
 }
 void statusbarHud_DrawCursor(GLint textureID,int x,int y){
@@ -2035,13 +2413,14 @@ bool showAction(ppstatusbar p, int action)
 	return false;
 }
 
-int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY, int* clipplane)
+int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY)
 {
+	int mouseYY;
 	ppstatusbar p;
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
 
-
+	mouseYY = mouseY; // - p->pmenu.yoffset;
 	if ((mev == ButtonPress) || (mev == ButtonRelease))
 	{
 		/* record which button is down */
@@ -2049,15 +2428,17 @@ int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY, int* clippla
 		int ihit = 0;
 		if (p->showButtons)
 		{
-			if (mev == ButtonPress)
-				ihit = handleButtonPress(mouseX,mouseY);
+			if (mev == ButtonRelease)
+				ihit = handleButtonRelease(mouseX,mouseYY);
+			else
+				ihit = 1; //ButtonPress
 			//return 1;
 		}
 		//if(p->showOptions)
 		if (!ihit && showAction(p, ACTION_OPTIONS))
 		{
 			if (mev == ButtonPress)
-				ihit = handleOptionPress(mouseX,mouseY);
+				ihit = handleOptionPress(mouseX,mouseYY);
 			//return 1;
 		}
 		if (ihit) return 1;
@@ -2071,7 +2452,7 @@ int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY, int* clippla
 			//if input device is a mouse, mouse over statusbar to bring down menu
 			//else call toggleMenu from main program on some window event
 			static int lastover;
-			if (p->screenHeight - mouseY < 16)
+			if (p->screenHeight - mouseYY < 16)
 			{
 				if (!lastover)
 					toggleMenu(1 - p->showButtons);
@@ -2086,24 +2467,26 @@ int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY, int* clippla
 				int ihit;
 				updateViewCursorStyle(ACURSE);
 				//setArrowCursor();
-				ihit = handleButtonOver(mouseX,mouseY);
+				ihit = handleButtonOver(mouseX,mouseYY);
 				if (ihit) return 1;
 				//return 1; /* don't process for navigation */
 			}
 		}
 		else{
 			/* buttons at bottom, menu triggered by mouse-over */
-			int clipline;
-			(*clipplane) = p->statusBarSize; //16;
+			//int clipline;
+			//(*clipplane) = p->statusBarSize; //16;
 			/* >>> statusbar hud */
-			clipline = *clipplane;
-			if (p->showButtons) clipline = p->buttonSize; //2*(*clipplane);
-			if (p->screenHeight - mouseY < clipline)
+			//clipline = p->clipPlane;
+			//if (p->showButtons) clipline = p->pmenu.yoffset + p->buttonSize; //2*(*clipplane);
+			if (p->screenHeight - mouseY < p->clipPlane) //clipline)
 			{
 				p->showButtons = 1;
+				if( p->screenHeight - mouseYY > 0 ){
+					//setArrowCursor();
+					handleButtonOver(mouseX,mouseYY);
+				}
 				updateViewCursorStyle(ACURSE);
-				//setArrowCursor();
-				handleButtonOver(mouseX,mouseY);
 				return 1; /* don't process for navigation */
 			}
 			else
@@ -2134,7 +2517,7 @@ void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY)
 {
 	ttglobal tg = gglobal();
 	ppstatusbar p = (ppstatusbar)tg->statusbar.prv;
-	if (!handleStatusbarHud(mev, butnum, mouseX, mouseY, &p->clipPlane)){
+	if (!handleStatusbarHud(mev, butnum, mouseX, mouseY)){
 		fwl_set_frontend_using_cursor(FALSE);
 		fwl_handle_aqua(mev, butnum, mouseX, mouseY); /* ,gcWheelDelta); */
 	}else{
@@ -2142,11 +2525,18 @@ void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY)
 	}
 }
 char *getMessageBar(); //in common.c
-
+char *fwl_getKeyChord();
 void fwl_setClipPlane(int height);
 void drawStatusBarSide()
 {
 }
+void update_pinned(){
+	ppstatusbar p;
+	ttglobal tg = gglobal();
+	p = (ppstatusbar)tg->statusbar.prv;
+	fwl_get_sbh_pin(&p->statusbar_pinned,&p->menubar_pinned);
+}
+
 void drawStatusBar() 
 {
 	/* drawStatusBar() is called just before swapbuffers in mainloop so anything that you want to render 2D
@@ -2175,15 +2565,17 @@ M	viewer_level_to_bound();							//"
 M       void toggle_collision()                             //"
     */
 	char *pp; 
-	int i,nsides;
+	int i,nsides, vrml_clipplane;
 	GLfloat side_bottom_f;
 	ppstatusbar p;
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
 
 	//init-once things are done everytime for convenience
-	fwl_setClipPlane(p->statusBarSize);
+	//fwl_setClipPlane(p->statusBarSize);
 	if(!p->fontInitialized) initFont();
+	update_ui_colors();
+	update_pinned();
 	if(p->programObject == 0) initProgramObject();
 
 	//MVC statusbarHud is in View and Controller just called us and told us 
@@ -2197,6 +2589,19 @@ M       void toggle_collision()                             //"
 	glUseProgram ( p->programObject );
 	glViewport(0, 0, p->screenWidth, p->screenHeight);
    
+	//p->showButtons = 1;
+	//p->menubar_pinned = 0;
+	//p->statusbar_pinned = 1;
+	p->show_status = (p->statusbar_pinned && !p->showButtons) || (!p->statusbar_pinned && p->showButtons) || (p->menubar_pinned); // || showAction(p, ACTION_OPTIONS);
+	p->show_menu = p->menubar_pinned || p->showButtons;
+	p->yoff_status = 0;
+	p->pmenu.yoffset = (p->menubar_pinned || !p->statusbar_pinned) ? p->statusBarSize : 0;
+
+	p->clipPlane = (p->show_menu ?  p->buttonSize : 0) + p->statusBarSize; //(p->show_status ? p->statusBarSize : 0);
+	//int mouseplane = p->showButtons ? p->clipPlane : p->statusBarSize;
+	vrml_clipplane = (p->statusbar_pinned ? p->statusBarSize : 0) + (p->menubar_pinned? p->buttonSize : 0);
+	fwl_setClipPlane(vrml_clipplane); //p->clipPlane);
+
 	nsides = 1;
 	if (Viewer()->updown) nsides = 2; //one stereo mode updown draws the menubar and/or statusbar twice, once for each stereo side
 	for (i = 0; i < nsides; i++)
@@ -2211,7 +2616,7 @@ M       void toggle_collision()                             //"
 			if(i == 0) side_bottom_f = 0.0f;
 		}
 
-		if (p->showButtons)
+		if (p->show_menu) //p->showButtons)
 		{
 			renderButtons();
 #ifndef KIOSK
@@ -2219,46 +2624,54 @@ M       void toggle_collision()                             //"
 			if (p->posType == 1) {
 				glEnable(GL_DEPTH_TEST);
 			}
-			continue;
+			//continue;
 #endif
 		}
-
-
-		/* OK time to update the status bar */
-		/* unconditionally clear the statusbar area */
-		glScissor(0, p->side_bottom, p->screenWidth, p->clipPlane);
-		glEnable(GL_SCISSOR_TEST);
-		glClearColor(.922f, .91f, .844f, 1.0f); //windowing gray
-		glClear(GL_COLOR_BUFFER_BIT);
-		glDisable(GL_SCISSOR_TEST);
-
-		// you must call drawStatusBar() from render() just before swapbuffers 
-		glDepthMask(FALSE);
-		glDisable(GL_DEPTH_TEST);
-
-		glUniform4f(p->color4fLoc, .2f, .2f, .2f, 1.0f);
-
+		if(p->show_status)
 		{
-			FXY xy;
-			xy = screen2normalizedScreenScale((GLfloat)p->bmWH.x, (GLfloat)p->bmWH.y);
-			pp = get_status(); // p->buffer;
-			/* print status bar text - things like PLANESENSOR */
-			printString2(-1.0f + xy.x*5.0f, side_bottom_f, pp);
-			p->hadString = 1;
+
+			/* OK time to update the status bar */
+			/* unconditionally clear the statusbar area */
+			glScissor(0, p->side_bottom, p->screenWidth, p->statusBarSize); //p->clipPlane);
+			glEnable(GL_SCISSOR_TEST);
+			//glClearColor(.922f, .91f, .844f, 1.0f); //windowing gray
+			glClearColor(colorClear[0],colorClear[1],colorClear[2],colorClear[3]);
+			glClear(GL_COLOR_BUFFER_BIT);
+			glDisable(GL_SCISSOR_TEST);
+
+			// you must call drawStatusBar() from render() just before swapbuffers 
+			glDepthMask(FALSE);
+			glDisable(GL_DEPTH_TEST);
+
+			//glUniform4f(p->color4fLoc, .2f, .2f, .2f, 1.0f);
+			glUniform4f(p->color4fLoc,colorStatusbarText[0],colorStatusbarText[1],colorStatusbarText[2],colorStatusbarText[3]);
+			{
+				FXY xy;
+				xy = screen2normalizedScreenScale((GLfloat)p->bmWH.x, (GLfloat)p->bmWH.y);
+				pp = get_status(); // p->buffer;
+				/* print status bar text - things like PLANESENSOR */
+				printString2(-1.0f + xy.x*5.0f, side_bottom_f, pp);
+				p->hadString = 1;
+			}
+			{
+				int len;
+				char *strfps, *strstatus, *strAkeys;
+				FXY xy;
+				xy = screen2normalizedScreenScale((GLfloat)p->bmWH.x, (GLfloat)p->bmWH.y);
+				strfps = getMessageBar();
+				strstatus = &strfps[15];
+				printString2(-1.0f + xy.x*25.0f, side_bottom_f, strfps);
+				printString2(-1.0f + xy.x*35.0f, side_bottom_f, strstatus);
+				strAkeys = fwl_getKeyChord();
+				len = strlen(strAkeys);
+				printString2(1.0f - xy.x*len, side_bottom_f, strAkeys);
+			}
+
 		}
-		{
-			char *strfps, *strstatus;
-			FXY xy;
-			xy = screen2normalizedScreenScale((GLfloat)p->bmWH.x, (GLfloat)p->bmWH.y);
-			strfps = getMessageBar();
-			strstatus = &strfps[15];
-			printString2(-1.0f + xy.x*25.0f, side_bottom_f, strfps);
-			printString2(-1.0f + xy.x*35.0f, side_bottom_f, strstatus);
-		}
 
-
-		glUniform4f(p->color4fLoc, 1.0f, 1.0f, 1.0f, 1.0f);
-
+		//glUniform4f(p->color4fLoc, 1.0f, 1.0f, 1.0f, 1.0f);
+		glUniform4f(p->color4fLoc,colorMessageText[0],colorMessageText[1],colorMessageText[2],colorMessageText[3]);
+		glDisable(GL_SCISSOR_TEST); //ideally this would scissor everything but statusbar+menu so we don't overwrite bars
 		if (showAction(p, ACTION_HELP))
 			printKeyboardHelp(p);
 		if (showAction(p, ACTION_MESSAGES))

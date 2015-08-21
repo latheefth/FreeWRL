@@ -55,9 +55,11 @@
 #include <limits.h>   /* SSIZE_MAX */
 
 #include "main/ProdCon.h"
+#if !defined(IPHONE) && !defined(_ANDROID)
 #include "input/InputFunctions.h"
 #include "plugin/pluginUtils.h"
 #include "plugin/PluginSocket.h"
+#endif
 
 #if defined (INCLUDE_STL_FILES)
 #include "input/convertSTL.h"
@@ -137,7 +139,7 @@ printf ("remove_filename_from_path going to copy %d\n", ((int)slash-(int)path)+1
 		*slash = '\0';
 printf ("remove_filename_from_path, returning :%s:\n",rv);
 #else
-		rv = strndup(path, (size_t)slash - (size_t)path + 1);
+		rv = STRNDUP(path, (size_t)slash - (size_t)path + 1);
 #endif
 
 	}
@@ -166,7 +168,8 @@ char *get_current_dir()
 			cwd[ll+1] = '\0';
 	} else {
 		printf("Unable to establish current working directory in %s,%d errno=%d",__FILE__,__LINE__,errno) ;
-		cwd = strdup("./"); // "/tmp/";
+		FREE_IF_NZ(cwd);
+		cwd = STRDUP("./"); // "/tmp/";
 	}
 	return cwd;
 }
@@ -249,10 +252,22 @@ void of_dump(openned_file_t *of)
  *                        and data buffer} into an openned file object.
  *                        Purpose: to be able to close and free all that stuff.
  */
-static openned_file_t* create_openned_file(const char *filename, int fd, int dataSize, unsigned char *data, int imageHeight, int imageWidth, bool imageAlpha)
+static openned_file_t* create_openned_file(const char *filename, int fd, int dataSize, char *data, int imageHeight, int imageWidth, bool imageAlpha)
 {
 	openned_file_t *of;
-
+#ifdef DISABLER	
+    char *fileData = NULL;
+    if (dataSize > 0 && data)
+    {
+        fileData = MALLOC (char *, dataSize+1);
+        if (NULL != fileData)
+        {
+            memcpy (fileData, data, dataSize);
+            fileData[dataSize] = '\0';
+            data = fileData;
+        }
+    }
+#endif
 	of = XALLOC(openned_file_t);
 	of->fileFileName = filename;
 	of->fileDescriptor = fd;
@@ -306,7 +321,94 @@ static void* load_file_mmap(const char *filename)
 /**
  * (internal)   load_file_read: implement load_file with read.
  */
+ int load_file_blob(const char *filename, char **blob, int *len){
+ 	struct stat ss;
+	int fd;
+	unsigned char *text, *current;
+	int left2read; //need signed int for math below
+#ifdef _MSC_VER
+	size_t blocksz, readsz; //, left2read;
+#else
+	ssize_t blocksz, readsz; //, left2read;
+#endif
+
+	if (stat(filename, &ss) < 0) {
+		PERROR_MSG("load_file_read: could not stat: %s\n", filename);
+		return 0;
+	}
+#ifdef _MSC_VER
+	fd = open(filename, O_RDONLY | O_BINARY);
+#else
+	fd = open(filename, O_RDONLY | O_NONBLOCK);
+#endif
+	if (fd < 0) {
+		PERROR_MSG("load_file_read: could not open: %s\n", filename);
+		return 0;
+	}
+	if (!ss.st_size) {
+		ERROR_MSG("load_file_read: file is empty %s\n", filename);
+		close(fd);
+		return 0;
+	}
+
+	text = current = MALLOC(unsigned char *, ss.st_size +1); /* include space for a null terminating character */
+	if (!text) {
+		ERROR_MSG("load_file_read: cannot allocate memory to read file %s\n", filename);
+		close(fd);
+		return 0;
+	}
+
+	if (ss.st_size > SSIZE_MAX) {
+		/* file is greater that read's max block size: we must make a loop */
+		blocksz = SSIZE_MAX;
+	} else {
+		blocksz = ss.st_size+1;
+	}
+
+	left2read = ss.st_size; //+1;
+	readsz = 0;
+
+	while (left2read > 0) {
+		readsz = read(fd, current, blocksz);
+		if (readsz > 0) {
+			/* ok, we have read a block, continue */
+			current += blocksz;
+			left2read -= blocksz;
+		} else {
+			/* is this the end of the file ? */
+			if (readsz == 0) {
+				/* yes */
+				break;
+			} else {
+				/* error */
+				PERROR_MSG("load_file_read: error reading file %s\n", filename);
+				/* cleanup */
+				FREE(text);
+				close(fd);
+				return 0;
+			}
+		}
+	}
+	/* null terminate this string */
+	text[ss.st_size] = '\0';
+	close(fd);
+	fd = 0; //NULL;
+	*blob = text;
+	*len = ss.st_size+1;
+	return 1;
+}
 static openned_file_t* load_file_read(const char *filename)
+{
+	char *blob;
+	int len;
+	openned_file_t *retval = NULL;
+	if( load_file_blob(filename, &blob, &len))
+	{
+		retval = create_openned_file(filename, 0, len, blob,0,0,FALSE);
+	}
+	return retval;
+}
+static openned_file_t* load_file_read_old(const char *filename)
 {
 	struct stat ss;
 	int fd;
@@ -385,7 +487,7 @@ static openned_file_t* load_file_read(const char *filename)
 
 #ifdef FRONTEND_GETS_FILES
 /* these variables are used on return of data from front end, and are passed on to create_openned_file */
-static unsigned char *fileText = NULL;
+static char *fileText = NULL;
 static char *fileToGet = NULL;
 static int frontend_return_status = 0;
 static int fileSize = 0;
@@ -412,7 +514,7 @@ char *fwg_frontEndWantsFileName() {
 	return fileToGet;
 }
 
-void fwg_frontEndReturningData(unsigned char* fileData,int len,int width,int height,bool hasAlpha) {
+void fwg_frontEndReturningData(char* fileData,int len,int width,int height,bool hasAlpha) {
 
 	MUTEX_LOCK_FILE_RETRIEVAL
     
@@ -427,8 +529,13 @@ void fwg_frontEndReturningData(unsigned char* fileData,int len,int width,int hei
 	} else {
 		// printf ("fwg_frontEndReturningData, returning ok\n");
     		/* note the "+1" ....*/
-		fileText = MALLOC (unsigned char *, len+1);
-		memcpy (fileText, fileData, len);
+        FREE_IF_NZ(fileText);
+        
+		fileText = MALLOC (char *, len+1);
+        if (NULL != fileText)
+        {
+            memcpy (fileText, fileData, len);
+        }
 		fileSize = len;
 		imageWidth = width;
 		imageHeight = height;
@@ -442,9 +549,6 @@ void fwg_frontEndReturningData(unsigned char* fileData,int len,int width,int hei
 
 	    fileText[len] = '\0';  /* the string terminator */
          //printf ("fwg_frontEndReturningData: returning data, but fileToGet setting to NULL, was %s\n",fileToGet);
-        
-        
-		fileToGet = NULL; /* not freed as only passed by pointer */
 
 		frontend_return_status = 0;
 		/* got the file, send along a message */
@@ -458,7 +562,7 @@ void fwg_frontEndReturningData(unsigned char* fileData,int len,int width,int hei
 
 #else
 char *fwg_frontEndWantsFileName() {return NULL;}
-void fwg_frontEndReturningData(unsigned char* fileData,int length,int width,int height,bool hasAlpha) {}
+void fwg_frontEndReturningData(char* fileData,int length,int width,int height,bool hasAlpha) {}
 #endif
 
 
@@ -469,8 +573,12 @@ void fwg_frontEndReturningData(unsigned char* fileData,int length,int width,int 
  */
 openned_file_t* load_file(const char *filename)
 {
+	openned_file_t *of;
+	if (NULL == filename) {
+		return NULL;
+	}
 
-    openned_file_t *of = NULL;
+    of = NULL;
 
 
     
@@ -490,19 +598,26 @@ openned_file_t* load_file(const char *filename)
     
 	//JAS - we keep this around until done with resource FREE_IF_NZ(fileText);
 
-	fileToGet = (char *)filename;
-    //printf ("load_file, fileToGet set to :%s:\n",filename);
-    
-    
+
+    FREE_IF_NZ(fileToGet);
+    fileToGet = STRDUP(filename);
+
+    ttglobal tg = gglobal();
+    if (tg->ProdCon._frontEndOnResourceRequiredListener) {
+    		tg->ProdCon._frontEndOnResourceRequiredListener(fileToGet);
+    }
+
     WAIT_FOR_FILE_SIGNAL
 
 	MUTEX_FREE_LOCK_FILE_RETRIEVAL
 
- 
-    
+	FREE_IF_NZ(fileToGet);
+	fileToGet = NULL; /* not freed as only passed by pointer */
+
 	if(frontend_return_status == -1) of = NULL;
-    else of = create_openned_file(filename, -1, fileSize, fileText, imageHeight, imageWidth, imageAlpha);
-    
+    else of = create_openned_file(STRDUP(filename), -1, fileSize, fileText, imageHeight, imageWidth, imageAlpha);
+    FREE_IF_NZ(fileText);
+    fileText = NULL;
     UNLOCK_LOAD_FILE_FUNCTION  
     return of;
     
@@ -531,9 +646,9 @@ openned_file_t* load_file(const char *filename)
 /**
  *   check the first few lines to see if this is an XMLified file
  */
-int determineFileType(const unsigned char *buffer, const int len)
+int determineFileType(const char *buffer, const int len)
 {
-	const unsigned char *rv;
+	const char *rv;
 	int count;
 	int foundStart = FALSE;
     
@@ -940,7 +1055,7 @@ int directory_remove_all(const char *path)
 				continue;
 			}
 			len = path_len + strlen(p->d_name) + 2; 
-			buf = malloc(len);
+			buf = MALLOC(void *, len);
 			if (buf)
 			{
 				struct stat statbuf;
@@ -956,7 +1071,7 @@ int directory_remove_all(const char *path)
 						r2 = unlink(buf);
 					}
 				}
-				free(buf);
+				FREE(buf);
 			}
 			r = r2;
 		}
@@ -1051,7 +1166,7 @@ int unzip_archive_to_temp_folder(const char *zipfilename, const char* tempfolder
 				}
 
 				size_buf = WRITEBUFFERSIZE;
-				buf = (void*)malloc(size_buf);
+				buf = (void*)MALLOC(void *, size_buf);
 				if (buf==NULL)
 				{
 					printf("Error allocating memory\n");
@@ -1135,7 +1250,7 @@ int unzip_archive_to_temp_folder(const char *zipfilename, const char* tempfolder
 						unzCloseCurrentFile(uf); /* don't lose the error */
 				}
 
-				free(buf);
+				FREE(buf);
 			}
 			if(err) break;
 
@@ -1220,6 +1335,7 @@ void delete_temp_file(resource_item_t *res){
 		if (cf) {
 			ml_foreach(cf, resource_remove_cached_file(__l));
 			//should clean up list items (but are contained strings constants/used elsewhere or strduped)
+			ml_foreach(cf, ml_free(__l));
 			res->cached_files = NULL;
 		}
 	}
@@ -1228,6 +1344,9 @@ void delete_temp_file(resource_item_t *res){
 int file2blob(resource_item_t *res){
 	int retval;
 	if(res->media_type == resm_image){
+#ifdef DISABLER	
+		printf("FREEWRL LOADING IMAGERY: %s", res->actual_file);
+#endif		
 		retval = imagery_load(res); //FILE2TEXBLOB
 	}else{
 		retval = resource_load(res);  //FILE2BLOB
@@ -1259,6 +1378,9 @@ void file2blob_task(s_list_t *item){
 	if(tactic == file2blob_task_chain){
 		//chain FILE2BLOB
 		if(res->media_type == resm_image){
+#ifdef DISABLER		
+			printf("FREEWRL LOADING IMAGERY: %s", res->actual_file);
+#endif			
 			imagery_load(res); //FILE2TEXBLOB
 		}else{
 			resource_load(res);  //FILE2BLOB
@@ -1269,12 +1391,13 @@ void file2blob_task(s_list_t *item){
 	}else if(tactic == file2blob_task_enqueue){
 		//set BE load function to non-null
 		//a) res->load_func = imagery_load or resource_load or file2blob
-		res->_loadFunc = file2blob;
+		res->_loadFunc = (int(*)(void*))file2blob; //msvc can also do &file2blob
 		//b) backend_setloadfunction(file2blob) or backend_setimageryloadfunction(imagery_load) and backend_setresourceloadfunction(resource_load)
 		//enqueue downloaded FILE
 		resitem_enqueue(item);
 	}else if(tactic == file2blob_task_spawn){
 		//spawn thread
 		loadAsync(res); //res already has res->tg with global context
+		ml_free(item);
 	}
 }

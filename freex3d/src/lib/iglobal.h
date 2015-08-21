@@ -24,7 +24,10 @@ Variable use:
 #ifndef INSTANCEGLOBAL
 #include "display.h" //for opengl_utils.h which is for rdr_caps
 #include "opengl/OpenGL_Utils.h"  //for rdr_caps
-#include "list.h" 
+#include "list.h"
+#ifdef DISABLER
+#include "dbl_list.h"
+#endif
 #include <threads.h> //for threads
 #include "vrml_parser/Structs.h" //for SFColor
 #include "x3d_parser/X3DParser.h" //for PARENTSTACKSIZE
@@ -84,6 +87,7 @@ typedef struct iiglobal //InstanceGlobal
 		void *prv;
 	} resources;
 	struct tthreads {
+        pthread_t disposeThread;
 		pthread_t mainThread; /* main (default) thread */
 		pthread_t DispThrd; /*DEF_THREAD(DispThrd); display thread */
 		pthread_t PCthread; /* DEF_THREAD(PCthread)parser thread */
@@ -178,6 +182,12 @@ typedef struct iiglobal //InstanceGlobal
 		struct X3D_Node *setBackgroundBindInRender;// = NULL;
 		struct X3D_Node *setNavigationBindInRender;// = NULL;
 		void *savedParser; //struct VRMLParser* savedParser;
+#ifdef DISABLER		
+#ifdef FRONTEND_GETS_FILES
+		void (*_frontEndOnResourceRequiredListener)(char *);
+#endif
+		void (*_frontEndOnX3DFileLoadedListener)(char *);
+#endif		
 		void *prv;
 	} ProdCon;
        #if defined (INCLUDE_NON_WEB3D_FORMATS)
@@ -400,13 +410,21 @@ iOLDCODE	}Component_Networking;
 	struct tCursorDraw{
 		void *prv;
 	}CursorDraw;
+#ifdef DISABLER	
+#if defined(WRAP_MALLOC) || defined(DEBUG_MALLOC)
+    pthread_mutex_t __memTableGlobalLock;
+    bool __memTable_CheckInit;
+    bool __memTable_ShouldRegisterAllocation;
+    dbl_list_t *__memTable;
+#endif
+#endif
 } * ttglobal;
 #define INSTANCEGLOBAL 1
 #endif
 ttglobal  iglobal_constructor(); 
 void iglobal_destructor(ttglobal);
 //void set_thread2global(ttglobal fwl, pthread_t any , char *desc);
-
+void resetGGlobal();
 ttglobal gglobal(); //gets based on threadID, errors out if no threadID
 //ppcommon gglobal_common(); // lets the front end get the myMenuStatus without hassle. dug9 Mar2014: poll for the values with get_status, get_... in common.c
 ttglobal gglobal0(); //will return null if thread not yet initialized

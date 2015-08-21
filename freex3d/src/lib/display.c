@@ -93,7 +93,7 @@ void display_init(struct tdisplay* d)
 	d->quadbuff_stereo_mode = 0;
 	memset(&d->rdr_caps,0,sizeof(d->rdr_caps));
 	d->myFps = (float) 0.0;
-} 
+}
 
 
 
@@ -295,6 +295,15 @@ GLvoid resize_GL(GLsizei width, GLsizei height)
 	printf("resize_GL\n");
 }
 
+void fwl_updateScreenDim(int wi, int he)
+{
+	fwl_setScreenDim(wi, he);
+
+	resize_GL(wi, he);
+}
+
+
+
 /**
  * On all platforms, when we don't have GLEW, we simulate it.
  * In any case we setup the rdr_capabilities struct.
@@ -331,6 +340,32 @@ bool initialize_rdr_caps()
 
 	/* rdr_caps.version = "1.5.7"; //"1.4.1"; //for testing */
     rdr_caps.versionf = (float) atof(rdr_caps.version); 
+    if (rdr_caps.versionf == 0) // can't parse output of GL_VERSION, generally in case it is smth. like "OpenGL ES 3.0 V@66.0 AU@ (CL@)". probably 3.x or bigger.
+	{
+        const char *openGLPrefix = "OpenGL ES ";
+        if (NULL != rdr_caps.version && strstr(rdr_caps.version, openGLPrefix))
+        {
+            char version[256], *versionPTR;
+            sprintf(version, "%s", rdr_caps.version);
+            versionPTR = version + strlen(openGLPrefix);
+            rdr_caps.versionf = (float) atof(versionPTR);
+            //free(version);
+        }
+#if defined(GL_ES_VERSION_2_0) && !defined(ANGLEPROJECT)
+        if (0 == rdr_caps.version)
+        {
+            //Try define version with 3.x api
+            GLint major = 0, minor = 0;
+            FW_GL_GETINTEGERV(GL_MAJOR_VERSION, &major);
+            FW_GL_GETINTEGERV(GL_MINOR_VERSION, &minor);
+            char *version;
+            asprintf(&version, "%d.%d", major, minor);
+            rdr_caps.version = version;
+            rdr_caps.versionf = (float) atof(rdr_caps.version);
+            free(version);
+        }
+#endif
+	}
 	/* atof technique: http://www.opengl.org/resources/faq/technical/extensions.htm */
     rdr_caps.have_GL_VERSION_1_1 = rdr_caps.versionf >= 1.1f;
     rdr_caps.have_GL_VERSION_1_2 = rdr_caps.versionf >= 1.2f;
@@ -349,7 +384,8 @@ bool initialize_rdr_caps()
 
 	/* Occlusion Queries */
 	rdr_caps.av_occlusion_q = ((strstr (rdr_caps.extensions, "GL_ARB_occlusion_query") !=0) ||
-                             (strstr(rdr_caps.extensions, "GL_EXT_occlusion_query_boolean") != 0));
+                             (strstr(rdr_caps.extensions, "GL_EXT_occlusion_query_boolean") != 0) ||
+                             rdr_caps.have_GL_VERSION_3_0);
 
 
 	/* Non-power-of-two textures */

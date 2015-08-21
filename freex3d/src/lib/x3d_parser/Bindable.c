@@ -74,7 +74,13 @@ void Bindable_init(struct tBindable *t){
 	t->fog_stack = newVector(struct X3D_Node*, 2);
 	t->navigation_stack = newVector(struct X3D_Node*, 2);
 }
-
+void Bindable_clear(struct tBindable *t){
+	//public
+	 deleteVector(struct X3D_Node*, t->background_stack);
+	 deleteVector(struct X3D_Node*, t->viewpoint_stack);
+	 deleteVector(struct X3D_Node*, t->fog_stack);
+	 deleteVector(struct X3D_Node*, t->navigation_stack);
+}
 /* common entry routine for setting avatar size */
 void set_naviWidthHeightStep(double wid, double hei, double step) {
 	ttglobal tg = gglobal();
@@ -134,9 +140,17 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 			viewer->oktypes[VIEWER_EXFLY] = TRUE;
 			if (i==0) fwl_set_viewer_type(VIEWER_EXFLY);
 		}
-		if (strcmp(typeptr,"YAWPITCHZOOM") == 0) {
-			viewer->oktypes[VIEWER_YAWPITCHZOOM] = TRUE;
-			if (i==0) fwl_set_viewer_type(VIEWER_YAWPITCHZOOM);
+		if (strcmp(typeptr,"EXPLORE") == 0) {
+			viewer->oktypes[VIEWER_EXPLORE] = TRUE;
+			if (i==0) fwl_set_viewer_type(VIEWER_EXPLORE);
+		}
+		if (strcmp(typeptr,"LOOKAT") == 0) {
+			viewer->oktypes[VIEWER_LOOKAT] = TRUE;
+			//if (i==0) fwl_set_viewer_type(VIEWER_LOOKAT);
+		}
+		if (strcmp(typeptr,"SPHERICAL") == 0) {
+			viewer->oktypes[VIEWER_SPHERICAL] = TRUE;
+			if (i==0) fwl_set_viewer_type(VIEWER_SPHERICAL);
 		}
 		if (strcmp(typeptr, "TURNTABLE") == 0) {
 			viewer->oktypes[VIEWER_TURNTABLE] = TRUE;
@@ -147,6 +161,10 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 			viewer->oktypes[VIEWER_WALK] = TRUE;
 			viewer->oktypes[VIEWER_EXFLY] = TRUE;
 			viewer->oktypes[VIEWER_FLY] = TRUE;
+			viewer->oktypes[VIEWER_EXPLORE] = TRUE;
+			viewer->oktypes[VIEWER_LOOKAT] = TRUE;
+			viewer->oktypes[VIEWER_SPHERICAL] = TRUE;
+			viewer->oktypes[VIEWER_TURNTABLE] = TRUE;
 			if (i==0) fwl_set_viewer_type (VIEWER_WALK); /*  just choose one */
 		}
 	}
@@ -393,19 +411,15 @@ void bind_node (struct X3D_Node *node, struct Vector *thisStack) {
 			/* printf ("already have a node here...have to unbind it %p %p\n",node,oldTOS); */
 
 			if (oldTOS != node) { 
-				printf ("can not pop from stack, not top (%p != %p)\n",node,oldTOS);
-if (node->_nodeType == NODE_Viewpoint) {
-printf ("%p Viewpoint, description :%s:\n",node,X3D_VIEWPOINT(node)->description->strptr);
-printf ("%p Viewpoint, description :%s:\n",oldTOS,X3D_VIEWPOINT(oldTOS)->description->strptr);
-printf ("oldTOS, isBound %d, setBindPtr %d\n",*(offsetPointer_deref(int*, oldTOS, isboundofst(oldTOS))), 
-*(offsetPointer_deref(int*, oldTOS, setBindofst(oldTOS))));
-}
-				if(removeNodeFromVector(0, thisStack, node)){
-					if (node->_nodeType == NODE_Viewpoint)
-						printf("but found and removed from stack\n");
-				}else{
-					if (node->_nodeType == NODE_Viewpoint)
+				if(!removeNodeFromVector(0, thisStack, node)){
+					if (node->_nodeType == NODE_Viewpoint){
+						printf ("can not pop from stack, not top (%p != %p)\n",node,oldTOS);
+						printf ("%p Viewpoint, description :%s:\n",node,X3D_VIEWPOINT(node)->description->strptr);
+						printf ("%p Viewpoint, description :%s:\n",oldTOS,X3D_VIEWPOINT(oldTOS)->description->strptr);
+						printf ("oldTOS, isBound %d, setBindPtr %d\n",*(offsetPointer_deref(int*, oldTOS, isboundofst(oldTOS))), 
+						*(offsetPointer_deref(int*, oldTOS, setBindofst(oldTOS))));
 						printf("and not found in stack\n");
+					}
 				}
 				return;
 			} else {

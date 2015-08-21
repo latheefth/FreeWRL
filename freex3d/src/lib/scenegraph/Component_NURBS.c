@@ -58,7 +58,7 @@ typedef struct pComponent_NURBS{
 
 }* ppComponent_NURBS;
 void *Component_NURBS_constructor(){
-	void *v = malloc(sizeof(struct pComponent_NURBS));
+	void *v = MALLOCV(sizeof(struct pComponent_NURBS));
 	memset(v,0,sizeof(struct pComponent_NURBS));
 	return v;
 }
@@ -104,7 +104,7 @@ void CALLBACK nurbscurveVertexcb(GLfloat *vertex, void *ud)
 	np = node->__numPoints;
 	if(np+1 > ns) {
 		ns = np *2;
-		node->__points.p = realloc(node->__points.p,ns * sizeof(struct SFVec3f));
+		node->__points.p = REALLOC(node->__points.p,ns * sizeof(struct SFVec3f));
 		node->__points.n = ns;
 	}
 	pp = &node->__points.p[np];
@@ -162,7 +162,7 @@ void compile_NurbsCurve(struct X3D_NurbsCurve *node){
 				struct Multi_Vec3d *mfd;
 				mfd = &((struct X3D_CoordinateDouble *)(node->controlPoint))->point;
 				n = mfd->n;
-				xyzw = malloc(n * 4 * sizeof(GLfloat));
+				xyzw = MALLOC(void *, n * 4 * sizeof(GLfloat));
 				for(i=0;i<mfd->n;i++){
 					for(j=0;j<3;j++){
 						xyzw[i*4 + j] = mfd->p[i].c[j];
@@ -172,7 +172,7 @@ void compile_NurbsCurve(struct X3D_NurbsCurve *node){
 				struct Multi_Vec3f *mff;
 				mff = &((struct X3D_Coordinate *)(node->controlPoint))->point;
 				n = mff->n;
-				xyzw = malloc(n * 4 * sizeof(GLfloat));
+				xyzw = MALLOC(void *, n * 4 * sizeof(GLfloat));
 				for(i=0;i<mff->n;i++){
 					for(j=0;j<3;j++){
 						xyzw[i*4 + j] = mff->p[i].c[j];
@@ -196,7 +196,7 @@ void compile_NurbsCurve(struct X3D_NurbsCurve *node){
 		}
 		if(node->knot.n && node->knot.n == n + node->order ){
 			nk = node->knot.n;
-			knots = malloc(nk * sizeof(GLfloat));
+			knots = MALLOC(void *, nk * sizeof(GLfloat));
 			for(i=0;i<nk;i++){
 				knots[i] = (GLfloat)node->knot.p[i];
 			}
@@ -208,7 +208,7 @@ void compile_NurbsCurve(struct X3D_NurbsCurve *node){
 			//generate uniform knot vector 
 			nk = n + node->order ;
 			//caller: please malloc knots = malloc( (ncontrol + order ) * sizeof(float))
-			knots = malloc(nk *sizeof(GLfloat));
+			knots = MALLOC(void *, nk *sizeof(GLfloat));
 			generateUniformKnotVector(node->order,n, knots);
 			//printf("bad knot nk=%d\n",nk);
 			//for(int ii=0;ii<nk;ii++)
@@ -236,7 +236,7 @@ void compile_NurbsCurve(struct X3D_NurbsCurve *node){
 					mtess = ntess;
 				else if(ntess < 0) 
 					mtess = -ntess;
-				node->__points.p = malloc(sizeof(struct SFVec3f)*n*10); // just a guess to get started
+				node->__points.p = MALLOC(void *, sizeof(struct SFVec3f)*n*10); // just a guess to get started
 				node->__points.n = n*10;  //.n will be used for realloc test in callbacks
 
 				gluNurbsProperty(theNurb, GLU_SAMPLING_TOLERANCE, (float)(mtess)); //25.0);
@@ -265,7 +265,7 @@ void compile_NurbsCurve(struct X3D_NurbsCurve *node){
 					mtess = max(mtess,(-ntess * n) + 1);
 				else
 					mtess = max(mtess,2*n + 1);
-				node->__points.p = malloc(sizeof(struct SFVec3f)*mtess+1);
+				node->__points.p = MALLOC(void *, sizeof(struct SFVec3f)*mtess+1);
 				node->__points.n = mtess;  //.n will be used for realloc test in callbacks
 				gluNurbsProperty(theNurb,GLU_SAMPLING_METHOD,GLU_DOMAIN_DISTANCE);
 				gluNurbsProperty(theNurb,GLU_U_STEP,(GLfloat)mtess);
@@ -397,10 +397,12 @@ void CALLBACK nurbssurfEndcb(void *ud)
 #endif
 
 void free_polyrep(struct X3D_PolyRep *rep){
+	//see also delete_polyrep - did dug9 duplicate the function or is it different?
 	if(rep){
 		rep->ntri = 0;
 		rep->transparency = 0;
 		//Q. are any of these added to GC tables? If not..
+		glDeleteBuffers(VBO_COUNT, rep->VBO_buffers);
 		FREE_IF_NZ(rep->actualCoord);
 		FREE_IF_NZ(rep->cindex);
 		FREE_IF_NZ(rep->colindex);
@@ -461,12 +463,17 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_PolyRep *rep){
 				nindex += (ss.pv.n -2);
 		}
 	}
-	rep->actualCoord = malloc(npoints * 3 * sizeof(float));
-	rep->normal = malloc(npoints * 3 * sizeof(float));
+    if (npoints > 0)
+    {
+        rep->actualCoord = MALLOC(void *, npoints * 3 * sizeof(float));
+        rep->normal = MALLOC(void *, npoints * 3 * sizeof(float));
+    }
 	rep->ntri = nindex;
-	rep->cindex = malloc(rep->ntri * 4 * sizeof(int));
-	rep->norindex = malloc(rep->ntri * 4 * sizeof(int));
-
+    if (rep->ntri > 0)
+    {
+        rep->cindex = MALLOC(void *, rep->ntri * 4 * sizeof(GLuint));
+        rep->norindex = MALLOC(void *, rep->ntri * 4 * sizeof(GLuint));
+    }
 	np = 0;
 	ni = 0;
 	ntri = 0;
@@ -532,12 +539,13 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_PolyRep *rep){
 
 void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct X3D_TextureCoordinate *texCoordNode);
 void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node *trim){
-	ppComponent_NURBS p = (ppComponent_NURBS)gglobal()->Component_NURBS.prv;
 	MARK_NODE_COMPILED
 #ifdef NURBS_LIB
 	{
 		int i,j, n, nu, nv, nku, nkv;
 		GLfloat *xyzw, *knotsu, *knotsv;
+		ppComponent_NURBS p = (ppComponent_NURBS)gglobal()->Component_NURBS.prv;
+
 		nku = nkv = nu = nv = n = 0;
 		xyzw = knotsu = knotsv = NULL;
 		// I should call something like:
@@ -551,7 +559,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 				struct Multi_Vec3d *mfd;
 				mfd = &((struct X3D_CoordinateDouble *)(node->controlPoint))->point;
 				n = mfd->n;
-				xyzw = malloc(n * 4 * sizeof(GLfloat));
+				xyzw = MALLOC(void *, n * 4 * sizeof(GLfloat));
 				for(i=0;i<mfd->n;i++){
 					for(j=0;j<3;j++){
 						xyzw[i*4 + j] = mfd->p[i].c[j];
@@ -561,7 +569,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 				struct Multi_Vec3f *mff;
 				mff = &((struct X3D_Coordinate *)(node->controlPoint))->point;
 				n = mff->n;
-				xyzw = malloc(n * 4 * sizeof(GLfloat));
+				xyzw = MALLOC(void *, n * 4 * sizeof(GLfloat));
 				for(i=0;i<mff->n;i++){
 					for(j=0;j<3;j++){
 						xyzw[i*4 + j] = mff->p[i].c[j];
@@ -587,7 +595,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 		nv = node->vDimension;
 		if(node->uKnot.n && node->uKnot.n == nu + node->uOrder ){
 			nku = node->uKnot.n;
-			knotsu = malloc(nku * sizeof(GLfloat));
+			knotsu = MALLOC(void *, nku * sizeof(GLfloat));
 			for(i=0;i<nku;i++){
 				knotsu[i] = (GLfloat)node->uKnot.p[i];
 			}
@@ -598,8 +606,8 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 		}else{
 			//generate uniform knot vector 
 			nku = nu + node->uOrder ;
-			//caller: please malloc knots = malloc( (ncontrol + order ) * sizeof(float))
-			knotsu = malloc(nku *sizeof(GLfloat));
+			//caller: please malloc knots = MALLOC(void *,  (ncontrol + order ) * sizeof(float))
+			knotsu = MALLOC(void *, nku *sizeof(GLfloat));
 			generateUniformKnotVector(node->uOrder,nu, knotsu);
 			//printf("bad knot nk=%d\n",nk);
 			//for(int ii=0;ii<nk;ii++)
@@ -609,7 +617,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 
 		if(node->vKnot.n && node->vKnot.n == nv + node->vOrder ){
 			nkv = node->vKnot.n;
-			knotsv = malloc(nkv * sizeof(GLfloat));
+			knotsv = MALLOC(void *, nkv * sizeof(GLfloat));
 			for(i=0;i<nkv;i++){
 				knotsv[i] = (GLfloat)node->vKnot.p[i];
 			}
@@ -620,8 +628,8 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 		}else{
 			//generate uniform knot vector 
 			nkv = nv + node->vOrder ;
-			//caller: please malloc knots = malloc( (ncontrol + order ) * sizeof(float))
-			knotsv = malloc(nkv *sizeof(GLfloat));
+			//caller: please malloc knots = MALLOC(void *,  (ncontrol + order ) * sizeof(float))
+			knotsv = MALLOC(void *, nkv *sizeof(GLfloat));
 			generateUniformKnotVector(node->vOrder,nv, knotsv);
 			//printf("bad knot nk=%d\n",nk);
 			//for(int ii=0;ii<nk;ii++)
@@ -714,7 +722,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 					}else{
 						// 2 x (node.utessselation u + node.vtesselation v) + 1 edge values
 						// except I get a nurbs error with the following
-						GLfloat *edges = malloc( (2 * ntessu + 2 * ntessv) *2*sizeof(GLfloat));
+						GLfloat *edges = MALLOC(void *,  (2 * ntessu + 2 * ntessv) *2*sizeof(GLfloat));
 						GLfloat uspan, vspan;
 						uspan = 1.0/(float)(ntessu -1);
 						vspan = 1.0/(float)(ntessv -1);
@@ -769,7 +777,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 							switch(ctr->_nodeType){
 								case NODE_ContourPolyLine2D:
 									cp2d = (struct X3D_ContourPolyLine2D *)ctr;
-									ctrl = malloc(cp2d->controlPoint.n * 2*sizeof(GLfloat));
+									ctrl = MALLOC(void *, cp2d->controlPoint.n * 2*sizeof(GLfloat));
 									for(j=0;j<cp2d->controlPoint.n;j++) {
 										for(k=0;k<2;k++)
 											ctrl[j*2 + k] = (float)cp2d->controlPoint.p[j].c[k];
@@ -780,10 +788,10 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 								case NODE_NurbsCurve2D:
 									nc2d = (struct X3D_NurbsCurve2D *)ctr;
 									dim = 2;
-									ctrl = malloc(nc2d->controlPoint.n * dim*sizeof(GLfloat));
-									cknot = malloc(nc2d->knot.n * sizeof(GLfloat));
+									ctrl = MALLOC(void *, nc2d->controlPoint.n * dim*sizeof(GLfloat));
+									cknot = MALLOC(void *, nc2d->knot.n * sizeof(GLfloat));
 									if(dim == 3){
-										cweight = malloc(nc2d->controlPoint.n * sizeof(GLfloat));
+										cweight = MALLOC(void *, nc2d->controlPoint.n * sizeof(GLfloat));
 										if(nc2d->weight.n == nc2d->controlPoint.n){
 											for(j=0;j<nc2d->weight.n;j++) cweight[j] = nc2d->weight.p[j];
 										}else{

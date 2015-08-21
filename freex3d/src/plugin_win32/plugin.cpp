@@ -131,9 +131,10 @@ NPBool CPlugin::init(NPWindow* pNPWindow)
   m_hWnd = (long int*) pNPWindow->window;
     
 #endif
-  m_pfreeWRLPlayer = new CdllFreeWRL(pNPWindow->width,pNPWindow->height,pNPWindow->window,m_EAIflag);
+  //m_pfreeWRLPlayer = new CdllFreeWRL(pNPWindow->width,pNPWindow->height,pNPWindow->window,m_EAIflag);
   //m_pfreeWRLPlayer->onInit(pNPWindow->window,pNPWindow->width,pNPWindow->height, m_EAIflag);
-  
+  bool frontend_handles_display_thread = false;
+  m_pfreeWRLPlayer->onInit(pNPWindow->width,pNPWindow->height, pNPWindow->window, m_EAIflag, frontend_handles_display_thread);
 
   //m_pfreeWRLPlayer->onLoad(pNPWindow->window,m_sceneUrl);
   m_pfreeWRLPlayer->onLoad(m_sceneUrl);

@@ -184,6 +184,25 @@ else
    PKG_CHECK_MODULES(LIBCURL, libcurl, AC_DEFINE(HAVE_LIBCURL, 1, [Define if you have the libcurl library.]))
 fi
 
+# ======================================
+# Javascript engine option
+# ======================================
+#javascriptopt = sm
+AC_ARG_WITH([javascriptopt],
+        [AS_HELP_STRING([--with-javascriptopt=OPT],[javascriptopt OPT (stub,sm,duk) for none,spidermonkey or duktape])],
+        [javascriptopt="$withval"],
+        [javascriptopt="sm"])
+
+case "$javascriptopt" in
+     stub|sm|duk) AC_MSG_NOTICE([javascriptopt: $javascriptopt]) ;; # valid input
+     *) AC_MSG_ERROR([Invalid input for javascriptopt: $javascriptopt]) ;;
+esac
+case "$javascriptopt" in
+	stub) AC_DEFINE([JAVASCRIPT_STUB],[1], [Define for no javascript]);;
+	sm) AC_DEFINE([JAVASCRIPT_SM],[1], [Define for spidermonkey js engine]);;
+	duk) AC_DEFINE([JAVASCRIPT_DUK],[1], [Define for duktape js engine]);;
+esac
+
 
 # Javascript engine
 # check order:
@@ -192,10 +211,10 @@ fi
 # seamonkey (firefox-2.0 equivalent packaging)
 # firefox (2.0 or 1.5)
 # firefox (firefox-2.0 possible alternate packaging)
-
-AC_MSG_NOTICE([Determining Javascript engine to build against])
-found_JAVASCRIPT_ENGINE=no
-case "$os_type" in
+if test "$javascriptopt" = "sm"; then
+  AC_MSG_NOTICE([Determining Javascript engine to build against])
+  found_JAVASCRIPT_ENGINE=no
+  case "$os_type" in
      mac)
         AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[spidermonkey],[>=],[1.7.0])
         ;;
@@ -209,26 +228,27 @@ case "$os_type" in
         AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[firefox-js])
         AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[firefox2-js])
         ;;
-esac
+  esac
 
-## if no package yet, test for spidermonkey or other 'js' library
-if test x$found_JAVASCRIPT_ENGINE = xno; then
-  AC_MSG_ERROR([Unable to find an appropriate javascript engine])
-fi
+  ## if no package yet, test for spidermonkey or other 'js' library
+  if test x$found_JAVASCRIPT_ENGINE = xno; then
+    AC_MSG_ERROR([Unable to find an appropriate javascript engine])
+  fi
 
-## Provide a fix for include path for systems with erroneous mozilla-js.pc
-if test x$found_JAVASCRIPT_ENGINE = xmozilla-js; then
-  LIBMOZJS_INCDIR=`$PKG_CONFIG --variable=includedir mozilla-js 2>/dev/null`
-  if (echo $JAVASCRIPT_ENGINE_CFLAGS | egrep '(un)?stable') > /dev/null 2>&1; then
-    if test -f $LIBMOZJS_INCDIR/unstable/jsapi.h; then
-      AC_MSG_NOTICE([Discovered jsapi.h exists in unstable includedir])
-      JAVASCRIPT_ENGINE_CFLAGS="${JAVASCRIPT_ENGINE_CFLAGS/unstable/stable} -DMOZILLA_JS_UNSTABLE_INCLUDES"
-      AC_SUBST(JAVASCRIPT_ENGINE_CFLAGS)
+  ## Provide a fix for include path for systems with erroneous mozilla-js.pc
+  if test x$found_JAVASCRIPT_ENGINE = xmozilla-js; then
+    LIBMOZJS_INCDIR=`$PKG_CONFIG --variable=includedir mozilla-js 2>/dev/null`
+    if (echo $JAVASCRIPT_ENGINE_CFLAGS | egrep '(un)?stable') > /dev/null 2>&1; then
+      if test -f $LIBMOZJS_INCDIR/unstable/jsapi.h; then
+          AC_MSG_NOTICE([Discovered jsapi.h exists in unstable includedir])
+        JAVASCRIPT_ENGINE_CFLAGS="${JAVASCRIPT_ENGINE_CFLAGS/unstable/stable} -DMOZILLA_JS_UNSTABLE_INCLUDES"
+        AC_SUBST(JAVASCRIPT_ENGINE_CFLAGS)
+      fi
     fi
   fi
-fi
 
-AC_MSG_NOTICE([Using $found_JAVASCRIPT_ENGINE for Javascript engine library])
+  AC_MSG_NOTICE([Using $found_JAVASCRIPT_ENGINE for Javascript engine library])
+fi
 
 # XML
 PKG_CHECK_MODULES(XML, libxml-2.0)
@@ -492,6 +512,19 @@ PKG_CHECK_MODULES(PNG, libpng)
 
 # Imlib2
 PKG_CHECK_MODULES(IMLIB2, imlib2)
+
+## OpenAL check
+PKG_CHECK_MODULES([OPENAL], [openal], [
+                    AC_DEFINE([HAVE_OPENAL], [1], [Define if you have OpenAL installed.])
+                    CFLAGS="$CFLAGS $OPENAL_CFLAGS"
+                    LDFLAGS="$LDFLAGS $OPENAL_LIBS"
+                  ],[])
+
+## freeALUT check
+PKG_CHECK_MODULES([ALUT], [freealut], [
+                    AC_DEFINE([HAVE_ALUT], [1], [Define if you have freeALUT installed.])
+                    LDFLAGS="$LDFLAGS $ALUT_LIBS"
+                  ],[])
 
 # ======================================
 # LibFreeWRLEAI configuration

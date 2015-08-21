@@ -4,20 +4,19 @@
 // that uses this DLL. This way any other project whose source files include this file see 
 // DLLFREEWRL_API functions as being imported from a DLL, whereas this DLL sees symbols
 // defined with this macro as being exported.
+#ifdef _MSC_VER
 #ifdef DLLFREEWRL_EXPORTS
 #define DLLFREEWRL_API __declspec(dllexport)
 #else
 #define DLLFREEWRL_API __declspec(dllimport)
 #endif
+#else
+#define DLLFREEWRL_API
+#endif
 
 // This class is exported from the dllFreeWRL.dll
 class DLLFREEWRL_API CdllFreeWRL {
-
-	typedef int (__stdcall *OnProcessingAICommands)(int timeout);
-
 public:
-	void *windowhandle;
-	void *globalcontexthandle;
 	CdllFreeWRL();
 	CdllFreeWRL(int width, int height, void* windowhandle=0, bool bEai = false);
 	CdllFreeWRL(char *scene_url, int width, int height, void* windowhandle=0, bool bEai = false);
@@ -53,15 +52,8 @@ public:
 	void resitem_setLocalPath(void *res, char* path);
 	void resitem_enqueue(void *res);
 	void resitem_load(void *res);
-	//void __stdcall setProcessingAICommandsCallback(OnProcessingAICommands func);
 	
 private:
-	
-
-	char *url;
-	
+	void *globalcontexthandle;
 };
 
-extern DLLFREEWRL_API int ndllFreeWRL;
-
-DLLFREEWRL_API int fndllFreeWRL(void);

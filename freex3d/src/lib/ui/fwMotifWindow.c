@@ -353,7 +353,7 @@ void fv_aboutFreeWRLpopUp (Widget w, XtPointer data, XtPointer callData)
     rdr = (char *)gglobal()->display.rdr_caps.renderer;
     vendor = (char *)gglobal()->display.rdr_caps.vendor;
 
-    msg = malloc(strlen(ABOUT_FREEWRL) + strlen(ver) 
+    msg = MALLOC(void *, strlen(ABOUT_FREEWRL) + strlen(ver)
 		 + strlen(rdr) + strlen(vendor));
     sprintf(msg, ABOUT_FREEWRL, ver, rdr, vendor);
 

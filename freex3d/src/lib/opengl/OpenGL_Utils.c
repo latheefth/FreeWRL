@@ -71,7 +71,7 @@
 
 void kill_rendering(void);
 
-static void killNode_hide_obsolete (int index);
+//static void killNode_hide_obsolete (int index);
 
 static void mesa_Frustum(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ, GLDOUBLE *m);
 
@@ -90,6 +90,8 @@ struct shaderTableEntry {
     s_shader_capabilities_t *myCapabilities;
 
 };
+
+int unload_broto(struct X3D_Proto* node);
 
 static void mesa_Ortho(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ, GLDOUBLE *m);
 static void getShaderCommonInterfaces (s_shader_capabilities_t *me);
@@ -151,11 +153,59 @@ typedef struct pOpenGL_Utils{
 	int maxStackUsed;
 }* ppOpenGL_Utils;
 
-
-
+#ifdef DISABLER
+void fwl_glGenQueries(GLsizei n, GLuint* ids)
+{
+#if defined(IPHONE)
+    ttglobal tg = gglobal();
+    if (tg->display.rdr_caps.have_GL_VERSION_3_0)
+    {
+        glGenQueries(n, ids);
+    }
+    else
+    {
+        glGenQueriesEXT(n, ids);
+    }
+#else
+    glGenQueries(n, ids);
+#endif
+}
+void fwl_glDeleteQueries(GLsizei n, const GLuint* ids)
+{
+#if defined(IPHONE)
+    ttglobal tg = gglobal();
+    if (tg->display.rdr_caps.have_GL_VERSION_3_0)
+    {
+        glDeleteQueries(n, ids);
+    }
+    else
+    {
+        glDeleteQueriesEXT(n, ids);
+    }
+#else
+    glDeleteQueries(n, ids);
+#endif
+}
+void fwl_glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint* params)
+{
+#if defined(IPHONE)
+    ttglobal tg = gglobal();
+    if (tg->display.rdr_caps.have_GL_VERSION_3_0)
+    {
+        glGetQueryObjectuiv(id, pname, params);
+    }
+    else
+    {
+        glGetQueryObjectuivEXT(id, pname, params);
+    }
+#else
+    glGetQueryObjectuiv(id, pname, params);
+#endif
+}
+#endif
 
 void *OpenGL_Utils_constructor(){
-	void *v = malloc(sizeof(struct pOpenGL_Utils));
+	void *v = MALLOCV(sizeof(struct pOpenGL_Utils));
 	memset(v,0,sizeof(struct pOpenGL_Utils));
 	return v;
 }
@@ -175,9 +225,9 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
 		ppOpenGL_Utils p = (ppOpenGL_Utils)t->prv;
 		p->linearNodeTable = NULL;
 		p->potentialHoleCount = 0;
-		p->cc_red = 0.0f;
-		p->cc_green = 0.0f;
-		p->cc_blue = 0.0f;
+		p->cc_red = 1.0f;
+		p->cc_green = 1.0f;
+		p->cc_blue = 1.0f;
 		p->cc_alpha = 1.0f;
 		//p->memtablelock = PTHREAD_MUTEX_INITIALIZER;
 		pthread_mutex_init(&(p->memtablelock), NULL);
@@ -212,7 +262,24 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
 		p->maxStackUsed = 0;
 	}
 }
-
+void OpenGL_Utils_clear(struct tOpenGL_Utils *t)
+{
+	//public
+	//private
+	{
+		ppOpenGL_Utils p = (ppOpenGL_Utils)t->prv;
+		deleteVector(struct X3D_Node*,p->linearNodeTable);
+		if(p->myShaderTable){
+			int i;
+			for(i=0;i<vectorSize(p->myShaderTable);i++){
+				struct shaderTableEntry *entry = vector_get(struct shaderTableEntry *,p->myShaderTable,i);
+				FREE_IF_NZ(entry->myCapabilities);
+				FREE_IF_NZ(entry);
+			}
+			deleteVector(struct shaderTableEntry *, p->myShaderTable);
+		}
+	}
+}
 #ifdef GLEW_MX
 GLEWContext * glewGetContext()
 {
@@ -258,7 +325,9 @@ void kill_userDefinedShaders() {
 	for (i=0; i <vectorSize(p->myShaderTable); i++) {
         	struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,p->myShaderTable, i);
 		FREE_IF_NZ(me->myCapabilities);
-		me->whichOne = 0;
+	
+		//me->whichOne = 0;
+		FREE_IF_NZ(me);
 	}
 
 	// set the vector to 0 size. we will keep the Vector around, for the next set
@@ -520,16 +589,16 @@ void fwl_set_FillPropStatus (struct Vector **shapeNodes, int whichEntry, int yes
 			ap = createNewX3DNode(NODE_Appearance);
 			AddRemoveSFNodeFieldChild(node,
 				offsetPointer_deref(struct X3D_Node **,node,offsetof (struct X3D_Shape, appearance)),
-				ap,0,__FILE__,__LINE__);
+				X3D_NODE(ap),0,__FILE__,__LINE__);
 
 			mat = createNewX3DNode(NODE_Material);
-			AddRemoveSFNodeFieldChild(ap,
+			AddRemoveSFNodeFieldChild(X3D_NODE(ap),
 				offsetPointer_deref(struct X3D_Node **,ap,offsetof (struct X3D_Appearance, material)),
-				mat,0,__FILE__,__LINE__);
+				X3D_NODE(mat),0,__FILE__,__LINE__);
 
 		}
 
-		ap = X3D_SHAPE(node)->appearance;
+		ap = X3D_APPEARANCE(X3D_SHAPE(node)->appearance);
 
 		// create the node, then "set" it in place. If a node previously existed in the
 		// fillProperties field, then it gets removed by AddRemoveChild
@@ -537,7 +606,7 @@ void fwl_set_FillPropStatus (struct Vector **shapeNodes, int whichEntry, int yes
 		if (ap->fillProperties == NULL) {
 			//ConsoleMessage ("fwl_set_FillPropStatus, creating a FillProperties");
 			fp = X3D_FILLPROPERTIES(createNewX3DNode(NODE_FillProperties));
-			AddRemoveSFNodeFieldChild(ap,
+			AddRemoveSFNodeFieldChild(X3D_NODE(ap),
 				offsetPointer_deref(struct X3D_Node **,X3D_NODE(ap),offsetof (struct X3D_Appearance, fillProperties)),
 				X3D_NODE(fp),0,__FILE__,__LINE__);
 		} else {
@@ -557,7 +626,7 @@ void fwl_set_FillPropStatus (struct Vector **shapeNodes, int whichEntry, int yes
 			offsetPointer_deref(struct X3D_Node **,X3D_NODE(X3D_SHAPE(node)->appearance),offsetof (struct X3D_Appearance, fillProperties)),
 			X3D_NODE(fp),2,__FILE__,__LINE__);
 		*/
-		ap = X3D_SHAPE(node)->appearance;
+		ap = X3D_APPEARANCE(X3D_SHAPE(node)->appearance);
 		if (ap != NULL) {
 			if (ap->fillProperties != NULL) {
 				struct X3D_FillProperties *fp = X3D_FILLPROPERTIES(ap->fillProperties);
@@ -800,15 +869,15 @@ int fwl_set_MaterialExisting(struct Vector **shapeNodes, int whichEntry) {
 		ap = createNewX3DNode(NODE_Appearance);
 		AddRemoveSFNodeFieldChild(node,
 			offsetPointer_deref(struct X3D_Node **,node,offsetof (struct X3D_Shape, appearance)),
-			ap,0,__FILE__,__LINE__);
+			X3D_NODE(ap),0,__FILE__,__LINE__);
 
 		mat = createNewX3DNode(NODE_TwoSidedMaterial);
-		AddRemoveSFNodeFieldChild(ap,
+		AddRemoveSFNodeFieldChild(X3D_NODE(ap),
 			offsetPointer_deref(struct X3D_Node **,ap,offsetof (struct X3D_Appearance, material)),
-			mat,0,__FILE__,__LINE__);
+			X3D_NODE(mat),0,__FILE__,__LINE__);
 	}
 
-	ap = X3D_SHAPE(node)->appearance;
+	ap = X3D_APPEARANCE(X3D_SHAPE(node)->appearance);
 	//ConsoleMessage ("so, at this point in time, we have an appearance, type %s",stringNodeType(ap->_nodeType));
 
 	// create the node, then "set" it in place. If a node previously existed in the
@@ -816,10 +885,10 @@ int fwl_set_MaterialExisting(struct Vector **shapeNodes, int whichEntry) {
 
 	if (ap->material == NULL) {
 		//ConsoleMessage ("fwl_set_MaterialPropStatus, creating a MaterialProperties");
-		fp = X3D_TWOSIDEDMATERIAL(createNewX3DNode(NODE_TwoSidedMaterial));
-		AddRemoveSFNodeFieldChild(ap,
+		tsm = X3D_TWOSIDEDMATERIAL(createNewX3DNode(NODE_TwoSidedMaterial));
+		AddRemoveSFNodeFieldChild(X3D_NODE(ap),
 			offsetPointer_deref(struct X3D_Node **,X3D_NODE(ap),offsetof (struct X3D_Appearance, material)),
-			X3D_NODE(fp),0,__FILE__,__LINE__);
+			X3D_NODE(tsm),0,__FILE__,__LINE__);
 	}
 
 	tsm = X3D_TWOSIDEDMATERIAL(ap->material);
@@ -827,7 +896,7 @@ int fwl_set_MaterialExisting(struct Vector **shapeNodes, int whichEntry) {
 
 	// do we have to change a Material to TwoSidedMaterial??
 	if (tsm->_nodeType != NODE_TwoSidedMaterial) {
-		struct X3D_Material *mat = tsm;
+		struct X3D_Material *mat = X3D_MATERIAL(tsm);
 		struct X3D_TwoSidedMaterial *ntsm = createNewX3DNode(NODE_TwoSidedMaterial);
 		if (mat->_nodeType == NODE_Material) {
 			//copy over the fields
@@ -849,9 +918,9 @@ int fwl_set_MaterialExisting(struct Vector **shapeNodes, int whichEntry) {
 		}
 
 		// now, make the child our TwoSidedMaterial node
-		AddRemoveSFNodeFieldChild(ap,
+		AddRemoveSFNodeFieldChild(X3D_NODE(ap),
 			offsetPointer_deref(struct X3D_Node **,ap,offsetof (struct X3D_Appearance, material)),
-			ntsm,0,__FILE__,__LINE__);
+						X3D_NODE(ntsm),0,__FILE__,__LINE__);
 	} else {
 		// We DO have a TwoSidedMaterial...
 		twoSided = X3D_TWOSIDEDMATERIAL(tsm)->separateBackColor;
@@ -1331,8 +1400,10 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap0) {
       if (!haveDoneThis) {
           haveDoneThis = true;
           if (!b) {
-	      ConsoleMessage("NO SHADER COMPILER - have to sometime figure out binary shader distros");
-	      return NULL;
+			//I found desktop openGL version 2.1.2  comes in here, but does still render OK
+			//ConsoleMessage("NO SHADER COMPILER - have to sometime figure out binary shader distros");
+			ConsoleMessage("no shader compiler\n");
+			return NULL;
           }
       }
 #endif
@@ -1682,9 +1753,11 @@ if (backFacing) { \n \
   return clamp(vec4(vec3(ambient+diffuse+specular+emissive),myAlph), 0.0, 1.0);\n\
 }\n\
 ";
+#ifdef USING_SHADER_LIGHT_ARRAY_METHOD
 //============= USING_SHADER_LIGHT_ARRAY_METHOD FOR LIGHTS==================
 //used for angleproject winRT d3d11 (which can't/doesn't convert GLSL struct[] array to HLSL properly - just affects lights)
 //will break custom shader node vertex/pixel shaders that try to use gl_LightSource[] ie teapot-Toon.wrl
+
 static const GLchar *lightDefinesArrayMethod = "\
 struct fw_MaterialParameters {\n\
   vec4 emission;\n\
@@ -1828,6 +1901,8 @@ if (backFacing) { \n \
   return clamp(vec4(vec3(ambient+diffuse+specular+emissive),myAlph), 0.0, 1.0);\n\
 }\n\
 ";
+
+#endif
 
 /* FRAGMENT bits */
 //#if defined (GL_HIGH_FLOAT) &&  defined(GL_MEDIUM_FLOAT)
@@ -2629,7 +2704,7 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 			char uniformName[100];
 			me->haveLightInShader = false;
 #ifdef USING_SHADER_LIGHT_ARRAY_METHOD
-
+			char* sndx;
 			for (i = 0; i<MAX_LIGHTS; i++) {
 				char* sndx;
 				/* go through and modify the array for each variable */
@@ -2860,9 +2935,9 @@ static void handle_GeoLODRange(struct X3D_GeoLOD *node) {
 		#endif
 
 		/* initialize the "children" field, if required */
-		if (node->children.p == NULL) node->children.p=MALLOC(void *,sizeof(void *) * 4);
+		if (node->children.p == NULL) node->children.p=MALLOC(struct X3D_Node **,sizeof(struct X3D_Node *) * 4);
 
-		if (node->__inRange == TRUE) { //dug9 FALSE) {
+		if (node->__inRange ==  TRUE) { 
 			#ifdef VERBOSE
 			printf ("GeoLOD %u level %d, inRange set to FALSE, range %lf\n",node, node->__level, node->range);
 			#endif
@@ -3127,14 +3202,14 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
     }
 
 	/* lets use these values; leave room for a Background or TextureBackground node here */
-	viewer->nearPlane = cnp;
+	viewer->nearPlane = min(cnp,DEFAULT_NEARPLANE);
 	/* backgroundPlane goes between the farthest geometry, and the farPlane */
 	if (vectorSize(tg->Bindable.background_stack)!= 0) {
-		viewer->farPlane = cfp * 10.0;
-		viewer->backgroundPlane = cfp*5.0;
+		viewer->farPlane = max(cfp * 10.0,DEFAULT_FARPLANE);
+		viewer->backgroundPlane = max(cfp*5.0,DEFAULT_BACKGROUNDPLANE);
 	} else {
-		viewer->farPlane = cfp;
-		viewer->backgroundPlane = cfp; /* just set it to something */
+		viewer->farPlane = max(cfp,DEFAULT_FARPLANE);
+		viewer->backgroundPlane = max(cfp,DEFAULT_BACKGROUNDPLANE); /* just set it to something */
 	}
 }
 
@@ -3398,13 +3473,13 @@ void fw_glLoadIdentity(void) {
 	FW_GL_LOADMATRIX(p->currentMatrix);
 }
 
-#define PUSHMAT(a,b,c,d) case a: \
-	b++;\
-	if (b>=c) {b=c-1; \
-		printf ("stack overflow, whichmode %d\n",p->whichMode); } \
-	memcpy ((void *)d[b], (void *)d[b-1],sizeof(GLDOUBLE)*16);\
-	p->currentMatrix = d[b];\
-	break;
+//#define PUSHMAT(a,b,c,d) case a: \
+//	b++;\
+//	if (b>=c) {b=c-1; \
+//		printf ("stack overflow, whichmode %d\n",p->whichMode); } \
+//	memcpy ((void *)d[b], (void *)d[b-1],sizeof(GLDOUBLE)*16);\
+//	p->currentMatrix = d[b];\
+//	break;
 
 MATRIX4* PushMat( int a, int *b, int c, MATRIX4 *d){
 	(*b)++;
@@ -3446,9 +3521,9 @@ void fw_glPushMatrix(void) {
 //
 // 	FW_GL_LOADMATRIX(p->currentMatrix);
 //}
-#undef PUSHMAT
+//#undef PUSHMAT
 
-#define POPMAT(a,b,c) case a: b--; if (b<0) {b=0;printf ("popMatrix, stack underflow, whichMode %d\n",p->whichMode);} p->currentMatrix = c[b]; break;
+//#define POPMAT(a,b,c) case a: b--; if (b<0) {b=0;printf ("popMatrix, stack underflow, whichMode %d\n",p->whichMode);} p->currentMatrix = c[b]; break;
 MATRIX4 *PopMat(int a, int *b, MATRIX4 *c){
 	(*b)--;
 	if (*b < 0) {
@@ -3483,7 +3558,7 @@ void fw_glPopMatrix(void) {
 //
 //	FW_GL_LOADMATRIX(p->currentMatrix);
 //}
-#undef POPMAT
+//#undef POPMAT
 
 
 void fw_glTranslated(GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
@@ -3654,6 +3729,30 @@ void fw_glGetDoublev (int ty, GLDOUBLE *mat) {
 	memcpy((void *)mat, (void *) dp, sizeof (GLDOUBLE) * MATRIX_SIZE);
 }
 
+void fw_glSetDoublev (int ty, GLDOUBLE *mat) {
+	GLDOUBLE *dp;
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+
+/*
+	switch (ty) {
+		case GL_PROJECTION_MATRIX: printf ("getDoublev(GL_PROJECTION_MATRIX)\n"); break;
+		case GL_MODELVIEW_MATRIX: printf ("getDoublev(GL_MODELVIEW_MATRIX)\n"); break;
+		case GL_TEXTURE_MATRIX: printf ("getDoublev(GL_TEXTURE_MATRIX)\n"); break;
+	}
+*/
+
+	switch (ty) {
+		case GL_PROJECTION_MATRIX: dp = p->FW_ProjectionView[p->projectionviewTOS]; break;
+		case GL_MODELVIEW_MATRIX: dp = p->FW_ModelView[p->modelviewTOS]; break;
+		case GL_TEXTURE_MATRIX: dp = p->FW_TextureView[p->textureviewTOS]; break;
+		//case GL_PICKRAY_MATRIX: dp = p->FW_PickrayView[p->pickrayviewTOS]; break;
+		default: {
+		printf ("invalid mode sent in it is %d, expected one of %d %d %d\n",ty,GL_PROJECTION_MATRIX,GL_MODELVIEW_MATRIX,GL_TEXTURE_MATRIX);
+			return;}
+	}
+	memcpy((void *) dp, (void *)mat, sizeof (GLDOUBLE) * MATRIX_SIZE);
+}
+
 
 /* for Sarah's front end - should be removed sometime... */
 void kill_rendering() {
@@ -3668,15 +3767,15 @@ void kill_rendering() {
    ones, really, it's just replace the rootNode children, as WE DO NOT KNOW
    what the user has programmed, and what nodes are (re) used in the Scene Graph */
 
-
+void killNodes();
 
 void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	int i;
+	struct X3D_Node* rootnode;
 	#ifndef AQUA
         char mystring[20];
 	#endif
 	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
-
     //printf ("kill_oldWorld called...\n");
 
 
@@ -3713,32 +3812,37 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 
 
     /* mark all rootNode children for Dispose */
-    if (rootNode() != NULL) {
-		struct Multi_Node *children, *sortedChildren;
-
-		if(usingBrotos()>1) {
-			children = &X3D_PROTO(rootNode())->__children;
-			sortedChildren = &X3D_PROTO(rootNode())->_sortedChildren;
+	rootnode = rootNode();
+    if (rootnode != NULL) {
+		if(usingBrotos()>1 && rootnode->_nodeType == NODE_Proto){
+			unload_broto(X3D_PROTO(rootnode));
 		}else{
-			children = &X3D_GROUP(rootNode())->children;
-			sortedChildren = &X3D_GROUP(rootNode())->_sortedChildren;
+			struct Multi_Node *children, *sortedChildren;
+
+			if(usingBrotos()>1) {
+				children = &X3D_PROTO(rootNode())->__children;
+				sortedChildren = &X3D_PROTO(rootNode())->_sortedChildren;
+			}else{
+				children = &X3D_GROUP(rootNode())->children;
+				sortedChildren = &X3D_GROUP(rootNode())->_sortedChildren;
+			}
+			//children = childrenField(rootNode());
+			if (children->n != 0) {
+				for (i=0; i<children->n; i++) {
+					markForDispose(children->p[i], TRUE);
+				}
+			}
+			//if (sortedChildren->n != 0) {
+			//    for (i=0; i<sortedChildren->n; i++) {
+			//        markForDispose(sortedChildren->p[i], TRUE);
+			//    }
+			//}
+
+
+			/* stop rendering */
+			sortedChildren->n = 0;
+			children->n = 0;
 		}
-		//children = childrenField(rootNode());
-        if (children->n != 0) {
-            for (i=0; i<children->n; i++) {
-                markForDispose(children->p[i], TRUE);
-            }
-        }
-        //if (sortedChildren->n != 0) {
-        //    for (i=0; i<sortedChildren->n; i++) {
-        //        markForDispose(sortedChildren->p[i], TRUE);
-        //    }
-        //}
-
-
-        /* stop rendering */
-		sortedChildren->n = 0;
-        children->n = 0;
     }
 
 	/* close the Console Message system, if required. */
@@ -3794,7 +3898,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	if (globalParser != NULL) {
 		parser_destroyData(globalParser);
 		//globalParser = NULL;
-		gglobal()->CParse.globalParser = NULL;
+		//moved to CParse_clear gglobal()->CParse.globalParser = NULL;
 	}
 
 	kill_X3DDefs();
@@ -3803,7 +3907,36 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	viewer_default();
 	setMenuStatus("NONE");
 }
-
+void unload_globalParser() {
+	// unload any string tables, and signal to any replacworld scene that it needs a new parser+lexer struct
+	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
+	if(globalParser){
+		parser_destroyData(globalParser); //destroys lexer data too
+		FREE_IF_NZ(globalParser->lexer);
+	}
+	FREE_IF_NZ(globalParser);
+	gglobal()->CParse.globalParser = NULL; //set to null to trigger a fresh createParser on replaceworld
+}
+void unload_libraryscenes();
+void freeMallocedNodeFields(struct X3D_Node* node);
+void reset_Browser(){
+	// erase old world but keep gglobal in good shape, ie everything in _init() functions still good
+	// -gglobal is erased elsewhere in finalizeRenderSceneUpdateScene()
+	// also don't erase browser metadata key,value pairs, which could be avatar state to be 
+	// carried over between room-scenes in multi-scene game
+	struct X3D_Node *rootnode = rootNode();
+    if (rootnode != NULL) {
+		if(usingBrotos()>1 && rootnode->_nodeType == NODE_Proto){
+			unload_broto(X3D_PROTO(rootnode)); //we still want a rootnode: empty and waiting for parsing (destroy in finalizeRenderSceneUpdateScene only on exit)
+			unload_globalParser();
+			resource_tree_destroy();
+			unload_libraryscenes(); //debate: should proto libraryscenes hang around in case the same protos are used in a different, anchored-to scene?
+			kill_javascript();
+		}else{
+			kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+		}
+	}
+}
 
 
 #if  defined (_ANDROID)
@@ -4046,6 +4179,7 @@ static void sortChildren (int line, struct Multi_Node *ch, struct Multi_Node *so
 		FREE_IF_NZ(sortedCh->p); //Mar 11, 2014:
 		sortedCh->p = MALLOC(void *, sizeof (struct X3DNode *) * nc);
 		memcpy(sortedCh->p, ch->p, sizeof(struct X3DNode *) * nc); //ATOMIC-OP - ch->p gets realloced frequently, we need a snapshot which may be bigger than nc above
+		sortedCh->n = nc;
 	}
 
 	#ifdef VERBOSE
@@ -4123,7 +4257,9 @@ void zeroVisibilityFlag(void) {
 				node->_renderFlags = node->_renderFlags | VF_hasVisibleChildren;
 			}
 		}
-	} else {
+	}
+    else if (p->linearNodeTable)
+    {
 		/* we do... lets zero the hasVisibleChildren flag */
 		for (i=0; i<vectorSize(p->linearNodeTable); i++){
 			node = vector_get(struct X3D_Node *,p->linearNodeTable,i);
@@ -4337,7 +4473,11 @@ void printStatsNodes(){
 
 	ConsoleMessage("%25s %d\n","Nodes count", p->linearNodeTable->n);
 }
-void killNodes(){
+
+int unRegisterX3DAnyNode(struct X3D_Node *node);
+
+void killNodes()
+{
 	int i;
 	struct X3D_Node* node;
 	ppOpenGL_Utils p;
@@ -4350,6 +4490,7 @@ void killNodes(){
 			if (node->referenceCount <= 0) {
 				//ConsoleMessage ("%d ref %d\n",i,node->referenceCount);
 				//killNode(i);
+				unRegisterX3DAnyNode(node);
 				FREE_IF_NZ(node);
 				vector_set(struct X3D_Node *,p->linearNodeTable,i,NULL);
 			}
@@ -4378,7 +4519,7 @@ void startOfLoopNodeUpdates(void) {
 	size_t offsetOfChildrenPtr;
 
 	/* process one inline per loop; do it outside of the lock/unlock memory table */
-	struct Vector *loadInlines;
+	//struct Vector *loadInlines;
 	ppOpenGL_Utils p;
 	ttglobal tg = gglobal();
 	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
@@ -4390,7 +4531,7 @@ void startOfLoopNodeUpdates(void) {
 	removeChildren = NULL;
 	childrenPtr = NULL;
 	parentVector = NULL;
-	loadInlines = NULL;
+	//loadInlines = NULL;
 	offsetOfChildrenPtr = 0;
 
 	/* assume that we do not have any sensitive nodes at all... */
@@ -4411,6 +4552,8 @@ void startOfLoopNodeUpdates(void) {
 		node = vector_get(struct X3D_Node *,p->linearNodeTable,i);
 		if (node != NULL) {
 			if (node->referenceCount <= 0) {
+				//unload_brotos -a new way to clean out an old scene of 2014- doesn't rely on reference counting 
+				// when cleaning up a scene - it calls unregisterX3Dnode()
 				//ConsoleMessage ("%d ref %d\n",i,node->referenceCount);
 				//killNode(i);
 				FREE_IF_NZ(node);
@@ -5095,6 +5238,7 @@ void markForDispose(struct X3D_Node *node, int recursive){
 		} \
 	}
 
+#ifdef OLDCODE
 #define DELETE_IF_IN_STACK(aaa) \
 	if (tg->Bindable.aaa) { \
 		bool foundIt = FALSE; \
@@ -5117,13 +5261,20 @@ void markForDispose(struct X3D_Node *node, int recursive){
 			tg->Bindable.aaa = newStack; \
 		} \
 	}
+#endif
 
 //#define WRLMODE(val) (((val) % 4)+4) //jan 2013 codegen PROTOKEYWORDS[] was ordered with x3d synonyms first, wrl last
 //#define X3DMODE(val)  ((val) % 4)
-BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackData)
+#ifndef DISABLER
+BOOL walk_fields(struct X3D_Node* node, BOOL (*callbackFunc)(), void* callbackData)
+#else
+BOOL walk_fields(struct X3D_Node* node, BOOL (*callbackFunc)(void *callbackData,struct X3D_Node* node,int jfield,union anyVrml *fieldPtr,
+                                            const char *fieldName, indexT mode, indexT type,int isource,BOOL publicfield), void* callbackData)
+#endif
 {
 	//field isource: 0=builtin 1=script user field 2=shader_program user field 3=Proto/Broto user field 4=group __protoDef
-	int type,mode,source,publicfield;
+	int type,mode,source;
+	BOOL publicfield;
 	int *fieldOffsetsPtr;
 	int jfield;
 	union anyVrml *fieldPtr;
@@ -5164,7 +5315,7 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 			//lexer_stringUser_fieldName(me->lexer, name, mode);
 			//struct VRMLParser* parser;
 			//struct VRMLLexer* lexer;
-			ttglobal tg = gglobal();
+			//ttglobal tg = gglobal();
 			//lexer = NULL;
 			//parser = tg->CParse.globalParser;
 			//if (parser)
@@ -5210,20 +5361,23 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 						int j; //, nameIndex;
 						struct ProtoFieldDecl* pfield;
 						struct X3D_Proto* pnode = (struct X3D_Proto*)node;
-						struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
-						if(pstruct)
-						for(j=0; j!=vectorSize(pstruct->iface); ++j)
-						{
-							pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, j);
-							mode = pfield->mode;
-							fname = pfield->cname;
-							type = pfield->type;
-							fieldPtr = &pfield->defaultVal;
-							source = 3;
-							jfield = j;
-							foundField = callbackFunc(callbackData,node,jfield,fieldPtr,fname,mode,type,source,publicfield);
-							if( foundField)
-								break;
+						if(pnode) {
+							struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
+							if(pstruct)
+							if(pstruct->iface)
+							for(j=0; j!=vectorSize(pstruct->iface); ++j)
+							{
+								pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, j);
+								mode = pfield->mode;
+								fname = pfield->cname;
+								type = pfield->type;
+								fieldPtr = &pfield->defaultVal;
+								source = 3;
+								jfield = j;
+								foundField = callbackFunc(callbackData,node,jfield,fieldPtr,fname,mode,type,source,publicfield);
+								if( foundField)
+									break;
+							}
 						}
 					}
 				case NODE_Group:
@@ -5293,9 +5447,9 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 		and whether or not it's routed anywhere, the script is not put into the nodes' parent list)
 	HTH
 */
-int isManagedField(int mode, int type, int isPublic)
+BOOL isManagedField(int mode, int type, BOOL isPublic)
 {
-	int isManaged = (type == FIELDTYPE_SFNode || type == FIELDTYPE_MFNode);
+	BOOL isManaged = (type == FIELDTYPE_SFNode || type == FIELDTYPE_MFNode);
 	isManaged = isManaged && (mode == PKW_initializeOnly || mode == PKW_inputOutput);
 	isManaged = isManaged && isPublic;
 	return isManaged;
@@ -5314,7 +5468,7 @@ void indentf(int indent){
 
 void print_node_links0(struct X3D_Node* sfn, int *level);
 BOOL cbPrintLinks(void *callbackData,struct X3D_Node* node,int jfield,
-	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,int publicfield)
+	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,BOOL publicfield)
 {
 	int *level = (int*)callbackData;
 	(*level)++;
@@ -5387,7 +5541,7 @@ void print_node_links(struct X3D_Node* sfn)
 
 
 BOOL cbUnlinkChild(void *callbackData,struct X3D_Node* node,int jfield,
-	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,int publicfield)
+	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,BOOL publicfield)
 {
 	if(isManagedField(mode,type,publicfield)){
 		if(type == FIELDTYPE_SFNode){
@@ -5403,7 +5557,7 @@ BOOL cbUnlinkChild(void *callbackData,struct X3D_Node* node,int jfield,
 	return FALSE; //false to keep walking fields, true to break out
 }
 BOOL cbUnlinkParent(void *callbackData,struct X3D_Node* parent,int jfield,
-	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,int publicfield)
+	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,BOOL publicfield)
 {
 	struct X3D_Node* node = X3D_NODE(callbackData);
 	if(isManagedField(mode,type,publicfield)){
@@ -5440,7 +5594,170 @@ void unlink_node(struct X3D_Node* node)
 		}
 	}
 }
-/*delete node created*/
+
+void deleteMallocedFieldValue(int type,union anyVrml *fieldPtr);
+BOOL cbFreeMallocedBuiltinField(void *callbackData,struct X3D_Node* node,int jfield,
+	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,BOOL publicfield)
+{
+	//for builtins, the field is malloced as part of the node size, so we don't free the field itself
+	// .. just if its a complex field type holding a malloced pointer
+	// .. like MF.p or SFString.ptr
+	// and only if the node owns the pointer, which we determine by if the field is initializeOnly or inputOutput
+	if(source == 0){
+		//if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
+		if(1){
+			//#define FIELDTYPE_FreeWRLPTR	22
+			//#define FIELDTYPE_SFImage	23
+			//if(strcmp(fieldName,"__oldurl") && strcmp(fieldName,"__oldSFString") && strcmp(fieldName,"__oldMFString") && strcmp(fieldName,"_parentVector")) {
+			if(strcmp(fieldName,"__oldurl") && strcmp(fieldName,"_parentVector")) {
+			//if(1){
+				//skip double underscore prefixed fields, which we will treat as not-to-be-deleted, because duplicates like GeoViewpoint __oldMFString which is a duplicate of navType
+				deleteMallocedFieldValue(type,fieldPtr);
+				if(type == FIELDTYPE_FreeWRLPTR){
+					if(!strncmp(fieldName,"__x",3) || !strncmp(fieldName,"__v",3)) {  //May 2015 special field name prefixes __x and __v signals OK to FREE_IF_NZ
+						FREE_IF_NZ(fieldPtr->sfnode); //free it as a pointer
+					}
+				}
+			}
+		}
+	}
+	return FALSE; //false to keep walking fields, true to break out
+}
+BOOL cbFreePublicMallocedBuiltinField(void *callbackData,struct X3D_Node* node,int jfield,
+	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,BOOL publicfield)
+{
+	//for builtins, the field is malloced as part of the node size, so we don't free the field itself
+	// .. just if its a complex field type holding a malloced pointer
+	// .. like MF.p or SFString.ptr
+	// and only if the node owns the pointer, which we determine by if the field is initializeOnly or inputOutput
+	if(source == 0){
+		//if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
+		if(1){
+			//#define FIELDTYPE_FreeWRLPTR	22
+			//#define FIELDTYPE_SFImage	23
+			if(strncmp(fieldName,"_",1)) { //only public fields, skip _ and __ private fields
+			//if(1){
+				//skip double underscore prefixed fields, which we will treat as not-to-be-deleted, because duplicates like GeoViewpoint __oldMFString which is a duplicate of navType
+				deleteMallocedFieldValue(type,fieldPtr);
+			}
+		}
+	}
+	return FALSE; //false to keep walking fields, true to break out
+}
+BOOL cbFreeMallocedUserField(void *callbackData,struct X3D_Node* node,int jfield,
+	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,BOOL publicfield)
+{
+	//for userFields (ie on Script, Proto), the field is malloced as part of a bigger struct
+	// .. so we free any pointers contained in the field like MF.p or SFString.ptr
+	// and only if the node owns the pointer, which we determine by if the field is initializeOnly or inputOutput
+	// .. but we don't free the anyVrml* pointer itself
+	// .. we rely on something freeing the user fields elsewhere to free the vector of userfields and
+	// .. a few of their malloced contents
+
+	if(source > 0){
+		//user field in source = {script=1, shaders etc 2, protos = 3}
+		//if(mode == PKW_initializeOnly || mode == PKW_inputOutput){
+		if(1){
+			if(strncmp(fieldName,"__",2)) {
+			//if(1){
+				//skip double underscore prefixed fields, which we will treat as not-to-be-deleted, because duplicates like GeoViewpoint __oldMFString which is a duplicate of navType
+				deleteMallocedFieldValue(type,fieldPtr);
+			}
+		}
+	}
+	return FALSE; //false to keep walking fields, true to break out
+}
+struct Shader_Script *getShader(struct X3D_Node *node){
+	struct Shader_Script *shader = NULL;
+	switch(node->_nodeType)
+	{
+  		case NODE_Script:         shader =(struct Shader_Script *)(X3D_SCRIPT(node)->__scriptObj); break;
+  		case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields); break;
+  		case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields); break;
+  		case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields); break;
+	}
+	return shader;
+}
+void setShader(struct X3D_Node *node, struct Shader_Script *shader){
+	switch(node->_nodeType)
+	{
+  		case NODE_Script:         X3D_SCRIPT(node)->__scriptObj = (void *)shader; break;
+  		case NODE_ComposedShader: X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields = (void *)shader;; break;
+  		case NODE_ShaderProgram:  X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields = (void *)shader;; break;
+  		case NODE_PackagedShader: X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields = (void *)shader;; break;
+	}
+
+}
+void deleteShaderDefinition(struct Shader_Script *shader){
+	if(shader){
+		if(shader->fields){
+			int i;
+			for(i=0;i<vectorSize(shader->fields);i++){
+				struct ScriptFieldDecl *field = vector_get(struct ScriptFieldDecl*,shader->fields,i);
+				deleteScriptFieldDecl(field);
+			
+			}
+			deleteVector(struct ScriptFieldDecl*,shader->fields);
+			FREE_IF_NZ(shader->fields);
+		}
+		FREE_IF_NZ(shader);
+	}
+}
+//static struct Vector freed;
+//static struct fieldFree ffs[100];
+void freeMallocedNodeFields0(struct X3D_Node* node){
+	//PIMPL Idiom in C is like objects in C++ - each object should know how to delete itself
+	//we don't have good pimpl habits yet in freewrl
+	//Here we try and generically free what a node may have allocated
+	//(a pimpl alternative might be node-type specific freeing)
+	//assume node->_intern = polyrep, node->_parents vector, and other common private fields are already done
+	//then this walks over node-specific fields, attempting to free any potentially malloced fields
+	//except SFNode (and SFNode contents of MFNode) which are garbage collected from 
+	//a per-broto/executioncontext node table
+	if(node){
+		int isScriptType, isBrotoType, hasUserFields;
+		isScriptType = node->_nodeType == NODE_Script || node->_nodeType == NODE_ComposedShader || node->_nodeType == NODE_ShaderProgram || node->_nodeType == NODE_PackagedShader;
+		isBrotoType = node->_nodeType == NODE_Proto; //inlines have no fields, freed elsewhere || node->_nodeType == NODE_Inline;
+		hasUserFields = isScriptType || isBrotoType;
+		//freed.data = ffs;
+		//freed.allocn = 100;
+		//freed.n = 0;
+		if(hasUserFields){
+			walk_fields(node,cbFreeMallocedUserField,NULL); //&freed);
+			if(isScriptType){
+				struct Shader_Script *shader = getShader(node);
+				if (shader){
+					deleteShaderDefinition(shader);
+					setShader(node,NULL);
+				}
+			}else if(isBrotoType){
+				struct X3D_Proto* pnode = (struct X3D_Proto*)node;
+				deleteProtoDefinition(pnode->__protoDef);
+				FREE_IF_NZ(pnode->__protoDef);
+				FREE_IF_NZ(pnode->__typename);
+				//struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
+				//if(pstruct){
+				//	//for vectorget.n field->malloced stuff
+				//	deleteVector(struct ProtoDefinition*,pstruct);
+				//	pnode->__protoDef = NULL;
+				//}
+			}
+		}
+		/* free malloced public fields */
+		walk_fields(node,cbFreeMallocedBuiltinField,NULL); //&freed);
+	}
+}
+//void freePublicBuiltinNodeFields(struct X3D_Node* node){
+//	if(node)
+//		walk_fields(node,cbFreePublicMallocedBuiltinField,NULL); //&freed);
+//}
+void freeMallocedNodeFields(struct X3D_Node* node){
+	if(node){
+		deleteVector(sizeof(void*),node->_parentVector);
+		freeMallocedNodeFields0(node);
+	}
+}
+/*delete node created
 static void killNode_hide_obsolete (int index) {
 	int j=0;
 	int *fieldOffsetsPtr;
@@ -5457,7 +5774,7 @@ static void killNode_hide_obsolete (int index) {
 	struct Multi_Time* MTime;
 	struct Multi_String* MString;
 	struct Multi_Vec2f* MVec2f;
-	uintptr_t * VPtr;
+	intptr_t * VPtr;
 	struct Uni_String *MyS;
  	int i;
 
@@ -5469,9 +5786,9 @@ static void killNode_hide_obsolete (int index) {
 	//ConsoleMessage("killNode - looking for node %p of type %s in one of the stacks\n", structptr,stringNodeType(structptr->_nodeType));
 
 	if( structptr->referenceCount > -1 ){
-		/* unlinking the node from special arrays, parents and children
-		   we just need to do this once, and early in the kill process
-		   - I wish we had a sentinal value for 'unlinked' */
+		// unlinking the node from special arrays, parents and children
+		//   we just need to do this once, and early in the kill process
+		//   - I wish we had a sentinal value for 'unlinked' 
 		DELETE_IF_IN_STACK(viewpoint_stack);
 		DELETE_IF_IN_STACK(background_stack);
 		DELETE_IF_IN_STACK(fog_stack);
@@ -5484,14 +5801,14 @@ static void killNode_hide_obsolete (int index) {
 		//print_node_links(structptr);
 	}
 
-	/* give this time for things to "settle" in terms of rendering, etc
-	JAS: "OpenGL - old code called flush() or finish(), but when the front-end does the actual rendering,
-	what happens is that the GL calls get queued up for the GPU, then run when possible. So, there
-	is a "hidden" multi-threading going on there. IIRC, I gave it 10 rendering loops for an unused
-	node before deleting any of the items in it; really 1 or 2 loops should be fine. (1, but don't
-	know about double buffering; 10 is a safe overkill) Without that, having OpenGL issues was a
-	random certainty when removing nodes, and data from these nodes."
-	*/
+	// give this time for things to "settle" in terms of rendering, etc
+	//JAS: "OpenGL - old code called flush() or finish(), but when the front-end does the actual rendering,
+	//what happens is that the GL calls get queued up for the GPU, then run when possible. So, there
+	//is a "hidden" multi-threading going on there. IIRC, I gave it 10 rendering loops for an unused
+	//node before deleting any of the items in it; really 1 or 2 loops should be fine. (1, but don't
+	//know about double buffering; 10 is a safe overkill) Without that, having OpenGL issues was a
+	//random certainty when removing nodes, and data from these nodes."
+	
 	structptr->referenceCount --;
 	if (structptr->referenceCount > -10) {
 		//ConsoleMessage ("ref count for %p is just %d, waiting\n",structptr,structptr->referenceCount);
@@ -5507,38 +5824,38 @@ static void killNode_hide_obsolete (int index) {
 	printf("Node Type	= %s",stringNodeType(structptr->_nodeType));
 	} printf ("\n");
 	#endif
-	/* node must be already unlinked with unlink_node() when we get here */
-	/* delete parent vector. */
+	// node must be already unlinked with unlink_node() when we get here 
+	// delete parent vector. 
  	deleteVector(char*, structptr->_parentVector);
-	/* clear child vector - done below */
+	// clear child vector - done below 
 
 	fieldOffsetsPtr = (int *)NODE_OFFSETS[structptr->_nodeType];
-	/*go thru all field*/
+	//go thru all field
 	while (*fieldOffsetsPtr != -1) {
 		fieldPtr = offsetPointer_deref(char *, structptr,*(fieldOffsetsPtr+1));
 		#ifdef VERBOSE
 		printf ("looking at field %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]);
 		#endif
 
-		/* some fields we skip, as the pointers are duplicated, and we CAN NOT free both */
+		// some fields we skip, as the pointers are duplicated, and we CAN NOT free both 
 		if (*fieldOffsetsPtr == FIELDNAMES_setValue)
-			break; /* can be a duplicate SF/MFNode pointer */
+			break; // can be a duplicate SF/MFNode pointer 
 
 		if (*fieldOffsetsPtr == FIELDNAMES_valueChanged)
-			break; /* can be a duplicate SF/MFNode pointer */
+			break; // can be a duplicate SF/MFNode pointer 
 
 		if (*fieldOffsetsPtr == FIELDNAMES__parentResource)
-			break; /* can be a duplicate SF/MFNode pointer */
+			break; // can be a duplicate SF/MFNode pointer 
 
 
 		if (*fieldOffsetsPtr == FIELDNAMES___oldmetadata)
-			break; /* can be a duplicate SFNode pointer */
+			break; // can be a duplicate SFNode pointer 
 
 		if (*fieldOffsetsPtr == FIELDNAMES__selected)
-			break; /* can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD */
+			break; // can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD 
 
 		if (*fieldOffsetsPtr == FIELDNAMES___oldChildren)
-			break; /* can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD */
+			break; // can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD 
 
 		if (*fieldOffsetsPtr == FIELDNAMES___oldMFString)
 			break;
@@ -5550,23 +5867,23 @@ static void killNode_hide_obsolete (int index) {
 			break;
 
 		if (*fieldOffsetsPtr == FIELDNAMES___oldKeyPtr)
-			break; /* used for seeing if interpolator values change */
+			break; // used for seeing if interpolator values change 
 
 		if (*fieldOffsetsPtr == FIELDNAMES___oldKeyValuePtr)
-			break; /* used for seeing if interpolator values change */
+			break; // used for seeing if interpolator values change 
 
 
-		/* GeoLOD nodes, the children field exports either the rootNode, or the list of child nodes */
+		// GeoLOD nodes, the children field exports either the rootNode, or the list of child nodes 
 		if (structptr->_nodeType == NODE_GeoLOD) {
 			if (*fieldOffsetsPtr == FIELDNAMES_children) break;
 		}
 
-		/* nope, not a special field, lets just get rid of it as best we can 
-			dug9 sept 2014: GC garbage collection: I wonder if it would be easier/simpler when we malloc something,
-			to put it into a flat scene-GC list (and inline-GC list?) - as we do for a few things already, like nodes - 
-			and don't GC here for fields on occassionally removed nodes, just when we change scenes
-			wipe out the whole GC table(s)?
-		*/
+		// nope, not a special field, lets just get rid of it as best we can 
+		//	dug9 sept 2014: GC garbage collection: I wonder if it would be easier/simpler when we malloc something,
+		//	to put it into a flat scene-GC list (and inline-GC list?) - as we do for a few things already, like nodes - 
+		//	and don't GC here for fields on occassionally removed nodes, just when we change scenes
+		//	wipe out the whole GC table(s)?
+		//
 		switch(*(fieldOffsetsPtr+2)){
 			case FIELDTYPE_MFFloat:
 				MFloat=(struct Multi_Float *)fieldPtr;
@@ -5596,7 +5913,7 @@ static void killNode_hide_obsolete (int index) {
 			case FIELDTYPE_MFNode:
 				MNode=(struct Multi_Node *)fieldPtr;
 				#ifdef VERBOSE
-				/* verify node structure. Each child should point back to me. */
+				//verify node structure. Each child should point back to me. 
 				{
 					int i;
 					struct X3D_Node *tp;
@@ -5649,19 +5966,19 @@ static void killNode_hide_obsolete (int index) {
 				FREE_IF_NZ(MVec2f->p);
 				break;
 			case FIELDTYPE_FreeWRLPTR:
-				VPtr = (uintptr_t *) fieldPtr;
-				VPtr = (uintptr_t *) (*VPtr);
+				VPtr = (intptr_t *) fieldPtr;
+				VPtr = (intptr_t *) (*VPtr);
 				FREE_IF_NZ(VPtr);
 				break;
 			case FIELDTYPE_SFString:
-				VPtr = (uintptr_t *) fieldPtr;
+				VPtr = (intptr_t *) fieldPtr;
 				MyS = (struct Uni_String *) *VPtr;
 				MyS->len = 0;
 				FREE_IF_NZ(MyS->strptr);
 				FREE_IF_NZ(MyS);
 				break;
 
-			default:; /* do nothing - field not malloc'd */
+			default:; // do nothing - field not malloc'd 
 		}
 		fieldOffsetsPtr+=5;
 	}
@@ -5671,7 +5988,7 @@ static void killNode_hide_obsolete (int index) {
 	p->potentialHoleCount++;
 	//ConsoleMessage ("kill, index %d, phc %d",index,p->potentialHoleCount);
 }
-
+*/
 
 #ifdef DEBUG_FW_LOADMAT
 	static void fw_glLoadMatrixd(GLDOUBLE *val,char *where, int line) {

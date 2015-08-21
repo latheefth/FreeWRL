@@ -19,6 +19,12 @@ extern "C"
 #include <config.h>
 #include "display.h"
 #include "opengl/textures.h"
+#ifdef DEBUG_MALLOC
+void *freewrlMalloc(int line, char *file, size_t sz, int zeroData);
+#define MALLOCV(_sz) (freewrlMalloc(__LINE__, __FILE__, _sz, FALSE))
+#else
+#define MALLOCV(_sz) malloc(_sz)
+#endif
 /*
 struct textureTableIndexStruct {
 	struct X3D_Node*	scenegraphNode;
@@ -49,6 +55,8 @@ int shutdownImageLoader()
    GdiplusShutdown(gdiplusToken);
 	return 0;
 }
+void malloc_profile_add(char *use, int bytes);
+
 int loadImage(struct textureTableIndexStruct *tti, char *fname)
 {
 	/* http://msdn.microsoft.com/en-us/library/ms536298(VS.85).aspx   GDI+ Lockbits example - what this function is based on*/
@@ -127,7 +135,8 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
    bitmapData->Height = bitmap->GetHeight();
    bitmapData->PixelFormat = PixelFormat32bppARGB;
    int totalbytes = bitmap->GetWidth() * bitmap->GetHeight() * 4; //tti->depth;
-   unsigned char * blob = (unsigned char*)malloc(totalbytes);
+   malloc_profile_add("texture0",totalbytes);
+   unsigned char * blob = (unsigned char*)MALLOCV(totalbytes);
    if(flipVertically)
 		bitmapData->Scan0 = &blob[bitmap->GetWidth()*bitmap->GetHeight()*4 + bitmapData->Stride]; 
    else

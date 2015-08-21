@@ -63,7 +63,7 @@ typedef struct pConsoleMessage{
 	void(*callback[2])(char *);
 }* ppConsoleMessage;
 static void *ConsoleMessage_constructor(){
-	void *v = malloc(sizeof(struct pConsoleMessage));
+	void *v = MALLOCV(sizeof(struct pConsoleMessage));
 	memset(v,0,sizeof(struct pConsoleMessage));
 	return v;
 }
@@ -87,7 +87,7 @@ void ConsoleMessage_init(struct tConsoleMessage *t){
 }
 
 
-#define MAXMESSAGES 5 
+//#define MAXMESSAGES 5 
 void closeConsoleMessage() {
 	gglobal()->ConsoleMessage.consMsgCount = 0;
 }
@@ -246,7 +246,7 @@ static void android_save_log(char *thislog) {
 	while (more)
 	{
 		BOOL eol = FALSE;
-		int len, ipos = 0;
+		int len; //, ipos = 0;
 		ln = strchr(buf, '\n');
 		len = strlen(buf);
 		if (ln)
@@ -263,6 +263,8 @@ static void android_save_log(char *thislog) {
 		//problem: strdup and strcat fragment memory if used a lot
 		if (len || eol)
 		{
+			int llen;
+			char *lstr;
 			if (p->androidMessageSlot[p->androidFreeSlot]){
 				//do no-end-of-line-on-last-one continuation line concatonation
 				char *catsize, *oldsize;
@@ -292,9 +294,13 @@ static void android_save_log(char *thislog) {
 			}
 
 			//check for line length and wrap-around if necessary
-			if ((int)strlen(p->androidMessageSlot[p->androidFreeSlot]) > p->maxLineLength){
-				buf = strdup(&p->androidMessageSlot[p->androidFreeSlot][p->maxLineLength - 2]); //how remember to delete this?
-				free(thislog);
+			lstr = p->androidMessageSlot[p->androidFreeSlot];
+			llen = strlen(lstr);
+			if ( llen > p->maxLineLength){
+				char *remainder = &lstr[p->maxLineLength - 2]; 
+				buf = strdup(remainder); //how remember to delete this?
+				if(thislog)
+					free(thislog);
 				thislog = buf;
 				p->androidMessageSlot[p->androidFreeSlot][p->maxLineLength - 2] = '\n';
 				p->androidMessageSlot[p->androidFreeSlot][p->maxLineLength - 1] = '\0';
@@ -315,8 +321,13 @@ static void android_save_log(char *thislog) {
 				/* go to next slot, wrap around*/
 				p->androidFreeSlot++;
 				if (p->androidFreeSlot >= p->maxLines) p->androidFreeSlot = 0;
-				if (p->androidMessageSlot[p->androidFreeSlot] != NULL) 
-					FREE_IF_NZ(p->androidMessageSlot[p->androidFreeSlot]);
+				if (p->androidMessageSlot[p->androidFreeSlot] != NULL) {
+					//FREE_IF_NZ(p->androidMessageSlot[p->androidFreeSlot]);
+					if(p->androidMessageSlot[p->androidFreeSlot]){
+						free(p->androidMessageSlot[p->androidFreeSlot]);
+						p->androidMessageSlot[p->androidFreeSlot] = NULL;
+					}
+				}
 				p->androidHaveUnreadMessages++;
 			}
 		}
@@ -437,15 +448,20 @@ int ConsoleMessage0(const char *fmt, va_list args){
 	ttglobal tg = gglobal();
 	if (!tg) return 0;
 	p = (ppConsoleMessage)tg->ConsoleMessage.prv;
-
+	if(p){
 	retval = fwvsnprintf(p->FWbuffer, STRING_LENGTH - 1, fmt, args); /*hope STRING_LENGTH is long enough, else -1 skip */
 	if (retval >= 0){
 		if (p->callback[0])
 			p->callback[0](p->FWbuffer);
 		if (p->callback[1])
 			p->callback[1](p->FWbuffer);
-		android_save_log(STRDUP(p->FWbuffer)); //passing ownerhsip in
-	}
+    #ifdef _ANDROID
+            DROIDDEBUG(STRDUP(p->FWbuffer)); //passing ownerhsip in
+	#else
+		android_save_log(strdup(p->FWbuffer)); //passing ownerhsip in
+    #endif
+        }
+    }
 	return retval;
 }
 

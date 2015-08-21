@@ -145,7 +145,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__oldload",
 	"__oldmetadata",
 	"__oldurl",
-	"__params",
 	"__parentProto",
 	"__points",
 	"__protoDeclares",
@@ -182,6 +181,8 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__vertexCount",
 	"__vertices",
 	"__visible",
+	"__xcolours",
+	"__xparams",
 	"_amb",
 	"_bboxCenter",
 	"_bboxSize",
@@ -747,6 +748,7 @@ const int FIELDNAMES_COUNT = ARR_SIZE(FIELDNAMES);
 	"articulationParameterValue7_changed",
 	"bindTime",
 	"centerOfRotation_changed",
+	"children",
 	"collideTime",
 	"controlKey",
 	"cycleTime",
@@ -3042,7 +3044,7 @@ const int OFFSETS_Disk2D[] = {
 	(int) FIELDNAMES___numPoints, (int) offsetof (struct X3D_Disk2D, __numPoints),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___points, (int) offsetof (struct X3D_Disk2D, __points),  (int) FIELDTYPE_MFVec2f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___simpleDisk, (int) offsetof (struct X3D_Disk2D, __simpleDisk),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES___texCoords, (int) offsetof (struct X3D_Disk2D, __texCoords),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___texCoords, (int) offsetof (struct X3D_Disk2D, __texCoords),  (int) FIELDTYPE_MFVec2f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_innerRadius, (int) offsetof (struct X3D_Disk2D, innerRadius),  (int) FIELDTYPE_SFFloat, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_Disk2D, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_outerRadius, (int) offsetof (struct X3D_Disk2D, outerRadius),  (int) FIELDTYPE_SFFloat, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -3293,7 +3295,7 @@ const int OFFSETS_GeoLOD[] = {
 	(int) FIELDNAMES_child2Url, (int) offsetof (struct X3D_GeoLOD, child2Url),  (int) FIELDTYPE_MFString, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_child3Url, (int) offsetof (struct X3D_GeoLOD, child3Url),  (int) FIELDTYPE_MFString, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_child4Url, (int) offsetof (struct X3D_GeoLOD, child4Url),  (int) FIELDTYPE_MFString, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_children, (int) offsetof (struct X3D_GeoLOD, children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_children, (int) offsetof (struct X3D_GeoLOD, children),  (int) FIELDTYPE_MFNode, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_geoOrigin, (int) offsetof (struct X3D_GeoLOD, geoOrigin),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_geoSystem, (int) offsetof (struct X3D_GeoLOD, geoSystem),  (int) FIELDTYPE_MFString, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_level_changed, (int) offsetof (struct X3D_GeoLOD, level_changed),  (int) FIELDTYPE_SFInt32, (int) KW_outputOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -3603,12 +3605,12 @@ const int OFFSETS_IndexedFaceSet[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_IndexedLineSet[] = {
-	(int) FIELDNAMES___colours, (int) offsetof (struct X3D_IndexedLineSet, __colours),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___segCount, (int) offsetof (struct X3D_IndexedLineSet, __segCount),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___vertArr, (int) offsetof (struct X3D_IndexedLineSet, __vertArr),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___vertIndx, (int) offsetof (struct X3D_IndexedLineSet, __vertIndx),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___vertexCount, (int) offsetof (struct X3D_IndexedLineSet, __vertexCount),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___vertices, (int) offsetof (struct X3D_IndexedLineSet, __vertices),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___xcolours, (int) offsetof (struct X3D_IndexedLineSet, __xcolours),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_attrib, (int) offsetof (struct X3D_IndexedLineSet, attrib),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_color, (int) offsetof (struct X3D_IndexedLineSet, color),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_colorIndex, (int) offsetof (struct X3D_IndexedLineSet, colorIndex),  (int) FIELDTYPE_MFInt32, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4198,7 +4200,7 @@ const int OFFSETS_MovieTexture[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_MultiTexture[] = {
-	(int) FIELDNAMES___params, (int) offsetof (struct X3D_MultiTexture, __params),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___xparams, (int) offsetof (struct X3D_MultiTexture, __xparams),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_alpha, (int) offsetof (struct X3D_MultiTexture, alpha),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_color, (int) offsetof (struct X3D_MultiTexture, color),  (int) FIELDTYPE_SFColor, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_function, (int) offsetof (struct X3D_MultiTexture, function),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -5107,7 +5109,7 @@ const int OFFSETS_TriangleSet[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_TriangleSet2D[] = {
-	(int) FIELDNAMES___texCoords, (int) offsetof (struct X3D_TriangleSet2D, __texCoords),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___texCoords, (int) offsetof (struct X3D_TriangleSet2D, __texCoords),  (int) FIELDTYPE_MFVec2f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_TriangleSet2D, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_solid, (int) offsetof (struct X3D_TriangleSet2D, solid),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_vertices, (int) offsetof (struct X3D_TriangleSet2D, vertices),  (int) FIELDTYPE_MFVec2f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6395,7 +6397,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__numPoints = 0;
 			tmp2->__points.n=0; tmp2->__points.p=0;
 			tmp2->__simpleDisk = TRUE;
-			tmp2->__texCoords = 0;
+			tmp2->__texCoords.n=0; tmp2->__texCoords.p=0;
 			tmp2->innerRadius = 0.0f;
 			tmp2->metadata = NULL;
 			tmp2->outerRadius = 1.0f;
@@ -7094,12 +7096,12 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_IndexedLineSet : {
 			struct X3D_IndexedLineSet * tmp2;
 			tmp2 = (struct X3D_IndexedLineSet *) tmp;
-			tmp2->__colours = 0;
 			tmp2->__segCount = 0;
 			tmp2->__vertArr = 0;
 			tmp2->__vertIndx = 0;
 			tmp2->__vertexCount = 0;
 			tmp2->__vertices = 0;
+			tmp2->__xcolours = 0;
 			tmp2->attrib.n=0; tmp2->attrib.p=0;
 			tmp2->color = NULL;
 			tmp2->colorIndex.n=0; tmp2->colorIndex.p=0;
@@ -7902,7 +7904,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MultiTexture : {
 			struct X3D_MultiTexture * tmp2;
 			tmp2 = (struct X3D_MultiTexture *) tmp;
-			tmp2->__params = 0;
+			tmp2->__xparams = 0;
 			tmp2->alpha = 1.0f;
 			tmp2->color.c[0] = 1.0f;tmp2->color.c[1] = 1.0f;tmp2->color.c[2] = 1.0f;;
 			tmp2->function.n=0; tmp2->function.p=0;
@@ -9030,7 +9032,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_TriangleSet2D : {
 			struct X3D_TriangleSet2D * tmp2;
 			tmp2 = (struct X3D_TriangleSet2D *) tmp;
-			tmp2->__texCoords = 0;
+			tmp2->__texCoords.n=0; tmp2->__texCoords.p=0;
 			tmp2->metadata = NULL;
 			tmp2->solid = FALSE;
 			tmp2->vertices.n=0; tmp2->vertices.p=0;
@@ -10029,8 +10031,6 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			spacer fprintf (fp," center (SFVec3d): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->center.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp," children (MFNode):\n");
-			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }

@@ -134,7 +134,7 @@ struct X3D_Anchor EAI_AnchorNode;
 }* ppEAIEventsIn;
 void *EAIEventsIn_constructor()
 {
-	void *v = malloc(sizeof(struct pEAIEventsIn));
+	void *v = MALLOCV(sizeof(struct pEAIEventsIn));
 	memset(v,0,sizeof(struct pEAIEventsIn));
 	return v;
 }
@@ -164,7 +164,7 @@ typedef struct pEAICore{
 
 void *EAICore_constructor()
 {
-	void *v = malloc(sizeof(struct pEAICore));
+	void *v = MALLOCV(sizeof(struct pEAICore));
 	memset(v,0,sizeof(struct pEAICore));
 	return v;
 }
@@ -251,7 +251,7 @@ char * EAI_handleBuffer(char *fromFront, bool useSockets) {
 			//cleaning the existing buffer the standard workflow will take care of recreating it
 			if(NULL != tg->EAICore.EAIbuffer)
 			{
-				free(tg->EAICore.EAIbuffer);
+				FREE(tg->EAICore.EAIbuffer);
 				tg->EAICore.EAIbuffer = NULL;
 			}
 
@@ -266,7 +266,7 @@ char * EAI_handleBuffer(char *fromFront, bool useSockets) {
 			//cleaning the existing buffer the standard workflow will take care of recreating it
 			if(NULL != tg->EAICore.EAIbuffer)
 			{
-				free(tg->EAICore.EAIbuffer);
+				FREE(tg->EAICore.EAIbuffer);
 				tg->EAICore.EAIbuffer = NULL;
 			}
 
@@ -607,7 +607,7 @@ However, nowadays we do not read any sockets directly....
 								if(tempEAIdata != (char *)NULL) {
 									strcat(&EAI_BUFFER_CUR,tempEAIdata) ;
 									/* tg->EAICore.EAIbuffer = ....*/
-									free(tempEAIdata) ;
+									FREE(tempEAIdata) ;
 								}
 							} else {
 								usleep(10000);
@@ -1430,9 +1430,10 @@ void createLoadURL(char *bufptr) {
 		/* nullify the next "strbrk" */
 		spbrk = strstr(bufptr,strbrk);
 		if (spbrk!=NULL) *spbrk='\0';
-
-		p->EAI_AnchorNode.parameter.p[count] = newASCIIString(bufptr);
-
+        if (p->EAI_AnchorNode.parameter.p != NULL)
+        {
+            p->EAI_AnchorNode.parameter.p[count] = newASCIIString(bufptr);
+        }
 		if (spbrk!=NULL) bufptr = spbrk;
 	}
 	/* EAI_AnchorNode.__parenturl = newASCIIString("./"); */

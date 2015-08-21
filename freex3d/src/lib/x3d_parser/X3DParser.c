@@ -72,7 +72,7 @@ struct xml_user_data{
 	Stack *fields;
 };
 struct xml_user_data *new_xml_user_data(){
-	struct xml_user_data *ud = malloc(sizeof(struct xml_user_data));
+	struct xml_user_data *ud = MALLOCV(sizeof(struct xml_user_data));
 	ud->context = ud->nodes = ud->atts  = ud->modes = ud->fields = NULL;
 	ud->context = newVector(struct X3D_Node*,256);
 	ud->context->n = 0;
@@ -86,10 +86,20 @@ struct xml_user_data *new_xml_user_data(){
 	ud->fields->n = 0;
 	return ud;
 }
+void free_xml_user_data(struct xml_user_data *ud){
+	if(ud){
+		deleteVector(struct X3D_Node*,ud->context);
+		deleteVector(struct X3D_Node*,ud->nodes);
+		deleteVector(void*,ud->atts);
+		deleteVector(void*,ud->modes);
+		deleteVector(void*,ud->fields);
+		FREE_IF_NZ(ud);
+	}
+}
 //for push,pop,get the index is the vector index range 0, n-1. 
 // Or going from the top top= -1, parent to top = -2.
 #define TOP -1
-#define BOTTOM 0
+//#define BOTTOM 0
 
 //currently context isn't a separate struct, its part of X3D_Proto and X3D_Inline, which have
 //the same structure, and can be cross-cast, and represent a web3d executionContext or context for short
@@ -220,7 +230,7 @@ static int XML_ParseFile(xmlSAXHandler *me, void *user_data, const char *myinput
  #define XMLCALL
 #endif /* XMLCALL */
 
-#define MAX_CHILD_ATTRIBUTE_DEPTH 32
+//#define MAX_CHILD_ATTRIBUTE_DEPTH 32
 
 typedef struct pX3DParser{
 	struct VRMLLexer *myLexer;// = NULL;
@@ -240,7 +250,7 @@ typedef struct pX3DParser{
 
 }* ppX3DParser;
 void *X3DParser_constructor(){
-	void *v = malloc(sizeof(struct pX3DParser));
+	void *v = MALLOCV(sizeof(struct pX3DParser));
 	memset(v,0,sizeof(struct pX3DParser));
 	return v;
 }
@@ -269,6 +279,17 @@ void X3DParser_init(struct tX3DParser *t){
 
 	}
 }
+void X3DParser_clear(struct tX3DParser *t){
+	if(t){
+		ppX3DParser p = (ppX3DParser)t->prv;
+		free_xml_user_data(p->user_data);
+		if(p->myLexer){
+			lexer_destroyData(p->myLexer);
+			FREE_IF_NZ(p->myLexer);
+		}
+	}
+}
+
 	//ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
 
 
@@ -797,8 +818,8 @@ int QA_routeEnd(struct X3D_Proto *context, char* cnode, char* cfield, struct bro
 	int found = 0;
 
 	brend->weak = 1;
-	brend->cfield = cfield;
-	brend->cnode = cnode;
+	brend->cfield = STRDUP(cfield);
+	brend->cnode = STRDUP(cnode);
 
 	node = broto_search_DEFname(context,cnode);
 	if(!node){
@@ -883,12 +904,12 @@ void QAandRegister_parsedRoute_B(struct X3D_Proto *context, char* fnode, char* f
 */
 static void parseRoutes_B (void *ud, char **atts) {
 	struct X3D_Proto *context;
-	struct X3D_Node *fromNode = NULL;
-	struct X3D_Node *toNode = NULL;	
+	//struct X3D_Node *fromNode = NULL;
+	//struct X3D_Node *toNode = NULL;	
 	int i; //, okf,okt, ftype,fkind,fifield,fsource,ttype,tkind,tifield,tsource;
 	//union anyVrml *fvalue, *tvalue;
 	//void *fdecl,*tdecl;
-	int error = FALSE;
+	//int error = FALSE;
 	//int isImportRoute;
 	//int fromType;
 	//int toType;
@@ -1076,14 +1097,17 @@ c) look at atts containerField, and if not null and not children, use it.
 	if(defaultContainer == FIELDNAMES_children) defaultContainer = 0;
 	value = NULL;
 	fname = NULL;
+	ok = 0;
 	if(defaultContainer){
 		fname = FIELDNAMES[defaultContainer];
 		ok = getFieldFromNodeAndName(parent,fname,&type,&kind,&iifield,&value);
+		ok = ok && (kind == PKW_initializeOnly || kind == PKW_inputOutput); //not inputOnly or outputOnly - we can't park nodes there
 	}
 	if(!value && node->_defaultContainer == FIELDNAMES_children){
 		//if you try and put a transform into a proto, or LOD, or Inline (or switch?) you'll come in
 		//here to get the equivalent-to-children field
 		ok = getFieldFromNodeAndName(parent,"children",&type,&kind,&iifield,&value);
+		ok = ok && (kind == PKW_initializeOnly || kind == PKW_inputOutput); //not inputOnly or outputOnly - we can't park nodes there
 		if(!ok){
 			int kids = indexChildrenName(parent);
 			if(kids > 0){
@@ -1093,12 +1117,14 @@ c) look at atts containerField, and if not null and not children, use it.
 		}
 	}
 	//3.b)
-	if(parentsSuggestion) {
+	//if(parentsSuggestion) {
+	if(!ok && parentsSuggestion) {
 		//if you're parsing a fieldValue, and your value is an SF or MFnode in a child xml element,
 		//<fieldValue name='myTransform'>
 		//	<Transform USE='tommysTransform'/>
 		//</fieldValue>
 		//you'll come in here
+		//don't want to come in here for metadata
 		ok =getFieldFromNodeAndName(parent,parentsSuggestion,&type,&kind,&iifield,&value);
 	}
 			
@@ -1127,9 +1153,9 @@ c) look at atts containerField, and if not null and not children, use it.
 					ok = getFieldFromNodeAndName(parent,"addChildren",&type,&kind,&iifield,&valueadd);
 			}
 			if(ok)
-				AddRemoveChildren(parent,&valueadd->mfnode,&node,1,1,NULL,0);
+				AddRemoveChildren(parent,&valueadd->mfnode,&node,1,1,__FILE__,__LINE__);
 			else
-				AddRemoveChildren(parent,&value->mfnode,&node,1,1,NULL,0);
+				AddRemoveChildren(parent,&value->mfnode,&node,1,1,__FILE__,__LINE__);
 		}
 	}else{
 		printf("no where to put node in parent\n");
@@ -1354,16 +1380,16 @@ void endCDATA_B (void *ud, const xmlChar *string, int len) {
 		handled = FALSE;
 		if(!strcmp(fieldname,"url")){
 			//Script javascript doesn't parse well as an MFString
-			if(strstr(string,"script")){
+			if(strstr((char*)string,"script")){
 				handled = TRUE;
 				value->mfstring.n = 1;
-				value->mfstring.p = malloc(sizeof(void *));
-				value->mfstring.p[0] = newASCIIString(string);
-				if(0) printf("copied cdata string= [%s]\n",(struct Uni_String*)(value->mfstring.p[0])->strptr);
+				value->mfstring.p = MALLOCV(sizeof(void *));
+				value->mfstring.p[0] = newASCIIString((char *)string);
+				//if(0) printf("copied cdata string= [%s]\n",(struct Uni_String*)(value->mfstring.p[0])->strptr);
 			}
 		}
 		if(!handled)
-			Parser_scanStringValueToMem_B(value, type,string, TRUE);
+			Parser_scanStringValueToMem_B(value, type,(char *)string, TRUE);
 	}
 }
 
@@ -1540,7 +1566,7 @@ static void parseMeta(char **atts) {
 		/* printf("parseMeta field:%s=%s\n", atts[i], atts[i + 1]); */
 	}
 }
-
+void deleteMallocedFieldValue(int type,union anyVrml *fieldPtr);
 static void parseFieldValue_B(void *ud, char **atts) {
 	int i, type, kind, iifield, ok;
 	char *fname, *svalue, *cname;
@@ -1564,6 +1590,7 @@ static void parseFieldValue_B(void *ud, char **atts) {
 		}
 	}
 	if(cname && value && svalue){
+		deleteMallocedFieldValue(type,value);
 		Parser_scanStringValueToMem_B(value,type,svalue,TRUE);
 		if(node->_nodeType == NODE_Proto){
 			struct X3D_Proto *pnode;
@@ -1862,24 +1889,18 @@ static void saveProtoInstanceFields (void *ud, const char *name, char **atts) {
 
 /********************************************************/
 
-#define INCREMENT_CHILDREN_LEVEL \
-	{ \
-		if ((gglobal()->X3DParser.parentIndex <0) || (gglobal()->X3DParser.parentIndex > MAX_CHILD_ATTRIBUTE_DEPTH)) {printf ("stack overflow\n"); return;} \
-		p->childAttributes[gglobal()->X3DParser.parentIndex] = newVector (struct nameValuePairs *, 8); \
-	}
 
 void **shaderFields(struct X3D_Node* node){
 	void **shaderfield;
 	switch(node->_nodeType){
 	case NODE_Script:
-		shaderfield = &X3D_SCRIPT(node)->__scriptObj;
-		break;
+		shaderfield = &X3D_SCRIPT(node)->__scriptObj; break;
 	case NODE_ComposedShader:
-		shaderfield = &X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields;
+		shaderfield = (void**)&X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields; break;
 	case NODE_ShaderProgram:
-		shaderfield = &X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields;
+		shaderfield = (void**)&X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields; break;
 	case NODE_PackagedShader:
-		shaderfield = &X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields;
+		shaderfield = (void**)&X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields; break;
 	default:
 		shaderfield = NULL;
 	}
@@ -2021,8 +2042,8 @@ static void saveAttributes(void *ud, int myNodeType, const xmlChar *name, char**
 	struct X3D_Node *thisNode;
 	struct X3D_Node *fromDEFtable;
 	struct Vector *childAttributes;
-	ttglobal tg = gglobal();
-	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
+	//ttglobal tg = gglobal();
+	//ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 
 	DEBUG_X3DPARSER ("	saveAttributes, parentIndex %d parentIndex %d\n",tg->X3DParser.parentIndex,tg->X3DParser.parentIndex);
 	
@@ -2160,6 +2181,7 @@ static void parseAttributes_B(void *ud, char **atts) {
 		/* see if we have a containerField here */
 		if(findFieldInARR(name,ignore,3) == INT_ID_UNDEFINED){
 			if(getFieldFromNodeAndName(node,name,&type,&kind,&iifield,&value)){
+				deleteMallocedFieldValue(type,value);
 				Parser_scanStringValueToMem_B(value, type,svalue, TRUE);
 			}
 		}
@@ -2570,8 +2592,8 @@ void endScriptProtoField_B(void *ud); //struct VRMLLexer* myLexer);
 static void XMLCALL X3DendElement(void *ud, const xmlChar *iname) {
 	int myNodeIndex;
     const char*name = (const char*) iname;
-	ttglobal tg = gglobal();
-	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
+	//ttglobal tg = gglobal();
+	//ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 
 	/* printf ("X3DEndElement for %s\n",name); */
 
@@ -2749,6 +2771,24 @@ static void shutdownX3DParser (void *ud) {
 		p->currentX3DParser = p->x3dparser[p->X3DParserRecurseLevel];
 	/* printf ("shutdownX3DParser, current X3DParser %u\n",currentX3DParser); */
 	popMode(ud);
+
+	if(p->DEFedNodes){
+		int i;
+		for(i=0;i<vectorSize(p->DEFedNodes);i++){
+			struct Vector* vd = vector_get(struct Vector*,p->DEFedNodes,i);
+			deleteVector(struct X3D_Node*,vd);
+		}
+		deleteVector(struct Vector*, p->DEFedNodes);
+	}
+
+	/*
+    * Cleanup function for the XML library.
+    */
+   xmlCleanupParser();
+   /*
+    * this is to debug memory for regression tests
+    */
+   xmlMemoryDump();
 }
 
 int X3DParse (struct X3D_Node* ectx, struct X3D_Node* myParent, const char *inputstring) {
@@ -2758,15 +2798,17 @@ int X3DParse (struct X3D_Node* ectx, struct X3D_Node* myParent, const char *inpu
 
 	/* printf ("X3DParse, current X3DParser is %u\n",currentX3DParser); */
 
-	/* Use classic parser Lexer for storing DEF name info */
-	if (p->myLexer == NULL) p->myLexer = newLexer();
-	if (p->DEFedNodes == NULL) {
-		p->DEFedNodes = newStack(struct Vector*);
-		ASSERT(p->DEFedNodes);
-		#define DEFMEM_INIT_SIZE 16
-		stack_push(struct Vector*, p->DEFedNodes,
-        	       newVector(struct X3D_Node*, DEFMEM_INIT_SIZE));
-		ASSERT(!stack_empty(p->DEFedNodes));
+	if(!usingBrotos()) {
+		/* Use classic parser Lexer for storing DEF name info */
+		if (p->myLexer == NULL) p->myLexer = newLexer();
+		if (p->DEFedNodes == NULL) {
+			p->DEFedNodes = newStack(struct Vector*);
+			ASSERT(p->DEFedNodes);
+			#define DEFMEM_INIT_SIZE 16
+			stack_push(struct Vector*, p->DEFedNodes,
+        			   newVector(struct X3D_Node*, DEFMEM_INIT_SIZE));
+			ASSERT(!stack_empty(p->DEFedNodes));
+		}
 	}
 
 
@@ -2790,6 +2832,7 @@ int X3DParse (struct X3D_Node* ectx, struct X3D_Node* myParent, const char *inpu
 		// http://xmlsoft.org/html/libxml-xmlerror.html
 		xmlErrorPtr xe = xmlGetLastError();
 		ConsoleMessage("Xml Error %s \n",xe->message);
+		ConsoleMessage("Line %d\n",xe->line);
 		/*
 		fprintf(stderr,
 			"%s at line %d\n",
@@ -2798,10 +2841,11 @@ int X3DParse (struct X3D_Node* ectx, struct X3D_Node* myParent, const char *inpu
 		*/
 		if(usingBrotos()) popField(p->user_data);
 		shutdownX3DParser(p->user_data);
-
+		Parser_deleteParserForScanStringValueToMem();
 		return FALSE;
 	}
 	if(usingBrotos()) popField(p->user_data);
 	shutdownX3DParser(p->user_data);
+	Parser_deleteParserForScanStringValueToMem();
 	return TRUE;
 }

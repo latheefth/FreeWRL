@@ -61,7 +61,7 @@ typedef struct pEAI_C_CommonFunctions{
 }* ppEAI_C_CommonFunctions;
 void *EAI_C_CommonFunctions_constructor()
 {
-	void * v = malloc(sizeof(struct pEAI_C_CommonFunctions));
+	void *v = MALLOCV(sizeof(struct pEAI_C_CommonFunctions));
 	memset(v,0,sizeof(struct pEAI_C_CommonFunctions));
 	return v;
 }
@@ -113,6 +113,42 @@ struct Uni_String *newASCIIString(char *str) {
 	/* printf ("newASCIIString, returning UniString %x, strptr %u for string :%s:\n",retval, retval->strptr,str); */
 
 	return retval;
+}
+
+
+
+void clearASCIIString(struct Uni_String *us);
+void freeASCIIString(struct Uni_String *us);
+void clearMFString(struct Multi_String *ms);
+void freeMFString(struct Multi_String **ms);
+
+void clearASCIIString(struct Uni_String *us){
+	if(us){
+		FREE_IF_NZ(us->strptr);
+		us->strptr = NULL;
+		us->len = 0;
+	}
+}
+void freeASCIIString(struct Uni_String *us){
+	clearASCIIString(us);
+	FREE_IF_NZ(us);
+}
+void clearMFString(struct Multi_String *ms){
+	if(ms){
+		int i;
+		//printf("ms.n=%d\n",ms->n);
+		for(i=0;i<ms->n;i++){
+			struct Uni_String *us = ms->p[i];
+			//printf("us[%d]='%s'\n",i,us->strptr);
+			freeASCIIString(ms->p[i]);
+		}
+		ms->n = 0;
+		FREE_IF_NZ(ms->p);
+	}
+}
+void freeMFString(struct Multi_String **ms){
+	clearMFString(*ms);
+	FREE_IF_NZ(*ms);
 }
 
 /* do these strings differ?? If so, copy the new string over the old, and 
@@ -531,7 +567,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, indexT c
 				if(*v == '"') nq++;
 				v++;
 			}
-			mfstringtmp = (char *)malloc(strlen(value)+nq+1);
+			mfstringtmp = (char *)MALLOC(void *, strlen(value)+nq+1);
 			v = value;
 			pv = NULL;
 			mv = mfstringtmp;
@@ -749,7 +785,7 @@ void Parser_scanStringValueToMem_B(union anyVrml* any, indexT ctype, char *value
 				if(*v == '"') nq++;
 				v++;
 			}
-			mfstringtmp = (char *)malloc(strlen(value)+nq+1);
+			mfstringtmp = (char *)MALLOC(void *, strlen(value)+nq+1);
 			v = value;
 			pv = NULL;
 			mv = mfstringtmp;
@@ -873,6 +909,8 @@ MF_TYPE(MFNode, mfnode, Node)
 	/* tell the parser that we have done with the input - it will FREE the data */
 	lexer_forceStringCleanup(parser->lexer);
 
+	FREE_IF_NZ(mfstringtmp);
+
 	/* and, reset the XML flag */
 	parser->parsingX3DfromXML = oldXMLflag;
 }
@@ -963,7 +1001,7 @@ void Parser_scanStringValueToMem_C0(struct VRMLParser *parser, union anyVrml* an
 				if(*v == '"') nq++;
 				v++;
 			}
-			mfstringtmp = (char *)malloc(strlen(value)+nq+1);
+			mfstringtmp = (char *)MALLOC(void *, strlen(value)+nq+1);
 			v = value;
 			pv = NULL;
 			mv = mfstringtmp;

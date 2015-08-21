@@ -45,7 +45,7 @@ struct Vector* newVector_(int elSize, int initSize,char *,int);
 #define newVector(type, initSize) \
  newVector_((int)sizeof(type), initSize,__FILE__,__LINE__)
 
-#ifdef DEBUG_MALLOC
+#if defined(WRAP_MALLOC) || defined(DEBUG_MALLOC)
 	void deleteVector_(char *file, int line, int elSize, struct Vector**);
 	#define deleteVector(type, me) deleteVector_(__FILE__,__LINE__,(int)sizeof(type), &(me))
 #else
@@ -54,7 +54,7 @@ struct Vector* newVector_(int elSize, int initSize,char *,int);
 #endif
 
 /* Ensures there's at least one space free. */
-void vector_ensureSpace_(int, struct Vector*);
+void vector_ensureSpace_(int, struct Vector*, char *fi, int line);
 
 /* Element retrieval. */
 #define vector_get(type, me, ind) \
@@ -88,13 +88,14 @@ void vector_shrink_(int, struct Vector*);
 /* Push back operation. */
 #define vector_pushBack(type, me, el) \
  { \
-  vector_ensureSpace_((int)sizeof(type), me); \
+  vector_ensureSpace_((int)sizeof(type), me,__FILE__,__LINE__); \
   ASSERT(((struct Vector*)me)->n<((struct Vector*)me)->allocn); \
   vector_get(type, me, ((struct Vector*)me)->n)=el; \
   ++((struct Vector*)me)->n; \
  }
 
 /* Pop back operation */
+void vector_popBack_(struct Vector*, size_t count);
 #define vector_popBack(type, me) \
  { \
   ASSERT(!vector_empty(me)); \
@@ -121,10 +122,8 @@ typedef struct Vector Stack;
 /* Constructor and destructor */
 #define newStack(type) \
  newVector(type, 4)
- //newVector((int) sizeof(type), 4)
 #define deleteStack(type, me) \
  deleteVector(type, me)
- //deleteVector((int) sizeof(type), me)
 
 /* Push and pop */
 #define stack_push(type, me, el) \

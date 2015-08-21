@@ -741,7 +741,7 @@ void prep_Inline (struct X3D_Inline *node) {
 	if(0)printf("in prep_inline\n");
 	//load_externProtoInstance(node);
 	COMPILE_IF_REQUIRED
-	if (node->__loadstatus != INLINE_STABLE && node->load || node->__loadstatus != INLINE_INITIAL_STATE && !node->load) {
+	if ((node->__loadstatus != INLINE_STABLE && node->load) || (node->__loadstatus != INLINE_INITIAL_STATE && !node->load)) {
 		load_Inline(node);
 	}
 	RECORD_DISTANCE
@@ -777,7 +777,7 @@ void compile_Inline(struct X3D_Inline *node) {
 
 void child_Inline (struct X3D_Inline *node) {
 
-	static int usingSortedChildren = 0;
+	//static int usingSortedChildren = 0;
 	//struct Multi_Node * kids;
 	CHILDREN_COUNT
 	//int nc = node->__children.n; //_sortedChildren.n;

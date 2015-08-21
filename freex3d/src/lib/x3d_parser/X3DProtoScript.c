@@ -134,7 +134,7 @@ typedef struct pX3DProtoScript{
 	struct fieldNodeState fieldNodeParsingStateB[PARENTSTACKSIZE];
 }* ppX3DProtoScript;
 void *X3DProtoScript_constructor(){
-	void *v = malloc(sizeof(struct pX3DProtoScript));
+	void *v = MALLOCV(sizeof(struct pX3DProtoScript));
 	memset(v,0,sizeof(struct pX3DProtoScript));
 	return v;
 }
@@ -763,7 +763,7 @@ void parseProtoInstanceFields(void *ud, const char *name, char **atts) {
 			  or like this:
               <fieldValue name='relay'> <Script USE='CameraRelay'/> </fieldValue>
 			*/
-			ttglobal tg = gglobal();
+			//ttglobal tg = gglobal();
 			////BIGPUSH  added by dug9 July 18,2010
 			p->fieldNodeParsingStateA[p->curProtoInsStackInd].parsingMFSFNode = 1;
 			if(!p->fieldNodeParsingStateA[p->curProtoInsStackInd].fieldHolderInitialized)
@@ -1104,10 +1104,10 @@ void parseProtoInstance_B(void *ud, char **atts) {
 	*/
 	int i;
 	int nameIndex;
-	int containerIndex;
-	int containerField;
+	//int containerIndex;
+	//int containerField;
 	int defNameIndex;
-	int protoTableIndex;
+	//int protoTableIndex;
 	char *protoname;
 	struct X3D_Proto *currentContext;
 	struct X3D_Node *node = NULL;
@@ -1115,17 +1115,17 @@ void parseProtoInstance_B(void *ud, char **atts) {
 
 	/* initialization */
 	nameIndex = INT_ID_UNDEFINED;
-	containerIndex = INT_ID_UNDEFINED;
-	containerField = INT_ID_UNDEFINED;
+	//containerIndex = INT_ID_UNDEFINED;
+	//containerField = INT_ID_UNDEFINED;
 	defNameIndex = INT_ID_UNDEFINED;
-	protoTableIndex = 0;
+	//protoTableIndex = 0;
 	if(0) printf("parseProtoInstance\n");
 
 	for (i = 0; atts[i]; i += 2) {
 		if (strcmp("name",atts[i]) == 0) {
 			nameIndex=i+1;
 		} else if (strcmp("containerField",atts[i]) == 0) {
-			containerIndex = i+1;
+			//containerIndex = i+1;
 		} else if (strcmp("DEF",atts[i]) == 0) {
 			defNameIndex = i+1;
 		} else if (strcmp("class",atts[i]) == 0) {
@@ -1158,7 +1158,7 @@ void parseProtoInstance_B(void *ud, char **atts) {
 			node=X3D_NODE(brotoInstance(proto,idepth));
 			node->_executionContext = X3D_NODE(proto);
 			if (defNameIndex != INT_ID_UNDEFINED){
-				char * defname = STRDUP(atts[defNameIndex]);
+				char * defname = atts[defNameIndex]; //gets STRDUP();'d inside broto_store_DEF
 				broto_store_DEF(currentContext,node, defname);
 			}
 			add_node_to_broto_context(currentContext,node);
@@ -1455,8 +1455,8 @@ void expandProtoInstance(void *ud, struct VRMLLexer *myLexer, struct X3D_Group *
 			ProtoInstanceTable[curProtoInsStackInd].defName,(unsigned int) myGroup);
 		#endif
 		//DEFNameIndex is not idempotent: it changes the table of defnames if the given name isn't found
-		struct X3D_Node *me
-		 = DEFNameIndex(p->ProtoInstanceTable[p->curProtoInsStackInd].defName,X3D_NODE(myGroup),FALSE);
+		//struct X3D_Node *me = 
+		DEFNameIndex(p->ProtoInstanceTable[p->curProtoInsStackInd].defName,X3D_NODE(myGroup),FALSE);
 
 		FREE_IF_NZ(p->ProtoInstanceTable[p->curProtoInsStackInd].defName);
 	}
@@ -1772,7 +1772,7 @@ void parseProtoDeclare_B (void *ud, char **atts) {
 	//set ProtoDefinition *obj
 	proto->__protoDef = obj;
 	proto->__prototype = X3D_NODE(proto); //point to self, so shallow and deep instances will inherit this value
-	proto->__typename = strdup(obj->protoName);
+	proto->__typename = STRDUP(obj->protoName);
 	if(containerfield){
 		int builtinField = findFieldInFIELDNAMES(containerfield);
 		if(builtinField > -1){
@@ -1879,7 +1879,7 @@ void parseExternProtoDeclare_B (void *ud, char **atts) {
 	//set ProtoDefinition *obj
 	proto->__protoDef = obj;
 	proto->__prototype = X3D_NODE(proto); //point to self, so shallow and deep instances will inherit this value
-	proto->__typename = strdup(obj->protoName);
+	proto->__typename = STRDUP(obj->protoName);
 	if(containerfield){
 		int builtinField = findFieldInFIELDNAMES(containerfield);
 		if(builtinField > -1){
@@ -2025,9 +2025,9 @@ void parseScriptProtoField_B(void *ud, char **atts) {
 	//struct X3D_Node *node;
 	int mp_name, mp_accesstype, mp_type, mp_value, i;
 	int pkwmode, type;
-	union anyVrml defaultValue, *value;
+	union anyVrml defaultValue; //, *value;
 	char *fname, *cname;
-	value = NULL;
+	//value = NULL;
 	cname = NULL;
 	mp_name = mp_accesstype = mp_type = mp_value = ID_UNDEFINED;
 	if(0) printf("start scriptProtoField\n");
@@ -2069,11 +2069,11 @@ void parseScriptProtoField_B(void *ud, char **atts) {
 				pnode = X3D_PROTO(node);
 				pstruct = (struct ProtoDefinition*) pnode->__protoDef;
 				pfield = newProtoFieldDecl(pkwmode,type,0);
-				pfield->cname = strdup(fname);
+				pfield->cname = STRDUP(fname);
 				cname = pfield->cname;
 				memcpy(&pfield->defaultVal,&defaultValue,sizeof(union anyVrml));
 				vector_pushBack(struct ProtoFieldDecl*, pstruct->iface, pfield);
-				value = &pfield->defaultVal;
+				//value = &pfield->defaultVal;
 			}else{
 				struct Shader_Script* shader = NULL;
 				struct ScriptFieldDecl* sfield;
@@ -2095,7 +2095,7 @@ void parseScriptProtoField_B(void *ud, char **atts) {
 				sfield->valueSet = valueSet; //=(mod!=PKW_initializeOnly);
 				sfield->eventInSet = FALSE; //flag used for directOutput
 				vector_pushBack(struct ScriptFieldDecl*, shader->fields, sfield);
-				value = &sfield->value;
+				//value = &sfield->value;
 			}
 		}
 	}
@@ -2577,7 +2577,7 @@ void endExternProtoDeclare(void *ud) {
 		res = resource_create_multi(&url);
 		resource_identify(gglobal()->resources.root_res, res);
 		if (res->type != rest_invalid) {
-#ifdef HAD_RESOURCE_LOAD
+#ifdef HAD_RESOURCE_LOAD    //dug9 broke extern text protos here aug 2014 and reimplemented with different code as brotos in fall 2014
 			if (resource_fetch(res)) {
 				if (resource_load(res)) {
 					s_list_t *l;

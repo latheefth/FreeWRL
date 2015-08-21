@@ -53,7 +53,7 @@ typedef struct pComponent_HAnim{
 
 }* ppComponent_HAnim;
 void *Component_HAnim_constructor(){
-	void *v = malloc(sizeof(struct pComponent_HAnim));
+	void *v = MALLOCV(sizeof(struct pComponent_HAnim));
 	memset(v,0,sizeof(struct pComponent_HAnim));
 	return v;
 }

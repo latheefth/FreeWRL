@@ -29,16 +29,8 @@ Viewer ???
 #define __FREEWRL_VIEWER_H__
 
 #include "quaternion.h"
-
-#define VIEWER_STRING(type) ( \
-	type == VIEWER_NONE ? "NONE" : ( \
-	type == VIEWER_EXAMINE ? "EXAMINE" : ( \
-	type == VIEWER_WALK ? "WALK" : ( \
-	type == VIEWER_EXFLY ? "EXFLY" : ( \
-	type == VIEWER_YAWPITCHZOOM ? "YAWPITCHZOOM" : (\
-	type == VIEWER_TURNTABLE ? "TURNTABLE" : (\
-	type == VIEWER_FLY ? "FLY" : "UNKNOWN"))))))
 void fwl_set_viewer_type(const int type);
+int fwl_setNavMode(char *mode);
 
 #define PRESS "PRESS"
 #define PRESS_LEN 5
@@ -170,12 +162,13 @@ typedef struct viewer_ypz {
 	double ypz0[3];
 	double ypz[3];
 	float x,y;
-} X3D_Viewer_YawPitchZoom;
+} X3D_Viewer_Spherical;
 
 typedef struct viewer_inplane {
 	double x,y;
 	double xx,yy;
 	int on;
+	int ibut;
 } X3D_Viewer_InPlane;
 
 typedef struct key {
@@ -233,7 +226,7 @@ typedef struct viewer {
 	X3D_Viewer_Walk walk;
 	X3D_Viewer_Examine examine;
 	X3D_Viewer_Fly fly;
-	X3D_Viewer_YawPitchZoom ypz;
+	X3D_Viewer_Spherical ypz;
 	X3D_Viewer_InPlane inplane;
 
 	struct point_XYZ VPvelocity;
@@ -251,6 +244,7 @@ typedef struct viewer {
 	int LookatMode; //0 = not, 1= mainloop should do a node pick operation then set this back to 0 */
 	int transitionType;   	/* going from one viewpoint to another */
 	double transitionTime;
+	double lasttime;
 
 	struct point_XYZ startSLERPPos;
 	struct point_XYZ startSLERPAntiPos;
@@ -348,5 +342,7 @@ void viewer_level_to_bound(void);
 
 int getAnaglyphPrimarySide(int primary, int iside);
 void setAnaglyphPrimarySide(int primary, int iside);
+int viewer_getKeyChord();
+void viewer_setKeyChord(int chord);
 
 #endif /* __FREEWRL_VIEWER_H__ */

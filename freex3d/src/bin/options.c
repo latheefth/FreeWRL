@@ -89,6 +89,12 @@ void fv_usage()
 		"  -F|--fixture            Playback from /recording/<scene>.fwplay to /fixture.\n"
 		"  -P|--playback           Playback from /recording/<scene>.fwplay to /playback\n"
 		"  -N|--nametest <string>  Set name of .fwplay test file\n"
+		"  -G|--colorscheme <string>  UI colorscheme by builtin name: {original,angry,\n"
+		"       aqua,favicon,midnight,neon:lime,neon:yellow,neon:cyan,neon:pink}\n"
+		"  -H|--colors <string>    UI colorscheme by 4 html colors in order: \n"
+		"    panel,menuIcon,statusText,messageText ie \"#3D4557,#00FFFF,#00FFFF.#00FFFF\" \n"
+		"  -I|--pin TF             Pin statusbar(T/F) menubar(T/F)\n"				
+		"  -N|--nametest <string>  Set name of .fwplay test file\n"
 	    "\nInternal options:\n"
 	    "  -i|--plugin <string>    Called from plugin.\n"
 	    "  -j|--fd <number>        Pipe to command the program.\n"
@@ -113,6 +119,7 @@ const char * fv_validate_string_arg(const char *optarg)
 	{"version", no_argument, 0, 'v'},
 
 	{"fullscreen", no_argument, 0, 'c'},
+	{"pin", required_argument, 0, 'I'},
 	{"geometry", required_argument, 0, 'g'},
 	{"big", no_argument, 0, 'b'},
 
@@ -152,6 +159,8 @@ const char * fv_validate_string_arg(const char *optarg)
 	{"fixture", no_argument, 0, 'F'},
 	{"playback", no_argument, 0, 'P'},
 	{"nametest", required_argument, 0, 'N'},
+	{"colorscheme", required_argument, 0, 'G'},
+	{"colors", required_argument, 0, 'H'},
 	{0, 0, 0, 0}
     };
 
@@ -395,6 +404,17 @@ int fv_parseCommandLine (int argc, char **argv, freewrl_params_t *fv_params)
 	    /* initial string of keypresses once main url is loaded */
 		fwl_set_KeyString(optarg);
 	    break;
+
+	case 'G': /* --colorscheme string */
+		fwl_set_ui_colorscheme(optarg);
+		break;
+	case 'H': /* --colors string */
+		fwl_set_ui_colors(optarg);
+		break;
+
+	case 'I': /* --pin TF */
+		fwl_set_sbh_pin_option(optarg);
+		break;
 
 /* Internal options */
 

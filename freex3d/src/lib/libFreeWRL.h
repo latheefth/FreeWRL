@@ -141,7 +141,7 @@ bool Anchor_ReplaceWorld();
 #define VIEWER_WALK 2
 #define VIEWER_EXFLY 3
 #define VIEWER_FLY 4
-#define VIEWER_YAWPITCHZOOM 5
+#define VIEWER_SPHERICAL 5
 #define VIEWER_FLY2 6
 #define VIEWER_TILT 7
 #define VIEWER_TPLANE 8
@@ -149,6 +149,16 @@ bool Anchor_ReplaceWorld();
 #define VIEWER_TURNTABLE 10
 #define VIEWER_LOOKAT 11
 #define VIEWER_EXPLORE 12
+#define VIEWER_YAWZ 13
+#define VIEWER_XY 14
+#define VIEWER_YAWPITCH 15
+#define VIEWER_ROLL 16
+#define VIEWER_DIST 17
+
+#define CHORD_YAWZ 0
+#define CHORD_YAWPITCH 1
+#define CHORD_ROLL 2
+#define CHORD_XY 3
 
 void setStereoBufferStyle(int);
 
@@ -192,7 +202,7 @@ void fwl_set_logfile(char *);
 void fwl_set_nameTest(char *);
 
 #if defined(_ANDROID)
-void DROIDDEBUG( const char*pFmtStr, ...);
+int DROIDDEBUG( const char*pFmtStr, ...);
 void PRINTF_ALL( const char*pFmtStr, ...);
 #endif
 
@@ -245,7 +255,9 @@ void fwl_set_MaxImages(int max);
 void fwl_setCurXY(int x, int y);
 void fwl_do_keyPress(char kp, int type);
 void fwl_doQuit();
-//void fwl_doQuitInstance();
+void fwl_doQuitInstance(void *instance);
+void fwl_updateScreenDim(int wi, int he);
+void fwl_doQuitAndWait();
 void fwl_set_viewer_type(const int type);
 void fwl_set_modeRecord();
 void fwl_set_modeFixture();
@@ -324,16 +336,22 @@ void fwl_resource_push_single_request(const char *request);
 void fwl_OSX_initializeParameters(const char* initialURL);
 void fwl_resource_push_single_request_IE_main_scene(const char *request);
 
-void fwg_frontEndReturningData(unsigned char* fileData,int length,int width,int height,bool hasAlpha);
+void fwg_frontEndReturningData(char* fileData,int length,int width,int height,bool hasAlpha);
 
 /* from main/ConsoleMessage.c */
 void fwg_setConsoleParam_maxLines(int);
 void fwg_setConsoleParam_maxLineLength(int);
 void fwg_setConsoleParam_replaceTabs(int);
 
+void fwg_setFrontEndOnX3DFileLoadedListener(void (*frontEndOnX3DFileLoadedListener)(char *));
+
+#ifdef FRONTEND_GETS_FILES
+void fwg_setFrontEndOnResourceRequiredListener(void (*frontEndOnResourceRequiredListener)(char *));
+#endif //FRONTEND_GETS_FILES
 
 void fwg_frontEndReturningLocalFile(char *localfile, int iret);
 void fwl_RenderSceneUpdateScene(void);
+void fwl_gotoCurrentViewPoint();
 void fwl_setScreenDim(int wi, int he);
 bool fwl_initialize_GL(void);
 void fwl_setLastMouseEvent(int etype);
@@ -353,18 +371,29 @@ void fwl_setButDown(int button, int value);
 
 
 /* IS - moving from main/headers.h to here for use in front-ends (bin/main.c calls some of these) */
-void setMenuButton_collision (int val);
-void setMenuButton_headlight (int val);
-void setMenuButton_navModes (int type);
-void setMenuButton_texSize (int size);
 int fwl_get_headlight();
 char* fwl_getNavModeStr();
 int fwl_getNavMode();
+int fwl_getLookatMode();
 int	fwl_getCollision();
 void fwl_setCollision(int state);
 int fwl_getAnaglyphSide(int whichSide);
 int fwl_draw(); //use when frontend_handles_display_thread
 void fwl_tmpFileLocation(char *tmpFileLocation);
 void fwl_fontFileLocation(char *fontFileLocation);
-
+int fwl_set_ui_colorscheme(char *colorschemename);
+void fwl_set_ui_colors(char *fourhtmlcolors);
+void fwl_get_ui_color(char *use, float *rgb);
+char *fwl_get_ui_colorschemename();
+void fwl_next_ui_colorscheme();
+int fwl_get_ui_color_changed();
+int fwl_set_sbh_pin_option(char *optarg);
+void fwl_set_sbh_pin(int sb, int mb);
+void fwl_get_sbh_pin(int *sb, int *mb);
+void fwl_set_target_fps(int target_fps);
+int fwl_get_target_fps();
+int fwl_commandline(char *cmdline);
+int fwl_getShift();
+void fwl_setShift(int ishift);
+int fwl_getCtrl();
 #endif /* __LIBFREEWRL_API_H__ */

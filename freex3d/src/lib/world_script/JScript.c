@@ -105,7 +105,7 @@ typedef struct pJScript{
 
 
 void *JScript_constructor(){
-	void *v = malloc(sizeof(struct pJScript));
+	void *v = MALLOCV(sizeof(struct pJScript));
 	memset(v,0,sizeof(struct pJScript));
 	return v;
 }
@@ -127,8 +127,8 @@ void JScript_init(struct tJScript *t){
 
 #ifdef HAVE_JAVASCRIPT
 void js_cleanup_script_context(int counter){
-	ttglobal tg = gglobal();
-	ppJScript p = (ppJScript)tg->JScript.prv;
+	//ttglobal tg = gglobal();
+	//ppJScript p = (ppJScript)tg->JScript.prv;
 	//CLEANUP_JAVASCRIPT(p->ScriptControl[counter].cx);
 	CLEANUP_JAVASCRIPT(getScriptControlIndex(counter)->cx);
 }
@@ -149,9 +149,10 @@ void process_eventsProcessed() {
 	jsval retval;
 	struct CRscriptStruct *scriptcontrol;
 	ttglobal tg = gglobal();
-	ppJScript p = (ppJScript)tg->JScript.prv;
+	//ppJScript p = (ppJScript)tg->JScript.prv;
 	for (counter = 0; counter <= tg->CRoutes.max_script_found_and_initialized; counter++) {
 		scriptcontrol = getScriptControlIndex(counter);
+		if(scriptcontrol->thisScriptType != NOSCRIPT ){
 		if (scriptcontrol->eventsProcessed == NULL) {
 #if defined(JS_THREADSAFE)
 			JS_BeginRequest(scriptcontrol->cx);
@@ -186,6 +187,7 @@ void process_eventsProcessed() {
 #if defined(JS_THREADSAFE)
 		JS_EndRequest(scriptcontrol->cx);
 #endif
+		}
 
 	}
 #endif /* HAVE_JAVASCRIPT */
@@ -281,7 +283,7 @@ int jsIsRunning(){
 }
 void JSDeleteScriptContext(int num){
 	struct CRscriptStruct *ScriptControl;
-	ppJScript p = (ppJScript)gglobal()->JScript.prv;
+	//ppJScript p = (ppJScript)gglobal()->JScript.prv;
 	/* printf ("kill_javascript, context is %p\n",ScriptControl[i].cx); */
 	ScriptControl = getScriptControlIndex(num);
 #if JS_VERSION >= 185
@@ -740,7 +742,7 @@ static char* re_strcat(char *_Dest, char *_Source, int *destLen, int *destDim)
 	if(*destLen > *destDim -1)
 	{
 		*destDim = *destDim + srclen + 1 + 100;
-		_Dest = realloc(_Dest,*destDim);
+		_Dest = REALLOC(_Dest,*destDim);
 	}
 	_Dest = strcat(_Dest,_Source);
 	return _Dest;
@@ -1081,7 +1083,7 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 							if((int)strlen(sptr[0]->strptr)+2 > tdim-1)
 							{	
 								tdim = (int) strlen(sptr[0]->strptr) + 1 + 100;
-								thisValue = realloc(thisValue,tdim);
+								thisValue = REALLOC(thisValue,tdim);
 							}
 							sprintf (thisValue,"\"%s\"",sptr[0]->strptr);
 						} else { /* must be a Void */
@@ -1445,10 +1447,10 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 	JSObject *interpobj;
 	char *fullname;
 	int touched;
-	ppJScript p;
+	//ppJScript p;
 	ttglobal tg = gglobal();
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
-	p = (ppJScript)tg->JScript.prv;
+	//p = (ppJScript)tg->JScript.prv;
 
 	touched = FALSE;
 	scriptcontrol = getScriptControlIndex(actualscript);
@@ -1576,7 +1578,7 @@ void resetScriptTouchedFlag(int actualscript, int fptr) {
 	struct CRscriptStruct *scriptcontrol;
 	ttglobal tg = gglobal();
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
-	ppJScript p = (ppJScript)tg->JScript.prv;
+	//ppJScript p = (ppJScript)tg->JScript.prv;
 	#ifdef CRVERBOSE
 	printf ("resetScriptTouchedFlag, name %s type %s script %d, fptr %d\n",JSparamnames[fptr].name, stringFieldtypeType(JSparamnames[fptr].type), actualscript, fptr);
 	#endif
@@ -1669,7 +1671,7 @@ void JSInitializeScriptAndFields (int num) {
 	struct ScriptFieldDecl *field;
 
 	script = ScriptControl[num].script;
-	printf("adding fields from script %x\n",script);
+	//printf("adding fields from script %x\n",script);
 	nfields = Shader_Script_getScriptFieldCount(script);
 	for(i=0;i<nfields;i++){
 		field = Shader_Script_getScriptField(script,i);
@@ -2246,7 +2248,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 
 		case FIELDTYPE_SFString: {
 			struct Uni_String *ms;
-			uintptr_t *newptr;
+			intptr_t *newptr;
 
 			strval = JS_ValueToString(scriptContext, *(jsval*)(tg->JScript.JSglobal_return_val));
 #if JS_VERSION < 185
@@ -2258,7 +2260,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 			/* copy the string over, delete the old one, if need be */
 			/* printf ("fieldSet SFString, tn %d tptr %d offset from struct %d\n",
 				tn, tptr, offsetof (struct X3D_TextureCoordinateGenerator, mode)); */
-			newptr = (uintptr_t *)memptr;
+			newptr = (intptr_t *)memptr;
 			ms = (struct Uni_String*) *newptr;
 			verify_Uni_String (ms,strp);
 #if JS_VERSION >= 185
@@ -2454,7 +2456,7 @@ void setField_javascriptEventOut_B(union anyVrml* any,
 
 		case FIELDTYPE_SFString: {
 			struct Uni_String *ms;
-			uintptr_t *newptr;
+			intptr_t *newptr;
 
 			strval = JS_ValueToString(scriptContext, *(jsval*)(tg->JScript.JSglobal_return_val));
 #if JS_VERSION < 185
@@ -2466,7 +2468,7 @@ void setField_javascriptEventOut_B(union anyVrml* any,
 			/* copy the string over, delete the old one, if need be */
 			/* printf ("fieldSet SFString, tn %d tptr %d offset from struct %d\n",
 				tn, tptr, offsetof (struct X3D_TextureCoordinateGenerator, mode)); */
-			newptr = (uintptr_t *)memptr;
+			newptr = (intptr_t *)memptr;
 			ms = (struct Uni_String*) *newptr;
 			verify_Uni_String (ms,strp);
 #if JS_VERSION >= 185

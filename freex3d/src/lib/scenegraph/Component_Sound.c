@@ -105,7 +105,7 @@ typedef struct pComponent_Sound{
 	float AC_LastDuration[50];
 }* ppComponent_Sound;
 void *Component_Sound_constructor(){
-	void *v = malloc(sizeof(struct pComponent_Sound));
+	void *v = MALLOCV(sizeof(struct pComponent_Sound));
 	memset(v,0,sizeof(struct pComponent_Sound));
 	return v;
 }
@@ -149,10 +149,10 @@ float ListenerOri[] = { 0.0, 0.0, -1.0, 0.0, 1.0, 0.0 };
 int SoundEngineInit(void)
 {
 	int retval = FALSE;
-	ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
 #ifdef HAVE_OPENAL
 	{
 		void *alctx;
+		ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
 		retval = TRUE;
 		/* Initialize OpenAL with the default device, and check for EFX support. */
 		alctx = fwInitAL();
@@ -422,13 +422,13 @@ OLDCODE}
 #define LOAD_INITIAL_STATE 0
 #define LOAD_REQUEST_RESOURCE 1
 #define LOAD_FETCHING_RESOURCE 2
-#define LOAD_PARSING 3
+//#define LOAD_PARSING 3
 #define LOAD_STABLE 10
 
 void locateAudioSource (struct X3D_AudioClip *node) {
 	resource_item_t *res;
 	//resource_item_t *parentPath;
-	ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
+	//ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
 
 	switch (node->__loadstatus) {
 		case LOAD_INITIAL_STATE: /* nothing happened yet */
@@ -500,9 +500,9 @@ void render_AudioClip (struct X3D_AudioClip *node) {
 	 * check out locateAudioSource to find out reasons */
 	if (node->__sourceNumber == BADAUDIOSOURCE) return;
 
-#ifdef HAVE_OPENAL
 
-#elif HAVE_OLDSOUND //MUST_RE_IMPLEMENT_SOUND_WITH_OPENAL
+
+#ifdef HAVE_OLDSOUND //MUST_RE_IMPLEMENT_SOUND_WITH_OPENAL
 	/*  register an audioclip*/
 	float pitch,stime, sttime;
 	int loop;
@@ -555,7 +555,7 @@ void render_Sound (struct X3D_Sound *node) {
 	struct X3D_AudioClip *acp = NULL;
 	struct X3D_MovieTexture *mcp = NULL;
 	struct X3D_Node *tmpN = NULL;
-	ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
+	//ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
 
 	/* why bother doing this if there is no source? */
 	if (node->source == NULL) return;
@@ -686,8 +686,8 @@ void render_Sound (struct X3D_Sound *node) {
 		}
 	}
 
-
-#elif HAVE_OLDSOUND //MUST_RE_IMPLEMENT_SOUND_WITH_OPENAL
+#endif
+#ifdef HAVE_OLDSOUND //MUST_RE_IMPLEMENT_SOUND_WITH_OPENAL
 
 
 	/* printf ("sound, node %d, acp %d source %d\n",node, acp, acp->__sourceNumber); */
@@ -702,6 +702,7 @@ void render_Sound (struct X3D_Sound *node) {
 		float midmin, midmax;
 		float amp;
 		char mystring[256];
+		ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
 
 		/*  do the sound registering first, and tell us if this is an audioclip*/
 		/*  or movietexture.*/
@@ -864,7 +865,8 @@ double compute_duration(int ibuffer){
 		retval = (double)(ibytes) / bytespersecond;
 	else
 		retval = 1.0;
-#elif HAVE_OLDSOUND
+#endif
+#ifdef HAVE_OLDSOUND
 	//not sure how this is supposed to work, havent compiled it, good luck
 	float pitch;
 	double stime, sttime;
@@ -889,7 +891,7 @@ bool  process_res_audio(resource_item_t *res){
 	struct X3D_AudioClip *node;
 
 	buffer = NULL;
-
+	len = 0;
 	switch (res->type) {
 	case rest_invalid:
 		return FALSE;

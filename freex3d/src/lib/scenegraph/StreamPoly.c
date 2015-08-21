@@ -85,7 +85,7 @@ typedef struct pStreamPoly{
 	GLfloat Ssize;
 }* ppStreamPoly;
 void *StreamPoly_constructor(){
-	void *v = malloc(sizeof(struct pStreamPoly));
+	void *v = MALLOCV(sizeof(struct pStreamPoly));
 	memset(v,0,sizeof(struct pStreamPoly));
 	return v;
 }
@@ -294,8 +294,8 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 	newcolors=0;	/*  only if we have colours*/
 
 	/* MALLOC required memory */
-	newcindex = MALLOC (GLuint *, sizeof (int)*r->ntri*3);
-	newtcindex = MALLOC (GLuint *, sizeof (int)*r->ntri*3);
+	newcindex = MALLOC (GLuint *, sizeof (GLuint)*r->ntri*3);
+	newtcindex = MALLOC (GLuint *, sizeof (GLuint)*r->ntri*3);
 
 	newpoints = MALLOC (struct SFVec3f *, sizeof (struct SFVec3f)*r->ntri*3);
 	

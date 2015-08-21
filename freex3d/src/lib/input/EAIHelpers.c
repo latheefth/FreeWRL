@@ -100,7 +100,7 @@ typedef struct pEAIHelpers{
 } * ppEAIHelpers;
 void *EAIHelpers_constructor()
 {
-	void *v = malloc(sizeof(struct pEAIHelpers));
+	void *v = MALLOCV(sizeof(struct pEAIHelpers));
 	memset(v,0,sizeof(struct pEAIHelpers));
 	return v;
 }
@@ -369,7 +369,7 @@ int EAI_GetNode(const char *str) {
 
 	if (myNode != NULL) 
 		return registerEAINodeForAccess(myNode);
-	return FALSE;
+	return 0;
 }
 
 //saves a vector of registered node addresses in the output parameter parentNodesAdr. The output parameter must be freed by the caller
@@ -406,8 +406,10 @@ int EAI_GetNodeParents(int cNode, int **parentNodesAdr)
 		tmp[i] = parentAdr;
 		
 		//if the address registration is "0" an error occurred, we exit returning an error code (-1)
-		if(!parentAdr)
+		if(!parentAdr) {
+            FREE_IF_NZ(tmp);
 			return -1;
+        }
 	}
 
 	*parentNodesAdr = tmp;
@@ -621,7 +623,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 						stringFieldtypeType(fieldDecl_getType(sfield->fieldDecl)),
 						fieldDecl_getAccessType(sfield->fieldDecl),
 						stringPROTOKeywordType(fieldDecl_getAccessType(sfield->fieldDecl)),
-						fieldDecl_getIndexName(sfield->fieldDecl), 
+						fieldDecl_getIndexName(sfield->fieldDecl),
 						fieldDecl_getStringName(globalParser->lexer,sfield->fieldDecl)
 				);
 				

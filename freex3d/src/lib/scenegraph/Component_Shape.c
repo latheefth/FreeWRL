@@ -63,7 +63,7 @@ typedef struct pComponent_Shape{
 }* ppComponent_Shape;
 
 void *Component_Shape_constructor(){
-	void *v = malloc(sizeof(struct pComponent_Shape));
+	void *v = MALLOCV(sizeof(struct pComponent_Shape));
 	memset(v,0,sizeof(struct pComponent_Shape));
 	return v;
 }

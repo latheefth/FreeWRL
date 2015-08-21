@@ -94,7 +94,7 @@ DEF_THREAD(_THREAD_NULL_); //used to initialize thread members in generatedcode.
 //typedef struct pthreads{
 //}*ppthreads;
 //void *threads_constructor(){
-//	void *v = malloc(sizeof(struct pthreads));
+//	void *v = MALLOCV(sizeof(struct pthreads));
 //	memset(v, 0, sizeof(struct pthreads));
 //	return v;
 //}

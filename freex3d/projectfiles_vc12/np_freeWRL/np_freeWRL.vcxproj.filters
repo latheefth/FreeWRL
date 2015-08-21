@@ -15,45 +15,50 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\plugin_win32\BasePlugin.cpp">
+    <ClCompile Include="$(SRC)\plugin_win32\BasePlugin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\plugin_win32\np_entry.cpp">
+    <ClCompile Include="$(SRC)\plugin_win32\np_entry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\plugin_win32\npn_gate.cpp">
+    <ClCompile Include="$(SRC)\plugin_win32\npn_gate.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\plugin_win32\npp_gate.cpp">
+    <ClCompile Include="$(SRC)\plugin_win32\npp_gate.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\plugin_win32\plugin.cpp">
+    <ClCompile Include="$(SRC)\plugin_win32\plugin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\plugin_win32\ScriptablePluginObjectBase.cpp">
+    <ClCompile Include="$(SRC)\plugin_win32\ScriptablePluginObjectBase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\plugin_win32\BasePlugin.h">
+    <ClInclude Include="$(SRC)\plugin_win32\BasePlugin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\plugin_win32\plugin.h">
+    <ClInclude Include="$(SRC)\plugin_win32\plugin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\plugin_win32\resource.h">
+    <ClInclude Include="$(SRC)\plugin_win32\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\plugin_win32\ScriptablePluginObjectBase.h">
+    <ClInclude Include="$(SRC)\plugin_win32\ScriptablePluginObjectBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\..\src\plugin_win32\np_freeWRL.rc">
+    <ResourceCompile Include="$(SRC)\plugin_win32\np_freeWRL.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\src\plugin_win32\README.txt" />
+    <Text Include="$(SRC)\plugin_win32\README.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\plugin_win32\np_BasePlugin.def">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

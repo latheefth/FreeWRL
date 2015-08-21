@@ -1362,7 +1362,9 @@ void embedEXTERNPROTO(struct VRMLLexer *me, const char *myName, char *buffer, ch
    an external file */
 
 void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
+#ifdef HAD_RESOURCE_LOAD
 	char *myName = NULL;
+#endif
 	int mode;
 	int type;
 	struct Multi_String url;
@@ -1372,7 +1374,9 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
 	/* expect the EXTERNPROTO proto name */
 	if (lexer_setCurID(me)) {
 			/* printf ("next token is %s\n",me->curID); */
+#ifdef HAD_RESOURCE_LOAD
 			myName = STRDUP(me->curID);
+#endif
 			FREE_IF_NZ(me->curID);
 	} else {
 			PARSE_ERROR ("EXTERNPROTO - expected a PROTO name\n");
@@ -1415,6 +1419,10 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
 	}
 
 	res = resource_create_multi(&url);
+    
+    FREE_IF_NZ(url.p);
+    url.p = NULL;
+    url.n = 0;
 	resource_identify(gglobal()->resources.root_res, res);
 
 	if (res->type != rest_invalid) {

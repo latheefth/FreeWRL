@@ -54,7 +54,7 @@ typedef struct pComponent_EnvironSensor{
 
 }* ppComponent_EnvironSensor;
 void *Component_EnvironSensor_constructor(){
-	void *v = malloc(sizeof(struct pComponent_EnvironSensor));
+	void *v = MALLOCV(sizeof(struct pComponent_EnvironSensor));
 	memset(v,0,sizeof(struct pComponent_EnvironSensor));
 	return v;
 }

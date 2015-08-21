@@ -73,50 +73,31 @@ CProto ???
 
 
 typedef struct pSnapshot{
-/* snapshot stuff */
-int snapRawCount;//=0;
-int snapGoodCount;//=0;
+	/* snapshot stuff */
+	int snapRawCount;//=0;
+	int snapGoodCount;//=0;
 
 #if defined(DOSNAPSEQUENCE)
-/* need to re-implement this for OSX generating QTVR */
-int snapsequence;//=FALSE;		/* --seq - snapshot sequence, not single click  */
-int maxSnapImages;//=100; 		/* --maximg command line parameter 		*/
-char *snapseqB;// = NULL;		/* --seqb - snap sequence base filename		*/
+	/* need to re-implement this for OSX generating QTVR */
+	int snapsequence;//=FALSE;		/* --seq - snapshot sequence, not single click  */
+	int maxSnapImages;//=100; 		/* --maximg command line parameter 		*/
+	char *snapseqB;// = NULL;		/* --seqb - snap sequence base filename		*/
 #endif
 
-int snapGif;// = FALSE;		/* --gif save as an animated GIF, not mpg	*/
-char *snapsnapB;// = NULL;		/* --snapb -single snapshot files		*/
-const char *default_seqtmp;// = "freewrl_tmp"; /* default value for seqtmp        */
-char *seqtmp;// = NULL;		/* --seqtmp - directory for temp files		*/
-int doSnapshot;// = FALSE;		/* are we doing a snapshot?			*/
-int doPrintshot;// = FALSE; 	/* are we taking a snapshot in order to print? */
-int savedSnapshot;// = FALSE;
-int modeTesting; //when generating test fixtures and playback with commandline -R,-F,-P - for linux just save .rgb don't convert image
+	int snapGif;// = FALSE;		/* --gif save as an animated GIF, not mpg	*/
+	char *snapsnapB;// = NULL;		/* --snapb -single snapshot files		*/
+	const char *default_seqtmp;// = "freewrl_tmp"; /* default value for seqtmp        */
+	char *seqtmp;// = NULL;		/* --seqtmp - directory for temp files		*/
+	int doSnapshot;// = FALSE;		/* are we doing a snapshot?			*/
+	int doPrintshot;// = FALSE; 	/* are we taking a snapshot in order to print? */
+	int savedSnapshot;// = FALSE;
+	int modeTesting; //when generating test fixtures and playback with commandline -R,-F,-P - for linux just save .rgb don't convert image
 }* ppSnapshot;
-void* Snapshot_constructor()
+void *Snapshot_constructor()
 {
-	ppSnapshot p = (ppSnapshot)malloc(sizeof(struct pSnapshot));
-	memset(p,0,sizeof(struct pSnapshot));
-/* snapshot stuff */
-p->snapRawCount=0;
-p->snapGoodCount=0;
-
-#if defined(DOSNAPSEQUENCE)
-/* need to re-implement this for OSX generating QTVR */
-p->snapsequence=FALSE;		/* --seq - snapshot sequence, not single click  */
-p->maxSnapImages=100; 		/* --maximg command line parameter 		*/
-p->snapseqB = NULL;		/* --seqb - snap sequence base filename		*/
-#endif
-
-p->snapGif = FALSE;		/* --gif save as an animated GIF, not mpg	*/
-p->snapsnapB = NULL;		/* --snapb -single snapshot files		*/
-p->default_seqtmp = "freewrl_tmp"; /* default value for seqtmp        */
-p->seqtmp = NULL;		/* --seqtmp - directory for temp files		*/
-p->doSnapshot = FALSE;		/* are we doing a snapshot?			*/
-p->doPrintshot = FALSE; 	/* are we taking a snapshot in order to print? */
-p->savedSnapshot = FALSE;
-p->modeTesting = FALSE;
-return (void*)p;
+	void *v = MALLOCV(sizeof(struct pSnapshot));
+	memset(v,0,sizeof(struct pSnapshot));
+	return v;
 }
 //void Snapshot_destructor(void *t)
 //{
@@ -125,8 +106,33 @@ return (void*)p;
 //}
 void Snapshot_init(struct tSnapshot* t)
 {
-	t->prv = Snapshot_constructor();
+	//public
 	t->doSnapshot = FALSE;
+	//private
+	t->prv = Snapshot_constructor();
+	{
+		ppSnapshot p = (ppSnapshot)t->prv;
+		/* snapshot stuff */
+		p->snapRawCount=0;
+		p->snapGoodCount=0;
+
+		#if defined(DOSNAPSEQUENCE)
+		/* need to re-implement this for OSX generating QTVR */
+		p->snapsequence=FALSE;		/* --seq - snapshot sequence, not single click  */
+		p->maxSnapImages=100; 		/* --maximg command line parameter 		*/
+		p->snapseqB = NULL;		/* --seqb - snap sequence base filename		*/
+		#endif
+
+		p->snapGif = FALSE;		/* --gif save as an animated GIF, not mpg	*/
+		p->snapsnapB = NULL;		/* --snapb -single snapshot files		*/
+		p->default_seqtmp = "freewrl_tmp"; /* default value for seqtmp        */
+		p->seqtmp = NULL;		/* --seqtmp - directory for temp files		*/
+		p->doSnapshot = FALSE;		/* are we doing a snapshot?			*/
+		p->doPrintshot = FALSE; 	/* are we taking a snapshot in order to print? */
+		p->savedSnapshot = FALSE;
+		p->modeTesting = FALSE;
+
+	}
 }
 //bool do_Snapshot(){
 //	if( ((struct tSnapshot*)(gglobal()->Snapshot))->doSnapshot )return true;
@@ -162,7 +168,7 @@ void fwl_set_SeqFile(const char* file)
     /* need to re-implement this for OSX generating QTVR */
 	//struct pSnapshot* p = (struct pSnapshot*)gglobal()->Snapshot.prv;
 	ppSnapshot p = (ppSnapshot)gglobal()->Snapshot.prv;
-    p->snapseqB = strdup(file);
+    p->snapseqB = STRDUP(file);
     printf("snapseqB is %s\n", p->snapseqB);
 #else
     WARN_MSG("Call to fwl_set_SeqFile when Snapshot Sequence not compiled in.\n");
@@ -173,7 +179,7 @@ void fwl_set_SnapFile(const char* file)
 {
 	ppSnapshot p = (ppSnapshot)gglobal()->Snapshot.prv;
 
-	p->snapsnapB = strdup(file);
+	p->snapsnapB = STRDUP(file);
     TRACE_MSG("snapsnapB set to %s\n", p->snapsnapB);
 	printf("%s\n",p->snapsnapB);
 }
@@ -203,11 +209,11 @@ void fwl_set_SnapTmp(const char* file)
 		ttglobal tg = gglobal();
 		tg->Snapshot.doSnapshot = FALSE;
 		//{
-		//	((ppSnapshot)tg->Snapshot.prv)->seqtmp = strdup(file);
+		//	((ppSnapshot)tg->Snapshot.prv)->seqtmp = STRDUP(file);
 		//}
 		{
 			ppSnapshot p = (ppSnapshot)tg->Snapshot.prv;
-			p->seqtmp = strdup(file);
+			p->seqtmp = STRDUP(file);
 			TRACE_MSG("seqtmp set to %s\n", p->seqtmp);
 		}
 
@@ -216,18 +222,18 @@ void fwl_set_SnapTmp(const char* file)
 	//	ttSnapshot t = TSNAPSHOT;
 	//	ppSnapshot p = PSNAPSHOT;
 	//	t->doSnapshot = FALSE;
-	//	p->seqtmp = strdup(file);
+	//	p->seqtmp = STRDUP(file);
 	//	TRACE_MSG("seqtmp set to %s\n", p->seqtmp);
 	//}
 	//{
 	//	struct tSnapshot* t = &gglobal()->Snapshot;
 	//	struct pSnapshot* p = (struct pSnapshot*)t->prv;
-	//	p->seqtmp = strdup(file);
+	//	p->seqtmp = STRDUP(file);
 	//	TRACE_MSG("seqtmp set to %s\n", p->seqtmp);
 	//}
 	//{
 	//	struct pSnapshot* p = (struct pSnapshot*)gglobal()->Snapshot.prv;
-	//	p->seqtmp = strdup(file);
+	//	p->seqtmp = STRDUP(file);
 	//	TRACE_MSG("seqtmp set to %s\n", p->seqtmp);
 	//}
 }
@@ -485,6 +491,12 @@ void Snapshot ()
 	saveSnapshotBMP(thisRawFile, imgbuf, 3, gglobal()->display.screenWidth, gglobal()->display.screenHeight);
 	FREE(imgbuf);
 }
+void Snapshot1(char *fname){
+	char *imgbuf;
+	imgbuf = grabScreen(3,0,0,gglobal()->display.screenWidth,gglobal()->display.screenHeight);
+	saveSnapshotBMP(fname, imgbuf, 3, gglobal()->display.screenWidth, gglobal()->display.screenHeight);
+	FREE(imgbuf);
+}
 #endif /*ifdef win32*/
 #if !(defined(_MSC_VER) || defined(IPHONE))
 
@@ -587,7 +599,7 @@ CGContextRef MyCreateBitmapContext(int pixelsWide, int pixelsHigh, unsigned char
 	bitmapBytesPerRow =(pixelsWide*4); 
 	bitmapByteCount =(bitmapBytesPerRow*pixelsHigh); 
 	colorSpace=CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB); 
-	bitmapData=(unsigned char*) malloc(bitmapByteCount); 
+	bitmapData=(unsigned char*) MALLOC(void *, bitmapByteCount); 
 
 	if(bitmapData==NULL) 
 	{ 
@@ -611,7 +623,7 @@ CGContextRef MyCreateBitmapContext(int pixelsWide, int pixelsHigh, unsigned char
 		kCGImageAlphaPremultipliedLast); 
 	if (context== NULL) 
 	{ 
-		free (bitmapData); 
+		FREE(bitmapData);
 		fprintf (stderr, "Context not created!"); 
 		return NULL; 
 	} 
@@ -731,7 +743,7 @@ void Snapshot () {
 		char *bitmapData = CGBitmapContextGetData(myBitmapContext); 
 
 		CGContextRelease (myBitmapContext); 
-		if (bitmapData) free(bitmapData); 
+		if (bitmapData) FREE(bitmapData);
 
 
 		p->snapGoodCount++;

@@ -41,6 +41,13 @@ CProto ???
 #include "quaternion.h"
 #include "Viewer.h"
 
+//moved to libfreewrl.h
+//enum {
+//	CHORD_YAWZ,
+//	CHORD_YAWPITCH,
+//	CHORD_ROLL,
+//	CHORD_XY
+//} input_chords;
 
 static void init_stereodefaults(X3D_Viewer *Viewer)
 {
@@ -72,7 +79,7 @@ typedef struct pViewer{
 	X3D_Viewer_Walk viewer_walk;
 	X3D_Viewer_Examine viewer_examine;
 	X3D_Viewer_Fly viewer_fly;
-	X3D_Viewer_YawPitchZoom viewer_ypz;
+	X3D_Viewer_Spherical viewer_ypz;
 
 	FILE *exfly_in_file;
 	struct point_XYZ viewer_lastP;
@@ -80,7 +87,6 @@ typedef struct pViewer{
 	int StereoInitializedOnce;//. = 0;
 	GLboolean acMask[3][3]; //anaglyphChannelMask
 	X3D_Viewer Viewer; /* has to be defined somewhere, so it found itself stuck here */
-
 	/* viewpoint slerping */
 	double viewpoint2rootnode[16];
 	double viewpointnew2rootnode[16];
@@ -90,10 +96,12 @@ typedef struct pViewer{
 	double tickFrac;
 	Quaternion sq;
 	double sp[3];
+	int keychord;
+	int dragchord;
 
 }* ppViewer;
 void *Viewer_constructor(){
-	void *v = malloc(sizeof(struct pViewer));
+	void *v = MALLOCV(sizeof(struct pViewer));
 	memset(v,0,sizeof(struct pViewer));
 	return v;
 }
@@ -125,7 +133,8 @@ void Viewer_init(struct tViewer *t){
 		p->tickFrac = 0.0; //for debugging slowly
 		init_stereodefaults(&p->Viewer);
 		p->StereoInitializedOnce = 1;
-
+		p->keychord = CHORD_XY; // default on startup
+		p->dragchord = CHORD_YAWZ;
 	}
 }
 //ppViewer p = (ppViewer)gglobal()->Viewer.prv;
@@ -138,10 +147,11 @@ X3D_Viewer *Viewer()
 
 
 
-static void handle_tick_walk(void);
+//static void handle_tick_walk(void);
+static void handle_tick_walk2(double dtime);
 static void handle_tick_fly(void);
 static void handle_tick_exfly(void);
-static void handle_tick_fly2(void);
+static void handle_tick_fly2(double dtime);
 
 /* used for EAI calls to get the current speed. Not used for general calcs */
 /* we DO NOT return as a float, as some gccs have trouble with this causing segfaults */
@@ -178,7 +188,7 @@ void viewer_default() {
 	memcpy (&p->Viewer.walk, &p->viewer_walk,sizeof (X3D_Viewer_Walk));
 	memcpy (&p->Viewer.examine, &p->viewer_examine, sizeof (X3D_Viewer_Examine));
 	memcpy (&p->Viewer.fly, &p->viewer_fly, sizeof (X3D_Viewer_Fly));
-	memcpy (&p->Viewer.ypz,&p->viewer_ypz, sizeof (X3D_Viewer_YawPitchZoom));
+	memcpy (&p->Viewer.ypz,&p->viewer_ypz, sizeof (X3D_Viewer_Spherical));
 
 	fwl_set_viewer_type(VIEWER_EXAMINE);
 	p->Viewer.LookatMode = 0;
@@ -224,7 +234,7 @@ void viewer_init (X3D_Viewer *viewer, int type) {
         memcpy (&viewer->walk, &p->viewer_walk,sizeof (X3D_Viewer_Walk));
         memcpy (&viewer->examine, &p->viewer_examine, sizeof (X3D_Viewer_Examine));
         memcpy (&viewer->fly, &p->viewer_fly, sizeof (X3D_Viewer_Fly));
-        memcpy (&viewer->ypz,&p->viewer_ypz, sizeof (X3D_Viewer_YawPitchZoom));
+        memcpy (&viewer->ypz,&p->viewer_ypz, sizeof (X3D_Viewer_Spherical));
 
 
 		/* SLERP code for moving between viewpoints */
@@ -289,11 +299,13 @@ print_viewer()
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
 	quaternion_to_vrmlrot(&(p->Viewer.Quat), &(ori.x),&(ori.y),&(ori.z), &(ori.a));
-	ConsoleMessage("Viewer {\n");
+	ConsoleMessage("Viewpoint local{\n");
 	ConsoleMessage("\tPosition[%.4f, %.4f, %.4f]\n", (p->Viewer.Pos).x, (p->Viewer.Pos).y, (p->Viewer.Pos).z);
 	ConsoleMessage("\tQuaternion[%.4f, %.4f, %.4f, %.4f]\n", (p->Viewer.Quat).w, (p->Viewer.Quat).x, (p->Viewer.Quat).y, (p->Viewer.Quat).z);
 	ConsoleMessage("\tOrientation[%.4f, %.4f, %.4f, %.4f]\n", ori.x, ori.y, ori.z, ori.a);
 	ConsoleMessage("}\n");
+	getCurrentPosInModel(FALSE);
+	ConsoleMessage("World Coordinates of Avatar [%.4f, %.4f %.4f]\n",p->Viewer.currentPosInModel.x,p->Viewer.currentPosInModel.y,p->Viewer.currentPosInModel.z);
 	printStats();
 }
 
@@ -362,6 +374,18 @@ void fwl_set_viewer_type(const int type) {
 	ttglobal tg = gglobal();
 	ppViewer p = (ppViewer)tg->Viewer.prv;
 
+	if(p->Viewer.type != type){
+		tg->Mainloop.CTRL = FALSE; //turn off any leftover 3-state toggle
+		switch(p->Viewer.type){
+			case VIEWER_LOOKAT:
+			case VIEWER_EXPLORE:
+				p->Viewer.LookatMode = 0; //turn off leftover lookatMode
+				break;
+			default:
+				break;
+		}
+	}
+
 	switch(type) {
 	case VIEWER_EXAMINE:
 		resolve_pos2();
@@ -372,14 +396,45 @@ void fwl_set_viewer_type(const int type) {
 	case VIEWER_RPLANE:
 	case VIEWER_TILT:
 	case VIEWER_FLY2:
-	case VIEWER_YAWPITCHZOOM:
 	case VIEWER_TURNTABLE:
-	case VIEWER_EXPLORE:
+	case VIEWER_DIST:
 	case VIEWER_FLY:
 		p->Viewer.type = type;
 		break;
+	case VIEWER_SPHERICAL:
+		//3 state toggle stack
+		if(p->Viewer.type == type){
+			//this is a request to toggle on/off FOV (field-of-view) adjustment for SPHERICAL mode
+			if(tg->Mainloop.CTRL){
+				tg->Mainloop.CTRL = FALSE;
+			}else{
+				tg->Mainloop.CTRL = TRUE; //in handle_spherical, check if button==3 (RMB) or CTRL + button==1
+			}
+		}else{
+			//request to toggle on EXPLORE mode
+			p->Viewer.type = type;
+		}
+		break;
+
+	case VIEWER_EXPLORE:
+		//3 state toggle stack
+		if(p->Viewer.type == type){
+			//this is a request to toggle on/off CTRL for EXPLORE mode
+			if(tg->Mainloop.CTRL){
+				tg->Mainloop.CTRL = FALSE;
+				p->Viewer.LookatMode = 0;
+			}else{
+				tg->Mainloop.CTRL = TRUE;
+				p->Viewer.LookatMode = 1; //tells mainloop to turn off sensitive
+			}
+		}else{
+			//request to toggle on EXPLORE mode
+			p->Viewer.type = type;
+		}
+		break;
 	case VIEWER_LOOKAT:
-		if(p->Viewer.type == VIEWER_LOOKAT){
+		//2 state toggle
+		if(p->Viewer.type == type){
 			//this is a request to toggle off LOOKAT mode
 			p->Viewer.type = p->Viewer.lastType;
 			p->Viewer.LookatMode = 0;
@@ -413,41 +468,108 @@ void fwl_set_viewer_type(const int type) {
 	//setMenuButton_navModes(p->Viewer.type);
 
 }
+
+
+//#define VIEWER_STRING(type) ( \
+//	type == VIEWER_NONE ? "NONE" : ( \
+//	type == VIEWER_EXAMINE ? "EXAMINE" : ( \
+//	type == VIEWER_WALK ? "WALK" : ( \
+//	type == VIEWER_EXFLY ? "EXFLY" : ( \
+//	type == VIEWER_SPHERICAL ? "SPHERICAL" : (\
+//	type == VIEWER_TURNTABLE ? "TURNTABLE" : (\
+//	type == VIEWER_FLY ? "FLY" : "UNKNOWN"))))))
+#ifdef _MSC_VER
+#define strcasecmp _stricmp
+#endif
+
+struct navmode {
+	char *key;
+	int type;
+} navmodes [] = {
+	{"NONE",VIEWER_NONE},
+	{"WALK",VIEWER_WALK},
+	{"FLY",VIEWER_FLY},
+	{"EXAMINE",VIEWER_EXAMINE},
+	{"SPHERICAL",VIEWER_SPHERICAL},
+	{"TURNTABLE",VIEWER_TURNTABLE},
+	{"EXPLORE",VIEWER_EXPLORE},
+	{"LOOKAT",VIEWER_LOOKAT},
+	{"YAWZ",VIEWER_YAWZ},
+	{"XY",VIEWER_XY},
+	{"YAWPITCH",VIEWER_YAWPITCH},
+	{"ROLL",VIEWER_ROLL},
+	{"DIST",VIEWER_DIST},
+	{NULL,0},
+};
+char * lookup_navmodestring(int navmode){
+	int i;
+	char *retval;
+	struct navmode *nm;
+	i = 0;
+	retval = NULL;
+	do{
+		nm = &navmodes[i];
+		if(nm->type == navmode){
+			retval = nm->key;
+			break;
+		}
+		i++;
+	}while(navmodes[i].key);
+	if(!retval) retval = "NONE";
+	return retval;
+}
+int lookup_navmode(char *cmode){
+	int i;
+	int retval;
+	struct navmode *nm;
+	i = 0;
+	retval = 0;
+	do{
+		nm = &navmodes[i];
+		if(!strcasecmp(nm->key,cmode)){
+			retval = nm->type;
+			break;
+		}
+		i++;
+	}while(navmodes[i].key);
+	return retval;
+}
 char* fwl_getNavModeStr()
 {
 	ttglobal tg = gglobal();
 	ppViewer p = (ppViewer)tg->Viewer.prv;
-	switch(p->Viewer.type) {
-	case VIEWER_NONE:
-		return "NONE";
-	case VIEWER_EXAMINE:
-		return "EXAMINE";
-	case VIEWER_WALK:
-		return "WALK";
-	case VIEWER_EXFLY:
-		return "EXFLY";
-	case VIEWER_TPLANE:
-		return "TPLANE";
-	case VIEWER_RPLANE:
-		return "RPLANE";
-	case VIEWER_TILT:
-		return "TILT";
-	case VIEWER_FLY2:
-		return "FLY2";
-	case VIEWER_YAWPITCHZOOM:
-		return "YAWPITCHZOOM";
-	case VIEWER_TURNTABLE:
-		return "TURNTABLE";
-	case VIEWER_FLY:
-		return "FLY";
-	case VIEWER_LOOKAT:
-		return "LOOKAT";
-	case VIEWER_EXPLORE:
-		return "EXPLORE";
-	default:
-		return "NONE";
-	}
-	return "NONE";
+	return lookup_navmodestring(p->Viewer.type);
+	//switch(p->Viewer.type) {
+	//case VIEWER_NONE:
+	//	return "NONE";
+	//case VIEWER_EXAMINE:
+	//	return "EXAMINE";
+	//case VIEWER_WALK:
+	//	return "WALK";
+	//case VIEWER_EXFLY:
+	//	return "EXFLY";
+	//case VIEWER_TPLANE:
+	//	return "TPLANE";
+	//case VIEWER_RPLANE:
+	//	return "RPLANE";
+	//case VIEWER_TILT:
+	//	return "TILT";
+	//case VIEWER_FLY2:
+	//	return "FLY2";
+	//case VIEWER_SPHERICAL:
+	//	return "SPHERICAL";
+	//case VIEWER_TURNTABLE:
+	//	return "TURNTABLE";
+	//case VIEWER_FLY:
+	//	return "FLY";
+	//case VIEWER_LOOKAT:
+	//	return "LOOKAT";
+	//case VIEWER_EXPLORE:
+	//	return "EXPLORE";
+	//default:
+	//	return "NONE";
+	//}
+	//return "NONE";
 }
 int fwl_getNavMode()
 {
@@ -455,7 +577,11 @@ int fwl_getNavMode()
 	ppViewer p = (ppViewer)tg->Viewer.prv;
 	return p->Viewer.type;
 }
-
+int fwl_setNavMode(char *mode){
+	int imode = lookup_navmode(mode);
+	fwl_set_viewer_type(imode);
+	return 0;
+}
 
 //int use_keys() {
 //	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
@@ -613,6 +739,23 @@ void viewer_togl(double fieldofview)
 	/* goal: take the curring Viewer pose (.Pos, .Quat) and set openGL transforms
 	   to prepare for a separate call to move the viewpoint - 
 	   (currently done in Mainloop.c setup_viewpoint())
+	Explanation of AntiPos, AntiQuat:
+		If there's a viewpoint vp, We want to 
+			a) navigate away from the initial bind_viewpoint transform + (.position,.orientation) pose
+			b) start navigation from where vp.position, vp.orientation tell us.
+			c) remain responsive if there are changes to .position or .orientation. during run
+			- either javascript or routing may change vp.position, .orientation
+		To accomodate all this we:
+			a) create variables Viewer.Pos, .Quat to hold the navigation 
+			b) initially set Viewer.Pos, .Quat to vp.position, .orientation
+			- see INITIALIZE_POSE_ANTIPOSE and its use in bind_viewpoint
+			c) subtract off initially bound .position, .orientation and add on current .position, .orientation 
+			- below, AntiPos and AntiQuat hold the original .orientation, .position values set during bind_viewpoint
+			- prep_viewpoint in module Component_Navigation then adds back on 
+				the current (javascript/routing changed) .position, .orientation
+			- if no change to .position, .orientation after binding, then these 2 
+				(AntiPos,AntiQuat) and (vp.position,vp.orientation) are equal and cancel
+				leaving the .Pos, .Quat -initially with .position, .orientation- in the modelview matrix stack
     */
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
@@ -724,15 +867,20 @@ printf ("togl, after inverse, %lf %lf %lf\n",inverseMatrix[12],inverseMatrix[13]
 	tmppt.z = inverseMatrix[14];
 
 
-	/* printf ("going to do rotation on %f %f %f\n",tmppt.x, tmppt.y, tmppt.z); */
-	quaternion_rotation(&rp, &p->Viewer.bindTimeQuat, &tmppt);
-	/* printf ("new inverseMatrix  after rotation %4.2f %4.2f %4.2f\n",rp.x, rp.y, rp.z); */
 
 	if (addInAntiPos) {
+		/* printf ("going to do rotation on %f %f %f\n",tmppt.x, tmppt.y, tmppt.z); */
+		quaternion_rotation(&rp, &p->Viewer.bindTimeQuat, &tmppt);
+		/* printf ("new inverseMatrix  after rotation %4.2f %4.2f %4.2f\n",rp.x, rp.y, rp.z); */
+
 		p->Viewer.currentPosInModel.x = p->Viewer.AntiPos.x + rp.x;
 		p->Viewer.currentPosInModel.y = p->Viewer.AntiPos.y + rp.y;
 		p->Viewer.currentPosInModel.z = p->Viewer.AntiPos.z + rp.z;
 	} else {
+		//at scene root level, after setup_viewpoint(), modelview matrix is the view matrix, and has all transforms 
+		// including .orientation, .position anti-pos, antiquat applied
+		if(0) quaternion_rotation(&rp, &p->Viewer.bindTimeQuat, &tmppt);
+		if(1) {rp.x = tmppt.x; rp.y = tmppt.y; rp.z = tmppt.z;}
 		p->Viewer.currentPosInModel.x = rp.x;
 		p->Viewer.currentPosInModel.y = rp.y;
 		p->Viewer.currentPosInModel.z = rp.z;
@@ -743,6 +891,9 @@ printf ("togl, after inverse, %lf %lf %lf\n",inverseMatrix[12],inverseMatrix[13]
 		Viewer.currentPosInModel.x, Viewer.currentPosInModel.y, Viewer.currentPosInModel.z);
 */
 }
+
+
+
 
 double quadratic(double x,double a,double b,double c)
 {
@@ -786,7 +937,7 @@ static void handle_walk(const int mev, const unsigned int button, const float x,
 		if (button == 1) {
 			/* July31,2010 new quadratic speed: allows you slow speed with small mouse motions, or 
 			   fast speeds with large mouse motions. The .05, 5.0 etc are tuning parameters - I tinkered / experimented
-			   using the townsite scene http://dug9.users.sourceforge.net/townsite.zip
+			   using the townsite scene http://dug9.users.sourceforge.net/web3d/townsite_2014/townsite.x3d
 			   which has the default navigationInfo speed (1.0) and is to geographic scale in meters.
 			   If the tuning params don't work for you please fix/iterate/re-tune/change back/put a switch
 			   I find them amply speedy, maybe yaw a bit too fast 
@@ -813,6 +964,7 @@ static void handle_walk(const int mev, const unsigned int button, const float x,
 		}
 	}
 }
+
 
 static double
   norm(const Quaternion *quat)
@@ -859,7 +1011,7 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
 
 		} else if (button == 3) {
 			examine->SY = y;
-			examine->ODist = p->Viewer.Dist;
+			examine->ODist = max(0.1,p->Viewer.Dist);
 		}
 	} else if (mev == MotionNotify) {
 		if (button == 1) {
@@ -883,8 +1035,11 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
 				quaternion_multiply(&(p->Viewer.Quat), &arc, &(examine->OQuat));
 			}
 		} else if (button == 3) {
+			#ifndef DISABLER
 			p->Viewer.Dist = examine->ODist * exp(examine->SY - y);
-
+			#else
+			p->Viewer.Dist = (0 != y) ? examine->ODist * examine->SY / y : 0;
+			#endif
 		}
  	}
 
@@ -901,18 +1056,65 @@ printf ("examine->origin %4.3f %4.3f %4.3f\n",examine->Origin.x, examine->Origin
 */
 }
 
+void handle_dist(const int mev, const unsigned int button, float x, float y) {
+	/* different than z, this adjusts the viewer.Dist value for examine, turntable, explore, lookat
+		- all without using RMB (right mouse button), so mobile friendly
+	*/
+	//examine variant - doesn't move the vp/.pos
+	Quaternion q_i;
+	struct point_XYZ pp = { 0, 0, 0};
+	double yy;
+	ppViewer p;
+	X3D_Viewer_Examine *examine;
+	p = (ppViewer)gglobal()->Viewer.prv;
+	examine = &p->Viewer.examine;
+	pp.z=p->Viewer.Dist;
+
+	yy = 1.0 - y;
+	if (mev == ButtonPress) {
+		if (button == 1) {
+			resolve_pos2();
+			examine->SY = yy;
+			examine->ODist = max(0.1,p->Viewer.Dist);
+		}
+	} else if (mev == MotionNotify) {
+		if (button == 1) {
+			#ifndef DISABLER
+			p->Viewer.Dist = examine->ODist * exp(2.0 * (examine->SY - yy));
+			#else
+			p->Viewer.Dist = (0 != yy) ? examine->ODist * examine->SY / yy : 0;
+			#endif
+			//printf("v.dist=%lf\n",p->Viewer.Dist);
+		}
+	}
+	quaternion_inverse(&q_i, &(p->Viewer.Quat));
+	quaternion_rotation(&(p->Viewer.Pos), &q_i, &pp);
+/*
+	printf ("bp, after quat rotation, pos %4.3f %4.3f %4.3f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z);
+*/
+	p->Viewer.Pos.x += (examine->Origin).x;
+	p->Viewer.Pos.y += (examine->Origin).y;
+	p->Viewer.Pos.z += (examine->Origin).z;
+
+}
+
 
 void handle_turntable(const int mev, const unsigned int button, float x, float y) {
 	/*
-	Like handle_yawpitchzoom, except:
+	Like handle_spherical, except:
 	move the viewer.Pos in the opposite direction from where we are looking
 	*/
-	X3D_Viewer_YawPitchZoom *ypz;
 	double frameRateAdjustment;
+	X3D_Viewer_Spherical *ypz;
 	ppViewer p;
 	ttglobal tg = gglobal();
 	p = (ppViewer)gglobal()->Viewer.prv;
 	ypz = &p->Viewer.ypz; //just a place to store last mouse xy during drag
+
+	if(APPROX(p->Viewer.Dist,0.0)){
+		//no pivot point yet
+		p->Viewer.Dist = 10.0;
+	}
 
 	if( tg->Mainloop.BrowserFPS > 0)
 		frameRateAdjustment = 20.0 / tg->Mainloop.BrowserFPS; /* lets say 20FPS is our speed benchmark for developing tuning parameters */
@@ -931,14 +1133,34 @@ void handle_turntable(const int mev, const unsigned int button, float x, float y
 		Quaternion qyaw, qpitch;
 		double dyaw, dpitch;
 		struct point_XYZ pp, yaxis;
-		double yaw, pitch; //dist, 
+		double yaw, pitch; //dist,
 		Quaternion quat;
 
+		yaw = pitch = 0.0;
 		if (button == 1 || button == 3){
+			struct point_XYZ dd,ddr;
 			yaxis.x = yaxis.z = 0.0;
 			yaxis.y = 1.0;
-			pp = p->Viewer.Pos;
-			p->Viewer.Dist = veclength(pp);
+			//pp = p->Viewer.Pos;
+			//if(0) resolve_pos2();
+			//if(1) {
+				//(examine->Origin).x = (p->Viewer.Pos).x - p->Viewer.Dist * rot.x;
+				dd.x = dd.y = 0.0; dd.z = p->Viewer.Dist; //exploreDist;
+				quat = p->Viewer.Quat;
+				quaternion_inverse(&quat,&quat);
+				quaternion_rotation(&ddr, &quat, &dd);
+				vecdiff(&p->Viewer.examine.Origin,&p->Viewer.Pos,&ddr);
+			//}
+
+			//if(0) vecdiff(&pp,&p->Viewer.examine.Origin,&p->Viewer.Pos);
+			//if(1) vecdiff(&pp,&p->Viewer.Pos,&p->Viewer.examine.Origin);
+			pp = ddr;
+			//if(0) printf("D=%f O=%f %f %f P=%f %f %f pp=%f %f %f\n", p->Viewer.Dist,
+			//p->Viewer.examine.Origin.x,p->Viewer.examine.Origin.y,p->Viewer.examine.Origin.z,
+			//p->Viewer.Pos.x,p->Viewer.Pos.y,p->Viewer.Pos.z,
+			//pp.x,pp.y,pp.z
+			//);
+			//dist = veclength(pp);
 			vecnormal(&pp, &pp);
 			yaw = -atan2(pp.x, pp.z);
 			pitch = -(acos(vecdot(&pp, &yaxis)) - PI*.5);
@@ -946,6 +1168,10 @@ void handle_turntable(const int mev, const unsigned int button, float x, float y
 		if (button == 1) {
 			dyaw = -(ypz->x - x) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom * tg->display.screenRatio;
 			dpitch = -(ypz->y - y) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom;
+			//if(0){
+			//	dyaw = -dyaw;
+			//	dpitch = -dpitch;
+			//}
 			yaw += dyaw;
 			pitch += dpitch;
 		}else if (button == 3) {
@@ -966,7 +1192,7 @@ void handle_turntable(const int mev, const unsigned int button, float x, float y
 			}
 			if(1) {
 				//handle_tick_explore quadratic
-				double quadratic = -xsign_quadratic(y - ypz->y,5.0,10.0,0.0);
+				//double quadratic = -xsign_quadratic(y - ypz->y,5.0,10.0,0.0);
 				ypz->ypz[1] = xsign_quadratic(y - ypz->y,100.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment *.15;
 				//printf("quad=%f y-y %f s=%f fra=%f\n",quadratic,y-ypz->y,p->Viewer.speed,frameRateAdjustment);
 			}
@@ -977,70 +1203,89 @@ void handle_turntable(const int mev, const unsigned int button, float x, float y
 			vrmlrot_to_quaternion(&qpitch, 1.0, 0.0, 0.0, pitch);
 			quaternion_multiply(&quat, &qpitch, &qyaw);
 			quaternion_normalize(&quat);
+
 			quaternion_set(&(p->Viewer.Quat), &quat);
 			//move the viewer.pos in the opposite direction that we are looking
 			quaternion_inverse(&quat, &quat);
 			pp.x = 0.0;
 			pp.y = 0.0;
-			pp.z = p->Viewer.Dist;
+			pp.z = p->Viewer.Dist; //dist;
 			quaternion_rotation(&(p->Viewer.Pos), &quat, &pp);
-
-		}
-		if(button == 1){
 			//remember the last drag coords for next motion
+			vecadd(&p->Viewer.Pos,&p->Viewer.examine.Origin,&p->Viewer.Pos);
+		}
+		if( button == 1){
 			ypz->x = x;
 			ypz->y = y;
-
 		}
 	}else if(mev == ButtonRelease) {
 		if (button == 3) {
 			ypz->ypz[1] = 0.0;
 		}
 	}
-
 }
 
-void handle_yawpitchzoom(const int mev, const unsigned int button, float x, float y) {
+
+void handle_spherical(const int mev, const unsigned int button, float x, float y) {
 	/* handle_examine almost works except we don't want roll-tilt, and we want to zoom */
+	int ibutton;
 	Quaternion qyaw, qpitch;
 	double dyaw,dpitch;
 	/* unused double dzoom; */
-	X3D_Viewer_YawPitchZoom *ypz;
+	X3D_Viewer_Spherical *ypz;
 	ppViewer p;
 	ttglobal tg = gglobal();
 	p = (ppViewer)gglobal()->Viewer.prv;
 	ypz = &p->Viewer.ypz;
+	ibutton = button;
+	if(ibutton == 1 && tg->Mainloop.CTRL) ibutton = 3; //RMB method for mobile/touch
 
 	if (mev == ButtonPress) {
-		if (button == 1) {
-			ypz->ypz0[0] = ypz->ypz[0];
-			ypz->ypz0[1] = ypz->ypz[1];
+		if (ibutton == 1 || ibutton == 3) {
 			ypz->x = x;
 			ypz->y = y;
-		} else if (button == 3) {
-			ypz->x = x;
 		}
 	} else if (mev == MotionNotify) {
-		if (button == 1) {
+		if (ibutton == 1) {
+			double yaw, pitch;
+			Quaternion quat;
+			struct point_XYZ dd, ddr, yaxis;
+
+			//step 1 convert Viewer.Quat to yaw, pitch (discard any roll)
+			yaxis.x = yaxis.z = 0.0;
+			yaxis.y = 1.0;
+
+			dd.x = dd.y = 0.0; dd.z = 1.0; 
+			quat = p->Viewer.Quat;
+			quaternion_inverse(&quat,&quat);
+			quaternion_rotation(&ddr, &quat, &dd);
+			yaw = -atan2(ddr.x,ddr.z);
+			pitch = -(acos(vecdot(&ddr, &yaxis)) - PI*.5);
+
+			//step 2 add on any mouse motion as yaw,pitch chord
 			dyaw   = (ypz->x - x) * p->Viewer.fieldofview*PI/180.0*p->Viewer.fovZoom * tg->display.screenRatio; 
 			dpitch = (ypz->y - y) * p->Viewer.fieldofview*PI/180.0*p->Viewer.fovZoom;
-			ypz->ypz[0] = ypz->ypz0[0] + dyaw;
-			ypz->ypz[1] = ypz->ypz0[1] + dpitch;
-			vrmlrot_to_quaternion(&qyaw, 0.0, 1.0, 0.0, ypz->ypz[0]);
-			vrmlrot_to_quaternion(&qpitch,1.0,0.0,0.0,ypz->ypz[1]);
-			quaternion_multiply(&(p->Viewer.Quat), &qpitch, &qyaw);
-		} else if (button == 3) {
+			yaw += dyaw;
+			pitch += dpitch;
+
+			//step 3 convert yaw, pitch back to Viewer.Quat
+			vrmlrot_to_quaternion(&qyaw, 0.0, 1.0, 0.0, yaw);
+			vrmlrot_to_quaternion(&qpitch, 1.0, 0.0, 0.0, pitch);
+			quaternion_multiply(&quat, &qpitch, &qyaw);
+			quaternion_normalize(&quat);
+
+			quaternion_set(&(p->Viewer.Quat), &quat);
+
+		} else if (ibutton == 3) {
 			double d, fac;
-			d = (x - ypz->x)*.25;
-			if(d > 0.0)
-				fac = ((d *  2.0) + (1.0 - d) * 1.0);
-			else
-			{
-				d = fabs(d);
-				fac = ((d * .5) + (1.0 - d) * 1.0);
-			}
+			d = (y - ypz->y)*.5;
+			fac = pow(10.0,d);
 			p->Viewer.fovZoom = p->Viewer.fovZoom * fac;
-			p->Viewer.fovZoom = DOUBLE_MIN(2.0,DOUBLE_MAX(.125,p->Viewer.fovZoom));  
+			//p->Viewer.fovZoom = DOUBLE_MIN(2.0,DOUBLE_MAX(.125,p->Viewer.fovZoom));  
+		}
+		if(ibutton == 1 || ibutton == 3){
+			ypz->x = x;
+			ypz->y = y;
 		}
  	}
 }
@@ -1083,7 +1328,7 @@ void handle_fly2(const int mev, const unsigned int button, float x, float y) {
 
 
 
-void handle_tick_fly2() {
+void handle_tick_fly2(double dtime) {
 	ttglobal tg;
 	ppViewer p;
 	X3D_Viewer_InPlane *inplane;
@@ -1104,6 +1349,7 @@ void handle_tick_fly2() {
 		yy = inplane->yy - inplane->y;
 		zz = xsign_quadratic(yy,.05,5.0,0.0)*p->Viewer.speed * frameRateAdjustment;
 		zz *= 0.15;
+
 		xyz.x = 0.0;
 		xyz.y = 0.0;
 		xyz.z = zz;
@@ -1113,7 +1359,7 @@ void handle_tick_fly2() {
 		memcpy(&q,&p->Viewer.Quat,sizeof(Quaternion));
 		vrmlrot_to_quaternion (&nq,0.0,1.0,0.0,0.4*rot);
 		viewer_lastQ_set(&nq); //wall penetration - last avatar pose is stored before updating
-		quaternion_multiply(&(p->Viewer.Quat), &q, &nq); //Quat = walk->RD * Quat
+		quaternion_multiply(&(p->Viewer.Quat), &nq, &q); //Quat = walk->RD * Quat
 		//does the Z gets transformed by the quat?
 		increment_pos(&xyz);
 		//inplane->x = x;
@@ -1159,15 +1405,13 @@ void handle_tick_lookat() {
 	}
 }
 
-
 void handle_explore(const int mev, const unsigned int button, float x, float y) {
 	/*
-	Like handle_yawpitchzoom, except:
+	Like handle_spherical, except:
 	move the viewer.Pos in the opposite direction from where we are looking
 	*/
 	int ctrl;
-	double frameRateAdjustment;
-	X3D_Viewer_YawPitchZoom *ypz;
+	X3D_Viewer_Spherical *ypz;
 	ppViewer p;
 	ttglobal tg = gglobal();
 	p = (ppViewer)gglobal()->Viewer.prv;
@@ -1180,147 +1424,12 @@ void handle_explore(const int mev, const unsigned int button, float x, float y) 
 		handle_lookat(mev,button,x,y);
 		return;
 	}
-
-	if( tg->Mainloop.BrowserFPS > 0)
-		frameRateAdjustment = 20.0 / tg->Mainloop.BrowserFPS; /* lets say 20FPS is our speed benchmark for developing tuning parameters */
-	else
-		frameRateAdjustment = 1.0;
-
-
-	if (mev == ButtonPress) {
-		if (button == 1 || button == 3) {
-			ypz->x = x;
-			ypz->y = y;
-		}
+	if(APPROX(p->Viewer.Dist,0.0)){
+		//no pivot point yet
+		handle_spherical(mev,button,x,y);
+		return;
 	}
-	else if (mev == MotionNotify) 
-	{
-		Quaternion qyaw, qpitch;
-		double dyaw, dpitch;
-		struct point_XYZ pp, yaxis;
-		double yaw, pitch; //dist, 
-		Quaternion quat;
-
-		if (button == 1 || button == 3){
-			struct point_XYZ dd,ddr;
-			yaxis.x = yaxis.z = 0.0;
-			yaxis.y = 1.0;
-			//pp = p->Viewer.Pos;
-			if(0) resolve_pos2();
-			if(1) {
-				//(examine->Origin).x = (p->Viewer.Pos).x - p->Viewer.Dist * rot.x;
-				dd.x = dd.y = 0.0; dd.z = p->Viewer.Dist; //exploreDist;
-				quat = p->Viewer.Quat;
-				quaternion_inverse(&quat,&quat);
-				quaternion_rotation(&ddr, &quat, &dd);
-				vecdiff(&p->Viewer.examine.Origin,&p->Viewer.Pos,&ddr);
-			}
-
-			if(0) vecdiff(&pp,&p->Viewer.examine.Origin,&p->Viewer.Pos);
-			if(1) vecdiff(&pp,&p->Viewer.Pos,&p->Viewer.examine.Origin);
-			pp = ddr;
-			if(0) printf("D=%f O=%f %f %f P=%f %f %f pp=%f %f %f\n", p->Viewer.Dist,
-			p->Viewer.examine.Origin.x,p->Viewer.examine.Origin.y,p->Viewer.examine.Origin.z,
-			p->Viewer.Pos.x,p->Viewer.Pos.y,p->Viewer.Pos.z,
-			pp.x,pp.y,pp.z
-			);
-			//dist = veclength(pp);
-			vecnormal(&pp, &pp);
-			yaw = -atan2(pp.x, pp.z);
-			pitch = -(acos(vecdot(&pp, &yaxis)) - PI*.5);
-		}
-		if (button == 1) {
-			dyaw = -(ypz->x - x) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom * tg->display.screenRatio;
-			dpitch = -(ypz->y - y) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom;
-			if(0){
-				dyaw = -dyaw;
-				dpitch = -dpitch;
-			}
-			yaw += dyaw;
-			pitch += dpitch;
-		}else if (button == 3) {
-			//distance drag
-			if(0){
-				//peddling
-				double d, fac;
-				d = (y - ypz->y)*.5; // .25;
-				if (d > 0.0)
-					fac = ((d *  2.0) + (1.0 - d) * 1.0);
-				else
-				{
-					d = fabs(d);
-					fac = ((d * .5) + (1.0 - d) * 1.0);
-				}
-				//dist *= fac;
-				p->Viewer.Dist *= fac;
-			}
-			if(1) {
-				//handle_tick_explore quadratic
-				double quadratic = -xsign_quadratic(y - ypz->y,5.0,10.0,0.0);
-				ypz->ypz[1] = xsign_quadratic(y - ypz->y,100.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment *.15;
-				//printf("quad=%f y-y %f s=%f fra=%f\n",quadratic,y-ypz->y,p->Viewer.speed,frameRateAdjustment);
-			}
-		}
-		if (button == 1 || button == 3)
-		{
-			vrmlrot_to_quaternion(&qyaw, 0.0, 1.0, 0.0, yaw);
-			vrmlrot_to_quaternion(&qpitch, 1.0, 0.0, 0.0, pitch);
-			quaternion_multiply(&quat, &qpitch, &qyaw);
-			quaternion_normalize(&quat);
-
-			quaternion_set(&(p->Viewer.Quat), &quat);
-			//move the viewer.pos in the opposite direction that we are looking
-			quaternion_inverse(&quat, &quat);
-			pp.x = 0.0;
-			pp.y = 0.0;
-			pp.z = p->Viewer.Dist; //dist;
-			quaternion_rotation(&(p->Viewer.Pos), &quat, &pp);
-			//remember the last drag coords for next motion
-			vecadd(&p->Viewer.Pos,&p->Viewer.examine.Origin,&p->Viewer.Pos);
-		}
-		if( button == 1){
-			ypz->x = x;
-			ypz->y = y;
-		}
-	}else if(mev == ButtonRelease) {
-		if (button == 3) {
-			ypz->ypz[1] = 0.0;
-		}
-	}
-}
-
-
-void handle_tick_explore() {
-	X3D_Viewer_YawPitchZoom *ypz;
-	Quaternion quat;
-	struct point_XYZ pp;
-	ttglobal tg;
-	ppViewer p;
-	tg = gglobal();
-	p = (ppViewer)tg->Viewer.prv;
-	ypz = &p->Viewer.ypz; //just a place to store last mouse xy during drag
-
-
-	//stub in case we need the viewer or viewpoint transition here	
-	switch(p->Viewer.LookatMode){
-		case 0: //not in use
-			resolve_pos2();
-			p->Viewer.Dist += ypz->ypz[1];
-			//move the viewer.pos in the opposite direction that we are looking
-			quaternion_inverse(&quat, &(p->Viewer.Quat));
-			pp.x = 0.0;
-			pp.y = 0.0;
-			pp.z = p->Viewer.Dist; //dist;
-			quaternion_rotation(&(p->Viewer.Pos), &quat, &pp);
-			vecadd(&p->Viewer.Pos,&p->Viewer.examine.Origin,&p->Viewer.Pos);
-		//printf("ddist=%f\n",ypz->ypz[1]);
-		break;
-		case 1: //someone set viewer to lookat mode: mainloop shuts off sensitive, turns on lookat cursor
-		case 2: //mouseup tells mainloop to pick a node at current mousexy, turn off lookatcursor
-		case 3: //mainloop picked a node, now transition
-		case 4: //transition complete, restore previous nav type
-		break;
-	}
+	handle_turntable(mev, button, x, y);
 }
 
 void handle_tplane(const int mev, const unsigned int button, float x, float y) {
@@ -1330,30 +1439,32 @@ void handle_tplane(const int mev, const unsigned int button, float x, float y) {
 	   (about camera-axis/Z)
 	*/
 	X3D_Viewer_InPlane *inplane;
-	double frameRateAdjustment;//,xx,yy;
+	//double frameRateAdjustment;//,xx,yy;
 	//struct point_XYZ xyz;
 	ppViewer p;
-	ttglobal tg = gglobal();
+	//ttglobal tg = gglobal();
 	p = (ppViewer)gglobal()->Viewer.prv;
 	inplane = &p->Viewer.inplane;
 
-	if( tg->Mainloop.BrowserFPS > 0)
-		frameRateAdjustment = 20.0 / tg->Mainloop.BrowserFPS; /* lets say 20FPS is our speed benchmark for developing tuning parameters */
-	else
-		frameRateAdjustment = 1.0;
+	//if( tg->Mainloop.BrowserFPS > 0)
+	//	frameRateAdjustment = 20.0 / tg->Mainloop.BrowserFPS; /* lets say 20FPS is our speed benchmark for developing tuning parameters */
+	//else
+	//	frameRateAdjustment = 1.0;
 
 	if (mev == ButtonPress) {
 		inplane->x = x; //x;
 		inplane->y = y; //y;
+		inplane->on = 1;
 	} else if (mev == MotionNotify) {
-		inplane->xx =  .15 * xsign_quadratic(x - inplane->x,5.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment;
-		inplane->yy = -.15f * xsign_quadratic(y - inplane->y,5.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment;
+		inplane->xx =  x; //.15 * xsign_quadratic(x - inplane->x,5.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment;
+		inplane->yy =  y; //-.15f * xsign_quadratic(y - inplane->y,5.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment;
  	} else if(mev == ButtonRelease){
 		inplane->xx = 0.0f;
 		inplane->yy = 0.0f;
+		inplane->on = 0;
 	}
 }
-void handle_tick_tplane(){
+void handle_tick_tplane(double dtime){
 	X3D_Viewer_InPlane *inplane;
 	//Quaternion quatr, quatt, quat;
 	struct point_XYZ pp;
@@ -1363,12 +1474,13 @@ void handle_tick_tplane(){
 	p = (ppViewer)tg->Viewer.prv;
 
 	inplane = &p->Viewer.inplane;
-	pp.x = inplane->xx;
-	pp.y = inplane->yy;
-	pp.z = 0.0;
-
-	//vecadd(&p->Viewer.Pos,&p->Viewer.Pos,&pp);
-	increment_pos(&pp);
+	if(inplane->on){
+		pp.x =  xsign_quadratic(inplane->xx - inplane->x,300.0,100.0,0.0) *dtime;
+		pp.y = -xsign_quadratic(inplane->yy - inplane->y,300.0,100.0,0.0) *dtime;
+		pp.z = 0.0;
+		//vecadd(&p->Viewer.Pos,&p->Viewer.Pos,&pp);
+		increment_pos(&pp);
+	}
 }
 
 void handle_rtplane(const int mev, const unsigned int button, float x, float y) {
@@ -1419,38 +1531,45 @@ void handle_rtplane(const int mev, const unsigned int button, float x, float y) 
  	}
 }
 
-void handle_tick_rplane(){
+void handle_tick_rplane(double dtime){
 	X3D_Viewer_InPlane *inplane;
 	Quaternion quatr;
 	//struct point_XYZ pp;
+	double roll;
 	ttglobal tg;
 	ppViewer p;
 	tg = gglobal();
 	p = (ppViewer)tg->Viewer.prv;
 
 	inplane = &p->Viewer.inplane;
-
-	vrmlrot_to_quaternion (&quatr,0.0,0.0,0.1,0.4*inplane->xx); //roll about z axis
-
-	quaternion_multiply(&(p->Viewer.Quat), &quatr,  &(p->Viewer.Quat)); 
-	quaternion_normalize(&(p->Viewer.Quat));
+	if(inplane->on){
+		roll = xsign_quadratic(inplane->xx - inplane->x,2.0,2.0,0.0)*dtime;
+		vrmlrot_to_quaternion (&quatr,0.0,0.0,1.0,roll); //roll about z axis
+		quaternion_multiply(&(p->Viewer.Quat), &quatr,  &(p->Viewer.Quat)); 
+		quaternion_normalize(&(p->Viewer.Quat));
+	}
 
 }
-void handle_tick_tilt() {
+void handle_tick_tilt(double dtime) {
 	X3D_Viewer_InPlane *inplane;
 	Quaternion quatt;
 	//struct point_XYZ pp;
+	double yaw, pitch;
 	ttglobal tg;
 	ppViewer p;
 	tg = gglobal();
 	p = (ppViewer)tg->Viewer.prv;
 
 	inplane = &p->Viewer.inplane;
-
-	vrmlrot_to_quaternion (&quatt,1.0,0.0,0.0,0.4*inplane->yy); //tilt about x axis
-
-	quaternion_multiply(&(p->Viewer.Quat), &quatt, &(p->Viewer.Quat)); 
-	quaternion_normalize(&(p->Viewer.Quat));
+	if(inplane->on){
+		yaw = xsign_quadratic(inplane->xx - inplane->x,2.0,2.0,0.0)*dtime;
+		vrmlrot_to_quaternion (&quatt,0.0,1.0,0.0,yaw); //tilt about x axis
+		quaternion_multiply(&(p->Viewer.Quat), &quatt, &(p->Viewer.Quat)); 
+		pitch = xsign_quadratic(inplane->yy - inplane->y,2.0,2.0,0.0)*dtime;
+		vrmlrot_to_quaternion (&quatt,1.0,0.0,0.0,pitch); //tilt about x axis
+		quaternion_multiply(&(p->Viewer.Quat), &quatt, &(p->Viewer.Quat)); 
+		quaternion_normalize(&(p->Viewer.Quat));
+	}
 }
 
 /************************************************************************************/
@@ -1481,7 +1600,7 @@ void handle0(const int mev, const unsigned int button, const float x, const floa
 		handle_fly2(mev, button, ((float) x), ((float) y)); //feature-Navigation_key_and_drag
 		break;
 	case VIEWER_FLY2:
-		handle_fly2(mev,button,((float) x),((float)y));
+		handle_fly2(mev,button,((float) x),((float)y)); 
 		break;
 	case VIEWER_TILT:
 	case VIEWER_RPLANE:
@@ -1490,8 +1609,8 @@ void handle0(const int mev, const unsigned int button, const float x, const floa
 	case VIEWER_TPLANE:
 		handle_tplane(mev,button,((float) x),((float)y)); //translation in the viewer plane
 		break;
-	case VIEWER_YAWPITCHZOOM:
-		handle_yawpitchzoom(mev,button,((float) x),((float)y)); //spherical panorama
+	case VIEWER_SPHERICAL:
+		handle_spherical(mev,button,((float) x),((float)y)); //spherical panorama
 		break;
 	case VIEWER_TURNTABLE:
 		handle_turntable(mev, button, ((float)x), ((float)y));  //examine without roll around world 0,0,0 origin - like a 3D editor with authoring plane
@@ -1502,6 +1621,8 @@ void handle0(const int mev, const unsigned int button, const float x, const floa
 	case VIEWER_EXPLORE:
 		handle_explore(mev, button, ((float)x), ((float)y)); //as per specs, like turntable around any point you pick with CTRL click
 		break;
+	case VIEWER_DIST:
+		handle_dist(mev,button,(float)x,(float)y);
 	default:
 		break;
 	}
@@ -1509,7 +1630,151 @@ void handle0(const int mev, const unsigned int button, const float x, const floa
 
 #define FLYREMAP {{'a',NUM0},{'z',NUMDEC},{'j',LEFT_KEY},{'l',RIGHT_KEY},{'p',UP_KEY},{';',DOWN_KEY},{'8',NUM8},{'k',NUM2},{'u',NUM4},{'o',NUM6 },{'7',NUM7},{'9',NUM9}}
 
-char lookup_fly_key(int key){
+//BEGIN dug9 Feb2015 >>>
+//GOAL for this refactoring: CHORD mappings of arrow keys for keyboard navigation and mouse xy drags for FLY navigation
+// and keeping in mind mobile devices may not want a keyboard on the screen, but they may have 4 arrow keys
+// - and -if no change to UI menus/no use of chords by user- the default behaviour is what we do now
+Key FLYREMAP2 [] = {{'a',NUM0},{'z',NUMDEC},{'j',LEFT_KEY},{'l',RIGHT_KEY},{'p',UP_KEY},{';',DOWN_KEY},{'8',NUM8},{'k',NUM2},{'u',NUM4},{'o',NUM6 },{'7',NUM7},{'9',NUM9}};
+int FLYREMAP2SIZE = 12;
+Key FLYCHORDREMAP [] = {
+{'j',LEFT_KEY},{'l',RIGHT_KEY},{'p',UP_KEY},{';',DOWN_KEY}
+};
+int arrowkeys [] = {LEFT_KEY,RIGHT_KEY,UP_KEY,DOWN_KEY};
+//int isArrowkey(int key){
+//	int iret, i;
+//	iret = 0;
+//	for(i=0;i<4;i++) 
+//		if(key == arrowkeys[i]) iret = 1;
+//	return iret;
+//}
+int indexArrowkey(int key){
+	int iret, i;
+	iret = -1;
+	for(i=0;i<4;i++) 
+		if(key == arrowkeys[i]) iret = i;
+	return iret;
+}
+
+//movements of the camera (with respect to the scene)
+enum {
+	FLY_X_LEFT,
+	FLY_X_RIGHT,
+	FLY_Y_DOWN,
+	FLY_Y_UP,
+	FLY_Z_FORWARD,
+	FLY_Z_REVERSE,
+	FLY_PITCH_UP,
+	FLY_PITCH_DOWN,
+	FLY_YAW_LEFT,
+	FLY_YAW_RIGHT,
+	FLY_ROLL_COUNTERCLOCKWISE,
+	FLY_ROLL_CLOCKWISE,
+} fly_key_command;
+Key fly_normalkeys [] = {
+	{'j',FLY_X_LEFT},
+	{'l',FLY_X_RIGHT},
+	{';',FLY_Y_DOWN},
+	{'p',FLY_Y_UP},
+	{'a',FLY_Z_FORWARD},
+	{'z',FLY_Z_REVERSE},
+	{'k',FLY_PITCH_UP},
+	{'8',FLY_PITCH_DOWN},
+	{'u',FLY_YAW_LEFT},
+	{'o',FLY_YAW_RIGHT},
+	{'7',FLY_ROLL_COUNTERCLOCKWISE},
+	{'9',FLY_ROLL_CLOCKWISE},
+};
+
+//enum {
+//	CHORD_YAWZ,
+//	CHORD_YAWPITCH,
+//	CHORD_ROLL,
+//	CHORD_XY
+//} input_chords;
+char *chordnames [] = {"YAWZ","YAWPITCH","ROLL","XY"};
+//the flychord table is bloated with redundancies, but explicit. FLYCHORDMAP2 int[4][4] would be briefer, but harder to trace.
+typedef struct flychord {
+	int chord;
+	Key arrows[4];
+} flychord;
+flychord FLYCHORDREMAP2 [] = {
+	{CHORD_YAWZ,	{{FLY_YAW_LEFT,LEFT_KEY},{FLY_YAW_RIGHT,RIGHT_KEY},{FLY_Z_FORWARD,UP_KEY},{FLY_Z_REVERSE,DOWN_KEY}}},
+	{CHORD_YAWPITCH,{{FLY_YAW_LEFT,LEFT_KEY},{FLY_YAW_RIGHT,RIGHT_KEY},{FLY_PITCH_UP,UP_KEY},{FLY_PITCH_DOWN,DOWN_KEY}}},
+	{CHORD_ROLL,	{{FLY_ROLL_COUNTERCLOCKWISE,LEFT_KEY},{FLY_ROLL_CLOCKWISE,RIGHT_KEY},{FLY_ROLL_COUNTERCLOCKWISE,UP_KEY},{FLY_ROLL_CLOCKWISE,DOWN_KEY}}},
+	{CHORD_XY,		{{FLY_X_LEFT,LEFT_KEY},{FLY_X_RIGHT,RIGHT_KEY},{FLY_Y_UP,UP_KEY},{FLY_Y_DOWN,DOWN_KEY}}},
+};
+
+int viewer_getKeyChord(){
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	return p->keychord;
+}
+void viewer_setKeyChord(int chord){
+	int chord1;
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	chord1 = chord;
+	if(chord1 > 3) chord1 = 0;
+	if(chord1 < 0) chord1 = 3;
+	p->keychord = chord1;
+}
+char *fwl_getKeyChord(){
+	return chordnames[viewer_getKeyChord()];
+}
+
+int fwl_setKeyChord(char *chordname){
+	int i, ok;
+	ok = FALSE;
+	for(i=0;i<4;i++){
+		if(!strcasecmp(chordname,chordnames[i])){
+			viewer_setKeyChord(i); //or should I expand from i to CHORD_YAWZ etc
+			ok = TRUE;
+			break;
+		}
+	}
+	return ok;
+}
+int viewer_getDragChord(){
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	return p->dragchord;
+}
+void viewer_setDragChord(int chord){
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	p->dragchord = chord;
+}
+char *fwl_getDragChord(){
+	return chordnames[viewer_getDragChord()];
+}
+int fwl_setDragChord(char *chordname){
+	int i, ok;
+	ok = FALSE;
+	for(i=0;i<4;i++){
+		if(!strcasecmp(chordname,chordnames[i])){
+			viewer_setDragChord(i); //or should I expand from i to CHORD_YAWZ etc
+			ok = TRUE;
+			break;
+		}
+	}
+	return ok;
+}
+
+//next: in lookup_fly_key we would check if its an arrow key, and if so, use the current keychord to lookup the keyfly command.
+// from that we would look up the normal key
+int lookup_fly_arrow(int key){
+	//check if this is an arrow key. If so lookup in the current chord to get the motion command
+	//and from motion command lookup the 'normal' equivalent key
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	int idxarrow, idxnormal;
+	int iret = 0;
+	idxarrow = indexArrowkey(key);
+	if(idxarrow > -1){
+		//rather than 2 nested loops, comparing, we will trust the ordering and index in
+		idxnormal = FLYCHORDREMAP2[p->keychord].arrows[idxarrow].key;
+		//same here - we'll trust the order and index in
+		iret = fly_normalkeys[idxnormal].key;
+	}
+	return iret;
+}
+//<<< END dug9 Feb2015
+char lookup_fly_extended(int key){
 	int i;
 	char kp = 0;
 	Key ps[KEYS_HANDLED] = FLYREMAP;
@@ -1521,27 +1786,36 @@ char lookup_fly_key(int key){
 	}
 	return kp;
 }
-
+char lookup_fly_key(int key){
+	//check for special/extended characters related to fly mode, such as numpad and arrow keys
+	char kp = 0;
+	kp = lookup_fly_arrow(key); //check arrow keys first
+	if(!kp)
+		kp = lookup_fly_extended(key); //else other extended characters
+	return kp;
+}
 static struct flykey_lookup_type {
 	char key;
 	int motion; //translation 0, rotation 1
 	int axis; //0=x,1=y,2=z
 	int sign; //-1 left 1 right
+	int command;
 } flykey_lookup [] = {
-	'j', 0, 0, -1,
-	'l', 0, 0,  1,
-	'p', 0, 1, -1,
-	';', 0, 1,  1,
-	'a', 0, 2, -1,
-	'z', 0, 2,  1,
+	{'j', 0, 0, -1, FLY_X_LEFT},
+	{'l', 0, 0,  1, FLY_X_RIGHT},
+	{';', 0, 1, -1, FLY_Y_DOWN},
+	{'p', 0, 1,  1, FLY_Y_UP,},
+	{'a', 0, 2, -1, FLY_Z_FORWARD},
+	{'z', 0, 2,  1, FLY_Z_REVERSE},
 
-	'k', 1, 0, -1,
-	'8', 1, 0,  1,
-	'u', 1, 1, -1,
-	'o', 1, 1,  1,
-	'7', 1, 2, -1,
-	'9', 1, 2,  1,
+	{'k', 1, 0, -1, FLY_YAW_LEFT},
+	{'8', 1, 0,  1, FLY_YAW_RIGHT},
+	{'u', 1, 1, -1, FLY_PITCH_UP},
+	{'o', 1, 1,  1, FLY_PITCH_DOWN},
+	{'7', 1, 2, -1, FLY_ROLL_COUNTERCLOCKWISE},
+	{'9', 1, 2,  1, FLY_ROLL_CLOCKWISE}
 };
+	
 
 struct flykey_lookup_type *getFlyIndex(char key){
 	struct flykey_lookup_type *flykey;
@@ -1556,6 +1830,8 @@ struct flykey_lookup_type *getFlyIndex(char key){
 }
 int isFlyKey(char key){
 	int i, index = -1;
+	index = indexArrowkey(key);
+	if(index == -1)
 	for(i=0;i<KEYS_HANDLED;i++)
 		if(key == flykey_lookup[i].key ){
 			index = i;
@@ -1576,14 +1852,19 @@ void handle_key(const char key, double keytime)
 	//if (p->Viewer.type == VIEWER_FLY) {   //Navigation-key_and_drag
 		/* $key = lc $key; */
 		_key = (char) tolower((int) key);
-		if(!isFlyKey(_key)) return;
-
+		if(!isFlyKey(_key)){
+			//printf("not fly key\n");
+			return;
+		}
+		//printf("is flykey\n");
 		flykey = getFlyIndex(_key);
 		if(flykey){
-			fly->down[flykey->motion][flykey->axis].direction = flykey->sign;
-			fly->down[flykey->motion][flykey->axis].epoch = keytime; //initial keydown
-			fly->down[flykey->motion][flykey->axis].era = keytime;  //will decrement as we apply velocity in fly
-			fly->down[flykey->motion][flykey->axis].once = 1;
+			if(flykey->motion > -1 && flykey->motion < 2 && flykey->axis > -1 && flykey->axis < 3){
+				fly->down[flykey->motion][flykey->axis].direction = flykey->sign;
+				fly->down[flykey->motion][flykey->axis].epoch = keytime; //initial keydown
+				fly->down[flykey->motion][flykey->axis].era = keytime;  //will decrement as we apply velocity in fly
+				fly->down[flykey->motion][flykey->axis].once = 1;
+			}
 		}
 	//} //Navigation-key_and_drag
 }
@@ -1606,16 +1887,18 @@ void handle_keyrelease(const char key, double keytime)
 		if(!isFlyKey(_key)) return;
 		flykey = getFlyIndex(_key);
 		if(flykey){
-			int *ndown = &fly->ndown[flykey->motion][flykey->axis];
-			if((*ndown) < 10){
-				//up to 20 key chirps per axis are stored, with their elapsed time down measured in the keyboard's thread
-				fly->wasDown[flykey->motion][flykey->axis][*ndown].direction = fly->down[flykey->motion][flykey->axis].direction;
-				fly->wasDown[flykey->motion][flykey->axis][*ndown].epoch = keytime - fly->down[flykey->motion][flykey->axis].epoch; //total pressedTime
-				fly->wasDown[flykey->motion][flykey->axis][*ndown].era = keytime - fly->down[flykey->motion][flykey->axis].era; //unused keydown time
-				fly->wasDown[flykey->motion][flykey->axis][*ndown].once = fly->down[flykey->motion][flykey->axis].once;  //a flag for the handle_tick to play with
-				(*ndown)++;
+			if(flykey->motion > -1 && flykey->motion < 2 && flykey->axis > -1 && flykey->axis < 3){
+				int *ndown = &fly->ndown[flykey->motion][flykey->axis];
+				if((*ndown) < 10){
+					//up to 20 key chirps per axis are stored, with their elapsed time down measured in the keyboard's thread
+					fly->wasDown[flykey->motion][flykey->axis][*ndown].direction = fly->down[flykey->motion][flykey->axis].direction;
+					fly->wasDown[flykey->motion][flykey->axis][*ndown].epoch = keytime - fly->down[flykey->motion][flykey->axis].epoch; //total pressedTime
+					fly->wasDown[flykey->motion][flykey->axis][*ndown].era = keytime - fly->down[flykey->motion][flykey->axis].era; //unused keydown time
+					fly->wasDown[flykey->motion][flykey->axis][*ndown].once = fly->down[flykey->motion][flykey->axis].once;  //a flag for the handle_tick to play with
+					(*ndown)++;
+				}
+				fly->down[flykey->motion][flykey->axis].direction = 0;
 			}
-			fly->down[flykey->motion][flykey->axis].direction = 0;
 		}
 	//} //Navigation-key_and_drag
 }
@@ -1722,6 +2005,17 @@ static void handle_tick_walk()
 					(collisions currently done here), input device XY mapped to XYZ motion here
 	Notice the order of transforms is the same for Fly mode:
 		.Pos += inverse(.Quat)*inputXYZ - see increment_pos()
+
+	(dug9 May 2015) in a bit more detail:
+	Shape
+	Model part of ModelView transform
+	(world coordinates)
+	View part of ModelView transform
+	viewpoint
+	viewpoint.position
+	viewpoint.rotation
+	opengl camera
+
 	*/
 
 	q.w = (p->Viewer.Quat).w;
@@ -1791,6 +2085,63 @@ static void handle_tick_walk()
 	//CALCULATE_EXAMINE_DISTANCE
 }
 
+//an external program or app may want to set or get the viewer pose, with no slerping
+//SSR - these set/getpose are called from _DisplayThread
+static int negate_pos = TRUE;
+void viewer_setpose( double *quat4, double *vec3){
+	/* sign change on pos, but not quat, because freewrl conventions are different
+		+Quat goes in direction world2vp
+		-Pos goes in direction world2vp
+	*/
+	double vec[3];
+	ttglobal tg = (ttglobal) gglobal();
+	ppViewer p = (ppViewer)tg->Viewer.prv;
+	veccopyd(vec,vec3);
+	if(negate_pos) vecnegated(vec,vec);
+	double2pointxyz(&p->Viewer.Pos,vec);
+	double2quat(&p->Viewer.Quat,quat4);
+}
+void viewer_getpose( double *quat4, double *vec3){
+	/*	Freewrl initializes .Quat, .Pos from viewpoint.position, viewpoint.orientation during viewpoint binding
+			(or gives a default if no bound viewpoint)
+		Viewer.Quat = inverse(vp.orientation) //changes sense from x3d vp2world, to opengl sense world2vp
+		Viewer.Pos = vp.position //remains in x3d sense vp2world
+	*/
+	ttglobal tg = (ttglobal) gglobal();
+	ppViewer p = (ppViewer)tg->Viewer.prv;
+	pointxyz2double(vec3,&p->Viewer.Pos);
+	if(negate_pos)
+		vecnegated(vec3,vec3);
+	quat2double(quat4,&p->Viewer.Quat);
+}
+void viewer_getbindpose( double *quat4, double *vec3){
+/*	The bind-time-equivalent viewpoint pose can be got 
+	from the Anti variables intialized by INITIATE_POSITION_ANTIPOSITION macro
+	which copies the .position, .orientation values from the viewpoint node fields
+	(if a viewpoint is bound, otherwise defaults are set during startup)
+*/
+	Quaternion q_i;
+	ttglobal tg = (ttglobal) gglobal();
+	ppViewer p = (ppViewer)tg->Viewer.prv;
+	pointxyz2double(vec3,&p->Viewer.AntiPos); //.Pos
+	if(negate_pos)
+		vecnegated(vec3,vec3);
+	quaternion_inverse(&q_i,&p->Viewer.AntiQuat);
+	quat2double(quat4,&q_i);
+}
+void viewer_getview( double *viewMatrix){
+	/* world - View - Viewpoint - .position - .orientation */
+	//view matrix includes Transform(s) * viewpoint.position * viewpoint.orientation
+	//we need to separate the Transforms from the .position and .orientation
+	//double vec3[3], quat4[4];
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, viewMatrix);
+	//viewer_getpose(quat4,vec3);
+	//viewMatrix *= inv_quat4
+	//viewMatrix *= inv_vec3
+}
+void viewer_setview( double *viewMatrix){
+	FW_GL_SETDOUBLEV(GL_MODELVIEW_MATRIX, viewMatrix);
+}
 
 /* formerly package VRML::Viewer::ExFly
  * entered via the "f" key.
@@ -1936,6 +2287,7 @@ static void handle_tick_fly()
 			return;
 		}
 		fly->lasttime = dtime;
+		if(time_diff < 0.0) return; //skip a frame if the clock wraps around
 	}
 
 
@@ -1989,7 +2341,7 @@ static void handle_tick_fly()
 		}else{
 			//the key is currently being held down, use a bit of it here
 			double rps = radians_per_second;
-			double pressedEra = fly->lasttime - fly->down[1][i].epoch; //rEra[i];
+			//double pressedEra = fly->lasttime - fly->down[1][i].epoch; //rEra[i];
 			//normally not a chirp, but could be - a chirp here will hardly show, so no harm in double doing chirps here and below
 			double era = fly->lasttime - fly->down[1][i].era; //- .25; //save a chirp worth because it gets chirped below when the key comes up
 			fly->Velocity[1][i] += era * fly->down[1][i].direction * rps; // * 0.025;
@@ -2042,7 +2394,24 @@ static void handle_tick_fly()
 void
 handle_tick()
 {
+	double lasttime, dtime, time_diff;
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	lasttime = p->Viewer.lasttime;
+
+	time_diff = 0.0; 
+	//sleep(400); //slow frame rate to test frame-rate-dependent actions
+	if (lasttime < 0) {
+		p->Viewer.lasttime = TickTime(); 
+		return;
+	} else {
+		dtime = TickTime();
+		time_diff = dtime - p->Viewer.lasttime; //TickTime is computed once per frame, and handle_tick() is called once per frame
+		if (APPROX(time_diff, 0)) {
+			return;
+		}
+		p->Viewer.lasttime = dtime;
+		if(time_diff < 0.0) return; //skip a frame if the clock wraps around
+	}
 	 
 	switch(p->Viewer.type) {
 	case VIEWER_NONE:
@@ -2056,32 +2425,45 @@ handle_tick()
 		handle_tick_exfly();
 		break;
 	case VIEWER_FLY:
-		if(0) handle_tick_walk(); //Navigation-key_and_drag: collision shuts off Gravity in VIEWER_FLY, otherwise, just like walk: (WALK - G)
-		if(1) handle_tick_fly2();  //fly2 like (WALK - G) except no RMB PAN, drags aligned to Viewer (vs walk aligned to bound Viewpoint vertical)
+		switch(p->dragchord){
+			case CHORD_YAWPITCH:
+				handle_tick_tilt(time_diff);
+				break;
+			case CHORD_ROLL:
+				handle_tick_rplane(time_diff);
+				break;
+			case CHORD_XY:
+				handle_tick_tplane(time_diff);
+				break;
+			case CHORD_YAWZ:
+			default:
+				handle_tick_fly2(time_diff);  //fly2 like (WALK - G) except no RMB PAN, drags aligned to Viewer (vs walk aligned to bound Viewpoint vertical)
+				break;
+		}
 		break;
 	case VIEWER_FLY2:
-		handle_tick_fly2();
+		handle_tick_fly2(time_diff); //yawz
 		break;
 	case VIEWER_LOOKAT:
 		handle_tick_lookat();
 		break;
 	case VIEWER_TPLANE:
-		handle_tick_tplane();
+		handle_tick_tplane(dtime);
 		break;
 	case VIEWER_RPLANE:
-		handle_tick_rplane();
+		handle_tick_rplane(dtime);
 		break;
 	case VIEWER_TILT:
-		handle_tick_tilt();
+		handle_tick_tilt(dtime);
 		break;
 	case VIEWER_EXPLORE:
-		handle_tick_explore();
 		break;
-	case VIEWER_YAWPITCHZOOM:
+	case VIEWER_SPHERICAL:
 		//do nothing special on tick
 		break;
 	case VIEWER_TURNTABLE:
-		handle_tick_explore(); //same code for tick turntable/explore
+		break;
+	case VIEWER_DIST:
 		break;
 	default:
 		break;
@@ -2631,7 +3013,10 @@ void slerp_viewpoint()
 		quaternion_slerp(&p->Viewer.Quat,&p->Viewer.startSLERPQuat,&p->Viewer.endSLERPQuat,tickFrac);
 		point_XYZ_slerp(&p->Viewer.Pos,&p->Viewer.startSLERPPos,&p->Viewer.endSLERPPos,tickFrac);
 		general_slerp(&p->Viewer.Dist,&p->Viewer.startSLERPDist,&p->Viewer.endSLERPDist,1,tickFrac);
-		if(tickFrac >= 1.0) 	p->Viewer.SLERPing3 = 0;
+		if(tickFrac >= 1.0) {
+			p->Viewer.SLERPing3 = 0;
+			resolve_pos2(); //may not need this if examine etc do it
+		}
 		//now we let normal rendering use the viewer quat, pos, dist during rendering
 	}else if(p->Viewer.SLERPing2 && p->vp2rnSaved) {
 		if(p->Viewer.SLERPing2justStarted)
@@ -2710,7 +3095,7 @@ void setup_viewpoint_slerp(double* center, double pivot_radius, double vp_radius
 		
 	*/
 	//GLDOUBLE matTargeti[16]; //, matTarget[16], mv[16];
-	double dradius; //distance, 
+	//double dradius; //distance, 
 	double yaw, pitch; //, R1[16], R2[16], R3[16], R3i[16]; //, T[16], matQuat[16]; //, matAntiQuat[16];
 	double C[3];
 	//Quaternion sq;
@@ -2730,7 +3115,7 @@ void setup_viewpoint_slerp(double* center, double pivot_radius, double vp_radius
 	//distance = (distance - dradius)/distance;
 	vecnormald(pos,pos);
 	vecscaled(pos,pos,vp_radius); //distance);
-	dradius = veclengthd(pos);
+	//dradius = veclengthd(pos);
 
 	p->Viewer.SLERPing3 = 1;
 
@@ -2795,10 +3180,15 @@ void setup_viewpoint_slerp(double* center, double pivot_radius, double vp_radius
 	if(p->Viewer.LookatMode == 3){
 		if(p->Viewer.type == VIEWER_LOOKAT)
 			fwl_set_viewer_type(VIEWER_LOOKAT); //toggle off LOOKAT
+		if(p->Viewer.type == VIEWER_EXPLORE)
+			fwl_set_viewer_type(VIEWER_EXPLORE); //toggle off LOOKAT
 		p->Viewer.LookatMode = 0; //VIEWER_EXPLORE
 	}
 	//viewer_lastP_clear(); //not sure I need this - its for wall penetration
 }
+
+
+
 /* We have a Viewpoint node being bound. (not a GeoViewpoint node) */
 void bind_Viewpoint (struct X3D_Viewpoint *vp) {
 	Quaternion q_i;

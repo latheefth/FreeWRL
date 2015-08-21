@@ -45,8 +45,12 @@ typedef struct _s_list_t {
 #define ml_next(_item) (_item->next)
 
 typedef void f_free_t(void *ptr);
-
+#if defined(DEBUG_MALLOC) && defined(DEBUG_MALLOC_LIST)
+extern s_list_t* _ml_new(const void *elem, int line, char *fi);
+#define ml_new(elem) _ml_new(elem,__LINE__,__FILE__)
+#else
 extern s_list_t* ml_new(const void *elem);
+#endif
 extern int       ml_count(s_list_t *list);
 extern s_list_t* ml_prev(s_list_t *list, s_list_t *item);
 extern s_list_t* ml_last(s_list_t *list);
@@ -62,6 +66,7 @@ extern void      ml_delete_all2(s_list_t *list, f_free_t f);
 extern s_list_t* ml_get(s_list_t *list, int index);
 extern void ml_enqueue(s_list_t **list, s_list_t *item);
 extern s_list_t* ml_dequeue(s_list_t **list);
+extern void ml_free(s_list_t *item);
 
 #define ml_foreach(_list,_action) {\
 					s_list_t *__l;\

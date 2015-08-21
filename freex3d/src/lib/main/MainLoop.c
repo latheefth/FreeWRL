@@ -177,6 +177,7 @@ typedef struct pMainloop{
 	int bufferarray[2];// = {GL_BACK,0};
 
 	double BrowserStartTime;        /* start of calculating FPS     */
+	double BrowserInitTime;		/* time of first frame */
 
 	//int quitThread;// = FALSE;
 	int keypress_wait_for_settle;// = 100;     /* JAS - change keypress to wait, then do 1 per loop */
@@ -186,8 +187,6 @@ typedef struct pMainloop{
 
     unsigned int loop_count;// = 0;
     unsigned int slowloop_count;// = 0;
-	double waitsec;
-
 	//scene
 	//window
 	//2D_inputdevice
@@ -219,9 +218,12 @@ typedef struct pMainloop{
 	int logging;
 	int keySensorMode;
 	int draw_initialized;
+	int keywait;
+	char keywaitstring[25];
+	int fps_sleep_remainder;
 }* ppMainloop;
 void *Mainloop_constructor(){
-	void *v = malloc(sizeof(struct pMainloop));
+	void *v = MALLOCV(sizeof(struct pMainloop));
 	memset(v,0,sizeof(struct pMainloop));
 	return v;
 }
@@ -286,6 +288,7 @@ void Mainloop_init(struct tMainloop *t){
 		p->bufferarray[1] = 0;
 		/* current time and other time related stuff */
 		//p->BrowserStartTime;        /* start of calculating FPS     */
+		p->BrowserInitTime = 0.0; /* time of first frame */
 
 		//p->quitThread = FALSE;
 		p->keypress_wait_for_settle = 100;     /* JAS - change keypress to wait, then do 1 per loop */
@@ -295,7 +298,6 @@ void Mainloop_init(struct tMainloop *t){
 
         p->loop_count = 0;
         p->slowloop_count = 0;
-		//p->waitsec;
 
 		//scene
 		//window
@@ -326,9 +328,21 @@ void Mainloop_init(struct tMainloop *t){
 		p->logging = 0;
 		p->keySensorMode = 1; //by default on, so it works 'out of the gate' if Key or StringSensor in scene, then ESC to toggle off
 		p->draw_initialized = FALSE;
+		p->keywait = FALSE;
+		p->keywaitstring[0] = (char)0;
+		p->fps_sleep_remainder = 0;
 	}
 }
-
+void Mainloop_clear(struct tMainloop *t){
+	FREE_IF_NZ(t->scene_name);
+	FREE_IF_NZ(t->scene_suff);
+	FREE_IF_NZ(t->replaceWorldRequest);
+	FREE_IF_NZ(t->tmpFileLocation);
+	{
+		ppMainloop p = (ppMainloop)t->prv;
+		FREE_IF_NZ(p->SensorEvents);
+	}
+}
 //true statics:
 int isBrowserPlugin = FALSE; //I can't think of a scenario where sharing this across instances would be a problem
 ///* are we displayed, or iconic? */
@@ -473,7 +487,6 @@ static void stopPCThread()
 	}
 }
 #endif
-//static double waitsec;
 
 #if !defined(_MSC_VER)
 
@@ -560,7 +573,21 @@ int isSnapshotModeTesting();
 void splitpath_local_suffix(const char *url, char **local_name, char **suff);
 #endif //FRONTEND_DOES_SNAPSHOTS
 
+void fwl_gotoCurrentViewPoint()
+{
+	struct tProdCon *t = &gglobal()->ProdCon;
 
+	struct X3D_Node *cn;
+	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, vector_get(struct X3D_Node*, t->viewpointNodes, t->currboundvpno),cn);
+
+	/* printf ("NVP, %d of %d, looking at %d\n",ind, totviewpointnodes, t->currboundvpno);
+	printf ("looking at node :%s:\n",X3D_VIEWPOINT(cn)->description->strptr); */
+
+	if (vpGroupActive((struct X3D_ViewpointGroup *) cn)) {
+		t->setViewpointBindInRender = vector_get(struct X3D_Node*,t->viewpointNodes, t->currboundvpno);
+		return;
+	}
+}
 
 int fw_exit(int val)
 {
@@ -656,7 +683,7 @@ void fwl_RenderSceneUpdateScene() {
 			if(namingMethod==0)
 				strcat(recordingName,"recording");
 			strcat(recordingName,".fwplay"); //1_wrl.fwplay
-			p->recordingFName = strdup(recordingName);
+			p->recordingFName = STRDUP(recordingName);
 
 			if(p->modeFixture  || p->modePlayback){
 				if(!p->modeRecord){
@@ -692,7 +719,7 @@ void fwl_RenderSceneUpdateScene() {
 								char* suff = NULL;
 								char* local_name = NULL;
 								char* url = NULL;
-								if(strlen(sceneName)) url = strdup(sceneName);
+								if(strlen(sceneName)) url = STRDUP(sceneName);
 								if(url){
 									splitpath_local_suffix(url, &local_name, &suff);
 									gglobal()->Mainloop.url = url;
@@ -969,6 +996,7 @@ void fwl_RenderSceneUpdateScene() {
 	}
 	fwl_RenderSceneUpdateScene0(dtime);
 }
+
 void fwl_RenderSceneUpdateScene0(double dtime) {
 
 #else //FRONTEND_DOES_SNAPSHOTS
@@ -1000,21 +1028,57 @@ void fwl_RenderSceneUpdateScene() {
 		p->BrowserStartTime = dtime; //Time1970sec();
 		tg->Mainloop.TickTime = p->BrowserStartTime;
 		tg->Mainloop.lastTime = tg->Mainloop.TickTime - 0.01; /* might as well not invoke the usleep below */
+		if(p->BrowserInitTime == 0.0)
+			p->BrowserInitTime = dtime;
 	} else {
 		/* NOTE: front ends now sync with the monitor, meaning, this sleep is no longer needed unless
-			something goes totally wrong */
+			something goes totally wrong.
+			Perhaps could be moved up a level, since mobile controls in frontend, but npapi and activex plugins also need displaythread  */
 #ifndef FRONTEND_HANDLES_DISPLAY_THREAD
-		if(0) if(!tg->display.params.frontend_handles_display_thread){
-			/* we see how long it took to do the last loop; now that the frame rate is synced to the
+		if(!tg->display.params.frontend_handles_display_thread){
+			/* 	some users report their device overheats if frame rate is a zillion, so this will limit it to a target number
+				statusbarHud options has an option to set.
+				we see how long it took to do the last loop; now that the frame rate is synced to the
 				vertical retrace of the screens, we should not get more than 60-70fps. We calculate the
 				time here, if it is more than 200fps, we sleep for 1/100th of a second - we should NOT
 				need this, but in case something goes pear-shaped (british expression, there!) we do not
-				consume thousands of frames per second */
+				consume thousands of frames per second 
+				frames-per-second = FPS = 1/time-per-frame[s];  [s] means seconds, [ms] millisec [us] microseconds [f] frames
+				target_time_per_frame[s] = 1[f]/target_FPS[f/s];
+				suggested_wait_time[s] = target_time_per_frame[s] - elapsed_time_since_last_frame[s];
+										= 1[f]/target_FPS[f/s]    - elapsed_time_since_last_frame[s];
+				if suggested_wait_time < 0 then we can't keep up, no wait time
 
-			p->waitsec = TickTime() - lastTime();
-			if (p->waitsec < 0.005) {
-				usleep(10000);
+			*/
+			double elapsed_time_per_frame, suggested_wait_time, target_time_per_frame, average_fps;
+			int wait_time_micro_sec, target_frames_per_second, kludgefactor;
+			kludgefactor = 2.0; //2 works on win8.1 with intel i5
+			target_frames_per_second = fwl_get_target_fps();
+			elapsed_time_per_frame = TickTime() - lastTime();
+			/*
+			if(1){
+				//do you trust the statusbar FPS? Here's a double-check.
+				static double cumulative_frame_time = 0.001;
+				static double cumulative_frames = 0.0;
+				cumulative_frames += 1.0;
+				cumulative_frame_time += elapsed_time_per_frame;
+				average_fps = cumulative_frames / cumulative_frame_time;
+				printf("\r%10.5lf",average_fps);
 			}
+			*/
+			if(target_frames_per_second > 0)
+				target_time_per_frame = 1.0/(double)target_frames_per_second;
+			else
+				target_time_per_frame = 1.0/30.0;
+			suggested_wait_time = target_time_per_frame - elapsed_time_per_frame;
+			suggested_wait_time *= kludgefactor;
+
+			wait_time_micro_sec = (int)(suggested_wait_time * 1000000.0);
+			if(wait_time_micro_sec > 1)
+				usleep(wait_time_micro_sec);
+			//if (waitsec < 0.005) {
+			//	usleep(10000);
+			//}
 		}
 #endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 	}
@@ -1034,9 +1098,11 @@ void fwl_RenderSceneUpdateScene() {
 
 
 	/* BrowserAction required? eg, anchors, etc */
+#ifndef DISABLER
 	if (tg->RenderFuncs.BrowserAction) {
 		tg->RenderFuncs.BrowserAction = doBrowserAction ();
 	}
+#endif
 
 	/* has the default background changed? */
 	if (tg->OpenGL_Utils.cc_changed) doglClearColor();
@@ -1274,7 +1340,7 @@ void fwl_RenderSceneUpdateScene() {
 			render_hier(rootNode(),VF_Sensitive  | VF_Geom);
 			getRayHitAndSetLookatTarget();
 		}
-		if(Viewer()->LookatMode > 2)
+		if(Viewer()->LookatMode == 0) ///> 2)
 			setArrowCursor();
 	}else{
 		//normal or navigation mode
@@ -1343,12 +1409,12 @@ void fwl_RenderSceneUpdateScene() {
 							* and the reply is synchronous.
 							*/
 						replyData = fwl_EAI_handleBuffer(tempEAIdata);
-						free(tempEAIdata) ;
+						FREE(tempEAIdata) ;
 						EAI_StillToDo = 1;
 						do {
 							if(replyData != NULL && strlen(replyData) != 0) {
 								fwlio_RxTx_sendbuffer(__FILE__,__LINE__,CHANNEL_EAI, replyData) ;
-								free(replyData) ;
+								FREE(replyData) ;
 								/*
 									* Note: fwlio_RxTx_sendbuffer() can also be called async
 									* due to a listener trigger within routing, but it is
@@ -1574,7 +1640,7 @@ void handle_Xevents(XEvent event) {
 
 	int keysyms_per_keycode_return;
 
-	int count;
+	//int count;
 	int actionKey;
 	ppMainloop p;
 	ttglobal tg = gglobal();
@@ -1755,7 +1821,7 @@ void handle_Xevents(XEvent event) {
 void do_pickSensors();
 int enabled_picksensors();
 #endif
-
+void SSR_test_cumulative_pose();
 static void render_pre() {
 	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 
@@ -1775,6 +1841,23 @@ static void render_pre() {
 
         /* 3. Viewpoint */
         setup_viewpoint();      /*  need this to render collisions correctly*/
+
+#ifdef SSR_SERVER
+		//just for a diagnostic test of transforms - replaces modelview matrix with one formed from cumQuat,cumTrans
+		if(0){
+			static double toggleTime = 0.0;
+			static int runTest = 0;
+			double dtime;
+			dtime = TickTime();
+			if(dtime - toggleTime > 5.0){
+				//alternate between ordinary view and test view every 5 seconds, to visually compare
+				runTest = 1 - runTest;
+				toggleTime = dtime;
+			}
+			if(runTest) SSR_test_cumulative_pose();
+		}
+#endif
+
 
         /* 4. Collisions */
         if (fwl_getCollision() == 1) {
@@ -1829,9 +1912,12 @@ void setup_projection(int pick, int x, int y)
 	scissorxr = screenwidth2;
 	fieldofview2 = viewer->fieldofview;
 	bottom = tg->Mainloop.clipPlane;
+
 	top = 0;
 	screenheight = tg->display.screenHeight - bottom;
-	if(viewer->type==VIEWER_YAWPITCHZOOM)
+	aspect2 = (double)(scissorxr - scissorxl)/(double)(screenheight);
+
+	if(viewer->type==VIEWER_SPHERICAL)
 		fieldofview2*=viewer->fovZoom;
 	if(viewer->isStereo)
 	{
@@ -2156,11 +2242,12 @@ OLDCODE#endif
 
 //#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
 		if (Viewer()->isStereo) {
-
+#ifndef DISABLER
 			if (Viewer()->sidebyside){
 				//cursorDraw(1, p->viewpointScreenX[count], p->viewpointScreenY[count], 0.0f); //draw a fiducial mark where centre of viewpoint is
 				fiducialDraw(1,p->viewpointScreenX[count],p->viewpointScreenY[count],0.0f); //draw a fiducial mark where centre of viewpoint is
 			}
+#endif
 			if (Viewer()->anaglyph)
 				glColorMask(1,1,1,1); /*restore, for statusbarHud etc*/
 		}
@@ -2173,13 +2260,13 @@ OLDCODE#endif
 
 //#endif
 
-	if(p->EMULATE_MULTITOUCH) {
-        int i;
-
-		for(i=0;i<20;i++)
-			if(p->touchlist[i].isDown > 0)
-				cursorDraw(p->touchlist[i].ID,p->touchlist[i].x,p->touchlist[i].y,p->touchlist[i].angle);
-    }
+//	if(p->EMULATE_MULTITOUCH) {
+//        int i;
+//
+//		for(i=0;i<20;i++)
+//			if(p->touchlist[i].isDown > 0)
+//				cursorDraw(p->touchlist[i].ID,p->touchlist[i].x,p->touchlist[i].y,p->touchlist[i].angle);
+//    }
 }
 
 static int currentViewerLandPort = 0;
@@ -2314,7 +2401,7 @@ void toggleLogfile()
 				strcat(logfilename,"logfile");
 			}
 			strcat(logfilename,".log");
-			p->logfname = strdup(logfilename);
+			p->logfname = STRDUP(logfilename);
 		}
 		printf("logging to %s\n",p->logfname);
 		p->logfile = freopen(p->logfname, mode, stdout );
@@ -2332,7 +2419,7 @@ void fwl_set_logfile(char *lname){
 	if (strncasecmp(lname, "-", 1) == 0) {
 	    printf("FreeWRL: output to stdout/stderr\n");
 	} else {
-		p->logfname = strdup(lname);
+		p->logfname = STRDUP(lname);
 		toggleLogfile();
 	 //   printf ("FreeWRL: redirect stdout and stderr to %s\n", logFileName);
 	 //   fp = freopen(logFileName, "a", stdout);
@@ -3040,7 +3127,7 @@ void dump_scene2(FILE *fp, int level, struct X3D_Node* node, int recurse, Stack 
 				}
 				else if(node->_nodeType == NODE_Proto && !strcmp(FIELDNAMES[field->nameIndex],"__protoDef") )
 				{
-					int k, mode;
+					int k; //, mode;
 					struct ProtoFieldDecl* pfield;
 					struct X3D_Proto* pnode = (struct X3D_Proto*)node;
 					struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
@@ -3052,7 +3139,7 @@ void dump_scene2(FILE *fp, int level, struct X3D_Node* node, int recurse, Stack 
 						{
 							const char *fieldName;
 							pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, k);
-							mode = pfield->mode;
+							//mode = pfield->mode;
 							fieldName = pfield->cname;
 							spacer
 							fprintf(fp," %p ",(void*)pfield);
@@ -3124,6 +3211,7 @@ void print_DEFed_node_names_and_pointers(FILE* fp)
 	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 
 	fprintf(fp,"DEFedNodes ");
+	if(!globalParser) return;
 	if(globalParser->DEFedNodes == NULL)
 	{
 		fprintf(fp," NULL\n");
@@ -3156,7 +3244,7 @@ char *findFIELDNAMESfromNodeOffset0(struct X3D_Node *node, int offset)
 	{
 		if( node->_nodeType == NODE_Proto )
 		{
-			int mode;
+			//int mode;
 			struct ProtoFieldDecl* pfield;
 			struct X3D_Proto* pnode = (struct X3D_Proto*)node;
 			struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
@@ -3166,7 +3254,7 @@ char *findFIELDNAMESfromNodeOffset0(struct X3D_Node *node, int offset)
 				    {
 					//JAS const char *fieldName;
 					pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, offset);
-					mode = pfield->mode;
+					//mode = pfield->mode;
 					return pfield->cname;
 				    } else return NULL;
 				}
@@ -3243,11 +3331,6 @@ int consoleMenuActive()
 {
 	return ConsoleMenuState.active;
 }
-#ifdef _MSC_VER
-#define KEYPRESS 1
-#else
-#define KEYDOWN 2
-#endif
 
 /*
 void addMenuChar(kp,type)
@@ -3301,7 +3384,7 @@ void deep_copy_defname(void *myData, char *defname)
 	ConsoleMessage("you entered defname: %s\n",defname);
 	memcpy(&iopt,myData,4);
 	deep_copy2(iopt,defname);
-	free(myData);
+	FREE(myData);
 }
 void deep_copy_option(void* yourData, char *opt)
 {
@@ -3311,7 +3394,7 @@ void deep_copy_option(void* yourData, char *opt)
 	if(iopt == 0) return;
 	if(iopt == 1 || iopt == 3)
 	{
-		void* myData = malloc(4); //could store in gglobal->mainloop or wherever, then don't free in deep_copy_defname
+		void* myData = MALLOC(void *, 4); //could store in gglobal->mainloop or wherever, then don't free in deep_copy_defname
 		memcpy(myData,&iopt,4);
 		setConsoleMenu(myData,"Enter DEFname or node address:", deep_copy_defname, "");
 	}
@@ -3367,6 +3450,8 @@ void fwl_clearWorld(){
 
 void sendKeyToKeySensor(const char key, int upDown);
 /* handle a keypress. "man freewrl" shows all the recognized keypresses */
+
+
 #define KEYDOWN 2
 #define KEYUP 3
 #ifdef AQUA
@@ -3378,6 +3463,7 @@ void sendKeyToKeySensor(const char key, int upDown);
 #endif
 char lookup_fly_key(int key);
 //#endif
+
 void fwl_do_keyPress0(int key, int type) {
 	int lkp;
 	ppMainloop p;
@@ -3395,9 +3481,43 @@ void fwl_do_keyPress0(int key, int type) {
 		sendKeyToKeySensor(key,type); //some keysensor test files show no opengl graphics, so we need a logfile
 	} else {
 		int handled = isAQUA;
+		if(p->keywait){
+			if(type == KEYPRESS){
+				//key,value commands
+				//example: hit spacebar, then at the : prompt type keychord,yawz so it looks on the console:
+				//:keychord,yawz
+				//then press enter. Then if you use the arrow keys <> should turn left right, and ^v should go back/forth
+				//here's a little hack so you can set any (pre-programmed) value from the keyboard in freewrl
+				//by specifying key,value pair
+				//to get the commandline, hit spacebar
+				//then type the key, then the value, then hit Enter.
+				//don't make mistakes typing - there's no backspace handling yet
+				int len = strlen(p->keywaitstring);
+				lkp = key;
+				len = min(24,len); //dimensioned to 25
+				if(lkp == '\r'){
+					fwl_commandline(p->keywaitstring);
+					p->keywait = FALSE;
+					p->keywaitstring[0] = '\0';
+					ConsoleMessage("%c",'\n');
+				}else{
+					ConsoleMessage("%c",lkp);
+					if(lkp == '\b' && len){
+						p->keywaitstring[len-1] = '\0';
+					}else{
+						p->keywaitstring[len] = lkp;
+						p->keywaitstring[len+1] = '\0';
+					}
+				}
+			}
+			handled = TRUE;
+			return;
+		}
+
 		if(type == KEYPRESS)
 		{
 			lkp = key;
+			//normal key
 			//if(kp>='A' && kp <='Z') lkp = tolower(kp);
 			switch (lkp) {
 				case 'n': {  fwl_clearWorld(); break; }
@@ -3405,7 +3525,7 @@ void fwl_do_keyPress0(int key, int type) {
 				case 'w': { fwl_set_viewer_type (VIEWER_WALK); break; }
 				case 'd': { fwl_set_viewer_type (VIEWER_FLY); break; }
 				case 'f': { fwl_set_viewer_type (VIEWER_EXFLY); break; }
-				case 'y': { fwl_set_viewer_type (VIEWER_YAWPITCHZOOM); break; }
+				case 'y': { fwl_set_viewer_type (VIEWER_SPHERICAL); break; }
 				case 't': { fwl_set_viewer_type(VIEWER_TURNTABLE); break; }
 				case 'm': { fwl_set_viewer_type(VIEWER_LOOKAT); break; }
 				case 'g': { fwl_set_viewer_type(VIEWER_EXPLORE); break; }
@@ -3418,7 +3538,6 @@ void fwl_do_keyPress0(int key, int type) {
 				case '+': { dump_scenegraph(4); break; }
 				case '-': { dump_scenegraph(5); break; }
 				case '`': { toggleLogfile(); break; }
-
 				case '$': resource_tree_dump(0, tg->resources.root_res); break;
 				case '*': resource_tree_list_files(0, tg->resources.root_res); break;
 				case 'q': { if (!RUNNINGASPLUGIN) {
@@ -3430,6 +3549,7 @@ void fwl_do_keyPress0(int key, int type) {
 				case 'v': {fwl_Next_ViewPoint(); break;}
 				case 'b': {fwl_Prev_ViewPoint(); break;}
 				case '.': {profile_print_all(); break;}
+				case ' ': p->keywait = TRUE; ConsoleMessage("\n%c",':'); p->keywaitstring[0] = '\0'; break;
 
 #if !defined(FRONTEND_DOES_SNAPSHOTS)
 				case 's': {fwl_toggleSnapshot(); break;}
@@ -3437,6 +3557,7 @@ void fwl_do_keyPress0(int key, int type) {
 #endif //FRONTEND_DOES_SNAPSHOTS
 
 				default:
+					printf("didn't handle key=[%c][%d] type=%d\n",lkp,(int)lkp,type);
 					handled = 0;
 					break;
 			}
@@ -3462,15 +3583,40 @@ void fwl_do_keyPress0(int key, int type) {
 				}
 			}
 			if(kp){
-				double keytime = Time1970sec();
-				if(type%10 == KEYDOWN)
-					handle_key(kp,keytime);  //keydown for fly
-				if(type%10 == KEYUP)
-					handle_keyrelease(kp,keytime); //keyup for fly
+				if(tg->Mainloop.SHIFT){
+					if(type%10 == KEYDOWN && (key == LEFT_KEY || key == RIGHT_KEY)){
+						int ichord;
+						//shift arrow left or right changes keychord
+						ichord = viewer_getKeyChord();
+						if(key == LEFT_KEY) ichord--;
+						if(key == RIGHT_KEY) ichord++;
+						viewer_setKeyChord(ichord);
+					}
+				}else{
+					double keytime = Time1970sec();
+					if(type%10 == KEYDOWN)
+						handle_key(kp,keytime);  //keydown for fly
+					if(type%10 == KEYUP)
+						handle_keyrelease(kp,keytime); //keyup for fly
+				}
 			}
 		}
 	}
 }
+int fwl_getShift(){
+	ttglobal tg = gglobal();
+	return tg->Mainloop.SHIFT;
+}
+void fwl_setShift(int ishift){
+	ttglobal tg = gglobal();
+	tg->Mainloop.SHIFT = ishift;
+}
+
+int fwl_getCtrl(){
+	ttglobal tg = gglobal();
+	return tg->Mainloop.CTRL;
+}
+
 void queueKeyPress(ppMainloop p, int key, int type){
 	if(p->keypressQueueCount < 50){
 		p->keypressQueue[p->keypressQueueCount].key = key;
@@ -3597,11 +3743,11 @@ int getRayHitAndSetLookatTarget() {
 		- get the center and size of the picked shape node, and send the viewpoint to it
 		- return to normal navigation
 	*/
-    double pivot_radius, vp_radius; //x,y,z, 
+    double pivot_radius, vp_radius; //x,y,z,
     int i;
-	ppMainloop p;
+	//ppMainloop p;
 	ttglobal tg = gglobal();
-	p = (ppMainloop)tg->Mainloop.prv;
+	//p = (ppMainloop)tg->Mainloop.prv;
 
     if(tg->RenderFuncs.hitPointDist >= 0) {
 		struct X3D_Node * node;
@@ -3613,6 +3759,7 @@ int getRayHitAndSetLookatTarget() {
 		}else{
 			//GLDOUBLE matTarget[16];
 			double center[3], radius; //pos[3], 
+			vp_radius = 10.0;
 			if(Viewer()->type == VIEWER_LOOKAT){
 				//use the center of the object, and its radius
 				GLDOUBLE smin[3], smax[3], shapeMBBmin[3], shapeMBBmax[3];
@@ -4086,6 +4233,55 @@ What I think we could do better:
 	d) Neither/Non-Sensitized geom nodes: transform geometry xyz hits to bearing-local
 		using modelview+pick-proj [model]
 	[viewport coordinates are only needed once per frame to project the mouse into bearing-world]
+
+Update May 2015 - dug9
+	- we've been using AffinePickMatrix method since fall 2014, 8 months, and with LOOKAT and EXPLORE navigation modes
+		and its been working fine.
+	- clarifications of some points above:
+		- we do our ray-geometry intersections in geometry-local coordinates. That requires us to 
+			transform (a copy of) the pick ray into geometry-local as we move down the transform stack in render_node()
+			we do that in upd_ray(), and it requires a matrix inverse. Currently we call upd_ray() during descent, and
+			also during ascent in render_node(). It could be a stack instead, pushed on the way down and popped on the way back 
+			to save an inverse. 
+		- We recompute upd_ray() on each vf_sensitive recursion into render_node. But in theory it should/could be just when 
+			we've chnaged the modelview transform by passing through a transform (or geotransform or group) node.
+			I'm not sure the best place/way to detect that. Perhaps just before ->children(node).
+					bool pushed_ray = false
+					if(node.type == transform type) pushed_ray = true
+					if(pushed_ray) upd_ray_and_push()
+					node->children(node)
+					if(pushed_ray) pop_ray()
+		- then if/when we have an intersection/hit point, we transform it back into bearing-local space for comparison
+			with the best-hit so far on the frame (which is closest/not occluded). This transform uses no inverse.
+		- One might argue whether it would be easier / somehow better to transform all geometry points 
+			into ray/bearing local space instead, requiring no inverse, and simplifying some of the intersection math.
+			For drawing, this transform is done on the gpu. I don't know which is better. 
+			OpenCL might help, transforming in parallel, analogous to drawing.
+		- Or for each transform when compile_transform the 4x4 from translation, rotation, scale, also compute its inverse and
+			store with the transform. Then when updating modelview during scengraph traversing, also multiply the inverses 
+			to get inverse(modelview). 49 FLOPS in an AFFINE inverse (ie inverting cumulative modelview at each level), 
+			vs. 36 in AFFINE matrix multiply. You save 13 FLOPS per transform level during VFSensitve pass, but need to
+			pre-compute the inverses, likely once for most, in compile_transform.
+		- we have to intersect _all_ geometry, not just sensitive. That's because non-sensitive geometry can occlude.
+			we do an extent/MBB (minimum bounding box) intersection test first, but we need the upd_ray() with inverse to do that.
+		- LOOKAT and EXPLORE use this intersecting all geometry to find the closest point of all geometry along the ray, 
+			even when no sensitive nodes in the scene. They only do it on passes where someone has indicated they 
+			want to pick a new location (for viewpoint slerping to) (versus sensitive nodes in scene which cause 
+			us to always be checking for hits)
+		- for dragsensor nodes, on mouse-down we want to save/snapshot the modelview matrix from viewpoint to sensor-local
+			- then use this sensor-local transform to place the sensor-geometry ie cylinder, sphere, plane [,line]
+				for intersecting as we move/drag with mousedown
+			- since we don't know if or which dragsensor hit will be the winner (on a frame) when visiting a sensor,
+				we save it if its the best-so-far and over-write with any subsequent better hits
+		- if there are multiple sensors in the same scengraph branch, the one closest to the hit emits the events
+			- there could/should be a stack for 'current sensor' pushed when descending, and popping on the way back
+	- An alternative to a cluttered render_node() function would be to change virt->children(node) functions
+		to accept a function pointer ie children(node,func). Same with normal_children(node,func).
+		Then use separate render_node(node), sensor_node(node), and collision_node(node) functions. 
+		They are done on separate passes now anyway.
+		On the other hand, someone may find a way to combine passes for better efficiency/reduced transform FLOPs per frame.
+	- Multitouch - there is currently nothing in the specs. But if there was, it might apply to (modfied / special) touch 
+		and drag sensors. And for us that might mean simulataneously or iterating over a list of touches.
 */
 
 /*	get_hyperhit()
@@ -4497,8 +4693,58 @@ int workers_running(){
 	return more;
 }
 
+int isSceneLoaded()
+{
+	//have all the resoruces been loaded and parsed and the scene is stable?
+	//some other web3d browseers have a way to tell, and you can delay rendering till all resources are loaded
+	//freewrl -after 2014 rework by dug9- has been reworked to be 'lazy loading' meaning it might not 
+	//request a resource until it visits a node that needs it, perhaps several times - see load_inline() (extern proto is similar)
+
+	//need: in our case we want SSR (server-side rendering) to loop normally until the scene
+	//is (lazy?) loaded and parsed and ready, then go into a render-one-frame-for-each-client-request mode
+	//how do we tell? this may change if we have a more reliable cycle for resources.
+	//for now we'll check if our worker threads are waiting, and frontend has no res items in its possession (not downloading one)
+	//		p->doEvents = (!fwl_isinputThreadParsing()) && (!fwl_isTextureParsing()) && fwl_isInputThreadInitialized();
+
+	int ret;
+	double dtime, curtime;
+	//ppProdCon p;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+	//p = (ppProdCon) tg->ProdCon.prv;
+	//ret = 0;
+	//ret = workers_waiting() && !p->frontend_list_to_get;
+	//ret = ret && tg->Mainloop.
+	//printf("[%d %d %p]",tg->threads.ResourceThreadWaiting,tg->threads.TextureThreadWaiting,p->frontend_list_to_get);
+	ret = (!fwl_isinputThreadParsing()) && (!fwl_isTextureParsing()) && fwl_isInputThreadInitialized();
+	ret = ret && workers_waiting();
+	//curtime = TickTime();
+	dtime = tg->Mainloop.TickTime - p->BrowserInitTime;
+	ret = ret && (dtime > 10.0); //wait 10 seconds
+	return ret;
+}
+
+void end_of_run_tests(){
+	//miscalaneous malloc, buffer, resource cleanup testing at end of run
+	//press Enter on console after viewing results
+	if(1){
+		int i, notfreed, notfreedt;
+		//see if there are any opengl buffers not freed
+		notfreed = 0;
+		notfreedt = 0;
+		for(i=0;i<100000;i++){
+			if(glIsBuffer(i)) {notfreed++; printf("b%d ",i);}
+			if(glIsTexture(i)) {notfreedt++; printf("t%d ",i);}
+		}
+		printf("\ngl buffers not freed = %d\n",notfreed);
+		printf("gl textures not freed = %d\n",notfreedt);
+		getchar();
+	}
+}
+
 void finalizeRenderSceneUpdateScene() {
 	//C. delete instance data
+	struct X3D_Node* rn;
 	ttglobal tg = gglobal();
 	printf ("finalizeRenderSceneUpdateScene\n");
 
@@ -4508,12 +4754,22 @@ void finalizeRenderSceneUpdateScene() {
 #endif
 	/* kill any remaining children processes like sound processes or consoles */
 	killErrantChildren();
+	/* tested on win32 console program July9,2011 seems OK */
+	rn = rootNode();
+	if(rn)
+		deleteVector(struct X3D_Node*,rn->_parentVector); //perhaps unlink first
+	freeMallocedNodeFields(rn);
+	FREE_IF_NZ(rn);
+	setRootNode(NULL);
+#ifdef DEBUG_MALLOC
+	end_of_run_tests(); //with glew mx, we get the glew context from tg, so have to do the glIsBuffer, glIsTexture before deleting tg
+#endif
+	iglobal_destructor(tg);
 #ifdef DEBUG_MALLOC
 	void scanMallocTableOnQuit(void);
 	scanMallocTableOnQuit();
 #endif
-	/* tested on win32 console program July9,2011 seems OK */
-	iglobal_destructor(tg);
+
 }
 
 
@@ -4530,14 +4786,15 @@ int checkReplaceWorldRequest(){
 }
 static int exitRequest = 0; //static because we want to exit the process, not just a freewrl instance (I think).
 int checkExitRequest(){
-	if(!exitRequest){
-		ttglobal tg = gglobal();
-		if (tg->threads.MainLoopQuit == 1){
-			tg->threads.flushing = 1;
-			exitRequest = 1;
-		}
-	}
 	return exitRequest;
+}
+
+int checkQuitRequest(){
+	ttglobal tg = gglobal();
+	if (tg->threads.MainLoopQuit == 1){
+		tg->threads.flushing = 1;
+	}
+	return tg->threads.MainLoopQuit;
 }
 void doReplaceWorldRequest()
 {
@@ -4549,15 +4806,16 @@ void doReplaceWorldRequest()
 	req = tg->Mainloop.replaceWorldRequest;
 	tg->Mainloop.replaceWorldRequest = NULL;
 	if (req){
-		kill_oldWorld(TRUE, TRUE, __FILE__, __LINE__);
+		//kill_oldWorldB(__FILE__,__LINE__);
 		res = resource_create_single(req);
 		//send_resource_to_parser_async(res);
 		resitem_enqueue(ml_new(res));
+		FREE_IF_NZ(req);
 	}
 	resm = (resource_item_t *)tg->Mainloop.replaceWorldRequestMulti;
 	if (resm){
 		tg->Mainloop.replaceWorldRequestMulti = NULL;
-		kill_oldWorld(TRUE, TRUE, __FILE__, __LINE__);
+		//kill_oldWorldB(__FILE__, __LINE__);
 		resm->new_root = true;
 		gglobal()->resources.root_res = resm;
 		//send_resource_to_parser_async(resm);
@@ -4612,6 +4870,7 @@ void view_update0(void){
 	#endif
 	updateViewCursorStyle(getCursorStyle()); /* in fwWindow32 where cursors are loaded */
 }
+
 void killNodes();
 
 /* fwl_draw() call from frontend when frontend_handles_display_thread */
@@ -4659,12 +4918,14 @@ int fwl_draw()
 			//}
 			PRINT_GL_ERROR_IF_ANY("XEvents::render");
 			checkReplaceWorldRequest(); //will set flushing=1
-			checkExitRequest(); //will set flushing=1
+			checkQuitRequest(); //will set flushing=1
 			break;
 		case 1:
 			if (workers_waiting()) //one way to tell if workers finished flushing is if their queues are empty, and they are not busy
 			{
-				kill_oldWorld(TRUE, TRUE, __FILE__, __LINE__); //does a MarkForDispose on nodes, wipes out binding stacks and route table, javascript
+                //if (!tg->Mainloop.replaceWorldRequest || tg->threads.MainLoopQuit) //attn Disabler
+				//kill_oldWorldB(__FILE__, __LINE__); //cleans up old scene while leaving gglobal intact ready to load new scene
+				reset_Browser(); //rename
 				tg->threads.flushing = 0;
 				if (tg->threads.MainLoopQuit)
 					tg->threads.MainLoopQuit++; //quiting takes priority over replacing
@@ -4676,12 +4937,18 @@ int fwl_draw()
 	case 2:
 		//tell worker threads to stop gracefully
 		workers_stop();
-		killNodes(); //deallocates nodes MarkForDisposed
+		//killNodes(); //deallocates nodes MarkForDisposed
+		//killed above kill_oldWorldB(__FILE__,__LINE__);
 		tg->threads.MainLoopQuit++;
 		break;
 	case 3:
 		//check if worker threads have exited
 		more = workers_running();
+        if (more == 0)
+        {
+			//moved from desktop.c for disabler
+            finalizeRenderSceneUpdateScene();
+        }
 		break;
 	}
 	return more;
@@ -4708,7 +4975,10 @@ void fwl_initialize_parser()
 
 	/* create the root node */
 	if (rootNode() == NULL) {
-		setRootNode( createNewX3DNode (NODE_Group) );
+		if(usingBrotos())
+			setRootNode( createNewX3DNode (NODE_Proto) );
+		else
+			setRootNode( createNewX3DNode (NODE_Group) );
 		/*remove this node from the deleting list*/
 		doNotRegisterThisNodeForDestroy(X3D_NODE(rootNode()));
 	}
@@ -4729,7 +4999,7 @@ void fwl_set_LineWidth(float lwidth) {
 void fwl_set_KeyString(const char* kstring)
 {
 	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
-    p->keypress_string = strdup(kstring);
+    p->keypress_string = STRDUP(kstring);
 }
 
 void fwl_set_modeRecord()
@@ -4750,7 +5020,7 @@ void fwl_set_modePlayback()
 void fwl_set_nameTest(char *nameTest)
 {
 	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
-    p->nameTest = strdup(nameTest);
+    p->nameTest = STRDUP(nameTest);
 }
 
 /* if we had an exit(EXIT_FAILURE) anywhere in this C code - it means
@@ -4789,9 +5059,53 @@ void fwl_doQuitInstance()
 }
 #endif
 //OLDCODE #endif //ANDROID
-
+void _disposeThread(void *globalcontext);
 
 /* quit key pressed, or Plugin sends SIGQUIT */
+void fwl_doQuitInstance(void *tg_remote)
+{
+    ttglobal tg = gglobal();
+    if (tg_remote == tg)
+    {
+        fwl_doQuit();
+        fwl_draw();
+        workers_stop();
+        fwl_clearCurrentHandle();
+#ifdef DISABLER
+        pthread_create(&tg->threads.disposeThread, NULL, (void *(*)(void *))&_disposeThread, tg);
+#endif
+    }
+}
+
+void __iglobal_destructor(ttglobal tg);
+
+void _disposeThread(void *globalcontext)
+{
+	int more;
+    ttglobal tg = globalcontext;
+    fwl_setCurrentHandle(tg, __FILE__, __LINE__);
+    more = 0;
+    while((more = workers_running()) && more > 0)
+    {
+        usleep(100);
+    }
+    if (more == 0)
+    {
+        markForDispose(rootNode(), TRUE);
+        killNodes(); //deallocates nodes MarkForDisposed
+        
+        
+        finalizeRenderSceneUpdateScene();
+#ifdef DISABLER
+#if defined(WRAP_MALLOC) || defined(DEBUG_MALLOC)
+        freewrlFreeAllRegisteredAllocations();
+        freewrlDisposeMemTable();
+#endif
+        __iglobal_destructor(tg);
+#endif
+    }
+}
+
 void fwl_doQuit()
 {
 	ttglobal tg = gglobal();
@@ -4804,6 +5118,14 @@ void fwl_doQuit()
 	tg->threads.MainLoopQuit = max(1,tg->threads.MainLoopQuit); //make sure we don't go backwards in the quit process with a double 'q'
 }
 
+void fwl_doQuitAndWait(){
+	pthread_t displaythread;
+	ttglobal tg = gglobal();
+	displaythread = tg->threads.DispThrd;
+	fwl_doQuit();
+	pthread_join(displaythread,NULL);
+
+}
 // tmp files are on a per-invocation basis on Android, and possibly other locations.
 // note that the "tempnam" function will accept NULL as the directory on many platforms,
 // so this function does not really need to be called on many platforms.
@@ -5154,14 +5476,14 @@ void fwl_Android_replaceWorldNeeded() {
 	if (rootNode() != NULL) {
 
 		/* mark all rootNode children for Dispose */
-		for (i=0; i<rootNode()->children.n; i++) {
-			markForDispose(rootNode()->children.p[i], TRUE);
+		for (i=0; i<proto->__children.n; i++) {
+			markForDispose(proto->__children.p[i], TRUE);
 		}
 
 		/* stop rendering. This should be done when the new resource is loaded, and new_root is set,
 		but lets do it here just to make sure */
-		rootNode()->children.n = 0; // no children, but _sortedChildren not made;
-		rootNode()->_change ++; // force the rootNode()->_sortedChildren to be made
+		proto->__children.n = 0; // no children, but _sortedChildren not made;
+		proto->_change ++; // force the rootNode()->_sortedChildren to be made
 	}
 
 	/* close the Console Message system, if required. */
@@ -5233,7 +5555,7 @@ char *strBackslash2fore(char *);
 void fwl_replaceWorldNeeded(char* str)
 {
 	ConsoleMessage("file to load: %s\n",str);
-
+    FREE_IF_NZ(gglobal()->Mainloop.replaceWorldRequest);
 	gglobal()->Mainloop.replaceWorldRequest = strBackslash2fore(STRDUP(str));
 }
 void fwl_replaceWorldNeededRes(resource_item_t *multiResWithParent){
@@ -5332,7 +5654,7 @@ struct X3D_IndexedLineSet *fwl_makeRootBoundingBox() {
 	struct X3D_Node *shape, *app, *mat, *ils = NULL;
 	struct X3D_Node *bbCoord = NULL;
 
-	struct X3D_Group *rn = rootNode();
+	struct X3D_Group *rn = rootNode(); //attn Disabler, rootNode() is now always X3D_Proto
         float emis[] = {0.8, 1.0, 0.6};
         float myp[] = {
             -2.0, 1.0, 1.0,
@@ -5403,7 +5725,7 @@ struct X3D_IndexedLineSet *fwl_makeRootBoundingBox() {
 
 void fwl_update_boundingBox(struct X3D_IndexedLineSet* node) {
 
-	struct X3D_Group *rn = rootNode();
+	struct X3D_Group *rn = rootNode(); //attn Disabler, rootNode() is now always X3D_Proto
 	struct SFVec3f newbbc[8];
 
 	if (node==NULL) return;

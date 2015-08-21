@@ -118,11 +118,18 @@ int main (int argc, char **argv)
 	*/
 	if(strstr(argv[0],"projectfiles"))
 	{
-		/* we are testing - use local fonts (may be obsolete someday) */
+		/* we are testing - use local fonts (may be obsolete someday) - and Vera might not be installed in C:/windows/fonts */
 		static char *fdir;
+		char *xdir, *xe;
 		fdir = malloc(MAX_PATH); 
+		xdir = malloc(MAX_PATH);
 		strcpy(fdir,"FREEWRL_FONTS_DIR=");
-		strcat(fdir,"C:/Windows/Fonts");
+		//strcat(fdir,"C:/Windows/Fonts");
+		strcpy(xdir,argv[0]);
+		xe = strstr(xdir,"projectfiles");
+		if(xe) xe[0] = '\0';
+		xdir = strcat(xdir,"appleOSX/OSX_Specific/fonts");
+		strcat(fdir,xdir);
 		_putenv( fdir );
 	}
 	else
@@ -143,7 +150,7 @@ int main (int argc, char **argv)
 		strcat(fdir,"/Fonts");
 		_putenv( fdir );
 	}
-	get_current_dir();
+	//get_current_dir();
 	/* VBO preference - comment out for vbos (vertex buffer objects - a rendering optimization) */
 	_putenv("FREEWRL_NO_VBOS=1"); 
 	//_putenv("FREEWRL_USE_VBOS=1");

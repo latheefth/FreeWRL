@@ -277,7 +277,7 @@ typedef struct pComponent_KeyDevice{
 	struct Vector *keySink;
 }* ppComponent_KeyDevice;
 void *Component_KeyDevice_constructor(){
-	void *v = malloc(sizeof(struct pComponent_KeyDevice));
+	void *v = MALLOCV(sizeof(struct pComponent_KeyDevice));
 	memset(v,0,sizeof(struct pComponent_KeyDevice));
 	return v;
 }

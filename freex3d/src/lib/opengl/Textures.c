@@ -97,7 +97,7 @@ typedef struct pTextures{
 
 
 void *Textures_constructor(){
-	void *v = malloc(sizeof(struct pTextures));
+	void *v = MALLOCV(sizeof(struct pTextures));
 	memset(v,0,sizeof(struct pTextures));
 	return v;
 }
@@ -116,7 +116,15 @@ void Textures_init(struct tTextures *t){
 		p->textureInProcess = -1;
 	}
 }
-
+void Textures_clear(struct tTextures *t){
+	//public
+	glDeleteBuffers (1,&t->defaultBlankTexture);
+	//private
+	{
+		ppTextures p = (ppTextures)t->prv;
+		deleteVector(textureTableIndexStruct_s *, p->activeTextureTable);
+	}
+}
 #if defined(AQUA) /* for AQUA OS X sharing of OpenGL Contexts */
 
 #elif defined(_MSC_VER)
@@ -190,7 +198,7 @@ static void myScaleImage(int srcX,int srcY,int destX,int destY,unsigned char *sr
 	}
 }
 
-
+void malloc_profile_add(char *use, int bytes);
 static void GenMipMap2D( GLubyte *src, GLubyte **dst, int srcWidth, int srcHeight, int *dstWidth, int *dstHeight )
 {
    int x,
@@ -205,7 +213,8 @@ static void GenMipMap2D( GLubyte *src, GLubyte **dst, int srcWidth, int srcHeigh
    if ( *dstHeight <= 0 )
       *dstHeight = 1;
 
-   *dst = malloc ( sizeof(GLubyte) * texelSize * (*dstWidth) * (*dstHeight) );
+   *dst = MALLOC(void *, sizeof(GLubyte) * texelSize * (*dstWidth) * (*dstHeight) );
+   malloc_profile_add("texturemip",texelSize * (*dstWidth) * (*dstHeight));
    if ( *dst == NULL )
       return;
 
@@ -255,7 +264,6 @@ static void GenMipMap2D( GLubyte *src, GLubyte **dst, int srcWidth, int srcHeigh
       }
    }
 }
-
 /* create the MIPMAPS ourselves, as the OpenGL ES 2.0 can not do it */
 static void myTexImage2D (int generateMipMaps, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, GLubyte *pixels) {
 	GLubyte *prevImage = NULL;
@@ -271,6 +279,7 @@ static void myTexImage2D (int generateMipMaps, GLenum target, GLint level, GLint
 	/* go and create a bunch of mipmaps */
 
 	prevImage = MALLOC(GLubyte *, width * height * 4);
+	malloc_profile_add("texture1",width*height*4);
 	memcpy (prevImage, pixels, width * height * 4);
 	
 	/* from the OpenGL-ES 2.0 book, page 189 */
@@ -515,6 +524,10 @@ void registerTexture0(int iaction, struct X3D_Node *tmp) {
 			//we'll try using NULL as the signal its deleted.
 			textureTableIndexStruct_s * tti = NULL;
 			int *textureNumber = NULL;
+
+			releaseTexture(tmp); //Mar 23, 2015 added, to zap from gl texture name list (and its texture storage)
+								//otherwise for geoLOD and inline, the OS MEM usage keeps going up after unload/load cycle
+
 			switch (it->_nodeType) {
 			/* save this index in the scene graph node */
 			case NODE_ImageTexture:
@@ -560,6 +573,8 @@ void registerTexture0(int iaction, struct X3D_Node *tmp) {
 					// proper fix: redesign resource fetch so it has a way to check if tti still exists, IMPLEMENTED Dec5,2014
 					//  for example, have it use the table index number instead of a pointer directly to *tti,
 					//  and here leave a NULL in the table at that index so resource thread can check if its been zapped
+					FREE_IF_NZ(tti->texdata);
+					//->filename is not strduped, just a pointer to actual_file which is freed in resource
 					FREE_IF_NZ(tti);
 				}
 			}
@@ -574,6 +589,18 @@ void registerTexture(struct X3D_Node *tmp) {
 void unRegisterTexture(struct X3D_Node *tmp) {
 	registerTexture0(0,tmp);
 }
+
+void free_polyrep(struct X3D_PolyRep *rep);
+
+void unRegisterPolyRep(struct X3D_Node *tmp)
+{
+    if (tmp->_intern)
+    {
+        free_polyrep(tmp->_intern);
+    }
+}
+
+
 void add_node_to_broto_context(struct X3D_Proto *currentContext,struct X3D_Node *node);
 /* do TextureBackground textures, if possible */
 void loadBackgroundTextures (struct X3D_Background *node) {
@@ -806,16 +833,16 @@ static void compileMultiTexture (struct X3D_MultiTexture *node) {
     MARK_NODE_COMPILED;
     
     /* alloc fields, if required - only do this once, even if node changes */
-    if (node->__params == 0) {
+    if (node->__xparams == 0) {
         /* printf ("loadMulti, MALLOCing for params\n"); */
-        node->__params = MALLOC (void *, sizeof (struct multiTexParams) * gglobal()->display.rdr_caps.texture_units);
+        node->__xparams = MALLOC (void *, sizeof (struct multiTexParams) * gglobal()->display.rdr_caps.texture_units);
         
        // printf ("just mallocd %ld in size for __params\n",sizeof (struct multiTexParams) * gglobal()->display.rdr_caps.texture_units);
     
         
         //printf ("paramPtr is %p\n",(int *)node->__params);
         
-        paramPtr = (struct multiTexParams*) node->__params;
+        paramPtr = (struct multiTexParams*) node->__xparams;
         
         /* set defaults for these fields */
         for (count = 0; count < gglobal()->display.rdr_caps.texture_units; count++) {
@@ -835,7 +862,7 @@ static void compileMultiTexture (struct X3D_MultiTexture *node) {
         ConsoleMessage ("currently, MultiTexture source and function parameters defaults used");
     }
     /* go through the params, and change string name into an int */
-    paramPtr = (struct multiTexParams*) node->__params;
+    paramPtr = (struct multiTexParams*) node->__xparams;
     for (count = 0; count < max; count++) {
         param = node->mode.p[count]->strptr;
         paramPtr->multitex_mode = findFieldInMULTITEXTUREMODE(param);
@@ -891,7 +918,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
     
     
 	/* go through and get all of the textures */
-	paramPtr = (struct multiTexParams *) node->__params;
+	paramPtr = (struct multiTexParams *) node->__xparams;
     
 #ifdef TEXVERBOSE
     printf ("loadMultiTExture, param stack:\n");
@@ -1349,7 +1376,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
                     
 					/* try this texture on for size, keep scaling down until we can do it */
 					/* all textures are 4 bytes/pixel */
-					dest = MALLOC(unsigned char *, (unsigned) 4 * rx * ry);
+					dest = MALLOC(unsigned char *, 4 * rx * ry);
 
 						myScaleImage(x,y,rx,ry,mytexdata,dest);
 				}
