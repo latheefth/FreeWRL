@@ -3918,7 +3918,6 @@ void unload_globalParser() {
 	gglobal()->CParse.globalParser = NULL; //set to null to trigger a fresh createParser on replaceworld
 }
 void unload_libraryscenes();
-void freeMallocedNodeFields(struct X3D_Node* node);
 void reset_Browser(){
 	// erase old world but keep gglobal in good shape, ie everything in _init() functions still good
 	// -gglobal is erased elsewhere in finalizeRenderSceneUpdateScene()

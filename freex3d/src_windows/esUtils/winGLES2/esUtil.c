@@ -228,7 +228,10 @@ void ESUTIL_API esMainLoop ( ESContext *esContext )
 {
    WinLoop ( esContext );
 }
-
+void ESUTIL_API esQuit ( ESContext *esContext )
+{
+   WinQuit ( esContext );
+}
 
 ///
 //  esRegisterDrawFunc()

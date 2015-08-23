@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../main;../../../../lib_windows/angleproject/include;../../src_windows;..\..\src\lib"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;GLES2;FRONTEND_HANDLES_DISPLAY_THREAD"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;GLES2;FRONTEND_HANDLES_DISPLAY_THREAD;STATUSBAR_HUD"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -115,7 +115,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="../main;../../../../lib_windows/angleproject/include;../../src_windows;..\..\src\lib"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;STATUSBAR_HUD"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
