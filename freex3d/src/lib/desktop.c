@@ -373,6 +373,14 @@ void _displayThread(void *globalcontext)
 			dequeue_SSR_request(globalcontext);
 		}
 #endif
+#ifdef _MSC_VER
+		//win32 message pump - works here for desktop freewrl and npapi, ActiveX plugins, 
+		// because those all use _DisplayThread here. 
+		// (winGLES2 project which uses EGL 'front end' has its own win32 message pump, 
+		// and doesn't call this _displayThread)
+		fwMessageLoop(); 
+#endif
+
 		frontend_dequeue_get_enqueue(globalcontext); //this is non-blocking (returns immediately) if queue empty
 		more = fwl_draw();
 		/* swap the rendering area */

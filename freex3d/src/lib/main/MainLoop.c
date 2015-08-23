@@ -572,7 +572,7 @@ void set_snapshotModeTesting(int value);
 int isSnapshotModeTesting();
 void splitpath_local_suffix(const char *url, char **local_name, char **suff);
 #endif //FRONTEND_DOES_SNAPSHOTS
-
+int vpGroupActive(struct X3D_ViewpointGroup *vp_parent);
 void fwl_gotoCurrentViewPoint()
 {
 	struct tProdCon *t = &gglobal()->ProdCon;
@@ -4859,9 +4859,6 @@ void updateViewCursorStyle(int cstyle)
 #endif
 
 void view_update0(void){
-	#ifdef _MSC_VER
-		fwMessageLoop(); //message pump
-	#endif
 	#if defined(STATUSBAR_HUD)
 		/* status bar, if we have one */
 		finishedWithGlobalShader();

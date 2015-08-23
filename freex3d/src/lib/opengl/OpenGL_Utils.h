@@ -194,6 +194,8 @@ void fw_gluPickMatrix(GLDOUBLE x, GLDOUBLE y, GLDOUBLE deltax, GLDOUBLE deltay,
 void printMaxStackUsed();
 GLDOUBLE *getPickrayMatrix(int index);
 void setPickrayMatrix(int index, GLDOUBLE *mat);
+void freeMallocedNodeFields(struct X3D_Node* node);
+void unRegisterX3DNode(struct X3D_Node * tmp);
 
 
 #endif /* __FREEWRL_OPENGL_UTILS_H__ */

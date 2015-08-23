@@ -15,24 +15,24 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src_windows\esUtils\main\esUtil.h">
+    <ClInclude Include="$(SRCWIN)\esUtils\main\esUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src_windows\esUtils\winGLES2\esUtil_win.h">
+    <ClInclude Include="$(SRCWIN)\esUtils\winGLES2\esUtil_win.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src_windows\resource.h">
+    <ClInclude Include="$(SRCWIN)\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src_windows\esUtils\winGLES2\esUtil.c">
+    <ClCompile Include="$(SRCWIN)\esUtils\winGLES2\esUtil.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src_windows\esUtils\winGLES2\esUtil_win32.c">
+    <ClCompile Include="$(SRCWIN)\esUtils\winGLES2\esUtil_win32.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src_windows\esUtils\main\main.c">
+    <ClCompile Include="$(SRCWIN)\esUtils\main\main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
