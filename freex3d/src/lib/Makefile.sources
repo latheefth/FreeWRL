@@ -191,6 +191,7 @@ opengl/Material.h \
 opengl/Material.c \
 opengl/LoadTextures.h \
 opengl/LoadTextures.c \
+opengl/RasterFont.h \
  \
 opencl/OpenCL_Utils.c \
 opencl/OpenCL_Utils.h \

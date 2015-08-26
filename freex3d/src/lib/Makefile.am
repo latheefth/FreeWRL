@@ -143,7 +143,7 @@ AM_CPPFLAGS+=-DTARGET_WIN32
 endif
 
 if STATUSBAR_STD
-libFreeWRL_la_SOURCES += ui/statusbar.c
+libFreeWRL_la_SOURCES += opengl/RasterFont.c ui/statusbar.c
 AM_CPPFLAGS+=-DSTATUSBAR_STD
 endif
 
