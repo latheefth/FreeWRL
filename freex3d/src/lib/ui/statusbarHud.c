@@ -441,6 +441,7 @@ typedef struct pstatusbar{
 	int initDone;
 	int showButtons;// =0;
 	int wantButtons;
+	int wantStatusbar;
 	int statusbar_pinned;
 	int menubar_pinned;
 	int show_status;
@@ -501,7 +502,11 @@ void statusbar_init(struct tstatusbar *t){
 		ppstatusbar p = (ppstatusbar)t->prv;
 		p->loopcount = 0;
 		p->hadString = 0;
-		p->wantButtons = 1;
+		p->wantStatusbar = 1;
+#ifdef STATUSBAR_NONE
+		p->wantStatusbar = 0;
+#endif
+		p->wantButtons = p->wantStatusbar;
 #ifdef STATUSBAR_STD
 		p->wantButtons = 0;
 #endif
@@ -2534,7 +2539,8 @@ void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY)
 char *getMessageBar(); //in common.c
 char *fwl_getKeyChord();
 void fwl_setClipPlane(int height);
-int fwl_get_shh_wantMenubar();
+int fwl_get_sbh_wantMenubar();
+int fwl_get_sbh_wantStatusbar();
 void drawStatusBarSide()
 {
 }
@@ -2543,7 +2549,8 @@ void update_pinned(){
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
 	fwl_get_sbh_pin(&p->statusbar_pinned,&p->menubar_pinned);
-	p->wantButtons = fwl_get_shh_wantMenubar();
+	p->wantButtons = fwl_get_sbh_wantMenubar();
+	p->wantStatusbar = fwl_get_sbh_wantStatusbar();
 }
 
 void drawStatusBar() 
@@ -2580,13 +2587,13 @@ M       void toggle_collision()                             //"
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
 
+	update_ui_colors();
+	update_pinned();
+	if(!p->wantStatusbar) return;
 	//init-once things are done everytime for convenience
 	//fwl_setClipPlane(p->statusBarSize);
 	if(!p->fontInitialized) initFont();
-	update_ui_colors();
-	update_pinned();
 	if(p->programObject == 0) initProgramObject();
-
 	//MVC statusbarHud is in View and Controller just called us and told us 
 	//..to poll the Model to update and draw ourself
 	updateButtonStatus();  //poll Model for some button state
