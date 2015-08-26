@@ -7137,7 +7137,6 @@ int	unregister_broutes(struct X3D_Proto * node){
 
 
 void unRegisterTexture(struct X3D_Node *tmp);
-void unRegisterX3DNode(struct X3D_Node * tmp);
 void unRegisterBindable (struct X3D_Node *node);
 void remove_OSCsensor(struct X3D_Node * node);
 void remove_picksensor(struct X3D_Node * node);

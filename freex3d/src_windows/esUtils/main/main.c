@@ -11,55 +11,57 @@
 #include <config.h>
 #include <system.h>
 #include <libFreeWRL.h>
-void finalizeRenderSceneUpdateScene();
 #include <stdlib.h>
 #include <stdio.h>
 
-	void updateConsoleStatus(); //poll Model & update UI(View)
-
-	/* status bar, if we have one */
-	void finishedWithGlobalShader();
-	void drawStatusBar();  // UI/View 
-	void restoreGlobalShader();
-
+void *gglobal();
+void frontend_dequeue_get_enqueue(void *tg);
+static void *globalcontext;
+static int more = 1;
 
 void fwDraw ( ESContext *esContext )
-//void fwUpdate ( ESContext *esContext, float delta )
 {
-	fwl_RenderSceneUpdateScene();
-	//updateButtonStatus(); //poll Model & update UI(View)
-	updateConsoleStatus(); //poll Model & update UI(View)
-	//checkFileLoadRequest();
-	/* status bar, if we have one */
-	finishedWithGlobalShader();
-	drawStatusBar();  // UI/View 
-	restoreGlobalShader();
+	if(more){
+		//borrowed from desktop.c loop
+		frontend_dequeue_get_enqueue(globalcontext); //this is non-blocking (returns immediately) if queue empty
+		more = fwl_draw();
 
-	//drawStatusBarFE();
-	eglSwapBuffers ( esContext->eglDisplay, esContext->eglSurface );
-
+		//Aug 2015 if eglSwapbuffers is a null function, you'll see black
+		//it can be caused by using AMD libEGL/libGLES2 emulators on an Intel desktop machine, or something like that
+		//if so use another libEGL/libGLES2 emulator kit from someone/somewhere else
+		//in windows, we use angleproject, which when built gives us fwEGL.lib/dll and fwGLES2.lib/.dll
+		eglSwapBuffers ( esContext->eglDisplay, esContext->eglSurface );
+	}else{
+		esQuit(esContext);
+	}
 }
 void fwOnKey( ESContext* esContext, unsigned char c, int updown, int ishift)
 {
-	//int updown;
-	//printf("c=%c updown=%d ishift=%d\n",c,updown,ishift);
-	//updown=1;
-	fwl_do_keyPress(c, updown); 
-
+	//after 'q' to exit, the keyup for q will come in after gglobal already freed
+	if(more)
+		fwl_do_keyPress(c, updown); 
 }
-//int handleStatusbarHudFE(int mev, int mx, int my); //int* clipplane)
+void statusbar_set_window_size(int width, int height);
+void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY);
 void fwOnMouse( ESContext* esContext, int mev, int button, int ix, int iy)
 {
-	//printf("mev=%d button=%d\n",mev,button);
-	//if(!handleStatusbarHudFE(mev,ix,iy))
+	if(more){
+#ifdef STATUSBAR_HUD
+		statusbar_handle_mouse(mev,button,ix,iy);
+#else
 		fwl_handle_aqua(mev,button,ix,iy); 
+#endif
+	}
 }
-//void statusbarOnResize(int screenWidth, int screenHeight);
 void fwOnResize( ESContext* esContext, int screenWidth, int screenHeight)
 {
-	//statusbarOnResize(screenWidth,screenHeight);
-	//resize_GL(rect.right, rect.bottom); 
+
+#ifdef STATUSBAR_HUD
+	statusbar_set_window_size(screenWidth,screenHeight);
+#else
 	fwl_setScreenDim(screenWidth,screenHeight);
+#endif
+
 }
 char *getWindowTitle();
 void setWindowTitleFE()
@@ -69,7 +71,7 @@ void setWindowTitleFE()
 	//SetWindowText(ghWnd,getWindowTitle()); //window_title);
 
 }
-//void initStaticStatusbar();
+static char* sceneUrl = NULL;
 int fwInit ( ESContext *esContext )
 {
 	freewrl_params_t *fv_params = NULL;
@@ -83,52 +85,17 @@ int fwInit ( ESContext *esContext )
     fv_params->winToEmbedInto = INT_ID_UNDEFINED;
     fv_params->verbose = FALSE;
 	fv_params->frontend_handles_display_thread = TRUE;
-    //fv_params->collision = 1; // if you set it, you need to update ui button with a call
-	//setMenuButton_collision(fv_params->collision);
 	if(!fwl_initFreeWRL(fv_params)) return FALSE;
-	//fwl_registerFunction("Replace","setWindowTitle",setWindowTitleFE);
-	/* Hmm. display_initialize is really a frontend function. The frontend should call it before calling _displayThread */
-	/* Initialize display */
-	//initStaticStatusbar(); //call early for console_message
 
-	if (!fv_display_initialize()) {
-		printf("initFreeWRL: error in display initialization.\n");
-		return(0);
-	}
-	//fwl_init_SideBySide(); //works but needs base adjustment
+	//borrowed from desktop.c > fwl_startFreeWRL
+	// - we don't want to start its _displayThread here, instead we'll call the guts 
+	//   of displaythread elsewhere.
+	globalcontext = gglobal();
+	if(sceneUrl)
+		fwl_resource_push_single_request(sceneUrl); 
+	fwl_setCurrentHandle(globalcontext, __FILE__, __LINE__);
 
-	//fwl_startFreeWRL("");
-	//fwl_startFreeWRL("../../../../tests/4.wrl");
-	//fwl_startFreeWRL("../../../../tests/6.wrl");
-	//fwl_startFreeWRL("../../../../tests/11.wrl");
-	//fwl_startFreeWRL("../../../../tests/15.wrl");
-	//fwl_startFreeWRL("../../../../tests/16.wrl");
-	//fwl_startFreeWRL("../../../../tests/20.wrl");
-	//fwl_startFreeWRL("../../../../tests/51.wrl");
-	//fwl_startFreeWRL("../../../../tests/ProgrammableShaders/models/flutter2-ProgramShader.x3d");
-	//fwl_startFreeWRL("../../../../tests/ProgrammableShaders/models/teapot-Toon.wrl");
-	//fwl_startFreeWRL("../../../../tests/ProgrammableShaders/models/TwoCylinders.wrl");
-	//fwl_startFreeWRL("../../../../placeholders/townsite/townsite_withHud.x3d");
-	//fwl_startFreeWRL("../../../../tests/Roelofs/43487/43487-galaxies.wrl");
-	//fwl_startFreeWRL("../../../../tests/21.x3d");
-	fwl_startFreeWRL("../../../../tests/1.x3d");
-	//fwl_startFreeWRL("../../../../placeholders/townsite/townsite.x3d");
-	//fwl_startFreeWRL("../../../../tests/shaders/Door248_PlutoMod.x3d");
-	//fwl_startFreeWRL("../../../../tests/1_IFS.x3d");
-	//fwl_startFreeWRL("../../../../tests/blender/cone_lamp4.x3d");
-	//fwl_startFreeWRL("../../../../tests/blender/cone.x3d");
-	//fwl_startFreeWRL("../../../../tests/Dave_exposedField/jtest.wrl");
-	//fwl_startFreeWRL("../../../../tests/shaders/oneTexOneMaterial.x3d");
-	//fwl_startFreeWRL("http://dug9.users.sourceforge.net/web3d/tests/1.x3d");
-	//fwl_startFreeWRL("http://dug9.users.sourceforge.net/web3d/tests/2.x3d");
-	//fwl_startFreeWRL("http://dug9.users.sourceforge.net/web3d/tests/49.x3d");
-	//fwl_startFreeWRL("http://dug9.users.sourceforge.net/gravity.x3d");
-	//fwl_startFreeWRL("http://dug9.users.sourceforge.net/web3d/townsite/townsite.x3d");
-	//fwl_startFreeWRL("http://dug9.users.sourceforge.net/web3d/townsite/townsite_withHudfw.x3d");
-	//fwl_startFreeWRL("../../../../tests/Roelofs/Roelofs_concaveFace_JASversion.wrl");
-	//fwl_startFreeWRL("../../../../tests/Roelofs/Roelofs_concaveFace.x3d");
-	//fwl_startFreeWRL("../../../../freewrl/Generic/winGLES2/HudIcons.wrl");
-	fwl_initializeRenderSceneUpdateScene();
+
 	return 1;
 }
 ESContext *staticContext;
@@ -149,6 +116,14 @@ int main ( int argc, char *argv[] )
    //UserData  userData;
    void *userData;
 
+
+   if(argc > 1)
+		sceneUrl = argv[1];
+	else{
+		sceneUrl = NULL;
+		//sceneUrl = "http://dug9.users.sourceforge.net/web3d/tests/1.x3d";
+
+	}
    esInitContext ( &esContext );
    staticContext = &esContext;
    userData = fwl_init_instance(); //before setting any structs we need a struct allocated
@@ -166,8 +141,7 @@ int main ( int argc, char *argv[] )
    
    if ( !fwInit ( &esContext ) )
       return 0;
-   	//statusbarOnResize(600,352);
-	fwl_setScreenDim(600,352);
+ 	fwOnResize( &esContext, 600, 352);
 
    //esRegisterUpdateFunc ( &esContext, fwUpdate );
    esRegisterDrawFunc ( &esContext, fwDraw );
@@ -176,6 +150,5 @@ int main ( int argc, char *argv[] )
    esRegisterResizeFunc( &esContext, fwOnResize );
    
    esMainLoop ( &esContext );
-   finalizeRenderSceneUpdateScene();
 
 }

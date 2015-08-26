@@ -155,7 +155,7 @@ void ESUTIL_API esLogMessage ( const char *formatStr, ... );
 
 char* ESUTIL_API esUtil_pick_file(ESContext *esContext);
 char * ESUTIL_API esUtil_pick_URL(ESContext *esContext);
-
+void ESUTIL_API esQuit( ESContext *esContext );
 
 #ifdef __cplusplus
 }

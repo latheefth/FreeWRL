@@ -283,10 +283,14 @@ GLboolean WinCreate ( ESContext *esContext, const char *title )
 //
 //      Start main windows loop
 //
+static int done = 0;
+void WinQuit( ESContext *esContext )
+{
+		done = 1;
+}
 void WinLoop ( ESContext *esContext )
 {
    MSG msg = { 0 };
-   int done = 0;
    DWORD lastTime = GetTickCount();
    
    while (!done)
@@ -312,8 +316,8 @@ void WinLoop ( ESContext *esContext )
          SendMessage( esContext->hWnd, WM_PAINT, 0, 0 );
 
       // Call update function if registered
-      if ( esContext->updateFunc != NULL )
-         esContext->updateFunc ( esContext, deltaTime );
+	  if ( esContext->updateFunc != NULL )
+		 esContext->updateFunc ( esContext, deltaTime );
    }
 }
 //#include <windows.h> //Commdlg.h
