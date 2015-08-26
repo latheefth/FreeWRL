@@ -19,7 +19,7 @@ FREEWRL_SND_VERSION=`cat $$_EV`
 
 # Generate the version source file
 internal_version.c: $(_EV)
-	$(top_srcdir)/vtempl $(component) \
+	$(top_builddir)/vtempl $(component) \
 	$(FREEWRL_SND_VERSION) < $(templ) > $@
 # And add it to the list of files to clean
 CLEANFILES=internal_version.c

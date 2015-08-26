@@ -35,7 +35,7 @@ AM_CPPFLAGS += -DBUILD_TIMESTAMP=\"$(BUILD_TIMESTAMP)\"
 
 # Generate the version source file
 internal_version.c: $(_EV)
-	$(top_srcdir)/vtempl $(component) \
+	$(top_builddir)/vtempl $(component) \
 	$(PLUGIN_VERSION) < $(templ) > $@
 # And add it to the list of files to clean
 CLEANFILES=internal_version.c
