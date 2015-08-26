@@ -67,6 +67,7 @@ typedef struct pcommon{
 	int colorSchemeChanged;
 	int pin_statusbar;
 	int pin_menubar;
+	int want_menubar;
 	struct Vector *keyvals;
 }*ppcommon;
 void *common_constructor(){
@@ -87,6 +88,10 @@ void common_init(struct tcommon *t){
 		p->colorSchemeChanged = 0;
 		p->pin_statusbar = 1;
 		p->pin_menubar = 0;
+		p->want_menubar = 1;
+#ifdef STATUSBAR_STD
+		p->want_menubar = 0;
+#endif
 		p->keyvals = NULL;
 		p->target_frames_per_second = 120;  //is 120 FPS a good target FPS?
 	}
@@ -261,6 +266,14 @@ void fwl_get_sbh_pin(int *sb, int *mb){
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 	*sb = p->pin_statusbar;
 	*mb = p->pin_menubar;
+}
+void fwl_set_sbh_wantMenubar(int want){
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	p->want_menubar = want ? 1 : 0;
+}
+int fwl_get_shh_wantMenubar(){
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	return p->want_menubar;
 }
 void fwl_set_target_fps(int target_fps){
 	ppcommon p = (ppcommon)gglobal()->common.prv;
