@@ -91,7 +91,7 @@ LIBFREEWRL_LTVERSION=`cat $$_EV2`
 
 # Generate the version source file
 internal_version.c: $(_EV) $(_EV2)
-	$(top_srcdir)/vtempl $(component) \
+	$(top_builddir)/vtempl $(component) \
 	$(LIBFREEWRL_VERSION) < $(templ) > $@
 # And add it to the list of files to clean
 CLEANFILES=internal_version.c
@@ -143,7 +143,7 @@ AM_CPPFLAGS+=-DTARGET_WIN32
 endif
 
 if STATUSBAR_STD
-libFreeWRL_la_SOURCES += ui/statusbar.c
+libFreeWRL_la_SOURCES += opengl/RasterFont.c ui/statusbar.c
 AM_CPPFLAGS+=-DSTATUSBAR_STD
 endif
 

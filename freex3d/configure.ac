@@ -11,7 +11,7 @@
 # Autoconf startup, we define the package's name, and version:
 # but this is not the program's version, nor the library's version.
 # We also define the maintainer address.
-AC_INIT([freewrl], [2.3.3], [freewrl-help@lists.sourceforge.net])
+AC_INIT([freewrl], [3.0.0], [freewrl-help@lists.sourceforge.net])
 
 # Little customization: all autotools derived files go in a sub-directory.
 AC_CONFIG_AUX_DIR([config])
@@ -211,6 +211,8 @@ esac
 # seamonkey (firefox-2.0 equivalent packaging)
 # firefox (2.0 or 1.5)
 # firefox (firefox-2.0 possible alternate packaging)
+# NOTE - mozjs-17 and later are not supported yet
+# AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[mozjs-17.0])
 if test "$javascriptopt" = "sm"; then
   AC_MSG_NOTICE([Determining Javascript engine to build against])
   found_JAVASCRIPT_ENGINE=no
@@ -219,7 +221,6 @@ if test "$javascriptopt" = "sm"; then
         AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[spidermonkey],[>=],[1.7.0])
         ;;
      *)
-        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[mozjs-17.0])
         AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[mozjs187])
         AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[mozjs185])
         AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[mozilla-js],[>=],[1.9])
