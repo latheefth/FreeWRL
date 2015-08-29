@@ -4832,7 +4832,7 @@ int view_initialize0(void){
 		ERROR_MSG("initFreeWRL: error in display initialization.\n");
 		return FALSE; //exit(1);
 	}
-	return FALSE; //TRUE;
+	return TRUE;
 }
 #endif /* KEEP_FV_INLIB */
 
