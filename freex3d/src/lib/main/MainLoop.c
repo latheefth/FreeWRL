@@ -4832,7 +4832,7 @@ int view_initialize0(void){
 		ERROR_MSG("initFreeWRL: error in display initialization.\n");
 		return FALSE; //exit(1);
 	}
-	return TRUE;
+	return FALSE; //TRUE;
 }
 #endif /* KEEP_FV_INLIB */
 
@@ -4879,8 +4879,9 @@ int fwl_draw()
 	fwl_setCurrentHandle(tg, __FILE__, __LINE__);
 	p = (ppMainloop)tg->Mainloop.prv;
 
-	more = FALSE;
+	more = TRUE; //FALSE;
 	if (!p->draw_initialized){
+		more = FALSE;
 		view_initialize = view_initialize0; //defined above, with ifdefs
 		view_update = view_update0; //defined above with ifdefs
 		if (view_initialize)
@@ -4891,7 +4892,7 @@ int fwl_draw()
 		}
 		p->draw_initialized = TRUE;
 	}
-	more = TRUE;
+	if(more) //more = TRUE;
 	switch (tg->threads.MainLoopQuit){
 	case 0:
 	case 1:

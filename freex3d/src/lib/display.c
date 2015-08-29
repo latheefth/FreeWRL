@@ -165,10 +165,12 @@ int fv_display_initialize()
 #if defined (__linux__)
 
 	if (!fv_open_display()) {
+		printf("open_display failed\n");
 		return FALSE;
 	}
 
 	if (!fv_create_GLcontext()) {
+		printf("create_GLcontext failed\n");
 		return FALSE;
 	}
 
@@ -194,6 +196,7 @@ int fv_display_initialize()
 
 
 	if (!fwl_initialize_GL()) {
+		printf("initialize_GL failed\n");
 		return FALSE;
 	}
 
