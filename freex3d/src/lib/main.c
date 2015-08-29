@@ -247,11 +247,14 @@ void* fwl_init_instance() {
 
 	ttglobal tg;
     
+	fwl_setCurrentHandle(NULL, __FILE__, __LINE__); //added aug 29, 2015
+	/* commented aug 29, 2015
     tg = gglobal0();
     if (NULL != tg)
     {
-        fwl_doQuitInstance(tg);
+        fwl_doQuitInstance(tg); //what scenario was this for? anchor? browser plugin backbutton + forebutton? Do we stil need it? Aug 29, 2015
     }
+	*/
     
 	//ConsoleMessage ("called fwl_init_instance");
 
