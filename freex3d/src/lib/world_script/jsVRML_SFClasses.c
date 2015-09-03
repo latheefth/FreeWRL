@@ -1550,7 +1550,7 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 
 		/* dug9 attempt to find read the field of another script */
 		//if(!strcmp(stringNodeType(ptr->handle->_nodeType),"Script"))
-		if( ptr->handle->_nodeType== NODE_Script )
+		if( ptr->handle && ptr->handle->_nodeType== NODE_Script )
 		{
 			struct Shader_Script *myObj;
 			JSContext *cx2;
