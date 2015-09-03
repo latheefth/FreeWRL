@@ -854,7 +854,7 @@ void CRoutes_RegisterSimple(
 
 	/* When routing to a script, to is not a node pointer! */
 	if(dir!=SCRIPT_TO_SCRIPT && dir!=TO_SCRIPT)
-		interpolatorPointer=returnInterpolatorPointer(stringNodeType(to->_nodeType));
+		interpolatorPointer=returnInterpolatorPointer(to->_nodeType);
 	else
 		interpolatorPointer=NULL;
 	CRoutes_Register(1, from, fromOfs, to,toOfs, type, interpolatorPointer, dir, extraData);
@@ -908,7 +908,7 @@ void CRoutes_RemoveSimple(
  	void* interpolatorPointer;
  	int extraData = 0;
 
-  	interpolatorPointer=returnInterpolatorPointer(stringNodeType(to->_nodeType));
+  	interpolatorPointer=returnInterpolatorPointer(to->_nodeType);
 
  	CRoutes_Register(0, from, fromOfs, to, toOfs, type, 
   		interpolatorPointer, 0, extraData);

@@ -510,7 +510,7 @@ extern double defaultExamineDist;
 /* Sending events back to Browser (eg, Anchor) */
 extern int wantEAI;
 
-void *returnInterpolatorPointer (const char *x);
+void *returnInterpolatorPointer (int nodeType);
 
 /* SAI code node interface return values  The meanings of
    these numbers can be found in the SAI java code */

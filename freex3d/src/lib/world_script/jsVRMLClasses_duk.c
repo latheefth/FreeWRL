@@ -1144,7 +1144,7 @@ int SFNode_Getter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	return nr;
 }
 void medium_copy_field0(int itype, void* source, void* dest);
-void *returnInterpolatorPointer (const char *x);
+void *returnInterpolatorPointer (int nodeType);
 int SFNode_Setter0(FWType fwt, int index, void *ec, void *fwn, FWval fwval, int isCurrentScriptNode){
 	// shared between fwSetterNS() and SFNode_Setter
 	//
@@ -1197,7 +1197,7 @@ int SFNode_Setter0(FWType fwt, int index, void *ec, void *fwn, FWval fwval, int 
 		}else{
 			//if directoutput == true
 			void (* interpolatorPointer)(void*);
-			interpolatorPointer = returnInterpolatorPointer(stringNodeType(node->_nodeType));
+			interpolatorPointer = returnInterpolatorPointer(node->_nodeType);
 
 			if(interpolatorPointer){
 				//we have something like an orientation interpolator - run it to convert fraction_set to value_changed
