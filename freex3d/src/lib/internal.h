@@ -460,7 +460,7 @@ void *freewrlStrndup(int line, char *file, const char *str, size_t n);
 
 #define FREE_IF_NZ(_ptr) {if (_ptr) { \
                              FREE(_ptr); \
-                             _ptr = 0; } \
+                             _ptr = NULL; } \
                          else { \
                              DEBUG_MEM("double free: %s:%d\n", __FILE__, __LINE__); \
                          }}

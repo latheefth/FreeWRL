@@ -191,7 +191,8 @@ int MFW_Getter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 		elen = sizeofSF(fwt->itype);
 		newlen = upper_power_of_two(index+1);
 		ptr->p = realloc(p,newlen * elen);
-		//wrong memset(&p[ptr->n * elen],0,elen * (index - ptr->n -1));
+		p = ptr->p;
+		memset(&p[ptr->n * elen],0,elen * (index+1 - ptr->n)); //clear just the new section
 		ptr->n = index+1;
 		p = (char *)ptr->p;
 
@@ -1201,7 +1202,7 @@ int SFNode_Setter0(FWType fwt, int index, void *ec, void *fwn, FWval fwval, int 
 
 			if(interpolatorPointer){
 				//we have something like an orientation interpolator - run it to convert fraction_set to value_changed
-				if(1) interpolatorPointer(node);
+				interpolatorPointer(node);
 			}
 		}
 		nr = TRUE;
