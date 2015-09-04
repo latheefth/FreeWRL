@@ -6711,15 +6711,23 @@ BOOL found_IS_field(struct VRMLParser* me, struct X3D_Node *node)
 		// so if our nodefield's mode is inputOutput/exposedField then we are covered for all protoField modes
 		// otherwise, the nodefield's mode must be the same as the protofield's mode
 		if(X3DMODE(mode) != PKW_inputOutput && X3DMODE(mode) != X3DMODE(f->mode)){
-			ConsoleMessage("Parser Error: IS - we have a name match: %s IS %s found protofield %s\n",
-				nodeFieldName,protoFieldName,f->fieldString);
-			ConsoleMessage("...But the modes don't jive: nodefield %s protofield %s\n",
-				PROTOKEYWORDS[mode],PROTOKEYWORDS[f->mode]);
-			FREE_IF_NZ(me->lexer->curID);
-			FREEUP
-			FREE_IF_NZ(nodeFieldName);
-			FREE_IF_NZ(protoFieldName);
-			return TRUE;
+			if(X3DMODE(f->mode) != PKW_inputOutput){
+				ConsoleMessage("Parser Error: IS - we have a name match: %s IS %s found protofield %s\n",
+					nodeFieldName,protoFieldName,f->fieldString);
+				ConsoleMessage("...But the modes don't jive: nodefield %s protofield %s\n",
+					PROTOKEYWORDS[mode],PROTOKEYWORDS[f->mode]);
+				FREE_IF_NZ(me->lexer->curID);
+				FREEUP
+				FREE_IF_NZ(nodeFieldName);
+				FREE_IF_NZ(protoFieldName);
+				return TRUE;
+			}else{
+				ConsoleMessage("Parser Warning: IS - we have a name match: %s IS %s found protofield %s\n",
+					nodeFieldName,protoFieldName,f->fieldString);
+				ConsoleMessage("...But the modes don't jive: nodefield %s protofield %s\n",
+					PROTOKEYWORDS[mode],PROTOKEYWORDS[f->mode]);
+				ConsoleMessage("...will thunk\n");
+			}
 		}
 	}
 
@@ -7027,9 +7035,10 @@ void load_externProtoInstance (struct X3D_Proto *node) {
 										if(is->mode == PKW_inputOutput || is->mode == PKW_initializeOnly){
 											ef = protoDefinition_getFieldByNum(ed, is->iprotofield);
 											pf = protoDefinition_getFieldByNum(pd, is->ifield);
-											if(ef->alreadySet)
-											//if(ef->defaultVal.sffloat != 0.0f)
-												memcpy(&pf->defaultVal,&ef->defaultVal, sizeof(union anyVrml));
+											if(ef->alreadySet){
+												// too shallow, crashes on exit during free: memcpy(&pf->defaultVal,&ef->defaultVal, sizeof(union anyVrml));
+												shallow_copy_field(is->type, &ef->defaultVal, &pf->defaultVal);
+											}
 										}
 									}
 								}

@@ -1687,6 +1687,36 @@ void do_NurbsOrientationInterpolator (void *node);
 void do_NurbsSurfaceInterpolator (void *node);
 /* for CRoutes, we need to have a function pointer to an interpolator to run, if we
    route TO an interpolator */
+void *returnInterpolatorPointer (int nodeType) {
+	void (*do_interp)(void *);
+
+	do_interp = NULL;
+	switch(nodeType){
+		case NODE_OrientationInterpolator: do_interp = do_Oint4; break;
+		case NODE_CoordinateInterpolator2D: do_interp = do_OintCoord2D; break;
+		case NODE_PositionInterpolator2D: do_interp = do_OintPos2D; break;
+		case NODE_ScalarInterpolator: do_interp = do_OintScalar; break;
+		case NODE_ColorInterpolator: do_interp = do_ColorInterpolator; break;
+		case NODE_PositionInterpolator: do_interp = do_PositionInterpolator; break;
+		case NODE_CoordinateInterpolator: do_interp = do_OintCoord; break;
+		case NODE_NormalInterpolator: do_interp = do_OintNormal; break;
+		case NODE_GeoPositionInterpolator: do_interp = do_GeoPositionInterpolator; break;
+		case NODE_NurbsPositionInterpolator: do_interp = do_NurbsPositionInterpolator; break;
+		case NODE_NurbsOrientationInterpolator: do_interp = do_NurbsPositionInterpolator; break;
+		case NODE_NurbsSurfaceInterpolator: do_interp = do_NurbsSurfaceInterpolator; break;
+		case NODE_BooleanFilter: do_interp = do_BooleanFilter; break;
+		case NODE_BooleanSequencer: do_interp = do_BooleanSequencer; break;
+		case NODE_BooleanToggle: do_interp = do_BooleanToggle; break;
+		case NODE_BooleanTrigger: do_interp = do_BooleanTrigger; break;
+		case NODE_IntegerTrigger: do_interp = do_IntegerTrigger; break;
+		case NODE_IntegerSequencer: do_interp = do_IntegerSequencer; break;
+		case NODE_TimeTrigger: do_interp = do_TimeTrigger; break;
+		default:
+			do_interp = NULL;
+	}
+	return (void *)do_interp;
+}
+/*
 void *returnInterpolatorPointer (const char *x) {
 	if (strcmp("OrientationInterpolator",x)==0) { return (void *)do_Oint4;
 	} else if (strcmp("CoordinateInterpolator2D",x)==0) { return (void *)do_OintCoord2D;
@@ -1712,7 +1742,7 @@ void *returnInterpolatorPointer (const char *x) {
 		return 0;
 	}
 }
-
+*/
 
 
 

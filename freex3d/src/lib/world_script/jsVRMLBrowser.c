@@ -1360,7 +1360,7 @@ void jsRegisterRoute(
 	else ad = 0;
 
  	CRoutes_Register(ad, from, fromOfs, to, toOfs , len, 
- 		 returnInterpolatorPointer(stringNodeType(to->_nodeType)), 0, 0);
+ 		 returnInterpolatorPointer(to->_nodeType), 0, 0);
 }
  
 

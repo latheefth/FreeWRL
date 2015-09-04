@@ -179,7 +179,30 @@ int MFW_Getter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 		fwretval->_web3dval.gc = 0;
 		fwretval->itype = 'W';
 		nr = 1;
+	}else if(index > -1 && index >= ptr->n){
+		//sept 2015 for white_dune CurveAnimationPROTO.wrl script which writes to empty MF[i].x = x;
+		//we are assigning to an index that hasn't been individually malloced yet 
+		//ie MF[i].subfield = value
+		//ideally the javascript programer would first do MF[i] = new SFxxx() before assigning to a subfield.
+		//here we'll cut them some slack by reallocing and mallocing missing elements.
+		int elen,newlen,i;
+		char *p;
+		p = (char *)ptr->p;
+		elen = sizeofSF(fwt->itype);
+		newlen = upper_power_of_two(index+1);
+		ptr->p = realloc(p,newlen * elen);
+		p = ptr->p;
+		memset(&p[ptr->n * elen],0,elen * (index+1 - ptr->n)); //clear just the new section
+		ptr->n = index+1;
+		p = (char *)ptr->p;
+
+		fwretval->_web3dval.native = (void *)(p + index*elen);
+		fwretval->_web3dval.fieldType = type2SF(fwt->itype);
+		fwretval->_web3dval.gc = 0;
+		fwretval->itype = 'W';
+		nr = 1;
 	}
+
 	return nr;
 }
 int mf2sf(int itype);
@@ -1122,11 +1145,12 @@ int SFNode_Getter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	return nr;
 }
 void medium_copy_field0(int itype, void* source, void* dest);
+void *returnInterpolatorPointer (int nodeType);
 int SFNode_Setter0(FWType fwt, int index, void *ec, void *fwn, FWval fwval, int isCurrentScriptNode){
 	// shared between fwSetterNS() and SFNode_Setter
 	//
 	struct X3D_Node *node = ((union anyVrml*)fwn)->sfnode; 
-	int ftype, kind, ihave, nr;
+	int ftype, kind, ihave, nr, interp;
 	const char *name;
 	union anyVrml *value;
 	nr = FALSE;
@@ -1170,6 +1194,15 @@ int SFNode_Setter0(FWType fwt, int index, void *ec, void *fwn, FWval fwval, int 
 				//so we should be doing && (gglobal.currentScript != node) and set gglobal.currentScript = thisScriptNode in fwsetter0 (and back to null after call)
 				field->eventInSet = TRUE; //see runQueuedDirectOutputs()
 				}
+			}
+		}else{
+			//if directoutput == true
+			void (* interpolatorPointer)(void*);
+			interpolatorPointer = returnInterpolatorPointer(node->_nodeType);
+
+			if(interpolatorPointer){
+				//we have something like an orientation interpolator - run it to convert fraction_set to value_changed
+				interpolatorPointer(node);
 			}
 		}
 		nr = TRUE;

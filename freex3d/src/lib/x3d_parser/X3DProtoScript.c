@@ -536,11 +536,19 @@ void parseConnect_B(void *ud, char **atts) {
 		}
 		if(okp && okn)
 		if(nkind != PKW_inputOutput && nkind != pkind){
-			ConsoleMessage("Parser Error: IS - we have a name match: %s IS %s found protofield %s\n",
-				nodefield,protofield,protofield);
-			ConsoleMessage("...But the modes don't jive: nodefield %s protofield %s\n",
-				PROTOKEYWORDS[nkind],PROTOKEYWORDS[pkind]);
-			okp = 0;
+			if(pkind != PKW_inputOutput){
+				ConsoleMessage("Parser Error: IS - we have a name match: %s IS %s found protofield %s\n",
+					nodefield,protofield,protofield);
+				ConsoleMessage("...But the modes don't jive: nodefield %s protofield %s\n",
+					PROTOKEYWORDS[nkind],PROTOKEYWORDS[pkind]);
+				okp = 0;
+			}else{
+				ConsoleMessage("Parser Warning: IS - we have a name match: %s IS %s found protofield %s\n",
+					nodefield,protofield,protofield);
+				ConsoleMessage("...But the modes don't jive: nodefield %s protofield %s\n",
+					PROTOKEYWORDS[nkind],PROTOKEYWORDS[pkind]);
+				ConsoleMessage("...will thunk\n");
+			}
 		}
 		if(okp && okn){
 			int source;
