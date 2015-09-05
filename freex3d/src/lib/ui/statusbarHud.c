@@ -2695,7 +2695,7 @@ M       void toggle_collision()                             //"
 		if (showAction(p, ACTION_OPTIONS))
 			printOptions();
 	}
-	glClearColor(0.0f,0.0f,0.0f,1.0f); 
+	//rely on Model to reset clearcolor on each frame. glClearColor(0.0f,0.0f,0.0f,1.0f); 
 	glDepthMask(TRUE);
 	glEnable(GL_DEPTH_TEST);
 }

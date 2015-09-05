@@ -1105,7 +1105,8 @@ void fwl_RenderSceneUpdateScene() {
 #endif
 
 	/* has the default background changed? */
-	if (tg->OpenGL_Utils.cc_changed) doglClearColor();
+	//if (tg->OpenGL_Utils.cc_changed)  //assume its changed (ie statusbarHud has its own clear color)
+	doglClearColor();
 
 	OcclusionStartofRenderSceneUpdateScene();
 	startOfLoopNodeUpdates();
