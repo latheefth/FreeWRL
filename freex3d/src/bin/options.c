@@ -93,7 +93,9 @@ void fv_usage()
 		"       aqua,favicon,midnight,neon:lime,neon:yellow,neon:cyan,neon:pink}\n"
 		"  -H|--colors <string>    UI colorscheme by 4 html colors in order: \n"
 		"    panel,menuIcon,statusText,messageText ie \"#3D4557,#00FFFF,#00FFFF.#00FFFF\" \n"
-		"  -I|--pin TF             Pin statusbar(T/F) menubar(T/F)\n"				
+		"  -I|--pin TF             Pin statusbar(T/F) menubar(T/F)\n"	
+		"  -w|--want TF            Want statusbar(T/F) menubar(T/F)\n"	
+		"  -E|--FPS <int>          Target Maximum Frames Per Second\n"	
 		"  -N|--nametest <string>  Set name of .fwplay test file\n"
 	    "\nInternal options:\n"
 	    "  -i|--plugin <string>    Called from plugin.\n"
@@ -119,7 +121,9 @@ const char * fv_validate_string_arg(const char *optarg)
 	{"version", no_argument, 0, 'v'},
 
 	{"fullscreen", no_argument, 0, 'c'},
+	{"FPS", required_argument, 0, 'E'},
 	{"pin", required_argument, 0, 'I'},
+	{"want", required_argument, 0, 'w'},
 	{"geometry", required_argument, 0, 'g'},
 	{"big", no_argument, 0, 'b'},
 
@@ -187,7 +191,7 @@ int fv_find_opt_for_optopt(char c) {
 
 int fv_parseCommandLine (int argc, char **argv, freewrl_params_t *fv_params)
 {
-    int c;
+    int c, itmp;
     float ftmp;
     long int ldtmp;
     int option_index = 0;
@@ -415,6 +419,14 @@ int fv_parseCommandLine (int argc, char **argv, freewrl_params_t *fv_params)
 	case 'I': /* --pin TF */
 		fwl_set_sbh_pin_option(optarg);
 		break;
+	case 'w': /* --want TF */
+		fwl_set_sbh_want_option(optarg);
+		break;
+
+	case 'E': /* --FPS, required argument: int */
+	    sscanf(optarg,"%d", &itmp);
+	    fwl_set_target_fps(itmp);
+	    break;
 
 /* Internal options */
 

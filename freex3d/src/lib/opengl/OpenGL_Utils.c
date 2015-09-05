@@ -225,9 +225,9 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
 		ppOpenGL_Utils p = (ppOpenGL_Utils)t->prv;
 		p->linearNodeTable = NULL;
 		p->potentialHoleCount = 0;
-		p->cc_red = 1.0f;
-		p->cc_green = 1.0f;
-		p->cc_blue = 1.0f;
+		p->cc_red = 0.0f;
+		p->cc_green = 0.0f;
+		p->cc_blue = 0.0f;
 		p->cc_alpha = 1.0f;
 		//p->memtablelock = PTHREAD_MUTEX_INITIALIZER;
 		pthread_mutex_init(&(p->memtablelock), NULL);

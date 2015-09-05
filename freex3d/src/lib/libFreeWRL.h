@@ -388,6 +388,7 @@ char *fwl_get_ui_colorschemename();
 void fwl_next_ui_colorscheme();
 int fwl_get_ui_color_changed();
 int fwl_set_sbh_pin_option(char *optarg);
+int fwl_set_sbh_want_option(char *optarg);
 void fwl_set_sbh_pin(int sb, int mb);
 void fwl_get_sbh_pin(int *sb, int *mb);
 void fwl_set_target_fps(int target_fps);

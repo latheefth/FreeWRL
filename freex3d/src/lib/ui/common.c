@@ -90,13 +90,7 @@ void common_init(struct tcommon *t){
 		p->pin_statusbar = 1;
 		p->pin_menubar = 0;
 		p->want_menubar = 1;
-#ifdef STATUSBAR_STD
-		p->want_menubar = 0;
-#endif
 		p->want_statusbar = 1;
-#ifdef STATUSBAR_NONE
-		p->want_statusbar = 0;
-#endif
 		p->keyvals = NULL;
 		p->target_frames_per_second = 120;  //is 120 FPS a good target FPS?
 	}
@@ -262,6 +256,15 @@ int fwl_set_sbh_pin_option(char *optarg){
 	}
 	return 1;
 }
+int fwl_set_sbh_want_option(char *optarg){
+	if(optarg && strlen(optarg) > 1){
+		ppcommon p = (ppcommon)gglobal()->common.prv;
+		p->want_statusbar = (optarg[0] == 'T' || optarg[0] == 't') ? 1 : 0;
+		p->want_menubar = (optarg[1] == 'T' || optarg[1] == 't') ? 1 : 0;
+	}
+	return 1;
+}
+
 void fwl_set_sbh_pin(int sb, int mb){
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 	p->pin_statusbar = sb;
