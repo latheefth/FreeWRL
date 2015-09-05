@@ -39,7 +39,7 @@ and write out C struct versions:
 buttonType = 0; // 0 = rgba .png 1= .c bitmap (see above) 
 savePng2dotc = 1; // if you read png and want to save to a bitmap .c struct, put 1 
 */ 
-#if defined(STATUSBAR_HUD)
+#if defined(STATUSBAR_HUD) || defined(STATUSBAR_STD)
 //#define KIOSK 1
 //#define TOUCH 1
 
@@ -440,6 +440,8 @@ typedef struct pstatusbar{
 	int hadString;// = 0;
 	int initDone;
 	int showButtons;// =0;
+	int wantButtons;
+	int wantStatusbar;
 	int statusbar_pinned;
 	int menubar_pinned;
 	int show_status;
@@ -500,8 +502,15 @@ void statusbar_init(struct tstatusbar *t){
 		ppstatusbar p = (ppstatusbar)t->prv;
 		p->loopcount = 0;
 		p->hadString = 0;
-
-		p->showButtons =1;
+		p->wantStatusbar = 1;
+#ifdef STATUSBAR_NONE
+		p->wantStatusbar = 0;
+#endif
+		p->wantButtons = p->wantStatusbar;
+#ifdef STATUSBAR_STD
+		p->wantButtons = 0;
+#endif
+		p->showButtons = p->wantButtons;
 		//p->statusbar_pinned = 1;
 		//p->menubar_pinned = 0;
 		p->butsLoaded = 0;
@@ -2041,7 +2050,10 @@ void toggleMenu(int val)
 	ppstatusbar p;
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
-	p->showButtons = val > 0 ? 1 : 0;
+	if(p->wantButtons)
+		p->showButtons = val > 0 ? 1 : 0;
+	else
+		p->showButtons = 0;
 }
 
 int action2chord(int iaction){
@@ -2481,7 +2493,7 @@ int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY)
 			//if (p->showButtons) clipline = p->pmenu.yoffset + p->buttonSize; //2*(*clipplane);
 			if (p->screenHeight - mouseY < p->clipPlane) //clipline)
 			{
-				p->showButtons = 1;
+				p->showButtons = p->wantButtons;
 				if( p->screenHeight - mouseYY > 0 ){
 					//setArrowCursor();
 					handleButtonOver(mouseX,mouseYY);
@@ -2527,6 +2539,8 @@ void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY)
 char *getMessageBar(); //in common.c
 char *fwl_getKeyChord();
 void fwl_setClipPlane(int height);
+int fwl_get_sbh_wantMenubar();
+int fwl_get_sbh_wantStatusbar();
 void drawStatusBarSide()
 {
 }
@@ -2535,6 +2549,8 @@ void update_pinned(){
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
 	fwl_get_sbh_pin(&p->statusbar_pinned,&p->menubar_pinned);
+	p->wantButtons = fwl_get_sbh_wantMenubar();
+	p->wantStatusbar = fwl_get_sbh_wantStatusbar();
 }
 
 void drawStatusBar() 
@@ -2571,13 +2587,13 @@ M       void toggle_collision()                             //"
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
 
+	update_ui_colors();
+	update_pinned();
+	if(!p->wantStatusbar) return;
 	//init-once things are done everytime for convenience
 	//fwl_setClipPlane(p->statusBarSize);
 	if(!p->fontInitialized) initFont();
-	update_ui_colors();
-	update_pinned();
 	if(p->programObject == 0) initProgramObject();
-
 	//MVC statusbarHud is in View and Controller just called us and told us 
 	//..to poll the Model to update and draw ourself
 	updateButtonStatus();  //poll Model for some button state

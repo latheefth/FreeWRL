@@ -32,7 +32,6 @@ void setMenuStatusVP(char *stat);
 char* getMenuStatus();
 void setMessageBar();
 
-
 /* Generic (virtual) update functions */
 
 void loadCursors();
