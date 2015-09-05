@@ -1228,6 +1228,8 @@ char * keyboardShortcutHelp[] = {
 "(this Help)",
 "Console messages from the program",
 "Options"
+NULL,
+};
 #elif defined(_MSC_VER_NOT)
 int lenhelp = 16;
 char * keyboardShortcutHelp[] = {
@@ -1247,7 +1249,9 @@ char * keyboardShortcutHelp[] = {
 "   rotation: drag left/right or up/down",
 "EXPLORE Mode - use CTRL-click to recenter",
 "hit spacebar to get console prompt :, then type help"
-#else
+NULL,
+};
+#elif defined(OLD_HELP)
 int lenhelp = 20;
 char * keyboardShortcutHelp[] = {
 "EXAMINE Mode",
@@ -1270,28 +1274,70 @@ char * keyboardShortcutHelp[] = {
 "  c Toggle collision detection",
 "  x Snapshot",
 "  q Quit browser",
-#endif
 NULL,
 };
+#else
+int lenhelp = 24;
+char * keyboardShortcutHelp[] = {
+"Keyboard commands:",
+"  / Print current viewpoint pose", 
+"  x Snapshot",
+"  q Quit browser",
+"Keyboard navigation:",
+" - use arrow keys. to change keychord: press SHIFT> or SHIFT<",
+"Menubar:",
+" WALK",
+" |   FLY {yaw-z,xy,yaw-pitch,roll}",
+" |   |   EXAMINE",
+" |   |   |   EXPLORE {examine,recenter}",
+" |   |   |   |   SPHERICAL {pan,zoom}", 
+" |   |   |   |   |   TURNTABLE",
+" |   |   |   |   |   |   LOOKAT",
+" |   |   |   |   |   |   |   DIST (for examine,explore,turntable)",
+" |   |   |   |   |   |   |   |   SHIFT Key (turns off sensors)",
+" |   |   |   |   |   |   |   |   |   LEVEL to bound VP (ViewPoint)",
+" |   |   |   |   |   |   |   |   |   |   HEADLIGHT",
+" |   |   |   |   |   |   |   |   |   |   |   COLLISION (and gravity)",
+" |   |   |   |   |   |   |   |   |   |   |   |   Prev VP",
+" |   |   |   |   |   |   |   |   |   |   |   |   |   Next VP",
+" |   |   |   |   |   |   |   |   |   |   |   |   |   |   Help",
+" |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   Console", 
+" |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   Options",
+NULL,
+};
+#endif
+
 const char *libFreeWRL_get_version();
 void printKeyboardHelp(ppstatusbar p)
 {
 	int j; 
 	XY xy;
-	FXY fxy;
-	static const char *versionInfo = "libfreeWRL version ";
-	xy = text2screen(0,0);
-	fxy = screen2normalizedScreen((GLfloat)xy.x,(GLfloat)xy.y);
-	printString2(fxy.x,fxy.y,(char *)versionInfo);
-	xy = text2screen((int)strlen(versionInfo),0);
-	fxy = screen2normalizedScreen((GLfloat)xy.x,(GLfloat)xy.y);
-	printString2(fxy.x,fxy.y,(char*)libFreeWRL_get_version());
+	FXY fxy, fxy2;
+	GLfloat side_bottom_f;
 
-	for(j=0;j<lenhelp;j++)
-	{
-		xy = text2screen(0,j+1);
+	if(0){
+		//print version info
+		static const char *versionInfo = "libfreeWRL version ";
+		xy = text2screen(0,0);
 		fxy = screen2normalizedScreen((GLfloat)xy.x,(GLfloat)xy.y);
-		printString2(fxy.x,fxy.y,keyboardShortcutHelp[j]);
+		printString2(fxy.x,fxy.y,(char *)versionInfo);
+		xy = text2screen((int)strlen(versionInfo),0);
+		fxy = screen2normalizedScreen((GLfloat)xy.x,(GLfloat)xy.y);
+		printString2(fxy.x,fxy.y,(char*)libFreeWRL_get_version());
+	}
+
+	//font size:
+	fxy2 = screen2normalizedScreenScale((GLfloat)p->bmWH.x, (GLfloat)p->bmWH.y);
+	side_bottom_f = -1.0f;
+
+	//draw bottom up, to explain buttons
+	j = 0;
+	while(keyboardShortcutHelp[j] != NULL)
+	{
+		//if (Viewer()->updown){
+		//	if(iside == 0) side_bottom_f = 0.0f;
+		printString2(-1.0f, side_bottom_f + (lenhelp-j+1)*fxy2.y, keyboardShortcutHelp[j]);
+		j++;
 	}
 }
 
