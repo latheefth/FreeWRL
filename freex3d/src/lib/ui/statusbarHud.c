@@ -440,6 +440,7 @@ typedef struct pstatusbar{
 	int hadString;// = 0;
 	int initDone;
 	int showButtons;// =0;
+	int showStatus;
 	int wantButtons;
 	int wantStatusbar;
 	int statusbar_pinned;
@@ -503,14 +504,9 @@ void statusbar_init(struct tstatusbar *t){
 		p->loopcount = 0;
 		p->hadString = 0;
 		p->wantStatusbar = 1;
-#ifdef STATUSBAR_NONE
-		p->wantStatusbar = 0;
-#endif
 		p->wantButtons = p->wantStatusbar;
-#ifdef STATUSBAR_STD
-		p->wantButtons = 0;
-#endif
 		p->showButtons = p->wantButtons;
+		p->showStatus = p->wantStatusbar;
 		//p->statusbar_pinned = 1;
 		//p->menubar_pinned = 0;
 		p->butsLoaded = 0;
@@ -2245,12 +2241,7 @@ int handleButtonRelease(int mouseX, int mouseY)
 			}
 		} //end if rect
 	} //end for
-#ifdef KIOSK
 	return ihit == -1 ? 0 : 1;
-#else
-	if(ihit == -1) toggleMenu(0);
-	return 1;
-#endif
 }
 void updateButtonVertices()
 {
@@ -2470,7 +2461,27 @@ bool showAction(ppstatusbar p, int action)
 	}
 	return false;
 }
-
+int overMenubar(ppstatusbar p, int mouseY){
+	int y, isOver = 0;
+	if(p->showButtons){
+		if(p->pmenu.top)
+			y = mouseY;
+		else
+			y = p->screenHeight - mouseY - p->pmenu.yoffset;
+		if( y >= 0 && y <= p->buttonSize) isOver = 1;
+	}
+	return isOver;
+}
+int overStatusbar(ppstatusbar p, int mouseY){
+	int y, isOver = 0;
+	//p->screenHeight - mouseY < p->clipPlane
+	if(p->screenHeight - mouseY < p->statusBarSize) isOver = 1;
+	//if(p->show_status){
+		//y = p->screenHeight - mouseY;
+		//if(y >= p->side_bottom && y <= p->side_bottom + p->statusBarSize) isOver = 1;
+	//}
+	return isOver;
+}
 int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY)
 {
 	int mouseYY;
@@ -2484,13 +2495,29 @@ int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY)
 		/* record which button is down */
 		/* >>> statusbar hud */
 		int ihit = 0;
-		if (p->showButtons)
+		//if (p->showButtons)
+		if(overMenubar(p,mouseY))
 		{
-			if (mev == ButtonRelease)
+			if (mev == ButtonRelease){
 				ihit = handleButtonRelease(mouseX,mouseYY);
-			else
-				ihit = 1; //ButtonPress
-			//return 1;
+				if(!ihit){
+					//if its over the menubar on mouseup, but no button hit...
+					//.. then we toggle menu and or statusbar
+					if(!p->menubar_pinned) 
+						toggleMenu(0); //toggle self off
+					else if(!p->statusbar_pinned && !p->showStatus)
+						p->showStatus = 1; //turn menubar back on if not pinned, not showing, and menubar is pinned
+				}
+			}
+			ihit = 1; //ButtonPress or release, swallow click so scene doesn't get it
+
+		}else if(overStatusbar(p,mouseY)){
+			//someone may be touching the statusbar (or statusbar zone) to bring up the menubar and/or statusbar
+			if(mev == ButtonRelease){
+				if(p->wantButtons && !p->showButtons) toggleMenu(1); //toggle menubar on
+				if(p->wantStatusbar && !p->statusbar_pinned ) p->showStatus = 1 - p->showStatus; //toggle self
+			}
+			ihit = 1; //ButtonPress or release on statusbar: swallow click so scene doesn't get it
 		}
 		//if(p->showOptions)
 		if (!ihit && showAction(p, ACTION_OPTIONS))
@@ -2531,16 +2558,15 @@ int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY)
 			}
 		}
 		else{
-			/* buttons at bottom, menu triggered by mouse-over */
-			//int clipline;
-			//(*clipplane) = p->statusBarSize; //16;
-			/* >>> statusbar hud */
-			//clipline = p->clipPlane;
-			//if (p->showButtons) clipline = p->pmenu.yoffset + p->buttonSize; //2*(*clipplane);
-			if (p->screenHeight - mouseY < p->clipPlane) //clipline)
+			/* buttons at bottom, unpinned menu brought up by mouse-over statusbar
+				and kept up by mouse over menubar
+			 */
+			//if (p->screenHeight - mouseY < p->clipPlane) //clipline)
+			if(overMenubar(p,mouseY) || overStatusbar(p,mouseY))
 			{
 				p->showButtons = p->wantButtons;
-				if( p->screenHeight - mouseYY > 0 ){
+				//if( p->screenHeight - mouseYY > 0 ){
+				if(overMenubar(p,mouseY)){
 					//setArrowCursor();
 					handleButtonOver(mouseX,mouseYY);
 				}
@@ -2549,7 +2575,7 @@ int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY)
 			}
 			else
 			{
-				p->showButtons = 0;
+				p->showButtons = p->menubar_pinned;
 			}
 		}
 		//if(p->showOptions)
@@ -2627,7 +2653,7 @@ M	viewer_level_to_bound();							//"
 M       void toggle_collision()                             //"
     */
 	char *pp; 
-	int i,nsides, vrml_clipplane;
+	int i,nsides, vrml_clipplane, menu_over_status;
 	GLfloat side_bottom_f;
 	ppstatusbar p;
 	ttglobal tg = gglobal();
@@ -2635,7 +2661,7 @@ M       void toggle_collision()                             //"
 
 	update_ui_colors();
 	update_pinned();
-	if(!p->wantStatusbar) return;
+//	if(!p->wantStatusbar) return;
 	//init-once things are done everytime for convenience
 	//fwl_setClipPlane(p->statusBarSize);
 	if(!p->fontInitialized) initFont();
@@ -2651,17 +2677,22 @@ M       void toggle_collision()                             //"
 	glUseProgram ( p->programObject );
 	glViewport(0, 0, p->screenWidth, p->screenHeight);
    
-	//p->showButtons = 1;
-	//p->menubar_pinned = 0;
-	//p->statusbar_pinned = 1;
-	p->show_status = (p->statusbar_pinned && !p->showButtons) || (!p->statusbar_pinned && p->showButtons) || (p->menubar_pinned); // || showAction(p, ACTION_OPTIONS);
-	p->show_menu = p->menubar_pinned || p->showButtons;
-	p->yoff_status = 0;
-	p->pmenu.yoffset = (p->menubar_pinned || !p->statusbar_pinned) ? p->statusBarSize : 0;
+	p->show_menu = p->wantButtons && (p->menubar_pinned || p->showButtons);
+	menu_over_status = !p->menubar_pinned && p->showButtons;
+	p->show_status = p->wantStatusbar && ((p->showStatus || p->statusbar_pinned) && !menu_over_status);
 
-	p->clipPlane = (p->show_menu ?  p->buttonSize : 0) + p->statusBarSize; //(p->show_status ? p->statusBarSize : 0);
-	//int mouseplane = p->showButtons ? p->clipPlane : p->statusBarSize;
-	vrml_clipplane = (p->statusbar_pinned ? p->statusBarSize : 0) + (p->menubar_pinned? p->buttonSize : 0);
+
+	p->yoff_status = 0;
+	//p->pmenu.yoffset = (p->menubar_pinned || !p->statusbar_pinned) ? p->statusBarSize : 0;
+	p->pmenu.yoffset = p->show_status ? p->statusBarSize : 0;
+
+	//p->clipPlane is for statusbarHud to glClear an area the background color of the status and/or menubar
+	p->clipPlane = (p->show_menu ?  p->buttonSize : 0) + p->show_status ? p->statusBarSize : 0; //(p->show_status ? p->statusBarSize : 0);
+	//vrml_clipplane is for libfreewrl to know its vrml area of the screen, which it clears, and centers the scene in
+	//unpinned menu and status are not used for calculating what's left for vrml, because
+	// being unpinned they are always changing and it can get irritating watching the vrml content continuously resizing
+	// every time you bring up the menu or statusbar.
+	vrml_clipplane = (p->statusbar_pinned && p->wantStatusbar ? p->statusBarSize : 0) + (p->menubar_pinned && p->wantButtons ? p->buttonSize : 0);
 	fwl_setClipPlane(vrml_clipplane); //p->clipPlane);
 
 	nsides = 1;
