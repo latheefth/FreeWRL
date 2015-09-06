@@ -1017,7 +1017,8 @@ class x3d_class():
             return tex
         else:
             tex.setAttribute('DEF',name)
-            tex.setAttribute('url',filename)
+            tex.setAttribute('url',filename) #2015 should convert to MFString with " " wrapper for white_dune:
+            #tex.setAttribute('url','"'+filename+'"') #will this work?
             self.texNames[name] = 1
         return tex
 
