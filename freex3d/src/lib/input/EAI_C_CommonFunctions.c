@@ -757,6 +757,7 @@ void Parser_scanStringValueToMem_B(union anyVrml* any, indexT ctype, char *value
 
 		/* now, does the value string need quoting? */
 		if ((*value != '"') && (*value != '\'') && (*value != '[')) {
+			static int MFS_warning_given = 0;
 			size_t len;
 			 /* printf ("have to quote this string\n"); */
 			len = strlen(value);
@@ -765,6 +766,10 @@ void Parser_scanStringValueToMem_B(union anyVrml* any, indexT ctype, char *value
 			mfstringtmp[0] = '"';
 			mfstringtmp[len+1] = '"';
 			mfstringtmp[len+2] = '\0';
+			if(!MFS_warning_given){
+				ConsoleMessage("Warning - an MFString needs internal quotes ie '%s' should be '%s'\n",value,mfstringtmp);
+				MFS_warning_given = 1;
+			}
 			/* printf ("so, mfstring is :%s:\n",mfstringtmp); */ 
 			
 		} else {
