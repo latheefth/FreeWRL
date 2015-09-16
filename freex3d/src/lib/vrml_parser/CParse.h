@@ -29,7 +29,22 @@ VRML-parsing routines in C.
 #define __FREEWRL_CPARSE_H__
 
 
-/* for scanning and determining whether a character is part of a valid X3D name */
+/* for scanning and determining whether a character is part of a valid X3D name 
+http://www.web3d.org/documents/specifications/19776-2/V3.2/Part02/grammar.html#Nodes
+See IdFirstChar IdRestChar
+Rest char forbids:
+0x3a :
+0x0-0x20 NUL - SPACE
+0x22,0x23 " #
+0x27 '
+0x2c,0x2e ,.
+0x5b,0x5c,0x5d [\]
+0x7b,0x7d,0x7f {} DEL
+
+FirstChar = RestChar minus:
+0X30-0X39 - digits
+0x2b,0x2d +-
+*/
 #define IS_ID_REST(c) \
  (c>0x20 && c!=0x22 && c!=0x23 && c!=0x27 && c!=0x2C && c!=0x2E && c!=0x3a && c!=0x5B && \
   c!=0x5C && c!=0x5D && c!=0x7B && c!=0x7D && c!=0x7F)

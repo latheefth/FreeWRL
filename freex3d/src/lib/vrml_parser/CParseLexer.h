@@ -49,9 +49,9 @@ fields are not scoped and therefore stored in a simple vector.
 /* This is our lexer-object. */
 struct VRMLLexer
 {
- char* nextIn;	/* Next input character. */
- char* startOfStringPtr[LEXER_INPUT_STACK_MAX]; /* beginning address of string, for FREE calls */
- char* curID;	/* Currently input but not lexed id. */
+ unsigned char* nextIn;	/* Next input character. */
+ unsigned char* startOfStringPtr[LEXER_INPUT_STACK_MAX]; /* beginning address of string, for FREE calls */
+ unsigned char* curID;	/* Currently input but not lexed id. */
  BOOL isEof;	/* Error because of EOF? */
 
  int lexerInputLevel; /* which level are we at? used for putting PROTO expansions into the input stream, etc */

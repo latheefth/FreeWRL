@@ -84,21 +84,23 @@ extern char *BrowserFullPath;
 #define BOOL	int
 
 /* rendering constants used in SceneGraph, etc. */
-#define VF_Viewpoint 				0x0001
-#define VF_Geom 				0x0002
-#define VF_localLight				0x0004 
-#define VF_Sensitive 				0x0008
-#define VF_Blend 				0x0010
-#define VF_Proximity 				0x0020
-#define VF_Collision 				0x0040
-#define VF_globalLight				0x0080 
-#define VF_hasVisibleChildren 			0x0100
-#define VF_shouldSortChildren			0x0200
-#define VF_Other					0x0400
+#define VF_Viewpoint                0x0001
+#define VF_Geom                     0x0002
+#define VF_localLight               0x0004 
+#define VF_Sensitive                0x0008
+#define VF_Blend                    0x0010
+#define VF_Proximity                0x0020
+#define VF_Collision                0x0040
+#define VF_globalLight              0x0080 
+#define VF_hasVisibleChildren       0x0100
+#define VF_shouldSortChildren       0x0200
+#define VF_Other                    0x0400
 #ifdef DJTRACK_PICKSENSORS
-#define VF_inPickableGroup			0x0800 /* DJTRACK_PICKSENSORS */
-#define VF_PickingSensor			0x1000 /* DJTRACK_PICKSENSORS */
+#define VF_inPickableGroup          0x0800 /* DJTRACK_PICKSENSORS */
+#define VF_PickingSensor            0x1000 /* DJTRACK_PICKSENSORS */
 #endif
+#define VF_HideLeft                  0x2000 /*stereo don't draw on left side, used for stereovision experiments*/
+#define VF_HideRight                 0x4000 /*stereo don't draw on right side*/
 
 /* for z depth buffer calculations */
 #define DEFAULT_NEARPLANE 0.1
@@ -112,7 +114,7 @@ extern double geoHeightinZAxis;
 #define ROUTING_MFNODE          -10
 #define ROUTING_SFIMAGE         -12
 #define ROUTING_MFSTRING        -13
-#define ROUTING_MFFLOAT        -14
+#define ROUTING_MFFLOAT         -14
 #define ROUTING_MFROTATION      -15
 #define ROUTING_MFINT32         -16
 #define ROUTING_MFCOLOR         -17
@@ -121,13 +123,13 @@ extern double geoHeightinZAxis;
 #define ROUTING_MFVEC3D         -20
 #define ROUTING_MFDOUBLE        -21
 #define ROUTING_SFSTRING        -22
-#define ROUTING_MFMATRIX4F	-30
-#define ROUTING_MFMATRIX4D	-31
-#define ROUTING_MFVEC2D		-32
-#define ROUTING_MFVEC4F		-33
-#define ROUTING_MFVEC4D		-34
-#define ROUTING_MFMATRIX3F	-35
-#define ROUTING_MFMATRIX3D	-36
+#define ROUTING_MFMATRIX4F      -30
+#define ROUTING_MFMATRIX4D      -31
+#define ROUTING_MFVEC2D         -32
+#define ROUTING_MFVEC4F         -33
+#define ROUTING_MFVEC4D         -34
+#define ROUTING_MFMATRIX3F      -35
+#define ROUTING_MFMATRIX3D      -36
 
 
 
