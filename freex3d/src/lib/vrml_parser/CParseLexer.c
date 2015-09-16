@@ -69,7 +69,12 @@ static int setLexerNextIn(struct VRMLLexer *);
  { \
   ASSERT(!me->curID); \
   if(!*me->nextIn) c=setLexerNextIn(me); \
-  else c=(int)*(me->nextIn++); \
+  else { \
+	unsigned char ccc; \
+	ccc = *(me->nextIn++);\
+    /*c=(unsigned int)*(me->nextIn++);*/ \
+	c = ccc; \
+   } \
  }
 #define LEXER_UNGETINPUT(c) \
  if(c!=EOF) \
@@ -319,7 +324,7 @@ void lexer_scopeOut_PROTO(struct VRMLLexer* me)
 /* Sets curID of lexer */
 BOOL lexer_setCurID(struct VRMLLexer* me)
 {
- int c;
+ unsigned int c;
  char buf[MAX_IDLEN+1];
  char* cur=buf;
 

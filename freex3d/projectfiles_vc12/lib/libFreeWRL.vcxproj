@@ -403,6 +403,7 @@
     <ClInclude Include="$(SRC)\lib\ui\statusbar.h" />
     <ClInclude Include="$(SRC)\lib\x3d_parser\X3DParser.h" />
     <ClInclude Include="$(SRC)\lib\x3d_parser\X3DProtoScript.h" />
+    <ClInclude Include="..\..\src\buildversion.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libminizip\libminizip.vcxproj">
