@@ -256,6 +256,18 @@ printf ("\n");
 
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
+	if(1){
+		//stereoscopic experiments
+		ttrenderstate rs = renderstate();
+		if (rs->render_geom) { //== VF_Geom) {
+			if (node->_renderFlags & VF_HideLeft && (viewer_iside() == 0) )  { 
+					return; 
+			} 
+			if (node->_renderFlags & VF_HideRight && (viewer_iside() == 1) )  { 
+					return; 
+			} 
+		} 
+	}
 
 
 #ifdef VERBOSE
@@ -313,6 +325,19 @@ void child_Transform (struct X3D_Transform *node) {
 	OCCLUSIONTEST
 
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
+
+	if(1){
+		//stereoscopic experiments
+		ttrenderstate rs = renderstate();
+		if (rs->render_geom) { //== VF_Geom) {
+			if (node->_renderFlags & VF_HideLeft && (viewer_iside() == 0) )  { 
+					return; 
+			} 
+			if (node->_renderFlags & VF_HideRight && (viewer_iside() == 1) )  { 
+					return; 
+			} 
+		} 
+	}
 
 	/* any children at all? */
 	if (nc==0) return;
