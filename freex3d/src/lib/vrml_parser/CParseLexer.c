@@ -352,7 +352,7 @@ BOOL lexer_setCurID(struct VRMLLexer* me)
   
   LEXER_GETINPUT(c)
   if(!IS_ID_REST(c))
-   goto breakIdLoop;
+      goto breakIdLoop;
  }
  parseError("ID buffer length hit!");
 breakIdLoop:
