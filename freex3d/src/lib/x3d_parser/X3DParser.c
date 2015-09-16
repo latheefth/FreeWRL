@@ -2185,6 +2185,14 @@ static void parseAttributes_B(void *ud, char **atts) {
 				Parser_scanStringValueToMem_B(value, type,svalue, TRUE);
 			}
 		}
+		if(!strcmp(name,"side")){
+			//stereoscopic experiments
+			if(!strcmp(svalue,"left"))
+				node->_renderFlags |= VF_HideRight;
+			else if(!strcmp(svalue,"right"))
+				node->_renderFlags |= VF_HideLeft;
+			//printf("node renderflags=%d\n",node->_renderFlags);
+		}
 	}
 }
 

@@ -3455,3 +3455,7 @@ void Android_reset_viewer_to_defaults() {
 	p->Viewer.SLERPing2 = FALSE;
 	p->Viewer.SLERPing = FALSE;
 }
+
+int viewer_iside(){
+	return Viewer()->iside;
+}

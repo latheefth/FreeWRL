@@ -50,7 +50,7 @@ void Multi_String_print(struct Multi_String *url);
 
 
 
-
+int viewer_iside();
 /* children fields path optimizations */
 #define CHILDREN_COUNT int nc = node->_sortedChildren.n;
 #define RETURN_FROM_CHILD_IF_NOT_FOR_ME \
@@ -73,6 +73,7 @@ void Multi_String_print(struct Multi_String *url);
                         return; \
                 } \
 		}
+
 
 /* Size of static array */
 #define ARR_SIZE(arr) (int)(sizeof(arr)/sizeof((arr)[0]))
