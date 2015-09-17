@@ -31,9 +31,10 @@ VRML-parsing routines in C.
 
 /* for scanning and determining whether a character is part of a valid X3D name 
 http://www.web3d.org/documents/specifications/19776-2/V3.2/Part02/grammar.html#Nodes
+http://www.web3d.org/documents/specifications/14772/V2.0/part1/grammar.html  //older allows ':' in DEF/USE ids
 See IdFirstChar IdRestChar
 Rest char forbids:
-0x3a :
+0x3a : COLON // just the newer V3.2 disallows, the older 2.0 permits. We will permit
 0x0-0x20 NUL - SPACE
 0x22,0x23 " #
 0x27 '
@@ -44,13 +45,13 @@ Rest char forbids:
 FirstChar = RestChar minus:
 0X30-0X39 - digits
 0x2b,0x2d +-
-Sept 2015 - we now allow : in Rest but still not in First
+Sept 2015 - we now allow 0x3a colon : in First and Rest - && c!=0x3a
 */
 #define IS_ID_REST(c) \
  (c>0x20 && c!=0x22 && c!=0x23 && c!=0x27 && c!=0x2C && c!=0x2E  && c!=0x5B && \
   c!=0x5C && c!=0x5D && c!=0x7B && c!=0x7D && c!=0x7F )
 #define IS_ID_FIRST(c) \
- (IS_ID_REST(c) && (c<0x30 || c>0x39) && c!=0x2B && c!=0x2D && c!=0x3a)
+ (IS_ID_REST(c) && (c<0x30 || c>0x39) && c!=0x2B && c!=0x2D )
 
 BOOL cParse(void *ectx, void* ptr, unsigned offset, const char* cdata);
 
