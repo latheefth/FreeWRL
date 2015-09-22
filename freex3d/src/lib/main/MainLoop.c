@@ -1643,6 +1643,7 @@ void handle_Xevents(XEvent event) {
 
 	//int count;
 	int actionKey;
+	int cursorStyle;
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
@@ -1755,10 +1756,11 @@ void handle_Xevents(XEvent event) {
 		case ButtonPress:
 		case ButtonRelease:
 #ifdef STATUSBAR_HUD
-			statusbar_handle_mouse(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y);
+			cursorStyle = statusbar_handle_mouse(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y);
 #else
-			fwl_handle_aqua(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y);
+			cursorStyle = fwl_handle_aqua(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y);
 #endif
+			setCursor(cursorStyle);
 			//if(0){
 			//	/* printf("got a button press or button release\n"); */
 			//	/*  if a button is pressed, we should not change state,*/
@@ -1790,10 +1792,11 @@ void handle_Xevents(XEvent event) {
 			}
 #endif /* KEEP_X11_INLIB */
 #ifdef STATUSBAR_HUD
-			statusbar_handle_mouse(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y);
+			cursorStyle = statusbar_handle_mouse(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y);
 #else
-			fwl_handle_aqua(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y);
+			cursorStyle = fwl_handle_aqua(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y);
 #endif
+			setCursor(cursorStyle);
 			//if(0){
 
 			//	/*  save the current x and y positions for picking.*/
@@ -4837,27 +4840,28 @@ int view_initialize0(void){
 }
 #endif /* KEEP_FV_INLIB */
 
-#ifdef _MSC_VER
-void updateCursorStyle0(int cstyle);
-void updateViewCursorStyle(int cstyle)
-{
-	updateCursorStyle0(cstyle);
-}
-#else
-/* Status variables */
-/* cursors are a 'shared resource' meanng you only need one cursor for n windows,
-not per-instance cursors (except multi-touch multi-cursors)
-However cursor style choice could/should be per-window/instance
-*/
-
-void updateViewCursorStyle(int cstyle)
-{
-#if !defined (_ANDROID)
-	/* ANDROID - no cursor style right now */
-	setCursor(cstyle);
-#endif //ANDROID
-}
-#endif
+//OLDCODE
+//#ifdef _MSC_VER
+////void updateCursorStyle0(int cstyle);
+//void updateViewCursorStyle(int cstyle)
+//{
+//	//updateCursorStyle0(cstyle);
+//}
+//#else
+///* Status variables */
+///* cursors are a 'shared resource' meanng you only need one cursor for n windows,
+//not per-instance cursors (except multi-touch multi-cursors)
+//However cursor style choice could/should be per-window/instance
+//*/
+//
+//void updateViewCursorStyle(int cstyle)
+//{
+//#if !defined (_ANDROID)
+//	/* ANDROID - no cursor style right now */
+//	setCursor(cstyle);
+//#endif //ANDROID
+//}
+//#endif
 
 void view_update0(void){
 	#if defined(STATUSBAR_HUD)
@@ -4866,7 +4870,7 @@ void view_update0(void){
 		drawStatusBar();  // View update
 		restoreGlobalShader();
 	#endif
-	updateViewCursorStyle(getCursorStyle()); /* in fwWindow32 where cursors are loaded */
+	// is done onMouse updateViewCursorStyle(getCursorStyle()); /* in fwWindow32 where cursors are loaded */
 }
 
 void killNodes();
@@ -5273,7 +5277,7 @@ void emulate_multitouch(const int mev, const unsigned int button, int x, int y)
 	}
 }
 /* old function should still work, with single mouse and ID=0 */
-void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
+int fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
     ttglobal tg = gglobal();
 
 	/* printf ("fwl_handle_aqua, type %d, screen wid:%d height:%d, orig x,y %d %d\n",
@@ -5350,6 +5354,7 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
 
 		//updateCursorStyle();
 	}
+	return getCursorStyle();
 }
 
 //#endif

@@ -558,10 +558,17 @@ void loadCursors()
 }
 void updateCursorStyle0(int cstyle)
 {
-	if(cstyle == SCURSE)
-		SetCursor(hSensor);
-	if(cstyle == ACURSE)
-		SetCursor(hArrow);
+	if(!hSensor) loadCursors();
+	switch(cstyle){
+		case SCURSE:
+			SetCursor(hSensor); break;
+		case ACURSE:
+			SetCursor(hArrow); break;
+		case NCURSE:
+			SetCursor(NULL); break;
+		default:
+			SetCursor(hArrow);
+	}
 }
 /* values from WinUser.h */
 #define PHOME_KEY  VK_HOME  //0x24
@@ -722,7 +729,7 @@ void printbitssimple(int n) {
 	}
 }
 void statusbar_set_window_size(int width, int height);
-void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY);
+int statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY);
 
 LRESULT CALLBACK PopupWndProc( 
     HWND hWnd, 
@@ -997,11 +1004,13 @@ static int shiftState = 0;
     {
 	/*void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);*/
 	/* butnum=1 left butnum=3 right (butnum=2 middle, not used by freewrl) */
+		int cursorStyle;
 #ifdef STATUSBAR_HUD
-		statusbar_handle_mouse(mev, butnum, mouseX, mouseY);
+		cursorStyle = statusbar_handle_mouse(mev, butnum, mouseX, mouseY);
 #else
-		fwl_handle_aqua(mev, butnum, mouseX, mouseY); /* ,gcWheelDelta); */
+		cursorStyle = fwl_handle_aqua(mev, butnum, mouseX, mouseY); /* ,gcWheelDelta); */
 #endif
+		updateCursorStyle0(cursorStyle);
     }
     return 0;
 }

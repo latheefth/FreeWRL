@@ -20,9 +20,9 @@ Functions:
 
 /* Generic declarations */
 
-#define SCURSE 1
-#define ACURSE 0
-
+#define SCURSE 1 //sensor hand
+#define ACURSE 0 //arrow
+#define NCURSE 2 //none
 
 /* Status update functions */
 

@@ -2550,7 +2550,7 @@ int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY)
 #endif
 			if (p->showButtons == 1){
 				int ihit;
-				updateViewCursorStyle(ACURSE);
+				//updateViewCursorStyle(ACURSE);
 				//setArrowCursor();
 				ihit = handleButtonOver(mouseX,mouseYY);
 				if (ihit) return 1;
@@ -2570,7 +2570,8 @@ int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY)
 					//setArrowCursor();
 					handleButtonOver(mouseX,mouseYY);
 				}
-				updateViewCursorStyle(ACURSE);
+				//setArrowCursor();
+				//updateViewCursorStyle(ACURSE);
 				return 1; /* don't process for navigation */
 			}
 			else
@@ -2597,8 +2598,9 @@ void statusbar_set_window_size(int width, int height)
 	p->screenWidth = width;
 	fwl_setScreenDim(width, height);
 }
-void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY)
+int statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY)
 {
+	int cursorStyle;
 	ttglobal tg = gglobal();
 	ppstatusbar p = (ppstatusbar)tg->statusbar.prv;
 	if (!handleStatusbarHud(mev, butnum, mouseX, mouseY)){
@@ -2607,6 +2609,7 @@ void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY)
 	}else{
 		fwl_set_frontend_using_cursor(TRUE);
 	}
+	return getCursorStyle();
 }
 char *getMessageBar(); //in common.c
 char *fwl_getKeyChord();

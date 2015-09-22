@@ -355,7 +355,7 @@ void fwl_gotoCurrentViewPoint();
 void fwl_setScreenDim(int wi, int he);
 bool fwl_initialize_GL(void);
 void fwl_setLastMouseEvent(int etype);
-void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);
+int fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);
 
 /* JAS - moving OSX front end into 2011 code workings - these may change. */
 void fwl_replaceWorldNeeded(char* str);
