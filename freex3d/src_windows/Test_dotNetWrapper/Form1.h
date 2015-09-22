@@ -49,6 +49,7 @@ namespace Test_dotNetWrapper {
 	private: System::Windows::Forms::Timer^  timer1;
 	private: System::Windows::Forms::Label^  lblStatus2;
 	private: System::Windows::Forms::Button^  button1;
+	private: System::Windows::Forms::Panel^  panel1;
 
 	private: System::ComponentModel::IContainer^  components;
 	protected: 
@@ -71,12 +72,13 @@ namespace Test_dotNetWrapper {
 			this->timer1 = (gcnew System::Windows::Forms::Timer(this->components));
 			this->lblStatus2 = (gcnew System::Windows::Forms::Label());
 			this->button1 = (gcnew System::Windows::Forms::Button());
+			this->panel1 = (gcnew System::Windows::Forms::Panel());
 			this->SuspendLayout();
 			// 
 			// lblStatus
 			// 
 			this->lblStatus->AutoSize = true;
-			this->lblStatus->Location = System::Drawing::Point(83, 305);
+			this->lblStatus->Location = System::Drawing::Point(83, 2);
 			this->lblStatus->Name = L"lblStatus";
 			this->lblStatus->Size = System::Drawing::Size(35, 13);
 			this->lblStatus->TabIndex = 0;
@@ -91,7 +93,7 @@ namespace Test_dotNetWrapper {
 			// lblStatus2
 			// 
 			this->lblStatus2->AutoSize = true;
-			this->lblStatus2->Location = System::Drawing::Point(86, 275);
+			this->lblStatus2->Location = System::Drawing::Point(213, 2);
 			this->lblStatus2->Name = L"lblStatus2";
 			this->lblStatus2->Size = System::Drawing::Size(35, 13);
 			this->lblStatus2->TabIndex = 1;
@@ -99,7 +101,7 @@ namespace Test_dotNetWrapper {
 			// 
 			// button1
 			// 
-			this->button1->Location = System::Drawing::Point(314, 22);
+			this->button1->Location = System::Drawing::Point(2, 2);
 			this->button1->Name = L"button1";
 			this->button1->Size = System::Drawing::Size(75, 23);
 			this->button1->TabIndex = 2;
@@ -107,26 +109,38 @@ namespace Test_dotNetWrapper {
 			this->button1->UseVisualStyleBackColor = true;
 			this->button1->Click += gcnew System::EventHandler(this, &freewrlUC::button1_Click);
 			// 
+			// panel1
+			// 
+			this->panel1->Dock = System::Windows::Forms::DockStyle::Bottom;
+			this->panel1->Location = System::Drawing::Point(0, 32);
+			this->panel1->Name = L"panel1";
+			this->panel1->Size = System::Drawing::Size(412, 298);
+			this->panel1->TabIndex = 3;
+			this->panel1->MouseDown += gcnew System::Windows::Forms::MouseEventHandler(this, &freewrlUC::panel1_MouseDown);
+			this->panel1->MouseMove += gcnew System::Windows::Forms::MouseEventHandler(this, &freewrlUC::panel1_MouseMove);
+			this->panel1->MouseUp += gcnew System::Windows::Forms::MouseEventHandler(this, &freewrlUC::panel1_MouseUp);
+			// 
 			// freewrlUC
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(412, 330);
+			this->Controls->Add(this->panel1);
 			this->Controls->Add(this->button1);
 			this->Controls->Add(this->lblStatus2);
 			this->Controls->Add(this->lblStatus);
 			this->Name = L"freewrlUC";
 			this->Text = L"Form1";
 			this->Load += gcnew System::EventHandler(this, &freewrlUC::freewrlUC_Load);
-			this->MouseUp += gcnew System::Windows::Forms::MouseEventHandler(this, &freewrlUC::freewrlUC_MouseUp);
-			this->ClientSizeChanged += gcnew System::EventHandler(this, &freewrlUC::freewrlUC_ClientSizeChanged);
 			this->Shown += gcnew System::EventHandler(this, &freewrlUC::freewrlUC_Shown);
-			this->MouseDown += gcnew System::Windows::Forms::MouseEventHandler(this, &freewrlUC::freewrlUC_MouseDown);
+			this->ClientSizeChanged += gcnew System::EventHandler(this, &freewrlUC::freewrlUC_ClientSizeChanged);
+			this->KeyDown += gcnew System::Windows::Forms::KeyEventHandler(this, &freewrlUC::freewrlUC_KeyDown);
 			this->KeyPress += gcnew System::Windows::Forms::KeyPressEventHandler(this, &freewrlUC::freewrlUC_KeyPress);
 			this->KeyUp += gcnew System::Windows::Forms::KeyEventHandler(this, &freewrlUC::freewrlUC_KeyUp);
-			this->Resize += gcnew System::EventHandler(this, &freewrlUC::freewrlUC_Resize);
+			this->MouseDown += gcnew System::Windows::Forms::MouseEventHandler(this, &freewrlUC::freewrlUC_MouseDown);
 			this->MouseMove += gcnew System::Windows::Forms::MouseEventHandler(this, &freewrlUC::freewrlUC_MouseMove);
-			this->KeyDown += gcnew System::Windows::Forms::KeyEventHandler(this, &freewrlUC::freewrlUC_KeyDown);
+			this->MouseUp += gcnew System::Windows::Forms::MouseEventHandler(this, &freewrlUC::freewrlUC_MouseUp);
+			this->Resize += gcnew System::EventHandler(this, &freewrlUC::freewrlUC_Resize);
 			this->ResumeLayout(false);
 			this->PerformLayout();
 
@@ -154,7 +168,7 @@ namespace Test_dotNetWrapper {
 
 			 }
 	private: System::Void freewrlUC_Resize(System::Object^  sender, System::EventArgs^  e) {
-            freewrllib->onResize( this->Width,this->Height);
+            freewrllib->onResize( panel1->Width,panel1->Height);
 			 }
 	private: System::Void freewrlUC_KeyDown(System::Object^  sender, System::Windows::Forms::KeyEventArgs^  e) {
             lblStatus->Text = e->KeyValue.ToString();
@@ -171,20 +185,19 @@ namespace Test_dotNetWrapper {
 			freewrllib->onKey(FreewrlLib::KeyAction::KEYUP, e->KeyValue);
 
 			 }
+	private: System::Void setCursorStyle(int style){
+		switch(style){
+			case 0: panel1->Cursor = Cursors::Arrow; break;
+			case 1:	panel1->Cursor = Cursors::Hand; break;
+			case 2: panel1->Cursor = Cursors::Cross; break;
+			default: panel1->Cursor = Cursors::Arrow;
+		}
+	}
 	private: System::Void freewrlUC_MouseDown(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
-            lblStatus->Text = e->Location.ToString() + e->Button.ToString();
-			freewrllib->onMouse(FreewrlLib::MouseAction::MOUSEDOWN, convertButton(e->Button), e->X, e->Y);
-			lblStatus2->Text = freewrllib->message;
 			 }
 	private: System::Void freewrlUC_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
-            lblStatus->Text = e->Location.ToString() + e->Button.ToString();
-			freewrllib->onMouse(FreewrlLib::MouseAction::MOUSEMOVE, convertButton(e->Button), e->X, e->Y);
-
 			 }
 	private: System::Void freewrlUC_MouseUp(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
-            lblStatus->Text = e->Location.ToString() + e->Button.ToString();
-			freewrllib->onMouse(FreewrlLib::MouseAction::MOUSEUP, convertButton(e->Button), e->X, e->Y);
-
 			 }
 	private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e) {
             timer1->Stop();
@@ -195,21 +208,40 @@ namespace Test_dotNetWrapper {
 
 			 }
 private: System::Void freewrlUC_Shown(System::Object^  sender, System::EventArgs^  e) {
-				 IntPtr handle = this->Handle; //The value of the Handle property is a Windows HWND
-            lblStatus->Text = handle.ToString() + " " + this->Size.Height.ToString() + " " + this->Size.Width.ToString();
+				 IntPtr handle = panel1->Handle; //The value of the Handle property is a Windows HWND
+            lblStatus->Text = handle.ToString() + " " + panel1->Size.Height.ToString() + " " + panel1->Size.Width.ToString();
             //freewrllib->onInit(handle, this->ClientSize.Width,this->ClientSize.Height); //this->Size.Width,this->Size.Height);
-            freewrllib = gcnew FreewrlLib(this->Width, this->Height, this->Handle, false);
+            freewrllib = gcnew FreewrlLib(panel1->Width, panel1->Height, panel1->Handle, false);
 			//freewrllib->onLoad("E:/source2/tests/2.x3d");
 
 		 }
 
 private: System::Void freewrlUC_ClientSizeChanged(System::Object^  sender, System::EventArgs^  e) {
-            freewrllib->onResize( this->ClientSize.Width,this->ClientSize.Height);
+            freewrllib->onResize( panel1->ClientSize.Width,panel1->ClientSize.Height);
 		 }
 private: System::Void button1_Click(System::Object^  sender, System::EventArgs^  e) {
-			freewrllib->onLoad("E:/source2/tests/2.x3d");
+			freewrllib->onLoad("C:/Users/Public/dev/source2/tests/sensors/DragCascade.x3d");
 
 		 }
+private: System::Void panel1_MouseDown(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
+			int cursorStyle;
+            lblStatus->Text = e->Location.ToString() + e->Button.ToString();
+			cursorStyle = freewrllib->onMouse(FreewrlLib::MouseAction::MOUSEDOWN, convertButton(e->Button), e->X, e->Y);
+			lblStatus2->Text = freewrllib->message;
+			setCursorStyle(cursorStyle);
+}
+private: System::Void panel1_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
+			int cursorStyle;
+            lblStatus->Text = e->Location.ToString() + e->Button.ToString();
+			cursorStyle = freewrllib->onMouse(FreewrlLib::MouseAction::MOUSEMOVE, convertButton(e->Button), e->X, e->Y);
+			setCursorStyle(cursorStyle);
+}
+private: System::Void panel1_MouseUp(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
+			int cursorStyle;
+            lblStatus->Text = e->Location.ToString() + e->Button.ToString();
+			cursorStyle = freewrllib->onMouse(FreewrlLib::MouseAction::MOUSEUP, convertButton(e->Button), e->X, e->Y);
+			setCursorStyle(cursorStyle);
+}
 };
 }
 

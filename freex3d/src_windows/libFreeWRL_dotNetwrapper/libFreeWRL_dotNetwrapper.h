@@ -58,10 +58,10 @@ public:
 		{
 			dllfreewrl->onResize(width,height);
 		}
-        void onMouse(MouseAction a,MouseButton b,int x, int y)
+        int onMouse(MouseAction a,MouseButton b,int x, int y)
 		{
 			message = x.ToString()+y.ToString();
-			dllfreewrl->onMouse((int)a,(int)b,x,y);
+			return dllfreewrl->onMouse((int)a,(int)b,x,y);
 		}
         void onKey(KeyAction a,int keyValue)
 		{

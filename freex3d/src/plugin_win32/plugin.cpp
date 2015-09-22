@@ -242,9 +242,33 @@ CPlugin::GetScriptableObject()
 
   return m_pScriptableObject;
 }
-
+#define SCURSE 1
+#define ACURSE 0
+#define NCURSE 2
+static HCURSOR hSensor, hArrow;
+static HCURSOR cursor;
+void loadCursors()
+{
+	hSensor = LoadCursor(NULL,IDC_HAND); /* prepare sensor_cursor */
+	hArrow = LoadCursor( NULL, IDC_ARROW );
+}
+void updateCursorStyle0(int cstyle)
+{
+	if(!hSensor) loadCursors();
+	switch(cstyle){
+		case SCURSE:
+			SetCursor(hSensor); break;
+		case ACURSE:
+			SetCursor(hArrow); break;
+		case NCURSE:
+			SetCursor(NULL); break;
+		default:
+			SetCursor(hArrow);
+	}
+}
 LRESULT CPlugin::handleWindowEvents(HWND hWnd, UINT eventmsg, WPARAM wParam, LPARAM lParam)
 {
+	int cursorStyle;
 	switch(eventmsg)
 	{
 		//resize is bombing in FF and Chrome, but not IE, whether or not I have any of the below uncommented.
@@ -263,37 +287,45 @@ LRESULT CPlugin::handleWindowEvents(HWND hWnd, UINT eventmsg, WPARAM wParam, LPA
 	//	}
 	case WM_LBUTTONDOWN:
 		{
-			m_pfreeWRLPlayer->onMouse(4, 1,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
+			cursorStyle = m_pfreeWRLPlayer->onMouse(4, 1,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
+			updateCursorStyle0(cursorStyle);
 			return 0;
 		}
 	case WM_LBUTTONUP:
 		{
-			m_pfreeWRLPlayer->onMouse(5, 1,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
+			cursorStyle = m_pfreeWRLPlayer->onMouse(5, 1,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
+			updateCursorStyle0(cursorStyle);
 			return 0;
 		}
 	case WM_MBUTTONDOWN:
 		{
-			m_pfreeWRLPlayer->onMouse(4, 2,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
+			cursorStyle = m_pfreeWRLPlayer->onMouse(4, 2,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
+			updateCursorStyle0(cursorStyle);
 			return 0;
 		}
 	case WM_MBUTTONUP:
 		{
-			m_pfreeWRLPlayer->onMouse(5, 2,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
+			cursorStyle = m_pfreeWRLPlayer->onMouse(5, 2,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
+			updateCursorStyle0(cursorStyle);
 			return 0;
 		}
 	case WM_RBUTTONDOWN:
 		{
-			m_pfreeWRLPlayer->onMouse(4, 3,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
+			cursorStyle = m_pfreeWRLPlayer->onMouse(4, 3,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
+			updateCursorStyle0(cursorStyle);
 			return 0;
 		}
 	case WM_RBUTTONUP:
 		{
-			m_pfreeWRLPlayer->onMouse(5, 3,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
+			cursorStyle = m_pfreeWRLPlayer->onMouse(5, 3,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
+			updateCursorStyle0(cursorStyle);
+			updateCursorStyle0(cursorStyle);
 			return 0;
 		}
 	case WM_MOUSEMOVE:
 		{
-			m_pfreeWRLPlayer->onMouse(6, 0,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
+			cursorStyle = m_pfreeWRLPlayer->onMouse(6, 0,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
+			updateCursorStyle0(cursorStyle);
 			return 0;
 		}
 	case WM_KEYDOWN:

@@ -84,9 +84,9 @@ void CdllFreeWRL::onResize(int width,int height){
 	dllFreeWRL_onResize(this->globalcontexthandle, width, height);
 }
 
-void CdllFreeWRL::onMouse(int mouseAction,int mouseButton,int x, int y)
+int CdllFreeWRL::onMouse(int mouseAction,int mouseButton,int x, int y)
 {
-	dllFreeWRL_onMouse(this->globalcontexthandle, mouseAction,mouseButton, x, y);
+	return dllFreeWRL_onMouse(this->globalcontexthandle, mouseAction,mouseButton, x, y);
 }
 void CdllFreeWRL::onKey(int keyAction,int keyValue)
 {

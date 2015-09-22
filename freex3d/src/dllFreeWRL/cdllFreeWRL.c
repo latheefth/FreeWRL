@@ -32,7 +32,7 @@
 // a few function prototypes from around libfreewrl
 void fwl_setConsole_writePrimitive(int ibool);
 void statusbar_set_window_size(int width, int height);
-void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY);
+int statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY);
 int getCursorStyle();
 void *fwl_frontenditem_dequeue();
 char* fwl_resitem_getURL(void *res);
@@ -159,18 +159,20 @@ DLLFREEWRL_API void dllFreeWRL_onResize(void *fwctx, int width,int height){
 	fwl_clearCurrentHandle();
 }
 
-DLLFREEWRL_API void dllFreeWRL_onMouse(void *fwctx, int mouseAction,int mouseButton,int x, int y){
+DLLFREEWRL_API int dllFreeWRL_onMouse(void *fwctx, int mouseAction,int mouseButton,int x, int y){
 
 	/*void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);*/
 	/* butnum=1 left butnum=3 right (butnum=2 middle, not used by freewrl) */
+	int cursorStyle = 0;
 	if(fwl_setCurrentHandle(fwctx, __FILE__, __LINE__)){
 #ifdef STATUSBAR_HUD
-		statusbar_handle_mouse(mouseAction,mouseButton,x,y);
+		cursorStyle = statusbar_handle_mouse(mouseAction,mouseButton,x,y);
 #else
-		fwl_handle_aqua(mouseAction,mouseButton,x,y); 
+		cursorStyle = fwl_handle_aqua(mouseAction,mouseButton,x,y); 
 #endif
 	}
 	fwl_clearCurrentHandle();
+	return cursorStyle;
 }
 DLLFREEWRL_API void dllFreeWRL_onKey(void *fwctx, int keyAction,int keyValue){
 	int kp = keyValue;

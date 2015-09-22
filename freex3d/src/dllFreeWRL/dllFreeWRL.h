@@ -36,7 +36,7 @@ public:
 	void onInit(int width, int height, void* windowhandle=0, bool bEai = false, bool frontend_handles_display_thread = false);
 	void onLoad(char* scene_url);
     void onResize(int width, int height);
-    void onMouse(int mouseAction,int mouseButton,int x, int y);
+    int onMouse(int mouseAction,int mouseButton,int x, int y);
     void onKey(int keyAction,int keyValue);
 	void onDraw(); //use when FRONTEND_HANDLES_DISPLAY_THREAD
 	void onClose();

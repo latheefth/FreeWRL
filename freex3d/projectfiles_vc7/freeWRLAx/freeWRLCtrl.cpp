@@ -279,40 +279,76 @@ void CfreeWRLCtrl::OnResetState()
 
 	// TODO: Reset any other control state here.
 }
+#define SCURSE 1
+#define ACURSE 0
+#define NCURSE 2
+static HCURSOR hSensor, hArrow;
+static HCURSOR cursor;
+void loadCursors()
+{
+	hSensor = LoadCursor(NULL,IDC_HAND); /* prepare sensor_cursor */
+	hArrow = LoadCursor( NULL, IDC_ARROW );
+}
+void updateCursorStyle0(int cstyle)
+{
+	if(!hSensor) loadCursors();
+	switch(cstyle){
+		case SCURSE:
+			SetCursor(hSensor); break;
+		case ACURSE:
+			SetCursor(hArrow); break;
+		case NCURSE:
+			SetCursor(NULL); break;
+		default:
+			SetCursor(hArrow);
+	}
+}
 void CfreeWRLCtrl::OnLButtonDown(UINT nFlags,CPoint point)
 {
-	if(m_initialized % 10)
-	m_dllfreewrl->onMouse(4, 1,point.x,point.y); //m_Hwnd, 
+	if(m_initialized % 10){
+		int cursorStyle = m_dllfreewrl->onMouse(4, 1,point.x,point.y); //m_Hwnd, 
+		updateCursorStyle0(cursorStyle);
+	}
 	COleControl::OnLButtonDown(nFlags,point);
 }
 void CfreeWRLCtrl::OnLButtonUp(UINT nFlags,CPoint point)
 {
-	if(m_initialized % 10)
-	m_dllfreewrl->onMouse(5, 1,point.x,point.y);//m_Hwnd, 
+	if(m_initialized % 10){
+		int cursorStyle = m_dllfreewrl->onMouse(5, 1,point.x,point.y);//m_Hwnd, 
+		updateCursorStyle0(cursorStyle);
+	}
 	COleControl::OnLButtonUp(nFlags,point);
 }
 void CfreeWRLCtrl::OnMButtonDown(UINT nFlags,CPoint point)
 {
-	if(m_initialized % 10)
-	m_dllfreewrl->onMouse(4, 2,point.x,point.y); //m_Hwnd, 
+	if(m_initialized % 10){
+		int cursorStyle = m_dllfreewrl->onMouse(4, 2,point.x,point.y); //m_Hwnd, 
+		updateCursorStyle0(cursorStyle);
+	}
 	COleControl::OnMButtonDown(nFlags,point);
 }
 void CfreeWRLCtrl::OnMButtonUp(UINT nFlags,CPoint point)
 {
-	if(m_initialized % 10)
-	m_dllfreewrl->onMouse(5, 2,point.x,point.y);//m_Hwnd, 
+	if(m_initialized % 10){
+		int cursorStyle = m_dllfreewrl->onMouse(5, 2,point.x,point.y);//m_Hwnd, 
+		updateCursorStyle0(cursorStyle);
+	}
 	COleControl::OnMButtonUp(nFlags,point);
 }
 void CfreeWRLCtrl::OnRButtonDown(UINT nFlags,CPoint point)
 {
-	if(m_initialized % 10)
-	m_dllfreewrl->onMouse(4, 3,point.x,point.y);//m_Hwnd, 
+	if(m_initialized % 10){
+		int cursorStyle = m_dllfreewrl->onMouse(4, 3,point.x,point.y);//m_Hwnd, 
+		updateCursorStyle0(cursorStyle);
+	}
 	COleControl::OnRButtonDown(nFlags,point);
 }
 void CfreeWRLCtrl::OnRButtonUp(UINT nFlags,CPoint point)
 {
-	if(m_initialized % 10)
-	m_dllfreewrl->onMouse(5, 3,point.x,point.y); //m_Hwnd, 
+	if(m_initialized % 10){
+		int cursorStyle = m_dllfreewrl->onMouse(5, 3,point.x,point.y); //m_Hwnd, 
+		updateCursorStyle0(cursorStyle);
+	}
 	COleControl::OnRButtonUp(nFlags,point);
 }
 
@@ -333,8 +369,10 @@ void CfreeWRLCtrl::OnMouseMove(UINT nFlags,CPoint point)
 	//	m_dllfreewrl->onLoad(m_cstrFileName.GetBuffer()); //m_Hwnd,
 	//	m_initialized += 10; //shut off double-load
 	//}
-	if(m_initialized % 10)
-		m_dllfreewrl->onMouse(6, 0,point.x,point.y);//m_Hwnd, 
+	if(m_initialized % 10){
+		int cursorStyle = m_dllfreewrl->onMouse(6, 0,point.x,point.y);//m_Hwnd, 
+		updateCursorStyle0(cursorStyle);
+	}
 	COleControl::OnMouseMove(nFlags,point);
 }
 
