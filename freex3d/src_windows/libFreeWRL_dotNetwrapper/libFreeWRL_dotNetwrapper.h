@@ -73,6 +73,16 @@ public:
 		{
 			//dllfreewrl->onTick(interval);
 		}
+		void commandline(String^ cmdline){
+			pin_ptr<const wchar_t> wch = PtrToStringChars(cmdline);
+					//Scene_url->ToCharArray(); //PtrToStringChars(Scene_url);
+			size_t convertedChars = 0;
+			size_t  sizeInBytes = ((cmdline->Length + 1) * 2);
+			char *cmd_line = (char *)malloc(sizeInBytes);
+
+			if( wcstombs_s(&convertedChars, cmd_line, sizeInBytes,	wch, sizeInBytes) == 0)
+					dllfreewrl->commandline(cmd_line);
+		}
 		// http://msdn.microsoft.com/en-us/library/ms177197.aspx
 		// somehow we need to deterministically release unmanaged resources
 		// is this the right way, or will this way skip Dispose?

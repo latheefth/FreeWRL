@@ -314,3 +314,7 @@ DLLFREEWRL_API void dllFreeWRL_commandline(void *fwctx, char *cmdline){
 	}
 	fwl_clearCurrentHandle();
 }
+
+	//void commandv(char *cmd, int argc, void **argv, int *type); //type 0=int, 1=float, 2=double, 3=char*
+	//void command(char *cmd, void *arg, int type); //type 0=int, 1=float, 2=double, 3=char*
+	//void keyvalue(char *key, void *value, int type); //type 0=int, 1=float, 2=double, 3=char*
