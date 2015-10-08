@@ -56,20 +56,21 @@ texture enabling - works for single texture, for multitexture.
     if (aaa==0) glBindTexture(GL_TEXTURE_2D,ccc); else glBindTexture(GL_TEXTURE_CUBE_MAP,ccc); }
 #endif
 
-
-
+typedef struct pRenderTextures{
+	struct multiTexParams textureParameterStack[MAX_MULTITEXTURE];
+}* ppRenderTextures;
 void *RenderTextures_constructor(){
 	void *v = MALLOCV(sizeof(struct pRenderTextures));
 	memset(v,0,sizeof(struct pRenderTextures));
 	return v;
 }
 void RenderTextures_init(struct tRenderTextures *t){
-	//t->textureParameterStack[];
 	t->prv = RenderTextures_constructor();
-//	{
-//		ppRenderTextures p = (ppRenderTextures)t->prv;
-//		/* variables for keeping track of status */
-//	}
+	{
+		ppRenderTextures p = (ppRenderTextures)t->prv;
+		/* variables for keeping track of status */
+		t->textureParameterStack = (void *)p->textureParameterStack;
+	}
 }
 
 
@@ -81,7 +82,9 @@ static void passedInGenTex(struct textureVertexInfo *genTex);
 
 static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, GLint *texMode) 
 {
+	ppRenderTextures p;
 	ttglobal tg = gglobal();
+	p = (ppRenderTextures)tg->RenderTextures.prv;
 
 	/* which texture unit are we working on? */
     
@@ -106,7 +109,7 @@ static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, G
 	 * bind_image, we store a pointer for the texture parameters. It is
 	 * NULL, possibly different for MultiTextures */
 
-	if (tg->RenderTextures.textureParameterStack[c].multitex_mode == INT_ID_UNDEFINED) {
+	if (p->textureParameterStack[c].multitex_mode == INT_ID_UNDEFINED) {
         
 		#ifdef TEXVERBOSE
 		printf ("setActiveTexture - simple texture NOT a MultiTexture \n"); 
@@ -126,7 +129,7 @@ static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, G
 
 	} else {
 	/* printf ("muititex source for %d is %d\n",c,tg->RenderTextures.textureParameterStack[c].multitex_source); */
-		if (tg->RenderTextures.textureParameterStack[c].multitex_source != MTMODE_OFF) {
+		if (p->textureParameterStack[c].multitex_source != MTMODE_OFF) {
 		} else {
 			glDisable(GL_TEXTURE_2D); /* DISABLE_TEXTURES */
 			return FALSE;
@@ -171,7 +174,9 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 	int i;
 	GLint texUnit[MAX_MULTITEXTURE];
 	GLint texMode[MAX_MULTITEXTURE];
+	ppRenderTextures p;
 	ttglobal tg = gglobal();
+	p = (ppRenderTextures)tg->RenderTextures.prv;
 
     s_shader_capabilities_t *me = getAppearanceProperties()->currentShaderProperties;
 
@@ -232,7 +237,7 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 	    for (i=0; i<tg->RenderFuncs.textureStackTop; i++) {
         	//printf (" sending in i%d tu %d mode %d\n",i,i,tg->RenderTextures.textureParameterStack[i].multitex_mode);
             glUniform1i(me->TextureUnit[i],i);
-            glUniform1i(me->TextureMode[i],tg->RenderTextures.textureParameterStack[i].multitex_mode);
+            glUniform1i(me->TextureMode[i],p->textureParameterStack[i].multitex_mode);
         }
 	#ifdef TEXVERBOSE
 	} else {

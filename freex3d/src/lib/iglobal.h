@@ -23,7 +23,7 @@ Variable use:
 
 #ifndef INSTANCEGLOBAL
 #include "display.h" //for opengl_utils.h which is for rdr_caps
-#include "opengl/OpenGL_Utils.h"  //for rdr_caps
+//#include "opengl/OpenGL_Utils.h"  //for rdr_caps
 #include "list.h"
 #ifdef DISABLER
 #include "dbl_list.h"
@@ -33,10 +33,6 @@ Variable use:
 #include "x3d_parser/X3DParser.h" //for PARENTSTACKSIZE
 #include "ui/common.h" // for ppcommon
 
-typedef struct pRenderTextures{
-	// blank for now
-	void *nada;
-}* ppRenderTextures;
 
 
 typedef struct iiglobal //InstanceGlobal
@@ -234,7 +230,8 @@ typedef struct iiglobal //InstanceGlobal
 	}RasterFont;
 #endif
 	struct tRenderTextures{
-		struct multiTexParams textureParameterStack[MAX_MULTITEXTURE];
+		//struct multiTexParams textureParameterStack[MAX_MULTITEXTURE];
+		void *textureParameterStack;
 		void *prv;
 	}RenderTextures;
 	struct tTextures{
@@ -398,7 +395,7 @@ iOLDCODE	}Component_Networking;
 	}Bindable;
 	struct tX3DParser{
 		int parentIndex;// = -1;
-		struct X3D_Node *parentStack[PARENTSTACKSIZE];
+		//struct X3D_Node *parentStack[PARENTSTACKSIZE];
 		char *CDATA_Text;// = NULL;
 		int CDATA_Text_curlen;// = 0;
 		void *prv;

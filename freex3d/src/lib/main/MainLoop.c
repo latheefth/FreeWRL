@@ -198,16 +198,7 @@ typedef struct pMainloop{
 	int currentTouch;// = -1;
 	struct Touch touchlist[20];
 	int EMULATE_MULTITOUCH;// = 1;
-	FILE* recordingFile;
-	char* recordingFName;
-	int modeRecord;
-	int modeFixture;
-	int modePlayback;
-	int fwplayOpened;
-	char *nameTest;
-	int frameNum; //for Record, Playback - frame# =0 after scene loaded
-	struct playbackRecord* playback;
-	int playbackCount;
+
 	struct keypressTuple keypressQueue[50]; //for Record,Playback where keypresses are applied just once per frame for consistency
 	int keypressQueueCount;
 	struct mouseTuple mouseQueue[50];
@@ -310,16 +301,7 @@ void Mainloop_init(struct tMainloop *t){
 		p->currentTouch = -1;
 		//p->touchlist[20];
 		p->EMULATE_MULTITOUCH = 0;
-		p->recordingFile = NULL;
-		p->recordingFName = NULL;
-		p->modeRecord = FALSE;
-		p->modeFixture = FALSE;
-		p->modePlayback = FALSE;
-		p->nameTest = NULL;
-		p->frameNum = 0;
-		p->playbackCount = 0;
-		p->playback = NULL;
-		p->fwplayOpened = 0;
+
 		p->keypressQueueCount=0;
 		p->mouseQueueCount=0;
 		p->logfile = NULL;
@@ -596,415 +578,22 @@ int fw_exit(int val)
 	exit(val);
 }
 
-#if !defined(FRONTEND_DOES_SNAPSHOTS)
-int fw_mkdir(char* path);
-void fwl_RenderSceneUpdateScene() {
+void fwl_RenderSceneUpdateSceneNORMAL() {
 	double dtime;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
 	dtime = Time1970sec();
-	if((p->modeRecord || p->modeFixture || p->modePlayback)) //commandline --record/-R and --playback/-P, for automated testing
-	{
-		//functional testing support options May 2013
-		//records frame#, dtime, keyboard, mouse to an ASCII .fwplay file for playback
-		//to record, run a scene file with -R or --record option
-		//copy the .fwplay between platforms
-		//before starting refactoring, run scenes with -F or --fixture option,
-		//  and hit the 'x' key to save a snapshot one or more times per fixture run
-		//after each refactoring step, run scenes with -P or --playback option,
-		//  and (with perl script) do a file compare(fixture_snapshot,playback_snapshot)
-		//
-		//on the command line use:
-		//-R to just record the .fwplay file
-		//-F to play recording and save as fixture
-		//-P to play recording and save as playback
-		//-R -F to record and save as fixture in one step
-		//command line long option equivalents: -R --record, -F --fixture, -P --playback
-		int key;
-		int type;
-		int mev,ix,iy,ID;
-		unsigned int button;
-		float x,y;
-		char buff[1000], keystrokes[200], mouseStr[1000];
-		int namingMethod;
-		char *folder;
-		char sceneName[1000];
-		//naming method for related files (and folders)
-		//0=default: recording.fwplay, fixture.bmp playback.bmp - will overwrite for each scene
-		//1=folders: 1_wrl/recording.fwplay, 1_wrl/fixture/17.bmp, 1_wrl/playback/17.bmp
-		//2=flattened: 1_wrl.fwplay, 1_wrl_fixture_17.bmp, 1_wrl_playback_17.bmp (17 is frame#)
-		//3=groupfolders: /tests, /recordings/*.fwplay, /fixtures/1_wrl_17.bmp /playbacks/1_wrl_17.bmp
-		//4=groupfolders: /tests, /recordings/*.fwplay, /fixtures/1_wrl_17.bmp /playbacks/1_wrl_17.bmp
-		//  - 4 same as 3, except done to harmonize with linux/aqua naming approach:
-		//  - fwl_set_SnapFile(path = {"fixture" | "playback" }); to set mytmp
-		//  -
-		folder = NULL;
-		namingMethod = 4;
-		//if(p->frameNum == 1){
-		if(!p->fwplayOpened){
-			char recordingName[1000];
-			int j,k;
-			p->fwplayOpened = 1;
-			recordingName[0] = '\0';
-			sceneName[0] = '\0';
-			if(tg->Mainloop.scene_name){
-				strcat(sceneName,tg->Mainloop.scene_name);
-				if(tg->Mainloop.scene_suff){
-					strcat(sceneName,".");
-					strcat(sceneName,tg->Mainloop.scene_suff);
-				}
-			}
-			if(namingMethod==3 || namingMethod==4){
-				strcpy(recordingName,"recording");
-				fw_mkdir(recordingName);
-				strcat(recordingName,"/");
-			}
-			if(namingMethod>0){
-				if(p->nameTest){
-					strcat(recordingName,p->nameTest);
-				}else{
-					strcat(recordingName,tg->Mainloop.scene_name);
-					k = strlen(recordingName);
-					if(k){
-						//1.wrl -> 1_wrl
-						j = strlen(tg->Mainloop.scene_suff);
-						if(j){
-							strcat(recordingName,"_");
-							strcat(recordingName,tg->Mainloop.scene_suff);
-						}
-					}
-				}
-			}
-			if(namingMethod==1){
-				fw_mkdir(recordingName);
-				strcat(recordingName,"/recording"); //recording.fwplay a generic name, in case there's no scene name
-			}
-			if(namingMethod==0)
-				strcat(recordingName,"recording");
-			strcat(recordingName,".fwplay"); //1_wrl.fwplay
-			p->recordingFName = STRDUP(recordingName);
-
-			if(p->modeFixture  || p->modePlayback){
-				if(!p->modeRecord){
-					p->recordingFile = fopen(p->recordingFName, "r");
-					if(p->recordingFile == NULL){
-						printf("ouch recording file %s not found\n", p->recordingFName);
-						fw_exit(1);
-					}
-					if( fgets(buff, 1000, p->recordingFile) != NULL){
-						char window_widthxheight[100], equals[50];
-						int width, height;
-						//window_wxh = 600,400
-						if( sscanf(buff,"%s %s %d, %d\n",window_widthxheight,equals, &width,&height) == 4) {
-							if(width != tg->display.screenWidth || height != tg->display.screenHeight){
-								if(1){ //right now all we can do is passively complain
-									printf("Ouch - the test playback window size is different than recording:\n");
-									printf("recording %d x %d playback %d x %d\n",width,height,
-										tg->display.screenWidth,tg->display.screenHeight);
-									printf("hit Enter:");
-									getchar();
-								}
-								//if(0){
-								//	fwl_setScreenDim(width,height); //this doesn't actively set the window size except before window is created
-								//}
-							}
-						}
-					}
-					if( fgets(buff, 1000, p->recordingFile) != NULL){
-						char scenefile[100], equals[50];
-						//scenefile = 1.wrl
-						if( sscanf(buff,"%s %s %s \n",scenefile,equals, sceneName) == 3) {
-							if(!tg->Mainloop.scene_name){
-								char* suff = NULL;
-								char* local_name = NULL;
-								char* url = NULL;
-								if(strlen(sceneName)) url = STRDUP(sceneName);
-								if(url){
-									splitpath_local_suffix(url, &local_name, &suff);
-									gglobal()->Mainloop.url = url;
-									gglobal()->Mainloop.scene_name = local_name;
-									gglobal()->Mainloop.scene_suff = suff;
-									fwl_resource_push_single_request(url);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		p->doEvents = (!fwl_isinputThreadParsing()) && (!fwl_isTextureParsing()) && fwl_isInputThreadInitialized();
-		//printf("frame %d doevents=%d\n",p->frameNum,p->doEvents);
-		if(!p->doEvents)
-			return; //for Record and Playback, don't start doing things until scene and textures are loaded
-		if(p->modeRecord)
-			if(dtime - tg->Mainloop.TickTime < .5) return; //slow down frame rate to 2fps to reduce empty meaningless records
-		p->frameNum++; //for record, frame relative to when scene is loaded
-
-		if(p->modeRecord){
-			int i;
-			char temp[1000];
-			if(p->frameNum == 1){
-				p->recordingFile = fopen(p->recordingFName, "w");
-				if(p->recordingFile == NULL){
-					printf("ouch recording file %s not found\n", p->recordingFName);
-					fw_exit(1);
-				}
-				//put in a header record, passively showing window widthxheight
-				fprintf(p->recordingFile,"window_wxh = %d, %d \n",tg->display.screenWidth,tg->display.screenHeight);
-				fprintf(p->recordingFile,"scenefile = %s \n",tg->Mainloop.url); //sceneName);
-			}
-			strcpy(keystrokes,"\"");
-			while(dequeueKeyPress(p,&key,&type)){
-				sprintf(temp,"%d,%d,",key,type);
-				strcat(keystrokes,temp);
-			}
-			strcat(keystrokes,"\"");
-			strcpy(mouseStr,"\"");
-			i = 0;
-			if(0){
-				while(dequeueMouse(p,&mev, &button, &x, &y)){
-					sprintf(temp,"%d,%d,%.6f,%.6f;",mev,button,x,y);
-					strcat(mouseStr,temp);
-					i++;
-				}
-			}
-			if(1){
-				while(dequeueMouseMulti(p,&mev, &button, &ix, &iy, &ID)){
-					sprintf(temp,"%d,%d,%d,%d,%d;",mev,button,ix,iy,ID);
-					strcat(mouseStr,temp);
-					i++;
-				}
-			}
-			strcat(mouseStr,"\"");
-			fprintf(p->recordingFile,"%d %.6lf %s %s\n",p->frameNum,dtime,keystrokes,mouseStr);
-			//in case we are -R -F together,
-			//we need to round dtime for -F like it will be coming out of .fwplay for -P
-			sprintf(temp,"%.6lf",dtime);
-			sscanf(temp,"%lf",&dtime);
-			//folder = "fixture";
-			folder = NULL;
-		}
-		if(p->modeFixture  || p->modePlayback){
-			if(!p->modeRecord){
-				/*
-				if(p->frameNum == 1){
-					p->recordingFile = fopen(p->recordingFName, "r");
-					if(p->recordingFile == NULL){
-						printf("ouch recording file %s not found\n", p->recordingFName);
-						exit(1);
-					}
-					if( fgets(buff, 1000, p->recordingFile) != NULL){
-						char window_widthxheight[100], equals[50];
-						int width, height;
-						//window_wxh = 600,400
-						if( sscanf(buff,"%s %s %d, %d\n",&window_widthxheight,&equals, &width,&height) == 4) {
-							if(width != tg->display.screenWidth || height != tg->display.screenHeight){
-								printf("Ouch - the test playback window size is different than recording:\n");
-								printf("recording %d x %d playback %d x %d\n",width,height,
-									tg->display.screenWidth,tg->display.screenHeight);
-								printf("hit Enter:");
-								getchar();
-							}
-						}
-					}
-					if( fgets(buff, 1000, p->recordingFile) != NULL){
-						char scenefile[100], equals[50];
-						//scenefile = 1.wrl
-						if( sscanf(buff,"%s %s %s \n",&scenefile,&equals, &sceneName) == 3) {
-						}
-					}
-				}
-				*/
-				// playback[i] = {iframe, dtime, keystrokes or NULL, mouse (xy,button sequence) or NULL, snapshot URL or NULL, scenegraph_dump URL or NULL, ?other?}
-				if( fgets( buff, 1000, p->recordingFile ) != NULL ) {
-					if(sscanf(buff,"%d %lf %s %s\n",&p->frameNum,&dtime,keystrokes,mouseStr) == 4){ //,snapshotURL,scenegraphURL) == 6){
-						if(0) printf("%d %lf %s %s\n",p->frameNum,dtime,keystrokes,mouseStr);
-					}
-				}
-			}
-			if(p->modeFixture)  folder = "fixture";
-			if(p->modePlayback) folder = "playback";
-		}
-		//for all 3 - read the keyboard string and the mouse string
-		if(p->modeRecord || p->modeFixture || p->modePlayback){
-			if(strlen(keystrokes)>2){ // "x,1," == 6
-				char *next,*curr;
-				//count the number of ','
-				//for(i=0,n=0;i<strlen(keystrokes);i++) if(keystrokes[i] == ',') n++; //(strlen(keystrokes) -2)/4;
-				//n /= 2; //each keystroke has 2 commas: (char),(type),
-				curr = &keystrokes[1]; //skip leading "
-				while(curr && strlen(curr)>1){
-					//for(i=0;i<n;i++){
-					//ii = i*4 +1;
-					//sscanf(&keystrokes[ii],"%d,%d",&key,&type);
-					sscanf(curr,"%d",&key);
-					next = strchr(curr,',');
-					curr = &next[1];
-					sscanf(curr,"%d",&type);
-					next = strchr(curr,',');
-					curr = &next[1];
-					if(p->modeFixture || p->modePlayback){
-						//we will catch the snapshot keybaord command and prepare the
-						//snapshot filename and folder/directory for fixture and playback
-						if(key == 'x'){
-							//prepare snapshot folder(scene/ + fixture ||playback)
-							// and file name(frame#)
-							char snapfile[5];
-#ifdef _MSC_VER
-							char *suff = ".bmp";
-#else
-							char *suff = ".snap";
-#endif
-							sprintf(snapfile,"%d",p->frameNum);
-							if(namingMethod == 0){
-								//default: recording.bmp, playback.bmp
-								char snappath[100];
-								strcpy(snappath,folder);
-								strcat(snappath,suff);
-								fwl_set_SnapFile(snappath);
-							}
-							if(namingMethod==1){
-								//nested folder approach
-								//1=folders: 1_wrl/recording.fwplay, 1_wrl/fixture/17.bmp, 1_wrl/playback/17.bmp
-								int k,j;
-								char snappath[100];
-								strcpy(snappath,tg->Mainloop.scene_name);
-								k = strlen(snappath);
-								if(k){
-									//1.wrl -> 1_wrl
-									j = strlen(tg->Mainloop.scene_suff);
-									if(j){
-										strcat(snappath,"_");
-										strcat(snappath,tg->Mainloop.scene_suff);
-									}
-								}
-								strcat(snappath,"/");
-								strcat(snappath,folder);
-								fw_mkdir(snappath); //1_wrl/fixture
-								//fwl_set_SnapTmp(snappath); //sets the folder for snaps
-								strcat(snappath,"/");
-								strcat(snappath,snapfile);
-								strcat(snappath,suff); //".bmp");
-								//fwl_set_SnapFile(snapfile);
-								fwl_set_SnapFile(snappath); //1_wrl/fixture/17.bmp
-							}
-							if(namingMethod == 2){
-								//flattened filename approach with '_'
-								//if snapshot 'x' is on frame 17, and fixture,
-								//   then 1_wrl_fixture_17.snap or .bmp
-								char snappath[100];
-								int j, k;
-								strcpy(snappath,tg->Mainloop.scene_name);
-								k = strlen(snappath);
-								if(k){
-									j= strlen(tg->Mainloop.scene_suff);
-									if(j){
-										strcat(snappath,"_");
-										strcat(snappath,tg->Mainloop.scene_suff);
-									}
-									strcat(snappath,"_");
-								}
-								strcat(snappath,folder);
-								strcat(snappath,"_");
-								strcat(snappath,snapfile);
-								strcat(snappath,suff); //".bmp");
-								fwl_set_SnapFile(snappath);
-							}
-							if(namingMethod == 3){
-								//group folder
-								//if snapshot 'x' is on frame 17, and fixture,
-								//   then fixture/1_wrl_17.snap or .bmp
-								char snappath[100];
-								int j, k;
-								strcpy(snappath,folder);
-								fw_mkdir(snappath); // /fixture
-								strcat(snappath,"/");
-								strcat(snappath,tg->Mainloop.scene_name); // /fixture/1
-								k = strlen(tg->Mainloop.scene_name);
-								if(k){
-									j= strlen(tg->Mainloop.scene_suff);
-									if(j){
-										strcat(snappath,"_");
-										strcat(snappath,tg->Mainloop.scene_suff);
-									}
-									strcat(snappath,"_");
-								}
-								strcat(snappath,snapfile);
-								strcat(snappath,suff); //".bmp");
-								fwl_set_SnapFile(snappath);  //  /fixture/1_wrl_17.bmp
-							}
-							if(namingMethod == 4){
-								//group folder
-								//if snapshot 'x' is the first one .0001, and fixture,
-								//   then fixture/1_wrl.0001.rgb or .bmp
-								char snappath[100];
-								char *sep = "_"; // "." or "_" or "/"
-								set_snapshotModeTesting(TRUE);
-								//if(isSnapshotModeTesting())
-								//	printf("testing\n");
-								//else
-								//	printf("not testing\n");
-								strcpy(snappath,folder);
-								fw_mkdir(snappath); // /fixture
-								fwl_set_SnapTmp(snappath);
-
-								snappath[0] = '\0';
-								if(p->nameTest){
-									strcat(snappath,p->nameTest);
-								}else{
-									if(tg->Mainloop.scene_name){
-										strcat(snappath,tg->Mainloop.scene_name); // /fixture/1
-										if(tg->Mainloop.scene_suff)
-										{
-											strcat(snappath,sep); // "." or "_");
-											strcat(snappath,tg->Mainloop.scene_suff);
-										}
-									}
-								}
-								fwl_set_SnapFile(snappath);  //  /fixture/1_wrl.001.bmp
-
-							}
-						}
-					}
-					fwl_do_keyPress0(key, type);
-				}
-			}
-			if(strlen(mouseStr)>2){
-				int i,ii,len;
-				int mev;
-				unsigned int button;
-				float x,y;
-				len = strlen(mouseStr);
-				ii=1;
-				do{
-					for(i=ii;i<len;i++)
-						if(mouseStr[i] == ';') break;
-					if(0){
-					sscanf(&mouseStr[ii],"%d,%d,%f,%f;",&mev,&button,&x,&y);
-					handle0(mev,button,x,y);
-					}
-					if(1){
-					sscanf(&mouseStr[ii],"%d,%d,%d,%d,%d;",&mev,&button,&ix,&iy,&ID);
-					fwl_handle_aqua_multi0(mev,button,ix,iy,ID);
-					}
-					//printf("%d,%d,%f,%f;",mev,button,x,y);
-					ii=i+1;
-				}while(ii<len-1);
-			}
-		}
-	}
 	fwl_RenderSceneUpdateScene0(dtime);
 }
-
+/*rendersceneupdatescene overridden with SnapshotRegressionTesting.c  
+	fwl_RenderSceneUpdateSceneTESTING during regression testing runs
+*/
+void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneNORMAL;
+void fwl_RenderSceneUpdateScene(void){
+	fwl_RenderSceneUpdateScenePTR();
+}
 void fwl_RenderSceneUpdateScene0(double dtime) {
-
-#else //FRONTEND_DOES_SNAPSHOTS
-
-void fwl_RenderSceneUpdateScene() {
-	double dtime = Time1970sec();
-
-#endif //FRONTEND_DOES_SNAPSHOTS
 
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
@@ -1462,18 +1051,6 @@ void queueMouse(ppMainloop p, const int mev, const unsigned int button, const fl
 
 void handle(const int mev, const unsigned int button, const float x, const float y)
 {
-	ppMainloop p;
-	ttglobal tg = gglobal();
-	p = (ppMainloop)tg->Mainloop.prv;
-
-	if(0)
-	if(p->modeRecord || p->modeFixture || p->modePlayback){
-		if(p->modeRecord){
-			queueMouse(p,mev,button,x,y);
-		}
-		//else ignor so test isn't ruined by random mouse movement during playback
-		return;
-	}
 	handle0(mev, button, x, y);
 }
 
@@ -2357,6 +1934,13 @@ static void setup_viewpoint() {
 
 
 }
+char *nameLogFileFolderNORMAL(char *logfilename, int size){
+	strcat(logfilename,"freewrl_tmp");
+	fw_mkdir(logfilename);
+	strcat(logfilename,"/");
+	strcat(logfilename,"logfile");
+	return logfilename;
+}
 void toggleLogfile()
 {
 	ppMainloop p;
@@ -2380,30 +1964,32 @@ void toggleLogfile()
 			char logfilename[1000];
 			mode = "w";
 			logfilename[0] = '\0';
-			if(p->modePlayback || p->modeFixture){
-				if(p->modePlayback)
-					strcat(logfilename,"playback");
-				else
-					strcat(logfilename,"fixture");
-				fw_mkdir(logfilename);
-				strcat(logfilename,"/");
-				if(p->nameTest){
-					//  /fixture/test1.log
-					strcat(logfilename,p->nameTest);
-				}else if(tg->Mainloop.scene_name){
-					//  /fixture/1_wrl.log
-					strcat(logfilename,tg->Mainloop.scene_name);
-					if(tg->Mainloop.scene_suff){
-						strcat(logfilename,"_");
-						strcat(logfilename,tg->Mainloop.scene_suff);
-					}
-				}
-			}else{
-				strcat(logfilename,"freewrl_tmp");
-				fw_mkdir(logfilename);
-				strcat(logfilename,"/");
-				strcat(logfilename,"logfile");
-			}
+			//if(p->modePlayback || p->modeFixture){
+			//	if(p->modePlayback)
+			//		strcat(logfilename,"playback");
+			//	else
+			//		strcat(logfilename,"fixture");
+			//	fw_mkdir(logfilename);
+			//	strcat(logfilename,"/");
+			//	if(p->nameTest){
+			//		//  /fixture/test1.log
+			//		strcat(logfilename,p->nameTest);
+			//	}else if(tg->Mainloop.scene_name){
+			//		//  /fixture/1_wrl.log
+			//		strcat(logfilename,tg->Mainloop.scene_name);
+			//		if(tg->Mainloop.scene_suff){
+			//			strcat(logfilename,"_");
+			//			strcat(logfilename,tg->Mainloop.scene_suff);
+			//		}
+			//	}
+			//}else
+			//{
+			//	strcat(logfilename,"freewrl_tmp");
+			//	fw_mkdir(logfilename);
+			//	strcat(logfilename,"/");
+			//	strcat(logfilename,"logfile");
+			//}
+			nameLogFileFolderNORMAL(logfilename, 1000);
 			strcat(logfilename,".log");
 			p->logfname = STRDUP(logfilename);
 		}
@@ -3666,15 +3252,7 @@ int platform2web3dActionKey(int platformKey);
 //	}
 //}
 void fwl_do_rawKeyPress(int key, int type) {
-	ppMainloop p;
-	ttglobal tg = gglobal();
-	p = (ppMainloop)tg->Mainloop.prv;
-
-	if(p->modeRecord){
-		queueKeyPress(p,key,type);
-	}else{
-		fwl_do_keyPress0(key,type);
-	}
+	fwl_do_keyPress0(key,type);
 }
 
 void fwl_do_keyPress(char kp, int type) {
@@ -5005,26 +4583,7 @@ void fwl_set_KeyString(const char* kstring)
     p->keypress_string = STRDUP(kstring);
 }
 
-void fwl_set_modeRecord()
-{
-	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
-    p->modeRecord = TRUE;
-}
-void fwl_set_modeFixture()
-{
-	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
-    p->modeFixture = TRUE;
-}
-void fwl_set_modePlayback()
-{
-	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
-    p->modePlayback = TRUE;
-}
-void fwl_set_nameTest(char *nameTest)
-{
-	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
-    p->nameTest = STRDUP(nameTest);
-}
+
 
 /* if we had an exit(EXIT_FAILURE) anywhere in this C code - it means
    a memory error. So... print out a standard message to the
@@ -5175,17 +4734,6 @@ void freewrlDie (const char *format) {
 void fwl_handle_aqua_multi0(const int mev, const unsigned int button, int x, int y, int ID);
 void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int y, int ID)
 {
-	ppMainloop p;
-	ttglobal tg = gglobal();
-	p = (ppMainloop)tg->Mainloop.prv;
-
-	if(p->modeRecord || p->modeFixture || p->modePlayback){
-		if(p->modeRecord){
-			queueMouseMulti(p,mev,button,x,y,ID);
-		}
-		//else ignor so test isn't ruined by random mouse movement during playback
-		return;
-	}
 	fwl_handle_aqua_multi0(mev, button, x, y, ID);
 }
 

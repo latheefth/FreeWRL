@@ -1504,9 +1504,11 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 			/* save the texture params for when we go through the MultiTexture stack. Non
 			   MultiTextures should have this textureStackTop as 0 */
 			 
-			if (param != NULL) 
-				memcpy(&(tg->RenderTextures.textureParameterStack[tg->RenderFuncs.textureStackTop]), param,sizeof (struct multiTexParams)); 
-	
+			if (param != NULL) {
+				struct multiTexParams *textureParameterStack = (struct multiTexParams *) tg->RenderTextures.textureParameterStack;
+				memcpy(&(textureParameterStack[tg->RenderFuncs.textureStackTop]), param,sizeof (struct multiTexParams)); 
+				//memcpy(&(tg->RenderTextures.textureParameterStack[tg->RenderFuncs.textureStackTop]), param,sizeof (struct multiTexParams)); 
+			}
 			p->textureInProcess = -1; /* we have finished the whole process */
 			break;
 			
