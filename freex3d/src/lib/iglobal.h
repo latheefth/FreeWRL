@@ -22,16 +22,21 @@ Variable use:
 #define MAXSTAT 200
 
 #ifndef INSTANCEGLOBAL
-#include "display.h" //for opengl_utils.h which is for rdr_caps
+//#include "display.h" //for opengl_utils.h which is for rdr_caps
 //#include "opengl/OpenGL_Utils.h"  //for rdr_caps
 #include "list.h"
 #ifdef DISABLER
 #include "dbl_list.h"
 #endif
+#include <system.h>
+#include <libFreeWRL.h>
+#include <pthread.h>
 #include <threads.h> //for threads
-#include "vrml_parser/Structs.h" //for SFColor
-#include "x3d_parser/X3DParser.h" //for PARENTSTACKSIZE
-#include "ui/common.h" // for ppcommon
+#define GLenum int
+#define GLuint unsigned int
+//#include "vrml_parser/Structs.h" //for SFColor
+//#include "x3d_parser/X3DParser.h" //for PARENTSTACKSIZE
+//#include "ui/common.h" // for ppcommon
 
 
 
@@ -60,7 +65,8 @@ typedef struct iiglobal //InstanceGlobal
 		int shutterGlasses;// = 0; /* stereo shutter glasses */
 		int quadbuff_stereo_mode;// = 0;
 
-		s_renderer_capabilities_t rdr_caps;
+		//s_renderer_capabilities_t rdr_caps;
+		void *rdr_caps;
 
 		float myFps;// = (float) 0.0;
 		char myMenuStatus[MAXSTAT];
@@ -79,7 +85,8 @@ typedef struct iiglobal //InstanceGlobal
 	//	void *prv;
 	//} io_http;
 	struct tresources {
-		resource_item_t *root_res; // = NULL;
+		//resource_item_t *root_res; // = NULL;
+		void *root_res;
 		void *prv;
 	} resources;
 	struct tthreads {
@@ -386,11 +393,16 @@ iOLDCODE	}Component_Networking;
 		void *prv;
 	}jsVRMLClasses;
 	struct tBindable{
-		struct sNaviInfo naviinfo;
-        	struct Vector *background_stack;
-        	struct Vector *viewpoint_stack;
-        	struct Vector *navigation_stack;
-        	struct Vector *fog_stack;
+		//struct sNaviInfo naviinfo;
+  //      struct Vector *background_stack;
+  //      struct Vector *viewpoint_stack;
+  //      struct Vector *navigation_stack;
+  //      struct Vector *fog_stack;
+		void *naviinfo;
+        void *background_stack;
+        void *viewpoint_stack;
+        void *navigation_stack;
+        void *fog_stack;
 		void *prv;
 	}Bindable;
 	struct tX3DParser{

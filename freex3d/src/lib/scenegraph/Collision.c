@@ -652,12 +652,16 @@ struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ 
 	int hit,i;
 	double tmin[3],tmax[3]; /* MBB for facet */
 	struct sFallInfo *fi;
+	struct sNaviInfo *naviinfo;
+	ppcollision pp;
 	ttglobal tg = gglobal();
-	GLDOUBLE awidth = tg->Bindable.naviinfo.width; /*avatar width*/
-	GLDOUBLE atop = tg->Bindable.naviinfo.width; /*top of avatar (relative to eyepoint)*/
-	GLDOUBLE abottom = -tg->Bindable.naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-	GLDOUBLE astep = -tg->Bindable.naviinfo.height+tg->Bindable.naviinfo.step;
-	ppcollision pp = (ppcollision)tg->collision.prv;
+	naviinfo = (struct sNaviInfo *)tg->Bindable.naviinfo;
+	GLDOUBLE awidth = naviinfo->width; /*avatar width*/
+	GLDOUBLE atop = naviinfo->width; /*top of avatar (relative to eyepoint)*/
+	GLDOUBLE abottom = -naviinfo->height; /*bottom of avatar (relative to eyepoint)*/
+	GLDOUBLE astep = -naviinfo->height+naviinfo->step;
+	pp = (ppcollision)tg->collision.prv;
+
 	result = zero;
 	pp->get_poly_mindisp = 0.0;
 	fi = FallInfo();
@@ -1952,56 +1956,58 @@ static void get_collisionoffset(double *x, double *y, double *z)
 {
 	struct sCollisionInfo *ci;
 	struct sFallInfo *fi;
-		struct point_XYZ xyz;
-        struct point_XYZ res;
-		ttglobal tg = gglobal();
-		ci = CollisionInfo();
-		fi = FallInfo();
-		res = ci->Offset;
-		/* collision.offset should be in collision space coordinates: fly/examine: avatar space, walk: BVVA space */
-        /* uses mean direction, with maximum distance */
+	struct sNaviInfo *naviinfo;
+	struct point_XYZ xyz;
+	struct point_XYZ res;
+	ttglobal tg = gglobal();
+	ci = CollisionInfo();
+	fi = FallInfo();
+	naviinfo = (struct sNaviInfo*)tg->Bindable.naviinfo;
+	res = ci->Offset;
+	/* collision.offset should be in collision space coordinates: fly/examine: avatar space, walk: BVVA space */
+	/* uses mean direction, with maximum distance */
 
-		/* xyz is in collision space- fly/examine: avatar space, walk: BVVA space */
-		xyz.x = xyz.y = xyz.z = 0.0;
+	/* xyz is in collision space- fly/examine: avatar space, walk: BVVA space */
+	xyz.x = xyz.y = xyz.z = 0.0;
 
-		if(ci->Count > 0 && !APPROX(vecnormal(&res, &res),0.0) )
-				vecscale(&xyz, &res, sqrt(ci->Maximum2));
+	if(ci->Count > 0 && !APPROX(vecnormal(&res, &res),0.0) )
+			vecscale(&xyz, &res, sqrt(ci->Maximum2));
 
-		/* for WALK + collision */
-		if(fi->walking)
+	/* for WALK + collision */
+	if(fi->walking)
+	{
+		if(fi->canFall && fi->isFall ) 
 		{
-			if(fi->canFall && fi->isFall ) 
-			{
-				/* canFall == true if we aren't climbing, isFall == true if there's no climb, and there's geom to fall to  */
-				double floatfactor = .1;
-				if(fi->allowClimbing) floatfactor = 0.0; /*popcycle method */
-				if(fi->smoothStep)
-					xyz.y = DOUBLE_MAX(fi->hfall,-fi->fallStep) + tg->Bindable.naviinfo.height*floatfactor; 
-				else
-					xyz.y = fi->hfall + tg->Bindable.naviinfo.height*floatfactor; //.1; 
+			/* canFall == true if we aren't climbing, isFall == true if there's no climb, and there's geom to fall to  */
+			double floatfactor = .1;
+			if(fi->allowClimbing) floatfactor = 0.0; /*popcycle method */
+			if(fi->smoothStep)
+				xyz.y = DOUBLE_MAX(fi->hfall,-fi->fallStep) + naviinfo->height*floatfactor; 
+			else
+				xyz.y = fi->hfall + naviinfo->height*floatfactor; //.1; 
 
-			}
-			if(fi->isClimb && fi->allowClimbing)
-			{
-				/* stepping up normally handled by cyclindrical collision, but there are settings to use this climb instead */
-				if(fi->smoothStep)
-					xyz.y = DOUBLE_MIN(fi->hclimb,fi->fallStep);
-				else
-					xyz.y = fi->hclimb; 
-			}
-			if(fi->isPenetrate)
-			{
-				/*over-ride everything else*/
-				xyz = fi->pencorrection;
-			}
 		}
-		/* now convert collision-space deltas to avatar space via collision2avatar- fly/examine: identity (do nothing), walk:BVVA2A */
-		transform3x3(&xyz,&xyz,fi->collision2avatar);
-		/* now xyz is in avatar space, ready to be added to avatar viewer.pos */
-		*x = xyz.x;
-		*y = xyz.y;
-		*z = xyz.z;
-		/* another transform possible: from avatar space into navigation space. fly/examine: identity walk: A2BVVA*/
+		if(fi->isClimb && fi->allowClimbing)
+		{
+			/* stepping up normally handled by cyclindrical collision, but there are settings to use this climb instead */
+			if(fi->smoothStep)
+				xyz.y = DOUBLE_MIN(fi->hclimb,fi->fallStep);
+			else
+				xyz.y = fi->hclimb; 
+		}
+		if(fi->isPenetrate)
+		{
+			/*over-ride everything else*/
+			xyz = fi->pencorrection;
+		}
+	}
+	/* now convert collision-space deltas to avatar space via collision2avatar- fly/examine: identity (do nothing), walk:BVVA2A */
+	transform3x3(&xyz,&xyz,fi->collision2avatar);
+	/* now xyz is in avatar space, ready to be added to avatar viewer.pos */
+	*x = xyz.x;
+	*y = xyz.y;
+	*z = xyz.z;
+	/* another transform possible: from avatar space into navigation space. fly/examine: identity walk: A2BVVA*/
 }
 struct point_XYZ viewer_get_lastP();
 void render_collisions(int Viewer_type) {

@@ -1428,7 +1428,7 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
     FREE_IF_NZ(url.p);
     url.p = NULL;
     url.n = 0;
-	resource_identify(gglobal()->resources.root_res, res);
+	resource_identify((resource_item_t*)gglobal()->resources.root_res, res);
 
 	if (res->type != rest_invalid) {
 #ifdef HAD_RESOURCE_LOAD

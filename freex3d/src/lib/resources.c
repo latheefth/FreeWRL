@@ -118,12 +118,12 @@ static void resource_tree_append(resource_item_t *item){
 
 	if (!gglobal()->resources.root_res) {
 		/* This is the first resource we try to load */
-		gglobal()->resources.root_res = item;
+		gglobal()->resources.root_res = (void*)item;
 		DEBUG_RES("setting root_res in resource_create_single for file %s\n",request);
 	} else {
 		/* Not the first, so keep it in the main list */
-		gglobal()->resources.root_res->children = ml_append(gglobal()->resources.root_res->children, ml_new(item));
-		item->parent = gglobal()->resources.root_res;
+		((resource_item_t*)gglobal()->resources.root_res)->children = ml_append(((resource_item_t*)gglobal()->resources.root_res)->children, ml_new(item));
+		item->parent = (resource_item_t*)gglobal()->resources.root_res;
 	}
 
 	/* Unlock the resource tree mutex */
@@ -1019,14 +1019,14 @@ void resource_remove_child(resource_item_t *parent, resource_item_t *child)
  */
 void destroy_root_res()
 {
-	resource_destroy(gglobal()->resources.root_res);
+	resource_destroy((resource_item_t*)gglobal()->resources.root_res);
 	gglobal()->resources.root_res = NULL;
 }
 
 void resource_tree_destroy()
 {
 	resource_item_t* root;
-	root = gglobal()->resources.root_res;
+	root = (resource_item_t*)gglobal()->resources.root_res;
 	if(root){
 		ml_foreach(root->children,resource_close_files((resource_item_t*)ml_elem(__l)));
 		ml_foreach(root->children,resource_unlink_cachedfiles((resource_item_t*)ml_elem(__l)));
@@ -1384,7 +1384,7 @@ static void possiblyUnzip (openned_file_t *of) {
 
 bool resource_is_root_loaded()
 {
-	return ((gglobal()->resources.root_res != NULL) && (gglobal()->resources.root_res->status == ress_parsed));
+	return ((gglobal()->resources.root_res != NULL) && (((resource_item_t*)gglobal()->resources.root_res)->status == ress_parsed));
 }
 
 /**

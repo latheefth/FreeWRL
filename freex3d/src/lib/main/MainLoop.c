@@ -3128,8 +3128,8 @@ void fwl_do_keyPress0(int key, int type) {
 				case '+': { dump_scenegraph(4); break; }
 				case '-': { dump_scenegraph(5); break; }
 				case '`': { toggleLogfile(); break; }
-				case '$': resource_tree_dump(0, tg->resources.root_res); break;
-				case '*': resource_tree_list_files(0, tg->resources.root_res); break;
+				case '$': resource_tree_dump(0, (resource_item_t*)tg->resources.root_res); break;
+				case '*': resource_tree_list_files(0, (resource_item_t*)tg->resources.root_res); break;
 				case 'q': { if (!RUNNINGASPLUGIN) {
 							fwl_doQuit();
 							}
@@ -4399,7 +4399,7 @@ void doReplaceWorldRequest()
 		tg->Mainloop.replaceWorldRequestMulti = NULL;
 		//kill_oldWorldB(__FILE__, __LINE__);
 		resm->new_root = true;
-		gglobal()->resources.root_res = resm;
+		gglobal()->resources.root_res = (void*)resm;
 		//send_resource_to_parser_async(resm);
 		resitem_enqueue(ml_new(resm));
 	}

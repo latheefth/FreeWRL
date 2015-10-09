@@ -40,6 +40,7 @@ CProto ???
 #include "LinearAlgebra.h"
 #include "quaternion.h"
 #include "Viewer.h"
+#include "ui/common.h" // for ppcommon
 
 //moved to libfreewrl.h
 //enum {
@@ -273,10 +274,10 @@ void printStatsRoutes()
 void printStatsBindingStacks()
 {
 	ttglobal tg = gglobal();
-	ConsoleMessage("%25s %d\n","Background stack count", tg->Bindable.background_stack->n);
-	ConsoleMessage("%25s %d\n","Fog stack count", tg->Bindable.fog_stack->n);
-	ConsoleMessage("%25s %d\n","Navigation stack count", tg->Bindable.navigation_stack->n);	
-	ConsoleMessage("%25s %d\n","Viewpoint stack count", tg->Bindable.viewpoint_stack->n);	
+	ConsoleMessage("%25s %d\n","Background stack count", ((struct Vector *)tg->Bindable.background_stack)->n);
+	ConsoleMessage("%25s %d\n","Fog stack count", ((struct Vector *)tg->Bindable.fog_stack)->n);
+	ConsoleMessage("%25s %d\n","Navigation stack count", ((struct Vector *)tg->Bindable.navigation_stack)->n);	
+	ConsoleMessage("%25s %d\n","Viewpoint stack count", ((struct Vector *)tg->Bindable.viewpoint_stack)->n);	
 }
 void printStatsResources();
 void printStatsEvents();
@@ -2798,10 +2799,13 @@ void viewer_postGLinit_init(void)
 
 //#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
 	int type;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	s_renderer_capabilities_t *rdr_caps;
+    ttglobal tg = gglobal();
+	ppViewer p = (ppViewer)tg->Viewer.prv;
+	rdr_caps = tg->display.rdr_caps;
     
     // see if we can use quad buffer here or not.
-    p->Viewer.haveQuadbuffer = (gglobal()->display.rdr_caps.quadBuffer== GL_TRUE);
+    p->Viewer.haveQuadbuffer = (rdr_caps->quadBuffer== GL_TRUE);
     
     //if (p->Viewer.haveQuadbuffer) ConsoleMessage ("viewer_postGLinit_init, HAVE quad buffer"); else ConsoleMessage ("viewer_postGLinit, no quad buffer");
     

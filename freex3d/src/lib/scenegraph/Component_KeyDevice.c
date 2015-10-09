@@ -40,7 +40,7 @@ X3D Key Device Component
 #include "../vrml_parser/CRoutes.h"
 
 #include "Component_KeyDevice.h"
-
+#include "ui/common.h" // for ppcommon
 /*
 I'll leave off comments about the validity of this part of the spec - it does
 not seem well thought out. I'll leave off my comments on what I really think

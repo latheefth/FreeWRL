@@ -2583,7 +2583,7 @@ void endExternProtoDeclare(void *ud) {
 		/* printf ("just scanned %d strings...\n",url.n); */
 
 		res = resource_create_multi(&url);
-		resource_identify(gglobal()->resources.root_res, res);
+		resource_identify((resource_item_t*)gglobal()->resources.root_res, res);
 		if (res->type != rest_invalid) {
 #ifdef HAD_RESOURCE_LOAD    //dug9 broke extern text protos here aug 2014 and reimplemented with different code as brotos in fall 2014
 			if (resource_fetch(res)) {

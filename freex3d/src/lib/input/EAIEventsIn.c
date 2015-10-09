@@ -477,11 +477,13 @@ void EAI_core_commands () {
 				break;
 				}
 			case GETRENDPROP: {
+				s_renderer_capabilities_t *rdr_caps;
 				ttglobal tg = gglobal();
+				rdr_caps = (s_renderer_capabilities_t *)tg->display.rdr_caps;
 				sprintf (th->outBuffer,"RE\n%f\n%d\n%s %dx%d %d %s %d %f",TickTime(),count,
 					"SMOOTH",				/* Shading */
-					tg->display.rdr_caps.system_max_texture_size, gglobal()->display.rdr_caps.runtime_max_texture_size, 	/* Texture size */	
-					tg->display.rdr_caps.texture_units,				/* texture units */
+					rdr_caps->system_max_texture_size, rdr_caps->runtime_max_texture_size, 	/* Texture size */	
+					rdr_caps->texture_units,				/* texture units */
 					"FALSE",				/* antialiased? */
 					tg->OpenGL_Utils.displayDepth,				/* bit depth of display */
 					256.0					/* amount of memory left on card -
