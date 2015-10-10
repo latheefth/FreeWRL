@@ -940,9 +940,10 @@ void render_ray_polyrep(void *node) {
 	
 	/* is this structure still loading? */
 	if (!node) return;
-	tg = gglobal();
-	VECCOPY(t_r1,tg->RenderFuncs.t_r1);
-	VECCOPY(t_r2,tg->RenderFuncs.t_r2);
+	//tg = gglobal();
+	//VECCOPY(t_r1,tg->RenderFuncs.t_r1);
+	//VECCOPY(t_r2,tg->RenderFuncs.t_r2);
+	get_current_ray(&t_r1, &t_r2);
 	//VECCOPY(t_r3,tg->RenderFuncs.t_r3);
 
 	//ray.x = t_r2.x - t_r1.x;

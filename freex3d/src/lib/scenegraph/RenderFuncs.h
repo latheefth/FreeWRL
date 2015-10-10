@@ -41,7 +41,7 @@ struct currayhit {
 	GLDOUBLE modelMatrix[16]; /* What the matrices were at that node */
 	GLDOUBLE projMatrix[16];
 };
-
+void get_current_ray(struct point_XYZ* p1, struct point_XYZ* p2);
 extern struct point_XYZ r1, r2;         /* in VRMLC.pm */
 
 

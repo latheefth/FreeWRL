@@ -2065,8 +2065,10 @@ void rendray_Sphere (struct X3D_Sphere *node) {
 	struct point_XYZ dr2r1;
 	float dlen;
 	float a,b,c,disc;
-	VECCOPY(t_r1,tg->RenderFuncs.t_r1);
-	VECCOPY(t_r2,tg->RenderFuncs.t_r2);
+	//VECCOPY(t_r1,tg->RenderFuncs.t_r1);
+	//VECCOPY(t_r2,tg->RenderFuncs.t_r2);
+	get_current_ray(&t_r1, &t_r2);
+
 	tr1sq = (float) VECSQ(t_r1);
 
 	VECDIFF(t_r2,t_r1,dr2r1);
@@ -2110,8 +2112,9 @@ void rendray_Box (struct X3D_Box *node) {
 	float x,y,z;
 	struct point_XYZ t_r1,t_r2;
 	ttglobal tg = gglobal();
-	VECCOPY(t_r1,tg->RenderFuncs.t_r1);
-	VECCOPY(t_r2,tg->RenderFuncs.t_r2);
+	//VECCOPY(t_r1,tg->RenderFuncs.t_r1);
+	//VECCOPY(t_r2,tg->RenderFuncs.t_r2);
+	get_current_ray(&t_r1, &t_r2);
 
 	x = ((node->size).c[0])/2;
 	y = ((node->size).c[1])/2;
@@ -2207,8 +2210,9 @@ void rendray_Cylinder (struct X3D_Cylinder *node) {
 	float h,r,y;
 	struct point_XYZ t_r1,t_r2;
 	ttglobal tg = gglobal();
-	VECCOPY(t_r1,tg->RenderFuncs.t_r1);
-	VECCOPY(t_r2,tg->RenderFuncs.t_r2);
+	//VECCOPY(t_r1,tg->RenderFuncs.t_r1);
+	//VECCOPY(t_r2,tg->RenderFuncs.t_r2);
+	get_current_ray(&t_r1, &t_r2);
 
 	h = (node->height) /*cget*//2; /* pos and neg dir. */
 	r = (node->radius) /*cget*/;
@@ -2266,8 +2270,9 @@ void rendray_Cone (struct X3D_Cone *node) {
 	float h,y,r,dx,dy,dz,a,b,c,tmp,und;
 	struct point_XYZ t_r1,t_r2;
 	ttglobal tg = gglobal();
-	VECCOPY(t_r1,tg->RenderFuncs.t_r1);
-	VECCOPY(t_r2,tg->RenderFuncs.t_r2);
+	//VECCOPY(t_r1,tg->RenderFuncs.t_r1);
+	//VECCOPY(t_r2,tg->RenderFuncs.t_r2);
+	get_current_ray(&t_r1, &t_r2);
 
 	h = (node->height) /*cget*//2; /* pos and neg dir. */
 	y = h;

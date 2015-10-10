@@ -323,7 +323,8 @@ iOLDCODE	}Component_Networking;
 		void *prv;
 		void *rayHit;
 		void *rayHitHyper;
-		struct point_XYZ t_r1,t_r2,t_r3; /* transformed ray */
+		//struct point_XYZ t_r1,t_r2,t_r3; /* transformed ray */
+		//void *t_r123; /* transformed ray */
 		int usingAffinePickmatrix; /*instead of GLU_UNPROJECT feature-AFFINE_GLU_UNPROJECT*/
 		int	lightingOn;		/* do we need to restore lighting in Shape? */
 		int	have_transparency;//=FALSE;/* did any Shape have transparent material? */

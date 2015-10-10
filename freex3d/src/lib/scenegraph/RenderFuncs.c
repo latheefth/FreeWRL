@@ -111,6 +111,10 @@ typedef struct pRenderFuncs{
 	Stack *render_geom_stack;
 	Stack *sensor_stack;
 	Stack *ray_stack;
+
+	//struct point_XYZ t_r1,t_r2,t_r3; /* transformed ray */
+	struct point_XYZ3 t_r123;
+
 }* ppRenderFuncs;
 void *RenderFuncs_constructor(){
 	void *v = MALLOCV(sizeof(struct pRenderFuncs));
@@ -158,7 +162,7 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 		p->render_geom_stack = newStack(int);
 		p->sensor_stack = newStack(struct currayhit);
 		p->ray_stack = newStack(struct point_XYZ3);
-
+		//t->t_r123 = (void *)&p->t_r123;
 	}
 
 	//setLightType(HEADLIGHT_LIGHT,2); // ensure that this is a DirectionalLight.
@@ -1015,13 +1019,15 @@ for (i=0; i<16; i++) printf ("%4.3lf ",projMatrix[i]); printf ("\n");
 }
 void upd_ray() {
 	struct point_XYZ t_r1,t_r2,t_r3;
+	ppRenderFuncs p;
 	ttglobal tg = gglobal();
+	p = (ppRenderFuncs)tg->RenderFuncs.prv;
 
-	upd_ray0(&t_r1,&t_r2,&t_r3);
-	VECCOPY(tg->RenderFuncs.t_r1,t_r1);
-	VECCOPY(tg->RenderFuncs.t_r2,t_r2);
-	VECCOPY(tg->RenderFuncs.t_r3,t_r3);
-
+	//upd_ray0(&t_r1,&t_r2,&t_r3);
+	//VECCOPY(tg->RenderFuncs.t_r1,t_r1);
+	//VECCOPY(tg->RenderFuncs.t_r2,t_r2);
+	//VECCOPY(tg->RenderFuncs.t_r3,t_r3);
+	upd_ray0(&p->t_r123.p1,&p->t_r123.p2,&p->t_r123.p3);
 	/*
 	printf("Upd_ray: (%f %f %f)->(%f %f %f) == (%f %f %f)->(%f %f %f)\n",
 	r1.x,r1.y,r1.z,r2.x,r2.y,r2.z,
@@ -1268,34 +1274,43 @@ void profile_print_all(){
 //};
 void push_ray(){
 	//upd_ray();
-	struct point_XYZ t_r1,t_r2,t_r3;
-	struct point_XYZ3 r123;
+	//struct point_XYZ t_r1,t_r2,t_r3;
+	//struct point_XYZ3 r123;
 	ttglobal tg = gglobal();
 	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
-	r123.p1 = tg->RenderFuncs.t_r1;
-	r123.p2 = tg->RenderFuncs.t_r2;
-	r123.p3 = tg->RenderFuncs.t_r3;
+	//r123.p1 = tg->RenderFuncs.t_r1;
+	//r123.p2 = tg->RenderFuncs.t_r2;
+	//r123.p3 = tg->RenderFuncs.t_r3;
 
-	stack_push(struct point_XYZ3,p->ray_stack,r123);
+	//stack_push(struct point_XYZ3,p->ray_stack,r123);
+	stack_push(struct point_XYZ3,p->ray_stack,p->t_r123);
 
-	upd_ray0(&t_r1,&t_r2,&t_r3);
-	VECCOPY(tg->RenderFuncs.t_r1,t_r1);
-	VECCOPY(tg->RenderFuncs.t_r2,t_r2);
-	VECCOPY(tg->RenderFuncs.t_r3,t_r3);
+	//upd_ray0(&t_r1,&t_r2,&t_r3);
+	//VECCOPY(tg->RenderFuncs.t_r1,t_r1);
+	//VECCOPY(tg->RenderFuncs.t_r2,t_r2);
+	//VECCOPY(tg->RenderFuncs.t_r3,t_r3);
+	upd_ray0(&p->t_r123.p1,&p->t_r123.p2,&p->t_r123.p3);
 
 }
 void pop_ray(){
-	struct point_XYZ t_r1,t_r2,t_r3;
-	struct point_XYZ3 r123;
+	//struct point_XYZ t_r1,t_r2,t_r3;
+	//struct point_XYZ3 r123;
 	ttglobal tg = gglobal();
 	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
 	//upd_ray();
-	r123 = stack_top(struct point_XYZ3,p->ray_stack);
+	//r123 = stack_top(struct point_XYZ3,p->ray_stack);
+	p->t_r123 = stack_top(struct point_XYZ3,p->ray_stack);
 	stack_pop(struct point_XYZ3,p->ray_stack);
-	tg->RenderFuncs.t_r1 = r123.p1;
-	tg->RenderFuncs.t_r2 = r123.p2;
-	tg->RenderFuncs.t_r3 = r123.p3;
+	//tg->RenderFuncs.t_r1 = r123.p1;
+	//tg->RenderFuncs.t_r2 = r123.p2;
+	//tg->RenderFuncs.t_r3 = r123.p3;
 
+}
+void get_current_ray(struct point_XYZ* p1, struct point_XYZ* p2){
+	ttglobal tg = gglobal();
+	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
+	*p1 = p->t_r123.p1;
+	*p2 = p->t_r123.p2;
 }
 void push_render_geom(int igeom){
 	ttglobal tg = gglobal();
@@ -1493,8 +1508,8 @@ void render_node(struct X3D_Node *node) {
 
     if((p->renderstate.render_sensitive) && (tg->RenderFuncs.hypersensitive == node)) {
 		DEBUG_RENDER("rs 7\n");
-		p->hyper_r1 = tg->RenderFuncs.t_r1;
-		p->hyper_r2 = tg->RenderFuncs.t_r2;
+		p->hyper_r1 = p->t_r123.p1; //tg->RenderFuncs.t_r1;
+		p->hyper_r2 = p->t_r123.p2; //tg->RenderFuncs.t_r2;
 		tg->RenderFuncs.hyperhit = 1;
     }
 
