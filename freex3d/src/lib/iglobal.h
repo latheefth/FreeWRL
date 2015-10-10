@@ -316,12 +316,12 @@ iOLDCODE	}Component_Networking;
 		int BrowserAction;// = FALSE;
 		double hitPointDist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
 		/* used to save rayhit and hyperhit for later use by C functions */
-		struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
+		//struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
+		float hyp_save_posn[3], hyp_save_norm[3], ray_save_posn[3];
 		void *hypersensitive;//= 0; 
 		int hyperhit;// = 0;
 		//struct point_XYZ hp;
 		void *hp;
-		void *prv;
 		void *rayHit;
 		void *rayHitHyper;
 		//struct point_XYZ t_r1,t_r2,t_r3; /* transformed ray */
@@ -335,6 +335,7 @@ iOLDCODE	}Component_Networking;
 		/* texture stuff - see code. Need array because of MultiTextures */
 		GLuint boundTextureStack[10];//MAX_MULTITEXTURE];
 		int textureStackTop;
+		void *prv;
 	}RenderFuncs;
 	struct tStreamPoly{
 		void *prv;

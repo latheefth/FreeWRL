@@ -2654,9 +2654,9 @@ void do_GeoTouchSensor ( void *ptr, int ev, int but1, int over) {
 	}
 
 	/* have to normalize normal; change it from SFColor to struct point_XYZ. */
-	normalval.x = tg->RenderFuncs.hyp_save_norm.c[0];
-	normalval.y = tg->RenderFuncs.hyp_save_norm.c[1];
-	normalval.z = tg->RenderFuncs.hyp_save_norm.c[2];
+	normalval.x = tg->RenderFuncs.hyp_save_norm[0];
+	normalval.y = tg->RenderFuncs.hyp_save_norm[1];
+	normalval.z = tg->RenderFuncs.hyp_save_norm[2];
 	normalize_vector(&normalval);
 	node->_oldhitNormal.c[0] = (float) normalval.x;
 	node->_oldhitNormal.c[1] = (float) normalval.y;

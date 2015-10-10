@@ -1275,9 +1275,9 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 		}
 
 		/* have to normalize normal; change it from SFColor to struct point_XYZ. */
-		normalval.x = tg->RenderFuncs.hyp_save_norm.c[0];
-		normalval.y = tg->RenderFuncs.hyp_save_norm.c[1];
-		normalval.z = tg->RenderFuncs.hyp_save_norm.c[2];
+		normalval.x = tg->RenderFuncs.hyp_save_norm[0];
+		normalval.y = tg->RenderFuncs.hyp_save_norm[1];
+		normalval.z = tg->RenderFuncs.hyp_save_norm[2];
 		normalize_vector(&normalval);
 		node->_oldhitNormal.c[0] = (float) normalval.x;
 		node->_oldhitNormal.c[1] = (float) normalval.y;
@@ -1346,9 +1346,9 @@ void do_LineSensor(void *ptr, int ev, int but1, int over) {
 		float tt;
 		float origin [] = { 0.0f, 0.0f, 0.0f };
 		float footpoint2[3], footpoint1[3], v1[3]; //, temp[3], temp2[3];
-		vecdif3f(v1, tg->RenderFuncs.hyp_save_norm.c, tg->RenderFuncs.hyp_save_posn.c);
+		vecdif3f(v1, tg->RenderFuncs.hyp_save_norm, tg->RenderFuncs.hyp_save_posn);
 		vecnormalize3f(v1, v1);
-		if (!line_intersect_line_3f(tg->RenderFuncs.hyp_save_posn.c, v1,
+		if (!line_intersect_line_3f(tg->RenderFuncs.hyp_save_posn, v1,
 			origin, node->direction.c, NULL, &tt, footpoint1, footpoint2)) 
 			return; //no intersection, lines are parallel
 		//footpoint1 - closest point of intersection on the A'B' bearing
@@ -1505,12 +1505,12 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 		float NS[3]; //plane normal, in sensor-local after axisRotation
 		//bearing (A,B) in sensor-local
 		// A=posn, B=norm - norm is a point. To get a direction vector v = (B - A)
-		vecnormalize3f(v, vecdif3f(t1, tg->RenderFuncs.hyp_save_norm.c, tg->RenderFuncs.hyp_save_posn.c));
+		vecnormalize3f(v, vecdif3f(t1, tg->RenderFuncs.hyp_save_norm, tg->RenderFuncs.hyp_save_posn));
 		//rotate plane normal N, in plane-local to plane normal NS in sensor-local using axisRotation
 		axisangle_rotate3f(NS,N, node->axisRotation.c);
 		//a plane P dot N = d = const, for any point P on plane. Our plane is in plane-local coords, 
 		// so we could use P={0,0,0} and P dot N = d = 0
-		if (!line_intersect_planed_3f(tg->RenderFuncs.hyp_save_posn.c, v, NS, 0.0f, trackpoint, NULL))
+		if (!line_intersect_planed_3f(tg->RenderFuncs.hyp_save_posn, v, NS, 0.0f, trackpoint, NULL))
 			return; //looking at plane edge-on / parallel, no intersection
 		axisangle_rotate3f(trackpoint, trackpoint, node->axisRotation.c);
 	}
@@ -1532,10 +1532,10 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 		/* hyperhit saved in render_hypersensitive phase */
 		if (imethod==0){
 			//this is ray intersect plane code, for plane Z=0
-			mult = (node->_origPoint.c[2] - tg->RenderFuncs.hyp_save_posn.c[2]) /
-				(tg->RenderFuncs.hyp_save_norm.c[2] - tg->RenderFuncs.hyp_save_posn.c[2]);
-			nx = tg->RenderFuncs.hyp_save_posn.c[0] + mult * (tg->RenderFuncs.hyp_save_norm.c[0] - tg->RenderFuncs.hyp_save_posn.c[0]);
-			ny = tg->RenderFuncs.hyp_save_posn.c[1] + mult * (tg->RenderFuncs.hyp_save_norm.c[1] - tg->RenderFuncs.hyp_save_posn.c[1]);
+			mult = (node->_origPoint.c[2] - tg->RenderFuncs.hyp_save_posn[2]) /
+				(tg->RenderFuncs.hyp_save_norm[2] - tg->RenderFuncs.hyp_save_posn[2]);
+			nx = tg->RenderFuncs.hyp_save_posn[0] + mult * (tg->RenderFuncs.hyp_save_norm[0] - tg->RenderFuncs.hyp_save_posn[0]);
+			ny = tg->RenderFuncs.hyp_save_posn[1] + mult * (tg->RenderFuncs.hyp_save_norm[1] - tg->RenderFuncs.hyp_save_posn[1]);
 		}
 		if (imethod==1){
 			nx = trackpoint[0]; ny = trackpoint[1];
@@ -1663,10 +1663,10 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 		/*precompute some values for mouse-down, mouse-move*/
 		//convert all almost-sensor-local points into sensor-local 
 		//(the axisRotation never gets applied in the modelview transform stack - if that changes in the future, then don't need these)
-		axisangle_rotate3f(as, tg->RenderFuncs.hyp_save_posn.c, node->axisRotation.c);
-		axisangle_rotate3f(bs, tg->RenderFuncs.hyp_save_norm.c, node->axisRotation.c);
+		axisangle_rotate3f(as, tg->RenderFuncs.hyp_save_posn, node->axisRotation.c);
+		axisangle_rotate3f(bs, tg->RenderFuncs.hyp_save_norm, node->axisRotation.c);
 		vecnormalize3f(v, vecdif3f(v, bs, as));
-		axisangle_rotate3f(rps,tg->RenderFuncs.ray_save_posn.c, node->axisRotation.c);
+		axisangle_rotate3f(rps,tg->RenderFuncs.ray_save_posn, node->axisRotation.c);
 
 	}
 	if (ev==ButtonPress) {
@@ -1716,9 +1716,9 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
     	/* record the current Radius */
 		if (imethod == 0)
 		{
-			node->_radius = tg->RenderFuncs.ray_save_posn.c[0] * tg->RenderFuncs.ray_save_posn.c[0] +
-				tg->RenderFuncs.ray_save_posn.c[1] * tg->RenderFuncs.ray_save_posn.c[1] +
-				tg->RenderFuncs.ray_save_posn.c[2] * tg->RenderFuncs.ray_save_posn.c[2];
+			node->_radius = tg->RenderFuncs.ray_save_posn[0] * tg->RenderFuncs.ray_save_posn[0] +
+				tg->RenderFuncs.ray_save_posn[1] * tg->RenderFuncs.ray_save_posn[1] +
+				tg->RenderFuncs.ray_save_posn[2] * tg->RenderFuncs.ray_save_posn[2];
 
 			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 			/*
@@ -1780,9 +1780,9 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 		if (imethod==0)
 		{
 			dir1.w = 0;
-			dir1.x = tg->RenderFuncs.ray_save_posn.c[0];
+			dir1.x = tg->RenderFuncs.ray_save_posn[0];
 			dir1.y = 0;
-			dir1.z = tg->RenderFuncs.ray_save_posn.c[2];
+			dir1.z = tg->RenderFuncs.ray_save_posn[2];
 
 			if (node->_dlchange) {
 				radius = 1.0;  //disk
@@ -1907,9 +1907,9 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 #define NORM_ORIG_X node->_origNormalizedPoint.c[0]
 #define NORM_ORIG_Y node->_origNormalizedPoint.c[1]
 #define NORM_ORIG_Z node->_origNormalizedPoint.c[2]
-#define CUR_X  tg->RenderFuncs.ray_save_posn.c[0]
-#define CUR_Y  tg->RenderFuncs.ray_save_posn.c[1]
-#define CUR_Z  tg->RenderFuncs.ray_save_posn.c[2]
+#define CUR_X  tg->RenderFuncs.ray_save_posn[0]
+#define CUR_Y  tg->RenderFuncs.ray_save_posn[1]
+#define CUR_Z  tg->RenderFuncs.ray_save_posn[2]
 #define NORM_CUR_X normalizedCurrentPoint.c[0]
 #define NORM_CUR_Y normalizedCurrentPoint.c[1]
 #define NORM_CUR_Z normalizedCurrentPoint.c[2]

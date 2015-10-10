@@ -3419,7 +3419,7 @@ struct X3D_Node* getRayHit() {
 				x = tp.x; y = tp.y, z = tp.z;
 			}
             /* and save this globally */
-            tg->RenderFuncs.ray_save_posn.c[0] = (float) x; tg->RenderFuncs.ray_save_posn.c[1] = (float) y; tg->RenderFuncs.ray_save_posn.c[2] = (float) z;
+            tg->RenderFuncs.ray_save_posn[0] = (float) x; tg->RenderFuncs.ray_save_posn[1] = (float) y; tg->RenderFuncs.ray_save_posn[2] = (float) z;
 
             /* we POSSIBLY are over a sensitive node - lets go through the sensitive list, and see
                 if it exists */
@@ -3950,9 +3950,9 @@ static void get_hyperhit() {
         x1,y1,z1,x2,y2,z2,x3,y3,z3); 
 	
     /* and save this globally */
-    tg->RenderFuncs.hyp_save_posn.c[0] = (float) x1; tg->RenderFuncs.hyp_save_posn.c[1] = (float) y1; tg->RenderFuncs.hyp_save_posn.c[2] = (float) z1;
-    tg->RenderFuncs.hyp_save_norm.c[0] = (float) x2; tg->RenderFuncs.hyp_save_norm.c[1] = (float) y2; tg->RenderFuncs.hyp_save_norm.c[2] = (float) z2;
-    tg->RenderFuncs.ray_save_posn.c[0] = (float) x3; tg->RenderFuncs.ray_save_posn.c[1] = (float) y3; tg->RenderFuncs.ray_save_posn.c[2] = (float) z3;
+    tg->RenderFuncs.hyp_save_posn[0] = (float) x1; tg->RenderFuncs.hyp_save_posn[1] = (float) y1; tg->RenderFuncs.hyp_save_posn[2] = (float) z1;
+    tg->RenderFuncs.hyp_save_norm[0] = (float) x2; tg->RenderFuncs.hyp_save_norm[1] = (float) y2; tg->RenderFuncs.hyp_save_norm[2] = (float) z2;
+    tg->RenderFuncs.ray_save_posn[0] = (float) x3; tg->RenderFuncs.ray_save_posn[1] = (float) y3; tg->RenderFuncs.ray_save_posn[2] = (float) z3;
 }
 
 /* set stereo buffers, if required */
