@@ -624,7 +624,7 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 			something goes totally wrong.
 			Perhaps could be moved up a level, since mobile controls in frontend, but npapi and activex plugins also need displaythread  */
 #ifndef FRONTEND_HANDLES_DISPLAY_THREAD
-		if(!tg->display.params.frontend_handles_display_thread){
+		if(!((freewrl_params_t*)(tg->display.params))->frontend_handles_display_thread){
 			/* 	some users report their device overheats if frame rate is a zillion, so this will limit it to a target number
 				statusbarHud options has an option to set.
 				we see how long it took to do the last loop; now that the frame rate is synced to the
@@ -4235,7 +4235,7 @@ void fwl_initializeRenderSceneUpdateScene() {
 	viewer_postGLinit_init();
 
 #ifndef AQUA
-	if (tg->display.params.fullscreen && newResetGeometry != NULL) newResetGeometry();
+	if( ((freewrl_params_t*)(tg->display.params))->fullscreen && newResetGeometry != NULL) newResetGeometry();
 	#endif
 
 	/* printf ("fwl_initializeRenderSceneUpdateScene finish\n"); */
@@ -4599,7 +4599,7 @@ void outOfMemory(const char *msg) {
 void fwl_doQuitInstance()
 {
 #if !defined(FRONTEND_HANDLES_DISPLAY_THREAD)
-	if(!gglobal()->display.params.frontend_handles_display_thread)
+	if(!((freewrl_params_t*)(gglobal()->display.params))->frontend_handles_display_thread)
     	stopDisplayThread();
 #endif
     kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__); //must be done from this thread
@@ -5129,7 +5129,7 @@ void stopRenderingLoop(void) {
 	//printf ("stopRenderingLoop called\n");
 
 #if !defined(FRONTEND_HANDLES_DISPLAY_THREAD)
-	if(!tg->display.params.frontend_handles_display_thread)
+	if(!((freewrl_params_t*)(tg->display.params))->frontend_handles_display_thread)
     	stopDisplayThread();
 #endif
 

@@ -160,6 +160,7 @@ void EAIEventsIn_init(struct tEAIEventsIn* t)
  */
 typedef struct pEAICore{
 	pthread_mutex_t eaibufferlock;// = PTHREAD_MUTEX_INITIALIZER;
+	char EAIListenerData[8192]; //EAIREADSIZE]; 
 }* ppEAICore;
 
 void *EAICore_constructor()
@@ -174,6 +175,7 @@ void EAICore_init(struct tEAICore* t){
 	{
 		ppEAICore p = (ppEAICore)t->prv;
 		pthread_mutex_init(&(p->eaibufferlock), NULL);
+		t->EAIListenerData = p->EAIListenerData;
 	}
 	//public
 	t->EAIbufsize = EAIREADSIZE ;

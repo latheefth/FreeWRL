@@ -296,7 +296,7 @@ bool fwl_initFreeWRL(freewrl_params_t *params) {
 	/* Check parameters */
 	if (params) {
 		DEBUG_MSG("copying application supplied params...\n");
-		memcpy(&tg->display.params, params, sizeof(freewrl_params_t));
+		memcpy(tg->display.params, params, sizeof(freewrl_params_t));
 		//tg->display.win_height = params->height;// = 0; /* window */
 		//tg->display.win_width = params->width;// = 0;
 		//tg->display.winToEmbedInto = params->winToEmbedInto;// = -1;

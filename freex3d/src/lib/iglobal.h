@@ -19,8 +19,6 @@ Variable use:
 
 */
 
-#define MAXSTAT 200
-
 #ifndef INSTANCEGLOBAL
 //#include "display.h" //for opengl_utils.h which is for rdr_caps
 //#include "opengl/OpenGL_Utils.h"  //for rdr_caps
@@ -43,7 +41,8 @@ Variable use:
 typedef struct iiglobal //InstanceGlobal
 {
 	struct tdisplay{
-		freewrl_params_t params;
+		//freewrl_params_t params;
+		void *params;
 		GLenum _global_gl_err;
 		bool display_initialized;// = FALSE;
 
@@ -69,7 +68,7 @@ typedef struct iiglobal //InstanceGlobal
 		void *rdr_caps;
 
 		float myFps;// = (float) 0.0;
-		char myMenuStatus[MAXSTAT];
+		char *myMenuStatus;
 		void *prv;
 	}display;
 	struct tinternalc {
@@ -140,7 +139,7 @@ typedef struct iiglobal //InstanceGlobal
 		int EAIbufcount;				/* pointer into buffer*/
 		int EAIbufpos;
 		int EAIbufsize;				/* current size in bytes of input buffer*/
-		char EAIListenerData[8192]; //EAIREADSIZE]; /* this is the location for getting Listenered data back again.*/
+		char *EAIListenerData; /* this is the location for getting Listenered data back again.*/
 		void *prv;
 	} EAICore;
 	struct tSensInterps{
@@ -341,7 +340,8 @@ iOLDCODE	}Component_Networking;
 	struct tTess{
 		int *global_IFS_Coords;
 		int global_IFS_Coord_count;//=0;
-		GLUtriangulatorObj *global_tessobj;
+		//GLUtriangulatorObj *global_tessobj;
+		void *global_tessobj;
 		void *prv;
 	}Tess;
 	struct tViewer{

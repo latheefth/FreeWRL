@@ -64,8 +64,11 @@ int PaneClipChanged = FALSE;
 #endif
 #endif
 
+#define MAXSTAT 200
 typedef struct pdisplay{
+	freewrl_params_t params;
 	s_renderer_capabilities_t rdr_caps;
+	char myMenuStatus[MAXSTAT];
 }* ppdisplay;
 void *display_constructor(){
 	void *v = MALLOCV(sizeof(struct pdisplay));
@@ -78,14 +81,6 @@ void display_init(struct tdisplay* t)
 	//freewrl_params_t p = d->params;
 
 	t->display_initialized = FALSE;
-	t->params.height = 0; /* window */
-	t->params.width = 0;
-	t->params.winToEmbedInto = INT_ID_UNDEFINED;
-	t->params.fullscreen = FALSE;
-	t->params.xpos = 0;
-	t->params.ypos = 0;
-
-	t->params.frontend_handles_display_thread = FALSE;
 
 	t->view_height = 0; /* viewport */
 	t->view_width = 0;
@@ -106,6 +101,16 @@ void display_init(struct tdisplay* t)
 		ppdisplay p = (ppdisplay)t->prv;
 		memset(&p->rdr_caps,0,sizeof(s_renderer_capabilities_t));
 		t->rdr_caps = &p->rdr_caps;
+		t->myMenuStatus = p->myMenuStatus;
+		p->params.height = 0; /* window */
+		p->params.width = 0;
+		p->params.winToEmbedInto = INT_ID_UNDEFINED;
+		p->params.fullscreen = FALSE;
+		p->params.xpos = 0;
+		p->params.ypos = 0;
+		p->params.frontend_handles_display_thread = FALSE;
+
+		t->params = &p->params;
 	}
 }
 
@@ -159,7 +164,12 @@ int fv_display_initialize()
  */
 int fv_display_initialize()
 {
-	struct tdisplay* d = &gglobal()->display;
+	struct tdisplay* d;
+	ppdisplay p;
+	ttglobal tg = gglobal();
+	d = &tg->display;
+	p = (ppdisplay)tg->display.prv;
+
 #ifdef HAVE_OPENCL
 	struct tOpenCL_Utils *cl = &gglobal()->OpenCL_Utils;
 #endif //HAVE_OPENCL
@@ -190,13 +200,13 @@ int fv_display_initialize()
 
  #endif //!MSC_VER && ! any OpenGL ES 2.0 device
 
-	if (0 != d->screenWidth)  d->params.width  = d->screenWidth;
-	if (0 != d->screenHeight) d->params.height = d->screenHeight;
-	fv_setScreenDim(d->params.width,d->params.height); /* recompute screenRatio */
+	if (0 != d->screenWidth)  p->params.width  = d->screenWidth;
+	if (0 != d->screenHeight) p->params.height = d->screenHeight;
+	fv_setScreenDim(p->params.width,p->params.height); /* recompute screenRatio */
 
 	//snprintf(window_title, sizeof(window_title), "FreeWRL");
 
-	if (!fv_create_main_window(&d->params)){ //0 /*argc*/, NULL /*argv*/)) {
+	if (!fv_create_main_window(d->params)){ //0 /*argc*/, NULL /*argv*/)) {
 	//if (!fv_create_main_window((freewrl_params_t *)d)){ //0 /*argc*/, NULL /*argv*/)) {
 		return FALSE;
 	}
