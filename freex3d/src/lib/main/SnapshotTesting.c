@@ -17,6 +17,7 @@ void fwl_set_nameTest(char *nameTest)
 #else
 #include <stdio.h>
 #include <iglobal.h>
+#include <internal.h>
 #define FALSE 0
 #define TRUE 1
 
@@ -182,6 +183,7 @@ char *nameLogFileFolderTESTING(char *logfilename, int size){
 	}else{
 		nameLogFileFolderNORMAL(logfilename,size);
 	}
+	return logfilename;
 }
 
 

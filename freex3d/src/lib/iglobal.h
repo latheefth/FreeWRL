@@ -27,11 +27,11 @@ Variable use:
 #include "dbl_list.h"
 #endif
 #include <system.h>
-#include <libFreeWRL.h>
+//#include <libFreeWRL.h>
 #include <pthread.h>
 #include <threads.h> //for threads
-#define GLenum int
-#define GLuint unsigned int
+//#define GLenum int
+//#define GLuint unsigned int
 //#include "vrml_parser/Structs.h" //for SFColor
 //#include "x3d_parser/X3DParser.h" //for PARENTSTACKSIZE
 //#include "ui/common.h" // for ppcommon
@@ -43,7 +43,8 @@ typedef struct iiglobal //InstanceGlobal
 	struct tdisplay{
 		//freewrl_params_t params;
 		void *params;
-		GLenum _global_gl_err;
+		//GLenum _global_gl_err;
+		int _global_gl_err;
 		bool display_initialized;// = FALSE;
 
 		int view_height;// = 0; /* viewport */
@@ -242,10 +243,12 @@ typedef struct iiglobal //InstanceGlobal
 	}RenderTextures;
 	struct tTextures{
 		/* for texture remapping in TextureCoordinate nodes */
-		GLuint	*global_tcin;
+		//GLuint	*global_tcin;
+		unsigned int *global_tcin;
 		int	global_tcin_count;
 		void 	*global_tcin_lastParent;
-		GLuint defaultBlankTexture;
+		//GLuint defaultBlankTexture;
+		unsigned int defaultBlankTexture;
 		void *prv;
 	}Textures;
 	struct tPluginSocket{
@@ -333,7 +336,8 @@ iOLDCODE	}Component_Networking;
 		   and diffusecolor with texture, else, we dont bother with material colors */
 		int last_texture_type;// = NOTEXTURE;
 		/* texture stuff - see code. Need array because of MultiTextures */
-		GLuint boundTextureStack[10];//MAX_MULTITEXTURE];
+		//GLuint boundTextureStack[10];//MAX_MULTITEXTURE];
+		unsigned int boundTextureStack[10];//MAX_MULTITEXTURE];
 		int textureStackTop;
 		void *prv;
 	}RenderFuncs;
