@@ -3370,7 +3370,7 @@ int getRayHitAndSetLookatTarget() {
 			} else if(Viewer()->type == VIEWER_EXPLORE){
 				//use the pickpoint (think of a large, continuous geospatial terrain shape,
 				// and you want to examine a specific geographic point on that shape)
-				pointxyz2double(center,&tg->RenderFuncs.hp);
+				pointxyz2double(center,tg->RenderFuncs.hp);
 				transformAFFINEd(center,center,getPickrayMatrix(0));
 				pivot_radius = 0.0;
 				vp_radius = .8 * veclengthd(center);
@@ -3394,7 +3394,8 @@ struct X3D_Node* getRayHit() {
 			if (rh->hitNode == NULL) return NULL;  //this prevents unnecessary matrix inversion non-singularity
 
 			if(!tg->RenderFuncs.usingAffinePickmatrix){
-				FW_GLU_UNPROJECT(tg->RenderFuncs.hp.x,tg->RenderFuncs.hp.y,tg->RenderFuncs.hp.z,rh->modelMatrix,rh->projMatrix,viewport,&x,&y,&z);
+				struct point_XYZ *hp = (struct point_XYZ*)tg->RenderFuncs.hp;
+				FW_GLU_UNPROJECT(hp->x,hp->y,z,rh->modelMatrix,rh->projMatrix,viewport,&x,&y,&z);
 			}
 			if(tg->RenderFuncs.usingAffinePickmatrix){
 				GLDOUBLE mvp[16], mvpi[16];
@@ -3414,7 +3415,7 @@ struct X3D_Node* getRayHit() {
 					matmultiplyAFFINE(mvpi,pickMatrix,mvi);
 				}
 		
-				transform(&tp,&tg->RenderFuncs.hp,mvpi);
+				transform(&tp,tg->RenderFuncs.hp,mvpi);
 				x = tp.x; y = tp.y, z = tp.z;
 			}
             /* and save this globally */
@@ -3893,6 +3894,7 @@ static void get_hyperhit() {
 	*/
 
 	if(!tg->RenderFuncs.usingAffinePickmatrix){
+		struct point_XYZ *hp = (struct point_XYZ *)tg->RenderFuncs.hp;
 		//FLOPS 588 double: 3x glu_unproject 196
 		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
 		//FLOPs 588 double: 3 x glu_unproject 196
@@ -3900,7 +3902,7 @@ static void get_hyperhit() {
 				projMatrix, viewport, &x1, &y1, &z1);
 		FW_GLU_UNPROJECT(r2.x, r2.y, r2.z, rhh->modelMatrix,
 				projMatrix, viewport, &x2, &y2, &z2);
-		FW_GLU_UNPROJECT(tg->RenderFuncs.hp.x, tg->RenderFuncs.hp.y, tg->RenderFuncs.hp.z, rh->modelMatrix,
+		FW_GLU_UNPROJECT(hp->x, hp->y, hp->z, rh->modelMatrix,
 				projMatrix,viewport, &x3, &y3, &z3);
 		if(0) printf("OLD ");
 	}
@@ -3939,7 +3941,7 @@ static void get_hyperhit() {
 			matmultiplyAFFINE(mvpi,pickMatrix,mvi);
 		}
 
-		transform(&tp,&tg->RenderFuncs.hp,mvpi);
+		transform(&tp,tg->RenderFuncs.hp,mvpi);
 		x3 = tp.x; y3 = tp.y; z3 = tp.z;
 		if(0) printf("NEW ");
 	}

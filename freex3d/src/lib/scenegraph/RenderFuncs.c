@@ -114,6 +114,7 @@ typedef struct pRenderFuncs{
 
 	//struct point_XYZ t_r1,t_r2,t_r3; /* transformed ray */
 	struct point_XYZ3 t_r123;
+	struct point_XYZ hp;
 
 }* ppRenderFuncs;
 void *RenderFuncs_constructor(){
@@ -163,6 +164,7 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 		p->sensor_stack = newStack(struct currayhit);
 		p->ray_stack = newStack(struct point_XYZ3);
 		//t->t_r123 = (void *)&p->t_r123;
+		t->hp = (void *)&p->hp;
 	}
 
 	//setLightType(HEADLIGHT_LIGHT,2); // ensure that this is a DirectionalLight.
@@ -915,7 +917,7 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix); //snapshot of geometry's modelview matrix
 	if(!tg->RenderFuncs.usingAffinePickmatrix){
 		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
-		FW_GLU_PROJECT(cx,cy,cz, modelMatrix, projMatrix, viewport, &tg->RenderFuncs.hp.x, &tg->RenderFuncs.hp.y, &tg->RenderFuncs.hp.z);
+		FW_GLU_PROJECT(cx,cy,cz, modelMatrix, projMatrix, viewport, &p->hp.x, &p->hp.y, &p->hp.z);
 	}
 	if(tg->RenderFuncs.usingAffinePickmatrix){
 		GLDOUBLE pmi[16];
@@ -932,7 +934,8 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 			matinverseAFFINE(pmi,pickMatrix);
 			transform(&tp,&tp,pmi);
 		}
-		tg->RenderFuncs.hp = tp; //struct value copy
+		//tg->RenderFuncs.hp = tp; //struct value copy
+		p->hp = tp;
 	}
 	tg->RenderFuncs.hitPointDist = rat;
 	p->rayHit=p->rayph;
