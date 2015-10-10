@@ -1,5 +1,5 @@
 
-//#define USE_SNAPSHOT_TESTING 1
+#define USE_SNAPSHOT_TESTING 1
 #ifndef USE_SNAPSHOT_TESTING
 void fwl_set_modeRecord()
 {
@@ -94,7 +94,7 @@ void handleTESTING(const int mev, const unsigned int button, const float x, cons
 	handle0(mev, button, x, y);
 }
 
-void fwl_do_rawKeyPress(int key, int type) {
+void fwl_do_rawKeyPressTESTING(int key, int type) {
 	ppSnapshotTesting p;
 	//ttglobal tg = gglobal();
 	//p = (ppSnapshotTesting)tg->SnapshotTesting.prv;
