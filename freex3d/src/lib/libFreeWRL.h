@@ -402,4 +402,6 @@ int fwl_commandline(char *cmdline);
 int fwl_getShift();
 void fwl_setShift(int ishift);
 int fwl_getCtrl();
+void fwl_set_emulate_multitouch(int ion);
+int fwl_get_emulate_multitouch();
 #endif /* __LIBFREEWRL_API_H__ */

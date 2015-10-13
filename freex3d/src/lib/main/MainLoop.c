@@ -120,28 +120,7 @@ struct Touch
 	int x;
 	int y;
 };
-struct keypressTuple{
-	int key;
-	int type;
-};
-struct mouseTuple{
-	int mev;
-	unsigned int button;
-	float x;
-	float y;
-	int ix;
-	int iy;
-	int ID;
-};
-struct playbackRecord {
-	int frame;
-	double dtime;
-	//should we use more general Touch instead of mouse-specific?
-	int *mousetuples; //x,y,button chord
-	int mouseCount; //# mouse tuples
-	char *keystrokes;
-	int keyCount;
-};
+
 typedef struct pMainloop{
 	//browser
 	/* are we displayed, or iconic? */
@@ -199,10 +178,6 @@ typedef struct pMainloop{
 	struct Touch touchlist[20];
 	int EMULATE_MULTITOUCH;// = 1;
 
-	struct keypressTuple keypressQueue[50]; //for Record,Playback where keypresses are applied just once per frame for consistency
-	int keypressQueueCount;
-	struct mouseTuple mouseQueue[50];
-	int mouseQueueCount;
 	FILE* logfile;
 	FILE* logerr;
 	char* logfname;
@@ -302,8 +277,6 @@ void Mainloop_init(struct tMainloop *t){
 		//p->touchlist[20];
 		p->EMULATE_MULTITOUCH = 0;
 
-		p->keypressQueueCount=0;
-		p->mouseQueueCount=0;
 		p->logfile = NULL;
 		p->logerr = NULL;
 		p->logfname = NULL;
@@ -327,24 +300,14 @@ void Mainloop_clear(struct tMainloop *t){
 }
 //true statics:
 int isBrowserPlugin = FALSE; //I can't think of a scenario where sharing this across instances would be a problem
-///* are we displayed, or iconic? */
-//static int onScreen = TRUE;
-//
-//
-///* do we do event propagation, proximity calcs?? */
-//static int doEvents = FALSE;
-//
-//#ifdef VERBOSE
-//static char debs[300];
-//#endif
-//
-//char* PluginFullPath;
-//
-///* linewidth for lines and points - passed in on command line */
-//float gl_linewidth = 1.0f;
-//
-///* what kind of file was just parsed? */
-//int currentFileVersion = 0;
+void fwl_set_emulate_multitouch(int ion){
+	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+	p->EMULATE_MULTITOUCH = ion;
+}
+int fwl_get_emulate_multitouch(){
+	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+	return p->EMULATE_MULTITOUCH;
+}
 
 /*
    we want to run initialize() from the calling thread. NOTE: if
@@ -411,64 +374,6 @@ static void stopDisplayThread()
 
 
 
-#ifdef OLDSTOPCODE
-// stops the Texture loading thread - will either pthread_cancel or will send SIGUSR2 to
-// the thread, depending on platform.
-
-static void stopLoadThread()
-{
-	ttglobal tg = gglobal();
-	if (!TEST_NULL_THREAD(tg->threads.loadThread)) {
-
-		#if defined(HAVE_PTHREAD_CANCEL)
-			//pthread_cancel(tg->threads.loadThread);
-	 	#else
-
-		{
-			int status;
-			char me[200];
-			sprintf(me,"faking pthread cancel on thread %p",tg->threads.loadThread);
-			//ConsoleMessage(me);
-			if ((status = pthread_kill(tg->threads.loadThread, SIGUSR2)) != 0) {
-				ConsoleMessage("issue stopping thread");
-			}
-		}
-		#endif //HAVE_PTHREAD_CANCEL
-
-		pthread_join(tg->threads.loadThread,NULL);
-		ZERO_THREAD(tg->threads.loadThread);
-	}
-}
-
-
-// stops the source parsing thread - will either pthread_cancel or will send SIGUSR2 to
-// the thread, depending on platform.
-
-static void stopPCThread()
-{
-	ttglobal tg = gglobal();
-
-	if (!TEST_NULL_THREAD(tg->threads.PCthread)) {
-		#if defined(HAVE_PTHREAD_CANCEL)
-			//pthread_cancel(tg->threads.PCthread);
-	 	#else
-
-		{
-			int status;
-			char me[200];
-			sprintf(me,"faking pthread cancel on thread %p",tg->threads.PCthread);
-			//ConsoleMessage(me);
-			if ((status = pthread_kill(tg->threads.PCthread, SIGUSR2)) != 0) {
-				ConsoleMessage("issue stopping thread");
-			}
-		}
-	#endif //HAVE_PTHREAD_CANCEL
-
-		pthread_join(tg->threads.PCthread,NULL);
-		ZERO_THREAD(tg->threads.PCthread);
-	}
-}
-#endif
 
 #if !defined(_MSC_VER)
 
@@ -489,71 +394,14 @@ double Time1970sec(void) {
 #define TID(_tv) ((double)_tv.tv_sec + (double)_tv.tv_usec/1000000.0)
 #endif
 
-int dequeueKeyPress(ppMainloop p,int *key, int *type){
-	if(p->keypressQueueCount > 0){
-		int i;
-		p->keypressQueueCount--;
-		*key = p->keypressQueue[0].key;
-		*type = p->keypressQueue[0].type;
-		for(i=0;i<p->keypressQueueCount;i++){
-			p->keypressQueue[i].key = p->keypressQueue[i+1].key;
-			p->keypressQueue[i].type = p->keypressQueue[i+1].type;
-		}
-		return 1;
-	}
-	return 0;
-}
-int dequeueMouse(ppMainloop p, int *mev, unsigned int *button, float *x, float *y){
-	if(p->mouseQueueCount > 0){
-		int i;
-		p->mouseQueueCount--;
-		*mev = p->mouseQueue[0].mev;
-		*button = p->mouseQueue[0].button;
-		*x = p->mouseQueue[0].x;
-		*y = p->mouseQueue[0].y;
-		for(i=0;i<p->mouseQueueCount;i++){
-			p->mouseQueue[i].mev = p->mouseQueue[i+1].mev;
-			p->mouseQueue[i].button = p->mouseQueue[i+1].button;
-			p->mouseQueue[i].x = p->mouseQueue[i+1].x;
-			p->mouseQueue[i].y = p->mouseQueue[i+1].y;
-		}
-		return 1;
-	}
-	return 0;
-}
-int dequeueMouseMulti(ppMainloop p, int *mev, unsigned int *button, int *ix, int *iy, int *ID){
-	if(p->mouseQueueCount > 0){
-		int i;
-		p->mouseQueueCount--;
-		*mev = p->mouseQueue[0].mev;
-		*button = p->mouseQueue[0].button;
-		*ix = p->mouseQueue[0].ix;
-		*iy = p->mouseQueue[0].iy;
-		*ID = p->mouseQueue[0].ID;
-		for(i=0;i<p->mouseQueueCount;i++){
-			p->mouseQueue[i].mev = p->mouseQueue[i+1].mev;
-			p->mouseQueue[i].button = p->mouseQueue[i+1].button;
-			p->mouseQueue[i].ix = p->mouseQueue[i+1].ix;
-			p->mouseQueue[i].iy = p->mouseQueue[i+1].iy;
-			p->mouseQueue[i].ID = p->mouseQueue[i+1].ID;
-		}
-		return 1;
-	}
-	return 0;
-}
 
 /* Main eventloop for FreeWRL!!! */
 void fwl_do_keyPress0(int key, int type);
 void handle0(const int mev, const unsigned int button, const float x, const float y);
 void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int y, int ID);
-void fwl_handle_aqua_multi0(const int mev, const unsigned int button, int x, int y, int ID);
 
-#if !defined(FRONTEND_DOES_SNAPSHOTS)
 void fwl_RenderSceneUpdateScene0(double dtime);
-void set_snapshotModeTesting(int value);
-int isSnapshotModeTesting();
 void splitpath_local_suffix(const char *url, char **local_name, char **suff);
-#endif //FRONTEND_DOES_SNAPSHOTS
 int vpGroupActive(struct X3D_ViewpointGroup *vp_parent);
 void fwl_gotoCurrentViewPoint()
 {
@@ -580,9 +428,6 @@ int fw_exit(int val)
 
 void fwl_RenderSceneUpdateSceneNORMAL() {
 	double dtime;
-	ttglobal tg = gglobal();
-	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
-
 	dtime = Time1970sec();
 	fwl_RenderSceneUpdateScene0(dtime);
 }
@@ -1029,29 +874,11 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 }
 
 
-void queueMouseMulti(ppMainloop p, const int mev, const unsigned int button, const int ix, const int iy, int ID){
-	if(p->mouseQueueCount < 50){
-		p->mouseQueue[p->mouseQueueCount].mev = mev;
-		p->mouseQueue[p->mouseQueueCount].button = button;
-		p->mouseQueue[p->mouseQueueCount].ix = ix;
-		p->mouseQueue[p->mouseQueueCount].iy = iy;
-		p->mouseQueue[p->mouseQueueCount].ID = ID;
-		p->mouseQueueCount++;
-	}
-}
-void queueMouse(ppMainloop p, const int mev, const unsigned int button, const float x, const float y){
-	if(p->mouseQueueCount < 50){
-		p->mouseQueue[p->mouseQueueCount].mev = mev;
-		p->mouseQueue[p->mouseQueueCount].button = button;
-		p->mouseQueue[p->mouseQueueCount].x = x;
-		p->mouseQueue[p->mouseQueueCount].y = y;
-		p->mouseQueueCount++;
-	}
-}
 
+void (*handlePTR)(const int mev, const unsigned int button, const float x, const float y) = handle0;
 void handle(const int mev, const unsigned int button, const float x, const float y)
 {
-	handle0(mev, button, x, y);
+	handlePTR(mev, button, x, y);
 }
 
 
@@ -1841,13 +1668,13 @@ OLDCODE#endif
 
 //#endif
 
-//	if(p->EMULATE_MULTITOUCH) {
-//        int i;
-//
-//		for(i=0;i<20;i++)
-//			if(p->touchlist[i].isDown > 0)
-//				cursorDraw(p->touchlist[i].ID,p->touchlist[i].x,p->touchlist[i].y,p->touchlist[i].angle);
-//    }
+	if(p->EMULATE_MULTITOUCH) {
+        int i;
+
+		for(i=0;i<20;i++)
+			if(p->touchlist[i].isDown > 0)
+				cursorDraw(p->touchlist[i].ID,p->touchlist[i].x,p->touchlist[i].y,p->touchlist[i].angle);
+    }
 }
 
 static int currentViewerLandPort = 0;
@@ -1941,6 +1768,8 @@ char *nameLogFileFolderNORMAL(char *logfilename, int size){
 	strcat(logfilename,"logfile");
 	return logfilename;
 }
+char * (*nameLogFileFolderPTR)(char *logfilename, int size) = nameLogFileFolderNORMAL;
+
 void toggleLogfile()
 {
 	ppMainloop p;
@@ -1964,32 +1793,7 @@ void toggleLogfile()
 			char logfilename[1000];
 			mode = "w";
 			logfilename[0] = '\0';
-			//if(p->modePlayback || p->modeFixture){
-			//	if(p->modePlayback)
-			//		strcat(logfilename,"playback");
-			//	else
-			//		strcat(logfilename,"fixture");
-			//	fw_mkdir(logfilename);
-			//	strcat(logfilename,"/");
-			//	if(p->nameTest){
-			//		//  /fixture/test1.log
-			//		strcat(logfilename,p->nameTest);
-			//	}else if(tg->Mainloop.scene_name){
-			//		//  /fixture/1_wrl.log
-			//		strcat(logfilename,tg->Mainloop.scene_name);
-			//		if(tg->Mainloop.scene_suff){
-			//			strcat(logfilename,"_");
-			//			strcat(logfilename,tg->Mainloop.scene_suff);
-			//		}
-			//	}
-			//}else
-			//{
-			//	strcat(logfilename,"freewrl_tmp");
-			//	fw_mkdir(logfilename);
-			//	strcat(logfilename,"/");
-			//	strcat(logfilename,"logfile");
-			//}
-			nameLogFileFolderNORMAL(logfilename, 1000);
+			nameLogFileFolderPTR(logfilename, 1000);
 			strcat(logfilename,".log");
 			p->logfname = STRDUP(logfilename);
 		}
@@ -2011,17 +1815,7 @@ void fwl_set_logfile(char *lname){
 	} else {
 		p->logfname = STRDUP(lname);
 		toggleLogfile();
-	 //   printf ("FreeWRL: redirect stdout and stderr to %s\n", logFileName);
-	 //   fp = freopen(logFileName, "a", stdout);
-	 //   if (NULL == fp) {
-		//WARN_MSG("WARNING: Unable to reopen stdout to %s\n", logFileName) ;
-	 //   }
-	 //   fp = freopen(logFileName, "a", stderr);
-	 //   if (NULL == fp) {
-		//WARN_MSG("WARNING: Unable to reopen stderr to %s\n", logFileName) ;
-	 //   }
 	}
-
 }
 
 #define Boolean int
@@ -2921,42 +2715,6 @@ int consoleMenuActive()
 {
 	return ConsoleMenuState.active;
 }
-
-/*
-void addMenuChar(kp,type)
-{
-	char str[100];
-	void (*callback)(void*,char*);
-	void *yourData;
-#ifdef _MSC_VER
-	if(type == KEYPRESS) {
-#else
-	if(type == KEYDOWN) {
-#endif
-	if((kp == '\n') || (kp == '\r'))
-	{
-		ConsoleMessage("\n");
-		if(ConsoleMenuState.len == 0)
-			strcpy(str,ConsoleMenuState.dfault);
-		else
-			strcpy(str,ConsoleMenuState.buf);
-		callback = ConsoleMenuState.f;
-		yourData = ConsoleMenuState.yourData;
-		ConsoleMenuState.active = 0;
-		ConsoleMenuState.len = 0;
-		ConsoleMenuState.buf[0]= '\0';
-		ConsoleMenuState.dfault = NULL;
-		ConsoleMenuState.f = (void*)NULL;
-		callback(yourData,str);
-	}else{
-		ConsoleMessage("%c",kp);
-		ConsoleMenuState.buf[ConsoleMenuState.len] = kp;
-		ConsoleMenuState.len++;
-		ConsoleMenuState.buf[ConsoleMenuState.len] = '\0';
-	}
-	}
-}
-*/
 void setConsoleMenu(void *yourData, char *prompt, void (*callback), char* dfault)
 {
 	ConsoleMenuState.f = callback;
@@ -3207,52 +2965,12 @@ int fwl_getCtrl(){
 	return tg->Mainloop.CTRL;
 }
 
-void queueKeyPress(ppMainloop p, int key, int type){
-	if(p->keypressQueueCount < 50){
-		p->keypressQueue[p->keypressQueueCount].key = key;
-		p->keypressQueue[p->keypressQueueCount].type = type;
-		p->keypressQueueCount++;
-	}
-}
+
 int platform2web3dActionKey(int platformKey);
-//int isWeb3dDeleteKey(int web3dkey);
-//void fwl_do_rawKeyPress_OLD(int key, int type) {
-//	ppMainloop p;
-//	ttglobal tg = gglobal();
-//	p = (ppMainloop)tg->Mainloop.prv;
-//
-//	//for testing mode -R --record:
-//	//we need to translate non-ascii keys before saving to ascii file
-//	//so the .fwplay file can be replayed on any system (the action and control keys
-//	//will be already in web3d format)
-//	if(type>1){ //just the raw keys (the fully translated keys are already in ascii form)
-//		int actionKey = platform2web3dActionKey(key);
-//		if(actionKey){
-//			key = actionKey;
-//			type += 10; //pre-tranlated raw keys will have type 12 or 13
-//		}
-//	}
-//
-//	if(p->modeRecord){
-//		queueKeyPress(p,key,type);
-//	}else{
-//		fwl_do_keyPress0(key,type);
-//	}
-//	if(type==13 && isWeb3dDeleteKey(key))
-//	{
-//		//StringSensor likes DEL as a single char int the char stream,
-//		//but OSes usually only do the raw key so
-//		//here we add a DEL to the stream.
-//		type = 1;
-//		if(p->modeRecord){
-//			queueKeyPress(p,key,type);
-//		}else{
-//			fwl_do_keyPress0(key,type);
-//		}
-//	}
-//}
+
+void (*fwl_do_rawKeyPressPTR)(int key, int type) = fwl_do_keyPress0;
 void fwl_do_rawKeyPress(int key, int type) {
-	fwl_do_keyPress0(key,type);
+	fwl_do_rawKeyPressPTR(key,type);
 }
 
 void fwl_do_keyPress(char kp, int type) {
@@ -4220,33 +3938,14 @@ void fwl_initializeRenderSceneUpdateScene() {
 		ConsoleMessage("fwl_initializeRenderSceneUpdateScene rootNode %d children \n",rootNode()->children.n);
 	}
 	*/
-
-#if KEEP_X11_INLIB
-	/* Hmm. display_initialize is really a frontend function. The frontend should call it before calling fwl_initializeRenderSceneUpdateScene */
-	/* Initialize display */
-	//if (!fv_display_initialize()) {
-	//       ERROR_MSG("initFreeWRL: error in display initialization.\n");
-	//       exit(1);
-	//}
-#endif /* KEEP_X11_INLIB */
-
 	new_tessellation();
-
 	fwl_set_viewer_type(VIEWER_EXAMINE);
-
 	viewer_postGLinit_init();
 
 #ifndef AQUA
 	if( ((freewrl_params_t*)(tg->display.params))->fullscreen && newResetGeometry != NULL) newResetGeometry();
-	#endif
+#endif
 
-	/* printf ("fwl_initializeRenderSceneUpdateScene finish\n"); */
-	// on OSX, this function is not called by the thread that holds the OpenGL
-	// context. Unsure if only Windows can do this one, but for now,
-	// do NOT do this on OSX.
-//#ifndef TARGET_AQUA
-//	drawStatusBar(); //just to get it initialized
-//#endif
 }
 
 /* phases to shutdown:
@@ -4357,10 +4056,6 @@ void finalizeRenderSceneUpdateScene() {
 }
 
 
-/* iphone front end handles the displayThread internally */
-//#ifndef FRONTEND_HANDLES_DISPLAY_THREAD
-
-
 int checkReplaceWorldRequest(){
 	ttglobal tg = gglobal();
 	if (tg->Mainloop.replaceWorldRequest || tg->Mainloop.replaceWorldRequestMulti){
@@ -4420,29 +4115,6 @@ int view_initialize0(void){
 }
 #endif /* KEEP_FV_INLIB */
 
-//OLDCODE
-//#ifdef _MSC_VER
-////void updateCursorStyle0(int cstyle);
-//void updateViewCursorStyle(int cstyle)
-//{
-//	//updateCursorStyle0(cstyle);
-//}
-//#else
-///* Status variables */
-///* cursors are a 'shared resource' meanng you only need one cursor for n windows,
-//not per-instance cursors (except multi-touch multi-cursors)
-//However cursor style choice could/should be per-window/instance
-//*/
-//
-//void updateViewCursorStyle(int cstyle)
-//{
-//#if !defined (_ANDROID)
-//	/* ANDROID - no cursor style right now */
-//	setCursor(cstyle);
-//#endif //ANDROID
-//}
-//#endif
-
 void view_update0(void){
 	#if defined(STATUSBAR_HUD)
 		/* status bar, if we have one */
@@ -4450,7 +4122,6 @@ void view_update0(void){
 		drawStatusBar();  // View update
 		restoreGlobalShader();
 	#endif
-	// is done onMouse updateViewCursorStyle(getCursorStyle()); /* in fwWindow32 where cursors are loaded */
 }
 
 void killNodes();
@@ -4549,13 +4220,6 @@ void fwl_setLastMouseEvent(int etype) {
 
 void fwl_initialize_parser()
 {
-	/* JAS
-		if (gglobal() == NULL) ConsoleMessage ("fwl_initialize_parser, gglobal() NULL");
-		if ((gglobal()->Mainloop.prv) == NULL) ConsoleMessage ("fwl_initialize_parser, gglobal()->Mainloop.prv NULL");
-	*/
-
-   //     ((ppMainloop)(gglobal()->Mainloop.prv))->quitThread = FALSE;
-
 	/* create the root node */
 	if (rootNode() == NULL) {
 		if(usingBrotos())
@@ -4597,32 +4261,6 @@ void outOfMemory(const char *msg) {
         exit(EXIT_FAILURE);
 }
 
-#ifdef OLDCODE
-void fwl_doQuitInstance()
-{
-#if !defined(FRONTEND_HANDLES_DISPLAY_THREAD)
-	if(!((freewrl_params_t*)(gglobal()->display.params))->frontend_handles_display_thread)
-    	stopDisplayThread();
-#endif
-    kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__); //must be done from this thread
-	stopLoadThread();
-	stopPCThread();
-
-	/* set geometry to normal size from fullscreen */
-#ifndef AQUA
-    if (newResetGeometry != NULL) newResetGeometry();
-#endif
-    /* kill any remaining children */
-    killErrantChildren();
-#ifdef DEBUG_MALLOC
-    void scanMallocTableOnQuit(void);
-    scanMallocTableOnQuit();
-#endif
-	/* tested on win32 console program July9,2011 seems OK */
-	iglobal_destructor(gglobal());
-}
-#endif
-//OLDCODE #endif //ANDROID
 void _disposeThread(void *globalcontext);
 
 /* quit key pressed, or Plugin sends SIGQUIT */
@@ -4673,12 +4311,6 @@ void _disposeThread(void *globalcontext)
 void fwl_doQuit()
 {
 	ttglobal tg = gglobal();
-//OLDCODE #if defined(_ANDROID)
-//OLDCODE 	fwl_Android_doQuitInstance();
-//OLDCODE #else //ANDROID
-	//fwl_doQuitInstance();
-//OLDCODE #endif //ANDROID
-    //exit(EXIT_SUCCESS);
 	tg->threads.MainLoopQuit = max(1,tg->threads.MainLoopQuit); //make sure we don't go backwards in the quit process with a double 'q'
 }
 
@@ -4703,43 +4335,13 @@ void fwl_tmpFileLocation(char *tmpFileLocation) {
 }
 
 void close_internetHandles();
-//int iglobal_instance_count();
-//void fwl_closeGlobals()
-//{
-//	//"last one out shut off the lights"
-//	//when there are no freewrl iglobal instances left, then call this to shut
-//	//down anything that's of per-process / per-application / static-global-shared
-//	//dug9 - not used yet as of Aug 3, 2011
-//	//if you call from the application main thread / message pump ie on_key > doQuit
-//	//then in theory there should be a way to iterate through all
-//	//instances, quitting each one in a nice way, say on freewrlDie or
-//	//(non-existant yet) doQuitAll or doQuitInstanceOrAllIfNoneLeft
-//	//for i = 1 to iglobal_instance_count
-//	//  set instance through window handle or index (no function yet to
-//	//       get window handle by index, or set instance by index )
-//	//  fwl_doQuitInstance
-//	//then call fwl_closeGlobals
-//	if(iglobal_instance_count() == 0)
-//	{
-//		close_internetHandles();
-//		//console window?
-//	}
-//}
 void freewrlDie (const char *format) {
         ConsoleMessage ("Catastrophic error: %s\n",format);
         fwl_doQuit();
 }
 
-//int ntouch =0;
-//int currentTouch = -1;
-/* MIMIC what happens in handle_Xevents, but without the X events */
-void fwl_handle_aqua_multi0(const int mev, const unsigned int button, int x, int y, int ID);
-void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int y, int ID)
-{
-	fwl_handle_aqua_multi0(mev, button, x, y, ID);
-}
 
-void fwl_handle_aqua_multi0(const int mev, const unsigned int button, int x, int y, int ID) {
+void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x, int y, int ID) {
         int count;
 		ppMainloop p;
 		ttglobal tg = gglobal();
@@ -4796,6 +4398,12 @@ void fwl_handle_aqua_multi0(const int mev, const unsigned int button, int x, int
                 }
         }
 }
+void (*fwl_handle_aqua_multiPTR)(const int mev, const unsigned int button, int x, int y, int ID) = fwl_handle_aqua_multiNORMAL;
+void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int y, int ID)
+{
+	fwl_handle_aqua_multiPTR(mev, button, x, y, ID);
+}
+
 //int lastDeltax = 50;
 //int lastDeltay = 50;
 //int lastxx;

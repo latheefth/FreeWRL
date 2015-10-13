@@ -568,7 +568,7 @@ void initProgramObject(){
    p->textureLoc = glGetUniformLocation ( p->programObject, "Texture0" );
    p->color4fLoc = glGetUniformLocation ( p->programObject, "Color4f" );
 }
-static int lenOptions   = 19;
+static int lenOptions   = 20;
 void statusbar_clear(struct tstatusbar *t){
 	//public
 	//private
@@ -862,6 +862,7 @@ char * optionsText[] = {
 "colorScheme:",
 "",
 "target FPS \36    \37",
+"  emulate multitouch (mousewheel)",
 NULL,
 };
 //int optionsLoaded = 0;
@@ -884,7 +885,7 @@ NULL,
 
 void initOptionsVal()
 {
-	int i,j,k;
+	int i,j,k, iem;
 	X3D_Viewer *viewer;
 	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
 	viewer = Viewer();
@@ -923,6 +924,10 @@ void initOptionsVal()
 	p->optionsVal[15][0] = p->menubar_pinned ? 035 : 034; 
 	sprintf(p->optionsVal[17]," %s ",fwl_get_ui_colorschemename());
 	sprintf(p->optionsVal[18],"            %4d",fwl_get_target_fps());
+	p->optionsVal[19][0] = 034; //[]
+	if(fwl_get_emulate_multitouch())
+		p->optionsVal[19][0] = 035; //[*] '*';
+
 	p->optionsLoaded = 1;
 }
 void updateOptionsVal()
@@ -952,6 +957,7 @@ char * optionsCase[] = {
 "        ",
 "99999999",
 "          KK    LL",
+"GGGGGGGGGGG",
 NULL,
 };
 
@@ -1126,6 +1132,10 @@ int handleOptionPress(int mouseX, int mouseY)
 		viewer->screendist -= .02; //*= .9;
 		updateEyehalf();
 		break;}
+	case 'G': {
+		fwl_set_emulate_multitouch(1 - fwl_get_emulate_multitouch());
+		break;
+		}
 	case 'E': {
 		/* screendist */
 		printf("set screendist");

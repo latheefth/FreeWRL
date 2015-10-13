@@ -1,6 +1,25 @@
+/****************************************************************************
+    This file is part of the FreeWRL/FreeX3D Distribution.
 
-#define USE_SNAPSHOT_TESTING 1
+    Copyright 2009 CRC Canada. (http://www.crc.gc.ca)
+
+    FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    FreeWRL/FreeX3D is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
+****************************************************************************/
+
+//#define USE_SNAPSHOT_TESTING 1
 #ifndef USE_SNAPSHOT_TESTING
+//stubs for options
 void fwl_set_modeRecord()
 {
 }
@@ -13,13 +32,104 @@ void fwl_set_modePlayback()
 void fwl_set_nameTest(char *nameTest)
 {
 }
+#endif //ifndef USE_SNAPSHOT_TESTING
 
-#else
+
+#ifdef USE_SNAPSHOT_TESTING
+
+/* SnapshotTesting
+- a process to do regression testing
+- implemented as an insertible 'layer' in freewrl
+
+http://freewrl.sourceforge.net/use.html
+Commmand Line Options - Testing
+
+Developers working on desktop configurations of freewrl can automate testing by comparing 
+before- and after- snapshot images and log files.
+
+There are 3 steps to the testing process:
+A) generate test playback files:
+	freewrl 1.wrl -R -N t1
+	generates /recording/t1.fwplay
+	In order to generate test fixtures, you need to take a snapshot of the graphics window 
+	using the 'x' key, and/or for non-visual tests, log something to the log file by toggling 
+	logging on with the "`" key, doing some functions that write to the console such as "/" command, 
+	toggle logging off with "`", and press 'q' to exit gracefully. 
+	(some temporary files will appear in /freewrl_tmp but are not needed).
+	During this sesssion the frame rate is slowed -to minimize the size of the .fwplay file 
+	and speed up test playback- and your mouse and keyboard actions are recorded on each frame, 
+	to the .fwplay file.
+B) before making a change to the code, run the playback files to generate test fixtures:
+	freewrl -F -N t1
+	generates /fixture/t1.0001.bmp test fixture, assuming you hit the 'x' snapshot during the recording step, 
+	and /fixture/t1.log if you toggled logging on during recording
+C) after making each small code change:
+	i) re-run the playback files
+		freewrl -P -N t1
+		generates /playback/t1.0001.bmp and/or /playback/t1.log
+	ii) compare /playback/testname.* to the /fixture/testname.* files
+		For this you'll need a perl script doing a file compare between the /fixture and /playback versions.
+		If any tests break by not comparing identically playback to fixture, 
+		that means you changed the functionality of the code.
+		Sometimes that's what you want. In that case check which tests failed to see if 
+		there are unintended side-effects. If all OK, then generate new fixtures.
+		Sometimes you want to refactor code: change its structure without changing its functionality. 
+		In this case if you break any test, roll back your last code change.
+
+Summary of testing command line options:
+
+-N or --nametest testname
+	Sets the .fwplay, snapshot image and logfile prefix to testname. 
+	During recording /recording/testname.fwplay test playback file is generated, 
+	and during fixture it's read, and /fixture/testname.0001.bmp (or .png) and/or /fixture/testname.log 
+	is generated, depending on what actions you took during recording. 
+	If you don't set this option, testname defaults to your scene basename, 
+	except with the .suffix changed to _suffix. Example 1.wrl defaults to 1_wrl.fwplay.
+-R or --record
+	Generates /recording/testname.fwplay test playback file.
+-F or --fixture
+	Generates /fixture/testname.0001.bmp or .png, and/or /fixture/testname.log depending 
+	on whether you did a snapshot and/or log command during recording.
+-P or --playback
+	Identical to option -F or --fixture except puts test fixtures into /playback folder.
+
+*/
+
+
+
+
 #include <stdio.h>
 #include <iglobal.h>
 #include <internal.h>
+void set_snapshotModeTesting(int value);  //snapshot.c
+int isSnapshotModeTesting(); //snapshot.c
+
+
 #define FALSE 0
 #define TRUE 1
+
+struct keypressTuple{
+	int key;
+	int type;
+};
+struct mouseTuple{
+	int mev;
+	unsigned int button;
+	float x;
+	float y;
+	int ix;
+	int iy;
+	int ID;
+};
+struct playbackRecord {
+	int frame;
+	double dtime;
+	//should we use more general Touch instead of mouse-specific?
+	int *mousetuples; //x,y,button chord
+	int mouseCount; //# mouse tuples
+	char *keystrokes;
+	int keyCount;
+};
 
 typedef struct tSnapshotTesting{
 		void *prv;
@@ -38,6 +148,12 @@ typedef struct pSnapshotTesting{
 	int frameNum; //for Record, Playback - frame# =0 after scene loaded
 	struct playbackRecord* playback;
 	int playbackCount;
+
+	struct keypressTuple keypressQueue[50]; //for Record,Playback where keypresses are applied just once per frame for consistency
+	int keypressQueueCount;
+	struct mouseTuple mouseQueue[50];
+	int mouseQueueCount;
+
 }* ppSnapshotTesting;
 void *SnapshotTesting_constructor(){
 	void *v = MALLOCV(sizeof(struct pSnapshotTesting));
@@ -60,8 +176,12 @@ void SnapshotTesting_init(struct tSnapshotTesting *t){
 		p->playbackCount = 0;
 		p->playback = NULL;
 		p->fwplayOpened = 0;
+
+		p->keypressQueueCount=0;
+		p->mouseQueueCount=0;
 	}
 }
+void SnapshotTesting_setHandlers();
 
 static int rtestinit = 0;
 static ppSnapshotTesting get_ppSnapshotTesting(){
@@ -69,15 +189,96 @@ static ppSnapshotTesting get_ppSnapshotTesting(){
 		SnapshotTesting_init(&SnapshotTesting);
 		rtestinit = 1;
 		ppSnapshotTesting p = (ppSnapshotTesting)SnapshotTesting.prv;
+		SnapshotTesting_setHandlers();
 	}
 	return (ppSnapshotTesting)SnapshotTesting.prv;
 }
 
+int dequeueKeyPress(ppSnapshotTesting p,int *key, int *type){
+	if(p->keypressQueueCount > 0){
+		int i;
+		p->keypressQueueCount--;
+		*key = p->keypressQueue[0].key;
+		*type = p->keypressQueue[0].type;
+		for(i=0;i<p->keypressQueueCount;i++){
+			p->keypressQueue[i].key = p->keypressQueue[i+1].key;
+			p->keypressQueue[i].type = p->keypressQueue[i+1].type;
+		}
+		return 1;
+	}
+	return 0;
+}
+
+void queueKeyPress(ppSnapshotTesting p, int key, int type){
+	if(p->keypressQueueCount < 50){
+		p->keypressQueue[p->keypressQueueCount].key = key;
+		p->keypressQueue[p->keypressQueueCount].type = type;
+		p->keypressQueueCount++;
+	}
+}
+
+int dequeueMouse(ppSnapshotTesting p, int *mev, unsigned int *button, float *x, float *y){
+	if(p->mouseQueueCount > 0){
+		int i;
+		p->mouseQueueCount--;
+		*mev = p->mouseQueue[0].mev;
+		*button = p->mouseQueue[0].button;
+		*x = p->mouseQueue[0].x;
+		*y = p->mouseQueue[0].y;
+		for(i=0;i<p->mouseQueueCount;i++){
+			p->mouseQueue[i].mev = p->mouseQueue[i+1].mev;
+			p->mouseQueue[i].button = p->mouseQueue[i+1].button;
+			p->mouseQueue[i].x = p->mouseQueue[i+1].x;
+			p->mouseQueue[i].y = p->mouseQueue[i+1].y;
+		}
+		return 1;
+	}
+	return 0;
+}
+int dequeueMouseMulti(ppSnapshotTesting p, int *mev, unsigned int *button, int *ix, int *iy, int *ID){
+	if(p->mouseQueueCount > 0){
+		int i;
+		p->mouseQueueCount--;
+		*mev = p->mouseQueue[0].mev;
+		*button = p->mouseQueue[0].button;
+		*ix = p->mouseQueue[0].ix;
+		*iy = p->mouseQueue[0].iy;
+		*ID = p->mouseQueue[0].ID;
+		for(i=0;i<p->mouseQueueCount;i++){
+			p->mouseQueue[i].mev = p->mouseQueue[i+1].mev;
+			p->mouseQueue[i].button = p->mouseQueue[i+1].button;
+			p->mouseQueue[i].ix = p->mouseQueue[i+1].ix;
+			p->mouseQueue[i].iy = p->mouseQueue[i+1].iy;
+			p->mouseQueue[i].ID = p->mouseQueue[i+1].ID;
+		}
+		return 1;
+	}
+	return 0;
+}
+
+void queueMouseMulti(ppSnapshotTesting p, const int mev, const unsigned int button, const int ix, const int iy, int ID){
+	if(p->mouseQueueCount < 50){
+		p->mouseQueue[p->mouseQueueCount].mev = mev;
+		p->mouseQueue[p->mouseQueueCount].button = button;
+		p->mouseQueue[p->mouseQueueCount].ix = ix;
+		p->mouseQueue[p->mouseQueueCount].iy = iy;
+		p->mouseQueue[p->mouseQueueCount].ID = ID;
+		p->mouseQueueCount++;
+	}
+}
+void queueMouse(ppSnapshotTesting p, const int mev, const unsigned int button, const float x, const float y){
+	if(p->mouseQueueCount < 50){
+		p->mouseQueue[p->mouseQueueCount].mev = mev;
+		p->mouseQueue[p->mouseQueueCount].button = button;
+		p->mouseQueue[p->mouseQueueCount].x = x;
+		p->mouseQueue[p->mouseQueueCount].y = y;
+		p->mouseQueueCount++;
+	}
+}
+
+
 void handleTESTING(const int mev, const unsigned int button, const float x, const float y)
 {
-	//ppMainloop p;
-	//ttglobal tg = gglobal();
-	//p = (ppMainloop)tg->Mainloop.prv;
 	ppSnapshotTesting p;
 	//ttglobal tg = gglobal();
 	//p = (ppSnapshotTesting)tg->SnapshotTesting.prv;
@@ -93,7 +294,7 @@ void handleTESTING(const int mev, const unsigned int button, const float x, cons
 	}
 	handle0(mev, button, x, y);
 }
-
+void fwl_do_keyPress0(int key, int type);
 void fwl_do_rawKeyPressTESTING(int key, int type) {
 	ppSnapshotTesting p;
 	//ttglobal tg = gglobal();
@@ -106,6 +307,7 @@ void fwl_do_rawKeyPressTESTING(int key, int type) {
 		fwl_do_keyPress0(key,type);
 	}
 }
+void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x, int y, int ID);
 void fwl_handle_aqua_multiTESTING(const int mev, const unsigned int button, int x, int y, int ID)
 {
 	ppSnapshotTesting p;
@@ -120,7 +322,7 @@ void fwl_handle_aqua_multiTESTING(const int mev, const unsigned int button, int 
 		//else ignor so test isn't ruined by random mouse movement during playback
 		return;
 	}
-	fwl_handle_aqua_multi0(mev, button, x, y, ID);
+	fwl_handle_aqua_multiNORMAL(mev, button, x, y, ID);
 }
 
 void fwl_set_modeRecord()
@@ -188,7 +390,7 @@ char *nameLogFileFolderTESTING(char *logfilename, int size){
 
 
 int fw_mkdir(char* path);
-
+void fwl_RenderSceneUpdateScene0(double dtime);
 void fwl_RenderSceneUpdateSceneTESTING() {
 	double dtime;
 	//ttglobal tg = gglobal();
@@ -294,16 +496,12 @@ void fwl_RenderSceneUpdateSceneTESTING() {
 						//window_wxh = 600,400
 						if( sscanf(buff,"%s %s %d, %d\n",window_widthxheight,equals, &width,&height) == 4) {
 							if(width != tg->display.screenWidth || height != tg->display.screenHeight){
-								if(1){ //right now all we can do is passively complain
-									printf("Ouch - the test playback window size is different than recording:\n");
-									printf("recording %d x %d playback %d x %d\n",width,height,
-										tg->display.screenWidth,tg->display.screenHeight);
-									printf("hit Enter:");
-									getchar();
-								}
-								//if(0){
-								//	fwl_setScreenDim(width,height); //this doesn't actively set the window size except before window is created
-								//}
+								//right now all we can do is passively complain
+								printf("Ouch - the test playback window size is different than recording:\n");
+								printf("recording %d x %d playback %d x %d\n",width,height,
+									tg->display.screenWidth,tg->display.screenHeight);
+								printf("hit Enter:");
+								getchar();
 							}
 						}
 					}
@@ -358,19 +556,10 @@ void fwl_RenderSceneUpdateSceneTESTING() {
 			strcat(keystrokes,"\"");
 			strcpy(mouseStr,"\"");
 			i = 0;
-			if(0){
-				while(dequeueMouse(p,&mev, &button, &x, &y)){
-					sprintf(temp,"%d,%d,%.6f,%.6f;",mev,button,x,y);
-					strcat(mouseStr,temp);
-					i++;
-				}
-			}
-			if(1){
-				while(dequeueMouseMulti(p,&mev, &button, &ix, &iy, &ID)){
-					sprintf(temp,"%d,%d,%d,%d,%d;",mev,button,ix,iy,ID);
-					strcat(mouseStr,temp);
-					i++;
-				}
+			while(dequeueMouseMulti(p,&mev, &button, &ix, &iy, &ID)){
+				sprintf(temp,"%d,%d,%d,%d,%d;",mev,button,ix,iy,ID);
+				strcat(mouseStr,temp);
+				i++;
 			}
 			strcat(mouseStr,"\"");
 			fprintf(p->recordingFile,"%d %.6lf %s %s\n",p->frameNum,dtime,keystrokes,mouseStr);
@@ -383,35 +572,6 @@ void fwl_RenderSceneUpdateSceneTESTING() {
 		}
 		if(p->modeFixture  || p->modePlayback){
 			if(!p->modeRecord){
-				/*
-				if(p->frameNum == 1){
-					p->recordingFile = fopen(p->recordingFName, "r");
-					if(p->recordingFile == NULL){
-						printf("ouch recording file %s not found\n", p->recordingFName);
-						exit(1);
-					}
-					if( fgets(buff, 1000, p->recordingFile) != NULL){
-						char window_widthxheight[100], equals[50];
-						int width, height;
-						//window_wxh = 600,400
-						if( sscanf(buff,"%s %s %d, %d\n",&window_widthxheight,&equals, &width,&height) == 4) {
-							if(width != tg->display.screenWidth || height != tg->display.screenHeight){
-								printf("Ouch - the test playback window size is different than recording:\n");
-								printf("recording %d x %d playback %d x %d\n",width,height,
-									tg->display.screenWidth,tg->display.screenHeight);
-								printf("hit Enter:");
-								getchar();
-							}
-						}
-					}
-					if( fgets(buff, 1000, p->recordingFile) != NULL){
-						char scenefile[100], equals[50];
-						//scenefile = 1.wrl
-						if( sscanf(buff,"%s %s %s \n",&scenefile,&equals, &sceneName) == 3) {
-						}
-					}
-				}
-				*/
 				// playback[i] = {iframe, dtime, keystrokes or NULL, mouse (xy,button sequence) or NULL, snapshot URL or NULL, scenegraph_dump URL or NULL, ?other?}
 				if( fgets( buff, 1000, p->recordingFile ) != NULL ) {
 					if(sscanf(buff,"%d %lf %s %s\n",&p->frameNum,&dtime,keystrokes,mouseStr) == 4){ //,snapshotURL,scenegraphURL) == 6){
@@ -576,14 +736,10 @@ void fwl_RenderSceneUpdateSceneTESTING() {
 				do{
 					for(i=ii;i<len;i++)
 						if(mouseStr[i] == ';') break;
-					if(0){
-					sscanf(&mouseStr[ii],"%d,%d,%f,%f;",&mev,&button,&x,&y);
-					handle0(mev,button,x,y);
-					}
-					if(1){
+
 					sscanf(&mouseStr[ii],"%d,%d,%d,%d,%d;",&mev,&button,&ix,&iy,&ID);
-					fwl_handle_aqua_multi0(mev,button,ix,iy,ID);
-					}
+					fwl_handle_aqua_multiNORMAL(mev,button,ix,iy,ID);
+
 					//printf("%d,%d,%f,%f;",mev,button,x,y);
 					ii=i+1;
 				}while(ii<len-1);
@@ -592,11 +748,17 @@ void fwl_RenderSceneUpdateSceneTESTING() {
 	}
 	fwl_RenderSceneUpdateScene0(dtime);
 }
-
-
+extern void (*fwl_do_rawKeyPressPTR)(int key, int type);
+extern void (*fwl_handle_aqua_multiPTR)(const int mev, const unsigned int button, int x, int y, int ID);
 extern void (*fwl_RenderSceneUpdateScenePTR)();
-void fwl_SetTestingMode(){
+extern void (*handlePTR)(const int mev, const unsigned int button, const float x, const float y);
+extern char * (*nameLogFileFolderPTR)(char *logfilename, int size);
+void SnapshotTesting_setHandlers(){
+	fwl_do_rawKeyPressPTR = fwl_do_rawKeyPressTESTING;
+	fwl_handle_aqua_multiPTR = fwl_handle_aqua_multiTESTING;
 	fwl_RenderSceneUpdateScenePTR = fwl_RenderSceneUpdateSceneTESTING;
+	handlePTR = handleTESTING;
+	nameLogFileFolderPTR = nameLogFileFolderTESTING;
 }
 
 #endif //USE_SNAPSHOT_TESTING
