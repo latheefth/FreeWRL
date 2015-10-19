@@ -45,34 +45,6 @@
 #include "ui/common.h"
 
 char consoleBuffer[200];
-//JAS freewrl_params_t fwl_params;
-
-/**
- * library initialization
- */
-//#ifdef _MSC_VER
-//void libFreeWRL_init(void)
-//#else
-//void __attribute__ ((constructor)) libFreeWRL_init(void)
-//#endif
-//{
-//	memset(&fwl_params, 0, sizeof(fwl_params));
-//}
-
-/**
- * library exit routine
- */
-//#ifdef _MSC_VER
-//void libFreeWRL_fini(void)
-//#else
-//void __attribute__ ((destructor)) libFreeWRL_fini(void)
-//#endif
-//{
-//}
-
-/**
- * Explicit initialization
- */
 
 void new_root();
 #if defined (TARGET_AQUA) || defined(_ANDROID)
@@ -296,7 +268,7 @@ bool fwl_initFreeWRL(freewrl_params_t *params) {
 	/* Check parameters */
 	if (params) {
 		DEBUG_MSG("copying application supplied params...\n");
-		memcpy(&tg->display.params, params, sizeof(freewrl_params_t));
+		memcpy(tg->display.params, params, sizeof(freewrl_params_t));
 		//tg->display.win_height = params->height;// = 0; /* window */
 		//tg->display.win_width = params->width;// = 0;
 		//tg->display.winToEmbedInto = params->winToEmbedInto;// = -1;

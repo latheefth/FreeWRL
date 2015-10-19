@@ -62,17 +62,30 @@ struct MyVertex
 
 
 static void saveBGVert (float *colptr, float *pt, int *vertexno, float *col, double dist, double x, double y, double z) ;
-
+typedef struct pBindable{
+	struct sNaviInfo naviinfo;
+}* ppBindable;
+void *Bindable_constructor(){
+	void *v = MALLOCV(sizeof(struct pBindable));
+	memset(v,0,sizeof(struct pBindable));
+	return v;
+}
 void Bindable_init(struct tBindable *t){
 	//public
-	t->naviinfo.width = 0.25;
-	t->naviinfo.height = 1.6;
-	t->naviinfo.step = 0.75;
 
 	t->background_stack = newVector(struct X3D_Node*, 2);
 	t->viewpoint_stack = newVector(struct X3D_Node*, 2);
 	t->fog_stack = newVector(struct X3D_Node*, 2);
 	t->navigation_stack = newVector(struct X3D_Node*, 2);
+	t->prv = Bindable_constructor();
+	{
+		ppBindable p = (ppBindable)t->prv;
+		p->naviinfo.width = 0.25;
+		p->naviinfo.height = 1.6;
+		p->naviinfo.step = 0.75;
+		t->naviinfo = &p->naviinfo;
+	}
+
 }
 void Bindable_clear(struct tBindable *t){
 	//public
@@ -83,10 +96,13 @@ void Bindable_clear(struct tBindable *t){
 }
 /* common entry routine for setting avatar size */
 void set_naviWidthHeightStep(double wid, double hei, double step) {
+	ppBindable p;
 	ttglobal tg = gglobal();
-	tg->Bindable.naviinfo.width = wid;
-	tg->Bindable.naviinfo.height = hei;
-	tg->Bindable.naviinfo.step = step;
+	p = (ppBindable)tg->Bindable.prv;
+
+	p->naviinfo.width = wid;
+	p->naviinfo.height = hei;
+	p->naviinfo.step = step;
 
 	/* printf ("set_naviWdithHeightStep - width %lf height %lf step %lf speed %lf\n",wid,hei,step,Viewer.speed); */
 

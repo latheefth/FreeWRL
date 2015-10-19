@@ -314,3 +314,4 @@ DLLFREEWRL_API void dllFreeWRL_commandline(void *fwctx, char *cmdline){
 	}
 	fwl_clearCurrentHandle();
 }
+

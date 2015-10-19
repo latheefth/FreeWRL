@@ -40,6 +40,7 @@ main/Snapshot.c \
 main/ConsoleMessage.c \
 main/installdir.h \
 main/utils.c \
+main/SnapshotTesting.c \
  \
 vrml_parser/CProto.c \
 vrml_parser/CParse.c \

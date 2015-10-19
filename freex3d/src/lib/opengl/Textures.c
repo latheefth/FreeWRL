@@ -828,6 +828,9 @@ static void compileMultiTexture (struct X3D_MultiTexture *node) {
     char *param;
     int count;
     int max;
+	s_renderer_capabilities_t *rdr_caps;
+    ttglobal tg = gglobal();
+	rdr_caps = tg->display.rdr_caps;
     
     /*  have to regen the shape*/
     MARK_NODE_COMPILED;
@@ -835,7 +838,7 @@ static void compileMultiTexture (struct X3D_MultiTexture *node) {
     /* alloc fields, if required - only do this once, even if node changes */
     if (node->__xparams == 0) {
         /* printf ("loadMulti, MALLOCing for params\n"); */
-        node->__xparams = MALLOC (void *, sizeof (struct multiTexParams) * gglobal()->display.rdr_caps.texture_units);
+        node->__xparams = MALLOC (void *, sizeof (struct multiTexParams) * rdr_caps->texture_units);
         
        // printf ("just mallocd %ld in size for __params\n",sizeof (struct multiTexParams) * gglobal()->display.rdr_caps.texture_units);
     
@@ -845,7 +848,7 @@ static void compileMultiTexture (struct X3D_MultiTexture *node) {
         paramPtr = (struct multiTexParams*) node->__xparams;
         
         /* set defaults for these fields */
-        for (count = 0; count < gglobal()->display.rdr_caps.texture_units; count++) {
+        for (count = 0; count < rdr_caps->texture_units; count++) {
             paramPtr->multitex_mode= MTMODE_MODULATE;
             paramPtr->multitex_source=INT_ID_UNDEFINED;
             paramPtr->multitex_function=INT_ID_UNDEFINED;
@@ -855,7 +858,7 @@ static void compileMultiTexture (struct X3D_MultiTexture *node) {
     
     /* how many textures can we use? no sense scanning those we cant use */
     max = node->mode.n; 
-    if (max > gglobal()->display.rdr_caps.texture_units) max = gglobal()->display.rdr_caps.texture_units;
+    if (max > rdr_caps->texture_units) max = rdr_caps->texture_units;
     
     // warn users that function and source parameters not looked at right now 
     if ((node->source.n>0) || (node->function.n>0)) {
@@ -890,6 +893,9 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 	int max;
 	struct multiTexParams *paramPtr;
 	struct X3D_ImageTexture *nt;
+	s_renderer_capabilities_t *rdr_caps;
+    ttglobal tg = gglobal();
+	rdr_caps = tg->display.rdr_caps;
 
 #ifdef TEXVERBOSE
 	 printf ("loadMultiTexture, this %s has %d textures %x %x\n",stringNodeType(node->_nodeType),
@@ -913,7 +919,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 	max = node->texture.n; 
     //printf ("texture.n %d, texture_units %d, MAX_MULTITEXTURE %d\n", node->texture.n, gglobal()->display.rdr_caps.texture_units, MAX_MULTITEXTURE);
     
-	if (max > gglobal()->display.rdr_caps.texture_units) max = gglobal()->display.rdr_caps.texture_units;
+	if (max > rdr_caps->texture_units) max = rdr_caps->texture_units;
     if (max > MAX_MULTITEXTURE) max = MAX_MULTITEXTURE;
     
     
@@ -1017,6 +1023,10 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	int haveValidTexturePropertiesNode;
 	GLfloat texPri;
 	struct SFColorRGBA borderColour;
+	s_renderer_capabilities_t *rdr_caps;
+    ttglobal tg = gglobal();
+	rdr_caps = tg->display.rdr_caps;
+
 
 	/* initialization */
 	Src = FALSE; Trc = FALSE; Rrc = FALSE;
@@ -1098,11 +1108,11 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 			memcpy(&borderColour,&(tpNode->borderColor),sizeof(struct SFColorRGBA));
 
 			anisotropicDegree = tpNode->anisotropicDegree;
-			if ((anisotropicDegree < 1.0) || (anisotropicDegree>gglobal()->display.rdr_caps.anisotropicDegree)) {
+			if ((anisotropicDegree < 1.0) || (anisotropicDegree>rdr_caps->anisotropicDegree)) {
 				/* we can be quiet here 
 				   ConsoleMessage ("anisotropicDegree error %f, must be between 1.0 and %f",anisotropicDegree, gglobal()->display.rdr_caps.anisotropicDegree);
 				*/
-				anisotropicDegree = gglobal()->display.rdr_caps.anisotropicDegree;
+				anisotropicDegree = rdr_caps->anisotropicDegree;
 			}			
 
 			borderWidth = tpNode->borderWidth;
@@ -1324,7 +1334,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 				unsigned char *dest = mytexdata;
 		
 				/* do we have to do power of two textures? */
-				if (gglobal()->display.rdr_caps.av_npot_texture) {
+				if (rdr_caps->av_npot_texture) {
 					rx = x; ry = y;
 				} else {
 					/* find a power of two that fits */
@@ -1344,10 +1354,10 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		
 				//ConsoleMessage ("loadTextureNode, runtime texture size %d",gglobal()->display.rdr_caps.runtime_max_texture_size);
 
-				if(rx != x || ry != y || rx > gglobal()->display.rdr_caps.runtime_max_texture_size || ry > gglobal()->display.rdr_caps.runtime_max_texture_size) {
+				if(rx != x || ry != y || rx > rdr_caps->runtime_max_texture_size || ry > rdr_caps->runtime_max_texture_size) {
 					/* do we have texture limits??? */
-					if (rx > gglobal()->display.rdr_caps.runtime_max_texture_size) rx = gglobal()->display.rdr_caps.runtime_max_texture_size;
-					if (ry > gglobal()->display.rdr_caps.runtime_max_texture_size) ry = gglobal()->display.rdr_caps.runtime_max_texture_size;
+					if (rx > rdr_caps->runtime_max_texture_size) rx = rdr_caps->runtime_max_texture_size;
+					if (ry > rdr_caps->runtime_max_texture_size) ry = rdr_caps->runtime_max_texture_size;
 				}
 		
 				if (gglobal()->internalc.global_print_opengl_errors) {
@@ -1504,9 +1514,11 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 			/* save the texture params for when we go through the MultiTexture stack. Non
 			   MultiTextures should have this textureStackTop as 0 */
 			 
-			if (param != NULL) 
-				memcpy(&(tg->RenderTextures.textureParameterStack[tg->RenderFuncs.textureStackTop]), param,sizeof (struct multiTexParams)); 
-	
+			if (param != NULL) {
+				struct multiTexParams *textureParameterStack = (struct multiTexParams *) tg->RenderTextures.textureParameterStack;
+				memcpy(&(textureParameterStack[tg->RenderFuncs.textureStackTop]), param,sizeof (struct multiTexParams)); 
+				//memcpy(&(tg->RenderTextures.textureParameterStack[tg->RenderFuncs.textureStackTop]), param,sizeof (struct multiTexParams)); 
+			}
 			p->textureInProcess = -1; /* we have finished the whole process */
 			break;
 			

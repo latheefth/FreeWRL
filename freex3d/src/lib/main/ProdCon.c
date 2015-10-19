@@ -53,6 +53,7 @@
 #include "../scenegraph/Collision.h"
 #include "../scenegraph/Component_KeyDevice.h"
 #include "../opengl/Frustum.h"
+#include "../opengl/OpenGL_Utils.h"
 
 #if defined(INCLUDE_NON_WEB3D_FORMATS)
 #include "../non_web3d_formats/ColladaParser.h"
@@ -744,7 +745,7 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 		*/
 
 		/* bind ONLY in main - do not bind for Inlines, etc */
-		if (res->treat_as_root || res == gglobal()->resources.root_res) {
+		if (res->treat_as_root || res == (resource_item_t*) gglobal()->resources.root_res) {
 			kill_bindables();
 			//kill_oldWorld(TRUE, TRUE, TRUE, __FILE__, __LINE__);
 			shouldBind = TRUE;
@@ -752,7 +753,7 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 			origFogNodes = origBackgroundNodes = origNavigationNodes = origViewpointNodes = 0;
 			//ConsoleMessage ("pc - shouldBind");
 		} else {
-			if (!tg->resources.root_res->complete) {
+			if (!((resource_item_t*)tg->resources.root_res)->complete) {
 				/* Push the parser state : re-entrance here */
 				/* "save" the old classic parser state, so that names do not cross-pollute */
 				t->savedParser = (void *)tg->CParse.globalParser;
@@ -801,7 +802,7 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 		parsedOk = parser_do_parse_string(of->fileData, of->fileDataSize, ectx, nRn);
 		//printf("after parse_string in standard file parsing\n");
 
-		if ((res != tg->resources.root_res) && ((!tg->resources.root_res) ||(!tg->resources.root_res->complete))) {
+		if ((res != (resource_item_t*)tg->resources.root_res) && ((!tg->resources.root_res) ||(!((resource_item_t*)tg->resources.root_res)->complete))) {
 			tg->CParse.globalParser = t->savedParser;
 		}
 
@@ -1485,14 +1486,14 @@ void kill_bindables (void) {
 	p = (ppProdCon)t->prv;
 
     //printf ("kill_bindables called\n");
-    t->viewpointNodes->n=0;
+    ((struct Vector *)t->viewpointNodes)->n=0;
     p->backgroundNodes->n=0;
     p->navigationNodes->n=0;
     p->fogNodes->n=0;
-    tg->Bindable.navigation_stack->n=0;
-    tg->Bindable.background_stack->n=0;
-    tg->Bindable.viewpoint_stack->n=0;
-    tg->Bindable.fog_stack->n=0;
+    ((struct Vector *)tg->Bindable.navigation_stack)->n=0;
+    ((struct Vector *)tg->Bindable.background_stack)->n=0;
+    ((struct Vector *)tg->Bindable.viewpoint_stack)->n=0;
+    ((struct Vector *)tg->Bindable.fog_stack)->n=0;
     return;
 
 	/*

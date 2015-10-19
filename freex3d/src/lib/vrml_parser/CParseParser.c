@@ -49,6 +49,7 @@
 #include "CProto.h"
 #include "CParse.h"
 #include "CRoutes.h"			/* for upper_power_of_two */
+#include "../opengl/OpenGL_Utils.h"
 
 #define PARSE_ERROR(msg) \
  { \

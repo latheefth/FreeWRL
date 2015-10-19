@@ -230,6 +230,7 @@ static GLfloat cursIdentity[] = {
 	0.0f, 0.0f, 0.0f, 1.0f
 };
 /* attempt to draw fiducials with lines - draws wrong place */
+s_shader_capabilities_t *getMyShader(unsigned int rq_cap0);
 void fiducialDraw(int ID, int x, int y, float angle)
 {
 	XY xy;

@@ -52,6 +52,7 @@ public:
 	void resitem_setLocalPath(void *res, char* path);
 	void resitem_enqueue(void *res);
 	void resitem_load(void *res);
+	void commandline(char *cmdline);
 	
 private:
 	void *globalcontexthandle;

@@ -139,6 +139,9 @@ void CdllFreeWRL::resitem_load(void *res)
 void CdllFreeWRL::resitem_enqueue(void *res){
 	dllFreeWRL_resitem_enqueue(this->globalcontexthandle, res);
 }
+void CdllFreeWRL::commandline(char *cmdline){
+	dllFreeWRL_commandline(this->globalcontexthandle, cmdline);
+}
 
 
 #else //DELEGATE_TO_C

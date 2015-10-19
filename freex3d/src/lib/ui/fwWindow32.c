@@ -298,7 +298,7 @@ BOOL fwDisplayChange(){
 	HGLRC ghRC;
 	HDC ghDC;
 	ttglobal tg = gglobal();
-	hWnd = (HWND)tg->display.params.winToEmbedInto;
+	hWnd = (HWND)((freewrl_params_t*)tg->display.params)->winToEmbedInto;
 
 	ghDC = GetDC(hWnd); 
 	ret = bSetupPixelFormat(ghDC);
@@ -318,7 +318,7 @@ void fwCloseContext(){
 	HGLRC ghRC;
 	HDC ghDC;
 	ttglobal tg = gglobal();
-	hWnd = (HWND)tg->display.params.winToEmbedInto;
+	hWnd = (HWND)((freewrl_params_t *)tg->display.params)->winToEmbedInto;
 	ghRC = wglGetCurrentContext();
 	if (ghRC) 
 	    wglDeleteContext(ghRC); 
@@ -340,7 +340,7 @@ void fwCloseContext(){
 //}
 HWND fw_window32_hwnd(){
 	ttglobal tg = (ttglobal)gglobal();
-	return (HWND)tg->display.params.winToEmbedInto;
+	return (HWND)((freewrl_params_t *)tg->display.params)->winToEmbedInto;
 }
 
 void fwl_do_keyPress(const char kp, int type);
@@ -1045,6 +1045,7 @@ void fv_setGeometry_from_cmdline(const char *gstring)
 {
 	int w,h,i;
 	char *tok[2];
+	freewrl_params_t *params;
 	char *str = MALLOC(void *, sizeof(gstring)+1);
 	strcpy(str,gstring);
 	tok[0] = str;
@@ -1057,8 +1058,9 @@ void fv_setGeometry_from_cmdline(const char *gstring)
 		}
 	sscanf(tok[0],"%d",&w);
 	sscanf(tok[1],"%d",&h);
-	gglobal()->display.params.width = w; 
-    gglobal()->display.params.height = h; 
+	params = (freewrl_params_t *)gglobal()->display.params;
+	params->width = w; 
+    params->height = h; 
 	FREE(str);
 
 }
@@ -1074,7 +1076,7 @@ void setWindowTitle() //char *window_title)
 	 // __in_opt  LPCTSTR lpString);
 	HWND  ghWnd;   
 	//SetWindowText(ghWnd,fwl_getWindowTitle());
-	ghWnd = (void*)gglobal()->display.params.winToEmbedInto;
+	ghWnd = (void*)((freewrl_params_t *)(gglobal()->display.params))->winToEmbedInto;
 	if(ghWnd)
 		SetWindowText(ghWnd,getWindowTitle()); //window_title);
 }

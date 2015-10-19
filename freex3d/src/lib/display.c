@@ -64,35 +64,54 @@ int PaneClipChanged = FALSE;
 #endif
 #endif
 
-void display_init(struct tdisplay* d) 
+#define MAXSTAT 200
+typedef struct pdisplay{
+	freewrl_params_t params;
+	s_renderer_capabilities_t rdr_caps;
+	char myMenuStatus[MAXSTAT];
+}* ppdisplay;
+void *display_constructor(){
+	void *v = MALLOCV(sizeof(struct pdisplay));
+	memset(v,0,sizeof(struct pdisplay));
+	return v;
+}
+void display_init(struct tdisplay* t) 
 {
 	//public
 	//freewrl_params_t p = d->params;
 
-	d->display_initialized = FALSE;
-	d->params.height = 0; /* window */
-	d->params.width = 0;
-	d->params.winToEmbedInto = INT_ID_UNDEFINED;
-	d->params.fullscreen = FALSE;
-	d->params.xpos = 0;
-	d->params.ypos = 0;
+	t->display_initialized = FALSE;
 
-	d->params.frontend_handles_display_thread = FALSE;
+	t->view_height = 0; /* viewport */
+	t->view_width = 0;
+	t->screenWidth = 0; /* screen */
+	t->screenHeight = 0;
+	t->screenRatio = 1.5;
+	t->window_title = NULL;
 
-	d->view_height = 0; /* viewport */
-	d->view_width = 0;
-	d->screenWidth = 0; /* screen */
-	d->screenHeight = 0;
-	d->screenRatio = 1.5;
-	d->window_title = NULL;
+	t->mouse_x = 0;
+	t->mouse_y = 0;
+	t->show_mouse = 0;
+	t->shutterGlasses = 0; /* stereo shutter glasses */
+	t->quadbuff_stereo_mode = 0;
+	//memset(&t->rdr_caps,0,sizeof(t->rdr_caps));
+	t->myFps = (float) 0.0;
+	t->prv = display_constructor();
+	{
+		ppdisplay p = (ppdisplay)t->prv;
+		memset(&p->rdr_caps,0,sizeof(s_renderer_capabilities_t));
+		t->rdr_caps = &p->rdr_caps;
+		t->myMenuStatus = p->myMenuStatus;
+		p->params.height = 0; /* window */
+		p->params.width = 0;
+		p->params.winToEmbedInto = INT_ID_UNDEFINED;
+		p->params.fullscreen = FALSE;
+		p->params.xpos = 0;
+		p->params.ypos = 0;
+		p->params.frontend_handles_display_thread = FALSE;
 
-	d->mouse_x = 0;
-	d->mouse_y = 0;
-	d->show_mouse = 0;
-	d->shutterGlasses = 0; /* stereo shutter glasses */
-	d->quadbuff_stereo_mode = 0;
-	memset(&d->rdr_caps,0,sizeof(d->rdr_caps));
-	d->myFps = (float) 0.0;
+		t->params = &p->params;
+	}
 }
 
 
@@ -145,7 +164,12 @@ int fv_display_initialize()
  */
 int fv_display_initialize()
 {
-	struct tdisplay* d = &gglobal()->display;
+	struct tdisplay* d;
+	ppdisplay p;
+	ttglobal tg = gglobal();
+	d = &tg->display;
+	p = (ppdisplay)tg->display.prv;
+
 #ifdef HAVE_OPENCL
 	struct tOpenCL_Utils *cl = &gglobal()->OpenCL_Utils;
 #endif //HAVE_OPENCL
@@ -176,13 +200,13 @@ int fv_display_initialize()
 
  #endif //!MSC_VER && ! any OpenGL ES 2.0 device
 
-	if (0 != d->screenWidth)  d->params.width  = d->screenWidth;
-	if (0 != d->screenHeight) d->params.height = d->screenHeight;
-	fv_setScreenDim(d->params.width,d->params.height); /* recompute screenRatio */
+	if (0 != d->screenWidth)  p->params.width  = d->screenWidth;
+	if (0 != d->screenHeight) p->params.height = d->screenHeight;
+	fv_setScreenDim(p->params.width,p->params.height); /* recompute screenRatio */
 
 	//snprintf(window_title, sizeof(window_title), "FreeWRL");
 
-	if (!fv_create_main_window(&d->params)){ //0 /*argc*/, NULL /*argv*/)) {
+	if (!fv_create_main_window(d->params)){ //0 /*argc*/, NULL /*argv*/)) {
 	//if (!fv_create_main_window((freewrl_params_t *)d)){ //0 /*argc*/, NULL /*argv*/)) {
 		return FALSE;
 	}
@@ -313,10 +337,11 @@ void fwl_updateScreenDim(int wi, int he)
  */
 bool initialize_rdr_caps()
 {
-	s_renderer_capabilities_t rdr_caps;
+	//s_renderer_capabilities_t *rdr_caps;
 	/* Max texture size */
 	GLint tmp;  /* ensures that we pass pointers of same size across all platforms */
-		
+	ppdisplay p = (ppdisplay)gglobal()->display.prv;
+	
 #if defined(HAVE_GLEW_H) && !defined(ANGLEPROJECT)
 	/* Initialize GLEW */
 	{
@@ -333,25 +358,25 @@ bool initialize_rdr_caps()
 
 	/* OpenGL is initialized, context is created,
 	   get some info, for later use ...*/
-        rdr_caps.renderer   = (char *) FW_GL_GETSTRING(GL_RENDERER);
-        rdr_caps.version    = (char *) FW_GL_GETSTRING(GL_VERSION);
-        rdr_caps.vendor     = (char *) FW_GL_GETSTRING(GL_VENDOR);
-	rdr_caps.extensions = (char *) FW_GL_GETSTRING(GL_EXTENSIONS);
-    FW_GL_GETBOOLEANV(GL_STEREO,&(rdr_caps.quadBuffer));
+        p->rdr_caps.renderer   = (char *) FW_GL_GETSTRING(GL_RENDERER);
+        p->rdr_caps.version    = (char *) FW_GL_GETSTRING(GL_VERSION);
+        p->rdr_caps.vendor     = (char *) FW_GL_GETSTRING(GL_VENDOR);
+	p->rdr_caps.extensions = (char *) FW_GL_GETSTRING(GL_EXTENSIONS);
+    FW_GL_GETBOOLEANV(GL_STEREO,&(p->rdr_caps.quadBuffer));
     //if (rdr_caps.quadBuffer) ConsoleMessage("INIT HAVE QUADBUFFER"); else ConsoleMessage("INIT_ NO QUADBUFFER");
-    ConsoleMessage("openGL version %s\n",rdr_caps.version);
+    ConsoleMessage("openGL version %s\n",p->rdr_caps.version);
 
 	/* rdr_caps.version = "1.5.7"; //"1.4.1"; //for testing */
-    rdr_caps.versionf = (float) atof(rdr_caps.version); 
-    if (rdr_caps.versionf == 0) // can't parse output of GL_VERSION, generally in case it is smth. like "OpenGL ES 3.0 V@66.0 AU@ (CL@)". probably 3.x or bigger.
+    p->rdr_caps.versionf = (float) atof(p->rdr_caps.version); 
+    if (p->rdr_caps.versionf == 0) // can't parse output of GL_VERSION, generally in case it is smth. like "OpenGL ES 3.0 V@66.0 AU@ (CL@)". probably 3.x or bigger.
 	{
         const char *openGLPrefix = "OpenGL ES ";
-        if (NULL != rdr_caps.version && strstr(rdr_caps.version, openGLPrefix))
+        if (NULL != p->rdr_caps.version && strstr(p->rdr_caps.version, openGLPrefix))
         {
             char version[256], *versionPTR;
-            sprintf(version, "%s", rdr_caps.version);
+            sprintf(version, "%s", p->rdr_caps.version);
             versionPTR = version + strlen(openGLPrefix);
-            rdr_caps.versionf = (float) atof(versionPTR);
+            p->rdr_caps.versionf = (float) atof(versionPTR);
             //free(version);
         }
 #if defined(GL_ES_VERSION_2_0) && !defined(ANGLEPROJECT)
@@ -363,49 +388,49 @@ bool initialize_rdr_caps()
             FW_GL_GETINTEGERV(GL_MINOR_VERSION, &minor);
             char *version;
             asprintf(&version, "%d.%d", major, minor);
-            rdr_caps.version = version;
-            rdr_caps.versionf = (float) atof(rdr_caps.version);
+            p->rdr_caps.version = version;
+            p->rdr_caps.versionf = (float) atof(p->rdr_caps.version);
             free(version);
         }
 #endif
 	}
 	/* atof technique: http://www.opengl.org/resources/faq/technical/extensions.htm */
-    rdr_caps.have_GL_VERSION_1_1 = rdr_caps.versionf >= 1.1f;
-    rdr_caps.have_GL_VERSION_1_2 = rdr_caps.versionf >= 1.2f;
-    rdr_caps.have_GL_VERSION_1_3 = rdr_caps.versionf >= 1.3f;
-    rdr_caps.have_GL_VERSION_1_4 = rdr_caps.versionf >= 1.4f;
-    rdr_caps.have_GL_VERSION_1_5 = rdr_caps.versionf >= 1.5f;
-    rdr_caps.have_GL_VERSION_2_0 = rdr_caps.versionf >= 2.0f;
-    rdr_caps.have_GL_VERSION_2_1 = rdr_caps.versionf >= 2.1f;
-    rdr_caps.have_GL_VERSION_3_0 = rdr_caps.versionf >= 3.0f;
+    p->rdr_caps.have_GL_VERSION_1_1 = p->rdr_caps.versionf >= 1.1f;
+    p->rdr_caps.have_GL_VERSION_1_2 = p->rdr_caps.versionf >= 1.2f;
+    p->rdr_caps.have_GL_VERSION_1_3 = p->rdr_caps.versionf >= 1.3f;
+    p->rdr_caps.have_GL_VERSION_1_4 = p->rdr_caps.versionf >= 1.4f;
+    p->rdr_caps.have_GL_VERSION_1_5 = p->rdr_caps.versionf >= 1.5f;
+    p->rdr_caps.have_GL_VERSION_2_0 = p->rdr_caps.versionf >= 2.0f;
+    p->rdr_caps.have_GL_VERSION_2_1 = p->rdr_caps.versionf >= 2.1f;
+    p->rdr_caps.have_GL_VERSION_3_0 = p->rdr_caps.versionf >= 3.0f;
 
 
 	/* Initialize renderer capabilities without GLEW */
 
 	/* Multitexturing */
-	rdr_caps.av_multitexture = (strstr (rdr_caps.extensions, "GL_ARB_multitexture")!=0);
+	p->rdr_caps.av_multitexture = (strstr (p->rdr_caps.extensions, "GL_ARB_multitexture")!=0);
 
 	/* Occlusion Queries */
-	rdr_caps.av_occlusion_q = ((strstr (rdr_caps.extensions, "GL_ARB_occlusion_query") !=0) ||
-                             (strstr(rdr_caps.extensions, "GL_EXT_occlusion_query_boolean") != 0) ||
-                             rdr_caps.have_GL_VERSION_3_0);
+	p->rdr_caps.av_occlusion_q = ((strstr (p->rdr_caps.extensions, "GL_ARB_occlusion_query") !=0) ||
+                             (strstr(p->rdr_caps.extensions, "GL_EXT_occlusion_query_boolean") != 0) ||
+                             p->rdr_caps.have_GL_VERSION_3_0);
 
 
 	/* Non-power-of-two textures */
-	rdr_caps.av_npot_texture = (strstr (rdr_caps.extensions, "GL_ARB_texture_non_power_of_two") !=0);
+	p->rdr_caps.av_npot_texture = (strstr (p->rdr_caps.extensions, "GL_ARB_texture_non_power_of_two") !=0);
 
 	/* Texture rectangle (x != y) */
-	rdr_caps.av_texture_rect = (strstr (rdr_caps.extensions, "GL_ARB_texture_rectangle") !=0);
+	p->rdr_caps.av_texture_rect = (strstr (p->rdr_caps.extensions, "GL_ARB_texture_rectangle") !=0);
 
 	/* if we are doing our own shading, force the powers of 2, because otherwise mipmaps are not possible. */
-	rdr_caps.av_npot_texture=FALSE;
+	p->rdr_caps.av_npot_texture=FALSE;
 
 	/* attempting multi-texture */
-	rdr_caps.av_multitexture = 1;
+	p->rdr_caps.av_multitexture = 1;
 
 	FW_GL_GETINTEGERV(GL_MAX_TEXTURE_SIZE, &tmp);
-	rdr_caps.runtime_max_texture_size = (int) tmp;
-	rdr_caps.system_max_texture_size = (int) tmp;
+	p->rdr_caps.runtime_max_texture_size = (int) tmp;
+	p->rdr_caps.system_max_texture_size = (int) tmp;
 
 	// GL_MAX_TEXTURE_UNITS is for fixed function, and should be deprecated.
 	// use GL_MAX_TEXTURE_IMAGE_UNITS now, according to the OpenGL.org wiki
@@ -417,35 +442,35 @@ bool initialize_rdr_caps()
 	FW_GL_GETINTEGERV(GL_MAX_TEXTURE_UNITS, &tmp);
 	#endif
 
-	rdr_caps.texture_units = (int) tmp;
+	p->rdr_caps.texture_units = (int) tmp;
 
 	/* max supported texturing anisotropicDegree- can be changed in TextureProperties */
 #ifdef GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
-	FW_GL_GETFLOATV (GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &rdr_caps.anisotropicDegree);
+	FW_GL_GETFLOATV (GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &p->rdr_caps.anisotropicDegree);
 #endif
 	/* User settings in environment */
 
 	//ConsoleMessage ("Environment set texture size: %d", gglobal()->internalc.user_request_texture_size);
 	if (gglobal()->internalc.user_request_texture_size > 0) {
 		DEBUG_MSG("Environment set texture size: %d", gglobal()->internalc.user_request_texture_size);
-		rdr_caps.runtime_max_texture_size = gglobal()->internalc.user_request_texture_size;
+		p->rdr_caps.runtime_max_texture_size = gglobal()->internalc.user_request_texture_size;
 	}
 
 	/* Special drivers settings */
 	if (
-	strstr(rdr_caps.renderer, "Intel GMA 9") != NULL ||
-	strstr(rdr_caps.renderer, "Intel(R) 9") != NULL ||
-	strstr(rdr_caps.renderer, "i915") != NULL ||
-	strstr(rdr_caps.renderer, "NVIDIA GeForce2") != NULL
+	strstr(p->rdr_caps.renderer, "Intel GMA 9") != NULL ||
+	strstr(p->rdr_caps.renderer, "Intel(R) 9") != NULL ||
+	strstr(p->rdr_caps.renderer, "i915") != NULL ||
+	strstr(p->rdr_caps.renderer, "NVIDIA GeForce2") != NULL
 	) {
-		if (rdr_caps.runtime_max_texture_size > 1024) rdr_caps.runtime_max_texture_size = 1024;
+		if (p->rdr_caps.runtime_max_texture_size > 1024) p->rdr_caps.runtime_max_texture_size = 1024;
 	}
 
 	/* print some debug infos */
-	rdr_caps_dump(&rdr_caps);
+	rdr_caps_dump(&p->rdr_caps);
 
 	//make this the renderer caps for this thread.
-	memcpy(&gglobal()->display.rdr_caps,&rdr_caps,sizeof(rdr_caps));
+	//memcpy(&gglobal()->display.rdr_caps,&rdr_caps,sizeof(rdr_caps));
 	return TRUE;
 }
 

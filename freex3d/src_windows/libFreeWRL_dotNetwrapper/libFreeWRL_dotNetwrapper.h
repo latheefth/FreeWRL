@@ -22,6 +22,19 @@ namespace libFreeWRL_dotNetwrapper {
 	{
 	private:
 		CdllFreeWRL *dllfreewrl;
+		char * string2chars(System::String^ sstring){
+			//const char* str2 = (char*)(void*)Marshal::StringToHGlobalAnsi(sstring);
+			const char* str2 = (char*)(void*)Marshal::StringToHGlobalAnsi(sstring);
+			int len = sstring->Length;
+			char* temp = (char*)malloc(len+1);
+			for(int i=0;i<len;i++)
+			{
+				temp[i] = str2[i];
+			}
+			temp[len] = 0;
+			return temp;
+		}
+
 public: 
 		// TODO: Add your methods for this class here.
 
@@ -33,7 +46,8 @@ public:
 		{
 			//void *handle;
 			//handle = (void*)windowhandle.ToInt32;
-			dllfreewrl = new CdllFreeWRL(width, height, windowhandle.ToPointer(), bEai);
+			dllfreewrl = new CdllFreeWRL();
+			dllfreewrl->onInit(width, height, windowhandle.ToPointer(), bEai, false);
 			//message = handle.ToString();
 			// Hide the console window    FreeConsole();
 			//AllocConsole();    
@@ -42,17 +56,9 @@ public:
 		}
 		void onLoad(String^ Scene_url)
 		{
-
-
-			// ms-help://MS.VSCC.v90/MS.msdnexpress.v90.en/dv_vccore/html/385da01b-5649-4543-8076-e3e251243ff0.htm
-			pin_ptr<const wchar_t> wch = PtrToStringChars(Scene_url);
-					//Scene_url->ToCharArray(); //PtrToStringChars(Scene_url);
-			size_t convertedChars = 0;
-			size_t  sizeInBytes = ((Scene_url->Length + 1) * 2);
-			char *scene_url = (char *)malloc(sizeInBytes);
-
-			if( wcstombs_s(&convertedChars, scene_url, sizeInBytes,	wch, sizeInBytes) == 0)
-				dllfreewrl->onLoad(scene_url); 
+			char *chars = string2chars(Scene_url);
+			dllfreewrl->onLoad(chars); 
+			if(chars) free(chars);
 		}
         void onResize(int width,int height)
 		{
@@ -72,6 +78,11 @@ public:
         void onTick(int interval)
 		{
 			//dllfreewrl->onTick(interval);
+		}
+		void commandline(String^ cmdline){
+			char *chars = string2chars(cmdline);
+			dllfreewrl->commandline(chars);
+			if(chars) free(chars);
 		}
 		// http://msdn.microsoft.com/en-us/library/ms177197.aspx
 		// somehow we need to deterministically release unmanaged resources

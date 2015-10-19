@@ -61,6 +61,7 @@ void SSRserver_enqueue_request_and_wait(void *fwctx, SSR_request *request){
 
 	return;
 }
+#include "../lib/internal.h"
 #define BOOL	int
 #define GLDOUBLE double
 #include "../lib/scenegraph/quaternion.h"
@@ -74,6 +75,7 @@ static int reverse_sense_init = 0; //0 conceptually correct
 static int reverse_sense_quat4 = 0; //0 conceptually correct
 static int reverse_sense_vec3 = 0;
 static int reverse_order_quat4 = 1; //0 conceptually correct
+void viewer_getview( double *viewMatrix);
 void vp2world_initialize()
 {
 	/*  
@@ -310,7 +312,7 @@ void vp2world_initialize()
 		vp2world_initialized = TRUE;
 	}
 }
-struct point_XYZ {GLDOUBLE x,y,z;};
+//struct point_XYZ {GLDOUBLE x,y,z;};
 void SSR_reply_pose(SSR_request *request, int initialpose)
 {
 	/* client's pose(vec3,quat4) - world - View - (Viewpoint node) - .Pos - ..Quat  - vp
@@ -701,6 +703,7 @@ static char *snapshot_filename = "snapshot.bmp"; //option: get this from the sna
 #else
 static char *snapshot_filename = "snapshot.png";
 #endif
+void Snapshot1(char *fname);
 void SSR_reply_snapshot(SSR_request *request)
 {
 	int iret;

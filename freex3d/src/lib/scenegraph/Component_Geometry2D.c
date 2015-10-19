@@ -664,69 +664,71 @@ void collide_Disk2D (struct X3D_Disk2D *node) {
 }
 
 void collide_Rectangle2D (struct X3D_Rectangle2D *node) {
-		/* Modified Box code. */
-		ttglobal tg = gglobal();
-	       /*easy access, naviinfo.step unused for sphere collisions */
-	       GLDOUBLE awidth = tg->Bindable.naviinfo.width; /*avatar width*/
-	       GLDOUBLE atop = tg->Bindable.naviinfo.width; /*top of avatar (relative to eyepoint)*/
-	       GLDOUBLE abottom = -tg->Bindable.naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-	       GLDOUBLE astep = -tg->Bindable.naviinfo.height+tg->Bindable.naviinfo.step;
+	/* Modified Box code. */
+	struct sNaviInfo *naviinfo;
+	ttglobal tg = gglobal();
+	/*easy access, naviinfo.step unused for sphere collisions */
+	naviinfo = (struct sNaviInfo*)tg->Bindable.naviinfo;
+	GLDOUBLE awidth = naviinfo->width; /*avatar width*/
+	GLDOUBLE atop = naviinfo->width; /*top of avatar (relative to eyepoint)*/
+	GLDOUBLE abottom = -naviinfo->height; /*bottom of avatar (relative to eyepoint)*/
+	GLDOUBLE astep = -naviinfo->height+naviinfo->step;
 
-	       GLDOUBLE modelMatrix[16];
-	       //GLDOUBLE upvecmat[16];
-	       struct point_XYZ iv = {0,0,0};
-	       struct point_XYZ jv = {0,0,0};
-	       struct point_XYZ kv = {0,0,0};
-	       struct point_XYZ ov = {0,0,0};
+	GLDOUBLE modelMatrix[16];
+	//GLDOUBLE upvecmat[16];
+	struct point_XYZ iv = {0,0,0};
+	struct point_XYZ jv = {0,0,0};
+	struct point_XYZ kv = {0,0,0};
+	struct point_XYZ ov = {0,0,0};
 
-	       struct point_XYZ delta;
+	struct point_XYZ delta;
 
-		iv.x = node->size.c[0];
-		jv.y = node->size.c[1]; 
-		kv.z = 0.0;
-		ov.x = -((node->size).c[0])/2; ov.y = -((node->size).c[1])/2; ov.z = 0.0;
+	iv.x = node->size.c[0];
+	jv.y = node->size.c[1]; 
+	kv.z = 0.0;
+	ov.x = -((node->size).c[0])/2; ov.y = -((node->size).c[1])/2; ov.z = 0.0;
 
-	       /* get the transformed position of the Box, and the scale-corrected radius. */
-	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
+	/* get the transformed position of the Box, and the scale-corrected radius. */
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-			matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
-			//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
+	matmultiplyAFFINE(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+	//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
-		   {
-			   /*  minimum bounding box MBB test in avatar/collision space */
-				GLDOUBLE shapeMBBmin[3], shapeMBBmax[3];
-				int i;
-				for(i=0;i<3;i++)
-				{
-					shapeMBBmin[i] = DOUBLE_MIN(-(node->size).c[i]*.5,(node->size).c[i]*.5);
-					shapeMBBmax[i] = DOUBLE_MAX(-(node->size).c[i]*.5,(node->size).c[i]*.5);
-				}
-				if(!avatarCollisionVolumeIntersectMBB(modelMatrix, shapeMBBmin, shapeMBBmax))return;
-		   }
-	       /* get transformed box edges and position */
-	       transform(&ov,&ov,modelMatrix);
-	       transform3x3(&iv,&iv,modelMatrix);
-	       transform3x3(&jv,&jv,modelMatrix);
-	       transform3x3(&kv,&kv,modelMatrix);
+	{
+		/*  minimum bounding box MBB test in avatar/collision space */
+		GLDOUBLE shapeMBBmin[3], shapeMBBmax[3];
+		int i;
+		for(i=0;i<3;i++)
+		{
+			shapeMBBmin[i] = DOUBLE_MIN(-(node->size).c[i]*.5,(node->size).c[i]*.5);
+			shapeMBBmax[i] = DOUBLE_MAX(-(node->size).c[i]*.5,(node->size).c[i]*.5);
+		}
+		if(!avatarCollisionVolumeIntersectMBB(modelMatrix, shapeMBBmin, shapeMBBmax))return;
+	}
+	/* get transformed box edges and position */
+	transform(&ov,&ov,modelMatrix);
+	transform3x3(&iv,&iv,modelMatrix);
+	transform3x3(&jv,&jv,modelMatrix);
+	transform3x3(&kv,&kv,modelMatrix);
 
-	       delta = box_disp(abottom,atop,astep,awidth,ov,iv,jv,kv);
+	delta = box_disp(abottom,atop,astep,awidth,ov,iv,jv,kv);
 
-	       vecscale(&delta,&delta,-1);
+	vecscale(&delta,&delta,-1);
 
-	       accumulate_disp(CollisionInfo(),delta);
+	accumulate_disp(CollisionInfo(),delta);
 
 
-		#ifdef COLLISIONVERBOSE
-	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
-	           printf("COLLISION_BOX: (%f %f %f) (%f %f %f)\n",
-			  ov.x, ov.y, ov.z,
-			  delta.x, delta.y, delta.z
-			  );
-	       if((fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.))
-	           printf("iv=(%f %f %f) jv=(%f %f %f) kv=(%f %f %f)\n",
-			  iv.x, iv.y, iv.z,
-			  jv.x, jv.y, jv.z,
-			  kv.x, kv.y, kv.z
-			  );
-		#endif
+	#ifdef COLLISIONVERBOSE
+	if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
+		printf("COLLISION_BOX: (%f %f %f) (%f %f %f)\n",
+		ov.x, ov.y, ov.z,
+		delta.x, delta.y, delta.z
+		);
+	if((fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.))
+		printf("iv=(%f %f %f) jv=(%f %f %f) kv=(%f %f %f)\n",
+		iv.x, iv.y, iv.z,
+		jv.x, jv.y, jv.z,
+		kv.x, kv.y, kv.z
+		);
+	#endif
 }

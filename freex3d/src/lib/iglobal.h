@@ -19,31 +19,32 @@ Variable use:
 
 */
 
-#define MAXSTAT 200
-
 #ifndef INSTANCEGLOBAL
-#include "display.h" //for opengl_utils.h which is for rdr_caps
-#include "opengl/OpenGL_Utils.h"  //for rdr_caps
+//#include "display.h" //for opengl_utils.h which is for rdr_caps
+//#include "opengl/OpenGL_Utils.h"  //for rdr_caps
 #include "list.h"
 #ifdef DISABLER
 #include "dbl_list.h"
 #endif
+#include <system.h>
+//#include <libFreeWRL.h>
+#include <pthread.h>
 #include <threads.h> //for threads
-#include "vrml_parser/Structs.h" //for SFColor
-#include "x3d_parser/X3DParser.h" //for PARENTSTACKSIZE
-#include "ui/common.h" // for ppcommon
+//#define GLenum int
+//#define GLuint unsigned int
+//#include "vrml_parser/Structs.h" //for SFColor
+//#include "x3d_parser/X3DParser.h" //for PARENTSTACKSIZE
+//#include "ui/common.h" // for ppcommon
 
-typedef struct pRenderTextures{
-	// blank for now
-	void *nada;
-}* ppRenderTextures;
 
 
 typedef struct iiglobal //InstanceGlobal
 {
 	struct tdisplay{
-		freewrl_params_t params;
-		GLenum _global_gl_err;
+		//freewrl_params_t params;
+		void *params;
+		//GLenum _global_gl_err;
+		int _global_gl_err;
 		bool display_initialized;// = FALSE;
 
 		int view_height;// = 0; /* viewport */
@@ -64,10 +65,11 @@ typedef struct iiglobal //InstanceGlobal
 		int shutterGlasses;// = 0; /* stereo shutter glasses */
 		int quadbuff_stereo_mode;// = 0;
 
-		s_renderer_capabilities_t rdr_caps;
+		//s_renderer_capabilities_t rdr_caps;
+		void *rdr_caps;
 
 		float myFps;// = (float) 0.0;
-		char myMenuStatus[MAXSTAT];
+		char *myMenuStatus;
 		void *prv;
 	}display;
 	struct tinternalc {
@@ -83,7 +85,8 @@ typedef struct iiglobal //InstanceGlobal
 	//	void *prv;
 	//} io_http;
 	struct tresources {
-		resource_item_t *root_res; // = NULL;
+		//resource_item_t *root_res; // = NULL;
+		void *root_res;
 		void *prv;
 	} resources;
 	struct tthreads {
@@ -137,7 +140,7 @@ typedef struct iiglobal //InstanceGlobal
 		int EAIbufcount;				/* pointer into buffer*/
 		int EAIbufpos;
 		int EAIbufsize;				/* current size in bytes of input buffer*/
-		char EAIListenerData[8192]; //EAIREADSIZE]; /* this is the location for getting Listenered data back again.*/
+		char *EAIListenerData; /* this is the location for getting Listenered data back again.*/
 		void *prv;
 	} EAICore;
 	struct tSensInterps{
@@ -234,15 +237,18 @@ typedef struct iiglobal //InstanceGlobal
 	}RasterFont;
 #endif
 	struct tRenderTextures{
-		struct multiTexParams textureParameterStack[MAX_MULTITEXTURE];
+		//struct multiTexParams textureParameterStack[MAX_MULTITEXTURE];
+		void *textureParameterStack;
 		void *prv;
 	}RenderTextures;
 	struct tTextures{
 		/* for texture remapping in TextureCoordinate nodes */
-		GLuint	*global_tcin;
+		//GLuint	*global_tcin;
+		unsigned int *global_tcin;
 		int	global_tcin_count;
 		void 	*global_tcin_lastParent;
-		GLuint defaultBlankTexture;
+		//GLuint defaultBlankTexture;
+		unsigned int defaultBlankTexture;
 		void *prv;
 	}Textures;
 	struct tPluginSocket{
@@ -313,14 +319,16 @@ iOLDCODE	}Component_Networking;
 		int BrowserAction;// = FALSE;
 		double hitPointDist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
 		/* used to save rayhit and hyperhit for later use by C functions */
-		struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
+		//struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
+		float hyp_save_posn[3], hyp_save_norm[3], ray_save_posn[3];
 		void *hypersensitive;//= 0; 
 		int hyperhit;// = 0;
-		struct point_XYZ hp;
-		void *prv;
+		//struct point_XYZ hp;
+		void *hp;
 		void *rayHit;
 		void *rayHitHyper;
-		struct point_XYZ t_r1,t_r2,t_r3; /* transformed ray */
+		//struct point_XYZ t_r1,t_r2,t_r3; /* transformed ray */
+		//void *t_r123; /* transformed ray */
 		int usingAffinePickmatrix; /*instead of GLU_UNPROJECT feature-AFFINE_GLU_UNPROJECT*/
 		int	lightingOn;		/* do we need to restore lighting in Shape? */
 		int	have_transparency;//=FALSE;/* did any Shape have transparent material? */
@@ -328,8 +336,10 @@ iOLDCODE	}Component_Networking;
 		   and diffusecolor with texture, else, we dont bother with material colors */
 		int last_texture_type;// = NOTEXTURE;
 		/* texture stuff - see code. Need array because of MultiTextures */
-		GLuint boundTextureStack[10];//MAX_MULTITEXTURE];
+		//GLuint boundTextureStack[10];//MAX_MULTITEXTURE];
+		unsigned int boundTextureStack[10];//MAX_MULTITEXTURE];
 		int textureStackTop;
+		void *prv;
 	}RenderFuncs;
 	struct tStreamPoly{
 		void *prv;
@@ -337,7 +347,8 @@ iOLDCODE	}Component_Networking;
 	struct tTess{
 		int *global_IFS_Coords;
 		int global_IFS_Coord_count;//=0;
-		GLUtriangulatorObj *global_tessobj;
+		//GLUtriangulatorObj *global_tessobj;
+		void *global_tessobj;
 		void *prv;
 	}Tess;
 	struct tViewer{
@@ -389,16 +400,21 @@ iOLDCODE	}Component_Networking;
 		void *prv;
 	}jsVRMLClasses;
 	struct tBindable{
-		struct sNaviInfo naviinfo;
-        	struct Vector *background_stack;
-        	struct Vector *viewpoint_stack;
-        	struct Vector *navigation_stack;
-        	struct Vector *fog_stack;
+		//struct sNaviInfo naviinfo;
+  //      struct Vector *background_stack;
+  //      struct Vector *viewpoint_stack;
+  //      struct Vector *navigation_stack;
+  //      struct Vector *fog_stack;
+		void *naviinfo;
+        void *background_stack;
+        void *viewpoint_stack;
+        void *navigation_stack;
+        void *fog_stack;
 		void *prv;
 	}Bindable;
 	struct tX3DParser{
 		int parentIndex;// = -1;
-		struct X3D_Node *parentStack[PARENTSTACKSIZE];
+		//struct X3D_Node *parentStack[PARENTSTACKSIZE];
 		char *CDATA_Text;// = NULL;
 		int CDATA_Text_curlen;// = 0;
 		void *prv;

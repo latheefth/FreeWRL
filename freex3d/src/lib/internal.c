@@ -131,17 +131,19 @@ void fwl_set_trace_threads	(bool flag) { gglobal()->internalc.global_trace_threa
 void fwl_set_texture_size	(unsigned int texture_size) { 
 
 		// save this one.
-
-		gglobal()->internalc.user_request_texture_size = texture_size;
+		s_renderer_capabilities_t *rdr_caps;
+		ttglobal tg = gglobal();
+		tg->internalc.user_request_texture_size = texture_size;
+		rdr_caps = tg->display.rdr_caps;
 
 		// how does this fit with our current system?
 		// is it BIGGER than we can support in hardware?
 		// eg, are we asking for 2048, but system supports 1024 max?
-		if (texture_size > gglobal()->display.rdr_caps.system_max_texture_size) 
-			gglobal()->display.rdr_caps.runtime_max_texture_size = gglobal()->display.rdr_caps.system_max_texture_size;
+		if (texture_size > rdr_caps->system_max_texture_size) 
+			rdr_caps->runtime_max_texture_size = rdr_caps->system_max_texture_size;
 		else 
 			// it is ok, smaller than the system hardware support.
-			gglobal()->display.rdr_caps.runtime_max_texture_size = texture_size;
+			rdr_caps->runtime_max_texture_size = texture_size;
 
 		//ConsoleMessage ("user request texture size %d,  system %d, runtime %d",texture_size,
 				//gglobal()->display.rdr_caps.system_max_texture_size,

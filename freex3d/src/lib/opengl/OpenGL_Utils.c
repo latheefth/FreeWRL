@@ -157,8 +157,10 @@ typedef struct pOpenGL_Utils{
 void fwl_glGenQueries(GLsizei n, GLuint* ids)
 {
 #if defined(IPHONE)
+	s_renderer_capabilities_t *rdr_caps;
     ttglobal tg = gglobal();
-    if (tg->display.rdr_caps.have_GL_VERSION_3_0)
+	rdr_caps = tg->display.rdr_caps;
+    if (rdr_caps->have_GL_VERSION_3_0)
     {
         glGenQueries(n, ids);
     }
@@ -173,8 +175,10 @@ void fwl_glGenQueries(GLsizei n, GLuint* ids)
 void fwl_glDeleteQueries(GLsizei n, const GLuint* ids)
 {
 #if defined(IPHONE)
+	s_renderer_capabilities_t *rdr_caps;
     ttglobal tg = gglobal();
-    if (tg->display.rdr_caps.have_GL_VERSION_3_0)
+	rdr_caps = tg->display.rdr_caps;
+    if (rdr_caps->have_GL_VERSION_3_0)
     {
         glDeleteQueries(n, ids);
     }
@@ -189,8 +193,10 @@ void fwl_glDeleteQueries(GLsizei n, const GLuint* ids)
 void fwl_glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint* params)
 {
 #if defined(IPHONE)
+	s_renderer_capabilities_t *rdr_caps;
     ttglobal tg = gglobal();
-    if (tg->display.rdr_caps.have_GL_VERSION_3_0)
+	rdr_caps = tg->display.rdr_caps;
+    if (rdr_caps->have_GL_VERSION_3_0)
     {
         glGetQueryObjectuiv(id, pname, params);
     }
