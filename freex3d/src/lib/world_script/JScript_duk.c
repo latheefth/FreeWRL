@@ -338,6 +338,8 @@ void freeField(int itype, void* any){
 }
 
 #include <math.h> //for int = round(numeric)
+unsigned long upper_power_of_two(unsigned long v);
+void deleteMallocedFieldValue(int type,union anyVrml *fieldPtr);
 void medium_copy_field0(int itype, void* source, void* dest)
 {
 	/* medium-deep copies field up to and including pointer: doesn't deep copy *(SFNode*) or *(SFString*), 

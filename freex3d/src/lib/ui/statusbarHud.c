@@ -2608,6 +2608,7 @@ void statusbar_set_window_size(int width, int height)
 	p->screenWidth = width;
 	fwl_setScreenDim(width, height);
 }
+int getCursorStyle();
 int statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY)
 {
 	int cursorStyle;

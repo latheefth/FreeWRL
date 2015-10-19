@@ -159,6 +159,7 @@ FWPropertySpec (MFW_Properties)[] = {
 	{"length", -1, 'I', 0},
 	{NULL,0,0,0},
 };
+unsigned long upper_power_of_two(unsigned long v);
 int MFW_Getter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	struct Multi_Any *ptr = (struct Multi_Any *)fwn;
 	int nr = 0;

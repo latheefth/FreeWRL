@@ -69,6 +69,7 @@
 #include "../scenegraph/RenderFuncs.h"
 
 #include "../ui/common.h"
+#include "../io_files.h"
 
 #include "ProdCon.h"
 

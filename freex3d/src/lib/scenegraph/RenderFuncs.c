@@ -170,6 +170,7 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 	//setLightType(HEADLIGHT_LIGHT,2); // ensure that this is a DirectionalLight.
 }
 void unload_libraryscenes();
+int gc_broto_instance(struct X3D_Proto* node);
 void RenderFuncs_clear(struct tRenderFuncs *t){
 	ppRenderFuncs p = (ppRenderFuncs)t->prv;
 	unload_libraryscenes();
