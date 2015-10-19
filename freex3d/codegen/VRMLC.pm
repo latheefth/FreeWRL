@@ -1040,6 +1040,10 @@ sub gen {
 	"#define X3D_QUADSET(node) ((struct X3D_QuadSet*)node)\n".
 	"#define X3D_INDEXEDQUADSET(node) ((struct X3D_IndexedQuadSet*)node)\n".
 
+	"#define X3D_VIEWPORT(node) ((struct X3D_Viewport*)node)\n".
+	"#define X3D_LAYOUT(node) ((struct X3D_Layout*)node)\n".
+	"#define X3D_LAYERSET(node) ((struct X3D_LayerSet*)node)\n".
+
 
 	"#define X3D_GEOORIGIN(node) ((struct X3D_GeoOrigin*)node)\n".
 	"#define X3D_GEOLOD(node) ((struct X3D_GeoLOD*)node)\n".

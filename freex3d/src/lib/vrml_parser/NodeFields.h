@@ -1052,6 +1052,25 @@ FIELD(LOD,range,mffloat,range,FIELDTYPE_MFFloat)
 EVENT_IN(LOD,removeChildren,mfnode,removeChildren,FIELDTYPE_MFNode)
 END_NODE(LOD)
 
+/* Layer node */
+BEGIN_NODE(Layer)
+EVENT_IN(Layer,addChildren,mfnode,addChildren,FIELDTYPE_MFNode)
+EXPOSED_FIELD(Layer,children,mfnode,children,FIELDTYPE_MFNode)
+EXPOSED_FIELD(Layer,isPickable,sfbool,isPickable,FIELDTYPE_SFBool)
+EXPOSED_FIELD(Layer,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EVENT_IN(Layer,removeChildren,mfnode,removeChildren,FIELDTYPE_MFNode)
+EXPOSED_FIELD(Layer,viewport,sfnode,viewport,FIELDTYPE_SFNode)
+END_NODE(Layer)
+
+/* LayerSet node */
+BEGIN_NODE(LayerSet)
+EXPOSED_FIELD(LayerSet,activeLayer,sfint32,activeLayer,FIELDTYPE_SFInt32)
+EXPOSED_FIELD(LayerSet,layers,mfnode,layers,FIELDTYPE_MFNode)
+EXPOSED_FIELD(LayerSet,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(LayerSet,order,mfint32,order,FIELDTYPE_MFInt32)
+EXPOSED_FIELD(LayerSet,viewport,sfnode,viewport,FIELDTYPE_SFNode)
+END_NODE(LayerSet)
+
 /* LineProperties node */
 BEGIN_NODE(LineProperties)
 EXPOSED_FIELD(LineProperties,applied,sfbool,applied,FIELDTYPE_SFBool)
@@ -2433,6 +2452,17 @@ EXPOSED_FIELD(ViewpointGroup,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 EXPOSED_FIELD(ViewpointGroup,retainUserOffsets,sfbool,retainUserOffsets,FIELDTYPE_SFBool)
 EXPOSED_FIELD(ViewpointGroup,size,sfvec3f,size,FIELDTYPE_SFVec3f)
 END_NODE(ViewpointGroup)
+
+/* Viewport node */
+BEGIN_NODE(Viewport)
+EVENT_IN(Viewport,addChildren,mfnode,addChildren,FIELDTYPE_MFNode)
+FIELD(Viewport,bboxCenter,sfvec3f,bboxCenter,FIELDTYPE_SFVec3f)
+FIELD(Viewport,bboxSize,sfvec3f,bboxSize,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(Viewport,children,mfnode,children,FIELDTYPE_MFNode)
+EXPOSED_FIELD(Viewport,clipBoundary,mffloat,clipBoundary,FIELDTYPE_MFFloat)
+EXPOSED_FIELD(Viewport,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EVENT_IN(Viewport,removeChildren,mfnode,removeChildren,FIELDTYPE_MFNode)
+END_NODE(Viewport)
 
 /* VisibilitySensor node */
 BEGIN_NODE(VisibilitySensor)

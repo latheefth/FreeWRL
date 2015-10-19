@@ -186,6 +186,10 @@ our %defaultContainerType = (
 	ShaderPart		=>"parts",
 	ShaderProgram		=>"programs",
 
+	Viewport		=>"viewport",
+	Layer			=>"layers",
+	LayerSet		=>"children",
+
 	MetadataSet		=>"metadata",
 	MetadataInteger		=>"metadata",
 	MetadataDouble		=>"metadata",

@@ -237,6 +237,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"actionKeyPress",
 	"actionKeyRelease",
 	"activate",
+	"activeLayer",
 	"addChildren",
 	"addGeometry",
 	"addTrimmingContour",
@@ -307,6 +308,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"child4Url",
 	"children",
 	"choice",
+	"clipBoundary",
 	"closed",
 	"closureType",
 	"collide",
@@ -442,6 +444,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"isNetworkWriter",
 	"isOver",
 	"isPaused",
+	"isPickable",
 	"isRtpHeaderHeard",
 	"isSelected",
 	"isStandAlone",
@@ -457,6 +460,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"kind",
 	"knot",
 	"language",
+	"layers",
 	"left",
 	"leftTexture",
 	"leftToRight",
@@ -714,6 +718,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"vertexCount",
 	"vertices",
 	"viewpoints",
+	"viewport",
 	"visibilityLimit",
 	"visibilityRange",
 	"visible",
@@ -864,6 +869,7 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
        const char *EXPOSED_FIELD[] = {
 	"FIFOsize",
 	"FreeWRL_PROTOInterfaceNodes",
+	"activeLayer",
 	"address",
 	"alpha",
 	"ambientIntensity",
@@ -909,6 +915,7 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"centerOfRotation",
 	"children",
 	"choice",
+	"clipBoundary",
 	"closed",
 	"collide",
 	"collisionType",
@@ -989,12 +996,14 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"int32Inp",
 	"integerKey",
 	"intensity",
+	"isPickable",
 	"joints",
 	"jump",
 	"key",
 	"keyValue",
 	"keyVelocity",
 	"knot",
+	"layers",
 	"left",
 	"leftTexture",
 	"leftUrl",
@@ -1157,6 +1166,7 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"vertexCount",
 	"vertices",
 	"viewpoints",
+	"viewport",
 	"visibilityLimit",
 	"visibilityRange",
 	"visible",
@@ -1664,6 +1674,8 @@ const int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 	"IntegerTrigger",
 	"KeySensor",
 	"LOD",
+	"Layer",
+	"LayerSet",
 	"LineProperties",
 	"LineSensor",
 	"LineSet",
@@ -1791,6 +1803,7 @@ const int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 	"TwoSidedMaterial",
 	"Viewpoint",
 	"ViewpointGroup",
+	"Viewport",
 	"VisibilitySensor",
 	"WorldInfo",
 };
@@ -2052,6 +2065,10 @@ struct X3D_Virt virt_KeySensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
 void child_LOD(struct X3D_LOD *);
 void proximity_LOD(struct X3D_LOD *);
 struct X3D_Virt virt_LOD = { NULL,NULL,(void *)child_LOD,NULL,NULL,NULL,(void *)proximity_LOD,NULL,NULL,NULL};
+
+struct X3D_Virt virt_Layer = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+struct X3D_Virt virt_LayerSet = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 void render_LineProperties(struct X3D_LineProperties *);
 struct X3D_Virt virt_LineProperties = { NULL,(void *)render_LineProperties,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
@@ -2431,6 +2448,8 @@ void child_ViewpointGroup(struct X3D_ViewpointGroup *);
 void compile_ViewpointGroup(struct X3D_ViewpointGroup *);
 struct X3D_Virt virt_ViewpointGroup = { NULL,NULL,(void *)child_ViewpointGroup,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_ViewpointGroup};
 
+struct X3D_Virt virt_Viewport = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 void child_VisibilitySensor(struct X3D_VisibilitySensor *);
 struct X3D_Virt virt_VisibilitySensor = { NULL,NULL,(void *)child_VisibilitySensor,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
@@ -2515,6 +2534,8 @@ struct X3D_Virt* virtTable[] = {
 	 &virt_IntegerTrigger,
 	 &virt_KeySensor,
 	 &virt_LOD,
+	 &virt_Layer,
+	 &virt_LayerSet,
 	 &virt_LineProperties,
 	 &virt_LineSensor,
 	 &virt_LineSet,
@@ -2642,6 +2663,7 @@ struct X3D_Virt* virtTable[] = {
 	 &virt_TwoSidedMaterial,
 	 &virt_Viewpoint,
 	 &virt_ViewpointGroup,
+	 &virt_Viewport,
 	 &virt_VisibilitySensor,
 	 &virt_WorldInfo,
 	NULL}; 
@@ -3770,6 +3792,23 @@ const int OFFSETS_LOD[] = {
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_LOD, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_range, (int) offsetof (struct X3D_LOD, range),  (int) FIELDTYPE_MFFloat, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_removeChildren, (int) offsetof (struct X3D_LOD, removeChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	-1, -1, -1, -1, -1};
+
+const int OFFSETS_Layer[] = {
+	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_Layer, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_children, (int) offsetof (struct X3D_Layer, children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_isPickable, (int) offsetof (struct X3D_Layer, isPickable),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_Layer, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_removeChildren, (int) offsetof (struct X3D_Layer, removeChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_viewport, (int) offsetof (struct X3D_Layer, viewport),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	-1, -1, -1, -1, -1};
+
+const int OFFSETS_LayerSet[] = {
+	(int) FIELDNAMES_activeLayer, (int) offsetof (struct X3D_LayerSet, activeLayer),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_layers, (int) offsetof (struct X3D_LayerSet, layers),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_LayerSet, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_order, (int) offsetof (struct X3D_LayerSet, order),  (int) FIELDTYPE_MFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_viewport, (int) offsetof (struct X3D_LayerSet, viewport),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_LineProperties[] = {
@@ -5175,6 +5214,16 @@ const int OFFSETS_ViewpointGroup[] = {
 	(int) FIELDNAMES_size, (int) offsetof (struct X3D_ViewpointGroup, size),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
+const int OFFSETS_Viewport[] = {
+	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_Viewport, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_Viewport, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_Viewport, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_children, (int) offsetof (struct X3D_Viewport, children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_clipBoundary, (int) offsetof (struct X3D_Viewport, clipBoundary),  (int) FIELDTYPE_MFFloat, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_Viewport, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_removeChildren, (int) offsetof (struct X3D_Viewport, removeChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	-1, -1, -1, -1, -1};
+
 const int OFFSETS_VisibilitySensor[] = {
 	(int) FIELDNAMES___Samples, (int) offsetof (struct X3D_VisibilitySensor, __Samples),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___occludeCheckCount, (int) offsetof (struct X3D_VisibilitySensor, __occludeCheckCount),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
@@ -5274,6 +5323,8 @@ const int *NODE_OFFSETS[] = {
 	OFFSETS_IntegerTrigger,
 	OFFSETS_KeySensor,
 	OFFSETS_LOD,
+	OFFSETS_Layer,
+	OFFSETS_LayerSet,
 	OFFSETS_LineProperties,
 	OFFSETS_LineSensor,
 	OFFSETS_LineSet,
@@ -5401,6 +5452,7 @@ const int *NODE_OFFSETS[] = {
 	OFFSETS_TwoSidedMaterial,
 	OFFSETS_Viewpoint,
 	OFFSETS_ViewpointGroup,
+	OFFSETS_Viewport,
 	OFFSETS_VisibilitySensor,
 	OFFSETS_WorldInfo,
 	};
@@ -5732,6 +5784,8 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_IntegerTrigger : {tmp = MALLOC (struct X3D_IntegerTrigger *, sizeof (struct X3D_IntegerTrigger)); break;}
 		case NODE_KeySensor : {tmp = MALLOC (struct X3D_KeySensor *, sizeof (struct X3D_KeySensor)); break;}
 		case NODE_LOD : {tmp = MALLOC (struct X3D_LOD *, sizeof (struct X3D_LOD)); break;}
+		case NODE_Layer : {tmp = MALLOC (struct X3D_Layer *, sizeof (struct X3D_Layer)); break;}
+		case NODE_LayerSet : {tmp = MALLOC (struct X3D_LayerSet *, sizeof (struct X3D_LayerSet)); break;}
 		case NODE_LineProperties : {tmp = MALLOC (struct X3D_LineProperties *, sizeof (struct X3D_LineProperties)); break;}
 		case NODE_LineSensor : {tmp = MALLOC (struct X3D_LineSensor *, sizeof (struct X3D_LineSensor)); break;}
 		case NODE_LineSet : {tmp = MALLOC (struct X3D_LineSet *, sizeof (struct X3D_LineSet)); break;}
@@ -5859,6 +5913,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_TwoSidedMaterial : {tmp = MALLOC (struct X3D_TwoSidedMaterial *, sizeof (struct X3D_TwoSidedMaterial)); break;}
 		case NODE_Viewpoint : {tmp = MALLOC (struct X3D_Viewpoint *, sizeof (struct X3D_Viewpoint)); break;}
 		case NODE_ViewpointGroup : {tmp = MALLOC (struct X3D_ViewpointGroup *, sizeof (struct X3D_ViewpointGroup)); break;}
+		case NODE_Viewport : {tmp = MALLOC (struct X3D_Viewport *, sizeof (struct X3D_Viewport)); break;}
 		case NODE_VisibilitySensor : {tmp = MALLOC (struct X3D_VisibilitySensor *, sizeof (struct X3D_VisibilitySensor)); break;}
 		case NODE_WorldInfo : {tmp = MALLOC (struct X3D_WorldInfo *, sizeof (struct X3D_WorldInfo)); break;}
 		default: {printf ("createNewX3DNode = unknown type %d, this will fail\n",nt); return NULL;}
@@ -7288,6 +7343,31 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->metadata = NULL;
 			tmp2->range.n=0; tmp2->range.p=0;
 			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
+			tmp2->_defaultContainer = FIELDNAMES_children;
+		break;
+		}
+		case NODE_Layer : {
+			struct X3D_Layer * tmp2;
+			tmp2 = (struct X3D_Layer *) tmp;
+			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
+			tmp2->children.n=0; tmp2->children.p=0;
+			tmp2->isPickable = TRUE;
+			tmp2->metadata = NULL;
+			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
+			tmp2->viewport = NULL;
+			tmp2->_defaultContainer = FIELDNAMES_layers;
+		break;
+		}
+		case NODE_LayerSet : {
+			struct X3D_LayerSet * tmp2;
+			tmp2 = (struct X3D_LayerSet *) tmp;
+			tmp2->activeLayer = 0;
+			tmp2->layers.n=0; tmp2->layers.p=0;
+			tmp2->metadata = NULL;
+			tmp2->order.p = MALLOC (int *, sizeof(int)*1);
+			tmp2->order.p[0] = 0;
+			tmp2->order.n=1;;
+			tmp2->viewport = NULL;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -9147,6 +9227,19 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
+		case NODE_Viewport : {
+			struct X3D_Viewport * tmp2;
+			tmp2 = (struct X3D_Viewport *) tmp;
+			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
+			tmp2->children.n=0; tmp2->children.p=0;
+			tmp2->clipBoundary.n=0; tmp2->clipBoundary.p=0;
+			tmp2->metadata = NULL;
+			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
+			tmp2->_defaultContainer = FIELDNAMES_viewport;
+		break;
+		}
 		case NODE_VisibilitySensor : {
 			struct X3D_VisibilitySensor * tmp2;
 			tmp2 = (struct X3D_VisibilitySensor *) tmp;
@@ -10645,6 +10738,34 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
+		    break;
+		}
+		case NODE_Layer : {
+			struct X3D_Layer *tmp;
+			tmp = (struct X3D_Layer *) node;
+			UNUSED(tmp); // compiler warning mitigation
+			spacer fprintf (fp," children (MFNode):\n");
+			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
+			spacer fprintf (fp," isPickable (SFBool) \t%d\n",tmp->isPickable);
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
+			spacer fprintf (fp," viewport (SFNode):\n"); dump_scene(fp,level+1,tmp->viewport); 
+		    break;
+		}
+		case NODE_LayerSet : {
+			struct X3D_LayerSet *tmp;
+			tmp = (struct X3D_LayerSet *) node;
+			UNUSED(tmp); // compiler warning mitigation
+			spacer fprintf (fp," activeLayer (SFInt32) \t%d\n",tmp->activeLayer);
+			spacer fprintf (fp," layers (MFNode):\n");
+			for (i=0; i<tmp->layers.n; i++) { dump_scene(fp,level+1,tmp->layers.p[i]); }
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
+			spacer fprintf (fp," order (MFInt32):\n");
+			for (i=0; i<tmp->order.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->order.p[i]); }
+			spacer fprintf (fp," viewport (SFNode):\n"); dump_scene(fp,level+1,tmp->viewport); 
 		    break;
 		}
 		case NODE_LineProperties : {
@@ -12437,6 +12558,19 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			fprintf (fp,"\n");
 		    break;
 		}
+		case NODE_Viewport : {
+			struct X3D_Viewport *tmp;
+			tmp = (struct X3D_Viewport *) node;
+			UNUSED(tmp); // compiler warning mitigation
+			spacer fprintf (fp," children (MFNode):\n");
+			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
+			spacer fprintf (fp," clipBoundary (MFFloat):\n");
+			for (i=0; i<tmp->clipBoundary.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->clipBoundary.p[i]); }
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
+		    break;
+		}
 		case NODE_VisibilitySensor : {
 			struct X3D_VisibilitySensor *tmp;
 			tmp = (struct X3D_VisibilitySensor *) node;
@@ -12551,6 +12685,8 @@ int getSAI_X3DNodeType (int FreeWRLNodeType) {
 	case NODE_IntegerTrigger: return X3DTriggerNode; break;
 	case NODE_KeySensor: return X3DKeyDeviceSensorNode; break;
 	case NODE_LOD: return X3DGroupingNode; break;
+	case NODE_Layer: return X3DLayerNode; break;
+	case NODE_LayerSet: return X3DLayerSetNode; break;
 	case NODE_LineProperties: return X3DAppearanceChildNode; break;
 	case NODE_LineSensor: return X3DPointingDeviceSensorNode; break;
 	case NODE_LineSet: return X3DGeometryNode; break;
@@ -12678,6 +12814,7 @@ int getSAI_X3DNodeType (int FreeWRLNodeType) {
 	case NODE_TwoSidedMaterial: return X3DMaterialNode; break;
 	case NODE_Viewpoint: return X3DBindableNode; break;
 	case NODE_ViewpointGroup: return X3DGroupingNode; break;
+	case NODE_Viewport: return X3DViewportNode; break;
 	case NODE_VisibilitySensor: return X3DEnvironmentalSensorNode; break;
 	case NODE_WorldInfo: return X3DChildNode; break;
 	default:return -1;
