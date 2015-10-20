@@ -243,6 +243,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"addTrimmingContour",
 	"addedEntities",
 	"address",
+	"align",
 	"alpha",
 	"altKey",
 	"ambientIntensity",
@@ -461,6 +462,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"knot",
 	"language",
 	"layers",
+	"layout",
 	"left",
 	"leftTexture",
 	"leftToRight",
@@ -528,6 +530,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"numComponents",
 	"objectType",
 	"offset",
+	"offsetUnits",
 	"on",
 	"order",
 	"orientation",
@@ -545,6 +548,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"pitch",
 	"plane",
 	"point",
+	"pointSize",
 	"port",
 	"position",
 	"position_changed",
@@ -590,6 +594,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"sampleRate",
 	"samples",
 	"scale",
+	"scaleMode",
 	"scaleOrientation",
 	"segments",
 	"separateBackColor",
@@ -627,6 +632,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"siteID",
 	"sites",
 	"size",
+	"sizeUnits",
 	"skeleton",
 	"skin",
 	"skinCoord",
@@ -871,6 +877,7 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"FreeWRL_PROTOInterfaceNodes",
 	"activeLayer",
 	"address",
+	"align",
 	"alpha",
 	"ambientIntensity",
 	"anisotropicDegree",
@@ -1004,6 +1011,7 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"keyVelocity",
 	"knot",
 	"layers",
+	"layout",
 	"left",
 	"leftTexture",
 	"leftUrl",
@@ -1058,6 +1066,7 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"normalizeVelocity",
 	"objectType",
 	"offset",
+	"offsetUnits",
 	"on",
 	"order",
 	"orientation",
@@ -1070,6 +1079,7 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"pitch",
 	"plane",
 	"point",
+	"pointSize",
 	"port",
 	"position",
 	"power",
@@ -1099,6 +1109,7 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"sampleRate",
 	"samples",
 	"scale",
+	"scaleMode",
 	"scaleOrientation",
 	"segments",
 	"separateBackColor",
@@ -1108,6 +1119,7 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"siteID",
 	"sites",
 	"size",
+	"sizeUnits",
 	"skeleton",
 	"skin",
 	"skinCoord",
@@ -1676,6 +1688,9 @@ const int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 	"LOD",
 	"Layer",
 	"LayerSet",
+	"Layout",
+	"LayoutGroup",
+	"LayoutLayer",
 	"LineProperties",
 	"LineSensor",
 	"LineSet",
@@ -1769,6 +1784,8 @@ const int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 	"ReceiverPdu",
 	"Rectangle2D",
 	"ScalarInterpolator",
+	"ScreenFontStyle",
+	"ScreenGroup",
 	"Script",
 	"ShaderPart",
 	"ShaderProgram",
@@ -2074,6 +2091,12 @@ void render_LayerSet(struct X3D_LayerSet *);
 void rendray_LayerSet(struct X3D_LayerSet *);
 struct X3D_Virt virt_LayerSet = { NULL,(void *)render_LayerSet,NULL,NULL,(void *)rendray_LayerSet,NULL,NULL,NULL,NULL,NULL};
 
+struct X3D_Virt virt_Layout = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+struct X3D_Virt virt_LayoutGroup = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+struct X3D_Virt virt_LayoutLayer = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 void render_LineProperties(struct X3D_LineProperties *);
 struct X3D_Virt virt_LineProperties = { NULL,(void *)render_LineProperties,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
@@ -2352,6 +2375,10 @@ struct X3D_Virt virt_Rectangle2D = { NULL,(void *)render_Rectangle2D,NULL,NULL,N
 
 struct X3D_Virt virt_ScalarInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
+struct X3D_Virt virt_ScreenFontStyle = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+struct X3D_Virt virt_ScreenGroup = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_Script = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 struct X3D_Virt virt_ShaderPart = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
@@ -2542,6 +2569,9 @@ struct X3D_Virt* virtTable[] = {
 	 &virt_LOD,
 	 &virt_Layer,
 	 &virt_LayerSet,
+	 &virt_Layout,
+	 &virt_LayoutGroup,
+	 &virt_LayoutLayer,
 	 &virt_LineProperties,
 	 &virt_LineSensor,
 	 &virt_LineSet,
@@ -2635,6 +2665,8 @@ struct X3D_Virt* virtTable[] = {
 	 &virt_ReceiverPdu,
 	 &virt_Rectangle2D,
 	 &virt_ScalarInterpolator,
+	 &virt_ScreenFontStyle,
+	 &virt_ScreenGroup,
 	 &virt_Script,
 	 &virt_ShaderPart,
 	 &virt_ShaderProgram,
@@ -3817,6 +3849,37 @@ const int OFFSETS_LayerSet[] = {
 	(int) FIELDNAMES_viewport, (int) offsetof (struct X3D_LayerSet, viewport),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
+const int OFFSETS_Layout[] = {
+	(int) FIELDNAMES_align, (int) offsetof (struct X3D_Layout, align),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_Layout, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_offset, (int) offsetof (struct X3D_Layout, offset),  (int) FIELDTYPE_MFFloat, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_offsetUnits, (int) offsetof (struct X3D_Layout, offsetUnits),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_scaleMode, (int) offsetof (struct X3D_Layout, scaleMode),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_size, (int) offsetof (struct X3D_Layout, size),  (int) FIELDTYPE_MFFloat, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_sizeUnits, (int) offsetof (struct X3D_Layout, sizeUnits),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	-1, -1, -1, -1, -1};
+
+const int OFFSETS_LayoutGroup[] = {
+	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_LayoutGroup, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_LayoutGroup, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_LayoutGroup, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_children, (int) offsetof (struct X3D_LayoutGroup, children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_layout, (int) offsetof (struct X3D_LayoutGroup, layout),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_LayoutGroup, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_removeChildren, (int) offsetof (struct X3D_LayoutGroup, removeChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_viewport, (int) offsetof (struct X3D_LayoutGroup, viewport),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	-1, -1, -1, -1, -1};
+
+const int OFFSETS_LayoutLayer[] = {
+	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_LayoutLayer, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_children, (int) offsetof (struct X3D_LayoutLayer, children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_isPickable, (int) offsetof (struct X3D_LayoutLayer, isPickable),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_layout, (int) offsetof (struct X3D_LayoutLayer, layout),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_LayoutLayer, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_removeChildren, (int) offsetof (struct X3D_LayoutLayer, removeChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_viewport, (int) offsetof (struct X3D_LayoutLayer, viewport),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	-1, -1, -1, -1, -1};
+
 const int OFFSETS_LineProperties[] = {
 	(int) FIELDNAMES_applied, (int) offsetof (struct X3D_LineProperties, applied),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_linetype, (int) offsetof (struct X3D_LineProperties, linetype),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4730,6 +4793,28 @@ const int OFFSETS_ScalarInterpolator[] = {
 	(int) FIELDNAMES_value_changed, (int) offsetof (struct X3D_ScalarInterpolator, value_changed),  (int) FIELDTYPE_SFFloat, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
+const int OFFSETS_ScreenFontStyle[] = {
+	(int) FIELDNAMES_family, (int) offsetof (struct X3D_ScreenFontStyle, family),  (int) FIELDTYPE_MFString, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_horizontal, (int) offsetof (struct X3D_ScreenFontStyle, horizontal),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_justify, (int) offsetof (struct X3D_ScreenFontStyle, justify),  (int) FIELDTYPE_MFString, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_language, (int) offsetof (struct X3D_ScreenFontStyle, language),  (int) FIELDTYPE_SFString, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_leftToRight, (int) offsetof (struct X3D_ScreenFontStyle, leftToRight),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_ScreenFontStyle, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_pointSize, (int) offsetof (struct X3D_ScreenFontStyle, pointSize),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_spacing, (int) offsetof (struct X3D_ScreenFontStyle, spacing),  (int) FIELDTYPE_SFFloat, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_style, (int) offsetof (struct X3D_ScreenFontStyle, style),  (int) FIELDTYPE_SFString, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_topToBottom, (int) offsetof (struct X3D_ScreenFontStyle, topToBottom),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	-1, -1, -1, -1, -1};
+
+const int OFFSETS_ScreenGroup[] = {
+	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_ScreenGroup, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_ScreenGroup, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_ScreenGroup, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_children, (int) offsetof (struct X3D_ScreenGroup, children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_ScreenGroup, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_removeChildren, (int) offsetof (struct X3D_ScreenGroup, removeChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	-1, -1, -1, -1, -1};
+
 const int OFFSETS_Script[] = {
 	(int) FIELDNAMES___scriptObj, (int) offsetof (struct X3D_Script, __scriptObj),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__parentResource, (int) offsetof (struct X3D_Script, _parentResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
@@ -5331,6 +5416,9 @@ const int *NODE_OFFSETS[] = {
 	OFFSETS_LOD,
 	OFFSETS_Layer,
 	OFFSETS_LayerSet,
+	OFFSETS_Layout,
+	OFFSETS_LayoutGroup,
+	OFFSETS_LayoutLayer,
 	OFFSETS_LineProperties,
 	OFFSETS_LineSensor,
 	OFFSETS_LineSet,
@@ -5424,6 +5512,8 @@ const int *NODE_OFFSETS[] = {
 	OFFSETS_ReceiverPdu,
 	OFFSETS_Rectangle2D,
 	OFFSETS_ScalarInterpolator,
+	OFFSETS_ScreenFontStyle,
+	OFFSETS_ScreenGroup,
 	OFFSETS_Script,
 	OFFSETS_ShaderPart,
 	OFFSETS_ShaderProgram,
@@ -5792,6 +5882,9 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_LOD : {tmp = MALLOC (struct X3D_LOD *, sizeof (struct X3D_LOD)); break;}
 		case NODE_Layer : {tmp = MALLOC (struct X3D_Layer *, sizeof (struct X3D_Layer)); break;}
 		case NODE_LayerSet : {tmp = MALLOC (struct X3D_LayerSet *, sizeof (struct X3D_LayerSet)); break;}
+		case NODE_Layout : {tmp = MALLOC (struct X3D_Layout *, sizeof (struct X3D_Layout)); break;}
+		case NODE_LayoutGroup : {tmp = MALLOC (struct X3D_LayoutGroup *, sizeof (struct X3D_LayoutGroup)); break;}
+		case NODE_LayoutLayer : {tmp = MALLOC (struct X3D_LayoutLayer *, sizeof (struct X3D_LayoutLayer)); break;}
 		case NODE_LineProperties : {tmp = MALLOC (struct X3D_LineProperties *, sizeof (struct X3D_LineProperties)); break;}
 		case NODE_LineSensor : {tmp = MALLOC (struct X3D_LineSensor *, sizeof (struct X3D_LineSensor)); break;}
 		case NODE_LineSet : {tmp = MALLOC (struct X3D_LineSet *, sizeof (struct X3D_LineSet)); break;}
@@ -5885,6 +5978,8 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ReceiverPdu : {tmp = MALLOC (struct X3D_ReceiverPdu *, sizeof (struct X3D_ReceiverPdu)); break;}
 		case NODE_Rectangle2D : {tmp = MALLOC (struct X3D_Rectangle2D *, sizeof (struct X3D_Rectangle2D)); break;}
 		case NODE_ScalarInterpolator : {tmp = MALLOC (struct X3D_ScalarInterpolator *, sizeof (struct X3D_ScalarInterpolator)); break;}
+		case NODE_ScreenFontStyle : {tmp = MALLOC (struct X3D_ScreenFontStyle *, sizeof (struct X3D_ScreenFontStyle)); break;}
+		case NODE_ScreenGroup : {tmp = MALLOC (struct X3D_ScreenGroup *, sizeof (struct X3D_ScreenGroup)); break;}
 		case NODE_Script : {tmp = MALLOC (struct X3D_Script *, sizeof (struct X3D_Script)); break;}
 		case NODE_ShaderPart : {tmp = MALLOC (struct X3D_ShaderPart *, sizeof (struct X3D_ShaderPart)); break;}
 		case NODE_ShaderProgram : {tmp = MALLOC (struct X3D_ShaderProgram *, sizeof (struct X3D_ShaderProgram)); break;}
@@ -7377,6 +7472,52 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
+		case NODE_Layout : {
+			struct X3D_Layout * tmp2;
+			tmp2 = (struct X3D_Layout *) tmp;
+			tmp2->align.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*2);tmp2->align.p[0] = newASCIIString("CENTER");tmp2->align.p[1] = newASCIIString("CENTER");tmp2->align.n=2; ;
+			tmp2->metadata = NULL;
+			tmp2->offset.p = MALLOC (float *, sizeof(float)*2);
+			tmp2->offset.p[0] = 0.0f;
+			tmp2->offset.p[1] = 0.0f;
+			tmp2->offset.n=2;;
+			tmp2->offsetUnits.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*2);tmp2->offsetUnits.p[0] = newASCIIString("WORLD");tmp2->offsetUnits.p[1] = newASCIIString("WORLD");tmp2->offsetUnits.n=2; ;
+			tmp2->scaleMode.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*2);tmp2->scaleMode.p[0] = newASCIIString("NONE");tmp2->scaleMode.p[1] = newASCIIString("NONE");tmp2->scaleMode.n=2; ;
+			tmp2->size.p = MALLOC (float *, sizeof(float)*2);
+			tmp2->size.p[0] = 1.0f;
+			tmp2->size.p[1] = 1.0f;
+			tmp2->size.n=2;;
+			tmp2->sizeUnits.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*2);tmp2->sizeUnits.p[0] = newASCIIString("WORLD");tmp2->sizeUnits.p[1] = newASCIIString("WORLD");tmp2->sizeUnits.n=2; ;
+			tmp2->_defaultContainer = FIELDNAMES_layout;
+		break;
+		}
+		case NODE_LayoutGroup : {
+			struct X3D_LayoutGroup * tmp2;
+			tmp2 = (struct X3D_LayoutGroup *) tmp;
+			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = 0.0f;tmp2->bboxSize.c[1] = 0.0f;tmp2->bboxSize.c[2] = 0.0f;
+			tmp2->children.n=0; tmp2->children.p=0;
+			tmp2->layout = NULL;
+			tmp2->metadata = NULL;
+			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
+			tmp2->viewport = NULL;
+			tmp2->_defaultContainer = FIELDNAMES_children;
+		break;
+		}
+		case NODE_LayoutLayer : {
+			struct X3D_LayoutLayer * tmp2;
+			tmp2 = (struct X3D_LayoutLayer *) tmp;
+			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
+			tmp2->children.n=0; tmp2->children.p=0;
+			tmp2->isPickable = TRUE;
+			tmp2->layout = NULL;
+			tmp2->metadata = NULL;
+			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
+			tmp2->viewport = NULL;
+			tmp2->_defaultContainer = FIELDNAMES_children;
+		break;
+		}
 		case NODE_LineProperties : {
 			struct X3D_LineProperties * tmp2;
 			tmp2 = (struct X3D_LineProperties *) tmp;
@@ -8593,6 +8734,34 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->metadata = NULL;
 			tmp2->set_fraction = 0.0f;
 			tmp2->value_changed = 0.0f;
+			tmp2->_defaultContainer = FIELDNAMES_children;
+		break;
+		}
+		case NODE_ScreenFontStyle : {
+			struct X3D_ScreenFontStyle * tmp2;
+			tmp2 = (struct X3D_ScreenFontStyle *) tmp;
+			tmp2->family.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);tmp2->family.p[0] = newASCIIString("SERIF");tmp2->family.n=1; ;
+			tmp2->horizontal = TRUE;
+			tmp2->justify.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);tmp2->justify.p[0] = newASCIIString("BEGIN");tmp2->justify.n=1; ;
+			tmp2->language = newASCIIString("");
+			tmp2->leftToRight = TRUE;
+			tmp2->metadata = NULL;
+			tmp2->pointSize = 12.0f;
+			tmp2->spacing = 1.0f;
+			tmp2->style = newASCIIString("PLAIN");
+			tmp2->topToBottom = TRUE;
+			tmp2->_defaultContainer = FIELDNAMES_fontStyle;
+		break;
+		}
+		case NODE_ScreenGroup : {
+			struct X3D_ScreenGroup * tmp2;
+			tmp2 = (struct X3D_ScreenGroup *) tmp;
+			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
+			tmp2->children.n=0; tmp2->children.p=0;
+			tmp2->metadata = NULL;
+			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -10774,6 +10943,54 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			spacer fprintf (fp," viewport (SFNode):\n"); dump_scene(fp,level+1,tmp->viewport); 
 		    break;
 		}
+		case NODE_Layout : {
+			struct X3D_Layout *tmp;
+			tmp = (struct X3D_Layout *) node;
+			UNUSED(tmp); // compiler warning mitigation
+			spacer fprintf (fp," align (MFString): \n");
+			for (i=0; i<tmp->align.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->align.p[i]->strptr); }
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
+			spacer fprintf (fp," offset (MFFloat):\n");
+			for (i=0; i<tmp->offset.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->offset.p[i]); }
+			spacer fprintf (fp," offsetUnits (MFString): \n");
+			for (i=0; i<tmp->offsetUnits.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->offsetUnits.p[i]->strptr); }
+			spacer fprintf (fp," scaleMode (MFString): \n");
+			for (i=0; i<tmp->scaleMode.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->scaleMode.p[i]->strptr); }
+			spacer fprintf (fp," size (MFFloat):\n");
+			for (i=0; i<tmp->size.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->size.p[i]); }
+			spacer fprintf (fp," sizeUnits (MFString): \n");
+			for (i=0; i<tmp->sizeUnits.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->sizeUnits.p[i]->strptr); }
+		    break;
+		}
+		case NODE_LayoutGroup : {
+			struct X3D_LayoutGroup *tmp;
+			tmp = (struct X3D_LayoutGroup *) node;
+			UNUSED(tmp); // compiler warning mitigation
+			spacer fprintf (fp," children (MFNode):\n");
+			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
+			spacer fprintf (fp," layout (SFNode):\n"); dump_scene(fp,level+1,tmp->layout); 
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
+			spacer fprintf (fp," viewport (SFNode):\n"); dump_scene(fp,level+1,tmp->viewport); 
+		    break;
+		}
+		case NODE_LayoutLayer : {
+			struct X3D_LayoutLayer *tmp;
+			tmp = (struct X3D_LayoutLayer *) node;
+			UNUSED(tmp); // compiler warning mitigation
+			spacer fprintf (fp," children (MFNode):\n");
+			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
+			spacer fprintf (fp," isPickable (SFBool) \t%d\n",tmp->isPickable);
+			spacer fprintf (fp," layout (SFNode):\n"); dump_scene(fp,level+1,tmp->layout); 
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
+			spacer fprintf (fp," viewport (SFNode):\n"); dump_scene(fp,level+1,tmp->viewport); 
+		    break;
+		}
 		case NODE_LineProperties : {
 			struct X3D_LineProperties *tmp;
 			tmp = (struct X3D_LineProperties *) node;
@@ -11934,6 +12151,27 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		    }
 		    break;
 		}
+		case NODE_ScreenFontStyle : {
+			struct X3D_ScreenFontStyle *tmp;
+			tmp = (struct X3D_ScreenFontStyle *) node;
+			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
+			spacer fprintf (fp," pointSize (SFFloat) \t%4.3f\n",tmp->pointSize);
+		    break;
+		}
+		case NODE_ScreenGroup : {
+			struct X3D_ScreenGroup *tmp;
+			tmp = (struct X3D_ScreenGroup *) node;
+			UNUSED(tmp); // compiler warning mitigation
+			spacer fprintf (fp," children (MFNode):\n");
+			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
+		    break;
+		}
 		case NODE_Script : {
 			struct X3D_Script *tmp;
 			tmp = (struct X3D_Script *) node;
@@ -12693,6 +12931,9 @@ int getSAI_X3DNodeType (int FreeWRLNodeType) {
 	case NODE_LOD: return X3DGroupingNode; break;
 	case NODE_Layer: return X3DLayerNode; break;
 	case NODE_LayerSet: return X3DLayerSetNode; break;
+	case NODE_Layout: return X3DLayoutNode; break;
+	case NODE_LayoutGroup: return X3DGroupingNode; break;
+	case NODE_LayoutLayer: return X3DGroupingNode; break;
 	case NODE_LineProperties: return X3DAppearanceChildNode; break;
 	case NODE_LineSensor: return X3DPointingDeviceSensorNode; break;
 	case NODE_LineSet: return X3DGeometryNode; break;
@@ -12786,6 +13027,8 @@ int getSAI_X3DNodeType (int FreeWRLNodeType) {
 	case NODE_ReceiverPdu: return X3DChildNode; break;
 	case NODE_Rectangle2D: return X3DGeometryNode; break;
 	case NODE_ScalarInterpolator: return X3DInterpolatorNode; break;
+	case NODE_ScreenFontStyle: return X3DFontStyleNode; break;
+	case NODE_ScreenGroup: return X3DGroupingNode; break;
 	case NODE_Script: return X3DScriptNode; break;
 	case NODE_ShaderPart: return X3DUrlObject; break;
 	case NODE_ShaderProgram: return X3DUrlObject; break;

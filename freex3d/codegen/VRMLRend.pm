@@ -190,6 +190,13 @@ our %defaultContainerType = (
 	Layer			=>"layers",
 	LayerSet		=>"children",
 
+	Layout			=>"layout",
+	LayoutGroup		=>"children",
+	LayoutLayer		=>"children",
+	ScreenFontStyle		=>"fontStyle",
+	ScreenGroup		=>"children",
+	
+
 	MetadataSet		=>"metadata",
 	MetadataInteger		=>"metadata",
 	MetadataDouble		=>"metadata",

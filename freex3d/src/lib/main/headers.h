@@ -571,6 +571,9 @@ void *returnInterpolatorPointer (int nodeType);
 #define X3DViewportNode					58
 #define X3DLayerNode					59
 #define X3DLayerSetNode					60
+#define X3DLayoutNode					61
+
+
 
 BOOL isManagedField(int mode, int type, BOOL isPublic);
 
