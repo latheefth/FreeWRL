@@ -2066,9 +2066,13 @@ void child_LOD(struct X3D_LOD *);
 void proximity_LOD(struct X3D_LOD *);
 struct X3D_Virt virt_LOD = { NULL,NULL,(void *)child_LOD,NULL,NULL,NULL,(void *)proximity_LOD,NULL,NULL,NULL};
 
-struct X3D_Virt virt_Layer = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void render_Layer(struct X3D_Layer *);
+void rendray_Layer(struct X3D_Layer *);
+struct X3D_Virt virt_Layer = { NULL,(void *)render_Layer,NULL,NULL,(void *)rendray_Layer,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_LayerSet = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void render_LayerSet(struct X3D_LayerSet *);
+void rendray_LayerSet(struct X3D_LayerSet *);
+struct X3D_Virt virt_LayerSet = { NULL,(void *)render_LayerSet,NULL,NULL,(void *)rendray_LayerSet,NULL,NULL,NULL,NULL,NULL};
 
 void render_LineProperties(struct X3D_LineProperties *);
 struct X3D_Virt virt_LineProperties = { NULL,(void *)render_LineProperties,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
@@ -2448,7 +2452,9 @@ void child_ViewpointGroup(struct X3D_ViewpointGroup *);
 void compile_ViewpointGroup(struct X3D_ViewpointGroup *);
 struct X3D_Virt virt_ViewpointGroup = { NULL,NULL,(void *)child_ViewpointGroup,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_ViewpointGroup};
 
-struct X3D_Virt virt_Viewport = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void render_Viewport(struct X3D_Viewport *);
+void rendray_Viewport(struct X3D_Viewport *);
+struct X3D_Virt virt_Viewport = { NULL,(void *)render_Viewport,NULL,NULL,(void *)rendray_Viewport,NULL,NULL,NULL,NULL,NULL};
 
 void child_VisibilitySensor(struct X3D_VisibilitySensor *);
 struct X3D_Virt virt_VisibilitySensor = { NULL,NULL,(void *)child_VisibilitySensor,NULL,NULL,NULL,NULL,NULL,NULL,NULL};

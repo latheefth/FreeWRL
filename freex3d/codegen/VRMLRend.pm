@@ -326,6 +326,9 @@ our %RendC = map {($_=>1)} qw/
 	NurbsCurve
 	NurbsPatchSurface
 	NurbsTrimmedSurface
+	LayerSet
+	Layer
+	Viewport
 /;
 
 #######################################################################
@@ -723,6 +726,9 @@ our %RendRayC = map {($_=>1)} qw/
 	Extrusion
 	IndexedFaceSet
 	IndexedQuadSet
+	LayerSet
+	Layer
+	Viewport
 	QuadSet
 	IndexedTriangleSet
 	IndexedTriangleFanSet
