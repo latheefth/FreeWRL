@@ -39,7 +39,12 @@ X3D Layering Component
 
 
 // http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/layout.html
-// oct 2015 not sure what I need here
+/* oct 2015 not sure what I need here
+a few easy ones: 
+ScreenFontStyle is the same as FontStyle except with pixelSize instead of size
+ScreenGroup is like Group or perhaps Transform, except it may need to alter the transform stack 
+	with x,y scales so as to treat children's coords as being in screen pixels.
+*/
 void render_Layout(struct X3D_Node * node){
 	if(node && node->_nodeType == NODE_Layout){
 	}
