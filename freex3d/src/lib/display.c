@@ -64,11 +64,28 @@ int PaneClipChanged = FALSE;
 #endif
 #endif
 
+//static Stack *_vpstack = NULL; //ivec4 in y-down pixel coords - viewport stack used for clipping drawing
+
+typedef struct ivec4 {int X; int Y; int W; int H;} ivec4;
+typedef struct ivec2 {int X; int Y;} ivec2;
+ivec4 ivec4_init(int x, int y, int w, int h){
+	ivec4 ret;
+	ret.X = x, ret.Y = y;  ret.W = w; ret.H = h;
+	return ret;
+}
+
+ivec2 ivec2_init(int x, int y){
+	ivec2 ret;
+	ret.X = x, ret.Y = y; 
+	return ret;
+}
+
 #define MAXSTAT 200
 typedef struct pdisplay{
 	freewrl_params_t params;
 	s_renderer_capabilities_t rdr_caps;
 	char myMenuStatus[MAXSTAT];
+	Stack *_vpstack;
 }* ppdisplay;
 void *display_constructor(){
 	void *v = MALLOCV(sizeof(struct pdisplay));
@@ -109,11 +126,65 @@ void display_init(struct tdisplay* t)
 		p->params.xpos = 0;
 		p->params.ypos = 0;
 		p->params.frontend_handles_display_thread = FALSE;
-
+		p->_vpstack = newStack(ivec4);
 		t->params = &p->params;
+		t->_vpstack = (void *)p->_vpstack; //represents screen pixel area being drawn to
 	}
 }
 
+void pushviewport(Stack *vpstack, ivec4 vp){
+	stack_push(ivec4,vpstack,vp);
+}
+void popviewport(Stack *vpstack){
+	stack_pop(ivec4,vpstack);
+	if(!stack_empty(vpstack)){
+		ivec4 vp = stack_top(ivec4,vpstack);
+	}
+}
+int overlapviewports(ivec4 vp1, ivec4 vp2){
+	//0 - outside, 1 - vp1 inside vp2 -1 vp2 inside vp1 2 overlapping
+	int inside = 0;
+	inside = vp1.X >= vp2.X && (vp1.X+vp1.W) <= (vp2.X+vp2.W) ? 1 : 0;
+	if(!inside){
+		inside = vp2.X >= vp1.X && (vp2.X+vp2.W) <= (vp1.X+vp1.W) ? -1 : 0;
+	}
+	if(!inside){
+		inside = vp1.X > (vp2.X+vp2.W) || vp1.X > (vp1.X+vp1.W) || vp1.Y > (vp2.Y+vp2.H) || vp2.Y > (vp1.Y+vp1.H) ? 0 : 2;
+	}
+	return inside;
+}
+ivec4 intersectviewports(ivec4 vp1, ivec4 vp2){
+	ivec4 vpo;
+	vpo.X = max(vp1.X,vp2.X);
+	vpo.W = min(vp1.X+vp1.W,vp2.X+vp2.W) - vpo.X;
+	vpo.Y = max(vp1.Y,vp2.Y);
+	vpo.H = min(vp1.Y+vp1.H,vp2.Y+vp2.H) - vpo.Y;
+	//printf("olap [%d %d %d %d] ^ [%d %d %d %d] = [%d %d %d %d]\n",vp1.X,vp1.Y,vp1.W,vp1.H,vp2.X,vp2.Y,vp2.W,vp2.H,vpo.X,vpo.Y,vpo.W,vpo.H);
+	return vpo;
+}
+int visibleviewport(ivec4 vp){
+	int ok = vp.W > 0 && vp.H > 0;
+	return ok;
+}
+int pointinsideviewport(ivec4 vp, ivec2 pt){
+	int inside = TRUE;
+	inside = inside && pt.X <= (vp.X + vp.W) && (pt.X >= vp.X);
+	inside = inside && pt.Y <= (vp.Y + vp.H) && (pt.Y >= vp.Y);
+	return inside;
+}
+int pointinsidecurrentviewport(Stack *vpstack, ivec2 pt){
+	ivec4 vp = stack_top(ivec4,vpstack);
+	return pointinsideviewport(vp,pt);
+}
+void intersectandpushviewport(Stack *vpstack, ivec4 childvp){
+	ivec4 currentvp = stack_top(ivec4,vpstack);
+	ivec4 olap = intersectviewports(childvp,currentvp);
+	pushviewport(vpstack, olap); //I need to unconditionally push, because I will be unconditionally popping later
+}
+int currentviewportvisible(Stack *vpstack){
+	ivec4 currentvp = stack_top(ivec4,vpstack);
+	return visibleviewport(currentvp);
+}
 
 
 #if KEEP_FV_INLIB
@@ -300,13 +371,63 @@ void fv_setScreenDim(int wi, int he) { fwl_setScreenDim(wi,he); }
  */
 void fwl_setScreenDim(int wi, int he)
 {
-    gglobal()->display.screenWidth = wi;
-    gglobal()->display.screenHeight = he;
+	ttglobal tg = gglobal();
+
+    tg->display.screenWidth = wi;  //width of the whole opengl surface in pixels
+    tg->display.screenHeight = he; //height of the whole opengl surface in pixels
     /* printf("%s,%d fwl_setScreenDim(int %d, int %d)\n",__FILE__,__LINE__,wi,he); */
 
-    if (gglobal()->display.screenHeight != 0) gglobal()->display.screenRatio = (double) gglobal()->display.screenWidth/(double) gglobal()->display.screenHeight;
-    else gglobal()->display.screenRatio =  gglobal()->display.screenWidth;
+    if (tg->display.screenHeight != 0) tg->display.screenRatio = (double) tg->display.screenWidth/(double) tg->display.screenHeight;
+    else tg->display.screenRatio =  tg->display.screenWidth;
+	//defaults for the subarea of the opengl surface used by freewrl: use all
+	tg->display.xpos = 0;
+	tg->display.ypos = 0; //top left y=0
+	tg->display.view_height = tg->display.screenHeight;
+	tg->display.view_width = tg->display.screenWidth;
+	{
+		ivec4 main_window;
+		Stack *vpstack = tg->display._vpstack;
+		main_window.X = tg->display.xpos;
+		main_window.Y = tg->display.ypos;
+		main_window.W = tg->display.view_width;
+		main_window.H = tg->display.view_height;
+		if(!vpstack->n){
+			stack_push(ivec4,vpstack,main_window);
+		}else{
+			vector_set(ivec4,vpstack,0,main_window);
+		}
+	}
+	//to over-ride with a sub-area, call fwl_setScreenDim2 immediately after this
+
 }
+void fwl_setScreenDim2(int ixpos, int iypos, int wi, int he)
+{
+	ttglobal tg = gglobal();
+    //tg->display.screenWidth = wi;
+    //tg->display.screenHeight = he;  
+	tg->display.xpos = ixpos;
+	tg->display.ypos = iypos; //y up from bottom of opengl window to bottom of vrml widget/window
+	tg->display.view_width = wi;  //width of vrml widget/window pixels
+	tg->display.view_height = he; //height of vrml widget/window pixels
+    /* printf("%s,%d fwl_setScreenDim(int %d, int %d)\n",__FILE__,__LINE__,wi,he); */
+
+    //if (tg->display.screenHeight != 0) tg->display.screenRatio = (double) tg->display.screenWidth/(double) tg->display.screenHeight;
+    //else tg->display.screenRatio =  tg->display.screenWidth;
+	{
+		ivec4 main_window;
+		Stack *vpstack = tg->display._vpstack;
+		main_window.X = tg->display.xpos;
+		main_window.Y = tg->display.ypos;
+		main_window.W = tg->display.view_width;
+		main_window.H = tg->display.view_height;
+		if(!vpstack->n){
+			stack_push(ivec4,vpstack,main_window);
+		}else{
+			vector_set(ivec4,vpstack,0,main_window);
+		}
+	}
+}
+
 void fwl_setClipPlane(int height)
 {
 	//this should be 2 numbers, one for top and bottom

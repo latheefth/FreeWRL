@@ -52,6 +52,7 @@ void render_LayerSet(struct X3D_Node * node){
 			// FW_GL_VIEWPORT(xvp, bottom, screenwidth2, screenheight);
 			//glClear(GL_DEPTH_BUFFER_BIT); //if another layer has already drawn, don't clear it, just its depth fingerprint
 			render_node(layer);
+			//pop layer.viewport
 		}
 	}
 }

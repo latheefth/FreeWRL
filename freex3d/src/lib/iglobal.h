@@ -52,6 +52,7 @@ typedef struct iiglobal //InstanceGlobal
 
 		int screenWidth;// = 0; /* screen */
 		int screenHeight;// = 0;
+		int xpos, ypos; //position of lower-left corner of freewrl in opengl window, usually 0,0 (but not for some opengl gui kits, like dug9gui)
 
 		double screenRatio;// = 1.5;
 
@@ -70,6 +71,7 @@ typedef struct iiglobal //InstanceGlobal
 
 		float myFps;// = (float) 0.0;
 		char *myMenuStatus;
+		void *_vpstack; //Stack for viewports
 		void *prv;
 	}display;
 	struct tinternalc {

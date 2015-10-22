@@ -1301,29 +1301,39 @@ static void render_pre() {
 		//drawStatusBar();
 		PRINT_GL_ERROR_IF_ANY("GLBackend::render_pre");
 }
+typedef struct ivec4 {int X; int Y; int W; int H;} ivec4;
+typedef struct ivec2 {int X; int Y;} ivec2;
+
 void setup_projection(int pick, int x, int y)
 {
 	GLDOUBLE fieldofview2;
-	GLint xvp = 0;
+	GLint xvp;
 	GLint scissorxl,scissorxr;
+	Stack *vportstack;
+	ivec4 vport;
 	ppMainloop p;
 	X3D_Viewer *viewer;
 	ttglobal tg = gglobal();
-	GLsizei screenwidth2 = tg->display.screenWidth;
+	GLsizei screenwidth2; // = tg->display.screenWidth;
 	GLsizei screenheight, bottom, top;
+	static int counter = 0;
 	GLDOUBLE aspect2 = tg->display.screenRatio;
 	p = (ppMainloop)tg->Mainloop.prv;
 	viewer = Viewer();
+	vportstack = (Stack*)tg->display._vpstack;
+	vport = stack_top(ivec4,vportstack); //should be same as stack bottom, only one on stack here
 
+	screenwidth2 = vport.W; //tg->display.screenWidth
+	xvp = vport.X;
+	top = vport.Y + vport.H; //or .H - .Y?
+	bottom = vport.Y + tg->Mainloop.clipPlane;
+	screenheight = top - bottom; //tg->display.screenHeight - bottom;
 	PRINT_GL_ERROR_IF_ANY("XEvents::start of setup_projection");
 
-	scissorxl = 0;
-	scissorxr = screenwidth2;
+	scissorxl = xvp;
+	scissorxr = xvp + screenwidth2;
 	fieldofview2 = viewer->fieldofview;
-	bottom = tg->Mainloop.clipPlane;
 
-	top = 0;
-	screenheight = tg->display.screenHeight - bottom;
 	aspect2 = (double)(scissorxr - scissorxl)/(double)(screenheight);
 
 	if(viewer->type==VIEWER_SPHERICAL)
@@ -1331,8 +1341,8 @@ void setup_projection(int pick, int x, int y)
 	if(viewer->isStereo)
 	{
 		GLint xl,xr;
-		xl = 0;
-		xr = screenwidth2;
+		xl = xvp;
+		xr = xvp + screenwidth2;
 
 		if (viewer->sidebyside){
 			GLint iexpand;
@@ -1360,7 +1370,7 @@ void setup_projection(int pick, int x, int y)
 
 			xr -= screenwidth2/4;
 			xl -= screenwidth2/4;
-			scissorxr = screenwidth2/2;
+			scissorxr = xvp + screenwidth2/2;
 			if(viewer->iside ==1)
 			{
 				xl += screenwidth2/2;
@@ -1380,11 +1390,12 @@ void setup_projection(int pick, int x, int y)
 				else
 					xr = xr + iexpand;
 			}
+
 		}
 		if(viewer->updown) //overunder
 		{
 			//if there's statusabarHud statusbar to be drawn, reserve space in both viewports
-			screenheight = tg->display.screenHeight;
+			screenheight = vport.H; // tg->display.screenHeight;
 			screenheight /= 2;
 			if (viewer->iside == 0){
 				bottom += screenheight;
@@ -1394,6 +1405,10 @@ void setup_projection(int pick, int x, int y)
 			screenheight -= tg->Mainloop.clipPlane;
 			scissorxl = xl;
 			scissorxr = xr;
+			counter++;
+			if(counter == 100)
+				printf("in setup_projection\n");
+
 		}
 		aspect2 = (double)(xr - xl)/(double)(screenheight);
 		xvp = xl;
@@ -1411,8 +1426,14 @@ void setup_projection(int pick, int x, int y)
 		glEnable(GL_SCISSOR_TEST);
 	}
 	/* <<< statusbar hud */
+	// side-by-side eyebase fiducials (see fiducialDraw())
 	p->viewpointScreenX[viewer->iside] = xvp + screenwidth2/2;
 	p->viewpointScreenY[viewer->iside] = top;
+	if (viewer->sidebyside){
+		counter++;
+		if(counter == 100)
+			printf("in setup_projection\n");
+	}
 	if (viewer->updown){
         FW_GL_VIEWPORT(xvp - screenwidth2 / 2, bottom, screenwidth2 * 2, screenheight);
     }
