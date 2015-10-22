@@ -186,6 +186,17 @@ our %defaultContainerType = (
 	ShaderPart		=>"parts",
 	ShaderProgram		=>"programs",
 
+	Viewport		=>"viewport",
+	Layer			=>"layers",
+	LayerSet		=>"children",
+
+	Layout			=>"layout",
+	LayoutGroup		=>"children",
+	LayoutLayer		=>"children",
+	ScreenFontStyle		=>"fontStyle",
+	ScreenGroup		=>"children",
+	
+
 	MetadataSet		=>"metadata",
 	MetadataInteger		=>"metadata",
 	MetadataDouble		=>"metadata",
@@ -322,6 +333,9 @@ our %RendC = map {($_=>1)} qw/
 	NurbsCurve
 	NurbsPatchSurface
 	NurbsTrimmedSurface
+	LayerSet
+	Layer
+	Viewport
 /;
 
 #######################################################################
@@ -719,6 +733,9 @@ our %RendRayC = map {($_=>1)} qw/
 	Extrusion
 	IndexedFaceSet
 	IndexedQuadSet
+	LayerSet
+	Layer
+	Viewport
 	QuadSet
 	IndexedTriangleSet
 	IndexedTriangleFanSet

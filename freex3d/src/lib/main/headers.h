@@ -568,6 +568,12 @@ void *returnInterpolatorPointer (int nodeType);
 #define X3DComposedGeometryNode			55
 #define X3DNurbsControlCurveNode		56
 #define X3DNurbsSurfaceGeometryNode		57
+#define X3DViewportNode					58
+#define X3DLayerNode					59
+#define X3DLayerSetNode					60
+#define X3DLayoutNode					61
+
+
 
 BOOL isManagedField(int mode, int type, BOOL isPublic);
 

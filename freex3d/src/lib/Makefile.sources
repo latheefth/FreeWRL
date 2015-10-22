@@ -161,6 +161,8 @@ scenegraph/Component_Networking.h \
 scenegraph/Component_PointingDevice.c \
 scenegraph/Component_Picking.c \
 scenegraph/Component_Picking.h \
+scenegraph/Component_Layering.c \
+scenegraph/Component_Layout.c \
 scenegraph/statics.c \
 scenegraph/GenPolyRep.c \
 scenegraph/Component_VRML1.c \

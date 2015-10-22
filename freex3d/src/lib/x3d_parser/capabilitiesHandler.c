@@ -181,6 +181,7 @@ static const int InteractiveProfile[] = {
 	COM_EnvironmentalSensor,	1,
 	COM_EnvironmentalEffects,	1,
 	COM_EventUtilities,		1,
+	COM_Layering,			1,
 	INT_ID_UNDEFINED, 			INT_ID_UNDEFINED};
 
 

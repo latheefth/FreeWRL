@@ -1052,6 +1052,59 @@ FIELD(LOD,range,mffloat,range,FIELDTYPE_MFFloat)
 EVENT_IN(LOD,removeChildren,mfnode,removeChildren,FIELDTYPE_MFNode)
 END_NODE(LOD)
 
+/* Layer node */
+BEGIN_NODE(Layer)
+EVENT_IN(Layer,addChildren,mfnode,addChildren,FIELDTYPE_MFNode)
+EXPOSED_FIELD(Layer,children,mfnode,children,FIELDTYPE_MFNode)
+EXPOSED_FIELD(Layer,isPickable,sfbool,isPickable,FIELDTYPE_SFBool)
+EXPOSED_FIELD(Layer,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EVENT_IN(Layer,removeChildren,mfnode,removeChildren,FIELDTYPE_MFNode)
+EXPOSED_FIELD(Layer,viewport,sfnode,viewport,FIELDTYPE_SFNode)
+END_NODE(Layer)
+
+/* LayerSet node */
+BEGIN_NODE(LayerSet)
+EXPOSED_FIELD(LayerSet,activeLayer,sfint32,activeLayer,FIELDTYPE_SFInt32)
+EXPOSED_FIELD(LayerSet,layers,mfnode,layers,FIELDTYPE_MFNode)
+EXPOSED_FIELD(LayerSet,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(LayerSet,order,mfint32,order,FIELDTYPE_MFInt32)
+EXPOSED_FIELD(LayerSet,viewport,sfnode,viewport,FIELDTYPE_SFNode)
+END_NODE(LayerSet)
+
+/* Layout node */
+BEGIN_NODE(Layout)
+EXPOSED_FIELD(Layout,align,mfstring,align,FIELDTYPE_MFString)
+EXPOSED_FIELD(Layout,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(Layout,offset,mffloat,offset,FIELDTYPE_MFFloat)
+EXPOSED_FIELD(Layout,offsetUnits,mfstring,offsetUnits,FIELDTYPE_MFString)
+EXPOSED_FIELD(Layout,scaleMode,mfstring,scaleMode,FIELDTYPE_MFString)
+EXPOSED_FIELD(Layout,size,mffloat,size,FIELDTYPE_MFFloat)
+EXPOSED_FIELD(Layout,sizeUnits,mfstring,sizeUnits,FIELDTYPE_MFString)
+END_NODE(Layout)
+
+/* LayoutGroup node */
+BEGIN_NODE(LayoutGroup)
+EVENT_IN(LayoutGroup,addChildren,mfnode,addChildren,FIELDTYPE_MFNode)
+FIELD(LayoutGroup,bboxCenter,sfvec3f,bboxCenter,FIELDTYPE_SFVec3f)
+FIELD(LayoutGroup,bboxSize,sfvec3f,bboxSize,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(LayoutGroup,children,mfnode,children,FIELDTYPE_MFNode)
+EXPOSED_FIELD(LayoutGroup,layout,sfnode,layout,FIELDTYPE_SFNode)
+EXPOSED_FIELD(LayoutGroup,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EVENT_IN(LayoutGroup,removeChildren,mfnode,removeChildren,FIELDTYPE_MFNode)
+EXPOSED_FIELD(LayoutGroup,viewport,sfnode,viewport,FIELDTYPE_SFNode)
+END_NODE(LayoutGroup)
+
+/* LayoutLayer node */
+BEGIN_NODE(LayoutLayer)
+EVENT_IN(LayoutLayer,addChildren,mfnode,addChildren,FIELDTYPE_MFNode)
+EXPOSED_FIELD(LayoutLayer,children,mfnode,children,FIELDTYPE_MFNode)
+EXPOSED_FIELD(LayoutLayer,isPickable,sfbool,isPickable,FIELDTYPE_SFBool)
+EXPOSED_FIELD(LayoutLayer,layout,sfnode,layout,FIELDTYPE_SFNode)
+EXPOSED_FIELD(LayoutLayer,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EVENT_IN(LayoutLayer,removeChildren,mfnode,removeChildren,FIELDTYPE_MFNode)
+EXPOSED_FIELD(LayoutLayer,viewport,sfnode,viewport,FIELDTYPE_SFNode)
+END_NODE(LayoutLayer)
+
 /* LineProperties node */
 BEGIN_NODE(LineProperties)
 EXPOSED_FIELD(LineProperties,applied,sfbool,applied,FIELDTYPE_SFBool)
@@ -1973,6 +2026,30 @@ EVENT_IN(ScalarInterpolator,set_fraction,sffloat,set_fraction,FIELDTYPE_SFFloat)
 EVENT_OUT(ScalarInterpolator,value_changed,sffloat,value_changed,FIELDTYPE_SFFloat)
 END_NODE(ScalarInterpolator)
 
+/* ScreenFontStyle node */
+BEGIN_NODE(ScreenFontStyle)
+FIELD(ScreenFontStyle,family,mfstring,family,FIELDTYPE_MFString)
+FIELD(ScreenFontStyle,horizontal,sfbool,horizontal,FIELDTYPE_SFBool)
+FIELD(ScreenFontStyle,justify,mfstring,justify,FIELDTYPE_MFString)
+FIELD(ScreenFontStyle,language,sfstring,language,FIELDTYPE_SFString)
+FIELD(ScreenFontStyle,leftToRight,sfbool,leftToRight,FIELDTYPE_SFBool)
+EXPOSED_FIELD(ScreenFontStyle,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(ScreenFontStyle,pointSize,sffloat,pointSize,FIELDTYPE_SFFloat)
+FIELD(ScreenFontStyle,spacing,sffloat,spacing,FIELDTYPE_SFFloat)
+FIELD(ScreenFontStyle,style,sfstring,style,FIELDTYPE_SFString)
+FIELD(ScreenFontStyle,topToBottom,sfbool,topToBottom,FIELDTYPE_SFBool)
+END_NODE(ScreenFontStyle)
+
+/* ScreenGroup node */
+BEGIN_NODE(ScreenGroup)
+EVENT_IN(ScreenGroup,addChildren,mfnode,addChildren,FIELDTYPE_MFNode)
+FIELD(ScreenGroup,bboxCenter,sfvec3f,bboxCenter,FIELDTYPE_SFVec3f)
+FIELD(ScreenGroup,bboxSize,sfvec3f,bboxSize,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(ScreenGroup,children,mfnode,children,FIELDTYPE_MFNode)
+EXPOSED_FIELD(ScreenGroup,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EVENT_IN(ScreenGroup,removeChildren,mfnode,removeChildren,FIELDTYPE_MFNode)
+END_NODE(ScreenGroup)
+
 /* Script node */
 BEGIN_NODE(Script)
 FIELD(Script,directOutput,sfbool,directOutput,FIELDTYPE_SFBool)
@@ -2433,6 +2510,17 @@ EXPOSED_FIELD(ViewpointGroup,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 EXPOSED_FIELD(ViewpointGroup,retainUserOffsets,sfbool,retainUserOffsets,FIELDTYPE_SFBool)
 EXPOSED_FIELD(ViewpointGroup,size,sfvec3f,size,FIELDTYPE_SFVec3f)
 END_NODE(ViewpointGroup)
+
+/* Viewport node */
+BEGIN_NODE(Viewport)
+EVENT_IN(Viewport,addChildren,mfnode,addChildren,FIELDTYPE_MFNode)
+FIELD(Viewport,bboxCenter,sfvec3f,bboxCenter,FIELDTYPE_SFVec3f)
+FIELD(Viewport,bboxSize,sfvec3f,bboxSize,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(Viewport,children,mfnode,children,FIELDTYPE_MFNode)
+EXPOSED_FIELD(Viewport,clipBoundary,mffloat,clipBoundary,FIELDTYPE_MFFloat)
+EXPOSED_FIELD(Viewport,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EVENT_IN(Viewport,removeChildren,mfnode,removeChildren,FIELDTYPE_MFNode)
+END_NODE(Viewport)
 
 /* VisibilitySensor node */
 BEGIN_NODE(VisibilitySensor)
