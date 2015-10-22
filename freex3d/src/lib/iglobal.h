@@ -71,7 +71,7 @@ typedef struct iiglobal //InstanceGlobal
 
 		float myFps;// = (float) 0.0;
 		char *myMenuStatus;
-		void *_vpstack; //Stack for viewports
+		void *_vportstack; //Stack for viewports
 		void *prv;
 	}display;
 	struct tinternalc {

@@ -1320,7 +1320,7 @@ void setup_projection(int pick, int x, int y)
 	GLDOUBLE aspect2 = tg->display.screenRatio;
 	p = (ppMainloop)tg->Mainloop.prv;
 	viewer = Viewer();
-	vportstack = (Stack*)tg->display._vpstack;
+	vportstack = (Stack*)tg->display._vportstack;
 	vport = stack_top(ivec4,vportstack); //should be same as stack bottom, only one on stack here
 
 	screenwidth2 = vport.W; //tg->display.screenWidth
@@ -1428,12 +1428,7 @@ void setup_projection(int pick, int x, int y)
 	/* <<< statusbar hud */
 	// side-by-side eyebase fiducials (see fiducialDraw())
 	p->viewpointScreenX[viewer->iside] = xvp + screenwidth2/2;
-	p->viewpointScreenY[viewer->iside] = top;
-	if (viewer->sidebyside){
-		counter++;
-		if(counter == 100)
-			printf("in setup_projection\n");
-	}
+	p->viewpointScreenY[viewer->iside] = tg->display.screenHeight - top; //fiducial draw still using top-down Y
 	if (viewer->updown){
         FW_GL_VIEWPORT(xvp - screenwidth2 / 2, bottom, screenwidth2 * 2, screenheight);
     }

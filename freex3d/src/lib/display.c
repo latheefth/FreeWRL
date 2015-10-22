@@ -85,7 +85,7 @@ typedef struct pdisplay{
 	freewrl_params_t params;
 	s_renderer_capabilities_t rdr_caps;
 	char myMenuStatus[MAXSTAT];
-	Stack *_vpstack;
+	Stack *_vportstack;
 }* ppdisplay;
 void *display_constructor(){
 	void *v = MALLOCV(sizeof(struct pdisplay));
@@ -126,9 +126,9 @@ void display_init(struct tdisplay* t)
 		p->params.xpos = 0;
 		p->params.ypos = 0;
 		p->params.frontend_handles_display_thread = FALSE;
-		p->_vpstack = newStack(ivec4);
+		p->_vportstack = newStack(ivec4);
 		t->params = &p->params;
-		t->_vpstack = (void *)p->_vpstack; //represents screen pixel area being drawn to
+		t->_vportstack = (void *)p->_vportstack; //represents screen pixel area being drawn to
 	}
 }
 
@@ -386,7 +386,7 @@ void fwl_setScreenDim(int wi, int he)
 	tg->display.view_width = tg->display.screenWidth;
 	{
 		ivec4 main_window;
-		Stack *vpstack = tg->display._vpstack;
+		Stack *vpstack = tg->display._vportstack;
 		main_window.X = tg->display.xpos;
 		main_window.Y = tg->display.ypos;
 		main_window.W = tg->display.view_width;
@@ -415,7 +415,7 @@ void fwl_setScreenDim2(int ixpos, int iypos, int wi, int he)
     //else tg->display.screenRatio =  tg->display.screenWidth;
 	{
 		ivec4 main_window;
-		Stack *vpstack = tg->display._vpstack;
+		Stack *vpstack = tg->display._vportstack;
 		main_window.X = tg->display.xpos;
 		main_window.Y = tg->display.ypos;
 		main_window.W = tg->display.view_width;
