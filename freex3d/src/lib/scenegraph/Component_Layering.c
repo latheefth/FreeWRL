@@ -37,22 +37,49 @@ X3D Layering Component
 #include "Children.h"
 #include "../opengl/OpenGL_Utils.h"
 
+typedef struct ivec4 {int X; int Y; int W; int H;} ivec4;
+typedef struct ivec2 {int X; int Y;} ivec2;
 
 // http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/layering.html
 
+ivec4 childViewport(ivec4 parentViewport, float *clipBoundary){
+	ivec4 vport;
+	vport.W = (clipBoundary[1] - clipBoundary[0]) *parentViewport.W;
+	vport.X = parentViewport.X + (clipBoundary[0] * parentViewport.W);
+	vport.H = (clipBoundary[3] - clipBoundary[2]) *parentViewport.H;
+	vport.Y = parentViewport.Y + (clipBoundary[2] * parentViewport.H);
+	return vport;
+}
+
+//status: pseudo-code oct 22, 2015
 void render_LayerSet(struct X3D_Node * node){
 	if(node && node->_nodeType == NODE_LayerSet){
 		int i,j;
+		ttglobal tg;
 		struct X3D_LayerSet * layerset = (struct X3D_LayerSet *)node;
+		tg = gglobal();
 		for(i=0;i<layerset->layers.n;i++){
 			struct X3D_Layer * layer;
+			Stack *vportstack;
+			ivec4 pvport,vport;
+			float *clipBoundary, defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f};
 			layerset->activeLayer = j = layerset->order.p[i];
 			layer = layerset->layers.p[j];
 			//push layer.viewport onto viewport stack, setting it as the current window
-			// FW_GL_VIEWPORT(xvp, bottom, screenwidth2, screenheight);
-			//glClear(GL_DEPTH_BUFFER_BIT); //if another layer has already drawn, don't clear it, just its depth fingerprint
-			render_node(layer);
-			//pop layer.viewport
+			vportstack = (Stack *)tg->display._vportstack;
+			pvport = stack_top(ivec4,vportstack); //parent context viewport
+			clipBoundary = defaultClipBoundary;
+			if(layer->viewport)
+				clipBoundary = ((struct X3D_Viewport*)(layer->viewport))->clipBoundary.p;
+			vport = childViewport(pvport,clipBoundary);
+			pushviewport(vportstack, vport);
+			if(currentviewportvisible(vportstack)){
+				setcurrentviewport(vportstack);
+				glClear(GL_DEPTH_BUFFER_BIT); //if another layer has already drawn, don't clear it, just its depth fingerprint
+				render_node(layer);
+			}
+			popviewport(vportstack);
+			setcurrentviewport(vportstack);
 		}
 	}
 }

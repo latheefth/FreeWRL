@@ -185,6 +185,10 @@ int currentviewportvisible(Stack *vpstack){
 	ivec4 currentvp = stack_top(ivec4,vpstack);
 	return visibleviewport(currentvp);
 }
+void setcurrentviewport(Stack *_vpstack){
+	ivec4 vp = stack_top(ivec4,_vpstack);
+	glViewport(vp.X,vp.Y,vp.W,vp.H);
+}
 
 
 #if KEEP_FV_INLIB
