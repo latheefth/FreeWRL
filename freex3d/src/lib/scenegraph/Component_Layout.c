@@ -42,6 +42,8 @@ X3D Layering Component
 /* oct 2015 not sure what I need here
 a few easy ones: 
 ScreenFontStyle is the same as FontStyle except with pixelSize instead of size
+- I suspect implementation code would be primarily in Component_Text.c L.1326
+- size (FontStyle) and pointSize (ScreenFontStyle) are both float, so no diff in struct, just NODE_Type
 ScreenGroup is like Group or perhaps Transform, except it may need to alter the transform stack 
 	with x,y scales so as to treat children's coords as being in screen pixels.
 */

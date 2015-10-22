@@ -62,9 +62,11 @@ void render_LayerSet(struct X3D_Node * node){
 			struct X3D_Layer * layer;
 			Stack *vportstack;
 			ivec4 pvport,vport;
-			float *clipBoundary, defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f};
+			float *clipBoundary, defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; // left/right/bottom/top 0,1,0,1
+
 			layerset->activeLayer = j = layerset->order.p[i];
 			layer = layerset->layers.p[j];
+			//push/set binding stacks
 			//push layer.viewport onto viewport stack, setting it as the current window
 			vportstack = (Stack *)tg->display._vportstack;
 			pvport = stack_top(ivec4,vportstack); //parent context viewport
@@ -80,6 +82,7 @@ void render_LayerSet(struct X3D_Node * node){
 			}
 			popviewport(vportstack);
 			setcurrentviewport(vportstack);
+			//pop binding stacks
 		}
 	}
 }
