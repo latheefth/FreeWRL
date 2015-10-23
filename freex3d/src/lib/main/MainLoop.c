@@ -1325,7 +1325,7 @@ void setup_projection(int pick, int x, int y)
 
 	screenwidth2 = vport.W; //tg->display.screenWidth
 	xvp = vport.X;
-	top = vport.Y + vport.H; //or .H - .Y?
+	top = vport.Y + vport.H; //or .H - .Y?  CHANGE OF MEANING used to be 0 at top of screen, now its more like screenHeight
 	bottom = vport.Y + tg->Mainloop.clipPlane;
 	screenheight = top - bottom; //tg->display.screenHeight - bottom;
 	PRINT_GL_ERROR_IF_ANY("XEvents::start of setup_projection");
@@ -1400,7 +1400,7 @@ void setup_projection(int pick, int x, int y)
 			if (viewer->iside == 0){
 				bottom += screenheight;
 			}else{
-				top += screenheight;
+				top -= screenheight; //+=
 			}
 			screenheight -= tg->Mainloop.clipPlane;
 			scissorxl = xl;
@@ -1491,20 +1491,24 @@ void setup_projection(int pick, int x, int y)
 			double mvident[16], pickMatrix[16], pmi[16], proj[16], R1[16], R2[16], R3[16], T[16];
 			int viewport[4];
 			double A[3], B[3], C[3], a[3], b[3];
-			double yaw, pitch, yy;
+			double yaw, pitch, yy,xx;
 			loadIdentityMatrix(mvident);
 			FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
 			FW_GL_GETINTEGERV(GL_VIEWPORT,viewport);
-			yy = (float)viewport[3]  -y + bottom +top;
-			printf("yy %lf vp3 %d y %d bottom %d top %d\n",
-				yy, viewport[3], y, bottom, top);
+			//yy = (float)viewport[3]  -y + bottom +top;
+			//glu_unproject will subtract the viewport from the x,y, if they're all in y-up screen coords
+			yy = (float)(tg->display.screenHeight - y); //y-up - bottom
+			xx = (float)x;
+			//printf("vp = %d %d %d %d\n",viewport[0],viewport[1],viewport[2],viewport[3]);
+			//printf("yy %lf vp3 %d y %d vp1 %d sh %d\n",
+			//	yy, viewport[3], y, viewport[1], tg->display.screenHeight);
 			//nearside point
-			a[0] = x; a[1] = yy;  a[2] = 0.0;
+			a[0] = xx; a[1] = yy;  a[2] = 0.0;
 			FW_GLU_UNPROJECT(a[0], a[1], a[2], mvident, proj, viewport,
 				 &A[0],&A[1],&A[2]);
 			mattranslate(T,A[0],A[1],A[2]);
 			//farside point
-			b[0] = x; b[1] = yy;  b[2] = 1.0;
+			b[0] = xx; b[1] = yy;  b[2] = 1.0;
 			FW_GLU_UNPROJECT(b[0], b[1], b[2], mvident, proj, viewport,
 				 &B[0],&B[1],&B[2]);
 			vecdifd(C,B,A);
