@@ -1496,6 +1496,8 @@ void setup_projection(int pick, int x, int y)
 			FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
 			FW_GL_GETINTEGERV(GL_VIEWPORT,viewport);
 			yy = (float)viewport[3]  -y + bottom +top;
+			printf("yy %lf vp3 %d y %d bottom %d top %d\n",
+				yy, viewport[3], y, bottom, top);
 			//nearside point
 			a[0] = x; a[1] = yy;  a[2] = 0.0;
 			FW_GLU_UNPROJECT(a[0], a[1], a[2], mvident, proj, viewport,
