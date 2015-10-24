@@ -214,6 +214,7 @@ typedef struct viewer {
 	int haveQuadbuffer;
 	int anaglyph; /* = 1 if analglyph is turned on */
 	int dominantEye; /* 2D screen cursor picks in which viewport? 0=Left 1=Right */
+	int eitherDominantEye; //1 = switch based on which viewport mouse is over (sidebyside and updown) 0= always use dominantEye;
 	double stereoParameter;
 	double eyehalf;
 	double eyehalfangle;

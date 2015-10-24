@@ -1318,15 +1318,17 @@ static void setup_pickside(int x, int y){
 	   - analgyph and quadbuffer use the whole screen, so can use either
 	   -- there's now an explicit userPrefferedPickSide (versus always using right)
 	*/
-	int sideleft, sideright, iside, userPreferredPickSide;
+	int sideleft, sideright, iside, userPreferredPickSide, ieither;
 	ivec4 vportleft, vportright, vport, vportscene;
 	ivec2 pt;
 	Stack *vportstack;
 	X3D_Viewer *viewer;
 
 	ttglobal tg = gglobal();
-	userPreferredPickSide = 1; //0= left, 1= right
 	viewer = Viewer();
+	userPreferredPickSide = viewer->dominantEye; //0= left, 1= right
+	ieither = viewer->eitherDominantEye;
+
 	pt = ivec2_init(x,y);
 	vportstack = (Stack*)tg->display._vportstack;
 	vport = stack_top(ivec4,vportstack); //should be same as stack bottom, only one on stack here
@@ -1357,6 +1359,7 @@ static void setup_pickside(int x, int y){
 		iside = userPreferredPickSide; //analgyph, quadbuffer
 	else 
 		iside = sideleft? 0 : sideright ? 1 : 0;
+	if(!ieither) iside = userPreferredPickSide;
 	Viewer()->iside = iside;
 }
 

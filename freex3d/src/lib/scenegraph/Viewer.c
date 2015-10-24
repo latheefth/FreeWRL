@@ -67,6 +67,7 @@ static void init_stereodefaults(X3D_Viewer *Viewer)
 		Viewer->screendist = 0.375; //was .8 
 		Viewer->stereoParameter = 0.01; //was .4 or toe-in. Toe-in can force your eyes wall-eyed esp. in side-by-side, so set near zero.
 		Viewer->dominantEye = 1; /*0=Left 1=Right used for picking*/
+		Viewer->eitherDominantEye = 1; //1=can pick with either eye depending on which stereoside mouse is in, see setup_pickside()
 		Viewer->iprog[0] = 0; /* left red */
 		Viewer->iprog[1] = 1; /* right green */
 		Viewer->haveQuadbuffer = 0;
@@ -2764,6 +2765,17 @@ void toggleOrSetStereo(int type)
 		setStereo(type);
 	else
 		setMono();
+}
+void fwl_setPickraySide(int ipreferredSide, int either){
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	p->Viewer.dominantEye = ipreferredSide;
+	p->Viewer.eitherDominantEye = either;
+
+}
+void fwl_getPickraySide(int *ipreferredSide, int *either){
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	*ipreferredSide = p->Viewer.dominantEye ;
+	*either = p->Viewer.eitherDominantEye;
 }
 void updateEyehalf()
 {
