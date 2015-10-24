@@ -339,6 +339,7 @@ void render_collisions(int Viewer_type);
 void slerp_viewpoint();
 static void render_pre(void);
 static void render(void);
+static void setup_pickside(int x, int y);
 static void setup_projection();
 static void setup_pickray(int x, int y);
 static struct X3D_Node*  getRayHit(void);
@@ -681,6 +682,7 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 	//printf("nav mode =%d sensitive= %d\n",p->NavigationMode, tg->Mainloop.HaveSensitive);
 	if (!p->NavigationMode && tg->Mainloop.HaveSensitive && !Viewer()->LookatMode && !tg->Mainloop.SHIFT) {
 		p->currentCursor = 0;
+		setup_pickside(tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
 		setup_projection();
 		setup_pickray(tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
 		setup_viewpoint();
@@ -773,6 +775,7 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 			setLookatCursor();
 		if(Viewer()->LookatMode == 2){
 			p->currentCursor = 0;
+			setup_pickside(tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
 			setup_projection();
 			setup_pickray(tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
 			setup_viewpoint();
@@ -1306,6 +1309,56 @@ static void render_pre() {
 }
 typedef struct ivec4 {int X; int Y; int W; int H;} ivec4;
 typedef struct ivec2 {int X; int Y;} ivec2;
+ivec2 ivec2_init(int x, int y);
+int pointinsideviewport(ivec4 vp, ivec2 pt);
+static void setup_pickside(int x, int y){
+	/* Oct 2015 idea: change which stereo side the pickray is working on, 
+	   based on which stereo side the mouse is in
+	   - only makes a difference for updown and sidebyside
+	   - analgyph and quadbuffer use the whole screen, so can use either
+	   -- there's now an explicit userPrefferedPickSide (versus always using right)
+	*/
+	int sideleft, sideright, iside, userPreferredPickSide;
+	ivec4 vportleft, vportright, vport, vportscene;
+	ivec2 pt;
+	Stack *vportstack;
+	X3D_Viewer *viewer;
+
+	ttglobal tg = gglobal();
+	userPreferredPickSide = 1; //0= left, 1= right
+	viewer = Viewer();
+	pt = ivec2_init(x,y);
+	vportstack = (Stack*)tg->display._vportstack;
+	vport = stack_top(ivec4,vportstack); //should be same as stack bottom, only one on stack here
+	vportscene = vport;
+	vportscene.Y = vport.Y + tg->Mainloop.clipPlane;
+	vportscene.H = vport.H - tg->Mainloop.clipPlane;
+
+	vportleft = vportscene;
+	vportright = vportscene;
+	if(viewer->isStereo)
+	{
+		if (viewer->sidebyside){
+			vportleft.W /= 2;
+			vportright.W /=2;
+			vportright.X = vportleft.X + vportleft.W;
+		}
+		if(viewer->updown) { //overunder
+			vportright.H /= 2;
+			vportleft.H /=2;
+			vportright.Y = vportleft.Y + vportright.H;
+		}
+		//analgyph and quadbuffer use full window
+	}
+	sideleft = sideright=0;
+	sideleft = pointinsideviewport(vportleft,pt);
+	sideright = pointinsideviewport(vportright,pt);;
+	if(sideleft && sideright) 
+		iside = userPreferredPickSide; //analgyph, quadbuffer
+	else 
+		iside = sideleft? 0 : sideright ? 1 : 0;
+	Viewer()->iside = iside;
+}
 
 void setup_projection()
 {
