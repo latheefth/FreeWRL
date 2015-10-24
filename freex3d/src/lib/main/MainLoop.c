@@ -339,7 +339,8 @@ void render_collisions(int Viewer_type);
 void slerp_viewpoint();
 static void render_pre(void);
 static void render(void);
-static void setup_projection(int pick, int x, int y);
+static void setup_projection();
+static void setup_pickray(int pick, int x, int y);
 static struct X3D_Node*  getRayHit(void);
 static void get_hyperhit(void);
 static void sendSensorEvents(struct X3D_Node *COS,int ev, int butStatus, int status);
@@ -680,7 +681,8 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 	//printf("nav mode =%d sensitive= %d\n",p->NavigationMode, tg->Mainloop.HaveSensitive);
 	if (!p->NavigationMode && tg->Mainloop.HaveSensitive && !Viewer()->LookatMode && !tg->Mainloop.SHIFT) {
 		p->currentCursor = 0;
-		setup_projection(TRUE,tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
+		setup_projection();
+		setup_pickray(TRUE,tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
 		setup_viewpoint();
 		render_hier(rootNode(),VF_Sensitive  | VF_Geom);
 		p->CursorOverSensitive = getRayHit();
@@ -771,7 +773,8 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 			setLookatCursor();
 		if(Viewer()->LookatMode == 2){
 			p->currentCursor = 0;
-			setup_projection(TRUE,tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
+			setup_projection();
+			setup_pickray(TRUE,tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
 			setup_viewpoint();
 			render_hier(rootNode(),VF_Sensitive  | VF_Geom);
 			getRayHitAndSetLookatTarget();
@@ -1235,7 +1238,7 @@ static void render_pre() {
 	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 
         /* 1. Set up projection */
-        setup_projection(FALSE,0,0);
+        setup_projection(); //FALSE,0,0);
 
 
         /* 2. Headlight, initialized here where we have the modelview matrix to Identity.
@@ -1304,7 +1307,7 @@ static void render_pre() {
 typedef struct ivec4 {int X; int Y; int W; int H;} ivec4;
 typedef struct ivec2 {int X; int Y;} ivec2;
 
-void setup_projection(int pick, int x, int y)
+void setup_projection()
 {
 	GLDOUBLE fieldofview2;
 	GLint xvp;
@@ -1436,19 +1439,6 @@ void setup_projection(int pick, int x, int y)
         FW_GL_VIEWPORT(xvp, bottom, screenwidth2, screenheight);
     }
 	FW_GL_LOAD_IDENTITY();
-	if(pick) {
-		/* picking for mouse events */
-		//tg->RenderFuncs.usingAffinePickmatrix = 1 - tg->RenderFuncs.usingAffinePickmatrix; //toggle each pass for comparative testing
-		if(!tg->RenderFuncs.usingAffinePickmatrix){
-			//OLD WAY: modifies proj matrix to a narrow window around the mouse point (see below for NEW WAY)
-			FW_GL_GETINTEGERV(GL_VIEWPORT,p->viewPort2);
-			//x = (p->viewPort2[2]-p->viewPort2[0])*.5 + 100.0;
-			//y - (p->viewPort2[3]-p->viewPort2[1])*.5;
-
-			//FW_GLU_PICK_MATRIX((float)x,(float)p->viewPort2[3]-y + bottom, (float)100,(float)100,p->viewPort2);
-			FW_GLU_PICK_MATRIX((float)x,(float)p->viewPort2[3]  -y + bottom +top, (float)100,(float)100,p->viewPort2);
-		}
-	}
 
 	/* ortho projection or perspective projection? */
 	if (Viewer()->ortho) {
@@ -1477,105 +1467,109 @@ void setup_projection(int pick, int x, int y)
         //printf ("Before FW_GLU_PERSPECTIVE, np %f fp %f\n",viewer->nearPlane, viewer->farPlane);
 		FW_GLU_PERSPECTIVE(fieldofview2, aspect2, viewer->nearPlane,viewer->farPlane);
 	}
-	if(pick){
-		if(tg->RenderFuncs.usingAffinePickmatrix){
-			//feature-AFFINE_GLU_UNPROJECT
-			//NEW WAY: leaves proj matrix as normal, and creates a separate affine PICKMATRIX that when multiplied with modelview,
-			// will point down the pickray (see above for OLD WAY)
-			// method: uproject 2 points along the ray, one on nearside of frustum (window z = 0) 
-			//	one on farside of frustum (window z = 1)
-			// then the first one is A, second one is B
-			// create a translation matrix to get from 0,0,0 to A T
-			// create a rotation matrix R to get from A toward B
-			// pickmatrix = R * T
-			double mvident[16], pickMatrix[16], pmi[16], proj[16], R1[16], R2[16], R3[16], T[16];
-			int viewport[4];
-			double A[3], B[3], C[3], a[3], b[3];
-			double yaw, pitch, yy,xx;
-			loadIdentityMatrix(mvident);
-			FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
-			FW_GL_GETINTEGERV(GL_VIEWPORT,viewport);
-			//yy = (float)viewport[3]  -y + bottom +top;
-			//glu_unproject will subtract the viewport from the x,y, if they're all in y-up screen coords
-			yy = (float)(tg->display.screenHeight - y); //y-up - bottom
-			xx = (float)x;
-			//printf("vp = %d %d %d %d\n",viewport[0],viewport[1],viewport[2],viewport[3]);
-			//printf("yy %lf vp3 %d y %d vp1 %d sh %d\n",
-			//	yy, viewport[3], y, viewport[1], tg->display.screenHeight);
-			//nearside point
-			a[0] = xx; a[1] = yy;  a[2] = 0.0;
-			FW_GLU_UNPROJECT(a[0], a[1], a[2], mvident, proj, viewport,
-				 &A[0],&A[1],&A[2]);
-			mattranslate(T,A[0],A[1],A[2]);
-			//farside point
-			b[0] = xx; b[1] = yy;  b[2] = 1.0;
-			FW_GLU_UNPROJECT(b[0], b[1], b[2], mvident, proj, viewport,
-				 &B[0],&B[1],&B[2]);
-			vecdifd(C,B,A);
-			vecnormald(C,C);
-			if(0) printf("Cdif %f %f %f\n",C[0],C[1],C[2]);
-			//if(1){
-			//	double hypotenuse = sqrt(C[0]*C[0] + C[2]*C[2]);
-			//	yaw = asin(C[0]/hypotenuse); 
-			//	hypotenuse = sqrt(C[1]*C[1] + C[2]*C[2]);
-			//	pitch = asin(C[1]/hypotenuse); 
-			//	if(1) printf("asin yaw=%f pitch=%f\n",yaw,pitch);
-			//}
-			yaw = atan2(C[0],-C[2]);
-			matrixFromAxisAngle4d(R1, -yaw, 0.0, 1.0, 0.0);
-			if(1){
-				transformAFFINEd(C,C,R1);
-				if(0) printf("Yawed Cdif %f %f %f\n",C[0],C[1],C[2]);
-				pitch = atan2(C[1],-C[2]);
-			}else{
-				double hypotenuse = sqrt(C[0]*C[0] + C[2]*C[2]);
-				pitch = atan2(C[1],hypotenuse);
-			}
-			if(0) printf("atan2 yaw=%f pitch=%f\n",yaw,pitch);
-
-			pitch = -pitch;
-			if(0) printf("[yaw=%f pitch=%f\n",yaw,pitch);
-			if(0){
-				matrotate(R1, -pitch, 1.0, 0.0, 0.0);
-				matrotate(R2, -yaw, 0.0, 1.0, 0.0);
-			}else{
-				matrixFromAxisAngle4d(R1, pitch, 1.0, 0.0, 0.0);
-				if(0) printmatrix2(R1,"pure R1");
-				matrixFromAxisAngle4d(R2, yaw, 0.0, 1.0, 0.0);
-				if(0) printmatrix2(R2,"pure R2");
-			}
-			matmultiplyAFFINE(R3,R1,R2);
-			if(0) printmatrix2(R3,"R3=R1*R2");
-			if(1){
-				matmultiplyAFFINE(pickMatrix,R3, T); 
-				matinverseAFFINE(pmi,pickMatrix);
-				//matinverseFULL(pmi,pickMatrix); //don't need extra FLOPS 
-			}else{
-				//direct hacking of matrix, can save a few FLOPs
-				R3[12] = A[0]; 
-				R3[13] = A[1]; 
-				R3[14] = A[2];
-				matcopy(pickMatrix,R3);
-				matinverseAFFINE(pmi,pickMatrix); //,R3);
-				if(0)printmatrix2(R3,"R3[12]=A");
-			}
-			if(0) printmatrix2(pmi,"inverted");
-			setPickrayMatrix(0,pickMatrix); //using pickmatrix in upd_ray and get_hyper
-			setPickrayMatrix(1,pmi); //if using pickmatrix_inverse in upd_ray and get_hyper
-			if(0){
-				//Test: transform A,B and they should come out 0,0,x
-				double rA[3], rB[3];
-				transformAFFINEd(rA,A,pmi);
-				transformAFFINEd(rB,B,pmi);
-				printf(" A %f %f %f  B %f %f %f \n",A[0],A[1],A[2],B[0],B[1],B[2]);
-				printf("rA %f %f %f rB %f %f %f \n",rA[0],rA[1],rA[2],rB[0],rB[1],rB[2]);
-			}
-		}
-	}
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 	PRINT_GL_ERROR_IF_ANY("XEvents::setup_projection");
 
 }
+
+void setup_pickray(int iside, int x, int y)
+{
+	ttglobal tg = gglobal();
+	if(tg->RenderFuncs.usingAffinePickmatrix){
+		//feature-AFFINE_GLU_UNPROJECT
+		//NEW WAY: leaves proj matrix as normal, and creates a separate affine PICKMATRIX that when multiplied with modelview,
+		// will point down the pickray (see above for OLD WAY)
+		// method: uproject 2 points along the ray, one on nearside of frustum (window z = 0) 
+		//	one on farside of frustum (window z = 1)
+		// then the first one is A, second one is B
+		// create a translation matrix to get from 0,0,0 to A T
+		// create a rotation matrix R to get from A toward B
+		// pickmatrix = R * T
+		double mvident[16], pickMatrix[16], pmi[16], proj[16], R1[16], R2[16], R3[16], T[16];
+		int viewport[4];
+		double A[3], B[3], C[3], a[3], b[3];
+		double yaw, pitch, yy,xx;
+		loadIdentityMatrix(mvident);
+		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
+		FW_GL_GETINTEGERV(GL_VIEWPORT,viewport);
+		//yy = (float)viewport[3]  -y + bottom +top;
+		//glu_unproject will subtract the viewport from the x,y, if they're all in y-up screen coords
+		yy = (float)(tg->display.screenHeight - y); //y-up - bottom
+		xx = (float)x;
+		//printf("vp = %d %d %d %d\n",viewport[0],viewport[1],viewport[2],viewport[3]);
+		//printf("yy %lf vp3 %d y %d vp1 %d sh %d\n",
+		//	yy, viewport[3], y, viewport[1], tg->display.screenHeight);
+		//nearside point
+		a[0] = xx; a[1] = yy;  a[2] = 0.0;
+		FW_GLU_UNPROJECT(a[0], a[1], a[2], mvident, proj, viewport,
+				&A[0],&A[1],&A[2]);
+		mattranslate(T,A[0],A[1],A[2]);
+		//farside point
+		b[0] = xx; b[1] = yy;  b[2] = 1.0;
+		FW_GLU_UNPROJECT(b[0], b[1], b[2], mvident, proj, viewport,
+				&B[0],&B[1],&B[2]);
+		vecdifd(C,B,A);
+		vecnormald(C,C);
+		if(0) printf("Cdif %f %f %f\n",C[0],C[1],C[2]);
+		//if(1){
+		//	double hypotenuse = sqrt(C[0]*C[0] + C[2]*C[2]);
+		//	yaw = asin(C[0]/hypotenuse); 
+		//	hypotenuse = sqrt(C[1]*C[1] + C[2]*C[2]);
+		//	pitch = asin(C[1]/hypotenuse); 
+		//	if(1) printf("asin yaw=%f pitch=%f\n",yaw,pitch);
+		//}
+		yaw = atan2(C[0],-C[2]);
+		matrixFromAxisAngle4d(R1, -yaw, 0.0, 1.0, 0.0);
+		if(1){
+			transformAFFINEd(C,C,R1);
+			if(0) printf("Yawed Cdif %f %f %f\n",C[0],C[1],C[2]);
+			pitch = atan2(C[1],-C[2]);
+		}else{
+			double hypotenuse = sqrt(C[0]*C[0] + C[2]*C[2]);
+			pitch = atan2(C[1],hypotenuse);
+		}
+		if(0) printf("atan2 yaw=%f pitch=%f\n",yaw,pitch);
+
+		pitch = -pitch;
+		if(0) printf("[yaw=%f pitch=%f\n",yaw,pitch);
+		if(0){
+			matrotate(R1, -pitch, 1.0, 0.0, 0.0);
+			matrotate(R2, -yaw, 0.0, 1.0, 0.0);
+		}else{
+			matrixFromAxisAngle4d(R1, pitch, 1.0, 0.0, 0.0);
+			if(0) printmatrix2(R1,"pure R1");
+			matrixFromAxisAngle4d(R2, yaw, 0.0, 1.0, 0.0);
+			if(0) printmatrix2(R2,"pure R2");
+		}
+		matmultiplyAFFINE(R3,R1,R2);
+		if(0) printmatrix2(R3,"R3=R1*R2");
+		if(1){
+			matmultiplyAFFINE(pickMatrix,R3, T); 
+			matinverseAFFINE(pmi,pickMatrix);
+			//matinverseFULL(pmi,pickMatrix); //don't need extra FLOPS 
+		}else{
+			//direct hacking of matrix, can save a few FLOPs
+			R3[12] = A[0]; 
+			R3[13] = A[1]; 
+			R3[14] = A[2];
+			matcopy(pickMatrix,R3);
+			matinverseAFFINE(pmi,pickMatrix); //,R3);
+			if(0)printmatrix2(R3,"R3[12]=A");
+		}
+		if(0) printmatrix2(pmi,"inverted");
+		setPickrayMatrix(0,pickMatrix); //using pickmatrix in upd_ray and get_hyper
+		setPickrayMatrix(1,pmi); //if using pickmatrix_inverse in upd_ray and get_hyper
+		if(0){
+			//Test: transform A,B and they should come out 0,0,x
+			double rA[3], rB[3];
+			transformAFFINEd(rA,A,pmi);
+			transformAFFINEd(rB,B,pmi);
+			printf(" A %f %f %f  B %f %f %f \n",A[0],A[1],A[2],B[0],B[1],B[2]);
+			printf("rA %f %f %f rB %f %f %f \n",rA[0],rA[1],rA[2],rB[0],rB[1],rB[2]);
+		}
+	}
+}
+
 
 /* Render the scene */
 static void render()
@@ -1629,7 +1623,7 @@ OLDCODE#endif
 				else
 					Viewer_anaglyph_setSide(count); //clear just the channels we're going to draw to
 			}
-			setup_projection(0, 0, 0); //scissor test in here
+			setup_projection(); //scissor test in here
 			BackEndClearBuffer(2);
 			if(Viewer()->anaglyph)
 				Viewer_anaglyph_setSide(count); //set the channels for scenegraph drawing
@@ -2189,11 +2183,11 @@ struct X3D_Node* getRayHit() {
 				struct point_XYZ tp; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 
 				if(0){
-					//pickMatrix is inverted in setup_projection
+					//pickMatrix is inverted in setup_pickray
 					matmultiplyAFFINE(mvp,rh->modelMatrix,pickMatrixi);
 					matinverseAFFINE(mvpi,mvp);
 				}else{
-					//pickMatrix is not inverted in setup_projection
+					//pickMatrix is not inverted in setup_pickray
 					double mvi[16];
 					matinverseAFFINE(mvi,rh->modelMatrix);
 					matmultiplyAFFINE(mvpi,pickMatrix,mvi);
@@ -2334,7 +2328,7 @@ Terminology ([] denotes alternative design not yet implemented April 2014):
 modelview matrix - transforms coords from the current node-local into the current viewpoint-local
 proj matrix - projects points from viewpoint-local 3D to 2D normalized screen viewport (with Z in 0 to 1 range)
 pick-proj matrix - special projection matrix that aligns the mousexy (pickpoint) on the viewport center
-	- formed in setup_projection(pick=TRUE,,)
+	- formed in setup_pickray(pick=TRUE,,)
 view matrix - the view part of the modelview matrix, generated during setup_viewpoint()
 model matrix - the model part of the world modelview matrix, generated during
 	traversing the scenegraph in render_node()
@@ -2346,7 +2340,7 @@ geometry_model: the model part of the modelview matrix at a geometry node's plac
 sensor_model: the model part of the modelview matrix at a sensor node's place
 bearing: 2 points (A,B) defining a ray in 3D space going from A in the direction of B
 	1. For 2D screen-based pointing devices	like mouse, A is the viewpoint position 0,0,0 
-		in viewpoint-local, and for B mousexy is converted in setup_projection(pick=TRUE,,) 
+		in viewpoint-local, and for B mousexy is converted in setup_pickray(pick=TRUE,,) 
 		to a special pick-proj matrix that centers the viewport on the mousexy, so B is 0,0,-1 in
 			pick-viewport-local coordinates	(glu_unproject produces pick-viewport-local)
 		[using normal projection matrix for the bearing, then B= mousex,mousey,-1 in 
@@ -2366,7 +2360,7 @@ As seen by the developer, here's how I (dug9 Apr 2014) think they should work in
 	can be pushed onto a state stack to affect descendent geometry nodes
  2. from the scene root, traverse to the viewpoint to get the view part of the modelview matrix
 	-Set up 2 points in viewpoint space: A=0,0,0 (the viewpoint) and B=(mouse x, mouse y, z=-1) to represent the bearing
-	-apply a special pick-projection matrix, in setup_projection(pick=TRUE,,), so that glu_unproject 
+	-apply a special pick-projection matrix, in setup_pickray(pick=TRUE,,), so that glu_unproject 
 		is with respect to the mouse-xy bearing B point being at the center of the viewport 
 		[use normal projection, and minimize the use of glu_unproject by transforming viewport-local bearing
 		to world during setup, and use world for bearing for all subsequent PointingDeviceSensor activities
@@ -2445,7 +2439,7 @@ struct currayhit {
 	- it's the whole modelview matrix
 	GLDOUBLE projMatrix[16]; 
 	- snapshot of the pick-projection matrix at the same spot
-	-- it will include the pick-specific projection matrix aligned to the mousexy in setup_projection(pick=TRUE,,)
+	-- it will include the pick-specific projection matrix aligned to the mousexy in setup_pickray(pick=TRUE,,)
 };
 global variables:
 	struct point_XYZ r1 = {0,0,-1},r2 = {0,0,0},r3 = {0,1,0}; 
@@ -2540,7 +2534,7 @@ What I think we could do better:
 		competition for the bearing-specific pick-proj matrix)
 	b) allows VF_Sensitive pass to be combined with other passes for optimization, if using
 		the same transform matrices
-	c) allows setup_viewpoint() and setup_projection() to be computed once for multiple passes
+	c) allows setup_viewpoint(), setup_pickray() and setup_projection() to be computed once for multiple passes
 	d) allows using world coordinates for the bearing because then bearing doesn't depend 
 		on a special proj matrix which only glu_project and glu_unproject can make use of,
 		and those functions transform to/from viewport space
@@ -2660,7 +2654,7 @@ Update May 2015 - dug9
    - and emit events in sensor-local coordinates
    - ^bearing-local: currently == pick-viewport-local 
    -- unproject is used because to go from geometry-local to bearing-local, because
-		it's convenient, and includes the pick-viewport in the transform - see setup_projection(pick=TRUE,,) for details
+		it's convenient, and includes the pick-viewport in the transform - see setup_pickray(pick=TRUE,,) for details
 	  But it may be overkill if bearing-local is made to == world, for compatibility with 3D pointing devices
 */
 static void get_hyperhit() {
@@ -2700,11 +2694,11 @@ static void get_hyperhit() {
 		struct point_XYZ tp; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 
 		if(0){
-			//pickMatrix is inverted in setup_projection
+			//pickMatrix is inverted in setup_pickray
 			matmultiplyAFFINE(mvp,rhh->modelMatrix,pickMatrixi);
 			matinverseAFFINE(mvpi,mvp);
 		}else{
-			//pickMatrix is not inverted in setup_projection
+			//pickMatrix is not inverted in setup_pickray
 			double mvi[16];
 			matinverseAFFINE(mvi,rhh->modelMatrix);
 			matmultiplyAFFINE(mvpi,pickMatrix,mvi);
@@ -2715,11 +2709,11 @@ static void get_hyperhit() {
 		transform(&tp,&r2,mvpi);
 		x2 = tp.x; y2 = tp.y; z2 = tp.z;
 		if(0){
-			//pickMatrix is inverted in setup_projection
+			//pickMatrix is inverted in setup_pickray
 			matmultiplyAFFINE(mvp,rh->modelMatrix,pickMatrix);
 			matinverseAFFINE(mvpi,mvp);
 		}else{
-			//pickMatrix is not inverted in setup_projection
+			//pickMatrix is not inverted in setup_pickray
 			double mvi[16];
 			matinverseAFFINE(mvi,rh->modelMatrix);
 			matmultiplyAFFINE(mvpi,pickMatrix,mvi);

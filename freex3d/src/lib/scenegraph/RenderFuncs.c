@@ -797,7 +797,7 @@ GLint viewport[4] = {-1,-1,2,2};  //pseudo-viewport - doesn't change, used in gl
 /* These two points (r2,r1) define a ray in pick-veiwport window coordinates 
 	r2=viewpoint 
 	r1=ray from center of pick-viewport in viewport coordinates
-	- in setup_projection(pick=TRUE,,) the projMatrix is modified for the pick-ray-viewport
+	- in setup_pickray(pick=TRUE,,) the projMatrix is modified for the pick-ray-viewport
 	- when unprojecting geometry-local xyz to bearing-local/pick-viewport-local, use pseudo-viewport defined above
 */
 struct point_XYZ r1 = {0,0,-1}, r2 = {0,0,0}, r3 = {0,1,0}; //r3 y direction in case needed for testing
@@ -928,10 +928,10 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 		tp.x = cx; tp.y = cy; tp.z = cz;
 		transform(&tp, &tp, modelMatrix);
 		if(1){
-			//pickMatrix is inverted in setup_projection
+			//pickMatrix is inverted in setup_pickray
 			transform(&tp,&tp,pickMatrixi);
 		}else{
-			//pickMatrix is not inverted in setup_projection
+			//pickMatrix is not inverted in setup_pickray
 			matinverseAFFINE(pmi,pickMatrix);
 			transform(&tp,&tp,pmi);
 		}
@@ -999,11 +999,11 @@ for (i=0; i<16; i++) printf ("%4.3lf ",projMatrix[i]); printf ("\n");
 		struct point_XYZ r11 = {0.0,0.0,1.0}; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 
 		if(0){
-			//pickMatrix is inverted in setup_projection
+			//pickMatrix is inverted in setup_pickray
 			matmultiplyAFFINE(mvp,modelMatrix,pickMatrixi);
 			matinverseAFFINE(mvpi,mvp);
 		}else{
-			//pickMatrix is not inverted in setup_projection
+			//pickMatrix is not inverted in setup_pickray
 			double mvi[16];
 			matinverseAFFINE(mvi,modelMatrix);
 			matmultiplyAFFINE(mvpi,pickMatrix,mvi);
@@ -1063,10 +1063,10 @@ int pickrayHitsMBB(struct X3D_Node *node){
 		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
 		if(1){
-			//pickMatrix is inverted in setup_projection
+			//pickMatrix is inverted in setup_pickray
 			matmultiplyAFFINE(mvp,modelMatrix,pickMatrixi);
 		}else{
-			//pickMatrix is not inverted in setup_projection
+			//pickMatrix is not inverted in setup_pickray
 			double pi[16];
 			matinverseAFFINE(pi,pickMatrix);
 			matmultiplyAFFINE(mvp,modelMatrix,pi);
