@@ -340,7 +340,7 @@ void slerp_viewpoint();
 static void render_pre(void);
 static void render(void);
 static void setup_projection();
-static void setup_pickray(int pick, int x, int y);
+static void setup_pickray(int x, int y);
 static struct X3D_Node*  getRayHit(void);
 static void get_hyperhit(void);
 static void sendSensorEvents(struct X3D_Node *COS,int ev, int butStatus, int status);
@@ -682,7 +682,7 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 	if (!p->NavigationMode && tg->Mainloop.HaveSensitive && !Viewer()->LookatMode && !tg->Mainloop.SHIFT) {
 		p->currentCursor = 0;
 		setup_projection();
-		setup_pickray(TRUE,tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
+		setup_pickray(tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
 		setup_viewpoint();
 		render_hier(rootNode(),VF_Sensitive  | VF_Geom);
 		p->CursorOverSensitive = getRayHit();
@@ -774,7 +774,7 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 		if(Viewer()->LookatMode == 2){
 			p->currentCursor = 0;
 			setup_projection();
-			setup_pickray(TRUE,tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
+			setup_pickray(tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
 			setup_viewpoint();
 			render_hier(rootNode(),VF_Sensitive  | VF_Geom);
 			getRayHitAndSetLookatTarget();
@@ -1472,7 +1472,7 @@ void setup_projection()
 
 }
 
-void setup_pickray(int iside, int x, int y)
+void setup_pickray(int x, int y)
 {
 	ttglobal tg = gglobal();
 	if(tg->RenderFuncs.usingAffinePickmatrix){
