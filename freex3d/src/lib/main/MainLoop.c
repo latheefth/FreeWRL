@@ -339,7 +339,7 @@ void render_collisions(int Viewer_type);
 void slerp_viewpoint();
 static void render_pre(void);
 static void render(void);
-static void setup_pickside(int x, int y);
+static int setup_pickside(int x, int y);
 static void setup_projection();
 static void setup_pickray(int x, int y);
 static struct X3D_Node*  getRayHit(void);
@@ -682,90 +682,91 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 	//printf("nav mode =%d sensitive= %d\n",p->NavigationMode, tg->Mainloop.HaveSensitive);
 	if (!p->NavigationMode && tg->Mainloop.HaveSensitive && !Viewer()->LookatMode && !tg->Mainloop.SHIFT) {
 		p->currentCursor = 0;
-		setup_pickside(tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
-		setup_projection();
-		setup_pickray(tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
-		setup_viewpoint();
-		render_hier(rootNode(),VF_Sensitive  | VF_Geom);
-		p->CursorOverSensitive = getRayHit();
+		if(setup_pickside(tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor])){
+			setup_projection();
+			setup_pickray(tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
+			setup_viewpoint();
+			render_hier(rootNode(),VF_Sensitive  | VF_Geom);
+			p->CursorOverSensitive = getRayHit();
 
-		/* for nodes that use an "isOver" eventOut... */
-		if (p->lastOver != p->CursorOverSensitive) {
-			#ifdef VERBOSE
-				printf ("%lf over changed, p->lastOver %u p->cursorOverSensitive %u, p->butDown1 %d\n",
-					TickTime(), (unsigned int) p->lastOver, (unsigned int) p->CursorOverSensitive,
-					p->ButDown[p->currentCursor][1]);
-			#endif
-			if (p->ButDown[p->currentCursor][1]==0) {
+			/* for nodes that use an "isOver" eventOut... */
+			if (p->lastOver != p->CursorOverSensitive) {
+				#ifdef VERBOSE
+					printf ("%lf over changed, p->lastOver %u p->cursorOverSensitive %u, p->butDown1 %d\n",
+						TickTime(), (unsigned int) p->lastOver, (unsigned int) p->CursorOverSensitive,
+						p->ButDown[p->currentCursor][1]);
+				#endif
+				if (p->ButDown[p->currentCursor][1]==0) {
 
-				/* ok, when the user releases a button, cursorOverSensitive WILL BE NULL
-					until it gets sensed again. So, we use the lastOverButtonPressed flag to delay
-					sending this flag by one event loop loop. */
-				if (!p->lastOverButtonPressed) {
-					sendSensorEvents(p->lastOver, overMark, 0, FALSE);
-					sendSensorEvents(p->CursorOverSensitive, overMark, 0, TRUE);
-					p->lastOver = p->CursorOverSensitive;
+					/* ok, when the user releases a button, cursorOverSensitive WILL BE NULL
+						until it gets sensed again. So, we use the lastOverButtonPressed flag to delay
+						sending this flag by one event loop loop. */
+					if (!p->lastOverButtonPressed) {
+						sendSensorEvents(p->lastOver, overMark, 0, FALSE);
+						sendSensorEvents(p->CursorOverSensitive, overMark, 0, TRUE);
+						p->lastOver = p->CursorOverSensitive;
+					}
+					p->lastOverButtonPressed = FALSE;
+				} else {
+					p->lastOverButtonPressed = TRUE;
 				}
-				p->lastOverButtonPressed = FALSE;
-			} else {
-				p->lastOverButtonPressed = TRUE;
 			}
-		}
-		#ifdef VERBOSE
-		if (p->CursorOverSensitive != NULL)
-			printf("COS %d (%s)\n", (unsigned int) p->CursorOverSensitive, stringNodeType(p->CursorOverSensitive->_nodeType));
-		#endif /* VERBOSE */
+			#ifdef VERBOSE
+			if (p->CursorOverSensitive != NULL)
+				printf("COS %d (%s)\n", (unsigned int) p->CursorOverSensitive, stringNodeType(p->CursorOverSensitive->_nodeType));
+			#endif /* VERBOSE */
 
-		/* did we have a click of button 1? */
-		if (p->ButDown[p->currentCursor][1] && (p->lastPressedOver==NULL)) {
-			/* printf ("Not Navigation and 1 down\n"); */
-			/* send an event of ButtonPress and isOver=true */
-			p->lastPressedOver = p->CursorOverSensitive;
-			sendSensorEvents(p->lastPressedOver, ButtonPress, p->ButDown[p->currentCursor][1], TRUE);
-		}
-		if ((p->ButDown[p->currentCursor][1]==0) && p->lastPressedOver!=NULL) {
-			/* printf ("Not Navigation and 1 up\n");  */
-			/* send an event of ButtonRelease and isOver=true;
-				an isOver=false event will be sent below if required */
-			sendSensorEvents(p->lastPressedOver, ButtonRelease, p->ButDown[p->currentCursor][1], TRUE);
-			p->lastPressedOver = NULL;
-		}
-		if (p->lastMouseEvent == MotionNotify) {
-			/* printf ("Not Navigation and motion - going into sendSensorEvents\n"); */
-			/* TouchSensor hitPoint_changed needs to know if we are over a sensitive node or not */
-			sendSensorEvents(p->CursorOverSensitive,MotionNotify, p->ButDown[p->currentCursor][1], TRUE);
-
-			/* PlaneSensors, etc, take the last sensitive node pressed over, and a mouse movement */
-			sendSensorEvents(p->lastPressedOver,MotionNotify, p->ButDown[p->currentCursor][1], TRUE);
-			p->lastMouseEvent = 0 ;
-		}
-
-		/* do we need to re-define cursor style? */
-		/* do we need to send an isOver event? */
-		if (p->CursorOverSensitive!= NULL) {
-			setSensorCursor();
-
-			/* is this a new node that we are now over?
-				don't change the node pointer if we are clicked down */
-			if ((p->lastPressedOver==NULL) && (p->CursorOverSensitive != p->oldCOS)) {
-				sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
-				sendSensorEvents(p->CursorOverSensitive,MapNotify,p->ButDown[p->currentCursor][1], TRUE);
-				 p->oldCOS=p->CursorOverSensitive;
-				sendDescriptionToStatusBar(p->CursorOverSensitive);
+			/* did we have a click of button 1? */
+			if (p->ButDown[p->currentCursor][1] && (p->lastPressedOver==NULL)) {
+				/* printf ("Not Navigation and 1 down\n"); */
+				/* send an event of ButtonPress and isOver=true */
+				p->lastPressedOver = p->CursorOverSensitive;
+				sendSensorEvents(p->lastPressedOver, ButtonPress, p->ButDown[p->currentCursor][1], TRUE);
 			}
-		} else {
-			/* hold off on cursor change if dragging a sensor */
-			if (p->lastPressedOver!=NULL) {
+			if ((p->ButDown[p->currentCursor][1]==0) && p->lastPressedOver!=NULL) {
+				/* printf ("Not Navigation and 1 up\n");  */
+				/* send an event of ButtonRelease and isOver=true;
+					an isOver=false event will be sent below if required */
+				sendSensorEvents(p->lastPressedOver, ButtonRelease, p->ButDown[p->currentCursor][1], TRUE);
+				p->lastPressedOver = NULL;
+			}
+			if (p->lastMouseEvent == MotionNotify) {
+				/* printf ("Not Navigation and motion - going into sendSensorEvents\n"); */
+				/* TouchSensor hitPoint_changed needs to know if we are over a sensitive node or not */
+				sendSensorEvents(p->CursorOverSensitive,MotionNotify, p->ButDown[p->currentCursor][1], TRUE);
+
+				/* PlaneSensors, etc, take the last sensitive node pressed over, and a mouse movement */
+				sendSensorEvents(p->lastPressedOver,MotionNotify, p->ButDown[p->currentCursor][1], TRUE);
+				p->lastMouseEvent = 0 ;
+			}
+
+			/* do we need to re-define cursor style? */
+			/* do we need to send an isOver event? */
+			if (p->CursorOverSensitive!= NULL) {
 				setSensorCursor();
+
+				/* is this a new node that we are now over?
+					don't change the node pointer if we are clicked down */
+				if ((p->lastPressedOver==NULL) && (p->CursorOverSensitive != p->oldCOS)) {
+					sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
+					sendSensorEvents(p->CursorOverSensitive,MapNotify,p->ButDown[p->currentCursor][1], TRUE);
+					 p->oldCOS=p->CursorOverSensitive;
+					sendDescriptionToStatusBar(p->CursorOverSensitive);
+				}
 			} else {
-				setArrowCursor();
-			}
-			/* were we over a sensitive node? */
-			if ((p->oldCOS!=NULL)  && (p->ButDown[p->currentCursor][1]==0)) {
-				sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
-				/* remove any display on-screen */
-				sendDescriptionToStatusBar(NULL);
-				p->oldCOS=NULL;
+				/* hold off on cursor change if dragging a sensor */
+				if (p->lastPressedOver!=NULL) {
+					setSensorCursor();
+				} else {
+					setArrowCursor();
+				}
+				/* were we over a sensitive node? */
+				if ((p->oldCOS!=NULL)  && (p->ButDown[p->currentCursor][1]==0)) {
+					sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
+					/* remove any display on-screen */
+					sendDescriptionToStatusBar(NULL);
+					p->oldCOS=NULL;
+				}
 			}
 		}
 	} /* (!NavigationMode && HaveSensitive) */
@@ -775,12 +776,13 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 			setLookatCursor();
 		if(Viewer()->LookatMode == 2){
 			p->currentCursor = 0;
-			setup_pickside(tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
-			setup_projection();
-			setup_pickray(tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
-			setup_viewpoint();
-			render_hier(rootNode(),VF_Sensitive  | VF_Geom);
-			getRayHitAndSetLookatTarget();
+			if(setup_pickside(tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor])){
+				setup_projection();
+				setup_pickray(tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
+				setup_viewpoint();
+				render_hier(rootNode(),VF_Sensitive  | VF_Geom);
+				getRayHitAndSetLookatTarget();
+			}
 		}
 		if(Viewer()->LookatMode == 0) ///> 2)
 			setArrowCursor();
@@ -1311,14 +1313,14 @@ typedef struct ivec4 {int X; int Y; int W; int H;} ivec4;
 typedef struct ivec2 {int X; int Y;} ivec2;
 ivec2 ivec2_init(int x, int y);
 int pointinsideviewport(ivec4 vp, ivec2 pt);
-static void setup_pickside(int x, int y){
+static int setup_pickside(int x, int y){
 	/* Oct 2015 idea: change which stereo side the pickray is working on, 
 	   based on which stereo side the mouse is in
 	   - only makes a difference for updown and sidebyside
 	   - analgyph and quadbuffer use the whole screen, so can use either
 	   -- there's now an explicit userPrefferedPickSide (versus always using right)
 	*/
-	int sideleft, sideright, iside, userPreferredPickSide, ieither;
+	int sideleft, sideright, iside, userPreferredPickSide, ieither, inside;
 	ivec4 vportleft, vportright, vport, vportscene;
 	ivec2 pt;
 	Stack *vportstack;
@@ -1329,7 +1331,7 @@ static void setup_pickside(int x, int y){
 	userPreferredPickSide = viewer->dominantEye; //0= left, 1= right
 	ieither = viewer->eitherDominantEye;
 
-	pt = ivec2_init(x,y);
+	pt = ivec2_init(x,tg->display.screenHeight - y);
 	vportstack = (Stack*)tg->display._vportstack;
 	vport = stack_top(ivec4,vportstack); //should be same as stack bottom, only one on stack here
 	vportscene = vport;
@@ -1348,7 +1350,8 @@ static void setup_pickside(int x, int y){
 		if(viewer->updown) { //overunder
 			vportright.H /= 2;
 			vportleft.H /=2;
-			vportright.Y = vportleft.Y + vportright.H;
+			//vportright.Y = vportleft.Y + vportright.H;
+			vportleft.Y = vportright.Y + vportright.H;
 		}
 		//analgyph and quadbuffer use full window
 	}
@@ -1361,6 +1364,7 @@ static void setup_pickside(int x, int y){
 		iside = sideleft? 0 : sideright ? 1 : 0;
 	if(!ieither) iside = userPreferredPickSide;
 	Viewer()->iside = iside;
+	return sideleft || sideright; //if the mouse is outside graphics window, stop tracking it
 }
 
 void setup_projection()
@@ -1735,9 +1739,6 @@ OLDCODE#endif
 		glDisable(GL_SCISSOR_TEST);
 	} /* for loop */
 
-	if (Viewer()->isStereo) {
-		Viewer()->iside = Viewer()->dominantEye; /*is used later in picking to set the cursor pick box on the (left=0 or right=1) viewport*/
-	}
 
 //#endif
 
