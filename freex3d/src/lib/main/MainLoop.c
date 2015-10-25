@@ -221,6 +221,7 @@ void Mainloop_init(struct tMainloop *t){
 	t->prv = Mainloop_constructor();
 	{
 		ppMainloop p = (ppMainloop)t->prv;
+		int i;
 		//browser
 		/* are we displayed, or iconic? */
 		p->onScreen = TRUE;
@@ -273,10 +274,11 @@ void Mainloop_init(struct tMainloop *t){
 		p->lastDeltay = 50;
 		//p->lastxx;
 		//p->lastyy;
-		p->ntouch =0;
+		p->ntouch =20;
 		p->currentTouch = -1;
 		//p->touchlist[20];
 		p->EMULATE_MULTITOUCH = 0;
+		for(i=0;i<p->ntouch;i++) p->touchlist[i].ID = -1;
 
 		p->logfile = NULL;
 		p->logerr = NULL;
@@ -306,6 +308,7 @@ struct Touch *currentTouch(){
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
+	//printf("currentTouch %d\n",p->currentTouch);
 	return &p->touchlist[p->currentTouch];
 }
 
@@ -1769,8 +1772,8 @@ OLDCODE#endif
 	if(p->EMULATE_MULTITOUCH) {
         int i;
 
-		for(i=0;i<20;i++)
-			if(p->touchlist[i].mev > 0)
+		for(i=0;i<p->ntouch;i++)
+			if(p->touchlist[i].ID > -1)
 				cursorDraw(p->touchlist[i].ID,p->touchlist[i].x,p->touchlist[i].y,p->touchlist[i].angle);
     }
 }
@@ -3482,65 +3485,52 @@ void freewrlDie (const char *format) {
 }
 
 void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x, int y, int ID) {
-        int count;
-		struct Touch *touch;
-		ppMainloop p;
-		ttglobal tg = gglobal();
-		p = (ppMainloop)tg->Mainloop.prv;
+	int count;
+	struct Touch *touch;
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+	if(0){
+		printf ("fwl_handle_aqua in MainLoop; mev %d but %d x %d y %d ID %d ",
+				mev, button, x,y,ID);
+		if (mev == ButtonPress) printf ("ButtonPress\n");
+		else if (mev == ButtonRelease) printf ("ButtonRelease\n");
+		else if (mev == MotionNotify) printf ("MotionNotify\n");
+		else printf ("event %d\n",mev); 
+	}
+	/* save this one... This allows Sensors to get mouse movements if required. */
+	p->lastMouseEvent = mev;
 
-  /* printf ("fwl_handle_aqua in MainLoop; but %d x %d y %d screenWidth %d screenHeight %d",
-                button, x,y,tg->display.screenWidth,tg->display.screenHeight);
-        if (mev == ButtonPress) printf ("ButtonPress\n");
-        else if (mev == ButtonRelease) printf ("ButtonRelease\n");
-        else if (mev == MotionNotify) printf ("MotionNotify\n");
-        else printf ("event %d\n",mev); */
+	/* save the current x and y positions for picking. */
+	touch = &p->touchlist[ID];
+	touch->x = x;
+	touch->y = y;
+	touch->buttonState[button] = mev == ButtonPress;
+	touch->ID = ID; /*will come in handy if we change from array[] to accordian list*/
+	touch->mev = mev;
+	touch->angle = 0.0f;
+	p->currentTouch = ID;
 
-        /* save this one... This allows Sensors to get mouse movements if required. */
-        p->lastMouseEvent = mev;
-        /* save the current x and y positions for picking. */
-		//tg->Mainloop.currentX[p->currentCursor] = x;
-		//tg->Mainloop.currentY[p->currentCursor] = y;
-		touch = &p->touchlist[ID];
-		touch->x = x;
-		touch->y = y;
-		touch->buttonState[button] = mev == ButtonPress;
-		//p->touchlist[ID].isDown = mev == ButtonPress; //(mev == ButtonPress || mev == MotionNotify);
-		touch->ID = ID; /*will come in handy if we change from array[] to accordian list*/
-		touch->mev = mev;
-		touch->angle = 0.0f;
-		p->currentTouch = ID;
+	if ((mev == ButtonPress) || (mev == ButtonRelease)) {
+		/* if we are Not over an enabled sensitive node, and we do NOT already have a
+			button down from a sensitive node... */
 
+		if (((p->CursorOverSensitive ==NULL) && (p->lastPressedOver ==NULL)) || Viewer()->LookatMode || tg->Mainloop.SHIFT) {
+			p->NavigationMode = touch->buttonState[LMB] || touch->buttonState[RMB];
+			handle(mev, button, (float) ((float)x/tg->display.screenWidth), (float) ((float)y/tg->display.screenHeight));
+		}
+	}
 
-		//if( handleStatusbarHud(mev, &tg->Mainloop.clipPlane) )return; /* statusbarHud options screen should swallow mouse clicks */
+	if (mev == MotionNotify) {
+		if (p->NavigationMode) {
+			/* find out what the first button down is */
+			count = 0;
+			while ((count < 4) && (!touch->buttonState[count])) count++;
+			if (count == 4) return; /* no buttons down???*/
 
-        if ((mev == ButtonPress) || (mev == ButtonRelease)) {
-                /* record which button is down */
-                //p->ButDown[p->currentCursor][button] = (mev == ButtonPress);
-                /* if we are Not over an enabled sensitive node, and we do NOT already have a
-                   button down from a sensitive node... */
-
-                if (((p->CursorOverSensitive ==NULL) && (p->lastPressedOver ==NULL)) || Viewer()->LookatMode || tg->Mainloop.SHIFT) {
-                       // p->NavigationMode = p->ButDown[p->currentCursor][1] || p->ButDown[p->currentCursor][3];
-                        p->NavigationMode = touch->buttonState[LMB] || touch->buttonState[RMB];
-                        handle(mev, button, (float) ((float)x/tg->display.screenWidth), (float) ((float)y/tg->display.screenHeight));
-                }
-        }
-
-        if (mev == MotionNotify) {
-                /* save the current x and y positions for picking. */
-                // above currentX[currentCursor] = x;
-                //currentY[currentCursor] = y;
-
-                if (p->NavigationMode) {
-                        /* find out what the first button down is */
-                        count = 0;
-                        //while ((count < 8) && (!p->ButDown[p->currentCursor][count])) count++;
-                        while ((count < 4) && (!touch->buttonState[count])) count++;
-                        if (count == 4) return; /* no buttons down???*/
-
-                        handle (mev, (unsigned) count, (float) ((float)x/tg->display.screenWidth), (float) ((float)y/tg->display.screenHeight));
-                }
-        }
+			handle (mev, (unsigned) count, (float) ((float)x/tg->display.screenWidth), (float) ((float)y/tg->display.screenHeight));
+		}
+	}
 }
 void (*fwl_handle_aqua_multiPTR)(const int mev, const unsigned int button, int x, int y, int ID) = fwl_handle_aqua_multiNORMAL;
 void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int y, int ID)
@@ -3552,7 +3542,7 @@ void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int 
 //int lastDeltay = 50;
 //int lastxx;
 //int lastyy;
-void emulate_multitouch(const int mev, const unsigned int button, int x, int y)
+void emulate_multitouch_OLD(const int mev, const unsigned int button, int x, int y)
 {
 	/* goal: when MMB draw a slave cursor pinned to last_distance,last_angle from real cursor
 		Note: if using a RMB+LMB = MMB chord with 2 button mice, you need to emulate in your code
@@ -3576,6 +3566,72 @@ void emulate_multitouch(const int mev, const unsigned int button, int x, int y)
 	}else{
 		/* normal, no need to emulate if there's no MMB or LMB+RMB */
 		fwl_handle_aqua_multi(mev,button,x,y,0);
+	}
+}
+void emulate_multitouch(const int mev, const unsigned int button, int x, int y)
+{
+	/* CREATE/DELETE a touch with RMB down 
+	   GRAB/MOVE a touch with LMB down and drag
+	   ID=0 reserved for 'normal' cursor
+	*/
+    int i,count,ifound,ID;
+	struct Touch *touch, *unused;
+	static int buttons[4] = {0,0,0,0};
+	static int idone = 0;
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+	
+	if(!idone){
+		printf("Use RMB (right mouse button) to create and delete touches\n");
+		printf("Use LMB to drag touches (+- 5 pixel selection window)\n");
+		idone = 1;
+	}
+	buttons[button] = mev == ButtonPress;
+	ifound = 0;
+	ID = -1;
+	for(i=0;i<p->ntouch;i++){
+		touch = &p->touchlist[i];
+		if(touch->ID > -1){
+			if(abs(x - touch->x) < 5 && abs(y - touch->y) < 5){
+				ifound = 1;
+				ID = i;
+				break;
+			}
+		}
+	}
+
+	if( mev == ButtonPress && button == RMB )
+	{
+		//if near an existing one, delete
+		if(ifound){
+			fwl_handle_aqua_multiNORMAL(ButtonRelease,LMB,x,y,ID);
+			//delete
+			touch->ID = -1;
+			printf("delete ID=%d\n",ID);
+		}
+		//else create
+		if(!ifound){
+			//create!
+			for(i=0;i<p->ntouch;i++){
+				touch = &p->touchlist[i];
+				if(touch->ID < 0) {
+					fwl_handle_aqua_multiNORMAL(mev, LMB, x, y, i);
+					printf("create ID=%d\n",i);
+					break;
+				}
+			}
+		}
+	}else if( mev == MotionNotify && buttons[LMB])	{
+		//if near an existing one, grab it and move it
+		if(ifound){
+			fwl_handle_aqua_multiNORMAL(MotionNotify,0,x,y,ID);
+			//printf("drag ID=%d \n",ID);
+		}
+		if(0) if(!ifound){
+			/* normal, no need to emulate */
+			fwl_handle_aqua_multiNORMAL(mev,button,x,y,0);
+		}
 	}
 }
 /* old function should still work, with single mouse and ID=0 */
