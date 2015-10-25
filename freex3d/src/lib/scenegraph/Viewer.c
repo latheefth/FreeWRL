@@ -67,6 +67,7 @@ static void init_stereodefaults(X3D_Viewer *Viewer)
 		Viewer->screendist = 0.375; //was .8 
 		Viewer->stereoParameter = 0.01; //was .4 or toe-in. Toe-in can force your eyes wall-eyed esp. in side-by-side, so set near zero.
 		Viewer->dominantEye = 1; /*0=Left 1=Right used for picking*/
+		Viewer->eitherDominantEye = 1; //1=can pick with either eye depending on which stereoside mouse is in, see setup_pickside()
 		Viewer->iprog[0] = 0; /* left red */
 		Viewer->iprog[1] = 1; /* right green */
 		Viewer->haveQuadbuffer = 0;
@@ -2765,6 +2766,17 @@ void toggleOrSetStereo(int type)
 	else
 		setMono();
 }
+void fwl_setPickraySide(int ipreferredSide, int either){
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	p->Viewer.dominantEye = ipreferredSide;
+	p->Viewer.eitherDominantEye = either;
+
+}
+void fwl_getPickraySide(int *ipreferredSide, int *either){
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	*ipreferredSide = p->Viewer.dominantEye ;
+	*either = p->Viewer.eitherDominantEye;
+}
 void updateEyehalf()
 {
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
@@ -2872,20 +2884,20 @@ void fwl_set_ScreenDist (const char *optArg) {
 
 void set_stereo_offset0() /*int iside, double eyehalf, double eyehalfangle)*/
 {
-      double x = 0.0, angle = 0.0;
+	double x = 0.0, angle = 0.0;
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
-      if (p->Viewer.iside == 0) {
-		      /* left */
-              x = p->Viewer.eyehalf;
-              angle = p->Viewer.eyehalfangle; //old semantics: * p->Viewer.stereoParameter; /*stereoparamter: 0-1 1=toe in to cross-over at Screendist 0=look at infinity, eyes parallel*/
-      } else if (p->Viewer.iside == 1) {
-		      /* right */
-              x = -p->Viewer.eyehalf;
-              angle = -p->Viewer.eyehalfangle; //old semantics: * p->Viewer.stereoParameter;
-      }
-      FW_GL_TRANSLATE_D(x, 0.0, 0.0);
-      FW_GL_ROTATE_D(angle, 0.0, 1.0, 0.0);
+	if (p->Viewer.iside == 0) {
+		/* left */
+		x = p->Viewer.eyehalf;
+		angle = p->Viewer.eyehalfangle; //old semantics: * p->Viewer.stereoParameter; /*stereoparamter: 0-1 1=toe in to cross-over at Screendist 0=look at infinity, eyes parallel*/
+	} else if (p->Viewer.iside == 1) {
+		/* right */
+		x = -p->Viewer.eyehalf;
+		angle = -p->Viewer.eyehalfangle; //old semantics: * p->Viewer.stereoParameter;
+	}
+	FW_GL_TRANSLATE_D(x, 0.0, 0.0);
+	FW_GL_ROTATE_D(angle, 0.0, 1.0, 0.0);
 }
 
 /* used to move, in WALK, FLY modes. */

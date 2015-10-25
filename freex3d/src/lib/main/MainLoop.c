@@ -113,13 +113,13 @@ struct SensStruct {
 };
 struct Touch
 {
-	int button; /*none down=0, LMB =1, MMB=2, RMB=3*/
-	bool isDown; /* false = up, true = down */
+	int buttonState[4]; /*none down=0, LMB =1, MMB=2, RMB=3*/
+	//bool isDown; /* false = up, true = down */
 	int mev; /* down/press=4, move/drag=6, up/release=5 */
 	int ID;  /* for multitouch: 0-20, represents one finger drag. Recycle after an up */
 	float angle; /*some multitouch -like smarttech- track the angle of the finger */
 	int x;
-	int y;
+	int y; //y-down
 };
 
 typedef struct pMainloop{
@@ -145,9 +145,9 @@ typedef struct pMainloop{
 	struct X3D_Node* CursorOverSensitive;//=NULL;      /*  is Cursor over a Sensitive node?*/
 	struct X3D_Node* oldCOS;//=NULL;                   /*  which node was cursor over before this node?*/
 	int NavigationMode;//=FALSE;               /*  are we navigating or sensing?*/
-	int ButDown[20][8];// = {{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE}};
+	//int ButDown[20][8];// = {{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE}};
 
-	int currentCursor;// = 0;
+	//int currentCursor;// = 0;
 	int lastMouseEvent;// = 0/*MapNotify*/;         /*  last event a mouse did; care about Button and Motion events only.*/
 	struct X3D_Node* lastPressedOver;// = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
 	struct X3D_Node* lastOver;// = NULL;       /*  the sensitive node that the mouse was last moused over.*/
@@ -188,6 +188,10 @@ typedef struct pMainloop{
 	int keywait;
 	char keywaitstring[25];
 	int fps_sleep_remainder;
+	double screenorientationmatrix[16];
+	double viewtransformmatrix[16];
+	double posorimatrix[16];
+	double stereooffsetmatrix[2][16];
 }* ppMainloop;
 void *Mainloop_constructor(){
 	void *v = MALLOCV(sizeof(struct pMainloop));
@@ -221,6 +225,7 @@ void Mainloop_init(struct tMainloop *t){
 	t->prv = Mainloop_constructor();
 	{
 		ppMainloop p = (ppMainloop)t->prv;
+		int i;
 		//browser
 		/* are we displayed, or iconic? */
 		p->onScreen = TRUE;
@@ -244,7 +249,7 @@ void Mainloop_init(struct tMainloop *t){
 		p->NavigationMode=FALSE;               /*  are we navigating or sensing?*/
 		//p->ButDown[20][8] = {{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE}}; nulls
 
-		p->currentCursor = 0;
+		//p->currentCursor = 0;
 		p->lastMouseEvent = 0/*MapNotify*/;         /*  last event a mouse did; care about Button and Motion events only.*/
 		p->lastPressedOver = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
 		p->lastOver = NULL;       /*  the sensitive node that the mouse was last moused over.*/
@@ -273,10 +278,11 @@ void Mainloop_init(struct tMainloop *t){
 		p->lastDeltay = 50;
 		//p->lastxx;
 		//p->lastyy;
-		p->ntouch =0;
+		p->ntouch =20;
 		p->currentTouch = -1;
 		//p->touchlist[20];
 		p->EMULATE_MULTITOUCH = 0;
+		for(i=0;i<p->ntouch;i++) p->touchlist[i].ID = -1;
 
 		p->logfile = NULL;
 		p->logerr = NULL;
@@ -299,6 +305,17 @@ void Mainloop_clear(struct tMainloop *t){
 		FREE_IF_NZ(p->SensorEvents);
 	}
 }
+#define LMB 1
+#define MMB 2
+#define RMB 3
+struct Touch *currentTouch(){
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+	//printf("currentTouch %d\n",p->currentTouch);
+	return &p->touchlist[p->currentTouch];
+}
+
 //true statics:
 int isBrowserPlugin = FALSE; //I can't think of a scenario where sharing this across instances would be a problem
 void fwl_set_emulate_multitouch(int ion){
@@ -331,6 +348,7 @@ int fwl_get_emulate_multitouch(){
 
 
 static void setup_viewpoint();
+static void set_viewmatrix();
 
 /* Function protos */
 static void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive);
@@ -339,7 +357,9 @@ void render_collisions(int Viewer_type);
 void slerp_viewpoint();
 static void render_pre(void);
 static void render(void);
-static void setup_projection(int pick, int x, int y);
+static int setup_pickside(int x, int y);
+static void setup_projection();
+static void setup_pickray(int x, int y);
 static struct X3D_Node*  getRayHit(void);
 static void get_hyperhit(void);
 static void sendSensorEvents(struct X3D_Node *COS,int ev, int butStatus, int status);
@@ -679,89 +699,103 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 	/* handle_mouse events if clicked on a sensitive node */
 	//printf("nav mode =%d sensitive= %d\n",p->NavigationMode, tg->Mainloop.HaveSensitive);
 	if (!p->NavigationMode && tg->Mainloop.HaveSensitive && !Viewer()->LookatMode && !tg->Mainloop.SHIFT) {
-		p->currentCursor = 0;
-		setup_projection(TRUE,tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
-		setup_viewpoint();
-		render_hier(rootNode(),VF_Sensitive  | VF_Geom);
-		p->CursorOverSensitive = getRayHit();
+		//p->currentCursor = 0;
+		int x,ydown;
+		struct Touch *touch = currentTouch();
+		x = touch->x;
+		ydown = touch->y;
+		if(setup_pickside(x,ydown)){
+			setup_projection();
+			setup_pickray(x,ydown);
+			//setup_viewpoint();
+			set_viewmatrix();
+			render_hier(rootNode(),VF_Sensitive  | VF_Geom);
+			p->CursorOverSensitive = getRayHit();
 
-		/* for nodes that use an "isOver" eventOut... */
-		if (p->lastOver != p->CursorOverSensitive) {
-			#ifdef VERBOSE
-				printf ("%lf over changed, p->lastOver %u p->cursorOverSensitive %u, p->butDown1 %d\n",
-					TickTime(), (unsigned int) p->lastOver, (unsigned int) p->CursorOverSensitive,
-					p->ButDown[p->currentCursor][1]);
-			#endif
-			if (p->ButDown[p->currentCursor][1]==0) {
+			/* for nodes that use an "isOver" eventOut... */
+			if (p->lastOver != p->CursorOverSensitive) {
+				#ifdef VERBOSE
+					printf ("%lf over changed, p->lastOver %u p->cursorOverSensitive %u, p->butDown1 %d\n",
+						TickTime(), (unsigned int) p->lastOver, (unsigned int) p->CursorOverSensitive,
+						p->ButDown[p->currentCursor][1]);
+				#endif
+				//if (p->ButDown[p->currentCursor][1]==0) {
+				if (touch->buttonState[LMB]==0) {
 
-				/* ok, when the user releases a button, cursorOverSensitive WILL BE NULL
-					until it gets sensed again. So, we use the lastOverButtonPressed flag to delay
-					sending this flag by one event loop loop. */
-				if (!p->lastOverButtonPressed) {
-					sendSensorEvents(p->lastOver, overMark, 0, FALSE);
-					sendSensorEvents(p->CursorOverSensitive, overMark, 0, TRUE);
-					p->lastOver = p->CursorOverSensitive;
+					/* ok, when the user releases a button, cursorOverSensitive WILL BE NULL
+						until it gets sensed again. So, we use the lastOverButtonPressed flag to delay
+						sending this flag by one event loop loop. */
+					if (!p->lastOverButtonPressed) {
+						sendSensorEvents(p->lastOver, overMark, 0, FALSE);
+						sendSensorEvents(p->CursorOverSensitive, overMark, 0, TRUE);
+						p->lastOver = p->CursorOverSensitive;
+					}
+					p->lastOverButtonPressed = FALSE;
+				} else {
+					p->lastOverButtonPressed = TRUE;
 				}
-				p->lastOverButtonPressed = FALSE;
-			} else {
-				p->lastOverButtonPressed = TRUE;
 			}
-		}
-		#ifdef VERBOSE
-		if (p->CursorOverSensitive != NULL)
-			printf("COS %d (%s)\n", (unsigned int) p->CursorOverSensitive, stringNodeType(p->CursorOverSensitive->_nodeType));
-		#endif /* VERBOSE */
+			#ifdef VERBOSE
+			if (p->CursorOverSensitive != NULL)
+				printf("COS %d (%s)\n", (unsigned int) p->CursorOverSensitive, stringNodeType(p->CursorOverSensitive->_nodeType));
+			#endif /* VERBOSE */
 
-		/* did we have a click of button 1? */
-		if (p->ButDown[p->currentCursor][1] && (p->lastPressedOver==NULL)) {
-			/* printf ("Not Navigation and 1 down\n"); */
-			/* send an event of ButtonPress and isOver=true */
-			p->lastPressedOver = p->CursorOverSensitive;
-			sendSensorEvents(p->lastPressedOver, ButtonPress, p->ButDown[p->currentCursor][1], TRUE);
-		}
-		if ((p->ButDown[p->currentCursor][1]==0) && p->lastPressedOver!=NULL) {
-			/* printf ("Not Navigation and 1 up\n");  */
-			/* send an event of ButtonRelease and isOver=true;
-				an isOver=false event will be sent below if required */
-			sendSensorEvents(p->lastPressedOver, ButtonRelease, p->ButDown[p->currentCursor][1], TRUE);
-			p->lastPressedOver = NULL;
-		}
-		if (p->lastMouseEvent == MotionNotify) {
-			/* printf ("Not Navigation and motion - going into sendSensorEvents\n"); */
-			/* TouchSensor hitPoint_changed needs to know if we are over a sensitive node or not */
-			sendSensorEvents(p->CursorOverSensitive,MotionNotify, p->ButDown[p->currentCursor][1], TRUE);
-
-			/* PlaneSensors, etc, take the last sensitive node pressed over, and a mouse movement */
-			sendSensorEvents(p->lastPressedOver,MotionNotify, p->ButDown[p->currentCursor][1], TRUE);
-			p->lastMouseEvent = 0 ;
-		}
-
-		/* do we need to re-define cursor style? */
-		/* do we need to send an isOver event? */
-		if (p->CursorOverSensitive!= NULL) {
-			setSensorCursor();
-
-			/* is this a new node that we are now over?
-				don't change the node pointer if we are clicked down */
-			if ((p->lastPressedOver==NULL) && (p->CursorOverSensitive != p->oldCOS)) {
-				sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
-				sendSensorEvents(p->CursorOverSensitive,MapNotify,p->ButDown[p->currentCursor][1], TRUE);
-				 p->oldCOS=p->CursorOverSensitive;
-				sendDescriptionToStatusBar(p->CursorOverSensitive);
+			/* did we have a click of button 1? */
+			//if (p->ButDown[p->currentCursor][1] && (p->lastPressedOver==NULL)) {
+			if (touch->buttonState[LMB] && (p->lastPressedOver==NULL)) {
+				/* printf ("Not Navigation and 1 down\n"); */
+				/* send an event of ButtonPress and isOver=true */
+				p->lastPressedOver = p->CursorOverSensitive;
+				sendSensorEvents(p->lastPressedOver, ButtonPress, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
 			}
-		} else {
-			/* hold off on cursor change if dragging a sensor */
-			if (p->lastPressedOver!=NULL) {
+			//if ((p->ButDown[p->currentCursor][1]==0) && p->lastPressedOver!=NULL) {
+			if ((touch->buttonState[LMB]==0) && p->lastPressedOver!=NULL) {
+				/* printf ("Not Navigation and 1 up\n");  */
+				/* send an event of ButtonRelease and isOver=true;
+					an isOver=false event will be sent below if required */
+				sendSensorEvents(p->lastPressedOver, ButtonRelease, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
+				p->lastPressedOver = NULL;
+			}
+			if (p->lastMouseEvent == MotionNotify) {
+				/* printf ("Not Navigation and motion - going into sendSensorEvents\n"); */
+				/* TouchSensor hitPoint_changed needs to know if we are over a sensitive node or not */
+				sendSensorEvents(p->CursorOverSensitive,MotionNotify, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
+
+				/* PlaneSensors, etc, take the last sensitive node pressed over, and a mouse movement */
+				sendSensorEvents(p->lastPressedOver,MotionNotify, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
+				p->lastMouseEvent = 0 ;
+			}
+
+			/* do we need to re-define cursor style? */
+			/* do we need to send an isOver event? */
+			if (p->CursorOverSensitive!= NULL) {
 				setSensorCursor();
+
+				/* is this a new node that we are now over?
+					don't change the node pointer if we are clicked down */
+				if ((p->lastPressedOver==NULL) && (p->CursorOverSensitive != p->oldCOS)) {
+					//sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
+					sendSensorEvents(p->oldCOS,MapNotify,touch->buttonState[LMB], FALSE);
+					//sendSensorEvents(p->CursorOverSensitive,MapNotify,p->ButDown[p->currentCursor][1], TRUE);
+					sendSensorEvents(p->CursorOverSensitive,MapNotify,touch->buttonState[LMB], TRUE);
+					 p->oldCOS=p->CursorOverSensitive;
+					sendDescriptionToStatusBar(p->CursorOverSensitive);
+				}
 			} else {
-				setArrowCursor();
-			}
-			/* were we over a sensitive node? */
-			if ((p->oldCOS!=NULL)  && (p->ButDown[p->currentCursor][1]==0)) {
-				sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
-				/* remove any display on-screen */
-				sendDescriptionToStatusBar(NULL);
-				p->oldCOS=NULL;
+				/* hold off on cursor change if dragging a sensor */
+				if (p->lastPressedOver!=NULL) {
+					setSensorCursor();
+				} else {
+					setArrowCursor();
+				}
+				/* were we over a sensitive node? */
+				//if ((p->oldCOS!=NULL)  && (p->ButDown[p->currentCursor][1]==0)) {
+				if ((p->oldCOS!=NULL)  && (touch->buttonState[LMB]==0)) {
+					sendSensorEvents(p->oldCOS,MapNotify, touch->buttonState[LMB], FALSE); //p->ButDown[p->currentCursor][1], FALSE);
+					/* remove any display on-screen */
+					sendDescriptionToStatusBar(NULL);
+					p->oldCOS=NULL;
+				}
 			}
 		}
 	} /* (!NavigationMode && HaveSensitive) */
@@ -770,11 +804,19 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 		if(Viewer()->LookatMode < 3)
 			setLookatCursor();
 		if(Viewer()->LookatMode == 2){
-			p->currentCursor = 0;
-			setup_projection(TRUE,tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
-			setup_viewpoint();
-			render_hier(rootNode(),VF_Sensitive  | VF_Geom);
-			getRayHitAndSetLookatTarget();
+			//p->currentCursor = 0;
+			int x, ydown;
+			struct Touch * touch = currentTouch();
+			x = touch->x;
+			ydown = touch->y;
+			if(setup_pickside(x,ydown)){ //tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor])){
+				setup_projection();
+				setup_pickray(x,ydown); //tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
+				setup_viewpoint();
+				set_viewmatrix();
+				render_hier(rootNode(),VF_Sensitive  | VF_Geom);
+				getRayHitAndSetLookatTarget();
+			}
 		}
 		if(Viewer()->LookatMode == 0) ///> 2)
 			setArrowCursor();
@@ -1235,7 +1277,7 @@ static void render_pre() {
 	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 
         /* 1. Set up projection */
-        setup_projection(FALSE,0,0);
+        setup_projection(); //FALSE,0,0);
 
 
         /* 2. Headlight, initialized here where we have the modelview matrix to Identity.
@@ -1248,8 +1290,10 @@ static void render_pre() {
 	}
 
 
-        /* 3. Viewpoint */
-        setup_viewpoint();      /*  need this to render collisions correctly*/
+        ///* 3. Viewpoint */
+        //setup_viewpoint();      
+		/*  need this to render collisions correctly 
+				x Oct 2015 change: rely on last frame's results for this frames collision*/
 
 #ifdef SSR_SERVER
 		//just for a diagnostic test of transforms - replaces modelview matrix with one formed from cumQuat,cumTrans
@@ -1273,9 +1317,13 @@ static void render_pre() {
 			profile_start("collision");
                 render_collisions(Viewer()->type);
 				profile_end("collision");
-                setup_viewpoint(); /*  update viewer position after collision, to*/
-                                   /*  give accurate info to Proximity sensors.*/
+                // setup_viewpoint(); //see 5 lines below
         }
+
+		/* 3. Viewpoint */
+		/*  unconditionally update viewer position after collision, to*/
+		/*  give accurate info to Proximity sensors.*/
+		setup_viewpoint(); //Oct 2015: now this is the only setup_viewpoint per frame (set_viewmatrix() does shortcut)
 
         /* 5. render hierarchy - proximity */
         if (p->doEvents)
@@ -1303,8 +1351,63 @@ static void render_pre() {
 }
 typedef struct ivec4 {int X; int Y; int W; int H;} ivec4;
 typedef struct ivec2 {int X; int Y;} ivec2;
+ivec2 ivec2_init(int x, int y);
+int pointinsideviewport(ivec4 vp, ivec2 pt);
+static int setup_pickside(int x, int y){
+	/* Oct 2015 idea: change which stereo side the pickray is working on, 
+	   based on which stereo side the mouse is in
+	   - only makes a difference for updown and sidebyside
+	   - analgyph and quadbuffer use the whole screen, so can use either
+	   -- there's now an explicit userPrefferedPickSide (versus always using right)
+	*/
+	int sideleft, sideright, iside, userPreferredPickSide, ieither, inside;
+	ivec4 vportleft, vportright, vport, vportscene;
+	ivec2 pt;
+	Stack *vportstack;
+	X3D_Viewer *viewer;
 
-void setup_projection(int pick, int x, int y)
+	ttglobal tg = gglobal();
+	viewer = Viewer();
+	userPreferredPickSide = viewer->dominantEye; //0= left, 1= right
+	ieither = viewer->eitherDominantEye;
+
+	pt = ivec2_init(x,tg->display.screenHeight - y);
+	vportstack = (Stack*)tg->display._vportstack;
+	vport = stack_top(ivec4,vportstack); //should be same as stack bottom, only one on stack here
+	vportscene = vport;
+	vportscene.Y = vport.Y + tg->Mainloop.clipPlane;
+	vportscene.H = vport.H - tg->Mainloop.clipPlane;
+
+	vportleft = vportscene;
+	vportright = vportscene;
+	if(viewer->isStereo)
+	{
+		if (viewer->sidebyside){
+			vportleft.W /= 2;
+			vportright.W /=2;
+			vportright.X = vportleft.X + vportleft.W;
+		}
+		if(viewer->updown) { //overunder
+			vportright.H /= 2;
+			vportleft.H /=2;
+			//vportright.Y = vportleft.Y + vportright.H;
+			vportleft.Y = vportright.Y + vportright.H;
+		}
+		//analgyph and quadbuffer use full window
+	}
+	sideleft = sideright=0;
+	sideleft = pointinsideviewport(vportleft,pt);
+	sideright = pointinsideviewport(vportright,pt);;
+	if(sideleft && sideright) 
+		iside = userPreferredPickSide; //analgyph, quadbuffer
+	else 
+		iside = sideleft? 0 : sideright ? 1 : 0;
+	if(!ieither) iside = userPreferredPickSide;
+	Viewer()->iside = iside;
+	return sideleft || sideright; //if the mouse is outside graphics window, stop tracking it
+}
+
+void setup_projection()
 {
 	GLDOUBLE fieldofview2;
 	GLint xvp;
@@ -1325,7 +1428,7 @@ void setup_projection(int pick, int x, int y)
 
 	screenwidth2 = vport.W; //tg->display.screenWidth
 	xvp = vport.X;
-	top = vport.Y + vport.H; //or .H - .Y?
+	top = vport.Y + vport.H; //or .H - .Y?  CHANGE OF MEANING used to be 0 at top of screen, now its more like screenHeight
 	bottom = vport.Y + tg->Mainloop.clipPlane;
 	screenheight = top - bottom; //tg->display.screenHeight - bottom;
 	PRINT_GL_ERROR_IF_ANY("XEvents::start of setup_projection");
@@ -1400,7 +1503,7 @@ void setup_projection(int pick, int x, int y)
 			if (viewer->iside == 0){
 				bottom += screenheight;
 			}else{
-				top += screenheight;
+				top -= screenheight; //+=
 			}
 			screenheight -= tg->Mainloop.clipPlane;
 			scissorxl = xl;
@@ -1436,19 +1539,6 @@ void setup_projection(int pick, int x, int y)
         FW_GL_VIEWPORT(xvp, bottom, screenwidth2, screenheight);
     }
 	FW_GL_LOAD_IDENTITY();
-	if(pick) {
-		/* picking for mouse events */
-		//tg->RenderFuncs.usingAffinePickmatrix = 1 - tg->RenderFuncs.usingAffinePickmatrix; //toggle each pass for comparative testing
-		if(!tg->RenderFuncs.usingAffinePickmatrix){
-			//OLD WAY: modifies proj matrix to a narrow window around the mouse point (see below for NEW WAY)
-			FW_GL_GETINTEGERV(GL_VIEWPORT,p->viewPort2);
-			//x = (p->viewPort2[2]-p->viewPort2[0])*.5 + 100.0;
-			//y - (p->viewPort2[3]-p->viewPort2[1])*.5;
-
-			//FW_GLU_PICK_MATRIX((float)x,(float)p->viewPort2[3]-y + bottom, (float)100,(float)100,p->viewPort2);
-			FW_GLU_PICK_MATRIX((float)x,(float)p->viewPort2[3]  -y + bottom +top, (float)100,(float)100,p->viewPort2);
-		}
-	}
 
 	/* ortho projection or perspective projection? */
 	if (Viewer()->ortho) {
@@ -1477,99 +1567,109 @@ void setup_projection(int pick, int x, int y)
         //printf ("Before FW_GLU_PERSPECTIVE, np %f fp %f\n",viewer->nearPlane, viewer->farPlane);
 		FW_GLU_PERSPECTIVE(fieldofview2, aspect2, viewer->nearPlane,viewer->farPlane);
 	}
-	if(pick){
-		if(tg->RenderFuncs.usingAffinePickmatrix){
-			//feature-AFFINE_GLU_UNPROJECT
-			//NEW WAY: leaves proj matrix as normal, and creates a separate affine PICKMATRIX that when multiplied with modelview,
-			// will point down the pickray (see above for OLD WAY)
-			// method: uproject 2 points along the ray, one on nearside of frustum (window z = 0) 
-			//	one on farside of frustum (window z = 1)
-			// then the first one is A, second one is B
-			// create a translation matrix to get from 0,0,0 to A T
-			// create a rotation matrix R to get from A toward B
-			// pickmatrix = R * T
-			double mvident[16], pickMatrix[16], pmi[16], proj[16], R1[16], R2[16], R3[16], T[16];
-			int viewport[4];
-			double A[3], B[3], C[3], a[3], b[3];
-			double yaw, pitch, yy;
-			loadIdentityMatrix(mvident);
-			FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
-			FW_GL_GETINTEGERV(GL_VIEWPORT,viewport);
-			yy = (float)viewport[3]  -y + bottom +top;
-			//nearside point
-			a[0] = x; a[1] = yy;  a[2] = 0.0;
-			FW_GLU_UNPROJECT(a[0], a[1], a[2], mvident, proj, viewport,
-				 &A[0],&A[1],&A[2]);
-			mattranslate(T,A[0],A[1],A[2]);
-			//farside point
-			b[0] = x; b[1] = yy;  b[2] = 1.0;
-			FW_GLU_UNPROJECT(b[0], b[1], b[2], mvident, proj, viewport,
-				 &B[0],&B[1],&B[2]);
-			vecdifd(C,B,A);
-			vecnormald(C,C);
-			if(0) printf("Cdif %f %f %f\n",C[0],C[1],C[2]);
-			//if(1){
-			//	double hypotenuse = sqrt(C[0]*C[0] + C[2]*C[2]);
-			//	yaw = asin(C[0]/hypotenuse); 
-			//	hypotenuse = sqrt(C[1]*C[1] + C[2]*C[2]);
-			//	pitch = asin(C[1]/hypotenuse); 
-			//	if(1) printf("asin yaw=%f pitch=%f\n",yaw,pitch);
-			//}
-			yaw = atan2(C[0],-C[2]);
-			matrixFromAxisAngle4d(R1, -yaw, 0.0, 1.0, 0.0);
-			if(1){
-				transformAFFINEd(C,C,R1);
-				if(0) printf("Yawed Cdif %f %f %f\n",C[0],C[1],C[2]);
-				pitch = atan2(C[1],-C[2]);
-			}else{
-				double hypotenuse = sqrt(C[0]*C[0] + C[2]*C[2]);
-				pitch = atan2(C[1],hypotenuse);
-			}
-			if(0) printf("atan2 yaw=%f pitch=%f\n",yaw,pitch);
-
-			pitch = -pitch;
-			if(0) printf("[yaw=%f pitch=%f\n",yaw,pitch);
-			if(0){
-				matrotate(R1, -pitch, 1.0, 0.0, 0.0);
-				matrotate(R2, -yaw, 0.0, 1.0, 0.0);
-			}else{
-				matrixFromAxisAngle4d(R1, pitch, 1.0, 0.0, 0.0);
-				if(0) printmatrix2(R1,"pure R1");
-				matrixFromAxisAngle4d(R2, yaw, 0.0, 1.0, 0.0);
-				if(0) printmatrix2(R2,"pure R2");
-			}
-			matmultiplyAFFINE(R3,R1,R2);
-			if(0) printmatrix2(R3,"R3=R1*R2");
-			if(1){
-				matmultiplyAFFINE(pickMatrix,R3, T); 
-				matinverseAFFINE(pmi,pickMatrix);
-				//matinverseFULL(pmi,pickMatrix); //don't need extra FLOPS 
-			}else{
-				//direct hacking of matrix, can save a few FLOPs
-				R3[12] = A[0]; 
-				R3[13] = A[1]; 
-				R3[14] = A[2];
-				matcopy(pickMatrix,R3);
-				matinverseAFFINE(pmi,pickMatrix); //,R3);
-				if(0)printmatrix2(R3,"R3[12]=A");
-			}
-			if(0) printmatrix2(pmi,"inverted");
-			setPickrayMatrix(0,pickMatrix); //using pickmatrix in upd_ray and get_hyper
-			setPickrayMatrix(1,pmi); //if using pickmatrix_inverse in upd_ray and get_hyper
-			if(0){
-				//Test: transform A,B and they should come out 0,0,x
-				double rA[3], rB[3];
-				transformAFFINEd(rA,A,pmi);
-				transformAFFINEd(rB,B,pmi);
-				printf(" A %f %f %f  B %f %f %f \n",A[0],A[1],A[2],B[0],B[1],B[2]);
-				printf("rA %f %f %f rB %f %f %f \n",rA[0],rA[1],rA[2],rB[0],rB[1],rB[2]);
-			}
-		}
-	}
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 	PRINT_GL_ERROR_IF_ANY("XEvents::setup_projection");
 
 }
+
+void setup_pickray(int x, int y)
+{
+	ttglobal tg = gglobal();
+	if(tg->RenderFuncs.usingAffinePickmatrix){
+		//feature-AFFINE_GLU_UNPROJECT
+		//NEW WAY: leaves proj matrix as normal, and creates a separate affine PICKMATRIX that when multiplied with modelview,
+		// will point down the pickray (see above for OLD WAY)
+		// method: uproject 2 points along the ray, one on nearside of frustum (window z = 0) 
+		//	one on farside of frustum (window z = 1)
+		// then the first one is A, second one is B
+		// create a translation matrix to get from 0,0,0 to A T
+		// create a rotation matrix R to get from A toward B
+		// pickmatrix = R * T
+		double mvident[16], pickMatrix[16], pmi[16], proj[16], R1[16], R2[16], R3[16], T[16];
+		int viewport[4];
+		double A[3], B[3], C[3], a[3], b[3];
+		double yaw, pitch, yy,xx;
+		loadIdentityMatrix(mvident);
+		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
+		FW_GL_GETINTEGERV(GL_VIEWPORT,viewport);
+		//yy = (float)viewport[3]  -y + bottom +top;
+		//glu_unproject will subtract the viewport from the x,y, if they're all in y-up screen coords
+		yy = (float)(tg->display.screenHeight - y); //y-up - bottom
+		xx = (float)x;
+		//printf("vp = %d %d %d %d\n",viewport[0],viewport[1],viewport[2],viewport[3]);
+		//printf("yy %lf vp3 %d y %d vp1 %d sh %d\n",
+		//	yy, viewport[3], y, viewport[1], tg->display.screenHeight);
+		//nearside point
+		a[0] = xx; a[1] = yy;  a[2] = 0.0;
+		FW_GLU_UNPROJECT(a[0], a[1], a[2], mvident, proj, viewport,
+				&A[0],&A[1],&A[2]);
+		mattranslate(T,A[0],A[1],A[2]);
+		//farside point
+		b[0] = xx; b[1] = yy;  b[2] = 1.0;
+		FW_GLU_UNPROJECT(b[0], b[1], b[2], mvident, proj, viewport,
+				&B[0],&B[1],&B[2]);
+		vecdifd(C,B,A);
+		vecnormald(C,C);
+		if(0) printf("Cdif %f %f %f\n",C[0],C[1],C[2]);
+		//if(1){
+		//	double hypotenuse = sqrt(C[0]*C[0] + C[2]*C[2]);
+		//	yaw = asin(C[0]/hypotenuse); 
+		//	hypotenuse = sqrt(C[1]*C[1] + C[2]*C[2]);
+		//	pitch = asin(C[1]/hypotenuse); 
+		//	if(1) printf("asin yaw=%f pitch=%f\n",yaw,pitch);
+		//}
+		yaw = atan2(C[0],-C[2]);
+		matrixFromAxisAngle4d(R1, -yaw, 0.0, 1.0, 0.0);
+		if(1){
+			transformAFFINEd(C,C,R1);
+			if(0) printf("Yawed Cdif %f %f %f\n",C[0],C[1],C[2]);
+			pitch = atan2(C[1],-C[2]);
+		}else{
+			double hypotenuse = sqrt(C[0]*C[0] + C[2]*C[2]);
+			pitch = atan2(C[1],hypotenuse);
+		}
+		if(0) printf("atan2 yaw=%f pitch=%f\n",yaw,pitch);
+
+		pitch = -pitch;
+		if(0) printf("[yaw=%f pitch=%f\n",yaw,pitch);
+		if(0){
+			matrotate(R1, -pitch, 1.0, 0.0, 0.0);
+			matrotate(R2, -yaw, 0.0, 1.0, 0.0);
+		}else{
+			matrixFromAxisAngle4d(R1, pitch, 1.0, 0.0, 0.0);
+			if(0) printmatrix2(R1,"pure R1");
+			matrixFromAxisAngle4d(R2, yaw, 0.0, 1.0, 0.0);
+			if(0) printmatrix2(R2,"pure R2");
+		}
+		matmultiplyAFFINE(R3,R1,R2);
+		if(0) printmatrix2(R3,"R3=R1*R2");
+		if(1){
+			matmultiplyAFFINE(pickMatrix,R3, T); 
+			matinverseAFFINE(pmi,pickMatrix);
+			//matinverseFULL(pmi,pickMatrix); //don't need extra FLOPS 
+		}else{
+			//direct hacking of matrix, can save a few FLOPs
+			R3[12] = A[0]; 
+			R3[13] = A[1]; 
+			R3[14] = A[2];
+			matcopy(pickMatrix,R3);
+			matinverseAFFINE(pmi,pickMatrix); //,R3);
+			if(0)printmatrix2(R3,"R3[12]=A");
+		}
+		if(0) printmatrix2(pmi,"inverted");
+		setPickrayMatrix(0,pickMatrix); //using pickmatrix in upd_ray and get_hyper
+		setPickrayMatrix(1,pmi); //if using pickmatrix_inverse in upd_ray and get_hyper
+		if(0){
+			//Test: transform A,B and they should come out 0,0,x
+			double rA[3], rB[3];
+			transformAFFINEd(rA,A,pmi);
+			transformAFFINEd(rB,B,pmi);
+			printf(" A %f %f %f  B %f %f %f \n",A[0],A[1],A[2],B[0],B[1],B[2]);
+			printf("rA %f %f %f rB %f %f %f \n",rA[0],rA[1],rA[2],rB[0],rB[1],rB[2]);
+		}
+	}
+}
+
 
 /* Render the scene */
 static void render()
@@ -1623,11 +1723,12 @@ OLDCODE#endif
 				else
 					Viewer_anaglyph_setSide(count); //clear just the channels we're going to draw to
 			}
-			setup_projection(0, 0, 0); //scissor test in here
+			setup_projection(); //scissor test in here
 			BackEndClearBuffer(2);
 			if(Viewer()->anaglyph)
 				Viewer_anaglyph_setSide(count); //set the channels for scenegraph drawing
-			setup_viewpoint();
+			//setup_viewpoint();
+			set_viewmatrix();
 		}
 		else
 			BackEndClearBuffer(2);
@@ -1679,17 +1780,14 @@ OLDCODE#endif
 		glDisable(GL_SCISSOR_TEST);
 	} /* for loop */
 
-	if (Viewer()->isStereo) {
-		Viewer()->iside = Viewer()->dominantEye; /*is used later in picking to set the cursor pick box on the (left=0 or right=1) viewport*/
-	}
 
 //#endif
 
 	if(p->EMULATE_MULTITOUCH) {
         int i;
 
-		for(i=0;i<20;i++)
-			if(p->touchlist[i].isDown > 0)
+		for(i=0;i<p->ntouch;i++)
+			if(p->touchlist[i].ID > -1)
 				cursorDraw(p->touchlist[i].ID,p->touchlist[i].x,p->touchlist[i].y,p->touchlist[i].angle);
     }
 }
@@ -1700,84 +1798,127 @@ static double currentViewerAngle = 0.0;
 static double requestedViewerAngle = 0.0;
 
 static void setup_viewpoint() {
+/*
+	 Computes view part of modelview matrix and leaves it in modelview.
+	 You would call this before traversing the scenegraph to scene nodes
+	  with render() or render_hier().
+	 The view part includes:
+	 a) screen orientation ie on mobile devices landscape vs portrait (this function)
+	 b) stereovision +- 1/2 base offset (viewer_togl)
+	 c) viewpoint slerping interpolation (viewer_togl)
+	 d) .Pos and .Quat of viewpoint from: (viewer_togl)
+	        1) .position and .orientation specified in scenefile
+	        2) cumulative navigation away from initial bound pose
+	        3) gravity and collision (bumping and wall penetration) adjustments
+	 e) transform stack between scene root and currently bound viewpoint (render_hier(rootnode,VF_Viewpoint))
 
+*/
+	int isStereo, iside;
+	double viewmatrix[16];
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
 
-        FW_GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
-        FW_GL_LOAD_IDENTITY();
+	FW_GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
+	FW_GL_LOAD_IDENTITY();
 
-    // has a change happened?
-    if (Viewer()->screenOrientation != currentViewerLandPort) {
-        // 4 possible values; 0, 90, 180, 270
-        //
-        rotatingCCW = FALSE; // assume, unless told otherwise
-        switch (currentViewerLandPort) {
-            case 0: {
-                rotatingCCW= (Viewer()->screenOrientation == 270);
-                break;
-            }
-            case 90: {
-                rotatingCCW = (Viewer()->screenOrientation == 0);
-                break;
-            }
-
-            case 180: {
-                rotatingCCW = (Viewer()->screenOrientation != 270);
-                break;
-            }
-
-            case 270: {
-                rotatingCCW = (Viewer()->screenOrientation != 0);
-                break;
-
-            }
-
-
-        }
-
-        currentViewerLandPort = Viewer()->screenOrientation;
-        requestedViewerAngle = (double)Viewer()->screenOrientation;
-
-    }
-
-    if (!(APPROX(currentViewerAngle,requestedViewerAngle))) {
-
-        if (rotatingCCW) {
-            //printf ("ccw, cva %lf req %lf\n",currentViewerAngle, requestedViewerAngle);
-            currentViewerAngle -= 10.0;
-            if (currentViewerAngle < -5.0) currentViewerAngle = 360.0;
-        } else {
-            //printf ("cw, cva %lf req %lf\n",currentViewerAngle, requestedViewerAngle);
-            currentViewerAngle +=10.0;
-            if (currentViewerAngle > 365.0) currentViewerAngle = 0.0;
-        }
-
-    }
-        FW_GL_ROTATE_D (currentViewerAngle,0.0,0.0,1.0);
-
-
-
-
-        viewer_togl(Viewer()->fieldofview);
-		profile_start("vp_hier");
-        render_hier(rootNode(), VF_Viewpoint);
-		profile_end("vp_hier");
-        PRINT_GL_ERROR_IF_ANY("XEvents::setup_viewpoint");
-
-	/*
-	{ GLDOUBLE projMatrix[16];
-	fw_glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
-	printf ("\n");
-	printf ("setup_viewpoint, proj  %lf %lf %lf\n",projMatrix[12],projMatrix[13],projMatrix[14]);
-	fw_glGetDoublev(GL_MODELVIEW_MATRIX, projMatrix);
-	printf ("setup_viewpoint, model %lf %lf %lf\n",projMatrix[12],projMatrix[13],projMatrix[14]);
-	printf ("setup_viewpoint, currentPos %lf %lf %lf\n",        Viewer.currentPosInModel.x,
-	        Viewer.currentPosInModel.y ,
-	        Viewer.currentPosInModel.z);
+	// has a change happened?
+	if (Viewer()->screenOrientation != currentViewerLandPort) {
+		// 4 possible values; 0, 90, 180, 270
+		//
+		rotatingCCW = FALSE; // assume, unless told otherwise
+		switch (currentViewerLandPort) {
+			case 0: {
+				rotatingCCW= (Viewer()->screenOrientation == 270);
+				break;
+			}
+			case 90: {
+				rotatingCCW = (Viewer()->screenOrientation == 0);
+				break;
+			}
+			case 180: {
+				rotatingCCW = (Viewer()->screenOrientation != 270);
+				break;
+			}
+			case 270: {
+				rotatingCCW = (Viewer()->screenOrientation != 0);
+				break;
+			}
+		}
+		currentViewerLandPort = Viewer()->screenOrientation;
+		requestedViewerAngle = (double)Viewer()->screenOrientation;
 	}
-	*/
+
+	if (!(APPROX(currentViewerAngle,requestedViewerAngle))) {
+		if (rotatingCCW) {
+			//printf ("ccw, cva %lf req %lf\n",currentViewerAngle, requestedViewerAngle);
+			currentViewerAngle -= 10.0;
+			if (currentViewerAngle < -5.0) currentViewerAngle = 360.0;
+		} else {
+			//printf ("cw, cva %lf req %lf\n",currentViewerAngle, requestedViewerAngle);
+			currentViewerAngle +=10.0;
+			if (currentViewerAngle > 365.0) currentViewerAngle = 0.0;
+		}
+	}
+	FW_GL_ROTATE_D (currentViewerAngle,0.0,0.0,1.0);
+
+		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->screenorientationmatrix);
+		isStereo = Viewer()->isStereo;
+		iside = Viewer()->iside;
+		Viewer()->isStereo = 1;
+		Viewer()->iside = 0;
+		FW_GL_LOAD_IDENTITY();
+		set_stereo_offset0();
+		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->stereooffsetmatrix[0]);
+		Viewer()->iside = 1;
+		FW_GL_LOAD_IDENTITY();
+		set_stereo_offset0();
+		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->stereooffsetmatrix[1]);
+		Viewer()->isStereo = 0;
+		FW_GL_LOAD_IDENTITY();
+
+	viewer_togl(Viewer()->fieldofview);
+
+		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->posorimatrix);
+		FW_GL_LOAD_IDENTITY();
+
+	profile_start("vp_hier");
+	render_hier(rootNode(), VF_Viewpoint);
+	profile_end("vp_hier");
+	PRINT_GL_ERROR_IF_ANY("XEvents::setup_viewpoint");
+
+		Viewer()->isStereo = isStereo;
+		Viewer()->iside = iside;
+		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->viewtransformmatrix);
+		matcopy(viewmatrix,p->screenorientationmatrix);
+		if(isStereo)
+			matmultiplyAFFINE(viewmatrix,p->stereooffsetmatrix[iside],viewmatrix);
+		matmultiplyAFFINE(viewmatrix,p->posorimatrix,viewmatrix); 
+		matmultiplyAFFINE(viewmatrix,p->viewtransformmatrix,viewmatrix); 
+		fw_glSetDoublev(GL_MODELVIEW_MATRIX, viewmatrix);
 
 
 }
+
+static void set_viewmatrix() {
+	//if we already computed view matrix earlier in the frame via setup_viewpoint,
+	//and theoretically it hasn't changed since, 
+	//and just want to make sure its set, this is shorter than re-doing setup_viewpoint()
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+
+	FW_GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
+
+	double viewmatrix[16];
+	matcopy(viewmatrix,p->screenorientationmatrix);
+	if(Viewer()->isStereo)
+		matmultiplyAFFINE(viewmatrix,p->stereooffsetmatrix[Viewer()->iside],viewmatrix);
+	matmultiplyAFFINE(viewmatrix,p->posorimatrix,viewmatrix); 
+	matmultiplyAFFINE(viewmatrix,p->viewtransformmatrix,viewmatrix); 
+	fw_glSetDoublev(GL_MODELVIEW_MATRIX, viewmatrix);
+}
+
 char *nameLogFileFolderNORMAL(char *logfilename, int size){
 	strcat(logfilename,"freewrl_tmp");
 	fw_mkdir(logfilename);
@@ -2183,11 +2324,11 @@ struct X3D_Node* getRayHit() {
 				struct point_XYZ tp; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 
 				if(0){
-					//pickMatrix is inverted in setup_projection
+					//pickMatrix is inverted in setup_pickray
 					matmultiplyAFFINE(mvp,rh->modelMatrix,pickMatrixi);
 					matinverseAFFINE(mvpi,mvp);
 				}else{
-					//pickMatrix is not inverted in setup_projection
+					//pickMatrix is not inverted in setup_pickray
 					double mvi[16];
 					matinverseAFFINE(mvi,rh->modelMatrix);
 					matmultiplyAFFINE(mvpi,pickMatrix,mvi);
@@ -2328,7 +2469,7 @@ Terminology ([] denotes alternative design not yet implemented April 2014):
 modelview matrix - transforms coords from the current node-local into the current viewpoint-local
 proj matrix - projects points from viewpoint-local 3D to 2D normalized screen viewport (with Z in 0 to 1 range)
 pick-proj matrix - special projection matrix that aligns the mousexy (pickpoint) on the viewport center
-	- formed in setup_projection(pick=TRUE,,)
+	- formed in setup_pickray(pick=TRUE,,)
 view matrix - the view part of the modelview matrix, generated during setup_viewpoint()
 model matrix - the model part of the world modelview matrix, generated during
 	traversing the scenegraph in render_node()
@@ -2340,7 +2481,7 @@ geometry_model: the model part of the modelview matrix at a geometry node's plac
 sensor_model: the model part of the modelview matrix at a sensor node's place
 bearing: 2 points (A,B) defining a ray in 3D space going from A in the direction of B
 	1. For 2D screen-based pointing devices	like mouse, A is the viewpoint position 0,0,0 
-		in viewpoint-local, and for B mousexy is converted in setup_projection(pick=TRUE,,) 
+		in viewpoint-local, and for B mousexy is converted in setup_pickray(pick=TRUE,,) 
 		to a special pick-proj matrix that centers the viewport on the mousexy, so B is 0,0,-1 in
 			pick-viewport-local coordinates	(glu_unproject produces pick-viewport-local)
 		[using normal projection matrix for the bearing, then B= mousex,mousey,-1 in 
@@ -2360,7 +2501,7 @@ As seen by the developer, here's how I (dug9 Apr 2014) think they should work in
 	can be pushed onto a state stack to affect descendent geometry nodes
  2. from the scene root, traverse to the viewpoint to get the view part of the modelview matrix
 	-Set up 2 points in viewpoint space: A=0,0,0 (the viewpoint) and B=(mouse x, mouse y, z=-1) to represent the bearing
-	-apply a special pick-projection matrix, in setup_projection(pick=TRUE,,), so that glu_unproject 
+	-apply a special pick-projection matrix, in setup_pickray(pick=TRUE,,), so that glu_unproject 
 		is with respect to the mouse-xy bearing B point being at the center of the viewport 
 		[use normal projection, and minimize the use of glu_unproject by transforming viewport-local bearing
 		to world during setup, and use world for bearing for all subsequent PointingDeviceSensor activities
@@ -2439,7 +2580,7 @@ struct currayhit {
 	- it's the whole modelview matrix
 	GLDOUBLE projMatrix[16]; 
 	- snapshot of the pick-projection matrix at the same spot
-	-- it will include the pick-specific projection matrix aligned to the mousexy in setup_projection(pick=TRUE,,)
+	-- it will include the pick-specific projection matrix aligned to the mousexy in setup_pickray(pick=TRUE,,)
 };
 global variables:
 	struct point_XYZ r1 = {0,0,-1},r2 = {0,0,0},r3 = {0,1,0}; 
@@ -2534,7 +2675,7 @@ What I think we could do better:
 		competition for the bearing-specific pick-proj matrix)
 	b) allows VF_Sensitive pass to be combined with other passes for optimization, if using
 		the same transform matrices
-	c) allows setup_viewpoint() and setup_projection() to be computed once for multiple passes
+	c) allows setup_viewpoint(), setup_pickray() and setup_projection() to be computed once for multiple passes
 	d) allows using world coordinates for the bearing because then bearing doesn't depend 
 		on a special proj matrix which only glu_project and glu_unproject can make use of,
 		and those functions transform to/from viewport space
@@ -2654,7 +2795,7 @@ Update May 2015 - dug9
    - and emit events in sensor-local coordinates
    - ^bearing-local: currently == pick-viewport-local 
    -- unproject is used because to go from geometry-local to bearing-local, because
-		it's convenient, and includes the pick-viewport in the transform - see setup_projection(pick=TRUE,,) for details
+		it's convenient, and includes the pick-viewport in the transform - see setup_pickray(pick=TRUE,,) for details
 	  But it may be overkill if bearing-local is made to == world, for compatibility with 3D pointing devices
 */
 static void get_hyperhit() {
@@ -2694,11 +2835,11 @@ static void get_hyperhit() {
 		struct point_XYZ tp; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 
 		if(0){
-			//pickMatrix is inverted in setup_projection
+			//pickMatrix is inverted in setup_pickray
 			matmultiplyAFFINE(mvp,rhh->modelMatrix,pickMatrixi);
 			matinverseAFFINE(mvpi,mvp);
 		}else{
-			//pickMatrix is not inverted in setup_projection
+			//pickMatrix is not inverted in setup_pickray
 			double mvi[16];
 			matinverseAFFINE(mvi,rhh->modelMatrix);
 			matmultiplyAFFINE(mvpi,pickMatrix,mvi);
@@ -2709,11 +2850,11 @@ static void get_hyperhit() {
 		transform(&tp,&r2,mvpi);
 		x2 = tp.x; y2 = tp.y; z2 = tp.z;
 		if(0){
-			//pickMatrix is inverted in setup_projection
+			//pickMatrix is inverted in setup_pickray
 			matmultiplyAFFINE(mvp,rh->modelMatrix,pickMatrix);
 			matinverseAFFINE(mvpi,mvp);
 		}else{
-			//pickMatrix is not inverted in setup_projection
+			//pickMatrix is not inverted in setup_pickray
 			double mvi[16];
 			matinverseAFFINE(mvi,rh->modelMatrix);
 			matmultiplyAFFINE(mvpi,pickMatrix,mvi);
@@ -3400,63 +3541,53 @@ void freewrlDie (const char *format) {
         fwl_doQuit();
 }
 
-
 void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x, int y, int ID) {
-        int count;
-		ppMainloop p;
-		ttglobal tg = gglobal();
-		p = (ppMainloop)tg->Mainloop.prv;
+	int count;
+	struct Touch *touch;
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+	if(0){
+		printf ("fwl_handle_aqua in MainLoop; mev %d but %d x %d y %d ID %d ",
+				mev, button, x,y,ID);
+		if (mev == ButtonPress) printf ("ButtonPress\n");
+		else if (mev == ButtonRelease) printf ("ButtonRelease\n");
+		else if (mev == MotionNotify) printf ("MotionNotify\n");
+		else printf ("event %d\n",mev); 
+	}
+	/* save this one... This allows Sensors to get mouse movements if required. */
+	p->lastMouseEvent = mev;
 
-  /* printf ("fwl_handle_aqua in MainLoop; but %d x %d y %d screenWidth %d screenHeight %d",
-                button, x,y,tg->display.screenWidth,tg->display.screenHeight);
-        if (mev == ButtonPress) printf ("ButtonPress\n");
-        else if (mev == ButtonRelease) printf ("ButtonRelease\n");
-        else if (mev == MotionNotify) printf ("MotionNotify\n");
-        else printf ("event %d\n",mev); */
+	/* save the current x and y positions for picking. */
+	touch = &p->touchlist[ID];
+	touch->x = x;
+	touch->y = y;
+	touch->buttonState[button] = mev == ButtonPress;
+	touch->ID = ID; /*will come in handy if we change from array[] to accordian list*/
+	touch->mev = mev;
+	touch->angle = 0.0f;
+	p->currentTouch = ID;
 
-        /* save this one... This allows Sensors to get mouse movements if required. */
-        p->lastMouseEvent = mev;
-        /* save the current x and y positions for picking. */
-		tg->Mainloop.currentX[p->currentCursor] = x;
-		tg->Mainloop.currentY[p->currentCursor] = y;
-		p->touchlist[ID].x = x;
-		p->touchlist[ID].y = y;
-		p->touchlist[ID].button = button;
-		p->touchlist[ID].isDown = (mev == ButtonPress || mev == MotionNotify);
-		p->touchlist[ID].ID = ID; /*will come in handy if we change from array[] to accordian list*/
-		p->touchlist[ID].mev = mev;
-		p->touchlist[ID].angle = 0.0f;
-		p->currentTouch = ID;
+	if ((mev == ButtonPress) || (mev == ButtonRelease)) {
+		/* if we are Not over an enabled sensitive node, and we do NOT already have a
+			button down from a sensitive node... */
 
+		if (((p->CursorOverSensitive ==NULL) && (p->lastPressedOver ==NULL)) || Viewer()->LookatMode || tg->Mainloop.SHIFT) {
+			p->NavigationMode = touch->buttonState[LMB] || touch->buttonState[RMB];
+			handle(mev, button, (float) ((float)x/tg->display.screenWidth), (float) ((float)y/tg->display.screenHeight));
+		}
+	}
 
-		//if( handleStatusbarHud(mev, &tg->Mainloop.clipPlane) )return; /* statusbarHud options screen should swallow mouse clicks */
+	if (mev == MotionNotify) {
+		if (p->NavigationMode) {
+			/* find out what the first button down is */
+			count = 0;
+			while ((count < 4) && (!touch->buttonState[count])) count++;
+			if (count == 4) return; /* no buttons down???*/
 
-        if ((mev == ButtonPress) || (mev == ButtonRelease)) {
-                /* record which button is down */
-                p->ButDown[p->currentCursor][button] = (mev == ButtonPress);
-                /* if we are Not over an enabled sensitive node, and we do NOT already have a
-                   button down from a sensitive node... */
-
-                if (((p->CursorOverSensitive ==NULL) && (p->lastPressedOver ==NULL)) || Viewer()->LookatMode || tg->Mainloop.SHIFT) {
-                        p->NavigationMode=p->ButDown[p->currentCursor][1] || p->ButDown[p->currentCursor][3];
-                        handle(mev, button, (float) ((float)x/tg->display.screenWidth), (float) ((float)y/tg->display.screenHeight));
-                }
-        }
-
-        if (mev == MotionNotify) {
-                /* save the current x and y positions for picking. */
-                // above currentX[currentCursor] = x;
-                //currentY[currentCursor] = y;
-
-                if (p->NavigationMode) {
-                        /* find out what the first button down is */
-                        count = 0;
-                        while ((count < 8) && (!p->ButDown[p->currentCursor][count])) count++;
-                        if (count == 8) return; /* no buttons down???*/
-
-                        handle (mev, (unsigned) count, (float) ((float)x/tg->display.screenWidth), (float) ((float)y/tg->display.screenHeight));
-                }
-        }
+			handle (mev, (unsigned) count, (float) ((float)x/tg->display.screenWidth), (float) ((float)y/tg->display.screenHeight));
+		}
+	}
 }
 void (*fwl_handle_aqua_multiPTR)(const int mev, const unsigned int button, int x, int y, int ID) = fwl_handle_aqua_multiNORMAL;
 void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int y, int ID)
@@ -3468,7 +3599,7 @@ void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int 
 //int lastDeltay = 50;
 //int lastxx;
 //int lastyy;
-void emulate_multitouch(const int mev, const unsigned int button, int x, int y)
+void emulate_multitouch_OLD(const int mev, const unsigned int button, int x, int y)
 {
 	/* goal: when MMB draw a slave cursor pinned to last_distance,last_angle from real cursor
 		Note: if using a RMB+LMB = MMB chord with 2 button mice, you need to emulate in your code
@@ -3492,6 +3623,72 @@ void emulate_multitouch(const int mev, const unsigned int button, int x, int y)
 	}else{
 		/* normal, no need to emulate if there's no MMB or LMB+RMB */
 		fwl_handle_aqua_multi(mev,button,x,y,0);
+	}
+}
+void emulate_multitouch(const int mev, const unsigned int button, int x, int y)
+{
+	/* CREATE/DELETE a touch with RMB down 
+	   GRAB/MOVE a touch with LMB down and drag
+	   ID=0 reserved for 'normal' cursor
+	*/
+    int i,count,ifound,ID;
+	struct Touch *touch, *unused;
+	static int buttons[4] = {0,0,0,0};
+	static int idone = 0;
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+	
+	if(!idone){
+		printf("Use RMB (right mouse button) to create and delete touches\n");
+		printf("Use LMB to drag touches (+- 5 pixel selection window)\n");
+		idone = 1;
+	}
+	buttons[button] = mev == ButtonPress;
+	ifound = 0;
+	ID = -1;
+	for(i=0;i<p->ntouch;i++){
+		touch = &p->touchlist[i];
+		if(touch->ID > -1){
+			if(abs(x - touch->x) < 5 && abs(y - touch->y) < 5){
+				ifound = 1;
+				ID = i;
+				break;
+			}
+		}
+	}
+
+	if( mev == ButtonPress && button == RMB )
+	{
+		//if near an existing one, delete
+		if(ifound){
+			fwl_handle_aqua_multiNORMAL(ButtonRelease,LMB,x,y,ID);
+			//delete
+			touch->ID = -1;
+			printf("delete ID=%d\n",ID);
+		}
+		//else create
+		if(!ifound){
+			//create!
+			for(i=0;i<p->ntouch;i++){
+				touch = &p->touchlist[i];
+				if(touch->ID < 0) {
+					fwl_handle_aqua_multiNORMAL(mev, LMB, x, y, i);
+					printf("create ID=%d\n",i);
+					break;
+				}
+			}
+		}
+	}else if( mev == MotionNotify && buttons[LMB])	{
+		//if near an existing one, grab it and move it
+		if(ifound){
+			fwl_handle_aqua_multiNORMAL(MotionNotify,0,x,y,ID);
+			//printf("drag ID=%d \n",ID);
+		}
+		if(0) if(!ifound){
+			/* normal, no need to emulate */
+			fwl_handle_aqua_multiNORMAL(mev,button,x,y,0);
+		}
 	}
 }
 /* old function should still work, with single mouse and ID=0 */
@@ -3581,14 +3778,18 @@ void fwl_setCurXY(int cx, int cy) {
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 	/* printf ("fwl_setCurXY, have %d %d\n",p->currentX[p->currentCursor],p->currentY[p->currentCursor]); */
-        tg->Mainloop.currentX[p->currentCursor] = cx;
-        tg->Mainloop.currentY[p->currentCursor] = cy;
+	p->touchlist[p->currentTouch].x = cx;
+	p->touchlist[p->currentTouch].y = cy;
+        //tg->Mainloop.currentX[p->currentCursor] = cx;
+        //tg->Mainloop.currentY[p->currentCursor] = cy;
 }
 
 void fwl_setButDown(int button, int value) {
+	//BUTTON NONE,LMB,MMB,RMB 0,1,2,3
 	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 	/* printf ("fwl_setButDown called\n"); */
-        p->ButDown[p->currentCursor][button] = value;
+    //    p->ButDown[p->currentCursor][button] = value;
+	p->touchlist[p->currentTouch].buttonState[button] = value;
 }
 
 
@@ -3854,9 +4055,10 @@ void resetSensorEvents(void) {
 	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 
 	if (p->oldCOS != NULL)
-		sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
-       /* remove any display on-screen */
-       sendDescriptionToStatusBar(NULL);
+		sendSensorEvents(p->oldCOS,MapNotify,p->touchlist[p->currentTouch].buttonState[LMB], FALSE);
+		//sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
+    /* remove any display on-screen */
+    sendDescriptionToStatusBar(NULL);
 	p->CursorOverSensitive=NULL;
 
 	p->oldCOS=NULL;

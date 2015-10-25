@@ -468,7 +468,7 @@ typedef struct pstatusbar{
 	char messagebar[200];
 	int bmfontsize;// = 2; /* 0,1 or 2 */
 	int optionsLoaded;// = 0;
-	char * optionsVal[20];
+	char * optionsVal[23];
 	int osystem;// = 3; //mac 1btn = 0, mac nbutton = 1, linux game descent = 2, windows =3
 	XY bmWH;// = {10,15}; /* simple bitmap font from redbook above, width and height in pixels */
 	int bmScale; //1 or 2 for the hud pixel fonts, changes between ..ForOptions and ..Regular 
@@ -568,7 +568,7 @@ void initProgramObject(){
    p->textureLoc = glGetUniformLocation ( p->programObject, "Texture0" );
    p->color4fLoc = glGetUniformLocation ( p->programObject, "Color4f" );
 }
-static int lenOptions   = 20;
+static int lenOptions   = 22;
 void statusbar_clear(struct tstatusbar *t){
 	//public
 	//private
@@ -863,6 +863,8 @@ char * optionsText[] = {
 "",
 "target FPS \36    \37",
 "  emulate multitouch (mousewheel)",
+"pickray eye:",
+"  left  right  either",
 NULL,
 };
 //int optionsLoaded = 0;
@@ -885,7 +887,7 @@ NULL,
 
 void initOptionsVal()
 {
-	int i,j,k, iem;
+	int i,j,k, iem, iside, ieither;
 	X3D_Viewer *viewer;
 	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
 	viewer = Viewer();
@@ -894,8 +896,8 @@ void initOptionsVal()
 	{
 		if(!p->optionsVal[i])
 			p->optionsVal[i] = MALLOC(char*, 20);
-		for(j=0;j<9;j++) p->optionsVal[i][j] = ' ';
-		p->optionsVal[i][8] = '\0';
+		for(j=0;j<19;j++) p->optionsVal[i][j] = ' ';
+		p->optionsVal[i][19] = '\0';
 	}
 	p->optionsVal[1][0] = 034; //[]
 	p->optionsVal[2][0] = 034; //[]
@@ -927,7 +929,11 @@ void initOptionsVal()
 	p->optionsVal[19][0] = 034; //[]
 	if(fwl_get_emulate_multitouch())
 		p->optionsVal[19][0] = 035; //[*] '*';
-
+	fwl_getPickraySide(&iside,&ieither);
+	p->optionsVal[21][1] = p->optionsVal[21][7] = p->optionsVal[21][14] = 034;
+	if(iside==0) p->optionsVal[21][1] = 035;
+	else p->optionsVal[21][7] = 035;
+	if(ieither) p->optionsVal[21][14] = 035;
 	p->optionsLoaded = 1;
 }
 void updateOptionsVal()
@@ -958,6 +964,9 @@ char * optionsCase[] = {
 "99999999",
 "          KK    LL",
 "GGGGGGGGGGG",
+" ",
+"MM    NN     OO",
+
 NULL,
 };
 
@@ -1179,6 +1188,20 @@ int handleOptionPress(int mouseX, int mouseY)
 			else tfps = min(3840,(int)15*i15);
 			fwl_set_target_fps(tfps);
 		}
+	case 'M':
+	case 'N':
+	case 'O':
+		{
+			int iside, ieither;
+			fwl_getPickraySide(&iside,&ieither);
+			if(opt == 'O'){
+				ieither = 1 - ieither;
+			}else{
+				iside = 1 - iside;
+			}
+			fwl_setPickraySide(iside,ieither);
+		}
+	break;
 	default: {break;}
 	}
 	return 1;
@@ -2607,7 +2630,7 @@ void statusbar_set_window_size(int width, int height)
 	p->screenHeight = height;
 	p->screenWidth = width;
 	fwl_setScreenDim(width, height);
-	//if(0) fwl_setScreenDim2(5,10,width-10,height-20); //test vport, screenDim2
+	//if(1) fwl_setScreenDim2(5,10,width-10,height-20); //test vport, screenDim2
 }
 int getCursorStyle();
 int statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY)

@@ -167,7 +167,7 @@ typedef struct iiglobal //InstanceGlobal
 		int clipPlane;// = 0;
 		int SHIFT; //state of shift key up = 0, down = 1
 		int CTRL; //state of ctrl key up = 0, down = 1
-		int currentX[20], currentY[20];                 /*  current mouse position.*/
+		//int currentX[20], currentY[20];                 /*  current mouse position.*/
 		void *prv;
 		char *tmpFileLocation;
 		char *url;
