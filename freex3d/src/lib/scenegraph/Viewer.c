@@ -2884,20 +2884,20 @@ void fwl_set_ScreenDist (const char *optArg) {
 
 void set_stereo_offset0() /*int iside, double eyehalf, double eyehalfangle)*/
 {
-      double x = 0.0, angle = 0.0;
+	double x = 0.0, angle = 0.0;
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
-      if (p->Viewer.iside == 0) {
-		      /* left */
-              x = p->Viewer.eyehalf;
-              angle = p->Viewer.eyehalfangle; //old semantics: * p->Viewer.stereoParameter; /*stereoparamter: 0-1 1=toe in to cross-over at Screendist 0=look at infinity, eyes parallel*/
-      } else if (p->Viewer.iside == 1) {
-		      /* right */
-              x = -p->Viewer.eyehalf;
-              angle = -p->Viewer.eyehalfangle; //old semantics: * p->Viewer.stereoParameter;
-      }
-      FW_GL_TRANSLATE_D(x, 0.0, 0.0);
-      FW_GL_ROTATE_D(angle, 0.0, 1.0, 0.0);
+	if (p->Viewer.iside == 0) {
+		/* left */
+		x = p->Viewer.eyehalf;
+		angle = p->Viewer.eyehalfangle; //old semantics: * p->Viewer.stereoParameter; /*stereoparamter: 0-1 1=toe in to cross-over at Screendist 0=look at infinity, eyes parallel*/
+	} else if (p->Viewer.iside == 1) {
+		/* right */
+		x = -p->Viewer.eyehalf;
+		angle = -p->Viewer.eyehalfangle; //old semantics: * p->Viewer.stereoParameter;
+	}
+	FW_GL_TRANSLATE_D(x, 0.0, 0.0);
+	FW_GL_ROTATE_D(angle, 0.0, 1.0, 0.0);
 }
 
 /* used to move, in WALK, FLY modes. */

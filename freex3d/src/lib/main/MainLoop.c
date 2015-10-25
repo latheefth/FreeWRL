@@ -188,6 +188,10 @@ typedef struct pMainloop{
 	int keywait;
 	char keywaitstring[25];
 	int fps_sleep_remainder;
+	double screenorientationmatrix[16];
+	double viewtransformmatrix[16];
+	double posorimatrix[16];
+	double stereooffsetmatrix[2][16];
 }* ppMainloop;
 void *Mainloop_constructor(){
 	void *v = MALLOCV(sizeof(struct pMainloop));
@@ -344,6 +348,7 @@ int fwl_get_emulate_multitouch(){
 
 
 static void setup_viewpoint();
+static void set_viewmatrix();
 
 /* Function protos */
 static void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive);
@@ -702,7 +707,8 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 		if(setup_pickside(x,ydown)){
 			setup_projection();
 			setup_pickray(x,ydown);
-			setup_viewpoint();
+			//setup_viewpoint();
+			set_viewmatrix();
 			render_hier(rootNode(),VF_Sensitive  | VF_Geom);
 			p->CursorOverSensitive = getRayHit();
 
@@ -807,6 +813,7 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 				setup_projection();
 				setup_pickray(x,ydown); //tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
 				setup_viewpoint();
+				set_viewmatrix();
 				render_hier(rootNode(),VF_Sensitive  | VF_Geom);
 				getRayHitAndSetLookatTarget();
 			}
@@ -1283,8 +1290,10 @@ static void render_pre() {
 	}
 
 
-        /* 3. Viewpoint */
-        setup_viewpoint();      /*  need this to render collisions correctly*/
+        ///* 3. Viewpoint */
+        //setup_viewpoint();      
+		/*  need this to render collisions correctly 
+				x Oct 2015 change: rely on last frame's results for this frames collision*/
 
 #ifdef SSR_SERVER
 		//just for a diagnostic test of transforms - replaces modelview matrix with one formed from cumQuat,cumTrans
@@ -1308,9 +1317,13 @@ static void render_pre() {
 			profile_start("collision");
                 render_collisions(Viewer()->type);
 				profile_end("collision");
-                setup_viewpoint(); /*  update viewer position after collision, to*/
-                                   /*  give accurate info to Proximity sensors.*/
+                // setup_viewpoint(); //see 5 lines below
         }
+
+		/* 3. Viewpoint */
+		/*  unconditionally update viewer position after collision, to*/
+		/*  give accurate info to Proximity sensors.*/
+		setup_viewpoint(); //Oct 2015: now this is the only setup_viewpoint per frame (set_viewmatrix() does shortcut)
 
         /* 5. render hierarchy - proximity */
         if (p->doEvents)
@@ -1714,7 +1727,8 @@ OLDCODE#endif
 			BackEndClearBuffer(2);
 			if(Viewer()->anaglyph)
 				Viewer_anaglyph_setSide(count); //set the channels for scenegraph drawing
-			setup_viewpoint();
+			//setup_viewpoint();
+			set_viewmatrix();
 		}
 		else
 			BackEndClearBuffer(2);
@@ -1784,84 +1798,127 @@ static double currentViewerAngle = 0.0;
 static double requestedViewerAngle = 0.0;
 
 static void setup_viewpoint() {
+/*
+	 Computes view part of modelview matrix and leaves it in modelview.
+	 You would call this before traversing the scenegraph to scene nodes
+	  with render() or render_hier().
+	 The view part includes:
+	 a) screen orientation ie on mobile devices landscape vs portrait (this function)
+	 b) stereovision +- 1/2 base offset (viewer_togl)
+	 c) viewpoint slerping interpolation (viewer_togl)
+	 d) .Pos and .Quat of viewpoint from: (viewer_togl)
+	        1) .position and .orientation specified in scenefile
+	        2) cumulative navigation away from initial bound pose
+	        3) gravity and collision (bumping and wall penetration) adjustments
+	 e) transform stack between scene root and currently bound viewpoint (render_hier(rootnode,VF_Viewpoint))
 
+*/
+	int isStereo, iside;
+	double viewmatrix[16];
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
 
-        FW_GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
-        FW_GL_LOAD_IDENTITY();
+	FW_GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
+	FW_GL_LOAD_IDENTITY();
 
-    // has a change happened?
-    if (Viewer()->screenOrientation != currentViewerLandPort) {
-        // 4 possible values; 0, 90, 180, 270
-        //
-        rotatingCCW = FALSE; // assume, unless told otherwise
-        switch (currentViewerLandPort) {
-            case 0: {
-                rotatingCCW= (Viewer()->screenOrientation == 270);
-                break;
-            }
-            case 90: {
-                rotatingCCW = (Viewer()->screenOrientation == 0);
-                break;
-            }
-
-            case 180: {
-                rotatingCCW = (Viewer()->screenOrientation != 270);
-                break;
-            }
-
-            case 270: {
-                rotatingCCW = (Viewer()->screenOrientation != 0);
-                break;
-
-            }
-
-
-        }
-
-        currentViewerLandPort = Viewer()->screenOrientation;
-        requestedViewerAngle = (double)Viewer()->screenOrientation;
-
-    }
-
-    if (!(APPROX(currentViewerAngle,requestedViewerAngle))) {
-
-        if (rotatingCCW) {
-            //printf ("ccw, cva %lf req %lf\n",currentViewerAngle, requestedViewerAngle);
-            currentViewerAngle -= 10.0;
-            if (currentViewerAngle < -5.0) currentViewerAngle = 360.0;
-        } else {
-            //printf ("cw, cva %lf req %lf\n",currentViewerAngle, requestedViewerAngle);
-            currentViewerAngle +=10.0;
-            if (currentViewerAngle > 365.0) currentViewerAngle = 0.0;
-        }
-
-    }
-        FW_GL_ROTATE_D (currentViewerAngle,0.0,0.0,1.0);
-
-
-
-
-        viewer_togl(Viewer()->fieldofview);
-		profile_start("vp_hier");
-        render_hier(rootNode(), VF_Viewpoint);
-		profile_end("vp_hier");
-        PRINT_GL_ERROR_IF_ANY("XEvents::setup_viewpoint");
-
-	/*
-	{ GLDOUBLE projMatrix[16];
-	fw_glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
-	printf ("\n");
-	printf ("setup_viewpoint, proj  %lf %lf %lf\n",projMatrix[12],projMatrix[13],projMatrix[14]);
-	fw_glGetDoublev(GL_MODELVIEW_MATRIX, projMatrix);
-	printf ("setup_viewpoint, model %lf %lf %lf\n",projMatrix[12],projMatrix[13],projMatrix[14]);
-	printf ("setup_viewpoint, currentPos %lf %lf %lf\n",        Viewer.currentPosInModel.x,
-	        Viewer.currentPosInModel.y ,
-	        Viewer.currentPosInModel.z);
+	// has a change happened?
+	if (Viewer()->screenOrientation != currentViewerLandPort) {
+		// 4 possible values; 0, 90, 180, 270
+		//
+		rotatingCCW = FALSE; // assume, unless told otherwise
+		switch (currentViewerLandPort) {
+			case 0: {
+				rotatingCCW= (Viewer()->screenOrientation == 270);
+				break;
+			}
+			case 90: {
+				rotatingCCW = (Viewer()->screenOrientation == 0);
+				break;
+			}
+			case 180: {
+				rotatingCCW = (Viewer()->screenOrientation != 270);
+				break;
+			}
+			case 270: {
+				rotatingCCW = (Viewer()->screenOrientation != 0);
+				break;
+			}
+		}
+		currentViewerLandPort = Viewer()->screenOrientation;
+		requestedViewerAngle = (double)Viewer()->screenOrientation;
 	}
-	*/
+
+	if (!(APPROX(currentViewerAngle,requestedViewerAngle))) {
+		if (rotatingCCW) {
+			//printf ("ccw, cva %lf req %lf\n",currentViewerAngle, requestedViewerAngle);
+			currentViewerAngle -= 10.0;
+			if (currentViewerAngle < -5.0) currentViewerAngle = 360.0;
+		} else {
+			//printf ("cw, cva %lf req %lf\n",currentViewerAngle, requestedViewerAngle);
+			currentViewerAngle +=10.0;
+			if (currentViewerAngle > 365.0) currentViewerAngle = 0.0;
+		}
+	}
+	FW_GL_ROTATE_D (currentViewerAngle,0.0,0.0,1.0);
+
+		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->screenorientationmatrix);
+		isStereo = Viewer()->isStereo;
+		iside = Viewer()->iside;
+		Viewer()->isStereo = 1;
+		Viewer()->iside = 0;
+		FW_GL_LOAD_IDENTITY();
+		set_stereo_offset0();
+		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->stereooffsetmatrix[0]);
+		Viewer()->iside = 1;
+		FW_GL_LOAD_IDENTITY();
+		set_stereo_offset0();
+		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->stereooffsetmatrix[1]);
+		Viewer()->isStereo = 0;
+		FW_GL_LOAD_IDENTITY();
+
+	viewer_togl(Viewer()->fieldofview);
+
+		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->posorimatrix);
+		FW_GL_LOAD_IDENTITY();
+
+	profile_start("vp_hier");
+	render_hier(rootNode(), VF_Viewpoint);
+	profile_end("vp_hier");
+	PRINT_GL_ERROR_IF_ANY("XEvents::setup_viewpoint");
+
+		Viewer()->isStereo = isStereo;
+		Viewer()->iside = iside;
+		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->viewtransformmatrix);
+		matcopy(viewmatrix,p->screenorientationmatrix);
+		if(isStereo)
+			matmultiplyAFFINE(viewmatrix,p->stereooffsetmatrix[iside],viewmatrix);
+		matmultiplyAFFINE(viewmatrix,p->posorimatrix,viewmatrix); 
+		matmultiplyAFFINE(viewmatrix,p->viewtransformmatrix,viewmatrix); 
+		fw_glSetDoublev(GL_MODELVIEW_MATRIX, viewmatrix);
 
 
 }
+
+static void set_viewmatrix() {
+	//if we already computed view matrix earlier in the frame via setup_viewpoint,
+	//and theoretically it hasn't changed since, 
+	//and just want to make sure its set, this is shorter than re-doing setup_viewpoint()
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+
+	FW_GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
+
+	double viewmatrix[16];
+	matcopy(viewmatrix,p->screenorientationmatrix);
+	if(Viewer()->isStereo)
+		matmultiplyAFFINE(viewmatrix,p->stereooffsetmatrix[Viewer()->iside],viewmatrix);
+	matmultiplyAFFINE(viewmatrix,p->posorimatrix,viewmatrix); 
+	matmultiplyAFFINE(viewmatrix,p->viewtransformmatrix,viewmatrix); 
+	fw_glSetDoublev(GL_MODELVIEW_MATRIX, viewmatrix);
+}
+
 char *nameLogFileFolderNORMAL(char *logfilename, int size){
 	strcat(logfilename,"freewrl_tmp");
 	fw_mkdir(logfilename);
