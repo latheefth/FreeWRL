@@ -449,14 +449,23 @@ int fw_exit(int val)
 
 void fwl_RenderSceneUpdateSceneNORMAL() {
 	double dtime;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+
 	dtime = Time1970sec();
 	fwl_RenderSceneUpdateScene0(dtime);
+	/* actual rendering */
+	if ( p->onScreen) {
+		render();
+	}
+
 }
 /*rendersceneupdatescene overridden with SnapshotRegressionTesting.c  
 	fwl_RenderSceneUpdateSceneTESTING during regression testing runs
 */
 void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneNORMAL;
 void fwl_RenderSceneUpdateScene(void){
+
 	fwl_RenderSceneUpdateScenePTR();
 }
 void fwl_RenderSceneUpdateScene0(double dtime) {
@@ -542,159 +551,7 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 	tg->Mainloop.lastTime = tg->Mainloop.TickTime;
 	tg->Mainloop.TickTime = dtime; //Time1970sec();
 
-	/* any scripts to do?? */
-#ifdef _MSC_VER
-	if(p->doEvents)
-#endif /* _MSC_VER */
 
-	#ifdef HAVE_JAVASCRIPT
-		initializeAnyScripts();
-	#endif
-
-
-	/* BrowserAction required? eg, anchors, etc */
-#ifndef DISABLER
-	if (tg->RenderFuncs.BrowserAction) {
-		tg->RenderFuncs.BrowserAction = doBrowserAction ();
-	}
-#endif
-
-	/* has the default background changed? */
-	//if (tg->OpenGL_Utils.cc_changed)  //assume its changed (ie statusbarHud has its own clear color)
-	doglClearColor();
-
-	OcclusionStartofRenderSceneUpdateScene();
-	startOfLoopNodeUpdates();
-
-	if (p->loop_count == 25) {
-		tg->Mainloop.BrowserFPS = 25.0 / (TickTime()-p->BrowserStartTime);
-		setMenuFps((float)tg->Mainloop.BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
-		/* printf ("fps %f tris %d, rootnode children %d \n",p->BrowserFPS,p->trisThisLoop, X3D_GROUP(rootNode)->children.n);  */
-
-		//ConsoleMessage("fps %f tris %d\n",tg->Mainloop.BrowserFPS,tg->Mainloop.trisThisLoop);
-
-
-		 //printf ("MainLoop, nearPlane %lf farPlane %lf\n",Viewer.nearPlane, Viewer.farPlane);
-
-		p->BrowserStartTime = TickTime();
-		p->loop_count = 1;
-	} else {
-		p->loop_count++;
-	}
-
-	tg->Mainloop.trisThisLoop = 0;
-
-	if(p->slowloop_count == 1009) p->slowloop_count = 0 ;
-	#if USE_OSC
-	if ((p->slowloop_count % 256) == 0) {
-		/* activate_picksensors() ; */
-		/*
-		printf("slowloop_count = %d at T=%lf : lastMouseEvent=%d , MotionNotify=%d\n",
-			p->slowloop_count, TickTime(), p->lastMouseEvent, MotionNotify) ;
-		*/
-		activate_OSCsensors() ;
-	} else {
-		/* deactivate_picksensors() ; */
-	}
-	#endif /* USE_OSC */
-
-	p->slowloop_count++ ;
-
-	/* handle any events provided on the command line - Robert Sim */
-	if (p->keypress_string && p->doEvents) {
-		if (p->keypress_wait_for_settle > 0) {
-			p->keypress_wait_for_settle--;
-		} else {
-			/* dont do the null... */
-			if (*p->keypress_string) {
-				/* printf ("handling key %c\n",*p->keypress_string); */
-#if !defined( AQUA ) && !defined( _MSC_VER )  /*win32 - don't know whats it is suppsoed to do yet */
-				DEBUG_XEV("CMD LINE GEN EVENT: %c\n", *p->keypress_string);
-				fwl_do_keyPress(*p->keypress_string,KeyPress);
-#endif /* NOT AQUA and NOT WIN32 */
-				p->keypress_string++;
-			} else {
-				p->keypress_string=NULL;
-			}
-		}
-	}
-
-#if KEEP_X11_INLIB
-	/**
-	 *   Merge of Bare X11 and Motif/X11 event handling ...
-	 */
-	/* REMARK: Do we want to process all pending events ? */
-
-#if defined(TARGET_X11)
-	/* We are running our own bare window */
-	while (XPending(Xdpy)) {
-		XNextEvent(Xdpy, &event);
-		DEBUG_XEV("EVENT through XNextEvent\n");
-		handle_Xevents(event);
-	}
-#endif /* TARGET_X11 */
-
-
-	PRINT_GL_ERROR_IF_ANY("before xtdispatch");
-#if defined(TARGET_MOTIF)
-	/* any updates to the menu buttons? Because of Linux threading
-		issues, we try to make all updates come from 1 thread */
-	frontendUpdateButtons();
-
-	/* do the Xt events here. */
-	while (XtAppPending(Xtcx)!= 0) {
-		XtAppNextEvent(Xtcx, &event);
-#ifdef XEVENT_VERBOSE
-		XButtonEvent *bev;
-		XMotionEvent *mev;
-		switch (event.type) {
-			case MotionNotify:
-			mev = &event.xmotion;
-			TRACE_MSG("mouse motion event: win=%u, state=%d\n",mev->window, mev->state);
-		break;
-		case ButtonPress:
-		case ButtonRelease:
-		bev = &event.xbutton;
-		TRACE_MSG("mouse button event: win=%u, state=%d\n",bev->window, bev->state);
-		break;
-	}
-#endif /* XEVENT_VERBOSE */
-
-		DEBUG_XEV("EVENT through XtDispatchEvent\n");
-		XtDispatchEvent (&event);
-	}
-
-#endif /* TARGET_MOTIF */
-#endif /* KEEP_X11_INLIB */
-
-
-	/* Viewer move viewpoint */
-	handle_tick();
-
-	PRINT_GL_ERROR_IF_ANY("after handle_tick")
-
-	/* setup Projection and activate ProximitySensors */
-	if (p->onScreen)
-		{
-			render_pre();
-			slerp_viewpoint();
-		}
-
-#ifdef RENDERVERBOSE
-	printf("RENDER STEP----------\n");
-#endif
-
-	/* first events (clock ticks, etc) if we have other things to do, yield */
-	if (p->doEvents) do_first (); //else sched_yield();
-
-	/* ensure depth mask turned on here */
-	FW_GL_DEPTHMASK(GL_TRUE);
-
-	PRINT_GL_ERROR_IF_ANY("after depth")
-	/* actual rendering */
-	if (p->onScreen) {
-		render();
-	}
 
 	/* handle_mouse events if clicked on a sensitive node */
 	//printf("nav mode =%d sensitive= %d\n",p->NavigationMode, tg->Mainloop.HaveSensitive);
@@ -835,15 +692,173 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 	/* do OcclusionCulling, etc */
 	OcclusionCulling();
 
+
+
+
+
+
+
+	/* any scripts to do?? */
+#ifdef _MSC_VER
+	if(p->doEvents)
+#endif /* _MSC_VER */
+
+	#ifdef HAVE_JAVASCRIPT
+		initializeAnyScripts();
+	#endif
+
+
+	/* BrowserAction required? eg, anchors, etc */
+#ifndef DISABLER
+	if (tg->RenderFuncs.BrowserAction) {
+		tg->RenderFuncs.BrowserAction = doBrowserAction ();
+	}
+#endif
+
+	/* has the default background changed? */
+	//if (tg->OpenGL_Utils.cc_changed)  //assume its changed (ie statusbarHud has its own clear color)
+	doglClearColor();
+
+
+
+	OcclusionStartofRenderSceneUpdateScene();
+
+
+	startOfLoopNodeUpdates();
+
+	if (p->loop_count == 25) {
+		tg->Mainloop.BrowserFPS = 25.0 / (TickTime()-p->BrowserStartTime);
+		setMenuFps((float)tg->Mainloop.BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
+		/* printf ("fps %f tris %d, rootnode children %d \n",p->BrowserFPS,p->trisThisLoop, X3D_GROUP(rootNode)->children.n);  */
+
+		//ConsoleMessage("fps %f tris %d\n",tg->Mainloop.BrowserFPS,tg->Mainloop.trisThisLoop);
+
+
+		 //printf ("MainLoop, nearPlane %lf farPlane %lf\n",Viewer.nearPlane, Viewer.farPlane);
+
+		p->BrowserStartTime = TickTime();
+		p->loop_count = 1;
+	} else {
+		p->loop_count++;
+	}
+
+	tg->Mainloop.trisThisLoop = 0;
+
+	if(p->slowloop_count == 1009) p->slowloop_count = 0 ;
+	#if USE_OSC
+	if ((p->slowloop_count % 256) == 0) {
+		/* activate_picksensors() ; */
+		/*
+		printf("slowloop_count = %d at T=%lf : lastMouseEvent=%d , MotionNotify=%d\n",
+			p->slowloop_count, TickTime(), p->lastMouseEvent, MotionNotify) ;
+		*/
+		activate_OSCsensors() ;
+	} else {
+		/* deactivate_picksensors() ; */
+	}
+	#endif /* USE_OSC */
+
+	p->slowloop_count++ ;
+
+
+
+	/* handle any events provided on the command line - Robert Sim */
+	if (p->keypress_string && p->doEvents) {
+		if (p->keypress_wait_for_settle > 0) {
+			p->keypress_wait_for_settle--;
+		} else {
+			/* dont do the null... */
+			if (*p->keypress_string) {
+				/* printf ("handling key %c\n",*p->keypress_string); */
+#if !defined( AQUA ) && !defined( _MSC_VER )  /*win32 - don't know whats it is suppsoed to do yet */
+				DEBUG_XEV("CMD LINE GEN EVENT: %c\n", *p->keypress_string);
+				fwl_do_keyPress(*p->keypress_string,KeyPress);
+#endif /* NOT AQUA and NOT WIN32 */
+				p->keypress_string++;
+			} else {
+				p->keypress_string=NULL;
+			}
+		}
+	}
+
+#if KEEP_X11_INLIB
+	/**
+	 *   Merge of Bare X11 and Motif/X11 event handling ...
+	 */
+	/* REMARK: Do we want to process all pending events ? */
+
+#if defined(TARGET_X11)
+	/* We are running our own bare window */
+	while (XPending(Xdpy)) {
+		XNextEvent(Xdpy, &event);
+		DEBUG_XEV("EVENT through XNextEvent\n");
+		handle_Xevents(event);
+	}
+#endif /* TARGET_X11 */
+
+
+	PRINT_GL_ERROR_IF_ANY("before xtdispatch");
+#if defined(TARGET_MOTIF)
+	/* any updates to the menu buttons? Because of Linux threading
+		issues, we try to make all updates come from 1 thread */
+	frontendUpdateButtons();
+
+	/* do the Xt events here. */
+	while (XtAppPending(Xtcx)!= 0) {
+		XtAppNextEvent(Xtcx, &event);
+#ifdef XEVENT_VERBOSE
+		XButtonEvent *bev;
+		XMotionEvent *mev;
+		switch (event.type) {
+			case MotionNotify:
+			mev = &event.xmotion;
+			TRACE_MSG("mouse motion event: win=%u, state=%d\n",mev->window, mev->state);
+		break;
+		case ButtonPress:
+		case ButtonRelease:
+		bev = &event.xbutton;
+		TRACE_MSG("mouse button event: win=%u, state=%d\n",bev->window, bev->state);
+		break;
+	}
+#endif /* XEVENT_VERBOSE */
+
+		DEBUG_XEV("EVENT through XtDispatchEvent\n");
+		XtDispatchEvent (&event);
+	}
+
+#endif /* TARGET_MOTIF */
+#endif /* KEEP_X11_INLIB */
+
+
+	/* Viewer move viewpoint */
+	handle_tick();
+
+	PRINT_GL_ERROR_IF_ANY("after handle_tick")
+
+
+	/* setup Projection and activate ProximitySensors */
+	if (p->onScreen)
+		{
+			render_pre();
+			slerp_viewpoint();
+		}
+
 	if (p->doEvents) {
 		/* and just parsed nodes needing binding? */
 		SEND_BIND_IF_REQUIRED(tg->ProdCon.setViewpointBindInRender)
 		SEND_BIND_IF_REQUIRED(tg->ProdCon.setFogBindInRender)
 		SEND_BIND_IF_REQUIRED(tg->ProdCon.setBackgroundBindInRender)
 		SEND_BIND_IF_REQUIRED(tg->ProdCon.setNavigationBindInRender)
+
+
+
 		/* handle ROUTES - at least the ones not generated in do_first() */
 		if(0) propagate_events();
-		if(1) do_first();
+		if(1) do_first(); //propagate events called from do_first
+
+
+
+
 		/* Javascript events processed */
 		process_eventsProcessed();
 		#if !defined(EXCLUDE_EAI)
@@ -914,6 +929,27 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 		}
 		#endif //EXCLUDE_EAI
 	} //doEvents
+
+#ifdef RENDERVERBOSE
+	printf("RENDER STEP----------\n");
+#endif
+
+	/* first events (clock ticks, etc) if we have other things to do, yield */
+	//we seem to do this later see below
+	//if (p->doEvents) do_first (); //else sched_yield();
+
+	/* ensure depth mask turned on here */
+	FW_GL_DEPTHMASK(GL_TRUE);
+
+	PRINT_GL_ERROR_IF_ANY("after depth")
+	/* actual rendering */
+	if (0 && p->onScreen) {
+		render();
+	}
+
+
+
+
 }
 
 
@@ -1346,6 +1382,7 @@ static void render_pre() {
 			}
 #endif
 		}
+
 		//drawStatusBar();
 		PRINT_GL_ERROR_IF_ANY("GLBackend::render_pre");
 }
