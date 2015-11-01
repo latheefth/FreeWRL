@@ -2910,11 +2910,13 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 
 }
 
-
+void calculateViewingSpeed();
 static void handle_GeoLODRange(struct X3D_GeoLOD *node) {
 	int oldInRange;
 	GLDOUBLE cx,cy,cz;
 	/* find the length of the line between the moved center and our current viewer position */
+	getCurrentPosInModel(FALSE);
+	calculateViewingSpeed();
 	cx = Viewer()->currentPosInModel.x - node->__movedCoords.c[0];
 	cy = Viewer()->currentPosInModel.y - node->__movedCoords.c[1];
 	cz = Viewer()->currentPosInModel.z - node->__movedCoords.c[2];

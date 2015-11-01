@@ -296,7 +296,7 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 static void moveCoords(struct Multi_Int32*, struct Multi_Vec3d *, struct Multi_Vec3d *, struct Multi_Vec3d *);
 static void Gd_Gc (struct Multi_Vec3d *, struct Multi_Vec3d *, double, double, int, int);
 static void gccToGdc (struct SFVec3d *, struct SFVec3d *); 
-static void calculateViewingSpeed(void);
+void calculateViewingSpeed(void);
 
 /* for converting from GC to GD */
 static double A, F, C, A2, C2, Eps2, Eps21, Eps25, C254, C2DA, CEE,
@@ -2798,7 +2798,7 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 
 /* GeoViewpoint speeds and avatar sizes are depenent on elevation above WGS_84. These are calculated here */
 /* this is called from the Viewer functions */
-static void calculateViewingSpeed() {
+void calculateViewingSpeed() {
 	struct SFVec3d gcCoords;
 	struct SFVec3d gdCoords;
 		
