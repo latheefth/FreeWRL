@@ -460,10 +460,79 @@ void fwl_RenderSceneUpdateSceneNORMAL() {
 	}
 
 }
+typedef struct eye {
+	unsigned int target; //fbo or backbuffer GL_UINT
+	int iviewport[4]; //pixels left, width, bottom, height on target
+	float *viewport; //fraction of parent viewport left, width, bottom, height
+	void (*pick)(struct eye *e, float *ray); //pass in pickray (and tranform back to prior stage)
+	float pickray[6]; //store transformed pickray
+	void (*cursor)(struct eye *e, int *x, int *y); //return transformed cursor coords, in pixels
+	BOOL sbh; //true if render statusbarhud at this stage, eye
+} eye;
+typedef struct stage {
+	void (*prep)(double dtime);
+	void (*render)(); //struct stage *s);
+	int neyes; //1 or 2
+	eye eyes[3]; //full, left, right
+	struct stage **sub_stages;
+	int nsub;
+} stage;
+static stage output_stages[2];
+static int noutputstages = 2;
+void render_stage(stage *stagei,double dtime){
+	int i;
+	//do the sub-stages first, like you do layers in layersets
+	for(i=0;i<stagei->nsub;i++){
+		render_stage(stagei->sub_stages[i], dtime);
+	}
+	//then render over top the current layer/stage
+	stagei->prep(dtime);
+	stagei->render(stagei);
+}
+static float fullviewport[4] = {0.0f, 1.0f, 0.0f, 1.0f};
+void setup_stagesNORMAL(){
+	int i;
+	noutputstages = 1; //one screen
+	for(i=0;i<noutputstages;i++){
+		stage *stagei = &output_stages[i];
+		stagei->prep = fwl_RenderSceneUpdateScene0;
+		stagei->render = render;
+		stagei->nsub = 0;
+		stagei->neyes = 1;
+		for(i=0;i<stagei->neyes;i++){
+			eye *eyei = &stagei->eyes[i];
+			eyei->cursor = NULL;
+			eyei->pick = NULL;
+			eyei->sbh = FALSE;
+			eyei->target = 0;
+			eyei->viewport = fullviewport;
+		}
+	}
+}
+static int stages_initialized = 0;
+void fwl_RenderSceneUpdateSceneSTAGES() {
+	double dtime;
+	int i;
+	stage *stagei;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+
+	dtime = Time1970sec();
+	if(!stages_initialized){
+		setup_stagesNORMAL();
+		stages_initialized = 1;
+	}
+	for(i=0;i<noutputstages;i++){
+		stage *stagei = &output_stages[i];
+		if ( p->onScreen)
+			render_stage(stagei,dtime);
+	}
+}
 /*rendersceneupdatescene overridden with SnapshotRegressionTesting.c  
 	fwl_RenderSceneUpdateSceneTESTING during regression testing runs
 */
-void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneNORMAL;
+//void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneNORMAL;
+void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneSTAGES;
 void fwl_RenderSceneUpdateScene(void){
 
 	fwl_RenderSceneUpdateScenePTR();
