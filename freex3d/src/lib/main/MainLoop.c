@@ -452,27 +452,32 @@ int fw_exit(int val)
 	stereo - move left and right from vp by half-eyebase
 	front, top, right - use vp position and a primary direction
 */
-typedef struct eye {
-	unsigned int ibuffer; //fbo or backbuffer GL_UINT
-	//int iviewport[4]; //pixels left, width, bottom, height on target
-	float *viewport; //fraction of parent viewport left, width, bottom, height
-	void (*pick)(struct eye *e, float *ray); //pass in pickray (and tranform back to prior stage)
-	float pickray[6]; //store transformed pickray
-	void (*cursor)(struct eye *e, int *x, int *y); //return transformed cursor coords, in pixels
-	BOOL sbh; //true if render statusbarhud at this stage, eye
-} eye;
+//typedef struct eye {
+//	float *viewport; //fraction of parent viewport left, width, bottom, height
+//	void (*pick)(struct eye *e, float *ray); //pass in pickray (and tranform back to prior stage)
+//	float pickray[6]; //store transformed pickray
+//	void (*cursor)(struct eye *e, int *x, int *y); //return transformed cursor coords, in pixels
+//	//BOOL sbh; //true if render statusbarhud at this stage, eye
+//} eye;
 
 /* contenttype abstracts scene, statusbarhud, and HMD (head-mounted display) textured-distortion-grid
-	- each type has a prep and a render and some data
+	- each type has a prep and a render and some data, and a way to handle a pickray
 */
 typedef struct contenttype {
 	int itype; //0 scene, 1 statusbarHud, 2 texture grid
-	void (*prep)(double dtime);
 	void (*render)(); //struct stage *s);
+	void (*cursor)(int *x, int *y); //return transformed cursor coords, in pixels
+	float *viewport; //fraction of parent viewport left, width, bottom, height
 	struct contenttype *next;
 	void *data;
 } contenttype;
 
+
+typedef struct contenttype_scene {
+	//int neyes; //1 mono vp, 2 stereo vp, 4 quadrant front,top,right,vp
+	//eye eyes[7]; //full, left, front, top, right, vp
+	int eyenumber;
+} contenttype_scene;
 
 
 /* stage wraps contenttype and opengl buffer (screen backbuffer or fbo)
@@ -487,12 +492,9 @@ typedef struct contenttype {
 */
 typedef struct stage {
 	unsigned int id; 
+	unsigned int ibuffer; //fbo or backbuffer GL_UINT
 	contenttype *content;
-	int neyes; //1 mono vp, 2 stereo vp, 4 quadrant front,top,right,vp
-	eye eyes[7]; //full, left, front, top, right, vp
-	struct stage **sub_stages; //null terminated list of substages, use stage++ in loop
-	//int nsub;
-	//struct stage *next;
+	struct stage *sub_stages; //null terminated list of substages, use stage++ in loop
 	float *viewport; //fraction of parent viewport left, width, bottom, height
 } stage;
 static stage output_stages[2];
@@ -531,18 +533,17 @@ render_stage {
 void render_stage(stage *stagei,double dtime){
 	int i;
 	contenttype *content;
-	stage *s;
+	stage *ss;
 	//do the sub-stages first, like you do layers in layersets
-	s = stagei->sub_stages;
-	while(s){
-		render_stage(stagei->sub_stages[i], dtime);
-		s++;
+	ss = stagei->sub_stages;
+	while(ss){
+		render_stage(ss, dtime);
+		ss++;
 	}
 	//then render over top the current layer/stage
 	content = stagei->content;
 	while(content){
-		content->prep(dtime);
-		content->render(stagei);
+		content->render(stagei); //for contenttype_scene should iterate over eyes
 		content = content->next;
 	}
 }
@@ -553,19 +554,23 @@ void setup_stagesNORMAL(){
 	for(i=0;i<noutputstages;i++){
 		stage *stagei = &output_stages[i];
 		stagei->content = &contents[i];
-		stagei->content->prep = fwl_RenderSceneUpdateScene0;
+		//stagei->content->prep = fwl_RenderSceneUpdateScene0;
 		stagei->content->render = render;
+		stagei->ibuffer = 0;
 		//stagei->nsub = 0;
 		stagei->sub_stages = NULL;
+		stagei->content->itype = 0;
+		/*
 		stagei->neyes = 1;
 		for(i=0;i<stagei->neyes;i++){
 			eye *eyei = &stagei->eyes[i];
 			eyei->cursor = NULL;
 			eyei->pick = NULL;
-			eyei->sbh = FALSE;
-			eyei->ibuffer = 0;
+			//eyei->sbh = FALSE;
+			//eyei->ibuffer = 0;
 			eyei->viewport = fullviewport;
 		}
+		*/
 	}
 }
 static int stages_initialized = 0;
@@ -576,11 +581,14 @@ void fwl_RenderSceneUpdateSceneSTAGES() {
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
-	dtime = Time1970sec();
 	if(!stages_initialized){
 		setup_stagesNORMAL();
 		stages_initialized = 1;
 	}
+
+	dtime = Time1970sec();
+	fwl_RenderSceneUpdateScene0(dtime);
+
 	for(i=0;i<noutputstages;i++){
 		stage *stagei = &output_stages[i];
 		if ( p->onScreen)
@@ -692,7 +700,7 @@ void initialize_targets_simple(){
 	t->next = NULL;
 		stage *stagei = &output_stages[0];
 		stagei->content = &contents[0];
-		stagei->content->prep = fwl_RenderSceneUpdateScene0;
+		//stagei->content->prep = fwl_RenderSceneUpdateScene0;
 		stagei->content->render = render;
 		stagei->sub_stages = NULL;
 	t->stage = stagei;
@@ -705,9 +713,12 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
-	dtime = Time1970sec();
 	if(!targets_initialized)
 		initialize_targets_simple();
+
+	dtime = Time1970sec();
+	fwl_RenderSceneUpdateScene0(dtime);
+
 	targetwindow *t = targets;
 	while(t) { 
 		//a targetwindow might be a supervisor's screen, or HMD
