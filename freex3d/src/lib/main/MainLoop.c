@@ -447,47 +447,50 @@ int fw_exit(int val)
 	exit(val);
 }
 
-void fwl_RenderSceneUpdateSceneNORMAL() {
-	double dtime;
-	ttglobal tg = gglobal();
-	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
-
-	dtime = Time1970sec();
-	fwl_RenderSceneUpdateScene0(dtime);
-	/* actual rendering */
-	if ( p->onScreen) {
-		render();
-	}
-
-}
 typedef struct eye {
-	unsigned int target; //fbo or backbuffer GL_UINT
-	int iviewport[4]; //pixels left, width, bottom, height on target
+	unsigned int ibuffer; //fbo or backbuffer GL_UINT
+	//int iviewport[4]; //pixels left, width, bottom, height on target
 	float *viewport; //fraction of parent viewport left, width, bottom, height
 	void (*pick)(struct eye *e, float *ray); //pass in pickray (and tranform back to prior stage)
 	float pickray[6]; //store transformed pickray
 	void (*cursor)(struct eye *e, int *x, int *y); //return transformed cursor coords, in pixels
 	BOOL sbh; //true if render statusbarhud at this stage, eye
 } eye;
-typedef struct stage {
+typedef struct contenttype {
+	int itype; //0 scene, 1 statusbarHud, texture grid
+	void *data;
 	void (*prep)(double dtime);
 	void (*render)(); //struct stage *s);
+	struct contenttype *next;
+} content_t;
+
+typedef struct stage {
+	unsigned int id; 
+	content_t *content;
 	int neyes; //1 or 2
 	eye eyes[3]; //full, left, right
 	struct stage **sub_stages;
 	int nsub;
+	struct stage *next;
+	float *viewport; //fraction of parent viewport left, width, bottom, height
 } stage;
 static stage output_stages[2];
 static int noutputstages = 2;
+static content_t contents[2];
 void render_stage(stage *stagei,double dtime){
 	int i;
+	content_t *content;
 	//do the sub-stages first, like you do layers in layersets
 	for(i=0;i<stagei->nsub;i++){
 		render_stage(stagei->sub_stages[i], dtime);
 	}
 	//then render over top the current layer/stage
-	stagei->prep(dtime);
-	stagei->render(stagei);
+	content = stagei->content;
+	while(content){
+		content->prep(dtime);
+		content->render(stagei);
+		content = content->next;
+	}
 }
 static float fullviewport[4] = {0.0f, 1.0f, 0.0f, 1.0f};
 void setup_stagesNORMAL(){
@@ -495,8 +498,9 @@ void setup_stagesNORMAL(){
 	noutputstages = 1; //one screen
 	for(i=0;i<noutputstages;i++){
 		stage *stagei = &output_stages[i];
-		stagei->prep = fwl_RenderSceneUpdateScene0;
-		stagei->render = render;
+		stagei->content = &contents[i];
+		stagei->content->prep = fwl_RenderSceneUpdateScene0;
+		stagei->content->render = render;
 		stagei->nsub = 0;
 		stagei->neyes = 1;
 		for(i=0;i<stagei->neyes;i++){
@@ -504,7 +508,7 @@ void setup_stagesNORMAL(){
 			eyei->cursor = NULL;
 			eyei->pick = NULL;
 			eyei->sbh = FALSE;
-			eyei->target = 0;
+			eyei->ibuffer = 0;
 			eyei->viewport = fullviewport;
 		}
 	}
@@ -528,11 +532,184 @@ void fwl_RenderSceneUpdateSceneSTAGES() {
 			render_stage(stagei,dtime);
 	}
 }
+void fwl_RenderSceneUpdateSceneNORMAL() {
+	double dtime;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+
+	dtime = Time1970sec();
+	fwl_RenderSceneUpdateScene0(dtime);
+	/* actual rendering */
+	if ( p->onScreen) {
+		render();
+	}
+
+}
+
+//viewport stuff - see Component_Layering.c
+typedef struct ivec4 {int X; int Y; int W; int H;} ivec4;
+typedef struct ivec2 {int X; int Y;} ivec2;
+ivec4 childViewport(ivec4 parentViewport, float *clipBoundary); 
+
+#ifdef MULTI_WINDOW
+/* MULTI_WINDOW is for desktop configurations where 2 or more windows are rendered to.
+	- desktop (windows, linux, mac) only, because it relies on changing the opengl context, 
+		and those are desktop-platform-specific calls. GLES2 (opengl es 2) 
+		doesn't have those functions - assuming a single window - so can't do multi-window.
+	- an example multi-window configuration: 
+		1) HMD (head mounted display + 2) supervisors screen
+		- they would go through different stages, rendered to different size windows, different menuing
+		- and different pickrays -a mouse for supervisor, orientation sensor for HMD 
+	Design Option: instead of #ifdef here, all configs could supply 
+		fwSwapBuffers() and fwChangeGlContext() functions in the front-end modules,
+		including android/mobile/GLES2 which would stub or implement as appropriate
+*/
+typedef struct glcontext {
+#ifdef WIN32
+	HWND window; //need in order to tell which window a mouse/key input came from
+	HDC dc; //GLES2/mobile/winRT can only have one target, so not needed for those. 
+	HGLRC rc; //Desktop calls: windows: wglMakeCurrent(dc,rc) mac: aglSetCurrentContext(ctx), linux: glXMakeContextCurrent(dpy,drawable,read,context)
+#elif LINUX
+	int dpy;
+	int drawable;
+	int read;
+	int context;
+#elif AQUA
+	int ctx;
+#else
+	int nothing;
+#endif
+}glcontext;
+
+void setGlContext(glcontext ctx){
+#ifdef WIN32
+	wglMakeCurrent(ctx.dc,ctx.rc);
+#elif LINUX
+	glXMakeContextCurrent(ctx.dpy,ctx.drawable,ctx.read,ctx.context);
+#elif AQUA
+	aglSetCurrentContext(ctx.ctx);
+#else
+	continue;
+#endif
+
+}
+
+typedef struct targetwindow {
+	//a target is a window. For example you could have an HMD as one target, 
+	//and desktop screen window as another target, both rendered to on the same frame
+	BOOL swapbuf; //true if we should swapbuffer on the target
+	float *vport; //fraction of pixel iviewport we are targeting left, width, bottom, height
+	glcontext ctx;
+	stage *stages;
+	struct targetwindow *next;
+} targetwindow;
+/*
+for targetwindow in targets //supervisor screen, HMD
+	for stage in stages
+		[set buffer ie if 1-buffer fbo technqiue]
+		[clear buffer]
+		push buffer viewport
+		for content in contents // scene [,sbh]
+			push content area viewport
+			for view in views //for now, just vp, future [,side, top, front]
+				push projection
+				push / alter view matrix
+				for eye in eyes
+					[set buffer ie if 2-buffer fbo technique]
+					push eye viewport
+					push or alter view matrix
+					render from last stage output to this stage output, applying stage-specific
+					pop
+				pop
+			pop
+		pop
+	get final buffer, or swapbuffers	
+something similar for pickrays, except pick() instead of render()
+- or pickrays (3 per target: [left, right, forehead/mono]),  updated on same pass once per frame
+
+*/
+static targetwindow targets[2]; //could be in gglobal? Or the other way - target { global }?
+
+static int targets_initialized = 0;
+float defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; 
+void initialize_targets_simple(){
+	targetwindow *t = &targets[0];
+	t->next = NULL;
+		stage *stagei = &output_stages[0];
+		stagei->content = &contents[0];
+		stagei->content->prep = fwl_RenderSceneUpdateScene0;
+		stagei->content->render = render;
+		stagei->next = NULL;
+	t->stages = stagei;
+	t->vport = defaultClipBoundary;
+	targets_initialized = 1;
+}
+
+void fwl_RenderSceneUpdateSceneTARGETS() {
+	double dtime;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+
+	dtime = Time1970sec();
+	if(!targets_initialized)
+		initialize_targets_simple();
+	targetwindow *t = targets;
+	while(t) { 
+		//a targetwindow might be a supervisor's screen, or HMD
+		ivec4 tport, pvport,vport;
+		Stack *vportstack;
+		vportstack = (Stack *)tg->display._vportstack;
+		tport = stack_top(ivec4,vportstack);
+		pvport = childViewport(tport,t->vport);
+		pushviewport(vportstack, pvport);
+		stage *s = t->stages;
+		while(s){
+			render_stage(s,dtime);
+			s = s->next;
+			/*
+			content *data;
+			//[set buffer ie if 1-buffer fbo technqiue]
+			//push buffer viewport
+			vport = childViewport(pvport,s->viewport);
+			pushviewport(vportstack, vport);
+			//[clear buffer]
+			glClear(GL_DEPTH);
+			data = s->data;
+			while(data){ // scene [,sbh]
+				//push content area viewport
+				for view in views //for now, just vp, future [,side, top, front]
+					push projection
+					push / alter view matrix
+					for eye in eyes
+						[set buffer ie if 2-buffer fbo technique]
+						push eye viewport
+						push or alter view matrix
+						render from last stage output to this stage output, applying stage-specific
+						pop
+					pop
+				pop
+				data = data->next;
+			}
+			popviewport(vportstack);
+			setcurrentviewport(vportstack);
+			*/
+		}
+		//get final buffer, or swapbuffers	
+		popviewport(vportstack);
+		setcurrentviewport(vportstack);
+		if(t->swapbuf) { FW_GL_SWAPBUFFERS }
+		t = t->next;
+	}
+}
+void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneTARGETS;
+#else //MULTI_WINDOW
+//void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneNORMAL;
+void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneSTAGES;
+#endif //MULTI_WINDOW
+
 /*rendersceneupdatescene overridden with SnapshotRegressionTesting.c  
 	fwl_RenderSceneUpdateSceneTESTING during regression testing runs
 */
-//void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneNORMAL;
-void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneSTAGES;
 void fwl_RenderSceneUpdateScene(void){
 
 	fwl_RenderSceneUpdateScenePTR();
@@ -1455,8 +1632,6 @@ static void render_pre() {
 		//drawStatusBar();
 		PRINT_GL_ERROR_IF_ANY("GLBackend::render_pre");
 }
-typedef struct ivec4 {int X; int Y; int W; int H;} ivec4;
-typedef struct ivec2 {int X; int Y;} ivec2;
 ivec2 ivec2_init(int x, int y);
 int pointinsideviewport(ivec4 vp, ivec2 pt);
 static int setup_pickside(int x, int y){
@@ -3430,6 +3605,8 @@ void view_update0(void){
 		restoreGlobalShader();
 	#endif
 }
+
+
 
 void killNodes();
 
