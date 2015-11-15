@@ -447,6 +447,11 @@ int fw_exit(int val)
 	exit(val);
 }
 
+/* eye can be computed automatically from vp (viewpoint)
+	mono == vp
+	stereo - move left and right from vp by half-eyebase
+	front, top, right - use vp position and a primary direction
+*/
 typedef struct eye {
 	unsigned int ibuffer; //fbo or backbuffer GL_UINT
 	//int iviewport[4]; //pixels left, width, bottom, height on target
@@ -456,33 +461,82 @@ typedef struct eye {
 	void (*cursor)(struct eye *e, int *x, int *y); //return transformed cursor coords, in pixels
 	BOOL sbh; //true if render statusbarhud at this stage, eye
 } eye;
+
+/* contenttype abstracts scene, statusbarhud, and HMD (head-mounted display) textured-distortion-grid
+	- each type has a prep and a render and some data
+*/
 typedef struct contenttype {
-	int itype; //0 scene, 1 statusbarHud, texture grid
-	void *data;
+	int itype; //0 scene, 1 statusbarHud, 2 texture grid
 	void (*prep)(double dtime);
 	void (*render)(); //struct stage *s);
 	struct contenttype *next;
-} content_t;
+	void *data;
+} contenttype;
 
+
+
+/* stage wraps contenttype and opengl buffer (screen backbuffer or fbo)
+	and allows chaining and forking of stages
+	- so a single output window can be rendered from multiple stages
+		working back from the window to the scene, the scene is rendered first, 
+			then any menu stage
+			then any distortion stage
+	- and a single stage can be composed of multiple stages, 
+		- covering the same viewport but clearing depth buffer between each stage
+		- and/or covering sub-viewports / tiles
+*/
 typedef struct stage {
 	unsigned int id; 
-	content_t *content;
-	int neyes; //1 or 2
-	eye eyes[3]; //full, left, right
-	struct stage **sub_stages;
-	int nsub;
-	struct stage *next;
+	contenttype *content;
+	int neyes; //1 mono vp, 2 stereo vp, 4 quadrant front,top,right,vp
+	eye eyes[7]; //full, left, front, top, right, vp
+	struct stage **sub_stages; //null terminated list of substages, use stage++ in loop
+	//int nsub;
+	//struct stage *next;
 	float *viewport; //fraction of parent viewport left, width, bottom, height
 } stage;
 static stage output_stages[2];
 static int noutputstages = 2;
-static content_t contents[2];
+static contenttype contents[2];
+/*
+render_stage {
+	content *data;
+	//[set buffer ie if 1-buffer fbo technqiue]
+	//push buffer viewport
+	vport = childViewport(pvport,s->viewport);
+	pushviewport(vportstack, vport);
+	//[clear buffer]
+	glClear(GL_DEPTH);
+	data = s->data;
+	while(data){ // scene [,sbh]
+		//push content area viewport
+		for view in views //for now, just vp, future [,side, top, front]
+			push projection
+			push / alter view matrix
+			for eye in eyes
+				[set buffer ie if 2-buffer fbo technique]
+				push eye viewport
+				push or alter view matrix
+				render from last stage output to this stage output, applying stage-specific
+				pop
+			pop
+		pop
+		data = data->next;
+	}
+	popviewport(vportstack);
+	setcurrentviewport(vportstack);
+}
+*/
+
 void render_stage(stage *stagei,double dtime){
 	int i;
-	content_t *content;
+	contenttype *content;
+	stage *s;
 	//do the sub-stages first, like you do layers in layersets
-	for(i=0;i<stagei->nsub;i++){
+	s = stagei->sub_stages;
+	while(s){
 		render_stage(stagei->sub_stages[i], dtime);
+		s++;
 	}
 	//then render over top the current layer/stage
 	content = stagei->content;
@@ -501,7 +555,8 @@ void setup_stagesNORMAL(){
 		stagei->content = &contents[i];
 		stagei->content->prep = fwl_RenderSceneUpdateScene0;
 		stagei->content->render = render;
-		stagei->nsub = 0;
+		//stagei->nsub = 0;
+		stagei->sub_stages = NULL;
 		stagei->neyes = 1;
 		for(i=0;i<stagei->neyes;i++){
 			eye *eyei = &stagei->eyes[i];
@@ -600,7 +655,7 @@ typedef struct targetwindow {
 	BOOL swapbuf; //true if we should swapbuffer on the target
 	float *vport; //fraction of pixel iviewport we are targeting left, width, bottom, height
 	glcontext ctx;
-	stage *stages;
+	stage *stage;
 	struct targetwindow *next;
 } targetwindow;
 /*
@@ -639,13 +694,13 @@ void initialize_targets_simple(){
 		stagei->content = &contents[0];
 		stagei->content->prep = fwl_RenderSceneUpdateScene0;
 		stagei->content->render = render;
-		stagei->next = NULL;
-	t->stages = stagei;
+		stagei->sub_stages = NULL;
+	t->stage = stagei;
 	t->vport = defaultClipBoundary;
 	targets_initialized = 1;
 }
 
-void fwl_RenderSceneUpdateSceneTARGETS() {
+void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 	double dtime;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
@@ -662,10 +717,10 @@ void fwl_RenderSceneUpdateSceneTARGETS() {
 		tport = stack_top(ivec4,vportstack);
 		pvport = childViewport(tport,t->vport);
 		pushviewport(vportstack, pvport);
-		stage *s = t->stages;
-		while(s){
+		stage *s = t->stage;
+		//while(s){
 			render_stage(s,dtime);
-			s = s->next;
+			//s = s->next;
 			/*
 			content *data;
 			//[set buffer ie if 1-buffer fbo technqiue]
@@ -693,7 +748,7 @@ void fwl_RenderSceneUpdateSceneTARGETS() {
 			popviewport(vportstack);
 			setcurrentviewport(vportstack);
 			*/
-		}
+		//}
 		//get final buffer, or swapbuffers	
 		popviewport(vportstack);
 		setcurrentviewport(vportstack);
@@ -701,7 +756,7 @@ void fwl_RenderSceneUpdateSceneTARGETS() {
 		t = t->next;
 	}
 }
-void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneTARGETS;
+void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneTARGETWINDOWS;
 #else //MULTI_WINDOW
 //void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneNORMAL;
 void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneSTAGES;
