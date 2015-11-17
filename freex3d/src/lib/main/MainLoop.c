@@ -2021,34 +2021,20 @@ void setup_pickray(int x, int y)
 /* Render the scene */
 static void render()
 {
-//#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
-    int count;
+	int count;
 	static double shuttertime;
 	static int shutterside;
-//#endif
 
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 
-//#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
-	/*  profile*/
-    /* double xx,yy,zz,aa,bb,cc,dd,ee,ff;*/
-
 	for (count = 0; count < p->maxbuffers; count++) {
-
-        /*set_buffer((unsigned)bufferarray[count],count); */              /*  in Viewer.c*/
 
 		Viewer()->buffer = (unsigned)p->bufferarray[count];
 		Viewer()->iside = count;
-#ifdef OLDCODE
-OLDCODE#ifdef HAVE_GLEW_H //#ifndef GLES2
-OLDCODE		FW_GL_DRAWBUFFER((unsigned)p->bufferarray[count]);
-OLDCODE#endif
-#endif //OLDCODE
 
-        /*  turn lights off, and clear buffer bits*/
-
+		/*  turn lights off, and clear buffer bits*/
 		if(Viewer()->isStereo)
 		{
 
@@ -2062,7 +2048,7 @@ OLDCODE#endif
 				}
 				if(count != shutterside) continue;
 			}
-			if(Viewer()->anaglyph) //haveAnaglyphShader)
+			if(Viewer()->anaglyph)
 			{
 				//set the channels for backbuffer clearing
 				if(count == 0)
@@ -2082,38 +2068,32 @@ OLDCODE#endif
 		//BackEndLightsOff();
 		clearLightTable();//turns all lights off- will turn them on for VF_globalLight and scope-wise for non-global in VF_geom
 
-//#else
-//
-//	BackEndClearBuffer(2); // no stereo, no shutter glasses: simple clear
-//
-//#endif // SHUTTER GLASSES or STEREO
 
-	/*  turn light #0 off only if it is not a headlight.*/
-	if (!fwl_get_headlight()) {
-		setLightState(HEADLIGHT_LIGHT,FALSE);
-		setLightType(HEADLIGHT_LIGHT,2); // DirectionalLight
-	}
+		/*  turn light #0 off only if it is not a headlight.*/
+		if (!fwl_get_headlight()) {
+			setLightState(HEADLIGHT_LIGHT,FALSE);
+			setLightType(HEADLIGHT_LIGHT,2); // DirectionalLight
+		}
 
-	/*  Other lights*/
-	PRINT_GL_ERROR_IF_ANY("XEvents::render, before render_hier");
+		/*  Other lights*/
+		PRINT_GL_ERROR_IF_ANY("XEvents::render, before render_hier");
 
-	render_hier(rootNode(), VF_globalLight);
-	PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_globalLight)");
+		render_hier(rootNode(), VF_globalLight);
+		PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_globalLight)");
 
-	/*  4. Nodes (not the blended ones)*/
-	profile_start("hier_geom");
-	render_hier(rootNode(), VF_Geom);
-	profile_end("hier_geom");
-	PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_Geom)");
-
-	/*  5. Blended Nodes*/
-	if (tg->RenderFuncs.have_transparency) {
-		/*  render the blended nodes*/
-		render_hier(rootNode(), VF_Geom | VF_Blend);
+		/*  4. Nodes (not the blended ones)*/
+		profile_start("hier_geom");
+		render_hier(rootNode(), VF_Geom);
+		profile_end("hier_geom");
 		PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_Geom)");
-	}
 
-//#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
+		/*  5. Blended Nodes*/
+		if (tg->RenderFuncs.have_transparency) {
+			/*  render the blended nodes*/
+			render_hier(rootNode(), VF_Geom | VF_Blend);
+			PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_Geom)");
+		}
+
 		if (Viewer()->isStereo) {
 #ifndef DISABLER
 			if (Viewer()->sidebyside){
@@ -2128,11 +2108,8 @@ OLDCODE#endif
 	} /* for loop */
 
 
-//#endif
-
 	if(p->EMULATE_MULTITOUCH) {
-        int i;
-
+		int i;
 		for(i=0;i<p->ntouch;i++)
 			if(p->touchlist[i].ID > -1)
 				cursorDraw(p->touchlist[i].ID,p->touchlist[i].x,p->touchlist[i].y,p->touchlist[i].angle);
