@@ -121,6 +121,138 @@ struct Touch
 	int x;
 	int y; //y-down
 };
+typedef struct ivec4 {int X; int Y; int W; int H;} ivec4;
+typedef struct ivec2 {int X; int Y;} ivec2;
+void pushviewport(Stack *vpstack, ivec4 vp);
+void popviewport(Stack *vpstack);
+void setcurrentviewport(Stack *_vpstack);
+
+void pushviewport(Stack *vpstack, ivec4 vp){
+	stack_push(ivec4,vpstack,vp);
+}
+void popviewport(Stack *vpstack){
+	stack_pop(ivec4,vpstack);
+	if(!stack_empty(vpstack)){
+		ivec4 vp = stack_top(ivec4,vpstack);
+	}
+}
+int overlapviewports(ivec4 vp1, ivec4 vp2){
+	//0 - outside, 1 - vp1 inside vp2 -1 vp2 inside vp1 2 overlapping
+	int inside = 0;
+	inside = vp1.X >= vp2.X && (vp1.X+vp1.W) <= (vp2.X+vp2.W) ? 1 : 0;
+	if(!inside){
+		inside = vp2.X >= vp1.X && (vp2.X+vp2.W) <= (vp1.X+vp1.W) ? -1 : 0;
+	}
+	if(!inside){
+		inside = vp1.X > (vp2.X+vp2.W) || vp1.X > (vp1.X+vp1.W) || vp1.Y > (vp2.Y+vp2.H) || vp2.Y > (vp1.Y+vp1.H) ? 0 : 2;
+	}
+	return inside;
+}
+ivec4 intersectviewports(ivec4 vp1, ivec4 vp2){
+	ivec4 vpo;
+	vpo.X = max(vp1.X,vp2.X);
+	vpo.W = min(vp1.X+vp1.W,vp2.X+vp2.W) - vpo.X;
+	vpo.Y = max(vp1.Y,vp2.Y);
+	vpo.H = min(vp1.Y+vp1.H,vp2.Y+vp2.H) - vpo.Y;
+	//printf("olap [%d %d %d %d] ^ [%d %d %d %d] = [%d %d %d %d]\n",vp1.X,vp1.Y,vp1.W,vp1.H,vp2.X,vp2.Y,vp2.W,vp2.H,vpo.X,vpo.Y,vpo.W,vpo.H);
+	return vpo;
+}
+int visibleviewport(ivec4 vp){
+	int ok = vp.W > 0 && vp.H > 0;
+	return ok;
+}
+int pointinsideviewport(ivec4 vp, ivec2 pt){
+	int inside = TRUE;
+	inside = inside && pt.X <= (vp.X + vp.W) && (pt.X >= vp.X);
+	inside = inside && pt.Y <= (vp.Y + vp.H) && (pt.Y >= vp.Y);
+	return inside;
+}
+int pointinsidecurrentviewport(Stack *vpstack, ivec2 pt){
+	ivec4 vp = stack_top(ivec4,vpstack);
+	return pointinsideviewport(vp,pt);
+}
+void intersectandpushviewport(Stack *vpstack, ivec4 childvp){
+	ivec4 currentvp = stack_top(ivec4,vpstack);
+	ivec4 olap = intersectviewports(childvp,currentvp);
+	pushviewport(vpstack, olap); //I need to unconditionally push, because I will be unconditionally popping later
+}
+int currentviewportvisible(Stack *vpstack){
+	ivec4 currentvp = stack_top(ivec4,vpstack);
+	return visibleviewport(currentvp);
+}
+void setcurrentviewport(Stack *_vpstack){
+	ivec4 vp = stack_top(ivec4,_vpstack);
+	glViewport(vp.X,vp.Y,vp.W,vp.H);
+}
+
+
+/* eye can be computed automatically from vp (viewpoint)
+	mono == vp
+	stereo - move left and right from vp by half-eyebase
+	front, top, right - use vp position and a primary direction
+*/
+//typedef struct eye {
+//	float *viewport; //fraction of parent viewport left, width, bottom, height
+//	void (*pick)(struct eye *e, float *ray); //pass in pickray (and tranform back to prior stage)
+//	float pickray[6]; //store transformed pickray
+//	void (*cursor)(struct eye *e, int *x, int *y); //return transformed cursor coords, in pixels
+//	//BOOL sbh; //true if render statusbarhud at this stage, eye
+//} eye;
+
+/* contenttype abstracts scene, statusbarhud, and HMD (head-mounted display) textured-distortion-grid
+	- each type has a prep and a render and some data, and a way to handle a pickray
+*/
+typedef struct contenttype {
+	int itype; //0 scene, 1 statusbarHud, 2 texture grid
+	void (*render)(); //struct stage *s);
+	void (*cursor)(int *x, int *y); //return transformed cursor coords, in pixels
+	float viewport[4]; //fraction of parent viewport left, width, bottom, height
+	struct contenttype *next;
+	void *data;
+} contenttype;
+
+
+typedef struct contenttype_scene {
+	//int neyes; //1 mono vp, 2 stereo vp, 4 quadrant front,top,right,vp
+	//eye eyes[7]; //full, left, front, top, right, vp
+	int eyenumber;
+} contenttype_scene;
+
+
+/* stage wraps contenttype and opengl buffer (screen backbuffer or fbo)
+	and allows chaining and forking of stages
+	- so a single output window can be rendered from multiple stages
+		working back from the window to the scene, the scene is rendered first, 
+			then any menu stage
+			then any distortion stage
+	- and a single stage can be composed of multiple stages, 
+		- covering the same viewport but clearing depth buffer between each stage
+		- and/or covering sub-viewports / tiles
+*/
+typedef struct stage {
+	unsigned int id; 
+	unsigned int ibuffer; //fbo or backbuffer GL_UINT
+	contenttype *content;
+	contenttype contents[10];
+	struct stage *sub_stages; //null terminated list of substages, use stage++ in loop
+	float viewport[4]; //fraction of parent viewport left, width, bottom, height
+} stage;
+
+typedef struct targetwindow {
+	//a target is a window. For example you could have an HMD as one target, 
+	//and desktop screen window as another target, both rendered to on the same frame
+	void *hwnd; //window handle
+	BOOL swapbuf; //true if we should swapbuffer on the target
+	ivec4 ivport; //fraction of pixel iviewport we are targeting left, width, bottom, height
+#ifdef MULTI_WINDOW
+//	glcontext ctx;
+#endif
+	stage stages[2]; //pre-allocation
+	//stage *output_stages;
+	int stages_initialized;
+	stage *stage;
+	struct targetwindow *next;
+} targetwindow;
 
 typedef struct pMainloop{
 	//browser
@@ -192,6 +324,8 @@ typedef struct pMainloop{
 	double viewtransformmatrix[16];
 	double posorimatrix[16];
 	double stereooffsetmatrix[2][16];
+	targetwindow twindows[4];
+	Stack *_vportstack;
 }* ppMainloop;
 void *Mainloop_constructor(){
 	void *v = MALLOCV(sizeof(struct pMainloop));
@@ -293,6 +427,9 @@ void Mainloop_init(struct tMainloop *t){
 		p->keywait = FALSE;
 		p->keywaitstring[0] = (char)0;
 		p->fps_sleep_remainder = 0;
+		t->twindows = p->twindows;
+		p->_vportstack = newStack(ivec4);
+		t->_vportstack = (void *)p->_vportstack; //represents screen pixel area being drawn to
 	}
 }
 void Mainloop_clear(struct tMainloop *t){
@@ -304,6 +441,25 @@ void Mainloop_clear(struct tMainloop *t){
 		ppMainloop p = (ppMainloop)t->prv;
 		FREE_IF_NZ(p->SensorEvents);
 	}
+}
+
+//call hwnd_to_windex in frontend window creation and event handling,
+//to convert to more convenient int index.
+int hwnd_to_windex(void *hWnd){
+	targetwindow *targets;
+	ttglobal tg = gglobal();
+
+	targets = (targetwindow*)tg->Mainloop.twindows;
+	int i;
+	for(i=0;i<4;i++){
+		if(!targets[i].hwnd){
+			//not found, create
+			targets[i].hwnd = hWnd;
+			targets[i].swapbuf = TRUE;
+		}
+		if(targets[i].hwnd == hWnd) return i;
+	}
+	return 0;
 }
 #define LMB 1
 #define MMB 2
@@ -447,59 +603,9 @@ int fw_exit(int val)
 	exit(val);
 }
 
-/* eye can be computed automatically from vp (viewpoint)
-	mono == vp
-	stereo - move left and right from vp by half-eyebase
-	front, top, right - use vp position and a primary direction
-*/
-//typedef struct eye {
-//	float *viewport; //fraction of parent viewport left, width, bottom, height
-//	void (*pick)(struct eye *e, float *ray); //pass in pickray (and tranform back to prior stage)
-//	float pickray[6]; //store transformed pickray
-//	void (*cursor)(struct eye *e, int *x, int *y); //return transformed cursor coords, in pixels
-//	//BOOL sbh; //true if render statusbarhud at this stage, eye
-//} eye;
-
-/* contenttype abstracts scene, statusbarhud, and HMD (head-mounted display) textured-distortion-grid
-	- each type has a prep and a render and some data, and a way to handle a pickray
-*/
-typedef struct contenttype {
-	int itype; //0 scene, 1 statusbarHud, 2 texture grid
-	void (*render)(); //struct stage *s);
-	void (*cursor)(int *x, int *y); //return transformed cursor coords, in pixels
-	float *viewport; //fraction of parent viewport left, width, bottom, height
-	struct contenttype *next;
-	void *data;
-} contenttype;
-
-
-typedef struct contenttype_scene {
-	//int neyes; //1 mono vp, 2 stereo vp, 4 quadrant front,top,right,vp
-	//eye eyes[7]; //full, left, front, top, right, vp
-	int eyenumber;
-} contenttype_scene;
-
-
-/* stage wraps contenttype and opengl buffer (screen backbuffer or fbo)
-	and allows chaining and forking of stages
-	- so a single output window can be rendered from multiple stages
-		working back from the window to the scene, the scene is rendered first, 
-			then any menu stage
-			then any distortion stage
-	- and a single stage can be composed of multiple stages, 
-		- covering the same viewport but clearing depth buffer between each stage
-		- and/or covering sub-viewports / tiles
-*/
-typedef struct stage {
-	unsigned int id; 
-	unsigned int ibuffer; //fbo or backbuffer GL_UINT
-	contenttype *content;
-	struct stage *sub_stages; //null terminated list of substages, use stage++ in loop
-	float *viewport; //fraction of parent viewport left, width, bottom, height
-} stage;
-static stage output_stages[2];
-static int noutputstages = 2;
-static contenttype contents[2];
+//static stage output_stages[2];
+//static int noutputstages = 2;
+//static contenttype contents[2];
 /*
 render_stage {
 	content *data;
@@ -534,26 +640,50 @@ void render_stage(stage *stagei,double dtime){
 	int i;
 	contenttype *content;
 	stage *ss;
+	ttglobal tg = gglobal();
+
+
+	if(stagei->ibuffer == 0){
+		//rendering to normal backbuffer, use current viewport
+		ivec4 ivport = stack_top(ivec4,tg->Mainloop._vportstack);
+		pushviewport(tg->Mainloop._vportstack,ivport);
+	}else{
+		//rendering to fbo
+	}
+	if(0) setcurrentviewport(tg->Mainloop._vportstack);
+
 	//do the sub-stages first, like you do layers in layersets
 	ss = stagei->sub_stages;
 	while(ss){
+		resize_GL(592, 395);
 		render_stage(ss, dtime);
 		ss++;
 	}
 	//then render over top the current layer/stage
 	content = stagei->content;
 	while(content){
-		content->render(stagei); //for contenttype_scene should iterate over eyes
+
+		content->render(); //stagei); //for contenttype_scene should iterate over eyes
 		content = content->next;
 	}
+	popviewport(tg->Mainloop._vportstack);
+	//setcurrentviewport(tg->display._vportstack);
 }
 static float fullviewport[4] = {0.0f, 1.0f, 0.0f, 1.0f};
 void setup_stagesNORMAL(){
 	int i;
-	noutputstages = 1; //one screen
-	for(i=0;i<noutputstages;i++){
-		stage *stagei = &output_stages[i];
-		stagei->content = &contents[i];
+	targetwindow *twindow;
+	stage *stages;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+
+	twindow = p->twindows;
+	int noutputstages = 1; //one screen
+	stages = twindow[0].stages;
+	twindow->stage = &stages[0];
+	//for(i=0;i<noutputstages;i++){
+		stage *stagei = twindow->stage;// &stages[i];
+		stagei->content = &stagei->contents[0];
 		//stagei->content->prep = fwl_RenderSceneUpdateScene0;
 		stagei->content->render = render;
 		stagei->ibuffer = 0;
@@ -571,13 +701,14 @@ void setup_stagesNORMAL(){
 			eyei->viewport = fullviewport;
 		}
 		*/
-	}
+	//}
 }
 static int stages_initialized = 0;
 void fwl_RenderSceneUpdateSceneSTAGES() {
 	double dtime;
 	int i;
-	stage *stagei;
+	targetwindow *t;
+	stage *stagei, *stages;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
@@ -589,11 +720,14 @@ void fwl_RenderSceneUpdateSceneSTAGES() {
 	dtime = Time1970sec();
 	fwl_RenderSceneUpdateScene0(dtime);
 
-	for(i=0;i<noutputstages;i++){
-		stage *stagei = &output_stages[i];
+	t = p->twindows;
+	int noutputstages = 1;
+	stagei = t->stage;
+	//for(i=0;i<noutputstages;i++){
+	//	stage *stagei = &output_stages[i];
 		if ( p->onScreen)
 			render_stage(stagei,dtime);
-	}
+	//}
 }
 void fwl_RenderSceneUpdateSceneNORMAL() {
 	double dtime;
@@ -610,8 +744,6 @@ void fwl_RenderSceneUpdateSceneNORMAL() {
 }
 
 //viewport stuff - see Component_Layering.c
-typedef struct ivec4 {int X; int Y; int W; int H;} ivec4;
-typedef struct ivec2 {int X; int Y;} ivec2;
 ivec4 childViewport(ivec4 parentViewport, float *clipBoundary); 
 
 #ifdef MULTI_WINDOW
@@ -657,15 +789,6 @@ void setGlContext(glcontext ctx){
 
 }
 
-typedef struct targetwindow {
-	//a target is a window. For example you could have an HMD as one target, 
-	//and desktop screen window as another target, both rendered to on the same frame
-	BOOL swapbuf; //true if we should swapbuffer on the target
-	float *vport; //fraction of pixel iviewport we are targeting left, width, bottom, height
-	glcontext ctx;
-	stage *stage;
-	struct targetwindow *next;
-} targetwindow;
 /*
 for targetwindow in targets //supervisor screen, HMD
 	for stage in stages
@@ -692,44 +815,77 @@ something similar for pickrays, except pick() instead of render()
 
 */
 static targetwindow targets[2]; //could be in gglobal? Or the other way - target { global }?
+void fwl_setScreenDim1(int wi, int he, int itargetwindow){
+	targetwindow *twindows;
+	ivec4 window_rect;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+
+	window_rect.X = 0;
+	window_rect.Y = 0;
+	window_rect.W = wi;
+	window_rect.H = he;
+
+	twindows = p->twindows;
+	twindows[itargetwindow].ivport = window_rect;
+	//the rest is initialized in the target rendering loop, via fwl_setScreenDim(w,h)
+}
 
 static int targets_initialized = 0;
 float defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; 
 void initialize_targets_simple(){
-	targetwindow *t = &targets[0];
+	stage *stagei;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+
+	targetwindow *t = p->twindows;
+
+	if(!t->stages_initialized){
+		setup_stagesNORMAL();
+		t->stages_initialized = 1;
+	}
+
+
 	t->next = NULL;
-		stage *stagei = &output_stages[0];
-		stagei->content = &contents[0];
+	stagei = t->stage;
+		//stage *stagei = &stages[0];
+		//stagei->content = &contents[0];
 		//stagei->content->prep = fwl_RenderSceneUpdateScene0;
 		stagei->content->render = render;
+		memcpy(stagei->viewport,defaultClipBoundary,4*sizeof(float));
 		stagei->sub_stages = NULL;
-	t->stage = stagei;
-	t->vport = defaultClipBoundary;
-	targets_initialized = 1;
+	//t->stage = stagei;
+	//t->ivport = defaultClipBoundary;
+	tg->Mainloop.targets_initialized = 1;
 }
-
 void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 	double dtime;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
-	if(!targets_initialized)
+	if(!tg->Mainloop.targets_initialized)
 		initialize_targets_simple();
 
 	dtime = Time1970sec();
 	fwl_RenderSceneUpdateScene0(dtime);
 
-	targetwindow *t = targets;
+	targetwindow *t = p->twindows;
 	while(t) { 
 		//a targetwindow might be a supervisor's screen, or HMD
 		ivec4 tport, pvport,vport;
 		Stack *vportstack;
-		vportstack = (Stack *)tg->display._vportstack;
-		tport = stack_top(ivec4,vportstack);
-		pvport = childViewport(tport,t->vport);
-		pushviewport(vportstack, pvport);
+
+		fwl_setScreenDim(t->ivport.W, t->ivport.H);
+
+		vportstack = (Stack *)tg->Mainloop._vportstack;
+		pushviewport(vportstack,t->ivport);
+
+		//tport = stack_top(ivec4,vportstack);
+		//pvport = childViewport(tport,t->ivport);
+		//pushviewport(vportstack, pvport);
 		stage *s = t->stage;
 		//while(s){
+
 			render_stage(s,dtime);
 			//s = s->next;
 			/*
@@ -762,8 +918,8 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 		//}
 		//get final buffer, or swapbuffers	
 		popviewport(vportstack);
-		setcurrentviewport(vportstack);
-		if(t->swapbuf) { FW_GL_SWAPBUFFERS }
+		//setcurrentviewport(vportstack);
+		//if(t->swapbuf) { FW_GL_SWAPBUFFERS }
 		t = t->next;
 	}
 }
@@ -831,17 +987,6 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 			kludgefactor = 2.0; //2 works on win8.1 with intel i5
 			target_frames_per_second = fwl_get_target_fps();
 			elapsed_time_per_frame = TickTime() - lastTime();
-			/*
-			if(1){
-				//do you trust the statusbar FPS? Here's a double-check.
-				static double cumulative_frame_time = 0.001;
-				static double cumulative_frames = 0.0;
-				cumulative_frames += 1.0;
-				cumulative_frame_time += elapsed_time_per_frame;
-				average_fps = cumulative_frames / cumulative_frame_time;
-				printf("\r%10.5lf",average_fps);
-			}
-			*/
 			if(target_frames_per_second > 0)
 				target_time_per_frame = 1.0/(double)target_frames_per_second;
 			else
@@ -852,17 +997,244 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 			wait_time_micro_sec = (int)(suggested_wait_time * 1000000.0);
 			if(wait_time_micro_sec > 1)
 				usleep(wait_time_micro_sec);
-			//if (waitsec < 0.005) {
-			//	usleep(10000);
-			//}
 		}
 #endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 	}
 
-	/* Set the timestamp */
+	// Set the timestamp
 	tg->Mainloop.lastTime = tg->Mainloop.TickTime;
 	tg->Mainloop.TickTime = dtime; //Time1970sec();
 
+	#if !defined(FRONTEND_DOES_SNAPSHOTS)
+	// handle snapshots
+	if (tg->Snapshot.doSnapshot) {
+		Snapshot();
+	}
+	#endif //FRONTEND_DOES_SNAPSHOTS
+
+	OcclusionCulling();
+
+	// any scripts to do??
+#ifdef _MSC_VER
+	if(p->doEvents)
+#endif /* _MSC_VER */
+
+	#ifdef HAVE_JAVASCRIPT
+		initializeAnyScripts();
+	#endif
+
+
+	// BrowserAction required? eg, anchors, etc
+#ifndef DISABLER
+	if (tg->RenderFuncs.BrowserAction) {
+		tg->RenderFuncs.BrowserAction = doBrowserAction ();
+	}
+#endif
+
+	doglClearColor();
+
+	OcclusionStartofRenderSceneUpdateScene();
+
+	startOfLoopNodeUpdates();
+
+	if (p->loop_count == 25) {
+		tg->Mainloop.BrowserFPS = 25.0 / (TickTime()-p->BrowserStartTime);
+		setMenuFps((float)tg->Mainloop.BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
+		// printf ("fps %f tris %d, rootnode children %d \n",p->BrowserFPS,p->trisThisLoop, X3D_GROUP(rootNode)->children.n);
+		//ConsoleMessage("fps %f tris %d\n",tg->Mainloop.BrowserFPS,tg->Mainloop.trisThisLoop);
+		//printf ("MainLoop, nearPlane %lf farPlane %lf\n",Viewer.nearPlane, Viewer.farPlane);
+		p->BrowserStartTime = TickTime();
+		p->loop_count = 1;
+	} else {
+		p->loop_count++;
+	}
+
+	tg->Mainloop.trisThisLoop = 0;
+
+	if(p->slowloop_count == 1009) p->slowloop_count = 0 ;
+	#if USE_OSC
+	if ((p->slowloop_count % 256) == 0) {
+		/* activate_picksensors() ; */
+		/*
+		printf("slowloop_count = %d at T=%lf : lastMouseEvent=%d , MotionNotify=%d\n",
+			p->slowloop_count, TickTime(), p->lastMouseEvent, MotionNotify) ;
+		*/
+		activate_OSCsensors() ;
+	} else {
+		/* deactivate_picksensors() ; */
+	}
+	#endif /* USE_OSC */
+
+	p->slowloop_count++ ;
+
+	// handle any events provided on the command line - Robert Sim 
+	if (p->keypress_string && p->doEvents) {
+		if (p->keypress_wait_for_settle > 0) {
+			p->keypress_wait_for_settle--;
+		} else {
+			// dont do the null... 
+			if (*p->keypress_string) {
+				// printf ("handling key %c\n",*p->keypress_string); 
+#if !defined( AQUA ) && !defined( _MSC_VER )  /*win32 - don't know whats it is suppsoed to do yet */
+				DEBUG_XEV("CMD LINE GEN EVENT: %c\n", *p->keypress_string);
+				fwl_do_keyPress(*p->keypress_string,KeyPress);
+#endif /* NOT AQUA and NOT WIN32 */
+				p->keypress_string++;
+			} else {
+				p->keypress_string=NULL;
+			}
+		}
+	}
+
+#if KEEP_X11_INLIB
+	/**
+	 *   Merge of Bare X11 and Motif/X11 event handling ...
+	 */
+	/* REMARK: Do we want to process all pending events ? */
+
+#if defined(TARGET_X11)
+	/* We are running our own bare window */
+	while (XPending(Xdpy)) {
+		XNextEvent(Xdpy, &event);
+		DEBUG_XEV("EVENT through XNextEvent\n");
+		handle_Xevents(event);
+	}
+#endif /* TARGET_X11 */
+
+
+	PRINT_GL_ERROR_IF_ANY("before xtdispatch");
+#if defined(TARGET_MOTIF)
+	/* any updates to the menu buttons? Because of Linux threading
+		issues, we try to make all updates come from 1 thread */
+	frontendUpdateButtons();
+
+	/* do the Xt events here. */
+	while (XtAppPending(Xtcx)!= 0) {
+		XtAppNextEvent(Xtcx, &event);
+#ifdef XEVENT_VERBOSE
+		XButtonEvent *bev;
+		XMotionEvent *mev;
+		switch (event.type) {
+			case MotionNotify:
+			mev = &event.xmotion;
+			TRACE_MSG("mouse motion event: win=%u, state=%d\n",mev->window, mev->state);
+		break;
+		case ButtonPress:
+		case ButtonRelease:
+		bev = &event.xbutton;
+		TRACE_MSG("mouse button event: win=%u, state=%d\n",bev->window, bev->state);
+		break;
+	}
+#endif /* XEVENT_VERBOSE */
+
+		DEBUG_XEV("EVENT through XtDispatchEvent\n");
+		XtDispatchEvent (&event);
+	}
+
+#endif /* TARGET_MOTIF */
+#endif /* KEEP_X11_INLIB */
+
+
+	/* Viewer move viewpoint */
+	handle_tick();
+	PRINT_GL_ERROR_IF_ANY("after handle_tick")
+
+	/* setup Projection and activate ProximitySensors */
+	if (p->onScreen)
+	{
+		render_pre();
+		slerp_viewpoint();
+	}
+
+	if (p->doEvents) {
+		/* and just parsed nodes needing binding? */
+		SEND_BIND_IF_REQUIRED(tg->ProdCon.setViewpointBindInRender)
+		SEND_BIND_IF_REQUIRED(tg->ProdCon.setFogBindInRender)
+		SEND_BIND_IF_REQUIRED(tg->ProdCon.setBackgroundBindInRender)
+		SEND_BIND_IF_REQUIRED(tg->ProdCon.setNavigationBindInRender)
+
+		/* handle ROUTES - at least the ones not generated in do_first() */
+		do_first(); //propagate events called from do_first
+
+		/* Javascript events processed */
+		process_eventsProcessed();
+
+		#if !defined(EXCLUDE_EAI)
+		// the fwlio_SCK* funcs to get data into the system, and calls the fwl_EAI*
+		// funcs to give the data to the EAI,nd the fwl_MIDI* funcs for MIDI
+		//
+		// Actions are now separate so that file IO is not tightly coupled
+		// via shared buffers and file descriptors etc. 'The core' now calls
+		// Although the MIDI code and the EAI code are basically the same
+		// and one could compress them into a loop, for the moment keep
+		// them seperate to serve as a example for any extensions...
+		// handle_EAI(); 
+		{
+		int socketVerbose = fwlio_RxTx_control(CHANNEL_EAI, RxTx_GET_VERBOSITY)  ;
+		if ( socketVerbose <= 1 || (socketVerbose > 1 && ((p->slowloop_count % 256) == 0)) ) {
+			if(fwlio_RxTx_control(CHANNEL_EAI, RxTx_REFRESH) == 0) {
+				/* Nothing to be done, maybe not even running */
+				if ( socketVerbose > 1 ) {
+					printf("%s:%d Nothing to be done\n",__FILE__,__LINE__) ;
+				}
+			} else {
+				if ( socketVerbose > 1 ) {
+					printf("%s:%d Test RxTx_PENDING\n",__FILE__,__LINE__) ;
+				}
+				if(fwlio_RxTx_control(CHANNEL_EAI, RxTx_PENDING) > 0) {
+					char *tempEAIdata;
+					if ( socketVerbose != 0 ) {
+						printf("%s:%d Something pending\n",__FILE__,__LINE__) ;
+					}
+					tempEAIdata = fwlio_RxTx_getbuffer(CHANNEL_EAI) ;
+					if(tempEAIdata != (char *)NULL) {
+						char * replyData;
+						int EAI_StillToDo;
+						if ( socketVerbose != 0 ) {
+							printf("%s:%d Something for EAI to do with buffer addr %p\n",__FILE__,__LINE__,tempEAIdata ) ;
+						}
+						// Every incoming command has a reply,
+						// and the reply is synchronous.
+						replyData = fwl_EAI_handleBuffer(tempEAIdata);
+						FREE(tempEAIdata) ;
+						EAI_StillToDo = 1;
+						do {
+							if(replyData != NULL && strlen(replyData) != 0) {
+								fwlio_RxTx_sendbuffer(__FILE__,__LINE__,CHANNEL_EAI, replyData) ;
+								FREE(replyData) ;
+								// Note: fwlio_RxTx_sendbuffer() can also be called async
+								// due to a listener trigger within routing, but it is
+								// is up to that caller to clean out its own buffers.
+							}
+							EAI_StillToDo = fwl_EAI_allDone();
+							if(EAI_StillToDo) {
+								if ( socketVerbose != 0 ) {
+									printf("%s:%d Something still in EAI buffer? %d\n",__FILE__,__LINE__,EAI_StillToDo ) ;
+								}
+								replyData = fwl_EAI_handleRest();
+							}
+						} while(EAI_StillToDo) ;
+					} //temEAIdata
+				} //fwlio PENDING
+			} //fwlio REFRESH
+		} //socketverbose
+		}
+		#endif //EXCLUDE_EAI
+	} //doEvents
+
+#ifdef RENDERVERBOSE
+	printf("RENDER STEP----------\n");
+#endif
+
+	/* ensure depth mask turned on here */
+	FW_GL_DEPTHMASK(GL_TRUE);
+	PRINT_GL_ERROR_IF_ANY("after depth")
+
+}
+
+void setup_picking(){
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
 
 	/* handle_mouse events if clicked on a sensitive node */
@@ -994,276 +1366,7 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 		setArrowCursor();
 	}
 
-	#if !defined(FRONTEND_DOES_SNAPSHOTS)
-	/* handle snapshots */
-	if (tg->Snapshot.doSnapshot) {
-		Snapshot();
-	}
-	#endif //FRONTEND_DOES_SNAPSHOTS
-
-	/* do OcclusionCulling, etc */
-	OcclusionCulling();
-
-
-
-
-
-
-
-	/* any scripts to do?? */
-#ifdef _MSC_VER
-	if(p->doEvents)
-#endif /* _MSC_VER */
-
-	#ifdef HAVE_JAVASCRIPT
-		initializeAnyScripts();
-	#endif
-
-
-	/* BrowserAction required? eg, anchors, etc */
-#ifndef DISABLER
-	if (tg->RenderFuncs.BrowserAction) {
-		tg->RenderFuncs.BrowserAction = doBrowserAction ();
-	}
-#endif
-
-	/* has the default background changed? */
-	//if (tg->OpenGL_Utils.cc_changed)  //assume its changed (ie statusbarHud has its own clear color)
-	doglClearColor();
-
-
-
-	OcclusionStartofRenderSceneUpdateScene();
-
-
-	startOfLoopNodeUpdates();
-
-	if (p->loop_count == 25) {
-		tg->Mainloop.BrowserFPS = 25.0 / (TickTime()-p->BrowserStartTime);
-		setMenuFps((float)tg->Mainloop.BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
-		/* printf ("fps %f tris %d, rootnode children %d \n",p->BrowserFPS,p->trisThisLoop, X3D_GROUP(rootNode)->children.n);  */
-
-		//ConsoleMessage("fps %f tris %d\n",tg->Mainloop.BrowserFPS,tg->Mainloop.trisThisLoop);
-
-
-		 //printf ("MainLoop, nearPlane %lf farPlane %lf\n",Viewer.nearPlane, Viewer.farPlane);
-
-		p->BrowserStartTime = TickTime();
-		p->loop_count = 1;
-	} else {
-		p->loop_count++;
-	}
-
-	tg->Mainloop.trisThisLoop = 0;
-
-	if(p->slowloop_count == 1009) p->slowloop_count = 0 ;
-	#if USE_OSC
-	if ((p->slowloop_count % 256) == 0) {
-		/* activate_picksensors() ; */
-		/*
-		printf("slowloop_count = %d at T=%lf : lastMouseEvent=%d , MotionNotify=%d\n",
-			p->slowloop_count, TickTime(), p->lastMouseEvent, MotionNotify) ;
-		*/
-		activate_OSCsensors() ;
-	} else {
-		/* deactivate_picksensors() ; */
-	}
-	#endif /* USE_OSC */
-
-	p->slowloop_count++ ;
-
-
-
-	/* handle any events provided on the command line - Robert Sim */
-	if (p->keypress_string && p->doEvents) {
-		if (p->keypress_wait_for_settle > 0) {
-			p->keypress_wait_for_settle--;
-		} else {
-			/* dont do the null... */
-			if (*p->keypress_string) {
-				/* printf ("handling key %c\n",*p->keypress_string); */
-#if !defined( AQUA ) && !defined( _MSC_VER )  /*win32 - don't know whats it is suppsoed to do yet */
-				DEBUG_XEV("CMD LINE GEN EVENT: %c\n", *p->keypress_string);
-				fwl_do_keyPress(*p->keypress_string,KeyPress);
-#endif /* NOT AQUA and NOT WIN32 */
-				p->keypress_string++;
-			} else {
-				p->keypress_string=NULL;
-			}
-		}
-	}
-
-#if KEEP_X11_INLIB
-	/**
-	 *   Merge of Bare X11 and Motif/X11 event handling ...
-	 */
-	/* REMARK: Do we want to process all pending events ? */
-
-#if defined(TARGET_X11)
-	/* We are running our own bare window */
-	while (XPending(Xdpy)) {
-		XNextEvent(Xdpy, &event);
-		DEBUG_XEV("EVENT through XNextEvent\n");
-		handle_Xevents(event);
-	}
-#endif /* TARGET_X11 */
-
-
-	PRINT_GL_ERROR_IF_ANY("before xtdispatch");
-#if defined(TARGET_MOTIF)
-	/* any updates to the menu buttons? Because of Linux threading
-		issues, we try to make all updates come from 1 thread */
-	frontendUpdateButtons();
-
-	/* do the Xt events here. */
-	while (XtAppPending(Xtcx)!= 0) {
-		XtAppNextEvent(Xtcx, &event);
-#ifdef XEVENT_VERBOSE
-		XButtonEvent *bev;
-		XMotionEvent *mev;
-		switch (event.type) {
-			case MotionNotify:
-			mev = &event.xmotion;
-			TRACE_MSG("mouse motion event: win=%u, state=%d\n",mev->window, mev->state);
-		break;
-		case ButtonPress:
-		case ButtonRelease:
-		bev = &event.xbutton;
-		TRACE_MSG("mouse button event: win=%u, state=%d\n",bev->window, bev->state);
-		break;
-	}
-#endif /* XEVENT_VERBOSE */
-
-		DEBUG_XEV("EVENT through XtDispatchEvent\n");
-		XtDispatchEvent (&event);
-	}
-
-#endif /* TARGET_MOTIF */
-#endif /* KEEP_X11_INLIB */
-
-
-	/* Viewer move viewpoint */
-	handle_tick();
-
-	PRINT_GL_ERROR_IF_ANY("after handle_tick")
-
-
-	/* setup Projection and activate ProximitySensors */
-	if (p->onScreen)
-		{
-			render_pre();
-			slerp_viewpoint();
-		}
-
-	if (p->doEvents) {
-		/* and just parsed nodes needing binding? */
-		SEND_BIND_IF_REQUIRED(tg->ProdCon.setViewpointBindInRender)
-		SEND_BIND_IF_REQUIRED(tg->ProdCon.setFogBindInRender)
-		SEND_BIND_IF_REQUIRED(tg->ProdCon.setBackgroundBindInRender)
-		SEND_BIND_IF_REQUIRED(tg->ProdCon.setNavigationBindInRender)
-
-
-
-		/* handle ROUTES - at least the ones not generated in do_first() */
-		if(0) propagate_events();
-		if(1) do_first(); //propagate events called from do_first
-
-
-
-
-		/* Javascript events processed */
-		process_eventsProcessed();
-		#if !defined(EXCLUDE_EAI)
-		/*
-			* Actions are now separate so that file IO is not tightly coupled
-			* via shared buffers and file descriptors etc. 'The core' now calls
-			* the fwlio_SCK* funcs to get data into the system, and calls the fwl_EAI*
-			* funcs to give the data to the EAI,nd the fwl_MIDI* funcs for MIDI
-			*
-			* Although the MIDI code and the EAI code are basically the same
-			* and one could compress them into a loop, for the moment keep
-			* them seperate to serve as a example for any extensions...
-			*/
-		/* handle_EAI(); */
-		{
-		int socketVerbose = fwlio_RxTx_control(CHANNEL_EAI, RxTx_GET_VERBOSITY)  ;
-		if ( socketVerbose <= 1 || (socketVerbose > 1 && ((p->slowloop_count % 256) == 0)) ) {
-			if(fwlio_RxTx_control(CHANNEL_EAI, RxTx_REFRESH) == 0) {
-				/* Nothing to be done, maybe not even running */
-				if ( socketVerbose > 1 ) {
-					printf("%s:%d Nothing to be done\n",__FILE__,__LINE__) ;
-				}
-			} else {
-				if ( socketVerbose > 1 ) {
-					printf("%s:%d Test RxTx_PENDING\n",__FILE__,__LINE__) ;
-				}
-				if(fwlio_RxTx_control(CHANNEL_EAI, RxTx_PENDING) > 0) {
-					char *tempEAIdata;
-					if ( socketVerbose != 0 ) {
-						printf("%s:%d Something pending\n",__FILE__,__LINE__) ;
-					}
-					tempEAIdata = fwlio_RxTx_getbuffer(CHANNEL_EAI) ;
-					if(tempEAIdata != (char *)NULL) {
-						char * replyData;
-						int EAI_StillToDo;
-						if ( socketVerbose != 0 ) {
-							printf("%s:%d Something for EAI to do with buffer addr %p\n",__FILE__,__LINE__,tempEAIdata ) ;
-						}
-						/*
-							* Every incoming command has a reply,
-							* and the reply is synchronous.
-							*/
-						replyData = fwl_EAI_handleBuffer(tempEAIdata);
-						FREE(tempEAIdata) ;
-						EAI_StillToDo = 1;
-						do {
-							if(replyData != NULL && strlen(replyData) != 0) {
-								fwlio_RxTx_sendbuffer(__FILE__,__LINE__,CHANNEL_EAI, replyData) ;
-								FREE(replyData) ;
-								/*
-									* Note: fwlio_RxTx_sendbuffer() can also be called async
-									* due to a listener trigger within routing, but it is
-									* is up to that caller to clean out its own buffers.
-									*/
-							}
-							EAI_StillToDo = fwl_EAI_allDone();
-							if(EAI_StillToDo) {
-								if ( socketVerbose != 0 ) {
-									printf("%s:%d Something still in EAI buffer? %d\n",__FILE__,__LINE__,EAI_StillToDo ) ;
-								}
-								replyData = fwl_EAI_handleRest();
-							}
-						} while(EAI_StillToDo) ;
-					} //temEAIdata
-				} //fwlio PENDING
-			} //fwlio REFRESH
-		} //socketverbose
-		}
-		#endif //EXCLUDE_EAI
-	} //doEvents
-
-#ifdef RENDERVERBOSE
-	printf("RENDER STEP----------\n");
-#endif
-
-	/* first events (clock ticks, etc) if we have other things to do, yield */
-	//we seem to do this later see below
-	//if (p->doEvents) do_first (); //else sched_yield();
-
-	/* ensure depth mask turned on here */
-	FW_GL_DEPTHMASK(GL_TRUE);
-
-	PRINT_GL_ERROR_IF_ANY("after depth")
-	/* actual rendering */
-	if (0 && p->onScreen) {
-		render();
-	}
-
-
-
-
 }
-
 
 
 void (*handlePTR)(const int mev, const unsigned int button, const float x, const float y) = handle0;
@@ -1625,7 +1728,7 @@ static void render_pre() {
 	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 
         /* 1. Set up projection */
-        setup_projection(); //FALSE,0,0);
+        // Nov 2015 moved render(): setup_projection(); //FALSE,0,0);
 
 
         /* 2. Headlight, initialized here where we have the modelview matrix to Identity.
@@ -1719,7 +1822,7 @@ static int setup_pickside(int x, int y){
 	ieither = viewer->eitherDominantEye;
 
 	pt = ivec2_init(x,tg->display.screenHeight - y);
-	vportstack = (Stack*)tg->display._vportstack;
+	vportstack = (Stack*)tg->Mainloop._vportstack;
 	vport = stack_top(ivec4,vportstack); //should be same as stack bottom, only one on stack here
 	vportscene = vport;
 	vportscene.Y = vport.Y + tg->Mainloop.clipPlane;
@@ -1770,7 +1873,7 @@ void setup_projection()
 	GLDOUBLE aspect2 = tg->display.screenRatio;
 	p = (ppMainloop)tg->Mainloop.prv;
 	viewer = Viewer();
-	vportstack = (Stack*)tg->display._vportstack;
+	vportstack = (Stack*)tg->Mainloop._vportstack;
 	vport = stack_top(ivec4,vportstack); //should be same as stack bottom, only one on stack here
 
 	screenwidth2 = vport.W; //tg->display.screenWidth
@@ -2028,6 +2131,9 @@ static void render()
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
+
+	if(1) setup_projection();
+	if(1) setup_picking();
 
 	for (count = 0; count < p->maxbuffers; count++) {
 

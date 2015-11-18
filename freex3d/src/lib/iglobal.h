@@ -71,7 +71,6 @@ typedef struct iiglobal //InstanceGlobal
 
 		float myFps;// = (float) 0.0;
 		char *myMenuStatus;
-		void *_vportstack; //Stack for viewports
 		void *prv;
 	}display;
 	struct tinternalc {
@@ -177,6 +176,9 @@ typedef struct iiglobal //InstanceGlobal
 		int *scene_components;
 		char *replaceWorldRequest;
 		void *replaceWorldRequestMulti; //will be struct multi-string
+		void *twindows; //target windows for multi-window config
+		int targets_initialized;
+		void *_vportstack; //Stack for viewports
 	} Mainloop;
 	struct tProdCon{
 		struct Vector *viewpointNodes;// = NULL;

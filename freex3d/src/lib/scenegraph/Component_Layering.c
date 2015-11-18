@@ -56,6 +56,7 @@ void render_LayerSet(struct X3D_Node * node){
 	if(node && node->_nodeType == NODE_LayerSet){
 		int i,j;
 		ttglobal tg;
+		
 		struct X3D_LayerSet * layerset = (struct X3D_LayerSet *)node;
 		tg = gglobal();
 		for(i=0;i<layerset->layers.n;i++){
@@ -68,7 +69,7 @@ void render_LayerSet(struct X3D_Node * node){
 			layer = layerset->layers.p[j];
 			//push/set binding stacks
 			//push layer.viewport onto viewport stack, setting it as the current window
-			vportstack = (Stack *)tg->display._vportstack;
+			vportstack = (Stack *)tg->Mainloop._vportstack;
 			pvport = stack_top(ivec4,vportstack); //parent context viewport
 			clipBoundary = defaultClipBoundary;
 			if(layer->viewport)
