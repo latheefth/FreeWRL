@@ -1100,7 +1100,7 @@ void handle_dist(const int mev, const unsigned int button, float x, float y) {
 
 }
 
-
+double display_screenRatio();
 void handle_turntable(const int mev, const unsigned int button, float x, float y) {
 	/*
 	Like handle_spherical, except:
@@ -1168,7 +1168,7 @@ void handle_turntable(const int mev, const unsigned int button, float x, float y
 			pitch = -(acos(vecdot(&pp, &yaxis)) - PI*.5);
 		}
 		if (button == 1) {
-			dyaw = -(ypz->x - x) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom * tg->display.screenRatio;
+			dyaw = -(ypz->x - x) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom * display_screenRatio(); //tg->display.screenRatio;
 			dpitch = -(ypz->y - y) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom;
 			//if(0){
 			//	dyaw = -dyaw;
@@ -1265,7 +1265,7 @@ void handle_spherical(const int mev, const unsigned int button, float x, float y
 			pitch = -(acos(vecdot(&ddr, &yaxis)) - PI*.5);
 
 			//step 2 add on any mouse motion as yaw,pitch chord
-			dyaw   = (ypz->x - x) * p->Viewer.fieldofview*PI/180.0*p->Viewer.fovZoom * tg->display.screenRatio; 
+			dyaw   = (ypz->x - x) * p->Viewer.fieldofview*PI/180.0*p->Viewer.fovZoom * display_screenRatio(); //tg->display.screenRatio; 
 			dpitch = (ypz->y - y) * p->Viewer.fieldofview*PI/180.0*p->Viewer.fovZoom;
 			yaw += dyaw;
 			pitch += dpitch;

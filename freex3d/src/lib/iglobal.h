@@ -47,14 +47,8 @@ typedef struct iiglobal //InstanceGlobal
 		int _global_gl_err;
 		bool display_initialized;// = FALSE;
 
-		int view_height;// = 0; /* viewport */
-		int view_width;// = 0;
-
 		int screenWidth;// = 0; /* screen */
 		int screenHeight;// = 0;
-		int xpos, ypos; //position of lower-left corner of freewrl in opengl window, usually 0,0 (but not for some opengl gui kits, like dug9gui)
-
-		double screenRatio;// = 1.5;
 
 		char *window_title;// = NULL;
 

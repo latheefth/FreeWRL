@@ -98,11 +98,8 @@ void display_init(struct tdisplay* t)
 
 	t->display_initialized = FALSE;
 
-	t->view_height = 0; /* viewport */
-	t->view_width = 0;
 	t->screenWidth = 0; /* screen */
 	t->screenHeight = 0;
-	t->screenRatio = 1.5;
 	t->window_title = NULL;
 
 	t->mouse_x = 0;
@@ -321,60 +318,13 @@ void fwl_setScreenDim(int wi, int he)
     tg->display.screenHeight = he; //height of the whole opengl surface in pixels
     /* printf("%s,%d fwl_setScreenDim(int %d, int %d)\n",__FILE__,__LINE__,wi,he); */
 
-    if (tg->display.screenHeight != 0) tg->display.screenRatio = (double) tg->display.screenWidth/(double) tg->display.screenHeight;
-    else tg->display.screenRatio =  tg->display.screenWidth;
-	//defaults for the subarea of the opengl surface used by freewrl: use all
-	tg->display.xpos = 0;
-	tg->display.ypos = 0; //top left y=0
-	tg->display.view_height = tg->display.screenHeight;
-	tg->display.view_width = tg->display.screenWidth;
-	//if(0){
-	//	ivec4 main_window;
-	//	Stack *vpstack = tg->display._vportstack;
-	//	main_window.X = tg->display.xpos;
-	//	main_window.Y = tg->display.ypos;
-	//	main_window.W = tg->display.view_width;
-	//	main_window.H = tg->display.view_height;
-	//	if(!vpstack->n){
-	//		stack_push(ivec4,vpstack,main_window);
-	//	}else{
-	//		vector_set(ivec4,vpstack,0,main_window);
-	//	}
-	//}
-	//to over-ride with a sub-area, call fwl_setScreenDim2 immediately after this
-
 }
-/*
-//sets freewrl sub-area of opengl window
-void fwl_setScreenDim2(int ixpos, int iypos, int wi, int he)
-{
+double display_screenRatio(){
 	ttglobal tg = gglobal();
-    //tg->display.screenWidth = wi;
-    //tg->display.screenHeight = he;  
-	tg->display.xpos = ixpos;
-	tg->display.ypos = iypos; //y up from bottom of opengl window to bottom of vrml widget/window
-	tg->display.view_width = wi;  //width of vrml widget/window pixels
-	tg->display.view_height = he; //height of vrml widget/window pixels
-    // printf("%s,%d fwl_setScreenDim(int %d, int %d)\n",__FILE__,__LINE__,wi,he); 
-
-    //if (tg->display.screenHeight != 0) tg->display.screenRatio = (double) tg->display.screenWidth/(double) tg->display.screenHeight;
-    //else tg->display.screenRatio =  tg->display.screenWidth;
-	{
-		ivec4 main_window;
-		Stack *vpstack = tg->display._vportstack;
-		main_window.X = tg->display.xpos;
-		main_window.Y = tg->display.ypos;
-		main_window.W = tg->display.view_width;
-		main_window.H = tg->display.view_height;
-		if(!vpstack->n){
-			stack_push(ivec4,vpstack,main_window);
-		}else{
-			vector_set(ivec4,vpstack,0,main_window);
-		}
-	}
+	double ratio = 1.5;
+	if (tg->display.screenHeight != 0) ratio = (double) tg->display.screenWidth/(double) tg->display.screenHeight;
+	return ratio;
 }
-*/
-
 void fwl_setClipPlane(int height)
 {
 	//this should be 2 numbers, one for top and bottom

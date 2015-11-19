@@ -1874,7 +1874,7 @@ void setup_projection()
 	GLsizei screenwidth2; // = tg->display.screenWidth;
 	GLsizei screenheight, bottom, top;
 	static int counter = 0;
-	GLDOUBLE aspect2 = tg->display.screenRatio;
+	GLDOUBLE aspect2; // = tg->display.screenRatio;
 	p = (ppMainloop)tg->Mainloop.prv;
 	viewer = Viewer();
 	vportstack = (Stack*)tg->Mainloop._vportstack;
