@@ -486,7 +486,9 @@ typedef struct pstatusbar{
 	pmenu_t pmenu;
 	int buttonSize; //size of menu buttons, in pixels - default 32
 	GLfloat textColor[4];
-	int screenWidth, screenHeight, clipPlane;
+	int screenWidth;
+	int screenHeight;
+	int clipPlane;
 	int side_top, side_bottom;
 }* ppstatusbar;
 void *statusbar_constructor(){
@@ -974,7 +976,8 @@ XY mouse2screen(int x, int y)
 {
 	XY xy;
 	xy.x = x;
-	xy.y = ((ppstatusbar)(gglobal()->statusbar.prv))->screenHeight -y;
+	//xy.y = ((ppstatusbar)(gglobal()->statusbar.prv))->screenHeight -y;
+	xy.y = y;
 	return xy;
 }
 XY screen2text(int x, int y)
@@ -2103,10 +2106,15 @@ int handleButtonOver(int mouseX, int mouseY)
 	p = (ppstatusbar)tg->statusbar.prv;
 
 	x = mouseX;
+	//if (p->pmenu.top)
+	//	y = mouseY;
+	//else
+	//	y = p->screenHeight - mouseY - p->pmenu.yoffset;
 	if (p->pmenu.top)
-		y = mouseY;
+		y = p->screenHeight - mouseY;
 	else
-		y = p->screenHeight - mouseY - p->pmenu.yoffset;
+		y = mouseY - p->pmenu.yoffset;
+
 	p->isOver = -1;
 	for (i = 0; i<p->pmenu.nbitems; i++)
 	if (x > p->pmenu.bitems[i].butrect[0] && x < p->pmenu.bitems[i].butrect[2]
@@ -2157,10 +2165,14 @@ int handleButtonRelease(int mouseX, int mouseY)
 	p = (ppstatusbar)tg->statusbar.prv;
 
 	x = mouseX;
+	//if(p->pmenu.top)
+	//	y = mouseY;
+	//else
+	//	y = p->screenHeight - mouseY - p->pmenu.yoffset;
 	if(p->pmenu.top)
-		y = mouseY;
+		y = p->screenHeight - mouseY;
 	else
-		y = p->screenHeight - mouseY - p->pmenu.yoffset;
+		y = mouseY - p->pmenu.yoffset;
 	ihit = -1;
 	for(i=0;i<p->pmenu.nbitems;i++)
 	{
@@ -2497,10 +2509,14 @@ bool showAction(ppstatusbar p, int action)
 int overMenubar(ppstatusbar p, int mouseY){
 	int y, isOver = 0;
 	if(p->showButtons){
+		//if(p->pmenu.top)
+		//	y = mouseY;
+		//else
+		//	y = p->screenHeight - mouseY - p->pmenu.yoffset;
 		if(p->pmenu.top)
-			y = mouseY;
+			y = p->screenHeight - mouseY;
 		else
-			y = p->screenHeight - mouseY - p->pmenu.yoffset;
+			y = mouseY - p->pmenu.yoffset;
 		if( y >= 0 && y <= p->buttonSize) isOver = 1;
 	}
 	return isOver;
@@ -2508,7 +2524,8 @@ int overMenubar(ppstatusbar p, int mouseY){
 int overStatusbar(ppstatusbar p, int mouseY){
 	int y, isOver = 0;
 	//p->screenHeight - mouseY < p->clipPlane
-	if(p->screenHeight - mouseY < p->statusBarSize) isOver = 1;
+	//if(p->screenHeight - mouseY < p->statusBarSize) isOver = 1;
+	if(mouseY < p->statusBarSize) isOver = 1;
 	//if(p->show_status){
 		//y = p->screenHeight - mouseY;
 		//if(y >= p->side_bottom && y <= p->side_bottom + p->statusBarSize) isOver = 1;
@@ -2636,9 +2653,11 @@ int getCursorStyle();
 int statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY)
 {
 	int cursorStyle;
+	int yup;
 	ttglobal tg = gglobal();
 	ppstatusbar p = (ppstatusbar)tg->statusbar.prv;
-	if (!handleStatusbarHud(mev, butnum, mouseX, mouseY)){
+	yup = p->screenHeight - mouseY;
+	if (!handleStatusbarHud(mev, butnum, mouseX, yup)){
 		fwl_set_frontend_using_cursor(FALSE);
 		fwl_handle_aqua(mev, butnum, mouseX, mouseY); /* ,gcWheelDelta); */
 	}else{
