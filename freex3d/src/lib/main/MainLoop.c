@@ -4132,6 +4132,7 @@ void emulate_multitouch(const int mev, const unsigned int button, int x, int y)
 }
 /* old function should still work, with single mouse and ID=0 */
 int fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
+	int yup;
     ttglobal tg = gglobal();
 
 	/* printf ("fwl_handle_aqua, type %d, screen wid:%d height:%d, orig x,y %d %d\n",
@@ -4200,14 +4201,13 @@ int fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
 
 	#endif
 
+	//Nov. 2015 changed freewrl mouse from y-down to y-up from here on down:
+	//all y-up now: sesnsor/picking, explore, statusbarHud, handle0 > all navigations, emulate_multitouch, sidebyside fiducials
+	yup = tg->display.screenHeight -y;
 	if(((ppMainloop)(tg->Mainloop.prv))->EMULATE_MULTITOUCH){
-		int yup = tg->display.screenHeight -y;
 		emulate_multitouch(mev,button,x, yup);
 	}else{
-		int yup = tg->display.screenHeight -y;
 		fwl_handle_aqua_multi(mev,button,x,yup,0);
-
-		//updateCursorStyle();
 	}
 	return getCursorStyle();
 }
