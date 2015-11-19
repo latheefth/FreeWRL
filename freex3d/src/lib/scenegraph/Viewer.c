@@ -1581,7 +1581,7 @@ void handle0(const int mev, const unsigned int button, const float x, const floa
 {
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	/* printf("Viewer handle: viewer_type %s, mouse event %d, button %u, x %f, y %f\n", 
-	   VIEWER_STRING(Viewer.type), mev, button, x, y); */
+	   lookup_navmodestring(p->Viewer.type), mev, button, x, y); */
 
 	if (button == 2) {
 		return;

@@ -212,7 +212,8 @@ XY mouse2screen2(int x, int y)
 {
 	XY xy;
 	xy.x = x;
-	xy.y = gglobal()->display.screenHeight -y;
+	//xy.y = gglobal()->display.screenHeight -y;
+	xy.y = y;
 	return xy;
 }
 typedef struct {GLfloat x; GLfloat y;} FXY;

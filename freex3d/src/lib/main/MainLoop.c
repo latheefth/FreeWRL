@@ -1985,7 +1985,7 @@ void setup_projection()
 	/* <<< statusbar hud */
 	// side-by-side eyebase fiducials (see fiducialDraw())
 	p->viewpointScreenX[viewer->iside] = xvp + screenwidth2/2;
-	p->viewpointScreenY[viewer->iside] = tg->display.screenHeight - top; //fiducial draw still using top-down Y
+	p->viewpointScreenY[viewer->iside] = top; //yup now //tg->display.screenHeight - top; //fiducial draw still using top-down Y
 	if (viewer->updown){
         FW_GL_VIEWPORT(xvp - screenwidth2 / 2, bottom, screenwidth2 * 2, screenheight);
     }
@@ -3979,6 +3979,7 @@ void freewrlDie (const char *format) {
 
 void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x, int y, int ID) {
 	int count;
+	int ydown;
 	struct Touch *touch;
 	ppMainloop p;
 	ttglobal tg = gglobal();
@@ -4004,13 +4005,14 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	touch->angle = 0.0f;
 	p->currentTouch = ID;
 
+	ydown = tg->display.screenHeight - y; 
 	if ((mev == ButtonPress) || (mev == ButtonRelease)) {
 		/* if we are Not over an enabled sensitive node, and we do NOT already have a
 			button down from a sensitive node... */
 
 		if (((p->CursorOverSensitive ==NULL) && (p->lastPressedOver ==NULL)) || Viewer()->LookatMode || tg->Mainloop.SHIFT) {
 			p->NavigationMode = touch->buttonState[LMB] || touch->buttonState[RMB];
-			handle(mev, button, (float) ((float)x/tg->display.screenWidth), (float) ((float)y/tg->display.screenHeight));
+			handle(mev, button, (float) ((float)x/tg->display.screenWidth), (float) ((float)ydown/tg->display.screenHeight));
 		}
 	}
 
@@ -4021,7 +4023,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 			while ((count < 4) && (!touch->buttonState[count])) count++;
 			if (count == 4) return; /* no buttons down???*/
 
-			handle (mev, (unsigned) count, (float) ((float)x/tg->display.screenWidth), (float) ((float)y/tg->display.screenHeight));
+			handle (mev, (unsigned) count, (float) ((float)x/tg->display.screenWidth), (float) ((float)ydown/tg->display.screenHeight));
 		}
 	}
 }
@@ -4197,11 +4199,12 @@ int fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
 
 	#endif
 
-	if(((ppMainloop)(tg->Mainloop.prv))->EMULATE_MULTITOUCH)
-		emulate_multitouch(mev,button,x, y);
-	else
-	{
-		fwl_handle_aqua_multi(mev,button,x,y,0);
+	if(((ppMainloop)(tg->Mainloop.prv))->EMULATE_MULTITOUCH){
+		int yup = tg->display.screenHeight -y;
+		emulate_multitouch(mev,button,x, yup);
+	}else{
+		int yup = tg->display.screenHeight -y;
+		fwl_handle_aqua_multi(mev,button,x,yup,0);
 
 		//updateCursorStyle();
 	}
