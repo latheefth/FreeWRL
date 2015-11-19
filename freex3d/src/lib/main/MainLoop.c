@@ -1245,13 +1245,13 @@ void setup_picking(){
 	//printf("nav mode =%d sensitive= %d\n",p->NavigationMode, tg->Mainloop.HaveSensitive);
 	if (!p->NavigationMode && tg->Mainloop.HaveSensitive && !Viewer()->LookatMode && !tg->Mainloop.SHIFT) {
 		//p->currentCursor = 0;
-		int x,ydown;
+		int x,yup;
 		struct Touch *touch = currentTouch();
 		x = touch->x;
-		ydown = touch->y;
-		if(setup_pickside(x,ydown)){
+		yup = touch->y;
+		if(setup_pickside(x,yup)){
 			setup_projection();
-			setup_pickray(x,ydown);
+			setup_pickray(x,yup);
 			//setup_viewpoint();
 			set_viewmatrix();
 			render_hier(rootNode(),VF_Sensitive  | VF_Geom);
@@ -1350,13 +1350,13 @@ void setup_picking(){
 			setLookatCursor();
 		if(Viewer()->LookatMode == 2){
 			//p->currentCursor = 0;
-			int x, ydown;
+			int x, yup;
 			struct Touch * touch = currentTouch();
 			x = touch->x;
-			ydown = touch->y;
-			if(setup_pickside(x,ydown)){ //tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor])){
+			yup = touch->y;
+			if(setup_pickside(x,yup)){ //tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor])){
 				setup_projection();
-				setup_pickray(x,ydown); //tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
+				setup_pickray(x,yup); //tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
 				setup_viewpoint();
 				set_viewmatrix();
 				render_hier(rootNode(),VF_Sensitive  | VF_Geom);
@@ -1825,7 +1825,8 @@ static int setup_pickside(int x, int y){
 	userPreferredPickSide = viewer->dominantEye; //0= left, 1= right
 	ieither = viewer->eitherDominantEye;
 
-	pt = ivec2_init(x,tg->display.screenHeight - y);
+	//pt = ivec2_init(x,tg->display.screenHeight - y);
+	pt = ivec2_init(x,y);
 	vportstack = (Stack*)tg->Mainloop._vportstack;
 	vport = stack_top(ivec4,vportstack); //should be same as stack bottom, only one on stack here
 	vportscene = vport;
@@ -2048,7 +2049,8 @@ void setup_pickray(int x, int y)
 		FW_GL_GETINTEGERV(GL_VIEWPORT,viewport);
 		//yy = (float)viewport[3]  -y + bottom +top;
 		//glu_unproject will subtract the viewport from the x,y, if they're all in y-up screen coords
-		yy = (float)(tg->display.screenHeight - y); //y-up - bottom
+		//yy = (float)(tg->display.screenHeight - y); //y-up - bottom
+		yy = (float)y; //yup
 		xx = (float)x;
 		//printf("vp = %d %d %d %d\n",viewport[0],viewport[1],viewport[2],viewport[3]);
 		//printf("yy %lf vp3 %d y %d vp1 %d sh %d\n",
@@ -4005,14 +4007,13 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	touch->angle = 0.0f;
 	p->currentTouch = ID;
 
-	ydown = tg->display.screenHeight - y; 
 	if ((mev == ButtonPress) || (mev == ButtonRelease)) {
 		/* if we are Not over an enabled sensitive node, and we do NOT already have a
 			button down from a sensitive node... */
 
 		if (((p->CursorOverSensitive ==NULL) && (p->lastPressedOver ==NULL)) || Viewer()->LookatMode || tg->Mainloop.SHIFT) {
 			p->NavigationMode = touch->buttonState[LMB] || touch->buttonState[RMB];
-			handle(mev, button, (float) ((float)x/tg->display.screenWidth), (float) ((float)ydown/tg->display.screenHeight));
+			handle(mev, button, (float) ((float)x/tg->display.screenWidth), (float) ((float)y/tg->display.screenHeight));
 		}
 	}
 
@@ -4023,7 +4024,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 			while ((count < 4) && (!touch->buttonState[count])) count++;
 			if (count == 4) return; /* no buttons down???*/
 
-			handle (mev, (unsigned) count, (float) ((float)x/tg->display.screenWidth), (float) ((float)ydown/tg->display.screenHeight));
+			handle (mev, (unsigned) count, (float) ((float)x/tg->display.screenWidth), (float) ((float)y/tg->display.screenHeight));
 		}
 	}
 }
