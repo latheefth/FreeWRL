@@ -937,7 +937,11 @@ void fwl_RenderSceneUpdateScene(void){
 	fwl_RenderSceneUpdateScenePTR();
 }
 void fwl_RenderSceneUpdateScene0(double dtime) {
-
+	//Nov 2015 change: just viewport-independent, once-per-frame-scene-updates here
+	//-functionality relying on a viewport -setup_projection(), setup_picking()- has been 
+	//	moved to render() which is now called outside this function
+	//  this will allow quadrant displays and multiple windows to update the scene once per frame here,
+	//  then render to many viewports/windows, pickray from any viewport/window
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
