@@ -41,30 +41,14 @@ Variable use:
 typedef struct iiglobal //InstanceGlobal
 {
 	struct tdisplay{
-		//freewrl_params_t params;
-		void *params;
-		//GLenum _global_gl_err;
-		int _global_gl_err;
+		void *params; //freewrl_params_t
+		int _global_gl_err; //GLenum
 		bool display_initialized;// = FALSE;
-
 		int screenWidth;// = 0; /* screen */
 		int screenHeight;// = 0;
-
 		char *window_title;// = NULL;
-
-		int mouse_x;
-		int mouse_y;
-
-		int show_mouse;
-
 		int shutterGlasses;// = 0; /* stereo shutter glasses */
-		int quadbuff_stereo_mode;// = 0;
-
-		//s_renderer_capabilities_t rdr_caps;
-		void *rdr_caps;
-
-		float myFps;// = (float) 0.0;
-		char *myMenuStatus;
+		void *rdr_caps; //s_renderer_capabilities_t
 		void *prv;
 	}display;
 	struct tinternalc {

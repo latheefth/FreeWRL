@@ -102,19 +102,12 @@ void display_init(struct tdisplay* t)
 	t->screenHeight = 0;
 	t->window_title = NULL;
 
-	t->mouse_x = 0;
-	t->mouse_y = 0;
-	t->show_mouse = 0;
 	t->shutterGlasses = 0; /* stereo shutter glasses */
-	t->quadbuff_stereo_mode = 0;
-	//memset(&t->rdr_caps,0,sizeof(t->rdr_caps));
-	t->myFps = (float) 0.0;
 	t->prv = display_constructor();
 	{
 		ppdisplay p = (ppdisplay)t->prv;
 		memset(&p->rdr_caps,0,sizeof(s_renderer_capabilities_t));
 		t->rdr_caps = &p->rdr_caps;
-		t->myMenuStatus = p->myMenuStatus;
 		p->params.height = 0; /* window */
 		p->params.width = 0;
 		p->params.winToEmbedInto = INT_ID_UNDEFINED;
