@@ -244,9 +244,7 @@ typedef struct targetwindow {
 	void *hwnd; //window handle
 	BOOL swapbuf; //true if we should swapbuffer on the target
 	ivec4 ivport; //fraction of pixel iviewport we are targeting left, width, bottom, height
-#ifdef MULTI_WINDOW
-//	glcontext ctx;
-#endif
+	freewrl_params_t params; //will have gl context switching parameters
 	stage stages[2]; //pre-allocation
 	//stage *output_stages;
 	int stages_initialized;
@@ -655,7 +653,6 @@ void render_stage(stage *stagei,double dtime){
 	//do the sub-stages first, like you do layers in layersets
 	ss = stagei->sub_stages;
 	while(ss){
-		resize_GL(592, 395);
 		render_stage(ss, dtime);
 		ss++;
 	}
@@ -672,36 +669,40 @@ void render_stage(stage *stagei,double dtime){
 static float fullviewport[4] = {0.0f, 1.0f, 0.0f, 1.0f};
 void setup_stagesNORMAL(){
 	int i;
-	targetwindow *twindow;
+	targetwindow *twindows, *t;
 	stage *stages;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
-	twindow = p->twindows;
-	int noutputstages = 1; //one screen
-	stages = twindow[0].stages;
-	twindow->stage = &stages[0];
-	//for(i=0;i<noutputstages;i++){
-		stage *stagei = twindow->stage;// &stages[i];
-		stagei->content = &stagei->contents[0];
-		//stagei->content->prep = fwl_RenderSceneUpdateScene0;
-		stagei->content->render = render;
-		stagei->ibuffer = 0;
-		//stagei->nsub = 0;
-		stagei->sub_stages = NULL;
-		stagei->content->itype = 0;
-		/*
-		stagei->neyes = 1;
-		for(i=0;i<stagei->neyes;i++){
-			eye *eyei = &stagei->eyes[i];
-			eyei->cursor = NULL;
-			eyei->pick = NULL;
-			//eyei->sbh = FALSE;
-			//eyei->ibuffer = 0;
-			eyei->viewport = fullviewport;
-		}
-		*/
-	//}
+	twindows = p->twindows;
+	t = twindows;
+	while(t){
+		int noutputstages = 1; //one screen
+		stages = t->stages;
+		t->stage = &stages[0];
+		//for(i=0;i<noutputstages;i++){
+			stage *stagei = t->stage;// &stages[i];
+			stagei->content = &stagei->contents[0];
+			//stagei->content->prep = fwl_RenderSceneUpdateScene0;
+			stagei->content->render = render;
+			stagei->ibuffer = 0;
+			//stagei->nsub = 0;
+			stagei->sub_stages = NULL;
+			stagei->content->itype = 0;
+			/*
+			stagei->neyes = 1;
+			for(i=0;i<stagei->neyes;i++){
+				eye *eyei = &stagei->eyes[i];
+				eyei->cursor = NULL;
+				eyei->pick = NULL;
+				//eyei->sbh = FALSE;
+				//eyei->ibuffer = 0;
+				eyei->viewport = fullviewport;
+			}
+			*/
+		//}
+		t = t->next;
+	}
 }
 static int stages_initialized = 0;
 void fwl_RenderSceneUpdateSceneSTAGES() {
@@ -746,7 +747,7 @@ void fwl_RenderSceneUpdateSceneNORMAL() {
 //viewport stuff - see Component_Layering.c
 ivec4 childViewport(ivec4 parentViewport, float *clipBoundary); 
 
-#ifdef MULTI_WINDOW
+//#ifdef MULTI_WINDOW
 /* MULTI_WINDOW is for desktop configurations where 2 or more windows are rendered to.
 	- desktop (windows, linux, mac) only, because it relies on changing the opengl context, 
 		and those are desktop-platform-specific calls. GLES2 (opengl es 2) 
@@ -759,35 +760,21 @@ ivec4 childViewport(ivec4 parentViewport, float *clipBoundary);
 		fwSwapBuffers() and fwChangeGlContext() functions in the front-end modules,
 		including android/mobile/GLES2 which would stub or implement as appropriate
 */
-typedef struct glcontext {
-#ifdef WIN32
-	HWND window; //need in order to tell which window a mouse/key input came from
-	HDC dc; //GLES2/mobile/winRT can only have one target, so not needed for those. 
-	HGLRC rc; //Desktop calls: windows: wglMakeCurrent(dc,rc) mac: aglSetCurrentContext(ctx), linux: glXMakeContextCurrent(dpy,drawable,read,context)
-#elif LINUX
-	int dpy;
-	int drawable;
-	int read;
-	int context;
-#elif AQUA
-	int ctx;
-#else
-	int nothing;
-#endif
-}glcontext;
-
-void setGlContext(glcontext ctx){
-#ifdef WIN32
-	wglMakeCurrent(ctx.dc,ctx.rc);
-#elif LINUX
-	glXMakeContextCurrent(ctx.dpy,ctx.drawable,ctx.read,ctx.context);
-#elif AQUA
-	aglSetCurrentContext(ctx.ctx);
-#else
-	continue;
-#endif
-
+void fv_change_GLcontext(freewrl_params_t* d);
+// each config needs to populate:
+// ANGLEPROJECT(stub) and WIN32(wglSetContext) done in src/lib/ui/fwWindow32.c
+//void fv_change_GLcontext(freewrl_params_t* d){
+//	return; //stub for ANLGEPROJECT, EGL/GLES2, mobile which don't change context but need to link
+//}
+#ifdef LINUX
+void fv_change_GLcontext(freewrl_params_t* d){
+	glXMakeContextCurrent(d->dpy,d->drawable,d->read,d->context); //not sure how these map to what we are storing
 }
+#elif AQUA
+void fv_change_GLcontext(freewrl_params_t* d){
+	aglSetCurrentContext(d->context);
+}
+#endif
 
 /*
 for targetwindow in targets //supervisor screen, HMD
@@ -814,7 +801,36 @@ something similar for pickrays, except pick() instead of render()
 - or pickrays (3 per target: [left, right, forehead/mono]),  updated on same pass once per frame
 
 */
-static targetwindow targets[2]; //could be in gglobal? Or the other way - target { global }?
+
+
+void targetwindow_set_params(int itargetwindow, freewrl_params_t* params){
+	targetwindow *twindows, *t;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+	
+	twindows = p->twindows;
+	twindows[itargetwindow].params = *params;
+	if(itargetwindow > 0){
+		twindows[itargetwindow -1].next = &twindows[itargetwindow];
+		// BOOL wglShareLists(HGLRC hglrc1,HGLRC hglrc2);
+#ifdef WIN32
+		//linux, osx share during gl context creation
+		//our fv_create_gl_context could/should have a share parameter or .params
+		//sharing lists is so buffers etc can be shared between windows, which we seem to need.
+		wglShareLists((HGLRC) twindows[itargetwindow -1].params.context, (HGLRC) twindows[itargetwindow].params.context);
+#endif
+	}
+	if(0){
+		t = twindows;
+		while(t){
+			printf("windex=%d t->next = %ld\n",itargetwindow,t->next);
+			t=t->next;
+		}
+		printf("hows that?\n");
+	}
+
+}
+
 void fwl_setScreenDim1(int wi, int he, int itargetwindow){
 	targetwindow *twindows;
 	ivec4 window_rect;
@@ -846,20 +862,24 @@ void initialize_targets_simple(){
 	}
 
 
-	t->next = NULL;
-	stagei = t->stage;
-		//stage *stagei = &stages[0];
-		//stagei->content = &contents[0];
-		//stagei->content->prep = fwl_RenderSceneUpdateScene0;
-		stagei->content->render = render;
-		memcpy(stagei->viewport,defaultClipBoundary,4*sizeof(float));
-		stagei->sub_stages = NULL;
-	//t->stage = stagei;
-	//t->ivport = defaultClipBoundary;
+	//t->next = NULL;
+	while(t){
+		stagei = t->stage;
+			//stage *stagei = &stages[0];
+			//stagei->content = &contents[0];
+			//stagei->content->prep = fwl_RenderSceneUpdateScene0;
+			stagei->content->render = render;
+			memcpy(stagei->viewport,defaultClipBoundary,4*sizeof(float));
+			stagei->sub_stages = NULL;
+		//t->stage = stagei;
+		//t->ivport = defaultClipBoundary;
+		t=t->next;
+	}
 	tg->Mainloop.targets_initialized = 1;
 }
 void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 	double dtime;
+	targetwindow *t, *twindows;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
@@ -869,20 +889,26 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 	dtime = Time1970sec();
 	fwl_RenderSceneUpdateScene0(dtime);
 
-	targetwindow *t = p->twindows;
+	twindows = p->twindows;
+	t = twindows;
 	while(t) { 
 		//a targetwindow might be a supervisor's screen, or HMD
+		freewrl_params_t *dp;
 		ivec4 tport, pvport,vport;
 		Stack *vportstack;
 
 		fwl_setScreenDim(t->ivport.W, t->ivport.H);
+		dp = (freewrl_params_t*)tg->display.params;
+		if(t->params.context != dp->context){
+			tg->display.params = (void*)&t->params;
+			fv_change_GLcontext((freewrl_params_t*)tg->display.params);
+			//printf("%ld %ld %ld\n",t->params.display,t->params.context,t->params.surface);
+		}
+		doglClearColor();
 
 		vportstack = (Stack *)tg->Mainloop._vportstack;
 		pushviewport(vportstack,t->ivport);
 
-		//tport = stack_top(ivec4,vportstack);
-		//pvport = childViewport(tport,t->ivport);
-		//pushviewport(vportstack, pvport);
 		stage *s = t->stage;
 		//while(s){
 
@@ -919,15 +945,15 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 		//get final buffer, or swapbuffers	
 		popviewport(vportstack);
 		//setcurrentviewport(vportstack);
-		//if(t->swapbuf) { FW_GL_SWAPBUFFERS }
+		if(t->swapbuf) { FW_GL_SWAPBUFFERS }
 		t = t->next;
 	}
 }
 void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneTARGETWINDOWS;
-#else //MULTI_WINDOW
-//void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneNORMAL;
-void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneSTAGES;
-#endif //MULTI_WINDOW
+//#else //MULTI_WINDOW
+////void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneNORMAL;
+//void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneSTAGES;
+//#endif //MULTI_WINDOW
 
 /*rendersceneupdatescene overridden with SnapshotRegressionTesting.c  
 	fwl_RenderSceneUpdateSceneTESTING during regression testing runs
@@ -1035,7 +1061,7 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 	}
 #endif
 
-	doglClearColor();
+	//doglClearColor();
 
 	OcclusionStartofRenderSceneUpdateScene();
 
@@ -3741,6 +3767,9 @@ void doReplaceWorldRequest()
 }
 static int(*view_initialize)() = NULL;
 static void(*view_update)() = NULL;
+//
+//EGL/GLES2 winGLES2.exe with KEEP_FV_INLIB sets frontend_handles_display_thread=true, 
+// then calls fv_display_initialize() which only creates window in backend if false
 #if KEEP_FV_INLIB
 int view_initialize0(void){
 	/* Initialize display - View initialize*/
@@ -3749,6 +3778,10 @@ int view_initialize0(void){
 		return FALSE; //exit(1);
 	}
 	return TRUE;
+}
+#else
+int view_initialize0(void){
+	return 1;
 }
 #endif /* KEEP_FV_INLIB */
 

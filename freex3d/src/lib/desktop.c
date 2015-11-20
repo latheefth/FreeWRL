@@ -385,7 +385,7 @@ void _displayThread(void *globalcontext)
 		more = fwl_draw();
 		/* swap the rendering area */
 		if(more)
-			FW_GL_SWAPBUFFERS;
+			if(0) FW_GL_SWAPBUFFERS;
 	} while (more);
 	// moved to fwl_draw for disabler finalizeRenderSceneUpdateScene(); //Model end
 	//printf("Ending display thread gracefully\n");

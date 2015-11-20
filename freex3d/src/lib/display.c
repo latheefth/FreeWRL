@@ -82,7 +82,7 @@ ivec2 ivec2_init(int x, int y){
 
 #define MAXSTAT 200
 typedef struct pdisplay{
-	freewrl_params_t params;
+	freewrl_params_t params; //pre-allocated
 	s_renderer_capabilities_t rdr_caps;
 	char myMenuStatus[MAXSTAT];
 }* ppdisplay;
@@ -108,14 +108,16 @@ void display_init(struct tdisplay* t)
 		ppdisplay p = (ppdisplay)t->prv;
 		memset(&p->rdr_caps,0,sizeof(s_renderer_capabilities_t));
 		t->rdr_caps = &p->rdr_caps;
-		p->params.height = 0; /* window */
+		/*
+		p->params.height = 0; // window
 		p->params.width = 0;
 		p->params.winToEmbedInto = INT_ID_UNDEFINED;
 		p->params.fullscreen = FALSE;
 		p->params.xpos = 0;
 		p->params.ypos = 0;
 		p->params.frontend_handles_display_thread = FALSE;
-		t->params = &p->params;
+		*/
+		t->params = (void*)&p->params;
 	}
 }
 
@@ -162,6 +164,7 @@ int fv_display_initialize()
     return TRUE;
 }
 #else
+void targetwindow_set_params(int itargetwindow, freewrl_params_t* params);
 /**
  *  fv_display_initialize: takes care of all the initialization process, 
  *                      creates the display thread and wait for it to complete
@@ -170,6 +173,7 @@ int fv_display_initialize()
 int fv_display_initialize()
 {
 	struct tdisplay* d;
+	freewrl_params_t *dp;
 	ppdisplay p;
 	ttglobal tg = gglobal();
 	d = &tg->display;
@@ -181,13 +185,6 @@ int fv_display_initialize()
 
 	if (d->display_initialized) return TRUE;
 
-	//memset(&d->rdr_caps, 0, sizeof(d->rdr_caps));
-
-	/* FreeWRL parameters */
-	//d->fullscreen = fwl_getp_fullscreen();
-	//d->width = fwl_getp_width();
-	//d->height = fwl_getp_height();
-	//d->winToEmbedInto = fwl_getp_winToEmbedInto();
 
  	/* make the window, get the OpenGL context */
 // #if !defined(_MSC_VER) && !defined(_ANDROID) && !defined(QNX) && !defined(IPHONE)
@@ -205,15 +202,33 @@ int fv_display_initialize()
 
  #endif //!MSC_VER && ! any OpenGL ES 2.0 device
 
-	if (0 != d->screenWidth)  p->params.width  = d->screenWidth;
-	if (0 != d->screenHeight) p->params.height = d->screenHeight;
-	fv_setScreenDim(p->params.width,p->params.height); /* recompute screenRatio */
+	//default window
+	dp = (freewrl_params_t*)d->params;
+	if(1){
+		if (!fv_create_main_window(dp)){ //0 /*argc*/, NULL /*argv*/)) {
+		//if (!fv_create_main_window((freewrl_params_t *)d)){ //0 /*argc*/, NULL /*argv*/)) {
+			return FALSE;
+		}
+		targetwindow_set_params(0,dp); 
+	}
 
-	//snprintf(window_title, sizeof(window_title), "FreeWRL");
-
-	if (!fv_create_main_window(d->params)){ //0 /*argc*/, NULL /*argv*/)) {
-	//if (!fv_create_main_window((freewrl_params_t *)d)){ //0 /*argc*/, NULL /*argv*/)) {
-		return FALSE;
+	if(1){
+		//2nd fun window! to challenge us!
+		dp->winToEmbedInto = -1;
+		if (!fv_create_main_window(dp)){ //0 /*argc*/, NULL /*argv*/)) {
+		//if (!fv_create_main_window((freewrl_params_t *)d)){ //0 /*argc*/, NULL /*argv*/)) {
+			return FALSE;
+		}
+		targetwindow_set_params(1,dp); 
+	}
+	if(1){
+		//2nd fun window! to challenge us!
+		dp->winToEmbedInto = -1;
+		if (!fv_create_main_window(dp)){ //0 /*argc*/, NULL /*argv*/)) {
+		//if (!fv_create_main_window((freewrl_params_t *)d)){ //0 /*argc*/, NULL /*argv*/)) {
+			return FALSE;
+		}
+		targetwindow_set_params(2,dp); 
 	}
 
 	setWindowTitle0();

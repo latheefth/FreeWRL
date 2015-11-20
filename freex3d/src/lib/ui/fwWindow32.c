@@ -188,7 +188,9 @@ BOOL fwDisplayChange(){
 }
 void fwCloseContext(){
 }
-
+void fv_change_GLcontext(freewrl_params_t* d){
+	return; //stub for ANLGEPROJECT, EGL/GLES2, mobile which don't change context but need to link
+}
 
 #else //ANGLEPROJECT
 //desktop GL and wgl functions
@@ -257,6 +259,14 @@ BOOL bSetupPixelFormat(HDC hdc)
  
     return TRUE; 
 } 
+void fv_change_GLcontext(freewrl_params_t* d){
+	HDC hDC;
+	HGLRC hRC;
+	HWND hWnd;
+	hDC = (HDC)d->display;
+	hRC = (HGLRC)d->context;
+	wglMakeCurrent(hDC, hRC);
+}
 
 bool fv_create_and_bind_GLcontext(freewrl_params_t* d)
 {
@@ -731,6 +741,7 @@ void printbitssimple(int n) {
 void statusbar_set_window_size(int width, int height);
 int statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY);
 int hwnd_to_windex(void *hWnd);
+void fwl_setScreenDim1(int wi, int he, int itargetwindow);
 LRESULT CALLBACK PopupWndProc( 
     HWND hWnd, 
     UINT msg, 
