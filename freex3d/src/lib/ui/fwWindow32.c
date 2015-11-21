@@ -1252,7 +1252,7 @@ HWND create_main_window0(freewrl_params_t * d) //int argc, char *argv[])
     return ghWnd;
 }
 
-int fv_create_main_window(freewrl_params_t * d) //int argc, char *argv[])
+int fv_create_main_window2(freewrl_params_t * d, freewrl_params_t *share) //int argc, char *argv[])
 {
 	loadCursors();
 #ifdef _DEBUG
@@ -1271,6 +1271,11 @@ int fv_create_main_window(freewrl_params_t * d) //int argc, char *argv[])
 			//fv_create_GLcontext();
 			//fv_bind_GLcontext();
 			fv_create_and_bind_GLcontext(d);
+#ifndef ANGLEPROJECT
+			//remember, ANGLEPROJECT emulates GLES2 over directX, and lacks some desktop wgl functions like wglShareLists
+			if(share)
+				wglShareLists((HGLRC) share->context,(HGLRC) d->context);
+#endif
 			return TRUE;
 		}
 		return FALSE;

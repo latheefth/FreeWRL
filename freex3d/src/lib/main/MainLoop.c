@@ -766,13 +766,19 @@ void fv_change_GLcontext(freewrl_params_t* d);
 //void fv_change_GLcontext(freewrl_params_t* d){
 //	return; //stub for ANLGEPROJECT, EGL/GLES2, mobile which don't change context but need to link
 //}
-#ifdef LINUX
+#ifdef _MSC_VER
+//win32 in fwWindow32.c
+#elif __linux__  //LINUX
 void fv_change_GLcontext(freewrl_params_t* d){
-	glXMakeContextCurrent(d->dpy,d->drawable,d->read,d->context); //not sure how these map to what we are storing
+	glXMakeCurrent(d->display,d->surface,d->context); 
 }
 #elif AQUA
 void fv_change_GLcontext(freewrl_params_t* d){
 	aglSetCurrentContext(d->context);
+}
+#elif
+void fv_change_GLcontext(freewrl_params_t* d){
+	//stub for non-desktop configs (they can't do multiple windows anyway)
 }
 #endif
 
@@ -812,13 +818,6 @@ void targetwindow_set_params(int itargetwindow, freewrl_params_t* params){
 	twindows[itargetwindow].params = *params;
 	if(itargetwindow > 0){
 		twindows[itargetwindow -1].next = &twindows[itargetwindow];
-		// BOOL wglShareLists(HGLRC hglrc1,HGLRC hglrc2);
-#ifdef WIN32
-		//linux, osx share during gl context creation
-		//our fv_create_gl_context could/should have a share parameter or .params
-		//sharing lists is so buffers etc can be shared between windows, which we seem to need.
-		wglShareLists((HGLRC) twindows[itargetwindow -1].params.context, (HGLRC) twindows[itargetwindow].params.context);
-#endif
 	}
 	if(0){
 		t = twindows;
@@ -828,7 +827,14 @@ void targetwindow_set_params(int itargetwindow, freewrl_params_t* params){
 		}
 		printf("hows that?\n");
 	}
-
+}
+freewrl_params_t* targetwindow_get_params(int itargetwindow){
+	targetwindow *twindows, *t;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+	
+	twindows = p->twindows;
+	return &twindows[itargetwindow].params;
 }
 
 void fwl_setScreenDim1(int wi, int he, int itargetwindow){
@@ -3770,7 +3776,7 @@ static void(*view_update)() = NULL;
 //
 //EGL/GLES2 winGLES2.exe with KEEP_FV_INLIB sets frontend_handles_display_thread=true, 
 // then calls fv_display_initialize() which only creates window in backend if false
-#if KEEP_FV_INLIB
+#if defined(_ANDROID)
 int view_initialize0(void){
 	/* Initialize display - View initialize*/
 	if (!fv_display_initialize()) {
@@ -3781,9 +3787,14 @@ int view_initialize0(void){
 }
 #else
 int view_initialize0(void){
-	return 1;
+	/* Initialize display - View initialize*/
+	if (!fv_display_initialize_desktop()) {
+		ERROR_MSG("initFreeWRL: error in display initialization.\n");
+		return FALSE; //exit(1);
+	}
+	return TRUE;
 }
-#endif /* KEEP_FV_INLIB */
+#endif //ANDROID or ANGLEPROJECT
 
 void view_update0(void){
 	#if defined(STATUSBAR_HUD)

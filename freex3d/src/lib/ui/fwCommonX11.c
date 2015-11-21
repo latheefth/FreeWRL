@@ -302,7 +302,6 @@ bool fv_create_GLcontext()
 #endif
 	return TRUE;
 }
-
 /**
  *   fv_bind_GLcontext: attache the OpenGL context to the main window.
  *                   TODO: finish implementation for Mac and Windows.
@@ -328,11 +327,6 @@ bool fv_bind_GLcontext()
 #if defined(TARGET_AQUA)
 	return aglSetCurrentContext(aqglobalContext);
 #endif
-
-#if defined(TARGET_WIN32)
-	return wglMakeCurrent(ghDC, ghRC);
-#endif
-
 	return TRUE;
 }
 #endif /* KEEP_FV_INLIB */

@@ -318,6 +318,7 @@ void fv_setScreenDim(int wi, int he);
 int fv_open_display();
 int fv_display_initialize(void);
 int fv_create_main_window(freewrl_params_t *d); //int argc, char *argv[]);
+int fv_create_main_window2(freewrl_params_t *d, freewrl_params_t *share); 
 bool fv_create_GLcontext();
 bool fv_bind_GLcontext();
 /* end of "virtual" functions */

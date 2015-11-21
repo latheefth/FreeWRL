@@ -123,11 +123,9 @@ void display_init(struct tdisplay* t)
 
 
 
-#if KEEP_FV_INLIB
-
-#if defined (_ANDROID)
-
-/* simple display initialize for Android (and, probably, iPhones, too) */
+/* simple display initialize for Android (and, probably, iPhones, too)
+	Nov 2015: now used for desktop backend opengl initialization
+*/
 
 int fv_display_initialize()
 {
@@ -163,32 +161,19 @@ int fv_display_initialize()
     
     return TRUE;
 }
-#else
-void targetwindow_set_params(int itargetwindow, freewrl_params_t* params);
-/**
- *  fv_display_initialize: takes care of all the initialization process, 
- *                      creates the display thread and wait for it to complete
- *                      the OpenGL initialization and the Window creation.
- */
-int fv_display_initialize()
-{
-	struct tdisplay* d;
-	freewrl_params_t *dp;
-	ppdisplay p;
-	ttglobal tg = gglobal();
-	d = &tg->display;
-	p = (ppdisplay)tg->display.prv;
-
-#ifdef HAVE_OPENCL
-	struct tOpenCL_Utils *cl = &gglobal()->OpenCL_Utils;
-#endif //HAVE_OPENCL
-
-	if (d->display_initialized) return TRUE;
-
-
- 	/* make the window, get the OpenGL context */
-// #if !defined(_MSC_VER) && !defined(_ANDROID) && !defined(QNX) && !defined(IPHONE)
+#if !defined (_ANDROID)
+int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *share);
 #if defined (__linux__)
+int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *share){
+ 	/* make the window, create the OpenGL context, share the context if necessary 
+		Nov 2015: linux desktop is still single windowed, with static GLXContext etc, no sharing
+		- to get sharing, you need to populate params during creation of window and gl context
+			d->display = Display *Xdpy;
+			d->surface = Drawable or ???
+			d->context = GLXContext GLcx;
+			so when the targetwindow changes, there's enough info to do glXMakeCurrent and glXSwapBuffers
+			- and when doing glCreateContext you have the previous window's GLXcontext to use as a shareList
+	*/
 
 	if (!fv_open_display()) {
 		printf("open_display failed\n");
@@ -199,65 +184,101 @@ int fv_display_initialize()
 		printf("create_GLcontext failed\n");
 		return FALSE;
 	}
+	fv_bind_GLcontext();
+	return TRUE;
+}
+#endif //__linux__
 
- #endif //!MSC_VER && ! any OpenGL ES 2.0 device
+#ifdef _MSC_VER
+int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *share){
+	if (!fv_create_main_window2(params,share)){ //0 /*argc*/, NULL /*argv*/)) {
+		return FALSE;
+	}
+	return TRUE;
+}
+#endif //_MSC_VER
+#ifdef AQUA
+int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *share){
+ 	/* make the window, create the OpenGL context, share the context if necessary 
+		Nov 2015: OSX desktop is still single windowed, with static AGLcontext etc, no sharing
+		- to get sharing, you need to populate params during creation of window and gl context
+			d->display = (don't need)
+			d->surface = (don't need)
+			d->context = AGLContext
+			so when the targetwindow changes, there's enough info to do aglSetCurrentContext and aglSwapBuffers
+			- and when doing aglCreateContext you have the previous window's AGLContext to use as a share
 
-	//default window
+	*/
+
+	if (!fv_create_main_window(params)){ //0 /*argc*/, NULL /*argv*/)) {
+		return FALSE;
+	}
+	fv_bind_GLcontext();
+	return TRUE;
+}
+#endif
+
+void targetwindow_set_params(int itargetwindow, freewrl_params_t* params);
+freewrl_params_t* targetwindow_get_params(int itargetwindow);
+/**
+ *  fv_display_initialize_desktop: 
+ *		creates window
+ *		creates opengl context, associates with window
+ *		sets sharing if multi-window
+ *      calls fv_display_initialize() for the backend generic OpenGL initialization 
+ */
+int fv_display_initialize_desktop(){
+	int nwindows;
+	struct tdisplay* d;
+	freewrl_params_t *dp;
+	ppdisplay p;
+	ttglobal tg = gglobal();
+	d = &tg->display;
+	p = (ppdisplay)tg->display.prv;
+
 	dp = (freewrl_params_t*)d->params;
-	if(1){
-		if (!fv_create_main_window(dp)){ //0 /*argc*/, NULL /*argv*/)) {
-		//if (!fv_create_main_window((freewrl_params_t *)d)){ //0 /*argc*/, NULL /*argv*/)) {
-			return FALSE;
-		}
-		targetwindow_set_params(0,dp); 
+	if(dp->frontend_handles_display_thread){
+		//all configs are technically frontend handles display thread now, 
+		// as seen by the backend (not including desktop.c which is a frontend)
+		// the flag frontend_handles_display_thread here really means 
+		// frontend_handles_window_creation_and_opengl_context_creation
+		// for example: winGLES2.exe which uses an EGL kit for window/glcontext
+		return fv_display_initialize(); //display_initialize now really means initialize generic backend opengl
 	}
 
-	if(1){
+	nwindows = 1; //1 is normal freewrl, 2 or 3 is freaky 2,3 windowed freewrl for experiments
+ 	/* make the window, get the OpenGL context */
+	if(!fv_create_window_and_context(dp, NULL)){
+		return FALSE;
+	}
+	targetwindow_set_params(0,dp);
+	if(nwindows > 1){
 		//2nd fun window! to challenge us!
 		dp->winToEmbedInto = -1;
-		if (!fv_create_main_window(dp)){ //0 /*argc*/, NULL /*argv*/)) {
-		//if (!fv_create_main_window((freewrl_params_t *)d)){ //0 /*argc*/, NULL /*argv*/)) {
+		freewrl_params_t *p0 = targetwindow_get_params(0);
+		if(!fv_create_window_and_context(dp,p0)){
 			return FALSE;
 		}
 		targetwindow_set_params(1,dp); 
 	}
-	if(1){
-		//2nd fun window! to challenge us!
+	if(nwindows > 2){
 		dp->winToEmbedInto = -1;
-		if (!fv_create_main_window(dp)){ //0 /*argc*/, NULL /*argv*/)) {
-		//if (!fv_create_main_window((freewrl_params_t *)d)){ //0 /*argc*/, NULL /*argv*/)) {
+		freewrl_params_t *p1 = targetwindow_get_params(1);
+		if(!fv_create_window_and_context(dp, p1)){
 			return FALSE;
 		}
 		targetwindow_set_params(2,dp); 
 	}
-
 	setWindowTitle0();
 
-#if ! ( defined(_MSC_VER) || defined(FRONTEND_HANDLES_DISPLAY_THREAD) )
-	
-	fv_bind_GLcontext();
-#endif
-
-
-	if (!fwl_initialize_GL()) {
-		printf("initialize_GL failed\n");
-		return FALSE;
-	}
+	fv_display_initialize(); //display_initialize now really means initialize generic backend opengl
 
         /* lets make sure everything is sync'd up */
 #if defined(TARGET_X11) || defined(TARGET_MOTIF)
         XFlush(Xdpy);
 #endif
 
-        /* initialize default font 
-           
-           TODO: this may be a configuration option (config file or command line)
-         */
-        //rf_xfont_init("fixed");
-
-	/* Display full initialized :P cool ! */
-	d->display_initialized = TRUE;
-	gglobal()->display.display_initialized = TRUE;
+	gglobal()->display.display_initialized = d->display_initialized;
 
 	DEBUG_MSG("FreeWRL: running as a plugin: %s\n", BOOL_STR(isBrowserPlugin));
 
@@ -273,18 +294,9 @@ int fv_display_initialize()
 		XMapWindow(Xdpy, Xwin);
 	}
 #endif /* IPHONE */
-
-#ifdef HAVE_OPENCL
-
-    if (!cl->OpenCL_Initialized) {
-	printf ("doing fwl_OpenCL_startup here in fv_display_inintialize\n");
-	fwl_OpenCL_startup(cl);
-    }
-
-#endif
 	return TRUE;
 }
-#endif //ANDROID
+#endif //!_ANDORID
 
 
 /**
@@ -313,7 +325,7 @@ int fwl_parse_geometry_string(const char *geometry, int *out_width, int *out_hei
 }
 
 void fv_setScreenDim(int wi, int he) { fwl_setScreenDim(wi,he); }
-#endif /* KEEP_FV_INLIB */
+
 
 /**
  *   fwl_setScreenDim: set internal variables for screen sizes, and calculate frustum
