@@ -246,11 +246,12 @@ int fv_display_initialize_desktop(){
 		return fv_display_initialize(); //display_initialize now really means initialize generic backend opengl
 	}
 
-	nwindows = 1; //1 is normal freewrl, 2 or 3 is freaky 2,3 windowed freewrl for experiments
+	nwindows = 3; //1 is normal freewrl, 2 or 3 is freaky 2,3 windowed freewrl for experiments
  	/* make the window, get the OpenGL context */
 	if(!fv_create_window_and_context(dp, NULL)){
 		return FALSE;
 	}
+	d->display_initialized = fwl_initialize_GL();
 	targetwindow_set_params(0,dp);
 	if(nwindows > 1){
 		//2nd fun window! to challenge us!
@@ -260,6 +261,7 @@ int fv_display_initialize_desktop(){
 			return FALSE;
 		}
 		targetwindow_set_params(1,dp); 
+		fwl_initialize_GL(); //has context-specific initializations -like GL_BLEND- so repeat per-context
 	}
 	if(nwindows > 2){
 		dp->winToEmbedInto = -1;
@@ -268,10 +270,9 @@ int fv_display_initialize_desktop(){
 			return FALSE;
 		}
 		targetwindow_set_params(2,dp); 
+		fwl_initialize_GL();
 	}
 	setWindowTitle0();
-
-	fv_display_initialize(); //display_initialize now really means initialize generic backend opengl
 
         /* lets make sure everything is sync'd up */
 #if defined(TARGET_X11) || defined(TARGET_MOTIF)

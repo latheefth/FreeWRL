@@ -601,6 +601,16 @@ int fw_exit(int val)
 	exit(val);
 }
 
+void view_update0(void){
+	#if defined(STATUSBAR_HUD)
+		/* status bar, if we have one */
+		finishedWithGlobalShader();
+		drawStatusBar();  // View update
+		restoreGlobalShader();
+	#endif
+}
+
+
 //static stage output_stages[2];
 //static int noutputstages = 2;
 //static contenttype contents[2];
@@ -677,18 +687,24 @@ void setup_stagesNORMAL(){
 	twindows = p->twindows;
 	t = twindows;
 	while(t){
+		contenttype *content;
 		int noutputstages = 1; //one screen
 		stages = t->stages;
 		t->stage = &stages[0];
 		//for(i=0;i<noutputstages;i++){
 			stage *stagei = t->stage;// &stages[i];
-			stagei->content = &stagei->contents[0];
+			content = &stagei->contents[0];
+			stagei->content = content;
 			//stagei->content->prep = fwl_RenderSceneUpdateScene0;
-			stagei->content->render = render;
+			content->render = render;
 			stagei->ibuffer = 0;
 			//stagei->nsub = 0;
 			stagei->sub_stages = NULL;
 			stagei->content->itype = 0;
+
+			content = &stagei->contents[1];
+			stagei->content->next = content;
+			content->render = view_update0; //sbh
 			/*
 			stagei->neyes = 1;
 			for(i=0;i<stagei->neyes;i++){
@@ -3796,16 +3812,6 @@ int view_initialize0(void){
 }
 #endif //ANDROID or ANGLEPROJECT
 
-void view_update0(void){
-	#if defined(STATUSBAR_HUD)
-		/* status bar, if we have one */
-		finishedWithGlobalShader();
-		drawStatusBar();  // View update
-		restoreGlobalShader();
-	#endif
-}
-
-
 
 void killNodes();
 
@@ -3822,7 +3828,7 @@ int fwl_draw()
 	if (!p->draw_initialized){
 		more = FALSE;
 		view_initialize = view_initialize0; //defined above, with ifdefs
-		view_update = view_update0; //defined above with ifdefs
+//		view_update = view_update0; //defined above with ifdefs
 		if (view_initialize)
 			more = view_initialize();
 
