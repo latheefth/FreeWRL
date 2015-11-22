@@ -327,7 +327,7 @@ int fwl_parse_geometry_string(const char *geometry, int *out_width, int *out_hei
 
 void fv_setScreenDim(int wi, int he) { fwl_setScreenDim(wi,he); }
 
-
+void fwl_setScreenDim1(int wi, int he, int windex);
 /**
  *   fwl_setScreenDim: set internal variables for screen sizes, and calculate frustum
  */
@@ -338,6 +338,7 @@ void fwl_setScreenDim(int wi, int he)
     tg->display.screenWidth = wi;  //width of the whole opengl surface in pixels
     tg->display.screenHeight = he; //height of the whole opengl surface in pixels
     /* printf("%s,%d fwl_setScreenDim(int %d, int %d)\n",__FILE__,__LINE__,wi,he); */
+	fwl_setScreenDim1(wi,he,0);
 
 }
 double display_screenRatio(){

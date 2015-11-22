@@ -314,6 +314,7 @@ void cursorDraw(int ID, int x, int y, float angle)
 	return;
 #endif
 #ifndef NEWWAY_COPIED_FROM_STATUSBARHUD_CURSORDRAW
+
 	FW_GL_DEPTHMASK(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
 	//if(p->programObject == 0) initProgramObject();

@@ -2532,13 +2532,40 @@ int overStatusbar(ppstatusbar p, int mouseY){
 	//}
 	return isOver;
 }
-int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY)
+void fwl_getWindowSize(int *width, int *height);
+void fwl_getWindowSize1(int windex, int *width, int *height);
+
+void updateWindowSize(){
+	//call this one when rendering the statusbarHud. 
+	//the libfreewrl rendering loop should have setScreenDim to the appropriate values
+	int width, height;
+	ppstatusbar p;
+	ttglobal tg = gglobal();
+	p = (ppstatusbar)tg->statusbar.prv;
+	fwl_getWindowSize(&width,&height);
+	p->screenWidth = width;
+	p->screenHeight = height;	
+}
+void updateWindowSize1(int windex){
+	//call this one when recieving window events
+	//windex: index of targetwindow 
+	int width, height;
+	ppstatusbar p;
+	ttglobal tg = gglobal();
+	p = (ppstatusbar)tg->statusbar.prv;
+	fwl_getWindowSize1(windex,&width,&height);
+printf("windex %d width %d height %d\n",windex,width,height);
+	p->screenWidth = width;
+	p->screenHeight = height;	
+}
+int handleStatusbarHud1(int mev, int butnum, int mouseX, int mouseY, int windex)
 {
 	int mouseYY;
 	ppstatusbar p;
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
 
+	updateWindowSize1(windex);
 	mouseYY = mouseY; // - p->pmenu.yoffset;
 	if ((mev == ButtonPress) || (mev == ButtonRelease))
 	{
@@ -2650,21 +2677,27 @@ void statusbar_set_window_size(int width, int height)
 	//if(1) fwl_setScreenDim2(5,10,width-10,height-20); //test vport, screenDim2
 }
 int getCursorStyle();
-int statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY)
+int statusbar_handle_mouse1(int mev, int butnum, int mouseX, int mouseY, int windex)
 {
 	int cursorStyle;
 	int yup;
 	ttglobal tg = gglobal();
 	ppstatusbar p = (ppstatusbar)tg->statusbar.prv;
+	updateWindowSize1(windex);
 	yup = p->screenHeight - mouseY;
-	if (!handleStatusbarHud(mev, butnum, mouseX, yup)){
+	if (!handleStatusbarHud1(mev, butnum, mouseX, yup, windex)){
 		fwl_set_frontend_using_cursor(FALSE);
-		fwl_handle_aqua(mev, butnum, mouseX, mouseY); /* ,gcWheelDelta); */
+		fwl_handle_aqua1(mev, butnum, mouseX, mouseY, windex); /* ,gcWheelDelta); */
 	}else{
 		fwl_set_frontend_using_cursor(TRUE);
 	}
 	return getCursorStyle();
 }
+int statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY)
+{
+	return statusbar_handle_mouse1(mev,butnum,mouseX,mouseY,0);
+}
+
 char *getMessageBar(); //in common.c
 char *fwl_getKeyChord();
 void fwl_setClipPlane(int height);
@@ -2725,6 +2758,7 @@ M       void toggle_collision()                             //"
 	if(p->programObject == 0) initProgramObject();
 	//MVC statusbarHud is in View and Controller just called us and told us 
 	//..to poll the Model to update and draw ourself
+	updateWindowSize();
 	updateButtonStatus();  //poll Model for some button state
 	updateConsoleStatus(); //poll Model for console text
 

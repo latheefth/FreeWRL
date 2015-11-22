@@ -119,7 +119,10 @@ struct Touch
 	int ID;  /* for multitouch: 0-20, represents one finger drag. Recycle after an up */
 	float angle; /*some multitouch -like smarttech- track the angle of the finger */
 	int x;
-	int y; //y-down
+	int y; //y-up
+	float fx;
+	float fy;
+	int windex; //multi_window window index 0=default for regular freewrl
 };
 typedef struct ivec4 {int X; int Y; int W; int H;} ivec4;
 typedef struct ivec2 {int X; int Y;} ivec2;
@@ -323,6 +326,7 @@ typedef struct pMainloop{
 	double posorimatrix[16];
 	double stereooffsetmatrix[2][16];
 	targetwindow twindows[4];
+	int windex; //current window index into twoindows array, valid during render()
 	Stack *_vportstack;
 }* ppMainloop;
 void *Mainloop_constructor(){
@@ -425,6 +429,7 @@ void Mainloop_init(struct tMainloop *t){
 		p->keywait = FALSE;
 		p->keywaitstring[0] = (char)0;
 		p->fps_sleep_remainder = 0;
+		p->windex = 0;
 		t->twindows = p->twindows;
 		p->_vportstack = newStack(ivec4);
 		t->_vportstack = (void *)p->_vportstack; //represents screen pixel area being drawn to
@@ -459,6 +464,29 @@ int hwnd_to_windex(void *hWnd){
 	}
 	return 0;
 }
+
+void fwl_getWindowSize(int *width, int *height){
+	//call this one when in target rendering loop (and setScreenDim() 
+	// has been called with targetwindow-specific dimensions
+	//the libfreewrl rendering loop should have setScreenDim to the appropriate values
+	ttglobal tg = gglobal();
+	*width = tg->display.screenWidth;
+	*height = tg->display.screenHeight;	
+}
+void fwl_getWindowSize1(int windex, int *width, int *height){
+	//call this one when recieving window events, ie mouse events
+	//windex: index (0-3, 0=default) of targetwindow the window event came in on
+	ivec4 ivport;
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+
+	ivport = p->twindows[windex].ivport;
+	*width = ivport.W;
+	*height = ivport.H;	
+}
+
+
 #define LMB 1
 #define MMB 2
 #define RMB 3
@@ -573,7 +601,7 @@ double Time1970sec(void) {
 /* Main eventloop for FreeWRL!!! */
 void fwl_do_keyPress0(int key, int type);
 void handle0(const int mev, const unsigned int button, const float x, const float y);
-void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int y, int ID);
+void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int y, int ID, int windex);
 
 void fwl_RenderSceneUpdateScene0(double dtime);
 void splitpath_local_suffix(const char *url, char **local_name, char **suff);
@@ -913,6 +941,7 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 
 	twindows = p->twindows;
 	t = twindows;
+	p->windex = 0;
 	while(t) { 
 		//a targetwindow might be a supervisor's screen, or HMD
 		freewrl_params_t *dp;
@@ -969,6 +998,7 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 		//setcurrentviewport(vportstack);
 		if(t->swapbuf) { FW_GL_SWAPBUFFERS }
 		t = t->next;
+		p->windex++;
 	}
 }
 void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneTARGETWINDOWS;
@@ -2269,10 +2299,18 @@ static void render()
 
 
 	if(p->EMULATE_MULTITOUCH) {
-		int i;
-		for(i=0;i<p->ntouch;i++)
+		int i, screenWidth, screenHeight;
+		fwl_getWindowSize(&screenWidth,&screenHeight);
+		for(i=0;i<p->ntouch;i++){
 			if(p->touchlist[i].ID > -1)
-				cursorDraw(p->touchlist[i].ID,p->touchlist[i].x,p->touchlist[i].y,p->touchlist[i].angle);
+				if(p->touchlist[i].windex == p->windex)
+				{
+					int x,y;
+					x = p->touchlist[i].fx * screenWidth;
+					y = p->touchlist[i].fy * screenHeight;
+					cursorDraw(p->touchlist[i].ID,x,y,p->touchlist[i].angle);
+				}
+		}
     }
 }
 
@@ -4028,10 +4066,9 @@ void freewrlDie (const char *format) {
         ConsoleMessage ("Catastrophic error: %s\n",format);
         fwl_doQuit();
 }
-
-void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x, int y, int ID) {
+void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x, int y, int ID, int windex) {
 	int count;
-	int ydown;
+	int ydown, screenWidth, screenHeight;
 	struct Touch *touch;
 	ppMainloop p;
 	ttglobal tg = gglobal();
@@ -4046,11 +4083,15 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	}
 	/* save this one... This allows Sensors to get mouse movements if required. */
 	p->lastMouseEvent = mev;
+	fwl_getWindowSize1(windex,&screenWidth,&screenHeight);
 
 	/* save the current x and y positions for picking. */
 	touch = &p->touchlist[ID];
 	touch->x = x;
 	touch->y = y;
+	touch->fx = (float)(x) / (float)screenWidth;
+	touch->fy = (float)(y) / (float)screenHeight;
+	touch->windex = windex;
 	touch->buttonState[button] = mev == ButtonPress;
 	touch->ID = ID; /*will come in handy if we change from array[] to accordian list*/
 	touch->mev = mev;
@@ -4063,7 +4104,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 
 		if (((p->CursorOverSensitive ==NULL) && (p->lastPressedOver ==NULL)) || Viewer()->LookatMode || tg->Mainloop.SHIFT) {
 			p->NavigationMode = touch->buttonState[LMB] || touch->buttonState[RMB];
-			handle(mev, button, (float) ((float)x/tg->display.screenWidth), (float) ((float)y/tg->display.screenHeight));
+			handle(mev, button, (float) ((float)x/screenWidth), (float) ((float)y/screenHeight));
 		}
 	}
 
@@ -4074,54 +4115,26 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 			while ((count < 4) && (!touch->buttonState[count])) count++;
 			if (count == 4) return; /* no buttons down???*/
 
-			handle (mev, (unsigned) count, (float) ((float)x/tg->display.screenWidth), (float) ((float)y/tg->display.screenHeight));
+			handle (mev, (unsigned) count, (float) ((float)x/screenWidth), (float) ((float)y/screenHeight));
 		}
 	}
 }
-void (*fwl_handle_aqua_multiPTR)(const int mev, const unsigned int button, int x, int y, int ID) = fwl_handle_aqua_multiNORMAL;
-void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int y, int ID)
+void (*fwl_handle_aqua_multiPTR)(const int mev, const unsigned int button, int x, int y, int ID, int windex) = fwl_handle_aqua_multiNORMAL;
+void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int y, int ID, int windex)
 {
-	fwl_handle_aqua_multiPTR(mev, button, x, y, ID);
+	fwl_handle_aqua_multiPTR(mev, button, x, y, ID, windex);
 }
 
-//int lastDeltax = 50;
-//int lastDeltay = 50;
-//int lastxx;
-//int lastyy;
-void emulate_multitouch_OLD(const int mev, const unsigned int button, int x, int y)
-{
-	/* goal: when MMB draw a slave cursor pinned to last_distance,last_angle from real cursor
-		Note: if using a RMB+LMB = MMB chord with 2 button mice, you need to emulate in your code
-			and pass in button 2 here, after releasing your single button first ie:
-			fwl_handle_aqua(ButtonRelease, 1, x, y);
-			fwl_handle_aqua(ButtonRelease, 3, x, y);
-	*/
-	if( button == 2 )
-	{
-		ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
-		if( mev == ButtonPress )
-		{
-			p->lastxx = x - p->lastDeltax;
-			p->lastyy = y - p->lastDeltay;
-		}else if(mev == MotionNotify || mev == ButtonRelease ){
-			p->lastDeltax = x - p->lastxx;
-			p->lastDeltay = y - p->lastyy;
-		}
-		fwl_handle_aqua_multi(mev, 1, x, y, 0);
-		fwl_handle_aqua_multi(mev, 1, p->lastxx, p->lastyy, 1);
-	}else{
-		/* normal, no need to emulate if there's no MMB or LMB+RMB */
-		fwl_handle_aqua_multi(mev,button,x,y,0);
-	}
-}
-void emulate_multitouch(const int mev, const unsigned int button, int x, int y)
+
+void emulate_multitouch(const int mev, const unsigned int button, int x, int y, int windex)
 {
 	/* CREATE/DELETE a touch with RMB down 
 	   GRAB/MOVE a touch with LMB down and drag
 	   ID=0 reserved for 'normal' cursor
 	*/
-    int i,count,ifound,ID;
+    int i,count,ifound,ID,screenWidth,screenHeight;
 	struct Touch *touch, *unused;
+	float fx, fy;
 	static int buttons[4] = {0,0,0,0};
 	static int idone = 0;
 	ppMainloop p;
@@ -4133,13 +4146,18 @@ void emulate_multitouch(const int mev, const unsigned int button, int x, int y)
 		printf("Use LMB to drag touches (+- 5 pixel selection window)\n");
 		idone = 1;
 	}
+	//convert to 0-1 float, in case window is resized
+	fwl_getWindowSize1(windex,&screenWidth,&screenHeight);
+	fx = (float)(x)/(float)screenWidth;
+	fy = (float)(y)/(float)screenHeight;
 	buttons[button] = mev == ButtonPress;
 	ifound = 0;
 	ID = -1;
 	for(i=0;i<p->ntouch;i++){
 		touch = &p->touchlist[i];
 		if(touch->ID > -1){
-			if(abs(x - touch->x) < 5 && abs(y - touch->y) < 5){
+			if(touch->windex == windex)
+			if((fabs(fx - touch->fx) < .03f) && (fabs(fy - touch->fy) < .03f)){
 				ifound = 1;
 				ID = i;
 				break;
@@ -4151,7 +4169,7 @@ void emulate_multitouch(const int mev, const unsigned int button, int x, int y)
 	{
 		//if near an existing one, delete
 		if(ifound){
-			fwl_handle_aqua_multiNORMAL(ButtonRelease,LMB,x,y,ID);
+			fwl_handle_aqua_multiNORMAL(ButtonRelease,LMB,x,y,ID,windex);
 			//delete
 			touch->ID = -1;
 			printf("delete ID=%d\n",ID);
@@ -4162,7 +4180,7 @@ void emulate_multitouch(const int mev, const unsigned int button, int x, int y)
 			for(i=0;i<p->ntouch;i++){
 				touch = &p->touchlist[i];
 				if(touch->ID < 0) {
-					fwl_handle_aqua_multiNORMAL(mev, LMB, x, y, i);
+					fwl_handle_aqua_multiNORMAL(mev, LMB, x, y, i,windex);
 					printf("create ID=%d\n",i);
 					break;
 				}
@@ -4171,22 +4189,23 @@ void emulate_multitouch(const int mev, const unsigned int button, int x, int y)
 	}else if( mev == MotionNotify && buttons[LMB])	{
 		//if near an existing one, grab it and move it
 		if(ifound){
-			fwl_handle_aqua_multiNORMAL(MotionNotify,0,x,y,ID);
+			fwl_handle_aqua_multiNORMAL(MotionNotify,0,x,y,ID,windex);
 			//printf("drag ID=%d \n",ID);
 		}
 		if(0) if(!ifound){
 			/* normal, no need to emulate */
-			fwl_handle_aqua_multiNORMAL(mev,button,x,y,0);
+			fwl_handle_aqua_multiNORMAL(mev,button,x,y,0,windex);
 		}
 	}
 }
 /* old function should still work, with single mouse and ID=0 */
-int fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
-	int yup;
+int fwl_handle_aqua1(const int mev, const unsigned int button, int x, int y, int windex) {
+	int yup, screenWidth, screenHeight;
     ttglobal tg = gglobal();
 
 	/* printf ("fwl_handle_aqua, type %d, screen wid:%d height:%d, orig x,y %d %d\n",
             mev,tg->display.screenWidth, tg->display.screenHeight,x,y); */
+	fwl_getWindowSize1(windex,&screenWidth,&screenHeight);
 
 	// do we have to worry about screen orientations (think mobile devices)
 	#if defined (IPHONE) || defined (_ANDROID)
@@ -4203,7 +4222,7 @@ int fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
 		if (Viewer()->type == VIEWER_WALK) {
 			switch (Viewer()->screenOrientation) {
 				case 0:
-					x = tg->display.screenHeight-x;
+					x = screenHeight-x;
 
 					break;
 				case 90:
@@ -4215,8 +4234,8 @@ int fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
 					y = -y;
 					break;
 				case 270:
-					x = tg->display.screenWidth - oy;
-					y = tg->display.screenHeight - ox;
+					x = screenWidth - oy;
+					y = screenHeight - ox;
 					break;
 				default:{}
 			}
@@ -4227,19 +4246,19 @@ int fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
 				case 0:
 					break;
 				case 90:
-					x = tg->display.screenWidth - oy;
+					x = screenWidth - oy;
 					y = ox;
 					break;
 				case 180:
-					x = tg->display.screenWidth -x;
-					y = tg->display.screenHeight -y;
+					x = screenWidth -x;
+					y = screenHeight -y;
 					break;
 				case 270:
 					// nope x = tg->display.screenWidth - oy;
 					// nope y = tg->display.screenHeight - ox;
 
-					x = tg->display.screenHeight - oy;
-					y = tg->display.screenWidth - ox;
+					x = screenHeight - oy;
+					y = screenWidth - ox;
 
 					//printf ("resulting in x %d  y %d\n",x,y);
 					break;
@@ -4253,15 +4272,17 @@ int fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
 
 	//Nov. 2015 changed freewrl mouse from y-down to y-up from here on down:
 	//all y-up now: sesnsor/picking, explore, statusbarHud, handle0 > all navigations, emulate_multitouch, sidebyside fiducials
-	yup = tg->display.screenHeight -y;
+	yup = screenHeight -y;
 	if(((ppMainloop)(tg->Mainloop.prv))->EMULATE_MULTITOUCH){
-		emulate_multitouch(mev,button,x, yup);
+		emulate_multitouch(mev,button,x, yup,windex);
 	}else{
-		fwl_handle_aqua_multi(mev,button,x,yup,0);
+		fwl_handle_aqua_multi(mev,button,x,yup,0,windex);
 	}
 	return getCursorStyle();
 }
-
+int fwl_handle_aqua(const int mev, const unsigned int button, int x, int y){
+	return fwl_handle_aqua1(mev,button,x,y,0);
+}
 //#endif
 
 void fwl_setCurXY(int cx, int cy) {

@@ -782,11 +782,11 @@ static int shiftState = 0;
 	//gglobal()->display.screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
 	//gglobal()->display.screenHeight = rect.bottom;
 	//resize_GL(rect.right, rect.bottom); 
-#ifdef STATUSBAR_HUD
-	statusbar_set_window_size(rect.right, rect.bottom);
-#else
-	fwl_setScreenDim(rect.right, rect.bottom);
-#endif
+//#ifdef STATUSBAR_HUD
+//	statusbar_set_window_size(rect.right, rect.bottom);
+//#else
+//	fwl_setScreenDim(rect.right, rect.bottom);
+//#endif
 	fwl_setScreenDim1(rect.right, rect.bottom, windex);
 	break; 
 
@@ -1021,9 +1021,10 @@ static int shiftState = 0;
 	/* butnum=1 left butnum=3 right (butnum=2 middle, not used by freewrl) */
 		int cursorStyle;
 #ifdef STATUSBAR_HUD
-		cursorStyle = statusbar_handle_mouse(mev, butnum, mouseX, mouseY);
+		//cursorStyle = statusbar_handle_mouse(mev, butnum, mouseX, mouseY);
+		cursorStyle = statusbar_handle_mouse1(mev, butnum, mouseX, mouseY, windex);
 #else
-		cursorStyle = fwl_handle_aqua(mev, butnum, mouseX, mouseY); /* ,gcWheelDelta); */
+		cursorStyle = fwl_handle_aqua1(mev, butnum, mouseX, mouseY, windex); /* ,gcWheelDelta); */
 #endif
 		updateCursorStyle0(cursorStyle);
     }
