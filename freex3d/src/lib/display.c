@@ -85,6 +85,7 @@ typedef struct pdisplay{
 	freewrl_params_t params; //pre-allocated
 	s_renderer_capabilities_t rdr_caps;
 	char myMenuStatus[MAXSTAT];
+	int multi_window_capable;
 }* ppdisplay;
 void *display_constructor(){
 	void *v = MALLOCV(sizeof(struct pdisplay));
@@ -117,6 +118,11 @@ void display_init(struct tdisplay* t)
 		p->params.ypos = 0;
 		p->params.frontend_handles_display_thread = FALSE;
 		*/
+#if defined(ANGLEPROJECT) || defined(_ANDROID) || defined(QNX) || defined(IPHONE)
+		p->multi_window_capable = 0; //single-window EGL/ANGLEPROJECT(GLES2)/MOBILE
+#else
+		p->multi_window_capable = 1;  //desktop opengl __linux__, _MSC_VER, TARGET_AQUA
+#endif
 		t->params = (void*)&p->params;
 	}
 }
@@ -246,7 +252,8 @@ int fv_display_initialize_desktop(){
 		return fv_display_initialize(); //display_initialize now really means initialize generic backend opengl
 	}
 
-	nwindows = 3; //1 is normal freewrl, 2 or 3 is freaky 2,3 windowed freewrl for experiments
+	nwindows = 1; //1 is normal freewrl, 2 or 3 is freaky 2,3 windowed freewrl for experiments, search targetwindow and windex
+	if(!p->multi_window_capable) nwindows = 1;
  	/* make the window, get the OpenGL context */
 	if(!fv_create_window_and_context(dp, NULL)){
 		return FALSE;

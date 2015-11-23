@@ -202,7 +202,7 @@ void unload_libraryscenes(){
 				//unload_broto(libscn); //nothing to un-register - library scenes aren't registered
 				gc_broto_instance(libscn);
 				deleteVector(struct X3D_Node*,libscn->_parentVector);
-				freeMallocedNodeFields(libscn);
+				freeMallocedNodeFields((struct X3D_Node*)libscn);
 				FREE_IF_NZ(libscn);
 				FREE_IF_NZ(url);
 				FREE_IF_NZ(ul);

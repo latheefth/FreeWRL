@@ -124,11 +124,6 @@ struct Touch
 	float fy;
 	int windex; //multi_window window index 0=default for regular freewrl
 };
-typedef struct ivec4 {int X; int Y; int W; int H;} ivec4;
-typedef struct ivec2 {int X; int Y;} ivec2;
-void pushviewport(Stack *vpstack, ivec4 vp);
-void popviewport(Stack *vpstack);
-void setcurrentviewport(Stack *_vpstack);
 
 void pushviewport(Stack *vpstack, ivec4 vp){
 	stack_push(ivec4,vpstack,vp);
@@ -239,6 +234,7 @@ typedef struct stage {
 	contenttype contents[10];
 	struct stage *sub_stages; //null terminated list of substages, use stage++ in loop
 	float viewport[4]; //fraction of parent viewport left, width, bottom, height
+	int want_statusbarHud;
 } stage;
 
 typedef struct targetwindow {
@@ -455,6 +451,7 @@ int hwnd_to_windex(void *hWnd){
 	targets = (targetwindow*)tg->Mainloop.twindows;
 	int i;
 	for(i=0;i<4;i++){
+		//the following line assume hwnd is never natively null or 0
 		if(!targets[i].hwnd){
 			//not found, create
 			targets[i].hwnd = hWnd;
@@ -466,9 +463,9 @@ int hwnd_to_windex(void *hWnd){
 }
 
 void fwl_getWindowSize(int *width, int *height){
-	//call this one when in target rendering loop (and setScreenDim() 
-	// has been called with targetwindow-specific dimensions
-	//the libfreewrl rendering loop should have setScreenDim to the appropriate values
+	//call this one when in target rendering loop (and setScreenDim0() 
+	// has been called with targetwindow-specific dimensions)
+	//the libfreewrl rendering loop should have setScreenDim0 to the appropriate values
 	ttglobal tg = gglobal();
 	*width = tg->display.screenWidth;
 	*height = tg->display.screenHeight;	
@@ -3851,7 +3848,7 @@ int view_initialize0(void){
 	}
 	return TRUE;
 }
-#endif //ANDROID or ANGLEPROJECT
+#endif //ANDROID
 
 
 void killNodes();

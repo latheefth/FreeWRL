@@ -36,7 +36,7 @@ X3D Layering Component
 #include "../x3d_parser/Bindable.h"
 #include "Children.h"
 #include "../opengl/OpenGL_Utils.h"
-
+#include "../scenegraph/RenderFuncs.h"
 
 // http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/layout.html
 /* oct 2015 not sure what I need here

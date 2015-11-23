@@ -23,6 +23,7 @@
 #include <libFreeWRL.h>
 #include <float.h>
 #include "common.h"
+#include <ui/statusbar.h>
 
 void fwSwapBuffers(freewrl_params_t * d);
 bool fv_create_and_bind_GLcontext(freewrl_params_t * d);

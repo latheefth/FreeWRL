@@ -886,7 +886,8 @@ char *colorschemenames [] = {
 "neon:pink",
 NULL,
 };
-
+void fwl_setPickraySide(int ipreferredSide, int either);
+void fwl_getPickraySide(int *ipreferredSide, int *either);
 void initOptionsVal()
 {
 	int i,j,k, iem, iside, ieither;
@@ -1048,7 +1049,6 @@ void printOptions()
 	p->bmScale = p->bmScaleRegular;
 
 }
-
 int handleOptionPress(int mouseX, int mouseY)
 {
 	/* general idea: we don't update the hud/option state here - just the Viewer state - then 

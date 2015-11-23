@@ -70,4 +70,12 @@ void render_hier(struct X3D_Node *p, int rwhat);
 void sendLightInfo (s_shader_capabilities_t *me);
 void restoreGlobalShader();
 
+
+typedef struct ivec4 {int X; int Y; int W; int H;} ivec4;
+typedef struct ivec2 {int X; int Y;} ivec2;
+void pushviewport(Stack *vpstack, ivec4 vp);
+void popviewport(Stack *vpstack);
+void setcurrentviewport(Stack *_vpstack);
+int currentviewportvisible(Stack *vpstack);
+
 #endif /* __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__ */
