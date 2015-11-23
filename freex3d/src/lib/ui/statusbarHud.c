@@ -2554,7 +2554,6 @@ void updateWindowSize1(int windex){
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
 	fwl_getWindowSize1(windex,&width,&height);
-printf("windex %d width %d height %d\n",windex,width,height);
 	p->screenWidth = width;
 	p->screenHeight = height;	
 }

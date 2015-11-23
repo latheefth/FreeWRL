@@ -328,18 +328,25 @@ int fwl_parse_geometry_string(const char *geometry, int *out_width, int *out_hei
 void fv_setScreenDim(int wi, int he) { fwl_setScreenDim(wi,he); }
 
 void fwl_setScreenDim1(int wi, int he, int windex);
+void fwl_setScreenDim0(int wi, int he)
+{
+	//this one just sets the tg->display.screenWidth and is called in the targetwindow rendering loop
+	//this allows legacy code use of display.screenWidth etc to work normally in the render functions
+	ttglobal tg = gglobal();
+
+    tg->display.screenWidth = wi;  //width of the whole opengl surface in pixels
+    tg->display.screenHeight = he; //height of the whole opengl surface in pixels
+}
 /**
  *   fwl_setScreenDim: set internal variables for screen sizes, and calculate frustum
  */
 void fwl_setScreenDim(int wi, int he)
 {
-	ttglobal tg = gglobal();
-
-    tg->display.screenWidth = wi;  //width of the whole opengl surface in pixels
-    tg->display.screenHeight = he; //height of the whole opengl surface in pixels
-    /* printf("%s,%d fwl_setScreenDim(int %d, int %d)\n",__FILE__,__LINE__,wi,he); */
+	//this one is called from platform-specific window event handling code, and
+	//by default assumes there's only one window, windex=0
+	//and sets a windowtarget-specific viewport as well as tg.display.screenwidth/height 
+	fwl_setScreenDim0(wi,he);
 	fwl_setScreenDim1(wi,he,0);
-
 }
 double display_screenRatio(){
 	ttglobal tg = gglobal();

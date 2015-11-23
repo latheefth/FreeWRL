@@ -927,6 +927,7 @@ void initialize_targets_simple(){
 	}
 	tg->Mainloop.targets_initialized = 1;
 }
+void fwl_setScreenDim0(int wi, int he);
 void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 	double dtime;
 	targetwindow *t, *twindows;
@@ -941,14 +942,15 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 
 	twindows = p->twindows;
 	t = twindows;
-	p->windex = 0;
+	p->windex = -1;
 	while(t) { 
 		//a targetwindow might be a supervisor's screen, or HMD
 		freewrl_params_t *dp;
 		ivec4 tport, pvport,vport;
 		Stack *vportstack;
 
-		fwl_setScreenDim(t->ivport.W, t->ivport.H);
+		p->windex++;
+		fwl_setScreenDim0(t->ivport.W, t->ivport.H);
 		dp = (freewrl_params_t*)tg->display.params;
 		if(t->params.context != dp->context){
 			tg->display.params = (void*)&t->params;
@@ -998,8 +1000,8 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 		//setcurrentviewport(vportstack);
 		if(t->swapbuf) { FW_GL_SWAPBUFFERS }
 		t = t->next;
-		p->windex++;
 	}
+	p->windex = 0;
 }
 void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneTARGETWINDOWS;
 //#else //MULTI_WINDOW
@@ -2308,6 +2310,7 @@ static void render()
 					int x,y;
 					x = p->touchlist[i].fx * screenWidth;
 					y = p->touchlist[i].fy * screenHeight;
+					//printf("i %d windex %d x %d y %d ID %d\n",i,p->windex,x,y,p->touchlist[i].ID);
 					cursorDraw(p->touchlist[i].ID,x,y,p->touchlist[i].angle);
 				}
 		}
@@ -4172,7 +4175,7 @@ void emulate_multitouch(const int mev, const unsigned int button, int x, int y, 
 			fwl_handle_aqua_multiNORMAL(ButtonRelease,LMB,x,y,ID,windex);
 			//delete
 			touch->ID = -1;
-			printf("delete ID=%d\n",ID);
+			printf("delete ID=%d windex=%d\n",ID,windex);
 		}
 		//else create
 		if(!ifound){
@@ -4181,7 +4184,7 @@ void emulate_multitouch(const int mev, const unsigned int button, int x, int y, 
 				touch = &p->touchlist[i];
 				if(touch->ID < 0) {
 					fwl_handle_aqua_multiNORMAL(mev, LMB, x, y, i,windex);
-					printf("create ID=%d\n",i);
+					printf("create ID=%d windex=%d\n",i,windex);
 					break;
 				}
 			}
