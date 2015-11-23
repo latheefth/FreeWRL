@@ -920,6 +920,7 @@ void initialize_targets_simple(){
 			stagei->sub_stages = NULL;
 		//t->stage = stagei;
 		//t->ivport = defaultClipBoundary;
+		t->swapbuf = TRUE;
 		t=t->next;
 	}
 	tg->Mainloop.targets_initialized = 1;
@@ -2836,7 +2837,7 @@ struct X3D_Node* getRayHit() {
 
 			if(!tg->RenderFuncs.usingAffinePickmatrix){
 				struct point_XYZ *hp = (struct point_XYZ*)tg->RenderFuncs.hp;
-				FW_GLU_UNPROJECT(hp->x,hp->y,z,rh->modelMatrix,rh->projMatrix,viewport,&x,&y,&z);
+				FW_GLU_UNPROJECT(hp->x,hp->y,hp->z,rh->modelMatrix,rh->projMatrix,viewport,&x,&y,&z);
 			}
 			if(tg->RenderFuncs.usingAffinePickmatrix){
 				GLDOUBLE mvp[16], mvpi[16];

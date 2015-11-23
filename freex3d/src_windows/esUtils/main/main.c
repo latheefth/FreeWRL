@@ -43,7 +43,7 @@ void fwOnKey( ESContext* esContext, unsigned char c, int updown, int ishift)
 }
 void statusbar_set_window_size(int width, int height);
 void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY);
-void fwl_setScreenDim1(int wi, int he, int itargetwindow);
+void fwl_setScreenDim(int wi, int he);
 void fwOnMouse( ESContext* esContext, int mev, int button, int ix, int iy)
 {
 	if(more){
@@ -58,12 +58,12 @@ void fwOnMouse( ESContext* esContext, int mev, int button, int ix, int iy)
 void fwOnResize( ESContext* esContext, int screenWidth, int screenHeight)
 {
 
-#ifdef STATUSBAR_HUD
-	statusbar_set_window_size(screenWidth,screenHeight);
-#else
+//#ifdef STATUSBAR_HUD
+//	statusbar_set_window_size(screenWidth,screenHeight);
+//#else
+//	fwl_setScreenDim(screenWidth,screenHeight);
+//#endif
 	fwl_setScreenDim(screenWidth,screenHeight);
-#endif
-	fwl_setScreenDim1(screenWidth,screenHeight, 0);
 
 }
 char *getWindowTitle();
