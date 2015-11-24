@@ -169,8 +169,11 @@ int fv_display_initialize()
 }
 
 //void fv_swapbuffers(freewrl_params_t *d);
-
-
+#ifdef WINRT
+void fv_swapbuffers(freewrl_params_t *d){
+	return;
+}
+#endif
 
 //void fv_change_GLcontext(freewrl_params_t* d);
 // each config needs to populate:
@@ -178,7 +181,11 @@ int fv_display_initialize()
 //void fv_change_GLcontext(freewrl_params_t* d){
 //	return; //stub for ANLGEPROJECT, EGL/GLES2, mobile which don't change context but need to link
 //}
-#ifdef _MSC_VER
+#ifdef WINRT
+void fv_change_GLcontext(freewrl_params_t* d){
+	//stub for non-desktop configs (they can't do multiple windows anyway)
+}
+#elif _MSC_VER
 //win32 in fwWindow32.c
 #elif __linux__  //LINUX
 //void fv_change_GLcontext(freewrl_params_t* d){
@@ -194,7 +201,7 @@ void fv_change_GLcontext(freewrl_params_t* d){
 }
 #endif
 
-#if !defined (_ANDROID)
+#if !defined (_ANDROID) && !defined(WINRT)
 int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *share);
 //#if defined (__linux__)
 //int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *share){
@@ -222,7 +229,7 @@ int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *sha
 //}
 //#endif //__linux__
 
-#ifdef _MSC_VER
+#ifdef _MSC_VER 
 int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *share){
 	if (!fv_create_main_window2(params,share)){ //0 /*argc*/, NULL /*argv*/)) {
 		return FALSE;

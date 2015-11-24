@@ -3809,7 +3809,7 @@ static void(*view_update)() = NULL;
 //
 //EGL/GLES2 winGLES2.exe with KEEP_FV_INLIB sets frontend_handles_display_thread=true, 
 // then calls fv_display_initialize() which only creates window in backend if false
-#if defined(_ANDROID)
+#if defined(_ANDROID) || defined(WINRT)
 int view_initialize0(void){
 	/* Initialize display - View initialize*/
 	if (!fv_display_initialize()) {
@@ -4132,6 +4132,8 @@ void emulate_multitouch(const int mev, const unsigned int button, int x, int y, 
 	buttons[button] = mev == ButtonPress;
 	ifound = 0;
 	ID = -1;
+	touch = NULL;
+
 	for(i=0;i<p->ntouch;i++){
 		touch = &p->touchlist[i];
 		if(touch->ID > -1){
@@ -4147,7 +4149,7 @@ void emulate_multitouch(const int mev, const unsigned int button, int x, int y, 
 	if( mev == ButtonPress && button == RMB )
 	{
 		//if near an existing one, delete
-		if(ifound){
+		if(ifound && touch){
 			fwl_handle_aqua_multiNORMAL(ButtonRelease,LMB,x,y,ID,windex);
 			//delete
 			touch->ID = -1;

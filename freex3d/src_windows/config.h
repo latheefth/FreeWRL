@@ -296,6 +296,8 @@ char *getWgetPath();
 #include <winapifamily.h>
 #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
 #define SSR_SERVER 1
+#elif WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP)
+#define WINRT 1
 #endif
 #else
 #define SSR_SERVER 1
