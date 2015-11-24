@@ -989,6 +989,8 @@ void fwl_RenderSceneUpdateScene(void){
 
 	fwl_RenderSceneUpdateScenePTR();
 }
+void setup_picking();
+void setup_projection();
 void fwl_RenderSceneUpdateScene0(double dtime) {
 	//Nov 2015 change: just viewport-independent, once-per-frame-scene-updates here
 	//-functionality relying on a viewport -setup_projection(), setup_picking()- has been 
@@ -1194,13 +1196,14 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 
 	/* Viewer move viewpoint */
 	handle_tick();
-	PRINT_GL_ERROR_IF_ANY("after handle_tick")
 
+	PRINT_GL_ERROR_IF_ANY("after handle_tick")
 	/* setup Projection and activate ProximitySensors */
 	if (p->onScreen)
 	{
 		render_pre();
-		slerp_viewpoint();
+		//slerp_viewpoint(); //moved inside render_pre > setup_viewpoint
+
 	}
 
 	if (p->doEvents) {
@@ -2191,8 +2194,8 @@ static void render()
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 
-	if(1) setup_projection();
-	if(1) setup_picking();
+	setup_projection();
+	setup_picking();
 
 	for (count = 0; count < p->maxbuffers; count++) {
 
@@ -2376,7 +2379,6 @@ static void setup_viewpoint() {
 		FW_GL_LOAD_IDENTITY();
 
 	viewer_togl(Viewer()->fieldofview);
-
 		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->posorimatrix);
 		FW_GL_LOAD_IDENTITY();
 
@@ -2394,7 +2396,8 @@ static void setup_viewpoint() {
 		matmultiplyAFFINE(viewmatrix,p->posorimatrix,viewmatrix); 
 		matmultiplyAFFINE(viewmatrix,p->viewtransformmatrix,viewmatrix); 
 		fw_glSetDoublev(GL_MODELVIEW_MATRIX, viewmatrix);
-
+		slerp_viewpoint(); //just starting block
+		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->viewtransformmatrix);
 
 }
 
