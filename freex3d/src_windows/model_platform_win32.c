@@ -33,7 +33,7 @@ double Time1970sec()
 		FILETIME mytimef;
 		ULARGE_INTEGER mytimeu;
 		static ULARGE_INTEGER mystarttimeu = {0};
-		ULONGLONG ABC;
+		//ULONGLONG ABC;
 		double dtime;
 
 		GetSystemTime(&mytimet);

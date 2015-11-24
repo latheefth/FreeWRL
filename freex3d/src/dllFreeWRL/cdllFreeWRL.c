@@ -99,11 +99,11 @@ DLLFREEWRL_API void dllFreeWRL_onInit(void *fwctx, int width, int height, void* 
 		if(!frontend_handles_display_thread)
 			fwl_initializeDisplayThread();
 #endif
-#ifdef STATUSBAR_HUD
-	statusbar_set_window_size(width, height);
-#else
+//#ifdef STATUSBAR_HUD
+//	statusbar_set_window_size(width, height);
+//#else
 	fwl_setScreenDim(width, height);
-#endif
+//#endif
 	fwl_clearCurrentHandle();
 	return;
 }
@@ -150,11 +150,11 @@ DLLFREEWRL_API void dllFreeWRL_onLoad(void *fwctx, char* scene_url)
 
 DLLFREEWRL_API void dllFreeWRL_onResize(void *fwctx, int width,int height){
 	if(fwl_setCurrentHandle(fwctx, __FILE__, __LINE__)){
-#ifdef STATUSBAR_HUD
-		statusbar_set_window_size(width,height);
-#else
+//#ifdef STATUSBAR_HUD
+//		statusbar_set_window_size(width,height);
+//#else
 		fwl_setScreenDim(width,height);
-#endif
+//#endif
 	}
 	fwl_clearCurrentHandle();
 }

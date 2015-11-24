@@ -297,8 +297,6 @@ void CRoutes_init(struct tCRoutes *t){
 
 void lock_and_do_routes_register();
 void free_routes(){
-	int i,count;
-	struct CRStruct *routes;
 	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
 
 	//there can be some routes to unregister, on quit

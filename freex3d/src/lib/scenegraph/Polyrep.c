@@ -936,7 +936,7 @@ void render_ray_polyrep(void *node) {
 	float v1len, v2len, v3len;
 	float v12pt;
 	struct point_XYZ t_r1,t_r2;
-	ttglobal tg;
+	//ttglobal tg;
 	
 	/* is this structure still loading? */
 	if (!node) return;

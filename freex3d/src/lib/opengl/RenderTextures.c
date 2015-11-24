@@ -174,11 +174,12 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 	int i;
 	GLint texUnit[MAX_MULTITEXTURE];
 	GLint texMode[MAX_MULTITEXTURE];
+	s_shader_capabilities_t *me;
 	ppRenderTextures p;
 	ttglobal tg = gglobal();
 	p = (ppRenderTextures)tg->RenderTextures.prv;
 
-    s_shader_capabilities_t *me = getAppearanceProperties()->currentShaderProperties;
+    me = getAppearanceProperties()->currentShaderProperties;
 
 	#ifdef TEXVERBOSE
 	printf ("passedInGenTex, using passed in genTex, textureStackTop %d\n",tg->RenderFuncs.textureStackTop);

@@ -36,9 +36,8 @@ X3D Layering Component
 #include "../x3d_parser/Bindable.h"
 #include "Children.h"
 #include "../opengl/OpenGL_Utils.h"
+#include "../scenegraph/RenderFuncs.h"
 
-typedef struct ivec4 {int X; int Y; int W; int H;} ivec4;
-typedef struct ivec2 {int X; int Y;} ivec2;
 
 // http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/layering.html
 
@@ -56,6 +55,7 @@ void render_LayerSet(struct X3D_Node * node){
 	if(node && node->_nodeType == NODE_LayerSet){
 		int i,j;
 		ttglobal tg;
+		
 		struct X3D_LayerSet * layerset = (struct X3D_LayerSet *)node;
 		tg = gglobal();
 		for(i=0;i<layerset->layers.n;i++){
@@ -65,10 +65,10 @@ void render_LayerSet(struct X3D_Node * node){
 			float *clipBoundary, defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; // left/right/bottom/top 0,1,0,1
 
 			layerset->activeLayer = j = layerset->order.p[i];
-			layer = layerset->layers.p[j];
+			layer = (struct X3D_Layer*)layerset->layers.p[j];
 			//push/set binding stacks
 			//push layer.viewport onto viewport stack, setting it as the current window
-			vportstack = (Stack *)tg->display._vportstack;
+			vportstack = (Stack *)tg->Mainloop._vportstack;
 			pvport = stack_top(ivec4,vportstack); //parent context viewport
 			clipBoundary = defaultClipBoundary;
 			if(layer->viewport)
@@ -78,7 +78,7 @@ void render_LayerSet(struct X3D_Node * node){
 			if(currentviewportvisible(vportstack)){
 				setcurrentviewport(vportstack);
 				glClear(GL_DEPTH_BUFFER_BIT); //if another layer has already drawn, don't clear it, just its depth fingerprint
-				render_node(layer);
+				render_node((struct X3D_Node*)layer);
 			}
 			popviewport(vportstack);
 			setcurrentviewport(vportstack);
@@ -123,7 +123,7 @@ void rendray_Layer(struct X3D_Node *node){
 // post/fin: pop vport
 void render_Viewport(struct X3D_Node * node){
 	if(node && node->_nodeType == NODE_Viewport){
-		struct X3D_Layer * viewport = (struct X3D_Viewport *)node;
+		struct X3D_Viewport * viewport = (struct X3D_Viewport *)node;
 		//push viewport
 		normalChildren(viewport->children);
 		//pop viewport

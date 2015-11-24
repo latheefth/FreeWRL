@@ -363,6 +363,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\lib\scenegraph\Component_Layering.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\lib\scenegraph\Component_Layout.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\lib\scenegraph\Component_Lighting.c"
 				>
 			</File>

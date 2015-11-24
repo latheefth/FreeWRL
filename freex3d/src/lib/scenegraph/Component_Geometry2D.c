@@ -666,22 +666,21 @@ void collide_Disk2D (struct X3D_Disk2D *node) {
 void collide_Rectangle2D (struct X3D_Rectangle2D *node) {
 	/* Modified Box code. */
 	struct sNaviInfo *naviinfo;
-	ttglobal tg = gglobal();
-	/*easy access, naviinfo.step unused for sphere collisions */
-	naviinfo = (struct sNaviInfo*)tg->Bindable.naviinfo;
-	GLDOUBLE awidth = naviinfo->width; /*avatar width*/
-	GLDOUBLE atop = naviinfo->width; /*top of avatar (relative to eyepoint)*/
-	GLDOUBLE abottom = -naviinfo->height; /*bottom of avatar (relative to eyepoint)*/
-	GLDOUBLE astep = -naviinfo->height+naviinfo->step;
-
-	GLDOUBLE modelMatrix[16];
-	//GLDOUBLE upvecmat[16];
+	GLDOUBLE awidth, atop, abottom, astep, modelMatrix[16];
 	struct point_XYZ iv = {0,0,0};
 	struct point_XYZ jv = {0,0,0};
 	struct point_XYZ kv = {0,0,0};
 	struct point_XYZ ov = {0,0,0};
-
 	struct point_XYZ delta;
+
+	ttglobal tg = gglobal();
+	/*easy access, naviinfo.step unused for sphere collisions */
+	naviinfo = (struct sNaviInfo*)tg->Bindable.naviinfo;
+	awidth = naviinfo->width; /*avatar width*/
+	atop = naviinfo->width; /*top of avatar (relative to eyepoint)*/
+	abottom = -naviinfo->height; /*bottom of avatar (relative to eyepoint)*/
+	astep = -naviinfo->height+naviinfo->step;
+
 
 	iv.x = node->size.c[0];
 	jv.y = node->size.c[1]; 

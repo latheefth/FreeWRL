@@ -23,8 +23,9 @@
 #include <libFreeWRL.h>
 #include <float.h>
 #include "common.h"
+#include <ui/statusbar.h>
 
-void fwSwapBuffers(freewrl_params_t * d);
+void fv_swapbuffers(freewrl_params_t * d);
 bool fv_create_and_bind_GLcontext(freewrl_params_t * d);
 BOOL fwDisplayChange();
 void fwCloseContext();
@@ -48,7 +49,7 @@ void fwCloseContext();
 //static EGLDisplay eglDisplay;
 //static EGLContext eglContext;
 //static EGLSurface eglSurface;
-void fwSwapBuffers(freewrl_params_t * d){
+void fv_swapbuffers(freewrl_params_t * d){
 	eglSwapBuffers((EGLDisplay)d->display,(EGLSurface)d->surface);
 }
 EGLBoolean fwCreateEGLContext ( EGLNativeWindowType hWnd, EGLDisplay* eglDisplay,
@@ -188,7 +189,9 @@ BOOL fwDisplayChange(){
 }
 void fwCloseContext(){
 }
-
+void fv_change_GLcontext(freewrl_params_t* d){
+	return; //stub for ANLGEPROJECT, EGL/GLES2, mobile which don't change context but need to link
+}
 
 #else //ANGLEPROJECT
 //desktop GL and wgl functions
@@ -202,7 +205,7 @@ void fwCloseContext(){
 #include "common.h"
 
 
-void fwSwapBuffers(freewrl_params_t * d)
+void fv_swapbuffers(freewrl_params_t * d)
 {
 	//HDC   ghDC; 
 	//ghDC = wglGetCurrentDC();
@@ -257,6 +260,14 @@ BOOL bSetupPixelFormat(HDC hdc)
  
     return TRUE; 
 } 
+void fv_change_GLcontext(freewrl_params_t* d){
+	HDC hDC;
+	HGLRC hRC;
+	//HWND hWnd;
+	hDC = (HDC)d->display;
+	hRC = (HGLRC)d->context;
+	wglMakeCurrent(hDC, hRC);
+}
 
 bool fv_create_and_bind_GLcontext(freewrl_params_t* d)
 {
@@ -730,7 +741,8 @@ void printbitssimple(int n) {
 }
 void statusbar_set_window_size(int width, int height);
 int statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY);
-
+int hwnd_to_windex(void *hWnd);
+void fwl_setScreenDim1(int wi, int he, int itargetwindow);
 LRESULT CALLBACK PopupWndProc( 
     HWND hWnd, 
     UINT msg, 
@@ -749,8 +761,11 @@ static int altState = 0;
 	int lkeydata;
 static int shiftState = 0;
 	HDC   ghDC; 
+	int windex;
+
     mev = 0;
     butnum = 0;
+	windex = hwnd_to_windex(hWnd); //sets it if doesn't exist
 
     //ghWnd = hWnd;
     switch( msg ) {
@@ -768,11 +783,12 @@ static int shiftState = 0;
 	//gglobal()->display.screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
 	//gglobal()->display.screenHeight = rect.bottom;
 	//resize_GL(rect.right, rect.bottom); 
-#ifdef STATUSBAR_HUD
-	statusbar_set_window_size(rect.right, rect.bottom);
-#else
-	fwl_setScreenDim(rect.right, rect.bottom);
-#endif
+//#ifdef STATUSBAR_HUD
+//	statusbar_set_window_size(rect.right, rect.bottom);
+//#else
+//	fwl_setScreenDim(rect.right, rect.bottom);
+//#endif
+	fwl_setScreenDim1(rect.right, rect.bottom, windex);
 	break; 
 
     case WM_DISPLAYCHANGE:
@@ -1006,9 +1022,10 @@ static int shiftState = 0;
 	/* butnum=1 left butnum=3 right (butnum=2 middle, not used by freewrl) */
 		int cursorStyle;
 #ifdef STATUSBAR_HUD
-		cursorStyle = statusbar_handle_mouse(mev, butnum, mouseX, mouseY);
+		//cursorStyle = statusbar_handle_mouse(mev, butnum, mouseX, mouseY);
+		cursorStyle = statusbar_handle_mouse1(mev, butnum, mouseX, mouseY, windex);
 #else
-		cursorStyle = fwl_handle_aqua(mev, butnum, mouseX, mouseY); /* ,gcWheelDelta); */
+		cursorStyle = fwl_handle_aqua1(mev, butnum, mouseX, mouseY, windex); /* ,gcWheelDelta); */
 #endif
 		updateCursorStyle0(cursorStyle);
     }
@@ -1237,7 +1254,7 @@ HWND create_main_window0(freewrl_params_t * d) //int argc, char *argv[])
     return ghWnd;
 }
 
-int fv_create_main_window(freewrl_params_t * d) //int argc, char *argv[])
+int fv_create_main_window2(freewrl_params_t * d, freewrl_params_t *share) //int argc, char *argv[])
 {
 	loadCursors();
 #ifdef _DEBUG
@@ -1256,6 +1273,11 @@ int fv_create_main_window(freewrl_params_t * d) //int argc, char *argv[])
 			//fv_create_GLcontext();
 			//fv_bind_GLcontext();
 			fv_create_and_bind_GLcontext(d);
+#ifndef ANGLEPROJECT
+			//remember, ANGLEPROJECT emulates GLES2 over directX, and lacks some desktop wgl functions like wglShareLists
+			if(share)
+				wglShareLists((HGLRC) share->context,(HGLRC) d->context);
+#endif
 			return TRUE;
 		}
 		return FALSE;

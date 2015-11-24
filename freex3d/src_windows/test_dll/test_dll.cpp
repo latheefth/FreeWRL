@@ -17,7 +17,7 @@ int main (int argc, char **argv)
 		"../../../../tests/2.x3d",
 		"../../../../tests/3.x3d",
 		};
-	int simaltaneous = 0;
+	int simaltaneous = 1;
 	i =0; //7; //0;
 	j=i+1;
 	k=i+2;

@@ -302,7 +302,25 @@ bool fv_create_GLcontext()
 #endif
 	return TRUE;
 }
+bool fv_create_GLcontext1(GLXContext share)
+{
+	int direct_rendering = TRUE;
 
+	fwl_thread_dump();
+
+#if defined(TARGET_X11) || defined(TARGET_MOTIF)
+
+	GLcx = glXCreateContext(Xdpy, Xvi, share, direct_rendering);
+	if (!GLcx) {
+		ERROR_MSG("can't create OpenGL context.\n");
+		return FALSE;
+	}
+	if (glXIsDirect(Xdpy, GLcx)) {
+		TRACE_MSG("glX: direct rendering enabled\n");
+	}
+#endif
+	return TRUE;
+}
 /**
  *   fv_bind_GLcontext: attache the OpenGL context to the main window.
  *                   TODO: finish implementation for Mac and Windows.
@@ -328,11 +346,6 @@ bool fv_bind_GLcontext()
 #if defined(TARGET_AQUA)
 	return aglSetCurrentContext(aqglobalContext);
 #endif
-
-#if defined(TARGET_WIN32)
-	return wglMakeCurrent(ghDC, ghRC);
-#endif
-
 	return TRUE;
 }
 #endif /* KEEP_FV_INLIB */
@@ -366,5 +379,39 @@ void setWindowTitle()
 	XStoreName(Xdpy, Xwin, getWindowTitle());
 	XSetIconName(Xdpy, Xwin, getWindowTitle());
 }
+int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *share){
+ 	/* make the window, create the OpenGL context, share the context if necessary 
+		Nov 2015: linux desktop is still single windowed, with static GLXContext etc, no sharing
+		- to get sharing, you need to populate params during creation of window and gl context
+			d->display = Display *Xdpy;
+			d->surface = Drawable or ???
+			d->context = GLXContext GLcx;
+			so when the targetwindow changes, there's enough info to do glXMakeCurrent and glXSwapBuffers
+			- and when doing glCreateContext you have the previous window's GLXcontext to use as a shareList
+	*/
 
+	if (!fv_open_display()) {
+		printf("open_display failed\n");
+		return FALSE;
+	}
+
+	if (!fv_create_GLcontext1(share->context)) {
+		printf("create_GLcontext failed\n");
+		return FALSE;
+	}
+	fv_bind_GLcontext();
+	//scrape parameters from statics
+	params->context = GLcx;
+	params->display = Xdpy;
+	params->surface = GLwin;
+	params->xwin = Xwin;
+
+	return TRUE;
+}
+void fv_change_GLcontext(freewrl_params_t* d){
+	glXMakeCurrent(d->display,d->surface,d->context); 
+}
+void fv_swapbuffers(freewrl_params_t* d){
+	glXSwapBuffers(d->display,d->surface);
+}
 #endif /* IPHONE */

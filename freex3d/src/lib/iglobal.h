@@ -41,37 +41,14 @@ Variable use:
 typedef struct iiglobal //InstanceGlobal
 {
 	struct tdisplay{
-		//freewrl_params_t params;
-		void *params;
-		//GLenum _global_gl_err;
-		int _global_gl_err;
+		void *params; //freewrl_params_t
+		int _global_gl_err; //GLenum
 		bool display_initialized;// = FALSE;
-
-		int view_height;// = 0; /* viewport */
-		int view_width;// = 0;
-
 		int screenWidth;// = 0; /* screen */
 		int screenHeight;// = 0;
-		int xpos, ypos; //position of lower-left corner of freewrl in opengl window, usually 0,0 (but not for some opengl gui kits, like dug9gui)
-
-		double screenRatio;// = 1.5;
-
 		char *window_title;// = NULL;
-
-		int mouse_x;
-		int mouse_y;
-
-		int show_mouse;
-
 		int shutterGlasses;// = 0; /* stereo shutter glasses */
-		int quadbuff_stereo_mode;// = 0;
-
-		//s_renderer_capabilities_t rdr_caps;
-		void *rdr_caps;
-
-		float myFps;// = (float) 0.0;
-		char *myMenuStatus;
-		void *_vportstack; //Stack for viewports
+		void *rdr_caps; //s_renderer_capabilities_t
 		void *prv;
 	}display;
 	struct tinternalc {
@@ -177,6 +154,9 @@ typedef struct iiglobal //InstanceGlobal
 		int *scene_components;
 		char *replaceWorldRequest;
 		void *replaceWorldRequestMulti; //will be struct multi-string
+		void *twindows; //target windows for multi-window config
+		int targets_initialized;
+		void *_vportstack; //Stack for viewports
 	} Mainloop;
 	struct tProdCon{
 		struct Vector *viewpointNodes;// = NULL;

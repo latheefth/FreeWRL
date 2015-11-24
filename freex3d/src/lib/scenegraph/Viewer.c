@@ -946,13 +946,13 @@ static void handle_walk(const int mev, const unsigned int button, const float x,
 			   dug9: button 1 ZD: .05 5.0 0.0  RD: .1 .5 0.0
 				     button 3 XD: 5.0 10.0 0.0 YD: 5.0 10.0 0.0
 			*/
-			walk->ZD = xsign_quadratic(y - walk->SY,.05,5.0,0.0)*p->Viewer.speed * frameRateAdjustment;
+			walk->ZD = -xsign_quadratic(y - walk->SY,.05,5.0,0.0)*p->Viewer.speed * frameRateAdjustment;
 			walk->RD = xsign_quadratic(x - walk->SX,0.1,0.5,0.0)*frameRateAdjustment;
 			//walk->ZD = (y - walk->SY) * Viewer.speed;
 			//walk->RD = (x - walk->SX) * 0.1;
 		} else if (button == 3) {
 			walk->XD =  xsign_quadratic(x - walk->SX,5.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment;
-			walk->YD = -xsign_quadratic(y - walk->SY,5.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment;
+			walk->YD =  xsign_quadratic(y - walk->SY,5.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment;
 			//walk->XD = (x - walk->SX) * Viewer.speed;
 			//walk->YD = -(y - walk->SY) * Viewer.speed;
 		}
@@ -1072,7 +1072,8 @@ void handle_dist(const int mev, const unsigned int button, float x, float y) {
 	examine = &p->Viewer.examine;
 	pp.z=p->Viewer.Dist;
 
-	yy = 1.0 - y;
+	//yy = 1.0 - y;
+	yy = y;
 	if (mev == ButtonPress) {
 		if (button == 1) {
 			resolve_pos2();
@@ -1100,7 +1101,7 @@ void handle_dist(const int mev, const unsigned int button, float x, float y) {
 
 }
 
-
+double display_screenRatio();
 void handle_turntable(const int mev, const unsigned int button, float x, float y) {
 	/*
 	Like handle_spherical, except:
@@ -1168,8 +1169,8 @@ void handle_turntable(const int mev, const unsigned int button, float x, float y
 			pitch = -(acos(vecdot(&pp, &yaxis)) - PI*.5);
 		}
 		if (button == 1) {
-			dyaw = -(ypz->x - x) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom * tg->display.screenRatio;
-			dpitch = -(ypz->y - y) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom;
+			dyaw = -(ypz->x - x) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom * display_screenRatio(); //tg->display.screenRatio;
+			dpitch = (ypz->y - y) * p->Viewer.fieldofview*PI / 180.0*p->Viewer.fovZoom;
 			//if(0){
 			//	dyaw = -dyaw;
 			//	dpitch = -dpitch;
@@ -1195,7 +1196,7 @@ void handle_turntable(const int mev, const unsigned int button, float x, float y
 			if(1) {
 				//handle_tick_explore quadratic
 				//double quadratic = -xsign_quadratic(y - ypz->y,5.0,10.0,0.0);
-				ypz->ypz[1] = xsign_quadratic(y - ypz->y,100.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment *.15;
+				ypz->ypz[1] = -xsign_quadratic(y - ypz->y,100.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment *.15;
 				//printf("quad=%f y-y %f s=%f fra=%f\n",quadratic,y-ypz->y,p->Viewer.speed,frameRateAdjustment);
 			}
 		}
@@ -1265,8 +1266,8 @@ void handle_spherical(const int mev, const unsigned int button, float x, float y
 			pitch = -(acos(vecdot(&ddr, &yaxis)) - PI*.5);
 
 			//step 2 add on any mouse motion as yaw,pitch chord
-			dyaw   = (ypz->x - x) * p->Viewer.fieldofview*PI/180.0*p->Viewer.fovZoom * tg->display.screenRatio; 
-			dpitch = (ypz->y - y) * p->Viewer.fieldofview*PI/180.0*p->Viewer.fovZoom;
+			dyaw   = (ypz->x - x) * p->Viewer.fieldofview*PI/180.0*p->Viewer.fovZoom * display_screenRatio(); //tg->display.screenRatio; 
+			dpitch = -(ypz->y - y) * p->Viewer.fieldofview*PI/180.0*p->Viewer.fovZoom;
 			yaw += dyaw;
 			pitch += dpitch;
 
@@ -1280,7 +1281,7 @@ void handle_spherical(const int mev, const unsigned int button, float x, float y
 
 		} else if (ibutton == 3) {
 			double d, fac;
-			d = (y - ypz->y)*.5;
+			d = -(y - ypz->y)*.5;
 			fac = pow(10.0,d);
 			p->Viewer.fovZoom = p->Viewer.fovZoom * fac;
 			//p->Viewer.fovZoom = DOUBLE_MIN(2.0,DOUBLE_MAX(.125,p->Viewer.fovZoom));  
@@ -1349,7 +1350,7 @@ void handle_tick_fly2(double dtime) {
 	if (inplane->on) {
 		xx = inplane->xx - inplane->x;
 		yy = inplane->yy - inplane->y;
-		zz = xsign_quadratic(yy,.05,5.0,0.0)*p->Viewer.speed * frameRateAdjustment;
+		zz = -xsign_quadratic(yy,.05,5.0,0.0)*p->Viewer.speed * frameRateAdjustment;
 		zz *= 0.15;
 
 		xyz.x = 0.0;
@@ -1478,7 +1479,7 @@ void handle_tick_tplane(double dtime){
 	inplane = &p->Viewer.inplane;
 	if(inplane->on){
 		pp.x =  xsign_quadratic(inplane->xx - inplane->x,300.0,100.0,0.0) *dtime;
-		pp.y = -xsign_quadratic(inplane->yy - inplane->y,300.0,100.0,0.0) *dtime;
+		pp.y =  xsign_quadratic(inplane->yy - inplane->y,300.0,100.0,0.0) *dtime;
 		pp.z = 0.0;
 		//vecadd(&p->Viewer.Pos,&p->Viewer.Pos,&pp);
 		increment_pos(&pp);
@@ -1567,7 +1568,7 @@ void handle_tick_tilt(double dtime) {
 		yaw = xsign_quadratic(inplane->xx - inplane->x,2.0,2.0,0.0)*dtime;
 		vrmlrot_to_quaternion (&quatt,0.0,1.0,0.0,yaw); //tilt about x axis
 		quaternion_multiply(&(p->Viewer.Quat), &quatt, &(p->Viewer.Quat)); 
-		pitch = xsign_quadratic(inplane->yy - inplane->y,2.0,2.0,0.0)*dtime;
+		pitch = -xsign_quadratic(inplane->yy - inplane->y,2.0,2.0,0.0)*dtime;
 		vrmlrot_to_quaternion (&quatt,1.0,0.0,0.0,pitch); //tilt about x axis
 		quaternion_multiply(&(p->Viewer.Quat), &quatt, &(p->Viewer.Quat)); 
 		quaternion_normalize(&(p->Viewer.Quat));
@@ -1577,54 +1578,53 @@ void handle_tick_tilt(double dtime) {
 /************************************************************************************/
 
 
-void handle0(const int mev, const unsigned int button, const float x, const float y)
+void handle0(const int mev, const unsigned int button, const float x, const float yup)
 {
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	/* printf("Viewer handle: viewer_type %s, mouse event %d, button %u, x %f, y %f\n", 
-	   VIEWER_STRING(Viewer.type), mev, button, x, y); */
+	   lookup_navmodestring(p->Viewer.type), mev, button, x, y); */
 
 	if (button == 2) {
 		return;
 	}
-
 	switch(p->Viewer.type) {
 	case VIEWER_NONE:
 		break;
 	case VIEWER_EXAMINE:
-		handle_examine(mev, button, ((float) x), ((float) y));
+		handle_examine(mev, button, ((float) x), ((float) yup));
 		break;
 	case VIEWER_WALK:
-		handle_walk(mev, button, ((float) x), ((float) y));
+		handle_walk(mev, button, ((float) x), ((float) yup));
 		break;
 	case VIEWER_EXFLY:
 		break;
 	case VIEWER_FLY:
-		handle_fly2(mev, button, ((float) x), ((float) y)); //feature-Navigation_key_and_drag
+		handle_fly2(mev, button, ((float) x), ((float) yup)); //feature-Navigation_key_and_drag
 		break;
 	case VIEWER_FLY2:
-		handle_fly2(mev,button,((float) x),((float)y)); 
+		handle_fly2(mev,button,((float) x),((float)yup)); 
 		break;
 	case VIEWER_TILT:
 	case VIEWER_RPLANE:
-		handle_rtplane(mev,button,((float) x),((float)y)); //roll, tilt: one uses x, one uses y - separate handle_ticks though
+		handle_rtplane(mev,button,((float) x),((float)yup)); //roll, tilt: one uses x, one uses y - separate handle_ticks though
 		break;
 	case VIEWER_TPLANE:
-		handle_tplane(mev,button,((float) x),((float)y)); //translation in the viewer plane
+		handle_tplane(mev,button,((float) x),((float)yup)); //translation in the viewer plane
 		break;
 	case VIEWER_SPHERICAL:
-		handle_spherical(mev,button,((float) x),((float)y)); //spherical panorama
+		handle_spherical(mev,button,((float) x),((float)yup)); //spherical panorama
 		break;
 	case VIEWER_TURNTABLE:
-		handle_turntable(mev, button, ((float)x), ((float)y));  //examine without roll around world 0,0,0 origin - like a 3D editor with authoring plane
+		handle_turntable(mev, button, ((float)x), ((float)yup));  //examine without roll around world 0,0,0 origin - like a 3D editor with authoring plane
 		break;
 	case VIEWER_LOOKAT:
-		handle_lookat(mev, button, ((float)x), ((float)y)); //as per navigationInfo specs, you toggle on, then click an object and it flys you there
+		handle_lookat(mev, button, ((float)x), ((float)yup)); //as per navigationInfo specs, you toggle on, then click an object and it flys you there
 		break;
 	case VIEWER_EXPLORE:
-		handle_explore(mev, button, ((float)x), ((float)y)); //as per specs, like turntable around any point you pick with CTRL click
+		handle_explore(mev, button, ((float)x), ((float)yup)); //as per specs, like turntable around any point you pick with CTRL click
 		break;
 	case VIEWER_DIST:
-		handle_dist(mev,button,(float)x,(float)y);
+		handle_dist(mev,button,(float)x,(float)yup);
 	default:
 		break;
 	}
@@ -2504,7 +2504,7 @@ xy2qua(Quaternion *ret, const double x, const double y)
 {
 	double _x = x - 0.5, _y = y - 0.5, _z, dist;
 	_x *= 2;
-	_y *= -2;
+	_y *= 2;
 
 	dist = sqrt((_x * _x) + (_y * _y));
 

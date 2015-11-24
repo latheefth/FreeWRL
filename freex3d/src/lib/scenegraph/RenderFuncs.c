@@ -202,7 +202,7 @@ void unload_libraryscenes(){
 				//unload_broto(libscn); //nothing to un-register - library scenes aren't registered
 				gc_broto_instance(libscn);
 				deleteVector(struct X3D_Node*,libscn->_parentVector);
-				freeMallocedNodeFields(libscn);
+				freeMallocedNodeFields((struct X3D_Node*)libscn);
 				FREE_IF_NZ(libscn);
 				FREE_IF_NZ(url);
 				FREE_IF_NZ(ul);
@@ -1022,15 +1022,10 @@ for (i=0; i<16; i++) printf ("%4.3lf ",projMatrix[i]); printf ("\n");
 	}
 }
 void upd_ray() {
-	struct point_XYZ t_r1,t_r2,t_r3;
 	ppRenderFuncs p;
 	ttglobal tg = gglobal();
 	p = (ppRenderFuncs)tg->RenderFuncs.prv;
 
-	//upd_ray0(&t_r1,&t_r2,&t_r3);
-	//VECCOPY(tg->RenderFuncs.t_r1,t_r1);
-	//VECCOPY(tg->RenderFuncs.t_r2,t_r2);
-	//VECCOPY(tg->RenderFuncs.t_r3,t_r3);
 	upd_ray0(&p->t_r123.p1,&p->t_r123.p2,&p->t_r123.p3);
 	/*
 	printf("Upd_ray: (%f %f %f)->(%f %f %f) == (%f %f %f)->(%f %f %f)\n",

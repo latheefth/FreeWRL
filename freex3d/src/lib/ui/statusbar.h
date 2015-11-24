@@ -38,7 +38,7 @@ void drawStatusBar();
 //void statusbarHud_DrawCursor(GLint textureID,int x,int y);
 void statusbar_set_window_size(int width, int height);
 int statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY);
-
+int statusbar_handle_mouse1(int mev, int butnum, int mouseX, int mouseY, int windex);
 #ifdef __cplusplus
 }
 #endif

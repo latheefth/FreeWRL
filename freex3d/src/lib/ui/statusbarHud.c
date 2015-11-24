@@ -421,7 +421,7 @@ typedef struct {
 	GLushort *ind;
 	int blankItem;
 	bool top; // true: menu appears at top of screen, else bottom
-	float yoffset; // computed position of menu y
+	int yoffset; // computed position of menu y
 	int **radiosets;
 	int *toggles;
 } pmenu_t;
@@ -486,7 +486,9 @@ typedef struct pstatusbar{
 	pmenu_t pmenu;
 	int buttonSize; //size of menu buttons, in pixels - default 32
 	GLfloat textColor[4];
-	int screenWidth, screenHeight, clipPlane;
+	int screenWidth;
+	int screenHeight;
+	int clipPlane;
 	int side_top, side_bottom;
 }* ppstatusbar;
 void *statusbar_constructor(){
@@ -884,10 +886,11 @@ char *colorschemenames [] = {
 "neon:pink",
 NULL,
 };
-
+void fwl_setPickraySide(int ipreferredSide, int either);
+void fwl_getPickraySide(int *ipreferredSide, int *either);
 void initOptionsVal()
 {
-	int i,j,k, iem, iside, ieither;
+	int i,j,k, iside, ieither;
 	X3D_Viewer *viewer;
 	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
 	viewer = Viewer();
@@ -974,7 +977,8 @@ XY mouse2screen(int x, int y)
 {
 	XY xy;
 	xy.x = x;
-	xy.y = ((ppstatusbar)(gglobal()->statusbar.prv))->screenHeight -y;
+	//xy.y = ((ppstatusbar)(gglobal()->statusbar.prv))->screenHeight -y;
+	xy.y = y;
 	return xy;
 }
 XY screen2text(int x, int y)
@@ -1045,7 +1049,6 @@ void printOptions()
 	p->bmScale = p->bmScaleRegular;
 
 }
-
 int handleOptionPress(int mouseX, int mouseY)
 {
 	/* general idea: we don't update the hud/option state here - just the Viewer state - then 
@@ -1694,14 +1697,14 @@ void initButtons()
 		p->pmenu.vert= MALLOC(GLfloat*, 3*4*buttonAtlasSquared*sizeof(GLfloat));
 //		p->pmenu.tex = MALLOC(GLfloat*, 2*4*buttonAtlasSquared*sizeof(GLfloat));
 		p->pmenu.ind = MALLOC(GLushort*, 3*2*buttonAtlasSquared*sizeof(GLushort));
-		p->pmenu.yoffset = 0.0f;
-		if(p->pmenu.top) p->pmenu.yoffset = (float)(p->screenHeight - p->buttonSize); //32.0f;
+		p->pmenu.yoffset = 0;
+		if(p->pmenu.top) p->pmenu.yoffset = p->screenHeight - p->buttonSize; //32.0f;
 		for(i=0;i<p->pmenu.nitems;i++)
 		{
 			int j,k,irow,icol;
-			int mv,mt,mi,kv,kt;
-			GLfloat dx;
-			FXY xyxy[2];
+			int mt,kt;
+
+
 			p->pmenu.items[i].action = actionlist[i];
 			p->pmenu.items[i].isToggle = false;
 			p->pmenu.items[i].buttonset = NULL;
@@ -1802,7 +1805,7 @@ void initButtons()
 			kset = 0;
 			togset = togglesets[kset];
 			while(togset[0]){
-				int j,k, ipact, nact, iact;
+				int k, ipact, nact, iact;
 				ipact = togset[0];
 				nact = togset[1];
 				for(k=0;k<p->pmenu.nitems;k++){
@@ -2059,7 +2062,7 @@ void updateButtonStatus()
 	// Here we take our UI current state from the scene state. 
 	// For FRONTEND_HANDLES_DISPLAY_THREAD configurations, the frontend should do 
 	// the equivalent of the following once per frame (poll state and set UI)
-	int headlight, collision, navmode, dragchord, lookatMode, ctrl, shift;
+	int headlight, collision, navmode, dragchord, ctrl, shift;
 	//poll model state:
 	headlight = fwl_get_headlight();
 	collision = fwl_getCollision();
@@ -2103,10 +2106,15 @@ int handleButtonOver(int mouseX, int mouseY)
 	p = (ppstatusbar)tg->statusbar.prv;
 
 	x = mouseX;
+	//if (p->pmenu.top)
+	//	y = mouseY;
+	//else
+	//	y = p->screenHeight - mouseY - p->pmenu.yoffset;
 	if (p->pmenu.top)
-		y = mouseY;
+		y = p->screenHeight - mouseY;
 	else
-		y = p->screenHeight - mouseY - p->pmenu.yoffset;
+		y = mouseY - p->pmenu.yoffset;
+
 	p->isOver = -1;
 	for (i = 0; i<p->pmenu.nbitems; i++)
 	if (x > p->pmenu.bitems[i].butrect[0] && x < p->pmenu.bitems[i].butrect[2]
@@ -2157,10 +2165,14 @@ int handleButtonRelease(int mouseX, int mouseY)
 	p = (ppstatusbar)tg->statusbar.prv;
 
 	x = mouseX;
+	//if(p->pmenu.top)
+	//	y = mouseY;
+	//else
+	//	y = p->screenHeight - mouseY - p->pmenu.yoffset;
 	if(p->pmenu.top)
-		y = mouseY;
+		y = p->screenHeight - mouseY;
 	else
-		y = p->screenHeight - mouseY - p->pmenu.yoffset;
+		y = mouseY - p->pmenu.yoffset;
 	ihit = -1;
 	for(i=0;i<p->pmenu.nbitems;i++)
 	{
@@ -2287,7 +2299,7 @@ void updateButtonVertices()
 	p = (ppstatusbar)tg->statusbar.prv;
 
 	//p->pmenu.yoffset = (float) yoff_button; //0.0f;
-	if(p->pmenu.top) p->pmenu.yoffset = (float)(p->screenHeight - p->buttonSize - p->pmenu.yoffset); //32.0f;
+	if(p->pmenu.top) p->pmenu.yoffset = (p->screenHeight - p->buttonSize - p->pmenu.yoffset); //32.0f;
 
 	for(i=0;i<p->pmenu.nbitems;i++)
 	{
@@ -2322,7 +2334,7 @@ void renderButtons()
 		initButtons();
 	updateButtonVertices();
 	//updateButtonStatus();
-	glScissor(0,(int)p->pmenu.yoffset+p->side_bottom,p->screenWidth,p->buttonSize); //tg->Mainloop.clipPlane*2);
+	glScissor(0,p->pmenu.yoffset+p->side_bottom,p->screenWidth,p->buttonSize); //tg->Mainloop.clipPlane*2);
 
 	glEnable(GL_SCISSOR_TEST);
 	//glClearColor(.922f,.91f,.844f,1.0f); //windowing gray
@@ -2497,31 +2509,62 @@ bool showAction(ppstatusbar p, int action)
 int overMenubar(ppstatusbar p, int mouseY){
 	int y, isOver = 0;
 	if(p->showButtons){
+		//if(p->pmenu.top)
+		//	y = mouseY;
+		//else
+		//	y = p->screenHeight - mouseY - p->pmenu.yoffset;
 		if(p->pmenu.top)
-			y = mouseY;
+			y = p->screenHeight - mouseY;
 		else
-			y = p->screenHeight - mouseY - p->pmenu.yoffset;
+			y = mouseY - p->pmenu.yoffset;
 		if( y >= 0 && y <= p->buttonSize) isOver = 1;
 	}
 	return isOver;
 }
 int overStatusbar(ppstatusbar p, int mouseY){
-	int y, isOver = 0;
+	int isOver = 0;
 	//p->screenHeight - mouseY < p->clipPlane
-	if(p->screenHeight - mouseY < p->statusBarSize) isOver = 1;
+	//if(p->screenHeight - mouseY < p->statusBarSize) isOver = 1;
+	if(mouseY < p->statusBarSize) isOver = 1;
 	//if(p->show_status){
 		//y = p->screenHeight - mouseY;
 		//if(y >= p->side_bottom && y <= p->side_bottom + p->statusBarSize) isOver = 1;
 	//}
 	return isOver;
 }
-int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY)
+void fwl_getWindowSize(int *width, int *height);
+void fwl_getWindowSize1(int windex, int *width, int *height);
+
+void updateWindowSize(){
+	//call this one when rendering the statusbarHud. 
+	//the libfreewrl rendering loop should have setScreenDim to the appropriate values
+	int width, height;
+	ppstatusbar p;
+	ttglobal tg = gglobal();
+	p = (ppstatusbar)tg->statusbar.prv;
+	fwl_getWindowSize(&width,&height);
+	p->screenWidth = width;
+	p->screenHeight = height;	
+}
+void updateWindowSize1(int windex){
+	//call this one when recieving window events
+	//windex: index of targetwindow 
+	int width, height;
+	ppstatusbar p;
+	ttglobal tg = gglobal();
+	p = (ppstatusbar)tg->statusbar.prv;
+	fwl_getWindowSize1(windex,&width,&height);
+	p->screenWidth = width;
+	p->screenHeight = height;	
+}
+int handleStatusbarHud1(int mev, int butnum, int mouseX, int mouseY, int windex)
 {
 	int mouseYY;
 	ppstatusbar p;
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
 
+	updateWindowSize1(windex);
 	mouseYY = mouseY; // - p->pmenu.yoffset;
 	if ((mev == ButtonPress) || (mev == ButtonRelease))
 	{
@@ -2625,6 +2668,9 @@ int handleStatusbarHud(int mev, int butnum, int mouseX, int mouseY)
 // call a few functions from the display event handlers, such as resize
 void statusbar_set_window_size(int width, int height)
 {
+	//Nov 2015: this function is obsolete: frontend event handler just calls fwl_setScreenDim(wi,hi)
+	// and statusbarHud polls the model on mouse and render for the current wi,hi
+	// ie updateWindowSize() updateWindowSize1(windex)
 	ttglobal tg = gglobal();
 	ppstatusbar p = (ppstatusbar)tg->statusbar.prv;
 	p->screenHeight = height;
@@ -2633,19 +2679,26 @@ void statusbar_set_window_size(int width, int height)
 	//if(1) fwl_setScreenDim2(5,10,width-10,height-20); //test vport, screenDim2
 }
 int getCursorStyle();
-int statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY)
+int statusbar_handle_mouse1(int mev, int butnum, int mouseX, int mouseY, int windex)
 {
-	int cursorStyle;
+	int yup;
 	ttglobal tg = gglobal();
 	ppstatusbar p = (ppstatusbar)tg->statusbar.prv;
-	if (!handleStatusbarHud(mev, butnum, mouseX, mouseY)){
+	updateWindowSize1(windex);
+	yup = p->screenHeight - mouseY;
+	if (!handleStatusbarHud1(mev, butnum, mouseX, yup, windex)){
 		fwl_set_frontend_using_cursor(FALSE);
-		fwl_handle_aqua(mev, butnum, mouseX, mouseY); /* ,gcWheelDelta); */
+		fwl_handle_aqua1(mev, butnum, mouseX, mouseY, windex); /* ,gcWheelDelta); */
 	}else{
 		fwl_set_frontend_using_cursor(TRUE);
 	}
 	return getCursorStyle();
 }
+int statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY)
+{
+	return statusbar_handle_mouse1(mev,butnum,mouseX,mouseY,0);
+}
+
 char *getMessageBar(); //in common.c
 char *fwl_getKeyChord();
 void fwl_setClipPlane(int height);
@@ -2706,6 +2759,7 @@ M       void toggle_collision()                             //"
 	if(p->programObject == 0) initProgramObject();
 	//MVC statusbarHud is in View and Controller just called us and told us 
 	//..to poll the Model to update and draw ourself
+	updateWindowSize();
 	updateButtonStatus();  //poll Model for some button state
 	updateConsoleStatus(); //poll Model for console text
 

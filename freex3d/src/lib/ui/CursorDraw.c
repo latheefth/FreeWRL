@@ -212,7 +212,8 @@ XY mouse2screen2(int x, int y)
 {
 	XY xy;
 	xy.x = x;
-	xy.y = gglobal()->display.screenHeight -y;
+	//xy.y = gglobal()->display.screenHeight -y;
+	xy.y = y;
 	return xy;
 }
 typedef struct {GLfloat x; GLfloat y;} FXY;
@@ -280,6 +281,7 @@ void fiducialDraw(int ID, int x, int y, float angle)
    as of March 14, 2012 I'm using this only in stereovision mode, to draw
    viewport alignment fiducials
    */
+void statusbarHud_DrawCursor(GLint textureID,int x,int y);
 void cursorDraw(int ID, int x, int y, float angle) 
 {
 	XY xy;
@@ -308,11 +310,13 @@ void cursorDraw(int ID, int x, int y, float angle)
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, circleCursor.width, circleCursor.height, 0, GL_RGBA , GL_UNSIGNED_BYTE, circleCursor.pixel_data);
 		p->done = 1; 
 	}
-#ifdef STATUSBAR_HUD_HIDE
+#ifdef STATUSBAR_HUD
+	//Nov 2015: I find this works with emulate_multitouch and multi_window
 	statusbarHud_DrawCursor(p->textureID,x,y);
 	return;
 #endif
 #ifndef NEWWAY_COPIED_FROM_STATUSBARHUD_CURSORDRAW
+	//Nov 2015: I find this does NOT work 100% with emulate_multitouch and multi_window - it sometimes makes regular scene geometry invisible
 	FW_GL_DEPTHMASK(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
 	//if(p->programObject == 0) initProgramObject();

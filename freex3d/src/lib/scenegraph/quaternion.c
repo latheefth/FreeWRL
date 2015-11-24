@@ -267,8 +267,7 @@ void quat2yawpitch(double *ypr, Quaternion *q){
 	ypr[2] = 0.0;
 }
 void test_euler(){
-	double aval,bval,dval,ypr[3];
-	Quaternion q1;
+	double aval;
 	aval = -MATH_PI/3.0;
 
 	if(0){

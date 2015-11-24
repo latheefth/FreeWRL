@@ -653,13 +653,14 @@ struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ 
 	double tmin[3],tmax[3]; /* MBB for facet */
 	struct sFallInfo *fi;
 	struct sNaviInfo *naviinfo;
+	GLDOUBLE awidth, atop, abottom, astep;
 	ppcollision pp;
 	ttglobal tg = gglobal();
 	naviinfo = (struct sNaviInfo *)tg->Bindable.naviinfo;
-	GLDOUBLE awidth = naviinfo->width; /*avatar width*/
-	GLDOUBLE atop = naviinfo->width; /*top of avatar (relative to eyepoint)*/
-	GLDOUBLE abottom = -naviinfo->height; /*bottom of avatar (relative to eyepoint)*/
-	GLDOUBLE astep = -naviinfo->height+naviinfo->step;
+	awidth = naviinfo->width; /*avatar width*/
+	atop = naviinfo->width; /*top of avatar (relative to eyepoint)*/
+	abottom = -naviinfo->height; /*bottom of avatar (relative to eyepoint)*/
+	astep = -naviinfo->height+naviinfo->step;
 	pp = (ppcollision)tg->collision.prv;
 
 	result = zero;

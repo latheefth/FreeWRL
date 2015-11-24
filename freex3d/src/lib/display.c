@@ -82,10 +82,10 @@ ivec2 ivec2_init(int x, int y){
 
 #define MAXSTAT 200
 typedef struct pdisplay{
-	freewrl_params_t params;
+	freewrl_params_t params; //pre-allocated
 	s_renderer_capabilities_t rdr_caps;
 	char myMenuStatus[MAXSTAT];
-	Stack *_vportstack;
+	int multi_window_capable;
 }* ppdisplay;
 void *display_constructor(){
 	void *v = MALLOCV(sizeof(struct pdisplay));
@@ -99,103 +99,39 @@ void display_init(struct tdisplay* t)
 
 	t->display_initialized = FALSE;
 
-	t->view_height = 0; /* viewport */
-	t->view_width = 0;
 	t->screenWidth = 0; /* screen */
 	t->screenHeight = 0;
-	t->screenRatio = 1.5;
 	t->window_title = NULL;
 
-	t->mouse_x = 0;
-	t->mouse_y = 0;
-	t->show_mouse = 0;
 	t->shutterGlasses = 0; /* stereo shutter glasses */
-	t->quadbuff_stereo_mode = 0;
-	//memset(&t->rdr_caps,0,sizeof(t->rdr_caps));
-	t->myFps = (float) 0.0;
 	t->prv = display_constructor();
 	{
 		ppdisplay p = (ppdisplay)t->prv;
 		memset(&p->rdr_caps,0,sizeof(s_renderer_capabilities_t));
 		t->rdr_caps = &p->rdr_caps;
-		t->myMenuStatus = p->myMenuStatus;
-		p->params.height = 0; /* window */
+		/*
+		p->params.height = 0; // window
 		p->params.width = 0;
 		p->params.winToEmbedInto = INT_ID_UNDEFINED;
 		p->params.fullscreen = FALSE;
 		p->params.xpos = 0;
 		p->params.ypos = 0;
 		p->params.frontend_handles_display_thread = FALSE;
-		p->_vportstack = newStack(ivec4);
-		t->params = &p->params;
-		t->_vportstack = (void *)p->_vportstack; //represents screen pixel area being drawn to
+		*/
+#if defined(ANGLEPROJECT) || defined(_ANDROID) || defined(QNX) || defined(IPHONE)
+		p->multi_window_capable = 0; //single-window EGL/ANGLEPROJECT(GLES2)/MOBILE
+#else
+		p->multi_window_capable = 1;  //desktop opengl __linux__, _MSC_VER, TARGET_AQUA
+#endif
+		t->params = (void*)&p->params;
 	}
 }
 
-void pushviewport(Stack *vpstack, ivec4 vp){
-	stack_push(ivec4,vpstack,vp);
-}
-void popviewport(Stack *vpstack){
-	stack_pop(ivec4,vpstack);
-	if(!stack_empty(vpstack)){
-		ivec4 vp = stack_top(ivec4,vpstack);
-	}
-}
-int overlapviewports(ivec4 vp1, ivec4 vp2){
-	//0 - outside, 1 - vp1 inside vp2 -1 vp2 inside vp1 2 overlapping
-	int inside = 0;
-	inside = vp1.X >= vp2.X && (vp1.X+vp1.W) <= (vp2.X+vp2.W) ? 1 : 0;
-	if(!inside){
-		inside = vp2.X >= vp1.X && (vp2.X+vp2.W) <= (vp1.X+vp1.W) ? -1 : 0;
-	}
-	if(!inside){
-		inside = vp1.X > (vp2.X+vp2.W) || vp1.X > (vp1.X+vp1.W) || vp1.Y > (vp2.Y+vp2.H) || vp2.Y > (vp1.Y+vp1.H) ? 0 : 2;
-	}
-	return inside;
-}
-ivec4 intersectviewports(ivec4 vp1, ivec4 vp2){
-	ivec4 vpo;
-	vpo.X = max(vp1.X,vp2.X);
-	vpo.W = min(vp1.X+vp1.W,vp2.X+vp2.W) - vpo.X;
-	vpo.Y = max(vp1.Y,vp2.Y);
-	vpo.H = min(vp1.Y+vp1.H,vp2.Y+vp2.H) - vpo.Y;
-	//printf("olap [%d %d %d %d] ^ [%d %d %d %d] = [%d %d %d %d]\n",vp1.X,vp1.Y,vp1.W,vp1.H,vp2.X,vp2.Y,vp2.W,vp2.H,vpo.X,vpo.Y,vpo.W,vpo.H);
-	return vpo;
-}
-int visibleviewport(ivec4 vp){
-	int ok = vp.W > 0 && vp.H > 0;
-	return ok;
-}
-int pointinsideviewport(ivec4 vp, ivec2 pt){
-	int inside = TRUE;
-	inside = inside && pt.X <= (vp.X + vp.W) && (pt.X >= vp.X);
-	inside = inside && pt.Y <= (vp.Y + vp.H) && (pt.Y >= vp.Y);
-	return inside;
-}
-int pointinsidecurrentviewport(Stack *vpstack, ivec2 pt){
-	ivec4 vp = stack_top(ivec4,vpstack);
-	return pointinsideviewport(vp,pt);
-}
-void intersectandpushviewport(Stack *vpstack, ivec4 childvp){
-	ivec4 currentvp = stack_top(ivec4,vpstack);
-	ivec4 olap = intersectviewports(childvp,currentvp);
-	pushviewport(vpstack, olap); //I need to unconditionally push, because I will be unconditionally popping later
-}
-int currentviewportvisible(Stack *vpstack){
-	ivec4 currentvp = stack_top(ivec4,vpstack);
-	return visibleviewport(currentvp);
-}
-void setcurrentviewport(Stack *_vpstack){
-	ivec4 vp = stack_top(ivec4,_vpstack);
-	glViewport(vp.X,vp.Y,vp.W,vp.H);
-}
 
 
-#if KEEP_FV_INLIB
-
-#if defined (_ANDROID)
-
-/* simple display initialize for Android (and, probably, iPhones, too) */
+/* simple display initialize for Android (and, probably, iPhones, too)
+	Nov 2015: now used for desktop backend opengl initialization
+*/
 
 int fv_display_initialize()
 {
@@ -231,88 +167,162 @@ int fv_display_initialize()
     
     return TRUE;
 }
-#else
+
+//void fv_swapbuffers(freewrl_params_t *d);
+#ifdef WINRT
+void fv_swapbuffers(freewrl_params_t *d){
+	return;
+}
+#endif
+
+//void fv_change_GLcontext(freewrl_params_t* d);
+// each config needs to populate:
+// ANGLEPROJECT(stub) and WIN32(wglSetContext) done in src/lib/ui/fwWindow32.c
+//void fv_change_GLcontext(freewrl_params_t* d){
+//	return; //stub for ANLGEPROJECT, EGL/GLES2, mobile which don't change context but need to link
+//}
+#ifdef WINRT
+void fv_change_GLcontext(freewrl_params_t* d){
+	//stub for non-desktop configs (they can't do multiple windows anyway)
+}
+#elif _MSC_VER
+//win32 in fwWindow32.c
+#elif __linux__  //LINUX
+//void fv_change_GLcontext(freewrl_params_t* d){
+//	glXMakeCurrent(d->display,d->surface,d->context); 
+//}
+#elif AQUA
+void fv_change_GLcontext(freewrl_params_t* d){
+	aglSetCurrentContext(d->context);
+}
+#elif
+void fv_change_GLcontext(freewrl_params_t* d){
+	//stub for non-desktop configs (they can't do multiple windows anyway)
+}
+#endif
+
+#if !defined (_ANDROID) && !defined(WINRT)
+int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *share);
+//#if defined (__linux__)
+//int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *share){
+// 	/* make the window, create the OpenGL context, share the context if necessary 
+//		Nov 2015: linux desktop is still single windowed, with static GLXContext etc, no sharing
+//		- to get sharing, you need to populate params during creation of window and gl context
+//			d->display = Display *Xdpy;
+//			d->surface = Drawable or ???
+//			d->context = GLXContext GLcx;
+//			so when the targetwindow changes, there's enough info to do glXMakeCurrent and glXSwapBuffers
+//			- and when doing glCreateContext you have the previous window's GLXcontext to use as a shareList
+//	*/
+//
+//	if (!fv_open_display()) {
+//		printf("open_display failed\n");
+//		return FALSE;
+//	}
+//
+//	if (!fv_create_GLcontext()) {
+//		printf("create_GLcontext failed\n");
+//		return FALSE;
+//	}
+//	fv_bind_GLcontext();
+//	return TRUE;
+//}
+//#endif //__linux__
+
+#ifdef _MSC_VER 
+int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *share){
+	if (!fv_create_main_window2(params,share)){ //0 /*argc*/, NULL /*argv*/)) {
+		return FALSE;
+	}
+	return TRUE;
+}
+#endif //_MSC_VER
+#ifdef AQUA
+int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *share){
+ 	/* make the window, create the OpenGL context, share the context if necessary 
+		Nov 2015: OSX desktop is still single windowed, with static AGLcontext etc, no sharing
+		- to get sharing, you need to populate params during creation of window and gl context
+			d->display = (don't need)
+			d->surface = (don't need)
+			d->context = AGLContext
+			so when the targetwindow changes, there's enough info to do aglSetCurrentContext and aglSwapBuffers
+			- and when doing aglCreateContext you have the previous window's AGLContext to use as a share
+
+	*/
+
+	if (!fv_create_main_window(params)){ //0 /*argc*/, NULL /*argv*/)) {
+		return FALSE;
+	}
+	fv_bind_GLcontext();
+	return TRUE;
+}
+#endif
+
+void targetwindow_set_params(int itargetwindow, freewrl_params_t* params);
+freewrl_params_t* targetwindow_get_params(int itargetwindow);
 /**
- *  fv_display_initialize: takes care of all the initialization process, 
- *                      creates the display thread and wait for it to complete
- *                      the OpenGL initialization and the Window creation.
+ *  fv_display_initialize_desktop: 
+ *		creates window
+ *		creates opengl context, associates with window
+ *		sets sharing if multi-window
+ *      calls fv_display_initialize() for the backend generic OpenGL initialization 
  */
-int fv_display_initialize()
-{
+int fv_display_initialize_desktop(){
+	int nwindows;
 	struct tdisplay* d;
+	freewrl_params_t *dp;
 	ppdisplay p;
 	ttglobal tg = gglobal();
 	d = &tg->display;
 	p = (ppdisplay)tg->display.prv;
 
-#ifdef HAVE_OPENCL
-	struct tOpenCL_Utils *cl = &gglobal()->OpenCL_Utils;
-#endif //HAVE_OPENCL
+	dp = (freewrl_params_t*)d->params;
+	if(dp->frontend_handles_display_thread){
+		//all configs are technically frontend handles display thread now, 
+		// as seen by the backend (not including desktop.c which is a frontend)
+		// the flag frontend_handles_display_thread here really means 
+		// frontend_handles_window_creation_and_opengl_context_creation
+		// for example: winGLES2.exe which uses an EGL kit for window/glcontext
+		return fv_display_initialize(); //display_initialize now really means initialize generic backend opengl
+	}
 
-	if (d->display_initialized) return TRUE;
-
-	//memset(&d->rdr_caps, 0, sizeof(d->rdr_caps));
-
-	/* FreeWRL parameters */
-	//d->fullscreen = fwl_getp_fullscreen();
-	//d->width = fwl_getp_width();
-	//d->height = fwl_getp_height();
-	//d->winToEmbedInto = fwl_getp_winToEmbedInto();
-
+	nwindows = 1; //1 is normal freewrl, 2 or 3 is freaky 2,3 windowed freewrl for experiments, search targetwindow and windex
+	if(!p->multi_window_capable) nwindows = 1;
  	/* make the window, get the OpenGL context */
-// #if !defined(_MSC_VER) && !defined(_ANDROID) && !defined(QNX) && !defined(IPHONE)
-#if defined (__linux__)
-
-	if (!fv_open_display()) {
-		printf("open_display failed\n");
+	if(!fv_create_window_and_context(dp, NULL)){
 		return FALSE;
 	}
-
-	if (!fv_create_GLcontext()) {
-		printf("create_GLcontext failed\n");
-		return FALSE;
+	d->display_initialized = fwl_initialize_GL();
+	targetwindow_set_params(0,dp);
+	if(nwindows > 1){
+		//2nd fun window! to challenge us!
+		freewrl_params_t *p0;
+		dp->winToEmbedInto = -1;
+		p0 = targetwindow_get_params(0);
+		if(!fv_create_window_and_context(dp,p0)){
+			return FALSE;
+		}
+		targetwindow_set_params(1,dp); 
+		fwl_initialize_GL(); //has context-specific initializations -like GL_BLEND- so repeat per-context
 	}
-
- #endif //!MSC_VER && ! any OpenGL ES 2.0 device
-
-	if (0 != d->screenWidth)  p->params.width  = d->screenWidth;
-	if (0 != d->screenHeight) p->params.height = d->screenHeight;
-	fv_setScreenDim(p->params.width,p->params.height); /* recompute screenRatio */
-
-	//snprintf(window_title, sizeof(window_title), "FreeWRL");
-
-	if (!fv_create_main_window(d->params)){ //0 /*argc*/, NULL /*argv*/)) {
-	//if (!fv_create_main_window((freewrl_params_t *)d)){ //0 /*argc*/, NULL /*argv*/)) {
-		return FALSE;
+	if(nwindows > 2){
+		freewrl_params_t *p1;
+		dp->winToEmbedInto = -1;
+		p1 = targetwindow_get_params(1);
+		if(!fv_create_window_and_context(dp, p1)){
+			return FALSE;
+		}
+		targetwindow_set_params(2,dp); 
+		fwl_initialize_GL();
 	}
-
 	setWindowTitle0();
-
-#if ! ( defined(_MSC_VER) || defined(FRONTEND_HANDLES_DISPLAY_THREAD) )
-	
-	fv_bind_GLcontext();
-#endif
-
-
-	if (!fwl_initialize_GL()) {
-		printf("initialize_GL failed\n");
-		return FALSE;
-	}
 
         /* lets make sure everything is sync'd up */
 #if defined(TARGET_X11) || defined(TARGET_MOTIF)
         XFlush(Xdpy);
 #endif
 
-        /* initialize default font 
-           
-           TODO: this may be a configuration option (config file or command line)
-         */
-        //rf_xfont_init("fixed");
-
-	/* Display full initialized :P cool ! */
-	d->display_initialized = TRUE;
-	gglobal()->display.display_initialized = TRUE;
+	gglobal()->display.display_initialized = d->display_initialized;
 
 	DEBUG_MSG("FreeWRL: running as a plugin: %s\n", BOOL_STR(isBrowserPlugin));
 
@@ -328,18 +338,9 @@ int fv_display_initialize()
 		XMapWindow(Xdpy, Xwin);
 	}
 #endif /* IPHONE */
-
-#ifdef HAVE_OPENCL
-
-    if (!cl->OpenCL_Initialized) {
-	printf ("doing fwl_OpenCL_startup here in fv_display_inintialize\n");
-	fwl_OpenCL_startup(cl);
-    }
-
-#endif
 	return TRUE;
 }
-#endif //ANDROID
+#endif //!_ANDORID
 
 
 /**
@@ -368,70 +369,34 @@ int fwl_parse_geometry_string(const char *geometry, int *out_width, int *out_hei
 }
 
 void fv_setScreenDim(int wi, int he) { fwl_setScreenDim(wi,he); }
-#endif /* KEEP_FV_INLIB */
 
+void fwl_setScreenDim1(int wi, int he, int windex);
+void fwl_setScreenDim0(int wi, int he)
+{
+	//this one just sets the tg->display.screenWidth and is called in the targetwindow rendering loop
+	//this allows legacy code use of display.screenWidth etc to work normally in the render functions
+	ttglobal tg = gglobal();
+
+    tg->display.screenWidth = wi;  //width of the whole opengl surface in pixels
+    tg->display.screenHeight = he; //height of the whole opengl surface in pixels
+}
 /**
  *   fwl_setScreenDim: set internal variables for screen sizes, and calculate frustum
  */
 void fwl_setScreenDim(int wi, int he)
 {
-	ttglobal tg = gglobal();
-
-    tg->display.screenWidth = wi;  //width of the whole opengl surface in pixels
-    tg->display.screenHeight = he; //height of the whole opengl surface in pixels
-    /* printf("%s,%d fwl_setScreenDim(int %d, int %d)\n",__FILE__,__LINE__,wi,he); */
-
-    if (tg->display.screenHeight != 0) tg->display.screenRatio = (double) tg->display.screenWidth/(double) tg->display.screenHeight;
-    else tg->display.screenRatio =  tg->display.screenWidth;
-	//defaults for the subarea of the opengl surface used by freewrl: use all
-	tg->display.xpos = 0;
-	tg->display.ypos = 0; //top left y=0
-	tg->display.view_height = tg->display.screenHeight;
-	tg->display.view_width = tg->display.screenWidth;
-	{
-		ivec4 main_window;
-		Stack *vpstack = tg->display._vportstack;
-		main_window.X = tg->display.xpos;
-		main_window.Y = tg->display.ypos;
-		main_window.W = tg->display.view_width;
-		main_window.H = tg->display.view_height;
-		if(!vpstack->n){
-			stack_push(ivec4,vpstack,main_window);
-		}else{
-			vector_set(ivec4,vpstack,0,main_window);
-		}
-	}
-	//to over-ride with a sub-area, call fwl_setScreenDim2 immediately after this
-
+	//this one is called from platform-specific window event handling code, and
+	//by default assumes there's only one window, windex=0
+	//and sets a windowtarget-specific viewport as well as tg.display.screenwidth/height 
+	fwl_setScreenDim0(wi,he);
+	fwl_setScreenDim1(wi,he,0);
 }
-void fwl_setScreenDim2(int ixpos, int iypos, int wi, int he)
-{
+double display_screenRatio(){
 	ttglobal tg = gglobal();
-    //tg->display.screenWidth = wi;
-    //tg->display.screenHeight = he;  
-	tg->display.xpos = ixpos;
-	tg->display.ypos = iypos; //y up from bottom of opengl window to bottom of vrml widget/window
-	tg->display.view_width = wi;  //width of vrml widget/window pixels
-	tg->display.view_height = he; //height of vrml widget/window pixels
-    /* printf("%s,%d fwl_setScreenDim(int %d, int %d)\n",__FILE__,__LINE__,wi,he); */
-
-    //if (tg->display.screenHeight != 0) tg->display.screenRatio = (double) tg->display.screenWidth/(double) tg->display.screenHeight;
-    //else tg->display.screenRatio =  tg->display.screenWidth;
-	{
-		ivec4 main_window;
-		Stack *vpstack = tg->display._vportstack;
-		main_window.X = tg->display.xpos;
-		main_window.Y = tg->display.ypos;
-		main_window.W = tg->display.view_width;
-		main_window.H = tg->display.view_height;
-		if(!vpstack->n){
-			stack_push(ivec4,vpstack,main_window);
-		}else{
-			vector_set(ivec4,vpstack,0,main_window);
-		}
-	}
+	double ratio = 1.5;
+	if (tg->display.screenHeight != 0) ratio = (double) tg->display.screenWidth/(double) tg->display.screenHeight;
+	return ratio;
 }
-
 void fwl_setClipPlane(int height)
 {
 	//this should be 2 numbers, one for top and bottom

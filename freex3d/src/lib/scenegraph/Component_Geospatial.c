@@ -1867,7 +1867,6 @@ void LOAD_CHILD(struct X3D_GeoLOD *node, struct X3D_Node **childNode, struct Mul
 
 static void GeoLODchildren (struct X3D_GeoLOD *node) {
 	int load = node->__inRange;
-	int i;
 
 	/* lets see if we still have to load this one... */
 	if (((node->__childloadstatus)==0) && (load)) {
@@ -1912,7 +1911,6 @@ static void GeoUnLODchildren (struct X3D_GeoLOD *node) {
 
 static void GeoLODrootUrl (struct X3D_GeoLOD *node) {
 	int load = node->__inRange == 0; //dug9 it's when you are out of range that you should get the rootnode
-	int i;
 
 	/* lets see if we still have to load this one... */
 	if (((node->__rooturlloadstatus)==0) && (load)) {

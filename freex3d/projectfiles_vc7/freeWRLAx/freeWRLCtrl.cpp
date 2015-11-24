@@ -151,6 +151,17 @@ CfreeWRLCtrl::CfreeWRLCtrl()
 	//m_dllfreewrl = new CdllFreeWRL(100,100,m_Hwnd,false);
 	//m_initialized = 0;
 #ifdef _DEBUG
+/*
+HOW TO DEBUG
+0. build vc12 Debug_glew first (_DEBUG should be defined)
+1. build vc7 Debug_glew (for vc12) and go to projectfiles_vc12/Debug_glew and RegisterFwAx.bat in Admin console
+2. run InternetExplorer, navigate to a test file ie http://...../1.x3d a popup dialog should say 'You may now attach a debugger' 
+3. in visual studio, set your Debug_glew dllfreewrl project as Startup project, then under Debug, Attach to Process
+4. in the Process picker panel, a) shun Auto, and set Native b) shun InternetExplorer and select freeWRLAx plugin process(1)
+5. in your code search for 'You may now attach a debugger' (without the quotes), and set a breakpoint after that line
+6. in the internet explorer popup, say OK. 
+in visual studio, it should go to your breakpoint.
+*/
   ::MessageBoxA(NULL,"You may now attach a debugger.\n Press OK when you want to proceed.","freeWRLAx plugin process(1)",MB_OK);
 #endif
 
