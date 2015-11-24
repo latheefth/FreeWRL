@@ -130,9 +130,6 @@ void pushviewport(Stack *vpstack, ivec4 vp){
 }
 void popviewport(Stack *vpstack){
 	stack_pop(ivec4,vpstack);
-	if(!stack_empty(vpstack)){
-		ivec4 vp = stack_top(ivec4,vpstack);
-	}
 }
 int overlapviewports(ivec4 vp1, ivec4 vp2){
 	//0 - outside, 1 - vp1 inside vp2 -1 vp2 inside vp1 2 overlapping
@@ -445,11 +442,11 @@ void Mainloop_clear(struct tMainloop *t){
 //call hwnd_to_windex in frontend window creation and event handling,
 //to convert to more convenient int index.
 int hwnd_to_windex(void *hWnd){
+	int i;
 	targetwindow *targets;
 	ttglobal tg = gglobal();
 
 	targets = (targetwindow*)tg->Mainloop.twindows;
-	int i;
 	for(i=0;i<4;i++){
 		//the following line assume hwnd is never natively null or 0
 		if(!targets[i].hwnd){
@@ -670,11 +667,9 @@ render_stage {
 */
 
 void render_stage(stage *stagei,double dtime){
-	int i;
 	contenttype *content;
 	stage *ss;
 	ttglobal tg = gglobal();
-
 
 	if(stagei->ibuffer == 0){
 		//rendering to normal backbuffer, use current viewport
@@ -703,7 +698,6 @@ void render_stage(stage *stagei,double dtime){
 }
 static float fullviewport[4] = {0.0f, 1.0f, 0.0f, 1.0f};
 void setup_stagesNORMAL(){
-	int i;
 	targetwindow *twindows, *t;
 	stage *stages;
 	ttglobal tg = gglobal();
@@ -713,11 +707,12 @@ void setup_stagesNORMAL(){
 	t = twindows;
 	while(t){
 		contenttype *content;
+		stage *stagei;
 		int noutputstages = 1; //one screen
 		stages = t->stages;
 		t->stage = &stages[0];
 		//for(i=0;i<noutputstages;i++){
-			stage *stagei = t->stage;// &stages[i];
+			stagei = t->stage;// &stages[i];
 			content = &stagei->contents[0];
 			stagei->content = content;
 			//stagei->content->prep = fwl_RenderSceneUpdateScene0;
@@ -748,9 +743,9 @@ void setup_stagesNORMAL(){
 static int stages_initialized = 0;
 void fwl_RenderSceneUpdateSceneSTAGES() {
 	double dtime;
-	int i;
+	int noutputstages;
 	targetwindow *t;
-	stage *stagei, *stages;
+	stage *stagei;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
@@ -763,7 +758,7 @@ void fwl_RenderSceneUpdateSceneSTAGES() {
 	fwl_RenderSceneUpdateScene0(dtime);
 
 	t = p->twindows;
-	int noutputstages = 1;
+	noutputstages = 1;
 	stagei = t->stage;
 	//for(i=0;i<noutputstages;i++){
 	//	stage *stagei = &output_stages[i];
@@ -798,30 +793,10 @@ ivec4 childViewport(ivec4 parentViewport, float *clipBoundary);
 		- they would go through different stages, rendered to different size windows, different menuing
 		- and different pickrays -a mouse for supervisor, orientation sensor for HMD 
 	Design Option: instead of #ifdef here, all configs could supply 
-		fwSwapBuffers() and fwChangeGlContext() functions in the front-end modules,
+		fv_swapbuffers() and fwChangeGlContext() functions in the front-end modules,
 		including android/mobile/GLES2 which would stub or implement as appropriate
 */
-void fv_change_GLcontext(freewrl_params_t* d);
-// each config needs to populate:
-// ANGLEPROJECT(stub) and WIN32(wglSetContext) done in src/lib/ui/fwWindow32.c
-//void fv_change_GLcontext(freewrl_params_t* d){
-//	return; //stub for ANLGEPROJECT, EGL/GLES2, mobile which don't change context but need to link
-//}
-#ifdef _MSC_VER
-//win32 in fwWindow32.c
-#elif __linux__  //LINUX
-void fv_change_GLcontext(freewrl_params_t* d){
-	glXMakeCurrent(d->display,d->surface,d->context); 
-}
-#elif AQUA
-void fv_change_GLcontext(freewrl_params_t* d){
-	aglSetCurrentContext(d->context);
-}
-#elif
-void fv_change_GLcontext(freewrl_params_t* d){
-	//stub for non-desktop configs (they can't do multiple windows anyway)
-}
-#endif
+
 
 /*
 for targetwindow in targets //supervisor screen, HMD
@@ -870,7 +845,7 @@ void targetwindow_set_params(int itargetwindow, freewrl_params_t* params){
 	}
 }
 freewrl_params_t* targetwindow_get_params(int itargetwindow){
-	targetwindow *twindows, *t;
+	targetwindow *twindows;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 	
@@ -944,8 +919,8 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 	while(t) { 
 		//a targetwindow might be a supervisor's screen, or HMD
 		freewrl_params_t *dp;
-		ivec4 tport, pvport,vport;
 		Stack *vportstack;
+		stage *s;
 
 		p->windex++;
 		fwl_setScreenDim0(t->ivport.W, t->ivport.H);
@@ -960,7 +935,7 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 		vportstack = (Stack *)tg->Mainloop._vportstack;
 		pushviewport(vportstack,t->ivport);
 
-		stage *s = t->stage;
+		s = t->stage;
 		//while(s){
 
 			render_stage(s,dtime);
@@ -1064,8 +1039,8 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 				if suggested_wait_time < 0 then we can't keep up, no wait time
 
 			*/
-			double elapsed_time_per_frame, suggested_wait_time, target_time_per_frame, average_fps;
-			int wait_time_micro_sec, target_frames_per_second, kludgefactor;
+			double elapsed_time_per_frame, suggested_wait_time, target_time_per_frame, kludgefactor;
+			int wait_time_micro_sec, target_frames_per_second;
 			kludgefactor = 2.0; //2 works on win8.1 with intel i5
 			target_frames_per_second = fwl_get_target_fps();
 			elapsed_time_per_frame = TickTime() - lastTime();
@@ -1892,7 +1867,7 @@ static int setup_pickside(int x, int y){
 	   - analgyph and quadbuffer use the whole screen, so can use either
 	   -- there's now an explicit userPrefferedPickSide (versus always using right)
 	*/
-	int sideleft, sideright, iside, userPreferredPickSide, ieither, inside;
+	int sideleft, sideright, iside, userPreferredPickSide, ieither;
 	ivec4 vportleft, vportright, vport, vportscene;
 	ivec2 pt;
 	Stack *vportstack;
@@ -2306,8 +2281,8 @@ static void render()
 				if(p->touchlist[i].windex == p->windex)
 				{
 					int x,y;
-					x = p->touchlist[i].fx * screenWidth;
-					y = p->touchlist[i].fy * screenHeight;
+					x = (int)(p->touchlist[i].fx * (float)screenWidth);
+					y = (int)(p->touchlist[i].fy * (float)screenHeight);
 					//printf("i %d windex %d x %d y %d ID %d\n",i,p->windex,x,y,p->touchlist[i].ID);
 					cursorDraw(p->touchlist[i].ID,x,y,p->touchlist[i].angle);
 				}
@@ -2427,13 +2402,13 @@ static void set_viewmatrix() {
 	//if we already computed view matrix earlier in the frame via setup_viewpoint,
 	//and theoretically it hasn't changed since, 
 	//and just want to make sure its set, this is shorter than re-doing setup_viewpoint()
+	double viewmatrix[16];
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 
 	FW_GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
 
-	double viewmatrix[16];
 	matcopy(viewmatrix,p->screenorientationmatrix);
 	if(Viewer()->isStereo)
 		matmultiplyAFFINE(viewmatrix,p->stereooffsetmatrix[Viewer()->iside],viewmatrix);
@@ -3714,7 +3689,7 @@ int isSceneLoaded()
 	//		p->doEvents = (!fwl_isinputThreadParsing()) && (!fwl_isTextureParsing()) && fwl_isInputThreadInitialized();
 
 	int ret;
-	double dtime, curtime;
+	double dtime;
 	//ppProdCon p;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
@@ -4069,7 +4044,7 @@ void freewrlDie (const char *format) {
 }
 void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x, int y, int ID, int windex) {
 	int count;
-	int ydown, screenWidth, screenHeight;
+	int screenWidth, screenHeight;
 	struct Touch *touch;
 	ppMainloop p;
 	ttglobal tg = gglobal();
@@ -4133,8 +4108,8 @@ void emulate_multitouch(const int mev, const unsigned int button, int x, int y, 
 	   GRAB/MOVE a touch with LMB down and drag
 	   ID=0 reserved for 'normal' cursor
 	*/
-    int i,count,ifound,ID,screenWidth,screenHeight;
-	struct Touch *touch, *unused;
+    int i,ifound,ID,screenWidth,screenHeight;
+	struct Touch *touch;
 	float fx, fy;
 	static int buttons[4] = {0,0,0,0};
 	static int idone = 0;

@@ -978,7 +978,6 @@ void resource_unlink_cachedfiles(resource_item_t *res)
 
 void resource_close_files(resource_item_t *res)
 {
-	s_list_t *of;
 
 	if(!res) return;
 	DEBUG_RES("closing resource file: %d, %d\n", res->type, res->status);
@@ -987,11 +986,15 @@ void resource_close_files(resource_item_t *res)
 
 	/* Remove openned file ? */
 #ifdef DISABLER	
-	of = (s_list_t *) res->openned_files;
-    if (NULL != of)
-        ml_foreach(of, close_openned_file(__l->elem));
-    FREE_IF_NZ(of);
-    res->openned_files = NULL;
+	{
+		s_list_t *of;
+
+		of = (s_list_t *) res->openned_files;
+		if (NULL != of)
+			ml_foreach(of, close_openned_file(__l->elem));
+		FREE_IF_NZ(of);
+		res->openned_files = NULL;
+	}
 #endif
 }
 

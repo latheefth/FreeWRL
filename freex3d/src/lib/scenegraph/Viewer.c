@@ -1580,7 +1580,6 @@ void handle_tick_tilt(double dtime) {
 
 void handle0(const int mev, const unsigned int button, const float x, const float yup)
 {
-	float y;
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	/* printf("Viewer handle: viewer_type %s, mouse event %d, button %u, x %f, y %f\n", 
 	   lookup_navmodestring(p->Viewer.type), mev, button, x, y); */

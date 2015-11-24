@@ -1246,24 +1246,24 @@ int avatarCollisionVolumeIntersectMBBf(double *modelMatrix, float *minVals, floa
 void collide_Text (struct X3D_Text *node)
 {
 	struct sNaviInfo *naviinfo;
+	GLDOUBLE awidth,atop,abottom,astep,modelMatrix[16];
+    struct point_XYZ delta = {0,0,-1};
+    struct X3D_PolyRep pr;
+    int change = 0;
+
 	ttglobal tg = gglobal();
 	naviinfo = (struct sNaviInfo*)tg->Bindable.naviinfo;
 
-    GLDOUBLE awidth = naviinfo->width; /*avatar width*/
-    GLDOUBLE atop = naviinfo->width; /*top of avatar (relative to eyepoint)*/
-    GLDOUBLE abottom = -naviinfo->height; /*bottom of avatar (relative to eyepoint)*/
-    GLDOUBLE astep = -naviinfo->height+naviinfo->step;
-    GLDOUBLE modelMatrix[16];
-    //GLDOUBLE upvecmat[16];
+    awidth = naviinfo->width; /*avatar width*/
+    atop = naviinfo->width; /*top of avatar (relative to eyepoint)*/
+    abottom = -naviinfo->height; /*bottom of avatar (relative to eyepoint)*/
+    astep = -naviinfo->height+naviinfo->step;
 
 
     /*JAS - normals are always this way - helps because some
       normal calculations failed because of very small triangles
       which made collision calcs fail, which moved the Viewpoint...
       so, if there is no need to calculate normals..., why do it? */
-    struct point_XYZ delta = {0,0,-1};
-    struct X3D_PolyRep pr;
-    int change = 0;
 
     /* JAS - first pass, intern is probably zero */
     if (node->_intern == NULL) return;

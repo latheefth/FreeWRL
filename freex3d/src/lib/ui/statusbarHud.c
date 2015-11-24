@@ -421,7 +421,7 @@ typedef struct {
 	GLushort *ind;
 	int blankItem;
 	bool top; // true: menu appears at top of screen, else bottom
-	float yoffset; // computed position of menu y
+	int yoffset; // computed position of menu y
 	int **radiosets;
 	int *toggles;
 } pmenu_t;
@@ -890,7 +890,7 @@ void fwl_setPickraySide(int ipreferredSide, int either);
 void fwl_getPickraySide(int *ipreferredSide, int *either);
 void initOptionsVal()
 {
-	int i,j,k, iem, iside, ieither;
+	int i,j,k, iside, ieither;
 	X3D_Viewer *viewer;
 	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
 	viewer = Viewer();
@@ -1697,14 +1697,14 @@ void initButtons()
 		p->pmenu.vert= MALLOC(GLfloat*, 3*4*buttonAtlasSquared*sizeof(GLfloat));
 //		p->pmenu.tex = MALLOC(GLfloat*, 2*4*buttonAtlasSquared*sizeof(GLfloat));
 		p->pmenu.ind = MALLOC(GLushort*, 3*2*buttonAtlasSquared*sizeof(GLushort));
-		p->pmenu.yoffset = 0.0f;
-		if(p->pmenu.top) p->pmenu.yoffset = (float)(p->screenHeight - p->buttonSize); //32.0f;
+		p->pmenu.yoffset = 0;
+		if(p->pmenu.top) p->pmenu.yoffset = p->screenHeight - p->buttonSize; //32.0f;
 		for(i=0;i<p->pmenu.nitems;i++)
 		{
 			int j,k,irow,icol;
-			int mv,mt,mi,kv,kt;
-			GLfloat dx;
-			FXY xyxy[2];
+			int mt,kt;
+
+
 			p->pmenu.items[i].action = actionlist[i];
 			p->pmenu.items[i].isToggle = false;
 			p->pmenu.items[i].buttonset = NULL;
@@ -1805,7 +1805,7 @@ void initButtons()
 			kset = 0;
 			togset = togglesets[kset];
 			while(togset[0]){
-				int j,k, ipact, nact, iact;
+				int k, ipact, nact, iact;
 				ipact = togset[0];
 				nact = togset[1];
 				for(k=0;k<p->pmenu.nitems;k++){
@@ -2062,7 +2062,7 @@ void updateButtonStatus()
 	// Here we take our UI current state from the scene state. 
 	// For FRONTEND_HANDLES_DISPLAY_THREAD configurations, the frontend should do 
 	// the equivalent of the following once per frame (poll state and set UI)
-	int headlight, collision, navmode, dragchord, lookatMode, ctrl, shift;
+	int headlight, collision, navmode, dragchord, ctrl, shift;
 	//poll model state:
 	headlight = fwl_get_headlight();
 	collision = fwl_getCollision();
@@ -2299,7 +2299,7 @@ void updateButtonVertices()
 	p = (ppstatusbar)tg->statusbar.prv;
 
 	//p->pmenu.yoffset = (float) yoff_button; //0.0f;
-	if(p->pmenu.top) p->pmenu.yoffset = (float)(p->screenHeight - p->buttonSize - p->pmenu.yoffset); //32.0f;
+	if(p->pmenu.top) p->pmenu.yoffset = (p->screenHeight - p->buttonSize - p->pmenu.yoffset); //32.0f;
 
 	for(i=0;i<p->pmenu.nbitems;i++)
 	{
@@ -2334,7 +2334,7 @@ void renderButtons()
 		initButtons();
 	updateButtonVertices();
 	//updateButtonStatus();
-	glScissor(0,(int)p->pmenu.yoffset+p->side_bottom,p->screenWidth,p->buttonSize); //tg->Mainloop.clipPlane*2);
+	glScissor(0,p->pmenu.yoffset+p->side_bottom,p->screenWidth,p->buttonSize); //tg->Mainloop.clipPlane*2);
 
 	glEnable(GL_SCISSOR_TEST);
 	//glClearColor(.922f,.91f,.844f,1.0f); //windowing gray
@@ -2522,7 +2522,7 @@ int overMenubar(ppstatusbar p, int mouseY){
 	return isOver;
 }
 int overStatusbar(ppstatusbar p, int mouseY){
-	int y, isOver = 0;
+	int isOver = 0;
 	//p->screenHeight - mouseY < p->clipPlane
 	//if(p->screenHeight - mouseY < p->statusBarSize) isOver = 1;
 	if(mouseY < p->statusBarSize) isOver = 1;
@@ -2678,7 +2678,6 @@ void statusbar_set_window_size(int width, int height)
 int getCursorStyle();
 int statusbar_handle_mouse1(int mev, int butnum, int mouseX, int mouseY, int windex)
 {
-	int cursorStyle;
 	int yup;
 	ttglobal tg = gglobal();
 	ppstatusbar p = (ppstatusbar)tg->statusbar.prv;

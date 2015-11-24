@@ -167,33 +167,60 @@ int fv_display_initialize()
     
     return TRUE;
 }
+
+//void fv_swapbuffers(freewrl_params_t *d);
+
+
+
+//void fv_change_GLcontext(freewrl_params_t* d);
+// each config needs to populate:
+// ANGLEPROJECT(stub) and WIN32(wglSetContext) done in src/lib/ui/fwWindow32.c
+//void fv_change_GLcontext(freewrl_params_t* d){
+//	return; //stub for ANLGEPROJECT, EGL/GLES2, mobile which don't change context but need to link
+//}
+#ifdef _MSC_VER
+//win32 in fwWindow32.c
+#elif __linux__  //LINUX
+//void fv_change_GLcontext(freewrl_params_t* d){
+//	glXMakeCurrent(d->display,d->surface,d->context); 
+//}
+#elif AQUA
+void fv_change_GLcontext(freewrl_params_t* d){
+	aglSetCurrentContext(d->context);
+}
+#elif
+void fv_change_GLcontext(freewrl_params_t* d){
+	//stub for non-desktop configs (they can't do multiple windows anyway)
+}
+#endif
+
 #if !defined (_ANDROID)
 int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *share);
-#if defined (__linux__)
-int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *share){
- 	/* make the window, create the OpenGL context, share the context if necessary 
-		Nov 2015: linux desktop is still single windowed, with static GLXContext etc, no sharing
-		- to get sharing, you need to populate params during creation of window and gl context
-			d->display = Display *Xdpy;
-			d->surface = Drawable or ???
-			d->context = GLXContext GLcx;
-			so when the targetwindow changes, there's enough info to do glXMakeCurrent and glXSwapBuffers
-			- and when doing glCreateContext you have the previous window's GLXcontext to use as a shareList
-	*/
-
-	if (!fv_open_display()) {
-		printf("open_display failed\n");
-		return FALSE;
-	}
-
-	if (!fv_create_GLcontext()) {
-		printf("create_GLcontext failed\n");
-		return FALSE;
-	}
-	fv_bind_GLcontext();
-	return TRUE;
-}
-#endif //__linux__
+//#if defined (__linux__)
+//int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *share){
+// 	/* make the window, create the OpenGL context, share the context if necessary 
+//		Nov 2015: linux desktop is still single windowed, with static GLXContext etc, no sharing
+//		- to get sharing, you need to populate params during creation of window and gl context
+//			d->display = Display *Xdpy;
+//			d->surface = Drawable or ???
+//			d->context = GLXContext GLcx;
+//			so when the targetwindow changes, there's enough info to do glXMakeCurrent and glXSwapBuffers
+//			- and when doing glCreateContext you have the previous window's GLXcontext to use as a shareList
+//	*/
+//
+//	if (!fv_open_display()) {
+//		printf("open_display failed\n");
+//		return FALSE;
+//	}
+//
+//	if (!fv_create_GLcontext()) {
+//		printf("create_GLcontext failed\n");
+//		return FALSE;
+//	}
+//	fv_bind_GLcontext();
+//	return TRUE;
+//}
+//#endif //__linux__
 
 #ifdef _MSC_VER
 int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *share){
@@ -262,8 +289,9 @@ int fv_display_initialize_desktop(){
 	targetwindow_set_params(0,dp);
 	if(nwindows > 1){
 		//2nd fun window! to challenge us!
+		freewrl_params_t *p0;
 		dp->winToEmbedInto = -1;
-		freewrl_params_t *p0 = targetwindow_get_params(0);
+		p0 = targetwindow_get_params(0);
 		if(!fv_create_window_and_context(dp,p0)){
 			return FALSE;
 		}
@@ -271,8 +299,9 @@ int fv_display_initialize_desktop(){
 		fwl_initialize_GL(); //has context-specific initializations -like GL_BLEND- so repeat per-context
 	}
 	if(nwindows > 2){
+		freewrl_params_t *p1;
 		dp->winToEmbedInto = -1;
-		freewrl_params_t *p1 = targetwindow_get_params(1);
+		p1 = targetwindow_get_params(1);
 		if(!fv_create_window_and_context(dp, p1)){
 			return FALSE;
 		}

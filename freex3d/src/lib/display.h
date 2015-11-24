@@ -322,6 +322,9 @@ int fv_create_main_window(freewrl_params_t *d); //int argc, char *argv[]);
 int fv_create_main_window2(freewrl_params_t *d, freewrl_params_t *share); 
 bool fv_create_GLcontext();
 bool fv_bind_GLcontext();
+void fv_swapbuffers(freewrl_params_t *d);
+int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *share);
+void fv_change_GLcontext(freewrl_params_t* d);
 /* end of "virtual" functions */
 
 /* OpenGL renderer capabilities */
@@ -651,13 +654,12 @@ void resetGeometry();
 
 	#if defined(_MSC_VER) 
 		void fwMessageLoop();
-		void fwSwapBuffers(freewrl_params_t * d);
-		#define FW_GL_SWAPBUFFERS fwSwapBuffers(gglobal()->display.params); //SwapBuffers(wglGetCurrentDC());
+		#define FW_GL_SWAPBUFFERS fv_swapbuffers(gglobal()->display.params); //SwapBuffers(wglGetCurrentDC());
 	#endif
 
 #if KEEP_X11_INLIB
 	#if defined (TARGET_X11) || defined (TARGET_MOTIF)
-		#define FW_GL_SWAPBUFFERS glXSwapBuffers(Xdpy,GLwin);
+		#define FW_GL_SWAPBUFFERS fv_swapbuffers(gglobal()->display.params);
 	#endif
 #endif
 	

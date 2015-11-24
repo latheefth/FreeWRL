@@ -87,6 +87,7 @@ typedef struct freewrl_params {
 	void *display;
 	void *context;
 	void *surface;
+	void *xwin; //just linux desktop
 } freewrl_params_t;
 
 

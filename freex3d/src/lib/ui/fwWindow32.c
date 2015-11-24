@@ -25,7 +25,7 @@
 #include "common.h"
 #include <ui/statusbar.h>
 
-void fwSwapBuffers(freewrl_params_t * d);
+void fv_swapbuffers(freewrl_params_t * d);
 bool fv_create_and_bind_GLcontext(freewrl_params_t * d);
 BOOL fwDisplayChange();
 void fwCloseContext();
@@ -49,7 +49,7 @@ void fwCloseContext();
 //static EGLDisplay eglDisplay;
 //static EGLContext eglContext;
 //static EGLSurface eglSurface;
-void fwSwapBuffers(freewrl_params_t * d){
+void fv_swapbuffers(freewrl_params_t * d){
 	eglSwapBuffers((EGLDisplay)d->display,(EGLSurface)d->surface);
 }
 EGLBoolean fwCreateEGLContext ( EGLNativeWindowType hWnd, EGLDisplay* eglDisplay,
@@ -205,7 +205,7 @@ void fv_change_GLcontext(freewrl_params_t* d){
 #include "common.h"
 
 
-void fwSwapBuffers(freewrl_params_t * d)
+void fv_swapbuffers(freewrl_params_t * d)
 {
 	//HDC   ghDC; 
 	//ghDC = wglGetCurrentDC();
@@ -263,7 +263,7 @@ BOOL bSetupPixelFormat(HDC hdc)
 void fv_change_GLcontext(freewrl_params_t* d){
 	HDC hDC;
 	HGLRC hRC;
-	HWND hWnd;
+	//HWND hWnd;
 	hDC = (HDC)d->display;
 	hRC = (HGLRC)d->context;
 	wglMakeCurrent(hDC, hRC);

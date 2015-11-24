@@ -239,7 +239,7 @@ void deleteMallocedFieldValue(int type,union anyVrml *fieldPtr)
 
 void deleteProtoFieldDecl(struct ProtoFieldDecl* me)
 {
-	int isMF, type;
+	int type;
 	union anyVrml *fieldPtr;
 	FREE_IF_NZ(me->cname);
 	FREE_IF_NZ(me->fieldString);

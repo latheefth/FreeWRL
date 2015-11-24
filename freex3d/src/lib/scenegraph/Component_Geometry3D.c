@@ -1203,7 +1203,7 @@ void collide_Sphere (struct X3D_Sphere *node) {
 	struct point_XYZ p_orig= {0,0,0} ; /*projected transformed origin */
 	struct point_XYZ n_orig = {0,0,0}; /*normal(unit length) transformed origin */
 	GLDOUBLE modelMatrix[16];
-	GLDOUBLE dist2;
+	GLDOUBLE awidth,atop,abottom,dist2;
 	struct point_XYZ delta = {0,0,0};
 	GLDOUBLE radius;
 	struct sNaviInfo *naviinfo;
@@ -1212,9 +1212,9 @@ void collide_Sphere (struct X3D_Sphere *node) {
 	naviinfo = (struct sNaviInfo*)tg->Bindable.naviinfo;
 
 	/*easy access, naviinfo.step unused for sphere collisions */
-	GLDOUBLE awidth = naviinfo->width; /*avatar width*/
-	GLDOUBLE atop = naviinfo->width; /*top of avatar (relative to eyepoint)*/
-	GLDOUBLE abottom = -naviinfo->height; /*bottom of avatar (relative to eyepoint)*/
+	awidth = naviinfo->width; /*avatar width*/
+	atop = naviinfo->width; /*top of avatar (relative to eyepoint)*/
+	abottom = -naviinfo->height; /*bottom of avatar (relative to eyepoint)*/
 
 		/* this sucker initialized yet? */
 		if (node->__points.p == NULL) return;
@@ -1400,18 +1400,19 @@ void collide_Sphere (struct X3D_Sphere *node) {
 void collide_Box (struct X3D_Box *node) {
 	/*easy access, naviinfo.step unused for sphere collisions */
 	struct sNaviInfo *naviinfo;
-	ttglobal tg = gglobal();
-	naviinfo = (struct sNaviInfo*)tg->Bindable.naviinfo;
-	GLDOUBLE awidth = naviinfo->width; /*avatar width*/
-	GLDOUBLE atop = naviinfo->width; /*top of avatar (relative to eyepoint)*/
-	GLDOUBLE abottom = -naviinfo->height; /*bottom of avatar (relative to eyepoint)*/
-	GLDOUBLE astep = -naviinfo->height+naviinfo->step;
-	GLDOUBLE modelMatrix[16];
 	struct point_XYZ iv = {0,0,0};
 	struct point_XYZ jv = {0,0,0};
 	struct point_XYZ kv = {0,0,0};
 	struct point_XYZ ov = {0,0,0};
 	struct point_XYZ delta;
+	GLDOUBLE awidth, atop, abottom, astep, modelMatrix[16];
+	ttglobal tg = gglobal();
+
+	naviinfo = (struct sNaviInfo*)tg->Bindable.naviinfo;
+	awidth = naviinfo->width; /*avatar width*/
+	atop = naviinfo->width; /*top of avatar (relative to eyepoint)*/
+	abottom = -naviinfo->height; /*bottom of avatar (relative to eyepoint)*/
+	astep = -naviinfo->height+naviinfo->step;
 
 	iv.x = ((node->size).c[0]);
 	jv.y = ((node->size).c[1]);
@@ -1612,24 +1613,25 @@ int collisionCone_render(double r, double h)
 void collide_Cone (struct X3D_Cone *node) {
 	/*easy access, naviinfo.step unused for sphere collisions */
 	struct sNaviInfo *naviinfo;
+	GLDOUBLE awidth, atop, abottom, astep, scale, modelMatrix[16];
+	float h,r;
+	struct point_XYZ iv = {0,0,0};
+	struct point_XYZ jv = {0,0,0};
+	struct point_XYZ t_orig = {0,0,0};
+	struct point_XYZ delta;
 	ttglobal tg = gglobal();
 	ppComponent_Geometry3D p = (ppComponent_Geometry3D)tg->Component_Geometry3D.prv;
 	naviinfo = (struct sNaviInfo*)tg->Bindable.naviinfo;
 
-	GLDOUBLE awidth = naviinfo->width; /*avatar width*/
-	GLDOUBLE atop = naviinfo->width; /*top of avatar (relative to eyepoint)*/
-	GLDOUBLE abottom = -naviinfo->height; /*bottom of avatar (relative to eyepoint)*/
-	GLDOUBLE astep = -naviinfo->height+naviinfo->step;
+	awidth = naviinfo->width; /*avatar width*/
+	atop = naviinfo->width; /*top of avatar (relative to eyepoint)*/
+	abottom = -naviinfo->height; /*bottom of avatar (relative to eyepoint)*/
+	astep = -naviinfo->height+naviinfo->step;
 
-	float h = (node->height) /2;
-	float r = (node->bottomRadius) ;
+	h = (node->height) /2;
+	r = (node->bottomRadius) ;
 
-	GLDOUBLE modelMatrix[16];
-	struct point_XYZ iv = {0,0,0};
-	struct point_XYZ jv = {0,0,0};
-	GLDOUBLE scale = 0.0; /* FIXME: won''t work for non-uniform scales. */
-	struct point_XYZ t_orig = {0,0,0};
-	struct point_XYZ delta;
+	scale = 0.0; /* FIXME: won''t work for non-uniform scales. */
 
 	/* is this node initialized? if not, get outta here and do this later */
 	if (node->__coneVBO == 0) return;
@@ -1882,26 +1884,26 @@ DEBUGGING_CODE}
 void collide_Cylinder (struct X3D_Cylinder *node) {
 	/*easy access, naviinfo.step unused for sphere collisions */
 	struct sNaviInfo *naviinfo;
+	GLDOUBLE awidth,atop,abottom,astep,scale,modelMatrix[16];
+	float h,r;
+	struct point_XYZ iv = {0,0,0};
+	struct point_XYZ jv = {0,0,0};
+	struct point_XYZ t_orig = {0,0,0};
+	struct point_XYZ delta;
 	ttglobal tg = gglobal();
 	ppComponent_Geometry3D p = (ppComponent_Geometry3D)tg->Component_Geometry3D.prv;
 	naviinfo = (struct sNaviInfo*)tg->Bindable.naviinfo;
 
-	GLDOUBLE awidth = naviinfo->width; /*avatar width*/
-	GLDOUBLE atop = naviinfo->width; /*top of avatar (relative to eyepoint)*/
-	GLDOUBLE abottom = -naviinfo->height; /*bottom of avatar (relative to eyepoint)*/
-	GLDOUBLE astep = -naviinfo->height+naviinfo->step;
+	awidth = naviinfo->width; /*avatar width*/
+	atop = naviinfo->width; /*top of avatar (relative to eyepoint)*/
+	abottom = -naviinfo->height; /*bottom of avatar (relative to eyepoint)*/
+	astep = -naviinfo->height+naviinfo->step;
 
-	float h = (node->height)/2;
-	float r = (node->radius);
+	h = (node->height)/2;
+	r = (node->radius);
 
 
-	GLDOUBLE modelMatrix[16];
-	struct point_XYZ iv = {0,0,0};
-	struct point_XYZ jv = {0,0,0};
-	GLDOUBLE scale=0.0; /* FIXME: won''t work for non-uniform scales. */
-	struct point_XYZ t_orig = {0,0,0};
-
-	struct point_XYZ delta;
+	scale=0.0; /* FIXME: won''t work for non-uniform scales. */
 
 	iv.y = h;
 	jv.y = -h;

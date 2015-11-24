@@ -453,6 +453,8 @@ int fv_parseCommandLine (int argc, char **argv, freewrl_params_t *fv_params)
 	    }
 	    break;
 
+#ifdef USE_SNAPSHOT_TESTING  
+	// link to lib/main/SnapshotTesting.c
 	case 'R': /* --record, no arg */
 		fwl_set_modeRecord();
 		break;
@@ -465,7 +467,7 @@ int fv_parseCommandLine (int argc, char **argv, freewrl_params_t *fv_params)
 	case 'N': /* --nametest, required arguement: "name_of_fwplay"*/
 		fwl_set_nameTest(optarg);
 		break;
-
+#endif
 
 #ifdef HAVE_LIBCURL
 	case 'C': /* --curl, no argument */
