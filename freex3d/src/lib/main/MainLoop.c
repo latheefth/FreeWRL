@@ -1624,11 +1624,11 @@ void handle_Xevents(XEvent event) {
 		/* Motif, etc, usually handles this. */
 		case ConfigureNotify:
 			/*  printf("%s,%d ConfigureNotify  %d %d\n",__FILE__,__LINE__,event.xconfigure.width,event.xconfigure.height); */
-#ifdef STATUSBAR_HUD
-			statusbar_set_window_size(event.xconfigure.width,event.xconfigure.height);
-#else
+//#ifdef STATUSBAR_HUD
+//			statusbar_set_window_size(event.xconfigure.width,event.xconfigure.height);
+//#else
 			fwl_setScreenDim (event.xconfigure.width,event.xconfigure.height);
-#endif
+//#endif
 			break;
 //#endif
 		case ClientMessage:

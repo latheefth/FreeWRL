@@ -2668,6 +2668,9 @@ int handleStatusbarHud1(int mev, int butnum, int mouseX, int mouseY, int windex)
 // call a few functions from the display event handlers, such as resize
 void statusbar_set_window_size(int width, int height)
 {
+	//Nov 2015: this function is obsolete: frontend event handler just calls fwl_setScreenDim(wi,hi)
+	// and statusbarHud polls the model on mouse and render for the current wi,hi
+	// ie updateWindowSize() updateWindowSize1(windex)
 	ttglobal tg = gglobal();
 	ppstatusbar p = (ppstatusbar)tg->statusbar.prv;
 	p->screenHeight = height;
