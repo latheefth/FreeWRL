@@ -195,7 +195,7 @@ void fv_change_GLcontext(freewrl_params_t* d){
 void fv_change_GLcontext(freewrl_params_t* d){
 	aglSetCurrentContext(d->context);
 }
-#elif
+#else
 void fv_change_GLcontext(freewrl_params_t* d){
 	//stub for non-desktop configs (they can't do multiple windows anyway)
 }
