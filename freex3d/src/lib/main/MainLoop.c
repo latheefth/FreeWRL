@@ -1600,7 +1600,7 @@ void handle_Xevents(XEvent event) {
 	int keysyms_per_keycode_return;
 
 	//int count;
-	int actionKey;
+	int actionKey, windex;
 	int cursorStyle;
 	ppMainloop p;
 	ttglobal tg = gglobal();
@@ -1621,7 +1621,7 @@ void handle_Xevents(XEvent event) {
 		default: printf ("event, unknown %d\n", event.type);
 	}
 #endif
-
+	windex = hwnd_to_windex(event.xany.window); //sets it if doesn't exist	
 	switch(event.type) {
 //#ifdef HAVE_NOTOOLKIT
 		/* Motif, etc, usually handles this. */
@@ -1630,7 +1630,7 @@ void handle_Xevents(XEvent event) {
 //#ifdef STATUSBAR_HUD
 //			statusbar_set_window_size(event.xconfigure.width,event.xconfigure.height);
 //#else
-			fwl_setScreenDim (event.xconfigure.width,event.xconfigure.height);
+			fwl_setScreenDim1 (event.xconfigure.width,event.xconfigure.height,windex);
 //#endif
 			break;
 //#endif
@@ -1714,9 +1714,9 @@ void handle_Xevents(XEvent event) {
 		case ButtonPress:
 		case ButtonRelease:
 #ifdef STATUSBAR_HUD
-			cursorStyle = statusbar_handle_mouse(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y);
+			cursorStyle = statusbar_handle_mouse1(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y,windex);
 #else
-			cursorStyle = fwl_handle_aqua(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y);
+			cursorStyle = fwl_handle_aqua1(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y,windex);
 #endif
 			setCursor(cursorStyle);
 			//if(0){
@@ -1750,9 +1750,9 @@ void handle_Xevents(XEvent event) {
 			}
 #endif /* KEEP_X11_INLIB */
 #ifdef STATUSBAR_HUD
-			cursorStyle = statusbar_handle_mouse(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y);
+			cursorStyle = statusbar_handle_mouse1(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y,windex);
 #else
-			cursorStyle = fwl_handle_aqua(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y);
+			cursorStyle = fwl_handle_aqua1(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y,windex);
 #endif
 			setCursor(cursorStyle);
 			//if(0){
