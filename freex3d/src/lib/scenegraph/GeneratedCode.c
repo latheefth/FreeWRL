@@ -54,7 +54,7 @@
 #include "../input/EAIHeaders.h" 
 #include "../input/EAIHelpers.h" 
 #include "../x3d_parser/Bindable.h" 
- 
+ #include "../opengl/OpenGL_Utils.h"
 #include "../opengl/Textures.h" 
 #include "Component_CubeMapTexturing.h" 
 #include "Polyrep.h" 

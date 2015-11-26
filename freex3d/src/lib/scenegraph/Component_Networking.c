@@ -39,6 +39,7 @@ X3D Networking Component
 #include "../input/EAIHeaders.h"
 #include "../input/EAIHelpers.h"
 #include "../opengl/Frustum.h"
+#include "../opengl/OpenGL_Utils.h"
 #include "../opengl/Textures.h"
 
 #include "Component_Networking.h"

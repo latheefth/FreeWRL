@@ -35,6 +35,7 @@
 
 #include "vrml_parser/Structs.h"
 #include "input/InputFunctions.h"
+#include "opengl/OpenGL_Utils.h"
 #include "opengl/Textures.h"		/* for finding a texture url in a multi url */
 #include "opengl/LoadTextures.h"	/* for finding a texture url in a multi url */
 

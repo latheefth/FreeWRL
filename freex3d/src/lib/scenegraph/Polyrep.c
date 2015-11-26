@@ -37,8 +37,8 @@
 #include "../main/headers.h"
 #include "../opengl/Frustum.h"
 #include "../opengl/Material.h"
-#include "../opengl/Textures.h"
 #include "../opengl/OpenGL_Utils.h"
+#include "../opengl/Textures.h"
 #include "../scenegraph/Component_Shape.h"
 #include "../scenegraph/RenderFuncs.h"
 

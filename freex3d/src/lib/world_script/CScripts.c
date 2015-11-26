@@ -48,6 +48,7 @@
 #include "../input/SensInterps.h"
 #include "../input/InputFunctions.h"
 #include "../x3d_parser/Bindable.h"
+#include "../opengl/OpenGL_Utils.h"
 #include "../opengl/Textures.h"
 
 #include "JScript.h"

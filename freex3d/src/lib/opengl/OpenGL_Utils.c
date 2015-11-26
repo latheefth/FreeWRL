@@ -58,9 +58,9 @@
 #include "../opengl/Material.h"
 #include "../scenegraph/Component_Core.h"
 #include "../scenegraph/Component_Networking.h"
-#include "Textures.h"
 #include "LoadTextures.h"
 #include "OpenGL_Utils.h"
+#include "Textures.h"
 #include "../scenegraph/RenderFuncs.h"
 #include "../scenegraph/Component_Shape.h"
 #include <float.h>

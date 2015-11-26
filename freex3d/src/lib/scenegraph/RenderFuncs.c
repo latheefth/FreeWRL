@@ -35,7 +35,6 @@
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
-#include "../opengl/Textures.h"
 #include "../scenegraph/Component_ProgrammableShaders.h"
 
 #include "Polyrep.h"
@@ -48,6 +47,7 @@
 #include "threads.h"
 
 #include "../opengl/OpenGL_Utils.h"
+#include "../opengl/Textures.h"
 #include "../scenegraph/Component_Shape.h"
 #include "RenderFuncs.h"
 

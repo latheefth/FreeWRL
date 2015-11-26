@@ -31,6 +31,7 @@
 #include "vrml_parser/Structs.h"
 #include "scenegraph/Viewer.h"
 #include "scenegraph/Component_Shape.h"
+#include "opengl/OpenGL_Utils.h"
 #include "opengl/Textures.h"
 #include "opengl/LoadTextures.h"
 #include "main/MainLoop.h"

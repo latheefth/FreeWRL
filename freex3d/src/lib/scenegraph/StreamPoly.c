@@ -35,8 +35,8 @@
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
-#include "../opengl/Textures.h"
 #include "../opengl/OpenGL_Utils.h"
+#include "../opengl/Textures.h"
 #include "../scenegraph/RenderFuncs.h"
 
 #include "Polyrep.h"

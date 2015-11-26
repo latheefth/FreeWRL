@@ -83,8 +83,8 @@ Handle incoming EAI (and java class) events with panache.
 #include "../scenegraph/Viewer.h"
 #include "../opengl/OpenGL_Utils.h"
 #include "../scenegraph/RenderFuncs.h"
-#include "../opengl/Textures.h"
 #include "../opengl/OpenGL_Utils.h"
+#include "../opengl/Textures.h"
 #include "../x3d_parser/X3DParser.h"
 #include "../vrml_parser/CRoutes.h"
 

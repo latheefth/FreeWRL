@@ -37,8 +37,8 @@ X3D Geometry 3D Component
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../opengl/Frustum.h"
-#include "../opengl/Textures.h"
 #include "../opengl/OpenGL_Utils.h"
+#include "../opengl/Textures.h"
 #include "../scenegraph/Component_Shape.h"
 #include "../scenegraph/RenderFuncs.h"
 

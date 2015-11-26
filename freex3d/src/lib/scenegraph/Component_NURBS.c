@@ -39,9 +39,9 @@
 #include "LinearAlgebra.h"
 #include "../opengl/Frustum.h"
 #include "../opengl/Material.h"
-#include "../opengl/Textures.h"
 #include "Component_Geometry3D.h"
 #include "../opengl/OpenGL_Utils.h"
+#include "../opengl/Textures.h"
 
 #include "Component_Shape.h"
 #include "../scenegraph/RenderFuncs.h"

@@ -42,9 +42,9 @@
 
 #include "../scenegraph/readpng.h"
 #include "../input/InputFunctions.h"
-#include "Textures.h"
 #include "../opengl/Material.h"
 #include "../opengl/OpenGL_Utils.h"
+#include "Textures.h"
 #include "../world_script/fieldSet.h"
 #include "../scenegraph/Component_Shape.h"
 #include "../scenegraph/Component_CubeMapTexturing.h"

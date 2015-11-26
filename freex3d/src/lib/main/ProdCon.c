@@ -73,7 +73,7 @@
 #include "../plugin/PluginSocket.h"
 #endif
 #include "../ui/common.h"
-
+#include "../opengl/OpenGL_Utils.h"
 #include "../opengl/Textures.h"
 #include "../opengl/LoadTextures.h"
 

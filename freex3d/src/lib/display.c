@@ -33,9 +33,9 @@
 #include <libFreeWRL.h>
 
 #include "vrml_parser/Structs.h"
-#include "opengl/Textures.h"
 #include "opengl/RasterFont.h"
 #include "opengl/OpenGL_Utils.h"
+#include "opengl/Textures.h"
 //JAS #include "scenegraph/Collision.h"
 
 #include "ui/common.h"

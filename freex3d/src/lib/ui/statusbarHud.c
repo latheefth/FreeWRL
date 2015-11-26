@@ -28,6 +28,7 @@
 
 #include <libFreeWRL.h>
 #include <scenegraph/Viewer.h>
+#include <opengl/OpenGL_Utils.h>
 #include <opengl/Textures.h>
 #include <opengl/LoadTextures.h>
 #include "scenegraph/RenderFuncs.h"
