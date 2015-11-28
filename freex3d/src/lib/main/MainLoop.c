@@ -186,8 +186,8 @@ ivec4 viewportFraction(ivec4 vp, float *fraction){
 	/*
 	x3d specs > Layering > viewport 
 	MFFloat [in,out] clipBoundary   0 1 0 1  [0,1]
-	The clipBoundary field is specified in fractions of the normal render surface in the sequence left/right/bottom/top. 
-	so my fraction calculation should be something like
+	"The clipBoundary field is specified in fractions of the normal render surface in the sequence left/right/bottom/top. "
+	so my fraction calculation should be something like:
 	X = X + W*f0
 	Y = Y + H*F2
 	W = W*F1 - X
@@ -248,7 +248,23 @@ eye *new_eye(){
 //	void *next; //helps parent iterate over its children
 //}
 
-
+void pushnset_viewport(float *vpFraction){
+	//call this from render() function (not from pick function)
+	ivec4 ivport;
+	Stack *vportstack;
+	vportstack = (Stack *)gglobal()->Mainloop._vportstack;
+	ivport = currentViewport(vportstack);
+	ivport = viewportFraction(ivport, vpFraction);
+	pushviewport(vportstack,ivport);
+	setcurrentviewport(vportstack); //does opengl call
+}
+void popnset_viewport(){
+	//call this from render() function (not from pick function)
+	Stack *vportstack;
+	vportstack = (Stack *)gglobal()->Mainloop._vportstack;
+	popviewport(vportstack);
+	setcurrentviewport(vportstack); //does opengl call
+}
 
 //abstract contenttype
 typedef struct contenttype contenttype;
@@ -269,49 +285,50 @@ typedef struct contenttype {
 void content_render(void *_self){
 	//generic render for intermediate level content types (leaf/terminal content types will have their own render())
 	contenttype *c, *self;
-	Stack *vportstack;
-	ivec4 ivport;
 
-	vportstack = (Stack *)gglobal()->Mainloop._vportstack;
-	ivport = currentViewport(vportstack);
 	self = (contenttype *)_self;
-	ivport = viewportFraction(ivport, self->t1.viewport);
-	pushviewport(vportstack,ivport);
-	setcurrentviewport(vportstack);
+	pushnset_viewport(self->t1.viewport);
 	c = self->t1.contents;
 	//FW_GL_CLEAR_COLOR(self->t1.cc.r,self->t1.cc.g,self->t1.cc.b,self->t1.cc.a);
 	while(c){
 		c->t1.render(c);
 		c = c->t1.next;
 	}
-	popviewport(vportstack);
-	setcurrentviewport(vportstack);
+	popnset_viewport();
 }
+int checknpush_viewport(float *vpfraction, int mouseX, int mouseY){
+	Stack *vportstack;
+	ivec4 ivport;
+	ivec2 pt;
+	int iret;
 
+	vportstack = (Stack *)gglobal()->Mainloop._vportstack;
+	ivport = currentViewport(vportstack);
+	ivport = viewportFraction(ivport, vpfraction);
+	pt.X = mouseX;
+	pt.Y = mouseY;
+	iret = pointinsideviewport(ivport,pt);
+	if(iret) pushviewport(vportstack,ivport);
+	return iret;
+		
+}
+void pop_viewport(){
+}
 int content_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int windex){
 	//generic render for intermediate level content types (leaf/terminal content types will have their own render())
 	int iret;
 	contenttype *c, *self;
-	Stack *vportstack;
-	ivec4 ivport;
-	ivec2 pt;
 
-	vportstack = (Stack *)gglobal()->Mainloop._vportstack;
-	ivport = currentViewport(vportstack);
 	self = (contenttype *)_self;
-	ivport = viewportFraction(ivport, self->t1.viewport);
-	pt.X = mouseX;
-	pt.Y = mouseY;
 	iret = 0;
-	if(pointinsideviewport(ivport,pt)){
-		pushviewport(vportstack,ivport);
+	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
 		c = self->t1.contents;
 		while(c){
 			iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,windex);
 			if(iret) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
 			c = c->t1.next;
 		}
-		popviewport(vportstack);
+		pop_viewport();
 	}
 	return iret;
 }
@@ -377,13 +394,13 @@ void layer_render(void *_self){
 	//just the z-buffer cleared between content
 	contenttype *c, *self;
 	self = (contenttype *)_self;
+	pushnset_viewport(self->t1.viewport);
 	c = self->t1.contents;
 	while(c){
-		//push viewport
 		c->t1.render(c);			// Q. HOW/WHERE TO SIGNAL TO CLEAR JUST Z BUFFER BETWEEN LAYERS
-		//pop viewport
 		c = c->t1.next;
 	}
+	popnset_viewport();
 }
 int layer_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int windex){
 	//layer pick works backward through layers
