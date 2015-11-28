@@ -332,7 +332,7 @@ int frame_increment_even_odd_frame_count(int ieo){
 	return ieo;
 }
 
-typedef struct ttargetwindow {
+typedef struct targetwindow {
 	contenttype stage;
 	//a target is a window. For example you could have an HMD as one target, 
 	//and desktop screen window as another target, both rendered to on the same frame
@@ -340,10 +340,15 @@ typedef struct ttargetwindow {
 	BOOL swapbuf; //true if we should swapbuffer on the target 
 	ivec4 ivport; //sub-area of window we are targeting left, width, bottom, height
 	freewrl_params_t params; //will have gl context switching parameters
-	struct ttargetwindow *next;
-} ttargetwindow;
+	struct targetwindow *next;
+	int stages_initialized;
+} targetwindow;
 void init_targetwindow(void *_self){
-	ttargetwindow *self = (ttargetwindow *)_self;
+	targetwindow *self = (targetwindow *)_self;
+	self->stages_initialized = 0;
+	self->next = NULL;
+	self->swapbuf = TRUE;
+	self->hwnd = NULL;
 }
 
 //int syntax_test_function(){
@@ -478,8 +483,9 @@ typedef struct pMainloop{
 	double viewtransformmatrix[16];
 	double posorimatrix[16];
 	double stereooffsetmatrix[2][16];
+	int targets_initialized;
 	_targetwindow twindows[4];
-	ttargetwindow cwindows[4];
+	targetwindow cwindows[4];
 	int windex; //current window index into twoindows array, valid during render()
 	Stack *_vportstack;
 }* ppMainloop;
@@ -584,7 +590,8 @@ void Mainloop_init(struct tMainloop *t){
 		p->keywaitstring[0] = (char)0;
 		p->fps_sleep_remainder = 0;
 		p->windex = 0;
-		t->twindows = p->twindows;
+		p->targets_initialized = 0;
+		//t->twindows = p->twindows;
 		p->_vportstack = newStack(ivec4);
 		t->_vportstack = (void *)p->_vportstack; //represents screen pixel area being drawn to
 	}
@@ -605,9 +612,11 @@ void Mainloop_clear(struct tMainloop *t){
 int hwnd_to_windex(void *hWnd){
 	int i;
 	_targetwindow *targets;
+	ppMainloop p;
 	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
 
-	targets = (_targetwindow*)tg->Mainloop.twindows;
+	targets = (_targetwindow*)p->twindows;
 	for(i=0;i<4;i++){
 		//the following line assume hwnd is never natively null or 0
 		if(!targets[i].hwnd){
@@ -1030,7 +1039,6 @@ void fwl_setScreenDim1(int wi, int he, int itargetwindow){
 	//the rest is initialized in the target rendering loop, via fwl_setScreenDim(w,h)
 }
 
-static int targets_initialized = 0;
 float defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; 
 void initialize_targets_simple(){
 	_stage *stagei;
@@ -1059,7 +1067,7 @@ void initialize_targets_simple(){
 		t->swapbuf = TRUE;
 		t=t->next;
 	}
-	tg->Mainloop.targets_initialized = 1;
+	p->targets_initialized = 1;
 }
 void fwl_setScreenDim0(int wi, int he);
 void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
@@ -1068,7 +1076,7 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
-	if(!tg->Mainloop.targets_initialized)
+	if(!p->targets_initialized)
 		initialize_targets_simple();
 
 	dtime = Time1970sec();
@@ -1139,17 +1147,45 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 }
 
 //=====NEW====>>>
+void initialize_targets_simple_NEW(){
+/*
+	stage *stagei;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+
+	targetwindow *t = p->cwindows;
+
+	if(!t->stages_initialized){
+		setup_stagesNORMAL_NEW();
+		t->stages_initialized = 1;
+	}
+
+
+	//t->next = NULL;
+	while(t){
+		stagei = t->stage;
+		stagei->content->render = render;
+		memcpy(stagei->viewport,defaultClipBoundary,4*sizeof(float));
+		stagei->sub_stages = NULL;
+		t->swapbuf = TRUE;
+		t=t->next;
+	}
+	p->targets_initialized = 1;
+*/
+}
+
+
 void render_stage_NEW(s,dtime){
 }
 
 void fwl_RenderSceneUpdateSceneTARGETWINDOWS_NEW() {
 	double dtime;
-	ttargetwindow *t, *twindows;
+	targetwindow *t, *twindows;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
-	if(!tg->Mainloop.targets_initialized)
-		initialize_targets_simple();
+	if(!p->targets_initialized)
+		initialize_targets_simple_NEW();
 
 	dtime = Time1970sec();
 	fwl_RenderSceneUpdateScene0(dtime);
@@ -1180,7 +1216,7 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS_NEW() {
 		popviewport(vportstack);
 		//setcurrentviewport(vportstack);
 		if(t->swapbuf) { FW_GL_SWAPBUFFERS }
-		t = (ttargetwindow*) t->next;
+		t = (targetwindow*) t->next;
 	}
 	p->windex = 0;
 }
