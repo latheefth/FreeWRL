@@ -199,6 +199,7 @@ void setcurrentviewport(Stack *_vpstack){
 */
 //===========NEW=====Nov27,2015================>>>>>
 enum {
+	CONTENT_GENERIC,
 	CONTENT_SCENE,
 	CONTENT_STATUSBAR,
 	CONTENT_TEXTUREGRID,
@@ -234,17 +235,54 @@ typedef struct tcontenttype {
 				// 3 layer 4 splitter 5 quadrant 6 fbo 10 stage 11 targetwindow
 	contenttype *contents; //iterate over concrete-type children using children->next, NULL at end of children list
 	contenttype *next; //helps parent iterate over its children including this
+	contenttype *pnext; //reverse list of next 
 	float viewport[4]; //fraction relative to parent
 	ivec4 ipixels; //offset pixels left, right, bottom, top relative to parent, +right and +up
 	void (*render)(void *self); 
-	int (*pick)(void *self);  //a generalization of mouse. HMD IMU vs mouse?
+	int (*pick)(void *self, int mev, int butnum, int mouseX, int mouseY,int windex);  // a generalization of mouse. HMD IMU vs mouse?
 } tcontenttype;
 typedef struct contenttype {
 	tcontenttype t1; //superclass in abstract derived class
 }contenttype;
-void init_tcontenttype(void* _self){
-	tcontenttype *self = (tcontenttype*)_self;
-	//self->contents = ...
+void content_render(void *_self){
+	//generic render for intermediate level content types (leaf/terminal content types will have their own render())
+	contenttype *c, *self;
+	self = (contenttype *)_self;
+	c = self->t1.contents;
+	while(c){
+		//push viewport
+		c->t1.render(c);
+		//pop viewport
+		c = c->t1.next;
+	}
+}
+int content_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int windex){
+	//generic render for intermediate level content types (leaf/terminal content types will have their own render())
+	int iret;
+	contenttype *c, *self;
+	self = (contenttype *)_self;
+	c = self->t1.contents;
+	iret = 0;
+	while(c){
+		//push viewport
+		iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,windex);
+		//pop viewport
+		if(iret) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
+		c = c->t1.next;
+	}
+	return iret;
+}
+static ivec4 ivec4_init = {0,0,0,0};
+float defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; 
+
+void init_tcontenttype(tcontenttype *self){
+	self->itype = CONTENT_GENERIC;
+	self->render = content_render;
+	self->pick = content_pick;
+	memcpy(self->viewport,defaultClipBoundary,4*sizeof(float));
+	self->ipixels = ivec4_init;
+	self->next = NULL;
+	self->pnext = NULL;
 }
 
 typedef struct contenttype_scene {
@@ -252,25 +290,87 @@ typedef struct contenttype_scene {
 	//int stereotype; // none, sxs, ud, an, quadbuf
 	//color anacolors[2];
 	eye eyes[6]; //doesn't make sense yet to have eyes for general content type, does it?
-	void (*navigate)(void *self); // like handle0, except per-eye
-	int (*touch)(void *self); //
-	int (*pick)(void *self); //delegates to navigate or touch
 } contenttype_scene;
+void render();
+void scene_render(void *self){
+	render();
+}
+int scene_pick(void *self, int mev, int butnum, int mouseX, int mouseY, int windex){
+	return fwl_handle_aqua1(mev,butnum,mouseX,mouseY,windex);
+}
 contenttype *new_contenttype_scene(){
 	contenttype_scene *self = malloc(sizeof(contenttype_scene));
+	init_tcontenttype(&self->t1);
+	self->t1.itype = CONTENT_SCENE;
+	self->t1.render = scene_render;
+	self->t1.pick = scene_pick;
 	return (contenttype*)self;
 }
-
+typedef struct contenttype_statusbar {
+	tcontenttype t1;
+} contenttype_statusbar;
+void view_update0();
+void statusbar_render(void *self){
+	view_update0();
+}
+int statusbar_pick(void *self, int mev, int butnum, int mouseX, int mouseY, int windex){
+	return statusbar_handle_mouse1(mev,butnum,mouseX,mouseY,windex);
+}
+contenttype *new_contenttype_statusbar(){
+	contenttype_scene *self = malloc(sizeof(contenttype_statusbar));
+	init_tcontenttype(&self->t1);
+	self->t1.itype = CONTENT_STATUSBAR;
+	self->t1.render = statusbar_render;
+	self->t1.pick = statusbar_pick;
+	return (contenttype*)self;
+}
 typedef struct contenttype_layer {
 	tcontenttype t1;
 	//clears zbuffer between contents, but not clearcolor
 	//example statusbarHud (SBH) over scene: 
 	//	scene rendered first, then SBH; mouse caught first by SBH, if not handled then scene
-	void (*render)(void *self); //over-rides basic render
-	int (*pick)(void *self); //over-rides basic pick
 } contenttype_layer;
+void layer_render(void *_self){
+	//just the z-buffer cleared between content
+	contenttype *c, *self;
+	self = (contenttype *)_self;
+	c = self->t1.contents;
+	while(c){
+		//push viewport
+		c->t1.render(c);			// Q. HOW/WHERE TO SIGNAL TO CLEAR JUST Z BUFFER BETWEEN LAYERS
+		//pop viewport
+		c = c->t1.next;
+	}
+}
+int layer_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int windex){
+	//layer pick works backward through layers
+	int iret, n,i;
+	contenttype *c, *self, *reverse[10];
+	self = (contenttype *)_self;
+	c = self->t1.contents;
+	n=0;
+	while(c){
+		reverse[n] = c;
+		n++;
+		c = c->t1.next;
+		if(n > 9) break; //ouch a problem with my fixed-length array technique
+	}
+	iret = 0;
+	for(i=0;i<n;i++){
+		//push viewport
+		c = reverse[i];
+		iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,windex);
+		//pop viewport
+		if(iret) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
+	}
+	return iret;
+}
 contenttype *new_contenttype_layer(){
 	contenttype_layer *self = malloc(sizeof(contenttype_layer));
+	init_tcontenttype(&self->t1);
+	self->t1.itype = CONTENT_LAYER;
+	self->t1.render = layer_render;
+	self->t1.pick = layer_pick;
 	return (contenttype*)self;
 }
 
@@ -283,6 +383,8 @@ typedef struct contenttype_quadrant {
 } contenttype_quadrant;
 contenttype *new_contenttype_quadrant(){
 	contenttype_quadrant *self = malloc(sizeof(contenttype_quadrant));
+	init_tcontenttype(&self->t1);
+	self->t1.itype = CONTENT_QUADRANT;
 	return (contenttype*)self;
 }
 
@@ -294,17 +396,21 @@ typedef struct contenttype_splitter {
 } contenttype_splitter;
 contenttype *new_contenttype_splitter(){
 	contenttype_splitter *self = malloc(sizeof(contenttype_splitter));
+	init_tcontenttype(&self->t1);
+	self->t1.itype = CONTENT_SPLITTER;
 	return (contenttype*)self;
 }
 
-typedef struct contenttype_distortion_grid {
+typedef struct contenttype_texturegrid {
 	tcontenttype t1;
 	//void (*render)(); // override
 	//int (*pick)(); //override
 	void *data;
-} contenttype_distortion_grid;
-contenttype *new_contenttype_distortion_grid(){
-	contenttype_distortion_grid *self = malloc(sizeof(contenttype_distortion_grid));
+} contenttype_texturegrid;
+contenttype *new_contenttype_texturegrid(){
+	contenttype_texturegrid *self = malloc(sizeof(contenttype_texturegrid));
+	init_tcontenttype(&self->t1);
+	self->t1.itype = CONTENT_TEXTUREGRID;
 	return (contenttype*)self;
 }
 enum {
@@ -320,10 +426,16 @@ typedef struct stage {
 	//float[4] clearcolor; 	FW_GL_CLEAR_COLOR(clearcolor[0],clearcolor[1],clearcolor[2],clearcolor[3]);
 	BOOL clear_zbuffer;
 	int even_odd_frame; //just even/odd so we can tell if its already been rendered on this frame
-	int initialized;
+	//int initialized;
 } stage;
+
 contenttype *new_contenttype_stage(){
 	stage *self = malloc(sizeof(stage));
+	init_tcontenttype(&self->t1);
+	self->t1.itype = CONTENT_STAGE;
+	self->type = STAGETYPE_BACKBUF;
+	self->ibuffer = GL_BACK;
+	self->clear_zbuffer = TRUE;
 	return (contenttype*)self;
 }
 int frame_increment_even_odd_frame_count(int ieo){
@@ -333,7 +445,7 @@ int frame_increment_even_odd_frame_count(int ieo){
 }
 
 typedef struct targetwindow {
-	contenttype stage;
+	contenttype *stage;
 	//a target is a window. For example you could have an HMD as one target, 
 	//and desktop screen window as another target, both rendered to on the same frame
 	void *hwnd; //window handle
@@ -341,11 +453,10 @@ typedef struct targetwindow {
 	ivec4 ivport; //sub-area of window we are targeting left, width, bottom, height
 	freewrl_params_t params; //will have gl context switching parameters
 	struct targetwindow *next;
-	int stages_initialized;
 } targetwindow;
 void init_targetwindow(void *_self){
 	targetwindow *self = (targetwindow *)_self;
-	self->stages_initialized = 0;
+	self->stage = NULL;
 	self->next = NULL;
 	self->swapbuf = TRUE;
 	self->hwnd = NULL;
@@ -1039,7 +1150,6 @@ void fwl_setScreenDim1(int wi, int he, int itargetwindow){
 	//the rest is initialized in the target rendering loop, via fwl_setScreenDim(w,h)
 }
 
-float defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; 
 void initialize_targets_simple(){
 	_stage *stagei;
 	ttglobal tg = gglobal();
@@ -1147,31 +1257,42 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 }
 
 //=====NEW====>>>
+void setup_stagesNORMAL_NEW(){
+	targetwindow *twindows, *t;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+
+	twindows = p->cwindows;
+	t = twindows;
+	while(t){
+		contenttype *cstage, *clayer, *cscene, *csbh;
+		cstage = new_contenttype_stage();
+		clayer = new_contenttype_layer();
+		cscene = new_contenttype_scene();
+		csbh = new_contenttype_statusbar();
+		cscene->t1.next = csbh;
+		csbh->t1.next = NULL;
+		clayer->t1.contents = cscene;
+		t->stage = (contenttype*)cstage;
+		t = t->next;
+	}
+}
+
+
 void initialize_targets_simple_NEW(){
-/*
-	stage *stagei;
+
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
 	targetwindow *t = p->cwindows;
 
-	if(!t->stages_initialized){
+	if(!t->stage){
 		setup_stagesNORMAL_NEW();
-		t->stages_initialized = 1;
 	}
 
 
-	//t->next = NULL;
-	while(t){
-		stagei = t->stage;
-		stagei->content->render = render;
-		memcpy(stagei->viewport,defaultClipBoundary,4*sizeof(float));
-		stagei->sub_stages = NULL;
-		t->swapbuf = TRUE;
-		t=t->next;
-	}
 	p->targets_initialized = 1;
-*/
+
 }
 
 
