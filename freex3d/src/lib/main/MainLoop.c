@@ -197,21 +197,179 @@ void setcurrentviewport(Stack *_vpstack){
 /* contenttype abstracts scene, statusbarhud, and HMD (head-mounted display) textured-distortion-grid
 	- each type has a prep and a render and some data, and a way to handle a pickray
 */
-typedef struct contenttype {
-	int itype; //0 scene, 1 statusbarHud, 2 texture grid
-	void (*render)(); //struct stage *s);
-	void (*cursor)(int *x, int *y); //return transformed cursor coords, in pixels
-	float viewport[4]; //fraction of parent viewport left, width, bottom, height
-	struct contenttype *next;
-	void *data;
-} contenttype;
+//===========NEW=====Nov27,2015================>>>>>
+enum {
+	CONTENT_SCENE,
+	CONTENT_STATUSBAR,
+	CONTENT_TEXTUREGRID,
+	CONTENT_LAYER,
+	CONTENT_SPLITTER,
+	CONTENT_QUADRANT,
+	CONTENT_FBO,
+	CONTENT_STAGE,
+	CONTENT_TARGETWINDOW,
+} content_types;
 
+typedef struct eye {
+	//int iyetype;
+	void (*render)(void *self);
+	void (*computeVP)(void *self, void *vp); //side, top, front, vp for quadrant or splitter
+	void (*navigate)(void *self); //like handle0 except per-eye
+	int (*pick)(void *self); //per-eye
+} eye;
+eye *new_eye(){
+	return malloc(sizeof(eye));
+}
+//typedef struct tlinktype {
+//	void *contents; //iterate over children using children->next
+//	void *next; //helps parent iterate over its children
+//}
+
+
+
+//abstract contenttype
+typedef struct contenttype contenttype;
+typedef struct tcontenttype {
+	int itype; //enum content_types: 0 scene, 1 statusbarHud, 2 texture grid
+				// 3 layer 4 splitter 5 quadrant 6 fbo 10 stage 11 targetwindow
+	contenttype *contents; //iterate over concrete-type children using children->next, NULL at end of children list
+	contenttype *next; //helps parent iterate over its children including this
+	float viewport[4]; //fraction relative to parent
+	ivec4 ipixels; //offset pixels left, right, bottom, top relative to parent, +right and +up
+	void (*render)(void *self); 
+	int (*pick)(void *self);  //a generalization of mouse. HMD IMU vs mouse?
+} tcontenttype;
+typedef struct contenttype {
+	tcontenttype t1; //superclass in abstract derived class
+}contenttype;
+void init_tcontenttype(void* _self){
+	tcontenttype *self = (tcontenttype*)_self;
+	//self->contents = ...
+}
 
 typedef struct contenttype_scene {
-	//int neyes; //1 mono vp, 2 stereo vp, 4 quadrant front,top,right,vp
-	//eye eyes[7]; //full, left, front, top, right, vp
-	int eyenumber;
+	tcontenttype t1;
+	//int stereotype; // none, sxs, ud, an, quadbuf
+	//color anacolors[2];
+	eye eyes[6]; //doesn't make sense yet to have eyes for general content type, does it?
+	void (*navigate)(void *self); // like handle0, except per-eye
+	int (*touch)(void *self); //
+	int (*pick)(void *self); //delegates to navigate or touch
 } contenttype_scene;
+contenttype *new_contenttype_scene(){
+	contenttype_scene *self = malloc(sizeof(contenttype_scene));
+	return (contenttype*)self;
+}
+
+typedef struct contenttype_layer {
+	tcontenttype t1;
+	//clears zbuffer between contents, but not clearcolor
+	//example statusbarHud (SBH) over scene: 
+	//	scene rendered first, then SBH; mouse caught first by SBH, if not handled then scene
+	void (*render)(void *self); //over-rides basic render
+	int (*pick)(void *self); //over-rides basic pick
+} contenttype_layer;
+contenttype *new_contenttype_layer(){
+	contenttype_layer *self = malloc(sizeof(contenttype_layer));
+	return (contenttype*)self;
+}
+
+typedef struct contenttype_quadrant {
+	tcontenttype t1;
+	//clears zbuffer and clear color once before rendering
+	//picking tests against quadrant
+	float offset_fraction[2];
+	ivec2 offset_pixels;
+} contenttype_quadrant;
+contenttype *new_contenttype_quadrant(){
+	contenttype_quadrant *self = malloc(sizeof(contenttype_quadrant));
+	return (contenttype*)self;
+}
+
+typedef struct contenttype_splitter {
+	tcontenttype t1;
+	float offset_fraction;
+	int offset_pixels;
+	int orientation; //vertical, horizontal
+} contenttype_splitter;
+contenttype *new_contenttype_splitter(){
+	contenttype_splitter *self = malloc(sizeof(contenttype_splitter));
+	return (contenttype*)self;
+}
+
+typedef struct contenttype_distortion_grid {
+	tcontenttype t1;
+	//void (*render)(); // override
+	//int (*pick)(); //override
+	void *data;
+} contenttype_distortion_grid;
+contenttype *new_contenttype_distortion_grid(){
+	contenttype_distortion_grid *self = malloc(sizeof(contenttype_distortion_grid));
+	return (contenttype*)self;
+}
+enum {
+	STAGETYPE_BACKBUF,
+	STAGETYPE_FBO
+} stage_type;
+typedef struct stage {
+	tcontenttype t1;
+	int type; // enum stage_type: fbo or backbuf
+	unsigned int ibuffer; //gl fbo or backbuffer GL_UINT
+	ivec4 ivport; //backbuf stage: sub-area of parent iviewport we are targeting left, width, bottom, height
+				//fbo stage: size to make the fbo buffer (0,0 offset)
+	//float[4] clearcolor; 	FW_GL_CLEAR_COLOR(clearcolor[0],clearcolor[1],clearcolor[2],clearcolor[3]);
+	BOOL clear_zbuffer;
+	int even_odd_frame; //just even/odd so we can tell if its already been rendered on this frame
+	int initialized;
+} stage;
+contenttype *new_contenttype_stage(){
+	stage *self = malloc(sizeof(stage));
+	return (contenttype*)self;
+}
+int frame_increment_even_odd_frame_count(int ieo){
+	ieo++;
+	ieo = ieo > 1 ? 0 : 1;
+	return ieo;
+}
+
+typedef struct ttargetwindow {
+	contenttype stage;
+	//a target is a window. For example you could have an HMD as one target, 
+	//and desktop screen window as another target, both rendered to on the same frame
+	void *hwnd; //window handle
+	BOOL swapbuf; //true if we should swapbuffer on the target 
+	ivec4 ivport; //sub-area of window we are targeting left, width, bottom, height
+	freewrl_params_t params; //will have gl context switching parameters
+	struct ttargetwindow *next;
+} ttargetwindow;
+void init_targetwindow(void *_self){
+	ttargetwindow *self = (ttargetwindow *)_self;
+}
+
+//int syntax_test_function(){
+//	targetwindow w;
+//	return w.t1.itype;
+//}
+
+
+//<<<<=====NEW==Nov27,2015=========
+
+//====OLD=====>>>
+typedef struct _contenttype {
+	int itype; //0 scene, 1 statusbarHud, 2 texture grid
+	void (*render)(); //struct stage *s);
+	//void (*cursor)(int *x, int *y); //return transformed cursor coords, in pixels
+	//float viewport[4]; //fraction of parent viewport left, width, bottom, height
+	struct _contenttype *next;
+	//void *data;
+} _contenttype;
+
+
+//typedef struct contenttype_scene {
+//	//int neyes; //1 mono vp, 2 stereo vp, 4 quadrant front,top,right,vp
+//	//eye eyes[7]; //full, left, front, top, right, vp
+//	int eyenumber;
+//} contenttype_scene;
 
 
 /* stage wraps contenttype and opengl buffer (screen backbuffer or fbo)
@@ -224,29 +382,31 @@ typedef struct contenttype_scene {
 		- covering the same viewport but clearing depth buffer between each stage
 		- and/or covering sub-viewports / tiles
 */
-typedef struct stage {
-	unsigned int id; 
+typedef struct _stage {
+	//unsigned int id; 
 	unsigned int ibuffer; //fbo or backbuffer GL_UINT
-	contenttype *content;
-	contenttype contents[10];
-	struct stage *sub_stages; //null terminated list of substages, use stage++ in loop
+	_contenttype *content;
+	_contenttype contents[10];
+	struct _stage *sub_stages; //null terminated list of substages, use stage++ in loop
 	float viewport[4]; //fraction of parent viewport left, width, bottom, height
-	int want_statusbarHud;
-} stage;
+	//int want_statusbarHud;
+} _stage;
 
-typedef struct targetwindow {
+typedef struct _targetwindow {
 	//a target is a window. For example you could have an HMD as one target, 
 	//and desktop screen window as another target, both rendered to on the same frame
 	void *hwnd; //window handle
 	BOOL swapbuf; //true if we should swapbuffer on the target
 	ivec4 ivport; //fraction of pixel iviewport we are targeting left, width, bottom, height
 	freewrl_params_t params; //will have gl context switching parameters
-	stage stages[2]; //pre-allocation
+	_stage stages[2]; //pre-allocation
 	//stage *output_stages;
 	int stages_initialized;
-	stage *stage;
-	struct targetwindow *next;
-} targetwindow;
+	_stage *stage;
+	struct _targetwindow *next;
+} _targetwindow;
+//<<<====OLD=====
+
 
 typedef struct pMainloop{
 	//browser
@@ -318,7 +478,8 @@ typedef struct pMainloop{
 	double viewtransformmatrix[16];
 	double posorimatrix[16];
 	double stereooffsetmatrix[2][16];
-	targetwindow twindows[4];
+	_targetwindow twindows[4];
+	ttargetwindow cwindows[4];
 	int windex; //current window index into twoindows array, valid during render()
 	Stack *_vportstack;
 }* ppMainloop;
@@ -443,10 +604,10 @@ void Mainloop_clear(struct tMainloop *t){
 //to convert to more convenient int index.
 int hwnd_to_windex(void *hWnd){
 	int i;
-	targetwindow *targets;
+	_targetwindow *targets;
 	ttglobal tg = gglobal();
 
-	targets = (targetwindow*)tg->Mainloop.twindows;
+	targets = (_targetwindow*)tg->Mainloop.twindows;
 	for(i=0;i<4;i++){
 		//the following line assume hwnd is never natively null or 0
 		if(!targets[i].hwnd){
@@ -666,9 +827,9 @@ render_stage {
 }
 */
 
-void render_stage(stage *stagei,double dtime){
-	contenttype *content;
-	stage *ss;
+void render_stage(_stage *stagei,double dtime){
+	_contenttype *content;
+	_stage *ss;
 	ttglobal tg = gglobal();
 
 	if(stagei->ibuffer == 0){
@@ -698,16 +859,16 @@ void render_stage(stage *stagei,double dtime){
 }
 static float fullviewport[4] = {0.0f, 1.0f, 0.0f, 1.0f};
 void setup_stagesNORMAL(){
-	targetwindow *twindows, *t;
-	stage *stages;
+	_targetwindow *twindows, *t;
+	_stage *stages;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
 	twindows = p->twindows;
 	t = twindows;
 	while(t){
-		contenttype *content;
-		stage *stagei;
+		_contenttype *content;
+		_stage *stagei;
 		int noutputstages = 1; //one screen
 		stages = t->stages;
 		t->stage = &stages[0];
@@ -744,8 +905,8 @@ static int stages_initialized = 0;
 void fwl_RenderSceneUpdateSceneSTAGES() {
 	double dtime;
 	int noutputstages;
-	targetwindow *t;
-	stage *stagei;
+	_targetwindow *t;
+	_stage *stagei;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
@@ -826,7 +987,7 @@ something similar for pickrays, except pick() instead of render()
 
 
 void targetwindow_set_params(int itargetwindow, freewrl_params_t* params){
-	targetwindow *twindows, *t;
+	_targetwindow *twindows, *t;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 	
@@ -845,7 +1006,7 @@ void targetwindow_set_params(int itargetwindow, freewrl_params_t* params){
 	}
 }
 freewrl_params_t* targetwindow_get_params(int itargetwindow){
-	targetwindow *twindows;
+	_targetwindow *twindows;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 	
@@ -854,7 +1015,7 @@ freewrl_params_t* targetwindow_get_params(int itargetwindow){
 }
 
 void fwl_setScreenDim1(int wi, int he, int itargetwindow){
-	targetwindow *twindows;
+	_targetwindow *twindows;
 	ivec4 window_rect;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
@@ -872,11 +1033,11 @@ void fwl_setScreenDim1(int wi, int he, int itargetwindow){
 static int targets_initialized = 0;
 float defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; 
 void initialize_targets_simple(){
-	stage *stagei;
+	_stage *stagei;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
-	targetwindow *t = p->twindows;
+	_targetwindow *t = p->twindows;
 
 	if(!t->stages_initialized){
 		setup_stagesNORMAL();
@@ -903,7 +1064,7 @@ void initialize_targets_simple(){
 void fwl_setScreenDim0(int wi, int he);
 void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 	double dtime;
-	targetwindow *t, *twindows;
+	_targetwindow *t, *twindows;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
@@ -920,7 +1081,7 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 		//a targetwindow might be a supervisor's screen, or HMD
 		freewrl_params_t *dp;
 		Stack *vportstack;
-		stage *s;
+		_stage *s;
 
 		p->windex++;
 		fwl_setScreenDim0(t->ivport.W, t->ivport.H);
@@ -976,6 +1137,59 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 	}
 	p->windex = 0;
 }
+
+//=====NEW====>>>
+void render_stage_NEW(s,dtime){
+}
+
+void fwl_RenderSceneUpdateSceneTARGETWINDOWS_NEW() {
+	double dtime;
+	ttargetwindow *t, *twindows;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+
+	if(!tg->Mainloop.targets_initialized)
+		initialize_targets_simple();
+
+	dtime = Time1970sec();
+	fwl_RenderSceneUpdateScene0(dtime);
+
+	twindows = p->cwindows;
+	t = twindows;
+	p->windex = -1;
+	while(t) { 
+		//a targetwindow might be a supervisor's screen, or HMD
+		freewrl_params_t *dp;
+		Stack *vportstack;
+		stage *s;
+
+		p->windex++;
+		s = (stage*)(&t->stage); // assumes t->stage.t1.type == CONTENTTYPE_STAGE
+		fwl_setScreenDim0(s->ivport.W, s->ivport.H); //or t2->ivport ?
+		dp = (freewrl_params_t*)tg->display.params;
+		if(t->params.context != dp->context){
+			tg->display.params = (void*)&t->params;
+			fv_change_GLcontext((freewrl_params_t*)tg->display.params);
+			//printf("%ld %ld %ld\n",t->params.display,t->params.context,t->params.surface);
+		}
+		doglClearColor();
+		vportstack = (Stack *)tg->Mainloop._vportstack;
+		pushviewport(vportstack,t->ivport);
+		render_stage_NEW(s,dtime);
+		//get final buffer, or swapbuffers	
+		popviewport(vportstack);
+		//setcurrentviewport(vportstack);
+		if(t->swapbuf) { FW_GL_SWAPBUFFERS }
+		t = (ttargetwindow*) t->next;
+	}
+	p->windex = 0;
+}
+//<<<<<=====NEW=====
+
+
+
+
+
 void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneTARGETWINDOWS;
 //#else //MULTI_WINDOW
 ////void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneNORMAL;
