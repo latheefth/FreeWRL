@@ -171,6 +171,9 @@ void intersectandpushviewport(Stack *vpstack, ivec4 childvp){
 	ivec4 olap = intersectviewports(childvp,currentvp);
 	pushviewport(vpstack, olap); //I need to unconditionally push, because I will be unconditionally popping later
 }
+ivec4 currentViewport(Stack *vpstack){
+	return stack_top(ivec4,vpstack);
+}
 int currentviewportvisible(Stack *vpstack){
 	ivec4 currentvp = stack_top(ivec4,vpstack);
 	return visibleviewport(currentvp);
@@ -179,7 +182,26 @@ void setcurrentviewport(Stack *_vpstack){
 	ivec4 vp = stack_top(ivec4,_vpstack);
 	glViewport(vp.X,vp.Y,vp.W,vp.H);
 }
-
+ivec4 viewportFraction(ivec4 vp, float *fraction){
+	/*
+	x3d specs > Layering > viewport 
+	MFFloat [in,out] clipBoundary   0 1 0 1  [0,1]
+	The clipBoundary field is specified in fractions of the normal render surface in the sequence left/right/bottom/top. 
+	so my fraction calculation should be something like
+	X = X + W*f0
+	Y = Y + H*F2
+	W = W*F1 - X
+	H = H*F3 - Y
+	*/
+	ivec4 res;
+	//new left and bottom
+	res.X = vp.X + vp.W*fraction[0];
+	res.Y = vp.Y + vp.H*fraction[2];
+	//W = right - left, H = top - bottom
+	res.W = vp.W * fraction[1] - res.X;
+	res.H = vp.H * fraction[3] - res.Y;
+	return res;
+}
 
 /* eye can be computed automatically from vp (viewpoint)
 	mono == vp
@@ -236,7 +258,7 @@ typedef struct tcontenttype {
 	contenttype *contents; //iterate over concrete-type children using children->next, NULL at end of children list
 	contenttype *next; //helps parent iterate over its children including this
 	contenttype *pnext; //reverse list of next 
-	float viewport[4]; //fraction relative to parent
+	float viewport[4]; //fraction relative to parent, L,R,B,T as per x3d specs > Layering > Viewport > clipBoundary: "fractions of (parent surface) in the sequence left/right/bottom/top default 0 1 0 1
 	ivec4 ipixels; //offset pixels left, right, bottom, top relative to parent, +right and +up
 	void (*render)(void *self); 
 	int (*pick)(void *self, int mev, int butnum, int mouseX, int mouseY,int windex);  // a generalization of mouse. HMD IMU vs mouse?
@@ -247,28 +269,49 @@ typedef struct contenttype {
 void content_render(void *_self){
 	//generic render for intermediate level content types (leaf/terminal content types will have their own render())
 	contenttype *c, *self;
+	Stack *vportstack;
+	ivec4 ivport;
+
+	vportstack = (Stack *)gglobal()->Mainloop._vportstack;
+	ivport = currentViewport(vportstack);
 	self = (contenttype *)_self;
+	ivport = viewportFraction(ivport, self->t1.viewport);
+	pushviewport(vportstack,ivport);
+	setcurrentviewport(vportstack);
 	c = self->t1.contents;
+	//FW_GL_CLEAR_COLOR(self->t1.cc.r,self->t1.cc.g,self->t1.cc.b,self->t1.cc.a);
 	while(c){
-		//push viewport
 		c->t1.render(c);
-		//pop viewport
 		c = c->t1.next;
 	}
+	popviewport(vportstack);
+	setcurrentviewport(vportstack);
 }
+
 int content_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int windex){
 	//generic render for intermediate level content types (leaf/terminal content types will have their own render())
 	int iret;
 	contenttype *c, *self;
+	Stack *vportstack;
+	ivec4 ivport;
+	ivec2 pt;
+
+	vportstack = (Stack *)gglobal()->Mainloop._vportstack;
+	ivport = currentViewport(vportstack);
 	self = (contenttype *)_self;
-	c = self->t1.contents;
+	ivport = viewportFraction(ivport, self->t1.viewport);
+	pt.X = mouseX;
+	pt.Y = mouseY;
 	iret = 0;
-	while(c){
-		//push viewport
-		iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,windex);
-		//pop viewport
-		if(iret) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
-		c = c->t1.next;
+	if(pointinsideviewport(ivport,pt)){
+		pushviewport(vportstack,ivport);
+		c = self->t1.contents;
+		while(c){
+			iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,windex);
+			if(iret) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
+			c = c->t1.next;
+		}
+		popviewport(vportstack);
 	}
 	return iret;
 }
