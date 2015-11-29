@@ -2691,7 +2691,6 @@ int statusbar_handle_mouse1(int mev, int butnum, int mouseX, int mouseY, int win
 	if (!iret){
 		fwl_set_frontend_using_cursor(FALSE);
 		iret = -1;
-//		fwl_handle_aqua1(mev, butnum, mouseX, mouseY, windex); /* ,gcWheelDelta); */
 	}else{
 		fwl_set_frontend_using_cursor(TRUE);
 		iret = getCursorStyle();

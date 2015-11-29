@@ -533,7 +533,9 @@ void init_targetwindow(void *_self){
 
 //<<<<=====NEW==Nov27,2015=========
 
+#ifdef USE_OLD
 //====OLD=====>>>
+
 typedef struct _contenttype {
 	int itype; //0 scene, 1 statusbarHud, 2 texture grid
 	void (*render)(); //struct stage *s);
@@ -585,7 +587,7 @@ typedef struct _targetwindow {
 	struct _targetwindow *next;
 } _targetwindow;
 //<<<====OLD=====
-
+#endif
 
 typedef struct pMainloop{
 	//browser
@@ -658,7 +660,9 @@ typedef struct pMainloop{
 	double posorimatrix[16];
 	double stereooffsetmatrix[2][16];
 	int targets_initialized;
+#ifdef USE_OLD
 	_targetwindow twindows[4];
+#endif
 	targetwindow cwindows[4];
 	int windex; //current window index into twoindows array, valid during render()
 	Stack *_vportstack;
@@ -784,6 +788,7 @@ void Mainloop_clear(struct tMainloop *t){
 
 //call hwnd_to_windex in frontend window creation and event handling,
 //to convert to more convenient int index.
+#ifdef USE_OLD
 int hwnd_to_windex(void *hWnd){
 	int i;
 	_targetwindow *targets;
@@ -803,7 +808,27 @@ int hwnd_to_windex(void *hWnd){
 	}
 	return 0;
 }
+#else
+int hwnd_to_windex(void *hWnd){
+	int i;
+	targetwindow *targets;
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
 
+	targets = (targetwindow*)p->cwindows;
+	for(i=0;i<4;i++){
+		//the following line assume hwnd is never natively null or 0
+		if(!targets[i].hwnd){
+			//not found, create
+			targets[i].hwnd = hWnd;
+			targets[i].swapbuf = TRUE;
+		}
+		if(targets[i].hwnd == hWnd) return i;
+	}
+	return 0;
+}
+#endif
 void fwl_getWindowSize(int *width, int *height){
 	//call this one when in target rendering loop (and setScreenDim0() 
 	// has been called with targetwindow-specific dimensions)
@@ -812,6 +837,7 @@ void fwl_getWindowSize(int *width, int *height){
 	*width = tg->display.screenWidth;
 	*height = tg->display.screenHeight;	
 }
+#ifdef USE_OLD
 void fwl_getWindowSize1_OLD(int windex, int *width, int *height){
 	//call this one when recieving window events, ie mouse events
 	//windex: index (0-3, 0=default) of targetwindow the window event came in on
@@ -824,6 +850,7 @@ void fwl_getWindowSize1_OLD(int windex, int *width, int *height){
 	*width = ivport.W;
 	*height = ivport.H;	
 }
+#endif
 void fwl_getWindowSize1_NEW(int windex, int *width, int *height){
 	//call this one when recieving window events, ie mouse events
 	//windex: index (0-3, 0=default) of targetwindow the window event came in on
@@ -1027,7 +1054,7 @@ render_stage {
 	setcurrentviewport(vportstack);
 }
 */
-
+#ifdef USE_OLD
 void render_stage(_stage *stagei,double dtime){
 	_contenttype *content;
 	_stage *ss;
@@ -1102,6 +1129,7 @@ void setup_stagesNORMAL(){
 		t = t->next;
 	}
 }
+
 static int stages_initialized = 0;
 void fwl_RenderSceneUpdateSceneSTAGES() {
 	double dtime;
@@ -1128,6 +1156,7 @@ void fwl_RenderSceneUpdateSceneSTAGES() {
 			render_stage(stagei,dtime);
 	//}
 }
+#endif
 void fwl_RenderSceneUpdateSceneNORMAL() {
 	double dtime;
 	ttglobal tg = gglobal();
@@ -1186,7 +1215,7 @@ something similar for pickrays, except pick() instead of render()
 
 */
 
-
+#ifdef USE_OLD
 void targetwindow_set_params_OLD(int itargetwindow, freewrl_params_t* params){
 	_targetwindow *twindows, *t;
 	ttglobal tg = gglobal();
@@ -1230,7 +1259,7 @@ void fwl_setScreenDim1_OLD(int wi, int he, int itargetwindow){
 	twindows[itargetwindow].ivport = window_rect;
 	//the rest is initialized in the target rendering loop, via fwl_setScreenDim(w,h)
 }
-
+#endif
 void targetwindow_set_params_NEW(int itargetwindow, freewrl_params_t* params){
 	targetwindow *twindows, *t;
 	ttglobal tg = gglobal();
@@ -1296,6 +1325,7 @@ void fwl_setScreenDim1(int wi, int he, int itargetwindow){
 	fwl_setScreenDim1_NEW(wi,he,itargetwindow);
 #endif
 }
+#ifdef USE_OLD
 void initialize_targets_simple(){
 	_stage *stagei;
 	ttglobal tg = gglobal();
@@ -1401,7 +1431,7 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 	}
 	p->windex = 0;
 }
-
+#endif //USE_OLD
 //=====NEW====>>>
 void setup_stagesNORMAL_NEW(){
 	targetwindow *twindows, *t;
@@ -1500,7 +1530,8 @@ int fwl_handle_mouse_NEW(int mev, int butnum, int mouseX, int mouseY, int windex
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
 	t = &p->cwindows[windex];
-	s = t->stage;
+	s = (stage*)t->stage;
+	if(!s) return 0; //sometimes mouse events can start before a draw events (where stages are initialized)
 	if(s->type == STAGETYPE_BACKBUF)
 		s->ivport = t->ivport;
 	vportstack = (Stack *)tg->Mainloop._vportstack;
@@ -2268,11 +2299,7 @@ void handle_Xevents(XEvent event) {
 
 		case ButtonPress:
 		case ButtonRelease:
-#ifdef STATUSBAR_HUD
-			cursorStyle = statusbar_handle_mouse1(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y,windex);
-#else
-			cursorStyle = fwl_handle_aqua1(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y,windex);
-#endif
+			cursorStyle = fwl_handle_mouse(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y,windex);
 			setCursor(cursorStyle);
 			//if(0){
 			//	/* printf("got a button press or button release\n"); */
@@ -2304,11 +2331,7 @@ void handle_Xevents(XEvent event) {
 					}
 			}
 #endif /* KEEP_X11_INLIB */
-#ifdef STATUSBAR_HUD
-			cursorStyle = statusbar_handle_mouse1(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y,windex);
-#else
-			cursorStyle = fwl_handle_aqua1(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y,windex);
-#endif
+			cursorStyle = fwl_handle_mouse(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y,windex);
 			setCursor(cursorStyle);
 			//if(0){
 
@@ -2751,7 +2774,7 @@ static void render()
 
 	setup_projection();
 	setup_picking();
-
+	doglClearColor();
 	for (count = 0; count < p->maxbuffers; count++) {
 
 		Viewer()->buffer = (unsigned)p->bufferarray[count];
