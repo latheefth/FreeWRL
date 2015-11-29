@@ -3016,10 +3016,12 @@ world coords > [Transform stack] > bound Viewpoint > [Viewer.Pos,.Quat] > avatar
 }
 
 /* called from main, after the new viewpoint is setup */
-void slerp_viewpoint()
+int slerp_viewpoint()
 {
+	int iret;
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
+	iret = 0; 
 	if(p->Viewer.SLERPing3){
 		//navigation 'm' LOOKAT and 'g' EXPLORE non-vp-bind slerping comes through here
 		// slerps: viewer.pos, .quat, .dist 
@@ -3033,6 +3035,7 @@ void slerp_viewpoint()
 			p->Viewer.SLERPing3 = 0;
 			resolve_pos2(); //may not need this if examine etc do it
 		}
+		iret = 1;
 		//now we let normal rendering use the viewer quat, pos, dist during rendering
 	}else if(p->Viewer.SLERPing2 && p->vp2rnSaved) {
 		if(p->Viewer.SLERPing2justStarted)
@@ -3102,7 +3105,9 @@ void slerp_viewpoint()
 				//printf(" done\n");
 			}
 		}
+		iret = 1;
 	}
+	return iret;
 }
 void setup_viewpoint_slerp(double* center, double pivot_radius, double vp_radius){
 	/* when you don't have a  new viewpoint to bind to, but know where you want the viewer to go

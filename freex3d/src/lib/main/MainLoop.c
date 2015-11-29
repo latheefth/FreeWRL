@@ -899,7 +899,7 @@ static void set_viewmatrix();
 static void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive);
 /* void fwl_do_keyPress(char kp, int type); Now in lib.h */
 void render_collisions(int Viewer_type);
-void slerp_viewpoint();
+int slerp_viewpoint();
 static void render_pre(void);
 static void render(void);
 static int setup_pickside(int x, int y);
@@ -2944,8 +2944,8 @@ static void setup_viewpoint() {
 		matmultiplyAFFINE(viewmatrix,p->posorimatrix,viewmatrix); 
 		matmultiplyAFFINE(viewmatrix,p->viewtransformmatrix,viewmatrix); 
 		fw_glSetDoublev(GL_MODELVIEW_MATRIX, viewmatrix);
-		slerp_viewpoint(); //just starting block
-		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->viewtransformmatrix);
+		if(slerp_viewpoint()) //just starting block
+			fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->viewtransformmatrix);
 
 }
 
