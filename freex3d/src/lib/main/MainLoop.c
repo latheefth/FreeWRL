@@ -4640,8 +4640,8 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	}
 	/* save this one... This allows Sensors to get mouse movements if required. */
 	p->lastMouseEvent = mev;
-	fwl_getWindowSize1(windex,&screenWidth,&screenHeight);
 
+	fwl_getWindowSize1(windex,&screenWidth,&screenHeight);
 	/* save the current x and y positions for picking. */
 	touch = &p->touchlist[ID];
 	touch->x = x;
