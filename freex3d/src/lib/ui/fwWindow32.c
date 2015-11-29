@@ -1027,6 +1027,8 @@ static int shiftState = 0;
 #else
 		cursorStyle = fwl_handle_aqua1(mev, butnum, mouseX, mouseY, windex); /* ,gcWheelDelta); */
 #endif
+		cursorStyle = fwl_handle_mouse(mev, butnum, mouseX, mouseY, windex); /* ,gcWheelDelta); */
+
 		updateCursorStyle0(cursorStyle);
     }
     return 0;

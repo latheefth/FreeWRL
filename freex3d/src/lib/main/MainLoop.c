@@ -23,6 +23,7 @@
     You should have received a copy of the GNU General Public License
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
+#define USE_OLD 1
 
 #include <config.h>
 #include <system.h>
@@ -325,7 +326,7 @@ int content_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int w
 		c = self->t1.contents;
 		while(c){
 			iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,windex);
-			if(iret) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
+			if(iret > -1) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
 			c = c->t1.next;
 		}
 		pop_viewport();
@@ -333,10 +334,11 @@ int content_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int w
 	return iret;
 }
 static ivec4 ivec4_init = {0,0,0,0};
-float defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; 
+float defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; //left,right,bottom,top fraction of pixel window
 
 void init_tcontenttype(tcontenttype *self){
 	self->itype = CONTENT_GENERIC;
+	self->contents = NULL;
 	self->render = content_render;
 	self->pick = content_pick;
 	memcpy(self->viewport,defaultClipBoundary,4*sizeof(float));
@@ -353,7 +355,10 @@ typedef struct contenttype_scene {
 } contenttype_scene;
 void render();
 void scene_render(void *self){
+if(0) return;
 	render();
+if(0) FW_GL_SWAPBUFFERS
+	//printf("7 ");
 }
 int scene_pick(void *self, int mev, int butnum, int mouseX, int mouseY, int windex){
 	return fwl_handle_aqua1(mev,butnum,mouseX,mouseY,windex);
@@ -371,9 +376,14 @@ typedef struct contenttype_statusbar {
 } contenttype_statusbar;
 void view_update0();
 void statusbar_render(void *self){
+if(1)	return;
+if(1)FW_GL_SWAPBUFFERS
 	view_update0();
+if(1)FW_GL_SWAPBUFFERS
+	printf("8 ");
 }
 int statusbar_pick(void *self, int mev, int butnum, int mouseX, int mouseY, int windex){
+	return -1;
 	return statusbar_handle_mouse1(mev,butnum,mouseX,mouseY,windex);
 }
 contenttype *new_contenttype_statusbar(){
@@ -762,6 +772,7 @@ void Mainloop_init(struct tMainloop *t){
 		p->fps_sleep_remainder = 0;
 		p->windex = 0;
 		p->targets_initialized = 0;
+		for(i=0;i<4;i++) init_targetwindow(&p->cwindows[i]);
 		//t->twindows = p->twindows;
 		p->_vportstack = newStack(ivec4);
 		t->_vportstack = (void *)p->_vportstack; //represents screen pixel area being drawn to
@@ -808,7 +819,7 @@ void fwl_getWindowSize(int *width, int *height){
 	*width = tg->display.screenWidth;
 	*height = tg->display.screenHeight;	
 }
-void fwl_getWindowSize1(int windex, int *width, int *height){
+void fwl_getWindowSize1_OLD(int windex, int *width, int *height){
 	//call this one when recieving window events, ie mouse events
 	//windex: index (0-3, 0=default) of targetwindow the window event came in on
 	ivec4 ivport;
@@ -820,8 +831,25 @@ void fwl_getWindowSize1(int windex, int *width, int *height){
 	*width = ivport.W;
 	*height = ivport.H;	
 }
+void fwl_getWindowSize1_NEW(int windex, int *width, int *height){
+	//call this one when recieving window events, ie mouse events
+	//windex: index (0-3, 0=default) of targetwindow the window event came in on
+	ivec4 ivport;
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
 
-
+	ivport = p->cwindows[windex].ivport;
+	*width = ivport.W;
+	*height = ivport.H;	
+}
+void fwl_getWindowSize1(int windex, int *width, int *height){
+#ifdef USE_OLD
+	fwl_getWindowSize1_OLD(windex, width, height);
+#else
+	fwl_getWindowSize1_NEW(windex, width, height);
+#endif
+}
 #define LMB 1
 #define MMB 2
 #define RMB 3
@@ -1166,7 +1194,7 @@ something similar for pickrays, except pick() instead of render()
 */
 
 
-void targetwindow_set_params(int itargetwindow, freewrl_params_t* params){
+void targetwindow_set_params_OLD(int itargetwindow, freewrl_params_t* params){
 	_targetwindow *twindows, *t;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
@@ -1185,7 +1213,7 @@ void targetwindow_set_params(int itargetwindow, freewrl_params_t* params){
 		printf("hows that?\n");
 	}
 }
-freewrl_params_t* targetwindow_get_params(int itargetwindow){
+freewrl_params_t* targetwindow_get_params_OLD(int itargetwindow){
 	_targetwindow *twindows;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
@@ -1194,7 +1222,7 @@ freewrl_params_t* targetwindow_get_params(int itargetwindow){
 	return &twindows[itargetwindow].params;
 }
 
-void fwl_setScreenDim1(int wi, int he, int itargetwindow){
+void fwl_setScreenDim1_OLD(int wi, int he, int itargetwindow){
 	_targetwindow *twindows;
 	ivec4 window_rect;
 	ttglobal tg = gglobal();
@@ -1210,6 +1238,71 @@ void fwl_setScreenDim1(int wi, int he, int itargetwindow){
 	//the rest is initialized in the target rendering loop, via fwl_setScreenDim(w,h)
 }
 
+void targetwindow_set_params_NEW(int itargetwindow, freewrl_params_t* params){
+	targetwindow *twindows, *t;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+	
+	twindows = p->cwindows;
+	twindows[itargetwindow].params = *params;
+	if(itargetwindow > 0){
+		twindows[itargetwindow -1].next = &twindows[itargetwindow];
+	}
+	if(0){
+		t = twindows;
+		while(t){
+			printf("windex=%d t->next = %ld\n",itargetwindow,t->next);
+			t=t->next;
+		}
+		printf("hows that?\n");
+	}
+}
+freewrl_params_t* targetwindow_get_params_NEW(int itargetwindow){
+	targetwindow *twindows;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+	
+	twindows = p->cwindows;
+	return &twindows[itargetwindow].params;
+}
+
+void fwl_setScreenDim1_NEW(int wi, int he, int itargetwindow){
+	targetwindow *twindows;
+	ivec4 window_rect;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+
+	window_rect.X = 0;
+	window_rect.Y = 0;
+	window_rect.W = wi;
+	window_rect.H = he;
+
+	twindows = p->cwindows;
+	twindows[itargetwindow].ivport = window_rect;
+	//the rest is initialized in the target rendering loop, via fwl_setScreenDim(w,h)
+}
+
+void targetwindow_set_params(int itargetwindow, freewrl_params_t* params){
+#ifdef USE_OLD
+	targetwindow_set_params_OLD(itargetwindow,params);
+#else
+	targetwindow_set_params_NEW(itargetwindow,params);
+#endif
+}
+freewrl_params_t* targetwindow_get_params(int itargetwindow){
+#ifdef USE_OLD
+	return targetwindow_get_params_OLD(itargetwindow);
+#else
+	return targetwindow_get_params_NEW(itargetwindow);
+#endif
+}
+void fwl_setScreenDim1(int wi, int he, int itargetwindow){
+#ifdef USE_OLD
+	fwl_setScreenDim1_OLD(wi,he,itargetwindow);
+#else
+	fwl_setScreenDim1_NEW(wi,he,itargetwindow);
+#endif
+}
 void initialize_targets_simple(){
 	_stage *stagei;
 	ttglobal tg = gglobal();
@@ -1333,7 +1426,8 @@ void setup_stagesNORMAL_NEW(){
 		cscene->t1.next = csbh;
 		csbh->t1.next = NULL;
 		clayer->t1.contents = cscene;
-		t->stage = (contenttype*)cstage;
+		cstage->t1.contents = clayer;
+		t->stage = cstage;
 		t = t->next;
 	}
 }
@@ -1353,10 +1447,6 @@ void initialize_targets_simple_NEW(){
 
 	p->targets_initialized = 1;
 
-}
-
-
-void render_stage_NEW(s,dtime){
 }
 
 void fwl_RenderSceneUpdateSceneTARGETWINDOWS_NEW() {
@@ -1381,7 +1471,7 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS_NEW() {
 		stage *s;
 
 		p->windex++;
-		s = (stage*)(&t->stage); // assumes t->stage.t1.type == CONTENTTYPE_STAGE
+		s = (stage*)(t->stage); // assumes t->stage.t1.type == CONTENTTYPE_STAGE
 		fwl_setScreenDim0(s->ivport.W, s->ivport.H); //or t2->ivport ?
 		dp = (freewrl_params_t*)tg->display.params;
 		if(t->params.context != dp->context){
@@ -1389,10 +1479,10 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS_NEW() {
 			fv_change_GLcontext((freewrl_params_t*)tg->display.params);
 			//printf("%ld %ld %ld\n",t->params.display,t->params.context,t->params.surface);
 		}
-		doglClearColor();
+if(0)	doglClearColor();
 		vportstack = (Stack *)tg->Mainloop._vportstack;
 		pushviewport(vportstack,t->ivport);
-		render_stage_NEW(s,dtime);
+		s->t1.render(s);
 		//get final buffer, or swapbuffers	
 		popviewport(vportstack);
 		//setcurrentviewport(vportstack);
@@ -1402,12 +1492,39 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS_NEW() {
 	p->windex = 0;
 }
 //<<<<<=====NEW=====
+int fwl_handle_mouse_NEW(int mev, int butnum, int mouseX, int mouseY, int windex){
+	int cursorStyle, iret;
+	targetwindow *t;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+
+	t = &p->cwindows[windex];
+	cursorStyle = t->stage->t1.pick(t->stage,mev,butnum,mouseX,mouseY,windex);
+	cursorStyle = cursorStyle < 0? 0 : cursorStyle;
+	return cursorStyle;
+}
+int fwl_handle_mouse(int mev, int butnum, int mouseX, int mouseY, int windex){
+	int cursorStyle;
+#ifdef USE_OLD
+#ifdef STATUSBAR_HUD
+	//cursorStyle = statusbar_handle_mouse(mev, butnum, mouseX, mouseY);
+	cursorStyle = statusbar_handle_mouse1(mev, butnum, mouseX, mouseY, windex);
+#else
+	cursorStyle = fwl_handle_aqua1(mev, butnum, mouseX, mouseY, windex); /* ,gcWheelDelta); */
+#endif
+#else
+	//use new
+	cursorStyle = fwl_handle_mouse_NEW(mev, butnum, mouseX, mouseY, windex);
+#endif
+	return cursorStyle;
+}
 
 
-
-
-
+#ifdef USE_OLD
 void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneTARGETWINDOWS;
+#else
+void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneTARGETWINDOWS_NEW;
+#endif
 //#else //MULTI_WINDOW
 ////void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneNORMAL;
 //void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneSTAGES;
