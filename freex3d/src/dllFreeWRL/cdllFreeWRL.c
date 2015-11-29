@@ -165,11 +165,7 @@ DLLFREEWRL_API int dllFreeWRL_onMouse(void *fwctx, int mouseAction,int mouseButt
 	/* butnum=1 left butnum=3 right (butnum=2 middle, not used by freewrl) */
 	int cursorStyle = 0;
 	if(fwl_setCurrentHandle(fwctx, __FILE__, __LINE__)){
-#ifdef STATUSBAR_HUD
-		cursorStyle = statusbar_handle_mouse(mouseAction,mouseButton,x,y);
-#else
-		cursorStyle = fwl_handle_aqua(mouseAction,mouseButton,x,y); 
-#endif
+		cursorStyle = fwl_handle_mouse(mouseAction,mouseButton,x,y,0); 
 	}
 	fwl_clearCurrentHandle();
 	return cursorStyle;

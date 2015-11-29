@@ -24,6 +24,7 @@
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
+
 #include <config.h>
 #include <system.h>
 #include <system_threads.h>
@@ -171,6 +172,9 @@ void intersectandpushviewport(Stack *vpstack, ivec4 childvp){
 	ivec4 olap = intersectviewports(childvp,currentvp);
 	pushviewport(vpstack, olap); //I need to unconditionally push, because I will be unconditionally popping later
 }
+ivec4 currentViewport(Stack *vpstack){
+	return stack_top(ivec4,vpstack);
+}
 int currentviewportvisible(Stack *vpstack){
 	ivec4 currentvp = stack_top(ivec4,vpstack);
 	return visibleviewport(currentvp);
@@ -179,7 +183,26 @@ void setcurrentviewport(Stack *_vpstack){
 	ivec4 vp = stack_top(ivec4,_vpstack);
 	glViewport(vp.X,vp.Y,vp.W,vp.H);
 }
-
+ivec4 viewportFraction(ivec4 vp, float *fraction){
+	/*
+	x3d specs > Layering > viewport 
+	MFFloat [in,out] clipBoundary   0 1 0 1  [0,1]
+	"The clipBoundary field is specified in fractions of the normal render surface in the sequence left/right/bottom/top. "
+	so my fraction calculation should be something like:
+	X = X + W*f0
+	Y = Y + H*F2
+	W = W*F1 - X
+	H = H*F3 - Y
+	*/
+	ivec4 res;
+	//new left and bottom
+	res.X = vp.X + vp.W*fraction[0];
+	res.Y = vp.Y + vp.H*fraction[2];
+	//W = right - left, H = top - bottom
+	res.W = vp.W * fraction[1] - res.X;
+	res.H = vp.H * fraction[3] - res.Y;
+	return res;
+}
 
 /* eye can be computed automatically from vp (viewpoint)
 	mono == vp
@@ -196,57 +219,324 @@ void setcurrentviewport(Stack *_vpstack){
 
 /* contenttype abstracts scene, statusbarhud, and HMD (head-mounted display) textured-distortion-grid
 	- each type has a prep and a render and some data, and a way to handle a pickray
+	- general idea comes from an opengl gui project (dug9gui). When you read 'contenttype' think 'gui widget'.
 */
-typedef struct contenttype {
-	int itype; //0 scene, 1 statusbarHud, 2 texture grid
-	void (*render)(); //struct stage *s);
-	void (*cursor)(int *x, int *y); //return transformed cursor coords, in pixels
-	float viewport[4]; //fraction of parent viewport left, width, bottom, height
-	struct contenttype *next;
-	void *data;
-} contenttype;
+//===========NEW=====Nov27,2015================>>>>>
+enum {
+	CONTENT_GENERIC,
+	CONTENT_SCENE,
+	CONTENT_STATUSBAR,
+	CONTENT_TEXTUREGRID,
+	CONTENT_LAYER,
+	CONTENT_SPLITTER,
+	CONTENT_QUADRANT,
+	CONTENT_FBO,
+	CONTENT_STAGE,
+	CONTENT_TARGETWINDOW,
+} content_types;
 
+typedef struct eye {
+	//int iyetype;
+	void (*render)(void *self);
+	void (*computeVP)(void *self, void *vp); //side, top, front, vp for quadrant or splitter
+	void (*navigate)(void *self); //like handle0 except per-eye
+	int (*pick)(void *self); //per-eye
+} eye;
+eye *new_eye(){
+	return malloc(sizeof(eye));
+}
+//typedef struct tlinktype {
+//	void *contents; //iterate over children using children->next
+//	void *next; //helps parent iterate over its children
+//}
+
+void pushnset_viewport(float *vpFraction){
+	//call this from render() function (not from pick function)
+	ivec4 ivport;
+	Stack *vportstack;
+	vportstack = (Stack *)gglobal()->Mainloop._vportstack;
+	ivport = currentViewport(vportstack);
+	ivport = viewportFraction(ivport, vpFraction);
+	pushviewport(vportstack,ivport);
+	setcurrentviewport(vportstack); //does opengl call
+}
+void popnset_viewport(){
+	//call this from render() function (not from pick function)
+	Stack *vportstack;
+	vportstack = (Stack *)gglobal()->Mainloop._vportstack;
+	popviewport(vportstack);
+	setcurrentviewport(vportstack); //does opengl call
+}
+
+//abstract contenttype
+typedef struct contenttype contenttype;
+typedef struct tcontenttype {
+	int itype; //enum content_types: 0 scene, 1 statusbarHud, 2 texture grid
+				// 3 layer 4 splitter 5 quadrant 6 fbo 10 stage 11 targetwindow
+	contenttype *contents; //iterate over concrete-type children using children->next, NULL at end of children list
+	contenttype *next; //helps parent iterate over its children including this
+	contenttype *pnext; //reverse list of next 
+	float viewport[4]; //fraction relative to parent, L,R,B,T as per x3d specs > Layering > Viewport > clipBoundary: "fractions of (parent surface) in the sequence left/right/bottom/top default 0 1 0 1
+	ivec4 ipixels; //offset pixels left, right, bottom, top relative to parent, +right and +up
+	void (*render)(void *self); 
+	int (*pick)(void *self, int mev, int butnum, int mouseX, int mouseY,int windex);  // a generalization of mouse. HMD IMU vs mouse?
+} tcontenttype;
+typedef struct contenttype {
+	tcontenttype t1; //superclass in abstract derived class
+}contenttype;
+void content_render(void *_self){
+	//generic render for intermediate level content types (leaf/terminal content types will have their own render())
+	contenttype *c, *self;
+
+	self = (contenttype *)_self;
+	pushnset_viewport(self->t1.viewport);
+	c = self->t1.contents;
+	//FW_GL_CLEAR_COLOR(self->t1.cc.r,self->t1.cc.g,self->t1.cc.b,self->t1.cc.a);
+	while(c){
+		c->t1.render(c);
+		c = c->t1.next;
+	}
+	popnset_viewport();
+}
+int checknpush_viewport(float *vpfraction, int mouseX, int mouseY){
+	Stack *vportstack;
+	ivec4 ivport, ivport1, ivport2;
+	ivec2 pt;
+	int iret;
+
+	vportstack = (Stack *)gglobal()->Mainloop._vportstack;
+	ivport = currentViewport(vportstack);
+	ivport1 = viewportFraction(ivport, vpfraction);
+	pt.X = mouseX;
+	pt.Y = mouseY;
+	iret = pointinsideviewport(ivport1,pt);
+	if(iret) pushviewport(vportstack,ivport1);
+	return iret;
+		
+}
+void pop_viewport(){
+}
+int content_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int windex){
+	//generic render for intermediate level content types (leaf/terminal content types will have their own render())
+	int iret;
+	contenttype *c, *self;
+
+	self = (contenttype *)_self;
+	iret = 0;
+	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
+		c = self->t1.contents;
+		while(c){
+			iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,windex);
+			if(iret > -1) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
+			c = c->t1.next;
+		}
+		pop_viewport();
+	}
+	return iret;
+}
+static ivec4 ivec4_init = {0,0,0,0};
+float defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; //left,right,bottom,top fraction of pixel window
+
+void init_tcontenttype(tcontenttype *self){
+	self->itype = CONTENT_GENERIC;
+	self->contents = NULL;
+	self->render = content_render;
+	self->pick = content_pick;
+	memcpy(self->viewport,defaultClipBoundary,4*sizeof(float));
+	self->ipixels = ivec4_init;
+	self->next = NULL;
+	self->pnext = NULL;
+}
 
 typedef struct contenttype_scene {
-	//int neyes; //1 mono vp, 2 stereo vp, 4 quadrant front,top,right,vp
-	//eye eyes[7]; //full, left, front, top, right, vp
-	int eyenumber;
+	tcontenttype t1;
+	//int stereotype; // none, sxs, ud, an, quadbuf
+	//color anacolors[2];
+	eye eyes[6]; //doesn't make sense yet to have eyes for general content type, does it?
 } contenttype_scene;
+void render();
+void scene_render(void *self){
+	render();
+}
+void setup_picking();
+int scene_pick(void *self, int mev, int butnum, int mouseX, int mouseY, int windex){
+	int iret;
+	iret = fwl_handle_aqua1(mev,butnum,mouseX,mouseY,windex);
+	setup_picking();
+	return iret;
+}
+contenttype *new_contenttype_scene(){
+	contenttype_scene *self = malloc(sizeof(contenttype_scene));
+	init_tcontenttype(&self->t1);
+	self->t1.itype = CONTENT_SCENE;
+	self->t1.render = scene_render;
+	self->t1.pick = scene_pick;
+	return (contenttype*)self;
+}
+typedef struct contenttype_statusbar {
+	tcontenttype t1;
+} contenttype_statusbar;
+void view_update0();
+void statusbar_render(void *self){
+	view_update0();
+}
+int statusbar_pick(void *self, int mev, int butnum, int mouseX, int mouseY, int windex){
+	return statusbar_handle_mouse1(mev,butnum,mouseX,mouseY,windex);
+}
+contenttype *new_contenttype_statusbar(){
+	contenttype_scene *self = malloc(sizeof(contenttype_statusbar));
+	init_tcontenttype(&self->t1);
+	self->t1.itype = CONTENT_STATUSBAR;
+	self->t1.render = statusbar_render;
+	self->t1.pick = statusbar_pick;
+	return (contenttype*)self;
+}
+typedef struct contenttype_layer {
+	tcontenttype t1;
+	//clears zbuffer between contents, but not clearcolor
+	//example statusbarHud (SBH) over scene: 
+	//	scene rendered first, then SBH; mouse caught first by SBH, if not handled then scene
+} contenttype_layer;
+void layer_render(void *_self){
+	//just the z-buffer cleared between content
+	contenttype *c, *self;
+	self = (contenttype *)_self;
+	pushnset_viewport(self->t1.viewport);
+	c = self->t1.contents;
+	while(c){
+		c->t1.render(c);			// Q. HOW/WHERE TO SIGNAL TO CLEAR JUST Z BUFFER BETWEEN LAYERS
+		c = c->t1.next;
+	}
+	popnset_viewport();
+}
+int layer_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int windex){
+	//layer pick works backward through layers
+	int iret, n,i;
+	contenttype *c, *self, *reverse[10];
+	self = (contenttype *)_self;
+	c = self->t1.contents;
+	n=0;
+	while(c){
+		reverse[n] = c;
+		n++;
+		c = c->t1.next;
+		if(n > 9) break; //ouch a problem with my fixed-length array technique
+	}
+	iret = 0;
+	for(i=0;i<n;i++){
+		//push viewport
+		c = reverse[n-i-1];
+		iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,windex);
+		//pop viewport
+		if(iret > -1) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
+	}
+	return iret;
+}
+contenttype *new_contenttype_layer(){
+	contenttype_layer *self = malloc(sizeof(contenttype_layer));
+	init_tcontenttype(&self->t1);
+	self->t1.itype = CONTENT_LAYER;
+	self->t1.render = layer_render;
+	self->t1.pick = layer_pick;
+	return (contenttype*)self;
+}
 
+typedef struct contenttype_quadrant {
+	tcontenttype t1;
+	//clears zbuffer and clear color once before rendering
+	//picking tests against quadrant
+	float offset_fraction[2];
+	ivec2 offset_pixels;
+} contenttype_quadrant;
+contenttype *new_contenttype_quadrant(){
+	contenttype_quadrant *self = malloc(sizeof(contenttype_quadrant));
+	init_tcontenttype(&self->t1);
+	self->t1.itype = CONTENT_QUADRANT;
+	return (contenttype*)self;
+}
 
-/* stage wraps contenttype and opengl buffer (screen backbuffer or fbo)
-	and allows chaining and forking of stages
-	- so a single output window can be rendered from multiple stages
-		working back from the window to the scene, the scene is rendered first, 
-			then any menu stage
-			then any distortion stage
-	- and a single stage can be composed of multiple stages, 
-		- covering the same viewport but clearing depth buffer between each stage
-		- and/or covering sub-viewports / tiles
-*/
+typedef struct contenttype_splitter {
+	tcontenttype t1;
+	float offset_fraction;
+	int offset_pixels;
+	int orientation; //vertical, horizontal
+} contenttype_splitter;
+contenttype *new_contenttype_splitter(){
+	contenttype_splitter *self = malloc(sizeof(contenttype_splitter));
+	init_tcontenttype(&self->t1);
+	self->t1.itype = CONTENT_SPLITTER;
+	return (contenttype*)self;
+}
+
+typedef struct contenttype_texturegrid {
+	tcontenttype t1;
+	//void (*render)(); // override
+	//int (*pick)(); //override
+	void *data;
+} contenttype_texturegrid;
+contenttype *new_contenttype_texturegrid(){
+	contenttype_texturegrid *self = malloc(sizeof(contenttype_texturegrid));
+	init_tcontenttype(&self->t1);
+	self->t1.itype = CONTENT_TEXTUREGRID;
+	return (contenttype*)self;
+}
+enum {
+	STAGETYPE_BACKBUF,
+	STAGETYPE_FBO
+} stage_type;
 typedef struct stage {
-	unsigned int id; 
-	unsigned int ibuffer; //fbo or backbuffer GL_UINT
-	contenttype *content;
-	contenttype contents[10];
-	struct stage *sub_stages; //null terminated list of substages, use stage++ in loop
-	float viewport[4]; //fraction of parent viewport left, width, bottom, height
-	int want_statusbarHud;
+	tcontenttype t1;
+	int type; // enum stage_type: fbo or backbuf
+	unsigned int ibuffer; //gl fbo or backbuffer GL_UINT
+	ivec4 ivport; //backbuf stage: sub-area of parent iviewport we are targeting left, width, bottom, height
+				//fbo stage: size to make the fbo buffer (0,0 offset)
+	//float[4] clearcolor; 	FW_GL_CLEAR_COLOR(clearcolor[0],clearcolor[1],clearcolor[2],clearcolor[3]);
+	BOOL clear_zbuffer;
+	int even_odd_frame; //just even/odd so we can tell if its already been rendered on this frame
+	//int initialized;
 } stage;
 
+contenttype *new_contenttype_stage(){
+	stage *self = malloc(sizeof(stage));
+	init_tcontenttype(&self->t1);
+	self->t1.itype = CONTENT_STAGE;
+	self->type = STAGETYPE_BACKBUF;
+	self->ibuffer = GL_BACK;
+	self->clear_zbuffer = TRUE;
+	return (contenttype*)self;
+}
+int frame_increment_even_odd_frame_count(int ieo){
+	ieo++;
+	ieo = ieo > 1 ? 0 : 1;
+	return ieo;
+}
+
 typedef struct targetwindow {
+	contenttype *stage;
 	//a target is a window. For example you could have an HMD as one target, 
 	//and desktop screen window as another target, both rendered to on the same frame
 	void *hwnd; //window handle
-	BOOL swapbuf; //true if we should swapbuffer on the target
-	ivec4 ivport; //fraction of pixel iviewport we are targeting left, width, bottom, height
+	BOOL swapbuf; //true if we should swapbuffer on the target 
+	ivec4 ivport; //sub-area of window we are targeting left, width, bottom, height
 	freewrl_params_t params; //will have gl context switching parameters
-	stage stages[2]; //pre-allocation
-	//stage *output_stages;
-	int stages_initialized;
-	stage *stage;
 	struct targetwindow *next;
 } targetwindow;
+void init_targetwindow(void *_self){
+	targetwindow *self = (targetwindow *)_self;
+	self->stage = NULL;
+	self->next = NULL;
+	self->swapbuf = TRUE;
+	self->hwnd = NULL;
+}
+
+//int syntax_test_function(){
+//	targetwindow w;
+//	return w.t1.itype;
+//}
+
+
+//<<<<=====NEW==Nov27,2015=========
+
 
 typedef struct pMainloop{
 	//browser
@@ -318,7 +608,8 @@ typedef struct pMainloop{
 	double viewtransformmatrix[16];
 	double posorimatrix[16];
 	double stereooffsetmatrix[2][16];
-	targetwindow twindows[4];
+	int targets_initialized;
+	targetwindow cwindows[4];
 	int windex; //current window index into twoindows array, valid during render()
 	Stack *_vportstack;
 }* ppMainloop;
@@ -423,7 +714,9 @@ void Mainloop_init(struct tMainloop *t){
 		p->keywaitstring[0] = (char)0;
 		p->fps_sleep_remainder = 0;
 		p->windex = 0;
-		t->twindows = p->twindows;
+		p->targets_initialized = 0;
+		for(i=0;i<4;i++) init_targetwindow(&p->cwindows[i]);
+		//t->twindows = p->twindows;
 		p->_vportstack = newStack(ivec4);
 		t->_vportstack = (void *)p->_vportstack; //represents screen pixel area being drawn to
 	}
@@ -441,12 +734,15 @@ void Mainloop_clear(struct tMainloop *t){
 
 //call hwnd_to_windex in frontend window creation and event handling,
 //to convert to more convenient int index.
+
 int hwnd_to_windex(void *hWnd){
 	int i;
 	targetwindow *targets;
+	ppMainloop p;
 	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
 
-	targets = (targetwindow*)tg->Mainloop.twindows;
+	targets = (targetwindow*)p->cwindows;
 	for(i=0;i<4;i++){
 		//the following line assume hwnd is never natively null or 0
 		if(!targets[i].hwnd){
@@ -467,6 +763,7 @@ void fwl_getWindowSize(int *width, int *height){
 	*width = tg->display.screenWidth;
 	*height = tg->display.screenHeight;	
 }
+
 void fwl_getWindowSize1(int windex, int *width, int *height){
 	//call this one when recieving window events, ie mouse events
 	//windex: index (0-3, 0=default) of targetwindow the window event came in on
@@ -475,11 +772,10 @@ void fwl_getWindowSize1(int windex, int *width, int *height){
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 
-	ivport = p->twindows[windex].ivport;
+	ivport = p->cwindows[windex].ivport;
 	*width = ivport.W;
 	*height = ivport.H;	
 }
-
 
 #define LMB 1
 #define MMB 2
@@ -530,7 +826,7 @@ static void set_viewmatrix();
 static void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive);
 /* void fwl_do_keyPress(char kp, int type); Now in lib.h */
 void render_collisions(int Viewer_type);
-void slerp_viewpoint();
+int slerp_viewpoint();
 static void render_pre(void);
 static void render(void);
 static int setup_pickside(int x, int y);
@@ -666,106 +962,6 @@ render_stage {
 }
 */
 
-void render_stage(stage *stagei,double dtime){
-	contenttype *content;
-	stage *ss;
-	ttglobal tg = gglobal();
-
-	if(stagei->ibuffer == 0){
-		//rendering to normal backbuffer, use current viewport
-		ivec4 ivport = stack_top(ivec4,tg->Mainloop._vportstack);
-		pushviewport(tg->Mainloop._vportstack,ivport);
-	}else{
-		//rendering to fbo
-	}
-	if(0) setcurrentviewport(tg->Mainloop._vportstack);
-
-	//do the sub-stages first, like you do layers in layersets
-	ss = stagei->sub_stages;
-	while(ss){
-		render_stage(ss, dtime);
-		ss++;
-	}
-	//then render over top the current layer/stage
-	content = stagei->content;
-	while(content){
-
-		content->render(); //stagei); //for contenttype_scene should iterate over eyes
-		content = content->next;
-	}
-	popviewport(tg->Mainloop._vportstack);
-	//setcurrentviewport(tg->display._vportstack);
-}
-static float fullviewport[4] = {0.0f, 1.0f, 0.0f, 1.0f};
-void setup_stagesNORMAL(){
-	targetwindow *twindows, *t;
-	stage *stages;
-	ttglobal tg = gglobal();
-	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
-
-	twindows = p->twindows;
-	t = twindows;
-	while(t){
-		contenttype *content;
-		stage *stagei;
-		int noutputstages = 1; //one screen
-		stages = t->stages;
-		t->stage = &stages[0];
-		//for(i=0;i<noutputstages;i++){
-			stagei = t->stage;// &stages[i];
-			content = &stagei->contents[0];
-			stagei->content = content;
-			//stagei->content->prep = fwl_RenderSceneUpdateScene0;
-			content->render = render;
-			stagei->ibuffer = 0;
-			//stagei->nsub = 0;
-			stagei->sub_stages = NULL;
-			stagei->content->itype = 0;
-
-			content = &stagei->contents[1];
-			stagei->content->next = content;
-			content->render = view_update0; //sbh
-			/*
-			stagei->neyes = 1;
-			for(i=0;i<stagei->neyes;i++){
-				eye *eyei = &stagei->eyes[i];
-				eyei->cursor = NULL;
-				eyei->pick = NULL;
-				//eyei->sbh = FALSE;
-				//eyei->ibuffer = 0;
-				eyei->viewport = fullviewport;
-			}
-			*/
-		//}
-		t = t->next;
-	}
-}
-static int stages_initialized = 0;
-void fwl_RenderSceneUpdateSceneSTAGES() {
-	double dtime;
-	int noutputstages;
-	targetwindow *t;
-	stage *stagei;
-	ttglobal tg = gglobal();
-	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
-
-	if(!stages_initialized){
-		setup_stagesNORMAL();
-		stages_initialized = 1;
-	}
-
-	dtime = Time1970sec();
-	fwl_RenderSceneUpdateScene0(dtime);
-
-	t = p->twindows;
-	noutputstages = 1;
-	stagei = t->stage;
-	//for(i=0;i<noutputstages;i++){
-	//	stage *stagei = &output_stages[i];
-		if ( p->onScreen)
-			render_stage(stagei,dtime);
-	//}
-}
 void fwl_RenderSceneUpdateSceneNORMAL() {
 	double dtime;
 	ttglobal tg = gglobal();
@@ -830,7 +1026,7 @@ void targetwindow_set_params(int itargetwindow, freewrl_params_t* params){
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 	
-	twindows = p->twindows;
+	twindows = p->cwindows;
 	twindows[itargetwindow].params = *params;
 	if(itargetwindow > 0){
 		twindows[itargetwindow -1].next = &twindows[itargetwindow];
@@ -849,7 +1045,7 @@ freewrl_params_t* targetwindow_get_params(int itargetwindow){
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 	
-	twindows = p->twindows;
+	twindows = p->cwindows;
 	return &twindows[itargetwindow].params;
 }
 
@@ -864,56 +1060,65 @@ void fwl_setScreenDim1(int wi, int he, int itargetwindow){
 	window_rect.W = wi;
 	window_rect.H = he;
 
-	twindows = p->twindows;
+	twindows = p->cwindows;
 	twindows[itargetwindow].ivport = window_rect;
 	//the rest is initialized in the target rendering loop, via fwl_setScreenDim(w,h)
 }
 
-static int targets_initialized = 0;
-float defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; 
-void initialize_targets_simple(){
-	stage *stagei;
+
+//=====NEW====>>>
+void setup_stagesNORMAL(){
+	targetwindow *twindows, *t;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
-	targetwindow *t = p->twindows;
-
-	if(!t->stages_initialized){
-		setup_stagesNORMAL();
-		t->stages_initialized = 1;
-	}
-
-
-	//t->next = NULL;
+	twindows = p->cwindows;
+	t = twindows;
 	while(t){
-		stagei = t->stage;
-			//stage *stagei = &stages[0];
-			//stagei->content = &contents[0];
-			//stagei->content->prep = fwl_RenderSceneUpdateScene0;
-			stagei->content->render = render;
-			memcpy(stagei->viewport,defaultClipBoundary,4*sizeof(float));
-			stagei->sub_stages = NULL;
-		//t->stage = stagei;
-		//t->ivport = defaultClipBoundary;
-		t->swapbuf = TRUE;
-		t=t->next;
+		contenttype *cstage, *clayer, *cscene, *csbh;
+		cstage = new_contenttype_stage();
+		clayer = new_contenttype_layer();
+		cscene = new_contenttype_scene();
+		csbh = new_contenttype_statusbar();
+		cscene->t1.next = csbh;
+		csbh->t1.next = NULL;
+		clayer->t1.contents = cscene;
+		cstage->t1.contents = clayer;
+		t->stage = cstage;
+		t = t->next;
 	}
-	tg->Mainloop.targets_initialized = 1;
 }
-void fwl_setScreenDim0(int wi, int he);
+
+
+void initialize_targets_simple(){
+
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+
+	targetwindow *t = p->cwindows;
+
+	if(!t->stage){
+		setup_stagesNORMAL();
+	}
+
+
+	p->targets_initialized = 1;
+
+}
+
 void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 	double dtime;
 	targetwindow *t, *twindows;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
-	if(!tg->Mainloop.targets_initialized)
+	if(!p->targets_initialized)
 		initialize_targets_simple();
 
 	dtime = Time1970sec();
 	fwl_RenderSceneUpdateScene0(dtime);
 
-	twindows = p->twindows;
+	twindows = p->cwindows;
 	t = twindows;
 	p->windex = -1;
 	while(t) { 
@@ -923,59 +1128,56 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 		stage *s;
 
 		p->windex++;
-		fwl_setScreenDim0(t->ivport.W, t->ivport.H);
+		s = (stage*)(t->stage); // assumes t->stage.t1.type == CONTENTTYPE_STAGE
+		if(s->type == STAGETYPE_BACKBUF){
+			s->ivport = t->ivport;
+		}else{ 
+			//if s->type == STAGETYPE_FBO
+			//s->ivport = f(twindow->ivport) ie you might resize the fbo if your target window is big/small
+		}
+		fwl_setScreenDim0(s->ivport.W, s->ivport.H); //or t2->ivport ?
 		dp = (freewrl_params_t*)tg->display.params;
 		if(t->params.context != dp->context){
 			tg->display.params = (void*)&t->params;
 			fv_change_GLcontext((freewrl_params_t*)tg->display.params);
 			//printf("%ld %ld %ld\n",t->params.display,t->params.context,t->params.surface);
 		}
-		doglClearColor();
-
+		//moved to render	doglClearColor();
 		vportstack = (Stack *)tg->Mainloop._vportstack;
 		pushviewport(vportstack,t->ivport);
-
-		s = t->stage;
-		//while(s){
-
-			render_stage(s,dtime);
-			//s = s->next;
-			/*
-			content *data;
-			//[set buffer ie if 1-buffer fbo technqiue]
-			//push buffer viewport
-			vport = childViewport(pvport,s->viewport);
-			pushviewport(vportstack, vport);
-			//[clear buffer]
-			glClear(GL_DEPTH);
-			data = s->data;
-			while(data){ // scene [,sbh]
-				//push content area viewport
-				for view in views //for now, just vp, future [,side, top, front]
-					push projection
-					push / alter view matrix
-					for eye in eyes
-						[set buffer ie if 2-buffer fbo technique]
-						push eye viewport
-						push or alter view matrix
-						render from last stage output to this stage output, applying stage-specific
-						pop
-					pop
-				pop
-				data = data->next;
-			}
-			popviewport(vportstack);
-			setcurrentviewport(vportstack);
-			*/
-		//}
+		s->t1.render(s);
 		//get final buffer, or swapbuffers	
 		popviewport(vportstack);
 		//setcurrentviewport(vportstack);
 		if(t->swapbuf) { FW_GL_SWAPBUFFERS }
-		t = t->next;
+		t = (targetwindow*) t->next;
 	}
 	p->windex = 0;
 }
+//<<<<<=====NEW=====
+int fwl_handle_mouse(int mev, int butnum, int mouseX, int mouseY, int windex){
+	int cursorStyle, iret;
+	Stack *vportstack;
+	targetwindow *t;
+	stage *s;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+
+	t = &p->cwindows[windex];
+	s = (stage*)t->stage;
+	if(!s) return 0; //sometimes mouse events can start before a draw events (where stages are initialized)
+	if(s->type == STAGETYPE_BACKBUF)
+		s->ivport = t->ivport;
+	vportstack = (Stack *)tg->Mainloop._vportstack;
+	pushviewport(vportstack,s->ivport);
+	cursorStyle = s->t1.pick(s,mev,butnum,mouseX,mouseY,windex);
+	cursorStyle = cursorStyle < 0? 0 : cursorStyle;
+	popviewport(vportstack);
+	return cursorStyle;
+}
+
+
+
 void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneTARGETWINDOWS;
 //#else //MULTI_WINDOW
 ////void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneNORMAL;
@@ -1713,11 +1915,7 @@ void handle_Xevents(XEvent event) {
 
 		case ButtonPress:
 		case ButtonRelease:
-#ifdef STATUSBAR_HUD
-			cursorStyle = statusbar_handle_mouse1(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y,windex);
-#else
-			cursorStyle = fwl_handle_aqua1(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y,windex);
-#endif
+			cursorStyle = fwl_handle_mouse(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y,windex);
 			setCursor(cursorStyle);
 			//if(0){
 			//	/* printf("got a button press or button release\n"); */
@@ -1749,11 +1947,7 @@ void handle_Xevents(XEvent event) {
 					}
 			}
 #endif /* KEEP_X11_INLIB */
-#ifdef STATUSBAR_HUD
-			cursorStyle = statusbar_handle_mouse1(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y,windex);
-#else
-			cursorStyle = fwl_handle_aqua1(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y,windex);
-#endif
+			cursorStyle = fwl_handle_mouse(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y,windex);
 			setCursor(cursorStyle);
 			//if(0){
 
@@ -2195,8 +2389,8 @@ static void render()
 	p = (ppMainloop)tg->Mainloop.prv;
 
 	setup_projection();
-	setup_picking();
-
+	if(0) setup_picking();
+	doglClearColor();
 	for (count = 0; count < p->maxbuffers; count++) {
 
 		Viewer()->buffer = (unsigned)p->bufferarray[count];
@@ -2396,8 +2590,8 @@ static void setup_viewpoint() {
 		matmultiplyAFFINE(viewmatrix,p->posorimatrix,viewmatrix); 
 		matmultiplyAFFINE(viewmatrix,p->viewtransformmatrix,viewmatrix); 
 		fw_glSetDoublev(GL_MODELVIEW_MATRIX, viewmatrix);
-		slerp_viewpoint(); //just starting block
-		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->viewtransformmatrix);
+		if(slerp_viewpoint()) //just starting block
+			fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->viewtransformmatrix);
 
 }
 
@@ -4062,8 +4256,8 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	}
 	/* save this one... This allows Sensors to get mouse movements if required. */
 	p->lastMouseEvent = mev;
-	fwl_getWindowSize1(windex,&screenWidth,&screenHeight);
 
+	fwl_getWindowSize1(windex,&screenWidth,&screenHeight);
 	/* save the current x and y positions for picking. */
 	touch = &p->touchlist[ID];
 	touch->x = x;

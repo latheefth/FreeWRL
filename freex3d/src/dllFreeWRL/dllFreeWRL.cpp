@@ -289,11 +289,7 @@ void CdllFreeWRL::onResize(int width,int height){
 void CdllFreeWRL::onMouse(int mouseAction,int mouseButton,int x, int y){
 
 	if(fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
-#ifdef STATUSBAR_HUD
-		statusbar_handle_mouse(mouseAction,mouseButton,x,y);
-#else
-		fwl_handle_aqua(mouseAction,mouseButton,x,y); 
-#endif
+		fwl_handle_mouse(mouseAction,mouseButton,x,y,0); 
 	}
 	fwl_clearCurrentHandle();
 }
