@@ -2682,18 +2682,21 @@ void statusbar_set_window_size(int width, int height)
 int getCursorStyle();
 int statusbar_handle_mouse1(int mev, int butnum, int mouseX, int mouseY, int windex)
 {
-	int yup;
+	int yup, iret;
 	ttglobal tg = gglobal();
 	ppstatusbar p = (ppstatusbar)tg->statusbar.prv;
 	updateWindowSize1(windex);
 	yup = p->screenHeight - mouseY;
-	if (!handleStatusbarHud1(mev, butnum, mouseX, yup, windex)){
+	iret = handleStatusbarHud1(mev, butnum, mouseX, yup, windex);
+	if (!iret){
 		fwl_set_frontend_using_cursor(FALSE);
-		fwl_handle_aqua1(mev, butnum, mouseX, mouseY, windex); /* ,gcWheelDelta); */
+		iret = -1;
+//		fwl_handle_aqua1(mev, butnum, mouseX, mouseY, windex); /* ,gcWheelDelta); */
 	}else{
 		fwl_set_frontend_using_cursor(TRUE);
+		iret = getCursorStyle();
 	}
-	return getCursorStyle();
+	return iret;
 }
 int statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY)
 {
