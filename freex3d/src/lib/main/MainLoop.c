@@ -23,7 +23,7 @@
     You should have received a copy of the GNU General Public License
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
-//#define USE_OLD 1
+
 
 #include <config.h>
 #include <system.h>
@@ -537,61 +537,6 @@ void init_targetwindow(void *_self){
 
 //<<<<=====NEW==Nov27,2015=========
 
-#ifdef USE_OLD
-//====OLD=====>>>
-
-typedef struct _contenttype {
-	int itype; //0 scene, 1 statusbarHud, 2 texture grid
-	void (*render)(); //struct stage *s);
-	//void (*cursor)(int *x, int *y); //return transformed cursor coords, in pixels
-	//float viewport[4]; //fraction of parent viewport left, width, bottom, height
-	struct _contenttype *next;
-	//void *data;
-} _contenttype;
-
-
-//typedef struct contenttype_scene {
-//	//int neyes; //1 mono vp, 2 stereo vp, 4 quadrant front,top,right,vp
-//	//eye eyes[7]; //full, left, front, top, right, vp
-//	int eyenumber;
-//} contenttype_scene;
-
-
-/* stage wraps contenttype and opengl buffer (screen backbuffer or fbo)
-	and allows chaining and forking of stages
-	- so a single output window can be rendered from multiple stages
-		working back from the window to the scene, the scene is rendered first, 
-			then any menu stage
-			then any distortion stage
-	- and a single stage can be composed of multiple stages, 
-		- covering the same viewport but clearing depth buffer between each stage
-		- and/or covering sub-viewports / tiles
-*/
-typedef struct _stage {
-	//unsigned int id; 
-	unsigned int ibuffer; //fbo or backbuffer GL_UINT
-	_contenttype *content;
-	_contenttype contents[10];
-	struct _stage *sub_stages; //null terminated list of substages, use stage++ in loop
-	float viewport[4]; //fraction of parent viewport left, width, bottom, height
-	//int want_statusbarHud;
-} _stage;
-
-typedef struct _targetwindow {
-	//a target is a window. For example you could have an HMD as one target, 
-	//and desktop screen window as another target, both rendered to on the same frame
-	void *hwnd; //window handle
-	BOOL swapbuf; //true if we should swapbuffer on the target
-	ivec4 ivport; //fraction of pixel iviewport we are targeting left, width, bottom, height
-	freewrl_params_t params; //will have gl context switching parameters
-	_stage stages[2]; //pre-allocation
-	//stage *output_stages;
-	int stages_initialized;
-	_stage *stage;
-	struct _targetwindow *next;
-} _targetwindow;
-//<<<====OLD=====
-#endif
 
 typedef struct pMainloop{
 	//browser
@@ -664,9 +609,6 @@ typedef struct pMainloop{
 	double posorimatrix[16];
 	double stereooffsetmatrix[2][16];
 	int targets_initialized;
-#ifdef USE_OLD
-	_targetwindow twindows[4];
-#endif
 	targetwindow cwindows[4];
 	int windex; //current window index into twoindows array, valid during render()
 	Stack *_vportstack;
@@ -792,27 +734,7 @@ void Mainloop_clear(struct tMainloop *t){
 
 //call hwnd_to_windex in frontend window creation and event handling,
 //to convert to more convenient int index.
-#ifdef USE_OLD
-int hwnd_to_windex(void *hWnd){
-	int i;
-	_targetwindow *targets;
-	ppMainloop p;
-	ttglobal tg = gglobal();
-	p = (ppMainloop)tg->Mainloop.prv;
 
-	targets = (_targetwindow*)p->twindows;
-	for(i=0;i<4;i++){
-		//the following line assume hwnd is never natively null or 0
-		if(!targets[i].hwnd){
-			//not found, create
-			targets[i].hwnd = hWnd;
-			targets[i].swapbuf = TRUE;
-		}
-		if(targets[i].hwnd == hWnd) return i;
-	}
-	return 0;
-}
-#else
 int hwnd_to_windex(void *hWnd){
 	int i;
 	targetwindow *targets;
@@ -832,7 +754,7 @@ int hwnd_to_windex(void *hWnd){
 	}
 	return 0;
 }
-#endif
+
 void fwl_getWindowSize(int *width, int *height){
 	//call this one when in target rendering loop (and setScreenDim0() 
 	// has been called with targetwindow-specific dimensions)
@@ -841,21 +763,8 @@ void fwl_getWindowSize(int *width, int *height){
 	*width = tg->display.screenWidth;
 	*height = tg->display.screenHeight;	
 }
-#ifdef USE_OLD
-void fwl_getWindowSize1_OLD(int windex, int *width, int *height){
-	//call this one when recieving window events, ie mouse events
-	//windex: index (0-3, 0=default) of targetwindow the window event came in on
-	ivec4 ivport;
-	ppMainloop p;
-	ttglobal tg = gglobal();
-	p = (ppMainloop)tg->Mainloop.prv;
 
-	ivport = p->twindows[windex].ivport;
-	*width = ivport.W;
-	*height = ivport.H;	
-}
-#endif
-void fwl_getWindowSize1_NEW(int windex, int *width, int *height){
+void fwl_getWindowSize1(int windex, int *width, int *height){
 	//call this one when recieving window events, ie mouse events
 	//windex: index (0-3, 0=default) of targetwindow the window event came in on
 	ivec4 ivport;
@@ -867,13 +776,7 @@ void fwl_getWindowSize1_NEW(int windex, int *width, int *height){
 	*width = ivport.W;
 	*height = ivport.H;	
 }
-void fwl_getWindowSize1(int windex, int *width, int *height){
-#ifdef USE_OLD
-	fwl_getWindowSize1_OLD(windex, width, height);
-#else
-	fwl_getWindowSize1_NEW(windex, width, height);
-#endif
-}
+
 #define LMB 1
 #define MMB 2
 #define RMB 3
@@ -1058,109 +961,7 @@ render_stage {
 	setcurrentviewport(vportstack);
 }
 */
-#ifdef USE_OLD
-void render_stage(_stage *stagei,double dtime){
-	_contenttype *content;
-	_stage *ss;
-	ttglobal tg = gglobal();
 
-	if(stagei->ibuffer == 0){
-		//rendering to normal backbuffer, use current viewport
-		ivec4 ivport = stack_top(ivec4,tg->Mainloop._vportstack);
-		pushviewport(tg->Mainloop._vportstack,ivport);
-	}else{
-		//rendering to fbo
-	}
-	if(0) setcurrentviewport(tg->Mainloop._vportstack);
-
-	//do the sub-stages first, like you do layers in layersets
-	ss = stagei->sub_stages;
-	while(ss){
-		render_stage(ss, dtime);
-		ss++;
-	}
-	//then render over top the current layer/stage
-	content = stagei->content;
-	while(content){
-
-		content->render(); //stagei); //for contenttype_scene should iterate over eyes
-		content = content->next;
-	}
-	popviewport(tg->Mainloop._vportstack);
-	//setcurrentviewport(tg->display._vportstack);
-}
-static float fullviewport[4] = {0.0f, 1.0f, 0.0f, 1.0f};
-void setup_stagesNORMAL(){
-	_targetwindow *twindows, *t;
-	_stage *stages;
-	ttglobal tg = gglobal();
-	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
-
-	twindows = p->twindows;
-	t = twindows;
-	while(t){
-		_contenttype *content;
-		_stage *stagei;
-		int noutputstages = 1; //one screen
-		stages = t->stages;
-		t->stage = &stages[0];
-		//for(i=0;i<noutputstages;i++){
-			stagei = t->stage;// &stages[i];
-			content = &stagei->contents[0];
-			stagei->content = content;
-			//stagei->content->prep = fwl_RenderSceneUpdateScene0;
-			content->render = render;
-			stagei->ibuffer = 0;
-			//stagei->nsub = 0;
-			stagei->sub_stages = NULL;
-			stagei->content->itype = 0;
-
-			content = &stagei->contents[1];
-			stagei->content->next = content;
-			content->render = view_update0; //sbh
-			/*
-			stagei->neyes = 1;
-			for(i=0;i<stagei->neyes;i++){
-				eye *eyei = &stagei->eyes[i];
-				eyei->cursor = NULL;
-				eyei->pick = NULL;
-				//eyei->sbh = FALSE;
-				//eyei->ibuffer = 0;
-				eyei->viewport = fullviewport;
-			}
-			*/
-		//}
-		t = t->next;
-	}
-}
-
-static int stages_initialized = 0;
-void fwl_RenderSceneUpdateSceneSTAGES() {
-	double dtime;
-	int noutputstages;
-	_targetwindow *t;
-	_stage *stagei;
-	ttglobal tg = gglobal();
-	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
-
-	if(!stages_initialized){
-		setup_stagesNORMAL();
-		stages_initialized = 1;
-	}
-
-	dtime = Time1970sec();
-	fwl_RenderSceneUpdateScene0(dtime);
-
-	t = p->twindows;
-	noutputstages = 1;
-	stagei = t->stage;
-	//for(i=0;i<noutputstages;i++){
-	//	stage *stagei = &output_stages[i];
-		if ( p->onScreen)
-			render_stage(stagei,dtime);
-	//}
-}
-#endif
 void fwl_RenderSceneUpdateSceneNORMAL() {
 	double dtime;
 	ttglobal tg = gglobal();
@@ -1219,52 +1020,8 @@ something similar for pickrays, except pick() instead of render()
 
 */
 
-#ifdef USE_OLD
-void targetwindow_set_params_OLD(int itargetwindow, freewrl_params_t* params){
-	_targetwindow *twindows, *t;
-	ttglobal tg = gglobal();
-	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
-	
-	twindows = p->twindows;
-	twindows[itargetwindow].params = *params;
-	if(itargetwindow > 0){
-		twindows[itargetwindow -1].next = &twindows[itargetwindow];
-	}
-	if(0){
-		t = twindows;
-		while(t){
-			printf("windex=%d t->next = %ld\n",itargetwindow,t->next);
-			t=t->next;
-		}
-		printf("hows that?\n");
-	}
-}
-freewrl_params_t* targetwindow_get_params_OLD(int itargetwindow){
-	_targetwindow *twindows;
-	ttglobal tg = gglobal();
-	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
-	
-	twindows = p->twindows;
-	return &twindows[itargetwindow].params;
-}
 
-void fwl_setScreenDim1_OLD(int wi, int he, int itargetwindow){
-	_targetwindow *twindows;
-	ivec4 window_rect;
-	ttglobal tg = gglobal();
-	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
-
-	window_rect.X = 0;
-	window_rect.Y = 0;
-	window_rect.W = wi;
-	window_rect.H = he;
-
-	twindows = p->twindows;
-	twindows[itargetwindow].ivport = window_rect;
-	//the rest is initialized in the target rendering loop, via fwl_setScreenDim(w,h)
-}
-#endif
-void targetwindow_set_params_NEW(int itargetwindow, freewrl_params_t* params){
+void targetwindow_set_params(int itargetwindow, freewrl_params_t* params){
 	targetwindow *twindows, *t;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
@@ -1283,7 +1040,7 @@ void targetwindow_set_params_NEW(int itargetwindow, freewrl_params_t* params){
 		printf("hows that?\n");
 	}
 }
-freewrl_params_t* targetwindow_get_params_NEW(int itargetwindow){
+freewrl_params_t* targetwindow_get_params(int itargetwindow){
 	targetwindow *twindows;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
@@ -1292,7 +1049,7 @@ freewrl_params_t* targetwindow_get_params_NEW(int itargetwindow){
 	return &twindows[itargetwindow].params;
 }
 
-void fwl_setScreenDim1_NEW(int wi, int he, int itargetwindow){
+void fwl_setScreenDim1(int wi, int he, int itargetwindow){
 	targetwindow *twindows;
 	ivec4 window_rect;
 	ttglobal tg = gglobal();
@@ -1308,136 +1065,9 @@ void fwl_setScreenDim1_NEW(int wi, int he, int itargetwindow){
 	//the rest is initialized in the target rendering loop, via fwl_setScreenDim(w,h)
 }
 
-void targetwindow_set_params(int itargetwindow, freewrl_params_t* params){
-#ifdef USE_OLD
-	targetwindow_set_params_OLD(itargetwindow,params);
-#else
-	targetwindow_set_params_NEW(itargetwindow,params);
-#endif
-}
-freewrl_params_t* targetwindow_get_params(int itargetwindow){
-#ifdef USE_OLD
-	return targetwindow_get_params_OLD(itargetwindow);
-#else
-	return targetwindow_get_params_NEW(itargetwindow);
-#endif
-}
-void fwl_setScreenDim1(int wi, int he, int itargetwindow){
-#ifdef USE_OLD
-	fwl_setScreenDim1_OLD(wi,he,itargetwindow);
-#else
-	fwl_setScreenDim1_NEW(wi,he,itargetwindow);
-#endif
-}
-#ifdef USE_OLD
-void initialize_targets_simple(){
-	_stage *stagei;
-	ttglobal tg = gglobal();
-	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
-	_targetwindow *t = p->twindows;
-
-	if(!t->stages_initialized){
-		setup_stagesNORMAL();
-		t->stages_initialized = 1;
-	}
-
-
-	//t->next = NULL;
-	while(t){
-		stagei = t->stage;
-			//stage *stagei = &stages[0];
-			//stagei->content = &contents[0];
-			//stagei->content->prep = fwl_RenderSceneUpdateScene0;
-			stagei->content->render = render;
-			memcpy(stagei->viewport,defaultClipBoundary,4*sizeof(float));
-			stagei->sub_stages = NULL;
-		//t->stage = stagei;
-		//t->ivport = defaultClipBoundary;
-		t->swapbuf = TRUE;
-		t=t->next;
-	}
-	p->targets_initialized = 1;
-}
-void fwl_setScreenDim0(int wi, int he);
-void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
-	double dtime;
-	_targetwindow *t, *twindows;
-	ttglobal tg = gglobal();
-	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
-
-	if(!p->targets_initialized)
-		initialize_targets_simple();
-
-	dtime = Time1970sec();
-	fwl_RenderSceneUpdateScene0(dtime);
-
-	twindows = p->twindows;
-	t = twindows;
-	p->windex = -1;
-	while(t) { 
-		//a targetwindow might be a supervisor's screen, or HMD
-		freewrl_params_t *dp;
-		Stack *vportstack;
-		_stage *s;
-
-		p->windex++;
-		fwl_setScreenDim0(t->ivport.W, t->ivport.H);
-		dp = (freewrl_params_t*)tg->display.params;
-		if(t->params.context != dp->context){
-			tg->display.params = (void*)&t->params;
-			fv_change_GLcontext((freewrl_params_t*)tg->display.params);
-			//printf("%ld %ld %ld\n",t->params.display,t->params.context,t->params.surface);
-		}
-		doglClearColor();
-
-		vportstack = (Stack *)tg->Mainloop._vportstack;
-		pushviewport(vportstack,t->ivport);
-
-		s = t->stage;
-		//while(s){
-
-			render_stage(s,dtime);
-			//s = s->next;
-			/*
-			content *data;
-			//[set buffer ie if 1-buffer fbo technqiue]
-			//push buffer viewport
-			vport = childViewport(pvport,s->viewport);
-			pushviewport(vportstack, vport);
-			//[clear buffer]
-			glClear(GL_DEPTH);
-			data = s->data;
-			while(data){ // scene [,sbh]
-				//push content area viewport
-				for view in views //for now, just vp, future [,side, top, front]
-					push projection
-					push / alter view matrix
-					for eye in eyes
-						[set buffer ie if 2-buffer fbo technique]
-						push eye viewport
-						push or alter view matrix
-						render from last stage output to this stage output, applying stage-specific
-						pop
-					pop
-				pop
-				data = data->next;
-			}
-			popviewport(vportstack);
-			setcurrentviewport(vportstack);
-			*/
-		//}
-		//get final buffer, or swapbuffers	
-		popviewport(vportstack);
-		//setcurrentviewport(vportstack);
-		if(t->swapbuf) { FW_GL_SWAPBUFFERS }
-		t = t->next;
-	}
-	p->windex = 0;
-}
-#endif //USE_OLD
 //=====NEW====>>>
-void setup_stagesNORMAL_NEW(){
+void setup_stagesNORMAL(){
 	targetwindow *twindows, *t;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
@@ -1460,7 +1090,7 @@ void setup_stagesNORMAL_NEW(){
 }
 
 
-void initialize_targets_simple_NEW(){
+void initialize_targets_simple(){
 
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
@@ -1468,7 +1098,7 @@ void initialize_targets_simple_NEW(){
 	targetwindow *t = p->cwindows;
 
 	if(!t->stage){
-		setup_stagesNORMAL_NEW();
+		setup_stagesNORMAL();
 	}
 
 
@@ -1476,14 +1106,14 @@ void initialize_targets_simple_NEW(){
 
 }
 
-void fwl_RenderSceneUpdateSceneTARGETWINDOWS_NEW() {
+void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 	double dtime;
 	targetwindow *t, *twindows;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
 	if(!p->targets_initialized)
-		initialize_targets_simple_NEW();
+		initialize_targets_simple();
 
 	dtime = Time1970sec();
 	fwl_RenderSceneUpdateScene0(dtime);
@@ -1512,7 +1142,7 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS_NEW() {
 			fv_change_GLcontext((freewrl_params_t*)tg->display.params);
 			//printf("%ld %ld %ld\n",t->params.display,t->params.context,t->params.surface);
 		}
-if(0)	doglClearColor();
+		//moved to render	doglClearColor();
 		vportstack = (Stack *)tg->Mainloop._vportstack;
 		pushviewport(vportstack,t->ivport);
 		s->t1.render(s);
@@ -1525,7 +1155,7 @@ if(0)	doglClearColor();
 	p->windex = 0;
 }
 //<<<<<=====NEW=====
-int fwl_handle_mouse_NEW(int mev, int butnum, int mouseX, int mouseY, int windex){
+int fwl_handle_mouse(int mev, int butnum, int mouseX, int mouseY, int windex){
 	int cursorStyle, iret;
 	Stack *vportstack;
 	targetwindow *t;
@@ -1545,28 +1175,10 @@ int fwl_handle_mouse_NEW(int mev, int butnum, int mouseX, int mouseY, int windex
 	popviewport(vportstack);
 	return cursorStyle;
 }
-int fwl_handle_mouse(int mev, int butnum, int mouseX, int mouseY, int windex){
-	int cursorStyle;
-#ifdef USE_OLD
-#ifdef STATUSBAR_HUD
-	//cursorStyle = statusbar_handle_mouse(mev, butnum, mouseX, mouseY);
-	cursorStyle = statusbar_handle_mouse1(mev, butnum, mouseX, mouseY, windex);
-#else
-	cursorStyle = fwl_handle_aqua1(mev, butnum, mouseX, mouseY, windex); /* ,gcWheelDelta); */
-#endif
-#else
-	//use new
-	cursorStyle = fwl_handle_mouse_NEW(mev, butnum, mouseX, mouseY, windex);
-#endif
-	return cursorStyle;
-}
 
 
-#ifdef USE_OLD
+
 void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneTARGETWINDOWS;
-#else
-void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneTARGETWINDOWS_NEW;
-#endif
 //#else //MULTI_WINDOW
 ////void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneNORMAL;
 //void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneSTAGES;
