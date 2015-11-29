@@ -1021,12 +1021,12 @@ static int shiftState = 0;
 	/*void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);*/
 	/* butnum=1 left butnum=3 right (butnum=2 middle, not used by freewrl) */
 		int cursorStyle;
-#ifdef STATUSBAR_HUD
-		//cursorStyle = statusbar_handle_mouse(mev, butnum, mouseX, mouseY);
-		cursorStyle = statusbar_handle_mouse1(mev, butnum, mouseX, mouseY, windex);
-#else
-		cursorStyle = fwl_handle_aqua1(mev, butnum, mouseX, mouseY, windex); /* ,gcWheelDelta); */
-#endif
+//#ifdef STATUSBAR_HUD
+//		//cursorStyle = statusbar_handle_mouse(mev, butnum, mouseX, mouseY);
+//		cursorStyle = statusbar_handle_mouse1(mev, butnum, mouseX, mouseY, windex);
+//#else
+//		cursorStyle = fwl_handle_aqua1(mev, butnum, mouseX, mouseY, windex); /* ,gcWheelDelta); */
+//#endif
 		cursorStyle = fwl_handle_mouse(mev, butnum, mouseX, mouseY, windex); /* ,gcWheelDelta); */
 
 		updateCursorStyle0(cursorStyle);
