@@ -358,8 +358,12 @@ void render();
 void scene_render(void *self){
 	render();
 }
+void setup_picking();
 int scene_pick(void *self, int mev, int butnum, int mouseX, int mouseY, int windex){
-	return fwl_handle_aqua1(mev,butnum,mouseX,mouseY,windex);
+	int iret;
+	iret = fwl_handle_aqua1(mev,butnum,mouseX,mouseY,windex);
+	setup_picking();
+	return iret;
 }
 contenttype *new_contenttype_scene(){
 	contenttype_scene *self = malloc(sizeof(contenttype_scene));
@@ -2773,7 +2777,7 @@ static void render()
 	p = (ppMainloop)tg->Mainloop.prv;
 
 	setup_projection();
-	setup_picking();
+	if(0) setup_picking();
 	doglClearColor();
 	for (count = 0; count < p->maxbuffers; count++) {
 
