@@ -219,6 +219,7 @@ ivec4 viewportFraction(ivec4 vp, float *fraction){
 
 /* contenttype abstracts scene, statusbarhud, and HMD (head-mounted display) textured-distortion-grid
 	- each type has a prep and a render and some data, and a way to handle a pickray
+	- general idea comes from an opengl gui project (dug9gui). When you read 'contenttype' think 'gui widget'.
 */
 //===========NEW=====Nov27,2015================>>>>>
 enum {
@@ -355,10 +356,7 @@ typedef struct contenttype_scene {
 } contenttype_scene;
 void render();
 void scene_render(void *self){
-if(0) return;
 	render();
-if(0) FW_GL_SWAPBUFFERS
-	//printf("7 ");
 }
 int scene_pick(void *self, int mev, int butnum, int mouseX, int mouseY, int windex){
 	return fwl_handle_aqua1(mev,butnum,mouseX,mouseY,windex);
@@ -376,14 +374,9 @@ typedef struct contenttype_statusbar {
 } contenttype_statusbar;
 void view_update0();
 void statusbar_render(void *self){
-if(1)	return;
-if(1)FW_GL_SWAPBUFFERS
 	view_update0();
-if(1)FW_GL_SWAPBUFFERS
-	printf("8 ");
 }
 int statusbar_pick(void *self, int mev, int butnum, int mouseX, int mouseY, int windex){
-	return -1;
 	return statusbar_handle_mouse1(mev,butnum,mouseX,mouseY,windex);
 }
 contenttype *new_contenttype_statusbar(){
@@ -428,7 +421,7 @@ int layer_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int win
 	iret = 0;
 	for(i=0;i<n;i++){
 		//push viewport
-		c = reverse[i];
+		c = reverse[n-i-1];
 		iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,windex);
 		//pop viewport
 		if(iret > -1) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
@@ -1472,6 +1465,12 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS_NEW() {
 
 		p->windex++;
 		s = (stage*)(t->stage); // assumes t->stage.t1.type == CONTENTTYPE_STAGE
+		if(s->type == STAGETYPE_BACKBUF){
+			s->ivport = t->ivport;
+		}else{ 
+			//if s->type == STAGETYPE_FBO
+			//s->ivport = f(twindow->ivport) ie you might resize the fbo if your target window is big/small
+		}
 		fwl_setScreenDim0(s->ivport.W, s->ivport.H); //or t2->ivport ?
 		dp = (freewrl_params_t*)tg->display.params;
 		if(t->params.context != dp->context){
@@ -1496,13 +1495,17 @@ int fwl_handle_mouse_NEW(int mev, int butnum, int mouseX, int mouseY, int windex
 	int cursorStyle, iret;
 	Stack *vportstack;
 	targetwindow *t;
+	stage *s;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
 	t = &p->cwindows[windex];
+	s = t->stage;
+	if(s->type == STAGETYPE_BACKBUF)
+		s->ivport = t->ivport;
 	vportstack = (Stack *)tg->Mainloop._vportstack;
-	pushviewport(vportstack,t->ivport);
-	cursorStyle = t->stage->t1.pick(t->stage,mev,butnum,mouseX,mouseY,windex);
+	pushviewport(vportstack,s->ivport);
+	cursorStyle = s->t1.pick(s,mev,butnum,mouseX,mouseY,windex);
 	cursorStyle = cursorStyle < 0? 0 : cursorStyle;
 	popviewport(vportstack);
 	return cursorStyle;
