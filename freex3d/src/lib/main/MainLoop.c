@@ -23,7 +23,7 @@
     You should have received a copy of the GNU General Public License
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
-#define USE_OLD 1
+//#define USE_OLD 1
 
 #include <config.h>
 #include <system.h>
@@ -299,17 +299,17 @@ void content_render(void *_self){
 }
 int checknpush_viewport(float *vpfraction, int mouseX, int mouseY){
 	Stack *vportstack;
-	ivec4 ivport;
+	ivec4 ivport, ivport1, ivport2;
 	ivec2 pt;
 	int iret;
 
 	vportstack = (Stack *)gglobal()->Mainloop._vportstack;
 	ivport = currentViewport(vportstack);
-	ivport = viewportFraction(ivport, vpfraction);
+	ivport1 = viewportFraction(ivport, vpfraction);
 	pt.X = mouseX;
 	pt.Y = mouseY;
-	iret = pointinsideviewport(ivport,pt);
-	if(iret) pushviewport(vportstack,ivport);
+	iret = pointinsideviewport(ivport1,pt);
+	if(iret) pushviewport(vportstack,ivport1);
 	return iret;
 		
 }
@@ -431,7 +431,7 @@ int layer_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int win
 		c = reverse[i];
 		iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,windex);
 		//pop viewport
-		if(iret) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
+		if(iret > -1) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
 	}
 	return iret;
 }
@@ -1494,13 +1494,17 @@ if(0)	doglClearColor();
 //<<<<<=====NEW=====
 int fwl_handle_mouse_NEW(int mev, int butnum, int mouseX, int mouseY, int windex){
 	int cursorStyle, iret;
+	Stack *vportstack;
 	targetwindow *t;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
 	t = &p->cwindows[windex];
+	vportstack = (Stack *)tg->Mainloop._vportstack;
+	pushviewport(vportstack,t->ivport);
 	cursorStyle = t->stage->t1.pick(t->stage,mev,butnum,mouseX,mouseY,windex);
 	cursorStyle = cursorStyle < 0? 0 : cursorStyle;
+	popviewport(vportstack);
 	return cursorStyle;
 }
 int fwl_handle_mouse(int mev, int butnum, int mouseX, int mouseY, int windex){
