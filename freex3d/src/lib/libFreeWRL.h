@@ -354,6 +354,8 @@ void fwg_frontEndReturningLocalFile(char *localfile, int iret);
 void fwl_RenderSceneUpdateScene(void);
 void fwl_gotoCurrentViewPoint();
 void fwl_setScreenDim(int wi, int he);
+void fwl_setScreenDim0(int wi, int he);
+void fwl_setScreenDim1(int wi, int he, int windex);
 bool fwl_initialize_GL(void);
 void fwl_setLastMouseEvent(int etype);
 int fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);

@@ -1072,6 +1072,7 @@ void handle_dist(const int mev, const unsigned int button, float x, float y) {
 	examine = &p->Viewer.examine;
 	pp.z=p->Viewer.Dist;
 
+	//ConsoleMessage("handle_dist but %d mev %d\n", button, mev);
 	//yy = 1.0 - y;
 	yy = y;
 	if (mev == ButtonPress) {
@@ -1581,8 +1582,8 @@ void handle_tick_tilt(double dtime) {
 void handle0(const int mev, const unsigned int button, const float x, const float yup)
 {
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
-	/* printf("Viewer handle: viewer_type %s, mouse event %d, button %u, x %f, y %f\n", 
-	   lookup_navmodestring(p->Viewer.type), mev, button, x, y); */
+	/* ConsoleMessage("Viewer handle: viewer_type %s, mouse event %d, button %u, x %f, y %f\n", 
+	   lookup_navmodestring(p->Viewer.type), mev, button, x, yup); */
 
 	if (button == 2) {
 		return;
