@@ -300,7 +300,7 @@ void content_render(void *_self){
 }
 int checknpush_viewport(float *vpfraction, int mouseX, int mouseY){
 	Stack *vportstack;
-	ivec4 ivport, ivport1, ivport2;
+	ivec4 ivport, ivport1;
 	ivec2 pt;
 	int iret;
 
@@ -362,7 +362,8 @@ void setup_picking();
 int scene_pick(void *self, int mev, int butnum, int mouseX, int mouseY, int windex){
 	int iret;
 	iret = fwl_handle_aqua1(mev,butnum,mouseX,mouseY,windex);
-	setup_picking();
+	//handle_aqua_multiNORMAL stores xy in touch state for picking 
+	//see render() for setup_picking() which uses the touch to do sensor nodes
 	return iret;
 }
 contenttype *new_contenttype_scene(){
@@ -1495,16 +1496,18 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 }
 
 void setup_picking(){
+	int windex;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
-
+	windex = p->windex;
 	/* handle_mouse events if clicked on a sensitive node */
 	//printf("nav mode =%d sensitive= %d\n",p->NavigationMode, tg->Mainloop.HaveSensitive);
 	if (!p->NavigationMode && tg->Mainloop.HaveSensitive && !Viewer()->LookatMode && !tg->Mainloop.SHIFT) {
 		//p->currentCursor = 0;
 		int x,yup;
 		struct Touch *touch = currentTouch();
+		if(touch->windex != windex) return;
 		x = touch->x;
 		yup = touch->y;
 		if(setup_pickside(x,yup)){
@@ -1513,6 +1516,7 @@ void setup_picking(){
 			//setup_viewpoint();
 			set_viewmatrix();
 			render_hier(rootNode(),VF_Sensitive  | VF_Geom);
+
 			p->CursorOverSensitive = getRayHit();
 
 			/* for nodes that use an "isOver" eventOut... */
@@ -1610,6 +1614,7 @@ void setup_picking(){
 			//p->currentCursor = 0;
 			int x, yup;
 			struct Touch * touch = currentTouch();
+			if(touch->windex != windex) return;
 			x = touch->x;
 			yup = touch->y;
 			if(setup_pickside(x,yup)){ //tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor])){
@@ -2136,6 +2141,7 @@ void setup_projection()
 	top = vport.Y + vport.H; //or .H - .Y?  CHANGE OF MEANING used to be 0 at top of screen, now its more like screenHeight
 	bottom = vport.Y + tg->Mainloop.clipPlane;
 	screenheight = top - bottom; //tg->display.screenHeight - bottom;
+	//printf("sw %d sh %d x %d y %d\n",screenwidth2,screenheight,xvp,bottom);
 	PRINT_GL_ERROR_IF_ANY("XEvents::start of setup_projection");
 
 	scissorxl = xvp;
@@ -2224,6 +2230,7 @@ void setup_projection()
 	}
 
 	FW_GL_MATRIX_MODE(GL_PROJECTION);
+
 	/* >>> statusbar hud */
 	if(tg->Mainloop.clipPlane != 0 || viewer->updown || viewer->sidebyside)
 	{   
@@ -2233,6 +2240,7 @@ void setup_projection()
 		FW_GL_SCISSOR(scissorxl,bottom,scissorxr-scissorxl,screenheight);
 		glEnable(GL_SCISSOR_TEST);
 	}
+
 	/* <<< statusbar hud */
 	// side-by-side eyebase fiducials (see fiducialDraw())
 	p->viewpointScreenX[viewer->iside] = xvp + screenwidth2/2;
@@ -2243,6 +2251,7 @@ void setup_projection()
     else{
         FW_GL_VIEWPORT(xvp, bottom, screenwidth2, screenheight);
     }
+
 	FW_GL_LOAD_IDENTITY();
 
 	/* ortho projection or perspective projection? */
@@ -2389,7 +2398,8 @@ static void render()
 	p = (ppMainloop)tg->Mainloop.prv;
 
 	setup_projection();
-	if(0) setup_picking();
+	setup_picking();
+
 	doglClearColor();
 	for (count = 0; count < p->maxbuffers; count++) {
 
@@ -4240,24 +4250,31 @@ void freewrlDie (const char *format) {
         fwl_doQuit();
 }
 void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x, int y, int ID, int windex) {
-	int count;
+	int count, ibutton;
 	int screenWidth, screenHeight;
 	struct Touch *touch;
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
-	if(0){
-		printf ("fwl_handle_aqua in MainLoop; mev %d but %d x %d y %d ID %d ",
-				mev, button, x,y,ID);
-		if (mev == ButtonPress) printf ("ButtonPress\n");
-		else if (mev == ButtonRelease) printf ("ButtonRelease\n");
-		else if (mev == MotionNotify) printf ("MotionNotify\n");
-		else printf ("event %d\n",mev); 
-	}
 	/* save this one... This allows Sensors to get mouse movements if required. */
 	p->lastMouseEvent = mev;
 
+	//winRT but =1 when mev = motion, others but = 0 when mev = motion. 
+	//make winRT the same as the others:
+	ibutton = button;
+	if (mev == MotionNotify) ibutton = 0;
+
 	fwl_getWindowSize1(windex,&screenWidth,&screenHeight);
+	if (0){
+		ConsoleMessage("fwl_handle_aqua in MainLoop; mev %d but %d x %d y %d ID %d ",
+			mev, ibutton, x, y, ID);
+		ConsoleMessage("wndx %d swi %d shi %d ", windex, screenWidth, screenHeight);
+		if (mev == ButtonPress) ConsoleMessage("ButtonPress\n");
+		else if (mev == ButtonRelease) ConsoleMessage("ButtonRelease\n");
+		else if (mev == MotionNotify) ConsoleMessage("MotionNotify\n");
+		else ConsoleMessage("event %d\n", mev);
+	}
+
 	/* save the current x and y positions for picking. */
 	touch = &p->touchlist[ID];
 	touch->x = x;
@@ -4265,7 +4282,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	touch->fx = (float)(x) / (float)screenWidth;
 	touch->fy = (float)(y) / (float)screenHeight;
 	touch->windex = windex;
-	touch->buttonState[button] = mev == ButtonPress;
+	touch->buttonState[ibutton] = mev == ButtonPress;
 	touch->ID = ID; /*will come in handy if we change from array[] to accordian list*/
 	touch->mev = mev;
 	touch->angle = 0.0f;
@@ -4274,10 +4291,14 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	if ((mev == ButtonPress) || (mev == ButtonRelease)) {
 		/* if we are Not over an enabled sensitive node, and we do NOT already have a
 			button down from a sensitive node... */
-
+		//void *p1, *p2;
+		//p1 = p->CursorOverSensitive;
+		//p2 = p->lastPressedOver;
+		//ConsoleMessage("p1 %d p2 %d", p1, p2);
 		if (((p->CursorOverSensitive ==NULL) && (p->lastPressedOver ==NULL)) || Viewer()->LookatMode || tg->Mainloop.SHIFT) {
 			p->NavigationMode = touch->buttonState[LMB] || touch->buttonState[RMB];
-			handle(mev, button, (float) ((float)x/screenWidth), (float) ((float)y/screenHeight));
+			//ConsoleMessage("pNM %d \n", p->NavigationMode);
+			handle(mev, ibutton, (float)((float)x / screenWidth), (float)((float)y / screenHeight));
 		}
 	}
 
@@ -4286,6 +4307,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 			/* find out what the first button down is */
 			count = 0;
 			while ((count < 4) && (!touch->buttonState[count])) count++;
+			//ConsoleMessage("mev %d pNM %d count %d \n", mev, p->NavigationMode, count);
 			if (count == 4) return; /* no buttons down???*/
 
 			handle (mev, (unsigned) count, (float) ((float)x/screenWidth), (float) ((float)y/screenHeight));

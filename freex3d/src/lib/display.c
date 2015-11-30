@@ -286,7 +286,7 @@ int fv_display_initialize_desktop(){
 		return fv_display_initialize(); //display_initialize now really means initialize generic backend opengl
 	}
 
-	nwindows = 1; //1 is normal freewrl, 2 or 3 is freaky 2,3 windowed freewrl for experiments, search targetwindow and windex
+	nwindows = 3; //1 is normal freewrl, 2 or 3 is freaky 2,3 windowed freewrl for experiments, search targetwindow and windex
 	if(!p->multi_window_capable) nwindows = 1;
  	/* make the window, get the OpenGL context */
 	if(!fv_create_window_and_context(dp, NULL)){
