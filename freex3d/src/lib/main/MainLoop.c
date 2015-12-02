@@ -1101,7 +1101,10 @@ void setup_stagesNORMAL(){
 		contenttype *cstage, *clayer, *cscene, *csbh;
 		cstage = new_contenttype_stage();
 		clayer = new_contenttype_layer();
-		//clayer->t1.viewport[0] = .5f; //test examine fx,fy coords
+		clayer->t1.viewport[0] = .1f; //test examine fx,fy coords
+		clayer->t1.viewport[1] = .9f;
+		clayer->t1.viewport[2] = .1f;
+		clayer->t1.viewport[3] = .9f;
 		cscene = new_contenttype_scene();
 		csbh = new_contenttype_statusbar();
 		cscene->t1.next = csbh;
