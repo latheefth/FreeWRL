@@ -189,18 +189,29 @@ ivec4 viewportFraction(ivec4 vp, float *fraction){
 	MFFloat [in,out] clipBoundary   0 1 0 1  [0,1]
 	"The clipBoundary field is specified in fractions of the normal render surface in the sequence left/right/bottom/top. "
 	so my fraction calculation should be something like:
-	X = X + W*f0
-	Y = Y + H*F2
-	W = W*F1 - X
-	H = H*F3 - Y
+	L = X + W*f0
+	R = X + W*f1
+	B = Y + H*f2
+	T = Y + H*f3
+	
+	W = R - L
+	H = T - B
+	X = L
+	Y = B
 	*/
 	ivec4 res;
-	//new left and bottom
-	res.X = vp.X + vp.W*fraction[0];
-	res.Y = vp.Y + vp.H*fraction[2];
-	//W = right - left, H = top - bottom
-	res.W = vp.W * fraction[1] - res.X;
-	res.H = vp.H * fraction[3] - res.Y;
+	int L,R,B,T; //left,right,bottom,top
+
+	L = vp.X + vp.W*fraction[0];
+	R = vp.X + vp.W*fraction[1];
+	B = vp.Y + vp.H*fraction[2];
+	T = vp.Y + vp.H*fraction[3];
+
+	res.W = R - L;
+	res.H = T - B;
+	res.X = L;
+	res.Y = B;
+
 	return res;
 }
 
@@ -245,10 +256,6 @@ typedef struct eye {
 eye *new_eye(){
 	return malloc(sizeof(eye));
 }
-//typedef struct tlinktype {
-//	void *contents; //iterate over children using children->next
-//	void *next; //helps parent iterate over its children
-//}
 
 void pushnset_viewport(float *vpFraction){
 	//call this from render() function (not from pick function)
@@ -311,6 +318,11 @@ int checknpush_viewport(float *vpfraction, int mouseX, int mouseY){
 	pt.Y = mouseY;
 	iret = pointinsideviewport(ivport1,pt);
 	if(iret) pushviewport(vportstack,ivport1);
+	//else {
+	//	printf("in checknpush_viewport in:\n");
+	//	printf("ivp  %d %d %d %d fraction %f %f %f %f\n",ivport.X,ivport.W,ivport.Y,ivport.H,vpfraction[0],vpfraction[1],vpfraction[2],vpfraction[3],mouseX,mouseY);
+	//	printf("ivp1 %d %d %d %d mouse %d %d\n",ivport1.X,ivport1.W,ivport1.Y,ivport1.H,mouseX,mouseY);
+	//}
 	return iret;
 		
 }
@@ -322,7 +334,7 @@ int content_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int w
 	contenttype *c, *self;
 
 	self = (contenttype *)_self;
-	iret = 0;
+	iret = -1;
 	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
 		c = self->t1.contents;
 		while(c){
@@ -359,11 +371,18 @@ void scene_render(void *self){
 	render();
 }
 void setup_picking();
-int scene_pick(void *self, int mev, int butnum, int mouseX, int mouseY, int windex){
+int scene_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int windex){
 	int iret;
-	iret = fwl_handle_aqua1(mev,butnum,mouseX,mouseY,windex);
-	//handle_aqua_multiNORMAL stores xy in touch state for picking 
-	//see render() for setup_picking() which uses the touch to do sensor nodes
+	contenttype *c, *self;
+
+	self = (contenttype *)_self;
+	iret = -1;
+	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
+		iret = fwl_handle_aqua1(mev,butnum,mouseX,mouseY,windex);
+		//handle_aqua_multiNORMAL stores xy in touch state for picking 
+		//see render() for setup_picking() which uses the touch to do sensor nodes
+		pop_viewport();
+	}
 	return iret;
 }
 contenttype *new_contenttype_scene(){
@@ -423,13 +442,16 @@ int layer_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int win
 		c = c->t1.next;
 		if(n > 9) break; //ouch a problem with my fixed-length array technique
 	}
-	iret = 0;
-	for(i=0;i<n;i++){
-		//push viewport
-		c = reverse[n-i-1];
-		iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,windex);
-		//pop viewport
-		if(iret > -1) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
+	iret = -1;
+	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
+		for(i=0;i<n;i++){
+			//push viewport
+			c = reverse[n-i-1];
+			iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,windex);
+			//pop viewport
+			if(iret > -1) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
+		}
+		pop_viewport();
 	}
 	return iret;
 }
@@ -1079,6 +1101,7 @@ void setup_stagesNORMAL(){
 		contenttype *cstage, *clayer, *cscene, *csbh;
 		cstage = new_contenttype_stage();
 		clayer = new_contenttype_layer();
+		//clayer->t1.viewport[0] = .5f; //test examine fx,fy coords
 		cscene = new_contenttype_scene();
 		csbh = new_contenttype_statusbar();
 		cscene->t1.next = csbh;
@@ -4252,7 +4275,10 @@ void freewrlDie (const char *format) {
 void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x, int y, int ID, int windex) {
 	int count, ibutton;
 	int screenWidth, screenHeight;
+	float fx, fy;
 	struct Touch *touch;
+	Stack *vportstack;
+	ivec4 vport;
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
@@ -4264,23 +4290,28 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	ibutton = button;
 	if (mev == MotionNotify) ibutton = 0;
 
-	fwl_getWindowSize1(windex,&screenWidth,&screenHeight);
+	vportstack = (Stack*)tg->Mainloop._vportstack;
+	vport = stack_top(ivec4,vportstack); //should be same as stack bottom, only one on stack here
+	fx = (float)(x - vport.X) / (float)vport.W;
+	fy = (float)(y - vport.Y) / (float)vport.H;
+	if(1){
+		printf("multiNORMAL x %d y %d fx %f fy %f vp %d %d %d %d\n",x,y,fx,fy,vport.X,vport.W,vport.Y,vport.H);
+	}
 	if (0){
 		ConsoleMessage("fwl_handle_aqua in MainLoop; mev %d but %d x %d y %d ID %d ",
 			mev, ibutton, x, y, ID);
-		ConsoleMessage("wndx %d swi %d shi %d ", windex, screenWidth, screenHeight);
+		ConsoleMessage("wndx %d swi %d shi %d ", windex, vport.W, vport.H); //screenWidth, screenHeight);
 		if (mev == ButtonPress) ConsoleMessage("ButtonPress\n");
 		else if (mev == ButtonRelease) ConsoleMessage("ButtonRelease\n");
 		else if (mev == MotionNotify) ConsoleMessage("MotionNotify\n");
 		else ConsoleMessage("event %d\n", mev);
 	}
-
 	/* save the current x and y positions for picking. */
 	touch = &p->touchlist[ID];
 	touch->x = x;
 	touch->y = y;
-	touch->fx = (float)(x) / (float)screenWidth;
-	touch->fy = (float)(y) / (float)screenHeight;
+	touch->fx = fx;
+	touch->fy = fy;
 	touch->windex = windex;
 	touch->buttonState[ibutton] = mev == ButtonPress;
 	touch->ID = ID; /*will come in handy if we change from array[] to accordian list*/
@@ -4291,14 +4322,10 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	if ((mev == ButtonPress) || (mev == ButtonRelease)) {
 		/* if we are Not over an enabled sensitive node, and we do NOT already have a
 			button down from a sensitive node... */
-		//void *p1, *p2;
-		//p1 = p->CursorOverSensitive;
-		//p2 = p->lastPressedOver;
-		//ConsoleMessage("p1 %d p2 %d", p1, p2);
 		if (((p->CursorOverSensitive ==NULL) && (p->lastPressedOver ==NULL)) || Viewer()->LookatMode || tg->Mainloop.SHIFT) {
 			p->NavigationMode = touch->buttonState[LMB] || touch->buttonState[RMB];
 			//ConsoleMessage("pNM %d \n", p->NavigationMode);
-			handle(mev, ibutton, (float)((float)x / screenWidth), (float)((float)y / screenHeight));
+			handle(mev, ibutton, fx, fy);
 		}
 	}
 
@@ -4307,10 +4334,9 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 			/* find out what the first button down is */
 			count = 0;
 			while ((count < 4) && (!touch->buttonState[count])) count++;
-			//ConsoleMessage("mev %d pNM %d count %d \n", mev, p->NavigationMode, count);
 			if (count == 4) return; /* no buttons down???*/
 
-			handle (mev, (unsigned) count, (float) ((float)x/screenWidth), (float) ((float)y/screenHeight));
+			handle (mev, (unsigned) count, fx, fy); 
 		}
 	}
 }
