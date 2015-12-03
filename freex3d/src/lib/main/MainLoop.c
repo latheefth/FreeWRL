@@ -121,8 +121,6 @@ struct Touch
 	float angle; /*some multitouch -like smarttech- track the angle of the finger */
 	int x;
 	int y; //y-up
-	float fx;
-	float fy;
 	int windex; //multi_window window index 0=default for regular freewrl
 };
 
@@ -286,7 +284,7 @@ typedef struct tcontenttype {
 	float viewport[4]; //fraction relative to parent, L,R,B,T as per x3d specs > Layering > Viewport > clipBoundary: "fractions of (parent surface) in the sequence left/right/bottom/top default 0 1 0 1
 	ivec4 ipixels; //offset pixels left, right, bottom, top relative to parent, +right and +up
 	void (*render)(void *self); 
-	int (*pick)(void *self, int mev, int butnum, int mouseX, int mouseY,int windex);  // a generalization of mouse. HMD IMU vs mouse?
+	int (*pick)(void *self, int mev, int butnum, int mouseX, int mouseY,int windex,int ID);  // a generalization of mouse. HMD IMU vs mouse?
 } tcontenttype;
 typedef struct contenttype {
 	tcontenttype t1; //superclass in abstract derived class
@@ -328,7 +326,7 @@ int checknpush_viewport(float *vpfraction, int mouseX, int mouseY){
 }
 void pop_viewport(){
 }
-int content_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int windex){
+int content_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int windex, int ID){
 	//generic render for intermediate level content types (leaf/terminal content types will have their own render())
 	int iret;
 	contenttype *c, *self;
@@ -338,7 +336,7 @@ int content_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int w
 	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
 		c = self->t1.contents;
 		while(c){
-			iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,windex);
+			iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,windex, ID);
 			if(iret > -1) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
 			c = c->t1.next;
 		}
@@ -367,20 +365,31 @@ typedef struct contenttype_scene {
 	eye eyes[6]; //doesn't make sense yet to have eyes for general content type, does it?
 } contenttype_scene;
 void render();
+int setup_pickside0(int x, int y, int *iside, ivec4 *vportleft, ivec4 *vportright);
 void scene_render(void *self){
 	render();
 }
 void setup_picking();
-int scene_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int windex){
+int scene_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int windex, int ID){
 	int iret;
 	contenttype *c, *self;
 
 	self = (contenttype *)_self;
 	iret = -1;
 	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
-		iret = fwl_handle_aqua1(mev,butnum,mouseX,mouseY,windex);
-		//handle_aqua_multiNORMAL stores xy in touch state for picking 
-		//see render() for setup_picking() which uses the touch to do sensor nodes
+		ivec4 vport[2];
+		int iside, inside;
+		printf("mx %d my %d ",mouseX,mouseY);
+		inside = setup_pickside0(mouseX,mouseY,&iside,&vport[0],&vport[1]);
+		if(inside){
+			Stack *vpstack = (Stack*)gglobal()->Mainloop._vportstack;
+			pushviewport(vpstack,vport[iside]);
+			printf("iside=%d vport= %d %d %d %d\n",iside,vport[iside].X,vport[iside].W,vport[iside].Y,vport[iside].H);
+			iret = fwl_handle_aqua1(mev,butnum,mouseX,mouseY,windex);
+			//handle_aqua_multiNORMAL stores xy in touch state for picking 
+			//see render() for setup_picking() which uses the touch to do sensor nodes
+			popviewport(vpstack);
+		}
 		pop_viewport();
 	}
 	return iret;
@@ -400,7 +409,7 @@ void view_update0();
 void statusbar_render(void *self){
 	view_update0();
 }
-int statusbar_pick(void *self, int mev, int butnum, int mouseX, int mouseY, int windex){
+int statusbar_pick(void *self, int mev, int butnum, int mouseX, int mouseY, int windex, int ID){
 	return statusbar_handle_mouse1(mev,butnum,mouseX,mouseY,windex);
 }
 contenttype *new_contenttype_statusbar(){
@@ -429,7 +438,7 @@ void layer_render(void *_self){
 	}
 	popnset_viewport();
 }
-int layer_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int windex){
+int layer_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int windex, int ID){
 	//layer pick works backward through layers
 	int iret, n,i;
 	contenttype *c, *self, *reverse[10];
@@ -447,7 +456,7 @@ int layer_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int win
 		for(i=0;i<n;i++){
 			//push viewport
 			c = reverse[n-i-1];
-			iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,windex);
+			iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,windex,ID);
 			//pop viewport
 			if(iret > -1) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
 		}
@@ -1182,8 +1191,8 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 	p->windex = 0;
 }
 //<<<<<=====NEW=====
-int fwl_handle_mouse(int mev, int butnum, int mouseX, int mouseY, int windex){
-	int cursorStyle, iret;
+int fwl_handle_mouse_multi(int mev, int butnum, int mouseX, int mouseY, int windex, int ID){
+	int cursorStyle, iret, yup;
 	Stack *vportstack;
 	targetwindow *t;
 	stage *s;
@@ -1191,18 +1200,24 @@ int fwl_handle_mouse(int mev, int butnum, int mouseX, int mouseY, int windex){
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
 	t = &p->cwindows[windex];
+	//Nov. 2015 changed freewrl mouse from y-down to y-up from here on down:
+	//all y-up now: sesnsor/picking, explore, statusbarHud, handle0 > all navigations, emulate_multitouch, sidebyside fiducials
+	yup = t->ivport.H - mouseY; //screenHeight -y;
+
 	s = (stage*)t->stage;
 	if(!s) return 0; //sometimes mouse events can start before a draw events (where stages are initialized)
 	if(s->type == STAGETYPE_BACKBUF)
-		s->ivport = t->ivport;
+		s->ivport = t->ivport; //need to refresh every frame incase there was a resize on the window
 	vportstack = (Stack *)tg->Mainloop._vportstack;
 	pushviewport(vportstack,s->ivport);
-	cursorStyle = s->t1.pick(s,mev,butnum,mouseX,mouseY,windex);
+	cursorStyle = s->t1.pick(s,mev,butnum,mouseX,yup,windex,ID);
 	cursorStyle = cursorStyle < 0? 0 : cursorStyle;
 	popviewport(vportstack);
 	return cursorStyle;
 }
-
+int fwl_handle_mouse(int mev, int butnum, int mouseX, int mouseY, int windex){
+	return fwl_handle_mouse_multi(mev,butnum,mouseX,mouseY,windex,0);
+}
 
 
 void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneTARGETWINDOWS;
@@ -2088,15 +2103,15 @@ static void render_pre() {
 }
 ivec2 ivec2_init(int x, int y);
 int pointinsideviewport(ivec4 vp, ivec2 pt);
-static int setup_pickside(int x, int y){
+static int setup_pickside0(int x, int y, int *iside, ivec4 *vportleft, ivec4 *vportright){
 	/* Oct 2015 idea: change which stereo side the pickray is working on, 
 	   based on which stereo side the mouse is in
 	   - only makes a difference for updown and sidebyside
 	   - analgyph and quadbuffer use the whole screen, so can use either
 	   -- there's now an explicit userPrefferedPickSide (versus always using right)
 	*/
-	int sideleft, sideright, iside, userPreferredPickSide, ieither;
-	ivec4 vportleft, vportright, vport, vportscene;
+	int sideleft, sideright, userPreferredPickSide, ieither;
+	ivec4 vport, vportscene;
 	ivec2 pt;
 	Stack *vportstack;
 	X3D_Viewer *viewer;
@@ -2114,35 +2129,44 @@ static int setup_pickside(int x, int y){
 	vportscene.Y = vport.Y + tg->Mainloop.clipPlane;
 	vportscene.H = vport.H - tg->Mainloop.clipPlane;
 
-	vportleft = vportscene;
-	vportright = vportscene;
+	*vportleft = vportscene;
+	*vportright = vportscene;
 	if(viewer->isStereo)
 	{
 		if (viewer->sidebyside){
-			vportleft.W /= 2;
-			vportright.W /=2;
-			vportright.X = vportleft.X + vportleft.W;
+			vportleft->W /= 2;
+			vportright->W /=2;
+			vportright->X = vportleft->X + vportleft->W;
 		}
 		if(viewer->updown) { //overunder
-			vportright.H /= 2;
-			vportleft.H /=2;
+			vportscene = vport;
+			vportscene.H /=2;
+			*vportright = vportscene;
+			vportright->Y += tg->Mainloop.clipPlane;
+			vportright->H -= tg->Mainloop.clipPlane;
+			*vportleft = *vportright;
 			//vportright.Y = vportleft.Y + vportright.H;
-			vportleft.Y = vportright.Y + vportright.H;
+			vportleft->Y += vportscene.H;
 		}
 		//analgyph and quadbuffer use full window
 	}
 	sideleft = sideright=0;
-	sideleft = pointinsideviewport(vportleft,pt);
-	sideright = pointinsideviewport(vportright,pt);;
+	sideleft = pointinsideviewport(*vportleft,pt);
+	sideright = pointinsideviewport(*vportright,pt);;
 	if(sideleft && sideright) 
-		iside = userPreferredPickSide; //analgyph, quadbuffer
+		*iside = userPreferredPickSide; //analgyph, quadbuffer
 	else 
-		iside = sideleft? 0 : sideright ? 1 : 0;
-	if(!ieither) iside = userPreferredPickSide;
-	Viewer()->iside = iside;
+		*iside = sideleft? 0 : sideright ? 1 : 0;
+	if(!ieither) *iside = userPreferredPickSide;
 	return sideleft || sideright; //if the mouse is outside graphics window, stop tracking it
 }
-
+static int setup_pickside(int x, int y){
+	ivec4 vpleft, vpright;
+	int iside, inside;
+	inside = setup_pickside0(x,y,&iside,&vpleft,&vpright);
+	Viewer()->iside = iside;
+	return inside;
+}
 void setup_projection()
 {
 	GLDOUBLE fieldofview2;
@@ -4310,8 +4334,6 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	touch = &p->touchlist[ID];
 	touch->x = x;
 	touch->y = y;
-	touch->fx = fx;
-	touch->fy = fy;
 	touch->windex = windex;
 	touch->buttonState[ibutton] = mev == ButtonPress;
 	touch->ID = ID; /*will come in handy if we change from array[] to accordian list*/
@@ -4418,8 +4440,8 @@ void emulate_multitouch(const int mev, const unsigned int button, int x, int y, 
 	}
 }
 /* old function should still work, with single mouse and ID=0 */
-int fwl_handle_aqua1(const int mev, const unsigned int button, int x, int y, int windex) {
-	int yup, screenWidth, screenHeight;
+int fwl_handle_aqua1(const int mev, const unsigned int button, int x, int yup, int windex) {
+	int y, screenWidth, screenHeight;
     ttglobal tg = gglobal();
 
 	/* printf ("fwl_handle_aqua, type %d, screen wid:%d height:%d, orig x,y %d %d\n",
@@ -4437,6 +4459,7 @@ int fwl_handle_aqua1(const int mev, const unsigned int button, int x, int y, int
 		int ox = x;
 		int oy = y;
 
+		y = screenHeight - yup;
 		// these make sense for walk navigation
 		if (Viewer()->type == VIEWER_WALK) {
 			switch (Viewer()->screenOrientation) {
@@ -4485,13 +4508,11 @@ int fwl_handle_aqua1(const int mev, const unsigned int button, int x, int y, int
 			}
 
 		}
+		yup = screenHeight - y;
 	}
 
 	#endif
 
-	//Nov. 2015 changed freewrl mouse from y-down to y-up from here on down:
-	//all y-up now: sesnsor/picking, explore, statusbarHud, handle0 > all navigations, emulate_multitouch, sidebyside fiducials
-	yup = screenHeight -y;
 	if(((ppMainloop)(tg->Mainloop.prv))->EMULATE_MULTITOUCH){
 		emulate_multitouch(mev,button,x, yup,windex);
 	}else{
@@ -4504,23 +4525,23 @@ int fwl_handle_aqua(const int mev, const unsigned int button, int x, int y){
 }
 //#endif
 
-void fwl_setCurXY(int cx, int cy) {
-	ttglobal tg = gglobal();
-	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
-	/* printf ("fwl_setCurXY, have %d %d\n",p->currentX[p->currentCursor],p->currentY[p->currentCursor]); */
-	p->touchlist[p->currentTouch].x = cx;
-	p->touchlist[p->currentTouch].y = cy;
-        //tg->Mainloop.currentX[p->currentCursor] = cx;
-        //tg->Mainloop.currentY[p->currentCursor] = cy;
-}
-
-void fwl_setButDown(int button, int value) {
-	//BUTTON NONE,LMB,MMB,RMB 0,1,2,3
-	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
-	/* printf ("fwl_setButDown called\n"); */
-    //    p->ButDown[p->currentCursor][button] = value;
-	p->touchlist[p->currentTouch].buttonState[button] = value;
-}
+//void fwl_setCurXY(int cx, int cy) {
+//	ttglobal tg = gglobal();
+//	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+//	/* printf ("fwl_setCurXY, have %d %d\n",p->currentX[p->currentCursor],p->currentY[p->currentCursor]); */
+//	p->touchlist[p->currentTouch].x = cx;
+//	p->touchlist[p->currentTouch].y = cy;
+//        //tg->Mainloop.currentX[p->currentCursor] = cx;
+//        //tg->Mainloop.currentY[p->currentCursor] = cy;
+//}
+//
+//void fwl_setButDown(int button, int value) {
+//	//BUTTON NONE,LMB,MMB,RMB 0,1,2,3
+//	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+//	/* printf ("fwl_setButDown called\n"); */
+//    //    p->ButDown[p->currentCursor][button] = value;
+//	p->touchlist[p->currentTouch].buttonState[button] = value;
+//}
 
 
 /* mobile devices - set screen orientation */

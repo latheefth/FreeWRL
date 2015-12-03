@@ -2700,14 +2700,14 @@ int handleStatusbarHud1(int mev, int butnum, int mouseX, int mouseY, int windex)
 //	//if(1) fwl_setScreenDim2(5,10,width-10,height-20); //test vport, screenDim2
 //}
 int getCursorStyle();
-int statusbar_handle_mouse1(int mev, int butnum, int mouseX, int mouseY, int windex)
+int statusbar_handle_mouse1(int mev, int butnum, int mouseX, int yup, int windex)
 {
-	int yup, vpx, vpy, iret;
+	int vpx, vpy, iret;
 	ttglobal tg = gglobal();
 	ppstatusbar p = (ppstatusbar)tg->statusbar.prv;
 	updateViewportSize(); 
 	updateWindowSize1(windex);
-	yup = p->screenHeight - mouseY;
+	//yup = p->screenHeight - mouseY;
 	vpy = yup - p->vport.Y;
 	vpx = mouseX - p->vport.X;
 	iret = handleStatusbarHud1(mev, butnum, vpx, vpy, windex);
