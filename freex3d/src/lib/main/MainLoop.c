@@ -2507,17 +2507,14 @@ static void render()
 
 
 	if(p->EMULATE_MULTITOUCH) {
-		int i, screenWidth, screenHeight;
-		fwl_getWindowSize(&screenWidth,&screenHeight);
+		int i;
 		for(i=0;i<p->ntouch;i++){
 			if(p->touchlist[i].ID > -1)
 				if(p->touchlist[i].windex == p->windex)
 				{
-					int x,y;
-					x = (int)(p->touchlist[i].fx * (float)screenWidth);
-					y = (int)(p->touchlist[i].fy * (float)screenHeight);
-					//printf("i %d windex %d x %d y %d ID %d\n",i,p->windex,x,y,p->touchlist[i].ID);
-					cursorDraw(p->touchlist[i].ID,x,y,p->touchlist[i].angle);
+					struct Touch *touch;
+					touch = &p->touchlist[i];
+					cursorDraw(touch->ID,touch->x,touch->y,touch->angle);
 				}
 		}
     }
@@ -4370,10 +4367,6 @@ void emulate_multitouch(const int mev, const unsigned int button, int x, int y, 
 		printf("Use LMB to drag touches (+- 5 pixel selection window)\n");
 		idone = 1;
 	}
-	//convert to 0-1 float, in case window is resized
-	fwl_getWindowSize1(windex,&screenWidth,&screenHeight);
-	fx = (float)(x)/(float)screenWidth;
-	fy = (float)(y)/(float)screenHeight;
 	buttons[button] = mev == ButtonPress;
 	ifound = 0;
 	ID = -1;
@@ -4383,7 +4376,7 @@ void emulate_multitouch(const int mev, const unsigned int button, int x, int y, 
 		touch = &p->touchlist[i];
 		if(touch->ID > -1){
 			if(touch->windex == windex)
-			if((fabs(fx - touch->fx) < .03f) && (fabs(fy - touch->fy) < .03f)){
+			if((abs(x - touch->x) < 10) && (abs(y - touch->y) < 10)){
 				ifound = 1;
 				ID = i;
 				break;
