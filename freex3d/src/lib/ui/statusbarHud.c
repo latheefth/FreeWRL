@@ -2585,6 +2585,7 @@ int handleStatusbarHud1(int mev, int butnum, int mouseX, int mouseY, int windex)
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
 
+	//printf("in handleStatusbarHud1 mev %d butnum %d x %d y %d wx %d\n",mev,butnum,mouseX,mouseY,windex);
 	updateWindowSize1(windex);
 	mouseYY = mouseY; // - p->pmenu.yoffset;
 	if ((mev == ButtonPress) || (mev == ButtonRelease))
