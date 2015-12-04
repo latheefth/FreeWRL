@@ -35,8 +35,6 @@ main/MainLoop.c \
 main/MainLoop.h \
 main/ProdCon.c \
 main/ProdCon.h \
-main/Snapshot.h \
-main/Snapshot.c \
 main/ConsoleMessage.c \
 main/installdir.h \
 main/utils.c \

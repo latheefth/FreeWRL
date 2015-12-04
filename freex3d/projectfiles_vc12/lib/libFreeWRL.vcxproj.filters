@@ -348,9 +348,6 @@
     <ClCompile Include="$(SRCWIN)\view_platform_win32.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\main\SnapshotTesting.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\lib\scenegraph\Component_Layering.c">
       <Filter>Source Files</Filter>
     </ClCompile>

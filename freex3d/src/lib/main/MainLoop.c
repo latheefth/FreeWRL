@@ -4674,14 +4674,8 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 		}
 	}
 }
-void (*fwl_handle_aqua_multiPTR)(const int mev, const unsigned int button, int x, int y, int ID, int windex) = fwl_handle_aqua_multiNORMAL;
-void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int y, int ID, int windex)
-{
-	fwl_handle_aqua_multiPTR(mev, button, x, y, ID, windex);
-}
 
-
-/* old function should still work, with single mouse and ID=0 */
+/* old function BROKEN but need orientation code for repair */
 int fwl_handle_aqua1(const int mev, const unsigned int button, int x, int yup, int windex) {
 	int y, screenWidth, screenHeight;
     ttglobal tg = gglobal();
@@ -4755,36 +4749,13 @@ int fwl_handle_aqua1(const int mev, const unsigned int button, int x, int yup, i
 
 	#endif
 
-	if(((ppMainloop)(tg->Mainloop.prv))->EMULATE_MULTITOUCH){
-		emulate_multitouch(mev,button,x, yup,windex);
-	}else{
-		fwl_handle_aqua_multi(mev,button,x,yup,0,windex);
-	}
+	//if(((ppMainloop)(tg->Mainloop.prv))->EMULATE_MULTITOUCH){
+	//	emulate_multitouch(mev,button,x, yup,windex);
+	//}else{
+	//	fwl_handle_aqua_multi(mev,button,x,yup,0,windex);
+	//}
 	return getCursorStyle();
 }
-int fwl_handle_aqua(const int mev, const unsigned int button, int x, int y){
-	return fwl_handle_aqua1(mev,button,x,y,0);
-}
-//#endif
-
-//void fwl_setCurXY(int cx, int cy) {
-//	ttglobal tg = gglobal();
-//	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
-//	/* printf ("fwl_setCurXY, have %d %d\n",p->currentX[p->currentCursor],p->currentY[p->currentCursor]); */
-//	p->touchlist[p->currentTouch].x = cx;
-//	p->touchlist[p->currentTouch].y = cy;
-//        //tg->Mainloop.currentX[p->currentCursor] = cx;
-//        //tg->Mainloop.currentY[p->currentCursor] = cy;
-//}
-//
-//void fwl_setButDown(int button, int value) {
-//	//BUTTON NONE,LMB,MMB,RMB 0,1,2,3
-//	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
-//	/* printf ("fwl_setButDown called\n"); */
-//    //    p->ButDown[p->currentCursor][button] = value;
-//	p->touchlist[p->currentTouch].buttonState[button] = value;
-//}
-
 
 /* mobile devices - set screen orientation */
 /* "0" is "normal" orientation; degrees clockwise; note that face up and face down not
