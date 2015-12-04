@@ -254,7 +254,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(SRCWIN);$(SRC)\bin;$(SRC)\lib;$(LIBWIN)\pthread\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>W_DEBUG;WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;STATUSBAR_HUD;USE_SNAPSHOT_TESTING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>W_DEBUG;WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;STATUSBAR_HUD;USE_SNAPSHOT_TESTING_NO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>

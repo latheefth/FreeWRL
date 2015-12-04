@@ -119,11 +119,10 @@ struct Touch
 	int mev; /* down/press=4, move/drag=6, up/release=5 */
 	int ID;  /* for multitouch: 0-20, represents one finger drag. Recycle after an up */
 	float angle; /*some multitouch -like smarttech- track the angle of the finger */
-	int x;
+	int x; //coordinates as registered at scene level, after transformations in the contenttype stack
 	int y; //y-up
-	float fx;
-	float fy;
 	int windex; //multi_window window index 0=default for regular freewrl
+	int rx,ry; //raw input coords at emulation level, for finding and dragging and rendering
 };
 
 void pushviewport(Stack *vpstack, ivec4 vp){
@@ -189,18 +188,29 @@ ivec4 viewportFraction(ivec4 vp, float *fraction){
 	MFFloat [in,out] clipBoundary   0 1 0 1  [0,1]
 	"The clipBoundary field is specified in fractions of the normal render surface in the sequence left/right/bottom/top. "
 	so my fraction calculation should be something like:
-	X = X + W*f0
-	Y = Y + H*F2
-	W = W*F1 - X
-	H = H*F3 - Y
+	L = X + W*f0
+	R = X + W*f1
+	B = Y + H*f2
+	T = Y + H*f3
+	
+	W = R - L
+	H = T - B
+	X = L
+	Y = B
 	*/
 	ivec4 res;
-	//new left and bottom
-	res.X = vp.X + vp.W*fraction[0];
-	res.Y = vp.Y + vp.H*fraction[2];
-	//W = right - left, H = top - bottom
-	res.W = vp.W * fraction[1] - res.X;
-	res.H = vp.H * fraction[3] - res.Y;
+	int L,R,B,T; //left,right,bottom,top
+
+	L = vp.X + vp.W*fraction[0];
+	R = vp.X + vp.W*fraction[1];
+	B = vp.Y + vp.H*fraction[2];
+	T = vp.Y + vp.H*fraction[3];
+
+	res.W = R - L;
+	res.H = T - B;
+	res.X = L;
+	res.Y = B;
+
 	return res;
 }
 
@@ -226,6 +236,7 @@ enum {
 	CONTENT_GENERIC,
 	CONTENT_SCENE,
 	CONTENT_STATUSBAR,
+	CONTENT_MULTITOUCH,
 	CONTENT_TEXTUREGRID,
 	CONTENT_LAYER,
 	CONTENT_SPLITTER,
@@ -245,10 +256,6 @@ typedef struct eye {
 eye *new_eye(){
 	return malloc(sizeof(eye));
 }
-//typedef struct tlinktype {
-//	void *contents; //iterate over children using children->next
-//	void *next; //helps parent iterate over its children
-//}
 
 void pushnset_viewport(float *vpFraction){
 	//call this from render() function (not from pick function)
@@ -267,6 +274,32 @@ void popnset_viewport(){
 	popviewport(vportstack);
 	setcurrentviewport(vportstack); //does opengl call
 }
+int checknpush_viewport(float *vpfraction, int mouseX, int mouseY){
+	Stack *vportstack;
+	ivec4 ivport, ivport1;
+	ivec2 pt;
+	int iret;
+
+	vportstack = (Stack *)gglobal()->Mainloop._vportstack;
+	ivport = currentViewport(vportstack);
+	ivport1 = viewportFraction(ivport, vpfraction);
+	pt.X = mouseX;
+	pt.Y = mouseY;
+	iret = pointinsideviewport(ivport1,pt);
+	if(iret) pushviewport(vportstack,ivport1);
+	//else {
+	//	printf("in checknpush_viewport in:\n");
+	//	printf("ivp  %d %d %d %d fraction %f %f %f %f\n",ivport.X,ivport.W,ivport.Y,ivport.H,vpfraction[0],vpfraction[1],vpfraction[2],vpfraction[3],mouseX,mouseY);
+	//	printf("ivp1 %d %d %d %d mouse %d %d\n",ivport1.X,ivport1.W,ivport1.Y,ivport1.H,mouseX,mouseY);
+	//}
+	return iret;
+		
+}
+void pop_viewport(){
+}
+static ivec4 ivec4_init = {0,0,0,0};
+float defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; //left,right,bottom,top fraction of pixel window
+
 
 //abstract contenttype
 typedef struct contenttype contenttype;
@@ -279,7 +312,7 @@ typedef struct tcontenttype {
 	float viewport[4]; //fraction relative to parent, L,R,B,T as per x3d specs > Layering > Viewport > clipBoundary: "fractions of (parent surface) in the sequence left/right/bottom/top default 0 1 0 1
 	ivec4 ipixels; //offset pixels left, right, bottom, top relative to parent, +right and +up
 	void (*render)(void *self); 
-	int (*pick)(void *self, int mev, int butnum, int mouseX, int mouseY,int windex);  // a generalization of mouse. HMD IMU vs mouse?
+	int (*pick)(void *self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex);  // a generalization of mouse. HMD IMU vs mouse?
 } tcontenttype;
 typedef struct contenttype {
 	tcontenttype t1; //superclass in abstract derived class
@@ -298,35 +331,17 @@ void content_render(void *_self){
 	}
 	popnset_viewport();
 }
-int checknpush_viewport(float *vpfraction, int mouseX, int mouseY){
-	Stack *vportstack;
-	ivec4 ivport, ivport1;
-	ivec2 pt;
-	int iret;
-
-	vportstack = (Stack *)gglobal()->Mainloop._vportstack;
-	ivport = currentViewport(vportstack);
-	ivport1 = viewportFraction(ivport, vpfraction);
-	pt.X = mouseX;
-	pt.Y = mouseY;
-	iret = pointinsideviewport(ivport1,pt);
-	if(iret) pushviewport(vportstack,ivport1);
-	return iret;
-		
-}
-void pop_viewport(){
-}
-int content_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int windex){
+int content_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
 	//generic render for intermediate level content types (leaf/terminal content types will have their own render())
 	int iret;
 	contenttype *c, *self;
 
 	self = (contenttype *)_self;
-	iret = 0;
+	iret = -1;
 	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
 		c = self->t1.contents;
 		while(c){
-			iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,windex);
+			iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,ID, windex);
 			if(iret > -1) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
 			c = c->t1.next;
 		}
@@ -334,9 +349,6 @@ int content_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int w
 	}
 	return iret;
 }
-static ivec4 ivec4_init = {0,0,0,0};
-float defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; //left,right,bottom,top fraction of pixel window
-
 void init_tcontenttype(tcontenttype *self){
 	self->itype = CONTENT_GENERIC;
 	self->contents = NULL;
@@ -355,15 +367,36 @@ typedef struct contenttype_scene {
 	eye eyes[6]; //doesn't make sense yet to have eyes for general content type, does it?
 } contenttype_scene;
 void render();
+int setup_pickside0(int x, int y, int *iside, ivec4 *vportleft, ivec4 *vportright);
 void scene_render(void *self){
 	render();
 }
 void setup_picking();
-int scene_pick(void *self, int mev, int butnum, int mouseX, int mouseY, int windex){
+void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x, int y, int ID, int windex);
+int scene_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
 	int iret;
-	iret = fwl_handle_aqua1(mev,butnum,mouseX,mouseY,windex);
-	//handle_aqua_multiNORMAL stores xy in touch state for picking 
-	//see render() for setup_picking() which uses the touch to do sensor nodes
+	contenttype *c, *self;
+
+	self = (contenttype *)_self;
+	iret = -1;
+	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
+		ivec4 vport[2];
+		int iside, inside;
+		//printf("scene_pick mx %d my %d ",mouseX,mouseY);
+		inside = setup_pickside0(mouseX,mouseY,&iside,&vport[0],&vport[1]);
+		if(inside){
+			Stack *vpstack = (Stack*)gglobal()->Mainloop._vportstack;
+			pushviewport(vpstack,vport[iside]);
+			//printf("iside=%d vport= %d %d %d %d\n",iside,vport[iside].X,vport[iside].W,vport[iside].Y,vport[iside].H);
+			//iret = fwl_handle_aqua_multi(mev,butnum,mouseX,mouseY,ID,windex);
+			fwl_handle_aqua_multiNORMAL(mev,butnum,mouseX,mouseY,ID,windex);
+			iret = 	getCursorStyle();
+			//handle_aqua_multiNORMAL stores xy in touch state for picking 
+			//see render() for setup_picking() which uses the touch to do sensor nodes
+			popviewport(vpstack);
+		}
+		pop_viewport();
+	}
 	return iret;
 }
 contenttype *new_contenttype_scene(){
@@ -381,7 +414,7 @@ void view_update0();
 void statusbar_render(void *self){
 	view_update0();
 }
-int statusbar_pick(void *self, int mev, int butnum, int mouseX, int mouseY, int windex){
+int statusbar_pick(void *self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
 	return statusbar_handle_mouse1(mev,butnum,mouseX,mouseY,windex);
 }
 contenttype *new_contenttype_statusbar(){
@@ -410,7 +443,7 @@ void layer_render(void *_self){
 	}
 	popnset_viewport();
 }
-int layer_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int windex){
+int layer_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
 	//layer pick works backward through layers
 	int iret, n,i;
 	contenttype *c, *self, *reverse[10];
@@ -423,13 +456,16 @@ int layer_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int win
 		c = c->t1.next;
 		if(n > 9) break; //ouch a problem with my fixed-length array technique
 	}
-	iret = 0;
-	for(i=0;i<n;i++){
-		//push viewport
-		c = reverse[n-i-1];
-		iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,windex);
-		//pop viewport
-		if(iret > -1) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
+	iret = -1;
+	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
+		for(i=0;i<n;i++){
+			//push viewport
+			c = reverse[n-i-1];
+			iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,ID,windex);
+			//pop viewport
+			if(iret > -1) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
+		}
+		pop_viewport();
 	}
 	return iret;
 }
@@ -441,6 +477,73 @@ contenttype *new_contenttype_layer(){
 	self->t1.pick = layer_pick;
 	return (contenttype*)self;
 }
+
+int emulate_multitouch2(int *mev, unsigned int *button, int x, int y, int *ID, int windex);
+void record_multitouch(int mev, int butnum, int mouseX, int mouseY, int ID, int windex, int ihandle);
+int fwl_get_emulate_multitouch();
+void render_multitouch();
+
+typedef struct contenttype_multitouch {
+	tcontenttype t1;
+	//clears zbuffer between contents, but not clearcolor
+	//example statusbarHud (SBH) over scene: 
+	//	scene rendered first, then SBH; mouse caught first by SBH, if not handled then scene
+} contenttype_multitouch;
+void multitouch_render(void *_self){
+	//just the z-buffer cleared between content
+	contenttype *c, *self;
+	self = (contenttype *)_self;
+	pushnset_viewport(self->t1.viewport);
+	c = self->t1.contents;
+	while(c){
+		c->t1.render(c);			// Q. HOW/WHERE TO SIGNAL TO CLEAR JUST Z BUFFER BETWEEN LAYERS
+		c = c->t1.next;
+	}
+	//render self last
+	render_multitouch();
+	popnset_viewport();
+}
+int multitouch_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+	//layer pick works backward through layers
+	int iret, n,i;
+	contenttype *c, *self;
+
+	self = (contenttype *)_self;
+	iret = -1;
+	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
+		int IDD, ihandle;
+		//record for rendering
+		ihandle = 0;
+		if(fwl_get_emulate_multitouch()){
+			ihandle = emulate_multitouch2(&mev,&butnum,mouseX,mouseY,&ID,windex);
+			iret = ihandle < 0 ? -1 : 0;
+		}
+		if(iret == -1){
+			//then pick children
+			c = self->t1.contents;
+			while(c){
+				//push viewport
+				iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,ID,windex);
+				//pop viewport
+				if(iret > -1) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
+				c = c->t1.next;
+			}
+			record_multitouch(mev,butnum,mouseX,mouseY,ID,windex,ihandle);
+		}
+		pop_viewport();
+	}
+	return iret;
+}
+contenttype *new_contenttype_multitouch(){
+	contenttype_multitouch *self = malloc(sizeof(contenttype_multitouch));
+	init_tcontenttype(&self->t1);
+	self->t1.itype = CONTENT_MULTITOUCH;
+	self->t1.render = multitouch_render;
+	self->t1.pick = multitouch_pick;
+	return (contenttype*)self;
+}
+
+
 
 typedef struct contenttype_quadrant {
 	tcontenttype t1;
@@ -786,14 +889,20 @@ struct Touch *currentTouch(){
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 	//printf("currentTouch %d\n",p->currentTouch);
+	//if(p->currentTouch == -1) p->currentTouch = 0;
 	return &p->touchlist[p->currentTouch];
 }
 
 //true statics:
 int isBrowserPlugin = FALSE; //I can't think of a scenario where sharing this across instances would be a problem
 void fwl_set_emulate_multitouch(int ion){
+	int i;
 	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 	p->EMULATE_MULTITOUCH = ion;
+	//clear up for a fresh start when toggling emulation on/off
+	//for(i=0;i<p->ntouch;i++)
+	//	p->touchlist[i].ID = -1;
+	//p->touchlist[0].ID = 0;
 }
 int fwl_get_emulate_multitouch(){
 	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
@@ -1076,15 +1185,24 @@ void setup_stagesNORMAL(){
 	twindows = p->cwindows;
 	t = twindows;
 	while(t){
-		contenttype *cstage, *clayer, *cscene, *csbh;
+		contenttype *cstage, *clayer, *cscene, *csbh, *cmultitouch;
 		cstage = new_contenttype_stage();
+		cmultitouch = new_contenttype_multitouch();
 		clayer = new_contenttype_layer();
+		if(0){
+			clayer->t1.viewport[0] = .1f; //test examine fx,fy coords
+			clayer->t1.viewport[1] = .9f;
+			clayer->t1.viewport[2] = .1f;
+			clayer->t1.viewport[3] = .9f;
+		}
 		cscene = new_contenttype_scene();
 		csbh = new_contenttype_statusbar();
 		cscene->t1.next = csbh;
 		csbh->t1.next = NULL;
 		clayer->t1.contents = cscene;
-		cstage->t1.contents = clayer;
+		cstage->t1.contents = cmultitouch;
+		p->EMULATE_MULTITOUCH = FALSE;
+		cmultitouch->t1.contents = clayer;
 		t->stage = cstage;
 		t = t->next;
 	}
@@ -1155,8 +1273,10 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 	}
 	p->windex = 0;
 }
+
 //<<<<<=====NEW=====
-int fwl_handle_mouse(int mev, int butnum, int mouseX, int mouseY, int windex){
+int fwl_handle_mouse_multi_yup(int mev, int butnum, int mouseX, int yup, int ID, int windex){
+	//this is the pick() for the twindow level
 	int cursorStyle, iret;
 	Stack *vportstack;
 	targetwindow *t;
@@ -1168,15 +1288,246 @@ int fwl_handle_mouse(int mev, int butnum, int mouseX, int mouseY, int windex){
 	s = (stage*)t->stage;
 	if(!s) return 0; //sometimes mouse events can start before a draw events (where stages are initialized)
 	if(s->type == STAGETYPE_BACKBUF)
-		s->ivport = t->ivport;
+		s->ivport = t->ivport; //need to refresh every frame incase there was a resize on the window
 	vportstack = (Stack *)tg->Mainloop._vportstack;
 	pushviewport(vportstack,s->ivport);
-	cursorStyle = s->t1.pick(s,mev,butnum,mouseX,mouseY,windex);
+	cursorStyle = s->t1.pick(s,mev,butnum,mouseX,yup,ID,windex);
 	cursorStyle = cursorStyle < 0? 0 : cursorStyle;
 	popviewport(vportstack);
 	return cursorStyle;
 }
 
+void emulate_multitouch(int mev, unsigned int button, int x, int ydown, int windex)
+{
+	/* CREATE/DELETE a touch with RMB down 
+	   GRAB/MOVE a touch with LMB down and drag
+	   ID=0 reserved for 'normal' cursor
+	*/
+    int i,ifound,ID,screenWidth,screenHeight,y;
+	struct Touch *touch;
+	float fx, fy;
+	static int buttons[4] = {0,0,0,0};
+	static int idone = 0;
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+	targetwindow *t;
+
+	t = &p->cwindows[windex];
+	//Nov. 2015 changed freewrl mouse from y-down to y-up from here on down:
+	//all y-up now: sesnsor/picking, explore, statusbarHud, handle0 > all navigations, emulate_multitouch, sidebyside fiducials
+	y = t->ivport.H - ydown; //screenHeight -y;
+	
+	if(!idone){
+		printf("Use RMB (right mouse button) to create and delete touches\n");
+		printf("Use LMB to drag touches (+- 5 pixel selection window)\n");
+		idone = 1;
+	}
+	buttons[button] = mev == ButtonPress;
+	ifound = 0;
+	ID = -1;
+	touch = NULL;
+
+	for(i=0;i<p->ntouch;i++){
+		touch = &p->touchlist[i];
+		if(touch->ID > -1){
+			if(touch->windex == windex)
+			if((abs(x - touch->rx) < 10) && (abs(y - touch->ry) < 10)){
+				ifound = 1;
+				ID = i;
+				break;
+			}
+		}
+	}
+
+	if( mev == ButtonPress && button == RMB )
+	{
+		//if near an existing one, delete
+		if(ifound && touch){
+			fwl_handle_mouse_multi_yup(ButtonRelease,LMB,x,y,ID,windex);
+			//delete
+			touch->ID = -1;
+			printf("delete ID=%d windex=%d\n",ID,windex);
+		}
+		//else create
+		if(!ifound){
+			//create!
+			for(i=0;i<p->ntouch;i++){
+				touch = &p->touchlist[i];
+				if(touch->ID < 0) {
+					fwl_handle_mouse_multi_yup(mev, LMB, x, y, i,windex);
+					touch->rx = x;
+					touch->ry = y;
+					printf("create ID=%d windex=%d\n",i,windex);
+					break;
+				}
+			}
+		}
+	}else if( mev == MotionNotify && buttons[LMB])	{
+		//if near an existing one, grab it and move it
+		if(ifound){
+			fwl_handle_mouse_multi_yup(MotionNotify,0,x,y,ID,windex);
+			touch = &p->touchlist[ID];
+			touch->rx = x;
+			touch->ry = y;
+			//printf("drag ID=%d \n",ID);
+		}
+	}
+}
+void render_multitouch(){
+	struct Touch *touch;
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+
+	if(p->EMULATE_MULTITOUCH) {
+		int i;
+		for(i=0;i<p->ntouch;i++){
+			if(p->touchlist[i].ID > -1)
+				if(p->touchlist[i].windex == p->windex)
+				{
+					struct Touch *touch;
+					touch = &p->touchlist[i];
+					cursorDraw(touch->ID,touch->rx,touch->ry,touch->angle);
+				}
+		}
+    }
+}
+void record_multitouch(int mev, int butnum, int mouseX, int mouseY, int ID, int windex, int ihandle){
+	struct Touch *touch;
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+
+	touch = &p->touchlist[ID];
+	if(ihandle == -2){
+		touch->ID = -1;
+	}else{
+		touch->rx = mouseX;
+		touch->ry = mouseY;
+		touch->windex = windex;
+		touch->buttonState[butnum] = mev == ButtonPress;
+		touch->ID = ID; /*will come in handy if we change from array[] to accordian list*/
+		touch->mev = mev;
+		touch->angle = 0.0f;
+		//p->currentTouch = ID;
+	}
+
+}
+int emulate_multitouch2(int *mev, unsigned int *button, int x, int y, int *ID, int windex)
+{
+	/* CREATE/DELETE a touch with RMB down 
+	   GRAB/MOVE a touch with LMB down and drag
+	   ID=0 reserved for 'normal' cursor
+	*/
+    int i,ifound,IDD,ihandle;
+	struct Touch *touch;
+	float fx, fy;
+	static int buttons[4] = {0,0,0,0};
+	static int idone = 0;
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+	
+	if(!idone){
+		printf("Use RMB (right mouse button) to create and delete touches\n");
+		printf("Use LMB to drag touches (+- 5 pixel selection window)\n");
+		idone = 1;
+	}
+	buttons[*button] = *mev == ButtonPress;
+	ifound = 0;
+	IDD = -1;
+	touch = NULL;
+	ihandle = 1;
+
+	for(i=0;i<p->ntouch;i++){
+		touch = &p->touchlist[i];
+		if(touch->ID > -1){
+			if(touch->windex == windex)
+			if((abs(x - touch->rx) < 10) && (abs(y - touch->ry) < 10)){
+				ifound = 1;
+				IDD = i;
+				break;
+			}
+		}
+	}
+
+	if( *mev == ButtonPress && *button == RMB )
+	{
+		//if near an existing one, delete
+		if(ifound && touch){
+			//fwl_handle_mouse_multi_yup(ButtonRelease,LMB,x,y,ID,windex);
+			*mev = ButtonRelease;
+			*button = LMB;
+			*ID = IDD;
+			ihandle = -2;  //caller must propagate handle_mouse, then set ID = -1;
+			//delete
+			//touch->ID = -1; //this gets overwritten
+			printf("delete ID=%d windex=%d ihandle=%d\n",IDD,windex,ihandle);
+		}
+		//else create
+		if(!ifound){
+			//create!
+			for(i=0;i<p->ntouch;i++){
+				touch = &p->touchlist[i];
+				if(touch->ID < 0) {
+					//fwl_handle_mouse_multi_yup(mev, LMB, x, y, i,windex);
+					*button = LMB;
+					*ID = i;
+					ihandle = -1;
+					touch->rx = x;
+					touch->ry = y;
+					printf("create ID=%d windex=%d\n",i,windex);
+					break;
+				}
+			}
+		}
+	}else if( *mev == MotionNotify && buttons[LMB])	{
+		//if near an existing one, grab it and move it
+		if(ifound){
+			//fwl_handle_mouse_multi_yup(MotionNotify,0,x,y,ID,windex);
+			*mev = MotionNotify;
+			*button = 0;
+			*ID = IDD;
+			ihandle = -1;
+			touch = &p->touchlist[IDD];
+			touch->rx = x;
+			touch->ry = y;
+			printf("drag ID=%d \n",IDD);
+		}
+	}
+	//p->currentTouch = *ID;
+	return ihandle;
+}
+
+
+int fwl_handle_mouse_multi(int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+	//this is the pick() for the twindow level
+	int cursorStyle, iret, yup;
+	Stack *vportstack;
+	targetwindow *t;
+	stage *s;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+
+	t = &p->cwindows[windex];
+	//Nov. 2015 changed freewrl mouse from y-down to y-up from here on down:
+	//all y-up now: sesnsor/picking, explore, statusbarHud, handle0 > all navigations, emulate_multitouch, sidebyside fiducials
+	yup = t->ivport.H - mouseY; //screenHeight -y;
+	return fwl_handle_mouse_multi_yup(mev,butnum,mouseX,yup,ID,windex);
+}
+int fwl_handle_mouse(int mev, int butnum, int mouseX, int mouseY, int windex){
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+
+	//if(p->EMULATE_MULTITOUCH){
+	//	emulate_multitouch(mev,butnum,mouseX, mouseY,windex);
+	//}else{
+		//fwl_handle_aqua_multi(mev,button,x,yup,0,windex);
+		fwl_handle_mouse_multi(mev,butnum,mouseX,mouseY,0,windex);
+	//}
+	return getCursorStyle();
+}
 
 
 void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneTARGETWINDOWS;
@@ -1510,6 +1861,8 @@ void setup_picking(){
 		if(touch->windex != windex) return;
 		x = touch->x;
 		yup = touch->y;
+
+		//printf("setup_picking x %d y %d ID %d but %d mev %d\n",touch->x,touch->y,touch->ID,touch->buttonState[LMB],touch->mev);
 		if(setup_pickside(x,yup)){
 			setup_projection();
 			setup_pickray(x,yup);
@@ -2062,15 +2415,15 @@ static void render_pre() {
 }
 ivec2 ivec2_init(int x, int y);
 int pointinsideviewport(ivec4 vp, ivec2 pt);
-static int setup_pickside(int x, int y){
+static int setup_pickside0(int x, int y, int *iside, ivec4 *vportleft, ivec4 *vportright){
 	/* Oct 2015 idea: change which stereo side the pickray is working on, 
 	   based on which stereo side the mouse is in
 	   - only makes a difference for updown and sidebyside
 	   - analgyph and quadbuffer use the whole screen, so can use either
 	   -- there's now an explicit userPrefferedPickSide (versus always using right)
 	*/
-	int sideleft, sideright, iside, userPreferredPickSide, ieither;
-	ivec4 vportleft, vportright, vport, vportscene;
+	int sideleft, sideright, userPreferredPickSide, ieither;
+	ivec4 vport, vportscene;
 	ivec2 pt;
 	Stack *vportstack;
 	X3D_Viewer *viewer;
@@ -2088,35 +2441,44 @@ static int setup_pickside(int x, int y){
 	vportscene.Y = vport.Y + tg->Mainloop.clipPlane;
 	vportscene.H = vport.H - tg->Mainloop.clipPlane;
 
-	vportleft = vportscene;
-	vportright = vportscene;
+	*vportleft = vportscene;
+	*vportright = vportscene;
 	if(viewer->isStereo)
 	{
 		if (viewer->sidebyside){
-			vportleft.W /= 2;
-			vportright.W /=2;
-			vportright.X = vportleft.X + vportleft.W;
+			vportleft->W /= 2;
+			vportright->W /=2;
+			vportright->X = vportleft->X + vportleft->W;
 		}
 		if(viewer->updown) { //overunder
-			vportright.H /= 2;
-			vportleft.H /=2;
+			vportscene = vport;
+			vportscene.H /=2;
+			*vportright = vportscene;
+			vportright->Y += tg->Mainloop.clipPlane;
+			vportright->H -= tg->Mainloop.clipPlane;
+			*vportleft = *vportright;
 			//vportright.Y = vportleft.Y + vportright.H;
-			vportleft.Y = vportright.Y + vportright.H;
+			vportleft->Y += vportscene.H;
 		}
 		//analgyph and quadbuffer use full window
 	}
 	sideleft = sideright=0;
-	sideleft = pointinsideviewport(vportleft,pt);
-	sideright = pointinsideviewport(vportright,pt);;
+	sideleft = pointinsideviewport(*vportleft,pt);
+	sideright = pointinsideviewport(*vportright,pt);;
 	if(sideleft && sideright) 
-		iside = userPreferredPickSide; //analgyph, quadbuffer
+		*iside = userPreferredPickSide; //analgyph, quadbuffer
 	else 
-		iside = sideleft? 0 : sideright ? 1 : 0;
-	if(!ieither) iside = userPreferredPickSide;
-	Viewer()->iside = iside;
+		*iside = sideleft? 0 : sideright ? 1 : 0;
+	if(!ieither) *iside = userPreferredPickSide;
 	return sideleft || sideright; //if the mouse is outside graphics window, stop tracking it
 }
-
+static int setup_pickside(int x, int y){
+	ivec4 vpleft, vpright;
+	int iside, inside;
+	inside = setup_pickside0(x,y,&iside,&vpleft,&vpright);
+	Viewer()->iside = iside;
+	return inside;
+}
 void setup_projection()
 {
 	GLDOUBLE fieldofview2;
@@ -2480,18 +2842,15 @@ static void render()
 	} /* for loop */
 
 
-	if(p->EMULATE_MULTITOUCH) {
-		int i, screenWidth, screenHeight;
-		fwl_getWindowSize(&screenWidth,&screenHeight);
+	if(0) if(p->EMULATE_MULTITOUCH) {
+		int i;
 		for(i=0;i<p->ntouch;i++){
 			if(p->touchlist[i].ID > -1)
 				if(p->touchlist[i].windex == p->windex)
 				{
-					int x,y;
-					x = (int)(p->touchlist[i].fx * (float)screenWidth);
-					y = (int)(p->touchlist[i].fy * (float)screenHeight);
-					//printf("i %d windex %d x %d y %d ID %d\n",i,p->windex,x,y,p->touchlist[i].ID);
-					cursorDraw(p->touchlist[i].ID,x,y,p->touchlist[i].angle);
+					struct Touch *touch;
+					touch = &p->touchlist[i];
+					cursorDraw(touch->ID,touch->x,touch->y,touch->angle);
 				}
 		}
     }
@@ -4252,7 +4611,10 @@ void freewrlDie (const char *format) {
 void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x, int y, int ID, int windex) {
 	int count, ibutton;
 	int screenWidth, screenHeight;
+	float fx, fy;
 	struct Touch *touch;
+	Stack *vportstack;
+	ivec4 vport;
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
@@ -4262,43 +4624,42 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	//winRT but =1 when mev = motion, others but = 0 when mev = motion. 
 	//make winRT the same as the others:
 	ibutton = button;
-	if (mev == MotionNotify) ibutton = 0;
+	//if (mev == MotionNotify) ibutton = 0;
 
-	fwl_getWindowSize1(windex,&screenWidth,&screenHeight);
+	vportstack = (Stack*)tg->Mainloop._vportstack;
+	vport = stack_top(ivec4,vportstack); //should be same as stack bottom, only one on stack here
+	fx = (float)(x - vport.X) / (float)vport.W;
+	fy = (float)(y - vport.Y) / (float)vport.H;
+	if(0){
+		printf("multiNORMAL x %d y %d fx %f fy %f vp %d %d %d %d\n",x,y,fx,fy,vport.X,vport.W,vport.Y,vport.H);
+	}
 	if (0){
 		ConsoleMessage("fwl_handle_aqua in MainLoop; mev %d but %d x %d y %d ID %d ",
 			mev, ibutton, x, y, ID);
-		ConsoleMessage("wndx %d swi %d shi %d ", windex, screenWidth, screenHeight);
+		ConsoleMessage("wndx %d swi %d shi %d ", windex, vport.W, vport.H); //screenWidth, screenHeight);
 		if (mev == ButtonPress) ConsoleMessage("ButtonPress\n");
 		else if (mev == ButtonRelease) ConsoleMessage("ButtonRelease\n");
 		else if (mev == MotionNotify) ConsoleMessage("MotionNotify\n");
 		else ConsoleMessage("event %d\n", mev);
 	}
-
 	/* save the current x and y positions for picking. */
 	touch = &p->touchlist[ID];
 	touch->x = x;
 	touch->y = y;
-	touch->fx = (float)(x) / (float)screenWidth;
-	touch->fy = (float)(y) / (float)screenHeight;
-	touch->windex = windex;
+	//touch->windex = windex;
 	touch->buttonState[ibutton] = mev == ButtonPress;
-	touch->ID = ID; /*will come in handy if we change from array[] to accordian list*/
-	touch->mev = mev;
-	touch->angle = 0.0f;
+	//touch->ID = ID; //will come in handy if we change from array[] to accordian list
+	//touch->mev = mev;
+	//touch->angle = 0.0f;
 	p->currentTouch = ID;
 
 	if ((mev == ButtonPress) || (mev == ButtonRelease)) {
 		/* if we are Not over an enabled sensitive node, and we do NOT already have a
 			button down from a sensitive node... */
-		//void *p1, *p2;
-		//p1 = p->CursorOverSensitive;
-		//p2 = p->lastPressedOver;
-		//ConsoleMessage("p1 %d p2 %d", p1, p2);
 		if (((p->CursorOverSensitive ==NULL) && (p->lastPressedOver ==NULL)) || Viewer()->LookatMode || tg->Mainloop.SHIFT) {
 			p->NavigationMode = touch->buttonState[LMB] || touch->buttonState[RMB];
 			//ConsoleMessage("pNM %d \n", p->NavigationMode);
-			handle(mev, ibutton, (float)((float)x / screenWidth), (float)((float)y / screenHeight));
+			handle(mev, ibutton, fx, fy);
 		}
 	}
 
@@ -4307,97 +4668,16 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 			/* find out what the first button down is */
 			count = 0;
 			while ((count < 4) && (!touch->buttonState[count])) count++;
-			//ConsoleMessage("mev %d pNM %d count %d \n", mev, p->NavigationMode, count);
 			if (count == 4) return; /* no buttons down???*/
 
-			handle (mev, (unsigned) count, (float) ((float)x/screenWidth), (float) ((float)y/screenHeight));
+			handle (mev, (unsigned) count, fx, fy); 
 		}
 	}
 }
-void (*fwl_handle_aqua_multiPTR)(const int mev, const unsigned int button, int x, int y, int ID, int windex) = fwl_handle_aqua_multiNORMAL;
-void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int y, int ID, int windex)
-{
-	fwl_handle_aqua_multiPTR(mev, button, x, y, ID, windex);
-}
 
-
-void emulate_multitouch(const int mev, const unsigned int button, int x, int y, int windex)
-{
-	/* CREATE/DELETE a touch with RMB down 
-	   GRAB/MOVE a touch with LMB down and drag
-	   ID=0 reserved for 'normal' cursor
-	*/
-    int i,ifound,ID,screenWidth,screenHeight;
-	struct Touch *touch;
-	float fx, fy;
-	static int buttons[4] = {0,0,0,0};
-	static int idone = 0;
-	ppMainloop p;
-	ttglobal tg = gglobal();
-	p = (ppMainloop)tg->Mainloop.prv;
-	
-	if(!idone){
-		printf("Use RMB (right mouse button) to create and delete touches\n");
-		printf("Use LMB to drag touches (+- 5 pixel selection window)\n");
-		idone = 1;
-	}
-	//convert to 0-1 float, in case window is resized
-	fwl_getWindowSize1(windex,&screenWidth,&screenHeight);
-	fx = (float)(x)/(float)screenWidth;
-	fy = (float)(y)/(float)screenHeight;
-	buttons[button] = mev == ButtonPress;
-	ifound = 0;
-	ID = -1;
-	touch = NULL;
-
-	for(i=0;i<p->ntouch;i++){
-		touch = &p->touchlist[i];
-		if(touch->ID > -1){
-			if(touch->windex == windex)
-			if((fabs(fx - touch->fx) < .03f) && (fabs(fy - touch->fy) < .03f)){
-				ifound = 1;
-				ID = i;
-				break;
-			}
-		}
-	}
-
-	if( mev == ButtonPress && button == RMB )
-	{
-		//if near an existing one, delete
-		if(ifound && touch){
-			fwl_handle_aqua_multiNORMAL(ButtonRelease,LMB,x,y,ID,windex);
-			//delete
-			touch->ID = -1;
-			printf("delete ID=%d windex=%d\n",ID,windex);
-		}
-		//else create
-		if(!ifound){
-			//create!
-			for(i=0;i<p->ntouch;i++){
-				touch = &p->touchlist[i];
-				if(touch->ID < 0) {
-					fwl_handle_aqua_multiNORMAL(mev, LMB, x, y, i,windex);
-					printf("create ID=%d windex=%d\n",i,windex);
-					break;
-				}
-			}
-		}
-	}else if( mev == MotionNotify && buttons[LMB])	{
-		//if near an existing one, grab it and move it
-		if(ifound){
-			fwl_handle_aqua_multiNORMAL(MotionNotify,0,x,y,ID,windex);
-			//printf("drag ID=%d \n",ID);
-		}
-		if(0) if(!ifound){
-			/* normal, no need to emulate */
-			fwl_handle_aqua_multiNORMAL(mev,button,x,y,0,windex);
-		}
-	}
-}
-/* old function should still work, with single mouse and ID=0 */
-int fwl_handle_aqua1(const int mev, const unsigned int button, int x, int y, int windex) {
-	int yup, screenWidth, screenHeight;
+/* old function BROKEN but need orientation code for repair */
+int fwl_handle_aqua1(const int mev, const unsigned int button, int x, int yup, int windex) {
+	int y, screenWidth, screenHeight;
     ttglobal tg = gglobal();
 
 	/* printf ("fwl_handle_aqua, type %d, screen wid:%d height:%d, orig x,y %d %d\n",
@@ -4415,6 +4695,7 @@ int fwl_handle_aqua1(const int mev, const unsigned int button, int x, int y, int
 		int ox = x;
 		int oy = y;
 
+		y = screenHeight - yup;
 		// these make sense for walk navigation
 		if (Viewer()->type == VIEWER_WALK) {
 			switch (Viewer()->screenOrientation) {
@@ -4463,43 +4744,18 @@ int fwl_handle_aqua1(const int mev, const unsigned int button, int x, int y, int
 			}
 
 		}
+		yup = screenHeight - y;
 	}
 
 	#endif
 
-	//Nov. 2015 changed freewrl mouse from y-down to y-up from here on down:
-	//all y-up now: sesnsor/picking, explore, statusbarHud, handle0 > all navigations, emulate_multitouch, sidebyside fiducials
-	yup = screenHeight -y;
-	if(((ppMainloop)(tg->Mainloop.prv))->EMULATE_MULTITOUCH){
-		emulate_multitouch(mev,button,x, yup,windex);
-	}else{
-		fwl_handle_aqua_multi(mev,button,x,yup,0,windex);
-	}
+	//if(((ppMainloop)(tg->Mainloop.prv))->EMULATE_MULTITOUCH){
+	//	emulate_multitouch(mev,button,x, yup,windex);
+	//}else{
+	//	fwl_handle_aqua_multi(mev,button,x,yup,0,windex);
+	//}
 	return getCursorStyle();
 }
-int fwl_handle_aqua(const int mev, const unsigned int button, int x, int y){
-	return fwl_handle_aqua1(mev,button,x,y,0);
-}
-//#endif
-
-void fwl_setCurXY(int cx, int cy) {
-	ttglobal tg = gglobal();
-	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
-	/* printf ("fwl_setCurXY, have %d %d\n",p->currentX[p->currentCursor],p->currentY[p->currentCursor]); */
-	p->touchlist[p->currentTouch].x = cx;
-	p->touchlist[p->currentTouch].y = cy;
-        //tg->Mainloop.currentX[p->currentCursor] = cx;
-        //tg->Mainloop.currentY[p->currentCursor] = cy;
-}
-
-void fwl_setButDown(int button, int value) {
-	//BUTTON NONE,LMB,MMB,RMB 0,1,2,3
-	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
-	/* printf ("fwl_setButDown called\n"); */
-    //    p->ButDown[p->currentCursor][button] = value;
-	p->touchlist[p->currentTouch].buttonState[button] = value;
-}
-
 
 /* mobile devices - set screen orientation */
 /* "0" is "normal" orientation; degrees clockwise; note that face up and face down not
