@@ -936,7 +936,7 @@ static void set_viewmatrix();
 static void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive);
 /* void fwl_do_keyPress(char kp, int type); Now in lib.h */
 void render_collisions(int Viewer_type);
-int slerp_viewpoint();
+int slerp_viewpoint(int itype);
 static void render_pre(void);
 static void render(void);
 static int setup_pickside(int x, int y);
@@ -1756,7 +1756,7 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 	if (p->onScreen)
 	{
 		render_pre();
-		//slerp_viewpoint(); //moved inside render_pre > setup_viewpoint
+		slerp_viewpoint(3); //does explore / lookat vp slerp
 
 	}
 
@@ -2965,7 +2965,7 @@ static void setup_viewpoint() {
 		matmultiplyAFFINE(viewmatrix,p->posorimatrix,viewmatrix); 
 		matmultiplyAFFINE(viewmatrix,p->viewtransformmatrix,viewmatrix); 
 		fw_glSetDoublev(GL_MODELVIEW_MATRIX, viewmatrix);
-		if(slerp_viewpoint()) //just starting block
+		if(slerp_viewpoint(2)) //just starting block, does vp-bind type slerp
 			fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->viewtransformmatrix);
 
 }

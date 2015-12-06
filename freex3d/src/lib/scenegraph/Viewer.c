@@ -3017,13 +3017,13 @@ world coords > [Transform stack] > bound Viewpoint > [Viewer.Pos,.Quat] > avatar
 }
 
 /* called from main, after the new viewpoint is setup */
-int slerp_viewpoint()
+int slerp_viewpoint(int itype)
 {
 	int iret;
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
 	iret = 0; 
-	if(p->Viewer.SLERPing3){
+	if(p->Viewer.SLERPing3 && itype==3){
 		//navigation 'm' LOOKAT and 'g' EXPLORE non-vp-bind slerping comes through here
 		// slerps: viewer.pos, .quat, .dist 
 		double tickFrac;
@@ -3038,7 +3038,8 @@ int slerp_viewpoint()
 		}
 		iret = 1;
 		//now we let normal rendering use the viewer quat, pos, dist during rendering
-	}else if(p->Viewer.SLERPing2 && p->vp2rnSaved) {
+	}else if(p->Viewer.SLERPing2 && p->vp2rnSaved && itype==2) {
+		//viewpoint slerp-on-bind comes through here
 		if(p->Viewer.SLERPing2justStarted)
 		{
 			//rn rootnode space, vpo/vpn old and new viewpoint space
