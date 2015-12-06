@@ -1903,21 +1903,21 @@ void setup_picking(){
 			/* did we have a click of button 1? */
 			//if (p->ButDown[p->currentCursor][1] && (p->lastPressedOver==NULL)) {
 			if (touch->buttonState[LMB] && (p->lastPressedOver==NULL)) {
-				/* printf ("Not Navigation and 1 down\n"); */
+				//printf ("Not Navigation and 1 down\n"); 
 				/* send an event of ButtonPress and isOver=true */
 				p->lastPressedOver = p->CursorOverSensitive;
 				sendSensorEvents(p->lastPressedOver, ButtonPress, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
 			}
 			//if ((p->ButDown[p->currentCursor][1]==0) && p->lastPressedOver!=NULL) {
 			if ((touch->buttonState[LMB]==0) && p->lastPressedOver!=NULL) {
-				/* printf ("Not Navigation and 1 up\n");  */
+				//printf ("Not Navigation and 1 up\n");
 				/* send an event of ButtonRelease and isOver=true;
 					an isOver=false event will be sent below if required */
 				sendSensorEvents(p->lastPressedOver, ButtonRelease, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
 				p->lastPressedOver = NULL;
 			}
 			if (p->lastMouseEvent == MotionNotify) {
-				/* printf ("Not Navigation and motion - going into sendSensorEvents\n"); */
+				//printf ("Not Navigation and motion - going into sendSensorEvents\n");
 				/* TouchSensor hitPoint_changed needs to know if we are over a sensitive node or not */
 				sendSensorEvents(p->CursorOverSensitive,MotionNotify, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
 
@@ -3501,6 +3501,7 @@ static void sendSensorEvents(struct X3D_Node* COS,int ev, int butStatus, int sta
                         if (ev==ButtonPress) {
                                 gglobal()->RenderFuncs.hypersensitive = p->SensorEvents[count].fromnode;
                                 gglobal()->RenderFuncs.hyperhit = 0;
+                                if(1) get_hyperhit(); //added for touch devices which have no isOver preparation
                         } else if (ev==ButtonRelease) {
                                 gglobal()->RenderFuncs.hypersensitive = 0;
                                 gglobal()->RenderFuncs.hyperhit = 0;
