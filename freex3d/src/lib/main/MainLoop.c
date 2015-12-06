@@ -257,6 +257,20 @@ eye *new_eye(){
 	return malloc(sizeof(eye));
 }
 
+void pushnset_framebuffer(int ibuffer){
+	Stack *framebufferstack;
+	framebufferstack = (Stack *)gglobal()->Mainloop._framebufferstack;
+	stack_push(int,framebufferstack,ibuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, ibuffer);
+}
+void popnset_framebuffer(){
+	int ibuffer;
+	Stack *framebufferstack;
+	framebufferstack = (Stack *)gglobal()->Mainloop._framebufferstack;
+	stack_pop(int,framebufferstack);
+	ibuffer = stack_top(int,framebufferstack);
+    glBindFramebuffer(GL_FRAMEBUFFER, ibuffer);
+}
 void pushnset_viewport(float *vpFraction){
 	//call this from render() function (not from pick function)
 	ivec4 ivport;
@@ -599,16 +613,28 @@ typedef struct stage {
 	int even_odd_frame; //just even/odd so we can tell if its already been rendered on this frame
 	//int initialized;
 } stage;
+void pushnset_buffer(int ibuffer);
+void popnset_buffer();
+void stage_render(void *_self){
+	//just the z-buffer cleared between content
+	stage *self = (stage*)_self;
+	pushnset_framebuffer(self->ibuffer);
+	content_render(_self); //the rest of stage render is the same as content render, so we'll delegate
+	popnset_framebuffer();
+}
 
 contenttype *new_contenttype_stage(){
 	stage *self = malloc(sizeof(stage));
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_STAGE;
+	self->t1.render = stage_render;
+	//self->t1.pick = stage_pick;
 	self->type = STAGETYPE_BACKBUF;
 	self->ibuffer = GL_BACK;
 	self->clear_zbuffer = TRUE;
 	return (contenttype*)self;
 }
+
 int frame_increment_even_odd_frame_count(int ieo){
 	ieo++;
 	ieo = ieo > 1 ? 0 : 1;
@@ -716,6 +742,7 @@ typedef struct pMainloop{
 	targetwindow cwindows[4];
 	int windex; //current window index into twoindows array, valid during render()
 	Stack *_vportstack;
+	Stack *_framebufferstack;
 }* ppMainloop;
 void *Mainloop_constructor(){
 	void *v = MALLOCV(sizeof(struct pMainloop));
@@ -823,6 +850,8 @@ void Mainloop_init(struct tMainloop *t){
 		//t->twindows = p->twindows;
 		p->_vportstack = newStack(ivec4);
 		t->_vportstack = (void *)p->_vportstack; //represents screen pixel area being drawn to
+		p->_framebufferstack = newStack(int);
+		t->_framebufferstack = (void*)p->_framebufferstack;
 	}
 }
 void Mainloop_clear(struct tMainloop *t){
