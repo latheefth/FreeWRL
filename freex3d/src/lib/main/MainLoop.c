@@ -241,7 +241,7 @@ enum {
 	CONTENT_LAYER,
 	CONTENT_SPLITTER,
 	CONTENT_QUADRANT,
-	CONTENT_FBO,
+	//CONTENT_FBO, //fbo is part of stage
 	CONTENT_STAGE,
 	CONTENT_TARGETWINDOW,
 } content_types;
@@ -259,17 +259,24 @@ eye *new_eye(){
 
 void pushnset_framebuffer(int ibuffer){
 	Stack *framebufferstack;
+	int jbuffer;
 	framebufferstack = (Stack *)gglobal()->Mainloop._framebufferstack;
+	jbuffer = stack_top(int,framebufferstack);
 	stack_push(int,framebufferstack,ibuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER,0);
     glBindFramebuffer(GL_FRAMEBUFFER, ibuffer);
+	//printf("pushframebuffer from %d to %d\n",jbuffer,ibuffer);
 }
 void popnset_framebuffer(){
-	int ibuffer;
+	int ibuffer, jbuffer;
 	Stack *framebufferstack;
 	framebufferstack = (Stack *)gglobal()->Mainloop._framebufferstack;
+	jbuffer = stack_top(int,framebufferstack);
 	stack_pop(int,framebufferstack);
 	ibuffer = stack_top(int,framebufferstack);
+	glBindFramebuffer(GL_FRAMEBUFFER,0);
     glBindFramebuffer(GL_FRAMEBUFFER, ibuffer);
+	//printf("popframebuffer from %d to %d\n",jbuffer,ibuffer);
 }
 void pushnset_viewport(float *vpFraction){
 	//call this from render() function (not from pick function)
@@ -586,18 +593,8 @@ contenttype *new_contenttype_splitter(){
 	return (contenttype*)self;
 }
 
-typedef struct contenttype_texturegrid {
-	tcontenttype t1;
-	//void (*render)(); // override
-	//int (*pick)(); //override
-	void *data;
-} contenttype_texturegrid;
-contenttype *new_contenttype_texturegrid(){
-	contenttype_texturegrid *self = malloc(sizeof(contenttype_texturegrid));
-	init_tcontenttype(&self->t1);
-	self->t1.itype = CONTENT_TEXTUREGRID;
-	return (contenttype*)self;
-}
+
+
 enum {
 	STAGETYPE_BACKBUF,
 	STAGETYPE_FBO
@@ -606,6 +603,9 @@ typedef struct stage {
 	tcontenttype t1;
 	int type; // enum stage_type: fbo or backbuf
 	unsigned int ibuffer; //gl fbo or backbuffer GL_UINT
+	unsigned int itexturebuffer; //color buffer, if fbo
+	unsigned int idepthbuffer; //z-depth buffer, if fbo
+	int width, height; //of texture buffer and render buffer
 	ivec4 ivport; //backbuf stage: sub-area of parent iviewport we are targeting left, width, bottom, height
 				//fbo stage: size to make the fbo buffer (0,0 offset)
 	//float[4] clearcolor; 	FW_GL_CLEAR_COLOR(clearcolor[0],clearcolor[1],clearcolor[2],clearcolor[3]);
@@ -613,12 +613,19 @@ typedef struct stage {
 	int even_odd_frame; //just even/odd so we can tell if its already been rendered on this frame
 	//int initialized;
 } stage;
-void pushnset_buffer(int ibuffer);
-void popnset_buffer();
+
 void stage_render(void *_self){
 	//just the z-buffer cleared between content
 	stage *self = (stage*)_self;
+
 	pushnset_framebuffer(self->ibuffer);
+	glClear(GL_DEPTH);
+	//for fun/testing, a different clear color for fbos vs gl_back, but not necessary
+	if(self->ibuffer != GL_BACK)
+		glClearColor(.3f,.4f,.5f,1.0f);
+	else
+		glClearColor(1.0f,0.0f,0.0f,1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
 	content_render(_self); //the rest of stage render is the same as content render, so we'll delegate
 	popnset_framebuffer();
 }
@@ -634,6 +641,310 @@ contenttype *new_contenttype_stage(){
 	self->clear_zbuffer = TRUE;
 	return (contenttype*)self;
 }
+contenttype *new_contenttype_stagefbo(int width, int height){
+	contenttype *_self;
+	stage *self;
+	int useMip;
+
+	_self = new_contenttype_stage();
+	self = (stage*)_self;
+	self->type = STAGETYPE_FBO;
+	self->width = width;
+	self->height = height; //can change during render pass
+	glGenTextures(1, &self->itexturebuffer);
+		//bind to set some parameters
+		glBindTexture(GL_TEXTURE_2D, self->itexturebuffer);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+		useMip = 0;
+		if(useMip){
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE); // automatic mipmap generation included in OpenGL v1.4
+		}else{
+			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+		}
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, self->width, self->height, 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
+		//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, TEXTURE_WIDTH, TEXTURE_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+		//unbind - will rebind during render to reset width, height as needed
+		glBindTexture(GL_TEXTURE_2D, 0); 
+
+	glGenFramebuffers(1, &self->ibuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, self->ibuffer);
+
+	// create a renderbuffer object to store depth info
+	// NOTE: A depth renderable image should be attached the FBO for depth test.
+	// If we don't attach a depth renderable image to the FBO, then
+	// the rendering output will be corrupted because of missing depth test.
+	// If you also need stencil test for your rendering, then you must
+	// attach additional image to the stencil attachement point, too.
+	glGenRenderbuffers(1, &self->idepthbuffer);
+		//bind to set some parameters
+		glBindRenderbuffer(GL_RENDERBUFFER, self->idepthbuffer);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, self->width, self->height);
+		//unbind
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	// attach a texture to FBO color attachement point
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self->itexturebuffer, 0);
+
+	// attach a renderbuffer to depth attachment point
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, self->idepthbuffer);
+	//unbind framebuffer till render
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	return _self;
+}
+void stage_resize(void *_self,int width, int height){
+	stage *self;
+	self = (stage*)_self;
+	if(self->type == STAGETYPE_FBO){
+		self->width = width;
+		self->height = height;
+		glBindTexture(GL_TEXTURE_2D, self->itexturebuffer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, self->width, self->height, 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
+		glBindTexture(GL_TEXTURE_2D, 0); 
+
+		glBindRenderbuffer(GL_RENDERBUFFER, self->idepthbuffer);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, self->width, self->height);
+		//unbind
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	}
+
+}
+
+
+typedef struct contenttype_texturegrid {
+	tcontenttype t1;
+	int nx, ny, nelements, nvert; //number of grid vertices
+	GLuint *index;
+	GLfloat *vert, *vert2, *tex, *norm, dx, tx;
+	GLuint textureID;
+} contenttype_texturegrid;
+
+void render_texturegrid(void *_self);
+void texturegrid_render(void *_self){
+	contenttype *c, *self;
+	self = (contenttype *)_self;
+	pushnset_viewport(self->t1.viewport);
+	c = self->t1.contents;
+	if(c){
+		//should be just the fbo texture to render
+		if(c->t1.itype == CONTENT_STAGE){
+			ivec4 ivport;
+			Stack* vpstack;
+			stage *s;
+
+			s = (stage*)c;
+			vpstack = (Stack*)gglobal()->Mainloop._vportstack;
+			ivport = stack_top(ivec4,vpstack);
+			if(s->width !=  ivport.W || s->height != ivport.H)
+				stage_resize(c,ivport.W,ivport.H);
+			c->t1.render(c);
+		}		
+	}
+	//render self last
+	render_texturegrid(_self);
+	popnset_viewport();
+}
+static GLfloat matrixIdentity[] = {
+	1.0f, 0.0f, 0.0f, 0.0f,
+	0.0f, 1.0f, 0.0f, 0.0f,
+	0.0f, 0.0f, 1.0f, 0.0f,
+	0.0f, 0.0f, 0.0f, 1.0f
+};
+contenttype *new_contenttype_texturegrid(int nx, int ny){
+	contenttype_texturegrid *self = malloc(sizeof(contenttype_texturegrid));
+	init_tcontenttype(&self->t1);
+	self->t1.itype = CONTENT_TEXTUREGRID;
+	self->t1.render = texturegrid_render;
+	self->nx = nx;
+	self->ny = ny;
+	{
+		//generate an nxn grid, complete with vertices, normals, texture coords and triangles
+		int i,j,k; //,n;
+		GLuint *index;
+		GLfloat *vert, *vert2, *tex, *norm;
+		GLfloat dx,dy, tx,ty;
+		//n = p->ngridsize;
+		index = (GLuint*)malloc((nx-1)*(ny-1)*2*3 *sizeof(GLuint));
+		vert = (GLfloat*)malloc(nx*ny*3*sizeof(GLfloat));
+		vert2 = (GLfloat*)malloc(nx*ny*3*sizeof(GLfloat));
+		tex = (GLfloat*)malloc(nx*ny*2*sizeof(GLfloat));
+		norm = (GLfloat*)malloc(nx*ny*3*sizeof(GLfloat));
+		//generate vertices
+		dx = 2.0f / (float)(nx-1);
+		dy = 2.0f / (float)(ny-1);
+		tx = 1.0f / (float)(nx-1);
+		ty = 1.0f / (float)(ny-1);
+		for(i=0;i<nx;i++)
+			for(j=0;j<ny;j++){
+				vert[(i*nx + j)*3 + 0] = -1.0f + j*dy;
+				vert[(i*nx + j)*3 + 1] = -1.0f + i*dx;
+				vert[(i*nx + j)*3 + 2] = 0.0f;
+				tex[(i*nx + j)*2 + 0] = 0.0f + j*ty;
+				tex[(i*nx + j)*2 + 1] = 0.0f + i*tx;
+				norm[(i*nx + j)*3 + 0] = 0.0f;
+				norm[(i*nx + j)*3 + 1] = 0.0f;
+				norm[(i*nx + j)*3 + 2] = 1.0f;
+			}
+		
+
+		//generate triangle indices
+		k = 0;
+		for(i=0;i<nx-1;i++)
+			for(j=0;j<ny-1;j++){
+				//first triangle
+				index[k++] = i*nx + j;
+				index[k++] = i*nx + j + 1;
+				index[k++] = (i+1)*nx + j + 1;
+				//second triangle
+				index[k++] = i*nx + j;
+				index[k++] = (i+1)*nx + j + 1;
+				index[k++] = (i+1)*nx + j;
+			}
+		self->index = index;
+		self->norm = norm;
+		self->tex = tex;
+		self->vert = vert;
+		self->vert2 = vert2;
+		self->nelements = k;
+		self->nvert = nx*ny;
+	}
+	return (contenttype*)self;
+}
+#include "../scenegraph/Component_Shape.h"
+void render_texturegrid(void *_self){
+	contenttype_texturegrid *self;
+	int i,j,useMip,haveTexture;
+	float aspect, scale, xshift, yshift;
+	GLint  positionLoc, texCoordLoc, textureLoc;
+    GLint textureMatrix;
+	GLuint textureID;
+	float fmat[16];
+	s_shader_capabilities_t *scap;
+	self = (contenttype_texturegrid *)_self;
+
+	haveTexture = FALSE;
+	if(self->t1.contents && self->t1.contents->t1.itype == CONTENT_STAGE){
+		stage *s = (stage*)self->t1.contents;
+		if(s->type == STAGETYPE_FBO){
+			textureID = s->itexturebuffer;
+			haveTexture = TRUE;
+		}
+	}
+	if(!haveTexture) return; //nothing worth drawing - could do a X texture
+	//now we load our textured geometry plane/grid to render it
+
+	FW_GL_ORTHO (-1.0f,1.0f,-1.0f,1.0f,0.1f,1000.0f);
+	FW_GL_DEPTHMASK(GL_FALSE);
+	glDisable(GL_DEPTH_TEST);
+
+//>>onResize
+	//Standard vertex process - both sides get this:
+	for(i=0;i<self->nvert;i++){
+		self->vert2[i*3 +0] = self->vert[i*3 +0]; //x
+		self->vert2[i*3 +1] = self->vert[i*3 +1]; //y
+		self->vert2[i*3 +2] = self->vert[i*3 +2]; //z
+	}
+
+	//Modify your vertices here for weird things, depending on side
+	aspect = 1.0; //we'll do window aspect ratio below, using projectionMatrix
+	xshift = 0.0; 
+	yshift = 0.0;
+	scale = 1.0; //window coords go from -1 to 1 in x and y, and so do our lazyvert
+
+	for(i=0;i<self->nvert;i++){
+		self->vert2[i*3 +0] += xshift; //x .0355 empirical
+		self->vert2[i*3 +1] += yshift; //y  .04 empirical
+		self->vert2[i*3 +0] *= 1.0; //x
+		self->vert2[i*3 +1] *= aspect; //y
+		self->vert2[i*3 +0] *= scale; //x
+		self->vert2[i*3 +1] *= scale; //y
+		self->vert2[i*3 +2] = self->vert[i*3 +2]; //z
+	}
+
+
+	//standard vertex process - both sides get this:
+	//scale = tg->display.screenRatio;
+	scale = 1.0f; // 4.0f/3.0f;
+	for(i=0;i<self->nvert;i++){
+		self->vert2[i*3 +0] *= scale; //x
+		self->vert2[i*3 +1] *= scale; //y
+	}
+//<<onResize
+
+	//use FW shader pipeline
+	//we'll use a simplified shader -same one we use for DrawCursor- that 
+	//skips all the fancy lighting and material, and just shows texture as diffuse material
+	scap = getMyShader(ONE_TEX_APPEARANCE_SHADER);
+	enableGlobalShader(scap);
+	positionLoc =  scap->Vertices; 
+	glVertexAttribPointer (positionLoc, 3, GL_FLOAT, 
+						   GL_FALSE, 0, self->vert2 );
+	// Load the texture coordinate
+	texCoordLoc = scap->TexCoords;
+	glVertexAttribPointer ( texCoordLoc, 2, GL_FLOAT,  GL_FALSE, 0, self->tex );  
+	glEnableVertexAttribArray (positionLoc );
+	glEnableVertexAttribArray ( texCoordLoc);
+
+	// Bind the base map - see above
+	glActiveTexture ( GL_TEXTURE0 );
+	glBindTexture ( GL_TEXTURE_2D, textureID );
+	useMip = 0;
+	if(useMip)
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+
+	// Set the base map sampler to texture unit to 0
+	textureLoc = scap->TextureUnit[0];
+	textureMatrix = scap->TextureMatrix;
+	glUniformMatrix4fv(textureMatrix, 1, GL_FALSE, matrixIdentity);
+
+	glUniform1i ( textureLoc, 0 );
+	//window coordinates natively go from -1 to 1 in x and y
+	//but usually the window is rectangular, so to draw a perfect square
+	//you need to scale the coordinates differently in x and y
+	if(1){
+		GLDOUBLE dmat[16];
+		//glOrtho/FW_GL_ORTHO matrix should be on the projection stack - we'll use it
+		fw_glGetDoublev (GL_PROJECTION_MATRIX, dmat);
+		for(i=0;i<16;i++) fmat[i] = (float)dmat[i];
+		//fmat[10] = 1.0f;
+		//fmat[15] = 1.0f;
+		fmat[14] = 0.0f;  
+		//hypothesis for why I have to zero [14]:
+		//H0: we aren't doing the divide stage of homogenous transform
+		//     in vertex shader and we should be
+		//H1: we are intervening in FW_GL_ORTHO doing nonstandard things or failing to zero [14]
+		//H2: in the application code we aren't doing LoadIdentity before glOrtho, 
+		//		and junk is in there that gets multiplied onto the glOrtho
+		glUniformMatrix4fv(scap->ProjectionMatrix,1, GL_FALSE, fmat);
+	}else{
+		for(i=0;i<16;i++) fmat[i] = matrixIdentity[i];
+		fmat[5] = 1.4f; //cheap shortcut for typical rectangular window shape
+		glUniformMatrix4fv(scap->ProjectionMatrix, 1, GL_FALSE, fmat); //lazyIdentity);
+	}
+	glUniformMatrix4fv(scap->ModelViewMatrix, 1, GL_FALSE, matrixIdentity);
+	
+	if(0){
+		glDrawArrays(GL_TRIANGLES,0,self->nelements);
+	}else{
+		glDrawElements(GL_TRIANGLES,self->nelements,GL_UNSIGNED_INT,self->index);
+	}
+
+	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
+	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	restoreGlobalShader();
+	FW_GL_DEPTHMASK(GL_TRUE);
+	glEnable(GL_DEPTH_TEST);
+
+	return;
+}
+
+
 
 int frame_increment_even_odd_frame_count(int ieo){
 	ieo++;
@@ -852,6 +1163,7 @@ void Mainloop_init(struct tMainloop *t){
 		t->_vportstack = (void *)p->_vportstack; //represents screen pixel area being drawn to
 		p->_framebufferstack = newStack(int);
 		t->_framebufferstack = (void*)p->_framebufferstack;
+		stack_push(int,p->_framebufferstack,GL_BACK);
 	}
 }
 void Mainloop_clear(struct tMainloop *t){
@@ -1214,8 +1526,13 @@ void setup_stagesNORMAL(){
 	twindows = p->cwindows;
 	t = twindows;
 	while(t){
-		contenttype *cstage, *clayer, *cscene, *csbh, *cmultitouch;
+		contenttype *cstage, *clayer, *cscene, *csbh, *cmultitouch, *cstagefbo, *ctexturegrid;
 		cstage = new_contenttype_stage();
+
+		cstagefbo = new_contenttype_stagefbo(640,480);
+		ctexturegrid = new_contenttype_texturegrid(2,2);
+		ctexturegrid->t1.contents = cstagefbo;
+
 		cmultitouch = new_contenttype_multitouch();
 		clayer = new_contenttype_layer();
 		if(0){
@@ -1230,8 +1547,17 @@ void setup_stagesNORMAL(){
 		csbh->t1.next = NULL;
 		clayer->t1.contents = cscene;
 		cstage->t1.contents = cmultitouch;
-		p->EMULATE_MULTITOUCH = FALSE;
-		cmultitouch->t1.contents = clayer;
+		p->EMULATE_MULTITOUCH =	FALSE;
+		if(0){
+			//normal
+			cmultitouch->t1.contents = clayer;
+		}else{
+			//experimental render to fbo, then fbo to screen
+			//.. this will allow screen orientation to be re-implemented as a 2-stage render with rotation between
+			cmultitouch->t1.contents = ctexturegrid;
+			cstagefbo->t1.contents = clayer;
+		}
+
 		t->stage = cstage;
 		t = t->next;
 	}
