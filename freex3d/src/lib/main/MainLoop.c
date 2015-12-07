@@ -837,7 +837,6 @@ void render_texturegrid(void *_self){
 	if(!haveTexture) return; //nothing worth drawing - could do a X texture
 	//now we load our textured geometry plane/grid to render it
 
-	FW_GL_ORTHO (-1.0f,1.0f,-1.0f,1.0f,0.1f,1000.0f);
 	FW_GL_DEPTHMASK(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
 
@@ -906,26 +905,9 @@ void render_texturegrid(void *_self){
 	//window coordinates natively go from -1 to 1 in x and y
 	//but usually the window is rectangular, so to draw a perfect square
 	//you need to scale the coordinates differently in x and y
-	if(1){
-		GLDOUBLE dmat[16];
-		//glOrtho/FW_GL_ORTHO matrix should be on the projection stack - we'll use it
-		fw_glGetDoublev (GL_PROJECTION_MATRIX, dmat);
-		for(i=0;i<16;i++) fmat[i] = (float)dmat[i];
-		//fmat[10] = 1.0f;
-		//fmat[15] = 1.0f;
-		fmat[14] = 0.0f;  
-		//hypothesis for why I have to zero [14]:
-		//H0: we aren't doing the divide stage of homogenous transform
-		//     in vertex shader and we should be
-		//H1: we are intervening in FW_GL_ORTHO doing nonstandard things or failing to zero [14]
-		//H2: in the application code we aren't doing LoadIdentity before glOrtho, 
-		//		and junk is in there that gets multiplied onto the glOrtho
-		glUniformMatrix4fv(scap->ProjectionMatrix,1, GL_FALSE, fmat);
-	}else{
-		for(i=0;i<16;i++) fmat[i] = matrixIdentity[i];
-		fmat[5] = 1.4f; //cheap shortcut for typical rectangular window shape
-		glUniformMatrix4fv(scap->ProjectionMatrix, 1, GL_FALSE, fmat); //lazyIdentity);
-	}
+
+	glUniformMatrix4fv(scap->ProjectionMatrix, 1, GL_FALSE, matrixIdentity); 
+
 	glUniformMatrix4fv(scap->ModelViewMatrix, 1, GL_FALSE, matrixIdentity);
 	
 	if(0){
