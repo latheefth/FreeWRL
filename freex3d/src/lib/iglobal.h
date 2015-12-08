@@ -156,6 +156,7 @@ typedef struct iiglobal //InstanceGlobal
 		void *replaceWorldRequestMulti; //will be struct multi-string
 		void *_vportstack; //Stack for viewports
 		void *_framebufferstack; //stack for backbuffers, usually GL_BACK, or can be FBO
+		int screenOrientation2;
 	} Mainloop;
 	struct tProdCon{
 		struct Vector *viewpointNodes;// = NULL;

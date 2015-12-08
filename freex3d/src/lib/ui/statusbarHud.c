@@ -487,8 +487,8 @@ typedef struct pstatusbar{
 	pmenu_t pmenu;
 	int buttonSize; //size of menu buttons, in pixels - default 32
 	GLfloat textColor[4];
-	int screenWidth;
-	int screenHeight;
+	//int screenWidth;
+	//int screenHeight;
 	ivec4 vport;
 	int clipPlane;
 	int side_top, side_bottom;
@@ -894,6 +894,8 @@ NULL,
 void fwl_setPickraySide(int ipreferredSide, int either);
 void fwl_getPickraySide(int *ipreferredSide, int *either);
 int fwl_getOrientation();
+int fwl_getOrientation2();
+void fwl_setOrientation2(int degrees);
 void initOptionsVal()
 {
 	int i,j,k, iside, ieither;
@@ -943,7 +945,7 @@ void initOptionsVal()
 	if(iside==0) p->optionsVal[21][1] = 035;
 	else p->optionsVal[21][7] = 035;
 	if(ieither) p->optionsVal[21][14] = 035;
-	sprintf(p->optionsVal[22],"                    %4d",fwl_getOrientation());
+	sprintf(p->optionsVal[22],"                    %4d",fwl_getOrientation2());
 
 	p->optionsLoaded = 1;
 }
@@ -1214,10 +1216,10 @@ int handleOptionPress(int mouseX, int mouseY)
 		}
 	break;
 	case 'P':
-		fwl_setOrientation((fwl_getOrientation()+90) % 360); 
+		fwl_setOrientation2((fwl_getOrientation2()+90) % 360); 
 		break;
 	case 'Q':
-		fwl_setOrientation( (fwl_getOrientation() + 360 -90) % 360); 
+		fwl_setOrientation2( (fwl_getOrientation2() + 360 -90) % 360); 
 		break;
 	default: 
 		break;
@@ -2557,31 +2559,30 @@ int overStatusbar(ppstatusbar p, int mouseY){
 //void fwl_getWindowSize(int *width, int *height);
 //void fwl_getWindowSize1(int windex, int *width, int *height);
 
-void updateWindowSize(){
-	//call this one when rendering the statusbarHud. 
-	//the libfreewrl rendering loop should have setScreenDim to the appropriate values
-	int width, height;
-	ppstatusbar p;
-	ttglobal tg = gglobal();
-	p = (ppstatusbar)tg->statusbar.prv;
-	fwl_getWindowSize(&width,&height);
-	p->screenWidth = width;
-	p->screenHeight = height;	
-}
-void updateWindowSize1(int windex){
-	//call this one when recieving window events
-	//windex: index of targetwindow 
-	int width, height;
-	ppstatusbar p;
-	ttglobal tg = gglobal();
-	p = (ppstatusbar)tg->statusbar.prv;
-	fwl_getWindowSize1(windex,&width,&height);
-	p->screenWidth = width;
-	p->screenHeight = height;	
-}
+//void updateWindowSize(){
+//	//call this one when rendering the statusbarHud. 
+//	//the libfreewrl rendering loop should have setScreenDim to the appropriate values
+//	int width, height;
+//	ppstatusbar p;
+//	ttglobal tg = gglobal();
+//	p = (ppstatusbar)tg->statusbar.prv;
+//	fwl_getWindowSize(&width,&height);
+//	p->screenWidth = width;
+//	p->screenHeight = height;	
+//}
+//void updateWindowSize1(int windex){
+//	//call this one when recieving window events
+//	//windex: index of targetwindow 
+//	int width, height;
+//	ppstatusbar p;
+//	ttglobal tg = gglobal();
+//	p = (ppstatusbar)tg->statusbar.prv;
+//	fwl_getWindowSize1(windex,&width,&height);
+//	p->screenWidth = width;
+//	p->screenHeight = height;	
+//}
 void updateViewportSize(){
 	Stack *vportstack;
-	ivec4 vport;
 	ppstatusbar p;
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
@@ -2598,7 +2599,7 @@ int handleStatusbarHud1(int mev, int butnum, int mouseX, int mouseY, int windex)
 	p = (ppstatusbar)tg->statusbar.prv;
 
 	//printf("in handleStatusbarHud1 mev %d butnum %d x %d y %d wx %d\n",mev,butnum,mouseX,mouseY,windex);
-	updateWindowSize1(windex);
+	//updateWindowSize1(windex);
 	mouseYY = mouseY; // - p->pmenu.yoffset;
 	if ((mev == ButtonPress) || (mev == ButtonRelease))
 	{
@@ -2719,7 +2720,7 @@ int statusbar_handle_mouse1(int mev, int butnum, int mouseX, int yup, int windex
 	ttglobal tg = gglobal();
 	ppstatusbar p = (ppstatusbar)tg->statusbar.prv;
 	updateViewportSize(); 
-	updateWindowSize1(windex);
+	//updateWindowSize1(windex);
 	//yup = p->screenHeight - mouseY;
 	vpy = yup - p->vport.Y;
 	vpx = mouseX - p->vport.X;
@@ -2799,7 +2800,7 @@ M       void toggle_collision()                             //"
 	//MVC statusbarHud is in View and Controller just called us and told us 
 	//..to poll the Model to update and draw ourself
 	updateViewportSize();
-	updateWindowSize();
+	//updateWindowSize();
 	updateButtonStatus();  //poll Model for some button state
 	updateConsoleStatus(); //poll Model for console text
 
