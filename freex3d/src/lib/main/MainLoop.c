@@ -233,17 +233,17 @@ ivec4 viewportFraction(ivec4 vp, float *fraction){
 */
 //===========NEW=====Nov27,2015================>>>>>
 enum {
-	CONTENT_GENERIC,
-	CONTENT_SCENE,
-	CONTENT_STATUSBAR,
-	CONTENT_MULTITOUCH,
-	CONTENT_TEXTUREGRID,
-	CONTENT_LAYER,
-	CONTENT_SPLITTER,
-	CONTENT_QUADRANT,
-	CONTENT_FBO,
-	CONTENT_STAGE,
-	CONTENT_TARGETWINDOW,
+	CONTENT_GENERIC,		//defaults, render and pick can be delegated to
+	CONTENT_SCENE,			//good old fashioned vrml / x3d scene 
+	CONTENT_STATUSBAR,		//statusbarHud.c (SBH) menu system
+	CONTENT_MULTITOUCH,		//touch display emulator, turn on with SBH > options > emulate multitouch
+	CONTENT_TEXTUREGRID,	//texture-from-fbo-render over a planar mesh/grid, rendered with ortho and diffuse light
+	CONTENT_ORIENTATION,	//screen orientation widget for 'screenOrientation2' application of mobile device screen orientation 90, 180, 270
+	CONTENT_LAYER,			//children are rendered one over top of the other, with zbuffer clearing between children
+	CONTENT_SPLITTER,		//not implemented, a splitter widget
+	CONTENT_QUADRANT,		//not implemented, a quadrant panel where the scene viewpoint is altered to side, front, top for 3 panels
+	CONTENT_STAGE,			//opengl buffer to render to, GL_BACK or FBO (file buffer object), does clearcolor and clear depth before rendering children or self
+	//CONTENT_TARGETWINDOW,	//(target windows aren't implemented as contenttype
 } content_types;
 
 typedef struct eye {
@@ -257,6 +257,27 @@ eye *new_eye(){
 	return malloc(sizeof(eye));
 }
 
+void pushnset_framebuffer(int ibuffer){
+	Stack *framebufferstack;
+	int jbuffer;
+	framebufferstack = (Stack *)gglobal()->Mainloop._framebufferstack;
+	jbuffer = stack_top(int,framebufferstack);
+	stack_push(int,framebufferstack,ibuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER,0);
+    glBindFramebuffer(GL_FRAMEBUFFER, ibuffer);
+	//printf("pushframebuffer from %d to %d\n",jbuffer,ibuffer);
+}
+void popnset_framebuffer(){
+	int ibuffer, jbuffer;
+	Stack *framebufferstack;
+	framebufferstack = (Stack *)gglobal()->Mainloop._framebufferstack;
+	jbuffer = stack_top(int,framebufferstack);
+	stack_pop(int,framebufferstack);
+	ibuffer = stack_top(int,framebufferstack);
+	glBindFramebuffer(GL_FRAMEBUFFER,0);
+    glBindFramebuffer(GL_FRAMEBUFFER, ibuffer);
+	//printf("popframebuffer from %d to %d\n",jbuffer,ibuffer);
+}
 void pushnset_viewport(float *vpFraction){
 	//call this from render() function (not from pick function)
 	ivec4 ivport;
@@ -296,6 +317,10 @@ int checknpush_viewport(float *vpfraction, int mouseX, int mouseY){
 		
 }
 void pop_viewport(){
+	Stack *vportstack;
+	vportstack = (Stack *)gglobal()->Mainloop._vportstack;
+	popviewport(vportstack);
+	//printf("%d ",vportstack->n);
 }
 static ivec4 ivec4_init = {0,0,0,0};
 float defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; //left,right,bottom,top fraction of pixel window
@@ -310,7 +335,7 @@ typedef struct tcontenttype {
 	contenttype *next; //helps parent iterate over its children including this
 	contenttype *pnext; //reverse list of next 
 	float viewport[4]; //fraction relative to parent, L,R,B,T as per x3d specs > Layering > Viewport > clipBoundary: "fractions of (parent surface) in the sequence left/right/bottom/top default 0 1 0 1
-	ivec4 ipixels; //offset pixels left, right, bottom, top relative to parent, +right and +up
+	//ivec4 ipixels; //offset pixels left, right, bottom, top relative to parent, +right and +up
 	void (*render)(void *self); 
 	int (*pick)(void *self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex);  // a generalization of mouse. HMD IMU vs mouse?
 } tcontenttype;
@@ -355,7 +380,7 @@ void init_tcontenttype(tcontenttype *self){
 	self->render = content_render;
 	self->pick = content_pick;
 	memcpy(self->viewport,defaultClipBoundary,4*sizeof(float));
-	self->ipixels = ivec4_init;
+	//self->ipixels = ivec4_init;
 	self->next = NULL;
 	self->pnext = NULL;
 }
@@ -572,18 +597,8 @@ contenttype *new_contenttype_splitter(){
 	return (contenttype*)self;
 }
 
-typedef struct contenttype_texturegrid {
-	tcontenttype t1;
-	//void (*render)(); // override
-	//int (*pick)(); //override
-	void *data;
-} contenttype_texturegrid;
-contenttype *new_contenttype_texturegrid(){
-	contenttype_texturegrid *self = malloc(sizeof(contenttype_texturegrid));
-	init_tcontenttype(&self->t1);
-	self->t1.itype = CONTENT_TEXTUREGRID;
-	return (contenttype*)self;
-}
+
+
 enum {
 	STAGETYPE_BACKBUF,
 	STAGETYPE_FBO
@@ -592,6 +607,9 @@ typedef struct stage {
 	tcontenttype t1;
 	int type; // enum stage_type: fbo or backbuf
 	unsigned int ibuffer; //gl fbo or backbuffer GL_UINT
+	unsigned int itexturebuffer; //color buffer, if fbo
+	unsigned int idepthbuffer; //z-depth buffer, if fbo
+	//int width, height; //of texture buffer and render buffer
 	ivec4 ivport; //backbuf stage: sub-area of parent iviewport we are targeting left, width, bottom, height
 				//fbo stage: size to make the fbo buffer (0,0 offset)
 	//float[4] clearcolor; 	FW_GL_CLEAR_COLOR(clearcolor[0],clearcolor[1],clearcolor[2],clearcolor[3]);
@@ -600,15 +618,608 @@ typedef struct stage {
 	//int initialized;
 } stage;
 
+void stage_render(void *_self){
+	//just the z-buffer cleared between content
+	Stack *vportstack;
+
+	stage *self = (stage*)_self;
+	vportstack = (Stack*)gglobal()->Mainloop._vportstack;
+	pushviewport(vportstack,self->ivport);
+	setcurrentviewport(vportstack); //does opengl call
+	pushnset_framebuffer(self->ibuffer);
+	glClear(GL_DEPTH);
+	//for fun/testing, a different clear color for fbos vs gl_back, but not necessary
+	if(self->ibuffer != GL_BACK)
+		glClearColor(.3f,.4f,.5f,1.0f);
+	else
+		glClearColor(1.0f,0.0f,0.0f,1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	content_render(_self); //the rest of stage render is the same as content render, so we'll delegate
+	popnset_framebuffer();
+	popnset_viewport();
+}
+int stage_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+	Stack *vportstack;
+	int iret;
+	stage *self = (stage*)_self;
+	vportstack = (Stack*)gglobal()->Mainloop._vportstack;
+	pushviewport(vportstack,self->ivport);
+	iret = content_pick(_self,mev,butnum,mouseX,mouseY,ID,windex);
+	pop_viewport();
+	return iret;
+}
+
 contenttype *new_contenttype_stage(){
 	stage *self = malloc(sizeof(stage));
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_STAGE;
+	self->t1.render = stage_render;
+	self->t1.pick = stage_pick;
 	self->type = STAGETYPE_BACKBUF;
 	self->ibuffer = GL_BACK;
 	self->clear_zbuffer = TRUE;
+	self->ivport = ivec4_init;
 	return (contenttype*)self;
 }
+contenttype *new_contenttype_stagefbo(int width, int height){
+	contenttype *_self;
+	stage *self;
+	int useMip;
+
+	_self = new_contenttype_stage();
+	self = (stage*)_self;
+	self->type = STAGETYPE_FBO;
+	self->ivport.W = width;
+	self->ivport.H = height; //can change during render pass
+	glGenTextures(1, &self->itexturebuffer);
+		//bind to set some parameters
+		glBindTexture(GL_TEXTURE_2D, self->itexturebuffer);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+		useMip = 0;
+		if(useMip){
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE); // automatic mipmap generation included in OpenGL v1.4
+		}else{
+			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+		}
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, self->ivport.W, self->ivport.H, 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
+		//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, TEXTURE_WIDTH, TEXTURE_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+		//unbind - will rebind during render to reset width, height as needed
+		glBindTexture(GL_TEXTURE_2D, 0); 
+
+	glGenFramebuffers(1, &self->ibuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, self->ibuffer);
+
+	// create a renderbuffer object to store depth info
+	// NOTE: A depth renderable image should be attached the FBO for depth test.
+	// If we don't attach a depth renderable image to the FBO, then
+	// the rendering output will be corrupted because of missing depth test.
+	// If you also need stencil test for your rendering, then you must
+	// attach additional image to the stencil attachement point, too.
+	glGenRenderbuffers(1, &self->idepthbuffer);
+		//bind to set some parameters
+		glBindRenderbuffer(GL_RENDERBUFFER, self->idepthbuffer);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, self->ivport.W, self->ivport.H);
+		//unbind
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	// attach a texture to FBO color attachement point
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self->itexturebuffer, 0);
+
+	// attach a renderbuffer to depth attachment point
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, self->idepthbuffer);
+	//unbind framebuffer till render
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	return _self;
+}
+void stage_resize(void *_self,int width, int height){
+	stage *self;
+	self = (stage*)_self;
+	if(self->type == STAGETYPE_FBO){
+		self->ivport.W = width;
+		self->ivport.H = height;
+		glBindTexture(GL_TEXTURE_2D, self->itexturebuffer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, self->ivport.W, self->ivport.H, 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
+		glBindTexture(GL_TEXTURE_2D, 0); 
+
+		glBindRenderbuffer(GL_RENDERBUFFER, self->idepthbuffer);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, self->ivport.W, self->ivport.H);
+		//unbind
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	}
+
+}
+
+
+typedef struct contenttype_texturegrid {
+	tcontenttype t1;
+	int nx, ny, nelements, nvert; //number of grid vertices
+	GLuint *index;
+	GLfloat *vert, *vert2, *tex, *norm, dx, tx;
+	GLuint textureID;
+} contenttype_texturegrid;
+
+void render_texturegrid(void *_self);
+void texturegrid_render(void *_self){
+	contenttype *c, *self;
+	self = (contenttype *)_self;
+	pushnset_viewport(self->t1.viewport);
+	c = self->t1.contents;
+	if(c){
+		//should be just the fbo texture to render
+		if(c->t1.itype == CONTENT_STAGE){
+			ivec4 ivport;
+			Stack* vpstack;
+			stage *s;
+
+			s = (stage*)c;
+			vpstack = (Stack*)gglobal()->Mainloop._vportstack;
+			ivport = stack_top(ivec4,vpstack);
+			if(s->ivport.W !=  ivport.W || s->ivport.H != ivport.H)
+				stage_resize(c,ivport.W,ivport.H);
+			c->t1.render(c);
+		}		
+	}
+	//render self last
+	render_texturegrid(_self);
+	popnset_viewport();
+}
+static GLfloat matrixIdentity[] = {
+	1.0f, 0.0f, 0.0f, 0.0f,
+	0.0f, 1.0f, 0.0f, 0.0f,
+	0.0f, 0.0f, 1.0f, 0.0f,
+	0.0f, 0.0f, 0.0f, 1.0f
+};
+
+contenttype *new_contenttype_texturegrid(int nx, int ny){
+	contenttype_texturegrid *self = malloc(sizeof(contenttype_texturegrid));
+	init_tcontenttype(&self->t1);
+	self->t1.itype = CONTENT_TEXTUREGRID;
+	self->t1.render = texturegrid_render;
+	self->nx = nx;
+	self->ny = ny;
+	{
+		//generate an nxn grid, complete with vertices, normals, texture coords and triangles
+		int i,j,k; //,n;
+		GLuint *index;
+		GLfloat *vert, *vert2, *tex, *norm;
+		GLfloat dx,dy, tx,ty;
+		//n = p->ngridsize;
+		index = (GLuint*)malloc((nx-1)*(ny-1)*2*3 *sizeof(GLuint));
+		vert = (GLfloat*)malloc(nx*ny*3*sizeof(GLfloat));
+		vert2 = (GLfloat*)malloc(nx*ny*3*sizeof(GLfloat));
+		tex = (GLfloat*)malloc(nx*ny*2*sizeof(GLfloat));
+		norm = (GLfloat*)malloc(nx*ny*3*sizeof(GLfloat));
+		//generate vertices
+		dx = 2.0f / (float)(nx-1);
+		dy = 2.0f / (float)(ny-1);
+		tx = 1.0f / (float)(nx-1);
+		ty = 1.0f / (float)(ny-1);
+		for(i=0;i<nx;i++)
+			for(j=0;j<ny;j++){
+				vert[(i*nx + j)*3 + 0] = -1.0f + j*dy;
+				vert[(i*nx + j)*3 + 1] = -1.0f + i*dx;
+				vert[(i*nx + j)*3 + 2] = 0.0f;
+				tex[(i*nx + j)*2 + 0] = 0.0f + j*ty;
+				tex[(i*nx + j)*2 + 1] = 0.0f + i*tx;
+				norm[(i*nx + j)*3 + 0] = 0.0f;
+				norm[(i*nx + j)*3 + 1] = 0.0f;
+				norm[(i*nx + j)*3 + 2] = 1.0f;
+			}
+		
+
+		//generate triangle indices
+		k = 0;
+		for(i=0;i<nx-1;i++)
+			for(j=0;j<ny-1;j++){
+				//first triangle
+				index[k++] = i*nx + j;
+				index[k++] = i*nx + j + 1;
+				index[k++] = (i+1)*nx + j + 1;
+				//second triangle
+				index[k++] = i*nx + j;
+				index[k++] = (i+1)*nx + j + 1;
+				index[k++] = (i+1)*nx + j;
+			}
+		self->index = index;
+		self->norm = norm;
+		self->tex = tex;
+		self->vert = vert;
+		self->vert2 = vert2;
+		self->nelements = k;
+		self->nvert = nx*ny;
+	}
+	return (contenttype*)self;
+}
+#include "../scenegraph/Component_Shape.h"
+void render_texturegrid(void *_self){
+	contenttype_texturegrid *self;
+	int i,j,useMip,haveTexture;
+	float aspect, scale, xshift, yshift;
+	GLint  positionLoc, texCoordLoc, textureLoc;
+    GLint textureMatrix;
+	GLuint textureID;
+	float fmat[16];
+	s_shader_capabilities_t *scap;
+	self = (contenttype_texturegrid *)_self;
+
+	haveTexture = FALSE;
+	if(self->t1.contents && self->t1.contents->t1.itype == CONTENT_STAGE){
+		stage *s = (stage*)self->t1.contents;
+		if(s->type == STAGETYPE_FBO){
+			textureID = s->itexturebuffer;
+			haveTexture = TRUE;
+		}
+	}
+	if(!haveTexture) return; //nothing worth drawing - could do a X texture
+	//now we load our textured geometry plane/grid to render it
+
+	FW_GL_DEPTHMASK(GL_FALSE);
+	glDisable(GL_DEPTH_TEST);
+
+//>>onResize
+	//Standard vertex process - both sides get this:
+	for(i=0;i<self->nvert;i++){
+		self->vert2[i*3 +0] = self->vert[i*3 +0]; //x
+		self->vert2[i*3 +1] = self->vert[i*3 +1]; //y
+		self->vert2[i*3 +2] = self->vert[i*3 +2]; //z
+	}
+
+	//Modify your vertices here for weird things, depending on side
+	aspect = 1.0; //we'll do window aspect ratio below, using projectionMatrix
+	xshift = 0.0; 
+	yshift = 0.0;
+	scale = 1.0; //window coords go from -1 to 1 in x and y, and so do our lazyvert
+
+	for(i=0;i<self->nvert;i++){
+		self->vert2[i*3 +0] += xshift; //x .0355 empirical
+		self->vert2[i*3 +1] += yshift; //y  .04 empirical
+		self->vert2[i*3 +0] *= 1.0; //x
+		self->vert2[i*3 +1] *= aspect; //y
+		self->vert2[i*3 +0] *= scale; //x
+		self->vert2[i*3 +1] *= scale; //y
+		self->vert2[i*3 +2] = self->vert[i*3 +2]; //z
+	}
+
+
+	//standard vertex process - both sides get this:
+	//scale = tg->display.screenRatio;
+	scale = 1.0f; // 4.0f/3.0f;
+	for(i=0;i<self->nvert;i++){
+		self->vert2[i*3 +0] *= scale; //x
+		self->vert2[i*3 +1] *= scale; //y
+	}
+//<<onResize
+
+	//use FW shader pipeline
+	//we'll use a simplified shader -same one we use for DrawCursor- that 
+	//skips all the fancy lighting and material, and just shows texture as diffuse material
+	scap = getMyShader(ONE_TEX_APPEARANCE_SHADER);
+	enableGlobalShader(scap);
+	positionLoc =  scap->Vertices; 
+	glVertexAttribPointer (positionLoc, 3, GL_FLOAT, 
+						   GL_FALSE, 0, self->vert2 );
+	// Load the texture coordinate
+	texCoordLoc = scap->TexCoords;
+	glVertexAttribPointer ( texCoordLoc, 2, GL_FLOAT,  GL_FALSE, 0, self->tex );  
+	glEnableVertexAttribArray (positionLoc );
+	glEnableVertexAttribArray ( texCoordLoc);
+
+	// Bind the base map - see above
+	glActiveTexture ( GL_TEXTURE0 );
+	glBindTexture ( GL_TEXTURE_2D, textureID );
+	useMip = 0;
+	if(useMip)
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+
+	// Set the base map sampler to texture unit to 0
+	textureLoc = scap->TextureUnit[0];
+	textureMatrix = scap->TextureMatrix;
+	glUniformMatrix4fv(textureMatrix, 1, GL_FALSE, matrixIdentity);
+
+	glUniform1i ( textureLoc, 0 );
+	//window coordinates natively go from -1 to 1 in x and y
+	//but usually the window is rectangular, so to draw a perfect square
+	//you need to scale the coordinates differently in x and y
+
+	glUniformMatrix4fv(scap->ProjectionMatrix, 1, GL_FALSE, matrixIdentity); 
+
+	glUniformMatrix4fv(scap->ModelViewMatrix, 1, GL_FALSE, matrixIdentity); //matrix90); //
+	
+	if(0){
+		glDrawArrays(GL_TRIANGLES,0,self->nelements);
+	}else{
+		glDrawElements(GL_TRIANGLES,self->nelements,GL_UNSIGNED_INT,self->index);
+	}
+
+	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
+	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	restoreGlobalShader();
+	FW_GL_DEPTHMASK(GL_TRUE);
+	glEnable(GL_DEPTH_TEST);
+
+	return;
+}
+
+
+
+typedef struct contenttype_orientation {
+	tcontenttype t1;
+	int nx, ny, nelements, nvert; //number of grid vertices
+	GLuint *index;
+	GLfloat *vert, *vert2, *tex, *norm, dx, tx;
+	GLuint textureID;
+} contenttype_orientation;
+
+void render_orientation(void *_self);
+void orientation_render(void *_self){
+	contenttype *c, *self;
+	self = (contenttype *)_self;
+	pushnset_viewport(self->t1.viewport);
+	c = self->t1.contents;
+	if(c){
+		//should be just the fbo texture to render
+		if(c->t1.itype == CONTENT_STAGE){
+			ivec4 ivport;
+			int fbowidth,fboheight;
+			Stack* vpstack;
+			stage *s;
+			ttglobal tg = gglobal();
+
+			s = (stage*)c;
+			vpstack = (Stack*)tg->Mainloop._vportstack;
+			ivport = stack_top(ivec4,vpstack);
+			switch(tg->Mainloop.screenOrientation2){
+				case 90:
+				case 270:
+					//portrait
+					fbowidth  = ivport.H;
+					fboheight = ivport.W;
+					break;
+				case 0:
+				case 180:
+				default:
+					//landscape
+					fbowidth  = ivport.W;
+					fboheight = ivport.H;
+					break;
+			}
+
+			if(s->ivport.W !=  fbowidth || s->ivport.H != fboheight)
+				stage_resize(c,fbowidth,fboheight);
+			c->t1.render(c);
+		}		
+	}
+	//render self last
+	render_orientation(_self);
+	popnset_viewport();
+}
+
+
+int orientation_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+	//generic render for intermediate level content types (leaf/terminal content types will have their own render())
+	int iret;
+	contenttype *c, *self;
+
+	self = (contenttype *)_self;
+	iret = -1;
+	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
+		ivec4 ivport;
+		int x,y;
+		ttglobal tg = gglobal();
+		ivport = stack_top(ivec4,(Stack*)tg->Mainloop._vportstack);
+		switch(tg->Mainloop.screenOrientation2){
+			case 90:
+				x = ivport.H - mouseY;
+				y = mouseX;
+				break;
+			case 180:
+				x = ivport.W - mouseX;
+				y = ivport.H - mouseY;
+				break;
+			case 270:
+				x = mouseY;
+				y = ivport.W - mouseX;
+				break;
+			case 0:
+			case 360:
+			default:
+				//landscape
+				x = mouseX;
+				y = mouseY;
+				break;
+		}
+		c = self->t1.contents;
+		while(c){
+			iret = c->t1.pick(c,mev,butnum,x,y,ID, windex);
+			if(iret > -1) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
+			c = c->t1.next;
+		}
+		pop_viewport();
+	}
+	return iret;
+}
+void render_orientation(void *_self);
+contenttype *new_contenttype_orientation(){
+	contenttype_orientation *self = malloc(sizeof(contenttype_orientation));
+	init_tcontenttype(&self->t1);
+	self->t1.itype = CONTENT_ORIENTATION;
+	self->t1.render = orientation_render;
+	self->t1.pick = orientation_pick;
+	self->nx = 2;
+	self->ny = 2;
+	{
+		//generate an nxn grid, complete with vertices, normals, texture coords and triangles
+		int i,j,k,nx,ny;
+		GLuint *index;
+		GLfloat *vert, *vert2, *tex, *norm;
+		GLfloat dx,dy, tx,ty;
+
+		nx = 2;
+		ny = 2;
+		index = (GLuint*)malloc((nx-1)*(ny-1)*2*3 *sizeof(GLuint));
+		vert = (GLfloat*)malloc(nx*ny*3*sizeof(GLfloat));
+		tex = (GLfloat*)malloc(nx*ny*2*sizeof(GLfloat));
+		norm = (GLfloat*)malloc(nx*ny*3*sizeof(GLfloat));
+		//generate vertices
+		dx = 2.0f / (float)(nx-1);
+		dy = 2.0f / (float)(ny-1);
+		tx = 1.0f / (float)(nx-1);
+		ty = 1.0f / (float)(ny-1);
+		for(i=0;i<nx;i++)
+			for(j=0;j<ny;j++){
+				vert[(i*nx + j)*3 + 0] = -1.0f + j*dy;
+				vert[(i*nx + j)*3 + 1] = -1.0f + i*dx;
+				vert[(i*nx + j)*3 + 2] = 0.0f;
+				tex[(i*nx + j)*2 + 0] = 0.0f + j*ty;
+				tex[(i*nx + j)*2 + 1] = 0.0f + i*tx;
+				norm[(i*nx + j)*3 + 0] = 0.0f;
+				norm[(i*nx + j)*3 + 1] = 0.0f;
+				norm[(i*nx + j)*3 + 2] = 1.0f;
+			}
+		
+
+		//generate triangle indices
+		k = 0;
+		for(i=0;i<nx-1;i++)
+			for(j=0;j<ny-1;j++){
+				//first triangle
+				index[k++] = i*nx + j;
+				index[k++] = i*nx + j + 1;
+				index[k++] = (i+1)*nx + j + 1;
+				//second triangle
+				index[k++] = i*nx + j;
+				index[k++] = (i+1)*nx + j + 1;
+				index[k++] = (i+1)*nx + j;
+			}
+		self->index = index;
+		self->norm = norm;
+		self->tex = tex;
+		self->vert = vert;
+		self->nelements = k;
+		self->nvert = nx*ny;
+	}
+	return (contenttype*)self;
+}
+static GLfloat matrix180[] = {
+	-1.f, 0.0f, 0.0f, 0.0f,
+	0.0f,-1.0f, 0.0f, 0.0f,
+	0.0f, 0.0f, 1.0f, 0.0f,
+	0.0f, 0.0f, 0.0f, 1.0f
+};
+static GLfloat matrix270[] = {
+	0.0f, 1.0f, 0.0f, 0.0f,
+	-1.f, 0.0f, 0.0f, 0.0f,
+	0.0f, 0.0f, 1.0f, 0.0f,
+	0.0f, 0.0f, 0.0f, 1.0f
+};
+static GLfloat matrix90[] = {
+	0.0f, -1.0f, 0.0f, 0.0f,
+	1.0f, 0.0f, 0.0f, 0.0f,
+	0.0f, 0.0f, 1.0f, 0.0f,
+	0.0f, 0.0f, 0.0f, 1.0f
+};
+
+void render_orientation(void *_self){
+	contenttype_orientation *self;
+	int i,j,useMip,haveTexture;
+	float aspect, scale, xshift, yshift;
+	GLint  positionLoc, texCoordLoc, textureLoc;
+    GLint textureMatrix;
+	GLuint textureID;
+	float fmat[16], *orientationMatrix;
+	s_shader_capabilities_t *scap;
+	self = (contenttype_orientation *)_self;
+
+	haveTexture = FALSE;
+	if(self->t1.contents && self->t1.contents->t1.itype == CONTENT_STAGE){
+		stage *s = (stage*)self->t1.contents;
+		if(s->type == STAGETYPE_FBO){
+			
+			textureID = s->itexturebuffer;
+			haveTexture = TRUE;
+		}
+	}
+	if(!haveTexture) return; //nothing worth drawing - could do a X texture
+	//now we load our textured geometry plane/grid to render it
+
+	switch(gglobal()->Mainloop.screenOrientation2){
+		case 180:  //landscape to upsidedown
+			orientationMatrix = matrix180;
+			break;
+		case 270:  //portrait upsidedown
+			orientationMatrix = matrix270;
+			break;
+		case 90: //portrait upsideright
+			orientationMatrix = matrix90;
+			break;
+		case 0:  //landscape upsideright
+		case 360:
+		default:
+			//landscape
+			orientationMatrix = matrixIdentity;
+			break;
+	}
+
+	FW_GL_DEPTHMASK(GL_FALSE);
+	glDisable(GL_DEPTH_TEST);
+
+	//use FW shader pipeline
+	//we'll use a simplified shader -same one we use for DrawCursor- that 
+	//skips all the fancy lighting and material, and just shows texture as diffuse material
+	scap = getMyShader(ONE_TEX_APPEARANCE_SHADER);
+	enableGlobalShader(scap);
+	positionLoc =  scap->Vertices; 
+	glVertexAttribPointer (positionLoc, 3, GL_FLOAT, 
+						   GL_FALSE, 0, self->vert );
+	// Load the texture coordinate
+	texCoordLoc = scap->TexCoords;
+	glVertexAttribPointer ( texCoordLoc, 2, GL_FLOAT,  GL_FALSE, 0, self->tex );  
+	glEnableVertexAttribArray (positionLoc );
+	glEnableVertexAttribArray ( texCoordLoc);
+
+	// Bind the base map - see above
+	glActiveTexture ( GL_TEXTURE0 );
+	glBindTexture ( GL_TEXTURE_2D, textureID );
+
+	// Set the base map sampler to texture unit to 0
+	textureLoc = scap->TextureUnit[0];
+	textureMatrix = scap->TextureMatrix;
+	glUniformMatrix4fv(textureMatrix, 1, GL_FALSE, matrixIdentity);
+
+	glUniform1i ( textureLoc, 0 );
+	//window coordinates natively go from -1 to 1 in x and y
+	//but usually the window is rectangular, so to draw a perfect square
+	//you need to scale the coordinates differently in x and y
+
+	glUniformMatrix4fv(scap->ProjectionMatrix, 1, GL_FALSE, matrixIdentity); 
+	glUniformMatrix4fv(scap->ModelViewMatrix, 1, GL_FALSE, orientationMatrix); //matrix90); //
+	
+	if(0){
+		glDrawArrays(GL_TRIANGLES,0,self->nelements);
+	}else{
+		glDrawElements(GL_TRIANGLES,self->nelements,GL_UNSIGNED_INT,self->index);
+	}
+
+	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
+	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	restoreGlobalShader();
+	FW_GL_DEPTHMASK(GL_TRUE);
+	glEnable(GL_DEPTH_TEST);
+
+	return;
+}
+
+
+
+
 int frame_increment_even_odd_frame_count(int ieo){
 	ieo++;
 	ieo = ieo > 1 ? 0 : 1;
@@ -716,6 +1327,7 @@ typedef struct pMainloop{
 	targetwindow cwindows[4];
 	int windex; //current window index into twoindows array, valid during render()
 	Stack *_vportstack;
+	Stack *_framebufferstack;
 }* ppMainloop;
 void *Mainloop_constructor(){
 	void *v = MALLOCV(sizeof(struct pMainloop));
@@ -823,6 +1435,9 @@ void Mainloop_init(struct tMainloop *t){
 		//t->twindows = p->twindows;
 		p->_vportstack = newStack(ivec4);
 		t->_vportstack = (void *)p->_vportstack; //represents screen pixel area being drawn to
+		p->_framebufferstack = newStack(int);
+		t->_framebufferstack = (void*)p->_framebufferstack;
+		stack_push(int,p->_framebufferstack,GL_BACK);
 	}
 }
 void Mainloop_clear(struct tMainloop *t){
@@ -1185,8 +1800,11 @@ void setup_stagesNORMAL(){
 	twindows = p->cwindows;
 	t = twindows;
 	while(t){
-		contenttype *cstage, *clayer, *cscene, *csbh, *cmultitouch;
+		contenttype *cstage, *clayer, *cscene, *csbh, *cmultitouch, *cstagefbo, *ctexturegrid, *corientation;
 		cstage = new_contenttype_stage();
+
+		cstagefbo = new_contenttype_stagefbo(640,480);
+
 		cmultitouch = new_contenttype_multitouch();
 		clayer = new_contenttype_layer();
 		if(0){
@@ -1201,8 +1819,25 @@ void setup_stagesNORMAL(){
 		csbh->t1.next = NULL;
 		clayer->t1.contents = cscene;
 		cstage->t1.contents = cmultitouch;
-		p->EMULATE_MULTITOUCH = FALSE;
-		cmultitouch->t1.contents = clayer;
+		p->EMULATE_MULTITOUCH =	FALSE;
+		if(0){
+			//normal
+			cmultitouch->t1.contents = clayer;
+		}else if(0){
+			//experimental render to fbo, then fbo to screen
+			//.. this will allow screen orientation to be re-implemented as a 2-stage render with rotation between
+			ctexturegrid = new_contenttype_texturegrid(2,2);
+			ctexturegrid->t1.contents = cstagefbo;
+
+			cmultitouch->t1.contents = ctexturegrid;
+			cstagefbo->t1.contents = clayer;
+		}else{
+			corientation = new_contenttype_orientation();
+			cmultitouch->t1.contents = corientation;
+			corientation->t1.contents = cstagefbo;
+			cstagefbo->t1.contents = clayer;
+		}
+
 		t->stage = cstage;
 		t = t->next;
 	}
@@ -4769,6 +5404,7 @@ int fwl_handle_aqua1(const int mev, const unsigned int button, int x, int yup, i
    coded; assume only landscape/portrait style orientations */
 
 void fwl_setOrientation (int orient) {
+	//this original version affects the 3D view matrix 
 	switch (orient) {
 		case 0:
 		case 90:
@@ -4784,8 +5420,32 @@ void fwl_setOrientation (int orient) {
 		}
 	}
 }
+int fwl_getOrientation(){
+	return Viewer()->screenOrientation;
+}
 
-
+void fwl_setOrientation2 (int orient) {
+	//this Dec 2015 version affects 2D screen orientation via a contenttype_orientation widget
+	switch (orient) {
+		case 0:
+		case 90:
+		case 180:
+		case 270:
+			{
+			gglobal()->Mainloop.screenOrientation2 = orient;
+			//ConsoleMessage ("set orientation2 %d\n",orient);
+			break;
+		}
+		default: {
+			ConsoleMessage ("invalid orientation2 %d\n",orient);
+			gglobal()->Mainloop.screenOrientation2 = 0;
+		}
+	}
+}
+int fwl_getOrientation2(){
+	//ConsoleMessage ("get orientation2 %d\n",gglobal()->Mainloop.screenOrientation2);
+	return gglobal()->Mainloop.screenOrientation2;
+}
 
 void setIsPlugin() {
 

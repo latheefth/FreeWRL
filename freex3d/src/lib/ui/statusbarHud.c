@@ -469,7 +469,7 @@ typedef struct pstatusbar{
 	char messagebar[200];
 	int bmfontsize;// = 2; /* 0,1 or 2 */
 	int optionsLoaded;// = 0;
-	char * optionsVal[23];
+	char * optionsVal[25];
 	int osystem;// = 3; //mac 1btn = 0, mac nbutton = 1, linux game descent = 2, windows =3
 	XY bmWH;// = {10,15}; /* simple bitmap font from redbook above, width and height in pixels */
 	int bmScale; //1 or 2 for the hud pixel fonts, changes between ..ForOptions and ..Regular 
@@ -487,8 +487,8 @@ typedef struct pstatusbar{
 	pmenu_t pmenu;
 	int buttonSize; //size of menu buttons, in pixels - default 32
 	GLfloat textColor[4];
-	int screenWidth;
-	int screenHeight;
+	//int screenWidth;
+	//int screenHeight;
 	ivec4 vport;
 	int clipPlane;
 	int side_top, side_bottom;
@@ -573,7 +573,7 @@ void initProgramObject(){
    p->textureLoc = glGetUniformLocation ( p->programObject, "Texture0" );
    p->color4fLoc = glGetUniformLocation ( p->programObject, "Color4f" );
 }
-static int lenOptions   = 22;
+static int lenOptions   = 23;
 void statusbar_clear(struct tstatusbar *t){
 	//public
 	//private
@@ -870,6 +870,8 @@ char * optionsText[] = {
 "  emulate multitouch (mousewheel)",
 "pickray eye:",
 "  left  right  either",
+"screen orientation \36    \37",
+//0123456789012345678901234567890
 NULL,
 };
 //int optionsLoaded = 0;
@@ -891,6 +893,9 @@ NULL,
 };
 void fwl_setPickraySide(int ipreferredSide, int either);
 void fwl_getPickraySide(int *ipreferredSide, int *either);
+int fwl_getOrientation();
+int fwl_getOrientation2();
+void fwl_setOrientation2(int degrees);
 void initOptionsVal()
 {
 	int i,j,k, iside, ieither;
@@ -901,9 +906,9 @@ void initOptionsVal()
 	for(i=0;i<lenOptions;i++)
 	{
 		if(!p->optionsVal[i])
-			p->optionsVal[i] = MALLOC(char*, 20);
+			p->optionsVal[i] = MALLOC(char*, 30);
 		for(j=0;j<19;j++) p->optionsVal[i][j] = ' ';
-		p->optionsVal[i][19] = '\0';
+		p->optionsVal[i][29] = '\0';
 	}
 	p->optionsVal[1][0] = 034; //[]
 	p->optionsVal[2][0] = 034; //[]
@@ -940,6 +945,8 @@ void initOptionsVal()
 	if(iside==0) p->optionsVal[21][1] = 035;
 	else p->optionsVal[21][7] = 035;
 	if(ieither) p->optionsVal[21][14] = 035;
+	sprintf(p->optionsVal[22],"                    %4d",fwl_getOrientation2());
+
 	p->optionsLoaded = 1;
 }
 void updateOptionsVal()
@@ -972,7 +979,7 @@ char * optionsCase[] = {
 "GGGGGGGGGGG",
 " ",
 "MM    NN     OO",
-
+"                  PP    QQ",
 NULL,
 };
 
@@ -1208,7 +1215,14 @@ int handleOptionPress(int mouseX, int mouseY)
 			fwl_setPickraySide(iside,ieither);
 		}
 	break;
-	default: {break;}
+	case 'P':
+		fwl_setOrientation2((fwl_getOrientation2()+90) % 360); 
+		break;
+	case 'Q':
+		fwl_setOrientation2( (fwl_getOrientation2() + 360 -90) % 360); 
+		break;
+	default: 
+		break;
 	}
 	return 1;
 }
@@ -2545,31 +2559,30 @@ int overStatusbar(ppstatusbar p, int mouseY){
 //void fwl_getWindowSize(int *width, int *height);
 //void fwl_getWindowSize1(int windex, int *width, int *height);
 
-void updateWindowSize(){
-	//call this one when rendering the statusbarHud. 
-	//the libfreewrl rendering loop should have setScreenDim to the appropriate values
-	int width, height;
-	ppstatusbar p;
-	ttglobal tg = gglobal();
-	p = (ppstatusbar)tg->statusbar.prv;
-	fwl_getWindowSize(&width,&height);
-	p->screenWidth = width;
-	p->screenHeight = height;	
-}
-void updateWindowSize1(int windex){
-	//call this one when recieving window events
-	//windex: index of targetwindow 
-	int width, height;
-	ppstatusbar p;
-	ttglobal tg = gglobal();
-	p = (ppstatusbar)tg->statusbar.prv;
-	fwl_getWindowSize1(windex,&width,&height);
-	p->screenWidth = width;
-	p->screenHeight = height;	
-}
+//void updateWindowSize(){
+//	//call this one when rendering the statusbarHud. 
+//	//the libfreewrl rendering loop should have setScreenDim to the appropriate values
+//	int width, height;
+//	ppstatusbar p;
+//	ttglobal tg = gglobal();
+//	p = (ppstatusbar)tg->statusbar.prv;
+//	fwl_getWindowSize(&width,&height);
+//	p->screenWidth = width;
+//	p->screenHeight = height;	
+//}
+//void updateWindowSize1(int windex){
+//	//call this one when recieving window events
+//	//windex: index of targetwindow 
+//	int width, height;
+//	ppstatusbar p;
+//	ttglobal tg = gglobal();
+//	p = (ppstatusbar)tg->statusbar.prv;
+//	fwl_getWindowSize1(windex,&width,&height);
+//	p->screenWidth = width;
+//	p->screenHeight = height;	
+//}
 void updateViewportSize(){
 	Stack *vportstack;
-	ivec4 vport;
 	ppstatusbar p;
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
@@ -2586,7 +2599,7 @@ int handleStatusbarHud1(int mev, int butnum, int mouseX, int mouseY, int windex)
 	p = (ppstatusbar)tg->statusbar.prv;
 
 	//printf("in handleStatusbarHud1 mev %d butnum %d x %d y %d wx %d\n",mev,butnum,mouseX,mouseY,windex);
-	updateWindowSize1(windex);
+	//updateWindowSize1(windex);
 	mouseYY = mouseY; // - p->pmenu.yoffset;
 	if ((mev == ButtonPress) || (mev == ButtonRelease))
 	{
@@ -2707,7 +2720,7 @@ int statusbar_handle_mouse1(int mev, int butnum, int mouseX, int yup, int windex
 	ttglobal tg = gglobal();
 	ppstatusbar p = (ppstatusbar)tg->statusbar.prv;
 	updateViewportSize(); 
-	updateWindowSize1(windex);
+	//updateWindowSize1(windex);
 	//yup = p->screenHeight - mouseY;
 	vpy = yup - p->vport.Y;
 	vpx = mouseX - p->vport.X;
@@ -2787,7 +2800,7 @@ M       void toggle_collision()                             //"
 	//MVC statusbarHud is in View and Controller just called us and told us 
 	//..to poll the Model to update and draw ourself
 	updateViewportSize();
-	updateWindowSize();
+	//updateWindowSize();
 	updateButtonStatus();  //poll Model for some button state
 	updateConsoleStatus(); //poll Model for console text
 
