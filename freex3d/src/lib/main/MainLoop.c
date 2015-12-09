@@ -125,6 +125,12 @@ struct Touch
 	int rx,ry; //raw input coords at emulation level, for finding and dragging and rendering
 };
 
+//#ifdef ANGLEPROJECT
+//mysterious/funny: angleproject's gl2.h has GL_BACK 0x0405 like glew.h, 
+//but if I use it as a renderbuffer number angleproject blackscreens - it likes 0 for GL_BACK.
+#define GL_BACK 0   
+//#endif
+
 void pushviewport(Stack *vpstack, ivec4 vp){
 	stack_push(ivec4,vpstack,vp);
 }
@@ -623,17 +629,16 @@ void stage_render(void *_self){
 	Stack *vportstack;
 
 	stage *self = (stage*)_self;
+	pushnset_framebuffer(self->ibuffer);
 	vportstack = (Stack*)gglobal()->Mainloop._vportstack;
 	pushviewport(vportstack,self->ivport);
 	setcurrentviewport(vportstack); //does opengl call
-	pushnset_framebuffer(self->ibuffer);
-	glClear(GL_DEPTH);
 	//for fun/testing, a different clear color for fbos vs gl_back, but not necessary
 	if(self->ibuffer != GL_BACK)
 		glClearColor(.3f,.4f,.5f,1.0f);
 	else
 		glClearColor(1.0f,0.0f,0.0f,1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 	content_render(_self); //the rest of stage render is the same as content render, so we'll delegate
 	popnset_framebuffer();
 	popnset_viewport();
@@ -684,7 +689,7 @@ contenttype *new_contenttype_stagefbo(int width, int height){
 		}
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, self->ivport.W, self->ivport.H, 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, self->ivport.W, self->ivport.H, 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
 		//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, TEXTURE_WIDTH, TEXTURE_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 		//unbind - will rebind during render to reset width, height as needed
 		glBindTexture(GL_TEXTURE_2D, 0); 
@@ -701,7 +706,7 @@ contenttype *new_contenttype_stagefbo(int width, int height){
 	glGenRenderbuffers(1, &self->idepthbuffer);
 		//bind to set some parameters
 		glBindRenderbuffer(GL_RENDERBUFFER, self->idepthbuffer);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, self->ivport.W, self->ivport.H);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, self->ivport.W, self->ivport.H);
 		//unbind
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
@@ -722,13 +727,16 @@ void stage_resize(void *_self,int width, int height){
 		self->ivport.W = width;
 		self->ivport.H = height;
 		glBindTexture(GL_TEXTURE_2D, self->itexturebuffer);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, self->ivport.W, self->ivport.H, 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, self->ivport.W, self->ivport.H, 0, GL_RGBA , GL_UNSIGNED_BYTE, NULL);
+
 		glBindTexture(GL_TEXTURE_2D, 0); 
 
 		glBindRenderbuffer(GL_RENDERBUFFER, self->idepthbuffer);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, self->ivport.W, self->ivport.H);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, self->ivport.W, self->ivport.H);
+
 		//unbind
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		//printf("stage_resize to %d %d\n",self->ivport.W,self->ivport.H);
 
 	}
 
@@ -1803,7 +1811,6 @@ void setup_stagesNORMAL(){
 		contenttype *cstage, *clayer, *cscene, *csbh, *cmultitouch, *cstagefbo, *ctexturegrid, *corientation;
 		cstage = new_contenttype_stage();
 
-		cstagefbo = new_contenttype_stagefbo(640,480);
 
 		cmultitouch = new_contenttype_multitouch();
 		clayer = new_contenttype_layer();
@@ -1823,9 +1830,12 @@ void setup_stagesNORMAL(){
 		if(0){
 			//normal
 			cmultitouch->t1.contents = clayer;
+			//cmultitouch->t1.contents = NULL; 
 		}else if(0){
 			//experimental render to fbo, then fbo to screen
 			//.. this will allow screen orientation to be re-implemented as a 2-stage render with rotation between
+			cstagefbo = new_contenttype_stagefbo(512,512);
+
 			ctexturegrid = new_contenttype_texturegrid(2,2);
 			ctexturegrid->t1.contents = cstagefbo;
 
@@ -1834,6 +1844,8 @@ void setup_stagesNORMAL(){
 		}else{
 			corientation = new_contenttype_orientation();
 			cmultitouch->t1.contents = corientation;
+			cstagefbo = new_contenttype_stagefbo(512,512);
+
 			corientation->t1.contents = cstagefbo;
 			cstagefbo->t1.contents = clayer;
 		}
