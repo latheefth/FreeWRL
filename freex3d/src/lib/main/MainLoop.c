@@ -125,11 +125,11 @@ struct Touch
 	int rx,ry; //raw input coords at emulation level, for finding and dragging and rendering
 };
 
-#ifdef ANGLEPROJECT
+//#ifdef ANGLEPROJECT
 //mysterious/funny: angleproject's gl2.h has GL_BACK 0x0405 like glew.h, 
 //but if I use it as a renderbuffer number angleproject blackscreens - it likes 0 for GL_BACK.
 #define GL_BACK 0   
-#endif
+//#endif
 
 void pushviewport(Stack *vpstack, ivec4 vp){
 	stack_push(ivec4,vpstack,vp);
