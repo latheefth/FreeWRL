@@ -283,6 +283,23 @@ void fiducialDraw(int ID, int x, int y, float angle)
    viewport alignment fiducials
    */
 void statusbarHud_DrawCursor(GLint textureID,int x,int y);
+
+unsigned int getCircleCursorTextureID(){
+	//not bad texture for use in testing elsewhere
+	ppCursorDraw p;
+	ttglobal tg = gglobal();
+	p = (ppCursorDraw)tg->CursorDraw.prv;
+	if(!p->done)
+	{
+		glGenTextures(1, &p->textureID);
+		glBindTexture(GL_TEXTURE_2D, p->textureID);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, circleCursor.width, circleCursor.height, 0, GL_RGBA , GL_UNSIGNED_BYTE, circleCursor.pixel_data);
+		p->done = 1; 
+	}
+	return p->textureID;
+}
 void cursorDraw(int ID, int x, int y, float angle) 
 {
 	XY xy;
