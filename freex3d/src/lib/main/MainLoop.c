@@ -960,7 +960,7 @@ void render_texturegrid(void *_self){
 typedef struct contenttype_orientation {
 	tcontenttype t1;
 	int nx, ny, nelements, nvert; //number of grid vertices
-	GLuint *index;
+	GLushort *index; //winRT needs short
 	GLfloat *vert, *vert2, *tex, *norm, dx, tx;
 	GLuint textureID;
 } contenttype_orientation;
@@ -1054,6 +1054,26 @@ int orientation_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, i
 	return iret;
 }
 void render_orientation(void *_self);
+//our grid generator goes columnwise. To draw we need indexes.
+//1--3
+//| /|
+//0--2
+GLfloat quad1Vert[] = {
+	-1.0f, -1.0f, 0.0f,
+	-1.05f, 1.0f, 0.0f,
+	 1.0f, -1.0f, 0.0f,
+	 1.0f,  1.0f, 0.0f,
+};
+GLfloat quad1Tex[] = {
+	0.0f, 0.0f,
+	0.0f, 1.0f,
+	1.0f, 0.0f,
+	1.0f, 1.0f,
+};
+GLushort quad1TriangleInd[] = {
+	0, 1, 3, 3, 2, 0
+};
+
 contenttype *new_contenttype_orientation(){
 	contenttype_orientation *self = malloc(sizeof(contenttype_orientation));
 	init_tcontenttype(&self->t1);
@@ -1062,57 +1082,15 @@ contenttype *new_contenttype_orientation(){
 	self->t1.pick = orientation_pick;
 	self->nx = 2;
 	self->ny = 2;
-	{
-		//generate an nxn grid, complete with vertices, normals, texture coords and triangles
-		int i,j,k,nx,ny;
-		GLuint *index;
-		GLfloat *vert, *vert2, *tex, *norm;
-		GLfloat dx,dy, tx,ty;
 
-		nx = 2;
-		ny = 2;
-		index = (GLuint*)malloc((nx-1)*(ny-1)*2*3 *sizeof(GLuint));
-		vert = (GLfloat*)malloc(nx*ny*3*sizeof(GLfloat));
-		tex = (GLfloat*)malloc(nx*ny*2*sizeof(GLfloat));
-		norm = (GLfloat*)malloc(nx*ny*3*sizeof(GLfloat));
-		//generate vertices
-		dx = 2.0f / (float)(nx-1);
-		dy = 2.0f / (float)(ny-1);
-		tx = 1.0f / (float)(nx-1);
-		ty = 1.0f / (float)(ny-1);
-		for(i=0;i<nx;i++)
-			for(j=0;j<ny;j++){
-				vert[(i*nx + j)*3 + 0] = -1.0f + j*dy;
-				vert[(i*nx + j)*3 + 1] = -1.0f + i*dx;
-				vert[(i*nx + j)*3 + 2] = 0.0f;
-				tex[(i*nx + j)*2 + 0] = 0.0f + j*ty;
-				tex[(i*nx + j)*2 + 1] = 0.0f + i*tx;
-				norm[(i*nx + j)*3 + 0] = 0.0f;
-				norm[(i*nx + j)*3 + 1] = 0.0f;
-				norm[(i*nx + j)*3 + 2] = 1.0f;
-			}
-		
+	//simple 2-triangle square
+	self->vert = quad1Vert;
+	self->tex = quad1Tex;
+	self->index = quad1TriangleInd;
+	self->nelements = 6;
+	self->nvert = 6;
 
-		//generate triangle indices
-		k = 0;
-		for(i=0;i<nx-1;i++)
-			for(j=0;j<ny-1;j++){
-				//first triangle
-				index[k++] = i*nx + j;
-				index[k++] = i*nx + j + 1;
-				index[k++] = (i+1)*nx + j + 1;
-				//second triangle
-				index[k++] = i*nx + j;
-				index[k++] = (i+1)*nx + j + 1;
-				index[k++] = (i+1)*nx + j;
-			}
-		self->index = index;
-		self->norm = norm;
-		self->tex = tex;
-		self->vert = vert;
-		self->nelements = k;
-		self->nvert = nx*ny;
-	}
+
 	return (contenttype*)self;
 }
 static GLfloat matrix180[] = {
@@ -1134,6 +1112,8 @@ static GLfloat matrix90[] = {
 	0.0f, 0.0f, 0.0f, 1.0f
 };
 
+
+unsigned int getCircleCursorTextureID();
 void render_orientation(void *_self){
 	contenttype_orientation *self;
 	int i,j,useMip,haveTexture;
@@ -1151,10 +1131,13 @@ void render_orientation(void *_self){
 		if(s->type == STAGETYPE_FBO){
 			
 			textureID = s->itexturebuffer;
+			//for testing when fbo isn't working (give it a known texture):
+			//if(0) textureID = getCircleCursorTextureID();
 			haveTexture = TRUE;
 		}
 	}
-	if(!haveTexture) return; //nothing worth drawing - could do a X texture
+	if(!haveTexture) 
+		return; //nothing worth drawing - could do a X texture
 	//now we load our textured geometry plane/grid to render it
 
 	switch(gglobal()->Mainloop.screenOrientation2){
@@ -1177,6 +1160,7 @@ void render_orientation(void *_self){
 
 	FW_GL_DEPTHMASK(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
+
 
 	//use FW shader pipeline
 	//we'll use a simplified shader -same one we use for DrawCursor- that 
@@ -1209,11 +1193,9 @@ void render_orientation(void *_self){
 	glUniformMatrix4fv(scap->ProjectionMatrix, 1, GL_FALSE, matrixIdentity); 
 	glUniformMatrix4fv(scap->ModelViewMatrix, 1, GL_FALSE, orientationMatrix); //matrix90); //
 	
-	if(0){
-		glDrawArrays(GL_TRIANGLES,0,self->nelements);
-	}else{
-		glDrawElements(GL_TRIANGLES,self->nelements,GL_UNSIGNED_INT,self->index);
-	}
+	//desktop glew, angleproject and winRT can do this:
+	glDrawElements(GL_TRIANGLES, self->nelements, GL_UNSIGNED_SHORT, self->index);// winRT needs GLushort indexes, can't do GL_QUADS
+
 
 	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -1828,7 +1810,7 @@ void setup_stagesNORMAL(){
 		cstage->t1.contents = cmultitouch;
 		p->EMULATE_MULTITOUCH =	FALSE;
 		if(0){
-			//normal
+			//normal: multitouch emulation, layer, scene, statusbarHud, 
 			cmultitouch->t1.contents = clayer;
 			//cmultitouch->t1.contents = NULL; 
 		}else if(0){
@@ -1841,13 +1823,27 @@ void setup_stagesNORMAL(){
 
 			cmultitouch->t1.contents = ctexturegrid;
 			cstagefbo->t1.contents = clayer;
-		}else{
+		}else if(1){
+			//multitouch emulation, orientation, fbo, layer { scene, statusbarHud }
 			corientation = new_contenttype_orientation();
 			cmultitouch->t1.contents = corientation;
 			cstagefbo = new_contenttype_stagefbo(512,512);
 
 			corientation->t1.contents = cstagefbo;
 			cstagefbo->t1.contents = clayer;
+		}else {
+			//rotates just the scene, leaves statusbar un-rotated
+			//multitouch emulation,  layer, {{orientation, fbo, scene}, statusbarHud }
+			corientation = new_contenttype_orientation();
+			cmultitouch->t1.contents = clayer;
+			cstagefbo = new_contenttype_stagefbo(512,512);
+
+			corientation->t1.contents = cstagefbo;
+			cstagefbo->t1.contents = cscene;
+			cscene->t1.next = NULL;
+			clayer->t1.contents = corientation;
+			corientation->t1.next = csbh;
+
 		}
 
 		t->stage = cstage;
@@ -1930,6 +1926,8 @@ int fwl_handle_mouse_multi_yup(int mev, int butnum, int mouseX, int yup, int ID,
 	stage *s;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+
+	if (mev == MotionNotify) butnum = 0; //a freewrl handle...multiNORMAL convention
 
 	t = &p->cwindows[windex];
 	s = (stage*)t->stage;
@@ -2510,8 +2508,10 @@ void setup_picking(){
 		x = touch->x;
 		yup = touch->y;
 		justpressed = touch->buttonState[LMB] && touch->mev == ButtonPress;
+		//if(justpressed)
+		//	ConsoleMessage("setup_picking justpressed mev %d x%d y%d\n",touch->mev,x,yup);
 		if(!p->NavigationMode || justpressed) {
-			//printf("setup_picking x %d y %d ID %d but %d mev %d\n",touch->x,touch->y,touch->ID,touch->buttonState[LMB],touch->mev);
+			//ConsoleMessage("setup_picking x %d y %d ID %d but %d mev %d\n",touch->x,touch->y,touch->ID,touch->buttonState[LMB],touch->mev);
 			if(setup_pickside(x,yup)){
 				setup_projection();
 				setup_pickray(x,yup);
@@ -2521,8 +2521,12 @@ void setup_picking(){
 
 				p->CursorOverSensitive = getRayHit();
 				//double-check navigation, which may have already started
-				if(p->CursorOverSensitive && p->NavigationMode)
+				if(p->CursorOverSensitive && p->NavigationMode){
 					p->NavigationMode = FALSE; //rollback start of navigation
+					//ConsoleMessage("setup_picking rolling back startofNavigation\n");
+				}
+				//if (p->CursorOverSensitive)
+				//	ConsoleMessage("setup_picking x %d y %d ID %d but %d mev %d\n", touch->x, touch->y, touch->ID, touch->buttonState[LMB], touch->mev);
 
 				/* for nodes that use an "isOver" eventOut... */
 				if (p->lastOver != p->CursorOverSensitive) {
@@ -2555,21 +2559,21 @@ void setup_picking(){
 				/* did we have a click of button 1? */
 				//if (p->ButDown[p->currentCursor][1] && (p->lastPressedOver==NULL)) {
 				if (touch->buttonState[LMB] && (p->lastPressedOver==NULL)) {
-					//printf ("Not Navigation and 1 down\n"); 
+					//ConsoleMessage("Not Navigation and 1 down\n"); 
 					/* send an event of ButtonPress and isOver=true */
 					p->lastPressedOver = p->CursorOverSensitive;
 					sendSensorEvents(p->lastPressedOver, ButtonPress, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
 				}
 				//if ((p->ButDown[p->currentCursor][1]==0) && p->lastPressedOver!=NULL) {
 				if ((touch->buttonState[LMB]==0) && p->lastPressedOver!=NULL) {
-					//printf ("Not Navigation and 1 up\n");
+					//ConsoleMessage ("Not Navigation and 1 up\n");
 					/* send an event of ButtonRelease and isOver=true;
 						an isOver=false event will be sent below if required */
 					sendSensorEvents(p->lastPressedOver, ButtonRelease, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
 					p->lastPressedOver = NULL;
 				}
 				if (p->lastMouseEvent == MotionNotify) {
-					//printf ("Not Navigation and motion - going into sendSensorEvents\n");
+					//ConsoleMessage ("Not Navigation and motion - going into sendSensorEvents\n");
 					/* TouchSensor hitPoint_changed needs to know if we are over a sensitive node or not */
 					sendSensorEvents(p->CursorOverSensitive,MotionNotify, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
 
@@ -5278,14 +5282,14 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	//winRT but =1 when mev = motion, others but = 0 when mev = motion. 
 	//make winRT the same as the others:
 	ibutton = button;
-	//if (mev == MotionNotify) ibutton = 0;
+	//if (mev == MotionNotify) ibutton = 0; //moved to fw_handle_mouse_multi_yup for winRT mouse
 
 	vportstack = (Stack*)tg->Mainloop._vportstack;
 	vport = stack_top(ivec4,vportstack); //should be same as stack bottom, only one on stack here
 	fx = (float)(x - vport.X) / (float)vport.W;
 	fy = (float)(y - vport.Y) / (float)vport.H;
 	if(0){
-		printf("multiNORMAL x %d y %d fx %f fy %f vp %d %d %d %d\n",x,y,fx,fy,vport.X,vport.W,vport.Y,vport.H);
+		ConsoleMessage("multiNORMAL x %d y %d fx %f fy %f vp %d %d %d %d\n",x,y,fx,fy,vport.X,vport.W,vport.Y,vport.H);
 	}
 	if (0){
 		ConsoleMessage("fwl_handle_aqua in MainLoop; mev %d but %d x %d y %d ID %d ",
@@ -5303,7 +5307,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	//touch->windex = windex;
 	touch->buttonState[ibutton] = mev == ButtonPress;
 	//touch->ID = ID; //will come in handy if we change from array[] to accordian list
-	//touch->mev = mev;
+	touch->mev = mev;
 	//touch->angle = 0.0f;
 	p->currentTouch = ID;
 
