@@ -128,7 +128,7 @@ struct Touch
 //#ifdef ANGLEPROJECT
 //mysterious/funny: angleproject's gl2.h has GL_BACK 0x0405 like glew.h, 
 //but if I use it as a renderbuffer number angleproject blackscreens - it likes 0 for GL_BACK.
-#define GL_BACK 0   
+#define FW_GL_BACK 0   
 //#endif
 
 void pushviewport(Stack *vpstack, ivec4 vp){
@@ -634,7 +634,7 @@ void stage_render(void *_self){
 	pushviewport(vportstack,self->ivport);
 	setcurrentviewport(vportstack); //does opengl call
 	//for fun/testing, a different clear color for fbos vs gl_back, but not necessary
-	if(self->ibuffer != GL_BACK)
+	if(self->ibuffer != FW_GL_BACK)
 		glClearColor(.3f,.4f,.5f,1.0f);
 	else
 		glClearColor(1.0f,0.0f,0.0f,1.0f);
@@ -661,7 +661,7 @@ contenttype *new_contenttype_stage(){
 	self->t1.render = stage_render;
 	self->t1.pick = stage_pick;
 	self->type = STAGETYPE_BACKBUF;
-	self->ibuffer = GL_BACK;
+	self->ibuffer = FW_GL_BACK;
 	self->clear_zbuffer = TRUE;
 	self->ivport = ivec4_init;
 	return (contenttype*)self;
@@ -746,7 +746,7 @@ void stage_resize(void *_self,int width, int height){
 typedef struct contenttype_texturegrid {
 	tcontenttype t1;
 	int nx, ny, nelements, nvert; //number of grid vertices
-	GLuint *index;
+	GLushort *index; //winRT needs short
 	GLfloat *vert, *vert2, *tex, *norm, dx, tx;
 	GLuint textureID;
 } contenttype_texturegrid;
@@ -793,11 +793,11 @@ contenttype *new_contenttype_texturegrid(int nx, int ny){
 	{
 		//generate an nxn grid, complete with vertices, normals, texture coords and triangles
 		int i,j,k; //,n;
-		GLuint *index;
+		GLushort *index;
 		GLfloat *vert, *vert2, *tex, *norm;
 		GLfloat dx,dy, tx,ty;
 		//n = p->ngridsize;
-		index = (GLuint*)malloc((nx-1)*(ny-1)*2*3 *sizeof(GLuint));
+		index = (GLushort*)malloc((nx-1)*(ny-1)*2*3 *sizeof(GLushort));
 		vert = (GLfloat*)malloc(nx*ny*3*sizeof(GLfloat));
 		vert2 = (GLfloat*)malloc(nx*ny*3*sizeof(GLfloat));
 		tex = (GLfloat*)malloc(nx*ny*2*sizeof(GLfloat));
@@ -942,7 +942,7 @@ void render_texturegrid(void *_self){
 	if(0){
 		glDrawArrays(GL_TRIANGLES,0,self->nelements);
 	}else{
-		glDrawElements(GL_TRIANGLES,self->nelements,GL_UNSIGNED_INT,self->index);
+		glDrawElements(GL_TRIANGLES,self->nelements,GL_UNSIGNED_SHORT,self->index);
 	}
 
 	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
@@ -1382,7 +1382,7 @@ void Mainloop_init(struct tMainloop *t){
 		p->lastOverButtonPressed = FALSE;      /*  catch the 1 to 0 transition for button presses and isOver in TouchSensors */
 
 		p->maxbuffers = 1;                     /*  how many active indexes in bufferarray*/
-		p->bufferarray[0] = GL_BACK;
+		p->bufferarray[0] = FW_GL_BACK;
 		p->bufferarray[1] = 0;
 		/* current time and other time related stuff */
 		//p->BrowserStartTime;        /* start of calculating FPS     */
@@ -1427,7 +1427,7 @@ void Mainloop_init(struct tMainloop *t){
 		t->_vportstack = (void *)p->_vportstack; //represents screen pixel area being drawn to
 		p->_framebufferstack = newStack(int);
 		t->_framebufferstack = (void*)p->_framebufferstack;
-		stack_push(int,p->_framebufferstack,GL_BACK);
+		stack_push(int,p->_framebufferstack,FW_GL_BACK);
 	}
 }
 void Mainloop_clear(struct tMainloop *t){
@@ -4610,8 +4610,8 @@ void setStereoBufferStyle(int itype) /*setXEventStereo()*/
 	else if(itype==1)
 	{
 		/*sidebyside and anaglyph type*/
-		p->bufferarray[0]=GL_BACK;
-		p->bufferarray[1]=GL_BACK;
+		p->bufferarray[0]=FW_GL_BACK;
+		p->bufferarray[1]=FW_GL_BACK;
 		p->maxbuffers=2;
 	}
 	printf("maxbuffers=%d\n",p->maxbuffers);
