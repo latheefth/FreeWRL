@@ -574,7 +574,11 @@ contenttype *new_contenttype_multitouch(){
 	return (contenttype*)self;
 }
 
-
+typedef struct vpointpose {
+	struct point_XYZ Pos;
+	Quaternion Quat;
+	double Dist;
+} vpointpose;
 
 typedef struct contenttype_quadrant {
 	tcontenttype t1;
@@ -582,11 +586,93 @@ typedef struct contenttype_quadrant {
 	//picking tests against quadrant
 	float offset_fraction[2];
 	ivec2 offset_pixels;
+	vpointpose pose_save;
 } contenttype_quadrant;
+
+void quadrant_render(void *_self){
+	//
+	int i,j,k;
+	contenttype *c;
+	contenttype_quadrant *self;
+
+	self = (contenttype_quadrant *)_self;
+	pushnset_viewport(self->t1.viewport); //generic viewport
+	c = self->t1.contents;
+	if(0){
+	self->pose_save.Dist = Viewer()->Dist;
+	self->pose_save.Pos = Viewer()->Pos;
+	self->pose_save.Quat = Viewer()->Quat;
+	}
+	i=0;
+	while(c){
+		float viewport[4];
+		memcpy(viewport,defaultClipBoundary,4*sizeof(float));
+		//create quadrant subviewport and push
+		viewport[0] = i==0 || i==2 ? 0.0f : self->offset_fraction[0]; //left
+		viewport[1] = i==0 || i==2 ? self->offset_fraction[0] : 1.0f; //right
+		viewport[2] = i==0 || i==1 ? 0.0f : self->offset_fraction[1]; //bottom
+		viewport[3] = i==0 || i==1 ? self->offset_fraction[1] : 1.0f; //top
+		pushnset_viewport(viewport); //generic viewport
+		//printf("quad viewport %f %f %f %f\n",viewport[0],viewport[1],viewport[2],viewport[3]);
+		//create quadrant viewpoint and push
+		c->t1.render(c);
+		//update saved viewpoint and pop quadrant viewpoint
+		//pop quadrant subviewport
+		popnset_viewport();
+		c = c->t1.next;
+		i++;
+	}
+	if(0){
+	Viewer()->Dist = self->pose_save.Dist;
+	Viewer()->Pos = self->pose_save.Pos;
+	Viewer()->Quat = self->pose_save.Quat;
+	}
+	popnset_viewport();
+}
+int quadrant_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+	//
+	int iret;
+	int i,j,k;
+	contenttype *c;
+	contenttype_quadrant *self;
+
+	self = (contenttype_quadrant *)_self;
+	iret = -1;
+	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){  //generic viewport
+		c = self->t1.contents;
+		i=0;
+		while(c){
+			//create quadrant subviewport and push
+			float viewport[4];
+			memcpy(viewport,defaultClipBoundary,4*sizeof(float));
+			//create quadrant subviewport and push
+			viewport[0] = i==0 || i==2 ? 0.0f : self->offset_fraction[0]; //left
+			viewport[1] = i==0 || i==2 ? self->offset_fraction[0] : 1.0f; //right
+			viewport[2] = i==0 || i==1 ? 0.0f : self->offset_fraction[1]; //bottom
+			viewport[3] = i==0 || i==1 ? self->offset_fraction[1] : 1.0f; //top
+			if(checknpush_viewport(viewport,mouseX,mouseY)){  //quadrant sub-viewport
+				//create quadrant viewpoint and push
+				iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,ID, windex);
+				if(iret > -1) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
+				//update saved viewpoint and pop quadrant viewpoint
+				//pop quadrant subviewport
+				pop_viewport();
+			}
+			c = c->t1.next;
+			i++;
+		}
+		pop_viewport();
+	}
+	return iret;
+}
 contenttype *new_contenttype_quadrant(){
 	contenttype_quadrant *self = malloc(sizeof(contenttype_quadrant));
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_QUADRANT;
+	self->t1.render = quadrant_render;
+	self->t1.pick = quadrant_pick;
+	self->offset_fraction[0] = .5f;
+	self->offset_fraction[1] = .5f;
 	return (contenttype*)self;
 }
 
@@ -1790,7 +1876,7 @@ void setup_stagesNORMAL(){
 	twindows = p->cwindows;
 	t = twindows;
 	while(t){
-		contenttype *cstage, *clayer, *cscene, *csbh, *cmultitouch, *cstagefbo, *ctexturegrid, *corientation;
+		contenttype *cstage, *clayer, *cscene, *csbh, *cmultitouch, *cstagefbo, *ctexturegrid, *corientation, *cquadrant;
 		cstage = new_contenttype_stage();
 
 
@@ -1823,7 +1909,7 @@ void setup_stagesNORMAL(){
 
 			cmultitouch->t1.contents = ctexturegrid;
 			cstagefbo->t1.contents = clayer;
-		}else if(1){
+		}else if(0){
 			//multitouch emulation, orientation, fbo, layer { scene, statusbarHud }
 			corientation = new_contenttype_orientation();
 			cmultitouch->t1.contents = corientation;
@@ -1831,7 +1917,7 @@ void setup_stagesNORMAL(){
 
 			corientation->t1.contents = cstagefbo;
 			cstagefbo->t1.contents = clayer;
-		}else {
+		}else if(0) {
 			//rotates just the scene, leaves statusbar un-rotated
 			//multitouch emulation,  layer, {{orientation, fbo, scene}, statusbarHud }
 			corientation = new_contenttype_orientation();
@@ -1843,6 +1929,25 @@ void setup_stagesNORMAL(){
 			cscene->t1.next = NULL;
 			clayer->t1.contents = corientation;
 			corientation->t1.next = csbh;
+
+		}else if(1){
+			contenttype *clayer0, *clayer1, *clayer2, *clayer3;
+			cquadrant = new_contenttype_quadrant();
+			cmultitouch->t1.contents = cquadrant;
+			clayer0 = new_contenttype_layer();
+			clayer0->t1.contents = cscene;
+			clayer1 = new_contenttype_layer();
+			clayer1->t1.contents = cscene;
+			clayer2 = new_contenttype_layer();
+			clayer2->t1.contents = cscene;
+			clayer3 = new_contenttype_layer();
+			clayer3->t1.contents = cscene;
+
+
+			cquadrant->t1.contents = clayer0;
+			clayer0->t1.next = clayer1;
+			clayer1->t1.next = clayer2;
+			clayer2->t1.next = clayer3;
 
 		}
 
