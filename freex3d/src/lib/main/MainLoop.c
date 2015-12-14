@@ -112,6 +112,9 @@ struct SensStruct {
         struct X3D_Node *datanode;
         void (*interpptr)(void *, int, int, int);
 };
+#define LMB 1
+#define MMB 2
+#define RMB 3
 struct Touch
 {
 	int buttonState[4]; /*none down=0, LMB =1, MMB=2, RMB=3*/
@@ -243,6 +246,7 @@ enum {
 	CONTENT_SCENE,			//good old fashioned vrml / x3d scene 
 	CONTENT_STATUSBAR,		//statusbarHud.c (SBH) menu system
 	CONTENT_MULTITOUCH,		//touch display emulator, turn on with SBH > options > emulate multitouch
+	CONTENT_E3DMOUSE,		//emulate 3D mouse
 	CONTENT_TEXTUREGRID,	//texture-from-fbo-render over a planar mesh/grid, rendered with ortho and diffuse light
 	CONTENT_ORIENTATION,	//screen orientation widget for 'screenOrientation2' application of mobile device screen orientation 90, 180, 270
 	CONTENT_LAYER,			//children are rendered one over top of the other, with zbuffer clearing between children
@@ -449,7 +453,7 @@ int statusbar_pick(void *self, int mev, int butnum, int mouseX, int mouseY, int 
 	return statusbar_handle_mouse1(mev,butnum,mouseX,mouseY,windex);
 }
 contenttype *new_contenttype_statusbar(){
-	contenttype_scene *self = malloc(sizeof(contenttype_statusbar));
+	contenttype_statusbar *self = malloc(sizeof(contenttype_statusbar));
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_STATUSBAR;
 	self->t1.render = statusbar_render;
@@ -574,6 +578,111 @@ contenttype *new_contenttype_multitouch(){
 	return (contenttype*)self;
 }
 
+//emulate 3D mouse with normal navigation + spherical navigation
+//use RMB click to toggle between modes
+typedef struct contenttype_e3dmouse {
+	tcontenttype t1;
+	int sphericalmode;
+	int navigationMode;
+	int dragMode;
+} contenttype_e3dmouse;
+void e3dmouse_render(void *_self){
+	//render + over contents
+	contenttype_e3dmouse *self = (contenttype_e3dmouse*)_self;
+	content_render(_self);
+	//render self over top
+	if(1){
+		int x,y;
+		ivec4 ivport;
+		Stack *vportstack;
+		ttglobal tg;
+		tg = gglobal();
+		vportstack = (Stack*)tg->Mainloop._vportstack;
+		ivport = stack_top(ivec4,vportstack);
+		x = ivport.W/2 + ivport.X;
+		y = ivport.H/2 + ivport.Y;
+		fiducialDraw(0, x, y, 0.0f);
+	}
+}
+int e3dmouse_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+	//LMB - regular navigation, except with SHIFT to disable sensor nodes
+	//RMB - toggle on/off spherical 
+	//NONE - spherical navigation, mouseXY = .5
+	//LMB - in spherical mode: click, with mousexy = .5
+	int iret, mev2, but2;
+	ivec4 ivport;
+	Stack *vportstack;
+	ttglobal tg;
+	contenttype_e3dmouse *self = (contenttype_e3dmouse*)_self;
+	tg = gglobal();
+	vportstack = (Stack*)tg->Mainloop._vportstack;
+	mev2 = mev;
+	but2 = butnum;
+	ivport = stack_top(ivec4,vportstack);
+	if(mev == ButtonRelease && butnum == RMB){
+		 self->sphericalmode = 1 - self->sphericalmode;
+		 if(self->sphericalmode){
+			printf("turning on spherical mode\n");
+			self->navigationMode = fwl_getNavMode();
+			fwl_setNavMode("SPHERICAL");
+			but2 = 1;
+			mev2 = ButtonPress;
+			iret = content_pick(_self,mev2,but2,mouseX,mouseY,ID,windex);
+			tg->Mainloop.AllowNavDrag = TRUE;
+		}else{
+			printf("turning off spherical mode\n");
+			mev2 = ButtonRelease;
+			but2 = 1;
+			iret = content_pick(_self,mev2,but2,mouseX,mouseY,ID,windex);
+			fwl_set_viewer_type(self->navigationMode);
+			tg->Mainloop.AllowNavDrag = FALSE;
+		}
+		return iret;
+	}else if(butnum == RMB){
+		return 1; //discard other RMBs
+	}
+	if(self->sphericalmode){
+		//problem: I can't drag a sensor and navigate at the same time in freewrl.
+		//but we need to, for HMDs, to make a dragsensor work.
+		if(butnum == LMB){
+			int x,y;
+			ivec4 ivport;
+			Stack *vportstack;
+			ttglobal tg;
+			tg = gglobal();
+			vportstack = (Stack*)tg->Mainloop._vportstack;
+			ivport = stack_top(ivec4,vportstack);
+			x = ivport.W/2 + ivport.X;
+			y = ivport.H/2 + ivport.Y;
+
+			if(mev = ButtonPress) self->dragMode = TRUE;
+			if(mev = ButtonRelease) self->dragMode = FALSE;
+			//drag
+			iret = content_pick(_self,mev,butnum,x,y,ID,windex);
+		}
+		but2 = 0;
+		mev = MotionNotify;
+		//nav
+		iret = content_pick(_self,mev2,but2,mouseX,mouseY,ID,windex);
+	}else{
+		//navigation mode except with sensors disabled by SHIFT
+		tg->Mainloop.SHIFT = TRUE;
+		iret = content_pick(_self,mev2,but2,mouseX,mouseY,ID,windex);
+		tg->Mainloop.SHIFT = FALSE;
+	}
+	return iret;
+}
+contenttype *new_contenttype_e3dmouse(){
+	contenttype_e3dmouse *self = malloc(sizeof(contenttype_e3dmouse));
+	init_tcontenttype(&self->t1);
+	self->t1.itype = CONTENT_E3DMOUSE;
+	self->t1.render = e3dmouse_render;
+	self->t1.pick = e3dmouse_pick;
+	self->sphericalmode = 0;
+	self->dragMode = 0;
+	return (contenttype*)self;
+}
+
 typedef struct vpointpose {
 	struct point_XYZ Pos;
 	Quaternion Quat;
@@ -592,16 +701,19 @@ typedef struct contenttype_quadrant {
 void quadrant_render(void *_self){
 	//
 	int i,j,k;
+	double rxyz[3];
 	contenttype *c;
 	contenttype_quadrant *self;
 
 	self = (contenttype_quadrant *)_self;
 	pushnset_viewport(self->t1.viewport); //generic viewport
 	c = self->t1.contents;
-	if(0){
+	if(1){
 	self->pose_save.Dist = Viewer()->Dist;
 	self->pose_save.Pos = Viewer()->Pos;
 	self->pose_save.Quat = Viewer()->Quat;
+	quat2euler(rxyz,2,&Viewer()->Quat);
+
 	}
 	i=0;
 	while(c){
@@ -612,17 +724,24 @@ void quadrant_render(void *_self){
 		viewport[1] = i==0 || i==2 ? self->offset_fraction[0] : 1.0f; //right
 		viewport[2] = i==0 || i==1 ? 0.0f : self->offset_fraction[1]; //bottom
 		viewport[3] = i==0 || i==1 ? self->offset_fraction[1] : 1.0f; //top
-		pushnset_viewport(viewport); //generic viewport
+		pushnset_viewport(viewport); //quadrant sub-viewport
 		//printf("quad viewport %f %f %f %f\n",viewport[0],viewport[1],viewport[2],viewport[3]);
 		//create quadrant viewpoint and push
+		switch(i){
+			case 0: break; //no change to vp
+			case 1: euler2quat(&Viewer()->Quat,0.0,rxyz[1],rxyz[2]); break;
+			case 2: euler2quat(&Viewer()->Quat,rxyz[0],0.0,rxyz[2]); break;
+			case 3: euler2quat(&Viewer()->Quat,rxyz[0],rxyz[1],0.0); break;
+		}
 		c->t1.render(c);
 		//update saved viewpoint and pop quadrant viewpoint
+		Viewer()->Quat = self->pose_save.Quat;
 		//pop quadrant subviewport
 		popnset_viewport();
 		c = c->t1.next;
 		i++;
 	}
-	if(0){
+	if(1){
 	Viewer()->Dist = self->pose_save.Dist;
 	Viewer()->Pos = self->pose_save.Pos;
 	Viewer()->Quat = self->pose_save.Quat;
@@ -1572,9 +1691,6 @@ void fwl_getWindowSize1(int windex, int *width, int *height){
 	*height = ivport.H;	
 }
 
-#define LMB 1
-#define MMB 2
-#define RMB 3
 struct Touch *currentTouch(){
 	ppMainloop p;
 	ttglobal tg = gglobal();
@@ -1895,10 +2011,19 @@ void setup_stagesNORMAL(){
 		clayer->t1.contents = cscene;
 		cstage->t1.contents = cmultitouch;
 		p->EMULATE_MULTITOUCH =	FALSE;
-		if(0){
+		//IDEA: these prepared ways of using freewrl could be put into a switchcase contenttype called early ie from window
+		if(1){
 			//normal: multitouch emulation, layer, scene, statusbarHud, 
 			cmultitouch->t1.contents = clayer;
 			//cmultitouch->t1.contents = NULL; 
+		}else if(1){
+			//e3dmouse: multitouch emulation, layer, (e3dmouse > scene), statusbarHud, 
+			contenttype *ce3dmouse = new_contenttype_e3dmouse();
+			cmultitouch->t1.contents = clayer;
+			clayer->t1.contents = ce3dmouse;
+			ce3dmouse->t1.contents = cscene;
+			ce3dmouse->t1.next = csbh;
+			cscene->t1.next = NULL;
 		}else if(0){
 			//experimental render to fbo, then fbo to screen
 			//.. this will allow screen orientation to be re-implemented as a 2-stage render with rotation between
@@ -2627,7 +2752,7 @@ void setup_picking(){
 				p->CursorOverSensitive = getRayHit();
 				//double-check navigation, which may have already started
 				if(p->CursorOverSensitive && p->NavigationMode){
-					p->NavigationMode = FALSE; //rollback start of navigation
+					if(!tg->Mainloop.AllowNavDrag) p->NavigationMode = FALSE; //rollback start of navigation
 					//ConsoleMessage("setup_picking rolling back startofNavigation\n");
 				}
 				//if (p->CursorOverSensitive)
@@ -3603,19 +3728,6 @@ static void render()
 		glDisable(GL_SCISSOR_TEST);
 	} /* for loop */
 
-
-	if(0) if(p->EMULATE_MULTITOUCH) {
-		int i;
-		for(i=0;i<p->ntouch;i++){
-			if(p->touchlist[i].ID > -1)
-				if(p->touchlist[i].windex == p->windex)
-				{
-					struct Touch *touch;
-					touch = &p->touchlist[i];
-					cursorDraw(touch->ID,touch->x,touch->y,touch->angle);
-				}
-		}
-    }
 }
 
 static int currentViewerLandPort = 0;
@@ -3687,10 +3799,13 @@ static void setup_viewpoint() {
 		}
 	}
 	FW_GL_ROTATE_D (currentViewerAngle,0.0,0.0,1.0);
+	fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->screenorientationmatrix);
 
-		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->screenorientationmatrix);
-		isStereo = Viewer()->isStereo;
+	//capture stereo 1/2 base offsets
+	//a) save current real stereo settings
+	isStereo = Viewer()->isStereo;
 		iside = Viewer()->iside;
+	//b) fake each stereo side, capture each side's stereo offset matrix
 		Viewer()->isStereo = 1;
 		Viewer()->iside = 0;
 		FW_GL_LOAD_IDENTITY();
@@ -3703,18 +3818,23 @@ static void setup_viewpoint() {
 		Viewer()->isStereo = 0;
 		FW_GL_LOAD_IDENTITY();
 
+	//capture cumulative .Pos, .Quat 
 	viewer_togl(Viewer()->fieldofview);
 		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->posorimatrix);
 		FW_GL_LOAD_IDENTITY();
 
+	//capture view part of modelview ie scenegraph transforms between scene root and bound viewpoint
 	profile_start("vp_hier");
 	render_hier(rootNode(), VF_Viewpoint);
 	profile_end("vp_hier");
 	PRINT_GL_ERROR_IF_ANY("XEvents::setup_viewpoint");
+		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->viewtransformmatrix);
 
+	//restore real stereo settings for rendering
 		Viewer()->isStereo = isStereo;
 		Viewer()->iside = iside;
-		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->viewtransformmatrix);
+
+	//multiply it all together, and capture any slerp
 		matcopy(viewmatrix,p->screenorientationmatrix);
 		if(isStereo)
 			matmultiplyAFFINE(viewmatrix,p->stereooffsetmatrix[iside],viewmatrix);
@@ -5414,26 +5534,29 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	//touch->ID = ID; //will come in handy if we change from array[] to accordian list
 	touch->mev = mev;
 	//touch->angle = 0.0f;
-	p->currentTouch = ID;
+	p->currentTouch = ID; // pick/dragsensors can use 0-19
 
-	if ((mev == ButtonPress) || (mev == ButtonRelease)) {
-		/* if we are Not over an enabled sensitive node, and we do NOT already have a
-			button down from a sensitive node... */
-		if (((p->CursorOverSensitive ==NULL) && (p->lastPressedOver ==NULL)) || Viewer()->LookatMode || tg->Mainloop.SHIFT) {
-			p->NavigationMode = touch->buttonState[LMB] || touch->buttonState[RMB];
-			//ConsoleMessage("pNM %d \n", p->NavigationMode);
-			handle(mev, ibutton, fx, fy);
+	if(ID == 0){
+		//nav always uses ID==0
+		if ((mev == ButtonPress) || (mev == ButtonRelease)) {
+			/* if we are Not over an enabled sensitive node, and we do NOT already have a
+				button down from a sensitive node... */
+			if (((p->CursorOverSensitive ==NULL) && (p->lastPressedOver ==NULL)) || Viewer()->LookatMode || tg->Mainloop.SHIFT ) { //|| tg->Mainloop.AllowNavDrag
+				p->NavigationMode = touch->buttonState[LMB] || touch->buttonState[RMB];
+				//ConsoleMessage("pNM %d \n", p->NavigationMode);
+				handle(mev, ibutton, fx, fy);
+			}
 		}
-	}
 
-	if (mev == MotionNotify) {
-		if (p->NavigationMode) {
-			/* find out what the first button down is */
-			count = 0;
-			while ((count < 4) && (!touch->buttonState[count])) count++;
-			if (count == 4) return; /* no buttons down???*/
+		if (mev == MotionNotify) {
+			if (p->NavigationMode) {
+				/* find out what the first button down is */
+				count = 0;
+				while ((count < 4) && (!touch->buttonState[count])) count++;
+				if (count == 4) return; /* no buttons down???*/
 
-			handle (mev, (unsigned) count, fx, fy); 
+				handle (mev, (unsigned) count, fx, fy); 
+			}
 		}
 	}
 }

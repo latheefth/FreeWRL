@@ -140,6 +140,7 @@ typedef struct iiglobal //InstanceGlobal
 		double BrowserSpeed;// = 0.0;      /* calculated movement speed    */
 		const char *BrowserDescription;
 		int HaveSensitive;// = FALSE;
+		int AllowNavDrag;
 		int trisThisLoop;
 		int clipPlane;// = 0;
 		int SHIFT; //state of shift key up = 0, down = 1
