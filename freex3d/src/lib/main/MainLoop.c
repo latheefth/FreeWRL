@@ -1468,16 +1468,16 @@ typedef struct pMainloop{
 	GLint viewPort2[10];
 	GLint viewpointScreenX[2], viewpointScreenY[2]; /*for stereo where we can adjust the viewpoint position on the screen */
 	/* screen width and height. */
-	struct X3D_Node* CursorOverSensitive;//=NULL;      /*  is Cursor over a Sensitive node?*/
-	struct X3D_Node* oldCOS;//=NULL;                   /*  which node was cursor over before this node?*/
+	struct X3D_Node* CursorOverSensitive[20];//=NULL;      /*  is Cursor over a Sensitive node?*/
+	struct X3D_Node* oldCOS[20];//=NULL;                   /*  which node was cursor over before this node?*/
 	int NavigationMode;//=FALSE;               /*  are we navigating or sensing?*/
 	//int ButDown[20][8];// = {{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE}};
 
 	//int currentCursor;// = 0;
-	int lastMouseEvent;// = 0/*MapNotify*/;         /*  last event a mouse did; care about Button and Motion events only.*/
-	struct X3D_Node* lastPressedOver;// = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
-	struct X3D_Node* lastOver;// = NULL;       /*  the sensitive node that the mouse was last moused over.*/
-	int lastOverButtonPressed;// = FALSE;      /*  catch the 1 to 0 transition for button presses and isOver in TouchSensors */
+	int lastMouseEvent[20];// = 0/*MapNotify*/;         /*  last event a mouse did; care about Button and Motion events only.*/
+	struct X3D_Node* lastPressedOver[20];// = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
+	struct X3D_Node* lastOver[20];// = NULL;       /*  the sensitive node that the mouse was last moused over.*/
+	int lastOverButtonPressed[20];// = FALSE;      /*  catch the 1 to 0 transition for button presses and isOver in TouchSensors */
 
 	int maxbuffers;// = 1;                     /*  how many active indexes in bufferarray*/
 	int bufferarray[2];// = {GL_BACK,0};
@@ -1575,16 +1575,22 @@ void Mainloop_init(struct tMainloop *t){
 		//p->viewPort2[10];
 
 		/* screen width and height. */
-		p->CursorOverSensitive=NULL;      /*  is Cursor over a Sensitive node?*/
-		p->oldCOS=NULL;                   /*  which node was cursor over before this node?*/
+		//p->CursorOverSensitive = NULL;      /*  is Cursor over a Sensitive node?*/
+		memset(p->CursorOverSensitive,NULL,20*sizeof(void*)); //=NULL;      /*  is Cursor over a Sensitive node?*/
+		//p->oldCOS=NULL;                   /*  which node was cursor over before this node?*/
+		memset(p->oldCOS,NULL,sizeof(void*));
 		p->NavigationMode=FALSE;               /*  are we navigating or sensing?*/
 		//p->ButDown[20][8] = {{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE}}; nulls
 
 		//p->currentCursor = 0;
-		p->lastMouseEvent = 0/*MapNotify*/;         /*  last event a mouse did; care about Button and Motion events only.*/
-		p->lastPressedOver = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
-		p->lastOver = NULL;       /*  the sensitive node that the mouse was last moused over.*/
-		p->lastOverButtonPressed = FALSE;      /*  catch the 1 to 0 transition for button presses and isOver in TouchSensors */
+		//p->lastMouseEvent = 0/*MapNotify*/;         /*  last event a mouse did; care about Button and Motion events only.*/
+		memset(p->lastMouseEvent,0,20*sizeof(int));
+		//p->lastPressedOver = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
+		memset(p->lastPressedOver,NULL,20*sizeof(void*));
+		//p->lastOver = NULL;       /*  the sensitive node that the mouse was last moused over.*/
+		memset(p->lastOver,NULL,20*sizeof(void*));
+		//p->lastOverButtonPressed = FALSE;      /*  catch the 1 to 0 transition for button presses and isOver in TouchSensors */
+		memset(p->lastOverButtonPressed,FALSE,20*sizeof(int));
 
 		p->maxbuffers = 1;                     /*  how many active indexes in bufferarray*/
 		p->bufferarray[0] = FW_GL_BACK;
@@ -2722,7 +2728,7 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 }
 
 void setup_picking(){
-	int windex;
+	int windex, ID;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
@@ -2734,6 +2740,7 @@ void setup_picking(){
 		//p->currentCursor = 0;
 		int x,yup,justpressed;
 		struct Touch *touch = currentTouch();
+		ID = touch->ID;
 		if(touch->windex != windex) return;
 		x = touch->x;
 		yup = touch->y;
@@ -2749,9 +2756,9 @@ void setup_picking(){
 				set_viewmatrix();
 				render_hier(rootNode(),VF_Sensitive  | VF_Geom);
 
-				p->CursorOverSensitive = getRayHit();
+				p->CursorOverSensitive[ID] = getRayHit();
 				//double-check navigation, which may have already started
-				if(p->CursorOverSensitive && p->NavigationMode){
+				if(p->CursorOverSensitive[ID] && p->NavigationMode && ID == 0){
 					if(!tg->Mainloop.AllowNavDrag) p->NavigationMode = FALSE; //rollback start of navigation
 					//ConsoleMessage("setup_picking rolling back startofNavigation\n");
 				}
@@ -2759,10 +2766,10 @@ void setup_picking(){
 				//	ConsoleMessage("setup_picking x %d y %d ID %d but %d mev %d\n", touch->x, touch->y, touch->ID, touch->buttonState[LMB], touch->mev);
 
 				/* for nodes that use an "isOver" eventOut... */
-				if (p->lastOver != p->CursorOverSensitive) {
+				if (p->lastOver[ID] != p->CursorOverSensitive[ID]) {
 					#ifdef VERBOSE
 						printf ("%lf over changed, p->lastOver %u p->cursorOverSensitive %u, p->butDown1 %d\n",
-							TickTime(), (unsigned int) p->lastOver, (unsigned int) p->CursorOverSensitive,
+							TickTime(), (unsigned int) p->lastOver[ID], (unsigned int) p->CursorOverSensitive[ID],
 							p->ButDown[p->currentCursor][1]);
 					#endif
 					//if (p->ButDown[p->currentCursor][1]==0) {
@@ -2771,14 +2778,14 @@ void setup_picking(){
 						/* ok, when the user releases a button, cursorOverSensitive WILL BE NULL
 							until it gets sensed again. So, we use the lastOverButtonPressed flag to delay
 							sending this flag by one event loop loop. */
-						if (!p->lastOverButtonPressed) {
-							sendSensorEvents(p->lastOver, overMark, 0, FALSE);
-							sendSensorEvents(p->CursorOverSensitive, overMark, 0, TRUE);
-							p->lastOver = p->CursorOverSensitive;
+						if (!p->lastOverButtonPressed[ID]) {
+							sendSensorEvents(p->lastOver[ID], overMark, 0, FALSE);
+							sendSensorEvents(p->CursorOverSensitive[ID], overMark, 0, TRUE);
+							p->lastOver[ID] = p->CursorOverSensitive[ID];
 						}
-						p->lastOverButtonPressed = FALSE;
+						p->lastOverButtonPressed[ID] = FALSE;
 					} else {
-						p->lastOverButtonPressed = TRUE;
+						p->lastOverButtonPressed[ID] = TRUE;
 					}
 				}
 				#ifdef VERBOSE
@@ -2788,59 +2795,59 @@ void setup_picking(){
 
 				/* did we have a click of button 1? */
 				//if (p->ButDown[p->currentCursor][1] && (p->lastPressedOver==NULL)) {
-				if (touch->buttonState[LMB] && (p->lastPressedOver==NULL)) {
+				if (touch->buttonState[LMB] && (p->lastPressedOver[ID]==NULL)) {
 					//ConsoleMessage("Not Navigation and 1 down\n"); 
 					/* send an event of ButtonPress and isOver=true */
-					p->lastPressedOver = p->CursorOverSensitive;
-					sendSensorEvents(p->lastPressedOver, ButtonPress, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
+					p->lastPressedOver[ID] = p->CursorOverSensitive[ID];
+					sendSensorEvents(p->lastPressedOver[ID], ButtonPress, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
 				}
 				//if ((p->ButDown[p->currentCursor][1]==0) && p->lastPressedOver!=NULL) {
-				if ((touch->buttonState[LMB]==0) && p->lastPressedOver!=NULL) {
+				if ((touch->buttonState[LMB]==0) && p->lastPressedOver[ID]!=NULL) {
 					//ConsoleMessage ("Not Navigation and 1 up\n");
 					/* send an event of ButtonRelease and isOver=true;
 						an isOver=false event will be sent below if required */
-					sendSensorEvents(p->lastPressedOver, ButtonRelease, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
-					p->lastPressedOver = NULL;
+					sendSensorEvents(p->lastPressedOver[ID], ButtonRelease, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
+					p->lastPressedOver[ID] = NULL;
 				}
-				if (p->lastMouseEvent == MotionNotify) {
+				if (p->lastMouseEvent[ID] == MotionNotify) {
 					//ConsoleMessage ("Not Navigation and motion - going into sendSensorEvents\n");
 					/* TouchSensor hitPoint_changed needs to know if we are over a sensitive node or not */
-					sendSensorEvents(p->CursorOverSensitive,MotionNotify, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
+					sendSensorEvents(p->CursorOverSensitive[ID],MotionNotify, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
 
 					/* PlaneSensors, etc, take the last sensitive node pressed over, and a mouse movement */
-					sendSensorEvents(p->lastPressedOver,MotionNotify, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
-					p->lastMouseEvent = 0 ;
+					sendSensorEvents(p->lastPressedOver[ID],MotionNotify, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
+					p->lastMouseEvent[ID] = 0 ;
 				}
 
 				/* do we need to re-define cursor style? */
 				/* do we need to send an isOver event? */
-				if (p->CursorOverSensitive!= NULL) {
+				if (p->CursorOverSensitive[ID]!= NULL) {
 					setSensorCursor();
 
 					/* is this a new node that we are now over?
 						don't change the node pointer if we are clicked down */
-					if ((p->lastPressedOver==NULL) && (p->CursorOverSensitive != p->oldCOS)) {
+					if ((p->lastPressedOver[ID]==NULL) && (p->CursorOverSensitive[ID] != p->oldCOS[ID])) {
 						//sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
-						sendSensorEvents(p->oldCOS,MapNotify,touch->buttonState[LMB], FALSE);
+						sendSensorEvents(p->oldCOS[ID],MapNotify,touch->buttonState[LMB], FALSE);
 						//sendSensorEvents(p->CursorOverSensitive,MapNotify,p->ButDown[p->currentCursor][1], TRUE);
-						sendSensorEvents(p->CursorOverSensitive,MapNotify,touch->buttonState[LMB], TRUE);
-						 p->oldCOS=p->CursorOverSensitive;
-						sendDescriptionToStatusBar(p->CursorOverSensitive);
+						sendSensorEvents(p->CursorOverSensitive[ID],MapNotify,touch->buttonState[LMB], TRUE);
+						 p->oldCOS[ID] =p->CursorOverSensitive[ID];
+						sendDescriptionToStatusBar(p->CursorOverSensitive[ID]);
 					}
 				} else {
 					/* hold off on cursor change if dragging a sensor */
-					if (p->lastPressedOver!=NULL) {
+					if (p->lastPressedOver[ID]!=NULL) {
 						setSensorCursor();
 					} else {
 						setArrowCursor();
 					}
 					/* were we over a sensitive node? */
 					//if ((p->oldCOS!=NULL)  && (p->ButDown[p->currentCursor][1]==0)) {
-					if ((p->oldCOS!=NULL)  && (touch->buttonState[LMB]==0)) {
-						sendSensorEvents(p->oldCOS,MapNotify, touch->buttonState[LMB], FALSE); //p->ButDown[p->currentCursor][1], FALSE);
+					if ((p->oldCOS[ID]!=NULL)  && (touch->buttonState[LMB]==0)) {
+						sendSensorEvents(p->oldCOS[ID],MapNotify, touch->buttonState[LMB], FALSE); //p->ButDown[p->currentCursor][1], FALSE);
 						/* remove any display on-screen */
 						sendDescriptionToStatusBar(NULL);
-						p->oldCOS=NULL;
+						p->oldCOS[ID]=NULL;
 					}
 				}
 			} //setup_pickside
@@ -5367,7 +5374,7 @@ int fwl_draw()
 void fwl_setLastMouseEvent(int etype) {
 	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 	//printf ("fwl_setLastMouseEvent called\n");
-        p->lastMouseEvent = etype;
+        p->lastMouseEvent[0] = etype;
 }
 
 void fwl_initialize_parser()
@@ -5502,7 +5509,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 	/* save this one... This allows Sensors to get mouse movements if required. */
-	p->lastMouseEvent = mev;
+	p->lastMouseEvent[ID] = mev;
 
 	//winRT but =1 when mev = motion, others but = 0 when mev = motion. 
 	//make winRT the same as the others:
@@ -5529,9 +5536,9 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	touch = &p->touchlist[ID];
 	touch->x = x;
 	touch->y = y;
-	//touch->windex = windex;
+	touch->windex = windex;
 	touch->buttonState[ibutton] = mev == ButtonPress;
-	//touch->ID = ID; //will come in handy if we change from array[] to accordian list
+	touch->ID = ID; //will come in handy if we change from array[] to accordian list
 	touch->mev = mev;
 	//touch->angle = 0.0f;
 	p->currentTouch = ID; // pick/dragsensors can use 0-19
@@ -5541,7 +5548,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 		if ((mev == ButtonPress) || (mev == ButtonRelease)) {
 			/* if we are Not over an enabled sensitive node, and we do NOT already have a
 				button down from a sensitive node... */
-			if (((p->CursorOverSensitive ==NULL) && (p->lastPressedOver ==NULL)) || Viewer()->LookatMode || tg->Mainloop.SHIFT ) { //|| tg->Mainloop.AllowNavDrag
+			if (((p->CursorOverSensitive[ID] ==NULL) && (p->lastPressedOver[ID] ==NULL)) || Viewer()->LookatMode || tg->Mainloop.SHIFT ) { //|| tg->Mainloop.AllowNavDrag
 				p->NavigationMode = touch->buttonState[LMB] || touch->buttonState[RMB];
 				//ConsoleMessage("pNM %d \n", p->NavigationMode);
 				handle(mev, ibutton, fx, fy);
@@ -5927,20 +5934,23 @@ void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive) {
 
 /* We have a new file to load, lets get rid of the old world sensor events, and run with it */
 void resetSensorEvents(void) {
+	int ID;
 	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 
-	if (p->oldCOS != NULL)
-		sendSensorEvents(p->oldCOS,MapNotify,p->touchlist[p->currentTouch].buttonState[LMB], FALSE);
-		//sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
-    /* remove any display on-screen */
-    sendDescriptionToStatusBar(NULL);
-	p->CursorOverSensitive=NULL;
+	for(ID=0;ID<20;ID++){
+		if (p->oldCOS[ID] != NULL)
+			sendSensorEvents(p->oldCOS[ID],MapNotify,p->touchlist[p->currentTouch].buttonState[LMB], FALSE);
+			//sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
+		/* remove any display on-screen */
+		sendDescriptionToStatusBar(NULL);
+		p->CursorOverSensitive[ID]=NULL;
 
-	p->oldCOS=NULL;
-	p->lastMouseEvent = 0;
-	p->lastPressedOver = NULL;
-	p->lastOver = NULL;
-	FREE_IF_NZ(p->SensorEvents);
+		p->oldCOS[ID]=NULL;
+		p->lastMouseEvent[ID] = 0;
+		p->lastPressedOver[ID] = NULL;
+		p->lastOver[ID] = NULL;
+		FREE_IF_NZ(p->SensorEvents);
+	}
 	p->num_SensorEvents = 0;
 	gglobal()->RenderFuncs.hypersensitive = NULL;
 	gglobal()->RenderFuncs.hyperhit = 0;
