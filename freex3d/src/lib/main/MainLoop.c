@@ -2034,7 +2034,7 @@ void setup_stagesNORMAL(){
 		//IDEA: these prepared ways of using freewrl could be put into a switchcase contenttype called early ie from window
 		if(1){
 			//normal: multitouch emulation, layer, scene, statusbarHud, 
-			if(0) cmultitouch->t1.contents = clayer;
+			if(1) cmultitouch->t1.contents = clayer;
 			else cstage->t1.contents = clayer;
 			//cmultitouch->t1.contents = NULL; 
 			//tg->Mainloop.AllowNavDrag = TRUE; //experimental approach to allow both navigation and dragging at the same time, with 2 separate touches
@@ -2772,6 +2772,11 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 }
 
 void setup_picking(){
+	/*	Dec 15, 2015 update: variables have been vectorized in this function to match multi-touch, 
+		however multitouch with touch sensors doesn't work yet.
+		- sendSensorEvents > getHyperHit Renderfuncs.hp,.hpp etc needs to also be vectorized 
+			somehow so each drag and hyperdrag is per-touch.
+	*/
 	int windex, ID;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
@@ -2785,6 +2790,7 @@ void setup_picking(){
 		int x,yup,justpressed;
 		struct Touch *touch = currentTouch();
 		ID = touch->ID;
+		if(ID < 0) return;
 		if(touch->windex != windex) return;
 		x = touch->x;
 		yup = touch->y;
@@ -2804,7 +2810,8 @@ void setup_picking(){
 				p->CursorOverSensitive[ID] = getRayHit();
 				//double-check navigation, which may have already started
 				if(p->CursorOverSensitive[ID] && p->NavigationMode[ID] ){
-					if(!tg->Mainloop.AllowNavDrag) p->NavigationMode[ID] = FALSE; //rollback start of navigation
+					//if(!tg->Mainloop.AllowNavDrag) 
+					p->NavigationMode[ID] = FALSE; //rollback start of navigation
 					ConsoleMessage("setup_picking rolling back startofNavigation\n");
 				}
 				//if (p->CursorOverSensitive)
@@ -2911,6 +2918,7 @@ void setup_picking(){
 			int x, yup;
 			struct Touch * touch = currentTouch();
 			if(touch->windex != windex) return;
+			if(touch->ID < 0) return;
 			x = touch->x;
 			yup = touch->y;
 			if(setup_pickside(x,yup)){ //tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor])){
@@ -5557,6 +5565,8 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
+
+	//ID = 0; //good way to enforce single-touch for testing
 	/* save this one... This allows Sensors to get mouse movements if required. */
 	p->lastMouseEvent[ID] = mev;
 
@@ -5598,20 +5608,22 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 		if ((mev == ButtonPress) || (mev == ButtonRelease)) {
 			/* if we are Not over an enabled sensitive node, and we do NOT already have a
 				button down from a sensitive node... */
-			if (((p->CursorOverSensitive[ID] ==NULL) && (p->lastPressedOver[ID] ==NULL)) || Viewer()->LookatMode || tg->Mainloop.SHIFT || tg->Mainloop.AllowNavDrag) { //
+			if (((p->CursorOverSensitive[ID] ==NULL) && (p->lastPressedOver[ID] ==NULL)) || Viewer()->LookatMode || tg->Mainloop.SHIFT ) { //|| tg->Mainloop.AllowNavDrag
 				p->NavigationMode[ID] = touch->buttonState[LMB] || touch->buttonState[RMB];
 				//ConsoleMessage("pNM %d \n", p->NavigationMode);
+				if(mev == ButtonPress)   ConsoleMessage("starting navigation drag\n");
+				if(mev == ButtonRelease) ConsoleMessage("ending   navigation drag\n");
 				handle(mev, ibutton, fx, fy);
 			}
 		}
 
 		if (mev == MotionNotify) {
-			if (p->NavigationMode) {
+			if (p->NavigationMode[ID]) {
 				/* find out what the first button down is */
 				count = 0;
 				while ((count < 4) && (!touch->buttonState[count])) count++;
 				if (count == 4) return; /* no buttons down???*/
-
+				ConsoleMessage("nav dragging\n");
 				handle (mev, (unsigned) count, fx, fy); 
 			}
 		}
