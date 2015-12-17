@@ -4340,7 +4340,7 @@ struct X3D_Node* getRayHit() {
 				GLDOUBLE mvp[16], mvpi[16];
 				GLDOUBLE *pickMatrix = getPickrayMatrix(0);
 				GLDOUBLE *pickMatrixi = getPickrayMatrix(1);
-				//struct point_XYZ r11 = {0.0,0.0,1.0}; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
+				//struct point_XYZ r11 = {0.0,0.0,1.0};
 				struct point_XYZ tp; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 
 				if(0){
@@ -4805,6 +4805,24 @@ Update May 2015 - dug9
 		On the other hand, someone may find a way to combine passes for better efficiency/reduced transform FLOPs per frame.
 	- Multitouch - there is currently nothing in the specs. But if there was, it might apply to (modfied / special) touch 
 		and drag sensors. And for us that might mean simulataneously or iterating over a list of touches.
+
+Update Dec 17, 2015 dug9:
+	I vectorized setup_picking() to allow for multi-touch, but not yet getRayHit() or
+		sendSensorEvents > getHyperHit() > Renderfuncs.hp, .hpp, .modelmatrix etc (or SetCursor(style,touch.ID))
+	And added a contenttype_e3dmouse for emulating 3D mouse / HMD that moves 
+		the viewpoint (vs the mouse xy), on a drag motion.
+	Drag sensor doesn't work with e3dmouse.
+	Drag Sensor review:
+	
+	[WORLD]		< View matrix < .pos/.ori < stereo < pickmatrix < xy=0,0      (remember the pickmatrix aligns Z axis to pickray)
+	[COORDS]	> Model matrix > DragSensor
+
+	It's the Model matrix that should be frozen on mouse-down for dragsensors
+	- the pickmatrix is updated on each frame or each mouse event
+	x currently we are freezing the [View + pos,ori + stereo] with the Model as one modelview matrix
+	+ we should be re-concatonating the ViewMatrix to the frozen ModelMatrix on each frame/mouse event
+		- that would allow updates to the ViewMatrix on each frame, for 3D mice and HMD IMUs (Head Mounted Display Inertial Measuring Units)
+
 */
 
 /*	get_hyperhit()
@@ -4820,6 +4838,16 @@ Update May 2015 - dug9
 	  But it may be overkill if bearing-local is made to == world, for compatibility with 3D pointing devices
 */
 static void get_hyperhit() {
+	/* variables:
+	struct point_XYZ r1 = {0,0,-1},r2 = {0,0,0},r3 = {0,1,0}; 
+		pick-viewport-local axes: r1- along pick-proj axis, r2 viewpoint, r3 y-up axis in case needed
+	hyp_save_posn, t_r2 - A - (viewpoint 0,0,0 transformed by modelviewMatrix.inverse() to geometry-local space)
+	hyp_save_norm, t_r1 - B - bearing point (viewport 0,0,-1 used with pick-proj bearing-specific projection matrix)
+		- norm is not a direction vector, its a point. To get a direction vector: v = (B - A) = (norm - posn)
+	ray_save_posn - intersection with scene geometry, in sensor-local coordinates 
+		- used in do_CyclinderSensor, do_SphereSensor for computing a radius  on mouse-down
+	t_r3 - viewport y-up in case needed
+	*/
     double x1,y1,z1,x2,y2,z2,x3,y3,z3;
     GLDOUBLE projMatrix[16];
 	struct currayhit *rhh, *rh;
@@ -4853,7 +4881,7 @@ static void get_hyperhit() {
 		GLDOUBLE *pickMatrix = getPickrayMatrix(0);
 		GLDOUBLE *pickMatrixi = getPickrayMatrix(1);
 		struct point_XYZ r11 = {0.0,0.0,1.0}; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
-		struct point_XYZ tp; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
+		struct point_XYZ tp;
 
 		if(0){
 			//pickMatrix is inverted in setup_pickray
@@ -4865,7 +4893,9 @@ static void get_hyperhit() {
 			matinverseAFFINE(mvi,rhh->modelMatrix);
 			matmultiplyAFFINE(mvpi,pickMatrix,mvi);
 		}
-		
+		//transform pickray space bearing { 0,0,1 and 0,0,0 } into sensor-local coordinates 
+		// via mouse-down-frozen modelview and current pickmatrix, for sensor to intersect 
+		// and emit events in sensor-local space via do_<sensor_name>
 		transform(&tp,&r11,mvpi);
 		x1 = tp.x; y1 = tp.y; z1 = tp.z;
 		transform(&tp,&r2,mvpi);
@@ -4880,7 +4910,8 @@ static void get_hyperhit() {
 			matinverseAFFINE(mvi,rh->modelMatrix);
 			matmultiplyAFFINE(mvpi,pickMatrix,mvi);
 		}
-
+		//transform last sensor-local intersection to bearing-local space 
+		// using current?frozen? modelview and current pickmatrix
 		transform(&tp,tg->RenderFuncs.hp,mvpi);
 		x3 = tp.x; y3 = tp.y; z3 = tp.z;
 		if(0) printf("NEW ");
