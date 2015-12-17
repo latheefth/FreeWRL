@@ -136,7 +136,6 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 	/* material node usage depends on texture depth; if rgb (depth1) we blend color field
 	   and diffusecolor with texture, else, we dont bother with material colors */
 	t->last_texture_type = NOTEXTURE;
-	t->usingAffinePickmatrix = 1; /*use AFFINE matrix to transform points to align with pickray, instead of using GLU_UNPROJECT, feature-AFFINE_GLU_UNPROJECT*/
 
 	//private
 	t->prv = RenderFuncs_constructor();
@@ -916,11 +915,7 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 		return;
 	}
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix); //snapshot of geometry's modelview matrix
-	if(!tg->RenderFuncs.usingAffinePickmatrix){
-		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
-		FW_GLU_PROJECT(cx,cy,cz, modelMatrix, projMatrix, viewport, &p->hp.x, &p->hp.y, &p->hp.z);
-	}
-	if(tg->RenderFuncs.usingAffinePickmatrix){
+	{
 		GLDOUBLE pmi[16];
 		GLDOUBLE *pickMatrix = getPickrayMatrix(0);
 		GLDOUBLE *pickMatrixi = getPickrayMatrix(1);
@@ -947,6 +942,44 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 }
 
 
+void prepare_model_view_pickmatrix0(GLDOUBLE *modelMatrix, GLDOUBLE *mvp){
+	//prepares a matrix that will transform a point in geometry-local coordintes
+	//into eye/pickray/bearing coordinates ie along the pickray 0,0,1
+	GLDOUBLE mvi[16];
+	GLDOUBLE *pickMatrixi;
+	ttglobal tg = gglobal();
+
+	pickMatrixi = getPickrayMatrix(1);
+
+	//pickMatrix is inverted in setup_pickray
+	matmultiplyAFFINE(mvp,modelMatrix,pickMatrixi);
+
+}
+void prepare_model_view_pickmatrix_inverse0(GLDOUBLE *modelMatrix, GLDOUBLE *mvpi){
+	//prepares a matrix that will transform a point in eye/pickray/bearing coords ie 0,0,1
+	//into geometry-local coordinates, given the modelMatrix to transform
+	// eye/pickray -> geometry-local
+	GLDOUBLE mvi[16];
+	GLDOUBLE *pickMatrix;
+	ttglobal tg = gglobal();
+
+	pickMatrix = getPickrayMatrix(0);
+
+	//pickMatrix is not inverted in setup_pickray
+	matinverseAFFINE(mvi,modelMatrix);
+	matmultiplyAFFINE(mvpi,pickMatrix,mvi);
+}
+void prepare_model_view_pickmatrix_inverse(GLDOUBLE *mvpi){
+	//prepares a matrix to transform points from eye/pickray/bearing 
+	//to gemoetry-local, using the modelview matrix of the pickray-scene intersection point
+	//found closest to the viewer on the last render_hier(VF_SENSITIVE) pass
+	struct currayhit * rh;
+	ttglobal tg = gglobal();
+
+	rh = (struct currayhit *)tg->RenderFuncs.rayHit;
+	prepare_model_view_pickmatrix_inverse0(rh->modelMatrix, mvpi);
+}
+
 /* Call this when modelview and projection modified
 	keeps bearing/pick-ray transformed into current geometry-local
 	for use in virt->rendray_<geometry> calculations, on VF_Sensitive pass
@@ -958,7 +991,6 @@ void upd_ray0(struct point_XYZ *t_r1, struct point_XYZ *t_r2, struct point_XYZ *
 	ttglobal tg = gglobal();
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 /*
-
 {int i; printf ("\n"); 
 printf ("upd_ray, pm %p\n",projMatrix);
 for (i=0; i<16; i++) printf ("%4.3lf ",modelMatrix[i]); printf ("\n"); 
@@ -966,58 +998,23 @@ for (i=0; i<16; i++) printf ("%4.3lf ",projMatrix[i]); printf ("\n");
 } 
 */
 
-	if(!tg->RenderFuncs.usingAffinePickmatrix){
-		GLDOUBLE projMatrix[16];
-		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
-		// the projMatrix used here contains the GLU_PICK_MATRIX translation and scale
-		//transform pick-ray (0,0,-1) B from pick-viewport-local to geometry-local
-		//FLOPS 588 double: 3x glu_unproject 196
-		//r1 = {0,0,-1} means WinZ = -1 in glu_unproject. It's expecting coords in 0-1 range. So -1 would be behind viewer? But x,y still foreward?
-		FW_GLU_UNPROJECT(r1.x, r1.y, r1.z, modelMatrix, projMatrix, viewport,
-				 &t_r1->x,&t_r1->y,&t_r1->z);
-		//transform viewpoint A (0,0,0) in pick-ray-viewport-local to geometry-local
-		FW_GLU_UNPROJECT(r2.x, r2.y, r2.z, modelMatrix, projMatrix, viewport,
-				 &t_r2->x,&t_r2->y,&t_r2->z);
-		//in case we need a viewpoint-y-up vector transform viewpoint y to geometry-local 
-		FW_GLU_UNPROJECT(r3.x,r3.y,r3.z,modelMatrix,projMatrix,viewport,
-				 &t_r3->x,&t_r3->y,&t_r3->z);
-		if(0){
-			//r2 is A, r1 is B relative to A in pickray [A,B)
-			//we prove it here by moving B along the ray, to distance 1.0 from A, and no change to picking
-			vecdiff(t_r1,t_r1,t_r2);
-			vecnormal(t_r1,t_r1);
-			vecadd(t_r1,t_r1,t_r2);
-		}
-		//printf("Upd_ray old: (%f %f %f) (%f %f %f) \n",	t_r1.x,t_r1.y,t_r1.z,t_r2.x,t_r2.y,t_r2.z);
-	}
-	if(tg->RenderFuncs.usingAffinePickmatrix){
+	{
 		//feature-AFFINE_GLU_UNPROJECT
 		//FLOPs	112 double:	matmultiplyAFFINE 36, matinverseAFFINE 49, 3x transform (affine) 9 =27
-		GLDOUBLE mvp[16], mvpi[16];
-		GLDOUBLE *pickMatrix = getPickrayMatrix(0);
-		GLDOUBLE *pickMatrixi = getPickrayMatrix(1);
+		GLDOUBLE  mvpi[16]; //mvp[16],
 		struct point_XYZ r11 = {0.0,0.0,1.0}; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 
-		if(0){
-			//pickMatrix is inverted in setup_pickray
-			matmultiplyAFFINE(mvp,modelMatrix,pickMatrixi);
-			matinverseAFFINE(mvpi,mvp);
-		}else{
-			//pickMatrix is not inverted in setup_pickray
-			double mvi[16];
-			matinverseAFFINE(mvi,modelMatrix);
-			matmultiplyAFFINE(mvpi,pickMatrix,mvi);
-		}
+		prepare_model_view_pickmatrix_inverse0(modelMatrix, mvpi);
 		transform(t_r1,&r11,mvpi);
 		transform(t_r2,&r2,mvpi);
 		transform(t_r3,&r3,mvpi);
 		//r2 is A, r1 is B relative to A in pickray [A,B)
 		//we prove it here by moving B along the ray, to distance 1.0 from A, and no change to picking
-		if(0){
-			vecdiff(t_r1,t_r1,t_r2);
-			vecnormal(t_r1,t_r1);
-			vecadd(t_r1,t_r1,t_r2);
-		}
+		//if(0){
+		//	vecdiff(t_r1,t_r1,t_r2);
+		//	vecnormal(t_r1,t_r1);
+		//	vecadd(t_r1,t_r1,t_r2);
+		//}
 		//printf("Upd_ray new: (%f %f %f) (%f %f %f) \n",	t_r1.x,t_r1.y,t_r1.z,t_r2.x,t_r2.y,t_r2.z);
 	}
 }
@@ -1036,54 +1033,122 @@ void upd_ray() {
 }
 void transformMBB(GLDOUBLE *rMBBmin, GLDOUBLE *rMBBmax, GLDOUBLE *matTransform, GLDOUBLE* inMBBmin, GLDOUBLE* inMBBmax);
 int pickrayHitsMBB(struct X3D_Node *node){
-	//GOAL: on a sensitive (touch sensor) pass, before checking the ray against geometry, check first if the
+	//GOAL: on a render_hier(VF_sensitive) (touch sensor) pass, before checking the ray against geometry, check first if the
 	//ray goes through the extent / minimum-bounding-box (MBB) of the shape. If not, no need to check the ray 
 	//against all the shape's triangles, speeding up the VF_Sensitive pass.
 	//FLOPs 156 double: matmultiplyAffine 36, matInversAffine 48,  transformAffine 8 pts x 12= 72
+	GLDOUBLE modelMatrix[16];
+	int i, isIn;
+	//if using new Sept 2014 pickmatrix, we can test the pickray against the shape node's bounding box
+	//and if no hit, then no need to run through rendray testing all triangles
+	//feature-AFFINE_GLU_UNPROJECT
+	//FLOPs	112 double:	matmultiplyAFFINE 36, matinverseAFFINE 49, 3x transform (affine) 9 =27
+	GLDOUBLE mvp[16]; //, mvpi[16];
+	GLDOUBLE smin[3], smax[3], shapeMBBmin[3], shapeMBBmax[3];
+	GLDOUBLE *pickMatrix,*pickMatrixi;
 	int retval;
 	ttglobal tg = gglobal();
 	retval = TRUE;
-	if(tg->RenderFuncs.usingAffinePickmatrix){
-		GLDOUBLE modelMatrix[16];
-		int i, isIn;
-		//if using new Sept 2014 pickmatrix, we can test the pickray against the shape node's bounding box
-		//and if no hit, then no need to run through rendray testing all triangles
-		//feature-AFFINE_GLU_UNPROJECT
-		//FLOPs	112 double:	matmultiplyAFFINE 36, matinverseAFFINE 49, 3x transform (affine) 9 =27
-		GLDOUBLE mvp[16]; //, mvpi[16];
-		GLDOUBLE smin[3], smax[3], shapeMBBmin[3], shapeMBBmax[3];
-		GLDOUBLE *pickMatrix = getPickrayMatrix(0);
-		GLDOUBLE *pickMatrixi = getPickrayMatrix(1);
-		//struct point_XYZ r11 = {0.0,0.0,-1.0}; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
-		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-		if(1){
-			//pickMatrix is inverted in setup_pickray
-			matmultiplyAFFINE(mvp,modelMatrix,pickMatrixi);
-		}else{
-			//pickMatrix is not inverted in setup_pickray
-			double pi[16];
-			matinverseAFFINE(pi,pickMatrix);
-			matmultiplyAFFINE(mvp,modelMatrix,pi);
-		}
+	pickMatrix = getPickrayMatrix(0);
+	pickMatrixi = getPickrayMatrix(1);
+	//struct point_XYZ r11 = {0.0,0.0,-1.0}; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-		/* generate mins and maxes for avatar cylinder in avatar space to represent the avatar collision volume */
-		for(i=0;i<3;i++)
-		{
-			shapeMBBmin[i] = node->_extent[i*2 + 1];
-			shapeMBBmax[i] = node->_extent[i*2];
-		}
-		transformMBB(smin,smax,mvp,shapeMBBmin,shapeMBBmax); //transform shape's MBB into pickray space
-		// the pickray is now at 0,0,x
-		isIn = TRUE;
-		for(i=0;i<2;i++)
-			isIn = isIn && (smin[i] <= 0.0 && smax[i] >= 0.0);
-		retval = isIn;
-		//printf("%d x %f %f y %f %f\n",isIn,smin[0],smax[0],smin[1],smax[1]);
-		//retval = 1;
+	prepare_model_view_pickmatrix0(modelMatrix, mvp);
+	/* generate mins and maxes for avatar cylinder in avatar space to represent the avatar collision volume */
+	for(i=0;i<3;i++)
+	{
+		shapeMBBmin[i] = node->_extent[i*2 + 1];
+		shapeMBBmax[i] = node->_extent[i*2];
 	}
+	transformMBB(smin,smax,mvp,shapeMBBmin,shapeMBBmax); //transform shape's MBB into pickray space
+	// the pickray is now at 0,0,x
+	isIn = TRUE;
+	for(i=0;i<2;i++)
+		isIn = isIn && (smin[i] <= 0.0 && smax[i] >= 0.0);
+	retval = isIn;
+	//printf("%d x %f %f y %f %f\n",isIn,smin[0],smax[0],smin[1],smax[1]);
+	//retval = 1;
+
 	return retval;
 }
+
+
+
+/*	get_hyperhit()
+	If we have successfully picked a DragSensor sensitive node -intersection recorded in rayHit, and 
+	intersection closest to viewpoint transformed to geometry-local, and sensornode * returned from getRayHit-
+	and we are on mousedown	or mousemove(drag) events on a dragsensor node:
+   - transform the bearing/pick-ray from bearing-local^  to sensor-local coordinates
+   - in a way that is generic for all DragSensor nodes in their do_<Drag>Sensor function
+   - so they can intersect the bearing/pick-ray with their sensor geometry (Cylinder,Sphere,Plane[,Line])
+   - and emit events in sensor-local coordinates
+   - ^bearing-local: currently == pick-viewport-local 
+   -- unproject is used because to go from geometry-local to bearing-local, because
+		it's convenient, and includes the pick-viewport in the transform - see setup_pickray(pick=TRUE,,) for details
+	  But it may be overkill if bearing-local is made to == world, for compatibility with 3D pointing devices
+*/
+void get_hyperhit() {
+	/* 
+		transforms the last known pickray intersection, and pickray/bearing into sensor-local coordinates of the 
+		intersected geometry, using the modelview matrix snapshotted/frozen at the time of the intersection.
+		
+		(Dec 17, 2015: this is wrong, the view part of modelview needs to be refreshed. 
+		It's just the scene-root_to_sensor (model part of modelview) that should be frozen.
+		For example, over a dragsensor (ie PlaneSensor) press the mouse down like you are going to drag it with the mouse.
+		Then press the keyboard arrow keys to move the avatar/viewer/eye/viewpoint. In vivaty the dragsensor drags even
+		though the mouse hasn't moved. In freewrl the dragsensor doesn't do anything because we are using
+		a stale view matrix, and it appears to setup_picking etc that nothing changed/dragged.)
+
+		variables:
+		struct point_XYZ r1 = {0,0,-1},r2 = {0,0,0},r3 = {0,1,0}; 
+			pick-viewport-local axes: r1- along pick-proj axis, r2 viewpoint, r3 y-up axis in case needed
+		hyp_save_posn, t_r2 - A - (viewpoint 0,0,0 transformed by modelviewMatrix.inverse() to geometry-local space)
+		hyp_save_norm, t_r1 - B - bearing point (viewport 0,0,-1 used with pick-proj bearing-specific projection matrix)
+			- norm is not a direction vector, its a point. To get a direction vector: v = (B - A) = (norm - posn)
+		ray_save_posn - intersection with scene geometry, transformed into in sensor-local coordinates 
+			- used in do_CyclinderSensor, do_SphereSensor for computing a radius  on mouse-down
+		t_r3 - viewport y-up in case needed
+	*/
+    double x1,y1,z1,x2,y2,z2,x3,y3,z3;
+	GLDOUBLE mvpi[16];
+	struct point_XYZ r11 = {0.0,0.0,1.0}; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
+	struct point_XYZ tp;
+
+	struct currayhit *rh;  //*rhh,
+	ttglobal tg = gglobal();
+	rh = (struct currayhit *)tg->RenderFuncs.rayHit;
+
+	//transform last bearing/pickray-local intersection to sensor-local space 
+	// using current?frozen? modelview and current pickmatrix
+	// so sensor node can emit events from its do_<sensor node> function in sensor-local coordinates
+
+	prepare_model_view_pickmatrix_inverse(mvpi);
+	//transform pickray from eye/pickray/bearing to geometry/sensor-local
+	transform(&tp,&r11,mvpi);
+	x1 = tp.x; y1 = tp.y; z1 = tp.z;
+	transform(&tp,&r2,mvpi);
+	x2 = tp.x; y2 = tp.y; z2 = tp.z;
+	//transform the last known pickray intersection from eye/pickray/bearling to geometry/sensor-local
+	transform(&tp,tg->RenderFuncs.hp,mvpi);
+	x3 = tp.x; y3 = tp.y; z3 = tp.z;
+	if(0) printf("NEW ");
+
+	
+    if(0) printf ("get_hyper %f %f %f, %f %f %f, %f %f %f\n",
+        x1,y1,z1,x2,y2,z2,x3,y3,z3); 
+	
+    /* and save this globally */
+	//last pickray/bearing ( (0,0,0) (0,0,1)) transformed from eye/pickray/bearing to geometry/sensor local coordinates:
+    tg->RenderFuncs.hyp_save_posn[0] = (float) x1; tg->RenderFuncs.hyp_save_posn[1] = (float) y1; tg->RenderFuncs.hyp_save_posn[2] = (float) z1;
+    tg->RenderFuncs.hyp_save_norm[0] = (float) x2; tg->RenderFuncs.hyp_save_norm[1] = (float) y2; tg->RenderFuncs.hyp_save_norm[2] = (float) z2;
+	//last known pickray intersection in geometry/sensor-local coords, ready for sensor emitting
+    tg->RenderFuncs.ray_save_posn[0] = (float) x3; tg->RenderFuncs.ray_save_posn[1] = (float) y3; tg->RenderFuncs.ray_save_posn[2] = (float) z3;
+}
+
+
+
 
 /* if a node changes, void the display lists */
 /* Courtesy of Jochen Hoenicke */
