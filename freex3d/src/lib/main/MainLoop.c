@@ -126,6 +126,7 @@ struct Touch
 	int y; //y-up
 	int windex; //multi_window window index 0=default for regular freewrl
 	int rx,ry; //raw input coords at emulation level, for finding and dragging and rendering
+	int handled; //==FALSE when message pump first delivers message, then when setup_picking handles it, set to TRUE. a hack instead of a queue.
 };
 
 //#ifdef ANGLEPROJECT
@@ -597,6 +598,7 @@ typedef struct contenttype_e3dmouse {
 	int sphericalmode;
 	int navigationMode;
 	int dragMode;
+	int waste;
 } contenttype_e3dmouse;
 void e3dmouse_render(void *_self){
 	//render + over contents
@@ -617,71 +619,71 @@ void e3dmouse_render(void *_self){
 	}
 }
 int e3dmouse_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+	//this messy thing is supposed to emulate the case of an HMD scenario:
+	// 1. the user looks at a drag sensor - centering it in their field of view 
+	// 2. pushing a button on a hand held device to signal 'select'
+	// 3. looking somewhere else to drag the sensor 
+	// 4. releasing the button to drop the drag sensor
+	// it emulates by using regular navigation for #1, spherical navigation for #3
 	//LMB - regular navigation, except with SHIFT to disable sensor nodes
 	//RMB - toggle on/off spherical 
 	//NONE - spherical navigation, mouseXY = .5
 	//LMB - in spherical mode: click, with mousexy = .5
-	int iret, mev2, but2;
+	int iret, mev2, but2, ID0, ID1, x,y;
 	ivec4 ivport;
 	Stack *vportstack;
 	ttglobal tg;
 	contenttype_e3dmouse *self = (contenttype_e3dmouse*)_self;
 	tg = gglobal();
 	vportstack = (Stack*)tg->Mainloop._vportstack;
-	mev2 = mev;
-	but2 = butnum;
+
 	ivport = stack_top(ivec4,vportstack);
-	if(mev == ButtonRelease && butnum == RMB){
-		 self->sphericalmode = 1 - self->sphericalmode;
-		 if(self->sphericalmode){
-			printf("turning on spherical mode\n");
-			self->navigationMode = fwl_getNavMode();
-			fwl_setNavMode("SPHERICAL");
-			but2 = 1;
-			mev2 = ButtonPress;
-			iret = content_pick(_self,mev2,but2,mouseX,mouseY,ID,windex);
-			tg->Mainloop.AllowNavDrag = TRUE;
-		}else{
-			printf("turning off spherical mode\n");
-			mev2 = ButtonRelease;
-			but2 = 1;
-			iret = content_pick(_self,mev2,but2,mouseX,mouseY,ID,windex);
-			fwl_set_viewer_type(self->navigationMode);
-			tg->Mainloop.AllowNavDrag = FALSE;
+	x = ivport.W/2 + ivport.X; //viewport center
+	y = ivport.H/2 + ivport.Y;
+
+
+	mev2 = mev;
+	but2 = LMB;
+	ID0 = 0; //navigation
+	ID1 = 1; //sensor dragging
+	ivport = stack_top(ivec4,vportstack);
+	if(butnum == RMB){
+		if(mev == ButtonRelease){
+			 self->sphericalmode = 1 - self->sphericalmode;
+			 if(self->sphericalmode){
+				printf("turning on spherical mode\n");
+				self->navigationMode = fwl_getNavMode();
+				fwl_setNavMode("SPHERICAL");
+				//tg->Mainloop.AllowNavDrag = TRUE;
+				//start spherical navigation drag
+				iret = content_pick(_self,ButtonPress,but2,mouseX,mouseY,ID0,windex);
+			}else{
+				printf("turning off spherical mode\n");
+				fwl_set_viewer_type(self->navigationMode);
+				//tg->Mainloop.AllowNavDrag = FALSE;
+				//end spherical navigation drag
+				iret = content_pick(_self,ButtonRelease,but2,mouseX,mouseY,ID0,windex);
+			}
+			self->waste = FALSE;
+		}else if(mev == ButtonPress){
+			self->waste = TRUE;
 		}
-		return iret;
-	}else if(butnum == RMB){
 		return 1; //discard other RMBs
 	}
+	if(self->waste) return 1; //its an RMB motionNotify
 	if(self->sphericalmode){
-		//problem: I can't drag a sensor and navigate at the same time in freewrl.
-		//but we need to, for HMDs, to make a dragsensor work.
-		if(butnum == LMB){
-			int x,y;
-			ivec4 ivport;
-			Stack *vportstack;
-			ttglobal tg;
-			tg = gglobal();
-			vportstack = (Stack*)tg->Mainloop._vportstack;
-			ivport = stack_top(ivec4,vportstack);
-			x = ivport.W/2 + ivport.X;
-			y = ivport.H/2 + ivport.Y;
-
-			if(mev = ButtonPress) self->dragMode = TRUE;
-			if(mev = ButtonRelease) self->dragMode = FALSE;
-			//drag
-			iret = content_pick(_self,mev,butnum,x,y,ID,windex);
-		}
-		but2 = 0;
-		mev = MotionNotify;
-		//nav
-		iret = content_pick(_self,mev2,but2,mouseX,mouseY,ID,windex);
+		iret = content_pick(_self,mev,butnum,x,y,ID1,windex);
+		//printf("mev %d butnum %d x %d y %d ID %d\n",mev,butnum,x,y,ID1);
+		//tg->Mainloop.SHIFT = TRUE;
+		iret = content_pick(_self,MotionNotify,0,mouseX,mouseY,ID0,windex);
+		//tg->Mainloop.SHIFT = FALSE;
 	}else{
-		//navigation mode except with sensors disabled by SHIFT
-		tg->Mainloop.SHIFT = TRUE;
-		iret = content_pick(_self,mev2,but2,mouseX,mouseY,ID,windex);
-		tg->Mainloop.SHIFT = FALSE;
+		//normal navigation and picking
+		iret = content_pick(_self,mev,butnum,mouseX,mouseY,ID0,windex);
+		//printf("mev %d butnum %d x %d y %d ID %d\n",mev,butnum,mouseX,mouseY,ID0);
+
 	}
+	
 	return iret;
 }
 contenttype *new_contenttype_e3dmouse(){
@@ -692,6 +694,7 @@ contenttype *new_contenttype_e3dmouse(){
 	self->t1.pick = e3dmouse_pick;
 	self->sphericalmode = 0;
 	self->dragMode = 0;
+	self->waste = 0;
 	return (contenttype*)self;
 }
 
@@ -2032,16 +2035,16 @@ void setup_stagesNORMAL(){
 		cstage->t1.contents = cmultitouch;
 		p->EMULATE_MULTITOUCH =	FALSE;
 		//IDEA: these prepared ways of using freewrl could be put into a switchcase contenttype called early ie from window
-		if(1){
+		if(0){
 			//normal: multitouch emulation, layer, scene, statusbarHud, 
-			if(1) cmultitouch->t1.contents = clayer;
-			else cstage->t1.contents = clayer;
-			//cmultitouch->t1.contents = NULL; 
+			if(1) cmultitouch->t1.contents = clayer;  //with multitouch (which can bypass itself based on options panel check)
+			else cstage->t1.contents = clayer;  //skip multitouch
 			//tg->Mainloop.AllowNavDrag = TRUE; //experimental approach to allow both navigation and dragging at the same time, with 2 separate touches
 		}else if(1){
 			//e3dmouse: multitouch emulation, layer, (e3dmouse > scene), statusbarHud, 
 			contenttype *ce3dmouse = new_contenttype_e3dmouse();
-			cmultitouch->t1.contents = clayer;
+			//cmultitouch->t1.contents = clayer;
+			cstage->t1.contents = clayer;
 			clayer->t1.contents = ce3dmouse;
 			ce3dmouse->t1.contents = cscene;
 			ce3dmouse->t1.next = csbh;
@@ -2773,9 +2776,10 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 
 void setup_picking(){
 	/*	Dec 15, 2015 update: variables have been vectorized in this function to match multi-touch, 
-		however multitouch with touch sensors doesn't work yet.
+		however multitouch with touch sensors doesn't work yet - you can have ID=0 for navigation
+		and ID=1 for a single touch/drag. But you can't have 2 touches at the same time:
 		- sendSensorEvents > getHyperHit Renderfuncs.hp,.hpp etc needs to also be vectorized 
-			somehow so each drag and hyperdrag is per-touch.
+			somehow so each drag and hyperdrag is per-touch. Then you could have multiple simaltaneous touches
 	*/
 	int windex, ID;
 	ttglobal tg = gglobal();
@@ -2787,126 +2791,132 @@ void setup_picking(){
 	//if (!p->NavigationMode && tg->Mainloop.HaveSensitive && !Viewer()->LookatMode && !tg->Mainloop.SHIFT) {
 	if (tg->Mainloop.HaveSensitive && !Viewer()->LookatMode && !tg->Mainloop.SHIFT) {
 		//p->currentCursor = 0;
-		int x,yup,justpressed;
-		struct Touch *touch = currentTouch();
-		ID = touch->ID;
-		if(ID < 0) return;
-		if(touch->windex != windex) return;
-		x = touch->x;
-		yup = touch->y;
-		justpressed = touch->buttonState[LMB] && touch->mev == ButtonPress;
-		//if(justpressed)
-		//	ConsoleMessage("setup_picking justpressed mev %d x%d y%d\n",touch->mev,x,yup);
-		//ConsoleMessage("setup_picking ID %d navmode %d\n",ID,p->NavigationMode[ID]);
-		if(!p->NavigationMode[ID] || justpressed) {
-			//ConsoleMessage("setup_picking x %d y %d ID %d but %d mev %d\n",touch->x,touch->y,touch->ID,touch->buttonState[LMB],touch->mev);
-			if(setup_pickside(x,yup)){
-				setup_projection();
-				setup_pickray(x,yup);
-				//setup_viewpoint();
-				set_viewmatrix();
-				render_hier(rootNode(),VF_Sensitive  | VF_Geom);
+		int x,yup,justpressed,ktouch;
+		struct Touch *touch;
+		//touch = currentTouch();
+		for(ktouch=0;ktouch<p->ntouch;ktouch++){
+			touch = &p->touchlist[ktouch];
+			ID = touch->ID;
+			if(ID < 0) continue; //return;
+	//	if(ID == 0) continue; //for testing e3dmouse only
+			if(touch->windex != windex) continue; //return;
+			if(touch->handled) continue; //already processed
+			touch->handled = TRUE;
+			x = touch->x;
+			yup = touch->y;
+			justpressed = touch->buttonState[LMB] && touch->mev == ButtonPress;
+			//if(justpressed)
+			//	ConsoleMessage("setup_picking justpressed mev %d x%d y%d\n",touch->mev,x,yup);
+			//ConsoleMessage("setup_picking ID %d navmode %d\n",ID,p->NavigationMode[ID]);
+			if(!p->NavigationMode[ID] || justpressed) {
+				ConsoleMessage("setup_picking x %d y %d ID %d but %d mev %d\n",touch->x,touch->y,touch->ID,touch->buttonState[LMB],touch->mev);
+				if(setup_pickside(x,yup)){
+					setup_projection();
+					setup_pickray(x,yup);
+					//setup_viewpoint();
+					set_viewmatrix();
+					render_hier(rootNode(),VF_Sensitive  | VF_Geom);
 
-				p->CursorOverSensitive[ID] = getRayHit();
-				//double-check navigation, which may have already started
-				if(p->CursorOverSensitive[ID] && p->NavigationMode[ID] ){
-					//if(!tg->Mainloop.AllowNavDrag) 
-					p->NavigationMode[ID] = FALSE; //rollback start of navigation
-					ConsoleMessage("setup_picking rolling back startofNavigation\n");
-				}
-				//if (p->CursorOverSensitive)
-				//	ConsoleMessage("setup_picking x %d y %d ID %d but %d mev %d\n", touch->x, touch->y, touch->ID, touch->buttonState[LMB], touch->mev);
+					p->CursorOverSensitive[ID] = getRayHit();
+					//double-check navigation, which may have already started
+					if(p->CursorOverSensitive[ID] && p->NavigationMode[ID] ){
+						//if(!tg->Mainloop.AllowNavDrag) 
+						p->NavigationMode[ID] = FALSE; //rollback start of navigation
+						ConsoleMessage("setup_picking rolling back startofNavigation\n");
+					}
+					//if (p->CursorOverSensitive)
+					//	ConsoleMessage("setup_picking x %d y %d ID %d but %d mev %d\n", touch->x, touch->y, touch->ID, touch->buttonState[LMB], touch->mev);
 
-				/* for nodes that use an "isOver" eventOut... */
-				if (p->lastOver[ID] != p->CursorOverSensitive[ID]) {
-					#ifdef VERBOSE
-						printf ("%lf over changed, p->lastOver %u p->cursorOverSensitive %u, p->butDown1 %d\n",
-							TickTime(), (unsigned int) p->lastOver[ID], (unsigned int) p->CursorOverSensitive[ID],
-							p->ButDown[p->currentCursor][1]);
-					#endif
-					ConsoleMessage("isOver changing\n");
-					//if (p->ButDown[p->currentCursor][1]==0) {
-					if (touch->buttonState[LMB]==0) {
+					/* for nodes that use an "isOver" eventOut... */
+					if (p->lastOver[ID] != p->CursorOverSensitive[ID]) {
+						#ifdef VERBOSE
+							printf ("%lf over changed, p->lastOver %u p->cursorOverSensitive %u, p->butDown1 %d\n",
+								TickTime(), (unsigned int) p->lastOver[ID], (unsigned int) p->CursorOverSensitive[ID],
+								p->ButDown[p->currentCursor][1]);
+						#endif
+						ConsoleMessage("isOver changing\n");
+						//if (p->ButDown[p->currentCursor][1]==0) {
+						if (touch->buttonState[LMB]==0) {
 
-						/* ok, when the user releases a button, cursorOverSensitive WILL BE NULL
-							until it gets sensed again. So, we use the lastOverButtonPressed flag to delay
-							sending this flag by one event loop loop. */
-						if (!p->lastOverButtonPressed[ID]) {
-							sendSensorEvents(p->lastOver[ID], overMark, 0, FALSE);
-							sendSensorEvents(p->CursorOverSensitive[ID], overMark, 0, TRUE);
-							p->lastOver[ID] = p->CursorOverSensitive[ID];
+							/* ok, when the user releases a button, cursorOverSensitive WILL BE NULL
+								until it gets sensed again. So, we use the lastOverButtonPressed flag to delay
+								sending this flag by one event loop loop. */
+							if (!p->lastOverButtonPressed[ID]) {
+								sendSensorEvents(p->lastOver[ID], overMark, 0, FALSE);
+								sendSensorEvents(p->CursorOverSensitive[ID], overMark, 0, TRUE);
+								p->lastOver[ID] = p->CursorOverSensitive[ID];
+							}
+							p->lastOverButtonPressed[ID] = FALSE;
+						} else {
+							p->lastOverButtonPressed[ID] = TRUE;
 						}
-						p->lastOverButtonPressed[ID] = FALSE;
-					} else {
-						p->lastOverButtonPressed[ID] = TRUE;
 					}
-					if(0) p->lastOver[ID] = p->CursorOverSensitive[ID]; //reduces echoing of changing isOver, but no improvement
-				}
-				#ifdef VERBOSE
-				if (p->CursorOverSensitive != NULL)
-					printf("COS %d (%s)\n", (unsigned int) p->CursorOverSensitive, stringNodeType(p->CursorOverSensitive->_nodeType));
-				#endif /* VERBOSE */
+					#ifdef VERBOSE
+					if (p->CursorOverSensitive != NULL)
+						printf("COS %d (%s)\n", (unsigned int) p->CursorOverSensitive, stringNodeType(p->CursorOverSensitive->_nodeType));
+					#endif /* VERBOSE */
 
-				/* did we have a click of button 1? */
-				//if (p->ButDown[p->currentCursor][1] && (p->lastPressedOver==NULL)) {
-				if (touch->buttonState[LMB] && (p->lastPressedOver[ID]==NULL)) {
-					ConsoleMessage("Not Navigation and 1 down\n"); 
-					/* send an event of ButtonPress and isOver=true */
-					p->lastPressedOver[ID] = p->CursorOverSensitive[ID];
-					sendSensorEvents(p->lastPressedOver[ID], ButtonPress, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
-				}
-				//if ((p->ButDown[p->currentCursor][1]==0) && p->lastPressedOver!=NULL) {
-				if ((touch->buttonState[LMB]==0) && p->lastPressedOver[ID]!=NULL) {
-					ConsoleMessage ("Not Navigation and 1 up\n");
-					/* send an event of ButtonRelease and isOver=true;
-						an isOver=false event will be sent below if required */
-					sendSensorEvents(p->lastPressedOver[ID], ButtonRelease, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
-					p->lastPressedOver[ID] = NULL;
-				}
-				if (p->lastMouseEvent[ID] == MotionNotify) {
-					ConsoleMessage ("Not Navigation and motion - going into sendSensorEvents\n");
-					/* TouchSensor hitPoint_changed needs to know if we are over a sensitive node or not */
-					sendSensorEvents(p->CursorOverSensitive[ID],MotionNotify, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
-
-					/* PlaneSensors, etc, take the last sensitive node pressed over, and a mouse movement */
-					sendSensorEvents(p->lastPressedOver[ID],MotionNotify, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
-					p->lastMouseEvent[ID] = 0 ;
-				}
-
-				/* do we need to re-define cursor style? */
-				/* do we need to send an isOver event? */
-				if (p->CursorOverSensitive[ID]!= NULL) {
-					setSensorCursor();
-
-					/* is this a new node that we are now over?
-						don't change the node pointer if we are clicked down */
-					if ((p->lastPressedOver[ID]==NULL) && (p->CursorOverSensitive[ID] != p->oldCOS[ID])) {
-						//sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
-						sendSensorEvents(p->oldCOS[ID],MapNotify,touch->buttonState[LMB], FALSE);
-						//sendSensorEvents(p->CursorOverSensitive,MapNotify,p->ButDown[p->currentCursor][1], TRUE);
-						sendSensorEvents(p->CursorOverSensitive[ID],MapNotify,touch->buttonState[LMB], TRUE);
-						 p->oldCOS[ID] =p->CursorOverSensitive[ID];
-						sendDescriptionToStatusBar(p->CursorOverSensitive[ID]);
-						ConsoleMessage("in oldCOS A\n");
+					/* did we have a click of button 1? */
+					//if (p->ButDown[p->currentCursor][1] && (p->lastPressedOver==NULL)) {
+					if (touch->buttonState[LMB] && (p->lastPressedOver[ID]==NULL)) {
+						ConsoleMessage("Not Navigation and 1 down\n"); 
+						/* send an event of ButtonPress and isOver=true */
+						p->lastPressedOver[ID] = p->CursorOverSensitive[ID];
+						sendSensorEvents(p->lastPressedOver[ID], ButtonPress, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
 					}
-				} else {
-					/* hold off on cursor change if dragging a sensor */
-					if (p->lastPressedOver[ID]!=NULL) {
+					//if ((p->ButDown[p->currentCursor][1]==0) && p->lastPressedOver!=NULL) {
+					if ((touch->buttonState[LMB]==0) && p->lastPressedOver[ID]!=NULL) {
+						ConsoleMessage ("Not Navigation and 1 up\n");
+						/* send an event of ButtonRelease and isOver=true;
+							an isOver=false event will be sent below if required */
+						sendSensorEvents(p->lastPressedOver[ID], ButtonRelease, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
+						p->lastPressedOver[ID] = NULL;
+					}
+					if (p->lastMouseEvent[ID] == MotionNotify) {
+						ConsoleMessage ("Not Navigation and motion - going into sendSensorEvents\n");
+						/* TouchSensor hitPoint_changed needs to know if we are over a sensitive node or not */
+						sendSensorEvents(p->CursorOverSensitive[ID],MotionNotify, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
+
+						/* PlaneSensors, etc, take the last sensitive node pressed over, and a mouse movement */
+						sendSensorEvents(p->lastPressedOver[ID],MotionNotify, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
+						p->lastMouseEvent[ID] = 0 ;
+					}
+
+					/* do we need to re-define cursor style? */
+					/* do we need to send an isOver event? */
+					if (p->CursorOverSensitive[ID]!= NULL) {
 						setSensorCursor();
+
+						/* is this a new node that we are now over?
+							don't change the node pointer if we are clicked down */
+						if ((p->lastPressedOver[ID]==NULL) && (p->CursorOverSensitive[ID] != p->oldCOS[ID])) {
+							//sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
+							sendSensorEvents(p->oldCOS[ID],MapNotify,touch->buttonState[LMB], FALSE);
+							//sendSensorEvents(p->CursorOverSensitive,MapNotify,p->ButDown[p->currentCursor][1], TRUE);
+							sendSensorEvents(p->CursorOverSensitive[ID],MapNotify,touch->buttonState[LMB], TRUE);
+							 p->oldCOS[ID] =p->CursorOverSensitive[ID];
+							sendDescriptionToStatusBar(p->CursorOverSensitive[ID]);
+							ConsoleMessage("in oldCOS A\n");
+						}
 					} else {
-						setArrowCursor();
+						/* hold off on cursor change if dragging a sensor */
+						if (p->lastPressedOver[ID]!=NULL) {
+							setSensorCursor();
+						} else {
+							setArrowCursor();
+						}
+						/* were we over a sensitive node? */
+						//if ((p->oldCOS!=NULL)  && (p->ButDown[p->currentCursor][1]==0)) {
+						if ((p->oldCOS[ID]!=NULL)  && (touch->buttonState[LMB]==0)) {
+							sendSensorEvents(p->oldCOS[ID],MapNotify, touch->buttonState[LMB], FALSE); //p->ButDown[p->currentCursor][1], FALSE);
+							/* remove any display on-screen */
+							sendDescriptionToStatusBar(NULL);
+							p->oldCOS[ID]=NULL;
+							ConsoleMessage("in oldCOS B\n");
+						}
 					}
-					/* were we over a sensitive node? */
-					//if ((p->oldCOS!=NULL)  && (p->ButDown[p->currentCursor][1]==0)) {
-					if ((p->oldCOS[ID]!=NULL)  && (touch->buttonState[LMB]==0)) {
-						sendSensorEvents(p->oldCOS[ID],MapNotify, touch->buttonState[LMB], FALSE); //p->ButDown[p->currentCursor][1], FALSE);
-						/* remove any display on-screen */
-						sendDescriptionToStatusBar(NULL);
-						p->oldCOS[ID]=NULL;
-						ConsoleMessage("in oldCOS B\n");
-					}
-				}
-			} //setup_pickside
+				} //setup_pickside
+			} //for ktouch loop
 		} //justpressed
 	} /* (!NavigationMode && HaveSensitive) */
 	else if(Viewer()->LookatMode){
@@ -4876,7 +4886,7 @@ static void get_hyperhit() {
 		if(0) printf("NEW ");
 	}
 	
-    if(0) printf ("get_hyper %f %f %f, %f %f %f, %f %f %f\n",
+    if(1) printf ("get_hyper %f %f %f, %f %f %f, %f %f %f\n",
         x1,y1,z1,x2,y2,z2,x3,y3,z3); 
 	
     /* and save this globally */
@@ -5601,6 +5611,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	touch->ID = ID; //will come in handy if we change from array[] to accordian list
 	touch->mev = mev;
 	touch->angle = 0.0f;
+	touch->handled = 0;
 	p->currentTouch = ID; // pick/dragsensors can use 0-19
 
 	if(ID == 0){
