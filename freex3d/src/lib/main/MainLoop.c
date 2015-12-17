@@ -2035,7 +2035,7 @@ void setup_stagesNORMAL(){
 		cstage->t1.contents = cmultitouch;
 		p->EMULATE_MULTITOUCH =	FALSE;
 		//IDEA: these prepared ways of using freewrl could be put into a switchcase contenttype called early ie from window
-		if(0){
+		if(1){
 			//normal: multitouch emulation, layer, scene, statusbarHud, 
 			if(1) cmultitouch->t1.contents = clayer;  //with multitouch (which can bypass itself based on options panel check)
 			else cstage->t1.contents = clayer;  //skip multitouch
@@ -4622,7 +4622,7 @@ rayhit()
 	Renderfuncs.hp.xyz - current closest hit, in bearing-local system
 	RenderFuncs.hitPointDist - current distance to closest hit from viewpoint 0,0,0 to geometry intersection (in viewpoint scale)
 	rayHit - snapshot of sensor's modelview matrix to go with closest-hit-so-far
-	rayHitHyper - "
+	//rayHitHyper - "
 render_node(): - a few variables acting as a stack by using automatic/local C variables in recursive calling
 	int srg - saves current renderstate.render_geom
 	int sch - saves current count of the hits from a single geometry node before trying to to intersect another geometry
@@ -4850,9 +4850,9 @@ static void get_hyperhit() {
 	*/
     double x1,y1,z1,x2,y2,z2,x3,y3,z3;
     GLDOUBLE projMatrix[16];
-	struct currayhit *rhh, *rh;
+	struct currayhit *rh;  //*rhh,
 	ttglobal tg = gglobal();
-	rhh = (struct currayhit *)tg->RenderFuncs.rayHitHyper;
+	//rhh = (struct currayhit *)tg->RenderFuncs.rayHit; //rayHitHyper;
 	rh = (struct currayhit *)tg->RenderFuncs.rayHit;
 
 	/*
@@ -4866,9 +4866,9 @@ static void get_hyperhit() {
 		//FLOPS 588 double: 3x glu_unproject 196
 		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
 		//FLOPs 588 double: 3 x glu_unproject 196
-		FW_GLU_UNPROJECT(r1.x, r1.y, r1.z, rhh->modelMatrix,
+		FW_GLU_UNPROJECT(r1.x, r1.y, r1.z, rh->modelMatrix, //rhh->modelMatrix,
 				projMatrix, viewport, &x1, &y1, &z1);
-		FW_GLU_UNPROJECT(r2.x, r2.y, r2.z, rhh->modelMatrix,
+		FW_GLU_UNPROJECT(r2.x, r2.y, r2.z, rh->modelMatrix, //rhh->modelMatrix,
 				projMatrix, viewport, &x2, &y2, &z2);
 		FW_GLU_UNPROJECT(hp->x, hp->y, hp->z, rh->modelMatrix,
 				projMatrix,viewport, &x3, &y3, &z3);
@@ -4885,12 +4885,12 @@ static void get_hyperhit() {
 
 		if(0){
 			//pickMatrix is inverted in setup_pickray
-			matmultiplyAFFINE(mvp,rhh->modelMatrix,pickMatrixi);
+			matmultiplyAFFINE(mvp,rh->modelMatrix,pickMatrixi); //rhh->modelMatrix
 			matinverseAFFINE(mvpi,mvp);
 		}else{
 			//pickMatrix is not inverted in setup_pickray
 			double mvi[16];
-			matinverseAFFINE(mvi,rhh->modelMatrix);
+			matinverseAFFINE(mvi,rh->modelMatrix); //rhh->modelMatrix
 			matmultiplyAFFINE(mvpi,pickMatrix,mvi);
 		}
 		//transform pickray space bearing { 0,0,1 and 0,0,0 } into sensor-local coordinates 

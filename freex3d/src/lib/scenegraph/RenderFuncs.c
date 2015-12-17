@@ -102,7 +102,7 @@ typedef struct pRenderFuncs{
 	struct X3D_Node *rootNode;//=NULL;	/* scene graph root node */
 	struct Vector *libraries; //vector of extern proto library scenes in X3D_Proto format that are parsed shallow (not instanced scenes) - the library protos will be in X3D_Proto->protoDeclares vector
 	struct X3D_Anchor *AnchorsAnchor;// = NULL;
-	struct currayhit rayHit,rayHitHyper;
+	struct currayhit rayHit; //,rayHitHyper;
 	struct trenderstate renderstate;
 	int renderLevel;
 
@@ -154,7 +154,7 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 		p->libraries=newVector(void3 *,1);
 		p->AnchorsAnchor = NULL;
 		t->rayHit = (void *)&p->rayHit;
-		t->rayHitHyper = (void *)&p->rayHitHyper;
+		//t->rayHitHyper = (void *)&p->rayHitHyper;
 		p->renderLevel = 0;
 		p->lastShader = -1;
 		p->currentLoop = 0;
@@ -940,7 +940,7 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 	}
 	tg->RenderFuncs.hitPointDist = rat;
 	p->rayHit=p->rayph;
-	p->rayHitHyper=p->rayph;
+	//p->rayHitHyper=p->rayph;
 #ifdef RENDERVERBOSE 
 //	printf ("Rayhit, hp.x y z: - %f %f %f rat %f hitPointDist %f\n",hp.x,hp.y,hp.z, rat, tg->RenderFuncs.hitPointDist);
 #endif
