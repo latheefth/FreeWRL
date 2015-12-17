@@ -875,6 +875,46 @@ void3 *librarySearch(char *absoluteUniUrlNoPound){
 
 /*******************************************************************************/
 
+
+
+void prepare_model_view_pickmatrix0(GLDOUBLE *modelMatrix, GLDOUBLE *mvp){
+	//prepares a matrix that will transform a point in geometry-local coordintes
+	//into eye/pickray/bearing coordinates ie along the pickray 0,0,1
+	GLDOUBLE mvi[16];
+	GLDOUBLE *pickMatrixi;
+	ttglobal tg = gglobal();
+
+	pickMatrixi = getPickrayMatrix(1);
+
+	//pickMatrix is inverted in setup_pickray
+	matmultiplyAFFINE(mvp,modelMatrix,pickMatrixi);
+
+}
+void prepare_model_view_pickmatrix_inverse0(GLDOUBLE *modelMatrix, GLDOUBLE *mvpi){
+	//prepares a matrix that will transform a point in eye/pickray/bearing coords ie 0,0,1
+	//into geometry-local coordinates, given the modelMatrix to transform
+	// eye/pickray -> geometry-local
+	GLDOUBLE mvi[16];
+	GLDOUBLE *pickMatrix;
+	ttglobal tg = gglobal();
+
+	pickMatrix = getPickrayMatrix(0);
+
+	//pickMatrix is not inverted in setup_pickray
+	matinverseAFFINE(mvi,modelMatrix);
+	matmultiplyAFFINE(mvpi,pickMatrix,mvi);
+}
+void prepare_model_view_pickmatrix_inverse(GLDOUBLE *mvpi){
+	//prepares a matrix to transform points from eye/pickray/bearing 
+	//to gemoetry-local, using the modelview matrix of the pickray-scene intersection point
+	//found closest to the viewer on the last render_hier(VF_SENSITIVE) pass
+	struct currayhit * rh;
+	ttglobal tg = gglobal();
+
+	rh = (struct currayhit *)tg->RenderFuncs.rayHit;
+	prepare_model_view_pickmatrix_inverse0(rh->modelMatrix, mvpi);
+}
+
 /* rayhit
 	For PointingDeviceSensor component work, called from virt->rendray_<Shape> on VF_Sensitive pass
 	- tests if this ray-geometry intersection is closer to the viewpoint than the closest one so far
@@ -916,68 +956,18 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 	}
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix); //snapshot of geometry's modelview matrix
 	{
-		GLDOUBLE pmi[16];
-		GLDOUBLE *pickMatrix = getPickrayMatrix(0);
-		GLDOUBLE *pickMatrixi = getPickrayMatrix(1);
+		GLDOUBLE mvp[16];
 		struct point_XYZ tp; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 		tp.x = cx; tp.y = cy; tp.z = cz;
-		transform(&tp, &tp, modelMatrix);
-		if(1){
-			//pickMatrix is inverted in setup_pickray
-			transform(&tp,&tp,pickMatrixi);
-		}else{
-			//pickMatrix is not inverted in setup_pickray
-			matinverseAFFINE(pmi,pickMatrix);
-			transform(&tp,&tp,pmi);
-		}
-		//tg->RenderFuncs.hp = tp; //struct value copy
+		prepare_model_view_pickmatrix0(modelMatrix,mvp);
+		transform(&tp,&tp,mvp);
 		p->hp = tp;
 	}
 	tg->RenderFuncs.hitPointDist = rat;
 	p->rayHit=p->rayph;
-	//p->rayHitHyper=p->rayph;
 #ifdef RENDERVERBOSE 
 //	printf ("Rayhit, hp.x y z: - %f %f %f rat %f hitPointDist %f\n",hp.x,hp.y,hp.z, rat, tg->RenderFuncs.hitPointDist);
 #endif
-}
-
-
-void prepare_model_view_pickmatrix0(GLDOUBLE *modelMatrix, GLDOUBLE *mvp){
-	//prepares a matrix that will transform a point in geometry-local coordintes
-	//into eye/pickray/bearing coordinates ie along the pickray 0,0,1
-	GLDOUBLE mvi[16];
-	GLDOUBLE *pickMatrixi;
-	ttglobal tg = gglobal();
-
-	pickMatrixi = getPickrayMatrix(1);
-
-	//pickMatrix is inverted in setup_pickray
-	matmultiplyAFFINE(mvp,modelMatrix,pickMatrixi);
-
-}
-void prepare_model_view_pickmatrix_inverse0(GLDOUBLE *modelMatrix, GLDOUBLE *mvpi){
-	//prepares a matrix that will transform a point in eye/pickray/bearing coords ie 0,0,1
-	//into geometry-local coordinates, given the modelMatrix to transform
-	// eye/pickray -> geometry-local
-	GLDOUBLE mvi[16];
-	GLDOUBLE *pickMatrix;
-	ttglobal tg = gglobal();
-
-	pickMatrix = getPickrayMatrix(0);
-
-	//pickMatrix is not inverted in setup_pickray
-	matinverseAFFINE(mvi,modelMatrix);
-	matmultiplyAFFINE(mvpi,pickMatrix,mvi);
-}
-void prepare_model_view_pickmatrix_inverse(GLDOUBLE *mvpi){
-	//prepares a matrix to transform points from eye/pickray/bearing 
-	//to gemoetry-local, using the modelview matrix of the pickray-scene intersection point
-	//found closest to the viewer on the last render_hier(VF_SENSITIVE) pass
-	struct currayhit * rh;
-	ttglobal tg = gglobal();
-
-	rh = (struct currayhit *)tg->RenderFuncs.rayHit;
-	prepare_model_view_pickmatrix_inverse0(rh->modelMatrix, mvpi);
 }
 
 /* Call this when modelview and projection modified
