@@ -904,16 +904,7 @@ void prepare_model_view_pickmatrix_inverse0(GLDOUBLE *modelMatrix, GLDOUBLE *mvp
 	matinverseAFFINE(mvi,modelMatrix);
 	matmultiplyAFFINE(mvpi,pickMatrix,mvi);
 }
-void prepare_model_view_pickmatrix_inverse(GLDOUBLE *mvpi){
-	//prepares a matrix to transform points from eye/pickray/bearing 
-	//to gemoetry-local, using the modelview matrix of the pickray-scene intersection point
-	//found closest to the viewer on the last render_hier(VF_SENSITIVE) pass
-	struct currayhit * rh;
-	ttglobal tg = gglobal();
 
-	rh = (struct currayhit *)tg->RenderFuncs.rayHit;
-	prepare_model_view_pickmatrix_inverse0(rh->modelMatrix, mvpi);
-}
 
 /* rayhit
 	For PointingDeviceSensor component work, called from virt->rendray_<Shape> on VF_Sensitive pass
@@ -1062,79 +1053,6 @@ int pickrayHitsMBB(struct X3D_Node *node){
 	//retval = 1;
 
 	return retval;
-}
-
-
-
-/*	get_hyperhit()
-	If we have successfully picked a DragSensor sensitive node -intersection recorded in rayHit, and 
-	intersection closest to viewpoint transformed to geometry-local, and sensornode * returned from getRayHit-
-	and we are on mousedown	or mousemove(drag) events on a dragsensor node:
-   - transform the bearing/pick-ray from bearing-local^  to sensor-local coordinates
-   - in a way that is generic for all DragSensor nodes in their do_<Drag>Sensor function
-   - so they can intersect the bearing/pick-ray with their sensor geometry (Cylinder,Sphere,Plane[,Line])
-   - and emit events in sensor-local coordinates
-   - ^bearing-local: currently == pick-viewport-local 
-   -- unproject is used because to go from geometry-local to bearing-local, because
-		it's convenient, and includes the pick-viewport in the transform - see setup_pickray(pick=TRUE,,) for details
-	  But it may be overkill if bearing-local is made to == world, for compatibility with 3D pointing devices
-*/
-void get_hyperhit() {
-	/* 
-		transforms the last known pickray intersection, and pickray/bearing into sensor-local coordinates of the 
-		intersected geometry, using the modelview matrix snapshotted/frozen at the time of the intersection.
-		
-		(Dec 17, 2015: this is wrong, the view part of modelview needs to be refreshed. 
-		It's just the scene-root_to_sensor (model part of modelview) that should be frozen.
-		For example, over a dragsensor (ie PlaneSensor) press the mouse down like you are going to drag it with the mouse.
-		Then press the keyboard arrow keys to move the avatar/viewer/eye/viewpoint. In vivaty the dragsensor drags even
-		though the mouse hasn't moved. In freewrl the dragsensor doesn't do anything because we are using
-		a stale view matrix, and it appears to setup_picking etc that nothing changed/dragged.)
-
-		variables:
-		struct point_XYZ r1 = {0,0,-1},r2 = {0,0,0},r3 = {0,1,0}; 
-			pick-viewport-local axes: r1- along pick-proj axis, r2 viewpoint, r3 y-up axis in case needed
-		hyp_save_posn, t_r2 - A - (viewpoint 0,0,0 transformed by modelviewMatrix.inverse() to geometry-local space)
-		hyp_save_norm, t_r1 - B - bearing point (viewport 0,0,-1 used with pick-proj bearing-specific projection matrix)
-			- norm is not a direction vector, its a point. To get a direction vector: v = (B - A) = (norm - posn)
-		ray_save_posn - intersection with scene geometry, transformed into in sensor-local coordinates 
-			- used in do_CyclinderSensor, do_SphereSensor for computing a radius  on mouse-down
-		t_r3 - viewport y-up in case needed
-	*/
-    double x1,y1,z1,x2,y2,z2,x3,y3,z3;
-	GLDOUBLE mvpi[16];
-	struct point_XYZ r11 = {0.0,0.0,1.0}; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
-	struct point_XYZ tp;
-
-	struct currayhit *rh;  //*rhh,
-	ttglobal tg = gglobal();
-	rh = (struct currayhit *)tg->RenderFuncs.rayHit;
-
-	//transform last bearing/pickray-local intersection to sensor-local space 
-	// using current?frozen? modelview and current pickmatrix
-	// so sensor node can emit events from its do_<sensor node> function in sensor-local coordinates
-
-	prepare_model_view_pickmatrix_inverse(mvpi);
-	//transform pickray from eye/pickray/bearing to geometry/sensor-local
-	transform(&tp,&r11,mvpi);
-	x1 = tp.x; y1 = tp.y; z1 = tp.z;
-	transform(&tp,&r2,mvpi);
-	x2 = tp.x; y2 = tp.y; z2 = tp.z;
-	//transform the last known pickray intersection from eye/pickray/bearling to geometry/sensor-local
-	transform(&tp,tg->RenderFuncs.hp,mvpi);
-	x3 = tp.x; y3 = tp.y; z3 = tp.z;
-	if(0) printf("NEW ");
-
-	
-    if(0) printf ("get_hyper %f %f %f, %f %f %f, %f %f %f\n",
-        x1,y1,z1,x2,y2,z2,x3,y3,z3); 
-	
-    /* and save this globally */
-	//last pickray/bearing ( (0,0,0) (0,0,1)) transformed from eye/pickray/bearing to geometry/sensor local coordinates:
-    tg->RenderFuncs.hyp_save_posn[0] = (float) x1; tg->RenderFuncs.hyp_save_posn[1] = (float) y1; tg->RenderFuncs.hyp_save_posn[2] = (float) z1;
-    tg->RenderFuncs.hyp_save_norm[0] = (float) x2; tg->RenderFuncs.hyp_save_norm[1] = (float) y2; tg->RenderFuncs.hyp_save_norm[2] = (float) z2;
-	//last known pickray intersection in geometry/sensor-local coords, ready for sensor emitting
-    tg->RenderFuncs.ray_save_posn[0] = (float) x3; tg->RenderFuncs.ray_save_posn[1] = (float) y3; tg->RenderFuncs.ray_save_posn[2] = (float) z3;
 }
 
 
