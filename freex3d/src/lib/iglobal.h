@@ -140,6 +140,7 @@ typedef struct iiglobal //InstanceGlobal
 		double BrowserSpeed;// = 0.0;      /* calculated movement speed    */
 		const char *BrowserDescription;
 		int HaveSensitive;// = FALSE;
+		int AllowNavDrag;
 		int trisThisLoop;
 		int clipPlane;// = 0;
 		int SHIFT; //state of shift key up = 0, down = 1
@@ -302,16 +303,17 @@ iOLDCODE	}Component_Networking;
 		double hitPointDist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
 		/* used to save rayhit and hyperhit for later use by C functions */
 		//struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
-		float hyp_save_posn[3], hyp_save_norm[3], ray_save_posn[3];
+		float hyp_save_posn[3];
+		float hyp_save_norm[3];
+		float ray_save_posn[3]; //getRayHit() > last intersection of pickray/bearing with geometry, transformed into the coordinates of the geometry
 		void *hypersensitive;//= 0; 
 		int hyperhit;// = 0;
 		//struct point_XYZ hp;
 		void *hp;
 		void *rayHit;
-		void *rayHitHyper;
+		//void *rayHitHyper;
 		//struct point_XYZ t_r1,t_r2,t_r3; /* transformed ray */
 		//void *t_r123; /* transformed ray */
-		int usingAffinePickmatrix; /*instead of GLU_UNPROJECT feature-AFFINE_GLU_UNPROJECT*/
 		int	lightingOn;		/* do we need to restore lighting in Shape? */
 		int	have_transparency;//=FALSE;/* did any Shape have transparent material? */
 		/* material node usage depends on texture depth; if rgb (depth1) we blend color field
