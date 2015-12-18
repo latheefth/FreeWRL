@@ -1489,7 +1489,7 @@ typedef struct pMainloop{
 	//int ButDown[20][8];// = {{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE}};
 
 	//int currentCursor;// = 0;
-	int lastMouseEvent[20];// = 0/*MapNotify*/;         /*  last event a mouse did; care about Button and Motion events only.*/
+	//int lastMouseEvent[20];// = 0/*MapNotify*/;         /*  last event a mouse did; care about Button and Motion events only.*/
 	struct X3D_Node* lastPressedOver[20];// = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
 	struct X3D_Node* lastOver[20];// = NULL;       /*  the sensitive node that the mouse was last moused over.*/
 	int lastOverButtonPressed[20];// = FALSE;      /*  catch the 1 to 0 transition for button presses and isOver in TouchSensors */
@@ -1600,7 +1600,7 @@ void Mainloop_init(struct tMainloop *t){
 
 		//p->currentCursor = 0;
 		//p->lastMouseEvent = 0/*MapNotify*/;         /*  last event a mouse did; care about Button and Motion events only.*/
-		memset(p->lastMouseEvent,0,20*sizeof(int));
+		//memset(p->lastMouseEvent,0,20*sizeof(int));
 		//p->lastPressedOver = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
 		memset(p->lastPressedOver,0,20*sizeof(void*));
 		//p->lastOver = NULL;       /*  the sensitive node that the mouse was last moused over.*/
@@ -2800,7 +2800,7 @@ void setup_picking(){
 			if(ID < 0) continue; //return;
 	//	if(ID == 0) continue; //for testing e3dmouse only
 			if(touch->windex != windex) continue; //return;
-			if(touch->handled) continue; //already processed
+	//		if(touch->handled) continue; //already processed, for testing only 
 			touch->handled = TRUE;
 			x = touch->x;
 			yup = touch->y;
@@ -2809,7 +2809,7 @@ void setup_picking(){
 			//	ConsoleMessage("setup_picking justpressed mev %d x%d y%d\n",touch->mev,x,yup);
 			//ConsoleMessage("setup_picking ID %d navmode %d\n",ID,p->NavigationMode[ID]);
 			if(!p->NavigationMode[ID] || justpressed) {
-				ConsoleMessage("setup_picking x %d y %d ID %d but %d mev %d\n",touch->x,touch->y,touch->ID,touch->buttonState[LMB],touch->mev);
+				//ConsoleMessage("setup_picking x %d y %d ID %d but %d mev %d\n",touch->x,touch->y,touch->ID,touch->buttonState[LMB],touch->mev);
 				if(setup_pickside(x,yup)){
 					setup_projection();
 					setup_pickray(x,yup);
@@ -2834,7 +2834,7 @@ void setup_picking(){
 								TickTime(), (unsigned int) p->lastOver[ID], (unsigned int) p->CursorOverSensitive[ID],
 								p->ButDown[p->currentCursor][1]);
 						#endif
-						ConsoleMessage("isOver changing\n");
+						//ConsoleMessage("isOver changing\n");
 						//if (p->ButDown[p->currentCursor][1]==0) {
 						if (touch->buttonState[LMB]==0) {
 
@@ -2859,27 +2859,32 @@ void setup_picking(){
 					/* did we have a click of button 1? */
 					//if (p->ButDown[p->currentCursor][1] && (p->lastPressedOver==NULL)) {
 					if (touch->buttonState[LMB] && (p->lastPressedOver[ID]==NULL)) {
-						ConsoleMessage("Not Navigation and 1 down\n"); 
+						//ConsoleMessage("Not Navigation and 1 down\n"); 
 						/* send an event of ButtonPress and isOver=true */
 						p->lastPressedOver[ID] = p->CursorOverSensitive[ID];
 						sendSensorEvents(p->lastPressedOver[ID], ButtonPress, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
 					}
 					//if ((p->ButDown[p->currentCursor][1]==0) && p->lastPressedOver!=NULL) {
 					if ((touch->buttonState[LMB]==0) && p->lastPressedOver[ID]!=NULL) {
-						ConsoleMessage ("Not Navigation and 1 up\n");
+						//ConsoleMessage ("Not Navigation and 1 up\n");
 						/* send an event of ButtonRelease and isOver=true;
 							an isOver=false event will be sent below if required */
 						sendSensorEvents(p->lastPressedOver[ID], ButtonRelease, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
 						p->lastPressedOver[ID] = NULL;
 					}
-					if (p->lastMouseEvent[ID] == MotionNotify) {
-						ConsoleMessage ("Not Navigation and motion - going into sendSensorEvents\n");
+					if (TRUE) { // || p->lastMouseEvent[ID] == MotionNotify) {
+						//ConsoleMessage ("Not Navigation and motion - going into sendSensorEvents\n");
+						//Dec 18, 2015: we should _always_ come through here even when no mouse motion or events
+						//  because if mouse is (already) down on a dragsensor (planesensor) and something animates
+						//  the viewpoint -keyboard navigation, script, 3D mouse, HMD (head mounted display) then
+						//  we won't have a mouse event but the view matrix will change, causing the pickray
+						//  to move with respect to the dragsensor - in which case the sensor should emit events.
 						/* TouchSensor hitPoint_changed needs to know if we are over a sensitive node or not */
 						sendSensorEvents(p->CursorOverSensitive[ID],MotionNotify, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
 
 						/* PlaneSensors, etc, take the last sensitive node pressed over, and a mouse movement */
 						sendSensorEvents(p->lastPressedOver[ID],MotionNotify, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
-						p->lastMouseEvent[ID] = 0 ;
+						//p->lastMouseEvent[ID] = 0 ;
 					}
 
 					/* do we need to re-define cursor style? */
@@ -2896,7 +2901,7 @@ void setup_picking(){
 							sendSensorEvents(p->CursorOverSensitive[ID],MapNotify,touch->buttonState[LMB], TRUE);
 							 p->oldCOS[ID] =p->CursorOverSensitive[ID];
 							sendDescriptionToStatusBar(p->CursorOverSensitive[ID]);
-							ConsoleMessage("in oldCOS A\n");
+							//ConsoleMessage("in oldCOS A\n");
 						}
 					} else {
 						/* hold off on cursor change if dragging a sensor */
@@ -2912,7 +2917,7 @@ void setup_picking(){
 							/* remove any display on-screen */
 							sendDescriptionToStatusBar(NULL);
 							p->oldCOS[ID]=NULL;
-							ConsoleMessage("in oldCOS B\n");
+							//ConsoleMessage("in oldCOS B\n");
 						}
 					}
 				} //setup_pickside
@@ -3126,7 +3131,7 @@ void handle_Xevents(XEvent event) {
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
-	p->lastMouseEvent=event.type;
+	//p->lastMouseEvent=event.type;
 
 #ifdef VERBOSE
 	switch (event.type) {
@@ -4327,6 +4332,8 @@ struct X3D_Node* getRayHit() {
 	//  1. get closest geometry intersection along pickray/bearing in sensor coords
 	//  2. transform the point from bearing/pickray space (near viewer mousexy) to sensor-local and save in ray_save_posn
 	//  2. see if its a sensitive node, if so return node*
+	//  4. if sensitive, split the modelview matrix into view and model, 
+	//		so later in get_hyperhit a more recent view matrix can be used with the frozen model matrix
 	// variables of note: 
 	//	ray_save_posn - intersection with scene geometry, in sensor-local coordinates 
 	//	- used in do_CyclinderSensor, do_SphereSensor for computing a radius  on mouse-down
@@ -4334,10 +4341,12 @@ struct X3D_Node* getRayHit() {
 
 	double x,y,z;
 	int i;
+	struct X3D_Node *retnode;
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 
+	retnode = NULL;
 	if(tg->RenderFuncs.hitPointDist >= 0) {
 		GLDOUBLE mvpi[16];
 		struct point_XYZ tp; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
@@ -4356,26 +4365,35 @@ struct X3D_Node* getRayHit() {
 			if it exists */
 
 		/* is the sensitive node not NULL? */
-		if (rh->hitNode == NULL) return NULL;
-
-
-		/*
-		printf ("rayhit, we are over a node, have node %p (%s), posn %lf %lf %lf",
-			rh->hitNode, stringNodeType(rh->hitNode->_nodeType), x, y, z);
-		printf(" dist %f \n", rh->hitNode->_dist);
-		*/
-
-
-		for (i=0; i<p->num_SensorEvents; i++) {
+		if (rh->hitNode != NULL) 
+		{
+			/*
+			printf ("rayhit, we are over a node, have node %p (%s), posn %lf %lf %lf",
+				rh->hitNode, stringNodeType(rh->hitNode->_nodeType), x, y, z);
+			printf(" dist %f \n", rh->hitNode->_dist);
+			*/
+			for (i=0; i<p->num_SensorEvents; i++) {
 				if (p->SensorEvents[i].fromnode == rh->hitNode) {
-						/* printf ("found this node to be sensitive - returning %u\n",rayHit.hitNode); */
-						return ((struct X3D_Node*) rh->hitNode);
+					/* printf ("found this node to be sensitive - returning %u\n",rayHit.hitNode); */
+					retnode = ((struct X3D_Node*) rh->hitNode);
 				}
+			}
 		}
 	}
+	if(retnode != NULL){
+		//split modelview matrix into model + view for re-concatonation in getHyperHit
+		//assume we are at scene root, and have just done set_viewmatrix() or the equivalent render_hier(VF_VIEWPOINT) 
+		GLDOUBLE viewmatrix[16], viewinverse[16];
+		struct currayhit *rh;
+		rh = (struct currayhit *)tg->RenderFuncs.rayHit;
 
-	/* no rayhit, or, node was "close" (scenegraph-wise) to a sensitive node, but is not one itself */
-	return(NULL);
+		FW_GL_MATRIX_MODE(GL_MODELVIEW);
+		fw_glGetDoublev(GL_MODELVIEW_MATRIX, viewmatrix);
+		matinverseAFFINE(viewinverse,viewmatrix);
+		matmultiplyAFFINE(rh->justModel,rh->modelMatrix,viewinverse);
+
+	}
+	return retnode;
 }
 
 
@@ -4821,33 +4839,33 @@ void prepare_model_view_pickmatrix_inverse(GLDOUBLE *mvpi){
 	/*prepares a matrix to transform points from eye/pickray/bearing 
 		to gemoetry-local, using the modelview matrix of the pickray-scene intersection point
 		found closest to the viewer on the last render_hier(VF_SENSITIVE) pass
-		using the modelview matrix snapshotted/frozen at the time of the intersection.
-		
-		(Dec 17, 2015: this is wrong, the view part of modelview needs to be refreshed. 
-		It's just the scene-root_to_sensor (model part of modelview) that should be frozen.
-		For example, over a dragsensor (ie PlaneSensor) press the mouse down like you are going to drag it with the mouse.
-		Then press the keyboard arrow keys to move the avatar/viewer/eye/viewpoint. In vivaty the dragsensor drags even
-		though the mouse hasn't moved. In freewrl the dragsensor doesn't do anything because we are using
-		a stale view matrix, and it appears to setup_picking etc that nothing changed/dragged.)
+		using the model matrix snapshotted/frozen at the time of the intersection, and the current view matrix
 	*/
 	struct currayhit * rh;
+	GLDOUBLE *modelview;
+	GLDOUBLE viewmatrix[16], mv[16];
 	ttglobal tg = gglobal();
 
 	rh = (struct currayhit *)tg->RenderFuncs.rayHit;
-	prepare_model_view_pickmatrix_inverse0(rh->modelMatrix, mvpi);
+	modelview = rh->modelMatrix;
+
+	FW_GL_MATRIX_MODE(GL_MODELVIEW);
+	fw_glGetDoublev(GL_MODELVIEW_MATRIX, viewmatrix);
+	matmultiplyAFFINE(mv,rh->justModel,viewmatrix);
+	modelview = mv;
+
+	prepare_model_view_pickmatrix_inverse0(modelview, mvpi);
 }
 
 /*	get_hyperhit()
 	If we have successfully picked a DragSensor sensitive node -intersection recorded in rayHit, and 
-	intersection closest to viewpoint transformed to geometry-local, and sensornode * returned from getRayHit-
+	intersection closest to viewpoint transformed to geometry-local, and sensornode * returned from getRayHit()-
 	and we are on mousedown	or mousemove(drag) events on a dragsensor node:
    - transform the bearing/pick-ray from bearing-local^  to sensor-local coordinates
    - in a way that is generic for all DragSensor nodes in their do_<Drag>Sensor function
    - so they can intersect the bearing/pick-ray with their sensor geometry (Cylinder,Sphere,Plane[,Line])
    - and emit events in sensor-local coordinates
    - ^bearing-local: currently == pick-viewport-local 
-   -- unproject is used because to go from geometry-local to bearing-local, because
-		it's convenient, and includes the pick-viewport in the transform - see setup_pickray(pick=TRUE,,) for details
 	  But it may be overkill if bearing-local is made to == world, for compatibility with 3D pointing devices
 */
 void get_hyperhit() {
@@ -4887,7 +4905,8 @@ void get_hyperhit() {
 	//transform the last known pickray intersection from eye/pickray/bearling to geometry/sensor-local
 	transform(&tp,tg->RenderFuncs.hp,mvpi);
 	x3 = tp.x; y3 = tp.y; z3 = tp.z;
-	if(0) printf("NEW ");
+	if(0) 
+		printf("get_hyperhit\n");
 
 	
     if(0) printf ("get_hyper %f %f %f, %f %f %f, %f %f %f\n",
@@ -5446,11 +5465,11 @@ int fwl_draw()
 //#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 
 
-void fwl_setLastMouseEvent(int etype) {
-	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
-	//printf ("fwl_setLastMouseEvent called\n");
-        p->lastMouseEvent[0] = etype;
-}
+//void fwl_setLastMouseEvent(int etype) {
+//	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+//	//printf ("fwl_setLastMouseEvent called\n");
+//        p->lastMouseEvent[0] = etype;
+//}
 
 void fwl_initialize_parser()
 {
@@ -5586,7 +5605,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 
 	//ID = 0; //good way to enforce single-touch for testing
 	/* save this one... This allows Sensors to get mouse movements if required. */
-	p->lastMouseEvent[ID] = mev;
+	//p->lastMouseEvent[ID] = mev;
 
 	//winRT but =1 when mev = motion, others but = 0 when mev = motion. 
 	//make winRT the same as the others:
@@ -5630,8 +5649,8 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 			if (((p->CursorOverSensitive[ID] ==NULL) && (p->lastPressedOver[ID] ==NULL)) || Viewer()->LookatMode || tg->Mainloop.SHIFT ) { //|| tg->Mainloop.AllowNavDrag
 				p->NavigationMode[ID] = touch->buttonState[LMB] || touch->buttonState[RMB];
 				//ConsoleMessage("pNM %d \n", p->NavigationMode);
-				if(mev == ButtonPress)   ConsoleMessage("starting navigation drag\n");
-				if(mev == ButtonRelease) ConsoleMessage("ending   navigation drag\n");
+				//if(mev == ButtonPress)   ConsoleMessage("starting navigation drag\n");
+				//if(mev == ButtonRelease) ConsoleMessage("ending   navigation drag\n");
 				handle(mev, ibutton, fx, fy);
 			}
 		}
@@ -5642,7 +5661,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 				count = 0;
 				while ((count < 4) && (!touch->buttonState[count])) count++;
 				if (count == 4) return; /* no buttons down???*/
-				ConsoleMessage("nav dragging\n");
+				//ConsoleMessage("nav dragging\n");
 				handle (mev, (unsigned) count, fx, fy); 
 			}
 		}
@@ -6027,7 +6046,7 @@ void resetSensorEvents(void) {
 		p->CursorOverSensitive[ID]=NULL;
 
 		p->oldCOS[ID]=NULL;
-		p->lastMouseEvent[ID] = 0;
+		//p->lastMouseEvent[ID] = 0;
 		p->lastPressedOver[ID] = NULL;
 		p->lastOver[ID] = NULL;
 		FREE_IF_NZ(p->SensorEvents);
