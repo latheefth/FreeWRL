@@ -3372,7 +3372,7 @@ static void render_pre() {
 }
 ivec2 ivec2_init(int x, int y);
 int pointinsideviewport(ivec4 vp, ivec2 pt);
-static int setup_pickside0(int x, int y, int *iside, ivec4 *vportleft, ivec4 *vportright){
+int setup_pickside0(int x, int y, int *iside, ivec4 *vportleft, ivec4 *vportright){
 	/* Oct 2015 idea: change which stereo side the pickray is working on, 
 	   based on which stereo side the mouse is in
 	   - only makes a difference for updown and sidebyside
