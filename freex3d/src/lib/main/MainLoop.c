@@ -211,10 +211,10 @@ ivec4 viewportFraction(ivec4 vp, float *fraction){
 	ivec4 res;
 	int L,R,B,T; //left,right,bottom,top
 
-	L = vp.X + vp.W*fraction[0];
-	R = vp.X + vp.W*fraction[1];
-	B = vp.Y + vp.H*fraction[2];
-	T = vp.Y + vp.H*fraction[3];
+	L = (int)(vp.X + vp.W*fraction[0]);
+	R = (int)(vp.X + vp.W*fraction[1]);
+	B = (int)(vp.Y + vp.H*fraction[2]);
+	T = (int)(vp.Y + vp.H*fraction[3]);
 
 	res.W = R - L;
 	res.H = T - B;
@@ -411,7 +411,7 @@ void setup_picking();
 void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x, int y, int ID, int windex);
 int scene_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
 	int iret;
-	contenttype *c, *self;
+	contenttype *self;
 
 	self = (contenttype *)_self;
 	iret = -1;
@@ -547,14 +547,14 @@ void multitouch_render(void *_self){
 }
 int multitouch_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
 	//layer pick works backward through layers
-	int iret, n,i;
+	int iret;
 	contenttype *c;
 	contenttype_multitouch *self;
 
 	self = (contenttype_multitouch *)_self;
 	iret = -1;
 	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
-		int IDD, ihandle;
+		int ihandle;
 		//record for rendering
 		ihandle = 0;
 		if(fwl_get_emulate_multitouch()){
@@ -715,7 +715,7 @@ typedef struct contenttype_quadrant {
 
 void quadrant_render(void *_self){
 	//
-	int i,j,k;
+	int i;
 	double rxyz[3];
 	contenttype *c;
 	contenttype_quadrant *self;
@@ -766,7 +766,7 @@ void quadrant_render(void *_self){
 int quadrant_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
 	//
 	int iret;
-	int i,j,k;
+	int i;
 	contenttype *c;
 	contenttype_quadrant *self;
 
@@ -1066,12 +1066,11 @@ contenttype *new_contenttype_texturegrid(int nx, int ny){
 #include "../scenegraph/Component_Shape.h"
 void render_texturegrid(void *_self){
 	contenttype_texturegrid *self;
-	int i,j,useMip,haveTexture;
+	int i,useMip,haveTexture;
 	float aspect, scale, xshift, yshift;
 	GLint  positionLoc, texCoordLoc, textureLoc;
     GLint textureMatrix;
 	GLuint textureID;
-	float fmat[16];
 	s_shader_capabilities_t *scap;
 	self = (contenttype_texturegrid *)_self;
 
@@ -1336,12 +1335,11 @@ static GLfloat matrix90[] = {
 unsigned int getCircleCursorTextureID();
 void render_orientation(void *_self){
 	contenttype_orientation *self;
-	int i,j,useMip,haveTexture;
-	float aspect, scale, xshift, yshift;
+	int haveTexture;
 	GLint  positionLoc, texCoordLoc, textureLoc;
     GLint textureMatrix;
 	GLuint textureID;
-	float fmat[16], *orientationMatrix;
+	float *orientationMatrix;
 	s_shader_capabilities_t *scap;
 	self = (contenttype_orientation *)_self;
 
@@ -1726,7 +1724,6 @@ struct Touch *currentTouch(){
 //true statics:
 int isBrowserPlugin = FALSE; //I can't think of a scenario where sharing this across instances would be a problem
 void fwl_set_emulate_multitouch(int ion){
-	int i;
 	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 	p->EMULATE_MULTITOUCH = ion;
 	//clear up for a fresh start when toggling emulation on/off
@@ -2175,7 +2172,7 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 //<<<<<=====NEW=====
 int fwl_handle_mouse_multi_yup(int mev, int butnum, int mouseX, int yup, int ID, int windex){
 	//this is the pick() for the twindow level
-	int cursorStyle, iret;
+	int cursorStyle;
 	Stack *vportstack;
 	targetwindow *t;
 	stage *s;
@@ -2203,9 +2200,8 @@ void emulate_multitouch(int mev, unsigned int button, int x, int ydown, int wind
 	   GRAB/MOVE a touch with LMB down and drag
 	   ID=0 reserved for 'normal' cursor
 	*/
-    int i,ifound,ID,screenWidth,screenHeight,y;
+    int i,ifound,ID,y;
 	struct Touch *touch;
-	float fx, fy;
 	static int buttons[4] = {0,0,0,0};
 	static int idone = 0;
 	ppMainloop p;
@@ -2275,7 +2271,6 @@ void emulate_multitouch(int mev, unsigned int button, int x, int ydown, int wind
 	}
 }
 void render_multitouch(){
-	struct Touch *touch;
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
@@ -2294,7 +2289,6 @@ void render_multitouch(){
     }
 }
 void render_multitouch2(struct Touch *touchlist, int ntouch){
-	struct Touch *touch;
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
@@ -2342,7 +2336,6 @@ int emulate_multitouch2(struct Touch *touchlist, int ntouch, int *IDD, int *last
 	*/
     int i,ihandle;
 	struct Touch *touch;
-	float fx, fy;
 	static int idone = 0;
 	ppMainloop p;
 	ttglobal tg = gglobal();
@@ -2431,10 +2424,8 @@ int emulate_multitouch2(struct Touch *touchlist, int ntouch, int *IDD, int *last
 
 int fwl_handle_mouse_multi(int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
 	//this is the pick() for the twindow level
-	int cursorStyle, iret, yup;
-	Stack *vportstack;
+	int yup;
 	targetwindow *t;
-	stage *s;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
@@ -5594,7 +5585,6 @@ void freewrlDie (const char *format) {
 }
 void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x, int y, int ID, int windex) {
 	int count, ibutton;
-	int screenWidth, screenHeight;
 	float fx, fy;
 	struct Touch *touch;
 	Stack *vportstack;
@@ -5670,7 +5660,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 
 /* old function BROKEN but need orientation code for repair */
 int fwl_handle_aqua1(const int mev, const unsigned int button, int x, int yup, int windex) {
-	int y, screenWidth, screenHeight;
+	int screenWidth, screenHeight;
     ttglobal tg = gglobal();
 
 	/* printf ("fwl_handle_aqua, type %d, screen wid:%d height:%d, orig x,y %d %d\n",

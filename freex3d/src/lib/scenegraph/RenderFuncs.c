@@ -880,7 +880,6 @@ void3 *librarySearch(char *absoluteUniUrlNoPound){
 void prepare_model_view_pickmatrix0(GLDOUBLE *modelMatrix, GLDOUBLE *mvp){
 	//prepares a matrix that will transform a point in geometry-local coordintes
 	//into eye/pickray/bearing coordinates ie along the pickray 0,0,1
-	GLDOUBLE mvi[16];
 	GLDOUBLE *pickMatrixi;
 	ttglobal tg = gglobal();
 
@@ -928,7 +927,6 @@ void prepare_model_view_pickmatrix_inverse0(GLDOUBLE *modelMatrix, GLDOUBLE *mvp
 void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 	    float tx,float ty, char *descr)  {
 	GLDOUBLE modelMatrix[16];
-	GLDOUBLE projMatrix[16];
 	ppRenderFuncs p;
 	ttglobal tg = gglobal();
 	p = (ppRenderFuncs)tg->RenderFuncs.prv;

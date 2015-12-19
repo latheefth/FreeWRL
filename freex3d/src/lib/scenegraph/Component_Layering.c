@@ -43,10 +43,10 @@ X3D Layering Component
 
 ivec4 childViewport(ivec4 parentViewport, float *clipBoundary){
 	ivec4 vport;
-	vport.W = (clipBoundary[1] - clipBoundary[0]) *parentViewport.W;
-	vport.X = parentViewport.X + (clipBoundary[0] * parentViewport.W);
-	vport.H = (clipBoundary[3] - clipBoundary[2]) *parentViewport.H;
-	vport.Y = parentViewport.Y + (clipBoundary[2] * parentViewport.H);
+	vport.W = (int)((clipBoundary[1] - clipBoundary[0]) *parentViewport.W);
+	vport.X = (int)(parentViewport.X + (clipBoundary[0] * parentViewport.W));
+	vport.H = (int)((clipBoundary[3] - clipBoundary[2]) *parentViewport.H);
+	vport.Y = (int)(parentViewport.Y + (clipBoundary[2] * parentViewport.H));
 	return vport;
 }
 
@@ -90,7 +90,7 @@ void render_LayerSet(struct X3D_Node * node){
 //I suspect I don't need a rendray_ rather just a children handler that can transform a pickray before calling normalchildren
 void rendray_LayerSet(struct X3D_Node *node){
 	//for picking
-	float h,r,y;
+	//float h,r,y;
 	struct point_XYZ t_r1,t_r2;
 	get_current_ray(&t_r1, &t_r2);
 
@@ -104,7 +104,7 @@ void render_Layer(struct X3D_Node * node){
 // maybe don't need rendray_layer, just a children handler that transforms pickray before calling normalchildren
 void rendray_Layer(struct X3D_Node *node){
 	//for picking
-	float h,r,y;
+	//float h,r,y;
 	struct point_XYZ t_r1,t_r2;
 
 	get_current_ray(&t_r1, &t_r2);
@@ -134,7 +134,7 @@ void render_Viewport(struct X3D_Node * node){
 // one quad of a quadrant display for further picking
 void rendray_Viewport(struct X3D_Node *node){
 	//for picking
-	float h,r,y;
+	//float h,r,y;
 	struct point_XYZ t_r1,t_r2;
 
 	get_current_ray(&t_r1, &t_r2);
