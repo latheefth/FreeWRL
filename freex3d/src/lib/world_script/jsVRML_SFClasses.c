@@ -2524,7 +2524,7 @@ SFRotationConstr(JSContext *cx, uintN argc, jsval *vp) {
 		}
 		if (JSVAL_IS_OBJECT(argv[1])) {
 /*			_ob2 = (JSObject *)argv[1]; */
-			_ob2 = JSVAL_TO_OBJECT(argv[2]);
+			_ob2 = JSVAL_TO_OBJECT(argv[1]);
 
 			v3fv3f = TRUE;
 

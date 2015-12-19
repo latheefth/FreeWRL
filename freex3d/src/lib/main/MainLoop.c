@@ -2209,9 +2209,9 @@ void emulate_multitouch(int mev, unsigned int button, int x, int ydown, int wind
 	static int buttons[4] = {0,0,0,0};
 	static int idone = 0;
 	ppMainloop p;
+	targetwindow *t;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
-	targetwindow *t;
 
 	t = &p->cwindows[windex];
 	//Nov. 2015 changed freewrl mouse from y-down to y-up from here on down:
