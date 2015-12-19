@@ -2436,6 +2436,7 @@ void renderButtons()
 	p->hadString = 1;
 }
 void updateViewportSize();
+void fwl_getWindowSize(int *width, int *height);
 void statusbarHud_DrawCursor(GLint textureID,int x,int y){
 GLfloat cursorVert[] = {
 	-.05f, -.05f, 0.0f,

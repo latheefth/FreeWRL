@@ -53,7 +53,7 @@ void render_Layout(struct X3D_Node * node){
 }
 void rendray_Layout(struct X3D_Node *node){
 	//for picking
-	float h,r,y;
+	//float h,r,y;
 	struct point_XYZ t_r1,t_r2;
 	get_current_ray(&t_r1, &t_r2);
 
