@@ -302,15 +302,18 @@ bool fv_create_GLcontext()
 #endif
 	return TRUE;
 }
-bool fv_create_GLcontext1(GLXContext share)
+bool fv_create_GLcontext1(freewrl_params_t *share)
 {
+	GLXContext share_context;
 	int direct_rendering = TRUE;
+	share_context = NULL;
+	if(share) share_context = share->context;
 
 	fwl_thread_dump();
 
 #if defined(TARGET_X11) || defined(TARGET_MOTIF)
 
-	GLcx = glXCreateContext(Xdpy, Xvi, share, direct_rendering);
+	GLcx = glXCreateContext(Xdpy, Xvi, share_context, direct_rendering);
 	if (!GLcx) {
 		ERROR_MSG("can't create OpenGL context.\n");
 		return FALSE;
@@ -390,12 +393,14 @@ int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *sha
 			- and when doing glCreateContext you have the previous window's GLXcontext to use as a shareList
 	*/
 
+	fv_create_main_window(params);
+
 	if (!fv_open_display()) {
 		printf("open_display failed\n");
 		return FALSE;
 	}
 
-	if (!fv_create_GLcontext1(share->context)) {
+	if (!fv_create_GLcontext1(share)) {
 		printf("create_GLcontext failed\n");
 		return FALSE;
 	}

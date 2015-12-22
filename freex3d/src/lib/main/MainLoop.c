@@ -402,7 +402,7 @@ typedef struct contenttype_scene {
 	//color anacolors[2];
 	eye eyes[6]; //doesn't make sense yet to have eyes for general content type, does it?
 } contenttype_scene;
-void render();
+static void render();
 int setup_pickside0(int x, int y, int *iside, ivec4 *vportleft, ivec4 *vportright);
 void scene_render(void *self){
 	render();
@@ -1765,7 +1765,7 @@ static void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive);
 void render_collisions(int Viewer_type);
 int slerp_viewpoint(int itype);
 static void render_pre(void);
-static void render(void);
+
 static int setup_pickside(int x, int y);
 static void setup_projection();
 static void setup_pickray(int x, int y);

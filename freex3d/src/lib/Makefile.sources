@@ -38,6 +38,7 @@ main/ProdCon.h \
 main/ConsoleMessage.c \
 main/installdir.h \
 main/utils.c \
+main/Snapshot.c \
 main/SnapshotTesting.c \
  \
 vrml_parser/CProto.c \
