@@ -2032,12 +2032,12 @@ void setup_stagesNORMAL(){
 		cstage->t1.contents = cmultitouch;
 		p->EMULATE_MULTITOUCH =	FALSE;
 		//IDEA: these prepared ways of using freewrl could be put into a switchcase contenttype called early ie from window
-		if(1){
+		if(0){
 			//normal: multitouch emulation, layer, scene, statusbarHud, 
 			if(1) cmultitouch->t1.contents = clayer;  //with multitouch (which can bypass itself based on options panel check)
 			else cstage->t1.contents = clayer;  //skip multitouch
 			//tg->Mainloop.AllowNavDrag = TRUE; //experimental approach to allow both navigation and dragging at the same time, with 2 separate touches
-		}else if(1){
+		}else if(0){
 			//e3dmouse: multitouch emulation, layer, (e3dmouse > scene), statusbarHud, 
 			contenttype *ce3dmouse = new_contenttype_e3dmouse();
 			//cmultitouch->t1.contents = clayer;
@@ -2056,7 +2056,7 @@ void setup_stagesNORMAL(){
 
 			cmultitouch->t1.contents = ctexturegrid;
 			cstagefbo->t1.contents = clayer;
-		}else if(0){
+		}else if(1){
 			//multitouch emulation, orientation, fbo, layer { scene, statusbarHud }
 			corientation = new_contenttype_orientation();
 			cmultitouch->t1.contents = corientation;

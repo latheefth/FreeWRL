@@ -399,11 +399,12 @@ int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *sha
 		return FALSE;
 	}
 
-	fv_create_main_window(params);
 	if (!fv_create_GLcontext1(share)) {
 		printf("create_GLcontext failed\n");
 		return FALSE;
 	}
+	fv_create_main_window(params);
+
 	fv_bind_GLcontext();
 	//scrape parameters from statics
 	params->context = GLcx;
