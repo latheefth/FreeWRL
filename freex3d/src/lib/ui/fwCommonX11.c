@@ -393,13 +393,13 @@ int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *sha
 			- and when doing glCreateContext you have the previous window's GLXcontext to use as a shareList
 	*/
 
-	fv_create_main_window(params);
 
 	if (!fv_open_display()) {
 		printf("open_display failed\n");
 		return FALSE;
 	}
 
+	fv_create_main_window(params);
 	if (!fv_create_GLcontext1(share)) {
 		printf("create_GLcontext failed\n");
 		return FALSE;
