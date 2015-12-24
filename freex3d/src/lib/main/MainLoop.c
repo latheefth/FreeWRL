@@ -2031,7 +2031,7 @@ void fwl_setScreenDim1(int wi, int he, int itargetwindow){
 
 //=====NEW====>>>
 void setup_stagesNORMAL(){
-	int i,ii;
+	int i;
 	targetwindow *twindows, *t;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
@@ -2040,18 +2040,19 @@ void setup_stagesNORMAL(){
 	//t = twindows;
 	//while(t){
 	for(i=0;i<p->nwindow;i++){
+		contenttype *cstage, *clayer, *cscene, *csbh, *cmultitouch, *cstagefbo, *ctexturegrid, *corientation, *cquadrant;
+		freewrl_params_t *dp;
 		//ii = p->nwindow - i -1; //reverse order for experiment
 		t=&p->cwindows[i];
 
 		//FBOs must be created in the opengl window context where they are going to be used as texture
-		freewrl_params_t *dp = (freewrl_params_t*)tg->display.params;
+		dp = (freewrl_params_t*)tg->display.params;
 		if(t->params.context != dp->context){
 			tg->display.params = (void*)&t->params;
 			fv_change_GLcontext((freewrl_params_t*)tg->display.params);
 			//printf("%ld %ld %ld\n",t->params.display,t->params.context,t->params.surface);
 		}
 
-		contenttype *cstage, *clayer, *cscene, *csbh, *cmultitouch, *cstagefbo, *ctexturegrid, *corientation, *cquadrant;
 		cstage = new_contenttype_stage();
 
 
@@ -2162,7 +2163,7 @@ void initialize_targets_simple(){
 void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 	double dtime;
 	int i;
-	targetwindow *t, *twindows;
+	targetwindow *t;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
@@ -2176,12 +2177,12 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 	//t = twindows;
 	p->windex = -1;
 	for(i=0;i<p->nwindow;i++){
-		t=&p->cwindows[i];
 		//a targetwindow might be a supervisor's screen, or HMD
 		freewrl_params_t *dp;
 		Stack *vportstack;
 		stage *s;
 
+		t=&p->cwindows[i];
 		p->windex++;
 		s = (stage*)(t->stage); // assumes t->stage.t1.type == CONTENTTYPE_STAGE
 		if(s->type == STAGETYPE_BACKBUF){
