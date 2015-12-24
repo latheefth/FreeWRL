@@ -1136,6 +1136,7 @@ HWND create_main_window0(freewrl_params_t * d) //int argc, char *argv[])
 {
     HINSTANCE hInstance; 
     WNDCLASS wc;
+	static int wc_defined = 0;
 	DWORD wStyle   = 0;
 	HWND  ghWnd;   
     //RECT rect; 
@@ -1175,22 +1176,25 @@ HWND create_main_window0(freewrl_params_t * d) //int argc, char *argv[])
 	//hArrow = LoadCursor( NULL, IDC_ARROW );
 	//loadCursors();
 
-    wc.lpszClassName = "FreeWrlAppClass";
-    wc.lpfnWndProc = PopupWndProc; //MainWndProc;
-    //wc.style = CS_VREDRAW | CS_HREDRAW; /* 0 CS_OWNDC |  */
-    wc.style = CS_OWNDC;
-    wc.hInstance = hInstance;
-    wc.hIcon = LoadIcon(wc.hInstance, "APPICON");
-    if (!wc.hIcon) {
-		wc.hIcon = LoadIcon( NULL, IDI_APPLICATION );
-	}
-    wc.hCursor = NULL; //hArrow;
-    wc.hbrBackground = (HBRUSH)( COLOR_WINDOW+1 );
-    wc.lpszMenuName = 0; /* "GenericAppMenu"; */
-    wc.cbClsExtra = 0;
-    wc.cbWndExtra = 0;
+	if(!wc_defined){
+		wc.lpszClassName = "FreeWrlAppClass";
+		wc.lpfnWndProc = PopupWndProc; //MainWndProc;
+		//wc.style = CS_VREDRAW | CS_HREDRAW; /* 0 CS_OWNDC |  */
+		wc.style = CS_OWNDC;
+		wc.hInstance = hInstance;
+		wc.hIcon = LoadIcon(wc.hInstance, "APPICON");
+		if (!wc.hIcon) {
+			wc.hIcon = LoadIcon( NULL, IDI_APPLICATION );
+		}
+		wc.hCursor = NULL; //hArrow;
+		wc.hbrBackground = (HBRUSH)( COLOR_WINDOW+1 );
+		wc.lpszMenuName = 0; /* "GenericAppMenu"; */
+		wc.cbClsExtra = 0;
+		wc.cbWndExtra = 0;
 
-    RegisterClass( &wc );
+		RegisterClass( &wc );
+		wc_defined = TRUE;
+	}
 	//width  = gglobal()->display.width + 8;  //windows gui eats 4 on each side
 	//height = gglobal()->display.height + 34;  // and 26 for the menu bar
 	width = d->width;

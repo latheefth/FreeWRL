@@ -886,6 +886,12 @@ contenttype *new_contenttype_stage(){
 	self->ivport = ivec4_init;
 	return (contenttype*)self;
 }
+//mobile GLES2 via ANGLE has only 16bit depth buffer. not 24 or 32 as with desktop opengl
+#ifdef GL_DEPTH_COMPONENT32
+#define FW_GL_DEPTH_COMPONENT GL_DEPTH_COMPONENT32
+#else
+#define FW_GL_DEPTH_COMPONENT GL_DEPTH_COMPONENT16
+#endif
 contenttype *new_contenttype_stagefbo(int width, int height){
 	contenttype *_self;
 	stage *self;
@@ -926,7 +932,7 @@ contenttype *new_contenttype_stagefbo(int width, int height){
 	glGenRenderbuffers(1, &self->idepthbuffer);
 		//bind to set some parameters
 		glBindRenderbuffer(GL_RENDERBUFFER, self->idepthbuffer);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, self->ivport.W, self->ivport.H);
+		glRenderbufferStorage(GL_RENDERBUFFER, FW_GL_DEPTH_COMPONENT, self->ivport.W, self->ivport.H);
 		//unbind
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
@@ -944,20 +950,37 @@ void stage_resize(void *_self,int width, int height){
 	stage *self;
 	self = (stage*)_self;
 	if(self->type == STAGETYPE_FBO){
+		if(width != self->ivport.W || height != self->ivport.H){
+			self->ivport.W = width;
+			self->ivport.H = height;
+			glBindTexture(GL_TEXTURE_2D, self->itexturebuffer);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, self->ivport.W, self->ivport.H, 0, GL_RGBA , GL_UNSIGNED_BYTE, NULL);
+
+			glBindTexture(GL_TEXTURE_2D, 0); 
+
+			glBindRenderbuffer(GL_RENDERBUFFER, self->idepthbuffer);
+			glRenderbufferStorage(GL_RENDERBUFFER, FW_GL_DEPTH_COMPONENT, self->ivport.W, self->ivport.H);
+
+			//unbind
+			glBindRenderbuffer(GL_RENDERBUFFER, 0);
+			//printf("stage_resize to %d %d\n",self->ivport.W,self->ivport.H);
+			if(0){
+				glBindFramebuffer(GL_FRAMEBUFFER, self->ibuffer);
+				// attach a texture to FBO color attachement point
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self->itexturebuffer, 0);
+
+				// attach a renderbuffer to depth attachment point
+				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, self->idepthbuffer);
+				//unbind framebuffer till render
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			}
+
+		}
+
+	}else{
+		//GL_BACK stage
 		self->ivport.W = width;
 		self->ivport.H = height;
-		glBindTexture(GL_TEXTURE_2D, self->itexturebuffer);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, self->ivport.W, self->ivport.H, 0, GL_RGBA , GL_UNSIGNED_BYTE, NULL);
-
-		glBindTexture(GL_TEXTURE_2D, 0); 
-
-		glBindRenderbuffer(GL_RENDERBUFFER, self->idepthbuffer);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, self->ivport.W, self->ivport.H);
-
-		//unbind
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-		//printf("stage_resize to %d %d\n",self->ivport.W,self->ivport.H);
-
 	}
 
 }
@@ -1279,7 +1302,7 @@ void render_orientation(void *_self);
 //0--2
 GLfloat quad1Vert[] = {
 	-1.0f, -1.0f, 0.0f,
-	-1.05f, 1.0f, 0.0f,
+	-1.0f,  1.0f, 0.0f,
 	 1.0f, -1.0f, 0.0f,
 	 1.0f,  1.0f, 0.0f,
 };
@@ -1533,6 +1556,7 @@ typedef struct pMainloop{
 	double stereooffsetmatrix[2][16];
 	int targets_initialized;
 	targetwindow cwindows[4];
+	int nwindow;
 	int windex; //current window index into twoindows array, valid during render()
 	Stack *_vportstack;
 	Stack *_framebufferstack;
@@ -1645,6 +1669,7 @@ void Mainloop_init(struct tMainloop *t){
 		p->keywait = FALSE;
 		p->keywaitstring[0] = (char)0;
 		p->fps_sleep_remainder = 0;
+		p->nwindow = 1;
 		p->windex = 0;
 		p->targets_initialized = 0;
 		for(i=0;i<4;i++) init_targetwindow(&p->cwindows[i]);
@@ -1968,6 +1993,7 @@ void targetwindow_set_params(int itargetwindow, freewrl_params_t* params){
 	if(itargetwindow > 0){
 		twindows[itargetwindow -1].next = &twindows[itargetwindow];
 	}
+	p->nwindow = max(p->nwindow,itargetwindow+1);
 	if(0){
 		t = twindows;
 		while(t){
@@ -2005,14 +2031,28 @@ void fwl_setScreenDim1(int wi, int he, int itargetwindow){
 
 //=====NEW====>>>
 void setup_stagesNORMAL(){
+	int i;
 	targetwindow *twindows, *t;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
 	twindows = p->cwindows;
-	t = twindows;
-	while(t){
+	//t = twindows;
+	//while(t){
+	for(i=0;i<p->nwindow;i++){
 		contenttype *cstage, *clayer, *cscene, *csbh, *cmultitouch, *cstagefbo, *ctexturegrid, *corientation, *cquadrant;
+		freewrl_params_t *dp;
+		//ii = p->nwindow - i -1; //reverse order for experiment
+		t=&p->cwindows[i];
+
+		//FBOs must be created in the opengl window context where they are going to be used as texture
+		dp = (freewrl_params_t*)tg->display.params;
+		if(t->params.context != dp->context){
+			tg->display.params = (void*)&t->params;
+			fv_change_GLcontext((freewrl_params_t*)tg->display.params);
+			//printf("%ld %ld %ld\n",t->params.display,t->params.context,t->params.surface);
+		}
+
 		cstage = new_contenttype_stage();
 
 
@@ -2099,7 +2139,7 @@ void setup_stagesNORMAL(){
 		}
 
 		t->stage = cstage;
-		t = t->next;
+//		t = t->next;
 	}
 }
 
@@ -2122,7 +2162,8 @@ void initialize_targets_simple(){
 
 void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 	double dtime;
-	targetwindow *t, *twindows;
+	int i;
+	targetwindow *t;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
@@ -2132,15 +2173,16 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 	dtime = Time1970sec();
 	fwl_RenderSceneUpdateScene0(dtime);
 
-	twindows = p->cwindows;
-	t = twindows;
+	//twindows = p->cwindows;
+	//t = twindows;
 	p->windex = -1;
-	while(t) { 
+	for(i=0;i<p->nwindow;i++){
 		//a targetwindow might be a supervisor's screen, or HMD
 		freewrl_params_t *dp;
 		Stack *vportstack;
 		stage *s;
 
+		t=&p->cwindows[i];
 		p->windex++;
 		s = (stage*)(t->stage); // assumes t->stage.t1.type == CONTENTTYPE_STAGE
 		if(s->type == STAGETYPE_BACKBUF){
@@ -2164,7 +2206,7 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 		popviewport(vportstack);
 		//setcurrentviewport(vportstack);
 		if(t->swapbuf) { FW_GL_SWAPBUFFERS }
-		t = (targetwindow*) t->next;
+//		t = (targetwindow*) t->next;
 	}
 	p->windex = 0;
 }
