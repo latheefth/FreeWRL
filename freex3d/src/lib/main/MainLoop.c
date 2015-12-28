@@ -265,7 +265,7 @@ typedef struct eye {
 	int (*pick)(void *self); //per-eye
 } eye;
 eye *new_eye(){
-	return malloc(sizeof(eye));
+	return MALLOCV(sizeof(eye));
 }
 
 void pushnset_framebuffer(int ibuffer){
@@ -436,7 +436,7 @@ int scene_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID,
 	return iret;
 }
 contenttype *new_contenttype_scene(){
-	contenttype_scene *self = malloc(sizeof(contenttype_scene));
+	contenttype_scene *self = MALLOCV(sizeof(contenttype_scene));
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_SCENE;
 	self->t1.render = scene_render;
@@ -454,7 +454,7 @@ int statusbar_pick(void *self, int mev, int butnum, int mouseX, int mouseY, int 
 	return statusbar_handle_mouse1(mev,butnum,mouseX,mouseY,windex);
 }
 contenttype *new_contenttype_statusbar(){
-	contenttype_statusbar *self = malloc(sizeof(contenttype_statusbar));
+	contenttype_statusbar *self = MALLOCV(sizeof(contenttype_statusbar));
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_STATUSBAR;
 	self->t1.render = statusbar_render;
@@ -506,7 +506,7 @@ int layer_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID,
 	return iret;
 }
 contenttype *new_contenttype_layer(){
-	contenttype_layer *self = malloc(sizeof(contenttype_layer));
+	contenttype_layer *self = MALLOCV(sizeof(contenttype_layer));
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_LAYER;
 	self->t1.render = layer_render;
@@ -579,7 +579,7 @@ int multitouch_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, in
 }
 contenttype *new_contenttype_multitouch(){
 	int i;
-	contenttype_multitouch *self = malloc(sizeof(contenttype_multitouch));
+	contenttype_multitouch *self = MALLOCV(sizeof(contenttype_multitouch));
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_MULTITOUCH;
 	self->t1.render = multitouch_render;
@@ -687,7 +687,7 @@ int e3dmouse_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int 
 	return iret;
 }
 contenttype *new_contenttype_e3dmouse(){
-	contenttype_e3dmouse *self = malloc(sizeof(contenttype_e3dmouse));
+	contenttype_e3dmouse *self = MALLOCV(sizeof(contenttype_e3dmouse));
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_E3DMOUSE;
 	self->t1.render = e3dmouse_render;
@@ -800,7 +800,7 @@ int quadrant_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int 
 	return iret;
 }
 contenttype *new_contenttype_quadrant(){
-	contenttype_quadrant *self = malloc(sizeof(contenttype_quadrant));
+	contenttype_quadrant *self = MALLOCV(sizeof(contenttype_quadrant));
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_QUADRANT;
 	self->t1.render = quadrant_render;
@@ -817,7 +817,7 @@ typedef struct contenttype_splitter {
 	int orientation; //vertical, horizontal
 } contenttype_splitter;
 contenttype *new_contenttype_splitter(){
-	contenttype_splitter *self = malloc(sizeof(contenttype_splitter));
+	contenttype_splitter *self = MALLOCV(sizeof(contenttype_splitter));
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_SPLITTER;
 	return (contenttype*)self;
@@ -875,7 +875,7 @@ int stage_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID,
 }
 
 contenttype *new_contenttype_stage(){
-	stage *self = malloc(sizeof(stage));
+	stage *self = MALLOCV(sizeof(stage));
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_STAGE;
 	self->t1.render = stage_render;
@@ -1027,7 +1027,7 @@ static GLfloat matrixIdentity[] = {
 };
 
 contenttype *new_contenttype_texturegrid(int nx, int ny){
-	contenttype_texturegrid *self = malloc(sizeof(contenttype_texturegrid));
+	contenttype_texturegrid *self = MALLOCV(sizeof(contenttype_texturegrid));
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_TEXTUREGRID;
 	self->t1.render = texturegrid_render;
@@ -1040,11 +1040,11 @@ contenttype *new_contenttype_texturegrid(int nx, int ny){
 		GLfloat *vert, *vert2, *tex, *norm;
 		GLfloat dx,dy, tx,ty;
 		//n = p->ngridsize;
-		index = (GLushort*)malloc((nx-1)*(ny-1)*2*3 *sizeof(GLushort));
-		vert = (GLfloat*)malloc(nx*ny*3*sizeof(GLfloat));
-		vert2 = (GLfloat*)malloc(nx*ny*3*sizeof(GLfloat));
-		tex = (GLfloat*)malloc(nx*ny*2*sizeof(GLfloat));
-		norm = (GLfloat*)malloc(nx*ny*3*sizeof(GLfloat));
+		index = (GLushort*)MALLOCV((nx-1)*(ny-1)*2*3 *sizeof(GLushort));
+		vert = (GLfloat*)MALLOCV(nx*ny*3*sizeof(GLfloat));
+		vert2 = (GLfloat*)MALLOCV(nx*ny*3*sizeof(GLfloat));
+		tex = (GLfloat*)MALLOCV(nx*ny*2*sizeof(GLfloat));
+		norm = (GLfloat*)MALLOCV(nx*ny*3*sizeof(GLfloat));
 		//generate vertices
 		dx = 2.0f / (float)(nx-1);
 		dy = 2.0f / (float)(ny-1);
@@ -1317,7 +1317,7 @@ GLushort quad1TriangleInd[] = {
 };
 
 contenttype *new_contenttype_orientation(){
-	contenttype_orientation *self = malloc(sizeof(contenttype_orientation));
+	contenttype_orientation *self = MALLOCV(sizeof(contenttype_orientation));
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_ORIENTATION;
 	self->t1.render = orientation_render;
@@ -1689,6 +1689,8 @@ void Mainloop_clear(struct tMainloop *t){
 	{
 		ppMainloop p = (ppMainloop)t->prv;
 		FREE_IF_NZ(p->SensorEvents);
+		deleteVector(ivec4,p->_vportstack);
+		deleteVector(int,p->_framebufferstack);
 	}
 }
 
