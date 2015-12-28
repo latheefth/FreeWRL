@@ -2668,10 +2668,18 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 
 #if defined(TARGET_X11)
 	/* We are running our own bare window */
-	while (XPending(Xdpy)) {
-		XNextEvent(Xdpy, &event);
-		DEBUG_XEV("EVENT through XNextEvent\n");
-		handle_Xevents(event);
+	{
+		int kw;
+		for(kw=0;kw<p->nwindow;kw++)
+		{
+			void * xdpy = p->cwindows[kw].params.display;
+			//while (XPending(Xdpy)) {
+			while(XPending(xdpy)) {
+				XNextEvent(xdpy, &event);
+				DEBUG_XEV("EVENT through XNextEvent\n");
+				handle_Xevents(event);
+			}
+		}
 	}
 #endif /* TARGET_X11 */
 
