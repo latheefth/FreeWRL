@@ -712,7 +712,40 @@ typedef struct contenttype_quadrant {
 	ivec2 offset_pixels;
 	vpointpose pose_save;
 } contenttype_quadrant;
+void loadIdentityMatrix (double *mat);
+static void get_view_matrix(double *savePosOri, double *saveView);
+static void set_view_matrix(double *savePosOri, double *saveView);
 
+static void set_quadrant_viewmatrix(double *savePosOri, double *saveView, int iq) {
+	//iq 2 3
+	//   0 1
+	//no comprendo - por que no veo difference.
+	double viewmatrix[16], tmat[16], pomat[16], vmat[16];
+
+	get_view_matrix(savePosOri,saveView);
+	if(iq==0) return;
+
+	matmultiplyAFFINE(viewmatrix,saveView,savePosOri);
+	loadIdentityMatrix (pomat);
+	loadIdentityMatrix (vmat);
+	mattranslate(vmat, Viewer()->Dist,0.0,0.0);
+	mattranslate(tmat,viewmatrix[12],viewmatrix[13],viewmatrix[14]);
+	matmultiplyAFFINE(vmat,vmat,tmat);
+
+	switch(iq){
+		case 0: break; //no change to vp
+		case 1: matrotate(tmat,    0.0, 0.0,0.0,1.0);
+		break;
+		case 2: matrotate(tmat, PI * .5, 1.0,0.0,0.0);
+		break;
+		case 3: matrotate(tmat, PI * .5, 0.0,1.0,0.0);
+		break;
+		default:
+		break;
+	}
+	matmultiplyAFFINE(vmat,vmat,tmat);
+	set_view_matrix(pomat,vmat);
+}
 void quadrant_render(void *_self){
 	//
 	int i;
@@ -723,15 +756,9 @@ void quadrant_render(void *_self){
 	self = (contenttype_quadrant *)_self;
 	pushnset_viewport(self->t1.viewport); //generic viewport
 	c = self->t1.contents;
-	if(1){
-	self->pose_save.Dist = Viewer()->Dist;
-	self->pose_save.Pos = Viewer()->Pos;
-	self->pose_save.Quat = Viewer()->Quat;
-	quat2euler(rxyz,2,&Viewer()->Quat);
-
-	}
 	i=0;
 	while(c){
+		double savePosOri[16], saveView[16];
 		float viewport[4];
 		memcpy(viewport,defaultClipBoundary,4*sizeof(float));
 		//create quadrant subviewport and push
@@ -742,24 +769,14 @@ void quadrant_render(void *_self){
 		pushnset_viewport(viewport); //quadrant sub-viewport
 		//printf("quad viewport %f %f %f %f\n",viewport[0],viewport[1],viewport[2],viewport[3]);
 		//create quadrant viewpoint and push
-		switch(i){
-			case 0: break; //no change to vp
-			case 1: euler2quat(&Viewer()->Quat,0.0,rxyz[1],rxyz[2]); break;
-			case 2: euler2quat(&Viewer()->Quat,rxyz[0],0.0,rxyz[2]); break;
-			case 3: euler2quat(&Viewer()->Quat,rxyz[0],rxyz[1],0.0); break;
-		}
+		set_quadrant_viewmatrix(savePosOri, saveView, i);	
 		c->t1.render(c);
 		//update saved viewpoint and pop quadrant viewpoint
-		Viewer()->Quat = self->pose_save.Quat;
+		set_view_matrix(savePosOri,saveView);
 		//pop quadrant subviewport
 		popnset_viewport();
 		c = c->t1.next;
 		i++;
-	}
-	if(1){
-	Viewer()->Dist = self->pose_save.Dist;
-	Viewer()->Pos = self->pose_save.Pos;
-	Viewer()->Quat = self->pose_save.Quat;
 	}
 	popnset_viewport();
 }
@@ -1717,6 +1734,28 @@ int hwnd_to_windex(void *hWnd){
 	return 0;
 }
 
+
+static void get_view_matrix(double *savePosOri, double *saveView) {
+	//iq 2 3
+	//   0 1
+	//no comprendo - por que no veo difference.
+	double viewmatrix[16], tmat[16];
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+
+	matcopy(saveView,p->viewtransformmatrix);
+	matcopy(savePosOri,p->posorimatrix);
+}
+static void set_view_matrix(double *savePosOri,double *saveView){
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+
+	matcopy(p->viewtransformmatrix,saveView);
+	matcopy(p->posorimatrix,savePosOri);
+}
+
 void fwl_getWindowSize(int *width, int *height){
 	//call this one when in target rendering loop (and setScreenDim0() 
 	// has been called with targetwindow-specific dimensions)
@@ -2098,7 +2137,7 @@ void setup_stagesNORMAL(){
 
 			cmultitouch->t1.contents = ctexturegrid;
 			cstagefbo->t1.contents = clayer;
-		}else if(1){
+		}else if(0){
 			//multitouch emulation, orientation, fbo, layer { scene, statusbarHud }
 			corientation = new_contenttype_orientation();
 			cmultitouch->t1.contents = corientation;
@@ -3770,6 +3809,7 @@ static void render()
 
 	setup_projection();
 	setup_picking();
+	set_viewmatrix();
 
 	doglClearColor();
 	for (count = 0; count < p->maxbuffers; count++) {
