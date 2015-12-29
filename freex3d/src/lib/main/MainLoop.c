@@ -2160,23 +2160,37 @@ void setup_stagesNORMAL(){
 
 		}else if(1){
 			contenttype *clayer0, *clayer1, *clayer2, *clayer3;
+			contenttype *cscene0, *cscene1, *cscene2, *cscene3;
 			cquadrant = new_contenttype_quadrant();
-			cmultitouch->t1.contents = cquadrant;
-			clayer0 = new_contenttype_layer();
-			clayer0->t1.contents = cscene;
-			clayer1 = new_contenttype_layer();
-			clayer1->t1.contents = cscene;
-			clayer2 = new_contenttype_layer();
-			clayer2->t1.contents = cscene;
-			clayer3 = new_contenttype_layer();
-			clayer3->t1.contents = cscene;
+			clayer->t1.contents = cquadrant;
+			cquadrant->t1.next = csbh;
+			cscene->t1.next = NULL;
+			cmultitouch->t1.contents = clayer;
+
+			//clayer0 = new_contenttype_layer();
+			//clayer0->t1.contents = cscene;
+			//clayer1 = new_contenttype_layer();
+			//clayer1->t1.contents = cscene;
+			//clayer2 = new_contenttype_layer();
+			//clayer2->t1.contents = cscene;
+			//clayer3 = new_contenttype_layer();
+			//clayer3->t1.contents = cscene;
 
 
-			cquadrant->t1.contents = clayer0;
-			clayer0->t1.next = clayer1;
-			clayer1->t1.next = clayer2;
-			clayer2->t1.next = clayer3;
+			//cquadrant->t1.contents = clayer0;
+			//clayer0->t1.next = clayer1;
+			//clayer1->t1.next = clayer2;
+			//clayer2->t1.next = clayer3;
 
+			cscene0 = new_contenttype_scene();
+			cscene1 = new_contenttype_scene();
+			cscene2 = new_contenttype_scene();
+			cscene3 = new_contenttype_scene();
+
+			cquadrant->t1.contents = cscene0;
+			cscene0->t1.next = cscene1;
+			cscene1->t1.next = cscene2;
+			cscene2->t1.next = cscene3;
 		}
 
 		t->stage = cstage;
