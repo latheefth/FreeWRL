@@ -373,12 +373,12 @@ int content_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int I
 	contenttype *c, *self;
 
 	self = (contenttype *)_self;
-	iret = -1;
+	iret = 0;
 	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
 		c = self->t1.contents;
 		while(c){
 			iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,ID, windex);
-			if(iret > -1) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
+			if(iret > 0) break; //handled 
 			c = c->t1.next;
 		}
 		pop_viewport();
@@ -414,7 +414,7 @@ int scene_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID,
 	contenttype *self;
 
 	self = (contenttype *)_self;
-	iret = -1;
+	iret = 0;
 	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
 		ivec4 vport[2];
 		int iside, inside;
@@ -423,12 +423,7 @@ int scene_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID,
 		if(inside){
 			Stack *vpstack = (Stack*)gglobal()->Mainloop._vportstack;
 			pushviewport(vpstack,vport[iside]);
-			//printf("iside=%d vport= %d %d %d %d\n",iside,vport[iside].X,vport[iside].W,vport[iside].Y,vport[iside].H);
-			//iret = fwl_handle_aqua_multi(mev,butnum,mouseX,mouseY,ID,windex);
 			fwl_handle_aqua_multiNORMAL(mev,butnum,mouseX,mouseY,ID,windex);
-			iret = 	getCursorStyle();
-			//handle_aqua_multiNORMAL stores xy in touch state for picking 
-			//see render() for setup_picking() which uses the touch to do sensor nodes
 			popviewport(vpstack);
 		}
 		pop_viewport();
@@ -443,15 +438,67 @@ contenttype *new_contenttype_scene(){
 	self->t1.pick = scene_pick;
 	return (contenttype*)self;
 }
+int statusbar_getClipPlane();
 typedef struct contenttype_statusbar {
 	tcontenttype t1;
+	int clipplane;
 } contenttype_statusbar;
 void view_update0();
-void statusbar_render(void *self){
-	view_update0();
+void statusbar_render(void *_self){
+	//make this like layer, render contents first in clipplane-limited viewport, then sbh in whole viewport
+	Stack *vportstack;
+	contenttype_statusbar *self;
+	contenttype *c;
+
+	self = (contenttype_statusbar *)_self;
+	pushnset_viewport(self->t1.viewport);
+	self->clipplane = statusbar_getClipPlane();
+	vportstack = NULL;
+	if(self->clipplane != 0){
+		ivec4 ivport;
+		ttglobal tg;
+		tg = gglobal();
+
+		vportstack = (Stack*)tg->Mainloop._vportstack;
+		ivport = stack_top(ivec4,vportstack);
+		ivport.H -= self->clipplane;
+		ivport.Y += self->clipplane;
+		//stack_push(ivec4,vportstack,ivport);
+	}
+	c = self->t1.contents;
+	//FW_GL_CLEAR_COLOR(self->t1.cc.r,self->t1.cc.g,self->t1.cc.b,self->t1.cc.a);
+	while(c){
+		c->t1.render(c);
+		c = c->t1.next;
+	}
+	if(self->clipplane != 0 && vportstack != NULL){
+		//stack_pop(ivec4,vportstack);
+	}
+	view_update0(); //draw statusbarHud
+	popnset_viewport();
 }
-int statusbar_pick(void *self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
-	return statusbar_handle_mouse1(mev,butnum,mouseX,mouseY,windex);
+int statusbar_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+	contenttype *c;
+	contenttype_statusbar *self;
+	int iret = 0;
+
+	//make this like layer, checking sbh first, then if not handled try contents in clipplane-limited viewport
+
+	self = (contenttype *)_self;
+	iret = 0;
+	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
+		iret = statusbar_handle_mouse1(mev,butnum,mouseX,mouseY,windex);
+		if(!iret){
+			c = self->t1.contents;
+			while(c){
+				iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,ID, windex);
+				if(iret > 0) break; //handled 
+				c = c->t1.next;
+			}
+		}
+		pop_viewport();
+	}
+	return iret;
 }
 contenttype *new_contenttype_statusbar(){
 	contenttype_statusbar *self = MALLOCV(sizeof(contenttype_statusbar));
@@ -459,6 +506,7 @@ contenttype *new_contenttype_statusbar(){
 	self->t1.itype = CONTENT_STATUSBAR;
 	self->t1.render = statusbar_render;
 	self->t1.pick = statusbar_pick;
+	self->clipplane = 0; //16; //can be 0 if nothing pinned, or 16+32=48 if both statusbar+menubar pinned
 	return (contenttype*)self;
 }
 typedef struct contenttype_layer {
@@ -492,14 +540,14 @@ int layer_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID,
 		c = c->t1.next;
 		if(n > 9) break; //ouch a problem with my fixed-length array technique
 	}
-	iret = -1;
+	iret = 0;
 	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
 		for(i=0;i<n;i++){
 			//push viewport
 			c = reverse[n-i-1];
 			iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,ID,windex);
 			//pop viewport
-			if(iret > -1) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
+			if(iret > 0) break; //handled 
 		}
 		pop_viewport();
 	}
@@ -552,23 +600,23 @@ int multitouch_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, in
 	contenttype_multitouch *self;
 
 	self = (contenttype_multitouch *)_self;
-	iret = -1;
+	iret = 0;
 	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
 		int ihandle;
 		//record for rendering
 		ihandle = 0;
 		if(fwl_get_emulate_multitouch()){
 			ihandle = emulate_multitouch2(self->touchlist,self->ntouch,&self->IDD,&self->lastbut,&mev,&butnum,mouseX,mouseY,&ID,windex);
-			iret = ihandle < 0 ? -1 : 0;
+			iret = ihandle ? 1 : 0;
 		}
-		if(iret == -1){
+		if(iret == 0){
 			//then pick children
 			c = self->t1.contents;
 			while(c){
 				//push viewport
 				iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,ID,windex);
 				//pop viewport
-				if(iret > -1) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
+				if(iret > 0) break; //handled 
 				c = c->t1.next;
 			}
 			record_multitouch(self->touchlist,mev,butnum,mouseX,mouseY,ID,windex,ihandle);
@@ -788,7 +836,7 @@ int quadrant_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int 
 	contenttype_quadrant *self;
 
 	self = (contenttype_quadrant *)_self;
-	iret = -1;
+	iret = 0;
 	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){  //generic viewport
 		c = self->t1.contents;
 		i=0;
@@ -804,7 +852,7 @@ int quadrant_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int 
 			if(checknpush_viewport(viewport,mouseX,mouseY)){  //quadrant sub-viewport
 				//create quadrant viewpoint and push
 				iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,ID, windex);
-				if(iret > -1) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
+				if(iret > 0) break; //handled
 				//update saved viewpoint and pop quadrant viewpoint
 				//pop quadrant subviewport
 				pop_viewport();
@@ -1275,7 +1323,7 @@ int orientation_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, i
 	contenttype *c, *self;
 
 	self = (contenttype *)_self;
-	iret = -1;
+	iret = 0;
 	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
 		ivec4 ivport;
 		int x,y;
@@ -1305,7 +1353,7 @@ int orientation_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, i
 		c = self->t1.contents;
 		while(c){
 			iret = c->t1.pick(c,mev,butnum,x,y,ID, windex);
-			if(iret > -1) break; //handled (conflicts with cursor_style which can be 0. may need -1 as unhandled signal, so if(iret > -1) break;)
+			if(iret > 0) break; //handled 
 			c = c->t1.next;
 		}
 		pop_viewport();
@@ -2107,25 +2155,21 @@ void setup_stagesNORMAL(){
 		}
 		cscene = new_contenttype_scene();
 		csbh = new_contenttype_statusbar();
-		cscene->t1.next = csbh;
-		csbh->t1.next = NULL;
-		clayer->t1.contents = cscene;
+		csbh->t1.contents = cscene;
 		cstage->t1.contents = cmultitouch;
 		p->EMULATE_MULTITOUCH =	FALSE;
 		//IDEA: these prepared ways of using freewrl could be put into a switchcase contenttype called early ie from window
 		if(0){
 			//normal: multitouch emulation, layer, scene, statusbarHud, 
-			if(1) cmultitouch->t1.contents = clayer;  //with multitouch (which can bypass itself based on options panel check)
-			else cstage->t1.contents = clayer;  //skip multitouch
+			if(1) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
+			else cstage->t1.contents = csbh; //skip multitouch
 			//tg->Mainloop.AllowNavDrag = TRUE; //experimental approach to allow both navigation and dragging at the same time, with 2 separate touches
 		}else if(0){
 			//e3dmouse: multitouch emulation, layer, (e3dmouse > scene), statusbarHud, 
 			contenttype *ce3dmouse = new_contenttype_e3dmouse();
-			//cmultitouch->t1.contents = clayer;
-			cstage->t1.contents = clayer;
-			clayer->t1.contents = ce3dmouse;
+			cstage->t1.contents = csbh;
+			csbh->t1.contents = ce3dmouse;
 			ce3dmouse->t1.contents = cscene;
-			ce3dmouse->t1.next = csbh;
 			cscene->t1.next = NULL;
 		}else if(0){
 			//experimental render to fbo, then fbo to screen
@@ -2136,7 +2180,7 @@ void setup_stagesNORMAL(){
 			ctexturegrid->t1.contents = cstagefbo;
 
 			cmultitouch->t1.contents = ctexturegrid;
-			cstagefbo->t1.contents = clayer;
+			cstagefbo->t1.contents = csbh;
 		}else if(0){
 			//multitouch emulation, orientation, fbo, layer { scene, statusbarHud }
 			corientation = new_contenttype_orientation();
@@ -2144,43 +2188,26 @@ void setup_stagesNORMAL(){
 			cstagefbo = new_contenttype_stagefbo(512,512);
 
 			corientation->t1.contents = cstagefbo;
-			cstagefbo->t1.contents = clayer;
+			cstagefbo->t1.contents = csbh;
 		}else if(0) {
 			//rotates just the scene, leaves statusbar un-rotated
 			//multitouch emulation,  layer, {{orientation, fbo, scene}, statusbarHud }
 			corientation = new_contenttype_orientation();
-			cmultitouch->t1.contents = clayer;
+			cmultitouch->t1.contents = csbh;
 			cstagefbo = new_contenttype_stagefbo(512,512);
 
 			corientation->t1.contents = cstagefbo;
 			cstagefbo->t1.contents = cscene;
 			cscene->t1.next = NULL;
-			clayer->t1.contents = corientation;
-			corientation->t1.next = csbh;
+			csbh->t1.contents = corientation;
 
 		}else if(1){
+			//quadrant
 			contenttype *clayer0, *clayer1, *clayer2, *clayer3;
 			contenttype *cscene0, *cscene1, *cscene2, *cscene3;
 			cquadrant = new_contenttype_quadrant();
-			clayer->t1.contents = cquadrant;
-			cquadrant->t1.next = csbh;
-			cscene->t1.next = NULL;
-			cmultitouch->t1.contents = clayer;
-
-			//clayer0 = new_contenttype_layer();
-			//clayer0->t1.contents = cscene;
-			//clayer1 = new_contenttype_layer();
-			//clayer1->t1.contents = cscene;
-			//clayer2 = new_contenttype_layer();
-			//clayer2->t1.contents = cscene;
-			//clayer3 = new_contenttype_layer();
-			//clayer3->t1.contents = cscene;
-
-
-			//cquadrant->t1.contents = clayer0;
-			//clayer0->t1.next = clayer1;
-			//clayer1->t1.next = clayer2;
-			//clayer2->t1.next = clayer3;
+			cmultitouch->t1.contents = csbh; //clayer;
+			csbh->t1.contents = cquadrant;
 
 			cscene0 = new_contenttype_scene();
 			cscene1 = new_contenttype_scene();
@@ -2269,7 +2296,7 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 //<<<<<=====NEW=====
 int fwl_handle_mouse_multi_yup(int mev, int butnum, int mouseX, int yup, int ID, int windex){
 	//this is the pick() for the twindow level
-	int cursorStyle;
+	int ihit;
 	Stack *vportstack;
 	targetwindow *t;
 	stage *s;
@@ -2285,10 +2312,9 @@ int fwl_handle_mouse_multi_yup(int mev, int butnum, int mouseX, int yup, int ID,
 		s->ivport = t->ivport; //need to refresh every frame incase there was a resize on the window
 	vportstack = (Stack *)tg->Mainloop._vportstack;
 	pushviewport(vportstack,s->ivport);
-	cursorStyle = s->t1.pick(s,mev,butnum,mouseX,yup,ID,windex);
-	cursorStyle = cursorStyle < 0? 0 : cursorStyle;
+	ihit = s->t1.pick(s,mev,butnum,mouseX,yup,ID,windex);
 	popviewport(vportstack);
-	return cursorStyle;
+	return ihit;
 }
 
 void emulate_multitouch(int mev, unsigned int button, int x, int ydown, int windex)
@@ -2530,19 +2556,16 @@ int fwl_handle_mouse_multi(int mev, int butnum, int mouseX, int mouseY, int ID, 
 	//Nov. 2015 changed freewrl mouse from y-down to y-up from here on down:
 	//all y-up now: sesnsor/picking, explore, statusbarHud, handle0 > all navigations, emulate_multitouch, sidebyside fiducials
 	yup = t->ivport.H - mouseY; //screenHeight -y;
-	return fwl_handle_mouse_multi_yup(mev,butnum,mouseX,yup,ID,windex);
+	fwl_handle_mouse_multi_yup(mev,butnum,mouseX,yup,ID,windex);
+	return getCursorStyle();
 }
 int fwl_handle_mouse(int mev, int butnum, int mouseX, int mouseY, int windex){
+	int cstyle;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
-	//if(p->EMULATE_MULTITOUCH){
-	//	emulate_multitouch(mev,butnum,mouseX, mouseY,windex);
-	//}else{
-		//fwl_handle_aqua_multi(mev,button,x,yup,0,windex);
-		fwl_handle_mouse_multi(mev,butnum,mouseX,mouseY,0,windex);
-	//}
-	return getCursorStyle();
+	cstyle = fwl_handle_mouse_multi(mev,butnum,mouseX,mouseY,0,windex);
+	return cstyle;
 }
 
 
@@ -3656,7 +3679,8 @@ void setup_projection()
 	FW_GL_MATRIX_MODE(GL_PROJECTION);
 
 	/* >>> statusbar hud */
-	if(tg->Mainloop.clipPlane != 0 || viewer->updown || viewer->sidebyside)
+	//if(tg->Mainloop.clipPlane != 0 || viewer->updown || viewer->sidebyside)
+	if(TRUE) //conttenttypes assume we're going to scissor: statusbar, quadrant
 	{   
 		/* scissor used to prevent mainloop from glClear()ing the wrong stereo side, and the statusbar area
 		 which is updated only every 10-25 loops */
