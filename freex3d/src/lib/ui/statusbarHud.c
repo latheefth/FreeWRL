@@ -2717,7 +2717,7 @@ int handleStatusbarHud1(int mev, int butnum, int mouseX, int mouseY, int windex)
 int getCursorStyle();
 int statusbar_handle_mouse1(int mev, int butnum, int mouseX, int yup, int windex)
 {
-	int vpx, vpy, iret;
+	int vpx, vpy, iret, ihandled;
 	ttglobal tg = gglobal();
 	ppstatusbar p = (ppstatusbar)tg->statusbar.prv;
 	updateViewportSize(); 
@@ -2725,13 +2725,13 @@ int statusbar_handle_mouse1(int mev, int butnum, int mouseX, int yup, int windex
 	//yup = p->screenHeight - mouseY;
 	vpy = yup - p->vport.Y;
 	vpx = mouseX - p->vport.X;
-	iret = handleStatusbarHud1(mev, butnum, vpx, vpy, windex);
-	if (!iret){
+	ihandled = handleStatusbarHud1(mev, butnum, vpx, vpy, windex);
+	iret = 0;
+	if (!ihandled){
 		fwl_set_frontend_using_cursor(FALSE);
-		iret = -1;
 	}else{
 		fwl_set_frontend_using_cursor(TRUE);
-		iret = getCursorStyle();
+		iret = 1;
 	}
 	return iret;
 }
@@ -2756,7 +2756,20 @@ void update_pinned(){
 	p->wantButtons = fwl_get_sbh_wantMenubar();
 	p->wantStatusbar = fwl_get_sbh_wantStatusbar();
 }
+int statusbar_getClipPlane(){
+	int vrml_clipplane;
+	ppstatusbar p;
+	ttglobal tg = gglobal();
+	p = (ppstatusbar)tg->statusbar.prv;
+	//vrml_clipplane is for contenttype_statusbar to know its vrml area of the screen, which it clears, 
+	// and centers its sub-contents in
+	//unpinned menu and status are not used for calculating what's left for vrml, because
+	// being unpinned they are always changing and it can get irritating watching the vrml content continuously resizing
+	// every time you bring up the menu or statusbar.
+	vrml_clipplane = (p->statusbar_pinned && p->wantStatusbar ? p->statusBarSize : 0) + (p->menubar_pinned && p->wantButtons ? p->buttonSize : 0);
+	return vrml_clipplane;
 
+}
 void drawStatusBar() 
 {
 	/* drawStatusBar() is called just before swapbuffers in mainloop so anything that you want to render 2D
@@ -2826,8 +2839,8 @@ M       void toggle_collision()                             //"
 	//unpinned menu and status are not used for calculating what's left for vrml, because
 	// being unpinned they are always changing and it can get irritating watching the vrml content continuously resizing
 	// every time you bring up the menu or statusbar.
-	vrml_clipplane = (p->statusbar_pinned && p->wantStatusbar ? p->statusBarSize : 0) + (p->menubar_pinned && p->wantButtons ? p->buttonSize : 0);
-	fwl_setClipPlane(vrml_clipplane); //p->clipPlane);
+	//vrml_clipplane = (p->statusbar_pinned && p->wantStatusbar ? p->statusBarSize : 0) + (p->menubar_pinned && p->wantButtons ? p->buttonSize : 0);
+	//fwl_setClipPlane(vrml_clipplane); //p->clipPlane);
 
 	nsides = 1;
 	if (Viewer()->updown) nsides = 2; //one stereo mode updown draws the menubar and/or statusbar twice, once for each stereo side
