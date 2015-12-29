@@ -443,7 +443,7 @@ typedef struct contenttype_statusbar {
 	tcontenttype t1;
 	int clipplane;
 } contenttype_statusbar;
-void view_update0();
+void render_statusbar0();
 void statusbar_render(void *_self){
 	//make this like layer, render contents first in clipplane-limited viewport, then sbh in whole viewport
 	Stack *vportstack;
@@ -474,7 +474,7 @@ void statusbar_render(void *_self){
 	if(self->clipplane != 0 && vportstack != NULL){
 		//stack_pop(ivec4,vportstack);
 	}
-	view_update0(); //draw statusbarHud
+	render_statusbar0(); //draw statusbarHud
 	popnset_viewport();
 }
 int statusbar_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
@@ -484,7 +484,7 @@ int statusbar_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int
 
 	//make this like layer, checking sbh first, then if not handled try contents in clipplane-limited viewport
 
-	self = (contenttype *)_self;
+	self = (contenttype_statusbar *)_self;
 	iret = 0;
 	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
 		iret = statusbar_handle_mouse1(mev,butnum,mouseX,mouseY,windex);
@@ -746,19 +746,9 @@ contenttype *new_contenttype_e3dmouse(){
 	return (contenttype*)self;
 }
 
-typedef struct vpointpose {
-	struct point_XYZ Pos;
-	Quaternion Quat;
-	double Dist;
-} vpointpose;
-
 typedef struct contenttype_quadrant {
 	tcontenttype t1;
-	//clears zbuffer and clear color once before rendering
-	//picking tests against quadrant
 	float offset_fraction[2];
-	ivec2 offset_pixels;
-	vpointpose pose_save;
 } contenttype_quadrant;
 void loadIdentityMatrix (double *mat);
 static void get_view_matrix(double *savePosOri, double *saveView);
@@ -1976,7 +1966,7 @@ int fw_exit(int val)
 	exit(val);
 }
 
-void view_update0(void){
+void render_statusbar0(void){
 	#if defined(STATUSBAR_HUD)
 		/* status bar, if we have one */
 		finishedWithGlobalShader();
@@ -3931,7 +3921,6 @@ static void render()
 			if (Viewer()->anaglyph)
 				glColorMask(1,1,1,1); /*restore, for statusbarHud etc*/
 		}
-		glDisable(GL_SCISSOR_TEST);
 	} /* for loop */
 
 }
@@ -5479,7 +5468,6 @@ void doReplaceWorldRequest()
 	tg->threads.flushing = 0;
 }
 static int(*view_initialize)() = NULL;
-static void(*view_update)() = NULL;
 //
 //EGL/GLES2 winGLES2.exe with KEEP_FV_INLIB sets frontend_handles_display_thread=true, 
 // then calls fv_display_initialize() which only creates window in backend if false
@@ -5519,7 +5507,6 @@ int fwl_draw()
 	if (!p->draw_initialized){
 		more = FALSE;
 		view_initialize = view_initialize0; //defined above, with ifdefs
-//		view_update = view_update0; //defined above with ifdefs
 		if (view_initialize)
 			more = view_initialize();
 
@@ -5543,13 +5530,6 @@ int fwl_draw()
 			profile_end("mainloop");
 			profile_start("frontend");
 
-			//view: poll model and update yourself >>
-			if (view_update) view_update();
-
-			//if (!tg->display.params.frontend_handles_display_thread){
-			//	/* swap the rendering area */
-			//	FW_GL_SWAPBUFFERS;
-			//}
 			PRINT_GL_ERROR_IF_ANY("XEvents::render");
 			checkReplaceWorldRequest(); //will set flushing=1
 			checkQuitRequest(); //will set flushing=1
