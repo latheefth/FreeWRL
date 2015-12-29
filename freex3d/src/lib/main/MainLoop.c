@@ -768,35 +768,23 @@ static void set_quadrant_viewmatrix(double *savePosOri, double *saveView, int iq
 	//iq 2 3
 	//   0 1
 	//no comprendo - por que no veo difference.
-	double viewmatrix[16], tmat[16], pomat[16], vmat[16],poinverse[16], vinverse[16], bothinverse[16];
+	double viewmatrix[16], tmat[16], pomat[16], vmat[16], bothinverse[16];
 	double xyz[3], zero[3];
 
 	get_view_matrix(savePosOri,saveView);
 	if(iq==0) return;
 	zero[0] = zero[1] = zero[2] = 0.0;
 	matmultiplyAFFINE(viewmatrix,saveView,savePosOri);
-	matinverseAFFINE(poinverse,savePosOri);
-	matinverseAFFINE(vinverse,saveView);
 	matinverseAFFINE(bothinverse,viewmatrix);
 
-	if(0) transformAFFINEd(xyz, zero, viewmatrix);
-	else if(0) transformAFFINEd(xyz, zero, poinverse);
-	else if(0) transformAFFINEd(xyz, zero, vinverse);
-	else transformAFFINEd(xyz, zero, bothinverse);
+	transformAFFINEd(xyz, zero, bothinverse);
 
-	if(0) matcopy(pomat,savePosOri);
-	else loadIdentityMatrix (pomat);
+	loadIdentityMatrix (pomat);
 	loadIdentityMatrix (vmat);
 	if(0) mattranslate(vmat, -Viewer()->Dist,0.0,0.0);
-	if(0) matcopy(vmat,poinverse);
-	if(0)
-		mattranslate(tmat,viewmatrix[12],viewmatrix[13],viewmatrix[14]);
-	else
-		mattranslate(tmat,-xyz[0],-xyz[1],-xyz[2]);
-	if(0)
-		matmultiplyAFFINE(vmat,vmat,tmat);
-	else
-		matmultiplyAFFINE(vmat,tmat,vmat);
+	
+	mattranslate(tmat,-xyz[0],-xyz[1],-xyz[2]);
+	matmultiplyAFFINE(vmat,tmat,vmat);
 
 	switch(iq){
 		case 0: break; //no change to vp
@@ -809,8 +797,7 @@ static void set_quadrant_viewmatrix(double *savePosOri, double *saveView, int iq
 		default:
 		break;
 	}
-	if(1) matmultiplyAFFINE(vmat,vmat,tmat);
-	else matmultiplyAFFINE(vmat,tmat,vmat);
+	matmultiplyAFFINE(vmat,vmat,tmat);
 	set_view_matrix(pomat,vmat);
 }
 void quadrant_render(void *_self){
