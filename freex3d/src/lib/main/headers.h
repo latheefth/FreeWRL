@@ -572,7 +572,8 @@ void *returnInterpolatorPointer (int nodeType);
 #define X3DLayerNode					59
 #define X3DLayerSetNode					60
 #define X3DLayoutNode					61
-
+#define X3DNBodyCollidableNode			62
+#define X3DRigidJointNode				63
 
 
 BOOL isManagedField(int mode, int type, BOOL isPublic);
