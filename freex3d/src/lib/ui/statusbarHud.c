@@ -2923,4 +2923,12 @@ M       void toggle_collision()                             //"
 	glDepthMask(TRUE);
 	glEnable(GL_DEPTH_TEST);
 }
+#else //ifdef STATUSBAR_HUD
+//stubs
+int statusbar_getClipPlane(){
+	return 0;
+}
+int statusbar_handle_mouse1(int mev, int butnum, int mouseX, int yup, int windex){
+	return 0; //not handled
+}
 #endif

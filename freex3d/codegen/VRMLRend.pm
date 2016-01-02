@@ -195,7 +195,21 @@ our %defaultContainerType = (
 	LayoutLayer		=>"children",
 	ScreenFontStyle		=>"fontStyle",
 	ScreenGroup		=>"children",
-	
+
+	BallJoint		=>"children",
+	CollidableOffset	=>"children",
+	CollidableShape		=>"children",
+	CollisionCollection	=>"children",
+	CollisionSensor		=>"children",
+	CollisionSpace		=>"children",
+	Contact			=>"children",
+	DoubleAxisHingeJoint	=>"children",
+	MotorJoint		=>"children",
+	RigidBody		=>"children",
+	RigidBodyCollection	=>"children",
+	SingleAxisHingeJoint	=>"children",
+	SliderJoint		=>"children",
+	UniversalJoint		=>"children",
 
 	MetadataSet		=>"metadata",
 	MetadataInteger		=>"metadata",
