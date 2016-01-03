@@ -1912,6 +1912,7 @@ const int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 	"Material",
 	"Matrix3VertexAttribute",
 	"Matrix4VertexAttribute",
+	"MetadataBoolean",
 	"MetadataDouble",
 	"MetadataFloat",
 	"MetadataInteger",
@@ -2353,6 +2354,9 @@ struct X3D_Virt virt_Material = { NULL,(void *)render_Material,NULL,NULL,NULL,NU
 struct X3D_Virt virt_Matrix3VertexAttribute = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 struct X3D_Virt virt_Matrix4VertexAttribute = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void compile_MetadataBoolean(struct X3D_MetadataBoolean *);
+struct X3D_Virt virt_MetadataBoolean = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataBoolean};
 
 void compile_MetadataDouble(struct X3D_MetadataDouble *);
 struct X3D_Virt virt_MetadataDouble = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataDouble};
@@ -2835,6 +2839,7 @@ struct X3D_Virt* virtTable[] = {
 	 &virt_Material,
 	 &virt_Matrix3VertexAttribute,
 	 &virt_Matrix4VertexAttribute,
+	 &virt_MetadataBoolean,
 	 &virt_MetadataDouble,
 	 &virt_MetadataFloat,
 	 &virt_MetadataInteger,
@@ -4334,6 +4339,13 @@ const int OFFSETS_Matrix4VertexAttribute[] = {
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_Matrix4VertexAttribute, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_name, (int) offsetof (struct X3D_Matrix4VertexAttribute, name),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_value, (int) offsetof (struct X3D_Matrix4VertexAttribute, value),  (int) FIELDTYPE_MFMatrix4f, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	-1, -1, -1, -1, -1};
+
+const int OFFSETS_MetadataBoolean[] = {
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_MetadataBoolean, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_name, (int) offsetof (struct X3D_MetadataBoolean, name),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_reference, (int) offsetof (struct X3D_MetadataBoolean, reference),  (int) FIELDTYPE_SFString, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_value, (int) offsetof (struct X3D_MetadataBoolean, value),  (int) FIELDTYPE_MFBool, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_MetadataDouble[] = {
@@ -5934,6 +5946,7 @@ const int *NODE_OFFSETS[] = {
 	OFFSETS_Material,
 	OFFSETS_Matrix3VertexAttribute,
 	OFFSETS_Matrix4VertexAttribute,
+	OFFSETS_MetadataBoolean,
 	OFFSETS_MetadataDouble,
 	OFFSETS_MetadataFloat,
 	OFFSETS_MetadataInteger,
@@ -6414,6 +6427,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Material : {tmp = MALLOC (struct X3D_Material *, sizeof (struct X3D_Material)); break;}
 		case NODE_Matrix3VertexAttribute : {tmp = MALLOC (struct X3D_Matrix3VertexAttribute *, sizeof (struct X3D_Matrix3VertexAttribute)); break;}
 		case NODE_Matrix4VertexAttribute : {tmp = MALLOC (struct X3D_Matrix4VertexAttribute *, sizeof (struct X3D_Matrix4VertexAttribute)); break;}
+		case NODE_MetadataBoolean : {tmp = MALLOC (struct X3D_MetadataBoolean *, sizeof (struct X3D_MetadataBoolean)); break;}
 		case NODE_MetadataDouble : {tmp = MALLOC (struct X3D_MetadataDouble *, sizeof (struct X3D_MetadataDouble)); break;}
 		case NODE_MetadataFloat : {tmp = MALLOC (struct X3D_MetadataFloat *, sizeof (struct X3D_MetadataFloat)); break;}
 		case NODE_MetadataInteger : {tmp = MALLOC (struct X3D_MetadataInteger *, sizeof (struct X3D_MetadataInteger)); break;}
@@ -8304,6 +8318,16 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->name = newASCIIString("");
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_children;
+		break;
+		}
+		case NODE_MetadataBoolean : {
+			struct X3D_MetadataBoolean * tmp2;
+			tmp2 = (struct X3D_MetadataBoolean *) tmp;
+			tmp2->metadata = NULL;
+			tmp2->name = newASCIIString("");
+			tmp2->reference = newASCIIString("");
+			tmp2->value.n=0; tmp2->value.p=0;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataDouble : {
@@ -12093,6 +12117,18 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f ]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3],(tmp->value.p[i]).c[4],(tmp->value.p[i]).c[5],(tmp->value.p[i]).c[6],(tmp->value.p[i]).c[7],(tmp->value.p[i]).c[8],(tmp->value.p[i]).c[9],(tmp->value.p[i]).c[10],(tmp->value.p[i]).c[11],(tmp->value.p[i]).c[12],(tmp->value.p[i]).c[13],(tmp->value.p[i]).c[14],(tmp->value.p[i]).c[15]); }
 		    break;
 		}
+		case NODE_MetadataBoolean : {
+			struct X3D_MetadataBoolean *tmp;
+			tmp = (struct X3D_MetadataBoolean *) node;
+			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
+			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
+			spacer fprintf (fp," value (MFBool):\n");
+			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->value.p[i]); }
+		    break;
+		}
 		case NODE_MetadataDouble : {
 			struct X3D_MetadataDouble *tmp;
 			tmp = (struct X3D_MetadataDouble *) node;
@@ -14100,6 +14136,7 @@ int getSAI_X3DNodeType (int FreeWRLNodeType) {
 	case NODE_Material: return X3DMaterialNode; break;
 	case NODE_Matrix3VertexAttribute: return X3DVertexAttributeNode; break;
 	case NODE_Matrix4VertexAttribute: return X3DVertexAttributeNode; break;
+	case NODE_MetadataBoolean: return X3DChildNode; break;
 	case NODE_MetadataDouble: return X3DChildNode; break;
 	case NODE_MetadataFloat: return X3DChildNode; break;
 	case NODE_MetadataInteger: return X3DChildNode; break;

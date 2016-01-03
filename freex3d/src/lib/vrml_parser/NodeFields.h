@@ -1304,6 +1304,14 @@ EXPOSED_FIELD(Matrix4VertexAttribute,name,sfstring,name,FIELDTYPE_SFString)
 EXPOSED_FIELD(Matrix4VertexAttribute,value,mfmatrix4f,value,FIELDTYPE_MFMatrix4f)
 END_NODE(Matrix4VertexAttribute)
 
+/* MetadataBoolean node */
+BEGIN_NODE(MetadataBoolean)
+EXPOSED_FIELD(MetadataBoolean,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(MetadataBoolean,name,sfstring,name,FIELDTYPE_SFString)
+FIELD(MetadataBoolean,reference,sfstring,reference,FIELDTYPE_SFString)
+EXPOSED_FIELD(MetadataBoolean,value,mfbool,value,FIELDTYPE_MFBool)
+END_NODE(MetadataBoolean)
+
 /* MetadataDouble node */
 BEGIN_NODE(MetadataDouble)
 EXPOSED_FIELD(MetadataDouble,metadata,sfnode,metadata,FIELDTYPE_SFNode)

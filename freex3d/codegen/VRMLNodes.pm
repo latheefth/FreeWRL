@@ -124,6 +124,13 @@ our %Nodes = (
 		__oldload => ["SFBool", "FALSE", "initializeOnly", 0],
 	],"X3DProtoInstance"),
 
+	"MetadataBoolean" => new VRML::NodeType("MetadataBoolean", [
+			metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			name => ["SFString","","inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
+			reference => ["SFString","","initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			value => ["MFBool",[],"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],  # see note top of file
+	], "X3DChildNode"),
+
 	"MetadataInteger" => new VRML::NodeType("MetadataInteger", [
 			metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			name => ["SFString","","inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
@@ -1221,7 +1228,7 @@ our %Nodes = (
 
 	###################################################################################
 
-	#		Pointing Device Component
+	#	20	Pointing Device Component
 
 	###################################################################################
 
@@ -1329,7 +1336,7 @@ our %Nodes = (
 
 	###################################################################################
 
-	#		Key Device Component
+	#	21	Key Device Component
 
 	###################################################################################
 
@@ -1363,7 +1370,7 @@ our %Nodes = (
 
 	###################################################################################
 
-	#		Environmental Sensor Component
+	#	22	Environmental Sensor Component
 
 	###################################################################################
 
@@ -1406,7 +1413,7 @@ our %Nodes = (
 
 	###################################################################################
 
-	#		Navigation Component
+	#	23	Navigation Component
 
 	###################################################################################
 
@@ -1516,7 +1523,7 @@ our %Nodes = (
 
 	###################################################################################
 
-	#		Environmental Effects Component
+	#	24	Environmental Effects Component
 
 	###################################################################################
 
@@ -1604,7 +1611,7 @@ our %Nodes = (
 
 	###################################################################################
 
-	#		Geospatial Component
+	#	25	Geospatial Component
 
 	###################################################################################
 
@@ -1861,7 +1868,7 @@ our %Nodes = (
 
 	###################################################################################
 
-	#		H-Anim Component
+	#	26	H-Anim Component
 
 	###################################################################################
 
@@ -1967,7 +1974,7 @@ our %Nodes = (
 
 	###################################################################################
 
-	#		NURBS Component
+	#	27	NURBS Component
 
 	###################################################################################
 

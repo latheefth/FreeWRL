@@ -212,6 +212,7 @@ our %defaultContainerType = (
 	UniversalJoint		=>"children",
 
 	MetadataSet		=>"metadata",
+	MetadataBoolean		=>"metadata",
 	MetadataInteger		=>"metadata",
 	MetadataDouble		=>"metadata",
 	MetadataFloat		=>"metadata",
@@ -561,6 +562,7 @@ our %CompileC = map {($_=>1)} qw/
 	MetadataSFVec4d
 	MetadataSet
 	MetadataInteger
+	MetadataBoolean
 	MetadataDouble
 	MetadataFloat
 	MetadataString
