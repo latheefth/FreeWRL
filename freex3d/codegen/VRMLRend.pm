@@ -218,7 +218,7 @@ our %defaultContainerType = (
 	MetadataFloat		=>"metadata",
 	MetadataString		=>"metadata",
 
-
+	#could re-direct these to "children" if/when troto target obsolete, and before all these are cut:
 	MetadataSFFloat		=>"FreeWRL_PROTOInterfaceNodes",
 	MetadataMFFloat		=>"FreeWRL_PROTOInterfaceNodes",
 	MetadataSFRotation	=>"FreeWRL_PROTOInterfaceNodes",
@@ -261,6 +261,7 @@ our %defaultContainerType = (
 	MetadataMFVec4f		=>"FreeWRL_PROTOInterfaceNodes",
 	MetadataSFVec4d		=>"FreeWRL_PROTOInterfaceNodes",
 	MetadataMFVec4d		=>"FreeWRL_PROTOInterfaceNodes",
+
 
 	EaseInEaseOut 	=>"children",
 	SplinePositionInterpolator 	=>"children",

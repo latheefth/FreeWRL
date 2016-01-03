@@ -4965,8 +4965,6 @@ const int OFFSETS_PackagedShader[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_PickableGroup[] = {
-	(int) FIELDNAMES_FreeWRL_PROTOInterfaceNodes, (int) offsetof (struct X3D_PickableGroup, FreeWRL_PROTOInterfaceNodes),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_FreeWRL__protoDef, (int) offsetof (struct X3D_PickableGroup, FreeWRL__protoDef),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_PickableGroup, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_PickableGroup, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_PickableGroup, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -9165,8 +9163,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_PickableGroup : {
 			struct X3D_PickableGroup * tmp2;
 			tmp2 = (struct X3D_PickableGroup *) tmp;
-			tmp2->FreeWRL_PROTOInterfaceNodes.n=0; tmp2->FreeWRL_PROTOInterfaceNodes.p=0;
-			tmp2->FreeWRL__protoDef = INT_ID_UNDEFINED;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
@@ -12903,8 +12899,6 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_PickableGroup *tmp;
 			tmp = (struct X3D_PickableGroup *) node;
 			UNUSED(tmp); // compiler warning mitigation
-			spacer fprintf (fp," FreeWRL_PROTOInterfaceNodes (MFNode):\n");
-			for (i=0; i<tmp->FreeWRL_PROTOInterfaceNodes.n; i++) { dump_scene(fp,level+1,tmp->FreeWRL_PROTOInterfaceNodes.p[i]); }
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 		    if(allFields) {

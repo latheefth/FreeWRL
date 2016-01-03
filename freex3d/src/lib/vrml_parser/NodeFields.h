@@ -1980,8 +1980,6 @@ END_NODE(PackagedShader)
 
 /* PickableGroup node */
 BEGIN_NODE(PickableGroup)
-EXPOSED_FIELD(PickableGroup,FreeWRL_PROTOInterfaceNodes,mfnode,FreeWRL_PROTOInterfaceNodes,FIELDTYPE_MFNode)
-FIELD(PickableGroup,FreeWRL__protoDef,sfint32,FreeWRL__protoDef,FIELDTYPE_SFInt32)
 EVENT_IN(PickableGroup,addChildren,mfnode,addChildren,FIELDTYPE_MFNode)
 FIELD(PickableGroup,bboxCenter,sfvec3f,bboxCenter,FIELDTYPE_SFVec3f)
 FIELD(PickableGroup,bboxSize,sfvec3f,bboxSize,FIELDTYPE_SFVec3f)

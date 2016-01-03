@@ -6631,8 +6631,6 @@ struct X3D_PickableGroup {
 	int pickable;
 	struct SFVec3f bboxCenter;
 	struct SFVec3f bboxSize;
-	int FreeWRL__protoDef;
-	struct Multi_Node FreeWRL_PROTOInterfaceNodes;
 };
 extern struct X3D_Virt virt_PickableGroup;
 /***********************/
