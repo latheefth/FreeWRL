@@ -43,6 +43,9 @@ our %defaultContainerType = (
 
 
 	PointPickSensor		=>"children",
+	LinePickSensor		=>"children",
+	PrimitivePickSensor	=>"children",
+	VolumePickSensor	=>"children",
 	OSC_Sensor		=>"children",
 
 	Arc2D			=>"geometry",
@@ -211,6 +214,33 @@ our %defaultContainerType = (
 	SliderJoint		=>"children",
 	UniversalJoint		=>"children",
 
+	ColorChaser		=>"children",
+	ColorDamper		=>"children",
+	CoordinateChaser	=>"children",
+	CoordinateDamper	=>"children",
+	OrientationChaser	=>"children",
+	OrientationDamper	=>"children",
+	PositionChaser		=>"children",
+	PositionDamper		=>"children",
+	PositionChaser2D	=>"children",
+	PositionDamper2D	=>"children",
+	ScalarChaser		=>"children",
+	ScalarDamper		=>"children",
+	TexCoordChaser		=>"children",
+	TexCoordDamper		=>"children",
+
+	ConeEmitter		=>"emitter",
+	ExplosionEmitter	=>"emitter",
+	PointEmitter		=>"emitter",
+	PolylineEmitter		=>"emitter",
+	SurfaceEmitter		=>"emitter",
+	VolumeEmitter		=>"emitter",
+	WindPhysicsModel	=>"physics",
+	BoundedPhysicsModel	=>"physics",
+	GravityPhysicsModel	=>"physics",
+	ParticleSystem		=>"shape",
+
+	
 	MetadataSet		=>"metadata",
 	MetadataBoolean		=>"metadata",
 	MetadataInteger		=>"metadata",

@@ -574,7 +574,10 @@ void *returnInterpolatorPointer (int nodeType);
 #define X3DLayoutNode					61
 #define X3DNBodyCollidableNode			62
 #define X3DRigidJointNode				63
-
+#define X3DChaserNode					64
+#define X3DDamperNode					65
+#define X3DParticleEmitterNode			66
+#define X3DParticlePhysicsModelNode		67
 
 BOOL isManagedField(int mode, int type, BOOL isPublic);
 

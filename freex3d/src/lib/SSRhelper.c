@@ -63,7 +63,9 @@ void SSRserver_enqueue_request_and_wait(void *fwctx, SSR_request *request){
 }
 #include "../lib/internal.h"
 #define BOOL	int
+#ifndef GLDOUBLE
 #define GLDOUBLE double
+#endif
 #include "../lib/scenegraph/quaternion.h"
 #include "../lib/scenegraph/LinearAlgebra.h"
 static double view[16], inv_view[16], matOri[16];
