@@ -51,6 +51,13 @@ X3D Core Component
 /*												*/
 /************************************************************************************************/
 
+void compile_MetadataBoolean (struct X3D_MetadataBoolean *node) {
+	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataBoolean, metadata));
+	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataBoolean, name));
+	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataBoolean, reference));
+	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataBoolean, value));
+	MARK_NODE_COMPILED;
+}
 void compile_MetadataInteger (struct X3D_MetadataInteger *node) {
 	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataInteger, metadata));
 	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataInteger, name));
