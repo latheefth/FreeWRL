@@ -48,7 +48,7 @@ ScreenGroup is like Group or perhaps Transform, except it may need to alter the 
 	with x,y scales so as to treat children's coords as being in screen pixels.
 Layout			- (just info node used in other nodes)
 LayoutGroup		- (like Group, sets viewport, layout) prep, fin, ChildC [compileC]
-LayoutLayer		- (like Group, sets viewport, layout, Ortho) prep, fin, ChildC [compileC]
+LayoutLayer		- always called from layerset: render, rendray
 ScreenFontStyle	- (same as FontStyle node - just info node for Text)
 ScreenGroup		- (like Group except modifies scale) prep, fin, ChildC [compileC]
 (note regular Group is funny: it sorts children by depth often, for transparency blending purposes
@@ -61,12 +61,13 @@ void child_LayoutGroup(struct X3D_Node *node){
 }
 void fin_LayoutGroup(struct X3D_Node *node){
 }
-void prep_LayoutLayer(struct X3D_Node *node){
+
+//layoutLayer functions are called only by Layerset, not via virtual functions in render_hier()
+void render_LayoutLayer(struct X3D_Node *node){
 }
-void child_LayoutLayer(struct X3D_Node *node){
+void rendray_LayoutLayer(struct X3D_Node *node){
 }
-void fin_LayoutLayer(struct X3D_Node *node){
-}
+
 void prep_ScreenGroup(struct X3D_Node *node){
 }
 void child_ScreenGroup(struct X3D_Node *node){

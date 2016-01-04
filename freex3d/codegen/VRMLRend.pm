@@ -436,10 +436,8 @@ our %PrepC = map {($_=>1)} qw/
 	GeoTransform
 	CADAssembly
 	CADPart
-	Layer
 	Viewport
 	LayoutGroup
-	LayoutLayer
 	ScreenGroup
 /;
 
@@ -461,10 +459,8 @@ our %FinC = map {($_=>1)} qw/
 	HAnimJoint
 	GeoTransform
 	CADPart
-	Layer
 	Viewport
 	LayoutGroup
-	LayoutLayer
 	ScreenGroup
 /;
 
@@ -507,10 +503,8 @@ our %ChildC = map {($_=>1)} qw/
 	Appearance
 	Shape
 	VisibilitySensor
-	Layer
 	Viewport
 	LayoutGroup
-	LayoutLayer
 	ScreenGroup
 /;
 
@@ -801,7 +795,8 @@ our %RendRayC = map {($_=>1)} qw/
 	TriangleFanSet
 	TriangleStripSet
 	NurbsPatchSurface
-	NurbsTrimmedSurface	
+	NurbsTrimmedSurface
+	LayerSet
 /;
 
 

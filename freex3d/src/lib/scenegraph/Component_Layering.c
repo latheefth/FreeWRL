@@ -41,8 +41,8 @@ X3D Layering Component
 
 /*
  http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/layering.html
-layer 			-(like Group) prep, fin, ChildC (not compileC - will assume Groups doing that)
-layerset 		-(a kind of group, but just render_ which does equivalent to prep,child,fin)
+layer 			- called from layerset on its render and rendray
+layerset 		-kindof group, but layers not children: render and rendray
 viewport 		-use 1: info node 
 				-use 2: (standalone Group-like) prep (push&set clip), fin(pop), ChildC
 
@@ -57,6 +57,10 @@ ivec4 childViewport(ivec4 parentViewport, float *clipBoundary){
 	return vport;
 }
 
+void render_Layer(struct X3D_Node * node){
+}
+void rendray_Layer(struct X3D_Node * node){
+}
 //status: pseudo-code oct 22, 2015
 void render_LayerSet(struct X3D_Node * node){
 	if(node && node->_nodeType == NODE_LayerSet){
@@ -72,6 +76,9 @@ void render_LayerSet(struct X3D_Node * node){
 			float *clipBoundary, defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; // left/right/bottom/top 0,1,0,1
 
 			layerset->activeLayer = j = layerset->order.p[i];
+			//both layer and layoutlayer can be in here
+			//if you want to be able to downcaste layoutlayer to layer, you better have the fields
+			//in the same order 
 			layer = (struct X3D_Layer*)layerset->layers.p[j];
 			//push/set binding stacks
 			//push layer.viewport onto viewport stack, setting it as the current window
@@ -85,7 +92,52 @@ void render_LayerSet(struct X3D_Node * node){
 			if(currentviewportvisible(vportstack)){
 				setcurrentviewport(vportstack);
 				glClear(GL_DEPTH_BUFFER_BIT); //if another layer has already drawn, don't clear it, just its depth fingerprint
-				render_node((struct X3D_Node*)layer);
+				if(node->_nodeType == NODE_Layer)
+					rendray_Layer((struct X3D_Node*)layer);
+				else if(node->_nodeType == NODE_LayoutLayer)
+					rendray_LayoutLayer((struct X3D_Node*)layer);
+			}
+			popviewport(vportstack);
+			setcurrentviewport(vportstack);
+			//pop binding stacks
+		}
+	}
+}
+void rendray_LayerSet(struct X3D_Node * node){
+	//picking comes in here, we iterate backward over layers, 
+	//starting with the topmost (last drawn) layer
+	//until we hit a layer that handles it, then we break 
+	if(node && node->_nodeType == NODE_LayerSet){
+		int i,j,ii;
+		ttglobal tg;
+		
+		struct X3D_LayerSet * layerset = (struct X3D_LayerSet *)node;
+		tg = gglobal();
+		for(ii=0;ii<layerset->layers.n;ii++){
+			struct X3D_Layer * layer;
+			Stack *vportstack;
+			ivec4 pvport,vport;
+			float *clipBoundary, defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; // left/right/bottom/top 0,1,0,1
+
+			i = layerset->layers.n - ii -1; //reverse order compared to rendering
+			layerset->activeLayer = j = layerset->order.p[i];
+			layer = (struct X3D_Layer*)layerset->layers.p[j];
+			//push/set binding stacks
+			//push layer.viewport onto viewport stack, setting it as the current window
+			vportstack = (Stack *)tg->Mainloop._vportstack;
+			pvport = stack_top(ivec4,vportstack); //parent context viewport
+			clipBoundary = defaultClipBoundary;
+			if(layer->viewport)
+				clipBoundary = ((struct X3D_Viewport*)(layer->viewport))->clipBoundary.p;
+			vport = childViewport(pvport,clipBoundary);
+			pushviewport(vportstack, vport);
+			if(currentviewportvisible(vportstack)){
+				setcurrentviewport(vportstack);
+				if(node->_nodeType == NODE_Layer)
+					rendray_Layer((struct X3D_Node*)layer);
+				else if(node->_nodeType == NODE_LayoutLayer)
+					rendray_LayoutLayer((struct X3D_Node*)layer);
+				//if handled, break;
 			}
 			popviewport(vportstack);
 			setcurrentviewport(vportstack);
@@ -94,16 +146,6 @@ void render_LayerSet(struct X3D_Node * node){
 	}
 }
 
-void prep_Layer(struct X3D_Node *node){
-}
-void child_Layer(struct X3D_Node * node){
-	if(node && node->_nodeType == NODE_Layer){
-		struct X3D_Layer * layer = (struct X3D_Layer *)node;
-		normalChildren(layer->children);
-	}
-}
-void fin_Layer(struct X3D_Node *node){
-}
 //not sure what I need for viewport. 
 //Situation #1 standalone viewport:
 //Maybe there should be a push and pop from a viewport stack, if rendering its children

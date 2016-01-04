@@ -5061,8 +5061,8 @@ struct X3D_LayoutLayer {
 	struct Multi_Node children;
 	struct X3D_Node *metadata;
 	int isPickable;
-	struct X3D_Node *layout;
 	struct X3D_Node *viewport;
+	struct X3D_Node *layout;
 };
 extern struct X3D_Virt virt_LayoutLayer;
 /***********************/
