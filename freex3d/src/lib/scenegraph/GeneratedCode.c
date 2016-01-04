@@ -2417,19 +2417,25 @@ void child_LOD(struct X3D_LOD *);
 void proximity_LOD(struct X3D_LOD *);
 struct X3D_Virt virt_LOD = { NULL,NULL,(void *)child_LOD,NULL,NULL,NULL,(void *)proximity_LOD,NULL,NULL,NULL};
 
-void render_Layer(struct X3D_Layer *);
-void rendray_Layer(struct X3D_Layer *);
-struct X3D_Virt virt_Layer = { NULL,(void *)render_Layer,NULL,NULL,(void *)rendray_Layer,NULL,NULL,NULL,NULL,NULL};
+void prep_Layer(struct X3D_Layer *);
+void child_Layer(struct X3D_Layer *);
+void fin_Layer(struct X3D_Layer *);
+struct X3D_Virt virt_Layer = { (void *)prep_Layer,NULL,(void *)child_Layer,(void *)fin_Layer,NULL,NULL,NULL,NULL,NULL,NULL};
 
 void render_LayerSet(struct X3D_LayerSet *);
-void rendray_LayerSet(struct X3D_LayerSet *);
-struct X3D_Virt virt_LayerSet = { NULL,(void *)render_LayerSet,NULL,NULL,(void *)rendray_LayerSet,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_LayerSet = { NULL,(void *)render_LayerSet,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 struct X3D_Virt virt_Layout = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_LayoutGroup = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void prep_LayoutGroup(struct X3D_LayoutGroup *);
+void child_LayoutGroup(struct X3D_LayoutGroup *);
+void fin_LayoutGroup(struct X3D_LayoutGroup *);
+struct X3D_Virt virt_LayoutGroup = { (void *)prep_LayoutGroup,NULL,(void *)child_LayoutGroup,(void *)fin_LayoutGroup,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_LayoutLayer = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void prep_LayoutLayer(struct X3D_LayoutLayer *);
+void child_LayoutLayer(struct X3D_LayoutLayer *);
+void fin_LayoutLayer(struct X3D_LayoutLayer *);
+struct X3D_Virt virt_LayoutLayer = { (void *)prep_LayoutLayer,NULL,(void *)child_LayoutLayer,(void *)fin_LayoutLayer,NULL,NULL,NULL,NULL,NULL,NULL};
 
 struct X3D_Virt virt_LinePickSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
@@ -2746,7 +2752,10 @@ struct X3D_Virt virt_ScalarInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,N
 
 struct X3D_Virt virt_ScreenFontStyle = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_ScreenGroup = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void prep_ScreenGroup(struct X3D_ScreenGroup *);
+void child_ScreenGroup(struct X3D_ScreenGroup *);
+void fin_ScreenGroup(struct X3D_ScreenGroup *);
+struct X3D_Virt virt_ScreenGroup = { (void *)prep_ScreenGroup,NULL,(void *)child_ScreenGroup,(void *)fin_ScreenGroup,NULL,NULL,NULL,NULL,NULL,NULL};
 
 struct X3D_Virt virt_Script = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
@@ -2860,9 +2869,10 @@ void child_ViewpointGroup(struct X3D_ViewpointGroup *);
 void compile_ViewpointGroup(struct X3D_ViewpointGroup *);
 struct X3D_Virt virt_ViewpointGroup = { NULL,NULL,(void *)child_ViewpointGroup,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_ViewpointGroup};
 
-void render_Viewport(struct X3D_Viewport *);
-void rendray_Viewport(struct X3D_Viewport *);
-struct X3D_Virt virt_Viewport = { NULL,(void *)render_Viewport,NULL,NULL,(void *)rendray_Viewport,NULL,NULL,NULL,NULL,NULL};
+void prep_Viewport(struct X3D_Viewport *);
+void child_Viewport(struct X3D_Viewport *);
+void fin_Viewport(struct X3D_Viewport *);
+struct X3D_Virt virt_Viewport = { (void *)prep_Viewport,NULL,(void *)child_Viewport,(void *)fin_Viewport,NULL,NULL,NULL,NULL,NULL,NULL};
 
 void child_VisibilitySensor(struct X3D_VisibilitySensor *);
 struct X3D_Virt virt_VisibilitySensor = { NULL,NULL,(void *)child_VisibilitySensor,NULL,NULL,NULL,NULL,NULL,NULL,NULL};

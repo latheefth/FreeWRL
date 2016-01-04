@@ -39,7 +39,14 @@ X3D Layering Component
 #include "../scenegraph/RenderFuncs.h"
 
 
-// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/layering.html
+/*
+ http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/layering.html
+layer 			-(like Group) prep, fin, ChildC (not compileC - will assume Groups doing that)
+layerset 		-(a kind of group, but just render_ which does equivalent to prep,child,fin)
+viewport 		-use 1: info node 
+				-use 2: (standalone Group-like) prep (push&set clip), fin(pop), ChildC
+
+ */
 
 ivec4 childViewport(ivec4 parentViewport, float *clipBoundary){
 	ivec4 vport;
@@ -87,28 +94,15 @@ void render_LayerSet(struct X3D_Node * node){
 	}
 }
 
-//I suspect I don't need a rendray_ rather just a children handler that can transform a pickray before calling normalchildren
-void rendray_LayerSet(struct X3D_Node *node){
-	//for picking
-	//float h,r,y;
-	struct point_XYZ t_r1,t_r2;
-	get_current_ray(&t_r1, &t_r2);
-
+void prep_Layer(struct X3D_Node *node){
 }
-void render_Layer(struct X3D_Node * node){
+void child_Layer(struct X3D_Node * node){
 	if(node && node->_nodeType == NODE_Layer){
 		struct X3D_Layer * layer = (struct X3D_Layer *)node;
 		normalChildren(layer->children);
 	}
 }
-// maybe don't need rendray_layer, just a children handler that transforms pickray before calling normalchildren
-void rendray_Layer(struct X3D_Node *node){
-	//for picking
-	//float h,r,y;
-	struct point_XYZ t_r1,t_r2;
-
-	get_current_ray(&t_r1, &t_r2);
-
+void fin_Layer(struct X3D_Node *node){
 }
 //not sure what I need for viewport. 
 //Situation #1 standalone viewport:
@@ -121,7 +115,9 @@ void rendray_Layer(struct X3D_Node *node){
 // pre: push vport
 // render: render itself 
 // post/fin: pop vport
-void render_Viewport(struct X3D_Node * node){
+void prep_Viewport(struct X3D_Node * node){
+}
+void child_Viewport(struct X3D_Node * node){
 	if(node && node->_nodeType == NODE_Viewport){
 		struct X3D_Viewport * viewport = (struct X3D_Viewport *)node;
 		//push viewport
@@ -129,19 +125,5 @@ void render_Viewport(struct X3D_Node * node){
 		//pop viewport
 	}
 }
-//not sure how to do this, except we need to transform the pickray
-// for example a pickray may start over whole screen, then be transformed into
-// one quad of a quadrant display for further picking
-void rendray_Viewport(struct X3D_Node *node){
-	//for picking
-	//float h,r,y;
-	struct point_XYZ t_r1,t_r2;
-
-	get_current_ray(&t_r1, &t_r2);
-	//push viewport
-	//transform pickray to viewport and push pickray
-	//rendray children
-	//pop pickray
-	//pop viewport
-
+void fin_Viewport(struct X3D_Node * node){
 }

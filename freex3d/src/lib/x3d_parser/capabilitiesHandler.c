@@ -63,14 +63,14 @@ static const int capabilities[] = {
 	COM_HAnim,	0, 		/* May 12, 2009 */
 	COM_RigidBodyPhysics,	0, 	/* May 12, 2009 */
 	COM_Core,		2,	/* October 29, 2008 */
-	COM_Layout,	0, 		/* May 12, 2009 */
+	COM_Layout,	2, 		/* Jan 2016 */
 	COM_Time,		2, 	/* October 29, 2008 */
 	COM_Geometry3D,	4, 		/* May 12, 2009 */
 	COM_Followers,	0, 		/* May 12, 2009 */
 	COM_Scripting,	1, 		/* May 12, 2009 */
 	COM_Lighting,	3, 		/* May 12, 2009 */
 	COM_KeyDeviceSensor,	2, 	/* May 12, 2009 */
-	COM_Layering,	0, 		/* May 12, 2009 */
+	COM_Layering,	1, 		/* Jan 2016 */
 	COM_Networking,	3, 		/* May 12, 2009 */
 	COM_ParticleSystems,	0, 	/* May 12, 2009 */
 	COM_Sound,	1, 		/* May 12, 2009 */

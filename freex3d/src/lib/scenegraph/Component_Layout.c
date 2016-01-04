@@ -46,15 +46,30 @@ ScreenFontStyle is the same as FontStyle except with pixelSize instead of size
 - size (FontStyle) and pointSize (ScreenFontStyle) are both float, so no diff in struct, just NODE_Type
 ScreenGroup is like Group or perhaps Transform, except it may need to alter the transform stack 
 	with x,y scales so as to treat children's coords as being in screen pixels.
+Layout			- (just info node used in other nodes)
+LayoutGroup		- (like Group, sets viewport, layout) prep, fin, ChildC [compileC]
+LayoutLayer		- (like Group, sets viewport, layout, Ortho) prep, fin, ChildC [compileC]
+ScreenFontStyle	- (same as FontStyle node - just info node for Text)
+ScreenGroup		- (like Group except modifies scale) prep, fin, ChildC [compileC]
+(note regular Group is funny: it sorts children by depth often, for transparency blending purposes
+	- but I assume we won't do any sorting by depth from our group-like nodes, therefore we don't need Compile)
 */
-void render_Layout(struct X3D_Node * node){
-	if(node && node->_nodeType == NODE_Layout){
-	}
-}
-void rendray_Layout(struct X3D_Node *node){
-	//for picking
-	//float h,r,y;
-	struct point_XYZ t_r1,t_r2;
-	get_current_ray(&t_r1, &t_r2);
 
+void prep_LayoutGroup(struct X3D_Node *node){
+}
+void child_LayoutGroup(struct X3D_Node *node){
+}
+void fin_LayoutGroup(struct X3D_Node *node){
+}
+void prep_LayoutLayer(struct X3D_Node *node){
+}
+void child_LayoutLayer(struct X3D_Node *node){
+}
+void fin_LayoutLayer(struct X3D_Node *node){
+}
+void prep_ScreenGroup(struct X3D_Node *node){
+}
+void child_ScreenGroup(struct X3D_Node *node){
+}
+void fin_ScreenGroup(struct X3D_Node *node){
 }
