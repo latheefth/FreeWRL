@@ -75,7 +75,7 @@ void render_LayerSet(struct X3D_Node * node){
 			ivec4 pvport,vport;
 			float *clipBoundary, defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; // left/right/bottom/top 0,1,0,1
 
-			layerset->activeLayer = j = layerset->order.p[i];
+			layerset->activeLayer = j = layerset->order.p[i] -1;
 			//both layer and layoutlayer can be in here
 			//if you want to be able to downcaste layoutlayer to layer, you better have the fields
 			//in the same order 
@@ -120,7 +120,7 @@ void rendray_LayerSet(struct X3D_Node * node){
 			float *clipBoundary, defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; // left/right/bottom/top 0,1,0,1
 
 			i = layerset->layers.n - ii -1; //reverse order compared to rendering
-			layerset->activeLayer = j = layerset->order.p[i];
+			layerset->activeLayer = j = layerset->order.p[i] -1;
 			layer = (struct X3D_Layer*)layerset->layers.p[j];
 			//push/set binding stacks
 			//push layer.viewport onto viewport stack, setting it as the current window

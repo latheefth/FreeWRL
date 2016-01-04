@@ -195,7 +195,7 @@ our %defaultContainerType = (
 
 	Layout			=>"layout",
 	LayoutGroup		=>"children",
-	LayoutLayer		=>"children",
+	LayoutLayer		=>"layers",
 	ScreenFontStyle		=>"fontStyle",
 	ScreenGroup		=>"children",
 
