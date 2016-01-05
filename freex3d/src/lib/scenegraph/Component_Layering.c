@@ -163,6 +163,7 @@ void rendray_LayerSet(struct X3D_Node * node){
 // pre: push vport
 // render: render itself 
 // post/fin: pop vport
+void upd_ray();
 void prep_Viewport(struct X3D_Node * node){
 	if(node && node->_nodeType == NODE_Viewport){
 		Stack *vportstack;
@@ -179,6 +180,7 @@ void prep_Viewport(struct X3D_Node * node){
 		pushviewport(vportstack, vport);
 		if(currentviewportvisible(vportstack))
 			setcurrentviewport(vportstack);
+		upd_ray();
 	}
 
 }
@@ -225,5 +227,6 @@ void fin_Viewport(struct X3D_Node * node){
 		//pop viewport
 		popviewport(vportstack);
 		setcurrentviewport(vportstack);
+		upd_ray();
 	}
 }

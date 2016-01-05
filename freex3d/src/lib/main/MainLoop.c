@@ -3729,8 +3729,19 @@ void setup_projection()
 	PRINT_GL_ERROR_IF_ANY("XEvents::setup_projection");
 
 }
+void getPickrayXY(int *x, int *y){
+	ttglobal tg = gglobal();
+	*x = tg->Mainloop.pickray_x;
+	*y = tg->Mainloop.pickray_y;
 
-void setup_pickray(int x, int y)
+}
+void setPickrayXY(int x, int y){
+	ttglobal tg = gglobal();
+	tg->Mainloop.pickray_x = x;
+	tg->Mainloop.pickray_y = y;
+}
+
+void setup_pickray0()
 {
 	//feature-AFFINE_GLU_UNPROJECT
 	//NEW WAY: leaves proj matrix as normal, and creates a separate affine PICKMATRIX that when multiplied with modelview,
@@ -3742,11 +3753,12 @@ void setup_pickray(int x, int y)
 	// create a rotation matrix R to get from A toward B
 	// pickmatrix = R * T
 	double mvident[16], pickMatrix[16], pmi[16], proj[16], R1[16], R2[16], R3[16], T[16];
-	int viewport[4];
+	int viewport[4], x, y;
 	double A[3], B[3], C[3], a[3], b[3];
 	double yaw, pitch, yy,xx;
 	ttglobal tg = gglobal();
 
+	getPickrayXY(&x,&y);
 	loadIdentityMatrix(mvident);
 	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
 	FW_GL_GETINTEGERV(GL_VIEWPORT,viewport);
@@ -3828,7 +3840,10 @@ void setup_pickray(int x, int y)
 	}
 
 }
-
+void setup_pickray(int x, int y){
+	setPickrayXY(x,y);
+	setup_pickray0();
+}
 
 /* Render the scene */
 static void render()

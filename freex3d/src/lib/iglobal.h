@@ -158,6 +158,8 @@ typedef struct iiglobal //InstanceGlobal
 		void *_vportstack; //Stack for viewports
 		void *_framebufferstack; //stack for backbuffers, usually GL_BACK, or can be FBO
 		int screenOrientation2;
+		int pickray_x;
+		int pickray_y;
 	} Mainloop;
 	struct tProdCon{
 		struct Vector *viewpointNodes;// = NULL;

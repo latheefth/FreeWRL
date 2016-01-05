@@ -997,11 +997,13 @@ for (i=0; i<16; i++) printf ("%4.3lf ",projMatrix[i]); printf ("\n");
 		//printf("Upd_ray new: (%f %f %f) (%f %f %f) \n",	t_r1.x,t_r1.y,t_r1.z,t_r2.x,t_r2.y,t_r2.z);
 	}
 }
+void setup_pickray0();
 void upd_ray() {
 	ppRenderFuncs p;
 	ttglobal tg = gglobal();
 	p = (ppRenderFuncs)tg->RenderFuncs.prv;
 
+	setup_pickray0();
 	upd_ray0(&p->t_r123.p1,&p->t_r123.p2,&p->t_r123.p3);
 	/*
 	printf("Upd_ray: (%f %f %f)->(%f %f %f) == (%f %f %f)->(%f %f %f)\n",
