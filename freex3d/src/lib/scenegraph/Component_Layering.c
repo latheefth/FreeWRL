@@ -184,30 +184,7 @@ void prep_Viewport(struct X3D_Node * node){
 	}
 
 }
-void child_Viewport_old(struct X3D_Node * node){
-	if(node && node->_nodeType == NODE_Viewport){
-		Stack *vportstack;
-		ivec4 pvport,vport;
-		ttglobal tg;
-		struct X3D_Viewport * viewport = (struct X3D_Viewport *)node;
-		tg = gglobal();
 
-		//push viewport onto viewport stack, setting it as the current window
-		vportstack = (Stack *)tg->Mainloop._vportstack;
-		pvport = stack_top(ivec4,vportstack); //parent context viewport
-
-		vport = childViewport(pvport,viewport->clipBoundary.p);
-		pushviewport(vportstack, vport);
-		if(currentviewportvisible(vportstack)){
-			setcurrentviewport(vportstack);
-
-			normalChildren(viewport->children);
-		}
-		//pop viewport
-		popviewport(vportstack);
-		setcurrentviewport(vportstack);
-	}
-}
 void child_Viewport(struct X3D_Node * node){
 	if(node && node->_nodeType == NODE_Viewport){
 		struct X3D_Viewport * viewport = (struct X3D_Viewport *)node;
