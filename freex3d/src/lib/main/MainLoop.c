@@ -1878,8 +1878,8 @@ static void render_pre(void);
 
 static int setup_pickside(int x, int y);
 static void setup_projection();
-static void setup_pickray(int x, int y);
-static struct X3D_Node*  getRayHit(void);
+void setup_pickray(int x, int y);
+struct X3D_Node*  getRayHit(void);
 void get_hyperhit(void);
 static void sendSensorEvents(struct X3D_Node *COS,int ev, int butStatus, int status);
 #if USE_OSC

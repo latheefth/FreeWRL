@@ -5035,10 +5035,10 @@ struct X3D_LayoutGroup {
 	struct Multi_Node removeChildren;
 	struct Multi_Node children;
 	struct X3D_Node *metadata;
-	struct X3D_Node *layout;
-	struct X3D_Node *viewport;
 	struct SFVec3f bboxCenter;
 	struct SFVec3f bboxSize;
+	struct X3D_Node *layout;
+	struct X3D_Node *viewport;
 };
 extern struct X3D_Virt virt_LayoutGroup;
 /***********************/
