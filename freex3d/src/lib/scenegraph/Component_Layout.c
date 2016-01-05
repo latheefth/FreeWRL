@@ -57,7 +57,9 @@ ScreenGroup		- (like Group except modifies scale) prep, fin, ChildC [compileC]
 
 void prep_LayoutGroup(struct X3D_Node *node){
 }
-void child_LayoutGroup(struct X3D_Node *node){
+void child_LayoutGroup(struct X3D_Node *_node){
+	struct X3D_LayoutLayer *node = (struct X3D_LayoutLayer*)_node;
+	normalChildren(node->children);
 }
 void fin_LayoutGroup(struct X3D_Node *node){
 }
@@ -69,8 +71,31 @@ void rendray_LayoutLayer(struct X3D_Node *node){
 }
 
 void prep_ScreenGroup(struct X3D_Node *node){
+	if(node && node->_nodeType == NODE_ScreenGroup){
+		ttglobal tg;
+		Stack *vportstack;
+		ivec4 pvport,vport;
+		float sx,sy;
+		tg = gglobal();
+		vportstack = (Stack *)tg->Mainloop._vportstack;
+		pvport = stack_top(ivec4,vportstack); //parent context viewport
+		
+		sx = 1.0f/(float)(pvport.W);
+		sy = 1.0f/(float)(pvport.H);
+		FW_GL_PUSH_MATRIX();
+
+		/* SCALE */
+		FW_GL_SCALE_F(sx,sy,sx);
+		//FW_GL_SCALE_F(.01f,.01f,.01f);
+	}
+
 }
-void child_ScreenGroup(struct X3D_Node *node){
+void child_ScreenGroup(struct X3D_Node *_node){
+	struct X3D_ScreenGroup *node = (struct X3D_ScreenGroup*)_node;
+	normalChildren(node->children);
 }
 void fin_ScreenGroup(struct X3D_Node *node){
+	if(node && node->_nodeType == NODE_ScreenGroup){
+		FW_GL_POP_MATRIX();
+	}
 }
