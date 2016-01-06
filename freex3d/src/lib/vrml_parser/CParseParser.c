@@ -7072,6 +7072,7 @@ void add_node_to_broto_context(struct X3D_Proto *context,struct X3D_Node *node){
 		if(!context->__nodes)
 			context->__nodes = newVector(struct X3D_Node*,4);
 		__nodes = context->__nodes;
+		node->_executionContext = context;
 		stack_push(struct X3D_Node*,__nodes,node);
 		if(hasContext(node)){
 			Stack *__subctxs;
