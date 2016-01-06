@@ -151,10 +151,11 @@ void prep_OrthoViewpoint (struct X3D_OrthoViewpoint *node) {
 	FW_GL_TRANSLATE_D(-node->position.c[0],-node->position.c[1],-node->position.c[2]);
 
 	/* now, lets work on the OrthoViewpoint fieldOfView */
-        if (node->fieldOfView.n == 4) {
-                for (ind=0; ind<4; ind++) {
-                        Viewer()->orthoField[ind] = (double) node->fieldOfView.p[ind];
-                }
+	if (node->fieldOfView.n == 4) {
+		for (ind=0; ind<4; ind++) {
+				Viewer()->orthoField[ind] = (double) node->fieldOfView.p[ind];
+		}
+		Viewer()->ortho = TRUE;
 	}
 
 	/* printf ("render_OrthoViewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); */
