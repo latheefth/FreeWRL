@@ -65,7 +65,9 @@ void fin_LayoutGroup(struct X3D_Node *node){
 }
 
 //layoutLayer functions are called only by Layerset, not via virtual functions in render_hier()
-void render_LayoutLayer(struct X3D_Node *node){
+void render_LayoutLayer(struct X3D_Node *_node){
+	struct X3D_LayoutLayer *node = (struct X3D_Layer*)_node;
+	normalChildren(node->children);
 }
 void rendray_LayoutLayer(struct X3D_Node *node){
 }
