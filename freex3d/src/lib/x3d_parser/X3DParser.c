@@ -1592,20 +1592,29 @@ static void parseFieldValue_B(void *ud, char **atts) {
 	if(cname && value && svalue){
 		deleteMallocedFieldValue(type,value);
 		Parser_scanStringValueToMem_B(value,type,svalue,TRUE);
-		if(node->_nodeType == NODE_Proto){
-			struct X3D_Proto *pnode;
-			struct ProtoFieldDecl* pfield;
-			struct ProtoDefinition* pstruct;
-			pnode = X3D_PROTO(node);
-			pstruct = (struct ProtoDefinition*) pnode->__protoDef;
-			pfield = vector_get(struct ProtoFieldDecl*,pstruct->iface,iifield);
-			pfield->alreadySet = TRUE;
-		}
 	}
+	if(cname && (node->_nodeType == NODE_Proto)){
+		//for protoInstances, whether or not you have a value, 
+		//if you declare a field then you are saying you declare the value null or 0 or default at least.
+		//so for SFNode fields where <fieldValue><a node></fieldValue> and we get the node later
+		//whether or not there's a node/value parsed, we are declaring its set even at null.
+		//therefore alreadyset
+		//the way to acheive not alreadySet is to not mention the field in your protoInstance.
+		struct X3D_Proto *pnode;
+		struct ProtoFieldDecl* pfield;
+		struct ProtoDefinition* pstruct;
+		pnode = X3D_PROTO(node);
+		pstruct = (struct ProtoDefinition*) pnode->__protoDef;
+		pfield = vector_get(struct ProtoFieldDecl*,pstruct->iface,iifield);
+		pfield->alreadySet = TRUE;
+	}
+
 	pushField(ud,cname); //in case there's no value, because its SF or MFNodes in child xml, or in CDATA
 }
 static void endFieldValue_B(void *ud){
 	if(0) printf("endFieldValue\n");
+	//in x3d, <fieldvalue type=SFNode><a node></fieldValue>
+
 	popField(ud);
 }
 /* we have a fieldValue, should be in a PROTO expansion */
