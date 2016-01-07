@@ -5796,6 +5796,7 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 							//done for the current proto interface
 							shallow_copy_field(sdecl->type, source_field, dest_field);
 							registerParentIfManagedField(sdecl->type,sdecl->mode,1, dest_field, *dest);
+							ddecl->alreadySet = sdecl->alreadySet; 
 						}else{
 							if(0) //shallow copy for testing
 								memcpy(ddecl,sdecl,sizeof(struct ProtoFieldDecl));  //.. the whole struct
@@ -5807,6 +5808,7 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 								source_field = (union anyVrml*)&(sdecl->defaultVal);
 								dest_field   = (union anyVrml*)&(ddecl->defaultVal);
 								copy_field(sdecl->type,source_field,dest_field,p2p,instancedScripts,ctx,parent);
+								ddecl->alreadySet = sdecl->alreadySet; 
 							}
 						}
 						//protoDefinition_addIfaceField(dp, ddecl);
@@ -7001,10 +7003,10 @@ void load_externProtoInstance (struct X3D_Proto *node) {
 										pname = pf->cname;
 										if(!strcmp(ename,pname)){
 											//name match
-											printf("ename = %s pname = %s\n",ename,pname);
+											//printf("ename = %s pname = %s\n",ename,pname);
 											if(ef->type == pf->type){
 												//type match
-												printf("etype = %d ptype = %d\n",ef->type, pf->type);
+												//printf("etype = %d ptype = %d\n",ef->type, pf->type);
 												//add IS
 												broto_store_IS(node,ef->cname,ef->mode, i, ef->type,	X3D_NODE(pinstance), pf->cname, pf->mode, j, 3);
 											}
@@ -7072,6 +7074,7 @@ void add_node_to_broto_context(struct X3D_Proto *context,struct X3D_Node *node){
 		if(!context->__nodes)
 			context->__nodes = newVector(struct X3D_Node*,4);
 		__nodes = context->__nodes;
+		node->_executionContext = context;
 		stack_push(struct X3D_Node*,__nodes,node);
 		if(hasContext(node)){
 			Stack *__subctxs;

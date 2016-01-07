@@ -195,7 +195,7 @@ our %defaultContainerType = (
 
 	Layout			=>"layout",
 	LayoutGroup		=>"children",
-	LayoutLayer		=>"children",
+	LayoutLayer		=>"layers",
 	ScreenFontStyle		=>"fontStyle",
 	ScreenGroup		=>"children",
 
@@ -380,8 +380,6 @@ our %RendC = map {($_=>1)} qw/
 	NurbsPatchSurface
 	NurbsTrimmedSurface
 	LayerSet
-	Layer
-	Viewport
 /;
 
 #######################################################################
@@ -438,6 +436,9 @@ our %PrepC = map {($_=>1)} qw/
 	GeoTransform
 	CADAssembly
 	CADPart
+	Viewport
+	LayoutGroup
+	ScreenGroup
 /;
 
 #######################################################################
@@ -458,6 +459,9 @@ our %FinC = map {($_=>1)} qw/
 	HAnimJoint
 	GeoTransform
 	CADPart
+	Viewport
+	LayoutGroup
+	ScreenGroup
 /;
 
 
@@ -499,6 +503,9 @@ our %ChildC = map {($_=>1)} qw/
 	Appearance
 	Shape
 	VisibilitySensor
+	Viewport
+	LayoutGroup
+	ScreenGroup
 /;
 
 
@@ -780,9 +787,6 @@ our %RendRayC = map {($_=>1)} qw/
 	Extrusion
 	IndexedFaceSet
 	IndexedQuadSet
-	LayerSet
-	Layer
-	Viewport
 	QuadSet
 	IndexedTriangleSet
 	IndexedTriangleFanSet
@@ -791,7 +795,8 @@ our %RendRayC = map {($_=>1)} qw/
 	TriangleFanSet
 	TriangleStripSet
 	NurbsPatchSurface
-	NurbsTrimmedSurface	
+	NurbsTrimmedSurface
+	LayerSet
 /;
 
 

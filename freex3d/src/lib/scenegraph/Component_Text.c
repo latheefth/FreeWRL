@@ -1366,7 +1366,7 @@ void make_Text (struct X3D_Text *node)
         POSSIBLE_PROTO_EXPANSION(struct X3D_FontStyle *, node->fontStyle,fsp);
 
         /* fsp = (struct X3D_FontStyle *)node->fontStyle; */
-        if (fsp->_nodeType != NODE_FontStyle) {
+        if (fsp->_nodeType != NODE_FontStyle && fsp->_nodeType != NODE_ScreenFontStyle) {
             ConsoleMessage ("Text node has FontStyle of %s",stringNodeType(fsp->_nodeType));
             node->fontStyle = NULL; /* stop dumping these messages */
         }
@@ -1382,6 +1382,10 @@ void make_Text (struct X3D_Text *node)
         /* Step 1 - record the spacing and size, for direct use */
         spacing = fsp->spacing;
         size = fsp->size;
+		if(fsp->_nodeType != NODE_ScreenFontStyle){
+			static float pixels_per_point = 4.0f/3.0f; //about 16 pixels for 12 point font, assume we are in ScreenGroup?
+			size = fsp->size * pixels_per_point;
+		}
 
         /* Step 2 - do the SFBools */
         fsparams = (fsp->horizontal)|(fsp->leftToRight<<1)|(fsp->topToBottom<<2);

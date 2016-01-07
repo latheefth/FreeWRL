@@ -1878,8 +1878,8 @@ static void render_pre(void);
 
 static int setup_pickside(int x, int y);
 static void setup_projection();
-static void setup_pickray(int x, int y);
-static struct X3D_Node*  getRayHit(void);
+void setup_pickray(int x, int y);
+struct X3D_Node*  getRayHit(void);
 void get_hyperhit(void);
 static void sendSensorEvents(struct X3D_Node *COS,int ev, int butStatus, int status);
 #if USE_OSC
@@ -3729,11 +3729,22 @@ void setup_projection()
 	PRINT_GL_ERROR_IF_ANY("XEvents::setup_projection");
 
 }
+void getPickrayXY(int *x, int *y){
+	ttglobal tg = gglobal();
+	*x = tg->Mainloop.pickray_x;
+	*y = tg->Mainloop.pickray_y;
 
-void setup_pickray(int x, int y)
+}
+void setPickrayXY(int x, int y){
+	ttglobal tg = gglobal();
+	tg->Mainloop.pickray_x = x;
+	tg->Mainloop.pickray_y = y;
+}
+
+void setup_pickray0()
 {
 	//feature-AFFINE_GLU_UNPROJECT
-	//NEW WAY: leaves proj matrix as normal, and creates a separate affine PICKMATRIX that when multiplied with modelview,
+	//2015: NEW WAY: leaves proj matrix as normal, and creates a separate affine PICKMATRIX that when multiplied with modelview,
 	// will point down the pickray (see above for OLD WAY)
 	// method: uproject 2 points along the ray, one on nearside of frustum (window z = 0) 
 	//	one on farside of frustum (window z = 1)
@@ -3741,12 +3752,25 @@ void setup_pickray(int x, int y)
 	// create a translation matrix to get from 0,0,0 to A T
 	// create a rotation matrix R to get from A toward B
 	// pickmatrix = R * T
+	//Jan 2016 issue: with the new Layering/Layout component, all the unproject stuff changes
+	//  when traveling up/down the render_hier: viewport changes with Viewport standalone node
+	//  and viewport field of layer and layoutlayer; the projection matrix and viewpoint changes with
+	//  the push/pop of binding stacks for each Layer node; To get it working
+	//  I've had to call this at each level on the way down and up, in prep_ and fin_Viewpoint
+	//  and likely in prep/fin of layer and layoutlayer for the projection and viewpoint changes
+	//  Therefore attempts below to optimize/avoid glu_unproject calls by capturing prepared matrices
+	//  is un-effective and un-needed (unless someone can come up with new optimizations)
+	//  Generally: opengl is optimized for transforming geometry into screen space, and when
+	//  going the other way -with a pickray- glu_uproject style inversions are needed.
+	//  Perhaps the function needs to be simplified to do just glu_unprojects, perhaps
+	//   doing a single inverse, and applying to both points
 	double mvident[16], pickMatrix[16], pmi[16], proj[16], R1[16], R2[16], R3[16], T[16];
-	int viewport[4];
+	int viewport[4], x, y;
 	double A[3], B[3], C[3], a[3], b[3];
 	double yaw, pitch, yy,xx;
 	ttglobal tg = gglobal();
 
+	getPickrayXY(&x,&y);
 	loadIdentityMatrix(mvident);
 	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
 	FW_GL_GETINTEGERV(GL_VIEWPORT,viewport);
@@ -3828,7 +3852,10 @@ void setup_pickray(int x, int y)
 	}
 
 }
-
+void setup_pickray(int x, int y){
+	setPickrayXY(x,y);
+	setup_pickray0();
+}
 
 /* Render the scene */
 static void render()
