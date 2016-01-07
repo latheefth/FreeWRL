@@ -1179,7 +1179,13 @@ int SFNode_Setter0(FWType fwt, int index, void *ec, void *fwn, FWval fwval, int 
 			break;
 
 		default:
-			medium_copy_field0(ftype,fwval->_web3dval.native,value);
+			if(!strcmp(name,"children")){
+				int n;
+				struct Multi_Any* any = (struct Multi_Any*)fwval->_web3dval.native;
+				AddRemoveChildren(node,value,any->p,any->n,0,__FILE__,__LINE__);
+			}else{
+				medium_copy_field0(ftype,fwval->_web3dval.native,value);
+			}
 		}
 
 		if(node->_nodeType == NODE_Script) {
