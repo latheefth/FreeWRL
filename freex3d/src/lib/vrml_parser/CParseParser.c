@@ -7036,7 +7036,7 @@ void load_externProtoInstance (struct X3D_Proto *node) {
 										if(is->mode == PKW_inputOutput || is->mode == PKW_initializeOnly){
 											ef = protoDefinition_getFieldByNum(ed, is->iprotofield);
 											pf = protoDefinition_getFieldByNum(pd, is->ifield);
-											if(ef->alreadySet){
+											if(ef->alreadySet || TRUE){
 												// too shallow, crashes on exit during free: memcpy(&pf->defaultVal,&ef->defaultVal, sizeof(union anyVrml));
 												shallow_copy_field(is->type, &ef->defaultVal, &pf->defaultVal);
 											}
