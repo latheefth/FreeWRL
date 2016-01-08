@@ -46,6 +46,14 @@ layerset 		-kindof group, but layers not children: render and rendray
 viewport 		-use 1: info node 
 				-use 2: (standalone Group-like) prep (push&set clip), fin(pop), ChildC
 
+status: 
+oct 22, 2015: pseudo-code 
+Jan 2016: version 1 attempt, with:
+	- off-spec:
+		- Layer, LayoutLayer DEF namespace shared with main scene, no EXPORT semantics
+	- on-spec:
+		- Layer, LayoutLayer pushing and popping its own binding stacks in hyperstack as per specs
+		- navigation, menubar work on activeLayer
  */
 
 ivec4 childViewport(ivec4 parentViewport, float *clipBoundary){
@@ -57,97 +65,105 @@ ivec4 childViewport(ivec4 parentViewport, float *clipBoundary){
 	return vport;
 }
 
-void render_Layer(struct X3D_Node * _node){
-	struct X3D_Layer *node = (struct X3D_Layer*)_node;
-	normalChildren(node->children);
-}
-void rendray_Layer(struct X3D_Node * node){
-}
-//status: pseudo-code oct 22, 2015
-void render_LayerSet(struct X3D_Node * node){
-	if(node && node->_nodeType == NODE_LayerSet){
-		int i,j;
-		ttglobal tg;
-		
-		struct X3D_LayerSet * layerset = (struct X3D_LayerSet *)node;
-		tg = gglobal();
-		for(i=0;i<layerset->layers.n;i++){
-			struct X3D_Layer * layer;
-			Stack *vportstack;
-			ivec4 pvport,vport;
-			float *clipBoundary, defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; // left/right/bottom/top 0,1,0,1
+//Layer has 3 virtual functions for fun/testing, 
+//but LayerSet should be the only caller for these 3 normally, according to specs
+void prep_Layer(struct X3D_Node * _node){
+	Stack *vportstack;
+	ivec4 pvport,vport;
+	ttglobal tg;
+	float *clipBoundary, defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; // left/right/bottom/top 0,1,0,1
 
-			layerset->activeLayer = j = layerset->order.p[i] -1;
-			//both layer and layoutlayer can be in here
-			//if you want to be able to downcaste layoutlayer to layer, you better have the fields
-			//in the same order 
-			layer = (struct X3D_Layer*)layerset->layers.p[j];
-			//push/set binding stacks
-			//push layer.viewport onto viewport stack, setting it as the current window
-			vportstack = (Stack *)tg->Mainloop._vportstack;
-			pvport = stack_top(ivec4,vportstack); //parent context viewport
-			clipBoundary = defaultClipBoundary;
-			if(layer->viewport)
-				clipBoundary = ((struct X3D_Viewport*)(layer->viewport))->clipBoundary.p;
-			vport = childViewport(pvport,clipBoundary);
-			pushviewport(vportstack, vport);
-			if(currentviewportvisible(vportstack)){
-				setcurrentviewport(vportstack);
-				glClear(GL_DEPTH_BUFFER_BIT); //if another layer has already drawn, don't clear it, just its depth fingerprint
-				if(layer->_nodeType == NODE_Layer)
-					render_Layer((struct X3D_Node*)layer);
-				else if(layer->_nodeType == NODE_LayoutLayer)
-					render_LayoutLayer((struct X3D_Node*)layer);
-			}
-			popviewport(vportstack);
-			setcurrentviewport(vportstack);
-			//pop binding stacks
-		}
+	struct X3D_Layer *node = (struct X3D_Layer*)_node;
+	tg = gglobal();
+
+	//push/set binding stacks
+
+	//push layer.viewport onto viewport stack, setting it as the current window
+	vportstack = (Stack *)tg->Mainloop._vportstack;
+	pvport = stack_top(ivec4,vportstack); //parent context viewport
+	clipBoundary = defaultClipBoundary;
+	if(node->viewport)
+		clipBoundary = ((struct X3D_Viewport*)(node->viewport))->clipBoundary.p;
+	vport = childViewport(pvport,clipBoundary);
+	pushviewport(vportstack, vport);
+
+}
+void child_Layer(struct X3D_Node * _node){
+	Stack *vportstack;
+	ttglobal tg;
+	struct X3D_Layer *node;
+	ttrenderstate rs;
+
+	rs = renderstate();
+	node = (struct X3D_Layer*)_node;
+	tg = gglobal();
+	vportstack = (Stack *)tg->Mainloop._vportstack;
+	if(currentviewportvisible(vportstack)){
+		setcurrentviewport(vportstack);
+		if (rs->render_geom == VF_Geom)
+			glClear(GL_DEPTH_BUFFER_BIT); //if another layer has already drawn, don't clear it, just its depth fingerprint
+		normalChildren(node->children);
 	}
 }
-struct X3D_Node*  getRayHit(void);
-void rendray_LayerSet(struct X3D_Node * node){
-	//picking comes in here, we iterate backward over layers, 
-	//starting with the topmost (last drawn) layer
-	//until we hit a layer that handles it, then we break 
-	if(node && node->_nodeType == NODE_LayerSet){
-		int i,j,ii;
-		ttglobal tg;
-		
-		struct X3D_LayerSet * layerset = (struct X3D_LayerSet *)node;
-		tg = gglobal();
-		for(ii=0;ii<layerset->layers.n;ii++){
-			struct X3D_Layer * layer;
-			Stack *vportstack;
-			ivec4 pvport,vport;
-			float *clipBoundary, defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; // left/right/bottom/top 0,1,0,1
+void fin_Layer(struct X3D_Node * _node){
+	Stack *vportstack;
+	ttglobal tg;
+	struct X3D_Layer *node = (struct X3D_Layer*)_node;
+	tg = gglobal();
+	vportstack = (Stack *)tg->Mainloop._vportstack;
+	popviewport(vportstack);
+	setcurrentviewport(vportstack);
+	//pop binding stacks
 
-			i = layerset->layers.n - ii -1; //reverse order compared to rendering
-			layerset->activeLayer = j = layerset->order.p[i] -1;
-			layer = (struct X3D_Layer*)layerset->layers.p[j];
-			if(layer->isPickable){
-				//push/set binding stacks
-				//push layer.viewport onto viewport stack, setting it as the current window
-				vportstack = (Stack *)tg->Mainloop._vportstack;
-				pvport = stack_top(ivec4,vportstack); //parent context viewport
-				clipBoundary = defaultClipBoundary;
-				if(layer->viewport)
-					clipBoundary = ((struct X3D_Viewport*)(layer->viewport))->clipBoundary.p;
-				vport = childViewport(pvport,clipBoundary);
-				pushviewport(vportstack, vport);
-				if(currentviewportvisible(vportstack)){
-					setcurrentviewport(vportstack);
-					if(layer->_nodeType == NODE_Layer)
-						rendray_Layer((struct X3D_Node*)layer);
-					else if(layer->_nodeType == NODE_LayoutLayer)
-						rendray_LayoutLayer((struct X3D_Node*)layer);
-					//if handled, break;
-					if(getRayHit()) break;
-				}
-				popviewport(vportstack);
-				setcurrentviewport(vportstack);
-				//pop binding stacks
+}
+
+
+struct X3D_Node*  getRayHit(void);
+void child_LayerSet(struct X3D_Node * node){
+	// has similar responsibilities to render_heir except just for Layer, LayoutLayer children
+	// child is the only virtual function for LayerSet
+	if(node && node->_nodeType == NODE_LayerSet){
+		int ii,i,j,activeLayer,iorderItem;
+		ttglobal tg;
+		struct X3D_LayerSet * layerset;
+		ttrenderstate rs;
+
+		rs = renderstate();
+		layerset = (struct X3D_LayerSet *)node;
+		tg = gglobal();
+		activeLayer = layerset->activeLayer;
+		for(i=0;i<layerset->order.n;i++){
+			struct X3D_Layer * layer;
+
+			ii = i;
+			if(rs->render_sensitive = VF_Sensitive){
+				ii = layerset->order.n - ii -1; //reverse order compared to rendering
+				if(!layer->isPickable) continue; //skip unpickable layers on sensitive pass
 			}
+
+			iorderItem = layerset->order.p[ii];
+
+			layer = (struct X3D_Layer*)layerset->layers.p[iorderItem];
+			//let the layer know if its vp/navigation/binding_stacks is the active one: 
+			// if activeLayer then it won't push or pop they binding hyperstack, it will use main scene
+			if(iorderItem == activeLayer)
+				layer->_isActive = 1;
+			else
+				layer->_isActive = 0;
+
+			//both layer and layoutlayer can be in here
+			if(layer->_nodeType == NODE_Layer){
+				prep_Layer((struct X3D_Node*)layer);
+				child_Layer((struct X3D_Node*)layer);
+				fin_Layer((struct X3D_Node*)layer);
+			}
+			else if(layer->_nodeType == NODE_LayoutLayer){
+				prep_LayoutLayer((struct X3D_Node*)layer);
+				child_LayoutLayer((struct X3D_Node*)layer);
+				fin_LayoutLayer((struct X3D_Node*)layer);
+			}
+			if(rs->render_sensitive)
+				if(getRayHit()) break; //if there's a clear pick of something on a higher layer, no need to check lower layers
 		}
 	}
 }

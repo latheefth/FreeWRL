@@ -183,6 +183,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__visible",
 	"__xcolours",
 	"__xparams",
+	"_align",
 	"_amb",
 	"_bboxCenter",
 	"_bboxSize",
@@ -199,10 +200,12 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_initialized",
 	"_int32InpFIFO",
 	"_int32OutFIFO",
+	"_isActive",
 	"_keyVBO",
 	"_keyValueVBO",
 	"_loc",
 	"_npoints",
+	"_offsetUnits",
 	"_oldhitNormal",
 	"_oldhitPoint",
 	"_oldhitTexCoord",
@@ -220,12 +223,15 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_radius",
 	"_retrievedURLData",
 	"_rotationAngle",
+	"_scale",
+	"_scaleMode",
 	"_selected",
 	"_shaderLoadThread",
 	"_shaderTableEntry",
 	"_shaderUserDefinedFields",
 	"_shaderUserNumber",
 	"_sideVBO",
+	"_sizeUnits",
 	"_sortedChildren",
 	"_status",
 	"_stringInpFIFO",
@@ -2417,11 +2423,13 @@ void child_LOD(struct X3D_LOD *);
 void proximity_LOD(struct X3D_LOD *);
 struct X3D_Virt virt_LOD = { NULL,NULL,(void *)child_LOD,NULL,NULL,NULL,(void *)proximity_LOD,NULL,NULL,NULL};
 
-struct X3D_Virt virt_Layer = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void prep_Layer(struct X3D_Layer *);
+void child_Layer(struct X3D_Layer *);
+void fin_Layer(struct X3D_Layer *);
+struct X3D_Virt virt_Layer = { (void *)prep_Layer,NULL,(void *)child_Layer,(void *)fin_Layer,NULL,NULL,NULL,NULL,NULL,NULL};
 
-void render_LayerSet(struct X3D_LayerSet *);
-void rendray_LayerSet(struct X3D_LayerSet *);
-struct X3D_Virt virt_LayerSet = { NULL,(void *)render_LayerSet,NULL,NULL,(void *)rendray_LayerSet,NULL,NULL,NULL,NULL,NULL};
+void child_LayerSet(struct X3D_LayerSet *);
+struct X3D_Virt virt_LayerSet = { NULL,NULL,(void *)child_LayerSet,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 struct X3D_Virt virt_Layout = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
@@ -2430,7 +2438,10 @@ void child_LayoutGroup(struct X3D_LayoutGroup *);
 void fin_LayoutGroup(struct X3D_LayoutGroup *);
 struct X3D_Virt virt_LayoutGroup = { (void *)prep_LayoutGroup,NULL,(void *)child_LayoutGroup,(void *)fin_LayoutGroup,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_LayoutLayer = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void prep_LayoutLayer(struct X3D_LayoutLayer *);
+void child_LayoutLayer(struct X3D_LayoutLayer *);
+void fin_LayoutLayer(struct X3D_LayoutLayer *);
+struct X3D_Virt virt_LayoutLayer = { (void *)prep_LayoutLayer,NULL,(void *)child_LayoutLayer,(void *)fin_LayoutLayer,NULL,NULL,NULL,NULL,NULL,NULL};
 
 struct X3D_Virt virt_LinePickSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
@@ -4448,6 +4459,7 @@ const int OFFSETS_LOD[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Layer[] = {
+	(int) FIELDNAMES__isActive, (int) offsetof (struct X3D_Layer, _isActive),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_Layer, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_children, (int) offsetof (struct X3D_Layer, children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isPickable, (int) offsetof (struct X3D_Layer, isPickable),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4465,6 +4477,11 @@ const int OFFSETS_LayerSet[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Layout[] = {
+	(int) FIELDNAMES__align, (int) offsetof (struct X3D_Layout, _align),  (int) FIELDTYPE_MFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__offsetUnits, (int) offsetof (struct X3D_Layout, _offsetUnits),  (int) FIELDTYPE_MFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__scale, (int) offsetof (struct X3D_Layout, _scale),  (int) FIELDTYPE_MFFloat, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__scaleMode, (int) offsetof (struct X3D_Layout, _scaleMode),  (int) FIELDTYPE_MFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__sizeUnits, (int) offsetof (struct X3D_Layout, _sizeUnits),  (int) FIELDTYPE_MFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_align, (int) offsetof (struct X3D_Layout, align),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_Layout, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_offset, (int) offsetof (struct X3D_Layout, offset),  (int) FIELDTYPE_MFFloat, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4486,6 +4503,7 @@ const int OFFSETS_LayoutGroup[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_LayoutLayer[] = {
+	(int) FIELDNAMES__isActive, (int) offsetof (struct X3D_LayoutLayer, _isActive),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_LayoutLayer, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_children, (int) offsetof (struct X3D_LayoutLayer, children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isPickable, (int) offsetof (struct X3D_LayoutLayer, isPickable),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -8751,6 +8769,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Layer : {
 			struct X3D_Layer * tmp2;
 			tmp2 = (struct X3D_Layer *) tmp;
+			tmp2->_isActive = TRUE;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->isPickable = TRUE;
@@ -8776,6 +8795,26 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Layout : {
 			struct X3D_Layout * tmp2;
 			tmp2 = (struct X3D_Layout *) tmp;
+			tmp2->_align.p = MALLOC (int *, sizeof(int)*2);
+			tmp2->_align.p[0] = 0;
+			tmp2->_align.p[1] = 0;
+			tmp2->_align.n=2;;
+			tmp2->_offsetUnits.p = MALLOC (int *, sizeof(int)*2);
+			tmp2->_offsetUnits.p[0] = 0;
+			tmp2->_offsetUnits.p[1] = 0;
+			tmp2->_offsetUnits.n=2;;
+			tmp2->_scale.p = MALLOC (float *, sizeof(float)*2);
+			tmp2->_scale.p[0] = 1.0f;
+			tmp2->_scale.p[1] = 1.0f;
+			tmp2->_scale.n=2;;
+			tmp2->_scaleMode.p = MALLOC (int *, sizeof(int)*2);
+			tmp2->_scaleMode.p[0] = 0;
+			tmp2->_scaleMode.p[1] = 0;
+			tmp2->_scaleMode.n=2;;
+			tmp2->_sizeUnits.p = MALLOC (int *, sizeof(int)*2);
+			tmp2->_sizeUnits.p[0] = 0;
+			tmp2->_sizeUnits.p[1] = 0;
+			tmp2->_sizeUnits.n=2;;
 			tmp2->align.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*2);tmp2->align.p[0] = newASCIIString("CENTER");tmp2->align.p[1] = newASCIIString("CENTER");tmp2->align.n=2; ;
 			tmp2->metadata = NULL;
 			tmp2->offset.p = MALLOC (float *, sizeof(float)*2);
@@ -8809,6 +8848,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_LayoutLayer : {
 			struct X3D_LayoutLayer * tmp2;
 			tmp2 = (struct X3D_LayoutLayer *) tmp;
+			tmp2->_isActive = TRUE;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->isPickable = TRUE;
@@ -12922,6 +12962,9 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_Layer *tmp;
 			tmp = (struct X3D_Layer *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," _isActive (SFBool) \t%d\n",tmp->_isActive);
+		    }
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 			spacer fprintf (fp," isPickable (SFBool) \t%d\n",tmp->isPickable);
@@ -12984,6 +13027,9 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_LayoutLayer *tmp;
 			tmp = (struct X3D_LayoutLayer *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," _isActive (SFBool) \t%d\n",tmp->_isActive);
+		    }
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 			spacer fprintf (fp," isPickable (SFBool) \t%d\n",tmp->isPickable);
