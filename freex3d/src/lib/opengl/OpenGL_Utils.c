@@ -3212,7 +3212,7 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 	/* lets use these values; leave room for a Background or TextureBackground node here */
 	viewer->nearPlane = min(cnp,DEFAULT_NEARPLANE);
 	/* backgroundPlane goes between the farthest geometry, and the farPlane */
-	if (vectorSize(tg->Bindable.background_stack)!= 0) {
+	if (vectorSize(getActiveBindableStacks(tg)->background)!= 0) {
 		viewer->farPlane = max(cfp * 10.0,DEFAULT_FARPLANE);
 		viewer->backgroundPlane = max(cfp*5.0,DEFAULT_BACKGROUNDPLANE);
 	} else {
@@ -5040,7 +5040,7 @@ void startOfLoopNodeUpdates(void) {
 			if (*setBindPtr < 100) {
 				/* up_vector is reset after a bind */
 				//if (*setBindPtr==1) reset_upvector();
-				bind_node (node, tg->Bindable.viewpoint_stack);
+				bind_node (node, getActiveBindableStacks(tg)->viewpoint);
 
 				//dug9 added July 24, 2009: when you bind, it should set the
 				//avatar to the newly bound viewpoint pose and forget any
@@ -5083,10 +5083,10 @@ void startOfLoopNodeUpdates(void) {
 	UNLOCK_MEMORYTABLE
 
 	/* now, we can go and tell the grouping nodes which ones are the lucky ones that contain the current Viewpoint node */
-	if (vectorSize(tg->Bindable.viewpoint_stack) > 0) {
+	if (vectorSize(getActiveBindableStacks(tg)->viewpoint) > 0) {
 		//ConsoleMessage ("going to updateRF on viewpoint, stack is %d in size\n", vectorSize(tg->Bindable.viewpoint_stack));
 
-		struct X3D_Node *boundvp = vector_back(struct X3D_Node*,tg->Bindable.viewpoint_stack);
+		struct X3D_Node *boundvp = vector_back(struct X3D_Node*,getActiveBindableStacks(tg)->viewpoint);
 		update_renderFlag(boundvp, VF_Viewpoint);
 		calculateNearFarplanes(boundvp);
 		//update_renderFlag(vector_back(struct X3D_Node*,

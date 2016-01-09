@@ -285,7 +285,7 @@ void render_NavigationInfo (struct X3D_NavigationInfo *node) {
 	ttglobal tg = gglobal();
 	if (node->set_bind < 100) {
 		if (node->set_bind == 1) set_naviinfo(node);
-		bind_node (X3D_NODE(node), tg->Bindable.navigation_stack);
+		bind_node (X3D_NODE(node), getActiveBindableStacks(tg)->navigation);
 	}
 	if(!node->isBound) return;
 }

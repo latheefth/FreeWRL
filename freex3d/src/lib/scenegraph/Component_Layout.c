@@ -134,7 +134,6 @@ void prep_Layout(struct X3D_Node *_node){
 	//push Layout transform (backward if VF_Viewpoint pass, like Transform prep)
 
 	if(_node) {
-		/* do we actually have any thing to rotate/translate/scale?? */
 		float offsetpx[2];
 		double scale[2];
 		Stack *vportstack;

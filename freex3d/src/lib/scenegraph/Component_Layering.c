@@ -50,7 +50,10 @@ status:
 oct 22, 2015: pseudo-code 
 Jan 2016: version 1 attempt, with:
 	- off-spec:
-		- Layer, LayoutLayer DEF namespace shared with main scene, no EXPORT semantics
+		- Layer, LayoutLayer DEF namespace shared with main scene - no EXPORT semantics
+		- bindables from all layers end up in ProdCon bindables lists, 
+			so ViewpointList (for NextViewpoint, PrevViewpoint) will (wrongly) show/allow viewpoints from all Layers 
+			(should be just from activeLayer)
 	- on-spec:
 		- Layer, LayoutLayer pushing and popping its own binding stacks in hyperstack as per specs
 		- navigation, menubar work on activeLayer
@@ -64,7 +67,18 @@ ivec4 childViewport(ivec4 parentViewport, float *clipBoundary){
 	vport.Y = (int)(parentViewport.Y + (clipBoundary[2] * parentViewport.H));
 	return vport;
 }
+void push_bindingstacks(void *node, void *bindingstacks){
+	//a layer owns its own set of binding stacks
+	//freewrl needs to have a single set.
+	//if(!node->_bindingstacks){
+	//	node->bindingstacks = malloc(sizeof(binding_stack_set));
+	//	initialize_bindingstacks(node->bindingstacks);
+	//}
 
+
+}
+void pop_bindingstacks(){
+}
 //Layer has 3 virtual functions for fun/testing, 
 //but LayerSet should be the only caller for these 3 normally, according to specs
 void prep_Layer(struct X3D_Node * _node){
@@ -77,7 +91,7 @@ void prep_Layer(struct X3D_Node * _node){
 	tg = gglobal();
 
 	//push/set binding stacks
-
+	//push_bindingstacks(node);
 	//push layer.viewport onto viewport stack, setting it as the current window
 	vportstack = (Stack *)tg->Mainloop._vportstack;
 	pvport = stack_top(ivec4,vportstack); //parent context viewport
@@ -114,7 +128,7 @@ void fin_Layer(struct X3D_Node * _node){
 	popviewport(vportstack);
 	setcurrentviewport(vportstack);
 	//pop binding stacks
-
+	pop_bindingstacks();
 }
 
 

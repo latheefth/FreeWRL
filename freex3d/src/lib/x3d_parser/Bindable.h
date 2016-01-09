@@ -54,4 +54,12 @@ void render_TextureBackground(struct X3D_TextureBackground *node);
 
 void set_naviWidthHeightStep(double wid, double hei, double step) ;
 
+typedef struct bindablestack {
+	void *background;
+	void *viewpoint;
+	void *fog;
+	void *navigation;
+} bindablestack;
+bindablestack* getBindableStacks(ttglobal tg, int index );
+bindablestack* getActiveBindableStacks(ttglobal tg );
 #endif /* __FREEWRL_BINDABLE_H__ */

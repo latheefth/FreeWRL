@@ -392,10 +392,12 @@ iOLDCODE	}Component_Networking;
   //      struct Vector *navigation_stack;
   //      struct Vector *fog_stack;
 		void *naviinfo;
-        void *background_stack;
-        void *viewpoint_stack;
-        void *navigation_stack;
-        void *fog_stack;
+        //void *background_stack;
+        //void *viewpoint_stack;
+        //void *navigation_stack;
+        //void *fog_stack;
+		int activeLayer;
+		void *bstacks;
 		void *prv;
 	}Bindable;
 	struct tX3DParser{
