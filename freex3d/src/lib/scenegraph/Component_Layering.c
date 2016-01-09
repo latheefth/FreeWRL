@@ -67,18 +67,7 @@ ivec4 childViewport(ivec4 parentViewport, float *clipBoundary){
 	vport.Y = (int)(parentViewport.Y + (clipBoundary[2] * parentViewport.H));
 	return vport;
 }
-void push_bindingstacks(void *node, void *bindingstacks){
-	//a layer owns its own set of binding stacks
-	//freewrl needs to have a single set.
-	//if(!node->_bindingstacks){
-	//	node->bindingstacks = malloc(sizeof(binding_stack_set));
-	//	initialize_bindingstacks(node->bindingstacks);
-	//}
 
-
-}
-void pop_bindingstacks(){
-}
 //Layer has 3 virtual functions for fun/testing, 
 //but LayerSet should be the only caller for these 3 normally, according to specs
 void prep_Layer(struct X3D_Node * _node){
@@ -90,15 +79,19 @@ void prep_Layer(struct X3D_Node * _node){
 	struct X3D_Layer *node = (struct X3D_Layer*)_node;
 	tg = gglobal();
 
+
 	//push/set binding stacks
 	if(node->_bstack == NULL){
 		node->_bstack = malloc(sizeof(bindablestack));
-		init_bindablestack(node->_bstack);
-		node->_indexBstack = addBindableStack(tg,node->_bstack);
+		if(node->_layerId == 0) //if layer/layoutlayer has no LayoutGroup or LayerSet with layerIds, invent a layerId
+			node->_layerId = getBindableStacksCount(tg);
+		init_bindablestack(node->_bstack, node->_layerId);
+		addBindableStack(tg,node->_bstack);
 	}
 	//push_bindingstacks(node);
 	node->_saveActive = tg->Bindable.activeLayer;
-	tg->Bindable.activeLayer = node->_indexBstack;
+	tg->Bindable.activeLayer = node->_layerId;
+
 	//push layer.viewport onto viewport stack, setting it as the current window
 	vportstack = (Stack *)tg->Mainloop._vportstack;
 	pvport = stack_top(ivec4,vportstack); //parent context viewport
@@ -131,11 +124,16 @@ void fin_Layer(struct X3D_Node * _node){
 	ttglobal tg;
 	struct X3D_Layer *node = (struct X3D_Layer*)_node;
 	tg = gglobal();
+
 	vportstack = (Stack *)tg->Mainloop._vportstack;
 	popviewport(vportstack);
 	setcurrentviewport(vportstack);
+
+
+
 	//pop binding stacks
 	tg->Bindable.activeLayer = node->_saveActive;
+
 }
 
 
@@ -153,20 +151,33 @@ void child_LayerSet(struct X3D_Node * node){
 		layerset = (struct X3D_LayerSet *)node;
 		tg = gglobal();
 		activeLayer = layerset->activeLayer;
+		if(0) for(i=0;i<layerset->layers.n;i++){
+			struct X3D_Layer * layer;
+			layer = (struct X3D_Layer*)layerset->layers.p[i];
+			prep_Layer((struct X3D_Node*)layer);
+			child_Layer((struct X3D_Node*)layer);
+			fin_Layer((struct X3D_Node*)layer);
+
+		}
 		for(i=0;i<layerset->order.n;i++){
+
+			int i0;
 			struct X3D_Layer * layer;
 
 			ii = i;
-			if(rs->render_sensitive = VF_Sensitive){
+			if(rs->render_sensitive == VF_Sensitive){
 				ii = layerset->order.n - ii -1; //reverse order compared to rendering
 			}
 
-			iorderItem = layerset->order.p[ii];
+			iorderItem = layerset->order.p[i];
+			i0 = iorderItem -1;
+			layer = (struct X3D_Layer*)layerset->layers.p[i0];
+			layer->_layerId = iorderItem;
 
-			layer = (struct X3D_Layer*)layerset->layers.p[iorderItem-1];
-			if(rs->render_sensitive = VF_Sensitive){
+			if(rs->render_sensitive == VF_Sensitive){
 				if(!layer->isPickable) continue; //skip unpickable layers on sensitive pass
 			}
+
 
 			//let the layer know if its vp/navigation/binding_stacks is the active one: 
 			// if activeLayer then it won't push or pop they binding hyperstack, it will use main scene
@@ -190,7 +201,7 @@ void child_LayerSet(struct X3D_Node * node){
 			if(rs->render_sensitive)
 				if(getRayHit()) break; //if there's a clear pick of something on a higher layer, no need to check lower layers
 		}
-		tg->Bindable.activeLayer = ((struct X3D_Layer*)layerset->layers.p[activeLayer-1])->_indexBstack; 
+		tg->Bindable.activeLayer =  ((struct X3D_Layer*)layerset->layers.p[activeLayer-1])->_layerId; 
 	}
 }
 

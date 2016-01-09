@@ -63,11 +63,12 @@ struct MyVertex
 
 static void saveBGVert (float *colptr, float *pt, int *vertexno, float *col, double dist, double x, double y, double z) ;
 
-void init_bindablestack(bindablestack *bstack){
+void init_bindablestack(bindablestack *bstack, int layerId){
 	bstack->background = newVector(struct X3D_Node*, 2);
 	bstack->viewpoint = newVector(struct X3D_Node*, 2);
 	bstack->fog = newVector(struct X3D_Node*, 2);
 	bstack->navigation = newVector(struct X3D_Node*, 2);
+	bstack->layerId = layerId;
 }
 void free_bindablestack(bindablestack *bstack){
 	deleteVector(struct X3D_Node*, bstack->background);
@@ -97,7 +98,7 @@ void Bindable_init(struct tBindable *t){
 	t->bstacks = newVector(bindablestack*,4);
 	{
 		ppBindable p = (ppBindable)t->prv;
-		init_bindablestack(&p->bstack); //default binding stacks
+		init_bindablestack(&p->bstack,0); //default binding stacks layer=0
 		vector_pushBack(bindablestack*, t->bstacks, &p->bstack);
 		p->naviinfo.width = 0.25;
 		p->naviinfo.height = 1.6;
@@ -118,19 +119,29 @@ void Bindable_clear(struct tBindable *t){
 		free_bindablestack(bstack);
 	}
 }
+bindablestack* getBindableStacksByLayer(ttglobal tg, int layerId )
+{
+	int i;
+	bindablestack* bstack;
+	bstack = vector_get(bindablestack*,tg->Bindable.bstacks,0); //default
+	for(i=0;i<vectorSize(tg->Bindable.bstacks);i++){
+		bstack = vector_get(bindablestack*,tg->Bindable.bstacks,i);
+		if(bstack->layerId == layerId) break;
+	}
+	return bstack;
+}
 int addBindableStack(ttglobal tg, bindablestack* bstack){
 	//returns index of added bindablestack
 	//layer and layoutlayer should call this once in their lifetime to add their stack
-	vector_pushBack(bindablestack*,tg->Bindable.bstacks,bstack);
-	return vectorSize(tg->Bindable.bstacks) -1;
-}
-bindablestack* getBindableStacks(ttglobal tg, int index )
-{
-	return vector_get(bindablestack*,tg->Bindable.bstacks,index);
+	int layerId = bstack->layerId;
+	while(vectorSize(tg->Bindable.bstacks)<layerId+1)
+		vector_pushBack(bindablestack*,tg->Bindable.bstacks,NULL);
+	vector_set(bindablestack*,tg->Bindable.bstacks,layerId,bstack);
+	return layerId;
 }
 bindablestack* getActiveBindableStacks(ttglobal tg )
 {
-	return getBindableStacks(tg,tg->Bindable.activeLayer);
+	return getBindableStacksByLayer(tg,tg->Bindable.activeLayer);
 }
 int getBindableStacksCount(ttglobal tg){
 	return vectorSize(tg->Bindable.bstacks);
@@ -142,7 +153,7 @@ void printStatsBindingStacks()
 	ttglobal tg = gglobal();
 	nstacks = getBindableStacksCount(tg);
 	for(i=0;i<nstacks;i++){
-		bstack = getBindableStacks(tg,i);
+		bstack = getBindableStacksByLayer(tg,i);
 		ConsoleMessage("Layer %d",i);
 		if(i == tg->Bindable.activeLayer)
 			ConsoleMessage(" activeLayer");

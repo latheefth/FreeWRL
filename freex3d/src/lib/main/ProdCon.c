@@ -1494,7 +1494,7 @@ void kill_bindables (void) {
     p->navigationNodes->n=0;
     p->fogNodes->n=0;
 	for(i=0;i<vectorSize(tg->Bindable.bstacks);i++){
-		bindablestack *bstack = getBindableStacks(tg,i);
+		bindablestack *bstack = getBindableStacksByLayer(tg,i);
 		((struct Vector *)bstack->navigation)->n=0;
 		((struct Vector *)bstack->background)->n=0;
 		((struct Vector *)bstack->viewpoint)->n=0;

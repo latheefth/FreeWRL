@@ -59,8 +59,11 @@ typedef struct bindablestack {
 	void *viewpoint;
 	void *fog;
 	void *navigation;
+	int layerId;
 } bindablestack;
-bindablestack* getBindableStacks(ttglobal tg, int index );
+void init_bindablestack(bindablestack *bstack, int layerId);
+bindablestack* getBindableStacksByLayer(ttglobal tg, int layerId );
 bindablestack* getActiveBindableStacks(ttglobal tg );
 int addBindableStack(ttglobal tg, bindablestack* bstack);
+int getBindableStacksCount(ttglobal tg);
 #endif /* __FREEWRL_BINDABLE_H__ */

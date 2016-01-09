@@ -497,13 +497,13 @@ extern const int FIELDNAMES_COUNT;
 #define FIELDNAMES__floatInpFIFO	127
 #define FIELDNAMES__floatOutFIFO	128
 #define FIELDNAMES__hatchScale	129
-#define FIELDNAMES__indexBstack	130
-#define FIELDNAMES__initialized	131
-#define FIELDNAMES__int32InpFIFO	132
-#define FIELDNAMES__int32OutFIFO	133
-#define FIELDNAMES__isActive	134
-#define FIELDNAMES__keyVBO	135
-#define FIELDNAMES__keyValueVBO	136
+#define FIELDNAMES__initialized	130
+#define FIELDNAMES__int32InpFIFO	131
+#define FIELDNAMES__int32OutFIFO	132
+#define FIELDNAMES__isActive	133
+#define FIELDNAMES__keyVBO	134
+#define FIELDNAMES__keyValueVBO	135
+#define FIELDNAMES__layerId	136
 #define FIELDNAMES__loc	137
 #define FIELDNAMES__npoints	138
 #define FIELDNAMES__offsetUnits	139
@@ -4979,8 +4979,8 @@ struct X3D_Layer {
 	struct X3D_Node *viewport;
 	int _isActive;
 	int _saveActive;
-	int _indexBstack;
 	void * _bstack;
+	int _layerId;
 };
 extern struct X3D_Virt virt_Layer;
 /***********************/
@@ -5082,8 +5082,8 @@ struct X3D_LayoutLayer {
 	struct X3D_Node *viewport;
 	int _isActive;
 	int _saveActive;
-	int _indexBstack;
 	void * _bstack;
+	int _layerId;
 	struct X3D_Node *layout;
 };
 extern struct X3D_Virt virt_LayoutLayer;

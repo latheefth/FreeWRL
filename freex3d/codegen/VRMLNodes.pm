@@ -2668,8 +2668,8 @@ our %Nodes = (
 		viewport => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_isActive => ["SFBool", "TRUE", "initializeOnly", 0],
 		_saveActive => ["SFInt32", 0, "initializeOnly", 0],
-		_indexBstack => ["SFInt32", 0, "initializeOnly", 0],
 		_bstack => ["FreeWRLPTR", 0, "initializeOnly", 0],		
+		_layerId => ["SFInt32", 0, "initializeOnly", 0],
 		], "X3DLayerNode"),
 
 	"LayerSet" => new VRML::NodeType("LayerSet", [
@@ -2722,8 +2722,8 @@ our %Nodes = (
 		viewport => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_isActive => ["SFBool", "TRUE", "initializeOnly", 0],
 		_saveActive => ["SFInt32", 0, "initializeOnly", 0],
-		_indexBstack => ["SFInt32", 0, "initializeOnly", 0],
 		_bstack => ["FreeWRLPTR", 0, "initializeOnly", 0],		
+		_layerId => ["SFInt32", 0, "initializeOnly", 0],
 		layout => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		], "X3DGroupingNode"),
 
