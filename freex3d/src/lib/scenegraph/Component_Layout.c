@@ -130,6 +130,10 @@ void compile_Layout(struct X3D_Node *_node){
 	node->_sizeUnits.p[1] = lookup_layoutmode(node->sizeUnits.p[k]->strptr);
 
 }
+void check_compile_layout_required(struct X3D_Node *node){
+	//macro has a return; statement in it
+	COMPILE_IF_REQUIRED
+}
 void prep_Layout(struct X3D_Node *_node){
 	//push Layout transform (backward if VF_Viewpoint pass, like Transform prep)
 
@@ -149,7 +153,7 @@ void prep_Layout(struct X3D_Node *_node){
 		pvport = stack_top(ivec4,vportstack); //parent context viewport
 
 		// we can/should convert string fields to int flags in a compile_layout
-		COMPILE_IF_REQUIRED
+		check_compile_layout_required(_node);
 
 		//size
 		if(node->_sizeUnits.p[0] == LAYOUT_PIXEL)
@@ -172,6 +176,7 @@ void prep_Layout(struct X3D_Node *_node){
 			offsetpx[1] = pvport.H * node->offset.p[1]; //fraction
 		vport.X = offsetpx[0];
 		vport.Y = offsetpx[1];
+
 		pushviewport(vportstack, vport);
 		setcurrentviewport(vportstack);
 
@@ -222,6 +227,8 @@ void fin_Layout(struct X3D_Node *_node){
 		}else{
 			FW_GL_POP_MATRIX();
 		}
+
+
 		vportstack = (Stack *)tg->Mainloop._vportstack;
 		popviewport(vportstack);
 		setcurrentviewport(vportstack);

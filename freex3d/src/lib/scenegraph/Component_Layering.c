@@ -91,7 +91,14 @@ void prep_Layer(struct X3D_Node * _node){
 	tg = gglobal();
 
 	//push/set binding stacks
+	if(node->_bstack == NULL){
+		node->_bstack = malloc(sizeof(bindablestack));
+		init_bindablestack(node->_bstack);
+		node->_indexBstack = addBindableStack(tg,node->_bstack);
+	}
 	//push_bindingstacks(node);
+	node->_saveActive = tg->Bindable.activeLayer;
+	tg->Bindable.activeLayer = node->_indexBstack;
 	//push layer.viewport onto viewport stack, setting it as the current window
 	vportstack = (Stack *)tg->Mainloop._vportstack;
 	pvport = stack_top(ivec4,vportstack); //parent context viewport
@@ -128,7 +135,7 @@ void fin_Layer(struct X3D_Node * _node){
 	popviewport(vportstack);
 	setcurrentviewport(vportstack);
 	//pop binding stacks
-	pop_bindingstacks();
+	tg->Bindable.activeLayer = node->_saveActive;
 }
 
 
@@ -152,18 +159,22 @@ void child_LayerSet(struct X3D_Node * node){
 			ii = i;
 			if(rs->render_sensitive = VF_Sensitive){
 				ii = layerset->order.n - ii -1; //reverse order compared to rendering
-				if(!layer->isPickable) continue; //skip unpickable layers on sensitive pass
 			}
 
 			iorderItem = layerset->order.p[ii];
 
-			layer = (struct X3D_Layer*)layerset->layers.p[iorderItem];
+			layer = (struct X3D_Layer*)layerset->layers.p[iorderItem-1];
+			if(rs->render_sensitive = VF_Sensitive){
+				if(!layer->isPickable) continue; //skip unpickable layers on sensitive pass
+			}
+
 			//let the layer know if its vp/navigation/binding_stacks is the active one: 
 			// if activeLayer then it won't push or pop they binding hyperstack, it will use main scene
-			if(iorderItem == activeLayer)
+			if(iorderItem == activeLayer){
 				layer->_isActive = 1;
-			else
+			}else{
 				layer->_isActive = 0;
+			}
 
 			//both layer and layoutlayer can be in here
 			if(layer->_nodeType == NODE_Layer){
@@ -179,6 +190,7 @@ void child_LayerSet(struct X3D_Node * node){
 			if(rs->render_sensitive)
 				if(getRayHit()) break; //if there's a clear pick of something on a higher layer, no need to check lower layers
 		}
+		tg->Bindable.activeLayer = ((struct X3D_Layer*)layerset->layers.p[activeLayer-1])->_indexBstack; 
 	}
 }
 

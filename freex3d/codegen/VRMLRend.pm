@@ -617,6 +617,7 @@ our %CompileC = map {($_=>1)} qw/
 	NurbsCurve
 	NurbsPatchSurface
 	NurbsTrimmedSurface
+	Layout
 /;
 
 

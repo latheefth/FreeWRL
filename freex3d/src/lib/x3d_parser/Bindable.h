@@ -62,4 +62,5 @@ typedef struct bindablestack {
 } bindablestack;
 bindablestack* getBindableStacks(ttglobal tg, int index );
 bindablestack* getActiveBindableStacks(ttglobal tg );
+int addBindableStack(ttglobal tg, bindablestack* bstack);
 #endif /* __FREEWRL_BINDABLE_H__ */

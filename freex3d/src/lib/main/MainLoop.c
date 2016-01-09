@@ -2157,7 +2157,7 @@ void setup_stagesNORMAL(){
 		//IDEA: these prepared ways of using freewrl could be put into a switchcase contenttype called early ie from window
 		if(1){
 			//normal: multitouch emulation, layer, scene, statusbarHud, 
-			if(1) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
+			if(0) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
 			else cstage->t1.contents = csbh; //skip multitouch
 			//tg->Mainloop.AllowNavDrag = TRUE; //experimental approach to allow both navigation and dragging at the same time, with 2 separate touches
 		}else if(0){

@@ -118,6 +118,12 @@ void Bindable_clear(struct tBindable *t){
 		free_bindablestack(bstack);
 	}
 }
+int addBindableStack(ttglobal tg, bindablestack* bstack){
+	//returns index of added bindablestack
+	//layer and layoutlayer should call this once in their lifetime to add their stack
+	vector_pushBack(bindablestack*,tg->Bindable.bstacks,bstack);
+	return vectorSize(tg->Bindable.bstacks) -1;
+}
 bindablestack* getBindableStacks(ttglobal tg, int index )
 {
 	return vector_get(bindablestack*,tg->Bindable.bstacks,index);
@@ -126,13 +132,26 @@ bindablestack* getActiveBindableStacks(ttglobal tg )
 {
 	return getBindableStacks(tg,tg->Bindable.activeLayer);
 }
+int getBindableStacksCount(ttglobal tg){
+	return vectorSize(tg->Bindable.bstacks);
+}
 void printStatsBindingStacks()
 {
+	int i,nstacks;
+	bindablestack* bstack;
 	ttglobal tg = gglobal();
-	ConsoleMessage("%25s %d\n","Background stack count", ((struct Vector *)getActiveBindableStacks(tg)->background)->n);
-	ConsoleMessage("%25s %d\n","Fog stack count", ((struct Vector *)getActiveBindableStacks(tg)->fog)->n);
-	ConsoleMessage("%25s %d\n","Navigation stack count", ((struct Vector *)getActiveBindableStacks(tg)->navigation)->n);	
-	ConsoleMessage("%25s %d\n","Viewpoint stack count", ((struct Vector *)getActiveBindableStacks(tg)->viewpoint)->n);	
+	nstacks = getBindableStacksCount(tg);
+	for(i=0;i<nstacks;i++){
+		bstack = getBindableStacks(tg,i);
+		ConsoleMessage("Layer %d",i);
+		if(i == tg->Bindable.activeLayer)
+			ConsoleMessage(" activeLayer");
+		ConsoleMessage(":\n");
+		ConsoleMessage("%25s %d\n","Background stack count", vectorSize(bstack->background));
+		ConsoleMessage("%25s %d\n","Fog stack count", vectorSize(bstack->fog));
+		ConsoleMessage("%25s %d\n","Navigation stack count", vectorSize(bstack->navigation));	
+		ConsoleMessage("%25s %d\n","Viewpoint stack count", vectorSize(bstack->viewpoint));	
+	}
 }
 
 /* common entry routine for setting avatar size */
