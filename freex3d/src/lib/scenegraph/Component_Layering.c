@@ -201,7 +201,7 @@ void child_LayerSet(struct X3D_Node * node){
 			if(rs->render_sensitive)
 				if(getRayHit()) break; //if there's a clear pick of something on a higher layer, no need to check lower layers
 		}
-		tg->Bindable.activeLayer =  ((struct X3D_Layer*)layerset->layers.p[activeLayer-1])->_layerId; 
+		tg->Bindable.activeLayer =  layerset->activeLayer;
 	}
 }
 
