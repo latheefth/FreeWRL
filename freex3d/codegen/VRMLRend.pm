@@ -379,7 +379,6 @@ our %RendC = map {($_=>1)} qw/
 	NurbsCurve
 	NurbsPatchSurface
 	NurbsTrimmedSurface
-	LayerSet
 /;
 
 #######################################################################
@@ -439,6 +438,8 @@ our %PrepC = map {($_=>1)} qw/
 	Viewport
 	LayoutGroup
 	ScreenGroup
+	Layer
+	LayoutLayer
 /;
 
 #######################################################################
@@ -462,6 +463,8 @@ our %FinC = map {($_=>1)} qw/
 	Viewport
 	LayoutGroup
 	ScreenGroup
+	Layer
+	LayoutLayer	
 /;
 
 
@@ -506,6 +509,9 @@ our %ChildC = map {($_=>1)} qw/
 	Viewport
 	LayoutGroup
 	ScreenGroup
+	LayerSet
+	Layer
+	LayoutLayer	
 /;
 
 
@@ -611,6 +617,7 @@ our %CompileC = map {($_=>1)} qw/
 	NurbsCurve
 	NurbsPatchSurface
 	NurbsTrimmedSurface
+	Layout
 /;
 
 
@@ -796,7 +803,6 @@ our %RendRayC = map {($_=>1)} qw/
 	TriangleStripSet
 	NurbsPatchSurface
 	NurbsTrimmedSurface
-	LayerSet
 /;
 
 

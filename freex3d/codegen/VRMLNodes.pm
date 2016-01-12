@@ -2666,6 +2666,10 @@ our %Nodes = (
 		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		isPickable => ["SFBool", "TRUE", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		viewport => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_isActive => ["SFBool", "TRUE", "initializeOnly", 0],
+		_saveActive => ["SFInt32", 0, "initializeOnly", 0],
+		_bstack => ["FreeWRLPTR", 0, "initializeOnly", 0],		
+		_layerId => ["SFInt32", 0, "initializeOnly", 0],
 		], "X3DLayerNode"),
 
 	"LayerSet" => new VRML::NodeType("LayerSet", [
@@ -2689,6 +2693,11 @@ our %Nodes = (
 		scaleMode => ["MFString", ["NONE","NONE"], "inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		size => ["MFFloat",[1,1],"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		sizeUnits => ["MFString", ["WORLD","WORLD"], "inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_align => ["MFInt32",[0,0],"initializeOnly", 0],
+		_offsetUnits => ["MFInt32",[0,0], "initializeOnly", 0],
+		_scaleMode => ["MFInt32",[0,0], "initializeOnly", 0],
+		_sizeUnits => ["MFInt32",[0,0], "initializeOnly", 0],
+		_scale => ["MFFloat",[1,1], "initializeOnly", 0],
 		], "X3DLayoutNode"),
 
 	"LayoutGroup" => new VRML::NodeType("LayoutGroup", [
@@ -2711,6 +2720,10 @@ our %Nodes = (
 		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		isPickable => ["SFBool", "TRUE", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		viewport => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_isActive => ["SFBool", "TRUE", "initializeOnly", 0],
+		_saveActive => ["SFInt32", 0, "initializeOnly", 0],
+		_bstack => ["FreeWRLPTR", 0, "initializeOnly", 0],		
+		_layerId => ["SFInt32", 0, "initializeOnly", 0],
 		layout => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		], "X3DGroupingNode"),
 

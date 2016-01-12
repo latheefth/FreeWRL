@@ -40,6 +40,7 @@ CProto ???
 #include "LinearAlgebra.h"
 #include "quaternion.h"
 #include "Viewer.h"
+#include "../x3d_parser/Bindable.h"
 #include "ui/common.h" // for ppcommon
 
 //moved to libfreewrl.h
@@ -272,14 +273,7 @@ void printStatsRoutes()
 	ConsoleMessage("%25s %d\n","Routes count", getCRouteCount());
 }
 
-void printStatsBindingStacks()
-{
-	ttglobal tg = gglobal();
-	ConsoleMessage("%25s %d\n","Background stack count", ((struct Vector *)tg->Bindable.background_stack)->n);
-	ConsoleMessage("%25s %d\n","Fog stack count", ((struct Vector *)tg->Bindable.fog_stack)->n);
-	ConsoleMessage("%25s %d\n","Navigation stack count", ((struct Vector *)tg->Bindable.navigation_stack)->n);	
-	ConsoleMessage("%25s %d\n","Viewpoint stack count", ((struct Vector *)tg->Bindable.viewpoint_stack)->n);	
-}
+void printStatsBindingStacks();
 void printStatsResources();
 void printStatsEvents();
 void printStatsNodes();
@@ -458,7 +452,7 @@ void fwl_set_viewer_type(const int type) {
 
 	/* can the currently bound viewer type handle this */
 	/* if there is no bound viewer, just ignore (happens on initialization) */
-	if (vectorSize(tg->Bindable.navigation_stack) >0)
+	if (vectorSize(getActiveBindableStacks(tg)->navigation) >0)
 		if (p->Viewer.oktypes[type]==FALSE) {
 			//setMenuButton_navModes(p->Viewer.type);
 			return;

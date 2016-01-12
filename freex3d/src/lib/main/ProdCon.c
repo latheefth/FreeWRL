@@ -119,6 +119,7 @@ static bool parser_do_parse_string(const char *input, const int len, struct X3D_
 
 /* Bindables */
 typedef struct pProdCon {
+		//these bindable lists store all bindable nodes as parsed
 		struct Vector *fogNodes;
 		struct Vector *backgroundNodes;
 		struct Vector *navigationNodes;
@@ -151,6 +152,7 @@ void *ProdCon_constructor(){
 void ProdCon_init(struct tProdCon *t)
 {
 	//public
+	//stores all bindable viewpoints as parsed
 	t->viewpointNodes = newVector(struct X3D_Node *,8);
 	t->currboundvpno=0;
 
@@ -1479,6 +1481,7 @@ OLDCODE 	}
 
 
 void kill_bindables (void) {
+	int i;
 	ppProdCon p;
     ttglobal tg = gglobal();
 
@@ -1490,10 +1493,13 @@ void kill_bindables (void) {
     p->backgroundNodes->n=0;
     p->navigationNodes->n=0;
     p->fogNodes->n=0;
-    ((struct Vector *)tg->Bindable.navigation_stack)->n=0;
-    ((struct Vector *)tg->Bindable.background_stack)->n=0;
-    ((struct Vector *)tg->Bindable.viewpoint_stack)->n=0;
-    ((struct Vector *)tg->Bindable.fog_stack)->n=0;
+	for(i=0;i<vectorSize(tg->Bindable.bstacks);i++){
+		bindablestack *bstack = getBindableStacksByLayer(tg,i);
+		((struct Vector *)bstack->navigation)->n=0;
+		((struct Vector *)bstack->background)->n=0;
+		((struct Vector *)bstack->viewpoint)->n=0;
+		((struct Vector *)bstack->fog)->n=0;
+	}
     return;
 
 	/*
