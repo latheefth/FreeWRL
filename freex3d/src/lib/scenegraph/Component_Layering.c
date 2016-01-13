@@ -80,17 +80,6 @@ void prep_Layer(struct X3D_Node * _node){
 	tg = gglobal();
 
 
-	//push/set binding stacks
-	if(node->_bstack == NULL){
-		node->_bstack = malloc(sizeof(bindablestack));
-		if(node->_layerId == 0) //if layer/layoutlayer has no LayoutGroup or LayerSet with layerIds, invent a layerId
-			node->_layerId = getBindableStacksCount(tg);
-		init_bindablestack(node->_bstack, node->_layerId);
-		addBindableStack(tg,node->_bstack);
-	}
-	//push_bindingstacks(node);
-	node->_saveActive = tg->Bindable.activeLayer;
-	tg->Bindable.activeLayer = node->_layerId;
 
 	//push layer.viewport onto viewport stack, setting it as the current window
 	vportstack = (Stack *)tg->Mainloop._vportstack;
@@ -131,8 +120,6 @@ void fin_Layer(struct X3D_Node * _node){
 
 
 
-	//pop binding stacks
-	tg->Bindable.activeLayer = node->_saveActive;
 
 }
 
@@ -141,8 +128,13 @@ struct X3D_Node*  getRayHit(void);
 void child_LayerSet(struct X3D_Node * node){
 	// has similar responsibilities to render_heir except just for Layer, LayoutLayer children
 	// child is the only virtual function for LayerSet
+	// Bindables in Core:
+	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/core.html#BindableChildrenNodes
+	// "If there is no LayerSet node defined, there shall be only one set of binding stacks"
+	// -that means its up to LayerSet to switch binding stacks, and manage per-layer modelview matrix stack
+
 	if(node && node->_nodeType == NODE_LayerSet){
-		int ii,i,j,activeLayer,iorderItem;
+		int ii,i,j,activeLayer,layerId;
 		ttglobal tg;
 		struct X3D_LayerSet * layerset;
 		ttrenderstate rs;
@@ -161,31 +153,34 @@ void child_LayerSet(struct X3D_Node * node){
 		}
 		for(i=0;i<layerset->order.n;i++){
 
-			int i0;
+			int i0, saveActive;
+			struct X3D_Node *rayhit;
 			struct X3D_Layer * layer;
+			bindablestack* bstack;
 
 			ii = i;
 			if(rs->render_sensitive == VF_Sensitive){
 				ii = layerset->order.n - ii -1; //reverse order compared to rendering
 			}
 
-			iorderItem = layerset->order.p[i];
-			i0 = iorderItem -1;
+			layerId = layerset->order.p[i];
+			i0 = layerId -1;
 			layer = (struct X3D_Layer*)layerset->layers.p[i0];
-			layer->_layerId = iorderItem;
 
 			if(rs->render_sensitive == VF_Sensitive){
 				if(!layer->isPickable) continue; //skip unpickable layers on sensitive pass
 			}
 
-
-			//let the layer know if its vp/navigation/binding_stacks is the active one: 
-			// if activeLayer then it won't push or pop they binding hyperstack, it will use main scene
-			if(iorderItem == activeLayer){
-				layer->_isActive = 1;
-			}else{
-				layer->_isActive = 0;
+			//push/set binding stacks
+			bstack = getBindableStacksByLayer(tg, layerId );
+			if(bstack == NULL){
+				bstack = malloc(sizeof(bindablestack));
+				init_bindablestack(bstack, layerId);
+				addBindableStack(tg,bstack);
 			}
+			//push_bindingstacks(node);
+			saveActive = tg->Bindable.activeLayer;
+			tg->Bindable.activeLayer = layerId;
 
 			//both layer and layoutlayer can be in here
 			if(layer->_nodeType == NODE_Layer){
@@ -198,8 +193,14 @@ void child_LayerSet(struct X3D_Node * node){
 				child_LayoutLayer((struct X3D_Node*)layer);
 				fin_LayoutLayer((struct X3D_Node*)layer);
 			}
+			rayhit = NULL;
 			if(rs->render_sensitive)
-				if(getRayHit()) break; //if there's a clear pick of something on a higher layer, no need to check lower layers
+				rayhit = getRayHit(); //if there's a clear pick of something on a higher layer, no need to check lower layers
+			
+			//pop binding stacks
+			tg->Bindable.activeLayer = saveActive;
+
+			if(rayhit) break;
 		}
 		tg->Bindable.activeLayer =  layerset->activeLayer;
 	}

@@ -122,11 +122,14 @@ void Bindable_clear(struct tBindable *t){
 bindablestack* getBindableStacksByLayer(ttglobal tg, int layerId )
 {
 	int i;
-	bindablestack* bstack;
-	bstack = vector_get(bindablestack*,tg->Bindable.bstacks,0); //default
+	bindablestack* bstack, *bstacktmp;
+	bstack = NULL; // vector_get(bindablestack*,tg->Bindable.bstacks,0); //default
 	for(i=0;i<vectorSize(tg->Bindable.bstacks);i++){
-		bstack = vector_get(bindablestack*,tg->Bindable.bstacks,i);
-		if(bstack->layerId == layerId) break;
+		bstacktmp = vector_get(bindablestack*,tg->Bindable.bstacks,i);
+		if(bstacktmp->layerId == layerId){
+			bstack = bstacktmp;
+			break;
+		}
 	}
 	return bstack;
 }

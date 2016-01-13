@@ -187,7 +187,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_amb",
 	"_bboxCenter",
 	"_bboxSize",
-	"_bstack",
 	"_col",
 	"_colourSize",
 	"_coloursVBO",
@@ -201,10 +200,8 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_initialized",
 	"_int32InpFIFO",
 	"_int32OutFIFO",
-	"_isActive",
 	"_keyVBO",
 	"_keyValueVBO",
-	"_layerId",
 	"_loc",
 	"_npoints",
 	"_offsetUnits",
@@ -225,7 +222,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_radius",
 	"_retrievedURLData",
 	"_rotationAngle",
-	"_saveActive",
 	"_scale",
 	"_scaleMode",
 	"_selected",
@@ -4463,10 +4459,6 @@ const int OFFSETS_LOD[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Layer[] = {
-	(int) FIELDNAMES__bstack, (int) offsetof (struct X3D_Layer, _bstack),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES__isActive, (int) offsetof (struct X3D_Layer, _isActive),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES__layerId, (int) offsetof (struct X3D_Layer, _layerId),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES__saveActive, (int) offsetof (struct X3D_Layer, _saveActive),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_Layer, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_children, (int) offsetof (struct X3D_Layer, children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isPickable, (int) offsetof (struct X3D_Layer, isPickable),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4510,10 +4502,6 @@ const int OFFSETS_LayoutGroup[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_LayoutLayer[] = {
-	(int) FIELDNAMES__bstack, (int) offsetof (struct X3D_LayoutLayer, _bstack),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES__isActive, (int) offsetof (struct X3D_LayoutLayer, _isActive),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES__layerId, (int) offsetof (struct X3D_LayoutLayer, _layerId),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES__saveActive, (int) offsetof (struct X3D_LayoutLayer, _saveActive),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_LayoutLayer, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_children, (int) offsetof (struct X3D_LayoutLayer, children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isPickable, (int) offsetof (struct X3D_LayoutLayer, isPickable),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -8779,10 +8767,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Layer : {
 			struct X3D_Layer * tmp2;
 			tmp2 = (struct X3D_Layer *) tmp;
-			tmp2->_bstack = 0;
-			tmp2->_isActive = TRUE;
-			tmp2->_layerId = 0;
-			tmp2->_saveActive = 0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->isPickable = TRUE;
@@ -8861,10 +8845,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_LayoutLayer : {
 			struct X3D_LayoutLayer * tmp2;
 			tmp2 = (struct X3D_LayoutLayer *) tmp;
-			tmp2->_bstack = 0;
-			tmp2->_isActive = TRUE;
-			tmp2->_layerId = 0;
-			tmp2->_saveActive = 0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->isPickable = TRUE;
