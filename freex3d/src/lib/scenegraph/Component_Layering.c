@@ -200,7 +200,7 @@ void child_LayerSet(struct X3D_Node * node){
 				ii = layerset->order.n - ii -1; //reverse order compared to rendering
 			}
 
-			layerId = layerset->order.p[i];
+			layerId = layerset->order.p[ii];
 			i0 = layerId -1;
 			layer = (struct X3D_Layer*)layerset->layers.p[i0];
 
