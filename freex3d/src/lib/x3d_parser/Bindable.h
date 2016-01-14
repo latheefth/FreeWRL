@@ -66,4 +66,5 @@ bindablestack* getBindableStacksByLayer(ttglobal tg, int layerId );
 bindablestack* getActiveBindableStacks(ttglobal tg );
 int addBindableStack(ttglobal tg, bindablestack* bstack);
 int getBindableStacksCount(ttglobal tg);
+int layerFromBindable(struct X3D_Node*);
 #endif /* __FREEWRL_BINDABLE_H__ */

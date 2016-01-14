@@ -202,6 +202,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_int32OutFIFO",
 	"_keyVBO",
 	"_keyValueVBO",
+	"_layerId",
 	"_loc",
 	"_npoints",
 	"_offsetUnits",
@@ -3225,6 +3226,7 @@ const int OFFSETS_Background[] = {
 	(int) FIELDNAMES___rightTexture, (int) offsetof (struct X3D_Background, __rightTexture),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES___textureright, (int) offsetof (struct X3D_Background, __textureright),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES___topTexture, (int) offsetof (struct X3D_Background, __topTexture),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) 0,
+	(int) FIELDNAMES__layerId, (int) offsetof (struct X3D_Background, _layerId),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__parentResource, (int) offsetof (struct X3D_Background, _parentResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_backUrl, (int) offsetof (struct X3D_Background, backUrl),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bindTime, (int) offsetof (struct X3D_Background, bindTime),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -3894,6 +3896,7 @@ const int OFFSETS_FloatVertexAttribute[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Fog[] = {
+	(int) FIELDNAMES__layerId, (int) offsetof (struct X3D_Fog, _layerId),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_bindTime, (int) offsetof (struct X3D_Fog, bindTime),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_color, (int) offsetof (struct X3D_Fog, color),  (int) FIELDTYPE_SFColor, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_fogType, (int) offsetof (struct X3D_Fog, fogType),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4124,6 +4127,7 @@ const int OFFSETS_GeoViewpoint[] = {
 	(int) FIELDNAMES___oldJump, (int) offsetof (struct X3D_GeoViewpoint, __oldJump),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES___oldMFString, (int) offsetof (struct X3D_GeoViewpoint, __oldMFString),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES___oldSFString, (int) offsetof (struct X3D_GeoViewpoint, __oldSFString),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) 0,
+	(int) FIELDNAMES__layerId, (int) offsetof (struct X3D_GeoViewpoint, _layerId),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_bindTime, (int) offsetof (struct X3D_GeoViewpoint, bindTime),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_description, (int) offsetof (struct X3D_GeoViewpoint, description),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_fieldOfView, (int) offsetof (struct X3D_GeoViewpoint, fieldOfView),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -5012,6 +5016,7 @@ const int OFFSETS_MultiTextureTransform[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_NavigationInfo[] = {
+	(int) FIELDNAMES__layerId, (int) offsetof (struct X3D_NavigationInfo, _layerId),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_avatarSize, (int) offsetof (struct X3D_NavigationInfo, avatarSize),  (int) FIELDTYPE_MFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bindTime, (int) offsetof (struct X3D_NavigationInfo, bindTime),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_headlight, (int) offsetof (struct X3D_NavigationInfo, headlight),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -5230,6 +5235,7 @@ const int OFFSETS_OrientationInterpolator[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_OrthoViewpoint[] = {
+	(int) FIELDNAMES__layerId, (int) offsetof (struct X3D_OrthoViewpoint, _layerId),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_bindTime, (int) offsetof (struct X3D_OrthoViewpoint, bindTime),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_centerOfRotation, (int) offsetof (struct X3D_OrthoViewpoint, centerOfRotation),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_description, (int) offsetof (struct X3D_OrthoViewpoint, description),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -5992,6 +5998,7 @@ const int OFFSETS_TextureBackground[] = {
 	(int) FIELDNAMES___colours, (int) offsetof (struct X3D_TextureBackground, __colours),  (int) FIELDTYPE_MFVec3f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___points, (int) offsetof (struct X3D_TextureBackground, __points),  (int) FIELDTYPE_MFVec3f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___quadcount, (int) offsetof (struct X3D_TextureBackground, __quadcount),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__layerId, (int) offsetof (struct X3D_TextureBackground, _layerId),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__parentResource, (int) offsetof (struct X3D_TextureBackground, _parentResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_backTexture, (int) offsetof (struct X3D_TextureBackground, backTexture),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bindTime, (int) offsetof (struct X3D_TextureBackground, bindTime),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6247,6 +6254,7 @@ const int OFFSETS_UniversalJoint[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Viewpoint[] = {
+	(int) FIELDNAMES__layerId, (int) offsetof (struct X3D_Viewpoint, _layerId),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_bindTime, (int) offsetof (struct X3D_Viewpoint, bindTime),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_centerOfRotation, (int) offsetof (struct X3D_Viewpoint, centerOfRotation),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_description, (int) offsetof (struct X3D_Viewpoint, description),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -7199,6 +7207,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__rightTexture = NULL;
 			tmp2->__textureright = 0;
 			tmp2->__topTexture = NULL;
+			tmp2->_layerId = 0;
 			tmp2->_parentResource = getInputResource();
 			tmp2->backUrl.n=0; tmp2->backUrl.p=0;
 			tmp2->bindTime = 0;
@@ -8083,6 +8092,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Fog : {
 			struct X3D_Fog * tmp2;
 			tmp2 = (struct X3D_Fog *) tmp;
+			tmp2->_layerId = 0;
 			tmp2->bindTime = -1;
 			tmp2->color.c[0] = 1.0f;tmp2->color.c[1] = 1.0f;tmp2->color.c[2] = 1.0f;;
 			tmp2->fogType = newASCIIString("LINEAR");
@@ -8358,6 +8368,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__oldJump = TRUE;
 			tmp2->__oldMFString.n=0; tmp2->__oldMFString.p=0;
 			tmp2->__oldSFString = newASCIIString("");
+			tmp2->_layerId = 0;
 			tmp2->bindTime = -1;
 			tmp2->description = newASCIIString("");
 			tmp2->fieldOfView = 0.785398f;
@@ -9559,6 +9570,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_NavigationInfo : {
 			struct X3D_NavigationInfo * tmp2;
 			tmp2 = (struct X3D_NavigationInfo *) tmp;
+			tmp2->_layerId = 0;
 			tmp2->avatarSize.p = MALLOC (float *, sizeof(float)*3);
 			tmp2->avatarSize.p[0] = 0.25f;
 			tmp2->avatarSize.p[1] = 1.6f;
@@ -9835,6 +9847,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_OrthoViewpoint : {
 			struct X3D_OrthoViewpoint * tmp2;
 			tmp2 = (struct X3D_OrthoViewpoint *) tmp;
+			tmp2->_layerId = 0;
 			tmp2->bindTime = -1;
 			tmp2->centerOfRotation.c[0] = 0.0f;tmp2->centerOfRotation.c[1] = 0.0f;tmp2->centerOfRotation.c[2] = 0.0f;
 			tmp2->description = newASCIIString("");
@@ -10783,6 +10796,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__colours.n=0; tmp2->__colours.p=0;
 			tmp2->__points.n=0; tmp2->__points.p=0;
 			tmp2->__quadcount = 0;
+			tmp2->_layerId = 0;
 			tmp2->_parentResource = getInputResource();
 			tmp2->backTexture = NULL;
 			tmp2->bindTime = 0;
@@ -11131,6 +11145,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Viewpoint : {
 			struct X3D_Viewpoint * tmp2;
 			tmp2 = (struct X3D_Viewpoint *) tmp;
+			tmp2->_layerId = 0;
 			tmp2->bindTime = -1;
 			tmp2->centerOfRotation.c[0] = 0.0f;tmp2->centerOfRotation.c[1] = 0.0f;tmp2->centerOfRotation.c[2] = 0.0f;
 			tmp2->description = newASCIIString("");

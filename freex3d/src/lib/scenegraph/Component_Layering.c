@@ -125,6 +125,40 @@ void fin_Layer(struct X3D_Node * _node){
 
 
 struct X3D_Node*  getRayHit(void);
+static int layerId, saveActive, binding_stack_set;
+void push_binding_stack_set();
+void push_next_layerId_from_binding_stack_set();
+void pop_binding_stack_set();
+void push_binding_stack_set(){
+	//used during parsing to control layerId for controlling binding stack use
+	ttglobal tg = gglobal();
+	binding_stack_set++;
+	saveActive = tg->Bindable.activeLayer;
+	layerId = 0;
+}
+void push_next_layerId_from_binding_stack_set(){
+	bindablestack* bstack;
+	ttglobal tg = gglobal();
+	//only change binding stacks if there was a LayerSet node otherwise accorindg to specs everything is in one binding stack set.
+	if(binding_stack_set > 0){
+		layerId ++;
+		bstack = getBindableStacksByLayer(tg, layerId );
+		if(bstack == NULL){
+			bstack = malloc(sizeof(bindablestack));
+			init_bindablestack(bstack, layerId);
+			addBindableStack(tg,bstack);
+		}
+		//push_bindingstacks(node);
+		tg->Bindable.activeLayer = layerId;
+	}
+}
+
+void pop_binding_stack_set(){
+	ttglobal tg = gglobal();
+
+	binding_stack_set--;
+	tg->Bindable.activeLayer = saveActive;
+}
 void child_LayerSet(struct X3D_Node * node){
 	// has similar responsibilities to render_heir except just for Layer, LayoutLayer children
 	// child is the only virtual function for LayerSet
