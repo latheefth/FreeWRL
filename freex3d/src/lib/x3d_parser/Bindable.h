@@ -60,6 +60,8 @@ typedef struct bindablestack {
 	void *fog;
 	void *navigation;
 	int layerId;
+	GLDOUBLE projectionMatrix[16];
+	GLDOUBLE viewMatrix[16];
 } bindablestack;
 void init_bindablestack(bindablestack *bstack, int layerId);
 bindablestack* getBindableStacksByLayer(ttglobal tg, int layerId );

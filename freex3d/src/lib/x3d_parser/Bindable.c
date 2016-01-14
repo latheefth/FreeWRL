@@ -69,6 +69,8 @@ void init_bindablestack(bindablestack *bstack, int layerId){
 	bstack->fog = newVector(struct X3D_Node*, 2);
 	bstack->navigation = newVector(struct X3D_Node*, 2);
 	bstack->layerId = layerId;
+	loadIdentityMatrix (bstack->viewMatrix);
+	loadIdentityMatrix (bstack->projectionMatrix);
 }
 void free_bindablestack(bindablestack *bstack){
 	deleteVector(struct X3D_Node*, bstack->background);

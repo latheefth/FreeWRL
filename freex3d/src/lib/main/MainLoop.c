@@ -3957,6 +3957,170 @@ static int rotatingCCW = FALSE;
 static double currentViewerAngle = 0.0;
 static double requestedViewerAngle = 0.0;
 
+
+void setup_viewpoint_part1() {
+/*
+	 Computes view part of modelview matrix and leaves it in modelview.
+	 You would call this before traversing the scenegraph to scene nodes
+	  with render() or render_hier().
+	 The view part includes:
+	 a) screen orientation ie on mobile devices landscape vs portrait (this function)
+	 b) stereovision +- 1/2 base offset (viewer_togl)
+	 c) viewpoint slerping interpolation (viewer_togl)
+	 d) .Pos and .Quat of viewpoint from: (viewer_togl)
+	        1) .position and .orientation specified in scenefile
+	        2) cumulative navigation away from initial bound pose
+	        3) gravity and collision (bumping and wall penetration) adjustments
+	 e) transform stack between scene root and currently bound viewpoint (render_hier(rootnode,VF_Viewpoint))
+
+*/
+	int isStereo, iside;
+	double viewmatrix[16];
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+
+	FW_GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
+	FW_GL_LOAD_IDENTITY();
+
+	// has a change happened?
+	if (Viewer()->screenOrientation != currentViewerLandPort) {
+		// 4 possible values; 0, 90, 180, 270
+		//
+		rotatingCCW = FALSE; // assume, unless told otherwise
+		switch (currentViewerLandPort) {
+			case 0: {
+				rotatingCCW= (Viewer()->screenOrientation == 270);
+				break;
+			}
+			case 90: {
+				rotatingCCW = (Viewer()->screenOrientation == 0);
+				break;
+			}
+			case 180: {
+				rotatingCCW = (Viewer()->screenOrientation != 270);
+				break;
+			}
+			case 270: {
+				rotatingCCW = (Viewer()->screenOrientation != 0);
+				break;
+			}
+		}
+		currentViewerLandPort = Viewer()->screenOrientation;
+		requestedViewerAngle = (double)Viewer()->screenOrientation;
+	}
+
+	if (!(APPROX(currentViewerAngle,requestedViewerAngle))) {
+		if (rotatingCCW) {
+			//printf ("ccw, cva %lf req %lf\n",currentViewerAngle, requestedViewerAngle);
+			currentViewerAngle -= 10.0;
+			if (currentViewerAngle < -5.0) currentViewerAngle = 360.0;
+		} else {
+			//printf ("cw, cva %lf req %lf\n",currentViewerAngle, requestedViewerAngle);
+			currentViewerAngle +=10.0;
+			if (currentViewerAngle > 365.0) currentViewerAngle = 0.0;
+		}
+	}
+	FW_GL_ROTATE_D (currentViewerAngle,0.0,0.0,1.0);
+	fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->screenorientationmatrix);
+
+	//capture stereo 1/2 base offsets
+	//a) save current real stereo settings
+	isStereo = Viewer()->isStereo;
+		iside = Viewer()->iside;
+	//b) fake each stereo side, capture each side's stereo offset matrix
+		Viewer()->isStereo = 1;
+		Viewer()->iside = 0;
+		FW_GL_LOAD_IDENTITY();
+		set_stereo_offset0();
+		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->stereooffsetmatrix[0]);
+		Viewer()->iside = 1;
+		FW_GL_LOAD_IDENTITY();
+		set_stereo_offset0();
+		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->stereooffsetmatrix[1]);
+		Viewer()->isStereo = 0;
+		FW_GL_LOAD_IDENTITY();
+
+	//capture cumulative .Pos, .Quat 
+	viewer_togl(Viewer()->fieldofview);
+		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->posorimatrix);
+		FW_GL_LOAD_IDENTITY();
+
+}
+
+void setup_viewpoint_part2() {
+/*
+	 Computes view part of modelview matrix and leaves it in modelview.
+	 You would call this before traversing the scenegraph to scene nodes
+	  with render() or render_hier().
+	 The view part includes:
+	 a) screen orientation ie on mobile devices landscape vs portrait (this function)
+	 b) stereovision +- 1/2 base offset (viewer_togl)
+	 c) viewpoint slerping interpolation (viewer_togl)
+	 d) .Pos and .Quat of viewpoint from: (viewer_togl)
+	        1) .position and .orientation specified in scenefile
+	        2) cumulative navigation away from initial bound pose
+	        3) gravity and collision (bumping and wall penetration) adjustments
+	 e) transform stack between scene root and currently bound viewpoint (render_hier(rootnode,VF_Viewpoint))
+
+*/
+	int isStereo, iside;
+	double viewmatrix[16];
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+
+	//capture view part of modelview ie scenegraph transforms between scene root and bound viewpoint
+	profile_start("vp_hier");
+	render_hier(rootNode(), VF_Viewpoint);
+	profile_end("vp_hier");
+
+}
+
+void setup_viewpoint_part3() {
+/*
+	 Computes view part of modelview matrix and leaves it in modelview.
+	 You would call this before traversing the scenegraph to scene nodes
+	  with render() or render_hier().
+	 The view part includes:
+	 a) screen orientation ie on mobile devices landscape vs portrait (this function)
+	 b) stereovision +- 1/2 base offset (viewer_togl)
+	 c) viewpoint slerping interpolation (viewer_togl)
+	 d) .Pos and .Quat of viewpoint from: (viewer_togl)
+	        1) .position and .orientation specified in scenefile
+	        2) cumulative navigation away from initial bound pose
+	        3) gravity and collision (bumping and wall penetration) adjustments
+	 e) transform stack between scene root and currently bound viewpoint (render_hier(rootnode,VF_Viewpoint))
+
+*/
+	int isStereo, iside;
+	double viewmatrix[16];
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+
+	PRINT_GL_ERROR_IF_ANY("XEvents::setup_viewpoint");
+		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->viewtransformmatrix);
+
+	isStereo = Viewer()->isStereo;
+	iside = Viewer()->iside;
+
+	//restore real stereo settings for rendering
+		Viewer()->isStereo = isStereo;
+		Viewer()->iside = iside;
+
+	//multiply it all together, and capture any slerp
+		matcopy(viewmatrix,p->screenorientationmatrix);
+		if(isStereo)
+			matmultiplyAFFINE(viewmatrix,p->stereooffsetmatrix[iside],viewmatrix);
+		matmultiplyAFFINE(viewmatrix,p->posorimatrix,viewmatrix); 
+		matmultiplyAFFINE(viewmatrix,p->viewtransformmatrix,viewmatrix); 
+		fw_glSetDoublev(GL_MODELVIEW_MATRIX, viewmatrix);
+		if(slerp_viewpoint(2)) //just starting block, does vp-bind type slerp
+			fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->viewtransformmatrix);
+
+}
+
 static void setup_viewpoint() {
 /*
 	 Computes view part of modelview matrix and leaves it in modelview.

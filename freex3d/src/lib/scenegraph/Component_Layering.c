@@ -159,6 +159,8 @@ void pop_binding_stack_set(){
 	binding_stack_set--;
 	tg->Bindable.activeLayer = saveActive;
 }
+void setup_viewpoint_part1();
+void setup_viewpoint_part3();
 void child_LayerSet(struct X3D_Node * node){
 	// has similar responsibilities to render_heir except just for Layer, LayoutLayer children
 	// child is the only virtual function for LayerSet
@@ -191,6 +193,7 @@ void child_LayerSet(struct X3D_Node * node){
 			struct X3D_Node *rayhit;
 			struct X3D_Layer * layer;
 			bindablestack* bstack;
+			//GLDOUBLE saveModelView[16],saveProjection[16];
 
 			ii = i;
 			if(rs->render_sensitive == VF_Sensitive){
@@ -205,7 +208,7 @@ void child_LayerSet(struct X3D_Node * node){
 				if(!layer->isPickable) continue; //skip unpickable layers on sensitive pass
 			}
 
-			//push/set binding stacks
+			//push/set binding stacks (some of this done in x3d parsing now, so bstack shouldn't be null)
 			bstack = getBindableStacksByLayer(tg, layerId );
 			if(bstack == NULL){
 				bstack = malloc(sizeof(bindablestack));
@@ -215,6 +218,23 @@ void child_LayerSet(struct X3D_Node * node){
 			//push_bindingstacks(node);
 			saveActive = tg->Bindable.activeLayer;
 			tg->Bindable.activeLayer = layerId;
+
+			//per-layer modelview matrix is handled here in LayerSet because according
+			//to the specs if there is no LayerSet, then there's only one 
+			//set of binding stacks (one modelview matrix)
+
+			//push modelview matrix
+			if(layerId != saveActive){
+				FW_GL_MATRIX_MODE(GL_PROJECTION);
+				FW_GL_PUSH_MATRIX();
+				FW_GL_MATRIX_MODE(GL_MODELVIEW);
+				FW_GL_PUSH_MATRIX();
+				if(rs->render_vp == VF_Viewpoint){
+					setup_viewpoint_part1();
+				}else{
+					FW_GL_SETDOUBLEV(GL_MODELVIEW_MATRIX, bstack->viewMatrix);
+				}
+			}
 
 			//both layer and layoutlayer can be in here
 			if(layer->_nodeType == NODE_Layer){
@@ -231,6 +251,19 @@ void child_LayerSet(struct X3D_Node * node){
 			if(rs->render_sensitive)
 				rayhit = getRayHit(); //if there's a clear pick of something on a higher layer, no need to check lower layers
 			
+
+			//pop modelview matrix
+			if(layerId != saveActive){
+				if(rs->render_vp == VF_Viewpoint){
+					FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, bstack->viewMatrix);
+				}
+
+				FW_GL_MATRIX_MODE(GL_PROJECTION);
+				FW_GL_POP_MATRIX();
+				FW_GL_MATRIX_MODE(GL_MODELVIEW);
+				FW_GL_POP_MATRIX();
+			}
+
 			//pop binding stacks
 			tg->Bindable.activeLayer = saveActive;
 

@@ -123,10 +123,10 @@ void goToViewpoint(char *vp) {
 				struct X3D_Viewpoint *vp;
 				/* unbind current, and bind this one */
 				vp = (struct X3D_Viewpoint*)vector_get(struct X3D_Node *,t->viewpointNodes,t->currboundvpno);
-				send_bind_to((struct X3D_Node*)vp,0,vp->_layerId);
+				send_bind_to((struct X3D_Node*)vp,0);
 				t->currboundvpno=flen;
 				vp = vector_get(struct X3D_Node *,t->viewpointNodes,t->currboundvpno);
-				send_bind_to((struct X3D_Node*)vp,1,vp->_layerId);
+				send_bind_to((struct X3D_Node*)vp,1);
 				return;
 			}
 		}

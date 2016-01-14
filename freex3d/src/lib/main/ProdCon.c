@@ -814,7 +814,7 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 		if (shouldBind) {
 			if(shouldUnBind){
 				struct X3D_Node* tmp;
-				int ib = 0; //layering likes 1 here to get all the bindables into their appropriate/multiple binding stacks
+				int ib = 1; //layering likes 1 here to get all the bindables into their appropriate/multiple binding stacks
 				if (vectorSize(p->fogNodes) > 0) {
 					for (i=origFogNodes; i < vectorSize(p->fogNodes); ++i){
 						tmp = vector_get(struct X3D_Node*,p->fogNodes,i);
