@@ -62,6 +62,13 @@ typedef struct bindablestack {
 	int layerId;
 	GLDOUBLE projectionMatrix[16];
 	GLDOUBLE viewMatrix[16];
+
+	double screenorientationmatrix[16];
+	double viewtransformmatrix[16];
+	double posorimatrix[16];
+	double stereooffsetmatrix[2][16];
+	int isStereo; //temp
+	int iside;  //temp
 } bindablestack;
 void init_bindablestack(bindablestack *bstack, int layerId);
 bindablestack* getBindableStacksByLayer(ttglobal tg, int layerId );

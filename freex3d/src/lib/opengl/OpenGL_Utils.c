@@ -5083,16 +5083,23 @@ void startOfLoopNodeUpdates(void) {
 	UNLOCK_MEMORYTABLE
 
 	/* now, we can go and tell the grouping nodes which ones are the lucky ones that contain the current Viewpoint node */
-	if (vectorSize(getActiveBindableStacks(tg)->viewpoint) > 0) {
-		//ConsoleMessage ("going to updateRF on viewpoint, stack is %d in size\n", vectorSize(tg->Bindable.viewpoint_stack));
+	int foundbound = FALSE;
+	for(int k=0;k<vectorSize(tg->Bindable.bstacks);k++){
+		bindablestack *bstack = vector_get(bindablestack*,tg->Bindable.bstacks,k);
+		//if (vectorSize(getActiveBindableStacks(tg)->viewpoint) > 0) {
+		if( vectorSize(bstack->viewpoint) > 0){
+			//ConsoleMessage ("going to updateRF on viewpoint, stack is %d in size\n", vectorSize(tg->Bindable.viewpoint_stack));
 
-		struct X3D_Node *boundvp = vector_back(struct X3D_Node*,getActiveBindableStacks(tg)->viewpoint);
-		update_renderFlag(boundvp, VF_Viewpoint);
-		calculateNearFarplanes(boundvp);
-		//update_renderFlag(vector_back(struct X3D_Node*,
-		//	tg->Bindable.viewpoint_stack), VF_Viewpoint);
-		//calculateNearFarplanes(vector_back(struct X3D_Node*, tg->Bindable.viewpoint_stack));
-	} else {
+			//struct X3D_Node *boundvp = vector_back(struct X3D_Node*,getActiveBindableStacks(tg)->viewpoint);
+			struct X3D_Node *boundvp = vector_back(struct X3D_Node*,bstack->viewpoint);
+			update_renderFlag(boundvp, VF_Viewpoint);
+			calculateNearFarplanes(boundvp);
+			//update_renderFlag(vector_back(struct X3D_Node*,
+			//	tg->Bindable.viewpoint_stack), VF_Viewpoint);
+			//calculateNearFarplanes(vector_back(struct X3D_Node*, tg->Bindable.viewpoint_stack));
+		}
+	}
+	if(!foundbound){
 		/* keep these at the defaults, if no viewpoint is present. */
 		Viewer()->nearPlane = DEFAULT_NEARPLANE;
 		Viewer()->farPlane = DEFAULT_FARPLANE;

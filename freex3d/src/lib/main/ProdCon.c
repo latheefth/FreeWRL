@@ -814,7 +814,57 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 		if (shouldBind) {
 			if(shouldUnBind){
 				struct X3D_Node* tmp;
-				int ib = 1; //layering likes 1 here to get all the bindables into their appropriate/multiple binding stacks
+				int ib = 0; //layering likes 1 here to get all the bindables into their appropriate/multiple binding stacks
+				if(1){
+					ib = 1;
+					if (vectorSize(p->fogNodes) > 0) {
+						for (i=origFogNodes; i < vectorSize(p->fogNodes); ++i){
+							tmp = vector_get(struct X3D_Node*,p->fogNodes,i);
+							send_bind_to(tmp, ib);
+						}
+					}
+					if (vectorSize(p->backgroundNodes) > 0) {
+						for (i=origBackgroundNodes; i < vectorSize(p->backgroundNodes); ++i){
+							tmp = vector_get(struct X3D_Node*,p->backgroundNodes,i);
+							send_bind_to(tmp, ib);
+						}
+					}
+					if (vectorSize(p->navigationNodes) > 0) {
+						for (i=origNavigationNodes; i < vectorSize(p->navigationNodes); ++i){
+							tmp = vector_get(struct X3D_Node*,p->navigationNodes,i);
+							send_bind_to(tmp, ib);
+						}
+					}
+					if (vectorSize(t->viewpointNodes) > 0) {
+						for (i = origViewpointNodes; i < vectorSize(t->viewpointNodes); ++i){
+							tmp = vector_get(struct X3D_Node*, t->viewpointNodes, i);
+							send_bind_to(tmp, ib);
+						}
+					}
+					tg->Bindable.activeLayer = 1; //test during debugging force to test scene's activelayer=1 since parsing doesn't detect it early enough
+					bindablestack *bstack = getActiveBindableStacks(tg);
+					if (vectorSize(bstack->fog) > 0) {
+						/* Initialize binding info */
+						t->setFogBindInRender = vector_get(struct X3D_Node*, bstack->fog,0);
+					}
+					if (vectorSize(bstack->background) > 0) {
+						/* Initialize binding info */
+						t->setBackgroundBindInRender = vector_get(struct X3D_Node*, bstack->background,0);
+					}
+					if (vectorSize(bstack->navigation) > 0) {
+						/* Initialize binding info */
+						t->setNavigationBindInRender = vector_get(struct X3D_Node*, bstack->navigation,0);
+					}
+					if (vectorSize(bstack->viewpoint) > 0) {
+
+						/* Initialize binding info */
+						t->setViewpointBindInRender = vector_get(struct X3D_Node*, bstack->viewpoint,0);
+						if (res->afterPoundCharacters)
+							fwl_gotoViewpoint(res->afterPoundCharacters);
+					}
+
+				}
+				if(0){
 				if (vectorSize(p->fogNodes) > 0) {
 					for (i=origFogNodes; i < vectorSize(p->fogNodes); ++i){
 						tmp = vector_get(struct X3D_Node*,p->fogNodes,i);
@@ -850,6 +900,8 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 					if (res->afterPoundCharacters)
 						fwl_gotoViewpoint(res->afterPoundCharacters);
 				}
+				}
+
 			}else{
 				// for broto inlines, we want to add to what's in the main scene, and bind to the last item if its new
 				if (vectorSize(p->fogNodes) > origFogNodes) {

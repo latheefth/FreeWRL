@@ -37,6 +37,7 @@ X3D Layering Component
 #include "Children.h"
 #include "../opengl/OpenGL_Utils.h"
 #include "../scenegraph/RenderFuncs.h"
+#include "Viewer.h"
 
 
 /*
@@ -74,35 +75,54 @@ void prep_Layer(struct X3D_Node * _node){
 	Stack *vportstack;
 	ivec4 pvport,vport;
 	ttglobal tg;
+	ttrenderstate rs;
 	float *clipBoundary, defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; // left/right/bottom/top 0,1,0,1
 
 	struct X3D_Layer *node = (struct X3D_Layer*)_node;
 	tg = gglobal();
 
+	
+	rs = renderstate();
 
+	//There's no concept of window or viewpoint on the 
+	//fwl_rendersceneupdatescene(dtime) > render_pre() > render_hier VF_Viewpoint or VF_Collision
+	//pass which is just for updating the world and avatar position within the world
+	if(!rs->render_vp && !rs->render_collision){
+		//push layer.viewport onto viewport stack, setting it as the current window
+		vportstack = (Stack *)tg->Mainloop._vportstack;
+		pvport = stack_top(ivec4,vportstack); //parent context viewport
+		clipBoundary = defaultClipBoundary;
+		if(node->viewport)
+			clipBoundary = ((struct X3D_Viewport*)(node->viewport))->clipBoundary.p;
+		//printf("clipBoundary %f %f %f %f\n",clipBoundary[0],clipBoundary[1],clipBoundary[2],clipBoundary[3]);
+		//printf("pvport= w %d h %d x %d y %d\n",pvport.W,pvport.H,pvport.X,pvport.Y);
+		vport = childViewport(pvport,clipBoundary);
+		//printf("vport= w %d h %d x %d y %d\n",vport.W,vport.H,vport.X,vport.Y);
 
-	//push layer.viewport onto viewport stack, setting it as the current window
-	vportstack = (Stack *)tg->Mainloop._vportstack;
-	pvport = stack_top(ivec4,vportstack); //parent context viewport
-	clipBoundary = defaultClipBoundary;
-	if(node->viewport)
-		clipBoundary = ((struct X3D_Viewport*)(node->viewport))->clipBoundary.p;
-	vport = childViewport(pvport,clipBoundary);
-	pushviewport(vportstack, vport);
+		pushviewport(vportstack, vport);
+	}
 
 }
 void child_Layer(struct X3D_Node * _node){
+	int ivpvis;
 	Stack *vportstack;
 	ttglobal tg;
 	struct X3D_Layer *node;
 	ttrenderstate rs;
 
 	rs = renderstate();
+	ivpvis = TRUE;
 	node = (struct X3D_Layer*)_node;
-	tg = gglobal();
-	vportstack = (Stack *)tg->Mainloop._vportstack;
-	if(currentviewportvisible(vportstack)){
-		setcurrentviewport(vportstack);
+	if(!rs->render_vp && !rs->render_collision){
+
+		tg = gglobal();
+		vportstack = (Stack *)tg->Mainloop._vportstack;
+		ivpvis = currentviewportvisible(vportstack);
+		if(ivpvis)
+			setcurrentviewport(vportstack);
+	}
+	if(ivpvis){
+		//setcurrentviewport(vportstack);
 		if (rs->render_geom == VF_Geom)
 			glClear(GL_DEPTH_BUFFER_BIT); //if another layer has already drawn, don't clear it, just its depth fingerprint
 		normalChildren(node->children);
@@ -111,15 +131,17 @@ void child_Layer(struct X3D_Node * _node){
 void fin_Layer(struct X3D_Node * _node){
 	Stack *vportstack;
 	ttglobal tg;
+	ttrenderstate rs;
 	struct X3D_Layer *node = (struct X3D_Layer*)_node;
 	tg = gglobal();
 
-	vportstack = (Stack *)tg->Mainloop._vportstack;
-	popviewport(vportstack);
-	setcurrentviewport(vportstack);
+	rs = renderstate();
 
-
-
+	if(!rs->render_vp && !rs->render_collision){
+		vportstack = (Stack *)tg->Mainloop._vportstack;
+		popviewport(vportstack);
+		setcurrentviewport(vportstack);
+	}
 
 }
 
@@ -161,6 +183,9 @@ void pop_binding_stack_set(){
 }
 void setup_viewpoint_part1();
 void setup_viewpoint_part3();
+void set_viewmatrix();
+void setup_projection();
+void upd_ray();
 void child_LayerSet(struct X3D_Node * node){
 	// has similar responsibilities to render_heir except just for Layer, LayoutLayer children
 	// child is the only virtual function for LayerSet
@@ -227,12 +252,37 @@ void child_LayerSet(struct X3D_Node * node){
 			if(layerId != saveActive){
 				FW_GL_MATRIX_MODE(GL_PROJECTION);
 				FW_GL_PUSH_MATRIX();
+				//FW_GL_LOAD_IDENTITY();
 				FW_GL_MATRIX_MODE(GL_MODELVIEW);
 				FW_GL_PUSH_MATRIX();
+				//FW_GL_LOAD_IDENTITY();
 				if(rs->render_vp == VF_Viewpoint){
-					setup_viewpoint_part1();
+					setup_viewpoint_part1(); //problem: viewer_togl is using navigation-altered viewer.pos,quat from other viewpoint
 				}else{
-					FW_GL_SETDOUBLEV(GL_MODELVIEW_MATRIX, bstack->viewMatrix);
+					X3D_Viewer *viewer;
+					struct X3D_Node *boundvp;
+					viewer = Viewer();
+					set_viewmatrix();
+					//FW_GL_SETDOUBLEV(GL_PROJECTION_MATRIX,bstack->projectionMatrix);
+					boundvp = stack_top(struct X3D_Node*,bstack->viewpoint);
+					if(boundvp){
+						if(boundvp->_nodeType == NODE_OrthoViewpoint){
+							int k;
+							struct X3D_OrthoViewpoint *ovp = (struct X3D_OrthoViewpoint*)boundvp;
+							viewer->ortho = TRUE;
+							for (k=0; k<4; k++) {
+								Viewer()->orthoField[k] = (double) ovp->fieldOfView.p[k];
+							}
+						}else{
+							viewer->ortho = FALSE;
+						}
+						setup_projection();
+					}
+					if(rs->render_sensitive == VF_Sensitive){
+						upd_ray(); //setup_pickray0();
+					}
+					//FW_GL_SETDOUBLEV(GL_MODELVIEW_MATRIX, bstack->viewMatrix);
+					//I should recover the split matrices
 				}
 			}
 
@@ -248,14 +298,18 @@ void child_LayerSet(struct X3D_Node * node){
 				fin_LayoutLayer((struct X3D_Node*)layer);
 			}
 			rayhit = NULL;
-			if(rs->render_sensitive)
+			if(rs->render_sensitive == VF_Sensitive)
 				rayhit = getRayHit(); //if there's a clear pick of something on a higher layer, no need to check lower layers
 			
 
 			//pop modelview matrix
 			if(layerId != saveActive){
 				if(rs->render_vp == VF_Viewpoint){
-					FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, bstack->viewMatrix);
+					setup_viewpoint_part3();
+					//I should snapshot the split matrices
+					//FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, bstack->viewMatrix);
+					//setup_projection();
+					//FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX,bstack->projectionMatrix);
 				}
 
 				FW_GL_MATRIX_MODE(GL_PROJECTION);
@@ -284,24 +338,33 @@ void child_LayerSet(struct X3D_Node * node){
 // pre: push vport
 // render: render itself 
 // post/fin: pop vport
-void upd_ray();
+
 void prep_Viewport(struct X3D_Node * node){
 	if(node && node->_nodeType == NODE_Viewport){
 		Stack *vportstack;
 		ivec4 pvport,vport;
+		ttrenderstate rs;
 		ttglobal tg;
 		struct X3D_Viewport * viewport = (struct X3D_Viewport *)node;
 		tg = gglobal();
 
-		//push viewport onto viewport stack, setting it as the current window
-		vportstack = (Stack *)tg->Mainloop._vportstack;
-		pvport = stack_top(ivec4,vportstack); //parent context viewport
+		rs = renderstate();
 
-		vport = childViewport(pvport,viewport->clipBoundary.p);
-		pushviewport(vportstack, vport);
-		if(currentviewportvisible(vportstack))
-			setcurrentviewport(vportstack);
-		upd_ray();
+		//There's no concept of window or viewpoint on the 
+		//fwl_rendersceneupdatescene(dtime) > render_pre() > render_hier VF_Viewpoint or VF_Collision
+		//pass which is just for updating the world and avatar position within the world
+		if(!rs->render_vp && !rs->render_collision){
+
+			//push viewport onto viewport stack, setting it as the current window
+			vportstack = (Stack *)tg->Mainloop._vportstack;
+			pvport = stack_top(ivec4,vportstack); //parent context viewport
+
+			vport = childViewport(pvport,viewport->clipBoundary.p);
+			pushviewport(vportstack, vport);
+			if(currentviewportvisible(vportstack))
+				setcurrentviewport(vportstack);
+			upd_ray();
+		}
 	}
 
 }
@@ -316,15 +379,21 @@ void fin_Viewport(struct X3D_Node * node){
 	if(node && node->_nodeType == NODE_Viewport){
 		Stack *vportstack;
 		ivec4 pvport,vport;
+		ttrenderstate rs;
 		ttglobal tg;
 		struct X3D_Viewport * viewport = (struct X3D_Viewport *)node;
 		tg = gglobal();
 
-		vportstack = (Stack *)tg->Mainloop._vportstack;
+		rs = renderstate();
 
-		//pop viewport
-		popviewport(vportstack);
-		setcurrentviewport(vportstack);
-		upd_ray();
+		if(!rs->render_vp && !rs->render_collision){
+
+			vportstack = (Stack *)tg->Mainloop._vportstack;
+
+			//pop viewport
+			popviewport(vportstack);
+			setcurrentviewport(vportstack);
+			upd_ray();
+		}
 	}
 }

@@ -1787,17 +1787,31 @@ static void get_view_matrix(double *savePosOri, double *saveView) {
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
-
-	matcopy(saveView,p->viewtransformmatrix);
-	matcopy(savePosOri,p->posorimatrix);
+	if(0){
+		matcopy(saveView,p->viewtransformmatrix);
+		matcopy(savePosOri,p->posorimatrix);
+	}else{
+		bindablestack *bstack;
+		bstack = getActiveBindableStacks(tg);
+		matcopy(saveView,bstack->viewtransformmatrix);
+		matcopy(savePosOri,bstack->posorimatrix);
+	}
 }
 static void set_view_matrix(double *savePosOri,double *saveView){
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 
-	matcopy(p->viewtransformmatrix,saveView);
-	matcopy(p->posorimatrix,savePosOri);
+	if(0){
+		matcopy(p->viewtransformmatrix,saveView);
+		matcopy(p->posorimatrix,savePosOri);
+	}else{
+		bindablestack *bstack;
+		bstack = getActiveBindableStacks(tg);
+		matcopy(bstack->viewtransformmatrix,saveView);
+		matcopy(bstack->posorimatrix,savePosOri);
+	}
+
 }
 
 void fwl_getWindowSize(int *width, int *height){
@@ -1866,8 +1880,8 @@ int fwl_get_emulate_multitouch(){
 
 
 
-static void setup_viewpoint();
-static void set_viewmatrix();
+void setup_viewpoint();
+void set_viewmatrix();
 
 /* Function protos */
 static void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive);
@@ -1877,7 +1891,7 @@ int slerp_viewpoint(int itype);
 static void render_pre(void);
 
 static int setup_pickside(int x, int y);
-static void setup_projection();
+void setup_projection();
 void setup_pickray(int x, int y);
 struct X3D_Node*  getRayHit(void);
 void get_hyperhit(void);
@@ -3976,10 +3990,12 @@ void setup_viewpoint_part1() {
 */
 	int isStereo, iside;
 	double viewmatrix[16];
+	bindablestack *bstack;
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 
+	bstack = getActiveBindableStacks(tg);
 	FW_GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
 	FW_GL_LOAD_IDENTITY();
 
@@ -4022,28 +4038,43 @@ void setup_viewpoint_part1() {
 		}
 	}
 	FW_GL_ROTATE_D (currentViewerAngle,0.0,0.0,1.0);
-	fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->screenorientationmatrix);
+	if(0)
+		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->screenorientationmatrix);
+	else
+		fw_glGetDoublev(GL_MODELVIEW_MATRIX, bstack->screenorientationmatrix);
+
 
 	//capture stereo 1/2 base offsets
 	//a) save current real stereo settings
-	isStereo = Viewer()->isStereo;
-		iside = Viewer()->iside;
+	bstack->isStereo = Viewer()->isStereo;
+	bstack->iside = Viewer()->iside;
 	//b) fake each stereo side, capture each side's stereo offset matrix
 		Viewer()->isStereo = 1;
 		Viewer()->iside = 0;
 		FW_GL_LOAD_IDENTITY();
 		set_stereo_offset0();
-		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->stereooffsetmatrix[0]);
+		if(0)
+			fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->stereooffsetmatrix[0]);
+		else
+			fw_glGetDoublev(GL_MODELVIEW_MATRIX, bstack->stereooffsetmatrix[0]);
+			
 		Viewer()->iside = 1;
 		FW_GL_LOAD_IDENTITY();
 		set_stereo_offset0();
-		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->stereooffsetmatrix[1]);
+		if(0)
+			fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->stereooffsetmatrix[1]);
+		else
+			fw_glGetDoublev(GL_MODELVIEW_MATRIX, bstack->stereooffsetmatrix[1]);
 		Viewer()->isStereo = 0;
 		FW_GL_LOAD_IDENTITY();
 
 	//capture cumulative .Pos, .Quat 
 	viewer_togl(Viewer()->fieldofview);
-		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->posorimatrix);
+		if(0)
+			fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->posorimatrix);
+		else
+			fw_glGetDoublev(GL_MODELVIEW_MATRIX, bstack->posorimatrix);
+
 		FW_GL_LOAD_IDENTITY();
 
 }
@@ -4095,33 +4126,57 @@ void setup_viewpoint_part3() {
 */
 	int isStereo, iside;
 	double viewmatrix[16];
+	bindablestack *bstack;
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 
+	bstack = getActiveBindableStacks(tg);
 	PRINT_GL_ERROR_IF_ANY("XEvents::setup_viewpoint");
-		fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->viewtransformmatrix);
+		if(0)
+			fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->viewtransformmatrix);
+		else
+			fw_glGetDoublev(GL_MODELVIEW_MATRIX, bstack->viewtransformmatrix);
 
-	isStereo = Viewer()->isStereo;
-	iside = Viewer()->iside;
+	isStereo = bstack->isStereo;
+	iside = bstack->iside;
 
 	//restore real stereo settings for rendering
 		Viewer()->isStereo = isStereo;
 		Viewer()->iside = iside;
 
 	//multiply it all together, and capture any slerp
-		matcopy(viewmatrix,p->screenorientationmatrix);
+		if(0)
+			matcopy(viewmatrix,p->screenorientationmatrix);
+		else
+			matcopy(viewmatrix,bstack->screenorientationmatrix);
 		if(isStereo)
-			matmultiplyAFFINE(viewmatrix,p->stereooffsetmatrix[iside],viewmatrix);
-		matmultiplyAFFINE(viewmatrix,p->posorimatrix,viewmatrix); 
-		matmultiplyAFFINE(viewmatrix,p->viewtransformmatrix,viewmatrix); 
-		fw_glSetDoublev(GL_MODELVIEW_MATRIX, viewmatrix);
+			if(0)
+				matmultiplyAFFINE(viewmatrix,p->stereooffsetmatrix[iside],viewmatrix);
+			else
+				matmultiplyAFFINE(viewmatrix,bstack->stereooffsetmatrix[iside],viewmatrix);
+		if(0){
+			matmultiplyAFFINE(viewmatrix,p->posorimatrix,viewmatrix); 
+			matmultiplyAFFINE(viewmatrix,p->viewtransformmatrix,viewmatrix); 
+			fw_glSetDoublev(GL_MODELVIEW_MATRIX, viewmatrix);
+		}else{
+			matmultiplyAFFINE(viewmatrix,bstack->posorimatrix,viewmatrix); 
+			matmultiplyAFFINE(viewmatrix,bstack->viewtransformmatrix,viewmatrix); 
+			fw_glSetDoublev(GL_MODELVIEW_MATRIX, viewmatrix);
+		}
 		if(slerp_viewpoint(2)) //just starting block, does vp-bind type slerp
-			fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->viewtransformmatrix);
+			if(0)
+				fw_glGetDoublev(GL_MODELVIEW_MATRIX, p->viewtransformmatrix);
+			else
+				fw_glGetDoublev(GL_MODELVIEW_MATRIX, bstack->viewtransformmatrix);
 
 }
-
-static void setup_viewpoint() {
+void setup_viewpoint(){
+	setup_viewpoint_part1();
+	setup_viewpoint_part2();
+	setup_viewpoint_part3();
+}
+static void setup_viewpoint_OLD() {
 /*
 	 Computes view part of modelview matrix and leaves it in modelview.
 	 You would call this before traversing the scenegraph to scene nodes
@@ -4232,23 +4287,33 @@ static void setup_viewpoint() {
 
 }
 
-static void set_viewmatrix() {
+void set_viewmatrix() {
 	//if we already computed view matrix earlier in the frame via setup_viewpoint,
 	//and theoretically it hasn't changed since, 
 	//and just want to make sure its set, this is shorter than re-doing setup_viewpoint()
 	double viewmatrix[16];
+	bindablestack *bstack;
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 
+	bstack = getActiveBindableStacks(tg);
 	FW_GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
-
-	matcopy(viewmatrix,p->screenorientationmatrix);
-	if(Viewer()->isStereo)
-		matmultiplyAFFINE(viewmatrix,p->stereooffsetmatrix[Viewer()->iside],viewmatrix);
-	matmultiplyAFFINE(viewmatrix,p->posorimatrix,viewmatrix); 
-	matmultiplyAFFINE(viewmatrix,p->viewtransformmatrix,viewmatrix); 
-	fw_glSetDoublev(GL_MODELVIEW_MATRIX, viewmatrix);
+	if(0){
+		matcopy(viewmatrix,p->screenorientationmatrix);
+		if(Viewer()->isStereo)
+			matmultiplyAFFINE(viewmatrix,p->stereooffsetmatrix[Viewer()->iside],viewmatrix);
+		matmultiplyAFFINE(viewmatrix,p->posorimatrix,viewmatrix); 
+		matmultiplyAFFINE(viewmatrix,p->viewtransformmatrix,viewmatrix); 
+		fw_glSetDoublev(GL_MODELVIEW_MATRIX, viewmatrix);
+	}else{
+		matcopy(viewmatrix,bstack->screenorientationmatrix);
+		if(Viewer()->isStereo)
+			matmultiplyAFFINE(viewmatrix,bstack->stereooffsetmatrix[Viewer()->iside],viewmatrix);
+		matmultiplyAFFINE(viewmatrix,bstack->posorimatrix,viewmatrix); 
+		matmultiplyAFFINE(viewmatrix,bstack->viewtransformmatrix,viewmatrix); 
+		fw_glSetDoublev(GL_MODELVIEW_MATRIX, viewmatrix);
+	}
 }
 
 char *nameLogFileFolderNORMAL(char *logfilename, int size){

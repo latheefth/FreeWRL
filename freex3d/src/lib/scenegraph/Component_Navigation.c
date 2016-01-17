@@ -118,7 +118,7 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 		a1 = atan2(sin(a1),viewPort[2]/((float)viewPort[3]) * cos(a1));
 		viewer->fieldofview = a1/3.1415926536*180;
 	}
-	/* printf ("render_Viewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); */
+	// printf ("render_Viewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); 
 }
 
 
@@ -158,7 +158,7 @@ void prep_OrthoViewpoint (struct X3D_OrthoViewpoint *node) {
 		//Viewer()->ortho = TRUE;
 	}
 
-	/* printf ("render_OrthoViewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); */
+	// printf ("render_OrthoViewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); 
 }
 
 /******************************************************************************************/

@@ -753,7 +753,10 @@ void viewer_togl(double fieldofview)
 				(AntiPos,AntiQuat) and (vp.position,vp.orientation) are equal and cancel
 				leaving the .Pos, .Quat -initially with .position, .orientation- in the modelview matrix stack
     */
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	ttglobal tg;
+	ppViewer p;
+	tg = gglobal();
+	p = (ppViewer)tg->Viewer.prv;
 
 	if (p->Viewer.isStereo) /* buffer != GL_BACK)  */
 		set_stereo_offset0(); /*Viewer.iside, Viewer.eyehalf, Viewer.eyehalfangle);*/
