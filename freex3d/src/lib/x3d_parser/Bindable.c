@@ -71,6 +71,7 @@ void init_bindablestack(bindablestack *bstack, int layerId){
 	bstack->layerId = layerId;
 	loadIdentityMatrix (bstack->viewMatrix);
 	loadIdentityMatrix (bstack->projectionMatrix);
+	bstack->viewer = NULL;
 }
 void free_bindablestack(bindablestack *bstack){
 	deleteVector(struct X3D_Node*, bstack->background);

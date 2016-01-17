@@ -69,6 +69,7 @@ typedef struct bindablestack {
 	double stereooffsetmatrix[2][16];
 	int isStereo; //temp
 	int iside;  //temp
+	void *viewer; //X3D_Viewer
 } bindablestack;
 void init_bindablestack(bindablestack *bstack, int layerId);
 bindablestack* getBindableStacksByLayer(ttglobal tg, int layerId );

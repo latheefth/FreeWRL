@@ -265,7 +265,7 @@ void child_LayerSet(struct X3D_Node * node){
 					set_viewmatrix();
 					//FW_GL_SETDOUBLEV(GL_PROJECTION_MATRIX,bstack->projectionMatrix);
 					boundvp = stack_top(struct X3D_Node*,bstack->viewpoint);
-					if(boundvp){
+					if(0) if(boundvp){
 						if(boundvp->_nodeType == NODE_OrthoViewpoint){
 							int k;
 							struct X3D_OrthoViewpoint *ovp = (struct X3D_OrthoViewpoint*)boundvp;
