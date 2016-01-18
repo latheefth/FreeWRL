@@ -2012,20 +2012,17 @@ void handle_keyrelease(const char key, double keytime)
 //struct point_XYZ viewer_lastP;
 void viewer_lastP_clear()
 {
-	X3D_Viewer *viewer;
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
 	p->viewer_lastP.x = p->viewer_lastP.y = p->viewer_lastP.z = 0.0;
 }
 void viewer_lastQ_set(Quaternion *lastQ)
 {
-	X3D_Viewer *viewer;
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	quaternion_rotation(&p->viewer_lastP,lastQ,&p->viewer_lastP); 
 }
 void viewer_lastP_add(struct point_XYZ *vec) 
 {
-	X3D_Viewer *viewer;
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	if(get_collision()) /* fw_params.collision use if(1) to test with toggling_collision */
 	{
@@ -2037,7 +2034,6 @@ void viewer_lastP_add(struct point_XYZ *vec)
 
 struct point_XYZ viewer_get_lastP()
 { 
-	X3D_Viewer *viewer;
 	/* returns a vector from avatar to the last avatar location ie on the last loop, in avatar space */
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 

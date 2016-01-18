@@ -7595,7 +7595,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ConeEmitter : {
 			struct X3D_ConeEmitter * tmp2;
 			tmp2 = (struct X3D_ConeEmitter *) tmp;
-			tmp2->angle = PI*.25f;
+			tmp2->angle = PIF*.25f;
 			tmp2->direction.c[0] = 0.0f;tmp2->direction.c[1] = 1.0f;tmp2->direction.c[2] = 0.0f;
 			tmp2->mass = 0.0f;
 			tmp2->metadata = NULL;
@@ -7862,11 +7862,11 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->hinge1AngleRate = 0.0f;
 			tmp2->hinge2Angle = 0.0f;
 			tmp2->hinge2AngleRate = 0.0f;
-			tmp2->maxAngle1 = PI+.0f;
+			tmp2->maxAngle1 = PIF+.0f;
 			tmp2->maxTorque1 = 0.0f;
 			tmp2->maxTorque2 = 0.0f;
 			tmp2->metadata = NULL;
-			tmp2->minAngle1 = -PI+.0f;
+			tmp2->minAngle1 = -PIF+.0f;
 			tmp2->stopBounce1 = 0.0f;
 			tmp2->stopConstantForceMix1 = 0.001f;
 			tmp2->stopErrorCorrection1 = 0.8f;
@@ -10518,9 +10518,9 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->body2 = NULL;
 			tmp2->body2AnchorPoint.c[0] = 0.0f;tmp2->body2AnchorPoint.c[1] = 0.0f;tmp2->body2AnchorPoint.c[2] = 0.0f;
 			tmp2->forceOutput.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);tmp2->forceOutput.p[0] = newASCIIString("NONE");tmp2->forceOutput.n=1; ;
-			tmp2->maxAngle = PI+.0f;
+			tmp2->maxAngle = PIF+.0f;
 			tmp2->metadata = NULL;
-			tmp2->minAngle = -PI+.0f;
+			tmp2->minAngle = -PIF+.0f;
 			tmp2->stopBounce = 0.0f;
 			tmp2->stopErrorCorrection = 0.8f;
 			tmp2->_defaultContainer = FIELDNAMES_children;

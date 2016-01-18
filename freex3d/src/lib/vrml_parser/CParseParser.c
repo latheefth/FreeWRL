@@ -2106,6 +2106,10 @@ static vrmlNodeT parse_KW_USE(struct VRMLParser *me) {
 */
 /* Specific initialization of node fields */
 void parser_specificInitNode_A(struct X3D_Node* n, struct VRMLParser* me);
+void push_binding_stack_set(struct X3D_Node* layersetnode);
+void push_next_layerId_from_binding_stack_set();
+void pop_binding_stack_set();
+
 static BOOL parser_node_A(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
     int nodeTypeB, nodeTypeU;
     struct X3D_Node* node=NULL;
@@ -7089,7 +7093,7 @@ void add_node_to_broto_context(struct X3D_Proto *context,struct X3D_Node *node){
 		if(!context->__nodes)
 			context->__nodes = newVector(struct X3D_Node*,4);
 		__nodes = context->__nodes;
-		node->_executionContext = context;
+		node->_executionContext = (struct X3D_Node*)context;
 		stack_push(struct X3D_Node*,__nodes,node);
 		if(hasContext(node)){
 			Stack *__subctxs;

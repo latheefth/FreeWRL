@@ -4517,7 +4517,7 @@ void startOfLoopNodeUpdates(void) {
 	struct X3D_Anchor* anchorPtr;
 	struct Vector *parentVector;
 	int nParents;
-	int i,j;
+	int i,j,k,foundbound;
 	int* setBindPtr;
 
 	struct Multi_Node *addChildren;
@@ -5083,8 +5083,8 @@ void startOfLoopNodeUpdates(void) {
 	UNLOCK_MEMORYTABLE
 
 	/* now, we can go and tell the grouping nodes which ones are the lucky ones that contain the current Viewpoint node */
-	int foundbound = FALSE;
-	for(int k=0;k<vectorSize(tg->Bindable.bstacks);k++){
+	foundbound = FALSE;
+	for(k=0;k<vectorSize(tg->Bindable.bstacks);k++){
 		bindablestack *bstack = vector_get(bindablestack*,tg->Bindable.bstacks,k);
 		//if (vectorSize(getActiveBindableStacks(tg)->viewpoint) > 0) {
 		if( vectorSize(bstack->viewpoint) > 0){

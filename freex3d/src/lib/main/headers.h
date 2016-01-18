@@ -391,6 +391,7 @@ unsigned int setField_FromEAI (char *ptr);
 #define ISUSED(v) ((void) v)
 
 #define PI 3.14159265358979323846
+#define PIF 3.1415926535f
 
 /* return TRUE if numbers are very close */
 #define APPROX(a,b) (fabs((a)-(b))<0.00000001)

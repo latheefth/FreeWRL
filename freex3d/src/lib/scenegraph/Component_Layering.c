@@ -249,6 +249,9 @@ void post_parse_set_activeLayer(){
 
 
 
+void prep_LayoutLayer(struct X3D_Node * _node);
+void child_LayoutLayer(struct X3D_Node * _node);
+void fin_LayoutLayer(struct X3D_Node * _node);
 
 void setup_viewpoint_part1();
 void setup_viewpoint_part3();
@@ -265,7 +268,7 @@ void child_LayerSet(struct X3D_Node * node){
 	// Picking reverses the order of layers so top layer can 'swallow the mouse'
 
 	if(node && node->_nodeType == NODE_LayerSet){
-		int ii,i,j,activeLayer,layerId;
+		int ii,i,activeLayer,layerId;
 		ttglobal tg;
 		struct X3D_LayerSet * layerset;
 		ttrenderstate rs;
@@ -415,7 +418,6 @@ void child_Viewport(struct X3D_Node * node){
 void fin_Viewport(struct X3D_Node * node){
 	if(node && node->_nodeType == NODE_Viewport){
 		Stack *vportstack;
-		ivec4 pvport,vport;
 		ttrenderstate rs;
 		ttglobal tg;
 		struct X3D_Viewport * viewport = (struct X3D_Viewport *)node;

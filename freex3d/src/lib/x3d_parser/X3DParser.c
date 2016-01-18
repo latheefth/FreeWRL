@@ -1918,7 +1918,7 @@ void **shaderFields(struct X3D_Node* node){
 void broto_store_DEF(struct X3D_Proto* proto,struct X3D_Node* node, char *name);
 static void parseAttributes_B(void *ud, char **atts);
 void add_node_to_broto_context(struct X3D_Proto *context,struct X3D_Node *node);
-void push_binding_stack_set();
+void push_binding_stack_set(struct X3D_Node* layersetnode);
 void push_next_layerId_from_binding_stack_set();
 void pop_binding_stack_set();
 
