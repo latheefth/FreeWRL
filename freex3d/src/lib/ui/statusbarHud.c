@@ -2798,7 +2798,7 @@ M	viewer_level_to_bound();							//"
 M       void toggle_collision()                             //"
     */
 	char *pp; 
-	int i,nsides, vrml_clipplane, menu_over_status;
+	int i,nsides, menu_over_status;
 	GLfloat side_bottom_f;
 	ppstatusbar p;
 	ttglobal tg = gglobal();

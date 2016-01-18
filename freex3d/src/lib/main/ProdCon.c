@@ -815,6 +815,7 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 		if (shouldBind) {
 			if(shouldUnBind){
 				struct X3D_Node* tmp;
+				bindablestack *bstack;
 				int ib = 0; //layering likes 1 here to get all the bindables into their appropriate/multiple binding stacks
 				if(1){
 					//modified version for Layering (Jan 2016) - binds to all found in each layer
@@ -846,7 +847,7 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 					}
 					post_parse_set_activeLayer();
 					//tg->Bindable.activeLayer = 1; //test during debugging force to test scene's activelayer=1 since parsing doesn't detect it early enough
-					bindablestack *bstack = getActiveBindableStacks(tg);
+					bstack = getActiveBindableStacks(tg);
 					if (vectorSize(bstack->fog) > 0) {
 						/* Initialize binding info */
 						t->setFogBindInRender = vector_get(struct X3D_Node*, bstack->fog,0);

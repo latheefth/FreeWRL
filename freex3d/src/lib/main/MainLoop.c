@@ -793,7 +793,6 @@ static void set_quadrant_viewmatrix(double *savePosOri, double *saveView, int iq
 void quadrant_render(void *_self){
 	//
 	int i;
-	double rxyz[3];
 	contenttype *c;
 	contenttype_quadrant *self;
 
@@ -1783,19 +1782,15 @@ static void get_view_matrix(double *savePosOri, double *saveView) {
 	//iq 2 3
 	//   0 1
 	//no comprendo - por que no veo difference.
-	double viewmatrix[16], tmat[16];
+	bindablestack *bstack;
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
-	if(0){
-		matcopy(saveView,p->viewtransformmatrix);
-		matcopy(savePosOri,p->posorimatrix);
-	}else{
-		bindablestack *bstack;
+
 		bstack = getActiveBindableStacks(tg);
 		matcopy(saveView,bstack->viewtransformmatrix);
 		matcopy(savePosOri,bstack->posorimatrix);
-	}
+
 }
 static void set_view_matrix(double *savePosOri,double *saveView){
 	ppMainloop p;
@@ -3988,8 +3983,6 @@ void setup_viewpoint_part1() {
 	 e) transform stack between scene root and currently bound viewpoint (render_hier(rootnode,VF_Viewpoint))
 
 */
-	int isStereo, iside;
-	double viewmatrix[16];
 	bindablestack *bstack;
 	ppMainloop p;
 	ttglobal tg = gglobal();
@@ -4083,8 +4076,6 @@ void setup_viewpoint_part2() {
 	 e) transform stack between scene root and currently bound viewpoint (render_hier(rootnode,VF_Viewpoint))
 
 */
-	int isStereo, iside;
-	double viewmatrix[16];
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;

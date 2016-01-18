@@ -74,11 +74,9 @@ void init_bindablestack(bindablestack *bstack, int layerId){
 	loadIdentityMatrix(bstack->posorimatrix);
 	loadIdentityMatrix(bstack->stereooffsetmatrix[0]);
 	loadIdentityMatrix(bstack->stereooffsetmatrix[1]);
-	int isStereo; //temp
-	int iside;  //temp
-	void *viewer; //X3D_Viewer - navigation is per-layer
-
-	bstack->viewer = NULL;
+	bstack->isStereo = 0;
+	bstack->iside = 0;
+	bstack->viewer = NULL; //X3D_Viewer - navigation is per-layer
 }
 void free_bindablestack(bindablestack *bstack){
 	deleteVector(struct X3D_Node*, bstack->background);

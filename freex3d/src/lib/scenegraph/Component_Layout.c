@@ -157,13 +157,13 @@ void prep_Layout(struct X3D_Node *_node){
 
 		//size
 		if(node->_sizeUnits.p[0] == LAYOUT_PIXEL)
-			vport.W = node->size.p[0]; //pixel
+			vport.W =(int)node->size.p[0]; //pixel
 		else
-			vport.W = pvport.W * node->size.p[0]; //fraction
+			vport.W = (int)(pvport.W * node->size.p[0]); //fraction
 		if(node->_sizeUnits.p[1] == LAYOUT_PIXEL)
-			vport.H = node->size.p[1]; //pixel
+			vport.H = (int)(node->size.p[1]); //pixel
 		else
-			vport.H = pvport.W * node->size.p[1]; //fraction
+			vport.H = (int)(pvport.W * node->size.p[1]); //fraction
 		
 		//offset
 		if(node->_offsetUnits.p[0] == LAYOUT_PIXEL)
@@ -174,8 +174,8 @@ void prep_Layout(struct X3D_Node *_node){
 			offsetpx[1] = node->offset.p[1]; //pixel
 		else
 			offsetpx[1] = pvport.H * node->offset.p[1]; //fraction
-		vport.X = offsetpx[0];
-		vport.Y = offsetpx[1];
+		vport.X = (int)offsetpx[0];
+		vport.Y = (int)offsetpx[1];
 
 		pushviewport(vportstack, vport);
 		setcurrentviewport(vportstack);
@@ -201,8 +201,8 @@ void prep_Layout(struct X3D_Node *_node){
 			scale[0] = scale[1];
 		if(node->_scaleMode.p[1] == LAYOUT_STRETCH)
 			scale[1] = scale[0];
-		node->_scale.p[0] = scale[0];
-		node->_scale.p[1] = scale[1];
+		node->_scale.p[0] = (float) scale[0];
+		node->_scale.p[1] = (float) scale[1];
 
 		//see prep_transform for equivalent
 		if(!rs->render_vp ) {
@@ -235,7 +235,9 @@ void fin_Layout(struct X3D_Node *_node){
 		setcurrentviewport(vportstack);
 	}
 }
-
+void prep_Layer(struct X3D_Node * _node);
+void child_Layer(struct X3D_Node * _node);
+void fin_Layer(struct X3D_Node * _node);
 //layoutLayer functions are called only by Layerset, not via virtual functions in render_hier()
 // - except for fun/testing they can be put in root scene to see what happens
 void prep_LayoutLayer(struct X3D_Node *_node){
@@ -260,7 +262,7 @@ void prep_ScreenGroup(struct X3D_Node *node){
 	if(node && node->_nodeType == NODE_ScreenGroup){
 		ttglobal tg;
 		Stack *vportstack;
-		ivec4 pvport,vport;
+		ivec4 pvport;
 		float sx,sy;
 		tg = gglobal();
 		vportstack = (Stack *)tg->Mainloop._vportstack;
