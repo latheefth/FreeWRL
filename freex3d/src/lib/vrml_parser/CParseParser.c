@@ -2266,6 +2266,11 @@ static BOOL parser_node_A(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 		case NODE_ShaderProgram: shader=(struct Shader_Script *)(X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields); break;
 		case NODE_PackagedShader: shader=(struct Shader_Script *)(X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields); break;
 		case NODE_ComposedShader: shader=(struct Shader_Script *)(X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields); break;
+		case NODE_LayerSet: 
+			push_binding_stack_set(node); break;
+		case NODE_LayoutLayer:
+		case NODE_Layer: 
+			push_next_layerId_from_binding_stack_set(); break;
 		default: {}
 	}
         
@@ -2363,6 +2368,9 @@ static BOOL parser_node_A(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
         return FALSE; 
     }
         
+	if(node->_nodeType == NODE_LayerSet)
+		pop_binding_stack_set();
+
     /* Return the parsed node */
 
     #ifdef CPARSERVERBOSE
@@ -3714,6 +3722,11 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 			case NODE_ShaderProgram: shader=(struct Shader_Script *)(X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields); break;
 			case NODE_PackagedShader: shader=(struct Shader_Script *)(X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields); break;
 			case NODE_ComposedShader: shader=(struct Shader_Script *)(X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields); break;
+			case NODE_LayerSet: 
+				push_binding_stack_set(node); break;
+			case NODE_LayoutLayer:
+			case NODE_Layer: 
+				push_next_layerId_from_binding_stack_set(); break;
 			default: {}
 		}
 	} /*endif nodetypeB*/
@@ -3876,7 +3889,9 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 		PARSER_FINALLY;
 		return FALSE; 
 	}
-
+	if(node->_nodeType == NODE_LayerSet)
+		pop_binding_stack_set();
+		
 	/* Return the parsed node */
 
 	#ifdef CPARSERVERBOSE

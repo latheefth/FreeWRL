@@ -60,10 +60,19 @@ typedef struct bindablestack {
 	void *fog;
 	void *navigation;
 	int layerId;
+
+	double screenorientationmatrix[16];
+	double viewtransformmatrix[16];
+	double posorimatrix[16];
+	double stereooffsetmatrix[2][16];
+	int isStereo; //temp
+	int iside;  //temp
+	void *viewer; //X3D_Viewer - navigation is per-layer
 } bindablestack;
 void init_bindablestack(bindablestack *bstack, int layerId);
 bindablestack* getBindableStacksByLayer(ttglobal tg, int layerId );
 bindablestack* getActiveBindableStacks(ttglobal tg );
 int addBindableStack(ttglobal tg, bindablestack* bstack);
 int getBindableStacksCount(ttglobal tg);
+int layerFromBindable(struct X3D_Node*);
 #endif /* __FREEWRL_BINDABLE_H__ */

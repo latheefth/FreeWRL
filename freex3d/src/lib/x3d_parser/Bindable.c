@@ -69,6 +69,16 @@ void init_bindablestack(bindablestack *bstack, int layerId){
 	bstack->fog = newVector(struct X3D_Node*, 2);
 	bstack->navigation = newVector(struct X3D_Node*, 2);
 	bstack->layerId = layerId;
+	loadIdentityMatrix(bstack->screenorientationmatrix);
+	loadIdentityMatrix(bstack->viewtransformmatrix);
+	loadIdentityMatrix(bstack->posorimatrix);
+	loadIdentityMatrix(bstack->stereooffsetmatrix[0]);
+	loadIdentityMatrix(bstack->stereooffsetmatrix[1]);
+	int isStereo; //temp
+	int iside;  //temp
+	void *viewer; //X3D_Viewer - navigation is per-layer
+
+	bstack->viewer = NULL;
 }
 void free_bindablestack(bindablestack *bstack){
 	deleteVector(struct X3D_Node*, bstack->background);
@@ -122,11 +132,14 @@ void Bindable_clear(struct tBindable *t){
 bindablestack* getBindableStacksByLayer(ttglobal tg, int layerId )
 {
 	int i;
-	bindablestack* bstack;
-	bstack = vector_get(bindablestack*,tg->Bindable.bstacks,0); //default
+	bindablestack* bstack, *bstacktmp;
+	bstack = NULL; // vector_get(bindablestack*,tg->Bindable.bstacks,0); //default
 	for(i=0;i<vectorSize(tg->Bindable.bstacks);i++){
-		bstack = vector_get(bindablestack*,tg->Bindable.bstacks,i);
-		if(bstack->layerId == layerId) break;
+		bstacktmp = vector_get(bindablestack*,tg->Bindable.bstacks,i);
+		if(bstacktmp->layerId == layerId){
+			bstack = bstacktmp;
+			break;
+		}
 	}
 	return bstack;
 }
@@ -277,26 +290,48 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 }
 
 
-
+int layerFromBindable(struct X3D_Node *node){
+	int layerId = 0;
+	switch(node->_nodeType){
+		case NODE_Viewpoint:
+			layerId = X3D_VIEWPOINT(node)->_layerId; break;
+		case NODE_OrthoViewpoint:
+			layerId = X3D_ORTHOVIEWPOINT(node)->_layerId; break;
+		case NODE_GeoViewpoint:
+			layerId = X3D_GEOVIEWPOINT(node)->_layerId; break;
+		case NODE_Background:
+			layerId = X3D_BACKGROUND(node)->_layerId; break;
+		case NODE_TextureBackground:
+			layerId = X3D_TEXTUREBACKGROUND(node)->_layerId; break;
+		case NODE_Fog:
+			layerId = X3D_FOG(node)->_layerId; break;
+		case NODE_NavigationInfo:
+			layerId = X3D_NAVIGATIONINFO(node)->_layerId; break;
+		default:
+			layerId = 0; break;
+	}
+	return layerId;
+}
 
 /* send a set_bind event from an event to this Bindable node */
 void send_bind_to(struct X3D_Node *node, int value) {
+	int layerId;
 	ttglobal tg = gglobal();
 	/* printf ("\n%lf: send_bind_to, nodetype %s node %u value %d\n",TickTime(),stringNodeType(node->_nodeType),node,value);  */
 
+	layerId = layerFromBindable(node);
 	switch (node->_nodeType) {
-
 	case NODE_Background:  {
 		struct X3D_Background *bg = (struct X3D_Background *) node;
 		bg->set_bind = value;
-		bind_node (node, getActiveBindableStacks(tg)->background); //tg->Bindable.background_stack
+		bind_node (node, getBindableStacksByLayer(tg,bg->_layerId)->background); //tg->Bindable.background_stack
 		break;
 		}
 
 	case NODE_TextureBackground: {
 		struct X3D_TextureBackground *tbg = (struct X3D_TextureBackground *) node;
 		tbg->set_bind = value;
-		bind_node (node, getActiveBindableStacks(tg)->background);
+		bind_node (node, getBindableStacksByLayer(tg,tbg->_layerId)->background);
 		break;
 		}
 
@@ -304,7 +339,7 @@ void send_bind_to(struct X3D_Node *node, int value) {
 		struct X3D_OrthoViewpoint *ovp = (struct X3D_OrthoViewpoint *) node;
 		ovp->set_bind = value;
 		setMenuStatusVP(ovp->description->strptr);
-		bind_node (node, getActiveBindableStacks(tg)->viewpoint);
+		bind_node (node, getBindableStacksByLayer(tg,ovp->_layerId)->viewpoint);
 		if (value==1) {
 			bind_OrthoViewpoint (ovp);
 		}
@@ -315,7 +350,7 @@ void send_bind_to(struct X3D_Node *node, int value) {
 		struct X3D_Viewpoint* vp = (struct X3D_Viewpoint *) node;
 		vp->set_bind = value;
 		setMenuStatusVP (vp->description->strptr);
-		bind_node (node, getActiveBindableStacks(tg)->viewpoint);
+		bind_node (node, getBindableStacksByLayer(tg,vp->_layerId)->viewpoint);
 		if (value==1) {
 			bind_Viewpoint (vp);
 		}
@@ -326,7 +361,7 @@ void send_bind_to(struct X3D_Node *node, int value) {
 		struct X3D_GeoViewpoint *gvp = (struct X3D_GeoViewpoint *) node;
 		gvp->set_bind = value;
 		setMenuStatusVP (gvp->description->strptr);
-		bind_node (node, getActiveBindableStacks(tg)->viewpoint);
+		bind_node (node, getBindableStacksByLayer(tg,gvp->_layerId)->viewpoint);
 		if (value==1) {
 			bind_GeoViewpoint (gvp);
 		}
@@ -337,14 +372,14 @@ void send_bind_to(struct X3D_Node *node, int value) {
 	case NODE_Fog:  {
 		struct X3D_Fog *fg = (struct X3D_Fog *) node;
 		fg->set_bind = value;
-		bind_node (node, getActiveBindableStacks(tg)->fog);
+		bind_node (node, getBindableStacksByLayer(tg,fg->_layerId)->fog);
 		break;
 		}
 
 	case NODE_NavigationInfo:  {
 		struct X3D_NavigationInfo *nv = (struct X3D_NavigationInfo *) node;
 		nv->set_bind = value;
-		bind_node (node, getActiveBindableStacks(tg)->navigation);
+		bind_node (node, getBindableStacksByLayer(tg,nv->_layerId)->navigation);
 		if (value==1) set_naviinfo(nv);
 		break;
 		}

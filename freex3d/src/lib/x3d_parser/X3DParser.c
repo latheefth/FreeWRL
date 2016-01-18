@@ -1918,6 +1918,9 @@ void **shaderFields(struct X3D_Node* node){
 void broto_store_DEF(struct X3D_Proto* proto,struct X3D_Node* node, char *name);
 static void parseAttributes_B(void *ud, char **atts);
 void add_node_to_broto_context(struct X3D_Proto *context,struct X3D_Node *node);
+void push_binding_stack_set();
+void push_next_layerId_from_binding_stack_set();
+void pop_binding_stack_set();
 
 static void startBuiltin_B(void *ud, int myNodeType, const xmlChar *name, char** atts) {
 	struct X3D_Node *node, *fromDEFtable;
@@ -2005,7 +2008,10 @@ static void startBuiltin_B(void *ud, int myNodeType, const xmlChar *name, char**
 			(*shaderfield) = (void *)new_Shader_ScriptB(node);
 		//if(node->_nodeType == NODE_Script && pflagdepth)
 			//initialize script - wait till end element
-			
+		if(node->_nodeType == NODE_LayerSet)
+			push_binding_stack_set(node);
+		if(node->_nodeType == NODE_Layer || node->_nodeType == NODE_LayoutLayer)
+			push_next_layerId_from_binding_stack_set();
 		if(node->_nodeType == NODE_Inline)
 			X3D_INLINE(node)->__parentProto = X3D_NODE(context); //when searching for user proto declarations, apparently inlines can search the scene 
 		node->_executionContext = X3D_NODE(context);
@@ -2039,6 +2045,9 @@ void endBuiltin_B(void *ud, const xmlChar *name){
 		initialize_one_script(sn->__scriptObj,&sn->url);
 		//script_initCodeFromMFUri(sn->__scriptObj, &sn->url);
 	}
+	if(node->_nodeType == NODE_LayerSet)
+		pop_binding_stack_set();
+
 	linkNodeIn_B(ud);
 
 	popNode(ud);

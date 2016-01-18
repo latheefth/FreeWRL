@@ -204,6 +204,7 @@ void prep_Layout(struct X3D_Node *_node){
 		node->_scale.p[0] = scale[0];
 		node->_scale.p[1] = scale[1];
 
+		//see prep_transform for equivalent
 		if(!rs->render_vp ) {
 			FW_GL_PUSH_MATRIX();
 			FW_GL_SCALE_F(node->_scale.p[0],node->_scale.p[1],1.0f);

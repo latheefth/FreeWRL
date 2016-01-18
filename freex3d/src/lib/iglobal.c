@@ -57,6 +57,7 @@ void Component_Geometry3D_init(struct tComponent_Geometry3D *t);
 void Component_Geometry3D_clear(struct tComponent_Geometry3D *t);
 void Component_Geospatial_init(struct tComponent_Geospatial *t);
 void Component_HAnim_init(struct tComponent_HAnim *t);
+void Component_Layering_init(struct tComponent_Layering *t);
 void Component_NURBS_init(struct tComponent_NURBS *t);
 void Component_KeyDevice_init(struct tComponent_KeyDevice *t);
 
@@ -72,6 +73,7 @@ void Component_Shape_init(struct tComponent_Shape *t);
 void Component_Sound_init(struct tComponent_Sound *t);
 void Component_Text_init(struct tComponent_Text *t);
 void Component_Text_clear(struct tComponent_Text *t);
+void Component_Layering_clear(struct tComponent_Layering *t);
 
 void RenderFuncs_init(struct tRenderFuncs *t);
 void RenderFuncs_clear(struct tRenderFuncs *t);
@@ -191,6 +193,7 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	Component_Geometry3D_init(&iglobal->Component_Geometry3D);
 	Component_Geospatial_init(&iglobal->Component_Geospatial);
 	Component_HAnim_init(&iglobal->Component_HAnim);
+	Component_Layering_init(&iglobal->Component_Layering);
 	Component_NURBS_init(&iglobal->Component_NURBS);
 	Component_KeyDevice_init(&iglobal->Component_KeyDevice);
 #ifdef OLDCODE
@@ -290,6 +293,7 @@ OLDCODE	FREE_IF_NZ(tg->Component_Networking.prv);
 #endif
 	FREE_IF_NZ(tg->Component_KeyDevice.prv);
 	FREE_IF_NZ(tg->Component_NURBS.prv);
+	Component_Layering_clear(&tg->Component_Layering); FREE_IF_NZ(tg->Component_Layering.prv);
 	FREE_IF_NZ(tg->Component_HAnim.prv);
 	FREE_IF_NZ(tg->Component_Geospatial.prv);
 	Component_Geometry3D_clear(&tg->Component_Geometry3D); FREE_IF_NZ(tg->Component_Geometry3D.prv);

@@ -257,6 +257,9 @@ typedef struct iiglobal //InstanceGlobal
 	struct tComponent_HAnim{
 		void *prv;
 	}Component_HAnim;
+	struct tComponent_Layering{
+		void *prv;
+	}Component_Layering;
 	struct tComponent_NURBS{
 		void *prv;
 	}Component_NURBS;

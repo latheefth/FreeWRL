@@ -120,6 +120,7 @@ static bool parser_do_parse_string(const char *input, const int len, struct X3D_
 /* Bindables */
 typedef struct pProdCon {
 		//these bindable lists store all bindable nodes as parsed
+		struct Vector *viewpointNodes;
 		struct Vector *fogNodes;
 		struct Vector *backgroundNodes;
 		struct Vector *navigationNodes;
@@ -168,6 +169,8 @@ void ProdCon_init(struct tProdCon *t)
 	t->prv = ProdCon_constructor();
 	{
 		ppProdCon p = (ppProdCon)t->prv;
+		p->viewpointNodes = newVector(struct X3D_Node *,8);
+		t->viewpointNodes = p->viewpointNodes;
 		p->fogNodes = newVector(struct X3D_Node *, 2);
 		p->backgroundNodes = newVector(struct X3D_Node *, 2);
 		p->navigationNodes = newVector(struct X3D_Node *, 2);
@@ -656,6 +659,7 @@ void dump_parser_wait_queue()
 #endif
 }
 
+void post_parse_set_activeLayer(); //Component_Layering.c
 /**
  *   parser_process_res_VRML_X3D: this is the final parser (loader) stage, then call the real parser.
  */
@@ -810,33 +814,99 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 
 		if (shouldBind) {
 			if(shouldUnBind){
-				if (vectorSize(p->fogNodes) > 0) {
-					for (i=origFogNodes; i < vectorSize(p->fogNodes); ++i)
-						send_bind_to(vector_get(struct X3D_Node*,p->fogNodes,i), 0);
-					/* Initialize binding info */
-					t->setFogBindInRender = vector_get(struct X3D_Node*, p->fogNodes,0);
-				}
-				if (vectorSize(p->backgroundNodes) > 0) {
-					for (i=origBackgroundNodes; i < vectorSize(p->backgroundNodes); ++i)
-						send_bind_to(vector_get(struct X3D_Node*,p->backgroundNodes,i), 0);
-					/* Initialize binding info */
-					t->setBackgroundBindInRender = vector_get(struct X3D_Node*, p->backgroundNodes,0);
-				}
-				if (vectorSize(p->navigationNodes) > 0) {
-					for (i=origNavigationNodes; i < vectorSize(p->navigationNodes); ++i)
-						send_bind_to(vector_get(struct X3D_Node*,p->navigationNodes,i), 0);
-					/* Initialize binding info */
-					t->setNavigationBindInRender = vector_get(struct X3D_Node*, p->navigationNodes,0);
-				}
-				if (vectorSize(t->viewpointNodes) > 0) {
-					for (i = origViewpointNodes; i < vectorSize(t->viewpointNodes); ++i)
-						send_bind_to(vector_get(struct X3D_Node*, t->viewpointNodes, i), 0);
+				struct X3D_Node* tmp;
+				int ib = 0; //layering likes 1 here to get all the bindables into their appropriate/multiple binding stacks
+				if(1){
+					//modified version for Layering (Jan 2016) - binds to all found in each layer
+					//sends first ones in activeLayer to mainloop for final binding
+					ib = 1; //1 == yes, please bind, which we need for LayerSet/layers, does it hurt regular? Haven't seen a problem yet.
+					if (vectorSize(p->fogNodes) > 0) {
+						for (i=origFogNodes; i < vectorSize(p->fogNodes); ++i){
+							tmp = vector_get(struct X3D_Node*,p->fogNodes,i);
+							send_bind_to(tmp, ib);
+						}
+					}
+					if (vectorSize(p->backgroundNodes) > 0) {
+						for (i=origBackgroundNodes; i < vectorSize(p->backgroundNodes); ++i){
+							tmp = vector_get(struct X3D_Node*,p->backgroundNodes,i);
+							send_bind_to(tmp, ib);
+						}
+					}
+					if (vectorSize(p->navigationNodes) > 0) {
+						for (i=origNavigationNodes; i < vectorSize(p->navigationNodes); ++i){
+							tmp = vector_get(struct X3D_Node*,p->navigationNodes,i);
+							send_bind_to(tmp, ib);
+						}
+					}
+					if (vectorSize(t->viewpointNodes) > 0) {
+						for (i = origViewpointNodes; i < vectorSize(t->viewpointNodes); ++i){
+							tmp = vector_get(struct X3D_Node*, t->viewpointNodes, i);
+							send_bind_to(tmp, ib);
+						}
+					}
+					post_parse_set_activeLayer();
+					//tg->Bindable.activeLayer = 1; //test during debugging force to test scene's activelayer=1 since parsing doesn't detect it early enough
+					bindablestack *bstack = getActiveBindableStacks(tg);
+					if (vectorSize(bstack->fog) > 0) {
+						/* Initialize binding info */
+						t->setFogBindInRender = vector_get(struct X3D_Node*, bstack->fog,0);
+					}
+					if (vectorSize(bstack->background) > 0) {
+						/* Initialize binding info */
+						t->setBackgroundBindInRender = vector_get(struct X3D_Node*, bstack->background,0);
+					}
+					if (vectorSize(bstack->navigation) > 0) {
+						/* Initialize binding info */
+						t->setNavigationBindInRender = vector_get(struct X3D_Node*, bstack->navigation,0);
+					}
+					if (vectorSize(bstack->viewpoint) > 0) {
 
-					/* Initialize binding info */
-					t->setViewpointBindInRender = vector_get(struct X3D_Node*, t->viewpointNodes,0);
-					if (res->afterPoundCharacters)
-						fwl_gotoViewpoint(res->afterPoundCharacters);
+						/* Initialize binding info */
+						t->setViewpointBindInRender = vector_get(struct X3D_Node*, bstack->viewpoint,0);
+						if (res->afterPoundCharacters)
+							fwl_gotoViewpoint(res->afterPoundCharacters);
+					}
+
 				}
+				if(0){
+					//original before Layering, keep for a while in case rollback tests
+					if (vectorSize(p->fogNodes) > 0) {
+						for (i=origFogNodes; i < vectorSize(p->fogNodes); ++i){
+							tmp = vector_get(struct X3D_Node*,p->fogNodes,i);
+							send_bind_to(tmp, ib);
+						}
+						/* Initialize binding info */
+						t->setFogBindInRender = vector_get(struct X3D_Node*, p->fogNodes,0);
+					}
+					if (vectorSize(p->backgroundNodes) > 0) {
+						for (i=origBackgroundNodes; i < vectorSize(p->backgroundNodes); ++i){
+							tmp = vector_get(struct X3D_Node*,p->backgroundNodes,i);
+							send_bind_to(tmp, ib);
+						}
+						/* Initialize binding info */
+						t->setBackgroundBindInRender = vector_get(struct X3D_Node*, p->backgroundNodes,0);
+					}
+					if (vectorSize(p->navigationNodes) > 0) {
+						for (i=origNavigationNodes; i < vectorSize(p->navigationNodes); ++i){
+							tmp = vector_get(struct X3D_Node*,p->navigationNodes,i);
+							send_bind_to(tmp, ib);
+						}
+						/* Initialize binding info */
+						t->setNavigationBindInRender = vector_get(struct X3D_Node*, p->navigationNodes,0);
+					}
+					if (vectorSize(t->viewpointNodes) > 0) {
+						for (i = origViewpointNodes; i < vectorSize(t->viewpointNodes); ++i){
+							tmp = vector_get(struct X3D_Node*, t->viewpointNodes, i);
+							send_bind_to(tmp, ib);
+						}
+
+						/* Initialize binding info */
+						t->setViewpointBindInRender = vector_get(struct X3D_Node*, t->viewpointNodes,0);
+						if (res->afterPoundCharacters)
+							fwl_gotoViewpoint(res->afterPoundCharacters);
+					}
+				}
+
 			}else{
 				// for broto inlines, we want to add to what's in the main scene, and bind to the last item if its new
 				if (vectorSize(p->fogNodes) > origFogNodes) {
@@ -1536,45 +1606,57 @@ void kill_bindables (void) {
 
 
 void registerBindable (struct X3D_Node *node) {
+	int layerId;
 	ppProdCon p;
-	struct tProdCon *t = &gglobal()->ProdCon;
+	ttglobal tg;
+	struct tProdCon *t;
+	tg = gglobal();
+	t = &tg->ProdCon;
 	p = (ppProdCon)t->prv;
 
+	layerId = tg->Bindable.activeLayer;
 
 	switch (node->_nodeType) {
 		case NODE_Viewpoint:
 			X3D_VIEWPOINT(node)->set_bind = 100;
 			X3D_VIEWPOINT(node)->isBound = 0;
+			X3D_VIEWPOINT(node)->_layerId = layerId;
 			vector_pushBack (struct X3D_Node*,t->viewpointNodes, node);
 			break;
 		case NODE_OrthoViewpoint:
 			X3D_ORTHOVIEWPOINT(node)->set_bind = 100;
 			X3D_ORTHOVIEWPOINT(node)->isBound = 0;
+			X3D_ORTHOVIEWPOINT(node)->_layerId = layerId;
 			vector_pushBack (struct X3D_Node*,t->viewpointNodes, node);
 			break;
 		case NODE_GeoViewpoint:
 			X3D_GEOVIEWPOINT(node)->set_bind = 100;
 			X3D_GEOVIEWPOINT(node)->isBound = 0;
+			X3D_GEOVIEWPOINT(node)->_layerId = layerId;
 			vector_pushBack (struct X3D_Node*,t->viewpointNodes, node);
 			break;
 		case NODE_Background:
 			X3D_BACKGROUND(node)->set_bind = 100;
 			X3D_BACKGROUND(node)->isBound = 0;
+			X3D_BACKGROUND(node)->_layerId = layerId;
 			vector_pushBack (struct X3D_Node*,p->backgroundNodes, node);
 			break;
 		case NODE_TextureBackground:
 			X3D_TEXTUREBACKGROUND(node)->set_bind = 100;
 			X3D_TEXTUREBACKGROUND(node)->isBound = 0;
+			X3D_TEXTUREBACKGROUND(node)->_layerId = layerId;
 			vector_pushBack (struct X3D_Node*,p->backgroundNodes, node);
 			break;
 		case NODE_NavigationInfo:
 			X3D_NAVIGATIONINFO(node)->set_bind = 100;
 			X3D_NAVIGATIONINFO(node)->isBound = 0;
+			X3D_NAVIGATIONINFO(node)->_layerId = layerId;
 			vector_pushBack (struct X3D_Node*,p->navigationNodes, node);
 			break;
 		case NODE_Fog:
 			X3D_FOG(node)->set_bind = 100;
 			X3D_FOG(node)->isBound = 0;
+			X3D_FOG(node)->_layerId = layerId;
 			vector_pushBack (struct X3D_Node*,p->fogNodes, node);
 			break;
 		default: {
