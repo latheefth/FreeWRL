@@ -103,7 +103,7 @@ ivec4 childViewport(ivec4 parentViewport, float *clipBoundary){
 	return vport;
 }
 
-
+static float defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; // left/right/bottom/top 0,1,0,1
 //Layer has 3 virtual functions prep, children, fin 
 //- LayerSet should be the only caller for these 3 normally, according to specs
 //- if no LayerSet but a Layer then Layer doesn't do any per-layer stacks or viewer
@@ -112,7 +112,7 @@ void prep_Layer(struct X3D_Node * _node){
 	ivec4 pvport,vport;
 	ttglobal tg;
 	ttrenderstate rs;
-	float *clipBoundary, defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; // left/right/bottom/top 0,1,0,1
+	float *clipBoundary; // left/right/bottom/top 0,1,0,1
 
 	struct X3D_Layer *node = (struct X3D_Layer*)_node;
 	tg = gglobal();
@@ -128,8 +128,11 @@ void prep_Layer(struct X3D_Node * _node){
 		vportstack = (Stack *)tg->Mainloop._vportstack;
 		pvport = stack_top(ivec4,vportstack); //parent context viewport
 		clipBoundary = defaultClipBoundary;
-		if(node->viewport)
-			clipBoundary = ((struct X3D_Viewport*)(node->viewport))->clipBoundary.p;
+		if(node->viewport && node->viewport->_nodeType == NODE_Viewport){
+			struct X3D_Viewport* nvport = (struct X3D_Viewport*)node->viewport;
+			if(nvport->clipBoundary.p && nvport->clipBoundary.n > 3)
+				clipBoundary = nvport->clipBoundary.p;
+		}
 		//printf("clipBoundary %f %f %f %f\n",clipBoundary[0],clipBoundary[1],clipBoundary[2],clipBoundary[3]);
 		//printf("pvport= w %d h %d x %d y %d\n",pvport.W,pvport.H,pvport.X,pvport.Y);
 		vport = childViewport(pvport,clipBoundary);
@@ -373,6 +376,7 @@ void prep_Viewport(struct X3D_Node * node){
 	if(node && node->_nodeType == NODE_Viewport){
 		Stack *vportstack;
 		ivec4 pvport,vport;
+		float *clipBoundary; // left/right/bottom/top 0,1,0,1
 		ttrenderstate rs;
 		ttglobal tg;
 		struct X3D_Viewport * viewport = (struct X3D_Viewport *)node;
@@ -388,8 +392,11 @@ void prep_Viewport(struct X3D_Node * node){
 			//push viewport onto viewport stack, setting it as the current window
 			vportstack = (Stack *)tg->Mainloop._vportstack;
 			pvport = stack_top(ivec4,vportstack); //parent context viewport
+			clipBoundary = defaultClipBoundary;
+			if(viewport->clipBoundary.p && viewport->clipBoundary.n > 3)
+				clipBoundary = viewport->clipBoundary.p;
 
-			vport = childViewport(pvport,viewport->clipBoundary.p);
+			vport = childViewport(pvport,clipBoundary);
 			pushviewport(vportstack, vport);
 			if(currentviewportvisible(vportstack))
 				setcurrentviewport(vportstack);
