@@ -1382,7 +1382,7 @@ void make_Text (struct X3D_Text *node)
         /* Step 1 - record the spacing and size, for direct use */
         spacing = fsp->spacing;
         size = fsp->size;
-		if(fsp->_nodeType != NODE_ScreenFontStyle){
+		if(fsp->_nodeType == NODE_ScreenFontStyle){
 			static float pixels_per_point = 4.0f/3.0f; //about 16 pixels for 12 point font, assume we are in ScreenGroup?
 			size = fsp->size * pixels_per_point;
 		}
