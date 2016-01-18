@@ -191,7 +191,7 @@ fi
 AC_ARG_WITH([javascriptopt],
         [AS_HELP_STRING([--with-javascriptopt=OPT],[javascriptopt OPT (stub,sm,duk) for none,spidermonkey or duktape])],
         [javascriptopt="$withval"],
-        [javascriptopt="sm"])
+        [javascriptopt="duk"])
 
 case "$javascriptopt" in
      stub|sm|duk) AC_MSG_NOTICE([javascriptopt: $javascriptopt]) ;; # valid input
@@ -663,7 +663,7 @@ AC_CHECK_TYPES([int32, uint32, int16, uint16], [], [], [[#include <npapi.h>]])
 AC_ARG_WITH([statusbar],
         [AS_HELP_STRING([--with-statusbar=STATUSBAR],[Select status bar flavour -- 'hud' or 'standard'])],
         [statusbar="$withval"],
-        [statusbar="standard"])
+        [statusbar="hud"])
 
 case "$statusbar" in
      standard|hud) AC_MSG_NOTICE([Status bar flavor: $statusbar]) ;; # valid input
