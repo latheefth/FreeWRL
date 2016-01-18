@@ -69,8 +69,15 @@ void init_bindablestack(bindablestack *bstack, int layerId){
 	bstack->fog = newVector(struct X3D_Node*, 2);
 	bstack->navigation = newVector(struct X3D_Node*, 2);
 	bstack->layerId = layerId;
-	loadIdentityMatrix (bstack->viewMatrix);
-	loadIdentityMatrix (bstack->projectionMatrix);
+	loadIdentityMatrix(bstack->screenorientationmatrix);
+	loadIdentityMatrix(bstack->viewtransformmatrix);
+	loadIdentityMatrix(bstack->posorimatrix);
+	loadIdentityMatrix(bstack->stereooffsetmatrix[0]);
+	loadIdentityMatrix(bstack->stereooffsetmatrix[1]);
+	int isStereo; //temp
+	int iside;  //temp
+	void *viewer; //X3D_Viewer - navigation is per-layer
+
 	bstack->viewer = NULL;
 }
 void free_bindablestack(bindablestack *bstack){

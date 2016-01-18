@@ -60,8 +60,6 @@ typedef struct bindablestack {
 	void *fog;
 	void *navigation;
 	int layerId;
-	GLDOUBLE projectionMatrix[16];
-	GLDOUBLE viewMatrix[16];
 
 	double screenorientationmatrix[16];
 	double viewtransformmatrix[16];
@@ -69,7 +67,7 @@ typedef struct bindablestack {
 	double stereooffsetmatrix[2][16];
 	int isStereo; //temp
 	int iside;  //temp
-	void *viewer; //X3D_Viewer
+	void *viewer; //X3D_Viewer - navigation is per-layer
 } bindablestack;
 void init_bindablestack(bindablestack *bstack, int layerId);
 bindablestack* getBindableStacksByLayer(ttglobal tg, int layerId );

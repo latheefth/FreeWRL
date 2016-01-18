@@ -89,7 +89,7 @@ typedef struct pViewer{
 	int exflyMethod; //0 or 1;  /* could be a user settable option, which kind of exfly to do */
 	int StereoInitializedOnce;//. = 0;
 	GLboolean acMask[3][3]; //anaglyphChannelMask
-	//X3D_Viewer Viewer; /* has to be defined somewhere, so it found itself stuck here */
+	//X3D_Viewer Viewer; /* moved to Bindables.h > bindablestacks */
 	/* viewpoint slerping */
 	double viewpoint2rootnode[16];
 	double viewpointnew2rootnode[16];
@@ -211,7 +211,7 @@ X3D_Viewer *Viewer()
 	//per-layer viewer
 	bstack = getActiveBindableStacks(tg);
 	if(!bstack->viewer){
-		viewer = malloc(sizeof(X3D_Viewer));
+		viewer = MALLOCV(sizeof(X3D_Viewer));
 		memset(viewer,0,sizeof(X3D_Viewer));
 		viewer_default0(viewer);
 		init_stereodefaults(viewer);

@@ -659,6 +659,7 @@ void dump_parser_wait_queue()
 #endif
 }
 
+void post_parse_set_activeLayer(); //Component_Layering.c
 /**
  *   parser_process_res_VRML_X3D: this is the final parser (loader) stage, then call the real parser.
  */
@@ -816,7 +817,9 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 				struct X3D_Node* tmp;
 				int ib = 0; //layering likes 1 here to get all the bindables into their appropriate/multiple binding stacks
 				if(1){
-					ib = 1;
+					//modified version for Layering (Jan 2016) - binds to all found in each layer
+					//sends first ones in activeLayer to mainloop for final binding
+					ib = 1; //1 == yes, please bind, which we need for LayerSet/layers, does it hurt regular? Haven't seen a problem yet.
 					if (vectorSize(p->fogNodes) > 0) {
 						for (i=origFogNodes; i < vectorSize(p->fogNodes); ++i){
 							tmp = vector_get(struct X3D_Node*,p->fogNodes,i);
@@ -841,7 +844,8 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 							send_bind_to(tmp, ib);
 						}
 					}
-					tg->Bindable.activeLayer = 1; //test during debugging force to test scene's activelayer=1 since parsing doesn't detect it early enough
+					post_parse_set_activeLayer();
+					//tg->Bindable.activeLayer = 1; //test during debugging force to test scene's activelayer=1 since parsing doesn't detect it early enough
 					bindablestack *bstack = getActiveBindableStacks(tg);
 					if (vectorSize(bstack->fog) > 0) {
 						/* Initialize binding info */
@@ -865,41 +869,42 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 
 				}
 				if(0){
-				if (vectorSize(p->fogNodes) > 0) {
-					for (i=origFogNodes; i < vectorSize(p->fogNodes); ++i){
-						tmp = vector_get(struct X3D_Node*,p->fogNodes,i);
-						send_bind_to(tmp, ib);
+					//original before Layering, keep for a while in case rollback tests
+					if (vectorSize(p->fogNodes) > 0) {
+						for (i=origFogNodes; i < vectorSize(p->fogNodes); ++i){
+							tmp = vector_get(struct X3D_Node*,p->fogNodes,i);
+							send_bind_to(tmp, ib);
+						}
+						/* Initialize binding info */
+						t->setFogBindInRender = vector_get(struct X3D_Node*, p->fogNodes,0);
 					}
-					/* Initialize binding info */
-					t->setFogBindInRender = vector_get(struct X3D_Node*, p->fogNodes,0);
-				}
-				if (vectorSize(p->backgroundNodes) > 0) {
-					for (i=origBackgroundNodes; i < vectorSize(p->backgroundNodes); ++i){
-						tmp = vector_get(struct X3D_Node*,p->backgroundNodes,i);
-						send_bind_to(tmp, ib);
+					if (vectorSize(p->backgroundNodes) > 0) {
+						for (i=origBackgroundNodes; i < vectorSize(p->backgroundNodes); ++i){
+							tmp = vector_get(struct X3D_Node*,p->backgroundNodes,i);
+							send_bind_to(tmp, ib);
+						}
+						/* Initialize binding info */
+						t->setBackgroundBindInRender = vector_get(struct X3D_Node*, p->backgroundNodes,0);
 					}
-					/* Initialize binding info */
-					t->setBackgroundBindInRender = vector_get(struct X3D_Node*, p->backgroundNodes,0);
-				}
-				if (vectorSize(p->navigationNodes) > 0) {
-					for (i=origNavigationNodes; i < vectorSize(p->navigationNodes); ++i){
-						tmp = vector_get(struct X3D_Node*,p->navigationNodes,i);
-						send_bind_to(tmp, ib);
+					if (vectorSize(p->navigationNodes) > 0) {
+						for (i=origNavigationNodes; i < vectorSize(p->navigationNodes); ++i){
+							tmp = vector_get(struct X3D_Node*,p->navigationNodes,i);
+							send_bind_to(tmp, ib);
+						}
+						/* Initialize binding info */
+						t->setNavigationBindInRender = vector_get(struct X3D_Node*, p->navigationNodes,0);
 					}
-					/* Initialize binding info */
-					t->setNavigationBindInRender = vector_get(struct X3D_Node*, p->navigationNodes,0);
-				}
-				if (vectorSize(t->viewpointNodes) > 0) {
-					for (i = origViewpointNodes; i < vectorSize(t->viewpointNodes); ++i){
-						tmp = vector_get(struct X3D_Node*, t->viewpointNodes, i);
-						send_bind_to(tmp, ib);
-					}
+					if (vectorSize(t->viewpointNodes) > 0) {
+						for (i = origViewpointNodes; i < vectorSize(t->viewpointNodes); ++i){
+							tmp = vector_get(struct X3D_Node*, t->viewpointNodes, i);
+							send_bind_to(tmp, ib);
+						}
 
-					/* Initialize binding info */
-					t->setViewpointBindInRender = vector_get(struct X3D_Node*, t->viewpointNodes,0);
-					if (res->afterPoundCharacters)
-						fwl_gotoViewpoint(res->afterPoundCharacters);
-				}
+						/* Initialize binding info */
+						t->setViewpointBindInRender = vector_get(struct X3D_Node*, t->viewpointNodes,0);
+						if (res->afterPoundCharacters)
+							fwl_gotoViewpoint(res->afterPoundCharacters);
+					}
 				}
 
 			}else{

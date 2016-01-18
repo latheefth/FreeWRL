@@ -2009,7 +2009,7 @@ static void startBuiltin_B(void *ud, int myNodeType, const xmlChar *name, char**
 		//if(node->_nodeType == NODE_Script && pflagdepth)
 			//initialize script - wait till end element
 		if(node->_nodeType == NODE_LayerSet)
-			push_binding_stack_set();
+			push_binding_stack_set(node);
 		if(node->_nodeType == NODE_Layer || node->_nodeType == NODE_LayoutLayer)
 			push_next_layerId_from_binding_stack_set();
 		if(node->_nodeType == NODE_Inline)
