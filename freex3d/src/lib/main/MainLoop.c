@@ -5411,7 +5411,7 @@ void fwl_initializeRenderSceneUpdateScene() {
 	}
 	*/
 	new_tessellation();
-	fwl_set_viewer_type(VIEWER_EXAMINE);
+	//fwl_set_viewer_type(VIEWER_EXAMINE);
 	viewer_postGLinit_init();
 
 #ifndef AQUA

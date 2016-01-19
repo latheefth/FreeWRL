@@ -2107,7 +2107,7 @@ static vrmlNodeT parse_KW_USE(struct VRMLParser *me) {
 /* Specific initialization of node fields */
 void parser_specificInitNode_A(struct X3D_Node* n, struct VRMLParser* me);
 void push_binding_stack_set(struct X3D_Node* layersetnode);
-void push_next_layerId_from_binding_stack_set();
+void push_next_layerId_from_binding_stack_set(struct X3D_Node *layer);
 void pop_binding_stack_set();
 
 static BOOL parser_node_A(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
@@ -2274,7 +2274,7 @@ static BOOL parser_node_A(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 			push_binding_stack_set(node); break;
 		case NODE_LayoutLayer:
 		case NODE_Layer: 
-			push_next_layerId_from_binding_stack_set(); break;
+			push_next_layerId_from_binding_stack_set(node); break;
 		default: {}
 	}
         
@@ -3730,7 +3730,7 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 				push_binding_stack_set(node); break;
 			case NODE_LayoutLayer:
 			case NODE_Layer: 
-				push_next_layerId_from_binding_stack_set(); break;
+				push_next_layerId_from_binding_stack_set(node); break;
 			default: {}
 		}
 	} /*endif nodetypeB*/

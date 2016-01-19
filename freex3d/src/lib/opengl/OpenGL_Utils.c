@@ -3056,7 +3056,7 @@ void drawBBOX(struct X3D_Node *node) {
 }
 #endif //DEBUGGING_CODE
 
-static void calculateNearFarplanes(struct X3D_Node *vpnode) {
+static void calculateNearFarplanes(struct X3D_Node *vpnode, int layerid ) {
 	struct point_XYZ bboxPoints[8];
 	GLDOUBLE cfp = -DBL_MAX;
 	GLDOUBLE cnp = DBL_MAX;
@@ -3072,7 +3072,7 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 	int ci;
     struct X3D_Node* rn = rootNode();
 	ttglobal tg = gglobal();
-	X3D_Viewer *viewer = Viewer();
+	X3D_Viewer *viewer = ViewerByLayerId(layerid);
 
 
 
@@ -3912,7 +3912,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	kill_X3DDefs();
 
 	/* tell statusbar that we have none */
-	viewer_default();
+	//viewer_default();
 	setMenuStatus("NONE");
 }
 void unload_globalParser() {
@@ -5093,7 +5093,7 @@ void startOfLoopNodeUpdates(void) {
 			//struct X3D_Node *boundvp = vector_back(struct X3D_Node*,getActiveBindableStacks(tg)->viewpoint);
 			struct X3D_Node *boundvp = vector_back(struct X3D_Node*,bstack->viewpoint);
 			update_renderFlag(boundvp, VF_Viewpoint);
-			calculateNearFarplanes(boundvp);
+			calculateNearFarplanes(boundvp, bstack->layerId);
 			//update_renderFlag(vector_back(struct X3D_Node*,
 			//	tg->Bindable.viewpoint_stack), VF_Viewpoint);
 			//calculateNearFarplanes(vector_back(struct X3D_Node*, tg->Bindable.viewpoint_stack));

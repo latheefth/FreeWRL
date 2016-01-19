@@ -279,7 +279,7 @@ typedef struct viewer {
 	int wasBound; /* 0 for default viewpoint, 1 thereafter (for no-slerp startup) */
 
 } X3D_Viewer;
-
+X3D_Viewer *ViewerByLayerId(int layerid);
 void Viewer_anaglyph_setSide(int iside);
 void Viewer_anaglyph_clearSides();
 void fwl_init_StereoDefaults(void);

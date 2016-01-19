@@ -211,7 +211,7 @@ void push_binding_stack_set(struct X3D_Node* layersetnode){
 	p->layerId = 0;
 	p->layersetnode = layersetnode; //specs: max one of them per scenefile
 }
-void push_next_layerId_from_binding_stack_set(){
+void push_next_layerId_from_binding_stack_set(struct X3D_Node *layer){
 	bindablestack* bstack;
 	ttglobal tg = gglobal();
 	ppComponent_Layering p = (ppComponent_Layering)tg->Component_Layering.prv;
@@ -222,7 +222,7 @@ void push_next_layerId_from_binding_stack_set(){
 		bstack = getBindableStacksByLayer(tg, p->layerId );
 		if(bstack == NULL){
 			bstack = MALLOCV(sizeof(bindablestack));
-			init_bindablestack(bstack, p->layerId);
+			init_bindablestack(bstack, p->layerId, layer->_nodeType);
 			addBindableStack(tg,bstack);
 		}
 		//push_bindingstacks(node);
@@ -302,7 +302,7 @@ void child_LayerSet(struct X3D_Node * node){
 			bstack = getBindableStacksByLayer(tg, layerId );
 			if(bstack == NULL){
 				bstack = MALLOCV(sizeof(bindablestack));
-				init_bindablestack(bstack, layerId);
+				init_bindablestack(bstack, layerId, layer->_nodeType);
 				addBindableStack(tg,bstack);
 			}
 			saveActive = tg->Bindable.activeLayer;

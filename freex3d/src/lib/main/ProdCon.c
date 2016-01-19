@@ -1471,7 +1471,7 @@ void _inputParseThread(void *globalcontext)
 		tg->threads.ResourceThreadRunning = TRUE;
 		ENTER_THREAD("input parser");
 
-		viewer_default();
+		//viewer_default();
 
 		/* now, loop here forever, waiting for instructions and obeying them */
 

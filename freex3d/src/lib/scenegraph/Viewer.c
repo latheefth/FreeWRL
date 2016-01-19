@@ -161,7 +161,7 @@ void getCurrentSpeed() {
 	tg->Mainloop.BrowserSpeed = tg->Mainloop.BrowserFPS * (fabs(viewer->VPvelocity.x) + fabs(viewer->VPvelocity.y) + fabs(viewer->VPvelocity.z));
 }
 void fwl_set_viewer_type0(X3D_Viewer *viewer, const int type);
-void viewer_default0(X3D_Viewer *viewer) {
+void viewer_default0(X3D_Viewer *viewer, int vpnodetype) {
 	Quaternion q_i;
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
@@ -189,7 +189,17 @@ void viewer_default0(X3D_Viewer *viewer) {
 	memcpy (&viewer->fly, &p->viewer_fly, sizeof (X3D_Viewer_Fly));
 	memcpy (&viewer->ypz,&p->viewer_ypz, sizeof (X3D_Viewer_Spherical));
 
-	fwl_set_viewer_type0(viewer,VIEWER_EXAMINE);
+	if(vpnodetype == NODE_OrthoViewpoint){
+		fwl_set_viewer_type0(viewer,VIEWER_NONE); //for LayoutLayer default NONE
+		viewer->orthoField[0] = -1.0;
+		viewer->orthoField[1] =  1.0;
+		viewer->orthoField[2] = -1.0;
+		viewer->orthoField[3] =  1.0;
+		viewer->ortho = TRUE;
+	}else{
+		//all other viewpoint types - Viewpoint, GeoViewpoint ...
+		fwl_set_viewer_type0(viewer,VIEWER_EXAMINE);
+	}
 	viewer->LookatMode = 0;
 	//set_eyehalf( Viewer.eyedist/2.0,
 	//	atan2(Viewer.eyedist/2.0,Viewer.screendist)*360.0/(2.0*3.1415926));
@@ -200,7 +210,7 @@ void viewer_default0(X3D_Viewer *viewer) {
 }
 //ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 //X3D_Viewer _Viewer; /* has to be defined somewhere, so it found itself stuck here */
-X3D_Viewer *Viewer()
+X3D_Viewer *ViewerByLayerId(int layerid)
 {
 	X3D_Viewer *viewer;
 	bindablestack *bstack;
@@ -209,21 +219,29 @@ X3D_Viewer *Viewer()
 	tg = gglobal();
 	p = (ppViewer)tg->Viewer.prv;
 	//per-layer viewer
-	bstack = getActiveBindableStacks(tg);
+	bstack = getBindableStacksByLayer(tg,layerid);
 	if(!bstack->viewer){
+		int vpnodetype;
 		viewer = MALLOCV(sizeof(X3D_Viewer));
 		memset(viewer,0,sizeof(X3D_Viewer));
-		viewer_default0(viewer);
+		vpnodetype = bstack->nodetype == NODE_LayoutLayer ? NODE_OrthoViewpoint : NODE_Viewpoint;
+		viewer_default0(viewer,vpnodetype);
 		init_stereodefaults(viewer);
 		bstack->viewer = viewer;
 	}
 	return bstack->viewer;
 }
+X3D_Viewer *Viewer()
+{
+	ttglobal tg;
+	tg = gglobal();
+	return ViewerByLayerId(tg->Bindable.activeLayer);
+}
 
 void viewer_default() {
 	X3D_Viewer *viewer;
 	viewer = Viewer();
-	viewer_default0(viewer);
+	viewer_default0(viewer,NODE_Viewpoint);
 }
 
 

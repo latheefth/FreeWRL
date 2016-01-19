@@ -67,9 +67,10 @@ typedef struct bindablestack {
 	double stereooffsetmatrix[2][16];
 	int isStereo; //temp
 	int iside;  //temp
+	int nodetype; //node_layer or node_layoutlayer, affects viewer init to ortho or viewpoint
 	void *viewer; //X3D_Viewer - navigation is per-layer
 } bindablestack;
-void init_bindablestack(bindablestack *bstack, int layerId);
+void init_bindablestack(bindablestack *bstack, int layerId, int nodetype);
 bindablestack* getBindableStacksByLayer(ttglobal tg, int layerId );
 bindablestack* getActiveBindableStacks(ttglobal tg );
 int addBindableStack(ttglobal tg, bindablestack* bstack);

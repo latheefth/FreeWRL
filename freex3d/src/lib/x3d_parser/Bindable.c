@@ -63,7 +63,7 @@ struct MyVertex
 
 static void saveBGVert (float *colptr, float *pt, int *vertexno, float *col, double dist, double x, double y, double z) ;
 
-void init_bindablestack(bindablestack *bstack, int layerId){
+void init_bindablestack(bindablestack *bstack, int layerId, int nodetype){
 	bstack->background = newVector(struct X3D_Node*, 2);
 	bstack->viewpoint = newVector(struct X3D_Node*, 2);
 	bstack->fog = newVector(struct X3D_Node*, 2);
@@ -77,6 +77,7 @@ void init_bindablestack(bindablestack *bstack, int layerId){
 	bstack->isStereo = 0;
 	bstack->iside = 0;
 	bstack->viewer = NULL; //X3D_Viewer - navigation is per-layer
+	bstack->nodetype = nodetype;
 }
 void free_bindablestack(bindablestack *bstack){
 	deleteVector(struct X3D_Node*, bstack->background);
@@ -106,7 +107,7 @@ void Bindable_init(struct tBindable *t){
 	t->bstacks = newVector(bindablestack*,4);
 	{
 		ppBindable p = (ppBindable)t->prv;
-		init_bindablestack(&p->bstack,0); //default binding stacks layer=0
+		init_bindablestack(&p->bstack,0, NODE_Viewpoint); //default binding stacks layer=0
 		vector_pushBack(bindablestack*, t->bstacks, &p->bstack);
 		p->naviinfo.width = 0.25;
 		p->naviinfo.height = 1.6;
