@@ -136,9 +136,9 @@ void check_compile_layout_required(struct X3D_Node *node){
 }
 void prep_Layout(struct X3D_Node *_node){
 	//push Layout transform (backward if VF_Viewpoint pass, like Transform prep)
-
+	//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/layout.html#Layout
 	if(_node) {
-		float offsetpx[2];
+		float offsetpx[2], differential_scale;
 		double scale[2];
 		Stack *vportstack;
 		ivec4 pvport,vport;
@@ -163,8 +163,23 @@ void prep_Layout(struct X3D_Node *_node){
 		if(node->_sizeUnits.p[1] == LAYOUT_PIXEL)
 			vport.H = (int)(node->size.p[1]); //pixel
 		else
-			vport.H = (int)(pvport.W * node->size.p[1]); //fraction
+			vport.H = (int)(pvport.H * node->size.p[1]); //fraction
 		
+		//align
+		if(node->_align.p[0] == LAYOUT_LEFT)
+			vport.X = pvport.X;
+		else if(node->_align.p[0] == LAYOUT_RIGHT)
+			vport.X = (pvport.X + pvport.W) - vport.W;
+		else //CENTER
+			vport.X = (pvport.X + pvport.W/2) - vport.W/2;
+
+		if(node->_align.p[1] == LAYOUT_BOTTOM)
+			vport.Y = pvport.Y;
+		else if(node->_align.p[1] == LAYOUT_TOP)
+			vport.Y = (pvport.Y + pvport.H) - vport.H;
+		else //CENTER
+			vport.Y = (pvport.Y + pvport.H/2) - vport.H/2;
+
 		//offset
 		if(node->_offsetUnits.p[0] == LAYOUT_PIXEL)
 			offsetpx[0] = node->offset.p[0]; //pixel
@@ -174,13 +189,29 @@ void prep_Layout(struct X3D_Node *_node){
 			offsetpx[1] = node->offset.p[1]; //pixel
 		else
 			offsetpx[1] = pvport.H * node->offset.p[1]; //fraction
-		vport.X = (int)offsetpx[0];
-		vport.Y = (int)offsetpx[1];
 
-		pushviewport(vportstack, vport);
-		setcurrentviewport(vportstack);
+
+		vport.X += (int)offsetpx[0];
+		vport.Y += (int)offsetpx[1];
+
+
+		if(!rs->render_vp && !rs->render_collision){
+			pushviewport(vportstack, vport);
+			setcurrentviewport(vportstack);
+			upd_ray();
+			//for testing to see the rectangle
+			if(1){
+				glEnable(GL_SCISSOR_TEST);
+				glScissor(vport.X,vport.Y,vport.W,vport.H);
+				glClearColor(1.0f,1.0f,0.0f,.2f);
+				glClear(GL_COLOR_BUFFER_BIT); 
+				glDisable(GL_SCISSOR_TEST);
+			}
+		}
+
 
 		//scale
+		differential_scale = ((float)vport.H/(float)pvport.H)/((float)vport.W/(float)pvport.W);
 		scale[0] = scale[1] = 1.0;
 		if(node->_scaleMode.p[0] == LAYOUT_PIXEL)
 			scale[0] = 1.0/(double)(pvport.W); //pixel
@@ -196,13 +227,15 @@ void prep_Layout(struct X3D_Node *_node){
 		else if(node->_scaleMode.p[1] == LAYOUT_FRACTION)
 			scale[1] = 1.0; //fraction
 
+
 		//strech post-processing of scale
 		if(node->_scaleMode.p[0] == LAYOUT_STRETCH)
-			scale[0] = scale[1];
+			scale[0] = scale[1] * differential_scale;
 		if(node->_scaleMode.p[1] == LAYOUT_STRETCH)
-			scale[1] = scale[0];
+			scale[1] = scale[0] * 1.0f/differential_scale;
 		node->_scale.p[0] = (float) scale[0];
 		node->_scale.p[1] = (float) scale[1];
+
 
 		//see prep_transform for equivalent
 		if(!rs->render_vp ) {
@@ -223,16 +256,24 @@ void fin_Layout(struct X3D_Node *_node){
 		node = (struct X3D_Layout*)_node;
 		tg = gglobal();
 
+		if(!rs->render_vp && !rs->render_collision){
+			vportstack = (Stack *)tg->Mainloop._vportstack;
+			popviewport(vportstack);
+			setcurrentviewport(vportstack);
+			upd_ray();
+		}
+
 		if(rs->render_vp) {
-			FW_GL_SCALE_F(1.0f/node->_scale.p[0],1.0f/node->_scale.p[1],1.0f);
+           if((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {
+				float sx,sy,sz;
+				sx = 1.0f/node->_scale.p[0];
+				sy = 1.0f/node->_scale.p[1];
+				sz = 1.0f;
+				FW_GL_SCALE_F(1.0f/node->_scale.p[0],1.0f/node->_scale.p[1],1.0f);
+			}
 		}else{
 			FW_GL_POP_MATRIX();
 		}
-
-
-		vportstack = (Stack *)tg->Mainloop._vportstack;
-		popviewport(vportstack);
-		setcurrentviewport(vportstack);
 	}
 }
 void prep_Layer(struct X3D_Node * _node);

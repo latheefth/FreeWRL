@@ -2250,6 +2250,8 @@ void initialize_targets_simple(){
 void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 	double dtime;
 	int i;
+	ivec4 defaultvport;
+	Stack *vportstack;
 	targetwindow *t;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
@@ -2258,7 +2260,14 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 		initialize_targets_simple();
 
 	dtime = Time1970sec();
+	vportstack = (Stack *)tg->Mainloop._vportstack;
+	defaultvport.X = 0;
+	defaultvport.Y = 0;
+	defaultvport.W = 100;
+	defaultvport.H = 100;
+	pushviewport(vportstack,defaultvport);
 	fwl_RenderSceneUpdateScene0(dtime);
+	popviewport(vportstack);
 
 	//twindows = p->cwindows;
 	//t = twindows;
@@ -2266,7 +2275,6 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 	for(i=0;i<p->nwindow;i++){
 		//a targetwindow might be a supervisor's screen, or HMD
 		freewrl_params_t *dp;
-		Stack *vportstack;
 		stage *s;
 
 		t=&p->cwindows[i];
