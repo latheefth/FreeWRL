@@ -160,7 +160,7 @@ void getCurrentSpeed() {
 	viewer = Viewer();
 	tg->Mainloop.BrowserSpeed = tg->Mainloop.BrowserFPS * (fabs(viewer->VPvelocity.x) + fabs(viewer->VPvelocity.y) + fabs(viewer->VPvelocity.z));
 }
-void fwl_set_viewer_type0(X3D_Viewer *viewer, const int type);
+
 void viewer_default0(X3D_Viewer *viewer, int vpnodetype) {
 	Quaternion q_i;
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
@@ -190,11 +190,14 @@ void viewer_default0(X3D_Viewer *viewer, int vpnodetype) {
 	memcpy (&viewer->ypz,&p->viewer_ypz, sizeof (X3D_Viewer_Spherical));
 
 	if(vpnodetype == NODE_OrthoViewpoint){
-		fwl_set_viewer_type0(viewer,VIEWER_NONE); //for LayoutLayer default NONE
+		//for LayoutLayer default NONE, Ortho
+		fwl_set_viewer_type0(viewer,VIEWER_NONE); 
 		viewer->orthoField[0] = -1.0;
-		viewer->orthoField[1] =  1.0;
-		viewer->orthoField[2] = -1.0;
+		viewer->orthoField[1] = -1.0;
+		viewer->orthoField[2] =  1.0;
 		viewer->orthoField[3] =  1.0;
+		viewer->nearPlane = 0.1;
+		viewer->farPlane = 210000.0;
 		viewer->ortho = TRUE;
 	}else{
 		//all other viewpoint types - Viewpoint, GeoViewpoint ...
@@ -3098,7 +3101,7 @@ void bind_OrthoViewpoint (struct X3D_OrthoViewpoint *vp) {
 	float xd, yd,zd;
 	X3D_Viewer *viewer;
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
-	viewer = Viewer();
+	viewer = ViewerByLayerId(vp->_layerId);
 
 
 	/* did bind_node tell us we could bind this guy? */
@@ -3117,15 +3120,15 @@ void bind_OrthoViewpoint (struct X3D_OrthoViewpoint *vp) {
 			/* Ortho mapping - glOrtho order left/right/bottom/top
 			   assume X3D says left bottom right top */
 		viewer->orthoField[0] = (double) vp->fieldOfView.p[0];
-		viewer->orthoField[1] = (double) vp->fieldOfView.p[2];
-		viewer->orthoField[2] = (double) vp->fieldOfView.p[1];
+		viewer->orthoField[1] = (double) vp->fieldOfView.p[1];
+		viewer->orthoField[2] = (double) vp->fieldOfView.p[2];
 		viewer->orthoField[3] = (double) vp->fieldOfView.p[3];
 	} else {
 		ERROR_MSG("OrthoViewpoint - fieldOfView must have 4 parameters");
-		viewer->orthoField[0] = 0.0;
-		viewer->orthoField[1] = 0.0;
-		viewer->orthoField[2] = 0.0;
-		viewer->orthoField[3] = 0.0;
+		viewer->orthoField[0] = -1.0;
+		viewer->orthoField[1] = -1.0;
+		viewer->orthoField[2] =  1.0;
+		viewer->orthoField[3] =  1.0;
 	}
 
 	/* printf ("orthoviewpoint binding distance %f\n",Viewer.Dist);  */
@@ -3539,7 +3542,7 @@ void bind_Viewpoint (struct X3D_Viewpoint *vp) {
 	*/
 	//INITIATE_SLERP
 	//if(false){
-	viewer = Viewer();
+	viewer = ViewerByLayerId(vp->_layerId);
 	if (viewer->transitionType != VIEWER_TRANSITION_TELEPORT && viewer->wasBound) { 
         viewer->SLERPing = FALSE; //TRUE; 
         viewer->startSLERPtime = TickTime(); 

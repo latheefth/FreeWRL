@@ -280,6 +280,11 @@ typedef struct viewer {
 
 } X3D_Viewer;
 X3D_Viewer *ViewerByLayerId(int layerid);
+//extern X3D_Viewer Viewer; /* in VRMLC.pm */
+X3D_Viewer *Viewer();
+void fwl_set_viewer_type0(X3D_Viewer *viewer, const int type);
+void viewer_default(void);
+
 void Viewer_anaglyph_setSide(int iside);
 void Viewer_anaglyph_clearSides();
 void fwl_init_StereoDefaults(void);
@@ -321,10 +326,6 @@ void bind_Viewpoint(struct X3D_Viewpoint *node);
 void bind_OrthoViewpoint(struct X3D_OrthoViewpoint *node);
 void bind_GeoViewpoint(struct X3D_GeoViewpoint *node);
 
-//extern X3D_Viewer Viewer; /* in VRMLC.pm */
-X3D_Viewer *Viewer();
-
-void viewer_default(void);
 
 extern float eyedist;
 extern float screendist;

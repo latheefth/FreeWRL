@@ -196,7 +196,7 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 	struct Uni_String **svptr;
 	int i;
 	char *typeptr;
-	X3D_Viewer *viewer = Viewer();
+	X3D_Viewer *viewer = ViewerByLayerId(node->_layerId);
 
         viewer->speed = (double) node->speed;
 	if (node->avatarSize.n<2) {
@@ -221,27 +221,27 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 
 		if (strcmp(typeptr,"WALK") == 0) {
 			viewer->oktypes[VIEWER_WALK] = TRUE;
-			if (i==0) fwl_set_viewer_type(VIEWER_WALK);
+			if (i==0) fwl_set_viewer_type0(viewer, VIEWER_WALK);
 		}
 		if (strcmp(typeptr,"FLY") == 0) {
 			viewer->oktypes[VIEWER_FLY] = TRUE;
-			if (i==0) fwl_set_viewer_type(VIEWER_FLY);
+			if (i==0) fwl_set_viewer_type0(viewer, VIEWER_FLY);
 		}
 		if (strcmp(typeptr,"EXAMINE") == 0) {
 			viewer->oktypes[VIEWER_EXAMINE] = TRUE;
-			if (i==0) fwl_set_viewer_type(VIEWER_EXAMINE);
+			if (i==0) fwl_set_viewer_type0(viewer, VIEWER_EXAMINE);
 		}
 		if (strcmp(typeptr,"NONE") == 0) {
 			viewer->oktypes[VIEWER_NONE] = TRUE;
-			if (i==0) fwl_set_viewer_type(VIEWER_NONE);
+			if (i==0) fwl_set_viewer_type0(viewer, VIEWER_NONE);
 		}
 		if (strcmp(typeptr,"EXFLY") == 0) {
 			viewer->oktypes[VIEWER_EXFLY] = TRUE;
-			if (i==0) fwl_set_viewer_type(VIEWER_EXFLY);
+			if (i==0) fwl_set_viewer_type0(viewer, VIEWER_EXFLY);
 		}
 		if (strcmp(typeptr,"EXPLORE") == 0) {
 			viewer->oktypes[VIEWER_EXPLORE] = TRUE;
-			if (i==0) fwl_set_viewer_type(VIEWER_EXPLORE);
+			if (i==0) fwl_set_viewer_type0(viewer, VIEWER_EXPLORE);
 		}
 		if (strcmp(typeptr,"LOOKAT") == 0) {
 			viewer->oktypes[VIEWER_LOOKAT] = TRUE;
@@ -249,11 +249,11 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 		}
 		if (strcmp(typeptr,"SPHERICAL") == 0) {
 			viewer->oktypes[VIEWER_SPHERICAL] = TRUE;
-			if (i==0) fwl_set_viewer_type(VIEWER_SPHERICAL);
+			if (i==0) fwl_set_viewer_type0(viewer, VIEWER_SPHERICAL);
 		}
 		if (strcmp(typeptr, "TURNTABLE") == 0) {
 			viewer->oktypes[VIEWER_TURNTABLE] = TRUE;
-			if (i == 0) fwl_set_viewer_type(VIEWER_TURNTABLE);
+			if (i == 0) fwl_set_viewer_type0(viewer, VIEWER_TURNTABLE);
 		}
 		if (strcmp(typeptr, "ANY") == 0) {
 			viewer->oktypes[VIEWER_EXAMINE] = TRUE;
@@ -264,7 +264,7 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 			viewer->oktypes[VIEWER_LOOKAT] = TRUE;
 			viewer->oktypes[VIEWER_SPHERICAL] = TRUE;
 			viewer->oktypes[VIEWER_TURNTABLE] = TRUE;
-			if (i==0) fwl_set_viewer_type (VIEWER_WALK); /*  just choose one */
+			if (i==0) fwl_set_viewer_type0(viewer, VIEWER_WALK); /*  just choose one */
 		}
 	}
         viewer->headlight = node->headlight;

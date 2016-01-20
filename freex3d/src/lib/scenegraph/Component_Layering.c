@@ -283,6 +283,7 @@ void child_LayerSet(struct X3D_Node * node){
 			int i0, saveActive;
 			struct X3D_Node *rayhit;
 			struct X3D_Layer * layer;
+			X3D_Viewer *viewer;
 			bindablestack* bstack;
 
 			ii = i;
@@ -306,6 +307,8 @@ void child_LayerSet(struct X3D_Node * node){
 				addBindableStack(tg,bstack);
 			}
 			saveActive = tg->Bindable.activeLayer;
+			viewer = (X3D_Viewer*)bstack->viewer;
+			//if(viewer) printf("layerid=%d ortho=%d ofield=%f %f %f %f\n",layerId,viewer->ortho,viewer->orthoField[0],viewer->orthoField[1],viewer->orthoField[2],viewer->orthoField[3]);
 			tg->Bindable.activeLayer = layerId;
 
 			//per-layer modelview matrix is handled here in LayerSet because according
@@ -316,17 +319,18 @@ void child_LayerSet(struct X3D_Node * node){
 			if(layerId != saveActive){
 				FW_GL_MATRIX_MODE(GL_PROJECTION);
 				FW_GL_PUSH_MATRIX();
+				setup_projection();
 				FW_GL_MATRIX_MODE(GL_MODELVIEW);
 				FW_GL_PUSH_MATRIX();
 				if(rs->render_vp == VF_Viewpoint){
 					setup_viewpoint_part1();
 				}else{
 					set_viewmatrix();
-					if(rs->render_sensitive == VF_Sensitive){
-						upd_ray();
-					}
 				}
 			}
+			if(rs->render_sensitive == VF_Sensitive)
+				push_ray();
+
 
 			//both layer and layoutlayer can be in here
 			if(layer->_nodeType == NODE_Layer){
@@ -340,8 +344,10 @@ void child_LayerSet(struct X3D_Node * node){
 				fin_LayoutLayer((struct X3D_Node*)layer);
 			}
 			rayhit = NULL;
-			if(rs->render_sensitive == VF_Sensitive)
+			if(rs->render_sensitive == VF_Sensitive){
 				rayhit = getRayHit(); //if there's a clear pick of something on a higher layer, no need to check lower layers
+				pop_ray();
+			}
 			
 
 			//pop modelview matrix
@@ -357,6 +363,7 @@ void child_LayerSet(struct X3D_Node * node){
 
 			//pop binding stacks
 			tg->Bindable.activeLayer = saveActive;
+			setup_projection();
 			if(rayhit) break;
 		}
 		tg->Bindable.activeLayer =  layerset->activeLayer;

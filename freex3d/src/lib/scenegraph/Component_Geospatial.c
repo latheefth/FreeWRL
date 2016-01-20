@@ -2876,11 +2876,13 @@ Viewer()->doExamineModeDistanceCalculations = TRUE;
 }
 
 void bind_GeoViewpoint (struct X3D_GeoViewpoint *node) {
+	X3D_Viewer *viewer;
 	Quaternion q_i;
 
-        /* did bind_node tell us we could bind this guy? */
-        if (!(node->isBound)) return;
+	/* did bind_node tell us we could bind this guy? */
+	if (!(node->isBound)) return;
 
+	viewer = ViewerByLayerId(node->_layerId);
 
 	INITIALIZE_GEOSPATIAL(node)
 	COMPILE_IF_REQUIRED
@@ -2894,23 +2896,23 @@ void bind_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	printf ("	node %u fieldOfView %f\n",node,node->fieldOfView);
 	#endif
 
-	Viewer()->GeoSpatialNode = node;
+	viewer->GeoSpatialNode = node;
 
-	Viewer()->Pos.x = node->__movedPosition.c[0];
-	Viewer()->Pos.y = node->__movedPosition.c[1];
-	Viewer()->Pos.z = node->__movedPosition.c[2];
-	Viewer()->AntiPos.x = node->__movedPosition.c[0];
-	Viewer()->AntiPos.y = node->__movedPosition.c[1];
-	Viewer()->AntiPos.z = node->__movedPosition.c[2];
+	viewer->Pos.x = node->__movedPosition.c[0];
+	viewer->Pos.y = node->__movedPosition.c[1];
+	viewer->Pos.z = node->__movedPosition.c[2];
+	viewer->AntiPos.x = node->__movedPosition.c[0];
+	viewer->AntiPos.y = node->__movedPosition.c[1];
+	viewer->AntiPos.z = node->__movedPosition.c[2];
 
 	/* printf ("bind_GeoViewpoint, pos %f %f %f antipos %f %f %f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z, Viewer.AntiPos.x, Viewer.AntiPos.y, Viewer.AntiPos.z); */
 
-	vrmlrot_to_quaternion (&Viewer()->Quat,node->__movedOrientation.c[0],
+	vrmlrot_to_quaternion (&viewer->Quat,node->__movedOrientation.c[0],
 		node->__movedOrientation.c[1],node->__movedOrientation.c[2],node->__movedOrientation.c[3]);
 
 	vrmlrot_to_quaternion (&q_i,node->__movedOrientation.c[0],
 		node->__movedOrientation.c[1],node->__movedOrientation.c[2],node->__movedOrientation.c[3]);
-	quaternion_inverse(&(Viewer()->AntiQuat),&q_i);
+	quaternion_inverse(&(viewer->AntiQuat),&q_i);
 
 	resolve_pos();
 

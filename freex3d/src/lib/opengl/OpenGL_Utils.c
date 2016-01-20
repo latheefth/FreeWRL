@@ -5101,9 +5101,10 @@ void startOfLoopNodeUpdates(void) {
 	}
 	if(!foundbound){
 		/* keep these at the defaults, if no viewpoint is present. */
-		Viewer()->nearPlane = DEFAULT_NEARPLANE;
-		Viewer()->farPlane = DEFAULT_FARPLANE;
-		Viewer()->backgroundPlane = DEFAULT_BACKGROUNDPLANE;
+		X3D_Viewer *viewer = Viewer();
+		viewer->nearPlane = DEFAULT_NEARPLANE;
+		viewer->farPlane = DEFAULT_FARPLANE;
+		viewer->backgroundPlane = DEFAULT_BACKGROUNDPLANE;
 	}
 	profile_end("loopnodeupdt");
 
