@@ -101,13 +101,45 @@ int lookup_layoutmode(char *cmode){
 	}while(layoutmodes[i].key);
 	return retval;
 }
-void prep_LayoutGroup(struct X3D_Node *node){
+void prep_Layout(struct X3D_Node *_node);
+void fin_Layout(struct X3D_Node *_node);
+void prep_LayoutGroup(struct X3D_Node *_node){
+	if(_node->_nodeType == NODE_LayoutGroup){
+		struct X3D_LayoutGroup *node = (struct X3D_LayoutGroup*)_node;
+		if(node->viewport) prep_Viewport(node->viewport);
+		if(node->layout) prep_Layout(node->layout);
+	}
 }
 void child_LayoutGroup(struct X3D_Node *_node){
-	struct X3D_LayoutLayer *node = (struct X3D_LayoutLayer*)_node;
-	normalChildren(node->children);
+	if(_node->_nodeType == NODE_LayoutGroup){
+		int ivpvis;
+		Stack *vportstack;
+		ttglobal tg;
+		ttrenderstate rs;
+		struct X3D_LayoutGroup *node = (struct X3D_LayoutGroup*)_node;
+
+		rs = renderstate();
+		ivpvis = TRUE;
+		if(!rs->render_vp && !rs->render_collision){
+
+			tg = gglobal();
+			vportstack = (Stack *)tg->Mainloop._vportstack;
+			ivpvis = currentviewportvisible(vportstack);
+			if(ivpvis)
+				setcurrentviewport(vportstack);
+		}
+		if(ivpvis){
+			normalChildren(node->children);
+		}
+	}		
 }
-void fin_LayoutGroup(struct X3D_Node *node){
+void fin_LayoutGroup(struct X3D_Node *_node){
+	if(_node->_nodeType == NODE_LayoutGroup){
+		struct X3D_LayoutGroup *node = (struct X3D_LayoutGroup*)_node;
+		if(node->layout) fin_Layout(node->layout);
+		if(node->viewport) fin_Viewport(node->viewport);
+
+	}
 }
 
 void compile_Layout(struct X3D_Node *_node){
