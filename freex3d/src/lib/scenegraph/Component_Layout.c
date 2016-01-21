@@ -196,6 +196,19 @@ void prep_Layout(struct X3D_Node *_node){
 
 
 		if(!rs->render_vp && !rs->render_collision){
+			if(rs->render_sensitive){
+				int mouseX, mouseY, inside;
+				ivec2 pt;
+				getPickrayXY(&mouseX, &mouseY);
+				pt.X = mouseX;
+				pt.Y = mouseY;
+				inside = pointinsideviewport(vport,pt);
+				if(!inside){
+					vport.W = 0;
+					vport.H = 0;
+				}
+			}
+
 			pushviewport(vportstack, vport);
 			setcurrentviewport(vportstack);
 			upd_ray();

@@ -102,7 +102,8 @@ ivec4 childViewport(ivec4 parentViewport, float *clipBoundary){
 	vport.Y = (int)(parentViewport.Y + (clipBoundary[2] * parentViewport.H));
 	return vport;
 }
-
+void prep_Viewport(struct X3D_Node * node);
+void fin_Viewport(struct X3D_Node * node);
 static float defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; // left/right/bottom/top 0,1,0,1
 //Layer has 3 virtual functions prep, children, fin 
 //- LayerSet should be the only caller for these 3 normally, according to specs
@@ -125,20 +126,24 @@ void prep_Layer(struct X3D_Node * _node){
 	// pass which is just for updating the world and avatar position within the world
 	if(!rs->render_vp && !rs->render_collision){
 		//push layer.viewport onto viewport stack, setting it as the current window
-		vportstack = (Stack *)tg->Mainloop._vportstack;
-		pvport = stack_top(ivec4,vportstack); //parent context viewport
-		clipBoundary = defaultClipBoundary;
-		if(node->viewport && node->viewport->_nodeType == NODE_Viewport){
-			struct X3D_Viewport* nvport = (struct X3D_Viewport*)node->viewport;
-			if(nvport->clipBoundary.p && nvport->clipBoundary.n > 3)
-				clipBoundary = nvport->clipBoundary.p;
-		}
-		//printf("clipBoundary %f %f %f %f\n",clipBoundary[0],clipBoundary[1],clipBoundary[2],clipBoundary[3]);
-		//printf("pvport= w %d h %d x %d y %d\n",pvport.W,pvport.H,pvport.X,pvport.Y);
-		vport = childViewport(pvport,clipBoundary);
-		//printf("vport= w %d h %d x %d y %d\n",vport.W,vport.H,vport.X,vport.Y);
+		if(1){
+			if(node->viewport) prep_Viewport(node->viewport);
+		}else{
+			vportstack = (Stack *)tg->Mainloop._vportstack;
+			pvport = stack_top(ivec4,vportstack); //parent context viewport
+			clipBoundary = defaultClipBoundary;
+			if(node->viewport && node->viewport->_nodeType == NODE_Viewport){
+				struct X3D_Viewport* nvport = (struct X3D_Viewport*)node->viewport;
+				if(nvport->clipBoundary.p && nvport->clipBoundary.n > 3)
+					clipBoundary = nvport->clipBoundary.p;
+			}
+			//printf("clipBoundary %f %f %f %f\n",clipBoundary[0],clipBoundary[1],clipBoundary[2],clipBoundary[3]);
+			//printf("pvport= w %d h %d x %d y %d\n",pvport.W,pvport.H,pvport.X,pvport.Y);
+			vport = childViewport(pvport,clipBoundary);
+			//printf("vport= w %d h %d x %d y %d\n",vport.W,vport.H,vport.X,vport.Y);
 
-		pushviewport(vportstack, vport);
+			pushviewport(vportstack, vport);
+		}
 	}
 
 }
@@ -176,9 +181,13 @@ void fin_Layer(struct X3D_Node * _node){
 	rs = renderstate();
 
 	if(!rs->render_vp && !rs->render_collision){
-		vportstack = (Stack *)tg->Mainloop._vportstack;
-		popviewport(vportstack);
-		setcurrentviewport(vportstack);
+		if(1){
+			if(node->viewport) fin_Viewport(node->viewport);
+		}else{
+			vportstack = (Stack *)tg->Mainloop._vportstack;
+			popviewport(vportstack);
+			setcurrentviewport(vportstack);
+		}
 	}
 
 }
@@ -332,8 +341,6 @@ void child_LayerSet(struct X3D_Node * node){
 					setup_viewpoint_part1();
 				}else{
 					set_viewmatrix();
-					//if(rs->render_sensitive == VF_Sensitive)
-					//	setup_pickray0();
 				}
 			}
 			if(!rs->render_vp && !rs->render_collision )
