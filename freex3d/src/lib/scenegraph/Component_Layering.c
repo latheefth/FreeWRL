@@ -395,6 +395,7 @@ void child_LayerSet(struct X3D_Node * node){
 // post/fin: pop vport
 void getPickrayXY(int *x, int *y);
 int pointinsideviewport(ivec4 vp, ivec2 pt);
+int visibleviewport(ivec4 vp);
 void prep_Viewport(struct X3D_Node * node){
 	if(node && node->_nodeType == NODE_Viewport){
 		Stack *vportstack;
@@ -406,7 +407,6 @@ void prep_Viewport(struct X3D_Node * node){
 		tg = gglobal();
 
 		rs = renderstate();
-		viewport->_childrenVisible = TRUE;
 		//There's no concept of window or viewpoint on the 
 		// fwl_rendersceneupdatescene(dtime) > render_pre() > render_hier VF_Viewpoint or VF_Collision
 		// pass which is just for updating the world and avatar position within the world
@@ -415,26 +415,26 @@ void prep_Viewport(struct X3D_Node * node){
 			//push viewport onto viewport stack, setting it as the current window
 			vportstack = (Stack *)tg->Mainloop._vportstack;
 			pvport = stack_top(ivec4,vportstack); //parent context viewport
-			viewport->_childrenVisible = FALSE;
 			clipBoundary = defaultClipBoundary;
 			if(viewport->clipBoundary.p && viewport->clipBoundary.n > 3)
 				clipBoundary = viewport->clipBoundary.p;
 
 			vport = childViewport(pvport,clipBoundary);
+			if(rs->render_sensitive){
+				int mouseX, mouseY, inside;
+				ivec2 pt;
+				getPickrayXY(&mouseX, &mouseY);
+				pt.X = mouseX;
+				pt.Y = mouseY;
+				inside = pointinsideviewport(vport,pt);
+				if(!inside){
+					vport.W = 0;
+					vport.H = 0;
+				}
+			}
 			pushviewport(vportstack, vport);
 			if(currentviewportvisible(vportstack)){
 				setcurrentviewport(vportstack);
-				viewport->_childrenVisible = TRUE;
-				if(rs->render_sensitive){
-					int mouseX, mouseY, inside;
-					ivec2 pt;
-					getPickrayXY(&mouseX, &mouseY);
-					pt.X = mouseX;
-					pt.Y = mouseY;
-					inside = pointinsideviewport(vport,pt);
-					if(!inside)
-						viewport->_childrenVisible = FALSE;
-				}
 			upd_ray();
 			}
 		}
@@ -444,9 +444,16 @@ void prep_Viewport(struct X3D_Node * node){
 
 void child_Viewport(struct X3D_Node * node){
 	if(node && node->_nodeType == NODE_Viewport){
+		Stack *vportstack;
+		ttglobal tg;
+		tg = gglobal();
+
 		struct X3D_Viewport * viewport = (struct X3D_Viewport *)node;
-		if(viewport->_childrenVisible)
+		vportstack = (Stack *)tg->Mainloop._vportstack;
+
+		if(currentviewportvisible(vportstack)){
 			normalChildren(viewport->children);
+		}
 	}
 }
 void fin_Viewport(struct X3D_Node * node){
