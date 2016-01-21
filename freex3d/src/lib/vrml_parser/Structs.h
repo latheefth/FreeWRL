@@ -4997,7 +4997,6 @@ struct X3D_LayerSet {
 	int activeLayer;
 	struct X3D_Node *metadata;
 	struct Multi_Node layers;
-	struct X3D_Node *viewport;
 	struct Multi_Int32 order;
 };
 extern struct X3D_Virt virt_LayerSet;

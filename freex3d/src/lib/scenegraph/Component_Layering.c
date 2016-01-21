@@ -93,6 +93,7 @@ void Component_Layering_clear(struct tComponent_Text *t){
 	}
 }
 
+void getPickrayXY(int *x, int *y);
 
 ivec4 childViewport(ivec4 parentViewport, float *clipBoundary){
 	ivec4 vport;
@@ -126,24 +127,7 @@ void prep_Layer(struct X3D_Node * _node){
 	// pass which is just for updating the world and avatar position within the world
 	if(!rs->render_vp && !rs->render_collision){
 		//push layer.viewport onto viewport stack, setting it as the current window
-		if(1){
-			if(node->viewport) prep_Viewport(node->viewport);
-		}else{
-			vportstack = (Stack *)tg->Mainloop._vportstack;
-			pvport = stack_top(ivec4,vportstack); //parent context viewport
-			clipBoundary = defaultClipBoundary;
-			if(node->viewport && node->viewport->_nodeType == NODE_Viewport){
-				struct X3D_Viewport* nvport = (struct X3D_Viewport*)node->viewport;
-				if(nvport->clipBoundary.p && nvport->clipBoundary.n > 3)
-					clipBoundary = nvport->clipBoundary.p;
-			}
-			//printf("clipBoundary %f %f %f %f\n",clipBoundary[0],clipBoundary[1],clipBoundary[2],clipBoundary[3]);
-			//printf("pvport= w %d h %d x %d y %d\n",pvport.W,pvport.H,pvport.X,pvport.Y);
-			vport = childViewport(pvport,clipBoundary);
-			//printf("vport= w %d h %d x %d y %d\n",vport.W,vport.H,vport.X,vport.Y);
-
-			pushviewport(vportstack, vport);
-		}
+		if(node->viewport) prep_Viewport(node->viewport);
 	}
 
 }
@@ -181,13 +165,7 @@ void fin_Layer(struct X3D_Node * _node){
 	rs = renderstate();
 
 	if(!rs->render_vp && !rs->render_collision){
-		if(1){
-			if(node->viewport) fin_Viewport(node->viewport);
-		}else{
-			vportstack = (Stack *)tg->Mainloop._vportstack;
-			popviewport(vportstack);
-			setcurrentviewport(vportstack);
-		}
+		if(node->viewport) fin_Viewport(node->viewport);
 	}
 
 }
@@ -400,9 +378,6 @@ void child_LayerSet(struct X3D_Node * node){
 // pre: push vport
 // render: render itself 
 // post/fin: pop vport
-void getPickrayXY(int *x, int *y);
-int pointinsideviewport(ivec4 vp, ivec2 pt);
-int visibleviewport(ivec4 vp);
 void prep_Viewport(struct X3D_Node * node){
 	if(node && node->_nodeType == NODE_Viewport){
 		Stack *vportstack;

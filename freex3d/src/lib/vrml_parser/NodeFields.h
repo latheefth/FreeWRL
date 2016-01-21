@@ -1268,7 +1268,6 @@ EXPOSED_FIELD(LayerSet,activeLayer,sfint32,activeLayer,FIELDTYPE_SFInt32)
 EXPOSED_FIELD(LayerSet,layers,mfnode,layers,FIELDTYPE_MFNode)
 EXPOSED_FIELD(LayerSet,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 EXPOSED_FIELD(LayerSet,order,mfint32,order,FIELDTYPE_MFInt32)
-EXPOSED_FIELD(LayerSet,viewport,sfnode,viewport,FIELDTYPE_SFNode)
 END_NODE(LayerSet)
 
 /* Layout node */
