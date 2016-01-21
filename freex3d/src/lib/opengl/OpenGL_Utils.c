@@ -131,7 +131,6 @@ typedef struct pOpenGL_Utils{
 	MATRIX4 FW_ModelView[MAX_LARGE_MATRIX_STACK];
 	MATRIX4 FW_ProjectionView[MAX_SMALL_MATRIX_STACK];
 	MATRIX4 FW_TextureView[MAX_SMALL_MATRIX_STACK];
-	MATRIX4 FW_PickrayView[MAX_SMALL_MATRIX_STACK];
 
 	int modelviewTOS;// = 0;
 	int projectionviewTOS;// = 0;
@@ -251,7 +250,6 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
         loadIdentityMatrix(p->FW_ModelView[0]);
         loadIdentityMatrix(p->FW_ProjectionView[0]);
         loadIdentityMatrix(p->FW_TextureView[0]);
-        loadIdentityMatrix(p->FW_PickrayView[0]);
 
 
         // create room for some shaders. The order in this table is
@@ -296,17 +294,20 @@ GLEWContext * glewGetContext()
 
 GLDOUBLE *getPickrayMatrix(int index)
 {
-	//didn't do this in FW_GL_GETDOUBLEV(GL_PICKRAY_MATRIX,) because glew uses standard opengl stack names, 
-	//  although could I have squeezed it in to a known stack?
 	//feature-AFFINE_GLU_UNPROJECT
-	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
-	return p->FW_PickrayView[index];
+	bindablestack *bstack;
+	double *mat;
+	ttglobal tg = gglobal();
+	bstack = getActiveBindableStacks(tg);
+	return bstack->pickraymatrix[index];
 }
 void setPickrayMatrix(int index, GLDOUBLE *mat)
 {
 	//feature-AFFINE_GLU_UNPROJECT
-	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
-	memcpy(p->FW_PickrayView[index], mat, 16*sizeof(GLDOUBLE));
+	bindablestack *bstack;
+	ttglobal tg = gglobal();
+	bstack = getActiveBindableStacks(tg);
+	memcpy(bstack->pickraymatrix[index],mat,16*sizeof(GLDOUBLE));
 }
 
 // we have a new world, get rid of any old user defined shaders here
@@ -3468,7 +3469,6 @@ void fw_glMatrixMode(GLint mode) {
 		case GL_PROJECTION: p->currentMatrix = (GLDOUBLE *) &p->FW_ProjectionView[p->projectionviewTOS]; break;
 		case GL_MODELVIEW: p->currentMatrix = (GLDOUBLE *) &p->FW_ModelView[p->modelviewTOS]; break;
 		case GL_TEXTURE: p->currentMatrix = (GLDOUBLE *) &p->FW_TextureView[p->textureviewTOS]; break;
-		//case GL_PICKRAY: p->currentMatrix = (GLDOUBLE *) &p->FW_PickrayView[p->pickrayviewTOS]; break;
 		default: printf ("invalid mode sent in it is %d, expected one of %d %d %d\n",p->whichMode, GL_PROJECTION,GL_MODELVIEW,GL_TEXTURE);
 	}
 
@@ -3511,7 +3511,6 @@ void fw_glPushMatrix(void) {
 	case GL_PROJECTION: p->currentMatrix = *PushMat(GL_PROJECTION, &p->projectionviewTOS, MAX_SMALL_MATRIX_STACK, p->FW_ProjectionView); break;
 	case GL_MODELVIEW:  p->currentMatrix = *PushMat(GL_MODELVIEW, &p->modelviewTOS, MAX_LARGE_MATRIX_STACK, p->FW_ModelView); break;
 	case GL_TEXTURE:	p->currentMatrix = *PushMat(GL_TEXTURE, &p->textureviewTOS, MAX_SMALL_MATRIX_STACK, p->FW_TextureView); break;
-	//case GL_PICKRAY:    p->currentMatrix = *PushMat(GL_PICKRAY, &p->pickrayviewTOS, MAX_SMALL_MATRIX_STACK, p->FW_PickrayView); break;
 	default:printf("wrong mode in popMatrix\n");
 	}
 	p->maxStackUsed = max(p->maxStackUsed, p->modelviewTOS);
@@ -3547,7 +3546,6 @@ void fw_glPopMatrix(void) {
 	case GL_PROJECTION: p->currentMatrix = *PopMat(GL_PROJECTION, &p->projectionviewTOS, p->FW_ProjectionView); break;
 	case GL_MODELVIEW:  p->currentMatrix = *PopMat(GL_MODELVIEW, &p->modelviewTOS, p->FW_ModelView); break;
 	case GL_TEXTURE:   p->currentMatrix = *PopMat(GL_TEXTURE, &p->textureviewTOS, p->FW_TextureView); break;
-	//case GL_PICKRAY:   p->currentMatrix = *PopMat(GL_PICKRAY, &p->pickrayviewTOS, p->FW_PickrayView); break;
 
 	default: printf ("wrong mode in popMatrix\n");
 	}
@@ -3728,7 +3726,6 @@ void fw_glGetDoublev (int ty, GLDOUBLE *mat) {
 		case GL_PROJECTION_MATRIX: dp = p->FW_ProjectionView[p->projectionviewTOS]; break;
 		case GL_MODELVIEW_MATRIX: dp = p->FW_ModelView[p->modelviewTOS]; break;
 		case GL_TEXTURE_MATRIX: dp = p->FW_TextureView[p->textureviewTOS]; break;
-		//case GL_PICKRAY_MATRIX: dp = p->FW_PickrayView[p->pickrayviewTOS]; break;
 		default: {
 			loadIdentityMatrix(mat);
 		printf ("invalid mode sent in it is %d, expected one of %d %d %d\n",ty,GL_PROJECTION_MATRIX,GL_MODELVIEW_MATRIX,GL_TEXTURE_MATRIX);
@@ -3753,7 +3750,6 @@ void fw_glSetDoublev (int ty, GLDOUBLE *mat) {
 		case GL_PROJECTION_MATRIX: dp = p->FW_ProjectionView[p->projectionviewTOS]; break;
 		case GL_MODELVIEW_MATRIX: dp = p->FW_ModelView[p->modelviewTOS]; break;
 		case GL_TEXTURE_MATRIX: dp = p->FW_TextureView[p->textureviewTOS]; break;
-		//case GL_PICKRAY_MATRIX: dp = p->FW_PickrayView[p->pickrayviewTOS]; break;
 		default: {
 		printf ("invalid mode sent in it is %d, expected one of %d %d %d\n",ty,GL_PROJECTION_MATRIX,GL_MODELVIEW_MATRIX,GL_TEXTURE_MATRIX);
 			return;}

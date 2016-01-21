@@ -78,6 +78,8 @@ void init_bindablestack(bindablestack *bstack, int layerId, int nodetype){
 	bstack->iside = 0;
 	bstack->viewer = NULL; //X3D_Viewer - navigation is per-layer
 	bstack->nodetype = nodetype;
+	loadIdentityMatrix(bstack->pickraymatrix[0]);
+	loadIdentityMatrix(bstack->pickraymatrix[1]);
 }
 void free_bindablestack(bindablestack *bstack){
 	deleteVector(struct X3D_Node*, bstack->background);

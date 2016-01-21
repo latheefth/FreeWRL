@@ -153,8 +153,6 @@ GLEWContext * glewGetContext();
 	#define GL_PROJECTION                  0x1701
 	#define GL_PROJECTION_MATRIX           0x0BA7
 	#define GL_TEXTURE_MATRIX              0x0BA8
-	#define GL_PICKRAY                     0X1703
-	#define GL_PICKRAY_MATRIX              0x0BA5
 
 	/* same with material properties - we do our own, but need some constants, so... */
 	#define GL_SHININESS                      0x1601

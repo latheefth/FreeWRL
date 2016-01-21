@@ -265,10 +265,6 @@ void fin_Layout(struct X3D_Node *_node){
 
 		if(rs->render_vp) {
            if((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {
-				float sx,sy,sz;
-				sx = 1.0f/node->_scale.p[0];
-				sy = 1.0f/node->_scale.p[1];
-				sz = 1.0f;
 				FW_GL_SCALE_F(1.0f/node->_scale.p[0],1.0f/node->_scale.p[1],1.0f);
 			}
 		}else{

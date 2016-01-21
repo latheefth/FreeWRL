@@ -3730,8 +3730,8 @@ void setup_projection()
 		maxX = viewer->orthoField[2];
 		maxY = viewer->orthoField[3];
 
-		if(0) if (screenheight != 0) {
-			//aspect ratio correction
+		if (screenheight != 0) {
+			//aspect ratio correction for ortho
 			numerator = (maxY - minY) * ((float) screenwidth2) / ((float) screenheight);
 			maxX = numerator/2.0f;
 			minX = -(numerator/2.0f);
@@ -3752,6 +3752,7 @@ void setup_projection()
 	PRINT_GL_ERROR_IF_ANY("XEvents::setup_projection");
 
 }
+
 void getPickrayXY(int *x, int *y){
 	ttglobal tg = gglobal();
 	*x = tg->Mainloop.pickray_x;

@@ -69,6 +69,7 @@ typedef struct bindablestack {
 	int iside;  //temp
 	int nodetype; //node_layer or node_layoutlayer, affects viewer init to ortho or viewpoint
 	void *viewer; //X3D_Viewer - navigation is per-layer
+	double pickraymatrix[2][16];
 } bindablestack;
 void init_bindablestack(bindablestack *bstack, int layerId, int nodetype);
 bindablestack* getBindableStacksByLayer(ttglobal tg, int layerId );

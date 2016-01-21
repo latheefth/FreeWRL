@@ -257,7 +257,9 @@ void setup_viewpoint_part1();
 void setup_viewpoint_part3();
 void set_viewmatrix();
 void setup_projection();
+void setup_projection_tinkering();
 void upd_ray();
+void setup_pickray0();
 void child_LayerSet(struct X3D_Node * node){
 	// has similar responsibilities to render_heir except just for Layer, LayoutLayer children
 	// child is the only virtual function for LayerSet
@@ -280,25 +282,29 @@ void child_LayerSet(struct X3D_Node * node){
 
 		for(i=0;i<layerset->order.n;i++){
 
-			int i0, saveActive;
+			int i0, saveActive, isActive;
 			struct X3D_Node *rayhit;
 			struct X3D_Layer * layer;
 			X3D_Viewer *viewer;
 			bindablestack* bstack;
 
 			ii = i;
-			// if(0) //uncomment to pick in same layer order as render, for diagnostic testing
+			//if(0) //uncomment to pick in same layer order as render, for diagnostic testing
 			if(rs->render_sensitive == VF_Sensitive){
 				ii = layerset->order.n - ii -1; //reverse order compared to rendering
 			}
 
 			layerId = layerset->order.p[ii];
+			isActive = layerId == tg->Bindable.activeLayer;
 			i0 = layerId -1;
 			layer = (struct X3D_Layer*)layerset->layers.p[i0];
 
 			if(rs->render_sensitive == VF_Sensitive){
 				if(!layer->isPickable) continue; //skip unpickable layers on sensitive pass
 			}
+			if(rs->render_collision == VF_Collision && !isActive)
+				continue; //skip non-navigation layers on collision pass
+
 
 			//push/set binding stacks (some of this done in x3d parsing now, so bstack shouldn't be null)
 			bstack = getBindableStacksByLayer(tg, layerId );
@@ -317,20 +323,25 @@ void child_LayerSet(struct X3D_Node * node){
 			//set of binding stacks (one modelview matrix)
 
 			//push modelview matrix
-			if(layerId != saveActive){
+			if(!isActive){
 				FW_GL_MATRIX_MODE(GL_PROJECTION);
 				FW_GL_PUSH_MATRIX();
-				setup_projection();
 				FW_GL_MATRIX_MODE(GL_MODELVIEW);
 				FW_GL_PUSH_MATRIX();
 				if(rs->render_vp == VF_Viewpoint){
 					setup_viewpoint_part1();
 				}else{
 					set_viewmatrix();
+					//if(rs->render_sensitive == VF_Sensitive)
+					//	setup_pickray0();
 				}
 			}
-			if(rs->render_sensitive == VF_Sensitive)
+			if(!rs->render_vp && !rs->render_collision )
+				setup_projection();
+			if(rs->render_sensitive == VF_Sensitive){
 				push_ray();
+				if(!isActive) upd_ray();
+			}
 
 
 			//both layer and layoutlayer can be in here
@@ -352,7 +363,7 @@ void child_LayerSet(struct X3D_Node * node){
 			
 
 			//pop modelview matrix
-			if(layerId != saveActive){
+			if(!isActive){
 				if(rs->render_vp == VF_Viewpoint){
 					setup_viewpoint_part3();
 				}
@@ -364,7 +375,7 @@ void child_LayerSet(struct X3D_Node * node){
 
 			//pop binding stacks
 			tg->Bindable.activeLayer = saveActive;
-			setup_projection();
+			//setup_projection();
 			if(rayhit) break;
 		}
 		tg->Bindable.activeLayer =  layerset->activeLayer;
