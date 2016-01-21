@@ -287,6 +287,7 @@ void child_LayerSet(struct X3D_Node * node){
 			bindablestack* bstack;
 
 			ii = i;
+			// if(0) //uncomment to pick in same layer order as render, for diagnostic testing
 			if(rs->render_sensitive == VF_Sensitive){
 				ii = layerset->order.n - ii -1; //reverse order compared to rendering
 			}

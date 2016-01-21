@@ -3730,7 +3730,7 @@ void setup_projection()
 		maxX = viewer->orthoField[2];
 		maxY = viewer->orthoField[3];
 
-		if(1) if (screenheight != 0) {
+		if(0) if (screenheight != 0) {
 			//aspect ratio correction
 			numerator = (maxY - minY) * ((float) screenwidth2) / ((float) screenheight);
 			maxX = numerator/2.0f;
