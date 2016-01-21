@@ -2664,6 +2664,7 @@ our %Nodes = (
 		clipBoundary => ["MFFloat",[],"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		bboxCenter => ["SFVec3f", [0,0,0], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		bboxSize => ["SFVec3f", [-1,-1,-1], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_childrenVisible => ["SFInt32",1,"initializeOnly",0],
 		], "X3DViewportNode"),
 
 	"Layer" => new VRML::NodeType("Layer", [
