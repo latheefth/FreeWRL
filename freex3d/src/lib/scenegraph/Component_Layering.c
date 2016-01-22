@@ -94,7 +94,7 @@ void Component_Layering_clear(struct tComponent_Text *t){
 }
 
 void getPickrayXY(int *x, int *y);
-
+int pointinsideviewport(ivec4 vp, ivec2 pt);
 ivec4 childViewport(ivec4 parentViewport, float *clipBoundary){
 	ivec4 vport;
 	vport.W = (int)((clipBoundary[1] - clipBoundary[0]) *parentViewport.W);
@@ -110,12 +110,8 @@ static float defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; // left/right/bo
 //- LayerSet should be the only caller for these 3 normally, according to specs
 //- if no LayerSet but a Layer then Layer doesn't do any per-layer stacks or viewer
 void prep_Layer(struct X3D_Node * _node){
-	Stack *vportstack;
-	ivec4 pvport,vport;
 	ttglobal tg;
 	ttrenderstate rs;
-	float *clipBoundary; // left/right/bottom/top 0,1,0,1
-
 	struct X3D_Layer *node = (struct X3D_Layer*)_node;
 	tg = gglobal();
 
@@ -156,7 +152,6 @@ void child_Layer(struct X3D_Node * _node){
 	}
 }
 void fin_Layer(struct X3D_Node * _node){
-	Stack *vportstack;
 	ttglobal tg;
 	ttrenderstate rs;
 	struct X3D_Layer *node = (struct X3D_Layer*)_node;
@@ -246,6 +241,8 @@ void set_viewmatrix();
 void setup_projection();
 void setup_projection_tinkering();
 void upd_ray();
+void push_ray();
+void pop_ray();
 void setup_pickray0();
 void child_LayerSet(struct X3D_Node * node){
 	// has similar responsibilities to render_heir except just for Layer, LayoutLayer children
@@ -427,10 +424,11 @@ void prep_Viewport(struct X3D_Node * node){
 void child_Viewport(struct X3D_Node * node){
 	if(node && node->_nodeType == NODE_Viewport){
 		Stack *vportstack;
+		struct X3D_Viewport * viewport;
 		ttglobal tg;
 		tg = gglobal();
 
-		struct X3D_Viewport * viewport = (struct X3D_Viewport *)node;
+		viewport = (struct X3D_Viewport *)node;
 		vportstack = (Stack *)tg->Mainloop._vportstack;
 
 		if(currentviewportvisible(vportstack)){

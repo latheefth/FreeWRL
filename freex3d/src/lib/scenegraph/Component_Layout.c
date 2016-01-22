@@ -103,6 +103,12 @@ int lookup_layoutmode(char *cmode){
 }
 void prep_Layout(struct X3D_Node *_node);
 void fin_Layout(struct X3D_Node *_node);
+void getPickrayXY(int *x, int *y);
+void prep_Viewport(struct X3D_Node * node);
+void fin_Viewport(struct X3D_Node * node);
+int pointinsideviewport(ivec4 vp, ivec2 pt);
+void upd_ray();
+
 void prep_LayoutGroup(struct X3D_Node *_node){
 	if(_node->_nodeType == NODE_LayoutGroup){
 		struct X3D_LayoutGroup *node = (struct X3D_LayoutGroup*)_node;
@@ -166,6 +172,7 @@ void check_compile_layout_required(struct X3D_Node *node){
 	//macro has a return; statement in it
 	COMPILE_IF_REQUIRED
 }
+
 void prep_Layout(struct X3D_Node *_node){
 	//push Layout transform (backward if VF_Viewpoint pass, like Transform prep)
 	//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/layout.html#Layout
@@ -244,11 +251,11 @@ void prep_Layout(struct X3D_Node *_node){
 			pushviewport(vportstack, vport);
 			setcurrentviewport(vportstack);
 			upd_ray();
-			//for testing to see the rectangle
+			//for testing to see the rectangle 
 			if(1){
 				glEnable(GL_SCISSOR_TEST);
 				glScissor(vport.X,vport.Y,vport.W,vport.H);
-				glClearColor(1.0f,1.0f,0.0f,.2f);
+				glClearColor(1.0f,1.0f,0.0f,.2f); //yellow
 				glClear(GL_COLOR_BUFFER_BIT); 
 				glDisable(GL_SCISSOR_TEST);
 			}
@@ -259,18 +266,18 @@ void prep_Layout(struct X3D_Node *_node){
 		differential_scale = ((float)vport.H/(float)pvport.H)/((float)vport.W/(float)pvport.W);
 		scale[0] = scale[1] = 1.0;
 		if(node->_scaleMode.p[0] == LAYOUT_PIXEL)
-			scale[0] = 1.0/(double)(pvport.W); //pixel
+			scale[0] = 2.0/(double)(vport.W); //pixel
 		if(node->_scaleMode.p[0] == LAYOUT_WORLD)
-			scale[0] = 1.0; //world same as fraction
+			scale[0] = 2.0; //world same as fraction
 		else if(node->_scaleMode.p[0] == LAYOUT_FRACTION)
-			scale[0] = 1.0; //fraction
+			scale[0] = 2.0; //fraction
 		
 		if(node->_scaleMode.p[1] == LAYOUT_PIXEL)
-			scale[1] = 1.0/(double)(pvport.H); //pixel
+			scale[1] = 2.0/(double)(vport.H); //pixel
 		if(node->_scaleMode.p[1] == LAYOUT_WORLD)
-			scale[1] = 1.0; //world same as fraction
+			scale[1] = 2.0; //world same as fraction
 		else if(node->_scaleMode.p[1] == LAYOUT_FRACTION)
-			scale[1] = 1.0; //fraction
+			scale[1] = 2.0; //fraction
 
 
 		//strech post-processing of scale

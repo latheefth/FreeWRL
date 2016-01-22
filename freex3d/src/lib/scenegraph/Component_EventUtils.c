@@ -205,12 +205,13 @@ void do_IntegerTrigger (void *node){
 
 	px = (struct X3D_IntegerTrigger *) node;
 
-	if (px->set_boolean == TRUE) {
+	//specs: "The value of set_boolean shall be ignored."
+	//if (px->set_boolean == TRUE) {
 		px->triggerValue = px->integerKey;
 		MARK_EVENT (node, offsetof (struct X3D_IntegerTrigger,triggerValue));
-        } else {
-		// do nothing
-        }
+	//} else {
+	//// do nothing
+	//}
 
 
 

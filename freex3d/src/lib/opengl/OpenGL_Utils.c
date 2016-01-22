@@ -296,7 +296,6 @@ GLDOUBLE *getPickrayMatrix(int index)
 {
 	//feature-AFFINE_GLU_UNPROJECT
 	bindablestack *bstack;
-	double *mat;
 	ttglobal tg = gglobal();
 	bstack = getActiveBindableStacks(tg);
 	return bstack->pickraymatrix[index];
