@@ -63,7 +63,7 @@ Jan 2016: version 1 attempt, with:
  */
 
 
- typedef struct pComponent_Layering{
+typedef struct pComponent_Layering{
 	int layerId, saveActive, binding_stack_set;
 	struct X3D_Node *layersetnode;
 }* ppComponent_Layering;

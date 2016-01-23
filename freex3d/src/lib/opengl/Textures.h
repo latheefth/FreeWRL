@@ -67,20 +67,20 @@ struct textureVertexInfo {
 	GLvoid *TC_pointer;	/* glTexCoordPointer - pointer to first element */
 };
 
-#define GET_THIS_TEXTURE thisTextureType = node->_nodeType; \
-                                if (thisTextureType==NODE_ImageTexture){ \
-                                it = (struct X3D_ImageTexture*) node; \
-                                thisTexture = it->__textureTableIndex; \
-                        } else if (thisTextureType==NODE_PixelTexture){ \
-                                pt = (struct X3D_PixelTexture*) node; \
-                                thisTexture = pt->__textureTableIndex; \
-                        } else if (thisTextureType==NODE_MovieTexture){ \
-                                mt = (struct X3D_MovieTexture*) node; \
-                                thisTexture = mt->__textureTableIndex; \
-                        } else if (thisTextureType==NODE_ImageCubeMapTexture){ \
-                                ict = (struct X3D_ImageCubeMapTexture*) node; \
-                                thisTexture = ict->__textureTableIndex; \
-                        } else { ConsoleMessage ("Invalid type for texture, %s\n",stringNodeType(thisTextureType)); return;}
+//#define GET_THIS_TEXTURE thisTextureType = node->_nodeType; \
+//                                if (thisTextureType==NODE_ImageTexture){ \
+//                                it = (struct X3D_ImageTexture*) node; \
+//                                thisTexture = it->__textureTableIndex; \
+//                        } else if (thisTextureType==NODE_PixelTexture){ \
+//                                pt = (struct X3D_PixelTexture*) node; \
+//                                thisTexture = pt->__textureTableIndex; \
+//                        } else if (thisTextureType==NODE_MovieTexture){ \
+//                                mt = (struct X3D_MovieTexture*) node; \
+//                                thisTexture = mt->__textureTableIndex; \
+//                        } else if (thisTextureType==NODE_ImageCubeMapTexture){ \
+//                                ict = (struct X3D_ImageCubeMapTexture*) node; \
+//                                thisTexture = ict->__textureTableIndex; \
+//                        } else { ConsoleMessage ("Invalid type for texture, %s\n",stringNodeType(thisTextureType)); return;}
 
 /* for texIsloaded structure */
 #define TEX_NOTLOADED       0

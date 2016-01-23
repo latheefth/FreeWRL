@@ -1959,6 +1959,7 @@ static void startBuiltin_B(void *ud, int myNodeType, const xmlChar *name, char**
 			fromDEFtable = broto_search_DEFname(context,atts[i+1]);
 			if (!fromDEFtable) {
 				ConsoleMessage ("Warning - line %d DEF name: \'%s\' not found",LINE,atts[i+1]);
+				ConsoleMessage("\n");
 			} else {
 				#ifdef X3DPARSERVERBOSE
 				printf ("copying for field %s defName %s\n",atts[i], atts[i+1]);
