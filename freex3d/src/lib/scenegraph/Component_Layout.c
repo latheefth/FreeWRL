@@ -1,7 +1,7 @@
 /*
 
 
-X3D Layering Component
+X3D Layout Component
 
 */
 /****************************************************************************
@@ -54,9 +54,6 @@ ScreenGroup		- (like Group except modifies scale) prep, fin, ChildC [compileC]
 (note regular Group is funny: it sorts children by depth often, for transparency blending purposes
 	- but I assume we won't do any sorting by depth from our group-like nodes, therefore we don't need Compile)
 */
-#ifdef _MSC_VER
-#define strcasecmp _stricmp
-#endif
 enum {
 	LAYOUT_LEFT,
 	LAYOUT_CENTER,
@@ -69,6 +66,46 @@ enum {
 	LAYOUT_PIXEL,
 	LAYOUT_STRETCH,
 };
+
+typedef struct layout_scale_item {
+	float scale[2];
+	int scalemode[2];
+} layout_scale_item;
+static layout_scale_item default_layout_scale_item = {1.0f,1.0f,LAYOUT_FRACTION,LAYOUT_FRACTION};
+
+typedef struct pComponent_Layout{
+	Stack *layout_scale_stack;
+}* ppComponent_Layout;
+void *Component_Layout_constructor(){
+	void *v = MALLOCV(sizeof(struct pComponent_Layout));
+	memset(v,0,sizeof(struct pComponent_Layout));
+	return v;
+}
+void Component_Layout_init(struct tComponent_Layout *t){
+	//public
+	//private
+	t->prv = Component_Layout_constructor();
+	{
+		ppComponent_Layout p = (ppComponent_Layout)t->prv;
+		p->layout_scale_stack = newVector(layout_scale_item, 2);
+		stack_push(layout_scale_item,p->layout_scale_stack,default_layout_scale_item);
+	}
+}
+void Component_Layout_clear(struct tComponent_Text *t){
+	//public
+	//private
+	{
+		ppComponent_Layout p = (ppComponent_Layout)t->prv;
+		//FREE_IF_NZ(p->xxx);
+		deleteStack(layout_scale_item,p->layout_scale_stack);
+	}
+}
+
+
+
+#ifdef _MSC_VER
+#define strcasecmp _stricmp
+#endif
 struct layoutmode {
 	char *key;
 	int type;
@@ -101,13 +138,85 @@ int lookup_layoutmode(char *cmode){
 	}while(layoutmodes[i].key);
 	return retval;
 }
-void prep_LayoutGroup(struct X3D_Node *node){
+void prep_Layout(struct X3D_Node *_node);
+void fin_Layout(struct X3D_Node *_node);
+void getPickrayXY(int *x, int *y);
+void prep_Viewport(struct X3D_Node * node);
+void fin_Viewport(struct X3D_Node * node);
+int pointinsideviewport(ivec4 vp, ivec2 pt);
+void upd_ray();
+
+void prep_LayoutGroup(struct X3D_Node *_node){
+	if(_node->_nodeType == NODE_LayoutGroup){
+		ttglobal tg;
+		ppComponent_Layout p;
+		layout_scale_item lsi;
+		ttrenderstate rs;
+		struct X3D_LayoutGroup *node = (struct X3D_LayoutGroup*)_node;
+		tg = gglobal();
+		p = (ppComponent_Layout)tg->Component_Layout.prv;
+		rs = renderstate();
+
+		//my understanding of layoutgroup: its a child of a) LayoutLayer or b) (another) LayoutGroup
+		//except not a normal child, by my interpretation, it has its own layout scales
+		//so it needs to undo any scales applied by its parent LayoutLayer/LayoutGroup and
+		//do its own. That could be implemented different ways, I chose
+		//a scale stack just for LayoutGroup
+		lsi = stack_top(layout_scale_item,p->layout_scale_stack);
+		FW_GL_PUSH_MATRIX();
+		FW_GL_SCALE_F(1.0f/lsi.scale[0],1.0f/lsi.scale[1],1.0f);
+
+		if(node->viewport) prep_Viewport(node->viewport);
+
+		//now it does its own scales
+		if(node->layout) prep_Layout(node->layout);
+	}
 }
 void child_LayoutGroup(struct X3D_Node *_node){
-	struct X3D_LayoutLayer *node = (struct X3D_LayoutLayer*)_node;
-	normalChildren(node->children);
+	if(_node->_nodeType == NODE_LayoutGroup){
+		int ivpvis;
+		Stack *vportstack;
+		ttglobal tg;
+		ttrenderstate rs;
+		struct X3D_LayoutGroup *node = (struct X3D_LayoutGroup*)_node;
+
+		rs = renderstate();
+		ivpvis = TRUE;
+		if(!rs->render_vp && !rs->render_collision){
+
+			tg = gglobal();
+			vportstack = (Stack *)tg->Mainloop._vportstack;
+			ivpvis = currentviewportvisible(vportstack);
+			if(ivpvis)
+				setcurrentviewport(vportstack);
+		}
+		if(ivpvis){
+
+			//see prep_transform for equivalent
+			struct X3D_Layout *layout = NULL;
+			if(node->layout && node->layout->_nodeType == NODE_Layout)
+				layout = (struct X3D_Layout*) node->layout;
+
+			normalChildren(node->children);
+		}
+	}		
 }
-void fin_LayoutGroup(struct X3D_Node *node){
+void fin_LayoutGroup(struct X3D_Node *_node){
+	if(_node->_nodeType == NODE_LayoutGroup){
+		ttglobal tg;
+		ppComponent_Layout p;
+		ttrenderstate rs;
+		struct X3D_LayoutGroup *node = (struct X3D_LayoutGroup*)_node;
+		
+		if(node->layout) fin_Layout(node->layout);
+		if(node->viewport) fin_Viewport(node->viewport);
+		tg = gglobal();
+		p = (ppComponent_Layout)tg->Component_Layout.prv;
+		rs = renderstate();
+
+		FW_GL_POP_MATRIX();
+
+	}
 }
 
 void compile_Layout(struct X3D_Node *_node){
@@ -134,21 +243,25 @@ void check_compile_layout_required(struct X3D_Node *node){
 	//macro has a return; statement in it
 	COMPILE_IF_REQUIRED
 }
+
 void prep_Layout(struct X3D_Node *_node){
 	//push Layout transform (backward if VF_Viewpoint pass, like Transform prep)
-
+	//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/layout.html#Layout
 	if(_node) {
-		float offsetpx[2];
+		float offsetpx[2], differential_scale;
 		double scale[2];
 		Stack *vportstack;
 		ivec4 pvport,vport;
-		ttglobal tg;
+		layout_scale_item lsi;
 		struct X3D_Layout *node;
 		ttrenderstate rs;
+		ttglobal tg;
+		ppComponent_Layout p;
+		tg = gglobal();
+		p = (ppComponent_Layout)tg->Component_Layout.prv;
 		rs = renderstate();
 
 		node = (struct X3D_Layout*)_node;
-		tg = gglobal();
 		vportstack = (Stack *)tg->Mainloop._vportstack;
 		pvport = stack_top(ivec4,vportstack); //parent context viewport
 
@@ -163,8 +276,23 @@ void prep_Layout(struct X3D_Node *_node){
 		if(node->_sizeUnits.p[1] == LAYOUT_PIXEL)
 			vport.H = (int)(node->size.p[1]); //pixel
 		else
-			vport.H = (int)(pvport.W * node->size.p[1]); //fraction
+			vport.H = (int)(pvport.H * node->size.p[1]); //fraction
 		
+		//align
+		if(node->_align.p[0] == LAYOUT_LEFT)
+			vport.X = pvport.X;
+		else if(node->_align.p[0] == LAYOUT_RIGHT)
+			vport.X = (pvport.X + pvport.W) - vport.W;
+		else //CENTER
+			vport.X = (pvport.X + pvport.W/2) - vport.W/2;
+
+		if(node->_align.p[1] == LAYOUT_BOTTOM)
+			vport.Y = pvport.Y;
+		else if(node->_align.p[1] == LAYOUT_TOP)
+			vport.Y = (pvport.Y + pvport.H) - vport.H;
+		else //CENTER
+			vport.Y = (pvport.Y + pvport.H/2) - vport.H/2;
+
 		//offset
 		if(node->_offsetUnits.p[0] == LAYOUT_PIXEL)
 			offsetpx[0] = node->offset.p[0]; //pixel
@@ -174,33 +302,63 @@ void prep_Layout(struct X3D_Node *_node){
 			offsetpx[1] = node->offset.p[1]; //pixel
 		else
 			offsetpx[1] = pvport.H * node->offset.p[1]; //fraction
-		vport.X = (int)offsetpx[0];
-		vport.Y = (int)offsetpx[1];
 
-		pushviewport(vportstack, vport);
-		setcurrentviewport(vportstack);
+
+		vport.X += (int)offsetpx[0];
+		vport.Y += (int)offsetpx[1];
+
+
+		if(!rs->render_vp && !rs->render_collision){
+			if(rs->render_sensitive){
+				int mouseX, mouseY, inside;
+				ivec2 pt;
+				getPickrayXY(&mouseX, &mouseY);
+				pt.X = mouseX;
+				pt.Y = mouseY;
+				inside = pointinsideviewport(vport,pt);
+				if(!inside){
+					vport.W = 0;
+					vport.H = 0;
+				}
+			}
+
+			pushviewport(vportstack, vport);
+			setcurrentviewport(vportstack);
+			upd_ray();
+			//for testing to see the rectangle 
+			if(0){
+				glEnable(GL_SCISSOR_TEST);
+				glScissor(vport.X,vport.Y,vport.W,vport.H);
+				glClearColor(1.0f,1.0f,0.0f,.2f); //yellow
+				glClear(GL_COLOR_BUFFER_BIT); 
+				glDisable(GL_SCISSOR_TEST);
+			}
+		}
+
 
 		//scale
+		differential_scale = ((float)vport.H/(float)pvport.H)/((float)vport.W/(float)pvport.W);
 		scale[0] = scale[1] = 1.0;
 		if(node->_scaleMode.p[0] == LAYOUT_PIXEL)
-			scale[0] = 1.0/(double)(pvport.W); //pixel
+			scale[0] = 2.0/(double)(vport.W); //pixel
 		if(node->_scaleMode.p[0] == LAYOUT_WORLD)
-			scale[0] = 1.0; //world same as fraction
+			scale[0] = 2.0; //world same as fraction
 		else if(node->_scaleMode.p[0] == LAYOUT_FRACTION)
-			scale[0] = 1.0; //fraction
+			scale[0] = 2.0; //fraction
 		
 		if(node->_scaleMode.p[1] == LAYOUT_PIXEL)
-			scale[1] = 1.0/(double)(pvport.H); //pixel
+			scale[1] = 2.0/(double)(vport.H); //pixel
 		if(node->_scaleMode.p[1] == LAYOUT_WORLD)
-			scale[1] = 1.0; //world same as fraction
+			scale[1] = 2.0; //world same as fraction
 		else if(node->_scaleMode.p[1] == LAYOUT_FRACTION)
-			scale[1] = 1.0; //fraction
+			scale[1] = 2.0; //fraction
+
 
 		//strech post-processing of scale
 		if(node->_scaleMode.p[0] == LAYOUT_STRETCH)
-			scale[0] = scale[1];
+			scale[0] = scale[1] * differential_scale;
 		if(node->_scaleMode.p[1] == LAYOUT_STRETCH)
-			scale[1] = scale[0];
+			scale[1] = scale[0] * 1.0f/differential_scale;
 		node->_scale.p[0] = (float) scale[0];
 		node->_scale.p[1] = (float) scale[1];
 
@@ -208,6 +366,17 @@ void prep_Layout(struct X3D_Node *_node){
 		if(!rs->render_vp ) {
 			FW_GL_PUSH_MATRIX();
 			FW_GL_SCALE_F(node->_scale.p[0],node->_scale.p[1],1.0f);
+			lsi.scale[0] = (float)scale[0];
+			lsi.scale[1] = (float)scale[1];
+			lsi.scalemode[0] = node->_scaleMode.p[0];
+			lsi.scalemode[1] = node->_scaleMode.p[1];
+			stack_push(layout_scale_item,p->layout_scale_stack,lsi);
+		}else{
+			lsi.scale[0] = 1.0f;
+			lsi.scale[1] = 1.0f;
+			lsi.scalemode[0] = LAYOUT_FRACTION;
+			lsi.scalemode[1] = LAYOUT_FRACTION;
+			stack_push(layout_scale_item,p->layout_scale_stack,lsi);
 		}
 	}
 }
@@ -215,24 +384,33 @@ void fin_Layout(struct X3D_Node *_node){
 	//similar to fin_Transform except the transform is reverse of prep_Layout
 	if(_node){
 		Stack *vportstack;
-		ttglobal tg;
 		struct X3D_Layout *node;
 		ttrenderstate rs;
+		ttglobal tg;
+		ppComponent_Layout p;
+		tg = gglobal();
+		p = (ppComponent_Layout)tg->Component_Layout.prv;
 		rs = renderstate();
 
 		node = (struct X3D_Layout*)_node;
-		tg = gglobal();
 
+
+
+		if(!rs->render_vp && !rs->render_collision){
+			vportstack = (Stack *)tg->Mainloop._vportstack;
+			popviewport(vportstack);
+			setcurrentviewport(vportstack);
+			upd_ray();
+		}
+
+		stack_pop(layout_scale_item,p->layout_scale_stack);
 		if(rs->render_vp) {
-			FW_GL_SCALE_F(1.0f/node->_scale.p[0],1.0f/node->_scale.p[1],1.0f);
+			if((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {
+				FW_GL_SCALE_F(1.0f/node->_scale.p[0],1.0f/node->_scale.p[1],1.0f);
+			}
 		}else{
 			FW_GL_POP_MATRIX();
 		}
-
-
-		vportstack = (Stack *)tg->Mainloop._vportstack;
-		popviewport(vportstack);
-		setcurrentviewport(vportstack);
 	}
 }
 void prep_Layer(struct X3D_Node * _node);

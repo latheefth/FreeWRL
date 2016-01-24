@@ -74,6 +74,9 @@
 
 #include "ProdCon.h"
 
+ivec2 ivec2_init(int x, int y);
+ivec4 ivec4_init(int x, int y, int w, int h);
+
 int getRayHitAndSetLookatTarget();
 void transformMBB(GLDOUBLE *rMBBmin, GLDOUBLE *rMBBmax, GLDOUBLE *matTransform, GLDOUBLE* inMBBmin, GLDOUBLE* inMBBmax);
 
@@ -333,7 +336,6 @@ void pop_viewport(){
 	popviewport(vportstack);
 	//printf("%d ",vportstack->n);
 }
-static ivec4 ivec4_init = {0,0,0,0};
 float defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; //left,right,bottom,top fraction of pixel window
 
 
@@ -463,7 +465,7 @@ void statusbar_render(void *_self){
 		ivport = stack_top(ivec4,vportstack);
 		ivport.H -= self->clipplane;
 		ivport.Y += self->clipplane;
-		//stack_push(ivec4,vportstack,ivport);
+		stack_push(ivec4,vportstack,ivport);
 	}
 	c = self->t1.contents;
 	//FW_GL_CLEAR_COLOR(self->t1.cc.r,self->t1.cc.g,self->t1.cc.b,self->t1.cc.a);
@@ -472,7 +474,7 @@ void statusbar_render(void *_self){
 		c = c->t1.next;
 	}
 	if(self->clipplane != 0 && vportstack != NULL){
-		//stack_pop(ivec4,vportstack);
+		stack_pop(ivec4,vportstack);
 	}
 	render_statusbar0(); //draw statusbarHud
 	popnset_viewport();
@@ -943,7 +945,7 @@ contenttype *new_contenttype_stage(){
 	self->type = STAGETYPE_BACKBUF;
 	self->ibuffer = FW_GL_BACK;
 	self->clear_zbuffer = TRUE;
-	self->ivport = ivec4_init;
+	self->ivport = ivec4_init(0,0,100,100);
 	return (contenttype*)self;
 }
 //mobile GLES2 via ANGLE has only 16bit depth buffer. not 24 or 32 as with desktop opengl
@@ -2250,6 +2252,8 @@ void initialize_targets_simple(){
 void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 	double dtime;
 	int i;
+	ivec4 defaultvport;
+	Stack *vportstack;
 	targetwindow *t;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
@@ -2258,7 +2262,11 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 		initialize_targets_simple();
 
 	dtime = Time1970sec();
+	vportstack = (Stack *)tg->Mainloop._vportstack;
+	defaultvport = ivec4_init(0,0,100,100);
+	pushviewport(vportstack,defaultvport);
 	fwl_RenderSceneUpdateScene0(dtime);
+	popviewport(vportstack);
 
 	//twindows = p->cwindows;
 	//t = twindows;
@@ -2266,7 +2274,6 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 	for(i=0;i<p->nwindow;i++){
 		//a targetwindow might be a supervisor's screen, or HMD
 		freewrl_params_t *dp;
-		Stack *vportstack;
 		stage *s;
 
 		t=&p->cwindows[i];
@@ -3503,7 +3510,6 @@ static void render_pre() {
 		//drawStatusBar();
 		PRINT_GL_ERROR_IF_ANY("GLBackend::render_pre");
 }
-ivec2 ivec2_init(int x, int y);
 int pointinsideviewport(ivec4 vp, ivec2 pt);
 int setup_pickside0(int x, int y, int *iside, ivec4 *vportleft, ivec4 *vportright){
 	/* Oct 2015 idea: change which stereo side the pickray is working on, 
@@ -3571,6 +3577,13 @@ static int setup_pickside(int x, int y){
 }
 void setup_projection()
 {
+	/*	setup_project transfers values from viewer struct to gl_projection matrix
+		The values get into viewer 2 ways:
+		1. parsing > new viewer > defaults -> viewer
+		2. bound viewpoint -(prep_viewpoint)-> viewer 
+		Then here
+		viewer -> (setup_projection) -> projection matrix
+	*/
 	GLDOUBLE fieldofview2;
 	GLint xvp;
 	GLint scissorxl,scissorxr;
@@ -3708,7 +3721,7 @@ void setup_projection()
 	FW_GL_LOAD_IDENTITY();
 
 	/* ortho projection or perspective projection? */
-	if (Viewer()->ortho) {
+	if (viewer->ortho) {
 		double minX, maxX, minY, maxY;
 		double numerator;
 
@@ -3717,8 +3730,9 @@ void setup_projection()
 		maxX = viewer->orthoField[2];
 		maxY = viewer->orthoField[3];
 
-		if (tg->display.screenHeight != 0) {
-			numerator = (maxY - minY) * ((float) tg->display.screenWidth) / ((float) tg->display.screenHeight);
+		if (screenheight != 0) {
+			//aspect ratio correction for ortho
+			numerator = (maxY - minY) * ((float) screenwidth2) / ((float) screenheight);
 			maxX = numerator/2.0f;
 			minX = -(numerator/2.0f);
 		}
@@ -3738,6 +3752,7 @@ void setup_projection()
 	PRINT_GL_ERROR_IF_ANY("XEvents::setup_projection");
 
 }
+
 void getPickrayXY(int *x, int *y){
 	ttglobal tg = gglobal();
 	*x = tg->Mainloop.pickray_x;
@@ -3872,26 +3887,26 @@ static void render()
 	int count;
 	static double shuttertime;
 	static int shutterside;
-
+	X3D_Viewer *viewer;
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 
 	setup_projection();
-	setup_picking();
 	set_viewmatrix();
-
+	setup_picking();
+	viewer = Viewer();
 	doglClearColor();
 	for (count = 0; count < p->maxbuffers; count++) {
 
-		Viewer()->buffer = (unsigned)p->bufferarray[count];
-		Viewer()->iside = count;
+		viewer->buffer = (unsigned)p->bufferarray[count];
+		viewer->iside = count;
 
 		/*  turn lights off, and clear buffer bits*/
-		if(Viewer()->isStereo)
+		if(viewer->isStereo)
 		{
 
-			if(Viewer()->shutterGlasses == 2) /* flutter mode - like --shutter but no GL_STEREO so alternates */
+			if(viewer->shutterGlasses == 2) /* flutter mode - like --shutter but no GL_STEREO so alternates */
 			{
 				if(TickTime() - shuttertime > 2.0)
 				{
@@ -3901,7 +3916,7 @@ static void render()
 				}
 				if(count != shutterside) continue;
 			}
-			if(Viewer()->anaglyph)
+			if(viewer->anaglyph)
 			{
 				//set the channels for backbuffer clearing
 				if(count == 0)
@@ -3947,14 +3962,14 @@ static void render()
 			PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_Geom)");
 		}
 
-		if (Viewer()->isStereo) {
+		if (viewer->isStereo) {
 #ifndef DISABLER
-			if (Viewer()->sidebyside){
+			if (viewer->sidebyside){
 				//cursorDraw(1, p->viewpointScreenX[count], p->viewpointScreenY[count], 0.0f); //draw a fiducial mark where centre of viewpoint is
 				fiducialDraw(1,p->viewpointScreenX[count],p->viewpointScreenY[count],0.0f); //draw a fiducial mark where centre of viewpoint is
 			}
 #endif
-			if (Viewer()->anaglyph)
+			if (viewer->anaglyph)
 				glColorMask(1,1,1,1); /*restore, for statusbarHud etc*/
 		}
 	} /* for loop */
@@ -3984,16 +3999,18 @@ void setup_viewpoint_part1() {
 
 */
 	bindablestack *bstack;
+	X3D_Viewer *viewer;
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 
 	bstack = getActiveBindableStacks(tg);
+	viewer = Viewer();
 	FW_GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
 	FW_GL_LOAD_IDENTITY();
 
 	// has a change happened?
-	if (Viewer()->screenOrientation != currentViewerLandPort) {
+	if (viewer->screenOrientation != currentViewerLandPort) {
 		// 4 possible values; 0, 90, 180, 270
 		//
 		rotatingCCW = FALSE; // assume, unless told otherwise
@@ -4015,8 +4032,8 @@ void setup_viewpoint_part1() {
 				break;
 			}
 		}
-		currentViewerLandPort = Viewer()->screenOrientation;
-		requestedViewerAngle = (double)Viewer()->screenOrientation;
+		currentViewerLandPort = viewer->screenOrientation;
+		requestedViewerAngle = (double)viewer->screenOrientation;
 	}
 
 	if (!(APPROX(currentViewerAngle,requestedViewerAngle))) {
@@ -4036,24 +4053,24 @@ void setup_viewpoint_part1() {
 
 	//capture stereo 1/2 base offsets
 	//a) save current real stereo settings
-	bstack->isStereo = Viewer()->isStereo;
-	bstack->iside = Viewer()->iside;
+	bstack->isStereo = viewer->isStereo;
+	bstack->iside = viewer->iside;
 	//b) fake each stereo side, capture each side's stereo offset matrix
-		Viewer()->isStereo = 1;
-		Viewer()->iside = 0;
+		viewer->isStereo = 1;
+		viewer->iside = 0;
 		FW_GL_LOAD_IDENTITY();
 		set_stereo_offset0();
 			fw_glGetDoublev(GL_MODELVIEW_MATRIX, bstack->stereooffsetmatrix[0]);
 			
-		Viewer()->iside = 1;
+		viewer->iside = 1;
 		FW_GL_LOAD_IDENTITY();
 		set_stereo_offset0();
 			fw_glGetDoublev(GL_MODELVIEW_MATRIX, bstack->stereooffsetmatrix[1]);
-		Viewer()->isStereo = 0;
+		viewer->isStereo = 0;
 		FW_GL_LOAD_IDENTITY();
 
 	//capture cumulative .Pos, .Quat 
-	viewer_togl(Viewer()->fieldofview);
+	viewer_togl(viewer->fieldofview);
 			fw_glGetDoublev(GL_MODELVIEW_MATRIX, bstack->posorimatrix);
 
 		FW_GL_LOAD_IDENTITY();
@@ -4106,11 +4123,13 @@ void setup_viewpoint_part3() {
 	int isStereo, iside;
 	double viewmatrix[16];
 	bindablestack *bstack;
+	X3D_Viewer *viewer;
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 
 	bstack = getActiveBindableStacks(tg);
+	viewer = Viewer();
 	PRINT_GL_ERROR_IF_ANY("XEvents::setup_viewpoint");
 			fw_glGetDoublev(GL_MODELVIEW_MATRIX, bstack->viewtransformmatrix);
 
@@ -4118,8 +4137,8 @@ void setup_viewpoint_part3() {
 	iside = bstack->iside;
 
 	//restore real stereo settings for rendering
-		Viewer()->isStereo = isStereo;
-		Viewer()->iside = iside;
+		viewer->isStereo = isStereo;
+		viewer->iside = iside;
 
 	//multiply it all together, and capture any slerp
 			matcopy(viewmatrix,bstack->screenorientationmatrix);
@@ -4145,14 +4164,16 @@ void set_viewmatrix() {
 	//and just want to make sure its set, this is shorter than re-doing setup_viewpoint()
 	double viewmatrix[16];
 	bindablestack *bstack;
+	X3D_Viewer *viewer;
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 
 	bstack = getActiveBindableStacks(tg);
+	viewer = Viewer();
 	FW_GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
 		matcopy(viewmatrix,bstack->screenorientationmatrix);
-		if(Viewer()->isStereo)
+		if(viewer->isStereo)
 			matmultiplyAFFINE(viewmatrix,bstack->stereooffsetmatrix[Viewer()->iside],viewmatrix);
 		matmultiplyAFFINE(viewmatrix,bstack->posorimatrix,viewmatrix); 
 		matmultiplyAFFINE(viewmatrix,bstack->viewtransformmatrix,viewmatrix); 
@@ -5403,7 +5424,7 @@ void fwl_initializeRenderSceneUpdateScene() {
 	}
 	*/
 	new_tessellation();
-	fwl_set_viewer_type(VIEWER_EXAMINE);
+	//fwl_set_viewer_type(VIEWER_EXAMINE);
 	viewer_postGLinit_init();
 
 #ifndef AQUA

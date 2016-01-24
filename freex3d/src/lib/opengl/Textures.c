@@ -1445,16 +1445,32 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 /* JAS still to implement
 	struct X3D_GeneratedCubeMapTexture *gct;
 */
-    
-
-
 	textureTableIndexStruct_s *myTableIndex;
 	//float dcol[] = {0.8f, 0.8f, 0.8f, 1.0f};
 	ppTextures p;
 	ttglobal tg = gglobal();
 	p = (ppTextures)tg->Textures.prv;
 
-	GET_THIS_TEXTURE;
+//	GET_THIS_TEXTURE;
+//#define GET_THIS_TEXTURE 
+	thisTextureType = node->_nodeType;
+	if (thisTextureType==NODE_ImageTexture){
+		it = (struct X3D_ImageTexture*) node;
+		thisTexture = it->__textureTableIndex;
+	} else if (thisTextureType==NODE_PixelTexture){
+		pt = (struct X3D_PixelTexture*) node;
+		thisTexture = pt->__textureTableIndex;
+	} else if (thisTextureType==NODE_MovieTexture){
+		mt = (struct X3D_MovieTexture*) node;
+		thisTexture = mt->__textureTableIndex;
+	} else if (thisTextureType==NODE_ImageCubeMapTexture){
+		ict = (struct X3D_ImageCubeMapTexture*) node;
+		thisTexture = ict->__textureTableIndex;
+	} else { 
+		ConsoleMessage ("Invalid type for texture, %s\n",stringNodeType(thisTextureType)); 
+		return;
+	}
+
 	myTableIndex = getTableIndex(thisTexture);
 	if (myTableIndex->status != TEX_LOADED) {
 		DEBUG_TEX("new_bind_image, I am %p, textureStackTop %d, thisTexture is %d myTableIndex %p status %s\n",

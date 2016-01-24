@@ -63,7 +63,7 @@ Jan 2016: version 1 attempt, with:
  */
 
 
- typedef struct pComponent_Layering{
+typedef struct pComponent_Layering{
 	int layerId, saveActive, binding_stack_set;
 	struct X3D_Node *layersetnode;
 }* ppComponent_Layering;
@@ -93,7 +93,8 @@ void Component_Layering_clear(struct tComponent_Text *t){
 	}
 }
 
-
+void getPickrayXY(int *x, int *y);
+int pointinsideviewport(ivec4 vp, ivec2 pt);
 ivec4 childViewport(ivec4 parentViewport, float *clipBoundary){
 	ivec4 vport;
 	vport.W = (int)((clipBoundary[1] - clipBoundary[0]) *parentViewport.W);
@@ -102,18 +103,15 @@ ivec4 childViewport(ivec4 parentViewport, float *clipBoundary){
 	vport.Y = (int)(parentViewport.Y + (clipBoundary[2] * parentViewport.H));
 	return vport;
 }
-
+void prep_Viewport(struct X3D_Node * node);
+void fin_Viewport(struct X3D_Node * node);
 static float defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; // left/right/bottom/top 0,1,0,1
 //Layer has 3 virtual functions prep, children, fin 
 //- LayerSet should be the only caller for these 3 normally, according to specs
 //- if no LayerSet but a Layer then Layer doesn't do any per-layer stacks or viewer
 void prep_Layer(struct X3D_Node * _node){
-	Stack *vportstack;
-	ivec4 pvport,vport;
 	ttglobal tg;
 	ttrenderstate rs;
-	float *clipBoundary; // left/right/bottom/top 0,1,0,1
-
 	struct X3D_Layer *node = (struct X3D_Layer*)_node;
 	tg = gglobal();
 
@@ -125,20 +123,7 @@ void prep_Layer(struct X3D_Node * _node){
 	// pass which is just for updating the world and avatar position within the world
 	if(!rs->render_vp && !rs->render_collision){
 		//push layer.viewport onto viewport stack, setting it as the current window
-		vportstack = (Stack *)tg->Mainloop._vportstack;
-		pvport = stack_top(ivec4,vportstack); //parent context viewport
-		clipBoundary = defaultClipBoundary;
-		if(node->viewport && node->viewport->_nodeType == NODE_Viewport){
-			struct X3D_Viewport* nvport = (struct X3D_Viewport*)node->viewport;
-			if(nvport->clipBoundary.p && nvport->clipBoundary.n > 3)
-				clipBoundary = nvport->clipBoundary.p;
-		}
-		//printf("clipBoundary %f %f %f %f\n",clipBoundary[0],clipBoundary[1],clipBoundary[2],clipBoundary[3]);
-		//printf("pvport= w %d h %d x %d y %d\n",pvport.W,pvport.H,pvport.X,pvport.Y);
-		vport = childViewport(pvport,clipBoundary);
-		//printf("vport= w %d h %d x %d y %d\n",vport.W,vport.H,vport.X,vport.Y);
-
-		pushviewport(vportstack, vport);
+		if(node->viewport) prep_Viewport(node->viewport);
 	}
 
 }
@@ -167,7 +152,6 @@ void child_Layer(struct X3D_Node * _node){
 	}
 }
 void fin_Layer(struct X3D_Node * _node){
-	Stack *vportstack;
 	ttglobal tg;
 	ttrenderstate rs;
 	struct X3D_Layer *node = (struct X3D_Layer*)_node;
@@ -176,9 +160,7 @@ void fin_Layer(struct X3D_Node * _node){
 	rs = renderstate();
 
 	if(!rs->render_vp && !rs->render_collision){
-		vportstack = (Stack *)tg->Mainloop._vportstack;
-		popviewport(vportstack);
-		setcurrentviewport(vportstack);
+		if(node->viewport) fin_Viewport(node->viewport);
 	}
 
 }
@@ -211,7 +193,7 @@ void push_binding_stack_set(struct X3D_Node* layersetnode){
 	p->layerId = 0;
 	p->layersetnode = layersetnode; //specs: max one of them per scenefile
 }
-void push_next_layerId_from_binding_stack_set(){
+void push_next_layerId_from_binding_stack_set(struct X3D_Node *layer){
 	bindablestack* bstack;
 	ttglobal tg = gglobal();
 	ppComponent_Layering p = (ppComponent_Layering)tg->Component_Layering.prv;
@@ -222,7 +204,7 @@ void push_next_layerId_from_binding_stack_set(){
 		bstack = getBindableStacksByLayer(tg, p->layerId );
 		if(bstack == NULL){
 			bstack = MALLOCV(sizeof(bindablestack));
-			init_bindablestack(bstack, p->layerId);
+			init_bindablestack(bstack, p->layerId, layer->_nodeType);
 			addBindableStack(tg,bstack);
 		}
 		//push_bindingstacks(node);
@@ -257,7 +239,11 @@ void setup_viewpoint_part1();
 void setup_viewpoint_part3();
 void set_viewmatrix();
 void setup_projection();
+void setup_projection_tinkering();
 void upd_ray();
+void push_ray();
+void pop_ray();
+void setup_pickray0();
 void child_LayerSet(struct X3D_Node * node){
 	// has similar responsibilities to render_heir except just for Layer, LayoutLayer children
 	// child is the only virtual function for LayerSet
@@ -280,32 +266,40 @@ void child_LayerSet(struct X3D_Node * node){
 
 		for(i=0;i<layerset->order.n;i++){
 
-			int i0, saveActive;
+			int i0, saveActive, isActive;
 			struct X3D_Node *rayhit;
 			struct X3D_Layer * layer;
+			X3D_Viewer *viewer;
 			bindablestack* bstack;
 
 			ii = i;
+			//if(0) //uncomment to pick in same layer order as render, for diagnostic testing
 			if(rs->render_sensitive == VF_Sensitive){
 				ii = layerset->order.n - ii -1; //reverse order compared to rendering
 			}
 
 			layerId = layerset->order.p[ii];
+			isActive = layerId == tg->Bindable.activeLayer;
 			i0 = layerId -1;
 			layer = (struct X3D_Layer*)layerset->layers.p[i0];
 
 			if(rs->render_sensitive == VF_Sensitive){
 				if(!layer->isPickable) continue; //skip unpickable layers on sensitive pass
 			}
+			if(rs->render_collision == VF_Collision && !isActive)
+				continue; //skip non-navigation layers on collision pass
+
 
 			//push/set binding stacks (some of this done in x3d parsing now, so bstack shouldn't be null)
 			bstack = getBindableStacksByLayer(tg, layerId );
 			if(bstack == NULL){
 				bstack = MALLOCV(sizeof(bindablestack));
-				init_bindablestack(bstack, layerId);
+				init_bindablestack(bstack, layerId, layer->_nodeType);
 				addBindableStack(tg,bstack);
 			}
 			saveActive = tg->Bindable.activeLayer;
+			viewer = (X3D_Viewer*)bstack->viewer;
+			//if(viewer) printf("layerid=%d ortho=%d ofield=%f %f %f %f\n",layerId,viewer->ortho,viewer->orthoField[0],viewer->orthoField[1],viewer->orthoField[2],viewer->orthoField[3]);
 			tg->Bindable.activeLayer = layerId;
 
 			//per-layer modelview matrix is handled here in LayerSet because according
@@ -313,7 +307,7 @@ void child_LayerSet(struct X3D_Node * node){
 			//set of binding stacks (one modelview matrix)
 
 			//push modelview matrix
-			if(layerId != saveActive){
+			if(!isActive){
 				FW_GL_MATRIX_MODE(GL_PROJECTION);
 				FW_GL_PUSH_MATRIX();
 				FW_GL_MATRIX_MODE(GL_MODELVIEW);
@@ -322,11 +316,15 @@ void child_LayerSet(struct X3D_Node * node){
 					setup_viewpoint_part1();
 				}else{
 					set_viewmatrix();
-					if(rs->render_sensitive == VF_Sensitive){
-						upd_ray();
-					}
 				}
 			}
+			if(!rs->render_vp && !rs->render_collision )
+				setup_projection();
+			if(rs->render_sensitive == VF_Sensitive){
+				push_ray();
+				if(!isActive) upd_ray();
+			}
+
 
 			//both layer and layoutlayer can be in here
 			if(layer->_nodeType == NODE_Layer){
@@ -340,12 +338,14 @@ void child_LayerSet(struct X3D_Node * node){
 				fin_LayoutLayer((struct X3D_Node*)layer);
 			}
 			rayhit = NULL;
-			if(rs->render_sensitive == VF_Sensitive)
+			if(rs->render_sensitive == VF_Sensitive){
 				rayhit = getRayHit(); //if there's a clear pick of something on a higher layer, no need to check lower layers
+				pop_ray();
+			}
 			
 
 			//pop modelview matrix
-			if(layerId != saveActive){
+			if(!isActive){
 				if(rs->render_vp == VF_Viewpoint){
 					setup_viewpoint_part3();
 				}
@@ -357,6 +357,7 @@ void child_LayerSet(struct X3D_Node * node){
 
 			//pop binding stacks
 			tg->Bindable.activeLayer = saveActive;
+			//setup_projection();
 			if(rayhit) break;
 		}
 		tg->Bindable.activeLayer =  layerset->activeLayer;
@@ -374,7 +375,6 @@ void child_LayerSet(struct X3D_Node * node){
 // pre: push vport
 // render: render itself 
 // post/fin: pop vport
-
 void prep_Viewport(struct X3D_Node * node){
 	if(node && node->_nodeType == NODE_Viewport){
 		Stack *vportstack;
@@ -386,7 +386,6 @@ void prep_Viewport(struct X3D_Node * node){
 		tg = gglobal();
 
 		rs = renderstate();
-
 		//There's no concept of window or viewpoint on the 
 		// fwl_rendersceneupdatescene(dtime) > render_pre() > render_hier VF_Viewpoint or VF_Collision
 		// pass which is just for updating the world and avatar position within the world
@@ -400,10 +399,23 @@ void prep_Viewport(struct X3D_Node * node){
 				clipBoundary = viewport->clipBoundary.p;
 
 			vport = childViewport(pvport,clipBoundary);
+			if(rs->render_sensitive){
+				int mouseX, mouseY, inside;
+				ivec2 pt;
+				getPickrayXY(&mouseX, &mouseY);
+				pt.X = mouseX;
+				pt.Y = mouseY;
+				inside = pointinsideviewport(vport,pt);
+				if(!inside){
+					vport.W = 0;
+					vport.H = 0;
+				}
+			}
 			pushviewport(vportstack, vport);
-			if(currentviewportvisible(vportstack))
+			if(currentviewportvisible(vportstack)){
 				setcurrentviewport(vportstack);
 			upd_ray();
+			}
 		}
 	}
 
@@ -411,8 +423,17 @@ void prep_Viewport(struct X3D_Node * node){
 
 void child_Viewport(struct X3D_Node * node){
 	if(node && node->_nodeType == NODE_Viewport){
-		struct X3D_Viewport * viewport = (struct X3D_Viewport *)node;
-		normalChildren(viewport->children);
+		Stack *vportstack;
+		struct X3D_Viewport * viewport;
+		ttglobal tg;
+		tg = gglobal();
+
+		viewport = (struct X3D_Viewport *)node;
+		vportstack = (Stack *)tg->Mainloop._vportstack;
+
+		if(currentviewportvisible(vportstack)){
+			normalChildren(viewport->children);
+		}
 	}
 }
 void fin_Viewport(struct X3D_Node * node){

@@ -4476,7 +4476,6 @@ const int OFFSETS_LayerSet[] = {
 	(int) FIELDNAMES_layers, (int) offsetof (struct X3D_LayerSet, layers),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_LayerSet, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_order, (int) offsetof (struct X3D_LayerSet, order),  (int) FIELDTYPE_MFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_viewport, (int) offsetof (struct X3D_LayerSet, viewport),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Layout[] = {
@@ -8796,7 +8795,6 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->order.p = MALLOC (int *, sizeof(int)*1);
 			tmp2->order.p[0] = 0;
 			tmp2->order.n=1;;
-			tmp2->viewport = NULL;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -12994,7 +12992,6 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		    }
 			spacer fprintf (fp," order (MFInt32):\n");
 			for (i=0; i<tmp->order.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->order.p[i]); }
-			spacer fprintf (fp," viewport (SFNode):\n"); dump_scene(fp,level+1,tmp->viewport); 
 		    break;
 		}
 		case NODE_Layout : {

@@ -271,7 +271,7 @@ bool checkNetworkFile(const char *fn)
  *	
  *
  */
-
+ static int res_id_error_once = 0;
 void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 {
 	bool network;
@@ -317,8 +317,10 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 			res->m_request = res->m_request->next;
 			ml_free(l);
 		} else {
-			/* list empty */
-			ERROR_MSG("resource_identify: ERROR: empty multi string as input\n");
+			/* list empty - this error can be caused by a wrong USE='name' on URL node */
+			if(!res_id_error_once)  //don't flood, there's probably a better error message before this
+				ERROR_MSG("resource_identify: ERROR: empty multi string as input\n");
+			res_id_error_once++;
 			return;
 		}
 	}

@@ -260,6 +260,9 @@ typedef struct iiglobal //InstanceGlobal
 	struct tComponent_Layering{
 		void *prv;
 	}Component_Layering;
+	struct tComponent_Layout{
+		void *prv;
+	}Component_Layout;
 	struct tComponent_NURBS{
 		void *prv;
 	}Component_NURBS;

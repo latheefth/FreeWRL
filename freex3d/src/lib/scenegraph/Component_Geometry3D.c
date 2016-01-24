@@ -2239,7 +2239,9 @@ void rendray_Cylinder (struct X3D_Cylinder *node) {
 		}
 	}
 	/* Body -- do same as for sphere, except no y axis in distance */
-	if((!XEQ) && (!ZEQ)) {
+	//if((!XEQ) && (!ZEQ)) //can't pick with ortho on initial load
+	//can pick with ortho on initial load:  if(!(XEQ && ZEQ))
+	if(!(XEQ && ZEQ)){   
 		float dx = (float)(t_r2.x-t_r1.x); 
 		float dz = (float)(t_r2.z-t_r1.z);
 		float a = (float)(dx*dx + dz*dz);
