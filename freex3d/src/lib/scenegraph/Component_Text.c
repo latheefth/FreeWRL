@@ -70,6 +70,7 @@ X3D Text Component
 #define HORIZONTAL (fsparam & 0x01)
 
 #define OUT2GL(a) (p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES))
+#define OUT2GLB(a,s) (p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES)*s)
 
 /* now defined in system_fonts.h
 include <ft2build.h>
@@ -114,7 +115,7 @@ typedef struct pComponent_Text{
 
 	/* where are we? */
 	double pen_x, pen_y;
-
+	double shrink_x, shrink_y;
 	/* if this is a status bar, put depth different than 0.0 */
 	float TextZdist;
 
@@ -228,8 +229,8 @@ void FW_NewVertexPoint (double Vertex_x, double Vertex_y)
 
     /* printf ("FW_NewVertexPoint setting coord index %d %d %d\n", */
     /*  p->FW_pointctr, p->FW_pointctr*3+2,p->FW_rep_->actualCoord[p->FW_pointctr*3+2]); */
-    p->FW_rep_->actualCoord[p->FW_pointctr*3+0] = (float) OUT2GL(p->last_point.x + p->pen_x);
-    p->FW_rep_->actualCoord[p->FW_pointctr*3+1] = (float) (OUT2GL(p->last_point.y) + p->pen_y);
+    p->FW_rep_->actualCoord[p->FW_pointctr*3+0] = (float) OUT2GLB(p->last_point.x + p->pen_x,p->shrink_x);
+    p->FW_rep_->actualCoord[p->FW_pointctr*3+1] = (float) (OUT2GLB(p->last_point.y,p->shrink_y) + p->pen_y);
     p->FW_rep_->actualCoord[p->FW_pointctr*3+2] = p->TextZdist;
 
     /* the following should NEVER happen.... */
@@ -305,7 +306,7 @@ int FW_lineto (FT_Vector* to, void* user)
         printf ("FW_lineto, going to %ld %ld\n",to->x, to->y);
     }
 
-    FW_NewVertexPoint(OUT2GL(p->last_point.x+p->pen_x), OUT2GL(p->last_point.y + p->pen_y));
+    FW_NewVertexPoint(OUT2GLB(p->last_point.x+p->pen_x,p->shrink_x), OUT2GLB(p->last_point.y + p->pen_y,p->shrink_y));
 
 
 
@@ -890,7 +891,7 @@ typedef struct row32 {
    eg, for placing text on the screen from within FreeWRL itself */
 
 void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstring,
-				unsigned int nl, double *length, double maxext,
+				unsigned int nl, float *length, double maxext,
 				double spacing, double mysize, unsigned int fsparam,
 				struct X3D_PolyRep *rp)
 {
@@ -905,6 +906,8 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
 	ttglobal tg = gglobal();
 	p = (ppComponent_Text)tg->Component_Text.prv;
 
+	p->shrink_x = 1.0;
+	p->shrink_y = 1.0;
 	/* fsparam has the following bitmaps:
 
 	bit:    0       horizontal  (boolean)
@@ -1066,14 +1069,17 @@ p->myff = 4;
 
 	if(HORIZONTAL){
 		//find the longest row dimension
+		shrink = 1.0;
 		if(maxext > 0) {
 			double maxlen = 0;
 			for(row = 0; row < numrows; row++) {
-				maxlen = rowvec[row].hrowsize > maxlen ? rowvec[row].hrowsize : maxlen;
+				double hrowsize = OUT2GLB(rowvec[row].hrowsize,1.0);
+				maxlen = hrowsize > maxlen ? hrowsize : maxlen;
 			}
-			if(maxlen > maxext) {shrink = maxext / OUT2GL(maxlen);}
+			if(maxlen > maxext) {shrink = maxext / maxlen;}
 		}
-
+		printf("shrink = %lf\n",shrink);
+		//shrink = 1.0;
 		/* Justify MINOR (verticle), FIRST, BEGIN, MIDDLE and END */
 		//bit:    13      FIRST
 		//bit:    14      BEGIN
@@ -1121,12 +1127,12 @@ p->myff = 4;
 			if (p->TextVerbose)
 				printf ("text2 row %d :%s:\n",row, str);
 			p->pen_x = 0.0;
-			rshrink = 0.0;
+			rshrink = 1.0;
 			rowlen = rowvec[row].hrowsize;
 			lenchars = rowvec[row].len32;
 
-			if((row < nl) && (APPROX(length[row],0.0))) {
-				rshrink = length[row] / OUT2GL(rowlen);
+			if((row < nl) && !(APPROX(length[row],0.0))) {
+				rshrink = length[row] / OUT2GLB(rowlen,1.0);
 			}
 			//if(shrink>0.0001) { FW_GL_SCALE_D(shrink,1.0,1.0); }
 			//if(rshrink>0.0001) { FW_GL_SCALE_D(rshrink,1.0,1.0); }
@@ -1157,9 +1163,9 @@ p->myff = 4;
 					i = lenchars - ii -1;
 				rowvec[row].chr[i].x = p->pen_x;
 				rowvec[row].chr[i].y = p->pen_y;
-				rowvec[row].chr[i].sx = (1.0-shrink)*(1.0-rshrink);
-				rowvec[row].chr[i].sy = (1.0-shrink)*(1.0-rshrink);
-				p->pen_x +=  rowvec[row].chr[i].advance; // * directionx
+				rowvec[row].chr[i].sx = shrink*rshrink;
+				rowvec[row].chr[i].sy = 1.0;
+				p->pen_x +=  rowvec[row].chr[i].advance;// * shrink * rshrink; // * directionx
 			}
 			//counter += lenchars;
 			p->pen_y += -spacing * p->y_size;
@@ -1171,11 +1177,14 @@ p->myff = 4;
 		unsigned int widest_column;
 		//find the longest row dimension
 		double maxlen = 0.0;
+		shrink = 1.0;
 		for(row = 0; row < numrows; row++) {
-			maxlen = rowvec[row].vcolsize > maxlen ? rowvec[row].vcolsize : maxlen;
+			double vcolsize = rowvec[row].vcolsize;
+			vcolsize = vcolsize*p->y_size;
+			maxlen = vcolsize > maxlen ? vcolsize : maxlen;
 		}
 		if(maxext > 0) {
-			if(maxlen > maxext) {shrink = maxext / OUT2GL(maxlen);}
+			if(maxlen > maxext) shrink = maxext / maxlen;
 		}
 		widest_column = 0;
 		for(row=0;row<numrows;row++)
@@ -1189,9 +1198,6 @@ p->myff = 4;
 		//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/text.html#t-horizontalTRUE
 
 		/* BEGIN */
-		//if(fsparam & (0x400<<(4))){
-		//	p->pen_x = 0.0;
-		//}
 		/* FIRST */
 		if(fsparam & (0x200<<(4)) || fsparam & (0x400<<(4))){
 			//p->pen_x = -1.0 * widest_column; 
@@ -1213,19 +1219,16 @@ p->myff = 4;
 				p->pen_x = 0.0;
 		}
 
-		///* topToBottom */
-		if (LEFTTORIGHT) {
-			p->pen_y -= 1.0;
-		}else{
+		if (!LEFTTORIGHT) {
 			if(fsparam & (0x200<<(4))) //if first, make like begin
 				p->pen_x -= 1.0; 		
-			p->pen_y = numrows - 1.0 - p->pen_y;
 		}
 
 		//screen/vector-agnostic loop to compute penx,y and shrinkage for each glyph
 		for(irow = 0; irow < numrows; irow++) {
 			unsigned int lenchars;
 			double rowlen;
+			double starty;
 
 			row = irow;
 			if(!LEFTTORIGHT) row = numrows - irow -1;
@@ -1234,40 +1237,33 @@ p->myff = 4;
 			if (p->TextVerbose)
 				printf ("text2 row %d :%s:\n",row, str);
 			p->pen_y = 0.0;
-			rshrink = 0.0;
+			rshrink = 1.0;
 			rowlen = rowvec[row].vcolsize;
 			lenchars = rowvec[row].len32;
 
-			if((row < nl) && (APPROX(length[row],0.0))) {
-				rshrink = length[row] / OUT2GL(rowlen);
+			if((row < nl) && !(APPROX(length[row],0.0))) {
+				rshrink = length[row] / (rowlen*p->y_size);
 			}
-			//if(shrink>0.0001) { FW_GL_SCALE_D(shrink,1.0,1.0); }
-			//if(rshrink>0.0001) { FW_GL_SCALE_D(rshrink,1.0,1.0); }
-
+			starty = -1.0*shrink*rshrink;
 			/* MAJOR Justify, FIRST, BEGIN, */
 			if ((fsparam & 0x200) || (fsparam &  0x400)){
 				if(TOPTOBOTTOM )
-					p->pen_y = -1.0;
+					p->pen_y = starty;
 				else
-					p->pen_y = rowlen -1.0;
+					p->pen_y = rowlen + starty;
 			}
 
 			/* MAJOR MIDDLE */
 			if (fsparam & 0x800) {
-				//if(TOPTOBOTTOM)
-					p->pen_y = rowlen/2.0 -1.0; 
-				//else
-				//	p->pen_y = rowlen/2.0 +1.0;
+					p->pen_y = rowlen/2.0 + starty; 
 			}
 
 			/* MAJOR END */
-			//if ((fsparam & 0x1000) && (fsparam & 0x01)) {
 			if (fsparam & 0x1000  ) {
-				/* printf ("rowlen is %f\n",rowlen); */
 				if(TOPTOBOTTOM)
-					p->pen_y = rowlen -1.0;
+					p->pen_y = rowlen + starty;
 				else
-					p->pen_y = -1.0;
+					p->pen_y = starty;
 			}
 
 			for(ii=0; ii<lenchars; ii++) {
@@ -1284,9 +1280,9 @@ p->myff = 4;
 					penx = penx + widest_column * spacing - rowvec[row].chr[i].advance;
 				rowvec[row].chr[i].x = penx;
 				rowvec[row].chr[i].y = p->pen_y;
-				rowvec[row].chr[i].sx = (1.0-shrink)*(1.0-rshrink);
-				rowvec[row].chr[i].sy = (1.0-shrink)*(1.0-rshrink);
-				p->pen_y += -p->y_size;
+				rowvec[row].chr[i].sx = 1.0;
+				rowvec[row].chr[i].sy = shrink*rshrink;
+				p->pen_y += -p->y_size * shrink * rshrink;
 			}
 			//counter += lenchars;
 			p->pen_x +=  widest_column * spacing; // * p->x_size; //rowvec[row].chr[i].advance; // * directionx
@@ -1306,17 +1302,21 @@ p->myff = 4;
 		unsigned int lenchars = rowvec[row].len32;
 		for(i=0; i<lenchars; i++) {
 			int kk,x;
-			chardata xys;
+			chardata chr;
 
-			xys = rowvec[row].chr[i];
-			p->pen_x = xys.x;
-			p->pen_y = xys.y;
+			chr = rowvec[row].chr[i];
+			p->pen_x = chr.x;
+			p->pen_y = chr.y;
+			p->shrink_x = chr.sx;
+			p->shrink_y = chr.sy;
 			//p->y_size = xys.sy;
 			//p->x_size = xys.sx;
 			tg->Tess.global_IFS_Coord_count = 0;
 			p->FW_RIA_indx = 0;
 			//kk = rowvec[row].iglyphstartindex + i;
 			kk = rowvec[row].chr[i].iglyph;
+			p->shrink_x = rowvec[row].chr[i].sx;
+			p->shrink_y = rowvec[row].chr[i].sy;
 			FW_draw_character (p->glyphs[kk]);
 			FT_Done_Glyph (p->glyphs[kk]);
 			/* copy over the tesselated coords for the character to
@@ -1513,11 +1513,6 @@ void collide_Text (struct X3D_Text *node)
 #endif
 }
 
-void FW_rendertextScreen(unsigned int numrows,struct Uni_String **ptr, char *directstring,
-                   unsigned int nl, double *length, double maxext,
-                   double spacing, double mysize, unsigned int fsparam,
-                   struct X3D_PolyRep *rp);
-
 void make_Text (struct X3D_Text *node)
 {
     struct X3D_PolyRep *rep_ = node->_intern;
@@ -1666,7 +1661,7 @@ void make_Text (struct X3D_Text *node)
 	//normal scene 3D vectorized text
 	node->__rendersub = 0;
 	FW_rendertext(((node->string).n),((node->string).p),NULL,
-				((node->length).n),(double *) ((node->length).p),
+				((node->length).n),((node->length).p),
 					(node->maxExtent),spacing,size,fsparams,rep_);
 
 
