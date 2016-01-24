@@ -1286,7 +1286,7 @@ p->myff = 4;
 				rowvec[row].chr[i].y = p->pen_y;
 				rowvec[row].chr[i].sx = (1.0-shrink)*(1.0-rshrink);
 				rowvec[row].chr[i].sy = (1.0-shrink)*(1.0-rshrink);
-				p->pen_y += -spacing * p->y_size;
+				p->pen_y += -p->y_size;
 			}
 			//counter += lenchars;
 			p->pen_x +=  widest_column * spacing; // * p->x_size; //rowvec[row].chr[i].advance; // * directionx
