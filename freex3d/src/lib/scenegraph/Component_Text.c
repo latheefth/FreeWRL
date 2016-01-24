@@ -1244,7 +1244,7 @@ p->myff = 4;
 			if((row < nl) && !(APPROX(length[row],0.0))) {
 				rshrink = length[row] / (rowlen*p->y_size);
 			}
-			starty = -1.0*shrink*rshrink;
+			starty = -1.0*shrink*rshrink*p->y_size;
 			/* MAJOR Justify, FIRST, BEGIN, */
 			if ((fsparam & 0x200) || (fsparam &  0x400)){
 				if(TOPTOBOTTOM )
