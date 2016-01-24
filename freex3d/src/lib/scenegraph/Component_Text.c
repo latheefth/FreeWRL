@@ -873,7 +873,9 @@ typedef struct row32 {
 	int len32;
 	unsigned int *str32;
 	int iglyphstartindex;
-	double rowsize; //all the char widths
+	double hrowsize; //all the char widths
+	double vcolsize; //len32 x charheight
+	unsigned int widestchar; //widest char in the row, in advance units
 	chardata *chr;
 }row32;
 
@@ -1030,12 +1032,14 @@ p->myff = 4;
 		unsigned int len32;
 		unsigned int *utf32;
 		unsigned int total_row_advance;
+		unsigned int widest_char;
 		utf32 = utf8_to_utf32(str,&len32);
 		rowvec[row].iglyphstartindex = p->cur_glyph;
 		rowvec[row].len32 = len32;
 		rowvec[row].str32 = utf32;
 		rowvec[row].chr = (chardata *) alloca(len32*sizeof(chardata));
 		total_row_advance = 0;
+		widest_char = 0;
 		for(i=0;i<len32;i++){
 			int icount;
 			FW_Load_Char(utf32[i]);
@@ -1043,8 +1047,11 @@ p->myff = 4;
 			rowvec[row].chr[i].iglyph = icount;
 			rowvec[row].chr[i].advance = p->glyphs[icount]->advance.x >> 10;
 			total_row_advance += rowvec[row].chr[i].advance;
+			widest_char = rowvec[row].chr[i].advance > widest_char ? rowvec[row].chr[i].advance : widest_char;
 		}
-		rowvec[row].rowsize = total_row_advance;
+		rowvec[row].hrowsize = total_row_advance;
+		rowvec[row].vcolsize = len32 * spacing * p->y_size;
+		rowvec[row].widestchar = widest_char;
 		char_count += len32;
 		//FREE_IF_NZ(utf32); //see bottom of this function
 	}
@@ -1053,119 +1060,248 @@ p->myff = 4;
 		printf ("Text: rows %d char_count %d\n",numrows,char_count);
 	}
 
+	/* Jan 2016/dug9 - got all the permutations shown here -both horizontal and vertical- working:
+		http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/text.html#t-horizontalTRUE
+	*/
+
+	if(HORIZONTAL){
+		//find the longest row dimension
+		if(maxext > 0) {
+			double maxlen = 0;
+			for(row = 0; row < numrows; row++) {
+				maxlen = rowvec[row].hrowsize > maxlen ? rowvec[row].hrowsize : maxlen;
+			}
+			if(maxlen > maxext) {shrink = maxext / OUT2GL(maxlen);}
+		}
+
+		/* Justify MINOR (verticle), FIRST, BEGIN, MIDDLE and END */
+		//bit:    13      FIRST
+		//bit:    14      BEGIN
+		//bit:    15      MIDDLE
+		//bit:    16      END
+		//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/text.html#t-horizontalTRUE
+
+		/* BEGIN */
+		if(fsparam & (0x400<<(4))){
+			p->pen_y = 0.0;
+		}
+		/* FIRST */
+		if(fsparam & (0x200<<(4))){
+			p->pen_y = 1.0; 
+		}
+		/* MIDDLE */
+		if (fsparam & (0x800<<(4))) { 
+			p->pen_y = (double)(numrows)/2.0; 
+		}
+		/* END */
+		if (fsparam & (0x1000<<(4))) {
+			/* printf ("rowlen is %f\n",rowlen); */
+			p->pen_y = (double)numrows;
+		}
+
+	
+		///* topToBottom */
+		if (TOPTOBOTTOM) {
+			p->pen_y -= 1.0;
+		}else{
+			if(fsparam & (0x200<<(4))) //if first, make like begin
+				p->pen_y -= 1.0; 		
+			p->pen_y = numrows - 1.0 - p->pen_y;
+		}
+
+		//screen/vector-agnostic loop to compute penx,y and shrinkage for each glyph
+		for(irow = 0; irow < numrows; irow++) {
+			unsigned int lenchars;
+			double rowlen;
+
+			row = irow;
+			if(!TOPTOBOTTOM) row = numrows - irow -1;
+
+			if (directstring == 0) str = (unsigned char *)ptr[row]->strptr;
+			if (p->TextVerbose)
+				printf ("text2 row %d :%s:\n",row, str);
+			p->pen_x = 0.0;
+			rshrink = 0.0;
+			rowlen = rowvec[row].hrowsize;
+			lenchars = rowvec[row].len32;
+
+			if((row < nl) && (APPROX(length[row],0.0))) {
+				rshrink = length[row] / OUT2GL(rowlen);
+			}
+			//if(shrink>0.0001) { FW_GL_SCALE_D(shrink,1.0,1.0); }
+			//if(rshrink>0.0001) { FW_GL_SCALE_D(rshrink,1.0,1.0); }
+
+			/* MAJOR Justify, FIRST, BEGIN, */
+			if (((fsparam & 0x200) || (fsparam &  0x400)) && !LEFTTORIGHT ) {
+				/* printf ("rowlen is %f\n",rowlen); */
+				p->pen_x = -rowlen;
+			}
+
+			/* MAJOR MIDDLE */
+			if (fsparam & 0x800) { p->pen_x = -rowlen/2.0; }
+
+			/* MAJOR END */
+			//if ((fsparam & 0x1000) && (fsparam & 0x01)) {
+			if ((fsparam & 0x1000) && LEFTTORIGHT ) {
+				/* printf ("rowlen is %f\n",rowlen); */
+				p->pen_x = -rowlen;
+			}
+
+			for(ii=0; ii<lenchars; ii++) {
+				/* FT_UInt glyph_index; */
+				/* int error; */
+				int kk;
+				int x;
+				i = ii;
+				if(!LEFTTORIGHT)
+					i = lenchars - ii -1;
+				rowvec[row].chr[i].x = p->pen_x;
+				rowvec[row].chr[i].y = p->pen_y;
+				rowvec[row].chr[i].sx = (1.0-shrink)*(1.0-rshrink);
+				rowvec[row].chr[i].sy = (1.0-shrink)*(1.0-rshrink);
+				p->pen_x +=  rowvec[row].chr[i].advance; // * directionx
+			}
+			//counter += lenchars;
+			p->pen_y += -spacing * p->y_size;
+		}
+		//END HORIZONTAL
+	}else{
+		//IF VERTICAL
+		//
+		unsigned int widest_column;
+		//find the longest row dimension
+		double maxlen = 0.0;
+		for(row = 0; row < numrows; row++) {
+			maxlen = rowvec[row].vcolsize > maxlen ? rowvec[row].vcolsize : maxlen;
+		}
+		if(maxext > 0) {
+			if(maxlen > maxext) {shrink = maxext / OUT2GL(maxlen);}
+		}
+		widest_column = 0;
+		for(row=0;row<numrows;row++)
+			widest_column = rowvec[row].widestchar > widest_column ? rowvec[row].widestchar : widest_column;
+
+		/* Justify MINOR (verticle), FIRST, BEGIN, MIDDLE and END */
+		//bit:    13      FIRST
+		//bit:    14      BEGIN
+		//bit:    15      MIDDLE
+		//bit:    16      END
+		//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/text.html#t-horizontalTRUE
+
+		/* BEGIN */
+		//if(fsparam & (0x400<<(4))){
+		//	p->pen_x = 0.0;
+		//}
+		/* FIRST */
+		if(fsparam & (0x200<<(4)) || fsparam & (0x400<<(4))){
+			//p->pen_x = -1.0 * widest_column; 
+			if(LEFTTORIGHT)
+				p->pen_x = 0.0;
+			else
+				p->pen_x = -(double)numrows * widest_column;
+		}
+		/* MIDDLE */
+		if (fsparam & (0x800<<(4))) { 
+			p->pen_x = -(double)(numrows)/2.0 *widest_column; 
+		}
+		/* END */
+		if (fsparam & (0x1000<<(4))) {
+			/* printf ("rowlen is %f\n",rowlen); */
+			if(LEFTTORIGHT)
+				p->pen_x = -(double)numrows * widest_column;
+			else
+				p->pen_x = 0.0;
+		}
+
+		///* topToBottom */
+		if (LEFTTORIGHT) {
+			p->pen_y -= 1.0;
+		}else{
+			if(fsparam & (0x200<<(4))) //if first, make like begin
+				p->pen_x -= 1.0; 		
+			p->pen_y = numrows - 1.0 - p->pen_y;
+		}
+
+		//screen/vector-agnostic loop to compute penx,y and shrinkage for each glyph
+		for(irow = 0; irow < numrows; irow++) {
+			unsigned int lenchars;
+			double rowlen;
+
+			row = irow;
+			if(!LEFTTORIGHT) row = numrows - irow -1;
+
+			if (directstring == 0) str = (unsigned char *)ptr[row]->strptr;
+			if (p->TextVerbose)
+				printf ("text2 row %d :%s:\n",row, str);
+			p->pen_y = 0.0;
+			rshrink = 0.0;
+			rowlen = rowvec[row].vcolsize;
+			lenchars = rowvec[row].len32;
+
+			if((row < nl) && (APPROX(length[row],0.0))) {
+				rshrink = length[row] / OUT2GL(rowlen);
+			}
+			//if(shrink>0.0001) { FW_GL_SCALE_D(shrink,1.0,1.0); }
+			//if(rshrink>0.0001) { FW_GL_SCALE_D(rshrink,1.0,1.0); }
+
+			/* MAJOR Justify, FIRST, BEGIN, */
+			if ((fsparam & 0x200) || (fsparam &  0x400)){
+				if(TOPTOBOTTOM )
+					p->pen_y = -1.0;
+				else
+					p->pen_y = rowlen -1.0;
+			}
+
+			/* MAJOR MIDDLE */
+			if (fsparam & 0x800) {
+				//if(TOPTOBOTTOM)
+					p->pen_y = rowlen/2.0 -1.0; 
+				//else
+				//	p->pen_y = rowlen/2.0 +1.0;
+			}
+
+			/* MAJOR END */
+			//if ((fsparam & 0x1000) && (fsparam & 0x01)) {
+			if (fsparam & 0x1000  ) {
+				/* printf ("rowlen is %f\n",rowlen); */
+				if(TOPTOBOTTOM)
+					p->pen_y = rowlen -1.0;
+				else
+					p->pen_y = -1.0;
+			}
+
+			for(ii=0; ii<lenchars; ii++) {
+				/* FT_UInt glyph_index; */
+				/* int error; */
+				int kk;
+				int x;
+				double penx;
+				i = ii;
+				if(!TOPTOBOTTOM)
+					i = lenchars - ii -1;
+				penx = p->pen_x;
+				if(!LEFTTORIGHT)
+					penx = penx + widest_column * spacing - rowvec[row].chr[i].advance;
+				rowvec[row].chr[i].x = penx;
+				rowvec[row].chr[i].y = p->pen_y;
+				rowvec[row].chr[i].sx = (1.0-shrink)*(1.0-rshrink);
+				rowvec[row].chr[i].sy = (1.0-shrink)*(1.0-rshrink);
+				p->pen_y += -spacing * p->y_size;
+			}
+			//counter += lenchars;
+			p->pen_x +=  widest_column * spacing; // * p->x_size; //rowvec[row].chr[i].advance; // * directionx
+
+		}
+
+	}
+
+	//vector glyph construction
 	/* what is the estimated number of triangles? assume a certain number of tris per char */
 	est_tri = char_count*800; /* 800 was TESS_MAX_COORDS - REALLOC if needed */
 	p->coordmaxsize=est_tri;
 	p->cindexmaxsize=est_tri;
 	p->FW_rep_->cindex=MALLOC(GLuint *, sizeof(*(p->FW_rep_->cindex))*est_tri);
 	p->FW_rep_->actualCoord = MALLOC(float *, sizeof(*(p->FW_rep_->actualCoord))*est_tri*3);
-
-	//find the longest row dimension
-	if(maxext > 0) {
-		double maxlen = 0;
-		for(row = 0; row < numrows; row++) {
-			maxlen = rowvec[row].rowsize > maxlen ? rowvec[row].rowsize : maxlen;
-		}
-		if(maxlen > maxext) {shrink = maxext / OUT2GL(maxlen);}
-	}
-
-	/* Justify MINOR (verticle), FIRST, BEGIN, MIDDLE and END */
-	//bit:    13      FIRST
-	//bit:    14      BEGIN
-	//bit:    15      MIDDLE
-	//bit:    16      END
-	//printbits(fsparam);
-            //else if (!strcmp((const char *)stmp,"FIRST")) { fsparams |= (0x200<<(tmp*4));}
-            //else if(!strcmp((const char *)stmp,"BEGIN")) { fsparams |= (0x400<<(tmp*4));}
-            //else if (!strcmp((const char *)stmp,"MIDDLE")) { fsparams |= (0x800<<(tmp*4));}
-            //else if (!strcmp((const char *)stmp,"END")) { fsparams |= (0x1000<<(tmp*4));}
-	//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/text.html#t-horizontalTRUE
-
-	/* BEGIN */
-	if(fsparam & (0x400<<(4))){
-		p->pen_y = 0.0;
-	}
-	/* FIRST */
-	if(fsparam & (0x200<<(4))){
-		p->pen_y = 1.0; 
-	}
-	/* MIDDLE */
-	if (fsparam & (0x800<<(4))) { 
-		p->pen_y = (double)(numrows)/2.0; 
-	}
-	/* END */
-	if (fsparam & (0x1000<<(4))) {
-		/* printf ("rowlen is %f\n",rowlen); */
-		p->pen_y = (double)numrows;
-	}
-
-	
-	///* topToBottom */
-	if (TOPTOBOTTOM) {
-		p->pen_y -= 1.0;
-	}else{
-		if(fsparam & (0x200<<(4))) //if first, make like begin
-			p->pen_y -= 1.0; 		
-		p->pen_y = numrows - 1.0 - p->pen_y;
-	}
-
-	//screen/vector-agnostic loop to compute penx,y and shrinkage for each glyph
-	for(irow = 0; irow < numrows; irow++) {
-		unsigned int lenchars;
-		double rowlen;
-
-		row = irow;
-		if(!TOPTOBOTTOM) row = numrows - irow -1;
-
-		if (directstring == 0) str = (unsigned char *)ptr[row]->strptr;
-		if (p->TextVerbose)
-			printf ("text2 row %d :%s:\n",row, str);
-		p->pen_x = 0.0;
-		rshrink = 0.0;
-		rowlen = rowvec[row].rowsize;
-		lenchars = rowvec[row].len32;
-
-		if((row < nl) && (APPROX(length[row],0.0))) {
-			rshrink = length[row] / OUT2GL(rowlen);
-		}
-		//if(shrink>0.0001) { FW_GL_SCALE_D(shrink,1.0,1.0); }
-		//if(rshrink>0.0001) { FW_GL_SCALE_D(rshrink,1.0,1.0); }
-
-		/* MAJOR Justify, FIRST, BEGIN, */
-		if (((fsparam & 0x200) || (fsparam &  0x400)) && !LEFTTORIGHT ) {
-			/* printf ("rowlen is %f\n",rowlen); */
-			p->pen_x = -rowlen;
-		}
-
-		/* MAJOR MIDDLE */
-		if (fsparam & 0x800) { p->pen_x = -rowlen/2.0; }
-
-		/* MAJOR END */
-		//if ((fsparam & 0x1000) && (fsparam & 0x01)) {
-		if ((fsparam & 0x1000) && LEFTTORIGHT ) {
-			/* printf ("rowlen is %f\n",rowlen); */
-			p->pen_x = -rowlen;
-		}
-
-		for(ii=0; ii<lenchars; ii++) {
-			/* FT_UInt glyph_index; */
-			/* int error; */
-			int kk;
-			int x;
-			i = ii;
-			if(!LEFTTORIGHT)
-				i = lenchars - ii -1;
-			rowvec[row].chr[i].x = p->pen_x;
-			rowvec[row].chr[i].y = p->pen_y;
-			rowvec[row].chr[i].sx = (1.0-shrink)*(1.0-rshrink);
-			rowvec[row].chr[i].sy = (1.0-shrink)*(1.0-rshrink);
-			p->pen_x +=  rowvec[row].chr[i].advance; // * directionx
-		}
-		//counter += lenchars;
-		p->pen_y += -spacing * p->y_size;
-	}
-
-	//vector glyph construction
 	for(row = 0; row < numrows; row++) {
 		unsigned int lenchars = rowvec[row].len32;
 		for(i=0; i<lenchars; i++) {
@@ -1216,16 +1352,9 @@ p->myff = 4;
 				p->FW_rep_->cindex=(GLuint *)REALLOC(p->FW_rep_->cindex,sizeof(*(p->FW_rep_->cindex))*p->cindexmaxsize);
 			}
 		}
-		//counter += lenchars;
-
-		//p->pen_y += -spacing * p->y_size;
 	}
-
 	/* save the triangle count (note, we have a "vertex count", not a "triangle count" */
 	p->FW_rep_->ntri=p->indx_count/3;
-
-
-
 	/* set these variables so they are not uninitialized */
 	p->FW_rep_->ccw=FALSE;
 
