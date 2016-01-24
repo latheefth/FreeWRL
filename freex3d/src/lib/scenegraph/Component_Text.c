@@ -67,6 +67,7 @@ X3D Text Component
 
 #define TOPTOBOTTOM (fsparam & 0x04)
 #define LEFTTORIGHT (!(fsparam & 0x02))
+#define HORIZONTAL (fsparam & 0x01)
 
 #define OUT2GL(a) (p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES))
 
@@ -860,148 +861,180 @@ int len_utf8(unsigned char *utf8string)
 	return l32;
 }
 
+typedef struct char32p {
+	unsigned int char32;
+	int glyph_index; //or pointer?
+} char32p;
+typedef struct row32 {
+	int len32;
+	unsigned int *str32;
+	int iglyphstartindex;
+	double rowsize; //all the char widths
+}row32;
 
+#ifndef DISABLER
+#include <malloc.h>
+#else
+#include <malloc/malloc.h>
+#endif
+/* Print n as a binary number - scraped from www */
+void printbits(int n) {
+	unsigned int i,j;
+	j=0;
+	i = 1<<(sizeof(n) * 8 - 1);
+	while (i > 0) {
+		if (n & i)
+			printf("1");
+		else
+			printf("0");
+		i >>= 1;
+		j++;
+		if(j%8 == 0) printf(" ");
+	}
+}
 /* take a text string, font spec, etc, and make it into an OpenGL Polyrep.
    Note that the text comes EITHER from a SV (ie, from perl) or from a directstring,
    eg, for placing text on the screen from within FreeWRL itself */
 
 void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstring,
-                   unsigned int nl, double *length, double maxext,
-                   double spacing, double mysize, unsigned int fsparam,
-                   struct X3D_PolyRep *rp)
+				unsigned int nl, double *length, double maxext,
+				double spacing, double mysize, unsigned int fsparam,
+				struct X3D_PolyRep *rp)
 {
-    unsigned char *str = NULL; /* string pointer- initialization gets around compiler warning */
-    unsigned int i,row;
-    double shrink = 0;
-    double rshrink = 0;
-    int counter=0;
-    int char_count=0;
-    int est_tri=0;
+	unsigned char *str = NULL; /* string pointer- initialization gets around compiler warning */
+	unsigned int i,row,ii,irow;
+	double shrink = 0;
+	double rshrink = 0;
+	int counter=0;
+	int char_count=0;
+	int est_tri=0;
 	ppComponent_Text p;
 	ttglobal tg = gglobal();
 	p = (ppComponent_Text)tg->Component_Text.prv;
 
-    /* fsparam has the following bitmaps:
+	/* fsparam has the following bitmaps:
 
-    bit:    0       horizontal  (boolean)
-    bit:    1       leftToRight (boolean)
-    bit:    2       topToBottom (boolean)
-    (style)
-    bit:    3       BOLD        (boolean)
-    bit:    4       ITALIC      (boolean)
-    (family)
-    bit:    5       SERIF
-    bit:    6       SANS
-    bit:    7       TYPEWRITER
-    bit:    8       indicates exact font pointer (future use)
-    (Justify - major)
-    bit:    9       FIRST
-    bit:    10      BEGIN
-    bit:    11      MIDDLE
-    bit:    12      END
-    (Justify - minor)
-    bit:    13      FIRST
-    bit:    14      BEGIN
-    bit:    15      MIDDLE
-    bit:    16      END
+	bit:    0       horizontal  (boolean)
+	bit:    1       leftToRight (boolean)
+	bit:    2       topToBottom (boolean)
+	(style)
+	bit:    3       BOLD        (boolean)
+	bit:    4       ITALIC      (boolean)
+	(family)
+	bit:    5       SERIF
+	bit:    6       SANS
+	bit:    7       TYPEWRITER
+	bit:    8       indicates exact font pointer (future use)
+	(Justify - major)
+	bit:    9       FIRST
+	bit:    10      BEGIN
+	bit:    11      MIDDLE
+	bit:    12      END
+	(Justify - minor)
+	bit:    13      FIRST
+	bit:    14      BEGIN
+	bit:    15      MIDDLE
+	bit:    16      END
 
-    bit: 17-31      spare
-    */
+	bit: 17-31      spare
+	*/
 
-    /* z distance for text - only the status bar has anything other than 0.0 */
-    if (directstring) {
-#ifdef CALCAULATEANGLETAN
-        float angletan;
-        /* convert fieldofview into radians */
-        angletan = fieldofview / 360.0f * PI * 2;
+	/* z distance for text - only the status bar has anything other than 0.0 */
+	if (directstring) {
+	#ifdef CALCAULATEANGLETAN
+		float angletan;
+		/* convert fieldofview into radians */
+		angletan = fieldofview / 360.0f * PI * 2;
 
-        /* take half of the angle; */
-        angletan = angletan / 2.0f;
+		/* take half of the angle; */
+		angletan = angletan / 2.0f;
 
-        /* find the tan of it; */
-        angletan = tanf (angletan);
+		/* find the tan of it; */
+		angletan = tanf (angletan);
 
-        /* and, divide the "general" text size by it */
-        p->TextZdist = -0.010/angletan;
-        //printf ("fov %f tzd %f \n",(float) fieldofview, (float) p->TextZdist);
-#else
-        /* the equation should be simple, but it did not work. Lets try the following: */
-        if (Viewer()->fieldofview < 12.0f) {
-            p->TextZdist = -12.0f;
-        } else if (Viewer()->fieldofview < 46.0f) {
-            p->TextZdist = -0.2f;
-        } else if (Viewer()->fieldofview  < 120.0f) {
-            p->TextZdist = +2.0f;
-        } else {
-            p->TextZdist = + 2.88f;
-        }
-#endif
-    } else {
-        p->TextZdist = 0.0f;
-    }
+		/* and, divide the "general" text size by it */
+		p->TextZdist = -0.010/angletan;
+		//printf ("fov %f tzd %f \n",(float) fieldofview, (float) p->TextZdist);
+	#else
+		/* the equation should be simple, but it did not work. Lets try the following: */
+		if (Viewer()->fieldofview < 12.0f) {
+			p->TextZdist = -12.0f;
+		} else if (Viewer()->fieldofview < 46.0f) {
+			p->TextZdist = -0.2f;
+		} else if (Viewer()->fieldofview  < 120.0f) {
+			p->TextZdist = +2.0f;
+		} else {
+			p->TextZdist = + 2.88f;
+		}
+	#endif
+	} else {
+		p->TextZdist = 0.0f;
+	}
 
-    /* have we done any rendering yet */
-    /* do we need to call open font? */
-    if (!p->started) {
-        if (open_font()) {
-            p->started = TRUE;
-        } else {
-            printf ("Could not find System Fonts for Text nodes\n");
-            return;
-        }
-    }
+	/* have we done any rendering yet */
+	/* do we need to call open font? */
+	if (!p->started) {
+		if (open_font()) {
+			p->started = TRUE;
+		} else {
+			printf ("Could not find System Fonts for Text nodes\n");
+			return;
+		}
+	}
 
-    if (p->TextVerbose)
-        printf ("entering FW_Render_text \n");
+	if (p->TextVerbose)
+		printf ("entering FW_Render_text \n");
 
 
-    p->FW_rep_ = rp;
+	p->FW_rep_ = rp;
 
-    p->FW_RIA_indx = 0;            /* index into FW_RIA                                  */
-    p->FW_pointctr=0;              /* how many points used so far? maps into rep-_coord  */
-    p->indx_count=0;               /* maps intp FW_rep_->cindex                          */
-    p->contour_started = FALSE;
+	p->FW_RIA_indx = 0;            /* index into FW_RIA                                  */
+	p->FW_pointctr=0;              /* how many points used so far? maps into rep-_coord  */
+	p->indx_count=0;               /* maps intp FW_rep_->cindex                          */
+	p->contour_started = FALSE;
 
-    p->pen_x = 0.0; p->pen_y = 0.0;
-    p->cur_glyph = 0;
-    p->x_size = mysize;            /* global variable for size */
-    p->y_size = mysize;            /* global variable for size */
+	p->pen_x = 0.0; p->pen_y = 0.0;
+	p->cur_glyph = 0;
+	p->x_size = mysize;            /* global variable for size */
+	p->y_size = mysize;            /* global variable for size */
 
-    /* is this font opened */
-    p->myff = (fsparam >> 3) & 0x1F;
+	/* is this font opened */
+	p->myff = (fsparam >> 3) & 0x1F;
 
 #if defined (ANDROID)
 // Android - for now, all fonts are identical
 p->myff = 4;
 #endif
 
-    if (p->myff <4) {
-        /* we dont yet allow externally specified fonts, so one of
-           the font style bits HAS to be set. If there was no FontStyle
-           node, this will be blank, so... */
-        p->myff = 4;
-    }
+	if (p->myff <4) {
+		/* we dont yet allow externally specified fonts, so one of
+			the font style bits HAS to be set. If there was no FontStyle
+			node, this will be blank, so... */
+		p->myff = 4;
+	}
 
-    if (!p->font_opened[p->myff]) {
-        FW_make_fontname(p->myff);
-        if (!FW_init_face()) {
-            /* tell this to render as fw internal font */
-            FW_make_fontname (0);
-            FW_init_face();
-        }
-    }
+	if (!p->font_opened[p->myff]) {
+		FW_make_fontname(p->myff);
+		if (!FW_init_face()) {
+			/* tell this to render as fw internal font */
+			FW_make_fontname (0);
+			FW_init_face();
+		}
+	}
 	if(!p->font_face[p->myff]) return; //couldn't load fonts
-    /* type 1 fonts different than truetype fonts */
-    if (p->font_face[p->myff]->units_per_EM != 1000)
-        p->x_size = p->x_size * p->font_face[p->myff]->units_per_EM/1000.0;
+	/* type 1 fonts different than truetype fonts */
+	if (p->font_face[p->myff]->units_per_EM != 1000)
+		p->x_size = p->x_size * p->font_face[p->myff]->units_per_EM/1000.0;
 
-    /* if we have a direct string, then we only have ONE, so initialize it here */
-    if (directstring != 0) str = (unsigned char *)directstring;
+	/* if we have a direct string, then we only have ONE, so initialize it here */
+	if (directstring != 0) str = (unsigned char *)directstring;
 
-    /* load all of the characters first... */
-    for (row=0; row<numrows; row++) {
-        if (directstring == 0)
-            str = (unsigned char *)ptr[row]->strptr;
+	row32 *rowvec = (row32*)alloca(numrows * sizeof(row32));
+
+	/* load all of the characters first... */
+	for (row=0; row<numrows; row++) {
+		if (directstring == 0)
+			str = (unsigned char *)ptr[row]->strptr;
 		if(0){
 			for(i=0; i<strlen((const char *)str); i++) {
 					FW_Load_Char(str[i]);
@@ -1011,186 +1044,206 @@ p->myff = 4;
 			/* utf8_to_utf32 */
 			unsigned int len32;
 			unsigned int *utf32;
+			unsigned int total_advance;
 			utf32 = utf8_to_utf32(str,&len32);
-			for(i=0;i<len32;i++)
+			total_advance = 0;
+			rowvec[row].iglyphstartindex = p->cur_glyph;
+			for(i=0;i<len32;i++){
+				int icount;
 				FW_Load_Char(utf32[i]);
-			char_count += len32;
-			FREE_IF_NZ(utf32);
-
-		}
-    }
-
-    if (p->TextVerbose) {
-        printf ("Text: rows %d char_count %d\n",numrows,char_count);
-    }
-
-    /* what is the estimated number of triangles? assume a certain number of tris per char */
-    est_tri = char_count*800; /* 800 was TESS_MAX_COORDS - REALLOC if needed */
-    p->coordmaxsize=est_tri;
-    p->cindexmaxsize=est_tri;
-    p->FW_rep_->cindex=MALLOC(GLuint *, sizeof(*(p->FW_rep_->cindex))*est_tri);
-    p->FW_rep_->actualCoord = MALLOC(float *, sizeof(*(p->FW_rep_->actualCoord))*est_tri*3);
-
-    if(maxext > 0) {
-        double maxlen = 0;
-        double l;
-        int counter = 0;
-
-        for(row = 0; row < numrows; row++) {
-			int lenchars = 0;
-            if (directstring == 0) str = (unsigned char *)ptr[row]->strptr;
-			if(0){
-				lenchars = (int)strlen((const char *)str);
-			}else{
-				/* utf8_to_utf32 */
-				lenchars = len_utf8(str);
+				icount = p->cur_glyph -1;
+				total_advance += p->glyphs[icount]->advance.x >> 10;
 			}
-            l = FW_extent(counter,(int) lenchars);
-            counter += (int) lenchars;
-            if(l > maxlen) {maxlen = l;}
-        }
+			char_count += len32;
+			rowvec[row].len32 = len32;
+			rowvec[row].str32 = utf32;
+			rowvec[row].rowsize = total_advance;
+			//FREE_IF_NZ(utf32);
+		}
+	}
 
-        if(maxlen > maxext) {shrink = maxext / OUT2GL(maxlen);}
-    }
+	if (p->TextVerbose) {
+		printf ("Text: rows %d char_count %d\n",numrows,char_count);
+	}
 
-    /* topToBottom */
-    if (TOPTOBOTTOM) {
-        spacing =  -spacing;  /* row increment */
-        p->pen_y = 0.0;
-    } else {
-        p->pen_y -= numrows-1;
-    }
+	/* what is the estimated number of triangles? assume a certain number of tris per char */
+	est_tri = char_count*800; /* 800 was TESS_MAX_COORDS - REALLOC if needed */
+	p->coordmaxsize=est_tri;
+	p->cindexmaxsize=est_tri;
+	p->FW_rep_->cindex=MALLOC(GLuint *, sizeof(*(p->FW_rep_->cindex))*est_tri);
+	p->FW_rep_->actualCoord = MALLOC(float *, sizeof(*(p->FW_rep_->actualCoord))*est_tri*3);
 
-    /* leftToRight */
-    if (LEFTTORIGHT) {
-        FW_GL_ROTATE_D(180.0,0.0,1.0,0.0);
-    }
+	//find the longest row dimension
+	if(maxext > 0) {
+		double maxlen = 0;
+		for(row = 0; row < numrows; row++) {
+			maxlen = rowvec[row].rowsize > maxlen ? rowvec[row].rowsize : maxlen;
+		}
+		if(maxlen > maxext) {shrink = maxext / OUT2GL(maxlen);}
+	}
 
+	/* Justify MINOR (verticle), FIRST, BEGIN, MIDDLE and END */
+	//bit:    13      FIRST
+	//bit:    14      BEGIN
+	//bit:    15      MIDDLE
+	//bit:    16      END
+	//printbits(fsparam);
+            //else if (!strcmp((const char *)stmp,"FIRST")) { fsparams |= (0x200<<(tmp*4));}
+            //else if(!strcmp((const char *)stmp,"BEGIN")) { fsparams |= (0x400<<(tmp*4));}
+            //else if (!strcmp((const char *)stmp,"MIDDLE")) { fsparams |= (0x800<<(tmp*4));}
+            //else if (!strcmp((const char *)stmp,"END")) { fsparams |= (0x1000<<(tmp*4));}
+	//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/text.html#t-horizontalTRUE
 
-    for(row = 0; row < numrows; row++) {
+	/* BEGIN */
+	if(fsparam & (0x400<<(4))){
+		p->pen_y = 0.0;
+	}
+	/* FIRST */
+	if(fsparam & (0x200<<(4))){
+		p->pen_y = 1.0; 
+	}
+	/* MIDDLE */
+	if (fsparam & (0x800<<(4))) { 
+		p->pen_y = (double)(numrows)/2.0; 
+	}
+	/* END */
+	if (fsparam & (0x1000<<(4))) {
+		/* printf ("rowlen is %f\n",rowlen); */
+		p->pen_y = (double)numrows;
+	}
+
+	
+	///* topToBottom */
+	if (TOPTOBOTTOM) {
+		p->pen_y -= 1.0;
+	}else{
+		if(fsparam & (0x200<<(4))) //if first, make like begin
+			p->pen_y -= 1.0; 		
+		p->pen_y = numrows - 1.0 - p->pen_y;
+	}
+
+	for(irow = 0; irow < numrows; irow++) {
 		unsigned int lenchars;
-        double rowlen;
+		double rowlen;
 
-        if (directstring == 0) str = (unsigned char *)ptr[row]->strptr;
-        if (p->TextVerbose)
-            printf ("text2 row %d :%s:\n",row, str);
-        p->pen_x = 0.0;
-        rshrink = 0.0;
-		if(0)
-			lenchars = (int)strlen((const char *)str);
-		else
-			lenchars = len_utf8(str);
-        rowlen = FW_extent(counter,lenchars);
-        if((row < nl) && (APPROX(length[row],0.0))) {
-            rshrink = length[row] / OUT2GL(rowlen);
-        }
-        if(shrink>0.0001) { FW_GL_SCALE_D(shrink,1.0,1.0); }
-        if(rshrink>0.0001) { FW_GL_SCALE_D(rshrink,1.0,1.0); }
+		row = irow;
+		if(!TOPTOBOTTOM) row = numrows - irow -1;
 
-        /* Justify, FIRST, BEGIN, MIDDLE and END */
+		if (directstring == 0) str = (unsigned char *)ptr[row]->strptr;
+		if (p->TextVerbose)
+			printf ("text2 row %d :%s:\n",row, str);
+		p->pen_x = 0.0;
+		rshrink = 0.0;
+		rowlen = rowvec[row].rowsize;
+		lenchars = rowvec[row].len32;
 
-        /* MIDDLE */
-        if (fsparam & 0x800) { p->pen_x = -rowlen/2.0; }
+		if((row < nl) && (APPROX(length[row],0.0))) {
+			rshrink = length[row] / OUT2GL(rowlen);
+		}
+		//if(shrink>0.0001) { FW_GL_SCALE_D(shrink,1.0,1.0); }
+		//if(rshrink>0.0001) { FW_GL_SCALE_D(rshrink,1.0,1.0); }
 
-        /* END */
-        if ((fsparam & 0x1000) && (fsparam & 0x01)) {
-            /* printf ("rowlen is %f\n",rowlen); */
-            p->pen_x = -rowlen;
-        }
+		/* Justify, FIRST, BEGIN, MIDDLE and END */
 
+		/* MIDDLE */
+		if (fsparam & 0x800) { p->pen_x = -rowlen/2.0; }
 
+		/* END */
+		//if ((fsparam & 0x1000) && (fsparam & 0x01)) {
+		if ((fsparam & 0x1000) ) {
+			/* printf ("rowlen is %f\n",rowlen); */
+			p->pen_x = -rowlen;
+		}
 
-        for(i=0; i<lenchars; i++) {
-            /* FT_UInt glyph_index; */
-            /* int error; */
-            int x;
+		for(ii=0; ii<lenchars; ii++) {
+			/* FT_UInt glyph_index; */
+			/* int error; */
+			int kk;
+			int x;
+			i = ii;
+			if(LEFTTORIGHT) i = lenchars - ii -1;
+			tg->Tess.global_IFS_Coord_count = 0;
+			p->FW_RIA_indx = 0;
+			if(1)
+			kk = rowvec[row].iglyphstartindex + i;
+			if(0) kk = counter+i;
+			FW_draw_character (p->glyphs[kk]);
+			FT_Done_Glyph (p->glyphs[kk]);
+			/* copy over the tesselated coords for the character to
+				* the rep structure */
 
-            tg->Tess.global_IFS_Coord_count = 0;
-            p->FW_RIA_indx = 0;
+			for (x=0; x<tg->Tess.global_IFS_Coord_count; x++) {
+					/*printf ("copying %d\n",global_IFS_Coords[x]); */
 
+				/* did the tesselator give us back garbage? */
 
-            FW_draw_character (p->glyphs[counter+i]);
-
-
-            FT_Done_Glyph (p->glyphs[counter+i]);
-
-
-
-            /* copy over the tesselated coords for the character to
-             * the rep structure */
-
-            for (x=0; x<tg->Tess.global_IFS_Coord_count; x++) {
-                 /*printf ("copying %d\n",global_IFS_Coords[x]); */
-
-                /* did the tesselator give us back garbage? */
-
-                if ((tg->Tess.global_IFS_Coords[x] >= p->cindexmaxsize) ||
-                    (p->indx_count >= p->cindexmaxsize) ||
-                    (tg->Tess.global_IFS_Coords[x] < 0)) {
-                     if (p->TextVerbose)
-                     printf ("Tesselated index %d out of range; skipping indx_count, %d cindexmaxsize %d global_IFS_Coord_count %d\n",
-                     tg->Tess.global_IFS_Coords[x],p->indx_count,p->cindexmaxsize,tg->Tess.global_IFS_Coord_count);
-                    /* just use last point - this sometimes happens when */
-                    /* we have intersecting lines. Lets hope first point is */
-                    /* not invalid... JAS */
-                    p->FW_rep_->cindex[p->indx_count] = p->FW_rep_->cindex[p->indx_count-1];
-                    if (p->indx_count < (p->cindexmaxsize-1)) p->indx_count ++;
-                } else {
+				if ((tg->Tess.global_IFS_Coords[x] >= p->cindexmaxsize) ||
+					(p->indx_count >= p->cindexmaxsize) ||
+					(tg->Tess.global_IFS_Coords[x] < 0)) {
+						if (p->TextVerbose)
+						printf ("Tesselated index %d out of range; skipping indx_count, %d cindexmaxsize %d global_IFS_Coord_count %d\n",
+						tg->Tess.global_IFS_Coords[x],p->indx_count,p->cindexmaxsize,tg->Tess.global_IFS_Coord_count);
+					/* just use last point - this sometimes happens when */
+					/* we have intersecting lines. Lets hope first point is */
+					/* not invalid... JAS */
+					p->FW_rep_->cindex[p->indx_count] = p->FW_rep_->cindex[p->indx_count-1];
+					if (p->indx_count < (p->cindexmaxsize-1)) p->indx_count ++;
+				} else {
 					/*
-                    printf("global_ifs_coords is %d indx_count is %d \n",global_IFS_Coords[x],p->indx_count);
-                    printf("filling up cindex; index %d now points to %d\n",p->indx_count,global_IFS_Coords[x]);
+					printf("global_ifs_coords is %d indx_count is %d \n",global_IFS_Coords[x],p->indx_count);
+					printf("filling up cindex; index %d now points to %d\n",p->indx_count,global_IFS_Coords[x]);
 					*/
-                    p->FW_rep_->cindex[p->indx_count++] = tg->Tess.global_IFS_Coords[x];
-                }
-            }
+					p->FW_rep_->cindex[p->indx_count++] = tg->Tess.global_IFS_Coords[x];
+				}
+			}
 
-            if (p->indx_count > (p->cindexmaxsize-400)) {
-                p->cindexmaxsize += 800; /* 800 was TESS_MAX_COORDS; */
-                p->FW_rep_->cindex=(GLuint *)REALLOC(p->FW_rep_->cindex,sizeof(*(p->FW_rep_->cindex))*p->cindexmaxsize);
-            }
-        }
-        counter += lenchars;
+			if (p->indx_count > (p->cindexmaxsize-400)) {
+				p->cindexmaxsize += 800; /* 800 was TESS_MAX_COORDS; */
+				p->FW_rep_->cindex=(GLuint *)REALLOC(p->FW_rep_->cindex,sizeof(*(p->FW_rep_->cindex))*p->cindexmaxsize);
+			}
+		}
+		counter += lenchars;
 
-        p->pen_y += spacing * p->y_size;
-    }
-    /* save the triangle count (note, we have a "vertex count", not a "triangle count" */
-    p->FW_rep_->ntri=p->indx_count/3;
-
-
-
-    /* set these variables so they are not uninitialized */
-    p->FW_rep_->ccw=FALSE;
-
-    /* if indx count is zero, DO NOT get rid of MALLOCd memory - creates a bug as pointers cant be null */
-    if (p->indx_count !=0) {
-        /* REALLOC bug in linux - this causes the pointers to be eventually lost... */
-        /* REALLOC (p->FW_rep_->cindex,sizeof(*(p->FW_rep_->cindex))*p->indx_count); */
-        /* REALLOC (p->FW_rep_->actualCoord,sizeof(*(p->FW_rep_->actualCoord))*p->FW_pointctr*3); */
-    }
-
-    /* now, generate normals */
-    p->FW_rep_->normal = MALLOC(float *, sizeof(*(p->FW_rep_->normal))*p->indx_count*3);
-    for (i = 0; i<(unsigned int)p->indx_count; i++) {
-        p->FW_rep_->normal[i*3+0] = 0.0f;
-        p->FW_rep_->normal[i*3+1] = 0.0f;
-        p->FW_rep_->normal[i*3+2] = 1.0f;
-    }
-
-    /* do we have texture mapping to do? */
-    if (HAVETODOTEXTURES) {
-        p->FW_rep_->GeneratedTexCoords = MALLOC(float *, sizeof(*(p->FW_rep_->GeneratedTexCoords))*(p->FW_pointctr+1)*3);
-        /* an attempt to try to make this look like the NIST example */
-        /* I can't find a standard as to how to map textures to text JAS */
-        for (i=0; i<(unsigned int)p->FW_pointctr; i++) {
-            p->FW_rep_->GeneratedTexCoords[i*3+0] = p->FW_rep_->actualCoord[i*3+0]*1.66f;
-            p->FW_rep_->GeneratedTexCoords[i*3+1] = 0.0f;
-            p->FW_rep_->GeneratedTexCoords[i*3+2] = p->FW_rep_->actualCoord[i*3+1]*1.66f;
-        }
-    }
+		p->pen_y += -spacing * p->y_size;
+	}
+	/* save the triangle count (note, we have a "vertex count", not a "triangle count" */
+	p->FW_rep_->ntri=p->indx_count/3;
 
 
 
-    if (p->TextVerbose) printf ("exiting FW_Render_text\n");
+	/* set these variables so they are not uninitialized */
+	p->FW_rep_->ccw=FALSE;
+
+	/* if indx count is zero, DO NOT get rid of MALLOCd memory - creates a bug as pointers cant be null */
+	if (p->indx_count !=0) {
+		/* REALLOC bug in linux - this causes the pointers to be eventually lost... */
+		/* REALLOC (p->FW_rep_->cindex,sizeof(*(p->FW_rep_->cindex))*p->indx_count); */
+		/* REALLOC (p->FW_rep_->actualCoord,sizeof(*(p->FW_rep_->actualCoord))*p->FW_pointctr*3); */
+	}
+
+	/* now, generate normals */
+	p->FW_rep_->normal = MALLOC(float *, sizeof(*(p->FW_rep_->normal))*p->indx_count*3);
+	for (i = 0; i<(unsigned int)p->indx_count; i++) {
+		p->FW_rep_->normal[i*3+0] = 0.0f;
+		p->FW_rep_->normal[i*3+1] = 0.0f;
+		p->FW_rep_->normal[i*3+2] = 1.0f;
+	}
+
+	/* do we have texture mapping to do? */
+	if (HAVETODOTEXTURES) {
+		p->FW_rep_->GeneratedTexCoords = MALLOC(float *, sizeof(*(p->FW_rep_->GeneratedTexCoords))*(p->FW_pointctr+1)*3);
+		/* an attempt to try to make this look like the NIST example */
+		/* I can't find a standard as to how to map textures to text JAS */
+		for (i=0; i<(unsigned int)p->FW_pointctr; i++) {
+			p->FW_rep_->GeneratedTexCoords[i*3+0] = p->FW_rep_->actualCoord[i*3+0]*1.66f;
+			p->FW_rep_->GeneratedTexCoords[i*3+1] = 0.0f;
+			p->FW_rep_->GeneratedTexCoords[i*3+2] = p->FW_rep_->actualCoord[i*3+1]*1.66f;
+		}
+	}
+
+
+
+	if (p->TextVerbose) printf ("exiting FW_Render_text\n");
 }
 
 int open_font()
@@ -1313,13 +1366,20 @@ void collide_Text (struct X3D_Text *node)
 #endif
 }
 
+void FW_rendertextScreen(unsigned int numrows,struct Uni_String **ptr, char *directstring,
+                   unsigned int nl, double *length, double maxext,
+                   double spacing, double mysize, unsigned int fsparam,
+                   struct X3D_PolyRep *rp);
+
 void make_Text (struct X3D_Text *node)
 {
     struct X3D_PolyRep *rep_ = node->_intern;
     double spacing = 1.0;
     double size = 1.0;
+	int isScreenFontStyle;
     unsigned int fsparams = 0;
 
+	isScreenFontStyle = FALSE;
     /* We need both sides */
     DISABLE_CULL_FACE;
 
@@ -1367,7 +1427,7 @@ void make_Text (struct X3D_Text *node)
 
         /* fsp = (struct X3D_FontStyle *)node->fontStyle; */
         if (fsp->_nodeType != NODE_FontStyle && fsp->_nodeType != NODE_ScreenFontStyle) {
-            ConsoleMessage ("Text node has FontStyle of %s",stringNodeType(fsp->_nodeType));
+            ConsoleMessage ("Text node has FontStyle of %s\n",stringNodeType(fsp->_nodeType));
             node->fontStyle = NULL; /* stop dumping these messages */
         }
 
@@ -1385,6 +1445,7 @@ void make_Text (struct X3D_Text *node)
 		if(fsp->_nodeType == NODE_ScreenFontStyle){
 			static float pixels_per_point = 4.0f/3.0f; //about 16 pixels for 12 point font, assume we are in ScreenGroup?
 			size = fsp->size * pixels_per_point;
+			isScreenFontStyle = TRUE;
 		}
 
         /* Step 2 - do the SFBools */
@@ -1455,9 +1516,11 @@ void make_Text (struct X3D_Text *node)
        printf ("Text, calling FW_rendertext\n");
        call render text - NULL means get the text from the string
     */
+	//normal scene 3D vectorized text
+	node->__rendersub = 0;
+	FW_rendertext(((node->string).n),((node->string).p),NULL,
+				((node->length).n),(double *) ((node->length).p),
+					(node->maxExtent),spacing,size,fsparams,rep_);
 
-    FW_rendertext(((node->string).n),((node->string).p),NULL,
-                  ((node->length).n),(double *) ((node->length).p),
-                  (node->maxExtent),spacing,size,fsparams,rep_);
 
 }

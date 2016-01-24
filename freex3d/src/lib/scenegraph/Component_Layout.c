@@ -205,7 +205,6 @@ void fin_LayoutGroup(struct X3D_Node *_node){
 	if(_node->_nodeType == NODE_LayoutGroup){
 		ttglobal tg;
 		ppComponent_Layout p;
-		layout_scale_item lsi;
 		ttrenderstate rs;
 		struct X3D_LayoutGroup *node = (struct X3D_LayoutGroup*)_node;
 		
@@ -387,11 +386,11 @@ void fin_Layout(struct X3D_Node *_node){
 		Stack *vportstack;
 		struct X3D_Layout *node;
 		ttrenderstate rs;
-		rs = renderstate();
 		ttglobal tg;
 		ppComponent_Layout p;
 		tg = gglobal();
 		p = (ppComponent_Layout)tg->Component_Layout.prv;
+		rs = renderstate();
 
 		node = (struct X3D_Layout*)_node;
 

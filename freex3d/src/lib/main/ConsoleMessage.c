@@ -47,7 +47,7 @@ for loosing the reference. Also, most if it is found in
 #include <iglobal.h>
 
 
-#define STRING_LENGTH 2000	/* something 'safe'	*/
+#define STRING_LENGTH 4096	/* something 'safe'	*/
 #define MAX_ANDROID_CONSOLE_MESSAGE_SLOTS 100 //5 max number of message lines per frame
 #define MAX_LINE_LENGTH 80  //wrap text here to make it easy for GUI frontends
 #define TAB_SPACES 1
@@ -458,7 +458,7 @@ int ConsoleMessage0(const char *fmt, va_list args){
     #ifdef _ANDROID
             DROIDDEBUG(STRDUP(p->FWbuffer)); //passing ownerhsip in
 	#else
-		android_save_log(strdup(p->FWbuffer)); //passing ownerhsip in
+//		android_save_log(strdup(p->FWbuffer)); //passing ownerhsip in
     #endif
         }
     }
