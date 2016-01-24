@@ -66,7 +66,7 @@ X3D Text Component
 
 
 #define TOPTOBOTTOM (fsparam & 0x04)
-#define LEFTTORIGHT (!(fsparam & 0x02))
+#define LEFTTORIGHT (fsparam & 0x02)
 #define HORIZONTAL (fsparam & 0x01)
 
 #define OUT2GL(a) (p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES))
@@ -861,15 +861,20 @@ int len_utf8(unsigned char *utf8string)
 	return l32;
 }
 
-typedef struct char32p {
-	unsigned int char32;
-	int glyph_index; //or pointer?
-} char32p;
+typedef struct chardata{
+	unsigned int iglyph; //glyph index in p->gplyphs[iglyph]
+	unsigned int advance; //char width or more precisely, advance of penx to next char start
+	double x; //pen_x
+	double y;
+	double sx; //scale = 1-rshrink * 1-shrink applied appropriately ie the net scale needed for this char in x
+	double sy;
+} chardata;
 typedef struct row32 {
 	int len32;
 	unsigned int *str32;
 	int iglyphstartindex;
 	double rowsize; //all the char widths
+	chardata *chr;
 }row32;
 
 #ifndef DISABLER
@@ -877,21 +882,7 @@ typedef struct row32 {
 #else
 #include <malloc/malloc.h>
 #endif
-/* Print n as a binary number - scraped from www */
-void printbits(int n) {
-	unsigned int i,j;
-	j=0;
-	i = 1<<(sizeof(n) * 8 - 1);
-	while (i > 0) {
-		if (n & i)
-			printf("1");
-		else
-			printf("0");
-		i >>= 1;
-		j++;
-		if(j%8 == 0) printf(" ");
-	}
-}
+
 /* take a text string, font spec, etc, and make it into an OpenGL Polyrep.
    Note that the text comes EITHER from a SV (ie, from perl) or from a directstring,
    eg, for placing text on the screen from within FreeWRL itself */
@@ -1035,31 +1026,27 @@ p->myff = 4;
 	for (row=0; row<numrows; row++) {
 		if (directstring == 0)
 			str = (unsigned char *)ptr[row]->strptr;
-		if(0){
-			for(i=0; i<strlen((const char *)str); i++) {
-					FW_Load_Char(str[i]);
-				char_count++;
-			}
-		}else{
-			/* utf8_to_utf32 */
-			unsigned int len32;
-			unsigned int *utf32;
-			unsigned int total_advance;
-			utf32 = utf8_to_utf32(str,&len32);
-			total_advance = 0;
-			rowvec[row].iglyphstartindex = p->cur_glyph;
-			for(i=0;i<len32;i++){
-				int icount;
-				FW_Load_Char(utf32[i]);
-				icount = p->cur_glyph -1;
-				total_advance += p->glyphs[icount]->advance.x >> 10;
-			}
-			char_count += len32;
-			rowvec[row].len32 = len32;
-			rowvec[row].str32 = utf32;
-			rowvec[row].rowsize = total_advance;
-			//FREE_IF_NZ(utf32);
+		/* utf8_to_utf32 */
+		unsigned int len32;
+		unsigned int *utf32;
+		unsigned int total_row_advance;
+		utf32 = utf8_to_utf32(str,&len32);
+		rowvec[row].iglyphstartindex = p->cur_glyph;
+		rowvec[row].len32 = len32;
+		rowvec[row].str32 = utf32;
+		rowvec[row].chr = (chardata *) alloca(len32*sizeof(chardata));
+		total_row_advance = 0;
+		for(i=0;i<len32;i++){
+			int icount;
+			FW_Load_Char(utf32[i]);
+			icount = p->cur_glyph -1;
+			rowvec[row].chr[i].iglyph = icount;
+			rowvec[row].chr[i].advance = p->glyphs[icount]->advance.x >> 10;
+			total_row_advance += rowvec[row].chr[i].advance;
 		}
+		rowvec[row].rowsize = total_row_advance;
+		char_count += len32;
+		//FREE_IF_NZ(utf32); //see bottom of this function
 	}
 
 	if (p->TextVerbose) {
@@ -1122,6 +1109,7 @@ p->myff = 4;
 		p->pen_y = numrows - 1.0 - p->pen_y;
 	}
 
+	//screen/vector-agnostic loop to compute penx,y and shrinkage for each glyph
 	for(irow = 0; irow < numrows; irow++) {
 		unsigned int lenchars;
 		double rowlen;
@@ -1143,14 +1131,18 @@ p->myff = 4;
 		//if(shrink>0.0001) { FW_GL_SCALE_D(shrink,1.0,1.0); }
 		//if(rshrink>0.0001) { FW_GL_SCALE_D(rshrink,1.0,1.0); }
 
-		/* Justify, FIRST, BEGIN, MIDDLE and END */
+		/* MAJOR Justify, FIRST, BEGIN, */
+		if (((fsparam & 0x200) || (fsparam &  0x400)) && !LEFTTORIGHT ) {
+			/* printf ("rowlen is %f\n",rowlen); */
+			p->pen_x = -rowlen;
+		}
 
-		/* MIDDLE */
+		/* MAJOR MIDDLE */
 		if (fsparam & 0x800) { p->pen_x = -rowlen/2.0; }
 
-		/* END */
+		/* MAJOR END */
 		//if ((fsparam & 0x1000) && (fsparam & 0x01)) {
-		if ((fsparam & 0x1000) ) {
+		if ((fsparam & 0x1000) && LEFTTORIGHT ) {
 			/* printf ("rowlen is %f\n",rowlen); */
 			p->pen_x = -rowlen;
 		}
@@ -1161,12 +1153,34 @@ p->myff = 4;
 			int kk;
 			int x;
 			i = ii;
-			if(LEFTTORIGHT) i = lenchars - ii -1;
+			if(!LEFTTORIGHT)
+				i = lenchars - ii -1;
+			rowvec[row].chr[i].x = p->pen_x;
+			rowvec[row].chr[i].y = p->pen_y;
+			rowvec[row].chr[i].sx = (1.0-shrink)*(1.0-rshrink);
+			rowvec[row].chr[i].sy = (1.0-shrink)*(1.0-rshrink);
+			p->pen_x +=  rowvec[row].chr[i].advance; // * directionx
+		}
+		//counter += lenchars;
+		p->pen_y += -spacing * p->y_size;
+	}
+
+	//vector glyph construction
+	for(row = 0; row < numrows; row++) {
+		unsigned int lenchars = rowvec[row].len32;
+		for(i=0; i<lenchars; i++) {
+			int kk,x;
+			chardata xys;
+
+			xys = rowvec[row].chr[i];
+			p->pen_x = xys.x;
+			p->pen_y = xys.y;
+			//p->y_size = xys.sy;
+			//p->x_size = xys.sx;
 			tg->Tess.global_IFS_Coord_count = 0;
 			p->FW_RIA_indx = 0;
-			if(1)
-			kk = rowvec[row].iglyphstartindex + i;
-			if(0) kk = counter+i;
+			//kk = rowvec[row].iglyphstartindex + i;
+			kk = rowvec[row].chr[i].iglyph;
 			FW_draw_character (p->glyphs[kk]);
 			FT_Done_Glyph (p->glyphs[kk]);
 			/* copy over the tesselated coords for the character to
@@ -1202,10 +1216,11 @@ p->myff = 4;
 				p->FW_rep_->cindex=(GLuint *)REALLOC(p->FW_rep_->cindex,sizeof(*(p->FW_rep_->cindex))*p->cindexmaxsize);
 			}
 		}
-		counter += lenchars;
+		//counter += lenchars;
 
-		p->pen_y += -spacing * p->y_size;
+		//p->pen_y += -spacing * p->y_size;
 	}
+
 	/* save the triangle count (note, we have a "vertex count", not a "triangle count" */
 	p->FW_rep_->ntri=p->indx_count/3;
 
@@ -1241,7 +1256,10 @@ p->myff = 4;
 		}
 	}
 
-
+	//free malloced temps (allocas are stack, will self-delete)
+	for (row=0; row<numrows; row++) {
+		FREE_IF_NZ(rowvec[row].str32);
+	}
 
 	if (p->TextVerbose) printf ("exiting FW_Render_text\n");
 }
