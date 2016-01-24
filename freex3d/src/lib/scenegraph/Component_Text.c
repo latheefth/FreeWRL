@@ -897,6 +897,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
 {
 	unsigned char *str = NULL; /* string pointer- initialization gets around compiler warning */
 	unsigned int i,row,ii,irow;
+	row32 *rowvec;
 	double shrink = 0;
 	double rshrink = 0;
 	int counter=0;
@@ -1025,17 +1026,14 @@ p->myff = 4;
 	/* if we have a direct string, then we only have ONE, so initialize it here */
 	if (directstring != 0) str = (unsigned char *)directstring;
 
-	row32 *rowvec = (row32*)alloca(numrows * sizeof(row32));
+	rowvec = (row32*)alloca(numrows * sizeof(row32));
 
 	/* load all of the characters first... */
 	for (row=0; row<numrows; row++) {
+		unsigned int len32, total_row_advance, widest_char, *utf32;
 		if (directstring == 0)
 			str = (unsigned char *)ptr[row]->strptr;
 		/* utf8_to_utf32 */
-		unsigned int len32;
-		unsigned int *utf32;
-		unsigned int total_row_advance;
-		unsigned int widest_char;
 		utf32 = utf8_to_utf32(str,&len32);
 		rowvec[row].iglyphstartindex = p->cur_glyph;
 		rowvec[row].len32 = len32;
@@ -1078,7 +1076,6 @@ p->myff = 4;
 			}
 			if(maxlen > maxext) {shrink = maxext / maxlen;}
 		}
-		printf("shrink = %lf\n",shrink);
 		//shrink = 1.0;
 		/* Justify MINOR (verticle), FIRST, BEGIN, MIDDLE and END */
 		//bit:    13      FIRST
