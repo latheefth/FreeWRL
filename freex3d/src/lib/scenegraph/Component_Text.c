@@ -1663,3 +1663,1347 @@ void make_Text (struct X3D_Text *node)
 
 
 }
+
+
+
+
+
+
+
+//==========================SCREENFONT===============================================
+/* thanks go to dug9 for contributing atlasfont code to freewrl from his dug9gui project 
+	
+	Notes on freewrl use of atlas/screen fonts, new Jan 2016:
+	CaptionText -a kind of direct-to-screen text - see mainloop.c contenttype_captiontext-
+	and Text + Component_Layout > ScreenFontStyle 
+	both need speedy rendering of what could be rapidly changing text strings, such 
+	as Time or FPS that might change on every frame. For that we don't want to recompile
+	a new polyrep on each frame. Just run down the string printing characters as textured rectangles.
+	And we want to share fonts and anyone can load a font Text -vector or screen- or CaptionText, 
+	and once loaded the others recognize and don't need to reload.
+	The texture used -called a font atlas- holds all the ascii chars by default -with a fast lookup-, 
+	plus it can add as-needed extended utf8 characters with a slower lookup method. 
+
+	AtlasFont - the facename, font path, one per fontface
+	Atlas - the bitmap, used as texture, one per AtlasFont
+	AtlasEntrySet - the lookup table for ascii and extended characters, 
+		one per fontsize for a given AtlasFont
+*/
+
+/*	UTF8 String literal support
+	 if you want to put extended (non ASCII, > 127) chars in CaptionText:
+		a) keep/make the string literals utf8 somehow, and 
+		b) we call a utf8 to utf32 function below
+	a) How to keep/make string literals utf8:
+	DO NOT (non-portable):
+	X use u8"" or utf8"" string literals, which gcc supports I think, MS does not (by default uses locale codepage which crashes freetype lib), so not portable
+	X use wchar_t and L"", which both msvc and gcc support, but gcc is 32bit unicode and MS is 16bit unicode,
+		 so not quite portable, although you could convert either to utf8 from literals early,
+		 using platform specific code
+	DO (portable):
+	a) embed escape sequences. Capital Omega is hex CE A9 "\xCE\xA9" or octal 316 251 "\316\251"   http://calc.50x.eu/
+	b) convert from codepage to utf8 externally, and paste sequence into string:  codepage windows-1250 è = utf8 "Ã¨"  é = "Ã©" http://www.motobit.com/util/charset-codepage-conversion.asp
+	   or use linux iconv
+	c) read strings from a utf8 encoded file (utf16 and utf32 files requires BOM byte order mark 
+		to determine endieness of file, utf8 does not need this mark, except your reading software needs to know
+		whether to convert from UTF8 or trust it's ASCII, or convert from a specific codepage. Determining heuristically
+		is difficult. So just put an ascii string UTF8 or ASCII or CODEPAGE-12500 on the first line to tell your own code)
+*/
+
+static int iyup = 0;  //iyup = 1 means y is up on texture (like freewrl) (doesn't work right), iyup=0 means y-down texture coords (works)
+
+typedef struct AtlasFont AtlasFont;
+typedef struct Atlas Atlas;
+typedef struct AtlasEntry AtlasEntry;
+typedef struct GUIElement GUIElement;
+void *GUImalloc(struct Vector **guitable, int type);
+typedef struct ivec2 {int X; int Y;} ivec2;
+ivec2 ivec2_init(int x, int y);
+typedef enum GUIElementType 
+{ 
+	GUI_FONT = 9,
+	GUI_ATLAS = 10,
+	GUI_ATLASENTRY = 11,
+	GUI_ATLASENTRYSET = 12,
+} GUIElementType;
+
+//STATICS
+static struct Vector *font_table; //AtlasFontSize*
+static struct Vector *entry_table; //AtlasEntry* - just for GC
+static struct Vector *entryset_table; //AtlasEntrySet*
+static struct Vector *atlas_table; //Atlas *
+
+
+
+//atlas entry has the box for one glyph, or one widget icon
+typedef struct AtlasEntry {
+	char *name;
+	int type;
+	ivec2 apos; //position in atlas texture, pixels from UL of texture image
+	ivec2 size; //size in atlas texture, pixels
+	int ichar;  //int pseudoname instead of char * name, used for unicode char
+	ivec2 pos;  //shift/offset from target placement ie glyph image shift from lower left corner of character
+	ivec2 advance; //used for glyphs, advance to the next char which may be different -wider- than pixel row width
+} AtlasEntry;
+void AtlasEntry_init1(AtlasEntry *me,  char *name, int index, int x, int y, int width, int height){
+	//use this for .bmp atlases that are already tiled
+	me->name = name;
+	me->type = GUI_ATLASENTRY;
+	me->apos.X = x;
+	me->apos.Y = y;
+	me->size.X = width;
+	me->size.Y = height;
+	me->ichar = index;
+}
+
+
+
+//atlas is an image buffer. It doesn't care what's stored in the image, although it
+//does help when adding things to the atlas, by storing the last location as penx,y
+//The reason for using an atlas versus individual little images: fewer texture changes sent to the GPU
+// which dramatically speeds rendering of the gui.
+// For example drawing a textpanel full of text glyph by glyph slows rendering to 8 FPS on intel i5, 
+// and using an atlas it's 60FPS - hardly notice the gui rendering.
+// The reason we don't do all font as atlasses by default: some font ie textCaption could be dynamically
+//  resizable by design, and if it's just a few chars, its more efficent to do glyph by glyph than
+//  render several atlases. But in theory if its just a few chars, you could render just those chars
+//  to an atlas at different sizes.
+typedef struct Atlas {
+	char *name;
+	int type;
+	char *texture;  //the GLubyte* buffer
+	//int textureID; //gl texture buffer
+	int bytesperpixel;  //1 for alpha, 2 lumalpha 4 rgba. font should be 1 alpha
+	//FT_Face fontFace;
+	ivec2 size;  //pixels, of texture: X=width, Y=height
+	int rowheight;  //if items are in regular rows, this is a hint, during making of the atlas
+	ivec2 pen;  //have a cursor, so it's easy to position an additional entry in unoccupied place in atlas
+} Atlas;
+void Atlas_init(Atlas *me, int size, int rowheight){
+	//use this for generating font atlas from .ttf
+	me->pen.X = me->pen.Y = 0;
+	me->size.X = me->size.Y = size;
+	me->rowheight = rowheight; //spacing between baselines for textpanel, in pixels (can get this from fontFace once loaded and sized to EM)
+	//me->EMpixels = EMpixels;  //desired size of "EM" square (either x or y dimension, same) in pixels
+	me->bytesperpixel = 1; //TT fonts are rendered to an antialiased 8-bit alpha texture
+	me->texture = (char*)malloc(me->size.X *me->size.Y*me->bytesperpixel);
+	memset(me->texture,127,me->size.X *me->size.Y*me->bytesperpixel); //make it black by default
+	/*
+	//here are some fun stripes to initialize the texture data, for debugging:
+	int kk;
+	for(int i=0;i<size;i++){
+		for(int j=0;j<size;j++){
+			kk = (i*size + j)*me->bytesperpixel;
+			me->texture[kk+me->bytesperpixel-1] = i % 2 == 0 ? 255 : 0;
+		}
+	}
+	*/
+}
+
+void subimage_paste(char *image, ivec2 size, char* subimage, int bpp, ivec2 ulpos, ivec2 subsize ){
+	int i;
+	int imrow, imcol, impos;
+	int isrow, iscol, ispos;
+	for(i=0;i<subsize.Y;i++ ){
+		imrow = ulpos.Y + i;
+		imcol = ulpos.X;
+		impos = (imrow * size.X + imcol)*bpp;
+		isrow = i;
+		iscol = 0;
+		ispos = (i*subsize.X + iscol)*bpp;
+		if(impos >= 0 && (impos+subsize.X*bpp <= size.X*size.Y*bpp))
+			memcpy(&image[impos],&subimage[ispos],subsize.X*bpp);
+		else
+			printf("!");
+	}
+}
+
+// named type is for upcasting any GUI* to a simple name
+// so a generic table search can be done by name for any type
+typedef struct GUINamedType {
+	char *name;
+	int type;
+} GUINamedType;
+GUINamedType *searchGUItable(struct Vector* guitable, char *name){
+	int i;
+	GUINamedType *retval = NULL;
+	if(guitable)
+	for(i=0;i<vectorSize(guitable);i++){
+		GUINamedType *el = vector_get(GUINamedType*,guitable,i);
+		///printf("[SGT %s %s] ",name,el->name);
+		if(!strcmp(name,el->name)){
+			retval = el;
+			break;
+		}
+	}
+	return retval;
+}
+
+
+void Atlas_addEntry(Atlas *me, AtlasEntry *entry, char *gray){
+	ivec2 pos;
+	//use this with atlasEntry_init for .ttf font atlas
+	//paste in somewhere, and update cRow,cCol by width,height of gray
+	//layout in rows
+	//if((me->pen.X + me->rowheight) > me->size.X){
+	//	me->pen.Y += me->rowheight;
+	//	me->pen.X = 0;
+	//}
+	if((me->pen.X + entry->size.X) > me->size.X){
+		me->pen.Y += me->rowheight;
+		me->pen.X = 0;
+	}
+
+	//paste glyph image into atlas image
+	pos.X = me->pen.X + entry->pos.X;
+	pos.Y = me->pen.Y + entry->pos.Y;
+	
+	if(1) subimage_paste(me->texture,me->size,gray,1,me->pen,entry->size);
+	if(0) subimage_paste(me->texture,me->size,gray,1,pos,entry->size);
+
+	if(1) {
+		entry->apos.X = me->pen.X;
+		entry->apos.Y = me->pen.Y;
+	}else{
+		entry->apos.X = pos.X;
+		entry->apos.Y = pos.Y;
+	}
+	me->pen.X += entry->size.X; //entry->advance.X;
+	//me->pen.Y += entry->advance.Y;
+}
+
+
+//a fontsize with the alphabet, or a whole set of named widgets, comprise an AtlasEntrySet
+// in theory more than one AtlasEntrySet could use the same atlas, allowing fewer textures, and 
+// better texture surface utilization %
+// You need to do a separate 'Set for each fontsize, because there's only one ascii lookup table per Set
+typedef struct AtlasEntrySet {
+	char *name;
+	int type;
+	int EMpixels;
+	int maxadvancepx; //max_advance for x for a fontface
+	int rowheight;  //if items are in regular rows, this is a hint, during making of the atlas
+	char *atlasName;
+	Atlas *atlas;
+	AtlasEntry *ascii[128]; //fast lookup table, especially for ascii 32 - 126 to get entry *. NULL if no entry.
+	struct Vector *entries; //atlasEntry *  -all entries -including ascii as first 128- sorted for binary searching
+} AtlasEntrySet;
+void AtlasEntrySet_init(AtlasEntrySet *me, char *name){
+	me->name = name;
+	me->type = GUI_ATLASENTRYSET;
+	me->entries = newVector(AtlasEntry *,256);
+	memset(me->ascii,0,128*sizeof(int)); //initialize ascii fast lookup table to NULL, which means no char glyph stored
+}
+
+void AtlasEntrySet_addEntry1(AtlasEntrySet *me, AtlasEntry *entry){
+	//use this with atlasEntry_init1 for .bmp widget texture atlas
+	vector_pushBack(AtlasEntry*,me->entries,entry);
+	if(entry->ichar > 0 && entry->ichar < 128){
+		//if its an ascii char, add to fast lookup table
+		me->ascii[entry->ichar] = entry;
+	}
+}
+void AtlasEntrySet_addEntry(AtlasEntrySet *me, AtlasEntry *entry, char *gray){
+	
+	vector_pushBack(AtlasEntry*,me->entries,entry);
+	if(entry->ichar > 0 && entry->ichar < 128){
+		//if its an ascii char, add to fast lookup table
+		me->ascii[entry->ichar] = entry;
+	}
+	if(!me->atlas)
+		me->atlas = (Atlas*)searchGUItable(atlas_table,me->atlasName);
+	if(me->atlas)
+		Atlas_addEntry(me->atlas, entry, gray);
+}
+AtlasEntry *AtlasEntrySet_getEntry1(AtlasEntrySet *me, char *name){
+	//use this to get an atlas entry by char* name, slow
+	int i;
+	for(i=0;i<vectorSize(me->entries);i++){
+		AtlasEntry *entry = vector_get(AtlasEntry*,me->entries,i);
+		if(!strcmp(entry->name,name))
+			return entry;
+	}
+	return NULL;
+}
+AtlasEntry *AtlasEntrySet_getEntry(AtlasEntrySet *me, int ichar){
+	//use this to get an atlas entry for a font glyph
+	// uses fast lookup for ASCII chars first, then slow lookup since its a 16 char x 16 char atlas, max 256 chars stored
+	// ichar is unicode
+	AtlasEntry *ae = NULL;
+	if(ichar > 0 && ichar < 128){  // < 0x80
+		ae = me->ascii[ichar];
+	}else{
+		//could be a binary search here
+		int i;
+		for(i=128;i<vectorSize(me->entries);i++){
+			AtlasEntry *entry = vector_get(AtlasEntry*,me->entries,i);
+			if(entry->ichar == ichar){
+				ae = entry;
+				break;
+			}
+		}
+	}
+	return ae;
+}
+
+
+//GUIFont instances go in a public lookup table, so a fontface is loaded only once
+//and if an atlas has been generated for that fontface by the programmer, it's added
+//to the font
+typedef struct AtlasFont {
+	char *name;
+	int type;
+	char *path;
+	FT_Face fontFace;
+	struct Vector atlasSizes; //GUIAtlasEntrySet*
+} AtlasFont;
+void AtlasFont_init(AtlasFont *me,char *facename, char* path){
+
+	me->name = facename;
+	me->type = GUI_FONT;
+	me->path = path;
+	me->fontFace = NULL;
+	me->atlasSizes.n = 0; //no atlas renderings to begin with
+	me->atlasSizes.allocn = 2;
+	me->atlasSizes.data = malloc(2*sizeof(AtlasEntrySet*));
+}
+
+
+AtlasEntrySet* searchAtlasFontForSizeOrMake(AtlasFont *font,int EMpixels){
+	AtlasEntrySet *set = NULL;
+	if(font){
+		if(font->atlasSizes.n){
+			for(int i=0;i<font->atlasSizes.n;i++){
+				AtlasEntrySet *aes = vector_get(AtlasEntrySet*,&font->atlasSizes,i);
+				if(aes){
+					if(aes->EMpixels == EMpixels){
+						set = aes;
+						break;
+					}
+				}
+			}
+		}
+		if(!set){
+			//make set
+		}
+	}
+	return set;
+}
+
+
+
+char *newstringfromchar(char c){
+	char *ret = malloc(2);
+	ret[0] = c;
+	ret[1] = '\0';
+	return ret;
+}
+static FT_Library fontlibrary; /* handle to library */
+
+int RenderFontAtlasCombo(AtlasFont *font, AtlasEntrySet *entryset,  char * cText){
+	//pass in a string with your alphabet, numbers, symbols or whatever, 
+	// and we use freetype2 to render to bitmap, and then tile those little
+	// bitmaps into an atlas texture
+	//wText is UTF-8 since FreeType expect this	 
+	char *fontname;
+	int EMpixels, i;
+	Atlas *atlas;
+	FT_Face fontFace;
+	int err;	
+
+	fontname = font->path;
+	EMpixels = entryset->EMpixels;
+	atlas = entryset->atlas;
+
+
+	err = FT_Init_FreeType(&fontlibrary);
+    if (err) {
+        fprintf(stderr, "FreeWRL FreeType Initialize error %d\n",err);
+        return FALSE;
+    }
+    err = FT_New_Face(fontlibrary, fontname, 0, &fontFace);
+    if (err) {
+        printf ("FreeType - can not use font %s\n",fontname);
+        return FALSE;
+    } 
+	if(1){
+		int nsizes;
+		printf("fontface flags & Scalable? = %d \n",fontFace->face_flags & FT_FACE_FLAG_SCALABLE );
+		nsizes = fontFace->num_fixed_sizes;
+		printf("num_fixed_sizes = %d\n",nsizes);
+	}
+	#define POINTSIZE 20
+	#define XRES 96
+	#define YRES 96
+	if(0)
+    err = FT_Set_Char_Size(fontFace, /* handle to face object           */
+                            POINTSIZE*64,    /* char width in 1/64th of points  */
+                            POINTSIZE*64,    /* char height in 1/64th of points */
+                            XRES,            /* horiz device resolution         */
+                            YRES);           /* vert device resolution          */
+	if(1)
+	err = FT_Set_Pixel_Sizes(
+		fontFace,   /* handle to face object */
+		0,      /* pixel_width           */
+		EMpixels );   /* pixel_height          */
+    
+	if(1){
+		int h;
+		printf("spacing between rows = %f\n",fontFace->height);
+		h = fontFace->size->metrics.height;
+		printf("height(px)= %d.%d x_ppem=%d\n",h >>6,(h<<26)>>26,(unsigned int)fontFace->size->metrics.x_ppem);
+		atlas->rowheight = fontFace->size->metrics.height >> 6;
+
+	}
+    if (err) {
+        printf ("FreeWRL - FreeType, can not set char size for font %s\n",fontname);
+        return FALSE;
+	}
+	for (i = 0; i < strlen(cText); i++) 	
+	{ 		
+		FT_GlyphSlot glyph;
+		FT_Error error;
+		unsigned long c;
+		AtlasEntry *entry;
+		
+		c = FT_Get_Char_Index(fontFace, (int) cText[i]); 		
+		error = FT_Load_Glyph(fontFace, c, FT_LOAD_RENDER); 	
+		if(error) 		
+		{ 			
+			//Logger::LogWarning("Character %c not found.", wText.GetCharAt(i)); 
+			printf("ouch87");
+			continue; 		
+		}
+		glyph = fontFace->glyph;
+
+		entry = malloc(sizeof(AtlasEntry));
+		//atlasEntry_init1(entry,names[i*2],(int)cText[i],0,0,16,16);
+		entry->ichar = 0;
+		if( cText[i] > 31 && cText[i] < 128 ) entry->ichar = cText[i]; //add to fast lookup table if ascii
+		entry->pos.X = glyph->bitmap_left;
+		entry->pos.Y = glyph->bitmap_top;
+		entry->advance.X = glyph->advance.x >> 6;
+		entry->advance.Y = glyph->advance.y >> 6;
+		entry->size.X = glyph->bitmap.width;
+		entry->size.Y = glyph->bitmap.rows;
+		entry->name = newstringfromchar(cText[i]);
+		AtlasEntrySet_addEntry(entryset,entry,glyph->bitmap.buffer);
+	}
+	//for(int i=0;i<256;i++){
+	//	for(int j=0;j<256;j++)
+	//		atlas->texture[i*256 + j] = (i*j) %2 ? 0 : 127; //checkerboard, to see if fonts twinkle
+	//}
+	return TRUE;
+}
+int RenderFontAtlas(AtlasFont *font, AtlasEntrySet *entryset,  char * cText){
+	//pass in a string with your alphabet, numbers, symbols or whatever, 
+	// and we use freetype2 to render to bitmap, and then tile those little
+	// bitmaps into an atlas texture
+	//wText is UTF-8 since FreeType expect this	
+	int i;
+	FT_Face fontFace = font->fontFace;
+
+	for (i = 0; i < strlen(cText); i++) 	
+	{ 		
+		FT_GlyphSlot glyph;
+		FT_Error error;
+		AtlasEntry *entry;
+		unsigned long c;
+		
+		c = FT_Get_Char_Index(fontFace, (int) cText[i]); 		
+		error = FT_Load_Glyph(fontFace, c, FT_LOAD_RENDER); 	
+		if(error) 		
+		{ 			
+			//Logger::LogWarning("Character %c not found.", wText.GetCharAt(i)); 
+			printf("ouch87");
+			continue; 		
+		}
+		glyph = fontFace->glyph;
+
+		entry = malloc(sizeof(AtlasEntry));
+		//atlasEntry_init1(entry,names[i*2],(int)cText[i],0,0,16,16);
+		entry->ichar = 0;
+		if( cText[i] > 31 && cText[i] < 128 ) entry->ichar = cText[i]; //add to fast lookup table if ascii
+		entry->pos.X = glyph->bitmap_left;
+		entry->pos.Y = glyph->bitmap_top;
+		entry->advance.X = glyph->advance.x >> 6;
+		entry->advance.Y = glyph->advance.y >> 6;
+		entry->size.X = glyph->bitmap.width;
+		entry->size.Y = glyph->bitmap.rows;
+		entry->name = newstringfromchar(cText[i]);
+		AtlasEntrySet_addEntry(entryset,entry,glyph->bitmap.buffer);
+	}
+	//for(int i=0;i<256;i++){
+	//	for(int j=0;j<256;j++)
+	//		atlas->texture[i*256 + j] = (i*j) %2 ? 0 : 127; //checkerboard, to see if fonts twinkle
+	//}
+	return TRUE;
+}
+
+int AtlasFont_LoadFont(AtlasFont *font){
+	FT_Face fontFace;
+	int err;	
+	char thisfontname[2048];
+	ttglobal tg;
+	ppComponent_Text p;
+	tg = gglobal();
+	p = (ppComponent_Text)tg->Component_Text.prv;
+
+	if(!p->font_directory)
+		p->font_directory = makeFontDirectory();
+
+    strcpy (thisfontname, p->font_directory);
+	strcat(thisfontname,"/");
+	strcat(thisfontname,font->path);
+
+	if(!fontlibrary)
+    if ((err = FT_Init_FreeType(&fontlibrary))) {
+        fprintf(stderr, "FreeWRL FreeType Initialize error %d\n",err);
+        return FALSE;
+    }
+    err = FT_New_Face(fontlibrary, thisfontname, 0, &fontFace);
+    if (err) {
+        printf ("FreeType - can not use font %s\n",thisfontname);
+        return FALSE;
+    } 
+	font->fontFace = fontFace;
+
+	if(1){
+		int nsizes;
+		printf("fontface flags & Scalable? = %d \n",fontFace->face_flags & FT_FACE_FLAG_SCALABLE );
+		nsizes = fontFace->num_fixed_sizes;
+		printf("num_fixed_sizes = %d\n",nsizes);
+	}
+	return TRUE;
+}
+int AtlasFont_setFontSize(AtlasFont *me, int EMpixels, int *rowheight, int *maxadvancepx){
+	int err;
+	FT_Face fontFace = me->fontFace;
+
+	if(!fontFace) return FALSE;
+	#define POINTSIZE 20
+	#define XRES 96
+	#define YRES 96
+	if(0){
+		err = FT_Set_Char_Size(fontFace, /* handle to face object           */
+								POINTSIZE*64,    /* char width in 1/64th of points  */
+								POINTSIZE*64,    /* char height in 1/64th of points */
+								XRES,            /* horiz device resolution         */
+								YRES);           /* vert device resolution          */
+	}
+	err = FT_Set_Pixel_Sizes(
+		fontFace,   /* handle to face object */
+		0,      /* pixel_width           */
+		EMpixels );   /* pixel_height          */
+    
+	if(1){
+		int h, max_advance_px;
+		printf("spacing between rows = %f\n",fontFace->height);
+		h = fontFace->size->metrics.height;
+		printf("height(px)= %d.%d x_ppem=%d\n",h >>6,(h<<26)>>26,(unsigned int)fontFace->size->metrics.x_ppem);
+		*rowheight = fontFace->size->metrics.height >> 6;
+		//fs->EMpixels = (unsigned int)fontFace->size->metrics.x_ppem;
+		max_advance_px = fontFace->size->metrics.max_advance >> 6;
+		printf("max advance px=%d\n",max_advance_px);
+	}
+	*maxadvancepx = fontFace->size->metrics.max_advance >> 6;
+    if (err) {
+        printf ("FreeWRL - FreeType, can not set char size for font %s\n",me->path);
+        return FALSE;
+	}
+	return TRUE;
+}
+unsigned int upperPowerOfTwo(unsigned int k){
+	int ipow;
+	unsigned int kk = 1;
+	for(ipow=2;ipow<32;ipow++){
+		kk = kk << 1;
+		if(kk > k) return kk;
+	}
+	return 1 << 31;
+}
+void AtlasFont_RenderFontAtlas(AtlasFont *me, int EMpixels, char* alphabet){
+	//this method assumes one fontsize per atlas, 
+	// and automatically adjusts atlas size to minimize wastage
+	int rowheight, maxadvancepx, pixelsNeeded;
+	unsigned int dimension;
+	AtlasEntrySet *aes;
+	char *name;
+	Atlas *atlas = NULL;
+
+	printf("start of RenderFontAtlas\n");
+
+	if(!me->fontFace) return; //font .ttf file not loaded (likely not found, or programmer didn't load flont first)
+
+	atlas = GUImalloc(&atlas_table,GUI_ATLAS); //malloc(sizeof(GUIAtlas));
+	aes = malloc(sizeof(AtlasEntrySet));
+	//GUIFontSize *fsize = malloc(sizeof(GUIFontSize));
+	name = malloc(strlen(me->name)+12); //base10 -2B has 11 chars, plus \0
+	strcpy(name,me->name);
+	//sprintf(&name[strlen(me->name)],"%d",EMpixels); //or itoa()
+	_itoa(EMpixels,&name[strlen(name)],10);
+	AtlasEntrySet_init(aes,name);
+	//somehow, I need the EMsize and rowheight, or a more general function to compute area needed by string
+	AtlasFont_setFontSize(me,EMpixels, &rowheight, &maxadvancepx);
+	pixelsNeeded = rowheight * EMpixels / 2 * strlen(alphabet);
+	dimension = (unsigned int)sqrt((double)pixelsNeeded);
+	dimension = upperPowerOfTwo(dimension);
+	printf("creating atlas %s with dimension %d advance %d rowheight %d\n",name,dimension,EMpixels/2,rowheight);
+	Atlas_init(atlas,dimension,rowheight);
+	aes->atlas = atlas;
+	aes->EMpixels = EMpixels;
+	aes->maxadvancepx = maxadvancepx;
+	aes->rowheight = rowheight;
+	atlas->name = name;
+	aes->atlasName = name;
+	//init ConsoleMessage font atlas
+	RenderFontAtlas(me,aes,alphabet);
+	vector_pushBack(AtlasEntrySet*,&me->atlasSizes,aes);
+	///vector_pushBack(GUIAtlas*,atlas_table,atlas); //will have fontnameXX where XX is the EMpixel
+	printf("end of RenderFontAtlas\n");
+}
+
+
+
+
+int bin2hex(char *inpath, char *outpath){
+	// converts any binary file -.ttf, .png etc- into a .c file, so you can compile it in
+	// then in your code refer to it:
+	// extern unsigned char my_data[];
+	// extern int my_size;
+	int ncol = 15;
+	FILE *fin, *fout;
+	fin = fopen(inpath,"r+b");
+	fout = fopen(outpath,"w+");
+
+	if(fin && fout){
+		char *bufname, *bufdup, *ir, *sep;
+		int more, m, j, nc;
+		unsigned int hh;
+		unsigned char *buf;
+		buf = malloc(ncol + 1);
+		//convert ..\ProggyClean.ttf to ProggyClean_ttf
+		bufname = bufdup = strdup(inpath);
+		ir = strrchr(bufname,'\\');
+		if(ir) bufname = &ir[1];
+		ir = strrchr(bufname,'/');
+		if(ir) bufname = &ir[1];
+		ir = strrchr(bufname,'.');
+		if(ir) ir[0] = '_';
+		//print data
+		fprintf(fout,"unsigned char %s_data[] = \n",bufname);
+		sep = "{";
+		more = 1;
+		m = 0;
+		do{
+			nc = ncol;
+			nc = fread(buf,1,nc,fin);
+			if(nc < ncol) more = 0;
+			for(j=0;j<nc;j++){
+				fprintf(fout,"%s",sep);
+				hh = buf[j];
+				fprintf(fout,"0x%.2x",hh);
+				sep = ",";
+			}
+			if(more) fprintf(fout,"\n");
+			m += nc;
+		}while(more);
+		fprintf(fout,"};\n");
+		//print size
+		fprintf(fout,"int %s_size = %d;\n",bufname,m);
+		fclose(fout);
+		fclose(fin);
+		free(buf);
+		free(bufdup);
+	}
+	return 1;
+}
+int AtlasFont_LoadFromDotC(AtlasFont *font, unsigned char *start, int size){
+	FT_Face fontFace;
+	FT_Open_Args args;
+	int err;	
+	char *fontname;
+	fontname = font->path;
+
+	if(!size || !start){
+		printf("not compiled in C %s\n", font->name);
+		return FALSE;
+	}
+
+	if(!fontlibrary)
+    if ((err = FT_Init_FreeType(&fontlibrary))) {
+        fprintf(stderr, "FreeWRL FreeType Initialize error %d\n",err);
+        return FALSE;
+    }
+	args.flags = FT_OPEN_MEMORY;
+	args.memory_base = start;
+	args.memory_size = size;
+	err = FT_Open_Face(fontlibrary, &args, 0,  &fontFace);
+   // err = FT_New_Face(fontlibrary, fontname, 0, &fontFace);
+    if (err) {
+        printf ("FreeType - can not use font %s\n",fontname);
+        return FALSE;
+    } 
+	font->fontFace = fontFace;
+
+	if(1){
+		printf("fontface flags & Scalable? = %d \n",fontFace->face_flags & FT_FACE_FLAG_SCALABLE );
+		int nsizes = fontFace->num_fixed_sizes;
+		printf("num_fixed_sizes = %d\n",nsizes);
+	}
+	return TRUE;
+}
+
+
+#define DOTC_NONE 0
+#define DOTC_SAVE 1
+#define DOTC_LOAD 2
+
+
+#define FONT_TACTIC DOTC_NONE //DOTC_LOAD
+#define ATLAS_TACTIC DOTC_NONE
+#if FONT_TACTIC > DOTC_SAVE
+	extern unsigned char ProggyClean_ttf_data[];
+	extern int ProggyClean_ttf_size;
+	extern unsigned char ProggyCrisp_ttf_data[];
+	extern int ProggyCrisp_ttf_size;
+	extern unsigned char VeraMono_ttf_data[];
+	extern int VeraMono_ttf_size;
+	extern unsigned char freewrl_widgets_ttf_data[];
+	extern int freewrl_widgets_ttf_size;
+#else
+	unsigned char *ProggyClean_ttf_data;
+	int ProggyClean_ttf_size = 0;
+	unsigned char *ProggyCrisp_ttf_data;
+	int ProggyCrisp_ttf_size = 0;
+	unsigned char *VeraMono_ttf_data;
+	int VeraMono_ttf_size = 0;
+	unsigned char *freewrl_widgets_ttf_data;
+	int freewrl_widgets_ttf_size = 0;
+#endif
+
+#if ATLAS_TACTIC > DOTC_SAVE
+	extern unsigned char widgetAtlas_png_data[];
+	extern int widgetAtlas_png_size;
+#else
+	unsigned char *widgetAtlas_png_data = NULL;
+	int widgetAtlas_png_size = 0;
+#endif
+
+AtlasFont *searchAtlasTableOrLoad(char *facename, int EMpixels){
+	AtlasFont *font;
+	font = (AtlasFont*)searchGUItable(font_table,facename);
+	if(!font){
+		static char * ascii32_126 = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQURSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+		int font_tactic, atlas_tactic, len;
+		char* facenamettf;
+	
+		font = GUImalloc(&font_table,GUI_FONT); //sizeof(GUIFont));
+		//AtlasFont_init(font,"ProggyClean","ProggyClean.ttf"); 
+		len = strlen(facename) + 7;
+		facenamettf = malloc(len);
+		strcpy(facenamettf,facename);
+		facenamettf = strcat(facenamettf,".ttf");
+		AtlasFont_init(font,facename,facenamettf); 
+
+		font_tactic = FONT_TACTIC; //DOTC_NONE, DOTC_SAVE, DOTC_LOAD
+		if(font_tactic == DOTC_SAVE) {
+			char *facenamettfc;
+			facenamettfc = alloca(strlen(facenamettf)+3);
+			strcpy(facenamettfc,facenamettf);
+			facenamettf[len-7] = '_';
+			strcat(facenamettf,".c");
+			bin2hex(font->path, facenamettfc); // "ProggyClean_ttf.c");
+		}
+		if(font_tactic == DOTC_LOAD)
+			AtlasFont_LoadFromDotC(font, ProggyClean_ttf_data, ProggyClean_ttf_size);
+		if(font_tactic != DOTC_LOAD)
+			AtlasFont_LoadFont(font); 
+
+		AtlasFont_RenderFontAtlas(font,EMpixels,ascii32_126);
+		font = (AtlasFont*)searchGUItable(font_table,facename);
+
+	}
+	if(!font){
+		printf("dug9gui: Can't find font %s did you misname the fontface sb Vera or VeraMono etc?\n",facename);
+	}
+	return font;
+}
+
+typedef struct GUIElement 
+{
+	char *name;
+	GUIElementType type;  //element = 0, panel 1, image 2, button 3, checkBox 4, textCaption 5, textPanel 6
+	//ivec2 anchors;
+	void * userData;
+} GUIElement;
+
+
+
+
+
+typedef struct vec2 {float X; float Y;} vec2;
+typedef struct vec4 {float X; float Y; float Z; float W;} vec4;
+vec4 vec4_init(float x, float y, float z, float w){
+	vec4 ret;
+	ret.X = x, ret.Y = y; ret.Z = z; ret.W = w;
+	return ret;
+}
+vec2 vec2_init(float x, float y){
+	vec2 ret;
+	ret.X = x, ret.Y = y; 
+	return ret;
+}
+typedef struct ivec4 {int X; int Y; int W; int H;} ivec4;
+ivec4 ivec4_init(int x, int y, int w, int h);
+
+
+//static Stack *_vpstack = NULL; //ivec4 in y-down pixel coords - viewport stack used for clipping drawing
+struct GUIScreen {
+	int X,Y; //placeholder for screen WxH
+} screen;
+ //singleton, screen allows mouse passthrough (vs panel, captures mouse)
+
+vec2 pixel2normalizedViewportScale( GLfloat x, GLfloat y)
+{
+	vec2 xy;
+	GLfloat yup;
+	
+	ivec4 currentvp = stack_top(ivec4,gglobal()->Mainloop._vportstack);
+
+	//convert to -1 to 1 range
+	xy.X = ((GLfloat)(x)/(GLfloat)currentvp.W) * 2.0f;
+	xy.Y = ((GLfloat)(y)/(GLfloat)currentvp.H) * 2.0f;
+	return xy;
+}
+vec2 pixel2normalizedViewport( GLfloat x, GLfloat y){
+	ivec4 currentvp = stack_top(ivec4,gglobal()->Mainloop._vportstack);
+
+	vec2 xy;
+	xy.X = ((GLfloat)(x - currentvp.X)/(GLfloat)currentvp.W) * 2.0f;
+	xy.Y = ((GLfloat)(y - currentvp.Y)/(GLfloat)currentvp.H) * 2.0f;
+	xy.X -= 1.0f;
+	xy.Y -= 1.0f;
+	xy.Y *= -1.0f;
+	return xy;
+}
+void printvpstacktop(Stack *vpstack, int line){
+	ivec4 currentvp = stack_top(ivec4,vpstack);
+	int n = ((struct Vector*)vpstack)->n;
+	int xx = ((ivec4*)((struct Vector*)vpstack)->data)[3].X;
+	printf("vp top[%d] = [%d %d %d %d] line %d xx=%d\n",n,currentvp.X,currentvp.Y,currentvp.W,currentvp.H,line,xx);
+}
+
+vec2 pixel2normalizedScreenScale( GLfloat x, GLfloat y)
+{
+	vec2 xy;
+	GLfloat yup;
+	//convert to -1 to 1 range
+	xy.X = ((GLfloat)x/(GLfloat)screen.X) * 2.0f;
+	xy.Y = ((GLfloat)y/(GLfloat)screen.Y) * 2.0f;
+	return xy;
+}
+vec2 pixel2normalizedScreen( GLfloat x, GLfloat y){
+	vec2 xy = pixel2normalizedScreenScale(x,y);
+	xy.X -= 1.0f;
+	xy.Y -= 1.0f;
+	xy.Y *= -1.0f;
+	return xy;
+}
+
+static   GLbyte vShaderStr[] =  
+      "attribute vec4 a_position;   \n"
+      "attribute vec2 a_texCoord;   \n"
+      "varying vec2 v_texCoord;     \n"
+      "void main()                  \n"
+      "{                            \n"
+      "   gl_Position = a_position; \n"
+      "   v_texCoord = a_texCoord;  \n"
+      "}                            \n";
+
+// using Luminance images, you need to set a color in order for it to show up different than white
+// and if the luminance is an opacity gray-scale for anti-aliased bitmap patterns ie font glyphs
+// then transparency = 1 - opacity
+
+//this shader works in win32 desktop angleproject (gets translated to HLSL), although it's a mystery why/how it works Dec 24, 2014.
+//In theory:
+// the blend should be 1111 if you want all texture
+// and blend should be 0000 if you want all vector color (ie drawing a colored rectangle or border)
+// and blend should be 0001 if you have an alpha image (ie font glyph image)- so you ignor .rgb of texture
+//In practice: there's a (1-blend.a) and (1-texColor.a) I don't understand
+//to use an rgba image's own color, set your blend to 1111 and vector color to 1110
+//to colorize a gray rgba image using the rgb as a luminance factor, and vector color as the hue, 
+//  set blend to 1111 and vector color to your chosen color
+static   GLbyte fShaderStr[] =  
+#ifdef GL_ES_VERSION_2_0
+      "precision mediump float;                            \n"
+#endif //GL_ES_VERSION_2_0
+      "varying vec2 v_texCoord;                            \n"
+      "uniform sampler2D Texture0;                         \n"
+      "uniform vec4 Color4f;                               \n"
+	  "uniform vec4 blend;                                 \n"
+      "void main()                                         \n"
+      "{                                                   \n"
+	  "  vec4 texColor = texture2D( Texture0, v_texCoord ); \n"    
+	  "  vec4 one = vec4(1.0,1.0,1.0,1.0); \n"
+	  "  vec4 omb = vec4(one.rgb - blend.rgb,1.0 - blend.a);                \n"
+	  "  vec4 tcolor = omb + (blend*texColor);\n"
+	  "  float aa = omb.a*Color4f.a + blend.a*(1.0 -texColor.a);\n"
+	  "  tcolor = Color4f * tcolor;\n"
+      "  vec4 finalColor = vec4(tcolor.rgb, 1.0 - aa ); \n"  
+      "  gl_FragColor = finalColor; \n"
+      "}                                                   \n";
+//	  "  gl_FragColor = vec4(1.0,1.0,1.0,1.0); \n"
+	  //"  texColor.a = one.a*blend.a + (one.a - blend.a)*texColor.a;\n"
+   //   "  vec4 finalColor = vec4(Color4f.rgb * texColor.rgb, 1.0 - (1.0 - Color4f.a)*(1.0 - texColor.a)); \n"  //vector rgb color, and vector.a * (1-L) for alpha
+	//  "  texColor.rgb = blend.rgb + (one.rgb - blend.rgb)*texColor.rgb;\n"
+	  //"  texColor.a = blend.a*Color4f.a + (one.a - blend.a)*texColor.a;\n"
+   //   "  vec4 finalColor = vec4(Color4f.rgb * texColor.rgb, texColor.a); \n"  //vector rgb color, and vector.a * (1-L) for alpha
+//STATICS
+static GLuint positionLoc;
+static GLuint texCoordLoc;
+static GLuint textureLoc;
+static GLuint color4fLoc;
+//static GLuint programObject;
+static GLuint textureID;
+//static GLuint indexBufferID;
+static GLuint blendLoc;
+static GLuint programObject = 0;
+GLuint esLoadProgram ( const char *vertShaderSrc, const char *fragShaderSrc ); //defined in statuasbarHud.c
+static void initProgramObject(){
+   // Load the shaders and get a linked program object
+   programObject = esLoadProgram ( (const char*) vShaderStr, (const char *)fShaderStr );
+   // Get the attribute locations
+   positionLoc = glGetAttribLocation ( programObject, "a_position" );
+   texCoordLoc = glGetAttribLocation ( programObject, "a_texCoord" );
+   // Get the sampler location
+   textureLoc = glGetUniformLocation ( programObject, "Texture0" );
+   color4fLoc = glGetUniformLocation ( programObject, "Color4f" );
+   blendLoc = glGetUniformLocation ( programObject, "blend" );
+}
+
+void dug9gui_DrawImage(int xpos,int ypos, int width, int height, char *buffer){
+//xpos, ypos upper left location of image in pixels, on the screen
+// hardwired to draw glyph (1-alpha) images
+//  1 - 2 4
+//  | / / |    2 triangles, 6 points, in y-up coords
+//  0 3 - 5
+/*
+GLfloat cursorVert[] = {
+	  0.0f,  1.0f, 0.0f,
+	  0.0f,  0.0f, 0.0f,
+	  1.0f,  0.0f, 0.0f,
+	  0.0f,  1.0f, 0.0f,
+	  1.0f,  0.0f, 0.0f,
+	  1.0f,  1.0f, 0.0f,
+	  };
+*/
+GLfloat cursorVert[] = {
+	  0.0f,  0.0f, 0.0f,
+	  0.0f,  1.0f, 0.0f,
+	  1.0f,  1.0f, 0.0f,
+	  0.0f,  0.0f, 0.0f,
+	  1.0f,  1.0f, 0.0f,
+	  1.0f,  0.0f, 0.0f,
+	  };
+
+GLfloat cursorTex[] = {
+	0.0f, 0.0f,
+	0.0f, 1.0f,
+	1.0f, 1.0f,
+	0.0f, 0.0f,
+	1.0f, 1.0f,
+	1.0f, 0.0f,
+	};
+	GLushort ind[] = {0,1,2,3,4,5};
+	//GLint pos, tex;
+	vec2 fxy, fwh;
+	ivec2 xy;
+	int i,j;
+	GLfloat cursorVert2[18];
+	//unsigned char buffer2[1024];
+
+
+    if(0) glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, width, height, 0, GL_LUMINANCE , GL_UNSIGNED_BYTE, buffer);
+	//for(int i=0;i<width*height;i++)
+	//	buffer2[i] = 255 - (unsigned char)(buffer[i]); //change from (1-alpha) to alpha image
+    if(1) glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, width, height, 0, GL_ALPHA , GL_UNSIGNED_BYTE, buffer);
+	glUniform4f(blendLoc,0.0f,0.0f,0.0f,1.0f); //-1 is because glyph grayscale are really (1.0 - alpha)
+
+	if(0){
+		//upper left
+		fxy = pixel2normalizedScreen((GLfloat)xpos,(GLfloat)ypos);
+		fwh = pixel2normalizedScreenScale((GLfloat)width,(GLfloat)height);
+		//lower left
+		fxy.Y = fxy.Y - fwh.Y;
+	}
+	if(1){
+		//upper left
+		//printvpstacktop(__LINE__);
+		fxy = pixel2normalizedViewport((GLfloat)xpos,(GLfloat)ypos);
+		//printvpstacktop(__LINE__);
+		fwh = pixel2normalizedViewportScale((GLfloat)width,(GLfloat)height);
+		//printvpstacktop(__LINE__);
+		//lower left
+		fxy.Y = fxy.Y - fwh.Y;
+	}
+
+	//fxy.Y -= 1.0; //DUG9GUI y=0 at top
+	//fxy.X -= 1.0;
+	memcpy(cursorVert2,cursorVert,2*3*3*sizeof(GLfloat));
+	//printvpstacktop(__LINE__);
+
+	for(i=0;i<6;i++){
+		cursorVert2[i*3 +0] *= fwh.X;
+		cursorVert2[i*3 +0] += fxy.X;
+		if(!iyup) cursorVert2[i*3 +1] = 1.0f - cursorVert2[i*3 +1];
+		cursorVert2[i*3 +1] *= fwh.Y;
+		cursorVert2[i*3 +1] += fxy.Y;
+	}
+	//printvpstacktop(__LINE__);
+
+	// Set the base map sampler to texture unit to 0
+	// Bind the base map - see above
+	glActiveTexture ( GL_TEXTURE0 );
+	glBindTexture ( GL_TEXTURE_2D, textureID );
+	glUniform1i ( textureLoc, 0 );
+
+	glVertexAttribPointer (positionLoc, 3, GL_FLOAT, 
+						   GL_FALSE, 0, cursorVert2 );
+	// Load the texture coordinate
+	glVertexAttribPointer (texCoordLoc, 2, GL_FLOAT, GL_FALSE, 0, cursorTex );  
+	glEnableVertexAttribArray (positionLoc );
+	glEnableVertexAttribArray (texCoordLoc);
+	
+
+	//Q do I need to bind a buffer for indexes, just for glew config?
+	//printvpstacktop(__LINE__);
+	//char *saveme[4*4*4];
+	//memcpy(saveme,_vpstack->data,4*4*4); //glew config overwrites vpstack->data top.X
+	glDrawElements ( GL_TRIANGLES, 3*2, GL_UNSIGNED_SHORT, ind );
+	//memcpy(_vpstack->data,saveme,4*4*4);
+	//printvpstacktop(__LINE__);
+
+}
+void dug9gui_DrawSubImage(int xpos,int ypos, int xsize, int ysize, int ix, int iy, int iw, int ih, int width, int height, int bpp, char *buffer){
+//xpos, ypos upper left location of where to draw the sub-image, in pixels, on the screen
+//xsize,ysize - size to stretch the sub-image to on the screen, in pixels
+// ix,iy,iw,ih - position and size in pixels of the subimage in a bigger/atlas image, ix,iy is upper left
+// width, height - size of bigger/atlas image
+// bpp - bytes per pixel: usually 1 for apha images like freetype antialiased glyph imagery, usually 4 for RGBA from .bmp
+// buffer - the bigger/atlas imagery pixels
+//  1 - 2 4
+//  | / / |    2 triangles, 6 points
+//  0 3 - 5
+// I might want to split this function, so loading the texture to gpu is outside, done once for a series of sub-images
+/*
+GLfloat cursorVert[] = {
+	  0.0f,  1.0f, 0.0f,
+	  0.0f,  0.0f, 0.0f,
+	  1.0f,  0.0f, 0.0f,
+	  0.0f,  1.0f, 0.0f,
+	  1.0f,  0.0f, 0.0f,
+	  1.0f,  1.0f, 0.0f};
+*/
+GLfloat cursorVert[] = {
+	  0.0f,  0.0f, 0.0f,
+	  0.0f,  1.0f, 0.0f,
+	  1.0f,  1.0f, 0.0f,
+	  0.0f,  0.0f, 0.0f,
+	  1.0f,  1.0f, 0.0f,
+	  1.0f,  0.0f, 0.0f};
+//remember texture coordinates are 0,0 in lower left of texture image
+GLfloat cursorTex[] = {
+	0.0f, 0.0f,
+	0.0f, 1.0f,
+	1.0f, 1.0f,
+	0.0f, 0.0f,
+	1.0f, 1.0f,
+	1.0f, 0.0f};
+	GLushort ind[] = {0,1,2,3,4,5};
+	//GLint pos, tex;
+	vec2 fxy, fwh, fixy, fiwh;
+	ivec2 xy;
+	int i,j;
+	GLfloat cursorVert2[18];
+	GLfloat cursorTex2[12];
+
+
+	// Bind the base map - see above
+	glActiveTexture ( GL_TEXTURE0 );
+	glBindTexture ( GL_TEXTURE_2D, textureID );
+
+	// Set the base map sampler to texture unit to 0
+	glUniform1i ( textureLoc, 0 );
+
+	switch(bpp){
+		case 1:
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, width, height, 0, GL_ALPHA , GL_UNSIGNED_BYTE, buffer);
+		//glUniform4f(color4fLoc,1.0f,1.0f,1.0f,0.0f);
+		glUniform4f(blendLoc,0.0f,0.0f,0.0f,1.0f); // take color from vector, take alpha from texture2D
+		break;
+		case 2:
+		//doesn't seem to come in here if my .png is gray+alpha on win32
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, width, height, 0, GL_LUMINANCE_ALPHA , GL_UNSIGNED_BYTE, buffer);
+		break;
+		case 4:
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA , GL_UNSIGNED_BYTE, buffer);
+		glUniform4f(blendLoc,1.0f,1.0f,1.0f,1.0f); //trust the texture2D color and alpha
+		break;
+		default:
+			return;
+	}
+	if(0){
+		//upper left
+		fxy = pixel2normalizedScreen((GLfloat)xpos,(GLfloat)ypos);
+		fwh = pixel2normalizedScreenScale((GLfloat)xsize,(GLfloat)ysize);
+		//lower left
+		fxy.Y = fxy.Y - fwh.Y;
+	}
+	if(1){
+		//upper left
+		fxy = pixel2normalizedViewport((GLfloat)xpos,(GLfloat)ypos);
+		fwh = pixel2normalizedViewportScale((GLfloat)xsize,(GLfloat)ysize);
+		//lower left
+		fxy.Y = fxy.Y - fwh.Y;
+	}
+	
+	//fxy.Y -= 1.0; //DUG9GUI y=0 at top
+	//fxy.X -= 1.0;
+	memcpy(cursorVert2,cursorVert,2*3*3*sizeof(GLfloat));
+	for(i=0;i<6;i++){
+		cursorVert2[i*3 +0] *= fwh.X;
+		cursorVert2[i*3 +0] += fxy.X;
+		if(!iyup) cursorVert2[i*3 +1] = 1.0f - cursorVert2[i*3 +1];
+		cursorVert2[i*3 +1] *= fwh.Y;
+		cursorVert2[i*3 +1] += fxy.Y;
+	}
+
+	glVertexAttribPointer (positionLoc, 3, GL_FLOAT, 
+						   GL_FALSE, 0, cursorVert2 );
+	// Load the texture coordinate
+	fixy.X = (float)ix/(float)width;
+	fiwh.X = (float)iw/(float)width;
+	if(!iyup){
+		fixy.Y = (float)iy/(float)height;
+		fiwh.Y = (float)ih/(float)height;
+	}else{
+		fixy.Y = (float)(height -iy)/(float)height;
+		fiwh.Y =-(float)ih/(float)height;
+	}
+	memcpy(cursorTex2,cursorTex,2*3*2*sizeof(GLfloat));
+	for(i=0;i<6;i++){
+		cursorTex2[i*2 +0] *= fiwh.X;
+		cursorTex2[i*2 +0] += fixy.X;
+		cursorTex2[i*2 +1] *= fiwh.Y;
+		cursorTex2[i*2 +1] += fixy.Y;
+	}
+	glVertexAttribPointer (texCoordLoc, 2, GL_FLOAT, GL_FALSE, 0, cursorTex2 );  
+	glEnableVertexAttribArray (positionLoc );
+	glEnableVertexAttribArray (texCoordLoc);
+
+	//// Bind the base map - see above
+	//glActiveTexture ( GL_TEXTURE0 );
+	//glBindTexture ( GL_TEXTURE_2D, textureID );
+
+	//// Set the base map sampler to texture unit to 0
+	//glUniform1i ( textureLoc, 0 );
+	glDrawElements ( GL_TRIANGLES, 3*2, GL_UNSIGNED_SHORT, ind ); 
+
+
+}
+
+typedef struct GUITextCaption
+{
+	GUIElement super;
+	char *caption;
+	//FT_Face fontFace;
+	AtlasFont *font;
+	char *fontname;
+	int fontSize;
+	AtlasEntrySet *set;
+	float percentSize;
+	int EMpixels; //how differ from fontSize?
+	int maxadvancepx;
+	float angle;
+	//char *fontAtlasName;
+	//GUIAtlas *atlas;
+} GUITextCaption;
+
+int render_captiontext(AtlasFont *font, AtlasEntrySet *set, unsigned char * utf8string, vec4 color){
+	//pass in a string with your alphabet, numbers, symbols or whatever, 
+	// and we use freetype2 to render to bitmpa, and then tile those little
+	// bitmaps into an atlas texture
+	//wText is UTF-8 since FreeType expect this	 
+	//FT_Face fontFace;
+	int n, err = 0;	
+	int  pen_x, pen_y;
+	Stack *vportstack;
+	ivec4 ivport;
+	ttglobal tg = gglobal();
+
+
+	if(utf8string == NULL) return FALSE;
+	// you need to pre-load the font during layout init
+	if(!font) return FALSE;
+
+	finishedWithGlobalShader();
+	glDepthMask(GL_FALSE);
+	glDisable(GL_DEPTH_TEST);
+	if(!programObject) initProgramObject();
+
+	glUseProgram ( programObject );
+	if(!textureID)
+		glGenTextures(1, &textureID);
+
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST); //GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST); //GL_LINEAR);
+
+	glUniform4f(color4fLoc,color.X,color.Y,color.Z,color.W); //0.7f,0.7f,0.9f,1.0f);
+	//for caption text, we'll set the font size whether or not we have an atlas set, 
+	//because the atlas set may not have all the utf8 chars we need, and so we may need to 
+	//render and store new ones, and for that we need to set the font size
+	#define POINTSIZE 20
+	#define XRES 96
+	#define YRES 96
+	if(0)
+	err = FT_Set_Char_Size(font->fontFace, /* handle to face object           */
+							POINTSIZE*64,    /* char width in 1/64th of points  */
+							POINTSIZE*64,    /* char height in 1/64th of points */
+							XRES,            /* horiz device resolution         */
+							YRES);           /* vert device resolution          */
+	if(1)
+	err = FT_Set_Pixel_Sizes(
+		font->fontFace,   /* handle to face object */
+		0,      /* pixel_width           */
+		set->EMpixels);   /* pixel_height          */
+    
+	if (err) {
+		printf ("FreeWRL - FreeType, can not set char size for font %s\n",font->name);
+		return FALSE;
+	}
+
+
+	//pen_x = 0; //(int)me->super.proportions.topLeft.X;
+	//pen_y = 0; //(int)me->super.proportions.topLeft.Y + 16;
+	vportstack = (Stack*)tg->Mainloop._vportstack;
+	ivport = stack_top(ivec4,vportstack);
+	pen_x = ivport.X;
+	pen_y = ivport.Y + ivport.H - set->EMpixels; //MAGIC FORMULA - I'm not sure what this should be, but got something drawing
+
+	//utf8to32 >>
+	unsigned char *start, *end;
+	int lenchar, l32;
+	lenchar = (int)strlen((const char *)utf8string);
+	//if(!strncmp(utf8string,"Gr",2)){
+	//	printf("length of Green string=%d\n",lenchar);
+	//	for(int i=0;i<lenchar;i++){
+	//		printf("%d %c\n",(unsigned int)utf8string[i],utf8string[i]);
+	//	}
+	//	printf("wait\n");
+	//}
+	start = utf8string;
+	end = (unsigned char *)&utf8string[lenchar];
+	l32 = 0;
+	//<<utf8to32
+
+	//for (int i = 0; i < strlen(cText); i++) 	
+	while(start < end)
+	{ 	
+		AtlasEntry *entry = NULL;
+		//utf8to32>>
+		unsigned int ichar;
+		int inc = 1;
+		if(*start < 0x80)
+			ichar = *start; //ascii range
+		else
+			ichar = utf8_to_utf32_char(start,end,&inc);
+		start += inc;
+		l32++;
+		//<<utif8to32
+		if(set){
+			//check atlas
+			entry = AtlasEntrySet_getEntry(set,ichar);
+			if(entry){
+				// drawsubimage(destination on screen, source glpyh details, source atlas) 
+				dug9gui_DrawSubImage(pen_x + entry->pos.X, pen_y - entry->pos.Y, entry->size.X, entry->size.Y, 
+					entry->apos.X, entry->apos.Y, entry->size.X, entry->size.Y,
+					set->atlas->size.X,set->atlas->size.Y,set->atlas->bytesperpixel,set->atlas->texture);
+				pen_x += entry->advance.X; //glyph->advance.x >> 6;
+			}
+		}
+		if(!entry){
+			//use freetype2 to render
+			unsigned long c = FT_Get_Char_Index(font->fontFace, ichar); 		
+			FT_Error error = FT_Load_Glyph(font->fontFace, c, FT_LOAD_RENDER); 	
+			if(error) 		
+			{ 			
+				//Logger::LogWarning("Character %c not found.", wText.GetCharAt(i)); 
+				printf("ouch88");
+				continue; 		
+			}
+			FT_GlyphSlot glyph = font->fontFace->glyph;
+			/*
+			atlasEntry *entry = malloc(sizeof(atlasEntry));
+			entry->pos.X = glyph->bitmap_left;
+			entry->pos.Y = glyph->bitmap_top;
+			entry->advance.X = glyph->advance.x >> 6;
+			entry->advance.Y = glyph->advance.y >> 6;
+			entry->size.X = glyph->bitmap.width;
+			entry->size.Y = glyph->bitmap.rows;
+			entry->name = newstringfromchar(cText[i]);
+			atlas_addEntry(atlas,entry,glyph->bitmap.buffer);
+			*/
+			//render one image
+			//statusbarHud_DrawCursor(GLint textureID,pos_x,pox_y);
+			//if(1) statusbarHud_DrawImage(pen_x + glyph->bitmap_left, pen_y + glyph->bitmap_top - glyph->bitmap.rows, glyph->bitmap.width, glyph->bitmap.rows, glyph->bitmap.buffer);
+			//if(1) dug9gui_DrawImage(pen_x + glyph->bitmap_left, pen_y + glyph->bitmap_top - glyph->bitmap.rows, glyph->bitmap.width, glyph->bitmap.rows, glyph->bitmap.buffer);
+			if(1) dug9gui_DrawImage(pen_x + glyph->bitmap_left, pen_y - glyph->bitmap_top, glyph->bitmap.width, glyph->bitmap.rows, glyph->bitmap.buffer);
+			pen_x += glyph->advance.x >> 6;
+			//pen_y += glyph->advance.y >> 6;
+		}
+	}
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
+	restoreGlobalShader();
+
+	return TRUE;
+}
+
+
+
+
+void *GUImalloc(struct Vector **guitable, int type){
+	void *retval = NULL;
+	int size = 0;
+
+	switch(type){
+		//auxiliary types
+		case GUI_ATLAS:			size = sizeof(Atlas); break;
+		case GUI_FONT:			size = sizeof(AtlasFont); break;
+		case GUI_ATLASENTRY:	size = sizeof(AtlasEntry); break;
+		case GUI_ATLASENTRYSET: size = sizeof(AtlasEntrySet); break;
+		default:
+			printf("no guielement of this type %d\n",type);
+	}
+	if(size){
+		retval = malloc(size);
+		//add to any tables
+		if(guitable){
+			if(*guitable == NULL) *guitable = newVector(GUIElement*,20);
+			vector_pushBack(GUIElement*,*guitable,retval);
+		}
+	}
+	return retval;
+}
+
+
+
+
+
+
+
+
+
