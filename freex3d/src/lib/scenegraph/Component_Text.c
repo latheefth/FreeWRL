@@ -77,7 +77,11 @@ include <ft2build.h>
 ** include <ftoutln.h>
 include FT_FREETYPE_H
 include FT_GLYPH_H */
-
+enum {
+	FONTSTATE_NONE,
+	FONTSTATE_TRIED,
+	FONTSTATE_LOADED,
+} fontstate;
 
 typedef struct pComponent_Text{
 
@@ -94,7 +98,7 @@ typedef struct pComponent_Text{
 
 	#define num_fonts 32
 	FT_Face font_face[num_fonts];           /* handle to face object */
-	int     font_opened[num_fonts];         /* is this font opened   */
+	int     font_state[num_fonts];         /* is this font opened   */
 
 
 	/* we load so many gliphs into an array for processing */
@@ -353,9 +357,74 @@ int FW_cubicto (FT_Vector* control1, FT_Vector* control2, FT_Vector* to, void* u
     FW_lineto (to, user);
     return 0;
 }
-
-
+/*
+    bit:    0       BOLD        (boolean)
+    bit:    1       ITALIC      (boolean)
+    bit:    2       SERIF
+    bit:    3       SANS
+    bit:    4       TYPEWRITER
+*/
+struct name_num {
+	char * facename;
+	char *family;
+	char *style;
+	int num;	//= (F << 2) + (I << 1) + B
+	int bold;   //B
+	int italic; //I
+	int ifamily;  //F 1=serif, 2=sans, 4=typewriter/mono
+} font_name_table [] = {
+	//face		family,style 				 num,B,I,F
+	"VeraSe",	"serif",NULL,				0x04,0,0,1,	/* Serif */
+    "VeraSeBd",	"serif","bold",				0x05,1,0,1,	/* Serif Bold */
+    "VeraSe",	"serif","italic",			0x06,0,1,1,	/* Serif Ital */
+    "VeraSeBd",	"serif","bold italic",		0x07,1,1,1,	/* Serif Bold Ital */
+    "Vera",		"sans",NULL,				0x08,0,0,2,	/* Sans */
+    "VeraBd",	"sans","bold",				0x09,0,1,2,	/* Sans Bold */
+    "VeraIt",	"sans","italic",			0x0a,1,0,2,	/* Sans Ital */
+    "VeraBI",	"sans","bold italic",		0x0b,1,1,2,	/* Sans Bold Ital */
+    "VeraMono",	"monospace",NULL,			0x10,0,0,4,	/* Monospace */
+    "VeraMoBd",	"monospace","bold",			0x11,1,0,4,	/* Monospace Bold */
+    "VeraMoIt",	"monospace","italic",		0x12,0,1,4,	/* Monospace Ital */
+    "VeraMoBI",	"monospace","bold italic",	0x13,1,1,4,	/* Monospace Bold Ital */
+	NULL,		0,0,0,0,
+};
+struct name_num *get_fontname_entry_by_num(num){
+	int i;
+	struct name_num *retval = NULL;
+	i = 0;
+	while(font_name_table[i].facename){
+		if(font_name_table[i].num == num) {
+			retval = &font_name_table[i];
+			break;
+		}
+		i++;
+	}
+	return retval;
+}
+struct name_num *get_fontname_entry_by_facename(char *facename){
+	int i;
+	struct name_num *retval = NULL;
+	i = 0;
+	while(font_name_table[i].facename){
+		if(!strcmp(font_name_table[i].facename,facename)) {
+			retval = &font_name_table[i];
+			break;
+		}
+		i++;
+	}
+	return retval;
+}
+char *facename_from_num(int num){
+	char *retval;
+	struct name_num *val;
+	retval = NULL;
+	val = get_fontname_entry_by_num(num);
+	if(val) retval = val->facename;
+	return retval;
+}
 /* make up the font name */
+//#define HAVE_FONTCONFIG 1
+#ifdef HAVE_FONTCONFIG
 void FW_make_fontname(int num) {
 /*
     bit:    0       BOLD        (boolean)
@@ -385,7 +454,6 @@ void FW_make_fontname(int num) {
 */
 
     ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
-    #ifdef HAVE_FONTCONFIG
     FcPattern *FW_fp=NULL;
     FcChar8 *FW_file=NULL;
     FcResult result;
@@ -413,121 +481,64 @@ void FW_make_fontname(int num) {
     if(!set || !set->nfont) {
         printf("<debug> FontConfig has found zero fonts. This is probably a bad thing.\n");
     }
-    #else
-
-    if (!p->font_directory) {
-        printf("Internal error: no font directory.\n");
-        return;
-    }
-    strcpy (p->thisfontname, p->font_directory);
-    #endif
 
     switch (num) {
     case 0x04:			/* Serif */
-	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"serif",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
-	#else
-	strcat (p->thisfontname,"/VeraSe.ttf");
-	#endif
 	break;
     case 0x05: 			/* Serif Bold */
-	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"serif",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold");
-	#else
-	strcat (p->thisfontname,"/VeraSeBd.ttf");
-	#endif
 	break;
     case 0x06:			/* Serif Ital */
-	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"serif",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"italic");
 	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"oblique");
-	#else
-	strcat (p->thisfontname,"/VeraSe.ttf");
-	#endif
 	break;
     case 0x07:			/* Serif Bold Ital */
-	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"serif",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold italic");
 	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold oblique");
-	#else
-	strcat (p->thisfontname,"/VeraSeBd.ttf");
-	#endif
 	break;
     case 0x08:			/* Sans */
-	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"sans",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
-	#else
-	strcat (p->thisfontname,"/Vera.ttf");
-	#endif
 	break;
     case 0x09: 			/* Sans Bold */
-	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"sans",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold");
-	#else
-	strcat (p->thisfontname,"/VeraBd.ttf");
-	#endif
 	break;
     case 0x0a: 			/* Sans Ital */
-	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"sans",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"italic");
 	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"oblique");
-	#else
-	strcat (p->thisfontname,"/VeraIt.ttf");
-	#endif
 	break;
     case 0x0b: 			/* Sans Bold Ital */
-	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"sans",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold italic");
 	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold oblique");
-	#else
-	strcat (p->thisfontname,"/VeraBI.ttf");
-	#endif
 	break;
     case 0x10:			/* Monospace */
-	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
-	#else
-	strcat (p->thisfontname,"/VeraMono.ttf");
-	#endif
 	break;
     case 0x11: 			/* Monospace Bold */
-	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold");
-	#else
-	strcat (p->thisfontname,"/VeraMoBd.ttf");
-	#endif
 	break;
     case 0x12: /* Monospace Ital */
-	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"italic");
 	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"oblique");
-	#else
-	strcat (p->thisfontname,"/VeraMoIt.ttf");
-	#endif
 	break;
     case 0x13: /* Monospace Bold Ital */
-	#ifdef HAVE_FONTCONFIG
 	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold italic");
 	FcPatternAddString(FW_fp,FC_STYLE,(const FcChar8*)"bold oblique");
-	#else
-	strcat (p->thisfontname,"/VeraMoBI.ttf");
-	#endif
 	break;
     default:
 	printf ("dont know how to handle font id %x\n",num);
 	return;
     }
 
-    #ifdef HAVE_FONTCONFIG
     FcConfigSubstitute(0,FW_fp,FcMatchPattern);
     FcDefaultSubstitute(FW_fp);
     set = FcFontSort(0, FW_fp, 1, 0, &result);
@@ -555,9 +566,56 @@ void FW_make_fontname(int num) {
     FcPatternDestroy(FW_fp);
     //FcPatternDestroy(set); bad - corrupts heap, set isn't a Pattern
 	if (set) FcFontSetSortDestroy(set);
-    #endif
-}
 
+}
+#else
+
+void FW_make_fontname(int num) {
+/*
+    bit:    0       BOLD        (boolean)
+    bit:    1       ITALIC      (boolean)
+    bit:    2       SERIF
+    bit:    3       SANS
+    bit:    4       TYPEWRITER
+
+    JAS - May 2005 - The Vera freely distributable ttf files
+    are:
+
+    Vera.ttf
+    VeraMono.ttf
+    VeraSeBd.ttf
+    VeraSe.ttf
+    VeraMoBI.ttf
+    VeraMoIt.ttf
+    VeraIt.ttf
+    VeraMoBd.ttf
+    VeraBd.ttf
+    VeraBI.ttf
+
+    The files that were included were copyright Bitstream;
+    the Vera files are also from Bitstream, but are
+    freely distributable. See the copyright file in the
+    fonts directory.
+*/
+	char *fontname;
+    ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
+    if (!p->font_directory) {
+        printf("Internal error: no font directory.\n");
+        return;
+    }
+
+	fontname = facename_from_num(num);
+	if(!fontname){
+		printf ("dont know how to handle font id %x\n",num);
+		p->thisfontname[0] = 0;
+	}else{
+		strcpy (p->thisfontname, p->font_directory);
+		strcat(p->thisfontname,"/");
+		strcat(p->thisfontname,fontname);
+		strcat(p->thisfontname,".ttf");
+	}
+}
+#endif
 /* initialize the freetype library */
 static int FW_init_face()
 {
@@ -642,12 +700,108 @@ ConsoleMessage ("TEXT INITIALIZATION - checking on the font file before doing an
 
         if (err) {
             printf ("FreeWRL - FreeType, can not set char size for font %s\n",p->thisfontname);
+			p->font_state[p->myff] = FONTSTATE_TRIED;
             return FALSE;
         } else {
-            p->font_opened[p->myff] = TRUE;
+            p->font_state[p->myff] = FONTSTATE_LOADED;
         }
     }
     return TRUE;
+}
+
+static FT_Face FW_init_face0(FT_Library library, char* thisfontname)
+{
+    int err;
+	FT_Face ftface;
+#ifdef _ANDROID
+	FT_Open_Args myArgs;
+#endif
+	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
+
+	ftface = NULL;
+
+#ifdef _ANDROID
+
+	if ((p->fileLen == 0) || (p->androidFontFile ==NULL)) {
+		ConsoleMessage ("FW_init_face, fileLen and/or androidFontFile issue");
+		return ftface; //FALSE;
+	}
+
+#ifdef ANDROID_DEBUG
+	{
+		struct stat buf;
+		int fh,result;
+		ConsoleMessage ("TEXT INITIALIZATION - checking on the font file before doing anything");
+		if (0 == fstat(fileno(p->androidFontFile), &buf)) {
+			ConsoleMessage("TEXT INITIALIZATION file size is %ld\n", buf.st_size);
+			ConsoleMessage("TEXT INITIALIZATION time modified is %s\n", ctime(&buf.st_atime));
+		}
+	}
+#endif //ANDROID_DEBUG
+
+
+	// ConsoleMessage("FT_Open_Face looks ok to go");
+
+	unsigned char *myFileData = MALLOC(void *, p->fileLen+1);
+	size_t frv;
+	frv = fread (myFileData, (size_t)p->fileLen, (size_t)1, p->androidFontFile);
+	myArgs.flags  = FT_OPEN_MEMORY;
+	myArgs.memory_base = myFileData;
+	myArgs.memory_size = p->fileLen;
+
+	err = FT_Open_Face(library, &myArgs, 0, &ftface);
+	if (err) {
+		char line[2000];
+		sprintf  (line,"FreeWRL - FreeType, can not set char size for font %s\n",thisfontname);
+		ConsoleMessage(line);
+		return NULL; //FALSE;
+	}
+
+#ifdef ANDROID_DEBUG
+	{
+		struct stat buf;
+		int fh,result;
+		if (0 == fstat(fileno(p->androidFontFile), &buf)) {
+			ConsoleMessage("FIN TEXT INITIALIZATION file size is %ld\n", buf.st_size);
+			ConsoleMessage("FIN TEXT INITIALIZATION time modified is %s\n", ctime(&buf.st_atime));
+		}
+	}
+#endif //ANDROID_DEBUG
+
+	fclose(p->androidFontFile);
+	p->androidFontFile = NULL;
+
+#else //ANDROID
+	/* load a font face */
+	err = FT_New_Face(library, thisfontname, 0, &ftface);
+#endif //ANDROID
+
+	if (err) {
+		printf ("FreeType - can not use font %s\n",thisfontname);
+		ftface = NULL; //FALSE;
+	}
+
+	return ftface;
+}
+int FW_set_facesize(FT_Face ftface,char *thisfontname){
+	// you can re-set the facesize after the fontface is loaded
+	FT_Error err;
+	int iret;
+	iret = FALSE;
+	if(ftface){
+		iret = TRUE;
+		err = FT_Set_Char_Size(ftface, /* handle to face object           */
+								POINTSIZE*64,    /* char width in 1/64th of points  */
+								POINTSIZE*64,    /* char height in 1/64th of points */
+								XRES,            /* horiz device resolution         */
+								YRES);           /* vert device resolution          */
+
+		if (err) {
+			printf ("FreeWRL - FreeType, can not set char size for font %s\n",thisfontname);
+			iret =  FALSE;
+		} 
+	}
+	return iret;
 }
 
 /* calculate extent of a range of characters */
@@ -730,6 +884,74 @@ static void FW_draw_character (FT_Glyph glyph)
     if (p->TextVerbose) printf ("done character\n");
 }
 
+
+int open_font()
+{
+    int len;
+    int err;
+	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
+
+    if (p->TextVerbose)
+        printf ("open_font called\n");
+
+    p->FW_outline_interface.move_to = (FT_Outline_MoveTo_Func)FW_moveto;
+    p->FW_outline_interface.line_to = (FT_Outline_LineTo_Func)FW_lineto;
+    p->FW_outline_interface.conic_to = (FT_Outline_ConicTo_Func)FW_conicto;
+    p->FW_outline_interface.cubic_to = (FT_Outline_CubicTo_Func)FW_cubicto;
+    p->FW_outline_interface.shift = 0;
+    p->FW_outline_interface.delta = 0;
+
+#ifndef _ANDROID
+
+#ifndef HAVE_FONTCONFIG
+    /* where are the fonts stored? */
+	if(!p->font_directory)
+		p->font_directory = makeFontDirectory();
+	//ConsoleMessage("font directory=%s\n",p->font_directory);
+    /* were fonts not found? */
+    if (p->font_directory == NULL) {
+#ifdef AQUA
+        ConsoleMessage ("No Fonts; this should not happen on OSX computers; contact FreeWRL team\n");
+#else
+        ConsoleMessage ("No Fonts; check the build parameter --with-fontsdir, or set FREEWRL_FONTS_DIR environment variable\n");
+#endif
+        return FALSE;
+    }
+#endif //HAVE_FONTCONFIG
+#endif //ANDROID
+
+    /* lets initialize some things */
+    for (len = 0; len < num_fonts; len++) {
+        p->font_state[len] = FONTSTATE_NONE;
+    }
+
+    if ((err = FT_Init_FreeType(&p->library))) {
+        fprintf(stderr, "FreeWRL FreeType Initialize error %d\n",err);
+        return FALSE;
+    }
+
+    return TRUE;
+}
+int open_FTlibrary_if_not_already(){
+	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
+	if (!p->started) {
+		if (open_font()) {
+			p->started = TRUE;
+		} else {
+			printf ("Could not find System Fonts for Text nodes\n");
+		}
+	}
+	return p->started;
+}
+FT_Library getFontLibrary(){
+	FT_Library library;
+	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
+	library = NULL;
+	if(open_FTlibrary_if_not_already())
+		library = p->library;
+	return library;		
+}
+
 /* UTF-8 to UTF-32 conversion -
 // x3d and wrl strings are supposed to be in UTF-8
 // when drawing strings, FreeType will take a UTF-32"
@@ -797,7 +1019,7 @@ unsigned int utf8_to_utf32_char(unsigned char *s, unsigned char *end, unsigned i
 	return c;
 }
 
-unsigned int *utf8_to_utf32(unsigned char *utf8string, unsigned int *len32)
+int *utf8_to_utf32(unsigned char *utf8string, unsigned int *str32, unsigned int *len32)
 {
 	//does the UTF-8 to UTF-32 conversion
 	//it allocates the unsigned int array it returns - please FREE() it
@@ -807,7 +1029,7 @@ unsigned int *utf8_to_utf32(unsigned char *utf8string, unsigned int *len32)
 	unsigned char *start, *end;
 	int lenchar, l32;
 	lenchar = (int)strlen((const char *)utf8string);
-	to0 = to = MALLOC(unsigned int*,(lenchar + 1)*sizeof(unsigned int));
+	to0 = to = str32; //MALLOC(unsigned int*,(lenchar + 1)*sizeof(unsigned int));
 	start = utf8string;
 	end = (unsigned char *)&utf8string[lenchar];
 	l32 = 0;
@@ -824,7 +1046,7 @@ unsigned int *utf8_to_utf32(unsigned char *utf8string, unsigned int *len32)
 			l32++;
 		}
 	}
-	to0[l32] = 0;
+	//to0[l32] = 0;
 	*len32 = l32;
 	return to0;
 }
@@ -890,7 +1112,7 @@ typedef struct row32 {
    Note that the text comes EITHER from a SV (ie, from perl) or from a directstring,
    eg, for placing text on the screen from within FreeWRL itself */
 
-void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstring,
+void FW_rendertext(unsigned int numrows,struct Uni_String **ptr,
 				unsigned int nl, float *length, double maxext,
 				double spacing, double mysize, unsigned int fsparam,
 				struct X3D_PolyRep *rp)
@@ -937,47 +1159,11 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
 	*/
 
 	/* z distance for text - only the status bar has anything other than 0.0 */
-	if (directstring) {
-	#ifdef CALCAULATEANGLETAN
-		float angletan;
-		/* convert fieldofview into radians */
-		angletan = fieldofview / 360.0f * PI * 2;
-
-		/* take half of the angle; */
-		angletan = angletan / 2.0f;
-
-		/* find the tan of it; */
-		angletan = tanf (angletan);
-
-		/* and, divide the "general" text size by it */
-		p->TextZdist = -0.010/angletan;
-		//printf ("fov %f tzd %f \n",(float) fieldofview, (float) p->TextZdist);
-	#else
-		/* the equation should be simple, but it did not work. Lets try the following: */
-		if (Viewer()->fieldofview < 12.0f) {
-			p->TextZdist = -12.0f;
-		} else if (Viewer()->fieldofview < 46.0f) {
-			p->TextZdist = -0.2f;
-		} else if (Viewer()->fieldofview  < 120.0f) {
-			p->TextZdist = +2.0f;
-		} else {
-			p->TextZdist = + 2.88f;
-		}
-	#endif
-	} else {
-		p->TextZdist = 0.0f;
-	}
+	p->TextZdist = 0.0f;
 
 	/* have we done any rendering yet */
 	/* do we need to call open font? */
-	if (!p->started) {
-		if (open_font()) {
-			p->started = TRUE;
-		} else {
-			printf ("Could not find System Fonts for Text nodes\n");
-			return;
-		}
-	}
+	if(!open_FTlibrary_if_not_already()) return;
 
 	if (p->TextVerbose)
 		printf ("entering FW_Render_text \n");
@@ -995,55 +1181,59 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
 	p->x_size = mysize;            /* global variable for size */
 	p->y_size = mysize;            /* global variable for size */
 
-	/* is this font opened */
-	p->myff = (fsparam >> 3) & 0x1F;
 
+	/* is this fontface opened */
+	p->myff = (fsparam >> 3) & 0x1F;
 #if defined (ANDROID)
 // Android - for now, all fonts are identical
 p->myff = 4;
 #endif
-
 	if (p->myff <4) {
 		/* we dont yet allow externally specified fonts, so one of
 			the font style bits HAS to be set. If there was no FontStyle
 			node, this will be blank, so... */
 		p->myff = 4;
 	}
-
-	if (!p->font_opened[p->myff]) {
+	if (p->font_state[p->myff] < FONTSTATE_TRIED) {
+		//try just once, not every time we come in here
+		FT_Face fontface;
 		FW_make_fontname(p->myff);
-		if (!FW_init_face()) {
-			/* tell this to render as fw internal font */
-			FW_make_fontname (0);
-			FW_init_face();
+		fontface = FW_init_face0(p->library,p->thisfontname);
+		if (fontface) {
+			p->font_face[p->myff] = fontface;
+			p->font_state[p->myff] = FONTSTATE_LOADED;
+		}else{
+			p->font_state[p->myff] = FONTSTATE_TRIED;
 		}
 	}
 	if(!p->font_face[p->myff]) return; //couldn't load fonts
+
+	FW_set_facesize(p->font_face[p->myff],p->thisfontname);
 	/* type 1 fonts different than truetype fonts */
 	if (p->font_face[p->myff]->units_per_EM != 1000)
 		p->x_size = p->x_size * p->font_face[p->myff]->units_per_EM/1000.0;
 
-	/* if we have a direct string, then we only have ONE, so initialize it here */
-	if (directstring != 0) str = (unsigned char *)directstring;
-
-	rowvec = (row32*)alloca(numrows * sizeof(row32));
+	rowvec = (row32*)alloca(numrows * sizeof(row32)); 
 
 	/* load all of the characters first... */
 	for (row=0; row<numrows; row++) {
-		unsigned int len32, total_row_advance, widest_char, *utf32;
-		if (directstring == 0)
-			str = (unsigned char *)ptr[row]->strptr;
+		unsigned int len, len32, total_row_advance, widest_char, *str32;
+		str = (unsigned char *)ptr[row]->strptr;
+		len = strlen(str);
 		/* utf8_to_utf32 */
-		utf32 = utf8_to_utf32(str,&len32);
+		//in theory str32 will always have # of chars <= len str8
+		// so allocating len8 chars will be enough or sometimes too much
+		str32 = alloca((len+1) * sizeof(unsigned int)); 
+		utf8_to_utf32(str,str32,&len32);
 		rowvec[row].iglyphstartindex = p->cur_glyph;
 		rowvec[row].len32 = len32;
-		rowvec[row].str32 = utf32;
-		rowvec[row].chr = (chardata *) alloca(len32*sizeof(chardata));
+		rowvec[row].str32 = str32;
+		rowvec[row].chr = (chardata *) alloca(len32*sizeof(chardata)); //some compilers gurus warn alloca can do weird stuff in loop, not recommended
 		total_row_advance = 0;
 		widest_char = 0;
 		for(i=0;i<len32;i++){
 			int icount;
-			FW_Load_Char(utf32[i]);
+			FW_Load_Char(str32[i]);
 			icount = p->cur_glyph -1;
 			rowvec[row].chr[i].iglyph = icount;
 			rowvec[row].chr[i].advance = p->glyphs[icount]->advance.x >> 10;
@@ -1120,7 +1310,7 @@ p->myff = 4;
 			row = irow;
 			if(!TOPTOBOTTOM) row = numrows - irow -1;
 
-			if (directstring == 0) str = (unsigned char *)ptr[row]->strptr;
+			str = (unsigned char *)ptr[row]->strptr;
 			if (p->TextVerbose)
 				printf ("text2 row %d :%s:\n",row, str);
 			p->pen_x = 0.0;
@@ -1230,7 +1420,7 @@ p->myff = 4;
 			row = irow;
 			if(!LEFTTORIGHT) row = numrows - irow -1;
 
-			if (directstring == 0) str = (unsigned char *)ptr[row]->strptr;
+			str = (unsigned char *)ptr[row]->strptr;
 			if (p->TextVerbose)
 				printf ("text2 row %d :%s:\n",row, str);
 			p->pen_y = 0.0;
@@ -1383,59 +1573,11 @@ p->myff = 4;
 	}
 
 	//free malloced temps (allocas are stack, will self-delete)
-	for (row=0; row<numrows; row++) {
-		FREE_IF_NZ(rowvec[row].str32);
-	}
+	//for (row=0; row<numrows; row++) {
+	//	FREE_IF_NZ(rowvec[row].str32);
+	//}
 
 	if (p->TextVerbose) printf ("exiting FW_Render_text\n");
-}
-
-int open_font()
-{
-    int len;
-    int err;
-	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
-
-    if (p->TextVerbose)
-        printf ("open_font called\n");
-
-    p->FW_outline_interface.move_to = (FT_Outline_MoveTo_Func)FW_moveto;
-    p->FW_outline_interface.line_to = (FT_Outline_LineTo_Func)FW_lineto;
-    p->FW_outline_interface.conic_to = (FT_Outline_ConicTo_Func)FW_conicto;
-    p->FW_outline_interface.cubic_to = (FT_Outline_CubicTo_Func)FW_cubicto;
-    p->FW_outline_interface.shift = 0;
-    p->FW_outline_interface.delta = 0;
-
-#ifndef _ANDROID
-
-#ifndef HAVE_FONTCONFIG
-    /* where are the fonts stored? */
-	if(!p->font_directory)
-		p->font_directory = makeFontDirectory();
-	//ConsoleMessage("font directory=%s\n",p->font_directory);
-    /* were fonts not found? */
-    if (p->font_directory == NULL) {
-#ifdef AQUA
-        ConsoleMessage ("No Fonts; this should not happen on OSX computers; contact FreeWRL team\n");
-#else
-        ConsoleMessage ("No Fonts; check the build parameter --with-fontsdir, or set FREEWRL_FONTS_DIR environment variable\n");
-#endif
-        return FALSE;
-    }
-#endif //HAVE_FONTCONFIG
-#endif //ANDROID
-
-    /* lets initialize some things */
-    for (len = 0; len < num_fonts; len++) {
-        p->font_opened[len] = FALSE;
-    }
-
-    if ((err = FT_Init_FreeType(&p->library))) {
-        fprintf(stderr, "FreeWRL FreeType Initialize error %d\n",err);
-        return FALSE;
-    }
-
-    return TRUE;
 }
 
 int avatarCollisionVolumeIntersectMBBf(double *modelMatrix, float *minVals, float *maxVals);
@@ -1447,6 +1589,8 @@ void collide_Text (struct X3D_Text *node)
     struct point_XYZ delta = {0,0,-1};
     struct X3D_PolyRep pr;
     int change = 0;
+
+	if(node->__rendersub == 1) return; //don't collide with screentext
 
 	ttglobal tg = gglobal();
 	naviinfo = (struct sNaviInfo*)tg->Bindable.naviinfo;
@@ -1657,7 +1801,10 @@ void make_Text (struct X3D_Text *node)
     */
 	//normal scene 3D vectorized text
 	node->__rendersub = 0;
-	FW_rendertext(((node->string).n),((node->string).p),NULL,
+	//screenfontstyle rendering
+	if(isScreenFontStyle) node->__rendersub = 1;
+
+	FW_rendertext(((node->string).n),((node->string).p),
 				((node->length).n),((node->length).p),
 					(node->maxExtent),spacing,size,fsparams,rep_);
 
@@ -1998,7 +2145,8 @@ char *newstringfromchar(char c){
 	ret[1] = '\0';
 	return ret;
 }
-static FT_Library fontlibrary; /* handle to library */
+//static FT_Library fontlibrary; /* handle to library */
+
 
 int RenderFontAtlasCombo(AtlasFont *font, AtlasEntrySet *entryset,  char * cText){
 	//pass in a string with your alphabet, numbers, symbols or whatever, 
@@ -2009,18 +2157,17 @@ int RenderFontAtlasCombo(AtlasFont *font, AtlasEntrySet *entryset,  char * cText
 	int EMpixels, i;
 	Atlas *atlas;
 	FT_Face fontFace;
+	FT_Library fontlibrary;
 	int err;	
 
 	fontname = font->path;
 	EMpixels = entryset->EMpixels;
 	atlas = entryset->atlas;
 
+	fontlibrary = getFontLibrary();
+	if(!fontlibrary)
+		return FALSE;
 
-	err = FT_Init_FreeType(&fontlibrary);
-    if (err) {
-        fprintf(stderr, "FreeWRL FreeType Initialize error %d\n",err);
-        return FALSE;
-    }
     err = FT_New_Face(fontlibrary, fontname, 0, &fontFace);
     if (err) {
         printf ("FreeType - can not use font %s\n",fontname);
@@ -2141,8 +2288,10 @@ int RenderFontAtlas(AtlasFont *font, AtlasEntrySet *entryset,  char * cText){
 }
 
 int AtlasFont_LoadFont(AtlasFont *font){
-	FT_Face fontFace;
+	FT_Face fontface;
+	FT_Library fontlibrary;
 	int err;	
+	struct name_num *fontname_entry;
 	char thisfontname[2048];
 	ttglobal tg;
 	ppComponent_Text p;
@@ -2156,22 +2305,43 @@ int AtlasFont_LoadFont(AtlasFont *font){
 	strcat(thisfontname,"/");
 	strcat(thisfontname,font->path);
 
+	fontlibrary = getFontLibrary();
 	if(!fontlibrary)
-    if ((err = FT_Init_FreeType(&fontlibrary))) {
-        fprintf(stderr, "FreeWRL FreeType Initialize error %d\n",err);
         return FALSE;
-    }
-    err = FT_New_Face(fontlibrary, thisfontname, 0, &fontFace);
-    if (err) {
-        printf ("FreeType - can not use font %s\n",thisfontname);
-        return FALSE;
-    } 
-	font->fontFace = fontFace;
 
+	fontname_entry = get_fontname_entry_by_facename(font->name);
+	if(fontname_entry){
+		//a font we also use for Component_Text ie Vera series
+		int num = fontname_entry->num;
+		if(p->font_state[num] < FONTSTATE_TRIED){
+			FW_make_fontname(num);
+			fontface = FW_init_face0(fontlibrary,p->thisfontname);
+			if (fontface) {
+				p->font_face[num] = fontface;
+				p->font_state[num] = FONTSTATE_LOADED;
+				font->fontFace = fontface;
+			}else{
+				p->font_state[num] = FONTSTATE_TRIED;
+				return FALSE;
+			}
+		}
+		else{
+			//already loaded, just retrieve
+			font->fontFace = p->font_face[num];
+		}
+	}else{
+		//not a Vera, could be a scrolling-text pixel or proggy font
+		err = FT_New_Face(fontlibrary, thisfontname, 0, &fontface);
+		if (err) {
+			printf ("FreeType - can not use font %s\n",thisfontname);
+			return FALSE;
+		} 
+		font->fontFace = fontface;
+	}
 	if(1){
 		int nsizes;
-		printf("fontface flags & Scalable? = %d \n",fontFace->face_flags & FT_FACE_FLAG_SCALABLE );
-		nsizes = fontFace->num_fixed_sizes;
+		printf("fontface flags & Scalable? = %d \n",fontface->face_flags & FT_FACE_FLAG_SCALABLE );
+		nsizes = fontface->num_fixed_sizes;
 		printf("num_fixed_sizes = %d\n",nsizes);
 	}
 	return TRUE;
@@ -2320,6 +2490,7 @@ int bin2hex(char *inpath, char *outpath){
 }
 int AtlasFont_LoadFromDotC(AtlasFont *font, unsigned char *start, int size){
 	FT_Face fontFace;
+	FT_Library fontlibrary;
 	FT_Open_Args args;
 	int err;	
 	char *fontname;
@@ -2330,11 +2501,10 @@ int AtlasFont_LoadFromDotC(AtlasFont *font, unsigned char *start, int size){
 		return FALSE;
 	}
 
+	fontlibrary = getFontLibrary();
 	if(!fontlibrary)
-    if ((err = FT_Init_FreeType(&fontlibrary))) {
-        fprintf(stderr, "FreeWRL FreeType Initialize error %d\n",err);
         return FALSE;
-    }
+
 	args.flags = FT_OPEN_MEMORY;
 	args.memory_base = start;
 	args.memory_size = size;
@@ -2873,7 +3043,7 @@ int render_captiontext(AtlasFont *font, AtlasEntrySet *set, unsigned char * utf8
 							POINTSIZE*64,    /* char height in 1/64th of points */
 							XRES,            /* horiz device resolution         */
 							YRES);           /* vert device resolution          */
-	if(1)
+	if(0)
 	err = FT_Set_Pixel_Sizes(
 		font->fontFace,   /* handle to face object */
 		0,      /* pixel_width           */
