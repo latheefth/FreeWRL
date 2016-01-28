@@ -82,6 +82,24 @@ enum {
 	FONTSTATE_TRIED,
 	FONTSTATE_LOADED,
 } fontstate;
+typedef struct chardata{
+	unsigned int iglyph; //glyph index in p->gplyphs[iglyph]
+	unsigned int advance; //char width or more precisely, advance of penx to next char start
+	double x; //pen_x
+	double y;
+	double sx; //scale = 1-rshrink * 1-shrink applied appropriately ie the net scale needed for this char in x
+	double sy;
+} chardata;
+typedef struct row32 {
+	int allocn;
+	int len32;
+	unsigned int *str32;
+	int iglyphstartindex;
+	double hrowsize; //all the char widths
+	double vcolsize; //len32 x charheight
+	unsigned int widestchar; //widest char in the row, in advance units
+	chardata *chr;
+}row32;
 
 typedef struct pComponent_Text{
 
@@ -106,7 +124,8 @@ typedef struct pComponent_Text{
 	FT_Glyph        glyphs[MAX_GLYPHS];
 	int             cur_glyph;
 	int             TextVerbose;// = FALSE;
-
+	int rowvec_allocn;
+	row32 *rowvec;
 
 	/* decompose interface func pointer */
 	FT_Outline_Funcs FW_outline_interface;
@@ -164,6 +183,8 @@ void Component_Text_init(struct tComponent_Text *t){
 		p->font_directory = NULL;
 		/* flag to determine if we need to call the open_font call */
 		p->started = FALSE;
+		p->rowvec_allocn = 0;
+		p->rowvec = NULL;
 	}
 }
 void Component_Text_clear(struct tComponent_Text *t){
@@ -172,6 +193,15 @@ void Component_Text_clear(struct tComponent_Text *t){
 	{
 		ppComponent_Text p = (ppComponent_Text)t->prv;
 		FREE_IF_NZ(p->font_directory);
+		{
+			int row;
+			if(p->rowvec)
+			for(row=0;row<p->rowvec_allocn;row++){
+				FREE_IF_NZ(p->rowvec[row].str32);
+				FREE_IF_NZ(p->rowvec[row].chr);
+			}
+			FREE_IF_NZ(p->rowvec);
+		}
 	}
 }
 //	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
@@ -1084,23 +1114,6 @@ int len_utf8(unsigned char *utf8string)
 	return l32;
 }
 
-typedef struct chardata{
-	unsigned int iglyph; //glyph index in p->gplyphs[iglyph]
-	unsigned int advance; //char width or more precisely, advance of penx to next char start
-	double x; //pen_x
-	double y;
-	double sx; //scale = 1-rshrink * 1-shrink applied appropriately ie the net scale needed for this char in x
-	double sy;
-} chardata;
-typedef struct row32 {
-	int len32;
-	unsigned int *str32;
-	int iglyphstartindex;
-	double hrowsize; //all the char widths
-	double vcolsize; //len32 x charheight
-	unsigned int widestchar; //widest char in the row, in advance units
-	chardata *chr;
-}row32;
 
 #ifndef DISABLER
 #include <malloc.h>
@@ -1120,6 +1133,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr,
 	unsigned char *str = NULL; /* string pointer- initialization gets around compiler warning */
 	unsigned int i,row,ii,irow;
 	row32 *rowvec;
+	int rowvec_allocn;
 	double shrink = 0;
 	double rshrink = 0;
 	int counter=0;
@@ -1213,7 +1227,31 @@ p->myff = 4;
 	if (p->font_face[p->myff]->units_per_EM != 1000)
 		p->x_size = p->x_size * p->font_face[p->myff]->units_per_EM/1000.0;
 
-	rowvec = (row32*)alloca(numrows * sizeof(row32)); 
+	//rowvec = (row32*)alloca(numrows * sizeof(row32)); 
+	//realloc row vector if necessary
+	rowvec_allocn = p->rowvec_allocn;
+	rowvec = p->rowvec;
+	if(!rowvec){
+		rowvec = (row32*)malloc(numrows * sizeof(row32));
+		memset(rowvec,0,numrows * sizeof(row32));
+	}
+	if(rowvec_allocn < numrows){
+		rowvec = realloc(rowvec,numrows * sizeof(row32));
+		rowvec_allocn = numrows;
+	}
+	//realloc any str8 or str32s in each row
+	for (row=0; row<numrows; row++) {
+		unsigned int len;
+		str = (unsigned char *)ptr[row]->strptr;
+		len = strlen(str);
+		if(rowvec[row].allocn < len){
+			rowvec[row].str32 = (unsigned int *)realloc(rowvec[row].str32,(len+1) * sizeof(unsigned int)); 
+			rowvec[row].chr = (chardata *) realloc(rowvec[row].chr,len*sizeof(chardata));
+			rowvec[row].allocn = len;
+		}
+	}
+	p->rowvec = rowvec;
+	p->rowvec_allocn = rowvec_allocn;
 
 	/* load all of the characters first... */
 	for (row=0; row<numrows; row++) {
@@ -1223,12 +1261,13 @@ p->myff = 4;
 		/* utf8_to_utf32 */
 		//in theory str32 will always have # of chars <= len str8
 		// so allocating len8 chars will be enough or sometimes too much
-		str32 = alloca((len+1) * sizeof(unsigned int)); 
+		if(0) str32 = alloca((len+1) * sizeof(unsigned int)); 
+		str32 = rowvec[row].str32;
 		utf8_to_utf32(str,str32,&len32);
 		rowvec[row].iglyphstartindex = p->cur_glyph;
 		rowvec[row].len32 = len32;
 		rowvec[row].str32 = str32;
-		rowvec[row].chr = (chardata *) alloca(len32*sizeof(chardata)); //some compilers gurus warn alloca can do weird stuff in loop, not recommended
+		if(0) rowvec[row].chr = (chardata *) alloca(len32*sizeof(chardata)); //some compilers gurus warn alloca can do weird stuff in loop, not recommended
 		total_row_advance = 0;
 		widest_char = 0;
 		for(i=0;i<len32;i++){
@@ -1572,7 +1611,7 @@ p->myff = 4;
 		}
 	}
 
-	//free malloced temps (allocas are stack, will self-delete)
+	//see clear_Component_Text()
 	//for (row=0; row<numrows; row++) {
 	//	FREE_IF_NZ(rowvec[row].str32);
 	//}
