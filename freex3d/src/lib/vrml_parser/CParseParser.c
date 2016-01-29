@@ -4068,10 +4068,10 @@ static BOOL parser_interfaceDeclarationB(struct VRMLParser* me, struct ProtoDefi
 
 BOOL find_anyfield_by_name(struct VRMLLexer* lexer, struct X3D_Node* node, union anyVrml **anyptr, int *imode, int *itype, char* nodeFieldName, int *isource, void **fdecl, int *ifield);
 void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, int num);
-#ifndef DISABLER
-#include <malloc.h>
-#else
+#ifdef AQUA
 #include <malloc/malloc.h>
+#else
+#include <malloc.h>
 #endif
 static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
     int mode;
