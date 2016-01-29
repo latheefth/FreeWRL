@@ -70,7 +70,7 @@ X3D Text Component
 #define HORIZONTAL (fsparam & 0x01)
 
 #define OUT2GL(a) (p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES))
-#define OUT2GLB(a,s) (p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES)*s)
+#define OUT2GLB(a,s) (p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES) *s)
 
 /* now defined in system_fonts.h
 include <ft2build.h>
@@ -408,28 +408,30 @@ int FW_cubicto (FT_Vector* control1, FT_Vector* control2, FT_Vector* to, void* u
     bit:    3       SANS
     bit:    4       TYPEWRITER
 */
+
 struct name_num {
 	char * facename;
 	char *family;
 	char *style;
+	char *style2; //linux installed font systme may use oblique instead of italic - this is alternate oblique
 	int num;	//= (F << 2) + (I << 1) + B
 	int bold;   //B
 	int italic; //I
 	int ifamily;  //F 1=serif, 2=sans, 4=typewriter/mono
 } font_name_table [] = {
-	//face		family,style 				 num,B,I,F
-	"VeraSe",	"serif",NULL,				0x04,0,0,1,	/* Serif */
-    "VeraSeBd",	"serif","bold",				0x05,1,0,1,	/* Serif Bold */
-    "VeraSe",	"serif","italic",			0x06,0,1,1,	/* Serif Ital */
-    "VeraSeBd",	"serif","bold italic",		0x07,1,1,1,	/* Serif Bold Ital */
-    "Vera",		"sans",NULL,				0x08,0,0,2,	/* Sans */
-    "VeraBd",	"sans","bold",				0x09,0,1,2,	/* Sans Bold */
-    "VeraIt",	"sans","italic",			0x0a,1,0,2,	/* Sans Ital */
-    "VeraBI",	"sans","bold italic",		0x0b,1,1,2,	/* Sans Bold Ital */
-    "VeraMono",	"monospace",NULL,			0x10,0,0,4,	/* Monospace */
-    "VeraMoBd",	"monospace","bold",			0x11,1,0,4,	/* Monospace Bold */
-    "VeraMoIt",	"monospace","italic",		0x12,0,1,4,	/* Monospace Ital */
-    "VeraMoBI",	"monospace","bold italic",	0x13,1,1,4,	/* Monospace Bold Ital */
+	//face		family,		style ,		style2,				 num,B,I,F
+	"VeraSe",	"serif",	NULL,		NULL,				0x04,0,0,1,	/* Serif */
+    "VeraSeBd",	"serif",	"bold",		NULL,				0x05,1,0,1,	/* Serif Bold */
+    "VeraSe",	"serif",	"italic",	NULL,				0x06,0,1,1,	/* Serif Ital */
+    "VeraSeBd",	"serif","bold italic",	"bold oblique",		0x07,1,1,1,	/* Serif Bold Ital */
+    "Vera",		"sans",		NULL,		NULL,				0x08,0,0,2,	/* Sans */
+    "VeraBd",	"sans",		"bold",		NULL,				0x09,0,1,2,	/* Sans Bold */
+    "VeraIt",	"sans",		"italic",	NULL,				0x0a,1,0,2,	/* Sans Ital */
+    "VeraBI",	"sans","bold italic",	"bold oblique",		0x0b,1,1,2,	/* Sans Bold Ital */
+    "VeraMono",	"monospace",NULL,		NULL,				0x10,0,0,4,	/* Monospace */
+    "VeraMoBd",	"monospace","bold",		NULL,				0x11,1,0,4,	/* Monospace Bold */
+    "VeraMoIt",	"monospace","italic",	NULL,				0x12,0,1,4,	/* Monospace Ital */
+    "VeraMoBI",	"monospace","bold italic","bold oblique",	0x13,1,1,4,	/* Monospace Bold Ital */
 	NULL,		0,0,0,0,
 };
 struct name_num *get_fontname_entry_by_num(num){
@@ -2756,6 +2758,8 @@ vec2 pixel2normalizedScreen( GLfloat x, GLfloat y){
 	return xy;
 }
 
+
+
 static   GLbyte vShaderStr[] =  
       "attribute vec4 a_position;   \n"
       "attribute vec2 a_texCoord;   \n"
@@ -2765,6 +2769,7 @@ static   GLbyte vShaderStr[] =
       "   gl_Position = a_position; \n"
       "   v_texCoord = a_texCoord;  \n"
       "}                            \n";
+
 
 // using Luminance images, you need to set a color in order for it to show up different than white
 // and if the luminance is an opacity gray-scale for anti-aliased bitmap patterns ie font glyphs
@@ -2825,7 +2830,62 @@ static void initProgramObject(){
    textureLoc = glGetUniformLocation ( programObject, "Texture0" );
    color4fLoc = glGetUniformLocation ( programObject, "Color4f" );
    blendLoc = glGetUniformLocation ( programObject, "blend" );
+
 }
+
+
+/* This shader uses alpha images, _and_ modelview, projection matrices
+		// also see (faulty) CursorDraw function elsewhere
+		loc =  glGetAttribLocation ( shader, "fw_ModelViewMatrix" );
+		glUniformMatrix4fv(loc, 1, GL_FALSE, cursIdentity);
+		loc =  glGetAttribLocation ( shader, "fw_ProjectionMatrix" );
+		glUniformMatrix4fv(loc, 1, GL_FALSE, cursIdentity);
+static const GLchar *vertPosDec = "\
+    attribute      vec4 fw_Vertex; \n \
+    uniform         mat4 fw_ModelViewMatrix; \n \
+    uniform         mat4 fw_ProjectionMatrix; \n ";
+static const GLchar *vertPos = "gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;\n ";
+
+*/
+static   GLbyte vShaderTransStr[] =  
+      "attribute vec4 a_position;   \n"
+      "attribute vec2 a_texCoord;   \n"
+      "uniform mat4 u_ModelViewMatrix; \n"
+      "uniform mat4 u_ProjectionMatrix; \n"
+      "varying vec2 v_texCoord;     \n"
+      "void main()                  \n"
+      "{                            \n"
+      "   gl_Position = u_ProjectionMatrix * u_ModelViewMatrix * a_position; \n"
+      "   v_texCoord = a_texCoord;  \n"
+      "}                            \n";
+
+static GLuint positionLocT;
+static GLuint texCoordLocT;
+static GLuint textureLocT;
+static GLuint color4fLocT;
+//static GLuint programObject;
+static GLuint textureID;
+//static GLuint indexBufferID;
+static GLuint blendLocT;
+static GLuint modelviewLocT;
+static GLuint projectionLocT;
+static GLuint programObjectTrans = 0;
+
+static void initProgramObjectTrans(){
+   // Load the shaders and get a linked program object
+   programObjectTrans = esLoadProgram ( (const char*) vShaderTransStr, (const char *)fShaderStr );
+   // Get the attribute locations
+   positionLocT = glGetAttribLocation ( programObjectTrans, "a_position" );
+   texCoordLocT = glGetAttribLocation ( programObjectTrans, "a_texCoord" );
+   // Get the sampler location
+   textureLocT = glGetUniformLocation ( programObjectTrans, "Texture0" );
+   color4fLocT = glGetUniformLocation ( programObjectTrans, "Color4f" );
+   blendLocT = glGetUniformLocation ( programObjectTrans, "blend" );
+   modelviewLocT =  glGetUniformLocation ( programObjectTrans, "u_ModelViewMatrix" );
+   projectionLocT = glGetUniformLocation ( programObjectTrans, "u_ProjectionMatrix" );
+
+}
+
 
 void dug9gui_DrawImage(int xpos,int ypos, int width, int height, char *buffer){
 //xpos, ypos upper left location of image in pixels, on the screen
@@ -3092,6 +3152,7 @@ int render_captiontext(AtlasFont *font, AtlasEntrySet *set, unsigned char * utf8
 	// you need to pre-load the font during layout init
 	if(!font) return FALSE;
 
+	//uses simplified (2D) shader like statusbarHud
 	finishedWithGlobalShader();
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
@@ -3217,7 +3278,13 @@ int render_captiontext(AtlasFont *font, AtlasEntrySet *set, unsigned char * utf8
 	return TRUE;
 }
 
-void render_screentext(struct X3D_Text *tnode){
+void render_screentext0(struct X3D_Text *tnode){
+	/*	to be called from Text node render_Text for case of ScreenFontStyle
+		this is a copy of the CaptionText method, 
+		x uses different shader (shader is simple like statusbarHud's)
+		x doesn't use the Transform stack
+		x doesn't use glColor
+	*/
 	if(tnode && tnode->_nodeType == NODE_Text){
 		screentextdata *sdata;
 		AtlasEntrySet *set;
@@ -3253,8 +3320,9 @@ void render_screentext(struct X3D_Text *tnode){
 				entry = AtlasEntrySet_getEntry(set,ichar);
 				if(entry){
 					// drawsubimage(destination on screen, source glpyh details, source atlas)
+					int cscale;
 					chardata chr = rowvec[row].chr[i];
-					dug9gui_DrawSubImage(chr.x+20,chr.y+20, entry->size.X, entry->size.Y, 
+					dug9gui_DrawSubImage(chr.x+90,chr.y+30, entry->size.X, entry->size.Y, 
 						entry->apos.X, entry->apos.Y, entry->size.X, entry->size.Y,
 						set->atlas->size.X,set->atlas->size.Y,set->atlas->bytesperpixel,set->atlas->texture);
 				}
@@ -3265,8 +3333,217 @@ void render_screentext(struct X3D_Text *tnode){
 		restoreGlobalShader();
 	}
 }
+void dug9gui_DrawSubImage_scene(int xpos,int ypos, int xsize, int ysize, int ix, int iy, int iw, int ih, int width, int height, int bpp, char *buffer){
+//xpos, ypos upper left location of where to draw the sub-image, in local coordinates
+//xsize,ysize - size to stretch the sub-image to on the screen, in pixels
+// ix,iy,iw,ih - position and size in pixels of the subimage in a bigger/atlas image, ix,iy is upper left
+// width, height - size of bigger/atlas image
+// bpp - bytes per pixel: usually 1 for apha images like freetype antialiased glyph imagery, usually 4 for RGBA from .bmp
+// buffer - the bigger/atlas imagery pixels
+//  1 - 2 4
+//  | / / |    2 triangles, 6 points
+//  0 3 - 5
+// I might want to split this function, so loading the texture to gpu is outside, done once for a series of sub-images
+
+/*
+GLfloat cursorVert[] = {
+	  0.0f,  1.0f, 0.0f,
+	  0.0f,  0.0f, 0.0f,
+	  1.0f,  0.0f, 0.0f,
+	  0.0f,  1.0f, 0.0f,
+	  1.0f,  0.0f, 0.0f,
+	  1.0f,  1.0f, 0.0f};
+*/
+GLfloat cursorVert[] = {
+	  0.0f,  0.0f, 0.0f,
+	  0.0f,  1.0f, 0.0f,
+	  1.0f,  1.0f, 0.0f,
+	  0.0f,  0.0f, 0.0f,
+	  1.0f,  1.0f, 0.0f,
+	  1.0f,  0.0f, 0.0f};
+//remember texture coordinates are 0,0 in lower left of texture image
+GLfloat cursorTex[] = {
+	0.0f, 0.0f,
+	0.0f, 1.0f,
+	1.0f, 1.0f,
+	0.0f, 0.0f,
+	1.0f, 1.0f,
+	1.0f, 0.0f};
+	GLushort ind[] = {0,1,2,3,4,5};
+	//GLint pos, tex;
+	vec2 fxy, fwh, fixy, fiwh;
+	ivec2 xy;
+	int i,j;
+	GLfloat cursorVert2[18];
+	GLfloat cursorTex2[12];
+
+
+	// Bind the base map - see above
+	glActiveTexture ( GL_TEXTURE0 );
+	glBindTexture ( GL_TEXTURE_2D, textureID );
+
+	// Set the base map sampler to texture unit to 0
+	glUniform1i ( textureLoc, 0 );
+
+	switch(bpp){
+		case 1:
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, width, height, 0, GL_ALPHA , GL_UNSIGNED_BYTE, buffer);
+		//glUniform4f(color4fLoc,1.0f,1.0f,1.0f,0.0f);
+		glUniform4f(blendLoc,0.0f,0.0f,0.0f,1.0f); // take color from vector, take alpha from texture2D
+		break;
+		case 2:
+		//doesn't seem to come in here if my .png is gray+alpha on win32
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, width, height, 0, GL_LUMINANCE_ALPHA , GL_UNSIGNED_BYTE, buffer);
+		break;
+		case 4:
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA , GL_UNSIGNED_BYTE, buffer);
+		glUniform4f(blendLoc,1.0f,1.0f,1.0f,1.0f); //trust the texture2D color and alpha
+		break;
+		default:
+			return;
+	}
+	if(0){
+		//upper left
+		fxy = pixel2normalizedScreen((GLfloat)xpos,(GLfloat)ypos);
+		fwh = pixel2normalizedScreenScale((GLfloat)xsize,(GLfloat)ysize);
+		//lower left
+		fxy.Y = fxy.Y - fwh.Y;
+	}
+	if(0){
+		//upper left
+		fxy = pixel2normalizedViewport((GLfloat)xpos,(GLfloat)ypos);
+		fwh = pixel2normalizedViewportScale((GLfloat)xsize,(GLfloat)ysize);
+		//lower left
+		fxy.Y = fxy.Y - fwh.Y;
+	}
+	if(1){
+		fxy.X = (GLfloat)xpos;
+		fxy.Y = (GLfloat)ypos;
+		fwh.X = (GLfloat)xsize;
+		fwh.Y = (GLfloat)ysize;
+
+	}
+	
+	//fxy.Y -= 1.0; //DUG9GUI y=0 at top
+	//fxy.X -= 1.0;
+	iyup = 0;
+	memcpy(cursorVert2,cursorVert,2*3*3*sizeof(GLfloat));
+	for(i=0;i<6;i++){
+		cursorVert2[i*3 +0] *= fwh.X;
+		cursorVert2[i*3 +0] += fxy.X;
+		if(!iyup) cursorVert2[i*3 +1] = 1.0f - cursorVert2[i*3 +1];
+		cursorVert2[i*3 +1] *= fwh.Y;
+		cursorVert2[i*3 +1] += fxy.Y;
+	}
+
+	glVertexAttribPointer (positionLocT, 3, GL_FLOAT, 
+						   GL_FALSE, 0, cursorVert2 );
+	// Load the texture coordinate
+	fixy.X = (float)ix/(float)width;
+	fiwh.X = (float)iw/(float)width;
+	if(!iyup){
+		fixy.Y = (float)iy/(float)height;
+		fiwh.Y = (float)ih/(float)height;
+	}else{
+		fixy.Y = (float)(height -iy)/(float)height;
+		fiwh.Y =-(float)ih/(float)height;
+	}
+	memcpy(cursorTex2,cursorTex,2*3*2*sizeof(GLfloat));
+	for(i=0;i<6;i++){
+		cursorTex2[i*2 +0] *= fiwh.X;
+		cursorTex2[i*2 +0] += fixy.X;
+		cursorTex2[i*2 +1] *= fiwh.Y;
+		cursorTex2[i*2 +1] += fixy.Y;
+	}
+	glVertexAttribPointer (texCoordLocT, 2, GL_FLOAT, GL_FALSE, 0, cursorTex2 );  
+	glEnableVertexAttribArray (positionLocT );
+	glEnableVertexAttribArray (texCoordLocT);
+
+	//// Bind the base map - see above
+	//glActiveTexture ( GL_TEXTURE0 );
+	//glBindTexture ( GL_TEXTURE_2D, textureID );
+
+	//// Set the base map sampler to texture unit to 0
+	//glUniform1i ( textureLoc, 0 );
+	glDrawElements ( GL_TRIANGLES, 3*2, GL_UNSIGNED_SHORT, ind ); 
+
+
+}
+
+void render_screentext1(struct X3D_Text *tnode){
+	/*	to be called from Text node render_Text for case of ScreenFontStyle
+	*/
+	if(tnode && tnode->_nodeType == NODE_Text){
+		screentextdata *sdata;
+		AtlasEntrySet *set;
+		int nrow, row,i;
+		row32 *rowvec;
+		GLfloat modelviewf[16], projectionf[16];
+		GLdouble modelviewd[16], projectiond[16];
+
+		finishedWithGlobalShader();
+		//glDepthMask(GL_FALSE);
+		//glDisable(GL_DEPTH_TEST);
+		if(!programObjectTrans) initProgramObjectTrans();
+
+		glUseProgram ( programObjectTrans );
+		if(!textureID)
+			glGenTextures(1, &textureID);
+
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST); //GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST); //GL_LINEAR);
+
+		if(1){
+		FW_GL_GETFLOATV(GL_MODELVIEW_MATRIX, modelviewf);
+		glUniformMatrix4fv(modelviewLocT, 1, GL_FALSE,modelviewf);
+		FW_GL_GETFLOATV(GL_PROJECTION_MATRIX, projectionf);
+		glUniformMatrix4fv(projectionLocT, 1, GL_FALSE, projectionf);
+		}else{
+		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewd);
+		glUniformMatrix4dv(modelviewLocT, 1, GL_FALSE,modelviewd);
+		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projectiond);
+		glUniformMatrix4dv(projectionLocT, 1, GL_FALSE, projectiond);
+		}
+
+		sdata = (screentextdata*)tnode->_screendata;
+		if(!sdata) return;
+		nrow = sdata->nrow;
+		set = sdata->set;
+		rowvec = sdata->rowvec;
+		//render_captiontext(tnode->_font,tnode->_set, self->_caption,self->color);
+		for(row=0;row<nrow;row++){
+			for(i=0;i<rowvec[row].len32;i++){
+				AtlasEntry *entry;
+				unsigned int ichar;
+				ichar = rowvec[row].str32[i];
+				entry = AtlasEntrySet_getEntry(set,ichar);
+				if(entry){
+					// drawsubimage(destination on screen, source glpyh details, source atlas)
+					int cscale;
+					chardata chr = rowvec[row].chr[i];
+					if(1) dug9gui_DrawSubImage_scene(chr.x,chr.y, entry->size.X, entry->size.Y, 
+						entry->apos.X, entry->apos.Y, entry->size.X, entry->size.Y,
+						set->atlas->size.X,set->atlas->size.Y,set->atlas->bytesperpixel,set->atlas->texture);
+
+				}
+			}
+		}
+		if(1){
+		//glEnable(GL_DEPTH_TEST);
+		//glDepthMask(GL_TRUE);
+		restoreGlobalShader();
+		}
+	}
+}
+void render_screentext(struct X3D_Text *tnode){
+	render_screentext0(tnode); //old shader way
+	render_screentext1(tnode); //new shaderTrans
+}
 void prep_screentext(struct X3D_Text *tnode, int num, int screensize){
 	if(tnode && tnode->_nodeType == NODE_Text && !tnode->_screendata){
+		//called from make_text > FWRenderText first time to malloc, 
+		//  and when FontStyle is ScreenFontStyle
 		char *fontname;
 		screentextdata *sdata;
 		fontname = facename_from_num(num);
