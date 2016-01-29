@@ -154,7 +154,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__proxNode",
 	"__quadcount",
 	"__regenSubTextures",
-	"__rendersub",
 	"__rightTexture",
 	"__rootUrl",
 	"__rooturlloadstatus",
@@ -200,6 +199,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_initialized",
 	"_int32InpFIFO",
 	"_int32OutFIFO",
+	"_isScreen",
 	"_keyVBO",
 	"_keyValueVBO",
 	"_layerId",
@@ -225,6 +225,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_rotationAngle",
 	"_scale",
 	"_scaleMode",
+	"_screendata",
 	"_selected",
 	"_shaderLoadThread",
 	"_shaderTableEntry",
@@ -5980,7 +5981,8 @@ const int OFFSETS_TexCoordDamper[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Text[] = {
-	(int) FIELDNAMES___rendersub, (int) offsetof (struct X3D_Text, __rendersub),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) 0,
+	(int) FIELDNAMES__isScreen, (int) offsetof (struct X3D_Text, _isScreen),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) 0,
+	(int) FIELDNAMES__screendata, (int) offsetof (struct X3D_Text, _screendata),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_fontStyle, (int) offsetof (struct X3D_Text, fontStyle),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_length, (int) offsetof (struct X3D_Text, length),  (int) FIELDTYPE_MFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_lineBounds, (int) offsetof (struct X3D_Text, lineBounds),  (int) FIELDTYPE_MFVec2f, (int) KW_outputOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -10774,7 +10776,8 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Text : {
 			struct X3D_Text * tmp2;
 			tmp2 = (struct X3D_Text *) tmp;
-			tmp2->__rendersub = 0;
+			tmp2->_isScreen = 0;
+			tmp2->_screendata = 0;
 			tmp2->fontStyle = NULL;
 			tmp2->length.n=0; tmp2->length.p=0;
 			tmp2->lineBounds.n=0; tmp2->lineBounds.p=0;
@@ -14841,7 +14844,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			tmp = (struct X3D_Text *) node;
 			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
-			spacer fprintf (fp," __rendersub (SFInt32) \t%d\n",tmp->__rendersub);
+			spacer fprintf (fp," _isScreen (SFInt32) \t%d\n",tmp->_isScreen);
 		    }
 			spacer fprintf (fp," fontStyle (SFNode):\n"); dump_scene(fp,level+1,tmp->fontStyle); 
 			spacer fprintf (fp," length (MFFloat):\n");

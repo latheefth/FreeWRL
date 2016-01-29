@@ -829,7 +829,8 @@ our %Nodes = (
 		origin => ["SFVec3f", [0, 0, 0], "outputOnly", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		solid => ["SFBool", "TRUE", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		textBounds => ["SFVec2f", [0, 0], "outputOnly", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		__rendersub => ["SFInt32", 0, "inputOutput", 0] # Function ptr hack
+		_isScreen => ["SFInt32", 0, "inputOutput", 0], # > 0 for screenfont
+		_screendata => ["FreeWRLPTR", 0, "initializeOnly", 0], # screentext rowvec
 	],"X3DTextNode"),
 
 	"FontStyle" => new VRML::NodeType("FontStyle", [

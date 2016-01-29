@@ -101,6 +101,15 @@ typedef struct row32 {
 	chardata *chr;
 }row32;
 
+//this goes in text node _screendata field when _isScreen
+typedef struct screentextdata {
+	int nalloc;
+	int nrow;
+	row32 *rowvec;
+	void *atlasfont;
+	void *set;
+}screentextdata;
+
 typedef struct pComponent_Text{
 
 #if defined(_ANDROID) || defined(IPHONE)
@@ -242,13 +251,18 @@ void fwg_AndroidFontFile(FILE *myFile,int len) {
 
 #endif //ANDROID
 
-
+void render_screentext(struct X3D_Text * node);
 
 void render_Text (struct X3D_Text * node)
 {
-    COMPILE_POLY_IF_REQUIRED (NULL, NULL, NULL, NULL);
-    DISABLE_CULL_FACE;
-    render_polyrep(node);
+	if(node)
+	if(node->_isScreen){
+		render_screentext(node);
+	}else{
+		COMPILE_POLY_IF_REQUIRED (NULL, NULL, NULL, NULL);
+		DISABLE_CULL_FACE;
+		render_polyrep(node);
+	}
 }
 
 void FW_NewVertexPoint (double Vertex_x, double Vertex_y)
@@ -1120,12 +1134,12 @@ int len_utf8(unsigned char *utf8string)
 #else
 #include <malloc/malloc.h>
 #endif
-
+void prep_screentext(struct X3D_Text *tnode, int num, int screensize);
 /* take a text string, font spec, etc, and make it into an OpenGL Polyrep.
    Note that the text comes EITHER from a SV (ie, from perl) or from a directstring,
    eg, for placing text on the screen from within FreeWRL itself */
 
-void FW_rendertext(unsigned int numrows,struct Uni_String **ptr,
+void FW_rendertext(struct X3D_Text *tnode, unsigned int numrows,struct Uni_String **ptr,
 				unsigned int nl, float *length, double maxext,
 				double spacing, double mysize, unsigned int fsparam,
 				struct X3D_PolyRep *rp)
@@ -1183,12 +1197,12 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr,
 		printf ("entering FW_Render_text \n");
 
 
-	p->FW_rep_ = rp;
+	//p->FW_rep_ = rp;
 
-	p->FW_RIA_indx = 0;            /* index into FW_RIA                                  */
-	p->FW_pointctr=0;              /* how many points used so far? maps into rep-_coord  */
-	p->indx_count=0;               /* maps intp FW_rep_->cindex                          */
-	p->contour_started = FALSE;
+	//p->FW_RIA_indx = 0;            /* index into FW_RIA                                  */
+	//p->FW_pointctr=0;              /* how many points used so far? maps into rep-_coord  */
+	//p->indx_count=0;               /* maps intp FW_rep_->cindex                          */
+	//p->contour_started = FALSE;
 
 	p->pen_x = 0.0; p->pen_y = 0.0;
 	p->cur_glyph = 0;
@@ -1227,10 +1241,22 @@ p->myff = 4;
 	if (p->font_face[p->myff]->units_per_EM != 1000)
 		p->x_size = p->x_size * p->font_face[p->myff]->units_per_EM/1000.0;
 
-	//rowvec = (row32*)alloca(numrows * sizeof(row32)); 
+
+
 	//realloc row vector if necessary
-	rowvec_allocn = p->rowvec_allocn;
-	rowvec = p->rowvec;
+	if(tnode->_isScreen){
+		//per-text-node rowvec
+		screentextdata *sdata;
+		if(!tnode->_screendata)
+			prep_screentext(tnode,p->myff, mysize);
+		sdata = (screentextdata*)tnode->_screendata;
+		rowvec_allocn = sdata->nalloc;
+		rowvec = sdata->rowvec;
+	}else{
+		//vectorized text, per-freewrl-tglobal rowvec (re-usable via realloc)
+		rowvec_allocn = p->rowvec_allocn;
+		rowvec = p->rowvec;
+	}
 	if(!rowvec){
 		rowvec = (row32*)malloc(numrows * sizeof(row32));
 		memset(rowvec,0,numrows * sizeof(row32));
@@ -1250,8 +1276,16 @@ p->myff = 4;
 			rowvec[row].allocn = len;
 		}
 	}
-	p->rowvec = rowvec;
-	p->rowvec_allocn = rowvec_allocn;
+	if(tnode->_isScreen){
+		screentextdata *sdata;
+		sdata = (screentextdata*)tnode->_screendata;
+		sdata->rowvec = rowvec;
+		sdata->nalloc = rowvec_allocn;
+		sdata->nrow = numrows;
+	}else{
+		p->rowvec = rowvec;
+		p->rowvec_allocn = rowvec_allocn;
+	}
 
 	/* load all of the characters first... */
 	for (row=0; row<numrows; row++) {
@@ -1517,104 +1551,108 @@ p->myff = 4;
 
 	}
 
-	//vector glyph construction
-	/* what is the estimated number of triangles? assume a certain number of tris per char */
-	est_tri = char_count*800; /* 800 was TESS_MAX_COORDS - REALLOC if needed */
-	p->coordmaxsize=est_tri;
-	p->cindexmaxsize=est_tri;
-	p->FW_rep_->cindex=MALLOC(GLuint *, sizeof(*(p->FW_rep_->cindex))*est_tri);
-	p->FW_rep_->actualCoord = MALLOC(float *, sizeof(*(p->FW_rep_->actualCoord))*est_tri*3);
-	for(row = 0; row < numrows; row++) {
-		unsigned int lenchars = rowvec[row].len32;
-		for(i=0; i<lenchars; i++) {
-			int kk,x;
-			chardata chr;
+	if(!tnode->_isScreen){
+		//vector glyph construction
+		p->FW_rep_ = rp;
 
-			chr = rowvec[row].chr[i];
-			p->pen_x = chr.x;
-			p->pen_y = chr.y;
-			p->shrink_x = chr.sx;
-			p->shrink_y = chr.sy;
-			//p->y_size = xys.sy;
-			//p->x_size = xys.sx;
-			tg->Tess.global_IFS_Coord_count = 0;
-			p->FW_RIA_indx = 0;
-			//kk = rowvec[row].iglyphstartindex + i;
-			kk = rowvec[row].chr[i].iglyph;
-			p->shrink_x = rowvec[row].chr[i].sx;
-			p->shrink_y = rowvec[row].chr[i].sy;
-			FW_draw_character (p->glyphs[kk]);
-			FT_Done_Glyph (p->glyphs[kk]);
-			/* copy over the tesselated coords for the character to
-				* the rep structure */
+		p->FW_RIA_indx = 0;            /* index into FW_RIA                                  */
+		p->FW_pointctr=0;              /* how many points used so far? maps into rep-_coord  */
+		p->indx_count=0;               /* maps intp FW_rep_->cindex                          */
+		p->contour_started = FALSE;
 
-			for (x=0; x<tg->Tess.global_IFS_Coord_count; x++) {
-					/*printf ("copying %d\n",global_IFS_Coords[x]); */
+		/* what is the estimated number of triangles? assume a certain number of tris per char */
+		est_tri = char_count*800; /* 800 was TESS_MAX_COORDS - REALLOC if needed */
+		p->coordmaxsize=est_tri;
+		p->cindexmaxsize=est_tri;
+		p->FW_rep_->cindex=MALLOC(GLuint *, sizeof(*(p->FW_rep_->cindex))*est_tri);
+		p->FW_rep_->actualCoord = MALLOC(float *, sizeof(*(p->FW_rep_->actualCoord))*est_tri*3);
+		for(row = 0; row < numrows; row++) {
+			unsigned int lenchars = rowvec[row].len32;
+			for(i=0; i<lenchars; i++) {
+				int kk,x;
+				chardata chr;
 
-				/* did the tesselator give us back garbage? */
+				chr = rowvec[row].chr[i];
+				p->pen_x = chr.x;
+				p->pen_y = chr.y;
+				p->shrink_x = chr.sx;
+				p->shrink_y = chr.sy;
+				//p->y_size = xys.sy;
+				//p->x_size = xys.sx;
+				tg->Tess.global_IFS_Coord_count = 0;
+				p->FW_RIA_indx = 0;
+				//kk = rowvec[row].iglyphstartindex + i;
+				kk = rowvec[row].chr[i].iglyph;
+				p->shrink_x = rowvec[row].chr[i].sx;
+				p->shrink_y = rowvec[row].chr[i].sy;
+				FW_draw_character (p->glyphs[kk]);
+				FT_Done_Glyph (p->glyphs[kk]);
+				/* copy over the tesselated coords for the character to
+					* the rep structure */
 
-				if ((tg->Tess.global_IFS_Coords[x] >= p->cindexmaxsize) ||
-					(p->indx_count >= p->cindexmaxsize) ||
-					(tg->Tess.global_IFS_Coords[x] < 0)) {
-						if (p->TextVerbose)
-						printf ("Tesselated index %d out of range; skipping indx_count, %d cindexmaxsize %d global_IFS_Coord_count %d\n",
-						tg->Tess.global_IFS_Coords[x],p->indx_count,p->cindexmaxsize,tg->Tess.global_IFS_Coord_count);
-					/* just use last point - this sometimes happens when */
-					/* we have intersecting lines. Lets hope first point is */
-					/* not invalid... JAS */
-					p->FW_rep_->cindex[p->indx_count] = p->FW_rep_->cindex[p->indx_count-1];
-					if (p->indx_count < (p->cindexmaxsize-1)) p->indx_count ++;
-				} else {
-					/*
-					printf("global_ifs_coords is %d indx_count is %d \n",global_IFS_Coords[x],p->indx_count);
-					printf("filling up cindex; index %d now points to %d\n",p->indx_count,global_IFS_Coords[x]);
-					*/
-					p->FW_rep_->cindex[p->indx_count++] = tg->Tess.global_IFS_Coords[x];
+				for (x=0; x<tg->Tess.global_IFS_Coord_count; x++) {
+						/*printf ("copying %d\n",global_IFS_Coords[x]); */
+
+					/* did the tesselator give us back garbage? */
+
+					if ((tg->Tess.global_IFS_Coords[x] >= p->cindexmaxsize) ||
+						(p->indx_count >= p->cindexmaxsize) ||
+						(tg->Tess.global_IFS_Coords[x] < 0)) {
+							if (p->TextVerbose)
+							printf ("Tesselated index %d out of range; skipping indx_count, %d cindexmaxsize %d global_IFS_Coord_count %d\n",
+							tg->Tess.global_IFS_Coords[x],p->indx_count,p->cindexmaxsize,tg->Tess.global_IFS_Coord_count);
+						/* just use last point - this sometimes happens when */
+						/* we have intersecting lines. Lets hope first point is */
+						/* not invalid... JAS */
+						p->FW_rep_->cindex[p->indx_count] = p->FW_rep_->cindex[p->indx_count-1];
+						if (p->indx_count < (p->cindexmaxsize-1)) p->indx_count ++;
+					} else {
+						/*
+						printf("global_ifs_coords is %d indx_count is %d \n",global_IFS_Coords[x],p->indx_count);
+						printf("filling up cindex; index %d now points to %d\n",p->indx_count,global_IFS_Coords[x]);
+						*/
+						p->FW_rep_->cindex[p->indx_count++] = tg->Tess.global_IFS_Coords[x];
+					}
+				}
+
+				if (p->indx_count > (p->cindexmaxsize-400)) {
+					p->cindexmaxsize += 800; /* 800 was TESS_MAX_COORDS; */
+					p->FW_rep_->cindex=(GLuint *)REALLOC(p->FW_rep_->cindex,sizeof(*(p->FW_rep_->cindex))*p->cindexmaxsize);
 				}
 			}
+		}
+		/* save the triangle count (note, we have a "vertex count", not a "triangle count" */
+		p->FW_rep_->ntri=p->indx_count/3;
+		/* set these variables so they are not uninitialized */
+		p->FW_rep_->ccw=FALSE;
 
-			if (p->indx_count > (p->cindexmaxsize-400)) {
-				p->cindexmaxsize += 800; /* 800 was TESS_MAX_COORDS; */
-				p->FW_rep_->cindex=(GLuint *)REALLOC(p->FW_rep_->cindex,sizeof(*(p->FW_rep_->cindex))*p->cindexmaxsize);
+		/* if indx count is zero, DO NOT get rid of MALLOCd memory - creates a bug as pointers cant be null */
+		if (p->indx_count !=0) {
+			/* REALLOC bug in linux - this causes the pointers to be eventually lost... */
+			/* REALLOC (p->FW_rep_->cindex,sizeof(*(p->FW_rep_->cindex))*p->indx_count); */
+			/* REALLOC (p->FW_rep_->actualCoord,sizeof(*(p->FW_rep_->actualCoord))*p->FW_pointctr*3); */
+		}
+
+		/* now, generate normals */
+		p->FW_rep_->normal = MALLOC(float *, sizeof(*(p->FW_rep_->normal))*p->indx_count*3);
+		for (i = 0; i<(unsigned int)p->indx_count; i++) {
+			p->FW_rep_->normal[i*3+0] = 0.0f;
+			p->FW_rep_->normal[i*3+1] = 0.0f;
+			p->FW_rep_->normal[i*3+2] = 1.0f;
+		}
+
+		/* do we have texture mapping to do? */
+		if (HAVETODOTEXTURES) {
+			p->FW_rep_->GeneratedTexCoords = MALLOC(float *, sizeof(*(p->FW_rep_->GeneratedTexCoords))*(p->FW_pointctr+1)*3);
+			/* an attempt to try to make this look like the NIST example */
+			/* I can't find a standard as to how to map textures to text JAS */
+			for (i=0; i<(unsigned int)p->FW_pointctr; i++) {
+				p->FW_rep_->GeneratedTexCoords[i*3+0] = p->FW_rep_->actualCoord[i*3+0]*1.66f;
+				p->FW_rep_->GeneratedTexCoords[i*3+1] = 0.0f;
+				p->FW_rep_->GeneratedTexCoords[i*3+2] = p->FW_rep_->actualCoord[i*3+1]*1.66f;
 			}
 		}
-	}
-	/* save the triangle count (note, we have a "vertex count", not a "triangle count" */
-	p->FW_rep_->ntri=p->indx_count/3;
-	/* set these variables so they are not uninitialized */
-	p->FW_rep_->ccw=FALSE;
-
-	/* if indx count is zero, DO NOT get rid of MALLOCd memory - creates a bug as pointers cant be null */
-	if (p->indx_count !=0) {
-		/* REALLOC bug in linux - this causes the pointers to be eventually lost... */
-		/* REALLOC (p->FW_rep_->cindex,sizeof(*(p->FW_rep_->cindex))*p->indx_count); */
-		/* REALLOC (p->FW_rep_->actualCoord,sizeof(*(p->FW_rep_->actualCoord))*p->FW_pointctr*3); */
-	}
-
-	/* now, generate normals */
-	p->FW_rep_->normal = MALLOC(float *, sizeof(*(p->FW_rep_->normal))*p->indx_count*3);
-	for (i = 0; i<(unsigned int)p->indx_count; i++) {
-		p->FW_rep_->normal[i*3+0] = 0.0f;
-		p->FW_rep_->normal[i*3+1] = 0.0f;
-		p->FW_rep_->normal[i*3+2] = 1.0f;
-	}
-
-	/* do we have texture mapping to do? */
-	if (HAVETODOTEXTURES) {
-		p->FW_rep_->GeneratedTexCoords = MALLOC(float *, sizeof(*(p->FW_rep_->GeneratedTexCoords))*(p->FW_pointctr+1)*3);
-		/* an attempt to try to make this look like the NIST example */
-		/* I can't find a standard as to how to map textures to text JAS */
-		for (i=0; i<(unsigned int)p->FW_pointctr; i++) {
-			p->FW_rep_->GeneratedTexCoords[i*3+0] = p->FW_rep_->actualCoord[i*3+0]*1.66f;
-			p->FW_rep_->GeneratedTexCoords[i*3+1] = 0.0f;
-			p->FW_rep_->GeneratedTexCoords[i*3+2] = p->FW_rep_->actualCoord[i*3+1]*1.66f;
-		}
-	}
-
-	//see clear_Component_Text()
-	//for (row=0; row<numrows; row++) {
-	//	FREE_IF_NZ(rowvec[row].str32);
-	//}
+	} //if isScreenFont
 
 	if (p->TextVerbose) printf ("exiting FW_Render_text\n");
 }
@@ -1629,7 +1667,7 @@ void collide_Text (struct X3D_Text *node)
     struct X3D_PolyRep pr;
     int change = 0;
 
-	if(node->__rendersub == 1) return; //don't collide with screentext
+	if(node->_isScreen >  0) return; //don't collide with screentext
 
 	ttglobal tg = gglobal();
 	naviinfo = (struct sNaviInfo*)tg->Bindable.naviinfo;
@@ -1766,7 +1804,7 @@ void make_Text (struct X3D_Text *node)
         size = fsp->size;
 		if(fsp->_nodeType == NODE_ScreenFontStyle){
 			static float pixels_per_point = 4.0f/3.0f; //about 16 pixels for 12 point font, assume we are in ScreenGroup?
-			size = fsp->size * pixels_per_point;
+			size = fsp->size; // * pixels_per_point;
 			isScreenFontStyle = TRUE;
 		}
 
@@ -1839,11 +1877,9 @@ void make_Text (struct X3D_Text *node)
        call render text - NULL means get the text from the string
     */
 	//normal scene 3D vectorized text
-	node->__rendersub = 0;
-	//screenfontstyle rendering
-	if(isScreenFontStyle) node->__rendersub = 1;
+	node->_isScreen = isScreenFontStyle;
 
-	FW_rendertext(((node->string).n),((node->string).p),
+	FW_rendertext(node,((node->string).n),((node->string).p),
 				((node->length).n),((node->length).p),
 					(node->maxExtent),spacing,size,fsparams,rep_);
 
@@ -2379,8 +2415,8 @@ int AtlasFont_LoadFont(AtlasFont *font){
 	}
 	if(1){
 		int nsizes;
-		printf("fontface flags & Scalable? = %d \n",fontface->face_flags & FT_FACE_FLAG_SCALABLE );
-		nsizes = fontface->num_fixed_sizes;
+		printf("fontface flags & Scalable? = %d \n",font->fontFace->face_flags & FT_FACE_FLAG_SCALABLE );
+		nsizes = font->fontFace->num_fixed_sizes;
 		printf("num_fixed_sizes = %d\n",nsizes);
 	}
 	return TRUE;
@@ -3181,8 +3217,69 @@ int render_captiontext(AtlasFont *font, AtlasEntrySet *set, unsigned char * utf8
 	return TRUE;
 }
 
+void render_screentext(struct X3D_Text *tnode){
+	if(tnode && tnode->_nodeType == NODE_Text){
+		screentextdata *sdata;
+		AtlasEntrySet *set;
+		int nrow, row,i;
+		row32 *rowvec;
+
+		finishedWithGlobalShader();
+		glDepthMask(GL_FALSE);
+		glDisable(GL_DEPTH_TEST);
+		if(!programObject) initProgramObject();
+
+		glUseProgram ( programObject );
+		if(!textureID)
+			glGenTextures(1, &textureID);
+
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST); //GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST); //GL_LINEAR);
 
 
+
+		sdata = (screentextdata*)tnode->_screendata;
+		if(!sdata) return;
+		nrow = sdata->nrow;
+		set = sdata->set;
+		rowvec = sdata->rowvec;
+		//render_captiontext(tnode->_font,tnode->_set, self->_caption,self->color);
+		for(row=0;row<nrow;row++){
+			for(i=0;i<rowvec[row].len32;i++){
+				AtlasEntry *entry;
+				unsigned int ichar;
+				ichar = rowvec[row].str32[i];
+				entry = AtlasEntrySet_getEntry(set,ichar);
+				if(entry){
+					// drawsubimage(destination on screen, source glpyh details, source atlas)
+					chardata chr = rowvec[row].chr[i];
+					dug9gui_DrawSubImage(chr.x+20,chr.y+20, entry->size.X, entry->size.Y, 
+						entry->apos.X, entry->apos.Y, entry->size.X, entry->size.Y,
+						set->atlas->size.X,set->atlas->size.Y,set->atlas->bytesperpixel,set->atlas->texture);
+				}
+			}
+		}
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
+		restoreGlobalShader();
+	}
+}
+void prep_screentext(struct X3D_Text *tnode, int num, int screensize){
+	if(tnode && tnode->_nodeType == NODE_Text && !tnode->_screendata){
+		char *fontname;
+		screentextdata *sdata;
+		fontname = facename_from_num(num);
+		tnode->_screendata = malloc(sizeof(screentextdata));
+		memset(tnode->_screendata,0,sizeof(screentextdata));
+		sdata = (screentextdata*)tnode->_screendata;
+		sdata->atlasfont = (AtlasFont*)searchAtlasTableOrLoad(fontname,screensize);
+		if(!sdata->atlasfont){
+			printf("dug9gui: Can't find font %s do you have the wrong name?\n",fontname);
+		}
+		sdata->set = searchAtlasFontForSizeOrMake(sdata->atlasfont,screensize);
+	}
+}
 
 void *GUImalloc(struct Vector **guitable, int type){
 	void *retval = NULL;
