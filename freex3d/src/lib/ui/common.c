@@ -28,7 +28,7 @@
 #include "../ui/common.h"
 #include <scenegraph/Vector.h>
 
-#if defined (_MSC_VER)
+#if defined (_MSC_VER) || defined (AQUA)
 #include "../../buildversion.h"
 #endif
 
@@ -402,11 +402,12 @@ void color_html2rgb(char *html, float *rgb){
 	rgb[2] = (float)ib/255.0f;
 }
 char *hexpermitted = " #0123456789ABCDEFabcdef";
-#ifndef DISABLER
-#include <malloc.h>
-#else
+#ifdef AQUA
 #include <malloc/malloc.h>
+#else
+#include <malloc.h>
 #endif
+
 #include <string.h>
 int colorsoption2colorscheme(const char *optionstring, colorScheme *cs){
 	//converts html colors given for freewrl command line option:

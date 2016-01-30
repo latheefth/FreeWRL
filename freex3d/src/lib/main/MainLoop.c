@@ -253,6 +253,7 @@ enum {
 	CONTENT_E3DMOUSE,		//emulate 3D mouse
 	CONTENT_TEXTUREGRID,	//texture-from-fbo-render over a planar mesh/grid, rendered with ortho and diffuse light
 	CONTENT_ORIENTATION,	//screen orientation widget for 'screenOrientation2' application of mobile device screen orientation 90, 180, 270
+	CONTENT_CAPTIONTEXT,	//text, but just one line 
 	CONTENT_LAYER,			//children are rendered one over top of the other, with zbuffer clearing between children
 	CONTENT_SPLITTER,		//not implemented, a splitter widget
 	CONTENT_QUADRANT,		//not implemented, a quadrant panel where the scene viewpoint is altered to side, front, top for 3 panels
@@ -511,6 +512,89 @@ contenttype *new_contenttype_statusbar(){
 	self->clipplane = 0; //16; //can be 0 if nothing pinned, or 16+32=48 if both statusbar+menubar pinned
 	return (contenttype*)self;
 }
+
+
+
+
+
+
+
+
+
+typedef struct AtlasFont AtlasFont;
+typedef struct AtlasEntrySet AtlasEntrySet;
+AtlasFont* searchAtlastableOrLoad(char *fontname,int EMpixels);
+AtlasEntrySet* searchAtlasFontForSizeOrMake(AtlasFont *font,int EMpixels);
+typedef struct vec4 {float X; float Y; float Z; float W;} vec4;
+vec4 vec4_init(float x, float y, float z, float w);
+typedef struct contenttype_captiontext {
+	tcontenttype t1;
+	char *caption;
+	AtlasFont *font;
+	char *fontname;
+	int fontSize;
+	AtlasEntrySet *set;
+	float percentSize;
+	int EMpixels;
+	int maxadvancepx;
+	float angle;
+	vec4 color;
+} contenttype_captiontext;
+int render_captiontext(AtlasFont *font, AtlasEntrySet* set, char *utf8string, vec4 color);
+AtlasFont *searchAtlasTableOrLoad(char *facename, int EMpixels);
+void captiontext_render(void *_self){
+	//make this like layer, render contents first in clipplane-limited viewport, then sbh in whole viewport
+	contenttype_captiontext *self;
+
+	self = (contenttype_captiontext *)_self;
+	pushnset_viewport(self->t1.viewport);
+
+	//vec4 c4f = self->color;
+	//glColor4f(c4f.X,c4f.Y,c4f.Z,c4f.W); 
+	render_captiontext(self->font,self->set, self->caption,self->color);
+	popnset_viewport();
+}
+int captiontext_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+	int iret = 0;
+	return iret;
+}
+contenttype *new_contenttype_captiontext(char *fontname, int EMpixels, vec4 color){
+	contenttype_captiontext *self = MALLOCV(sizeof(contenttype_captiontext));
+	init_tcontenttype(&self->t1);
+	self->t1.itype = CONTENT_CAPTIONTEXT;
+	self->t1.render = captiontext_render;
+	self->t1.pick = captiontext_pick;
+	self->set = NULL;
+	self->EMpixels = EMpixels;
+	self->font = NULL;
+	self->color = color;
+	self->fontname = fontname;
+	self->font = (AtlasFont*)searchAtlasTableOrLoad(fontname,EMpixels);
+	if(!self->font){
+		printf("dug9gui: Can't find font %s do you have the wrong name?\n",fontname);
+	}
+	self->set = searchAtlasFontForSizeOrMake(self->font,EMpixels);
+	return (contenttype*)self;
+}
+void captiontext_setString(void *_self, char *utf8string){
+	contenttype_captiontext *self = (contenttype_captiontext *)_self;
+	self->caption = utf8string; //should we deep copy? no need yet.
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 typedef struct contenttype_layer {
 	tcontenttype t1;
 	//clears zbuffer between contents, but not clearcolor
@@ -2172,6 +2256,20 @@ void setup_stagesNORMAL(){
 			else cstage->t1.contents = csbh; //skip multitouch
 			//tg->Mainloop.AllowNavDrag = TRUE; //experimental approach to allow both navigation and dragging at the same time, with 2 separate touches
 		}else if(0){
+			//captiontext, layer, scene, statusbarHud, 
+			//contenttype *new_contenttype_captiontext(char *fontname, int EMpixels, vec4 color)
+			vec4 ccolor;
+			contenttype *ctext;
+			ccolor = vec4_init(1.0f,.6f,0.0f,1.0f);
+			ctext = new_contenttype_captiontext("Vera",12,ccolor);
+			captiontext_setString(ctext, "string from captiontext");
+			ctext->t1.viewport[0] = .1f;
+			ctext->t1.viewport[1] = .6f;
+			ctext->t1.viewport[2] = .4f;
+			ctext->t1.viewport[3] = .5f;
+			cstage->t1.contents = csbh;
+			csbh->t1.next = ctext;
+		}else if(0){
 			//e3dmouse: multitouch emulation, layer, (e3dmouse > scene), statusbarHud, 
 			contenttype *ce3dmouse = new_contenttype_e3dmouse();
 			cstage->t1.contents = csbh;
@@ -2210,7 +2308,7 @@ void setup_stagesNORMAL(){
 
 		}else if(1){
 			//quadrant
-			contenttype *clayer0, *clayer1, *clayer2, *clayer3;
+			//contenttype *clayer0, *clayer1, *clayer2, *clayer3;
 			contenttype *cscene0, *cscene1, *cscene2, *cscene3;
 			cquadrant = new_contenttype_quadrant();
 			cmultitouch->t1.contents = csbh; //clayer;

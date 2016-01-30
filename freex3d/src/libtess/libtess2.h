@@ -54,7 +54,11 @@ OLDCODE #include <limits.h>		/* LONG_MAX */
 	#include <GLES2/gl2.h>
 	#define GLdouble double
 #else
+#ifdef AQUA
+#include <OpenGL/gl.h>
+#else
     #include <GL/gl.h>
+#endif
 #endif
 
 

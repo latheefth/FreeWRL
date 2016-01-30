@@ -722,10 +722,10 @@ void initFont(void)
 void printString(char *s){}
 FXY screen2normalizedScreen( GLfloat x, GLfloat y);
 FXY screen2normalizedScreenScale( GLfloat x, GLfloat y);
-#ifndef DISABLER
-#include <malloc.h>
-#else
+#ifdef AQUA
 #include <malloc/malloc.h>
+#else
+#include <malloc.h>
 #endif
 void printString2(GLfloat sx, GLfloat sy, char *s)
 {
