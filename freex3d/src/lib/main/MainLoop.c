@@ -541,11 +541,10 @@ typedef struct contenttype_captiontext {
 	vec4 color;
 } contenttype_captiontext;
 int render_captiontext(AtlasFont *font, AtlasEntrySet* set, char *utf8string, vec4 color);
+AtlasFont *searchAtlasTableOrLoad(char *facename, int EMpixels);
 void captiontext_render(void *_self){
 	//make this like layer, render contents first in clipplane-limited viewport, then sbh in whole viewport
-	Stack *vportstack;
 	contenttype_captiontext *self;
-	contenttype *c;
 
 	self = (contenttype_captiontext *)_self;
 	pushnset_viewport(self->t1.viewport);
@@ -556,10 +555,7 @@ void captiontext_render(void *_self){
 	popnset_viewport();
 }
 int captiontext_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
-	contenttype *c;
-	contenttype_captiontext *self;
 	int iret = 0;
-
 	return iret;
 }
 contenttype *new_contenttype_captiontext(char *fontname, int EMpixels, vec4 color){
@@ -2254,12 +2250,12 @@ void setup_stagesNORMAL(){
 		cstage->t1.contents = cmultitouch;
 		p->EMULATE_MULTITOUCH =	FALSE;
 		//IDEA: these prepared ways of using freewrl could be put into a switchcase contenttype called early ie from window
-		if(0){
+		if(1){
 			//normal: multitouch emulation, layer, scene, statusbarHud, 
 			if(0) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
 			else cstage->t1.contents = csbh; //skip multitouch
 			//tg->Mainloop.AllowNavDrag = TRUE; //experimental approach to allow both navigation and dragging at the same time, with 2 separate touches
-		}else if(1){
+		}else if(0){
 			//captiontext, layer, scene, statusbarHud, 
 			//contenttype *new_contenttype_captiontext(char *fontname, int EMpixels, vec4 color)
 			vec4 ccolor;
@@ -2267,10 +2263,10 @@ void setup_stagesNORMAL(){
 			ccolor = vec4_init(1.0f,.6f,0.0f,1.0f);
 			ctext = new_contenttype_captiontext("Vera",12,ccolor);
 			captiontext_setString(ctext, "string from captiontext");
-			ctext->t1.viewport[0] = .1;
-			ctext->t1.viewport[1] = .6;
-			ctext->t1.viewport[2] = .4;
-			ctext->t1.viewport[3] = .5;
+			ctext->t1.viewport[0] = .1f;
+			ctext->t1.viewport[1] = .6f;
+			ctext->t1.viewport[2] = .4f;
+			ctext->t1.viewport[3] = .5f;
 			cstage->t1.contents = csbh;
 			csbh->t1.next = ctext;
 		}else if(0){
@@ -2312,7 +2308,7 @@ void setup_stagesNORMAL(){
 
 		}else if(1){
 			//quadrant
-			contenttype *clayer0, *clayer1, *clayer2, *clayer3;
+			//contenttype *clayer0, *clayer1, *clayer2, *clayer3;
 			contenttype *cscene0, *cscene1, *cscene2, *cscene3;
 			cquadrant = new_contenttype_quadrant();
 			cmultitouch->t1.contents = csbh; //clayer;

@@ -1131,11 +1131,12 @@ int len_utf8(unsigned char *utf8string)
 }
 
 
-#ifndef DISABLER
-#include <malloc.h>
-#else
+#ifdef AQUA
 #include <malloc/malloc.h>
+#else
+#include <malloc.h>
 #endif
+
 void prep_screentext(struct X3D_Text *tnode, int num, int screensize);
 /* take a text string, font spec, etc, and make it into an OpenGL Polyrep.
    Note that the text comes EITHER from a SV (ie, from perl) or from a directstring,
@@ -1265,6 +1266,7 @@ p->myff = 4;
 	}
 	if(rowvec_allocn < numrows){
 		rowvec = realloc(rowvec,numrows * sizeof(row32));
+		memset(&rowvec[rowvec_allocn],0,(numrows - rowvec_allocn)*sizeof(row32));
 		rowvec_allocn = numrows;
 	}
 	//realloc any str8 or str32s in each row
@@ -1276,6 +1278,7 @@ p->myff = 4;
 			rowvec[row].str32 = (unsigned int *)realloc(rowvec[row].str32,(len+1) * sizeof(unsigned int)); 
 			rowvec[row].chr = (chardata *) realloc(rowvec[row].chr,len*sizeof(chardata));
 			rowvec[row].allocn = len;
+			rowvec[row].len32 = 0;
 		}
 	}
 	if(tnode->_isScreen){
@@ -1350,6 +1353,7 @@ p->myff = 4;
 		//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/text.html#t-horizontalTRUE
 
 		/* BEGIN */
+		p->pen_y = 0.0; //default Begin (top), if no (proper) minor justify entered
 		if(fsparam & (0x400<<(4))){
 			p->pen_y = 0.0;
 		}
@@ -1376,7 +1380,7 @@ p->myff = 4;
 				p->pen_y -= 1.0; 		
 			p->pen_y = numrows - 1.0 - p->pen_y;
 		}
-
+		p->pen_y *= mysize;
 		//screen/vector-agnostic loop to compute penx,y and shrinkage for each glyph
 		for(irow = 0; irow < numrows; irow++) {
 			unsigned int lenchars;
@@ -1667,11 +1671,12 @@ void collide_Text (struct X3D_Text *node)
 	GLDOUBLE awidth,atop,abottom,astep,modelMatrix[16];
     struct point_XYZ delta = {0,0,-1};
     struct X3D_PolyRep pr;
+	ttglobal tg;
     int change = 0;
+	tg = gglobal();
 
 	if(node->_isScreen >  0) return; //don't collide with screentext
 
-	ttglobal tg = gglobal();
 	naviinfo = (struct sNaviInfo*)tg->Bindable.naviinfo;
 
     awidth = naviinfo->width; /*avatar width*/
@@ -2197,7 +2202,8 @@ AtlasEntrySet* searchAtlasFontForSizeOrMake(AtlasFont *font,int EMpixels){
 	AtlasEntrySet *set = NULL;
 	if(font){
 		if(font->atlasSizes.n){
-			for(int i=0;i<font->atlasSizes.n;i++){
+			int i;
+			for(i=0;i<font->atlasSizes.n;i++){
 				AtlasEntrySet *aes = vector_get(AtlasEntrySet*,&font->atlasSizes,i);
 				if(aes){
 					if(aes->EMpixels == EMpixels){
@@ -2594,8 +2600,9 @@ int AtlasFont_LoadFromDotC(AtlasFont *font, unsigned char *start, int size){
 	font->fontFace = fontFace;
 
 	if(1){
+		int nsizes;
 		printf("fontface flags & Scalable? = %d \n",fontFace->face_flags & FT_FACE_FLAG_SCALABLE );
-		int nsizes = fontFace->num_fixed_sizes;
+		nsizes = fontFace->num_fixed_sizes;
 		printf("num_fixed_sizes = %d\n",nsizes);
 	}
 	return TRUE;
@@ -3145,6 +3152,9 @@ int render_captiontext(AtlasFont *font, AtlasEntrySet *set, unsigned char * utf8
 	int  pen_x, pen_y;
 	Stack *vportstack;
 	ivec4 ivport;
+	unsigned char *start, *end;
+	int lenchar, l32;
+
 	ttglobal tg = gglobal();
 
 
@@ -3199,8 +3209,6 @@ int render_captiontext(AtlasFont *font, AtlasEntrySet *set, unsigned char * utf8
 	pen_y = ivport.Y + ivport.H - set->EMpixels; //MAGIC FORMULA - I'm not sure what this should be, but got something drawing
 
 	//utf8to32 >>
-	unsigned char *start, *end;
-	int lenchar, l32;
 	lenchar = (int)strlen((const char *)utf8string);
 	//if(!strncmp(utf8string,"Gr",2)){
 	//	printf("length of Green string=%d\n",lenchar);
@@ -3241,6 +3249,7 @@ int render_captiontext(AtlasFont *font, AtlasEntrySet *set, unsigned char * utf8
 		}
 		if(!entry){
 			//use freetype2 to render
+			FT_GlyphSlot glyph;
 			unsigned long c = FT_Get_Char_Index(font->fontFace, ichar); 		
 			FT_Error error = FT_Load_Glyph(font->fontFace, c, FT_LOAD_RENDER); 	
 			if(error) 		
@@ -3249,7 +3258,7 @@ int render_captiontext(AtlasFont *font, AtlasEntrySet *set, unsigned char * utf8
 				printf("ouch88");
 				continue; 		
 			}
-			FT_GlyphSlot glyph = font->fontFace->glyph;
+			glyph = font->fontFace->glyph;
 			/*
 			atlasEntry *entry = malloc(sizeof(atlasEntry));
 			entry->pos.X = glyph->bitmap_left;
