@@ -19,7 +19,7 @@ NSRect myrect;
 float curHeight;
 NSMutableData *receivedData;
 void *drawRectconcurrencyHandle = NULL;
-char* startingString = NULL;
+char* startingString = "/Users/johncarlson/Source/X3DJSONLD/rubik.x3d";
 
 static int displayBoundingBox = TRUE;
 static int myBBShowerCompiled = FALSE;
