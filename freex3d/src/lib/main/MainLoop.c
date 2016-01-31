@@ -523,10 +523,11 @@ contenttype *new_contenttype_statusbar(){
 
 typedef struct AtlasFont AtlasFont;
 typedef struct AtlasEntrySet AtlasEntrySet;
-AtlasFont* searchAtlastableOrLoad(char *fontname,int EMpixels);
+AtlasFont *searchAtlasTableOrLoad(char *facename, int EMpixels);
 AtlasEntrySet* searchAtlasFontForSizeOrMake(AtlasFont *font,int EMpixels);
 typedef struct vec4 {float X; float Y; float Z; float W;} vec4;
 vec4 vec4_init(float x, float y, float z, float w);
+int render_captiontext(AtlasFont *font, AtlasEntrySet* set, char *utf8string, vec4 color);
 typedef struct contenttype_captiontext {
 	tcontenttype t1;
 	char *caption;
@@ -540,8 +541,6 @@ typedef struct contenttype_captiontext {
 	float angle;
 	vec4 color;
 } contenttype_captiontext;
-int render_captiontext(AtlasFont *font, AtlasEntrySet* set, char *utf8string, vec4 color);
-AtlasFont *searchAtlasTableOrLoad(char *facename, int EMpixels);
 void captiontext_render(void *_self){
 	//make this like layer, render contents first in clipplane-limited viewport, then sbh in whole viewport
 	contenttype_captiontext *self;
@@ -2250,7 +2249,7 @@ void setup_stagesNORMAL(){
 		cstage->t1.contents = cmultitouch;
 		p->EMULATE_MULTITOUCH =	FALSE;
 		//IDEA: these prepared ways of using freewrl could be put into a switchcase contenttype called early ie from window
-		if(0){
+		if(1){
 			//normal: multitouch emulation, layer, scene, statusbarHud, 
 			if(0) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
 			else cstage->t1.contents = csbh; //skip multitouch

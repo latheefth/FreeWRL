@@ -85,10 +85,10 @@ enum {
 typedef struct chardata{
 	unsigned int iglyph; //glyph index in p->gplyphs[iglyph]
 	unsigned int advance; //char width or more precisely, advance of penx to next char start
-	float x; //pen_x
-	float y;
-	float sx; //scale = 1-rshrink * 1-shrink applied appropriately ie the net scale needed for this char in x
-	float sy;
+	double x; //pen_x
+	double y;
+	double sx; //scale = 1-rshrink * 1-shrink applied appropriately ie the net scale needed for this char in x
+	double sy;
 } chardata;
 typedef struct row32 {
 	int allocn;
@@ -3562,34 +3562,28 @@ void render_screentext1(struct X3D_Text *tnode){
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST); //GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST); //GL_LINEAR);
 
-		if(1){
-			if(0){
-			FW_GL_GETFLOATV(GL_MODELVIEW_MATRIX, modelviewf);
-			glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewf);
-			FW_GL_GETFLOATV(GL_PROJECTION_MATRIX, projectionf);
-			glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionf);
-			}else if(0){
-			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewd);
-			glUniformMatrix4dv(modelviewLoc, 1, GL_FALSE,modelviewd);
-			FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projectiond);
-			glUniformMatrix4dv(projectionLoc, 1, GL_FALSE, projectiond);
+		//get current color and send to shader
+		{
+			struct matpropstruct *myap = getAppearanceProperties();
+			if (!myap) {
+				glUniform4f(color4fLoc,.5f,.5f,.5f,1.0f); //default
 			}else{
-				FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewd);
-
-				/* convert GLDOUBLE to float */
-				for (i=0; i<16; i++) {
-					modelviewf[i] = (float) modelviewd[i];
-				}
-				glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewf);
-				FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projectiond);
-				/* convert GLDOUBLE to float */
-				for (i=0; i<16; i++) {
-					projectionf[i] = (float) projectiond[i];
-				}
-				glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionf);
-
+				float *dc;
+				dc = myap->fw_FrontMaterial.diffuse;
+				glUniform4f(color4fLoc,dc[0],dc[1],dc[2],dc[3]); //0.7f,0.7f,0.9f,1.0f);
 			}
+		}
+
+		if(1){
+			//text in 3D space
+			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewd);
+			matdouble2float4(modelviewf, modelviewd);
+			glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewf);
+			FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projectiond);
+			matdouble2float4(projectionf,projectiond);
+			glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionf);
 		}else{
+			//hopefully, does screen-aligned text?
 			glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewIdentityf);
 			glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionIdentityf);
 		}

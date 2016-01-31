@@ -279,6 +279,7 @@ void matrixFromAxisAngle4d(double *mat, double rangle, double x, double y, doubl
 void scale_to_matrix (double *mat, struct point_XYZ *scale);
 void loadIdentityMatrix (double *mat);
 double *matcopy(double *r, double*mat);
+float *matdouble2float4(float *rmat4, double *dmat4);
 void printmatrix2(GLDOUBLE* mat,char* description );
 void printmatrix3(GLDOUBLE *mat, char *description, int row_major);
 void general_slerp(double *ret, double *p1, double *p2, int size, const double t);
