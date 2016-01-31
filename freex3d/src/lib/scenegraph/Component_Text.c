@@ -85,18 +85,18 @@ enum {
 typedef struct chardata{
 	unsigned int iglyph; //glyph index in p->gplyphs[iglyph]
 	unsigned int advance; //char width or more precisely, advance of penx to next char start
-	double x; //pen_x
-	double y;
-	double sx; //scale = 1-rshrink * 1-shrink applied appropriately ie the net scale needed for this char in x
-	double sy;
+	float x; //pen_x
+	float y;
+	float sx; //scale = 1-rshrink * 1-shrink applied appropriately ie the net scale needed for this char in x
+	float sy;
 } chardata;
 typedef struct row32 {
 	int allocn;
 	int len32;
 	unsigned int *str32;
 	int iglyphstartindex;
-	double hrowsize; //all the char widths
-	double vcolsize; //len32 x charheight
+	float hrowsize; //all the char widths
+	float vcolsize; //len32 x charheight
 	unsigned int widestchar; //widest char in the row, in advance units
 	chardata *chr;
 }row32;
@@ -108,6 +108,9 @@ typedef struct screentextdata {
 	row32 *rowvec;
 	void *atlasfont;
 	void *set;
+	float size;
+	float faceheight;
+	float emsize;
 }screentextdata;
 
 typedef struct pComponent_Text{
@@ -1287,6 +1290,10 @@ p->myff = 4;
 		sdata->rowvec = rowvec;
 		sdata->nalloc = rowvec_allocn;
 		sdata->nrow = numrows;
+		sdata->faceheight = (float)p->font_face[p->myff]->height;
+		sdata->size = mysize;
+		sdata->emsize = p->x_size;
+		//p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES) *s
 	}else{
 		p->rowvec = rowvec;
 		p->rowvec_allocn = rowvec_allocn;
@@ -2766,14 +2773,22 @@ vec2 pixel2normalizedScreen( GLfloat x, GLfloat y){
 }
 
 
-
+#define USE_MATRICES 1
 static   GLbyte vShaderStr[] =  
       "attribute vec4 a_position;   \n"
       "attribute vec2 a_texCoord;   \n"
+#ifdef USE_MATRICES
+      "uniform mat4 u_ModelViewMatrix; \n"
+      "uniform mat4 u_ProjectionMatrix; \n"
+#endif
       "varying vec2 v_texCoord;     \n"
       "void main()                  \n"
       "{                            \n"
+#ifdef USE_MATRICES
+      "   gl_Position = u_ProjectionMatrix * u_ModelViewMatrix * a_position; \n"
+#else
       "   gl_Position = a_position; \n"
+#endif
       "   v_texCoord = a_texCoord;  \n"
       "}                            \n";
 
@@ -2817,6 +2832,18 @@ static   GLbyte fShaderStr[] =
 	  //"  texColor.a = blend.a*Color4f.a + (one.a - blend.a)*texColor.a;\n"
    //   "  vec4 finalColor = vec4(Color4f.rgb * texColor.rgb, texColor.a); \n"  //vector rgb color, and vector.a * (1-L) for alpha
 //STATICS
+static GLfloat modelviewIdentityf[] = {
+	1.0f, 0.0f, 0.0f, 0.0f,
+	0.0f, 1.0f, 0.0f, 0.0f,
+	0.0f, 0.0f, 1.0f, 0.0f,
+	0.0f, 0.0f, 0.0f, 1.0f
+};
+static GLfloat projectionIdentityf[] = {
+	1.0f, 0.0f, 0.0f, 0.0f,
+	0.0f, 1.0f, 0.0f, 0.0f,
+	0.0f, 0.0f, 1.0f, 0.0f,
+	0.0f, 0.0f, 0.0f, 1.0f
+};
 static GLuint positionLoc;
 static GLuint texCoordLoc;
 static GLuint textureLoc;
@@ -2825,6 +2852,8 @@ static GLuint color4fLoc;
 static GLuint textureID;
 //static GLuint indexBufferID;
 static GLuint blendLoc;
+static GLuint modelviewLoc;
+static GLuint projectionLoc;
 static GLuint programObject = 0;
 GLuint esLoadProgram ( const char *vertShaderSrc, const char *fragShaderSrc ); //defined in statuasbarHud.c
 static void initProgramObject(){
@@ -2837,6 +2866,10 @@ static void initProgramObject(){
    textureLoc = glGetUniformLocation ( programObject, "Texture0" );
    color4fLoc = glGetUniformLocation ( programObject, "Color4f" );
    blendLoc = glGetUniformLocation ( programObject, "blend" );
+#ifdef USE_MATRICES
+   modelviewLoc =  glGetUniformLocation ( programObject, "u_ModelViewMatrix" );
+   projectionLoc = glGetUniformLocation ( programObject, "u_ProjectionMatrix" );
+#endif
 
 }
 
@@ -3176,6 +3209,11 @@ int render_captiontext(AtlasFont *font, AtlasEntrySet *set, unsigned char * utf8
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST); //GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST); //GL_LINEAR);
 
+#ifdef USE_MATRICES
+	glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewIdentityf);
+	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionIdentityf);
+#endif
+
 	glUniform4f(color4fLoc,color.X,color.Y,color.Z,color.W); //0.7f,0.7f,0.9f,1.0f);
 	//for caption text, we'll set the font size whether or not we have an atlas set, 
 	//because the atlas set may not have all the utf8 chars we need, and so we may need to 
@@ -3312,7 +3350,10 @@ void render_screentext0(struct X3D_Text *tnode){
 		glBindTexture(GL_TEXTURE_2D, textureID);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST); //GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST); //GL_LINEAR);
-
+#ifdef USE_MATRICES
+		glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewIdentityf);
+		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionIdentityf);
+#endif
 
 
 		sdata = (screentextdata*)tnode->_screendata;
@@ -3321,6 +3362,9 @@ void render_screentext0(struct X3D_Text *tnode){
 		set = sdata->set;
 		rowvec = sdata->rowvec;
 		//render_captiontext(tnode->_font,tnode->_set, self->_caption,self->color);
+		static int once = 0;
+		if(!once) printf("%s %3s %10s %10s %10s %10s !\n","c","adv","sx","sy","x","y");
+
 		for(row=0;row<nrow;row++){
 			for(i=0;i<rowvec[row].len32;i++){
 				AtlasEntry *entry;
@@ -3331,18 +3375,20 @@ void render_screentext0(struct X3D_Text *tnode){
 					// drawsubimage(destination on screen, source glpyh details, source atlas)
 					int cscale;
 					chardata chr = rowvec[row].chr[i];
+					if(!once) printf("%c %3d %10f %10f %10f %10f\n",(char)rowvec[row].str32[i],chr.advance,chr.sx,chr.sy,chr.x,chr.y);
 					dug9gui_DrawSubImage(chr.x+90,chr.y+30, entry->size.X, entry->size.Y, 
 						entry->apos.X, entry->apos.Y, entry->size.X, entry->size.Y,
 						set->atlas->size.X,set->atlas->size.Y,set->atlas->bytesperpixel,set->atlas->texture);
 				}
 			}
 		}
+		once = 1;
 		glEnable(GL_DEPTH_TEST);
 		glDepthMask(GL_TRUE);
 		restoreGlobalShader();
 	}
 }
-void dug9gui_DrawSubImage_scene(int xpos,int ypos, int xsize, int ysize, int ix, int iy, int iw, int ih, int width, int height, int bpp, char *buffer){
+void dug9gui_DrawSubImage_scene(float xpos,float ypos, float xsize, float ysize, int ix, int iy, int iw, int ih, int width, int height, int bpp, char *buffer){
 //xpos, ypos upper left location of where to draw the sub-image, in local coordinates
 //xsize,ysize - size to stretch the sub-image to on the screen, in pixels
 // ix,iy,iw,ih - position and size in pixels of the subimage in a bigger/atlas image, ix,iy is upper left
@@ -3385,6 +3431,7 @@ GLfloat cursorTex[] = {
 	int i,j;
 	GLfloat cursorVert2[18];
 	GLfloat cursorTex2[12];
+	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
 
 
 	// Bind the base map - see above
@@ -3425,12 +3472,24 @@ GLfloat cursorTex[] = {
 		//lower left
 		fxy.Y = fxy.Y - fwh.Y;
 	}
-	if(1){
+	if(0){
 		fxy.X = (GLfloat)xpos;
 		fxy.Y = (GLfloat)ypos;
 		fwh.X = (GLfloat)xsize;
 		fwh.Y = (GLfloat)ysize;
 
+	}
+	if(0){
+		fxy.X = OUT2GLB(xpos,1.0);
+		fxy.Y = OUT2GLB(ypos,1.0);
+		fwh.X = xsize;
+		fwh.Y = ysize;
+	}
+	if(1){
+		fxy.X = xpos;
+		fxy.Y = ypos;
+		fwh.X = xsize;
+		fwh.Y = ysize;
 	}
 	
 	//fxy.Y -= 1.0; //DUG9GUI y=0 at top
@@ -3445,7 +3504,7 @@ GLfloat cursorTex[] = {
 		cursorVert2[i*3 +1] += fxy.Y;
 	}
 
-	glVertexAttribPointer (positionLocT, 3, GL_FLOAT, 
+	glVertexAttribPointer (positionLoc, 3, GL_FLOAT, 
 						   GL_FALSE, 0, cursorVert2 );
 	// Load the texture coordinate
 	fixy.X = (float)ix/(float)width;
@@ -3464,9 +3523,9 @@ GLfloat cursorTex[] = {
 		cursorTex2[i*2 +1] *= fiwh.Y;
 		cursorTex2[i*2 +1] += fixy.Y;
 	}
-	glVertexAttribPointer (texCoordLocT, 2, GL_FLOAT, GL_FALSE, 0, cursorTex2 );  
-	glEnableVertexAttribArray (positionLocT );
-	glEnableVertexAttribArray (texCoordLocT);
+	glVertexAttribPointer (texCoordLoc, 2, GL_FLOAT, GL_FALSE, 0, cursorTex2 );  
+	glEnableVertexAttribArray (positionLoc );
+	glEnableVertexAttribArray (texCoordLoc);
 
 	//// Bind the base map - see above
 	//glActiveTexture ( GL_TEXTURE0 );
@@ -3491,11 +3550,11 @@ void render_screentext1(struct X3D_Text *tnode){
 		GLdouble modelviewd[16], projectiond[16];
 
 		finishedWithGlobalShader();
-		//glDepthMask(GL_FALSE);
-		//glDisable(GL_DEPTH_TEST);
-		if(!programObjectTrans) initProgramObjectTrans();
+		glDepthMask(GL_FALSE);
+		glDisable(GL_DEPTH_TEST);
+		if(!programObject) initProgramObject();
 
-		glUseProgram ( programObjectTrans );
+		glUseProgram ( programObject );
 		if(!textureID)
 			glGenTextures(1, &textureID);
 
@@ -3504,15 +3563,35 @@ void render_screentext1(struct X3D_Text *tnode){
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST); //GL_LINEAR);
 
 		if(1){
-		FW_GL_GETFLOATV(GL_MODELVIEW_MATRIX, modelviewf);
-		glUniformMatrix4fv(modelviewLocT, 1, GL_FALSE,modelviewf);
-		FW_GL_GETFLOATV(GL_PROJECTION_MATRIX, projectionf);
-		glUniformMatrix4fv(projectionLocT, 1, GL_FALSE, projectionf);
+			if(0){
+			FW_GL_GETFLOATV(GL_MODELVIEW_MATRIX, modelviewf);
+			glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewf);
+			FW_GL_GETFLOATV(GL_PROJECTION_MATRIX, projectionf);
+			glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionf);
+			}else if(0){
+			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewd);
+			glUniformMatrix4dv(modelviewLoc, 1, GL_FALSE,modelviewd);
+			FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projectiond);
+			glUniformMatrix4dv(projectionLoc, 1, GL_FALSE, projectiond);
+			}else{
+				FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewd);
+
+				/* convert GLDOUBLE to float */
+				for (i=0; i<16; i++) {
+					modelviewf[i] = (float) modelviewd[i];
+				}
+				glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewf);
+				FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projectiond);
+				/* convert GLDOUBLE to float */
+				for (i=0; i<16; i++) {
+					projectionf[i] = (float) projectiond[i];
+				}
+				glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionf);
+
+			}
 		}else{
-		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewd);
-		glUniformMatrix4dv(modelviewLocT, 1, GL_FALSE,modelviewd);
-		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projectiond);
-		glUniformMatrix4dv(projectionLocT, 1, GL_FALSE, projectiond);
+			glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewIdentityf);
+			glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionIdentityf);
 		}
 
 		sdata = (screentextdata*)tnode->_screendata;
@@ -3521,6 +3600,9 @@ void render_screentext1(struct X3D_Text *tnode){
 		set = sdata->set;
 		rowvec = sdata->rowvec;
 		//render_captiontext(tnode->_font,tnode->_set, self->_caption,self->color);
+		static int once = 0;
+		if(!once) printf("%s %3s %10s %10s %10s %10s\n","c","adv","sx","sy","x","y");
+		//if(!once) printf("%c %3d %10d %10d %10d %10d\n",(char)rowvec[row].str32[i],chr.advance,chr.sx,chr.sy,chr.x,chr.y);
 		for(row=0;row<nrow;row++){
 			for(i=0;i<rowvec[row].len32;i++){
 				AtlasEntry *entry;
@@ -3530,17 +3612,29 @@ void render_screentext1(struct X3D_Text *tnode){
 				if(entry){
 					// drawsubimage(destination on screen, source glpyh details, source atlas)
 					int cscale;
+					float x,y,sx,sy,scale;
 					chardata chr = rowvec[row].chr[i];
-					if(1) dug9gui_DrawSubImage_scene(chr.x,chr.y, entry->size.X, entry->size.Y, 
+					scale = sdata->size/sdata->faceheight*PPI/XRES;
+					//(p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES) *s)
+					sx = chr.sx;
+					sy = chr.sy;
+					x = chr.x * scale;
+					y = chr.y * scale;
+					if(!once) printf("%c %3d %10f %10f %10f %10f\n",(char)rowvec[row].str32[i],chr.advance,chr.sx,chr.sy,chr.x,chr.y);
+					if(1) dug9gui_DrawSubImage_scene(x,y, sx, sy, //entry->size.X, entry->size.Y, 
+						entry->apos.X, entry->apos.Y, entry->size.X, entry->size.Y,
+						set->atlas->size.X,set->atlas->size.Y,set->atlas->bytesperpixel,set->atlas->texture);
+					if(0) dug9gui_DrawSubImage(chr.x+20,chr.y+20, entry->size.X, entry->size.Y, 
 						entry->apos.X, entry->apos.Y, entry->size.X, entry->size.Y,
 						set->atlas->size.X,set->atlas->size.Y,set->atlas->bytesperpixel,set->atlas->texture);
 
 				}
 			}
 		}
+		once = 1;
 		if(1){
-		//glEnable(GL_DEPTH_TEST);
-		//glDepthMask(GL_TRUE);
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
 		restoreGlobalShader();
 		}
 	}
