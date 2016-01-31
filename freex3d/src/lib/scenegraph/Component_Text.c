@@ -69,8 +69,63 @@ X3D Text Component
 #define LEFTTORIGHT (fsparam & 0x02)
 #define HORIZONTAL (fsparam & 0x01)
 
+
+/*	units and numerics with freetype2:
+	Even a very experienced programmer can find the units and numerics with freetype2 
+	a bit bewildering at first. Here's some background.
+	http://www.freetype.org/freetype2/docs/tutorial/step2.html
+	- see near the bottom of this page, except its not good at expressing units:
+	[fu] - font units or font design units or design units
+			- usually 0-2048 for truetype, 0-1000 for type1 fonts, both directions
+			- often expressed in fixed-point numbers
+	[du] - device units or pixels
+	[em] - 0 to 1 with 1 being the whole EMsquare, equivalent to [1] in most cases
+	[m/em]	 - the x3d units for mysize, spacing ie final coords [m] = mysize[m/em] * emcoords [em]
+	[in] - inch on screen
+	[pt] - points ie 12 point font
+	[1]  - [one] - unitless, or a ratio of 2 like-units ie [m/m] = [1]. ie usage: [unit] = [1] * [unit] 
+	units must balance on each side of an equation, examples:
+	x_scale [du/fu] = pixel_size_x [du] / EM_size [fu]
+	device_x [du] = design_x [fu] * x_scale [du/fu]
+
+	Fixed-point numbers -
+	many of the freetype2 parameters are expressed as fixed-point numbers 16.16 or 26.6:
+	https://en.wikibooks.org/wiki/Floating_Point/Fixed-Point_Numbers
+	dot16 - 16.16 Fixed-Point (a 32 bit integer, with half for radix, half for mantissa)  1111111111111111.1111111111111111
+	dot6  - 26.6 Fixed-Point (32 bit integer, with last 6 for radix                       11111111111111111111111111.111111
+	int32 - normal int
+	dble  - normal double
+	
+	Two ways to convert:
+	a) all int, with truncation:
+	dot16 = int32 << 16 or int32 * 0x10000 or int32 * 65536
+	dot6 = int32 << 6 or int32 * 64 
+	int32 = dot16 >> 16 or int32 / 65536  (truncates decimals)
+	int32 = dot6 >> 6 or int32 / 64
+	dot6 = dot16 >> 10 or dot16 / 1024 (truncates least significant decimals)
+	dot16 = dot6 << 10 or dot6 * 1024
+	freetype2 has some scaling functions optimized for speed:
+	http://www.freetype.org/freetype2/docs/reference/ft2-computations.html#FT_MulFix
+	
+	b) to/from floats/doubles (preserves precision) (see wiwibooks link above for formulas):
+	dot16 = round( dble * 2**16)
+	dble = dot16 * 2**(-16) or (double)dot16 / (double) 65536
+	dot6 = round( dble * 2**6)
+	dble = dot6 * 2**(-6) or (double)dot6 / (double)64
+	if you go dble = (double)dot6 you'll get coordinates x 2**6 or 64
+
+	Specific variables:
+	the EM square concept:
+	http://designwithfontforge.com/en-US/The_EM_Square.html
+	PPI - pixels per inch [du/in]
+	XRES - dots (or pixels) per inch [du/in]
+	http://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#FT_FaceRec
+	Face->height [fu/em dot6]
+*/
+
 #define OUT2GL(a) (p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES))
 #define OUT2GLB(a,s) (p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES) *s)
+// result [m*units/(em*fu_dot6)] = x_size [m/em] * a [units] / ( (height [fu dot6] / PPI [du/in] * XRES [du/in] ) * s[1])
 
 /* now defined in system_fonts.h
 include <ft2build.h>
@@ -95,8 +150,8 @@ typedef struct row32 {
 	int len32;
 	unsigned int *str32;
 	int iglyphstartindex;
-	float hrowsize; //all the char widths
-	float vcolsize; //len32 x charheight
+	double hrowsize; //all the char widths
+	double vcolsize; //len32 x charheight
 	unsigned int widestchar; //widest char in the row, in advance units
 	chardata *chr;
 }row32;
@@ -742,10 +797,10 @@ ConsoleMessage ("TEXT INITIALIZATION - checking on the font file before doing an
     } else {
         /* access face content */
         err = FT_Set_Char_Size(p->font_face[p->myff], /* handle to face object           */
-                               POINTSIZE*64,    /* char width in 1/64th of points  */
-                               POINTSIZE*64,    /* char height in 1/64th of points */
-                               XRES,            /* horiz device resolution         */
-                               YRES);           /* vert device resolution          */
+                               POINTSIZE*64,    /* char width in 1/64th of points  [pt dot6] */
+                               POINTSIZE*64,    /* char height in 1/64th of points [pt dot6]*/
+                               XRES,            /* horiz device resolution   [du/in]      */
+                               YRES);           /* vert device resolution    [du/in]      */
 
         if (err) {
             printf ("FreeWRL - FreeType, can not set char size for font %s\n",p->thisfontname);
@@ -840,10 +895,10 @@ int FW_set_facesize(FT_Face ftface,char *thisfontname){
 	if(ftface){
 		iret = TRUE;
 		err = FT_Set_Char_Size(ftface, /* handle to face object           */
-								POINTSIZE*64,    /* char width in 1/64th of points  */
-								POINTSIZE*64,    /* char height in 1/64th of points */
-								XRES,            /* horiz device resolution         */
-								YRES);           /* vert device resolution          */
+								POINTSIZE*64,    /* char width in 1/64th of points [pt dot6] */
+								POINTSIZE*64,    /* char height in 1/64th of points [pt dot6]*/
+								XRES,            /* horiz device resolution        [du/in] */
+								YRES);           /* vert device resolution         [du/in] */
 
 		if (err) {
 			printf ("FreeWRL - FreeType, can not set char size for font %s\n",thisfontname);
@@ -861,7 +916,10 @@ double FW_extent (int start, int length)
 	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
 
     for (count = start; count <length+start; count++) {
-        ret += p->glyphs[count]->advance.x >> 10;
+		//http://www.freetype.org/freetype2/docs/reference/ft2-glyph_management.html#FT_GlyphRec
+		//advance: 16.16 in [fu]
+        ret += p->glyphs[count]->advance.x >> 10; 
+		//[fu dbledot6] += [fu (dot6_2_dble)dot16_2_dot6([fu dot16])]
     }
     return ret;
 }
@@ -925,7 +983,7 @@ static void FW_draw_character (FT_Glyph glyph)
 	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
     if (glyph->format == ft_glyph_format_outline) {
         FW_draw_outline ((FT_OutlineGlyph) glyph);
-        p->pen_x +=  (glyph->advance.x >> 10);
+        p->pen_x +=  (glyph->advance.x >> 10); //[fu dot6] = [fu dot16_to_dot6(dot16)]
     } else {
         printf ("FW_draw_character; glyphformat  -- need outline for %s %s\n",
                 p->font_face[p->myff]->family_name,p->font_face[p->myff]->style_name);
@@ -1141,9 +1199,14 @@ int len_utf8(unsigned char *utf8string)
 #endif
 
 void prep_screentext(struct X3D_Text *tnode, int num, int screensize);
-/* take a text string, font spec, etc, and make it into an OpenGL Polyrep.
-   Note that the text comes EITHER from a SV (ie, from perl) or from a directstring,
-   eg, for placing text on the screen from within FreeWRL itself */
+/* take a text string, font spec, etc, and make it into an OpenGL Polyrep or rowvec[] for screen(pixel) font
+   For placing text on the screen directly from freewrl ie GUI or HUD like use the CaptionText contenttype 
+   described elsewhere.
+   spacing [em/em] or [1]
+   mysize [m/em]
+   maxextent [m]
+   length[] [m]
+   */
 
 void FW_rendertext(struct X3D_Text *tnode, unsigned int numrows,struct Uni_String **ptr,
 				unsigned int nl, float *length, double maxext,
@@ -1210,10 +1273,11 @@ void FW_rendertext(struct X3D_Text *tnode, unsigned int numrows,struct Uni_Strin
 	//p->indx_count=0;               /* maps intp FW_rep_->cindex                          */
 	//p->contour_started = FALSE;
 
-	p->pen_x = 0.0; p->pen_y = 0.0;
+	p->pen_x = 0.0; //[not sure yet]
+	p->pen_y = 0.0; //[not sure yet]
 	p->cur_glyph = 0;
-	p->x_size = mysize;            /* global variable for size */
-	p->y_size = mysize;            /* global variable for size */
+	p->x_size = mysize;            /* global variable for size [m/em] */
+	p->y_size = mysize;            /* global variable for size [m/em] */
 
 
 	/* is this fontface opened */
@@ -1246,6 +1310,7 @@ p->myff = 4;
 	/* type 1 fonts different than truetype fonts */
 	if (p->font_face[p->myff]->units_per_EM != 1000)
 		p->x_size = p->x_size * p->font_face[p->myff]->units_per_EM/1000.0;
+		// [m/em] = [m/em]    * [fu/em]                            /[fu/em]
 
 
 
@@ -1307,13 +1372,11 @@ p->myff = 4;
 		/* utf8_to_utf32 */
 		//in theory str32 will always have # of chars <= len str8
 		// so allocating len8 chars will be enough or sometimes too much
-		if(0) str32 = alloca((len+1) * sizeof(unsigned int)); 
 		str32 = rowvec[row].str32;
 		utf8_to_utf32(str,str32,&len32);
 		rowvec[row].iglyphstartindex = p->cur_glyph;
 		rowvec[row].len32 = len32;
 		rowvec[row].str32 = str32;
-		if(0) rowvec[row].chr = (chardata *) alloca(len32*sizeof(chardata)); //some compilers gurus warn alloca can do weird stuff in loop, not recommended
 		total_row_advance = 0;
 		widest_char = 0;
 		for(i=0;i<len32;i++){
@@ -1321,13 +1384,15 @@ p->myff = 4;
 			FW_Load_Char(str32[i]);
 			icount = p->cur_glyph -1;
 			rowvec[row].chr[i].iglyph = icount;
-			rowvec[row].chr[i].advance = p->glyphs[icount]->advance.x >> 10;
-			total_row_advance += rowvec[row].chr[i].advance;
+			//http://www.freetype.org/freetype2/docs/reference/ft2-glyph_management.html#FT_GlyphRec Glyph->advance dot16
+			rowvec[row].chr[i].advance = p->glyphs[icount]->advance.x >> 10; //[fu dot6] = [fu dot16_2_dot6(dot6)]
+			total_row_advance += rowvec[row].chr[i].advance; //[fu dot6] = [fu dot6]
 			widest_char = rowvec[row].chr[i].advance > widest_char ? rowvec[row].chr[i].advance : widest_char;
+			//[fu dot6]        =                                             [fu dot6]              [fu dot6]
 		}
-		rowvec[row].hrowsize = total_row_advance;
-		rowvec[row].vcolsize = len32 * spacing * p->y_size;
-		rowvec[row].widestchar = widest_char;
+		rowvec[row].hrowsize = total_row_advance; //[fu dot6] = [fu dot6]
+		rowvec[row].vcolsize = len32 * spacing * p->y_size; //[m] = [m/em] = [1] * [em/em] * [m/em]
+		rowvec[row].widestchar = widest_char; //[fu dot6] = [fu dot6]
 		char_count += len32;
 		//FREE_IF_NZ(utf32); //see bottom of this function
 	}
@@ -1342,14 +1407,15 @@ p->myff = 4;
 
 	if(HORIZONTAL){
 		//find the longest row dimension
-		shrink = 1.0;
+		shrink = 1.0; //[1]
 		if(maxext > 0) {
-			double maxlen = 0;
+			double maxlen = 0; //[m] or [m/em]
 			for(row = 0; row < numrows; row++) {
-				double hrowsize = OUT2GLB(rowvec[row].hrowsize,1.0);
-				maxlen = hrowsize > maxlen ? hrowsize : maxlen;
+				double hrowsize = OUT2GLB(rowvec[row].hrowsize,1.0); //[m] = [m/em] =[fu dot6/unit] * [m*units/(em*fu dot6)] 
+				maxlen = hrowsize > maxlen ? hrowsize : maxlen; //[m] = [m] or [m]
 			}
-			if(maxlen > maxext) {shrink = maxext / maxlen;}
+			if(maxlen > maxext) 
+				shrink = maxext / maxlen; //[1] = [m]/[m]
 		}
 		//shrink = 1.0;
 		/* Justify MINOR (verticle), FIRST, BEGIN, MIDDLE and END */
@@ -1360,7 +1426,7 @@ p->myff = 4;
 		//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/text.html#t-horizontalTRUE
 
 		/* BEGIN */
-		p->pen_y = 0.0; //default Begin (top), if no (proper) minor justify entered
+		p->pen_y = 0.0; //[em] default Begin (top), if no (proper) minor justify entered
 		if(fsparam & (0x400<<(4))){
 			p->pen_y = 0.0;
 		}
@@ -1387,7 +1453,7 @@ p->myff = 4;
 				p->pen_y -= 1.0; 		
 			p->pen_y = numrows - 1.0 - p->pen_y;
 		}
-		p->pen_y *= mysize;
+		p->pen_y *= mysize; //[m] = [em*m] = [em] * [m]
 		//screen/vector-agnostic loop to compute penx,y and shrinkage for each glyph
 		for(irow = 0; irow < numrows; irow++) {
 			unsigned int lenchars;
@@ -1399,13 +1465,14 @@ p->myff = 4;
 			str = (unsigned char *)ptr[row]->strptr;
 			if (p->TextVerbose)
 				printf ("text2 row %d :%s:\n",row, str);
-			p->pen_x = 0.0;
+			p->pen_x = 0.0; //[em]
 			rshrink = 1.0;
-			rowlen = rowvec[row].hrowsize;
+			rowlen = rowvec[row].hrowsize; //[m] = [m]
 			lenchars = rowvec[row].len32;
 
 			if((row < nl) && !(APPROX(length[row],0.0))) {
-				rshrink = length[row] / OUT2GLB(rowlen,1.0);
+				rshrink = length[row] / OUT2GLB(rowlen,1.0); //LOOKS WRONG
+				//[fu_do6/m]  = [m] / ( [m/unit] *  [m*units/(em*fu dot6)]  ) = [m] / [(m*m)/(em*fu_dot6)] = [em*fu_dot6]/[m] = [fu_dot6/m]
 			}
 			//if(shrink>0.0001) { FW_GL_SCALE_D(shrink,1.0,1.0); }
 			//if(rshrink>0.0001) { FW_GL_SCALE_D(rshrink,1.0,1.0); }
@@ -1413,7 +1480,7 @@ p->myff = 4;
 			/* MAJOR Justify, FIRST, BEGIN, */
 			if (((fsparam & 0x200) || (fsparam &  0x400)) && !LEFTTORIGHT ) {
 				/* printf ("rowlen is %f\n",rowlen); */
-				p->pen_x = -rowlen;
+				p->pen_x = -rowlen; //[em] = [em]
 			}
 
 			/* MAJOR MIDDLE */
@@ -1435,13 +1502,14 @@ p->myff = 4;
 				if(!LEFTTORIGHT)
 					i = lenchars - ii -1;
 				rowvec[row].chr[i].x = p->pen_x;
-				rowvec[row].chr[i].y = p->pen_y;
-				rowvec[row].chr[i].sx = shrink*rshrink;
+				rowvec[row].chr[i].y = p->pen_y; //[m]
+				rowvec[row].chr[i].sx = shrink*rshrink; //[fu_dot6/m] = [1]*[fu_dot6/m]  LOOKS WRONG
 				rowvec[row].chr[i].sy = 1.0;
 				p->pen_x +=  rowvec[row].chr[i].advance;// * shrink * rshrink; // * directionx
+				//[em] !=  [fu dot6]  LOOKS WRONG
 			}
 			//counter += lenchars;
-			p->pen_y += -spacing * p->y_size;
+			p->pen_y += -spacing * p->y_size; //[m] = [m/em] = [em/em] * [m/em]
 		}
 		//END HORIZONTAL
 	}else{
@@ -1452,16 +1520,17 @@ p->myff = 4;
 		double maxlen = 0.0;
 		shrink = 1.0;
 		for(row = 0; row < numrows; row++) {
-			double vcolsize = rowvec[row].vcolsize;
-			vcolsize = vcolsize*p->y_size;
-			maxlen = vcolsize > maxlen ? vcolsize : maxlen;
+			double vcolsize = rowvec[row].vcolsize; //[m] = [m]
+			vcolsize = vcolsize*p->y_size; //[m*m] = [m*m/(em*em)] = [m/em] * [m/em]  LOOKS WRONG
+			maxlen = vcolsize > maxlen ? vcolsize : maxlen; //[m*m] = [m*m] LOOKS WRONG
 		}
 		if(maxext > 0) {
-			if(maxlen > maxext) shrink = maxext / maxlen;
+			if(maxlen > maxext) shrink = maxext / maxlen; //[m] = [m]/[m*m] LOOKS WRONG
 		}
 		widest_column = 0;
 		for(row=0;row<numrows;row++)
 			widest_column = rowvec[row].widestchar > widest_column ? rowvec[row].widestchar : widest_column;
+			//[fu_dot6]  =  [fu_dot6]
 
 		/* Justify MINOR (verticle), FIRST, BEGIN, MIDDLE and END */
 		//bit:    13      FIRST
@@ -1477,7 +1546,7 @@ p->myff = 4;
 			if(LEFTTORIGHT)
 				p->pen_x = 0.0;
 			else
-				p->pen_x = -(double)numrows * widest_column;
+				p->pen_x = -(double)numrows * widest_column; //[fu_dbledot6] = [1] * [int_to_dble(fu_dot6)]  LOOKS WRONG
 		}
 		/* MIDDLE */
 		if (fsparam & (0x800<<(4))) { 
@@ -1509,21 +1578,22 @@ p->myff = 4;
 			str = (unsigned char *)ptr[row]->strptr;
 			if (p->TextVerbose)
 				printf ("text2 row %d :%s:\n",row, str);
-			p->pen_y = 0.0;
+			p->pen_y = 0.0; 
 			rshrink = 1.0;
-			rowlen = rowvec[row].vcolsize;
+			rowlen = rowvec[row].vcolsize; //[m] = [m]
 			lenchars = rowvec[row].len32;
 
 			if((row < nl) && !(APPROX(length[row],0.0))) {
 				rshrink = length[row] / (rowlen*p->y_size);
+				//[1/m]    =  [m]        / ([m] * [m])   LOOKS WRONG
 			}
-			starty = -1.0*shrink*rshrink*p->y_size;
+			starty = -1.0*shrink*rshrink*p->y_size;  //[1] = [em]*[1]*[1/m]*[m/em]  LOOKS WRONG
 			/* MAJOR Justify, FIRST, BEGIN, */
 			if ((fsparam & 0x200) || (fsparam &  0x400)){
 				if(TOPTOBOTTOM )
 					p->pen_y = starty;
 				else
-					p->pen_y = rowlen + starty;
+					p->pen_y = rowlen + starty; //[?] = [m] or [1] LOOKS WRONG
 			}
 
 			/* MAJOR MIDDLE */
@@ -1551,13 +1621,16 @@ p->myff = 4;
 				penx = p->pen_x;
 				if(!LEFTTORIGHT)
 					penx = penx + widest_column * spacing - rowvec[row].chr[i].advance;
-				rowvec[row].chr[i].x = penx;
-				rowvec[row].chr[i].y = p->pen_y;
+					//[fu_dot6]= fu_dot6] + [fu_dot6]*[em/em] - [fu dot6]
+				rowvec[row].chr[i].x = penx; //[fu_dot6] = [fu_dot6]
+				rowvec[row].chr[i].y = p->pen_y; //[?] (H: [m])
 				rowvec[row].chr[i].sx = 1.0;
-				rowvec[row].chr[i].sy = shrink*rshrink;
+				rowvec[row].chr[i].sy = shrink*rshrink;  //[1] * [1/m] LOOKS WRONG
 				p->pen_y += -p->y_size * shrink * rshrink;
+				//[1] = [1/em] =  [m/em]    * [1]    * [1/m]   LOOKS WRONG
 			}
 			//counter += lenchars;
+			// [fu_dot6] =  [fu_dot6]  * [em/em]
 			p->pen_x +=  widest_column * spacing; // * p->x_size; //rowvec[row].chr[i].advance; // * directionx
 
 		}
@@ -1586,18 +1659,18 @@ p->myff = 4;
 				chardata chr;
 
 				chr = rowvec[row].chr[i];
-				p->pen_x = chr.x;
-				p->pen_y = chr.y;
-				p->shrink_x = chr.sx;
-				p->shrink_y = chr.sy;
+				p->pen_x = chr.x; //[fu_dot6] = [fu_dot6]
+				p->pen_y = chr.y; //[m] = [m]
+				p->shrink_x = chr.sx; //[?] = [fu_dot6/m] (horizontal) or [1] (vertical)  LOOKS WRONG
+				p->shrink_y = chr.sy; //[?] = [1] (horizontal) or [1/m] (vertical) LOOKS WRONG
 				//p->y_size = xys.sy;
 				//p->x_size = xys.sx;
 				tg->Tess.global_IFS_Coord_count = 0;
 				p->FW_RIA_indx = 0;
 				//kk = rowvec[row].iglyphstartindex + i;
 				kk = rowvec[row].chr[i].iglyph;
-				p->shrink_x = rowvec[row].chr[i].sx;
-				p->shrink_y = rowvec[row].chr[i].sy;
+				p->shrink_x = rowvec[row].chr[i].sx; //DUPLICATE WITH 10 LINES ABOVE LOOKS WRONG
+				p->shrink_y = rowvec[row].chr[i].sy; //DUPLICATE "
 				FW_draw_character (p->glyphs[kk]);
 				FT_Done_Glyph (p->glyphs[kk]);
 				/* copy over the tesselated coords for the character to
@@ -3538,8 +3611,10 @@ GLfloat cursorTex[] = {
 
 }
 
-void render_screentext1(struct X3D_Text *tnode){
+void render_screentext_aligned(struct X3D_Text *tnode, int alignment){
 	/*	to be called from Text node render_Text for case of ScreenFontStyle
+		alignment = 0 - aligned to screen
+		alignemnt = 1 - 3D in scene
 	*/
 	if(tnode && tnode->_nodeType == NODE_Text){
 		screentextdata *sdata;
@@ -3574,7 +3649,7 @@ void render_screentext1(struct X3D_Text *tnode){
 			}
 		}
 
-		if(1){
+		if(alignment){
 			//text in 3D space
 			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewd);
 			matdouble2float4(modelviewf, modelviewd);
@@ -3634,8 +3709,9 @@ void render_screentext1(struct X3D_Text *tnode){
 	}
 }
 void render_screentext(struct X3D_Text *tnode){
-	render_screentext0(tnode); //old shader way
-	render_screentext1(tnode); //new shaderTrans
+	render_screentext0(tnode);
+	render_screentext_aligned(tnode,0); //old shader way
+	render_screentext_aligned(tnode,1); //new shaderTrans
 }
 void prep_screentext(struct X3D_Text *tnode, int num, int screensize){
 	if(tnode && tnode->_nodeType == NODE_Text && !tnode->_screendata){
