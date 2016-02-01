@@ -2249,7 +2249,7 @@ void setup_stagesNORMAL(){
 		cstage->t1.contents = cmultitouch;
 		p->EMULATE_MULTITOUCH =	FALSE;
 		//IDEA: these prepared ways of using freewrl could be put into a switchcase contenttype called early ie from window
-		if(1){
+		if(0){
 			//normal: multitouch emulation, layer, scene, statusbarHud, 
 			if(0) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
 			else cstage->t1.contents = csbh; //skip multitouch
@@ -2261,7 +2261,7 @@ void setup_stagesNORMAL(){
 			contenttype *ctext;
 			ccolor = vec4_init(1.0f,.6f,0.0f,1.0f);
 			ctext = new_contenttype_captiontext("Vera",12,ccolor);
-			captiontext_setString(ctext, "string from captiontext");
+			captiontext_setString(ctext, "string from captiontext  Gréèn");
 			ctext->t1.viewport[0] = .1f;
 			ctext->t1.viewport[1] = .6f;
 			ctext->t1.viewport[2] = .4f;

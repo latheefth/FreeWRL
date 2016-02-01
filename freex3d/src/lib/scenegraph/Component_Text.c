@@ -58,7 +58,9 @@ X3D Text Component
 #endif //ANDROID_DEBUG
 #endif //ANDROID
 
-
+//googling for info on DPI, PPI:
+//DPI dots per inch (one dot == 1 pixel), in non-mac its 96 DPI constant for historical reasons
+//PPI points per inch 72 is a typography constant ie 1 point = 1/72 inch
 #define XRES 96
 #define YRES 96
 #define PPI 72
@@ -71,24 +73,36 @@ X3D Text Component
 
 
 /*	units and numerics with freetype2:
-	Even a very experienced programmer can find the units and numerics with freetype2 
-	a bit bewildering at first. Here's some background.
+	Even a very experienced programmer like dug9 can find the units and numerical precision
+	with freetype2 a bit bewildering at first. Here's freetype2's 'developer must-read concepts':
+	http://www.freetype.org/freetype2/docs/glyphs/index.html
+		http://www.freetype.org/freetype2/docs/glyphs/glyphs-3.html   
+		- baseline, pens, origin, advance
+		http://www.freetype.org/freetype2/docs/glyphs/glyphs-5.html
+		- text layout algorithms
+	Here's my summary:
 	http://www.freetype.org/freetype2/docs/tutorial/step2.html
-	- see near the bottom of this page, except its not good at expressing units:
-	[fu] - font units or font design units or design units
-			- usually 0-2048 for truetype, 0-1000 for type1 fonts, both directions
+	- see near the bottom of this link page for examples of playing with transforming variables.
+	x  except its not good at expressing units, you need to read paragraphs carefully, 
+		check different documentation, example code, API reference, put breakpoints to compare values
+	* I'll express the units here, like engineers do:
+	[fu] - font units or font design units or design units or grid units or EM units
+			- can be -32767 to +32767
+			- usually EMsquare is 2048 fu in size for truetype, 1000 for type1 fonts, both directions
 			- often expressed in fixed-point numbers
-	[du] - device units or pixels
+	[du] - device units or display-device units or pixels on screen
 	[em] - 0 to 1 with 1 being the whole EMsquare, equivalent to [1] in most cases
+			http://designwithfontforge.com/en-US/The_EM_Square.html
 	[m/em]	 - the x3d units for mysize, spacing ie final coords [m] = mysize[m/em] * emcoords [em]
-	[in] - inch on screen
-	[pt] - points ie 12 point font
+	[in] - inch on screen/display device
+	[pt] - points ie 12 point font. There are 72 points per inch. [pt/in]
 	[1]  - [one] - unitless, or a ratio of 2 like-units ie [m/m] = [1]. ie usage: [unit] = [1] * [unit] 
 	units must balance on each side of an equation, examples:
-	x_scale [du/fu] = pixel_size_x [du] / EM_size [fu]
+	x_scale [du/fu] = pixel_size_per_EM_x [du/em] / EM_size [fu/em]
 	device_x [du] = design_x [fu] * x_scale [du/fu]
 
-	Fixed-point numbers -
+
+	Precision: Fixed-point numbers
 	many of the freetype2 parameters are expressed as fixed-point numbers 16.16 or 26.6:
 	https://en.wikibooks.org/wiki/Floating_Point/Fixed-Point_Numbers
 	dot16 - 16.16 Fixed-Point (a 32 bit integer, with half for radix, half for mantissa)  1111111111111111.1111111111111111
@@ -96,7 +110,7 @@ X3D Text Component
 	int32 - normal int
 	dble  - normal double
 	
-	Two ways to convert:
+	Two ways to convert precision:
 	a) all int, with truncation:
 	dot16 = int32 << 16 or int32 * 0x10000 or int32 * 65536
 	dot6 = int32 << 6 or int32 * 64 
@@ -107,25 +121,58 @@ X3D Text Component
 	freetype2 has some scaling functions optimized for speed:
 	http://www.freetype.org/freetype2/docs/reference/ft2-computations.html#FT_MulFix
 	
-	b) to/from floats/doubles (preserves precision) (see wiwibooks link above for formulas):
+	b) to/from doubles (preserves precision) (see wiwibooks link above for formulas):
 	dot16 = round( dble * 2**16)
 	dble = dot16 * 2**(-16) or (double)dot16 / (double) 65536
-	dot6 = round( dble * 2**6)
+	dot6 = round( dble * 2**6) = round(dble * 64.0) ~= dble * 64.0
 	dble = dot6 * 2**(-6) or (double)dot6 / (double)64
 	if you go dble = (double)dot6 you'll get coordinates x 2**6 or 64
+
+	Combining units and precision:
+	freetype's transformed glyph coordinates - the ones that come out in the callbacks lineto, moveto etc
+		are in in [du_dot6] http://www.freetype.org/freetype2/docs/glyphs/glyphs-6.html
+	[du_dot6] = [du]*64  - '1/64 of device units' 
+	Exmaple:
+	let DOT16 [dot16] = pow(2.0,16.0) == 2**16 = 65536.0
+	let DOT6 [dot6] = pow(2.0,6.0) == 2**6 = 64.0
+	//face->size->metrics.x_scale is in dot16, and scales directly to '1/64 of device pixels' or [du_dot6], from [fu]
+	x_scale         = (double)(face->size->metrics.x_scale) / DOT16; 
+	// [du_dot6/fu] = [du_dot16/fu]                          /[dot16]
+	x_scale1   =     x_scale / DOT6; 
+	// [du/fu] = [du_dot6/fu]/[dot6]
 
 	Specific variables:
 	the EM square concept:
 	http://designwithfontforge.com/en-US/The_EM_Square.html
-	PPI - pixels per inch [du/in]
-	XRES - dots (or pixels) per inch [du/in]
+	- truetype fonts usually EM_size = 2048 [fu/em]
+	PPI - points per inch [pt/in], 72 by typographic convention
+	XRES - device resolution in dots or pixels per inch DPI [du/in], 
+		96 for screen by MS windows convention 
+		72 for mac by convention
+		(using freetype for a printer/plotter, you might use 300 for 300 DPI)
+		pixel_size = point_size * resolution / 72  
+		[du/em]    = [pt/em]    * [du/in]    / [pt/in]
+		pixel_coord = grid_coord * pixel_size / EM_size 
+		[du]        =  [fu]      * [du/em]   /  [fu/em]
 	http://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#FT_FaceRec
-	Face->height [fu/em dot6]
+	Face->height [fu_dot6/em] - baseline-to-baseline in font units 26.6
+	glyphslot->advance.x [du_dot6]
 */
 
-#define OUT2GL(a) (p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES))
+// freetype 'kerns' - moves glyphs slightly to align with output pixels to look great. But to do that
+// it needs some at least arbitrary font size in pixels, which we set in Set_Char_Size, to keep it happy.
+// Now we want to convert coordinates back from the callback units [du_dot6] or pixels
+// -which includes our Set_Char_Size() pointsize and XRES values-
+// to unitless[1] or [m] for opengl, by taking back the XRES and pointsize, dividing by the EMsize
+// v   = x_size * a         / (face->height / PPI     * XRES) * s
+// [m] = [m/em] * [du_dot6] / ([fu_dot6/em] / [pt/in] * [du/in]) 
+//     = [m/em] * [du_dot6] / [fu_dot6/em]  * [pt/in] / [du/in]  
+//     = [m] * [du] / [fu] *[pt]/[du] 
+//     = [m] / [fu] * [pt] 
+//     != [m*pt/fu] LOOKS WRONG
+#define OUT2GL(a)    (p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES))
 #define OUT2GLB(a,s) (p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES) *s)
-// result [m*units/(em*fu_dot6)] = x_size [m/em] * a [units] / ( (height [fu dot6] / PPI [du/in] * XRES [du/in] ) * s[1])
+// result [m*units/(em*fu_dot6)*du/pt] = x_size [m/em] * a [units] / ( (height [fu dot6] / PPI [pt/in] * XRES [du/in] ) * s[1])
 
 /* now defined in system_fonts.h
 include <ft2build.h>
@@ -333,6 +380,46 @@ void FW_NewVertexPoint (double Vertex_x, double Vertex_y)
     UNUSED(Vertex_x);
     UNUSED(Vertex_y);
 
+	 //testing
+	{
+		double xx, yy, xx1,yy1, penx, peny, sx, sy, height, size;
+		int lastx,lasty, ppi, xres, dot6height, x_ppem, y_ppem;
+		double x_scale, y_scale, pixel_size_x, pixel_size_y, device_x, device_y, design_x, design_y;
+		double x_scale1, y_scale1;
+		double x_scale2, y_scale2;
+		ushort fu_per_em;
+		//FT_Size ftsize;
+		lastx = p->last_point.x;
+		lasty = p->last_point.y;
+		penx = p->pen_x;
+		peny = p->pen_y;
+		sx = p->shrink_x;
+		sy = p->shrink_y;
+		height = p->font_face[p->myff]->height;
+		fu_per_em = p->font_face[p->myff]->units_per_EM;
+		//ftsize = p->font_face[p->myff]->size;
+		dot6height = p->font_face[p->myff]->size->metrics.height;
+		x_ppem = p->font_face[p->myff]->size->metrics.x_ppem;
+		y_ppem = p->font_face[p->myff]->size->metrics.y_ppem;
+		x_scale = (double)(p->font_face[p->myff]->size->metrics.x_scale) / pow(2.0,16.0); // [du_dot6/fu] scales directly to 1/64 of device pixels
+		y_scale = (double)(p->font_face[p->myff]->size->metrics.y_scale) / pow(2.0,16.0); // [du_dot6/fu]
+		x_scale1 = x_scale / 64.0; // [du/fu] = [du_dot6/fu]*[1/dot6]
+		y_scale1 = y_scale / 64.0;
+		x_scale2 = (double)x_ppem / (double) fu_per_em; // [du/fu] = [du/em] / [fu/em]
+		y_scale2 = (double)y_ppem / (double) fu_per_em; // [du/fu] = [du/em] / [fu/em]
+		size = p->x_size;
+		ppi = PPI;
+		xres = XRES;
+		xx = OUT2GLB(p->last_point.x+p->pen_x,p->shrink_x);
+		//yy = OUT2GLB(p->last_point.y + p->pen_y,p->shrink_y);
+		yy = OUT2GLB(p->last_point.y ,p->shrink_y)    + p->pen_y;
+		//#define OUT2GLB(a,s) (p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES) *s)
+		xx1 = size * (0.0 +lastx + penx) / (height /ppi * xres) *sx;
+		yy1 = (size * (0.0 +lasty ) / (height /ppi * xres) *sy)  + peny;
+
+	}
+	
+
     /* printf ("FW_NewVertexPoint setting coord index %d %d %d\n", */
     /*  p->FW_pointctr, p->FW_pointctr*3+2,p->FW_rep_->actualCoord[p->FW_pointctr*3+2]); */
     p->FW_rep_->actualCoord[p->FW_pointctr*3+0] = (float) OUT2GLB(p->last_point.x + p->pen_x,p->shrink_x);
@@ -407,11 +494,34 @@ int FW_lineto (FT_Vector* to, void* user)
         return 0;
     }
 
-    p->last_point.x = to->x; p->last_point.y = to->y;
+    p->last_point.x = to->x; 
+	p->last_point.y = to->y;
+
     if (p->TextVerbose) {
         printf ("FW_lineto, going to %ld %ld\n",to->x, to->y);
     }
-
+	/* //Testing
+	{
+		double xx, yy, xx1,yy1, penx, peny, sx, sy, height, size;
+		int lastx,lasty, ppi, xres;
+		lastx = p->last_point.x;
+		lasty = p->last_point.y;
+		penx = p->pen_x;
+		peny = p->pen_y;
+		sx = p->shrink_x;
+		sy = p->shrink_y;
+		height = p->font_face[p->myff]->height;
+		size = p->x_size;
+		ppi = PPI;
+		xres = XRES;
+		xx = OUT2GLB(p->last_point.x+p->pen_x,p->shrink_x);
+		yy = OUT2GLB(p->last_point.y + p->pen_y,p->shrink_y);
+		//#define OUT2GLB(a,s) (p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES) *s)
+		xx1 = size * (0.0 +lastx + penx) / (height /ppi * xres) *sx;
+		yy1 = size * (0.0 +lasty + peny) / (height /ppi * xres) *sy;
+		//FW_NewVertexPoint(xx, yy);
+	}
+	*/
     FW_NewVertexPoint(OUT2GLB(p->last_point.x+p->pen_x,p->shrink_x), OUT2GLB(p->last_point.y + p->pen_y,p->shrink_y));
 
 
@@ -434,7 +544,7 @@ int FW_conicto (FT_Vector* control, FT_Vector* to, void* user)
 
     /* Possible fix here!!! */
     ncontrol.x = (int) ((double) 0.25*p->last_point.x + 0.5*control->x + 0.25*to->x);
-    ncontrol.y =(int) ((double) 0.25*p->last_point.y + 0.5*control->y + 0.25*to->y);
+    ncontrol.y = (int) ((double) 0.25*p->last_point.y + 0.5*control->y + 0.25*to->y);
 
     /* printf ("Cubic points (%d %d) (%d %d) (%d %d)\n", p->last_point.x,p->last_point.y, */
     /* ncontrol.x, ncontrol.y, to->x,to->y); */
@@ -721,7 +831,7 @@ void FW_make_fontname(int num) {
 }
 #endif
 /* initialize the freetype library */
-static int FW_init_face()
+static int FW_init_face_OLD()
 {
     int err;
 	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
@@ -889,6 +999,8 @@ static FT_Face FW_init_face0(FT_Library library, char* thisfontname)
 }
 int FW_set_facesize(FT_Face ftface,char *thisfontname){
 	// you can re-set the facesize after the fontface is loaded
+	//http://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#FT_Set_Char_Size
+	// googling, some say there are 72 points per inch in typography, or 1 point = 1/72 inch
 	FT_Error err;
 	int iret;
 	iret = FALSE;
@@ -1669,8 +1781,6 @@ p->myff = 4;
 				p->FW_RIA_indx = 0;
 				//kk = rowvec[row].iglyphstartindex + i;
 				kk = rowvec[row].chr[i].iglyph;
-				p->shrink_x = rowvec[row].chr[i].sx; //DUPLICATE WITH 10 LINES ABOVE LOOKS WRONG
-				p->shrink_y = rowvec[row].chr[i].sy; //DUPLICATE "
 				FW_draw_character (p->glyphs[kk]);
 				FT_Done_Glyph (p->glyphs[kk]);
 				/* copy over the tesselated coords for the character to
@@ -3620,6 +3730,7 @@ void render_screentext_aligned(struct X3D_Text *tnode, int alignment){
 		screentextdata *sdata;
 		AtlasEntrySet *set;
 		int nrow, row,i;
+		double rescale;
 		row32 *rowvec;
 		GLfloat modelviewf[16], projectionf[16];
 		GLdouble modelviewd[16], projectiond[16];
@@ -3649,6 +3760,7 @@ void render_screentext_aligned(struct X3D_Text *tnode, int alignment){
 			}
 		}
 
+		rescale = 1.0;
 		if(alignment){
 			//text in 3D space
 			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewd);
@@ -3661,6 +3773,7 @@ void render_screentext_aligned(struct X3D_Text *tnode, int alignment){
 			//hopefully, does screen-aligned text?
 			glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewIdentityf);
 			glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionIdentityf);
+			rescale = .05; //otherwise 1 char is half the screen
 		}
 
 		sdata = (screentextdata*)tnode->_screendata;
@@ -3683,12 +3796,12 @@ void render_screentext_aligned(struct X3D_Text *tnode, int alignment){
 					int cscale;
 					float x,y,sx,sy,scale;
 					chardata chr = rowvec[row].chr[i];
-					scale = sdata->size/sdata->faceheight*PPI/XRES;
+					scale = sdata->size/sdata->faceheight*PPI/XRES; //MAGIC NUMBER LOOKS WRONG
 					//(p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES) *s)
-					sx = chr.sx;
-					sy = chr.sy;
-					x = chr.x * scale;
-					y = chr.y * scale;
+					sx = chr.sx *rescale;
+					sy = chr.sy *rescale;
+					x = chr.x * scale *rescale;
+					y = chr.y * scale *rescale;
 					if(!once) printf("%c %3d %10f %10f %10f %10f\n",(char)rowvec[row].str32[i],chr.advance,chr.sx,chr.sy,chr.x,chr.y);
 					if(1) dug9gui_DrawSubImage_scene(x,y, sx, sy, //entry->size.X, entry->size.Y, 
 						entry->apos.X, entry->apos.Y, entry->size.X, entry->size.Y,
