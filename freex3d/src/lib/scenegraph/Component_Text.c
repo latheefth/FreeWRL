@@ -159,36 +159,38 @@ X3D Text Component
 	glyphslot->advance.x [du_dot6]
 */
 
+#define NEWWAY 1
+#ifdef NEWWAY
 // freetype 'kerns' - moves glyphs slightly to align with output pixels to look great. But to do that
 // it needs some at least arbitrary font size in pixels, which we set in Set_Char_Size, to keep it happy.
 // Now we want to convert coordinates back from the callback units [du_dot6] or pixels
 // -which includes our Set_Char_Size() pointsize and XRES values-
-// to unitless[1] or [m] for opengl, by taking back the XRES and pointsize
+// to unitless[1] or [m] x3d local coordinates for opengl, by taking back the XRES and pointsize
 // [du] = [du_dot6]/[dot6]
 // a    = ftvertex / 64.0
 // [m] = [du] * [m/em]/[pt/em]   * [pt/in]/[du/in] * [1]
 // v   = a    * size  /POINTSIZE *  PPI   / XRES   * s
-#define NEWWAY 1
-#ifdef NEWWAY
-#define OUT2GLB(a,s) ((0.0 +a) * p->x_size/64.0 / (double)POINTSIZE * (double)PPI/(double)XRES *s)
+#define OUT2GLB(a,s) ((double)(a) * p->x_size/64.0 / (double)POINTSIZE * (double)PPI/(double)XRES *s)
 #endif
 
+
+#define OUT2GL(a)    (p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES))
+#ifndef NEWWAY
 // [m] = [m/em] * [du_dot6] / ([fu_dot6/em] / [pt/in] * [du/in]) 
 //     = [m/em] * [du_dot6] / [fu_dot6/em]  * [pt/in] / [du/in]  
 //     = [m] * [du] / [fu] *[pt]/[du] 
 //     = [m] / [fu] * [pt] 
 //     != [m*pt/fu] LOOKS WRONG
-#define OUT2GL(a)    (p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES))
-#ifndef NEWWAY
 #define OUT2GLB(a,s) (p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES) *s)
-#endif
 // result [m*units/(em*fu_dot6)*du/pt] = x_size [m/em] * a [units] / ( (height [fu dot6] / PPI [pt/in] * XRES [du/in] ) * s[1])
+#endif
 
 /* now defined in system_fonts.h
 include <ft2build.h>
 ** include <ftoutln.h>
 include FT_FREETYPE_H
 include FT_GLYPH_H */
+
 enum {
 	FONTSTATE_NONE,
 	FONTSTATE_TRIED,
@@ -196,7 +198,11 @@ enum {
 } fontstate;
 typedef struct chardata{
 	unsigned int iglyph; //glyph index in p->gplyphs[iglyph]
+#ifdef NEWWAY
+	double advance; //char width or more precisely, advance of penx to next char start
+#else
 	unsigned int advance; //char width or more precisely, advance of penx to next char start
+#endif
 	double x; //pen_x
 	double y;
 	double sx; //scale = 1-rshrink * 1-shrink applied appropriately ie the net scale needed for this char in x
@@ -209,7 +215,11 @@ typedef struct row32 {
 	int iglyphstartindex;
 	double hrowsize; //all the char widths
 	double vcolsize; //len32 x charheight
+#ifdef NEWWAY
+	double widestchar; //widest char in the row, in advance units
+#else
 	unsigned int widestchar; //widest char in the row, in advance units
+#endif
 	chardata *chr;
 }row32;
 
@@ -432,8 +442,13 @@ void FW_NewVertexPoint (double Vertex_x, double Vertex_y)
 
     /* printf ("FW_NewVertexPoint setting coord index %d %d %d\n", */
     /*  p->FW_pointctr, p->FW_pointctr*3+2,p->FW_rep_->actualCoord[p->FW_pointctr*3+2]); */
+#ifdef NEWWAY
+    p->FW_rep_->actualCoord[p->FW_pointctr*3+0] = (float) (OUT2GLB(p->last_point.x,p->shrink_x) + p->pen_x);
+    p->FW_rep_->actualCoord[p->FW_pointctr*3+1] = (float) (OUT2GLB(p->last_point.y,p->shrink_y) + p->pen_y);
+#else
     p->FW_rep_->actualCoord[p->FW_pointctr*3+0] = (float) OUT2GLB(p->last_point.x + p->pen_x,p->shrink_x);
     p->FW_rep_->actualCoord[p->FW_pointctr*3+1] = (float) (OUT2GLB(p->last_point.y,p->shrink_y) + p->pen_y);
+#endif
     p->FW_rep_->actualCoord[p->FW_pointctr*3+2] = p->TextZdist;
 
     /* the following should NEVER happen.... */
@@ -1489,7 +1504,8 @@ p->myff = 4;
 
 	/* load all of the characters first... */
 	for (row=0; row<numrows; row++) {
-		unsigned int len, len32, total_row_advance, widest_char, *str32;
+		unsigned int len, len32, *str32;
+		double total_row_advance, widest_char;
 		str = (unsigned char *)ptr[row]->strptr;
 		len = strlen(str);
 		/* utf8_to_utf32 */
@@ -1508,14 +1524,27 @@ p->myff = 4;
 			icount = p->cur_glyph -1;
 			rowvec[row].chr[i].iglyph = icount;
 			//http://www.freetype.org/freetype2/docs/reference/ft2-glyph_management.html#FT_GlyphRec Glyph->advance dot16
-			rowvec[row].chr[i].advance = p->glyphs[icount]->advance.x >> 10; //[fu dot6] = [fu dot16_2_dot6(dot6)]
+#ifdef NEWWAY
+			rowvec[row].chr[i].advance = OUT2GLB(p->glyphs[icount]->advance.x >> 10,1.0); //[m] = fu_dot6_to_m([fu_dot16/DOT10])
+			total_row_advance += rowvec[row].chr[i].advance; //[m] = [m]
+			widest_char = rowvec[row].chr[i].advance > widest_char ? rowvec[row].chr[i].advance : widest_char;
+			//[m]        =                                             [m]              [m]
+#else
+			rowvec[row].chr[i].advance = p->glyphs[icount]->advance.x >> 10; //[fu_dot6] = [fu_dot16/DOT16*DOT6]
 			total_row_advance += rowvec[row].chr[i].advance; //[fu dot6] = [fu dot6]
 			widest_char = rowvec[row].chr[i].advance > widest_char ? rowvec[row].chr[i].advance : widest_char;
 			//[fu dot6]        =                                             [fu dot6]              [fu dot6]
+#endif
 		}
+#ifdef NEWWAY
+		rowvec[row].hrowsize = total_row_advance; //[m] = [m]
+		rowvec[row].vcolsize = len32 * p->y_size; //[m] = [m/em] = [em] * [em/em] * [m/em]
+		rowvec[row].widestchar = widest_char; //[m] = [m]
+#else
 		rowvec[row].hrowsize = total_row_advance; //[fu dot6] = [fu dot6]
 		rowvec[row].vcolsize = len32 * spacing * p->y_size; //[m] = [m/em] = [1] * [em/em] * [m/em]
 		rowvec[row].widestchar = widest_char; //[fu dot6] = [fu dot6]
+#endif
 		char_count += len32;
 		//FREE_IF_NZ(utf32); //see bottom of this function
 	}
@@ -1534,7 +1563,12 @@ p->myff = 4;
 		if(maxext > 0) {
 			double maxlen = 0; //[m] or [m/em]
 			for(row = 0; row < numrows; row++) {
-				double hrowsize = OUT2GLB(rowvec[row].hrowsize,1.0); //[m] = [m/em] =[fu dot6/unit] * [m*units/(em*fu dot6)] 
+				double hrowsize;
+#ifdef NEWWAY
+				hrowsize = rowvec[row].hrowsize; //[m] = [m]
+#else
+				hrowsize = OUT2GLB(rowvec[row].hrowsize,1.0); //[m] = [m/em] =[fu dot6/unit] * [m*units/(em*fu dot6)] 
+#endif
 				maxlen = hrowsize > maxlen ? hrowsize : maxlen; //[m] = [m] or [m]
 			}
 			if(maxlen > maxext) 
@@ -1551,51 +1585,55 @@ p->myff = 4;
 		/* BEGIN */
 		p->pen_y = 0.0; //[em] default Begin (top), if no (proper) minor justify entered
 		if(fsparam & (0x400<<(4))){
-			p->pen_y = 0.0;
+			p->pen_y = 0.0; //[em] = [em]
 		}
 		/* FIRST */
 		if(fsparam & (0x200<<(4))){
-			p->pen_y = 1.0; 
+			p->pen_y = 1.0; //[em] = [em]
 		}
 		/* MIDDLE */
 		if (fsparam & (0x800<<(4))) { 
-			p->pen_y = (double)(numrows)/2.0; 
+			p->pen_y = (double)(numrows)/2.0; //[em] = [em]
 		}
 		/* END */
 		if (fsparam & (0x1000<<(4))) {
 			/* printf ("rowlen is %f\n",rowlen); */
-			p->pen_y = (double)numrows;
+			p->pen_y = (double)numrows; //[em] = [em]
 		}
 
 	
 		///* topToBottom */
 		if (TOPTOBOTTOM) {
-			p->pen_y -= 1.0;
+			p->pen_y -= 1.0; //[em] = [em]
 		}else{
 			if(fsparam & (0x200<<(4))) //if first, make like begin
-				p->pen_y -= 1.0; 		
-			p->pen_y = numrows - 1.0 - p->pen_y;
+				p->pen_y -= 1.0; //[em] = [em]
+			p->pen_y = numrows - 1.0 - p->pen_y; //[em] = [em] - [em] - [em]
 		}
-		p->pen_y *= mysize; //[m] = [em*m] = [em] * [m]
+		p->pen_y *= mysize; //[m] = [em] * [m/em]
 		//screen/vector-agnostic loop to compute penx,y and shrinkage for each glyph
 		for(irow = 0; irow < numrows; irow++) {
 			unsigned int lenchars;
 			double rowlen;
 
-			row = irow;
+			row = irow; //[em]
 			if(!TOPTOBOTTOM) row = numrows - irow -1;
 
 			str = (unsigned char *)ptr[row]->strptr;
 			if (p->TextVerbose)
 				printf ("text2 row %d :%s:\n",row, str);
-			p->pen_x = 0.0; //[em]
-			rshrink = 1.0;
+			p->pen_x = 0.0; //[m]
+			rshrink = 1.0; //[1]
 			rowlen = rowvec[row].hrowsize; //[m] = [m]
 			lenchars = rowvec[row].len32;
 
 			if((row < nl) && !(APPROX(length[row],0.0))) {
+				#ifdef NEWWAY
+				rshrink = length[row] / rowlen; //[1] = [m]/[m]
+				#else
 				rshrink = length[row] / OUT2GLB(rowlen,1.0); //LOOKS WRONG
 				//[fu_do6/m]  = [m] / ( [m/unit] *  [m*units/(em*fu dot6)]  ) = [m] / [(m*m)/(em*fu_dot6)] = [em*fu_dot6]/[m] = [fu_dot6/m]
+				#endif
 			}
 			//if(shrink>0.0001) { FW_GL_SCALE_D(shrink,1.0,1.0); }
 			//if(rshrink>0.0001) { FW_GL_SCALE_D(rshrink,1.0,1.0); }
@@ -1603,17 +1641,19 @@ p->myff = 4;
 			/* MAJOR Justify, FIRST, BEGIN, */
 			if (((fsparam & 0x200) || (fsparam &  0x400)) && !LEFTTORIGHT ) {
 				/* printf ("rowlen is %f\n",rowlen); */
-				p->pen_x = -rowlen; //[em] = [em]
+				p->pen_x = -rowlen; //[m] = [m]
 			}
 
 			/* MAJOR MIDDLE */
-			if (fsparam & 0x800) { p->pen_x = -rowlen/2.0; }
+			if (fsparam & 0x800) { 
+				p->pen_x = -rowlen/2.0;  //[m] = [m]
+			}
 
 			/* MAJOR END */
 			//if ((fsparam & 0x1000) && (fsparam & 0x01)) {
 			if ((fsparam & 0x1000) && LEFTTORIGHT ) {
 				/* printf ("rowlen is %f\n",rowlen); */
-				p->pen_x = -rowlen;
+				p->pen_x = -rowlen; //[m] = [m]
 			}
 
 			for(ii=0; ii<lenchars; ii++) {
@@ -1624,37 +1664,54 @@ p->myff = 4;
 				i = ii;
 				if(!LEFTTORIGHT)
 					i = lenchars - ii -1;
-				rowvec[row].chr[i].x = p->pen_x;
+				rowvec[row].chr[i].x = p->pen_x; //[m]
 				rowvec[row].chr[i].y = p->pen_y; //[m]
+#ifdef NEWWAY
+				rowvec[row].chr[i].sx = shrink*rshrink; //[1] = [1]*[1]
+				rowvec[row].chr[i].sy = 1.0; //[1]
+				p->pen_x +=  rowvec[row].chr[i].advance * shrink*rshrink;// [m] = [m] * [1]
+#else
 				rowvec[row].chr[i].sx = shrink*rshrink; //[fu_dot6/m] = [1]*[fu_dot6/m]  LOOKS WRONG
 				rowvec[row].chr[i].sy = 1.0;
 				p->pen_x +=  rowvec[row].chr[i].advance;// * shrink * rshrink; // * directionx
 				//[em] !=  [fu dot6]  LOOKS WRONG
+#endif
 			}
 			//counter += lenchars;
-			p->pen_y += -spacing * p->y_size; //[m] = [m/em] = [em/em] * [m/em]
+			p->pen_y += -spacing * p->y_size; //[m] = [em] * [m/em]
 		}
 		//END HORIZONTAL
 	}else{
 		//IF VERTICAL
 		//
-		unsigned int widest_column;
+		//unsigned int widest_column;
+		double widest_column, column_spacing;
 		//find the longest row dimension
 		double maxlen = 0.0;
 		shrink = 1.0;
 		for(row = 0; row < numrows; row++) {
 			double vcolsize = rowvec[row].vcolsize; //[m] = [m]
+#ifdef NEWWAY
+			maxlen = vcolsize > maxlen ? vcolsize : maxlen; //[m] = [m] or [m]
+#else
 			vcolsize = vcolsize*p->y_size; //[m*m] = [m*m/(em*em)] = [m/em] * [m/em]  LOOKS WRONG
 			maxlen = vcolsize > maxlen ? vcolsize : maxlen; //[m*m] = [m*m] LOOKS WRONG
+#endif
 		}
 		if(maxext > 0) {
+#ifdef NEWWAY
+			if(maxlen > maxext) shrink = maxext / maxlen; //[1] = [m]/[m]
+#else
 			if(maxlen > maxext) shrink = maxext / maxlen; //[m] = [m]/[m*m] LOOKS WRONG
+#endif
 		}
-		widest_column = 0;
+		widest_column = 0.0;
 		for(row=0;row<numrows;row++)
 			widest_column = rowvec[row].widestchar > widest_column ? rowvec[row].widestchar : widest_column;
-			//[fu_dot6]  =  [fu_dot6]
-
+			//NEWWAY [m] = [m] or [m]
+			//OLDWAY:[fu_dot6]  =  [fu_dot6]
+		//column_spacing = widest_column;
+		column_spacing = spacing * p->x_size; //[m] = [1] * [m]
 		/* Justify MINOR (verticle), FIRST, BEGIN, MIDDLE and END */
 		//bit:    13      FIRST
 		//bit:    14      BEGIN
@@ -1667,26 +1724,29 @@ p->myff = 4;
 		if(fsparam & (0x200<<(4)) || fsparam & (0x400<<(4))){
 			//p->pen_x = -1.0 * widest_column; 
 			if(LEFTTORIGHT)
-				p->pen_x = 0.0;
+				p->pen_x = 0.0; //[m]
 			else
-				p->pen_x = -(double)numrows * widest_column; //[fu_dbledot6] = [1] * [int_to_dble(fu_dot6)]  LOOKS WRONG
+				p->pen_x = -(double)numrows * column_spacing; 
+				//[m]    =         [1]     * [m]
+				//OLDWAY [fu_dbledot6] = [1] * [int_to_dble(fu_dot6)]  LOOKS WRONG
 		}
 		/* MIDDLE */
 		if (fsparam & (0x800<<(4))) { 
-			p->pen_x = -(double)(numrows)/2.0 *widest_column; 
+			p->pen_x = -(double)(numrows)/2.0 *column_spacing; //[m] = [1] * [m]
 		}
 		/* END */
 		if (fsparam & (0x1000<<(4))) {
 			/* printf ("rowlen is %f\n",rowlen); */
 			if(LEFTTORIGHT)
-				p->pen_x = -(double)numrows * widest_column;
+				p->pen_x = -(double)numrows * column_spacing; //[m] = [1] * [m]
 			else
-				p->pen_x = 0.0;
+				p->pen_x = 0.0; //[m]
 		}
 
 		if (!LEFTTORIGHT) {
 			if(fsparam & (0x200<<(4))) //if first, make like begin
-				p->pen_x -= 1.0; 		
+				//p->pen_x -= 1.0;  //[m] = [m] - [1] LOOKS FUNNY	
+				p->pen_x -= column_spacing; //[m] -= [m]
 		}
 
 		//screen/vector-agnostic loop to compute penx,y and shrinkage for each glyph
@@ -1707,29 +1767,39 @@ p->myff = 4;
 			lenchars = rowvec[row].len32;
 
 			if((row < nl) && !(APPROX(length[row],0.0))) {
+				#ifdef NEWWAY
+				rshrink = length[row] / rowlen;
+				//[1]   =  [m]        / [m]
+				#else
 				rshrink = length[row] / (rowlen*p->y_size);
 				//[1/m]    =  [m]        / ([m] * [m])   LOOKS WRONG
+				#endif
 			}
+			#ifdef NEWWAY
+			starty = -1.0*shrink*rshrink*p->y_size;  //[m] = [em]*[1]*[1]*[m/em]
+			#else
 			starty = -1.0*shrink*rshrink*p->y_size;  //[1] = [em]*[1]*[1/m]*[m/em]  LOOKS WRONG
+			#endif
 			/* MAJOR Justify, FIRST, BEGIN, */
 			if ((fsparam & 0x200) || (fsparam &  0x400)){
 				if(TOPTOBOTTOM )
-					p->pen_y = starty;
+					p->pen_y = starty; //[m] = [m]
 				else
-					p->pen_y = rowlen + starty; //[?] = [m] or [1] LOOKS WRONG
+					p->pen_y = rowlen + starty; //[m] = [m] + [m]
+					//OLDWAY: [?] = [m] or [1] LOOKS WRONG
 			}
 
 			/* MAJOR MIDDLE */
 			if (fsparam & 0x800) {
-					p->pen_y = rowlen/2.0 + starty; 
+				p->pen_y = rowlen/2.0 + starty;  //[m] = [m] + [m]
 			}
 
 			/* MAJOR END */
 			if (fsparam & 0x1000  ) {
 				if(TOPTOBOTTOM)
-					p->pen_y = rowlen + starty;
+					p->pen_y = rowlen + starty; //[m] = [m] + [m]
 				else
-					p->pen_y = starty;
+					p->pen_y = starty; //[m] = [m]
 			}
 
 			for(ii=0; ii<lenchars; ii++) {
@@ -1741,20 +1811,24 @@ p->myff = 4;
 				i = ii;
 				if(!TOPTOBOTTOM)
 					i = lenchars - ii -1;
-				penx = p->pen_x;
+				penx = p->pen_x; //[m] = [m]
 				if(!LEFTTORIGHT)
 					penx = penx + widest_column * spacing - rowvec[row].chr[i].advance;
-					//[fu_dot6]= fu_dot6] + [fu_dot6]*[em/em] - [fu dot6]
-				rowvec[row].chr[i].x = penx; //[fu_dot6] = [fu_dot6]
-				rowvec[row].chr[i].y = p->pen_y; //[?] (H: [m])
-				rowvec[row].chr[i].sx = 1.0;
-				rowvec[row].chr[i].sy = shrink*rshrink;  //[1] * [1/m] LOOKS WRONG
-				p->pen_y += -p->y_size * shrink * rshrink;
+					//[m] = [m] + [m]            *[1]     -                    [m]
+					//OLDWAY: [fu_dot6]= fu_dot6] + [fu_dot6]*[em/em] - [fu dot6]
+				rowvec[row].chr[i].x = penx; //[m] = [m]
+				//OLDWAY: [fu_dot6] = [fu_dot6]
+				rowvec[row].chr[i].y = p->pen_y;  //[m] = [m]
+				//OLDWAY: [?] (H: [m])
+				rowvec[row].chr[i].sx = 1.0; //[1]
+				rowvec[row].chr[i].sy = shrink*rshrink;  //[1] = [1]*[1]
+				//OLDWAY: [1] * [1/m] LOOKS WRONG
+				p->pen_y += -p->y_size * shrink * rshrink; //[m] = [m] - [m/em]*[1]*[1]
 				//[1] = [1/em] =  [m/em]    * [1]    * [1/m]   LOOKS WRONG
 			}
 			//counter += lenchars;
-			// [fu_dot6] =  [fu_dot6]  * [em/em]
-			p->pen_x +=  widest_column * spacing; // * p->x_size; //rowvec[row].chr[i].advance; // * directionx
+			//OLDWAY: [fu_dot6] =  [fu_dot6]  * [em/em]
+			p->pen_x +=  column_spacing; //widest_column * spacing; //[m] = [m] + [m]*[1]
 
 		}
 
@@ -1782,12 +1856,17 @@ p->myff = 4;
 				chardata chr;
 
 				chr = rowvec[row].chr[i];
+				#ifdef NEWWAY
+				p->pen_x = chr.x; //[m] = [m]
+				p->pen_y = chr.y; //[m] = [m]
+				p->shrink_x = chr.sx; //[1]
+				p->shrink_y = chr.sy; //[1]
+				#else
 				p->pen_x = chr.x; //[fu_dot6] = [fu_dot6]
 				p->pen_y = chr.y; //[m] = [m]
 				p->shrink_x = chr.sx; //[?] = [fu_dot6/m] (horizontal) or [1] (vertical)  LOOKS WRONG
 				p->shrink_y = chr.sy; //[?] = [1] (horizontal) or [1/m] (vertical) LOOKS WRONG
-				//p->y_size = xys.sy;
-				//p->x_size = xys.sx;
+				#endif
 				tg->Tess.global_IFS_Coord_count = 0;
 				p->FW_RIA_indx = 0;
 				//kk = rowvec[row].iglyphstartindex + i;
