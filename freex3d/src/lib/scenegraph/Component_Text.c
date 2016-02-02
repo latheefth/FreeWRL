@@ -168,9 +168,10 @@ X3D Text Component
 // a    = ftvertex / 64.0
 // [m] = [du] * [m/em]/[pt/em]   * [pt/in]/[du/in] * [1]
 // v   = a    * size  /POINTSIZE *  PPI   / XRES   * s
-
-//#define OUT2GLB(a,s) ((0.0 +a) * p->x_size/4.096/64.0 / (double)POINTSIZE * (double)PPI/(double)XRES *s)
-
+#define NEWWAY 1
+#ifdef NEWWAY
+#define OUT2GLB(a,s) ((0.0 +a) * p->x_size/64.0 / (double)POINTSIZE * (double)PPI/(double)XRES *s)
+#endif
 
 // [m] = [m/em] * [du_dot6] / ([fu_dot6/em] / [pt/in] * [du/in]) 
 //     = [m/em] * [du_dot6] / [fu_dot6/em]  * [pt/in] / [du/in]  
@@ -178,7 +179,9 @@ X3D Text Component
 //     = [m] / [fu] * [pt] 
 //     != [m*pt/fu] LOOKS WRONG
 #define OUT2GL(a)    (p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES))
+#ifndef NEWWAY
 #define OUT2GLB(a,s) (p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES) *s)
+#endif
 // result [m*units/(em*fu_dot6)*du/pt] = x_size [m/em] * a [units] / ( (height [fu dot6] / PPI [pt/in] * XRES [du/in] ) * s[1])
 
 /* now defined in system_fonts.h
@@ -1427,10 +1430,11 @@ p->myff = 4;
 
 	FW_set_facesize(p->font_face[p->myff],p->thisfontname);
 	/* type 1 fonts different than truetype fonts */
+#ifndef NEWWAY
 	if (p->font_face[p->myff]->units_per_EM != 1000)
 		p->x_size = p->x_size * p->font_face[p->myff]->units_per_EM/1000.0;
 		// [m/em] = [m/em]    * [fu/em]                            /[fu/em]
-
+#endif
 
 
 	//realloc row vector if necessary
