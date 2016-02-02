@@ -163,8 +163,15 @@ X3D Text Component
 // it needs some at least arbitrary font size in pixels, which we set in Set_Char_Size, to keep it happy.
 // Now we want to convert coordinates back from the callback units [du_dot6] or pixels
 // -which includes our Set_Char_Size() pointsize and XRES values-
-// to unitless[1] or [m] for opengl, by taking back the XRES and pointsize, dividing by the EMsize
-// v   = x_size * a         / (face->height / PPI     * XRES) * s
+// to unitless[1] or [m] for opengl, by taking back the XRES and pointsize
+// [du] = [du_dot6]/[dot6]
+// a    = ftvertex / 64.0
+// [m] = [du] * [m/em]/[pt/em]   * [pt/in]/[du/in] * [1]
+// v   = a    * size  /POINTSIZE *  PPI   / XRES   * s
+
+//#define OUT2GLB(a,s) ((0.0 +a) * p->x_size/4.096/64.0 / (double)POINTSIZE * (double)PPI/(double)XRES *s)
+
+
 // [m] = [m/em] * [du_dot6] / ([fu_dot6/em] / [pt/in] * [du/in]) 
 //     = [m/em] * [du_dot6] / [fu_dot6/em]  * [pt/in] / [du/in]  
 //     = [m] * [du] / [fu] *[pt]/[du] 
