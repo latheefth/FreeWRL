@@ -156,7 +156,12 @@ X3D Text Component
 		[du]        =  [fu]      * [du/em]   /  [fu/em]
 	http://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#FT_FaceRec
 	Face->height [fu_dot6/em] - baseline-to-baseline in font units 26.6
-	glyphslot->advance.x [du_dot6]
+	glyphslot->advance.x [du_dot16]
+
+	patterns to units and precision:
+	- as of Feb 2016 we keep our rowvec variables usually in meters [m] or x3d local coordinates
+	- freetype2 calls into the lineto, moveto etc callbacks with [du_dot6] (pixels) which we 
+		transform back to meters[m] or x3d local coords via OUT2GLB() + pen_x,y
 */
 
 // freetype 'kerns' - moves glyphs slightly to align with output pixels to look great. But to do that
@@ -168,7 +173,7 @@ X3D Text Component
 // a    = ftvertex / 64.0
 // [m] = [du] * [m/em]/[pt/em]   * [pt/in]/[du/in] * [1]
 // v   = a    * size  /POINTSIZE *  PPI   / XRES   * s
-#define OUT2GLB(a,s) ((double)(a) * p->x_size/64.0 / (double)POINTSIZE * (double)PPI/(double)XRES *s)
+#define OUT2GLB(a,s) ((double)(a) * p->size/64.0 / (double)POINTSIZE * (double)PPI/(double)XRES *s)
 
 
 /* now defined in system_fonts.h
@@ -185,19 +190,19 @@ enum {
 typedef struct chardata{
 	unsigned int iglyph; //glyph index in p->gplyphs[iglyph]
 	double advance; //char width or more precisely, advance of penx to next char start
-	double x; //pen_x
-	double y;
-	double sx; //scale = 1-rshrink * 1-shrink applied appropriately ie the net scale needed for this char in x
-	double sy;
+	double x; //pen_x [m]
+	double y; //pen_y [m]
+	double sx; //scale = shrink*rshrink [1]
+	double sy; //scale = shrink*rshrink [1]
 } chardata;
 typedef struct row32 {
 	int allocn;
 	int len32;
 	unsigned int *str32;
 	int iglyphstartindex;
-	double hrowsize; //all the char widths
-	double vcolsize; //len32 x charheight
-	double widestchar; //widest char in the row, in advance units
+	double hrowsize; //sum of char widths [m]
+	double vcolsize; //len32 x charheight [m]
+	double widestchar; //widest char in the row [m]
 	chardata *chr;
 }row32;
 
@@ -208,7 +213,7 @@ typedef struct screentextdata {
 	row32 *rowvec;
 	void *atlasfont;
 	void *set;
-	float size;
+	float size; //[m]
 	float faceheight;
 	float emsize;
 }screentextdata;
@@ -254,8 +259,7 @@ typedef struct pComponent_Text{
 	/* if this is a status bar, put depth different than 0.0 */
 	float TextZdist;
 
-	double x_size;          /* size of chars from file */
-	double y_size;          /* size of chars from file */
+	double size;          /* size of chars from file */
 	int   myff;             /* which index into font_face are we using  */
 
 
@@ -331,7 +335,7 @@ void fwl_fontFileLocation(char *fontFileLocation) {
 }
 
 /* function prototypes */
-static void FW_NewVertexPoint(double Vertex_x, double Vertex_y);
+static void FW_NewVertexPoint();
 static int FW_moveto (FT_Vector* to, void* user);
 static int FW_lineto(FT_Vector* to, void* user);
 static int FW_conicto(FT_Vector* control, FT_Vector* to, void* user);
@@ -368,15 +372,12 @@ void render_Text (struct X3D_Text * node)
 	}
 }
 
-void FW_NewVertexPoint (double Vertex_x, double Vertex_y)
+void FW_NewVertexPoint ()
 {
     GLDOUBLE v2[3];
 	ppComponent_Text p;
 	ttglobal tg = gglobal();
 	p = (ppComponent_Text)tg->Component_Text.prv;
-
-    UNUSED(Vertex_x);
-    UNUSED(Vertex_y);
 
 	/* //testing
 	{
@@ -405,13 +406,13 @@ void FW_NewVertexPoint (double Vertex_x, double Vertex_y)
 		y_scale1 = y_scale / 64.0;
 		x_scale2 = (double)x_ppem / (double) fu_per_em; // [du/fu] = [du/em] / [fu/em]
 		y_scale2 = (double)y_ppem / (double) fu_per_em; // [du/fu] = [du/em] / [fu/em]
-		size = p->x_size;
+		size = p->size;
 		ppi = PPI;
 		xres = XRES;
 		xx = OUT2GLB(p->last_point.x+p->pen_x,p->shrink_x);
 		//yy = OUT2GLB(p->last_point.y + p->pen_y,p->shrink_y);
 		yy = OUT2GLB(p->last_point.y ,p->shrink_y)    + p->pen_y;
-		//#define OUT2GLB(a,s) (p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES) *s)
+		//#define OUT2GLB(a,s) (p->size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES) *s)
 		xx1 = size * (0.0 +lastx + penx) / (height /ppi * xres) *sx;
 		yy1 = (size * (0.0 +lasty ) / (height /ppi * xres) *sy)  + peny;
 
@@ -500,29 +501,7 @@ int FW_lineto (FT_Vector* to, void* user)
     if (p->TextVerbose) {
         printf ("FW_lineto, going to %ld %ld\n",to->x, to->y);
     }
-	/* //Testing
-	{
-		double xx, yy, xx1,yy1, penx, peny, sx, sy, height, size;
-		int lastx,lasty, ppi, xres;
-		lastx = p->last_point.x;
-		lasty = p->last_point.y;
-		penx = p->pen_x;
-		peny = p->pen_y;
-		sx = p->shrink_x;
-		sy = p->shrink_y;
-		height = p->font_face[p->myff]->height;
-		size = p->x_size;
-		ppi = PPI;
-		xres = XRES;
-		xx = OUT2GLB(p->last_point.x+p->pen_x,p->shrink_x);
-		yy = OUT2GLB(p->last_point.y + p->pen_y,p->shrink_y);
-		//#define OUT2GLB(a,s) (p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES) *s)
-		xx1 = size * (0.0 +lastx + penx) / (height /ppi * xres) *sx;
-		yy1 = size * (0.0 +lasty + peny) / (height /ppi * xres) *sy;
-		//FW_NewVertexPoint(xx, yy);
-	}
-	*/
-    FW_NewVertexPoint(OUT2GLB(p->last_point.x+p->pen_x,p->shrink_x), OUT2GLB(p->last_point.y + p->pen_y,p->shrink_y));
+    FW_NewVertexPoint();
 
 
 
@@ -1377,19 +1356,10 @@ void FW_rendertext(struct X3D_Text *tnode, unsigned int numrows,struct Uni_Strin
 	if (p->TextVerbose)
 		printf ("entering FW_Render_text \n");
 
-
-	//p->FW_rep_ = rp;
-
-	//p->FW_RIA_indx = 0;            /* index into FW_RIA                                  */
-	//p->FW_pointctr=0;              /* how many points used so far? maps into rep-_coord  */
-	//p->indx_count=0;               /* maps intp FW_rep_->cindex                          */
-	//p->contour_started = FALSE;
-
-	p->pen_x = 0.0; //[not sure yet]
-	p->pen_y = 0.0; //[not sure yet]
+	p->pen_x = 0.0; //[m]
+	p->pen_y = 0.0; //[m]
 	p->cur_glyph = 0;
-	p->x_size = mysize;            /* global variable for size [m/em] */
-	p->y_size = mysize;            /* global variable for size [m/em] */
+	p->size = mysize;  /* global variable for size [m/em] */
 
 
 	/* is this fontface opened */
@@ -1463,8 +1433,7 @@ p->myff = 4;
 		sdata->nrow = numrows;
 		sdata->faceheight = (float)p->font_face[p->myff]->height;
 		sdata->size = mysize;
-		sdata->emsize = p->x_size;
-		//p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES) *s
+		sdata->emsize = p->size;
 	}else{
 		p->rowvec = rowvec;
 		p->rowvec_allocn = rowvec_allocn;
@@ -1498,7 +1467,7 @@ p->myff = 4;
 			//[m]        =                                             [m]              [m]
 		}
 		rowvec[row].hrowsize = total_row_advance; //[m] = [m]
-		rowvec[row].vcolsize = len32 * p->y_size; //[m] = [m/em] = [em] * [em/em] * [m/em]
+		rowvec[row].vcolsize = len32 * p->size; //[m] = [m/em] = [em] * [em/em] * [m/em]
 		rowvec[row].widestchar = widest_char; //[m] = [m]
 		char_count += len32;
 		//FREE_IF_NZ(utf32); //see bottom of this function
@@ -1613,7 +1582,7 @@ p->myff = 4;
 				rowvec[row].chr[i].sy = 1.0; //[1]
 				p->pen_x +=  rowvec[row].chr[i].advance * shrink*rshrink;// [m] = [m] * [1]
 			}
-			p->pen_y += -spacing * p->y_size; //[m] = [em] * [m/em]
+			p->pen_y += -spacing * p->size; //[m] = [em] * [m/em]
 		}
 		//END HORIZONTAL
 	}else{
@@ -1635,7 +1604,7 @@ p->myff = 4;
 			widest_column = rowvec[row].widestchar > widest_column ? rowvec[row].widestchar : widest_column;
 			//[m] = [m] or [m]
 		//column_spacing = widest_column;
-		column_spacing = spacing * p->x_size; //[m] = [1] * [m]
+		column_spacing = spacing * p->size; //[m] = [1] * [m]
 		/* Justify MINOR (verticle), FIRST, BEGIN, MIDDLE and END */
 		//bit:    13      FIRST
 		//bit:    14      BEGIN
@@ -1687,7 +1656,7 @@ p->myff = 4;
 				rshrink = length[row] / rowlen;
 				//[1]   =  [m]        / [m]
 			}
-			starty = -1.0*shrink*rshrink*p->y_size;  //[m] = [em]*[1]*[1]*[m/em]
+			starty = -1.0*shrink*rshrink*p->size;  //[m] = [em]*[1]*[1]*[m/em]
 			/* MAJOR Justify, FIRST, BEGIN, */
 			if ((fsparam & 0x200) || (fsparam &  0x400)){
 				if(TOPTOBOTTOM )
@@ -1726,7 +1695,7 @@ p->myff = 4;
 				rowvec[row].chr[i].y = p->pen_y;  //[m] = [m]
 				rowvec[row].chr[i].sx = 1.0; //[1]
 				rowvec[row].chr[i].sy = shrink*rshrink;  //[1] = [1]*[1]
-				p->pen_y += -p->y_size * shrink * rshrink; //[m] = [m] - [m/em]*[1]*[1]
+				p->pen_y += -p->size * shrink * rshrink; //[m] = [m] - [m/em]*[1]*[1]
 				//[1] = [1/em] =  [m/em]    * [1]    * [1/m]   LOOKS WRONG
 			}
 			p->pen_x +=  column_spacing; //[m] = [m] + [m]*[1]
@@ -3778,7 +3747,7 @@ void render_screentext_aligned(struct X3D_Text *tnode, int alignment){
 					float x,y,sx,sy,scale;
 					chardata chr = rowvec[row].chr[i];
 					scale = sdata->size/sdata->faceheight*PPI/XRES; //MAGIC NUMBER LOOKS WRONG
-					//(p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES) *s)
+					//(p->size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES) *s)
 					sx = chr.sx *rescale;
 					sy = chr.sy *rescale;
 					x = chr.x * scale *rescale;
