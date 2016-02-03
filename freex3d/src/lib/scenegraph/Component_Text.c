@@ -164,6 +164,7 @@ X3D Text Component
 		transform back to meters[m] or x3d local coords via OUT2GLB() + pen_x,y
 */
 
+// [du_dot6] to [m]
 // freetype 'kerns' - moves glyphs slightly to align with output pixels to look great. But to do that
 // it needs some at least arbitrary font size in pixels, which we set in Set_Char_Size, to keep it happy.
 // Now we want to convert coordinates back from the callback units [du_dot6] or pixels
@@ -175,6 +176,16 @@ X3D Text Component
 // v   = a    * size  /POINTSIZE *  PPI   / XRES   * s
 #define OUT2GLB(a,s) ((double)(a) * p->size/64.0 / (double)POINTSIZE * (double)PPI/(double)XRES *s)
 
+
+/* 
+//don't need, not tested:
+// [m] to [du_dot6]
+// [du] = [m] * [pt/em]   / [m/em] *[du/in] / [pt/in] * [1]
+// a    = v   * POINTSIZE / size   * XRES   / PPI     * 1/s     
+// [du_dot6] = [du]*[dot6]
+// ftvertex  = a   * 64.0
+#define IN2DUDOT6(v,s) ((int)(((double)(v) / (double)POINTSIZE /  p->size * (double)XRES/(double)PPI * 1.0/s)*64.0))
+*/
 
 /* now defined in system_fonts.h
 include <ft2build.h>
@@ -3163,7 +3174,7 @@ GLfloat cursorTex[] = {
 	//printvpstacktop(__LINE__);
 
 }
-void dug9gui_DrawSubImage(int xpos,int ypos, int xsize, int ysize, int ix, int iy, int iw, int ih, int width, int height, int bpp, char *buffer){
+void dug9gui_DrawSubImage(float xpos,float ypos, float xsize, float ysize, int ix, int iy, int iw, int ih, int width, int height, int bpp, char *buffer){
 //xpos, ypos upper left location of where to draw the sub-image, in pixels, on the screen
 //xsize,ysize - size to stretch the sub-image to on the screen, in pixels
 // ix,iy,iw,ih - position and size in pixels of the subimage in a bigger/atlas image, ix,iy is upper left
@@ -3231,30 +3242,16 @@ GLfloat cursorTex[] = {
 		default:
 			return;
 	}
-	if(0){
-		//upper left
-		fxy = pixel2normalizedScreen((GLfloat)xpos,(GLfloat)ypos);
-		fwh = pixel2normalizedScreenScale((GLfloat)xsize,(GLfloat)ysize);
-		//lower left
-		fxy.Y = fxy.Y - fwh.Y;
-	}
-	if(1){
-		//upper left
-		fxy = pixel2normalizedViewport((GLfloat)xpos,(GLfloat)ypos);
-		fwh = pixel2normalizedViewportScale((GLfloat)xsize,(GLfloat)ysize);
-		//lower left
-		fxy.Y = fxy.Y - fwh.Y;
-	}
 	
 	//fxy.Y -= 1.0; //DUG9GUI y=0 at top
 	//fxy.X -= 1.0;
 	memcpy(cursorVert2,cursorVert,2*3*3*sizeof(GLfloat));
 	for(i=0;i<6;i++){
-		cursorVert2[i*3 +0] *= fwh.X;
-		cursorVert2[i*3 +0] += fxy.X;
+		cursorVert2[i*3 +0] *= xsize; //fwh.X;
+		cursorVert2[i*3 +0] += xpos; //fxy.X;
 		if(!iyup) cursorVert2[i*3 +1] = 1.0f - cursorVert2[i*3 +1];
-		cursorVert2[i*3 +1] *= fwh.Y;
-		cursorVert2[i*3 +1] += fxy.Y;
+		cursorVert2[i*3 +1] *= ysize; //fwh.Y;
+		cursorVert2[i*3 +1] += ypos; //fxy.Y;
 	}
 
 	glVertexAttribPointer (positionLoc, 3, GL_FLOAT, 
@@ -3412,7 +3409,37 @@ int render_captiontext(AtlasFont *font, AtlasEntrySet *set, unsigned char * utf8
 			entry = AtlasEntrySet_getEntry(set,ichar);
 			if(entry){
 				// drawsubimage(destination on screen, source glpyh details, source atlas) 
-				dug9gui_DrawSubImage(pen_x + entry->pos.X, pen_y - entry->pos.Y, entry->size.X, entry->size.Y, 
+				float xpos, ypos, xsize, ysize;
+				vec2 fxy, fwh;
+				xpos = pen_x + entry->pos.X;
+				ypos = pen_y - entry->pos.Y;
+				xsize =  entry->size.X;
+				ysize = entry->size.Y;
+				if(0){
+					//upper left
+					fxy = pixel2normalizedScreen((GLfloat)xpos,(GLfloat)ypos);
+					fwh = pixel2normalizedScreenScale((GLfloat)xsize,(GLfloat)ysize);
+					//lower left
+					fxy.Y = fxy.Y - fwh.Y;
+					xpos = fxy.X;
+					ypos = fxy.Y;
+					xsize = fwh.X;
+					ysize = fwh.Y;
+
+				}
+				if(1){
+					//upper left
+					fxy = pixel2normalizedViewport((GLfloat)xpos,(GLfloat)ypos);
+					fwh = pixel2normalizedViewportScale((GLfloat)xsize,(GLfloat)ysize);
+					//lower left
+					fxy.Y = fxy.Y - fwh.Y;
+					xpos = fxy.X;
+					ypos = fxy.Y;
+					xsize = fwh.X;
+					ysize = fwh.Y;
+				}
+
+				dug9gui_DrawSubImage(xpos,ypos,xsize,ysize, 
 					entry->apos.X, entry->apos.Y, entry->size.X, entry->size.Y,
 					set->atlas->size.X,set->atlas->size.Y,set->atlas->bytesperpixel,set->atlas->texture);
 				pen_x += entry->advance.X; //glyph->advance.x >> 6;
@@ -3470,6 +3497,7 @@ void render_screentext0(struct X3D_Text *tnode){
 		AtlasEntrySet *set;
 		int nrow, row,i;
 		row32 *rowvec;
+		static int once = 0;
 
 		finishedWithGlobalShader();
 		glDepthMask(GL_FALSE);
@@ -3495,7 +3523,6 @@ void render_screentext0(struct X3D_Text *tnode){
 		set = sdata->set;
 		rowvec = sdata->rowvec;
 		//render_captiontext(tnode->_font,tnode->_set, self->_caption,self->color);
-		static int once = 0;
 		if(!once) printf("%s %3s %10s %10s %10s %10s !\n","c","adv","sx","sy","x","y");
 
 		for(row=0;row<nrow;row++){
@@ -3507,9 +3534,43 @@ void render_screentext0(struct X3D_Text *tnode){
 				if(entry){
 					// drawsubimage(destination on screen, source glpyh details, source atlas)
 					int cscale;
+					float xpos, ypos, xsize, ysize;
+					vec2 fxy, fwh;
 					chardata chr = rowvec[row].chr[i];
+
+					//[du] = [m] * [du/m]
+					xpos = chr.x+90 + entry->pos.X;
+					ypos = chr.y+30 - entry->pos.Y;
+					xsize =  entry->size.X;
+					ysize = entry->size.Y;
+					if(0){
+						//upper left
+						fxy = pixel2normalizedScreen((GLfloat)xpos,(GLfloat)ypos);
+						fwh = pixel2normalizedScreenScale((GLfloat)xsize,(GLfloat)ysize);
+						//lower left
+						fxy.Y = fxy.Y - fwh.Y;
+						xpos = fxy.X;
+						ypos = fxy.Y;
+						xsize = fwh.X;
+						ysize = fwh.Y;
+
+					}
+					if(1){
+						//upper left
+						fxy = pixel2normalizedViewport((GLfloat)xpos,(GLfloat)ypos);
+						fwh = pixel2normalizedViewportScale((GLfloat)xsize,(GLfloat)ysize);
+						//lower left
+						fxy.Y = fxy.Y - fwh.Y;
+						xpos = fxy.X;
+						ypos = fxy.Y;
+						xsize = fwh.X;
+						ysize = fwh.Y;
+					}
+
+
 					if(!once) printf("%c %3d %10f %10f %10f %10f\n",(char)rowvec[row].str32[i],chr.advance,chr.sx,chr.sy,chr.x,chr.y);
-					dug9gui_DrawSubImage(chr.x+90,chr.y+30, entry->size.X, entry->size.Y, 
+					//dug9gui_DrawSubImage(xpos,ypos,xsize,ysize, 
+					dug9gui_DrawSubImage(xpos,ypos, xsize, ysize, 
 						entry->apos.X, entry->apos.Y, entry->size.X, entry->size.Y,
 						set->atlas->size.X,set->atlas->size.Y,set->atlas->bytesperpixel,set->atlas->texture);
 				}
@@ -3591,50 +3652,17 @@ GLfloat cursorTex[] = {
 		default:
 			return;
 	}
-	if(0){
-		//upper left
-		fxy = pixel2normalizedScreen((GLfloat)xpos,(GLfloat)ypos);
-		fwh = pixel2normalizedScreenScale((GLfloat)xsize,(GLfloat)ysize);
-		//lower left
-		fxy.Y = fxy.Y - fwh.Y;
-	}
-	if(0){
-		//upper left
-		fxy = pixel2normalizedViewport((GLfloat)xpos,(GLfloat)ypos);
-		fwh = pixel2normalizedViewportScale((GLfloat)xsize,(GLfloat)ysize);
-		//lower left
-		fxy.Y = fxy.Y - fwh.Y;
-	}
-	if(0){
-		fxy.X = (GLfloat)xpos;
-		fxy.Y = (GLfloat)ypos;
-		fwh.X = (GLfloat)xsize;
-		fwh.Y = (GLfloat)ysize;
-
-	}
-	if(0){
-		fxy.X = OUT2GLB(xpos,1.0);
-		fxy.Y = OUT2GLB(ypos,1.0);
-		fwh.X = xsize;
-		fwh.Y = ysize;
-	}
-	if(1){
-		fxy.X = xpos;
-		fxy.Y = ypos;
-		fwh.X = xsize;
-		fwh.Y = ysize;
-	}
 	
 	//fxy.Y -= 1.0; //DUG9GUI y=0 at top
 	//fxy.X -= 1.0;
 	iyup = 0;
 	memcpy(cursorVert2,cursorVert,2*3*3*sizeof(GLfloat));
 	for(i=0;i<6;i++){
-		cursorVert2[i*3 +0] *= fwh.X;
-		cursorVert2[i*3 +0] += fxy.X;
+		cursorVert2[i*3 +0] *= xsize; //fwh.X;
+		cursorVert2[i*3 +0] += xpos; //fxy.X;
 		if(!iyup) cursorVert2[i*3 +1] = 1.0f - cursorVert2[i*3 +1];
-		cursorVert2[i*3 +1] *= fwh.Y;
-		cursorVert2[i*3 +1] += fxy.Y;
+		cursorVert2[i*3 +1] *= ysize; //fwh.Y;
+		cursorVert2[i*3 +1] += ypos; //fxy.Y;
 	}
 
 	glVertexAttribPointer (positionLoc, 3, GL_FLOAT, 
@@ -3671,6 +3699,7 @@ GLfloat cursorTex[] = {
 
 }
 
+
 void render_screentext_aligned(struct X3D_Text *tnode, int alignment){
 	/*	to be called from Text node render_Text for case of ScreenFontStyle
 		alignment = 0 - aligned to screen
@@ -3682,6 +3711,7 @@ void render_screentext_aligned(struct X3D_Text *tnode, int alignment){
 		int nrow, row,i;
 		double rescale;
 		row32 *rowvec;
+		static int once = 0;
 		GLfloat modelviewf[16], projectionf[16];
 		GLdouble modelviewd[16], projectiond[16];
 
@@ -3732,14 +3762,17 @@ void render_screentext_aligned(struct X3D_Text *tnode, int alignment){
 		set = sdata->set;
 		rowvec = sdata->rowvec;
 		//render_captiontext(tnode->_font,tnode->_set, self->_caption,self->color);
-		static int once = 0;
-		if(!once) printf("%s %3s %10s %10s %10s %10s\n","c","adv","sx","sy","x","y");
+		if(!once) printf("%s %5s %10s %10s %10s %10s\n","c","adv","sx","sy","x","y");
 		//if(!once) printf("%c %3d %10d %10d %10d %10d\n",(char)rowvec[row].str32[i],chr.advance,chr.sx,chr.sy,chr.x,chr.y);
 		for(row=0;row<nrow;row++){
 			for(i=0;i<rowvec[row].len32;i++){
 				AtlasEntry *entry;
 				unsigned int ichar;
+				int set_rowheight, set_emsize;
+				
 				ichar = rowvec[row].str32[i];
+				set_rowheight = set->rowheight;
+				set_emsize = set->EMpixels;
 				entry = AtlasEntrySet_getEntry(set,ichar);
 				if(entry){
 					// drawsubimage(destination on screen, source glpyh details, source atlas)
@@ -3747,12 +3780,13 @@ void render_screentext_aligned(struct X3D_Text *tnode, int alignment){
 					float x,y,sx,sy,scale;
 					chardata chr = rowvec[row].chr[i];
 					scale = sdata->size/sdata->faceheight*PPI/XRES; //MAGIC NUMBER LOOKS WRONG
+					scale = 1.0;
 					//(p->size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES) *s)
-					sx = chr.sx *rescale;
-					sy = chr.sy *rescale;
-					x = chr.x * scale *rescale;
-					y = chr.y * scale *rescale;
-					if(!once) printf("%c %3d %10f %10f %10f %10f\n",(char)rowvec[row].str32[i],chr.advance,chr.sx,chr.sy,chr.x,chr.y);
+					sx = chr.sx *scale * rescale *chr.advance * (float) entry->size.X / (float) set_emsize;
+					sy = chr.sy *scale * rescale *sdata->size * (float) entry->size.Y / (float) set_emsize;
+					x = chr.x * scale *rescale; //+ (float)entry->pos.X/(float)set_emsize*sdata->size;
+					y = chr.y * scale *rescale + (float)(entry->pos.Y - entry->size.Y)/(float)set_emsize*sdata->size;
+					if(!once) printf("%c %5f %10f %10f %10f %10f\n",(char)rowvec[row].str32[i],chr.advance,chr.sx,chr.sy,chr.x,chr.y);
 					if(1) dug9gui_DrawSubImage_scene(x,y, sx, sy, //entry->size.X, entry->size.Y, 
 						entry->apos.X, entry->apos.Y, entry->size.X, entry->size.Y,
 						set->atlas->size.X,set->atlas->size.Y,set->atlas->bytesperpixel,set->atlas->texture);
