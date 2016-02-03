@@ -1666,12 +1666,6 @@ p->myff = 4;
 				p->pen_x = 0.0; //[m]
 		}
 
-		if (!LEFTTORIGHT) {
-			if(fsparam & (0x200<<(4))) //if first, make like begin
-				//p->pen_x -= 1.0;  //[m] = [m] - [1] LOOKS FUNNY	
-				p->pen_x -= column_spacing; //[m] -= [m]
-		}
-
 		//screen/vector-agnostic loop to compute penx,y and shrinkage for each glyph
 		for(irow = 0; irow < numrows; irow++) {
 			unsigned int lenchars;
@@ -1726,7 +1720,7 @@ p->myff = 4;
 					i = lenchars - ii -1;
 				penx = p->pen_x; //[m] = [m]
 				if(!LEFTTORIGHT)
-					penx = penx + widest_column * spacing - rowvec[row].chr[i].advance;
+					penx = penx + column_spacing - rowvec[row].chr[i].advance;
 					//[m] = [m] + [m]            *[1]     -                    [m]
 				rowvec[row].chr[i].x = penx; //[m] = [m]
 				rowvec[row].chr[i].y = p->pen_y;  //[m] = [m]
