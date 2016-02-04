@@ -58,7 +58,9 @@ X3D Text Component
 #endif //ANDROID_DEBUG
 #endif //ANDROID
 
-
+//googling for info on DPI, PPI:
+//DPI dots per inch (one dot == 1 pixel), in non-mac its 96 DPI constant for historical reasons
+//PPI points per inch 72 is a typography constant ie 1 point = 1/72 inch
 #define XRES 96
 #define YRES 96
 #define PPI 72
@@ -69,14 +71,128 @@ X3D Text Component
 #define LEFTTORIGHT (fsparam & 0x02)
 #define HORIZONTAL (fsparam & 0x01)
 
-#define OUT2GL(a) (p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES))
-#define OUT2GLB(a,s) (p->x_size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES) *s)
+
+/*	units and numerics with freetype2:
+	Even a very experienced programmer like dug9 can find the units and numerical precision
+	with freetype2 a bit bewildering at first. Here's freetype2's 'developer must-read concepts':
+	http://www.freetype.org/freetype2/docs/glyphs/index.html
+		http://www.freetype.org/freetype2/docs/glyphs/glyphs-3.html   
+		- baseline, pens, origin, advance
+		http://www.freetype.org/freetype2/docs/glyphs/glyphs-5.html
+		- text layout algorithms
+	Here's my summary:
+	http://www.freetype.org/freetype2/docs/tutorial/step2.html
+	- see near the bottom of this link page for examples of playing with transforming variables.
+	x  except its not good at expressing units, you need to read paragraphs carefully, 
+		check different documentation, example code, API reference, put breakpoints to compare values
+	* I'll express the units here, like engineers do:
+	[fu] - font units or font design units or design units or grid units or EM units
+			- can be -32767 to +32767
+			- usually EMsquare is 2048 fu in size for truetype, 1000 for type1 fonts, both directions
+			- often expressed in fixed-point numbers
+	[du] - device units or display-device units or pixels on screen
+	[em] - 0 to 1 with 1 being the whole EMsquare, equivalent to [1] in most cases
+			http://designwithfontforge.com/en-US/The_EM_Square.html
+	[m/em]	 - the x3d units for mysize, spacing ie final coords [m] = mysize[m/em] * emcoords [em]
+	[in] - inch on screen/display device
+	[pt] - points ie 12 point font. There are 72 points per inch. [pt/in]
+	[1]  - [one] - unitless, or a ratio of 2 like-units ie [m/m] = [1]. ie usage: [unit] = [1] * [unit] 
+	units must balance on each side of an equation, examples:
+	x_scale [du/fu] = pixel_size_per_EM_x [du/em] / EM_size [fu/em]
+	device_x [du] = design_x [fu] * x_scale [du/fu]
+
+
+	Precision: Fixed-point numbers
+	many of the freetype2 parameters are expressed as fixed-point numbers 16.16 or 26.6:
+	https://en.wikibooks.org/wiki/Floating_Point/Fixed-Point_Numbers
+	dot16 - 16.16 Fixed-Point (a 32 bit integer, with half for radix, half for mantissa)  1111111111111111.1111111111111111
+	dot6  - 26.6 Fixed-Point (32 bit integer, with last 6 for radix                       11111111111111111111111111.111111
+	int32 - normal int
+	dble  - normal double
+	
+	Two ways to convert precision:
+	a) all int, with truncation:
+	dot16 = int32 << 16 or int32 * 0x10000 or int32 * 65536
+	dot6 = int32 << 6 or int32 * 64 
+	int32 = dot16 >> 16 or int32 / 65536  (truncates decimals)
+	int32 = dot6 >> 6 or int32 / 64
+	dot6 = dot16 >> 10 or dot16 / 1024 (truncates least significant decimals)
+	dot16 = dot6 << 10 or dot6 * 1024
+	freetype2 has some scaling functions optimized for speed:
+	http://www.freetype.org/freetype2/docs/reference/ft2-computations.html#FT_MulFix
+	
+	b) to/from doubles (preserves precision) (see wiwibooks link above for formulas):
+	dot16 = round( dble * 2**16)
+	dble = dot16 * 2**(-16) or (double)dot16 / (double) 65536
+	dot6 = round( dble * 2**6) = round(dble * 64.0) ~= dble * 64.0
+	dble = dot6 * 2**(-6) or (double)dot6 / (double)64
+	if you go dble = (double)dot6 you'll get coordinates x 2**6 or 64
+
+	Combining units and precision:
+	freetype's transformed glyph coordinates - the ones that come out in the callbacks lineto, moveto etc
+		are in in [du_dot6] http://www.freetype.org/freetype2/docs/glyphs/glyphs-6.html
+	[du_dot6] = [du]*64  - '1/64 of device units' 
+	Exmaple:
+	let DOT16 [dot16] = pow(2.0,16.0) == 2**16 = 65536.0
+	let DOT6 [dot6] = pow(2.0,6.0) == 2**6 = 64.0
+	//face->size->metrics.x_scale is in dot16, and scales directly to '1/64 of device pixels' or [du_dot6], from [fu]
+	x_scale         = (double)(face->size->metrics.x_scale) / DOT16; 
+	// [du_dot6/fu] = [du_dot16/fu]                          /[dot16]
+	x_scale1   =     x_scale / DOT6; 
+	// [du/fu] = [du_dot6/fu]/[dot6]
+
+	Specific variables:
+	the EM square concept:
+	http://designwithfontforge.com/en-US/The_EM_Square.html
+	- truetype fonts usually EM_size = 2048 [fu/em]
+	PPI - points per inch [pt/in], 72 by typographic convention
+	XRES - device resolution in dots or pixels per inch DPI [du/in], 
+		96 for screen by MS windows convention 
+		72 for mac by convention
+		(using freetype for a printer/plotter, you might use 300 for 300 DPI)
+		pixel_size = point_size * resolution / 72  
+		[du/em]    = [pt/em]    * [du/in]    / [pt/in]
+		pixel_coord = grid_coord * pixel_size / EM_size 
+		[du]        =  [fu]      * [du/em]   /  [fu/em]
+	http://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#FT_FaceRec
+	Face->height [fu_dot6/em] - baseline-to-baseline in font units 26.6
+	glyphslot->advance.x [du_dot16]
+
+	patterns to units and precision:
+	- as of Feb 2016 we keep our rowvec variables usually in meters [m] or x3d local coordinates
+	- freetype2 calls into the lineto, moveto etc callbacks with [du_dot6] (pixels) which we 
+		transform back to meters[m] or x3d local coords via OUT2GLB() + pen_x,y
+*/
+
+// [du_dot6] to [m]
+// freetype 'kerns' - moves glyphs slightly to align with output pixels to look great. But to do that
+// it needs some at least arbitrary font size in pixels, which we set in Set_Char_Size, to keep it happy.
+// Now we want to convert coordinates back from the callback units [du_dot6] or pixels
+// -which includes our Set_Char_Size() pointsize and XRES values-
+// to unitless[1] or [m] x3d local coordinates for opengl, by taking back the XRES and pointsize
+// [du] = [du_dot6]/[dot6]
+// a    = ftvertex / 64.0
+// [m] = [du] * [m/em]/[pt/em]   * [pt/in]/[du/in] * [1]
+// v   = a    * size  /POINTSIZE *  PPI   / XRES   * s
+#define OUT2GLB(a,s) ((double)(a) * p->size/64.0 / p->pointsize * (double)PPI/(double)XRES *s)
+
+
+/* 
+//don't need, not tested:
+// [m] to [du_dot6]
+// [du] = [m] * [pt/em]   / [m/em] *[du/in] / [pt/in] * [1]
+// a    = v   * POINTSIZE / size   * XRES   / PPI     * 1/s     
+// [du_dot6] = [du]*[dot6]
+// ftvertex  = a   * 64.0
+#define IN2DUDOT6(v,s) ((int)(((double)(v) / p->pointsize /  p->size * (double)XRES/(double)PPI * 1.0/s)*64.0))
+*/
 
 /* now defined in system_fonts.h
 include <ft2build.h>
 ** include <ftoutln.h>
 include FT_FREETYPE_H
 include FT_GLYPH_H */
+
 enum {
 	FONTSTATE_NONE,
 	FONTSTATE_TRIED,
@@ -84,20 +200,20 @@ enum {
 } fontstate;
 typedef struct chardata{
 	unsigned int iglyph; //glyph index in p->gplyphs[iglyph]
-	unsigned int advance; //char width or more precisely, advance of penx to next char start
-	double x; //pen_x
-	double y;
-	double sx; //scale = 1-rshrink * 1-shrink applied appropriately ie the net scale needed for this char in x
-	double sy;
+	double advance; //char width or more precisely, advance of penx to next char start
+	double x; //pen_x [m]
+	double y; //pen_y [m]
+	double sx; //scale = shrink*rshrink [1]
+	double sy; //scale = shrink*rshrink [1]
 } chardata;
 typedef struct row32 {
 	int allocn;
 	int len32;
 	unsigned int *str32;
 	int iglyphstartindex;
-	double hrowsize; //all the char widths
-	double vcolsize; //len32 x charheight
-	unsigned int widestchar; //widest char in the row, in advance units
+	double hrowsize; //sum of char widths [m]
+	double vcolsize; //len32 x charheight [m]
+	double widestchar; //widest char in the row [m]
 	chardata *chr;
 }row32;
 
@@ -107,7 +223,10 @@ typedef struct screentextdata {
 	int nrow;
 	row32 *rowvec;
 	void *atlasfont;
-	void *set;
+	//void *set;
+	float size; //[m]
+	float faceheight;
+	float emsize;
 }screentextdata;
 
 typedef struct pComponent_Text{
@@ -148,11 +267,12 @@ typedef struct pComponent_Text{
 	/* where are we? */
 	double pen_x, pen_y;
 	double shrink_x, shrink_y;
+
 	/* if this is a status bar, put depth different than 0.0 */
 	float TextZdist;
 
-	double x_size;          /* size of chars from file */
-	double y_size;          /* size of chars from file */
+	double size;          /* size of chars from file */
+	double pointsize;		/*POINTSIZE for FontStyle, pointSize for ScreenFontStyle*/
 	int   myff;             /* which index into font_face are we using  */
 
 
@@ -194,6 +314,7 @@ void Component_Text_init(struct tComponent_Text *t){
 		p->started = FALSE;
 		p->rowvec_allocn = 0;
 		p->rowvec = NULL;
+		p->pointsize = 0; 
 	}
 }
 void Component_Text_clear(struct tComponent_Text *t){
@@ -228,7 +349,7 @@ void fwl_fontFileLocation(char *fontFileLocation) {
 }
 
 /* function prototypes */
-static void FW_NewVertexPoint(double Vertex_x, double Vertex_y);
+static void FW_NewVertexPoint();
 static int FW_moveto (FT_Vector* to, void* user);
 static int FW_lineto(FT_Vector* to, void* user);
 static int FW_conicto(FT_Vector* control, FT_Vector* to, void* user);
@@ -265,19 +386,58 @@ void render_Text (struct X3D_Text * node)
 	}
 }
 
-void FW_NewVertexPoint (double Vertex_x, double Vertex_y)
+void FW_NewVertexPoint ()
 {
     GLDOUBLE v2[3];
 	ppComponent_Text p;
 	ttglobal tg = gglobal();
 	p = (ppComponent_Text)tg->Component_Text.prv;
 
-    UNUSED(Vertex_x);
-    UNUSED(Vertex_y);
+	/* //testing
+	{
+		double xx, yy, xx1,yy1, penx, peny, sx, sy, height, size;
+		int lastx,lasty, ppi, xres, dot6height, x_ppem, y_ppem;
+		double x_scale, y_scale, pixel_size_x, pixel_size_y, device_x, device_y, design_x, design_y;
+		double x_scale1, y_scale1;
+		double x_scale2, y_scale2;
+		ushort fu_per_em;
+		//FT_Size ftsize;
+		lastx = p->last_point.x;
+		lasty = p->last_point.y;
+		penx = p->pen_x;
+		peny = p->pen_y;
+		sx = p->shrink_x;
+		sy = p->shrink_y;
+		height = p->font_face[p->myff]->height;
+		fu_per_em = p->font_face[p->myff]->units_per_EM;
+		//ftsize = p->font_face[p->myff]->size;
+		dot6height = p->font_face[p->myff]->size->metrics.height;
+		x_ppem = p->font_face[p->myff]->size->metrics.x_ppem;
+		y_ppem = p->font_face[p->myff]->size->metrics.y_ppem;
+		x_scale = (double)(p->font_face[p->myff]->size->metrics.x_scale) / pow(2.0,16.0); // [du_dot6/fu] scales directly to 1/64 of device pixels
+		y_scale = (double)(p->font_face[p->myff]->size->metrics.y_scale) / pow(2.0,16.0); // [du_dot6/fu]
+		x_scale1 = x_scale / 64.0; // [du/fu] = [du_dot6/fu]*[1/dot6]
+		y_scale1 = y_scale / 64.0;
+		x_scale2 = (double)x_ppem / (double) fu_per_em; // [du/fu] = [du/em] / [fu/em]
+		y_scale2 = (double)y_ppem / (double) fu_per_em; // [du/fu] = [du/em] / [fu/em]
+		size = p->size;
+		ppi = PPI;
+		xres = XRES;
+		xx = OUT2GLB(p->last_point.x+p->pen_x,p->shrink_x);
+		//yy = OUT2GLB(p->last_point.y + p->pen_y,p->shrink_y);
+		yy = OUT2GLB(p->last_point.y ,p->shrink_y)    + p->pen_y;
+		//#define OUT2GLB(a,s) (p->size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES) *s)
+		xx1 = size * (0.0 +lastx + penx) / (height /ppi * xres) *sx;
+		yy1 = (size * (0.0 +lasty ) / (height /ppi * xres) *sy)  + peny;
+
+	}
+	*/
+	
 
     /* printf ("FW_NewVertexPoint setting coord index %d %d %d\n", */
     /*  p->FW_pointctr, p->FW_pointctr*3+2,p->FW_rep_->actualCoord[p->FW_pointctr*3+2]); */
-    p->FW_rep_->actualCoord[p->FW_pointctr*3+0] = (float) OUT2GLB(p->last_point.x + p->pen_x,p->shrink_x);
+
+    p->FW_rep_->actualCoord[p->FW_pointctr*3+0] = (float) (OUT2GLB(p->last_point.x,p->shrink_x) + p->pen_x);
     p->FW_rep_->actualCoord[p->FW_pointctr*3+1] = (float) (OUT2GLB(p->last_point.y,p->shrink_y) + p->pen_y);
     p->FW_rep_->actualCoord[p->FW_pointctr*3+2] = p->TextZdist;
 
@@ -349,12 +509,13 @@ int FW_lineto (FT_Vector* to, void* user)
         return 0;
     }
 
-    p->last_point.x = to->x; p->last_point.y = to->y;
+    p->last_point.x = to->x; 
+	p->last_point.y = to->y;
+
     if (p->TextVerbose) {
         printf ("FW_lineto, going to %ld %ld\n",to->x, to->y);
     }
-
-    FW_NewVertexPoint(OUT2GLB(p->last_point.x+p->pen_x,p->shrink_x), OUT2GLB(p->last_point.y + p->pen_y,p->shrink_y));
+    FW_NewVertexPoint();
 
 
 
@@ -376,7 +537,7 @@ int FW_conicto (FT_Vector* control, FT_Vector* to, void* user)
 
     /* Possible fix here!!! */
     ncontrol.x = (int) ((double) 0.25*p->last_point.x + 0.5*control->x + 0.25*to->x);
-    ncontrol.y =(int) ((double) 0.25*p->last_point.y + 0.5*control->y + 0.25*to->y);
+    ncontrol.y = (int) ((double) 0.25*p->last_point.y + 0.5*control->y + 0.25*to->y);
 
     /* printf ("Cubic points (%d %d) (%d %d) (%d %d)\n", p->last_point.x,p->last_point.y, */
     /* ncontrol.x, ncontrol.y, to->x,to->y); */
@@ -663,97 +824,6 @@ void FW_make_fontname(int num) {
 }
 #endif
 /* initialize the freetype library */
-static int FW_init_face()
-{
-    int err;
-	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
-
-#ifdef _ANDROID
-        FT_Open_Args myArgs;
-
-    if ((p->fileLen == 0) || (p->androidFontFile ==NULL)) {
-	ConsoleMessage ("FW_init_face, fileLen and/or androidFontFile issue");
-	return FALSE;
-
-    }
-
-#ifdef ANDROID_DEBUG
-   {
-	struct stat buf;
-   	int fh,result;
-
-ConsoleMessage ("TEXT INITIALIZATION - checking on the font file before doing anything");
-   if (0 == fstat(fileno(p->androidFontFile), &buf)) {
-      ConsoleMessage("TEXT INITIALIZATION file size is %ld\n", buf.st_size);
-      ConsoleMessage("TEXT INITIALIZATION time modified is %s\n", ctime(&buf.st_atime));
-   }
-
-    }
-#endif //ANDROID_DEBUG
-
-
-    // ConsoleMessage("FT_Open_Face looks ok to go");
-
-    unsigned char *myFileData = MALLOC(void *, p->fileLen+1);
-    size_t frv;
-    frv = fread (myFileData, (size_t)p->fileLen, (size_t)1, p->androidFontFile);
-    myArgs.flags  = FT_OPEN_MEMORY;
-    myArgs.memory_base = myFileData;
-    myArgs.memory_size = p->fileLen;
-
-    err = FT_Open_Face(p->library, &myArgs, 0, &p->font_face[p->myff]);
-        if (err) {
-            char line[2000];
-            sprintf  (line,"FreeWRL - FreeType, can not set char size for font %s\n",p->thisfontname);
-            ConsoleMessage(line);
-            return FALSE;
-        } else {
-            p->font_opened[p->myff] = TRUE;
-        }
-
-
-#ifdef ANDROID_DEBUG
-   {
-        struct stat buf;
-        int fh,result;
-
-   if (0 == fstat(fileno(p->androidFontFile), &buf)) {
-      ConsoleMessage("FIN TEXT INITIALIZATION file size is %ld\n", buf.st_size);
-      ConsoleMessage("FIN TEXT INITIALIZATION time modified is %s\n", ctime(&buf.st_atime));
-   }
-}
-#endif //ANDROID_DEBUG
-
-	fclose(p->androidFontFile);
-	p->androidFontFile = NULL;
-
-
-#else //ANDROID
-    /* load a font face */
-    err = FT_New_Face(p->library, p->thisfontname, 0, &p->font_face[p->myff]);
-#endif //ANDROID
-
-    if (err) {
-        printf ("FreeType - can not use font %s\n",p->thisfontname);
-        return FALSE;
-    } else {
-        /* access face content */
-        err = FT_Set_Char_Size(p->font_face[p->myff], /* handle to face object           */
-                               POINTSIZE*64,    /* char width in 1/64th of points  */
-                               POINTSIZE*64,    /* char height in 1/64th of points */
-                               XRES,            /* horiz device resolution         */
-                               YRES);           /* vert device resolution          */
-
-        if (err) {
-            printf ("FreeWRL - FreeType, can not set char size for font %s\n",p->thisfontname);
-			p->font_state[p->myff] = FONTSTATE_TRIED;
-            return FALSE;
-        } else {
-            p->font_state[p->myff] = FONTSTATE_LOADED;
-        }
-    }
-    return TRUE;
-}
 
 static FT_Face FW_init_face0(FT_Library library, char* thisfontname)
 {
@@ -829,18 +899,22 @@ static FT_Face FW_init_face0(FT_Library library, char* thisfontname)
 
 	return ftface;
 }
-int FW_set_facesize(FT_Face ftface,char *thisfontname){
+int FW_set_facesize(FT_Face ftface,char *thisfontname, double pointsize){
 	// you can re-set the facesize after the fontface is loaded
+	//http://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#FT_Set_Char_Size
+	// googling, some say there are 72 points per inch in typography, or 1 point = 1/72 inch
 	FT_Error err;
 	int iret;
 	iret = FALSE;
 	if(ftface){
+		int pt_dot6;
 		iret = TRUE;
+		pt_dot6 = (int)round(pointsize * 64.0);
 		err = FT_Set_Char_Size(ftface, /* handle to face object           */
-								POINTSIZE*64,    /* char width in 1/64th of points  */
-								POINTSIZE*64,    /* char height in 1/64th of points */
-								XRES,            /* horiz device resolution         */
-								YRES);           /* vert device resolution          */
+								pt_dot6, //pointsize*64,    /* char width in 1/64th of points [pt dot6] */
+								pt_dot6, //pointsize*64,    /* char height in 1/64th of points [pt dot6]*/
+								XRES,            /* horiz device resolution        [du/in] */
+								YRES);           /* vert device resolution         [du/in] */
 
 		if (err) {
 			printf ("FreeWRL - FreeType, can not set char size for font %s\n",thisfontname);
@@ -848,19 +922,6 @@ int FW_set_facesize(FT_Face ftface,char *thisfontname){
 		} 
 	}
 	return iret;
-}
-
-/* calculate extent of a range of characters */
-double FW_extent (int start, int length)
-{
-    int count;
-    double ret = 0;
-	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
-
-    for (count = start; count <length+start; count++) {
-        ret += p->glyphs[count]->advance.x >> 10;
-    }
-    return ret;
 }
 
 /* Load a character, a maximum of MAX_GLYPHS are here. Note that no
@@ -922,7 +983,7 @@ static void FW_draw_character (FT_Glyph glyph)
 	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
     if (glyph->format == ft_glyph_format_outline) {
         FW_draw_outline ((FT_OutlineGlyph) glyph);
-        p->pen_x +=  (glyph->advance.x >> 10);
+        p->pen_x +=  (glyph->advance.x >> 10); //[fu dot6] = [fu dot16_to_dot6(dot16)]
     } else {
         printf ("FW_draw_character; glyphformat  -- need outline for %s %s\n",
                 p->font_face[p->myff]->family_name,p->font_face[p->myff]->style_name);
@@ -1137,10 +1198,15 @@ int len_utf8(unsigned char *utf8string)
 #include <malloc.h>
 #endif
 
-void prep_screentext(struct X3D_Text *tnode, int num, int screensize);
-/* take a text string, font spec, etc, and make it into an OpenGL Polyrep.
-   Note that the text comes EITHER from a SV (ie, from perl) or from a directstring,
-   eg, for placing text on the screen from within FreeWRL itself */
+void prep_screentext(struct X3D_Text *tnode, int num, double screensize);
+/* take a text string, font spec, etc, and make it into an OpenGL Polyrep or rowvec[] for screen(pixel) font
+   For placing text on the screen directly from freewrl ie GUI or HUD like use the CaptionText contenttype 
+   described elsewhere.
+   spacing [em/em] or [1]
+   mysize [m/em]
+   maxextent [m]
+   length[] [m]
+   */
 
 void FW_rendertext(struct X3D_Text *tnode, unsigned int numrows,struct Uni_String **ptr,
 				unsigned int nl, float *length, double maxext,
@@ -1199,18 +1265,9 @@ void FW_rendertext(struct X3D_Text *tnode, unsigned int numrows,struct Uni_Strin
 	if (p->TextVerbose)
 		printf ("entering FW_Render_text \n");
 
-
-	//p->FW_rep_ = rp;
-
-	//p->FW_RIA_indx = 0;            /* index into FW_RIA                                  */
-	//p->FW_pointctr=0;              /* how many points used so far? maps into rep-_coord  */
-	//p->indx_count=0;               /* maps intp FW_rep_->cindex                          */
-	//p->contour_started = FALSE;
-
-	p->pen_x = 0.0; p->pen_y = 0.0;
+	p->pen_x = 0.0; //[m]
+	p->pen_y = 0.0; //[m]
 	p->cur_glyph = 0;
-	p->x_size = mysize;            /* global variable for size */
-	p->y_size = mysize;            /* global variable for size */
 
 
 	/* is this fontface opened */
@@ -1239,19 +1296,22 @@ p->myff = 4;
 	}
 	if(!p->font_face[p->myff]) return; //couldn't load fonts
 
-	FW_set_facesize(p->font_face[p->myff],p->thisfontname);
-	/* type 1 fonts different than truetype fonts */
-	if (p->font_face[p->myff]->units_per_EM != 1000)
-		p->x_size = p->x_size * p->font_face[p->myff]->units_per_EM/1000.0;
+	if(tnode->_isScreen){
+		p->pointsize = mysize;
+		p->size = mysize * (double)XRES/(double)PPI; //[du] = [pt]*[du/in]/[pt/in]
+	}else{
+		p->pointsize = POINTSIZE;
+		p->size = mysize;  /* global variable for size [m/em] */
 
-
+	}
+	FW_set_facesize(p->font_face[p->myff],p->thisfontname,p->pointsize);
 
 	//realloc row vector if necessary
 	if(tnode->_isScreen){
 		//per-text-node rowvec
 		screentextdata *sdata;
 		if(!tnode->_screendata)
-			prep_screentext(tnode,p->myff, mysize);
+			prep_screentext(tnode,p->myff, p->pointsize);
 		sdata = (screentextdata*)tnode->_screendata;
 		rowvec_allocn = sdata->nalloc;
 		rowvec = sdata->rowvec;
@@ -1287,6 +1347,9 @@ p->myff = 4;
 		sdata->rowvec = rowvec;
 		sdata->nalloc = rowvec_allocn;
 		sdata->nrow = numrows;
+		sdata->faceheight = (float)p->font_face[p->myff]->height;
+		sdata->size = p->size;
+		sdata->emsize = mysize;
 	}else{
 		p->rowvec = rowvec;
 		p->rowvec_allocn = rowvec_allocn;
@@ -1294,19 +1357,18 @@ p->myff = 4;
 
 	/* load all of the characters first... */
 	for (row=0; row<numrows; row++) {
-		unsigned int len, len32, total_row_advance, widest_char, *str32;
+		unsigned int len, len32, *str32;
+		double total_row_advance, widest_char;
 		str = (unsigned char *)ptr[row]->strptr;
 		len = strlen(str);
 		/* utf8_to_utf32 */
 		//in theory str32 will always have # of chars <= len str8
 		// so allocating len8 chars will be enough or sometimes too much
-		if(0) str32 = alloca((len+1) * sizeof(unsigned int)); 
 		str32 = rowvec[row].str32;
 		utf8_to_utf32(str,str32,&len32);
 		rowvec[row].iglyphstartindex = p->cur_glyph;
 		rowvec[row].len32 = len32;
 		rowvec[row].str32 = str32;
-		if(0) rowvec[row].chr = (chardata *) alloca(len32*sizeof(chardata)); //some compilers gurus warn alloca can do weird stuff in loop, not recommended
 		total_row_advance = 0;
 		widest_char = 0;
 		for(i=0;i<len32;i++){
@@ -1314,13 +1376,15 @@ p->myff = 4;
 			FW_Load_Char(str32[i]);
 			icount = p->cur_glyph -1;
 			rowvec[row].chr[i].iglyph = icount;
-			rowvec[row].chr[i].advance = p->glyphs[icount]->advance.x >> 10;
-			total_row_advance += rowvec[row].chr[i].advance;
+			//http://www.freetype.org/freetype2/docs/reference/ft2-glyph_management.html#FT_GlyphRec Glyph->advance dot16
+			rowvec[row].chr[i].advance = OUT2GLB(p->glyphs[icount]->advance.x >> 10,1.0); //[m] = fu_dot6_to_m([fu_dot16/DOT10])
+			total_row_advance += rowvec[row].chr[i].advance; //[m] = [m]
 			widest_char = rowvec[row].chr[i].advance > widest_char ? rowvec[row].chr[i].advance : widest_char;
+			//[m]        =                                             [m]              [m]
 		}
-		rowvec[row].hrowsize = total_row_advance;
-		rowvec[row].vcolsize = len32 * spacing * p->y_size;
-		rowvec[row].widestchar = widest_char;
+		rowvec[row].hrowsize = total_row_advance; //[m] = [m]
+		rowvec[row].vcolsize = len32 * p->size; //[m] = [m/em] = [em] * [em/em] * [m/em]
+		rowvec[row].widestchar = widest_char; //[m] = [m]
 		char_count += len32;
 		//FREE_IF_NZ(utf32); //see bottom of this function
 	}
@@ -1335,14 +1399,16 @@ p->myff = 4;
 
 	if(HORIZONTAL){
 		//find the longest row dimension
-		shrink = 1.0;
+		shrink = 1.0; //[1]
 		if(maxext > 0) {
-			double maxlen = 0;
+			double maxlen = 0; //[m] or [m/em]
 			for(row = 0; row < numrows; row++) {
-				double hrowsize = OUT2GLB(rowvec[row].hrowsize,1.0);
-				maxlen = hrowsize > maxlen ? hrowsize : maxlen;
+				double hrowsize;
+				hrowsize = rowvec[row].hrowsize; //[m] = [m]
+				maxlen = hrowsize > maxlen ? hrowsize : maxlen; //[m] = [m] or [m]
 			}
-			if(maxlen > maxext) {shrink = maxext / maxlen;}
+			if(maxlen > maxext) 
+				shrink = maxext / maxlen; //[1] = [m]/[m]
 		}
 		//shrink = 1.0;
 		/* Justify MINOR (verticle), FIRST, BEGIN, MIDDLE and END */
@@ -1353,109 +1419,108 @@ p->myff = 4;
 		//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/text.html#t-horizontalTRUE
 
 		/* BEGIN */
-		p->pen_y = 0.0; //default Begin (top), if no (proper) minor justify entered
+		p->pen_y = 0.0; //[em] default Begin (top), if no (proper) minor justify entered
 		if(fsparam & (0x400<<(4))){
-			p->pen_y = 0.0;
+			p->pen_y = 0.0; //[em] = [em]
 		}
 		/* FIRST */
 		if(fsparam & (0x200<<(4))){
-			p->pen_y = 1.0; 
+			p->pen_y = 1.0; //[em] = [em]
 		}
 		/* MIDDLE */
 		if (fsparam & (0x800<<(4))) { 
-			p->pen_y = (double)(numrows)/2.0; 
+			p->pen_y = (double)(numrows)/2.0; //[em] = [em]
 		}
 		/* END */
 		if (fsparam & (0x1000<<(4))) {
 			/* printf ("rowlen is %f\n",rowlen); */
-			p->pen_y = (double)numrows;
+			p->pen_y = (double)numrows; //[em] = [em]
 		}
 
 	
 		///* topToBottom */
 		if (TOPTOBOTTOM) {
-			p->pen_y -= 1.0;
+			p->pen_y -= 1.0; //[em] = [em]
 		}else{
 			if(fsparam & (0x200<<(4))) //if first, make like begin
-				p->pen_y -= 1.0; 		
-			p->pen_y = numrows - 1.0 - p->pen_y;
+				p->pen_y -= 1.0; //[em] = [em]
+			p->pen_y = numrows - 1.0 - p->pen_y; //[em] = [em] - [em] - [em]
 		}
-		p->pen_y *= mysize;
+		p->pen_y *= mysize; //[m] = [em] * [m/em]
 		//screen/vector-agnostic loop to compute penx,y and shrinkage for each glyph
 		for(irow = 0; irow < numrows; irow++) {
 			unsigned int lenchars;
 			double rowlen;
 
-			row = irow;
+			row = irow; //[em]
 			if(!TOPTOBOTTOM) row = numrows - irow -1;
 
 			str = (unsigned char *)ptr[row]->strptr;
 			if (p->TextVerbose)
 				printf ("text2 row %d :%s:\n",row, str);
-			p->pen_x = 0.0;
-			rshrink = 1.0;
-			rowlen = rowvec[row].hrowsize;
+			p->pen_x = 0.0; //[m]
+			rshrink = 1.0; //[1]
+			rowlen = rowvec[row].hrowsize; //[m] = [m]
 			lenchars = rowvec[row].len32;
 
 			if((row < nl) && !(APPROX(length[row],0.0))) {
-				rshrink = length[row] / OUT2GLB(rowlen,1.0);
+				rshrink = length[row] / rowlen; //[1] = [m]/[m]
 			}
-			//if(shrink>0.0001) { FW_GL_SCALE_D(shrink,1.0,1.0); }
-			//if(rshrink>0.0001) { FW_GL_SCALE_D(rshrink,1.0,1.0); }
 
 			/* MAJOR Justify, FIRST, BEGIN, */
 			if (((fsparam & 0x200) || (fsparam &  0x400)) && !LEFTTORIGHT ) {
 				/* printf ("rowlen is %f\n",rowlen); */
-				p->pen_x = -rowlen;
+				p->pen_x = -rowlen; //[m] = [m]
 			}
 
 			/* MAJOR MIDDLE */
-			if (fsparam & 0x800) { p->pen_x = -rowlen/2.0; }
+			if (fsparam & 0x800) { 
+				p->pen_x = -rowlen/2.0;  //[m] = [m]
+			}
 
 			/* MAJOR END */
 			//if ((fsparam & 0x1000) && (fsparam & 0x01)) {
 			if ((fsparam & 0x1000) && LEFTTORIGHT ) {
 				/* printf ("rowlen is %f\n",rowlen); */
-				p->pen_x = -rowlen;
+				p->pen_x = -rowlen; //[m] = [m]
 			}
 
 			for(ii=0; ii<lenchars; ii++) {
 				/* FT_UInt glyph_index; */
-				/* int error; */
 				int kk;
 				int x;
 				i = ii;
 				if(!LEFTTORIGHT)
 					i = lenchars - ii -1;
-				rowvec[row].chr[i].x = p->pen_x;
-				rowvec[row].chr[i].y = p->pen_y;
-				rowvec[row].chr[i].sx = shrink*rshrink;
-				rowvec[row].chr[i].sy = 1.0;
-				p->pen_x +=  rowvec[row].chr[i].advance;// * shrink * rshrink; // * directionx
+				rowvec[row].chr[i].x = p->pen_x; //[m]
+				rowvec[row].chr[i].y = p->pen_y; //[m]
+				rowvec[row].chr[i].sx = shrink*rshrink; //[1] = [1]*[1]
+				rowvec[row].chr[i].sy = 1.0; //[1]
+				p->pen_x +=  rowvec[row].chr[i].advance * shrink*rshrink;// [m] = [m] * [1]
 			}
-			//counter += lenchars;
-			p->pen_y += -spacing * p->y_size;
+			p->pen_y += -spacing * p->size; //[m] = [em] * [m/em]
 		}
 		//END HORIZONTAL
 	}else{
 		//IF VERTICAL
 		//
-		unsigned int widest_column;
+		double widest_column, column_spacing;
 		//find the longest row dimension
 		double maxlen = 0.0;
 		shrink = 1.0;
 		for(row = 0; row < numrows; row++) {
-			double vcolsize = rowvec[row].vcolsize;
-			vcolsize = vcolsize*p->y_size;
-			maxlen = vcolsize > maxlen ? vcolsize : maxlen;
+			double vcolsize = rowvec[row].vcolsize; //[m] = [m]
+			maxlen = vcolsize > maxlen ? vcolsize : maxlen; //[m] = [m] or [m]
 		}
 		if(maxext > 0) {
-			if(maxlen > maxext) shrink = maxext / maxlen;
+			if(maxlen > maxext) shrink = maxext / maxlen; //[1] = [m]/[m]
 		}
-		widest_column = 0;
+		widest_column = 0.0;
 		for(row=0;row<numrows;row++)
 			widest_column = rowvec[row].widestchar > widest_column ? rowvec[row].widestchar : widest_column;
-
+			//[m] = [m] or [m]
+		//column_spacing = widest_column;
+		column_spacing = spacing * p->size; //[m] = [1] * [m]
 		/* Justify MINOR (verticle), FIRST, BEGIN, MIDDLE and END */
 		//bit:    13      FIRST
 		//bit:    14      BEGIN
@@ -1468,26 +1533,22 @@ p->myff = 4;
 		if(fsparam & (0x200<<(4)) || fsparam & (0x400<<(4))){
 			//p->pen_x = -1.0 * widest_column; 
 			if(LEFTTORIGHT)
-				p->pen_x = 0.0;
+				p->pen_x = 0.0; //[m]
 			else
-				p->pen_x = -(double)numrows * widest_column;
+				p->pen_x = -(double)numrows * column_spacing; 
+				//[m]    =         [1]     * [m]
 		}
 		/* MIDDLE */
 		if (fsparam & (0x800<<(4))) { 
-			p->pen_x = -(double)(numrows)/2.0 *widest_column; 
+			p->pen_x = -(double)(numrows)/2.0 *column_spacing; //[m] = [1] * [m]
 		}
 		/* END */
 		if (fsparam & (0x1000<<(4))) {
 			/* printf ("rowlen is %f\n",rowlen); */
 			if(LEFTTORIGHT)
-				p->pen_x = -(double)numrows * widest_column;
+				p->pen_x = -(double)numrows * column_spacing; //[m] = [1] * [m]
 			else
-				p->pen_x = 0.0;
-		}
-
-		if (!LEFTTORIGHT) {
-			if(fsparam & (0x200<<(4))) //if first, make like begin
-				p->pen_x -= 1.0; 		
+				p->pen_x = 0.0; //[m]
 		}
 
 		//screen/vector-agnostic loop to compute penx,y and shrinkage for each glyph
@@ -1502,34 +1563,35 @@ p->myff = 4;
 			str = (unsigned char *)ptr[row]->strptr;
 			if (p->TextVerbose)
 				printf ("text2 row %d :%s:\n",row, str);
-			p->pen_y = 0.0;
+			p->pen_y = 0.0; 
 			rshrink = 1.0;
-			rowlen = rowvec[row].vcolsize;
+			rowlen = rowvec[row].vcolsize; //[m] = [m]
 			lenchars = rowvec[row].len32;
 
 			if((row < nl) && !(APPROX(length[row],0.0))) {
-				rshrink = length[row] / (rowlen*p->y_size);
+				rshrink = length[row] / rowlen;
+				//[1]   =  [m]        / [m]
 			}
-			starty = -1.0*shrink*rshrink*p->y_size;
+			starty = -1.0*shrink*rshrink*p->size;  //[m] = [em]*[1]*[1]*[m/em]
 			/* MAJOR Justify, FIRST, BEGIN, */
 			if ((fsparam & 0x200) || (fsparam &  0x400)){
 				if(TOPTOBOTTOM )
-					p->pen_y = starty;
+					p->pen_y = starty; //[m] = [m]
 				else
-					p->pen_y = rowlen + starty;
+					p->pen_y = rowlen + starty; //[m] = [m] + [m]
 			}
 
 			/* MAJOR MIDDLE */
 			if (fsparam & 0x800) {
-					p->pen_y = rowlen/2.0 + starty; 
+				p->pen_y = rowlen/2.0 + starty;  //[m] = [m] + [m]
 			}
 
 			/* MAJOR END */
 			if (fsparam & 0x1000  ) {
 				if(TOPTOBOTTOM)
-					p->pen_y = rowlen + starty;
+					p->pen_y = rowlen + starty; //[m] = [m] + [m]
 				else
-					p->pen_y = starty;
+					p->pen_y = starty; //[m] = [m]
 			}
 
 			for(ii=0; ii<lenchars; ii++) {
@@ -1541,20 +1603,19 @@ p->myff = 4;
 				i = ii;
 				if(!TOPTOBOTTOM)
 					i = lenchars - ii -1;
-				penx = p->pen_x;
+				penx = p->pen_x; //[m] = [m]
 				if(!LEFTTORIGHT)
-					penx = penx + widest_column * spacing - rowvec[row].chr[i].advance;
-				rowvec[row].chr[i].x = penx;
-				rowvec[row].chr[i].y = p->pen_y;
-				rowvec[row].chr[i].sx = 1.0;
-				rowvec[row].chr[i].sy = shrink*rshrink;
-				p->pen_y += -p->y_size * shrink * rshrink;
+					penx = penx + column_spacing - rowvec[row].chr[i].advance;
+					//[m] = [m] + [m]            *[1]     -                    [m]
+				rowvec[row].chr[i].x = penx; //[m] = [m]
+				rowvec[row].chr[i].y = p->pen_y;  //[m] = [m]
+				rowvec[row].chr[i].sx = 1.0; //[1]
+				rowvec[row].chr[i].sy = shrink*rshrink;  //[1] = [1]*[1]
+				p->pen_y += -p->size * shrink * rshrink; //[m] = [m] - [m/em]*[1]*[1]
+				//[1] = [1/em] =  [m/em]    * [1]    * [1/m]   LOOKS WRONG
 			}
-			//counter += lenchars;
-			p->pen_x +=  widest_column * spacing; // * p->x_size; //rowvec[row].chr[i].advance; // * directionx
-
+			p->pen_x +=  column_spacing; //[m] = [m] + [m]*[1]
 		}
-
 	}
 
 	if(!tnode->_isScreen){
@@ -1579,18 +1640,13 @@ p->myff = 4;
 				chardata chr;
 
 				chr = rowvec[row].chr[i];
-				p->pen_x = chr.x;
-				p->pen_y = chr.y;
-				p->shrink_x = chr.sx;
-				p->shrink_y = chr.sy;
-				//p->y_size = xys.sy;
-				//p->x_size = xys.sx;
+				p->pen_x = chr.x; //[m] = [m]
+				p->pen_y = chr.y; //[m] = [m]
+				p->shrink_x = chr.sx; //[1]
+				p->shrink_y = chr.sy; //[1]
 				tg->Tess.global_IFS_Coord_count = 0;
 				p->FW_RIA_indx = 0;
-				//kk = rowvec[row].iglyphstartindex + i;
 				kk = rowvec[row].chr[i].iglyph;
-				p->shrink_x = rowvec[row].chr[i].sx;
-				p->shrink_y = rowvec[row].chr[i].sy;
 				FW_draw_character (p->glyphs[kk]);
 				FT_Done_Glyph (p->glyphs[kk]);
 				/* copy over the tesselated coords for the character to
@@ -1810,8 +1866,10 @@ void make_Text (struct X3D_Text *node)
         spacing = fsp->spacing;
         size = fsp->size;
 		if(fsp->_nodeType == NODE_ScreenFontStyle){
-			static float pixels_per_point = 4.0f/3.0f; //about 16 pixels for 12 point font, assume we are in ScreenGroup?
-			size = fsp->size; // * pixels_per_point;
+			struct X3D_ScreenFontStyle *fsps = (struct X3D_ScreenFontStyle *)fsp;
+			//if the scene file said size='.8' by mistake instead of pointSize='10', 
+			// ..x3d parser will leave pointSize at its default 12.0
+			size = fsps->pointSize; 
 			isScreenFontStyle = TRUE;
 		}
 
@@ -2184,41 +2242,45 @@ typedef struct AtlasFont {
 	int type;
 	char *path;
 	FT_Face fontFace;
-	struct Vector atlasSizes; //GUIAtlasEntrySet*
+	int EMsize;
+	//struct Vector atlasSizes; //GUIAtlasEntrySet*
+	AtlasEntrySet *set;
 } AtlasFont;
-void AtlasFont_init(AtlasFont *me,char *facename, char* path){
+void AtlasFont_init(AtlasFont *me,char *facename, int EMsize, char* path){
 
 	me->name = facename;
 	me->type = GUI_FONT;
 	me->path = path;
 	me->fontFace = NULL;
-	me->atlasSizes.n = 0; //no atlas renderings to begin with
-	me->atlasSizes.allocn = 2;
-	me->atlasSizes.data = malloc(2*sizeof(AtlasEntrySet*));
+	me->EMsize = EMsize;
+	me->set = NULL;
+	//me->atlasSizes.n = 0; //no atlas renderings to begin with
+	//me->atlasSizes.allocn = 2;
+	//me->atlasSizes.data = malloc(2*sizeof(AtlasEntrySet*));
 }
 
 
-AtlasEntrySet* searchAtlasFontForSizeOrMake(AtlasFont *font,int EMpixels){
-	AtlasEntrySet *set = NULL;
-	if(font){
-		if(font->atlasSizes.n){
-			int i;
-			for(i=0;i<font->atlasSizes.n;i++){
-				AtlasEntrySet *aes = vector_get(AtlasEntrySet*,&font->atlasSizes,i);
-				if(aes){
-					if(aes->EMpixels == EMpixels){
-						set = aes;
-						break;
-					}
-				}
-			}
-		}
-		if(!set){
-			//make set
-		}
-	}
-	return set;
-}
+//AtlasEntrySet* searchAtlasFontForSizeOrMake(AtlasFont *font,int EMpixels){
+//	AtlasEntrySet *set = NULL;
+//	if(font){
+//		if(font->atlasSizes.n){
+//			int i;
+//			for(i=0;i<font->atlasSizes.n;i++){
+//				AtlasEntrySet *aes = vector_get(AtlasEntrySet*,&font->atlasSizes,i);
+//				if(aes){
+//					if(aes->EMpixels == EMpixels){
+//						set = aes;
+//						break;
+//					}
+//				}
+//			}
+//		}
+//		if(!set){
+//			//make set
+//		}
+//	}
+//	return set;
+//}
 
 
 
@@ -2262,22 +2324,22 @@ int RenderFontAtlasCombo(AtlasFont *font, AtlasEntrySet *entryset,  char * cText
 		nsizes = fontFace->num_fixed_sizes;
 		printf("num_fixed_sizes = %d\n",nsizes);
 	}
-	#define POINTSIZE 20
-	#define XRES 96
-	#define YRES 96
-	if(0)
-    err = FT_Set_Char_Size(fontFace, /* handle to face object           */
-                            POINTSIZE*64,    /* char width in 1/64th of points  */
-                            POINTSIZE*64,    /* char height in 1/64th of points */
-                            XRES,            /* horiz device resolution         */
-                            YRES);           /* vert device resolution          */
+	//#define POINTSIZE 20
+	//#define XRES 96
+	//#define YRES 96
+	//if(0)
+ //   err = FT_Set_Char_Size(fontFace, /* handle to face object           */
+ //                           POINTSIZE*64,    /* char width in 1/64th of points  */
+ //                           POINTSIZE*64,    /* char height in 1/64th of points */
+ //                           XRES,            /* horiz device resolution         */
+ //                           YRES);           /* vert device resolution          */
 	if(1)
 	err = FT_Set_Pixel_Sizes(
 		fontFace,   /* handle to face object */
 		0,      /* pixel_width           */
 		EMpixels );   /* pixel_height          */
     
-	if(1){
+	if(0){
 		int h;
 		printf("spacing between rows = %f\n",fontFace->height);
 		h = fontFace->size->metrics.height;
@@ -2434,16 +2496,16 @@ int AtlasFont_setFontSize(AtlasFont *me, int EMpixels, int *rowheight, int *maxa
 	FT_Face fontFace = me->fontFace;
 
 	if(!fontFace) return FALSE;
-	#define POINTSIZE 20
-	#define XRES 96
-	#define YRES 96
-	if(0){
-		err = FT_Set_Char_Size(fontFace, /* handle to face object           */
-								POINTSIZE*64,    /* char width in 1/64th of points  */
-								POINTSIZE*64,    /* char height in 1/64th of points */
-								XRES,            /* horiz device resolution         */
-								YRES);           /* vert device resolution          */
-	}
+	//#define POINTSIZE 20
+	//#define XRES 96
+	//#define YRES 96
+	//if(0){
+	//	err = FT_Set_Char_Size(fontFace, /* handle to face object           */
+	//							POINTSIZE*64,    /* char width in 1/64th of points  */
+	//							POINTSIZE*64,    /* char height in 1/64th of points */
+	//							XRES,            /* horiz device resolution         */
+	//							YRES);           /* vert device resolution          */
+	//}
 	err = FT_Set_Pixel_Sizes(
 		fontFace,   /* handle to face object */
 		0,      /* pixel_width           */
@@ -2511,7 +2573,8 @@ void AtlasFont_RenderFontAtlas(AtlasFont *me, int EMpixels, char* alphabet){
 	aes->atlasName = name;
 	//init ConsoleMessage font atlas
 	RenderFontAtlas(me,aes,alphabet);
-	vector_pushBack(AtlasEntrySet*,&me->atlasSizes,aes);
+	//vector_pushBack(AtlasEntrySet*,&me->atlasSizes,aes);
+	me->set = aes;
 	///vector_pushBack(GUIAtlas*,atlas_table,atlas); //will have fontnameXX where XX is the EMpixel
 	printf("end of RenderFontAtlas\n");
 }
@@ -2644,9 +2707,24 @@ int AtlasFont_LoadFromDotC(AtlasFont *font, unsigned char *start, int size){
 	int widgetAtlas_png_size = 0;
 #endif
 
+AtlasFont *searchAtlasFontTable(struct Vector* guitable, char *name, int EMsize){
+	int i;
+	AtlasFont *retval = NULL;
+	if(guitable)
+	for(i=0;i<vectorSize(guitable);i++){
+		AtlasFont *el = vector_get(AtlasFont *,guitable,i);
+		///printf("[SGT %s %s] ",name,el->name);
+		if(!strcmp(name,el->name) && EMsize == el->EMsize){
+			retval = el;
+			break;
+		}
+	}
+	return retval;
+}
+
 AtlasFont *searchAtlasTableOrLoad(char *facename, int EMpixels){
 	AtlasFont *font;
-	font = (AtlasFont*)searchGUItable(font_table,facename);
+	font = (AtlasFont*)searchAtlasFontTable(font_table,facename,EMpixels);
 	if(!font){
 		static char * ascii32_126 = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQURSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 		int font_tactic, atlas_tactic, len;
@@ -2658,7 +2736,7 @@ AtlasFont *searchAtlasTableOrLoad(char *facename, int EMpixels){
 		facenamettf = malloc(len);
 		strcpy(facenamettf,facename);
 		facenamettf = strcat(facenamettf,".ttf");
-		AtlasFont_init(font,facename,facenamettf); 
+		AtlasFont_init(font,facename,EMpixels,facenamettf); 
 
 		font_tactic = FONT_TACTIC; //DOTC_NONE, DOTC_SAVE, DOTC_LOAD
 		if(font_tactic == DOTC_SAVE) {
@@ -2766,14 +2844,22 @@ vec2 pixel2normalizedScreen( GLfloat x, GLfloat y){
 }
 
 
-
+#define USE_MATRICES 1
 static   GLbyte vShaderStr[] =  
       "attribute vec4 a_position;   \n"
       "attribute vec2 a_texCoord;   \n"
+#ifdef USE_MATRICES
+      "uniform mat4 u_ModelViewMatrix; \n"
+      "uniform mat4 u_ProjectionMatrix; \n"
+#endif
       "varying vec2 v_texCoord;     \n"
       "void main()                  \n"
       "{                            \n"
+#ifdef USE_MATRICES
+      "   gl_Position = u_ProjectionMatrix * u_ModelViewMatrix * a_position; \n"
+#else
       "   gl_Position = a_position; \n"
+#endif
       "   v_texCoord = a_texCoord;  \n"
       "}                            \n";
 
@@ -2817,6 +2903,18 @@ static   GLbyte fShaderStr[] =
 	  //"  texColor.a = blend.a*Color4f.a + (one.a - blend.a)*texColor.a;\n"
    //   "  vec4 finalColor = vec4(Color4f.rgb * texColor.rgb, texColor.a); \n"  //vector rgb color, and vector.a * (1-L) for alpha
 //STATICS
+static GLfloat modelviewIdentityf[] = {
+	1.0f, 0.0f, 0.0f, 0.0f,
+	0.0f, 1.0f, 0.0f, 0.0f,
+	0.0f, 0.0f, 1.0f, 0.0f,
+	0.0f, 0.0f, 0.0f, 1.0f
+};
+static GLfloat projectionIdentityf[] = {
+	1.0f, 0.0f, 0.0f, 0.0f,
+	0.0f, 1.0f, 0.0f, 0.0f,
+	0.0f, 0.0f, 1.0f, 0.0f,
+	0.0f, 0.0f, 0.0f, 1.0f
+};
 static GLuint positionLoc;
 static GLuint texCoordLoc;
 static GLuint textureLoc;
@@ -2825,6 +2923,8 @@ static GLuint color4fLoc;
 static GLuint textureID;
 //static GLuint indexBufferID;
 static GLuint blendLoc;
+static GLuint modelviewLoc;
+static GLuint projectionLoc;
 static GLuint programObject = 0;
 GLuint esLoadProgram ( const char *vertShaderSrc, const char *fragShaderSrc ); //defined in statuasbarHud.c
 static void initProgramObject(){
@@ -2837,6 +2937,10 @@ static void initProgramObject(){
    textureLoc = glGetUniformLocation ( programObject, "Texture0" );
    color4fLoc = glGetUniformLocation ( programObject, "Color4f" );
    blendLoc = glGetUniformLocation ( programObject, "blend" );
+#ifdef USE_MATRICES
+   modelviewLoc =  glGetUniformLocation ( programObject, "u_ModelViewMatrix" );
+   projectionLoc = glGetUniformLocation ( programObject, "u_ProjectionMatrix" );
+#endif
 
 }
 
@@ -2997,7 +3101,7 @@ GLfloat cursorTex[] = {
 	//printvpstacktop(__LINE__);
 
 }
-void dug9gui_DrawSubImage(int xpos,int ypos, int xsize, int ysize, int ix, int iy, int iw, int ih, int width, int height, int bpp, char *buffer){
+void dug9gui_DrawSubImage(float xpos,float ypos, float xsize, float ysize, int ix, int iy, int iw, int ih, int width, int height, int bpp, char *buffer){
 //xpos, ypos upper left location of where to draw the sub-image, in pixels, on the screen
 //xsize,ysize - size to stretch the sub-image to on the screen, in pixels
 // ix,iy,iw,ih - position and size in pixels of the subimage in a bigger/atlas image, ix,iy is upper left
@@ -3065,30 +3169,16 @@ GLfloat cursorTex[] = {
 		default:
 			return;
 	}
-	if(0){
-		//upper left
-		fxy = pixel2normalizedScreen((GLfloat)xpos,(GLfloat)ypos);
-		fwh = pixel2normalizedScreenScale((GLfloat)xsize,(GLfloat)ysize);
-		//lower left
-		fxy.Y = fxy.Y - fwh.Y;
-	}
-	if(1){
-		//upper left
-		fxy = pixel2normalizedViewport((GLfloat)xpos,(GLfloat)ypos);
-		fwh = pixel2normalizedViewportScale((GLfloat)xsize,(GLfloat)ysize);
-		//lower left
-		fxy.Y = fxy.Y - fwh.Y;
-	}
 	
 	//fxy.Y -= 1.0; //DUG9GUI y=0 at top
 	//fxy.X -= 1.0;
 	memcpy(cursorVert2,cursorVert,2*3*3*sizeof(GLfloat));
 	for(i=0;i<6;i++){
-		cursorVert2[i*3 +0] *= fwh.X;
-		cursorVert2[i*3 +0] += fxy.X;
+		cursorVert2[i*3 +0] *= xsize; //fwh.X;
+		cursorVert2[i*3 +0] += xpos; //fxy.X;
 		if(!iyup) cursorVert2[i*3 +1] = 1.0f - cursorVert2[i*3 +1];
-		cursorVert2[i*3 +1] *= fwh.Y;
-		cursorVert2[i*3 +1] += fxy.Y;
+		cursorVert2[i*3 +1] *= ysize; //fwh.Y;
+		cursorVert2[i*3 +1] += ypos; //fxy.Y;
 	}
 
 	glVertexAttribPointer (positionLoc, 3, GL_FLOAT, 
@@ -3142,7 +3232,7 @@ typedef struct GUITextCaption
 	//GUIAtlas *atlas;
 } GUITextCaption;
 
-int render_captiontext(AtlasFont *font, AtlasEntrySet *set, unsigned char * utf8string, vec4 color){
+int render_captiontext(AtlasFont *font, unsigned char * utf8string, vec4 color){
 	//pass in a string with your alphabet, numbers, symbols or whatever, 
 	// and we use freetype2 to render to bitmpa, and then tile those little
 	// bitmaps into an atlas texture
@@ -3154,6 +3244,7 @@ int render_captiontext(AtlasFont *font, AtlasEntrySet *set, unsigned char * utf8
 	ivec4 ivport;
 	unsigned char *start, *end;
 	int lenchar, l32;
+	AtlasEntrySet* set;
 
 	ttglobal tg = gglobal();
 
@@ -3161,7 +3252,7 @@ int render_captiontext(AtlasFont *font, AtlasEntrySet *set, unsigned char * utf8
 	if(utf8string == NULL) return FALSE;
 	// you need to pre-load the font during layout init
 	if(!font) return FALSE;
-
+	set = font->set;
 	//uses simplified (2D) shader like statusbarHud
 	finishedWithGlobalShader();
 	glDepthMask(GL_FALSE);
@@ -3175,6 +3266,11 @@ int render_captiontext(AtlasFont *font, AtlasEntrySet *set, unsigned char * utf8
 	glBindTexture(GL_TEXTURE_2D, textureID);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST); //GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST); //GL_LINEAR);
+
+#ifdef USE_MATRICES
+	glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewIdentityf);
+	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionIdentityf);
+#endif
 
 	glUniform4f(color4fLoc,color.X,color.Y,color.Z,color.W); //0.7f,0.7f,0.9f,1.0f);
 	//for caption text, we'll set the font size whether or not we have an atlas set, 
@@ -3241,7 +3337,37 @@ int render_captiontext(AtlasFont *font, AtlasEntrySet *set, unsigned char * utf8
 			entry = AtlasEntrySet_getEntry(set,ichar);
 			if(entry){
 				// drawsubimage(destination on screen, source glpyh details, source atlas) 
-				dug9gui_DrawSubImage(pen_x + entry->pos.X, pen_y - entry->pos.Y, entry->size.X, entry->size.Y, 
+				float xpos, ypos, xsize, ysize;
+				vec2 fxy, fwh;
+				xpos = pen_x + entry->pos.X;
+				ypos = pen_y - entry->pos.Y;
+				xsize =  entry->size.X;
+				ysize = entry->size.Y;
+				if(0){
+					//upper left
+					fxy = pixel2normalizedScreen((GLfloat)xpos,(GLfloat)ypos);
+					fwh = pixel2normalizedScreenScale((GLfloat)xsize,(GLfloat)ysize);
+					//lower left
+					fxy.Y = fxy.Y - fwh.Y;
+					xpos = fxy.X;
+					ypos = fxy.Y;
+					xsize = fwh.X;
+					ysize = fwh.Y;
+
+				}
+				if(1){
+					//upper left
+					fxy = pixel2normalizedViewport((GLfloat)xpos,(GLfloat)ypos);
+					fwh = pixel2normalizedViewportScale((GLfloat)xsize,(GLfloat)ysize);
+					//lower left
+					fxy.Y = fxy.Y - fwh.Y;
+					xpos = fxy.X;
+					ypos = fxy.Y;
+					xsize = fwh.X;
+					ysize = fwh.Y;
+				}
+
+				dug9gui_DrawSubImage(xpos,ypos,xsize,ysize, 
 					entry->apos.X, entry->apos.Y, entry->size.X, entry->size.Y,
 					set->atlas->size.X,set->atlas->size.Y,set->atlas->bytesperpixel,set->atlas->texture);
 				pen_x += entry->advance.X; //glyph->advance.x >> 6;
@@ -3297,8 +3423,10 @@ void render_screentext0(struct X3D_Text *tnode){
 	if(tnode && tnode->_nodeType == NODE_Text){
 		screentextdata *sdata;
 		AtlasEntrySet *set;
+		AtlasFont *font;
 		int nrow, row,i;
 		row32 *rowvec;
+		static int once = 0;
 
 		finishedWithGlobalShader();
 		glDepthMask(GL_FALSE);
@@ -3312,15 +3440,21 @@ void render_screentext0(struct X3D_Text *tnode){
 		glBindTexture(GL_TEXTURE_2D, textureID);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST); //GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST); //GL_LINEAR);
-
+#ifdef USE_MATRICES
+		glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewIdentityf);
+		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionIdentityf);
+#endif
 
 
 		sdata = (screentextdata*)tnode->_screendata;
 		if(!sdata) return;
 		nrow = sdata->nrow;
-		set = sdata->set;
+		font = (AtlasFont*)sdata->atlasfont;
+		set = font->set;
 		rowvec = sdata->rowvec;
 		//render_captiontext(tnode->_font,tnode->_set, self->_caption,self->color);
+		if(!once) printf("%s %3s %10s %10s %10s %10s !\n","c","adv","sx","sy","x","y");
+
 		for(row=0;row<nrow;row++){
 			for(i=0;i<rowvec[row].len32;i++){
 				AtlasEntry *entry;
@@ -3330,19 +3464,55 @@ void render_screentext0(struct X3D_Text *tnode){
 				if(entry){
 					// drawsubimage(destination on screen, source glpyh details, source atlas)
 					int cscale;
+					float xpos, ypos, xsize, ysize;
+					vec2 fxy, fwh;
 					chardata chr = rowvec[row].chr[i];
-					dug9gui_DrawSubImage(chr.x+90,chr.y+30, entry->size.X, entry->size.Y, 
+
+					//[du] = [m] * [du/m]
+					xpos = chr.x+90 + entry->pos.X;
+					ypos = chr.y+30 - entry->pos.Y;
+					xsize =  entry->size.X;
+					ysize = entry->size.Y;
+					if(0){
+						//upper left
+						fxy = pixel2normalizedScreen((GLfloat)xpos,(GLfloat)ypos);
+						fwh = pixel2normalizedScreenScale((GLfloat)xsize,(GLfloat)ysize);
+						//lower left
+						fxy.Y = fxy.Y - fwh.Y;
+						xpos = fxy.X;
+						ypos = fxy.Y;
+						xsize = fwh.X;
+						ysize = fwh.Y;
+
+					}
+					if(1){
+						//upper left
+						fxy = pixel2normalizedViewport((GLfloat)xpos,(GLfloat)ypos);
+						fwh = pixel2normalizedViewportScale((GLfloat)xsize,(GLfloat)ysize);
+						//lower left
+						fxy.Y = fxy.Y - fwh.Y;
+						xpos = fxy.X;
+						ypos = fxy.Y;
+						xsize = fwh.X;
+						ysize = fwh.Y;
+					}
+
+
+					if(!once) printf("%c %3d %10f %10f %10f %10f\n",(char)rowvec[row].str32[i],chr.advance,chr.sx,chr.sy,chr.x,chr.y);
+					//dug9gui_DrawSubImage(xpos,ypos,xsize,ysize, 
+					dug9gui_DrawSubImage(xpos,ypos, xsize, ysize, 
 						entry->apos.X, entry->apos.Y, entry->size.X, entry->size.Y,
 						set->atlas->size.X,set->atlas->size.Y,set->atlas->bytesperpixel,set->atlas->texture);
 				}
 			}
 		}
+		once = 1;
 		glEnable(GL_DEPTH_TEST);
 		glDepthMask(GL_TRUE);
 		restoreGlobalShader();
 	}
 }
-void dug9gui_DrawSubImage_scene(int xpos,int ypos, int xsize, int ysize, int ix, int iy, int iw, int ih, int width, int height, int bpp, char *buffer){
+void dug9gui_DrawSubImage_scene(float xpos,float ypos, float xsize, float ysize, int ix, int iy, int iw, int ih, int width, int height, int bpp, char *buffer){
 //xpos, ypos upper left location of where to draw the sub-image, in local coordinates
 //xsize,ysize - size to stretch the sub-image to on the screen, in pixels
 // ix,iy,iw,ih - position and size in pixels of the subimage in a bigger/atlas image, ix,iy is upper left
@@ -3385,6 +3555,7 @@ GLfloat cursorTex[] = {
 	int i,j;
 	GLfloat cursorVert2[18];
 	GLfloat cursorTex2[12];
+	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
 
 
 	// Bind the base map - see above
@@ -3411,41 +3582,20 @@ GLfloat cursorTex[] = {
 		default:
 			return;
 	}
-	if(0){
-		//upper left
-		fxy = pixel2normalizedScreen((GLfloat)xpos,(GLfloat)ypos);
-		fwh = pixel2normalizedScreenScale((GLfloat)xsize,(GLfloat)ysize);
-		//lower left
-		fxy.Y = fxy.Y - fwh.Y;
-	}
-	if(0){
-		//upper left
-		fxy = pixel2normalizedViewport((GLfloat)xpos,(GLfloat)ypos);
-		fwh = pixel2normalizedViewportScale((GLfloat)xsize,(GLfloat)ysize);
-		//lower left
-		fxy.Y = fxy.Y - fwh.Y;
-	}
-	if(1){
-		fxy.X = (GLfloat)xpos;
-		fxy.Y = (GLfloat)ypos;
-		fwh.X = (GLfloat)xsize;
-		fwh.Y = (GLfloat)ysize;
-
-	}
 	
 	//fxy.Y -= 1.0; //DUG9GUI y=0 at top
 	//fxy.X -= 1.0;
 	iyup = 0;
 	memcpy(cursorVert2,cursorVert,2*3*3*sizeof(GLfloat));
 	for(i=0;i<6;i++){
-		cursorVert2[i*3 +0] *= fwh.X;
-		cursorVert2[i*3 +0] += fxy.X;
+		cursorVert2[i*3 +0] *= xsize; //fwh.X;
+		cursorVert2[i*3 +0] += xpos; //fxy.X;
 		if(!iyup) cursorVert2[i*3 +1] = 1.0f - cursorVert2[i*3 +1];
-		cursorVert2[i*3 +1] *= fwh.Y;
-		cursorVert2[i*3 +1] += fxy.Y;
+		cursorVert2[i*3 +1] *= ysize; //fwh.Y;
+		cursorVert2[i*3 +1] += ypos; //fxy.Y;
 	}
 
-	glVertexAttribPointer (positionLocT, 3, GL_FLOAT, 
+	glVertexAttribPointer (positionLoc, 3, GL_FLOAT, 
 						   GL_FALSE, 0, cursorVert2 );
 	// Load the texture coordinate
 	fixy.X = (float)ix/(float)width;
@@ -3464,9 +3614,9 @@ GLfloat cursorTex[] = {
 		cursorTex2[i*2 +1] *= fiwh.Y;
 		cursorTex2[i*2 +1] += fixy.Y;
 	}
-	glVertexAttribPointer (texCoordLocT, 2, GL_FLOAT, GL_FALSE, 0, cursorTex2 );  
-	glEnableVertexAttribArray (positionLocT );
-	glEnableVertexAttribArray (texCoordLocT);
+	glVertexAttribPointer (texCoordLoc, 2, GL_FLOAT, GL_FALSE, 0, cursorTex2 );  
+	glEnableVertexAttribArray (positionLoc );
+	glEnableVertexAttribArray (texCoordLoc);
 
 	//// Bind the base map - see above
 	//glActiveTexture ( GL_TEXTURE0 );
@@ -3479,23 +3629,29 @@ GLfloat cursorTex[] = {
 
 }
 
-void render_screentext1(struct X3D_Text *tnode){
+
+void render_screentext_aligned(struct X3D_Text *tnode, int screenAligned){
 	/*	to be called from Text node render_Text for case of ScreenFontStyle
+		alignment = 0 - aligned to screen
+		alignemnt = 1 - 3D in scene
 	*/
 	if(tnode && tnode->_nodeType == NODE_Text){
 		screentextdata *sdata;
 		AtlasEntrySet *set;
+		AtlasFont *font;
 		int nrow, row,i;
+		double rescale;
 		row32 *rowvec;
+		static int once = 0;
 		GLfloat modelviewf[16], projectionf[16];
 		GLdouble modelviewd[16], projectiond[16];
 
 		finishedWithGlobalShader();
-		//glDepthMask(GL_FALSE);
-		//glDisable(GL_DEPTH_TEST);
-		if(!programObjectTrans) initProgramObjectTrans();
+		glDepthMask(GL_FALSE);
+		glDisable(GL_DEPTH_TEST);
+		if(!programObject) initProgramObject();
 
-		glUseProgram ( programObjectTrans );
+		glUseProgram ( programObject );
 		if(!textureID)
 			glGenTextures(1, &textureID);
 
@@ -3503,67 +3659,142 @@ void render_screentext1(struct X3D_Text *tnode){
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST); //GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST); //GL_LINEAR);
 
-		if(1){
-		FW_GL_GETFLOATV(GL_MODELVIEW_MATRIX, modelviewf);
-		glUniformMatrix4fv(modelviewLocT, 1, GL_FALSE,modelviewf);
-		FW_GL_GETFLOATV(GL_PROJECTION_MATRIX, projectionf);
-		glUniformMatrix4fv(projectionLocT, 1, GL_FALSE, projectionf);
+		//get current color and send to shader
+		{
+			struct matpropstruct *myap = getAppearanceProperties();
+			if (!myap) {
+				glUniform4f(color4fLoc,.5f,.5f,.5f,1.0f); //default
+			}else{
+				float *dc;
+				dc = myap->fw_FrontMaterial.diffuse;
+				glUniform4f(color4fLoc,dc[0],dc[1],dc[2],dc[3]); //0.7f,0.7f,0.9f,1.0f);
+			}
+		}
+
+		if(!screenAligned){
+			//text in 3D space
+			// Text -> screenFontStyle should come in here
+			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewd);
+			matdouble2float4(modelviewf, modelviewd);
+			glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewf);
+			FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projectiond);
+			matdouble2float4(projectionf,projectiond);
+			glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionf);
 		}else{
-		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewd);
-		glUniformMatrix4dv(modelviewLocT, 1, GL_FALSE,modelviewd);
-		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projectiond);
-		glUniformMatrix4dv(projectionLocT, 1, GL_FALSE, projectiond);
+			//EXPERIMENTAL - for testing, don't use for Text -> screenFontStyle
+			glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewIdentityf);
+			glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionIdentityf);
 		}
 
 		sdata = (screentextdata*)tnode->_screendata;
 		if(!sdata) return;
 		nrow = sdata->nrow;
-		set = sdata->set;
+		font = (AtlasFont*)sdata->atlasfont;
+		set = font->set;
+		if(!set) 
+			return;
 		rowvec = sdata->rowvec;
 		//render_captiontext(tnode->_font,tnode->_set, self->_caption,self->color);
+		if(!once) printf("%s %5s %10s %10s %10s %10s\n","c","adv","sx","sy","x","y");
+		//if(!once) printf("%c %3d %10d %10d %10d %10d\n",(char)rowvec[row].str32[i],chr.advance,chr.sx,chr.sy,chr.x,chr.y);
 		for(row=0;row<nrow;row++){
 			for(i=0;i<rowvec[row].len32;i++){
 				AtlasEntry *entry;
 				unsigned int ichar;
+				int set_rowheight, set_emsize;
+				
 				ichar = rowvec[row].str32[i];
+				set_rowheight = set->rowheight;
+				set_emsize = set->EMpixels;
 				entry = AtlasEntrySet_getEntry(set,ichar);
 				if(entry){
 					// drawsubimage(destination on screen, source glpyh details, source atlas)
 					int cscale;
+					float x,y,sx,sy,scale;
 					chardata chr = rowvec[row].chr[i];
-					if(1) dug9gui_DrawSubImage_scene(chr.x,chr.y, entry->size.X, entry->size.Y, 
-						entry->apos.X, entry->apos.Y, entry->size.X, entry->size.Y,
-						set->atlas->size.X,set->atlas->size.Y,set->atlas->bytesperpixel,set->atlas->texture);
+					if(screenAligned){
+						//EXPERIMENTAL - for testing, don't use for Text -> screenFontStyle
+						vec2 pp;
+						GLint viewPort[4];
+						double ptresize;
+						//rescale = .03; //otherwise 1 char is half the screen
+						rescale = (double)XRES/(double)PPI; //[du] = [du/in]/[pt/in]
+						//scale = sdata->size/sdata->faceheight*XRES/PPI; //[du/em] = [pt/em] * [du/in] / [pt/in]
+						scale = 1.0;
+						//sx = chr.sx *scale * rescale *chr.advance * (float) entry->size.X / (float) set_emsize;
+						//sy = chr.sy *scale * rescale *sdata->size * (float) entry->size.Y / (float) set_emsize;
+						sx = sdata->size *rescale / (float)(set_emsize + 1) * (float) (entry->size.X + 1) ;
+						sy = sdata->size *rescale / (float)(set_emsize + 1) * (float) (entry->size.Y + 1) ;
+						sx = entry->size.X;
+						sy = entry->size.Y;
+						ptresize = 20.0/12.0; //MAGIC NUMBER
+						x = ptresize * chr.x * scale *rescale;
+						y = ptresize * chr.y * scale *rescale + (float)(entry->pos.Y - entry->size.Y)/(float)set_emsize*sdata->size*rescale;
+						//pp = pixel2normalizedScreenScale( x, y);
+						//pp = pixel2normalizedViewport(x,y);
+						FW_GL_GETINTEGERV(GL_VIEWPORT, viewPort);
+						x = ((GLfloat)x/(GLfloat)(viewPort[2]-viewPort[0])) * 2.0f -1.0f;
+						y = ((GLfloat)y/(GLfloat)(viewPort[3]-viewPort[1])) * 2.0f -1.0f;
+						sx = ((GLfloat)sx/(GLfloat)(viewPort[2]-viewPort[0])) * 2.0f;
+						sy = ((GLfloat)sy/(GLfloat)(viewPort[3]-viewPort[1])) * 2.0f;
 
+						//x = pp.X;
+						//y = pp.Y;
+						if(!once) printf("%c %5f %10f %10f %10f %10f\n",(char)rowvec[row].str32[i],chr.advance,chr.sx,chr.sy,chr.x,chr.y);
+						dug9gui_DrawSubImage_scene(x,y, sx, sy, //entry->size.X, entry->size.Y, 
+							entry->apos.X, entry->apos.Y, entry->size.X, entry->size.Y,
+							set->atlas->size.X,set->atlas->size.Y,set->atlas->bytesperpixel,set->atlas->texture);
+
+					}else{
+						// 3D screen Text -> screenFontStyle should come in here
+						// we need to scale the rectangles in case there was maxextent, length[] specified
+						// dug9 feb 4, 2016: not sure I've got the right formula, especially spacing
+						//sx = chr.sx *chr.advance * (float) entry->size.X / (float) set_emsize;
+						sx = chr.sx *chr.advance/(float) set_emsize * (float) entry->size.X;
+						sy = chr.sy *sdata->size/(float) set_emsize * (float) entry->size.Y ;
+						x = chr.x ; 
+						y = chr.y  + sdata->size/(float)set_emsize * (float)(entry->pos.Y - entry->size.Y);
+						if(!once) printf("%c %5f %10f %10f %10f %10f\n",(char)rowvec[row].str32[i],chr.advance,chr.sx,chr.sy,chr.x,chr.y);
+						if(1) dug9gui_DrawSubImage_scene(x,y, sx, sy, //entry->size.X, entry->size.Y, 
+							entry->apos.X, entry->apos.Y, entry->size.X, entry->size.Y,
+							set->atlas->size.X,set->atlas->size.Y,set->atlas->bytesperpixel,set->atlas->texture);
+					}
 				}
 			}
 		}
-		if(1){
-		//glEnable(GL_DEPTH_TEST);
-		//glDepthMask(GL_TRUE);
+		once = 1;
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
 		restoreGlobalShader();
-		}
 	}
 }
 void render_screentext(struct X3D_Text *tnode){
-	render_screentext0(tnode); //old shader way
-	render_screentext1(tnode); //new shaderTrans
+	//render_screentext0(tnode);
+	//render_screentext_aligned(tnode,1); //aligned to screen
+	render_screentext_aligned(tnode,0); //new shaderTrans
 }
-void prep_screentext(struct X3D_Text *tnode, int num, int screensize){
+void prep_screentext(struct X3D_Text *tnode, int num, double screensize){
 	if(tnode && tnode->_nodeType == NODE_Text && !tnode->_screendata){
 		//called from make_text > FWRenderText first time to malloc, 
 		//  and when FontStyle is ScreenFontStyle
 		char *fontname;
+		int iscreensize;
 		screentextdata *sdata;
+		iscreensize = (int)round(screensize);
 		fontname = facename_from_num(num);
 		tnode->_screendata = malloc(sizeof(screentextdata));
 		memset(tnode->_screendata,0,sizeof(screentextdata));
 		sdata = (screentextdata*)tnode->_screendata;
-		sdata->atlasfont = (AtlasFont*)searchAtlasTableOrLoad(fontname,screensize);
+		sdata->atlasfont = (AtlasFont*)searchAtlasTableOrLoad(fontname,iscreensize);
 		if(!sdata->atlasfont){
 			printf("dug9gui: Can't find font %s do you have the wrong name?\n",fontname);
 		}
-		sdata->set = searchAtlasFontForSizeOrMake(sdata->atlasfont,screensize);
+		//else{
+		//	sdata->set = (void*)sdata->atlasfont->set; //searchAtlasFontForSizeOrMake(sdata->atlasfont,iscreensize);
+		//	if(!sdata->set){
+		//		printf("couldn't create screentext for size %d\n",iscreensize);
+		//	}
+		//}
 	}
 }
 

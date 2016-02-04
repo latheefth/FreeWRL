@@ -523,10 +523,11 @@ contenttype *new_contenttype_statusbar(){
 
 typedef struct AtlasFont AtlasFont;
 typedef struct AtlasEntrySet AtlasEntrySet;
-AtlasFont* searchAtlastableOrLoad(char *fontname,int EMpixels);
+AtlasFont *searchAtlasTableOrLoad(char *facename, int EMpixels);
 AtlasEntrySet* searchAtlasFontForSizeOrMake(AtlasFont *font,int EMpixels);
 typedef struct vec4 {float X; float Y; float Z; float W;} vec4;
 vec4 vec4_init(float x, float y, float z, float w);
+int render_captiontext(AtlasFont *font,  char *utf8string, vec4 color);
 typedef struct contenttype_captiontext {
 	tcontenttype t1;
 	char *caption;
@@ -540,8 +541,6 @@ typedef struct contenttype_captiontext {
 	float angle;
 	vec4 color;
 } contenttype_captiontext;
-int render_captiontext(AtlasFont *font, AtlasEntrySet* set, char *utf8string, vec4 color);
-AtlasFont *searchAtlasTableOrLoad(char *facename, int EMpixels);
 void captiontext_render(void *_self){
 	//make this like layer, render contents first in clipplane-limited viewport, then sbh in whole viewport
 	contenttype_captiontext *self;
@@ -551,7 +550,7 @@ void captiontext_render(void *_self){
 
 	//vec4 c4f = self->color;
 	//glColor4f(c4f.X,c4f.Y,c4f.Z,c4f.W); 
-	render_captiontext(self->font,self->set, self->caption,self->color);
+	render_captiontext(self->font, self->caption,self->color);
 	popnset_viewport();
 }
 int captiontext_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
@@ -573,7 +572,7 @@ contenttype *new_contenttype_captiontext(char *fontname, int EMpixels, vec4 colo
 	if(!self->font){
 		printf("dug9gui: Can't find font %s do you have the wrong name?\n",fontname);
 	}
-	self->set = searchAtlasFontForSizeOrMake(self->font,EMpixels);
+	//self->set = (void *)self->font->set; //searchAtlasFontForSizeOrMake(self->font,EMpixels);
 	return (contenttype*)self;
 }
 void captiontext_setString(void *_self, char *utf8string){
@@ -2250,19 +2249,19 @@ void setup_stagesNORMAL(){
 		cstage->t1.contents = cmultitouch;
 		p->EMULATE_MULTITOUCH =	FALSE;
 		//IDEA: these prepared ways of using freewrl could be put into a switchcase contenttype called early ie from window
-		if(1){
+		if(0){
 			//normal: multitouch emulation, layer, scene, statusbarHud, 
 			if(0) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
 			else cstage->t1.contents = csbh; //skip multitouch
 			//tg->Mainloop.AllowNavDrag = TRUE; //experimental approach to allow both navigation and dragging at the same time, with 2 separate touches
-		}else if(0){
+		}else if(1){
 			//captiontext, layer, scene, statusbarHud, 
 			//contenttype *new_contenttype_captiontext(char *fontname, int EMpixels, vec4 color)
 			vec4 ccolor;
 			contenttype *ctext;
 			ccolor = vec4_init(1.0f,.6f,0.0f,1.0f);
 			ctext = new_contenttype_captiontext("Vera",12,ccolor);
-			captiontext_setString(ctext, "string from captiontext");
+			captiontext_setString(ctext, "string from captiontext FReEgrl  Gréèn");
 			ctext->t1.viewport[0] = .1f;
 			ctext->t1.viewport[1] = .6f;
 			ctext->t1.viewport[2] = .4f;

@@ -6046,11 +6046,12 @@ static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint Projecti
 	sp = spval;
 	dp = p->FW_ProjectionView[p->projectionviewTOS];
 
-	/* convert GLDOUBLE to float */
-	for (i=0; i<16; i++) {
-		*sp = (float) *dp;
-		sp ++; dp ++;
-	}
+	matdouble2float4(sp,dp);
+	///* convert GLDOUBLE to float */
+	//for (i=0; i<16; i++) {
+	//	*sp = (float) *dp;
+	//	sp ++; dp ++;
+	//}
 	profile_start("sendmtx");
 	GLUNIFORMMATRIX4FV(ProjectionMatrix,1,GL_FALSE,spval);
 	profile_end("sendmtx");

@@ -1535,6 +1535,14 @@ double *matcopy(double *r, double*mat){
 	memcpy((void*)r, (void*)mat,sizeof(double)*16);
 	return r;
 }
+float *matdouble2float4(float *rmat4, double *dmat4){
+	int i;
+	/* convert GLDOUBLE to float */
+	for (i=0; i<16; i++) {
+		rmat4[i] = (float)dmat4[i];
+	}
+	return rmat4;
+}
 void printmatrix3(GLDOUBLE *mat, char *description, int row_major){
     int i,j;
     printf("mat %s {\n",description);
