@@ -267,6 +267,7 @@ typedef struct pComponent_Text{
 	/* where are we? */
 	double pen_x, pen_y;
 	double shrink_x, shrink_y;
+
 	/* if this is a status bar, put depth different than 0.0 */
 	float TextZdist;
 
@@ -821,97 +822,6 @@ void FW_make_fontname(int num) {
 }
 #endif
 /* initialize the freetype library */
-static int FW_init_face_OLD()
-{
-    int err;
-	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
-
-#ifdef _ANDROID
-        FT_Open_Args myArgs;
-
-    if ((p->fileLen == 0) || (p->androidFontFile ==NULL)) {
-	ConsoleMessage ("FW_init_face, fileLen and/or androidFontFile issue");
-	return FALSE;
-
-    }
-
-#ifdef ANDROID_DEBUG
-   {
-	struct stat buf;
-   	int fh,result;
-
-ConsoleMessage ("TEXT INITIALIZATION - checking on the font file before doing anything");
-   if (0 == fstat(fileno(p->androidFontFile), &buf)) {
-      ConsoleMessage("TEXT INITIALIZATION file size is %ld\n", buf.st_size);
-      ConsoleMessage("TEXT INITIALIZATION time modified is %s\n", ctime(&buf.st_atime));
-   }
-
-    }
-#endif //ANDROID_DEBUG
-
-
-    // ConsoleMessage("FT_Open_Face looks ok to go");
-
-    unsigned char *myFileData = MALLOC(void *, p->fileLen+1);
-    size_t frv;
-    frv = fread (myFileData, (size_t)p->fileLen, (size_t)1, p->androidFontFile);
-    myArgs.flags  = FT_OPEN_MEMORY;
-    myArgs.memory_base = myFileData;
-    myArgs.memory_size = p->fileLen;
-
-    err = FT_Open_Face(p->library, &myArgs, 0, &p->font_face[p->myff]);
-        if (err) {
-            char line[2000];
-            sprintf  (line,"FreeWRL - FreeType, can not set char size for font %s\n",p->thisfontname);
-            ConsoleMessage(line);
-            return FALSE;
-        } else {
-            p->font_opened[p->myff] = TRUE;
-        }
-
-
-#ifdef ANDROID_DEBUG
-   {
-        struct stat buf;
-        int fh,result;
-
-   if (0 == fstat(fileno(p->androidFontFile), &buf)) {
-      ConsoleMessage("FIN TEXT INITIALIZATION file size is %ld\n", buf.st_size);
-      ConsoleMessage("FIN TEXT INITIALIZATION time modified is %s\n", ctime(&buf.st_atime));
-   }
-}
-#endif //ANDROID_DEBUG
-
-	fclose(p->androidFontFile);
-	p->androidFontFile = NULL;
-
-
-#else //ANDROID
-    /* load a font face */
-    err = FT_New_Face(p->library, p->thisfontname, 0, &p->font_face[p->myff]);
-#endif //ANDROID
-
-    if (err) {
-        printf ("FreeType - can not use font %s\n",p->thisfontname);
-        return FALSE;
-    } else {
-        /* access face content */
-        err = FT_Set_Char_Size(p->font_face[p->myff], /* handle to face object           */
-                               POINTSIZE*64,    /* char width in 1/64th of points  [pt dot6] */
-                               POINTSIZE*64,    /* char height in 1/64th of points [pt dot6]*/
-                               XRES,            /* horiz device resolution   [du/in]      */
-                               YRES);           /* vert device resolution    [du/in]      */
-
-        if (err) {
-            printf ("FreeWRL - FreeType, can not set char size for font %s\n",p->thisfontname);
-			p->font_state[p->myff] = FONTSTATE_TRIED;
-            return FALSE;
-        } else {
-            p->font_state[p->myff] = FONTSTATE_LOADED;
-        }
-    }
-    return TRUE;
-}
 
 static FT_Face FW_init_face0(FT_Library library, char* thisfontname)
 {
@@ -1008,22 +918,6 @@ int FW_set_facesize(FT_Face ftface,char *thisfontname){
 		} 
 	}
 	return iret;
-}
-
-/* calculate extent of a range of characters */
-double FW_extent (int start, int length)
-{
-    int count;
-    double ret = 0;
-	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
-
-    for (count = start; count <length+start; count++) {
-		//http://www.freetype.org/freetype2/docs/reference/ft2-glyph_management.html#FT_GlyphRec
-		//advance: 16.16 in [fu]
-        ret += p->glyphs[count]->advance.x >> 10; 
-		//[fu dbledot6] += [fu (dot6_2_dble)dot16_2_dot6([fu dot16])]
-    }
-    return ret;
 }
 
 /* Load a character, a maximum of MAX_GLYPHS are here. Note that no
@@ -1961,8 +1855,10 @@ void make_Text (struct X3D_Text *node)
         spacing = fsp->spacing;
         size = fsp->size;
 		if(fsp->_nodeType == NODE_ScreenFontStyle){
-			static float pixels_per_point = 4.0f/3.0f; //about 16 pixels for 12 point font, assume we are in ScreenGroup?
-			size = fsp->size; // * pixels_per_point;
+			struct X3D_ScreenFontStyle *fsps = (struct X3D_ScreenFontStyle *)fsp;
+			//if the scene file said size='.8' by mistake instead of pointSize='10', 
+			// ..x3d parser will leave pointSize at its default 12.0
+			size = fsps->pointSize; 
 			isScreenFontStyle = TRUE;
 		}
 
@@ -3830,8 +3726,8 @@ void render_screentext_aligned(struct X3D_Text *tnode, int screenAligned){
 	}
 }
 void render_screentext(struct X3D_Text *tnode){
-	render_screentext0(tnode);
-	render_screentext_aligned(tnode,1); //aligned to screen
+	//render_screentext0(tnode);
+	//render_screentext_aligned(tnode,1); //aligned to screen
 	render_screentext_aligned(tnode,0); //new shaderTrans
 }
 void prep_screentext(struct X3D_Text *tnode, int num, int screensize){
