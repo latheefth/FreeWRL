@@ -907,8 +907,8 @@ int FW_set_facesize(FT_Face ftface,char *thisfontname, double pointsize){
 	int iret;
 	iret = FALSE;
 	if(ftface){
-		iret = TRUE;
 		int pt_dot6;
+		iret = TRUE;
 		pt_dot6 = (int)round(pointsize * 64.0);
 		err = FT_Set_Char_Size(ftface, /* handle to face object           */
 								pt_dot6, //pointsize*64,    /* char width in 1/64th of points [pt dot6] */
@@ -1298,7 +1298,7 @@ p->myff = 4;
 
 	if(tnode->_isScreen){
 		p->pointsize = mysize;
-		p->size = mysize;
+		p->size = mysize * (double)XRES/(double)PPI; //[du] = [pt]*[du/in]/[pt/in]
 	}else{
 		p->pointsize = POINTSIZE;
 		p->size = mysize;  /* global variable for size [m/em] */
@@ -1348,8 +1348,8 @@ p->myff = 4;
 		sdata->nalloc = rowvec_allocn;
 		sdata->nrow = numrows;
 		sdata->faceheight = (float)p->font_face[p->myff]->height;
-		sdata->size = mysize;
-		sdata->emsize = p->size;
+		sdata->size = p->size;
+		sdata->emsize = mysize;
 	}else{
 		p->rowvec = rowvec;
 		p->rowvec_allocn = rowvec_allocn;
@@ -3673,6 +3673,7 @@ void render_screentext_aligned(struct X3D_Text *tnode, int screenAligned){
 
 		if(!screenAligned){
 			//text in 3D space
+			// Text -> screenFontStyle should come in here
 			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewd);
 			matdouble2float4(modelviewf, modelviewd);
 			glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewf);
@@ -3680,7 +3681,7 @@ void render_screentext_aligned(struct X3D_Text *tnode, int screenAligned){
 			matdouble2float4(projectionf,projectiond);
 			glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionf);
 		}else{
-			//hopefully, does screen-aligned text?
+			//EXPERIMENTAL - for testing, don't use for Text -> screenFontStyle
 			glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewIdentityf);
 			glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionIdentityf);
 		}
@@ -3712,8 +3713,10 @@ void render_screentext_aligned(struct X3D_Text *tnode, int screenAligned){
 					float x,y,sx,sy,scale;
 					chardata chr = rowvec[row].chr[i];
 					if(screenAligned){
+						//EXPERIMENTAL - for testing, don't use for Text -> screenFontStyle
 						vec2 pp;
 						GLint viewPort[4];
+						double ptresize;
 						//rescale = .03; //otherwise 1 char is half the screen
 						rescale = (double)XRES/(double)PPI; //[du] = [du/in]/[pt/in]
 						//scale = sdata->size/sdata->faceheight*XRES/PPI; //[du/em] = [pt/em] * [du/in] / [pt/in]
@@ -3724,7 +3727,7 @@ void render_screentext_aligned(struct X3D_Text *tnode, int screenAligned){
 						sy = sdata->size *rescale / (float)(set_emsize + 1) * (float) (entry->size.Y + 1) ;
 						sx = entry->size.X;
 						sy = entry->size.Y;
-						double ptresize = 20.0/12.0; //MAGIC NUMBER
+						ptresize = 20.0/12.0; //MAGIC NUMBER
 						x = ptresize * chr.x * scale *rescale;
 						y = ptresize * chr.y * scale *rescale + (float)(entry->pos.Y - entry->size.Y)/(float)set_emsize*sdata->size*rescale;
 						//pp = pixel2normalizedScreenScale( x, y);
@@ -3743,10 +3746,14 @@ void render_screentext_aligned(struct X3D_Text *tnode, int screenAligned){
 							set->atlas->size.X,set->atlas->size.Y,set->atlas->bytesperpixel,set->atlas->texture);
 
 					}else{
-						sx = chr.sx *chr.advance * (float) entry->size.X / (float) set_emsize;
-						sy = chr.sy *sdata->size * (float) entry->size.Y / (float) set_emsize;
+						// 3D screen Text -> screenFontStyle should come in here
+						// we need to scale the rectangles in case there was maxextent, length[] specified
+						// dug9 feb 4, 2016: not sure I've got the right formula, especially spacing
+						//sx = chr.sx *chr.advance * (float) entry->size.X / (float) set_emsize;
+						sx = chr.sx *chr.advance/(float) set_emsize * (float) entry->size.X;
+						sy = chr.sy *sdata->size/(float) set_emsize * (float) entry->size.Y ;
 						x = chr.x ; 
-						y = chr.y  + (float)(entry->pos.Y - entry->size.Y)/(float)set_emsize*sdata->size;
+						y = chr.y  + sdata->size/(float)set_emsize * (float)(entry->pos.Y - entry->size.Y);
 						if(!once) printf("%c %5f %10f %10f %10f %10f\n",(char)rowvec[row].str32[i],chr.advance,chr.sx,chr.sy,chr.x,chr.y);
 						if(1) dug9gui_DrawSubImage_scene(x,y, sx, sy, //entry->size.X, entry->size.Y, 
 							entry->apos.X, entry->apos.Y, entry->size.X, entry->size.Y,
@@ -3756,11 +3763,9 @@ void render_screentext_aligned(struct X3D_Text *tnode, int screenAligned){
 			}
 		}
 		once = 1;
-		if(1){
 		glEnable(GL_DEPTH_TEST);
 		glDepthMask(GL_TRUE);
 		restoreGlobalShader();
-		}
 	}
 }
 void render_screentext(struct X3D_Text *tnode){
