@@ -3700,7 +3700,7 @@ GLfloat cursorTex[] = {
 }
 
 
-void render_screentext_aligned(struct X3D_Text *tnode, int alignment){
+void render_screentext_aligned(struct X3D_Text *tnode, int screenAligned){
 	/*	to be called from Text node render_Text for case of ScreenFontStyle
 		alignment = 0 - aligned to screen
 		alignemnt = 1 - 3D in scene
@@ -3740,8 +3740,7 @@ void render_screentext_aligned(struct X3D_Text *tnode, int alignment){
 			}
 		}
 
-		rescale = 1.0;
-		if(alignment){
+		if(!screenAligned){
 			//text in 3D space
 			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewd);
 			matdouble2float4(modelviewf, modelviewd);
@@ -3753,7 +3752,6 @@ void render_screentext_aligned(struct X3D_Text *tnode, int alignment){
 			//hopefully, does screen-aligned text?
 			glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewIdentityf);
 			glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionIdentityf);
-			rescale = .05; //otherwise 1 char is half the screen
 		}
 
 		sdata = (screentextdata*)tnode->_screendata;
@@ -3779,21 +3777,47 @@ void render_screentext_aligned(struct X3D_Text *tnode, int alignment){
 					int cscale;
 					float x,y,sx,sy,scale;
 					chardata chr = rowvec[row].chr[i];
-					scale = sdata->size/sdata->faceheight*PPI/XRES; //MAGIC NUMBER LOOKS WRONG
-					scale = 1.0;
-					//(p->size * (0.0 +a) / ((1.0*(p->font_face[p->myff]->height)) / PPI*XRES) *s)
-					sx = chr.sx *scale * rescale *chr.advance * (float) entry->size.X / (float) set_emsize;
-					sy = chr.sy *scale * rescale *sdata->size * (float) entry->size.Y / (float) set_emsize;
-					x = chr.x * scale *rescale; //+ (float)entry->pos.X/(float)set_emsize*sdata->size;
-					y = chr.y * scale *rescale + (float)(entry->pos.Y - entry->size.Y)/(float)set_emsize*sdata->size;
-					if(!once) printf("%c %5f %10f %10f %10f %10f\n",(char)rowvec[row].str32[i],chr.advance,chr.sx,chr.sy,chr.x,chr.y);
-					if(1) dug9gui_DrawSubImage_scene(x,y, sx, sy, //entry->size.X, entry->size.Y, 
-						entry->apos.X, entry->apos.Y, entry->size.X, entry->size.Y,
-						set->atlas->size.X,set->atlas->size.Y,set->atlas->bytesperpixel,set->atlas->texture);
-					if(0) dug9gui_DrawSubImage(chr.x+20,chr.y+20, entry->size.X, entry->size.Y, 
-						entry->apos.X, entry->apos.Y, entry->size.X, entry->size.Y,
-						set->atlas->size.X,set->atlas->size.Y,set->atlas->bytesperpixel,set->atlas->texture);
+					if(screenAligned){
+						vec2 pp;
+						GLint viewPort[4];
+						//rescale = .03; //otherwise 1 char is half the screen
+						rescale = (double)XRES/(double)PPI; //[du] = [du/in]/[pt/in]
+						//scale = sdata->size/sdata->faceheight*XRES/PPI; //[du/em] = [pt/em] * [du/in] / [pt/in]
+						scale = 1.0;
+						//sx = chr.sx *scale * rescale *chr.advance * (float) entry->size.X / (float) set_emsize;
+						//sy = chr.sy *scale * rescale *sdata->size * (float) entry->size.Y / (float) set_emsize;
+						sx = sdata->size *rescale / (float)(set_emsize + 1) * (float) (entry->size.X + 1) ;
+						sy = sdata->size *rescale / (float)(set_emsize + 1) * (float) (entry->size.Y + 1) ;
+						sx = entry->size.X;
+						sy = entry->size.Y;
+						double ptresize = 20.0/12.0; //MAGIC NUMBER
+						x = ptresize * chr.x * scale *rescale;
+						y = ptresize * chr.y * scale *rescale + (float)(entry->pos.Y - entry->size.Y)/(float)set_emsize*sdata->size*rescale;
+						//pp = pixel2normalizedScreenScale( x, y);
+						//pp = pixel2normalizedViewport(x,y);
+						FW_GL_GETINTEGERV(GL_VIEWPORT, viewPort);
+						x = ((GLfloat)x/(GLfloat)(viewPort[2]-viewPort[0])) * 2.0f -1.0f;
+						y = ((GLfloat)y/(GLfloat)(viewPort[3]-viewPort[1])) * 2.0f -1.0f;
+						sx = ((GLfloat)sx/(GLfloat)(viewPort[2]-viewPort[0])) * 2.0f;
+						sy = ((GLfloat)sy/(GLfloat)(viewPort[3]-viewPort[1])) * 2.0f;
 
+						//x = pp.X;
+						//y = pp.Y;
+						if(!once) printf("%c %5f %10f %10f %10f %10f\n",(char)rowvec[row].str32[i],chr.advance,chr.sx,chr.sy,chr.x,chr.y);
+						dug9gui_DrawSubImage_scene(x,y, sx, sy, //entry->size.X, entry->size.Y, 
+							entry->apos.X, entry->apos.Y, entry->size.X, entry->size.Y,
+							set->atlas->size.X,set->atlas->size.Y,set->atlas->bytesperpixel,set->atlas->texture);
+
+					}else{
+						sx = chr.sx *chr.advance * (float) entry->size.X / (float) set_emsize;
+						sy = chr.sy *sdata->size * (float) entry->size.Y / (float) set_emsize;
+						x = chr.x ; 
+						y = chr.y  + (float)(entry->pos.Y - entry->size.Y)/(float)set_emsize*sdata->size;
+						if(!once) printf("%c %5f %10f %10f %10f %10f\n",(char)rowvec[row].str32[i],chr.advance,chr.sx,chr.sy,chr.x,chr.y);
+						if(1) dug9gui_DrawSubImage_scene(x,y, sx, sy, //entry->size.X, entry->size.Y, 
+							entry->apos.X, entry->apos.Y, entry->size.X, entry->size.Y,
+							set->atlas->size.X,set->atlas->size.Y,set->atlas->bytesperpixel,set->atlas->texture);
+					}
 				}
 			}
 		}
@@ -3807,8 +3831,8 @@ void render_screentext_aligned(struct X3D_Text *tnode, int alignment){
 }
 void render_screentext(struct X3D_Text *tnode){
 	render_screentext0(tnode);
-	render_screentext_aligned(tnode,0); //old shader way
-	render_screentext_aligned(tnode,1); //new shaderTrans
+	render_screentext_aligned(tnode,1); //aligned to screen
+	render_screentext_aligned(tnode,0); //new shaderTrans
 }
 void prep_screentext(struct X3D_Text *tnode, int num, int screensize){
 	if(tnode && tnode->_nodeType == NODE_Text && !tnode->_screendata){

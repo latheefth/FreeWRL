@@ -2261,7 +2261,7 @@ void setup_stagesNORMAL(){
 			contenttype *ctext;
 			ccolor = vec4_init(1.0f,.6f,0.0f,1.0f);
 			ctext = new_contenttype_captiontext("Vera",12,ccolor);
-			captiontext_setString(ctext, "string from captiontext  Gréèn");
+			captiontext_setString(ctext, "string from captiontext FReEgrl  Gréèn");
 			ctext->t1.viewport[0] = .1f;
 			ctext->t1.viewport[1] = .6f;
 			ctext->t1.viewport[2] = .4f;
