@@ -174,7 +174,7 @@ X3D Text Component
 // a    = ftvertex / 64.0
 // [m] = [du] * [m/em]/[pt/em]   * [pt/in]/[du/in] * [1]
 // v   = a    * size  /POINTSIZE *  PPI   / XRES   * s
-#define OUT2GLB(a,s) ((double)(a) * p->size/64.0 / (double)POINTSIZE * (double)PPI/(double)XRES *s)
+#define OUT2GLB(a,s) ((double)(a) * p->size/64.0 / p->pointsize * (double)PPI/(double)XRES *s)
 
 
 /* 
@@ -184,7 +184,7 @@ X3D Text Component
 // a    = v   * POINTSIZE / size   * XRES   / PPI     * 1/s     
 // [du_dot6] = [du]*[dot6]
 // ftvertex  = a   * 64.0
-#define IN2DUDOT6(v,s) ((int)(((double)(v) / (double)POINTSIZE /  p->size * (double)XRES/(double)PPI * 1.0/s)*64.0))
+#define IN2DUDOT6(v,s) ((int)(((double)(v) / p->pointsize /  p->size * (double)XRES/(double)PPI * 1.0/s)*64.0))
 */
 
 /* now defined in system_fonts.h
@@ -272,6 +272,7 @@ typedef struct pComponent_Text{
 	float TextZdist;
 
 	double size;          /* size of chars from file */
+	double pointsize;		/*POINTSIZE for FontStyle, pointSize for ScreenFontStyle*/
 	int   myff;             /* which index into font_face are we using  */
 
 
@@ -313,6 +314,7 @@ void Component_Text_init(struct tComponent_Text *t){
 		p->started = FALSE;
 		p->rowvec_allocn = 0;
 		p->rowvec = NULL;
+		p->pointsize = 0; 
 	}
 }
 void Component_Text_clear(struct tComponent_Text *t){
@@ -897,7 +899,7 @@ static FT_Face FW_init_face0(FT_Library library, char* thisfontname)
 
 	return ftface;
 }
-int FW_set_facesize(FT_Face ftface,char *thisfontname){
+int FW_set_facesize(FT_Face ftface,char *thisfontname, double pointsize){
 	// you can re-set the facesize after the fontface is loaded
 	//http://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#FT_Set_Char_Size
 	// googling, some say there are 72 points per inch in typography, or 1 point = 1/72 inch
@@ -906,9 +908,11 @@ int FW_set_facesize(FT_Face ftface,char *thisfontname){
 	iret = FALSE;
 	if(ftface){
 		iret = TRUE;
+		int pt_dot6;
+		pt_dot6 = (int)round(pointsize * 64.0);
 		err = FT_Set_Char_Size(ftface, /* handle to face object           */
-								POINTSIZE*64,    /* char width in 1/64th of points [pt dot6] */
-								POINTSIZE*64,    /* char height in 1/64th of points [pt dot6]*/
+								pt_dot6, //pointsize*64,    /* char width in 1/64th of points [pt dot6] */
+								pt_dot6, //pointsize*64,    /* char height in 1/64th of points [pt dot6]*/
 								XRES,            /* horiz device resolution        [du/in] */
 								YRES);           /* vert device resolution         [du/in] */
 
@@ -1194,7 +1198,7 @@ int len_utf8(unsigned char *utf8string)
 #include <malloc.h>
 #endif
 
-void prep_screentext(struct X3D_Text *tnode, int num, int screensize);
+void prep_screentext(struct X3D_Text *tnode, int num, double screensize);
 /* take a text string, font spec, etc, and make it into an OpenGL Polyrep or rowvec[] for screen(pixel) font
    For placing text on the screen directly from freewrl ie GUI or HUD like use the CaptionText contenttype 
    described elsewhere.
@@ -1264,7 +1268,6 @@ void FW_rendertext(struct X3D_Text *tnode, unsigned int numrows,struct Uni_Strin
 	p->pen_x = 0.0; //[m]
 	p->pen_y = 0.0; //[m]
 	p->cur_glyph = 0;
-	p->size = mysize;  /* global variable for size [m/em] */
 
 
 	/* is this fontface opened */
@@ -1293,14 +1296,22 @@ p->myff = 4;
 	}
 	if(!p->font_face[p->myff]) return; //couldn't load fonts
 
-	FW_set_facesize(p->font_face[p->myff],p->thisfontname);
+	if(tnode->_isScreen){
+		p->pointsize = mysize;
+		p->size = mysize;
+	}else{
+		p->pointsize = POINTSIZE;
+		p->size = mysize;  /* global variable for size [m/em] */
+
+	}
+	FW_set_facesize(p->font_face[p->myff],p->thisfontname,p->pointsize);
 
 	//realloc row vector if necessary
 	if(tnode->_isScreen){
 		//per-text-node rowvec
 		screentextdata *sdata;
 		if(!tnode->_screendata)
-			prep_screentext(tnode,p->myff, mysize);
+			prep_screentext(tnode,p->myff, p->pointsize);
 		sdata = (screentextdata*)tnode->_screendata;
 		rowvec_allocn = sdata->nalloc;
 		rowvec = sdata->rowvec;
@@ -2309,22 +2320,22 @@ int RenderFontAtlasCombo(AtlasFont *font, AtlasEntrySet *entryset,  char * cText
 		nsizes = fontFace->num_fixed_sizes;
 		printf("num_fixed_sizes = %d\n",nsizes);
 	}
-	#define POINTSIZE 20
-	#define XRES 96
-	#define YRES 96
-	if(0)
-    err = FT_Set_Char_Size(fontFace, /* handle to face object           */
-                            POINTSIZE*64,    /* char width in 1/64th of points  */
-                            POINTSIZE*64,    /* char height in 1/64th of points */
-                            XRES,            /* horiz device resolution         */
-                            YRES);           /* vert device resolution          */
+	//#define POINTSIZE 20
+	//#define XRES 96
+	//#define YRES 96
+	//if(0)
+ //   err = FT_Set_Char_Size(fontFace, /* handle to face object           */
+ //                           POINTSIZE*64,    /* char width in 1/64th of points  */
+ //                           POINTSIZE*64,    /* char height in 1/64th of points */
+ //                           XRES,            /* horiz device resolution         */
+ //                           YRES);           /* vert device resolution          */
 	if(1)
 	err = FT_Set_Pixel_Sizes(
 		fontFace,   /* handle to face object */
 		0,      /* pixel_width           */
 		EMpixels );   /* pixel_height          */
     
-	if(1){
+	if(0){
 		int h;
 		printf("spacing between rows = %f\n",fontFace->height);
 		h = fontFace->size->metrics.height;
@@ -2481,16 +2492,16 @@ int AtlasFont_setFontSize(AtlasFont *me, int EMpixels, int *rowheight, int *maxa
 	FT_Face fontFace = me->fontFace;
 
 	if(!fontFace) return FALSE;
-	#define POINTSIZE 20
-	#define XRES 96
-	#define YRES 96
-	if(0){
-		err = FT_Set_Char_Size(fontFace, /* handle to face object           */
-								POINTSIZE*64,    /* char width in 1/64th of points  */
-								POINTSIZE*64,    /* char height in 1/64th of points */
-								XRES,            /* horiz device resolution         */
-								YRES);           /* vert device resolution          */
-	}
+	//#define POINTSIZE 20
+	//#define XRES 96
+	//#define YRES 96
+	//if(0){
+	//	err = FT_Set_Char_Size(fontFace, /* handle to face object           */
+	//							POINTSIZE*64,    /* char width in 1/64th of points  */
+	//							POINTSIZE*64,    /* char height in 1/64th of points */
+	//							XRES,            /* horiz device resolution         */
+	//							YRES);           /* vert device resolution          */
+	//}
 	err = FT_Set_Pixel_Sizes(
 		fontFace,   /* handle to face object */
 		0,      /* pixel_width           */
@@ -3654,6 +3665,8 @@ void render_screentext_aligned(struct X3D_Text *tnode, int screenAligned){
 		if(!sdata) return;
 		nrow = sdata->nrow;
 		set = sdata->set;
+		if(!set) 
+			return;
 		rowvec = sdata->rowvec;
 		//render_captiontext(tnode->_font,tnode->_set, self->_caption,self->color);
 		if(!once) printf("%s %5s %10s %10s %10s %10s\n","c","adv","sx","sy","x","y");
@@ -3730,21 +3743,26 @@ void render_screentext(struct X3D_Text *tnode){
 	//render_screentext_aligned(tnode,1); //aligned to screen
 	render_screentext_aligned(tnode,0); //new shaderTrans
 }
-void prep_screentext(struct X3D_Text *tnode, int num, int screensize){
+void prep_screentext(struct X3D_Text *tnode, int num, double screensize){
 	if(tnode && tnode->_nodeType == NODE_Text && !tnode->_screendata){
 		//called from make_text > FWRenderText first time to malloc, 
 		//  and when FontStyle is ScreenFontStyle
 		char *fontname;
+		int iscreensize;
 		screentextdata *sdata;
+		iscreensize = (int)round(screensize);
 		fontname = facename_from_num(num);
 		tnode->_screendata = malloc(sizeof(screentextdata));
 		memset(tnode->_screendata,0,sizeof(screentextdata));
 		sdata = (screentextdata*)tnode->_screendata;
-		sdata->atlasfont = (AtlasFont*)searchAtlasTableOrLoad(fontname,screensize);
+		sdata->atlasfont = (AtlasFont*)searchAtlasTableOrLoad(fontname,iscreensize);
 		if(!sdata->atlasfont){
 			printf("dug9gui: Can't find font %s do you have the wrong name?\n",fontname);
 		}
-		sdata->set = searchAtlasFontForSizeOrMake(sdata->atlasfont,screensize);
+		sdata->set = searchAtlasFontForSizeOrMake(sdata->atlasfont,iscreensize);
+		if(!sdata->set){
+			printf("couldn't create screentext for size %d\n",iscreensize);
+		}
 	}
 }
 
