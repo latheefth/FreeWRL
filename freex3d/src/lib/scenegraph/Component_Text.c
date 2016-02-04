@@ -223,7 +223,7 @@ typedef struct screentextdata {
 	int nrow;
 	row32 *rowvec;
 	void *atlasfont;
-	void *set;
+	//void *set;
 	float size; //[m]
 	float faceheight;
 	float emsize;
@@ -2242,41 +2242,45 @@ typedef struct AtlasFont {
 	int type;
 	char *path;
 	FT_Face fontFace;
-	struct Vector atlasSizes; //GUIAtlasEntrySet*
+	int EMsize;
+	//struct Vector atlasSizes; //GUIAtlasEntrySet*
+	AtlasEntrySet *set;
 } AtlasFont;
-void AtlasFont_init(AtlasFont *me,char *facename, char* path){
+void AtlasFont_init(AtlasFont *me,char *facename, int EMsize, char* path){
 
 	me->name = facename;
 	me->type = GUI_FONT;
 	me->path = path;
 	me->fontFace = NULL;
-	me->atlasSizes.n = 0; //no atlas renderings to begin with
-	me->atlasSizes.allocn = 2;
-	me->atlasSizes.data = malloc(2*sizeof(AtlasEntrySet*));
+	me->EMsize = EMsize;
+	me->set = NULL;
+	//me->atlasSizes.n = 0; //no atlas renderings to begin with
+	//me->atlasSizes.allocn = 2;
+	//me->atlasSizes.data = malloc(2*sizeof(AtlasEntrySet*));
 }
 
 
-AtlasEntrySet* searchAtlasFontForSizeOrMake(AtlasFont *font,int EMpixels){
-	AtlasEntrySet *set = NULL;
-	if(font){
-		if(font->atlasSizes.n){
-			int i;
-			for(i=0;i<font->atlasSizes.n;i++){
-				AtlasEntrySet *aes = vector_get(AtlasEntrySet*,&font->atlasSizes,i);
-				if(aes){
-					if(aes->EMpixels == EMpixels){
-						set = aes;
-						break;
-					}
-				}
-			}
-		}
-		if(!set){
-			//make set
-		}
-	}
-	return set;
-}
+//AtlasEntrySet* searchAtlasFontForSizeOrMake(AtlasFont *font,int EMpixels){
+//	AtlasEntrySet *set = NULL;
+//	if(font){
+//		if(font->atlasSizes.n){
+//			int i;
+//			for(i=0;i<font->atlasSizes.n;i++){
+//				AtlasEntrySet *aes = vector_get(AtlasEntrySet*,&font->atlasSizes,i);
+//				if(aes){
+//					if(aes->EMpixels == EMpixels){
+//						set = aes;
+//						break;
+//					}
+//				}
+//			}
+//		}
+//		if(!set){
+//			//make set
+//		}
+//	}
+//	return set;
+//}
 
 
 
@@ -2569,7 +2573,8 @@ void AtlasFont_RenderFontAtlas(AtlasFont *me, int EMpixels, char* alphabet){
 	aes->atlasName = name;
 	//init ConsoleMessage font atlas
 	RenderFontAtlas(me,aes,alphabet);
-	vector_pushBack(AtlasEntrySet*,&me->atlasSizes,aes);
+	//vector_pushBack(AtlasEntrySet*,&me->atlasSizes,aes);
+	me->set = aes;
 	///vector_pushBack(GUIAtlas*,atlas_table,atlas); //will have fontnameXX where XX is the EMpixel
 	printf("end of RenderFontAtlas\n");
 }
@@ -2702,9 +2707,24 @@ int AtlasFont_LoadFromDotC(AtlasFont *font, unsigned char *start, int size){
 	int widgetAtlas_png_size = 0;
 #endif
 
+AtlasFont *searchAtlasFontTable(struct Vector* guitable, char *name, int EMsize){
+	int i;
+	AtlasFont *retval = NULL;
+	if(guitable)
+	for(i=0;i<vectorSize(guitable);i++){
+		AtlasFont *el = vector_get(AtlasFont *,guitable,i);
+		///printf("[SGT %s %s] ",name,el->name);
+		if(!strcmp(name,el->name) && EMsize == el->EMsize){
+			retval = el;
+			break;
+		}
+	}
+	return retval;
+}
+
 AtlasFont *searchAtlasTableOrLoad(char *facename, int EMpixels){
 	AtlasFont *font;
-	font = (AtlasFont*)searchGUItable(font_table,facename);
+	font = (AtlasFont*)searchAtlasFontTable(font_table,facename,EMpixels);
 	if(!font){
 		static char * ascii32_126 = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQURSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 		int font_tactic, atlas_tactic, len;
@@ -2716,7 +2736,7 @@ AtlasFont *searchAtlasTableOrLoad(char *facename, int EMpixels){
 		facenamettf = malloc(len);
 		strcpy(facenamettf,facename);
 		facenamettf = strcat(facenamettf,".ttf");
-		AtlasFont_init(font,facename,facenamettf); 
+		AtlasFont_init(font,facename,EMpixels,facenamettf); 
 
 		font_tactic = FONT_TACTIC; //DOTC_NONE, DOTC_SAVE, DOTC_LOAD
 		if(font_tactic == DOTC_SAVE) {
@@ -3212,7 +3232,7 @@ typedef struct GUITextCaption
 	//GUIAtlas *atlas;
 } GUITextCaption;
 
-int render_captiontext(AtlasFont *font, AtlasEntrySet *set, unsigned char * utf8string, vec4 color){
+int render_captiontext(AtlasFont *font, unsigned char * utf8string, vec4 color){
 	//pass in a string with your alphabet, numbers, symbols or whatever, 
 	// and we use freetype2 to render to bitmpa, and then tile those little
 	// bitmaps into an atlas texture
@@ -3224,6 +3244,7 @@ int render_captiontext(AtlasFont *font, AtlasEntrySet *set, unsigned char * utf8
 	ivec4 ivport;
 	unsigned char *start, *end;
 	int lenchar, l32;
+	AtlasEntrySet* set;
 
 	ttglobal tg = gglobal();
 
@@ -3231,7 +3252,7 @@ int render_captiontext(AtlasFont *font, AtlasEntrySet *set, unsigned char * utf8
 	if(utf8string == NULL) return FALSE;
 	// you need to pre-load the font during layout init
 	if(!font) return FALSE;
-
+	set = font->set;
 	//uses simplified (2D) shader like statusbarHud
 	finishedWithGlobalShader();
 	glDepthMask(GL_FALSE);
@@ -3402,6 +3423,7 @@ void render_screentext0(struct X3D_Text *tnode){
 	if(tnode && tnode->_nodeType == NODE_Text){
 		screentextdata *sdata;
 		AtlasEntrySet *set;
+		AtlasFont *font;
 		int nrow, row,i;
 		row32 *rowvec;
 		static int once = 0;
@@ -3427,7 +3449,8 @@ void render_screentext0(struct X3D_Text *tnode){
 		sdata = (screentextdata*)tnode->_screendata;
 		if(!sdata) return;
 		nrow = sdata->nrow;
-		set = sdata->set;
+		font = (AtlasFont*)sdata->atlasfont;
+		set = font->set;
 		rowvec = sdata->rowvec;
 		//render_captiontext(tnode->_font,tnode->_set, self->_caption,self->color);
 		if(!once) printf("%s %3s %10s %10s %10s %10s !\n","c","adv","sx","sy","x","y");
@@ -3615,6 +3638,7 @@ void render_screentext_aligned(struct X3D_Text *tnode, int screenAligned){
 	if(tnode && tnode->_nodeType == NODE_Text){
 		screentextdata *sdata;
 		AtlasEntrySet *set;
+		AtlasFont *font;
 		int nrow, row,i;
 		double rescale;
 		row32 *rowvec;
@@ -3664,7 +3688,8 @@ void render_screentext_aligned(struct X3D_Text *tnode, int screenAligned){
 		sdata = (screentextdata*)tnode->_screendata;
 		if(!sdata) return;
 		nrow = sdata->nrow;
-		set = sdata->set;
+		font = (AtlasFont*)sdata->atlasfont;
+		set = font->set;
 		if(!set) 
 			return;
 		rowvec = sdata->rowvec;
@@ -3759,10 +3784,12 @@ void prep_screentext(struct X3D_Text *tnode, int num, double screensize){
 		if(!sdata->atlasfont){
 			printf("dug9gui: Can't find font %s do you have the wrong name?\n",fontname);
 		}
-		sdata->set = searchAtlasFontForSizeOrMake(sdata->atlasfont,iscreensize);
-		if(!sdata->set){
-			printf("couldn't create screentext for size %d\n",iscreensize);
-		}
+		//else{
+		//	sdata->set = (void*)sdata->atlasfont->set; //searchAtlasFontForSizeOrMake(sdata->atlasfont,iscreensize);
+		//	if(!sdata->set){
+		//		printf("couldn't create screentext for size %d\n",iscreensize);
+		//	}
+		//}
 	}
 }
 

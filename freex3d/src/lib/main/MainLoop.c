@@ -527,7 +527,7 @@ AtlasFont *searchAtlasTableOrLoad(char *facename, int EMpixels);
 AtlasEntrySet* searchAtlasFontForSizeOrMake(AtlasFont *font,int EMpixels);
 typedef struct vec4 {float X; float Y; float Z; float W;} vec4;
 vec4 vec4_init(float x, float y, float z, float w);
-int render_captiontext(AtlasFont *font, AtlasEntrySet* set, char *utf8string, vec4 color);
+int render_captiontext(AtlasFont *font,  char *utf8string, vec4 color);
 typedef struct contenttype_captiontext {
 	tcontenttype t1;
 	char *caption;
@@ -550,7 +550,7 @@ void captiontext_render(void *_self){
 
 	//vec4 c4f = self->color;
 	//glColor4f(c4f.X,c4f.Y,c4f.Z,c4f.W); 
-	render_captiontext(self->font,self->set, self->caption,self->color);
+	render_captiontext(self->font, self->caption,self->color);
 	popnset_viewport();
 }
 int captiontext_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
@@ -572,7 +572,7 @@ contenttype *new_contenttype_captiontext(char *fontname, int EMpixels, vec4 colo
 	if(!self->font){
 		printf("dug9gui: Can't find font %s do you have the wrong name?\n",fontname);
 	}
-	self->set = searchAtlasFontForSizeOrMake(self->font,EMpixels);
+	//self->set = (void *)self->font->set; //searchAtlasFontForSizeOrMake(self->font,EMpixels);
 	return (contenttype*)self;
 }
 void captiontext_setString(void *_self, char *utf8string){
