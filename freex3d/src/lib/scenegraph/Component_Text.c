@@ -355,8 +355,8 @@ static int FW_lineto(FT_Vector* to, void* user);
 static int FW_conicto(FT_Vector* control, FT_Vector* to, void* user);
 static int FW_cubicto(FT_Vector* control1, FT_Vector* control2, FT_Vector* to, void* user);
 static void FW_make_fontname (int num);
-static int FW_init_face(void);
-static double FW_extent (int start, int length);
+//static int FW_init_face(void);
+//static double FW_extent (int start, int length);
 static FT_Error FW_Load_Char(unsigned int idx);
 static void FW_draw_outline(FT_OutlineGlyph oglyph);
 static void FW_draw_character(FT_Glyph glyph);
@@ -581,19 +581,19 @@ struct name_num {
 	int ifamily;  //F 1=serif, 2=sans, 4=typewriter/mono
 } font_name_table [] = {
 	//face		family,		style ,		style2,				 num,B,I,F
-	"VeraSe",	"serif",	NULL,		NULL,				0x04,0,0,1,	/* Serif */
-    "VeraSeBd",	"serif",	"bold",		NULL,				0x05,1,0,1,	/* Serif Bold */
-    "VeraSe",	"serif",	"italic",	NULL,				0x06,0,1,1,	/* Serif Ital */
-    "VeraSeBd",	"serif","bold italic",	"bold oblique",		0x07,1,1,1,	/* Serif Bold Ital */
-    "Vera",		"sans",		NULL,		NULL,				0x08,0,0,2,	/* Sans */
-    "VeraBd",	"sans",		"bold",		NULL,				0x09,0,1,2,	/* Sans Bold */
-    "VeraIt",	"sans",		"italic",	NULL,				0x0a,1,0,2,	/* Sans Ital */
-    "VeraBI",	"sans","bold italic",	"bold oblique",		0x0b,1,1,2,	/* Sans Bold Ital */
-    "VeraMono",	"monospace",NULL,		NULL,				0x10,0,0,4,	/* Monospace */
-    "VeraMoBd",	"monospace","bold",		NULL,				0x11,1,0,4,	/* Monospace Bold */
-    "VeraMoIt",	"monospace","italic",	NULL,				0x12,0,1,4,	/* Monospace Ital */
-    "VeraMoBI",	"monospace","bold italic","bold oblique",	0x13,1,1,4,	/* Monospace Bold Ital */
-	NULL,		0,0,0,0,
+	{"VeraSe",	"serif",	NULL,		NULL,				0x04,0,0,1},	/* Serif */
+    {"VeraSeBd","serif",	"bold",		NULL,				0x05,1,0,1},	/* Serif Bold */
+    {"VeraSe",	"serif",	"italic",	NULL,				0x06,0,1,1},	/* Serif Ital */
+    {"VeraSeBd","serif","bold italic",	"bold oblique",		0x07,1,1,1},	/* Serif Bold Ital */
+    {"Vera",	"sans",		NULL,		NULL,				0x08,0,0,2},	/* Sans */
+    {"VeraBd",	"sans",		"bold",		NULL,				0x09,0,1,2},	/* Sans Bold */
+    {"VeraIt",	"sans",		"italic",	NULL,				0x0a,1,0,2},	/* Sans Ital */
+    {"VeraBI",	"sans","bold italic",	"bold oblique",		0x0b,1,1,2},	/* Sans Bold Ital */
+    {"VeraMono","monospace",NULL,		NULL,				0x10,0,0,4},	/* Monospace */
+    {"VeraMoBd","monospace","bold",		NULL,				0x11,1,0,4},	/* Monospace Bold */
+    {"VeraMoIt","monospace","italic",	NULL,				0x12,0,1,4},	/* Monospace Ital */
+    {"VeraMoBI","monospace","bold italic","bold oblique",	0x13,1,1,4},	/* Monospace Bold Ital */
+	{NULL,		NULL,		NULL,		NULL,				0,0,0,0},
 };
 struct name_num *get_fontname_entry_by_num(num){
 	int i;
@@ -1219,7 +1219,7 @@ void FW_rendertext(struct X3D_Text *tnode, unsigned int numrows,struct Uni_Strin
 	int rowvec_allocn;
 	double shrink = 0;
 	double rshrink = 0;
-	int counter=0;
+	//int counter=0;
 	int char_count=0;
 	int est_tri=0;
 	ppComponent_Text p;
@@ -1357,10 +1357,10 @@ p->myff = 4;
 
 	/* load all of the characters first... */
 	for (row=0; row<numrows; row++) {
-		unsigned int len, len32, *str32;
+		unsigned int len32, *str32;
 		double total_row_advance, widest_char;
 		str = (unsigned char *)ptr[row]->strptr;
-		len = strlen(str);
+		//len = strlen(str);
 		/* utf8_to_utf32 */
 		//in theory str32 will always have # of chars <= len str8
 		// so allocating len8 chars will be enough or sometimes too much
@@ -1487,8 +1487,6 @@ p->myff = 4;
 
 			for(ii=0; ii<lenchars; ii++) {
 				/* FT_UInt glyph_index; */
-				int kk;
-				int x;
 				i = ii;
 				if(!LEFTTORIGHT)
 					i = lenchars - ii -1;
@@ -2016,8 +2014,8 @@ typedef enum GUIElementType
 
 //STATICS
 static struct Vector *font_table; //AtlasFontSize*
-static struct Vector *entry_table; //AtlasEntry* - just for GC
-static struct Vector *entryset_table; //AtlasEntrySet*
+//static struct Vector *entry_table; //AtlasEntry* - just for GC
+//static struct Vector *entryset_table; //AtlasEntrySet*
 static struct Vector *atlas_table; //Atlas *
 
 
@@ -2090,12 +2088,12 @@ void Atlas_init(Atlas *me, int size, int rowheight){
 void subimage_paste(char *image, ivec2 size, char* subimage, int bpp, ivec2 ulpos, ivec2 subsize ){
 	int i;
 	int imrow, imcol, impos;
-	int isrow, iscol, ispos;
+	int iscol, ispos;
 	for(i=0;i<subsize.Y;i++ ){
 		imrow = ulpos.Y + i;
 		imcol = ulpos.X;
 		impos = (imrow * size.X + imcol)*bpp;
-		isrow = i;
+		//isrow = i;
 		iscol = 0;
 		ispos = (i*subsize.X + iscol)*bpp;
 		if(impos >= 0 && (impos+subsize.X*bpp <= size.X*size.Y*bpp))
@@ -2320,7 +2318,7 @@ int RenderFontAtlasCombo(AtlasFont *font, AtlasEntrySet *entryset,  char * cText
     } 
 	if(1){
 		int nsizes;
-		printf("fontface flags & Scalable? = %d \n",fontFace->face_flags & FT_FACE_FLAG_SCALABLE );
+		printf("fontface flags & Scalable? = %ld \n",fontFace->face_flags & FT_FACE_FLAG_SCALABLE );
 		nsizes = fontFace->num_fixed_sizes;
 		printf("num_fixed_sizes = %d\n",nsizes);
 	}
@@ -2339,14 +2337,14 @@ int RenderFontAtlasCombo(AtlasFont *font, AtlasEntrySet *entryset,  char * cText
 		0,      /* pixel_width           */
 		EMpixels );   /* pixel_height          */
     
-	if(0){
-		int h;
-		printf("spacing between rows = %f\n",fontFace->height);
-		h = fontFace->size->metrics.height;
-		printf("height(px)= %d.%d x_ppem=%d\n",h >>6,(h<<26)>>26,(unsigned int)fontFace->size->metrics.x_ppem);
-		atlas->rowheight = fontFace->size->metrics.height >> 6;
+	//if(0){
+	//	int h;
+	//	printf("spacing between rows = %f\n",fontFace->height);
+	//	h = fontFace->size->metrics.height;
+	//	printf("height(px)= %d.%d x_ppem=%d\n",h >>6,(h<<26)>>26,(unsigned int)fontFace->size->metrics.x_ppem);
+	//	atlas->rowheight = fontFace->size->metrics.height >> 6;
 
-	}
+	//}
     if (err) {
         printf ("FreeWRL - FreeType, can not set char size for font %s\n",fontname);
         return FALSE;
@@ -2485,7 +2483,7 @@ int AtlasFont_LoadFont(AtlasFont *font){
 	}
 	if(1){
 		int nsizes;
-		printf("fontface flags & Scalable? = %d \n",font->fontFace->face_flags & FT_FACE_FLAG_SCALABLE );
+		printf("fontface flags & Scalable? = %ld \n",font->fontFace->face_flags & FT_FACE_FLAG_SCALABLE );
 		nsizes = font->fontFace->num_fixed_sizes;
 		printf("num_fixed_sizes = %d\n",nsizes);
 	}
@@ -2515,7 +2513,7 @@ int AtlasFont_setFontSize(AtlasFont *me, int EMpixels, int *rowheight, int *maxa
 		int h, max_advance_px;
 		printf("spacing between rows = %f\n",fontFace->height);
 		h = fontFace->size->metrics.height;
-		printf("height(px)= %d.%d x_ppem=%d\n",h >>6,(h<<26)>>26,(unsigned int)fontFace->size->metrics.x_ppem);
+		printf("height(px)= %d.%d x_ppem=%d\n",(int)(h >>6),(int)(h<<26)>>26,(unsigned int)fontFace->size->metrics.x_ppem);
 		*rowheight = fontFace->size->metrics.height >> 6;
 		//fs->EMpixels = (unsigned int)fontFace->size->metrics.x_ppem;
 		max_advance_px = fontFace->size->metrics.max_advance >> 6;
@@ -2556,7 +2554,7 @@ void AtlasFont_RenderFontAtlas(AtlasFont *me, int EMpixels, char* alphabet){
 	name = malloc(strlen(me->name)+12); //base10 -2B has 11 chars, plus \0
 	strcpy(name,me->name);
 	//sprintf(&name[strlen(me->name)],"%d",EMpixels); //or itoa()
-	_itoa(EMpixels,&name[strlen(name)],10);
+	itoa(EMpixels,&name[strlen(name)],10);
 	AtlasEntrySet_init(aes,name);
 	//somehow, I need the EMsize and rowheight, or a more general function to compute area needed by string
 	AtlasFont_setFontSize(me,EMpixels, &rowheight, &maxadvancepx);
@@ -2664,7 +2662,7 @@ int AtlasFont_LoadFromDotC(AtlasFont *font, unsigned char *start, int size){
 
 	if(1){
 		int nsizes;
-		printf("fontface flags & Scalable? = %d \n",fontFace->face_flags & FT_FACE_FLAG_SCALABLE );
+		printf("fontface flags & Scalable? = %ld \n",fontFace->face_flags & FT_FACE_FLAG_SCALABLE );
 		nsizes = fontFace->num_fixed_sizes;
 		printf("num_fixed_sizes = %d\n",nsizes);
 	}
@@ -2727,7 +2725,7 @@ AtlasFont *searchAtlasTableOrLoad(char *facename, int EMpixels){
 	font = (AtlasFont*)searchAtlasFontTable(font_table,facename,EMpixels);
 	if(!font){
 		static char * ascii32_126 = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQURSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
-		int font_tactic, atlas_tactic, len;
+		int font_tactic, len; //atlas_tactic, 
 		char* facenamettf;
 	
 		font = GUImalloc(&font_table,GUI_FONT); //sizeof(GUIFont));
@@ -2799,7 +2797,7 @@ struct GUIScreen {
 vec2 pixel2normalizedViewportScale( GLfloat x, GLfloat y)
 {
 	vec2 xy;
-	GLfloat yup;
+	//GLfloat yup;
 	
 	ivec4 currentvp = stack_top(ivec4,gglobal()->Mainloop._vportstack);
 
@@ -2829,7 +2827,7 @@ void printvpstacktop(Stack *vpstack, int line){
 vec2 pixel2normalizedScreenScale( GLfloat x, GLfloat y)
 {
 	vec2 xy;
-	GLfloat yup;
+	//GLfloat yup;
 	//convert to -1 to 1 range
 	xy.X = ((GLfloat)x/(GLfloat)screen.X) * 2.0f;
 	xy.Y = ((GLfloat)y/(GLfloat)screen.Y) * 2.0f;
@@ -2844,22 +2842,16 @@ vec2 pixel2normalizedScreen( GLfloat x, GLfloat y){
 }
 
 
-#define USE_MATRICES 1
+
 static   GLbyte vShaderStr[] =  
       "attribute vec4 a_position;   \n"
       "attribute vec2 a_texCoord;   \n"
-#ifdef USE_MATRICES
       "uniform mat4 u_ModelViewMatrix; \n"
       "uniform mat4 u_ProjectionMatrix; \n"
-#endif
       "varying vec2 v_texCoord;     \n"
       "void main()                  \n"
       "{                            \n"
-#ifdef USE_MATRICES
       "   gl_Position = u_ProjectionMatrix * u_ModelViewMatrix * a_position; \n"
-#else
-      "   gl_Position = a_position; \n"
-#endif
       "   v_texCoord = a_texCoord;  \n"
       "}                            \n";
 
@@ -2937,10 +2929,8 @@ static void initProgramObject(){
    textureLoc = glGetUniformLocation ( programObject, "Texture0" );
    color4fLoc = glGetUniformLocation ( programObject, "Color4f" );
    blendLoc = glGetUniformLocation ( programObject, "blend" );
-#ifdef USE_MATRICES
    modelviewLoc =  glGetUniformLocation ( programObject, "u_ModelViewMatrix" );
    projectionLoc = glGetUniformLocation ( programObject, "u_ProjectionMatrix" );
-#endif
 
 }
 
@@ -2958,6 +2948,7 @@ static const GLchar *vertPosDec = "\
 static const GLchar *vertPos = "gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;\n ";
 
 */
+/*
 static   GLbyte vShaderTransStr[] =  
       "attribute vec4 a_position;   \n"
       "attribute vec2 a_texCoord;   \n"
@@ -2996,7 +2987,7 @@ static void initProgramObjectTrans(){
    projectionLocT = glGetUniformLocation ( programObjectTrans, "u_ProjectionMatrix" );
 
 }
-
+*/
 
 void dug9gui_DrawImage(int xpos,int ypos, int width, int height, char *buffer){
 //xpos, ypos upper left location of image in pixels, on the screen
@@ -3034,8 +3025,8 @@ GLfloat cursorTex[] = {
 	GLushort ind[] = {0,1,2,3,4,5};
 	//GLint pos, tex;
 	vec2 fxy, fwh;
-	ivec2 xy;
-	int i,j;
+	//ivec2 xy;
+	int i; //,j;
 	GLfloat cursorVert2[18];
 	//unsigned char buffer2[1024];
 
@@ -3138,8 +3129,8 @@ GLfloat cursorTex[] = {
 	1.0f, 0.0f};
 	GLushort ind[] = {0,1,2,3,4,5};
 	//GLint pos, tex;
-	vec2 fxy, fwh, fixy, fiwh;
-	ivec2 xy;
+	vec2  fixy, fiwh; //fxy, fwh,
+	//ivec2 xy;
 	int i,j;
 	GLfloat cursorVert2[18];
 	GLfloat cursorTex2[12];
@@ -3231,14 +3222,15 @@ typedef struct GUITextCaption
 	//char *fontAtlasName;
 	//GUIAtlas *atlas;
 } GUITextCaption;
-
+void finishedWithGlobalShader(void);
+void restoreGlobalShader();
 int render_captiontext(AtlasFont *font, unsigned char * utf8string, vec4 color){
 	//pass in a string with your alphabet, numbers, symbols or whatever, 
 	// and we use freetype2 to render to bitmpa, and then tile those little
 	// bitmaps into an atlas texture
 	//wText is UTF-8 since FreeType expect this	 
 	//FT_Face fontFace;
-	int n, err = 0;	
+	int err = 0;	 //n, 
 	int  pen_x, pen_y;
 	Stack *vportstack;
 	ivec4 ivport;
@@ -3267,10 +3259,8 @@ int render_captiontext(AtlasFont *font, unsigned char * utf8string, vec4 color){
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST); //GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST); //GL_LINEAR);
 
-#ifdef USE_MATRICES
 	glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewIdentityf);
 	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionIdentityf);
-#endif
 
 	glUniform4f(color4fLoc,color.X,color.Y,color.Z,color.W); //0.7f,0.7f,0.9f,1.0f);
 	//for caption text, we'll set the font size whether or not we have an atlas set, 
@@ -3440,10 +3430,8 @@ void render_screentext0(struct X3D_Text *tnode){
 		glBindTexture(GL_TEXTURE_2D, textureID);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST); //GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST); //GL_LINEAR);
-#ifdef USE_MATRICES
 		glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewIdentityf);
 		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionIdentityf);
-#endif
 
 
 		sdata = (screentextdata*)tnode->_screendata;
@@ -3453,7 +3441,7 @@ void render_screentext0(struct X3D_Text *tnode){
 		set = font->set;
 		rowvec = sdata->rowvec;
 		//render_captiontext(tnode->_font,tnode->_set, self->_caption,self->color);
-		if(!once) printf("%s %3s %10s %10s %10s %10s !\n","c","adv","sx","sy","x","y");
+		if(!once) printf("%s %5s %10s %10s %10s %10s !\n","c","adv","sx","sy","x","y");
 
 		for(row=0;row<nrow;row++){
 			for(i=0;i<rowvec[row].len32;i++){
@@ -3463,7 +3451,7 @@ void render_screentext0(struct X3D_Text *tnode){
 				entry = AtlasEntrySet_getEntry(set,ichar);
 				if(entry){
 					// drawsubimage(destination on screen, source glpyh details, source atlas)
-					int cscale;
+					//int cscale;
 					float xpos, ypos, xsize, ysize;
 					vec2 fxy, fwh;
 					chardata chr = rowvec[row].chr[i];
@@ -3498,7 +3486,7 @@ void render_screentext0(struct X3D_Text *tnode){
 					}
 
 
-					if(!once) printf("%c %3d %10f %10f %10f %10f\n",(char)rowvec[row].str32[i],chr.advance,chr.sx,chr.sy,chr.x,chr.y);
+					if(!once) printf("%c %5f %10f %10f %10f %10f\n",(char)rowvec[row].str32[i],chr.advance,chr.sx,chr.sy,chr.x,chr.y);
 					//dug9gui_DrawSubImage(xpos,ypos,xsize,ysize, 
 					dug9gui_DrawSubImage(xpos,ypos, xsize, ysize, 
 						entry->apos.X, entry->apos.Y, entry->size.X, entry->size.Y,
@@ -3550,12 +3538,12 @@ GLfloat cursorTex[] = {
 	1.0f, 0.0f};
 	GLushort ind[] = {0,1,2,3,4,5};
 	//GLint pos, tex;
-	vec2 fxy, fwh, fixy, fiwh;
-	ivec2 xy;
-	int i,j;
+	vec2  fixy, fiwh; //fxy, fwh,
+	//ivec2 xy;
+	int i; //,j;
 	GLfloat cursorVert2[18];
 	GLfloat cursorTex2[12];
-	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
+	//ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
 
 
 	// Bind the base map - see above
@@ -3701,20 +3689,20 @@ void render_screentext_aligned(struct X3D_Text *tnode, int screenAligned){
 			for(i=0;i<rowvec[row].len32;i++){
 				AtlasEntry *entry;
 				unsigned int ichar;
-				int set_rowheight, set_emsize;
+				int set_emsize; //set_rowheight, 
 				
 				ichar = rowvec[row].str32[i];
-				set_rowheight = set->rowheight;
+				//set_rowheight = set->rowheight;
 				set_emsize = set->EMpixels;
 				entry = AtlasEntrySet_getEntry(set,ichar);
 				if(entry){
 					// drawsubimage(destination on screen, source glpyh details, source atlas)
-					int cscale;
+					//int cscale;
 					float x,y,sx,sy,scale;
 					chardata chr = rowvec[row].chr[i];
 					if(screenAligned){
 						//EXPERIMENTAL - for testing, don't use for Text -> screenFontStyle
-						vec2 pp;
+						//vec2 pp;
 						GLint viewPort[4];
 						double ptresize;
 						//rescale = .03; //otherwise 1 char is half the screen
