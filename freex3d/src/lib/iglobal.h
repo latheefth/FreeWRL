@@ -266,6 +266,15 @@ typedef struct iiglobal //InstanceGlobal
 	struct tComponent_NURBS{
 		void *prv;
 	}Component_NURBS;
+	struct tComponent_ParticleSystems{
+		void *prv;
+	}Component_ParticleSystems;
+	struct tComponent_RigidBodyPhysics{
+		void *prv;
+	}Component_RigidBodyPhysics;
+	struct tComponent_Followers{
+		void *prv;
+	}Component_Followers;
 	struct tComponent_KeyDevice{
 		void *prv;
 	}Component_KeyDevice;

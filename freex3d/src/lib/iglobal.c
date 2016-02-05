@@ -60,6 +60,13 @@ void Component_HAnim_init(struct tComponent_HAnim *t);
 void Component_Layering_init(struct tComponent_Layering *t);
 void Component_Layout_init(struct tComponent_Layout *t);
 void Component_NURBS_init(struct tComponent_NURBS *t);
+void Component_ParticleSystems_init(struct tComponent_ParticleSystems *t);
+void Component_ParticleSystems_clear(struct tComponent_ParticleSystems *t);
+void Component_RigidBodyPhysics_init(struct tComponent_RigidBodyPhysics *t);
+void Component_RigidBodyPhysics_clear(struct tComponent_RigidBodyPhysics *t);
+void Component_Followers_init(struct tComponent_Followers *t);
+void Component_Followers_clear(struct tComponent_Followers *t);
+
 void Component_KeyDevice_init(struct tComponent_KeyDevice *t);
 
 #ifdef OLDCODE
@@ -104,6 +111,7 @@ void jsVRMLClasses_init(struct tjsVRMLClasses *t);
 #endif
 void Bindable_init(struct tBindable *t);
 void Bindable_clear(struct tBindable *t);
+
 void X3DParser_init(struct tX3DParser *t);
 void X3DParser_clear(struct tX3DParser *t);
 
@@ -198,6 +206,9 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	Component_Layering_init(&iglobal->Component_Layering);
 	Component_Layout_init(&iglobal->Component_Layout);
 	Component_NURBS_init(&iglobal->Component_NURBS);
+	Component_ParticleSystems_init(&iglobal->Component_ParticleSystems);
+	Component_RigidBodyPhysics_init(&iglobal->Component_RigidBodyPhysics);
+	Component_Followers_init(&iglobal->Component_Followers);
 	Component_KeyDevice_init(&iglobal->Component_KeyDevice);
 #ifdef OLDCODE
 OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
@@ -295,6 +306,9 @@ void __iglobal_fields_destructor(ttglobal tg)
 OLDCODE	FREE_IF_NZ(tg->Component_Networking.prv);
 #endif
 	FREE_IF_NZ(tg->Component_KeyDevice.prv);
+	Component_Followers_clear(&tg->Component_Followers); FREE_IF_NZ(tg->Component_Followers.prv);
+	Component_RigidBodyPhysics_clear(&tg->Component_RigidBodyPhysics); FREE_IF_NZ(tg->Component_RigidBodyPhysics.prv);
+	Component_ParticleSystems_clear(&tg->Component_ParticleSystems); FREE_IF_NZ(tg->Component_ParticleSystems.prv);
 	FREE_IF_NZ(tg->Component_NURBS.prv);
 	Component_Layering_clear(&tg->Component_Layering); FREE_IF_NZ(tg->Component_Layering.prv);
 	Component_Layout_clear(&tg->Component_Layout); FREE_IF_NZ(tg->Component_Layout.prv);

@@ -909,7 +909,7 @@ int FW_set_facesize(FT_Face ftface,char *thisfontname, double pointsize){
 	if(ftface){
 		int pt_dot6;
 		iret = TRUE;
-		pt_dot6 = (int)round(pointsize * 64.0);
+		pt_dot6 = (int)(pointsize * 64.0 + .5);
 		err = FT_Set_Char_Size(ftface, /* handle to face object           */
 								pt_dot6, //pointsize*64,    /* char width in 1/64th of points [pt dot6] */
 								pt_dot6, //pointsize*64,    /* char height in 1/64th of points [pt dot6]*/
@@ -3768,7 +3768,7 @@ void prep_screentext(struct X3D_Text *tnode, int num, double screensize){
 		char *fontname;
 		int iscreensize;
 		screentextdata *sdata;
-		iscreensize = (int)round(screensize);
+		iscreensize = (int)(screensize + .5);
 		fontname = facename_from_num(num);
 		tnode->_screendata = malloc(sizeof(screentextdata));
 		memset(tnode->_screendata,0,sizeof(screentextdata));

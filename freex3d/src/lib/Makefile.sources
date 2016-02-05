@@ -158,6 +158,9 @@ scenegraph/ringbuf.h \
 scenegraph/Component_Networking.c \
 scenegraph/Component_Networking.h \
 scenegraph/Component_PointingDevice.c \
+scenegraph/Component_ParticleSystems.c \
+scenegraph/Component_RigidBodyPhysics.c \
+scenegraph/Component_Followers.c \
 scenegraph/Component_Picking.c \
 scenegraph/Component_Picking.h \
 scenegraph/Component_Layering.c \
