@@ -484,7 +484,16 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 		break;
 	}
 }
-
+int loadstatus_AudioClip(struct X3D_AudioClip *node){
+	int istate = 0;
+	if(node){
+		if(node->__loadstatus > LOAD_INITIAL_STATE && node->__loadstatus < LOAD_STABLE)
+			istate = 1;
+		if(node->__loadstatus == LOAD_STABLE)
+			istate = 2;
+	}
+	return istate;
+}
 void render_AudioClip (struct X3D_AudioClip *node) {
 /*  audio clip is a flat sound -no 3D- and a sound node (3D) refers to it
 	specs: if an audioclip can't be reached in the scenegraph, then it doesn't play

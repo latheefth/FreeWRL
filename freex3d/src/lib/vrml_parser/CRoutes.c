@@ -1541,6 +1541,16 @@ int isScriptControlInitialized(int actualscript)
 	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
 	return p->ScriptControl[actualscript]._initialized;
 }
+int loadstatus_Script(struct X3D_Script *script){
+	int istate = 0;
+	if(script){
+		if(script->__scriptObj){
+			struct Shader_Script * shader=X3D_SCRIPT(script)->__scriptObj;
+			istate = isScriptControlInitialized(shader->num);
+		}
+	}
+	return istate;
+}
 void initializeAnyScripts()
 {
 /*

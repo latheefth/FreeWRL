@@ -293,17 +293,16 @@ void add_OSCsensor(struct X3D_Node * node) {}
 void remove_OSCsensor(struct X3D_Node * node) {}
 #endif
 
-
+int loadstatus_AudioClip(struct X3D_AudioClip *node);
+int loadstatus_Script(struct X3D_Script *script);
 void render_LoadSensor (struct X3D_LoadSensor *node) {
 	int count;
 	int nowLoading;
 	int nowFinished;
-	struct X3D_ImageTexture *tnode;
+	struct X3D_Node *cnode;
 #ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 	struct X3D_MovieTexture *mnode;
 #endif /* HAVE_TO_REIMPLEMENT_MOVIETEXTURES */
-	struct X3D_AudioClip *anode;
-	//struct X3D_Inline *inode;
 	
 	/* if not enabled, do nothing */
 	if (!node) return;
@@ -313,8 +312,9 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 	}
 	if (!node->enabled) return;
 
-	/* we only need to look at this during the rendering pass - once per event loop */
-	if (!renderstate()->render_geom) return;
+	/* we only need to look at this once per event loop */
+	//if (!renderstate()->render_geom) return;
+	if (!renderstate()->render_sensitive) return;
 
 	/* do we need to re-generate our internal variables? */
 	if NODE_NEEDS_COMPILING {
@@ -339,49 +339,91 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 	/* printf ("have %d nodes to watch\n",node->watchList.n); */
 	for (count = 0; count < node->watchList.n; count ++) {
 
-		tnode = (struct X3D_ImageTexture *) node->watchList.p[count];
+		cnode = node->watchList.p[count];
 
 		/* printf ("node type of node %d is %d\n",count,tnode->_nodeType); */
-		switch (tnode->_nodeType) {
+		switch (cnode->_nodeType) {
 		case NODE_ImageTexture:
-			/* printf ("opengl tex is %d\n",tnode->__texture); */
-			/* is this texture thought of yet? */
-			nowLoading++;
-			if (fwl_isTextureLoaded(tnode->__textureTableIndex)) {
-				/* is it finished loading? */
-				nowFinished ++;
+			{
+				/* printf ("opengl tex is %d\n",tnode->__texture); */
+				/* is this texture thought of yet? */
+				struct X3D_ImageTexture *tnode = (struct X3D_ImageTexture *) cnode;
+
+				nowLoading++;
+				if (fwl_isTextureLoaded(tnode->__textureTableIndex)) {
+					/* is it finished loading? */
+					nowFinished ++;
+				}
 			}
-				
 			break;
 
 		case NODE_MovieTexture:
 #ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
-			mnode = (struct X3D_MovieTexture *) tnode; /* change type to MovieTexture */
-			/* printf ("opengl tex is %d\n",mnode->__texture0_); */
-			/* is this texture thought of yet? */
-			if (mnode->__texture0_ > 0) {
-				nowLoading++;
-				/* is it finished loading? */
-				if (fwl_isTextureLoaded(mnode->__texture0_)) nowFinished ++;
+			{
+				mnode = (struct X3D_MovieTexture *) cnode; /* change type to MovieTexture */
+				/* printf ("opengl tex is %d\n",mnode->__texture0_); */
+				/* is this texture thought of yet? */
+				if (mnode->__texture0_ > 0) {
+					nowLoading++;
+					/* is it finished loading? */
+					if (fwl_isTextureLoaded(mnode->__texture0_)) nowFinished ++;
+				}
 			}
 #endif /* HAVE_TO_REIMPLEMENT_MOVIETEXTURES */
 				
 			break;
 
 		case NODE_Inline:
-			//inode = (struct X3D_Inline *) tnode; /* change type to Inline */
-			/* printf ("LoadSensor, Inline %d, type %d loadstatus %d at %d\n",inode,inode->_nodeType,inode->__loadstatus, &inode->__loadstatus); */
+			{
+				struct X3D_Inline *inode;
+				inode = (struct X3D_Inline *) cnode; /* change type to Inline */
+				if(inode->__loadstatus > INLINE_INITIAL_STATE && inode->__loadstatus < INLINE_STABLE)
+					nowLoading++;
+				if(inode->__loadstatus == INLINE_STABLE)
+					nowFinished ++;
+				/* printf ("LoadSensor, Inline %d, type %d loadstatus %d at %d\n",inode,inode->_nodeType,inode->__loadstatus, &inode->__loadstatus); */
+			}
 			break;
-
 		case NODE_Script:
-			nowLoading ++; /* broken - assume that the url is ok for now */
+			{
+				if(loadstatus_Script(X3D_SCRIPT(cnode)))
+					nowFinished ++;
+			}
 			break;
+		case NODE_ShaderProgram:
+			{
+				struct Shader_Script *shader;
+				shader=(struct Shader_Script *)(X3D_SHADERPROGRAM(cnode)->_shaderUserDefinedFields); 
+				if(shader->loaded) nowFinished++;
+			}
+			break;
+		case NODE_PackagedShader: 
+			{
+				struct Shader_Script *shader;
+				shader=(struct Shader_Script *)(X3D_PACKAGEDSHADER(cnode)->_shaderUserDefinedFields); 
+				if(shader->loaded) nowFinished++;
+			}
+			break;
+		case NODE_ComposedShader: 
+			{
+				struct Shader_Script *shader;
+				shader=(struct Shader_Script *)(X3D_COMPOSEDSHADER(cnode)->_shaderUserDefinedFields); 
+				if(shader->loaded) nowFinished++;
+			}
 
+			break;
 		case NODE_AudioClip:
-			anode = (struct X3D_AudioClip *) tnode; /* change type to AudioClip */
-			/* AudioClip sourceNumber will be gt -1 if the clip is ok. see code for details */
-			if (anode->__sourceNumber > -1) nowLoading ++;
-
+			{
+				int istate;
+				struct X3D_AudioClip *anode;
+				anode = (struct X3D_AudioClip *) cnode; /* change type to AudioClip */
+				/* AudioClip sourceNumber will be gt -1 if the clip is ok. see code for details */
+				istate = loadstatus_AudioClip(anode);
+				if (istate == 1) 
+					nowLoading ++;
+				if(istate == 2)
+					nowFinished++;
+			}
 			break;
 
 		default :{} /* there should never be anything here, but... */

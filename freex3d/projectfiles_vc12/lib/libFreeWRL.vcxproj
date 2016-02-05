@@ -383,8 +383,11 @@
     <ClCompile Include="$(SRC)\lib\world_script\jsVRMLClasses_duk.c" />
     <ClCompile Include="$(SRCWIN)\gdiPlusImageLoader.cpp" />
     <ClCompile Include="$(SRCWIN)\view_platform_win32.c" />
+    <ClCompile Include="..\..\src\lib\scenegraph\Component_Followers.c" />
     <ClCompile Include="..\..\src\lib\scenegraph\Component_Layering.c" />
     <ClCompile Include="..\..\src\lib\scenegraph\Component_Layout.c" />
+    <ClCompile Include="..\..\src\lib\scenegraph\Component_ParticleSystems.c" />
+    <ClCompile Include="..\..\src\lib\scenegraph\Component_RigidBodyPhysics.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(SRC)\lib\scenegraph\Component_Picking.h" />
