@@ -647,7 +647,7 @@ void render_Sound (struct X3D_Sound *node) {
 					vecdif3f(travelled,node->__lastlocation.c,SourcePos);
 					traveltime = TickTime() - node->__lasttime;
 					if(traveltime > 0.0)
-						vecscale3f(SourceVel,travelled,1.0/traveltime);
+						vecscale3f(SourceVel,travelled,1.0f/(float)traveltime);
 					alSourcefv(node->__sourceNumber, AL_VELOCITY, SourceVel);
 
 					node->__lasttime = TickTime();
@@ -663,7 +663,7 @@ void render_Sound (struct X3D_Sound *node) {
 						//transform source direction into avatar/listener space
 						for(i=0;i<3;i++) dird[i] = node->direction.c[i];
 						transformAFFINEd(dird,dird,modelMatrix);
-						for(i=0;i<3;i++) dirf[i] = dird[i];
+						for(i=0;i<3;i++) dirf[i] = (float)dird[i];
 						if (1)
 							alSourcefv(node->__sourceNumber, AL_DIRECTION, dirf);
 						else

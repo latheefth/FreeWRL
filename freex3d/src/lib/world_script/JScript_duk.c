@@ -450,7 +450,7 @@ const char *duk_type_to_string(int duktype){
 
 void show_stack(duk_context *ctx, char* comment)
 {
-	int i, rc, itop = duk_get_top(ctx);
+	int i, itop = duk_get_top(ctx);
 	if(comment) printf("%s top=%d\n",comment,itop);
 	//printf("%10s%10s%10s\n","position","type","more");
 	printf("%10s%10s\n","position","type");
@@ -523,7 +523,7 @@ static int doingFinalizer = 1;
 void push_typed_proxy(duk_context *ctx, int itype, void *fwpointer, int* valueChanged)
 {
 	//like push_typed_proxy2 except push this instead of push obj
-	int rc;
+	//int rc;
 	if(1){
 		//show_stack(ctx,"push_typed_proxy start");
 		duk_eval_string(ctx,"Proxy");
@@ -568,7 +568,7 @@ int push_typed_proxy2(duk_context *ctx, int itype, int kind, void *fwpointer, in
 	/*  like fwgetter version, except with no fieldname or mode, for temp proxies
 		nativePtr
 	*/
-	int rc;
+	//int rc;
 
 	duk_eval_string(ctx,"Proxy");
 	duk_push_object(ctx);
@@ -615,7 +615,7 @@ int push_typed_proxy2(duk_context *ctx, int itype, int kind, void *fwpointer, in
 void convert_duk_to_fwvals(duk_context *ctx, int nargs, int istack, struct ArgListType arglist, FWval *args, int *argc){
 	int nUsable,nNeeded, i, ii;
 	FWval pars;
-	struct Uni_String *uni;
+	//struct Uni_String *uni;
 	nUsable = arglist.iVarArgStartsAt > -1 ? nargs : arglist.nfixedArg;
 	nNeeded = max(nUsable,arglist.nfixedArg);
 	pars = malloc(nNeeded*sizeof(FWVAL));
@@ -623,7 +623,7 @@ void convert_duk_to_fwvals(duk_context *ctx, int nargs, int istack, struct ArgLi
 	//QC and genericization of incoming parameters
 	(*argc) = nNeeded;
 	for(i=0;i<nUsable;i++){
-		const char* str;
+		//const char* str;
 		char ctype;
 		ii = istack + i;
 		if(i < arglist.nfixedArg) 
@@ -923,7 +923,7 @@ int cownKeys(duk_context *ctx) {
 	void *parent = NULL;
 	int i;
 	char *fieldname;
-	int lastProp, isFunc, jndex;
+	int lastProp, jndex; //isFunc, 
 	char type, readOnly;
 	//FWTYPE *getFWTYPE(int itype)
 	FWTYPE *fwt;
@@ -958,9 +958,9 @@ int cownKeys(duk_context *ctx) {
 int cenumerate(duk_context *ctx) {
 	int rc, itype, *valueChanged;
 	union anyVrml *parent = NULL;
-	int next, i;
+	int i;
 	char *fieldname;
-	int isFunc, lastProp, jndex;
+	int lastProp, jndex; //isFunc, 
 	char type, readOnly;
 	FWTYPE *fwt;
 	int arr_idx;
@@ -1094,7 +1094,7 @@ int ctypefunction(duk_context *ctx) {
 	int rc, nr, itype, kind, nargs;
 	const char *fwFunc = NULL;
 	//union anyVrml* field = NULL;
-	FWTYPE *fwt;
+	//FWTYPE *fwt;
 
 	itype = -1;
 	kind = -1;
@@ -1138,7 +1138,7 @@ int ctypefunction(duk_context *ctx) {
 	return nr;
 }
 int cfunction(duk_context *ctx) {
-	int i, rc, nr, itype, nargs, *valueChanged = NULL;
+	int rc, nr, itype, nargs, *valueChanged = NULL;
 	const char *fwFunc = NULL;
 	union anyVrml* parent = NULL;
 	//union anyVrml* field = NULL;
@@ -1303,7 +1303,7 @@ int cget(duk_context *ctx) {
 			}
 		}else{
 			//check properties - if a property, call the type-specific setter
-			int lastProp;
+			//int lastProp;
 			key = duk_get_string(ctx,-2);
 			found = fwhas_generic(fwt,parent,key,&jndex,&type,&readOnly);
 			if(!found){
@@ -1407,7 +1407,7 @@ int cset(duk_context *ctx) {
 			found = 1;
 		}else{
 			//check properties - if a property, call the type-specific setter
-			int lastProp;
+			//int lastProp;
 			key = duk_get_string(ctx,-3);
 			found = fwhas_generic(fwt,parent,key,&jndex,&type,&readOnly) && (type != 'f');
 		}
@@ -1465,7 +1465,7 @@ int cdel(duk_context *ctx) {
 
 //c-side helper adds the generic handler to global, for use when creating each proxy
 void addHandler(duk_context *ctx){
-	int iglobal, ihandler, rc;
+	int iglobal, ihandler; // , rc;
 	iglobal = duk_get_top(ctx) -1;
 
 	duk_push_object(ctx);
@@ -1517,7 +1517,7 @@ function defineAccessor(obj, key, set, get) { \
 /* create the script context for this script. This is called from the thread
    that handles script calling in the fwl_RenderSceneUpdateScene */
 void JSCreateScriptContext(int num) {
-	int i, iglobal, rc;
+	int i, iglobal; // , rc;
 	//jsval rval;
 	duk_context *ctx; 	/* these are set here */
 	struct Shader_Script *script;
@@ -1643,9 +1643,9 @@ int fwsetterNS(duk_context *ctx) {
 	 * terminology: LHS: left hand side of equation (ie myfield) RHS: right hand side of equation (ie result of new SFVec3f() )
 	 * if we come in here for AUXTYPES we should not write - AUXTYPE_X3DBrowser, and AUXTYPE_X3DConstants are static singletons
 	 */
-	int nargs, nr;
+	int nargs; // , nr;
 	int rc, itype, *valueChanged;
-	union anyVrml *field;
+	//union anyVrml *field;
 	const char *key;
 	struct X3D_Node* parent = NULL;
 	nargs = duk_get_top(ctx);
@@ -1684,7 +1684,7 @@ int fwsetterNS(duk_context *ctx) {
 		int jndex, found;
 		char type, readOnly;
 		//check properties - if a property, call the type-specific setter
-		int lastProp;
+		//int lastProp;
 		union anyVrml any;
 		any.sfnode = parent;
 
@@ -1725,7 +1725,7 @@ void push_typed_proxy_fwgetter(duk_context *ctx, int itype, int mode, const char
 		1. push_object (fresh object)
 		2. fwpointer: reference to script->field[i]->anyvrml
 	*/
-	int rc;
+	//int rc;
 
 	duk_eval_string(ctx,"Proxy");
 	duk_push_object(ctx);
@@ -1831,11 +1831,11 @@ int fwgetterNS(duk_context *ctx) {
 			- reference when getting, never set (these two are static singletons)
 	*/
 	int nargs, nr;
-	int rc, itype, mode, *valueChanged = NULL;
+	int rc, itype, *valueChanged = NULL;
 	//const char *fwName = NULL;
 	const char *fieldname;
 	struct X3D_Node *thisScriptNode = NULL;
-	union anyVrml *field;
+	//union anyVrml *field;
 
 	nargs = duk_get_top(ctx);
 	itype = 0;
@@ -1878,8 +1878,8 @@ int fwgetterNS(duk_context *ctx) {
 }
 
 void add_duk_global_property(duk_context *ctx, int itype, const char *fieldname, int *valueChanged, struct X3D_Node *node ){
-	int rc;
-	char *str;
+	//int rc;
+	//char *str;
 
 	duk_eval_string(ctx, "defineAccessor"); //defineAccessor(obj,propName,setter,getter)
 	/* push object */
@@ -1924,7 +1924,7 @@ void InitScriptField2(struct CRscriptStruct *scriptcontrol, int itype, const cha
 	 * InitScriptField2 version: instead of jsNative, hook back into Script_Node->fields[i] for get/set storage
 	*/
 	duk_context *ctx;
-	int iglobal;
+	//int iglobal;
 	printf("in InitScriptField\n");
 
 	// create twin property
@@ -2078,7 +2078,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 	// (Brotos don't come in this function)
 	char *memptr;
 	char *fromptr;
-	int datasize;
+	//int datasize;
 	ttglobal tg = gglobal();
 
 	/* set up a pointer to where to put this stuff */
@@ -2100,8 +2100,8 @@ void js_setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int 
 
 
 void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int datalen) {
-	char scriptline[100];
-	FWVAL newval;
+	//char scriptline[100];
+	//FWVAL newval;
 	duk_context *ctx;
 	int obj, rc;
 	struct CRscriptStruct *ScriptControl = getScriptControl();
@@ -2185,7 +2185,7 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen)
 	//tnfield - integer index into jsparamname[] array
 	//void* Data - pointer to anyVrml of the from node
 	//datalen - size of anyVrml to memcpy
-	FWVAL newval;
+	//FWVAL newval;
 	duk_context *ctx;
 	int obj, rc;
 	int itype;
@@ -2220,7 +2220,7 @@ void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int
 	//tnfield - integer index into jsparamname[] array
 	//void* Data - MF.p
 	//datalen - MF.n
-	FWVAL newval;
+	//FWVAL newval;
 	duk_context *ctx;
 	int obj;
 	int itype;
@@ -2372,7 +2372,7 @@ int runQueuedDirectOutputs()
 	ttglobal tg = gglobal();
 	struct Shader_Script *script;
 	struct ScriptFieldDecl *field;
-	int i,num,nfields, kind, itype;
+	int i,num,kind, itype;
 	const char *fieldname;
 	static int doneOnce = 0;
 	int moreAction;

@@ -2710,7 +2710,7 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 			char uniformName[100];
 			me->haveLightInShader = false;
 #ifdef USING_SHADER_LIGHT_ARRAY_METHOD
-			char* sndx;
+			//char* sndx;
 			for (i = 0; i<MAX_LIGHTS; i++) {
 				char* sndx;
 				/* go through and modify the array for each variable */

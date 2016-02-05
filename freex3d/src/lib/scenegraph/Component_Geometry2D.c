@@ -321,11 +321,11 @@ void compile_Disk2D (struct X3D_Disk2D *node){
 		id = 2.0f;
 
 		for (i=SEGMENTS_PER_CIRCLE; i >= 0; i--) {
-			(*fp).c[0] = node->outerRadius * sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));
-			(*fp).c[1] = node->outerRadius * cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
+			(*fp).c[0] = node->outerRadius * sinf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));
+			(*fp).c[1] = node->outerRadius * cosf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
 			fp++;
-			(*tp).c[0] = 0.5f + (sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);
-			(*tp).c[1] = 0.5f + (cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	
+			(*tp).c[0] = 0.5f + (sinf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);
+			(*tp).c[1] = 0.5f + (cosf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	
 			tp++;
 		}
 	} else {
@@ -339,17 +339,17 @@ void compile_Disk2D (struct X3D_Disk2D *node){
 		id = node->outerRadius * 2.0f / node->innerRadius;
 
 		for (i=SEGMENTS_PER_CIRCLE; i >= 0; i--) {
-			(*fp).c[0] = node->innerRadius * (float) sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));
-			(*fp).c[1] = node->innerRadius * (float) cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
+			(*fp).c[0] = node->innerRadius * (float) sinf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));
+			(*fp).c[1] = node->innerRadius * (float) cosf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
 			fp++;
-			(*fp).c[0] = node->outerRadius * (float) sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));
-			(*fp).c[1] = node->outerRadius * (float) cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
+			(*fp).c[0] = node->outerRadius * (float) sinf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));
+			(*fp).c[1] = node->outerRadius * (float) cosf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
 			fp++;
-			(*tp).c[0] = 0.5f + ((float)sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);
-			(*tp).c[1] = 0.5f + ((float)cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	
+			(*tp).c[0] = 0.5f + ((float)sinf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);
+			(*tp).c[1] = 0.5f + ((float)cosf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	
 			tp++;
-			(*tp).c[0] = 0.5f + ((float)sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/od);
-			(*tp).c[1] = 0.5f + ((float)cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/od);
+			(*tp).c[0] = 0.5f + ((float)sinf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/od);
+			(*tp).c[1] = 0.5f + ((float)cosf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/od);
 			tp++;
 		}
 	}
@@ -600,9 +600,9 @@ static void *createLines (float start, float end, float radius, int closed, int 
 	fp = points;
 
 	for (i=0; i<arcpoints; i++) {
-		*fp = -radius * sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
+		*fp = -radius * sinf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
 		fp++;
-		*fp = radius * cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
+		*fp = radius * cosf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
 		fp++;
 	}
 
