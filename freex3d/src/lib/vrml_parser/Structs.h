@@ -336,8 +336,8 @@ typedef int indexT;
 #define NODE_StringSensor	225
 #define NODE_SurfaceEmitter	226
 #define NODE_Switch	227
-#define NODE_TexCoordChaser	228
-#define NODE_TexCoordDamper	229
+#define NODE_TexCoordChaser2D	228
+#define NODE_TexCoordDamper2D	229
 #define NODE_Text	230
 #define NODE_TextureBackground	231
 #define NODE_TextureCoordinate	232
@@ -8355,7 +8355,7 @@ struct X3D_Switch {
 };
 extern struct X3D_Virt virt_Switch;
 /***********************/
-struct X3D_TexCoordChaser {
+struct X3D_TexCoordChaser2D {
        int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
@@ -8378,9 +8378,9 @@ struct X3D_TexCoordChaser {
 	struct Multi_Vec2f initialDestination;
 	struct Multi_Vec2f initialValue;
 };
-extern struct X3D_Virt virt_TexCoordChaser;
+extern struct X3D_Virt virt_TexCoordChaser2D;
 /***********************/
-struct X3D_TexCoordDamper {
+struct X3D_TexCoordDamper2D {
        int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
@@ -8405,7 +8405,7 @@ struct X3D_TexCoordDamper {
 	struct Multi_Vec2f initialValue;
 	int order;
 };
-extern struct X3D_Virt virt_TexCoordDamper;
+extern struct X3D_Virt virt_TexCoordDamper2D;
 /***********************/
 struct X3D_Text {
        int _nodeType; /* unique integer for each type */ 

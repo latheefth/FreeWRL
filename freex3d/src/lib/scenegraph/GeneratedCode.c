@@ -2108,8 +2108,8 @@ const int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 	"StringSensor",
 	"SurfaceEmitter",
 	"Switch",
-	"TexCoordChaser",
-	"TexCoordDamper",
+	"TexCoordChaser2D",
+	"TexCoordDamper2D",
 	"Text",
 	"TextureBackground",
 	"TextureCoordinate",
@@ -2816,9 +2816,9 @@ struct X3D_Virt virt_SurfaceEmitter = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
 void child_Switch(struct X3D_Switch *);
 struct X3D_Virt virt_Switch = { NULL,NULL,(void *)child_Switch,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_TexCoordChaser = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_TexCoordChaser2D = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_TexCoordDamper = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_TexCoordDamper2D = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 void render_Text(struct X3D_Text *);
 void make_Text(struct X3D_Text *);
@@ -3121,8 +3121,8 @@ struct X3D_Virt* virtTable[] = {
 	 &virt_StringSensor,
 	 &virt_SurfaceEmitter,
 	 &virt_Switch,
-	 &virt_TexCoordChaser,
-	 &virt_TexCoordDamper,
+	 &virt_TexCoordChaser2D,
+	 &virt_TexCoordDamper2D,
 	 &virt_Text,
 	 &virt_TextureBackground,
 	 &virt_TextureCoordinate,
@@ -5956,28 +5956,28 @@ const int OFFSETS_Switch[] = {
 	(int) FIELDNAMES_whichChoice, (int) offsetof (struct X3D_Switch, whichChoice),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
-const int OFFSETS_TexCoordChaser[] = {
-	(int) FIELDNAMES_duration, (int) offsetof (struct X3D_TexCoordChaser, duration),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_initialDestination, (int) offsetof (struct X3D_TexCoordChaser, initialDestination),  (int) FIELDTYPE_MFVec2f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_initialValue, (int) offsetof (struct X3D_TexCoordChaser, initialValue),  (int) FIELDTYPE_MFVec2f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_isActive, (int) offsetof (struct X3D_TexCoordChaser, isActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_TexCoordChaser, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_set_destination, (int) offsetof (struct X3D_TexCoordChaser, set_destination),  (int) FIELDTYPE_MFVec2f, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_set_value, (int) offsetof (struct X3D_TexCoordChaser, set_value),  (int) FIELDTYPE_MFVec2f, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_value_changed, (int) offsetof (struct X3D_TexCoordChaser, value_changed),  (int) FIELDTYPE_MFVec2f, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+const int OFFSETS_TexCoordChaser2D[] = {
+	(int) FIELDNAMES_duration, (int) offsetof (struct X3D_TexCoordChaser2D, duration),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_initialDestination, (int) offsetof (struct X3D_TexCoordChaser2D, initialDestination),  (int) FIELDTYPE_MFVec2f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_initialValue, (int) offsetof (struct X3D_TexCoordChaser2D, initialValue),  (int) FIELDTYPE_MFVec2f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_isActive, (int) offsetof (struct X3D_TexCoordChaser2D, isActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_TexCoordChaser2D, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_set_destination, (int) offsetof (struct X3D_TexCoordChaser2D, set_destination),  (int) FIELDTYPE_MFVec2f, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_set_value, (int) offsetof (struct X3D_TexCoordChaser2D, set_value),  (int) FIELDTYPE_MFVec2f, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_value_changed, (int) offsetof (struct X3D_TexCoordChaser2D, value_changed),  (int) FIELDTYPE_MFVec2f, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
-const int OFFSETS_TexCoordDamper[] = {
-	(int) FIELDNAMES_initialDestination, (int) offsetof (struct X3D_TexCoordDamper, initialDestination),  (int) FIELDTYPE_MFVec2f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_initialValue, (int) offsetof (struct X3D_TexCoordDamper, initialValue),  (int) FIELDTYPE_MFVec2f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_isActive, (int) offsetof (struct X3D_TexCoordDamper, isActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_TexCoordDamper, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_order, (int) offsetof (struct X3D_TexCoordDamper, order),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_set_destination, (int) offsetof (struct X3D_TexCoordDamper, set_destination),  (int) FIELDTYPE_MFVec2f, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_set_value, (int) offsetof (struct X3D_TexCoordDamper, set_value),  (int) FIELDTYPE_MFVec2f, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_tau, (int) offsetof (struct X3D_TexCoordDamper, tau),  (int) FIELDTYPE_SFTime, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_tolerance, (int) offsetof (struct X3D_TexCoordDamper, tolerance),  (int) FIELDTYPE_SFTime, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_value_changed, (int) offsetof (struct X3D_TexCoordDamper, value_changed),  (int) FIELDTYPE_MFVec2f, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+const int OFFSETS_TexCoordDamper2D[] = {
+	(int) FIELDNAMES_initialDestination, (int) offsetof (struct X3D_TexCoordDamper2D, initialDestination),  (int) FIELDTYPE_MFVec2f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_initialValue, (int) offsetof (struct X3D_TexCoordDamper2D, initialValue),  (int) FIELDTYPE_MFVec2f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_isActive, (int) offsetof (struct X3D_TexCoordDamper2D, isActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_TexCoordDamper2D, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_order, (int) offsetof (struct X3D_TexCoordDamper2D, order),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_set_destination, (int) offsetof (struct X3D_TexCoordDamper2D, set_destination),  (int) FIELDTYPE_MFVec2f, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_set_value, (int) offsetof (struct X3D_TexCoordDamper2D, set_value),  (int) FIELDTYPE_MFVec2f, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_tau, (int) offsetof (struct X3D_TexCoordDamper2D, tau),  (int) FIELDTYPE_SFTime, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_tolerance, (int) offsetof (struct X3D_TexCoordDamper2D, tolerance),  (int) FIELDTYPE_SFTime, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_value_changed, (int) offsetof (struct X3D_TexCoordDamper2D, value_changed),  (int) FIELDTYPE_MFVec2f, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Text[] = {
@@ -6561,8 +6561,8 @@ const int *NODE_OFFSETS[] = {
 	OFFSETS_StringSensor,
 	OFFSETS_SurfaceEmitter,
 	OFFSETS_Switch,
-	OFFSETS_TexCoordChaser,
-	OFFSETS_TexCoordDamper,
+	OFFSETS_TexCoordChaser2D,
+	OFFSETS_TexCoordDamper2D,
 	OFFSETS_Text,
 	OFFSETS_TextureBackground,
 	OFFSETS_TextureCoordinate,
@@ -7067,8 +7067,8 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_StringSensor : {tmp = MALLOC (struct X3D_StringSensor *, sizeof (struct X3D_StringSensor)); break;}
 		case NODE_SurfaceEmitter : {tmp = MALLOC (struct X3D_SurfaceEmitter *, sizeof (struct X3D_SurfaceEmitter)); break;}
 		case NODE_Switch : {tmp = MALLOC (struct X3D_Switch *, sizeof (struct X3D_Switch)); break;}
-		case NODE_TexCoordChaser : {tmp = MALLOC (struct X3D_TexCoordChaser *, sizeof (struct X3D_TexCoordChaser)); break;}
-		case NODE_TexCoordDamper : {tmp = MALLOC (struct X3D_TexCoordDamper *, sizeof (struct X3D_TexCoordDamper)); break;}
+		case NODE_TexCoordChaser2D : {tmp = MALLOC (struct X3D_TexCoordChaser2D *, sizeof (struct X3D_TexCoordChaser2D)); break;}
+		case NODE_TexCoordDamper2D : {tmp = MALLOC (struct X3D_TexCoordDamper2D *, sizeof (struct X3D_TexCoordDamper2D)); break;}
 		case NODE_Text : {tmp = MALLOC (struct X3D_Text *, sizeof (struct X3D_Text)); break;}
 		case NODE_TextureBackground : {tmp = MALLOC (struct X3D_TextureBackground *, sizeof (struct X3D_TextureBackground)); break;}
 		case NODE_TextureCoordinate : {tmp = MALLOC (struct X3D_TextureCoordinate *, sizeof (struct X3D_TextureCoordinate)); break;}
@@ -10731,9 +10731,9 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
-		case NODE_TexCoordChaser : {
-			struct X3D_TexCoordChaser * tmp2;
-			tmp2 = (struct X3D_TexCoordChaser *) tmp;
+		case NODE_TexCoordChaser2D : {
+			struct X3D_TexCoordChaser2D * tmp2;
+			tmp2 = (struct X3D_TexCoordChaser2D *) tmp;
 			tmp2->duration = 1;
 			tmp2->initialDestination.p = MALLOC (struct SFVec2f *, sizeof(struct SFVec2f)*1);
 			tmp2->initialDestination.p[0].c[0] = 0.0f; 
@@ -10751,9 +10751,9 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
-		case NODE_TexCoordDamper : {
-			struct X3D_TexCoordDamper * tmp2;
-			tmp2 = (struct X3D_TexCoordDamper *) tmp;
+		case NODE_TexCoordDamper2D : {
+			struct X3D_TexCoordDamper2D * tmp2;
+			tmp2 = (struct X3D_TexCoordDamper2D *) tmp;
 			tmp2->initialDestination.p = MALLOC (struct SFVec2f *, sizeof(struct SFVec2f)*1);
 			tmp2->initialDestination.p[0].c[0] = 0.0f; 
 			tmp2->initialDestination.p[0].c[1] = 0.0f; 
@@ -14819,18 +14819,18 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			spacer fprintf (fp," whichChoice (SFInt32) \t%d\n",tmp->whichChoice);
 		    break;
 		}
-		case NODE_TexCoordChaser : {
-			struct X3D_TexCoordChaser *tmp;
-			tmp = (struct X3D_TexCoordChaser *) node;
+		case NODE_TexCoordChaser2D : {
+			struct X3D_TexCoordChaser2D *tmp;
+			tmp = (struct X3D_TexCoordChaser2D *) node;
 			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
-		case NODE_TexCoordDamper : {
-			struct X3D_TexCoordDamper *tmp;
-			tmp = (struct X3D_TexCoordDamper *) node;
+		case NODE_TexCoordDamper2D : {
+			struct X3D_TexCoordDamper2D *tmp;
+			tmp = (struct X3D_TexCoordDamper2D *) node;
 			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
@@ -15542,8 +15542,8 @@ int getSAI_X3DNodeType (int FreeWRLNodeType) {
 	case NODE_StringSensor: return X3DKeyDeviceSensorNode; break;
 	case NODE_SurfaceEmitter: return X3DParticleEmitterNode; break;
 	case NODE_Switch: return X3DGroupingNode; break;
-	case NODE_TexCoordChaser: return X3DChaserNode; break;
-	case NODE_TexCoordDamper: return X3DDamperNode; break;
+	case NODE_TexCoordChaser2D: return X3DChaserNode; break;
+	case NODE_TexCoordDamper2D: return X3DDamperNode; break;
 	case NODE_Text: return X3DTextNode; break;
 	case NODE_TextureBackground: return X3DBackgroundNode; break;
 	case NODE_TextureCoordinate: return X3DTextureCoordinateNode; break;

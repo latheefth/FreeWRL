@@ -75,3 +75,101 @@ void Component_Followers_clear(struct tComponent_Followers *t){
 
 //ppComponent_Followers p = (ppComponent_Followers)gglobal()->Component_Followers.prv;
 
+void do_ColorChaserTick(void * ptr);
+void do_ColorDamperTick(void * ptr);
+void do_CoordinateChaserTick(void * ptr);
+void do_CoordinateDamperTick(void * ptr);
+void do_OrientationChaserTick(void * ptr);
+void do_OrientationDamperTick(void * ptr);
+void do_PositionChaserTick(void * ptr);
+void do_ColorDamperTick(void * ptr);
+void do_PositionChaserTick(void * ptr);
+void do_PositionDamperTick(void * ptr);
+void do_PositionChaser2DTick(void * ptr);
+void do_PositionDamper2DTick(void * ptr);
+void do_ScalarChaserTick(void * ptr);
+void do_ScalarDamperTick(void * ptr);
+void do_TexCoordChaser2DTick(void * ptr);
+void do_TexCoordDamper2DTick(void * ptr);
+
+void do_ColorChaserTick(void * ptr){
+	struct X3D_ColorChaser *node = (struct X3D_ColorChaser *)ptr;
+	if(!node)return;
+
+}
+void do_ColorDamperTick(void * ptr){
+	struct X3D_ColorDamper *node = (struct X3D_ColorDamper *)ptr;
+	if(!node)return;
+
+}
+
+void do_CoordinateChaserTick(void * ptr){
+	struct X3D_CoordinateChaser *node = (struct X3D_CoordinateChaser *)ptr;
+	if(!node)return;
+
+}
+void do_CoordinateDamperTick(void * ptr){
+	struct X3D_CoordinateDamper *node = (struct X3D_CoordinateDamper *)ptr;
+	if(!node)return;
+
+}
+
+void do_OrientationChaserTick(void * ptr){
+	struct X3D_OrientationChaser *node = (struct X3D_OrientationChaser *)ptr;
+	if(!node)return;
+
+}
+void do_OrientationDamperTick(void * ptr){
+	struct X3D_OrientationDamper *node = (struct X3D_OrientationDamper *)ptr;
+	if(!node)return;
+
+}
+
+void do_PositionChaserTick(void * ptr){
+	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr;
+	if(!node)return;
+	//printf(".");
+
+}
+void do_PositionDamperTick(void * ptr){
+	struct X3D_PositionDamper *node = (struct X3D_PositionDamper *)ptr;
+	if(!node)return;
+	//printf("!");
+}
+
+void do_PositionChaser2DTick(void * ptr){
+	struct X3D_PositionChaser2D *node = (struct X3D_PositionChaser2D *)ptr;
+	if(!node)return;
+
+}
+void do_PositionDamper2DTick(void * ptr){
+	struct X3D_PositionDamper2D *node = (struct X3D_PositionDamper2D *)ptr;
+	if(!node)return;
+
+}
+
+void do_ScalarChaserTick(void * ptr){
+	struct X3D_ScalarChaser *node = (struct X3D_ScalarChaser *)ptr;
+	if(!node)return;
+
+}
+void do_ScalarDamperTick(void * ptr){
+	struct X3D_ScalarDamper *node = (struct X3D_ScalarDamper *)ptr;
+	if(!node)return;
+
+}
+
+void do_TexCoordChaser2DTick(void * ptr){
+	struct X3D_TexCoordChaser2D *node = (struct X3D_TexCoordChaser2D *)ptr;
+	if(!node)return;
+
+}
+void do_TexCoordDamper2DTick(void * ptr){
+	struct X3D_TexCoordDamper2D *node = (struct X3D_TexCoordDamper2D *)ptr;
+	if(!node)return;
+
+}
+
+//============================
+
+
