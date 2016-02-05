@@ -226,8 +226,8 @@ our %defaultContainerType = (
 	PositionDamper2D	=>"children",
 	ScalarChaser		=>"children",
 	ScalarDamper		=>"children",
-	TexCoordChaser		=>"children",
-	TexCoordDamper		=>"children",
+	TexCoordChaser2D	=>"children",
+	TexCoordDamper2D	=>"children",
 
 	ConeEmitter		=>"emitter",
 	ExplosionEmitter	=>"emitter",

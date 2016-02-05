@@ -411,7 +411,7 @@ const char *flexiString(FWval fwpars, char *buffer)
 	//allow MFString[0], SFString or ecma String
 	//if buffer is given: MF is converted to '["MF[0]"] ["MF[1]"] [...' format
 	//if buffer is NULL, MF[0] is returned
-	char *tptr;
+	//char *tptr;
 	const char *_costr;
 	int lenbuf = 1000;
 	
@@ -460,7 +460,7 @@ const char *flexiString(FWval fwpars, char *buffer)
 
 int VrmlBrowserReplaceWorld(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
-	char *tptr;
+	//char *tptr;
 	char*_costr;
 	
 	_costr = strdup(flexiString(&fwpars[0],NULL));
@@ -571,13 +571,13 @@ int VrmlBrowserCreateX3DFromString(FWType fwtype, void *ec, void *fwn, int argc,
 	/* for the return of the nodes */
 	struct X3D_Group *retGroup;
 	int i, iret = 0;
-	char *xstr; 
-	char *tmpstr;
-	char *separator;
+	//char *xstr; 
+	//char *tmpstr;
+	//char *separator;
 	int ra;
-	int count;
-	int wantedsize;
-	int MallocdSize;
+	//int count;
+	//int wantedsize;
+	//int MallocdSize;
 	ttglobal tg = gglobal();
 	struct VRMLParser *globalParser = (struct VRMLParser *)tg->CParse.globalParser;
 	const char *_c = fwpars[0]._string; 
@@ -624,13 +624,13 @@ int VrmlBrowserCreateVrmlFromString(FWType fwtype, void *ec, void *fwn, int argc
 {
 	/* for the return of the nodes */
 	struct X3D_Group *retGroup;
-	char *xstr; 
-	char *tmpstr;
-	char *separator;
+	//char *xstr; 
+	//char *tmpstr;
+	//char *separator;
 	int i, ra;
-	int count, iret;
-	int wantedsize;
-	int MallocdSize;
+	int iret; //count, 
+	//int wantedsize;
+	//int MallocdSize;
 	ttglobal tg = gglobal();
 	struct VRMLParser *globalParser = (struct VRMLParser *)tg->CParse.globalParser;
 	const char *_c = fwpars[0]._string; //fwpars[0]._web3dval.anyvrml->sfstring->strptr; 
@@ -1373,7 +1373,7 @@ int X3DExecutionContext_getImportedNode(FWType fwtype, void *ec, void *fwn, int 
 	//broto warning - DEF name list should be per-executionContext
 	if(usingBrotos()){
 		struct X3D_Proto *ec = (struct X3D_Proto *)fwn;
-		struct IMEXPORT *mxp;
+		//struct IMEXPORT *mxp;
 		int source;
 		//mxp = broto_search_IMPORTname(ec, fwpars[0]._string);
 		//if(mxp){
@@ -1823,7 +1823,7 @@ FWPropertySpec (X3DRouteProperties)[] = {
 int X3DRouteGetter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	union anyVrml *value;
 	int type, kind;
-	char *fieldname, *sfromfield, *stofield;
+	char *fieldname; // , *stofield; //*sfromfield, 
 	struct X3D_Node *fromNode, *toNode;
 	int fromIndex, toIndex;
 	int nr = 1;
@@ -1835,7 +1835,7 @@ int X3DRouteGetter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 		toIndex = broute->to.ifield;
 	}else{
 		//route = (struct CRStruct *)fwn;
-		struct CRStruct *route;
+		//struct CRStruct *route;
 		int indexr = *(int *)fwn;
 		getSpecificRoute (indexr,&fromNode, &fromIndex, &toNode, &toIndex);
 	}

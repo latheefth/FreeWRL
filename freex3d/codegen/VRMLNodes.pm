@@ -3238,7 +3238,7 @@ our %Nodes = (
 		order => ["SFInt32", 3, "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 	],"X3DDamperNode"),
 
-	"TexCoordChaser" => new VRML::NodeType("TexCoordChaser", [
+	"TexCoordChaser2D" => new VRML::NodeType("TexCoordChaser2D", [
 		set_destination => ["MFVec2f", [], "inputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		set_value => ["MFVec2f", [], "inputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -3249,7 +3249,7 @@ our %Nodes = (
 		initialValue => ["MFVec2f", [[0,0]], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 	],"X3DChaserNode"),
 	
-	"TexCoordDamper" => new VRML::NodeType("TexCoordDamper", [
+	"TexCoordDamper2D" => new VRML::NodeType("TexCoordDamper2D", [
 		set_destination => ["MFVec2f", [], "inputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		set_value => ["MFVec2f", [], "inputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],

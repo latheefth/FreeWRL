@@ -186,7 +186,7 @@ int MFW_Getter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 		//ie MF[i].subfield = value
 		//ideally the javascript programer would first do MF[i] = new SFxxx() before assigning to a subfield.
 		//here we'll cut them some slack by reallocing and mallocing missing elements.
-		int elen,newlen,i;
+		int elen,newlen;
 		char *p;
 		p = (char *)ptr->p;
 		elen = sizeofSF(fwt->itype);
@@ -307,7 +307,7 @@ FWFunctionSpec (MFW_Functions)[] = {
 
 int MFW_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 	struct Multi_Any *ptr = (struct Multi_Any *)fwn;
-	int nelen, nold, nr = FALSE;
+	int nold, nr = FALSE;
 	int elen = sizeofSF(fwt->itype);
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index == -1){
@@ -367,7 +367,7 @@ void * MFFloat_Constructor(FWType fwtype, int argc, FWval fwpars){
 		if(fwpars[i].itype == 'W' && fwpars[i]._web3dval.fieldType == FIELDTYPE_SFFloat)
 			memcpy(p,&fwpars[i]._web3dval.native,lenSF);
 		else if(fwpars[i].itype == 'F'){
-			float ff = fwpars[i]._numeric;
+			float ff = (float)fwpars[i]._numeric;
 			memcpy(p,&ff,lenSF);
 		}
 
@@ -501,9 +501,9 @@ int SFRotation_multiVec(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpa
 	s = (float) sin(angle);
 	c = (float) cos(angle);
 	veccross3f(c1.c,r.c,v->c);
-	vecscale3f(c1.c,c1.c,1.0/rl);
+	vecscale3f(c1.c,c1.c,1.0f/rl);
 	veccross3f(c2.c,r.c,c1.c);
-	vecscale3f(c2.c,c2.c,1.0/rl);
+	vecscale3f(c2.c,c2.c,1.0f/rl);
 	for(i=0;i<3;i++)
 		res->c[i] = (float) (v->c[i] + s * c1.c[i] + (1.0-c) * c2.c[i]);
 
@@ -638,7 +638,7 @@ void * SFRotation_Constructor(FWType fwtype, int ic, FWval fwpars){
 	struct SFRotation *ptr = malloc(fwtype->size_of); //garbage collector please
 	if(ic == 4){
 		for(i=0;i<4;i++)
-			ptr->c[i] =  fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
+			ptr->c[i] =  (float)fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
 	}else if(ic == 2 && fwpars[1].itype == 'F'){
 		//SFVec3f axis, float angle
 		veccopy3f(ptr->c,fwpars[0]._web3dval.native);
@@ -756,11 +756,11 @@ int SFVec3f_subtract(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars,
 int SFVec3f_divide(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec3f *res;
 	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
-	float rhs = fwpars[0]._numeric;
+	float rhs = (float)fwpars[0]._numeric;
 	if(rhs == 0.0f){
 		return 0;
 	}
-	rhs = 1.0/rhs;
+	rhs = 1.0f/rhs;
 	res = malloc(fwtype->size_of);
 	vecscale3f(res->c,ptr->c,rhs);
 	fwretval->_web3dval.native = res; 
@@ -771,7 +771,7 @@ int SFVec3f_divide(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, F
 }
 int SFVec3f_multiply(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	struct SFVec3f *ptr = (struct SFVec3f *)fwn;
-	float rhs = fwpars[0]._numeric;
+	float rhs = (float) fwpars[0]._numeric;
 	struct SFVec3f *res = malloc(fwtype->size_of);
 	vecscale3f(res->c,ptr->c,rhs);
 	fwretval->_web3dval.native = res; 
@@ -887,7 +887,7 @@ void * SFVec3f_Constructor(FWType fwtype, int ic, FWval fwpars){
 	int i;
 	struct SFVec3f *ptr = malloc(fwtype->size_of); //garbage collector please
 	for(i=0;i<3;i++)
-		ptr->c[i] =  fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
+		ptr->c[i] =  (float) fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
 	return (void *)ptr;
 }
 
@@ -1151,7 +1151,7 @@ int SFNode_Setter0(FWType fwt, int index, void *ec, void *fwn, FWval fwval, int 
 	// shared between fwSetterNS() and SFNode_Setter
 	//
 	struct X3D_Node *node = ((union anyVrml*)fwn)->sfnode; 
-	int ftype, kind, ihave, nr, interp;
+	int ftype, kind, ihave, nr; // , interp;
 	const char *name;
 	union anyVrml *value;
 	nr = FALSE;
@@ -1180,8 +1180,8 @@ int SFNode_Setter0(FWType fwt, int index, void *ec, void *fwn, FWval fwval, int 
 
 		default:
 			if(!strcmp(name,"children")){
-				int n;
-				struct Multi_Any* any = (struct Multi_Any*)fwval->_web3dval.native;
+				//int n;
+				struct Multi_Node* any = (struct Multi_Node*)fwval->_web3dval.native;
 				AddRemoveChildren(node,value,any->p,any->n,0,__FILE__,__LINE__);
 			}else{
 				medium_copy_field0(ftype,fwval->_web3dval.native,value);
@@ -1227,13 +1227,13 @@ void * SFNode_Constructor(FWType fwtype, int nargs, FWval fwpars){
 		if(fwpars[0].itype == 'S'){
 			//SFNode.wrl createFromAString = new SFNode('Cylinder {height 1}');
 			struct X3D_Group *retGroup;
-			char *xstr; 
-			char *tmpstr;
-			char *separator;
+			//char *xstr; 
+			//char *tmpstr;
+			//char *separator;
 			int ra;
-			int count;
-			int wantedsize;
-			int MallocdSize;
+			//int count;
+			//int wantedsize;
+			//int MallocdSize;
 			ttglobal tg = gglobal();
 			struct VRMLParser *globalParser = (struct VRMLParser *)tg->CParse.globalParser;
 			const char *_c = fwpars[0]._string; // fwpars[0]._web3dval.anyvrml->sfstring->strptr; 
@@ -1273,7 +1273,7 @@ String toXMLString() Returns the X3D XML-encoded string that, if parsed as the v
 
 
 int SFNode_getNodeName(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
-	int found;
+	//int found;
 	char *name = NULL;
 	int nr = 0;
 	struct X3D_Node* node = ((union anyVrml*)fwn)->sfnode;
@@ -1477,7 +1477,7 @@ int SFColor_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 		case 0: //r
 		case 1: //g
 		case 2: //b
-			ptr->c[index] = fwval->_numeric; 
+			ptr->c[index] = (float) fwval->_numeric; 
 			break;
 		}
 		return TRUE;
@@ -1490,7 +1490,7 @@ void * SFColor_Constructor(FWType fwtype, int ic, FWval fwpars){
 	struct SFColor *ptr = malloc(fwtype->size_of); //garbage collector please
 	if(fwtype->ConstructorArgs[0].nfixedArg == 3)
 	for(i=0;i<3;i++)
-		ptr->c[i] =  fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
+		ptr->c[i] =  (float) fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
 	return (void *)ptr;
 }
 
@@ -1610,7 +1610,7 @@ int SFColorRGBA_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 		case 1: //g
 		case 2: //b
 		case 3: //a
-			ptr->c[index] = fwval->_numeric; 
+			ptr->c[index] = (float) fwval->_numeric; 
 			break;
 		}
 		return TRUE;
@@ -1623,7 +1623,7 @@ void * SFColorRGBA_Constructor(FWType fwtype, int ic, FWval fwpars){
 	struct SFColorRGBA *ptr = malloc(fwtype->size_of); //garbage collector please
 	if(ic == 4)
 	for(i=0;i<4;i++)
-		ptr->c[i] =  fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
+		ptr->c[i] =  (float) fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
 	return (void *)ptr;
 }
 
@@ -1910,7 +1910,7 @@ int SFVec2f_divide(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, F
 	}
 	rhs = 1.0/rhs;
 	res = malloc(fwtype->size_of);
-	vecscale2f(res->c,ptr->c,rhs);
+	vecscale2f(res->c,ptr->c,(float)rhs);
 	fwretval->_web3dval.native = res; 
 	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec2f;
 	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
@@ -1921,7 +1921,7 @@ int SFVec2f_multiply(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars,
 	struct SFVec2f *ptr = (struct SFVec2f *)fwn;
 	double rhs = fwpars[0]._numeric;
 	struct SFVec2f *res = malloc(fwtype->size_of);
-	vecscale2f(res->c,ptr->c,rhs);
+	vecscale2f(res->c,ptr->c,(float)rhs);
 	fwretval->_web3dval.native = res; 
 	fwretval->_web3dval.fieldType = FIELDTYPE_SFVec2f;
 	fwretval->_web3dval.gc = 'T'; //garbage collect .native (with C free(.native)) when proxy obj is gc'd.
@@ -2008,7 +2008,7 @@ int SFVec2f_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 		switch(index){
 		case 0: //x
 		case 1: //y
-			ptr->c[index] = fwval->_numeric; 
+			ptr->c[index] = (float) fwval->_numeric; 
 			break;
 		}
 		return TRUE;
@@ -2020,7 +2020,7 @@ void * SFVec2f_Constructor(FWType fwtype, int ic, FWval fwpars){
 	int i;
 	struct SFVec2f *ptr = malloc(fwtype->size_of); //garbage collector please
 	for(i=0;i<2;i++)
-		ptr->c[i] =  fwpars[i]._numeric; 
+		ptr->c[i] =  (float) fwpars[i]._numeric; 
 	return (void *)ptr;
 }
 
@@ -2143,8 +2143,8 @@ int SFImage_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 
 			case 3: //array
 			if(fwval->itype == 'W' && fwval->_web3dval.fieldType == FIELDTYPE_MFInt32 ){
-				int width,height,comp;
-				int i,j, ncopy;
+				//int width,height,comp;
+				int  ncopy; //i,j,
 				struct Multi_Int32 *im = fwval->_web3dval.native;
 				ncopy = min(ptr->n,im->n);
 				//don't write over width,height,comp
@@ -2172,7 +2172,7 @@ void * SFImage_Constructor(FWType fwtype, int ic, FWval fwpars){
 	ptr->p = malloc(ptr->n * sizeof(int)); //garbage collector please
 	if(fwpars[3].itype == 'W' && fwpars[3]._web3dval.fieldType == FIELDTYPE_MFInt32){
 		//the incoming MFInt32 pixel values are one pixel per Int32, so we need to expand to 3 ints
-		int i,j, ncopy;
+		int i, ncopy;
 		struct Multi_Int32 *im = fwpars[3]._web3dval.native;
 		ncopy = min(ptr->n,im->n);
 		for(i=0;i<ncopy;i++)
@@ -2572,7 +2572,7 @@ I will implment july 2014 the rotations as scalar/primitive/numerics and do #2, 
 int X3DMatrix3_setTransform(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/group.html#Transform
 	// P' = T * C * R * SR * S * -SR * -C * P
-	int i,j;
+	int i;// , j;
 	float angle, scaleangle;
 	struct SFVec2f *scale;
 	struct SFVec3f *scaleOrientation;
@@ -2614,8 +2614,8 @@ int X3DMatrix3_setTransform(FWType fwtype, void *ec, void *fwn, int argc, FWval 
 	//-SR
 	if(scaleangle != 0.0f){
 		matidentity3f(mat[0]);
-		mat[0][0] =  mat[1][1] = cos(-scaleangle);
-		mat[0][1] =  mat[1][0] = sin(-scaleangle);
+		mat[0][0] =  mat[1][1] = cosf(-scaleangle);
+		mat[0][1] =  mat[1][0] = sinf(-scaleangle);
 		mat[0][1] = -mat[0][1];
 		matmultiply3f(matrix[0],mat[0],matrix[0]);
 	}
@@ -2629,16 +2629,16 @@ int X3DMatrix3_setTransform(FWType fwtype, void *ec, void *fwn, int argc, FWval 
 	//SR
 	if(scaleangle != 0.0f){
 		matidentity3f(mat[0]);
-		mat[0][0] =  mat[1][1] = cos(scaleangle);
-		mat[0][1] =  mat[1][0] = sin(scaleangle);
+		mat[0][0] =  mat[1][1] = cosf(scaleangle);
+		mat[0][1] =  mat[1][0] = sinf(scaleangle);
 		mat[0][1] = -mat[0][1];
 		matmultiply3f(matrix[0],mat[0],matrix[0]);
 	}
 	//R
 	if(angle != 0.0f){
 		matidentity3f(mat[0]);
-		mat[0][0] =  mat[1][1] = cos(angle);
-		mat[0][1] =  mat[1][0] = sin(angle);
+		mat[0][0] =  mat[1][1] = cosf(angle);
+		mat[0][1] =  mat[1][0] = sinf(angle);
 		mat[0][1] = -mat[0][1];
 		matmultiply3f(matrix[0],mat[0],matrix[0]);
 	}
@@ -2695,7 +2695,7 @@ int X3DMatrix3_getTransform(FWType fwtype, void *ec, void *fwn, int argc, FWval 
 			if(ff != 0.0f) ff = 1/ff;
 				vecscale3f(&m2[i*3],matrix[i],ff);
 		}
-		angle = atan2(m2[1],m2[2]);
+		angle = atan2f(m2[1],m2[2]);
 		/* now copy the values over */
 		if(rotation) 
 			rotation->c[3] = angle;
@@ -2851,7 +2851,7 @@ int X3DMatrix3_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index > -1 && index < 9){
 		if(fwval->itype == 'F'){
-			ptr->c[index] = fwval->_numeric; //fwval->_web3dval.anyvrml->sffloat; 
+			ptr->c[index] = (float) fwval->_numeric; //fwval->_web3dval.anyvrml->sffloat; 
 			return TRUE;
 		}
 	}
@@ -2926,7 +2926,7 @@ int X3DMatrix4_setTransform(FWType fwtype, void *ec, void *fwn, int argc, FWval 
 	//void setTransform(SFVec3f translation, SFRotation rotation, SFVec3f scale, SFRotation scaleOrientation, SFVec3f center) 
 	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/group.html#Transform
 	// P' = T * C * R * SR * S * -SR * -C * P
-	int i,j;
+	int i;// , j;
 	struct SFMatrix4f *ptr = (struct SFMatrix4f *)fwn;
 	struct SFVec3f *translation = fwpars[0]._web3dval.native;
 	struct SFRotation *rotation = fwpars[1]._web3dval.native;
@@ -3006,7 +3006,7 @@ int X3DMatrix4_getTransform(FWType fwtype, void *ec, void *fwn, int argc, FWval 
 	double matrixd[16];
     	Quaternion quat;
     	double qu[4];
-	double r0[4], r1[4], r2[4];
+	//double r0[4], r1[4], r2[4];
 	for(i=0;i<4;i++)
 		matrix[i] = &ptr->c[i*4];
 
@@ -3199,7 +3199,7 @@ int X3DMatrix4_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index > -1 && index < 9){
 		if(fwval->itype == 'F'){
-			ptr->c[index] = fwval->_numeric; //fwval->_web3dval.anyvrml->sffloat; 
+			ptr->c[index] = (float)fwval->_numeric; //fwval->_web3dval.anyvrml->sffloat; 
 			return TRUE;
 		}
 	}

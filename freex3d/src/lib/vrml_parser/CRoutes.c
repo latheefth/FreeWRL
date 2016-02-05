@@ -696,6 +696,22 @@ void kill_clockEvents() {
 	/* printf ("killing clckevents - was %d\n",num_ClockEvents); */
 	p->num_ClockEvents = 0;
 }
+void do_ColorChaserTick(void * ptr);
+void do_ColorDamperTick(void * ptr);
+void do_CoordinateChaserTick(void * ptr);
+void do_CoordinateDamperTick(void * ptr);
+void do_OrientationChaserTick(void * ptr);
+void do_OrientationDamperTick(void * ptr);
+void do_PositionChaserTick(void * ptr);
+void do_ColorDamperTick(void * ptr);
+void do_PositionChaserTick(void * ptr);
+void do_PositionDamperTick(void * ptr);
+void do_PositionChaser2DTick(void * ptr);
+void do_PositionDamper2DTick(void * ptr);
+void do_ScalarChaserTick(void * ptr);
+void do_ScalarDamperTick(void * ptr);
+void do_TexCoordChaser2DTick(void * ptr);
+void do_TexCoordDamper2DTick(void * ptr);
 
 void add_first(struct X3D_Node * node) {
 	void (*myp)(void *);
@@ -710,7 +726,7 @@ void add_first(struct X3D_Node * node) {
 
 	clocktype = node->_nodeType;
 	/* printf ("add_first for %s\n",stringNodeType(clocktype)); */
-
+	/*
 	if (NODE_TimeSensor == clocktype) { myp =  do_TimeSensorTick;
 	} else if (NODE_ProximitySensor == clocktype) { myp = do_ProximitySensorTick;
 	} else if (NODE_Collision == clocktype) { myp = do_CollisionTick;
@@ -721,8 +737,35 @@ void add_first(struct X3D_Node * node) {
 	} else if (NODE_GeoProximitySensor == clocktype) { myp = do_GeoProximitySensorTick;
 
 	} else {
-		/* printf ("this is not a type we need to add_first for %s\n",stringNodeType(clocktype)); */
+		// printf ("this is not a type we need to add_first for %s\n",stringNodeType(clocktype));
 		return;
+	}
+	*/
+	switch(clocktype){
+		case NODE_TimeSensor:			myp = do_TimeSensorTick;		break;
+		case NODE_ProximitySensor:		myp = do_ProximitySensorTick;	break;
+		case NODE_Collision:			myp = do_CollisionTick;			break;
+		case NODE_MovieTexture:			myp = do_MovieTextureTick;		break;
+		case NODE_AudioClip:			myp = do_AudioTick;				break;
+		case NODE_VisibilitySensor:		myp = do_VisibilitySensorTick;	break;
+		case NODE_GeoProximitySensor:	myp = do_GeoProximitySensorTick;break;
+		case NODE_ColorChaser:			myp = do_ColorChaserTick;		break;
+		case NODE_ColorDamper:			myp = do_ColorDamperTick;		break;
+		case NODE_CoordinateChaser:		myp = do_CoordinateChaserTick;	break;
+		case NODE_CoordinateDamper:		myp = do_CoordinateDamperTick;	break;
+		case NODE_OrientationChaser:	myp = do_OrientationChaserTick;	break;
+		case NODE_OrientationDamper:	myp = do_OrientationDamperTick;	break;
+		case NODE_PositionChaser:		myp = do_PositionChaserTick;	break;
+		case NODE_PositionDamper:		myp = do_PositionDamperTick;	break;
+		case NODE_PositionChaser2D:		myp = do_PositionChaser2DTick;	break;
+		case NODE_PositionDamper2D:		myp = do_PositionDamper2DTick;	break;
+		case NODE_ScalarChaser:			myp = do_ScalarChaserTick;		break;
+		case NODE_ScalarDamper:			myp = do_ScalarDamperTick;		break;
+		case NODE_TexCoordChaser2D:		myp = do_TexCoordChaser2DTick;	break;
+		case NODE_TexCoordDamper2D:		myp = do_TexCoordDamper2DTick;	break;
+		default:
+			// printf ("this is not a type we need to add_first for %s\n",stringNodeType(clocktype));
+			return; //not a clocktype node
 	}
 
 	if (p->num_ClockEvents + 1 > p->size_ClockEvents){
