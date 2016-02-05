@@ -2553,8 +2553,8 @@ void AtlasFont_RenderFontAtlas(AtlasFont *me, int EMpixels, char* alphabet){
 	//GUIFontSize *fsize = malloc(sizeof(GUIFontSize));
 	name = malloc(strlen(me->name)+12); //base10 -2B has 11 chars, plus \0
 	strcpy(name,me->name);
-	//sprintf(&name[strlen(me->name)],"%d",EMpixels); //or itoa()
-	itoa(EMpixels,&name[strlen(name)],10);
+	sprintf(&name[strlen(me->name)],"%d",EMpixels); //or itoa()
+	//itoa(EMpixels,&name[strlen(name)],10);
 	AtlasEntrySet_init(aes,name);
 	//somehow, I need the EMsize and rowheight, or a more general function to compute area needed by string
 	AtlasFont_setFontSize(me,EMpixels, &rowheight, &maxadvancepx);
