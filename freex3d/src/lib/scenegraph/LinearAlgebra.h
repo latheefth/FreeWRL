@@ -189,6 +189,7 @@ float* vecscale2f(float* r, float* v, float s);
 float vecnormal2f(float *r, float *v);
 float *vecmult2f(float *c, float *a, float *b);
 
+int vecsame3f(float *a, float *b);
 float *veccopy3f(float *b, float *a);
 float *vecset3f(float *b, float x, float y, float z);
 float *vecadd3f(float *c, float *a, float *b);
