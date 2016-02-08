@@ -351,7 +351,6 @@ void Tick(struct X3D_PositionChaser *node, double Now)
 	if(!vecsame3f(Output.c,node->value_changed.c)){
         node->value_changed= Output;
 		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionChaser, value_changed));
-		printf("+");
 	}
 
 }
@@ -366,8 +365,6 @@ void do_PositionChaserTick(void * ptr){
 	if(!vecsame3f(node->set_destination.c,previousValue.c))
 		set_destination(node, node->set_destination,Now);
 	Tick(node,Now);
-	printf(".");
-
 }
 
 /*
@@ -463,6 +460,8 @@ void set_valueD(struct X3D_PositionDamper *node, struct SFVec3f opos)
     UpdateReached(node);
     //StartTimer();
 	node->isActive = TRUE;
+	MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionDamper, isActive));
+
 }
 
 void set_destinationD(struct X3D_PositionDamper *node, struct SFVec3f ipos)
@@ -481,6 +480,8 @@ void set_destinationD(struct X3D_PositionDamper *node, struct SFVec3f ipos)
         input = ipos;
         //StartTimer();
 		node->isActive = TRUE;
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionDamper, isActive));
+
     }
 }
 
@@ -580,6 +581,8 @@ void tick_positiondamper(struct X3D_PositionDamper *node, double now)
 
        // StopTimer();
 	    node->isActive = FALSE;
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionDamper, isActive));
+
         return;
     }
     node->value_changed= value5;
