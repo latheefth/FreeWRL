@@ -446,6 +446,62 @@ void CheckInitD(struct X3D_PositionDamper *node)
     }
 
 }
+static int reached = FALSE;
+int UpdateReached2(struct X3D_PositionDamper *node, float Dist)
+{
+    if(reached)
+    {
+        if(Dist > node->tolerance) //reachThreshold)
+            reached= FALSE;
+    }else
+    {
+        if(Dist <= node->tolerance) //reachThreshold)
+            reached= TRUE;
+    }
+	return reached;
+}
+float GetDist(struct X3D_PositionDamper *node)
+{
+	float tmp[3];
+    //double dist= value1.subtract(node->initialDestination).length();
+	float dist = veclength3f(vecdif3f(tmp,value1.c,input.c));
+    if(node->order > 1)
+    {
+        //double dist2= value2.subtract(value1).length();
+		float dist2 = veclength3f(vecdif3f(tmp,value2.c,value1.c));
+        if( dist2 > dist)  dist= dist2;
+    }
+    if(node->order > 2)
+    {
+        //double dist3= value3.subtract(value2).length();
+		float dist3 = veclength3f(vecdif3f(tmp,value3.c,value2.c));
+        if( dist3 > dist)  dist= dist3;
+    }
+    if(node->order > 3)
+    {
+        //double dist4= value4.subtract(value3).length();
+		float dist4 = veclength3f(vecdif3f(tmp,value4.c,value3.c));
+        if( dist4 > dist)  dist= dist4;
+    }
+    if(node->order > 4)
+    {
+        //double dist5= value5.subtract(value4).length();
+		float dist5 = veclength3f(vecdif3f(tmp,value5.c, value4.c));
+        if( dist5 > dist)  dist= dist5;
+    }
+    return dist;
+}
+struct SFVec3f diftimes(struct SFVec3f a, struct SFVec3f b, double alpha){
+	struct SFVec3f ret;
+	float tmp[3], tmp2[3];
+	//input  .add(value1.subtract(input  ).multiply(alpha))
+	vecadd3f(ret.c,a.c,vecscale3f(tmp2,vecdif3f(tmp,b.c,a.c),(float)alpha));
+	return ret;
+}
+int UpdateReached(struct X3D_PositionDamper *node)
+{
+    return UpdateReached2(node,GetDist(node));
+}
 
 void set_valueD(struct X3D_PositionDamper *node, struct SFVec3f opos)
 {
@@ -485,47 +541,11 @@ void set_destinationD(struct X3D_PositionDamper *node, struct SFVec3f ipos)
     }
 }
 
-float GetDist(struct X3D_PositionDamper *node)
-{
-	float tmp[3];
-    //double dist= value1.subtract(node->initialDestination).length();
-	float dist = veclength3f(vecdif3f(tmp,value1.c,input.c));
-    if(node->order > 1)
-    {
-        //double dist2= value2.subtract(value1).length();
-		float dist2 = veclength3f(vecdif3f(tmp,value2.c,value1.c));
-        if( dist2 > dist)  dist= dist2;
-    }
-    if(node->order > 2)
-    {
-        //double dist3= value3.subtract(value2).length();
-		float dist3 = veclength3f(vecdif3f(tmp,value3.c,value2.c));
-        if( dist3 > dist)  dist= dist3;
-    }
-    if(node->order > 3)
-    {
-        //double dist4= value4.subtract(value3).length();
-		float dist4 = veclength3f(vecdif3f(tmp,value4.c,value3.c));
-        if( dist4 > dist)  dist= dist4;
-    }
-    if(node->order > 4)
-    {
-        //double dist5= value5.subtract(value4).length();
-		float dist5 = veclength3f(vecdif3f(tmp,value5.c, value4.c));
-        if( dist5 > dist)  dist= dist5;
-    }
-    return dist;
-}
-struct SFVec3f diftimes(struct SFVec3f a, struct SFVec3f b, double alpha){
-	struct SFVec3f ret;
-	float tmp[3], tmp2[3];
-	//input  .add(value1.subtract(input  ).multiply(alpha))
-	vecadd3f(ret.c,a.c,vecscale3f(tmp2,vecdif3f(tmp,b.c,a.c),alpha));
-	return ret;
-}
+
 void tick_positiondamper(struct X3D_PositionDamper *node, double now)
 {
-	struct SFVec3f tmp;
+	double delta,alpha;
+	float dist;
     CheckInitD(node);
 
     if(!lastTick)
@@ -534,10 +554,10 @@ void tick_positiondamper(struct X3D_PositionDamper *node, double now)
         return;
     }
 
-    double delta= now - lastTick;
+    delta= now - lastTick;
     lastTick= now;
 
-    double alpha= exp(-delta / node->tau);
+    alpha= exp(-delta / node->tau);
 
 
     if(bNeedToTakeFirstInput)  // then don't do any processing.
@@ -568,7 +588,7 @@ void tick_positiondamper(struct X3D_PositionDamper *node, double now)
 			   ? diftimes(value4,value5,alpha)
                : value4;
 
-    float dist= GetDist(node);
+    dist= GetDist(node);
 
     if(dist < node->tolerance) //eps)
     {
@@ -592,24 +612,6 @@ void tick_positiondamper(struct X3D_PositionDamper *node, double now)
 
 }
 
-static int reached = FALSE;
-int UpdateReached2(struct X3D_PositionDamper *node, float Dist)
-{
-    if(reached)
-    {
-        if(Dist > node->tolerance) //reachThreshold)
-            reached= FALSE;
-    }else
-    {
-        if(Dist <= node->tolerance) //reachThreshold)
-            reached= TRUE;
-    }
-	return reached;
-}
-int UpdateReached(struct X3D_PositionDamper *node)
-{
-    return UpdateReached2(node,GetDist(node));
-}
 
 
 

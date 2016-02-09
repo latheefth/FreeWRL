@@ -424,7 +424,7 @@ void set_eyehalf(const double eyehalf, const double eyehalfangle) {
 
 	viewer->eyehalf = eyehalf;
 	viewer->eyehalfangle = eyehalfangle;
-	//viewer->isStereo = 1;
+	viewer->isStereo = 1;
 }
 void resolve_pos2();
 void fwl_set_viewer_type0(X3D_Viewer *viewer, const int type) {

@@ -2296,7 +2296,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 
 
     fragmentSource[fragmentMainStart] = fragMainStart;
-	if(Viewer()->anaglyph || Viewer()->anaglyphB)
+	if(Viewer()->anaglyph)
 		fragmentSource[fragmentMainEnd] = anaglyphGrayFragEnd;
 	else {
         if (usePhongShading) fragmentSource[fragmentMainEnd] = discardInFragEnd;
@@ -6494,46 +6494,6 @@ void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE 
 
 }
 
-void fw_gluPerspective_2(GLDOUBLE xcenter, GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE zFar) {
-	//xcenter is 0.0 if you want the perspective in the center of the viewport.
-	//		  -1.0 if you want it on the left edge
-	//        +1.0 if you want it on the right edge
-	GLDOUBLE xmin, xmax, ymin, ymax;
-
-	GLDOUBLE *dp;
-	GLDOUBLE ndp[16];
-	GLDOUBLE ndp2[16];
-	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
-
-
-
-	ymax = zNear * tan(fovy * M_PI / 360.0);
-	ymin = -ymax;
-	xmin = ymin * aspect;
-	xmax = ymax * aspect;
-	xmin += xcenter * xmin;
-	xmax += xcenter * xmin;
-	/* do the glFrsutum on the top of the stack, and send that along */
-	FW_GL_MATRIX_MODE(GL_PROJECTION);
-	//FW_GL_LOAD_IDENTITY();
-	dp = p->FW_ProjectionView[p->projectionviewTOS];
-
-	mesa_Frustum(xmin, xmax, ymin, ymax, zNear, zFar, ndp);
-	mattranspose(ndp2,ndp);
-
-	//printmatrix2(ndp,"ndp");
-	//printmatrix2(ndp2,"ndp2 = transpose(ndp)");
-	//JAS printmatrix2(dp,"dp");
-
-	matmultiplyFULL(ndp,ndp2,dp);
-
-	//printmatrix2(ndp,"ndp = ndp2*dp");
-
-	/* method = 1; */
-	 FW_GL_LOADMATRIX(ndp);
-	/* put the matrix back on our matrix stack */
-	memcpy (p->FW_ProjectionView[p->projectionviewTOS],ndp,16*sizeof (GLDOUBLE));
-}
 
 
 /* gluPickMatrix replacement */

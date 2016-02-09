@@ -249,7 +249,6 @@ enum {
 	CONTENT_GENERIC,		//defaults, render and pick can be delegated to
 	CONTENT_SCENE,			//good old fashioned vrml / x3d scene 
 	CONTENT_STATUSBAR,		//statusbarHud.c (SBH) menu system
-	CONTENT_SWITCH,			//switch case on children, a child chooser
 	CONTENT_MULTITOUCH,		//touch display emulator, turn on with SBH > options > emulate multitouch
 	CONTENT_E3DMOUSE,		//emulate 3D mouse
 	CONTENT_TEXTUREGRID,	//texture-from-fbo-render over a planar mesh/grid, rendered with ortho and diffuse light
@@ -257,25 +256,21 @@ enum {
 	CONTENT_CAPTIONTEXT,	//text, but just one line 
 	CONTENT_LAYER,			//children are rendered one over top of the other, with zbuffer clearing between children
 	CONTENT_SPLITTER,		//not implemented, a splitter widget
-	CONTENT_QUADRANT,		//semi- implemented, a quadrant panel where the scene viewpoint is altered to side, front, top for 3 panels
+	CONTENT_QUADRANT,		//not implemented, a quadrant panel where the scene viewpoint is altered to side, front, top for 3 panels
 	CONTENT_STAGE,			//opengl buffer to render to, GL_BACK or FBO (file buffer object), does clearcolor and clear depth before rendering children or self
-	CONTENT_STEREO_SIDEBYSIDE, //like quadrant, but 2 viewports, and view matrices parallel and separated by eyebase
-	CONTENT_STEREO_ANAGLYPH,//used with colored anaglyph lenses ie Amber/yellow left, Blue right, or Red left, Cyan right etc
-	CONTENT_STEREO_UPDOWN,	//like sidebyside, but with one viewport above the other (used for screen-interlace-LCD-eyewear and some HMDs)
-	CONTENT_STEREO_SHUTTER,	//like sidebyside or updown, but using opengl quadbuffer stereo, and shutter glasses
 	//CONTENT_TARGETWINDOW,	//(target windows aren't implemented as contenttype
 } content_types;
 
-//typedef struct eye {
-//	//int iyetype;
-//	void (*render)(void *self);
-//	void (*computeVP)(void *self, void *vp); //side, top, front, vp for quadrant or splitter
-//	void (*navigate)(void *self); //like handle0 except per-eye
-//	int (*pick)(void *self); //per-eye
-//} eye;
-//eye *new_eye(){
-//	return MALLOCV(sizeof(eye));
-//}
+typedef struct eye {
+	//int iyetype;
+	void (*render)(void *self);
+	void (*computeVP)(void *self, void *vp); //side, top, front, vp for quadrant or splitter
+	void (*navigate)(void *self); //like handle0 except per-eye
+	int (*pick)(void *self); //per-eye
+} eye;
+eye *new_eye(){
+	return MALLOCV(sizeof(eye));
+}
 
 void pushnset_framebuffer(int ibuffer){
 	Stack *framebufferstack;
@@ -345,20 +340,7 @@ void pop_viewport(){
 float defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; //left,right,bottom,top fraction of pixel window
 
 
-/* abstract contenttype - like a widget, it has a render() and a pick()
-	- pick() uses the widget viewport to filter, and a contenttype can also process/play with the mouse buttons/xy
-		- pick bottoms out in a function that does navigation immediately, 
-			and stores the pick xy etc in a struct touch[] for later picking
-		- for contenttype_scene the 'real' picking happens on the render() pass, therefore there's no point 
-			setting fancy things on a stack to communicate between a pick function and the scene backend picking
-			because the picking stack isn't active during 'real' picking - the render stack is
-		- alternate / supplementary ideas not implemented:
-			- instead of passing xy down, it could pass a multi-touch[] array down, filtering the touches against
-				the viewports as it goes down the pick() stack
-			- combining the pick and render passes somehow 
-				(but should mouse navigation occur once per frame? or per-stereo/quad-window?)
-	- render() uses the widget viewport
-*/
+//abstract contenttype
 typedef struct contenttype contenttype;
 typedef struct tcontenttype {
 	int itype; //enum content_types: 0 scene, 1 statusbarHud, 2 texture grid
@@ -421,7 +403,7 @@ typedef struct contenttype_scene {
 	tcontenttype t1;
 	//int stereotype; // none, sxs, ud, an, quadbuf
 	//color anacolors[2];
-	//eye eyes[6]; //doesn't make sense yet to have eyes for general content type, does it?
+	eye eyes[6]; //doesn't make sense yet to have eyes for general content type, does it?
 } contenttype_scene;
 static void render();
 int setup_pickside0(int x, int y, int *iside, ivec4 *vportleft, ivec4 *vportright);
@@ -531,69 +513,6 @@ contenttype *new_contenttype_statusbar(){
 	return (contenttype*)self;
 }
 
-
-//SWITCH
-typedef struct contenttype_switch {
-	tcontenttype t1;
-	int whichCase;
-} contenttype_switch;
-void render_switch0();
-void switch_render(void *_self){
-	//make this like layer, render contents first in clipplane-limited viewport, then sbh in whole viewport
-	int i;
-	contenttype_switch *self;
-	contenttype *c;
-
-	self = (contenttype_switch *)_self;
-	pushnset_viewport(self->t1.viewport);
-	c = self->t1.contents;
-	i = 0;
-	while(c){
-		if(i == self->whichCase){
-			c->t1.render(c);
-		}
-		c = c->t1.next;
-		i++;
-	}
-	popnset_viewport();
-}
-int switch_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
-	contenttype *c;
-	contenttype_switch *self;
-	int iret = 0;
-
-	//make this like layer, checking sbh first, then if not handled try contents in clipplane-limited viewport
-
-	self = (contenttype_switch *)_self;
-	iret = 0;
-	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
-		int i = 0;
-		c = self->t1.contents;
-		while(c){
-			if(i == self->whichCase){
-				iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,ID, windex);
-				if(iret > 0) break; //handled 
-			}
-			c = c->t1.next;
-			i++;
-		}
-		pop_viewport();
-	}
-	return iret;
-}
-contenttype *new_contenttype_switch(){
-	contenttype_switch *self = MALLOCV(sizeof(contenttype_switch));
-	init_tcontenttype(&self->t1);
-	self->t1.itype = CONTENT_SWITCH;
-	self->t1.render = switch_render;
-	self->t1.pick = switch_pick;
-	self->whichCase = -1;
-	return (contenttype*)self;
-}
-void contenttype_switch_set_which(contenttype *_self, int which){
-	contenttype_switch *self = (contenttype_switch *)_self;
-	self->whichCase = which;
-}
 
 
 
@@ -1035,468 +954,6 @@ contenttype *new_contenttype_quadrant(){
 	self->offset_fraction[1] = .5f;
 	return (contenttype*)self;
 }
-
-
-
-
-//STEREO>>
-//SIDEBYSIDE >>
-typedef struct contenttype_stereo_sidebyside {
-	tcontenttype t1;
-	//in theory could put screenbase here, will get from old viewer for now
-} contenttype_stereo_sidebyside;
-void loadIdentityMatrix (double *mat);
-static void get_view_matrix(double *savePosOri, double *saveView);
-static void set_view_matrix(double *savePosOri, double *saveView);
-void compute_sidebyside_viewport_and_fiducial(int iside, ivec4 *ivport, ivec2 *fidcenter){
-	int screenwidth2;
-	int iexpand;
-	double expansion;
-	ivec4 vport;
-	Stack *vportstack;
-	ttglobal tg = gglobal();
-	X3D_Viewer *viewer;
-
-	viewer = Viewer();
-
-	vportstack = (Stack*)tg->Mainloop._vportstack;
-	vport = stack_top(ivec4,vportstack);
-
-	screenwidth2 = vport.W/2;
-	ivport->W = screenwidth2;
-	ivport->H = vport.H;
-	ivport->Y = vport.Y;
-	if(iside == 0){
-		ivport->X = vport.X;
-	}else{
-		ivport->X = vport.X + screenwidth2;
-	}
-	fidcenter->Y = vport.Y + vport.H;
-
-	//its just sidebyside that needs the screen distance adjusted to be slightly less than human eyebase
-	//(the others can center their viewpoints in the viewports, and center the viewports on the screen)
-	expansion = viewer->screendist - .5;
-	iexpand = (GLint)(expansion * ivport->W);
-
-	fidcenter->X = ivport->X + screenwidth2/2;
-	if(iside == 0)
-		fidcenter->X -= iexpand;
-	else
-		fidcenter->X += iexpand;
-
-}
-void stereo_sidebyside_render(void *_self){
-	//
-	int i;
-	contenttype *c;
-	contenttype_stereo_sidebyside *self;
-	X3D_Viewer *viewer;
-
-
-	self = (contenttype_stereo_sidebyside *)_self;
-	viewer = Viewer();
-	viewer->isStereoB = 1; //we're using the B so old isStereo 
-
-	pushnset_viewport(self->t1.viewport); //generic viewport
-	c = self->t1.contents;
-	i=0;
-	while(c){
-		ivec4 vport, ivport2;
-		ivec2 fidcenter;
-		Stack *vportstack;
-		ttglobal tg = gglobal();
-
-
-		viewer->isideB = i; //set_viewmatrix needs to know
-
-		vportstack = (Stack*)tg->Mainloop._vportstack;
-		vport = stack_top(ivec4,vportstack);
-
-		compute_sidebyside_viewport_and_fiducial(viewer->isideB,&ivport2,&fidcenter);
-
-		{
-			int halfW, vpc;
-			halfW = ivport2.W / 2;
-			vpc = halfW + ivport2.X;
-			viewer->xcenter = (double)(fidcenter.X - vpc)/(double)halfW; //-1 to 1 range with 0 being center, -1 being viewpoint on left side of viewport
-			pushviewport(vportstack,ivport2);
-			if(1){
-				//not sure why I need scissortest - isn't something else responsible? perhaps I'll catch on when I do anaglyph next
-				FW_GL_SCISSOR(ivport2.X,ivport2.Y,ivport2.W,ivport2.H);
-				glEnable(GL_SCISSOR_TEST);
-			}
-		}
-		setcurrentviewport(vportstack); //does opengl call
-
-		c->t1.render(c);
-		fiducialDraw(1,fidcenter.X,fidcenter.Y,0.0f); //draw a fiducial mark where centre of viewpoint is
-
-		//pop stereo_sidebyside subviewport
-		popnset_viewport();
-		if(1)	glDisable(GL_SCISSOR_TEST);
-		viewer->xcenter = 0.0;
-		c = c->t1.next;
-		i++;
-	}
-	viewer->isStereoB = 0;
-	popnset_viewport();
-}
-int stereo_sidebyside_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
-	//
-	int iret;
-	int i;
-	contenttype *c;
-	contenttype_stereo_sidebyside *self;
-	X3D_Viewer *viewer;
-
-	self = (contenttype_stereo_sidebyside *)_self;
-	viewer = Viewer();
-	viewer->isStereoB = 1;
-
-	iret = 0;
-	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){  //generic viewport
-		c = self->t1.contents;
-		i=0;
-		//for each stereo side ..
-		while(c){
-			//.. create stereo_sidebyside subviewport, push, and render
-			ivec4 ivport2;
-			ivec2 fidcenter, pt;
-
-			viewer->isideB = i;
-			compute_sidebyside_viewport_and_fiducial(viewer->isideB,&ivport2,&fidcenter);
-			//if(checknpush_viewport(viewport,mouseX,mouseY)){   - can't use this convenience function, will do long way
-			//stereo_sidebyside sub-viewport
-			pt.X = mouseX;
-			pt.Y = mouseY;
-			iret = pointinsideviewport(ivport2,pt);
-			if(iret){
-				pushviewport(gglobal()->Mainloop._vportstack,ivport2);
-				iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,ID, windex);
-				if(iret > 0) break; //handled
-				pop_viewport();
-			}
-			c = c->t1.next;
-			i++;
-		}
-		pop_viewport();
-	}
-	viewer->isStereoB = 0;
-	return iret;
-}
-contenttype *new_contenttype_stereo_sidebyside(){
-	contenttype_stereo_sidebyside *self = MALLOCV(sizeof(contenttype_stereo_sidebyside));
-	init_tcontenttype(&self->t1);
-	self->t1.itype = CONTENT_STEREO_SIDEBYSIDE;
-	self->t1.render = stereo_sidebyside_render;
-	self->t1.pick = stereo_sidebyside_pick;
-	return (contenttype*)self;
-}
-
-
-
-
-//ANAGLYPH >>
-typedef struct contenttype_stereo_anaglyph {
-	tcontenttype t1;
-	//in theory could put color sides here, will get from old viewer for now
-} contenttype_stereo_anaglyph;
-void loadIdentityMatrix (double *mat);
-
-void stereo_anaglyph_render(void *_self){
-	//
-	int i;
-	contenttype *c;
-	contenttype_stereo_anaglyph *self;
-	X3D_Viewer *viewer;
-
-
-	self = (contenttype_stereo_anaglyph *)_self;
-	viewer = Viewer();
-	viewer->isStereoB = 1; //we're using the B so old isStereo not activated, backend thinks its rendering a mono scene
-	viewer->anaglyphB = 1; //except we need the shader for luminance = f(R,G,B)
-
-	pushnset_viewport(self->t1.viewport); //generic viewport
-	c = self->t1.contents;
-	i=0;
-	while(c){
-
-		viewer->isideB = i; //set_viewmatrix needs to know
-		Viewer_anaglyph_setSide(i); //clear just the channels we're going to draw to
-		viewer->xcenter = 0.0; //no screen shift or fiducials, just center
-
-		c->t1.render(c);
-
-		c = c->t1.next;
-		i++;
-	}
-	//glColorMask(1,1,1,1); /*restore, for statusbarHud etc*/ OR:
-	Viewer_anaglyph_clearSides(); //clear all channels
-	viewer->anaglyphB = 0;
-	viewer->isStereoB = 0;
-	popnset_viewport();
-}
-int stereo_anaglyph_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
-	//
-	int iret;
-	int i;
-	contenttype *c;
-	contenttype_stereo_anaglyph *self;
-	X3D_Viewer *viewer;
-
-	self = (contenttype_stereo_anaglyph *)_self;
-	viewer = Viewer();
-	viewer->isStereoB = 1;
-
-	iret = 0;
-	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){  //generic viewport
-		c = self->t1.contents;
-		i=0;
-		//for each stereo side, but I'm assuming left side will get it first
-		while(c){
-			viewer->isideB = i;
-			iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,ID, windex);
-			if(iret > 0) break; //handled
-			c = c->t1.next;
-			i++;
-		}
-		pop_viewport();
-	}
-	viewer->isStereoB = 0;
-	return iret;
-}
-contenttype *new_contenttype_stereo_anaglyph(){
-	contenttype_stereo_anaglyph *self = MALLOCV(sizeof(contenttype_stereo_anaglyph));
-	init_tcontenttype(&self->t1);
-	self->t1.itype = CONTENT_STEREO_ANAGLYPH;
-	self->t1.render = stereo_anaglyph_render;
-	self->t1.pick = stereo_anaglyph_pick;
-	return (contenttype*)self;
-}
-
-
-//UPDOWN >>
-typedef struct contenttype_stereo_updown {
-	tcontenttype t1;
-} contenttype_stereo_updown;
-
-
-void stereo_updown_render(void *_self){
-	//
-	int i;
-	contenttype *c;
-	contenttype_stereo_updown *self;
-	X3D_Viewer *viewer;
-	Stack *vportstack;
-	ttglobal tg = gglobal();
-
-	self = (contenttype_stereo_updown *)_self;
-	viewer = Viewer();
-	viewer->isStereoB = 1; //we're using the B so old isStereo not activated, backend thinks its rendering a mono scene
-	viewer->updownB = 1; //let setup_projection know to squish the aspect by x 2
-
-	vportstack = (Stack*)tg->Mainloop._vportstack;
-
-
-	pushnset_viewport(self->t1.viewport); //generic viewport
-	c = self->t1.contents;
-	i=0;
-	while(c){
-		ivec4 ivport;
-		ivport = stack_top(ivec4,vportstack);
-		ivport.H /= 2;
-		ivport.Y += (1-i)*ivport.H; //left on top
-		pushviewport(vportstack,ivport);
-		setcurrentviewport(vportstack); //does opengl call
-			if(1){
-				//not sure why I need scissortest - isn't something else responsible? perhaps I'll catch on when I do anaglyph next
-				FW_GL_SCISSOR(ivport.X,ivport.Y,ivport.W,ivport.H);
-				glEnable(GL_SCISSOR_TEST);
-			}
-
-		//aspect squishing is still done in setup_projection
-		viewer->isideB = i; //set_viewmatrix needs to know
-		viewer->xcenter = 0.0; //no screen eyebase or fiducials, just center
-
-		c->t1.render(c);
-		popnset_viewport();
-		if(1)	glDisable(GL_SCISSOR_TEST);
-
-		c = c->t1.next;
-		i++;
-	}
-	//glColorMask(1,1,1,1); /*restore, for statusbarHud etc*/ OR:
-	viewer->updownB = 0;
-	viewer->isStereoB = 0;
-	popnset_viewport();
-}
-int stereo_updown_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
-	//
-	int iret;
-	int i;
-	contenttype *c;
-	contenttype_stereo_updown *self;
-	X3D_Viewer *viewer;
-	Stack *vportstack;
-	ttglobal tg = gglobal();
-
-	self = (contenttype_stereo_updown *)_self;
-	viewer = Viewer();
-	viewer->isStereoB = 1;
-	vportstack = (Stack*)tg->Mainloop._vportstack;
-
-	iret = 0;
-	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){  //generic viewport
-		c = self->t1.contents;
-		i=0;
-		//for each stereo side, but I'm assuming left side will get it first
-		while(c){
-			ivec4 ivport;
-			ivec2 pt;
-
-			viewer->isideB = i;
-			ivport = stack_top(ivec4,vportstack);
-			ivport.H /= 2;
-			ivport.Y += (1-i)*ivport.H; //left on top
-			pt.X = mouseX;
-			pt.Y = mouseY;
-			iret = pointinsideviewport(ivport,pt);
-			if(iret){
-
-				pushviewport(vportstack,ivport);
-				setcurrentviewport(vportstack); //does opengl call
-
-				iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,ID, windex);
-				popnset_viewport();
-				if(iret > 0) break; //handled
-			}
-			c = c->t1.next;
-			i++;
-		}
-		pop_viewport();
-	}
-	viewer->isStereoB = 0;
-	return iret;
-}
-contenttype *new_contenttype_stereo_updown(){
-	contenttype_stereo_updown *self = MALLOCV(sizeof(contenttype_stereo_updown));
-	init_tcontenttype(&self->t1);
-	self->t1.itype = CONTENT_STEREO_UPDOWN;
-	self->t1.render = stereo_updown_render;
-	self->t1.pick = stereo_updown_pick;
-	return (contenttype*)self;
-}
-
-
-//SHUTTER >>
-typedef struct contenttype_stereo_shutter {
-	tcontenttype t1;
-} contenttype_stereo_shutter;
-
-void setStereoBufferStyleB(int itype, int iside, int ibuffer);
-void stereo_shutter_render(void *_self){
-	//
-	int i, shutterGlasses;
-	contenttype *c;
-	contenttype_stereo_shutter *self;
-	X3D_Viewer *viewer;
-	Stack *vportstack;
-	static double shuttertime;
-	static int shutterside;
-	ttglobal tg = gglobal();
-
-	self = (contenttype_stereo_shutter *)_self;
-	viewer = Viewer();
-	viewer->isStereoB = 1; //we're using the B so old isStereo not activated, backend thinks its rendering a mono scene
-
-	vportstack = (Stack*)tg->Mainloop._vportstack;
-	shutterGlasses = 2;
-	if(viewer->haveQuadbuffer)
-		shutterGlasses = 1;
-
-	pushnset_viewport(self->t1.viewport); //generic viewport
-	c = self->t1.contents;
-	i=0;
-	while(c){
-
-		viewer->isideB = i; //set_viewmatrix needs to know
-		viewer->xcenter = 0.0; //no screen eyebase or fiducials, just center
-		if(shutterGlasses == 2) /* flutter mode - like --shutter but no GL_STEREO so alternates */
-		{
-			if(TickTime() - shuttertime > 2.0)
-			{
-				shuttertime = TickTime();
-				shutterside = 1 - shutterside;
-			}
-			setStereoBufferStyleB(1,i,0);
-			//p->bufferarray[0]=FW_GL_BACK;
-		}else{
-			setStereoBufferStyleB(0,i,0);
-			shutterside = i;
-		}
-
-		if(i==shutterside){
-			c->t1.render(c);
-		}
-
-		c = c->t1.next;
-		i++;
-	}
-	setStereoBufferStyleB(1,0,0);
-	viewer->isStereoB = 0;
-	popnset_viewport();
-}
-int stereo_shutter_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
-	//
-	int iret;
-	int i;
-	contenttype *c;
-	contenttype_stereo_shutter *self;
-	X3D_Viewer *viewer;
-	Stack *vportstack;
-	ttglobal tg = gglobal();
-
-	self = (contenttype_stereo_shutter *)_self;
-	viewer = Viewer();
-	viewer->isStereoB = 1;
-	vportstack = (Stack*)tg->Mainloop._vportstack;
-
-	iret = 0;
-	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){  //generic viewport
-		c = self->t1.contents;
-		i=0;
-		//for each stereo side, but I'm assuming left side will get it first
-		while(c){
-			iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,ID, windex);
-			if(iret > 0) break; //handled
-
-			c = c->t1.next;
-			i++;
-		}
-		pop_viewport();
-	}
-	viewer->isStereoB = 0;
-	return iret;
-}
-contenttype *new_contenttype_stereo_shutter(){
-	contenttype_stereo_shutter *self = MALLOCV(sizeof(contenttype_stereo_shutter));
-	init_tcontenttype(&self->t1);
-	self->t1.itype = CONTENT_STEREO_SHUTTER;
-	self->t1.render = stereo_shutter_render;
-	self->t1.pick = stereo_shutter_pick;
-	return (contenttype*)self;
-}
-
-
-//<<STEREO
-
-
-
-
-
-
-
-
 
 typedef struct contenttype_splitter {
 	tcontenttype t1;
@@ -2804,11 +2261,7 @@ void setup_stagesNORMAL(){
 			contenttype *ctext;
 			ccolor = vec4_init(1.0f,.6f,0.0f,1.0f);
 			ctext = new_contenttype_captiontext("Vera",12,ccolor);
-			//can put regular and extended chars in the \x hex form (visual studio uses code-page system, not utf8)
-			//& \x0026
-			//e grave \x00e8
-			//e acute \x00e9
-			captiontext_setString(ctext, "string from captiontext FReEgrl \x0026 Gré\x00E8n");
+			captiontext_setString(ctext, "string from captiontext FReEgrl  Gréèn");
 			ctext->t1.viewport[0] = .1f;
 			ctext->t1.viewport[1] = .6f;
 			ctext->t1.viewport[2] = .4f;
@@ -2853,36 +2306,6 @@ void setup_stagesNORMAL(){
 			csbh->t1.contents = corientation;
 
 		}else if(1){
-			//stereo chooser: switch + 4 stereo vision modes
-			//contenttype *clayer0, *clayer1, *clayer2, *clayer3;
-			contenttype *cscene0, *cscene1, *cscene2;
-			contenttype *cstereo1, *cstereo2, *cstereo3, *cstereo4, *cswitch;
-			cswitch = new_contenttype_switch();
-			cstereo1 = new_contenttype_stereo_sidebyside();
-			cstereo2 = new_contenttype_stereo_anaglyph();
-			cstereo3 = new_contenttype_stereo_updown();
-			cstereo4 = new_contenttype_stereo_shutter();
-			csbh->t1.contents = cswitch;
-			contenttype_switch_set_which(cswitch,4);
-
-
-			cscene0 = new_contenttype_scene();
-			cscene1 = new_contenttype_scene();
-			cscene0->t1.next = cscene1;
-			cscene2 = new_contenttype_scene();
-
-			cscene2->t1.next = cstereo1;     //whichCase 0
-			cstereo1->t1.contents = cscene0; //same scene0,scene1 stereo pair
-			cstereo2->t1.contents = cscene0; //2
-			cstereo3->t1.contents = cscene0; //3
-			cstereo4->t1.contents = cscene0; //4
-			cstereo1->t1.next = cstereo2;
-			cstereo2->t1.next = cstereo3;
-			cstereo3->t1.next = cstereo4;
-			cswitch->t1.contents = cscene2;
-			cstage->t1.contents = csbh;
-		}
-		else if(1){
 			//quadrant
 			//contenttype *clayer0, *clayer1, *clayer2, *clayer3;
 			contenttype *cscene0, *cscene1, *cscene2, *cscene3;
@@ -3578,7 +3001,7 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 	PRINT_GL_ERROR_IF_ANY("after depth")
 
 }
-void set_viewmatrix0(int iplace);
+
 void setup_picking(){
 	/*	Dec 15, 2015 update: variables have been vectorized in this function to match multi-touch, 
 		however multitouch with touch sensors doesn't work yet - you can have ID=0 for navigation
@@ -3603,10 +3026,9 @@ void setup_picking(){
 			touch = &p->touchlist[ktouch];
 			ID = touch->ID;
 			if(ID < 0) continue; //return;
-
 	//	if(ID == 0) continue; //for testing e3dmouse only
 			if(touch->windex != windex) continue; //return;
-//		if(touch->handled) continue; //already processed, for testing only 
+	//		if(touch->handled) continue; //already processed, for testing only 
 			touch->handled = TRUE;
 			x = touch->x;
 			yup = touch->y;
@@ -3620,7 +3042,7 @@ void setup_picking(){
 					setup_projection();
 					setup_pickray(x,yup);
 					//setup_viewpoint();
-					set_viewmatrix0(1);
+					set_viewmatrix();
 					render_hier(rootNode(),VF_Sensitive  | VF_Geom);
 
 					p->CursorOverSensitive[ID] = getRayHit();
@@ -4246,12 +3668,10 @@ int setup_pickside0(int x, int y, int *iside, ivec4 *vportleft, ivec4 *vportrigh
 static int setup_pickside(int x, int y){
 	ivec4 vpleft, vpright;
 	int iside, inside;
-	iside = 0;
 	inside = setup_pickside0(x,y,&iside,&vpleft,&vpright);
-	//Viewer()->iside = iside;
+	Viewer()->iside = iside;
 	return inside;
 }
-void fw_gluPerspective_2(GLDOUBLE xcenter, GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE zFar);
 void setup_projection()
 {
 	/*	setup_project transfers values from viewer struct to gl_projection matrix
@@ -4370,13 +3790,12 @@ void setup_projection()
 		xvp = xl;
 		screenwidth2 = xr-xl;
 	}
-	if(viewer->updownB)
-		aspect2 *= .5;
+
 	FW_GL_MATRIX_MODE(GL_PROJECTION);
 
 	/* >>> statusbar hud */
 	//if(tg->Mainloop.clipPlane != 0 || viewer->updown || viewer->sidebyside)
-	if(0) if(TRUE) //conttenttypes assume we're going to scissor: statusbar, quadrant
+	if(TRUE) //conttenttypes assume we're going to scissor: statusbar, quadrant
 	{   
 		/* scissor used to prevent mainloop from glClear()ing the wrong stereo side, and the statusbar area
 		 which is updated only every 10-25 loops */
@@ -4424,8 +3843,7 @@ void setup_projection()
 			fieldofview2=45.0;
 		/* glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);  */
         //printf ("Before FW_GLU_PERSPECTIVE, np %f fp %f\n",viewer->nearPlane, viewer->farPlane);
-		if(0) FW_GLU_PERSPECTIVE(fieldofview2, aspect2, viewer->nearPlane,viewer->farPlane);
-		if(1) fw_gluPerspective_2(viewer->xcenter,fieldofview2, aspect2, viewer->nearPlane,viewer->farPlane);
+		FW_GLU_PERSPECTIVE(fieldofview2, aspect2, viewer->nearPlane,viewer->farPlane);
 	}
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 	PRINT_GL_ERROR_IF_ANY("XEvents::setup_projection");
@@ -4574,7 +3992,6 @@ static void render()
 	setup_projection();
 	set_viewmatrix();
 	setup_picking();
-
 	viewer = Viewer();
 	doglClearColor();
 	for (count = 0; count < p->maxbuffers; count++) {
@@ -4655,8 +4072,6 @@ static void render()
 	} /* for loop */
 
 }
-
-
 
 static int currentViewerLandPort = 0;
 static int rotatingCCW = FALSE;
@@ -4802,6 +4217,7 @@ void setup_viewpoint_part3() {
 	 e) transform stack between scene root and currently bound viewpoint (render_hier(rootnode,VF_Viewpoint))
 
 */
+	int isStereo, iside;
 	double viewmatrix[16];
 	bindablestack *bstack;
 	X3D_Viewer *viewer;
@@ -4814,20 +4230,17 @@ void setup_viewpoint_part3() {
 	PRINT_GL_ERROR_IF_ANY("XEvents::setup_viewpoint");
 			fw_glGetDoublev(GL_MODELVIEW_MATRIX, bstack->viewtransformmatrix);
 
-	//if(0){
-	//	isStereo = bstack->isStereo;
-	//	iside = bstack->iside;
+	isStereo = bstack->isStereo;
+	iside = bstack->iside;
 
-	////restore real stereo settings for rendering
-	//	viewer->isStereo = isStereo;
-	//	viewer->iside = iside;
-	//}
+	//restore real stereo settings for rendering
+		viewer->isStereo = isStereo;
+		viewer->iside = iside;
+
 	//multiply it all together, and capture any slerp
-	//Feb 2016 - I think we should slerp the main/normal position of the viewpoint. 
-	// - then if its stereo, offset by half-base during rendernig or picking
 			matcopy(viewmatrix,bstack->screenorientationmatrix);
-		//if(0) if(isStereo)
-		//		matmultiplyAFFINE(viewmatrix,bstack->stereooffsetmatrix[iside],viewmatrix);
+		if(isStereo)
+				matmultiplyAFFINE(viewmatrix,bstack->stereooffsetmatrix[iside],viewmatrix);
 			matmultiplyAFFINE(viewmatrix,bstack->posorimatrix,viewmatrix); 
 			matmultiplyAFFINE(viewmatrix,bstack->viewtransformmatrix,viewmatrix); 
 			fw_glSetDoublev(GL_MODELVIEW_MATRIX, viewmatrix);
@@ -4842,7 +4255,7 @@ void setup_viewpoint(){
 	setup_viewpoint_part3();
 }
 
-void set_viewmatrix0(int iplace) {
+void set_viewmatrix() {
 	//if we already computed view matrix earlier in the frame via setup_viewpoint,
 	//and theoretically it hasn't changed since, 
 	//and just want to make sure its set, this is shorter than re-doing setup_viewpoint()
@@ -4857,22 +4270,12 @@ void set_viewmatrix0(int iplace) {
 	viewer = Viewer();
 	FW_GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
 		matcopy(viewmatrix,bstack->screenorientationmatrix);
-		if(viewer->isStereoB){
-			int iside = Viewer()->isideB;
-			matmultiplyAFFINE(viewmatrix,bstack->stereooffsetmatrix[iside],viewmatrix);
-		}
-		if(viewer->isStereo){
-			int iside = Viewer()->iside;
-			matmultiplyAFFINE(viewmatrix,bstack->stereooffsetmatrix[iside],viewmatrix);
-		}
+		if(viewer->isStereo)
+			matmultiplyAFFINE(viewmatrix,bstack->stereooffsetmatrix[Viewer()->iside],viewmatrix);
 		matmultiplyAFFINE(viewmatrix,bstack->posorimatrix,viewmatrix); 
 		matmultiplyAFFINE(viewmatrix,bstack->viewtransformmatrix,viewmatrix); 
 		fw_glSetDoublev(GL_MODELVIEW_MATRIX, viewmatrix);
 }
-void set_viewmatrix() {
-	set_viewmatrix0(0);
-}
-
 
 char *nameLogFileFolderNORMAL(char *logfilename, int size){
 	strcat(logfilename,"freewrl_tmp");
@@ -5872,23 +5275,6 @@ void setStereoBufferStyle(int itype) /*setXEventStereo()*/
 	}
 	printf("maxbuffers=%d\n",p->maxbuffers);
 }
-void setStereoBufferStyleB(int itype, int iside, int ibuffer) 
-{
-	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
-	if(itype==0)
-	{
-		/* quad buffer crystal eyes style */
-		if(iside == 0)
-			p->bufferarray[ibuffer]=GL_BACK_LEFT;
-		if(iside == 1)
-			p->bufferarray[ibuffer]=GL_BACK_RIGHT;
-	}
-	else if(itype==1)
-	{
-		/*sidebyside and anaglyph type*/
-		p->bufferarray[ibuffer]=FW_GL_BACK;
-	}
-}
 
 /* go to the first viewpoint */
 /* ok, is this ViewpointGroup active or not? */
@@ -6551,7 +5937,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	//	ibutton = 0; //moved to fw_handle_mouse_multi_yup for winRT mouse
 
 	vportstack = (Stack*)tg->Mainloop._vportstack;
-	vport = stack_top(ivec4,vportstack);
+	vport = stack_top(ivec4,vportstack); //should be same as stack bottom, only one on stack here
 	fx = (float)(x - vport.X) / (float)vport.W;
 	fy = (float)(y - vport.Y) / (float)vport.H;
 	if(0){
