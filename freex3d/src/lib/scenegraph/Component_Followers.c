@@ -491,13 +491,6 @@ float GetDist(struct X3D_PositionDamper *node)
     }
     return dist;
 }
-struct SFVec3f diftimes(struct SFVec3f a, struct SFVec3f b, double alpha){
-	struct SFVec3f ret;
-	float tmp[3], tmp2[3];
-	//input  .add(value1.subtract(input  ).multiply(alpha))
-	vecadd3f(ret.c,a.c,vecscale3f(tmp2,vecdif3f(tmp,b.c,a.c),(float)alpha));
-	return ret;
-}
 int UpdateReached(struct X3D_PositionDamper *node)
 {
     return UpdateReached2(node,GetDist(node));
@@ -541,6 +534,13 @@ void set_destinationD(struct X3D_PositionDamper *node, struct SFVec3f ipos)
     }
 }
 
+struct SFVec3f diftimes(struct SFVec3f a, struct SFVec3f b, double alpha){
+	struct SFVec3f ret;
+	float tmp[3], tmp2[3];
+	//input  .add(value1.subtract(input  ).multiply(alpha))
+	vecadd3f(ret.c,a.c,vecscale3f(tmp2,vecdif3f(tmp,b.c,a.c),(float)alpha));
+	return ret;
+}
 
 void tick_positiondamper(struct X3D_PositionDamper *node, double now)
 {
