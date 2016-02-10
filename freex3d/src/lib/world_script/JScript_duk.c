@@ -153,12 +153,26 @@ int fwiterator_generic(int index, FWTYPE *fwt, void *pointer, const char **name,
 
 int fwhas_generic(FWTYPE *fwt, void *pointer, const char *key, int *jndex, char *type, char *readOnly){
 	char *name;
-	int lastProp, index = -1;
+	int lastProp, isSet, index = -1;
 	lastProp = -1;
+	isSet = FALSE;
+	
 	while( (index = fwiterator_generic(index,fwt,pointer,&name, &lastProp, jndex, type, readOnly)) > -1){
 		if(!strcmp(name,key)){
 			//found it
 			return TRUE;
+		}
+	}
+	if(strlen(key)>4 && !strncmp(key,"set_",4))
+		isSet = TRUE;
+
+	if(isSet){
+		char* key2 = &key[4];
+		while( (index = fwiterator_generic(index,fwt,pointer,&name, &lastProp, jndex, type, readOnly)) > -1){
+			if(!strcmp(name,key2)){
+				//found it
+				return TRUE;
+			}
 		}
 	}
 	return FALSE;

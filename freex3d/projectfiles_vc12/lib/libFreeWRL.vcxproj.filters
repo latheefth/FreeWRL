@@ -348,19 +348,19 @@
     <ClCompile Include="$(SRCWIN)\view_platform_win32.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\scenegraph\Component_Layering.c">
+    <ClCompile Include="$(SRC)\lib\scenegraph\Component_Followers.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\scenegraph\Component_Layout.c">
+    <ClCompile Include="$(SRC)\lib\scenegraph\Component_Layering.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\scenegraph\Component_Followers.c">
+    <ClCompile Include="$(SRC)\lib\scenegraph\Component_Layout.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\scenegraph\Component_ParticleSystems.c">
+    <ClCompile Include="$(SRC)\lib\scenegraph\Component_ParticleSystems.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\lib\scenegraph\Component_RigidBodyPhysics.c">
+    <ClCompile Include="$(SRC)\lib\scenegraph\Component_RigidBodyPhysics.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -419,7 +419,7 @@
     <ClInclude Include="$(SRC)\lib\x3d_parser\X3DProtoScript.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\buildversion.h">
+    <ClInclude Include="$(SRC)\buildversion.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -272,6 +272,12 @@ float calc_angle_between_two_vectors(struct point_XYZ a, struct point_XYZ b)
     return (float) acos(temp);
 }
 
+int vecsame3f(float *a, float *b){
+	int i,isame = TRUE;
+	for(i=0;i<3;i++)
+		if(a[i] != b[i]) isame = FALSE;
+	return isame;
+}
 /* returns vector length, too */
 GLDOUBLE vecnormal(struct point_XYZ*r, struct point_XYZ* v)
 {

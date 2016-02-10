@@ -242,6 +242,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <WarningLevel>Level1</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_glew|x64'">
@@ -383,11 +384,11 @@
     <ClCompile Include="$(SRC)\lib\world_script\jsVRMLClasses_duk.c" />
     <ClCompile Include="$(SRCWIN)\gdiPlusImageLoader.cpp" />
     <ClCompile Include="$(SRCWIN)\view_platform_win32.c" />
-    <ClCompile Include="..\..\src\lib\scenegraph\Component_Followers.c" />
-    <ClCompile Include="..\..\src\lib\scenegraph\Component_Layering.c" />
-    <ClCompile Include="..\..\src\lib\scenegraph\Component_Layout.c" />
-    <ClCompile Include="..\..\src\lib\scenegraph\Component_ParticleSystems.c" />
-    <ClCompile Include="..\..\src\lib\scenegraph\Component_RigidBodyPhysics.c" />
+    <ClCompile Include="$(SRC)\lib\scenegraph\Component_Followers.c" />
+    <ClCompile Include="$(SRC)\lib\scenegraph\Component_Layering.c" />
+    <ClCompile Include="$(SRC)\lib\scenegraph\Component_Layout.c" />
+    <ClCompile Include="$(SRC)\lib\scenegraph\Component_ParticleSystems.c" />
+    <ClCompile Include="$(SRC)\lib\scenegraph\Component_RigidBodyPhysics.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(SRC)\lib\scenegraph\Component_Picking.h" />
@@ -408,7 +409,7 @@
     <ClInclude Include="$(SRC)\lib\ui\statusbar.h" />
     <ClInclude Include="$(SRC)\lib\x3d_parser\X3DParser.h" />
     <ClInclude Include="$(SRC)\lib\x3d_parser\X3DProtoScript.h" />
-    <ClInclude Include="..\..\src\buildversion.h" />
+    <ClInclude Include="$(SRC)\buildversion.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libminizip\libminizip.vcxproj">

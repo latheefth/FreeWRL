@@ -207,16 +207,12 @@ typedef struct viewer {
 	//double exploreDist; //explore dist
 	/*stereovision...*/
 	int isStereo; /*=1 stereovision of any type (all types require viewpoint to shift left and right in scene) */
-	int isStereoB;
 	int iside;    /* rendering buffer index Left=0 Right=1 */
-	int isideB;
 	int sidebyside; /*=1 if 2 viewport method*/
 	int updown; /*=1 if 2 viewport method*/
-	int updownB; //for contenttype_stereo_updown
 	int shutterGlasses;
 	int haveQuadbuffer;
 	int anaglyph; /* = 1 if analglyph is turned on */
-	int anaglyphB; //for contenttype_stereo_anaglyph
 	int dominantEye; /* 2D screen cursor picks in which viewport? 0=Left 1=Right */
 	int eitherDominantEye; //1 = switch based on which viewport mouse is over (sidebyside and updown) 0= always use dominantEye;
 	double stereoParameter;
@@ -277,7 +273,6 @@ typedef struct viewer {
 
 	double nearPlane;
 	double farPlane;
-	double xcenter;
 	double backgroundPlane ;
 	GLDOUBLE fieldofview;
 	GLDOUBLE fovZoom ;
