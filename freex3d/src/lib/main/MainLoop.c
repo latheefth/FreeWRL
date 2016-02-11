@@ -1986,7 +1986,6 @@ void stage_render(void *_self){
 		glClearColor(.3f,.4f,.5f,1.0f);
 	else
 		glClearColor(1.0f,0.0f,0.0f,1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 	content_render(_self); //the rest of stage render is the same as content render, so we'll delegate
 	popnset_framebuffer();
 	popnset_viewport();
@@ -2211,9 +2210,55 @@ contenttype *new_contenttype_texturegrid(int nx, int ny){
 		self->vert2 = vert2;
 		self->nelements = k;
 		self->nvert = nx*ny;
+		//copy standard vertices unmodified to vert2 which is used in render
+		for(i=0;i<self->nvert;i++){
+			self->vert2[i*3 +0] = self->vert[i*3 +0]; //x
+			self->vert2[i*3 +1] = self->vert[i*3 +1]; //y
+			self->vert2[i*3 +2] = self->vert[i*3 +2]; //z
+		}
 	}
 	return (contenttype*)self;
 }
+void texturegrid_barrel_distort(void *_self, float k1){
+	contenttype_texturegrid *self;
+	self = (contenttype_texturegrid *)_self;
+	//Modify your vertices here for weird things
+	if(1){
+		//barrel distortion used for googleCardboard-like devices with magnifying glass per eye
+		int i;
+		for(i=0;i<self->nvert;i++){
+			float radius2, x, y;
+			x = self->vert[i*3 +0];  //go back to original coords
+			y = self->vert[i*3 +1];
+			radius2 = x*x + y*y;
+			self->vert2[i*3 +0] = x*(1.0f - k1*radius2); 
+			self->vert2[i*3 +1] = y*(1.0f - k1*radius2);
+		}
+	}
+
+	if(0){
+		//some other example distortions, not used here
+		float aspect, scale, xshift, yshift;
+		int i;
+		aspect = 1.0; //we'll do window aspect ratio below, using projectionMatrix
+		xshift = 0.0; 
+		yshift = 0.0;
+		scale = 1.0; //window coords go from -1 to 1 in x and y, and so do our lazyvert
+
+		for(i=0;i<self->nvert;i++){
+			self->vert2[i*3 +0] += xshift; //x .0355 empirical
+			self->vert2[i*3 +1] += yshift; //y  .04 empirical
+			self->vert2[i*3 +0] *= 1.0; //x
+			self->vert2[i*3 +1] *= aspect; //y
+			self->vert2[i*3 +0] *= scale; //x
+			self->vert2[i*3 +1] *= scale; //y
+			self->vert2[i*3 +2] = self->vert[i*3 +2]; //z
+		}
+	}
+
+
+}
+
 #include "../scenegraph/Component_Shape.h"
 void render_texturegrid(void *_self){
 	contenttype_texturegrid *self;
@@ -2241,12 +2286,13 @@ void render_texturegrid(void *_self){
 
 //>>onResize
 	//Standard vertex process - both sides get this:
-	for(i=0;i<self->nvert;i++){
-		self->vert2[i*3 +0] = self->vert[i*3 +0]; //x
-		self->vert2[i*3 +1] = self->vert[i*3 +1]; //y
-		self->vert2[i*3 +2] = self->vert[i*3 +2]; //z
-	}
+	//for(i=0;i<self->nvert;i++){
+	//	self->vert2[i*3 +0] = self->vert[i*3 +0]; //x
+	//	self->vert2[i*3 +1] = self->vert[i*3 +1]; //y
+	//	self->vert2[i*3 +2] = self->vert[i*3 +2]; //z
+	//}
 
+	/*
 	//Modify your vertices here for weird things, depending on side
 	aspect = 1.0; //we'll do window aspect ratio below, using projectionMatrix
 	xshift = 0.0; 
@@ -2262,16 +2308,16 @@ void render_texturegrid(void *_self){
 		self->vert2[i*3 +1] *= scale; //y
 		self->vert2[i*3 +2] = self->vert[i*3 +2]; //z
 	}
+	*/
 
-
-	//standard vertex process - both sides get this:
-	//scale = tg->display.screenRatio;
-	scale = 1.0f; // 4.0f/3.0f;
-	for(i=0;i<self->nvert;i++){
-		self->vert2[i*3 +0] *= scale; //x
-		self->vert2[i*3 +1] *= scale; //y
-	}
-//<<onResize
+//	//standard vertex process - both sides get this:
+//	//scale = tg->display.screenRatio;
+//	scale = 1.0f; // 4.0f/3.0f;
+//	for(i=0;i<self->nvert;i++){
+//		self->vert2[i*3 +0] *= scale; //x
+//		self->vert2[i*3 +1] *= scale; //y
+//	}
+////<<onResize
 
 	//use FW shader pipeline
 	//we'll use a simplified shader -same one we use for DrawCursor- that 
@@ -3300,7 +3346,7 @@ void setup_stagesNORMAL(){
 			cscene->t1.next = NULL;
 			csbh->t1.contents = corientation;
 
-		}else if(1){
+		}else if(0){
 			//stereo chooser: switch + 4 stereo vision modes
 			//contenttype *clayer0, *clayer1, *clayer2, *clayer3;
 			contenttype *cscene0, *cscene1, *cscene2;
@@ -3311,7 +3357,7 @@ void setup_stagesNORMAL(){
 			cstereo3 = new_contenttype_stereo_updown();
 			cstereo4 = new_contenttype_stereo_shutter();
 			csbh->t1.contents = cswitch;
-			contenttype_switch_set_which(cswitch,4);
+			contenttype_switch_set_which(cswitch,1);
 
 
 			cscene0 = new_contenttype_scene();
@@ -3329,8 +3375,40 @@ void setup_stagesNORMAL(){
 			cstereo3->t1.next = cstereo4;
 			cswitch->t1.contents = cscene2;
 			cstage->t1.contents = csbh;
-		}
-		else if(1){
+		} else if(1){
+			//sidebyside stereo with per-eye fbo
+			contenttype *cscene0, *cscene1;
+			contenttype *cstereo;
+			contenttype *cstagefbo0, *cstagefbo1;
+			contenttype *ctexturegrid0, *ctexturegrid1;
+
+
+			cstagefbo0 = new_contenttype_stagefbo(512,512);
+			ctexturegrid0 = new_contenttype_texturegrid(5,5);
+			ctexturegrid0->t1.contents = cstagefbo0;
+
+			cstagefbo1 = new_contenttype_stagefbo(512,512);
+			ctexturegrid1 = new_contenttype_texturegrid(5,5);
+			ctexturegrid1->t1.contents = cstagefbo1;
+
+			texturegrid_barrel_distort(ctexturegrid0, .1f);
+			texturegrid_barrel_distort(ctexturegrid1, .1f);
+
+			cscene0 = new_contenttype_scene();
+			cscene1 = new_contenttype_scene();
+
+			cstagefbo0->t1.contents = cscene0;
+			cstagefbo1->t1.contents = cscene1;
+
+			cstereo = new_contenttype_stereo_sidebyside();
+			//cstereo = new_contenttype_stereo_anaglyph();
+			//cstereo = new_contenttype_stereo_shutter();
+			cstereo->t1.contents = ctexturegrid0;
+			ctexturegrid0->t1.next = ctexturegrid1;
+			csbh->t1.contents = cstereo;
+			cstage->t1.contents = csbh;
+
+		} else if(0){
 			//quadrant
 			//contenttype *clayer0, *clayer1, *clayer2, *clayer3;
 			contenttype *cscene0, *cscene1, *cscene2, *cscene3;
@@ -5025,6 +5103,8 @@ static void render()
 
 	viewer = Viewer();
 	doglClearColor();
+
+
 	for (count = 0; count < p->maxbuffers; count++) {
 
 		viewer->buffer = (unsigned)p->bufferarray[count];
@@ -5101,6 +5181,11 @@ static void render()
 				glColorMask(1,1,1,1); /*restore, for statusbarHud etc*/
 		}
 	} /* for loop */
+	if(1){
+		//render last know mouse position as seen by the backend
+		struct Touch *touch = &p->touchlist[0];
+		fiducialDraw(0, touch->x, touch->y, 0.0f);
+	}
 
 }
 
