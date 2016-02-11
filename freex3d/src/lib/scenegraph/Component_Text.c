@@ -3402,7 +3402,142 @@ int render_captiontext(AtlasFont *font, unsigned char * utf8string, vec4 color){
 
 	return TRUE;
 }
+void atlasfont_get_rowheight_charwidth_px(AtlasFont *font, int *rowheight, int *maxadvancepx){
+	*rowheight = font->set->rowheight;
+	*maxadvancepx = font->set->maxadvancepx;
+}
+int RenderStringG(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y, vec4 color){
+	//we use a font atlas
+	AtlasEntrySet *entryset;
+	if(cText == NULL) return FALSE;
+	if(len == 0) return FALSE;
+	if(font == NULL) return FALSE;
+	entryset = font->set; //GUIFont_getMatchingAtlasEntrySet(self->font,self->fontSize);
+	if(entryset == NULL) return FALSE;
+	if(entryset->atlas == NULL) return FALSE;
+	{
+		AtlasEntry *ae;
+		Atlas *atlas;
+		vec2 charScreenSize;
+		vec2 charScreenOffset;
+		vec2 charScreenAdvance;
+		vec2 penxy;
+		int i, ichar;
+		int bmscale;
+		GLfloat x,y,z, xx, yy;
+		float aw,ah;
+		int ih, itex[8],kk;
+		//bmscale = 2; not used right now
+		//(2 end vert + (2 vert/glyph * max 128 glyhps per line)) x 3 coords per vert = (2+(256))*3 = 258*3 = 774
+		GLfloat vert[774]; 
+		//(4 tex / glyph * max 128 glyphs per line) * 2 coords per tex = (4 * 128)*2 = (512)*2 = 1024;
+		GLfloat tex[1024];
+		//(2 triangles * 3 ind / triangle) * max 128 glyphs/line = 6 * 128 = 768
+		GLushort ind[768];
+		int maxlen = 128;
+		maxlen = min(maxlen,len);
+		x=y=z = 0.0f;
+		penxy = pixel2normalizedScreen((float)(*pen_x),(float)(*pen_y));
+		x = penxy.X;
+		y = penxy.Y;
+		atlas = entryset->atlas;
+		aw = 1.0f/(float)atlas->size.X;
+		ah = 1.0f/(float)atlas->size.Y;
+		ih = atlas->size.Y;
+		for(i=0;i<maxlen;i++)
+		{
+			ichar = (int)cText[i];
+			if (ichar == '\t') ichar = ' '; //trouble with tabs, quick hack
+			ae = AtlasEntrySet_getEntry(entryset,ichar);
+			if(!ae) ae = AtlasEntrySet_getEntry(entryset,(int)' ');
+			if(ae)
+			{
+				// 1  2
+				// 0  3
+				charScreenSize = pixel2normalizedViewportScale(ae->size.X, ae->size.Y);
+				charScreenAdvance = pixel2normalizedViewportScale(ae->advance.X, ae->advance.Y);
+				charScreenOffset = pixel2normalizedViewportScale(ae->pos.X,ae->pos.Y);
+				//from baseline origin, add offset to get to upper left corner of image box
+				xx = x + charScreenOffset.X;
+				yy = y + charScreenOffset.Y;
+				kk = i*4*3;
+				vert[kk +0] = xx;
+				vert[kk +1] = yy - charScreenSize.Y;
+				vert[kk +2] = z;
+				vert[kk +3] = xx;
+				vert[kk +4] = yy;
+				vert[kk +5] = z;
+				vert[kk +6] = xx + charScreenSize.X; 
+				vert[kk +7] = yy; 
+				vert[kk +8] = z;
+				vert[kk +9] = xx + charScreenSize.X; 
+				vert[kk+10] = yy - charScreenSize.Y;
+				vert[kk+11] = z;
+				x = x + charScreenAdvance.X; 
+				(*pen_x) += ae->advance.X;
+				kk = i*4*2;
+				tex[kk +0] = ((float)(ae->apos.X))*aw; 
+				tex[kk +2] = ((float)(ae->apos.X))*aw; 
 
+				tex[kk +4] = ((float)(ae->apos.X + ae->size.X))*aw; 
+				tex[kk +6] = ((float)(ae->apos.X + ae->size.X))*aw; 
+
+				if(iyup){
+					tex[kk +1] = ((float)(ih - (ae->apos.Y + ae->size.Y)))*ah; 
+					tex[kk +3] = ((float)(ih - ae->apos.Y))*ah; 
+
+					tex[kk +5] = ((float)(ih - ae->apos.Y))*ah; 
+					tex[kk +7] = ((float)(ih - (ae->apos.Y + ae->size.Y)))*ah; 
+				}else{
+					tex[kk +1] = ((float)((ae->apos.Y + ae->size.Y)))*ah; 
+					tex[kk +3] = ((float)(ae->apos.Y))*ah; 
+
+					tex[kk +5] = ((float)(ae->apos.Y))*ah; 
+					tex[kk +7] = ((float)((ae->apos.Y + ae->size.Y)))*ah; 
+				}
+				// 1-2 2
+				// |/ /|
+				// 0 0-3
+				kk = i*3*2;
+				ind[kk +0] = i*4 + 0;
+				ind[kk +1] = i*4 + 1;
+				ind[kk +2] = i*4 + 2;
+				ind[kk +3] = i*4 + 2;
+				ind[kk +4] = i*4 + 3;
+				ind[kk +5] = i*4 + 0;
+			}
+		}
+
+
+		glActiveTexture ( GL_TEXTURE0 );
+		glBindTexture ( GL_TEXTURE_2D, textureID );
+		glUniform1i ( textureLoc, 0 );
+
+		if(atlas->bytesperpixel == 1){
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, atlas->size.X, atlas->size.Y, 0, GL_ALPHA , GL_UNSIGNED_BYTE, atlas->texture);
+		}else if(atlas->bytesperpixel == 4){
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, atlas->size.X, atlas->size.Y, 0, GL_RGBA , GL_UNSIGNED_BYTE, atlas->texture);
+		}
+		glUniform4f(blendLoc,0.0f,0.0f,0.0f,1.0f);
+		glUniform4f(color4fLoc,color.X,color.Y,color.Z,color.W); //0.7f,0.7f,0.9f,1.0f);
+
+		// Load the vertex position
+		glVertexAttribPointer (positionLoc, 3, GL_FLOAT, 
+							   GL_FALSE, 0, vert );
+		// Load the texture coordinate
+		glVertexAttribPointer ( texCoordLoc, 2, GL_FLOAT,
+							   GL_FALSE, 0, tex );  //fails - p->texCoordLoc is 429xxxxx - garbage
+
+		glEnableVertexAttribArray (positionLoc );
+		glEnableVertexAttribArray (texCoordLoc );
+		// Set the base map sampler to texture unit to 0
+
+		//glUniform1i ( textureLoc, 0 );
+		glDrawElements ( GL_TRIANGLES, len*3*2, GL_UNSIGNED_SHORT, ind );
+
+	}
+	return TRUE;
+}
 void render_screentext0(struct X3D_Text *tnode){
 	/*	to be called from Text node render_Text for case of ScreenFontStyle
 		this is a copy of the CaptionText method, 

@@ -255,6 +255,7 @@ enum {
 	CONTENT_TEXTUREGRID,	//texture-from-fbo-render over a planar mesh/grid, rendered with ortho and diffuse light
 	CONTENT_ORIENTATION,	//screen orientation widget for 'screenOrientation2' application of mobile device screen orientation 90, 180, 270
 	CONTENT_CAPTIONTEXT,	//text, but just one line 
+	CONTENT_TEXTPANEL,		//ConsoleMessage panel, using dual ring buffers: one for raw text stream, other for pointers to \n in first buffer
 	CONTENT_LAYER,			//children are rendered one over top of the other, with zbuffer clearing between children
 	CONTENT_SPLITTER,		//not implemented, a splitter widget
 	CONTENT_QUADRANT,		//semi- implemented, a quadrant panel where the scene viewpoint is altered to side, front, top for 3 panels
@@ -662,6 +663,445 @@ void captiontext_setString(void *_self, char *utf8string){
 }
 
 
+//#ifdef DUALRINGBUFFER
+//DUAL RING BUFFER CONSOLEMESSAGE
+//our thanks go to dug9 for adapting/contributing this dual ringbuffer method from his dug9gui project
+#include "list.h"
+typedef struct consoleLine {
+	char *line;
+	int len;
+	int endline;
+} consoleLine;
+
+typedef struct BUTitem BUTitem;
+typedef struct BUTitem {
+	unsigned char *B;
+	BUTitem *prev;
+	BUTitem *next;
+}BUTitem;
+typedef struct contenttype_textpanel {
+	tcontenttype t1;
+	AtlasEntrySet *set;
+	AtlasFont *font;
+	char *fontname;
+	int fontSize;
+	int maxadvancepx;
+	vec4 color;
+	//float percentSize;
+	//float angle;
+
+	int maxlines;
+	int maxlen;
+	int wrap;
+
+	//blob method
+	unsigned char *Ablob;
+	int blobsize;
+	unsigned char *S, *E; //static pointers to BLOB start and end
+	unsigned char *Z,*z;  //start and end pointers of written non-stale BLOB data, move as more data written
+	BUTitem *Blist;  //storage for \n ring buffer
+	BUTitem *bhead;  //head of the \n ring buffer
+	int added;
+	int rowsize; //malloced size of *row
+	unsigned char *row;  //buffer for combining split rows for rendering
+	int initialized; //flag for initializing whatever update calls on each loop, so on first loop it can initialize backend/model of MVC
+} contenttype_textpanel;
+void textpanel_render(void *self);
+contenttype *new_contenttype_textpanel(char* fontname, int EMpixels, int maxlines, int maxlen, int wrap){
+	int i;
+	contenttype_textpanel *self = MALLOCV(sizeof(contenttype_textpanel));
+	init_tcontenttype(&self->t1);
+	self->t1.itype = CONTENT_TEXTPANEL;
+	self->t1.render = textpanel_render;
+	// default t1-> pick self->t1.pick = textpanel_pick;
+
+	self->color = vec4_init(1.0f,1.0f,1.0f,0.0f);
+	//self->super.super.type = GUI_TEXTPANEL;
+	self->maxlines = maxlines;
+	self->maxlen = maxlen; // max line length 
+	self->wrap = wrap; //bool if true, cut lines when too long, else render on one line up to maxlen and scroll in X
+	self->set = NULL;
+
+	//blob method
+	self->blobsize = self->maxlines * self->maxlen;
+	self->Ablob = (unsigned char*)malloc(self->blobsize+1);
+	memset(self->Ablob,0,self->blobsize+1); //the +1 is so Ablob ends in \0 and we can printf it for debuggin
+	self->Z = self->z = self->Ablob;
+	self->S = self->Ablob;
+	self->E = self->Ablob + self->blobsize;
+	self->Blist = malloc(sizeof(BUTitem)*self->maxlines);
+	self->rowsize = 80;
+	self->row = malloc(self->rowsize+1);
+	for(i=0;i<self->maxlines;i++){
+		int prev, next;
+		prev = i - 1;
+		next = i + 1;
+		if(prev < 0) prev = self->maxlines -1;
+		if(next > self->maxlines -1) next = 0;
+		 self->Blist[i].next = &self->Blist[next];
+		 self->Blist[i].prev = &self->Blist[prev];
+		 self->Blist[i].B = self->Z;
+	}
+	self->bhead = &self->Blist[0];
+	self->added = 0;
+	//ouch
+	self->fontname = fontname;
+	self->fontSize = EMpixels;
+	self->maxadvancepx = EMpixels/2; //use the one in atlasEntry which is more specific
+	self->initialized = FALSE; 
+	//self->font = 
+	self->fontname = fontname;
+	self->font = (AtlasFont*)searchAtlasTableOrLoad(fontname,EMpixels);
+	if(!self->font){
+		printf("dug9gui: Can't find font %s do you have the wrong name?\n",fontname);
+	}
+	/*
+	AtlasFont *font = (AtlasFont*)searchGUItable(font_table,fontname);
+	if(font){
+		self->font = font;
+		if(font->atlasSizes.n){
+			for(int i=0;i<font->atlasSizes.n;i++){
+				AtlasEntrySet *aes = vector_get(AtlasEntrySet*,&font->atlasSizes,i);
+				if(aes->EMpixels == EMpixels){
+					self->set = aes;
+				}
+			}
+		}
+	}
+	*/
+	return (contenttype*)self;
+}
+
+
+/*	
+BLOB (binary large object) method for accumulating consoleMessages and wrapping/splitting 
+	for fixed width console rendering
+Net benefit of the BLOB algo (vs list-of-fixed-length-strings):
+- Rendering can wrap easily, recomputing wrap splits on each frame using pointer arithmetic, without iterating over string chars
+- line-length limit bigger: size of BLOB instead of maxlen
+- no per-frame mallocs/frees/strdups 
+
+More algo details: we are using 2 circular / ring buffers:
+- one for unsigned char* text bytes
+- one to record \n locations in the buffer, during incoming writes (makes it fast to render)
+http://en.wikipedia.org/wiki/Circular_buffer
+1. for generic ring buffers you need to store the length of the buffer, 
+	and/or both start and end of data, with start = end+1, so its possible to tell 
+	when the buffer is exactly empty vs full 
+	(for us self-z == self->Z when exactly empty, otherwise self->z == self->Z + 1 when full)
+2. our case differs from generic circular/ring buffer algos:
+a) we never 'get/take/remove' from either ring buffer during read/render. 
+	Instead it's up to the write to do all updates to the buffer, and keep overwriting stale data.
+b) because we do 2 circular buffers -\n struct list and char* blob- we must combine/union/min our 'limits' 
+	when reading backward from the newest data to the oldest, so that we don't hit stale 
+	pointers/over-written data.
+Arbitrary design choices: for the blob / char* ring buffer: a well known hassle is wrapping when we hit
+	the end of the buffer, and some algos have fancy techniques such as pointer mirroring or
+	'bip' 2-chunk method. We deal straighforwardly with the break in the data by detecting
+	where it is, and making 2 memcpys on write and 2 on read.
+
+Structs:
+- a circular blob buffer 128rows*128cols = 16k will work as an intermediary between 
+	consolemessage strings and word-wrapped display
+- Blist is a fixed-size (maxrows) circularly linked list of small structs with pointers into the blob
+- awkward part is split as a string wraps around to start of blobA 
+-- can be handled uniformly during render with B,T,U pointers
+
+ABLOB RING BUFFER
+S                     Zz                                        E
+================================================================
+                                                       A--------T
+U---------------------B                            last \n
+                   most recent char
+*static
+^singleton
+*^	S,E start and end pointers to BLOBA buffer, E = S + blobsize
+^	zZ moving border of wraparound buffer z=start, Z=end 
+	- starts out as z=S,Z=S, Z grows till == E, thereafter z=Z+1 and keeps moving
+B	ptr to last char received from consolemessage
+A	ptr to previous \n
+T,U	wraparound pointers: normally T=U=B, except when wrapping around then T=E, U=S
+sw	screen width in chars
+line - incoming string from ConsoleMessage which may or may not end in \n
+chunk - data between last char written and previous \n or (if no \n in blob) z
+		if there's a wraparound split, chunk = B-U + T-A otherwise chunk B-A
+row - screen-width (or less) slice of chunk
+
+Algo:
+To compute number of screen rows in chunk:
+n = ceil[(B-U + T-A)/sw]
+Thats for one chunk.
+The listB circularly linked list will hold maxline list of \n pointers into ABLOB
+Rendering will loop starting at the last char written, and work back to compute 
+number of screen rows and split points, stopping the iteration when listB is exhausted 
+or maxlines reached/exceeded, or ABLOB pointer == z 
+
+Updating ABLOB with a new incoming string:
+when receiving a string with no \n, and there was no \n on last string, the last Blist item is updated. 
+If prior string had a \n, a new Blist item is set, and the Blist head pointer is set to point to the new item.
+
+*/
+
+
+void TextPanel_AddLine_blobMethodB(contenttype_textpanel *self, char *line, int len, int endline){
+	unsigned char *T, *U, *B;
+	int lenT, lenU, haveTU;
+	BUTitem *BUTI;
+
+	T = min(self->Z + len, self->E);
+	U = T == self->E ? self->S : T;
+	lenT = T - self->Z;
+	lenU = len - lenT;
+	haveTU = lenU > 0;
+	memcpy(self->Z,line,lenT);
+	if(haveTU)
+		memcpy(U,&line[lenT],lenU);
+	B = U + lenU;
+	BUTI = endline? self->bhead->next : self->bhead;
+	BUTI->B = B;
+	self->bhead = BUTI;
+	self->Z = B;
+	self->added = min(self->added + len, self->blobsize + 1);
+	if(self->added > self->blobsize){
+		//buffer full, move start
+		self->z = self->z + 1;
+		if(self->z > self->E) self->z = self->S;
+	}
+}
+void TextPanel_AddString(contenttype_textpanel *self, char *string){
+	//takes a printf string which may be long and have embedded \n, may or may not end on \n
+	//and splits it on \n, calls AddLine for each one.
+	int endline, endstring;
+	char *s = string;
+	if(s == NULL) return;
+	endstring = (*s) == '\0';
+	while(!endstring){
+		char *ln = s;
+		while( (*ln) != '\0' && (*ln) != '\n') ln++;
+		endline = (*ln) == '\n';
+		endstring = (*ln) == '\0';
+		TextPanel_AddLine_blobMethodB(self,s,ln-s,endline);
+		ln++;
+		s = ln;
+	}
+}
+static contenttype_textpanel *console_textpanel = NULL;
+//You call TextPanel_AddString from ConsoleMessage
+void TextPanel_Console_AddString(char *string){
+	TextPanel_AddString(console_textpanel,string);
+}
+void fwg_register_consolemessage_callback(void(*callback)(char *));
+void textpanel_register_as_console(void *_self){
+	contenttype_textpanel *self = (contenttype_textpanel*)_self;
+	console_textpanel = self;
+	fwg_register_consolemessage_callback(TextPanel_Console_AddString);
+}
+int RenderStringG(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y, vec4 color);
+ivec2 pixel2text(int x, int y, int rowheight, int maxadvancepx){
+	int h = rowheight;
+	int w = maxadvancepx;
+	ivec2 ret = ivec2_init(x/w,y/h);
+	return ret;
+}
+ivec2 text2pixel(int x, int y, int rowheight, int maxadvancepx){
+	int h = rowheight;
+	int w = maxadvancepx;
+	ivec2 ret = ivec2_init(x*w, y*h);
+	return ret;
+}
+
+void atlasfont_get_rowheight_charwidth_px(AtlasFont *font, int *rowheight, int *maxadvancepx);
+
+void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
+/*	completely re-renders the textpanel, from the ABLOB and Blist ringbuffers
+	- call once per frame
+	- re-splits lines on each frame
+	- if your textpanel starts small in Y, this will auto-expand its Y dimension till maxlines * rowheight in size
+	Benefit (vs. buffering split lines) - if you tilt your device to a new orientation ie portrait to landscape
+		then the text will be resplit and re-scrolled for the new panel shape automatically
+	Implementation Options:
+	- auto-resizing of panel up to a maxheight. Benefits:
+		a) always draw text from bottom of panel up, simplfying to one loop
+		b) panel scrolling can automatically turn on/off as needed (you need to assign the scrolling function)
+	- vs fixed size panel 
+		x to get top-down look to scrolling you need 2 loops, one to count lines, one to draw
+		x you could scroll same distance even when there's nothing to see
+*/
+	int jline, jrow, nrows, isFull, moredata, rowheight, maxadvancepx;
+
+	ivec2 panelsizechars;
+	BUTitem *BUTI, *LBUTI;
+	contenttype_textpanel *self;
+
+	self = (contenttype_textpanel *)_self;
+	//we'll assume this is a 'leaf' contenttype - no children worth rendering
+	if(self->t1.itype != CONTENT_TEXTPANEL) return;
+	if(!self->font ) return;
+
+	atlasfont_get_rowheight_charwidth_px(self->font,&rowheight,&maxadvancepx);
+	panelsizechars = ivec2_init(ivport.W / maxadvancepx, ivport.H / rowheight);
+	
+	if(panelsizechars.X+1 > self->rowsize) {
+		self->rowsize = panelsizechars.X+1;
+		realloc(self->row,self->rowsize);
+	}
+	BUTI = self->bhead;
+
+	//compute lines needed
+	jline = 0; //number of \n lines processed
+	jrow = 0; // number of screen rows processed
+	//work backward from bottom up the buffer, stopping at:
+	//a) maxrows (ie we have enough \n to fill our console rows)
+	//b) self->z (ie we hit stale data in the char* ring buffer)
+	// whichever is less
+	isFull = self->added > self->blobsize;
+	moredata = min(self->added,self->blobsize);
+	do{
+		int i, nchars, bchars, achars, hasTU, Trow;
+		unsigned char *B, *A,  *U, *T, *P;
+		LBUTI = BUTI->prev;
+		B = BUTI->B;
+		//calculate numbe of wordwrapped lines - we'll just split uncerimoniously like a console rather than looking for a space like a word processor
+		U = B;
+		T = B;
+		hasTU = FALSE;
+		A = LBUTI->B;
+		if(B < A){
+			U = self->S;
+			T = self->E;
+			hasTU = TRUE;
+		}
+		nchars = (B - U + T - A);
+		achars = T - A;
+		bchars = nchars - achars;
+
+		nrows = (int)ceil((float)nchars/(float)panelsizechars.X);
+		Trow = nrows -1 - (T - A)/panelsizechars.X; //if hasTU split, which panel row is it in?
+		//hasTU = B != T;  //is there a ABLOB buffer split (TU) in this \n delimited line?
+		//ABLOB - some scenarios it has to work with. The hard part: handling the ABLOB TU break
+		//S                     Zz                                        E
+		//======================================================\n=========
+		//U111222222222222333333B                                A11111111T
+		//3 textpanel rows 1,2 and 3, with 3 being a partial row, and 1 being split by circular buffer
+		//U111111111111111111111B                                A11111111T
+		//one partial row being split by circular buffer
+		//        A1111111111111TUB                                
+		//normal case, one row, no split
+		//        A1111222233333TUB                                
+		//normal case, 3 rows, no split
+		//
+		P = B;
+		for(i=0;i<nrows;i++){
+			unsigned char *row;
+			int l0, l1, i0, lenrow, pen_x, pen_y;
+			ivec2 xy;
+
+			i0 = (nrows-i-1)*panelsizechars.X;
+			lenrow = min(nchars - i0,panelsizechars.X);
+			moredata -= lenrow;
+			if(moredata <= 0)break; //stale (overwritten) BLOB/ringbuffer data
+			jrow++;
+			if(jrow >  panelsizechars.Y) //would be rendered off-panel
+				break;
+			row = &P[-nchars + i0];
+			if(hasTU && Trow == i){
+				l0 = T - &A[i0];
+				l1 = lenrow - l0;
+				row = self->row;
+				memcpy(&row[l0],U,l1);
+				memcpy(row,&A[i0],l0);
+				P = &self->E[bchars];
+			}
+			if(0){
+				//debugging
+				if(!strncmp(row,"`~",2)){
+					//last row of my synthetic data
+					//lets see the blob ringbuffer
+					printf("===========\n");
+					printf("%s",self->Ablob);
+					printf("\n===========\n");
+
+				}
+			}
+			if(0){
+				int k;
+				//debugging
+				for(k=0;k<lenrow;k++){
+					if(row[k] != '.'){
+						printf("T-A=%d B-U=%d Z=%d S=%d E=%d A=%d B=%d &Aio= %d\n",(int)(T-A),(int)(B-U),(int)self->Z, (int)self->S,(int)self->E,(int)A,(int)B,(int)&A[i0]);
+						row[k] = '?';
+					}
+				}
+			}
+			//OK got row and lenrow, now render it
+			//textchars2panelpixel
+			xy = text2pixel(0,jrow,rowheight,maxadvancepx); 
+			//panelpixel2screenpixel?
+			pen_y = ivport.Y; 
+			pen_x = xy.X;
+			pen_y -= xy.Y;
+			//check if this line is visible, as measured by its bounding box. skip render if not
+			//ivec4 box = ivec4_init(pen_x,pen_y,lenrow*self->set->maxadvancepx,self->set->rowheight);
+			//ivec4 currentvp = stack_top(ivec4,_vpstack);
+			//if(overlapviewports(box, currentvp)) //seems not properly aligned, a little too aggressive
+				RenderStringG(self->font, row, lenrow,&pen_x, &pen_y, self->color); //&xy.X,&xy.Y);
+			if(0){
+				//debugging
+				memcpy(self->row,row,lenrow);
+				self->row[lenrow] = '\n';
+				self->row[lenrow+1] = '\0';
+				printf("%s",self->row);
+			}
+			jline++;
+		}
+		//moredata -= nchars;
+		BUTI = BUTI->prev;
+	}while(jrow < panelsizechars.Y && moredata > 0); //nrows > 0); //jline < panelsizechars.Y
+	if(0) printf("======================\n");
+	//if(jline >= panelsizechars.Y && panelsizechars.Y < self->maxlines){
+	//if(jrow >= panelsizechars.Y && panelsizechars.Y < self->maxlines){
+	//	//auto expand panel
+	//	//int newheight = (jline)*self->set->rowheight;
+	//	int newheight = (jrow)*self->set->rowheight;
+	//	GUIElement *el = &self->super;
+	//	el->dim.isize.Y = newheight;
+	//	el->needRebaked = TRUE;
+	//	//if(el->scroll.Y == GUI_SCROLL_LIMIT){
+	//		el->pos.offset.Y = min(el->pos.offset.Y,0);
+	//		//el->pos.offset.Y = max(el->pos.offset.Y,min(0,ph-mh));
+	//	//}
+
+	//}
+
+
+}
+
+
+void textpanel_render(void *_self){
+	//like a layer?
+	contenttype *c;
+	ivec4 ivport;
+	Stack *vportstack;
+	ttglobal tg;
+
+	contenttype_textpanel *self;
+	self = (contenttype_textpanel *)_self;
+	pushnset_viewport(self->t1.viewport);
+	c = self->t1.contents;
+	while(c){
+		c->t1.render(c);			// Q. HOW/WHERE TO SIGNAL TO CLEAR JUST Z BUFFER BETWEEN LAYERS
+		c = c->t1.next;
+	}
+	//render self last, as layer over children
+	tg = gglobal();
+	vportstack = (Stack*)tg->Mainloop._vportstack;
+	ivport = stack_top(ivec4,vportstack);
+
+	textpanel_render_blobmethod(self,ivport);
+	popnset_viewport();
+}
+
+//#endif
 
 
 
@@ -2797,6 +3237,14 @@ void setup_stagesNORMAL(){
 			if(0) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
 			else cstage->t1.contents = csbh; //skip multitouch
 			//tg->Mainloop.AllowNavDrag = TRUE; //experimental approach to allow both navigation and dragging at the same time, with 2 separate touches
+		}else if(0){
+			//tests dual-ringbuffer console textpanel
+			contenttype *ctextpanel;
+			ctextpanel = new_contenttype_textpanel("Vera",8,30,120,TRUE);
+			ctextpanel->t1.contents = cscene;
+			textpanel_register_as_console(ctextpanel);
+			csbh->t1.contents = ctextpanel;
+			cstage->t1.contents = csbh;
 		}else if(0){
 			//captiontext, layer, scene, statusbarHud, 
 			//contenttype *new_contenttype_captiontext(char *fontname, int EMpixels, vec4 color)
