@@ -3438,6 +3438,21 @@ int RenderStringG(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y
 		maxlen = min(maxlen,len);
 		x=y=z = 0.0f;
 		penxy = pixel2normalizedScreen((float)(*pen_x),(float)(*pen_y));
+		if(1){
+			//upper left
+			vec2 fxy,fwh;
+			penxy = pixel2normalizedViewport((GLfloat)(*pen_x),(GLfloat)(- *pen_y));
+			//fwh = pixel2normalizedViewportScale((GLfloat)xsize,(GLfloat)ysize);
+			//lower left
+			//fxy.Y = fxy.Y - fwh.Y;
+			//penxy.X = fxy.X;
+			//penxy.Y = fxy.Y;
+			//penxy.X = 0.0f;
+			//penxy.Y = 0.0f;
+			//xsize = fwh.X;
+			//ysize = fwh.Y;
+		}
+
 		x = penxy.X;
 		y = penxy.Y;
 		atlas = entryset->atlas;
@@ -3449,7 +3464,8 @@ int RenderStringG(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y
 			ichar = (int)cText[i];
 			if (ichar == '\t') ichar = ' '; //trouble with tabs, quick hack
 			ae = AtlasEntrySet_getEntry(entryset,ichar);
-			if(!ae) ae = AtlasEntrySet_getEntry(entryset,(int)' ');
+			if(!ae) 
+				ae = AtlasEntrySet_getEntry(entryset,(int)' ');
 			if(ae)
 			{
 				// 1  2
@@ -3508,9 +3524,26 @@ int RenderStringG(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y
 			}
 		}
 
+		finishedWithGlobalShader();
+		glDepthMask(GL_FALSE);
+		glDisable(GL_DEPTH_TEST);
+		if(!programObject) initProgramObject();
+
+		glUseProgram ( programObject );
+		if(!textureID)
+			glGenTextures(1, &textureID);
+
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST); //GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST); //GL_LINEAR);
+
+		glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewIdentityf);
+		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionIdentityf);
+
+		glUniform4f(color4fLoc,color.X,color.Y,color.Z,color.W); //0.7f,0.7f,0.9f,1.0f);
 
 		glActiveTexture ( GL_TEXTURE0 );
-		glBindTexture ( GL_TEXTURE_2D, textureID );
+		//glBindTexture ( GL_TEXTURE_2D, textureID );
 		glUniform1i ( textureLoc, 0 );
 
 		if(atlas->bytesperpixel == 1){
@@ -3519,7 +3552,7 @@ int RenderStringG(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, atlas->size.X, atlas->size.Y, 0, GL_RGBA , GL_UNSIGNED_BYTE, atlas->texture);
 		}
 		glUniform4f(blendLoc,0.0f,0.0f,0.0f,1.0f);
-		glUniform4f(color4fLoc,color.X,color.Y,color.Z,color.W); //0.7f,0.7f,0.9f,1.0f);
+
 
 		// Load the vertex position
 		glVertexAttribPointer (positionLoc, 3, GL_FLOAT, 
@@ -3534,6 +3567,11 @@ int RenderStringG(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y
 
 		//glUniform1i ( textureLoc, 0 );
 		glDrawElements ( GL_TRIANGLES, len*3*2, GL_UNSIGNED_SHORT, ind );
+
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
+		restoreGlobalShader();
+
 
 	}
 	return TRUE;
