@@ -3290,7 +3290,9 @@ void setup_stagesNORMAL(){
 		}else if(0){
 			//tests dual-ringbuffer console textpanel
 			contenttype *ctextpanel;
-			ctextpanel = new_contenttype_textpanel("Vera",8,30,120,TRUE);
+			//ctextpanel = new_contenttype_textpanel("Vera",8,30,120,TRUE);
+			ctextpanel = new_contenttype_textpanel("VeraMono",8,120,30,TRUE);
+
 			ctextpanel->t1.contents = cscene;
 			textpanel_register_as_console(ctextpanel);
 			csbh->t1.contents = ctextpanel;
