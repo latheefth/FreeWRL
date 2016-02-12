@@ -2026,6 +2026,7 @@ int stage_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID,
 	stage *self = (stage*)_self;
 	vportstack = (Stack*)gglobal()->Mainloop._vportstack;
 	pushviewport(vportstack,self->ivport);
+
 	iret = content_pick(_self,mev,butnum,mouseX,mouseY,ID,windex);
 	pop_viewport();
 	return iret;
@@ -2182,16 +2183,17 @@ static GLfloat matrixIdentity[] = {
 	0.0f, 0.0f, 1.0f, 0.0f,
 	0.0f, 0.0f, 0.0f, 1.0f
 };
-
+int texturegrid_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex);
 contenttype *new_contenttype_texturegrid(int nx, int ny){
 	contenttype_texturegrid *self = MALLOCV(sizeof(contenttype_texturegrid));
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_TEXTUREGRID;
 	self->t1.render = texturegrid_render;
+	self->t1.pick = texturegrid_pick;
 	self->nx = nx;
 	self->ny = ny;
 	{
-		//generate an nxn grid, complete with vertices, normals, texture coords and triangles
+		//generate an nxn grid, of object size [-1,1]x[-1,1] = 2x2, complete with vertices, normals, texture coords and triangles
 		int i,j,k; //,n;
 		GLushort *index;
 		GLfloat *vert, *vert2, *tex, *norm;
@@ -2400,7 +2402,33 @@ void render_texturegrid(void *_self){
 
 	return;
 }
+int texturegrid_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+	//convert windoow to fbo
+	int iret;
+	contenttype *c, *self;
 
+	self = (contenttype *)_self;
+	iret = 0;
+	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
+		ivec4 ivport;
+		int x,y;
+		ttglobal tg = gglobal();
+		ivport = stack_top(ivec4,(Stack*)tg->Mainloop._vportstack);
+		//fbo = window - viewport
+		//x = mouseX;
+		//y = mouseY;
+		x = mouseX - ivport.X;
+		y = mouseY - ivport.Y;
+		c = self->t1.contents;
+		while(c){
+			iret = c->t1.pick(c,mev,butnum,x,y,ID, windex);
+			if(iret > 0) break; //handled 
+			c = c->t1.next;
+		}
+		pop_viewport();
+	}
+	return iret;
+}
 
 
 typedef struct contenttype_orientation {
