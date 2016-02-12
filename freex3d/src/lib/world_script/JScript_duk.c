@@ -852,7 +852,7 @@ int cfwconstructor(duk_context *ctx) {
 		i++;
 	}
 	if(ifound < 0){
-		printf("matching constructor not found, you have %d args for %s\n",nargs,fwt->name);
+		//printf("matching constructor not found, you have %d args for %s\n",nargs,fwt->name);
 		//Jan 2016 if you're in here, and your Script did new MFString(number,string) -heterogenous call args-
 		//.. then I think the problem is the nested loops above are inside-out. MFString constructor
 		//.. should be able to handle heterogenous args, and if constructor.args was the inner loop and
@@ -860,7 +860,8 @@ int cfwconstructor(duk_context *ctx) {
 		//.. it would find the (only) constructor is a match.
 		//.. don't have time to code-review, try and test this theory thoroughly today
 		//.. temproary fix in your script: new MFString(number.toString(),string) to make args homogenous.
-		return 0;
+		//return 0;
+		i = 0; //take the first one
 	}
 	args = NULL;
 	convert_duk_to_fwvals(ctx, nargs, 0, fwt->ConstructorArgs[i], &args, &argc);
