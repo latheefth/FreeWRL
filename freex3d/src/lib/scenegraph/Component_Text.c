@@ -3437,21 +3437,9 @@ int RenderStringG(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y
 		int maxlen = 128;
 		maxlen = min(maxlen,len);
 		x=y=z = 0.0f;
-		penxy = pixel2normalizedScreen((float)(*pen_x),(float)(*pen_y));
-		if(1){
-			//upper left
-			vec2 fxy,fwh;
-			penxy = pixel2normalizedViewport((GLfloat)(*pen_x),(GLfloat)(- *pen_y));
-			//fwh = pixel2normalizedViewportScale((GLfloat)xsize,(GLfloat)ysize);
-			//lower left
-			//fxy.Y = fxy.Y - fwh.Y;
-			//penxy.X = fxy.X;
-			//penxy.Y = fxy.Y;
-			//penxy.X = 0.0f;
-			//penxy.Y = 0.0f;
-			//xsize = fwh.X;
-			//ysize = fwh.Y;
-		}
+		//penxy = pixel2normalizedScreen((float)(*pen_x),(float)(*pen_y));
+		penxy = pixel2normalizedViewport((GLfloat)(*pen_x),(GLfloat)(*pen_y));
+		penxy.Y = penxy.Y - 2.0f + .05; //heuristic (band-aid) 
 
 		x = penxy.X;
 		y = penxy.Y;

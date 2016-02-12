@@ -911,6 +911,7 @@ ivec2 text2pixel(int x, int y, int rowheight, int maxadvancepx){
 }
 
 void atlasfont_get_rowheight_charwidth_px(AtlasFont *font, int *rowheight, int *maxadvancepx);
+static int show_ringtext = 0;
 
 void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 /*	completely re-renders the textpanel, from the ABLOB and Blist ringbuffers
@@ -1045,7 +1046,7 @@ void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 			//ivec4 currentvp = stack_top(ivec4,_vpstack);
 			//if(overlapviewports(box, currentvp)) //seems not properly aligned, a little too aggressive
 				RenderStringG(self->font, row, lenrow,&pen_x, &pen_y, self->color); //&xy.X,&xy.Y);
-			if(0){
+			if(show_ringtext){
 				//debugging
 				memcpy(self->row,row,lenrow);
 				self->row[lenrow] = '\n';
@@ -1072,8 +1073,7 @@ void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 	//	//}
 
 	//}
-
-
+	show_ringtext = 0;
 }
 
 
@@ -1099,6 +1099,10 @@ void textpanel_render(void *_self){
 
 	textpanel_render_blobmethod(self,ivport);
 	popnset_viewport();
+}
+void debugging_trigger(){
+	//triggered with ',' keyboard command
+	show_ringtext = 1 - show_ringtext;
 }
 
 //#endif
@@ -5587,7 +5591,7 @@ void fwl_do_keyPress0(int key, int type) {
 				case 'b': {fwl_Prev_ViewPoint(); break;}
 				case '.': {profile_print_all(); break;}
 				case ' ': p->keywait = TRUE; ConsoleMessage("\n%c",':'); p->keywaitstring[0] = '\0'; break;
-
+				case ',': debugging_trigger(); break; 
 #if !defined(FRONTEND_DOES_SNAPSHOTS)
 				case 's': {fwl_toggleSnapshot(); break;}
 				case 'x': {Snapshot(); break;} /* thanks to luis dias mas dec16,09 */
