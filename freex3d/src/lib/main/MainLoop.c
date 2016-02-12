@@ -343,6 +343,11 @@ void pop_viewport(){
 	popviewport(vportstack);
 	//printf("%d ",vportstack->n);
 }
+ivec4 get_current_viewport(){
+	Stack *vportstack;
+	vportstack = (Stack *)gglobal()->Mainloop._vportstack;
+	return stack_top(ivec4,vportstack);
+}
 float defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; //left,right,bottom,top fraction of pixel window
 
 
@@ -359,6 +364,14 @@ float defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; //left,right,bottom,top
 			- combining the pick and render passes somehow 
 				(but should mouse navigation occur once per frame? or per-stereo/quad-window?)
 	- render() uses the widget viewport
+
+	specifc contenttypes and shaders
+	- the freewrl global shader system is the default. It's just when rendering 
+		- statusbarHud
+		- atlas text: contenttypes > captiontext, textpanel
+		- atlas text: Text > ScreenFontStyle
+		that we exit the globalshader system momentarily, to use a simpler shader, by calling
+		finishedwithglobalshader(), and restoreglobalshader() before and after gl_useProgram section
 */
 typedef struct contenttype contenttype;
 typedef struct tcontenttype {
@@ -469,6 +482,7 @@ void render_statusbar0();
 void statusbar_render(void *_self){
 	//make this like layer, render contents first in clipplane-limited viewport, then sbh in whole viewport
 	Stack *vportstack;
+	int pushed;
 	contenttype_statusbar *self;
 	contenttype *c;
 
@@ -476,6 +490,7 @@ void statusbar_render(void *_self){
 	pushnset_viewport(self->t1.viewport);
 	self->clipplane = statusbar_getClipPlane();
 	vportstack = NULL;
+	pushed = 0;
 	if(self->clipplane != 0){
 		ivec4 ivport;
 		ttglobal tg;
@@ -486,6 +501,7 @@ void statusbar_render(void *_self){
 		ivport.H -= self->clipplane;
 		ivport.Y += self->clipplane;
 		stack_push(ivec4,vportstack,ivport);
+		pushed = 1;
 	}
 	c = self->t1.contents;
 	//FW_GL_CLEAR_COLOR(self->t1.cc.r,self->t1.cc.g,self->t1.cc.b,self->t1.cc.a);
@@ -493,7 +509,7 @@ void statusbar_render(void *_self){
 		c->t1.render(c);
 		c = c->t1.next;
 	}
-	if(self->clipplane != 0 && vportstack != NULL){
+	if(pushed) { 
 		stack_pop(ivec4,vportstack);
 	}
 	render_statusbar0(); //draw statusbarHud
@@ -511,11 +527,31 @@ int statusbar_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int
 	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
 		iret = statusbar_handle_mouse1(mev,butnum,mouseX,mouseY,windex);
 		if(!iret){
+			int pushed;
+			Stack *vportstack;
+			vportstack = NULL;
+			pushed = 0;
+			if(self->clipplane != 0){
+				ivec4 ivport;
+				ttglobal tg;
+				tg = gglobal();
+
+				vportstack = (Stack*)tg->Mainloop._vportstack;
+				ivport = stack_top(ivec4,vportstack);
+				ivport.H -= self->clipplane;
+				ivport.Y += self->clipplane;
+				stack_push(ivec4,vportstack,ivport);
+				pushed = 1;
+			}
+
 			c = self->t1.contents;
 			while(c){
 				iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,ID, windex);
 				if(iret > 0) break; //handled 
 				c = c->t1.next;
+			}
+			if(pushed) { 
+				stack_pop(ivec4,vportstack);
 			}
 		}
 		pop_viewport();
@@ -1564,11 +1600,6 @@ void stereo_sidebyside_render(void *_self){
 			vpc = halfW + ivport2.X;
 			viewer->xcenter = (double)(fidcenter.X - vpc)/(double)halfW; //-1 to 1 range with 0 being center, -1 being viewpoint on left side of viewport
 			pushviewport(vportstack,ivport2);
-			if(1){
-				//not sure why I need scissortest - isn't something else responsible? perhaps I'll catch on when I do anaglyph next
-				FW_GL_SCISSOR(ivport2.X,ivport2.Y,ivport2.W,ivport2.H);
-				glEnable(GL_SCISSOR_TEST);
-			}
 		}
 		setcurrentviewport(vportstack); //does opengl call
 
@@ -1577,7 +1608,6 @@ void stereo_sidebyside_render(void *_self){
 
 		//pop stereo_sidebyside subviewport
 		popnset_viewport();
-		if(1)	glDisable(GL_SCISSOR_TEST);
 		viewer->xcenter = 0.0;
 		c = c->t1.next;
 		i++;
@@ -1752,11 +1782,6 @@ void stereo_updown_render(void *_self){
 		ivport.Y += (1-i)*ivport.H; //left on top
 		pushviewport(vportstack,ivport);
 		setcurrentviewport(vportstack); //does opengl call
-			if(1){
-				//not sure why I need scissortest - isn't something else responsible? perhaps I'll catch on when I do anaglyph next
-				FW_GL_SCISSOR(ivport.X,ivport.Y,ivport.W,ivport.H);
-				glEnable(GL_SCISSOR_TEST);
-			}
 
 		//aspect squishing is still done in setup_projection
 		viewer->isideB = i; //set_viewmatrix needs to know
@@ -1764,7 +1789,6 @@ void stereo_updown_render(void *_self){
 
 		c->t1.render(c);
 		popnset_viewport();
-		if(1)	glDisable(GL_SCISSOR_TEST);
 
 		c = c->t1.next;
 		i++;
@@ -1986,10 +2010,12 @@ void stage_render(void *_self){
 	pushviewport(vportstack,self->ivport);
 	setcurrentviewport(vportstack); //does opengl call
 	//for fun/testing, a different clear color for fbos vs gl_back, but not necessary
+
 	if(self->ibuffer != FW_GL_BACK)
 		glClearColor(.3f,.4f,.5f,1.0f);
 	else
 		glClearColor(1.0f,0.0f,0.0f,1.0f);
+	BackEndClearBuffer(2);
 	content_render(_self); //the rest of stage render is the same as content render, so we'll delegate
 	popnset_framebuffer();
 	popnset_viewport();
@@ -3397,8 +3423,11 @@ void setup_stagesNORMAL(){
 			ctexturegrid1 = new_contenttype_texturegrid(5,5);
 			ctexturegrid1->t1.contents = cstagefbo1;
 
-			texturegrid_barrel_distort(ctexturegrid0, .1f);
-			texturegrid_barrel_distort(ctexturegrid1, .1f);
+			if(0){
+				//googleCardboard barrel distortions to counteract/compensate for magnifying lenses
+				texturegrid_barrel_distort(ctexturegrid0, .1f);
+				texturegrid_barrel_distort(ctexturegrid1, .1f);
+			}
 
 			cscene0 = new_contenttype_scene();
 			cscene1 = new_contenttype_scene();
@@ -3411,8 +3440,12 @@ void setup_stagesNORMAL(){
 			//cstereo = new_contenttype_stereo_shutter();
 			cstereo->t1.contents = ctexturegrid0;
 			ctexturegrid0->t1.next = ctexturegrid1;
-			csbh->t1.contents = cstereo;
-			cstage->t1.contents = csbh;
+			if(1){
+				csbh->t1.contents = cstereo;
+				cstage->t1.contents = csbh;
+			}else{
+				cstage->t1.contents = cstereo;
+			}
 
 		} else if(0){
 			//quadrant
