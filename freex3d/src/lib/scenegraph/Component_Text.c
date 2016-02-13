@@ -297,6 +297,9 @@ typedef struct pComponent_Text{
 	GLfloat *textpanel_tex;
 	GLushort *textpanel_ind;
 	int textpanel_size;
+	int textpanel_vert_size;
+	int textpanel_tex_size;
+	int textpanel_ind_size;
 
 }* ppComponent_Text;
 void *Component_Text_constructor(){
@@ -3454,13 +3457,15 @@ int RenderStringG(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y
 		if(p->textpanel_size < max(maxlen,128)){
 			int newsize = max(maxlen,128);
 			p->textpanel_size = newsize;
-			//newsize *= 8;
+			p->textpanel_vert_size = (2+(2*(newsize*2)))*3;
+			p->textpanel_tex_size = (4*newsize)*2;
+			p->textpanel_ind_size = (2*3)*(newsize*2);
 			//vert: (2 end vert + (2 vert/glyph * max 128 glyhps per line)) x 3 coords per vert = (2+(256))*3 = 258*3 = 774
-			p->textpanel_vert = realloc(p->textpanel_vert,(2+(2*newsize))*3*sizeof(GLfloat));
+			p->textpanel_vert = realloc(p->textpanel_vert,p->textpanel_vert_size*sizeof(GLfloat));
 			//tex: (4 tex / glyph * max 128 glyphs per line) * 2 coords per tex = (4 * 128)*2 = (512)*2 = 1024;
-			p->textpanel_tex = realloc(p->textpanel_tex,(4*newsize)*2*sizeof(GLfloat));
+			p->textpanel_tex = realloc(p->textpanel_tex,p->textpanel_tex_size*sizeof(GLfloat));
 			//ind: (2 triangles * 3 ind / triangle) * max 128 glyphs/line = 6 * 128 = 768
-			p->textpanel_ind = realloc(p->textpanel_ind,(2*3)*newsize*sizeof(GLushort));
+			p->textpanel_ind = realloc(p->textpanel_ind,p->textpanel_ind_size*sizeof(GLushort));
 		}
 		vert = p->textpanel_vert;
 		tex  = p->textpanel_tex;
@@ -3508,6 +3513,8 @@ int RenderStringG(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y
 				vert[kk +9] = xx + charScreenSize.X; 
 				vert[kk+10] = yy - charScreenSize.Y;
 				vert[kk+11] = z;
+				if(kk+11 >= p->textpanel_vert_size)
+					printf("ouch vert not big enough, need %d have %d\n",kk+11 +1,p->textpanel_vert_size);
 				x = x + charScreenAdvance.X; 
 				(*pen_x) += ae->advance.X;
 				kk = i*4*2;
@@ -3530,6 +3537,9 @@ int RenderStringG(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y
 					tex[kk +5] = ((float)(ae->apos.Y))*ah; 
 					tex[kk +7] = ((float)((ae->apos.Y + ae->size.Y)))*ah; 
 				}
+				if(kk+7 >= p->textpanel_tex_size)
+					printf("ouch tex not big enough, need %d have %d\n",kk+7 +1,p->textpanel_tex_size);
+
 				// 1-2 2
 				// |/ /|
 				// 0 0-3
@@ -3540,9 +3550,11 @@ int RenderStringG(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y
 				ind[kk +3] = i*4 + 2;
 				ind[kk +4] = i*4 + 3;
 				ind[kk +5] = i*4 + 0;
+				if(kk+5 >= p->textpanel_ind_size)
+					printf("ouch ind not big enough, need %d have %d\n",kk+5 +1,p->textpanel_ind_size);
+
 			}
 		}
-
 		finishedWithGlobalShader();
 		glDepthMask(GL_FALSE);
 		glDisable(GL_DEPTH_TEST);
@@ -3578,12 +3590,11 @@ int RenderStringG(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y
 							   GL_FALSE, 0, vert );
 		// Load the texture coordinate
 		glVertexAttribPointer ( texCoordLoc, 2, GL_FLOAT,
-							   GL_FALSE, 0, tex );  //fails - p->texCoordLoc is 429xxxxx - garbage
+							   GL_FALSE, 0, tex ); 
 
 		glEnableVertexAttribArray (positionLoc );
 		glEnableVertexAttribArray (texCoordLoc );
 		// Set the base map sampler to texture unit to 0
-
 		//glUniform1i ( textureLoc, 0 );
 		glDrawElements ( GL_TRIANGLES, len*3*2, GL_UNSIGNED_SHORT, ind );
 

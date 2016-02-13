@@ -766,7 +766,7 @@ contenttype *new_contenttype_textpanel(char* fontname, int EMpixels, int maxline
 	self->S = self->Ablob;
 	self->E = self->Ablob + self->blobsize;
 	self->Blist = malloc(sizeof(BUTitem)*self->maxlines);
-	self->rowsize = 80;
+	self->rowsize = self->maxlen;
 	self->row = malloc(self->rowsize+1);
 	for(i=0;i<self->maxlines;i++){
 		int prev, next;
@@ -978,10 +978,10 @@ void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 	atlasfont_get_rowheight_charwidth_px(self->font,&rowheight,&maxadvancepx);
 	panelsizechars = ivec2_init(ivport.W / maxadvancepx, ivport.H / rowheight);
 	
-	if(panelsizechars.X+1 > self->rowsize) {
-		self->rowsize = panelsizechars.X+1;
-		self->row = realloc(self->row,self->rowsize);
-	}
+	//if(panelsizechars.X+1 > self->rowsize) {
+	//	self->rowsize = panelsizechars.X+1;
+	//	self->row = realloc(self->row,self->rowsize);
+	//}
 	BUTI = self->bhead;
 
 	//compute lines needed
@@ -1081,7 +1081,7 @@ void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 			//ivec4 box = ivec4_init(pen_x,pen_y,lenrow*self->set->maxadvancepx,self->set->rowheight);
 			//ivec4 currentvp = stack_top(ivec4,_vpstack);
 			//if(overlapviewports(box, currentvp)) //seems not properly aligned, a little too aggressive
-				RenderStringG(self->font, row, lenrow,&pen_x, &pen_y, self->color); //&xy.X,&xy.Y);
+			RenderStringG(self->font, row, lenrow,&pen_x, &pen_y, self->color); //&xy.X,&xy.Y);
 			if(show_ringtext){
 				//debugging
 				memcpy(self->row,row,lenrow);
@@ -3336,7 +3336,7 @@ void setup_stagesNORMAL(){
 		cstage->t1.contents = cmultitouch;
 		p->EMULATE_MULTITOUCH =	FALSE;
 		//IDEA: these prepared ways of using freewrl could be put into a switchcase contenttype called early ie from window
-		if(1){
+		if(0){
 			//normal: multitouch emulation, layer, scene, statusbarHud, 
 			if(0) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
 			else cstage->t1.contents = csbh; //skip multitouch
