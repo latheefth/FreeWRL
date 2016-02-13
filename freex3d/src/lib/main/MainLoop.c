@@ -460,6 +460,7 @@ int scene_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID,
 			Stack *vpstack = (Stack*)gglobal()->Mainloop._vportstack;
 			pushviewport(vpstack,vport[iside]);
 			fwl_handle_aqua_multiNORMAL(mev,butnum,mouseX,mouseY,ID,windex);
+			iret = 1; //inside - should we set iret here?
 			popviewport(vpstack);
 		}
 		pop_viewport();
@@ -1254,7 +1255,7 @@ int multitouch_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, in
 		ihandle = 0;
 		if(fwl_get_emulate_multitouch()){
 			ihandle = emulate_multitouch2(self->touchlist,self->ntouch,&self->IDD,&self->lastbut,&mev,&butnum,mouseX,mouseY,&ID,windex);
-			iret = ihandle ? 1 : 0;
+			iret = ihandle < 0 ? 0 : 1;
 		}
 		if(iret == 0){
 			//then pick children
@@ -3373,7 +3374,7 @@ void setup_stagesNORMAL(){
 		cstage->t1.contents = cmultitouch;
 		p->EMULATE_MULTITOUCH =	FALSE;
 		//IDEA: these prepared ways of using freewrl could be put into a switchcase contenttype called early ie from window
-		if(0){
+		if(1){
 			//normal: multitouch emulation, layer, scene, statusbarHud, 
 			if(1) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
 			else cstage->t1.contents = csbh; //skip multitouch
