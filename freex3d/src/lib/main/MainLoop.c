@@ -1678,9 +1678,11 @@ typedef struct contenttype_stereo_anaglyph {
 	//in theory could put color sides here, will get from old viewer for now
 } contenttype_stereo_anaglyph;
 void loadIdentityMatrix (double *mat);
-
+void clear_shader_table();
+void setStereoBufferStyle(int);
 void stereo_anaglyph_render(void *_self){
-	//
+	//Feb 13, 2016 - anaglyph isn't rendering properly with FBO
+	// - H0: rendering just right side
 	int i;
 	contenttype *c;
 	contenttype_stereo_anaglyph *self;
@@ -1691,30 +1693,31 @@ void stereo_anaglyph_render(void *_self){
 	viewer = Viewer();
 	viewer->isStereoB = 1; //we're using the B so old isStereo not activated, backend thinks its rendering a mono scene
 	viewer->anaglyphB = 1; //except we need the shader for luminance = f(R,G,B)
+	clear_shader_table(); //tiggers reconfiguring shader, so it looks for anaglyphB flag 
+	//setStereoBufferStyle(1);
 
 	pushnset_viewport(self->t1.viewport); //generic viewport
 	c = self->t1.contents;
 	i=0;
-	//Viewer_anaglyph_clearSides(); //clear all channels
+	Viewer_anaglyph_clearSides(); //clear all channels
 	//glColorMask(1,1,1,1);
-	//BackEndClearBuffer(2); //scissor test in here
+	glClearColor(0.0f,0.0f,0.0f,1.0f);
+	BackEndClearBuffer(2); //scissor test in here
 	while(c){
 
 		viewer->isideB = i; //set_viewmatrix needs to know
 		Viewer_anaglyph_setSide(i); //clear just the channels we're going to draw to
-		//if(i==0) glColorMask(1,0,0,1);
-		//if(i==1) glColorMask(0,1,1,1);
-			
-
-		//Viewer_anaglyph_setSide(i); //clear just the channels we're going to draw to
 		viewer->xcenter = 0.0; //no screen shift or fiducials, just center
-		c->t1.render(c);
+		
+		c->t1.render(c); //scene will do another backnedclearbuffer but should be constrained to channel mask for side
 
 		c = c->t1.next;
 		i++;
 	}
-	//glColorMask(1,1,1,1); /*restore, for statusbarHud etc*/ OR:
 	Viewer_anaglyph_clearSides(); //clear all channels
+	//glColorMask(1,1,1,1);
+	clear_shader_table();
+
 	viewer->anaglyphB = 0;
 	viewer->isStereoB = 0;
 	popnset_viewport();
@@ -3374,7 +3377,7 @@ void setup_stagesNORMAL(){
 		cstage->t1.contents = cmultitouch;
 		p->EMULATE_MULTITOUCH =	FALSE;
 		//IDEA: these prepared ways of using freewrl could be put into a switchcase contenttype called early ie from window
-		if(1){
+		if(0){
 			//normal: multitouch emulation, layer, scene, statusbarHud, 
 			if(1) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
 			else cstage->t1.contents = csbh; //skip multitouch
@@ -3501,8 +3504,8 @@ void setup_stagesNORMAL(){
 			cstagefbo0->t1.contents = cscene0;
 			cstagefbo1->t1.contents = cscene1;
 
-			//cstereo = new_contenttype_stereo_sidebyside();
-			cstereo = new_contenttype_stereo_anaglyph();
+			cstereo = new_contenttype_stereo_sidebyside();
+			//cstereo = new_contenttype_stereo_anaglyph(); //doesnt work with fbo stage
 			//cstereo = new_contenttype_stereo_shutter();
 			cstereo->t1.contents = ctexturegrid0;
 			ctexturegrid0->t1.next = ctexturegrid1;
