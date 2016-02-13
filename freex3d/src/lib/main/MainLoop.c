@@ -1694,12 +1694,19 @@ void stereo_anaglyph_render(void *_self){
 	pushnset_viewport(self->t1.viewport); //generic viewport
 	c = self->t1.contents;
 	i=0;
+	//Viewer_anaglyph_clearSides(); //clear all channels
+	//glColorMask(1,1,1,1);
+	//BackEndClearBuffer(2); //scissor test in here
 	while(c){
 
 		viewer->isideB = i; //set_viewmatrix needs to know
 		Viewer_anaglyph_setSide(i); //clear just the channels we're going to draw to
-		viewer->xcenter = 0.0; //no screen shift or fiducials, just center
+		//if(i==0) glColorMask(1,0,0,1);
+		//if(i==1) glColorMask(0,1,1,1);
+			
 
+		//Viewer_anaglyph_setSide(i); //clear just the channels we're going to draw to
+		viewer->xcenter = 0.0; //no screen shift or fiducials, just center
 		c->t1.render(c);
 
 		c = c->t1.next;
@@ -3366,9 +3373,9 @@ void setup_stagesNORMAL(){
 		cstage->t1.contents = cmultitouch;
 		p->EMULATE_MULTITOUCH =	FALSE;
 		//IDEA: these prepared ways of using freewrl could be put into a switchcase contenttype called early ie from window
-		if(1){
+		if(0){
 			//normal: multitouch emulation, layer, scene, statusbarHud, 
-			if(0) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
+			if(1) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
 			else cstage->t1.contents = csbh; //skip multitouch
 			//tg->Mainloop.AllowNavDrag = TRUE; //experimental approach to allow both navigation and dragging at the same time, with 2 separate touches
 		}else if(0){
@@ -3436,7 +3443,7 @@ void setup_stagesNORMAL(){
 			cscene->t1.next = NULL;
 			csbh->t1.contents = corientation;
 
-		}else if(1){
+		}else if(0){
 			//stereo chooser: switch + 4 stereo vision modes
 			//contenttype *clayer0, *clayer1, *clayer2, *clayer3;
 			contenttype *cscene0, *cscene1, *cscene2;
@@ -3447,7 +3454,7 @@ void setup_stagesNORMAL(){
 			cstereo3 = new_contenttype_stereo_updown();
 			cstereo4 = new_contenttype_stereo_shutter();
 			csbh->t1.contents = cswitch;
-			contenttype_switch_set_which(cswitch,1);
+			contenttype_switch_set_which(cswitch,2);
 
 
 			cscene0 = new_contenttype_scene();
@@ -3493,8 +3500,8 @@ void setup_stagesNORMAL(){
 			cstagefbo0->t1.contents = cscene0;
 			cstagefbo1->t1.contents = cscene1;
 
-			cstereo = new_contenttype_stereo_sidebyside();
-			//cstereo = new_contenttype_stereo_anaglyph();
+			//cstereo = new_contenttype_stereo_sidebyside();
+			cstereo = new_contenttype_stereo_anaglyph();
 			//cstereo = new_contenttype_stereo_shutter();
 			cstereo->t1.contents = ctexturegrid0;
 			ctexturegrid0->t1.next = ctexturegrid1;
@@ -3729,7 +3736,7 @@ void render_multitouch2(struct Touch *touchlist, int ntouch){
 		int i;
 		for(i=0;i<ntouch;i++){
 			if(touchlist[i].ID > -1)
-				if(touchlist[i].windex == p->windex)
+				if(touchlist[i].windex == p->windex ) // && touchlist[i].stageId == current_stageId() )
 				{
 					struct Touch *touch;
 					touch = &touchlist[i];
@@ -3789,7 +3796,7 @@ int emulate_multitouch2(struct Touch *touchlist, int ntouch, int *IDD, int *last
 		for(i=0;i<ntouch;i++){
 			touch = &touchlist[i];
 			if(touch->ID > -1){
-				if(touch->windex == windex && touch->stageId == current_stageId())
+				if(touch->windex == windex ) //&& touch->stageId == current_stageId())
 				if((abs(x - touch->rx) < 10) && (abs(y - touch->ry) < 10)){
 					*IDD = i;
 					printf("drag found ID %d\n",*IDD);
@@ -5232,8 +5239,8 @@ static void render()
 				else
 					Viewer_anaglyph_setSide(count); //clear just the channels we're going to draw to
 			}
-			setup_projection(); //scissor test in here
-			BackEndClearBuffer(2);
+			setup_projection(); 
+			BackEndClearBuffer(2); //scissor test in here
 			if(Viewer()->anaglyph)
 				Viewer_anaglyph_setSide(count); //set the channels for scenegraph drawing
 			//setup_viewpoint();
@@ -7188,7 +7195,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	fx = (float)(x - vport.X) / (float)vport.W;
 	fy = (float)(y - vport.Y) / (float)vport.H;
 	if(0){
-		ConsoleMessage("multiNORMAL x %d y %d fx %f fy %f vp %d %d %d %d\n",x,y,fx,fy,vport.X,vport.W,vport.Y,vport.H);
+		printf("multiNORMAL x %d y %d fx %f fy %f vp %d %d %d %d\n",x,y,fx,fy,vport.X,vport.W,vport.Y,vport.H);
 	}
 	if (0){
 		ConsoleMessage("fwl_handle_aqua in MainLoop; mev %d but %d x %d y %d ID %d ",
