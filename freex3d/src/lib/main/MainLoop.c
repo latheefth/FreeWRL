@@ -128,6 +128,7 @@ struct Touch
 	int x; //coordinates as registered at scene level, after transformations in the contenttype stack
 	int y; //y-up
 	int windex; //multi_window window index 0=default for regular freewrl
+	void* stageId; //unique ID for a stage, should be same for pick and render passes, otherwise in render not-for-me
 	int rx,ry; //raw input coords at emulation level, for finding and dragging and rendering
 	int handled; //==FALSE when message pump first delivers message, then when setup_picking handles it, set to TRUE. a hack instead of a queue.
 };
@@ -2000,6 +2001,29 @@ typedef struct stage {
 	//int initialized;
 } stage;
 
+//mouse coordinates are relative to a stage,
+//and because picking is done half in the pick() call stack, and
+//half in the render phase, we need to let the render phase know if a touch/pick is 
+//in its stage.
+// pick > touch->stage = current_stageId()
+// render > if(touch->stage != current_stageId()) not for me
+//So we give each stage an arbitrary unique ID (its void* pointer)
+//in theory we could pass it down the pick(,,,,stageId) call stack like windex,
+//but stages can be chained so aren't fixed for a pass, so we need a push-n-pop stack for render 
+//anyway, so we use a stack for pick too.
+void push_stageId(void *stageId){
+	Stack *stagestack = (Stack*)gglobal()->Mainloop._stagestack;
+	stack_push(void*,stagestack,stageId);
+}
+void *current_stageId(){
+	Stack *stagestack = (Stack*)gglobal()->Mainloop._stagestack;
+	return stack_top(void*,stagestack);
+}
+void pop_stageId(){
+	Stack *stagestack = (Stack*)gglobal()->Mainloop._stagestack;
+	stack_pop(void*,stagestack);
+}
+
 void stage_render(void *_self){
 	//just the z-buffer cleared between content
 	Stack *vportstack;
@@ -2008,6 +2032,7 @@ void stage_render(void *_self){
 	pushnset_framebuffer(self->ibuffer);
 	vportstack = (Stack*)gglobal()->Mainloop._vportstack;
 	pushviewport(vportstack,self->ivport);
+	push_stageId(self); 
 	setcurrentviewport(vportstack); //does opengl call
 	//for fun/testing, a different clear color for fbos vs gl_back, but not necessary
 
@@ -2017,8 +2042,9 @@ void stage_render(void *_self){
 		glClearColor(1.0f,0.0f,0.0f,1.0f);
 	BackEndClearBuffer(2);
 	content_render(_self); //the rest of stage render is the same as content render, so we'll delegate
-	popnset_framebuffer();
+	pop_stageId();
 	popnset_viewport();
+	popnset_framebuffer();
 }
 int stage_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
 	Stack *vportstack;
@@ -2026,8 +2052,9 @@ int stage_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID,
 	stage *self = (stage*)_self;
 	vportstack = (Stack*)gglobal()->Mainloop._vportstack;
 	pushviewport(vportstack,self->ivport);
-
+	push_stageId(self);
 	iret = content_pick(_self,mev,butnum,mouseX,mouseY,ID,windex);
+	pop_stageId();
 	pop_viewport();
 	return iret;
 }
@@ -2791,6 +2818,7 @@ typedef struct pMainloop{
 	int nwindow;
 	int windex; //current window index into twoindows array, valid during render()
 	Stack *_vportstack;
+	Stack *_stagestack;
 	Stack *_framebufferstack;
 }* ppMainloop;
 void *Mainloop_constructor(){
@@ -2908,6 +2936,8 @@ void Mainloop_init(struct tMainloop *t){
 		//t->twindows = p->twindows;
 		p->_vportstack = newStack(ivec4);
 		t->_vportstack = (void *)p->_vportstack; //represents screen pixel area being drawn to
+		p->_stagestack = newStack(void*);
+		t->_stagestack = (void *)p->_stagestack; //represents screen pixel area being drawn to
 		p->_framebufferstack = newStack(int);
 		t->_framebufferstack = (void*)p->_framebufferstack;
 		stack_push(int,p->_framebufferstack,FW_GL_BACK);
@@ -3336,12 +3366,12 @@ void setup_stagesNORMAL(){
 		cstage->t1.contents = cmultitouch;
 		p->EMULATE_MULTITOUCH =	FALSE;
 		//IDEA: these prepared ways of using freewrl could be put into a switchcase contenttype called early ie from window
-		if(0){
+		if(1){
 			//normal: multitouch emulation, layer, scene, statusbarHud, 
 			if(0) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
 			else cstage->t1.contents = csbh; //skip multitouch
 			//tg->Mainloop.AllowNavDrag = TRUE; //experimental approach to allow both navigation and dragging at the same time, with 2 separate touches
-		}else if(1){
+		}else if(0){
 			//tests dual-ringbuffer console textpanel
 			contenttype *ctextpanel;
 			//ctextpanel = new_contenttype_textpanel("Vera",8,30,120,TRUE);
@@ -3406,7 +3436,7 @@ void setup_stagesNORMAL(){
 			cscene->t1.next = NULL;
 			csbh->t1.contents = corientation;
 
-		}else if(0){
+		}else if(1){
 			//stereo chooser: switch + 4 stereo vision modes
 			//contenttype *clayer0, *clayer1, *clayer2, *clayer3;
 			contenttype *cscene0, *cscene1, *cscene2;
@@ -3629,7 +3659,7 @@ void emulate_multitouch(int mev, unsigned int button, int x, int ydown, int wind
 	for(i=0;i<p->ntouch;i++){
 		touch = &p->touchlist[i];
 		if(touch->ID > -1){
-			if(touch->windex == windex)
+			if(touch->windex == windex && touch->stageId == current_stageId())
 			if((abs(x - touch->rx) < 10) && (abs(y - touch->ry) < 10)){
 				ifound = 1;
 				ID = i;
@@ -3721,6 +3751,7 @@ void record_multitouch(struct Touch *touchlist, int mev, int butnum, int mouseX,
 		touch->rx = mouseX;
 		touch->ry = mouseY;
 		touch->windex = windex;
+		touch->stageId = current_stageId();
 		touch->buttonState[butnum] = mev == ButtonPress;
 		touch->ID = ID; /*will come in handy if we change from array[] to accordian list*/
 		touch->mev = mev;
@@ -3758,7 +3789,7 @@ int emulate_multitouch2(struct Touch *touchlist, int ntouch, int *IDD, int *last
 		for(i=0;i<ntouch;i++){
 			touch = &touchlist[i];
 			if(touch->ID > -1){
-				if(touch->windex == windex)
+				if(touch->windex == windex && touch->stageId == current_stageId())
 				if((abs(x - touch->rx) < 10) && (abs(y - touch->ry) < 10)){
 					*IDD = i;
 					printf("drag found ID %d\n",*IDD);
@@ -4199,6 +4230,7 @@ void setup_picking(){
 
 	//	if(ID == 0) continue; //for testing e3dmouse only
 			if(touch->windex != windex) continue; //return;
+			if(touch->stageId != current_stageId()) continue;
 //		if(touch->handled) continue; //already processed, for testing only 
 			touch->handled = TRUE;
 			x = touch->x;
@@ -4332,6 +4364,7 @@ void setup_picking(){
 			int x, yup;
 			struct Touch * touch = currentTouch();
 			if(touch->windex != windex) return;
+			if(touch->stageId != current_stageId()) return;
 			if(touch->ID < 0) return;
 			x = touch->x;
 			yup = touch->y;
@@ -7171,6 +7204,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	touch->x = x;
 	touch->y = y;
 	touch->windex = windex;
+	touch->stageId = current_stageId();
 	touch->buttonState[ibutton] = mev == ButtonPress;
 	touch->ID = ID; //will come in handy if we change from array[] to accordian list
 	touch->mev = mev;
