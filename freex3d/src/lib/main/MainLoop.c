@@ -980,7 +980,7 @@ void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 	
 	if(panelsizechars.X+1 > self->rowsize) {
 		self->rowsize = panelsizechars.X+1;
-		realloc(self->row,self->rowsize);
+		self->row = realloc(self->row,self->rowsize);
 	}
 	BUTI = self->bhead;
 
@@ -3341,7 +3341,7 @@ void setup_stagesNORMAL(){
 			if(0) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
 			else cstage->t1.contents = csbh; //skip multitouch
 			//tg->Mainloop.AllowNavDrag = TRUE; //experimental approach to allow both navigation and dragging at the same time, with 2 separate touches
-		}else if(0){
+		}else if(1){
 			//tests dual-ringbuffer console textpanel
 			contenttype *ctextpanel;
 			//ctextpanel = new_contenttype_textpanel("Vera",8,30,120,TRUE);

@@ -293,7 +293,10 @@ typedef struct pComponent_Text{
 
 	/* flag to determine if we need to call the open_font call */
 	int started;// = FALSE;
-
+	GLfloat *textpanel_vert;
+	GLfloat *textpanel_tex;
+	GLushort *textpanel_ind;
+	int textpanel_size;
 
 }* ppComponent_Text;
 void *Component_Text_constructor(){
@@ -315,6 +318,11 @@ void Component_Text_init(struct tComponent_Text *t){
 		p->rowvec_allocn = 0;
 		p->rowvec = NULL;
 		p->pointsize = 0; 
+		p->textpanel_vert = NULL;
+		p->textpanel_tex = NULL;
+		p->textpanel_ind = NULL;
+		p->textpanel_size = 0;
+
 	}
 }
 void Component_Text_clear(struct tComponent_Text *t){
@@ -331,6 +339,11 @@ void Component_Text_clear(struct tComponent_Text *t){
 				FREE_IF_NZ(p->rowvec[row].chr);
 			}
 			FREE_IF_NZ(p->rowvec);
+		}
+		if(p->textpanel_size){
+			FREE_IF_NZ(p->textpanel_vert);
+			FREE_IF_NZ(p->textpanel_tex);
+			FREE_IF_NZ(p->textpanel_ind);
 		}
 	}
 }
@@ -3429,12 +3442,30 @@ int RenderStringG(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y
 		int ih, itex[8],kk;
 		//bmscale = 2; not used right now
 		//(2 end vert + (2 vert/glyph * max 128 glyhps per line)) x 3 coords per vert = (2+(256))*3 = 258*3 = 774
-		GLfloat vert[774]; 
+		GLfloat *vert; //vert[774]; 
 		//(4 tex / glyph * max 128 glyphs per line) * 2 coords per tex = (4 * 128)*2 = (512)*2 = 1024;
-		GLfloat tex[1024];
+		GLfloat *tex; //tex[1024];
 		//(2 triangles * 3 ind / triangle) * max 128 glyphs/line = 6 * 128 = 768
-		GLushort ind[768];
+		GLushort *ind; //ind[768];
 		int maxlen = 128;
+		ttglobal tg = gglobal();
+		ppComponent_Text p = (ppComponent_Text)tg->Component_Text.prv;
+		
+		if(p->textpanel_size < max(maxlen,128)){
+			int newsize = max(maxlen,128);
+			p->textpanel_size = newsize;
+			//newsize *= 8;
+			//vert: (2 end vert + (2 vert/glyph * max 128 glyhps per line)) x 3 coords per vert = (2+(256))*3 = 258*3 = 774
+			p->textpanel_vert = realloc(p->textpanel_vert,(2+(2*newsize))*3*sizeof(GLfloat));
+			//tex: (4 tex / glyph * max 128 glyphs per line) * 2 coords per tex = (4 * 128)*2 = (512)*2 = 1024;
+			p->textpanel_tex = realloc(p->textpanel_tex,(4*newsize)*2*sizeof(GLfloat));
+			//ind: (2 triangles * 3 ind / triangle) * max 128 glyphs/line = 6 * 128 = 768
+			p->textpanel_ind = realloc(p->textpanel_ind,(2*3)*newsize*sizeof(GLushort));
+		}
+		vert = p->textpanel_vert;
+		tex  = p->textpanel_tex;
+		ind = p->textpanel_ind;
+
 		maxlen = min(maxlen,len);
 		x=y=z = 0.0f;
 		//penxy = pixel2normalizedScreen((float)(*pen_x),(float)(*pen_y));

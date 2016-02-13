@@ -168,10 +168,17 @@ void printStatsBindingStacks()
 	nstacks = getBindableStacksCount(tg);
 	for(i=0;i<nstacks;i++){
 		bstack = getBindableStacksByLayer(tg,i);
-		ConsoleMessage("Layer %d",i);
-		if(i == tg->Bindable.activeLayer)
-			ConsoleMessage(" activeLayer");
-		ConsoleMessage(":\n");
+		if(0){
+			ConsoleMessage("Layer %d",i);
+			if(i == tg->Bindable.activeLayer)
+				ConsoleMessage(" activeLayer");
+			ConsoleMessage(":\n");
+		}else{
+			char* al = " ";
+			if(i == tg->Bindable.activeLayer)
+				al = " activeLayer";
+			ConsoleMessage("Layer %d%s:\n",i,al);
+		}
 		ConsoleMessage("%25s %d\n","Background stack count", vectorSize(bstack->background));
 		ConsoleMessage("%25s %d\n","Fog stack count", vectorSize(bstack->fog));
 		ConsoleMessage("%25s %d\n","Navigation stack count", vectorSize(bstack->navigation));	
