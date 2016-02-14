@@ -100,6 +100,20 @@ void  setAquaCursor(int ctype) { };
 
 #include "MainLoop.h"
 
+static int debugging_trigger_state;
+void toggle_debugging_trigger(){
+	//set trigger with ',' keyboard command, 
+	debugging_trigger_state = 1 - debugging_trigger_state;
+}
+int get_debugging_trigger_once(){
+	int iret = debugging_trigger_state;
+	if(iret) debugging_trigger_state = 0;
+	return iret;
+}
+int get_debugging_trigger(){
+	return debugging_trigger_state;
+}
+
 double TickTime()
 {
 	return gglobal()->Mainloop.TickTime;
@@ -1140,10 +1154,7 @@ void textpanel_render(void *_self){
 	textpanel_render_blobmethod(self,ivport);
 	popnset_viewport();
 }
-void debugging_trigger(){
-	//triggered with ',' keyboard command
-	show_ringtext = 1 - show_ringtext;
-}
+
 
 //#endif
 
@@ -2064,12 +2075,21 @@ void stage_render(void *_self){
 }
 int stage_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
 	Stack *vportstack;
+	ivec4 ivport_parent;
+	int x,y;
 	int iret;
 	stage *self = (stage*)_self;
+
+	ivport_parent = get_current_viewport();
+	x = mouseX - ivport_parent.X;
+	y = mouseY - ivport_parent.Y;
+	//pick coords are relative to stage
+	x = x + self->ivport.X; //should be 0
+	y = y + self->ivport.Y; //should be 0
 	vportstack = (Stack*)gglobal()->Mainloop._vportstack;
 	pushviewport(vportstack,self->ivport);
 	push_stageId(self);
-	iret = content_pick(_self,mev,butnum,mouseX,mouseY,ID,windex);
+	iret = content_pick(_self,mev,butnum,x,y,ID,windex);
 	pop_stageId();
 	pop_viewport();
 	return iret;
@@ -2192,6 +2212,7 @@ typedef struct contenttype_texturegrid {
 	int nx, ny, nelements, nvert; //number of grid vertices
 	GLushort *index; //winRT needs short
 	GLfloat *vert, *vert2, *tex, *norm, dx, tx;
+	float k1,xc; //optionally used during distort and pick for radial/barrel distortion
 	GLuint textureID;
 } contenttype_texturegrid;
 
@@ -2233,6 +2254,8 @@ contenttype *new_contenttype_texturegrid(int nx, int ny){
 	self->t1.itype = CONTENT_TEXTUREGRID;
 	self->t1.render = texturegrid_render;
 	self->t1.pick = texturegrid_pick;
+	self->k1 = 0.0f;
+	self->xc = 0.0f;
 	self->nx = nx;
 	self->ny = ny;
 	{
@@ -2309,6 +2332,8 @@ void texturegrid_barrel_distort(void *_self, float k1){
 			self->vert2[i*3 +0] = x*(1.0f - k1*radius2); 
 			self->vert2[i*3 +1] = y*(1.0f - k1*radius2);
 		}
+		self->k1 = k1;
+		self->xc = 0.0f;
 	}
 
 	if(0){
@@ -2352,9 +2377,88 @@ void texturegrid_barrel_distort2(void *_self, float xc, float k1){
 			self->vert2[i*3 +0] = x*(1.0f - k1*radius2); 
 			self->vert2[i*3 +1] = y*(1.0f - k1*radius2);
 		}
+		self->k1 = k1;
+		self->xc = xc2;
 	}
 }
+void texturegrid_barrel_undistort2(void *_self, ivec4 vport, ivec2 *xy){
+	//There are a few ways to back-transform/transform-backward (screen to scene) with texture grid:
+	//1. don't - instead rely on cursor drawn in model space from untransformed mouse
+	//2. bilinear interpolation using 2 more grids, one for x lookup, one for y lookup
+	//3. iteration of grid lookup going the other way
+	//4. iteration of original analytical distortion parameters -ie k1, xc
+	//each has pros and cons
 
+	contenttype_texturegrid *self;
+	float x,y,radius2;
+	self = (contenttype_texturegrid *)_self;
+	x = (float)(xy->X - vport.X) / (float)vport.W;
+	y = (float)(xy->Y - vport.Y) / (float)vport.H;
+	x = x*2.0f - 1.0f; //convert from 0-1 to -1 to 1
+	y = y*2.0f - 1.0f;
+	if(1){
+		//4. iterate using original analytical parameters and transform
+		int i;
+		float xb, yb, xa,ya, deltax, deltay, xc2, k1, tolerance;
+		xb = x; //initial guess: our mouse cursor position
+		yb = y;
+		xc2 = self->xc;
+		k1 = self->k1;
+		tolerance = .001f; //in [-1 to 1] .%
+		for(i=0;i<10;i++){
+			radius2 = (xb-xc2)*(xb-xc2) + yb*yb;
+			xa = xb*(1.0f - k1*radius2); //transform our guess forward (from scene to screen)
+			ya = yb*(1.0f - k1*radius2);
+			deltax = x - xa; //delta: how much we missed our mouse cursor by
+			deltay = y - ya;
+			xb += deltax; //next guess: old guess + delta
+			yb += deltay;
+			if(fabs(deltax) + fabs(deltay) < tolerance )break;
+		}
+		x = xb;
+		y = yb;
+	}
+	x = (x + 1.0f)*.5f; //convert from -1 to 1 to 0-1
+	y = (y + 1.0f)*.5f;
+	xy->X = x*vport.W + vport.X;
+	xy->Y = y*vport.H + vport.Y;
+}
+int texturegrid_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+	//convert windoow to fbo
+	int iret;
+	contenttype *c, *self;
+
+	self = (contenttype *)_self;
+	iret = 0;
+	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
+		ivec4 ivport;
+		int x,y;
+		ivec2 xy, xy2;
+		//ttglobal tg = gglobal();
+		//ivport = stack_top(ivec4,(Stack*)tg->Mainloop._vportstack);
+		ivport = get_current_viewport();
+		//fbo = window - viewport
+		//x = mouseX;
+		//y = mouseY;
+		x = mouseX; // - ivport.X;
+		y = mouseY; // - ivport.Y;
+		xy.X = x;
+		xy.Y = y;
+		if(1) texturegrid_barrel_undistort2(self, ivport, &xy );
+		if(get_debugging_trigger_once())
+			printf("undistort\n");
+		x = xy.X;
+		y = xy.Y;
+		c = self->t1.contents;
+		while(c){
+			iret = c->t1.pick(c,mev,butnum,x,y,ID, windex);
+			if(iret > 0) break; //handled 
+			c = c->t1.next;
+		}
+		pop_viewport();
+	}
+	return iret;
+}
 #include "../scenegraph/Component_Shape.h"
 void render_texturegrid(void *_self){
 	contenttype_texturegrid *self;
@@ -2465,40 +2569,6 @@ void render_texturegrid(void *_self){
 	glEnable(GL_DEPTH_TEST);
 
 	return;
-}
-int texturegrid_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
-	//convert windoow to fbo
-	//There are a few ways to back-transform/transform-backward (screen to scene) with texture grid:
-	//1. don't - instead rely on cursor drawn in model space from untransformed mouse
-	//2. bilinear interpolation using 2 more grids, one for x lookup, one for y lookup
-	//3. iteration of grid lookup going the other way
-	//4. use original analytical distortion parameters -ie k1, xc- in reverse transform
-	//each has pros and cons
-	int iret;
-	contenttype *c, *self;
-
-	self = (contenttype *)_self;
-	iret = 0;
-	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
-		ivec4 ivport;
-		int x,y;
-		//ttglobal tg = gglobal();
-		//ivport = stack_top(ivec4,(Stack*)tg->Mainloop._vportstack);
-		ivport = get_current_viewport();
-		//fbo = window - viewport
-		//x = mouseX;
-		//y = mouseY;
-		x = mouseX - ivport.X;
-		y = mouseY - ivport.Y;
-		c = self->t1.contents;
-		while(c){
-			iret = c->t1.pick(c,mev,butnum,x,y,ID, windex);
-			if(iret > 0) break; //handled 
-			c = c->t1.next;
-		}
-		pop_viewport();
-	}
-	return iret;
 }
 
 
@@ -3525,20 +3595,13 @@ void setup_stagesNORMAL(){
 			ctexturegrid1 = new_contenttype_texturegrid(5,5);
 			ctexturegrid1->t1.contents = cstagefbo1;
 
-			if(0){
-				//googleCardboard barrel distortions to counteract/compensate for magnifying lenses
-				texturegrid_barrel_distort(ctexturegrid0, .1f);
-				texturegrid_barrel_distort(ctexturegrid1, .1f);
-			}
 			if(1){
-				ivec2 fidcenter;
-				ivec4 vport;
+				//googleCardboard barrel distortions to counteract/compensate for magnifying lenses
 				float xc;
 				X3D_Viewer *viewer = Viewer();
-				xc = viewer->screendist - .5;
-				xc *= -1.0f;
-				xc = 1.0f - viewer->screendist;
 
+				//ideally this gets run whenever screendist is changed
+				xc = 1.0f - viewer->screendist;
 				texturegrid_barrel_distort2(ctexturegrid0, xc,.1f);
 				xc = viewer->screendist;
 				texturegrid_barrel_distort2(ctexturegrid1, xc,.1f);
@@ -5341,7 +5404,8 @@ static void render()
 	if(1){
 		//render last know mouse position as seen by the backend
 		struct Touch *touch = &p->touchlist[0];
-		fiducialDraw(0, touch->x, touch->y, 0.0f);
+		if(touch->stageId == current_stageId())
+			fiducialDraw(0, touch->x, touch->y, 0.0f);
 	}
 
 }
@@ -5744,7 +5808,7 @@ void fwl_do_keyPress0(int key, int type) {
 				case 'b': {fwl_Prev_ViewPoint(); break;}
 				case '.': {profile_print_all(); break;}
 				case ' ': p->keywait = TRUE; ConsoleMessage("\n%c",':'); p->keywaitstring[0] = '\0'; break;
-				case ',': debugging_trigger(); break; 
+				case ',': toggle_debugging_trigger(); break; 
 #if !defined(FRONTEND_DOES_SNAPSHOTS)
 				case 's': {fwl_toggleSnapshot(); break;}
 				case 'x': {Snapshot(); break;} /* thanks to luis dias mas dec16,09 */
