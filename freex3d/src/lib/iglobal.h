@@ -156,6 +156,7 @@ typedef struct iiglobal //InstanceGlobal
 		char *replaceWorldRequest;
 		void *replaceWorldRequestMulti; //will be struct multi-string
 		void *_vportstack; //Stack for viewports
+		void *_stagestack; //stack for stage ID
 		void *_framebufferstack; //stack for backbuffers, usually GL_BACK, or can be FBO
 		int screenOrientation2;
 		int pickray_x;

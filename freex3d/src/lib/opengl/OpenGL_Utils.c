@@ -3430,8 +3430,11 @@ bool fwl_initialize_GL()
 	*/
 	return TRUE;
 }
-
+ivec4 get_current_viewport();
 void BackEndClearBuffer(int which) {
+	ivec4 vport = get_current_viewport();
+	FW_GL_SCISSOR(vport.X,vport.Y,vport.W,vport.H);
+	glEnable(GL_SCISSOR_TEST);	
 	if(which == 2) {
 		FW_GL_CLEAR(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	} else {
@@ -3439,6 +3442,7 @@ void BackEndClearBuffer(int which) {
 			FW_GL_CLEAR(GL_DEPTH_BUFFER_BIT);
 		}
 	}
+	glDisable(GL_SCISSOR_TEST);
 }
 
 /* turn off all non-headlight lights; will turn them on if required. */

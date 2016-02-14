@@ -100,6 +100,20 @@ void  setAquaCursor(int ctype) { };
 
 #include "MainLoop.h"
 
+static int debugging_trigger_state;
+void toggle_debugging_trigger(){
+	//set trigger with ',' keyboard command, 
+	debugging_trigger_state = 1 - debugging_trigger_state;
+}
+int get_debugging_trigger_once(){
+	int iret = debugging_trigger_state;
+	if(iret) debugging_trigger_state = 0;
+	return iret;
+}
+int get_debugging_trigger(){
+	return debugging_trigger_state;
+}
+
 double TickTime()
 {
 	return gglobal()->Mainloop.TickTime;
@@ -128,6 +142,7 @@ struct Touch
 	int x; //coordinates as registered at scene level, after transformations in the contenttype stack
 	int y; //y-up
 	int windex; //multi_window window index 0=default for regular freewrl
+	void* stageId; //unique ID for a stage, should be same for pick and render passes, otherwise in render not-for-me
 	int rx,ry; //raw input coords at emulation level, for finding and dragging and rendering
 	int handled; //==FALSE when message pump first delivers message, then when setup_picking handles it, set to TRUE. a hack instead of a queue.
 };
@@ -255,6 +270,7 @@ enum {
 	CONTENT_TEXTUREGRID,	//texture-from-fbo-render over a planar mesh/grid, rendered with ortho and diffuse light
 	CONTENT_ORIENTATION,	//screen orientation widget for 'screenOrientation2' application of mobile device screen orientation 90, 180, 270
 	CONTENT_CAPTIONTEXT,	//text, but just one line 
+	CONTENT_TEXTPANEL,		//ConsoleMessage panel, using dual ring buffers: one for raw text stream, other for pointers to \n in first buffer
 	CONTENT_LAYER,			//children are rendered one over top of the other, with zbuffer clearing between children
 	CONTENT_SPLITTER,		//not implemented, a splitter widget
 	CONTENT_QUADRANT,		//semi- implemented, a quadrant panel where the scene viewpoint is altered to side, front, top for 3 panels
@@ -342,6 +358,11 @@ void pop_viewport(){
 	popviewport(vportstack);
 	//printf("%d ",vportstack->n);
 }
+ivec4 get_current_viewport(){
+	Stack *vportstack;
+	vportstack = (Stack *)gglobal()->Mainloop._vportstack;
+	return stack_top(ivec4,vportstack);
+}
 float defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; //left,right,bottom,top fraction of pixel window
 
 
@@ -358,6 +379,14 @@ float defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; //left,right,bottom,top
 			- combining the pick and render passes somehow 
 				(but should mouse navigation occur once per frame? or per-stereo/quad-window?)
 	- render() uses the widget viewport
+
+	specifc contenttypes and shaders
+	- the freewrl global shader system is the default. It's just when rendering 
+		- statusbarHud
+		- atlas text: contenttypes > captiontext, textpanel
+		- atlas text: Text > ScreenFontStyle
+		that we exit the globalshader system momentarily, to use a simpler shader, by calling
+		finishedwithglobalshader(), and restoreglobalshader() before and after gl_useProgram section
 */
 typedef struct contenttype contenttype;
 typedef struct tcontenttype {
@@ -445,6 +474,7 @@ int scene_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID,
 			Stack *vpstack = (Stack*)gglobal()->Mainloop._vportstack;
 			pushviewport(vpstack,vport[iside]);
 			fwl_handle_aqua_multiNORMAL(mev,butnum,mouseX,mouseY,ID,windex);
+			iret = 1; //inside - should we set iret here?
 			popviewport(vpstack);
 		}
 		pop_viewport();
@@ -468,6 +498,7 @@ void render_statusbar0();
 void statusbar_render(void *_self){
 	//make this like layer, render contents first in clipplane-limited viewport, then sbh in whole viewport
 	Stack *vportstack;
+	int pushed;
 	contenttype_statusbar *self;
 	contenttype *c;
 
@@ -475,6 +506,7 @@ void statusbar_render(void *_self){
 	pushnset_viewport(self->t1.viewport);
 	self->clipplane = statusbar_getClipPlane();
 	vportstack = NULL;
+	pushed = 0;
 	if(self->clipplane != 0){
 		ivec4 ivport;
 		ttglobal tg;
@@ -485,6 +517,7 @@ void statusbar_render(void *_self){
 		ivport.H -= self->clipplane;
 		ivport.Y += self->clipplane;
 		stack_push(ivec4,vportstack,ivport);
+		pushed = 1;
 	}
 	c = self->t1.contents;
 	//FW_GL_CLEAR_COLOR(self->t1.cc.r,self->t1.cc.g,self->t1.cc.b,self->t1.cc.a);
@@ -492,7 +525,7 @@ void statusbar_render(void *_self){
 		c->t1.render(c);
 		c = c->t1.next;
 	}
-	if(self->clipplane != 0 && vportstack != NULL){
+	if(pushed) { 
 		stack_pop(ivec4,vportstack);
 	}
 	render_statusbar0(); //draw statusbarHud
@@ -510,11 +543,31 @@ int statusbar_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int
 	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
 		iret = statusbar_handle_mouse1(mev,butnum,mouseX,mouseY,windex);
 		if(!iret){
+			int pushed;
+			Stack *vportstack;
+			vportstack = NULL;
+			pushed = 0;
+			if(self->clipplane != 0){
+				ivec4 ivport;
+				ttglobal tg;
+				tg = gglobal();
+
+				vportstack = (Stack*)tg->Mainloop._vportstack;
+				ivport = stack_top(ivec4,vportstack);
+				ivport.H -= self->clipplane;
+				ivport.Y += self->clipplane;
+				stack_push(ivec4,vportstack,ivport);
+				pushed = 1;
+			}
+
 			c = self->t1.contents;
 			while(c){
 				iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,ID, windex);
 				if(iret > 0) break; //handled 
 				c = c->t1.next;
+			}
+			if(pushed) { 
+				stack_pop(ivec4,vportstack);
 			}
 		}
 		pop_viewport();
@@ -662,6 +715,448 @@ void captiontext_setString(void *_self, char *utf8string){
 }
 
 
+//#ifdef DUALRINGBUFFER
+//DUAL RING BUFFER CONSOLEMESSAGE
+//our thanks go to dug9 for adapting/contributing this dual ringbuffer method from his dug9gui project
+#include "list.h"
+typedef struct consoleLine {
+	char *line;
+	int len;
+	int endline;
+} consoleLine;
+
+typedef struct BUTitem BUTitem;
+typedef struct BUTitem {
+	unsigned char *B;
+	BUTitem *prev;
+	BUTitem *next;
+}BUTitem;
+typedef struct contenttype_textpanel {
+	tcontenttype t1;
+	AtlasEntrySet *set;
+	AtlasFont *font;
+	char *fontname;
+	int fontSize;
+	int maxadvancepx;
+	vec4 color;
+	//float percentSize;
+	//float angle;
+
+	int maxlines;
+	int maxlen;
+	int wrap;
+
+	//blob method
+	unsigned char *Ablob;
+	int blobsize;
+	unsigned char *S, *E; //static pointers to BLOB start and end
+	unsigned char *Z,*z;  //start and end pointers of written non-stale BLOB data, move as more data written
+	BUTitem *Blist;  //storage for \n ring buffer
+	BUTitem *bhead;  //head of the \n ring buffer
+	int added;
+	int rowsize; //malloced size of *row
+	unsigned char *row;  //buffer for combining split rows for rendering
+	int initialized; //flag for initializing whatever update calls on each loop, so on first loop it can initialize backend/model of MVC
+} contenttype_textpanel;
+void textpanel_render(void *self);
+contenttype *new_contenttype_textpanel(char* fontname, int EMpixels, int maxlines, int maxlen, int wrap){
+	int i;
+	contenttype_textpanel *self = MALLOCV(sizeof(contenttype_textpanel));
+	init_tcontenttype(&self->t1);
+	self->t1.itype = CONTENT_TEXTPANEL;
+	self->t1.render = textpanel_render;
+	// default t1-> pick self->t1.pick = textpanel_pick;
+
+	self->color = vec4_init(1.0f,1.0f,1.0f,0.0f);
+	//self->super.super.type = GUI_TEXTPANEL;
+	self->maxlines = maxlines;
+	self->maxlen = maxlen; // max line length 
+	self->wrap = wrap; //bool if true, cut lines when too long, else render on one line up to maxlen and scroll in X
+	self->set = NULL;
+
+	//blob method
+	self->blobsize = self->maxlines * self->maxlen;
+	self->Ablob = (unsigned char*)malloc(self->blobsize+1);
+	memset(self->Ablob,0,self->blobsize+1); //the +1 is so Ablob ends in \0 and we can printf it for debuggin
+	self->Z = self->z = self->Ablob;
+	self->S = self->Ablob;
+	self->E = self->Ablob + self->blobsize;
+	self->Blist = malloc(sizeof(BUTitem)*self->maxlines);
+	self->rowsize = self->maxlen;
+	self->row = malloc(self->rowsize +1);
+	for(i=0;i<self->maxlines;i++){
+		int prev, next;
+		prev = i - 1;
+		next = i + 1;
+		if(prev < 0) prev = self->maxlines -1;
+		if(next > self->maxlines -1) next = 0;
+		 self->Blist[i].next = &self->Blist[next];
+		 self->Blist[i].prev = &self->Blist[prev];
+		 self->Blist[i].B = self->Z;
+	}
+	self->bhead = &self->Blist[0];
+	self->added = 0;
+	//ouch
+	self->fontname = fontname;
+	self->fontSize = EMpixels;
+	self->maxadvancepx = EMpixels/2; //use the one in atlasEntry which is more specific
+	self->initialized = FALSE; 
+	//self->font = 
+	self->fontname = fontname;
+	self->font = (AtlasFont*)searchAtlasTableOrLoad(fontname,EMpixels);
+	if(!self->font){
+		printf("dug9gui: Can't find font %s do you have the wrong name?\n",fontname);
+	}
+	/*
+	AtlasFont *font = (AtlasFont*)searchGUItable(font_table,fontname);
+	if(font){
+		self->font = font;
+		if(font->atlasSizes.n){
+			for(int i=0;i<font->atlasSizes.n;i++){
+				AtlasEntrySet *aes = vector_get(AtlasEntrySet*,&font->atlasSizes,i);
+				if(aes->EMpixels == EMpixels){
+					self->set = aes;
+				}
+			}
+		}
+	}
+	*/
+	return (contenttype*)self;
+}
+
+
+/*	
+BLOB (binary large object) method for accumulating consoleMessages and wrapping/splitting 
+	for fixed width console rendering
+Net benefit of the BLOB algo (vs list-of-fixed-length-strings):
+- Rendering can wrap easily, recomputing wrap splits on each frame using pointer arithmetic, without iterating over string chars
+- line-length limit bigger: size of BLOB instead of maxlen
+- no per-frame mallocs/frees/strdups 
+
+More algo details: we are using 2 circular / ring buffers:
+- one for unsigned char* text bytes
+- one to record \n locations in the buffer, during incoming writes (makes it fast to render)
+http://en.wikipedia.org/wiki/Circular_buffer
+1. for generic ring buffers you need to store the length of the buffer, 
+	and/or both start and end of data, with start = end+1, so its possible to tell 
+	when the buffer is exactly empty vs full 
+	(for us self-z == self->Z when exactly empty, otherwise self->z == self->Z + 1 when full)
+2. our case differs from generic circular/ring buffer algos:
+a) we never 'get/take/remove' from either ring buffer during read/render. 
+	Instead it's up to the write to do all updates to the buffer, and keep overwriting stale data.
+b) because we do 2 circular buffers -\n struct list and char* blob- we must combine/union/min our 'limits' 
+	when reading backward from the newest data to the oldest, so that we don't hit stale 
+	pointers/over-written data.
+Arbitrary design choices: for the blob / char* ring buffer: a well known hassle is wrapping when we hit
+	the end of the buffer, and some algos have fancy techniques such as pointer mirroring or
+	'bip' 2-chunk method. We deal straighforwardly with the break in the data by detecting
+	where it is, and making 2 memcpys on write and 2 on read.
+
+Structs:
+- a circular blob buffer 128rows*128cols = 16k will work as an intermediary between 
+	consolemessage strings and word-wrapped display
+- Blist is a fixed-size (maxrows) circularly linked list of small structs with pointers into the blob
+- awkward part is split as a string wraps around to start of blobA 
+-- can be handled uniformly during render with B,T,U pointers
+
+ABLOB RING BUFFER
+S                     Zz                                        E
+================================================================
+                                                       A--------T
+U---------------------B                            last \n
+                   most recent char
+*static
+^singleton
+*^	S,E start and end pointers to BLOBA buffer, E = S + blobsize
+^	zZ moving border of wraparound buffer z=start, Z=end 
+	- starts out as z=S,Z=S, Z grows till == E, thereafter z=Z+1 and keeps moving
+B	ptr to last char received from consolemessage
+A	ptr to previous \n
+T,U	wraparound pointers: normally T=U=B, except when wrapping around then T=E, U=S
+sw	screen width in chars
+line - incoming string from ConsoleMessage which may or may not end in \n
+chunk - data between last char written and previous \n or (if no \n in blob) z
+		if there's a wraparound split, chunk = B-U + T-A otherwise chunk B-A
+row - screen-width (or less) slice of chunk
+
+Algo:
+To compute number of screen rows in chunk:
+n = ceil[(B-U + T-A)/sw]
+Thats for one chunk.
+The listB circularly linked list will hold maxline list of \n pointers into ABLOB
+Rendering will loop starting at the last char written, and work back to compute 
+number of screen rows and split points, stopping the iteration when listB is exhausted 
+or maxlines reached/exceeded, or ABLOB pointer == z 
+
+Updating ABLOB with a new incoming string:
+when receiving a string with no \n, and there was no \n on last string, the last Blist item is updated. 
+If prior string had a \n, a new Blist item is set, and the Blist head pointer is set to point to the new item.
+
+*/
+
+
+void TextPanel_AddLine_blobMethodB(contenttype_textpanel *self, char *line, int len, int endline){
+	unsigned char *T, *U, *B;
+	int lenT, lenU, haveTU;
+	BUTitem *BUTI;
+
+	T = min(self->Z + len, self->E);
+	U = T == self->E ? self->S : T;
+	lenT = T - self->Z;
+	lenU = len - lenT;
+	haveTU = lenU > 0;
+	memcpy(self->Z,line,lenT);
+	if(haveTU)
+		memcpy(U,&line[lenT],lenU);
+	B = U + lenU;
+	BUTI = endline? self->bhead->next : self->bhead;
+	BUTI->B = B;
+	self->bhead = BUTI;
+	self->Z = B;
+	self->added = min(self->added + len, self->blobsize + 1);
+	if(self->added > self->blobsize){
+		//buffer full, move start
+		self->z = self->z + 1;
+		if(self->z > self->E) self->z = self->S;
+	}
+}
+void TextPanel_AddString(contenttype_textpanel *self, char *string){
+	//takes a printf string which may be long and have embedded \n, may or may not end on \n
+	//and splits it on \n, calls AddLine for each one.
+	int endline, endstring;
+	char *s = string;
+	if(s == NULL) return;
+	endstring = (*s) == '\0';
+	while(!endstring){
+		char *ln = s;
+		while( (*ln) != '\0' && (*ln) != '\n') ln++;
+		endline = (*ln) == '\n';
+		endstring = (*ln) == '\0';
+		TextPanel_AddLine_blobMethodB(self,s,ln-s,endline);
+		ln++;
+		s = ln;
+	}
+}
+static contenttype_textpanel *console_textpanel = NULL;
+//You call TextPanel_AddString from ConsoleMessage
+void TextPanel_Console_AddString(char *string){
+	TextPanel_AddString(console_textpanel,string);
+}
+void fwg_register_consolemessage_callback(void(*callback)(char *));
+void textpanel_register_as_console(void *_self){
+	contenttype_textpanel *self = (contenttype_textpanel*)_self;
+	console_textpanel = self;
+	fwg_register_consolemessage_callback(TextPanel_Console_AddString);
+}
+int RenderStringG(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y, vec4 color);
+ivec2 pixel2text(int x, int y, int rowheight, int maxadvancepx){
+	int h = rowheight;
+	int w = maxadvancepx;
+	ivec2 ret = ivec2_init(x/w,y/h);
+	return ret;
+}
+ivec2 text2pixel(int x, int y, int rowheight, int maxadvancepx){
+	int h = rowheight;
+	int w = maxadvancepx;
+	ivec2 ret = ivec2_init(x*w, y*h);
+	return ret;
+}
+
+void atlasfont_get_rowheight_charwidth_px(AtlasFont *font, int *rowheight, int *maxadvancepx);
+static int show_ringtext = 0;
+
+void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
+/*	completely re-renders the textpanel, from the ABLOB and Blist ringbuffers
+	- call once per frame
+	- re-splits lines on each frame
+	- if your textpanel starts small in Y, this will auto-expand its Y dimension till maxlines * rowheight in size
+	Benefit (vs. buffering split lines) - if you tilt your device to a new orientation ie portrait to landscape
+		then the text will be resplit and re-scrolled for the new panel shape automatically
+	Implementation Options:
+	- auto-resizing of panel up to a maxheight. Benefits:
+		a) always draw text from bottom of panel up, simplfying to one loop
+		b) panel scrolling can automatically turn on/off as needed (you need to assign the scrolling function)
+	- vs fixed size panel 
+		x to get top-down look to scrolling you need 2 loops, one to count lines, one to draw
+		x you could scroll same distance even when there's nothing to see
+*/
+	int jline, jrow, nrows, isFull, moredata, rowheight, maxadvancepx;
+
+	ivec2 panelsizechars;
+	BUTitem *BUTI, *LBUTI;
+	contenttype_textpanel *self;
+
+	self = (contenttype_textpanel *)_self;
+	//we'll assume this is a 'leaf' contenttype - no children worth rendering
+	if(self->t1.itype != CONTENT_TEXTPANEL) return;
+	if(!self->font ) return;
+
+	atlasfont_get_rowheight_charwidth_px(self->font,&rowheight,&maxadvancepx);
+	panelsizechars = ivec2_init(ivport.W / maxadvancepx, ivport.H / rowheight);
+	panelsizechars.X = min(panelsizechars.X,self->maxlen);
+	panelsizechars.Y = min(panelsizechars.Y,self->maxlines);
+	
+	//if(panelsizechars.X+1 > self->rowsize) {
+	//	self->rowsize = panelsizechars.X+1;
+	//	self->row = realloc(self->row,self->rowsize);
+	//}
+	BUTI = self->bhead;
+
+	//compute lines needed
+	jline = 0; //number of \n lines processed
+	jrow = 0; // number of screen rows processed
+	//work backward from bottom up the buffer, stopping at:
+	//a) maxrows (ie we have enough \n to fill our console rows)
+	//b) self->z (ie we hit stale data in the char* ring buffer)
+	// whichever is less
+	isFull = self->added > self->blobsize;
+	moredata = min(self->added,self->blobsize);
+	do{
+		int i, nchars, bchars, achars, hasTU, Trow;
+		unsigned char *B, *A,  *U, *T, *P;
+		LBUTI = BUTI->prev;
+		B = BUTI->B;
+		//calculate numbe of wordwrapped lines - we'll just split uncerimoniously like a console rather than looking for a space like a word processor
+		U = B;
+		T = B;
+		hasTU = FALSE;
+		A = LBUTI->B;
+		if(B < A){
+			U = self->S;
+			T = self->E;
+			hasTU = TRUE;
+		}
+		nchars = (B - U + T - A);
+		achars = T - A;
+		bchars = nchars - achars;
+
+		nrows = (int)ceil((float)nchars/(float)panelsizechars.X);
+		Trow = nrows -1 - (T - A)/panelsizechars.X; //if hasTU split, which panel row is it in?
+		//hasTU = B != T;  //is there a ABLOB buffer split (TU) in this \n delimited line?
+		//ABLOB - some scenarios it has to work with. The hard part: handling the ABLOB TU break
+		//S                     Zz                                        E
+		//======================================================\n=========
+		//U111222222222222333333B                                A11111111T
+		//3 textpanel rows 1,2 and 3, with 3 being a partial row, and 1 being split by circular buffer
+		//U111111111111111111111B                                A11111111T
+		//one partial row being split by circular buffer
+		//        A1111111111111TUB                                
+		//normal case, one row, no split
+		//        A1111222233333TUB                                
+		//normal case, 3 rows, no split
+		//
+		P = B;
+		for(i=0;i<nrows;i++){
+			unsigned char *row;
+			int l0, l1, i0, lenrow, pen_x, pen_y;
+			ivec2 xy;
+
+			i0 = (nrows-i-1)*panelsizechars.X;
+			lenrow = min(nchars - i0,panelsizechars.X);
+			moredata -= lenrow;
+			if(moredata <= 0)break; //stale (overwritten) BLOB/ringbuffer data
+			jrow++;
+			if(jrow >  panelsizechars.Y) //would be rendered off-panel
+				break;
+			row = &P[-nchars + i0];
+			if(hasTU && Trow == i){
+				l0 = T - &A[i0];
+				l1 = lenrow - l0;
+				row = self->row;
+				memcpy(&row[l0],U,l1);
+				memcpy(row,&A[i0],l0);
+				P = &self->E[bchars];
+			}
+			if(0){
+				//debugging
+				if(!strncmp(row,"`~",2)){
+					//last row of my synthetic data
+					//lets see the blob ringbuffer
+					printf("===========\n");
+					printf("%s",self->Ablob);
+					printf("\n===========\n");
+
+				}
+			}
+			if(0){
+				int k;
+				//debugging
+				for(k=0;k<lenrow;k++){
+					if(row[k] != '.'){
+						printf("T-A=%d B-U=%d Z=%d S=%d E=%d A=%d B=%d &Aio= %d\n",(int)(T-A),(int)(B-U),(int)self->Z, (int)self->S,(int)self->E,(int)A,(int)B,(int)&A[i0]);
+						row[k] = '?';
+					}
+				}
+			}
+			//OK got row and lenrow, now render it
+			//textchars2panelpixel
+			xy = text2pixel(0,jrow,rowheight,maxadvancepx); 
+			//panelpixel2screenpixel?
+			pen_y = ivport.Y; 
+			pen_x = xy.X;
+			pen_y -= xy.Y;
+			//check if this line is visible, as measured by its bounding box. skip render if not
+			//ivec4 box = ivec4_init(pen_x,pen_y,lenrow*self->set->maxadvancepx,self->set->rowheight);
+			//ivec4 currentvp = stack_top(ivec4,_vpstack);
+			//if(overlapviewports(box, currentvp)) //seems not properly aligned, a little too aggressive
+			RenderStringG(self->font, row, lenrow,&pen_x, &pen_y, self->color); //&xy.X,&xy.Y);
+			if(show_ringtext){
+				//debugging
+				memcpy(self->row,row,lenrow);
+				self->row[lenrow] = '\n';
+				self->row[lenrow+1] = '\0';
+				printf("%s",self->row);
+			}
+			jline++;
+		}
+		//moredata -= nchars;
+		BUTI = BUTI->prev;
+	}while(jrow < panelsizechars.Y && moredata > 0); //nrows > 0); //jline < panelsizechars.Y
+	if(0) printf("======================\n");
+	//if(jline >= panelsizechars.Y && panelsizechars.Y < self->maxlines){
+	//if(jrow >= panelsizechars.Y && panelsizechars.Y < self->maxlines){
+	//	//auto expand panel
+	//	//int newheight = (jline)*self->set->rowheight;
+	//	int newheight = (jrow)*self->set->rowheight;
+	//	GUIElement *el = &self->super;
+	//	el->dim.isize.Y = newheight;
+	//	el->needRebaked = TRUE;
+	//	//if(el->scroll.Y == GUI_SCROLL_LIMIT){
+	//		el->pos.offset.Y = min(el->pos.offset.Y,0);
+	//		//el->pos.offset.Y = max(el->pos.offset.Y,min(0,ph-mh));
+	//	//}
+
+	//}
+	show_ringtext = 0;
+}
+
+
+void textpanel_render(void *_self){
+	//like a layer?
+	contenttype *c;
+	ivec4 ivport;
+	Stack *vportstack;
+	ttglobal tg;
+
+	contenttype_textpanel *self;
+	self = (contenttype_textpanel *)_self;
+	pushnset_viewport(self->t1.viewport);
+	c = self->t1.contents;
+	while(c){
+		c->t1.render(c);			// Q. HOW/WHERE TO SIGNAL TO CLEAR JUST Z BUFFER BETWEEN LAYERS
+		c = c->t1.next;
+	}
+	//render self last, as layer over children
+	tg = gglobal();
+	vportstack = (Stack*)tg->Mainloop._vportstack;
+	ivport = stack_top(ivec4,vportstack);
+
+	textpanel_render_blobmethod(self,ivport);
+	popnset_viewport();
+}
+
+
+//#endif
 
 
 
@@ -773,7 +1268,7 @@ int multitouch_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, in
 		ihandle = 0;
 		if(fwl_get_emulate_multitouch()){
 			ihandle = emulate_multitouch2(self->touchlist,self->ntouch,&self->IDD,&self->lastbut,&mev,&butnum,mouseX,mouseY,&ID,windex);
-			iret = ihandle ? 1 : 0;
+			iret = ihandle < 0 ? 0 : 1;
 		}
 		if(iret == 0){
 			//then pick children
@@ -1120,11 +1615,6 @@ void stereo_sidebyside_render(void *_self){
 			vpc = halfW + ivport2.X;
 			viewer->xcenter = (double)(fidcenter.X - vpc)/(double)halfW; //-1 to 1 range with 0 being center, -1 being viewpoint on left side of viewport
 			pushviewport(vportstack,ivport2);
-			if(1){
-				//not sure why I need scissortest - isn't something else responsible? perhaps I'll catch on when I do anaglyph next
-				FW_GL_SCISSOR(ivport2.X,ivport2.Y,ivport2.W,ivport2.H);
-				glEnable(GL_SCISSOR_TEST);
-			}
 		}
 		setcurrentviewport(vportstack); //does opengl call
 
@@ -1133,7 +1623,6 @@ void stereo_sidebyside_render(void *_self){
 
 		//pop stereo_sidebyside subviewport
 		popnset_viewport();
-		if(1)	glDisable(GL_SCISSOR_TEST);
 		viewer->xcenter = 0.0;
 		c = c->t1.next;
 		i++;
@@ -1202,8 +1691,12 @@ typedef struct contenttype_stereo_anaglyph {
 	//in theory could put color sides here, will get from old viewer for now
 } contenttype_stereo_anaglyph;
 void loadIdentityMatrix (double *mat);
-
+void clear_shader_table();
+void setStereoBufferStyle(int);
 void stereo_anaglyph_render(void *_self){
+	//Feb 13, 2016 - anaglyph isn't rendering properly with FBO stage
+	// couldn't seem to make these hints work:
+	// http://www.gamedev.net/topic/664111-blending-problems-on-alpha-enabled-render-target/
 	//
 	int i;
 	contenttype *c;
@@ -1215,23 +1708,32 @@ void stereo_anaglyph_render(void *_self){
 	viewer = Viewer();
 	viewer->isStereoB = 1; //we're using the B so old isStereo not activated, backend thinks its rendering a mono scene
 	viewer->anaglyphB = 1; //except we need the shader for luminance = f(R,G,B)
+	clear_shader_table(); //tiggers reconfiguring shader, so it looks for anaglyphB flag 
+	//setStereoBufferStyle(1);
 
 	pushnset_viewport(self->t1.viewport); //generic viewport
 	c = self->t1.contents;
 	i=0;
+	//glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	Viewer_anaglyph_clearSides(); //clear all channels
+	//glColorMask(1,1,1,1);
+	glClearColor(0.0f,0.0f,0.0f,1.0f);
+	BackEndClearBuffer(2); //scissor test in here
 	while(c){
 
 		viewer->isideB = i; //set_viewmatrix needs to know
 		Viewer_anaglyph_setSide(i); //clear just the channels we're going to draw to
 		viewer->xcenter = 0.0; //no screen shift or fiducials, just center
-
-		c->t1.render(c);
+		
+		c->t1.render(c); //scene will do another backnedclearbuffer but should be constrained to channel mask for side
 
 		c = c->t1.next;
 		i++;
 	}
-	//glColorMask(1,1,1,1); /*restore, for statusbarHud etc*/ OR:
 	Viewer_anaglyph_clearSides(); //clear all channels
+	//glColorMask(1,1,1,1);
+	clear_shader_table();
+
 	viewer->anaglyphB = 0;
 	viewer->isStereoB = 0;
 	popnset_viewport();
@@ -1308,11 +1810,6 @@ void stereo_updown_render(void *_self){
 		ivport.Y += (1-i)*ivport.H; //left on top
 		pushviewport(vportstack,ivport);
 		setcurrentviewport(vportstack); //does opengl call
-			if(1){
-				//not sure why I need scissortest - isn't something else responsible? perhaps I'll catch on when I do anaglyph next
-				FW_GL_SCISSOR(ivport.X,ivport.Y,ivport.W,ivport.H);
-				glEnable(GL_SCISSOR_TEST);
-			}
 
 		//aspect squishing is still done in setup_projection
 		viewer->isideB = i; //set_viewmatrix needs to know
@@ -1320,7 +1817,6 @@ void stereo_updown_render(void *_self){
 
 		c->t1.render(c);
 		popnset_viewport();
-		if(1)	glDisable(GL_SCISSOR_TEST);
 
 		c = c->t1.next;
 		i++;
@@ -1532,6 +2028,29 @@ typedef struct stage {
 	//int initialized;
 } stage;
 
+//mouse coordinates are relative to a stage,
+//and because picking is done half in the pick() call stack, and
+//half in the render phase, we need to let the render phase know if a touch/pick is 
+//in its stage.
+// pick > touch->stage = current_stageId()
+// render > if(touch->stage != current_stageId()) not for me
+//So we give each stage an arbitrary unique ID (its void* pointer)
+//in theory we could pass it down the pick(,,,,stageId) call stack like windex,
+//but stages can be chained so aren't fixed for a pass, so we need a push-n-pop stack for render 
+//anyway, so we use a stack for pick too.
+void push_stageId(void *stageId){
+	Stack *stagestack = (Stack*)gglobal()->Mainloop._stagestack;
+	stack_push(void*,stagestack,stageId);
+}
+void *current_stageId(){
+	Stack *stagestack = (Stack*)gglobal()->Mainloop._stagestack;
+	return stack_top(void*,stagestack);
+}
+void pop_stageId(){
+	Stack *stagestack = (Stack*)gglobal()->Mainloop._stagestack;
+	stack_pop(void*,stagestack);
+}
+
 void stage_render(void *_self){
 	//just the z-buffer cleared between content
 	Stack *vportstack;
@@ -1540,24 +2059,38 @@ void stage_render(void *_self){
 	pushnset_framebuffer(self->ibuffer);
 	vportstack = (Stack*)gglobal()->Mainloop._vportstack;
 	pushviewport(vportstack,self->ivport);
+	push_stageId(self); 
 	setcurrentviewport(vportstack); //does opengl call
 	//for fun/testing, a different clear color for fbos vs gl_back, but not necessary
+
 	if(self->ibuffer != FW_GL_BACK)
 		glClearColor(.3f,.4f,.5f,1.0f);
 	else
 		glClearColor(1.0f,0.0f,0.0f,1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+	BackEndClearBuffer(2);
 	content_render(_self); //the rest of stage render is the same as content render, so we'll delegate
-	popnset_framebuffer();
+	pop_stageId();
 	popnset_viewport();
+	popnset_framebuffer();
 }
 int stage_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
 	Stack *vportstack;
+	ivec4 ivport_parent;
+	int x,y;
 	int iret;
 	stage *self = (stage*)_self;
+
+	ivport_parent = get_current_viewport();
+	x = mouseX - ivport_parent.X;
+	y = mouseY - ivport_parent.Y;
+	//pick coords are relative to stage
+	x = x + self->ivport.X; //should be 0
+	y = y + self->ivport.Y; //should be 0
 	vportstack = (Stack*)gglobal()->Mainloop._vportstack;
 	pushviewport(vportstack,self->ivport);
-	iret = content_pick(_self,mev,butnum,mouseX,mouseY,ID,windex);
+	push_stageId(self);
+	iret = content_pick(_self,mev,butnum,x,y,ID,windex);
+	pop_stageId();
 	pop_viewport();
 	return iret;
 }
@@ -1679,6 +2212,7 @@ typedef struct contenttype_texturegrid {
 	int nx, ny, nelements, nvert; //number of grid vertices
 	GLushort *index; //winRT needs short
 	GLfloat *vert, *vert2, *tex, *norm, dx, tx;
+	float k1,xc; //optionally used during distort and pick for radial/barrel distortion
 	GLuint textureID;
 } contenttype_texturegrid;
 
@@ -1713,16 +2247,19 @@ static GLfloat matrixIdentity[] = {
 	0.0f, 0.0f, 1.0f, 0.0f,
 	0.0f, 0.0f, 0.0f, 1.0f
 };
-
+int texturegrid_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex);
 contenttype *new_contenttype_texturegrid(int nx, int ny){
 	contenttype_texturegrid *self = MALLOCV(sizeof(contenttype_texturegrid));
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_TEXTUREGRID;
 	self->t1.render = texturegrid_render;
+	self->t1.pick = texturegrid_pick;
+	self->k1 = 0.0f;
+	self->xc = 0.0f;
 	self->nx = nx;
 	self->ny = ny;
 	{
-		//generate an nxn grid, complete with vertices, normals, texture coords and triangles
+		//generate an nxn grid, of object size [-1,1]x[-1,1] = 2x2, complete with vertices, normals, texture coords and triangles
 		int i,j,k; //,n;
 		GLushort *index;
 		GLfloat *vert, *vert2, *tex, *norm;
@@ -1771,8 +2308,156 @@ contenttype *new_contenttype_texturegrid(int nx, int ny){
 		self->vert2 = vert2;
 		self->nelements = k;
 		self->nvert = nx*ny;
+		//copy standard vertices unmodified to vert2 which is used in render
+		for(i=0;i<self->nvert;i++){
+			self->vert2[i*3 +0] = self->vert[i*3 +0]; //x
+			self->vert2[i*3 +1] = self->vert[i*3 +1]; //y
+			self->vert2[i*3 +2] = self->vert[i*3 +2]; //z
+		}
 	}
 	return (contenttype*)self;
+}
+void texturegrid_barrel_distort(void *_self, float k1){
+	contenttype_texturegrid *self;
+	self = (contenttype_texturegrid *)_self;
+	//Modify your vertices here for weird things
+	if(1){
+		//barrel distortion used for googleCardboard-like devices with magnifying glass per eye
+		int i;
+		for(i=0;i<self->nvert;i++){
+			float radius2, x, y;
+			x = self->vert[i*3 +0];  //go back to original coords
+			y = self->vert[i*3 +1];
+			radius2 = x*x + y*y;
+			self->vert2[i*3 +0] = x*(1.0f - k1*radius2); 
+			self->vert2[i*3 +1] = y*(1.0f - k1*radius2);
+		}
+		self->k1 = k1;
+		self->xc = 0.0f;
+	}
+
+	if(0){
+		//some other example distortions, not used here
+		float aspect, scale, xshift, yshift;
+		int i;
+		aspect = 1.0; //we'll do window aspect ratio below, using projectionMatrix
+		xshift = 0.0; 
+		yshift = 0.0;
+		scale = 1.0; //window coords go from -1 to 1 in x and y, and so do our lazyvert
+
+		for(i=0;i<self->nvert;i++){
+			self->vert2[i*3 +0] += xshift; //x .0355 empirical
+			self->vert2[i*3 +1] += yshift; //y  .04 empirical
+			self->vert2[i*3 +0] *= 1.0; //x
+			self->vert2[i*3 +1] *= aspect; //y
+			self->vert2[i*3 +0] *= scale; //x
+			self->vert2[i*3 +1] *= scale; //y
+			self->vert2[i*3 +2] = self->vert[i*3 +2]; //z
+		}
+	}
+
+
+}
+void texturegrid_barrel_distort2(void *_self, float xc, float k1){
+	//xc - fiducial center as .% from left
+	// so radial/barrel distortion is centered on fiducial to counteract magnifying glass barrel distortion in googleCardboard lens
+	// this function needs to be called during/just after every adjustment to screendist eyebase
+	contenttype_texturegrid *self;
+	self = (contenttype_texturegrid *)_self;
+	//Modify your vertices here for weird things
+	if(1){
+		//barrel distortion used for googleCardboard-like devices with magnifying glass per eye
+		int i;
+		float xc2 = xc * 2.0f - 1.0f; // convert from .% * [0 to 1] to [-1 to 1]
+		for(i=0;i<self->nvert;i++){
+			float radius2, x, y;;
+			x = self->vert[i*3 +0];  //go back to original coords
+			y = self->vert[i*3 +1];
+			radius2 = (x-xc2)*(x-xc2) + y*y;
+			self->vert2[i*3 +0] = x*(1.0f - k1*radius2); 
+			self->vert2[i*3 +1] = y*(1.0f - k1*radius2);
+		}
+		self->k1 = k1;
+		self->xc = xc2;
+	}
+}
+void texturegrid_barrel_undistort2(void *_self, ivec4 vport, ivec2 *xy){
+	//There are a few ways to back-transform/transform-backward (screen to scene) with texture grid:
+	//1. don't - instead rely on cursor drawn in model space from untransformed mouse
+	//2. bilinear interpolation using 2 more grids, one for x lookup, one for y lookup
+	//3. iteration of grid lookup going the other way
+	//4. iteration of original analytical distortion parameters -ie k1, xc
+	//each has pros and cons
+
+	contenttype_texturegrid *self;
+	float x,y,radius2;
+	self = (contenttype_texturegrid *)_self;
+	x = (float)(xy->X - vport.X) / (float)vport.W;
+	y = (float)(xy->Y - vport.Y) / (float)vport.H;
+	x = x*2.0f - 1.0f; //convert from 0-1 to -1 to 1
+	y = y*2.0f - 1.0f;
+	if(1){
+		//4. iterate using original analytical parameters and transform
+		int i;
+		float xb, yb, xa,ya, deltax, deltay, xc2, k1, tolerance;
+		xb = x; //initial guess: our mouse cursor position
+		yb = y;
+		xc2 = self->xc;
+		k1 = self->k1;
+		tolerance = .001f; //in [-1 to 1] .%
+		for(i=0;i<10;i++){
+			radius2 = (xb-xc2)*(xb-xc2) + yb*yb;
+			xa = xb*(1.0f - k1*radius2); //transform our guess forward (from scene to screen)
+			ya = yb*(1.0f - k1*radius2);
+			deltax = x - xa; //delta: how much we missed our mouse cursor by
+			deltay = y - ya;
+			xb += deltax; //next guess: old guess + delta
+			yb += deltay;
+			if(fabs(deltax) + fabs(deltay) < tolerance )break;
+		}
+		x = xb;
+		y = yb;
+	}
+	x = (x + 1.0f)*.5f; //convert from -1 to 1 to 0-1
+	y = (y + 1.0f)*.5f;
+	xy->X = x*vport.W + vport.X;
+	xy->Y = y*vport.H + vport.Y;
+}
+int texturegrid_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+	//convert windoow to fbo
+	int iret;
+	contenttype *c, *self;
+
+	self = (contenttype *)_self;
+	iret = 0;
+	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
+		ivec4 ivport;
+		int x,y;
+		ivec2 xy, xy2;
+		//ttglobal tg = gglobal();
+		//ivport = stack_top(ivec4,(Stack*)tg->Mainloop._vportstack);
+		ivport = get_current_viewport();
+		//fbo = window - viewport
+		//x = mouseX;
+		//y = mouseY;
+		x = mouseX; // - ivport.X;
+		y = mouseY; // - ivport.Y;
+		xy.X = x;
+		xy.Y = y;
+		if(1) texturegrid_barrel_undistort2(self, ivport, &xy );
+		if(get_debugging_trigger_once())
+			printf("undistort\n");
+		x = xy.X;
+		y = xy.Y;
+		c = self->t1.contents;
+		while(c){
+			iret = c->t1.pick(c,mev,butnum,x,y,ID, windex);
+			if(iret > 0) break; //handled 
+			c = c->t1.next;
+		}
+		pop_viewport();
+	}
+	return iret;
 }
 #include "../scenegraph/Component_Shape.h"
 void render_texturegrid(void *_self){
@@ -1801,12 +2486,13 @@ void render_texturegrid(void *_self){
 
 //>>onResize
 	//Standard vertex process - both sides get this:
-	for(i=0;i<self->nvert;i++){
-		self->vert2[i*3 +0] = self->vert[i*3 +0]; //x
-		self->vert2[i*3 +1] = self->vert[i*3 +1]; //y
-		self->vert2[i*3 +2] = self->vert[i*3 +2]; //z
-	}
+	//for(i=0;i<self->nvert;i++){
+	//	self->vert2[i*3 +0] = self->vert[i*3 +0]; //x
+	//	self->vert2[i*3 +1] = self->vert[i*3 +1]; //y
+	//	self->vert2[i*3 +2] = self->vert[i*3 +2]; //z
+	//}
 
+	/*
 	//Modify your vertices here for weird things, depending on side
 	aspect = 1.0; //we'll do window aspect ratio below, using projectionMatrix
 	xshift = 0.0; 
@@ -1822,16 +2508,16 @@ void render_texturegrid(void *_self){
 		self->vert2[i*3 +1] *= scale; //y
 		self->vert2[i*3 +2] = self->vert[i*3 +2]; //z
 	}
+	*/
 
-
-	//standard vertex process - both sides get this:
-	//scale = tg->display.screenRatio;
-	scale = 1.0f; // 4.0f/3.0f;
-	for(i=0;i<self->nvert;i++){
-		self->vert2[i*3 +0] *= scale; //x
-		self->vert2[i*3 +1] *= scale; //y
-	}
-//<<onResize
+//	//standard vertex process - both sides get this:
+//	//scale = tg->display.screenRatio;
+//	scale = 1.0f; // 4.0f/3.0f;
+//	for(i=0;i<self->nvert;i++){
+//		self->vert2[i*3 +0] *= scale; //x
+//		self->vert2[i*3 +1] *= scale; //y
+//	}
+////<<onResize
 
 	//use FW shader pipeline
 	//we'll use a simplified shader -same one we use for DrawCursor- that 
@@ -1884,7 +2570,6 @@ void render_texturegrid(void *_self){
 
 	return;
 }
-
 
 
 typedef struct contenttype_orientation {
@@ -2247,6 +2932,7 @@ typedef struct pMainloop{
 	int nwindow;
 	int windex; //current window index into twoindows array, valid during render()
 	Stack *_vportstack;
+	Stack *_stagestack;
 	Stack *_framebufferstack;
 }* ppMainloop;
 void *Mainloop_constructor(){
@@ -2364,6 +3050,8 @@ void Mainloop_init(struct tMainloop *t){
 		//t->twindows = p->twindows;
 		p->_vportstack = newStack(ivec4);
 		t->_vportstack = (void *)p->_vportstack; //represents screen pixel area being drawn to
+		p->_stagestack = newStack(void*);
+		t->_stagestack = (void *)p->_stagestack; //represents screen pixel area being drawn to
 		p->_framebufferstack = newStack(int);
 		t->_framebufferstack = (void*)p->_framebufferstack;
 		stack_push(int,p->_framebufferstack,FW_GL_BACK);
@@ -2792,11 +3480,21 @@ void setup_stagesNORMAL(){
 		cstage->t1.contents = cmultitouch;
 		p->EMULATE_MULTITOUCH =	FALSE;
 		//IDEA: these prepared ways of using freewrl could be put into a switchcase contenttype called early ie from window
-		if(1){
+		if(0){
 			//normal: multitouch emulation, layer, scene, statusbarHud, 
-			if(0) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
+			if(1) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
 			else cstage->t1.contents = csbh; //skip multitouch
 			//tg->Mainloop.AllowNavDrag = TRUE; //experimental approach to allow both navigation and dragging at the same time, with 2 separate touches
+		}else if(0){
+			//tests dual-ringbuffer console textpanel
+			contenttype *ctextpanel;
+			//ctextpanel = new_contenttype_textpanel("Vera",8,30,120,TRUE);
+			ctextpanel = new_contenttype_textpanel("VeraMono",8,60,120,TRUE);
+
+			ctextpanel->t1.contents = cscene;
+			textpanel_register_as_console(ctextpanel);
+			csbh->t1.contents = ctextpanel;
+			cstage->t1.contents = csbh;
 		}else if(0){
 			//captiontext, layer, scene, statusbarHud, 
 			//contenttype *new_contenttype_captiontext(char *fontname, int EMpixels, vec4 color)
@@ -2852,7 +3550,7 @@ void setup_stagesNORMAL(){
 			cscene->t1.next = NULL;
 			csbh->t1.contents = corientation;
 
-		}else if(1){
+		}else if(0){
 			//stereo chooser: switch + 4 stereo vision modes
 			//contenttype *clayer0, *clayer1, *clayer2, *clayer3;
 			contenttype *cscene0, *cscene1, *cscene2;
@@ -2863,7 +3561,7 @@ void setup_stagesNORMAL(){
 			cstereo3 = new_contenttype_stereo_updown();
 			cstereo4 = new_contenttype_stereo_shutter();
 			csbh->t1.contents = cswitch;
-			contenttype_switch_set_which(cswitch,4);
+			contenttype_switch_set_which(cswitch,2);
 
 
 			cscene0 = new_contenttype_scene();
@@ -2881,8 +3579,53 @@ void setup_stagesNORMAL(){
 			cstereo3->t1.next = cstereo4;
 			cswitch->t1.contents = cscene2;
 			cstage->t1.contents = csbh;
-		}
-		else if(1){
+		} else if(1){
+			//sidebyside stereo with per-eye fbo
+			contenttype *cscene0, *cscene1;
+			contenttype *cstereo;
+			contenttype *cstagefbo0, *cstagefbo1;
+			contenttype *ctexturegrid0, *ctexturegrid1;
+
+
+			cstagefbo0 = new_contenttype_stagefbo(512,512);
+			ctexturegrid0 = new_contenttype_texturegrid(5,5);
+			ctexturegrid0->t1.contents = cstagefbo0;
+
+			cstagefbo1 = new_contenttype_stagefbo(512,512);
+			ctexturegrid1 = new_contenttype_texturegrid(5,5);
+			ctexturegrid1->t1.contents = cstagefbo1;
+
+			if(1){
+				//googleCardboard barrel distortions to counteract/compensate for magnifying lenses
+				float xc;
+				X3D_Viewer *viewer = Viewer();
+
+				//ideally this gets run whenever screendist is changed
+				xc = 1.0f - viewer->screendist;
+				texturegrid_barrel_distort2(ctexturegrid0, xc,.1f);
+				xc = viewer->screendist;
+				texturegrid_barrel_distort2(ctexturegrid1, xc,.1f);
+			}
+
+			cscene0 = new_contenttype_scene();
+			cscene1 = new_contenttype_scene();
+
+			cstagefbo0->t1.contents = cscene0;
+			cstagefbo1->t1.contents = cscene1;
+
+			cstereo = new_contenttype_stereo_sidebyside();
+			//cstereo = new_contenttype_stereo_anaglyph(); //doesnt work with fbo stage
+			//cstereo = new_contenttype_stereo_shutter();
+			cstereo->t1.contents = ctexturegrid0;
+			ctexturegrid0->t1.next = ctexturegrid1;
+			if(1){
+				csbh->t1.contents = cstereo;
+				cstage->t1.contents = csbh;
+			}else{
+				cstage->t1.contents = cstereo;
+			}
+
+		} else if(0){
 			//quadrant
 			//contenttype *clayer0, *clayer1, *clayer2, *clayer3;
 			contenttype *cscene0, *cscene1, *cscene2, *cscene3;
@@ -3036,7 +3779,7 @@ void emulate_multitouch(int mev, unsigned int button, int x, int ydown, int wind
 	for(i=0;i<p->ntouch;i++){
 		touch = &p->touchlist[i];
 		if(touch->ID > -1){
-			if(touch->windex == windex)
+			if(touch->windex == windex && touch->stageId == current_stageId())
 			if((abs(x - touch->rx) < 10) && (abs(y - touch->ry) < 10)){
 				ifound = 1;
 				ID = i;
@@ -3106,7 +3849,7 @@ void render_multitouch2(struct Touch *touchlist, int ntouch){
 		int i;
 		for(i=0;i<ntouch;i++){
 			if(touchlist[i].ID > -1)
-				if(touchlist[i].windex == p->windex)
+				if(touchlist[i].windex == p->windex ) // && touchlist[i].stageId == current_stageId() )
 				{
 					struct Touch *touch;
 					touch = &touchlist[i];
@@ -3128,6 +3871,7 @@ void record_multitouch(struct Touch *touchlist, int mev, int butnum, int mouseX,
 		touch->rx = mouseX;
 		touch->ry = mouseY;
 		touch->windex = windex;
+		touch->stageId = current_stageId();
 		touch->buttonState[butnum] = mev == ButtonPress;
 		touch->ID = ID; /*will come in handy if we change from array[] to accordian list*/
 		touch->mev = mev;
@@ -3165,7 +3909,7 @@ int emulate_multitouch2(struct Touch *touchlist, int ntouch, int *IDD, int *last
 		for(i=0;i<ntouch;i++){
 			touch = &touchlist[i];
 			if(touch->ID > -1){
-				if(touch->windex == windex)
+				if(touch->windex == windex ) //&& touch->stageId == current_stageId())
 				if((abs(x - touch->rx) < 10) && (abs(y - touch->ry) < 10)){
 					*IDD = i;
 					printf("drag found ID %d\n",*IDD);
@@ -3606,6 +4350,7 @@ void setup_picking(){
 
 	//	if(ID == 0) continue; //for testing e3dmouse only
 			if(touch->windex != windex) continue; //return;
+			if(touch->stageId != current_stageId()) continue;
 //		if(touch->handled) continue; //already processed, for testing only 
 			touch->handled = TRUE;
 			x = touch->x;
@@ -3739,6 +4484,7 @@ void setup_picking(){
 			int x, yup;
 			struct Touch * touch = currentTouch();
 			if(touch->windex != windex) return;
+			if(touch->stageId != current_stageId()) return;
 			if(touch->ID < 0) return;
 			x = touch->x;
 			yup = touch->y;
@@ -4577,6 +5323,8 @@ static void render()
 
 	viewer = Viewer();
 	doglClearColor();
+
+
 	for (count = 0; count < p->maxbuffers; count++) {
 
 		viewer->buffer = (unsigned)p->bufferarray[count];
@@ -4604,8 +5352,8 @@ static void render()
 				else
 					Viewer_anaglyph_setSide(count); //clear just the channels we're going to draw to
 			}
-			setup_projection(); //scissor test in here
-			BackEndClearBuffer(2);
+			setup_projection(); 
+			BackEndClearBuffer(2); //scissor test in here
 			if(Viewer()->anaglyph)
 				Viewer_anaglyph_setSide(count); //set the channels for scenegraph drawing
 			//setup_viewpoint();
@@ -4653,6 +5401,12 @@ static void render()
 				glColorMask(1,1,1,1); /*restore, for statusbarHud etc*/
 		}
 	} /* for loop */
+	if(1){
+		//render last know mouse position as seen by the backend
+		struct Touch *touch = &p->touchlist[0];
+		if(touch->stageId == current_stageId())
+			fiducialDraw(0, touch->x, touch->y, 0.0f);
+	}
 
 }
 
@@ -5054,7 +5808,7 @@ void fwl_do_keyPress0(int key, int type) {
 				case 'b': {fwl_Prev_ViewPoint(); break;}
 				case '.': {profile_print_all(); break;}
 				case ' ': p->keywait = TRUE; ConsoleMessage("\n%c",':'); p->keywaitstring[0] = '\0'; break;
-
+				case ',': toggle_debugging_trigger(); break; 
 #if !defined(FRONTEND_DOES_SNAPSHOTS)
 				case 's': {fwl_toggleSnapshot(); break;}
 				case 'x': {Snapshot(); break;} /* thanks to luis dias mas dec16,09 */
@@ -6555,7 +7309,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	fx = (float)(x - vport.X) / (float)vport.W;
 	fy = (float)(y - vport.Y) / (float)vport.H;
 	if(0){
-		ConsoleMessage("multiNORMAL x %d y %d fx %f fy %f vp %d %d %d %d\n",x,y,fx,fy,vport.X,vport.W,vport.Y,vport.H);
+		printf("multiNORMAL x %d y %d fx %f fy %f vp %d %d %d %d\n",x,y,fx,fy,vport.X,vport.W,vport.Y,vport.H);
 	}
 	if (0){
 		ConsoleMessage("fwl_handle_aqua in MainLoop; mev %d but %d x %d y %d ID %d ",
@@ -6571,6 +7325,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	touch->x = x;
 	touch->y = y;
 	touch->windex = windex;
+	touch->stageId = current_stageId();
 	touch->buttonState[ibutton] = mev == ButtonPress;
 	touch->ID = ID; //will come in handy if we change from array[] to accordian list
 	touch->mev = mev;

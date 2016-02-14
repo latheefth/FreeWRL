@@ -2749,6 +2749,7 @@ void drawStatusBarSide()
 {
 }
 void update_pinned(){
+	int sb, mb;
 	ppstatusbar p;
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
@@ -2911,7 +2912,7 @@ M       void toggle_collision()                             //"
 
 		//glUniform4f(p->color4fLoc, 1.0f, 1.0f, 1.0f, 1.0f);
 		glUniform4f(p->color4fLoc,colorMessageText[0],colorMessageText[1],colorMessageText[2],colorMessageText[3]);
-		glDisable(GL_SCISSOR_TEST); //ideally this would scissor everything but statusbar+menu so we don't overwrite bars
+		//glDisable(GL_SCISSOR_TEST); //ideally this would scissor everything but statusbar+menu so we don't overwrite bars
 		if (showAction(p, ACTION_HELP))
 			printKeyboardHelp(p);
 		if (showAction(p, ACTION_MESSAGES))
