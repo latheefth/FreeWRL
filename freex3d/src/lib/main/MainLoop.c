@@ -769,7 +769,7 @@ contenttype *new_contenttype_textpanel(char* fontname, int EMpixels, int maxline
 	self->E = self->Ablob + self->blobsize;
 	self->Blist = malloc(sizeof(BUTitem)*self->maxlines);
 	self->rowsize = self->maxlen;
-	self->row = malloc(self->rowsize+1);
+	self->row = malloc(self->rowsize +1);
 	for(i=0;i<self->maxlines;i++){
 		int prev, next;
 		prev = i - 1;
@@ -979,6 +979,8 @@ void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 
 	atlasfont_get_rowheight_charwidth_px(self->font,&rowheight,&maxadvancepx);
 	panelsizechars = ivec2_init(ivport.W / maxadvancepx, ivport.H / rowheight);
+	panelsizechars.X = min(panelsizechars.X,self->maxlen);
+	panelsizechars.Y = min(panelsizechars.Y,self->maxlines);
 	
 	//if(panelsizechars.X+1 > self->rowsize) {
 	//	self->rowsize = panelsizechars.X+1;
@@ -3382,11 +3384,11 @@ void setup_stagesNORMAL(){
 			if(1) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
 			else cstage->t1.contents = csbh; //skip multitouch
 			//tg->Mainloop.AllowNavDrag = TRUE; //experimental approach to allow both navigation and dragging at the same time, with 2 separate touches
-		}else if(0){
+		}else if(1){
 			//tests dual-ringbuffer console textpanel
 			contenttype *ctextpanel;
 			//ctextpanel = new_contenttype_textpanel("Vera",8,30,120,TRUE);
-			ctextpanel = new_contenttype_textpanel("VeraMono",8,120,30,TRUE);
+			ctextpanel = new_contenttype_textpanel("VeraMono",8,60,120,TRUE);
 
 			ctextpanel->t1.contents = cscene;
 			textpanel_register_as_console(ctextpanel);

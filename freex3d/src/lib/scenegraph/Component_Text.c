@@ -3564,7 +3564,6 @@ int RenderStringG(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y
 		if(!textureID)
 			glGenTextures(1, &textureID);
 
-		glBindTexture(GL_TEXTURE_2D, textureID);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST); //GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST); //GL_LINEAR);
 
@@ -3574,7 +3573,7 @@ int RenderStringG(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y
 		glUniform4f(color4fLoc,color.X,color.Y,color.Z,color.W); //0.7f,0.7f,0.9f,1.0f);
 
 		glActiveTexture ( GL_TEXTURE0 );
-		//glBindTexture ( GL_TEXTURE_2D, textureID );
+		glBindTexture ( GL_TEXTURE_2D, textureID );
 		glUniform1i ( textureLoc, 0 );
 
 		if(atlas->bytesperpixel == 1){
@@ -3592,8 +3591,8 @@ int RenderStringG(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y
 		glVertexAttribPointer ( texCoordLoc, 2, GL_FLOAT,
 							   GL_FALSE, 0, tex ); 
 
-		glEnableVertexAttribArray (positionLoc );
-		glEnableVertexAttribArray (texCoordLoc );
+if(0) glEnableVertexAttribArray (positionLoc );
+if(0) glEnableVertexAttribArray (texCoordLoc );
 		// Set the base map sampler to texture unit to 0
 		//glUniform1i ( textureLoc, 0 );
 		glDrawElements ( GL_TRIANGLES, len*3*2, GL_UNSIGNED_SHORT, ind );
