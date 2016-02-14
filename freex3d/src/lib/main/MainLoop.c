@@ -2333,6 +2333,27 @@ void texturegrid_barrel_distort(void *_self, float k1){
 
 
 }
+void texturegrid_barrel_distort2(void *_self, float xc, float k1){
+	//xc - fiducial center as .% from left
+	// so radial/barrel distortion is centered on fiducial to counteract magnifying glass barrel distortion in googleCardboard lens
+	// this function needs to be called during/just after every adjustment to screendist eyebase
+	contenttype_texturegrid *self;
+	self = (contenttype_texturegrid *)_self;
+	//Modify your vertices here for weird things
+	if(1){
+		//barrel distortion used for googleCardboard-like devices with magnifying glass per eye
+		int i;
+		float xc2 = xc * 2.0f - 1.0f; // convert from .% * [0 to 1] to [-1 to 1]
+		for(i=0;i<self->nvert;i++){
+			float radius2, x, y;;
+			x = self->vert[i*3 +0];  //go back to original coords
+			y = self->vert[i*3 +1];
+			radius2 = (x-xc2)*(x-xc2) + y*y;
+			self->vert2[i*3 +0] = x*(1.0f - k1*radius2); 
+			self->vert2[i*3 +1] = y*(1.0f - k1*radius2);
+		}
+	}
+}
 
 #include "../scenegraph/Component_Shape.h"
 void render_texturegrid(void *_self){
@@ -2447,6 +2468,12 @@ void render_texturegrid(void *_self){
 }
 int texturegrid_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
 	//convert windoow to fbo
+	//There are a few ways to back-transform/transform-backward (screen to scene) with texture grid:
+	//1. don't - instead rely on cursor drawn in model space from untransformed mouse
+	//2. bilinear interpolation using 2 more grids, one for x lookup, one for y lookup
+	//3. iteration of grid lookup going the other way
+	//4. use original analytical distortion parameters -ie k1, xc- in reverse transform
+	//each has pros and cons
 	int iret;
 	contenttype *c, *self;
 
@@ -2455,8 +2482,9 @@ int texturegrid_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, i
 	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
 		ivec4 ivport;
 		int x,y;
-		ttglobal tg = gglobal();
-		ivport = stack_top(ivec4,(Stack*)tg->Mainloop._vportstack);
+		//ttglobal tg = gglobal();
+		//ivport = stack_top(ivec4,(Stack*)tg->Mainloop._vportstack);
+		ivport = get_current_viewport();
 		//fbo = window - viewport
 		//x = mouseX;
 		//y = mouseY;
@@ -3382,7 +3410,7 @@ void setup_stagesNORMAL(){
 		cstage->t1.contents = cmultitouch;
 		p->EMULATE_MULTITOUCH =	FALSE;
 		//IDEA: these prepared ways of using freewrl could be put into a switchcase contenttype called early ie from window
-		if(1){
+		if(0){
 			//normal: multitouch emulation, layer, scene, statusbarHud, 
 			if(1) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
 			else cstage->t1.contents = csbh; //skip multitouch
@@ -3481,7 +3509,7 @@ void setup_stagesNORMAL(){
 			cstereo3->t1.next = cstereo4;
 			cswitch->t1.contents = cscene2;
 			cstage->t1.contents = csbh;
-		} else if(0){
+		} else if(1){
 			//sidebyside stereo with per-eye fbo
 			contenttype *cscene0, *cscene1;
 			contenttype *cstereo;
@@ -3502,6 +3530,19 @@ void setup_stagesNORMAL(){
 				texturegrid_barrel_distort(ctexturegrid0, .1f);
 				texturegrid_barrel_distort(ctexturegrid1, .1f);
 			}
+			if(1){
+				ivec2 fidcenter;
+				ivec4 vport;
+				float xc;
+				X3D_Viewer *viewer = Viewer();
+				xc = viewer->screendist - .5;
+				xc *= -1.0f;
+				xc = 1.0f - viewer->screendist;
+
+				texturegrid_barrel_distort2(ctexturegrid0, xc,.1f);
+				xc = viewer->screendist;
+				texturegrid_barrel_distort2(ctexturegrid1, xc,.1f);
+			}
 
 			cscene0 = new_contenttype_scene();
 			cscene1 = new_contenttype_scene();
@@ -3509,8 +3550,8 @@ void setup_stagesNORMAL(){
 			cstagefbo0->t1.contents = cscene0;
 			cstagefbo1->t1.contents = cscene1;
 
-			//cstereo = new_contenttype_stereo_sidebyside();
-			cstereo = new_contenttype_stereo_anaglyph(); //doesnt work with fbo stage
+			cstereo = new_contenttype_stereo_sidebyside();
+			//cstereo = new_contenttype_stereo_anaglyph(); //doesnt work with fbo stage
 			//cstereo = new_contenttype_stereo_shutter();
 			cstereo->t1.contents = ctexturegrid0;
 			ctexturegrid0->t1.next = ctexturegrid1;
