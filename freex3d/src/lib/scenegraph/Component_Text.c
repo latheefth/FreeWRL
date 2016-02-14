@@ -2186,11 +2186,13 @@ typedef struct AtlasEntrySet {
 	int rowheight;  //if items are in regular rows, this is a hint, during making of the atlas
 	char *atlasName;
 	Atlas *atlas;
+	AtlasFont *font;
 	AtlasEntry *ascii[128]; //fast lookup table, especially for ascii 32 - 126 to get entry *. NULL if no entry.
 	struct Vector *entries; //atlasEntry *  -all entries -including ascii as first 128- sorted for binary searching
 } AtlasEntrySet;
-void AtlasEntrySet_init(AtlasEntrySet *me, char *name){
+void AtlasEntrySet_init(AtlasFont *font, AtlasEntrySet *me, char *name){
 	me->name = name;
+	me->font = font;
 	me->type = GUI_ATLASENTRYSET;
 	me->entries = newVector(AtlasEntry *,256);
 	memset(me->ascii,0,128*sizeof(int)); //initialize ascii fast lookup table to NULL, which means no char glyph stored
@@ -2226,6 +2228,7 @@ AtlasEntry *AtlasEntrySet_getEntry1(AtlasEntrySet *me, char *name){
 	}
 	return NULL;
 }
+AtlasEntry * AtlasAddIChar(AtlasFont *font, AtlasEntrySet *entryset,  int ichar);
 AtlasEntry *AtlasEntrySet_getEntry(AtlasEntrySet *me, int ichar){
 	//use this to get an atlas entry for a font glyph
 	// uses fast lookup for ASCII chars first, then slow lookup since its a 16 char x 16 char atlas, max 256 chars stored
@@ -2236,12 +2239,29 @@ AtlasEntry *AtlasEntrySet_getEntry(AtlasEntrySet *me, int ichar){
 	}else{
 		//could be a binary search here
 		int i;
-		for(i=128;i<vectorSize(me->entries);i++){
+		for(i=0;i<vectorSize(me->entries);i++){
 			AtlasEntry *entry = vector_get(AtlasEntry*,me->entries,i);
 			if(entry->ichar == ichar){
 				ae = entry;
 				break;
 			}
+		}
+		if(!ae){
+			printf("not found in atlasEntrySet %d adding\n",ichar);
+			//add 
+			ae = AtlasAddIChar(me->font, me, ichar);
+			if(!ae) printf("couldn't add %d\n",ichar);
+			for(i=0;i<vectorSize(me->entries);i++){
+				AtlasEntry *entry = vector_get(AtlasEntry*,me->entries,i);
+				if(entry->ichar == ichar){
+					ae = entry;
+					break;
+				}
+			}
+			if(!ae){
+				printf("tried to add, but didn't show up\n");
+			}
+
 		}
 	}
 	return ae;
@@ -2400,6 +2420,38 @@ int RenderFontAtlasCombo(AtlasFont *font, AtlasEntrySet *entryset,  char * cText
 	//		atlas->texture[i*256 + j] = (i*j) %2 ? 0 : 127; //checkerboard, to see if fonts twinkle
 	//}
 	return TRUE;
+}
+AtlasEntry * AtlasAddIChar(AtlasFont *font, AtlasEntrySet *entryset,  int ichar){
+	int i;
+	FT_Face fontFace = font->fontFace;
+
+	FT_GlyphSlot glyph;
+	FT_Error error;
+	AtlasEntry *entry;
+	unsigned long c;
+		
+	c = FT_Get_Char_Index(fontFace, ichar); 		
+	error = FT_Load_Glyph(fontFace, c, FT_LOAD_RENDER); 	
+	if(error) 		
+	{ 			
+		//Logger::LogWarning("Character %c not found.", wText.GetCharAt(i)); 
+		printf("ouch87");
+		return NULL; 		
+	}
+	glyph = fontFace->glyph;
+
+	entry = malloc(sizeof(AtlasEntry));
+	//atlasEntry_init1(entry,names[i*2],(int)cText[i],0,0,16,16);
+	entry->ichar = ichar;
+	entry->pos.X = glyph->bitmap_left;
+	entry->pos.Y = glyph->bitmap_top;
+	entry->advance.X = glyph->advance.x >> 6;
+	entry->advance.Y = glyph->advance.y >> 6;
+	entry->size.X = glyph->bitmap.width;
+	entry->size.Y = glyph->bitmap.rows;
+	entry->name = NULL; //utf8_to_utf32(str,str32,&len32);
+	AtlasEntrySet_addEntry(entryset,entry,glyph->bitmap.buffer);
+	return entry;
 }
 int RenderFontAtlas(AtlasFont *font, AtlasEntrySet *entryset,  char * cText){
 	//pass in a string with your alphabet, numbers, symbols or whatever, 
@@ -2571,7 +2623,7 @@ void AtlasFont_RenderFontAtlas(AtlasFont *me, int EMpixels, char* alphabet){
 	strcpy(name,me->name);
 	sprintf(&name[strlen(me->name)],"%d",EMpixels); //or itoa()
 	//itoa(EMpixels,&name[strlen(name)],10);
-	AtlasEntrySet_init(aes,name);
+	AtlasEntrySet_init(me,aes,name);
 	//somehow, I need the EMsize and rowheight, or a more general function to compute area needed by string
 	AtlasFont_setFontSize(me,EMpixels, &rowheight, &maxadvancepx);
 	pixelsNeeded = rowheight * EMpixels / 2 * strlen(alphabet);
@@ -3372,14 +3424,15 @@ int render_captiontext(AtlasFont *font, unsigned char * utf8string, vec4 color){
 					xsize = fwh.X;
 					ysize = fwh.Y;
 				}
-
+				//if(ichar == 233)
+				//	printf("rendering 233\n");
 				dug9gui_DrawSubImage(xpos,ypos,xsize,ysize, 
 					entry->apos.X, entry->apos.Y, entry->size.X, entry->size.Y,
 					set->atlas->size.X,set->atlas->size.Y,set->atlas->bytesperpixel,set->atlas->texture);
 				pen_x += entry->advance.X; //glyph->advance.x >> 6;
 			}
 		}
-		if(!entry){
+		if(0) if(!entry){
 			//use freetype2 to render
 			FT_GlyphSlot glyph;
 			unsigned long c = FT_Get_Char_Index(font->fontFace, ichar); 		

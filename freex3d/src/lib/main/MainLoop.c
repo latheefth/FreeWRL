@@ -1683,8 +1683,10 @@ void loadIdentityMatrix (double *mat);
 void clear_shader_table();
 void setStereoBufferStyle(int);
 void stereo_anaglyph_render(void *_self){
-	//Feb 13, 2016 - anaglyph isn't rendering properly with FBO
-	// - H0: rendering just right side
+	//Feb 13, 2016 - anaglyph isn't rendering properly with FBO stage
+	// couldn't seem to make these hints work:
+	// http://www.gamedev.net/topic/664111-blending-problems-on-alpha-enabled-render-target/
+	//
 	int i;
 	contenttype *c;
 	contenttype_stereo_anaglyph *self;
@@ -1701,6 +1703,7 @@ void stereo_anaglyph_render(void *_self){
 	pushnset_viewport(self->t1.viewport); //generic viewport
 	c = self->t1.contents;
 	i=0;
+	//glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	Viewer_anaglyph_clearSides(); //clear all channels
 	//glColorMask(1,1,1,1);
 	glClearColor(0.0f,0.0f,0.0f,1.0f);
@@ -3379,12 +3382,12 @@ void setup_stagesNORMAL(){
 		cstage->t1.contents = cmultitouch;
 		p->EMULATE_MULTITOUCH =	FALSE;
 		//IDEA: these prepared ways of using freewrl could be put into a switchcase contenttype called early ie from window
-		if(0){
+		if(1){
 			//normal: multitouch emulation, layer, scene, statusbarHud, 
 			if(1) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
 			else cstage->t1.contents = csbh; //skip multitouch
 			//tg->Mainloop.AllowNavDrag = TRUE; //experimental approach to allow both navigation and dragging at the same time, with 2 separate touches
-		}else if(1){
+		}else if(0){
 			//tests dual-ringbuffer console textpanel
 			contenttype *ctextpanel;
 			//ctextpanel = new_contenttype_textpanel("Vera",8,30,120,TRUE);
@@ -3478,7 +3481,7 @@ void setup_stagesNORMAL(){
 			cstereo3->t1.next = cstereo4;
 			cswitch->t1.contents = cscene2;
 			cstage->t1.contents = csbh;
-		} else if(1){
+		} else if(0){
 			//sidebyside stereo with per-eye fbo
 			contenttype *cscene0, *cscene1;
 			contenttype *cstereo;
@@ -3506,8 +3509,8 @@ void setup_stagesNORMAL(){
 			cstagefbo0->t1.contents = cscene0;
 			cstagefbo1->t1.contents = cscene1;
 
-			cstereo = new_contenttype_stereo_sidebyside();
-			//cstereo = new_contenttype_stereo_anaglyph(); //doesnt work with fbo stage
+			//cstereo = new_contenttype_stereo_sidebyside();
+			cstereo = new_contenttype_stereo_anaglyph(); //doesnt work with fbo stage
 			//cstereo = new_contenttype_stereo_shutter();
 			cstereo->t1.contents = ctexturegrid0;
 			ctexturegrid0->t1.next = ctexturegrid1;
