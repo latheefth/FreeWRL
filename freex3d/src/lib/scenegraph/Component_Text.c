@@ -3267,8 +3267,11 @@ void atlasfont_get_rowheight_charwidth_px(AtlasFont *font, int *rowheight, int *
 	*rowheight = font->set->rowheight;
 	*maxadvancepx = font->set->maxadvancepx;
 }
-int RenderStringG(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y, vec4 color){
+int textpanel_render_row(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y, vec4 color){
 	//we use a font atlas
+	//current Feb 2016: recomputes verts, indices on each loop
+	//potential optimizatio: in theory its the y that changes for a row, 
+	// and tex for each char, with mono-spaced fonts, if we could guarantee that
 	AtlasEntrySet *entryset;
 	if(cText == NULL) return FALSE;
 	if(len == 0) return FALSE;

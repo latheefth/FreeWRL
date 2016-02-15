@@ -965,7 +965,7 @@ void textpanel_register_as_console(void *_self){
 	console_textpanel = self;
 	fwg_register_consolemessage_callback(TextPanel_Console_AddString);
 }
-int RenderStringG(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y, vec4 color);
+int textpanel_render_row(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y, vec4 color);
 ivec2 pixel2text(int x, int y, int rowheight, int maxadvancepx){
 	int h = rowheight;
 	int w = maxadvancepx;
@@ -1116,7 +1116,7 @@ void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 			//ivec4 box = ivec4_init(pen_x,pen_y,lenrow*self->set->maxadvancepx,self->set->rowheight);
 			//ivec4 currentvp = stack_top(ivec4,_vpstack);
 			//if(overlapviewports(box, currentvp)) //seems not properly aligned, a little too aggressive
-			RenderStringG(self->font, row, lenrow,&pen_x, &pen_y, self->color); //&xy.X,&xy.Y);
+			textpanel_render_row(self->font, row, lenrow,&pen_x, &pen_y, self->color); //&xy.X,&xy.Y);
 			if(show_ringtext){
 				//debugging
 				memcpy(self->row,row,lenrow);
