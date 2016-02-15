@@ -2523,7 +2523,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     }
     }
 
-//#define VERBOSE
+//#define VERBOSE 1
     #ifdef VERBOSE
 	/* print out the vertex source here */
 		{
@@ -2544,6 +2544,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             }
 		}
 	#endif //VERBOSE
+//#undef VERBOSE
 	return TRUE;
 }
 #undef VERBOSE

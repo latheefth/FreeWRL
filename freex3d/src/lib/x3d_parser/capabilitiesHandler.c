@@ -61,7 +61,7 @@ static const int capabilities[] = {
 	COM_Texturing3D,	0, 	/* May 12, 2009 */
 	COM_PointDeviceSensor,	1, 	/* May 12, 2009 */
 	COM_HAnim,	0, 		/* May 12, 2009 */
-	COM_RigidBodyPhysics,	0, 	/* May 12, 2009 */
+	COM_RigidBodyPhysics,	2, 	/* Feb, 2016 */
 	COM_Core,		2,	/* October 29, 2008 */
 	COM_Layout,	2, 		/* Jan 2016 */
 	COM_Time,		2, 	/* October 29, 2008 */

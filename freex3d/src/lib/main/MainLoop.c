@@ -2230,6 +2230,7 @@ typedef struct contenttype_texturegrid {
 	GLushort *index; //winRT needs short
 	GLfloat *vert, *vert2, *tex, *norm, dx, tx;
 	float k1,xc; //optionally used during distort and pick for radial/barrel distortion
+	int usingDistortions;
 	GLuint textureID;
 } contenttype_texturegrid;
 
@@ -2396,6 +2397,7 @@ void texturegrid_barrel_distort2(void *_self, float xc, float k1){
 		}
 		self->k1 = k1;
 		self->xc = xc2;
+		self->usingDistortions = TRUE;
 	}
 }
 void texturegrid_barrel_undistort2(void *_self, ivec4 vport, ivec2 *xy){
@@ -2443,9 +2445,10 @@ void texturegrid_barrel_undistort2(void *_self, ivec4 vport, ivec2 *xy){
 int texturegrid_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
 	//convert windoow to fbo
 	int iret;
-	contenttype *c, *self;
+	contenttype *c;
+	contenttype_texturegrid *self;
 
-	self = (contenttype *)_self;
+	self = (contenttype_texturegrid *)_self;
 	iret = 0;
 	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
 		ivec4 ivport;
@@ -2461,9 +2464,7 @@ int texturegrid_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, i
 		y = mouseY; // - ivport.Y;
 		xy.X = x;
 		xy.Y = y;
-		if(1) texturegrid_barrel_undistort2(self, ivport, &xy );
-		if(get_debugging_trigger_once())
-			printf("undistort\n");
+		if(self->usingDistortions) texturegrid_barrel_undistort2(self, ivport, &xy );
 		x = xy.X;
 		y = xy.Y;
 		c = self->t1.contents;
@@ -3512,7 +3513,7 @@ void setup_stagesNORMAL(){
 			textpanel_register_as_console(ctextpanel);
 			csbh->t1.contents = ctextpanel;
 			cstage->t1.contents = csbh;
-		}else if(1){
+		}else if(0){
 			//captiontext, layer, scene, statusbarHud, 
 			//contenttype *new_contenttype_captiontext(char *fontname, int EMpixels, vec4 color)
 			vec4 ccolor;
