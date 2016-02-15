@@ -661,10 +661,14 @@ AtlasFont *searchAtlasTableOrLoad(char *facename, int EMpixels);
 AtlasEntrySet* searchAtlasFontForSizeOrMake(AtlasFont *font,int EMpixels);
 typedef struct vec4 {float X; float Y; float Z; float W;} vec4;
 vec4 vec4_init(float x, float y, float z, float w);
-int render_captiontext(AtlasFont *font,  char *utf8string, vec4 color);
+int render_captiontext(AtlasFont *font,  int *utf32, int len32, vec4 color);
 typedef struct contenttype_captiontext {
 	tcontenttype t1;
 	char *caption;
+	int len;
+	int *utf32;
+	int len32;
+	int nalloc;
 	AtlasFont *font;
 	char *fontname;
 	int fontSize;
@@ -676,15 +680,12 @@ typedef struct contenttype_captiontext {
 	vec4 color;
 } contenttype_captiontext;
 void captiontext_render(void *_self){
-	//make this like layer, render contents first in clipplane-limited viewport, then sbh in whole viewport
 	contenttype_captiontext *self;
 
 	self = (contenttype_captiontext *)_self;
 	pushnset_viewport(self->t1.viewport);
 
-	//vec4 c4f = self->color;
-	//glColor4f(c4f.X,c4f.Y,c4f.Z,c4f.W); 
-	render_captiontext(self->font, self->caption,self->color);
+	render_captiontext(self->font, self->utf32, self->len32, self->color);
 	popnset_viewport();
 }
 int captiontext_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
@@ -702,6 +703,11 @@ contenttype *new_contenttype_captiontext(char *fontname, int EMpixels, vec4 colo
 	self->font = NULL;
 	self->color = color;
 	self->fontname = fontname;
+	self->caption = NULL;
+	self->utf32 = NULL;
+	self->len = 0;
+	self->len32 = 0;
+	self->nalloc = 0;
 	self->font = (AtlasFont*)searchAtlasTableOrLoad(fontname,EMpixels);
 	if(!self->font){
 		printf("dug9gui: Can't find font %s do you have the wrong name?\n",fontname);
@@ -709,9 +715,20 @@ contenttype *new_contenttype_captiontext(char *fontname, int EMpixels, vec4 colo
 	//self->set = (void *)self->font->set; //searchAtlasFontForSizeOrMake(self->font,EMpixels);
 	return (contenttype*)self;
 }
+int *utf8_to_utf32(unsigned char *utf8string, unsigned int *str32, unsigned int *len32);
 void captiontext_setString(void *_self, char *utf8string){
+	int lenstr;
 	contenttype_captiontext *self = (contenttype_captiontext *)_self;
-	self->caption = utf8string; //should we deep copy? no need yet.
+	lenstr = strlen(utf8string);
+	if(self->nalloc < lenstr){
+		self->caption = realloc(self->caption,lenstr+1);
+		//in theory utf32 should always be <= utf8 length, make same size and extra room
+		self->utf32 = realloc(self->utf32,(lenstr+1)*sizeof(int));
+		self->nalloc = lenstr;
+	}
+	strcpy(self->caption,utf8string);
+	self->len = lenstr;
+	self->utf32 = utf8_to_utf32(self->caption,self->utf32,&self->len32);
 }
 
 
@@ -3495,7 +3512,7 @@ void setup_stagesNORMAL(){
 			textpanel_register_as_console(ctextpanel);
 			csbh->t1.contents = ctextpanel;
 			cstage->t1.contents = csbh;
-		}else if(0){
+		}else if(1){
 			//captiontext, layer, scene, statusbarHud, 
 			//contenttype *new_contenttype_captiontext(char *fontname, int EMpixels, vec4 color)
 			vec4 ccolor;
@@ -3506,7 +3523,8 @@ void setup_stagesNORMAL(){
 			//& \x0026
 			//e grave \x00e8
 			//e acute \x00e9
-			captiontext_setString(ctext, "string from captiontext FReEgrl \x0026 Gré\x00E8n");
+			//msvc has problem embedding utf8 strings in C code even with \x. C++ better, includes u8"" strings
+			captiontext_setString(ctext, "string from captiontext FReEgrl \x0026 Gréen");
 			ctext->t1.viewport[0] = .1f;
 			ctext->t1.viewport[1] = .6f;
 			ctext->t1.viewport[2] = .4f;

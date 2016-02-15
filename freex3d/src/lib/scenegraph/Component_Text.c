@@ -2247,10 +2247,9 @@ AtlasEntry *AtlasEntrySet_getEntry(AtlasEntrySet *me, int ichar){
 			}
 		}
 		if(!ae){
-			printf("not found in atlasEntrySet %d adding\n",ichar);
+			//printf("not found in atlasEntrySet %d adding\n",ichar);
 			//add 
 			ae = AtlasAddIChar(me->font, me, ichar);
-			if(!ae) printf("couldn't add %d\n",ichar);
 			for(i=0;i<vectorSize(me->entries);i++){
 				AtlasEntry *entry = vector_get(AtlasEntry*,me->entries,i);
 				if(entry->ichar == ichar){
@@ -2259,7 +2258,7 @@ AtlasEntry *AtlasEntrySet_getEntry(AtlasEntrySet *me, int ichar){
 				}
 			}
 			if(!ae){
-				printf("tried to add, but didn't show up\n");
+				printf("tried to add char %d to atlas, but didn't show up\n",ichar);
 			}
 
 		}
@@ -2327,100 +2326,6 @@ char *newstringfromchar(char c){
 //static FT_Library fontlibrary; /* handle to library */
 
 
-int RenderFontAtlasCombo(AtlasFont *font, AtlasEntrySet *entryset,  char * cText){
-	//pass in a string with your alphabet, numbers, symbols or whatever, 
-	// and we use freetype2 to render to bitmap, and then tile those little
-	// bitmaps into an atlas texture
-	//wText is UTF-8 since FreeType expect this	 
-	char *fontname;
-	int EMpixels, i;
-	Atlas *atlas;
-	FT_Face fontFace;
-	FT_Library fontlibrary;
-	int err;	
-
-	fontname = font->path;
-	EMpixels = entryset->EMpixels;
-	atlas = entryset->atlas;
-
-	fontlibrary = getFontLibrary();
-	if(!fontlibrary)
-		return FALSE;
-
-    err = FT_New_Face(fontlibrary, fontname, 0, &fontFace);
-    if (err) {
-        printf ("FreeType - can not use font %s\n",fontname);
-        return FALSE;
-    } 
-	if(1){
-		int nsizes;
-		printf("fontface flags & Scalable? = %ld \n",fontFace->face_flags & FT_FACE_FLAG_SCALABLE );
-		nsizes = fontFace->num_fixed_sizes;
-		printf("num_fixed_sizes = %d\n",nsizes);
-	}
-	//#define POINTSIZE 20
-	//#define XRES 96
-	//#define YRES 96
-	//if(0)
- //   err = FT_Set_Char_Size(fontFace, /* handle to face object           */
- //                           POINTSIZE*64,    /* char width in 1/64th of points  */
- //                           POINTSIZE*64,    /* char height in 1/64th of points */
- //                           XRES,            /* horiz device resolution         */
- //                           YRES);           /* vert device resolution          */
-	if(1)
-	err = FT_Set_Pixel_Sizes(
-		fontFace,   /* handle to face object */
-		0,      /* pixel_width           */
-		EMpixels );   /* pixel_height          */
-    
-	//if(0){
-	//	int h;
-	//	printf("spacing between rows = %f\n",fontFace->height);
-	//	h = fontFace->size->metrics.height;
-	//	printf("height(px)= %d.%d x_ppem=%d\n",h >>6,(h<<26)>>26,(unsigned int)fontFace->size->metrics.x_ppem);
-	//	atlas->rowheight = fontFace->size->metrics.height >> 6;
-
-	//}
-    if (err) {
-        printf ("FreeWRL - FreeType, can not set char size for font %s\n",fontname);
-        return FALSE;
-	}
-	for (i = 0; i < strlen(cText); i++) 	
-	{ 		
-		FT_GlyphSlot glyph;
-		FT_Error error;
-		unsigned long c;
-		AtlasEntry *entry;
-		
-		c = FT_Get_Char_Index(fontFace, (int) cText[i]); 		
-		error = FT_Load_Glyph(fontFace, c, FT_LOAD_RENDER); 	
-		if(error) 		
-		{ 			
-			//Logger::LogWarning("Character %c not found.", wText.GetCharAt(i)); 
-			printf("ouch87");
-			continue; 		
-		}
-		glyph = fontFace->glyph;
-
-		entry = malloc(sizeof(AtlasEntry));
-		//atlasEntry_init1(entry,names[i*2],(int)cText[i],0,0,16,16);
-		entry->ichar = 0;
-		if( cText[i] > 31 && cText[i] < 128 ) entry->ichar = cText[i]; //add to fast lookup table if ascii
-		entry->pos.X = glyph->bitmap_left;
-		entry->pos.Y = glyph->bitmap_top;
-		entry->advance.X = glyph->advance.x >> 6;
-		entry->advance.Y = glyph->advance.y >> 6;
-		entry->size.X = glyph->bitmap.width;
-		entry->size.Y = glyph->bitmap.rows;
-		entry->name = newstringfromchar(cText[i]);
-		AtlasEntrySet_addEntry(entryset,entry,glyph->bitmap.buffer);
-	}
-	//for(int i=0;i<256;i++){
-	//	for(int j=0;j<256;j++)
-	//		atlas->texture[i*256 + j] = (i*j) %2 ? 0 : 127; //checkerboard, to see if fonts twinkle
-	//}
-	return TRUE;
-}
 AtlasEntry * AtlasAddIChar(AtlasFont *font, AtlasEntrySet *entryset,  int ichar){
 	int i;
 	FT_Face fontFace = font->fontFace;
@@ -3274,42 +3179,24 @@ GLfloat cursorTex[] = {
 
 }
 
-typedef struct GUITextCaption
-{
-	GUIElement super;
-	char *caption;
-	//FT_Face fontFace;
-	AtlasFont *font;
-	char *fontname;
-	int fontSize;
-	AtlasEntrySet *set;
-	float percentSize;
-	int EMpixels; //how differ from fontSize?
-	int maxadvancepx;
-	float angle;
-	//char *fontAtlasName;
-	//GUIAtlas *atlas;
-} GUITextCaption;
+
 void finishedWithGlobalShader(void);
 void restoreGlobalShader();
-int render_captiontext(AtlasFont *font, unsigned char * utf8string, vec4 color){
+int render_captiontext(AtlasFont *font, int *utf32, int len32, vec4 color){
 	//pass in a string with your alphabet, numbers, symbols or whatever, 
 	// and we use freetype2 to render to bitmpa, and then tile those little
 	// bitmaps into an atlas texture
 	//wText is UTF-8 since FreeType expect this	 
 	//FT_Face fontFace;
-	int err = 0;	 //n, 
 	int  pen_x, pen_y;
 	Stack *vportstack;
 	ivec4 ivport;
-	unsigned char *start, *end;
-	int lenchar, l32;
 	AtlasEntrySet* set;
 
 	ttglobal tg = gglobal();
 
 
-	if(utf8string == NULL) return FALSE;
+	if(len32 == 0) return FALSE;
 	// you need to pre-load the font during layout init
 	if(!font) return FALSE;
 	set = font->set;
@@ -3331,65 +3218,17 @@ int render_captiontext(AtlasFont *font, unsigned char * utf8string, vec4 color){
 	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionIdentityf);
 
 	glUniform4f(color4fLoc,color.X,color.Y,color.Z,color.W); //0.7f,0.7f,0.9f,1.0f);
-	//for caption text, we'll set the font size whether or not we have an atlas set, 
-	//because the atlas set may not have all the utf8 chars we need, and so we may need to 
-	//render and store new ones, and for that we need to set the font size
-	#define POINTSIZE 20
-	#define XRES 96
-	#define YRES 96
-	if(0)
-	err = FT_Set_Char_Size(font->fontFace, /* handle to face object           */
-							POINTSIZE*64,    /* char width in 1/64th of points  */
-							POINTSIZE*64,    /* char height in 1/64th of points */
-							XRES,            /* horiz device resolution         */
-							YRES);           /* vert device resolution          */
-	if(0)
-	err = FT_Set_Pixel_Sizes(
-		font->fontFace,   /* handle to face object */
-		0,      /* pixel_width           */
-		set->EMpixels);   /* pixel_height          */
-    
-	if (err) {
-		printf ("FreeWRL - FreeType, can not set char size for font %s\n",font->name);
-		return FALSE;
-	}
 
-
-	//pen_x = 0; //(int)me->super.proportions.topLeft.X;
-	//pen_y = 0; //(int)me->super.proportions.topLeft.Y + 16;
 	vportstack = (Stack*)tg->Mainloop._vportstack;
 	ivport = stack_top(ivec4,vportstack);
 	pen_x = ivport.X;
 	pen_y = ivport.Y + ivport.H - set->EMpixels; //MAGIC FORMULA - I'm not sure what this should be, but got something drawing
 
-	//utf8to32 >>
-	lenchar = (int)strlen((const char *)utf8string);
-	//if(!strncmp(utf8string,"Gr",2)){
-	//	printf("length of Green string=%d\n",lenchar);
-	//	for(int i=0;i<lenchar;i++){
-	//		printf("%d %c\n",(unsigned int)utf8string[i],utf8string[i]);
-	//	}
-	//	printf("wait\n");
-	//}
-	start = utf8string;
-	end = (unsigned char *)&utf8string[lenchar];
-	l32 = 0;
-	//<<utf8to32
-
-	//for (int i = 0; i < strlen(cText); i++) 	
-	while(start < end)
+	for (int i = 0; i < len32; i++) 	
 	{ 	
 		AtlasEntry *entry = NULL;
-		//utf8to32>>
 		unsigned int ichar;
-		int inc = 1;
-		if(*start < 0x80)
-			ichar = *start; //ascii range
-		else
-			ichar = utf8_to_utf32_char(start,end,&inc);
-		start += inc;
-		l32++;
-		//<<utif8to32
+		ichar = utf32[i];
 		if(set){
 			//check atlas
 			entry = AtlasEntrySet_getEntry(set,ichar);
@@ -3401,67 +3240,20 @@ int render_captiontext(AtlasFont *font, unsigned char * utf8string, vec4 color){
 				ypos = pen_y - entry->pos.Y;
 				xsize =  entry->size.X;
 				ysize = entry->size.Y;
-				if(0){
-					//upper left
-					fxy = pixel2normalizedScreen((GLfloat)xpos,(GLfloat)ypos);
-					fwh = pixel2normalizedScreenScale((GLfloat)xsize,(GLfloat)ysize);
-					//lower left
-					fxy.Y = fxy.Y - fwh.Y;
-					xpos = fxy.X;
-					ypos = fxy.Y;
-					xsize = fwh.X;
-					ysize = fwh.Y;
-
-				}
-				if(1){
-					//upper left
-					fxy = pixel2normalizedViewport((GLfloat)xpos,(GLfloat)ypos);
-					fwh = pixel2normalizedViewportScale((GLfloat)xsize,(GLfloat)ysize);
-					//lower left
-					fxy.Y = fxy.Y - fwh.Y;
-					xpos = fxy.X;
-					ypos = fxy.Y;
-					xsize = fwh.X;
-					ysize = fwh.Y;
-				}
-				//if(ichar == 233)
-				//	printf("rendering 233\n");
+				//upper left
+				fxy = pixel2normalizedViewport((GLfloat)xpos,(GLfloat)ypos);
+				fwh = pixel2normalizedViewportScale((GLfloat)xsize,(GLfloat)ysize);
+				//lower left
+				fxy.Y = fxy.Y - fwh.Y;
+				xpos = fxy.X;
+				ypos = fxy.Y;
+				xsize = fwh.X;
+				ysize = fwh.Y;
 				dug9gui_DrawSubImage(xpos,ypos,xsize,ysize, 
 					entry->apos.X, entry->apos.Y, entry->size.X, entry->size.Y,
 					set->atlas->size.X,set->atlas->size.Y,set->atlas->bytesperpixel,set->atlas->texture);
-				pen_x += entry->advance.X; //glyph->advance.x >> 6;
+				pen_x += entry->advance.X; 
 			}
-		}
-		if(0) if(!entry){
-			//use freetype2 to render
-			FT_GlyphSlot glyph;
-			unsigned long c = FT_Get_Char_Index(font->fontFace, ichar); 		
-			FT_Error error = FT_Load_Glyph(font->fontFace, c, FT_LOAD_RENDER); 	
-			if(error) 		
-			{ 			
-				//Logger::LogWarning("Character %c not found.", wText.GetCharAt(i)); 
-				printf("ouch88");
-				continue; 		
-			}
-			glyph = font->fontFace->glyph;
-			/*
-			atlasEntry *entry = malloc(sizeof(atlasEntry));
-			entry->pos.X = glyph->bitmap_left;
-			entry->pos.Y = glyph->bitmap_top;
-			entry->advance.X = glyph->advance.x >> 6;
-			entry->advance.Y = glyph->advance.y >> 6;
-			entry->size.X = glyph->bitmap.width;
-			entry->size.Y = glyph->bitmap.rows;
-			entry->name = newstringfromchar(cText[i]);
-			atlas_addEntry(atlas,entry,glyph->bitmap.buffer);
-			*/
-			//render one image
-			//statusbarHud_DrawCursor(GLint textureID,pos_x,pox_y);
-			//if(1) statusbarHud_DrawImage(pen_x + glyph->bitmap_left, pen_y + glyph->bitmap_top - glyph->bitmap.rows, glyph->bitmap.width, glyph->bitmap.rows, glyph->bitmap.buffer);
-			//if(1) dug9gui_DrawImage(pen_x + glyph->bitmap_left, pen_y + glyph->bitmap_top - glyph->bitmap.rows, glyph->bitmap.width, glyph->bitmap.rows, glyph->bitmap.buffer);
-			if(1) dug9gui_DrawImage(pen_x + glyph->bitmap_left, pen_y - glyph->bitmap_top, glyph->bitmap.width, glyph->bitmap.rows, glyph->bitmap.buffer);
-			pen_x += glyph->advance.x >> 6;
-			//pen_y += glyph->advance.y >> 6;
 		}
 	}
 
