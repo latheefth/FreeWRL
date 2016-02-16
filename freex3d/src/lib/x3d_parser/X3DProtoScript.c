@@ -1103,6 +1103,7 @@ void broto_store_DEF(struct X3D_Proto* proto,struct X3D_Node* node, char *name);
 struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep);
 void add_node_to_broto_context(struct X3D_Proto *context,struct X3D_Node *node);
 void linkNodeIn_B(void *ud);
+struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, char *name);
 void parseProtoInstance_B(void *ud, char **atts) {
 	/*broto version
 		1. lookup the user (proto) type in current and parent context protoDeclare and externProtoDeclare tables
@@ -1110,7 +1111,7 @@ void parseProtoInstance_B(void *ud, char **atts) {
 		3. parse att and any <fieldValue> and IS
 		4. on end, deep_copy_broto_body2 applying the initial field values parsed.
 	*/
-	int i;
+	int i, isUSE;
 	int nameIndex;
 	//int containerIndex;
 	//int containerField;
@@ -1120,6 +1121,8 @@ void parseProtoInstance_B(void *ud, char **atts) {
 	struct X3D_Proto *currentContext;
 	struct X3D_Node *node = NULL;
 	char pflagdepth;
+	struct X3D_Node *fromDEFtable;
+
 
 	/* initialization */
 	nameIndex = INT_ID_UNDEFINED;
@@ -1128,7 +1131,7 @@ void parseProtoInstance_B(void *ud, char **atts) {
 	defNameIndex = INT_ID_UNDEFINED;
 	//protoTableIndex = 0;
 	if(0) printf("parseProtoInstance\n");
-
+	isUSE = FALSE;
 	for (i = 0; atts[i]; i += 2) {
 		if (strcmp("name",atts[i]) == 0) {
 			nameIndex=i+1;
@@ -1139,12 +1142,14 @@ void parseProtoInstance_B(void *ud, char **atts) {
 		} else if (strcmp("class",atts[i]) == 0) {
 			ConsoleMessage ("field \"class\" not currently used in a ProtoInstance parse... sorry");
 		} else if (strcmp("USE",atts[i]) == 0) {
-			ConsoleMessage ("field \"USE\" not currently used in a ProtoInstance parse... sorry");
+			//ConsoleMessage ("field \"USE\" not currently used in a ProtoInstance parse.. sorry");
+			isUSE = TRUE;
+			defNameIndex = i+1;
 		}
 	}
 
-
 	currentContext = getContext(ud,TOP);
+
 	pflagdepth = ciflag_get(currentContext->__protoFlags,0); //depth 0 we are deep inside protodeclare, depth 1 we are instancing live scenery
 
 	/* did we find the name? */
@@ -1153,40 +1158,86 @@ void parseProtoInstance_B(void *ud, char **atts) {
 		protoname = atts[nameIndex];
 	} else {
 		ConsoleMessage ("\"ProtoInstance\" found, but field \"name\" not found!\n");
-	}	
-	if(protoname){
-		struct X3D_Proto *proto;
-		if( isAvailableBroto(protoname, currentContext , &proto))
-		{
-			//struct X3D_Node *parent;
-			char* containerfield;
-			/* its a binary proto, new in 2013 */
-			int idepth = 0; //if its old brotos (2013) don't do depth until sceneInstance. If 2014 broto2, don't do depth here if we're in a protoDeclare or externProtoDeclare
-			if(usingBrotos() ) idepth = pflagdepth == 1; //2014 broto2: if we're parsing a scene (or Inline) then deepcopy proto to instance it, else shallow
-			node=X3D_NODE(brotoInstance(proto,idepth));
-			node->_executionContext = X3D_NODE(proto);
-			if (defNameIndex != INT_ID_UNDEFINED){
-				char * defname = atts[defNameIndex]; //gets STRDUP();'d inside broto_store_DEF
-				broto_store_DEF(currentContext,node, defname);
-			}
-			add_node_to_broto_context(currentContext,node);
+	}
 
-			pushNode(ud,node);
-			containerfield = NULL;
-			for (i = 0; atts[i]; i += 2) {
-				if(!strcmp(atts[i],"containerField")) containerfield = atts[i+1];
-			}
-			if(containerfield) {
-				int builtinField = findFieldInFIELDNAMES(containerfield);
-				if(builtinField > INT_ID_UNDEFINED){
-					node->_defaultContainer = builtinField;
+
+	if(protoname){
+		if(isUSE){
+			//ConsoleMessage ("field \"USE\" not currently used in a ProtoInstance parse.. sorry");
+			char * defname = atts[defNameIndex]; //gets STRDUP();'d inside broto_store_DEF
+
+			fromDEFtable = broto_search_DEFname(currentContext,defname);
+			if (!fromDEFtable) {
+				ConsoleMessage ("Warning - line %d DEF name: \'%s\' not found",LINE,atts[i+1]);
+				ConsoleMessage("\n");
+			} else {
+				#ifdef X3DPARSERVERBOSE
+				printf ("copying for field %s defName %s\n",atts[i], atts[i+1]);
+				#endif
+
+				/* if (fromDEFtable->_nodeType != fromDEFtable->_nodeType) { */
+				if (NODE_Proto != fromDEFtable->_nodeType) {
+					ConsoleMessage ("Warning, line %d DEF/USE mismatch, '%s', %s != %s", LINE,
+						atts[i+1],stringNodeType(fromDEFtable->_nodeType), stringNodeType (NODE_Proto));
+				} else {
+					/* Q. should thisNode.referenceCount be decremented or ??? */
+					char* containerfield;
+					node = fromDEFtable;
+					node->referenceCount++; //dug9 added but should???
+					//getNode(ud,TOP) = thisNode; 
+					#ifdef X3DPARSERVERBOSE
+					printf ("successful copying for field %s defName %s\n",atts[i], atts[i+1]);
+					#endif
+					pushNode(ud,node);
+					containerfield = NULL;
+					for (i = 0; atts[i]; i += 2) {
+						if(!strcmp(atts[i],"containerField")) containerfield = atts[i+1];
+					}
+					if(containerfield) {
+						int builtinField = findFieldInFIELDNAMES(containerfield);
+						if(builtinField > INT_ID_UNDEFINED){
+							node->_defaultContainer = builtinField;
+						}
+					}
+					pushField(ud,NULL); //no particular default field
+					pushMode(ud,PARSING_PROTOINSTANCE_USE);
+					return;
 				}
 			}
-			//linkNodeIn_B(ud);
-			//parseAttributes_B(ud,atts); //PI uses FieldValue
 		}else{
-			pushNode(ud,NULL);
-			ConsoleMessage ("Attempt to instance undefined prototype typename %s\n",protoname);
+			struct X3D_Proto *proto;
+			if( isAvailableBroto(protoname, currentContext , &proto))
+			{
+				//struct X3D_Node *parent;
+				char* containerfield;
+				/* its a binary proto, new in 2013 */
+				int idepth = 0; //if its old brotos (2013) don't do depth until sceneInstance. If 2014 broto2, don't do depth here if we're in a protoDeclare or externProtoDeclare
+				if(usingBrotos() ) idepth = pflagdepth == 1; //2014 broto2: if we're parsing a scene (or Inline) then deepcopy proto to instance it, else shallow
+				node=X3D_NODE(brotoInstance(proto,idepth));
+				node->_executionContext = X3D_NODE(proto);
+				if (defNameIndex != INT_ID_UNDEFINED){
+					char * defname = atts[defNameIndex]; //gets STRDUP();'d inside broto_store_DEF
+					broto_store_DEF(currentContext,node, defname);
+				}
+				add_node_to_broto_context(currentContext,node);
+
+				pushNode(ud,node);
+				containerfield = NULL;
+				for (i = 0; atts[i]; i += 2) {
+					if(!strcmp(atts[i],"containerField")) containerfield = atts[i+1];
+				}
+				if(containerfield) {
+					int builtinField = findFieldInFIELDNAMES(containerfield);
+					if(builtinField > INT_ID_UNDEFINED){
+						node->_defaultContainer = builtinField;
+					}
+				}
+				//linkNodeIn_B(ud);
+				//parseAttributes_B(ud,atts); //PI uses FieldValue
+			}else{
+				pushNode(ud,NULL);
+				ConsoleMessage ("Attempt to instance undefined prototype typename %s\n",protoname);
+			}
 		}
 	}
 	pushField(ud,NULL); //no particular default field

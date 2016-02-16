@@ -201,10 +201,10 @@ our %defaultContainerType = (
 
 	BallJoint		=>"children",
 	CollidableOffset	=>"children",
-	CollidableShape		=>"children",
-	CollisionCollection	=>"children",
+	CollidableShape		=>"collidables",
+	CollisionCollection	=>"collider",
 	CollisionSensor		=>"children",
-	CollisionSpace		=>"children",
+	CollisionSpace		=>"collidables",
 	Contact			=>"children",
 	DoubleAxisHingeJoint	=>"children",
 	MotorJoint		=>"children",

@@ -661,10 +661,14 @@ AtlasFont *searchAtlasTableOrLoad(char *facename, int EMpixels);
 AtlasEntrySet* searchAtlasFontForSizeOrMake(AtlasFont *font,int EMpixels);
 typedef struct vec4 {float X; float Y; float Z; float W;} vec4;
 vec4 vec4_init(float x, float y, float z, float w);
-int render_captiontext(AtlasFont *font,  char *utf8string, vec4 color);
+int render_captiontext(AtlasFont *font,  int *utf32, int len32, vec4 color);
 typedef struct contenttype_captiontext {
 	tcontenttype t1;
 	char *caption;
+	int len;
+	int *utf32;
+	int len32;
+	int nalloc;
 	AtlasFont *font;
 	char *fontname;
 	int fontSize;
@@ -676,15 +680,12 @@ typedef struct contenttype_captiontext {
 	vec4 color;
 } contenttype_captiontext;
 void captiontext_render(void *_self){
-	//make this like layer, render contents first in clipplane-limited viewport, then sbh in whole viewport
 	contenttype_captiontext *self;
 
 	self = (contenttype_captiontext *)_self;
 	pushnset_viewport(self->t1.viewport);
 
-	//vec4 c4f = self->color;
-	//glColor4f(c4f.X,c4f.Y,c4f.Z,c4f.W); 
-	render_captiontext(self->font, self->caption,self->color);
+	render_captiontext(self->font, self->utf32, self->len32, self->color);
 	popnset_viewport();
 }
 int captiontext_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
@@ -702,6 +703,11 @@ contenttype *new_contenttype_captiontext(char *fontname, int EMpixels, vec4 colo
 	self->font = NULL;
 	self->color = color;
 	self->fontname = fontname;
+	self->caption = NULL;
+	self->utf32 = NULL;
+	self->len = 0;
+	self->len32 = 0;
+	self->nalloc = 0;
 	self->font = (AtlasFont*)searchAtlasTableOrLoad(fontname,EMpixels);
 	if(!self->font){
 		printf("dug9gui: Can't find font %s do you have the wrong name?\n",fontname);
@@ -709,9 +715,20 @@ contenttype *new_contenttype_captiontext(char *fontname, int EMpixels, vec4 colo
 	//self->set = (void *)self->font->set; //searchAtlasFontForSizeOrMake(self->font,EMpixels);
 	return (contenttype*)self;
 }
+int *utf8_to_utf32(unsigned char *utf8string, unsigned int *str32, unsigned int *len32);
 void captiontext_setString(void *_self, char *utf8string){
+	int lenstr;
 	contenttype_captiontext *self = (contenttype_captiontext *)_self;
-	self->caption = utf8string; //should we deep copy? no need yet.
+	lenstr = strlen(utf8string);
+	if(self->nalloc < lenstr){
+		self->caption = realloc(self->caption,lenstr+1);
+		//in theory utf32 should always be <= utf8 length, make same size and extra room
+		self->utf32 = realloc(self->utf32,(lenstr+1)*sizeof(int));
+		self->nalloc = lenstr;
+	}
+	strcpy(self->caption,utf8string);
+	self->len = lenstr;
+	self->utf32 = utf8_to_utf32(self->caption,self->utf32,&self->len32);
 }
 
 
@@ -948,7 +965,7 @@ void textpanel_register_as_console(void *_self){
 	console_textpanel = self;
 	fwg_register_consolemessage_callback(TextPanel_Console_AddString);
 }
-int RenderStringG(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y, vec4 color);
+int textpanel_render_row(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y, vec4 color);
 ivec2 pixel2text(int x, int y, int rowheight, int maxadvancepx){
 	int h = rowheight;
 	int w = maxadvancepx;
@@ -1099,7 +1116,7 @@ void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 			//ivec4 box = ivec4_init(pen_x,pen_y,lenrow*self->set->maxadvancepx,self->set->rowheight);
 			//ivec4 currentvp = stack_top(ivec4,_vpstack);
 			//if(overlapviewports(box, currentvp)) //seems not properly aligned, a little too aggressive
-			RenderStringG(self->font, row, lenrow,&pen_x, &pen_y, self->color); //&xy.X,&xy.Y);
+			textpanel_render_row(self->font, row, lenrow,&pen_x, &pen_y, self->color); //&xy.X,&xy.Y);
 			if(show_ringtext){
 				//debugging
 				memcpy(self->row,row,lenrow);
@@ -2213,6 +2230,7 @@ typedef struct contenttype_texturegrid {
 	GLushort *index; //winRT needs short
 	GLfloat *vert, *vert2, *tex, *norm, dx, tx;
 	float k1,xc; //optionally used during distort and pick for radial/barrel distortion
+	int usingDistortions;
 	GLuint textureID;
 } contenttype_texturegrid;
 
@@ -2379,6 +2397,7 @@ void texturegrid_barrel_distort2(void *_self, float xc, float k1){
 		}
 		self->k1 = k1;
 		self->xc = xc2;
+		self->usingDistortions = TRUE;
 	}
 }
 void texturegrid_barrel_undistort2(void *_self, ivec4 vport, ivec2 *xy){
@@ -2420,20 +2439,21 @@ void texturegrid_barrel_undistort2(void *_self, ivec4 vport, ivec2 *xy){
 	}
 	x = (x + 1.0f)*.5f; //convert from -1 to 1 to 0-1
 	y = (y + 1.0f)*.5f;
-	xy->X = x*vport.W + vport.X;
-	xy->Y = y*vport.H + vport.Y;
+	xy->X = (int)(x*vport.W) + vport.X;
+	xy->Y = (int)(y*vport.H) + vport.Y;
 }
 int texturegrid_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
 	//convert windoow to fbo
 	int iret;
-	contenttype *c, *self;
+	contenttype *c;
+	contenttype_texturegrid *self;
 
-	self = (contenttype *)_self;
+	self = (contenttype_texturegrid *)_self;
 	iret = 0;
 	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
 		ivec4 ivport;
 		int x,y;
-		ivec2 xy, xy2;
+		ivec2 xy;
 		//ttglobal tg = gglobal();
 		//ivport = stack_top(ivec4,(Stack*)tg->Mainloop._vportstack);
 		ivport = get_current_viewport();
@@ -2444,9 +2464,7 @@ int texturegrid_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, i
 		y = mouseY; // - ivport.Y;
 		xy.X = x;
 		xy.Y = y;
-		if(1) texturegrid_barrel_undistort2(self, ivport, &xy );
-		if(get_debugging_trigger_once())
-			printf("undistort\n");
+		if(self->usingDistortions) texturegrid_barrel_undistort2(self, ivport, &xy );
 		x = xy.X;
 		y = xy.Y;
 		c = self->t1.contents;
@@ -2462,8 +2480,8 @@ int texturegrid_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, i
 #include "../scenegraph/Component_Shape.h"
 void render_texturegrid(void *_self){
 	contenttype_texturegrid *self;
-	int i,useMip,haveTexture;
-	float aspect, scale, xshift, yshift;
+	int useMip,haveTexture;
+	//float aspect, scale, xshift, yshift;
 	GLint  positionLoc, texCoordLoc, textureLoc;
     GLint textureMatrix;
 	GLuint textureID;
@@ -3480,7 +3498,7 @@ void setup_stagesNORMAL(){
 		cstage->t1.contents = cmultitouch;
 		p->EMULATE_MULTITOUCH =	FALSE;
 		//IDEA: these prepared ways of using freewrl could be put into a switchcase contenttype called early ie from window
-		if(0){
+		if(1){
 			//normal: multitouch emulation, layer, scene, statusbarHud, 
 			if(1) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
 			else cstage->t1.contents = csbh; //skip multitouch
@@ -3506,7 +3524,8 @@ void setup_stagesNORMAL(){
 			//& \x0026
 			//e grave \x00e8
 			//e acute \x00e9
-			captiontext_setString(ctext, "string from captiontext FReEgrl \x0026 Gré\x00E8n");
+			//msvc has problem embedding utf8 strings in C code even with \x. C++ better, includes u8"" strings
+			captiontext_setString(ctext, "string from captiontext FReEgrl \x0026 Gréen");
 			ctext->t1.viewport[0] = .1f;
 			ctext->t1.viewport[1] = .6f;
 			ctext->t1.viewport[2] = .4f;
@@ -3601,9 +3620,9 @@ void setup_stagesNORMAL(){
 				X3D_Viewer *viewer = Viewer();
 
 				//ideally this gets run whenever screendist is changed
-				xc = 1.0f - viewer->screendist;
+				xc = 1.0f - (float) viewer->screendist;
 				texturegrid_barrel_distort2(ctexturegrid0, xc,.1f);
-				xc = viewer->screendist;
+				xc = (float)viewer->screendist;
 				texturegrid_barrel_distort2(ctexturegrid1, xc,.1f);
 			}
 

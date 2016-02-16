@@ -7427,7 +7427,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->rotation.c[0] = 0;tmp2->rotation.c[1] = 0;tmp2->rotation.c[2] = 1;tmp2->rotation.c[3] = 0;;
 			tmp2->shape = NULL;
 			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;tmp2->translation.c[2] = 0.0f;
-			tmp2->_defaultContainer = FIELDNAMES_children;
+			tmp2->_defaultContainer = FIELDNAMES_collidables;
 		break;
 		}
 		case NODE_Collision : {
@@ -7461,7 +7461,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->softnessConstantForceMix = 0.0001f;
 			tmp2->softnessErrorCorrection = 0.8f;
 			tmp2->surfaceSpeed.c[0] = 0.0f;tmp2->surfaceSpeed.c[1] = 0.0f;;
-			tmp2->_defaultContainer = FIELDNAMES_children;
+			tmp2->_defaultContainer = FIELDNAMES_collider;
 		break;
 		}
 		case NODE_CollisionSensor : {
@@ -7485,7 +7485,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->enabled = TRUE;
 			tmp2->metadata = NULL;
 			tmp2->useGeometry = FALSE;
-			tmp2->_defaultContainer = FIELDNAMES_children;
+			tmp2->_defaultContainer = FIELDNAMES_collidables;
 		break;
 		}
 		case NODE_Color : {

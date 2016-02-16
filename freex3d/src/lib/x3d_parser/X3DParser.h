@@ -49,6 +49,7 @@ struct nameValuePairs {
 #define PARSING_CONNECT		8
 #define PARSING_EXTERNPROTODECLARE 9
 #define PARSING_FIELD 10
+#define PARSING_PROTOINSTANCE_USE   11
 
 /* for our internal PROTO tables, and, for initializing the XML parser */
 #define PROTOINSTANCE_MAX_LEVELS 50
