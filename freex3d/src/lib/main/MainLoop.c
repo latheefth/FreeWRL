@@ -2439,8 +2439,8 @@ void texturegrid_barrel_undistort2(void *_self, ivec4 vport, ivec2 *xy){
 	}
 	x = (x + 1.0f)*.5f; //convert from -1 to 1 to 0-1
 	y = (y + 1.0f)*.5f;
-	xy->X = x*vport.W + vport.X;
-	xy->Y = y*vport.H + vport.Y;
+	xy->X = (int)(x*vport.W) + vport.X;
+	xy->Y = (int)(y*vport.H) + vport.Y;
 }
 int texturegrid_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
 	//convert windoow to fbo
@@ -2453,7 +2453,7 @@ int texturegrid_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, i
 	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){
 		ivec4 ivport;
 		int x,y;
-		ivec2 xy, xy2;
+		ivec2 xy;
 		//ttglobal tg = gglobal();
 		//ivport = stack_top(ivec4,(Stack*)tg->Mainloop._vportstack);
 		ivport = get_current_viewport();
@@ -2480,8 +2480,8 @@ int texturegrid_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, i
 #include "../scenegraph/Component_Shape.h"
 void render_texturegrid(void *_self){
 	contenttype_texturegrid *self;
-	int i,useMip,haveTexture;
-	float aspect, scale, xshift, yshift;
+	int useMip,haveTexture;
+	//float aspect, scale, xshift, yshift;
 	GLint  positionLoc, texCoordLoc, textureLoc;
     GLint textureMatrix;
 	GLuint textureID;
@@ -3620,9 +3620,9 @@ void setup_stagesNORMAL(){
 				X3D_Viewer *viewer = Viewer();
 
 				//ideally this gets run whenever screendist is changed
-				xc = 1.0f - viewer->screendist;
+				xc = 1.0f - (float) viewer->screendist;
 				texturegrid_barrel_distort2(ctexturegrid0, xc,.1f);
-				xc = viewer->screendist;
+				xc = (float)viewer->screendist;
 				texturegrid_barrel_distort2(ctexturegrid1, xc,.1f);
 			}
 

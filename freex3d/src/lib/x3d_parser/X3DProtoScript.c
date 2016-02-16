@@ -1103,6 +1103,7 @@ void broto_store_DEF(struct X3D_Proto* proto,struct X3D_Node* node, char *name);
 struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep);
 void add_node_to_broto_context(struct X3D_Proto *context,struct X3D_Node *node);
 void linkNodeIn_B(void *ud);
+struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, char *name);
 void parseProtoInstance_B(void *ud, char **atts) {
 	/*broto version
 		1. lookup the user (proto) type in current and parent context protoDeclare and externProtoDeclare tables

@@ -3188,7 +3188,7 @@ int render_captiontext(AtlasFont *font, int *utf32, int len32, vec4 color){
 	// bitmaps into an atlas texture
 	//wText is UTF-8 since FreeType expect this	 
 	//FT_Face fontFace;
-	int  pen_x, pen_y;
+	int  i, pen_x, pen_y;
 	Stack *vportstack;
 	ivec4 ivport;
 	AtlasEntrySet* set;
@@ -3224,7 +3224,7 @@ int render_captiontext(AtlasFont *font, int *utf32, int len32, vec4 color){
 	pen_x = ivport.X;
 	pen_y = ivport.Y + ivport.H - set->EMpixels; //MAGIC FORMULA - I'm not sure what this should be, but got something drawing
 
-	for (int i = 0; i < len32; i++) 	
+	for (i = 0; i < len32; i++) 	
 	{ 	
 		AtlasEntry *entry = NULL;
 		unsigned int ichar;
