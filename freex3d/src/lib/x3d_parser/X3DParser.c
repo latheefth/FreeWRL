@@ -1767,22 +1767,26 @@ static void endProtoDeclareTag(void *ud) {
 void deep_copy_broto_body2(struct X3D_Proto** proto, struct X3D_Proto** dest);
 static void endProtoInstance_B(void *ud, const char *name) {
 	//now that initial field values are set, deep copy the broto body
+	int mode;
 	struct X3D_Node *node;
 	if(0) printf("endProtoInstance_B\n");
 
 	node = getNode(ud,TOP);
+	mode = getMode(ud,TOP);
 	if(node){
 		if(node->_nodeType == NODE_Proto || node->_nodeType == NODE_Inline ){
-			char pflagdepth;
-			struct X3D_Proto *pnode = X3D_PROTO(node);
-			pflagdepth = ciflag_get(pnode->__protoFlags,0); //0 - we're in a protodeclare, 1 - we are instancing live scenery
-			if( pflagdepth){
-				//copying the body _after_ the protoInstance field values have been parsed 
-				//allows ISd fields in body nodes to get the pkw_initializeOnly/inputOutput value
-				//from the protoInstance interface
-				struct X3D_Proto *pdeclare;
-				pdeclare = X3D_PROTO(pnode->__prototype);
-				deep_copy_broto_body2(&pdeclare,&pnode);
+			if(mode != PARSING_PROTOINSTANCE_USE){
+				char pflagdepth;
+				struct X3D_Proto *pnode = X3D_PROTO(node);
+				pflagdepth = ciflag_get(pnode->__protoFlags,0); //0 - we're in a protodeclare, 1 - we are instancing live scenery
+				if( pflagdepth){
+					//copying the body _after_ the protoInstance field values have been parsed 
+					//allows ISd fields in body nodes to get the pkw_initializeOnly/inputOutput value
+					//from the protoInstance interface
+					struct X3D_Proto *pdeclare;
+					pdeclare = X3D_PROTO(pnode->__prototype);
+					deep_copy_broto_body2(&pdeclare,&pnode);
+				}
 			}
 		}
 		linkNodeIn_B(ud);
