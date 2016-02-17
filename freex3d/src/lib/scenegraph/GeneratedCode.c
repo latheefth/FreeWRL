@@ -2206,18 +2206,23 @@ struct X3D_Virt virt_Circle2D = { NULL,(void *)render_Circle2D,NULL,NULL,NULL,NU
 
 struct X3D_Virt virt_ClipPlane = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_CollidableOffset = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_CollidableOffset(struct X3D_CollidableOffset *);
+struct X3D_Virt virt_CollidableOffset = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_CollidableOffset};
 
-struct X3D_Virt virt_CollidableShape = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_CollidableShape(struct X3D_CollidableShape *);
+struct X3D_Virt virt_CollidableShape = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_CollidableShape};
 
 void child_Collision(struct X3D_Collision *);
 struct X3D_Virt virt_Collision = { NULL,NULL,(void *)child_Collision,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_CollisionCollection = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_CollisionCollection(struct X3D_CollisionCollection *);
+struct X3D_Virt virt_CollisionCollection = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_CollisionCollection};
 
-struct X3D_Virt virt_CollisionSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_CollisionSensor(struct X3D_CollisionSensor *);
+struct X3D_Virt virt_CollisionSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_CollisionSensor};
 
-struct X3D_Virt virt_CollisionSpace = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_CollisionSpace(struct X3D_CollisionSpace *);
+struct X3D_Virt virt_CollisionSpace = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_CollisionSpace};
 
 struct X3D_Virt virt_Color = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
@@ -2244,7 +2249,8 @@ struct X3D_Virt virt_Cone = { NULL,(void *)render_Cone,NULL,NULL,(void *)rendray
 
 struct X3D_Virt virt_ConeEmitter = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_Contact = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_Contact(struct X3D_Contact *);
+struct X3D_Virt virt_Contact = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_Contact};
 
 struct X3D_Virt virt_Contour2D = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
@@ -2748,9 +2754,11 @@ void collide_Rectangle2D(struct X3D_Rectangle2D *);
 void compile_Rectangle2D(struct X3D_Rectangle2D *);
 struct X3D_Virt virt_Rectangle2D = { NULL,(void *)render_Rectangle2D,NULL,NULL,NULL,NULL,NULL,NULL,(void *)collide_Rectangle2D,(void *)compile_Rectangle2D};
 
-struct X3D_Virt virt_RigidBody = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_RigidBody(struct X3D_RigidBody *);
+struct X3D_Virt virt_RigidBody = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_RigidBody};
 
-struct X3D_Virt virt_RigidBodyCollection = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_RigidBodyCollection(struct X3D_RigidBodyCollection *);
+struct X3D_Virt virt_RigidBodyCollection = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_RigidBodyCollection};
 
 struct X3D_Virt virt_ScalarChaser = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 

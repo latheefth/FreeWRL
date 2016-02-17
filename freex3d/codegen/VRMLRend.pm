@@ -618,6 +618,15 @@ our %CompileC = map {($_=>1)} qw/
 	NurbsPatchSurface
 	NurbsTrimmedSurface
 	Layout
+	
+	CollidableOffset
+	CollidableShape
+	CollisionCollection
+	CollisionSensor
+	CollisionSpace
+	Contact
+	RigidBody
+	RigidBodyCollection
 /;
 
 

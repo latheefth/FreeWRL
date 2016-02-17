@@ -75,3 +75,128 @@ void Component_RigidBodyPhysics_clear(struct tComponent_RigidBodyPhysics *t){
 
 //ppComponent_RigidBodyPhysics p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
 
+void rbp_run_physics();
+void rbp_add_collisionSpace(struct X3D_Node* node);
+void rbp_add_collidableShape(struct X3D_Node* node);
+void rbp_add_rigidbody(struct X3D_Node* node);
+
+//#undef WITH_RBP
+#ifdef WITH_RBP
+//#define dSINGLE 1  //Q. do we need to match the physics lib build
+#define dDOUBLE 1
+#include <ode/ode.h>
+
+/*
+Physics options considered:
+0. PAL - physics abstraction layer (in c++, not maintained)
+1. bullet - very popular, c++/no flat-c interface, large
+2. ode - c api (even though implemented in c++), 
+	- maps well to x3d, specs say 'implemented by ode' in one place
+decision feb 2016: ode
+
+X3D
+http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/rigid_physics.html
+
+ODE
+http://ode-wiki.org/wiki/index.php?title=Manual:_Rigid_Body_Functions
+- body, world
+http://ode-wiki.org/wiki/index.php?title=Manual:_Collision_Detection
+- geoms, geom postion, geom class, collide(), spaces, contact points
+
+X3D					ODE	
+CollidableShape		geoms	
+CollidableOffset	GeomSetPosition,Rotation,Quat	
+CollisionCollection	Geom Class / category bits	
+CollisionSensor		dSpaceCollide() collide2()	callback()
+CollisionSpace		spaces	
+Contact				Contact points	
+RigidBody			body	
+RigidBodyCollection	world	
+
+
+*/
+
+
+void rbp_run_physics(){
+	ppComponent_RigidBodyPhysics p;
+	p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
+
+}
+
+void compile_CollidableOffset(struct X3D_Node *node){
+}
+void compile_CollidableShape(struct X3D_Node *node){
+	if(node->_nodeType == NODE_CollidableShape){
+		ppComponent_RigidBodyPhysics p;
+		struct X3D_CollidableShape *self = (struct X3D_CollidableShape*)node;
+		p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
+	}
+}
+void compile_CollisionCollection(struct X3D_Node *node){
+	if(node->_nodeType == NODE_CollisionCollection){
+		ppComponent_RigidBodyPhysics p;
+		struct X3D_CollisionCollection *self = (struct X3D_CollisionCollection*)node;
+		p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
+	}
+}
+void compile_CollisionSensor(struct X3D_Node *node){
+	if(node->_nodeType == NODE_CollisionSensor){
+		ppComponent_RigidBodyPhysics p;
+		struct X3D_CollisionSensor *self = (struct X3D_CollisionSensor*)node;
+		p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
+	}
+}
+void compile_CollisionSpace(struct X3D_Node *node){
+	if(node->_nodeType == NODE_CollisionSpace){
+		ppComponent_RigidBodyPhysics p;
+		struct X3D_CollisionSpace *self = (struct X3D_CollisionSpace*)node;
+		p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
+	}
+}
+void compile_Contact(struct X3D_Node *node){
+}
+void compile_RigidBody(struct X3D_Node *node){
+	if(node->_nodeType == NODE_RigidBody){
+		ppComponent_RigidBodyPhysics p;
+		struct X3D_RigidBody *self = (struct X3D_RigidBody*)node;
+		p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
+	}
+}
+void compile_RigidBodyCollection(struct X3D_Node *node){
+	if(node->_nodeType == NODE_RigidBodyCollection){
+		ppComponent_RigidBodyPhysics p;
+		struct X3D_RigidBodyCollection *self = (struct X3D_RigidBodyCollection*)node;
+		p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
+	}
+}
+
+
+#else //else no ode phyiscs engine, just stubs
+
+
+void rbp_run_physics(){
+	run_physics();
+	return;
+}
+void compile_CollidableOffset(struct X3D_Node *node){
+}
+void compile_CollidableShape(struct X3D_Node *node){
+}
+void compile_CollisionCollection(struct X3D_Node *node){
+}
+void compile_CollisionSensor(struct X3D_Node *node){
+}
+void compile_CollisionSpace(struct X3D_Node *node){
+}
+void compile_Contact(struct X3D_Node *node){
+}
+void compile_RigidBody(struct X3D_Node *node){
+}
+void compile_RigidBodyCollection(struct X3D_Node *node){
+}
+
+#endif	
+	
+	
+	
+	
