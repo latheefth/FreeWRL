@@ -11270,6 +11270,8 @@ void *createNewX3DNode (int nt) {
 	add_picksensor(tmp); /* DJTRACK_PICKSENSORS */
 	/* is this a time tick node? */
        add_first(tmp);
+       /* possibly a physics node? */
+       add_physics(X3D_NODE(tmp));
        /* possibly a KeySensor node? */
        addNodeToKeySensorList(X3D_NODE(tmp));
 	return tmp;

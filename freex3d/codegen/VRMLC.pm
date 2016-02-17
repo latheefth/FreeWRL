@@ -1200,6 +1200,8 @@ sub gen {
 	"	add_picksensor(tmp); /* DJTRACK_PICKSENSORS */\n".
 	"	/* is this a time tick node? */\n".
 	"       add_first(tmp);\n".
+	"       /* possibly a physics node? */\n".
+	"       add_physics(X3D_NODE(tmp));\n".
 	"       /* possibly a KeySensor node? */\n".
 	"       addNodeToKeySensorList(X3D_NODE(tmp));\n";
 	push @genFuncs2, "\treturn tmp;\n}\n";

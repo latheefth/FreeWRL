@@ -76,9 +76,6 @@ void Component_RigidBodyPhysics_clear(struct tComponent_RigidBodyPhysics *t){
 //ppComponent_RigidBodyPhysics p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
 
 void rbp_run_physics();
-void rbp_add_collisionSpace(struct X3D_Node* node);
-void rbp_add_collidableShape(struct X3D_Node* node);
-void rbp_add_rigidbody(struct X3D_Node* node);
 
 //#undef WITH_RBP
 #ifdef WITH_RBP
@@ -116,10 +113,140 @@ RigidBodyCollection	world
 
 */
 
+//some crap copied & pasted by dug9 from ode's demo_boxstack.cpp demo program:
+// some constants
 
+#define NUM 100			// max number of objects
+#define DENSITY (5.0)		// density of all objects
+#define GPB 3			// maximum number of geometries per body
+#define MAX_CONTACTS 8          // maximum number of contact points per body
+#define MAX_FEEDBACKNUM 20
+#define GRAVITY         REAL(0.5)
+#define USE_GEOM_OFFSET 1
+
+// dynamics and collision objects
+
+typedef struct MyObject {
+  dBodyID body;			// the body
+  dGeomID geom[GPB];		// geometries representing this body
+} MyObject;
+
+static int num=0;		// number of objects in simulation
+static int nextobj=0;		// next object to recycle if num==NUM
+static dWorldID world;
+static dSpaceID space;
+static MyObject obj[NUM];
+static dJointGroupID contactgroup;
+static int selected = -1;	// selected object
+static int show_aabb = 0;	// show geom AABBs?
+static int show_contacts = 0;	// show contact points?
+static int random_pos = 1;	// drop objects from random position?
+static int write_world = 0;
+static int show_body = 0;
+
+typedef struct MyFeedback {
+  dJointFeedback fb;
+  bool first;
+}MyFeedback;
+static int doFeedback=0;
+static MyFeedback feedbacks[MAX_FEEDBACKNUM];
+static int fbnum=0;
+
+// this is called by dSpaceCollide when two objects in space are
+// potentially colliding.
+
+static void nearCallback (void *data, dGeomID o1, dGeomID o2)
+{
+  int i, numc;
+  // if (o1->body && o2->body) return;
+
+  // exit without doing anything if the two bodies are connected by a joint
+  dBodyID b1 = dGeomGetBody(o1);
+  dBodyID b2 = dGeomGetBody(o2);
+  if (b1 && b2 && dAreConnectedExcluding (b1,b2,dJointTypeContact)) return;
+
+  dContact contact[MAX_CONTACTS];   // up to MAX_CONTACTS contacts per box-box
+  for (i=0; i<MAX_CONTACTS; i++) {
+    contact[i].surface.mode = dContactBounce | dContactSoftCFM;
+    contact[i].surface.mu = dInfinity;
+    contact[i].surface.mu2 = 0;
+    contact[i].surface.bounce = 0.1;
+    contact[i].surface.bounce_vel = 0.1;
+    contact[i].surface.soft_cfm = 0.01;
+  }
+  if (numc = dCollide (o1,o2,MAX_CONTACTS,&contact[0].geom,
+			   sizeof(dContact))) {
+    dMatrix3 RI;
+    dRSetIdentity (RI);
+    const dReal ss[3] = {0.02,0.02,0.02};
+    for (i=0; i<numc; i++) {
+      dJointID c = dJointCreateContact (world,contactgroup,contact+i);
+      dJointAttach (c,b1,b2);
+      //if (show_contacts) dsDrawBox (contact[i].geom.pos,RI,ss);
+
+      if (doFeedback && (b1==obj[selected].body || b2==obj[selected].body))
+      {
+        if (fbnum<MAX_FEEDBACKNUM)
+        {
+          feedbacks[fbnum].first = b1==obj[selected].body;
+          dJointSetFeedback (c,&feedbacks[fbnum++].fb);
+        }
+        else fbnum++;
+      }
+    }
+  }
+}
+
+static int init_rbp_once = 0;
+static dThreadingImplementationID threading;
+static dThreadingThreadPoolID pool;
+int init_rbp(){
+	if(!init_rbp_once && world && space && contactgroup){
+		init_rbp_once = TRUE;
+		//c++: 
+		dInitODE2(0);
+		memset (obj,0,sizeof(obj));
+
+		dThreadingImplementationID threading = dThreadingAllocateMultiThreadedImplementation();
+		dThreadingThreadPoolID pool = dThreadingAllocateThreadPool(4, 0, dAllocateFlagBasicData, NULL);
+		dThreadingThreadPoolServeMultiThreadedImplementation(pool, threading);
+		// dWorldSetStepIslandsProcessingMaxThreadCount(world, 1);
+		dWorldSetStepThreadingImplementation(world, dThreadingImplementationGetFunctions(threading), threading);
+
+		dAllocateODEDataForThread(dAllocateMaskAll);
+
+	}
+	return init_rbp_once;
+}
+void finish_rbp(){
+	if(init_rbp_once){
+
+		dThreadingImplementationShutdownProcessing(threading);
+		dThreadingFreeThreadPool(pool);
+		dWorldSetStepThreadingImplementation(world, NULL, NULL);
+		dThreadingFreeImplementation(threading);
+
+
+		dJointGroupDestroy (contactgroup);
+		dSpaceDestroy (space);
+		dWorldDestroy (world);
+		dCloseODE();
+		init_rbp_once = 0;
+	}
+
+}
+static int pause = FALSE;
 void rbp_run_physics(){
 	ppComponent_RigidBodyPhysics p;
 	p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
+	if(init_rbp()){
+
+		dSpaceCollide (space,0,&nearCallback);
+		if (!pause) dWorldQuickStep (world,0.02);
+
+		// remove all contact joints
+		dJointGroupEmpty (contactgroup);
+	}
 
 }
 
@@ -130,6 +257,7 @@ void compile_CollidableShape(struct X3D_Node *node){
 		ppComponent_RigidBodyPhysics p;
 		struct X3D_CollidableShape *self = (struct X3D_CollidableShape*)node;
 		p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
+		MARK_NODE_COMPILED;
 	}
 }
 void compile_CollisionCollection(struct X3D_Node *node){
@@ -137,6 +265,10 @@ void compile_CollisionCollection(struct X3D_Node *node){
 		ppComponent_RigidBodyPhysics p;
 		struct X3D_CollisionCollection *self = (struct X3D_CollisionCollection*)node;
 		p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
+
+		contactgroup = dJointGroupCreate (0);
+
+		MARK_NODE_COMPILED;
 	}
 }
 void compile_CollisionSensor(struct X3D_Node *node){
@@ -144,6 +276,7 @@ void compile_CollisionSensor(struct X3D_Node *node){
 		ppComponent_RigidBodyPhysics p;
 		struct X3D_CollisionSensor *self = (struct X3D_CollisionSensor*)node;
 		p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
+		MARK_NODE_COMPILED;
 	}
 }
 void compile_CollisionSpace(struct X3D_Node *node){
@@ -151,6 +284,11 @@ void compile_CollisionSpace(struct X3D_Node *node){
 		ppComponent_RigidBodyPhysics p;
 		struct X3D_CollisionSpace *self = (struct X3D_CollisionSpace*)node;
 		p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
+
+		space = dHashSpaceCreate (0);
+
+
+		MARK_NODE_COMPILED;
 	}
 }
 void compile_Contact(struct X3D_Node *node){
@@ -160,6 +298,7 @@ void compile_RigidBody(struct X3D_Node *node){
 		ppComponent_RigidBodyPhysics p;
 		struct X3D_RigidBody *self = (struct X3D_RigidBody*)node;
 		p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
+		MARK_NODE_COMPILED;
 	}
 }
 void compile_RigidBodyCollection(struct X3D_Node *node){
@@ -167,10 +306,53 @@ void compile_RigidBodyCollection(struct X3D_Node *node){
 		ppComponent_RigidBodyPhysics p;
 		struct X3D_RigidBodyCollection *self = (struct X3D_RigidBodyCollection*)node;
 		p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
+
+		world = dWorldCreate();
+		dWorldSetGravity (world,0,0,-GRAVITY);
+		dWorldSetCFM (world,1e-5);
+		dWorldSetAutoDisableFlag (world,1);
+		space = dHashSpaceCreate (0);
+		contactgroup = dJointGroupCreate (0);
+
+		#if 1
+
+		dWorldSetAutoDisableAverageSamplesCount( world, 10 );
+
+		#endif
+
+		dWorldSetLinearDamping(world, 0.00001);
+		dWorldSetAngularDamping(world, 0.005);
+		dWorldSetMaxAngularSpeed(world, 200);
+
+		dWorldSetContactMaxCorrectingVel (world,0.1);
+		dWorldSetContactSurfaceLayer (world,0.001);
+
+
+		MARK_NODE_COMPILED;
 	}
 }
 
-
+void add_physics(struct X3D_Node *node){
+	switch(node->_nodeType){
+		case NODE_CollidableShape:
+			compile_CollidableShape(node);
+			break;
+		case NODE_CollisionSensor:
+			compile_CollisionSensor(node);
+			break;
+		case NODE_CollisionSpace:
+			compile_CollisionSpace(node);
+			break;
+		case NODE_RigidBody:
+			compile_RigidBody(node);
+			break;
+		case NODE_RigidBodyCollection:
+			compile_RigidBodyCollection(node);
+			break;
+		default:
+			break;
+	}
+}
 #else //else no ode phyiscs engine, just stubs
 
 
