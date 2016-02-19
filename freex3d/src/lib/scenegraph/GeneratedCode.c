@@ -186,6 +186,8 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_amb",
 	"_bboxCenter",
 	"_bboxSize",
+	"_body",
+	"_class",
 	"_col",
 	"_colourSize",
 	"_coloursVBO",
@@ -195,6 +197,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_enabled",
 	"_floatInpFIFO",
 	"_floatOutFIFO",
+	"_geom",
 	"_hatchScale",
 	"_initialized",
 	"_int32InpFIFO",
@@ -234,6 +237,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_sideVBO",
 	"_sizeUnits",
 	"_sortedChildren",
+	"_space",
 	"_status",
 	"_stringInpFIFO",
 	"_stringOutFIFO",
@@ -241,6 +245,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_verifiedBackColor",
 	"_verifiedColor",
 	"_verifiedFrontColor",
+	"_world",
 	"actionKeyPress",
 	"actionKeyRelease",
 	"activate",
@@ -2206,9 +2211,17 @@ struct X3D_Virt virt_Circle2D = { NULL,(void *)render_Circle2D,NULL,NULL,NULL,NU
 
 struct X3D_Virt virt_ClipPlane = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_CollidableOffset = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void prep_CollidableOffset(struct X3D_CollidableOffset *);
+void child_CollidableOffset(struct X3D_CollidableOffset *);
+void fin_CollidableOffset(struct X3D_CollidableOffset *);
+void compile_CollidableOffset(struct X3D_CollidableOffset *);
+struct X3D_Virt virt_CollidableOffset = { (void *)prep_CollidableOffset,NULL,(void *)child_CollidableOffset,(void *)fin_CollidableOffset,NULL,NULL,NULL,NULL,NULL,(void *)compile_CollidableOffset};
 
-struct X3D_Virt virt_CollidableShape = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void prep_CollidableShape(struct X3D_CollidableShape *);
+void child_CollidableShape(struct X3D_CollidableShape *);
+void fin_CollidableShape(struct X3D_CollidableShape *);
+void compile_CollidableShape(struct X3D_CollidableShape *);
+struct X3D_Virt virt_CollidableShape = { (void *)prep_CollidableShape,NULL,(void *)child_CollidableShape,(void *)fin_CollidableShape,NULL,NULL,NULL,NULL,NULL,(void *)compile_CollidableShape};
 
 void child_Collision(struct X3D_Collision *);
 struct X3D_Virt virt_Collision = { NULL,NULL,(void *)child_Collision,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
@@ -3376,6 +3389,8 @@ const int OFFSETS_ClipPlane[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_CollidableOffset[] = {
+	(int) FIELDNAMES___do_rotation, (int) offsetof (struct X3D_CollidableOffset, __do_rotation),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___do_trans, (int) offsetof (struct X3D_CollidableOffset, __do_trans),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_CollidableOffset, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_CollidableOffset, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_collidable, (int) offsetof (struct X3D_CollidableOffset, collidable),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -3386,6 +3401,9 @@ const int OFFSETS_CollidableOffset[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_CollidableShape[] = {
+	(int) FIELDNAMES___do_rotation, (int) offsetof (struct X3D_CollidableShape, __do_rotation),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___do_trans, (int) offsetof (struct X3D_CollidableShape, __do_trans),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__geom, (int) offsetof (struct X3D_CollidableShape, _geom),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_CollidableShape, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_CollidableShape, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_CollidableShape, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -3410,6 +3428,7 @@ const int OFFSETS_Collision[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_CollisionCollection[] = {
+	(int) FIELDNAMES__class, (int) offsetof (struct X3D_CollisionCollection, _class),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_appliedParameters, (int) offsetof (struct X3D_CollisionCollection, appliedParameters),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bounce, (int) offsetof (struct X3D_CollisionCollection, bounce),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_collidables, (int) offsetof (struct X3D_CollisionCollection, collidables),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -3433,6 +3452,7 @@ const int OFFSETS_CollisionSensor[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_CollisionSpace[] = {
+	(int) FIELDNAMES__space, (int) offsetof (struct X3D_CollisionSpace, _space),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_CollisionSpace, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_CollisionSpace, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_collidables, (int) offsetof (struct X3D_CollisionSpace, collidables),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -5602,6 +5622,7 @@ const int OFFSETS_Rectangle2D[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_RigidBody[] = {
+	(int) FIELDNAMES__body, (int) offsetof (struct X3D_RigidBody, _body),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_angularDampingFactor, (int) offsetof (struct X3D_RigidBody, angularDampingFactor),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_angularVelocity, (int) offsetof (struct X3D_RigidBody, angularVelocity),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_autoDamp, (int) offsetof (struct X3D_RigidBody, autoDamp),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -5629,6 +5650,8 @@ const int OFFSETS_RigidBody[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_RigidBodyCollection[] = {
+	(int) FIELDNAMES__space, (int) offsetof (struct X3D_RigidBodyCollection, _space),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__world, (int) offsetof (struct X3D_RigidBodyCollection, _world),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_autoDisable, (int) offsetof (struct X3D_RigidBodyCollection, autoDisable),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bodies, (int) offsetof (struct X3D_RigidBodyCollection, bodies),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_collider, (int) offsetof (struct X3D_RigidBodyCollection, collider),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -7407,6 +7430,8 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_CollidableOffset : {
 			struct X3D_CollidableOffset * tmp2;
 			tmp2 = (struct X3D_CollidableOffset *) tmp;
+			tmp2->__do_rotation = FALSE;
+			tmp2->__do_trans = FALSE;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->collidable = NULL;
@@ -7420,6 +7445,9 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_CollidableShape : {
 			struct X3D_CollidableShape * tmp2;
 			tmp2 = (struct X3D_CollidableShape *) tmp;
+			tmp2->__do_rotation = FALSE;
+			tmp2->__do_trans = FALSE;
+			tmp2->_geom = 0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->enabled = TRUE;
@@ -7450,6 +7478,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_CollisionCollection : {
 			struct X3D_CollisionCollection * tmp2;
 			tmp2 = (struct X3D_CollisionCollection *) tmp;
+			tmp2->_class = 0;
 			tmp2->appliedParameters.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);tmp2->appliedParameters.p[0] = newASCIIString("BOUNCE");tmp2->appliedParameters.n=1; ;
 			tmp2->bounce = 0.0f;
 			tmp2->collidables.n=0; tmp2->collidables.p=0;
@@ -7479,6 +7508,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_CollisionSpace : {
 			struct X3D_CollisionSpace * tmp2;
 			tmp2 = (struct X3D_CollisionSpace *) tmp;
+			tmp2->_space = 0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->collidables.n=0; tmp2->collidables.p=0;
@@ -10299,6 +10329,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_RigidBody : {
 			struct X3D_RigidBody * tmp2;
 			tmp2 = (struct X3D_RigidBody *) tmp;
+			tmp2->_body = 0;
 			tmp2->angularDampingFactor = 0.001f;
 			tmp2->angularVelocity.c[0] = 0.0f;tmp2->angularVelocity.c[1] = 0.0f;tmp2->angularVelocity.c[2] = 0.0f;
 			tmp2->autoDamp = FALSE;
@@ -10329,6 +10360,8 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_RigidBodyCollection : {
 			struct X3D_RigidBodyCollection * tmp2;
 			tmp2 = (struct X3D_RigidBodyCollection *) tmp;
+			tmp2->_space = 0;
+			tmp2->_world = 0;
 			tmp2->autoDisable = FALSE;
 			tmp2->bodies.n=0; tmp2->bodies.p=0;
 			tmp2->collider = NULL;
@@ -11262,6 +11295,8 @@ void *createNewX3DNode (int nt) {
 	add_picksensor(tmp); /* DJTRACK_PICKSENSORS */
 	/* is this a time tick node? */
        add_first(tmp);
+       /* possibly a physics node? */
+       add_physics(X3D_NODE(tmp));
        /* possibly a KeySensor node? */
        addNodeToKeySensorList(X3D_NODE(tmp));
 	return tmp;

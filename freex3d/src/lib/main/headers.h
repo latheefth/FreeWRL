@@ -614,6 +614,7 @@ void propagate_events(void);
 int getRoutesCount(void);
 void getField_ToJavascript (int num, int fromoffset);
 void add_first(struct X3D_Node * node);
+void add_physics(struct X3D_Node * node);
 void registerTexture(struct X3D_Node * node);
 int checkNode(struct X3D_Node *node, char *fn, int line);
 

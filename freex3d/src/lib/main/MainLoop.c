@@ -4033,6 +4033,7 @@ void fwl_RenderSceneUpdateScene(void){
 }
 void setup_picking();
 void setup_projection();
+void rbp_run_physics();
 void fwl_RenderSceneUpdateScene0(double dtime) {
 	//Nov 2015 change: just viewport-independent, once-per-frame-scene-updates here
 	//-functionality relying on a viewport -setup_projection(), setup_picking()- has been 
@@ -4336,9 +4337,11 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 	printf("RENDER STEP----------\n");
 #endif
 
+	rbp_run_physics();
+
 	/* ensure depth mask turned on here */
-	FW_GL_DEPTHMASK(GL_TRUE);
-	PRINT_GL_ERROR_IF_ANY("after depth")
+	//FW_GL_DEPTHMASK(GL_TRUE);
+	//PRINT_GL_ERROR_IF_ANY("after depth")
 
 }
 void set_viewmatrix0(int iplace);
