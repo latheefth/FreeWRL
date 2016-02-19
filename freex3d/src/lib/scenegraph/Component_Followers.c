@@ -160,7 +160,7 @@ void do_OrientationDamperTick(void * ptr){
 		//default action copy input to output when not implemented
 		veccopy3f(node->value_changed.c, node->set_destination.c);
 		node->value_changed.c[3] = node->set_destination.c[3];
-		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_OrientationChaser, value_changed));
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_OrientationDamper, value_changed));
 		MARK_NODE_COMPILED
 	}
 }
@@ -661,8 +661,11 @@ void tick_positiondamper(struct X3D_PositionDamper *node, double now)
 void do_PositionDamperTick(void * ptr){
 	struct X3D_PositionDamper *node = (struct X3D_PositionDamper *)ptr;
 	if(!node)return;
-	if(!vecsame3f(node->set_destination.c,previousValue.c))
+	if(NODE_NEEDS_COMPILING){
+		//	if(!vecsame3f(node->set_destination.c,previousValue.c))
 		set_destinationD(node, node->set_destination);
+		MARK_NODE_COMPILED
+	}
 	tick_positiondamper(node,TickTime());
 	//printf("!");
 }
