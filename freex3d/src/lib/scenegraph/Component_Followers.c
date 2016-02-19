@@ -95,34 +95,74 @@ void do_TexCoordDamper2DTick(void * ptr);
 void do_ColorChaserTick(void * ptr){
 	struct X3D_ColorChaser *node = (struct X3D_ColorChaser *)ptr;
 	if(!node)return;
-
+	if(NODE_NEEDS_COMPILING){
+		//default action copy input to output when not implemented
+		veccopy3f(node->value_changed.c, node->set_destination.c);
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_ColorChaser, value_changed));
+		MARK_NODE_COMPILED
+	}
 }
 void do_ColorDamperTick(void * ptr){
 	struct X3D_ColorDamper *node = (struct X3D_ColorDamper *)ptr;
 	if(!node)return;
-
+	if(NODE_NEEDS_COMPILING){
+		//default action copy input to output when not implemented
+		veccopy3f(node->value_changed.c, node->set_destination.c);
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_ColorDamper, value_changed));
+		MARK_NODE_COMPILED
+	}
 }
 
 void do_CoordinateChaserTick(void * ptr){
 	struct X3D_CoordinateChaser *node = (struct X3D_CoordinateChaser *)ptr;
 	if(!node)return;
-
+	if(NODE_NEEDS_COMPILING){
+		//default action copy input to output when not implemented
+		int n;
+		n = node->set_destination.n;
+		node->value_changed.n = n;
+		node->value_changed.p = realloc(node->value_changed.p,n * sizeof(struct SFVec3f));
+		memcpy(node->value_changed.p,node->set_destination.p,n*sizeof(struct SFVec3f));
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_CoordinateChaser, value_changed));
+		MARK_NODE_COMPILED
+	}
 }
 void do_CoordinateDamperTick(void * ptr){
 	struct X3D_CoordinateDamper *node = (struct X3D_CoordinateDamper *)ptr;
 	if(!node)return;
-
+	if(NODE_NEEDS_COMPILING){
+		//default action copy input to output when not implemented
+		int n;
+		n = node->set_destination.n;
+		node->value_changed.n = n;
+		node->value_changed.p = realloc(node->value_changed.p,n * sizeof(struct SFVec3f));
+		memcpy(node->value_changed.p,node->set_destination.p,n*sizeof(struct SFVec3f));
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_CoordinateDamper, value_changed));
+		MARK_NODE_COMPILED
+	}
 }
 
 void do_OrientationChaserTick(void * ptr){
 	struct X3D_OrientationChaser *node = (struct X3D_OrientationChaser *)ptr;
 	if(!node)return;
-
+	if(NODE_NEEDS_COMPILING){
+		//default action copy input to output when not implemented
+		veccopy3f(node->value_changed.c, node->set_destination.c);
+		node->value_changed.c[3] = node->set_destination.c[3];
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_OrientationChaser, value_changed));
+		MARK_NODE_COMPILED
+	}
 }
 void do_OrientationDamperTick(void * ptr){
 	struct X3D_OrientationDamper *node = (struct X3D_OrientationDamper *)ptr;
 	if(!node)return;
-
+	if(NODE_NEEDS_COMPILING){
+		//default action copy input to output when not implemented
+		veccopy3f(node->value_changed.c, node->set_destination.c);
+		node->value_changed.c[3] = node->set_destination.c[3];
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_OrientationChaser, value_changed));
+		MARK_NODE_COMPILED
+	}
 }
 
 /*
@@ -362,8 +402,11 @@ void do_PositionChaserTick(void * ptr){
 	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr;
 	if(!node) return;
 	Now = TickTime();
-	if(!vecsame3f(node->set_destination.c,previousValue.c))
+	if(NODE_NEEDS_COMPILING){
+		//if(!vecsame3f(node->set_destination.c,previousValue.c)){
 		set_destination(node, node->set_destination,Now);
+		MARK_NODE_COMPILED
+	}
 	Tick(node,Now);
 }
 
@@ -627,34 +670,74 @@ void do_PositionDamperTick(void * ptr){
 void do_PositionChaser2DTick(void * ptr){
 	struct X3D_PositionChaser2D *node = (struct X3D_PositionChaser2D *)ptr;
 	if(!node)return;
+	if(NODE_NEEDS_COMPILING){
+		//default action copy input to output when not implemented
+		veccopy2f(node->value_changed.c, node->set_destination.c);
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionChaser2D, value_changed));
+		MARK_NODE_COMPILED
+	}
 
 }
 void do_PositionDamper2DTick(void * ptr){
 	struct X3D_PositionDamper2D *node = (struct X3D_PositionDamper2D *)ptr;
 	if(!node)return;
+	if(NODE_NEEDS_COMPILING){
+		//default action copy input to output when not implemented
+		veccopy2f(node->value_changed.c, node->set_destination.c);
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionDamper2D, value_changed));
+		MARK_NODE_COMPILED
+	}
 
 }
 
 void do_ScalarChaserTick(void * ptr){
 	struct X3D_ScalarChaser *node = (struct X3D_ScalarChaser *)ptr;
 	if(!node)return;
-
+	if(NODE_NEEDS_COMPILING){
+		//default action copy input to output when not implemented
+		node->value_changed = node->set_destination;
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_ScalarChaser, value_changed));
+		MARK_NODE_COMPILED
+	}
 }
 void do_ScalarDamperTick(void * ptr){
 	struct X3D_ScalarDamper *node = (struct X3D_ScalarDamper *)ptr;
 	if(!node)return;
-
+	if(NODE_NEEDS_COMPILING){
+		//default action copy input to output when not implemented
+		node->value_changed = node->set_destination;
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_ScalarDamper, value_changed));
+		MARK_NODE_COMPILED
+	}
 }
 
 void do_TexCoordChaser2DTick(void * ptr){
 	struct X3D_TexCoordChaser2D *node = (struct X3D_TexCoordChaser2D *)ptr;
 	if(!node)return;
-
+	if(NODE_NEEDS_COMPILING){
+		//default action copy input to output when not implemented
+		int n;
+		n = node->set_destination.n;
+		node->value_changed.n = n;
+		node->value_changed.p = realloc(node->value_changed.p,n * sizeof(struct SFVec2f));
+		memcpy(node->value_changed.p,node->set_destination.p,n*sizeof(struct SFVec2f));
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_TexCoordChaser2D, value_changed));
+		MARK_NODE_COMPILED
+	}
 }
 void do_TexCoordDamper2DTick(void * ptr){
 	struct X3D_TexCoordDamper2D *node = (struct X3D_TexCoordDamper2D *)ptr;
 	if(!node)return;
-
+	if(NODE_NEEDS_COMPILING){
+		//default action copy input to output when not implemented
+		int n;
+		n = node->set_destination.n;
+		node->value_changed.n = n;
+		node->value_changed.p = realloc(node->value_changed.p,n * sizeof(struct SFVec2f));
+		memcpy(node->value_changed.p,node->set_destination.p,n*sizeof(struct SFVec2f));
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_TexCoordDamper2D, value_changed));
+		MARK_NODE_COMPILED
+	}
 }
 
 //============================
