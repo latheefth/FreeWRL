@@ -440,6 +440,8 @@ our %PrepC = map {($_=>1)} qw/
 	ScreenGroup
 	Layer
 	LayoutLayer
+	CollidableOffset
+	CollidableShape
 /;
 
 #######################################################################
@@ -465,6 +467,8 @@ our %FinC = map {($_=>1)} qw/
 	ScreenGroup
 	Layer
 	LayoutLayer	
+	CollidableOffset
+	CollidableShape	
 /;
 
 
@@ -512,6 +516,8 @@ our %ChildC = map {($_=>1)} qw/
 	LayerSet
 	Layer
 	LayoutLayer	
+	CollidableOffset
+	CollidableShape
 /;
 
 
@@ -621,12 +627,7 @@ our %CompileC = map {($_=>1)} qw/
 	
 	CollidableOffset
 	CollidableShape
-	CollisionCollection
-	CollisionSensor
-	CollisionSpace
-	Contact
-	RigidBody
-	RigidBodyCollection
+	
 /;
 
 
