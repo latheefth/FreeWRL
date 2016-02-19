@@ -125,11 +125,11 @@ to be visited on a render_hier pass for visual rendering.
 
 X3D declared Node		Init	Field value node types
 RigidBodyCollection		A,D		RigidBody
-RigidBody				A,D		CollidableShape, CollidableOffset
-CollisionCollection		A,D		CollidableShape, CollidableOffset, CollisionSpace
-CollisionSpace			A,D		CollidableShape, CollidableOffset, CollisionSpace
-CollidableShape			B		Shape
-CollidableOffset		B		CollidableShape
+RigidBody				  D		CollidableShape, CollidableOffset
+CollisionCollection		  D		CollidableShape, CollidableOffset, CollisionSpace
+CollisionSpace			  D		CollidableShape, CollidableOffset, CollisionSpace
+CollidableShape			B,D		Shape
+CollidableOffset		B,D		CollidableShape
 CollisionSensor			A,D		CollisionCollection
 
 Generated Node			Generating Node
@@ -269,6 +269,27 @@ void finish_rbp(){
 
 }
 static int pause = FALSE;
+/* http://www.ode.org/ode-0.039-userguide.html#ref27
+3.10. Typical simulation code
+A typical simulation will proceed like this:
+1.Create a dynamics world.
+2.Create bodies in the dynamics world.
+3.Set the state (position etc) of all bodies.
+4.Create joints in the dynamics world.
+5.Attach the joints to the bodies.
+6.Set the parameters of all joints.
+7.Create a collision world and collision geometry objects, as necessary.
+8.Create a joint group to hold the contact joints.
+9.Loop:
+1.	Apply forces to the bodies as necessary.
+2.	Adjust the joint parameters as necessary.
+3.	Call collision detection.
+4.	Create a contact joint for every collision point, and put it in the contact joint group.
+5.	Take a simulation step.
+6.	Remove all joints in the contact joint group.
+10.Destroy the dynamics and collision worlds.
+
+*/
 void rbp_run_physics(){
 	ppComponent_RigidBodyPhysics p;
 	p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
@@ -283,7 +304,7 @@ void rbp_run_physics(){
 			//Collidable -> rigidbody 
 			for(i=0;i<x3dworld->bodies.n;i++){
 				x3dbody = (struct X3D_RigidBody*)x3dworld->bodies.p[i];
-				if(!x3dbody->_body){
+				if(!x3dbody->_body && !x3dbody->fixed){
 					x3dbody->_body = dBodyCreate (x3dworld->_world);
 					dBodySetData (x3dbody->_body,(void*) x3dbody);
 				}
@@ -298,31 +319,107 @@ void rbp_run_physics(){
 						x3doffset = (struct X3D_CollidableOffset*)x3dcshape;
 					}
 					if(!x3dcshape->_geom){
-						//x3dcshape->_geom = 
+						dGeomID gid = NULL;
+						struct X3D_Shape *shape = (struct X3D_Shape*)x3dcshape->shape;
+						if(shape && shape->geometry){
+							dReal sides[3];
+							dMass m;
+							switch(shape->geometry->_nodeType){
+								case NODE_Box:
+									{
+										struct X3D_Box *box = (struct X3D_Box*)shape->geometry;
+										sides[0] = box->size.c[0]; sides[1] = box->size.c[1], sides[2] = box->size.c[2];
+										dMassSetBox (&m,DENSITY,sides[0],sides[1],sides[2]);
+										gid = dCreateBox(x3dworld->_space,sides[0],sides[1],sides[2]);
+									}
+									break;
+								case NODE_Sphere:
+									{
+										struct X3D_Sphere *sphere = (struct X3D_Sphere*)shape->geometry;
+										sides[0] = sphere->radius;
+										dMassSetSphere (&m,DENSITY,sides[0]);
+										gid = dCreateSphere(x3dworld->_space,sides[0]);
+									}
+									break;
+								case NODE_Cylinder:
+									{
+										struct X3D_Cylinder *cyl = (struct X3D_Cylinder*)shape->geometry;
+										sides[0] = cyl->radius;
+										sides[1] = cyl->height;
+										dMassSetCylinder (&m,DENSITY,3,sides[0],sides[1]);
+										gid = dCreateCylinder(x3dworld->_space,sides[0],sides[1]);
+									}
+									break;
+								//case convex - not done yet
+								default:
+									break;
+							}
+							x3dcshape->_geom = gid;
+							//Q. is the geom and body automatically linked or do I call:
+							//void dGeomSetBody (dGeomID, dBodyID);
+							dGeomSetBody(gid,x3dbody->_body);
+						}
 					}
 					struct SFVec3f translation = x3doffset->translation;
 					struct SFRotation rotation = x3doffset->rotation;
-					dBodySetPosition (x3dbody->_body, translation.c[0],translation.c[1],translation.c[2]);
+					dGeomSetPosition (x3dcshape->_geom, translation.c[0],translation.c[1],translation.c[2]);
 					if(1){
 						dReal dquat[4];
 						Quaternion quat;
 						vrmlrot_to_quaternion(&quat,rotation.c[0],rotation.c[1],rotation.c[2],rotation.c[3]);
 						dquat[0] = quat.x; dquat[1] = quat.y, dquat[2] = quat.z, dquat[3] = quat.w;
-						dBodySetQuaternion(x3dbody->_body,dquat);
+						dGeomSetQuaternion(x3dcshape->_geom,dquat);
 					}else{
 						dMatrix3 R;
 						dRFromAxisAndAngle (R,rotation.c[0],rotation.c[1],rotation.c[2],rotation.c[3]);
-						dBodySetRotation(x3dbody->_body,R);
+						dGeomSetRotation(x3dcshape->_geom,R);
 					}
-
+					//if(x3dbody->fixed){
+					//	//void dBodySetGravityMode (dBodyID b, int mode);
+					//	dBodySetGravityMode(x3dbody->_body,0);
+					//}
 				}
-				//dCreatePlane (space,0,0,1,0);
-				//memset (obj,0,sizeof(obj));
 			}
-			dSpaceCollide (space,0,&nearCallback);
-			if (!pause) dWorldQuickStep (world,0.02);
+			dSpaceCollide (x3dworld->_space,0,&nearCallback);
+			if (!pause) dWorldQuickStep (x3dworld->_world,0.02);
 
 			//Rigidbody -> Collidable
+			for(i=0;i<x3dworld->bodies.n;i++){
+				x3dbody = (struct X3D_RigidBody*)x3dworld->bodies.p[i];
+				if(x3dbody->_body){
+					//if not fixed, it will have a body that maybe moved
+					x3dcshape = NULL;
+					x3doffset = NULL;
+					for(k=0;k<x3dbody->geometry.n;k++){
+						if(x3dbody->geometry.p[k]->_nodeType == NODE_CollidableOffset){
+							x3doffset = (struct X3D_CollidableOffset*)x3dbody->geometry.p[k];
+							x3dcshape = (struct X3D_CollidableShape*)x3doffset->collidable;
+						}else if(x3dbody->geometry.p[k]->_nodeType == NODE_CollidableShape){
+							x3dcshape = (struct X3D_CollidableShape*)x3dbody->geometry.p[k];
+							x3doffset = (struct X3D_CollidableOffset*)x3dcshape;
+						}
+						struct SFVec3f translation = x3doffset->translation;
+						struct SFRotation rotation = x3doffset->rotation;
+						dReal *dpos, *dquat;
+						dpos = dBodyGetPosition (x3dbody->_body);
+						dquat = dBodyGetQuaternion(x3dbody->_body);
+						Quaternion quat;
+						double x,y,z,a;
+						quat.x = dquat[0], quat.y = dquat[1], quat.z = dquat[2], quat.w = dquat[3];
+						quaternion_to_vrmlrot(&quat,&x,&y,&z,&a);
+						if(1){
+						x3doffset->translation.c[0] = dpos[0];
+						x3doffset->translation.c[2] = dpos[1];
+						x3doffset->translation.c[1] = dpos[2];
+						x3doffset->rotation.c[0] = x;
+						x3doffset->rotation.c[1] = y;
+						x3doffset->rotation.c[2] = z;
+						x3doffset->rotation.c[3] = a;
+						x3doffset->_change++;
+						}
+					}
+				}
+			}
 
 			// remove all contact joints
 			dJointGroupEmpty (contactgroup);
@@ -389,7 +486,6 @@ void register_RigidBodyCollection(struct X3D_Node *_node){
 		dWorldSetGravity (world,0,0,-GRAVITY);
 		dWorldSetCFM (world,1e-5);
 		dWorldSetAutoDisableFlag (world,1);
-		space = dHashSpaceCreate (0);
 		contactgroup = dJointGroupCreate (0);
 
 		#if 1
@@ -511,12 +607,6 @@ void add_physics(struct X3D_Node *node){
 		case NODE_CollisionSensor:
 			register_CollisionSensor(node);
 			break;
-		//case NODE_CollisionSpace:
-		//	register_CollisionSpace(node);
-		//	break;
-		//case NODE_RigidBody:
-		//	register_RigidBody(node);
-		//	break;
 		case NODE_RigidBodyCollection:
 			register_RigidBodyCollection(node);
 			break;
