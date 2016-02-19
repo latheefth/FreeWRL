@@ -179,18 +179,16 @@ static MyFeedback feedbacks[MAX_FEEDBACKNUM];
 static int fbnum=0;
 
 
-
+//our registered lists (should be in gglobal p->)
 static struct Vector *x3dworlds = NULL;
 static struct Vector *x3dcollisionsensors = NULL;
 
-
-
 // this is called by dSpaceCollide when two objects in space are
 // potentially colliding.
-
 static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 {
   int i, numc;
+  dContact contact[MAX_CONTACTS];   // up to MAX_CONTACTS contacts per box-box
   // if (o1->body && o2->body) return;
 
   // exit without doing anything if the two bodies are connected by a joint
@@ -198,7 +196,6 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
   dBodyID b2 = dGeomGetBody(o2);
   if (b1 && b2 && dAreConnectedExcluding (b1,b2,dJointTypeContact)) return;
 
-  dContact contact[MAX_CONTACTS];   // up to MAX_CONTACTS contacts per box-box
   for (i=0; i<MAX_CONTACTS; i++) {
     contact[i].surface.mode = dContactBounce | dContactSoftCFM;
     contact[i].surface.mu = dInfinity;
@@ -209,9 +206,9 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
   }
   if (numc = dCollide (o1,o2,MAX_CONTACTS,&contact[0].geom,
 			   sizeof(dContact))) {
+    const dReal ss[3] = {0.02,0.02,0.02};
     dMatrix3 RI;
     dRSetIdentity (RI);
-    const dReal ss[3] = {0.02,0.02,0.02};
     for (i=0; i<numc; i++) {
       dJointID c = dJointCreateContact (world,contactgroup,contact+i);
       dJointAttach (c,b1,b2);
@@ -240,12 +237,13 @@ int init_rbp(){
 		dInitODE2(0);
 		memset (obj,0,sizeof(obj));
 
+		if(1){
 		dThreadingImplementationID threading = dThreadingAllocateMultiThreadedImplementation();
 		dThreadingThreadPoolID pool = dThreadingAllocateThreadPool(4, 0, dAllocateFlagBasicData, NULL);
 		dThreadingThreadPoolServeMultiThreadedImplementation(pool, threading);
 		// dWorldSetStepIslandsProcessingMaxThreadCount(world, 1);
 		dWorldSetStepThreadingImplementation(world, dThreadingImplementationGetFunctions(threading), threading);
-
+		}
 		dAllocateODEDataForThread(dAllocateMaskAll);
 
 	}
@@ -288,9 +286,16 @@ A typical simulation will proceed like this:
 5.	Take a simulation step.
 6.	Remove all joints in the contact joint group.
 10.Destroy the dynamics and collision worlds.
-
 */
 void rbp_run_physics(){
+	/*	called once per frame.
+		assumes we have lists of registered worlds (x3drigidbodycollections) and 
+			registered collisionSensors if any
+		for each world, 
+			- we drill down and check each thing and if not initialized, we initialize it 
+			- we run the collision and simulation steps
+			- we output to any collisionSensors
+	*/
 	ppComponent_RigidBodyPhysics p;
 	p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
 	if(init_rbp()){
@@ -311,6 +316,8 @@ void rbp_run_physics(){
 				x3dcshape = NULL;
 				x3doffset = NULL;
 				for(k=0;k<x3dbody->geometry.n;k++){
+					struct SFVec3f translation;
+					struct SFRotation rotation;
 					if(x3dbody->geometry.p[k]->_nodeType == NODE_CollidableOffset){
 						x3doffset = (struct X3D_CollidableOffset*)x3dbody->geometry.p[k];
 						x3dcshape = (struct X3D_CollidableShape*)x3doffset->collidable;
@@ -350,18 +357,18 @@ void rbp_run_physics(){
 										gid = dCreateCylinder(x3dworld->_space,sides[0],sides[1]);
 									}
 									break;
-								//case convex - not done yet
+								//case convex - not done yet, basically indexedfaceset
 								default:
 									break;
 							}
 							x3dcshape->_geom = gid;
-							//Q. is the geom and body automatically linked or do I call:
+							//link body to geom
 							//void dGeomSetBody (dGeomID, dBodyID);
 							dGeomSetBody(gid,x3dbody->_body);
 						}
 					}
-					struct SFVec3f translation = x3doffset->translation;
-					struct SFRotation rotation = x3doffset->rotation;
+					translation = x3doffset->translation;
+					rotation = x3doffset->rotation;
 					dGeomSetPosition (x3dcshape->_geom, translation.c[0],translation.c[1],translation.c[2]);
 					if(1){
 						dReal dquat[4];
@@ -374,10 +381,6 @@ void rbp_run_physics(){
 						dRFromAxisAndAngle (R,rotation.c[0],rotation.c[1],rotation.c[2],rotation.c[3]);
 						dGeomSetRotation(x3dcshape->_geom,R);
 					}
-					//if(x3dbody->fixed){
-					//	//void dBodySetGravityMode (dBodyID b, int mode);
-					//	dBodySetGravityMode(x3dbody->_body,0);
-					//}
 				}
 			}
 			dSpaceCollide (x3dworld->_space,0,&nearCallback);
@@ -391,6 +394,12 @@ void rbp_run_physics(){
 					x3dcshape = NULL;
 					x3doffset = NULL;
 					for(k=0;k<x3dbody->geometry.n;k++){
+						struct SFVec3f translation;
+						struct SFRotation rotation;
+						const dReal *dpos, *dquat;
+						Quaternion quat;
+						double x,y,z,a;
+
 						if(x3dbody->geometry.p[k]->_nodeType == NODE_CollidableOffset){
 							x3doffset = (struct X3D_CollidableOffset*)x3dbody->geometry.p[k];
 							x3dcshape = (struct X3D_CollidableShape*)x3doffset->collidable;
@@ -398,29 +407,27 @@ void rbp_run_physics(){
 							x3dcshape = (struct X3D_CollidableShape*)x3dbody->geometry.p[k];
 							x3doffset = (struct X3D_CollidableOffset*)x3dcshape;
 						}
-						struct SFVec3f translation = x3doffset->translation;
-						struct SFRotation rotation = x3doffset->rotation;
-						dReal *dpos, *dquat;
+						translation = x3doffset->translation;
+						rotation = x3doffset->rotation;
 						dpos = dBodyGetPosition (x3dbody->_body);
 						dquat = dBodyGetQuaternion(x3dbody->_body);
-						Quaternion quat;
-						double x,y,z,a;
 						quat.x = dquat[0], quat.y = dquat[1], quat.z = dquat[2], quat.w = dquat[3];
 						quaternion_to_vrmlrot(&quat,&x,&y,&z,&a);
-						if(1){
-						x3doffset->translation.c[0] = dpos[0];
-						x3doffset->translation.c[2] = dpos[1];
-						x3doffset->translation.c[1] = dpos[2];
-						x3doffset->rotation.c[0] = x;
-						x3doffset->rotation.c[1] = y;
-						x3doffset->rotation.c[2] = z;
-						x3doffset->rotation.c[3] = a;
+
+						x3doffset->translation.c[0] = (float)dpos[0];
+						x3doffset->translation.c[2] = (float)dpos[1];
+						x3doffset->translation.c[1] = (float)dpos[2];
+						x3doffset->rotation.c[0] = (float)x;
+						x3doffset->rotation.c[1] = (float)y;
+						x3doffset->rotation.c[2] = (float)z;
+						x3doffset->rotation.c[3] = (float)a;
 						x3doffset->_change++;
-						}
+
 					}
 				}
 			}
-
+			//do collisionSensor
+				//not implemented yet
 			// remove all contact joints
 			dJointGroupEmpty (contactgroup);
 		}
@@ -429,17 +436,6 @@ void rbp_run_physics(){
 }
 
 
-//void register_CollisionCollection(struct X3D_Node *node){
-//	if(node->_nodeType == NODE_CollisionCollection){
-//		ppComponent_RigidBodyPhysics p;
-//		struct X3D_CollisionCollection *self = (struct X3D_CollisionCollection*)node;
-//		p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
-//
-//		contactgroup = dJointGroupCreate (0);
-//		x3dcontact = node;
-//		MARK_NODE_COMPILED;
-//	}
-//}
 void register_CollisionSensor(struct X3D_Node *_node){
 	if(_node->_nodeType == NODE_CollisionSensor){
 		ppComponent_RigidBodyPhysics p;
@@ -450,30 +446,7 @@ void register_CollisionSensor(struct X3D_Node *_node){
 		MARK_NODE_COMPILED;
 	}
 }
-//void register_CollisionSpace(struct X3D_Node *node){
-//	if(node->_nodeType == NODE_CollisionSpace){
-//		ppComponent_RigidBodyPhysics p;
-//		struct X3D_CollisionSpace *self = (struct X3D_CollisionSpace*)node;
-//		p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
-//
-//		space = dHashSpaceCreate (0);
-//
-//		x3dspace = node;
-//
-//		//MARK_NODE_COMPILED;
-//	}
-//}
-void compile_Contact(struct X3D_Node *node){
-}
-//void register_RigidBody(struct X3D_Node *node){
-//	if(node->_nodeType == NODE_RigidBody){
-//		ppComponent_RigidBodyPhysics p;
-//		struct X3D_RigidBody *self = (struct X3D_RigidBody*)node;
-//		p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
-//
-//		//MARK_NODE_COMPILED;
-//	}
-//}
+
 void register_RigidBodyCollection(struct X3D_Node *_node){
 	if(_node->_nodeType == NODE_RigidBodyCollection){
 		ppComponent_RigidBodyPhysics p;
@@ -618,34 +591,15 @@ void add_physics(struct X3D_Node *node){
 
 #else //else no ode phyiscs engine, just stubs
 
-
-void rbp_run_physics(){
+void compile_CollidableShape(struct X3D_Node *node){
 }
-void add_physics(struct X3D_Node *node){
-}
-
-//void compile_CollidableOffset(struct X3D_Node *node){
-//}
-//void compile_CollidableShape(struct X3D_Node *node){
-//}
-//void compile_CollisionCollection(struct X3D_Node *node){
-//}
-//void compile_CollisionSensor(struct X3D_Node *node){
-//}
-//void compile_CollisionSpace(struct X3D_Node *node){
-//}
-//void compile_Contact(struct X3D_Node *node){
-//}
-//void compile_RigidBody(struct X3D_Node *node){
-//}
-//void compile_RigidBodyCollection(struct X3D_Node *node){
-//}
-
 void prep_CollidableShape(struct X3D_Node *node){
 }
 void fin_CollidableShape(struct X3D_Node *node){
 }
 void child_CollidableShape(struct X3D_Node *node){
+}
+void compile_CollidableOffset(struct X3D_Node *node){
 }
 void prep_CollidableOffset(struct X3D_Node *node){
 }
@@ -653,6 +607,11 @@ void fin_CollidableOffset(struct X3D_Node *node){
 }
 void child_CollidableOffset(struct X3D_Node *node){
 }
+void rbp_run_physics(){
+}
+void add_physics(struct X3D_Node *node){
+}
+
 #endif	
 	
 	
