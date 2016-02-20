@@ -242,6 +242,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_stringInpFIFO",
 	"_stringOutFIFO",
 	"_talkToNodes",
+	"_tau",
 	"_verifiedBackColor",
 	"_verifiedColor",
 	"_verifiedFrontColor",
@@ -5449,6 +5450,7 @@ const int OFFSETS_PositionChaser2D[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_PositionDamper[] = {
+	(int) FIELDNAMES__tau, (int) offsetof (struct X3D_PositionDamper, _tau),  (int) FIELDTYPE_SFTime, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_initialDestination, (int) offsetof (struct X3D_PositionDamper, initialDestination),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_initialValue, (int) offsetof (struct X3D_PositionDamper, initialValue),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isActive, (int) offsetof (struct X3D_PositionDamper, isActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -10123,6 +10125,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_PositionDamper : {
 			struct X3D_PositionDamper * tmp2;
 			tmp2 = (struct X3D_PositionDamper *) tmp;
+			tmp2->_tau = 0.3;
 			tmp2->initialDestination.c[0] = 0.0f;tmp2->initialDestination.c[1] = 0.0f;tmp2->initialDestination.c[2] = 0.0f;
 			tmp2->initialValue.c[0] = 0.0f;tmp2->initialValue.c[1] = 0.0f;tmp2->initialValue.c[2] = 0.0f;
 			tmp2->isActive = FALSE;
@@ -14226,6 +14229,9 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_PositionDamper *tmp;
 			tmp = (struct X3D_PositionDamper *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," _tau (SFTime) \t%4.3f\n",tmp->_tau);
+		    }
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }

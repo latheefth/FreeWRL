@@ -168,35 +168,6 @@ void do_OrientationDamperTick(void * ptr){
 /*
 	adapted from
 	http://www.web3d.org/x3d/content/examples/Basic/Followers/index.html
-    PrototypeDeclaration scene
-		  <field accessType='inputOnly' name='Tick' type='SFTime'/>
-
-		  I interpret these as variables on the public interface of the node:
-          <field accessType='inputOnly' name='set_value' type='SFVec3f'/>
-          <field accessType='initializeOnly' name='duration' type='SFTime'/>
-          <field accessType='inputOnly' name='set_destination' type='SFVec3f'/>
-          <field accessType='outputOnly' name='value_changed' type='SFVec3f'/>
-          <field accessType='initializeOnly' name='initial_destination' type='SFVec3f'/>
-          <field accessType='outputOnly' name='isActive' type='SFBool'/>
-          <field accessType='initializeOnly' name='initial_value' type='SFVec3f'/>
-          <IS>
-            <connect nodeField='set_value' protoField='set_value'/>
-            <connect nodeField='duration' protoField='duration'/>
-            <connect nodeField='set_destination' protoField='set_destination'/>
-            <connect nodeField='value_changed' protoField='value_changed'/>
-            <connect nodeField='initial_destination' protoField='initial_destination'/>
-            <connect nodeField='isActive' protoField='isActive'/>
-            <connect nodeField='initial_value' protoField='initial_value'/>
-          </IS>
-
-		  I interpret these as variables private to the node or component:
-          <field accessType='initializeOnly' name='Buffer' type='MFVec3f'/>
-          <field accessType='initializeOnly' name='bInitialized' type='SFBool' value='false'/>
-          <field accessType='initializeOnly' name='BufferEndTime' type='SFTime' value='0.0'/>
-          <field accessType='initializeOnly' name='cNumSupports' type='SFInt32' value='10'/>
-          <field accessType='initializeOnly' name='cStepTime' type='SFTime' value='0.0'/>
-          <field accessType='initializeOnly' name='previousValue' type='SFVec3f' value='0.0 0.0 0.0'/>
-          <field accessType='initializeOnly' name='destination' type='SFVec3f' value='0.0 0.0 0.0'/>
 */
 
 
@@ -204,13 +175,13 @@ void do_OrientationDamperTick(void * ptr){
 // but they would go into a _private struct field in the node
 static int Buffer_length = 10;
 static int cNumSupports = 10;
-static struct SFVec3f Buffer[10];
 static int bInitialized = 0;
 static double BufferEndTime = 0.0;
 static double cStepTime = 0.0;
 static struct SFVec3f previousValue = { 0.0f, 0.0f, 0.0f};
 static struct SFVec3f destination = {0.0f,0.0f,0.0f};
-void Init(struct X3D_PositionChaser *node)
+static struct SFVec3f Buffer[10];
+void chaser_init(struct X3D_PositionChaser *node)
 {
 	int C;
     destination = node->initialDestination;
@@ -225,16 +196,16 @@ void Init(struct X3D_PositionChaser *node)
 
     cStepTime= node->duration / (double) cNumSupports;
 }
-void CheckInit(struct X3D_PositionChaser *node)
+void chaser_CheckInit(struct X3D_PositionChaser *node)
 {
     if(!bInitialized)
     {
         bInitialized= TRUE;  // Init() may call other functions that call CheckInit(). In that case it's better the flag is already set, otherwise an endless loop would occur.
-        Init(node);
+        chaser_init(node);
     }
 }
 
-double UpdateBuffer(struct X3D_PositionChaser *node, double Now)
+double chaser_UpdateBuffer(struct X3D_PositionChaser *node, double Now)
 {
 	int C;
     double Frac= (Now - BufferEndTime) / cStepTime;
@@ -305,15 +276,15 @@ double UpdateBuffer(struct X3D_PositionChaser *node, double Now)
 //when a route toNode.toField is PositionChaser.set_destination
 //we need to call this function (somehow) much like a script?
 //
-void set_destination(struct X3D_PositionChaser *node, struct SFVec3f Dest, double Now)
+void chaser_set_destination(struct X3D_PositionChaser *node, struct SFVec3f Dest, double Now)
 {
-    CheckInit(node);
+    chaser_CheckInit(node);
 
     destination= Dest;
     // Somehow we assign to Buffer[-1] and wait untill this gets shifted into the real buffer.
     // Would we assign to Buffer[0] instead, we'd have no delay, but this would create a jump in the
     // output because Buffer[0] is associated with a value in the past.
-    UpdateBuffer(node, Now);
+    chaser_UpdateBuffer(node, Now);
 }
 // This function defines the shape of how the output responds to the input.
 // It must accept values for T in the range 0 <= T <= 1.
@@ -323,12 +294,12 @@ void set_destination(struct X3D_PositionChaser *node, struct SFVec3f Dest, doubl
 // It should be optimized for speed, in order for high performance. It's
 // executed Buffer.length + 1 times each simulation tick.
 
-double StepResponseCore(double T)
+double chaser_StepResponseCore(double T)
 {
     return .5 - .5 * cos(T * PI);
 }
 
-double StepResponse(struct X3D_PositionChaser *node, double t)
+double chaser_StepResponse(struct X3D_PositionChaser *node, double t)
 {
     if(t < 0.0)
         return 0.0;
@@ -339,10 +310,10 @@ double StepResponse(struct X3D_PositionChaser *node, double t)
     // When optimizing for speed, the above two if(.) cases can be omitted,
     // as this funciton will not be called for values outside of 0..duration.
 
-    return StepResponseCore(t / node->duration);
+    return chaser_StepResponseCore(t / node->duration);
 }
 
-void Tick(struct X3D_PositionChaser *node, double Now)
+void chaser_tick(struct X3D_PositionChaser *node, double Now)
 {
 	int C;
 	double Frac;
@@ -350,14 +321,14 @@ void Tick(struct X3D_PositionChaser *node, double Now)
     struct SFVec3f DeltaIn;
     struct SFVec3f DeltaOut;
 
-	CheckInit(node);
+	chaser_CheckInit(node);
     if(!BufferEndTime)
     {
         BufferEndTime= Now; // first event we received, so we are in the initialization phase.
         node->value_changed= node->initialValue; //initial_value;
         return;
     }
-    Frac= UpdateBuffer(node, Now);
+    Frac= chaser_UpdateBuffer(node, Now);
     // Frac is a value in   0 <= Frac < 1.
 
     // Now we can calculate the output.
@@ -379,7 +350,7 @@ void Tick(struct X3D_PositionChaser *node, double Now)
 	//printf("BL %f %f \n",Buffer[Buffer_length - 1].c[0], Buffer[Buffer_length - 1].c[1]);
 
     //DeltaOut= DeltaIn.multiply(StepResponse((Buffer_length - 1 + Frac) * cStepTime));
-	vecscale3f(DeltaOut.c,DeltaIn.c,(float)StepResponse(node,((double)Buffer_length - 1.0 + Frac) * cStepTime));
+	vecscale3f(DeltaOut.c,DeltaIn.c,(float)chaser_StepResponse(node,((double)Buffer_length - 1.0 + Frac) * cStepTime));
     //Output= Output.add(DeltaOut);
 	vecadd3f(Output.c,Output.c,DeltaOut.c);
 
@@ -389,7 +360,7 @@ void Tick(struct X3D_PositionChaser *node, double Now)
 		vecdif3f(DeltaIn.c,Buffer[C].c,Buffer[C+1].c);
 
         //DeltaOut= DeltaIn.multiply(StepResponse((C + Frac) * cStepTime));
-		vecscale3f(DeltaOut.c,DeltaIn.c,(float)StepResponse(node,((double)C + Frac) * cStepTime));
+		vecscale3f(DeltaOut.c,DeltaIn.c,(float)chaser_StepResponse(node,((double)C + Frac) * cStepTime));
 
         //Output= Output.add(DeltaOut);
 		vecadd3f(Output.c,Output.c,DeltaOut.c);
@@ -401,7 +372,18 @@ void Tick(struct X3D_PositionChaser *node, double Now)
 	}
 
 }
+void chaser_set_value(struct X3D_PositionChaser *node, struct SFVec3f opos)
+{
+    chaser_CheckInit(node);
 
+    node->value_changed= opos;
+	node->initialValue = opos;
+	MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionChaser, value_changed));
+
+ 	node->isActive = TRUE;
+	MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionChaser, isActive));
+
+}
 
 
 void do_PositionChaserTick(void * ptr){
@@ -414,63 +396,19 @@ void do_PositionChaserTick(void * ptr){
 		node->isActive = TRUE;
 		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionChaser, isActive));
 		//Q how to tell which set_ was set: set_destination or set_value?
-		//if(!vecsame3f(node->set_destination.c,previousValue.c))
-		set_destination(node, node->set_destination,Now);
-		//what about set_value?
+		if(!vecsame3f(node->set_destination.c,destination.c))
+			chaser_set_destination(node, node->set_destination,Now);
+		else if(!vecsame3f(node->set_value.c,node->initialValue.c)) //not sure I have the right idea here
+			chaser_set_value(node,node->set_value);
 		MARK_NODE_COMPILED
 	}
-	if(node->isActive){
-		if(vecsame3f(node->value_changed.c,node->set_destination.c)){
-			node->isActive = FALSE;
-			MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionChaser, isActive));
-		}else{
-			Tick(node,Now);
-		}
-	}
+	if(node->isActive)
+		chaser_tick(node,Now);
 }
 
 /*
 	//positiondamper
-    <ProtoDeclare name='PositionDamper'>
-	//public:
-          <field accessType='inputOnly' name='set_value' type='SFVec3f'/>
-          <field accessType='initializeOnly' name='reachThreshold' type='SFFloat'/>  //tolerance?
-          <field accessType='initializeOnly' name='input' type='SFVec3f'/>
-          <field accessType='initializeOnly' name='eps' type='SFFloat'/>   //????
-          <field accessType='inputOnly' name='set_destination' type='SFVec3f'/>
-          <field accessType='outputOnly' name='value_changed' type='SFVec3f'/>
-		  //tau >>
-          <field accessType='initializeOnly' name='tau' type='SFFloat' value='1.0'/>
-          <field accessType='inputOnly' name='set_tau' type='SFFloat'/>
-          <field accessType='initializeOnly' name='effs' type='SFNode'>  //???? not sure why they did this _and_ tau
-            <ProtoInstance USE='EFFS' name='EFFS'/>
-          </field>
-		  //<<tau
-          <field accessType='initializeOnly' name='order' type='SFInt32'/>
-          <field accessType='initializeOnly' name='initial_value' type='SFVec3f'/>
-          <field accessType='outputOnly' name='reached' type='SFBool'/>       //isActive?
-          <field accessType='initializeOnly' name='takeFirstInput' type='SFBool'/>  //compensation for no separate initialDestination??
-          <IS>
-            <connect nodeField='set_value' protoField='set_value'/>
-            <connect nodeField='reachThreshold' protoField='reachThreshold'/>
-            <connect nodeField='input' protoField='initial_destination'/>
-            <connect nodeField='eps' protoField='eps'/>
-            <connect nodeField='set_destination' protoField='set_destination'/>
-            <connect nodeField='value_changed' protoField='value_changed'/>
-            <connect nodeField='order' protoField='order'/>
-            <connect nodeField='initial_value' protoField='initial_value'/>
-            <connect nodeField='reached' protoField='reached'/>
-            <connect nodeField='takeFirstInput' protoField='takeFirstInput'/>
-          </IS>
-		  //private
-          <field accessType='initializeOnly' name='bInitialized' type='SFBool' value='false'/>
-          <field accessType='initializeOnly' name='lastTick' type='SFTime' value='0.0'/>
-          <field accessType='initializeOnly' name='bNeedToTakeFirstInput' type='SFBool' value='true'/>
-          <field accessType='initializeOnly' name='value5' type='SFVec3f' value='0.0 0.0 0.0'/>
-          <field accessType='initializeOnly' name='value4' type='SFVec3f' value='0.0 0.0 0.0'/>
-          <field accessType='initializeOnly' name='value3' type='SFVec3f' value='0.0 0.0 0.0'/>
-          <field accessType='initializeOnly' name='value2' type='SFVec3f' value='0.0 0.0 0.0'/>
-          <field accessType='initializeOnly' name='value1' type='SFVec3f' value='0.0 0.0 0.0'/>
+
 */
 static int bInitializedD = FALSE;
 static double lastTick = 0.0;
@@ -484,13 +422,13 @@ static struct SFVec3f input = {0.0f,0.0f,0.0f};
 
 
 
-void set_valueD(struct X3D_PositionDamper *node, struct SFVec3f opos);
-void InitD(struct X3D_PositionDamper *node)
+void damper_set_value(struct X3D_PositionDamper *node, struct SFVec3f opos);
+void damper_Init(struct X3D_PositionDamper *node)
 {
     bNeedToTakeFirstInput= TRUE;
 
     //tau= node->tau;
-    set_valueD(node,node->initialValue); //initial_value);
+    damper_set_value(node,node->initialValue); //initial_value);
     //if(IsCortona)
     //    needTimer= true;
     //else
@@ -502,16 +440,16 @@ void InitD(struct X3D_PositionDamper *node)
 	MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionDamper, isActive));
 
 }
-void CheckInitD(struct X3D_PositionDamper *node)
+void damper_CheckInit(struct X3D_PositionDamper *node)
 {
     if(!bInitializedD)
     {
         bInitializedD= TRUE;
-        InitD(node);
+        damper_Init(node);
     }
 
 }
-float GetDist(struct X3D_PositionDamper *node)
+float damper_GetDist(struct X3D_PositionDamper *node)
 {
 	float tmp[3];
     //double dist= value1.subtract(node->initialDestination).length();
@@ -543,14 +481,15 @@ float GetDist(struct X3D_PositionDamper *node)
     return dist;
 }
 
-void set_valueD(struct X3D_PositionDamper *node, struct SFVec3f opos)
+void damper_set_value(struct X3D_PositionDamper *node, struct SFVec3f opos)
 {
-    CheckInitD(node);
+    damper_CheckInit(node);
 
     bNeedToTakeFirstInput= false;
 
     value1= value2= value3= value4= value5= opos;
     node->value_changed= opos;
+	node->initialValue = opos;
 	MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionDamper, value_changed));
 
  	node->isActive = TRUE;
@@ -558,14 +497,14 @@ void set_valueD(struct X3D_PositionDamper *node, struct SFVec3f opos)
 
 }
 
-void set_destinationD(struct X3D_PositionDamper *node, struct SFVec3f ipos)
+void damper_set_destination(struct X3D_PositionDamper *node, struct SFVec3f ipos)
 {
-    CheckInitD(node);
+    damper_CheckInit(node);
 
     if(bNeedToTakeFirstInput)
     {
         bNeedToTakeFirstInput= FALSE;
-        set_valueD(node,ipos);
+        damper_set_value(node,ipos);
     }
 
 
@@ -579,7 +518,7 @@ void set_destinationD(struct X3D_PositionDamper *node, struct SFVec3f ipos)
     }
 }
 
-struct SFVec3f diftimes(struct SFVec3f a, struct SFVec3f b, double alpha){
+struct SFVec3f damper_diftimes(struct SFVec3f a, struct SFVec3f b, double alpha){
 	struct SFVec3f ret;
 	float tmp[3], tmp2[3];
 	//input  .add(value1.subtract(input  ).multiply(alpha))
@@ -597,7 +536,7 @@ void tick_positiondamper(struct X3D_PositionDamper *node, double now)
 {
 	double delta,alpha;
 	float dist;
-    CheckInitD(node);
+    damper_CheckInit(node);
 
     if(!lastTick)
     {
@@ -616,30 +555,30 @@ void tick_positiondamper(struct X3D_PositionDamper *node, double now)
 
     value1= node->order > 0 && node->tau != 0.0
                //? input  .add(value1.subtract(input  ).multiply(alpha))
-			   ? diftimes(input,value1,alpha)
+			   ? damper_diftimes(input,value1,alpha)
                : input;
 
     value2= node->order > 1 && node->tau != 0.0
                //? value1.add(value2.subtract(value1).multiply(alpha))
-			   ? diftimes(value1,value2,alpha)
+			   ? damper_diftimes(value1,value2,alpha)
                : value1;
 
     value3= node->order > 2 && node->tau != 0.0
                //? value2.add(value3.subtract(value2).multiply(alpha))
-			   ? diftimes(value2,value3,alpha)
+			   ? damper_diftimes(value2,value3,alpha)
                : value2;
 
     value4= node->order > 3 && node->tau != 0.0
                //? value3.add(value4.subtract(value3).multiply(alpha))
-			   ? diftimes(value3,value4,alpha)
+			   ? damper_diftimes(value3,value4,alpha)
                : value3;
 
     value5= node->order > 4 && node->tau != 0.0
                //? value4.add(value5.subtract(value4).multiply(alpha))
-			   ? diftimes(value4,value5,alpha)
+			   ? damper_diftimes(value4,value5,alpha)
                : value4;
 
-    dist= GetDist(node);
+    dist= damper_GetDist(node);
 
     if(dist < max(node->tolerance,.001f)) //eps)
     {
@@ -658,7 +597,11 @@ void tick_positiondamper(struct X3D_PositionDamper *node, double now)
 
 }
 
+void damper_set_tau(struct X3D_PositionDamper *node, double tau){
+    node->_tau = tau;
+	MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionDamper, tau));
 
+}
 
 
 void do_PositionDamperTick(void * ptr){
@@ -666,10 +609,14 @@ void do_PositionDamperTick(void * ptr){
 	if(!node)return;
 	if(NODE_NEEDS_COMPILING){
 		//node->isActive = TRUE;
-		//	if(!vecsame3f(node->set_destination.c,previousValue.c))
-		set_destinationD(node, node->set_destination);
-		//set_tau
+		if(!vecsame3f(node->set_destination.c,previousValue.c))
+			damper_set_destination(node, node->set_destination);
+		//set_tau 
+		if(node->tau != node->_tau)
+			damper_set_tau(node,node->tau);
 		//set_value
+		if(!vecsame3f(node->initialValue.c,node->set_value.c))
+			damper_set_value(node,node->set_value);
 		MARK_NODE_COMPILED
 	}
 	if(node->isActive)
