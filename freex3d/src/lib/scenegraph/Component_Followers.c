@@ -202,11 +202,11 @@ void do_OrientationDamperTick(void * ptr){
 
 //for now we'll put the private variables static, 
 // but they would go into a _private struct field in the node
-static int Buffer_length = 0;
+static int Buffer_length = 10;
+static int cNumSupports = 10;
 static struct SFVec3f Buffer[10];
 static int bInitialized = 0;
 static double BufferEndTime = 0.0;
-static int cNumSupports = 10;
 static double cStepTime = 0.0;
 static struct SFVec3f previousValue = { 0.0f, 0.0f, 0.0f};
 static struct SFVec3f destination = {0.0f,0.0f,0.0f};
@@ -247,7 +247,6 @@ double UpdateBuffer(struct X3D_PositionChaser *node, double Now)
     {
         int NumToShift= (int)floor(Frac);
         Frac-= (double) NumToShift;
-
         if(NumToShift < Buffer_length)
         {   // normal case.
 
@@ -270,7 +269,17 @@ double UpdateBuffer(struct X3D_PositionChaser *node, double Now)
 				// and in the last step use Buffer[] as *c
                 //Buffer[C]= Buffer[NumToShift].multiply(Alpha).add(destination.multiply((1 - Alpha)));
 				//vecadd3f(Buffer[C].c,vecscale3f(Buffer[NumToShift].c,(float)Alpha),vecscale3f(tmp2,destination.c,(1.0f-Alpha));
-				vecadd3f(Buffer[C].c,vecscale3f(tmp1,Buffer[NumToShift].c,Alpha),vecscale3f(tmp2,destination.c,1.0f - Alpha));
+				//printf("alf %f ",Alpha);
+				// buff[C] = alpha*buff[NumToShift] + (1-alpha)*destination;
+				if(1){
+					float tmp3[3];
+					vecscale3f(tmp1,Buffer[NumToShift].c,Alpha);
+					vecscale3f(tmp2,destination.c,1.0f - Alpha);
+					vecadd3f(tmp3,tmp1,tmp2);
+					veccopy3f(Buffer[C].c,tmp3);
+				}else{
+					vecadd3f(Buffer[C].c,vecscale3f(tmp1,Buffer[NumToShift].c,Alpha),vecscale3f(tmp2,destination.c,1.0f - Alpha));
+				}
             }
         }else
         {
@@ -283,7 +292,6 @@ double UpdateBuffer(struct X3D_PositionChaser *node, double Now)
             // (possibly only the end of the interpolation is to be written),
             // but if we rech here we are in a very degenerate case...
             // Thus we just write destination to the buffer.
-
             previousValue= NumToShift == Buffer_length? Buffer[0] : destination;
 
             for( C= 0; C<Buffer_length; C++ )
@@ -305,7 +313,6 @@ void set_destination(struct X3D_PositionChaser *node, struct SFVec3f Dest, doubl
     // Somehow we assign to Buffer[-1] and wait untill this gets shifted into the real buffer.
     // Would we assign to Buffer[0] instead, we'd have no delay, but this would create a jump in the
     // output because Buffer[0] is associated with a value in the past.
-
     UpdateBuffer(node, Now);
 }
 // This function defines the shape of how the output responds to the input.
@@ -321,19 +328,18 @@ double StepResponseCore(double T)
     return .5 - .5 * cos(T * PI);
 }
 
-double StepResponse(double duration)
+double StepResponse(struct X3D_PositionChaser *node, double t)
 {
-	double t = TickTime();
     if(t < 0.0)
         return 0.0;
 
-    if(t > duration)
+    if(t > node->duration)
         return 1.0;
 
     // When optimizing for speed, the above two if(.) cases can be omitted,
     // as this funciton will not be called for values outside of 0..duration.
 
-    return StepResponseCore(t / duration);
+    return StepResponseCore(t / node->duration);
 }
 
 void Tick(struct X3D_PositionChaser *node, double Now)
@@ -345,15 +351,12 @@ void Tick(struct X3D_PositionChaser *node, double Now)
     struct SFVec3f DeltaOut;
 
 	CheckInit(node);
-
     if(!BufferEndTime)
     {
         BufferEndTime= Now; // first event we received, so we are in the initialization phase.
-
         node->value_changed= node->initialValue; //initial_value;
         return;
     }
-
     Frac= UpdateBuffer(node, Now);
     // Frac is a value in   0 <= Frac < 1.
 
@@ -371,8 +374,12 @@ void Tick(struct X3D_PositionChaser *node, double Now)
     Output= previousValue;
     //DeltaIn= Buffer[Buffer_length - 1].subtract(previousValue);
 	vecdif3f(DeltaIn.c,Buffer[Buffer_length - 1].c,previousValue.c);
+	//printf("DI %f %f \n",DeltaIn.c[0], DeltaIn.c[1]);
+	//printf("PV %f %f \n",previousValue.c[0], previousValue.c[1]);
+	//printf("BL %f %f \n",Buffer[Buffer_length - 1].c[0], Buffer[Buffer_length - 1].c[1]);
+
     //DeltaOut= DeltaIn.multiply(StepResponse((Buffer_length - 1 + Frac) * cStepTime));
-	vecscale3f(DeltaOut.c,DeltaIn.c,(float)StepResponse((Buffer_length - 1 + Frac) * cStepTime));
+	vecscale3f(DeltaOut.c,DeltaIn.c,(float)StepResponse(node,((double)Buffer_length - 1.0 + Frac) * cStepTime));
     //Output= Output.add(DeltaOut);
 	vecadd3f(Output.c,Output.c,DeltaOut.c);
 
@@ -382,7 +389,7 @@ void Tick(struct X3D_PositionChaser *node, double Now)
 		vecdif3f(DeltaIn.c,Buffer[C].c,Buffer[C+1].c);
 
         //DeltaOut= DeltaIn.multiply(StepResponse((C + Frac) * cStepTime));
-		vecscale3f(DeltaOut.c,DeltaIn.c,(float)StepResponse(((double)C + Frac) * cStepTime));
+		vecscale3f(DeltaOut.c,DeltaIn.c,(float)StepResponse(node,((double)C + Frac) * cStepTime));
 
         //Output= Output.add(DeltaOut);
 		vecadd3f(Output.c,Output.c,DeltaOut.c);
@@ -399,15 +406,27 @@ void Tick(struct X3D_PositionChaser *node, double Now)
 
 void do_PositionChaserTick(void * ptr){
 	double Now;
+	static double lasttime;
 	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr;
 	if(!node) return;
 	Now = TickTime();
 	if(NODE_NEEDS_COMPILING){
-		//if(!vecsame3f(node->set_destination.c,previousValue.c)){
+		node->isActive = TRUE;
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionChaser, isActive));
+		//Q how to tell which set_ was set: set_destination or set_value?
+		//if(!vecsame3f(node->set_destination.c,previousValue.c))
 		set_destination(node, node->set_destination,Now);
+		//what about set_value?
 		MARK_NODE_COMPILED
 	}
-	Tick(node,Now);
+	if(node->isActive){
+		if(vecsame3f(node->value_changed.c,node->set_destination.c)){
+			node->isActive = FALSE;
+			MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionChaser, isActive));
+		}else{
+			Tick(node,Now);
+		}
+	}
 }
 
 /*
@@ -479,6 +498,9 @@ void InitD(struct X3D_PositionDamper *node)
     //               || input.y != initial_value.y
     //               || input.z != initial_value.z
     //               ;
+	node->isActive = TRUE;
+	MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionDamper, isActive));
+
 }
 void CheckInitD(struct X3D_PositionDamper *node)
 {
@@ -488,20 +510,6 @@ void CheckInitD(struct X3D_PositionDamper *node)
         InitD(node);
     }
 
-}
-static int reached = FALSE;
-int UpdateReached2(struct X3D_PositionDamper *node, float Dist)
-{
-    if(reached)
-    {
-        if(Dist > node->tolerance) //reachThreshold)
-            reached= FALSE;
-    }else
-    {
-        if(Dist <= node->tolerance) //reachThreshold)
-            reached= TRUE;
-    }
-	return reached;
 }
 float GetDist(struct X3D_PositionDamper *node)
 {
@@ -534,10 +542,6 @@ float GetDist(struct X3D_PositionDamper *node)
     }
     return dist;
 }
-int UpdateReached(struct X3D_PositionDamper *node)
-{
-    return UpdateReached2(node,GetDist(node));
-}
 
 void set_valueD(struct X3D_PositionDamper *node, struct SFVec3f opos)
 {
@@ -549,9 +553,7 @@ void set_valueD(struct X3D_PositionDamper *node, struct SFVec3f opos)
     node->value_changed= opos;
 	MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionDamper, value_changed));
 
-    UpdateReached(node);
-    //StartTimer();
-	node->isActive = TRUE;
+ 	node->isActive = TRUE;
 	MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionDamper, isActive));
 
 }
@@ -581,7 +583,13 @@ struct SFVec3f diftimes(struct SFVec3f a, struct SFVec3f b, double alpha){
 	struct SFVec3f ret;
 	float tmp[3], tmp2[3];
 	//input  .add(value1.subtract(input  ).multiply(alpha))
-	vecadd3f(ret.c,a.c,vecscale3f(tmp2,vecdif3f(tmp,b.c,a.c),(float)alpha));
+	if(1){
+		vecdif3f(tmp,b.c,a.c);
+		vecscale3f(tmp2,tmp,(float)alpha);
+		vecadd3f(ret.c,a.c,tmp2);
+	}else{
+		vecadd3f(ret.c,a.c,vecscale3f(tmp2,vecdif3f(tmp,b.c,a.c),(float)alpha));
+	}
 	return ret;
 }
 
@@ -633,25 +641,20 @@ void tick_positiondamper(struct X3D_PositionDamper *node, double now)
 
     dist= GetDist(node);
 
-    if(dist < node->tolerance) //eps)
+    if(dist < max(node->tolerance,.001f)) //eps)
     {
         value1= value2= value3= value4= value5= input;
 
         node->value_changed= input;
 		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionDamper, value_changed));
 
-        UpdateReached2(node,dist);
-
-       // StopTimer();
-	    node->isActive = FALSE;
+ 	    node->isActive = FALSE;
 		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionDamper, isActive));
 
         return;
     }
     node->value_changed= value5;
 	MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionDamper, value_changed));
-
-    UpdateReached2(node,dist);
 
 }
 
@@ -662,12 +665,15 @@ void do_PositionDamperTick(void * ptr){
 	struct X3D_PositionDamper *node = (struct X3D_PositionDamper *)ptr;
 	if(!node)return;
 	if(NODE_NEEDS_COMPILING){
+		//node->isActive = TRUE;
 		//	if(!vecsame3f(node->set_destination.c,previousValue.c))
 		set_destinationD(node, node->set_destination);
+		//set_tau
+		//set_value
 		MARK_NODE_COMPILED
 	}
-	tick_positiondamper(node,TickTime());
-	//printf("!");
+	if(node->isActive)
+		tick_positiondamper(node,TickTime());
 }
 
 void do_PositionChaser2DTick(void * ptr){

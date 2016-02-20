@@ -3086,7 +3086,7 @@ struct X3D_ColorDamper {
 	struct SFColor set_value;
 	struct X3D_Node *metadata;
 	double tau;
-	double tolerance;
+	float tolerance;
 	int isActive;
 	struct SFColor value_changed;
 	struct SFColor initialDestination;
@@ -3378,7 +3378,7 @@ struct X3D_CoordinateDamper {
 	struct Multi_Vec3f set_value;
 	struct X3D_Node *metadata;
 	double tau;
-	double tolerance;
+	float tolerance;
 	int isActive;
 	struct Multi_Vec3f value_changed;
 	struct Multi_Vec3f initialDestination;
@@ -6886,7 +6886,7 @@ struct X3D_OrientationDamper {
 	struct SFRotation set_value;
 	struct X3D_Node *metadata;
 	double tau;
-	double tolerance;
+	float tolerance;
 	int isActive;
 	struct SFRotation value_changed;
 	struct SFRotation initialDestination;
@@ -7339,7 +7339,7 @@ struct X3D_PositionDamper {
 	struct SFVec3f set_value;
 	struct X3D_Node *metadata;
 	double tau;
-	double tolerance;
+	float tolerance;
 	int isActive;
 	struct SFVec3f value_changed;
 	struct SFVec3f initialDestination;
@@ -7366,7 +7366,7 @@ struct X3D_PositionDamper2D {
 	struct SFVec2f set_value;
 	struct X3D_Node *metadata;
 	double tau;
-	double tolerance;
+	float tolerance;
 	int isActive;
 	struct SFVec2f value_changed;
 	struct SFVec2f initialDestination;
@@ -7769,7 +7769,7 @@ struct X3D_ScalarDamper {
 	float set_value;
 	struct X3D_Node *metadata;
 	double tau;
-	double tolerance;
+	float tolerance;
 	int isActive;
 	float value_changed;
 	float initialDestination;
@@ -8413,7 +8413,7 @@ struct X3D_TexCoordDamper2D {
 	struct Multi_Vec2f set_value;
 	struct X3D_Node *metadata;
 	double tau;
-	double tolerance;
+	float tolerance;
 	int isActive;
 	struct Multi_Vec2f value_changed;
 	struct Multi_Vec2f initialDestination;
