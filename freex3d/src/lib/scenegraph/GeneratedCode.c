@@ -194,7 +194,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_colourSize",
 	"_coloursVBO",
 	"_coordIndex",
-	"_cstepime",
 	"_destination",
 	"_dir",
 	"_dlchange",
@@ -246,6 +245,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_sortedChildren",
 	"_space",
 	"_status",
+	"_steptime",
 	"_stringInpFIFO",
 	"_stringOutFIFO",
 	"_takefirstinput",
@@ -5448,9 +5448,9 @@ const int OFFSETS_Polypoint2D[] = {
 const int OFFSETS_PositionChaser[] = {
 	(int) FIELDNAMES__buffer, (int) offsetof (struct X3D_PositionChaser, _buffer),  (int) FIELDTYPE_MFVec3f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__bufferendtime, (int) offsetof (struct X3D_PositionChaser, _bufferendtime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES__cstepime, (int) offsetof (struct X3D_PositionChaser, _cstepime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__destination, (int) offsetof (struct X3D_PositionChaser, _destination),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__previousvalue, (int) offsetof (struct X3D_PositionChaser, _previousvalue),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__steptime, (int) offsetof (struct X3D_PositionChaser, _steptime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_duration, (int) offsetof (struct X3D_PositionChaser, duration),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_initialDestination, (int) offsetof (struct X3D_PositionChaser, initialDestination),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_initialValue, (int) offsetof (struct X3D_PositionChaser, initialValue),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -10144,9 +10144,9 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_PositionChaser *) tmp;
 			tmp2->_buffer.n=0; tmp2->_buffer.p=0;
 			tmp2->_bufferendtime = 0;
-			tmp2->_cstepime = 0;
 			tmp2->_destination.c[0] = 0.0f;tmp2->_destination.c[1] = 0.0f;tmp2->_destination.c[2] = 0.0f;
 			tmp2->_previousvalue.c[0] = 0.0f;tmp2->_previousvalue.c[1] = 0.0f;tmp2->_previousvalue.c[2] = 0.0f;
+			tmp2->_steptime = 0;
 			tmp2->duration = 1;
 			tmp2->initialDestination.c[0] = 0.0f;tmp2->initialDestination.c[1] = 0.0f;tmp2->initialDestination.c[2] = 0.0f;
 			tmp2->initialValue.c[0] = 0.0f;tmp2->initialValue.c[1] = 0.0f;tmp2->initialValue.c[2] = 0.0f;

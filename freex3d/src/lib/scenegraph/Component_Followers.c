@@ -175,13 +175,13 @@ void do_OrientationDamperTick(void * ptr){
 //for now we'll put the private variables static, 
 // but they would go into a _private struct field in the node
 static int Buffer_length = 10;
-static int cNumSupports = 10;
-static int bInitialized = 0;
-static double BufferEndTime = 0.0;
-static double cStepTime = 0.0;
-static struct SFVec3f previousValue = { 0.0f, 0.0f, 0.0f};
-static struct SFVec3f destination = {0.0f,0.0f,0.0f};
-static struct SFVec3f Buffer[10];
+//static int cNumSupports = 10;
+//static int bInitialized = 0;
+//static double BufferEndTime = 0.0;
+//static double cStepTime = 0.0;
+//static struct SFVec3f previousValue = { 0.0f, 0.0f, 0.0f};
+//static struct SFVec3f destination = {0.0f,0.0f,0.0f};
+//static struct SFVec3f Buffer[10];
 
 /*
 //in theory you could have something like this, 
@@ -215,31 +215,31 @@ struct SFVec3f Buffer[10];
 void chaser_init(struct X3D_PositionChaser *node)
 {
 	int C;
-    destination = node->initialDestination;
+    node->_destination = node->initialDestination;
 
-    Buffer_length= cNumSupports;
+    //Buffer_length= cNumSupports;
 
-    Buffer[0]= node->initialDestination; //initial_destination;
+    node->_buffer.p[0]= node->initialDestination; //initial_destination;
     for(C= 1; C<Buffer_length; C++ )
-        Buffer[C]= node->initialValue; //initial_value;
+        node->_buffer.p[C]= node->initialValue; //initial_value;
 
-    previousValue= node->initialValue; //initial_value;
+    node->_previousvalue= node->initialValue; //initial_value;
 
-    cStepTime= node->duration / (double) cNumSupports;
+    node->_steptime= node->duration / (double) Buffer_length; //cNumSupports;
 }
-void chaser_CheckInit(struct X3D_PositionChaser *node)
-{
-    if(!bInitialized)
-    {
-        bInitialized= TRUE;  // Init() may call other functions that call CheckInit(). In that case it's better the flag is already set, otherwise an endless loop would occur.
-        chaser_init(node);
-    }
-}
+//void chaser_CheckInit(struct X3D_PositionChaser *node)
+//{
+//    if(!bInitialized)
+//    {
+//        bInitialized= TRUE;  // Init() may call other functions that call CheckInit(). In that case it's better the flag is already set, otherwise an endless loop would occur.
+//        chaser_init(node);
+//    }
+//}
 
 double chaser_UpdateBuffer(struct X3D_PositionChaser *node, double Now)
 {
 	int C;
-    double Frac= (Now - BufferEndTime) / cStepTime;
+    double Frac= (Now - node->_bufferendtime) / node->_steptime;
     // is normally < 1. When it has grown to be larger than 1, we have to shift the array because the step response
     // of the oldest entry has already reached its destination, and it's time for a newer entry.
     // has already reached it
@@ -252,10 +252,10 @@ double chaser_UpdateBuffer(struct X3D_PositionChaser *node, double Now)
         if(NumToShift < Buffer_length)
         {   // normal case.
 
-            previousValue= Buffer[Buffer_length - NumToShift];
+            node->_previousvalue= node->_buffer.p[Buffer_length - NumToShift];
 
             for( C= Buffer_length - 1; C>=NumToShift; C-- )
-                Buffer[C]= Buffer[C - NumToShift];
+                node->_buffer.p[C]= node->_buffer.p[C - NumToShift];
 
             for( C= 0; C<NumToShift; C++ )
             {
@@ -275,12 +275,12 @@ double chaser_UpdateBuffer(struct X3D_PositionChaser *node, double Now)
 				// buff[C] = alpha*buff[NumToShift] + (1-alpha)*destination;
 				if(1){
 					float tmp3[3];
-					vecscale3f(tmp1,Buffer[NumToShift].c,Alpha);
-					vecscale3f(tmp2,destination.c,1.0f - Alpha);
+					vecscale3f(tmp1,node->_buffer.p[NumToShift].c,Alpha);
+					vecscale3f(tmp2,node->_destination.c,1.0f - Alpha);
 					vecadd3f(tmp3,tmp1,tmp2);
-					veccopy3f(Buffer[C].c,tmp3);
+					veccopy3f(node->_buffer.p[C].c,tmp3);
 				}else{
-					vecadd3f(Buffer[C].c,vecscale3f(tmp1,Buffer[NumToShift].c,Alpha),vecscale3f(tmp2,destination.c,1.0f - Alpha));
+					vecadd3f(node->_buffer.p[C].c,vecscale3f(tmp1,node->_buffer.p[NumToShift].c,Alpha),vecscale3f(tmp2,node->_destination.c,1.0f - Alpha));
 				}
             }
         }else
@@ -294,13 +294,13 @@ double chaser_UpdateBuffer(struct X3D_PositionChaser *node, double Now)
             // (possibly only the end of the interpolation is to be written),
             // but if we rech here we are in a very degenerate case...
             // Thus we just write destination to the buffer.
-            previousValue= NumToShift == Buffer_length? Buffer[0] : destination;
+            node->_previousvalue= NumToShift == Buffer_length? node->_buffer.p[0] : node->_destination;
 
             for( C= 0; C<Buffer_length; C++ )
-                Buffer[C]= destination;
+                node->_buffer.p[C]= node->_destination;
         }
 
-        BufferEndTime+= NumToShift * cStepTime;
+        node->_bufferendtime+= NumToShift * node->_steptime;
     }
     return Frac;
 }
@@ -309,9 +309,9 @@ double chaser_UpdateBuffer(struct X3D_PositionChaser *node, double Now)
 //
 void chaser_set_destination(struct X3D_PositionChaser *node, struct SFVec3f Dest, double Now)
 {
-    chaser_CheckInit(node);
+    //chaser_CheckInit(node);
 
-    destination= Dest;
+    node->_destination= Dest;
     // Somehow we assign to Buffer[-1] and wait untill this gets shifted into the real buffer.
     // Would we assign to Buffer[0] instead, we'd have no delay, but this would create a jump in the
     // output because Buffer[0] is associated with a value in the past.
@@ -352,10 +352,10 @@ void chaser_tick(struct X3D_PositionChaser *node, double Now)
     struct SFVec3f DeltaIn;
     struct SFVec3f DeltaOut;
 
-	chaser_CheckInit(node);
-    if(!BufferEndTime)
+	//chaser_CheckInit(node);
+    if(!node->_bufferendtime)
     {
-        BufferEndTime= Now; // first event we received, so we are in the initialization phase.
+        node->_bufferendtime= Now; // first event we received, so we are in the initialization phase.
         node->value_changed= node->initialValue; //initial_value;
         return;
     }
@@ -373,25 +373,25 @@ void chaser_tick(struct X3D_PositionChaser *node, double Now)
     // for adding the step responses.
     // Actually UpdateBuffer(.) maintains this value in
 
-    Output= previousValue;
+    Output= node->_previousvalue;
     //DeltaIn= Buffer[Buffer_length - 1].subtract(previousValue);
-	vecdif3f(DeltaIn.c,Buffer[Buffer_length - 1].c,previousValue.c);
+	vecdif3f(DeltaIn.c,node->_buffer.p[Buffer_length - 1].c,node->_previousvalue.c);
 	//printf("DI %f %f \n",DeltaIn.c[0], DeltaIn.c[1]);
 	//printf("PV %f %f \n",previousValue.c[0], previousValue.c[1]);
 	//printf("BL %f %f \n",Buffer[Buffer_length - 1].c[0], Buffer[Buffer_length - 1].c[1]);
 
     //DeltaOut= DeltaIn.multiply(StepResponse((Buffer_length - 1 + Frac) * cStepTime));
-	vecscale3f(DeltaOut.c,DeltaIn.c,(float)chaser_StepResponse(node,((double)Buffer_length - 1.0 + Frac) * cStepTime));
+	vecscale3f(DeltaOut.c,DeltaIn.c,(float)chaser_StepResponse(node,((double)Buffer_length - 1.0 + Frac) * node->_steptime));
     //Output= Output.add(DeltaOut);
 	vecadd3f(Output.c,Output.c,DeltaOut.c);
 
     for(C= Buffer_length - 2; C>=0; C-- )
     {
         //DeltaIn= Buffer[C].subtract(Buffer[C + 1]);
-		vecdif3f(DeltaIn.c,Buffer[C].c,Buffer[C+1].c);
+		vecdif3f(DeltaIn.c,node->_buffer.p[C].c,node->_buffer.p[C+1].c);
 
         //DeltaOut= DeltaIn.multiply(StepResponse((C + Frac) * cStepTime));
-		vecscale3f(DeltaOut.c,DeltaIn.c,(float)chaser_StepResponse(node,((double)C + Frac) * cStepTime));
+		vecscale3f(DeltaOut.c,DeltaIn.c,(float)chaser_StepResponse(node,((double)C + Frac) * node->_steptime));
 
         //Output= Output.add(DeltaOut);
 		vecadd3f(Output.c,Output.c,DeltaOut.c);
@@ -405,7 +405,7 @@ void chaser_tick(struct X3D_PositionChaser *node, double Now)
 }
 void chaser_set_value(struct X3D_PositionChaser *node, struct SFVec3f opos)
 {
-    chaser_CheckInit(node);
+    //chaser_CheckInit(node);
 
     node->value_changed= opos;
 	node->initialValue = opos;
@@ -422,12 +422,17 @@ void do_PositionChaserTick(void * ptr){
 	static double lasttime;
 	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr;
 	if(!node) return;
+	if(!node->_buffer.n){
+		node->_buffer.p = realloc(node->_buffer.p,Buffer_length * sizeof(struct SFVec3f));
+		node->_buffer.n = Buffer_length;
+		chaser_init(node);
+	}
 	Now = TickTime();
 	if(NODE_NEEDS_COMPILING){
 		node->isActive = TRUE;
 		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionChaser, isActive));
 		//Q how to tell which set_ was set: set_destination or set_value?
-		if(!vecsame3f(node->set_destination.c,destination.c))
+		if(!vecsame3f(node->set_destination.c,node->_destination.c))
 			chaser_set_destination(node, node->set_destination,Now);
 		else if(!vecsame3f(node->set_value.c,node->initialValue.c)) //not sure I have the right idea here
 			chaser_set_value(node,node->set_value);
@@ -646,7 +651,7 @@ void do_PositionDamperTick(void * ptr){
 		
 	if(NODE_NEEDS_COMPILING){
 		//node->isActive = TRUE;
-		if(!vecsame3f(node->set_destination.c,previousValue.c))
+		if(!vecsame3f(node->set_destination.c,node->_input.c))  //not sure i have the right idea
 			damper_set_destination(node, node->set_destination);
 		//set_tau 
 		if(node->tau != node->_tau)

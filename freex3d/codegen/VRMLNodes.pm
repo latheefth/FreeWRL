@@ -3197,7 +3197,7 @@ our %Nodes = (
 		_previousvalue => ["SFVec3f", [0,0,0], "initializeOnly", 0],
 		_destination => ["SFVec3f", [0,0,0], "initializeOnly", 0],
 		_bufferendtime  => ["SFTime", 0,"initializeOnly", 0],
-		_cstepime  => ["SFTime", 0,"initializeOnly", 0],
+		_steptime  => ["SFTime", 0,"initializeOnly", 0],
 	],"X3DChaserNode"),
 	
 	"PositionDamper" => new VRML::NodeType("PositionDamper", [
