@@ -226,6 +226,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_oldtranslation",
 	"_origNormalizedPoint",
 	"_origPoint",
+	"_p",
 	"_parentResource",
 	"_pointsVBO",
 	"_previousvalue",
@@ -248,6 +249,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_steptime",
 	"_stringInpFIFO",
 	"_stringOutFIFO",
+	"_t",
 	"_takefirstinput",
 	"_talkToNodes",
 	"_tau",
@@ -5449,8 +5451,10 @@ const int OFFSETS_PositionChaser[] = {
 	(int) FIELDNAMES__buffer, (int) offsetof (struct X3D_PositionChaser, _buffer),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__bufferendtime, (int) offsetof (struct X3D_PositionChaser, _bufferendtime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__destination, (int) offsetof (struct X3D_PositionChaser, _destination),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__p, (int) offsetof (struct X3D_PositionChaser, _p),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__previousvalue, (int) offsetof (struct X3D_PositionChaser, _previousvalue),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__steptime, (int) offsetof (struct X3D_PositionChaser, _steptime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__t, (int) offsetof (struct X3D_PositionChaser, _t),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_duration, (int) offsetof (struct X3D_PositionChaser, duration),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_initialDestination, (int) offsetof (struct X3D_PositionChaser, initialDestination),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_initialValue, (int) offsetof (struct X3D_PositionChaser, initialValue),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -5475,6 +5479,8 @@ const int OFFSETS_PositionChaser2D[] = {
 const int OFFSETS_PositionDamper[] = {
 	(int) FIELDNAMES__input, (int) offsetof (struct X3D_PositionDamper, _input),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__lasttick, (int) offsetof (struct X3D_PositionDamper, _lasttick),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__p, (int) offsetof (struct X3D_PositionDamper, _p),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__t, (int) offsetof (struct X3D_PositionDamper, _t),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__takefirstinput, (int) offsetof (struct X3D_PositionDamper, _takefirstinput),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__tau, (int) offsetof (struct X3D_PositionDamper, _tau),  (int) FIELDTYPE_SFTime, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES__values, (int) offsetof (struct X3D_PositionDamper, _values),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
@@ -10145,8 +10151,10 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_buffer = NULL;
 			tmp2->_bufferendtime = 0;
 			tmp2->_destination.c[0] = 0.0f;tmp2->_destination.c[1] = 0.0f;tmp2->_destination.c[2] = 0.0f;
+			tmp2->_p = NULL;
 			tmp2->_previousvalue.c[0] = 0.0f;tmp2->_previousvalue.c[1] = 0.0f;tmp2->_previousvalue.c[2] = 0.0f;
 			tmp2->_steptime = 0;
+			tmp2->_t = NULL;
 			tmp2->duration = 1;
 			tmp2->initialDestination.c[0] = 0.0f;tmp2->initialDestination.c[1] = 0.0f;tmp2->initialDestination.c[2] = 0.0f;
 			tmp2->initialValue.c[0] = 0.0f;tmp2->initialValue.c[1] = 0.0f;tmp2->initialValue.c[2] = 0.0f;
@@ -10177,6 +10185,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_PositionDamper *) tmp;
 			tmp2->_input.c[0] = 0.0f;tmp2->_input.c[1] = 0.0f;tmp2->_input.c[2] = 0.0f;
 			tmp2->_lasttick = 0;
+			tmp2->_p = NULL;
+			tmp2->_t = NULL;
 			tmp2->_takefirstinput = TRUE;
 			tmp2->_tau = 0.3;
 			tmp2->_values = NULL;

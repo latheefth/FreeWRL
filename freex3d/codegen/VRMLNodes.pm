@@ -3200,6 +3200,8 @@ our %Nodes = (
 		_buffer => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
 		_previousvalue => ["SFVec3f", [0,0,0], "initializeOnly", 0],
 		_destination => ["SFVec3f", [0,0,0], "initializeOnly", 0],
+		_p => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
+		_t => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
 	],"X3DChaserNode"),
 	
 	"PositionDamper" => new VRML::NodeType("PositionDamper", [
@@ -3218,6 +3220,8 @@ our %Nodes = (
 		set_value => ["SFVec3f", [0,0,0], "inputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_values => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
 		_input => ["SFVec3f", [0,0,0], "initializeOnly", 0],
+		_p => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
+		_t => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
 	],"X3DDamperNode"),
 
 	"PositionChaser2D" => new VRML::NodeType("PositionChaser2D", [
