@@ -3070,11 +3070,11 @@ struct X3D_ColorChaser {
 	struct X3D_Node *metadata;
 	int isActive;
 	double duration;
+	struct SFColor value_changed;
 	struct SFColor initialDestination;
 	struct SFColor initialValue;
 	struct SFColor set_destination;
 	struct SFColor set_value;
-	struct SFColor value_changed;
 };
 extern struct X3D_Virt virt_ColorChaser;
 /***********************/
@@ -3100,11 +3100,11 @@ struct X3D_ColorDamper {
 	double _tau;
 	double _lasttick;
 	int _takefirstinput;
+	struct SFColor value_changed;
 	struct SFColor initialDestination;
 	struct SFColor initialValue;
 	struct SFColor set_destination;
 	struct SFColor set_value;
-	struct SFColor value_changed;
 };
 extern struct X3D_Virt virt_ColorDamper;
 /***********************/
@@ -3365,11 +3365,11 @@ struct X3D_CoordinateChaser {
 	struct X3D_Node *metadata;
 	int isActive;
 	double duration;
+	struct Multi_Vec3f value_changed;
 	struct Multi_Vec3f initialDestination;
 	struct Multi_Vec3f initialValue;
 	struct Multi_Vec3f set_destination;
 	struct Multi_Vec3f set_value;
-	struct Multi_Vec3f value_changed;
 };
 extern struct X3D_Virt virt_CoordinateChaser;
 /***********************/
@@ -3395,11 +3395,11 @@ struct X3D_CoordinateDamper {
 	double _tau;
 	double _lasttick;
 	int _takefirstinput;
+	struct Multi_Vec3f value_changed;
 	struct Multi_Vec3f initialDestination;
 	struct Multi_Vec3f initialValue;
 	struct Multi_Vec3f set_destination;
 	struct Multi_Vec3f set_value;
-	struct Multi_Vec3f value_changed;
 };
 extern struct X3D_Virt virt_CoordinateDamper;
 /***********************/
@@ -6876,11 +6876,11 @@ struct X3D_OrientationChaser {
 	struct X3D_Node *metadata;
 	int isActive;
 	double duration;
+	struct SFRotation value_changed;
 	struct SFRotation initialDestination;
 	struct SFRotation initialValue;
 	struct SFRotation set_destination;
 	struct SFRotation set_value;
-	struct SFRotation value_changed;
 };
 extern struct X3D_Virt virt_OrientationChaser;
 /***********************/
@@ -6906,11 +6906,11 @@ struct X3D_OrientationDamper {
 	double _tau;
 	double _lasttick;
 	int _takefirstinput;
+	struct SFRotation value_changed;
 	struct SFRotation initialDestination;
 	struct SFRotation initialValue;
 	struct SFRotation set_destination;
 	struct SFRotation set_value;
-	struct SFRotation value_changed;
 };
 extern struct X3D_Virt virt_OrientationDamper;
 /***********************/
@@ -7309,11 +7309,11 @@ struct X3D_PositionChaser {
 	double duration;
 	double _bufferendtime;
 	double _steptime;
+	struct SFVec3f value_changed;
 	struct SFVec3f initialDestination;
 	struct SFVec3f initialValue;
 	struct SFVec3f set_destination;
 	struct SFVec3f set_value;
-	struct SFVec3f value_changed;
 	struct Multi_Vec3f _buffer;
 	struct SFVec3f _previousvalue;
 	struct SFVec3f _destination;
@@ -7337,11 +7337,11 @@ struct X3D_PositionChaser2D {
 	struct X3D_Node *metadata;
 	int isActive;
 	double duration;
+	struct SFVec2f value_changed;
 	struct SFVec2f initialDestination;
 	struct SFVec2f initialValue;
 	struct SFVec2f set_destination;
 	struct SFVec2f set_value;
-	struct SFVec2f value_changed;
 };
 extern struct X3D_Virt virt_PositionChaser2D;
 /***********************/
@@ -7367,11 +7367,11 @@ struct X3D_PositionDamper {
 	double _tau;
 	double _lasttick;
 	int _takefirstinput;
+	struct SFVec3f value_changed;
 	struct SFVec3f initialDestination;
 	struct SFVec3f initialValue;
 	struct SFVec3f set_destination;
 	struct SFVec3f set_value;
-	struct SFVec3f value_changed;
 	struct Multi_Vec3f _values;
 	struct SFVec3f _input;
 };
@@ -7399,11 +7399,11 @@ struct X3D_PositionDamper2D {
 	double _tau;
 	double _lasttick;
 	int _takefirstinput;
+	struct SFVec2f value_changed;
 	struct SFVec2f initialDestination;
 	struct SFVec2f initialValue;
 	struct SFVec2f set_destination;
 	struct SFVec2f set_value;
-	struct SFVec2f value_changed;
 };
 extern struct X3D_Virt virt_PositionDamper2D;
 /***********************/
@@ -7775,11 +7775,11 @@ struct X3D_ScalarChaser {
 	struct X3D_Node *metadata;
 	int isActive;
 	double duration;
+	float value_changed;
 	float initialDestination;
 	float initialValue;
 	float set_destination;
 	float set_value;
-	float value_changed;
 };
 extern struct X3D_Virt virt_ScalarChaser;
 /***********************/
@@ -7805,11 +7805,11 @@ struct X3D_ScalarDamper {
 	double _tau;
 	double _lasttick;
 	int _takefirstinput;
+	float value_changed;
 	float initialDestination;
 	float initialValue;
 	float set_destination;
 	float set_value;
-	float value_changed;
 };
 extern struct X3D_Virt virt_ScalarDamper;
 /***********************/
@@ -8422,11 +8422,11 @@ struct X3D_TexCoordChaser2D {
 	struct X3D_Node *metadata;
 	int isActive;
 	double duration;
+	struct Multi_Vec2f value_changed;
 	struct Multi_Vec2f initialDestination;
 	struct Multi_Vec2f initialValue;
 	struct Multi_Vec2f set_destination;
 	struct Multi_Vec2f set_value;
-	struct Multi_Vec2f value_changed;
 };
 extern struct X3D_Virt virt_TexCoordChaser2D;
 /***********************/
@@ -8452,11 +8452,11 @@ struct X3D_TexCoordDamper2D {
 	double _tau;
 	double _lasttick;
 	int _takefirstinput;
+	struct Multi_Vec2f value_changed;
 	struct Multi_Vec2f initialDestination;
 	struct Multi_Vec2f initialValue;
 	struct Multi_Vec2f set_destination;
 	struct Multi_Vec2f set_value;
-	struct Multi_Vec2f value_changed;
 };
 extern struct X3D_Virt virt_TexCoordDamper2D;
 /***********************/
