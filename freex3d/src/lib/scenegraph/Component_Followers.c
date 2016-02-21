@@ -93,78 +93,6 @@ void do_TexCoordChaser2DTick(void * ptr);
 void do_TexCoordDamper2DTick(void * ptr);
 
 
-void do_ColorChaserTick(void * ptr){
-	struct X3D_ColorChaser *node = (struct X3D_ColorChaser *)ptr;
-	if(!node)return;
-	if(NODE_NEEDS_COMPILING){
-		//default action copy input to output when not implemented
-		veccopy3f(node->value_changed.c, node->set_destination.c);
-		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_ColorChaser, value_changed));
-		MARK_NODE_COMPILED
-	}
-}
-void do_ColorDamperTick(void * ptr){
-	struct X3D_ColorDamper *node = (struct X3D_ColorDamper *)ptr;
-	if(!node)return;
-	if(NODE_NEEDS_COMPILING){
-		//default action copy input to output when not implemented
-		veccopy3f(node->value_changed.c, node->set_destination.c);
-		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_ColorDamper, value_changed));
-		MARK_NODE_COMPILED
-	}
-}
-
-void do_CoordinateChaserTick(void * ptr){
-	struct X3D_CoordinateChaser *node = (struct X3D_CoordinateChaser *)ptr;
-	if(!node)return;
-	if(NODE_NEEDS_COMPILING){
-		//default action copy input to output when not implemented
-		int n;
-		n = node->set_destination.n;
-		node->value_changed.n = n;
-		node->value_changed.p = realloc(node->value_changed.p,n * sizeof(struct SFVec3f));
-		memcpy(node->value_changed.p,node->set_destination.p,n*sizeof(struct SFVec3f));
-		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_CoordinateChaser, value_changed));
-		MARK_NODE_COMPILED
-	}
-}
-void do_CoordinateDamperTick(void * ptr){
-	struct X3D_CoordinateDamper *node = (struct X3D_CoordinateDamper *)ptr;
-	if(!node)return;
-	if(NODE_NEEDS_COMPILING){
-		//default action copy input to output when not implemented
-		int n;
-		n = node->set_destination.n;
-		node->value_changed.n = n;
-		node->value_changed.p = realloc(node->value_changed.p,n * sizeof(struct SFVec3f));
-		memcpy(node->value_changed.p,node->set_destination.p,n*sizeof(struct SFVec3f));
-		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_CoordinateDamper, value_changed));
-		MARK_NODE_COMPILED
-	}
-}
-
-void do_OrientationChaserTick(void * ptr){
-	struct X3D_OrientationChaser *node = (struct X3D_OrientationChaser *)ptr;
-	if(!node)return;
-	if(NODE_NEEDS_COMPILING){
-		//default action copy input to output when not implemented
-		veccopy3f(node->value_changed.c, node->set_destination.c);
-		node->value_changed.c[3] = node->set_destination.c[3];
-		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_OrientationChaser, value_changed));
-		MARK_NODE_COMPILED
-	}
-}
-void do_OrientationDamperTick(void * ptr){
-	struct X3D_OrientationDamper *node = (struct X3D_OrientationDamper *)ptr;
-	if(!node)return;
-	if(NODE_NEEDS_COMPILING){
-		//default action copy input to output when not implemented
-		veccopy3f(node->value_changed.c, node->set_destination.c);
-		node->value_changed.c[3] = node->set_destination.c[3];
-		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_OrientationDamper, value_changed));
-		MARK_NODE_COMPILED
-	}
-}
 
 /*
 	adapted from
@@ -555,21 +483,22 @@ void chaser_set_value(struct X3D_PositionChaser *node)
 void do_PositionChaserTick(void * ptr){
 	double Now;
 	static double lasttime;
+	struct X3D_PositionChaser *_node = (struct X3D_PositionChaser *)ptr;
 	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr;
 	if(!node) return;
 	if(!node->_buffer){
 		chaser_ptrs *p = malloc(sizeof(chaser_ptrs));
-		node->_buffer = realloc(node->_buffer,Buffer_length * sizeof(struct SFVec3f));
+		_node->_buffer = realloc(_node->_buffer,Buffer_length * sizeof(struct SFVec3f));
 		node->_t = &ftype_sfvec3f;
 		node->_p = p;
-		p->initialDestination = &node->initialDestination;
-		p->initialValue = &node->initialValue;
-		p->set_destination = &node->set_destination;
-		p->set_value = &node->set_value;
-		p->value_changed = &node->value_changed;
-		p->_buffer = node->_buffer;
-		p->_destination = &node->_destination;
-		p->_previousValue = &node->_previousvalue;
+		p->initialDestination = &_node->initialDestination;
+		p->initialValue = &_node->initialValue;
+		p->set_destination = &_node->set_destination;
+		p->set_value = &_node->set_value;
+		p->value_changed = &_node->value_changed;
+		p->_buffer = _node->_buffer;
+		p->_destination = &_node->_destination;
+		p->_previousValue = &_node->_previousvalue;
 		chaser_init(node);
 	}
 	Now = TickTime();
@@ -719,7 +648,7 @@ void* damper_diftimes(struct X3D_PositionDamper *node, void *T, void *A, void *B
 	return T;
 }
 
-void tick_positiondamper(struct X3D_PositionDamper *node, double now)
+void tick_damper(struct X3D_PositionDamper *node, double now)
 {
 	double delta,alpha;
 	float dist;
@@ -849,7 +778,7 @@ void do_PositionDamperTick(void * ptr){
 		MARK_NODE_COMPILED
 	}
 	if(node->isActive)
-		tick_positiondamper(node,TickTime());
+		tick_damper(node,TickTime());
 }
 #else //NEWWAY
 void chaser_init(struct X3D_PositionChaser *node)
@@ -1235,7 +1164,312 @@ void do_PositionDamperTick(void * ptr){
 }
 #endif //NEWWAY
 
-void do_PositionChaser2DTick(void * ptr){
+
+void do_ColorChaserTick_default(void * ptr){
+	struct X3D_ColorChaser *node = (struct X3D_ColorChaser *)ptr;
+	if(!node)return;
+	if(NODE_NEEDS_COMPILING){
+		//default action copy input to output when not implemented
+		veccopy3f(node->value_changed.c, node->set_destination.c);
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_ColorChaser, value_changed));
+		MARK_NODE_COMPILED
+	}
+}
+void do_ColorDamperTick_default(void * ptr){
+	struct X3D_ColorDamper *node = (struct X3D_ColorDamper *)ptr;
+	if(!node)return;
+	if(NODE_NEEDS_COMPILING){
+		//default action copy input to output when not implemented
+		veccopy3f(node->value_changed.c, node->set_destination.c);
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_ColorDamper, value_changed));
+		MARK_NODE_COMPILED
+	}
+}
+void do_ColorChaserTick(void * ptr){
+	double Now;
+	static double lasttime;
+	struct X3D_ColorChaser *_node = (struct X3D_ColorChaser *)ptr;
+	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr; //abstract interface
+	if(!node) return;
+	if(!node->_buffer){
+		chaser_ptrs *p = malloc(sizeof(chaser_ptrs));
+		_node->_buffer = realloc(_node->_buffer,Buffer_length * sizeof(struct SFColor)); //**changes with field type
+		node->_t = &ftype_sfvec3f; //**changes with field type
+		node->_p = p;
+		p->initialDestination = &_node->initialDestination;
+		p->initialValue = &_node->initialValue;
+		p->set_destination = &_node->set_destination;
+		p->set_value = &_node->set_value;
+		p->value_changed = &_node->value_changed;
+		p->_buffer = _node->_buffer;
+		p->_destination = &_node->_destination;
+		p->_previousValue = &_node->_previousvalue;
+		chaser_init(node);
+	}
+	Now = TickTime();
+	if(NODE_NEEDS_COMPILING){
+		chaser_ptrs *p = node->_p;
+		ftype *t = node->_t;
+
+		node->isActive = TRUE;
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionChaser, isActive));
+		//Q how to tell which set_ was set: set_destination or set_value?
+		//if(!vecsame3f(node->set_destination.c,node->_destination.c))
+		if(!t->same(p->set_destination,p->_destination))
+			chaser_set_destination(node, Now);
+		//else if(!vecsame3f(node->set_value.c,node->initialValue.c)) //not sure I have the right idea here
+		else if(!t->same(p->set_value,p->initialValue))
+			chaser_set_value(node);
+		MARK_NODE_COMPILED
+	}
+	if(node->isActive)
+		chaser_tick(node,Now);
+}
+
+void do_ColorDamperTick(void * ptr){
+	struct X3D_ColorDamper *_node = (struct X3D_ColorDamper *)ptr;
+	struct X3D_PositionDamper *node = (struct X3D_PositionDamper *)ptr; //abstract type
+	if(!node)return;
+	if(!node->_values){
+		damper_ptrs *p = malloc(sizeof(damper_ptrs));
+		node->_t = &ftype_sfvec3f; //**changes with field type
+		node->_p = p;
+		_node->_values = realloc(_node->_values,5 * sizeof(struct SFColor)); //**changes with field type
+		p->initialDestination = &_node->initialDestination;
+		p->initialValue = &_node->initialValue;
+		p->set_destination = &_node->set_destination;
+		p->set_value = &_node->set_value;
+		p->value_changed = &_node->value_changed;
+		p->_input = &_node->_input;
+		p->_values = _node->_values;
+		//damper_CheckInit(node);
+        damper_Init(node);
+	}
+		
+	if(NODE_NEEDS_COMPILING){
+		//node->isActive = TRUE;
+		damper_ptrs *p = node->_p;
+		ftype *t = node->_t;
+
+		//if(!vecsame3f(node->set_destination.c,node->_input.c))  //not sure i have the right idea
+		if(!t->same(p->set_destination,p->_input))  
+			//damper_set_destination(node, node->set_destination);
+			damper_set_destination(node, p->set_destination);
+		//set_tau 
+		if(node->tau != node->_tau)
+			damper_set_tau(node,node->tau);
+		//set_value
+		//if(!vecsame3f(node->initialValue.c,node->set_value.c))
+		if(!t->same(p->initialValue,p->set_value))
+			//damper_set_value(node,node->set_value);
+			damper_set_value(node,p->set_value);
+		MARK_NODE_COMPILED
+	}
+	if(node->isActive)
+		tick_damper(node,TickTime());
+}
+
+void do_CoordinateChaserTick_default(void * ptr){
+	struct X3D_CoordinateChaser *node = (struct X3D_CoordinateChaser *)ptr;
+	if(!node)return;
+	if(NODE_NEEDS_COMPILING){
+		//default action copy input to output when not implemented
+		int n;
+		n = node->set_destination.n;
+		node->value_changed.n = n;
+		node->value_changed.p = realloc(node->value_changed.p,n * sizeof(struct SFVec3f));
+		memcpy(node->value_changed.p,node->set_destination.p,n*sizeof(struct SFVec3f));
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_CoordinateChaser, value_changed));
+		MARK_NODE_COMPILED
+	}
+}
+void do_CoordinateDamperTick_default(void * ptr){
+	struct X3D_CoordinateDamper *node = (struct X3D_CoordinateDamper *)ptr;
+	if(!node)return;
+	if(NODE_NEEDS_COMPILING){
+		//default action copy input to output when not implemented
+		int n;
+		n = node->set_destination.n;
+		node->value_changed.n = n;
+		node->value_changed.p = realloc(node->value_changed.p,n * sizeof(struct SFVec3f));
+		memcpy(node->value_changed.p,node->set_destination.p,n*sizeof(struct SFVec3f));
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_CoordinateDamper, value_changed));
+		MARK_NODE_COMPILED
+	}
+}
+
+struct Multi_Vec3f *mfvec3f_copy(struct Multi_Vec3f* T, struct Multi_Vec3f *A){
+	T->p = realloc(T->p,A->n * sizeof(struct SFVec3f));
+	T->n = A->n;
+	memcpy(T->p,A->p,A->n * sizeof(struct SFVec3f));
+	return T;
+}
+struct Multi_Vec3f *mfvec3f_add(struct Multi_Vec3f* T, struct Multi_Vec3f *A, struct Multi_Vec3f *B){
+	int i;
+	T->n = min(A->n,B->n);
+	T->p = realloc(T->p,T->n * sizeof(struct SFVec3f));
+	for(i=0;i<T->n;i++)
+		sfvec3f_add(&T->p[i],&A->p[i],&B->p[i]);
+	return T;
+}
+struct Multi_Vec3f *mfvec3f_dif(struct Multi_Vec3f* T, struct Multi_Vec3f *A, struct Multi_Vec3f *B){
+	int i;
+	T->n = min(A->n,B->n);
+	T->p = realloc(T->p,T->n * sizeof(struct SFVec3f));
+	for(i=0;i<T->n;i++)
+		sfvec3f_dif(&T->p[i],&A->p[i],&B->p[i]);
+	return T;
+}
+struct Multi_Vec3f *mfvec3f_scale(struct Multi_Vec3f* T, struct Multi_Vec3f *A, float S){
+	int i;
+	T->n = A->n;
+	T->p = realloc(T->p,T->n * sizeof(struct SFVec3f));
+	for(i=0;i<T->n;i++)
+		sfvec3f_scale(&T->p[i],&A->p[i],S);
+	return T;
+}
+float mfvec3f_dist(struct Multi_Vec3f* A){
+	int i;
+	float dist = 0.0f;
+	for(i=0;i<A->n;i++)
+		dist += sfvec3f_dist(&A->p[i]);
+	return dist;
+}
+int mfvec3f_same(struct Multi_Vec3f *A, struct Multi_Vec3f *B){
+	int i,  isame;
+	if(A->n != B->n) return FALSE;
+	isame = TRUE;
+	for(i=0;i<A->n;i++)
+		isame = isame && sfvec3f_same(&A->p[i],&B->p[i]);
+	return isame;
+}
+struct Multi_Vec3f *mfvec3f_arr(struct Multi_Vec3f *A, int i){
+	return &A[i];
+}
+struct Multi_Vec3f mfvec3f_tmps[6];
+void *mfvec3f_tmp [] = {&mfvec3f_tmps[0],&mfvec3f_tmps[1],&mfvec3f_tmps[2],&mfvec3f_tmps[3],&mfvec3f_tmps[4],&mfvec3f_tmps[5]};
+ftype ftype_mfvec3f = {
+mfvec3f_copy,
+mfvec3f_add,
+mfvec3f_dif,
+mfvec3f_scale,
+mfvec3f_dist,
+mfvec3f_same,
+mfvec3f_same,
+mfvec3f_arr,
+mfvec3f_tmp,
+};
+
+void do_CoordinateChaserTick(void * ptr){
+	double Now;
+	static double lasttime;
+	struct X3D_CoordinateChaser *_node = (struct X3D_CoordinateChaser *)ptr;
+	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr; //abstract interface
+	if(!node) return;
+	if(!node->_buffer){
+		chaser_ptrs *p = malloc(sizeof(chaser_ptrs));
+		_node->_buffer = realloc(_node->_buffer,Buffer_length * sizeof(struct Multi_Vec3f)); //**changes with field type
+		node->_t = &ftype_mfvec3f; //**changes with field type
+		node->_p = p;
+		p->initialDestination = &_node->initialDestination;
+		p->initialValue = &_node->initialValue;
+		p->set_destination = &_node->set_destination;
+		p->set_value = &_node->set_value;
+		p->value_changed = &_node->value_changed;
+		p->_buffer = _node->_buffer;
+		p->_destination = &_node->_destination;
+		p->_previousValue = &_node->_previousvalue;
+		chaser_init(node);
+	}
+	Now = TickTime();
+	if(NODE_NEEDS_COMPILING){
+		chaser_ptrs *p = node->_p;
+		ftype *t = node->_t;
+
+		node->isActive = TRUE;
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionChaser, isActive));
+		//Q how to tell which set_ was set: set_destination or set_value?
+		//if(!vecsame3f(node->set_destination.c,node->_destination.c))
+		if(!t->same(p->set_destination,p->_destination))
+			chaser_set_destination(node, Now);
+		//else if(!vecsame3f(node->set_value.c,node->initialValue.c)) //not sure I have the right idea here
+		else if(!t->same(p->set_value,p->initialValue))
+			chaser_set_value(node);
+		MARK_NODE_COMPILED
+	}
+	if(node->isActive)
+		chaser_tick(node,Now);
+}
+
+void do_CoordinateDamperTick(void * ptr){
+	struct X3D_CoordinateDamper *_node = (struct X3D_CoordinateDamper *)ptr;
+	struct X3D_PositionDamper *node = (struct X3D_PositionDamper *)ptr; //abstract type
+	if(!node)return;
+	if(!node->_values){
+		damper_ptrs *p = malloc(sizeof(damper_ptrs));
+		node->_t = &ftype_sfvec3f; //**changes with field type
+		node->_p = p;
+		_node->_values = realloc(_node->_values,5 * sizeof(struct Multi_Vec3f)); //**changes with field type
+		p->initialDestination = &_node->initialDestination;
+		p->initialValue = &_node->initialValue;
+		p->set_destination = &_node->set_destination;
+		p->set_value = &_node->set_value;
+		p->value_changed = &_node->value_changed;
+		p->_input = &_node->_input;
+		p->_values = _node->_values;
+		//damper_CheckInit(node);
+        damper_Init(node);
+	}
+		
+	if(NODE_NEEDS_COMPILING){
+		//node->isActive = TRUE;
+		damper_ptrs *p = node->_p;
+		ftype *t = node->_t;
+
+		//if(!vecsame3f(node->set_destination.c,node->_input.c))  //not sure i have the right idea
+		if(!t->same(p->set_destination,p->_input))  
+			//damper_set_destination(node, node->set_destination);
+			damper_set_destination(node, p->set_destination);
+		//set_tau 
+		if(node->tau != node->_tau)
+			damper_set_tau(node,node->tau);
+		//set_value
+		//if(!vecsame3f(node->initialValue.c,node->set_value.c))
+		if(!t->same(p->initialValue,p->set_value))
+			//damper_set_value(node,node->set_value);
+			damper_set_value(node,p->set_value);
+		MARK_NODE_COMPILED
+	}
+	if(node->isActive)
+		tick_damper(node,TickTime());
+}
+
+void do_OrientationChaserTick(void * ptr){
+	struct X3D_OrientationChaser *node = (struct X3D_OrientationChaser *)ptr;
+	if(!node)return;
+	if(NODE_NEEDS_COMPILING){
+		//default action copy input to output when not implemented
+		veccopy3f(node->value_changed.c, node->set_destination.c);
+		node->value_changed.c[3] = node->set_destination.c[3];
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_OrientationChaser, value_changed));
+		MARK_NODE_COMPILED
+	}
+}
+void do_OrientationDamperTick(void * ptr){
+	struct X3D_OrientationDamper *node = (struct X3D_OrientationDamper *)ptr;
+	if(!node)return;
+	if(NODE_NEEDS_COMPILING){
+		//default action copy input to output when not implemented
+		veccopy3f(node->value_changed.c, node->set_destination.c);
+		node->value_changed.c[3] = node->set_destination.c[3];
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_OrientationDamper, value_changed));
+		MARK_NODE_COMPILED
+	}
+}
+
+
+
+void do_PositionChaser2DTick_default(void * ptr){
 	struct X3D_PositionChaser2D *node = (struct X3D_PositionChaser2D *)ptr;
 	if(!node)return;
 	if(NODE_NEEDS_COMPILING){
@@ -1246,7 +1480,7 @@ void do_PositionChaser2DTick(void * ptr){
 	}
 
 }
-void do_PositionDamper2DTick(void * ptr){
+void do_PositionDamper2DTick_default(void * ptr){
 	struct X3D_PositionDamper2D *node = (struct X3D_PositionDamper2D *)ptr;
 	if(!node)return;
 	if(NODE_NEEDS_COMPILING){
@@ -1257,8 +1491,130 @@ void do_PositionDamper2DTick(void * ptr){
 	}
 
 }
+struct SFVec2f *sfvec2f_copy(struct SFVec2f* T, struct SFVec2f *A){
+	veccopy2f(T->c,A->c);
+	return T;
+}
+struct SFVec2f *sfvec2f_add(struct SFVec2f* T, struct SFVec2f *A, struct SFVec2f *B){
+	vecadd2f(T->c,A->c,B->c);
+	return T;
+}
+struct SFVec2f *sfvec2f_dif(struct SFVec2f* T, struct SFVec2f *A, struct SFVec2f *B){
+	vecdif2f(T->c,A->c,B->c);
+	return T;
+}
+struct SFVec2f *sfvec2f_scale(struct SFVec2f* T, struct SFVec2f *A, float S){
+	vecscale2f(T->c,A->c,S);
+	return T;
+}
+float sfvec2f_dist(struct SFVec2f* A){
+	return veclength2f(A->c);
+}
+int sfvec2f_same(struct SFVec2f *A, struct SFVec2f *B){
+	return vecsame2f(A->c,B->c);
+}
+struct SFVec2f *sfvec2f_arr(struct SFVec2f *A, int i){
+	return &A[i];
+}
+struct SFVec2f sfvec2f_tmps[6];
+void *sfvec2f_tmp [] = {&sfvec2f_tmps[0],&sfvec2f_tmps[1],&sfvec2f_tmps[2],&sfvec2f_tmps[3],&sfvec2f_tmps[4],&sfvec2f_tmps[5]};
+ftype ftype_sfvec2f = {
+sfvec2f_copy,
+sfvec2f_add,
+sfvec2f_dif,
+sfvec2f_scale,
+sfvec2f_dist,
+sfvec2f_same,
+sfvec2f_same,
+sfvec2f_arr,
+sfvec2f_tmp,
+};
 
-void do_ScalarChaserTick(void * ptr){
+void do_PositionChaser2DTick(void * ptr){
+	double Now;
+	static double lasttime;
+	struct X3D_PositionChaser2D *_node = (struct X3D_PositionChaser2D *)ptr;
+	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr; //abstract interface
+	if(!node) return;
+	if(!node->_buffer){
+		chaser_ptrs *p = malloc(sizeof(chaser_ptrs));
+		_node->_buffer = realloc(_node->_buffer,Buffer_length * sizeof(struct SFVec2f)); //**changes with ftype
+		node->_t = &ftype_sfvec2f; //***changes with ftype
+		node->_p = p;
+		p->initialDestination = &_node->initialDestination;
+		p->initialValue = &_node->initialValue;
+		p->set_destination = &_node->set_destination;
+		p->set_value = &_node->set_value;
+		p->value_changed = &_node->value_changed;
+		p->_buffer = _node->_buffer;
+		p->_destination = &_node->_destination;
+		p->_previousValue = &_node->_previousvalue;
+		chaser_init(node);
+	}
+	Now = TickTime();
+	if(NODE_NEEDS_COMPILING){
+		chaser_ptrs *p = node->_p;
+		ftype *t = node->_t;
+
+		node->isActive = TRUE;
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionChaser, isActive));
+		//Q how to tell which set_ was set: set_destination or set_value?
+		//if(!vecsame3f(node->set_destination.c,node->_destination.c))
+		if(!t->same(p->set_destination,p->_destination))
+			chaser_set_destination(node, Now);
+		//else if(!vecsame3f(node->set_value.c,node->initialValue.c)) //not sure I have the right idea here
+		else if(!t->same(p->set_value,p->initialValue))
+			chaser_set_value(node);
+		MARK_NODE_COMPILED
+	}
+	if(node->isActive)
+		chaser_tick(node,Now);
+}
+void do_PositionDamper2DTick(void * ptr){
+	struct X3D_PositionDamper2D *_node = (struct X3D_PositionDamper2D *)ptr;
+	struct X3D_PositionDamper *node = (struct X3D_PositionDamper *)ptr; //abstract type
+	if(!node)return;
+	if(!node->_values){
+		damper_ptrs *p = malloc(sizeof(damper_ptrs));
+		node->_t = &ftype_sfvec2f; //** changes with ftype
+		node->_p = p;
+		_node->_values = realloc(_node->_values,5 * sizeof(struct SFVec2f)); //** changes with ftype
+		p->initialDestination = &_node->initialDestination;
+		p->initialValue = &_node->initialValue;
+		p->set_destination = &_node->set_destination;
+		p->set_value = &_node->set_value;
+		p->value_changed = &_node->value_changed;
+		p->_input = &_node->_input;
+		p->_values = _node->_values;
+		//damper_CheckInit(node);
+        damper_Init(node);
+	}
+		
+	if(NODE_NEEDS_COMPILING){
+		//node->isActive = TRUE;
+		damper_ptrs *p = node->_p;
+		ftype *t = node->_t;
+
+		//if(!vecsame3f(node->set_destination.c,node->_input.c))  //not sure i have the right idea
+		if(!t->same(p->set_destination,p->_input))  
+			//damper_set_destination(node, node->set_destination);
+			damper_set_destination(node, p->set_destination);
+		//set_tau 
+		if(node->tau != node->_tau)
+			damper_set_tau(node,node->tau);
+		//set_value
+		//if(!vecsame3f(node->initialValue.c,node->set_value.c))
+		if(!t->same(p->initialValue,p->set_value))
+			//damper_set_value(node,node->set_value);
+			damper_set_value(node,p->set_value);
+		MARK_NODE_COMPILED
+	}
+	if(node->isActive)
+		tick_damper(node,TickTime());
+}
+
+
+void do_ScalarChaserTick_default(void * ptr){
 	struct X3D_ScalarChaser *node = (struct X3D_ScalarChaser *)ptr;
 	if(!node)return;
 	if(NODE_NEEDS_COMPILING){
@@ -1268,7 +1624,7 @@ void do_ScalarChaserTick(void * ptr){
 		MARK_NODE_COMPILED
 	}
 }
-void do_ScalarDamperTick(void * ptr){
+void do_ScalarDamperTick_default(void * ptr){
 	struct X3D_ScalarDamper *node = (struct X3D_ScalarDamper *)ptr;
 	if(!node)return;
 	if(NODE_NEEDS_COMPILING){
@@ -1278,8 +1634,129 @@ void do_ScalarDamperTick(void * ptr){
 		MARK_NODE_COMPILED
 	}
 }
+float *scalar_copy(float* T, float *A){
+	*T = *A;
+	return T;
+}
+float *scalar_add(float* T, float *A, float *B){
+    *T = *A + *B;
+	return T;
+}
+float *scalar_dif(float* T, float *A, float *B){
+    *T = *A - *B;
+	return T;
+}
+float *scalar_scale(float* T, float *A, float S){
+    *T = *A *S;
+	return T;
+}
+float scalar_dist(float* A){
+	return fabs(*A);
+}
+int scalar_same(float *A, float *B){
+	return *A == *B ? TRUE : FALSE;
+}
+float *scalar_arr(float *A, int i){
+	return &A[i];
+}
+float scalar_tmps[6];
+void *scalar_tmp [] = {&scalar_tmps[0],&scalar_tmps[1],&scalar_tmps[2],&scalar_tmps[3],&scalar_tmps[4],&scalar_tmps[5]};
+ftype ftype_scalar = {
+scalar_copy,
+scalar_add,
+scalar_dif,
+scalar_scale,
+scalar_dist,
+scalar_same,
+scalar_same,
+scalar_arr,
+scalar_tmp,
+};
 
-void do_TexCoordChaser2DTick(void * ptr){
+void do_ScalarChaserTick(void * ptr){
+	double Now;
+	static double lasttime;
+	struct X3D_ScalarChaser *_node = (struct X3D_ScalarChaser *)ptr;
+	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr; //abstract interface
+	if(!node) return;
+	if(!node->_buffer){
+		chaser_ptrs *p = malloc(sizeof(chaser_ptrs));
+		_node->_buffer = realloc(_node->_buffer,Buffer_length * sizeof(float)); //**changes with ftype
+		node->_t = &ftype_scalar; //***changes with ftype
+		node->_p = p;
+		p->initialDestination = &_node->initialDestination;
+		p->initialValue = &_node->initialValue;
+		p->set_destination = &_node->set_destination;
+		p->set_value = &_node->set_value;
+		p->value_changed = &_node->value_changed;
+		p->_buffer = _node->_buffer;
+		p->_destination = &_node->_destination;
+		p->_previousValue = &_node->_previousvalue;
+		chaser_init(node);
+	}
+	Now = TickTime();
+	if(NODE_NEEDS_COMPILING){
+		chaser_ptrs *p = node->_p;
+		ftype *t = node->_t;
+
+		node->isActive = TRUE;
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionChaser, isActive));
+		//Q how to tell which set_ was set: set_destination or set_value?
+		//if(!vecsame3f(node->set_destination.c,node->_destination.c))
+		if(!t->same(p->set_destination,p->_destination))
+			chaser_set_destination(node, Now);
+		//else if(!vecsame3f(node->set_value.c,node->initialValue.c)) //not sure I have the right idea here
+		else if(!t->same(p->set_value,p->initialValue))
+			chaser_set_value(node);
+		MARK_NODE_COMPILED
+	}
+	if(node->isActive)
+		chaser_tick(node,Now);
+}
+void do_ScalarDamperTick(void * ptr){
+	struct X3D_ScalarDamper *_node = (struct X3D_ScalarDamper *)ptr;
+	struct X3D_PositionDamper *node = (struct X3D_PositionDamper *)ptr; //abstract type
+	if(!node)return;
+	if(!node->_values){
+		damper_ptrs *p = malloc(sizeof(damper_ptrs));
+		node->_t = &ftype_scalar; //** changes with ftype
+		node->_p = p;
+		_node->_values = realloc(_node->_values,5 * sizeof(float)); //** changes with ftype
+		p->initialDestination = &_node->initialDestination;
+		p->initialValue = &_node->initialValue;
+		p->set_destination = &_node->set_destination;
+		p->set_value = &_node->set_value;
+		p->value_changed = &_node->value_changed;
+		p->_input = &_node->_input;
+		p->_values = _node->_values;
+		//damper_CheckInit(node);
+        damper_Init(node);
+	}
+		
+	if(NODE_NEEDS_COMPILING){
+		//node->isActive = TRUE;
+		damper_ptrs *p = node->_p;
+		ftype *t = node->_t;
+
+		//if(!vecsame3f(node->set_destination.c,node->_input.c))  //not sure i have the right idea
+		if(!t->same(p->set_destination,p->_input))  
+			//damper_set_destination(node, node->set_destination);
+			damper_set_destination(node, p->set_destination);
+		//set_tau 
+		if(node->tau != node->_tau)
+			damper_set_tau(node,node->tau);
+		//set_value
+		//if(!vecsame3f(node->initialValue.c,node->set_value.c))
+		if(!t->same(p->initialValue,p->set_value))
+			//damper_set_value(node,node->set_value);
+			damper_set_value(node,p->set_value);
+		MARK_NODE_COMPILED
+	}
+	if(node->isActive)
+		tick_damper(node,TickTime());
+}
+
+void do_TexCoordChaser2DTick_default(void * ptr){
 	struct X3D_TexCoordChaser2D *node = (struct X3D_TexCoordChaser2D *)ptr;
 	if(!node)return;
 	if(NODE_NEEDS_COMPILING){
@@ -1293,7 +1770,7 @@ void do_TexCoordChaser2DTick(void * ptr){
 		MARK_NODE_COMPILED
 	}
 }
-void do_TexCoordDamper2DTick(void * ptr){
+void do_TexCoordDamper2DTick_default(void * ptr){
 	struct X3D_TexCoordDamper2D *node = (struct X3D_TexCoordDamper2D *)ptr;
 	if(!node)return;
 	if(NODE_NEEDS_COMPILING){
@@ -1308,6 +1785,150 @@ void do_TexCoordDamper2DTick(void * ptr){
 	}
 }
 
+struct Multi_Vec2f *mfvec2f_copy(struct Multi_Vec2f* T, struct Multi_Vec2f *A){
+	T->p = realloc(T->p,A->n * sizeof(struct SFVec2f));
+	T->n = A->n;
+	memcpy(T->p,A->p,A->n * sizeof(struct SFVec2f));
+	return T;
+}
+struct Multi_Vec2f *mfvec2f_add(struct Multi_Vec2f* T, struct Multi_Vec2f *A, struct Multi_Vec2f *B){
+	int i;
+	T->n = min(A->n,B->n);
+	T->p = realloc(T->p,T->n * sizeof(struct SFVec2f));
+	for(i=0;i<T->n;i++)
+		sfvec2f_add(&T->p[i],&A->p[i],&B->p[i]);
+	return T;
+}
+struct Multi_Vec2f *mfvec2f_dif(struct Multi_Vec2f* T, struct Multi_Vec2f *A, struct Multi_Vec2f *B){
+	int i;
+	T->n = min(A->n,B->n);
+	T->p = realloc(T->p,T->n * sizeof(struct SFVec2f));
+	for(i=0;i<T->n;i++)
+		sfvec2f_dif(&T->p[i],&A->p[i],&B->p[i]);
+	return T;
+}
+struct Multi_Vec2f *mfvec2f_scale(struct Multi_Vec2f* T, struct Multi_Vec2f *A, float S){
+	int i;
+	T->n = A->n;
+	T->p = realloc(T->p,T->n * sizeof(struct SFVec2f));
+	for(i=0;i<T->n;i++)
+		sfvec2f_scale(&T->p[i],&A->p[i],S);
+	return T;
+}
+float mfvec2f_dist(struct Multi_Vec2f* A){
+	int i;
+	float dist = 0.0f;
+	for(i=0;i<A->n;i++)
+		dist += sfvec2f_dist(&A->p[i]);
+	return dist;
+}
+int mfvec2f_same(struct Multi_Vec2f *A, struct Multi_Vec2f *B){
+	int i,  isame;
+	if(A->n != B->n) return FALSE;
+	isame = TRUE;
+	for(i=0;i<A->n;i++)
+		isame = isame && sfvec2f_same(&A->p[i],&B->p[i]);
+	return isame;
+}
+struct Multi_Vec2f *mfvec2f_arr(struct Multi_Vec2f *A, int i){
+	return &A[i];
+}
+struct Multi_Vec2f mfvec2f_tmps[6];
+void *mfvec2f_tmp [] = {&mfvec2f_tmps[0],&mfvec2f_tmps[1],&mfvec2f_tmps[2],&mfvec2f_tmps[3],&mfvec2f_tmps[4],&mfvec2f_tmps[5]};
+ftype ftype_mfvec2f = {
+mfvec2f_copy,
+mfvec2f_add,
+mfvec2f_dif,
+mfvec2f_scale,
+mfvec2f_dist,
+mfvec2f_same,
+mfvec2f_same,
+mfvec2f_arr,
+mfvec2f_tmp,
+};
+void do_TexCoordChaser2DTick(void * ptr){
+	double Now;
+	static double lasttime;
+	struct X3D_TexCoordChaser2D *_node = (struct X3D_TexCoordChaser2D *)ptr;
+	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr; //abstract interface
+	if(!node) return;
+	if(!node->_buffer){
+		chaser_ptrs *p = malloc(sizeof(chaser_ptrs));
+		_node->_buffer = realloc(_node->_buffer,Buffer_length * sizeof(struct Multi_Vec2f)); //**changes with field type
+		node->_t = &ftype_mfvec2f; //**changes with field type
+		node->_p = p;
+		p->initialDestination = &_node->initialDestination;
+		p->initialValue = &_node->initialValue;
+		p->set_destination = &_node->set_destination;
+		p->set_value = &_node->set_value;
+		p->value_changed = &_node->value_changed;
+		p->_buffer = _node->_buffer;
+		p->_destination = &_node->_destination;
+		p->_previousValue = &_node->_previousvalue;
+		chaser_init(node);
+	}
+	Now = TickTime();
+	if(NODE_NEEDS_COMPILING){
+		chaser_ptrs *p = node->_p;
+		ftype *t = node->_t;
+
+		node->isActive = TRUE;
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionChaser, isActive));
+		//Q how to tell which set_ was set: set_destination or set_value?
+		//if(!vecsame3f(node->set_destination.c,node->_destination.c))
+		if(!t->same(p->set_destination,p->_destination))
+			chaser_set_destination(node, Now);
+		//else if(!vecsame3f(node->set_value.c,node->initialValue.c)) //not sure I have the right idea here
+		else if(!t->same(p->set_value,p->initialValue))
+			chaser_set_value(node);
+		MARK_NODE_COMPILED
+	}
+	if(node->isActive)
+		chaser_tick(node,Now);
+}
+
+void do_TexCoordDamper2DTick(void * ptr){
+	struct X3D_TexCoordDamper2D *_node = (struct X3D_TexCoordDamper2D *)ptr;
+	struct X3D_PositionDamper *node = (struct X3D_PositionDamper *)ptr; //abstract type
+	if(!node)return;
+	if(!node->_values){
+		damper_ptrs *p = malloc(sizeof(damper_ptrs));
+		node->_t = &ftype_sfvec2f; //**changes with field type
+		node->_p = p;
+		_node->_values = realloc(_node->_values,5 * sizeof(struct Multi_Vec2f)); //**changes with field type
+		p->initialDestination = &_node->initialDestination;
+		p->initialValue = &_node->initialValue;
+		p->set_destination = &_node->set_destination;
+		p->set_value = &_node->set_value;
+		p->value_changed = &_node->value_changed;
+		p->_input = &_node->_input;
+		p->_values = _node->_values;
+		//damper_CheckInit(node);
+        damper_Init(node);
+	}
+		
+	if(NODE_NEEDS_COMPILING){
+		//node->isActive = TRUE;
+		damper_ptrs *p = node->_p;
+		ftype *t = node->_t;
+
+		//if(!vecsame3f(node->set_destination.c,node->_input.c))  //not sure i have the right idea
+		if(!t->same(p->set_destination,p->_input))  
+			//damper_set_destination(node, node->set_destination);
+			damper_set_destination(node, p->set_destination);
+		//set_tau 
+		if(node->tau != node->_tau)
+			damper_set_tau(node,node->tau);
+		//set_value
+		//if(!vecsame3f(node->initialValue.c,node->set_value.c))
+		if(!t->same(p->initialValue,p->set_value))
+			//damper_set_value(node,node->set_value);
+			damper_set_value(node,p->set_value);
+		MARK_NODE_COMPILED
+	}
+	if(node->isActive)
+		tick_damper(node,TickTime());
+}
 //============================
 
 

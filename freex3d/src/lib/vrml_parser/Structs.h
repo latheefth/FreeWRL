@@ -3070,13 +3070,20 @@ struct X3D_ColorChaser {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
+	void * _p;
+	void * _t;
 	int isActive;
 	double duration;
+	double _bufferendtime;
+	double _steptime;
 	struct SFColor value_changed;
 	struct SFColor initialDestination;
 	struct SFColor initialValue;
 	struct SFColor set_destination;
 	struct SFColor set_value;
+	void * _buffer;
+	struct SFColor _previousvalue;
+	struct SFColor _destination;
 };
 extern struct X3D_Virt virt_ColorChaser;
 /***********************/
@@ -3095,6 +3102,8 @@ struct X3D_ColorDamper {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
+	void * _p;
+	void * _t;
 	double tau;
 	float tolerance;
 	int isActive;
@@ -3107,6 +3116,8 @@ struct X3D_ColorDamper {
 	struct SFColor initialValue;
 	struct SFColor set_destination;
 	struct SFColor set_value;
+	void * _values;
+	struct SFColor _input;
 };
 extern struct X3D_Virt virt_ColorDamper;
 /***********************/
@@ -3365,13 +3376,20 @@ struct X3D_CoordinateChaser {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
+	void * _p;
+	void * _t;
 	int isActive;
 	double duration;
+	double _bufferendtime;
+	double _steptime;
 	struct Multi_Vec3f value_changed;
 	struct Multi_Vec3f initialDestination;
 	struct Multi_Vec3f initialValue;
 	struct Multi_Vec3f set_destination;
 	struct Multi_Vec3f set_value;
+	void * _buffer;
+	struct Multi_Vec3f _previousvalue;
+	struct Multi_Vec3f _destination;
 };
 extern struct X3D_Virt virt_CoordinateChaser;
 /***********************/
@@ -3390,6 +3408,8 @@ struct X3D_CoordinateDamper {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
+	void * _p;
+	void * _t;
 	double tau;
 	float tolerance;
 	int isActive;
@@ -3402,6 +3422,8 @@ struct X3D_CoordinateDamper {
 	struct Multi_Vec3f initialValue;
 	struct Multi_Vec3f set_destination;
 	struct Multi_Vec3f set_value;
+	void * _values;
+	struct Multi_Vec3f _input;
 };
 extern struct X3D_Virt virt_CoordinateDamper;
 /***********************/
@@ -7307,6 +7329,8 @@ struct X3D_PositionChaser {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
+	void * _p;
+	void * _t;
 	int isActive;
 	double duration;
 	double _bufferendtime;
@@ -7319,8 +7343,6 @@ struct X3D_PositionChaser {
 	void * _buffer;
 	struct SFVec3f _previousvalue;
 	struct SFVec3f _destination;
-	void * _p;
-	void * _t;
 };
 extern struct X3D_Virt virt_PositionChaser;
 /***********************/
@@ -7339,13 +7361,20 @@ struct X3D_PositionChaser2D {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
+	void * _p;
+	void * _t;
 	int isActive;
 	double duration;
+	double _bufferendtime;
+	double _steptime;
 	struct SFVec2f value_changed;
 	struct SFVec2f initialDestination;
 	struct SFVec2f initialValue;
 	struct SFVec2f set_destination;
 	struct SFVec2f set_value;
+	void * _buffer;
+	struct SFVec2f _previousvalue;
+	struct SFVec2f _destination;
 };
 extern struct X3D_Virt virt_PositionChaser2D;
 /***********************/
@@ -7364,6 +7393,8 @@ struct X3D_PositionDamper {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
+	void * _p;
+	void * _t;
 	double tau;
 	float tolerance;
 	int isActive;
@@ -7378,8 +7409,6 @@ struct X3D_PositionDamper {
 	struct SFVec3f set_value;
 	void * _values;
 	struct SFVec3f _input;
-	void * _p;
-	void * _t;
 };
 extern struct X3D_Virt virt_PositionDamper;
 /***********************/
@@ -7398,6 +7427,8 @@ struct X3D_PositionDamper2D {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
+	void * _p;
+	void * _t;
 	double tau;
 	float tolerance;
 	int isActive;
@@ -7410,6 +7441,8 @@ struct X3D_PositionDamper2D {
 	struct SFVec2f initialValue;
 	struct SFVec2f set_destination;
 	struct SFVec2f set_value;
+	void * _values;
+	struct SFVec2f _input;
 };
 extern struct X3D_Virt virt_PositionDamper2D;
 /***********************/
@@ -7779,13 +7812,20 @@ struct X3D_ScalarChaser {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
+	void * _p;
+	void * _t;
 	int isActive;
 	double duration;
+	double _bufferendtime;
+	double _steptime;
 	float value_changed;
 	float initialDestination;
 	float initialValue;
 	float set_destination;
 	float set_value;
+	void * _buffer;
+	float _previousvalue;
+	float _destination;
 };
 extern struct X3D_Virt virt_ScalarChaser;
 /***********************/
@@ -7804,6 +7844,8 @@ struct X3D_ScalarDamper {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
+	void * _p;
+	void * _t;
 	double tau;
 	float tolerance;
 	int isActive;
@@ -7816,6 +7858,8 @@ struct X3D_ScalarDamper {
 	float initialValue;
 	float set_destination;
 	float set_value;
+	void * _values;
+	float _input;
 };
 extern struct X3D_Virt virt_ScalarDamper;
 /***********************/
@@ -8426,13 +8470,20 @@ struct X3D_TexCoordChaser2D {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
+	void * _p;
+	void * _t;
 	int isActive;
 	double duration;
+	double _bufferendtime;
+	double _steptime;
 	struct Multi_Vec2f value_changed;
 	struct Multi_Vec2f initialDestination;
 	struct Multi_Vec2f initialValue;
 	struct Multi_Vec2f set_destination;
 	struct Multi_Vec2f set_value;
+	void * _buffer;
+	struct Multi_Vec2f _previousvalue;
+	struct Multi_Vec2f _destination;
 };
 extern struct X3D_Virt virt_TexCoordChaser2D;
 /***********************/
@@ -8451,6 +8502,8 @@ struct X3D_TexCoordDamper2D {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
+	void * _p;
+	void * _t;
 	double tau;
 	float tolerance;
 	int isActive;
@@ -8463,6 +8516,8 @@ struct X3D_TexCoordDamper2D {
 	struct Multi_Vec2f initialValue;
 	struct Multi_Vec2f set_destination;
 	struct Multi_Vec2f set_value;
+	void * _values;
+	struct Multi_Vec2f _input;
 };
 extern struct X3D_Virt virt_TexCoordDamper2D;
 /***********************/

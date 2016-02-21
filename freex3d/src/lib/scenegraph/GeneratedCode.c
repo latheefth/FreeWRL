@@ -3479,6 +3479,13 @@ const int OFFSETS_Color[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_ColorChaser[] = {
+	(int) FIELDNAMES__buffer, (int) offsetof (struct X3D_ColorChaser, _buffer),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__bufferendtime, (int) offsetof (struct X3D_ColorChaser, _bufferendtime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__destination, (int) offsetof (struct X3D_ColorChaser, _destination),  (int) FIELDTYPE_SFColor, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__p, (int) offsetof (struct X3D_ColorChaser, _p),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__previousvalue, (int) offsetof (struct X3D_ColorChaser, _previousvalue),  (int) FIELDTYPE_SFColor, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__steptime, (int) offsetof (struct X3D_ColorChaser, _steptime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__t, (int) offsetof (struct X3D_ColorChaser, _t),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_duration, (int) offsetof (struct X3D_ColorChaser, duration),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_initialDestination, (int) offsetof (struct X3D_ColorChaser, initialDestination),  (int) FIELDTYPE_SFColor, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_initialValue, (int) offsetof (struct X3D_ColorChaser, initialValue),  (int) FIELDTYPE_SFColor, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -3490,9 +3497,13 @@ const int OFFSETS_ColorChaser[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_ColorDamper[] = {
+	(int) FIELDNAMES__input, (int) offsetof (struct X3D_ColorDamper, _input),  (int) FIELDTYPE_SFColor, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__lasttick, (int) offsetof (struct X3D_ColorDamper, _lasttick),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__p, (int) offsetof (struct X3D_ColorDamper, _p),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__t, (int) offsetof (struct X3D_ColorDamper, _t),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__takefirstinput, (int) offsetof (struct X3D_ColorDamper, _takefirstinput),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__tau, (int) offsetof (struct X3D_ColorDamper, _tau),  (int) FIELDTYPE_SFTime, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__values, (int) offsetof (struct X3D_ColorDamper, _values),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_initialDestination, (int) offsetof (struct X3D_ColorDamper, initialDestination),  (int) FIELDTYPE_SFColor, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_initialValue, (int) offsetof (struct X3D_ColorDamper, initialValue),  (int) FIELDTYPE_SFColor, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isActive, (int) offsetof (struct X3D_ColorDamper, isActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -3606,6 +3617,13 @@ const int OFFSETS_Coordinate[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_CoordinateChaser[] = {
+	(int) FIELDNAMES__buffer, (int) offsetof (struct X3D_CoordinateChaser, _buffer),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__bufferendtime, (int) offsetof (struct X3D_CoordinateChaser, _bufferendtime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__destination, (int) offsetof (struct X3D_CoordinateChaser, _destination),  (int) FIELDTYPE_MFVec3f, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__p, (int) offsetof (struct X3D_CoordinateChaser, _p),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__previousvalue, (int) offsetof (struct X3D_CoordinateChaser, _previousvalue),  (int) FIELDTYPE_MFVec3f, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__steptime, (int) offsetof (struct X3D_CoordinateChaser, _steptime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__t, (int) offsetof (struct X3D_CoordinateChaser, _t),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_duration, (int) offsetof (struct X3D_CoordinateChaser, duration),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_initialDestination, (int) offsetof (struct X3D_CoordinateChaser, initialDestination),  (int) FIELDTYPE_MFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_initialValue, (int) offsetof (struct X3D_CoordinateChaser, initialValue),  (int) FIELDTYPE_MFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -3617,9 +3635,13 @@ const int OFFSETS_CoordinateChaser[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_CoordinateDamper[] = {
+	(int) FIELDNAMES__input, (int) offsetof (struct X3D_CoordinateDamper, _input),  (int) FIELDTYPE_MFVec3f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__lasttick, (int) offsetof (struct X3D_CoordinateDamper, _lasttick),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__p, (int) offsetof (struct X3D_CoordinateDamper, _p),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__t, (int) offsetof (struct X3D_CoordinateDamper, _t),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__takefirstinput, (int) offsetof (struct X3D_CoordinateDamper, _takefirstinput),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__tau, (int) offsetof (struct X3D_CoordinateDamper, _tau),  (int) FIELDTYPE_SFTime, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__values, (int) offsetof (struct X3D_CoordinateDamper, _values),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_initialDestination, (int) offsetof (struct X3D_CoordinateDamper, initialDestination),  (int) FIELDTYPE_MFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_initialValue, (int) offsetof (struct X3D_CoordinateDamper, initialValue),  (int) FIELDTYPE_MFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isActive, (int) offsetof (struct X3D_CoordinateDamper, isActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -5466,6 +5488,13 @@ const int OFFSETS_PositionChaser[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_PositionChaser2D[] = {
+	(int) FIELDNAMES__buffer, (int) offsetof (struct X3D_PositionChaser2D, _buffer),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__bufferendtime, (int) offsetof (struct X3D_PositionChaser2D, _bufferendtime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__destination, (int) offsetof (struct X3D_PositionChaser2D, _destination),  (int) FIELDTYPE_SFVec2f, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__p, (int) offsetof (struct X3D_PositionChaser2D, _p),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__previousvalue, (int) offsetof (struct X3D_PositionChaser2D, _previousvalue),  (int) FIELDTYPE_SFVec2f, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__steptime, (int) offsetof (struct X3D_PositionChaser2D, _steptime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__t, (int) offsetof (struct X3D_PositionChaser2D, _t),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_duration, (int) offsetof (struct X3D_PositionChaser2D, duration),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_initialDestination, (int) offsetof (struct X3D_PositionChaser2D, initialDestination),  (int) FIELDTYPE_SFVec2f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_initialValue, (int) offsetof (struct X3D_PositionChaser2D, initialValue),  (int) FIELDTYPE_SFVec2f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -5497,9 +5526,13 @@ const int OFFSETS_PositionDamper[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_PositionDamper2D[] = {
+	(int) FIELDNAMES__input, (int) offsetof (struct X3D_PositionDamper2D, _input),  (int) FIELDTYPE_SFVec2f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__lasttick, (int) offsetof (struct X3D_PositionDamper2D, _lasttick),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__p, (int) offsetof (struct X3D_PositionDamper2D, _p),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__t, (int) offsetof (struct X3D_PositionDamper2D, _t),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__takefirstinput, (int) offsetof (struct X3D_PositionDamper2D, _takefirstinput),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__tau, (int) offsetof (struct X3D_PositionDamper2D, _tau),  (int) FIELDTYPE_SFTime, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__values, (int) offsetof (struct X3D_PositionDamper2D, _values),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_initialDestination, (int) offsetof (struct X3D_PositionDamper2D, initialDestination),  (int) FIELDTYPE_SFVec2f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_initialValue, (int) offsetof (struct X3D_PositionDamper2D, initialValue),  (int) FIELDTYPE_SFVec2f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isActive, (int) offsetof (struct X3D_PositionDamper2D, isActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -5710,6 +5743,13 @@ const int OFFSETS_RigidBodyCollection[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_ScalarChaser[] = {
+	(int) FIELDNAMES__buffer, (int) offsetof (struct X3D_ScalarChaser, _buffer),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__bufferendtime, (int) offsetof (struct X3D_ScalarChaser, _bufferendtime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__destination, (int) offsetof (struct X3D_ScalarChaser, _destination),  (int) FIELDTYPE_SFFloat, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__p, (int) offsetof (struct X3D_ScalarChaser, _p),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__previousvalue, (int) offsetof (struct X3D_ScalarChaser, _previousvalue),  (int) FIELDTYPE_SFFloat, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__steptime, (int) offsetof (struct X3D_ScalarChaser, _steptime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__t, (int) offsetof (struct X3D_ScalarChaser, _t),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_duration, (int) offsetof (struct X3D_ScalarChaser, duration),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_initialDestination, (int) offsetof (struct X3D_ScalarChaser, initialDestination),  (int) FIELDTYPE_SFFloat, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_initialValue, (int) offsetof (struct X3D_ScalarChaser, initialValue),  (int) FIELDTYPE_SFFloat, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -5721,9 +5761,13 @@ const int OFFSETS_ScalarChaser[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_ScalarDamper[] = {
+	(int) FIELDNAMES__input, (int) offsetof (struct X3D_ScalarDamper, _input),  (int) FIELDTYPE_SFFloat, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__lasttick, (int) offsetof (struct X3D_ScalarDamper, _lasttick),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__p, (int) offsetof (struct X3D_ScalarDamper, _p),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__t, (int) offsetof (struct X3D_ScalarDamper, _t),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__takefirstinput, (int) offsetof (struct X3D_ScalarDamper, _takefirstinput),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__tau, (int) offsetof (struct X3D_ScalarDamper, _tau),  (int) FIELDTYPE_SFTime, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__values, (int) offsetof (struct X3D_ScalarDamper, _values),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_initialDestination, (int) offsetof (struct X3D_ScalarDamper, initialDestination),  (int) FIELDTYPE_SFFloat, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_initialValue, (int) offsetof (struct X3D_ScalarDamper, initialValue),  (int) FIELDTYPE_SFFloat, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isActive, (int) offsetof (struct X3D_ScalarDamper, isActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6021,6 +6065,13 @@ const int OFFSETS_Switch[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_TexCoordChaser2D[] = {
+	(int) FIELDNAMES__buffer, (int) offsetof (struct X3D_TexCoordChaser2D, _buffer),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__bufferendtime, (int) offsetof (struct X3D_TexCoordChaser2D, _bufferendtime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__destination, (int) offsetof (struct X3D_TexCoordChaser2D, _destination),  (int) FIELDTYPE_MFVec2f, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__p, (int) offsetof (struct X3D_TexCoordChaser2D, _p),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__previousvalue, (int) offsetof (struct X3D_TexCoordChaser2D, _previousvalue),  (int) FIELDTYPE_MFVec2f, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__steptime, (int) offsetof (struct X3D_TexCoordChaser2D, _steptime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__t, (int) offsetof (struct X3D_TexCoordChaser2D, _t),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_duration, (int) offsetof (struct X3D_TexCoordChaser2D, duration),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_initialDestination, (int) offsetof (struct X3D_TexCoordChaser2D, initialDestination),  (int) FIELDTYPE_MFVec2f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_initialValue, (int) offsetof (struct X3D_TexCoordChaser2D, initialValue),  (int) FIELDTYPE_MFVec2f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6032,9 +6083,13 @@ const int OFFSETS_TexCoordChaser2D[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_TexCoordDamper2D[] = {
+	(int) FIELDNAMES__input, (int) offsetof (struct X3D_TexCoordDamper2D, _input),  (int) FIELDTYPE_MFVec2f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__lasttick, (int) offsetof (struct X3D_TexCoordDamper2D, _lasttick),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__p, (int) offsetof (struct X3D_TexCoordDamper2D, _p),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__t, (int) offsetof (struct X3D_TexCoordDamper2D, _t),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__takefirstinput, (int) offsetof (struct X3D_TexCoordDamper2D, _takefirstinput),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__tau, (int) offsetof (struct X3D_TexCoordDamper2D, _tau),  (int) FIELDTYPE_SFTime, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__values, (int) offsetof (struct X3D_TexCoordDamper2D, _values),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_initialDestination, (int) offsetof (struct X3D_TexCoordDamper2D, initialDestination),  (int) FIELDTYPE_MFVec2f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_initialValue, (int) offsetof (struct X3D_TexCoordDamper2D, initialValue),  (int) FIELDTYPE_MFVec2f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isActive, (int) offsetof (struct X3D_TexCoordDamper2D, isActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -7573,6 +7628,13 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ColorChaser : {
 			struct X3D_ColorChaser * tmp2;
 			tmp2 = (struct X3D_ColorChaser *) tmp;
+			tmp2->_buffer = NULL;
+			tmp2->_bufferendtime = 0;
+			tmp2->_destination.c[0] = 0.0f;tmp2->_destination.c[1] = 0.0f;tmp2->_destination.c[2] = 0.0f;;
+			tmp2->_p = NULL;
+			tmp2->_previousvalue.c[0] = 0.0f;tmp2->_previousvalue.c[1] = 0.0f;tmp2->_previousvalue.c[2] = 0.0f;;
+			tmp2->_steptime = 0;
+			tmp2->_t = NULL;
 			tmp2->duration = 1;
 			tmp2->initialDestination.c[0] = 0.8f;tmp2->initialDestination.c[1] = 0.8f;tmp2->initialDestination.c[2] = 0.8f;;
 			tmp2->initialValue.c[0] = 0.8f;tmp2->initialValue.c[1] = 0.8f;tmp2->initialValue.c[2] = 0.8f;;
@@ -7587,9 +7649,13 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ColorDamper : {
 			struct X3D_ColorDamper * tmp2;
 			tmp2 = (struct X3D_ColorDamper *) tmp;
+			tmp2->_input.c[0] = 0.0f;tmp2->_input.c[1] = 0.0f;tmp2->_input.c[2] = 0.0f;;
 			tmp2->_lasttick = 0;
+			tmp2->_p = NULL;
+			tmp2->_t = NULL;
 			tmp2->_takefirstinput = TRUE;
 			tmp2->_tau = 0.3;
+			tmp2->_values = NULL;
 			tmp2->initialDestination.c[0] = 0.8f;tmp2->initialDestination.c[1] = 0.8f;tmp2->initialDestination.c[2] = 0.8f;;
 			tmp2->initialValue.c[0] = 0.8f;tmp2->initialValue.c[1] = 0.8f;tmp2->initialValue.c[2] = 0.8f;;
 			tmp2->isActive = FALSE;
@@ -7736,6 +7802,23 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_CoordinateChaser : {
 			struct X3D_CoordinateChaser * tmp2;
 			tmp2 = (struct X3D_CoordinateChaser *) tmp;
+			tmp2->_buffer = NULL;
+			tmp2->_bufferendtime = 0;
+			tmp2->_destination.p = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*1);
+
+			tmp2->_destination.p[0].c[0] = 0.0f; 
+			tmp2->_destination.p[0].c[1] = 0.0f; 
+			tmp2->_destination.p[0].c[2] = 0.0f; 
+			tmp2->_destination.n=1;;
+			tmp2->_p = NULL;
+			tmp2->_previousvalue.p = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*1);
+
+			tmp2->_previousvalue.p[0].c[0] = 0.0f; 
+			tmp2->_previousvalue.p[0].c[1] = 0.0f; 
+			tmp2->_previousvalue.p[0].c[2] = 0.0f; 
+			tmp2->_previousvalue.n=1;;
+			tmp2->_steptime = 0;
+			tmp2->_t = NULL;
 			tmp2->duration = 1;
 			tmp2->initialDestination.p = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*1);
 
@@ -7760,9 +7843,13 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_CoordinateDamper : {
 			struct X3D_CoordinateDamper * tmp2;
 			tmp2 = (struct X3D_CoordinateDamper *) tmp;
+			tmp2->_input.n=0; tmp2->_input.p=0;
 			tmp2->_lasttick = 0;
+			tmp2->_p = NULL;
+			tmp2->_t = NULL;
 			tmp2->_takefirstinput = TRUE;
 			tmp2->_tau = 0.3;
+			tmp2->_values = NULL;
 			tmp2->initialDestination.p = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*1);
 
 			tmp2->initialDestination.p[0].c[0] = 0.0f; 
@@ -10169,6 +10256,13 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_PositionChaser2D : {
 			struct X3D_PositionChaser2D * tmp2;
 			tmp2 = (struct X3D_PositionChaser2D *) tmp;
+			tmp2->_buffer = NULL;
+			tmp2->_bufferendtime = 0;
+			tmp2->_destination.c[0] = 0.0f;tmp2->_destination.c[1] = 0.0f;;
+			tmp2->_p = NULL;
+			tmp2->_previousvalue.c[0] = 0.0f;tmp2->_previousvalue.c[1] = 0.0f;;
+			tmp2->_steptime = 0;
+			tmp2->_t = NULL;
 			tmp2->duration = 1;
 			tmp2->initialDestination.c[0] = 0.0f;tmp2->initialDestination.c[1] = 0.0f;;
 			tmp2->initialValue.c[0] = 0.0f;tmp2->initialValue.c[1] = 0.0f;;
@@ -10206,9 +10300,13 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_PositionDamper2D : {
 			struct X3D_PositionDamper2D * tmp2;
 			tmp2 = (struct X3D_PositionDamper2D *) tmp;
+			tmp2->_input.c[0] = 0.0f;tmp2->_input.c[1] = 0.0f;;
 			tmp2->_lasttick = 0;
+			tmp2->_p = NULL;
+			tmp2->_t = NULL;
 			tmp2->_takefirstinput = TRUE;
 			tmp2->_tau = 0.3;
+			tmp2->_values = NULL;
 			tmp2->initialDestination.c[0] = 0.0f;tmp2->initialDestination.c[1] = 0.0f;;
 			tmp2->initialValue.c[0] = 0.0f;tmp2->initialValue.c[1] = 0.0f;;
 			tmp2->isActive = FALSE;
@@ -10455,6 +10553,13 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ScalarChaser : {
 			struct X3D_ScalarChaser * tmp2;
 			tmp2 = (struct X3D_ScalarChaser *) tmp;
+			tmp2->_buffer = NULL;
+			tmp2->_bufferendtime = 0;
+			tmp2->_destination = 0.0f;
+			tmp2->_p = NULL;
+			tmp2->_previousvalue = 0.0f;
+			tmp2->_steptime = 0;
+			tmp2->_t = NULL;
 			tmp2->duration = 1;
 			tmp2->initialDestination = 0.0f;
 			tmp2->initialValue = 0.0f;
@@ -10469,9 +10574,13 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ScalarDamper : {
 			struct X3D_ScalarDamper * tmp2;
 			tmp2 = (struct X3D_ScalarDamper *) tmp;
+			tmp2->_input = 0.0f;
 			tmp2->_lasttick = 0;
+			tmp2->_p = NULL;
+			tmp2->_t = NULL;
 			tmp2->_takefirstinput = TRUE;
 			tmp2->_tau = 0.3;
+			tmp2->_values = NULL;
 			tmp2->initialDestination = 0.0f;
 			tmp2->initialValue = 0.0f;
 			tmp2->isActive = FALSE;
@@ -10840,6 +10949,19 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_TexCoordChaser2D : {
 			struct X3D_TexCoordChaser2D * tmp2;
 			tmp2 = (struct X3D_TexCoordChaser2D *) tmp;
+			tmp2->_buffer = NULL;
+			tmp2->_bufferendtime = 0;
+			tmp2->_destination.p = MALLOC (struct SFVec2f *, sizeof(struct SFVec2f)*1);
+			tmp2->_destination.p[0].c[0] = 0.0f; 
+			tmp2->_destination.p[0].c[1] = 0.0f; 
+			tmp2->_destination.n=1;
+			tmp2->_p = NULL;
+			tmp2->_previousvalue.p = MALLOC (struct SFVec2f *, sizeof(struct SFVec2f)*1);
+			tmp2->_previousvalue.p[0].c[0] = 0.0f; 
+			tmp2->_previousvalue.p[0].c[1] = 0.0f; 
+			tmp2->_previousvalue.n=1;
+			tmp2->_steptime = 0;
+			tmp2->_t = NULL;
 			tmp2->duration = 1;
 			tmp2->initialDestination.p = MALLOC (struct SFVec2f *, sizeof(struct SFVec2f)*1);
 			tmp2->initialDestination.p[0].c[0] = 0.0f; 
@@ -10860,9 +10982,13 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_TexCoordDamper2D : {
 			struct X3D_TexCoordDamper2D * tmp2;
 			tmp2 = (struct X3D_TexCoordDamper2D *) tmp;
+			tmp2->_input.n=0; tmp2->_input.p=0;
 			tmp2->_lasttick = 0;
+			tmp2->_p = NULL;
+			tmp2->_t = NULL;
 			tmp2->_takefirstinput = TRUE;
 			tmp2->_tau = 0.3;
+			tmp2->_values = NULL;
 			tmp2->initialDestination.p = MALLOC (struct SFVec2f *, sizeof(struct SFVec2f)*1);
 			tmp2->initialDestination.p[0].c[0] = 0.0f; 
 			tmp2->initialDestination.p[0].c[1] = 0.0f; 
