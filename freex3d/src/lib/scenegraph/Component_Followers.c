@@ -191,6 +191,7 @@ typedef struct ftype {
 	void* (*add)(void *T,void* A,void* B);
 	void* (*dif)(void *T,void* A,void* B);
 	void* (*scale)(void *T,void* A,float S);
+	void* (*lerp)(void *T,void *A, void *B, float alpha);
 	float (*dist)(void* A);
 	int (*same)(void* A,void* B);
 	int (*approx)(void* A,void* B);
@@ -205,6 +206,13 @@ float *arr3f(float *A, int i){
 	//memcpy(T,&A[3*i],3*sizeof(float));
 	return &A[3*i];
 }
+float *veclerp3f(float *T, float *A, float *B, float alpha){
+	int i;
+	for(i=0;i<3;i++){
+		T[i] = (1.0f - alpha)*A[i] + alpha*B[i];
+	}
+	return T;
+}
 float tmp3f1[6][3];
 void *tmp3f [] = {&tmp3f[0],&tmp3f[1],&tmp3f[2],&tmp3f[3],&tmp3f[4],&tmp3f[5]};
 ftype ftype_vec3f = {
@@ -212,6 +220,7 @@ veccopy3f,
 vecadd3f,
 vecdif3f,
 vecscale3f,
+veclerp3f,
 veclength3f,
 vecsame3f,
 vecsame3f,
@@ -235,6 +244,10 @@ struct SFVec3f *sfvec3f_scale(struct SFVec3f* T, struct SFVec3f *A, float S){
 	vecscale3f(T->c,A->c,S);
 	return T;
 }
+struct SFVec3f *sfvec3f_lerp(struct SFVec3f* T, struct SFVec3f *A, struct SFVec3f *B, float S){
+	veclerp3f(T->c,A->c,B->c,S);
+	return T;
+}
 float sfvec3f_dist(struct SFVec3f* A){
 	return veclength3f(A->c);
 }
@@ -251,6 +264,7 @@ sfvec3f_copy,
 sfvec3f_add,
 sfvec3f_dif,
 sfvec3f_scale,
+sfvec3f_lerp,
 sfvec3f_dist,
 sfvec3f_same,
 sfvec3f_same,
@@ -627,26 +641,26 @@ void damper_set_destination(struct X3D_PositionDamper *node, void *ipos)
 }
 
 //struct SFVec3f damper_diftimes(struct SFVec3f a, struct SFVec3f b, double alpha){
-void* damper_diftimes(struct X3D_PositionDamper *node, void *T, void *A, void *B, double alpha){
-	struct SFVec3f ret;
-	float tmp[3], tmp2[3];
-	damper_ptrs *p = node->_p;
-	ftype *t = node->_t;
-
-	//input  .add(value1.subtract(input  ).multiply(alpha))
-	if(1){
-		//vecdif3f(tmp,b.c,a.c);
-		t->dif(t->tmp[0],B,A);
-		//vecscale3f(tmp2,tmp,(float)alpha);
-		t->scale(t->tmp[1],t->tmp[0],(float)alpha);
-		//vecadd3f(ret.c,a.c,tmp2);
-		t->add(T,A,t->tmp[1]);
-	}else{
-		//vecadd3f(ret.c,a.c,vecscale3f(tmp2,vecdif3f(tmp,b.c,a.c),(float)alpha));
-		t->add(T,A,t->scale(t->tmp[1],t->dif(t->tmp[0],B,A),(float)alpha));
-	}
-	return T;
-}
+//void* damper_diftimes(struct X3D_PositionDamper *node, void *T, void *A, void *B, double alpha){
+//	struct SFVec3f ret;
+//	float tmp[3], tmp2[3];
+//	damper_ptrs *p = node->_p;
+//	ftype *t = node->_t;
+//
+//	//input  .add(value1.subtract(input  ).multiply(alpha))
+//	if(1){
+//		//vecdif3f(tmp,b.c,a.c);
+//		t->dif(t->tmp[0],B,A);
+//		//vecscale3f(tmp2,tmp,(float)alpha);
+//		t->scale(t->tmp[1],t->tmp[0],(float)alpha);
+//		//vecadd3f(ret.c,a.c,tmp2);
+//		t->add(T,A,t->tmp[1]);
+//	}else{
+//		//vecadd3f(ret.c,a.c,vecscale3f(tmp2,vecdif3f(tmp,b.c,a.c),(float)alpha));
+//		t->add(T,A,t->scale(t->tmp[1],t->dif(t->tmp[0],B,A),(float)alpha));
+//	}
+//	return T;
+//}
 
 void tick_damper(struct X3D_PositionDamper *node, double now)
 {
@@ -674,7 +688,8 @@ void tick_damper(struct X3D_PositionDamper *node, double now)
     //           : node->_input;
 
 	if(node->order > 0 && node->tau != 0.0)	
-		damper_diftimes(node,t->arr(p->_values,0),p->_input,t->arr(p->_values,0),alpha);
+		//damper_diftimes(node,t->arr(p->_values,0),p->_input,t->arr(p->_values,0),alpha);
+		t->lerp(t->arr(p->_values,0),p->_input,t->arr(p->_values,0),alpha);
 	else
 		t->copy(t->arr(p->_values,0),p->_input);
 
@@ -683,7 +698,8 @@ void tick_damper(struct X3D_PositionDamper *node, double now)
 			 //  ? damper_diftimes(values[0],values[1],alpha)
     //           : values[0];
 	if(node->order > 1 && node->tau != 0.0)	
-		damper_diftimes(node,t->arr(p->_values,1),t->arr(p->_values,0),t->arr(p->_values,1),alpha);
+		//damper_diftimes(node,t->arr(p->_values,1),t->arr(p->_values,0),t->arr(p->_values,1),alpha);
+		t->lerp(t->arr(p->_values,1),t->arr(p->_values,0),t->arr(p->_values,1),alpha);
 	else
 		t->copy(t->arr(p->_values,1),t->arr(p->_values,0));
 
@@ -692,7 +708,8 @@ void tick_damper(struct X3D_PositionDamper *node, double now)
 			 //  ? damper_diftimes(values[1],values[2],alpha)
     //           : values[1];
 	if(node->order > 2 && node->tau != 0.0)	
-		damper_diftimes(node,t->arr(p->_values,2),t->arr(p->_values,1),t->arr(p->_values,2),alpha);
+		//damper_diftimes(node,t->arr(p->_values,2),t->arr(p->_values,1),t->arr(p->_values,2),alpha);
+		t->lerp(t->arr(p->_values,2),t->arr(p->_values,1),t->arr(p->_values,2),alpha);
 	else
 		t->copy(t->arr(p->_values,2),t->arr(p->_values,1));
 
@@ -702,7 +719,8 @@ void tick_damper(struct X3D_PositionDamper *node, double now)
 			 //  ? damper_diftimes(values[2],values[3],alpha)
     //           : values[2];
 	if(node->order > 3 && node->tau != 0.0)	
-		damper_diftimes(node,t->arr(p->_values,3),t->arr(p->_values,2),t->arr(p->_values,3),alpha);
+		//damper_diftimes(node,t->arr(p->_values,3),t->arr(p->_values,2),t->arr(p->_values,3),alpha);
+		t->lerp(t->arr(p->_values,3),t->arr(p->_values,2),t->arr(p->_values,3),alpha);
 	else
 		t->copy(t->arr(p->_values,3),t->arr(p->_values,2));
 
@@ -711,7 +729,8 @@ void tick_damper(struct X3D_PositionDamper *node, double now)
 			 //  ? damper_diftimes(values[3],values[4],alpha)
     //           : values[3];
 	if(node->order > 4 && node->tau != 0.0)	
-		damper_diftimes(node,t->arr(p->_values,4),t->arr(p->_values,3),t->arr(p->_values,4),alpha);
+		//damper_diftimes(node,t->arr(p->_values,4),t->arr(p->_values,3),t->arr(p->_values,4),alpha);
+		t->lerp(t->arr(p->_values,4),t->arr(p->_values,3),t->arr(p->_values,4),alpha);
 	else
 		t->copy(t->arr(p->_values,4),t->arr(p->_values,3));
 
@@ -1328,6 +1347,14 @@ struct Multi_Vec3f *mfvec3f_scale(struct Multi_Vec3f* T, struct Multi_Vec3f *A, 
 		sfvec3f_scale(&T->p[i],&A->p[i],S);
 	return T;
 }
+struct Multi_Vec3f *mfvec3f_lerp(struct Multi_Vec3f* T, struct Multi_Vec3f *A, struct Multi_Vec3f *B, float alpha){
+	int i;
+	T->n = A->n;
+	T->p = realloc(T->p,T->n * sizeof(struct SFVec3f));
+	for(i=0;i<T->n;i++)
+		sfvec3f_lerp(&T->p[i],&A->p[i],&B->p[i],alpha);
+	return T;
+}
 float mfvec3f_dist(struct Multi_Vec3f* A){
 	int i;
 	float dist = 0.0f;
@@ -1353,6 +1380,7 @@ mfvec3f_copy,
 mfvec3f_add,
 mfvec3f_dif,
 mfvec3f_scale,
+mfvec3f_lerp,
 mfvec3f_dist,
 mfvec3f_same,
 mfvec3f_same,
@@ -1466,8 +1494,123 @@ void do_OrientationDamperTick(void * ptr){
 		MARK_NODE_COMPILED
 	}
 }
+struct SFRotation *sfrotation_inverse(struct SFRotation* T, struct SFRotation *A){
+	memcpy(T->c, A->c, sizeof(struct SFRotation));
+	Quaternion qA,qT;
+	double a,b,c,d;
 
+	/* convert both rotation to quaternion */
+	vrmlrot_to_quaternion(&qA, (double) A->c[0], 
+		(double) A->c[1], (double) A->c[2], (double) A->c[3]);
 
+	/* invert it */
+	quaternion_inverse(&qT,&qA);
+
+	/* and return the resultant, as a vrml rotation */
+	quaternion_to_vrmlrot(&qT, &a, &b, &c, &d);
+	/* double to floats, can not use pointers... */
+	T->c[0] = (float) a;
+	T->c[1] = (float) b;
+	T->c[2] = (float) c;
+	T->c[3] = (float) d;
+	return T;
+}
+struct SFRotation *sfrotation_multiply(struct SFRotation* T, struct SFRotation *A, struct SFRotation *B){
+	Quaternion qA,qB,qT;
+	double a,b,c,d;
+
+	/* convert both rotation to quaternion */
+	vrmlrot_to_quaternion(&qA, (double) A->c[0], 
+		(double) A->c[1], (double) A->c[2], (double) A->c[3]);
+
+	vrmlrot_to_quaternion(&qB, (double) B->c[0], 
+		(double) B->c[1], (double) B->c[2], (double) B->c[3]);
+
+	/* multiply them */
+	quaternion_multiply(&qT,&qA,&qB);
+
+	/* and return the resultant, as a vrml rotation */
+	quaternion_to_vrmlrot(&qT, &a, &b, &c, &d);
+	/* double to floats, can not use pointers... */
+	T->c[0] = (float) a;
+	T->c[1] = (float) b;
+	T->c[2] = (float) c;
+	T->c[3] = (float) d;
+	return T;
+}
+
+struct SFRotation *sfrotation_copy(struct SFRotation* T, struct SFRotation *A){
+	memcpy(T->c, A->c, sizeof(struct SFRotation));
+	return T;
+}
+struct SFRotation *sfrotation_add(struct SFRotation* T, struct SFRotation *A, struct SFRotation *B){
+	//vecadd4f(T->c,A->c,B->c); //??
+	return T;
+}
+struct SFRotation *sfrotation_dif(struct SFRotation* T, struct SFRotation *A, struct SFRotation *B){
+	//vecdif4f(T->c,A->c,B->c); //
+	return T;
+}
+struct SFRotation *sfrotation_scale(struct SFRotation* T, struct SFRotation *A, float S){
+	//vecscale4f(T->c,A->c,S); // doesn't make sense
+	return T;
+}
+struct SFRotation *sfrotation_slerp(struct SFRotation* T, struct SFRotation *A, struct SFRotation *B, float alpha){
+	if (APPROX(alpha, 0.0f)) {
+		memcpy(T->c,A->c,4*sizeof(float));
+	} else if (APPROX(alpha, 1.0f)) {
+		memcpy(T->c,B->c,4*sizeof(float));
+	} else {
+		Quaternion quatA, quatB, quatT;
+		double a,b,c,d;
+		vrmlrot_to_quaternion(&quatA,
+							  A->c[0],
+							  A->c[1],
+							  A->c[2],
+							  A->c[3]);
+
+		vrmlrot_to_quaternion(&quatB,
+							  B->c[0],
+							  B->c[1],
+							  B->c[2],
+							  B->c[3]);
+
+		quaternion_slerp(&quatT, &quatA, &quatB, (double)alpha);
+		quaternion_to_vrmlrot(&quatT,&a,&b,&c,&d);
+		/* double to floats, can not use pointers... */
+		T->c[0] = (float) a;
+		T->c[1] = (float) b;
+		T->c[2] = (float) c;
+		T->c[3] = (float) d;
+	}
+	return T;
+}
+float sfrotation_dist(struct SFRotation* A){
+	return A->c[4]; //just the angle?
+}
+int sfrotation_same(struct SFRotation *A, struct SFRotation *B){
+	int i,isame = TRUE;
+	for(i=0;i<4;i++)
+		isame = isame && A->c[i] == B->c[i]; 
+	return isame;
+}
+struct SFRotation *sfrotation_arr(struct SFRotation *A, int i){
+	return &A[i];
+}
+struct SFRotation sfrotation_tmps[6];
+void *sfrotation_tmp [] = {&sfrotation_tmps[0],&sfrotation_tmps[1],&sfrotation_tmps[2],&sfrotation_tmps[3],&sfrotation_tmps[4],&sfrotation_tmps[5]};
+ftype ftype_sfrotation = {
+sfrotation_copy,
+sfrotation_add,
+sfrotation_dif,
+sfrotation_scale,
+sfrotation_slerp,
+sfrotation_dist,
+sfrotation_same,
+sfrotation_same,
+sfrotation_arr,
+sfrotation_tmp,
+};
 
 void do_PositionChaser2DTick_default(void * ptr){
 	struct X3D_PositionChaser2D *node = (struct X3D_PositionChaser2D *)ptr;
@@ -1491,6 +1634,13 @@ void do_PositionDamper2DTick_default(void * ptr){
 	}
 
 }
+float *veclerp2f(float *T, float *A, float *B, float alpha){
+	int i;
+	for(i=0;i<2;i++){
+		T[i] = (1.0f - alpha)*A[i] + alpha*B[i];
+	}
+	return T;
+}
 struct SFVec2f *sfvec2f_copy(struct SFVec2f* T, struct SFVec2f *A){
 	veccopy2f(T->c,A->c);
 	return T;
@@ -1505,6 +1655,10 @@ struct SFVec2f *sfvec2f_dif(struct SFVec2f* T, struct SFVec2f *A, struct SFVec2f
 }
 struct SFVec2f *sfvec2f_scale(struct SFVec2f* T, struct SFVec2f *A, float S){
 	vecscale2f(T->c,A->c,S);
+	return T;
+}
+struct SFVec2f *sfvec2f_lerp(struct SFVec2f* T, struct SFVec2f *A, struct SFVec2f *B, float alpha){
+	veclerp2f(T->c,A->c,B->c,alpha);
 	return T;
 }
 float sfvec2f_dist(struct SFVec2f* A){
@@ -1523,6 +1677,7 @@ sfvec2f_copy,
 sfvec2f_add,
 sfvec2f_dif,
 sfvec2f_scale,
+sfvec2f_lerp,
 sfvec2f_dist,
 sfvec2f_same,
 sfvec2f_same,
@@ -1650,6 +1805,10 @@ float *scalar_scale(float* T, float *A, float S){
     *T = *A *S;
 	return T;
 }
+float *scalar_lerp(float* T, float *A, float *B, float alpha){
+    *T = (1.0f -alpha)*(*A) + alpha*(*B);
+	return T;
+}
 float scalar_dist(float* A){
 	return fabs(*A);
 }
@@ -1666,6 +1825,7 @@ scalar_copy,
 scalar_add,
 scalar_dif,
 scalar_scale,
+scalar_lerp,
 scalar_dist,
 scalar_same,
 scalar_same,
@@ -1815,6 +1975,15 @@ struct Multi_Vec2f *mfvec2f_scale(struct Multi_Vec2f* T, struct Multi_Vec2f *A, 
 		sfvec2f_scale(&T->p[i],&A->p[i],S);
 	return T;
 }
+struct Multi_Vec2f *mfvec2f_lerp(struct Multi_Vec2f* T, struct Multi_Vec2f *A, struct Multi_Vec2f *B, float alpha){
+	int i;
+	T->n = min(A->n,B->n);
+	T->p = realloc(T->p,T->n * sizeof(struct SFVec2f));
+	for(i=0;i<T->n;i++)
+		sfvec2f_lerp(&T->p[i],&A->p[i],&B->p[i],alpha);
+	return T;
+}
+
 float mfvec2f_dist(struct Multi_Vec2f* A){
 	int i;
 	float dist = 0.0f;
@@ -1840,6 +2009,7 @@ mfvec2f_copy,
 mfvec2f_add,
 mfvec2f_dif,
 mfvec2f_scale,
+mfvec2f_lerp,
 mfvec2f_dist,
 mfvec2f_same,
 mfvec2f_same,
