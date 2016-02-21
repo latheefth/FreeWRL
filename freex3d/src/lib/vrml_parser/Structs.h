@@ -7314,7 +7314,7 @@ struct X3D_PositionChaser {
 	struct SFVec3f initialValue;
 	struct SFVec3f set_destination;
 	struct SFVec3f set_value;
-	struct Multi_Vec3f _buffer;
+	void * _buffer;
 	struct SFVec3f _previousvalue;
 	struct SFVec3f _destination;
 };
@@ -7372,7 +7372,7 @@ struct X3D_PositionDamper {
 	struct SFVec3f initialValue;
 	struct SFVec3f set_destination;
 	struct SFVec3f set_value;
-	struct Multi_Vec3f _values;
+	void * _values;
 	struct SFVec3f _input;
 };
 extern struct X3D_Virt virt_PositionDamper;

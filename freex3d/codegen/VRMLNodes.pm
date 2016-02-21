@@ -3197,7 +3197,7 @@ our %Nodes = (
 		initialValue => ["SFVec3f", [0,0,0], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		set_destination => ["SFVec3f", [0,0,0], "inputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		set_value => ["SFVec3f", [0,0,0], "inputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		_buffer => ["MFVec3f", [], "initializeOnly", 0],
+		_buffer => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
 		_previousvalue => ["SFVec3f", [0,0,0], "initializeOnly", 0],
 		_destination => ["SFVec3f", [0,0,0], "initializeOnly", 0],
 	],"X3DChaserNode"),
@@ -3216,7 +3216,7 @@ our %Nodes = (
 		initialValue => ["SFVec3f", [0,0,0], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		set_destination => ["SFVec3f", [0,0,0], "inputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		set_value => ["SFVec3f", [0,0,0], "inputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		_values => ["MFVec3f", [], "initializeOnly", 0],
+		_values => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
 		_input => ["SFVec3f", [0,0,0], "initializeOnly", 0],
 	],"X3DDamperNode"),
 
