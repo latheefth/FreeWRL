@@ -3188,6 +3188,8 @@ our %Nodes = (
 		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		isActive  => ["SFBool", "FALSE","outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		duration  => ["SFTime", 1,"initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_bufferendtime  => ["SFTime", 0,"initializeOnly", 0],
+		_steptime  => ["SFTime", 0,"initializeOnly", 0],
 		initialDestination => ["SFVec3f", [0,0,0], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		initialValue => ["SFVec3f", [0,0,0], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		set_destination => ["SFVec3f", [0,0,0], "inputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -3196,8 +3198,6 @@ our %Nodes = (
 		_buffer => ["MFVec3f", [], "initializeOnly", 0],
 		_previousvalue => ["SFVec3f", [0,0,0], "initializeOnly", 0],
 		_destination => ["SFVec3f", [0,0,0], "initializeOnly", 0],
-		_bufferendtime  => ["SFTime", 0,"initializeOnly", 0],
-		_steptime  => ["SFTime", 0,"initializeOnly", 0],
 	],"X3DChaserNode"),
 	
 	"PositionDamper" => new VRML::NodeType("PositionDamper", [

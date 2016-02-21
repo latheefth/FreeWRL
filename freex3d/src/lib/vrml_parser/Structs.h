@@ -7307,6 +7307,8 @@ struct X3D_PositionChaser {
 	struct X3D_Node *metadata;
 	int isActive;
 	double duration;
+	double _bufferendtime;
+	double _steptime;
 	struct SFVec3f initialDestination;
 	struct SFVec3f initialValue;
 	struct SFVec3f set_destination;
@@ -7315,8 +7317,6 @@ struct X3D_PositionChaser {
 	struct Multi_Vec3f _buffer;
 	struct SFVec3f _previousvalue;
 	struct SFVec3f _destination;
-	double _bufferendtime;
-	double _steptime;
 };
 extern struct X3D_Virt virt_PositionChaser;
 /***********************/
