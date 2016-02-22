@@ -6898,13 +6898,20 @@ struct X3D_OrientationChaser {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
+	void * _p;
+	void * _t;
 	int isActive;
 	double duration;
+	double _bufferendtime;
+	double _steptime;
 	struct SFRotation value_changed;
 	struct SFRotation initialDestination;
 	struct SFRotation initialValue;
 	struct SFRotation set_destination;
 	struct SFRotation set_value;
+	void * _buffer;
+	struct SFRotation _previousvalue;
+	struct SFRotation _destination;
 };
 extern struct X3D_Virt virt_OrientationChaser;
 /***********************/
@@ -6923,6 +6930,8 @@ struct X3D_OrientationDamper {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
+	void * _p;
+	void * _t;
 	double tau;
 	float tolerance;
 	int isActive;
@@ -6935,6 +6944,8 @@ struct X3D_OrientationDamper {
 	struct SFRotation initialValue;
 	struct SFRotation set_destination;
 	struct SFRotation set_value;
+	void * _values;
+	struct SFRotation _input;
 };
 extern struct X3D_Virt virt_OrientationDamper;
 /***********************/

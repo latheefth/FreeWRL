@@ -187,6 +187,7 @@ typedef struct damper_ptrs {
 //- including SF and MF in same interface, so algos can be generic
 //  this should be static for a fieldtype
 typedef struct ftype {
+	int type;
 	void* (*copy)(void *T,void *A);
 	void* (*add)(void *T,void* A,void* B);
 	void* (*dif)(void *T,void* A,void* B);
@@ -216,6 +217,7 @@ float *veclerp3f(float *T, float *A, float *B, float alpha){
 float tmp3f1[6][3];
 void *tmp3f [] = {&tmp3f[0],&tmp3f[1],&tmp3f[2],&tmp3f[3],&tmp3f[4],&tmp3f[5]};
 ftype ftype_vec3f = {
+-1, //not a real type, just for warm-up
 veccopy3f,
 vecadd3f,
 vecdif3f,
@@ -260,6 +262,7 @@ struct SFVec3f *sfvec3f_arr(struct SFVec3f *A, int i){
 struct SFVec3f sfvec3f_tmps[6];
 void *sfvec3f_tmp [] = {&sfvec3f_tmps[0],&sfvec3f_tmps[1],&sfvec3f_tmps[2],&sfvec3f_tmps[3],&sfvec3f_tmps[4],&sfvec3f_tmps[5]};
 ftype ftype_sfvec3f = {
+FIELDTYPE_SFVec3f,
 sfvec3f_copy,
 sfvec3f_add,
 sfvec3f_dif,
@@ -322,27 +325,13 @@ double chaser_UpdateBuffer(struct X3D_PositionChaser *node, double Now)
                 // Hmm, we have a destination value, but don't know how it has
                 // reached the current state.
                 // Therefore we do a linear interpolation from the latest value in the buffer to destination.
-				float tmp1[3],tmp2[3];
+				//float tmp1[3],tmp2[3];
                 float Alpha= (float)C / (float)NumToShift;
 				// might need to chain functions like this backward:
 				// float *vecadd3f(float *c, float *a, float *b)
 				// and feed it temps in the *c variable
 				// and in the last step use Buffer[] as *c
-                //Buffer[C]= Buffer[NumToShift].multiply(Alpha).add(destination.multiply((1 - Alpha)));
-				//vecadd3f(Buffer[C].c,vecscale3f(Buffer[NumToShift].c,(float)Alpha),vecscale3f(tmp2,destination.c,(1.0f-Alpha));
-				//printf("alf %f ",Alpha);
-				// buff[C] = alpha*buff[NumToShift] + (1-alpha)*destination;
-				//if(1){
-					//float tmp3[3];
-					//vecscale3f(tmp1,buffer[NumToShift].c,Alpha);
-					t->scale(t->tmp[0],t->arr(p->_buffer,NumToShift),Alpha);
-					//vecscale3f(tmp2,node->_destination.c,1.0f - Alpha);
-					t->scale(t->tmp[1],p->_destination,1.0f - Alpha);
-					//vecadd3f(tmp3,tmp1,tmp2);
-					t->add(t->tmp[2],t->tmp[0],t->tmp[1]);
-					//veccopy3f(buffer[C].c,tmp3);
-					t->copy(t->arr(p->_buffer,C),t->tmp[2]);
-				//}else{
+				t->lerp(t->arr(p->_buffer,C),p->_destination,t->arr(p->_buffer,NumToShift),Alpha);
 				//	vecadd3f(buffer[C].c,vecscale3f(tmp1,buffer[NumToShift].c,Alpha),vecscale3f(tmp2,node->_destination.c,1.0f - Alpha));
 				//}
             }
@@ -411,7 +400,7 @@ double chaser_StepResponse(struct X3D_PositionChaser *node, double t)
 void chaser_tick(struct X3D_PositionChaser *node, double Now)
 {
 	int C;
-	double Frac;
+	double Frac, Alpha;
     //struct SFVec3f Output;
     //struct SFVec3f DeltaIn;
     //struct SFVec3f DeltaOut;
@@ -447,32 +436,56 @@ void chaser_tick(struct X3D_PositionChaser *node, double Now)
     // for adding the step responses.
     // Actually UpdateBuffer(.) maintains this value in
 
-    //Output= node->_previousvalue;
-	t->copy(Output,p->_previousValue);
-    //DeltaIn= Buffer[Buffer_length - 1].subtract(previousValue);
-	//vecdif3f(DeltaIn.c,buffer[Buffer_length - 1].c,node->_previousvalue.c);
-	t->dif(DeltaIn,t->arr(p->_buffer,Buffer_length -1),p->_previousValue);
+	if(t->type == FIELDTYPE_SFRotation){
+		//SFRotation
+		//var Output= previousValue;
+		t->copy(Output,p->_previousValue);
 
-    //DeltaOut= DeltaIn.multiply(StepResponse((Buffer_length - 1 + Frac) * cStepTime));
-	//vecscale3f(DeltaOut.c,DeltaIn.c,(float)chaser_StepResponse(node,((double)Buffer_length - 1.0 + Frac) * node->_steptime));
-	t->scale(DeltaOut,DeltaIn,(float)chaser_StepResponse(node,((double)Buffer_length - 1.0 + Frac) * node->_steptime));
+		//var DeltaIn= previousValue.inverse().multiply(Buffer[Buffer.length - 1]);
+		t->dif(DeltaIn,t->arr(p->_buffer,Buffer_length -1),p->_previousValue);
+		Alpha = chaser_StepResponse(node,((double)(Buffer_length - 1) + Frac) * node->_steptime);
+		//Output= Output.slerp(Output.multiply(DeltaIn), StepResponse((Buffer.length - 1 + Frac) * cStepTime));
+		t->lerp(Output,Output,t->add(t->tmp[0],Output,DeltaIn),(float)Alpha);
+		for(C= Buffer_length - 2; C>=0; C-- )
+		{
+			//	var DeltaIn= Buffer[C + 1].inverse().multiply(Buffer[C]);
+			t->dif(DeltaIn,t->arr(p->_buffer,C),t->arr(p->_buffer,C+1));
 
-    //Output= Output.add(DeltaOut);
-	//vecadd3f(Output.c,Output.c,DeltaOut.c);
-	t->add(Output,Output,DeltaOut);
-    for(C= Buffer_length - 2; C>=0; C-- )
-    {
-        //DeltaIn= Buffer[C].subtract(Buffer[C + 1]);
-		//vecdif3f(DeltaIn.c,buffer[C].c,buffer[C+1].c);
-		t->dif(DeltaIn,t->arr(p->_buffer,C),t->arr(p->_buffer,C+1));
+			Alpha = chaser_StepResponse(node,((double)C + Frac) * node->_steptime);
+			//	Output= Output.slerp(Output.multiply(DeltaIn), StepResponse((C + Frac) * cStepTime));
+			t->lerp(Output,Output,t->add(t->tmp[0],Output,DeltaIn),(float)Alpha);
+		}
 
-        //DeltaOut= DeltaIn.multiply(StepResponse((C + Frac) * cStepTime));
-		//vecscale3f(DeltaOut.c,DeltaIn.c,(float)chaser_StepResponse(node,((double)C + Frac) * node->_steptime));
-		t->scale(DeltaOut,DeltaIn,(float)chaser_StepResponse(node,((double)C + Frac) * node->_steptime));
-        //Output= Output.add(DeltaOut);
+	}else{
+		//everything else
+		//Output= node->_previousvalue;
+		t->copy(Output,p->_previousValue);
+		//DeltaIn= Buffer[Buffer_length - 1].subtract(previousValue);
+		//vecdif3f(DeltaIn.c,buffer[Buffer_length - 1].c,node->_previousvalue.c);
+		t->dif(DeltaIn,t->arr(p->_buffer,Buffer_length -1),p->_previousValue);
+
+		//DeltaOut= DeltaIn.multiply(StepResponse((Buffer_length - 1 + Frac) * cStepTime));
+		//vecscale3f(DeltaOut.c,DeltaIn.c,(float)chaser_StepResponse(node,((double)Buffer_length - 1.0 + Frac) * node->_steptime));
+		t->scale(DeltaOut,DeltaIn,(float)chaser_StepResponse(node,((double)(Buffer_length - 1) + Frac) * node->_steptime));
+
+		//Output= Output.add(DeltaOut);
 		//vecadd3f(Output.c,Output.c,DeltaOut.c);
 		t->add(Output,Output,DeltaOut);
-    }
+
+		for(C= Buffer_length - 2; C>=0; C-- )
+		{
+			//DeltaIn= Buffer[C].subtract(Buffer[C + 1]);
+			//vecdif3f(DeltaIn.c,buffer[C].c,buffer[C+1].c);
+			t->dif(DeltaIn,t->arr(p->_buffer,C),t->arr(p->_buffer,C+1));
+
+			//DeltaOut= DeltaIn.multiply(StepResponse((C + Frac) * cStepTime));
+			//vecscale3f(DeltaOut.c,DeltaIn.c,(float)chaser_StepResponse(node,((double)C + Frac) * node->_steptime));
+			t->scale(DeltaOut,DeltaIn,(float)chaser_StepResponse(node,((double)C + Frac) * node->_steptime));
+			//Output= Output.add(DeltaOut);
+			//vecadd3f(Output.c,Output.c,DeltaOut.c);
+			t->add(Output,Output,DeltaOut);
+		}
+	}
 	//if(!vecsame3f(Output.c,node->value_changed.c)){
 	if(!t->same(Output,p->value_changed)){
         t->copy(p->value_changed,Output);
@@ -566,36 +579,41 @@ void damper_Init(struct X3D_PositionDamper *node)
 
 float damper_GetDist(struct X3D_PositionDamper *node)
 {
-	float tmp[3], dist;
+	float dist;
 	damper_ptrs *p = node->_p;
 	ftype *t = node->_t;
 
-	struct SFVec3f *values = (struct SFVec3f *)node->_values;
+	//struct SFVec3f *values = (struct SFVec3f *)node->_values;
 
     //double dist= value1.subtract(node->initialDestination).length();
-	dist = veclength3f(vecdif3f(tmp,values[0].c,node->_input.c));
+	//dist = veclength3f(vecdif3f(tmp,values[0].c,node->_input.c));
+	dist = t->dist(t->dif(t->tmp[0],t->arr(p->_values,0),p->_input));
     if(node->order > 1)
     {
         //double dist2= value2.subtract(value1).length();
-		float dist2 = veclength3f(vecdif3f(tmp,values[1].c,values[0].c));
+		//float dist2 = veclength3f(vecdif3f(tmp,values[1].c,values[0].c));
+		float dist2 = t->dist(t->dif(t->tmp[0],t->arr(p->_values,1),t->arr(p->_values,0)));
         if( dist2 > dist)  dist= dist2;
     }
     if(node->order > 2)
     {
         //double dist3= value3.subtract(value2).length();
-		float dist3 = veclength3f(vecdif3f(tmp,values[2].c,values[1].c));
+		//float dist3 = veclength3f(vecdif3f(tmp,values[2].c,values[1].c));
+		float dist3 = t->dist(t->dif(t->tmp[0],t->arr(p->_values,2),t->arr(p->_values,1)));
         if( dist3 > dist)  dist= dist3;
     }
     if(node->order > 3)
     {
         //double dist4= value4.subtract(value3).length();
-		float dist4 = veclength3f(vecdif3f(tmp,values[3].c,values[2].c));
+		//float dist4 = veclength3f(vecdif3f(tmp,values[3].c,values[2].c));
+		float dist4 = t->dist(t->dif(t->tmp[0],t->arr(p->_values,3),t->arr(p->_values,2)));
         if( dist4 > dist)  dist= dist4;
     }
     if(node->order > 4)
     {
         //double dist5= value5.subtract(value4).length();
-		float dist5 = veclength3f(vecdif3f(tmp,values[4].c, values[3].c));
+		//float dist5 = veclength3f(vecdif3f(tmp,values[4].c, values[3].c));
+		float dist5 = t->dist(t->dif(t->tmp[0],t->arr(p->_values,4),t->arr(p->_values,3)));
         if( dist5 > dist)  dist= dist5;
     }
     return dist;
@@ -689,7 +707,7 @@ void tick_damper(struct X3D_PositionDamper *node, double now)
 
 	if(node->order > 0 && node->tau != 0.0)	
 		//damper_diftimes(node,t->arr(p->_values,0),p->_input,t->arr(p->_values,0),alpha);
-		t->lerp(t->arr(p->_values,0),p->_input,t->arr(p->_values,0),alpha);
+		t->lerp(t->arr(p->_values,0),p->_input,t->arr(p->_values,0),(float)alpha);
 	else
 		t->copy(t->arr(p->_values,0),p->_input);
 
@@ -699,7 +717,7 @@ void tick_damper(struct X3D_PositionDamper *node, double now)
     //           : values[0];
 	if(node->order > 1 && node->tau != 0.0)	
 		//damper_diftimes(node,t->arr(p->_values,1),t->arr(p->_values,0),t->arr(p->_values,1),alpha);
-		t->lerp(t->arr(p->_values,1),t->arr(p->_values,0),t->arr(p->_values,1),alpha);
+		t->lerp(t->arr(p->_values,1),t->arr(p->_values,0),t->arr(p->_values,1),(float)alpha);
 	else
 		t->copy(t->arr(p->_values,1),t->arr(p->_values,0));
 
@@ -709,7 +727,7 @@ void tick_damper(struct X3D_PositionDamper *node, double now)
     //           : values[1];
 	if(node->order > 2 && node->tau != 0.0)	
 		//damper_diftimes(node,t->arr(p->_values,2),t->arr(p->_values,1),t->arr(p->_values,2),alpha);
-		t->lerp(t->arr(p->_values,2),t->arr(p->_values,1),t->arr(p->_values,2),alpha);
+		t->lerp(t->arr(p->_values,2),t->arr(p->_values,1),t->arr(p->_values,2),(float)alpha);
 	else
 		t->copy(t->arr(p->_values,2),t->arr(p->_values,1));
 
@@ -720,7 +738,7 @@ void tick_damper(struct X3D_PositionDamper *node, double now)
     //           : values[2];
 	if(node->order > 3 && node->tau != 0.0)	
 		//damper_diftimes(node,t->arr(p->_values,3),t->arr(p->_values,2),t->arr(p->_values,3),alpha);
-		t->lerp(t->arr(p->_values,3),t->arr(p->_values,2),t->arr(p->_values,3),alpha);
+		t->lerp(t->arr(p->_values,3),t->arr(p->_values,2),t->arr(p->_values,3),(float)alpha);
 	else
 		t->copy(t->arr(p->_values,3),t->arr(p->_values,2));
 
@@ -730,7 +748,7 @@ void tick_damper(struct X3D_PositionDamper *node, double now)
     //           : values[3];
 	if(node->order > 4 && node->tau != 0.0)	
 		//damper_diftimes(node,t->arr(p->_values,4),t->arr(p->_values,3),t->arr(p->_values,4),alpha);
-		t->lerp(t->arr(p->_values,4),t->arr(p->_values,3),t->arr(p->_values,4),alpha);
+		t->lerp(t->arr(p->_values,4),t->arr(p->_values,3),t->arr(p->_values,4),(float)alpha);
 	else
 		t->copy(t->arr(p->_values,4),t->arr(p->_values,3));
 
@@ -1376,6 +1394,7 @@ struct Multi_Vec3f *mfvec3f_arr(struct Multi_Vec3f *A, int i){
 struct Multi_Vec3f mfvec3f_tmps[6];
 void *mfvec3f_tmp [] = {&mfvec3f_tmps[0],&mfvec3f_tmps[1],&mfvec3f_tmps[2],&mfvec3f_tmps[3],&mfvec3f_tmps[4],&mfvec3f_tmps[5]};
 ftype ftype_mfvec3f = {
+FIELDTYPE_MFVec3f,
 mfvec3f_copy,
 mfvec3f_add,
 mfvec3f_dif,
@@ -1387,6 +1406,474 @@ mfvec3f_same,
 mfvec3f_arr,
 mfvec3f_tmp,
 };
+
+
+
+
+
+struct SFRotation *sfrotation_inverse(struct SFRotation* T, struct SFRotation *A){
+	Quaternion qA,qT;
+	double a,b,c,d;
+	memcpy(T->c, A->c, sizeof(struct SFRotation));
+
+	/* convert both rotation to quaternion */
+	vrmlrot_to_quaternion(&qA, (double) A->c[0], 
+		(double) A->c[1], (double) A->c[2], (double) A->c[3]);
+
+	/* invert it */
+	quaternion_inverse(&qT,&qA);
+
+	/* and return the resultant, as a vrml rotation */
+	quaternion_to_vrmlrot(&qT, &a, &b, &c, &d);
+	/* double to floats, can not use pointers... */
+	T->c[0] = (float) a;
+	T->c[1] = (float) b;
+	T->c[2] = (float) c;
+	T->c[3] = (float) d;
+	return T;
+}
+struct SFRotation *sfrotation_multiply(struct SFRotation* T, struct SFRotation *A, struct SFRotation *B){
+	Quaternion qA,qB,qT;
+	double a,b,c,d;
+
+	/* convert both rotation to quaternion */
+	vrmlrot_to_quaternion(&qA, (double) A->c[0], 
+		(double) A->c[1], (double) A->c[2], (double) A->c[3]);
+
+	vrmlrot_to_quaternion(&qB, (double) B->c[0], 
+		(double) B->c[1], (double) B->c[2], (double) B->c[3]);
+
+	/* multiply them */
+	quaternion_multiply(&qT,&qA,&qB);
+
+	/* and return the resultant, as a vrml rotation */
+	quaternion_to_vrmlrot(&qT, &a, &b, &c, &d);
+	/* double to floats, can not use pointers... */
+	T->c[0] = (float) a;
+	T->c[1] = (float) b;
+	T->c[2] = (float) c;
+	T->c[3] = (float) d;
+	return T;
+}
+
+struct SFRotation *sfrotation_copy(struct SFRotation* T, struct SFRotation *A){
+	memcpy(T->c, A->c, sizeof(struct SFRotation));
+	return T;
+}
+struct SFRotation *sfrotation_add(struct SFRotation* T, struct SFRotation *A, struct SFRotation *B){
+	//rotate a rotation by a dif rotation
+	sfrotation_multiply(T,A,B);
+	return T;
+}
+struct SFRotation *sfrotation_dif(struct SFRotation* T, struct SFRotation *A, struct SFRotation *B){
+	//find the difference between 2 rotations, return the dif as rotation
+	//T=  inverse(B)*A
+	Quaternion qA,qB,qBI,qT;
+	double a,b,c,d;
+
+	/* convert both rotation to quaternion */
+	vrmlrot_to_quaternion(&qA, (double) A->c[0], 
+		(double) A->c[1], (double) A->c[2], (double) A->c[3]);
+
+	vrmlrot_to_quaternion(&qB, (double) B->c[0], 
+		(double) B->c[1], (double) B->c[2], (double) B->c[3]);
+
+
+	quaternion_inverse(&qBI,&qB);
+	/* multiply them */
+	quaternion_multiply(&qT,&qBI,&qA);
+
+	/* and return the resultant, as a vrml rotation */
+	quaternion_to_vrmlrot(&qT, &a, &b, &c, &d);
+	/* double to floats, can not use pointers... */
+	T->c[0] = (float) a;
+	T->c[1] = (float) b;
+	T->c[2] = (float) c;
+	T->c[3] = (float) d;
+	return T;
+
+	return T;
+}
+struct SFRotation *sfrotation_scale(struct SFRotation* T, struct SFRotation *A, float S){
+	//vecscale4f(T->c,A->c,S); // doesn't make sense
+	return T;
+}
+struct SFRotation *sfrotation_slerp(struct SFRotation* T, struct SFRotation *A, struct SFRotation *B, float alpha){
+	if (APPROX(alpha, 0.0f)) {
+		memcpy(T->c,A->c,4*sizeof(float));
+	} else if (APPROX(alpha, 1.0f)) {
+		memcpy(T->c,B->c,4*sizeof(float));
+	} else {
+		Quaternion quatA, quatB, quatT;
+		double x,y,z,a;
+		vrmlrot_to_quaternion(&quatA,
+							  A->c[0],
+							  A->c[1],
+							  A->c[2],
+							  A->c[3]);
+
+		vrmlrot_to_quaternion(&quatB,
+							  B->c[0],
+							  B->c[1],
+							  B->c[2],
+							  B->c[3]);
+
+		quaternion_slerp(&quatT, &quatA, &quatB, (double)alpha);
+		quaternion_to_vrmlrot(&quatT,&x,&y,&z,&a);
+		/* double to floats, can not use pointers... */
+		T->c[0] = (float) x;
+		T->c[1] = (float) y;
+		T->c[2] = (float) z;
+		T->c[3] = (float) a;
+	}
+	return T;
+}
+float sfrotation_dist(struct SFRotation* A){
+	//from a dif rotation, return the angle
+	return A->c[4]; //just the angle?
+}
+int sfrotation_same(struct SFRotation *A, struct SFRotation *B){
+	int i,isame = TRUE;
+	for(i=0;i<4;i++)
+		isame = isame && A->c[i] == B->c[i]; 
+	return isame;
+}
+struct SFRotation *sfrotation_arr(struct SFRotation *A, int i){
+	return &A[i];
+}
+struct SFRotation sfrotation_tmps[6];
+void *sfrotation_tmp [] = {&sfrotation_tmps[0],&sfrotation_tmps[1],&sfrotation_tmps[2],&sfrotation_tmps[3],&sfrotation_tmps[4],&sfrotation_tmps[5]};
+ftype ftype_sfrotation = {
+FIELDTYPE_SFRotation,
+sfrotation_copy,
+sfrotation_add,
+sfrotation_dif,
+sfrotation_scale,
+sfrotation_slerp,
+sfrotation_dist,
+sfrotation_same,
+sfrotation_same,
+sfrotation_arr,
+sfrotation_tmp,
+};
+
+void do_OrientationChaserTick(void * ptr){
+	double Now;
+	static double lasttime;
+	struct X3D_OrientationChaser *_node = (struct X3D_OrientationChaser *)ptr;
+	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr; //abstract interface
+	if(!node) return;
+	if(!_node->_buffer){
+		chaser_ptrs *p = malloc(sizeof(chaser_ptrs));
+		_node->_buffer = realloc(_node->_buffer,Buffer_length * sizeof(struct SFRotation)); //**changes with field type
+		node->_t = &ftype_sfrotation; //**changes with field type
+		node->_p = p;
+		p->initialDestination = &_node->initialDestination;
+		p->initialValue = &_node->initialValue;
+		p->set_destination = &_node->set_destination;
+		p->set_value = &_node->set_value;
+		p->value_changed = &_node->value_changed;
+		p->_buffer = _node->_buffer;
+		p->_destination = &_node->_destination;
+		p->_previousValue = &_node->_previousvalue;
+		chaser_init(node);
+	}
+	Now = TickTime();
+	if(NODE_NEEDS_COMPILING){
+		chaser_ptrs *p = node->_p;
+		ftype *t = node->_t;
+		static int count = 0;
+		node->isActive = TRUE;
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionChaser, isActive));
+		//Q how to tell which set_ was set: set_destination or set_value?
+		//if(!vecsame3f(node->set_destination.c,node->_destination.c))
+		if(!t->same(p->set_destination,p->_destination))
+			chaser_set_destination(node, Now);
+		//else if(!vecsame3f(node->set_value.c,node->initialValue.c)) //not sure I have the right idea here
+		else if(!t->same(p->set_value,p->initialValue))
+			chaser_set_value(node);
+		MARK_NODE_COMPILED
+		count++;
+	}
+	if(node->isActive)
+		chaser_tick(node,Now);
+}
+
+void do_OrientationDamperTick(void * ptr){
+	struct X3D_OrientationDamper *_node = (struct X3D_OrientationDamper *)ptr;
+	struct X3D_PositionDamper *node = (struct X3D_PositionDamper *)ptr; //abstract type
+	if(!node)return;
+	if(!_node->_values){
+		damper_ptrs *p = malloc(sizeof(damper_ptrs));
+		node->_t = &ftype_sfrotation; //**changes with field type
+		node->_p = p;
+		_node->_values = realloc(_node->_values,5 * sizeof(struct SFRotation)); //**changes with field type
+		p->initialDestination = &_node->initialDestination;
+		p->initialValue = &_node->initialValue;
+		p->set_destination = &_node->set_destination;
+		p->set_value = &_node->set_value;
+		p->value_changed = &_node->value_changed;
+		p->_input = &_node->_input;
+		p->_values = _node->_values;
+		//damper_CheckInit(node);
+        damper_Init(node);
+	}
+		
+	if(NODE_NEEDS_COMPILING){
+		//node->isActive = TRUE;
+		damper_ptrs *p = node->_p;
+		ftype *t = node->_t;
+
+		//if(!vecsame3f(node->set_destination.c,node->_input.c))  //not sure i have the right idea
+		if(!t->same(p->set_destination,p->_input))  
+			//damper_set_destination(node, node->set_destination);
+			damper_set_destination(node, p->set_destination);
+		//set_tau 
+		if(node->tau != node->_tau)
+			damper_set_tau(node,node->tau);
+		//set_value
+		//if(!vecsame3f(node->initialValue.c,node->set_value.c))
+		if(!t->same(p->initialValue,p->set_value))
+			//damper_set_value(node,node->set_value);
+			damper_set_value(node,p->set_value);
+		MARK_NODE_COMPILED
+	}
+	if(node->isActive)
+		tick_damper(node,TickTime());
+}
+
+
+void do_OrientationChaserTick_default(void * ptr){
+	struct X3D_OrientationChaser *node = (struct X3D_OrientationChaser *)ptr;
+	if(!node)return;
+	if(NODE_NEEDS_COMPILING){
+		//default action copy input to output when not implemented
+		veccopy3f(node->value_changed.c, node->set_destination.c);
+		node->value_changed.c[3] = node->set_destination.c[3];
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_OrientationChaser, value_changed));
+		MARK_NODE_COMPILED
+	}
+}
+void do_OrientationDamperTick_default(void * ptr){
+	struct X3D_OrientationDamper *node = (struct X3D_OrientationDamper *)ptr;
+	if(!node)return;
+	if(NODE_NEEDS_COMPILING){
+		//default action copy input to output when not implemented
+		veccopy3f(node->value_changed.c, node->set_destination.c);
+		node->value_changed.c[3] = node->set_destination.c[3];
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_OrientationDamper, value_changed));
+		MARK_NODE_COMPILED
+	}
+}
+
+//>> orientation chaser old way works
+void orichaser_init(struct X3D_OrientationChaser *node)
+{
+	int C;
+	struct SFRotation *buffer = (struct SFRotation*)node->_buffer;
+    node->_destination = node->initialDestination;
+    buffer[0]= node->initialDestination; //initial_destination;
+    for(C= 1; C<Buffer_length; C++ )
+        buffer[C]= node->initialValue; //initial_value;
+    node->_previousvalue= node->initialValue; //initial_value;
+    node->_steptime= node->duration / (double) Buffer_length; //cNumSupports;
+}
+double orichaser_UpdateBuffer(struct X3D_OrientationChaser *node, double Now)
+{
+	int C;
+    double Frac;
+	struct SFRotation *buffer = (struct SFRotation*)node->_buffer;
+	
+	Frac = (Now - node->_bufferendtime) / node->_steptime;
+    // is normally < 1. When it has grown to be larger than 1, we have to shift the array because the step response
+    // of the oldest entry has already reached its destination, and it's time for a newer entry.
+    // has already reached it
+    // In the case of a very low frame rate, or a very short cStepTime we may need to shift by more than one entry.
+
+    if(Frac >= 1.0)
+    {
+        int NumToShift= (int)floor(Frac);
+        Frac-= (double) NumToShift;
+        if(NumToShift < Buffer_length)
+        {   // normal case.
+
+            node->_previousvalue= buffer[Buffer_length - NumToShift];
+            for( C= Buffer_length - 1; C>=NumToShift; C-- )
+                buffer[C]= buffer[C - NumToShift];
+            for( C= 0; C<NumToShift; C++ )
+            {
+                // Hmm, we have a destination value, but don't know how it has
+                // reached the current state.
+                // Therefore we do a linear interpolation from the latest value in the buffer to destination.
+                float Alpha= (float)C / (float)NumToShift;
+
+                //Buffer[C]= destination.slerp(Buffer[NumToShift], Alpha);
+				if(1)sfrotation_slerp(&buffer[C],&node->_destination,&buffer[NumToShift],Alpha); //Q. order of slerp params?
+				else sfrotation_slerp(&buffer[C],&buffer[NumToShift],&node->_destination,Alpha); //Q. order of slerp params?
+            }
+        }else
+        {
+            // degenerated case:
+            //
+            // We have a _VERY_ low frame rate...
+            // we can only guess how we should fill the array.
+            // Maybe we could write part of a linear interpolation
+            // from Buffer[0] to destination, that goes from BufferEndTime to Now
+            // (possibly only the end of the interpolation is to be written),
+            // but if we rech here we are in a very degenerate case...
+            // Thus we just write destination to the buffer.
+            node->_previousvalue= NumToShift == Buffer_length? buffer[0] : node->_destination;
+
+            for( C= 0; C<Buffer_length; C++ )
+                buffer[C]= node->_destination;
+        }
+        node->_bufferendtime+= NumToShift * node->_steptime;
+    }
+    return Frac;
+}
+//when a route toNode.toField is PositionChaser.set_destination
+//we need to call this function (somehow) much like a script?
+//
+void orichaser_set_destination(struct X3D_OrientationChaser *node, struct SFRotation Dest, double Now)
+{
+    node->_destination= Dest;
+    // Somehow we assign to Buffer[-1] and wait untill this gets shifted into the real buffer.
+    // Would we assign to Buffer[0] instead, we'd have no delay, but this would create a jump in the
+    // output because Buffer[0] is associated with a value in the past.
+    orichaser_UpdateBuffer(node, Now);
+}
+// This function defines the shape of how the output responds to the input.
+// It must accept values for T in the range 0 <= T <= 1.
+// In order to create a smooth animation, it should return 0 for T == 0,
+// 1 for T == 1 and be sufficient smooth in the range 0 <= T <= 1.
+
+// It should be optimized for speed, in order for high performance. It's
+// executed Buffer.length + 1 times each simulation tick.
+double orichaser_StepResponseCore(double T)
+{
+    return .5 - .5 * cos(T * PI);
+}
+double orichaser_StepResponse(struct X3D_OrientationChaser *node, double t)
+{
+    if(t < 0.0)
+        return 0.0;
+    if(t > node->duration)
+        return 1.0;
+    // When optimizing for speed, the above two if(.) cases can be omitted,
+    // as this funciton will not be called for values outside of 0..duration.
+    return orichaser_StepResponseCore(t / node->duration);
+}
+
+void orichaser_tick(struct X3D_OrientationChaser *node, double Now)
+{
+	int C;
+	double Frac, Alpha;
+    struct SFRotation Output;
+    struct SFRotation DeltaIn;
+    //struct SFRotation DeltaOut;
+	struct SFRotation tmp0; //, tmp1;
+	struct SFRotation *buffer = (struct SFRotation*)node->_buffer;
+
+	//orichaser_CheckInit(node);
+    if(!node->_bufferendtime)
+    {
+        node->_bufferendtime= Now; // first event we received, so we are in the initialization phase.
+        node->value_changed= node->initialValue; //initial_value;
+        return;
+    }
+    Frac= orichaser_UpdateBuffer(node, Now);
+    // Frac is a value in   0 <= Frac < 1.
+
+    // Now we can calculate the output.
+    // This means we calculate the delta between each entry in Buffer and its previous
+    // entries, calculate the step response of each such step and add it to form the output.
+
+    // The oldest vaule Buffer[Buffer.length - 1] needs some extra thought, because it has
+    // no previous value. More exactly, we haven't stored a previous value anymore.
+    // However, the step response of that missing previous value has already reached its
+    // destination, so we can - would we have that previous value - use this as a start point
+    // for adding the step responses.
+    // Actually UpdateBuffer(.) maintains this value in
+
+    //var Output= previousValue;
+    Output= node->_previousvalue;
+    //var DeltaIn= previousValue.inverse().multiply(Buffer[Buffer.length - 1]);
+	if(0){
+		sfrotation_inverse(&tmp0,&node->_previousvalue);
+		sfrotation_multiply(&DeltaIn,&tmp0,&buffer[Buffer_length -1]);
+	}else{
+		sfrotation_dif(&DeltaIn,&buffer[Buffer_length -1],&node->_previousvalue); //A - B same as B.inverse x A
+	}
+
+	Alpha = orichaser_StepResponse(node,((double)Buffer_length - 1.0 + Frac) * node->_steptime);
+    //Output= Output.slerp(Output.multiply(DeltaIn), StepResponse((Buffer.length - 1 + Frac) * cStepTime));
+	if(0)
+		sfrotation_multiply(&tmp0,&Output,&DeltaIn);
+	else
+		sfrotation_add(&tmp0,&Output,&DeltaIn); //same as multipley
+
+	sfrotation_slerp(&Output,&Output,&tmp0,(float)Alpha);
+    for(C= Buffer_length - 2; C>=0; C-- )
+    {
+        //var DeltaIn= Buffer[C + 1].inverse().multiply(Buffer[C]);
+		if(0){
+			sfrotation_inverse(&tmp0,&buffer[C + 1]);
+			sfrotation_multiply(&DeltaIn,&tmp0,&buffer[C]);
+		}else{
+			sfrotation_dif(&DeltaIn,&buffer[C],&buffer[C+1]);
+		}
+		Alpha = orichaser_StepResponse(node,((float)C + Frac) * node->_steptime);
+        //Output= Output.slerp(Output.multiply(DeltaIn), StepResponse((C + Frac) * cStepTime));
+		if(0)
+			sfrotation_multiply(&tmp0,&Output,&DeltaIn);
+		else
+			sfrotation_add(&tmp0,&Output,&DeltaIn);
+
+		sfrotation_slerp(&Output,&Output,&tmp0,(float)Alpha); //order of slerp?
+    }
+	if(!sfrotation_same(&Output,&node->value_changed)){
+        node->value_changed= Output;
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_OrientationChaser, value_changed));
+	}
+}
+void orichaser_set_value(struct X3D_OrientationChaser *node, struct SFRotation opos)
+{
+    node->value_changed= opos;
+	node->initialValue = opos;
+	MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_OrientationChaser, value_changed));
+ 	node->isActive = TRUE;
+	MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_OrientationChaser, isActive));
+}
+
+
+void do_OrientationChaserTick_oldway_works(void * ptr){
+	double Now;
+	static double lasttime;
+	struct X3D_OrientationChaser *node = (struct X3D_OrientationChaser *)ptr;
+	if(!node) return;
+	if(!node->_buffer){
+		node->_buffer = realloc(node->_buffer,Buffer_length * sizeof(struct SFRotation));
+		orichaser_init(node);
+	}
+	Now = TickTime();
+	if(NODE_NEEDS_COMPILING){
+		printf("node_needs_compiling\n");
+		node->isActive = TRUE;
+		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_OrientationChaser, isActive));
+		//Q how to tell which set_ was set: set_destination or set_value?
+		if(!sfrotation_same(&node->set_destination,&node->_destination))
+			orichaser_set_destination(node, node->set_destination,Now);
+		else if(!sfrotation_same(&node->set_value,&node->initialValue)) //not sure I have the right idea here
+			orichaser_set_value(node,node->set_value);
+		MARK_NODE_COMPILED
+	}
+	if(node->isActive)
+		orichaser_tick(node,Now);
+}
+
+//<<< oldway orientationchaser
+
+
 
 void do_CoordinateChaserTick(void * ptr){
 	double Now;
@@ -1472,145 +1959,9 @@ void do_CoordinateDamperTick(void * ptr){
 		tick_damper(node,TickTime());
 }
 
-void do_OrientationChaserTick(void * ptr){
-	struct X3D_OrientationChaser *node = (struct X3D_OrientationChaser *)ptr;
-	if(!node)return;
-	if(NODE_NEEDS_COMPILING){
-		//default action copy input to output when not implemented
-		veccopy3f(node->value_changed.c, node->set_destination.c);
-		node->value_changed.c[3] = node->set_destination.c[3];
-		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_OrientationChaser, value_changed));
-		MARK_NODE_COMPILED
-	}
-}
-void do_OrientationDamperTick(void * ptr){
-	struct X3D_OrientationDamper *node = (struct X3D_OrientationDamper *)ptr;
-	if(!node)return;
-	if(NODE_NEEDS_COMPILING){
-		//default action copy input to output when not implemented
-		veccopy3f(node->value_changed.c, node->set_destination.c);
-		node->value_changed.c[3] = node->set_destination.c[3];
-		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_OrientationDamper, value_changed));
-		MARK_NODE_COMPILED
-	}
-}
-struct SFRotation *sfrotation_inverse(struct SFRotation* T, struct SFRotation *A){
-	memcpy(T->c, A->c, sizeof(struct SFRotation));
-	Quaternion qA,qT;
-	double a,b,c,d;
 
-	/* convert both rotation to quaternion */
-	vrmlrot_to_quaternion(&qA, (double) A->c[0], 
-		(double) A->c[1], (double) A->c[2], (double) A->c[3]);
 
-	/* invert it */
-	quaternion_inverse(&qT,&qA);
 
-	/* and return the resultant, as a vrml rotation */
-	quaternion_to_vrmlrot(&qT, &a, &b, &c, &d);
-	/* double to floats, can not use pointers... */
-	T->c[0] = (float) a;
-	T->c[1] = (float) b;
-	T->c[2] = (float) c;
-	T->c[3] = (float) d;
-	return T;
-}
-struct SFRotation *sfrotation_multiply(struct SFRotation* T, struct SFRotation *A, struct SFRotation *B){
-	Quaternion qA,qB,qT;
-	double a,b,c,d;
-
-	/* convert both rotation to quaternion */
-	vrmlrot_to_quaternion(&qA, (double) A->c[0], 
-		(double) A->c[1], (double) A->c[2], (double) A->c[3]);
-
-	vrmlrot_to_quaternion(&qB, (double) B->c[0], 
-		(double) B->c[1], (double) B->c[2], (double) B->c[3]);
-
-	/* multiply them */
-	quaternion_multiply(&qT,&qA,&qB);
-
-	/* and return the resultant, as a vrml rotation */
-	quaternion_to_vrmlrot(&qT, &a, &b, &c, &d);
-	/* double to floats, can not use pointers... */
-	T->c[0] = (float) a;
-	T->c[1] = (float) b;
-	T->c[2] = (float) c;
-	T->c[3] = (float) d;
-	return T;
-}
-
-struct SFRotation *sfrotation_copy(struct SFRotation* T, struct SFRotation *A){
-	memcpy(T->c, A->c, sizeof(struct SFRotation));
-	return T;
-}
-struct SFRotation *sfrotation_add(struct SFRotation* T, struct SFRotation *A, struct SFRotation *B){
-	//vecadd4f(T->c,A->c,B->c); //??
-	return T;
-}
-struct SFRotation *sfrotation_dif(struct SFRotation* T, struct SFRotation *A, struct SFRotation *B){
-	//vecdif4f(T->c,A->c,B->c); //
-	return T;
-}
-struct SFRotation *sfrotation_scale(struct SFRotation* T, struct SFRotation *A, float S){
-	//vecscale4f(T->c,A->c,S); // doesn't make sense
-	return T;
-}
-struct SFRotation *sfrotation_slerp(struct SFRotation* T, struct SFRotation *A, struct SFRotation *B, float alpha){
-	if (APPROX(alpha, 0.0f)) {
-		memcpy(T->c,A->c,4*sizeof(float));
-	} else if (APPROX(alpha, 1.0f)) {
-		memcpy(T->c,B->c,4*sizeof(float));
-	} else {
-		Quaternion quatA, quatB, quatT;
-		double a,b,c,d;
-		vrmlrot_to_quaternion(&quatA,
-							  A->c[0],
-							  A->c[1],
-							  A->c[2],
-							  A->c[3]);
-
-		vrmlrot_to_quaternion(&quatB,
-							  B->c[0],
-							  B->c[1],
-							  B->c[2],
-							  B->c[3]);
-
-		quaternion_slerp(&quatT, &quatA, &quatB, (double)alpha);
-		quaternion_to_vrmlrot(&quatT,&a,&b,&c,&d);
-		/* double to floats, can not use pointers... */
-		T->c[0] = (float) a;
-		T->c[1] = (float) b;
-		T->c[2] = (float) c;
-		T->c[3] = (float) d;
-	}
-	return T;
-}
-float sfrotation_dist(struct SFRotation* A){
-	return A->c[4]; //just the angle?
-}
-int sfrotation_same(struct SFRotation *A, struct SFRotation *B){
-	int i,isame = TRUE;
-	for(i=0;i<4;i++)
-		isame = isame && A->c[i] == B->c[i]; 
-	return isame;
-}
-struct SFRotation *sfrotation_arr(struct SFRotation *A, int i){
-	return &A[i];
-}
-struct SFRotation sfrotation_tmps[6];
-void *sfrotation_tmp [] = {&sfrotation_tmps[0],&sfrotation_tmps[1],&sfrotation_tmps[2],&sfrotation_tmps[3],&sfrotation_tmps[4],&sfrotation_tmps[5]};
-ftype ftype_sfrotation = {
-sfrotation_copy,
-sfrotation_add,
-sfrotation_dif,
-sfrotation_scale,
-sfrotation_slerp,
-sfrotation_dist,
-sfrotation_same,
-sfrotation_same,
-sfrotation_arr,
-sfrotation_tmp,
-};
 
 void do_PositionChaser2DTick_default(void * ptr){
 	struct X3D_PositionChaser2D *node = (struct X3D_PositionChaser2D *)ptr;
@@ -1673,6 +2024,7 @@ struct SFVec2f *sfvec2f_arr(struct SFVec2f *A, int i){
 struct SFVec2f sfvec2f_tmps[6];
 void *sfvec2f_tmp [] = {&sfvec2f_tmps[0],&sfvec2f_tmps[1],&sfvec2f_tmps[2],&sfvec2f_tmps[3],&sfvec2f_tmps[4],&sfvec2f_tmps[5]};
 ftype ftype_sfvec2f = {
+FIELDTYPE_SFVec2f,
 sfvec2f_copy,
 sfvec2f_add,
 sfvec2f_dif,
@@ -1810,7 +2162,7 @@ float *scalar_lerp(float* T, float *A, float *B, float alpha){
 	return T;
 }
 float scalar_dist(float* A){
-	return fabs(*A);
+	return (float)fabs(*A);
 }
 int scalar_same(float *A, float *B){
 	return *A == *B ? TRUE : FALSE;
@@ -1821,6 +2173,7 @@ float *scalar_arr(float *A, int i){
 float scalar_tmps[6];
 void *scalar_tmp [] = {&scalar_tmps[0],&scalar_tmps[1],&scalar_tmps[2],&scalar_tmps[3],&scalar_tmps[4],&scalar_tmps[5]};
 ftype ftype_scalar = {
+FIELDTYPE_SFFloat,
 scalar_copy,
 scalar_add,
 scalar_dif,
@@ -2005,6 +2358,7 @@ struct Multi_Vec2f *mfvec2f_arr(struct Multi_Vec2f *A, int i){
 struct Multi_Vec2f mfvec2f_tmps[6];
 void *mfvec2f_tmp [] = {&mfvec2f_tmps[0],&mfvec2f_tmps[1],&mfvec2f_tmps[2],&mfvec2f_tmps[3],&mfvec2f_tmps[4],&mfvec2f_tmps[5]};
 ftype ftype_mfvec2f = {
+FIELDTYPE_MFVec2f,
 mfvec2f_copy,
 mfvec2f_add,
 mfvec2f_dif,

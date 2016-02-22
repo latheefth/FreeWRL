@@ -3184,17 +3184,26 @@ our %Nodes = (
 
 	"OrientationChaser" => new VRML::NodeType("OrientationChaser", [
 		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_p => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
+		_t => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
 		isActive  => ["SFBool", "FALSE","outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		duration  => ["SFTime", 1,"initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_bufferendtime  => ["SFTime", 0,"initializeOnly", 0],
+		_steptime  => ["SFTime", 0,"initializeOnly", 0],
 		value_changed => ["SFRotation", [0,1,0,0], "outputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		initialDestination => ["SFRotation", [0,1,0,0], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		initialValue => ["SFRotation", [0,1,0,0], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		set_destination => ["SFRotation", [0,1,0,0], "inputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		set_value => ["SFRotation", [0,1,0,0], "inputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_buffer => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
+		_previousvalue => ["SFRotation", [0,1, 0,0], "initializeOnly", 0],
+		_destination => ["SFRotation", [0,1,0,0], "initializeOnly", 0],
 	],"X3DChaserNode"),
 	
 	"OrientationDamper" => new VRML::NodeType("OrientationDamper", [
 		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_p => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
+		_t => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
 		tau  => ["SFTime", .3,"inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		tolerance => ["SFFloat", -1,"inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		isActive  => ["SFBool", "FALSE","outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -3207,6 +3216,8 @@ our %Nodes = (
 		initialValue => ["SFRotation", [0,1,0,0], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		set_destination => ["SFRotation", [0,1,0,0], "inputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		set_value => ["SFRotation", [0,1,0,0], "inputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_values => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
+		_input => ["SFRotation", [0,1,0,0], "initializeOnly", 0],
 	],"X3DDamperNode"),
 
 	"PositionChaser" => new VRML::NodeType("PositionChaser", [

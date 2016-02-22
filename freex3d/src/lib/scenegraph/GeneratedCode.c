@@ -5263,6 +5263,13 @@ const int OFFSETS_OSC_Sensor[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_OrientationChaser[] = {
+	(int) FIELDNAMES__buffer, (int) offsetof (struct X3D_OrientationChaser, _buffer),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__bufferendtime, (int) offsetof (struct X3D_OrientationChaser, _bufferendtime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__destination, (int) offsetof (struct X3D_OrientationChaser, _destination),  (int) FIELDTYPE_SFRotation, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__p, (int) offsetof (struct X3D_OrientationChaser, _p),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__previousvalue, (int) offsetof (struct X3D_OrientationChaser, _previousvalue),  (int) FIELDTYPE_SFRotation, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__steptime, (int) offsetof (struct X3D_OrientationChaser, _steptime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__t, (int) offsetof (struct X3D_OrientationChaser, _t),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_duration, (int) offsetof (struct X3D_OrientationChaser, duration),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_initialDestination, (int) offsetof (struct X3D_OrientationChaser, initialDestination),  (int) FIELDTYPE_SFRotation, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_initialValue, (int) offsetof (struct X3D_OrientationChaser, initialValue),  (int) FIELDTYPE_SFRotation, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -5274,9 +5281,13 @@ const int OFFSETS_OrientationChaser[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_OrientationDamper[] = {
+	(int) FIELDNAMES__input, (int) offsetof (struct X3D_OrientationDamper, _input),  (int) FIELDTYPE_SFRotation, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__lasttick, (int) offsetof (struct X3D_OrientationDamper, _lasttick),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__p, (int) offsetof (struct X3D_OrientationDamper, _p),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__t, (int) offsetof (struct X3D_OrientationDamper, _t),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__takefirstinput, (int) offsetof (struct X3D_OrientationDamper, _takefirstinput),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__tau, (int) offsetof (struct X3D_OrientationDamper, _tau),  (int) FIELDTYPE_SFTime, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__values, (int) offsetof (struct X3D_OrientationDamper, _values),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_initialDestination, (int) offsetof (struct X3D_OrientationDamper, initialDestination),  (int) FIELDTYPE_SFRotation, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_initialValue, (int) offsetof (struct X3D_OrientationDamper, initialValue),  (int) FIELDTYPE_SFRotation, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isActive, (int) offsetof (struct X3D_OrientationDamper, isActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -9973,6 +9984,13 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_OrientationChaser : {
 			struct X3D_OrientationChaser * tmp2;
 			tmp2 = (struct X3D_OrientationChaser *) tmp;
+			tmp2->_buffer = NULL;
+			tmp2->_bufferendtime = 0;
+			tmp2->_destination.c[0] = 0;tmp2->_destination.c[1] = 1;tmp2->_destination.c[2] = 0;tmp2->_destination.c[3] = 0;;
+			tmp2->_p = NULL;
+			tmp2->_previousvalue.c[0] = 0;tmp2->_previousvalue.c[1] = 1;tmp2->_previousvalue.c[2] = 0;tmp2->_previousvalue.c[3] = 0;;
+			tmp2->_steptime = 0;
+			tmp2->_t = NULL;
 			tmp2->duration = 1;
 			tmp2->initialDestination.c[0] = 0;tmp2->initialDestination.c[1] = 1;tmp2->initialDestination.c[2] = 0;tmp2->initialDestination.c[3] = 0;;
 			tmp2->initialValue.c[0] = 0;tmp2->initialValue.c[1] = 1;tmp2->initialValue.c[2] = 0;tmp2->initialValue.c[3] = 0;;
@@ -9987,9 +10005,13 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_OrientationDamper : {
 			struct X3D_OrientationDamper * tmp2;
 			tmp2 = (struct X3D_OrientationDamper *) tmp;
+			tmp2->_input.c[0] = 0;tmp2->_input.c[1] = 1;tmp2->_input.c[2] = 0;tmp2->_input.c[3] = 0;;
 			tmp2->_lasttick = 0;
+			tmp2->_p = NULL;
+			tmp2->_t = NULL;
 			tmp2->_takefirstinput = TRUE;
 			tmp2->_tau = 0.3;
+			tmp2->_values = NULL;
 			tmp2->initialDestination.c[0] = 0;tmp2->initialDestination.c[1] = 1;tmp2->initialDestination.c[2] = 0;tmp2->initialDestination.c[3] = 0;;
 			tmp2->initialValue.c[0] = 0;tmp2->initialValue.c[1] = 1;tmp2->initialValue.c[2] = 0;tmp2->initialValue.c[3] = 0;;
 			tmp2->isActive = FALSE;
