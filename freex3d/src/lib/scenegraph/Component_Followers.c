@@ -513,7 +513,7 @@ void do_PositionChaserTick(void * ptr){
 	struct X3D_PositionChaser *_node = (struct X3D_PositionChaser *)ptr;
 	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr;
 	if(!node) return;
-	if(!node->_buffer){
+	if(!_node->_buffer){
 		chaser_ptrs *p = malloc(sizeof(chaser_ptrs));
 		_node->_buffer = realloc(_node->_buffer,Buffer_length * sizeof(struct SFVec3f));
 		node->_t = &ftype_sfvec3f;
@@ -777,20 +777,21 @@ void damper_set_tau(struct X3D_PositionDamper *node, double tau){
 	MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionDamper, tau));
 }
 void do_PositionDamperTick(void * ptr){
+	struct X3D_PositionDamper *_node = (struct X3D_PositionDamper *)ptr;
 	struct X3D_PositionDamper *node = (struct X3D_PositionDamper *)ptr;
 	if(!node)return;
-	if(!node->_values){
+	if(!_node->_values){
 		damper_ptrs *p = malloc(sizeof(damper_ptrs));
 		node->_t = &ftype_sfvec3f;
 		node->_p = p;
-		node->_values = realloc(node->_values,5 * sizeof(struct SFVec3f));
-		p->initialDestination = &node->initialDestination;
-		p->initialValue = &node->initialValue;
-		p->set_destination = &node->set_destination;
-		p->set_value = &node->set_value;
-		p->value_changed = &node->value_changed;
-		p->_input = &node->_input;
-		p->_values = node->_values;
+		_node->_values = realloc(_node->_values,5 * sizeof(struct SFVec3f));
+		p->initialDestination = &_node->initialDestination;
+		p->initialValue = &_node->initialValue;
+		p->set_destination = &_node->set_destination;
+		p->set_value = &_node->set_value;
+		p->value_changed = &_node->value_changed;
+		p->_input = &_node->_input;
+		p->_values = _node->_values;
 		//damper_CheckInit(node);
         damper_Init(node);
 	}
@@ -1228,7 +1229,7 @@ void do_ColorChaserTick(void * ptr){
 	struct X3D_ColorChaser *_node = (struct X3D_ColorChaser *)ptr;
 	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr; //abstract interface
 	if(!node) return;
-	if(!node->_buffer){
+	if(!_node->_buffer){
 		chaser_ptrs *p = malloc(sizeof(chaser_ptrs));
 		_node->_buffer = realloc(_node->_buffer,Buffer_length * sizeof(struct SFColor)); //**changes with field type
 		node->_t = &ftype_sfvec3f; //**changes with field type
@@ -1267,7 +1268,7 @@ void do_ColorDamperTick(void * ptr){
 	struct X3D_ColorDamper *_node = (struct X3D_ColorDamper *)ptr;
 	struct X3D_PositionDamper *node = (struct X3D_PositionDamper *)ptr; //abstract type
 	if(!node)return;
-	if(!node->_values){
+	if(!_node->_values){
 		damper_ptrs *p = malloc(sizeof(damper_ptrs));
 		node->_t = &ftype_sfvec3f; //**changes with field type
 		node->_p = p;
@@ -1881,7 +1882,7 @@ void do_CoordinateChaserTick(void * ptr){
 	struct X3D_CoordinateChaser *_node = (struct X3D_CoordinateChaser *)ptr;
 	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr; //abstract interface
 	if(!node) return;
-	if(!node->_buffer){
+	if(!_node->_buffer){
 		chaser_ptrs *p = malloc(sizeof(chaser_ptrs));
 		_node->_buffer = realloc(_node->_buffer,Buffer_length * sizeof(struct Multi_Vec3f)); //**changes with field type
 		node->_t = &ftype_mfvec3f; //**changes with field type
@@ -1920,7 +1921,7 @@ void do_CoordinateDamperTick(void * ptr){
 	struct X3D_CoordinateDamper *_node = (struct X3D_CoordinateDamper *)ptr;
 	struct X3D_PositionDamper *node = (struct X3D_PositionDamper *)ptr; //abstract type
 	if(!node)return;
-	if(!node->_values){
+	if(!_node->_values){
 		damper_ptrs *p = malloc(sizeof(damper_ptrs));
 		node->_t = &ftype_sfvec3f; //**changes with field type
 		node->_p = p;
@@ -2043,7 +2044,7 @@ void do_PositionChaser2DTick(void * ptr){
 	struct X3D_PositionChaser2D *_node = (struct X3D_PositionChaser2D *)ptr;
 	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr; //abstract interface
 	if(!node) return;
-	if(!node->_buffer){
+	if(!_node->_buffer){
 		chaser_ptrs *p = malloc(sizeof(chaser_ptrs));
 		_node->_buffer = realloc(_node->_buffer,Buffer_length * sizeof(struct SFVec2f)); //**changes with ftype
 		node->_t = &ftype_sfvec2f; //***changes with ftype
@@ -2081,7 +2082,7 @@ void do_PositionDamper2DTick(void * ptr){
 	struct X3D_PositionDamper2D *_node = (struct X3D_PositionDamper2D *)ptr;
 	struct X3D_PositionDamper *node = (struct X3D_PositionDamper *)ptr; //abstract type
 	if(!node)return;
-	if(!node->_values){
+	if(!_node->_values){
 		damper_ptrs *p = malloc(sizeof(damper_ptrs));
 		node->_t = &ftype_sfvec2f; //** changes with ftype
 		node->_p = p;
@@ -2192,7 +2193,7 @@ void do_ScalarChaserTick(void * ptr){
 	struct X3D_ScalarChaser *_node = (struct X3D_ScalarChaser *)ptr;
 	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr; //abstract interface
 	if(!node) return;
-	if(!node->_buffer){
+	if(!_node->_buffer){
 		chaser_ptrs *p = malloc(sizeof(chaser_ptrs));
 		_node->_buffer = realloc(_node->_buffer,Buffer_length * sizeof(float)); //**changes with ftype
 		node->_t = &ftype_scalar; //***changes with ftype
@@ -2230,7 +2231,7 @@ void do_ScalarDamperTick(void * ptr){
 	struct X3D_ScalarDamper *_node = (struct X3D_ScalarDamper *)ptr;
 	struct X3D_PositionDamper *node = (struct X3D_PositionDamper *)ptr; //abstract type
 	if(!node)return;
-	if(!node->_values){
+	if(!_node->_values){
 		damper_ptrs *p = malloc(sizeof(damper_ptrs));
 		node->_t = &ftype_scalar; //** changes with ftype
 		node->_p = p;
@@ -2376,7 +2377,7 @@ void do_TexCoordChaser2DTick(void * ptr){
 	struct X3D_TexCoordChaser2D *_node = (struct X3D_TexCoordChaser2D *)ptr;
 	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr; //abstract interface
 	if(!node) return;
-	if(!node->_buffer){
+	if(!_node->_buffer){
 		chaser_ptrs *p = malloc(sizeof(chaser_ptrs));
 		_node->_buffer = realloc(_node->_buffer,Buffer_length * sizeof(struct Multi_Vec2f)); //**changes with field type
 		node->_t = &ftype_mfvec2f; //**changes with field type
@@ -2415,7 +2416,7 @@ void do_TexCoordDamper2DTick(void * ptr){
 	struct X3D_TexCoordDamper2D *_node = (struct X3D_TexCoordDamper2D *)ptr;
 	struct X3D_PositionDamper *node = (struct X3D_PositionDamper *)ptr; //abstract type
 	if(!node)return;
-	if(!node->_values){
+	if(!_node->_values){
 		damper_ptrs *p = malloc(sizeof(damper_ptrs));
 		node->_t = &ftype_sfvec2f; //**changes with field type
 		node->_p = p;
