@@ -180,6 +180,7 @@ double vecdot2d(double *a, double *b);
 double* vecscale2d(double* r, double* v, double s);
 double vecnormal2d(double *r, double *v);
 
+int vecsame2f(float *a, float *b);
 float *veccopy2f(float *b, float *a);
 float * vecadd2f(float *c, float *a, float *b);
 float *vecdif2f(float *c, float* a, float *b);
