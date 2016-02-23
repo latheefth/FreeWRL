@@ -587,9 +587,9 @@ void handle_Xevents(XEvent event) {
 	//int count;
 	int actionKey, windex;
 	int cursorStyle;
-	ppMainloop p;
-	ttglobal tg = gglobal();
-	p = (ppMainloop)tg->Mainloop.prv;
+	//ppMainloop p;
+	//ttglobal tg = gglobal();
+	//p = (ppMainloop)tg->Mainloop.prv;
 	//p->lastMouseEvent=event.type;
 
 #ifdef VERBOSE
