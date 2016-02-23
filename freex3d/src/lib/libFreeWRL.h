@@ -355,6 +355,7 @@ void fwl_RenderSceneUpdateScene(void);
 void fwl_gotoCurrentViewPoint();
 void fwl_setScreenDim(int wi, int he);
 void fwl_setScreenDim0(int wi, int he);
+int fwl_hwnd_to_windex(void *hWnd);
 void fwl_setScreenDim1(int wi, int he, int windex);
 bool fwl_initialize_GL(void);
 //void fwl_setLastMouseEvent(int etype);

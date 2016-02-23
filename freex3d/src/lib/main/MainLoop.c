@@ -3091,7 +3091,7 @@ void Mainloop_clear(struct tMainloop *t){
 //call hwnd_to_windex in frontend window creation and event handling,
 //to convert to more convenient int index.
 
-int hwnd_to_windex(void *hWnd){
+int fwl_hwnd_to_windex(void *hWnd){
 	int i;
 	targetwindow *targets;
 	ppMainloop p;
@@ -4536,7 +4536,7 @@ void handle(const int mev, const unsigned int button, const float x, const float
 }
 
 
-
+#ifdef OLDCODE //moved to x11 code
 #if !defined( AQUA ) && !defined( _MSC_VER ) &&!defined (_ANDROID)
 //XK_ constants from /usr/include/X11/keysymdef.h
 #define PHOME_KEY XK_Home //80
@@ -4689,7 +4689,7 @@ int platform2web3dActionKeyLINUX(int platformKey)
 	return key;
 }
 
-
+#include <libFreeWRL.h>
 void handle_Xevents(XEvent event) {
 
 	XEvent nextevent;
@@ -4721,7 +4721,7 @@ void handle_Xevents(XEvent event) {
 		default: printf ("event, unknown %d\n", event.type);
 	}
 #endif
-	windex = hwnd_to_windex(event.xany.window); //sets it if doesn't exist	
+	windex = fwl_hwnd_to_windex(event.xany.window); //sets it if doesn't exist	
 	switch(event.type) {
 //#ifdef HAVE_NOTOOLKIT
 		/* Motif, etc, usually handles this. */
@@ -4868,7 +4868,8 @@ void handle_Xevents(XEvent event) {
 			break;
 	}
 }
-#endif
+#endif //X11
+#endif //OLDCODE
 
 /* get setup for rendering. */
 #ifdef DJTRACK_PICKSENSORS
