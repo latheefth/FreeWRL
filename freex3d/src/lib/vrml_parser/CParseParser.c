@@ -4080,7 +4080,7 @@ static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
 	int source;
 	int ifield;
 	char *nodeFieldName;
-	int len;
+	//int len;
 	DECLAREUP
 	//struct ProtoDefinition* proto;
 	//struct Shader_Script* shader;
@@ -4104,7 +4104,7 @@ static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
 	/* get nodeFieldName */
 	if(!lexer_setCurID(me->lexer)) return FALSE;
 	ASSERT(me->lexer->curID);
-	len = strlen(me->lexer->curID);
+	//len = strlen(me->lexer->curID);
 	//nodeFieldName = alloca(len+1); //this also works but hard to verify cleanup
 	//nodeFieldName = MALLOCV(len+1); //also works
 	//strcpy(nodeFieldName,me->lexer->curID);
