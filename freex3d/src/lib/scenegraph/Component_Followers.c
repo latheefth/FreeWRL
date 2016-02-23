@@ -437,7 +437,9 @@ void chaser_tick(struct X3D_PositionChaser *node, double Now)
     // Actually UpdateBuffer(.) maintains this value in
 
 	if(t->type == FIELDTYPE_SFRotation){
-		//SFRotation
+		//SFRotation - I think I have the SFRotation working below in the regular section
+		// - but to prove with type abstractions you can still do special cases, here's the more 
+		//   explicitly SFRotation version adapted from prototype example code in javascript
 		//var Output= previousValue;
 		t->copy(Output,p->_previousValue);
 
@@ -464,9 +466,11 @@ void chaser_tick(struct X3D_PositionChaser *node, double Now)
 		//vecdif3f(DeltaIn.c,buffer[Buffer_length - 1].c,node->_previousvalue.c);
 		t->dif(DeltaIn,t->arr(p->_buffer,Buffer_length -1),p->_previousValue);
 
+		Alpha = chaser_StepResponse(node,((double)(Buffer_length - 1) + Frac) * node->_steptime);
+
 		//DeltaOut= DeltaIn.multiply(StepResponse((Buffer_length - 1 + Frac) * cStepTime));
 		//vecscale3f(DeltaOut.c,DeltaIn.c,(float)chaser_StepResponse(node,((double)Buffer_length - 1.0 + Frac) * node->_steptime));
-		t->scale(DeltaOut,DeltaIn,(float)chaser_StepResponse(node,((double)(Buffer_length - 1) + Frac) * node->_steptime));
+		t->scale(DeltaOut,DeltaIn,(float)Alpha);
 
 		//Output= Output.add(DeltaOut);
 		//vecadd3f(Output.c,Output.c,DeltaOut.c);
@@ -478,9 +482,11 @@ void chaser_tick(struct X3D_PositionChaser *node, double Now)
 			//vecdif3f(DeltaIn.c,buffer[C].c,buffer[C+1].c);
 			t->dif(DeltaIn,t->arr(p->_buffer,C),t->arr(p->_buffer,C+1));
 
+			Alpha = chaser_StepResponse(node,((double)C + Frac) * node->_steptime);
+
 			//DeltaOut= DeltaIn.multiply(StepResponse((C + Frac) * cStepTime));
 			//vecscale3f(DeltaOut.c,DeltaIn.c,(float)chaser_StepResponse(node,((double)C + Frac) * node->_steptime));
-			t->scale(DeltaOut,DeltaIn,(float)chaser_StepResponse(node,((double)C + Frac) * node->_steptime));
+			t->scale(DeltaOut,DeltaIn,(float)Alpha);
 			//Output= Output.add(DeltaOut);
 			//vecadd3f(Output.c,Output.c,DeltaOut.c);
 			t->add(Output,Output,DeltaOut);
@@ -1414,7 +1420,7 @@ mfvec3f_tmp,
 
 struct SFRotation *sfrotation_inverse(struct SFRotation* T, struct SFRotation *A){
 	Quaternion qA,qT;
-	double a,b,c,d;
+	double x,y,z,a;
 	memcpy(T->c, A->c, sizeof(struct SFRotation));
 
 	/* convert both rotation to quaternion */
@@ -1425,17 +1431,17 @@ struct SFRotation *sfrotation_inverse(struct SFRotation* T, struct SFRotation *A
 	quaternion_inverse(&qT,&qA);
 
 	/* and return the resultant, as a vrml rotation */
-	quaternion_to_vrmlrot(&qT, &a, &b, &c, &d);
+	quaternion_to_vrmlrot(&qT, &x, &y, &z, &a);
 	/* double to floats, can not use pointers... */
-	T->c[0] = (float) a;
-	T->c[1] = (float) b;
-	T->c[2] = (float) c;
-	T->c[3] = (float) d;
+	T->c[0] = (float) x;
+	T->c[1] = (float) y;
+	T->c[2] = (float) z;
+	T->c[3] = (float) a;
 	return T;
 }
 struct SFRotation *sfrotation_multiply(struct SFRotation* T, struct SFRotation *A, struct SFRotation *B){
 	Quaternion qA,qB,qT;
-	double a,b,c,d;
+	double x,y,z,a;
 
 	/* convert both rotation to quaternion */
 	vrmlrot_to_quaternion(&qA, (double) A->c[0], 
@@ -1448,12 +1454,12 @@ struct SFRotation *sfrotation_multiply(struct SFRotation* T, struct SFRotation *
 	quaternion_multiply(&qT,&qA,&qB);
 
 	/* and return the resultant, as a vrml rotation */
-	quaternion_to_vrmlrot(&qT, &a, &b, &c, &d);
+	quaternion_to_vrmlrot(&qT, &x, &y, &z, &a);
 	/* double to floats, can not use pointers... */
-	T->c[0] = (float) a;
-	T->c[1] = (float) b;
-	T->c[2] = (float) c;
-	T->c[3] = (float) d;
+	T->c[0] = (float) x;
+	T->c[1] = (float) y;
+	T->c[2] = (float) z;
+	T->c[3] = (float) a;
 	return T;
 }
 
@@ -1470,7 +1476,7 @@ struct SFRotation *sfrotation_dif(struct SFRotation* T, struct SFRotation *A, st
 	//find the difference between 2 rotations, return the dif as rotation
 	//T=  inverse(B)*A
 	Quaternion qA,qB,qBI,qT;
-	double a,b,c,d;
+	double x,y,z,a;
 
 	/* convert both rotation to quaternion */
 	vrmlrot_to_quaternion(&qA, (double) A->c[0], 
@@ -1485,18 +1491,30 @@ struct SFRotation *sfrotation_dif(struct SFRotation* T, struct SFRotation *A, st
 	quaternion_multiply(&qT,&qBI,&qA);
 
 	/* and return the resultant, as a vrml rotation */
-	quaternion_to_vrmlrot(&qT, &a, &b, &c, &d);
+	quaternion_to_vrmlrot(&qT, &x, &y, &z, &a);
 	/* double to floats, can not use pointers... */
-	T->c[0] = (float) a;
-	T->c[1] = (float) b;
-	T->c[2] = (float) c;
-	T->c[3] = (float) d;
-	return T;
-
+	T->c[0] = (float) x;
+	T->c[1] = (float) y;
+	T->c[2] = (float) z;
+	T->c[3] = (float) a;
 	return T;
 }
 struct SFRotation *sfrotation_scale(struct SFRotation* T, struct SFRotation *A, float S){
 	//vecscale4f(T->c,A->c,S); // doesn't make sense
+	//I think scale makes sense in linear world when you scale something that starts at the origin
+	//In the spherical world, 0 would need to be such that if you take a difference rotation
+	// delta=A-B
+	// and scale it, 
+	// delta' = delta * scale
+	//and add it back 
+	//A' = B + delta'
+	//then A' would be on the same arc as A and B
+	//to scale that way for an arbitrary scale -like 2.1- with:
+	//a) quaternions: q^2.1 where ^ means power of: 
+	//   do integer multiples then slerp: q2 = q*q; q3=q*q2; q21 = q2.slerp(q3,.1);
+	//b) axis angle: sfrotation.angle *= 2.1;
+	sfrotation_copy(T,A);
+	T->c[3] *= S;  //angle *= S;
 	return T;
 }
 struct SFRotation *sfrotation_slerp(struct SFRotation* T, struct SFRotation *A, struct SFRotation *B, float alpha){

@@ -741,7 +741,7 @@ void printbitssimple(int n) {
 }
 void statusbar_set_window_size(int width, int height);
 int statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY);
-int hwnd_to_windex(void *hWnd);
+int fwl_hwnd_to_windex(void *hWnd);
 void fwl_setScreenDim1(int wi, int he, int itargetwindow);
 LRESULT CALLBACK PopupWndProc( 
     HWND hWnd, 
@@ -765,7 +765,7 @@ static int shiftState = 0;
 
     mev = 0;
     butnum = 0;
-	windex = hwnd_to_windex(hWnd); //sets it if doesn't exist
+	windex = fwl_hwnd_to_windex(hWnd); //sets it if doesn't exist
 
     //ghWnd = hWnd;
     switch( msg ) {
