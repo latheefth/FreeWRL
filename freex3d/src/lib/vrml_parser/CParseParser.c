@@ -6364,7 +6364,7 @@ int count_fields(struct X3D_Node* node)
 //========
 
 //convenience wrappers to get details for built-in fields and -on script and protoInstance- dynamic fields
-int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *type, int *kind, int *iifield, union anyVrml **value){
+int getFieldFromNodeAndName0(struct X3D_Node* node,const char *fieldname, int *type, int *kind, int *iifield, union anyVrml **value){
 	*type = 0;
 	*kind = 0;
 	*iifield = -1;
@@ -6460,6 +6460,29 @@ int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *ty
 		}
 	}
 	return 0;
+}
+int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *type, int *kind, int *iifield, union anyVrml **value){
+	int ifound = 0;
+	ifound = getFieldFromNodeAndName0(node,fieldname,type,kind,iifield,value);
+	if(!ifound){
+		int ln, hsn, hcn;
+		const char *nf;
+		nf = rootFieldName(fieldname, &ln,&hcn,&hsn);
+
+		if(hsn){
+			//set_ prefix
+			ifound = getFieldFromNodeAndName0(node,nf,type,kind,iifield,value);
+		}
+		ln++;
+		if(hcn) {
+			//_changed suffix
+			char rootname[MAXJSVARIABLELENGTH];
+			strncpy(rootname,fieldname,ln);
+			rootname[ln] = '\0';
+			ifound = getFieldFromNodeAndName0(node,rootname,type,kind,iifield,value);
+		}
+	}
+	return ifound;		
 }
 int getFieldFromNodeAndIndex(struct X3D_Node* node, int ifield, const char **fieldname, int *type, int *kind, union anyVrml **value){
 	int iret = 0;

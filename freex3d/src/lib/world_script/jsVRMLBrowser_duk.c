@@ -777,8 +777,10 @@ void * addDeleteRoute(void *fwn, char* callingFunc, int argc, FWval fwpars, FWva
 	const char *fromField, *toField;
 	void *retval;
 
-	fromNode = fwpars[0]._web3dval.native; 
-	toNode   = fwpars[2]._web3dval.native; 
+	//fromNode = fwpars[0]._web3dval.native; 
+	//toNode   = fwpars[2]._web3dval.native; 
+	fromNode = fwpars[0]._web3dval.anyvrml->sfnode; //.native; 
+	toNode   = fwpars[2]._web3dval.anyvrml->sfnode; //.native; 
 	fromField = fwpars[1]._string; 
 	toField = fwpars[3]._string; 
 	
