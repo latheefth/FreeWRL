@@ -713,6 +713,7 @@ void *addDeleteRoute0(void *fwn, char*callingFunc, struct X3D_Node* fromNode, ch
 	if(usingBrotos()){
 		struct brotoRoute *broute;
 		struct X3D_Proto *ec = (struct X3D_Proto*)fwn;
+		if(!ec) ec = fromNode->_executionContext;
 		if(!strcmp(callingFunc,"addRoute")){
 			broute = createNewBrotoRoute();
 			broute->from.node = fromNode;
