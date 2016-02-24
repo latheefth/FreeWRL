@@ -315,17 +315,19 @@ int MFW_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 		nold = ptr->n;
 		ptr->n = fwval->_integer;
 		if(ptr->n > nold){
-			//nelen = (int) upper_power_of_two(fwval->_integer);
-			ptr->p = realloc(ptr->p,ptr->n * elen);
+			int nelen;
+			nelen = (int) upper_power_of_two(ptr->n);
+			ptr->p = realloc(ptr->p,nelen * elen);
 		}
 		nr = TRUE;
 	}else if(index > -1){
 		char *p;
 		if(index >= ptr->n){
+			int nelen;
 			//nold = ptr->n;
 			ptr->n = index+1;
-			//nelen = (int) upper_power_of_two(ptr->n);
-			ptr->p = realloc(ptr->p,ptr->n *elen); //need power of 2 if SFNode children
+			nelen = (int) upper_power_of_two(ptr->n);
+			ptr->p = realloc(ptr->p, nelen *elen); //need power of 2 if SFNode children ptr->n
 		}
 		p = ptr->p + index * elen;
 		if(fwval->itype == 'W')
