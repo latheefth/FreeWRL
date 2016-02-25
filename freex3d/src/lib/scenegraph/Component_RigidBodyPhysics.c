@@ -364,22 +364,25 @@ void rbp_run_physics(){
 							x3dcshape->_geom = gid;
 							//link body to geom
 							//void dGeomSetBody (dGeomID, dBodyID);
-							dGeomSetBody(gid,x3dbody->_body);
 						}
-					}
-					translation = x3doffset->translation;
-					rotation = x3doffset->rotation;
-					dGeomSetPosition (x3dcshape->_geom, translation.c[0],translation.c[1],translation.c[2]);
-					if(1){
-						dReal dquat[4];
-						Quaternion quat;
-						vrmlrot_to_quaternion(&quat,rotation.c[0],rotation.c[1],rotation.c[2],rotation.c[3]);
-						dquat[0] = quat.x; dquat[1] = quat.y, dquat[2] = quat.z, dquat[3] = quat.w;
-						dGeomSetQuaternion(x3dcshape->_geom,dquat);
-					}else{
-						dMatrix3 R;
-						dRFromAxisAndAngle (R,rotation.c[0],rotation.c[1],rotation.c[2],rotation.c[3]);
-						dGeomSetRotation(x3dcshape->_geom,R);
+						//for a fixed body, use the body position to position the geometry
+						translation = x3dbody->position;
+						rotation = x3dbody->orientation;
+						if(!x3dbody->fixed)
+							dGeomSetBody(x3dcshape->_geom,x3dbody->_body);
+
+						dGeomSetPosition (x3dcshape->_geom, (dReal)translation.c[0],(dReal)translation.c[1],(dReal)translation.c[2]);
+						if(1){
+							dReal dquat[4];
+							Quaternion quat;
+							vrmlrot_to_quaternion(&quat,rotation.c[0],rotation.c[1],rotation.c[2],rotation.c[3]);
+							dquat[0] = quat.x; dquat[1] = quat.y, dquat[2] = quat.z, dquat[3] = quat.w;
+							dGeomSetQuaternion(x3dcshape->_geom,dquat);
+						}else{
+							dMatrix3 R;
+							dRFromAxisAndAngle (R,rotation.c[0],rotation.c[1],rotation.c[2],rotation.c[3]);
+							dGeomSetRotation(x3dcshape->_geom,R);
+						}
 					}
 				}
 			}
@@ -415,8 +418,8 @@ void rbp_run_physics(){
 						quaternion_to_vrmlrot(&quat,&x,&y,&z,&a);
 
 						x3doffset->translation.c[0] = (float)dpos[0];
-						x3doffset->translation.c[2] = (float)dpos[1];
-						x3doffset->translation.c[1] = (float)dpos[2];
+						x3doffset->translation.c[1] = (float)dpos[1];
+						x3doffset->translation.c[2] = (float)dpos[2];
 						x3doffset->rotation.c[0] = (float)x;
 						x3doffset->rotation.c[1] = (float)y;
 						x3doffset->rotation.c[2] = (float)z;
@@ -456,7 +459,7 @@ void register_RigidBodyCollection(struct X3D_Node *_node){
 		world = dWorldCreate();
 		space = dHashSpaceCreate (0); //default space
 
-		dWorldSetGravity (world,0,0,-GRAVITY);
+		dWorldSetGravity (world,0,-GRAVITY,0);
 		dWorldSetCFM (world,1e-5);
 		dWorldSetAutoDisableFlag (world,1);
 		contactgroup = dJointGroupCreate (0);
