@@ -5598,10 +5598,12 @@ void shallow_copy_field(int typeIndex, union anyVrml* source, union anyVrml* des
 					struct Uni_String **ss, *sd;
 					deleteMallocedFieldValue(typeIndex,dest);
 					ss = (struct Uni_String **)source;
-					sd = (struct Uni_String *)MALLOC (struct Uni_String*, sizeof(struct Uni_String));
-					memcpy(sd,*ss,sizeof(struct Uni_String));
-					sd->strptr = STRDUP((*ss)->strptr);
-					dest->sfstring = sd;
+					if(*ss){
+						sd = (struct Uni_String *)MALLOC (struct Uni_String*, sizeof(struct Uni_String));
+						memcpy(sd,*ss,sizeof(struct Uni_String));
+						sd->strptr = STRDUP((*ss)->strptr);
+						dest->sfstring = sd;
+					}
 				}
 				break;
 			default:
