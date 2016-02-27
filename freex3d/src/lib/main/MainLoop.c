@@ -2919,6 +2919,7 @@ typedef struct pMainloop{
 	struct SensStruct *SensorEvents;// = 0;
 
     unsigned int loop_count;// = 0;
+	unsigned int once;
     unsigned int slowloop_count;// = 0;
 	//scene
 	//window
@@ -3037,6 +3038,7 @@ void Mainloop_init(struct tMainloop *t){
 
         p->loop_count = 0;
         p->slowloop_count = 0;
+		p->once = 0;
 
 		//scene
 		//window
@@ -4058,12 +4060,14 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 	/* should we do events, or maybe a parser is parsing? */
 	p->doEvents = (!fwl_isinputThreadParsing()) && (!fwl_isTextureParsing()) && fwl_isInputThreadInitialized();
 	/* First time through */
-	if (p->loop_count == 0) {
+	//if (p->loop_count == 0) {
+	if(!p->once){
 		p->BrowserStartTime = dtime; //Time1970sec();
 		tg->Mainloop.TickTime = p->BrowserStartTime;
 		tg->Mainloop.lastTime = tg->Mainloop.TickTime - 0.01; /* might as well not invoke the usleep below */
 		if(p->BrowserInitTime == 0.0)
 			p->BrowserInitTime = dtime;
+		p->once = TRUE;
 	} else {
 		/* NOTE: front ends now sync with the monitor, meaning, this sleep is no longer needed unless
 			something goes totally wrong.
