@@ -241,7 +241,10 @@ typedef struct pCRoutes{
 	/* Routing table */
 	struct CRStruct *CRoutes;
 	/* Structure table */
-	struct CRscriptStruct *ScriptControl;// = 0; 	/* global objects and contexts for each script */
+	//struct CRscriptStruct *ScriptControl;// = 0; 	/* global objects and contexts for each script */
+	struct Vector* ScriptControl;
+	//int *scr_act;// = 0;				/* this script has been sent an eventIn */
+
 	int JSMaxScript;// = 0;
 	/* Script name/type table */
 	struct CRjsnameStruct *JSparamnames;// = NULL;
@@ -257,7 +260,7 @@ void CRoutes_init(struct tCRoutes *t){
 	//public
 	/* EAI needs the extra parameter, so we put it globally when a RegisteredListener is clicked. */
 	t->CRoutesExtra = 0;
-	t->scr_act = 0;				/* this script has been sent an eventIn */
+	//t->scr_act = 0;				/* this script has been sent an eventIn */
 	t->max_script_found = -1;			/* the maximum script number found */
 	t->max_script_found_and_initialized = -1;	/* the maximum script number found */
 	t->jsnameindex = -1;
@@ -287,7 +290,9 @@ void CRoutes_init(struct tCRoutes *t){
 		/* Routing table */
 		//p->CRoutes;
 		/* Structure table */
-		p->ScriptControl = 0; 	/* global objects and contexts for each script */
+		//p->ScriptControl = 0; 	/* global objects and contexts for each script */
+		p->ScriptControl = newVector(struct CRscriptControl*,0);
+		//p->scr_act = NULL;// = 0;				/* this script has been sent an eventIn */
 		p->JSMaxScript = 0;
 		/* Script name/type table */
 		p->JSparamnames = NULL;
@@ -314,7 +319,7 @@ void CRoutes_clear(struct tCRoutes *t){
 		free_routes();
 		FREE_IF_NZ(p->ClockEvents);
 		FREE_IF_NZ(p->preEvents);
-		FREE_IF_NZ(p->ScriptControl);
+		//FREE_IF_NZ(p->ScriptControl);
 	}
 }
 //	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
@@ -1559,30 +1564,47 @@ void mark_event_B (struct X3D_Node *lastFrom, int lastptr, struct X3D_Node *from
 	#endif
 }
 
-struct CRscriptStruct *getScriptControl()
-{
-	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
-	return p->ScriptControl;
-}
-void setScriptControl(struct CRscriptStruct *ScriptControl)
-{
-	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
-	p->ScriptControl = ScriptControl;
-}
+//struct CRscriptStruct *getScriptControl()
+//{
+//	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
+//	return p->ScriptControl;
+//}
+//void setScriptControl(struct CRscriptStruct *ScriptControl)
+//{
+//	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
+//	p->ScriptControl = ScriptControl;
+//}
 struct CRscriptStruct *getScriptControlIndex(int actualscript)
 {
 	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
-	return &p->ScriptControl[actualscript];
+	return vector_get(struct CRscriptStruct*,p->ScriptControl,actualscript);
+	//return &p->ScriptControl[actualscript];
+}
+void setScriptControlIndex(int actualscript, struct CRscriptStruct *sc){
+	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
+	vector_set(struct CRscriptStruct*,p->ScriptControl,actualscript,sc);
 }
 int isScriptControlOK(int actualscript)
 {
+	struct CRscriptStruct* cs;
 	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
-	return p->ScriptControl[actualscript].scriptOK;
+	cs = vector_get(struct CRscriptStruct*,p->ScriptControl,actualscript);
+
+	return cs->scriptOK;
 }
 int isScriptControlInitialized(int actualscript)
 {
+	int ret;
+	struct CRscriptStruct* cs;
 	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
-	return p->ScriptControl[actualscript]._initialized;
+	ret = FALSE;
+	if(actualscript < p->JSMaxScript){
+		cs = vector_get(struct CRscriptStruct*,p->ScriptControl,actualscript);
+		if(cs){
+			if(cs->_initialized) ret = TRUE;
+		}
+	}
+	return ret;
 }
 int loadstatus_Script(struct X3D_Script *script){
 	int istate = 0;
@@ -1615,14 +1637,15 @@ void initializeAnyScripts()
 	ttglobal tg = (ttglobal)gglobal();
 	if( tg->CRoutes.max_script_found != tg->CRoutes.max_script_found_and_initialized) 
 	{ 
-		struct CRscriptStruct *ScriptControl = getScriptControl(); 
+		struct CRscriptStruct *ScriptControl; // = getScriptControl(); 
 		int i; //jsval retval; 
 		for (i=tg->CRoutes.max_script_found_and_initialized+1; i <= tg->CRoutes.max_script_found; i++) 
 		{ 
 			/* printf ("initializing script %d in thread %u\n",i,pthread_self());  */ 
 			JSCreateScriptContext(i); 
-			JSInitializeScriptAndFields(i); 
-			if (ScriptControl[i].scriptOK) 
+			JSInitializeScriptAndFields(i);
+			ScriptControl = getScriptControlIndex(i);
+			if (ScriptControl->scriptOK) 
 				jsActualrunScript(i, "initialize()");
 				//ACTUALRUNSCRIPT(i, "initialize()" ,&retval); 
 			 /* printf ("initialized script %d\n",i);*/  
@@ -1644,8 +1667,12 @@ Register a new script for future routing
 void CRoutes_js_new (int num, int scriptType) {
 	/* record whether this is a javascript, class invocation, ... */
 	ttglobal tg = gglobal();
-	ppCRoutes p = (ppCRoutes)tg->CRoutes.prv;
-	p->ScriptControl[num].thisScriptType = scriptType;
+	struct CRscriptStruct* cs;
+	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
+	cs = vector_get(struct CRscriptStruct*,p->ScriptControl,num);
+
+	//p->ScriptControl[num].thisScriptType = scriptType;
+	cs->thisScriptType = scriptType;
 
 	/* compare with a intptr_t, because we need to compare to -1 */
 	if (num > tg->CRoutes.max_script_found) tg->CRoutes.max_script_found = num;
@@ -1661,12 +1688,16 @@ zero_scripts - reset all script indicators
 
 ********************************************************************/
 void mark_script (int num) {
-	ttglobal tg = gglobal();
+	//struct CRscriptstruct *cs;
+	//ppCRoutes p;
+	//ttglobal tg = gglobal();
+	//p = (ppCRoutes)tg->CRoutes.prv;
 
-	#ifdef CRVERBOSE 
-		printf ("mark_script - script %d has been invoked\n",num);
-	#endif
-	tg->CRoutes.scr_act[num]= TRUE;
+	//#ifdef CRVERBOSE 
+	//	printf ("mark_script - script %d has been invoked\n",num);
+	//#endif
+	getScriptControlIndex(num)->scr_act = TRUE;
+	//p->scr_act[num]= TRUE;
 }
 
 
@@ -1857,7 +1888,7 @@ static BOOL gatherScriptEventOut_B(union anyVrml* any, struct Shader_Script *sha
 	//if (X3D_NODE(p->CRoutes[route].routeFromNode)->_nodeType == NODE_Script) {
 		//struct X3D_Script *mys = X3D_SCRIPT(p->CRoutes[route].routeFromNode);
 		//struct Shader_Script *sp = (struct Shader_Script *) mys->__scriptObj;
-	//if(shader->num > -1 && shader->loaded){
+	if(shader->num > -1 && shader->loaded){
 		actualscript = shader->num;
 
 		/* printf ("gatherEvents, found a script at element %d, it is script number %d and node %u\n",
@@ -1957,7 +1988,7 @@ static BOOL gatherScriptEventOut_B(union anyVrml* any, struct Shader_Script *sha
 	//}
 	//route ++;
 	//}
-	//}
+	}
 	#ifdef CRVERBOSE 
 		printf ("%f finished  gatherScriptEventOuts loop\n",TickTime());
 	#endif
@@ -1977,15 +2008,19 @@ void kill_javascript(void) {
 	int i;
 	ttglobal tg = gglobal();
 	ppCRoutes p = (ppCRoutes)tg->CRoutes.prv;
-	struct CRscriptStruct *ScriptControl = getScriptControl();
+	struct CRscriptStruct *ScriptControl; // = getScriptControl();
 
 	/* printf ("calling kill_javascript()\n"); */
 	zeroScriptHandles();
 	if (jsIsRunning() != 0) {
 		for (i=0; i<=tg->CRoutes.max_script_found_and_initialized; i++) {
 			/* printf ("kill_javascript, looking at %d\n",i); */
-			if (ScriptControl[i].cx != 0) {
-				JSDeleteScriptContext(i);
+			ScriptControl = getScriptControlIndex(i);
+			if(ScriptControl){ //can be null already
+				if (ScriptControl->cx != 0) {
+					JSDeleteScriptContext(i);
+				}
+				setScriptControlIndex(i,NULL);
 			}
 		}
 	}
@@ -1994,9 +2029,9 @@ void kill_javascript(void) {
 	tg->CRoutes.max_script_found_and_initialized = -1;
 	jsShutdown();
 	JSparamnamesShutdown();
-	FREE_IF_NZ (ScriptControl);
-	setScriptControl(NULL);
-	FREE_IF_NZ(tg->CRoutes.scr_act);
+	vector_releaseData(struct CRscriptStruct *,p->ScriptControl);
+	//FREE_IF_NZ (ScriptControl);
+	//FREE_IF_NZ(p->scr_act);
 
 
 }
@@ -2005,47 +2040,80 @@ void cleanupDie(int num, const char *msg) {
 	kill_javascript();
 	freewrlDie(msg);
 }
-
-void JSMaxAlloc() {
-	/* perform some REALLOCs on JavaScript database stuff for interfacing */
-	int count, istart, iend;
-	int *scr_act, *new_scr_act;
+struct CRscriptStruct *newScriptControl(){
+	struct CRscriptStruct *sc = NULL;
+	sc = malloc(sizeof(struct CRscriptStruct));
+	memset(sc,0,sizeof(struct CRscriptStruct));
+	sc->thisScriptType = NOSCRIPT;
+	sc->eventsProcessed = NULL;
+	sc->cx = 0;
+	sc->glob = 0;
+	sc->_initialized = FALSE;
+	sc->scriptOK = FALSE;
+	sc->scriptText = NULL;
+	sc->paramList = NULL;
+	sc->script = NULL;
+	return sc;
+}
+//void JSMaxAlloc() {
+//	/* perform some REALLOCs on JavaScript database stuff for interfacing */
+//	int count, istart, iend;
+//	int *scr_act, *new_scr_act;
+//	ttglobal tg = gglobal();
+//	ppCRoutes p = (ppCRoutes)tg->CRoutes.prv;
+//	/* printf ("start of JSMaxAlloc, JSMaxScript %d\n",JSMaxScript); */
+//	//struct CRscriptStruct *newScriptControl, *ScriptControl;
+//
+//	//istart = p->JSMaxScript;
+//	//iend = istart + 20;
+//	////printf("reallocing in JSMaxAlloc() from %d to %d\n",istart,iend);
+//	//ScriptControl = getScriptControl();
+//	//newScriptControl = malloc(sizeof (struct CRscriptStruct) * iend);
+//	//if(istart)
+//	//	memcpy(newScriptControl,ScriptControl,sizeof (struct CRscriptStruct) *istart);
+//	//scr_act = p->scr_act;
+//	//new_scr_act = (int *)malloc(sizeof (int *) * iend);
+//	//if(istart)
+//	//	memcpy(new_scr_act,scr_act,sizeof(int *)*istart);
+//
+//	///* mark these scripts inactive */
+//	////for (count=p->JSMaxScript-10; count<p->JSMaxScript; count++) {
+//	//for(count = istart; count < iend; count++){
+//	//	new_scr_act[count]= FALSE;
+//	//	newScriptControl[count].thisScriptType = NOSCRIPT;
+//	//	newScriptControl[count].eventsProcessed = NULL;
+//	//	newScriptControl[count].cx = 0;
+//	//	newScriptControl[count].glob = 0;
+//	//	newScriptControl[count]._initialized = FALSE;
+//	//	newScriptControl[count].scriptOK = FALSE;
+//	//	newScriptControl[count].scriptText = NULL;
+//	//	newScriptControl[count].paramList = NULL;
+//	//	newScriptControl[count].script = NULL;
+//	//}
+//	//setScriptControl( newScriptControl);
+//	//p->scr_act = new_scr_act;
+//	//p->JSMaxScript = iend; 
+//	//FREE_IF_NZ(ScriptControl);
+//	//FREE_IF_NZ(scr_act);
+//	
+//}
+void JSMaxAlloc2(int num){
 	ttglobal tg = gglobal();
 	ppCRoutes p = (ppCRoutes)tg->CRoutes.prv;
-	/* printf ("start of JSMaxAlloc, JSMaxScript %d\n",JSMaxScript); */
-	struct CRscriptStruct *newScriptControl, *ScriptControl;
+	if(p->ScriptControl->allocn <= num){
+		int i,istart, iend;
 
-	istart = p->JSMaxScript;
-	iend = istart + 20;
-	//printf("reallocing in JSMaxAlloc() from %d to %d\n",istart,iend);
-	ScriptControl = getScriptControl();
-	newScriptControl = malloc(sizeof (struct CRscriptStruct) * iend);
-	if(istart)
-		memcpy(newScriptControl,ScriptControl,sizeof (struct CRscriptStruct) *istart);
-	scr_act = tg->CRoutes.scr_act;
-	new_scr_act = (int *)malloc(sizeof (int *) * iend);
-	if(istart)
-		memcpy(new_scr_act,scr_act,sizeof(int *)*istart);
-
-	/* mark these scripts inactive */
-	//for (count=p->JSMaxScript-10; count<p->JSMaxScript; count++) {
-	for(count = istart; count < iend; count++){
-		new_scr_act[count]= FALSE;
-		newScriptControl[count].thisScriptType = NOSCRIPT;
-		newScriptControl[count].eventsProcessed = NULL;
-		newScriptControl[count].cx = 0;
-		newScriptControl[count].glob = 0;
-		newScriptControl[count]._initialized = FALSE;
-		newScriptControl[count].scriptOK = FALSE;
-		newScriptControl[count].scriptText = NULL;
-		newScriptControl[count].paramList = NULL;
-		newScriptControl[count].script = NULL;
+		istart = p->ScriptControl->allocn;
+		iend = upper_power_of_two(num+1);
+		p->ScriptControl->data = realloc(p->ScriptControl->data,iend*sizeof(struct CRscriptStruct *));
+		p->ScriptControl->allocn = iend;
+		p->JSMaxScript = p->ScriptControl->allocn;
+		//not all Scripts get a control - if they are in the body of a ProtoDeclare they don't. 
+		//But they may get a script num. If so they may be null. 
+		//Or if an Inline is unloaded, some elements of ScriptControl may be null.
+		for(i=istart;i<iend;i++)
+			vector_set(struct CRscriptStruct *,p->ScriptControl,i,NULL);
 	}
-	setScriptControl( newScriptControl);
-	tg->CRoutes.scr_act = new_scr_act;
-	p->JSMaxScript = iend; 
-	FREE_IF_NZ(ScriptControl);
-	FREE_IF_NZ(scr_act);
 }
 int	unInitializeScript(struct X3D_Node *node){
 	int iret = FALSE;
@@ -2055,23 +2123,19 @@ int	unInitializeScript(struct X3D_Node *node){
 		if(sscript){
 			int count;
 			ttglobal tg;
-			struct CRscriptStruct *ScriptControl = getScriptControl();
+			ppCRoutes p;
+
+			struct CRscriptStruct *ScriptControl; // = getScriptControl();
 			tg = gglobal();
+			p = (ppCRoutes)tg->CRoutes.prv;
 
 			//sscript->loaded = FALSE;
 			count = sscript->num;
-			tg->CRoutes.scr_act[count]= FALSE;
-			ScriptControl[count].thisScriptType = NOSCRIPT;
-			if (ScriptControl[count].cx != 0)
+			ScriptControl = getScriptControlIndex(count);
+			if (ScriptControl->cx != 0)
 				JSDeleteScriptContext(count);
-			ScriptControl[count].eventsProcessed = NULL;
-			ScriptControl[count].cx = 0;
-			ScriptControl[count].glob = 0;
-			ScriptControl[count]._initialized = FALSE;
-			ScriptControl[count].scriptOK = FALSE;
-			ScriptControl[count].scriptText = NULL;
-			ScriptControl[count].paramList = NULL;
-			ScriptControl[count].script = NULL;
+			setScriptControlIndex(count,NULL);
+			FREE_IF_NZ(ScriptControl);
 			iret = TRUE;
 		}
 	}
@@ -2080,6 +2144,7 @@ int	unInitializeScript(struct X3D_Node *node){
 
 /* set up table entry for this new script */
 void JSInit(struct Shader_Script *script) { /* int num) { */
+	struct CRscriptStruct *cs;
 	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
 	#ifdef JAVASCRIPTVERBOSE 
 	printf("JSinit: script %d\n",num);
@@ -2087,9 +2152,12 @@ void JSInit(struct Shader_Script *script) { /* int num) { */
 
 	/* more scripts than we can handle right now? */
 	if (script->num >= p->JSMaxScript)  {
-		JSMaxAlloc();
+		JSMaxAlloc2(script->num);
 	}
-	getScriptControlIndex(script->num)->script = script;
+	cs = newScriptControl();
+	setScriptControlIndex(script->num,cs);
+	//getScriptControlIndex(script->num)->script = script;
+	cs->script = script;
 }
 
 #endif /* HAVE_JAVASCRIPT */
@@ -2097,15 +2165,16 @@ void JSInit(struct Shader_Script *script) { /* int num) { */
 void SaveScriptText(int num, const char *text) {
 	ttglobal tg = gglobal();
 	ppCRoutes p = (ppCRoutes)tg->CRoutes.prv;
-	struct CRscriptStruct *ScriptControl = getScriptControl();
+	struct CRscriptStruct *ScriptControl; // = getScriptControl();
 
 	/* printf ("SaveScriptText, num %d, thread %u saving :%s:\n",num, pthread_self(),text); */
 	if (num >= p->JSMaxScript)  {
 		ConsoleMessage ("SaveScriptText: warning, script %d initialization out of order",num);
 		return;
 	}
-	FREE_IF_NZ(ScriptControl[num].scriptText);
-	ScriptControl[num].scriptText = STRDUP(text);
+	ScriptControl = getScriptControlIndex(num);
+	FREE_IF_NZ(ScriptControl->scriptText);
+	ScriptControl->scriptText = STRDUP(text);
 /* NOTE - seems possible that a script could be overwritten; if so then fix eventsProcessed */
 	//jsClearScriptControlEntries(&ScriptControl[num]);
 	jsClearScriptControlEntries(num);
@@ -2445,8 +2514,9 @@ void propagate_events_A() {
 	#ifdef HAVE_JAVASCRIPT
 	/* now, go through and clean up all of the scripts */
 	for (counter =0; counter <= tg->CRoutes.max_script_found_and_initialized; counter++) {
-		if (tg->CRoutes.scr_act[counter]) {
-			tg->CRoutes.scr_act[counter] = FALSE;
+		struct CRscriptStruct *sc = getScriptControlIndex(counter);
+		if(sc->scr_act){  //if (p->scr_act[counter]) {
+			sc->scr_act = FALSE; //p->scr_act[counter] = FALSE;
 			js_cleanup_script_context(counter);
 			//CLEANUP_JAVASCRIPT(p->ScriptControl[counter].cx);
 		}
@@ -3014,8 +3084,9 @@ void propagate_events_B() {
 	#ifdef HAVE_JAVASCRIPT
 	/* now, go through and clean up all of the scripts */
 	for (counter =0; counter <= tg->CRoutes.max_script_found_and_initialized; counter++) {
-		if (tg->CRoutes.scr_act[counter]) {
-			tg->CRoutes.scr_act[counter] = FALSE;
+		struct CRscriptStruct *sc = getScriptControlIndex(counter);
+		if (sc->scr_act){ //p->scr_act[counter]) {
+			sc->scr_act = FALSE; //p->scr_act[counter] = FALSE;
 			js_cleanup_script_context(counter);
 			//CLEANUP_JAVASCRIPT(p->ScriptControl[counter].cx);
 		}

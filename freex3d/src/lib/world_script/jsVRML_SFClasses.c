@@ -1555,11 +1555,12 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 			struct Shader_Script *myObj;
 			JSContext *cx2;
 			JSObject *obj2;
-			struct CRscriptStruct *ScriptControl = getScriptControl(); 
+			struct CRscriptStruct *ScriptControl; // = getScriptControl(); 
 			myObj = X3D_SCRIPT(ptr->handle)->__scriptObj;
 			/* get context and global object for this script */
-			cx2 =  (JSContext*)ScriptControl[myObj->num].cx;
-			obj2 = (JSObject*)ScriptControl[myObj->num].glob;
+			ScriptControl = getScriptControlIndex(myObj->num);
+			cx2 =  (JSContext*)ScriptControl->cx;
+			obj2 = (JSObject*)ScriptControl->glob;
 			if (JS_GetProperty (cx2, obj2, _id_c, &rval)) {
 				if (JSVAL_IS_NULL(rval)) {
 					ConsoleMessage ("Script - field :%s: does not exist",_id_c);
@@ -1728,17 +1729,18 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 			//indexT myfieldType;
 			//union anyVrml vrmlField;
 			//bool deepcopy;
-			struct CRscriptStruct *ScriptControl = getScriptControl(); 
+			struct CRscriptStruct *ScriptControl; // = getScriptControl(); 
 			myObj = X3D_SCRIPT(ptr->handle)->__scriptObj;
 			/* is the script ok and initialized? */
-			if ((!ScriptControl[myObj->num]._initialized) || (!ScriptControl[myObj->num].scriptOK)) {
+			ScriptControl = getScriptControlIndex(myObj->num);
+			if ((!ScriptControl->_initialized) || (!ScriptControl->scriptOK)) {
 				/* printf ("waiting for initializing script %d at %s:%d\n",(uintptr_t)to_ptr->routeToNode, __FILE__,__LINE__); */
 				return JS_FALSE;;
 			}
 
 			/* get context and global object for this script */
-			cx2 =  (JSContext*)ScriptControl[myObj->num].cx;
-			obj2 = (JSObject*)ScriptControl[myObj->num].glob;
+			cx2 =  (JSContext*)ScriptControl->cx;
+			obj2 = (JSObject*)ScriptControl->glob;
 			//it doesn't seem to matter which cx/obj we use.
 			cx2 = cx;
 			obj2 = obj;
@@ -1902,10 +1904,11 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 			//step 1. unconditionally write the script->field->value regardless of its kind/PKW
 			struct ScriptFieldDecl* myfield; 
 			struct Shader_Script *script;
-			struct CRscriptStruct *ScriptControl = getScriptControl(); 
+			struct CRscriptStruct *ScriptControl; // = getScriptControl(); 
 			script = X3D_SCRIPT(ptr->handle)->__scriptObj;
 			/* is the script ok and initialized? */
-			if ((!ScriptControl[script->num]._initialized) || (!ScriptControl[script->num].scriptOK)) {
+			ScriptControl = getScriptControlIndex(script->num);
+			if ((!ScriptControl->_initialized) || (!ScriptControl->scriptOK)) {
 				/* printf ("waiting for initializing script %d at %s:%d\n",(uintptr_t)to_ptr->routeToNode, __FILE__,__LINE__); */
 				return JS_FALSE;;
 			}
