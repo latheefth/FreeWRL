@@ -407,6 +407,7 @@ void medium_copy_field(int itype, void* source, void** dest){
 	//medium_copy_field(itype,source,&myDestination);
 	// it will malloc the size
 	(*dest) = malloc(sizeofSForMF(itype));
+	memset((*dest),0,sizeofSForMF(itype));
 	medium_copy_field0(itype,source,(*dest));
 }
 
@@ -2273,6 +2274,7 @@ void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int
 	maData.p = Data;
 	source = (char *)&maData;
 	any = (void*)source;
+
 	medium_copy_field(itype,source,&datacopy);
 	any = datacopy;
 	push_typed_proxy2(ctx,itype,PKW_inputOutput,datacopy,NULL,'T');
