@@ -1081,84 +1081,109 @@ c) look at atts containerField, and if not null and not children, use it.
 	int defaultContainer; //, instanceContainer, i;
 	struct X3D_Node *node, *parent;
 	char *parentsSuggestion; //*ic,  
-	int type, kind, iifield, ok;
+	int type, kind, iifield, ok, isRootNode;
 	union anyVrml *value;
 	const char *fname;
 
 	node = getNode(ud,TOP);
 	parent = getNode(ud,TOP-1);
 	if(!node || !parent)return;
-	parentsSuggestion = getField(ud,TOP-1);
-	//for(i=0;i<10;i++)
-	//	printf("getField %d = %s",i,getField(ud,i));
-
-	//3.a)
-	defaultContainer = node->_defaultContainer;
-	if(defaultContainer == FIELDNAMES_children) defaultContainer = 0;
-	value = NULL;
-	fname = NULL;
-	ok = 0;
-	if(defaultContainer){
-		fname = FIELDNAMES[defaultContainer];
-		ok = getFieldFromNodeAndName(parent,fname,&type,&kind,&iifield,&value);
-		ok = ok && (kind == PKW_initializeOnly || kind == PKW_inputOutput); //not inputOnly or outputOnly - we can't park nodes there
-	}
-	if(!value && node->_defaultContainer == FIELDNAMES_children){
-		//if you try and put a transform into a proto, or LOD, or Inline (or switch?) you'll come in
-		//here to get the equivalent-to-children field
-		ok = getFieldFromNodeAndName(parent,"children",&type,&kind,&iifield,&value);
-		ok = ok && (kind == PKW_initializeOnly || kind == PKW_inputOutput); //not inputOnly or outputOnly - we can't park nodes there
-		if(!ok){
-			int kids = indexChildrenName(parent);
-			if(kids > 0){
-				 value = (union anyVrml*)childrenField(parent);
-				 type = FIELDTYPE_MFNode;
-			}
+	isRootNode = FALSE;
+	if(parent->_nodeType == NODE_Proto){
+		char flagInstance; //, flagExtern, pflagdepth;
+		struct X3D_Proto *proto = (struct X3D_Proto*)parent;
+		//pflagdepth = ciflag_get(proto->__protoFlags,0);
+		flagInstance = ciflag_get(proto->__protoFlags,2);  //1 == protoInstance 2 == scene
+		//flagExtern = ciflag_get(proto->__protoFlags,3);
+		//if(!flagInstance){
+		if(flagInstance != 1){
+			//printf("linkNodeIn target parent is a protoDeclare, use _children\n");
+			isRootNode = TRUE;
 		}
 	}
-	//3.b)
-	//if(parentsSuggestion) {
-	if(!ok && parentsSuggestion) {
-		//if you're parsing a fieldValue, and your value is an SF or MFnode in a child xml element,
-		//<fieldValue name='myTransform'>
-		//	<Transform USE='tommysTransform'/>
-		//</fieldValue>
-		//you'll come in here
-		//don't want to come in here for metadata
-		ok =getFieldFromNodeAndName(parent,parentsSuggestion,&type,&kind,&iifield,&value);
-	}
-			
-	if(!value && parent){
-		ok = getFieldFromNodeAndName(parent,"children",&type,&kind,&iifield,&value);
-		if(!ok){
-			int kids = indexChildrenName(parent);
-			if(kids > 0){
-				 value = (union anyVrml*)childrenField(parent);
-				 type = FIELDTYPE_MFNode;
-			}
-		}
-	}
-
-	if(value){
-		if(type == FIELDTYPE_SFNode){
-			value->sfnode = node;
-			ADD_PARENT(node,parent);
-		}else if(type == FIELDTYPE_MFNode){
-			union anyVrml *valueadd = NULL;
-			ok = 0;
-			if(parent->_nodeType == NODE_Proto){
-				struct X3D_Proto *pparent = X3D_PROTO(parent);
-				char cflag = ciflag_get(pparent->__protoFlags,2);
-				if(cflag == 2)  //scene
-					ok = getFieldFromNodeAndName(parent,"addChildren",&type,&kind,&iifield,&valueadd);
-			}
-			if(ok)
-				AddRemoveChildren(parent,&valueadd->mfnode,&node,1,1,__FILE__,__LINE__);
-			else
-				AddRemoveChildren(parent,&value->mfnode,&node,1,1,__FILE__,__LINE__);
-		}
+	if(isRootNode){
+		//if we are adding a rootnode to scene or protobody, it should be added to
+		// the scene/protobody's private __children field
+		// (not to any of the proto's public fields, for example if the proto author called a public field 'children')
+		struct X3D_Proto* proto;
+		union anyVrml *valueadd = NULL;
+		ok = getFieldFromNodeAndName(parent,"__children",&type,&kind,&iifield,&valueadd);
+		//proto = (struct X3D_Proto*)parent;
+		//valueadd = &proto->__children;
+		AddRemoveChildren(parent,&valueadd->mfnode,&node,1,1,__FILE__,__LINE__);
 	}else{
-		printf("no where to put node in parent\n");
+		parentsSuggestion = getField(ud,TOP-1);
+		//for(i=0;i<10;i++)
+		//	printf("getField %d = %s",i,getField(ud,i));
+
+		//3.a)
+		defaultContainer = node->_defaultContainer;
+		if(defaultContainer == FIELDNAMES_children) defaultContainer = 0;
+		value = NULL;
+		fname = NULL;
+		ok = 0;
+		if(defaultContainer){
+			fname = FIELDNAMES[defaultContainer];
+			ok = getFieldFromNodeAndName(parent,fname,&type,&kind,&iifield,&value);
+			ok = ok && (kind == PKW_initializeOnly || kind == PKW_inputOutput); //not inputOnly or outputOnly - we can't park nodes there
+		}
+		if(!value && node->_defaultContainer == FIELDNAMES_children){
+			//if you try and put a transform into a proto, or LOD, or Inline (or switch?) you'll come in
+			//here to get the equivalent-to-children field
+			ok = getFieldFromNodeAndName(parent,"children",&type,&kind,&iifield,&value);
+			ok = ok && (kind == PKW_initializeOnly || kind == PKW_inputOutput); //not inputOnly or outputOnly - we can't park nodes there
+			if(!ok){
+				int kids = indexChildrenName(parent);
+				if(kids > 0){
+					 value = (union anyVrml*)childrenField(parent);
+					 type = FIELDTYPE_MFNode;
+				}
+			}
+		}
+		//3.b)
+		//if(parentsSuggestion) {
+		if(!ok && parentsSuggestion) {
+			//if you're parsing a fieldValue, and your value is an SF or MFnode in a child xml element,
+			//<fieldValue name='myTransform'>
+			//	<Transform USE='tommysTransform'/>
+			//</fieldValue>
+			//you'll come in here
+			//don't want to come in here for metadata
+			ok =getFieldFromNodeAndName(parent,parentsSuggestion,&type,&kind,&iifield,&value);
+		}
+			
+		if(!value && parent){
+			ok = getFieldFromNodeAndName(parent,"children",&type,&kind,&iifield,&value);
+			if(!ok){
+				int kids = indexChildrenName(parent);
+				if(kids > 0){
+					 value = (union anyVrml*)childrenField(parent);
+					 type = FIELDTYPE_MFNode;
+				}
+			}
+		}
+
+		if(value){
+			if(type == FIELDTYPE_SFNode){
+				value->sfnode = node;
+				ADD_PARENT(node,parent);
+			}else if(type == FIELDTYPE_MFNode){
+				union anyVrml *valueadd = NULL;
+				ok = 0;
+				if(parent->_nodeType == NODE_Proto){
+					struct X3D_Proto *pparent = X3D_PROTO(parent);
+					char cflag = ciflag_get(pparent->__protoFlags,2);
+					if(cflag == 2)  //scene
+						ok = getFieldFromNodeAndName(parent,"addChildren",&type,&kind,&iifield,&valueadd);
+				}
+				if(ok)
+					AddRemoveChildren(parent,&valueadd->mfnode,&node,1,1,__FILE__,__LINE__);
+				else
+					AddRemoveChildren(parent,&value->mfnode,&node,1,1,__FILE__,__LINE__);
+			}
+		}else{
+			printf("no where to put node in parent\n");
+		}
 	}
 
 }
@@ -2740,7 +2765,8 @@ static void XMLCALL X3DendElement(void *ud, const xmlChar *iname) {
 				else endScriptProtoField(ud);
 				break;
 			case X3DSP_fieldValue:
-				if(usingBrotos()) endFieldValue_B(ud);
+				if(usingBrotos())
+					endFieldValue_B(ud);
 				else setFieldValueDataActive(ud,name);
 				break;
 			

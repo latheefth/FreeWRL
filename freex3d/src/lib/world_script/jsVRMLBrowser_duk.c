@@ -649,7 +649,7 @@ int VrmlBrowserCreateVrmlFromString(FWType fwtype, void *ec, void *fwn, int argc
 			}
 			fwretval->_web3dval.native = mfn;
 			fwretval->_web3dval.fieldType = FIELDTYPE_MFNode; //Group
-			fwretval->_web3dval.gc = 1; //will be GCd by nodelist
+			fwretval->_web3dval.gc = 0; //DONT GC - will cause Browser.deleteRoute to bomb. //will be GCd by nodelist
 			fwretval->itype = 'W';
 			iret = 1;
 		}
@@ -713,7 +713,7 @@ void *addDeleteRoute0(void *fwn, char*callingFunc, struct X3D_Node* fromNode, ch
 	if(usingBrotos()){
 		struct brotoRoute *broute;
 		struct X3D_Proto *ec = (struct X3D_Proto*)fwn;
-		if(!ec) ec = fromNode->_executionContext;
+		if(!ec) ec = (struct X3D_Proto*)fromNode->_executionContext;
 		if(!strcmp(callingFunc,"addRoute")){
 			broute = createNewBrotoRoute();
 			broute->from.node = fromNode;
@@ -778,10 +778,13 @@ void * addDeleteRoute(void *fwn, char* callingFunc, int argc, FWval fwpars, FWva
 	const char *fromField, *toField;
 	void *retval;
 
-	//fromNode = fwpars[0]._web3dval.native; 
-	//toNode   = fwpars[2]._web3dval.native; 
+	//if(0){ //!strcmp(callingFunc,"deleteRoute")){
+	//	fromNode = fwpars[0]._web3dval.native; 
+	//	toNode   = fwpars[2]._web3dval.native; 
+	//}
 	fromNode = fwpars[0]._web3dval.anyvrml->sfnode; //.native; 
 	toNode   = fwpars[2]._web3dval.anyvrml->sfnode; //.native; 
+
 	fromField = fwpars[1]._string; 
 	toField = fwpars[3]._string; 
 	
