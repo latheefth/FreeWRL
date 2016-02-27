@@ -161,6 +161,36 @@ void setAtt(void *userData, int index, void *att){
 	else
 		vector_set(void* ,ud->atts, index, att);
 }
+struct mode_name {
+int mode;
+const char *name;
+} mode_names [] = {
+PARSING_NODES,"PARSING_NODES",
+PARSING_SCRIPT,"PARSING_SCRIPT",
+PARSING_PROTODECLARE,"PARSING_PROTODECLARE",
+PARSING_PROTOINTERFACE,"PARSING_PROTOINTERFACE",
+PARSING_PROTOBODY,"PARSING_PROTOBODY",
+PARSING_PROTOINSTANCE,"PARSING_PROTOINSTANCE",
+PARSING_IS,"PARSING_IS",
+PARSING_CONNECT,"PARSING_CONNECT",
+PARSING_EXTERNPROTODECLARE,"PARSING_EXTERNPROTODECLARE",
+PARSING_FIELD,"PARSING_FIELD",
+PARSING_PROTOINSTANCE_USE,"PARSING_PROTOINSTANCE_USE",
+0,NULL,
+};
+const char* getModeName(int mode){
+	//return printable modename
+	struct mode_name *mname;
+	int i;
+	i = 0;
+	do{
+		mname = &mode_names[i];
+		if(mode == mname->mode) 
+			return mname->name;
+		i++;
+	}while(mname->name);
+	return NULL;
+}
 void pushMode(void *userData, int parsingmode){
 	struct xml_user_data *ud = (struct xml_user_data *)userData;
 	stack_push(int,ud->modes,parsingmode);
@@ -177,7 +207,17 @@ void popMode(void *userData){
 	struct xml_user_data *ud = (struct xml_user_data *)userData;
 	stack_pop(int,ud->modes);
 }
-
+void printModeStack(void *userData){
+	int i,j,mode,isize;
+	struct xml_user_data *ud = (struct xml_user_data *)userData;
+	isize =  vectorSize(ud->modes);
+	printf("mode_stack size=%d top to bottom:\n",isize);
+	for(i=0;i<isize;i++){
+		j = isize - i - 1;
+		mode =  vector_get(int,ud->modes, j);
+		printf("%s\n",getModeName(mode));
+	}
+}
 void pushField(void *userData, char *fname){
 	struct xml_user_data *ud = (struct xml_user_data *)userData;
 	stack_push(char *,ud->fields,fname);
@@ -1081,25 +1121,17 @@ c) look at atts containerField, and if not null and not children, use it.
 	int defaultContainer; //, instanceContainer, i;
 	struct X3D_Node *node, *parent;
 	char *parentsSuggestion; //*ic,  
-	int type, kind, iifield, ok, isRootNode;
+	int type, kind, iifield, ok, isRootNode, mode;
 	union anyVrml *value;
 	const char *fname;
 
+	mode = getMode(ud,TOP);
 	node = getNode(ud,TOP);
 	parent = getNode(ud,TOP-1);
 	if(!node || !parent)return;
 	isRootNode = FALSE;
 	if(parent->_nodeType == NODE_Proto){
-		char flagInstance; //, flagExtern, pflagdepth;
-		struct X3D_Proto *proto = (struct X3D_Proto*)parent;
-		//pflagdepth = ciflag_get(proto->__protoFlags,0);
-		flagInstance = ciflag_get(proto->__protoFlags,2);  //1 == protoInstance 2 == scene
-		//flagExtern = ciflag_get(proto->__protoFlags,3);
-		//if(!flagInstance){
-		if(flagInstance != 1){
-			//printf("linkNodeIn target parent is a protoDeclare, use _children\n");
-			isRootNode = TRUE;
-		}
+		if(mode == PARSING_PROTOBODY) isRootNode = TRUE;
 	}
 	if(isRootNode){
 		//if we are adding a rootnode to scene or protobody, it should be added to
