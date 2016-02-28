@@ -84,6 +84,9 @@ FWFunctionSpec *getFWFunc(FWTYPE *fwt,const char *key){
 	}
 	return NULL;
 }
+#ifdef _MSC_VER
+#define strcasecmp _stricmp
+#endif
 FWPropertySpec *getFWProp(FWTYPE *fwt,const char *key, int *index){
 	int i = 0;
 	FWPropertySpec *ps = fwt->Properties;
