@@ -374,7 +374,6 @@ iOLDCODE	}Component_Networking;
 		int CRoutesExtra;// = 0;
 		//jsval JSglobal_return_val;
 		void *JSSFpointer;
-		int *scr_act;// = 0;				/* this script has been sent an eventIn */
 		int max_script_found;// = -1;			/* the maximum script number found */
 		int max_script_found_and_initialized;// = -1;	/* the maximum script number found */
 		int jsnameindex; //= -1;

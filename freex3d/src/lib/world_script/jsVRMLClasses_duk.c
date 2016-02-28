@@ -1287,12 +1287,12 @@ int SFNode_getNodeName(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpar
 			if(context){
 				//broto_search_DEFname(ec, fwpars[0]._string);
 				int i;
-				struct brotoDefpair *def;
+				struct brotoDefpair def;
 				if(context->__DEFnames)
 				for(i=0;i<vectorSize(context->__DEFnames);i++){
-					def = vector_get(struct brotoDefpair*, context->__DEFnames,i);
-					if(def->node == node){
-						name = def->name;
+					def = vector_get(struct brotoDefpair, context->__DEFnames,i);
+					if(def.node == node){
+						name = def.name;
 						break;
 					}
 				}

@@ -1187,6 +1187,8 @@ printf ("parser_protoStatement, FINISHED proto :%s:\n",obj->protoName);
 
 
 static BOOL parser_componentStatement(struct VRMLParser* me) {
+	char *cname, *clevel;
+	char cfullname[200];
     int myComponent = INT_ID_UNDEFINED;
     int myLevel = INT_ID_UNDEFINED;
 
@@ -1207,29 +1209,52 @@ static BOOL parser_componentStatement(struct VRMLParser* me) {
     if(!lexer_setCurID(me->lexer)) return TRUE; /* true, because this IS a COMPONENT statement */
     ASSERT(me->lexer->curID);
 
-    myComponent = findFieldInCOMPONENTS(me->lexer->curID);
-    if (myComponent == ID_UNDEFINED) {
-        CPARSE_ERROR_CURID("Invalid COMPONENT name ");
-        return TRUE;
-    }
+	//Feb 2016 Core:2 will be all one string now, thanks to allowing : in identifiers Sept 2015
+	if(1){
+		//new way to handle 'Core:2' chunk
+		int i;
+		strcpy(cfullname,me->lexer->curID);
+		/* now, we are finished with this COMPONENT */
+		FREE_IF_NZ(me->lexer->curID);
+
+		cname = cfullname;
+		clevel = NULL;
+		for(i=0;i<strlen(cfullname);i++)
+			if(cfullname[i] == ':'){
+				cfullname[i] = '\0';
+				clevel = &cfullname[i+1];
+				break;
+			}
+			myComponent = findFieldInCOMPONENTS(cname);
+			myLevel = 0;
+			if(clevel) myLevel = atoi(clevel);
+	}
+	if(0){
+		//oldway
+		myComponent = findFieldInCOMPONENTS(me->lexer->curID);
+		if (myComponent == ID_UNDEFINED) {
+			CPARSE_ERROR_CURID("Invalid COMPONENT name ");
+			return TRUE;
+		}
                 
-#ifdef CPARSERVERBOSE
-    printf ("my COMPONENT is %s\n",COMPONENTS[myComponent]);
-#endif
+	#ifdef CPARSERVERBOSE
+		printf ("my COMPONENT is %s\n",COMPONENTS[myComponent]);
+	#endif
 
-    /* now, we are finished with this COMPONENT */
-    FREE_IF_NZ(me->lexer->curID);
+		/* now, we are finished with this COMPONENT */
+		FREE_IF_NZ(me->lexer->curID);
 
-    /* we should have a ":" then an integer supportLevel */
-    if (!lexer_colon(me->lexer)) {
-        CPARSE_ERROR_CURID("expected colon in COMPONENT statement")
-            return TRUE;
-    }
+		/* we should have a ":" then an integer supportLevel */
+		if (!lexer_colon(me->lexer)) {
+			CPARSE_ERROR_CURID("expected colon in COMPONENT statement")
+				return TRUE;
+		}
 
-    if (!parser_sfint32Value(me,&myLevel)) {
-        CPARSE_ERROR_CURID("expected supportLevel")
-            return TRUE;
-    }   
+		if (!parser_sfint32Value(me,&myLevel)) {
+			CPARSE_ERROR_CURID("expected supportLevel")
+				return TRUE;
+		}   
+	}
     handleComponent(myComponent,myLevel);
 
     return TRUE;

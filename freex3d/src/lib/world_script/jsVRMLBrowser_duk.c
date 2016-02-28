@@ -671,10 +671,102 @@ int VrmlBrowserCreateVrmlFromString(FWType fwtype, void *ec, void *fwn, int argc
 	return iret;
 
 }
+void *createNewX3DNode(int nt);
+void add_node_to_broto_context(struct X3D_Proto *currentContext,struct X3D_Node *node);
+int VrmlBrowserCreateNodeFromString(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
+{
+	int i, iret, isVRML,isX3D;
+	struct X3D_Node *node;
+	const char *_c = fwpars[0]._string;
+
+	node = NULL;
+	isVRML = FALSE;
+	isX3D = FALSE;
+	iret = 0;
+	for(i=0;i<strlen(_c);i++){
+		if(_c[i] == '<') isX3D = TRUE;
+		if(_c[i] == '{') isVRML = TRUE;
+	}
+	if(!isX3D && !isVRML){
+		//might be just a node name ie createNode('Cone');
+		int ctype;
+		//check builtins
+		ctype = findFieldInNODES(_c);
+		if (ctype > -1) {
+			node = (struct X3D_Node*)createNewX3DNode(ctype);
+			add_node_to_broto_context(ec,node);
+		}
+		//check protos? No: there's a separate createProto() function for those.
+	}
+	if(!node){
+		//more general might have parameters ie createNode("Cone { radius .5 }")
+		if(isVRML)
+			iret = VrmlBrowserCreateVrmlFromString(fwtype,ec,fwn,argc,fwpars,fwretval);
+		else
+			iret = VrmlBrowserCreateX3DFromString(fwtype,ec,fwn,argc,fwpars,fwretval);
+		if(iret){
+			node = fwretval->_web3dval.anyvrml->mfnode.p[0];
+			node->_executionContext = ec;
+		}
+	}
+	if(node){
+		fwretval->_web3dval.anyvrml = malloc(sizeof(union anyVrml));
+		fwretval->_web3dval.anyvrml->sfnode = node;
+		fwretval->_web3dval.fieldType = FIELDTYPE_SFNode;
+		fwretval->_web3dval.gc = 0;
+		fwretval->itype = 'W';
+		iret = 1;
+	}
+	return iret;
+}
+void send_resource_to_parser_async(resource_item_t *res);
 int VrmlBrowserCreateVrmlFromURL(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
-	//from x3dnode, from char*field, to x3dnode, to char*field
-	return 0;
+	//Browser.createVrmlFromURL(urlString,group,'addChildren');
+	//(MFString,SFNode,string)
+	int i, iret, type,kind,ifield,ifound;
+	union anyVrml *value;
+	struct X3D_Node *target_node;
+	struct Multi_String *url;
+	char *cfield;
+	resource_item_t *res;
+	
+	url = NULL;
+	target_node = NULL;
+	cfield = NULL;
+	if(fwpars[0].itype == 'W')
+		url = &fwpars[0]._web3dval.anyvrml->mfstring;
+
+	if(fwpars[1].itype == 'W')
+		if(fwpars[1]._web3dval.fieldType == FIELDTYPE_SFNode)
+			target_node = fwpars[1]._web3dval.anyvrml->sfnode;
+	if(fwpars[2].itype == 'S')
+		cfield = fwpars[2]._string;
+
+	if(!url || !target_node || !cfield){
+		ConsoleMessage("createX3DFromURL parameters: (MFString url, SFNode target_node, string target_field\n");
+		iret = 0;
+		return iret;
+	}
+	//lookup field on node
+	ifound = getFieldFromNodeAndName(target_node,cfield,&type,&kind,&ifield,&value);
+	if(!ifound){
+		ConsoleMessage("createX3DFromURL no field named %s on nodetype %s\n",cfield,stringNodeType(target_node->_nodeType));
+		iret = 0;
+		return iret;
+	}
+
+
+	//res = resource_create_single(url);
+	res = resource_create_multi(url);
+	res->ectx = ec;
+	res->whereToPlaceData = target_node;
+	res->offsetFromWhereToPlaceData = (int) value - (int) target_node; //offsetof (struct X3D_Group, children);
+	//iret = parser_process_res_VRML_X3D(res);
+
+	send_resource_to_parser_async(res);
+	iret = 1;
+	return iret;
 }
 
 /* we add/remove routes with this call */
@@ -870,9 +962,9 @@ FWFunctionSpec (BrowserFunctions)[] = {
 	{"loadURL", VrmlBrowserLoadURL, '0',{2,1,'T',"FF"}},
 	{"setDescription", VrmlBrowserSetDescription, '0',{1,-1,0,"S"}},
 	{"createVrmlFromString", VrmlBrowserCreateVrmlFromString, 'W',{1,-1,0,"S"}},
-	{"createVrmlFromURL", VrmlBrowserCreateVrmlFromURL,'W',{3,2,0,"WSO"}},
+	{"createVrmlFromURL", VrmlBrowserCreateVrmlFromURL,'0',{3,3,0,"WWS"}},
 	{"createX3DFromString", VrmlBrowserCreateX3DFromString, 'W',{1,-1,0,"S"}},
-	{"createX3DFromURL", VrmlBrowserCreateVrmlFromURL, 'W',{3,2,0,"WSO"}},
+	{"createX3DFromURL", VrmlBrowserCreateVrmlFromURL, '0',{3,3,0,"WWS"}},
 	{"addRoute", VrmlBrowserAddRoute, 'P',{4,-1,0,"WSWS"}},
 	{"deleteRoute", VrmlBrowserDeleteRoute, '0',{4,-1,0,"WSWS"}},
 	{"print", VrmlBrowserPrint, '0',{1,-1,0,"S"}},
@@ -1601,7 +1693,7 @@ static FWFunctionSpec (X3DExecutionContextFunctions)[] = {
 	//executionContext
 	{"addRoute", VrmlBrowserAddRoute, 'P',{4,-1,0,"WSWS"}},
 	{"deleteRoute", X3DExecutionContext_deleteRoute,'0',{1,-1,0,"P"}},
-	{"createNode", VrmlBrowserCreateX3DFromString, 'W',{1,-1,0,"S"}},
+	{"createNode", VrmlBrowserCreateNodeFromString, 'W',{1,-1,0,"S"}},
 	{"createProto", X3DExecutionContext_createProto, 'W',{1,-1,0,"S"}},
 	{"getImportedNode", X3DExecutionContext_getImportedNode, 'W',{1,-1,0,"S"}},
 	{"updateImportedNode", X3DExecutionContext_updateImportedNode, '0',{3,-1,0,"SSS"}},

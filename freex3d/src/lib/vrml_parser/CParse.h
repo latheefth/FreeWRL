@@ -46,6 +46,7 @@ FirstChar = RestChar minus:
 0X30-0X39 - digits
 0x2b,0x2d +-
 Sept 2015 - we now allow 0x3a colon : in First and Rest - && c!=0x3a
+Feb  2016 - however, allowing : broke COMPONENT Core:2 splitting -Core:2 comes out as one chunk now- changed that code
 */
 #define IS_ID_REST(c) \
  (c>0x20 && c!=0x22 && c!=0x23 && c!=0x27 && c!=0x2C && c!=0x2E  && c!=0x5B && \

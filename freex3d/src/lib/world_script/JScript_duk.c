@@ -71,12 +71,16 @@ FWTYPE *getFWTYPE(int itype){
 	}
 	return NULL;
 }
+#ifdef _MSC_VER
+#define strcasecmp _stricmp
+#endif
+
 FWFunctionSpec *getFWFunc(FWTYPE *fwt,const char *key){
 	int i = 0;
 	FWFunctionSpec *fs = fwt->Functions;
 	if(fs)
 	while(fs[i].name){
-		if(!strcmp(fs[i].name,key)){
+		if(!strcasecmp(fs[i].name,key)){
 			//found it - its a function, return functionSpec
 			return &fs[i];
 		}
@@ -90,7 +94,7 @@ FWPropertySpec *getFWProp(FWTYPE *fwt,const char *key, int *index){
 	*index = 0;
 	if(ps)
 	while(ps[i].name){
-		if(!strcmp(ps[i].name,key)){
+		if(!strcasecmp(ps[i].name,key)){
 			//found it - its a property, return propertySpec
 			(*index) = ps[i].index; //index can be any +- integer
 			return &ps[i];
@@ -158,7 +162,7 @@ int fwhas_generic(FWTYPE *fwt, void *pointer, const char *key, int *jndex, char 
 	isSet = FALSE;
 	
 	while( (index = fwiterator_generic(index,fwt,pointer,&name, &lastProp, jndex, type, readOnly)) > -1){
-		if(!strcmp(name,key)){
+		if(!strcasecmp(name,key)){
 			//found it
 			return TRUE;
 		}
@@ -169,7 +173,7 @@ int fwhas_generic(FWTYPE *fwt, void *pointer, const char *key, int *jndex, char 
 	if(isSet){
 		char* key2 = &key[4];
 		while( (index = fwiterator_generic(index,fwt,pointer,&name, &lastProp, jndex, type, readOnly)) > -1){
-			if(!strcmp(name,key2)){
+			if(!strcasecmp(name,key2)){
 				//found it
 				return TRUE;
 			}
@@ -278,9 +282,10 @@ int get_valueChanged_flag (int fptr, int actualscript){
 	struct X3D_Node *node;
 	struct Shader_Script *script;
 	struct ScriptFieldDecl *field;
-	struct CRscriptStruct *scriptcontrol, *ScriptControlArr = getScriptControl();
+	struct CRscriptStruct *scriptcontrol; //, *ScriptControlArr = getScriptControl();
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
-	scriptcontrol = &ScriptControlArr[actualscript];
+
+	scriptcontrol = getScriptControlIndex(actualscript); //&ScriptControlArr[actualscript];
 	script = scriptcontrol->script;
 	node = script->ShaderScriptNode;
 	fullname = JSparamnames[fptr].name;
@@ -300,9 +305,10 @@ void resetScriptTouchedFlag(int actualscript, int fptr){
 	struct X3D_Node *node;
 	struct Shader_Script *script;
 	struct ScriptFieldDecl *field;
-	struct CRscriptStruct *scriptcontrol, *ScriptControlArr = getScriptControl();
+	struct CRscriptStruct *scriptcontrol; // *ScriptControlArr = getScriptControl();
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
-	scriptcontrol = &ScriptControlArr[actualscript];
+
+	scriptcontrol = getScriptControlIndex(actualscript); //&ScriptControlArr[actualscript];
 	script = scriptcontrol->script;
 	node = script->ShaderScriptNode;
 	fullname = JSparamnames[fptr].name;
@@ -326,7 +332,7 @@ int fwType2itype(const char *fwType){
 		suffix = &fwType[2]; //skip SF/MF part
 		i = 0;
 		while(lookup_fieldType[i].c){
-			if(!strcmp(suffix,lookup_fieldType[i].c)){
+			if(!strcasecmp(suffix,lookup_fieldType[i].c)){
 				ifield = lookup_fieldType[i].i;
 				break;
 			}
@@ -335,8 +341,8 @@ int fwType2itype(const char *fwType){
 		if(ifield > -1 && isMF ) ifield++;
 	}else{
 		//browser and scene/executionContext shouldn't be going through fwconstructor
-		if(!strcmp(fwType,"Browser")) ifield = AUXTYPE_X3DBrowser;
-		if(!strcmp(fwType,"X3DConstants")) ifield = AUXTYPE_X3DConstants;
+		if(!strcasecmp(fwType,"Browser")) ifield = AUXTYPE_X3DBrowser;
+		if(!strcasecmp(fwType,"X3DConstants")) ifield = AUXTYPE_X3DConstants;
 	}
 	return ifield;
 }
@@ -405,6 +411,7 @@ void medium_copy_field(int itype, void* source, void** dest){
 	//medium_copy_field(itype,source,&myDestination);
 	// it will malloc the size
 	(*dest) = malloc(sizeofSForMF(itype));
+	memset((*dest),0,sizeofSForMF(itype));
 	medium_copy_field0(itype,source,(*dest));
 }
 
@@ -1130,7 +1137,7 @@ int ctypefunction(duk_context *ctx) {
 	duk_pop(ctx);
 	duk_pop(ctx); //durrent function
 	nr = 0;
-	if(!strcmp(fwFunc,"getType")){
+	if(!strcasecmp(fwFunc,"getType")){
 		duk_push_int(ctx,itype);
 		nr = 1;
 	}
@@ -1206,7 +1213,7 @@ int cfunction(duk_context *ctx) {
 		nr = fs->call(fwt,ec,parent,argc,pars,&fwretval);
 		if(nr){
 			nr = fwval_duk_push(ctx,&fwretval,valueChanged);
-			if(nr && !strcmp(fwFunc,"toString")){
+			if(nr && !strcasecmp(fwFunc,"toString")){
 				if(fwretval.itype == 'S' && fwretval._string){
 					//printf("gcing toString string %s\n",fwretval._string);
 					free(fwretval._string);  //if this bombs take it out and toString strings won't be gcd. There's nothing set up to gc _string in general
@@ -1275,7 +1282,7 @@ int cget(duk_context *ctx) {
 			nr = 1;
 			return nr;
 		}
-		if(!strcmp(key,"getType") || !strcmp(key,"isReadable") || !strcmp(key,"isWritable")){
+		if(!strcasecmp(key,"getType") || !strcmp(key,"isReadable") || !strcmp(key,"isWritable")){
 			//its a function all auxtypes and fieldtypes share
 			duk_push_c_function(ctx,ctypefunction,DUK_VARARGS);
 			duk_push_int(ctx,itype);
@@ -1540,8 +1547,10 @@ void JSCreateScriptContext(int num) {
 	//JSObject *_globalObj; 	/* these are set here */
 	//BrowserNative *br; 	/* these are set here */
 	//ppJScript p = (ppJScript)gglobal()->JScript.prv;
-	struct CRscriptStruct *ScriptControl = getScriptControl();
-	script = ScriptControl[num].script;
+	struct CRscriptStruct *ScriptControl; // = getScriptControl();
+
+	ScriptControl = getScriptControlIndex(num);
+	script = ScriptControl->script;
 	scriptnode = script->ShaderScriptNode;
 	//CREATE CONTEXT
 	ctx = duk_create_heap_default();
@@ -1551,10 +1560,10 @@ void JSCreateScriptContext(int num) {
 	iglobal = duk_get_top(ctx) -1;
 
 	//SAVE OUR CONTEXT IN OUR PROGRAM'S SCRIPT NODE FOR LATER RE-USE
-	ScriptControl[num].cx =  ctx;
+	ScriptControl->cx =  ctx;
 	//ScriptControl[num].glob =  (void *)malloc(sizeof(int)); 
 	//*((int *)ScriptControl[num].glob) = iglobal; //we'll be careful not to pop our global for this context (till context cleanup)
-	((int *)&ScriptControl[num].glob)[0] = iglobal; //we'll be careful not to pop our global for this context (till context cleanup)
+	((int *)&ScriptControl->glob)[0] = iglobal; //we'll be careful not to pop our global for this context (till context cleanup)
 
 	//ADD HELPER PROPS AND FUNCTIONS
 	duk_push_pointer(ctx,scriptnode); //I don't think we need to know the script this way, but in the future, you might
@@ -1959,9 +1968,9 @@ void JSInitializeScriptAndFields (int num) {
 	struct ScriptFieldDecl *field;
 	int i,nfields, kind, itype;
 	const char *fieldname;
-	struct CRscriptStruct *ScriptControlArray, *scriptcontrol;
-	ScriptControlArray = getScriptControl();
-	scriptcontrol = &ScriptControlArray[num];
+	struct CRscriptStruct *scriptcontrol; //*ScriptControlArray, 
+	//ScriptControlArray = getScriptControl();
+	scriptcontrol = getScriptControlIndex(num); //&ScriptControlArray[num];
 
 
 	/* run through fields in order of entry in the X3D file */
@@ -1997,14 +2006,14 @@ int jsActualrunScript(int num, char *script){
 	int len, rc, iret;
 	duk_context *ctx;
 	int iglobal;
-	struct CRscriptStruct *ScriptControl = getScriptControl();
+	struct CRscriptStruct *ScriptControl; // = getScriptControl();
 	printf("in jsActualrunScript\n");
 
-
+	ScriptControl = getScriptControlIndex(num);
 	/* get context and global object for this script */
-	ctx = (duk_context *)ScriptControl[num].cx;
+	ctx = (duk_context *)ScriptControl->cx;
 	//iglobal = *((int *)ScriptControl[num].glob);
-	iglobal = ((int *)&ScriptControl[num].glob)[0];
+	iglobal = ((int *)&ScriptControl->glob)[0];
 
 	//CLEANUP_JAVASCRIPT(_context)
 
@@ -2119,7 +2128,7 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 	//FWVAL newval;
 	duk_context *ctx;
 	int obj, rc;
-	struct CRscriptStruct *ScriptControl = getScriptControl();
+	struct CRscriptStruct *ScriptControl; // = getScriptControl();
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
 	//printf("in set_one_ECMAtype\n");
@@ -2130,9 +2139,12 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 	#endif
 
 	/* get context and global object for this script */
-	ctx =  (duk_context *)ScriptControl[tonode].cx;
+	ScriptControl = getScriptControlIndex(tonode);
+	ctx =  (duk_context *)ScriptControl->cx;
+	//ctx =  (duk_context *)ScriptControl[tonode].cx;
 	//obj = *(int*)ScriptControl[tonode].glob; //don't need
-	obj = ((int*)&ScriptControl[tonode].glob)[0]; //don't need
+	//obj = ((int*)&ScriptControl[tonode].glob)[0]; //don't need
+	obj = ((int*)&ScriptControl->glob)[0]; //don't need
 
 
 	//get function by name
@@ -2205,12 +2217,15 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen)
 	int obj, rc;
 	int itype;
 	void *datacopy;
-	struct CRscriptStruct *ScriptControl = getScriptControl();
+	struct CRscriptStruct *ScriptControl; // = getScriptControl();
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
-	ctx =  (duk_context *)ScriptControl[tonode].cx;
+	ScriptControl = getScriptControlIndex(tonode);
+	//ctx =  (duk_context *)ScriptControl[tonode].cx;
+	ctx =  (duk_context *)ScriptControl->cx;
 	//obj = *(int*)ScriptControl[tonode].glob;
-	obj = ((int*)&ScriptControl[tonode].glob)[0];
+	//obj = ((int*)&ScriptControl[tonode].glob)[0];
+	obj = ((int*)&ScriptControl->glob)[0];
 	
 	//printf("in set_one_MultiElementType\n");
 	//get function by name
@@ -2244,12 +2259,15 @@ void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int
 	//char *source = (char *)Data - sizeof(int); //backup so we get the whole MF including .n
 	struct Multi_Any maData;
 	char *source;
-	struct CRscriptStruct *ScriptControl = getScriptControl();
+	struct CRscriptStruct *ScriptControl; // = getScriptControl();
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
-	ctx =  (duk_context *)ScriptControl[tonode].cx;
+	ScriptControl = getScriptControlIndex(tonode);
+	//ctx =  (duk_context *)ScriptControl[tonode].cx;
+	ctx =  (duk_context *)ScriptControl->cx;
 	//obj = *(int*)ScriptControl[tonode].glob;
-	obj = ((int*)&ScriptControl[tonode].glob)[0];
+	//obj = ((int*)&ScriptControl[tonode].glob)[0];
+	obj = ((int*)&ScriptControl->glob)[0];
 	
 	//printf("in set_one_MFElementType\n");
 	//get function by name
@@ -2260,6 +2278,7 @@ void set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int
 	maData.p = Data;
 	source = (char *)&maData;
 	any = (void*)source;
+
 	medium_copy_field(itype,source,&datacopy);
 	any = datacopy;
 	push_typed_proxy2(ctx,itype,PKW_inputOutput,datacopy,NULL,'T');
@@ -2391,8 +2410,8 @@ int runQueuedDirectOutputs()
 	const char *fieldname;
 	static int doneOnce = 0;
 	int moreAction;
-	struct CRscriptStruct *ScriptControlArray, *scriptcontrol;
-	ScriptControlArray = getScriptControl();
+	struct CRscriptStruct *scriptcontrol; //*ScriptControlArray, 
+	//ScriptControlArray = getScriptControl();
 	
 	if(!doneOnce){
 		printf("in runQueuedDirectOutputs\n");
@@ -2400,7 +2419,7 @@ int runQueuedDirectOutputs()
 	}
 	moreAction = FALSE;
 	for(num=0;num< tg->CRoutes.max_script_found_and_initialized;num++){
-		scriptcontrol = &ScriptControlArray[num];
+		scriptcontrol = getScriptControlIndex(num); //&ScriptControlArray[num];
 		script = scriptcontrol->script;
 		if(scriptcontrol->thisScriptType != NOSCRIPT && script){
 			if(isScriptControlInitialized(script->num) && isScriptControlOK(script->num)){

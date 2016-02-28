@@ -57,8 +57,8 @@ const char* EXPOSED_EVENT_OUT_SUF="_changed";
 /* Tables of user-defined IDs */
 #define USER_IDS_INIT_SIZE	16
 
-/* Maximum id length (input buffer size) */
-#define MAX_IDLEN	127
+/* Maximum id length (input buffer size) a bad EOF in .wrl or no \n on ROUTE before EOF can cause an over-run */
+#define MAX_IDLEN	155 //127
 /* Start buffer length for strings */
 #define INITIAL_STRINGLEN	256
 

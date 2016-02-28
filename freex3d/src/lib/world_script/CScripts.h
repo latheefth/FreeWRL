@@ -165,10 +165,11 @@ struct CRscriptStruct {
 	struct ScriptParamList *paramList;
 	int 		scriptOK;		/* set to TRUE if the script loads ok */
 	struct Shader_Script* script; //dug9_2014 added here for duktape proxy which will use script->field[i].valueChanged and anyVrml Value instead of scriptparamlist here
+	int scr_act; //non-zero -something sent this script an eventin
 };
 //extern struct CRscriptStruct *ScriptControl;
-struct CRscriptStruct *getScriptControl();
-void setScriptControl(struct CRscriptStruct *ScriptControl);
+//struct CRscriptStruct *getScriptControl();
+//void setScriptControl(struct CRscriptStruct *ScriptControl);
 
 
 /* function protos */
