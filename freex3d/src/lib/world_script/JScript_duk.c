@@ -71,12 +71,16 @@ FWTYPE *getFWTYPE(int itype){
 	}
 	return NULL;
 }
+#ifdef _MSC_VER
+#define strcasecmp _stricmp
+#endif
+
 FWFunctionSpec *getFWFunc(FWTYPE *fwt,const char *key){
 	int i = 0;
 	FWFunctionSpec *fs = fwt->Functions;
 	if(fs)
 	while(fs[i].name){
-		if(!strcmp(fs[i].name,key)){
+		if(!strcasecmp(fs[i].name,key)){
 			//found it - its a function, return functionSpec
 			return &fs[i];
 		}
@@ -84,16 +88,13 @@ FWFunctionSpec *getFWFunc(FWTYPE *fwt,const char *key){
 	}
 	return NULL;
 }
-#ifdef _MSC_VER
-#define strcasecmp _stricmp
-#endif
 FWPropertySpec *getFWProp(FWTYPE *fwt,const char *key, int *index){
 	int i = 0;
 	FWPropertySpec *ps = fwt->Properties;
 	*index = 0;
 	if(ps)
 	while(ps[i].name){
-		if(!strcmp(ps[i].name,key)){
+		if(!strcasecmp(ps[i].name,key)){
 			//found it - its a property, return propertySpec
 			(*index) = ps[i].index; //index can be any +- integer
 			return &ps[i];
@@ -161,7 +162,7 @@ int fwhas_generic(FWTYPE *fwt, void *pointer, const char *key, int *jndex, char 
 	isSet = FALSE;
 	
 	while( (index = fwiterator_generic(index,fwt,pointer,&name, &lastProp, jndex, type, readOnly)) > -1){
-		if(!strcmp(name,key)){
+		if(!strcasecmp(name,key)){
 			//found it
 			return TRUE;
 		}
@@ -172,7 +173,7 @@ int fwhas_generic(FWTYPE *fwt, void *pointer, const char *key, int *jndex, char 
 	if(isSet){
 		char* key2 = &key[4];
 		while( (index = fwiterator_generic(index,fwt,pointer,&name, &lastProp, jndex, type, readOnly)) > -1){
-			if(!strcmp(name,key2)){
+			if(!strcasecmp(name,key2)){
 				//found it
 				return TRUE;
 			}
@@ -331,7 +332,7 @@ int fwType2itype(const char *fwType){
 		suffix = &fwType[2]; //skip SF/MF part
 		i = 0;
 		while(lookup_fieldType[i].c){
-			if(!strcmp(suffix,lookup_fieldType[i].c)){
+			if(!strcasecmp(suffix,lookup_fieldType[i].c)){
 				ifield = lookup_fieldType[i].i;
 				break;
 			}
@@ -340,8 +341,8 @@ int fwType2itype(const char *fwType){
 		if(ifield > -1 && isMF ) ifield++;
 	}else{
 		//browser and scene/executionContext shouldn't be going through fwconstructor
-		if(!strcmp(fwType,"Browser")) ifield = AUXTYPE_X3DBrowser;
-		if(!strcmp(fwType,"X3DConstants")) ifield = AUXTYPE_X3DConstants;
+		if(!strcasecmp(fwType,"Browser")) ifield = AUXTYPE_X3DBrowser;
+		if(!strcasecmp(fwType,"X3DConstants")) ifield = AUXTYPE_X3DConstants;
 	}
 	return ifield;
 }
@@ -1136,7 +1137,7 @@ int ctypefunction(duk_context *ctx) {
 	duk_pop(ctx);
 	duk_pop(ctx); //durrent function
 	nr = 0;
-	if(!strcmp(fwFunc,"getType")){
+	if(!strcasecmp(fwFunc,"getType")){
 		duk_push_int(ctx,itype);
 		nr = 1;
 	}
@@ -1212,7 +1213,7 @@ int cfunction(duk_context *ctx) {
 		nr = fs->call(fwt,ec,parent,argc,pars,&fwretval);
 		if(nr){
 			nr = fwval_duk_push(ctx,&fwretval,valueChanged);
-			if(nr && !strcmp(fwFunc,"toString")){
+			if(nr && !strcasecmp(fwFunc,"toString")){
 				if(fwretval.itype == 'S' && fwretval._string){
 					//printf("gcing toString string %s\n",fwretval._string);
 					free(fwretval._string);  //if this bombs take it out and toString strings won't be gcd. There's nothing set up to gc _string in general
@@ -1281,7 +1282,7 @@ int cget(duk_context *ctx) {
 			nr = 1;
 			return nr;
 		}
-		if(!strcmp(key,"getType") || !strcmp(key,"isReadable") || !strcmp(key,"isWritable")){
+		if(!strcasecmp(key,"getType") || !strcmp(key,"isReadable") || !strcmp(key,"isWritable")){
 			//its a function all auxtypes and fieldtypes share
 			duk_push_c_function(ctx,ctypefunction,DUK_VARARGS);
 			duk_push_int(ctx,itype);
