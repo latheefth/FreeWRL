@@ -399,9 +399,9 @@ void rbp_run_physics(){
 					for(k=0;k<x3dbody->geometry.n;k++){
 						struct SFVec3f translation;
 						struct SFRotation rotation;
-						const dReal *dpos, *dquat;
+						dReal *dpos, *dquat;
 						Quaternion quat;
-						double x,y,z,a;
+						double xyza[4];
 
 						if(x3dbody->geometry.p[k]->_nodeType == NODE_CollidableOffset){
 							x3doffset = (struct X3D_CollidableOffset*)x3dbody->geometry.p[k];
@@ -415,15 +415,10 @@ void rbp_run_physics(){
 						dpos = dBodyGetPosition (x3dbody->_body);
 						dquat = dBodyGetQuaternion(x3dbody->_body);
 						quat.x = dquat[0], quat.y = dquat[1], quat.z = dquat[2], quat.w = dquat[3];
-						quaternion_to_vrmlrot(&quat,&x,&y,&z,&a);
+						quaternion_to_vrmlrot(&quat,&xyza[0],&xyza[1],&xyza[2],&xyza[3]);
 
-						x3doffset->translation.c[0] = (float)dpos[0];
-						x3doffset->translation.c[1] = (float)dpos[1];
-						x3doffset->translation.c[2] = (float)dpos[2];
-						x3doffset->rotation.c[0] = (float)x;
-						x3doffset->rotation.c[1] = (float)y;
-						x3doffset->rotation.c[2] = (float)z;
-						x3doffset->rotation.c[3] = (float)a;
+						double2float(x3doffset->translation.c,dpos,3);
+						double2float(x3doffset->rotation.c,xyza,4);
 						x3doffset->_change++;
 
 					}

@@ -761,7 +761,7 @@ int VrmlBrowserCreateVrmlFromURL(FWType fwtype, void *ec, void *fwn, int argc, F
 	res = resource_create_multi(url);
 	res->ectx = ec;
 	res->whereToPlaceData = target_node;
-	res->offsetFromWhereToPlaceData = (int) value - (int) target_node; //offsetof (struct X3D_Group, children);
+	res->offsetFromWhereToPlaceData = (int) ((size_t)value - (size_t) target_node); //offsetof (struct X3D_Group, children);
 	//iret = parser_process_res_VRML_X3D(res);
 
 	send_resource_to_parser_async(res);
