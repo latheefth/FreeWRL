@@ -2813,7 +2813,8 @@ static void XMLCALL X3DstartElement(void *ud, const xmlChar *iname, const xmlCha
 				parseProtoBody_B(ud,myAtts); 
 				break;
 			case X3DSP_ProtoInterface: 
-				parseProtoInterface(ud,myAtts); break;
+				parseProtoInterface(ud,myAtts); 
+				break;
 			case X3DSP_ProtoInstance: 
 				parseProtoInstance_B(ud,myAtts); 
 				break;
@@ -2830,6 +2831,7 @@ static void XMLCALL X3DstartElement(void *ud, const xmlChar *iname, const xmlCha
 				break;
 			case X3DSP_field: 
 				parseScriptProtoField_B (ud, myAtts);
+				break;
 			case X3DSP_IS: parseIS(ud); break;
 			case X3DSP_component: parseComponent(myAtts); break;
 			case X3DSP_EXPORT: 
@@ -2837,6 +2839,7 @@ static void XMLCALL X3DstartElement(void *ud, const xmlChar *iname, const xmlCha
 				break;
 			case X3DSP_IMPORT: 
 				parseImport_B(ud,myAtts);
+				break;
 			case X3DSP_connect: 
 				parseConnect_B(ud,myAtts);
 				break;
@@ -2854,7 +2857,6 @@ void endScriptProtoField_B(void *ud) {
 	if(0) printf("end scriptprotofield\n");
 	popField(ud);
 	popMode(ud); //PARSING_FIELD);
-
 }
 
 
@@ -2888,7 +2890,9 @@ static void XMLCALL X3DendElement(void *ud, const xmlChar *iname) {
 			case X3DSP_ProtoInstance: 
 				endProtoInstance_B(ud,name);
 				break;
-			case X3DSP_ProtoInterface: endProtoInterfaceTag(ud); break;
+			case X3DSP_ProtoInterface: 
+				endProtoInterfaceTag(ud); 
+				break;
 			case X3DSP_ProtoBody: 
 				endProtoBodyTag_B(ud,name);
 				break;
@@ -2898,7 +2902,9 @@ static void XMLCALL X3DendElement(void *ud, const xmlChar *iname) {
 			case X3DSP_ExternProtoDeclare: 
 				endExternProtoDeclareTag_B(ud);
 				break;
-			case X3DSP_IS: endIS(ud); break;
+			case X3DSP_IS: 
+				endIS(ud); 
+				break;
 			case X3DSP_connect:
 			case X3DSP_ROUTE: 
 			case X3DSP_meta:

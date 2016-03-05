@@ -78,7 +78,7 @@ void Component_RigidBodyPhysics_clear(struct tComponent_RigidBodyPhysics *t){
 void rbp_run_physics();
 void set_physics();
 
-//#undef WITH_RBP
+#undef WITH_RBP
 #ifdef WITH_RBP
 //#define dSINGLE 1  //Q. do we need to match the physics lib build
 #define dDOUBLE 1

@@ -1146,7 +1146,7 @@ HWND create_main_window0(freewrl_params_t * d) //int argc, char *argv[])
 	printf("starting createWindow32\n"); 
     /* I suspect hInstance should be get() and passed in from the console program not get() in the dll, but .lib maybe ok */
     hInstance = (HANDLE)GetModuleHandle(NULL); 
-	printf("hInstance=%d\n",hInstance);
+	printf("hInstance=%p\n",hInstance);
     //gglobal()->display.window_title = "FreeWRL";
 	//d->window_title = "FreeWRL";
 

@@ -459,7 +459,7 @@ void saveSnapshotBMP(char *pathname, char *buffer,int bytesPerPixel,int width, i
 #endif 
 
 #ifdef _MSC_VER
-int fw_mkdir(char* path);
+int fw_mkdir(const char* path);
 void Snapshot () 
 {
 /* going to try just the single snapshot for windows, to .bmp format 

@@ -1337,11 +1337,11 @@ p->myff = 4;
 		rowvec = p->rowvec;
 	}
 	if(!rowvec){
-		rowvec = (row32*)malloc(numrows * sizeof(row32));
+		rowvec = (row32*)MALLOCV(numrows * sizeof(row32));
 		memset(rowvec,0,numrows * sizeof(row32));
 	}
 	if(rowvec_allocn < numrows){
-		rowvec = realloc(rowvec,numrows * sizeof(row32));
+		rowvec = REALLOC(rowvec,numrows * sizeof(row32));
 		memset(&rowvec[rowvec_allocn],0,(numrows - rowvec_allocn)*sizeof(row32));
 		rowvec_allocn = numrows;
 	}
@@ -2087,7 +2087,7 @@ void Atlas_init(Atlas *me, int size, int rowheight){
 	me->rowheight = rowheight; //spacing between baselines for textpanel, in pixels (can get this from fontFace once loaded and sized to EM)
 	//me->EMpixels = EMpixels;  //desired size of "EM" square (either x or y dimension, same) in pixels
 	me->bytesperpixel = 1; //TT fonts are rendered to an antialiased 8-bit alpha texture
-	me->texture = (char*)malloc(me->size.X *me->size.Y*me->bytesperpixel);
+	me->texture = (char*)MALLOCV(me->size.X *me->size.Y*me->bytesperpixel);
 	memset(me->texture,127,me->size.X *me->size.Y*me->bytesperpixel); //make it black by default
 	/*
 	//here are some fun stripes to initialize the texture data, for debugging:
@@ -2318,7 +2318,7 @@ void AtlasFont_init(AtlasFont *me,char *facename, int EMsize, char* path){
 
 
 char *newstringfromchar(char c){
-	char *ret = malloc(2);
+	char *ret = MALLOCV(2);
 	ret[0] = c;
 	ret[1] = '\0';
 	return ret;
@@ -2345,7 +2345,7 @@ AtlasEntry * AtlasAddIChar(AtlasFont *font, AtlasEntrySet *entryset,  int ichar)
 	}
 	glyph = fontFace->glyph;
 
-	entry = malloc(sizeof(AtlasEntry));
+	entry = MALLOCV(sizeof(AtlasEntry));
 	//atlasEntry_init1(entry,names[i*2],(int)cText[i],0,0,16,16);
 	entry->ichar = ichar;
 	entry->pos.X = glyph->bitmap_left;
@@ -2383,7 +2383,7 @@ int RenderFontAtlas(AtlasFont *font, AtlasEntrySet *entryset,  char * cText){
 		}
 		glyph = fontFace->glyph;
 
-		entry = malloc(sizeof(AtlasEntry));
+		entry = MALLOCV(sizeof(AtlasEntry));
 		//atlasEntry_init1(entry,names[i*2],(int)cText[i],0,0,16,16);
 		entry->ichar = 0;
 		if( cText[i] > 31 && cText[i] < 128 ) entry->ichar = cText[i]; //add to fast lookup table if ascii
@@ -2522,9 +2522,9 @@ void AtlasFont_RenderFontAtlas(AtlasFont *me, int EMpixels, char* alphabet){
 	if(!me->fontFace) return; //font .ttf file not loaded (likely not found, or programmer didn't load flont first)
 
 	atlas = GUImalloc(&atlas_table,GUI_ATLAS); //malloc(sizeof(GUIAtlas));
-	aes = malloc(sizeof(AtlasEntrySet));
+	aes = MALLOCV(sizeof(AtlasEntrySet));
 	//GUIFontSize *fsize = malloc(sizeof(GUIFontSize));
-	name = malloc(strlen(me->name)+12); //base10 -2B has 11 chars, plus \0
+	name = MALLOCV(strlen(me->name)+12); //base10 -2B has 11 chars, plus \0
 	strcpy(name,me->name);
 	sprintf(&name[strlen(me->name)],"%d",EMpixels); //or itoa()
 	//itoa(EMpixels,&name[strlen(name)],10);
@@ -2568,9 +2568,9 @@ int bin2hex(char *inpath, char *outpath){
 		int more, m, j, nc;
 		unsigned int hh;
 		unsigned char *buf;
-		buf = malloc(ncol + 1);
+		buf = MALLOCV(ncol + 1);
 		//convert ..\ProggyClean.ttf to ProggyClean_ttf
-		bufname = bufdup = strdup(inpath);
+		bufname = bufdup = STRDUP(inpath);
 		ir = strrchr(bufname,'\\');
 		if(ir) bufname = &ir[1];
 		ir = strrchr(bufname,'/');
@@ -2704,7 +2704,7 @@ AtlasFont *searchAtlasTableOrLoad(char *facename, int EMpixels){
 		font = GUImalloc(&font_table,GUI_FONT); //sizeof(GUIFont));
 		//AtlasFont_init(font,"ProggyClean","ProggyClean.ttf"); 
 		len = strlen(facename) + 7;
-		facenamettf = malloc(len);
+		facenamettf = MALLOCV(len);
 		strcpy(facenamettf,facename);
 		facenamettf = strcat(facenamettf,".ttf");
 		AtlasFont_init(font,facename,EMpixels,facenamettf); 
@@ -3820,7 +3820,7 @@ void prep_screentext(struct X3D_Text *tnode, int num, double screensize){
 		screentextdata *sdata;
 		iscreensize = (int)(screensize + .5);
 		fontname = facename_from_num(num);
-		tnode->_screendata = malloc(sizeof(screentextdata));
+		tnode->_screendata = MALLOCV(sizeof(screentextdata));
 		memset(tnode->_screendata,0,sizeof(screentextdata));
 		sdata = (screentextdata*)tnode->_screendata;
 		sdata->atlasfont = (AtlasFont*)searchAtlasTableOrLoad(fontname,iscreensize);
@@ -3850,7 +3850,7 @@ void *GUImalloc(struct Vector **guitable, int type){
 			printf("no guielement of this type %d\n",type);
 	}
 	if(size){
-		retval = malloc(size);
+		retval = MALLOCV(size);
 		//add to any tables
 		if(guitable){
 			if(*guitable == NULL) *guitable = newVector(GUIElement*,20);

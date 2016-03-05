@@ -793,14 +793,14 @@ contenttype *new_contenttype_textpanel(char* fontname, int EMpixels, int maxline
 
 	//blob method
 	self->blobsize = self->maxlines * self->maxlen;
-	self->Ablob = (unsigned char*)malloc(self->blobsize+1);
+	self->Ablob = (unsigned char*)MALLOCV(self->blobsize+1);
 	memset(self->Ablob,0,self->blobsize+1); //the +1 is so Ablob ends in \0 and we can printf it for debuggin
 	self->Z = self->z = self->Ablob;
 	self->S = self->Ablob;
 	self->E = self->Ablob + self->blobsize;
-	self->Blist = malloc(sizeof(BUTitem)*self->maxlines);
+	self->Blist = MALLOCV(sizeof(BUTitem)*self->maxlines);
 	self->rowsize = self->maxlen;
-	self->row = malloc(self->rowsize +1);
+	self->row = MALLOCV(self->rowsize +1);
 	for(i=0;i<self->maxlines;i++){
 		int prev, next;
 		prev = i - 1;
