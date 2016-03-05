@@ -2749,7 +2749,6 @@ void drawStatusBarSide()
 {
 }
 void update_pinned(){
-	int sb, mb;
 	ppstatusbar p;
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;

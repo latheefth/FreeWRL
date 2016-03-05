@@ -366,9 +366,6 @@ iOLDCODE	}Component_Networking;
 	struct tCParseParser{
 		void *prv;
 	}CParseParser;
-	struct tCProto{
-		void *prv;
-	}CProto;
 	struct tCRoutes{
 		/* EAI needs the extra parameter, so we put it globally when a RegisteredListener is clicked. */
 		int CRoutesExtra;// = 0;
@@ -422,9 +419,6 @@ iOLDCODE	}Component_Networking;
 		int CDATA_Text_curlen;// = 0;
 		void *prv;
 	}X3DParser;
-	struct tX3DProtoScript{
-		void *prv;
-	}X3DProtoScript;
 	struct tcommon{
 		void *prv;
 	}common;

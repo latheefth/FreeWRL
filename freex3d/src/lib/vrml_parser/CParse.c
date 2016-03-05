@@ -41,7 +41,6 @@
 #include "../vrml_parser/CFieldDecls.h"
 #include "CParseParser.h"
 #include "CParseLexer.h"
-#include "CProto.h"
 
  
 /* Keep a pointer to the parser for the main URL */
@@ -161,11 +160,7 @@ struct ProtoDefinition *getVRMLbrotoDefinition (struct X3D_Proto *me);
 char* parser_getPROTONameFromNode(struct X3D_Node *node)
 {
 	struct ProtoDefinition* cpd;
-	if(node->_nodeType == NODE_Group){
-		cpd = getVRMLprotoDefinition(X3D_GROUP(node));
-		if (cpd != NULL) return cpd->protoName;
-	}
-	else if(node->_nodeType == NODE_Proto){
+	if(node->_nodeType == NODE_Proto){
 		cpd = getVRMLbrotoDefinition(X3D_PROTO(node));
 		if (cpd != NULL) return cpd->protoName;
 	}

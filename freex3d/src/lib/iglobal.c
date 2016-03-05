@@ -98,7 +98,6 @@ void statusbar_clear(struct tstatusbar *t);
 void CParse_init(struct tCParse *t);
 void CParse_clear(struct tCParse *t);
 void CParseParser_init(struct tCParseParser *t);
-void CProto_init(struct tCProto *t);
 void CRoutes_init(struct tCRoutes *t);
 void CRoutes_clear(struct tCRoutes *t);
 void CScripts_init(struct tCScripts *t);
@@ -115,7 +114,6 @@ void Bindable_clear(struct tBindable *t);
 void X3DParser_init(struct tX3DParser *t);
 void X3DParser_clear(struct tX3DParser *t);
 
-void X3DProtoScript_init(struct tX3DProtoScript *t);
 void common_init(struct tcommon *t);
 void common_clear(struct tcommon *t);
 void CursorDraw_init(struct tCursorDraw *t);
@@ -229,7 +227,6 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 #endif
 	CParse_init(&iglobal->CParse);
 	CParseParser_init(&iglobal->CParseParser);
-	CProto_init(&iglobal->CProto);
 	CRoutes_init(&iglobal->CRoutes);
 	CScripts_init(&iglobal->CScripts);
 	JScript_init(&iglobal->JScript);
@@ -241,7 +238,6 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 #endif
 	Bindable_init(&iglobal->Bindable);
 	X3DParser_init(&iglobal->X3DParser);
-	X3DProtoScript_init(&iglobal->X3DProtoScript);
 	common_init(&iglobal->common);
 #ifndef DISABLER	
 	CursorDraw_init(&iglobal->CursorDraw);
@@ -274,7 +270,6 @@ void __iglobal_fields_destructor(ttglobal tg)
 	//call individual destructors in reverse order to constructor
 	FREE_IF_NZ(tg->CursorDraw.prv);
 	common_clear(&tg->common); FREE_IF_NZ(tg->common.prv);
-	FREE_IF_NZ(tg->X3DProtoScript.prv);
 	X3DParser_clear(&tg->X3DParser); FREE_IF_NZ(tg->X3DParser.prv);
 	Bindable_clear(&tg->Bindable); FREE_IF_NZ(tg->Bindable.prv);
 #ifdef HAVE_JAVASCRIPT
@@ -285,7 +280,6 @@ void __iglobal_fields_destructor(ttglobal tg)
 	FREE_IF_NZ(tg->JScript.prv);
 	FREE_IF_NZ(tg->CScripts.prv);
 	CRoutes_clear(&tg->CRoutes); FREE_IF_NZ(tg->CRoutes.prv);
-	FREE_IF_NZ(tg->CProto.prv);
 	FREE_IF_NZ(tg->CParseParser.prv);
 	CParse_clear(&tg->CParse); FREE_IF_NZ(tg->CParse.prv);
 #if defined(STATUSBAR_HUD)

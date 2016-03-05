@@ -45,7 +45,6 @@ Javascript C language binding.
 #include "../vrml_parser/CFieldDecls.h"
 #include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CParseLexer.h"
-#include "../vrml_parser/CProto.h"
 #include "../vrml_parser/CParse.h"
 #include "../main/Snapshot.h"
 #include "../scenegraph/Collision.h"

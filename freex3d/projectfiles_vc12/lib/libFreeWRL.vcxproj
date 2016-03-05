@@ -300,7 +300,6 @@
     <ClCompile Include="$(SRC)\lib\vrml_parser\CParse.c" />
     <ClCompile Include="$(SRC)\lib\vrml_parser\CParseLexer.c" />
     <ClCompile Include="$(SRC)\lib\vrml_parser\CParseParser.c" />
-    <ClCompile Include="$(SRC)\lib\vrml_parser\CProto.c" />
     <ClCompile Include="$(SRC)\lib\vrml_parser\CRoutes.c" />
     <ClCompile Include="$(SRC)\lib\world_script\CScripts.c" />
     <ClCompile Include="$(SRC)\lib\ui\CursorDraw.c" />
@@ -367,7 +366,6 @@
     <ClCompile Include="$(SRC)\lib\scenegraph\Vector.c" />
     <ClCompile Include="$(SRC)\lib\scenegraph\Viewer.c" />
     <ClCompile Include="$(SRC)\lib\x3d_parser\X3DParser.c" />
-    <ClCompile Include="$(SRC)\lib\x3d_parser\X3DProtoScript.c" />
     <ClCompile Include="$(SRCWIN)\model_platform_win32.c" />
     <ClCompile Include="$(SRC)\lib\world_script\include_duktape.c" />
     <ClCompile Include="$(SRC)\lib\world_script\JScript.c" />
@@ -408,7 +406,6 @@
     <ClInclude Include="$(SRC)\lib\scenegraph\LinearAlgebra.h" />
     <ClInclude Include="$(SRC)\lib\ui\statusbar.h" />
     <ClInclude Include="$(SRC)\lib\x3d_parser\X3DParser.h" />
-    <ClInclude Include="$(SRC)\lib\x3d_parser\X3DProtoScript.h" />
     <ClInclude Include="$(SRC)\buildversion.h" />
   </ItemGroup>
   <ItemGroup>

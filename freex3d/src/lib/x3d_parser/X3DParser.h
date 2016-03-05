@@ -107,28 +107,16 @@ void debugpopParserMode(char *fle, int line);
 /* function protos */
 struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int force);
 
-void parseProtoDeclare (void *ud, char **atts);
 void parseProtoDeclare_B (void *ud, char **atts);
-void parseExternProtoDeclare (void *ud, char **atts);
 void parseExternProtoDeclare_B (void *ud, char **atts);
 void parseProtoInterface (void *ud, char **atts);
-void parseProtoBody (void *ud, char **atts);
 void parseProtoBody_B (void *ud, char **atts);
-void parseProtoInstance (void *ud, char **atts);
 void parseProtoInstance_B (void *ud, char **atts);
-void parseProtoInstanceFields(void *ud, const char *name, char **atts);
 void dumpProtoBody (const char *name, char **atts);
-void dumpCDATAtoProtoBody (char *str);
-void parseScriptProtoField(void *ud, struct VRMLLexer *, char **atts);
 void parseScriptProtoField_B(void *ud, char **atts);
-void expandProtoInstance(void *ud, struct VRMLLexer *, struct X3D_Group * myGroup);
 void freeProtoMemory (void);
 void kill_X3DProtoScripts(void);
 void linkNodeIn(void *ud, char *, int);
-void parseConnect(void *ud, struct VRMLLexer * myLexer, char **atts, struct Vector *tos);
-void endConnect(void *ud);
-void endProtoDeclare(void *ud);
-void endExternProtoDeclare(void *ud);
 struct X3D_Node *X3DParser_getNodeFromName(const char *name);
 int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs, int* type, int *accessType, struct Shader_Script **myObj, char *name, int routeTo);
  
