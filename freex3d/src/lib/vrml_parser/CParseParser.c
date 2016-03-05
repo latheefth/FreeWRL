@@ -1614,9 +1614,7 @@ void parser_specificInitNode_B(struct X3D_Node* n, struct VRMLParser* me)
    }
 
         /* Scripts get a script object associated to them */
-	#ifdef HAVE_JAVASCRIPT
         NODE_SPECIFIC_INIT(Script, node->__scriptObj=new_Shader_ScriptB(X3D_NODE(node));)
-	#endif
 
         NODE_SPECIFIC_INIT(ShaderProgram, node->_shaderUserDefinedFields=X3D_NODE(new_Shader_ScriptB(X3D_NODE(node)));)
         NODE_SPECIFIC_INIT(PackagedShader, node->_shaderUserDefinedFields=X3D_NODE(new_Shader_ScriptB(X3D_NODE(node)));)
@@ -2479,9 +2477,7 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 	struct X3D_Proto *currentContext;
 	char pflagdepth;
 	struct ProtoDefinition *thisProto = NULL;
-	#ifdef HAVE_JAVASCRIPT
 		struct Shader_Script* script=NULL;
-	#endif
 	struct Shader_Script* shader=NULL;
 	DECLAREUP
 	//struct X3D_Node* what_am_I = X3D_NODE(me->ptr);
@@ -2592,12 +2588,6 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 		 printf("parser_node: parsing builtin node\n");
 #endif
 
-	//#ifdef HAVE_JAVASCRIPT
- //       struct Shader_Script* script=NULL;
-	//#endif
-
-		//struct Shader_Script* shader=NULL;
-
 		/* Get malloced struct of appropriate X3D_Node type with default values filled in */
 		if(pflagdepth){
 			node=X3D_NODE(createNewX3DNode((int)nodeTypeB)); //registers node types like sensors, textures in tables for scene
@@ -2629,9 +2619,7 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 
 		/* Set flag for Shaders/Scripts - these ones can have any number of fields */
 		switch (node->_nodeType) {
-			#ifdef HAVE_JAVASCRIPT
 			case NODE_Script: script=X3D_SCRIPT(node)->__scriptObj; break;
-			#endif
 			case NODE_ShaderProgram: shader=(struct Shader_Script *)(X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields); break;
 			case NODE_PackagedShader: shader=(struct Shader_Script *)(X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields); break;
 			case NODE_ComposedShader: shader=(struct Shader_Script *)(X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields); break;
@@ -2726,7 +2714,6 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 			printf("parser_node: try parsing Script or Shader field\n");
 #endif
 
-			#ifdef HAVE_JAVASCRIPT
 			/* check for user field declaration on builtin node of type script or shaderprogram
 				'mode fieldtype fieldname <fieldvalue>'
 				and create the field
@@ -2746,7 +2733,6 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 				continue;
 			}
 
-			#endif
 
 			if(shader && parser_interfaceDeclaration(me, NULL, shader)) {
 #ifdef CPARSERVERBOSE
@@ -2758,7 +2744,6 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 			break;
 		}
 
-		#ifdef HAVE_JAVASCRIPT
 		/* Init code for Scripts */
 		if(script) {
 #ifdef CPARSERVERBOSE
@@ -2771,7 +2756,6 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 			printf("parser_node: SCRIPT url parsed\n");
 #endif
 		} /* nodetypeB or brotoInstance */
-		#endif /* HAVE_JAVASCRIPT */
 
 		if(isBroto && pflagdepth){
 			//copying the body _after_ the protoInstance field values have been parsed 
@@ -4860,7 +4844,7 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 	}
 }
 int nextScriptHandle (void);
-#ifdef HAVE_JAVASCRIPT
+
 void initialize_one_script(struct Shader_Script* ss, const struct Multi_String *url){
 	struct ScriptFieldDecl* field;
 	int j;
@@ -4887,7 +4871,7 @@ void initialize_one_script(struct Shader_Script* ss, const struct Multi_String *
 	// 3)init from URI
 	script_initCodeFromMFUri(ss, url);
 }
-#endif /* HAVE_JAVASCRIPT */
+
 void initialize_scripts(Stack *instancedScripts)
 {
 	/* 
@@ -4916,7 +4900,6 @@ void initialize_scripts(Stack *instancedScripts)
 	//struct ScriptFieldDecl* field;
 	//JSObject *eventInFunction;
 
-	#ifdef HAVE_JAVASCRIPT
 
 	if(instancedScripts)
 	{
@@ -4962,7 +4945,6 @@ void initialize_scripts(Stack *instancedScripts)
 			}
 		}
 	}
-	#endif /* HAVE_JAVASCRIPT */
 
 }
 void sceneInstance(struct X3D_Proto* sceneProto, struct X3D_Node *sceneInstance)

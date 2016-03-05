@@ -62,7 +62,7 @@ Javascript C language binding.
 #include "jsVRMLClasses.h"
 #include "jsVRMLBrowser.h"
 
-#ifdef HAVE_JAVASCRIPT
+
 
 #define X3DBROWSER 1
 
@@ -1323,9 +1323,9 @@ BrowserSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval 
 //jsval JSCreate_global_return_val;
 typedef struct pjsVRMLBrowser{
 	int ijunk;
-#ifdef HAVE_JAVASCRIPT
+
 	jsval JSCreate_global_return_val;
-#endif // HAVE_JAVASCRIPT
+
 
 }* ppjsVRMLBrowser;
 void *jsVRMLBrowser_constructor(){
@@ -1340,9 +1340,9 @@ void jsVRMLBrowser_init(struct tjsVRMLBrowser *t){
 	{
 		ppjsVRMLBrowser p = (ppjsVRMLBrowser)t->prv;
 		/* Script name/type table */
-#ifdef HAVE_JAVASCRIPT
+
 		t->JSCreate_global_return_val = &p->JSCreate_global_return_val;
-#endif // HAVE_JAVASCRIPT
+
 	}
 
 }
@@ -2557,5 +2557,5 @@ void println(Object or String);
 }
 */
 
-#endif /* HAVE_JAVASCRIPT */
+
 #endif /* !(defined(JAVASCRIPT_STUB) || defined(JAVASCRIPT_DUK) */

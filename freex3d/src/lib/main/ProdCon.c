@@ -509,9 +509,9 @@ void new_root(){
 */
 
 	/* free scripts */
-	#ifdef HAVE_JAVASCRIPT
+
 	kill_javascript();
-	#endif
+
 
 
 #ifdef DO_NOT_KNOW

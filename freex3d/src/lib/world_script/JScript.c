@@ -53,7 +53,7 @@ Javascript C language binding.
 #include "jsVRMLBrowser.h"
 
 
-#if defined(HAVE_JAVASCRIPT)
+
 
 #ifndef JSCLASS_GLOBAL_FLAGS
 //spidermonkey < 1.7 doesn't have so define here
@@ -89,17 +89,17 @@ static JSClass staticGlobalClass = {
 };
 
 
-#endif // HAVE_JAVASCRIPT
+
 
 
 typedef struct pJScript{
 
 
-#ifdef HAVE_JAVASCRIPT
+
 	JSRuntime *runtime;// = NULL;
 	JSClass globalClass;
 	jsval JSglobal_return_value;
-#endif // HAVE_JAVASCRIPT
+
 	int ijunk;
 }* ppJScript;
 
@@ -116,23 +116,23 @@ void JScript_init(struct tJScript *t){
 	t->prv = JScript_constructor();
 	{
 		ppJScript p = (ppJScript)t->prv;
-#ifdef HAVE_JAVASCRIPT
+
 		p->runtime = NULL;
 		memcpy(&p->globalClass,&staticGlobalClass,sizeof(staticGlobalClass));
 		t->JSglobal_return_val = &p->JSglobal_return_value;
-#endif // HAVE_JAVASCRIPT
+
 	}
 }
 //	ppJScript p = (ppJScript)gglobal()->JScript.prv;
 
-#ifdef HAVE_JAVASCRIPT
+
 void js_cleanup_script_context(int counter){
 	//ttglobal tg = gglobal();
 	//ppJScript p = (ppJScript)tg->JScript.prv;
 	//CLEANUP_JAVASCRIPT(p->ScriptControl[counter].cx);
 	CLEANUP_JAVASCRIPT(getScriptControlIndex(counter)->cx);
 }
-#endif // HAVE_JAVASCRIPT
+
 /********************************************************************
 
 process_eventsProcessed()
@@ -143,7 +143,6 @@ function - see section C.4.3 of the spec.
 ********************************************************************/
 /* run the script from within C */
 void process_eventsProcessed() {
-#ifdef HAVE_JAVASCRIPT
 
 	int counter;
 	jsval retval;
@@ -190,7 +189,7 @@ void process_eventsProcessed() {
 		}
 
 	}
-#endif /* HAVE_JAVASCRIPT */
+
 }
 
 
@@ -210,7 +209,7 @@ void jsClearScriptControlEntries(int num) //struct CRscriptStruct *ScriptControl
 	}
 }
 
-#ifdef HAVE_JAVASCRIPT
+
 
 /* MAX_RUNTIME_BYTES controls when garbage collection takes place. */
 /* #define MAX_RUNTIME_BYTES 0x1000000 */
@@ -1449,7 +1448,7 @@ static int JSaddGlobalAssignProperty(int num, const char *name, const char *str)
 
 int get_valueChanged_flag (int fptr, int actualscript) {
 
-#ifdef HAVE_JAVASCRIPT
+
 	struct CRscriptStruct *scriptcontrol;
 	JSContext *cx;
 	JSObject *interpobj;
@@ -1574,15 +1573,13 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 
 
 	return touched;
-#else
-    return FALSE;
-#endif /* HAVE_JAVASCRIPT */
+
 }
 
 
 /* this script value has been looked at, set the touched flag in it to FALSE. */
 void resetScriptTouchedFlag(int actualscript, int fptr) {
-#ifdef HAVE_JAVASCRIPT
+
 	struct CRscriptStruct *scriptcontrol;
 	ttglobal tg = gglobal();
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
@@ -1629,10 +1626,9 @@ void resetScriptTouchedFlag(int actualscript, int fptr) {
 		default: {printf ("can not reset touched_flag for %s\n",stringFieldtypeType(JSparamnames[fptr].type));
 		}
 	}
-#endif /* HAVE_JAVASCRIPT */
+
 }
 
-#ifdef HAVE_JAVASCRIPT
 
 int jsActualrunScript(int num, char *script);
 void JSInitializeScriptAndFields (int num) {
@@ -2146,11 +2142,10 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 	*/
 
 }
-#endif /* HAVE_JAVASCRIPT */
 
 
 
-#ifdef HAVE_JAVASCRIPT
+
 void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fieldType, unsigned len, int extraData, JSContext *scriptContext) {
         int ival;
         double tval;
@@ -3293,10 +3288,5 @@ int runQueuedDirectOutputs(){
 }
 
 
-#endif /* HAVE_JAVASCRIPT */
-
-
-
-#endif /* HAVE_JAVASCRIPT */
 
 #endif /* !(defined(JAVASCRIPT_STUB) || defined(JAVASCRIPT_DUK) */

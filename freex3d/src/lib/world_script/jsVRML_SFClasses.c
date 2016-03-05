@@ -58,7 +58,7 @@
 #include "jsVRMLClasses.h"
 //#include "JScript.h"
 
-#ifdef HAVE_JAVASCRIPT
+
 
 /********************************************************/
 /*							*/
@@ -5224,5 +5224,5 @@ SFVec4dSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval 
 	}
 	return JS_TRUE;
 }
-#endif /* HAVE_JAVASCRIPT */
+
 #endif /* !(defined(JAVASCRIPT_STUB) || defined(JAVASCRIPT_DUK) */

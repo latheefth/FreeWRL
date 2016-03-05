@@ -1618,7 +1618,6 @@ void initializeAnyScripts()
 */
 
 //#define INITIALIZE_ANY_SCRIPTS 
-#ifdef HAVE_JAVASCRIPT
 	ttglobal tg = (ttglobal)gglobal();
 	if( tg->CRoutes.max_script_found != tg->CRoutes.max_script_found_and_initialized) 
 	{ 
@@ -1638,7 +1637,6 @@ void initializeAnyScripts()
 		tg->CRoutes.max_script_found_and_initialized = tg->CRoutes.max_script_found; 
 	}
 
-#endif /* HAVE_JAVASCRIPT */
 }
 
 /*******************************************************************
@@ -1665,7 +1663,7 @@ void CRoutes_js_new (int num, int scriptType) {
 
 
 
-#ifdef HAVE_JAVASCRIPT
+
 /********************************************************************
 
 mark_script - indicate that this script has had an eventIn
@@ -2145,7 +2143,7 @@ void JSInit(struct Shader_Script *script) { /* int num) { */
 	cs->script = script;
 }
 
-#endif /* HAVE_JAVASCRIPT */
+
 /* Save the text, so that when the script is initialized in the fwl_RenderSceneUpdateScene thread, it will be there */
 void SaveScriptText(int num, const char *text) {
 	ttglobal tg = gglobal();
@@ -2279,7 +2277,6 @@ static void sendScriptEventIn(int num) {
             to_ptr = &(p->CRoutes[num].tonodes[to_counter]);
             
 			if (to_ptr->routeToNode->_nodeType == NODE_Script) {
-                #ifdef HAVE_JAVASCRIPT
                 struct Shader_Script *myObj;
                 
 				/* this script initialized yet? We make sure that on initialization that the Parse Thread
@@ -2303,7 +2300,7 @@ static void sendScriptEventIn(int num) {
 				/* mark that this script has been active SCRIPTS ARE INTEGER NUMBERS */
 				mark_script(myObj->num);
 				getField_ToJavascript(num,to_ptr->foffset);
-                #endif /* HAVE_JAVASCRIPT */
+
 			} else {
 				getField_ToShader(to_ptr->routeToNode, num);
 			}
@@ -2518,9 +2515,9 @@ void propagate_events_B() {
 	union anyVrml *fromAny, *toAny; //dug9
 	struct X3D_Node *fromNode, *toNode, *lastFromNode;
 	int fromOffset, toOffset, lastFromOffset, last_markme;
-#ifdef HAVE_JAVASCRIPT
+
     int markme;
-#endif
+
     
 	int len, isize, type, sftype, isMF, extra, itime, nRoutesDone, modeFrom, modeTo, debugRoutes;
 
@@ -2586,7 +2583,7 @@ void propagate_events_B() {
 						else len = isize;
 						modeFrom = sfield->fieldDecl->PKWmode;
 
-#ifdef HAVE_JAVASCRIPT
+
 						if(fromNode->_nodeType == NODE_Script){
 							//continue; //let the gatherScriptEventOuts(); copy directly toNode.
 							//there's an expensive operation in here, and the route fanout doesn't work
@@ -2606,7 +2603,7 @@ void propagate_events_B() {
 							last_markme = markme;
 						}
 
-#endif //HAVE_JAVASCRIPT
+
 
 					}
 					break;
@@ -2787,7 +2784,7 @@ void propagate_events_B() {
 					{
 						case NODE_Script:
 							{
-#ifdef HAVE_JAVASCRIPT
+
 								//OLDCODE struct X3D_Script* scr = (struct X3D_Script*)toNode;
 								struct Shader_Script* shader;
 								struct ScriptFieldDecl* sfield;
@@ -2825,7 +2822,6 @@ void propagate_events_B() {
 									/* printf ("waiting for initializing script %d at %s:%d\n",(uintptr_t)to_ptr->routeToNode, __FILE__,__LINE__); */
 								}
 								havinterp = TRUE;
-#endif //HAVE_JAVASCRIPT
 							}
 							break;
 						case NODE_ShaderProgram:
@@ -2880,14 +2876,12 @@ void propagate_events_B() {
 			lastFromOffset = fromOffset;
 		} //for(counter)
 
-		#ifdef HAVE_JAVASCRIPT
 		/* run gatherScriptEventOuts for each active script */
 		havinterp = havinterp || runQueuedDirectOutputs();
 		//gatherScriptEventOuts();
-		#endif
+
 	} while (havinterp==TRUE);
 
-	#ifdef HAVE_JAVASCRIPT
 	/* now, go through and clean up all of the scripts */
 	for (counter =0; counter <= tg->CRoutes.max_script_found_and_initialized; counter++) {
 		struct CRscriptStruct *sc = getScriptControlIndex(counter);
@@ -2897,7 +2891,7 @@ void propagate_events_B() {
 			//CLEANUP_JAVASCRIPT(p->ScriptControl[counter].cx);
 		}
 	}	
-	#endif /* HAVE_JAVASCRIPT */
+
 	if(debugRoutes){
 		printf(" *\n");
 		if(nRoutesDone)

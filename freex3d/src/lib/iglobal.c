@@ -103,11 +103,11 @@ void CRoutes_clear(struct tCRoutes *t);
 void CScripts_init(struct tCScripts *t);
 void JScript_init(struct tJScript *t);
 
-#ifdef HAVE_JAVASCRIPT
+
 void jsUtils_init(struct tjsUtils *t);
 void jsVRMLBrowser_init(struct tjsVRMLBrowser *t);
 void jsVRMLClasses_init(struct tjsVRMLClasses *t);
-#endif
+
 void Bindable_init(struct tBindable *t);
 void Bindable_clear(struct tBindable *t);
 
@@ -231,11 +231,11 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 	CScripts_init(&iglobal->CScripts);
 	JScript_init(&iglobal->JScript);
 
-#ifdef HAVE_JAVASCRIPT
+
 	jsUtils_init(&iglobal->jsUtils);
 	jsVRMLBrowser_init(&iglobal->jsVRMLBrowser);
 	jsVRMLClasses_init(&iglobal->jsVRMLClasses);
-#endif
+
 	Bindable_init(&iglobal->Bindable);
 	X3DParser_init(&iglobal->X3DParser);
 	common_init(&iglobal->common);
@@ -272,11 +272,11 @@ void __iglobal_fields_destructor(ttglobal tg)
 	common_clear(&tg->common); FREE_IF_NZ(tg->common.prv);
 	X3DParser_clear(&tg->X3DParser); FREE_IF_NZ(tg->X3DParser.prv);
 	Bindable_clear(&tg->Bindable); FREE_IF_NZ(tg->Bindable.prv);
-#ifdef HAVE_JAVASCRIPT
+
 	FREE_IF_NZ(tg->jsVRMLClasses.prv);
 	FREE_IF_NZ(tg->jsVRMLBrowser.prv);
 	FREE_IF_NZ(tg->jsUtils.prv);
-#endif
+
 	FREE_IF_NZ(tg->JScript.prv);
 	FREE_IF_NZ(tg->CScripts.prv);
 	CRoutes_clear(&tg->CRoutes); FREE_IF_NZ(tg->CRoutes.prv);

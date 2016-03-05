@@ -4125,9 +4125,8 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 	if(p->doEvents)
 #endif /* _MSC_VER */
 
-	#ifdef HAVE_JAVASCRIPT
-		initializeAnyScripts();
-	#endif
+	initializeAnyScripts();
+
 
 
 	// BrowserAction required? eg, anchors, etc
@@ -7634,9 +7633,9 @@ void fwl_Android_replaceWorldNeeded() {
 	kill_userDefinedShaders();
 
 	/* free scripts */
-	#ifdef HAVE_JAVASCRIPT
+
 	kill_javascript();
-	#endif
+
 
 	#if !defined(EXCLUDE_EAI)
 	/* free EAI */
