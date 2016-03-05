@@ -479,10 +479,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\lib\vrml_parser\CProto.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\lib\vrml_parser\CRoutes.c"
 				>
 			</File>
@@ -756,10 +752,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\lib\x3d_parser\X3DParser.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\lib\x3d_parser\X3DProtoScript.c"
 				>
 			</File>
 		</Filter>

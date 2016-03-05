@@ -41,10 +41,8 @@ main/utils.c \
 main/Snapshot.c \
 main/SnapshotTesting.c \
  \
-vrml_parser/CProto.c \
 vrml_parser/CParse.c \
 vrml_parser/CParseLexer.c \
-vrml_parser/CProto.h \
 vrml_parser/CRoutes.c \
 vrml_parser/CRoutes.h \
 vrml_parser/CParseParser.h \
@@ -62,8 +60,6 @@ x3d_parser/Bindable.c \
 x3d_parser/X3DParser.c \
 x3d_parser/Bindable.h \
 x3d_parser/X3DParser.h \
-x3d_parser/X3DProtoScript.c \
-x3d_parser/X3DProtoScript.h \
 x3d_parser/capabilitiesHandler.c \
  \
 non_web3d_formats/ColladaParser.h \

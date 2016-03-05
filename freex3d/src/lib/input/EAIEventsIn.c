@@ -72,7 +72,6 @@ Handle incoming EAI (and java class) events with panache.
 #include "../vrml_parser/CParseGeneral.h"
 #include "../vrml_parser/CParseLexer.h"
 #include "../vrml_parser/CParseParser.h"
-#include "../vrml_parser/CProto.h"
 #include "../vrml_parser/CParse.h"
 #include "../world_script/JScript.h"
 #include "../world_script/CScripts.h"
@@ -1142,7 +1141,7 @@ static void handleGETEAINODETYPE (char *bufptr, int repno) {
 	#else
 	cptr = X3DParser_getNameFromNode(myNode);
 	#endif
-	IGNORE_IF_FABRICATED_INTERNAL_NAME
+	//IGNORE_IF_FABRICATED_INTERNAL_NAME
 
 
 	if (cptr != NULL) {
@@ -1152,7 +1151,7 @@ static void handleGETEAINODETYPE (char *bufptr, int repno) {
 
         /* Try to get VRML node name */
 	cptr= parser_getNameFromNode(myNode);
-	IGNORE_IF_FABRICATED_INTERNAL_NAME
+	//IGNORE_IF_FABRICATED_INTERNAL_NAME
 	if (cptr != NULL) {
 		/* Only one of these is right ..... */
 		/* I think it is the first one, because we would have had to know the DEF name in the first place. */

@@ -55,7 +55,6 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 #include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CParseLexer.h"
 #include "../vrml_parser/CParse.h"
-#include "../vrml_parser/CProto.h"
 
 #include "../x3d_parser/X3DParser.h"
 
@@ -425,7 +424,7 @@ int mapToKEYWORDindex (indexT pkwIndex) {
 	if (pkwIndex == PKW_initializeOnly) return KW_initializeOnly;
 	return 0;
 }
-
+struct ProtoDefinition *getVRMLbrotoDefinition (struct X3D_Proto *me);
 /* in this proto expansion, just go and get the expanded node/field IF POSSIBLE */
 static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char **fp, int direction) {
 	struct ProtoDefinition *myProtoDecl;
@@ -442,7 +441,7 @@ static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char
 		printf ("changeExpanded - looking for field %s in node...\n",*fp); 
 	}
 
-	myProtoDecl = getVRMLprotoDefinition(X3D_GROUP(*np));
+	myProtoDecl = getVRMLbrotoDefinition(X3D_PROTO(*np));
 	if (eaiverbose) {
 		printf ("and, the proto name is %s\n",myProtoDecl->protoName);
 	}

@@ -40,6 +40,16 @@
 
 #define DJ_KEEP_COMPILER_WARNING 0
 
+float *double2float(float *b, double *a, int n){
+	int i;
+	for(i=0;i<n;i++) b[i] = (float)a[i];
+	return b;
+}
+double *float2double(double *b, float *a, int n){
+	int i;
+	for(i=0;i<n;i++) b[i] = (double)a[i];
+	return b;
+}
 double * vecadd2d(double *c, double *a, double *b){
 	c[0] = a[0] + b[0];
 	c[1] = a[1] + b[1];

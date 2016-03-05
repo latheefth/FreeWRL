@@ -43,7 +43,6 @@
 #include "../world_script/fieldSet.h"
 #include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CParseLexer.h"
-#include "../vrml_parser/CProto.h"
 #include "../vrml_parser/CParse.h"
 #include "../input/EAIHeaders.h"        /* resolving implicit declarations */
 #include "../input/EAIHelpers.h"        /* resolving implicit declarations */

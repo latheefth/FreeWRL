@@ -630,11 +630,9 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 				int i;
 				thistex = createNewX3DNode(NODE_ImageTexture);
 				thistp = createNewX3DNode (NODE_TextureProperties);
-				if(usingBrotos()){
-					if(node->_executionContext){
-						add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(thistex));
-						add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(thistp));
-					}
+				if(node->_executionContext){
+					add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(thistex));
+					add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(thistp));
 				}
 
 				/* set up TextureProperties, and link it in */
@@ -713,10 +711,8 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 					case NODE_ImageTexture: {
 						if (X3D_IMAGETEXTURE(thistex)->textureProperties == NULL) {
 							thistp = createNewX3DNode (NODE_TextureProperties);
-							if(usingBrotos()){
-								if(node->_executionContext){
-									add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(thistp));
-								}
+							if(node->_executionContext){
+								add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(thistp));
 							}
 							X3D_IMAGETEXTURE(thistex)->textureProperties = X3D_NODE(thistp);
 							ADD_PARENT(X3D_NODE(thistp),thistex);
@@ -727,11 +723,10 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 					case NODE_PixelTexture: {
 						if (X3D_PIXELTEXTURE(thistex)->textureProperties == NULL) {
 							thistp = createNewX3DNode (NODE_TextureProperties);
-							if(usingBrotos()){
-								if(node->_executionContext){
-									add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(thistp));
-								}
+							if(node->_executionContext){
+								add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(thistp));
 							}
+
 							X3D_PIXELTEXTURE(thistex)->textureProperties = X3D_NODE(thistp);
 							ADD_PARENT(X3D_NODE(thistp),thistex);
 						}

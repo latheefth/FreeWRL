@@ -32,9 +32,87 @@ void resetParseSuccessfullyFlag(void);
 int parsedSuccessfully(void);
 
 struct ProtoDefinition;
-struct ProtoFieldDecl;
 struct Shader_Script;
 struct OffsetPointer;
+
+struct ProtoFieldDecl
+{
+ indexT mode; /* field, exposedField, eventIn, eventOut */
+ indexT type; /* field type */
+ indexT name; /* field "name" (its lexer-index) */
+ char *cname; /* field name */
+ char *fieldString; /* the field, in ascii form */
+ #ifdef OLDDEST
+/* This is the list of desination pointers for this field */
+ struct Vector* dests; 
+#endif
+
+ /* Only for exposedField or field */
+ BOOL alreadySet; /* Has the value already been set? */
+ union anyVrml defaultVal; /* Default value */
+ /* Script fields */
+ struct Vector* scriptDests;
+};
+
+/* Constructor and destructor */
+struct ProtoFieldDecl* newProtoFieldDecl(indexT, indexT, indexT);
+void deleteProtoFieldDecl(struct ProtoFieldDecl*);
+int newProtoDefinitionPointer (struct ProtoDefinition *vrmlpd, int xmlpd);
+struct ProtoDefinition* newProtoDefinition();
+void deleteProtoDefinition(struct ProtoDefinition *ret);
+struct ProtoFieldDecl* copy_ProtoFieldDecl(struct ProtoFieldDecl *sdecl);
+
+/* Accessors */
+#define protoFieldDecl_getType(me) \
+ ((me)->type)
+#define protoFieldDecl_getAccessType(me) \
+ ((me)->mode)
+#define protoFieldDecl_getIndexName(me) \
+ ((me)->name)
+#define protoFieldDecl_getStringName(lex, me) \
+ lexer_stringUser_fieldName(lex, protoFieldDecl_getIndexName(me), \
+  protoFieldDecl_getAccessType(me))
+ 
+
+#define protoFieldDecl_getDefaultValue(me) \
+ ((me)->defaultVal)
+
+
+/* Finish this field - if value is not yet set, use default. */
+#define protoFieldDecl_finish(lex, me) \
+ if(((me)->mode==PKW_initializeOnly || (me)->mode==PKW_inputOutput) && \
+  !(me)->alreadySet) \
+  protoFieldDecl_setValue(lex, me, &(me)->defaultVal)
+
+/* ************************************************************************** */
+/* ****************************** ProtoDefinition *************************** */
+/* ************************************************************************** */
+
+/* The object */
+struct ProtoDefinition
+{
+ indexT protoDefNumber;	/* unique sequence number */
+ struct Vector* iface; /* The ProtoFieldDecls making up the interface */
+ struct Vector* deconstructedProtoBody; /* PROTO body tokenized */
+ int estimatedBodyLen; /* an estimate of the expanded proto body size, to give us an output string len */
+ char *protoName;      /* proto name as a string - used in EAI calls */
+ int isCopy;		/* is this the original or a copy? the original keeps the deconstructedProtoBody */
+ int isExtern;		/* a flag to tell interface parsing not to look for fieldvalues */
+};
+BOOL isProto(struct X3D_Node *);
+/* Adds a field declaration to the interface */
+#define protoDefinition_addIfaceField(me, field) \
+ vector_pushBack(struct ProtoFieldDecl*, (me)->iface, field)
+
+/* Get fields by indices */
+#define protoDefinition_getFieldCount(me) \
+ vectorSize((me)->iface)
+#define protoDefinition_getFieldByNum(me, i) \
+ vector_get(struct ProtoFieldDecl*, (me)->iface, i)
+
+/* Retrieves a field declaration of this PROTO */
+struct ProtoFieldDecl* protoDefinition_getField(struct ProtoDefinition*, 
+ indexT, indexT);
 
 
 #define BLOCK_STATEMENT(LOCATION) \

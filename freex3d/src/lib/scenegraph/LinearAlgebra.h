@@ -140,6 +140,10 @@ Linear algebra.
 	}
 
 */
+
+float *double2float(float *b, double *a, int n);
+double *float2double(double *b, float *a, int n);
+
 /* next define abbreviates VECROTATE with use of the SFRotation struct	*/
 #define VECRROTATE(ro,c) VECROTATE((ro).c[0],(ro).c[1],(ro).c[2],(ro).c[3],c)
 

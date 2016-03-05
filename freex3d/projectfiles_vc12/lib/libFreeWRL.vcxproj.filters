@@ -141,9 +141,6 @@
     <ClCompile Include="$(SRC)\lib\vrml_parser\CParseParser.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SRC)\lib\vrml_parser\CProto.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SRC)\lib\vrml_parser\CRoutes.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -294,9 +291,6 @@
     <ClCompile Include="$(SRC)\lib\x3d_parser\X3DParser.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SRC)\lib\x3d_parser\X3DProtoScript.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SRC)\lib\ui\statusbarHud.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -414,9 +408,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(SRC)\lib\x3d_parser\X3DParser.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SRC)\lib\x3d_parser\X3DProtoScript.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(SRC)\buildversion.h">

@@ -366,12 +366,7 @@ breakIdLoop:
 
  strcpy(me->curID, buf);
 
- /* is this an EXTERNPROTO? if so, handle it here */
- if(!usingBrotos())
- if (lexer_keyword(me,KW_EXTERNPROTO) )
-        lexer_handle_EXTERNPROTO(me);
-
- #ifdef CPARSERVERBOSE
+  #ifdef CPARSERVERBOSE
  printf ("lexer_setCurID, got %s\n",me->curID); 
  #endif
 

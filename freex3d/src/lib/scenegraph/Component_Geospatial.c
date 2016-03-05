@@ -1816,10 +1816,8 @@ void add_node_to_broto_context(struct X3D_Proto *currentContext,struct X3D_Node 
 			/* create new inline node, link it in */ \
 			if (node->childNode == NULL) { \
 				node->childNode = createNewX3DNode(NODE_Inline); \
-				if(usingBrotos()){ \
-					if(node->_executionContext) \
-						add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(node->childNode)); \
-				} \
+				if(node->_executionContext) \
+					add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(node->childNode)); \
 				ADD_PARENT(X3D_NODE(node->childNode), X3D_NODE(node)); \
  			}\
 			/* copy over the URL from parent */ \
@@ -1841,10 +1839,8 @@ void LOAD_CHILD(struct X3D_GeoLOD *node, struct X3D_Node **childNode, struct Mul
 		/* create new inline node, link it in */
 		if (*childNode == NULL) {
 			*childNode = createNewX3DNode(NODE_Inline);
-			if(usingBrotos()){
-				if(node->_executionContext)
-					add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(*childNode));
-			}
+			if(node->_executionContext)
+				add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(*childNode));
 			ADD_PARENT(X3D_NODE(*childNode), X3D_NODE(node));
  		}
 		/* copy over the URL from parent */

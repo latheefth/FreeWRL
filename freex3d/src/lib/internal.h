@@ -45,14 +45,12 @@
 #include "world_script/fieldSet.h"
 #include "vrml_parser/CParseParser.h"
 #include "vrml_parser/CParseLexer.h"
-#include "vrml_parser/CProto.h"
 #include "vrml_parser/CParse.h"
 #include "input/InputFunctions.h"	/* resolving implicit declarations */
 #include "input/EAIHeaders.h"	/* resolving implicit declarations */
 #include "input/EAIHelpers.h"	/* resolving implicit declarations */
 
 #include "x3d_parser/X3DParser.h"
-#include "x3d_parser/X3DProtoScript.h"
 #include <iglobal.h>
 
 //#ifndef STATIC_ONCE
@@ -69,7 +67,6 @@
 //extern int currentProtoInstance[PROTOINSTANCE_MAX_LEVELS];
 //#endif
 #define STATIC_ONCE 1
-/* static int getFieldAccessMethodFromProtoInterface (struct VRMLLexer *myLexer, char *fieldName, int protono); */
 
 //#define CPI ProtoInstanceTable[curProtoInsStackInd]
 //#define CPD PROTONames[currentProtoDeclare]
