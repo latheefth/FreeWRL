@@ -886,7 +886,7 @@ char *findFIELDNAMESfromNodeOffset0(struct X3D_Node *node, int offset)
 		  //return (char *)FIELDNAMES[NODE_OFFSETS[node->_nodeType][offset*5]];
 		  return (char *)findFIELDNAMESfromNodeOffset(node,offset);
 	}
-  #ifdef HAVE_JAVASCRIPT
+
 	{
 		struct Vector* fields;
 		struct ScriptFieldDecl* curField;
@@ -898,9 +898,6 @@ char *findFIELDNAMESfromNodeOffset0(struct X3D_Node *node, int offset)
 		curField = vector_get(struct ScriptFieldDecl*, fields, offset);
 		return fieldDecl_getShaderScriptName(curField->fieldDecl);
 	}
-  #else
-	return "script";
-  #endif
 
 }
 char *findFIELDNAMES0(struct X3D_Node *node, int offset)

@@ -55,7 +55,7 @@ which is the sample application included with the javascript engine.
 #include <pthread.h> // win32 needs the strtok_r 
 #endif
 
-#ifdef HAVE_JAVASCRIPT
+
 
 #ifdef WANT_OSC
 	#include "../scenegraph/ringbuf.h"
@@ -1737,5 +1737,5 @@ JSBool js_SetPropertyDebug9 (JSContext *context, JSObject *obj, jsid id, JSBool 
 	return JS_TRUE;
 }
 
-#endif /* HAVE_JAVASCRIPT */
+
 #endif /* !(defined(JAVASCRIPT_STUB) || defined(JAVASCRIPT_DUK) */

@@ -52,7 +52,7 @@ Javascript C language binding.
 #include "fieldSet.h"
 #include "fieldGet.h"
 
-#ifdef HAVE_JAVASCRIPT
+
 /********************************************************************
 
 getField_ToJavascript.
@@ -306,7 +306,7 @@ void setScriptMultiElementtype (int num)
 }
 
 
-#endif /* HAVE_JAVASCRIPT */
+
 
 /* convert a number in memory to a printable type. Used to send back EVents, or replies to
    the SAI/EAI client program. */

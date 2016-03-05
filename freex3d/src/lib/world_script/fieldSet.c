@@ -204,7 +204,7 @@ void setField_fromJavascript (struct X3D_Node *node, char *field, char *value, i
 static int setField_FromEAI_ToScript(int tonode, int toname,
 	int datatype, void *data, unsigned rowcount) {
 
-	#ifdef HAVE_JAVASCRIPT
+
 	int datalen;
 
 	#ifdef SETFIELDVERBOSE
@@ -276,9 +276,7 @@ static int setField_FromEAI_ToScript(int tonode, int toname,
 
 
 	return TRUE;
-	#else
-	return FALSE;
-	#endif /* HAVE_JAVASCRIPT */
+
 }
 
 void fudgeIfNeeded(int myptr,int myoffset){
@@ -699,7 +697,6 @@ unsigned int setField_FromEAI (char *ptr) {
 	/* first, parse the value into the local variable */
 	Parser_scanStringValueToMem(myptr,myoffset,datatype,ptr,FALSE);
 
-	#ifdef HAVE_JAVASCRIPT
 	if (scripttype == EAI_NODETYPE_SCRIPT) {
 		struct Shader_Script * sp;
 		int rowCount;
@@ -720,7 +717,7 @@ unsigned int setField_FromEAI (char *ptr) {
 
 		setField_FromEAI_ToScript(sp->num,offset,datatype,memptr,rowCount);
 	} else {
-	#endif /* HAVE_JAVASCRIPT */
+
 
 		/* if this is a geometry, make it re-render.
 		   Some nodes (PROTO interface params w/o IS's)
@@ -732,9 +729,8 @@ unsigned int setField_FromEAI (char *ptr) {
 
 		/* if anything uses this for routing, tell it that it has changed */
 		MARK_EVENT (X3D_NODE(nodeptr),offset);
-	#ifdef HAVE_JAVASCRIPT
 	}
-	#endif /* HAVE_JAVASCRIPT */
+
 
 	#ifdef SETFIELDVERBOSE
 	printf("================================== Post op %s,%d ==================================\n",__FILE__,__LINE__);

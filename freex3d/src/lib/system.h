@@ -47,10 +47,19 @@ Internal header: system dependencies.
 
 /* do we have JavaScript? */
 #if defined(IPHONE) || defined(_ANDROID) || defined (AQUA) || defined(NO_JAVASCRIPT)
-	#undef HAVE_JAVASCRIPT
+	//really? aqua has no javascript? that's bizarre.
+	//QNX port had javascript. I think you could do it in android and iphone too
+	//there's some confusion when they say 'no scripting' for those mobile platforms
+	//I think its OK to have our type of scripting because BB/QNX said no scripting, and
+	//then listed libmozjs185 as a lib that was already ported and avilable on QNX.
+	#undef JAVASCRIPT_SM
+	#undef JAVASCRIPT_DUK
+	#define JAVASCRIPT_STUB
 #else
-	/* Everything has JavaScript */
-	#define HAVE_JAVASCRIPT
+	/* Everything has JavaScript - define your choice of the following 3 in your config.h */
+	//#define JAVASCRIPT_STUB 
+	//#define JAVASCRIPT_SM 
+	//#define JAVASCRIPT_DUK 
 #endif
 
 #if HAVE_STDINT_H

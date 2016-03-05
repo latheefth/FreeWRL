@@ -3879,9 +3879,9 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 */
 
 	/* free scripts */
-	#ifdef HAVE_JAVASCRIPT
+
 	kill_javascript();
-	#endif
+
 
 #if !defined(EXCLUDE_EAI)
 	/* free EAI */

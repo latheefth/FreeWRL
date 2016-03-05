@@ -1885,7 +1885,6 @@ static void saveAttributes(void *ud, int myNodeType, const xmlChar *name, char**
 	//printf ("saveAttributes, node type %s\n",stringNodeType(myNodeType));
 
 	if (myNodeType == NODE_Script) {
-		#ifdef HAVE_JAVASCRIPT
 		struct Shader_Script *myObj;
 
 		/* create the Shader_Script for this one */
@@ -1898,10 +1897,6 @@ static void saveAttributes(void *ud, int myNodeType, const xmlChar *name, char**
 
 		myObj = X3D_SCRIPT(thisNode)->__scriptObj;
 		JSInit(myObj); /* ->num); */
-		#else
-
-			ConsoleMessage ("Javascript not supported\n");
-		#endif
 	} else if (myNodeType == NODE_ComposedShader) {
 		X3D_COMPOSEDSHADER(thisNode)->_shaderUserDefinedFields=X3D_NODE(new_Shader_Script(thisNode));
 	} else if (myNodeType == NODE_ShaderProgram) {
