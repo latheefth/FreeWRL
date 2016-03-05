@@ -3822,18 +3822,13 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
     /* mark all rootNode children for Dispose */
 	rootnode = rootNode();
     if (rootnode != NULL) {
-		if(usingBrotos()>1 && rootnode->_nodeType == NODE_Proto){
+		if(rootnode->_nodeType == NODE_Proto){
 			unload_broto(X3D_PROTO(rootnode));
 		}else{
 			struct Multi_Node *children, *sortedChildren;
 
-			if(usingBrotos()>1) {
-				children = &X3D_PROTO(rootNode())->__children;
-				sortedChildren = &X3D_PROTO(rootNode())->_sortedChildren;
-			}else{
-				children = &X3D_GROUP(rootNode())->children;
-				sortedChildren = &X3D_GROUP(rootNode())->_sortedChildren;
-			}
+			children = &X3D_PROTO(rootNode())->__children;
+			sortedChildren = &X3D_PROTO(rootNode())->_sortedChildren;
 			//children = childrenField(rootNode());
 			if (children->n != 0) {
 				for (i=0; i<children->n; i++) {
@@ -3933,7 +3928,7 @@ void reset_Browser(){
 	// carried over between room-scenes in multi-scene game
 	struct X3D_Node *rootnode = rootNode();
     if (rootnode != NULL) {
-		if(usingBrotos()>1 && rootnode->_nodeType == NODE_Proto){
+		if( rootnode->_nodeType == NODE_Proto){
 			unload_broto(X3D_PROTO(rootnode)); //we still want a rootnode: empty and waiting for parsing (destroy in finalizeRenderSceneUpdateScene only on exit)
 			unload_globalParser();
 			resource_tree_destroy();
@@ -4588,7 +4583,6 @@ void startOfLoopNodeUpdates(void) {
 	/* sort the rootNode, if it is Not NULL */
 	/* remember, the rootNode is not in the linearNodeTable, so we have to do this outside
 	   of that loop */
-	//if (rootNode() != NULL && !usingBrotos()) {
 	if (rootNode() != NULL) {
 		struct Multi_Node *children, *_sortedChildren;
 		node = (struct X3D_Node*)rootNode();

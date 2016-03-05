@@ -887,7 +887,7 @@ int QA_routeEnd(struct X3D_Proto *context, char* cnode, char* cfield, struct bro
 	return found;
 }
 void QAandRegister_parsedRoute_B(struct X3D_Proto *context, char* fnode, char* ffield, char* tnode, char* tfield){
-	// used by both x3d and vrml parsers if usingBrotos(), to quality check each end of a route for validity,
+	// used by both x3d and vrml parsers, to quality check each end of a route for validity,
 	//  store in context->__ROUTES, and -if instancing scenery- register the route
 	//  this version accomodates regular routes and routes starting and/or ending on an IMPORTed node, which 
 	//  may not show up until the inline is loaded, and which may disappear when the inline is unloaded.
@@ -1453,43 +1453,12 @@ void endCDATA_B (void *ud, const xmlChar *string, int len) {
 void endCDATA (void *ud, const xmlChar *string, int len) {
 	ttglobal tg = gglobal();
 	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
-	if(usingBrotos()){
-		endCDATA_B(ud,string,len);
-		return;
-	}
-	/* JAS printf ("cdata_element, :%s:\n",string); */
-	if (getMode(ud,TOP) == PARSING_PROTOBODY) {
-		dumpCDATAtoProtoBody ((char *)string);
-	} else if (p->in3_3_fieldValue) {
-		appendDataToFieldValue((char *)string,len);
-	} else {
-		/* most likely we have a script here */
-		#ifdef X3DPARSERVERBOSE
-		printf ("X3DParser, have the following CDATA :%s:\n",string);
-		#endif
-
-		/* copy the CDATA text over to the CDATA_Text string, so that the script can get to it */
-		FREE_IF_NZ(tg->X3DParser.CDATA_Text);
-		tg->X3DParser.CDATA_Text = MALLOC(char *, len+1);
-		p->CDATA_TextMallocSize = len+1;
-		tg->X3DParser.CDATA_Text_curlen = len;
-
-		memcpy(tg->X3DParser.CDATA_Text,string,p->CDATA_TextMallocSize*sizeof(char));
-	}
+	endCDATA_B(ud,string,len);
+	return;
 }
 
 
 
-/* parse a export statement, and send the results along */
-static void parseImport(char **atts) {
-	int i;
-
-	for (i = 0; atts[i]; i += 2) {
-		printf("import field:%s=%s\n", atts[i], atts[i + 1]);
-	}
-/* do nothing right now */
-return;
-}
 void handleImport_B (struct X3D_Node *nodeptr, char *nodeName,char *nodeImport, char *as);
 static void parseImport_B(void *ud, char **atts) {
 	int i;
@@ -1525,20 +1494,7 @@ static void parseExport_B(void *ud, char **atts) {
 	}
 	handleExport_B(context,localdef, as);
 }
-/* parse a export statement, and send the results along */
-static void parseExport(char **atts) {
-	int i;
-	char *nodeToExport = NULL;
-	char *alias = NULL;
 
-	for (i = 0; atts[i]; i += 2) {
-		printf("export field:%s=%s\n", atts[i], atts[i + 1]);
-	}
-/* do nothing right now */
-return;
-
-	handleExport(nodeToExport, alias);
-}
 
 /* parse a component statement, and send the results along */
 static void parseComponent(char **atts) {
@@ -1673,41 +1629,6 @@ static void endFieldValue_B(void *ud){
 	//in x3d, <fieldvalue type=SFNode><a node></fieldValue>
 
 	popField(ud);
-}
-/* we have a fieldValue, should be in a PROTO expansion */
-static void parseFieldValue(void *ud, const char *name, char **atts) {
-	int i;
-	int nameIndex = INT_ID_UNDEFINED;
-	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
-
-
-	#ifdef X3DPARSERVERBOSE
-	printf ("parseFieldValue, mode %s\n",parserModeStrings[getMode(ud,TOP)]);  
-	#endif
-
-	for (i = 0; atts[i]; i += 2) {
-		#ifdef X3DPARSERVERBOSE
-		printf("parseFieldValue field:%s=%s\n", atts[i], atts[i + 1]);
-		#endif
-
-		if (strcmp(atts[i],"name") == 0) nameIndex= i+1;
-	}
-
-	if ((getMode(ud,TOP) == PARSING_EXTERNPROTODECLARE) || (getMode(ud,TOP) == PARSING_PROTOINSTANCE)) {
-		parseProtoInstanceFields(ud,name,atts);
-	} else {
-		if (p->in3_3_fieldValue) printf ("parseFieldValue - did not expect in3_3_fieldValue to be set\n");
-		p->in3_3_fieldValue = TRUE;
-
-		if (nameIndex == INT_ID_UNDEFINED) {
-			printf ("did not find name field for this 3.3 fieldType test\n");
-			p->in3_3_fieldIndex = INT_ID_UNDEFINED;
-		} else {
-		/* printf ("parseFieldValue field %s, parent is a %s\n",atts[nameIndex],stringNodeType(parentStack[parentIndex]->_nodeType)); */
-
-			p->in3_3_fieldIndex = findFieldInFIELDNAMES(atts[nameIndex]);
-		}
-	}
 }
 
 
@@ -2582,32 +2503,12 @@ static void XMLCALL X3DstartElement(void *ud, const xmlChar *iname, const xmlCha
 			atts[i+1] = fixAmp(atts[i+1]);
 		}
 	
-	/* are we storing a PROTO body?? */
-	if(!usingBrotos())
-	if (getMode(ud,TOP) == PARSING_PROTOBODY) {
-		dumpProtoBody(name,myAtts);
-		return;
-	}
-
-	/* maybe we are doing a Proto Instance?? */
-	if(!usingBrotos())
-	if (getMode(ud,TOP) == PARSING_PROTOINSTANCE) {
-		saveProtoInstanceFields(ud,name,myAtts);
-		return;
-	}
-
-
 
 	myNodeIndex = findFieldInNODES(name);
 
 	/* is this a "normal" node that can be found in x3d, x3dv and wrl files? */
 	if (myNodeIndex != INT_ID_UNDEFINED) {
-		if(usingBrotos()){
-			startBuiltin_B(ud,myNodeIndex,(const xmlChar *)name,myAtts);
-		}else{
-			DEBUG_X3DPARSER ("	creating new vector for parentIndex %d\n",tg->X3DParser.parentIndex); 
-			saveAttributes(ud,myNodeIndex,(const xmlChar *)name,myAtts);
-		}
+		startBuiltin_B(ud,myNodeIndex,(const xmlChar *)name,myAtts);
 		return;
 	}
 	/*in theory, you could search broto prototype typenames here, and if found
@@ -2620,26 +2521,21 @@ static void XMLCALL X3DstartElement(void *ud, const xmlChar *iname, const xmlCha
 	if (myNodeIndex != INT_ID_UNDEFINED) {
 		switch (myNodeIndex) {
 			case X3DSP_ProtoDeclare: 
-				if(usingBrotos()) parseProtoDeclare_B(ud,myAtts);
-				else parseProtoDeclare(ud,myAtts); 
+				parseProtoDeclare_B(ud,myAtts);
 				break;
 			case X3DSP_ExternProtoDeclare: 
-				if(usingBrotos()) parseExternProtoDeclare_B(ud,myAtts);
-				else parseExternProtoDeclare(ud,myAtts); 
+				parseExternProtoDeclare_B(ud,myAtts);
 				break;
 			case X3DSP_ProtoBody: 
-				if(usingBrotos()) parseProtoBody_B(ud,myAtts); 
-				else parseProtoBody(ud,myAtts); 
+				parseProtoBody_B(ud,myAtts); 
 				break;
 			case X3DSP_ProtoInterface: 
 				parseProtoInterface(ud,myAtts); break;
 			case X3DSP_ProtoInstance: 
-				if(usingBrotos()) parseProtoInstance_B(ud,myAtts); 
-				else parseProtoInstance(ud,myAtts); 
+				parseProtoInstance_B(ud,myAtts); 
 				break;
 			case X3DSP_ROUTE: 
-				if(usingBrotos()) parseRoutes_B(ud,myAtts);
-				else parseRoutes(myAtts); 
+				parseRoutes_B(ud,myAtts);
 				break;
 			case X3DSP_meta: parseMeta(myAtts); break;
 			case X3DSP_Scene: parseScene(myAtts); break;
@@ -2647,24 +2543,19 @@ static void XMLCALL X3DstartElement(void *ud, const xmlChar *iname, const xmlCha
 			case X3DSP_Header: parseHeader(myAtts); break;
 			case X3DSP_X3D: parseX3Dhead(myAtts); break;
 			case X3DSP_fieldValue:  
-				if(usingBrotos()) parseFieldValue_B(ud,myAtts);
-				else parseFieldValue(ud,name,myAtts); 
+				parseFieldValue_B(ud,myAtts);
 				break;
 			case X3DSP_field: 
-				if(usingBrotos()) parseScriptProtoField_B (ud, myAtts);
-				else parseScriptProtoField (ud, p->myLexer, myAtts); break;
+				parseScriptProtoField_B (ud, myAtts);
 			case X3DSP_IS: parseIS(ud); break;
 			case X3DSP_component: parseComponent(myAtts); break;
 			case X3DSP_EXPORT: 
-				if(usingBrotos()) parseExport_B(ud,myAtts);
-				else parseExport(myAtts); 
+				parseExport_B(ud,myAtts);
 				break;
 			case X3DSP_IMPORT: 
-				if(usingBrotos()) parseImport_B(ud,myAtts);
-				else parseImport(myAtts); break;
+				parseImport_B(ud,myAtts);
 			case X3DSP_connect: 
-				if(usingBrotos()) parseConnect_B(ud,myAtts);
-				else parseConnect(ud,p->myLexer, myAtts,getAtt(ud,TOP)); 
+				parseConnect_B(ud,myAtts);
 				break;
 
 			default: printf ("	huh? startElement, X3DSPECIAL, but not handled?? %d, :%s:\n",myNodeIndex,X3DSPECIAL[myNodeIndex]);
@@ -2689,73 +2580,11 @@ static void XMLCALL X3DendElement(void *ud, const xmlChar *iname) {
 	printf ("endElement: %s : parentIndex %d mode %s\n",name,parentIndex,parserModeStrings[getMode(ud,TOP)]); 
 	#endif
 
-	/* are we storing a PROTO body?? */
-	if(!usingBrotos())
-	if (getMode(ud,TOP) == PARSING_PROTOBODY) {
-		/* are we finished with this ProtoBody? */
-		if (strcmp("ProtoBody",name)==0) {
-			/* do nothing... setParserMode(PARSING_PROTODECLARE); */
-		} else {
-			addToProtoCode(name);
-			return;
-		}
-	}
-
-	/* are we parsing a PROTO Instance still? */
-	if(!usingBrotos())
-	if (getMode(ud,TOP) == PARSING_PROTOINSTANCE) {
-		endProtoInstanceField(ud,name);
-		return;
-	}
-
-	/* is this an SFNode for a Script field? */
-	if(!usingBrotos())
-	if (getMode(ud,TOP) == PARSING_SCRIPT) {
-		switch (getNode(ud,TOP-1)->_nodeType) {
-			case NODE_Script:
-
-/* I wonder if there is a better way of handling this case */
-			#ifdef X3DPARSERVERBOSE
-			printf ("linkNodeIn, got parsing script, have to link node into script body\n");
-			printf ("linking in %s to %s, field %s (%d)\n",
-				stringNodeType(getNode(ud,TOP)->_nodeType),
-				stringNodeType(getNode(ud,TOP-1)->_nodeType),
-				stringFieldType(getNode(ud,TOP)->_defaultContainer),
-				getNode(ud,TOP)->_defaultContainer);
-			printf ("but skipping this\n");
-			#endif
-
-			popNode(ud);
-			return;
-			break;
-
-			default: {};
-		}
-	}
 		
 
 	myNodeIndex = findFieldInNODES(name);
 	if (myNodeIndex != INT_ID_UNDEFINED) {
-		if(usingBrotos()){
-			endBuiltin_B(ud,iname);
-		}else{
-			struct Vector *childAttributes;
-			/* printf ("endElement - normalNode :%s:\n",name); */
-			if (myNodeIndex == NODE_Script) {
-				#ifdef HAVE_JAVASCRIPT
-				initScriptWithScript(ud);
-				#endif
-			}
-			parseAttributes(ud);
-			linkNodeIn(ud,__FILE__,__LINE__);
-
-
-			childAttributes = getAtt(ud,TOP);
-			if (childAttributes!=NULL) deleteVector (struct nameValuePairs*, childAttributes);
-			setAtt(ud,TOP,NULL);
-
-			popNode(ud);
-		}
+		endBuiltin_B(ud,iname);
 		return;
 
 	}
@@ -2767,19 +2596,17 @@ static void XMLCALL X3DendElement(void *ud, const xmlChar *iname) {
 	if (myNodeIndex != INT_ID_UNDEFINED) {
 		switch (myNodeIndex) {
 			case X3DSP_ProtoInstance: 
-				if(usingBrotos()) endProtoInstance_B(ud,name);
+				endProtoInstance_B(ud,name);
 				break;
 			case X3DSP_ProtoInterface: endProtoInterfaceTag(ud); break;
 			case X3DSP_ProtoBody: 
-				if(usingBrotos()) endProtoBodyTag_B(ud,name);
-				else endProtoBodyTag(ud,name); break;
+				endProtoBodyTag_B(ud,name);
+				break;
 			case X3DSP_ProtoDeclare: 
-				if(usingBrotos()) endProtoDeclareTag_B(ud);
-				else endProtoDeclareTag(ud); 
+				endProtoDeclareTag_B(ud);
 				break;
 			case X3DSP_ExternProtoDeclare: 
-				if(usingBrotos()) endExternProtoDeclareTag_B(ud);
-				else endExternProtoDeclareTag(ud); 
+				endExternProtoDeclareTag_B(ud);
 				break;
 			case X3DSP_IS: endIS(ud); break;
 			case X3DSP_connect:
@@ -2793,13 +2620,10 @@ static void XMLCALL X3DendElement(void *ud, const xmlChar *iname) {
 			case X3DSP_IMPORT:
 			case X3DSP_X3D: break;
 			case X3DSP_field:
-				if(usingBrotos()) endScriptProtoField_B(ud);
-				else endScriptProtoField(ud);
+				endScriptProtoField_B(ud);
 				break;
 			case X3DSP_fieldValue:
-				if(usingBrotos())
-					endFieldValue_B(ud);
-				else setFieldValueDataActive(ud,name);
+				endFieldValue_B(ud);
 				break;
 			
 			/* should never do this: */
@@ -2887,19 +2711,6 @@ int X3DParse (struct X3D_Node* ectx, struct X3D_Node* myParent, const char *inpu
 
 	/* printf ("X3DParse, current X3DParser is %u\n",currentX3DParser); */
 
-	if(!usingBrotos()) {
-		/* Use classic parser Lexer for storing DEF name info */
-		if (p->myLexer == NULL) p->myLexer = newLexer();
-		if (p->DEFedNodes == NULL) {
-			p->DEFedNodes = newStack(struct Vector*);
-			ASSERT(p->DEFedNodes);
-			#define DEFMEM_INIT_SIZE 16
-			stack_push(struct Vector*, p->DEFedNodes,
-        			   newVector(struct X3D_Node*, DEFMEM_INIT_SIZE));
-			ASSERT(!stack_empty(p->DEFedNodes));
-		}
-	}
-
 
 	DEBUG_X3DPARSER ("X3DPARSE on :\n%s:\n",inputstring);
 	if(p->user_data == NULL){
@@ -2907,13 +2718,11 @@ int X3DParse (struct X3D_Node* ectx, struct X3D_Node* myParent, const char *inpu
 		// and want to keep the stack for the parent scene
 		p->user_data = new_xml_user_data();
 	}
-	if(usingBrotos()) {
-		pushContext(p->user_data,ectx);
-		if(myParent->_nodeType == NODE_Proto )
-			pushField(p->user_data,"__children");
-		else
-			pushField(p->user_data,"children");
-	}
+	pushContext(p->user_data,ectx);
+	if(myParent->_nodeType == NODE_Proto )
+		pushField(p->user_data,"__children");
+	else
+		pushField(p->user_data,"children");
 	pushNode(p->user_data,myParent);
 	pushMode(p->user_data,PARSING_NODES);
 
@@ -2928,12 +2737,12 @@ int X3DParse (struct X3D_Node* ectx, struct X3D_Node* myParent, const char *inpu
 			XML_ErrorString(XML_GetErrorCode(currentX3DParser)),
 			XML_GetCurrentLineNumber(currentX3DParser));
 		*/
-		if(usingBrotos()) popField(p->user_data);
+		popField(p->user_data);
 		shutdownX3DParser(p->user_data);
 		Parser_deleteParserForScanStringValueToMem();
 		return FALSE;
 	}
-	if(usingBrotos()) popField(p->user_data);
+	popField(p->user_data);
 	shutdownX3DParser(p->user_data);
 	Parser_deleteParserForScanStringValueToMem();
 	return TRUE;

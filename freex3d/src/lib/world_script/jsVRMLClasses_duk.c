@@ -1281,25 +1281,20 @@ int SFNode_getNodeName(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpar
 	struct X3D_Node* node = ((union anyVrml*)fwn)->sfnode;
 	if(node){
 		//broto warning - DEF name list should be per-executionContext
-		if(usingBrotos()){
-			struct X3D_Proto *context;
-			context = (struct X3D_Proto *)node->_executionContext;
-			if(context){
-				//broto_search_DEFname(ec, fwpars[0]._string);
-				int i;
-				struct brotoDefpair def;
-				if(context->__DEFnames)
-				for(i=0;i<vectorSize(context->__DEFnames);i++){
-					def = vector_get(struct brotoDefpair, context->__DEFnames,i);
-					if(def.node == node){
-						name = def.name;
-						break;
-					}
+		struct X3D_Proto *context;
+		context = (struct X3D_Proto *)node->_executionContext;
+		if(context){
+			//broto_search_DEFname(ec, fwpars[0]._string);
+			int i;
+			struct brotoDefpair def;
+			if(context->__DEFnames)
+			for(i=0;i<vectorSize(context->__DEFnames);i++){
+				def = vector_get(struct brotoDefpair, context->__DEFnames,i);
+				if(def.node == node){
+					name = def.name;
+					break;
 				}
 			}
-		}else{
-			//Q. where are the DEF names?
-			name = parser_getNameFromNode(node) ;
 		}
 		if(1){ //if(name){
 			fwretval->_string = name;  //Q should this be &node? to convert it from X3D_Node to anyVrml->sfnode?

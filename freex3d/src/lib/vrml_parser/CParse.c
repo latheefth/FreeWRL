@@ -178,46 +178,8 @@ char *broto_getNameFromNode(struct X3D_Node* node);
 
 char* parser_getNameFromNode(struct X3D_Node *node)
 {
-	int ind, nsize;
-	struct Vector *curNameStackTop;
-	struct Vector *curNodeStackTop;
-	struct VRMLParser *globalParser;
-	if(usingBrotos())
-		return broto_getNameFromNode(node);
+	return broto_getNameFromNode(node);
 
-	globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
-	
-	if(globalParser == NULL) return NULL;
-	if(globalParser->lexer->userNodeNames == NULL) return NULL;
-	if(globalParser->lexer->userNodeNames->n == 0) return NULL; //or ->data == NULL
-	curNameStackTop = stack_top(struct Vector *, globalParser->lexer->userNodeNames);
-
-	/* go through the DEFedNodes, looking for the X3D_Node pointer. If it is found, use that
-	   index, and look in the userNodeNames list for it */
-	/*
-	 for (ind=0; ind < vectorSize(curNameStackTop); ind ++) {
-		printf ("DEBUG: userNodeNames index %d is %s\n",ind, vector_get (const char*, curNameStackTop,ind));
-	} */
-	if(globalParser->DEFedNodes == NULL) return NULL;
-	if(globalParser->DEFedNodes->n == 0) return NULL; //or ->data == NULL
-	curNodeStackTop = stack_top(struct Vector*, globalParser->DEFedNodes);
-	nsize = vectorSize(curNodeStackTop);
-	for (ind=0; ind < nsize; ind++) {
-		/* did we find this index? */
-		//printf("ind=%d node=%p char=%s\n",ind,(void*)vector_get(struct X3D_Node*,curNodeStackTop, ind),
-		//	vector_get (char*, curNameStackTop, ind));
-		if (vector_get(struct X3D_Node*,curNodeStackTop, ind) == node) {
-			return vector_get (char*, curNameStackTop, ind);
-		}
-	}
-	//for (ind=0; ind < vectorSize(stack_top(struct Vector*, globalParser->DEFedNodes)); ind++) {
-	//	/* did we find this index? */
-	//	if (vector_get(struct X3D_Node*, stack_top(struct Vector*, globalParser->DEFedNodes), ind) == node) {
-	//		return vector_get (char*, curNameStackTop, ind);
-	//	}
-	//}
-		
-	return NULL;
 }
 
 /* this is a real assert; hopefully we will never get one of these, as it kills FreeWRL, which is a bad thing. */

@@ -1212,7 +1212,7 @@ void parseProtoInstance_B(void *ud, char **atts) {
 				char* containerfield;
 				/* its a binary proto, new in 2013 */
 				int idepth = 0; //if its old brotos (2013) don't do depth until sceneInstance. If 2014 broto2, don't do depth here if we're in a protoDeclare or externProtoDeclare
-				if(usingBrotos() ) idepth = pflagdepth == 1; //2014 broto2: if we're parsing a scene (or Inline) then deepcopy proto to instance it, else shallow
+				idepth = pflagdepth == 1; //2014 broto2: if we're parsing a scene (or Inline) then deepcopy proto to instance it, else shallow
 				node=X3D_NODE(brotoInstance(proto,idepth));
 				node->_executionContext = X3D_NODE(proto);
 				if (defNameIndex != INT_ID_UNDEFINED){

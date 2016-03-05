@@ -254,7 +254,6 @@ int fwl_isinputThreadParsing() {
 	return(p->inputThreadParsing);
 }
 void sceneInstance(struct X3D_Proto* proto, struct X3D_Group *scene);
-/* BOOL usingBrotos(); -- moved to CParseParser.h */
 void dump_scene2(FILE *fp, int level, struct X3D_Node* node, int recurse, Stack *DEFedNodes) ;
 
 int indexChildrenName(struct X3D_Node *node){
@@ -392,10 +391,6 @@ static bool parser_do_parse_string(const char *input, const int len, struct X3D_
             }\
         }}\
         ");
-		if(!usingBrotos()){
-			ret = cParse (ectx,nRn,(int) offsetof (struct X3D_Group, children), newData);
-			FREE_IF_NZ(newData);
-		}
 
 		//ret = cParse (nRn,(int) offsetof (struct X3D_Proto, children), newData);
 		FREE_IF_NZ(newData);
@@ -547,8 +542,6 @@ void new_root(){
     	/* mark all rootNode children for Dispose */
 	{
 		struct Multi_Node *children;
-		//if(usingBrotos()>1) children = &X3D_PROTO(rootNode())->_children;
-		//else children = &X3D_GROUP(rootNode())->children;
 		children = childrenField(rootNode());
 		for (i = 0; i < children->n; i++) {
 			markForDispose(children->p[i], TRUE);
@@ -768,41 +761,35 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 		}
 
 		/* create a container so that the parser has a place to put the nodes */
-		if(usingBrotos()){
-			if(res->whereToPlaceData){
-				nRn = X3D_NODE(res->whereToPlaceData);
-				//if(nRn->_nodeType == NODE_Inline){
-					shouldBind = TRUE; 
-					shouldUnBind = FALSE; //brotos > Inlines > additively bind (not sure about other things like externProto 17.wrl)
-				//}
-			}else{
-				// we do a kind of hot-swap: we parse into a new broto,
-				// then delete the old rootnode broto, then register the new one
-				// assumes uload_broto(old root node) has already been done elsewhere
-				struct X3D_Proto *sceneProto;
-				struct X3D_Node *rn;
-				sceneProto = (struct X3D_Proto *) createNewX3DNode(NODE_Proto);
-				sceneProto->__protoFlags = ciflag_set(sceneProto->__protoFlags,1,0);
-				//if(usingBrotos() > 1){
-					//((char *)(&sceneProto->__protoFlags))[2] = 2; // 2=scene type object, render all children
-					sceneProto->__protoFlags = ciflag_set(sceneProto->__protoFlags,2,2);
-				//}
-				nRn = X3D_NODE(sceneProto);
-				ectx = nRn;
-				rn = rootNode(); //save a pointer to old rootnode
-				setRootNode(X3D_NODE(sceneProto)); //set new rootnode
-				if(rn){
-					//old root node cleanup
-					deleteVector(sizeof(void*),rn->_parentVector); //perhaps unlink first
-					freeMallocedNodeFields(rn);
-					unRegisterX3DNode(rn);
-					FREE_IF_NZ(rn);
-				}
-			}
+		if(res->whereToPlaceData){
+			nRn = X3D_NODE(res->whereToPlaceData);
+			//if(nRn->_nodeType == NODE_Inline){
+				shouldBind = TRUE; 
+				shouldUnBind = FALSE; //brotos > Inlines > additively bind (not sure about other things like externProto 17.wrl)
+			//}
 		}else{
-			nRn = (struct X3D_Node *) createNewX3DNode(NODE_Group);
-			ectx = nRn; //or should it be null
+			// we do a kind of hot-swap: we parse into a new broto,
+			// then delete the old rootnode broto, then register the new one
+			// assumes uload_broto(old root node) has already been done elsewhere
+			struct X3D_Proto *sceneProto;
+			struct X3D_Node *rn;
+			sceneProto = (struct X3D_Proto *) createNewX3DNode(NODE_Proto);
+			sceneProto->__protoFlags = ciflag_set(sceneProto->__protoFlags,1,0);
+			sceneProto->__protoFlags = ciflag_set(sceneProto->__protoFlags,2,2);
+
+			nRn = X3D_NODE(sceneProto);
+			ectx = nRn;
+			rn = rootNode(); //save a pointer to old rootnode
+			setRootNode(X3D_NODE(sceneProto)); //set new rootnode
+			if(rn){
+				//old root node cleanup
+				deleteVector(sizeof(void*),rn->_parentVector); //perhaps unlink first
+				freeMallocedNodeFields(rn);
+				unRegisterX3DNode(rn);
+				FREE_IF_NZ(rn);
+			}
 		}
+
 
 		/* ACTUALLY CALLS THE PARSER */
 		parsedOk = parser_do_parse_string(of->fileData, of->fileDataSize, ectx, nRn);
@@ -930,14 +917,8 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 
 		/* we either put things at the rootNode (ie, a new world) or we put them as a children to another node */
 		if (res->whereToPlaceData == NULL) {
-			if(!usingBrotos()){
-				ASSERT(rootNode());
-				insert_node = rootNode();
-				offsetInNode = (int) offsetof(struct X3D_Group, children);
-			}else{
 				//brotos have to maintain various lists, which is done in the parser. 
 				//therefore pass the rootnode / executioncontext into the parser
-			}
 		} else {
 			insert_node = X3D_NODE(res->whereToPlaceData); /* casting here for compiler */
 			offsetInNode = res->offsetFromWhereToPlaceData;
@@ -950,7 +931,6 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 	/* add the new nodes to wherever the caller wanted */
 
 	/* take the nodes from the nRn node, and put them into the place where we have decided to put them */
-	//if(!usingBrotos() ){
 	if(X3D_NODE(nRn)->_nodeType == NODE_Group){
 		struct X3D_Group *nRng = X3D_GROUP(nRn);
 		AddRemoveChildren(X3D_NODE(insert_node),

@@ -583,39 +583,25 @@ int VrmlBrowserCreateX3DFromString(FWType fwtype, void *ec, void *fwn, int argc,
 	const char *_c = fwpars[0]._string; 
 
 	/* do the call to make the VRML code  - create a new browser just for this string */
-	if(usingBrotos()){
-		retGroup = createNewX3DNode0(NODE_Group); //don't register, we'll gc here
-		gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
-		ra = EAI_CreateX3d("String",_c,ec,retGroup); //includes executionContext for __nodes and __subContexts
-		globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
-		if(retGroup->children.n > 0) {
-			struct Multi_Node *mfn = (struct Multi_Node *)malloc(sizeof(struct Multi_Node));
-			memcpy(mfn,&retGroup->children,sizeof(struct Multi_Node));
-			FREE_IF_NZ(retGroup);
-			for(i=0;i<mfn->n;i++){
-				mfn->p[i]->_parentVector->n = 0; 
-			}
-			fwretval->_web3dval.native = mfn;
-			fwretval->_web3dval.fieldType = FIELDTYPE_MFNode; //Group
-			fwretval->_web3dval.gc = 1; //will be GCd by nodelist
-			fwretval->itype = 'W';
-			iret = 1;
-		}
+	retGroup = createNewX3DNode0(NODE_Group); //don't register, we'll gc here
+	gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
+	ra = EAI_CreateX3d("String",_c,ec,retGroup); //includes executionContext for __nodes and __subContexts
+	globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
+	if(retGroup->children.n > 0) {
+		struct Multi_Node *mfn = (struct Multi_Node *)malloc(sizeof(struct Multi_Node));
+		memcpy(mfn,&retGroup->children,sizeof(struct Multi_Node));
 		FREE_IF_NZ(retGroup);
-	}else{
-		retGroup = createNewX3DNode(NODE_Group);
-		gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
-		ra = EAI_CreateX3d("String",_c,X3D_NODE(retGroup),retGroup);
-		globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
-		//fwretval->_web3dval.native = (void *)retGroup;
-		if(retGroup->children.n > 0){
-			fwretval->_web3dval.native = &retGroup->children;
-			fwretval->_web3dval.fieldType = FIELDTYPE_MFNode; //Group
-			fwretval->_web3dval.gc = 0; //will be GCd by nodelist
-			fwretval->itype = 'W';
-			iret = 1;
+		for(i=0;i<mfn->n;i++){
+			mfn->p[i]->_parentVector->n = 0; 
 		}
+		fwretval->_web3dval.native = mfn;
+		fwretval->_web3dval.fieldType = FIELDTYPE_MFNode; //Group
+		fwretval->_web3dval.gc = 1; //will be GCd by nodelist
+		fwretval->itype = 'W';
+		iret = 1;
 	}
+	FREE_IF_NZ(retGroup);
+
 
 	return iret;
 }
@@ -636,38 +622,25 @@ int VrmlBrowserCreateVrmlFromString(FWType fwtype, void *ec, void *fwn, int argc
 	const char *_c = fwpars[0]._string; //fwpars[0]._web3dval.anyvrml->sfstring->strptr; 
 
 	iret = 0;
-	if(usingBrotos()){
-		retGroup = createNewX3DNode0(NODE_Group); //don't register, we'll gc here
-		gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
-		ra = EAI_CreateVrml("String",_c,ec,retGroup); //includes executionContext for __nodes and __subContexts
-		globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
-		if(retGroup->children.n > 0) {
-			struct Multi_Node *mfn = (struct Multi_Node *)malloc(sizeof(struct Multi_Node));
-			memcpy(mfn,&retGroup->children,sizeof(struct Multi_Node));
-			for(i=0;i<mfn->n;i++){
-				mfn->p[i]->_parentVector->n = 0; 
-			}
-			fwretval->_web3dval.native = mfn;
-			fwretval->_web3dval.fieldType = FIELDTYPE_MFNode; //Group
-			fwretval->_web3dval.gc = 0; //DONT GC - will cause Browser.deleteRoute to bomb. //will be GCd by nodelist
-			fwretval->itype = 'W';
-			iret = 1;
+	retGroup = createNewX3DNode0(NODE_Group); //don't register, we'll gc here
+	gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
+	ra = EAI_CreateVrml("String",_c,ec,retGroup); //includes executionContext for __nodes and __subContexts
+	globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
+	if(retGroup->children.n > 0) {
+		struct Multi_Node *mfn = (struct Multi_Node *)malloc(sizeof(struct Multi_Node));
+		memcpy(mfn,&retGroup->children,sizeof(struct Multi_Node));
+		for(i=0;i<mfn->n;i++){
+			mfn->p[i]->_parentVector->n = 0; 
 		}
-		deleteVector(struct X3D_Node*,retGroup->_parentVector);
-		FREE_IF_NZ(retGroup);
-	}else{
-		/* do the call to make the VRML code  - create a new browser just for this string */
-		gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
-		retGroup = createNewX3DNode(NODE_Group);
-		ra = EAI_CreateVrml("String",_c,X3D_NODE(retGroup),retGroup);
-		globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
-		//if(retGroup->children.n < 1) return 0;
-		fwretval->_web3dval.native = &retGroup->children;
+		fwretval->_web3dval.native = mfn;
 		fwretval->_web3dval.fieldType = FIELDTYPE_MFNode; //Group
-		fwretval->_web3dval.gc = 0;
+		fwretval->_web3dval.gc = 0; //DONT GC - will cause Browser.deleteRoute to bomb. //will be GCd by nodelist
 		fwretval->itype = 'W';
 		iret = 1;
 	}
+	deleteVector(struct X3D_Node*,retGroup->_parentVector);
+	FREE_IF_NZ(retGroup);
+
 	return iret;
 
 }
@@ -802,7 +775,7 @@ void *addDeleteRoute0(void *fwn, char*callingFunc, struct X3D_Node* fromNode, ch
 	}
 
 	len = returnRoutingElementLength(toType);
-	if(usingBrotos()){
+	{
 		struct brotoRoute *broute;
 		struct X3D_Proto *ec = (struct X3D_Proto*)fwn;
 		if(!ec) ec = (struct X3D_Proto*)fromNode->_executionContext;
@@ -839,26 +812,6 @@ void *addDeleteRoute0(void *fwn, char*callingFunc, struct X3D_Node* fromNode, ch
 				}
 			retval = NULL;
 		}
-	}else{
-		//unfortunately there's no stable X3DRoute table pointer.
-		//We just added to a queue, and the queue entry is deep copied into the final route array.
-		//we should be returning an X3DRoute type wrapping a table entry
-		//but instead we'll return a tuple, so the route can be looked up later 
-		//if(0){
-		//	X3DRoute *route = malloc(sizeof(X3DRoute)); //leak
-		//	route->fromNode = fromNode;
-		//	route->toNode = toNode;
-		//	route->fromField = fromFieldString;
-		//	route->toField = toFieldString;
-		//	fwretval->_pointer.native = (void *)route;
-		//	fwretval->_pointer.fieldType = AUXTYPE_X3DRoute;
-		//	fwretval->itype = 'P';
-		//	return 1;
-		//}
-		fromOfs = fromField > 999? fromField -1000 : fromField*5; // * sizeof(function list item)
-		toOfs = toField > 999? toField -1000 : toField*5;
-		jsRegisterRoute(fromNode, fromOfs, toNode, toOfs, len,callingFunc);
-		retval = NULL;
 	}
 	return retval;
 
@@ -895,16 +848,12 @@ int X3DExecutionContext_deleteRoute(FWType fwtype, void *ec, void *fwn, int argc
 
 	if(fwpars[0].itype != 'P') return nr;
 
-	if(usingBrotos()){
+	{
 		struct brotoRoute* broute = (struct brotoRoute*)fwpars[0]._pointer.native;
 		fromNode = broute->from.node;
 		fromIfield = broute->from.ifield;
 		toNode = broute->to.node;
 		toIfield = broute->to.ifield;
-	}else{
-		//struct CRStruct *route = fwpars[0]._pointer.native;
-		int index = *(int*)(fwpars[0]._pointer.native);
-		getSpecificRoute (index,&fromNode, &fromIfield, &toNode, &toIfield);
 	}
 	getFieldFromNodeAndIndex(fromNode,fromIfield,&fromField,&ftype,&kind,&value);
 	getFieldFromNodeAndIndex(toNode,toIfield,&toField,&ftype,&kind,&value);
@@ -1043,10 +992,7 @@ int BrowserGetter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 			break;
 		case 7: //currentScene
 			fwretval->_web3dval.fieldType = AUXTYPE_X3DExecutionContext; //AUXTYPE_X3DScene;
-			if(usingBrotos())
-				fwretval->_web3dval.native = (void *)(struct X3D_Node*)ec; //X3DScene || X3DExecutionContext
-			else
-				fwretval->_web3dval.native = (void *)(struct X3D_Node*)rootNode(); //X3DScene || X3DExecutionContext
+			fwretval->_web3dval.native = (void *)(struct X3D_Node*)ec; //X3DScene || X3DExecutionContext
 			fwretval->_web3dval.gc = 0;
 				//change this to (Script)._executionContext when brotos working fully
 			fwretval->itype = 'P';
@@ -1341,13 +1287,9 @@ int X3DExecutionContext_getNamedNode(FWType fwtype, void *ec, void *fwn, int arg
 	int nr = 0;
 	struct X3D_Node* node = NULL;
 	//broto warning - DEF name list should be per-executionContext
-	if(usingBrotos()){
-		//struct X3D_Proto *ec = (struct X3D_Proto *)fwn; //we want the script node's parent context for imported nodes, I think
-		node = broto_search_DEFname(ec, fwpars[0]._string);
+	//struct X3D_Proto *ec = (struct X3D_Proto *)fwn; //we want the script node's parent context for imported nodes, I think
+	node = broto_search_DEFname(ec, fwpars[0]._string);
 
-	}else{
-		node = parser_getNodeFromName(fwpars[0]._string); //_web3dval.anyvrml->sfstring->strptr); 
-	}
 	if(node){
 		//fwretval->_web3dval.native = node;  //Q should this be &node? to convert it from X3D_Node to anyVrml->sfnode?
 		fwretval->_web3dval.anyvrml = malloc(sizeof(union anyVrml));
@@ -1363,40 +1305,38 @@ int X3DExecutionContext_getNamedNode(FWType fwtype, void *ec, void *fwn, int arg
 int X3DExecutionContext_updateNamedNode(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	int i, nr = 0;
 	//broto warning - DEF name list should be per-executionContext
-	if(usingBrotos()){
-		struct X3D_Proto *ec = (struct X3D_Proto *)fwn;
-		struct X3D_Node* node = NULL;
-		struct brotoDefpair *bd;
-		int found = 0;
-		char *defname;
-		defname = fwpars[0]._string;
-		node = X3D_NODE(fwpars[1]._web3dval.native);
-		if(ec->__DEFnames){
-			for(i=0;i<vectorSize(ec->__DEFnames);i++){
-				bd = vector_get(struct brotoDefpair *,ec->__DEFnames,i);
-				//Q. is it the DEF we search for, and node we replace, OR
-				//   is it the node we search for, and DEF we replace?
-				if(!strcmp(bd->name,defname)){
-					bd->node = node;
-					found = 1;
-					break;
-				}
-				if(bd->node == node){
-					bd->name = strdup(defname);
-					found = 2;
-					break;
-				}
+	struct X3D_Proto *_ec = (struct X3D_Proto *)fwn;
+	struct X3D_Node* node = NULL;
+	struct brotoDefpair *bd;
+	int found = 0;
+	char *defname;
+	defname = fwpars[0]._string;
+	node = X3D_NODE(fwpars[1]._web3dval.native);
+	if(_ec->__DEFnames){
+		for(i=0;i<vectorSize(_ec->__DEFnames);i++){
+			bd = vector_get(struct brotoDefpair *,_ec->__DEFnames,i);
+			//Q. is it the DEF we search for, and node we replace, OR
+			//   is it the node we search for, and DEF we replace?
+			if(!strcmp(bd->name,defname)){
+				bd->node = node;
+				found = 1;
+				break;
+			}
+			if(bd->node == node){
+				bd->name = strdup(defname);
+				found = 2;
+				break;
 			}
 		}
-		if(!found){
-			//I guess its an add
-			if(!ec->__DEFnames)
-				ec->__DEFnames = newVector(struct brotoDefpair*,4);
-			bd = (struct brotoDefpair*)malloc(sizeof(struct brotoDefpair));
-			bd->node = node;
-			bd->name = strdup(defname);
-			stack_push(struct brotoDefpair *,ec->__DEFnames,bd);
-		}
+	}
+	if(!found){
+		//I guess its an add
+		if(!_ec->__DEFnames)
+			_ec->__DEFnames = newVector(struct brotoDefpair*,4);
+		bd = (struct brotoDefpair*)malloc(sizeof(struct brotoDefpair));
+		bd->node = node;
+		bd->name = strdup(defname);
+		stack_push(struct brotoDefpair *,_ec->__DEFnames,bd);
 	}
 	return nr;
 }
@@ -1404,29 +1344,28 @@ int remove_broto_node(struct X3D_Proto *context, struct X3D_Node* node);
 int X3DExecutionContext_removeNamedNode(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	int i, nr = 0;
 	//broto warning - DEF name list should be per-executionContext
-	if(usingBrotos()){
-		struct X3D_Proto *ec = (struct X3D_Proto *)fwn;
-		struct X3D_Node* node = NULL;
+	struct X3D_Proto *_ec = (struct X3D_Proto *)fwn;
+	struct X3D_Node* node = NULL;
 
-		char *defname;
-		defname = fwpars[0]._string;
-		if(ec->__DEFnames){
-			struct brotoDefpair *bd;
-			for(i=0;i<vectorSize(ec->__DEFnames);i++){
-				bd = vector_get(struct brotoDefpair *,ec->__DEFnames,i);
-				if(!strcmp(bd->name,defname)){
-					node = bd->node;
-					//Q. are we supposed to delete the node 
-					//OR are we just supposed to remove the DEF name mapping?
-					//remove DEF name mapping:
-					vector_remove_elem(struct brotoDefpair *,ec->__DEFnames,i);
-					//remove node
-					remove_broto_node(ec,node);
-					break;
-				}
+	char *defname;
+	defname = fwpars[0]._string;
+	if(_ec->__DEFnames){
+		struct brotoDefpair *bd;
+		for(i=0;i<vectorSize(_ec->__DEFnames);i++){
+			bd = vector_get(struct brotoDefpair *,_ec->__DEFnames,i);
+			if(!strcmp(bd->name,defname)){
+				node = bd->node;
+				//Q. are we supposed to delete the node 
+				//OR are we just supposed to remove the DEF name mapping?
+				//remove DEF name mapping:
+				vector_remove_elem(struct brotoDefpair *,_ec->__DEFnames,i);
+				//remove node
+				remove_broto_node(_ec,node);
+				break;
 			}
 		}
 	}
+
 	return nr;
 }
 void add_node_to_broto_context(struct X3D_Proto *context,struct X3D_Node *node);
@@ -1434,24 +1373,22 @@ int X3DExecutionContext_createProto(FWType fwtype, void *ec, void *fwn, int argc
 	int nr = 0;
 	struct X3D_Node* node = NULL;
 	//broto warning - DEF name list should be per-executionContext
-	if(usingBrotos()){
-		struct X3D_Proto *ec = (struct X3D_Proto *)fwn;
-		struct X3D_Proto *proto;
-		proto = NULL;
+	struct X3D_Proto *_ec = (struct X3D_Proto *)fwn;
+	struct X3D_Proto *proto;
+	proto = NULL;
 
-		if( isAvailableBroto(fwpars[0]._string, ec, &proto))
-		{
-			struct X3D_Proto *source, *dest;
-			node=X3D_NODE(brotoInstance(proto,1));
-			node->_executionContext = X3D_NODE(ec); //me->ptr;
-			add_node_to_broto_context(ec,node);
-			//during parsing, setting of fields would occur between instance and body, 
-			//so field values perculate down.
-			//here we elect default field values
-			source = X3D_PROTO(X3D_PROTO(node)->__prototype);
-			dest = X3D_PROTO(node);
-			deep_copy_broto_body2(&source,&dest);
-		}
+	if( isAvailableBroto(fwpars[0]._string, ec, &proto))
+	{
+		struct X3D_Proto *source, *dest;
+		node=X3D_NODE(brotoInstance(proto,1));
+		node->_executionContext = X3D_NODE(ec); //me->ptr;
+		add_node_to_broto_context(ec,node);
+		//during parsing, setting of fields would occur between instance and body, 
+		//so field values perculate down.
+		//here we elect default field values
+		source = X3D_PROTO(X3D_PROTO(node)->__prototype);
+		dest = X3D_PROTO(node);
+		deep_copy_broto_body2(&source,&dest);
 	}
 	if(node){
 		//fwretval->_web3dval.native = node;  //Q should this be &node? to convert it from X3D_Node to anyVrml->sfnode?
@@ -1469,17 +1406,15 @@ int X3DExecutionContext_getImportedNode(FWType fwtype, void *ec, void *fwn, int 
 	int nr = 0;
 	struct X3D_Node* node = NULL;
 	//broto warning - DEF name list should be per-executionContext
-	if(usingBrotos()){
-		struct X3D_Proto *ec = (struct X3D_Proto *)fwn;
-		//struct IMEXPORT *mxp;
-		int source;
-		//mxp = broto_search_IMPORTname(ec, fwpars[0]._string);
-		//if(mxp){
-		//	node = mxp->nodeptr;
-		//}
-		node = broto_search_ALLnames(ec, fwpars[0]._string,&source);
-		if(source == 0) node = NULL;  //source ==1,2 is for IMPORT and EXPORT
-	}
+	struct X3D_Proto *_ec = (struct X3D_Proto *)fwn;
+	//struct IMEXPORT *mxp;
+	int source;
+	//mxp = broto_search_IMPORTname(ec, fwpars[0]._string);
+	//if(mxp){
+	//	node = mxp->nodeptr;
+	//}
+	node = broto_search_ALLnames(ec, fwpars[0]._string,&source);
+	if(source == 0) node = NULL;  //source ==1,2 is for IMPORT and EXPORT
 	if(node){
 		//fwretval->_web3dval.native = node;  //Q should this be &node? to convert it from X3D_Node to anyVrml->sfnode?
 		fwretval->_web3dval.anyvrml = malloc(sizeof(union anyVrml));
@@ -1498,44 +1433,42 @@ int X3DExecutionContext_updateImportedNode(FWType fwtype, void *ec, void *fwn, i
 	//   updateImportedNode(Inline DEF name, Inline's Export AS name [,optional Import AS name])
 	int i, nr = 0;
 	//broto warning - DEF name list should be per-executionContext
-	if(usingBrotos()){
-		struct X3D_Proto *ec = (struct X3D_Proto *)fwn;
-		struct X3D_Node* node = NULL;
+	struct X3D_Proto *_ec = (struct X3D_Proto *)fwn;
+	struct X3D_Node* node = NULL;
 
-		char *mxname, *as, *nline;
-		int found = 0;
-		struct IMEXPORT *mxp;
+	char *mxname, *as, *nline;
+	int found = 0;
+	struct IMEXPORT *mxp;
 
-		nline = fwpars[0]._string;
-		mxname = fwpars[1]._string;
-		as = mxname;
-		if(argc == 3)
-			as = fwpars[2]._string;
-		node = X3D_NODE(fwpars[1]._web3dval.native);
-		if(ec->__IMPORTS){
-			for(i=0;i<vectorSize(ec->__IMPORTS);i++){
-				mxp = vector_get(struct IMEXPORT *,ec->__IMPORTS,i);
-				//Q. is it the DEF we search for, and node we replace, OR
-				//   is it the node we search for, and DEF we replace?
-				if(!strcmp(nline,mxp->inlinename) && !strcmp(mxp->mxname,mxname)){
-					mxp->as = strdup(as);
-					found = 1;
-					break;
-				}
+	nline = fwpars[0]._string;
+	mxname = fwpars[1]._string;
+	as = mxname;
+	if(argc == 3)
+		as = fwpars[2]._string;
+	node = X3D_NODE(fwpars[1]._web3dval.native);
+	if(_ec->__IMPORTS){
+		for(i=0;i<vectorSize(_ec->__IMPORTS);i++){
+			mxp = vector_get(struct IMEXPORT *,_ec->__IMPORTS,i);
+			//Q. is it the DEF we search for, and node we replace, OR
+			//   is it the node we search for, and DEF we replace?
+			if(!strcmp(nline,mxp->inlinename) && !strcmp(mxp->mxname,mxname)){
+				mxp->as = strdup(as);
+				found = 1;
+				break;
 			}
 		}
-		if(!found){
-			//I guess its an add
-			if(!ec->__IMPORTS)
-				ec->__IMPORTS = newVector(struct IMEXPORT *,4);
-			mxp = (struct IMEXPORT *)malloc(sizeof(struct IMEXPORT));
-			mxp->mxname = strdup(mxname);
-			mxp->as = strdup(as);
-			mxp->inlinename = strdup(nline);
-			stack_push(struct IMEXPORT *,ec->__IMPORTS,mxp);
-		}
-		update_weakRoutes(ec);
 	}
+	if(!found){
+		//I guess its an add
+		if(!_ec->__IMPORTS)
+			_ec->__IMPORTS = newVector(struct IMEXPORT *,4);
+		mxp = (struct IMEXPORT *)malloc(sizeof(struct IMEXPORT));
+		mxp->mxname = strdup(mxname);
+		mxp->as = strdup(as);
+		mxp->inlinename = strdup(nline);
+		stack_push(struct IMEXPORT *,_ec->__IMPORTS,mxp);
+	}
+	update_weakRoutes(_ec);
 	return nr;
 }
 
@@ -1543,22 +1476,20 @@ int X3DExecutionContext_updateImportedNode(FWType fwtype, void *ec, void *fwn, i
 int X3DExecutionContext_removeImportedNode(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	int i,nr = 0;
 	//broto warning - DEF name list should be per-executionContext
-	if(usingBrotos()){
-		struct X3D_Proto *ec = (struct X3D_Proto *)fwn;
-		//struct X3D_Node* node = NULL;
+	struct X3D_Proto *_ec = (struct X3D_Proto *)fwn;
+	//struct X3D_Node* node = NULL;
 
-		char *defname;
-		defname = fwpars[0]._string;
-		if(ec->__IMPORTS){
-			struct IMEXPORT *mxp;
-			for(i=0;i<vectorSize(ec->__IMPORTS);i++){
-				mxp = vector_get(struct IMEXPORT *,ec->__IMPORTS,i);
-				if(!strcmp(mxp->as,defname)){
-					//remove IMPORT name mapping:
-					vector_remove_elem(struct IMEXPORT *,ec->__IMPORTS,i);
-					update_weakRoutes(ec);
-					break;
-				}
+	char *defname;
+	defname = fwpars[0]._string;
+	if(_ec->__IMPORTS){
+		struct IMEXPORT *mxp;
+		for(i=0;i<vectorSize(_ec->__IMPORTS);i++){
+			mxp = vector_get(struct IMEXPORT *,_ec->__IMPORTS,i);
+			if(!strcmp(mxp->as,defname)){
+				//remove IMPORT name mapping:
+				vector_remove_elem(struct IMEXPORT *,_ec->__IMPORTS,i);
+				update_weakRoutes(_ec);
+				break;
 			}
 		}
 	}
@@ -1570,13 +1501,11 @@ int X3DScene_getExportedNode(FWType fwtype, void *ec, void *fwn, int argc, FWval
 	int nr = 0;
 	struct X3D_Node* node = NULL;
 	//broto warning - DEF name list should be per-executionContext
-	if(usingBrotos()){
-		struct X3D_Proto *ec = (struct X3D_Proto *)fwn;
-		struct IMEXPORT *mxp;
-		mxp = broto_search_EXPORTname(ec, fwpars[0]._string);
-		if(mxp){
-			node = mxp->nodeptr;
-		}
+	struct X3D_Proto *_ec = (struct X3D_Proto *)fwn;
+	struct IMEXPORT *mxp;
+	mxp = broto_search_EXPORTname(ec, fwpars[0]._string);
+	if(mxp){
+		node = mxp->nodeptr;
 	}
 	if(node){
 		//fwretval->_web3dval.native = node;  //Q should this be &node? to convert it from X3D_Node to anyVrml->sfnode?
@@ -1593,48 +1522,46 @@ int X3DScene_getExportedNode(FWType fwtype, void *ec, void *fwn, int argc, FWval
 int X3DScene_updateExportedNode(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	int i, nr = 0;
 	//broto warning - DEF name list should be per-executionContext
-	if(usingBrotos()){
-		struct X3D_Proto *ec = (struct X3D_Proto *)fwn;
-		struct X3D_Node* node = NULL;
+	struct X3D_Proto *_ec = (struct X3D_Proto *)fwn;
+	struct X3D_Node* node = NULL;
 
-		char *defname;
-		int found = 0;
-		struct IMEXPORT *mxp;
+	char *defname;
+	int found = 0;
+	struct IMEXPORT *mxp;
 
-		defname = fwpars[0]._string;
-		node = X3D_NODE(fwpars[1]._web3dval.anyvrml->sfnode);
-		if(ec->__EXPORTS){
-			for(i=0;i<vectorSize(ec->__EXPORTS);i++){
-				mxp = vector_get(struct IMEXPORT *,ec->__EXPORTS,i);
-				//Q. is it the DEF we search for, and node we replace, OR
-				//   is it the node we search for, and DEF we replace?
-				if(!strcmp(mxp->as,defname)){
-					mxp->nodeptr = node;
-					found = 1;
-					break;
-				}
-				if(mxp->nodeptr == node){
-					mxp->as = strdup(defname);
-					found = 2;
-					break;
-				}
+	defname = fwpars[0]._string;
+	node = X3D_NODE(fwpars[1]._web3dval.anyvrml->sfnode);
+	if(_ec->__EXPORTS){
+		for(i=0;i<vectorSize(_ec->__EXPORTS);i++){
+			mxp = vector_get(struct IMEXPORT *,_ec->__EXPORTS,i);
+			//Q. is it the DEF we search for, and node we replace, OR
+			//   is it the node we search for, and DEF we replace?
+			if(!strcmp(mxp->as,defname)){
+				mxp->nodeptr = node;
+				found = 1;
+				break;
+			}
+			if(mxp->nodeptr == node){
+				mxp->as = strdup(defname);
+				found = 2;
+				break;
 			}
 		}
-		if(!found){
-			//I guess its an add
-			if(!ec->__EXPORTS)
-				ec->__EXPORTS = newVector(struct IMEXPORT *,4);
-			mxp = (struct IMEXPORT *)malloc(sizeof(struct IMEXPORT));
-			mxp->nodeptr = node;
-			mxp->mxname = strdup(defname);
-			mxp->as = mxp->mxname;
-			stack_push(struct IMEXPORT *,ec->__EXPORTS,mxp);
-		}
-		if(ec->_executionContext){
-			//update weak routes in the importing context, which should be the parent context of the Inline node
-			//and the Inline should be our current context. I think.
-			update_weakRoutes(X3D_PROTO(ec->_executionContext));
-		}
+	}
+	if(!found){
+		//I guess its an add
+		if(!_ec->__EXPORTS)
+			_ec->__EXPORTS = newVector(struct IMEXPORT *,4);
+		mxp = (struct IMEXPORT *)malloc(sizeof(struct IMEXPORT));
+		mxp->nodeptr = node;
+		mxp->mxname = strdup(defname);
+		mxp->as = mxp->mxname;
+		stack_push(struct IMEXPORT *,_ec->__EXPORTS,mxp);
+	}
+	if(_ec->_executionContext){
+		//update weak routes in the importing context, which should be the parent context of the Inline node
+		//and the Inline should be our current context. I think.
+		update_weakRoutes(X3D_PROTO(_ec->_executionContext));
 	}
 	return nr;
 }
@@ -1642,28 +1569,26 @@ int X3DScene_updateExportedNode(FWType fwtype, void *ec, void *fwn, int argc, FW
 int X3DScene_removeExportedNode(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	int i, nr = 0;
 	//broto warning - DEF name list should be per-executionContext
-	if(usingBrotos()){
-		struct X3D_Proto *ec = (struct X3D_Proto *)fwn;
-		//struct X3D_Node* node = NULL;
+	struct X3D_Proto *_ec = (struct X3D_Proto *)fwn;
+	//struct X3D_Node* node = NULL;
 
-		char *defname;
-		defname = fwpars[0]._string;
-		if(ec->__EXPORTS){
-			struct IMEXPORT *mxp;
-			for(i=0;i<vectorSize(ec->__EXPORTS);i++){
-				mxp = vector_get(struct IMEXPORT *,ec->__EXPORTS,i);
-				if(!strcmp(mxp->as,defname)){
-					//remove EXPORT name mapping:
-					vector_remove_elem(struct IMEXPORT *,ec->__EXPORTS,i);
-					break;
-				}
+	char *defname;
+	defname = fwpars[0]._string;
+	if(_ec->__EXPORTS){
+		struct IMEXPORT *mxp;
+		for(i=0;i<vectorSize(_ec->__EXPORTS);i++){
+			mxp = vector_get(struct IMEXPORT *,_ec->__EXPORTS,i);
+			if(!strcmp(mxp->as,defname)){
+				//remove EXPORT name mapping:
+				vector_remove_elem(struct IMEXPORT *,_ec->__EXPORTS,i);
+				break;
 			}
 		}
-		if(ec->_executionContext){
-			//update weak routes in the importing context, which should be the parent context of the Inline node
-			//and the Inline should be our current context. I think.
-			update_weakRoutes(X3D_PROTO(ec->_executionContext));
-		}
+	}
+	if(_ec->_executionContext){
+		//update weak routes in the importing context, which should be the parent context of the Inline node
+		//and the Inline should be our current context. I think.
+		update_weakRoutes(X3D_PROTO(_ec->_executionContext));
 	}
 	return nr;
 }
@@ -1772,56 +1697,39 @@ int X3DExecutionContextGetter(FWType fwt, int index, void *ec, void *fwn, FWval 
 			fwretval->itype = 'S';
 			break;
 		case 5: //rootNodes
-			if(usingBrotos())
-				fwretval->_web3dval.native = (void *)&ecc->__children;  //broto warning: inside a proto should be the rootnodes of the protobody
-			else
-				fwretval->_web3dval.native = (void *)&((struct X3D_Group*)rootNode())->children;  //broto warning: inside a proto should be the rootnodes of the protobody
+			fwretval->_web3dval.native = (void *)&ecc->__children;  //broto warning: inside a proto should be the rootnodes of the protobody
 			fwretval->_web3dval.fieldType = FIELDTYPE_MFNode;
 			fwretval->_web3dval.gc = 0;
 			fwretval->itype = 'W';
 			break;
 		case 6: //protos
-			if(usingBrotos()){
-				fwretval->_pointer.fieldType = AUXTYPE_X3DProtoArray; 
-				fwretval->_pointer.native = (void*)ecc->__protoDeclares; //broto: this should be a per-context array
-				fwretval->_pointer.gc = 0;
-				fwretval->itype = 'P';
-			}else{
-				fwretval->itype = '0'; //not implemented yet
-				nr = 0;
-			}
+			fwretval->_pointer.fieldType = AUXTYPE_X3DProtoArray; 
+			fwretval->_pointer.native = (void*)ecc->__protoDeclares; //broto: this should be a per-context array
+			fwretval->_pointer.gc = 0;
+			fwretval->itype = 'P';
 			break;
 		case 7: //externprotos
-			if(usingBrotos()){
-				fwretval->_pointer.fieldType = AUXTYPE_X3DExternProtoArray; 
-				fwretval->_pointer.native = (void*)ecc->__externProtoDeclares; //broto: this should be a per-context array
-				fwretval->_pointer.gc = 0;
-				fwretval->itype = 'P';
-			}else{
-				fwretval->itype = '0'; //not implemented yet
-				nr = 0;
-			}
+			fwretval->_pointer.fieldType = AUXTYPE_X3DExternProtoArray; 
+			fwretval->_pointer.native = (void*)ecc->__externProtoDeclares; //broto: this should be a per-context array
+			fwretval->_pointer.gc = 0;
+			fwretval->itype = 'P';
 			break;
 		case 8: //routes
 			fwretval->_pointer.fieldType = AUXTYPE_X3DRouteArray; 
-			if(usingBrotos())
-				fwretval->_pointer.native = (void*)ecc->__ROUTES; //broto: this should be a per-context array
-			else
-				fwretval->_pointer.native = NULL; 
+			fwretval->_pointer.native = (void*)ecc->__ROUTES; //broto: this should be a per-context array
 			fwretval->_pointer.gc = 0;
 			fwretval->itype = 'P';
 			break;
 		case 9: //isScene
 			//fwretval->_boolean = TRUE; //broto warning: should be false inside a protoinstance body
 			fwretval->itype = 'B';
-			if(usingBrotos()){
+			{
 				unsigned char flag = ciflag_get(ecc->__protoFlags,2);
 				if(flag == 2)
 					fwretval->_boolean = TRUE;
 				else
 					fwretval->_boolean = FALSE;
-			}else
-				fwretval->_boolean = TRUE;
+			}
 			break;
 		default:
 			nr = 0;
@@ -1853,31 +1761,17 @@ int X3DRouteArrayGetter(FWType fwt, int index, void *ec, void *fwn, FWval fwretv
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index == -1){
 		int _length;
-		if(usingBrotos())
-			_length = vectorSize(fwn);
-		else
-			_length = getCRouteCount();
+		_length = vectorSize(fwn);
 		fwretval->_integer = _length;
 		fwretval->itype = 'I';
 		nr = 1;
 	}else if(index > -1 ){
-		if(usingBrotos()){
-			if(index < vectorSize(fwn)){
-				fwretval->_pointer.native = vector_get(void *, fwn, index); //struct brotoRoute *
-				fwretval->_pointer.gc = 0;
-				fwretval->_pointer.fieldType = AUXTYPE_X3DRoute;
-				fwretval->itype = 'P';
-				nr = 1;
-			}
-		}else{
-			//struct CRStruct *routes = getCRoutes();
-			if( index < getCRouteCount() ){
-				fwretval->_pointer.native = intdup(index+1);
-				fwretval->_pointer.gc = 1;
-				fwretval->_pointer.fieldType = AUXTYPE_X3DRoute;
-				fwretval->itype = 'P';
-				nr = 1;
-			}
+		if(index < vectorSize(fwn)){
+			fwretval->_pointer.native = vector_get(void *, fwn, index); //struct brotoRoute *
+			fwretval->_pointer.gc = 0;
+			fwretval->_pointer.fieldType = AUXTYPE_X3DRoute;
+			fwretval->itype = 'P';
+			nr = 1;
 		}
 	}
 	return nr;
@@ -1925,17 +1819,12 @@ int X3DRouteGetter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	struct X3D_Node *fromNode, *toNode;
 	int fromIndex, toIndex;
 	int nr = 1;
-	if(usingBrotos()){
+	{
 		struct brotoRoute* broute = (struct brotoRoute*)fwn;
 		fromNode = broute->from.node;
 		fromIndex = broute->from.ifield;
 		toNode = broute->to.node;
 		toIndex = broute->to.ifield;
-	}else{
-		//route = (struct CRStruct *)fwn;
-		//struct CRStruct *route;
-		int indexr = *(int *)fwn;
-		getSpecificRoute (indexr,&fromNode, &fromIndex, &toNode, &toIndex);
 	}
 	if(!fromNode || !toNode) return 0;
 
@@ -2000,24 +1889,17 @@ int X3DProtoArrayGetter(FWType fwt, int index, void *ec, void *fwn, FWval fwretv
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 	if(index == -1){
 		int _length;
-		if(usingBrotos())
-			_length = vectorSize(fwn);
-		else
-			_length = 0;
+		_length = vectorSize(fwn);
 		fwretval->_integer = _length;
 		fwretval->itype = 'I';
 		nr = 1;
 	}else if(index > -1 ){
-		if(usingBrotos()){
-			if(index < vectorSize(fwn)){
-				fwretval->_pointer.native = vector_get(void *, fwn, index); //struct X3D_Proto *
-				fwretval->_pointer.gc = 1;
-				fwretval->_pointer.fieldType = AUXTYPE_X3DProto;
-				fwretval->itype = 'P';
-				nr = 1;
-			}
-		}else{
-			nr = 0;
+		if(index < vectorSize(fwn)){
+			fwretval->_pointer.native = vector_get(void *, fwn, index); //struct X3D_Proto *
+			fwretval->_pointer.gc = 1;
+			fwretval->_pointer.fieldType = AUXTYPE_X3DProto;
+			fwretval->itype = 'P';
+			nr = 1;
 		}
 	}
 	return nr;
@@ -2087,15 +1969,13 @@ int X3DProtoGetter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 		break;
 	case 2: //isExternProto
 		fwretval->itype = 'B';
-		if(usingBrotos()){
+		{
 			unsigned char flag = ciflag_get(X3D_PROTO(fwn)->__protoFlags,3);
 			if(flag == 1)
 				fwretval->_boolean = TRUE;
 			else
 				fwretval->_boolean = FALSE;
-		}else
-			fwretval->_boolean = TRUE;
-		break;
+		}
 	default:
 		nr = 0;
 	}
@@ -2142,27 +2022,20 @@ int X3DFieldDefinitionArrayGetter(FWType fwt, int index, void *ec, void *fwn, FW
 	if(index == -1){
 		int _length = 0;
 		//I suspect this fieldDefinition stuff is for ProtoDeclares and ExternProtoDeclares only, not builtin or protoInstances or scripts
-		if(usingBrotos()){ 
-			_length = count_fields(node); 
-		}else
-			_length = 0;
+		_length = count_fields(node); 
 		fwretval->_integer = _length;
 		fwretval->itype = 'I';
 		nr = 1;
 	}else if(index > -1 ){
-		if(usingBrotos()){
-			if(index < vectorSize(fwn)){
-				struct tuplePointerInt *tpi = malloc(sizeof(struct tuplePointerInt));
-				tpi->pointer = (void*)node;  
-				tpi->integer = index;
-				fwretval->_pointer.native = tpi; //vector_get(void *, fwn, index); //struct X3D_Proto *
-				fwretval->_pointer.gc = 1;
-				fwretval->_pointer.fieldType = AUXTYPE_X3DFieldDefinition;
-				fwretval->itype = 'P';
-				nr = 1;
-			}
-		}else{
-			nr = 0;
+		if(index < vectorSize(fwn)){
+			struct tuplePointerInt *tpi = malloc(sizeof(struct tuplePointerInt));
+			tpi->pointer = (void*)node;  
+			tpi->integer = index;
+			fwretval->_pointer.native = tpi; //vector_get(void *, fwn, index); //struct X3D_Proto *
+			fwretval->_pointer.gc = 1;
+			fwretval->_pointer.fieldType = AUXTYPE_X3DFieldDefinition;
+			fwretval->itype = 'P';
+			nr = 1;
 		}
 	}
 	return nr;
@@ -2205,7 +2078,7 @@ int X3DFieldDefinitionGetter(FWType fwt, int index, void *ec, void *fwn, FWval f
 	node = tpi->pointer;
 	ifield = tpi->integer;
 	//I suspect FieldDefinitions are for ProtoDeclarations only, 
-	// but freewrl usingBrotos() can use the same function for nodes and declares
+	// but freewrl Brotos can use the same function for nodes and declares
 	if(getFieldFromNodeAndIndex(node,ifield,&fname,&type,&kind,&value)){
 		//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
 		switch(index){

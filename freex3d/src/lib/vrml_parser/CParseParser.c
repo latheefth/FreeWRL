@@ -653,7 +653,7 @@ BOOL parser_vrmlScene_B(struct VRMLParser* me)
 BOOL parser_vrmlScene(struct VRMLParser* me)
 {
 	//ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
-	if(usingBrotos() && ((X3D_NODE(me->ectx)->_nodeType == NODE_Proto) || (X3D_NODE(me->ectx)->_nodeType == NODE_Inline))) {
+	if((X3D_NODE(me->ectx)->_nodeType == NODE_Proto) || (X3D_NODE(me->ectx)->_nodeType == NODE_Inline)) {
 		/* (sorry for documenting instead of refactoring)
 		 broto era: me->ptr is both the executionContext node (scene, proto, inline) 
 		 and the where node of the (where,offset) place to put the parsed nodes.
@@ -1260,24 +1260,6 @@ static BOOL parser_componentStatement(struct VRMLParser* me) {
     return TRUE;
 }
 
-///* structure used for both import and export tables*/  moved to header
-//struct IMEXPORT {
-//	struct X3D_Node *nodeptr; 
-//	char *nodename;  //of inline
-//	char *mxname;  //of node being exported or imported
-//	char *as;  //nickname of mxname in local execution context
-//
-//};
-void handleExport (char *node, char *as) {
-	/* handle export statements. as will be either a string pointer, or NULL */
-	
-	#ifdef CAPABILITIESVERBOSE
-	printf ("handleExport: node :%s: ",node);
-	if (as != NULL) printf (" AS :%s: ",node);
-	printf ("\n");
-	#endif
-}
-
 
 struct X3D_Proto *hasContext(struct X3D_Node* node){
 	//returns non-null if this node type has a web3d executionContext 
@@ -1320,16 +1302,6 @@ void handleExport_B (void *ctxnodeptr, char *nodename, char *as) {
 	#endif
 }
 
-
-void handleImport (char *nodeName,char *nodeImport, char *as) {
-	/* handle Import statements. as will be either a string pointer, or NULL */
-	
-	#ifdef CAPABILITIESVERBOSE
-	printf ("handleImport: inlineNodeName :%s: nodeToImport :%s:",nodeName, nodeImport);
-	if (as != NULL) printf (" AS :%s: ",as);
-	printf ("\n");
-	#endif
-}
 
 void handleImport_B (struct X3D_Node *nodeptr, char *nodeName,char *nodeImport, char *as) {
 	/* handle Import statements. as will be either a string pointer, or NULL 
@@ -1390,10 +1362,7 @@ static BOOL parser_exportStatement(struct VRMLParser* me) {
     }
 
     /* do the EXPORT */
-	if(usingBrotos())
-		handleExport_B(me->ectx,nodeToExport, alias);
-	else
-		handleExport(nodeToExport, alias);
+	handleExport_B(me->ectx,nodeToExport, alias);
 
     /* free things up, only as required */
     FREE_IF_NZ(nodeToExport);
@@ -1450,10 +1419,7 @@ static BOOL parser_importStatement(struct VRMLParser* me) {
     }
 
     /* do the IMPORT */
-	if(usingBrotos())
-		handleImport_B(me->ectx,inlineNodeName, nodeToImport, alias);
-	else
-		handleImport(inlineNodeName, nodeToImport, alias);
+	handleImport_B(me->ectx,inlineNodeName, nodeToImport, alias);
 
     FREE_IF_NZ (inlineNodeName);
     FREE_IF_NZ (nodeToImport);
@@ -3590,16 +3556,10 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 	if(parser_brotoStatement(me)) {
 		return TRUE;
 	}
-	if(usingBrotos()) 
 	if(parser_externbrotoStatement(me)) {
 		return TRUE;
 	}
 
-	//if(parser_protoStatement(me)) { 
-	//      return TRUE; 
-	//} 
-
-	//XBLOCK_STATEMENT_B(ddd)
 
 
 
@@ -3635,7 +3595,7 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 		{
 			/* its a binary proto, new in 2013 */
 			int idepth = 0; //if its old brotos (2013) don't do depth until sceneInstance. If 2014 broto2, don't do depth here if we're in a protoDeclare or externProtoDeclare
-			if(usingBrotos() ) idepth = pflagdepth == 1; //2014 broto2: if we're parsing a scene (or Inline) then deepcopy proto to instance it, else shallow
+			idepth = pflagdepth == 1; //2014 broto2: if we're parsing a scene (or Inline) then deepcopy proto to instance it, else shallow
 			node=X3D_NODE(brotoInstance(proto,idepth));
 			node->_executionContext = X3D_NODE(currentContext); //me->ptr;
 			add_node_to_broto_context(currentContext,node);
@@ -6191,10 +6151,6 @@ BOOL nodeTypeSupportsUserFields(struct X3D_Node *node)
 	user = node->_nodeType == NODE_Proto || node->_nodeType == NODE_Script || 
 		   node->_nodeType == NODE_ComposedShader || node->_nodeType == NODE_ShaderProgram ||  
 		   node->_nodeType == NODE_PackagedShader ? TRUE : FALSE;
-	if(!user &&  !usingBrotos() && node->_nodeType == NODE_Group){
-		struct X3D_Group* grp = (struct X3D_Group*)node;
-		user = grp->FreeWRL__protoDef !=INT_ID_UNDEFINED ? TRUE : FALSE;
-	}
 	return user;
 }
 

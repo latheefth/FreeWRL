@@ -5718,7 +5718,7 @@ void fwl_clearWorld(){
 	//clear the scene to empty (and do cleanup on old scene);
 	int done = 0;
 	ttglobal tg = gglobal();
-	if(usingBrotos()){
+	{
 		struct X3D_Node *rn = rootNode();
 		if(hasContext(rn)){
 			unload_broto(X3D_PROTO(rn));
@@ -7194,10 +7194,7 @@ void fwl_initialize_parser()
 {
 	/* create the root node */
 	if (rootNode() == NULL) {
-		if(usingBrotos())
-			setRootNode( createNewX3DNode (NODE_Proto) );
-		else
-			setRootNode( createNewX3DNode (NODE_Group) );
+		setRootNode( createNewX3DNode (NODE_Proto) );
 		/*remove this node from the deleting list*/
 		doNotRegisterThisNodeForDestroy(X3D_NODE(rootNode()));
 	}

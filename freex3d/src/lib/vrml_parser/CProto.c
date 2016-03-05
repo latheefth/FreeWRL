@@ -188,12 +188,6 @@ struct ProtoFieldDecl* newProtoFieldDecl(indexT mode, indexT type, indexT name)
 	ret->scriptDests = NULL;
 	ret->defaultVal.mfnode.p = NULL;
 	ret->defaultVal.mfnode.n = 0;
-	if(!usingBrotos()){
-		//used for KW_IS / is for non-broto / old-style text protos when a script is inside a protobody
-		//(broto has separate table for IS)
-		ret->scriptDests=newVector(struct ScriptFieldInstanceInfo*, 4);
-		ASSERT(ret->scriptDests);
-	}
 	return ret;
 }
 struct ProtoFieldDecl* copy_ProtoFieldDecl(struct ProtoFieldDecl *sdecl) {
@@ -1747,16 +1741,7 @@ BOOL isProto(struct X3D_Node *node)
 		if(node->_nodeType == NODE_Proto){
 			//as of sept 2014, the broto2 scene is sharing the x3dproto struct, it has a bit flag set: __protoFlags & 1 
 			//we don't want to treat the scene like a protoinstance, because we want to render all a scenes children. Not so for protoinstance.
-			if(usingBrotos()){
-				retval = TRUE;
-			}else{
-				struct X3D_Proto *pn = (struct X3D_Proto*)node;
-				char pflag = ciflag_get(pn->__protoFlags,2); //((char *)(&pn->__protoFlags))[2];
-				if(pflag == 1)
-					retval = TRUE; //its a protoinstance or externprotoinstance
-				else
-					printf("x not proto");
-			}
+			retval = TRUE;
 		}
 	return retval;
 }

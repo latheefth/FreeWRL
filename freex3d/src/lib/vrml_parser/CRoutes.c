@@ -1057,21 +1057,6 @@ ConsoleMessage ("CRoutes_Register - adrem %d, from %p (%s) fromoffset %d to %p (
 		#endif //HAVE_OPENCL
 	}
 
-/* Script to Script - we actually put a small node in, and route to/from this node so routing is a 2 step process */
-	if(!usingBrotos())   //H: it was needed for combinatorial source-destination propagate_events_A, not broto-era propagate_events_B which is 2-step
-	if (scrdir == SCRIPT_TO_SCRIPT) {
-		struct X3D_Node *chptr;
-		int set, changed;
-
-		/* initialize stuff for compile checks */
-		set = 0; changed = 0;
-
-		chptr = returnSpecificTypeNode(type, &set, &changed);
-		CRoutes_Register (adrem, from, fromoffset,chptr,set, type, 0, FROM_SCRIPT, extra);
-		CRoutes_Register (adrem, chptr, changed, to, toOfs, type, 0, TO_SCRIPT, extra);
-		return;
-	}
-
 	MUTEX_LOCK_ROUTING_UPDATES
 
 	if (p->routesToRegister == NULL) {
@@ -2349,185 +2334,6 @@ in this case.
 //#ifdef CRVERBOSE
 char * BOOL_STRING(int inp) {if (inp)return "true "; else return "false ";}
 //#endif
-void propagate_events_A() {
-	int havinterp;
-	int counter;
-	int to_counter;
-	CRnodeStruct *to_ptr = NULL;
-	ppCRoutes p;
-	ttglobal tg = gglobal();
-	p = (ppCRoutes)tg->CRoutes.prv;
-
-		#ifdef CRVERBOSE
-		printf ("\npropagate_events start\n");
-		#endif
-
-	/* increment the "timestamp" for this entry */
-	p->thisIntTimeStamp ++; 
-
-	do {
-		havinterp=FALSE; /* assume no interpolators triggered */
-
-		for (counter = 1; counter < p->CRoutes_Count-1; counter++) {
-			for (to_counter = 0; to_counter < p->CRoutes[counter].tonode_count; to_counter++) {
-				to_ptr = &(p->CRoutes[counter].tonodes[to_counter]);
-				if (to_ptr == NULL) {
-					printf("WARNING: tonode at %u is NULL in propagate_events.\n",
-							to_counter);
-					continue;
-				}
-
-				#ifdef CRVERBOSE
-					printf("propagate_events: counter %d to_counter %u act %s from %u off %u to %u off %u oint %u dir %d\n",
-						   counter, to_counter, BOOL_STRING(p->CRoutes[counter].isActive),
-						   p->CRoutes[counter].routeFromNode, p->CRoutes[counter].fnptr,
-						   to_ptr->routeToNode, to_ptr->foffset, p->CRoutes[counter].interpptr,
-							p->CRoutes[counter].direction_flag);
-				#endif
-
-				if (p->CRoutes[counter].isActive == TRUE) {
-					/* first thing, set this to FALSE */
-					p->CRoutes[counter].isActive = FALSE;
-						#ifdef CRVERBOSE
-						printf("event %p %u len %d sent something", p->CRoutes[counter].routeFromNode, p->CRoutes[counter].fnptr,p->CRoutes[counter].len);
-						if (p->CRoutes[counter].fnptr < 20)
-						{
-							struct CRjsnameStruct *JSparamnames = getJSparamnames();
-							printf (" (script param: %s)",JSparamnames[p->CRoutes[counter].fnptr].name);
-						}else {
-							printf (" (nodeType %s)",stringNodeType(X3D_NODE(p->CRoutes[counter].routeFromNode)->_nodeType));
-						}
-						printf ("\n");
-						#endif
-					/* to get routing to/from exposedFields, lets
-					 * mark this to/offset as an event */
-
-					#ifdef HAVE_OPENCL
-					ConsoleMessage (" - JAS - bringing this event back into the fray\n");
-					ConsoleMessage (" as leaving it out gives us routing problems for, eg, MFRotation.wrl\n");
-					ConsoleMessage (" but leaving it in is a problem for CL routing\n");
-					#endif //HAVE_OPENCL
-
-					MARK_EVENT (to_ptr->routeToNode, to_ptr->foffset);
-					//printf(",");
-					if (p->CRoutes[counter].direction_flag != 0) {
-						/* scripts are a bit complex, so break this out */
-						sendScriptEventIn(counter);
-						havinterp = TRUE;
-					} else {
-						/* copy the value over */
-
-						#ifdef HAVE_OPENCL
-/*
-                         printf ("CRoutes, wondering if the clInterpolator is here...%p toNode %s interp %p\n",
-                                p->CRoutes[counter].CL_Interpolator, stringNodeType(to_ptr->routeToNode->_nodeType),
-                                p->CRoutes[counter].interpptr);
- */
-
-						if (p->CRoutes[counter].CL_Interpolator != NULL) {
-							void runOpenCLInterpolator(struct CRStruct *route, struct X3D_Node * toNode, int toOffset);
-
-							runOpenCLInterpolator(&p->CRoutes[counter], to_ptr->routeToNode, to_ptr->foffset);
-						} else
-						#endif // HAVE_OPENCL
-
-						if (p->CRoutes[counter].len > 0) {
-						/* simple, fixed length copy */
-							memcpy( offsetPointer_deref(void *,to_ptr->routeToNode ,to_ptr->foffset),
-								offsetPointer_deref(void *,p->CRoutes[counter].routeFromNode , p->CRoutes[counter].fnptr),
-								(unsigned)p->CRoutes[counter].len);
-						} else {
-							/* this is a Multi*node, do a specialized copy. eg, Tiny3D EAI test will
-							   trigger this */
-							#ifdef CRVERBOSE
-							printf ("in croutes, mmc len is %d\n",p->CRoutes[counter].len);
-							#endif
-							Multimemcpy (
-								X3D_NODE(to_ptr->routeToNode),
-								X3D_NODE(p->CRoutes[counter].routeFromNode),
-								offsetPointer_deref(void *, to_ptr->routeToNode, to_ptr->foffset),
-								offsetPointer_deref(void *, p->CRoutes[counter].routeFromNode, 
-									p->CRoutes[counter].fnptr), p->CRoutes[counter].len);
-						}
-
-						/* is this an interpolator? if so call the code to do it */
-						if (p->CRoutes[counter].interpptr != 0) {
-							/* this is an interpolator, call it */
-							havinterp = TRUE;
-								#ifdef CRVERBOSE
-								printf("propagate_events: index %d is an interpolator\n",
-									   counter);
-								#endif
-
-							/* copy over this "extra" data, EAI "advise" calls need this */
-							tg->CRoutes.CRoutesExtra = p->CRoutes[counter].extra;
-							p->CRoutes[counter].interpptr((void *)(to_ptr->routeToNode));
-						} else {
-							bool doItOnTheCPU = FALSE;
-
-							if (p->CRoutes[counter].routeFromNode->_nodeType == NODE_CoordinateInterpolator) {
-								if (X3D_COORDINATEINTERPOLATOR(p->CRoutes[counter].routeFromNode)->_CPU_Routes_out != 0) {
-									doItOnTheCPU = TRUE;
-								}
-							}else {
-
-								doItOnTheCPU = TRUE;
-							}
-
-
-							if (doItOnTheCPU) {
-								#ifdef CRVERBOSE
-								printf ("doing this route on the CPU (from a %s)\n",stringNodeType(p->CRoutes[counter].routeFromNode->_nodeType));
-								#endif
-
-
-								/* just an eventIn node. signal to the reciever to update */
-								MARK_EVENT(to_ptr->routeToNode, to_ptr->foffset);
-
-								/* make sure that this is pointing to a real node,
-								 * not to a block of memory created by
-								 * EAI - extra memory - if it has an offset of
-								 * zero, it is most certainly made. */
-								if ((to_ptr->foffset) != 0) {
-									update_node(to_ptr->routeToNode);
-								}
-							} else {
-								#ifdef CRVERBOSE
-                        				       printf ("yep! doing this on the GPU!\n");
-                                				#endif
-                            				}
-
-						}
-					}
-				}
-			}
-		}
-
-		#ifdef HAVE_JAVASCRIPT
-		havinterp = havinterp || runQueuedDirectOutputs();
-		/* run gatherScriptEventOuts for each active script */
-		gatherScriptEventOuts();
-		#endif
-
-	} while (havinterp==TRUE);
-
-	#ifdef HAVE_JAVASCRIPT
-	/* now, go through and clean up all of the scripts */
-	for (counter =0; counter <= tg->CRoutes.max_script_found_and_initialized; counter++) {
-		struct CRscriptStruct *sc = getScriptControlIndex(counter);
-		if(sc->scr_act){  //if (p->scr_act[counter]) {
-			sc->scr_act = FALSE; //p->scr_act[counter] = FALSE;
-			js_cleanup_script_context(counter);
-			//CLEANUP_JAVASCRIPT(p->ScriptControl[counter].cx);
-		}
-	}	
-	#endif /* HAVE_JAVASCRIPT */
-	//printf(" & ");
-	#ifdef CRVERBOSE
-	printf ("done propagate_events\n\n");
-	#endif
-}
-
 
 /*
 	new strategy, to reduce combinations and permuations of to/from types
@@ -3101,13 +2907,9 @@ void propagate_events_B() {
 	printf ("done propagate_events\n\n");
 	#endif
 }
-/* BOOL usingBrotos(); - moved to CParseParser.h */
 void propagate_events()
 {
-	if( usingBrotos() )
-		propagate_events_B();
-	else
-		propagate_events_A();
+	propagate_events_B();
 }
 
 
