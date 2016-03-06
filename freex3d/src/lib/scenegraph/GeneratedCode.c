@@ -69,8 +69,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 /* Table of built-in fieldIds */
        const char *FIELDNAMES[] = {
 	"FIFOsize",
-	"FreeWRL_PROTOInterfaceNodes",
-	"FreeWRL__protoDef",
 	"_CPU_Routes_out",
 	"_GPU_Routes_out",
 	"__DEFnames",
@@ -1056,7 +1054,6 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 /* Table of EXPOSED_FIELDs */
        const char *EXPOSED_FIELD[] = {
 	"FIFOsize",
-	"FreeWRL_PROTOInterfaceNodes",
 	"activeLayer",
 	"address",
 	"align",
@@ -1466,7 +1463,6 @@ const int EXPOSED_FIELD_COUNT = ARR_SIZE(EXPOSED_FIELD);
 
 /* Table of FIELDs */
        const char *FIELD[] = {
-	"FreeWRL__protoDef",
 	"autoCalc",
 	"bboxCenter",
 	"bboxSize",
@@ -4208,8 +4204,6 @@ const int OFFSETS_GeoViewpoint[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Group[] = {
-	(int) FIELDNAMES_FreeWRL_PROTOInterfaceNodes, (int) offsetof (struct X3D_Group, FreeWRL_PROTOInterfaceNodes),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_FreeWRL__protoDef, (int) offsetof (struct X3D_Group, FreeWRL__protoDef),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES__sortedChildren, (int) offsetof (struct X3D_Group, _sortedChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_Group, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_Group, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -8570,8 +8564,6 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Group : {
 			struct X3D_Group * tmp2;
 			tmp2 = (struct X3D_Group *) tmp;
-			tmp2->FreeWRL_PROTOInterfaceNodes.n=0; tmp2->FreeWRL_PROTOInterfaceNodes.p=0;
-			tmp2->FreeWRL__protoDef = INT_ID_UNDEFINED;
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
@@ -9235,7 +9227,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataMFColor : {
@@ -9245,7 +9237,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataMFColorRGBA : {
@@ -9255,7 +9247,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataMFDouble : {
@@ -9265,7 +9257,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataMFFloat : {
@@ -9275,7 +9267,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataMFInt32 : {
@@ -9285,7 +9277,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataMFMatrix3d : {
@@ -9295,7 +9287,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataMFMatrix3f : {
@@ -9305,7 +9297,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataMFMatrix4d : {
@@ -9315,7 +9307,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataMFMatrix4f : {
@@ -9325,7 +9317,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataMFNode : {
@@ -9335,7 +9327,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataMFRotation : {
@@ -9345,7 +9337,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataMFString : {
@@ -9355,7 +9347,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataMFTime : {
@@ -9365,7 +9357,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataMFVec2d : {
@@ -9375,7 +9367,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataMFVec2f : {
@@ -9385,7 +9377,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataMFVec3d : {
@@ -9395,7 +9387,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataMFVec3f : {
@@ -9405,7 +9397,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataMFVec4d : {
@@ -9415,7 +9407,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataMFVec4f : {
@@ -9425,7 +9417,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataSFBool : {
@@ -9435,7 +9427,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value = FALSE;
 			tmp2->valueChanged = FALSE;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataSFColor : {
@@ -9445,7 +9437,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0.0f;tmp2->value.c[1] = 0.0f;tmp2->value.c[2] = 0.0f;;
 			tmp2->valueChanged.c[0] = 0.0f;tmp2->valueChanged.c[1] = 0.0f;tmp2->valueChanged.c[2] = 0.0f;;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataSFColorRGBA : {
@@ -9455,7 +9447,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;tmp2->value.c[3] = 0;;
 			tmp2->valueChanged.c[0] = 0;tmp2->valueChanged.c[1] = 0;tmp2->valueChanged.c[2] = 0;tmp2->valueChanged.c[3] = 0;;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataSFDouble : {
@@ -9465,7 +9457,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value = 0;
 			tmp2->valueChanged = 0;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataSFFloat : {
@@ -9475,7 +9467,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value = 0.0f;
 			tmp2->valueChanged = 0.0f;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataSFImage : {
@@ -9485,7 +9477,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.n=3; tmp2->value.p=MALLOC (int *, sizeof(int)*3); tmp2->value.p[0] = 0; tmp2->value.p[1] = 0; tmp2->value.p[2] = 0;;
 			tmp2->valueChanged.n=3; tmp2->valueChanged.p=MALLOC (int *, sizeof(int)*3); tmp2->valueChanged.p[0] = 0; tmp2->valueChanged.p[1] = 0; tmp2->valueChanged.p[2] = 0;;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataSFInt32 : {
@@ -9495,7 +9487,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value = 0;
 			tmp2->valueChanged = 0;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataSFMatrix3d : {
@@ -9505,7 +9497,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;tmp2->value.c[3] = 0;tmp2->value.c[4] = 0;tmp2->value.c[5] = 0;tmp2->value.c[6] = 0;tmp2->value.c[7] = 0;tmp2->value.c[8] = 0;;
 			tmp2->valueChanged.c[0] = 0;tmp2->valueChanged.c[1] = 0;tmp2->valueChanged.c[2] = 0;tmp2->valueChanged.c[3] = 0;tmp2->valueChanged.c[4] = 0;tmp2->valueChanged.c[5] = 0;tmp2->valueChanged.c[6] = 0;tmp2->valueChanged.c[7] = 0;tmp2->valueChanged.c[8] = 0;;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataSFMatrix3f : {
@@ -9515,7 +9507,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;tmp2->value.c[3] = 0;tmp2->value.c[4] = 0;tmp2->value.c[5] = 0;tmp2->value.c[6] = 0;tmp2->value.c[7] = 0;tmp2->value.c[8] = 0;;
 			tmp2->valueChanged.c[0] = 0;tmp2->valueChanged.c[1] = 0;tmp2->valueChanged.c[2] = 0;tmp2->valueChanged.c[3] = 0;tmp2->valueChanged.c[4] = 0;tmp2->valueChanged.c[5] = 0;tmp2->valueChanged.c[6] = 0;tmp2->valueChanged.c[7] = 0;tmp2->valueChanged.c[8] = 0;;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataSFMatrix4d : {
@@ -9525,7 +9517,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;tmp2->value.c[3] = 0;tmp2->value.c[4] = 0;tmp2->value.c[5] = 0;tmp2->value.c[6] = 0;tmp2->value.c[7] = 0;tmp2->value.c[8] = 0;tmp2->value.c[9] = 0;tmp2->value.c[10] = 0;tmp2->value.c[11] = 0;tmp2->value.c[12] = 0;tmp2->value.c[13] = 0;tmp2->value.c[14] = 0;tmp2->value.c[15] = 0;;
 			tmp2->valueChanged.c[0] = 0;tmp2->valueChanged.c[1] = 0;tmp2->valueChanged.c[2] = 0;tmp2->valueChanged.c[3] = 0;tmp2->valueChanged.c[4] = 0;tmp2->valueChanged.c[5] = 0;tmp2->valueChanged.c[6] = 0;tmp2->valueChanged.c[7] = 0;tmp2->valueChanged.c[8] = 0;tmp2->valueChanged.c[9] = 0;tmp2->valueChanged.c[10] = 0;tmp2->valueChanged.c[11] = 0;tmp2->valueChanged.c[12] = 0;tmp2->valueChanged.c[13] = 0;tmp2->valueChanged.c[14] = 0;tmp2->valueChanged.c[15] = 0;;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataSFMatrix4f : {
@@ -9535,7 +9527,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;tmp2->value.c[3] = 0;tmp2->value.c[4] = 0;tmp2->value.c[5] = 0;tmp2->value.c[6] = 0;tmp2->value.c[7] = 0;tmp2->value.c[8] = 0;tmp2->value.c[9] = 0;tmp2->value.c[10] = 0;tmp2->value.c[11] = 0;tmp2->value.c[12] = 0;tmp2->value.c[13] = 0;tmp2->value.c[14] = 0;tmp2->value.c[15] = 0;;
 			tmp2->valueChanged.c[0] = 0;tmp2->valueChanged.c[1] = 0;tmp2->valueChanged.c[2] = 0;tmp2->valueChanged.c[3] = 0;tmp2->valueChanged.c[4] = 0;tmp2->valueChanged.c[5] = 0;tmp2->valueChanged.c[6] = 0;tmp2->valueChanged.c[7] = 0;tmp2->valueChanged.c[8] = 0;tmp2->valueChanged.c[9] = 0;tmp2->valueChanged.c[10] = 0;tmp2->valueChanged.c[11] = 0;tmp2->valueChanged.c[12] = 0;tmp2->valueChanged.c[13] = 0;tmp2->valueChanged.c[14] = 0;tmp2->valueChanged.c[15] = 0;;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataSFNode : {
@@ -9545,7 +9537,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value = 0;
 			tmp2->valueChanged = 0;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataSFRotation : {
@@ -9555,7 +9547,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;tmp2->value.c[3] = 0;;
 			tmp2->valueChanged.c[0] = 0;tmp2->valueChanged.c[1] = 0;tmp2->valueChanged.c[2] = 0;tmp2->valueChanged.c[3] = 0;;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataSFString : {
@@ -9565,7 +9557,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value = newASCIIString("");
 			tmp2->valueChanged = newASCIIString("");
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataSFTime : {
@@ -9575,7 +9567,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value = 0;
 			tmp2->valueChanged = 0;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataSFVec2d : {
@@ -9585,7 +9577,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;;
 			tmp2->valueChanged.c[0] = 0;tmp2->valueChanged.c[1] = 0;;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataSFVec2f : {
@@ -9595,7 +9587,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0.0f;tmp2->value.c[1] = 0.0f;;
 			tmp2->valueChanged.c[0] = 0.0f;tmp2->valueChanged.c[1] = 0.0f;;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataSFVec3d : {
@@ -9605,7 +9597,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;;
 			tmp2->valueChanged.c[0] = 0;tmp2->valueChanged.c[1] = 0;tmp2->valueChanged.c[2] = 0;;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataSFVec3f : {
@@ -9615,7 +9607,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0.0f;tmp2->value.c[1] = 0.0f;tmp2->value.c[2] = 0.0f;
 			tmp2->valueChanged.c[0] = 0.0f;tmp2->valueChanged.c[1] = 0.0f;tmp2->valueChanged.c[2] = 0.0f;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataSFVec4d : {
@@ -9625,7 +9617,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;;
 			tmp2->valueChanged.c[0] = 0;tmp2->valueChanged.c[1] = 0;tmp2->valueChanged.c[2] = 0;;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataSFVec4f : {
@@ -9635,7 +9627,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->tickTime = 0;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;tmp2->value.c[3] = 0;;
 			tmp2->valueChanged.c[0] = 0;tmp2->valueChanged.c[1] = 0;tmp2->valueChanged.c[2] = 0;tmp2->valueChanged.c[3] = 0;;
-			tmp2->_defaultContainer = FIELDNAMES_FreeWRL_PROTOInterfaceNodes;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataSet : {
@@ -12885,8 +12877,6 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_Group *tmp;
 			tmp = (struct X3D_Group *) node;
 			UNUSED(tmp); // compiler warning mitigation
-			spacer fprintf (fp," FreeWRL_PROTOInterfaceNodes (MFNode):\n");
-			for (i=0; i<tmp->FreeWRL_PROTOInterfaceNodes.n; i++) { dump_scene(fp,level+1,tmp->FreeWRL_PROTOInterfaceNodes.p[i]); }
 		    if(allFields) {
 			spacer fprintf (fp," _sortedChildren (MFNode):\n");
 			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(fp,level+1,tmp->_sortedChildren.p[i]); }

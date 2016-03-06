@@ -185,7 +185,6 @@ char *get_current_dir()
 */
 
 
-#if !defined(FRONTEND_GETS_FILES)
 /**
  *   do_file_exists: asserts that the given file exists.
  */
@@ -209,7 +208,6 @@ bool do_file_readable(const char *filename)
 	return FALSE;
 }
 
-#endif //FRONTEND_GETS_FILES
 
 /**
  *   do_dir_exists: asserts that the given directory exists.
@@ -281,7 +279,7 @@ static openned_file_t* create_openned_file(const char *filename, int fd, int dat
 	return of;
 }
 
-#if !defined(FRONTEND_GETS_FILES)
+
 
 /**
  * (internal)   load_file_mmap: implement load_file with mmap.
@@ -483,89 +481,11 @@ static openned_file_t* load_file_read_old(const char *filename)
 	fd = 0; //NULL;
 	return create_openned_file(filename, fd, ss.st_size+1, text,0,0,FALSE);
 }
-#endif //FRONTEND_GETS_FILES
 
-#ifdef FRONTEND_GETS_FILES
-/* these variables are used on return of data from front end, and are passed on to create_openned_file */
-static char *fileText = NULL;
-static char *fileToGet = NULL;
-static int frontend_return_status = 0;
-static int fileSize = 0;
-static int imageWidth;
-static int imageHeight;
-static bool imageAlpha;
 
-static pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
-#define LOCK_LOAD_FILE_FUNCTION pthread_mutex_lock( &mutex1 );
-#define UNLOCK_LOAD_FILE_FUNCTION pthread_mutex_unlock(&mutex1);
 
-static pthread_mutex_t  getAFileLock = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t waitingForFile = PTHREAD_COND_INITIALIZER;
-#define MUTEX_LOCK_FILE_RETRIEVAL               pthread_mutex_lock(&getAFileLock);
-#define MUTEX_FREE_LOCK_FILE_RETRIEVAL       pthread_mutex_unlock(&getAFileLock);
-#define WAIT_FOR_FILE_SIGNAL		pthread_cond_wait(&waitingForFile,&getAFileLock);
-#define SEND_FILE_SIGNAL		pthread_cond_signal(&waitingForFile);
-
-/* accessor functions */
-/* return the filename of the file we want. */
-
-char *fwg_frontEndWantsFileName() {
-	//if (fileToGet != NULL) printf ("fwg_frontEndWantsFileName called - fileName currently %s\n",fileToGet);
-	return fileToGet;
-}
-
-void fwg_frontEndReturningData(char* fileData,int len,int width,int height,bool hasAlpha) {
-
-	MUTEX_LOCK_FILE_RETRIEVAL
-    
-    //ConsoleMessage ("fwg_frontEndReturningData, len %d",len);
-	/* did we get data? is "len" not zero?? */
-	if (len == 0) {
-		// printf ("fwg_frontEndReturningData, returning error\n");
-		//frontend_return_status = -1;
-		fileText = NULL;
-		fileSize = 0;
-
-	} else {
-		// printf ("fwg_frontEndReturningData, returning ok\n");
-    		/* note the "+1" ....*/
-        FREE_IF_NZ(fileText);
-        
-		fileText = MALLOC (char *, len+1);
-        if (NULL != fileText)
-        {
-            memcpy (fileText, fileData, len);
-        }
-		fileSize = len;
-		imageWidth = width;
-		imageHeight = height;
-		imageAlpha = hasAlpha;
-    
-	    /* ok - we do not know if this is a binary or a text file,
-	       but because we added 1 to it, we can put a null terminator
-	       on the end - that will terminate a text string, but will
-	       not affect a binary file, because we have the binary data
-	       and binary length recorded. */
-
-	    fileText[len] = '\0';  /* the string terminator */
-         //printf ("fwg_frontEndReturningData: returning data, but fileToGet setting to NULL, was %s\n",fileToGet);
-
-		frontend_return_status = 0;
-		/* got the file, send along a message */
-	}
-
-    
-	SEND_FILE_SIGNAL
-
-	MUTEX_FREE_LOCK_FILE_RETRIEVAL
-}
-
-#else
 char *fwg_frontEndWantsFileName() {return NULL;}
 void fwg_frontEndReturningData(char* fileData,int length,int width,int height,bool hasAlpha) {}
-#endif
-
-
 
 
 /**
@@ -587,43 +507,6 @@ openned_file_t* load_file(const char *filename)
 	DEBUG_RES("loading file: %s pthread %p\n", filename,pthread_self());
     //printf ("load_file, fileToGet %s, load_file %s thread %ld\n",fileToGet,filename,pthread_self());
     
-#ifdef FRONTEND_GETS_FILES
-
- 
-    
-    LOCK_LOAD_FILE_FUNCTION
-
-
-    MUTEX_LOCK_FILE_RETRIEVAL
-    
-	//JAS - we keep this around until done with resource FREE_IF_NZ(fileText);
-
-
-    FREE_IF_NZ(fileToGet);
-    fileToGet = STRDUP(filename);
-
-    ttglobal tg = gglobal();
-    if (tg->ProdCon._frontEndOnResourceRequiredListener) {
-    		tg->ProdCon._frontEndOnResourceRequiredListener(fileToGet);
-    }
-
-    WAIT_FOR_FILE_SIGNAL
-
-	MUTEX_FREE_LOCK_FILE_RETRIEVAL
-
-	FREE_IF_NZ(fileToGet);
-	fileToGet = NULL; /* not freed as only passed by pointer */
-
-	if(frontend_return_status == -1) of = NULL;
-    else of = create_openned_file(STRDUP(filename), -1, fileSize, fileText, imageHeight, imageWidth, imageAlpha);
-    FREE_IF_NZ(fileText);
-    fileText = NULL;
-    UNLOCK_LOAD_FILE_FUNCTION  
-    return of;
-    
-#else //FRONTEND_GETS_FILES 
-
-
 
 #if defined(FW_USE_MMAP)
 #if !defined(_MSC_VER)
@@ -639,7 +522,7 @@ openned_file_t* load_file(const char *filename)
 #endif
 	DEBUG_RES("%s loading status: %s\n", filename, BOOL_STR((of!=NULL)));
 	return of;
-#endif //FRONTEND_GETS_FILES
+
 }
 
 

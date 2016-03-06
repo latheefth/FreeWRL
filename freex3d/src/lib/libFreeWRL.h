@@ -346,9 +346,6 @@ void fwg_setConsoleParam_replaceTabs(int);
 
 void fwg_setFrontEndOnX3DFileLoadedListener(void (*frontEndOnX3DFileLoadedListener)(char *));
 
-#ifdef FRONTEND_GETS_FILES
-void fwg_setFrontEndOnResourceRequiredListener(void (*frontEndOnResourceRequiredListener)(char *));
-#endif //FRONTEND_GETS_FILES
 
 void fwg_frontEndReturningLocalFile(char *localfile, int iret);
 void fwl_RenderSceneUpdateScene(void);

@@ -1397,10 +1397,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 				if(mytexdata != dest) {FREE_IF_NZ(dest);}
 			}
 		
-				/* we can get rid of the original texture data here */
-				FREE_IF_NZ(me->texdata);
-		
-		
+			/* we can get rid of the original texture data here */
 			FREE_IF_NZ (me->texdata);
 		}
 	}

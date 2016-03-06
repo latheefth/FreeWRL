@@ -86,6 +86,7 @@ void free_bindablestack(bindablestack *bstack){
 	deleteVector(struct X3D_Node*, bstack->viewpoint);
 	deleteVector(struct X3D_Node*, bstack->fog);
 	deleteVector(struct X3D_Node*, bstack->navigation);
+	FREE_IF_NZ(bstack->viewer);
 }
 typedef struct pBindable{
 	struct sNaviInfo naviinfo;

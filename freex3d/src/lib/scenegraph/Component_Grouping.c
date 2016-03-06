@@ -306,14 +306,7 @@ printf ("child_Group,  children.n %d sortedChildren.n %d\n",node->children.n, no
 		node, node->FreeWRL__protoDef, node->FreeWRL_PROTOInterfaceNodes.n); */
 	/* now, just render the non-directionalLight children */
 	renderFirstProtoChildOnlyAsPerSpecs = 0; //flux/vivaty render all children
-	if ((node->FreeWRL__protoDef!=INT_ID_UNDEFINED) && renderstate()->render_geom 
-		&& renderFirstProtoChildOnlyAsPerSpecs) {
-		(node->children).n = 1;
-		normalChildren(node->children);
-		(node->children).n = nc;
-	} else {
-		normalChildren(node->_sortedChildren);
-	}
+	normalChildren(node->_sortedChildren);
 
 	LOCAL_LIGHT_OFF
 }

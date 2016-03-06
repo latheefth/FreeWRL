@@ -793,14 +793,14 @@ contenttype *new_contenttype_textpanel(char* fontname, int EMpixels, int maxline
 
 	//blob method
 	self->blobsize = self->maxlines * self->maxlen;
-	self->Ablob = (unsigned char*)malloc(self->blobsize+1);
+	self->Ablob = (unsigned char*)MALLOCV(self->blobsize+1);
 	memset(self->Ablob,0,self->blobsize+1); //the +1 is so Ablob ends in \0 and we can printf it for debuggin
 	self->Z = self->z = self->Ablob;
 	self->S = self->Ablob;
 	self->E = self->Ablob + self->blobsize;
-	self->Blist = malloc(sizeof(BUTitem)*self->maxlines);
+	self->Blist = MALLOCV(sizeof(BUTitem)*self->maxlines);
 	self->rowsize = self->maxlen;
-	self->row = malloc(self->rowsize +1);
+	self->row = MALLOCV(self->rowsize +1);
 	for(i=0;i<self->maxlines;i++){
 		int prev, next;
 		prev = i - 1;
@@ -4072,7 +4072,6 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 		/* NOTE: front ends now sync with the monitor, meaning, this sleep is no longer needed unless
 			something goes totally wrong.
 			Perhaps could be moved up a level, since mobile controls in frontend, but npapi and activex plugins also need displaythread  */
-#ifndef FRONTEND_HANDLES_DISPLAY_THREAD
 		if(!((freewrl_params_t*)(tg->display.params))->frontend_handles_display_thread){
 			/* 	some users report their device overheats if frame rate is a zillion, so this will limit it to a target number
 				statusbarHud options has an option to set.
@@ -4104,7 +4103,6 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 			if(wait_time_micro_sec > 1)
 				usleep(wait_time_micro_sec);
 		}
-#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 	}
 
 	// Set the timestamp
@@ -7180,15 +7178,6 @@ int fwl_draw()
 }
 
 
-//#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
-
-
-//void fwl_setLastMouseEvent(int etype) {
-//	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
-//	//printf ("fwl_setLastMouseEvent called\n");
-//        p->lastMouseEvent[0] = etype;
-//}
-
 void fwl_initialize_parser()
 {
 	/* create the root node */
@@ -7694,22 +7683,12 @@ void fwl_reload()
 /* OSX the Plugin is telling the displayThread to stop and clean everything up */
 void stopRenderingLoop(void) {
 	ttglobal tg = gglobal();
-	//printf ("stopRenderingLoop called\n");
 
-#if !defined(FRONTEND_HANDLES_DISPLAY_THREAD)
 	if(!((freewrl_params_t*)(tg->display.params))->frontend_handles_display_thread)
     	stopDisplayThread();
-#endif
 
-    	//killErrantChildren();
-	/* lets do an equivalent to replaceWorldNeeded, but with NULL for the new world */
-
-        setAnchorsAnchor( NULL );
-        tg->RenderFuncs.BrowserAction = TRUE;
-	#ifdef OLDCODE
-        OLDCODE FREE_IF_NZ(tg->RenderFuncs.OSX_replace_world_from_console);
-	#endif //OLDCODE
-	// printf ("stopRenderingLoop finished\n");
+    setAnchorsAnchor( NULL );
+    tg->RenderFuncs.BrowserAction = TRUE;
 }
 
 

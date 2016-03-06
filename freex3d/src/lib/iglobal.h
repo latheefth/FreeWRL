@@ -171,12 +171,6 @@ typedef struct iiglobal //InstanceGlobal
 		struct X3D_Node *setBackgroundBindInRender;// = NULL;
 		struct X3D_Node *setNavigationBindInRender;// = NULL;
 		void *savedParser; //struct VRMLParser* savedParser;
-#ifdef DISABLER		
-#ifdef FRONTEND_GETS_FILES
-		void (*_frontEndOnResourceRequiredListener)(char *);
-#endif
-		void (*_frontEndOnX3DFileLoadedListener)(char *);
-#endif		
 		void *prv;
 	} ProdCon;
        #if defined (INCLUDE_NON_WEB3D_FORMATS)

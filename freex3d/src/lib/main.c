@@ -138,21 +138,7 @@ void fwl_OSX_initializeParameters(const char* initialURL) {
 #endif // TARGET_AQUA || _ANDROID
 
 
-#ifdef FRONTEND_GETS_FILES
-void fwg_setFrontEndOnX3DFileLoadedListener(void (*frontEndOnX3DFileLoadedListener)(char *))
-{
-	ttglobal tg = gglobal();
-	struct tProdCon *t = &tg->ProdCon;
-	t->_frontEndOnX3DFileLoadedListener = frontEndOnX3DFileLoadedListener;
-}
 
-void fwg_setFrontEndOnResourceRequiredListener(void (*frontEndOnResourceRequiredListener)(char *))
-{
-	ttglobal tg = gglobal();
-	struct tProdCon *t = &tg->ProdCon;
-	t->_frontEndOnResourceRequiredListener = frontEndOnResourceRequiredListener;
-}
-#endif //FRONTEND_GETS_FILES
 
 /* OSX plugin is telling us the id to refer to */
 void setInstance(uintptr_t instance) {
@@ -286,40 +272,8 @@ bool fwl_initFreeWRL(freewrl_params_t *params) {
 
 	/* Initialize parser */
 	fwl_initialize_parser();
-
-
-	///* Initialize common UI variables */ - done in common.c
-	//myMenuStatus[0] = '\0';
-
-//#ifndef FRONTEND_HANDLES_DISPLAY_THREAD
-//	if(!params->frontend_handles_display_thread){
-//		/* OK the display is now initialized,
-//		   create the display thread and wait for it
-//		   to complete initialization */
-//		fwl_initializeDisplayThread();
-//
-//		//usleep(50);
-//		//set_thread2global(tg,tg->threads.DispThrd ,"display thread");
-//	}
-//
-//#endif //FRONTEND_HANDLES_DISPLAY_THREAD
-
 	fwl_initializeInputParseThread();
-	//set_thread2global(tg, tg->threads.PCthread ,"parse thread");
-
-	//while (!fwl_isInputThreadInitialized()) {
-	//	usleep(50);
-	//}
-
 	fwl_initializeTextureThread();
-	//set_thread2global(tg, tg->threads.loadThread ,"texture loading thread");
-	//while (!fwl_isTextureinitialized()) {
-	//	usleep(50);
-	//}
-	/* Hmm. display_initialize is really a frontend function. The frontend should call it before calling _displayThread */
-	/* Initialize display */
-
-
 
 	return TRUE;
 }
