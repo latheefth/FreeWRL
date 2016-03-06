@@ -75,7 +75,10 @@ Desktop configurations would be refactored to move URL2LOCAL AND LOCAL2BLOB into
 - resource push, pop at end of io_http.c would be moved to resources.c
 - io_files.c and io_http.c would be moved to ML -out of the core library
 - core library would work in URLs and BLOBS
-- to avoid yet more threads to run the ML, the BE would enqueue a task with a function pointer for URL2LOCAL, for each URL it enqueues, if the function pointer is non-null it runs it, else does nothing. ML would populate the function pointer. After ML does URL2LOCAL, if successful, it enqueus another function task LOCAL2BLOB which the worker thread runs.
+- to avoid yet more threads to run the ML, the BE would enqueue a task with a function pointer for URL2LOCAL, 
+  for each URL it enqueues, if the function pointer is non-null it runs it, else does nothing. 
+  ML would populate the function pointer. After ML does URL2LOCAL, if successful, 
+  it enqueus another function task LOCAL2BLOB which the worker thread runs.
 
 Android may be diskless for some types of files -no local file intermediary- and if so does URL2BLOB in one step in the FE.
 Some different possible workflows for different configurations and scenarios:

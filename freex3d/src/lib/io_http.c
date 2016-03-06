@@ -468,10 +468,8 @@ void close_internetHandles()
 void download_url(resource_item_t *res)
 {
 
-#if defined(FRONTEND_GETS_FILES)
-	res->actual_file = STRDUP(res->parsed_request);
 
-#elif defined(HAVE_LIBCURL)
+#if defined(HAVE_LIBCURL)
 	if (with_libcurl) {
 		res->actual_file = download_url_curl(res);
 	} else {
