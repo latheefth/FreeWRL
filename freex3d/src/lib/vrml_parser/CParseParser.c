@@ -65,7 +65,6 @@
 typedef struct pCParseParser{
 	char fw_outline[2000];
 	int foundInputErrors;// = 0;
-	int useBrotos; //use binary protos rather than text protos
 	int latest_protoDefNumber;
 }* ppCParseParser;
 void *CParseParser_constructor(){
@@ -80,16 +79,11 @@ void CParseParser_init(struct tCParseParser *t){
 	{
 		ppCParseParser p = (ppCParseParser)t->prv;
 		p->foundInputErrors = 0;
-		p->useBrotos = 3; //0= none/old-way, non-zero =wrl parsing broto only rendering, DEF/IS/script tables are in new proto 3=EXTERNPROTO is broto wrapper
 		p->latest_protoDefNumber = 1;
 	}
 }
 	//ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
-int usingBrotos()
-{
-	ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
-	return p->useBrotos;
-}
+
 //static int foundInputErrors = 0;
 void resetParseSuccessfullyFlag(void) { 
 	ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
