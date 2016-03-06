@@ -973,8 +973,6 @@ END_NODE(GeoViewpoint)
 
 /* Group node */
 BEGIN_NODE(Group)
-EXPOSED_FIELD(Group,FreeWRL_PROTOInterfaceNodes,mfnode,FreeWRL_PROTOInterfaceNodes,FIELDTYPE_MFNode)
-FIELD(Group,FreeWRL__protoDef,sfint32,FreeWRL__protoDef,FIELDTYPE_SFInt32)
 EVENT_IN(Group,addChildren,mfnode,addChildren,FIELDTYPE_MFNode)
 FIELD(Group,bboxCenter,sfvec3f,bboxCenter,FIELDTYPE_SFVec3f)
 FIELD(Group,bboxSize,sfvec3f,bboxSize,FIELDTYPE_SFVec3f)
