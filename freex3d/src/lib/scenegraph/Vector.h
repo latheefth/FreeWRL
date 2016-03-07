@@ -46,8 +46,8 @@ struct Vector* newVector_(int elSize, int initSize,char *,int);
  newVector_((int)sizeof(type), initSize,__FILE__,__LINE__)
 
 #if defined(WRAP_MALLOC) || defined(DEBUG_MALLOC)
-	void deleteVector_(char *file, int line, int elSize, struct Vector**);
-	#define deleteVector(type, me) deleteVector_(__FILE__,__LINE__,(int)sizeof(type), &(me))
+	void deleteVectorDebug_(char *file, int line, int elSize, struct Vector**);
+	#define deleteVector(type, me) deleteVectorDebug_(__FILE__,__LINE__,(int)sizeof(type), &(me))
 #else
 	void deleteVector_(int elSize, struct Vector**);
 	#define deleteVector(type, me) deleteVector_((int)sizeof(type), ((struct Vector**)(&me)))

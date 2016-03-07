@@ -377,6 +377,10 @@ int DEBUG_MSG(const char *fmt, ...)
 #endif //_MSC_VER
 
 /* #define DJTRACK_PICKSENSORS 1  define this in your build */
+void *mallocn_debug(int line, char *file, void *node,size_t size);
+void *reallocn_debug(int line, char *file, void *node, void *pold, size_t newsize);
+void *mallocn(void *node,size_t size);
+void *reallocn(void *node, void *pold, size_t newsize);
 
 /**
  * Those macro get defined only when debugging is enabled
@@ -388,7 +392,8 @@ void *freewrlRealloc(int line, char *file, void *ptr, size_t size);
 void freewrlFree(int line, char *file, void *a);
 void *freewrlStrdup(int line, char *file, char *str);
 void *freewrlStrndup(int line, char *file, const char *str, size_t n);
-
+#define MALLOCN(_node,_sz) (mallocn_debug(__LINE__,__FILE__,_node,_sz))
+#define REALLOCN(_node,_oldp,_newsz) (reallocn_debug(__LINE__,__FILE__,_node,_oldp,_newsz))
 # define MALLOCV(_sz) (freewrlMalloc(__LINE__, __FILE__, _sz, FALSE))
 # define MALLOC(t,_sz)         ((t)freewrlMalloc(__LINE__, __FILE__, _sz, FALSE))
 # define CALLOC(_fill, _sz)  freewrlMalloc(__LINE__, __FILE__, _fill * _sz, TRUE);
@@ -435,6 +440,8 @@ void *freewrlStrndup(int line, char *file, const char *str, size_t n);
 
 
 #else /* defined(WRAP_MALLOC) || defined(DEBUG_MALLOC) */
+#define MALLOCN(_node,_sz) (mallocn(_node,_sz))
+#define REALLOCN(_node,_oldp,_newsz) (reallocn(_node,_oldp,_newsz))
 
 # define MALLOCV(_sz) (malloc(_sz))
 # define MALLOC(t,_sz) ((_sz > 0) ? (t)malloc(_sz) : NULL)
@@ -494,6 +501,10 @@ void *freewrlStrndup(int line, char *file, const char *str, size_t n);
 		DEBUG_MSG("replacing ptr with the same value (warning)\n"); \
 	} } while (0);
 
+
+void register_node_gc(void *node, void *p);  //registers in node->_gc vector* for freeing
+void unregister_node_gc(void *node, void *p); //unregister old on realloc
+void free_registered_node_gc(void *node); //free when freeing node ie freeMallocedNodeFields
 
 /* THIS HAS TO BE FIXED TOO :) */
 

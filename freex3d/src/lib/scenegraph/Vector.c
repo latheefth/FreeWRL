@@ -70,11 +70,8 @@ struct Vector* newVector_(int elSize, int initSize,char *fi, int line) {
 	return ret;
 }
 
-#if defined(WRAP_MALLOC) || defined(DEBUG_MALLOC)
-void deleteVector_(char *file, int line, int elSize, struct Vector** myp) {
-#else
 void deleteVector_(int elSize, struct Vector** myp) {
-#endif
+
 
 	struct Vector *me = *myp;
 
@@ -84,13 +81,26 @@ void deleteVector_(int elSize, struct Vector** myp) {
 	}
 
 	ASSERT(me);
-	#ifdef DEBUG_MALLOC
-		if(_noisy) printf("vector, deleting me %p data %p at %s:%d\n",me,me->data,file,line);
-	#endif
 	if(me->data) {FREE_IF_NZ(me->data);}
 	FREE_IF_NZ(me);
 	*myp = NULL;
 }
+#if defined(WRAP_MALLOC) || defined(DEBUG_MALLOC)
+void deleteVectorDebug_(char *file, int line, int elSize, struct Vector** myp) {
+	struct Vector *me = *myp;
+
+	if (!me) {
+		//ConsoleMessage ("Vector - already empty");
+		return;
+	}
+
+	ASSERT(me);
+		if(_noisy) printf("vector, deleting me %p data %p at %s:%d\n",me,me->data,file,line);
+	if(me->data) {freewrlFree(line,file,me->data);}
+	freewrlFree(line + 1,file,me);
+	*myp = NULL;
+}
+#endif
 
 /* Ensures there's at least one space free. */
 void vector_ensureSpace_(int elSize, struct Vector* me, char *fi, int line) {
@@ -100,6 +110,8 @@ void vector_ensureSpace_(int elSize, struct Vector* me, char *fi, int line) {
         ASSERT(FALSE);
     }
 	if(me->n==me->allocn) {
+		int istart, iend;
+		istart = me->allocn;
 		if(me->allocn)
         {
             me->allocn*=2;
@@ -109,12 +121,16 @@ void vector_ensureSpace_(int elSize, struct Vector* me, char *fi, int line) {
             me->allocn=1;
             me->n = 0;
         }
-
+		iend = me->allocn;
 #ifdef DEBUG_MALLOC
 		me->data=freewrlRealloc(line, fi,me->data, elSize*me->allocn);
 #else
 		me->data=REALLOC(me->data, elSize*me->allocn);
 #endif
+		//if(iend > istart){
+		//	char *cdata = (char*)me->data;
+		//	memset(&cdata[istart*elSize],0,(iend-istart)*elSize);
+		//}
 		#ifdef DEBUG_MALLOC
 			if(_noisy) printf ("vector, ensureSpace, me %p, data %p\n",me, me->data);
 		#endif

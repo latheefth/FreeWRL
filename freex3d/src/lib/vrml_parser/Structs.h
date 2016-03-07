@@ -2283,6 +2283,7 @@ struct X3D_Node {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 };
@@ -2382,6 +2383,7 @@ struct X3D_Anchor {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
@@ -2409,6 +2411,7 @@ struct X3D_Appearance {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *fillProperties;
@@ -2433,6 +2436,7 @@ struct X3D_Arc2D {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -2456,6 +2460,7 @@ struct X3D_ArcClose2D {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -2481,6 +2486,7 @@ struct X3D_AudioClip {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Uni_String *description;
@@ -2517,6 +2523,7 @@ struct X3D_Background {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int set_bind;
@@ -2562,6 +2569,7 @@ struct X3D_BallJoint {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec3f anchorPoint;
@@ -2586,6 +2594,7 @@ struct X3D_Billboard {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
@@ -2611,6 +2620,7 @@ struct X3D_BooleanFilter {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int set_boolean;
@@ -2633,6 +2643,7 @@ struct X3D_BooleanSequencer {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int next;
@@ -2657,6 +2668,7 @@ struct X3D_BooleanToggle {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int set_boolean;
@@ -2677,6 +2689,7 @@ struct X3D_BooleanTrigger {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	double set_triggerTime;
@@ -2697,6 +2710,7 @@ struct X3D_BoundedPhysicsModel {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int enabled;
@@ -2717,6 +2731,7 @@ struct X3D_Box {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -2738,6 +2753,7 @@ struct X3D_CADAssembly {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
@@ -2763,6 +2779,7 @@ struct X3D_CADFace {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -2785,6 +2802,7 @@ struct X3D_CADLayer {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
@@ -2810,6 +2828,7 @@ struct X3D_CADPart {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
@@ -2846,6 +2865,7 @@ struct X3D_Circle2D {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -2867,6 +2887,7 @@ struct X3D_ClipPlane {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int enabled;
@@ -2887,6 +2908,7 @@ struct X3D_CollidableOffset {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int enabled;
@@ -2913,6 +2935,7 @@ struct X3D_CollidableShape {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int enabled;
@@ -2940,6 +2963,7 @@ struct X3D_Collision {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
@@ -2968,6 +2992,7 @@ struct X3D_CollisionCollection {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_String appliedParameters;
@@ -2997,6 +3022,7 @@ struct X3D_CollisionSensor {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *collider;
@@ -3020,6 +3046,7 @@ struct X3D_CollisionSpace {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node collidables;
@@ -3044,6 +3071,7 @@ struct X3D_Color {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Color color;
@@ -3063,6 +3091,7 @@ struct X3D_ColorChaser {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -3095,6 +3124,7 @@ struct X3D_ColorDamper {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -3129,6 +3159,7 @@ struct X3D_ColorInterpolator {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float set_fraction;
@@ -3151,6 +3182,7 @@ struct X3D_ColorRGBA {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_ColorRGBA color;
@@ -3170,6 +3202,7 @@ struct X3D_ComposedCubeMapTexture {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -3195,6 +3228,7 @@ struct X3D_ComposedShader {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int activate;
@@ -3223,6 +3257,7 @@ struct X3D_Cone {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -3251,6 +3286,7 @@ struct X3D_ConeEmitter {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float angle;
@@ -3276,6 +3312,7 @@ struct X3D_Contact {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_String appliedParameters;
@@ -3310,6 +3347,7 @@ struct X3D_Contour2D {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
@@ -3331,6 +3369,7 @@ struct X3D_ContourPolyLine2D {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -3350,6 +3389,7 @@ struct X3D_Coordinate {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Vec3f point;
@@ -3369,6 +3409,7 @@ struct X3D_CoordinateChaser {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -3401,6 +3442,7 @@ struct X3D_CoordinateDamper {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -3435,6 +3477,7 @@ struct X3D_CoordinateDouble {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -3454,6 +3497,7 @@ struct X3D_CoordinateInterpolator {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float set_fraction;
@@ -3480,6 +3524,7 @@ struct X3D_CoordinateInterpolator2D {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float set_fraction;
@@ -3502,6 +3547,7 @@ struct X3D_Cylinder {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -3530,6 +3576,7 @@ struct X3D_CylinderSensor {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int autoOffset;
@@ -3566,6 +3613,7 @@ struct X3D_DISEntityManager {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Uni_String *address;
@@ -3591,6 +3639,7 @@ struct X3D_DISEntityTypeMapping {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -3617,6 +3666,7 @@ struct X3D_DirectionalLight {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float ambientIntensity;
@@ -3644,6 +3694,7 @@ struct X3D_Disk2D {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -3669,6 +3720,7 @@ struct X3D_DoubleAxisHingeJoint {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec3f anchorPoint;
@@ -3712,6 +3764,7 @@ struct X3D_EaseInEaseOut {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float set_fraction;
@@ -3734,6 +3787,7 @@ struct X3D_ElevationGrid {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Float set_height;
@@ -3769,6 +3823,7 @@ struct X3D_EspduTransform {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
@@ -3875,6 +3930,7 @@ struct X3D_ExplosionEmitter {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -3898,6 +3954,7 @@ struct X3D_Extrusion {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Vec2f set_crossSection;
@@ -3930,6 +3987,7 @@ struct X3D_FillProperties {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int filled;
@@ -3954,6 +4012,7 @@ struct X3D_FloatVertexAttribute {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Float value;
@@ -3975,6 +4034,7 @@ struct X3D_Fog {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int set_bind;
@@ -4000,6 +4060,7 @@ struct X3D_FogCoordinate {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Float depth;
@@ -4019,6 +4080,7 @@ struct X3D_FontStyle {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -4046,6 +4108,7 @@ struct X3D_GeneratedCubeMapTexture {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -4068,6 +4131,7 @@ struct X3D_GeoCoordinate {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -4091,6 +4155,7 @@ struct X3D_GeoElevationGrid {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Double set_height;
@@ -4129,6 +4194,7 @@ struct X3D_GeoLOD {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -4172,6 +4238,7 @@ struct X3D_GeoLocation {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
@@ -4204,6 +4271,7 @@ struct X3D_GeoMetadata {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node data;
@@ -4225,6 +4293,7 @@ struct X3D_GeoOrigin {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec3d geoCoords;
@@ -4251,6 +4320,7 @@ struct X3D_GeoPositionInterpolator {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float set_fraction;
@@ -4280,6 +4350,7 @@ struct X3D_GeoProximitySensor {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int enabled;
@@ -4319,6 +4390,7 @@ struct X3D_GeoTouchSensor {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Uni_String *description;
@@ -4353,6 +4425,7 @@ struct X3D_GeoTransform {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
@@ -4394,6 +4467,7 @@ struct X3D_GeoViewpoint {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int set_bind;
@@ -4436,6 +4510,7 @@ struct X3D_Group {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
@@ -4460,6 +4535,7 @@ struct X3D_HAnimDisplacer {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 coordIndex;
@@ -4482,6 +4558,7 @@ struct X3D_HAnimHumanoid {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec3f center;
@@ -4518,6 +4595,7 @@ struct X3D_HAnimJoint {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
@@ -4559,6 +4637,7 @@ struct X3D_HAnimSegment {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
@@ -4588,6 +4667,7 @@ struct X3D_HAnimSite {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
@@ -4622,6 +4702,7 @@ struct X3D_ImageCubeMapTexture {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -4646,6 +4727,7 @@ struct X3D_ImageTexture {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -4670,6 +4752,7 @@ struct X3D_IndexedFaceSet {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 set_colorIndex;
@@ -4708,6 +4791,7 @@ struct X3D_IndexedLineSet {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 set_colorIndex;
@@ -4741,6 +4825,7 @@ struct X3D_IndexedQuadSet {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 set_index;
@@ -4772,6 +4857,7 @@ struct X3D_IndexedTriangleFanSet {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 set_index;
@@ -4803,6 +4889,7 @@ struct X3D_IndexedTriangleSet {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 set_index;
@@ -4834,6 +4921,7 @@ struct X3D_IndexedTriangleStripSet {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 set_index;
@@ -4865,6 +4953,7 @@ struct X3D_Inline {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node __children;
@@ -4913,6 +5002,7 @@ struct X3D_IntegerSequencer {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int next;
@@ -4937,6 +5027,7 @@ struct X3D_IntegerTrigger {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int set_boolean;
@@ -4958,6 +5049,7 @@ struct X3D_KeySensor {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int enabled;
@@ -4986,6 +5078,7 @@ struct X3D_LOD {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
@@ -5016,6 +5109,7 @@ struct X3D_Layer {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
@@ -5039,6 +5133,7 @@ struct X3D_LayerSet {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int activeLayer;
@@ -5060,6 +5155,7 @@ struct X3D_Layout {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_String align;
@@ -5089,6 +5185,7 @@ struct X3D_LayoutGroup {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
@@ -5114,6 +5211,7 @@ struct X3D_LayoutLayer {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
@@ -5138,6 +5236,7 @@ struct X3D_LinePickSensor {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int enabled;
@@ -5167,6 +5266,7 @@ struct X3D_LineProperties {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int applied;
@@ -5188,6 +5288,7 @@ struct X3D_LineSensor {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int autoOffset;
@@ -5221,6 +5322,7 @@ struct X3D_LineSet {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node attrib;
@@ -5247,6 +5349,7 @@ struct X3D_LoadSensor {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int enabled;
@@ -5276,6 +5379,7 @@ struct X3D_LocalFog {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFColor color;
@@ -5298,6 +5402,7 @@ struct X3D_Material {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float ambientIntensity;
@@ -5323,6 +5428,7 @@ struct X3D_Matrix3VertexAttribute {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Matrix3f value;
@@ -5343,6 +5449,7 @@ struct X3D_Matrix4VertexAttribute {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -5363,6 +5470,7 @@ struct X3D_MetadataBoolean {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -5384,6 +5492,7 @@ struct X3D_MetadataDouble {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -5405,6 +5514,7 @@ struct X3D_MetadataFloat {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -5426,6 +5536,7 @@ struct X3D_MetadataInteger {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -5447,6 +5558,7 @@ struct X3D_MetadataMFBool {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Bool value;
@@ -5468,6 +5580,7 @@ struct X3D_MetadataMFColor {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Color value;
@@ -5489,6 +5602,7 @@ struct X3D_MetadataMFColorRGBA {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_ColorRGBA value;
@@ -5510,6 +5624,7 @@ struct X3D_MetadataMFDouble {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Double value;
@@ -5531,6 +5646,7 @@ struct X3D_MetadataMFFloat {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Float value;
@@ -5552,6 +5668,7 @@ struct X3D_MetadataMFInt32 {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 value;
@@ -5573,6 +5690,7 @@ struct X3D_MetadataMFMatrix3d {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Matrix3d value;
@@ -5594,6 +5712,7 @@ struct X3D_MetadataMFMatrix3f {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Matrix3f value;
@@ -5615,6 +5734,7 @@ struct X3D_MetadataMFMatrix4d {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Matrix4d value;
@@ -5636,6 +5756,7 @@ struct X3D_MetadataMFMatrix4f {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Matrix4f value;
@@ -5657,6 +5778,7 @@ struct X3D_MetadataMFNode {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node value;
@@ -5678,6 +5800,7 @@ struct X3D_MetadataMFRotation {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Rotation value;
@@ -5699,6 +5822,7 @@ struct X3D_MetadataMFString {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_String value;
@@ -5720,6 +5844,7 @@ struct X3D_MetadataMFTime {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Time value;
@@ -5741,6 +5866,7 @@ struct X3D_MetadataMFVec2d {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Vec2d value;
@@ -5762,6 +5888,7 @@ struct X3D_MetadataMFVec2f {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Vec2f value;
@@ -5783,6 +5910,7 @@ struct X3D_MetadataMFVec3d {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Vec3d value;
@@ -5804,6 +5932,7 @@ struct X3D_MetadataMFVec3f {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Vec3f value;
@@ -5825,6 +5954,7 @@ struct X3D_MetadataMFVec4d {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Vec4d value;
@@ -5846,6 +5976,7 @@ struct X3D_MetadataMFVec4f {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Vec4f value;
@@ -5867,6 +5998,7 @@ struct X3D_MetadataSFBool {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int value;
@@ -5888,6 +6020,7 @@ struct X3D_MetadataSFColor {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFColor value;
@@ -5909,6 +6042,7 @@ struct X3D_MetadataSFColorRGBA {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFColorRGBA value;
@@ -5930,6 +6064,7 @@ struct X3D_MetadataSFDouble {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	double value;
@@ -5951,6 +6086,7 @@ struct X3D_MetadataSFFloat {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float value;
@@ -5972,6 +6108,7 @@ struct X3D_MetadataSFImage {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 value;
@@ -5993,6 +6130,7 @@ struct X3D_MetadataSFInt32 {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int value;
@@ -6014,6 +6152,7 @@ struct X3D_MetadataSFMatrix3d {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFMatrix3d value;
@@ -6035,6 +6174,7 @@ struct X3D_MetadataSFMatrix3f {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFMatrix3f value;
@@ -6056,6 +6196,7 @@ struct X3D_MetadataSFMatrix4d {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFMatrix4d value;
@@ -6077,6 +6218,7 @@ struct X3D_MetadataSFMatrix4f {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFMatrix4f value;
@@ -6098,6 +6240,7 @@ struct X3D_MetadataSFNode {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *value;
@@ -6119,6 +6262,7 @@ struct X3D_MetadataSFRotation {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFRotation value;
@@ -6140,6 +6284,7 @@ struct X3D_MetadataSFString {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Uni_String *value;
@@ -6161,6 +6306,7 @@ struct X3D_MetadataSFTime {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	double value;
@@ -6182,6 +6328,7 @@ struct X3D_MetadataSFVec2d {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec2d value;
@@ -6203,6 +6350,7 @@ struct X3D_MetadataSFVec2f {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec2f value;
@@ -6224,6 +6372,7 @@ struct X3D_MetadataSFVec3d {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec3d value;
@@ -6245,6 +6394,7 @@ struct X3D_MetadataSFVec3f {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec3f value;
@@ -6266,6 +6416,7 @@ struct X3D_MetadataSFVec4d {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec4d value;
@@ -6287,6 +6438,7 @@ struct X3D_MetadataSFVec4f {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec4f value;
@@ -6308,6 +6460,7 @@ struct X3D_MetadataSet {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -6329,6 +6482,7 @@ struct X3D_MetadataString {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -6350,6 +6504,7 @@ struct X3D_MotorJoint {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float axis1Angle;
@@ -6394,6 +6549,7 @@ struct X3D_MovieTexture {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Uni_String *description;
@@ -6429,6 +6585,7 @@ struct X3D_MultiTexture {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float alpha;
@@ -6454,6 +6611,7 @@ struct X3D_MultiTextureCoordinate {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -6473,6 +6631,7 @@ struct X3D_MultiTextureTransform {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -6492,6 +6651,7 @@ struct X3D_NavigationInfo {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int set_bind;
@@ -6522,6 +6682,7 @@ struct X3D_Normal {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -6541,6 +6702,7 @@ struct X3D_NormalInterpolator {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float set_fraction;
@@ -6563,6 +6725,7 @@ struct X3D_NurbsCurve {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -6588,6 +6751,7 @@ struct X3D_NurbsCurve2D {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -6611,6 +6775,7 @@ struct X3D_NurbsOrientationInterpolator {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -6635,6 +6800,7 @@ struct X3D_NurbsPatchSurface {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -6667,6 +6833,7 @@ struct X3D_NurbsPositionInterpolator {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -6691,6 +6858,7 @@ struct X3D_NurbsSet {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addGeometry;
@@ -6715,6 +6883,7 @@ struct X3D_NurbsSurfaceInterpolator {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -6744,6 +6913,7 @@ struct X3D_NurbsSweptSurface {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *crossSectionCurve;
@@ -6766,6 +6936,7 @@ struct X3D_NurbsSwungSurface {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -6788,6 +6959,7 @@ struct X3D_NurbsTextureCoordinate {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -6814,6 +6986,7 @@ struct X3D_NurbsTrimmedSurface {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -6849,6 +7022,7 @@ struct X3D_OSC_Sensor {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int enabled;
@@ -6889,6 +7063,7 @@ struct X3D_OrientationChaser {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -6921,6 +7096,7 @@ struct X3D_OrientationDamper {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -6955,6 +7131,7 @@ struct X3D_OrientationInterpolator {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float set_fraction;
@@ -6977,6 +7154,7 @@ struct X3D_OrthoViewpoint {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int set_bind;
@@ -7006,6 +7184,7 @@ struct X3D_PackagedShader {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int activate;
@@ -7034,6 +7213,7 @@ struct X3D_ParticleSystem {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *appearance;
@@ -7070,6 +7250,7 @@ struct X3D_PickableGroup {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
@@ -7095,6 +7276,7 @@ struct X3D_PixelTexture {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 image;
@@ -7119,6 +7301,7 @@ struct X3D_PlaneSensor {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int autoOffset;
@@ -7152,6 +7335,7 @@ struct X3D_PointEmitter {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec3f direction;
@@ -7176,6 +7360,7 @@ struct X3D_PointLight {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float ambientIntensity;
@@ -7205,6 +7390,7 @@ struct X3D_PointPickSensor {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int enabled;
@@ -7240,6 +7426,7 @@ struct X3D_PointSet {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node attrib;
@@ -7266,6 +7453,7 @@ struct X3D_Polyline2D {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -7285,6 +7473,7 @@ struct X3D_PolylineEmitter {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 set_coordIndex;
@@ -7312,6 +7501,7 @@ struct X3D_Polypoint2D {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -7331,6 +7521,7 @@ struct X3D_PositionChaser {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -7363,6 +7554,7 @@ struct X3D_PositionChaser2D {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -7395,6 +7587,7 @@ struct X3D_PositionDamper {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -7429,6 +7622,7 @@ struct X3D_PositionDamper2D {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -7463,6 +7657,7 @@ struct X3D_PositionInterpolator {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float set_fraction;
@@ -7485,6 +7680,7 @@ struct X3D_PositionInterpolator2D {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float set_fraction;
@@ -7507,6 +7703,7 @@ struct X3D_PrimitivePickSensor {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int enabled;
@@ -7533,6 +7730,7 @@ struct X3D_ProgramShader {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int activate;
@@ -7560,6 +7758,7 @@ struct X3D_Proto {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node __children;
@@ -7608,6 +7807,7 @@ struct X3D_ProximitySensor {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec3f center;
@@ -7639,6 +7839,7 @@ struct X3D_QuadSet {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node attrib;
@@ -7668,6 +7869,7 @@ struct X3D_ReceiverPdu {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Uni_String *address;
@@ -7714,6 +7916,7 @@ struct X3D_Rectangle2D {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -7736,6 +7939,7 @@ struct X3D_RigidBody {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float angularDampingFactor;
@@ -7778,6 +7982,7 @@ struct X3D_RigidBodyCollection {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node set_contacts;
@@ -7814,6 +8019,7 @@ struct X3D_ScalarChaser {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -7846,6 +8052,7 @@ struct X3D_ScalarDamper {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -7880,6 +8087,7 @@ struct X3D_ScalarInterpolator {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float set_fraction;
@@ -7902,6 +8110,7 @@ struct X3D_ScreenFontStyle {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -7929,6 +8138,7 @@ struct X3D_ScreenGroup {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
@@ -7952,6 +8162,7 @@ struct X3D_Script {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_String url;
@@ -7975,6 +8186,7 @@ struct X3D_ShaderPart {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -7999,6 +8211,7 @@ struct X3D_ShaderProgram {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -8023,6 +8236,7 @@ struct X3D_Shape {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *appearance;
@@ -8049,6 +8263,7 @@ struct X3D_SignalPdu {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Uni_String *address;
@@ -8095,6 +8310,7 @@ struct X3D_SingleAxisHingeJoint {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec3f anchorPoint;
@@ -8126,6 +8342,7 @@ struct X3D_SliderJoint {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec3f axis;
@@ -8155,6 +8372,7 @@ struct X3D_Sound {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec3f direction;
@@ -8186,6 +8404,7 @@ struct X3D_Sphere {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -8209,6 +8428,7 @@ struct X3D_SphereSensor {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int autoOffset;
@@ -8241,6 +8461,7 @@ struct X3D_SplinePositionInterpolator {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float set_fraction;
@@ -8266,6 +8487,7 @@ struct X3D_SplinePositionInterpolator2D {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float set_fraction;
@@ -8291,6 +8513,7 @@ struct X3D_SplineScalarInterpolator {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float set_fraction;
@@ -8316,6 +8539,7 @@ struct X3D_SpotLight {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float ambientIntensity;
@@ -8349,6 +8573,7 @@ struct X3D_SquadOrientationInterpolator {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float set_fraction;
@@ -8372,6 +8597,7 @@ struct X3D_StaticGroup {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -8396,6 +8622,7 @@ struct X3D_StringSensor {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int deletionAllowed;
@@ -8421,6 +8648,7 @@ struct X3D_SurfaceEmitter {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 set_coordIndex;
@@ -8446,6 +8674,7 @@ struct X3D_Switch {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
@@ -8472,6 +8701,7 @@ struct X3D_TexCoordChaser2D {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -8504,6 +8734,7 @@ struct X3D_TexCoordDamper2D {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -8538,6 +8769,7 @@ struct X3D_Text {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *fontStyle;
@@ -8566,6 +8798,7 @@ struct X3D_TextureBackground {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int set_bind;
@@ -8604,6 +8837,7 @@ struct X3D_TextureCoordinate {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -8623,6 +8857,7 @@ struct X3D_TextureCoordinateGenerator {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -8643,6 +8878,7 @@ struct X3D_TextureProperties {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float anisotropicDegree;
@@ -8672,6 +8908,7 @@ struct X3D_TextureTransform {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec2f center;
@@ -8694,6 +8931,7 @@ struct X3D_TimeSensor {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	double cycleInterval;
@@ -8728,6 +8966,7 @@ struct X3D_TimeTrigger {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int set_boolean;
@@ -8748,6 +8987,7 @@ struct X3D_TouchSensor {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int enabled;
@@ -8778,6 +9018,7 @@ struct X3D_Transform {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
@@ -8813,6 +9054,7 @@ struct X3D_TransmitterPdu {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Uni_String *address;
@@ -8875,6 +9117,7 @@ struct X3D_TriangleFanSet {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node attrib;
@@ -8905,6 +9148,7 @@ struct X3D_TriangleSet {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node attrib;
@@ -8934,6 +9178,7 @@ struct X3D_TriangleSet2D {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
@@ -8955,6 +9200,7 @@ struct X3D_TriangleStripSet {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node attrib;
@@ -8985,6 +9231,7 @@ struct X3D_TwoSidedMaterial {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float ambientIntensity;
@@ -9018,6 +9265,7 @@ struct X3D_UniversalJoint {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec3f anchorPoint;
@@ -9050,6 +9298,7 @@ struct X3D_Viewpoint {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int set_bind;
@@ -9079,6 +9328,7 @@ struct X3D_ViewpointGroup {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec3f center;
@@ -9104,6 +9354,7 @@ struct X3D_Viewport {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
@@ -9128,6 +9379,7 @@ struct X3D_VisibilitySensor {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec3f center;
@@ -9157,6 +9409,7 @@ struct X3D_VolumePickSensor {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int enabled;
@@ -9183,6 +9436,7 @@ struct X3D_WindPhysicsModel {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec3f direction;
@@ -9206,6 +9460,7 @@ struct X3D_WorldInfo {
        struct X3D_PolyRep *_intern; 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_String info;

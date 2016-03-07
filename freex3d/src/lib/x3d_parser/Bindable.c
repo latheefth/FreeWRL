@@ -130,6 +130,7 @@ void Bindable_clear(struct tBindable *t){
 		bindablestack* bstack = vector_get(bindablestack*,t->bstacks,i);
 		free_bindablestack(bstack);
 	}
+	deleteVector(bindablestack*,t->bstacks);
 }
 bindablestack* getBindableStacksByLayer(ttglobal tg, int layerId )
 {

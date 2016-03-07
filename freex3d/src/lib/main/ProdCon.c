@@ -153,8 +153,6 @@ void *ProdCon_constructor(){
 void ProdCon_init(struct tProdCon *t)
 {
 	//public
-	//stores all bindable viewpoints as parsed
-	t->viewpointNodes = newVector(struct X3D_Node *,8);
 	t->currboundvpno=0;
 
 	/* bind nodes in display loop, NOT in parsing threadthread */
@@ -169,6 +167,7 @@ void ProdCon_init(struct tProdCon *t)
 	t->prv = ProdCon_constructor();
 	{
 		ppProdCon p = (ppProdCon)t->prv;
+		//stores all bindable viewpoints as parsed
 		p->viewpointNodes = newVector(struct X3D_Node *,8);
 		t->viewpointNodes = p->viewpointNodes;
 		p->fogNodes = newVector(struct X3D_Node *, 2);
@@ -203,10 +202,10 @@ void ProdCon_init(struct tProdCon *t)
 	}
 }
 void ProdCon_clear(struct tProdCon *t){
-	deleteVector(struct X3D_Node *,t->viewpointNodes);
 	if(t->prv)
 	{
 		ppProdCon p = (ppProdCon)t->prv;
+		deleteVector(struct X3D_Node *, p->viewpointNodes);
 		deleteVector(struct X3D_Node *, p->fogNodes);
 		deleteVector(struct X3D_Node *, p->backgroundNodes);
 		deleteVector(struct X3D_Node *, p->navigationNodes);

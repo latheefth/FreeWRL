@@ -2012,7 +2012,8 @@ void kill_javascript(void) {
 	tg->CRoutes.max_script_found_and_initialized = -1;
 	jsShutdown();
 	JSparamnamesShutdown();
-	vector_releaseData(struct CRscriptStruct *,p->ScriptControl);
+	//vector_releaseData(struct CRscriptStruct *,p->ScriptControl);
+	deleteVector(struct CRscriptStruct *,p->ScriptControl);
 	//FREE_IF_NZ (ScriptControl);
 	//FREE_IF_NZ(p->scr_act);
 
@@ -2083,6 +2084,9 @@ struct CRscriptStruct *newScriptControl(){
 void JSMaxAlloc2(int num){
 	ttglobal tg = gglobal();
 	ppCRoutes p = (ppCRoutes)tg->CRoutes.prv;
+	if(!p->ScriptControl)
+		p->ScriptControl = newVector(struct CRscriptStruct *,0);
+	//I suspect the following is like vector_ensurespace. We don't do a pushback here.
 	if(p->ScriptControl->allocn <= num){
 		int i,istart, iend;
 

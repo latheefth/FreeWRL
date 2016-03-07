@@ -388,7 +388,10 @@ float defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; //left,right,bottom,top
 		that we exit the globalshader system momentarily, to use a simpler shader, by calling
 		finishedwithglobalshader(), and restoreglobalshader() before and after gl_useProgram section
 */
+
 typedef struct contenttype contenttype;
+void register_contenttype(void *ct);
+void free_contenttypes();
 typedef struct tcontenttype {
 	int itype; //enum content_types: 0 scene, 1 statusbarHud, 2 texture grid
 				// 3 layer 4 splitter 5 quadrant 6 fbo 10 stage 11 targetwindow
@@ -483,6 +486,7 @@ int scene_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID,
 }
 contenttype *new_contenttype_scene(){
 	contenttype_scene *self = MALLOCV(sizeof(contenttype_scene));
+	register_contenttype(self);
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_SCENE;
 	self->t1.render = scene_render;
@@ -576,6 +580,7 @@ int statusbar_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int
 }
 contenttype *new_contenttype_statusbar(){
 	contenttype_statusbar *self = MALLOCV(sizeof(contenttype_statusbar));
+	register_contenttype(self);
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_STATUSBAR;
 	self->t1.render = statusbar_render;
@@ -636,6 +641,7 @@ int switch_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID
 }
 contenttype *new_contenttype_switch(){
 	contenttype_switch *self = MALLOCV(sizeof(contenttype_switch));
+	register_contenttype(self);
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_SWITCH;
 	self->t1.render = switch_render;
@@ -694,6 +700,7 @@ int captiontext_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, i
 }
 contenttype *new_contenttype_captiontext(char *fontname, int EMpixels, vec4 color){
 	contenttype_captiontext *self = MALLOCV(sizeof(contenttype_captiontext));
+	register_contenttype(self);
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_CAPTIONTEXT;
 	self->t1.render = captiontext_render;
@@ -779,6 +786,7 @@ void textpanel_render(void *self);
 contenttype *new_contenttype_textpanel(char* fontname, int EMpixels, int maxlines, int maxlen, int wrap){
 	int i;
 	contenttype_textpanel *self = MALLOCV(sizeof(contenttype_textpanel));
+	register_contenttype(self);
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_TEXTPANEL;
 	self->t1.render = textpanel_render;
@@ -794,13 +802,17 @@ contenttype *new_contenttype_textpanel(char* fontname, int EMpixels, int maxline
 	//blob method
 	self->blobsize = self->maxlines * self->maxlen;
 	self->Ablob = (unsigned char*)MALLOCV(self->blobsize+1);
+	register_contenttype(self->Ablob);
 	memset(self->Ablob,0,self->blobsize+1); //the +1 is so Ablob ends in \0 and we can printf it for debuggin
 	self->Z = self->z = self->Ablob;
 	self->S = self->Ablob;
 	self->E = self->Ablob + self->blobsize;
 	self->Blist = MALLOCV(sizeof(BUTitem)*self->maxlines);
+	register_contenttype(self->Blist);
 	self->rowsize = self->maxlen;
 	self->row = MALLOCV(self->rowsize +1);
+	register_contenttype(self->row);
+
 	for(i=0;i<self->maxlines;i++){
 		int prev, next;
 		prev = i - 1;
@@ -1233,6 +1245,7 @@ int layer_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID,
 }
 contenttype *new_contenttype_layer(){
 	contenttype_layer *self = MALLOCV(sizeof(contenttype_layer));
+	register_contenttype(self);
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_LAYER;
 	self->t1.render = layer_render;
@@ -1306,6 +1319,7 @@ int multitouch_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, in
 contenttype *new_contenttype_multitouch(){
 	int i;
 	contenttype_multitouch *self = MALLOCV(sizeof(contenttype_multitouch));
+	register_contenttype(self);
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_MULTITOUCH;
 	self->t1.render = multitouch_render;
@@ -1414,6 +1428,7 @@ int e3dmouse_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int 
 }
 contenttype *new_contenttype_e3dmouse(){
 	contenttype_e3dmouse *self = MALLOCV(sizeof(contenttype_e3dmouse));
+	register_contenttype(self);
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_E3DMOUSE;
 	self->t1.render = e3dmouse_render;
@@ -1539,6 +1554,7 @@ int quadrant_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int 
 }
 contenttype *new_contenttype_quadrant(){
 	contenttype_quadrant *self = MALLOCV(sizeof(contenttype_quadrant));
+	register_contenttype(self);
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_QUADRANT;
 	self->t1.render = quadrant_render;
@@ -1692,6 +1708,7 @@ int stereo_sidebyside_pick(void *_self, int mev, int butnum, int mouseX, int mou
 }
 contenttype *new_contenttype_stereo_sidebyside(){
 	contenttype_stereo_sidebyside *self = MALLOCV(sizeof(contenttype_stereo_sidebyside));
+	register_contenttype(self);
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_STEREO_SIDEBYSIDE;
 	self->t1.render = stereo_sidebyside_render;
@@ -1786,6 +1803,7 @@ int stereo_anaglyph_pick(void *_self, int mev, int butnum, int mouseX, int mouse
 }
 contenttype *new_contenttype_stereo_anaglyph(){
 	contenttype_stereo_anaglyph *self = MALLOCV(sizeof(contenttype_stereo_anaglyph));
+	register_contenttype(self);
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_STEREO_ANAGLYPH;
 	self->t1.render = stereo_anaglyph_render;
@@ -1893,6 +1911,7 @@ int stereo_updown_pick(void *_self, int mev, int butnum, int mouseX, int mouseY,
 }
 contenttype *new_contenttype_stereo_updown(){
 	contenttype_stereo_updown *self = MALLOCV(sizeof(contenttype_stereo_updown));
+	register_contenttype(self);
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_STEREO_UPDOWN;
 	self->t1.render = stereo_updown_render;
@@ -1993,6 +2012,7 @@ int stereo_shutter_pick(void *_self, int mev, int butnum, int mouseX, int mouseY
 }
 contenttype *new_contenttype_stereo_shutter(){
 	contenttype_stereo_shutter *self = MALLOCV(sizeof(contenttype_stereo_shutter));
+	register_contenttype(self);
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_STEREO_SHUTTER;
 	self->t1.render = stereo_shutter_render;
@@ -2019,6 +2039,7 @@ typedef struct contenttype_splitter {
 } contenttype_splitter;
 contenttype *new_contenttype_splitter(){
 	contenttype_splitter *self = MALLOCV(sizeof(contenttype_splitter));
+	register_contenttype(self);
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_SPLITTER;
 	return (contenttype*)self;
@@ -2114,6 +2135,7 @@ int stage_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID,
 
 contenttype *new_contenttype_stage(){
 	stage *self = MALLOCV(sizeof(stage));
+	register_contenttype(self);
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_STAGE;
 	self->t1.render = stage_render;
@@ -2268,6 +2290,7 @@ static GLfloat matrixIdentity[] = {
 int texturegrid_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex);
 contenttype *new_contenttype_texturegrid(int nx, int ny){
 	contenttype_texturegrid *self = MALLOCV(sizeof(contenttype_texturegrid));
+	register_contenttype(self);
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_TEXTUREGRID;
 	self->t1.render = texturegrid_render;
@@ -2288,6 +2311,12 @@ contenttype *new_contenttype_texturegrid(int nx, int ny){
 		vert2 = (GLfloat*)MALLOCV(nx*ny*3*sizeof(GLfloat));
 		tex = (GLfloat*)MALLOCV(nx*ny*2*sizeof(GLfloat));
 		norm = (GLfloat*)MALLOCV(nx*ny*3*sizeof(GLfloat));
+		register_contenttype(index);
+		register_contenttype(vert);
+		register_contenttype(vert2);
+		register_contenttype(tex);
+		register_contenttype(norm);
+
 		//generate vertices
 		dx = 2.0f / (float)(nx-1);
 		dy = 2.0f / (float)(ny-1);
@@ -2709,6 +2738,7 @@ GLushort quad1TriangleInd[] = {
 
 contenttype *new_contenttype_orientation(){
 	contenttype_orientation *self = MALLOCV(sizeof(contenttype_orientation));
+	register_contenttype(self);
 	init_tcontenttype(&self->t1);
 	self->t1.itype = CONTENT_ORIENTATION;
 	self->t1.render = orientation_render;
@@ -2953,6 +2983,7 @@ typedef struct pMainloop{
 	Stack *_vportstack;
 	Stack *_stagestack;
 	Stack *_framebufferstack;
+	struct Vector *contenttype_registry;
 }* ppMainloop;
 void *Mainloop_constructor(){
 	void *v = MALLOCV(sizeof(struct pMainloop));
@@ -3075,6 +3106,7 @@ void Mainloop_init(struct tMainloop *t){
 		p->_framebufferstack = newStack(int);
 		t->_framebufferstack = (void*)p->_framebufferstack;
 		stack_push(int,p->_framebufferstack,FW_GL_BACK);
+		p->contenttype_registry = NULL;
 	}
 }
 void Mainloop_clear(struct tMainloop *t){
@@ -3086,7 +3118,10 @@ void Mainloop_clear(struct tMainloop *t){
 		ppMainloop p = (ppMainloop)t->prv;
 		FREE_IF_NZ(p->SensorEvents);
 		deleteVector(ivec4,p->_vportstack);
+		deleteVector(void*,p->_stagestack);
 		deleteVector(int,p->_framebufferstack);
+		free_contenttypes();
+		deleteVector(contenttype*,p->contenttype_registry);
 	}
 }
 
@@ -3460,6 +3495,35 @@ void fwl_setScreenDim1(int wi, int he, int itargetwindow){
 
 
 //=====NEW====>>>
+//register contenttypes for automatic freeing at end of run
+void register_contenttype(void *ct){
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+	if(!p->contenttype_registry)
+		p->contenttype_registry = newVector(void *,4);
+	//if(p->contenttype_registry->n >= p->contenttype_registry->allocn){
+	//	int nalloc = upper_power_of_two(p->contenttype_registry->n + 1);
+	//	p->contenttype_registry->data = REALLOC(p->contenttype_registry->data,nalloc);
+	//	p->contenttype_registry->allocn = nalloc;
+	//}
+	vector_pushBack(void*,p->contenttype_registry,ct);
+		
+}
+void free_contenttypes(){
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+	if(p->contenttype_registry){
+		int i;
+		for(i=0;i<p->contenttype_registry->n;i++){
+			void *ct;
+			ct = vector_get(void*,p->contenttype_registry,i);
+			FREE_IF_NZ(ct);
+		}
+	}
+	//the vector itself will be freed by caller with deleteVector
+}
+
+
 void setup_stagesNORMAL(){
 	int i;
 	targetwindow *twindows, *t;
@@ -3500,12 +3564,12 @@ void setup_stagesNORMAL(){
 		cstage->t1.contents = cmultitouch;
 		p->EMULATE_MULTITOUCH =	FALSE;
 		//IDEA: these prepared ways of using freewrl could be put into a switchcase contenttype called early ie from window
-		if(1){
+		if(0){
 			//normal: multitouch emulation, layer, scene, statusbarHud, 
 			if(1) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
 			else cstage->t1.contents = csbh; //skip multitouch
 			//tg->Mainloop.AllowNavDrag = TRUE; //experimental approach to allow both navigation and dragging at the same time, with 2 separate touches
-		}else if(0){
+		}else if(1){
 			//tests dual-ringbuffer console textpanel
 			contenttype *ctextpanel;
 			//ctextpanel = new_contenttype_textpanel("Vera",8,30,120,TRUE);

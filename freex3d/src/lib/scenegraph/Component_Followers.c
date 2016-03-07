@@ -73,6 +73,8 @@ void Component_Followers_clear(struct tComponent_Followers *t){
 	//public
 }
 
+
+
 //ppComponent_Followers p = (ppComponent_Followers)gglobal()->Component_Followers.prv;
 
 void do_ColorChaserTick(void * ptr);
@@ -520,8 +522,8 @@ void do_PositionChaserTick(void * ptr){
 	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr;
 	if(!node) return;
 	if(!_node->_buffer){
-		chaser_ptrs *p = MALLOCV(sizeof(chaser_ptrs));
-		_node->_buffer = REALLOC(_node->_buffer,Buffer_length * sizeof(struct SFVec3f));
+		chaser_ptrs *p = MALLOCN(node,sizeof(chaser_ptrs));
+		_node->_buffer = REALLOCN(node,_node->_buffer,Buffer_length * sizeof(struct SFVec3f));
 		node->_t = &ftype_sfvec3f;
 		node->_p = p;
 		p->initialDestination = &_node->initialDestination;
@@ -782,15 +784,16 @@ void damper_set_tau(struct X3D_PositionDamper *node, double tau){
     node->_tau = tau;
 	MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_PositionDamper, tau));
 }
+
 void do_PositionDamperTick(void * ptr){
 	struct X3D_PositionDamper *_node = (struct X3D_PositionDamper *)ptr;
 	struct X3D_PositionDamper *node = (struct X3D_PositionDamper *)ptr;
 	if(!node)return;
 	if(!_node->_values){
-		damper_ptrs *p = MALLOCV(sizeof(damper_ptrs));
+		damper_ptrs *p = MALLOCN(node,sizeof(damper_ptrs));
 		node->_t = &ftype_sfvec3f;
 		node->_p = p;
-		_node->_values = REALLOC(_node->_values,5 * sizeof(struct SFVec3f));
+		_node->_values = REALLOCN(node,_node->_values,5 * sizeof(struct SFVec3f));
 		p->initialDestination = &_node->initialDestination;
 		p->initialValue = &_node->initialValue;
 		p->set_destination = &_node->set_destination;
@@ -1236,8 +1239,8 @@ void do_ColorChaserTick(void * ptr){
 	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr; //abstract interface
 	if(!node) return;
 	if(!_node->_buffer){
-		chaser_ptrs *p = MALLOCV(sizeof(chaser_ptrs));
-		_node->_buffer = REALLOC(_node->_buffer,Buffer_length * sizeof(struct SFColor)); //**changes with field type
+		chaser_ptrs *p = MALLOCN(node,sizeof(chaser_ptrs));
+		_node->_buffer = REALLOCN(node,_node->_buffer,Buffer_length * sizeof(struct SFColor)); //**changes with field type
 		node->_t = &ftype_sfvec3f; //**changes with field type
 		node->_p = p;
 		p->initialDestination = &_node->initialDestination;
@@ -1275,10 +1278,10 @@ void do_ColorDamperTick(void * ptr){
 	struct X3D_PositionDamper *node = (struct X3D_PositionDamper *)ptr; //abstract type
 	if(!node)return;
 	if(!_node->_values){
-		damper_ptrs *p = MALLOCV(sizeof(damper_ptrs));
+		damper_ptrs *p = MALLOCN(node,sizeof(damper_ptrs));
 		node->_t = &ftype_sfvec3f; //**changes with field type
 		node->_p = p;
-		_node->_values = REALLOC(_node->_values,5 * sizeof(struct SFColor)); //**changes with field type
+		_node->_values = REALLOCN(node,_node->_values,5 * sizeof(struct SFColor)); //**changes with field type
 		p->initialDestination = &_node->initialDestination;
 		p->initialValue = &_node->initialValue;
 		p->set_destination = &_node->set_destination;
@@ -1321,7 +1324,7 @@ void do_CoordinateChaserTick_default(void * ptr){
 		int n;
 		n = node->set_destination.n;
 		node->value_changed.n = n;
-		node->value_changed.p = realloc(node->value_changed.p,n * sizeof(struct SFVec3f));
+		node->value_changed.p = REALLOC(node->value_changed.p,n * sizeof(struct SFVec3f));
 		memcpy(node->value_changed.p,node->set_destination.p,n*sizeof(struct SFVec3f));
 		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_CoordinateChaser, value_changed));
 		MARK_NODE_COMPILED
@@ -1335,7 +1338,7 @@ void do_CoordinateDamperTick_default(void * ptr){
 		int n;
 		n = node->set_destination.n;
 		node->value_changed.n = n;
-		node->value_changed.p = realloc(node->value_changed.p,n * sizeof(struct SFVec3f));
+		node->value_changed.p = REALLOC(node->value_changed.p,n * sizeof(struct SFVec3f));
 		memcpy(node->value_changed.p,node->set_destination.p,n*sizeof(struct SFVec3f));
 		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_CoordinateDamper, value_changed));
 		MARK_NODE_COMPILED
@@ -1343,7 +1346,7 @@ void do_CoordinateDamperTick_default(void * ptr){
 }
 
 struct Multi_Vec3f *mfvec3f_copy(struct Multi_Vec3f* T, struct Multi_Vec3f *A){
-	T->p = realloc(T->p,A->n * sizeof(struct SFVec3f));
+	T->p = REALLOC(T->p,A->n * sizeof(struct SFVec3f));
 	T->n = A->n;
 	memcpy(T->p,A->p,A->n * sizeof(struct SFVec3f));
 	return T;
@@ -1351,7 +1354,7 @@ struct Multi_Vec3f *mfvec3f_copy(struct Multi_Vec3f* T, struct Multi_Vec3f *A){
 struct Multi_Vec3f *mfvec3f_add(struct Multi_Vec3f* T, struct Multi_Vec3f *A, struct Multi_Vec3f *B){
 	int i;
 	T->n = min(A->n,B->n);
-	T->p = realloc(T->p,T->n * sizeof(struct SFVec3f));
+	T->p = REALLOC(T->p,T->n * sizeof(struct SFVec3f));
 	for(i=0;i<T->n;i++)
 		sfvec3f_add(&T->p[i],&A->p[i],&B->p[i]);
 	return T;
@@ -1359,7 +1362,7 @@ struct Multi_Vec3f *mfvec3f_add(struct Multi_Vec3f* T, struct Multi_Vec3f *A, st
 struct Multi_Vec3f *mfvec3f_dif(struct Multi_Vec3f* T, struct Multi_Vec3f *A, struct Multi_Vec3f *B){
 	int i;
 	T->n = min(A->n,B->n);
-	T->p = realloc(T->p,T->n * sizeof(struct SFVec3f));
+	T->p = REALLOC(T->p,T->n * sizeof(struct SFVec3f));
 	for(i=0;i<T->n;i++)
 		sfvec3f_dif(&T->p[i],&A->p[i],&B->p[i]);
 	return T;
@@ -1367,7 +1370,7 @@ struct Multi_Vec3f *mfvec3f_dif(struct Multi_Vec3f* T, struct Multi_Vec3f *A, st
 struct Multi_Vec3f *mfvec3f_scale(struct Multi_Vec3f* T, struct Multi_Vec3f *A, float S){
 	int i;
 	T->n = A->n;
-	T->p = realloc(T->p,T->n * sizeof(struct SFVec3f));
+	T->p = REALLOC(T->p,T->n * sizeof(struct SFVec3f));
 	for(i=0;i<T->n;i++)
 		sfvec3f_scale(&T->p[i],&A->p[i],S);
 	return T;
@@ -1375,7 +1378,7 @@ struct Multi_Vec3f *mfvec3f_scale(struct Multi_Vec3f* T, struct Multi_Vec3f *A, 
 struct Multi_Vec3f *mfvec3f_lerp(struct Multi_Vec3f* T, struct Multi_Vec3f *A, struct Multi_Vec3f *B, float alpha){
 	int i;
 	T->n = A->n;
-	T->p = realloc(T->p,T->n * sizeof(struct SFVec3f));
+	T->p = REALLOC(T->p,T->n * sizeof(struct SFVec3f));
 	for(i=0;i<T->n;i++)
 		sfvec3f_lerp(&T->p[i],&A->p[i],&B->p[i],alpha);
 	return T;
@@ -1583,8 +1586,8 @@ void do_OrientationChaserTick(void * ptr){
 	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr; //abstract interface
 	if(!node) return;
 	if(!_node->_buffer){
-		chaser_ptrs *p = MALLOCV(sizeof(chaser_ptrs));
-		_node->_buffer = REALLOC(_node->_buffer,Buffer_length * sizeof(struct SFRotation)); //**changes with field type
+		chaser_ptrs *p = MALLOCN(node,sizeof(chaser_ptrs));
+		_node->_buffer = REALLOCN(node,_node->_buffer,Buffer_length * sizeof(struct SFRotation)); //**changes with field type
 		node->_t = &ftype_sfrotation; //**changes with field type
 		node->_p = p;
 		p->initialDestination = &_node->initialDestination;
@@ -1623,10 +1626,10 @@ void do_OrientationDamperTick(void * ptr){
 	struct X3D_PositionDamper *node = (struct X3D_PositionDamper *)ptr; //abstract type
 	if(!node)return;
 	if(!_node->_values){
-		damper_ptrs *p = MALLOCV(sizeof(damper_ptrs));
+		damper_ptrs *p = MALLOCN(node,sizeof(damper_ptrs));
 		node->_t = &ftype_sfrotation; //**changes with field type
 		node->_p = p;
-		_node->_values = REALLOC(_node->_values,5 * sizeof(struct SFRotation)); //**changes with field type
+		_node->_values = REALLOCN(node,_node->_values,5 * sizeof(struct SFRotation)); //**changes with field type
 		p->initialDestination = &_node->initialDestination;
 		p->initialValue = &_node->initialValue;
 		p->set_destination = &_node->set_destination;
@@ -1871,7 +1874,7 @@ void do_OrientationChaserTick_oldway_works(void * ptr){
 	struct X3D_OrientationChaser *node = (struct X3D_OrientationChaser *)ptr;
 	if(!node) return;
 	if(!node->_buffer){
-		node->_buffer = realloc(node->_buffer,Buffer_length * sizeof(struct SFRotation));
+		node->_buffer = REALLOCN(node,node->_buffer,Buffer_length * sizeof(struct SFRotation));
 		orichaser_init(node);
 	}
 	Now = TickTime();
@@ -1901,8 +1904,8 @@ void do_CoordinateChaserTick(void * ptr){
 	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr; //abstract interface
 	if(!node) return;
 	if(!_node->_buffer){
-		chaser_ptrs *p = MALLOCV(sizeof(chaser_ptrs));
-		_node->_buffer = REALLOC(_node->_buffer,Buffer_length * sizeof(struct Multi_Vec3f)); //**changes with field type
+		chaser_ptrs *p = MALLOCN(node,sizeof(chaser_ptrs));
+		_node->_buffer = REALLOCN(node,_node->_buffer,Buffer_length * sizeof(struct Multi_Vec3f)); //**changes with field type
 		node->_t = &ftype_mfvec3f; //**changes with field type
 		node->_p = p;
 		p->initialDestination = &_node->initialDestination;
@@ -1940,10 +1943,10 @@ void do_CoordinateDamperTick(void * ptr){
 	struct X3D_PositionDamper *node = (struct X3D_PositionDamper *)ptr; //abstract type
 	if(!node)return;
 	if(!_node->_values){
-		damper_ptrs *p = MALLOCV(sizeof(damper_ptrs));
+		damper_ptrs *p = MALLOCN(node,sizeof(damper_ptrs));
 		node->_t = &ftype_sfvec3f; //**changes with field type
 		node->_p = p;
-		_node->_values = REALLOC(_node->_values,5 * sizeof(struct Multi_Vec3f)); //**changes with field type
+		_node->_values = REALLOCN(node,_node->_values,5 * sizeof(struct Multi_Vec3f)); //**changes with field type
 		p->initialDestination = &_node->initialDestination;
 		p->initialValue = &_node->initialValue;
 		p->set_destination = &_node->set_destination;
@@ -2063,8 +2066,8 @@ void do_PositionChaser2DTick(void * ptr){
 	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr; //abstract interface
 	if(!node) return;
 	if(!_node->_buffer){
-		chaser_ptrs *p = MALLOCV(sizeof(chaser_ptrs));
-		_node->_buffer = REALLOC(_node->_buffer,Buffer_length * sizeof(struct SFVec2f)); //**changes with ftype
+		chaser_ptrs *p = MALLOCN(node,sizeof(chaser_ptrs));
+		_node->_buffer = REALLOCN(node,_node->_buffer,Buffer_length * sizeof(struct SFVec2f)); //**changes with ftype
 		node->_t = &ftype_sfvec2f; //***changes with ftype
 		node->_p = p;
 		p->initialDestination = &_node->initialDestination;
@@ -2101,10 +2104,10 @@ void do_PositionDamper2DTick(void * ptr){
 	struct X3D_PositionDamper *node = (struct X3D_PositionDamper *)ptr; //abstract type
 	if(!node)return;
 	if(!_node->_values){
-		damper_ptrs *p = MALLOCV(sizeof(damper_ptrs));
+		damper_ptrs *p = MALLOCN(node,sizeof(damper_ptrs));
 		node->_t = &ftype_sfvec2f; //** changes with ftype
 		node->_p = p;
-		_node->_values = REALLOC(_node->_values,5 * sizeof(struct SFVec2f)); //** changes with ftype
+		_node->_values = REALLOCN(node,_node->_values,5 * sizeof(struct SFVec2f)); //** changes with ftype
 		p->initialDestination = &_node->initialDestination;
 		p->initialValue = &_node->initialValue;
 		p->set_destination = &_node->set_destination;
@@ -2212,8 +2215,8 @@ void do_ScalarChaserTick(void * ptr){
 	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr; //abstract interface
 	if(!node) return;
 	if(!_node->_buffer){
-		chaser_ptrs *p = MALLOCV(sizeof(chaser_ptrs));
-		_node->_buffer = REALLOC(_node->_buffer,Buffer_length * sizeof(float)); //**changes with ftype
+		chaser_ptrs *p = MALLOCN(node,sizeof(chaser_ptrs));
+		_node->_buffer = REALLOCN(node,_node->_buffer,Buffer_length * sizeof(float)); //**changes with ftype
 		node->_t = &ftype_scalar; //***changes with ftype
 		node->_p = p;
 		p->initialDestination = &_node->initialDestination;
@@ -2250,10 +2253,10 @@ void do_ScalarDamperTick(void * ptr){
 	struct X3D_PositionDamper *node = (struct X3D_PositionDamper *)ptr; //abstract type
 	if(!node)return;
 	if(!_node->_values){
-		damper_ptrs *p = MALLOCV(sizeof(damper_ptrs));
+		damper_ptrs *p = MALLOCN(node,sizeof(damper_ptrs));
 		node->_t = &ftype_scalar; //** changes with ftype
 		node->_p = p;
-		_node->_values = REALLOC(_node->_values,5 * sizeof(float)); //** changes with ftype
+		_node->_values = REALLOCN(node,_node->_values,5 * sizeof(float)); //** changes with ftype
 		p->initialDestination = &_node->initialDestination;
 		p->initialValue = &_node->initialValue;
 		p->set_destination = &_node->set_destination;
@@ -2296,7 +2299,7 @@ void do_TexCoordChaser2DTick_default(void * ptr){
 		int n;
 		n = node->set_destination.n;
 		node->value_changed.n = n;
-		node->value_changed.p = realloc(node->value_changed.p,n * sizeof(struct SFVec2f));
+		node->value_changed.p = REALLOC(node->value_changed.p,n * sizeof(struct SFVec2f));
 		memcpy(node->value_changed.p,node->set_destination.p,n*sizeof(struct SFVec2f));
 		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_TexCoordChaser2D, value_changed));
 		MARK_NODE_COMPILED
@@ -2310,7 +2313,7 @@ void do_TexCoordDamper2DTick_default(void * ptr){
 		int n;
 		n = node->set_destination.n;
 		node->value_changed.n = n;
-		node->value_changed.p = realloc(node->value_changed.p,n * sizeof(struct SFVec2f));
+		node->value_changed.p = REALLOC(node->value_changed.p,n * sizeof(struct SFVec2f));
 		memcpy(node->value_changed.p,node->set_destination.p,n*sizeof(struct SFVec2f));
 		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_TexCoordDamper2D, value_changed));
 		MARK_NODE_COMPILED
@@ -2318,7 +2321,7 @@ void do_TexCoordDamper2DTick_default(void * ptr){
 }
 
 struct Multi_Vec2f *mfvec2f_copy(struct Multi_Vec2f* T, struct Multi_Vec2f *A){
-	T->p = realloc(T->p,A->n * sizeof(struct SFVec2f));
+	T->p = REALLOC(T->p,A->n * sizeof(struct SFVec2f));
 	T->n = A->n;
 	memcpy(T->p,A->p,A->n * sizeof(struct SFVec2f));
 	return T;
@@ -2326,7 +2329,7 @@ struct Multi_Vec2f *mfvec2f_copy(struct Multi_Vec2f* T, struct Multi_Vec2f *A){
 struct Multi_Vec2f *mfvec2f_add(struct Multi_Vec2f* T, struct Multi_Vec2f *A, struct Multi_Vec2f *B){
 	int i;
 	T->n = min(A->n,B->n);
-	T->p = realloc(T->p,T->n * sizeof(struct SFVec2f));
+	T->p = REALLOC(T->p,T->n * sizeof(struct SFVec2f));
 	for(i=0;i<T->n;i++)
 		sfvec2f_add(&T->p[i],&A->p[i],&B->p[i]);
 	return T;
@@ -2334,7 +2337,7 @@ struct Multi_Vec2f *mfvec2f_add(struct Multi_Vec2f* T, struct Multi_Vec2f *A, st
 struct Multi_Vec2f *mfvec2f_dif(struct Multi_Vec2f* T, struct Multi_Vec2f *A, struct Multi_Vec2f *B){
 	int i;
 	T->n = min(A->n,B->n);
-	T->p = realloc(T->p,T->n * sizeof(struct SFVec2f));
+	T->p = REALLOC(T->p,T->n * sizeof(struct SFVec2f));
 	for(i=0;i<T->n;i++)
 		sfvec2f_dif(&T->p[i],&A->p[i],&B->p[i]);
 	return T;
@@ -2342,7 +2345,7 @@ struct Multi_Vec2f *mfvec2f_dif(struct Multi_Vec2f* T, struct Multi_Vec2f *A, st
 struct Multi_Vec2f *mfvec2f_scale(struct Multi_Vec2f* T, struct Multi_Vec2f *A, float S){
 	int i;
 	T->n = A->n;
-	T->p = realloc(T->p,T->n * sizeof(struct SFVec2f));
+	T->p = REALLOC(T->p,T->n * sizeof(struct SFVec2f));
 	for(i=0;i<T->n;i++)
 		sfvec2f_scale(&T->p[i],&A->p[i],S);
 	return T;
@@ -2350,7 +2353,7 @@ struct Multi_Vec2f *mfvec2f_scale(struct Multi_Vec2f* T, struct Multi_Vec2f *A, 
 struct Multi_Vec2f *mfvec2f_lerp(struct Multi_Vec2f* T, struct Multi_Vec2f *A, struct Multi_Vec2f *B, float alpha){
 	int i;
 	T->n = min(A->n,B->n);
-	T->p = realloc(T->p,T->n * sizeof(struct SFVec2f));
+	T->p = REALLOC(T->p,T->n * sizeof(struct SFVec2f));
 	for(i=0;i<T->n;i++)
 		sfvec2f_lerp(&T->p[i],&A->p[i],&B->p[i],alpha);
 	return T;
@@ -2396,8 +2399,8 @@ void do_TexCoordChaser2DTick(void * ptr){
 	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr; //abstract interface
 	if(!node) return;
 	if(!_node->_buffer){
-		chaser_ptrs *p = MALLOCV(sizeof(chaser_ptrs));
-		_node->_buffer = REALLOC(_node->_buffer,Buffer_length * sizeof(struct Multi_Vec2f)); //**changes with field type
+		chaser_ptrs *p = MALLOCN(node,sizeof(chaser_ptrs));
+		_node->_buffer = REALLOCN(node,_node->_buffer,Buffer_length * sizeof(struct Multi_Vec2f)); //**changes with field type
 		node->_t = &ftype_mfvec2f; //**changes with field type
 		node->_p = p;
 		p->initialDestination = &_node->initialDestination;
@@ -2435,10 +2438,10 @@ void do_TexCoordDamper2DTick(void * ptr){
 	struct X3D_PositionDamper *node = (struct X3D_PositionDamper *)ptr; //abstract type
 	if(!node)return;
 	if(!_node->_values){
-		damper_ptrs *p = MALLOCV(sizeof(damper_ptrs));
+		damper_ptrs *p = MALLOCN(node,sizeof(damper_ptrs));
 		node->_t = &ftype_sfvec2f; //**changes with field type
 		node->_p = p;
-		_node->_values = REALLOC(_node->_values,5 * sizeof(struct Multi_Vec2f)); //**changes with field type
+		_node->_values = REALLOCN(node,_node->_values,5 * sizeof(struct Multi_Vec2f)); //**changes with field type
 		p->initialDestination = &_node->initialDestination;
 		p->initialValue = &_node->initialValue;
 		p->set_destination = &_node->set_destination;
