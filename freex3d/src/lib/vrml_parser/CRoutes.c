@@ -2026,7 +2026,7 @@ void cleanupDie(int num, const char *msg) {
 }
 struct CRscriptStruct *newScriptControl(){
 	struct CRscriptStruct *sc = NULL;
-	sc = malloc(sizeof(struct CRscriptStruct));
+	sc = MALLOCV(sizeof(struct CRscriptStruct));
 	memset(sc,0,sizeof(struct CRscriptStruct));
 	sc->thisScriptType = NOSCRIPT;
 	sc->eventsProcessed = NULL;
@@ -2092,7 +2092,7 @@ void JSMaxAlloc2(int num){
 
 		istart = p->ScriptControl->allocn;
 		iend = upper_power_of_two(num+1);
-		p->ScriptControl->data = realloc(p->ScriptControl->data,iend*sizeof(struct CRscriptStruct *));
+		p->ScriptControl->data = REALLOC(p->ScriptControl->data,iend*sizeof(struct CRscriptStruct *));
 		p->ScriptControl->allocn = iend;
 		p->JSMaxScript = p->ScriptControl->allocn;
 		//not all Scripts get a control - if they are in the body of a ProtoDeclare they don't. 

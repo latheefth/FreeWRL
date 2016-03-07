@@ -129,6 +129,7 @@ void Bindable_clear(struct tBindable *t){
 	 for(i=0;i<vectorSize(t->bstacks);i++){
 		bindablestack* bstack = vector_get(bindablestack*,t->bstacks,i);
 		free_bindablestack(bstack);
+		if(i>0) FREE_IF_NZ(bstack); //the first bstack is &something_not_malloced
 	}
 	deleteVector(bindablestack*,t->bstacks);
 }

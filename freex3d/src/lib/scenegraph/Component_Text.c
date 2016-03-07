@@ -1363,8 +1363,8 @@ p->myff = 4;
 		str = (unsigned char *)ptr[row]->strptr;
 		len = strlen(str);
 		if(rowvec[row].allocn < len){
-			rowvec[row].str32 = (unsigned int *)realloc(rowvec[row].str32,(len+1) * sizeof(unsigned int)); 
-			rowvec[row].chr = (chardata *) realloc(rowvec[row].chr,len*sizeof(chardata));
+			rowvec[row].str32 = (unsigned int *)REALLOC(rowvec[row].str32,(len+1) * sizeof(unsigned int)); 
+			rowvec[row].chr = (chardata *) REALLOC(rowvec[row].chr,len*sizeof(chardata));
 			rowvec[row].allocn = len;
 			rowvec[row].len32 = 0;
 		}
@@ -3323,11 +3323,11 @@ int textpanel_render_row(AtlasFont *font, char * cText, int len, int *pen_x, int
 			p->textpanel_tex_size = (4*newsize)*2;
 			p->textpanel_ind_size = (2*3)*(newsize*2);
 			//vert: (2 end vert + (2 vert/glyph * max 128 glyhps per line)) x 3 coords per vert = (2+(256))*3 = 258*3 = 774
-			p->textpanel_vert = realloc(p->textpanel_vert,p->textpanel_vert_size*sizeof(GLfloat));
+			p->textpanel_vert = REALLOC(p->textpanel_vert,p->textpanel_vert_size*sizeof(GLfloat));
 			//tex: (4 tex / glyph * max 128 glyphs per line) * 2 coords per tex = (4 * 128)*2 = (512)*2 = 1024;
-			p->textpanel_tex = realloc(p->textpanel_tex,p->textpanel_tex_size*sizeof(GLfloat));
+			p->textpanel_tex = REALLOC(p->textpanel_tex,p->textpanel_tex_size*sizeof(GLfloat));
 			//ind: (2 triangles * 3 ind / triangle) * max 128 glyphs/line = 6 * 128 = 768
-			p->textpanel_ind = realloc(p->textpanel_ind,p->textpanel_ind_size*sizeof(GLushort));
+			p->textpanel_ind = REALLOC(p->textpanel_ind,p->textpanel_ind_size*sizeof(GLushort));
 		}
 		vert = p->textpanel_vert;
 		tex  = p->textpanel_tex;
