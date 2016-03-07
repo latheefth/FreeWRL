@@ -806,6 +806,7 @@ void *addDeleteRoute0(void *fwn, char*callingFunc, struct X3D_Node* fromNode, ch
 							CRoutes_RemoveSimpleB(broute->from.node,broute->from.ifield,broute->to.node,broute->to.ifield,broute->ft);
 						broute->lastCommand = 0;
 						vector_remove_elem(struct brotoRoute*,ec->__ROUTES,i);
+						FREE_IF_NZ(broute);
 						break;
 					}
 				}
