@@ -565,7 +565,7 @@ void AddRemoveChildren (
 			//}
 			tn->n = oldlen;
 			tn->p = newmal;
-			//FREE_IF_NZ(oldmal); //ATOMIC OP  but if the rendering thread is hanging onto mf->p for a long time, you'll be 'pulling the rug out' here - use addChildren
+			FREE_IF_NZ(oldmal); //ATOMIC OP  but if the rendering thread is hanging onto mf->p for a long time, you'll be 'pulling the rug out' here - use addChildren
 		}else{
 			/*already alloced - just add to end*/
 			newmal = tn->p;

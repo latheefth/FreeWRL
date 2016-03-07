@@ -139,7 +139,6 @@ void CALLBACK FW_tess_error(GLenum e) {
 
 
 void CALLBACK FW_tess_combine_data (GLDOUBLE c[3], GLfloat *d[4], GLfloat w[4], void **out,void *polygondata) {
-	GLDOUBLE *nv = MALLOC(GLDOUBLE *, sizeof(GLDOUBLE)*3);
 /*
 	printf("FW_tess_combine data\n"); 
 	 printf("combine c:%lf %lf %lf\ndw: %f %f %f %f\n\n",
@@ -154,11 +153,16 @@ void CALLBACK FW_tess_combine_data (GLDOUBLE c[3], GLfloat *d[4], GLfloat w[4], 
 	printf ("d %f %f %f %f\n",*d[0],*d[1],*d[2],*d[3]);
 	printf ("new coord %d\n",nv);
 */
-	
-	nv[0] = c[0];
-	nv[1] = c[1];
-	nv[2] = c[2];
-	*out = nv;
+	if(0){
+		GLDOUBLE *nv = MALLOC(GLDOUBLE *, sizeof(GLDOUBLE)*3);
+
+		nv[0] = c[0];
+		nv[1] = c[1];
+		nv[2] = c[2];
+		*out = nv;
+	}else{
+		*out = c;  //Mar 7, 2016 to solve unfreed nv in 49.x3d, 48 bytes
+	}
 }
 
 

@@ -633,7 +633,7 @@ int VrmlBrowserCreateVrmlFromString(FWType fwtype, void *ec, void *fwn, int argc
 		}
 		fwretval->_web3dval.native = mfn;
 		fwretval->_web3dval.fieldType = FIELDTYPE_MFNode; //Group
-		fwretval->_web3dval.gc = 0; //DONT GC - will cause Browser.deleteRoute to bomb. //will be GCd by nodelist
+		fwretval->_web3dval.gc = 0; //DONT GC - will cause Browser.deleteRoute to bomb. //will be GCd by nodelist but needs gc for text/Fontstyle_place.x3d
 		fwretval->itype = 'W';
 		iret = 1;
 	}
