@@ -5747,7 +5747,8 @@ void freeMallocedNodeFields0(struct X3D_Node* node){
 //}
 void freeMallocedNodeFields(struct X3D_Node* node){
 	if(node){
-		deleteVector(sizeof(void*),node->_parentVector);
+		deleteVector(void*,node->_parentVector);
+		if(node->_gc) free_registered_node_gc(node);
 		freeMallocedNodeFields0(node);
 	}
 }

@@ -60,6 +60,7 @@ my $interalNodeCommonFields =
                "       struct X3D_PolyRep *_intern; \n"              	.
                "       int referenceCount; /* if this reaches zero, nobody wants it anymore */ \n".
 	       "       int _defaultContainer; /* holds the container */\n".
+	       "       void* _gc; /* ptr to vector of ptrs to free */\n".
 	       "       struct X3D_Node* _executionContext; /* scene or protoInstance */\n".
                " 	/*** node specific data: *****/\n";
 
@@ -1137,6 +1138,7 @@ sub gen {
 	"	node->_intern = 0;\n".
 	"	node->_nodeType = nt; /* unique integer for each type */\n".
 	"	node->referenceCount = 1; /* we have requested this, we want it! */\n".
+	"	node->_gc = NULL; /* any node doing non-public field mallocs can register_node_gc(node,p) for auto-freeing */ \n".
 	"	node->_executionContext = NULL; /* a few places like js need to know the executionContext if non-null */ \n".
 	"	\n";
 

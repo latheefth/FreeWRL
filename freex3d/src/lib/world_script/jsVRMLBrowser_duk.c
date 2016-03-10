@@ -633,7 +633,7 @@ int VrmlBrowserCreateVrmlFromString(FWType fwtype, void *ec, void *fwn, int argc
 		}
 		fwretval->_web3dval.native = mfn;
 		fwretval->_web3dval.fieldType = FIELDTYPE_MFNode; //Group
-		fwretval->_web3dval.gc = 0; //DONT GC - will cause Browser.deleteRoute to bomb. //will be GCd by nodelist
+		fwretval->_web3dval.gc = 1; //FIXED for SFNode. //DONT GC - will cause Browser.deleteRoute to bomb. //will be GCd by nodelist but needs gc for text/Fontstyle_place.x3d
 		fwretval->itype = 'W';
 		iret = 1;
 	}
@@ -806,6 +806,7 @@ void *addDeleteRoute0(void *fwn, char*callingFunc, struct X3D_Node* fromNode, ch
 							CRoutes_RemoveSimpleB(broute->from.node,broute->from.ifield,broute->to.node,broute->to.ifield,broute->ft);
 						broute->lastCommand = 0;
 						vector_remove_elem(struct brotoRoute*,ec->__ROUTES,i);
+						FREE_IF_NZ(broute);
 						break;
 					}
 				}

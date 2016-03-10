@@ -173,11 +173,47 @@ int MFW_Getter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 		//fwretval->itype = 'W';
 		nr = 1;
 	}else if(index > -1 && index < ptr->n){
+		int sftype;
 		char *p = (char *)ptr->p;
 		int elen = sizeofSF(fwt->itype);
-		fwretval->_web3dval.native = (void *)(p + index*elen);
+		sftype = type2SF(fwt->itype);
+		if(sftype == FIELDTYPE_SFNode){
+			//Method A return pointer to SF from MF[i] (almost^)
+			//attempt to make SFnode = MFnode[i] so that SF survives gc of MF
+			//^consumers of SFNode will still use 2-step ** -> node* 
+			// .. due to plumbing being written with method C in mind 
+			// .. (could be pruned out in all SFNode sources and sinks in _duk modules)
+			//can do this 'costlessly' but just for SFnode/MFnode
+			void *sfptr = malloc(sizeof(void*));
+			memcpy(sfptr,(void *)(p + index*elen),sizeof(void*)); //*sfptr = MF.p[i] = &SF
+			fwretval->_web3dval.native = (void *)sfptr; //native = &sfptr
+			fwretval->_web3dval.gc = 1;
+		}else{
+			int deepCopyLikeVivaty = FALSE; // FALSE; //TRUE;
+			if(deepCopyLikeVivaty){
+				//Method B - deepcopy SF = MF[i]
+				//cost: can't do this now:
+				//SF = MF[i]; //deep copy SF
+				//SF.x = -1.0;
+				//print(MF[i].toString());
+				//-the -1 won't show up in the MF[i] due to deep copy
+				//* but SF will survive garbage collection of MF
+				void *sfptr = malloc(elen);
+				//memcpy(sfptr,(void *)(p + index*elen),elen); //*sfptr = SF.copy()
+				shallow_copy_field(sftype,(void *)(p + index*elen),sfptr); //*sfptr = SF.copy()
+				fwretval->_web3dval.native = (void *)sfptr;  //native = &sfptr
+				fwretval->_web3dval.gc = 1;
+			}else{
+				//Method C - return pointer to MF[i]
+				//SF = MF[i]
+				//takes a pointer to MF[i] so can change SF ie SF.x = -1;  and it shows in MF[i]
+				//cost: x but then SF won't survive garbage collection of MF
+				//you need to use vivaty deep copy above, or in js do new SFxx(MF[i]) to deep copy
+				fwretval->_web3dval.native = (void *)(p + index*elen); //native = &MF.p[i] 
+				fwretval->_web3dval.gc = 0;
+			}
+		}
 		fwretval->_web3dval.fieldType = type2SF(fwt->itype);
-		fwretval->_web3dval.gc = 0;
 		fwretval->itype = 'W';
 		nr = 1;
 	}else if(index > -1 && index >= ptr->n){
@@ -656,7 +692,11 @@ void * SFRotation_Constructor(FWType fwtype, int ic, FWval fwpars){
 		veccross3f(ptr->c,v1->c,v2->c);
 		v12dp /= v1len * v2len;
 		ptr->c[3] = (float) atan2(sqrt(1 - v12dp * v12dp), v12dp);
+	}else 	if(ic == 1 && fwpars[0].itype == 'W' && (fwtype->itype == fwpars[0]._web3dval.fieldType)){
+		//new SFxxx(myMF[i]);
+		shallow_copy_field(fwtype->itype,fwpars[0]._web3dval.native,(void*)ptr);
 	}
+
 	return (void *)ptr;
 }
 FWPropertySpec (SFRotation_Properties)[] = {
@@ -670,6 +710,7 @@ ArgListType (SFRotation_ConstructorArgs)[] = {
 	{4,0,'T',"FFFF"},
 	{2,0,'T',"WF"},
 	{2,-1,'F',"WW"},
+	{1,-1,'F',"W"},  //new SFxxx(myMF[i]);
 	{-1,0,0,NULL},
 };
 //#define FIELDTYPE_SFRotation	2
@@ -888,8 +929,14 @@ int SFVec3f_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 void * SFVec3f_Constructor(FWType fwtype, int ic, FWval fwpars){
 	int i;
 	struct SFVec3f *ptr = malloc(fwtype->size_of); //garbage collector please
-	for(i=0;i<3;i++)
-		ptr->c[i] =  (float) fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
+	if(fwpars[0].itype == 'W' && (fwtype->itype == fwpars[0]._web3dval.fieldType)){
+		//new SFxxx(myMF[i]);
+		shallow_copy_field(fwtype->itype,fwpars[0]._web3dval.native,(void*)ptr);
+	}else{
+		//new SFVec3f(1.0,2.0,3.0);
+		for(i=0;i<3;i++)
+			ptr->c[i] =  (float) fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
+	}
 	return (void *)ptr;
 }
 
@@ -900,7 +947,8 @@ FWPropertySpec (SFVec3f_Properties)[] = {
 	{NULL,0,0,0},
 };
 ArgListType (SFVec3f_ConstructorArgs)[] = {
-		{3,0,'T',"FFF"},
+		{3,0,'T',"FFF"}, //new SFVec3f(1.0,2.0,3.0)
+		{1,-1,'F',"W"},  //new SFxxx(myMF[i]);
 		{-1,0,0,NULL},
 };
 
@@ -1184,7 +1232,7 @@ int SFNode_Setter0(FWType fwt, int index, void *ec, void *fwn, FWval fwval, int 
 			if(!strcmp(name,"children")){
 				//int n;
 				struct Multi_Node* any = (struct Multi_Node*)fwval->_web3dval.native;
-				AddRemoveChildren(node,value,any->p,any->n,0,__FILE__,__LINE__);
+				AddRemoveChildren(node,(void*)value,(void*)any->p,any->n,0,__FILE__,__LINE__);
 			}else{
 				medium_copy_field0(ftype,fwval->_web3dval.native,value);
 			}
@@ -1251,6 +1299,9 @@ void * SFNode_Constructor(FWType fwtype, int nargs, FWval fwpars){
 			(*ptr)->_parentVector->n = 0;
 		}else if(fwpars->itype == 'W'){
 			if(fwpars->_web3dval.fieldType == FIELDTYPE_SFNode){
+				//see MFW_getter > Method A
+				//this is similar - can do new SFNode(MF[i]) but don't really need this extra step for Method A
+				//might make more sense to instance a new node of this type? And shallow copy its fields?
 				ptr = malloc(sizeof(void *));
 				*ptr = ((union anyVrml*)fwpars[0]._web3dval.native)->sfnode; 
 
@@ -1485,9 +1536,13 @@ int SFColor_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 void * SFColor_Constructor(FWType fwtype, int ic, FWval fwpars){
 	int i;
 	struct SFColor *ptr = malloc(fwtype->size_of); //garbage collector please
-	if(fwtype->ConstructorArgs[0].nfixedArg == 3)
+	if(fwtype->ConstructorArgs[0].nfixedArg == 3){
 	for(i=0;i<3;i++)
 		ptr->c[i] =  (float) fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
+	}else if(fwpars[0].itype == 'W' && (fwtype->itype == fwpars[0]._web3dval.fieldType)){
+		//new SFxxx(myMF[i]);
+		shallow_copy_field(fwtype->itype,fwpars[0]._web3dval.native,(void*)ptr);
+	}
 	return (void *)ptr;
 }
 
@@ -1506,6 +1561,7 @@ FWPropertySpec (SFColor_Properties)[] = {
 //} ArgListType;
 ArgListType (SFColor_ConstructorArgs)[] = {
 		{3,0,'T',"FFF"},
+		{1,-1,'F',"W"},  //new SFxxx(myMF[i]);
 		{-1,0,0,NULL},
 };
 //#define FIELDTYPE_SFColor	12
@@ -1618,9 +1674,14 @@ int SFColorRGBA_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 void * SFColorRGBA_Constructor(FWType fwtype, int ic, FWval fwpars){
 	int i;
 	struct SFColorRGBA *ptr = malloc(fwtype->size_of); //garbage collector please
-	if(ic == 4)
-	for(i=0;i<4;i++)
-		ptr->c[i] =  (float) fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
+	if(ic == 4){
+		for(i=0;i<4;i++)
+			ptr->c[i] =  (float) fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
+	} else if(fwpars[0].itype == 'W' && (fwtype->itype == fwpars[0]._web3dval.fieldType)){
+		//new SFxxx(myMF[i]);
+		shallow_copy_field(fwtype->itype,fwpars[0]._web3dval.native,(void*)ptr);
+	}
+
 	return (void *)ptr;
 }
 
@@ -1640,6 +1701,7 @@ FWPropertySpec (SFColorRGBA_Properties)[] = {
 //} ArgListType;
 ArgListType (SFColorRGBA_ConstructorArgs)[] = {
 		{4,0,'T',"FFFF"},
+		{1,-1,'F',"W"},  //new SFxxx(myMF[i]);
 		{-1,0,0,NULL},
 };
 
@@ -2016,8 +2078,14 @@ int SFVec2f_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 void * SFVec2f_Constructor(FWType fwtype, int ic, FWval fwpars){
 	int i;
 	struct SFVec2f *ptr = malloc(fwtype->size_of); //garbage collector please
-	for(i=0;i<2;i++)
-		ptr->c[i] =  (float) fwpars[i]._numeric; 
+	if(ic == 2){
+		for(i=0;i<2;i++)
+			ptr->c[i] =  (float) fwpars[i]._numeric; 
+	}else if(fwpars[0].itype == 'W' && (fwtype->itype == fwpars[0]._web3dval.fieldType)){
+		//new SFxxx(myMF[i]);
+		shallow_copy_field(fwtype->itype,fwpars[0]._web3dval.native,(void*)ptr);
+	}
+
 	return (void *)ptr;
 }
 
@@ -2028,6 +2096,7 @@ FWPropertySpec (SFVec2f_Properties)[] = {
 };
 ArgListType (SFVec2f_ConstructorArgs)[] = {
 		{2,0,'T',"FF"},
+		{1,-1,'F',"W"},  //new SFxxx(myMF[i]);
 		{-1,0,0,NULL},
 };
 
@@ -2409,8 +2478,14 @@ int SFVec3d_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 void * SFVec3d_Constructor(FWType fwtype, int ic, FWval fwpars){
 	int i;
 	struct SFVec3d *ptr = malloc(fwtype->size_of); //garbage collector please
-	for(i=0;i<3;i++)
-		ptr->c[i] =  fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
+	if(ic == 3){
+		for(i=0;i<3;i++)
+			ptr->c[i] =  fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
+	}else if(fwpars[0].itype == 'W' && (fwtype->itype == fwpars[0]._web3dval.fieldType)){
+		//new SFxxx(myMF[i]);
+		shallow_copy_field(fwtype->itype,fwpars[0]._web3dval.native,(void*)ptr);
+	}
+
 	return (void *)ptr;
 }
 
@@ -2422,6 +2497,7 @@ FWPropertySpec (SFVec3d_Properties)[] = {
 };
 ArgListType (SFVec3d_ConstructorArgs)[] = {
 		{3,0,'T',"DDD"},
+		{1,-1,'F',"W"},  //new SFxxx(myMF[i]);
 		{-1,0,0,NULL},
 };
 //#define FIELDTYPE_SFVec3d	25
@@ -3389,8 +3465,14 @@ int SFVec2d_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 void * SFVec2d_Constructor(FWType fwtype, int ic, FWval fwpars){
 	int i;
 	struct SFVec2d *ptr = malloc(fwtype->size_of); //garbage collector please
-	for(i=0;i<3;i++)
-		ptr->c[i] =  fwpars[i]._numeric; 
+	if(ic == 2){
+		for(i=0;i<2;i++)
+			ptr->c[i] =  fwpars[i]._numeric; 
+	}else if(fwpars[0].itype == 'W' && (fwtype->itype == fwpars[0]._web3dval.fieldType)){
+		//new SFxxx(myMF[i]);
+		shallow_copy_field(fwtype->itype,fwpars[0]._web3dval.native,(void*)ptr);
+	}
+
 	return (void *)ptr;
 }
 
@@ -3401,6 +3483,7 @@ FWPropertySpec (SFVec2d_Properties)[] = {
 };
 ArgListType (SFVec2d_ConstructorArgs)[] = {
 		{2,0,'T',"DD"},
+		{1,-1,'F',"W"},  //new SFxxx(myMF[i]);
 		{-1,0,0,NULL},
 };
 
@@ -3496,8 +3579,14 @@ int SFVec4f_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 void * SFVec4f_Constructor(FWType fwtype, int ic, FWval fwpars){
 	int i;
 	struct SFVec4f *ptr = malloc(fwtype->size_of); //garbage collector please
-	for(i=0;i<4;i++)
-		ptr->c[i] =  (float)fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
+	if(ic == 4){
+		for(i=0;i<4;i++)
+			ptr->c[i] =  (float)fwpars[i]._numeric; //fwpars[i]._web3dval.anyvrml->sffloat; //
+	}else if(fwpars[0].itype == 'W' && (fwtype->itype == fwpars[0]._web3dval.fieldType)){
+		//new SFxxx(myMF[i]);
+		shallow_copy_field(fwtype->itype,fwpars[0]._web3dval.native,(void*)ptr);
+	}
+
 	return (void *)ptr;
 }
 
@@ -3510,6 +3599,7 @@ FWPropertySpec (SFVec4f_Properties)[] = {
 };
 ArgListType (SFVec4f_ConstructorArgs)[] = {
 		{4,0,'T',"FFFF"},
+		{1,-1,'F',"W"},  //new SFxxx(myMF[i]);
 		{-1,0,0,NULL},
 };
 
@@ -3605,8 +3695,14 @@ int SFVec4d_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 void * SFVec4d_Constructor(FWType fwtype, int ic, FWval fwpars){
 	int i;
 	struct SFVec3d *ptr = malloc(fwtype->size_of); //garbage collector please
-	for(i=0;i<4;i++)
-		ptr->c[i] =  fwpars[i]._numeric; 
+	if(ic == 4){
+		for(i=0;i<4;i++)
+			ptr->c[i] =  fwpars[i]._numeric; 
+	}else if(fwpars[0].itype == 'W' && (fwtype->itype == fwpars[0]._web3dval.fieldType)){
+		//new SFxxx(myMF[i]);
+		shallow_copy_field(fwtype->itype,fwpars[0]._web3dval.native,(void*)ptr);
+	}
+
 	return (void *)ptr;
 }
 
@@ -3619,6 +3715,7 @@ FWPropertySpec (SFVec4d_Properties)[] = {
 };
 ArgListType (SFVec4d_ConstructorArgs)[] = {
 		{3,0,'T',"DDDD"},
+		{1,-1,'F',"W"},  //new SFxxx(myMF[i]);
 		{-1,0,0,NULL},
 };
 //#define FIELDTYPE_SFVec4d	41

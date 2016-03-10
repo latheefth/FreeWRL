@@ -87,6 +87,28 @@ int doRecurse(const char *fieldname){
 	}
 	return dont == 0 ? 1 : 0;
 }
+/**
+ * function to debug multi strings
+ * we need to find where to put it....
+ */
+
+void Multi_String_print(struct Multi_String *url)
+{
+	if (url) {
+		if (!url->p) {
+			PRINTF("multi url: <empty>");
+		} else {
+			int i;
+
+			PRINTF("multi url: ");
+			for (i = 0; i < url->n; i++) {
+				struct Uni_String *s = url->p[i];
+				PRINTF("[%d] %s", i, s->strptr);
+			}
+		}
+		PRINTF("\n");
+	}
+}
 void print_field_value(FILE *fp, int typeIndex, union anyVrml* value)
 {
 	int i;
@@ -1011,13 +1033,53 @@ void dump_scenegraph(int method)
 //#endif
 }
 
+//Mar 2016 added to all nodes void* _gc field to hold an optional vector of malloc pointers
+//for freeing at end of program.
+void register_node_gc(void *node, void *p);
+void unregister_node_gc(void *node, void *p); //unregister old on realloc
+void free_registered_node_gc(void* node); //free when freeing node ie freeMallocedNodeFields
+
+void register_node_gc(void *node, void *p){
+	struct X3D_Node* _node = (struct X3D_Node*)node;
+	if(!_node->_gc) _node->_gc = newVector(void*,1);
+	vector_pushBack(void*,_node->_gc,p);
+}
+void unregister_node_gc(void *node, void *p){
+	int i;
+	struct Vector *v;
+	void *p0;
+	struct X3D_Node* _node = (struct X3D_Node*)node;
+
+	if(!_node->_gc) return;
+	if(!p) return;
+	v = (struct Vector*)_node->_gc;
+	for(i=0;i<v->n;i++){
+		p0 = vector_get(void*,v,i);
+		if(p0 == p){
+			vector_set(void*,v,i,NULL);
+			break;
+		}
+	}
+}
+void free_registered_node_gc(void* node){
+	struct X3D_Node* _node = (struct X3D_Node*)node;
+	if(_node->_gc){
+		int i;
+		void *p;
+		struct Vector *v = (struct Vector *)_node->_gc;
+		for(i=0;i<v->n;i++){
+			p = vector_get(void *,v,i);
+			FREE_IF_NZ(p);
+		}
+		deleteVector(void*,(struct Vector *)_node->_gc);
+	}
+}
 
 
 
 
 
-
-#ifdef DISABLER
+#if defined(DISABLER) || defined(DISABLER_MALLOC)
 // ================ nice new code by disabler. use while tg still alive===============
 #ifdef _ANDROID
 #define WRAP_MALLOC 1
@@ -1388,23 +1450,7 @@ void *freewrlStrndup (int line, char *file, const char *str, size_t n)
  * function to debug multi strings
  * we need to find where to put it....
  */
-void Multi_String_print(struct Multi_String *url)
-{
-	if (url) {
-		if (!url->p) {
-			PRINTF("multi url: <empty>");
-		} else {
-			int i;
 
-			PRINTF("multi url: ");
-			for (i = 0; i < url->n; i++) {
-				struct Uni_String *s = url->p[i];
-				PRINTF("[%d] %s", i, s->strptr);
-			}
-		}
-		PRINTF("\n");
-	}
-}
 #endif
 
 //================ older code hacked by dug9, can work after tg disposed================
@@ -1449,6 +1495,8 @@ void FREETABLE(void *a,char *file,int line) {
 			printf("mcount = %d\n",mcount);
 		} else {
 			/* printf ("found %d in mcheck table\n"); */
+			//if(mlineno[mcount]==1798 || mlineno[mcount]==1803)
+			//	printf("gotcha\n");
 			mcheck[mcount] = NULL;
 			mlineno[mcount] = 0;
 			if (mplace[mcount]!=NULL) free(mplace[mcount]);
@@ -1708,29 +1756,38 @@ void *freewrlStrdup (int line, char *file, char *str)
     RESERVETABLE(rv,file,line,strlen(str)+1);
     return rv;
 }
-
+void *mallocn_debug(int line, char *file, void *node,size_t size){
+	void *p;
+	struct X3D_Node *_node = X3D_NODE(node);
+	p = freewrlMalloc(line,file,size,FALSE);
+	register_node_gc(node,p);
+	return p;
+}
+void *reallocn_debug(int line, char *file, void *node, void *pold, size_t newsize){
+	void *p;
+	struct X3D_Node *_node = X3D_NODE(node);
+	unregister_node_gc(node,pold);
+	p = freewrlRealloc(line,file,pold,newsize);
+	register_node_gc(node,p);
+	return p;
+}
+#else
+void *mallocn(void *node,size_t size){
+	void *p;
+	struct X3D_Node *_node = X3D_NODE(node);
+	p = malloc(size);
+	register_node_gc(node,p);
+	return p;
+}
+void *reallocn(void *node, void *pold, size_t newsize){
+	void *p;
+	struct X3D_Node *_node = X3D_NODE(node);
+	unregister_node_gc(node,pold);
+	p = realloc(pold,newsize);
+	register_node_gc(node,p);
+	return p;
+}
 #endif /* defined(DEBUG_MALLOC) */
 
-/**
- * function to debug multi strings
- * we need to find where to put it....
- */
-void Multi_String_print(struct Multi_String *url)
-{
-	if (url) {
-		if (!url->p) {
-			PRINTF("multi url: <empty>");
-		} else {
-			int i;
-
-			PRINTF("multi url: ");
-			for (i = 0; i < url->n; i++) {
-				struct Uni_String *s = url->p[i];
-				PRINTF("[%d] %s", i, s->strptr);
-			}
-		}
-		PRINTF("\n");
-	}
-}
 
 #endif

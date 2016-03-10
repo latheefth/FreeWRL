@@ -56,7 +56,6 @@ int shutdownImageLoader()
    GdiplusShutdown(gdiplusToken);
 	return 0;
 }
-void malloc_profile_add(char *use, int bytes);
 
 int loadImage(struct textureTableIndexStruct *tti, char *fname)
 {
@@ -136,8 +135,8 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
    bitmapData->Height = bitmap->GetHeight();
    bitmapData->PixelFormat = PixelFormat32bppARGB;
    int totalbytes = bitmap->GetWidth() * bitmap->GetHeight() * 4; //tti->depth;
-   malloc_profile_add("texture0",totalbytes);
    unsigned char * blob = (unsigned char*)MALLOCV(totalbytes);
+
    if(flipVertically)
 		bitmapData->Scan0 = &blob[bitmap->GetWidth()*bitmap->GetHeight()*4 + bitmapData->Stride]; 
    else

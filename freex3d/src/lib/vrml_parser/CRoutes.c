@@ -565,7 +565,7 @@ void AddRemoveChildren (
 			//}
 			tn->n = oldlen;
 			tn->p = newmal;
-			//FREE_IF_NZ(oldmal); //ATOMIC OP  but if the rendering thread is hanging onto mf->p for a long time, you'll be 'pulling the rug out' here - use addChildren
+			FREE_IF_NZ(oldmal); //ATOMIC OP  but if the rendering thread is hanging onto mf->p for a long time, you'll be 'pulling the rug out' here - use addChildren
 		}else{
 			/*already alloced - just add to end*/
 			newmal = tn->p;
@@ -2012,7 +2012,8 @@ void kill_javascript(void) {
 	tg->CRoutes.max_script_found_and_initialized = -1;
 	jsShutdown();
 	JSparamnamesShutdown();
-	vector_releaseData(struct CRscriptStruct *,p->ScriptControl);
+	//vector_releaseData(struct CRscriptStruct *,p->ScriptControl);
+	deleteVector(struct CRscriptStruct *,p->ScriptControl);
 	//FREE_IF_NZ (ScriptControl);
 	//FREE_IF_NZ(p->scr_act);
 
@@ -2025,7 +2026,7 @@ void cleanupDie(int num, const char *msg) {
 }
 struct CRscriptStruct *newScriptControl(){
 	struct CRscriptStruct *sc = NULL;
-	sc = malloc(sizeof(struct CRscriptStruct));
+	sc = MALLOCV(sizeof(struct CRscriptStruct));
 	memset(sc,0,sizeof(struct CRscriptStruct));
 	sc->thisScriptType = NOSCRIPT;
 	sc->eventsProcessed = NULL;
@@ -2083,12 +2084,15 @@ struct CRscriptStruct *newScriptControl(){
 void JSMaxAlloc2(int num){
 	ttglobal tg = gglobal();
 	ppCRoutes p = (ppCRoutes)tg->CRoutes.prv;
+	if(!p->ScriptControl)
+		p->ScriptControl = newVector(struct CRscriptStruct *,0);
+	//I suspect the following is like vector_ensurespace. We don't do a pushback here.
 	if(p->ScriptControl->allocn <= num){
 		int i,istart, iend;
 
 		istart = p->ScriptControl->allocn;
 		iend = upper_power_of_two(num+1);
-		p->ScriptControl->data = realloc(p->ScriptControl->data,iend*sizeof(struct CRscriptStruct *));
+		p->ScriptControl->data = REALLOC(p->ScriptControl->data,iend*sizeof(struct CRscriptStruct *));
 		p->ScriptControl->allocn = iend;
 		p->JSMaxScript = p->ScriptControl->allocn;
 		//not all Scripts get a control - if they are in the body of a ProtoDeclare they don't. 

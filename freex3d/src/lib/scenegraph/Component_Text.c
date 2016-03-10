@@ -228,7 +228,6 @@ typedef struct screentextdata {
 	float faceheight;
 	float emsize;
 }screentextdata;
-
 typedef struct pComponent_Text{
 
 #if defined(_ANDROID) || defined(IPHONE)
@@ -300,6 +299,9 @@ typedef struct pComponent_Text{
 	int textpanel_vert_size;
 	int textpanel_tex_size;
 	int textpanel_ind_size;
+	struct Vector *font_table; 
+	struct Vector *atlas_table;
+
 
 }* ppComponent_Text;
 void *Component_Text_constructor(){
@@ -325,9 +327,12 @@ void Component_Text_init(struct tComponent_Text *t){
 		p->textpanel_tex = NULL;
 		p->textpanel_ind = NULL;
 		p->textpanel_size = 0;
+		p->font_table = NULL; 
+		p->atlas_table = NULL;
 
 	}
 }
+void GUItablefree(struct Vector **guitable);
 void Component_Text_clear(struct tComponent_Text *t){
 	//public
 	//private
@@ -348,6 +353,13 @@ void Component_Text_clear(struct tComponent_Text *t){
 			FREE_IF_NZ(p->textpanel_tex);
 			FREE_IF_NZ(p->textpanel_ind);
 		}
+		if(p->atlas_table){
+			GUItablefree(&p->atlas_table);
+		}
+		if(p->font_table){
+			GUItablefree(&p->font_table);
+		}
+			
 	}
 }
 //	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
@@ -1351,8 +1363,8 @@ p->myff = 4;
 		str = (unsigned char *)ptr[row]->strptr;
 		len = strlen(str);
 		if(rowvec[row].allocn < len){
-			rowvec[row].str32 = (unsigned int *)realloc(rowvec[row].str32,(len+1) * sizeof(unsigned int)); 
-			rowvec[row].chr = (chardata *) realloc(rowvec[row].chr,len*sizeof(chardata));
+			rowvec[row].str32 = (unsigned int *)REALLOC(rowvec[row].str32,(len+1) * sizeof(unsigned int)); 
+			rowvec[row].chr = (chardata *) REALLOC(rowvec[row].chr,len*sizeof(chardata));
 			rowvec[row].allocn = len;
 			rowvec[row].len32 = 0;
 		}
@@ -2029,10 +2041,8 @@ typedef enum GUIElementType
 } GUIElementType;
 
 //STATICS
-static struct Vector *font_table; //AtlasFontSize*
-//static struct Vector *entry_table; //AtlasEntry* - just for GC
-//static struct Vector *entryset_table; //AtlasEntrySet*
-static struct Vector *atlas_table; //Atlas *
+//static struct Vector *font_table; //AtlasFontSize*
+//static struct Vector *atlas_table; //Atlas *
 
 
 
@@ -2081,6 +2091,8 @@ typedef struct Atlas {
 	ivec2 pen;  //have a cursor, so it's easy to position an additional entry in unoccupied place in atlas
 } Atlas;
 void Atlas_init(Atlas *me, int size, int rowheight){
+	me->type = GUI_ATLAS;
+	me->name = NULL;
 	//use this for generating font atlas from .ttf
 	me->pen.X = me->pen.Y = 0;
 	me->size.X = me->size.Y = size;
@@ -2207,14 +2219,14 @@ void AtlasEntrySet_addEntry1(AtlasEntrySet *me, AtlasEntry *entry){
 	}
 }
 void AtlasEntrySet_addEntry(AtlasEntrySet *me, AtlasEntry *entry, char *gray){
-	
+	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
 	vector_pushBack(AtlasEntry*,me->entries,entry);
 	if(entry->ichar > 0 && entry->ichar < 128){
 		//if its an ascii char, add to fast lookup table
 		me->ascii[entry->ichar] = entry;
 	}
 	if(!me->atlas)
-		me->atlas = (Atlas*)searchGUItable(atlas_table,me->atlasName);
+		me->atlas = (Atlas*)searchGUItable(p->atlas_table,me->atlasName);
 	if(me->atlas)
 		Atlas_addEntry(me->atlas, entry, gray);
 }
@@ -2516,12 +2528,13 @@ void AtlasFont_RenderFontAtlas(AtlasFont *me, int EMpixels, char* alphabet){
 	AtlasEntrySet *aes;
 	char *name;
 	Atlas *atlas = NULL;
+	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
 
 	printf("start of RenderFontAtlas\n");
 
 	if(!me->fontFace) return; //font .ttf file not loaded (likely not found, or programmer didn't load flont first)
 
-	atlas = GUImalloc(&atlas_table,GUI_ATLAS); //malloc(sizeof(GUIAtlas));
+	atlas = GUImalloc(&p->atlas_table,GUI_ATLAS); //malloc(sizeof(GUIAtlas));
 	aes = MALLOCV(sizeof(AtlasEntrySet));
 	//GUIFontSize *fsize = malloc(sizeof(GUIFontSize));
 	name = MALLOCV(strlen(me->name)+12); //base10 -2B has 11 chars, plus \0
@@ -2695,13 +2708,14 @@ AtlasFont *searchAtlasFontTable(struct Vector* guitable, char *name, int EMsize)
 
 AtlasFont *searchAtlasTableOrLoad(char *facename, int EMpixels){
 	AtlasFont *font;
-	font = (AtlasFont*)searchAtlasFontTable(font_table,facename,EMpixels);
+	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
+	font = (AtlasFont*)searchAtlasFontTable(p->font_table,facename,EMpixels);
 	if(!font){
 		static char * ascii32_126 = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQURSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 		int font_tactic, len; //atlas_tactic, 
 		char* facenamettf;
 	
-		font = GUImalloc(&font_table,GUI_FONT); //sizeof(GUIFont));
+		font = GUImalloc(&p->font_table,GUI_FONT); //sizeof(GUIFont));
 		//AtlasFont_init(font,"ProggyClean","ProggyClean.ttf"); 
 		len = strlen(facename) + 7;
 		facenamettf = MALLOCV(len);
@@ -2724,7 +2738,7 @@ AtlasFont *searchAtlasTableOrLoad(char *facename, int EMpixels){
 			AtlasFont_LoadFont(font); 
 
 		AtlasFont_RenderFontAtlas(font,EMpixels,ascii32_126);
-		font = (AtlasFont*)searchGUItable(font_table,facename);
+		font = (AtlasFont*)searchGUItable(p->font_table,facename);
 
 	}
 	if(!font){
@@ -3309,11 +3323,11 @@ int textpanel_render_row(AtlasFont *font, char * cText, int len, int *pen_x, int
 			p->textpanel_tex_size = (4*newsize)*2;
 			p->textpanel_ind_size = (2*3)*(newsize*2);
 			//vert: (2 end vert + (2 vert/glyph * max 128 glyhps per line)) x 3 coords per vert = (2+(256))*3 = 258*3 = 774
-			p->textpanel_vert = realloc(p->textpanel_vert,p->textpanel_vert_size*sizeof(GLfloat));
+			p->textpanel_vert = REALLOC(p->textpanel_vert,p->textpanel_vert_size*sizeof(GLfloat));
 			//tex: (4 tex / glyph * max 128 glyphs per line) * 2 coords per tex = (4 * 128)*2 = (512)*2 = 1024;
-			p->textpanel_tex = realloc(p->textpanel_tex,p->textpanel_tex_size*sizeof(GLfloat));
+			p->textpanel_tex = REALLOC(p->textpanel_tex,p->textpanel_tex_size*sizeof(GLfloat));
 			//ind: (2 triangles * 3 ind / triangle) * max 128 glyphs/line = 6 * 128 = 768
-			p->textpanel_ind = realloc(p->textpanel_ind,p->textpanel_ind_size*sizeof(GLushort));
+			p->textpanel_ind = REALLOC(p->textpanel_ind,p->textpanel_ind_size*sizeof(GLushort));
 		}
 		vert = p->textpanel_vert;
 		tex  = p->textpanel_tex;
@@ -3860,9 +3874,46 @@ void *GUImalloc(struct Vector **guitable, int type){
 	return retval;
 }
 
-
-
-
+void GUItablefree(struct Vector **guitable){
+	int i;
+	struct Vector *table = (*guitable);
+	for(i=0;i<table->n;i++){
+		int itype;
+		GUIElement* el = vector_get(GUIElement*,table,i);
+		itype = el->type;
+		switch(itype){
+			case  GUI_ATLAS:
+				{
+					Atlas *a = (Atlas *)el;
+					FREE_IF_NZ(a->texture);
+					FREE_IF_NZ(a->name);
+					//a->set
+				}
+				break;
+			case GUI_FONT:
+				{
+					int j;
+					AtlasFont *f = (AtlasFont *)el;
+					//FREE_IF_NZ(f->name);
+					FREE_IF_NZ(f->path);
+					for(j=0;j<f->set->entries->n;j++){
+						AtlasEntry *e = vector_get(AtlasEntry*,f->set->entries,j);
+						FREE_IF_NZ(e->name);
+						FREE_IF_NZ(e);
+					}
+					deleteVector(AtlasEntry*,f->set->entries);
+					FREE_IF_NZ(f->set);
+				}
+				break;
+			default:
+				printf("mystery type %d\n",itype);
+				break;
+		}
+		FREE_IF_NZ(el);
+	}
+	deleteVector(GUIElement*,*guitable);
+	*guitable = NULL;
+}
 
 
 

@@ -7237,6 +7237,7 @@ void *createNewX3DNode0 (int nt) {
 	node->_intern = 0;
 	node->_nodeType = nt; /* unique integer for each type */
 	node->referenceCount = 1; /* we have requested this, we want it! */
+	node->_gc = NULL; /* any node doing non-public field mallocs can register_node_gc(node,p) for auto-freeing */ 
 	node->_executionContext = NULL; /* a few places like js need to know the executionContext if non-null */ 
 	
 	/* now, fill in the node specific stuff here. the defaults are in VRMLNodes.pm */

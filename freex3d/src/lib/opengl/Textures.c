@@ -121,7 +121,13 @@ void Textures_clear(struct tTextures *t){
 	glDeleteBuffers (1,&t->defaultBlankTexture);
 	//private
 	{
+		int i;
 		ppTextures p = (ppTextures)t->prv;
+		//for(i=0;i<vectorSize(p->activeTextureTable);i++){
+		//	textureTableIndexStruct_s *tti = vector_get(textureTableIndexStruct_s *,p->activeTextureTable,i);
+		//	if(tti && tti->texdata)
+		//		FREE_IF_NZ(tti->texdata);
+		//}
 		deleteVector(textureTableIndexStruct_s *, p->activeTextureTable);
 	}
 }
@@ -198,7 +204,6 @@ static void myScaleImage(int srcX,int srcY,int destX,int destY,unsigned char *sr
 	}
 }
 
-void malloc_profile_add(char *use, int bytes);
 static void GenMipMap2D( GLubyte *src, GLubyte **dst, int srcWidth, int srcHeight, int *dstWidth, int *dstHeight )
 {
    int x,
@@ -214,7 +219,6 @@ static void GenMipMap2D( GLubyte *src, GLubyte **dst, int srcWidth, int srcHeigh
       *dstHeight = 1;
 
    *dst = MALLOC(void *, sizeof(GLubyte) * texelSize * (*dstWidth) * (*dstHeight) );
-   malloc_profile_add("texturemip",texelSize * (*dstWidth) * (*dstHeight));
    if ( *dst == NULL )
       return;
 
@@ -279,7 +283,6 @@ static void myTexImage2D (int generateMipMaps, GLenum target, GLint level, GLint
 	/* go and create a bunch of mipmaps */
 
 	prevImage = MALLOC(GLubyte *, width * height * 4);
-	malloc_profile_add("texture1",width*height*4);
 	memcpy (prevImage, pixels, width * height * 4);
 	
 	/* from the OpenGL-ES 2.0 book, page 189 */

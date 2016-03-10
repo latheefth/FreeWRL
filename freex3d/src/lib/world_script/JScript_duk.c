@@ -348,10 +348,24 @@ int fwType2itype(const char *fwType){
 }
 void freeField(int itype, void* any){
 	if(isSForMFType(itype) == 0){
+		//if(itype == FIELDTYPE_SFString){
+		//	struct Uni_String *sf = (struct Uni_String*)any;
+		//	if(sf) free(sf->strptr);
+		//	free(sf);
+		//}
 		free(any); //SF
 	}else if(isSForMFType(itype) == 1){
 		//MF
 		struct Multi_Any* mf = (struct Multi_Any*)any;
+		//if(itype == FIELDTYPE_MFString){
+		//	int i;
+		//	struct Multi_String *ms = (struct Multi_String*)mf;
+		//	for(i=0;i<ms->n;i++){
+		//		struct Uni_String *sf = ms->p[i];
+		//		if(sf) free(sf->strptr);
+		//		free(sf);
+		//	}
+		//}
 		free(mf->p);  //if bombs, it could be because I'm not deep copying or medium_copy_field() everywhere I should
 		free(mf);
 	}
