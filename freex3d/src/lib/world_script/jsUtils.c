@@ -890,48 +890,6 @@ static int *getFOP (struct X3D_Node *node, const char *str) {
                         printf ("getFOP, looking at field %s type %s to match %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)],str); 
 			#endif
 
-#if TRY_PROTO_FIX
-			if( 0 == strcmp("FreeWRL_PROTOInterfaceNodes",FIELDNAMES[*fieldOffsetsPtr])) {
-
-  				#ifdef JSVRMLCLASSESVERBOSE
-				printf ("%s:%d Mangle %s before trying to match %s\n",__FILE__,__LINE__,FIELDNAMES[*fieldOffsetsPtr],str);
-  				#endif
-				int i ;
-				char *name, *str1, *token;
-				char *saveptr1 = NULL;
-
-				UNUSED (token); // compiler warning mitigation
-
-				for (i=0; i < X3D_GROUP(node)->FreeWRL_PROTOInterfaceNodes.n; i++) {
-	       				name = parser_getNameFromNode(X3D_GROUP(node)->FreeWRL_PROTOInterfaceNodes.p[i]);
-					
-					#ifdef JSVRMLCLASSESVERBOSE
-					dump_scene(stdout,0,X3D_GROUP(node)->FreeWRL_PROTOInterfaceNodes.p[i]);
-					printf ("%s:%d dummy name=%s\n",__FILE__,__LINE__,name);
-					#endif
-
-					str1 = MALLOC(void *, 1+strlen(name));
-					strcpy(str1,name) ;
-					/* discard Proto_0xnnnnn_*/
-					token = strtok_r(str1, "_", &saveptr1);
-					str1 = NULL;
-					token = strtok_r(str1, "_", &saveptr1);
-					name = saveptr1 ;
-
-					#ifdef JSVRMLCLASSESVERBOSE
-					printf ("%s:%d test indirect match %s %s\n",__FILE__,__LINE__,str,parser_getNameFromNode(X3D_GROUP(node)->FreeWRL_PROTOInterfaceNodes.p[i])) ;
-					#endif
-					if (strcmp(str,name) == 0) {
-						#ifdef JSVRMLCLASSESVERBOSE
-						printf ("getFOP, found entry for %s, it is %u (%p)\n",str
-							,X3D_GROUP(node)->FreeWRL_PROTOInterfaceNodes.p[i]
-							,X3D_GROUP(node)->FreeWRL_PROTOInterfaceNodes.p[i]) ;
-						#endif
-						return (int *)X3D_GROUP(node)->FreeWRL_PROTOInterfaceNodes.p[i] ;
-					}
-				}
-			} else {
-#endif
 				/* skip any fieldNames starting with an underscore, as these are "internal" ones */
 				/* There is in fact nothing in this function that actually enforces this, which is good!! */
 				if (strcmp(str,FIELDNAMES[*fieldOffsetsPtr]) == 0) {
@@ -940,10 +898,6 @@ static int *getFOP (struct X3D_Node *node, const char *str) {
 					#endif
 					return fieldOffsetsPtr;
 				}
-#if TRY_PROTO_FIX
-  			}
-#endif
-
 			fieldOffsetsPtr += 5;
 		}
 
