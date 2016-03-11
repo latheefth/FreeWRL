@@ -183,6 +183,7 @@ int MFW_Getter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 			//ie MF[i].subfield = value
 			//ideally the javascript programer would first do MF[i] = new SFxxx() before assigning to a subfield.
 			//here we'll cut them some slack by reallocing and mallocing missing elements.
+			//but I think MF[i] = SF will come in to MFW_Setter, not here in MFW_Getter.
 			int newlen;
 			newlen = upper_power_of_two(index+1);
 			ptr->p = realloc(p,newlen * elen);
@@ -197,7 +198,8 @@ int MFW_Getter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 			//^consumers of SFNode will still use 2-step ** -> node* 
 			// .. due to plumbing being written with method C in mind 
 			// .. (could be pruned out in all SFNode sources and sinks in _duk modules)
-			//can do this 'costlessly' but just for SFnode/MFnode
+			//can do this costlessly -MF[i] = SF comes in to MFW_Setter that still uses &MF[i]- 
+			// but just for SFnode/MFnode 
 			void *sfptr = malloc(sizeof(void*));
 			memcpy(sfptr,(void *)(p + index*elen),sizeof(void*)); //*sfptr = MF.p[i] = &SF
 			fwretval->_web3dval.native = (void *)sfptr; //native = &sfptr
