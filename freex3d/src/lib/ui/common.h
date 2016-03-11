@@ -42,9 +42,14 @@ void setLookatCursor();
 void setWindowTitle0();
 void setWindowTitle();
 char *getMessageBar();
+char *getFpsBar();
 char *getWindowTitle();
 void updateCursorStyle();
 int getCursorStyle();
+void update_status(char* msg);
+void kill_status();
+char *get_status();
+char *getMenuStatus();
 
 #ifdef _MSC_VER
 #define snprintf _snprintf

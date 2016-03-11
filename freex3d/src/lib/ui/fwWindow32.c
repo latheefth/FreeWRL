@@ -1205,7 +1205,8 @@ HWND create_main_window0(freewrl_params_t * d) //int argc, char *argv[])
 	}
 	wStyle = WS_VISIBLE | WS_POPUP | WS_BORDER | WS_SYSMENU | WS_CAPTION;
 	wStyle |= WS_SIZEBOX; //makes it resizable 
-	wStyle = WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+	wStyle |= WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+	//wStyle |= WS_EX_ACCEPTFILES; //drag & drop target (but needs OLE32.dll etc https://msdn.microsoft.com/en-us/library/windows/desktop/bb776905(v=vs.85).aspx
 
 	ghWnd = CreateWindowEx( WS_EX_APPWINDOW, "FreeWrlAppClass", "freeWRL", 
 			    /* ghWnd = CreateWindow( "GenericAppClass", "Generic Application", */

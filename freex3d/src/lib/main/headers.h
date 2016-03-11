@@ -624,9 +624,6 @@ struct X3D_Node* get_picksensor();
 void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to);
 
 
-void update_status(char* msg);
-void kill_status();
-char *get_status();
 
 /* menubar stuff */
 void frontendUpdateButtons(void); /* used only if we are not able to multi-thread OpenGL */
