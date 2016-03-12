@@ -64,6 +64,7 @@ typedef struct pcommon{
 	int promptForFile;
 	int sb_hasString;// = FALSE;
 	char buffer[200];
+	int showConsoleText;
 	void *colorScheme;
 	int colorSchemeChanged;
 	int pin_statusbar;
@@ -93,6 +94,7 @@ void common_init(struct tcommon *t){
 		p->want_menubar = 1;
 		p->want_statusbar = 1;
 		p->keyvals = NULL;
+		p->showConsoleText = 0;  //in the UI, if a callback is registered with ConsoleMessage. Won't affect old fashioned console, 
 		p->target_frames_per_second = 120;  //is 120 FPS a good target FPS?
 	}
 }
@@ -133,7 +135,14 @@ void kill_status(void) {
 	p->buffer[0] = '\0';
 }
 
-
+void showConsoleText(int on){
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	p->showConsoleText = on;
+}
+int getShowConsoleText(){
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	return p->showConsoleText;
+}
 /* trigger a update */
 void update_status(char* msg) {
 	ppcommon p = (ppcommon)gglobal()->common.prv;

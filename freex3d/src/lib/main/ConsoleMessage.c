@@ -97,6 +97,7 @@ void closeConsoleMessage() {
 //View / UI part 
 void fwg_updateConsoleStatus()
 {
+	//old android method
 	//if you desire to see ConsoleMessages in the View/UI
 	//a) if your View/UI is a console program - call this function once per frame
 	//b) if your View/UI is a GUI program, do something similar in your View/UI code to fetch and display lines in GUI
@@ -158,6 +159,7 @@ void fwg_setConsoleParam_replaceTabs(int tabSpaces)
 }
 void fwg_register_consolemessage_callback(void(*callback)(char *))
 {
+	//new method
 	//if your frontend is in C, you can register something like printf here as a callback
 	//advantage over polling once per loop: when debugging you may want to see console output
 	//more often during a single loop - this should come out as soon as written in the program
@@ -176,6 +178,7 @@ void fwg_register_consolemessage_callback(void(*callback)(char *))
 
 // tell the UI how many unread console messages we have.
 int fwg_get_unread_message_count() {
+	//old android method
 	ppConsoleMessage p;
 	ttglobal tg = gglobal();
 	if (!tg) return 0;
@@ -185,6 +188,7 @@ int fwg_get_unread_message_count() {
 
 char *fwg_get_last_message() {
 	/*
+	old android method
 	Transfers ownership of a ConsoleMessage line to the View/UI caller
 	- returns NULL if no more messages waiting on this frame (check again next frame)
 	- there is no \n in string, it has already been split into screen lines
@@ -223,6 +227,7 @@ int fwl_StringConsoleMessage(char* consoleBuffer) {
 // Model (backend) internal part
 static void android_save_log(char *thislog) {
 	/*
+	old android method
 	processes thislog, and accumulates an array simple lines:
 	- splits thislog on each \n
 	- if no \n, holds the pointer on the current line
@@ -458,7 +463,7 @@ int ConsoleMessage0(const char *fmt, va_list args){
     #ifdef _ANDROID
             DROIDDEBUG(STRDUP(p->FWbuffer)); //passing ownerhsip in
 	#else
-//		android_save_log(strdup(p->FWbuffer)); //passing ownerhsip in
+//		android_save_log(strdup(p->FWbuffer)); //passing ownerhsip in old android method
     #endif
         }
     }

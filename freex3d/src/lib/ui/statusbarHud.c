@@ -1960,7 +1960,13 @@ void setMenuButton_collision(int val){
 	if(i > -1)
 		p->pmenu.items[i].butStatus = val;
 }
-
+void setMenuButton_consoleText(int val){	
+	int i;
+	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
+	i = getMenuItemByAction(ACTION_MESSAGES);
+	if(i > -1)
+		p->pmenu.items[i].butStatus = val;
+}
 void setMenuButton_texSize(int size){ 
 	/* this isn't called in my configuration so I don't know what the range is */
 	printf("text size=%d\n",size);
@@ -2082,7 +2088,7 @@ void updateButtonStatus()
 	// Here we take our UI current state from the scene state. 
 	// For FRONTEND_HANDLES_DISPLAY_THREAD configurations, the frontend should do 
 	// the equivalent of the following once per frame (poll state and set UI)
-	int headlight, collision, navmode, dragchord, ctrl, shift;
+	int headlight, collision, navmode, dragchord, ctrl, shift, consoletext;
 	//poll model state:
 	headlight = fwl_get_headlight();
 	collision = fwl_getCollision();
@@ -2090,6 +2096,7 @@ void updateButtonStatus()
 	dragchord = viewer_getDragChord();
 	shift = fwl_getShift();
 	ctrl = fwl_getCtrl();
+	consoletext = getShowConsoleText();
 	//lookatMode = fwl_getLookatMode();
 	//update UI(view):
 	setMenuButton_shift(shift);
@@ -2097,6 +2104,7 @@ void updateButtonStatus()
 	setMenuButton_navModes(navmode,dragchord);
 	setMenuButton_headlight(headlight);
 	setMenuButton_collision(collision);
+	setMenuButton_consoleText(consoletext);
 	//setMenuButton_lookat(lookatMode);
 }
 
@@ -2258,10 +2266,11 @@ int handleButtonRelease(int mouseX, int mouseY)
 				case ACTION_NEXT:	fwl_Next_ViewPoint(); break;
 				case ACTION_HELP:		
 					//p->showHelp = p->pmenu.items[i].butStatus; 
-					//break;
+					break;
 				case ACTION_MESSAGES:	
 					//p->showConText = p->pmenu.items[i].butStatus; 
-					//break;
+					showConsoleText(p->pmenu.bitems[i].item->butStatus);
+					break;
 				case ACTION_OPTIONS: 
 					//p->showOptions = p->pmenu.items[i].butStatus; 
 					break;

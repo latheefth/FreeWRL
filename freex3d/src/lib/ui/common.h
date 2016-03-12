@@ -50,7 +50,8 @@ void update_status(char* msg);
 void kill_status();
 char *get_status();
 char *getMenuStatus();
-
+void showConsoleText(int on);
+int getShowConsoleText();
 #ifdef _MSC_VER
 #define snprintf _snprintf
 #endif

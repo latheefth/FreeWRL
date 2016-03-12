@@ -974,7 +974,7 @@ void TextPanel_Console_AddString(char *string){
 void fwg_register_consolemessage_callback(void(*callback)(char *));
 void textpanel_register_as_console(void *_self){
 	contenttype_textpanel *self = (contenttype_textpanel*)_self;
-	console_textpanel = self;
+	console_textpanel = self; //static variable
 	fwg_register_consolemessage_callback(TextPanel_Console_AddString);
 }
 int textpanel_render_row(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y, vec4 color);
@@ -1083,7 +1083,8 @@ void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 			i0 = (nrows-i-1)*panelsizechars.X;
 			lenrow = min(nchars - i0,panelsizechars.X);
 			moredata -= lenrow;
-			if(moredata <= 0)break; //stale (overwritten) BLOB/ringbuffer data
+			if(moredata < 0) //was <= changed to < Mar 12, 2016 because skipping first line
+				break; //stale (overwritten) BLOB/ringbuffer data
 			jrow++;
 			if(jrow >  panelsizechars.Y) //would be rendered off-panel
 				break;
@@ -1128,6 +1129,9 @@ void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 			//ivec4 box = ivec4_init(pen_x,pen_y,lenrow*self->set->maxadvancepx,self->set->rowheight);
 			//ivec4 currentvp = stack_top(ivec4,_vpstack);
 			//if(overlapviewports(box, currentvp)) //seems not properly aligned, a little too aggressive
+			//if(i==0){ //render 2nd time as test for why we get boxes on just one line
+			//	textpanel_render_row(self->font, "1",1,&pen_x, &pen_y, self->color); 
+			//}
 			textpanel_render_row(self->font, row, lenrow,&pen_x, &pen_y, self->color); //&xy.X,&xy.Y);
 			if(show_ringtext){
 				//debugging
@@ -1176,11 +1180,13 @@ void textpanel_render(void *_self){
 		c = c->t1.next;
 	}
 	//render self last, as layer over children
-	tg = gglobal();
-	vportstack = (Stack*)tg->Mainloop._vportstack;
-	ivport = stack_top(ivec4,vportstack);
+	if(getShowConsoleText()){
+		tg = gglobal();
+		vportstack = (Stack*)tg->Mainloop._vportstack;
+		ivport = stack_top(ivec4,vportstack);
 
-	textpanel_render_blobmethod(self,ivport);
+		textpanel_render_blobmethod(self,ivport);
+	}
 	popnset_viewport();
 }
 
@@ -3574,9 +3580,11 @@ void setup_stagesNORMAL(){
 			contenttype *ctextpanel;
 			//ctextpanel = new_contenttype_textpanel("Vera",8,30,120,TRUE);
 			ctextpanel = new_contenttype_textpanel("VeraMono",8,60,120,TRUE);
-
 			ctextpanel->t1.contents = cscene;
+			ConsoleMessage("Going to register textpanel for ConsoleMessages\n"); //should not show in textpanel
 			textpanel_register_as_console(ctextpanel);
+			ConsoleMessage("Registered textpanel for ConsoleMessages\n"); //should be first message to show in textpanel
+			//ConsoleMessage("next line\n");
 			csbh->t1.contents = ctextpanel;
 			cstage->t1.contents = csbh;
 		}else if(0){
