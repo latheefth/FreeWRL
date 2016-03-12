@@ -2899,7 +2899,7 @@ static GLuint texCoordLoc;
 static GLuint textureLoc;
 static GLuint color4fLoc;
 //static GLuint programObject;
-static GLuint textureID;
+static GLuint textureID = 0;
 //static GLuint indexBufferID;
 static GLuint blendLoc;
 static GLuint modelviewLoc;
@@ -3281,7 +3281,50 @@ void atlasfont_get_rowheight_charwidth_px(AtlasFont *font, int *rowheight, int *
 	*rowheight = font->set->rowheight;
 	*maxadvancepx = font->set->maxadvancepx;
 }
-int textpanel_render_row(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y, vec4 color){
+
+int before_textpanel_render_rows(AtlasFont *font, vec4 color){
+	AtlasEntrySet *entryset;
+	Atlas *atlas;
+
+	if(font == NULL) return FALSE;
+	entryset = font->set; //GUIFont_getMatchingAtlasEntrySet(self->font,self->fontSize);
+	if(entryset == NULL) return FALSE;
+	if(entryset->atlas == NULL) return FALSE;
+
+	atlas = entryset->atlas;
+	//set atlas and shader
+	finishedWithGlobalShader();
+	glDepthMask(GL_FALSE);
+	glDisable(GL_DEPTH_TEST);
+	if(!programObject) initProgramObject();
+
+	glUseProgram ( programObject );
+	if(!textureID)
+		glGenTextures(1, &textureID);
+
+	// Set the base map sampler to texture unit to 0
+	glActiveTexture ( GL_TEXTURE0 );
+	glBindTexture ( GL_TEXTURE_2D, textureID );
+	glUniform1i ( textureLoc, 0 );
+
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST); //GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST); //GL_LINEAR);
+
+	if(atlas->bytesperpixel == 1){
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, atlas->size.X, atlas->size.Y, 0, GL_ALPHA , GL_UNSIGNED_BYTE, atlas->texture);
+	}else if(atlas->bytesperpixel == 4){
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, atlas->size.X, atlas->size.Y, 0, GL_RGBA , GL_UNSIGNED_BYTE, atlas->texture);
+	}
+
+	glUniform4f(color4fLoc,color.X,color.Y,color.Z,color.W); //0.7f,0.7f,0.9f,1.0f);
+	glUniform4f(blendLoc,0.0f,0.0f,0.0f,1.0f);
+
+	glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewIdentityf);
+	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionIdentityf);
+
+	return TRUE;
+}
+int textpanel_render_row(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y){ 
 	//we use a font atlas
 	//current Feb 2016: recomputes verts, indices on each loop
 	//potential optimizatio: in theory its the y that changes for a row, 
@@ -3417,35 +3460,9 @@ int textpanel_render_row(AtlasFont *font, char * cText, int len, int *pen_x, int
 
 			}
 		}
-		finishedWithGlobalShader();
-		glDepthMask(GL_FALSE);
-		glDisable(GL_DEPTH_TEST);
-		if(!programObject) initProgramObject();
 
-		glUseProgram ( programObject );
-		if(!textureID)
-			glGenTextures(1, &textureID);
-
-		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST); //GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST); //GL_LINEAR);
-
-		glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewIdentityf);
-		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionIdentityf);
-
-		glUniform4f(color4fLoc,color.X,color.Y,color.Z,color.W); //0.7f,0.7f,0.9f,1.0f);
-
-		glActiveTexture ( GL_TEXTURE0 );
-		glBindTexture ( GL_TEXTURE_2D, textureID );
-		glUniform1i ( textureLoc, 0 );
-
-		if(atlas->bytesperpixel == 1){
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, atlas->size.X, atlas->size.Y, 0, GL_ALPHA , GL_UNSIGNED_BYTE, atlas->texture);
-		}else if(atlas->bytesperpixel == 4){
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, atlas->size.X, atlas->size.Y, 0, GL_RGBA , GL_UNSIGNED_BYTE, atlas->texture);
-		}
-		glUniform4f(blendLoc,0.0f,0.0f,0.0f,1.0f);
-
-
+if(0) glEnableVertexAttribArray (positionLoc );
+if(0) glEnableVertexAttribArray (texCoordLoc );
 		// Load the vertex position
 		glVertexAttribPointer (positionLoc, 3, GL_FLOAT, 
 							   GL_FALSE, 0, vert );
@@ -3453,20 +3470,19 @@ int textpanel_render_row(AtlasFont *font, char * cText, int len, int *pen_x, int
 		glVertexAttribPointer ( texCoordLoc, 2, GL_FLOAT,
 							   GL_FALSE, 0, tex ); 
 
-if(0) glEnableVertexAttribArray (positionLoc );
-if(0) glEnableVertexAttribArray (texCoordLoc );
-		// Set the base map sampler to texture unit to 0
-		//glUniform1i ( textureLoc, 0 );
 		glDrawElements ( GL_TRIANGLES, len*3*2, GL_UNSIGNED_SHORT, ind );
-
-		glEnable(GL_DEPTH_TEST);
-		glDepthMask(GL_TRUE);
-		restoreGlobalShader();
 
 
 	}
 	return TRUE;
 }
+void after_textpanel_render_rows(){
+	//restore shader
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
+	restoreGlobalShader();
+}
+
 void render_screentext0(struct X3D_Text *tnode){
 	/*	to be called from Text node render_Text for case of ScreenFontStyle
 		this is a copy of the CaptionText method, 

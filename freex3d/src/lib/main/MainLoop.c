@@ -977,7 +977,6 @@ void textpanel_register_as_console(void *_self){
 	console_textpanel = self; //static variable
 	fwg_register_consolemessage_callback(TextPanel_Console_AddString);
 }
-int textpanel_render_row(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y, vec4 color);
 ivec2 pixel2text(int x, int y, int rowheight, int maxadvancepx){
 	int h = rowheight;
 	int w = maxadvancepx;
@@ -993,7 +992,9 @@ ivec2 text2pixel(int x, int y, int rowheight, int maxadvancepx){
 
 void atlasfont_get_rowheight_charwidth_px(AtlasFont *font, int *rowheight, int *maxadvancepx);
 static int show_ringtext = 0;
-
+int before_textpanel_render_rows(AtlasFont *font, vec4 color);
+int textpanel_render_row(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y);
+void after_textpanel_render_rows();
 void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 /*	completely re-renders the textpanel, from the ABLOB and Blist ringbuffers
 	- call once per frame
@@ -1009,7 +1010,7 @@ void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 		x to get top-down look to scrolling you need 2 loops, one to count lines, one to draw
 		x you could scroll same distance even when there's nothing to see
 */
-	int jline, jrow, nrows, isFull, moredata, rowheight, maxadvancepx;
+	int jline, jrow, nrows, isFull, moredata, rowheight, maxadvancepx, atlasOK;
 
 	ivec2 panelsizechars;
 	BUTitem *BUTI, *LBUTI;
@@ -1075,6 +1076,8 @@ void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 		//normal case, 3 rows, no split
 		//
 		P = B;
+		atlasOK = before_textpanel_render_rows(self->font, self->color);
+		if(atlasOK)
 		for(i=0;i<nrows;i++){
 			unsigned char *row;
 			int l0, l1, i0, lenrow, pen_x, pen_y;
@@ -1129,10 +1132,7 @@ void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 			//ivec4 box = ivec4_init(pen_x,pen_y,lenrow*self->set->maxadvancepx,self->set->rowheight);
 			//ivec4 currentvp = stack_top(ivec4,_vpstack);
 			//if(overlapviewports(box, currentvp)) //seems not properly aligned, a little too aggressive
-			//if(i==0){ //render 2nd time as test for why we get boxes on just one line
-			//	textpanel_render_row(self->font, "1",1,&pen_x, &pen_y, self->color); 
-			//}
-			textpanel_render_row(self->font, row, lenrow,&pen_x, &pen_y, self->color); //&xy.X,&xy.Y);
+			textpanel_render_row(self->font, row, lenrow,&pen_x, &pen_y); //&xy.X,&xy.Y);
 			if(show_ringtext){
 				//debugging
 				memcpy(self->row,row,lenrow);
@@ -1145,6 +1145,7 @@ void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 		//moredata -= nchars;
 		BUTI = BUTI->prev;
 	}while(jrow < panelsizechars.Y && moredata > 0); //nrows > 0); //jline < panelsizechars.Y
+	after_textpanel_render_rows();
 	if(0) printf("======================\n");
 	//if(jline >= panelsizechars.Y && panelsizechars.Y < self->maxlines){
 	//if(jrow >= panelsizechars.Y && panelsizechars.Y < self->maxlines){
