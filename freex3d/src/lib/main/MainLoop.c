@@ -3579,6 +3579,16 @@ void setup_stagesNORMAL(){
 		}else if(1){
 			//tests dual-ringbuffer console textpanel
 			contenttype *ctextpanel;
+			vec4 ccolor;
+			contenttype *ctext;
+			ccolor = vec4_init(1.0f,.6f,0.0f,1.0f);
+			ctext = new_contenttype_captiontext("VeraMono",12,ccolor);
+			captiontext_setString(ctext, "Trying VeraMono From CaptionText");
+			ctext->t1.viewport[0] = .1f;
+			ctext->t1.viewport[1] = .6f;
+			ctext->t1.viewport[2] = .4f;
+			ctext->t1.viewport[3] = .5f;
+
 			//ctextpanel = new_contenttype_textpanel("Vera",8,30,120,TRUE);
 			ctextpanel = new_contenttype_textpanel("VeraMono",8,60,120,TRUE);
 			ctextpanel->t1.contents = cscene;
@@ -3587,6 +3597,7 @@ void setup_stagesNORMAL(){
 			ConsoleMessage("Registered textpanel for ConsoleMessages\n"); //should be first message to show in textpanel
 			//ConsoleMessage("next line\n");
 			csbh->t1.contents = ctextpanel;
+			ctextpanel->t1.next = ctext;
 			cstage->t1.contents = csbh;
 		}else if(0){
 			//captiontext, layer, scene, statusbarHud, 

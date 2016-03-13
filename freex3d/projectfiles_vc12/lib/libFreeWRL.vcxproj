@@ -387,6 +387,7 @@
     <ClCompile Include="$(SRC)\lib\scenegraph\Component_Layout.c" />
     <ClCompile Include="$(SRC)\lib\scenegraph\Component_ParticleSystems.c" />
     <ClCompile Include="$(SRC)\lib\scenegraph\Component_RigidBodyPhysics.c" />
+    <ClCompile Include="$(SRC)\lib\scenegraph\VeraMono_ttf.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(SRC)\lib\scenegraph\Component_Picking.h" />

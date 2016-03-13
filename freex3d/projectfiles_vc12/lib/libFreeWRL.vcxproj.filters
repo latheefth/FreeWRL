@@ -357,6 +357,9 @@
     <ClCompile Include="$(SRC)\lib\scenegraph\Component_RigidBodyPhysics.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\lib\scenegraph\VeraMono_ttf.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(SRC)\lib\scenegraph\Component_Picking.h">

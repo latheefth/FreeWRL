@@ -164,6 +164,7 @@ scenegraph/Component_Layout.c \
 scenegraph/statics.c \
 scenegraph/GenPolyRep.c \
 scenegraph/Component_VRML1.c \
+scenegraph/VeraMono_ttf.c \
  \
 input/EAI_C_CommonFunctions.c \
 input/EAIEventsIn.c \

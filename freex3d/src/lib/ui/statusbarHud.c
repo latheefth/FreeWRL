@@ -2899,7 +2899,7 @@ M       void toggle_collision()                             //"
 			//glUniform4f(p->color4fLoc, .2f, .2f, .2f, 1.0f);
 			glUniform4f(p->color4fLoc,colorStatusbarText[0],colorStatusbarText[1],colorStatusbarText[2],colorStatusbarText[3]);
 			xy = screen2normalizedScreenScale((GLfloat)p->bmWH.x, (GLfloat)p->bmWH.y);
-			sblen = (int)2.0f/xy.x - (9+7); //get number of chars left after touch status and vp status
+			sblen = (int)(2.0f/xy.x - (float)(9+7)); //get number of chars left after touch status and vp status
 			sslen = 0;
 			{
 				pp = get_status(); // p->buffer;

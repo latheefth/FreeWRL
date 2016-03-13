@@ -338,10 +338,11 @@ void fwlio_RxTx_sendbuffer(char *fromFile, int fromline, int channel, char *str)
 int privSocketSetup(int channel, int *ANONsocketfd, int *ANONlistenfd) {
 	int len;
 	const int on=1;
-	int flags;
 #ifdef _MSC_VER
-#define socklen_t int
+	#define socklen_t int
 	int err;
+#else
+	int flags;
 #endif
 
         struct sockaddr_in      servaddr;
