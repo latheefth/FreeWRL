@@ -237,7 +237,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ANGLEPROJECT;WIN32;_DEBUG;_LIB;LIBRARYBUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;LIBRARYBUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>C:\Users\Public\dev\source2\lib_windows_vc12\angleproject\include;C:\Users\Public\dev\source2\freewrl\freex3d\src_windows;C:\Users\Public\dev\source2\freewrl\freex3d\src\libnurbs;C:\Users\Public\dev\source2\freewrl\freex3d\src\libnurbs\nurbtess;C:\Users\Public\dev\source2\freewrl\freex3d\src\libnurbs\internals;C:\Users\Public\dev\source2\freewrl\freex3d\src\libnurbs\interface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>

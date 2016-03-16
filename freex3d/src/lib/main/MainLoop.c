@@ -509,6 +509,7 @@ void statusbar_render(void *_self){
 	self = (contenttype_statusbar *)_self;
 	pushnset_viewport(self->t1.viewport);
 	self->clipplane = statusbar_getClipPlane();
+
 	vportstack = NULL;
 	pushed = 0;
 	if(self->clipplane != 0){
@@ -1077,6 +1078,8 @@ void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 		//
 		P = B;
 		atlasOK = before_textpanel_render_rows(self->font, self->color);
+		printf("\rivport.Y %d ",ivport.Y);
+
 		if(atlasOK)
 		for(i=0;i<nrows;i++){
 			unsigned char *row;
@@ -1125,9 +1128,9 @@ void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 			//textchars2panelpixel
 			xy = text2pixel(0,jrow,rowheight,maxadvancepx); 
 			//panelpixel2screenpixel?
-			pen_y = ivport.Y; 
 			pen_x = xy.X;
-			pen_y -= xy.Y;
+			pen_y = xy.Y;
+
 			//check if this line is visible, as measured by its bounding box. skip render if not
 			//ivec4 box = ivec4_init(pen_x,pen_y,lenrow*self->set->maxadvancepx,self->set->rowheight);
 			//ivec4 currentvp = stack_top(ivec4,_vpstack);
@@ -1185,7 +1188,6 @@ void textpanel_render(void *_self){
 		tg = gglobal();
 		vportstack = (Stack*)tg->Mainloop._vportstack;
 		ivport = stack_top(ivec4,vportstack);
-
 		textpanel_render_blobmethod(self,ivport);
 	}
 	popnset_viewport();
