@@ -384,6 +384,7 @@ typedef struct {
 	GLfloat tex[8];
 	GLubyte *lumalpha;
 	char *name;
+	const char *help;
 	int action; //ACTION_
 	int butStatus;
 	bool isToggle;
@@ -1390,6 +1391,7 @@ void printKeyboardHelp(ppstatusbar p)
 		//	if(iside == 0) side_bottom_f = 0.0f;
 		printString2(-1.0f, side_bottom_f + (lenhelp-j+1)*fxy2.y, keyboardShortcutHelp[j]);
 		j++;
+		if(p->statusbar_pinned && p->menubar_pinned && j > 4) break; //they can see button help on the statusbar on mouse-over button
 	}
 }
 
@@ -1489,6 +1491,52 @@ ACTION_URL,
 ACTION_FILE,
 ACTION_BLANK
 } button_actions;
+struct button_help {
+int action;
+char *help;
+} button_helps [] = {
+ACTION_WALK, "WALK",
+ACTION_FLY2, "FLY2",
+ACTION_TILT, "TILT",
+ACTION_TPLANE, "TRANSLATE",
+ACTION_RPLANE, "ROLL",
+ACTION_FLY, "FLY {yaw-z,xy,yaw-pitch,roll}",
+ACTION_EXAMINE, "EXAMINE",
+ACTION_EXPLORE, "EXPLORE {examine,recenter}",
+ACTION_SPHERICAL, "SPHERICAL {pan,zoom}",
+ACTION_TURNTABLE, "TURNTABLE",
+ACTION_LOOKAT, "LOOKAT",
+ACTION_YAWZ, "FLY yaw-z",
+ACTION_YAWPITCH, "FLY yaw-pitch",
+ACTION_ROLL, "FLY roll",
+ACTION_XY, "FLY xy",
+ACTION_DIST, "DIST (for examine,explore,turntable)",
+ACTION_SHIFT, "SHIFT Key (turns off sensors)",
+ACTION_LEVEL, "LEVEL to bound VP (ViewPoint)",
+ACTION_HEADLIGHT, "HEADLIGHT",
+ACTION_COLLISION, "COLLISION (and gravity)",
+ACTION_PREV, "Prev VP",
+ACTION_NEXT, "Next VP",
+ACTION_HELP, "Help",
+ACTION_MESSAGES, "Console", 
+ACTION_OPTIONS, "Options",
+ACTION_RELOAD, "Reload",
+ACTION_URL, "URL",
+ACTION_FILE, "FILE",
+ACTION_BLANK, NULL,
+};
+const char *help_for_action(int action){
+	int i;
+	struct button_help *bh;
+	i = 0;
+	do{
+		bh = &button_helps[i];
+		if(bh->action == action) break;
+		i++;
+	}while(bh->action != ACTION_BLANK);
+	return bh->help;
+}
+
 void convertPng2hexAlpha()
 {
 	/* How to make new button icons:
@@ -1726,6 +1774,7 @@ void initButtons()
 
 
 			p->pmenu.items[i].action = actionlist[i];
+			p->pmenu.items[i].help = help_for_action(actionlist[i]);
 			p->pmenu.items[i].isToggle = false;
 			p->pmenu.items[i].buttonset = NULL;
 			j=0;
@@ -2144,6 +2193,7 @@ int handleButtonOver(int mouseX, int mouseY)
 		y = mouseY - p->pmenu.yoffset;
 
 	p->isOver = -1;
+
 	for (i = 0; i<p->pmenu.nbitems; i++)
 	if (x > p->pmenu.bitems[i].butrect[0] && x < p->pmenu.bitems[i].butrect[2]
 		&& y > p->pmenu.bitems[i].butrect[1] && y < p->pmenu.bitems[i].butrect[3])
@@ -2152,7 +2202,7 @@ int handleButtonOver(int mouseX, int mouseY)
 		p->isOver = i;
 		break;
 	}
-	return p->isOver == -1 ? 0 : 1;
+	return p->isOver; // == -1 ? 0 : 1;
 }
 char *frontend_pick_URL(void);
 char *frontend_pick_file(void);
@@ -2633,6 +2683,9 @@ int handleStatusbarHud1(int mev, int butnum, int mouseX, int mouseY, int windex)
 						p->showStatus = 1; //turn menubar back on if not pinned, not showing, and menubar is pinned
 				}
 			}
+			if (mev == ButtonPress)
+				
+
 			ihit = 1; //ButtonPress or release, swallow click so scene doesn't get it
 
 		}else if(overStatusbar(p,mouseY)){
@@ -2692,7 +2745,11 @@ int handleStatusbarHud1(int mev, int butnum, int mouseX, int mouseY, int windex)
 				//if( p->screenHeight - mouseYY > 0 ){
 				if(overMenubar(p,mouseY)){
 					//setArrowCursor();
-					handleButtonOver(mouseX,mouseYY);
+					int ib_over;
+					ib_over = handleButtonOver(mouseX,mouseYY);
+					if(ib_over > -1)
+					if(showAction(p, ACTION_HELP))
+						update_status(p->pmenu.bitems[ib_over].item->help);
 				}
 				//setArrowCursor();
 				//updateViewCursorStyle(ACURSE);
