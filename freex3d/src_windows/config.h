@@ -282,7 +282,9 @@ char *getWgetPath();
 #define GLEW 1
 #define GLEW_MX 1
 #else
-#define GL_ES_VERSION_2_0 1  //to get max_lights 2 at top of display.h
+//MSOpenTech angleproject 2016 doesnt like this defined, it self-defines
+//#define GL_ES_VERSION_2_0 1  //to get max_lights 2 at top of display.h
+#define GL_GLEXT_PROTOTYPES 1
 #endif
 //#define EXCLUDE_EAI 1
 #define FREEWRL_STEREO_RENDERING 1

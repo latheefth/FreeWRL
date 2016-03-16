@@ -14,6 +14,7 @@
     <SRC>../../src</SRC>
     <SRCWIN>../../src_windows</SRCWIN>
     <LIBWIN>../../../../lib_windows_vc12</LIBWIN>
+    <LIBANGLE>../../../../angleproject2016/angle-ms-master</LIBANGLE>
   </PropertyGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A6255F79-AC96-4224-891F-EEFE6B8CFD21}</ProjectGuid>
@@ -56,7 +57,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../main;$(LIBWIN)/angleproject/include;$(SRCWIN);$(SRC)\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../main;$(LIBANGLE)/include;$(SRCWIN);$(SRC)\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;GLES2;FRONTEND_HANDLES_DISPLAY_THREAD;STATUSBAR_HUD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -66,8 +67,8 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libFreeWRL.lib;fwlibGLESv2.lib;fwlibEGL.lib;pthreadd.lib;zlib.lib;libminizip.lib;ws2_32.lib;freetype252.lib;shlwapi.lib;gdiplus.lib;libxml2.lib;Wininet.lib;Winmm.lib;libtess.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>.\Debug;$(LIBWIN)\angleproject\lib\Debug;$(LIBWIN)\pthread\lib;$(LIBWIN)\freetype2\lib;$(LIBWIN)\zlib\lib;..\Debug;$(LIBWIN)\libxml2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libFreeWRL.lib;libANGLE.lib;libGLESv2.lib;libEGL.lib;pthreadd.lib;zlib.lib;libminizip.lib;ws2_32.lib;freetype252.lib;shlwapi.lib;gdiplus.lib;libxml2.lib;Wininet.lib;Winmm.lib;libtess.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>.\Debug;$(LIBANGLE)\build\Debug_Win32\lib;$(LIBWIN)\pthread\lib;$(LIBWIN)\freetype2\lib;$(LIBWIN)\zlib\lib;..\Debug;$(LIBWIN)\libxml2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
@@ -75,7 +76,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>../main;$(LIBWIN)/angleproject/include;$(SRCWIN);$(SRC)\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../main;$(LIBANGLE)/include;$(SRCWIN);$(SRC)\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader />
@@ -83,8 +84,8 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libFreeWRL.lib;fwlibGLESv2.lib;fwlibEGL.lib;pthread.lib;zlib.lib;libminizip.lib;ws2_32.lib;freetype252.lib;shlwapi.lib;gdiplus.lib;libxml2.lib;Wininet.lib;Winmm.lib;libtess.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>.\Release;$(LIBWIN)\angleproject\lib\Release;$(LIBWIN)\pthread\lib;$(LIBWIN)\freetype2\lib;$(LIBWIN)\zlib\lib;..\Release;$(LIBWIN)\libxml2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libFreeWRL.lib;libANGLE.lib;libGLESv2.lib;libEGL.lib;pthread.lib;zlib.lib;libminizip.lib;ws2_32.lib;freetype252.lib;shlwapi.lib;gdiplus.lib;libxml2.lib;Wininet.lib;Winmm.lib;libtess.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>.\Release;$(LIBANGLE)\build\Release_Win32\lib;$(LIBWIN)\pthread\lib;$(LIBWIN)\freetype2\lib;$(LIBWIN)\zlib\lib;..\Release;$(LIBWIN)\libxml2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>

@@ -2101,7 +2101,14 @@ void Atlas_init(Atlas *me, int size, int rowheight){
 	me->bytesperpixel = 1; //TT fonts are rendered to an antialiased 8-bit alpha texture
 	//me->bytesperpixel = 2;
 #ifdef ANGLEPROJECT
-	me->bytesperpixel = 1; //ANGLEPROJECT can't seem to mipmap GL_ALPHA, needs GL_LUMINANCE_ALPHA
+	#ifdef WINRT
+	me->bytesperpixel = 1; //ANGLEPROJECT winrt 8.1 - can't seem to mipmap 1 BPP GL_ALPHA/A8/ii needs 2 bpp GL_LUMINANCE_ALPHA/A8L8 or bombs
+	//possible patch shown here: https://bugs.chromium.org/p/angleproject/issues/detail?id=632
+	//got a 2014 era copy of MSOpenTech VS2013-WINRT successfully built with patch and 1bpp/GL_ALPHA runs and looks good
+	//DirectX Surface Formats: https://msdn.microsoft.com/en-us/library/windows/desktop/bb153349(v=vs.85).aspx
+	#else
+	me->bytesperpixel = 1; //ANGLEPROJECT desktop - 1 bpp/A8/ii/GL_ALPHA is good
+	#endif
 #endif
 	me->texture = (char*)MALLOCV(me->size.X *me->size.Y*me->bytesperpixel);
 	memset(me->texture,127,me->size.X *me->size.Y*me->bytesperpixel); //make it black by default
@@ -3145,7 +3152,7 @@ GLfloat cursorTex[] = {
 		break;
 		case 2:
 		//doesn't seem to come in here if my .png is gray+alpha on win32
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, width, height, 0, GL_LUMINANCE_ALPHA , GL_UNSIGNED_BYTE, buffer);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, width, height, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, buffer);
 		break;
 		case 4:
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA , GL_UNSIGNED_BYTE, buffer);
@@ -3196,7 +3203,6 @@ GLfloat cursorTex[] = {
 	//// Set the base map sampler to texture unit to 0
 	//glUniform1i ( textureLoc, 0 );
 	glDrawElements ( GL_TRIANGLES, 3*2, GL_UNSIGNED_SHORT, ind ); 
-	printf("after glDrawElements in render_captiontext\n");
 
 
 }
@@ -3658,7 +3664,7 @@ GLfloat cursorTex[] = {
 		break;
 		case 2:
 		//doesn't seem to come in here if my .png is gray+alpha on win32
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, width, height, 0, GL_LUMINANCE_ALPHA , GL_UNSIGNED_BYTE, buffer);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, width, height, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, buffer);
 		break;
 		case 4:
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA , GL_UNSIGNED_BYTE, buffer);

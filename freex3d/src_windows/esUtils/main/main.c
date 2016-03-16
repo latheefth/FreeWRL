@@ -136,8 +136,8 @@ int main ( int argc, char *argv[] )
    fwl_setOrientation (0); //int: 0, 90, 180, 270
    setDisplayed(1); //0=not 1=displayed
    if( retval == GL_FALSE ) printf("ouch - esCreateWindow returns false\n");
-   printf("%s\n",glGetString(GL_VERSION));
-   printf("%s\n",glGetString(GL_SHADING_LANGUAGE_VERSION));
+   //printf("%s\n",glGetString(GL_VERSION));
+   //printf("%s\n",glGetString(GL_SHADING_LANGUAGE_VERSION));
    
    if ( !fwInit ( &esContext ) )
       return 0;

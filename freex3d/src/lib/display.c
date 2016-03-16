@@ -457,7 +457,8 @@ bool initialize_rdr_caps()
     ConsoleMessage("openGL version %s\n",p->rdr_caps.version);
 
 	/* rdr_caps.version = "1.5.7"; //"1.4.1"; //for testing */
-    p->rdr_caps.versionf = (float) atof(p->rdr_caps.version); 
+	if (p->rdr_caps.version)
+		p->rdr_caps.versionf = (float) atof(p->rdr_caps.version); 
     if (p->rdr_caps.versionf == 0) // can't parse output of GL_VERSION, generally in case it is smth. like "OpenGL ES 3.0 V@66.0 AU@ (CL@)". probably 3.x or bigger.
 	{
         const char *openGLPrefix = "OpenGL ES ";
@@ -498,20 +499,21 @@ bool initialize_rdr_caps()
 	/* Initialize renderer capabilities without GLEW */
 
 	/* Multitexturing */
-	p->rdr_caps.av_multitexture = (strstr (p->rdr_caps.extensions, "GL_ARB_multitexture")!=0);
+	if (p->rdr_caps.extensions){
+		p->rdr_caps.av_multitexture = (strstr(p->rdr_caps.extensions, "GL_ARB_multitexture") != 0);
 
-	/* Occlusion Queries */
-	p->rdr_caps.av_occlusion_q = ((strstr (p->rdr_caps.extensions, "GL_ARB_occlusion_query") !=0) ||
-                             (strstr(p->rdr_caps.extensions, "GL_EXT_occlusion_query_boolean") != 0) ||
-                             p->rdr_caps.have_GL_VERSION_3_0);
+		/* Occlusion Queries */
+		p->rdr_caps.av_occlusion_q = ((strstr(p->rdr_caps.extensions, "GL_ARB_occlusion_query") != 0) ||
+			(strstr(p->rdr_caps.extensions, "GL_EXT_occlusion_query_boolean") != 0) ||
+			p->rdr_caps.have_GL_VERSION_3_0);
 
 
-	/* Non-power-of-two textures */
-	p->rdr_caps.av_npot_texture = (strstr (p->rdr_caps.extensions, "GL_ARB_texture_non_power_of_two") !=0);
+		/* Non-power-of-two textures */
+		p->rdr_caps.av_npot_texture = (strstr(p->rdr_caps.extensions, "GL_ARB_texture_non_power_of_two") != 0);
 
-	/* Texture rectangle (x != y) */
-	p->rdr_caps.av_texture_rect = (strstr (p->rdr_caps.extensions, "GL_ARB_texture_rectangle") !=0);
-
+		/* Texture rectangle (x != y) */
+		p->rdr_caps.av_texture_rect = (strstr(p->rdr_caps.extensions, "GL_ARB_texture_rectangle") != 0);
+	}
 	/* if we are doing our own shading, force the powers of 2, because otherwise mipmaps are not possible. */
 	p->rdr_caps.av_npot_texture=FALSE;
 
@@ -547,6 +549,7 @@ bool initialize_rdr_caps()
 	}
 
 	/* Special drivers settings */
+	if (p->rdr_caps.renderer)
 	if (
 	strstr(p->rdr_caps.renderer, "Intel GMA 9") != NULL ||
 	strstr(p->rdr_caps.renderer, "Intel(R) 9") != NULL ||

@@ -30,7 +30,6 @@ X3DMatrix3,4 - code implemented but never tested
 */
 
 #include <config.h>
-#include <config.h>
 #if defined(JAVASCRIPT_DUK)
 #include <system.h>
 #include <system_threads.h>
