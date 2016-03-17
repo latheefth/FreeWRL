@@ -2196,6 +2196,10 @@ void Atlas_addEntry(Atlas *me, AtlasEntry *entry, char *gray){
 		me->pen.Y += me->rowheight;
 		me->pen.X = 0;
 	}
+	if(me->pen.Y > me->size.Y){
+		ConsoleMessage("Atlas too small, skipping %d\n",entry->ichar);
+		return;
+	}
 
 	//paste glyph image into atlas image
 	pos.X = me->pen.X + entry->pos.X;
@@ -2226,6 +2230,7 @@ typedef struct AtlasEntrySet {
 	int EMpixels;
 	int maxadvancepx; //max_advance for x for a fontface
 	int rowheight;  //if items are in regular rows, this is a hint, during making of the atlas
+	int lastascii;
 	char *atlasName;
 	Atlas *atlas;
 	AtlasFont *font;
@@ -2237,6 +2242,7 @@ void AtlasEntrySet_init(AtlasFont *font, AtlasEntrySet *me, char *name){
 	me->font = font;
 	me->type = GUI_ATLASENTRYSET;
 	me->entries = newVector(AtlasEntry *,256);
+	me->lastascii = -1;
 	memset(me->ascii,0,128*sizeof(int)); //initialize ascii fast lookup table to NULL, which means no char glyph stored
 }
 
@@ -2246,6 +2252,7 @@ void AtlasEntrySet_addEntry1(AtlasEntrySet *me, AtlasEntry *entry){
 	if(entry->ichar > 0 && entry->ichar < 128){
 		//if its an ascii char, add to fast lookup table
 		me->ascii[entry->ichar] = entry;
+		me->lastascii = max(me->lastascii,me->entries->n); //for lookup optimization
 	}
 }
 void AtlasEntrySet_addEntry(AtlasEntrySet *me, AtlasEntry *entry, char *gray){
@@ -2254,6 +2261,7 @@ void AtlasEntrySet_addEntry(AtlasEntrySet *me, AtlasEntry *entry, char *gray){
 	if(entry->ichar > 0 && entry->ichar < 128){
 		//if its an ascii char, add to fast lookup table
 		me->ascii[entry->ichar] = entry;
+		me->lastascii = max(me->lastascii,me->entries->n); //for lookup optimization
 	}
 	if(!me->atlas)
 		me->atlas = (Atlas*)searchGUItable(p->atlas_table,me->atlasName);
@@ -2281,7 +2289,7 @@ AtlasEntry *AtlasEntrySet_getEntry(AtlasEntrySet *me, int ichar){
 	}else{
 		//could be a binary search here
 		int i;
-		for(i=0;i<vectorSize(me->entries);i++){
+		for(i=me->lastascii;i<vectorSize(me->entries);i++){
 			AtlasEntry *entry = vector_get(AtlasEntry*,me->entries,i);
 			if(entry->ichar == ichar){
 				ae = entry;
