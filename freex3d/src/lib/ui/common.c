@@ -215,7 +215,8 @@ char *getFpsBar(){
 }
 void setFpsBar(){
 	ppcommon p = (ppcommon)gglobal()->common.prv;
-	snprintf(p->fpsbar, 10, "%7.2f", p->myFps);
+	//snprintf(p->fpsbar, 10, "%7.2f", p->myFps);
+	snprintf(p->fpsbar, 10, "%4d", (int)(p->myFps + .49999f));
 }
 static int frontend_using_cursor = 0;
 void fwl_set_frontend_using_cursor(int on)
