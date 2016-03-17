@@ -57,6 +57,7 @@ X3D Text Component
 #include <sys/stat.h>
 #endif //ANDROID_DEBUG
 #endif //ANDROID
+#define HAVE_COMPILED_IN_FONT 1
 
 //googling for info on DPI, PPI:
 //DPI dots per inch (one dot == 1 pixel), in non-mac its 96 DPI constant for historical reasons
@@ -836,7 +837,7 @@ void FW_make_fontname(int num) {
     ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
     if (!p->font_directory) {
         printf("Internal error: no font directory.\n");
-        return;
+		//return;
     }
 
 	fontname = facename_from_num(num);
@@ -844,15 +845,17 @@ void FW_make_fontname(int num) {
 		printf ("dont know how to handle font id %x\n",num);
 		p->thisfontname[0] = 0;
 	}else{
-		strcpy (p->thisfontname, p->font_directory);
-		strcat(p->thisfontname,"/");
+		if(p->font_directory){
+			strcpy (p->thisfontname, p->font_directory);
+			strcat(p->thisfontname,"/");
+		}
 		strcat(p->thisfontname,fontname);
 		strcat(p->thisfontname,".ttf");
 	}
 }
 #endif
 /* initialize the freetype library */
-
+int FW_Open_Face(FT_Library library, char *thisfontname, int faceIndex, FT_Face *face);
 static FT_Face FW_init_face0(FT_Library library, char* thisfontname)
 {
     int err;
@@ -917,7 +920,8 @@ static FT_Face FW_init_face0(FT_Library library, char* thisfontname)
 
 #else //ANDROID
 	/* load a font face */
-	err = FT_New_Face(library, thisfontname, 0, &ftface);
+	err = FW_Open_Face(library, thisfontname, 0, &ftface);
+
 #endif //ANDROID
 
 	if (err) {
@@ -1050,7 +1054,7 @@ int open_font()
 #else
         ConsoleMessage ("No Fonts; check the build parameter --with-fontsdir, or set FREEWRL_FONTS_DIR environment variable\n");
 #endif
-        return FALSE;
+		//return FALSE;
     }
 #endif //HAVE_FONTCONFIG
 #endif //ANDROID
@@ -2644,6 +2648,8 @@ int bin2hex(char *inpath, char *outpath){
 	}
 	return 1;
 }
+
+
 int AtlasFont_LoadFromDotC(AtlasFont *font, unsigned char *start, int size){
 	FT_Face fontFace;
 	FT_Library fontlibrary;
@@ -2672,7 +2678,7 @@ int AtlasFont_LoadFromDotC(AtlasFont *font, unsigned char *start, int size){
     } 
 	font->fontFace = fontFace;
 
-	if(1){
+	if(0){
 		int nsizes;
 		printf("fontface flags & Scalable? = %ld \n",fontFace->face_flags & FT_FACE_FLAG_SCALABLE );
 		nsizes = fontFace->num_fixed_sizes;
@@ -2701,7 +2707,7 @@ AtlasFont *searchAtlasFontTable(struct Vector* guitable, char *name, int EMsize)
 #define DOTC_NONE 0
 #define DOTC_SAVE 1
 #define DOTC_LOAD 2
-#define HAVE_COMPILED_IN_FONT 1
+//#define HAVE_COMPILED_IN_FONT 1 //AT TOP OF THIS MODULE
 #ifdef HAVE_COMPILED_IN_FONT
 extern unsigned char VeraMono_ttf_data[];
 extern int VeraMono_ttf_size;
@@ -2709,6 +2715,35 @@ extern int VeraMono_ttf_size;
 unsigned char *VeraMono_ttf_data = NULL;
 int VeraMono_ttf_size = 0;
 #endif
+
+int FW_Open_Face(FT_Library library, char *thisfontname, int faceIndex, FT_Face *face)
+{
+	//FONT THUNKING
+	//this function can be used by Text and FontStyle to load Typewriter automatically from .c if compiled in,
+	// and/or substitute (THUNK) typewriter if the desired font file can't be found
+	int err = 0;
+
+	if(VeraMono_ttf_size && strstr(thisfontname,"VeraMono.ttf")){
+		//always try to get VeraMono from .c
+		FT_Open_Args args;
+		args.flags = FT_OPEN_MEMORY;
+		args.memory_base = VeraMono_ttf_data;
+		args.memory_size = VeraMono_ttf_size;
+		err = FT_Open_Face(library, &args, 0,  face);
+	}else{
+		err = FT_New_Face(library, thisfontname, faceIndex, face);
+		if(err && VeraMono_ttf_size)
+		{
+			//for any other font face, only substitute/thunk (to veramono) if it can't be found
+			FT_Open_Args args;
+			args.flags = FT_OPEN_MEMORY;
+			args.memory_base = VeraMono_ttf_data;
+			args.memory_size = VeraMono_ttf_size;
+			err = FT_Open_Face(library, &args, faceIndex,  face);
+		}
+	}
+	return err;
+}
 
 AtlasFont *searchAtlasTableOrLoad(char *facename, int EMpixels){
 	AtlasFont *font;
