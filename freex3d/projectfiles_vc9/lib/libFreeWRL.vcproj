@@ -747,6 +747,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\lib\scenegraph\VeraMono_ttf.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\lib\scenegraph\Viewer.c"
 				>
 			</File>

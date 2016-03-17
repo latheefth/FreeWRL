@@ -38,8 +38,7 @@
     <SRC>../../src</SRC>
     <SRCWIN>../../src_windows</SRCWIN>
     <LIBWIN>../../../../lib_windows_vc12</LIBWIN>
-    <ANGLEINC>../../../../lib_windows/angleproject/include</ANGLEINC>
-    <ANGLEINC_HIDE>../../../../lib_windowsStore/angleproject_MSOpenTech_RT/include</ANGLEINC_HIDE>
+    <ANGLE>../../../../angleproject2016/angle-ms-master</ANGLE>
   </PropertyGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D35384EF-4B8A-4256-9729-D6A94CCB88B8}</ProjectGuid>
@@ -147,7 +146,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(LIBWIN)\freeALUT\include;$(LIBWIN)\openALsoft\include;$(SRC)\libminizip;$(LIBWIN)\js185\include;$(SRC)\libnurbs;$(SRC)\libtess;$(SRC)\lib;$(SRCWIN);$(LIBWIN)\pthread\include;$(LIBWIN)\zlib\include;$(LIBWIN)\jpeg\include;$(LIBWIN)\freetype2\include;$(LIBWIN)\png\include;$(ANGLEINC);$(LIBWIN)\libxml2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(LIBWIN)\freeALUT\include;$(LIBWIN)\openALsoft\include;$(SRC)\libminizip;$(LIBWIN)\js185\include;$(SRC)\libnurbs;$(SRC)\libtess;$(SRC)\lib;$(SRCWIN);$(LIBWIN)\pthread\include;$(LIBWIN)\zlib\include;$(LIBWIN)\jpeg\include;$(LIBWIN)\freetype2\include;$(LIBWIN)\png\include;$(ANGLE)\include;$(LIBWIN)\libxml2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NURBS_LIB_no;JAVASCRIPT_DUK;JS_THREADSAFE;ANGLEPROJECT;W_DEBUG;WIN32;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;DO_COLLISION_GPU_no;STATIC_EXPORTABLE_JS_API;HAVE_PTHREAD_CANCEL;HAVE_OPENAL_no;HAVE_ALUT_no;MULTI_WINDOW;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -181,7 +180,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(LIBWIN)\openALsoft\include;$(LIBWIN)\freeALUT\include;$(SRC)\libminizip;$(LIBWIN)\js185\include;$(SRC)\libnurbs;$(SRC)\libtess;$(SRC)\lib;$(SRCWIN);$(LIBWIN)\pthread\include;$(LIBWIN)\zlib\include;$(LIBWIN)\jpeg\include;$(LIBWIN)\freetype2\include;$(LIBWIN)\png\include;$(ANGLEINC);$(LIBWIN)\libxml2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(LIBWIN)\openALsoft\include;$(LIBWIN)\freeALUT\include;$(SRC)\libminizip;$(LIBWIN)\js185\include;$(SRC)\libnurbs;$(SRC)\libtess;$(SRC)\lib;$(SRCWIN);$(LIBWIN)\pthread\include;$(LIBWIN)\zlib\include;$(LIBWIN)\jpeg\include;$(LIBWIN)\freetype2\include;$(LIBWIN)\png\include;$(ANGLE)\include;$(LIBWIN)\libxml2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NURBS_LIB_no;JAVASCRIPT_DUK;WIN32;ANGLEPROJECT;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;STATIC_EXPORTABLE_JS_API;HAVE_PTHREAD_CANCEL;HAVE_OPENAL_no;HAVE_ALUT_no;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -205,7 +204,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(LIBWIN)\freeALUT\include;$(LIBWIN)\openALsoft\include;$(SRC)\libminizip;$(LIBWIN)\js185\include;$(SRC)\libtess;$(SRC)\libnurbs;$(SRC)\Lib;$(SRCWIN);$(LIBWIN)\pthread\include;$(LIBWIN)\zlib\include;$(LIBWIN)\jpeg\include;$(LIBWIN)\freetype2\include;$(LIBWIN)\png\include;$(LIBWIN)\glew\include;$(LIBWIN)\libxml2\include;$(LIBWIN)\ODE;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>NURBS_LIB;JAVASCRIPT_DUK;W_DEBUG;WIN32;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;STATUSBAR_STD_no;STATUSBAR_NONE_no;DO_COLLISION_GPU_no;STATIC_EXPORTABLE_JS_API;HAVE_PTHREAD_CANCEL;SSR_SERVER;HAVE_OPENAL;HAVE_ALUT;DEBUG_MALLOC;DEBUG_MALLOC_LIST_no;USE_SNAPSHOT_TESTING_NO;MULTI_WINDOW;WITH_RBP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NURBS_LIB;JAVASCRIPT_DUK;W_DEBUG;WIN32;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD;STATUSBAR_STD_no;STATUSBAR_NONE_no;DO_COLLISION_GPU_no;STATIC_EXPORTABLE_JS_API;HAVE_PTHREAD_CANCEL;SSR_SERVER;HAVE_OPENAL;HAVE_ALUT;DEBUG_MALLOC_no;DEBUG_MALLOC_LIST_no;USE_SNAPSHOT_TESTING_NO;MULTI_WINDOW;WITH_RBP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -303,12 +302,7 @@
     <ClCompile Include="$(SRC)\lib\vrml_parser\CRoutes.c" />
     <ClCompile Include="$(SRC)\lib\world_script\CScripts.c" />
     <ClCompile Include="$(SRC)\lib\ui\CursorDraw.c" />
-    <ClCompile Include="$(SRC)\lib\ui\statusbarHud.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="$(SRC)\lib\ui\statusbarHud.c" />
     <ClCompile Include="$(SRCWIN)\dialogs.c" />
     <ClCompile Include="$(SRC)\lib\display.c" />
     <ClCompile Include="$(SRC)\lib\input\EAI_C_CommonFunctions.c" />
@@ -387,6 +381,7 @@
     <ClCompile Include="$(SRC)\lib\scenegraph\Component_Layout.c" />
     <ClCompile Include="$(SRC)\lib\scenegraph\Component_ParticleSystems.c" />
     <ClCompile Include="$(SRC)\lib\scenegraph\Component_RigidBodyPhysics.c" />
+    <ClCompile Include="$(SRC)\lib\scenegraph\VeraMono_ttf.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(SRC)\lib\scenegraph\Component_Picking.h" />

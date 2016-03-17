@@ -121,7 +121,7 @@ void Textures_clear(struct tTextures *t){
 	glDeleteBuffers (1,&t->defaultBlankTexture);
 	//private
 	{
-		int i;
+		//int i;
 		ppTextures p = (ppTextures)t->prv;
 		//for(i=0;i<vectorSize(p->activeTextureTable);i++){
 		//	textureTableIndexStruct_s *tti = vector_get(textureTableIndexStruct_s *,p->activeTextureTable,i);

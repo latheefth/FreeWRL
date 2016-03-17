@@ -509,6 +509,7 @@ void statusbar_render(void *_self){
 	self = (contenttype_statusbar *)_self;
 	pushnset_viewport(self->t1.viewport);
 	self->clipplane = statusbar_getClipPlane();
+
 	vportstack = NULL;
 	pushed = 0;
 	if(self->clipplane != 0){
@@ -974,10 +975,9 @@ void TextPanel_Console_AddString(char *string){
 void fwg_register_consolemessage_callback(void(*callback)(char *));
 void textpanel_register_as_console(void *_self){
 	contenttype_textpanel *self = (contenttype_textpanel*)_self;
-	console_textpanel = self;
+	console_textpanel = self; //static variable
 	fwg_register_consolemessage_callback(TextPanel_Console_AddString);
 }
-int textpanel_render_row(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y, vec4 color);
 ivec2 pixel2text(int x, int y, int rowheight, int maxadvancepx){
 	int h = rowheight;
 	int w = maxadvancepx;
@@ -993,7 +993,9 @@ ivec2 text2pixel(int x, int y, int rowheight, int maxadvancepx){
 
 void atlasfont_get_rowheight_charwidth_px(AtlasFont *font, int *rowheight, int *maxadvancepx);
 static int show_ringtext = 0;
-
+int before_textpanel_render_rows(AtlasFont *font, vec4 color);
+int textpanel_render_row(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y);
+void after_textpanel_render_rows();
 void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 /*	completely re-renders the textpanel, from the ABLOB and Blist ringbuffers
 	- call once per frame
@@ -1009,7 +1011,7 @@ void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 		x to get top-down look to scrolling you need 2 loops, one to count lines, one to draw
 		x you could scroll same distance even when there's nothing to see
 */
-	int jline, jrow, nrows, isFull, moredata, rowheight, maxadvancepx;
+	int jline, jrow, nrows, isFull, moredata, rowheight, maxadvancepx, atlasOK;
 
 	ivec2 panelsizechars;
 	BUTitem *BUTI, *LBUTI;
@@ -1075,6 +1077,10 @@ void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 		//normal case, 3 rows, no split
 		//
 		P = B;
+		atlasOK = before_textpanel_render_rows(self->font, self->color);
+		printf("\rivport.Y %d ",ivport.Y);
+
+		if(atlasOK)
 		for(i=0;i<nrows;i++){
 			unsigned char *row;
 			int l0, l1, i0, lenrow, pen_x, pen_y;
@@ -1083,7 +1089,8 @@ void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 			i0 = (nrows-i-1)*panelsizechars.X;
 			lenrow = min(nchars - i0,panelsizechars.X);
 			moredata -= lenrow;
-			if(moredata <= 0)break; //stale (overwritten) BLOB/ringbuffer data
+			if(moredata < 0) //was <= changed to < Mar 12, 2016 because skipping first line
+				break; //stale (overwritten) BLOB/ringbuffer data
 			jrow++;
 			if(jrow >  panelsizechars.Y) //would be rendered off-panel
 				break;
@@ -1121,14 +1128,14 @@ void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 			//textchars2panelpixel
 			xy = text2pixel(0,jrow,rowheight,maxadvancepx); 
 			//panelpixel2screenpixel?
-			pen_y = ivport.Y; 
 			pen_x = xy.X;
-			pen_y -= xy.Y;
+			pen_y = xy.Y;
+
 			//check if this line is visible, as measured by its bounding box. skip render if not
 			//ivec4 box = ivec4_init(pen_x,pen_y,lenrow*self->set->maxadvancepx,self->set->rowheight);
 			//ivec4 currentvp = stack_top(ivec4,_vpstack);
 			//if(overlapviewports(box, currentvp)) //seems not properly aligned, a little too aggressive
-			textpanel_render_row(self->font, row, lenrow,&pen_x, &pen_y, self->color); //&xy.X,&xy.Y);
+			textpanel_render_row(self->font, row, lenrow,&pen_x, &pen_y); //&xy.X,&xy.Y);
 			if(show_ringtext){
 				//debugging
 				memcpy(self->row,row,lenrow);
@@ -1141,6 +1148,7 @@ void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 		//moredata -= nchars;
 		BUTI = BUTI->prev;
 	}while(jrow < panelsizechars.Y && moredata > 0); //nrows > 0); //jline < panelsizechars.Y
+	after_textpanel_render_rows();
 	if(0) printf("======================\n");
 	//if(jline >= panelsizechars.Y && panelsizechars.Y < self->maxlines){
 	//if(jrow >= panelsizechars.Y && panelsizechars.Y < self->maxlines){
@@ -1176,11 +1184,12 @@ void textpanel_render(void *_self){
 		c = c->t1.next;
 	}
 	//render self last, as layer over children
-	tg = gglobal();
-	vportstack = (Stack*)tg->Mainloop._vportstack;
-	ivport = stack_top(ivec4,vportstack);
-
-	textpanel_render_blobmethod(self,ivport);
+	if(getShowConsoleText()){
+		tg = gglobal();
+		vportstack = (Stack*)tg->Mainloop._vportstack;
+		ivport = stack_top(ivec4,vportstack);
+		textpanel_render_blobmethod(self,ivport);
+	}
 	popnset_viewport();
 }
 
@@ -3564,20 +3573,33 @@ void setup_stagesNORMAL(){
 		cstage->t1.contents = cmultitouch;
 		p->EMULATE_MULTITOUCH =	FALSE;
 		//IDEA: these prepared ways of using freewrl could be put into a switchcase contenttype called early ie from window
-		if(0){
+		if(1){
 			//normal: multitouch emulation, layer, scene, statusbarHud, 
 			if(1) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
 			else cstage->t1.contents = csbh; //skip multitouch
 			//tg->Mainloop.AllowNavDrag = TRUE; //experimental approach to allow both navigation and dragging at the same time, with 2 separate touches
-		}else if(1){
+		}else if(0){
 			//tests dual-ringbuffer console textpanel
 			contenttype *ctextpanel;
+			vec4 ccolor;
+			contenttype *ctext;
+			ccolor = vec4_init(1.0f,.6f,0.0f,1.0f);
+			ctext = new_contenttype_captiontext("VeraMono",12,ccolor);
+			captiontext_setString(ctext, "Trying VeraMono From CaptionText");
+			ctext->t1.viewport[0] = .1f;
+			ctext->t1.viewport[1] = .6f;
+			ctext->t1.viewport[2] = .4f;
+			ctext->t1.viewport[3] = .5f;
+
 			//ctextpanel = new_contenttype_textpanel("Vera",8,30,120,TRUE);
 			ctextpanel = new_contenttype_textpanel("VeraMono",8,60,120,TRUE);
-
 			ctextpanel->t1.contents = cscene;
+			ConsoleMessage("Going to register textpanel for ConsoleMessages\n"); //should not show in textpanel
 			textpanel_register_as_console(ctextpanel);
+			ConsoleMessage("Registered textpanel for ConsoleMessages\n"); //should be first message to show in textpanel
+			//ConsoleMessage("next line\n");
 			csbh->t1.contents = ctextpanel;
+			ctextpanel->t1.next = ctext;
 			cstage->t1.contents = csbh;
 		}else if(0){
 			//captiontext, layer, scene, statusbarHud, 
@@ -4599,342 +4621,6 @@ void handle(const int mev, const unsigned int button, const float x, const float
 {
 	handlePTR(mev, button, x, y);
 }
-
-
-#ifdef OLDCODE //moved to x11 code
-#if !defined( AQUA ) && !defined( _MSC_VER ) &&!defined (_ANDROID)
-//XK_ constants from /usr/include/X11/keysymdef.h
-#define PHOME_KEY XK_Home //80
-#define PPGDN_KEY XK_Page_Down //86
-#define PLEFT_KEY XK_Left //106
-#define PEND_KEY XK_End //87
-#define PUP_KEY XK_Up //112
-#define PRIGHT_KEY XK_Right //108
-#define PPGUP_KEY XK_Page_Up //85
-#define PDOWN_KEY XK_Down //59
-#define PF1_KEY  XK_F1 //0xFFBE
-//OLDCODE #define PF2_KEY  XK_F2 //0xFFBF
-//OLDCODE #define PF3_KEY  XK_F3 //0XFFC0
-//OLDCODE #define PF4_KEY  XK_F4 //0XFFC1
-//OLDCODE #define PF5_KEY  XK_F5 //0XFFC2
-//OLDCODE #define PF6_KEY  XK_F6 //0XFFC3
-//OLDCODE #define PF7_KEY  XK_F7 //0XFFC4
-//OLDCODE #define PF8_KEY  XK_F8 //0XFFC5
-//OLDCODE #define PF9_KEY  XK_F9 //0XFFC6
-//OLDCODE #define PF10_KEY XK_F10 //0XFFC7
-//OLDCODE #define PF11_KEY XK_F11 //0XFFC8
-#define PF12_KEY XK_F12 //0XFFC9
-#define PALT_KEY XK_Alt_L //0XFFE9 //left, and 0XFFEA   //0XFFE7
-#define PALT_KEYR XK_Alt_R //0XFFE9 //left, and 0XFFEA   //0XFFE7
-#define PCTL_KEY XK_Control_L //0XFFE3 //left, and 0XFFE4 on right
-#define PCTL_KEYR XK_Control_R //0XFFE3 //left, and 0XFFE4 on right
-#define PSFT_KEY XK_Shift_L //0XFFE1 //left, and 0XFFE2 on right
-#define PSFT_KEYR XK_Shift_R //0XFFE1 //left, and 0XFFE2 on right
-#define PDEL_KEY XK_Delete //0XFF9F //on numpad, and 0XFFFF near Insert //0x08
-//OLDCODE #define PRTN_KEY XK_Return //XK_KP_Enter //0xff0d 13
-#define PNUM0 XK_KP_Insert    //XK_KP_0
-#define PNUM1 XK_KP_End       //XK_KP_1
-#define PNUM2 XK_KP_Down      //XK_KP_2
-#define PNUM3 XK_KP_Page_Down //XK_KP_3
-#define PNUM4 XK_KP_Left      //XK_KP_4
-#define PNUM5 XK_KP_Begin     //XK_KP_5
-#define PNUM6 XK_KP_Right     //XK_KP_6
-#define PNUM7 XK_KP_Home      //XK_KP_7
-#define PNUM8 XK_KP_Up        //XK_KP_8
-#define PNUM9 XK_KP_Page_Up   //XK_KP_9
-#define PNUMDEC XK_KP_Delete //XK_KP_Decimal
-
-//OLDCODE #define KEYPRESS 1
-//OLDCODE #define KEYDOWN 2
-//OLDCODE #define KEYUP	3
-
-///* from http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/index.html
-//section 21.4.1
-//Key Value
-//Home 13
-//End 14
-//PGUP 15
-//PGDN 16
-//UP 17
-//DOWN 18
-//LEFT 19
-//RIGHT 20
-//F1-F12  1 to 12
-//ALT,CTRL,SHIFT true/false
-//*/
-//#define F1_KEY  1
-//#define F2_KEY  2
-//#define F3_KEY  3
-//#define F4_KEY  4
-//#define F5_KEY  5
-//#define F6_KEY  6
-//#define F7_KEY  7
-//#define F8_KEY  8
-//#define F9_KEY  9
-//#define F10_KEY 10
-//#define F11_KEY 11
-//#define F12_KEY 12
-//#define HOME_KEY 13
-//#define END_KEY  14
-//#define PGUP_KEY 15
-//#define PGDN_KEY 16
-//#define UP_KEY   17
-//#define DOWN_KEY 18
-//#define LEFT_KEY 19
-//#define RIGHT_KEY 20
-//#define ALT_KEY	30 /* not available on OSX */
-//#define CTL_KEY 31 /* not available on OSX */
-//#define SFT_KEY 32 /* not available on OSX */
-//#define DEL_KEY 0XFFFF /* problem: I'm insterting this back into the translated char stream so 0XFFFF too high to clash with a latin? */
-//#define RTN_KEY 13  //what about 10 newline?
-
-
-int platform2web3dActionKeyLINUX(int platformKey)
-{
-	int key;
-
-	key = 0; //platformKey;
-	if(platformKey >= PF1_KEY && platformKey <= PF12_KEY)
-		key = platformKey - PF1_KEY + F1_KEY;
-	else
-		switch(platformKey)
-		{
-		case PHOME_KEY:
-			key = HOME_KEY; break;
-		case PEND_KEY:
-			key = END_KEY; break;
-		case PPGDN_KEY:
-			key = PGDN_KEY; break;
-		case PPGUP_KEY:
-			key = PGUP_KEY; break;
-		case PUP_KEY:
-			key = UP_KEY; break;
-		case PDOWN_KEY:
-			key = DOWN_KEY; break;
-		case PLEFT_KEY:
-			key = LEFT_KEY; break;
-		case PRIGHT_KEY:
-			key = RIGHT_KEY; break;
-		case PDEL_KEY:
-			key = DEL_KEY; break;
-		case PALT_KEY:
-		case PALT_KEYR:
-			key = ALT_KEY; break;
-		case PCTL_KEY:
-		case PCTL_KEYR:
-			key = CTL_KEY; break;
-		case PSFT_KEY:
-		case PSFT_KEYR:
-			key = SFT_KEY; break;
-		case PNUM0:
-			key = NUM0; break;
-		case PNUM1:
-			key = NUM1; break;
-		case PNUM2:
-			key = NUM2; break;
-		case PNUM3:
-			key = NUM3; break;
-		case PNUM4:
-			key = NUM4; break;
-		case PNUM5:
-			key = NUM5; break;
-		case PNUM6:
-			key = NUM6; break;
-		case PNUM7:
-			key = NUM7; break;
-		case PNUM8:
-			key = NUM8; break;
-		case PNUM9:
-			key = NUM9; break;
-		case PNUMDEC:
-			key = NUMDEC; break;
-		default:
-			key = 0;
-		}
-	return key;
-}
-
-#include <libFreeWRL.h>
-void handle_Xevents(XEvent event) {
-
-	XEvent nextevent;
-	char buf[10];
-	KeySym ks, ksraw, ksupper, kslower;
-	KeySym *keysym;
-
-	int keysyms_per_keycode_return;
-
-	//int count;
-	int actionKey, windex;
-	int cursorStyle;
-	ppMainloop p;
-	ttglobal tg = gglobal();
-	p = (ppMainloop)tg->Mainloop.prv;
-	//p->lastMouseEvent=event.type;
-
-#ifdef VERBOSE
-	switch (event.type) {
-		case ConfigureNotify: printf ("Event: ConfigureNotify\n"); break;
-		case ClientMessage: printf ("Event: ClientMessage\n"); break;
-		case KeyPress: printf ("Event: KeyPress\n"); break;
-		case KeyRelease: printf ("Event: KeyRelease\n"); break;
-		case ButtonPress: printf ("Event: ButtonPress\n"); break;
-		case ButtonRelease: printf ("Event: ButtonRelease\n"); break;
-		case MotionNotify: printf ("Event: MotionNotify\n"); break;
-		case MapNotify: printf ("Event: MapNotify\n"); break;
-		case UnmapNotify: printf ("Event: *****UnmapNotify\n"); break;
-		default: printf ("event, unknown %d\n", event.type);
-	}
-#endif
-	windex = fwl_hwnd_to_windex(event.xany.window); //sets it if doesn't exist	
-	switch(event.type) {
-//#ifdef HAVE_NOTOOLKIT
-		/* Motif, etc, usually handles this. */
-		case ConfigureNotify:
-			/*  printf("%s,%d ConfigureNotify  %d %d\n",__FILE__,__LINE__,event.xconfigure.width,event.xconfigure.height); */
-//#ifdef STATUSBAR_HUD
-//			statusbar_set_window_size(event.xconfigure.width,event.xconfigure.height);
-//#else
-			fwl_setScreenDim1 (event.xconfigure.width,event.xconfigure.height,windex);
-//#endif
-			break;
-//#endif
-		case ClientMessage:
-			if (event.xclient.data.l[0] == WM_DELETE_WINDOW && !RUNNINGASPLUGIN) {
-				#ifdef VERBOSE
-				printf("---XClient sent wmDeleteMessage, quitting freewrl\n");
-				#endif
-				fwl_doQuit();
-			}
-			break;
-		case KeyPress:
-		case KeyRelease:
-			XLookupString(&event.xkey,buf,sizeof(buf),&ks,0);
-			///*  Map keypad keys in - thanks to Aubrey Jaffer.*/
-			//if(0) switch(ks) {
-			//	/*  the non-keyboard arrow keys*/
-			//	case XK_Left: ks = XK_j; break;
-			//	case XK_Right: ks = XK_l; break;
-			//	case XK_Up: ks = XK_p; break;
-			//	case XK_Down: ks = XK_semicolon; break;
-			//	case XK_KP_0:
-			//	case XK_KP_Insert:
-			//		ks = XK_a; break;
-			//	case XK_KP_Decimal:
-			//	case XK_KP_Delete:
-			//		ks = XK_z; break;
-			//	case XK_KP_7:
-			//	case XK_KP_Home:
-			//		ks = XK_7; break;
-			//	case XK_KP_9:
-			//	case XK_KP_Page_Up:
-			//		ks = XK_9; break;
-			//	case XK_KP_8:
-			//	case XK_KP_Up:
-			//		ks = XK_k; break;
-			//	case XK_KP_2:
-			//	case XK_KP_Down:
-			//		ks = XK_8; break;
-			//	case XK_KP_4:
-			//	case XK_KP_Left:
-			//		ks = XK_u; break;
-			//	case XK_KP_6:
-			//	case XK_KP_Right:
-			//		ks = XK_o; break;
-			//	case XK_Num_Lock: ks = XK_h; break;
-			//		default: break;
-			//}
-
-			/* doubt that this is necessary */
-			buf[0]=(char)ks;buf[1]='\0';
-
-			DEBUG_XEV("Key type = %s\n", (event.type == KeyPress ? "KEY PRESS" : "KEY  RELEASE"));
-			//fwl_do_keyPress((char)ks,event.type);
-			//ksraw = (char)buf[0];
-
-
-			// deprecated:  ksraw = XKeycodeToKeysym(event.xkey.display, event.xkey.keycode, 0);
-
-			keysym = XGetKeyboardMapping(event.xkey.display,
-				event.xkey.keycode, 1, &keysyms_per_keycode_return);
-			ksraw = *keysym;
-			XFree(keysym);
-
-			XConvertCase(ksraw,&kslower,&ksupper);
-
-			ksraw = ksupper;
-			if(event.type == KeyRelease && !IsModifierKey(ks)
-				&& !IsFunctionKey(ks) && !IsMiscFunctionKey(ks) && !IsCursorKey(ks)){
-				fwl_do_rawKeyPress((int)ks,1);
-				//printf("ks=%c %d %o %x\n",ks,(int)ks,(int)ks,(int)ks);
-			}
-			//printf("ksraw=%c %d %o %x\n",ksraw,(int)ksraw,(int)ksraw,(int)ksraw);
-			actionKey = platform2web3dActionKeyLINUX(ksraw);
-			if(actionKey)
-				fwl_do_rawKeyPress(actionKey,event.type+10);
-			else
-				fwl_do_rawKeyPress(ksraw,event.type);
-			break;
-
-		case ButtonPress:
-		case ButtonRelease:
-			cursorStyle = fwl_handle_mouse(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y,windex);
-			setCursor(cursorStyle);
-			//if(0){
-			//	/* printf("got a button press or button release\n"); */
-			//	/*  if a button is pressed, we should not change state,*/
-			//	/*  so keep a record.*/
-			//	if(handleStatusbarHud(event.type, &tg->Mainloop.clipPlane))break;
-			//	if (event.xbutton.button>=5) break;  /* bounds check*/
-			//	p->ButDown[p->currentCursor][event.xbutton.button] = (event.type == ButtonPress);
-
-			//	/* if we are Not over an enabled sensitive node, and we do NOT
-			//		already have a button down from a sensitive node... */
-			//	/* printf("cursoroversensitive is %u lastPressedOver %u\n", p->CursorOverSensitive,p->lastPressedOver); */
-			//	if ((p->CursorOverSensitive==NULL) && (p->lastPressedOver==NULL))  {
-			//			p->NavigationMode=p->ButDown[p->currentCursor][1] || p->ButDown[p->currentCursor][3];
-			//			handle (event.type,event.xbutton.button,
-			//					(float) ((float)event.xbutton.x/tg->display.screenWidth),
-			//					(float) ((float)event.xbutton.y/tg->display.screenHeight));
-			//	}
-			//}
-			break;
-
-		case MotionNotify:
-#if KEEP_X11_INLIB
-			/* printf("got a motion notify\n"); */
-			/*  do we have more motion notify events queued?*/
-			if (XPending(Xdpy)) {
-					XPeekEvent(Xdpy,&nextevent);
-					if (nextevent.type==MotionNotify) { break;
-					}
-			}
-#endif /* KEEP_X11_INLIB */
-			cursorStyle = fwl_handle_mouse(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y,windex);
-			setCursor(cursorStyle);
-			//if(0){
-
-			//	/*  save the current x and y positions for picking.*/
-			//	tg->Mainloop.currentX[p->currentCursor] = event.xbutton.x;
-			//	tg->Mainloop.currentY[p->currentCursor] = event.xbutton.y;
-			//	/* printf("navigationMode is %d\n", NavigationMode); */
-			//	if(handleStatusbarHud(6, &tg->Mainloop.clipPlane))break;
-			//	if (p->NavigationMode) {
-			//			/*  find out what the first button down is*/
-			//			count = 0;
-			//			while ((count < 5) && (!p->ButDown[p->currentCursor][count])) count++;
-			//			if (count == 5) return; /*  no buttons down???*/
-
-			//			handle (event.type,(unsigned)count,
-			//					(float)((float)event.xbutton.x/tg->display.screenWidth),
-			//					(float)((float)event.xbutton.y/tg->display.screenHeight));
-			//	}
-			//}
-			break;
-	}
-}
-#endif //X11
-#endif //OLDCODE
 
 /* get setup for rendering. */
 #ifdef DJTRACK_PICKSENSORS

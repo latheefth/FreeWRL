@@ -57,12 +57,14 @@ typedef struct pcommon{
 	int target_frames_per_second;
 	char myMenuStatus[MAXSTAT];
 	char messagebar[MAXSTAT];
+	char fpsbar[16];
 	char window_title[MAXTITLE];
 	int cursorStyle;
 	int promptForURL;
 	int promptForFile;
 	int sb_hasString;// = FALSE;
 	char buffer[200];
+	int showConsoleText;
 	void *colorScheme;
 	int colorSchemeChanged;
 	int pin_statusbar;
@@ -92,6 +94,7 @@ void common_init(struct tcommon *t){
 		p->want_menubar = 1;
 		p->want_statusbar = 1;
 		p->keyvals = NULL;
+		p->showConsoleText = 0;  //in the UI, if a callback is registered with ConsoleMessage. Won't affect old fashioned console, 
 		p->target_frames_per_second = 120;  //is 120 FPS a good target FPS?
 	}
 }
@@ -115,13 +118,13 @@ void common_clear(struct tcommon *t){
 //ppcommon p = (ppcommon)gglobal()->common.prv;
 
 /* Status update functions (generic = all platform) */
-
+void setFpsBar();
 void setMenuFps(float fps)
 {
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 
 	p->myFps = fps;
-	setMessageBar();
+	setFpsBar();
 }
 /* make sure that on a re-load that we re-init */
 void kill_status(void) {
@@ -132,7 +135,14 @@ void kill_status(void) {
 	p->buffer[0] = '\0';
 }
 
-
+void showConsoleText(int on){
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	p->showConsoleText = on;
+}
+int getShowConsoleText(){
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	return p->showConsoleText;
+}
 /* trigger a update */
 void update_status(char* msg) {
 	ppcommon p = (ppcommon)gglobal()->common.prv;
@@ -150,35 +160,22 @@ char *get_status(){
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 	return p->buffer;
 }
-void setMenuStatus2(char* prefix, char *suffix)
+void setMenuStatus3(char* status3)
 {
-	//int loading = FALSE;
-	char *pp, *ss;
+	char *pp;
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 
- //       if (fwl_isinputThreadParsing() ||
-	//    fwl_isTextureParsing() ||
-	//    (!fwl_isInputThreadInitialized())) loading = TRUE;
-
-	//if (loading) {
-	//	snprintf(p->myMenuStatus, sizeof(p->myMenuStatus),
-	//		 "(Loading...)");
-	//} else {
-	pp = prefix;
-	ss = suffix;
+	pp = status3;
 	if (!pp) pp = "";
-	if (!ss) ss = "";
-		snprintf(p->myMenuStatus, sizeof(p->myMenuStatus), "%s %s", pp,ss);
-	//}
+	snprintf(p->myMenuStatus, MAXSTAT-1, "%s", pp);
 }
 void setMenuStatus(char *stattext)
 {
-	setMenuStatus2(stattext, NULL);
+	setMenuStatus3(stattext);
 }
 void setMenuStatusVP(char *stattext)
 {
-	setMenuStatus2("Viewpoint:",stattext);
-
+	setMenuStatus3(stattext);
 }
 char *getMenuStatus()
 {
@@ -205,15 +202,22 @@ void setMessageBar()
 {
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 
-	snprintf(&p->messagebar[0], 10, " %8.2f ", p->myFps);
-	snprintf(&p->messagebar[15], sizeof(p->myMenuStatus)-15, "%s", p->myMenuStatus);
+	snprintf(p->messagebar, MAXSTAT-1, "%s", p->myMenuStatus);
 }
 char *getMessageBar()
 {
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 	return p->messagebar;
 }
-
+char *getFpsBar(){
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	return p->fpsbar;
+}
+void setFpsBar(){
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	//snprintf(p->fpsbar, 10, "%7.2f", p->myFps);
+	snprintf(p->fpsbar, 10, "%4d", (int)(p->myFps + .49999f));
+}
 static int frontend_using_cursor = 0;
 void fwl_set_frontend_using_cursor(int on)
 {

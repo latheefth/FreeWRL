@@ -1462,5 +1462,14 @@ void EAI_Anchor_Response (int resp) {
 	}
 	p->waiting_for_anchor = FALSE;
 }
-
+#else
+void EAI_Anchor_Response (int resp) {
+	char myline[1000];
+	ppEAIEventsIn p;
+	//ppEAICore ps;
+	ttglobal tg = gglobal();
+	p = (ppEAIEventsIn)tg->EAIEventsIn.prv;
+	//ps = (ppEAICore)tg->EAICore.prv;
+	p->waiting_for_anchor = FALSE;
+}
 #endif //EXCLUDE_EAI

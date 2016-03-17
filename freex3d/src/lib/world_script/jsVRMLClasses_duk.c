@@ -30,7 +30,6 @@ X3DMatrix3,4 - code implemented but never tested
 */
 
 #include <config.h>
-#include <config.h>
 #if defined(JAVASCRIPT_DUK)
 #include <system.h>
 #include <system_threads.h>
@@ -172,18 +171,34 @@ int MFW_Getter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 		//fwretval->_web3dval.fieldType = FIELDTYPE_SFInt32;
 		//fwretval->itype = 'W';
 		nr = 1;
-	}else if(index > -1 && index < ptr->n){
+	}else if(index > -1 ){
 		int sftype;
 		char *p = (char *)ptr->p;
 		int elen = sizeofSF(fwt->itype);
 		sftype = type2SF(fwt->itype);
+		if(index >= ptr->n){
+			//sept 2015 for white_dune CurveAnimationPROTO.wrl script which writes to empty MF[i].x = x;
+			//we are assigning to an index that hasn't been individually malloced yet 
+			//ie MF[i].subfield = value
+			//ideally the javascript programer would first do MF[i] = new SFxxx() before assigning to a subfield.
+			//here we'll cut them some slack by reallocing and mallocing missing elements.
+			//but I think MF[i] = SF will come in to MFW_Setter, not here in MFW_Getter.
+			int newlen;
+			newlen = upper_power_of_two(index+1);
+			ptr->p = realloc(p,newlen * elen);
+			p = ptr->p;
+			memset(&p[ptr->n * elen],0,elen * (index+1 - ptr->n)); //clear just the new section
+			ptr->n = index+1;
+			p = (char *)ptr->p;
+		}
 		if(sftype == FIELDTYPE_SFNode){
 			//Method A return pointer to SF from MF[i] (almost^)
 			//attempt to make SFnode = MFnode[i] so that SF survives gc of MF
 			//^consumers of SFNode will still use 2-step ** -> node* 
 			// .. due to plumbing being written with method C in mind 
 			// .. (could be pruned out in all SFNode sources and sinks in _duk modules)
-			//can do this 'costlessly' but just for SFnode/MFnode
+			//can do this costlessly -MF[i] = SF comes in to MFW_Setter that still uses &MF[i]- 
+			// but just for SFnode/MFnode 
 			void *sfptr = malloc(sizeof(void*));
 			memcpy(sfptr,(void *)(p + index*elen),sizeof(void*)); //*sfptr = MF.p[i] = &SF
 			fwretval->_web3dval.native = (void *)sfptr; //native = &sfptr
@@ -214,28 +229,6 @@ int MFW_Getter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 			}
 		}
 		fwretval->_web3dval.fieldType = type2SF(fwt->itype);
-		fwretval->itype = 'W';
-		nr = 1;
-	}else if(index > -1 && index >= ptr->n){
-		//sept 2015 for white_dune CurveAnimationPROTO.wrl script which writes to empty MF[i].x = x;
-		//we are assigning to an index that hasn't been individually malloced yet 
-		//ie MF[i].subfield = value
-		//ideally the javascript programer would first do MF[i] = new SFxxx() before assigning to a subfield.
-		//here we'll cut them some slack by reallocing and mallocing missing elements.
-		int elen,newlen;
-		char *p;
-		p = (char *)ptr->p;
-		elen = sizeofSF(fwt->itype);
-		newlen = upper_power_of_two(index+1);
-		ptr->p = realloc(p,newlen * elen);
-		p = ptr->p;
-		memset(&p[ptr->n * elen],0,elen * (index+1 - ptr->n)); //clear just the new section
-		ptr->n = index+1;
-		p = (char *)ptr->p;
-
-		fwretval->_web3dval.native = (void *)(p + index*elen);
-		fwretval->_web3dval.fieldType = type2SF(fwt->itype);
-		fwretval->_web3dval.gc = 0;
 		fwretval->itype = 'W';
 		nr = 1;
 	}

@@ -57,6 +57,7 @@ X3D Text Component
 #include <sys/stat.h>
 #endif //ANDROID_DEBUG
 #endif //ANDROID
+#define HAVE_COMPILED_IN_FONT 1
 
 //googling for info on DPI, PPI:
 //DPI dots per inch (one dot == 1 pixel), in non-mac its 96 DPI constant for historical reasons
@@ -836,7 +837,7 @@ void FW_make_fontname(int num) {
     ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
     if (!p->font_directory) {
         printf("Internal error: no font directory.\n");
-        return;
+		//return;
     }
 
 	fontname = facename_from_num(num);
@@ -844,15 +845,17 @@ void FW_make_fontname(int num) {
 		printf ("dont know how to handle font id %x\n",num);
 		p->thisfontname[0] = 0;
 	}else{
-		strcpy (p->thisfontname, p->font_directory);
-		strcat(p->thisfontname,"/");
+		if(p->font_directory){
+			strcpy (p->thisfontname, p->font_directory);
+			strcat(p->thisfontname,"/");
+		}
 		strcat(p->thisfontname,fontname);
 		strcat(p->thisfontname,".ttf");
 	}
 }
 #endif
 /* initialize the freetype library */
-
+int FW_Open_Face(FT_Library library, char *thisfontname, int faceIndex, FT_Face *face);
 static FT_Face FW_init_face0(FT_Library library, char* thisfontname)
 {
     int err;
@@ -917,7 +920,8 @@ static FT_Face FW_init_face0(FT_Library library, char* thisfontname)
 
 #else //ANDROID
 	/* load a font face */
-	err = FT_New_Face(library, thisfontname, 0, &ftface);
+	err = FW_Open_Face(library, thisfontname, 0, &ftface);
+
 #endif //ANDROID
 
 	if (err) {
@@ -1050,7 +1054,7 @@ int open_font()
 #else
         ConsoleMessage ("No Fonts; check the build parameter --with-fontsdir, or set FREEWRL_FONTS_DIR environment variable\n");
 #endif
-        return FALSE;
+		//return FALSE;
     }
 #endif //HAVE_FONTCONFIG
 #endif //ANDROID
@@ -2099,6 +2103,17 @@ void Atlas_init(Atlas *me, int size, int rowheight){
 	me->rowheight = rowheight; //spacing between baselines for textpanel, in pixels (can get this from fontFace once loaded and sized to EM)
 	//me->EMpixels = EMpixels;  //desired size of "EM" square (either x or y dimension, same) in pixels
 	me->bytesperpixel = 1; //TT fonts are rendered to an antialiased 8-bit alpha texture
+	//me->bytesperpixel = 2;
+#ifdef ANGLEPROJECT
+	#ifdef WINRT
+	me->bytesperpixel = 1; //ANGLEPROJECT winrt 8.1 - can't seem to mipmap 1 BPP GL_ALPHA/A8/ii needs 2 bpp GL_LUMINANCE_ALPHA/A8L8 or bombs
+	//possible patch shown here: https://bugs.chromium.org/p/angleproject/issues/detail?id=632
+	//got a 2014 era copy of MSOpenTech VS2013-WINRT successfully built with patch and 1bpp/GL_ALPHA runs and looks good
+	//DirectX Surface Formats: https://msdn.microsoft.com/en-us/library/windows/desktop/bb153349(v=vs.85).aspx
+	#else
+	me->bytesperpixel = 1; //ANGLEPROJECT desktop - 1 bpp/A8/ii/GL_ALPHA is good
+	#endif
+#endif
 	me->texture = (char*)MALLOCV(me->size.X *me->size.Y*me->bytesperpixel);
 	memset(me->texture,127,me->size.X *me->size.Y*me->bytesperpixel); //make it black by default
 	/*
@@ -2113,19 +2128,34 @@ void Atlas_init(Atlas *me, int size, int rowheight){
 	*/
 }
 
-void subimage_paste(char *image, ivec2 size, char* subimage, int bpp, ivec2 ulpos, ivec2 subsize ){
+void subimage_paste(unsigned char *image, ivec2 size, unsigned char* subimage, int bpp, ivec2 ulpos, ivec2 subsize ){
 	int i;
-	int imrow, imcol, impos;
+	int imrow, imcol, impos,bpp1;
 	int iscol, ispos;
+	bpp1 = 1; //bits per pixel of the subimage (bpp is for the atlas)
 	for(i=0;i<subsize.Y;i++ ){
 		imrow = ulpos.Y + i;
 		imcol = ulpos.X;
 		impos = (imrow * size.X + imcol)*bpp;
 		//isrow = i;
 		iscol = 0;
-		ispos = (i*subsize.X + iscol)*bpp;
+		ispos = (i*subsize.X + iscol)*bpp1;
 		if(impos >= 0 && (impos+subsize.X*bpp <= size.X*size.Y*bpp))
-			memcpy(&image[impos],&subimage[ispos],subsize.X*bpp);
+		{
+			if(bpp == 1) memcpy(&image[impos],&subimage[ispos],subsize.X*bpp1);
+			else {
+				//we receive a 1byte-per-pixel GL_ALPHA image chip from font library
+				//here we expand it to 2 bytes per pixel GL_LUMINANCE_ALPHA
+				int j, k;
+				for(k=0;k<subsize.X;k++){
+					for(j=0;j<bpp;j++){
+						//x looks fuzzy, unreadable, unlike the opengl 1bpp GL_ALPHA
+						if(j ==5) image[impos+k+j] = 255;
+						else image[impos+k+j] = subimage[ispos+k];
+					}
+				}
+			}
+		}
 		else
 			printf("!");
 	}
@@ -2166,12 +2196,16 @@ void Atlas_addEntry(Atlas *me, AtlasEntry *entry, char *gray){
 		me->pen.Y += me->rowheight;
 		me->pen.X = 0;
 	}
+	if(me->pen.Y > me->size.Y){
+		ConsoleMessage("Atlas too small, skipping %d\n",entry->ichar);
+		return;
+	}
 
 	//paste glyph image into atlas image
 	pos.X = me->pen.X + entry->pos.X;
 	pos.Y = me->pen.Y + entry->pos.Y;
 	
-	if(1) subimage_paste(me->texture,me->size,gray,1,me->pen,entry->size);
+	if(1) subimage_paste(me->texture,me->size,gray,me->bytesperpixel,me->pen,entry->size);
 	if(0) subimage_paste(me->texture,me->size,gray,1,pos,entry->size);
 
 	if(1) {
@@ -2196,6 +2230,7 @@ typedef struct AtlasEntrySet {
 	int EMpixels;
 	int maxadvancepx; //max_advance for x for a fontface
 	int rowheight;  //if items are in regular rows, this is a hint, during making of the atlas
+	int lastascii;
 	char *atlasName;
 	Atlas *atlas;
 	AtlasFont *font;
@@ -2207,6 +2242,7 @@ void AtlasEntrySet_init(AtlasFont *font, AtlasEntrySet *me, char *name){
 	me->font = font;
 	me->type = GUI_ATLASENTRYSET;
 	me->entries = newVector(AtlasEntry *,256);
+	me->lastascii = -1;
 	memset(me->ascii,0,128*sizeof(int)); //initialize ascii fast lookup table to NULL, which means no char glyph stored
 }
 
@@ -2216,6 +2252,7 @@ void AtlasEntrySet_addEntry1(AtlasEntrySet *me, AtlasEntry *entry){
 	if(entry->ichar > 0 && entry->ichar < 128){
 		//if its an ascii char, add to fast lookup table
 		me->ascii[entry->ichar] = entry;
+		me->lastascii = max(me->lastascii,me->entries->n); //for lookup optimization
 	}
 }
 void AtlasEntrySet_addEntry(AtlasEntrySet *me, AtlasEntry *entry, char *gray){
@@ -2224,6 +2261,7 @@ void AtlasEntrySet_addEntry(AtlasEntrySet *me, AtlasEntry *entry, char *gray){
 	if(entry->ichar > 0 && entry->ichar < 128){
 		//if its an ascii char, add to fast lookup table
 		me->ascii[entry->ichar] = entry;
+		me->lastascii = max(me->lastascii,me->entries->n); //for lookup optimization
 	}
 	if(!me->atlas)
 		me->atlas = (Atlas*)searchGUItable(p->atlas_table,me->atlasName);
@@ -2251,7 +2289,7 @@ AtlasEntry *AtlasEntrySet_getEntry(AtlasEntrySet *me, int ichar){
 	}else{
 		//could be a binary search here
 		int i;
-		for(i=0;i<vectorSize(me->entries);i++){
+		for(i=me->lastascii;i<vectorSize(me->entries);i++){
 			AtlasEntry *entry = vector_get(AtlasEntry*,me->entries,i);
 			if(entry->ichar == ichar){
 				ae = entry;
@@ -2618,6 +2656,8 @@ int bin2hex(char *inpath, char *outpath){
 	}
 	return 1;
 }
+
+
 int AtlasFont_LoadFromDotC(AtlasFont *font, unsigned char *start, int size){
 	FT_Face fontFace;
 	FT_Library fontlibrary;
@@ -2646,7 +2686,7 @@ int AtlasFont_LoadFromDotC(AtlasFont *font, unsigned char *start, int size){
     } 
 	font->fontFace = fontFace;
 
-	if(1){
+	if(0){
 		int nsizes;
 		printf("fontface flags & Scalable? = %ld \n",fontFace->face_flags & FT_FACE_FLAG_SCALABLE );
 		nsizes = fontFace->num_fixed_sizes;
@@ -2656,40 +2696,6 @@ int AtlasFont_LoadFromDotC(AtlasFont *font, unsigned char *start, int size){
 }
 
 
-#define DOTC_NONE 0
-#define DOTC_SAVE 1
-#define DOTC_LOAD 2
-
-
-#define FONT_TACTIC DOTC_NONE //DOTC_LOAD
-#define ATLAS_TACTIC DOTC_NONE
-#if FONT_TACTIC > DOTC_SAVE
-	extern unsigned char ProggyClean_ttf_data[];
-	extern int ProggyClean_ttf_size;
-	extern unsigned char ProggyCrisp_ttf_data[];
-	extern int ProggyCrisp_ttf_size;
-	extern unsigned char VeraMono_ttf_data[];
-	extern int VeraMono_ttf_size;
-	extern unsigned char freewrl_widgets_ttf_data[];
-	extern int freewrl_widgets_ttf_size;
-#else
-	unsigned char *ProggyClean_ttf_data;
-	int ProggyClean_ttf_size = 0;
-	unsigned char *ProggyCrisp_ttf_data;
-	int ProggyCrisp_ttf_size = 0;
-	unsigned char *VeraMono_ttf_data;
-	int VeraMono_ttf_size = 0;
-	unsigned char *freewrl_widgets_ttf_data;
-	int freewrl_widgets_ttf_size = 0;
-#endif
-
-#if ATLAS_TACTIC > DOTC_SAVE
-	extern unsigned char widgetAtlas_png_data[];
-	extern int widgetAtlas_png_size;
-#else
-	unsigned char *widgetAtlas_png_data = NULL;
-	int widgetAtlas_png_size = 0;
-#endif
 
 AtlasFont *searchAtlasFontTable(struct Vector* guitable, char *name, int EMsize){
 	int i;
@@ -2704,6 +2710,47 @@ AtlasFont *searchAtlasFontTable(struct Vector* guitable, char *name, int EMsize)
 		}
 	}
 	return retval;
+}
+
+#define DOTC_NONE 0
+#define DOTC_SAVE 1
+#define DOTC_LOAD 2
+//#define HAVE_COMPILED_IN_FONT 1 //AT TOP OF THIS MODULE
+#ifdef HAVE_COMPILED_IN_FONT
+extern unsigned char VeraMono_ttf_data[];
+extern int VeraMono_ttf_size;
+#else
+unsigned char *VeraMono_ttf_data = NULL;
+int VeraMono_ttf_size = 0;
+#endif
+
+int FW_Open_Face(FT_Library library, char *thisfontname, int faceIndex, FT_Face *face)
+{
+	//FONT THUNKING
+	//this function can be used by Text and FontStyle to load Typewriter automatically from .c if compiled in,
+	// and/or substitute (THUNK) typewriter if the desired font file can't be found
+	int err = 0;
+
+	if(VeraMono_ttf_size && strstr(thisfontname,"VeraMono.ttf")){
+		//always try to get VeraMono from .c
+		FT_Open_Args args;
+		args.flags = FT_OPEN_MEMORY;
+		args.memory_base = VeraMono_ttf_data;
+		args.memory_size = VeraMono_ttf_size;
+		err = FT_Open_Face(library, &args, 0,  face);
+	}else{
+		err = FT_New_Face(library, thisfontname, faceIndex, face);
+		if(err && VeraMono_ttf_size)
+		{
+			//for any other font face, only substitute/thunk (to veramono) if it can't be found
+			FT_Open_Args args;
+			args.flags = FT_OPEN_MEMORY;
+			args.memory_base = VeraMono_ttf_data;
+			args.memory_size = VeraMono_ttf_size;
+			err = FT_Open_Face(library, &args, faceIndex,  face);
+		}
+	}
+	return err;
 }
 
 AtlasFont *searchAtlasTableOrLoad(char *facename, int EMpixels){
@@ -2723,22 +2770,30 @@ AtlasFont *searchAtlasTableOrLoad(char *facename, int EMpixels){
 		facenamettf = strcat(facenamettf,".ttf");
 		AtlasFont_init(font,facename,EMpixels,facenamettf); 
 
-		font_tactic = FONT_TACTIC; //DOTC_NONE, DOTC_SAVE, DOTC_LOAD
+		font_tactic = DOTC_NONE; //DOTC_NONE, DOTC_SAVE, DOTC_LOAD
+		if(!strcmp(facename,"VeraMono")){
+			//we want one font we can rely on even if vera fonts aren't installed or hard to find
+			//so we compile one it, and if no other font we can thunk to it
+			if(0) font_tactic = DOTC_SAVE; //you would do this once in your lifetime to generate a .c, then compile that into your program, then define HAVE_COMPILED_IN_FONT above
+			else font_tactic = DOTC_LOAD; //then for the rest of your life, you would use this to load it from .c
+		}
 		if(font_tactic == DOTC_SAVE) {
+			//you need to put the .ttf file in the 'local' directory where you freewrl thinks its running, 
+			// otherwise you'll get nothing.
 			char *facenamettfc;
 			facenamettfc = alloca(strlen(facenamettf)+3);
 			strcpy(facenamettfc,facenamettf);
-			facenamettf[len-7] = '_';
-			strcat(facenamettf,".c");
+			facenamettfc[len-7] = '_';
+			strcat(facenamettfc,".c");
 			bin2hex(font->path, facenamettfc); // "ProggyClean_ttf.c");
 		}
 		if(font_tactic == DOTC_LOAD)
-			AtlasFont_LoadFromDotC(font, ProggyClean_ttf_data, ProggyClean_ttf_size);
+			AtlasFont_LoadFromDotC(font, VeraMono_ttf_data, VeraMono_ttf_size);
 		if(font_tactic != DOTC_LOAD)
-			AtlasFont_LoadFont(font); 
+			AtlasFont_LoadFont(font); //normal loading of installed font
 
 		AtlasFont_RenderFontAtlas(font,EMpixels,ascii32_126);
-		font = (AtlasFont*)searchGUItable(p->font_table,facename);
+		//font = (AtlasFont*)searchGUItable(p->font_table,facename); //too simple, need (facename,size) tuple to get correct font
 
 	}
 	if(!font){
@@ -2899,7 +2954,7 @@ static GLuint texCoordLoc;
 static GLuint textureLoc;
 static GLuint color4fLoc;
 //static GLuint programObject;
-static GLuint textureID;
+static GLuint textureID = 0;
 //static GLuint indexBufferID;
 static GLuint blendLoc;
 static GLuint modelviewLoc;
@@ -3126,6 +3181,8 @@ GLfloat cursorTex[] = {
 	// Bind the base map - see above
 	glActiveTexture ( GL_TEXTURE0 );
 	glBindTexture ( GL_TEXTURE_2D, textureID );
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); //GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); //GL_LINEAR);
 
 	// Set the base map sampler to texture unit to 0
 	glUniform1i ( textureLoc, 0 );
@@ -3138,7 +3195,7 @@ GLfloat cursorTex[] = {
 		break;
 		case 2:
 		//doesn't seem to come in here if my .png is gray+alpha on win32
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, width, height, 0, GL_LUMINANCE_ALPHA , GL_UNSIGNED_BYTE, buffer);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, width, height, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, buffer);
 		break;
 		case 4:
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA , GL_UNSIGNED_BYTE, buffer);
@@ -3281,7 +3338,59 @@ void atlasfont_get_rowheight_charwidth_px(AtlasFont *font, int *rowheight, int *
 	*rowheight = font->set->rowheight;
 	*maxadvancepx = font->set->maxadvancepx;
 }
-int textpanel_render_row(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y, vec4 color){
+
+int before_textpanel_render_rows(AtlasFont *font, vec4 color){
+	AtlasEntrySet *entryset;
+	Atlas *atlas;
+
+	if(font == NULL) return FALSE;
+	entryset = font->set; //GUIFont_getMatchingAtlasEntrySet(self->font,self->fontSize);
+	if(entryset == NULL) return FALSE;
+	if(entryset->atlas == NULL) return FALSE;
+
+	atlas = entryset->atlas;
+	//set atlas and shader
+	finishedWithGlobalShader();
+	glDepthMask(GL_FALSE);
+	glDisable(GL_DEPTH_TEST);
+	if(!programObject) initProgramObject();
+
+	glUseProgram ( programObject );
+	if(!textureID)
+		glGenTextures(1, &textureID);
+
+	// Set the base map sampler to texture unit to 0
+	glActiveTexture ( GL_TEXTURE0 );
+	glBindTexture ( GL_TEXTURE_2D, textureID );
+	glUniform1i ( textureLoc, 0 );
+
+	if (atlas->bytesperpixel == 1){
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); //GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	}else{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); //GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	}
+
+
+	if(atlas->bytesperpixel == 1){
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, atlas->size.X, atlas->size.Y, 0, GL_ALPHA , GL_UNSIGNED_BYTE, atlas->texture);
+	}else if(atlas->bytesperpixel == 2){
+		//angleproject can't seem to mipmap GL_ALPHA, needs GL_LUMINANCE_ALPHA
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, atlas->size.X, atlas->size.Y, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, atlas->texture);
+	}else if(atlas->bytesperpixel == 4){
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, atlas->size.X, atlas->size.Y, 0, GL_RGBA , GL_UNSIGNED_BYTE, atlas->texture);
+	}
+
+	glUniform4f(color4fLoc,color.X,color.Y,color.Z,color.W); //0.7f,0.7f,0.9f,1.0f);
+	glUniform4f(blendLoc,0.0f,0.0f,0.0f,1.0f);
+
+	glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewIdentityf);
+	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionIdentityf);
+
+	return TRUE;
+}
+int textpanel_render_row(AtlasFont *font, char * cText, int len, int *pen_x, int *pen_y){ 
 	//we use a font atlas
 	//current Feb 2016: recomputes verts, indices on each loop
 	//potential optimizatio: in theory its the y that changes for a row, 
@@ -3417,35 +3526,9 @@ int textpanel_render_row(AtlasFont *font, char * cText, int len, int *pen_x, int
 
 			}
 		}
-		finishedWithGlobalShader();
-		glDepthMask(GL_FALSE);
-		glDisable(GL_DEPTH_TEST);
-		if(!programObject) initProgramObject();
 
-		glUseProgram ( programObject );
-		if(!textureID)
-			glGenTextures(1, &textureID);
-
-		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST); //GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST); //GL_LINEAR);
-
-		glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewIdentityf);
-		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionIdentityf);
-
-		glUniform4f(color4fLoc,color.X,color.Y,color.Z,color.W); //0.7f,0.7f,0.9f,1.0f);
-
-		glActiveTexture ( GL_TEXTURE0 );
-		glBindTexture ( GL_TEXTURE_2D, textureID );
-		glUniform1i ( textureLoc, 0 );
-
-		if(atlas->bytesperpixel == 1){
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, atlas->size.X, atlas->size.Y, 0, GL_ALPHA , GL_UNSIGNED_BYTE, atlas->texture);
-		}else if(atlas->bytesperpixel == 4){
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, atlas->size.X, atlas->size.Y, 0, GL_RGBA , GL_UNSIGNED_BYTE, atlas->texture);
-		}
-		glUniform4f(blendLoc,0.0f,0.0f,0.0f,1.0f);
-
-
+if(0) glEnableVertexAttribArray (positionLoc );
+if(0) glEnableVertexAttribArray (texCoordLoc );
 		// Load the vertex position
 		glVertexAttribPointer (positionLoc, 3, GL_FLOAT, 
 							   GL_FALSE, 0, vert );
@@ -3453,20 +3536,19 @@ int textpanel_render_row(AtlasFont *font, char * cText, int len, int *pen_x, int
 		glVertexAttribPointer ( texCoordLoc, 2, GL_FLOAT,
 							   GL_FALSE, 0, tex ); 
 
-if(0) glEnableVertexAttribArray (positionLoc );
-if(0) glEnableVertexAttribArray (texCoordLoc );
-		// Set the base map sampler to texture unit to 0
-		//glUniform1i ( textureLoc, 0 );
 		glDrawElements ( GL_TRIANGLES, len*3*2, GL_UNSIGNED_SHORT, ind );
-
-		glEnable(GL_DEPTH_TEST);
-		glDepthMask(GL_TRUE);
-		restoreGlobalShader();
 
 
 	}
 	return TRUE;
 }
+void after_textpanel_render_rows(){
+	//restore shader
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
+	restoreGlobalShader();
+}
+
 void render_screentext0(struct X3D_Text *tnode){
 	/*	to be called from Text node render_Text for case of ScreenFontStyle
 		this is a copy of the CaptionText method, 
@@ -3625,7 +3707,7 @@ GLfloat cursorTex[] = {
 		break;
 		case 2:
 		//doesn't seem to come in here if my .png is gray+alpha on win32
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, width, height, 0, GL_LUMINANCE_ALPHA , GL_UNSIGNED_BYTE, buffer);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, width, height, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, buffer);
 		break;
 		case 4:
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA , GL_UNSIGNED_BYTE, buffer);

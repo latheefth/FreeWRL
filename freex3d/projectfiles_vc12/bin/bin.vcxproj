@@ -38,8 +38,8 @@
     <SRC>../../src</SRC>
     <SRCWIN>../../src_windows</SRCWIN>
     <LIBWIN>../../../../lib_windows_vc12</LIBWIN>
-    <ANGLELIB>$(LIBWIN)/angleproject/lib</ANGLELIB>
-    <ANGLELIB_HIDE>../../../../lib_windowsStore/angleproject_MSOpenTech_RT/src_desktopVC12</ANGLELIB_HIDE>
+    <ANGLELIB_HIDE>$(LIBWIN)/angleproject/lib</ANGLELIB_HIDE>
+    <ANGLELIB>../../../../angleproject2016/angle-ms-master</ANGLELIB>
   </PropertyGroup>
   <PropertyGroup Label="Globals">
     <ProjectName>freeWRL</ProjectName>
@@ -173,9 +173,9 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libtess.lib;libnurbs.lib;libFreeWRL.lib;fwlibGLESv2.lib;fwlibEGL.lib;pthreadd.lib;zlib.lib;libminizip.lib;gdiplus.lib;ws2_32.lib;freetype252MT_D.lib;shlwapi.lib;windowscodecs.lib;libxml2.lib;Wininet.lib;Winmm.lib;mozjs185-1.0.lib;OpenAL32.lib;alut.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libtess.lib;libnurbs.lib;libFreeWRL.lib;libANGLE.lib;libGLESv2.lib;libEGL.lib;pthreadd.lib;zlib.lib;libminizip.lib;gdiplus.lib;ws2_32.lib;freetype252MT_D.lib;shlwapi.lib;windowscodecs.lib;libxml2.lib;Wininet.lib;Winmm.lib;mozjs185-1.0.lib;OpenAL32.lib;alut.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>$(LIBWIN)\freeALUT\lib;$(LIBWIN)\openALsoft\lib;$(ANGLELIB)/Debug;$(LIBWIN)\js185\lib;$(LIBWIN)\pthread\lib;$(LIBWIN)\freetype2\lib;$(LIBWIN)\zlib\lib;$(LIBWIN)\libxml2\lib;..\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(LIBWIN)\freeALUT\lib;$(LIBWIN)\openALsoft\lib;$(ANGLELIB)\build\Debug_Win32\lib;$(LIBWIN)\js185\lib;$(LIBWIN)\pthread\lib;$(LIBWIN)\freetype2\lib;$(LIBWIN)\zlib\lib;$(LIBWIN)\libxml2\lib;..\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>MSVCRT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -219,8 +219,8 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libtess.lib;libnurbs.lib;libFreeWRL.lib;fwlibGLESv2.lib;fwlibEGL.lib;pthread.lib;zlib.lib;libminizip.lib;mozjs185-1.0.lib;gdiplus.lib;ws2_32.lib;freetype252.lib;shlwapi.lib;windowscodecs.lib;libxml2.lib;Wininet.lib;Winmm.lib;OpenAL32.lib;alut.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(LIBWIN)\freeALUT\lib;$(LIBWIN)\openALsoft\lib;$(ANGLELIB)/Release;$(LIBWIN)\js185\lib;$(LIBWIN)\pthread\lib;$(LIBWIN)\freetype2\lib;$(LIBWIN)\zlib\lib;$(LIBWIN)\libxml2\lib;..\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libtess.lib;libnurbs.lib;libFreeWRL.lib;libANGLE.lib;libGLESv2.lib;libEGL.lib;pthread.lib;zlib.lib;libminizip.lib;mozjs185-1.0.lib;gdiplus.lib;ws2_32.lib;freetype252.lib;shlwapi.lib;windowscodecs.lib;libxml2.lib;Wininet.lib;Winmm.lib;OpenAL32.lib;alut.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(LIBWIN)\freeALUT\lib;$(LIBWIN)\openALsoft\lib;$(ANGLELIB)\build\Release_Win32\lib;$(LIBWIN)\js185\lib;$(LIBWIN)\pthread\lib;$(LIBWIN)\freetype2\lib;$(LIBWIN)\zlib\lib;$(LIBWIN)\libxml2\lib;..\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
