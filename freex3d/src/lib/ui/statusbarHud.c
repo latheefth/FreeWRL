@@ -3009,7 +3009,8 @@ M       void toggle_collision()                             //"
 			//glUniform4f(p->color4fLoc, .2f, .2f, .2f, 1.0f);
 			glUniform4f(p->color4fLoc,colorStatusbarText[0],colorStatusbarText[1],colorStatusbarText[2],colorStatusbarText[3]);
 			xy = screen2normalizedScreenScale((GLfloat)p->bmWH.x, (GLfloat)p->bmWH.y);
-			sblen = (int)(2.0f/xy.x - (float)(9+7)); //get number of chars left after touch status and vp status
+			sblen = (int)(2.0f/xy.x);
+			sblen -= 4; //FPS chars - (9+7); //get number of chars left after touch status and vp status
 			sslen = 0;
 			{
 				pp = get_status(); // p->buffer;
@@ -3020,22 +3021,46 @@ M       void toggle_collision()                             //"
 				p->hadString = 1;
 			}
 			{
-				int len, istart,istart1,istart2,ilen;
+				int len, istart,istart1,istart2,ilen,lenk,lenkk;
 				char *strfps, *strstatus, *strAkeys;
+				
+				//squeeze status and optionally keychord into remaining space
+				strAkeys = fwl_getKeyChord(); //keychord like YAWZ or YAWPITCH
+				lenkk = lenk = strlen(strAkeys); //9 maximum
+
 				strstatus = getMenuStatus(); //viewpoint name, other status
 				len = strlen(strstatus);
-				istart1 = sslen +1; 
-				istart2 = min(35,sblen - len);
-				istart = max(istart1, istart2);
-				ilen = max(0,min(len,sblen-istart));
+				ilen = len;
+
+				istart1 = sslen +1; //minimum start location
+				if(max(istart1,35) + len + 9 < sblen) {
+					lenkk = 9; //lots of room for keychord and status
+					istart = max(istart1,35);
+				}else if(istart1 + len + 9 < sblen){
+					lenkk = 9;
+					istart = istart1;
+				}else if(istart1 + len + lenkk < sblen){
+					istart = istart1;
+					lenkk= lenkk;
+				}else if(p->buttonRows == 2){
+					istart = istart1;
+					lenkk = 0; //mobile portrait, don't need keychord
+					ilen = sblen - istart;
+				}else{
+					istart = istart1;
+					lenkk = lenkk;
+					ilen = sblen - istart - 4 - lenkk;
+				}
+				//istart2 = min(35,sblen - len);
+				//istart = max(istart1, istart2);
+				//ilen = max(0,min(len,sblen-istart));
 				printString3(-1.0f + xy.x*istart, side_bottom_f, strstatus,ilen);
 
-				if(p->buttonRows < 2){
+				if(lenkk){
 					//on mobile, you tend not to use keychords - just touch, and in portrait, with statusBarRows == 1 its too crowded
-					strAkeys = fwl_getKeyChord(); //keychord like YAWZ or YAWPITCH
-					len = strlen(strAkeys);
-					printString2(1.0f - xy.x*(len + 4), side_bottom_f, strAkeys); //max 9 wide
+					printString3(1.0f - xy.x*(lenk + 4), side_bottom_f, strAkeys,lenk); //max 9 wide
 				}
+				//always draw FPS
 				strfps = getFpsBar(); //FPS
 				printString2(1.0f - xy.x*(4), side_bottom_f, strfps); //4 wide
 			}
