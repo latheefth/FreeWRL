@@ -3049,7 +3049,7 @@ M       void toggle_collision()                             //"
 				}else{
 					istart = istart1;
 					lenkk = lenkk;
-					ilen = sblen - istart - 4 - lenkk;
+					ilen = sblen - istart - lenkk;
 				}
 				//istart2 = min(35,sblen - len);
 				//istart = max(istart1, istart2);
