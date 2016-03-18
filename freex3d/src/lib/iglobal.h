@@ -348,6 +348,7 @@ iOLDCODE	}Component_Networking;
 		void *prv;
 	}Tess;
 	struct tViewer{
+		int stereotype;
 		void *prv;
 	}Viewer;
 	struct tstatusbar{

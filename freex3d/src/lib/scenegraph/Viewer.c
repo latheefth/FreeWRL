@@ -110,6 +110,7 @@ void *Viewer_constructor(){
 }
 void Viewer_init(struct tViewer *t){
 	//public
+	t->stereotype = 0;
 	//private
 	t->prv = Viewer_constructor();
 	{
@@ -2890,13 +2891,14 @@ static void setStereo(int type)
 	/* can only be called after opengl is initialized */
 	//initStereoDefaults(); 
 	setMono();
+	gglobal()->Viewer.stereotype = type;
 	switch(type)
 	{
 	case VIEWER_STEREO_OFF: {/*setMono()*/;break;}
 	case VIEWER_STEREO_SHUTTERGLASSES: {fwl_init_Shutter(); break;}
 	case VIEWER_STEREO_SIDEBYSIDE: {fwl_init_SideBySide(); break;}
-	case VIEWER_STEREO_UPDOWN: {fwl_init_UpDown(); break;}
 	case VIEWER_STEREO_ANAGLYPH: {setAnaglyph(); break;}
+	case VIEWER_STEREO_UPDOWN: {fwl_init_UpDown(); break;}
 	default: break;
 	}
 }
