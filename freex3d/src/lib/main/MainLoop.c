@@ -5682,7 +5682,7 @@ void setup_viewpoint_part3() {
 	//	iside = bstack->iside;
 
 	////restore real stereo settings for rendering
-	//	viewer->isStereo = isStereo;
+	//	viewer->isStereo = bstack->isStereo;
 	//	viewer->iside = iside;
 	//}
 	//multiply it all together, and capture any slerp

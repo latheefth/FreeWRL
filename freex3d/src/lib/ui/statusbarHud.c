@@ -856,7 +856,8 @@ void render_init(void);
 /* start cheapskate widgets >>>> */
 //static int lenOptions   = 16;
 char * optionsText[] = {
-"stereovision:",
+//"stereovision:",
+"  mono",
 "  side-by-side",
 "  up-down",
 "  anaglyph",
@@ -918,11 +919,14 @@ void initOptionsVal()
 		for(j=0;j<19;j++) p->optionsVal[i][j] = ' ';
 		p->optionsVal[i][29] = '\0';
 	}
+	p->optionsVal[0][0] = 034; //[]
 	p->optionsVal[1][0] = 034; //[]
 	p->optionsVal[2][0] = 034; //[]
 	p->optionsVal[3][0] = 034; //[]
 	p->optionsVal[4][0] = 034; //[]
 
+	if(!(viewer->sidebyside || viewer->updown || viewer->anaglyph || viewer->shutterGlasses))
+		p->optionsVal[0][0] = 035; //[*] '*';
 	if(viewer->sidebyside)
 		p->optionsVal[1][0] = 035; //[*] '*';
 	if(viewer->updown)
@@ -965,7 +969,7 @@ void updateOptionsVal()
 }
 /* the optionsCase char is used in a switch case later to involk the appropriate function */
 char * optionsCase[] = {
-"             ",
+"00000000",
 "22222222222222",
 "44444444",
 "33333333",
@@ -1109,6 +1113,7 @@ int handleOptionPress(int mouseX, int mouseY)
 		printf("toggle EAI");
 		/* fwl_setp_eai(1 - fwl_getp_eai()); */
 		break;}
+	case '0':
 	case '1': 
 	case '2': 
 	case '3': 
