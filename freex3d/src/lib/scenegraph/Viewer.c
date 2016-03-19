@@ -110,6 +110,7 @@ void *Viewer_constructor(){
 }
 void Viewer_init(struct tViewer *t){
 	//public
+	t->stereotype = 0;
 	//private
 	t->prv = Viewer_constructor();
 	{
@@ -2874,6 +2875,7 @@ void setMono()
 	viewer->updown = 0;
 	viewer->shutterGlasses = 0;
 	tg->display.shutterGlasses = 0;
+
 }
 
 /*
@@ -2889,14 +2891,15 @@ static void setStereo(int type)
 	/* type: 0 off  1 shutterglasses 2 sidebyside 3 analgyph */
 	/* can only be called after opengl is initialized */
 	//initStereoDefaults(); 
+	gglobal()->Viewer.stereotype = type;
 	setMono();
 	switch(type)
 	{
 	case VIEWER_STEREO_OFF: {/*setMono()*/;break;}
 	case VIEWER_STEREO_SHUTTERGLASSES: {fwl_init_Shutter(); break;}
 	case VIEWER_STEREO_SIDEBYSIDE: {fwl_init_SideBySide(); break;}
-	case VIEWER_STEREO_UPDOWN: {fwl_init_UpDown(); break;}
 	case VIEWER_STEREO_ANAGLYPH: {setAnaglyph(); break;}
+	case VIEWER_STEREO_UPDOWN: {fwl_init_UpDown(); break;}
 	default: break;
 	}
 }
@@ -2911,10 +2914,13 @@ void toggleOrSetStereo(int type)
 
 	shut = viewer->shutterGlasses ? 1 : 0;
 	curtype = viewer->isStereo*( (shut)*1 + viewer->sidebyside*2 + viewer->anaglyph*3 + viewer->updown*4);
-	if(type != curtype) 
+	if(type != curtype) {
 		setStereo(type);
-	else
+	} else {
 		setMono();
+		gglobal()->Viewer.stereotype = 0;
+	}
+
 }
 void fwl_setPickraySide(int ipreferredSide, int either){
 	X3D_Viewer *viewer;

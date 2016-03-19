@@ -595,11 +595,12 @@ contenttype *new_contenttype_statusbar(){
 typedef struct contenttype_switch {
 	tcontenttype t1;
 	int whichCase;
+	int *whichPtr;
 } contenttype_switch;
 void render_switch0();
 void switch_render(void *_self){
 	//make this like layer, render contents first in clipplane-limited viewport, then sbh in whole viewport
-	int i;
+	int i,iwhich;
 	contenttype_switch *self;
 	contenttype *c;
 
@@ -608,7 +609,8 @@ void switch_render(void *_self){
 	c = self->t1.contents;
 	i = 0;
 	while(c){
-		if(i == self->whichCase){
+		iwhich = *(self->whichPtr);
+		if(i == iwhich){
 			c->t1.render(c);
 		}
 		c = c->t1.next;
@@ -629,7 +631,7 @@ int switch_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID
 		int i = 0;
 		c = self->t1.contents;
 		while(c){
-			if(i == self->whichCase){
+			if(i == *(self->whichPtr)){
 				iret = c->t1.pick(c,mev,butnum,mouseX,mouseY,ID, windex);
 				if(iret > 0) break; //handled 
 			}
@@ -648,13 +650,18 @@ contenttype *new_contenttype_switch(){
 	self->t1.render = switch_render;
 	self->t1.pick = switch_pick;
 	self->whichCase = -1;
+	self->whichPtr = &self->whichCase;
 	return (contenttype*)self;
 }
 void contenttype_switch_set_which(contenttype *_self, int which){
 	contenttype_switch *self = (contenttype_switch *)_self;
 	self->whichCase = which;
+	self->whichPtr = &self->whichCase;
 }
-
+void contenttype_switch_set_which_ptr(contenttype *_self, int *whichPtr){
+	contenttype_switch *self = (contenttype_switch *)_self;
+	self->whichPtr = whichPtr;
+}
 
 
 
@@ -967,16 +974,9 @@ void TextPanel_AddString(contenttype_textpanel *self, char *string){
 		s = ln;
 	}
 }
-static contenttype_textpanel *console_textpanel = NULL;
-//You call TextPanel_AddString from ConsoleMessage
-void TextPanel_Console_AddString(char *string){
-	TextPanel_AddString(console_textpanel,string);
-}
-void fwg_register_consolemessage_callback(void(*callback)(char *));
+void fwg_register_consolemessage_callbackB(void *data, void(*callback)(char *));
 void textpanel_register_as_console(void *_self){
-	contenttype_textpanel *self = (contenttype_textpanel*)_self;
-	console_textpanel = self; //static variable
-	fwg_register_consolemessage_callback(TextPanel_Console_AddString);
+	fwg_register_consolemessage_callbackB(_self,TextPanel_AddString);
 }
 ivec2 pixel2text(int x, int y, int rowheight, int maxadvancepx){
 	int h = rowheight;
@@ -1078,7 +1078,7 @@ void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 		//
 		P = B;
 		atlasOK = before_textpanel_render_rows(self->font, self->color);
-		printf("\rivport.Y %d ",ivport.Y);
+		//printf("\rivport.Y %d ",ivport.Y);
 
 		if(atlasOK)
 		for(i=0;i<nrows;i++){
@@ -1128,8 +1128,14 @@ void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 			//textchars2panelpixel
 			xy = text2pixel(0,jrow,rowheight,maxadvancepx); 
 			//panelpixel2screenpixel?
+			//original, from dug9gui:
+			//pen_y = (int)me->super.proportions.botRight.Y; 
+			//pen_x = xy.X;
+			//pen_y -= xy.Y;
+
+			pen_y = ivport.Y;
 			pen_x = xy.X;
-			pen_y = xy.Y;
+			pen_y -= xy.Y;
 
 			//check if this line is visible, as measured by its bounding box. skip render if not
 			//ivec4 box = ivec4_init(pen_x,pen_y,lenrow*self->set->maxadvancepx,self->set->rowheight);
@@ -2987,6 +2993,8 @@ typedef struct pMainloop{
 	double stereooffsetmatrix[2][16];
 	int targets_initialized;
 	targetwindow cwindows[4];
+	void *hyper_switch[4];
+	int hyper_case[4];
 	int nwindow;
 	int windex; //current window index into twoindows array, valid during render()
 	Stack *_vportstack;
@@ -3533,7 +3541,7 @@ void free_contenttypes(){
 }
 
 
-void setup_stagesNORMAL(){
+void setup_stagesNORMAL_PRE_MAR_2016(){
 	int i;
 	targetwindow *twindows, *t;
 	ttglobal tg = gglobal();
@@ -3573,9 +3581,9 @@ void setup_stagesNORMAL(){
 		cstage->t1.contents = cmultitouch;
 		p->EMULATE_MULTITOUCH =	FALSE;
 		//IDEA: these prepared ways of using freewrl could be put into a switchcase contenttype called early ie from window
-		if(1){
+		if(0){
 			//normal: multitouch emulation, layer, scene, statusbarHud, 
-			if(1) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
+			if(0) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
 			else cstage->t1.contents = csbh; //skip multitouch
 			//tg->Mainloop.AllowNavDrag = TRUE; //experimental approach to allow both navigation and dragging at the same time, with 2 separate touches
 		}else if(0){
@@ -3657,18 +3665,18 @@ void setup_stagesNORMAL(){
 			cscene->t1.next = NULL;
 			csbh->t1.contents = corientation;
 
-		}else if(0){
+		}else if(1){
 			//stereo chooser: switch + 4 stereo vision modes
 			//contenttype *clayer0, *clayer1, *clayer2, *clayer3;
 			contenttype *cscene0, *cscene1, *cscene2;
 			contenttype *cstereo1, *cstereo2, *cstereo3, *cstereo4, *cswitch;
 			cswitch = new_contenttype_switch();
 			cstereo1 = new_contenttype_stereo_sidebyside();
-			cstereo2 = new_contenttype_stereo_anaglyph();
+			cstereo2 = new_contenttype_stereo_anaglyph(); //anaglyph appears to work
 			cstereo3 = new_contenttype_stereo_updown();
 			cstereo4 = new_contenttype_stereo_shutter();
 			csbh->t1.contents = cswitch;
-			contenttype_switch_set_which(cswitch,2);
+			contenttype_switch_set_which_ptr(cswitch,&tg->Viewer.stereotype);
 
 
 			cscene0 = new_contenttype_scene();
@@ -3756,7 +3764,333 @@ void setup_stagesNORMAL(){
 	}
 }
 
+void setup_stagesNORMAL(){
+	int i;
+	targetwindow *twindows, *t;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
+	twindows = p->cwindows;
+	//t = twindows;
+	//while(t){
+	for(i=0;i<p->nwindow;i++){
+		contenttype *cstage, *cswitch, **last; //*cscene, *csbh, *cmultitouch, *cstagefbo, *ctexturegrid, *corientation, *cquadrant;
+		freewrl_params_t *dp;
+		//ii = p->nwindow - i -1; //reverse order for experiment
+		t=&p->cwindows[i];
+
+		//FBOs must be created in the opengl window context where they are going to be used as texture
+		dp = (freewrl_params_t*)tg->display.params;
+		if(t->params.context != dp->context){
+			tg->display.params = (void*)&t->params;
+			fv_change_GLcontext((freewrl_params_t*)tg->display.params);
+			//printf("%ld %ld %ld\n",t->params.display,t->params.context,t->params.surface);
+		}
+
+		cstage = new_contenttype_stage();
+		cswitch = new_contenttype_switch();
+		p->hyper_switch[i] = cswitch;
+		cstage->t1.contents = cswitch;
+		last = &cswitch->t1.contents;
+		//contenttype_switch_set_which(cswitch,2); //set in big render loop below, based on hyper_case
+		p->hyper_case[i] = 8;
+
+		p->EMULATE_MULTITOUCH =	FALSE;
+		// these prepared ways of using freewrl are put into the switch contenttype cswitch above 
+		// (via chain of next pointers, via *last helper)
+		{
+			//0. normal: scene, statusbarHud, 
+			contenttype *cscene, *csbh;
+
+			csbh = new_contenttype_statusbar();
+			cscene = new_contenttype_scene();
+
+			csbh->t1.contents = cscene;
+
+			*last = csbh; //paste into switch.content
+			last = &csbh->t1.next;
+			//tg->Mainloop.AllowNavDrag = TRUE; //experimental approach to allow both navigation and dragging at the same time, with 2 separate touches
+		}
+		{
+			//1. normal + multitouch emulation, scene, statusbarHud, 
+			contenttype *cmultitouch, *cscene, *csbh;
+
+			cmultitouch = new_contenttype_multitouch();
+			cscene = new_contenttype_scene();
+			csbh = new_contenttype_statusbar();
+			
+			cmultitouch->t1.contents = csbh;
+			csbh->t1.contents = cscene;
+
+			*last = cmultitouch; //paste into previous blocks top-level (just below switch) next
+			last = &cmultitouch->t1.next;
+
+			//tg->Mainloop.AllowNavDrag = TRUE; //experimental approach to allow both navigation and dragging at the same time, with 2 separate touches
+		}
+		{
+			//2. TextPanel (dual-ringbuffer, for ConsoleMessage) + CaptionText
+			contenttype *csbh, *cscene, *ctextpanel, *ctext;
+			vec4 ccolor;
+
+			csbh = new_contenttype_statusbar();
+			cscene = new_contenttype_scene();
+			ctextpanel = new_contenttype_textpanel("VeraMono",8,60,120,TRUE);
+			ccolor = vec4_init(1.0f,.6f,0.0f,1.0f);
+			ctext = new_contenttype_captiontext("VeraMono",12,ccolor);
+
+			captiontext_setString(ctext, "Trying VeraMono From CaptionText");
+			ctext->t1.viewport[0] = .1f;
+			ctext->t1.viewport[1] = .6f;
+			ctext->t1.viewport[2] = .4f;
+			ctext->t1.viewport[3] = .5f;
+
+			ConsoleMessage("Going to register textpanel for ConsoleMessages\n"); //should not show in textpanel
+			textpanel_register_as_console(ctextpanel);
+			ConsoleMessage("Registered textpanel for ConsoleMessages\n"); //should be first message to show in textpanel
+			
+			csbh->t1.contents = ctextpanel;
+			ctextpanel->t1.contents = cscene;
+			ctextpanel->t1.next = ctext;
+
+			*last = csbh; 
+			last = &csbh->t1.next;
+
+		}
+		{
+			//3. captiontext, scene, statusbarHud, 
+			contenttype *cscene, *csbh, *ctext;
+			vec4 ccolor;
+
+			csbh = new_contenttype_statusbar();
+			ccolor = vec4_init(1.0f,.6f,0.0f,1.0f);
+			ctext = new_contenttype_captiontext("Vera",12,ccolor);
+			cscene = new_contenttype_scene();
+
+
+			//can put regular and extended chars in the \x hex form (visual studio uses code-page system, not utf8)
+			//& \x0026
+			//e grave \x00e8
+			//e acute \x00e9
+			//msvc has problem embedding utf8 strings in C code even with \x. C++ better, includes u8"" strings
+			captiontext_setString(ctext, "string from captiontext FReEgrl \x0026 Gréen");
+			ctext->t1.viewport[0] = .1f;
+			ctext->t1.viewport[1] = .6f;
+			ctext->t1.viewport[2] = .4f;
+			ctext->t1.viewport[3] = .5f;
+
+			csbh->t1.contents = cscene;
+			cscene->t1.next = ctext;
+
+			*last = csbh; 
+			last = &csbh->t1.next;
+
+		}
+		{
+			//4. e3dmouse: multitouch emulation, layer, (e3dmouse > scene), statusbarHud, 
+			contenttype *csbh, *cscene, *cmultitouch, *ce3dmouse;
+
+			csbh = new_contenttype_statusbar();
+			ce3dmouse = new_contenttype_e3dmouse();
+			cmultitouch = new_contenttype_multitouch();
+			cscene = new_contenttype_scene();
+
+			csbh->t1.contents = ce3dmouse;
+			ce3dmouse->t1.contents = cscene;
+			cscene->t1.next = NULL;
+			*last = csbh; 
+			last = &csbh->t1.next;
+
+		}
+		{
+			//5. experimental render to fbo, then fbo to screen
+			//.. this will allow screen orientation to be re-implemented as a 2-stage render with rotation between
+			contenttype *csbh, *cscene, *cstagefbo, *ctexturegrid, *cmultitouch;
+
+			cmultitouch = new_contenttype_multitouch();
+			ctexturegrid = new_contenttype_texturegrid(2,2);
+			cstagefbo = new_contenttype_stagefbo(512,512);
+			csbh = new_contenttype_statusbar();
+			cscene = new_contenttype_scene();
+
+			cmultitouch->t1.contents = ctexturegrid;
+			ctexturegrid->t1.contents = cstagefbo;
+			cstagefbo->t1.contents = csbh;
+			csbh->t1.contents = cscene;
+
+			*last = cmultitouch; 
+			last = &cmultitouch->t1.next;
+
+		}
+		{
+			//6. multitouch emulation, orientation, fbo, layer { scene, statusbarHud }
+			contenttype *csbh, *cscene, *corientation, *cmultitouch, *cstagefbo;
+			
+			cmultitouch = new_contenttype_multitouch();
+			corientation = new_contenttype_orientation();
+			cstagefbo = new_contenttype_stagefbo(512,512);
+			csbh = new_contenttype_statusbar();
+			cscene = new_contenttype_scene();
+
+			cmultitouch->t1.contents = corientation;
+			corientation->t1.contents = cstagefbo;
+			cstagefbo->t1.contents = csbh;
+			csbh->t1.contents = cscene;
+
+			*last = cmultitouch; 
+			last = &cmultitouch->t1.next;
+
+		}
+		{
+			//7. rotates just the scene, leaves statusbar un-rotated
+			//multitouch emulation,  layer, {{orientation, fbo, scene}, statusbarHud }
+			contenttype *csbh, *cscene, *corientation, *cmultitouch, *cstagefbo;
+
+			cmultitouch = new_contenttype_multitouch();
+			csbh = new_contenttype_statusbar();
+			corientation = new_contenttype_orientation();
+			cstagefbo = new_contenttype_stagefbo(512,512);
+			cscene = new_contenttype_scene();
+
+			cmultitouch->t1.contents = csbh;
+			csbh->t1.contents = corientation;
+			corientation->t1.contents = cstagefbo;
+			cstagefbo->t1.contents = cscene;
+
+			*last = cmultitouch; 
+			last = &cmultitouch->t1.next;
+
+		}
+		{
+			//8. stereo chooser: switch + 4 stereo vision modes, sbh, textpanel
+			contenttype *cscene0, *cscene1, *cscene2;
+			contenttype *cstereo1, *cstereo2, *cstereo3, *cstereo4, *cswitch0;
+			contenttype *csbh, *ctextpanel;
+			
+			csbh = new_contenttype_statusbar();
+			ctextpanel = new_contenttype_textpanel("VeraMono",8,60,120,TRUE);
+			cswitch0 = new_contenttype_switch();
+			cstereo1 = new_contenttype_stereo_shutter();
+			cstereo2 = new_contenttype_stereo_sidebyside();
+			cstereo3 = new_contenttype_stereo_anaglyph(); //anaglyph appears to work
+			cstereo4 = new_contenttype_stereo_updown();
+			//0 mono 1 shutter 2 sidebyside 3 analgyph 4 updown
+			contenttype_switch_set_which_ptr(cswitch0,&tg->Viewer.stereotype);
+
+
+			//stereo scenes 0,1
+			cscene0 = new_contenttype_scene();
+			cscene1 = new_contenttype_scene();
+			cscene0->t1.next = cscene1;
+			//mono scene 2
+			cscene2 = new_contenttype_scene();
+
+
+			ConsoleMessage("Going to register textpanel for ConsoleMessages\n"); //should not show in textpanel
+			textpanel_register_as_console(ctextpanel);
+			ConsoleMessage("Registered textpanel for ConsoleMessages\n"); //should be first message to show in textpanel
+
+			csbh->t1.contents = ctextpanel;
+			ctextpanel->t1.contents = cswitch0;
+			cswitch0->t1.contents = cscene2; //mono scene
+			cscene2->t1.next = cstereo1;     //whichCase 0
+			cstereo1->t1.contents = cscene0; //same scene0,scene1 stereo pair
+			cstereo2->t1.contents = cscene0; //2
+			cstereo3->t1.contents = cscene0; //3
+			cstereo4->t1.contents = cscene0; //4
+			cstereo1->t1.next = cstereo2;
+			cstereo2->t1.next = cstereo3;
+			cstereo3->t1.next = cstereo4;
+
+			*last = csbh; 
+			last = &csbh->t1.next;
+
+		} 
+		{
+			//9. sidebyside stereo with per-eye fbo
+			contenttype *cscene0, *cscene1;
+			contenttype *cstereo;
+			contenttype *cstagefbo0, *cstagefbo1;
+			contenttype *ctexturegrid0, *ctexturegrid1;
+			contenttype *csbh;
+			
+			csbh = new_contenttype_statusbar();
+			cstereo = new_contenttype_stereo_sidebyside();
+
+			cstagefbo0 = new_contenttype_stagefbo(512,512);
+			ctexturegrid0 = new_contenttype_texturegrid(5,5);
+
+			cstagefbo1 = new_contenttype_stagefbo(512,512);
+			ctexturegrid1 = new_contenttype_texturegrid(5,5);
+			cscene0 = new_contenttype_scene();
+			cscene1 = new_contenttype_scene();
+
+			if(1){
+				//googleCardboard barrel distortions to counteract/compensate for magnifying lenses
+				float xc;
+				X3D_Viewer *viewer = Viewer();
+
+				//ideally this gets run whenever screendist is changed
+				xc = 1.0f - (float) viewer->screendist;
+				texturegrid_barrel_distort2(ctexturegrid0, xc,.1f);
+				xc = (float)viewer->screendist;
+				texturegrid_barrel_distort2(ctexturegrid1, xc,.1f);
+			}
+
+
+			csbh->t1.contents = cstereo;
+			cstereo->t1.contents = ctexturegrid0;
+			ctexturegrid0->t1.next = ctexturegrid1;
+			ctexturegrid0->t1.contents = cstagefbo0;
+			ctexturegrid1->t1.contents = cstagefbo1;
+			cstagefbo0->t1.contents = cscene0;
+			cstagefbo1->t1.contents = cscene1;
+
+			*last = csbh; 
+			last = &csbh->t1.next;
+
+		} 
+		{
+			//10. quadrant
+			contenttype *cscene0, *cscene1, *cscene2, *cscene3;
+			contenttype *csbh, *cquadrant, *cmultitouch;
+
+			csbh = new_contenttype_statusbar();
+			cquadrant = new_contenttype_quadrant();
+
+			cscene0 = new_contenttype_scene();
+			cscene1 = new_contenttype_scene();
+			cscene2 = new_contenttype_scene();
+			cscene3 = new_contenttype_scene();
+
+			csbh->t1.contents = cquadrant;
+			cquadrant->t1.contents = cscene0;
+			cscene0->t1.next = cscene1;
+			cscene1->t1.next = cscene2;
+			cscene2->t1.next = cscene3;
+
+			*last = csbh; 
+			last = &csbh->t1.next; //don't need this line if truely the last, but doesn't hurt to have the address
+
+		}
+
+		t->stage = cstage;
+//		t = t->next;
+	}
+}
+void fwl_hyper_option(char *val){
+	//keyboard on graphics window: ' ' (spacebar) will get : prompt
+	//then :hyper_otion,3[Enter] will change the hyperoption for all windows
+	int i,iopt;
+	targetwindow *t;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+
+	iopt = atoi(val);
+	if(iopt >= 0 && iopt <=10)
+	for(i=0;i<p->nwindow;i++){
+		p->hyper_case[i] = iopt;
+	}
+}
 void initialize_targets_simple(){
 
 	ttglobal tg = gglobal();
@@ -3799,6 +4133,13 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 		//a targetwindow might be a supervisor's screen, or HMD
 		freewrl_params_t *dp;
 		stage *s;
+		void *hyper_switch;
+		int hyper_case;
+
+		hyper_switch = p->hyper_switch[i];
+		hyper_case = p->hyper_case[i];
+		contenttype_switch_set_which(hyper_switch,hyper_case);
+
 
 		t=&p->cwindows[i];
 		p->windex++;
@@ -5347,7 +5688,7 @@ void setup_viewpoint_part3() {
 	//	iside = bstack->iside;
 
 	////restore real stereo settings for rendering
-	//	viewer->isStereo = isStereo;
+	//	viewer->isStereo = bstack->isStereo;
 	//	viewer->iside = iside;
 	//}
 	//multiply it all together, and capture any slerp

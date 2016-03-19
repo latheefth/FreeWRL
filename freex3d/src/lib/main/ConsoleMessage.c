@@ -61,6 +61,9 @@ typedef struct pConsoleMessage{
 	int maxLines;
 	int tabSpaces;
 	void(*callback[2])(char *);
+	void(*callbackB[4])(void*,char*);
+	void *dataB[4];
+	int nbackB;
 }* ppConsoleMessage;
 static void *ConsoleMessage_constructor(){
 	void *v = MALLOCV(sizeof(struct pConsoleMessage));
@@ -83,6 +86,7 @@ void ConsoleMessage_init(struct tConsoleMessage *t){
 		for (i = 0; i < p->maxLines; i++) p->androidMessageSlot[i] = (char*)NULL;
 		p->callback[0] = NULL;
 		p->callback[1] = NULL;
+		p->nbackB = 0;
 	}
 }
 
@@ -123,6 +127,8 @@ char *fwg_get_last_message();
 int fwl_StringConsoleMessage(char* consoleBuffer);
 void fwg_updateConsoleStatus(); //for console programs only - sent to printf
 void fwg_register_consolemessage_callback(void(*callback)(char *));
+void fwg_register_consolemessage_callbackB(void* data, void(*callback)(void *data, char *));
+
 
 void fwg_setConsoleParam_maxLines(int maxLines)
 {
@@ -175,7 +181,26 @@ void fwg_register_consolemessage_callback(void(*callback)(char *))
 	if (p->callback[iback]) iback++;
 	p->callback[iback] = callback;
 }
+void fwg_register_consolemessage_callbackB(void* data, void(*callback)(void*,char *))
+{
+	//new method
+	//this version of callback registration takes an arbitrary data pointer
+	//if your frontend is in C, you can register something like printf here as a callback
+	//advantage over polling once per loop: when debugging you may want to see console output
+	//more often during a single loop - this should come out as soon as written in the program
+	//if message ends in \n
+	//you can call 0,1 or 2 times during program run ie to set a printf and a logfile
+	// \t and \n will still be in the string (it won't be pre-split)
+	int iback;
+	ppConsoleMessage p;
+	ttglobal tg = gglobal();
+	if (!tg) return;
+	p = (ppConsoleMessage)tg->ConsoleMessage.prv;
+	p->callbackB[p->nbackB] = callback;
+	p->dataB[p->nbackB] = data;
+	p->nbackB++;
 
+}
 // tell the UI how many unread console messages we have.
 int fwg_get_unread_message_count() {
 	//old android method
@@ -460,6 +485,12 @@ int ConsoleMessage0(const char *fmt, va_list args){
 			p->callback[0](p->FWbuffer);
 		if (p->callback[1])
 			p->callback[1](p->FWbuffer);
+		if(p->nbackB){
+			//this type used by contenttype_textpanel in mainloop
+			int i;
+			for(i=0;i<p->nbackB;i++)
+				p->callbackB[i](p->dataB[i],p->FWbuffer);
+		}
     #ifdef _ANDROID
             DROIDDEBUG(STRDUP(p->FWbuffer)); //passing ownerhsip in
 	#else
