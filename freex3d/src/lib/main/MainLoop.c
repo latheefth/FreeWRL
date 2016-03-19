@@ -974,16 +974,9 @@ void TextPanel_AddString(contenttype_textpanel *self, char *string){
 		s = ln;
 	}
 }
-static contenttype_textpanel *console_textpanel = NULL;
-//You call TextPanel_AddString from ConsoleMessage
-void TextPanel_Console_AddString(char *string){
-	TextPanel_AddString(console_textpanel,string);
-}
-void fwg_register_consolemessage_callback(void(*callback)(char *));
+void fwg_register_consolemessage_callbackB(void *data, void(*callback)(char *));
 void textpanel_register_as_console(void *_self){
-	contenttype_textpanel *self = (contenttype_textpanel*)_self;
-	console_textpanel = self; //static variable
-	fwg_register_consolemessage_callback(TextPanel_Console_AddString);
+	fwg_register_consolemessage_callbackB(_self,TextPanel_AddString);
 }
 ivec2 pixel2text(int x, int y, int rowheight, int maxadvancepx){
 	int h = rowheight;
@@ -1135,8 +1128,14 @@ void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 			//textchars2panelpixel
 			xy = text2pixel(0,jrow,rowheight,maxadvancepx); 
 			//panelpixel2screenpixel?
+			//original, from dug9gui:
+			//pen_y = (int)me->super.proportions.botRight.Y; 
+			//pen_x = xy.X;
+			//pen_y -= xy.Y;
+
+			pen_y = ivport.Y;
 			pen_x = xy.X;
-			pen_y = xy.Y;
+			pen_y -= xy.Y;
 
 			//check if this line is visible, as measured by its bounding box. skip render if not
 			//ivec4 box = ivec4_init(pen_x,pen_y,lenrow*self->set->maxadvancepx,self->set->rowheight);
@@ -3965,9 +3964,10 @@ void setup_stagesNORMAL(){
 			//8. stereo chooser: switch + 4 stereo vision modes
 			contenttype *cscene0, *cscene1, *cscene2;
 			contenttype *cstereo1, *cstereo2, *cstereo3, *cstereo4, *cswitch0;
-			contenttype *csbh;
+			contenttype *csbh, *ctextpanel;
 			
 			csbh = new_contenttype_statusbar();
+			ctextpanel = new_contenttype_textpanel("VeraMono",8,60,120,TRUE);
 			cswitch0 = new_contenttype_switch();
 			cstereo1 = new_contenttype_stereo_shutter();
 			cstereo2 = new_contenttype_stereo_sidebyside();
@@ -3984,7 +3984,13 @@ void setup_stagesNORMAL(){
 			//mono scene 2
 			cscene2 = new_contenttype_scene();
 
-			csbh->t1.contents = cswitch0;
+
+			ConsoleMessage("Going to register textpanel for ConsoleMessages\n"); //should not show in textpanel
+			textpanel_register_as_console(ctextpanel);
+			ConsoleMessage("Registered textpanel for ConsoleMessages\n"); //should be first message to show in textpanel
+
+			csbh->t1.contents = ctextpanel;
+			ctextpanel->t1.contents = cswitch0;
 			cswitch0->t1.contents = cscene2; //mono scene
 			cscene2->t1.next = cstereo1;     //whichCase 0
 			cstereo1->t1.contents = cscene0; //same scene0,scene1 stereo pair
