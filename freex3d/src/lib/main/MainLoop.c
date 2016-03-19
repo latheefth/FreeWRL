@@ -3795,7 +3795,7 @@ void setup_stagesNORMAL(){
 		//contenttype_switch_set_which(cswitch,2); //set in big render loop below, based on hyper_case
 		p->hyper_case[i] = 8;
 
-		p->EMULATE_MULTITOUCH =	TRUE;
+		p->EMULATE_MULTITOUCH =	FALSE;
 		// these prepared ways of using freewrl are put into the switch contenttype cswitch above 
 		// (via chain of next pointers, via *last helper)
 		{
@@ -3879,7 +3879,7 @@ void setup_stagesNORMAL(){
 			ctext->t1.viewport[3] = .5f;
 
 			csbh->t1.contents = cscene;
-			csbh->t1.next = ctext;
+			cscene->t1.next = ctext;
 
 			*last = csbh; 
 			last = &csbh->t1.next;
@@ -3961,7 +3961,7 @@ void setup_stagesNORMAL(){
 
 		}
 		{
-			//8. stereo chooser: switch + 4 stereo vision modes
+			//8. stereo chooser: switch + 4 stereo vision modes, sbh, textpanel
 			contenttype *cscene0, *cscene1, *cscene2;
 			contenttype *cstereo1, *cstereo2, *cstereo3, *cstereo4, *cswitch0;
 			contenttype *csbh, *ctextpanel;
