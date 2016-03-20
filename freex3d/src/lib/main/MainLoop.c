@@ -3541,228 +3541,6 @@ void free_contenttypes(){
 }
 
 
-void setup_stagesNORMAL_PRE_MAR_2016(){
-	int i;
-	targetwindow *twindows, *t;
-	ttglobal tg = gglobal();
-	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
-
-	twindows = p->cwindows;
-	//t = twindows;
-	//while(t){
-	for(i=0;i<p->nwindow;i++){
-		contenttype *cstage, *clayer, *cscene, *csbh, *cmultitouch, *cstagefbo, *ctexturegrid, *corientation, *cquadrant;
-		freewrl_params_t *dp;
-		//ii = p->nwindow - i -1; //reverse order for experiment
-		t=&p->cwindows[i];
-
-		//FBOs must be created in the opengl window context where they are going to be used as texture
-		dp = (freewrl_params_t*)tg->display.params;
-		if(t->params.context != dp->context){
-			tg->display.params = (void*)&t->params;
-			fv_change_GLcontext((freewrl_params_t*)tg->display.params);
-			//printf("%ld %ld %ld\n",t->params.display,t->params.context,t->params.surface);
-		}
-
-		cstage = new_contenttype_stage();
-
-
-		cmultitouch = new_contenttype_multitouch();
-		clayer = new_contenttype_layer();
-		if(0){
-			clayer->t1.viewport[0] = .1f; //test examine fx,fy coords
-			clayer->t1.viewport[1] = .9f;
-			clayer->t1.viewport[2] = .1f;
-			clayer->t1.viewport[3] = .9f;
-		}
-		cscene = new_contenttype_scene();
-		csbh = new_contenttype_statusbar();
-		csbh->t1.contents = cscene;
-		cstage->t1.contents = cmultitouch;
-		p->EMULATE_MULTITOUCH =	FALSE;
-		//IDEA: these prepared ways of using freewrl could be put into a switchcase contenttype called early ie from window
-		if(0){
-			//normal: multitouch emulation, layer, scene, statusbarHud, 
-			if(0) cmultitouch->t1.contents = csbh; //  with multitouch (which can bypass itself based on options panel check)
-			else cstage->t1.contents = csbh; //skip multitouch
-			//tg->Mainloop.AllowNavDrag = TRUE; //experimental approach to allow both navigation and dragging at the same time, with 2 separate touches
-		}else if(0){
-			//tests dual-ringbuffer console textpanel
-			contenttype *ctextpanel;
-			vec4 ccolor;
-			contenttype *ctext;
-			ccolor = vec4_init(1.0f,.6f,0.0f,1.0f);
-			ctext = new_contenttype_captiontext("VeraMono",12,ccolor);
-			captiontext_setString(ctext, "Trying VeraMono From CaptionText");
-			ctext->t1.viewport[0] = .1f;
-			ctext->t1.viewport[1] = .6f;
-			ctext->t1.viewport[2] = .4f;
-			ctext->t1.viewport[3] = .5f;
-
-			//ctextpanel = new_contenttype_textpanel("Vera",8,30,120,TRUE);
-			ctextpanel = new_contenttype_textpanel("VeraMono",8,60,120,TRUE);
-			ctextpanel->t1.contents = cscene;
-			ConsoleMessage("Going to register textpanel for ConsoleMessages\n"); //should not show in textpanel
-			textpanel_register_as_console(ctextpanel);
-			ConsoleMessage("Registered textpanel for ConsoleMessages\n"); //should be first message to show in textpanel
-			//ConsoleMessage("next line\n");
-			csbh->t1.contents = ctextpanel;
-			ctextpanel->t1.next = ctext;
-			cstage->t1.contents = csbh;
-		}else if(0){
-			//captiontext, layer, scene, statusbarHud, 
-			//contenttype *new_contenttype_captiontext(char *fontname, int EMpixels, vec4 color)
-			vec4 ccolor;
-			contenttype *ctext;
-			ccolor = vec4_init(1.0f,.6f,0.0f,1.0f);
-			ctext = new_contenttype_captiontext("Vera",12,ccolor);
-			//can put regular and extended chars in the \x hex form (visual studio uses code-page system, not utf8)
-			//& \x0026
-			//e grave \x00e8
-			//e acute \x00e9
-			//msvc has problem embedding utf8 strings in C code even with \x. C++ better, includes u8"" strings
-			captiontext_setString(ctext, "string from captiontext FReEgrl \x0026 Gréen");
-			ctext->t1.viewport[0] = .1f;
-			ctext->t1.viewport[1] = .6f;
-			ctext->t1.viewport[2] = .4f;
-			ctext->t1.viewport[3] = .5f;
-			cstage->t1.contents = csbh;
-			csbh->t1.next = ctext;
-		}else if(0){
-			//e3dmouse: multitouch emulation, layer, (e3dmouse > scene), statusbarHud, 
-			contenttype *ce3dmouse = new_contenttype_e3dmouse();
-			cstage->t1.contents = csbh;
-			csbh->t1.contents = ce3dmouse;
-			ce3dmouse->t1.contents = cscene;
-			cscene->t1.next = NULL;
-		}else if(0){
-			//experimental render to fbo, then fbo to screen
-			//.. this will allow screen orientation to be re-implemented as a 2-stage render with rotation between
-			cstagefbo = new_contenttype_stagefbo(512,512);
-
-			ctexturegrid = new_contenttype_texturegrid(2,2);
-			ctexturegrid->t1.contents = cstagefbo;
-
-			cmultitouch->t1.contents = ctexturegrid;
-			cstagefbo->t1.contents = csbh;
-		}else if(0){
-			//multitouch emulation, orientation, fbo, layer { scene, statusbarHud }
-			corientation = new_contenttype_orientation();
-			cmultitouch->t1.contents = corientation;
-			cstagefbo = new_contenttype_stagefbo(512,512);
-
-			corientation->t1.contents = cstagefbo;
-			cstagefbo->t1.contents = csbh;
-		}else if(0) {
-			//rotates just the scene, leaves statusbar un-rotated
-			//multitouch emulation,  layer, {{orientation, fbo, scene}, statusbarHud }
-			corientation = new_contenttype_orientation();
-			cmultitouch->t1.contents = csbh;
-			cstagefbo = new_contenttype_stagefbo(512,512);
-
-			corientation->t1.contents = cstagefbo;
-			cstagefbo->t1.contents = cscene;
-			cscene->t1.next = NULL;
-			csbh->t1.contents = corientation;
-
-		}else if(1){
-			//stereo chooser: switch + 4 stereo vision modes
-			//contenttype *clayer0, *clayer1, *clayer2, *clayer3;
-			contenttype *cscene0, *cscene1, *cscene2;
-			contenttype *cstereo1, *cstereo2, *cstereo3, *cstereo4, *cswitch;
-			cswitch = new_contenttype_switch();
-			cstereo1 = new_contenttype_stereo_sidebyside();
-			cstereo2 = new_contenttype_stereo_anaglyph(); //anaglyph appears to work
-			cstereo3 = new_contenttype_stereo_updown();
-			cstereo4 = new_contenttype_stereo_shutter();
-			csbh->t1.contents = cswitch;
-			contenttype_switch_set_which_ptr(cswitch,&tg->Viewer.stereotype);
-
-
-			cscene0 = new_contenttype_scene();
-			cscene1 = new_contenttype_scene();
-			cscene0->t1.next = cscene1;
-			cscene2 = new_contenttype_scene();
-
-			cscene2->t1.next = cstereo1;     //whichCase 0
-			cstereo1->t1.contents = cscene0; //same scene0,scene1 stereo pair
-			cstereo2->t1.contents = cscene0; //2
-			cstereo3->t1.contents = cscene0; //3
-			cstereo4->t1.contents = cscene0; //4
-			cstereo1->t1.next = cstereo2;
-			cstereo2->t1.next = cstereo3;
-			cstereo3->t1.next = cstereo4;
-			cswitch->t1.contents = cscene2;
-			cstage->t1.contents = csbh;
-		} else if(1){
-			//sidebyside stereo with per-eye fbo
-			contenttype *cscene0, *cscene1;
-			contenttype *cstereo;
-			contenttype *cstagefbo0, *cstagefbo1;
-			contenttype *ctexturegrid0, *ctexturegrid1;
-
-
-			cstagefbo0 = new_contenttype_stagefbo(512,512);
-			ctexturegrid0 = new_contenttype_texturegrid(5,5);
-			ctexturegrid0->t1.contents = cstagefbo0;
-
-			cstagefbo1 = new_contenttype_stagefbo(512,512);
-			ctexturegrid1 = new_contenttype_texturegrid(5,5);
-			ctexturegrid1->t1.contents = cstagefbo1;
-
-			if(1){
-				//googleCardboard barrel distortions to counteract/compensate for magnifying lenses
-				float xc;
-				X3D_Viewer *viewer = Viewer();
-
-				//ideally this gets run whenever screendist is changed
-				xc = 1.0f - (float) viewer->screendist;
-				texturegrid_barrel_distort2(ctexturegrid0, xc,.1f);
-				xc = (float)viewer->screendist;
-				texturegrid_barrel_distort2(ctexturegrid1, xc,.1f);
-			}
-
-			cscene0 = new_contenttype_scene();
-			cscene1 = new_contenttype_scene();
-
-			cstagefbo0->t1.contents = cscene0;
-			cstagefbo1->t1.contents = cscene1;
-
-			cstereo = new_contenttype_stereo_sidebyside();
-			//cstereo = new_contenttype_stereo_anaglyph(); //doesnt work with fbo stage
-			//cstereo = new_contenttype_stereo_shutter();
-			cstereo->t1.contents = ctexturegrid0;
-			ctexturegrid0->t1.next = ctexturegrid1;
-			if(1){
-				csbh->t1.contents = cstereo;
-				cstage->t1.contents = csbh;
-			}else{
-				cstage->t1.contents = cstereo;
-			}
-
-		} else if(0){
-			//quadrant
-			//contenttype *clayer0, *clayer1, *clayer2, *clayer3;
-			contenttype *cscene0, *cscene1, *cscene2, *cscene3;
-			cquadrant = new_contenttype_quadrant();
-			cmultitouch->t1.contents = csbh; //clayer;
-			csbh->t1.contents = cquadrant;
-
-			cscene0 = new_contenttype_scene();
-			cscene1 = new_contenttype_scene();
-			cscene2 = new_contenttype_scene();
-			cscene3 = new_contenttype_scene();
-
-			cquadrant->t1.contents = cscene0;
-			cscene0->t1.next = cscene1;
-			cscene1->t1.next = cscene2;
-			cscene2->t1.next = cscene3;
-		}
-
-		t->stage = cstage;
-//		t = t->next;
-	}
-}
 
 void setup_stagesNORMAL(){
 	int i;
@@ -3793,7 +3571,7 @@ void setup_stagesNORMAL(){
 		cstage->t1.contents = cswitch;
 		last = &cswitch->t1.contents;
 		//contenttype_switch_set_which(cswitch,2); //set in big render loop below, based on hyper_case
-		p->hyper_case[i] = 8;
+		p->hyper_case[i] = 3;
 
 		p->EMULATE_MULTITOUCH =	FALSE;
 		// these prepared ways of using freewrl are put into the switch contenttype cswitch above 
@@ -3837,11 +3615,13 @@ void setup_stagesNORMAL(){
 			ctextpanel = new_contenttype_textpanel("VeraMono",8,60,120,TRUE);
 			ccolor = vec4_init(1.0f,.6f,0.0f,1.0f);
 			ctext = new_contenttype_captiontext("VeraMono",12,ccolor);
+			//ctext = new_contenttype_captiontext("freewrl_wingding",12,ccolor);
+			//ctext = new_contenttype_captiontext("VeraIt",10,ccolor);
 
-			captiontext_setString(ctext, "Trying VeraMono From CaptionText");
+			captiontext_setString(ctext, "ABCDEDFGHIJKLMNOPQRSTUVWXYZabcd");
 			ctext->t1.viewport[0] = .1f;
 			ctext->t1.viewport[1] = .6f;
-			ctext->t1.viewport[2] = .4f;
+			ctext->t1.viewport[2] = 1.0f;
 			ctext->t1.viewport[3] = .5f;
 
 			ConsoleMessage("Going to register textpanel for ConsoleMessages\n"); //should not show in textpanel
@@ -3863,7 +3643,9 @@ void setup_stagesNORMAL(){
 
 			csbh = new_contenttype_statusbar();
 			ccolor = vec4_init(1.0f,.6f,0.0f,1.0f);
-			ctext = new_contenttype_captiontext("Vera",12,ccolor);
+			//ctext = new_contenttype_captiontext("Vera",12,ccolor);
+			ctext = new_contenttype_captiontext("freewrl_wingding",10,ccolor);
+
 			cscene = new_contenttype_scene();
 
 
@@ -3872,7 +3654,9 @@ void setup_stagesNORMAL(){
 			//e grave \x00e8
 			//e acute \x00e9
 			//msvc has problem embedding utf8 strings in C code even with \x. C++ better, includes u8"" strings
-			captiontext_setString(ctext, "string from captiontext FReEgrl \x0026 Gréen");
+			//captiontext_setString(ctext, "string from captiontext FReEgrl \x0026 Gréen");
+			captiontext_setString(ctext, "abcdABCDEDFGHIJKLMNOPQRSTUVWXYZ");
+
 			ctext->t1.viewport[0] = .1f;
 			ctext->t1.viewport[1] = .6f;
 			ctext->t1.viewport[2] = .4f;

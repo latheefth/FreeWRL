@@ -360,6 +360,9 @@
     <ClCompile Include="$(SRC)\lib\scenegraph\VeraMono_ttf.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\lib\ui\freewrl_wingding_ttf.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(SRC)\lib\scenegraph\Component_Picking.h">
