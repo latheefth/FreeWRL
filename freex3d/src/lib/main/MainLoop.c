@@ -3571,7 +3571,7 @@ void setup_stagesNORMAL(){
 		cstage->t1.contents = cswitch;
 		last = &cswitch->t1.contents;
 		//contenttype_switch_set_which(cswitch,2); //set in big render loop below, based on hyper_case
-		p->hyper_case[i] = 3;
+		p->hyper_case[i] = 8; //which block below 0 - 9
 
 		p->EMULATE_MULTITOUCH =	FALSE;
 		// these prepared ways of using freewrl are put into the switch contenttype cswitch above 
