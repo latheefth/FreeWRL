@@ -2432,7 +2432,6 @@ int RenderFontAtlas(AtlasFont *font, AtlasEntrySet *entryset,  char * cText){
 			continue; 		
 		}
 		glyph = fontFace->glyph;
-
 		entry = MALLOCV(sizeof(AtlasEntry));
 		//atlasEntry_init1(entry,names[i*2],(int)cText[i],0,0,16,16);
 		entry->ichar = 0;
@@ -2719,9 +2718,12 @@ AtlasFont *searchAtlasFontTable(struct Vector* guitable, char *name, int EMsize)
 #ifdef HAVE_COMPILED_IN_FONT
 extern unsigned char VeraMono_ttf_data[];
 extern int VeraMono_ttf_size;
+extern unsigned char freewrl_wingding_ttf_data[];
+extern int freewrl_wingding_ttf_size;
 #else
 unsigned char *VeraMono_ttf_data = NULL;
 int VeraMono_ttf_size = 0;
+
 #endif
 
 int FW_Open_Face(FT_Library library, char *thisfontname, int faceIndex, FT_Face *face)
@@ -2776,6 +2778,16 @@ AtlasFont *searchAtlasTableOrLoad(char *facename, int EMpixels){
 			//so we compile one it, and if no other font we can thunk to it
 			if(0) font_tactic = DOTC_SAVE; //you would do this once in your lifetime to generate a .c, then compile that into your program, then define HAVE_COMPILED_IN_FONT above
 			else font_tactic = DOTC_LOAD; //then for the rest of your life, you would use this to load it from .c
+			if(font_tactic == DOTC_LOAD)
+				AtlasFont_LoadFromDotC(font, VeraMono_ttf_data, VeraMono_ttf_size);
+		}
+		if(!strcmp(facename,"freewrl_wingding")){
+			//we want one font we can rely on even if vera fonts aren't installed or hard to find
+			//so we compile one it, and if no other font we can thunk to it
+			if(0) font_tactic = DOTC_SAVE; //you would do this once in your lifetime to generate a .c, then compile that into your program, then define HAVE_COMPILED_IN_FONT above
+			else font_tactic = DOTC_LOAD; //then for the rest of your life, you would use this to load it from .c
+			if(font_tactic == DOTC_LOAD)
+				AtlasFont_LoadFromDotC(font, freewrl_wingding_ttf_data, freewrl_wingding_ttf_size);
 		}
 		if(font_tactic == DOTC_SAVE) {
 			//you need to put the .ttf file in the 'local' directory where you freewrl thinks its running, 
@@ -2787,8 +2799,6 @@ AtlasFont *searchAtlasTableOrLoad(char *facename, int EMpixels){
 			strcat(facenamettfc,".c");
 			bin2hex(font->path, facenamettfc); // "ProggyClean_ttf.c");
 		}
-		if(font_tactic == DOTC_LOAD)
-			AtlasFont_LoadFromDotC(font, VeraMono_ttf_data, VeraMono_ttf_size);
 		if(font_tactic != DOTC_LOAD)
 			AtlasFont_LoadFont(font); //normal loading of installed font
 
