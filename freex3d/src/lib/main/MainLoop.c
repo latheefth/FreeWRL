@@ -3837,7 +3837,7 @@ void setup_stagesNORMAL(){
 		{
 			//10. quadrant
 			contenttype *cscene0, *cscene1, *cscene2, *cscene3;
-			contenttype *csbh, *cquadrant, *cmultitouch;
+			contenttype *csbh, *cquadrant; //, *cmultitouch;
 
 			csbh = new_contenttype_statusbar();
 			cquadrant = new_contenttype_quadrant();
@@ -3866,7 +3866,7 @@ int fwl_hyper_option(char *val){
 	//keyboard on graphics window: ' ' (spacebar) will get : prompt
 	//then :hyper_otion,3[Enter] will change the hyperoption for all windows
 	int i,iopt;
-	targetwindow *t;
+	//targetwindow *t;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 

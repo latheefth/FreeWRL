@@ -3028,7 +3028,7 @@ M       void toggle_collision()                             //"
 				p->hadString = 1;
 			}
 			{
-				int len, istart,istart1,istart2,ilen,lenk,lenkk;
+				int len, istart,istart1,ilen,lenk,lenkk;
 				char *strfps, *strstatus, *strAkeys;
 				
 				//squeeze status and optionally keychord into remaining space

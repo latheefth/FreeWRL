@@ -191,7 +191,6 @@ void fwg_register_consolemessage_callbackB(void* data, void(*callback)(void*,cha
 	//if message ends in \n
 	//you can call 0,1 or 2 times during program run ie to set a printf and a logfile
 	// \t and \n will still be in the string (it won't be pre-split)
-	int iback;
 	ppConsoleMessage p;
 	ttglobal tg = gglobal();
 	if (!tg) return;

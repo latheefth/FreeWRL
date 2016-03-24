@@ -531,6 +531,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\lib\ui\freewrl_wingding_ttf.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\lib\opengl\Frustum.c"
 				>
 			</File>
