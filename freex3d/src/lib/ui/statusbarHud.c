@@ -856,7 +856,6 @@ void render_init(void);
 /* start cheapskate widgets >>>> */
 //static int lenOptions   = 16;
 char * optionsText[] = {
-//"stereovision:",
 "  mono",
 "  side-by-side",
 "  up-down",
@@ -880,9 +879,10 @@ char * optionsText[] = {
 "pickray eye:",
 "  left  right  either",
 "screen orientation \36    \37",
-//0123456789012345678901234567890
 NULL,
 };
+//0123456789012345678901234567890
+
 //int optionsLoaded = 0;
 //char * optionsVal[15];
 void setOptionsVal()
@@ -916,7 +916,7 @@ void initOptionsVal()
 	{
 		if(!p->optionsVal[i])
 			p->optionsVal[i] = MALLOC(char*, 30);
-		for(j=0;j<19;j++) p->optionsVal[i][j] = ' ';
+		for(j=0;j<30;j++) p->optionsVal[i][j] = ' ';
 		p->optionsVal[i][29] = '\0';
 	}
 	p->optionsVal[0][0] = 034; //[]
