@@ -231,7 +231,8 @@ void fv_catch_SIGQUIT()
     /* fwl_StringConsoleMessage("FreeWRL got a sigquit signal"); */
     /* shut up any SIGSEGVs we might get now. */
     CaughtSEGV = TRUE;
-    fwl_doQuit();
+    //fwl_doQuit();
+    fwExit(-2);
 }
 
 void fv_catch_SIGSEGV()

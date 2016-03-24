@@ -2346,6 +2346,7 @@ int handleButtonRelease(int mouseX, int mouseY)
 				case ACTION_NEXT:	fwl_Next_ViewPoint(); break;
 				case ACTION_HELP:		
 					//p->showHelp = p->pmenu.items[i].butStatus; 
+					showConsoleText(0);
 					break;
 				case ACTION_MESSAGES:	
 					//p->showConText = p->pmenu.items[i].butStatus; 
@@ -2353,6 +2354,7 @@ int handleButtonRelease(int mouseX, int mouseY)
 					break;
 				case ACTION_OPTIONS: 
 					//p->showOptions = p->pmenu.items[i].butStatus; 
+					showConsoleText(0);
 					break;
 				case ACTION_RELOAD:  fwl_reload(); break;
 				case ACTION_URL:
