@@ -957,9 +957,10 @@ void TextPanel_AddLine_blobMethodB(contenttype_textpanel *self, char *line, int 
 		if(self->z > self->E) self->z = self->S;
 	}
 }
-void TextPanel_AddString(contenttype_textpanel *self, char *string){
+void TextPanel_AddString(void *_self, char *string){
 	//takes a printf string which may be long and have embedded \n, may or may not end on \n
 	//and splits it on \n, calls AddLine for each one.
+	contenttype_textpanel *self = (contenttype_textpanel *)_self;
 	int endline, endstring;
 	char *s = string;
 	if(s == NULL) return;
@@ -974,7 +975,7 @@ void TextPanel_AddString(contenttype_textpanel *self, char *string){
 		s = ln;
 	}
 }
-void fwg_register_consolemessage_callbackB(void *data, void(*callback)(char *));
+void fwg_register_consolemessage_callbackB(void *data, void(*callback)(void*,char *));
 void textpanel_register_as_console(void *_self){
 	fwg_register_consolemessage_callbackB(_self,TextPanel_AddString);
 }
@@ -3861,7 +3862,7 @@ void setup_stagesNORMAL(){
 //		t = t->next;
 	}
 }
-void fwl_hyper_option(char *val){
+int fwl_hyper_option(char *val){
 	//keyboard on graphics window: ' ' (spacebar) will get : prompt
 	//then :hyper_otion,3[Enter] will change the hyperoption for all windows
 	int i,iopt;
@@ -3874,6 +3875,7 @@ void fwl_hyper_option(char *val){
 	for(i=0;i<p->nwindow;i++){
 		p->hyper_case[i] = iopt;
 	}
+	return 1;
 }
 void initialize_targets_simple(){
 

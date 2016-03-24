@@ -661,7 +661,7 @@ int print_keyval(char *key){
 	}
 	return 1;
 }
-void fwl_hyper_option(char *val);
+int fwl_hyper_option(char *val);
 int ssr_test(char *keyval);
 struct command {
 	char *key;
