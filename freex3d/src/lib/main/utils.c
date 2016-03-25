@@ -1071,7 +1071,7 @@ void free_registered_node_gc(void* node){
 			p = vector_get(void *,v,i);
 			FREE_IF_NZ(p);
 		}
-		deleteVector(void*,(struct Vector *)_node->_gc);
+		deleteVector(void*,_node->_gc);
 	}
 }
 
