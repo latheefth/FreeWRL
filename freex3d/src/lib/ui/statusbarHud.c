@@ -1400,7 +1400,7 @@ void printKeyboardHelp(ppstatusbar p)
 		//	if(iside == 0) side_bottom_f = 0.0f;
 		printString2(-1.0f, side_bottom_f + (lenhelp-j+1)*fxy2.y, keyboardShortcutHelp[j]);
 		j++;
-		if(p->statusbar_pinned && p->menubar_pinned && j > 4) break; //they can see button help on the statusbar on mouse-over button
+		if(p->show_status && j > 5) break; //they can see button help on the statusbar on mouse-over button
 	}
 }
 
@@ -2956,6 +2956,8 @@ M       void toggle_collision()                             //"
 	p->show_menu = p->wantButtons && (p->menubar_pinned || p->showButtons);
 	menu_over_status = !p->menubar_pinned && p->showButtons;
 	p->show_status = p->wantStatusbar && ((p->showStatus || p->statusbar_pinned) && !menu_over_status);
+	p->show_status = p->show_status || showAction(p, ACTION_HELP); //if ? help button on, then show statusbar to get button hints
+
 
 
 	p->yoff_status = 0;
