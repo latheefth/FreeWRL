@@ -2440,7 +2440,7 @@ void updateButtonVertices()
 void renderButtons()
 {
 	/* called from drawStatusBar() to render the user buttons like walk/fly, headlight, collision etc. */
-	int i,loaded,ctrl;
+	int i,loaded,ctrl,itrim;
 	ppstatusbar p;
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
@@ -2453,7 +2453,11 @@ void renderButtons()
 		initButtons();
 	updateButtonVertices();
 	//updateButtonStatus();
-	glScissor(p->vport.X,p->vport.Y + p->pmenu.yoffset+p->side_bottom,p->vport.W,p->buttonSize*p->buttonRows); //tg->Mainloop.clipPlane*2);
+	itrim = 0;
+	#ifdef ANGLEPROJECT
+	itrim = 1; //if width of window it floods entire window instead of just menubar
+	#endif
+	glScissor(p->vport.X,p->vport.Y + p->pmenu.yoffset+p->side_bottom,p->vport.W -itrim ,p->buttonSize*p->buttonRows); //tg->Mainloop.clipPlane*2);
 
 	glEnable(GL_SCISSOR_TEST);
 	//glClearColor(.922f,.91f,.844f,1.0f); //windowing gray
@@ -3000,11 +3004,16 @@ M       void toggle_collision()                             //"
 		}
 		if(p->show_status)
 		{
-			int sblen, sslen;
+			int sblen, sslen,itrim;
 			FXY xy;
 			/* OK time to update the status bar */
 			/* unconditionally clear the statusbar area */
-			glScissor(p->vport.X, p->vport.Y + p->side_bottom, p->vport.W, p->statusBarSize * p->statusBarRows); //p->clipPlane);
+			itrim = 0;
+			#ifdef ANGLEPROJECT
+			itrim = 1; //if width of window it floods entire window instead of just menubar
+			#endif
+
+			glScissor(p->vport.X, p->vport.Y + p->side_bottom, p->vport.W -itrim, p->statusBarSize * p->statusBarRows); //p->clipPlane);
 			glEnable(GL_SCISSOR_TEST);
 			//glClearColor(.922f, .91f, .844f, 1.0f); //windowing gray
 			glClearColor(colorClear[0],colorClear[1],colorClear[2],colorClear[3]);

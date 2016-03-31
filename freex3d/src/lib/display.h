@@ -105,7 +105,7 @@ GLEWContext * glewGetContext();
 	 include <GL/glx.h> */
 #endif
 
-#if defined (_ANDROID) || defined (QNX) || defined(ANGLEPROJECT)
+#if defined (_ANDROID) || defined(ANDROID) || defined (QNX) || defined(ANGLEPROJECT)
 	#include <GLES2/gl2.h>
 	#include <GLES2/gl2ext.h>
 //    #include <GLES3/gl3.h>
