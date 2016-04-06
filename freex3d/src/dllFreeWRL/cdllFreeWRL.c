@@ -213,6 +213,7 @@ DLLFREEWRL_API void dllFreeWRL_onClose(void *fwctx)
 DLLFREEWRL_API void dllFreeWRL_print(void *fwctx, char *str)
 {
 	if(fwl_setCurrentHandle(fwctx, __FILE__, __LINE__)){
+		ConsoleMessage(str);
 	}
 	fwl_clearCurrentHandle();
 }
