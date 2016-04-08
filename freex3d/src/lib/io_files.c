@@ -914,7 +914,6 @@ void remove_file_or_folder(const char *path){
 	tremove_file_or_folder(wcstring);
 }
 #else // POSIX and OSX - WARNING UNTESTED as of Sept 7, 2013
-#include <dirent.h>
 //according to boost, unlike posix OSX must do separate rmdir for directory and unlink for file
 //goal: remove a directory and its contents - used for removing the temp unzip folder for .z3z / .zip file processing
 int directory_remove_all(const char *path)
