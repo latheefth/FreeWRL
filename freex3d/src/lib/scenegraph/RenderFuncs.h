@@ -66,7 +66,7 @@ void initializeLightTables(void);
 void sendAttribToGPU(int myType, int mySize, int  xtype, int normalized, int stride, float *pointer, char*, int);
 void sendArraysToGPU (int mode, int first, int count);
 void sendBindBufferToGPU (GLenum target, GLuint buffer,char *, int);
-void sendElementsToGPU (int mode, int count, ushort *indices);
+void sendElementsToGPU (int mode, int count, unsigned short *indices);
 void render_hier(struct X3D_Node *p, int rwhat);
 void sendLightInfo (s_shader_capabilities_t *me);
 void restoreGlobalShader();

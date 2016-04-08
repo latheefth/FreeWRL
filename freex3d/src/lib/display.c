@@ -471,12 +471,17 @@ bool initialize_rdr_caps()
             //free(version);
         }
 #if defined(GL_ES_VERSION_2_0) && !defined(ANGLEPROJECT)
-        if (0 == rdr_caps.version)
+        if (0 == p->rdr_caps.version)
         {
             //Try define version with 3.x api
             GLint major = 0, minor = 0;
+			#if defined(GL_MAJOR_VERSION) && defined(GL_MINOR_VERSION)
             FW_GL_GETINTEGERV(GL_MAJOR_VERSION, &major);
             FW_GL_GETINTEGERV(GL_MINOR_VERSION, &minor);
+			#else
+			major = 2;
+			minor = 1;
+			#endif
             char *version;
             asprintf(&version, "%d.%d", major, minor);
             p->rdr_caps.version = version;

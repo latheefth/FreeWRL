@@ -60,7 +60,8 @@
 #include "plugin/pluginUtils.h"
 #include "plugin/PluginSocket.h"
 #endif
-
+#include <stdio.h>
+#include <fcntl.h>
 #if defined (INCLUDE_STL_FILES)
 #include "input/convertSTL.h"
 #endif //INCLUDE_STL_FILES
@@ -629,7 +630,7 @@ int determineFileType(const char *buffer, const int len)
  * FIXME: refactor this function, too :)
  *
  */
-#ifndef _MSC_VER
+#if !defined( _MSC_VER) && !defined(_ANDROID) && !defined(IOS)
 int freewrlSystem (const char *sysline)
 {
 
@@ -913,6 +914,7 @@ void remove_file_or_folder(const char *path){
 	tremove_file_or_folder(wcstring);
 }
 #else // POSIX and OSX - WARNING UNTESTED as of Sept 7, 2013
+#include <dirent.h>
 //according to boost, unlike posix OSX must do separate rmdir for directory and unlink for file
 //goal: remove a directory and its contents - used for removing the temp unzip folder for .z3z / .zip file processing
 int directory_remove_all(const char *path)

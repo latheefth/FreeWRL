@@ -905,6 +905,7 @@ void *createNewX3DNode0 (int nt);
 void *createNewX3DNodeB(int nt, int intable, void *executionContext);
 
 char *findFIELDNAMESfromNodeOffset0(struct X3D_Node *node, int offset);
+#include <stdio.h>
 void print_routes(FILE* fp);
 void print_DEFed_node_names_and_pointers(FILE* fp);
 

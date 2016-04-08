@@ -178,6 +178,7 @@ extern char *BrowserFullPath;
 extern int _fw_pipe, _fw_FD;
 extern int _fw_browser_plugin;
 extern int isBrowserPlugin;
+#include <stdint.h>
 extern uintptr_t _fw_instance;
 //extern char *keypress_string;
 

@@ -43,7 +43,7 @@ Render the children of nodes.
 #include "../opencl/OpenCL_Utils.h"
 #endif //HAVE_OPENCL
 #include "Collision.h"
-
+#include "../internal.h"
 static struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, int num, struct point_XYZ n);
 
 static struct point_XYZ weighted_sum(struct point_XYZ p1, struct point_XYZ p2, double k);

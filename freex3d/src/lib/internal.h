@@ -513,9 +513,7 @@ void free_registered_node_gc(void *node); //free when freeing node ie freeMalloc
 #include <stddef.h> /* for offsetof(...) */
 /* textures.c > jpeg > jmorecfg.h tries to redefine booleand but you can say you have it */
 #define HAVE_BOOLEAN 1    
-#ifndef M_PI
-#define M_PI 3.14159265358979323846 //acos(-1.0)
-#endif
+
 #endif
 
 #ifdef IPHONE
@@ -523,6 +521,9 @@ void free_registered_node_gc(void *node); //free when freeing node ie freeMalloc
 #define HAVE_BOOLEAN 1    
 #endif
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846 //acos(-1.0)
+#endif
 /* Move those to a better place: */
 /* OLDCODE: void initialize_parser(); */
 
