@@ -2356,7 +2356,7 @@ int handleButtonRelease(int mouseX, int mouseY)
 					//p->showOptions = p->pmenu.items[i].butStatus; 
 					showConsoleText(0);
 					break;
-				case ACTION_RELOAD:  fwl_reload(); break;
+				//case ACTION_RELOAD:  fwl_reload(); break;
 				case ACTION_URL:
 					//load URL
 #ifndef KIOSK

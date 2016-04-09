@@ -342,16 +342,6 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\dllFreeWRL\dllFreeWRL.cpp" />
     <ClCompile Include="$(SRC)\dllFreeWRL\dllmain.cpp" />
-    <ClCompile Include="$(SRC)\dllFreeWRL\stdafx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_glew|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_glew|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_glew|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_glew|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="..\..\src\dllFreeWRL\cdllFreeWRL.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_glew|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_glew|x64'">NotUsing</PrecompiledHeader>
@@ -376,9 +366,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_glew|x64'">
       </ExcludedFromBuild>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="$(SRC)\dllFreeWRL\ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libminizip\libminizip.vcxproj">

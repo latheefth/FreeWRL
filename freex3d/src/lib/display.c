@@ -181,7 +181,7 @@ void fv_swapbuffers(freewrl_params_t *d){
 //void fv_change_GLcontext(freewrl_params_t* d){
 //	return; //stub for ANLGEPROJECT, EGL/GLES2, mobile which don't change context but need to link
 //}
-#ifdef WINRT
+#if defined(WINRT) || defined(_ANDROID) || defined(IOS)
 void fv_change_GLcontext(freewrl_params_t* d){
 	//stub for non-desktop configs (they can't do multiple windows anyway)
 }

@@ -49,11 +49,9 @@
 
 #include "X3DParser.h"
 
-#ifdef ANDROID
-#include <libxml2.h>
-#else
+
 #include <libxml/parser.h>
-#endif
+
 typedef xmlSAXHandler* XML_Parser;
 
 /* for now - fill this in later */

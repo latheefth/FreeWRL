@@ -490,12 +490,12 @@ int ConsoleMessage0(const char *fmt, va_list args){
 			for(i=0;i<p->nbackB;i++)
 				p->callbackB[i](p->dataB[i],p->FWbuffer);
 		}
-    #ifdef _ANDROID
-            DROIDDEBUG(STRDUP(p->FWbuffer)); //passing ownerhsip in
-	#else
-//		android_save_log(strdup(p->FWbuffer)); //passing ownerhsip in old android method
-    #endif
-        }
+//    #ifdef _ANDROID
+//            DROIDDEBUG(STRDUP(p->FWbuffer)); //passing ownerhsip in
+//	#else
+////		android_save_log(strdup(p->FWbuffer)); //passing ownerhsip in old android method
+//    #endif
+      }
     }
 	return retval;
 }

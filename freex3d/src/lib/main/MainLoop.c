@@ -7533,7 +7533,7 @@ void fwl_Android_replaceWorldNeeded() {
 #endif
 
 
-#if !defined(_ANDROID)
+#if !defined(_ANDROID) || defined(ANDROID)
 
 // JAS - Do not know if these are still required.
 
