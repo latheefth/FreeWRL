@@ -10,25 +10,9 @@
 */ 
 #include "cdllFreeWRL.h"
 
-#ifdef _MSC_VER
-#include "stdafx.h"
-#include <windows.h>
-#include <WinUser.h>
-#if _MSC_VER > 1700
-#ifdef WINAPI_FAMILY
-#include "winapifamily.h"
-#endif
-#endif
-#endif
 #include <config.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <wtypes.h>
-#include <sys/types.h>
 #include "system.h"
-
 #include "libFreeWRL.h"
-#include "ui/statusbar.h"
 // a few function prototypes from around libfreewrl
 void fwl_setConsole_writePrimitive(int ibool);
 void statusbar_set_window_size(int width, int height);
@@ -48,7 +32,7 @@ void SSRserver_enqueue_request_and_wait(void *fwctx, void *request);
 #endif //SSR_SERVER
 
 #include <malloc.h>
-#include <stdlib.h>
+
 
 // This is the constructor of a class that has been exported.
 // see dllFreeWRL.h for the class definition
@@ -140,7 +124,7 @@ DLLFREEWRL_API void *dllFreeWRL_dllFreeWRL2(char* scene_url, int width, int heig
 DLLFREEWRL_API void dllFreeWRL_onLoad(void *fwctx, char* scene_url)
 {
 	char * url;
-	url = _strdup(scene_url);
+	url = strdup(scene_url);
 	if(fwl_setCurrentHandle(fwctx, __FILE__, __LINE__)){
 		fwl_replaceWorldNeeded(url);
 	}
@@ -180,14 +164,14 @@ DLLFREEWRL_API void dllFreeWRL_onKey(void *fwctx, int keyAction,int keyValue){
 			if(kp & 1 << 30) 
 				break; //ignor - its an auto-repeat
 		case KEYUP: 
-			switch (kp) 
-			{ 
-				case VK_OEM_1:
-					kp = ';'; //could be : or ; but tolower won't lowercase it, but returns same character if it can't
-					break;
-				default:
-					break;
-			}
+			//switch (kp) 
+			//{ 
+			//	case VK_OEM_1:
+			//		kp = ';'; //could be : or ; but tolower won't lowercase it, but returns same character if it can't
+			//		break;
+			//	default:
+			//		break;
+			//}
 			fwl_do_keyPress(kp, ka); 
 			break; 
 
@@ -213,13 +197,14 @@ DLLFREEWRL_API void dllFreeWRL_onClose(void *fwctx)
 DLLFREEWRL_API void dllFreeWRL_print(void *fwctx, char *str)
 {
 	if(fwl_setCurrentHandle(fwctx, __FILE__, __LINE__)){
+		ConsoleMessage(str);
 	}
 	fwl_clearCurrentHandle();
 }
 DLLFREEWRL_API void dllFreeWRL_onDraw(void *fwctx)
 {
 	if (fwl_setCurrentHandle(fwctx, __FILE__, __LINE__)){
-		int more = fwl_draw();
+		fwl_draw();
 	}
 	fwl_clearCurrentHandle();
 }

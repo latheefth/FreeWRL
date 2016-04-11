@@ -21,16 +21,16 @@ public:
 	CdllFreeWRL(int width, int height, void* windowhandle=0, bool bEai = false);
 	CdllFreeWRL(char *scene_url, int width, int height, void* windowhandle=0, bool bEai = false);
 	// TODO: add your methods here.
-	static enum KeyAction {KEYDOWN=2,KEYUP=3,KEYPRESS=1};
+	enum KeyAction {KEYDOWN=2,KEYUP=3,KEYPRESS=1};
 	//#define KeyChar         1  //KeyPress
 	//#define KeyPress        2  //KeyDown
 	//#define KeyRelease      3  //KeyUp
 
-	static enum MouseAction {MOUSEMOVE=6,MOUSEDOWN=4,MOUSEUP=5};
+	enum MouseAction {MOUSEMOVE=6,MOUSEDOWN=4,MOUSEUP=5};
 	//	mev = ButtonPress; //4 down
 	//	mev = ButtonRelease; //3 up
 	//	mev = MotionNotify; //6 move
-	static enum MouseButton {LEFT=1,MIDDLE=2,RIGHT=3,NONE=0}; 		
+	enum MouseButton {LEFT=1,MIDDLE=2,RIGHT=3,NONE=0}; 		
 	/* butnum=1 left butnum=3 right (butnum=2 middle, not used by freewrl) */
 
 	void onInit(int width, int height, void* windowhandle=0, bool bEai = false, bool frontend_handles_display_thread = false);

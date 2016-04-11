@@ -28,7 +28,7 @@
 #include "../ui/common.h"
 #include <scenegraph/Vector.h>
 
-#if defined (_MSC_VER) || defined (AQUA)
+#if defined (_MSC_VER) || defined (AQUA)  || defined(QNX) || defined(_ANDROID)
 #include "../../buildversion.h"
 #endif
 
@@ -37,9 +37,10 @@
 // on other platforms, we have to have this defined, as we don't have Ian's
 // talents to help us out.
 
-#if defined (AQUA) || defined (_MSC_VER) || defined(QNX)
+#if defined (AQUA) || defined (_MSC_VER) || defined(QNX) || defined(_ANDROID)
 const char *libFreeWRL_get_version(void) {return FW_BUILD_VERSION_STR;}
-#endif //OSX
+//#else desktop linux which has a more complex versioning system
+#endif
 
 
 #define MAXSTAT 200

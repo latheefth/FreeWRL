@@ -70,7 +70,7 @@ char * stripLocalFileName (char * origName)
 	return origName;
 }
 
-#if !defined(_ANDROID)
+#if !defined(_ANDROID) || defined(ANDROID)
 char* makeFontDirectory()
 {
 	char *tmp;

@@ -51,6 +51,7 @@
 
 
 #include <libxml/parser.h>
+
 typedef xmlSAXHandler* XML_Parser;
 
 /* for now - fill this in later */

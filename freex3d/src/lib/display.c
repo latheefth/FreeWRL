@@ -181,7 +181,7 @@ void fv_swapbuffers(freewrl_params_t *d){
 //void fv_change_GLcontext(freewrl_params_t* d){
 //	return; //stub for ANLGEPROJECT, EGL/GLES2, mobile which don't change context but need to link
 //}
-#ifdef WINRT
+#if defined(WINRT) || defined(_ANDROID) || defined(IOS)
 void fv_change_GLcontext(freewrl_params_t* d){
 	//stub for non-desktop configs (they can't do multiple windows anyway)
 }
@@ -471,12 +471,17 @@ bool initialize_rdr_caps()
             //free(version);
         }
 #if defined(GL_ES_VERSION_2_0) && !defined(ANGLEPROJECT)
-        if (0 == rdr_caps.version)
+        if (0 == p->rdr_caps.version)
         {
             //Try define version with 3.x api
             GLint major = 0, minor = 0;
+			#if defined(GL_MAJOR_VERSION) && defined(GL_MINOR_VERSION)
             FW_GL_GETINTEGERV(GL_MAJOR_VERSION, &major);
             FW_GL_GETINTEGERV(GL_MINOR_VERSION, &minor);
+			#else
+			major = 2;
+			minor = 1;
+			#endif
             char *version;
             asprintf(&version, "%d.%d", major, minor);
             p->rdr_caps.version = version;

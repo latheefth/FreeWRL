@@ -830,4 +830,4 @@ void Snapshot () {
 }
 #endif /*ifdef win32*/
 
-#endif //FRONTEND_DOES_SNAPSHOTS
+#endif /

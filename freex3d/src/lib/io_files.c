@@ -60,7 +60,8 @@
 #include "plugin/pluginUtils.h"
 #include "plugin/PluginSocket.h"
 #endif
-
+#include <stdio.h>
+#include <fcntl.h>
 #if defined (INCLUDE_STL_FILES)
 #include "input/convertSTL.h"
 #endif //INCLUDE_STL_FILES
@@ -629,7 +630,7 @@ int determineFileType(const char *buffer, const int len)
  * FIXME: refactor this function, too :)
  *
  */
-#ifndef _MSC_VER
+#if !defined( _MSC_VER) && !defined(_ANDROID) && !defined(IOS)
 int freewrlSystem (const char *sysline)
 {
 

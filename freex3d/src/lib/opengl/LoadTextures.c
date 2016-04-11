@@ -433,9 +433,10 @@ ConsoleMessage(me);}
 		this_tex->y = myFile->imageHeight;
 		result = TRUE;
 	}
-    
-    close_openned_file(myFile);
-    FREE_IF_NZ(myFile);
+#ifdef FRONTEND_GETS_FILES
+	close_openned_file(myFile);
+	FREE_IF_NZ(myFile);
+#endif
     return result;
 
 #endif //ANDROID

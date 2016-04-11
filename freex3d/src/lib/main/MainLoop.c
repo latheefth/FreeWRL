@@ -7266,8 +7266,9 @@ int fwl_handle_aqua1(const int mev, const unsigned int button, int x, int yup, i
         // top left hand corner is x=0, y=0;
         // bottom left, 0, 468)
         // while standard opengl is (0,0) in lower left hand corner...
-		int ox = x;
-		int oy = y;
+		int ox,oy,y;
+		ox = x;
+		oy = yup;
 
 		y = screenHeight - yup;
 		// these make sense for walk navigation
@@ -7436,7 +7437,7 @@ void fwl_init_EaiVerbose() {
 
 }
 
-#if defined (_ANDROID)
+#if defined (_ANDROID) && !defined(ANDROID)
 
 void fwl_Android_replaceWorldNeeded() {
 	int i;
@@ -7532,7 +7533,7 @@ void fwl_Android_replaceWorldNeeded() {
 #endif
 
 
-#if !defined(_ANDROID)
+#if !defined(_ANDROID) || defined(ANDROID)
 
 // JAS - Do not know if these are still required.
 
