@@ -47,7 +47,7 @@
 char consoleBuffer[200];
 
 void new_root();
-#if defined (TARGET_AQUA) || defined(_ANDROID) && !defined(ANDROID)
+#if defined (TARGET_AQUA) || defined(_ANDROID) && !defined(ANDROIDNDK)
 
 /* put some config stuff here, as that way the Objective-C Standalone OSX front end does not
  need to worry about specific structures and calls */

@@ -37,7 +37,7 @@
 #include <system_threads.h>
 #endif
 
-#ifdef _ANDROID
+#if defined(_ANDROID) || defined(ANDROIDNDK)
 #include <system_threads.h>
 #endif
 
