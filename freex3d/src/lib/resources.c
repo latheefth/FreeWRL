@@ -1050,7 +1050,7 @@ char *resourceMediaTypeToString (int mt) {
 
 
 #define SLASHDOTDOTSLASH "/../"
-#if defined(_MSC_VER) || defined(_ANDROID)
+#if defined(_MSC_VER) || defined(_ANDROID) || defined(ANDROIDNDK)
 #define rindex strrchr
 #endif
 void removeFilenameFromPath (char *path) {

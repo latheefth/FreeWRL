@@ -181,7 +181,7 @@ void fv_swapbuffers(freewrl_params_t *d){
 //void fv_change_GLcontext(freewrl_params_t* d){
 //	return; //stub for ANLGEPROJECT, EGL/GLES2, mobile which don't change context but need to link
 //}
-#if defined(WINRT) || defined(_ANDROID) || defined(IOS)
+#if defined(WINRT) || defined(_ANDROID) || defined(ANDROIDNDK) || defined(IOS)
 void fv_change_GLcontext(freewrl_params_t* d){
 	//stub for non-desktop configs (they can't do multiple windows anyway)
 }
@@ -201,7 +201,7 @@ void fv_change_GLcontext(freewrl_params_t* d){
 }
 #endif
 
-#if !defined (_ANDROID) && !defined(WINRT)
+#if !defined(_ANDROID) && !defined(ANDROIDNDK) && !defined(WINRT)
 int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *share);
 //#if defined (__linux__)
 //int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *share){

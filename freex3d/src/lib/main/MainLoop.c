@@ -6957,7 +6957,7 @@ static int(*view_initialize)() = NULL;
 //
 //EGL/GLES2 winGLES2.exe with KEEP_FV_INLIB sets frontend_handles_display_thread=true, 
 // then calls fv_display_initialize() which only creates window in backend if false
-#if defined(_ANDROID) || defined(WINRT)
+#if defined(_ANDROID) || defined(ANDROIDNDK) || defined(WINRT)
 int view_initialize0(void){
 	/* Initialize display - View initialize*/
 	if (!fv_display_initialize()) {
@@ -7437,7 +7437,7 @@ void fwl_init_EaiVerbose() {
 
 }
 
-#if defined (_ANDROID) && !defined(ANDROID)
+#if defined (_ANDROID) && !defined(ANDROIDNDK)
 
 void fwl_Android_replaceWorldNeeded() {
 	int i;
@@ -7533,7 +7533,7 @@ void fwl_Android_replaceWorldNeeded() {
 #endif
 
 
-#if !defined(_ANDROID) || defined(ANDROID)
+#if !defined(_ANDROID) || defined(ANDROIDNDK)
 
 // JAS - Do not know if these are still required.
 

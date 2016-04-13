@@ -630,7 +630,7 @@ int determineFileType(const char *buffer, const int len)
  * FIXME: refactor this function, too :)
  *
  */
-#if !defined( _MSC_VER) && !defined(_ANDROID) && !defined(IOS)
+#if !defined( _MSC_VER) && !defined(_ANDROID) && !defined(ANDROIDNDK) && !defined(IOS)
 int freewrlSystem (const char *sysline)
 {
 

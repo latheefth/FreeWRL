@@ -524,7 +524,7 @@ void URLencod (char *dest, const char *src, int maxlen) {
 }
 
 /* this is for Unix only */
-#if !defined(AQUA) && !defined(_MSC_VER) && !defined(_ANDROID) && !defined(GLES2)
+#if !defined(AQUA) && !defined(_MSC_VER) && !defined(_ANDROID) && !defined(ANDROIDNDK) && !defined(GLES2)
 
 void sendXwinToPlugin()
 {

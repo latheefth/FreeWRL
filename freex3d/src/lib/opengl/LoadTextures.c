@@ -54,7 +54,7 @@ void Multi_String_print(struct Multi_String *url);
 #ifdef _MSC_VER
 #include "ImageLoader.h"
 #else
-#if !(defined(TARGET_AQUA) || defined(IPHONE) || defined(_ANDROID))
+#if !(defined(TARGET_AQUA) || defined(IPHONE) || defined(_ANDROID) || defined(ANDROIDNDK))
 		#include <Imlib2.h>
 	#endif
 #endif
@@ -481,7 +481,7 @@ ConsoleMessage(me);}
 
 
 /* LINUX */
-#if !defined (_MSC_VER) && !defined (TARGET_AQUA) && !defined(_ANDROID)
+#if !defined (_MSC_VER) && !defined (TARGET_AQUA) && !defined(_ANDROID) && !defined(ANDROIDNDK)
 	Imlib_Image image;
 	Imlib_Load_Error error_return;
 

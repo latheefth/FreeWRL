@@ -136,7 +136,7 @@ void Textures_clear(struct tTextures *t){
 #elif defined(_MSC_VER)
 
 #else
-#if !defined(_ANDROID) && !defined(GLES2)
+#if !defined(_ANDROID) && !defined(ANDROIDNDK) && !defined(GLES2)
 GLXContext textureContext = NULL;
 #endif
 

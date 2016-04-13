@@ -86,7 +86,7 @@ char *strchr (), *strrchr ();
 # endif
 #endif
 
-#if defined(_ANDROID) || defined(ANDROID)
+#if defined(_ANDROID) || defined(ANDROIDNDK)
 #include <stddef.h>
 typedef int bool;
 # define false 0
@@ -110,7 +110,7 @@ typedef unsigned char _Bool;
 #endif
 #endif
 
-#if defined(_ANDROID) || defined(ANDROID)
+#if defined(_ANDROID) || defined(ANDROIDNDK)
 #define JS_FALSE 0
 #define JS_TRUE 1
 #endif
