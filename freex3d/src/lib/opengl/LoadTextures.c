@@ -242,7 +242,7 @@ static void texture_load_from_MovieTexture (textureTableIndexStruct_s* this_tex)
 {
 }
 
-#if defined(_ANDROID)
+#if defined(_ANDROID) || defined(ANDROIDNDK)
 // sometimes (usually?) we have to flip an image vertically. 
 static unsigned char *flipImageVertically(unsigned char *input, int height, int width) {
 	int i,ii,rowcount;
@@ -405,7 +405,7 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 {
 
 /* Android, put it here... */
-#if defined(_ANDROID)
+#if defined(_ANDROID) || defined(ANDROIDNDK)
 	unsigned char *image = NULL;
 	unsigned char *imagePtr;
 	int i;
