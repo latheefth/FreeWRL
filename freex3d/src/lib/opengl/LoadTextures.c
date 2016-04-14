@@ -244,12 +244,12 @@ static void texture_load_from_MovieTexture (textureTableIndexStruct_s* this_tex)
 
 #if defined(_ANDROID) || defined(ANDROIDNDK)
 // sometimes (usually?) we have to flip an image vertically. 
-static unsigned char *flipImageVertically(unsigned char *input, int height, int width) {
+static unsigned char *flipImageVerticallyB(unsigned char *input, int height, int width, int bpp) {
 	int i,ii,rowcount;
 	unsigned char *sourcerow, *destrow;
 	unsigned char * blob;
     
-	rowcount = width * 4;
+	rowcount = width * bpp; //4; bytes per pixel
 	blob = MALLOC(unsigned char*, height * rowcount);
 	for(i=0;i<height;i++) {
 		ii = height - 1 - i;
@@ -259,6 +259,9 @@ static unsigned char *flipImageVertically(unsigned char *input, int height, int 
 	}
 	//FREE_IF_NZ(input);
 	return blob;
+}
+static unsigned char *flipImageVertically(unsigned char *input, int height, int width) {
+	return flipImageVerticallyB(input,height,width,4);
 }
 #endif //ANDROID - for flipImageVertically
 
@@ -391,21 +394,391 @@ int loadImage(textureTableIndexStruct_s* tti, char* fname)
 }
 
 #endif
+
+char* download_file(char* filename);
+void close_openned_file(openned_file_t *file);
+int load_file_blob(const char *filename, char **blob, int *len);
+
+#if defined(ANDROIDNDK)
+#ifdef HAVE_LIBJPEG_H
+struct my_error_mgr {
+	struct jpeg_error_mgr pub;    /* "public" fields */
+	jmp_buf setjmp_buffer; /* for return to caller */
+};
+
+typedef struct my_error_mgr * my_error_ptr;
+
+/*
+* Here's the routine that will replace the standard error_exit method:
+*/
+
+METHODDEF(void)
+my_error_exit(j_common_ptr cinfo)
+{
+	/* cinfo->err really points to a my_error_mgr struct, so coerce pointer */
+	my_error_ptr myerr = (my_error_ptr)cinfo->err;
+
+	/* Always display the message. */
+	/* We could postpone this until after returning, if we chose. */
+	/* JAS (*cinfo->err->output_message) (cinfo); */
+
+	/* Return control to the setjmp point */
+	longjmp(myerr->setjmp_buffer, 1);
+}
+#include <libjpeg.h>
+static void loadImageTexture_jpeg(textureTableIndexStruct_s* this_tex, char *filename) {
+	FILE *infile;
+	//char *filename;
+	GLuint texture_num;
+	unsigned char *image_data = 0;
+
+
+	/* jpeg variables */
+	struct jpeg_decompress_struct cinfo;
+	struct my_error_mgr jerr;
+	JDIMENSION nrows;
+	JSAMPROW row = 0;
+	JSAMPROW rowptr[1];
+	unsigned rowcount, columncount;
+	int dp;
+
+	int tempInt;
+
+
+	//filename = loadThisTexture->filename;
+	infile = openLocalFile(filename, "rb");
+
+	/* it is not a png file - assume a jpeg file */
+	/* start from the beginning again */
+	rewind(infile);
+
+	/* Select recommended processing options for quick-and-dirty output. */
+	cinfo.two_pass_quantize = FALSE;
+	cinfo.dither_mode = JDITHER_ORDERED;
+	cinfo.desired_number_of_colors = 216;
+	cinfo.dct_method = JDCT_FASTEST;
+	cinfo.do_fancy_upsampling = FALSE;
+
+	/* call my error handler if there is an error */
+	cinfo.err = jpeg_std_error(&jerr.pub);
+	jerr.pub.error_exit = my_error_exit;
+	if (setjmp(jerr.setjmp_buffer)) {
+		/* if we are here, we have a JPEG error */
+		printf("FreeWRL Image problem - could not read %s\n", filename);
+		jpeg_destroy_compress((j_compress_ptr)&cinfo);
+		fclose(infile);
+		releaseTexture(loadThisTexture->scenegraphNode);
+		return;
+	}
+
+
+	jpeg_create_decompress(&cinfo);
+
+	/* Specify data source for decompression */
+	jpeg_stdio_src(&cinfo, infile);
+
+	/* Read file header, set default decompression parameters */
+	/* (void) jpeg_read_header(&cinfo, TRUE); */
+	tempInt = jpeg_read_header(&cinfo, TRUE);
+
+
+	/* Start decompressor */
+	(void)jpeg_start_decompress(&cinfo);
+
+
+
+	row = (JSAMPLE*)MALLOC(cinfo.output_width * sizeof(JSAMPLE)*cinfo.output_components);
+	rowptr[0] = row;
+	image_data = (unsigned char *)MALLOC(cinfo.output_width * sizeof(JSAMPLE) * cinfo.output_height * cinfo.output_components);
+	/* Process data */
+	for (rowcount = 0; rowcount < cinfo.output_height; rowcount++) {
+		nrows = jpeg_read_scanlines(&cinfo, rowptr, 1);
+		/* yield for a bit */
+		sched_yield();
+
+
+		for (columncount = 0; columncount < cinfo.output_width; columncount++) {
+			for (dp = 0; dp<cinfo.output_components; dp++) {
+				image_data[(cinfo.output_height - rowcount - 1)
+					*cinfo.output_width*cinfo.output_components
+					+ columncount* cinfo.output_components + dp]
+					= row[columncount*cinfo.output_components + dp];
+			}
+		}
+	}
+
+
+	if (jpeg_finish_decompress(&cinfo) != TRUE) {
+		printf("warning: jpeg_finish_decompress error\n");
+		releaseTexture(loadThisTexture->scenegraphNode);
+	}
+	jpeg_destroy_decompress(&cinfo);
+	FREE_IF_NZ(row);
+
+	store_tex_info(loadThisTexture,
+		cinfo.output_components,
+		(int)cinfo.output_width,
+		(int)cinfo.output_height, image_data, cinfo.output_components == 4);
+	fclose(infile);
+}
+
+
+#endif //HAVE_LIBJPEG_H
+
+#define HAVE_LIBPNG_H 1
+#ifdef HAVE_LIBPNG_H
+#include <png.h>
+
+#define ERROR -1
+#define NOT_PNG -2
+#define PNG_SUCCESS 0
+// http://www.learnopengles.com/loading-a-png-into-memory-and-displaying-it-as-a-texture-with-opengl-es-2-using-almost-the-same-code-on-ios-android-and-emscripten/
+typedef struct {
+	const png_byte* data;
+	const png_size_t size;
+} DataHandle;
+
+typedef struct {
+	const DataHandle data;
+	png_size_t offset;
+} ReadDataHandle;
+
+typedef struct {
+	const png_uint_32 width;
+	const png_uint_32 height;
+	const int color_type;
+} PngInfo;
+static GLenum get_gl_color_format(const int png_color_format) {
+	assert(png_color_format == PNG_COLOR_TYPE_GRAY
+		|| png_color_format == PNG_COLOR_TYPE_RGB_ALPHA
+		|| png_color_format == PNG_COLOR_TYPE_GRAY_ALPHA);
+
+	switch (png_color_format) {
+	case PNG_COLOR_TYPE_GRAY:
+		return GL_LUMINANCE;
+	case PNG_COLOR_TYPE_RGB_ALPHA:
+		return GL_RGBA;
+	case PNG_COLOR_TYPE_GRAY_ALPHA:
+		return GL_LUMINANCE_ALPHA;
+	}
+
+	return 0;
+}
+
+static PngInfo read_and_update_info(const png_structp png_ptr, const png_infop info_ptr)
+{
+	png_uint_32 width, height;
+	int bit_depth, color_type;
+
+	png_read_info(png_ptr, info_ptr);
+	png_get_IHDR(
+		png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, NULL, NULL, NULL);
+
+	// Convert transparency to full alpha
+	if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
+		png_set_tRNS_to_alpha(png_ptr);
+
+	// Convert grayscale, if needed.
+	if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
+		png_set_expand_gray_1_2_4_to_8(png_ptr);
+
+	// Convert paletted images, if needed.
+	if (color_type == PNG_COLOR_TYPE_PALETTE)
+		png_set_palette_to_rgb(png_ptr);
+
+	// Add alpha channel, if there is none.
+	// Rationale: GL_RGBA is faster than GL_RGB on many GPUs)
+	if (color_type == PNG_COLOR_TYPE_PALETTE || color_type == PNG_COLOR_TYPE_RGB)
+		png_set_add_alpha(png_ptr, 0xFF, PNG_FILLER_AFTER);
+
+	// Ensure 8-bit packing
+	if (bit_depth < 8)
+		png_set_packing(png_ptr);
+	else if (bit_depth == 16)
+		png_set_scale_16(png_ptr);
+
+	png_read_update_info(png_ptr, info_ptr);
+
+	// Read the new color type after updates have been made.
+	color_type = png_get_color_type(png_ptr, info_ptr);
+
+	return (PngInfo) { width, height, color_type };
+}
+static DataHandle read_entire_png_image(
+	const png_structp png_ptr,
+	const png_infop info_ptr,
+	const png_uint_32 height)
+{
+	const png_size_t row_size = png_get_rowbytes(png_ptr, info_ptr);
+	const int data_length = row_size * height;
+	assert(row_size > 0);
+
+	png_byte* raw_image = malloc(data_length);
+	assert(raw_image != NULL);
+
+	png_byte* row_ptrs[height];
+
+	png_uint_32 i;
+	for (i = 0; i < height; i++) {
+		row_ptrs[i] = raw_image + i * row_size;
+	}
+
+	png_read_image(png_ptr, &row_ptrs[0]);
+
+	return (DataHandle) { raw_image, data_length };
+}
+static void read_png_data_callback(
+	png_structp png_ptr, png_byte* raw_data, png_size_t read_length) {
+	ReadDataHandle* handle = png_get_io_ptr(png_ptr);
+	const png_byte* png_src = handle->data.data + handle->offset;
+
+	memcpy(raw_data, png_src, read_length);
+	handle->offset += read_length;
+}
+enum {
+TACTIC_FROM_FILE = 1,
+TACTIC_FROM_BLOB = 2,
+};
+static int loadImageTexture_png(textureTableIndexStruct_s* this_tex, char *filename) {
+	FILE *fp;
+	//char *filename;
+	GLuint texture_num;
+	unsigned char *image_data = 0;
+
+	/* png reading variables */
+	int rc;
+	unsigned long image_width = 0;
+	unsigned long image_height = 0;
+	unsigned long image_rowbytes = 0;
+	int image_channels = 0;
+	double display_exponent = 0.0;
+	char * png_data;
+	int png_data_size;
+	int is_png;
+	int tactic;
+	int tempInt;
+	tactic= TACTIC_FROM_BLOB;
+
+
+	png_structp png_ptr = png_create_read_struct(
+		PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+	png_infop info_ptr = png_create_info_struct(png_ptr);
+	
+	//from memory (if from file there s png_set_io
+	if(tactic == TACTIC_FROM_FILE){
+		char header[8];
+		fp = fopen(filename,"rb");
+		fread(header, 1, 8, fp);
+		is_png = !png_sig_cmp(png_data, 0, 8);
+		fclose(fp);
+		fp = fopen(filename,"rb");
+		png_init_io(png_ptr, fp);
+	} else if(tactic == TACTIC_FROM_BLOB){
+		if (!load_file_blob(filename, &png_data, &png_data_size)) {
+			return ERROR;
+		}
+		is_png = !png_sig_cmp(png_data, 0, 8);
+		if (!is_png)
+		{
+			return (NOT_PNG);
+		}
+		ReadDataHandle png_data_handle = (ReadDataHandle) { {png_data, png_data_size}, 0 };
+		png_set_read_fn(png_ptr, &png_data_handle, read_png_data_callback);
+	}
+
+	if (setjmp(png_jmpbuf(png_ptr)))
+	{
+		png_destroy_read_struct(&png_ptr, &info_ptr,
+			(png_infopp)NULL);
+		return (ERROR);
+	}
+
+	//png_read_png(png_ptr, info_ptr, 0, NULL);
+
+	//image_data = readpng_get_image(display_exponent, &image_channels,
+	//	&image_rowbytes);
+	const PngInfo png_info = read_and_update_info(png_ptr, info_ptr);
+	const DataHandle raw_image = read_entire_png_image(
+		png_ptr, info_ptr, png_info.height);
+
+	png_read_end(png_ptr, info_ptr);
+	this_tex->x = png_info.width;
+	this_tex->y = png_info.height;
+	this_tex->hasAlpha = png_info.color_type == GL_RGBA || png_info.color_type == GL_LUMINANCE_ALPHA;
+	//int bpp = this_tex->hasAlpha ? 4 :  3; //bytes per pixel
+	int bpp = 4;
+	char *dataflipped = flipImageVerticallyB(raw_image.data, this_tex->y, this_tex->x, bpp);
+	free(raw_image.data);
+	this_tex->frames = 1;
+	this_tex->texdata = dataflipped;
+	this_tex->filename = filename;
+	png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+
+
+	//readpng_cleanup(FALSE);
+
+	fclose(fp);
+	return PNG_SUCCESS;
+}
+
+#endif //HAVE_LIBPNG_H
+
+static void __reallyloadImageTexture(textureTableIndexStruct_s* this_tex, char *filename) {
+//filenames coming in can be temp file names - scrambled
+#ifdef HAVE_LIBPNG_H
+	if (loadImageTexture_png(this_tex, filename) == NOT_PNG)
+#endif
+#ifdef HAVE_LIBJPEG_H
+		loadImageTexture_jpeg(this_tex, filename);
+#endif
+	return;
+}
+
+
+#endif // ANDROIDNDK
+
+
+
+
 /**
  *   texture_load_from_file: a local filename has been found / downloaded,
  *                           load it now.
  */
-char* download_file(char* filename);
-
-
-
-void close_openned_file(openned_file_t *file);
 
 bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 {
 
 /* Android, put it here... */
-#if defined(_ANDROID) || defined(ANDROIDNDK)
+
+#if defined(ANDROIDNDK)
+
+	__reallyloadImageTexture(this_tex, filename);
+
+	/*
+	// if we got null for data, lets assume that there was not a file there
+	if (myFile->fileData == NULL) {
+		result = FALSE;
+	}
+	else {
+		this_tex->texdata = flipImageVertically(myFile->fileData, myFile->imageHeight, myFile->imageWidth);
+
+		this_tex->filename = filename;
+		this_tex->hasAlpha = myFile->imageAlpha;
+		this_tex->frames = 1;
+		this_tex->x = myFile->imageWidth;
+		this_tex->y = myFile->imageHeight;
+		result = TRUE;
+	}
+	//close_openned_file(myFile);
+	FREE_IF_NZ(myFile);
+	*/
+	return this_tex->frames;
+
+#endif //ANDROIDNDK
+
+
+
+#if defined(_ANDROID)
 	unsigned char *image = NULL;
 	unsigned char *imagePtr;
 	int i;
