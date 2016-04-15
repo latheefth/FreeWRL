@@ -263,6 +263,25 @@ static unsigned char *flipImageVerticallyB(unsigned char *input, int height, int
 static unsigned char *flipImageVertically(unsigned char *input, int height, int width) {
 	return flipImageVerticallyB(input,height,width,4);
 }
+static unsigned char *expandto4bpp(unsigned char *input, int height, int width, int bpp) {
+	int i, j, rowcountin, rowcountout;
+	unsigned char *sourcerow, *destrow;
+	unsigned char * blob;
+
+	rowcountin = width * bpp; //bytes per pixel
+	rowcountout = width * 4;
+	blob = MALLOCV(height * rowcountout);
+	for (i = 0; i<height; i++) {
+		sourcerow = &input[i*rowcountin];
+		destrow = &blob[i*rowcountout];
+		for(j=0;j<width;j++){
+			memcpy(&destrow[j*4], &sourcerow[j*bpp], bpp);
+			destrow[j*4 + 3] = 255;
+		}
+	}
+	//FREE_IF_NZ(input);
+	return blob;
+}
 #endif //ANDROID - for flipImageVertically
 
 
@@ -400,7 +419,10 @@ void close_openned_file(openned_file_t *file);
 int load_file_blob(const char *filename, char **blob, int *len);
 
 #if defined(ANDROIDNDK)
+#define HAVE_LIBJPEG_H 1
 #ifdef HAVE_LIBJPEG_H
+#include <jpeglib.h>
+#include <setjmp.h>
 struct my_error_mgr {
 	struct jpeg_error_mgr pub;    /* "public" fields */
 	jmp_buf setjmp_buffer; /* for return to caller */
@@ -425,8 +447,11 @@ my_error_exit(j_common_ptr cinfo)
 	/* Return control to the setjmp point */
 	longjmp(myerr->setjmp_buffer, 1);
 }
-#include <libjpeg.h>
-static void loadImageTexture_jpeg(textureTableIndexStruct_s* this_tex, char *filename) {
+#define ERROR -1
+#define NOT_JPEGT -2
+#define JPEG_SUCCESS 0
+
+static int loadImageTexture_jpeg(textureTableIndexStruct_s* this_tex, char *filename) {
 	FILE *infile;
 	//char *filename;
 	GLuint texture_num;
@@ -445,30 +470,29 @@ static void loadImageTexture_jpeg(textureTableIndexStruct_s* this_tex, char *fil
 	int tempInt;
 
 
-	//filename = loadThisTexture->filename;
-	infile = openLocalFile(filename, "rb");
+	if ((infile = fopen(filename, "rb")) == NULL) {
+		fprintf(stderr, "can't open %s\n", filename);
+		return ERROR;
+	}
 
-	/* it is not a png file - assume a jpeg file */
-	/* start from the beginning again */
-	rewind(infile);
+	/* is it a jpeg file */
 
 	/* Select recommended processing options for quick-and-dirty output. */
-	cinfo.two_pass_quantize = FALSE;
-	cinfo.dither_mode = JDITHER_ORDERED;
-	cinfo.desired_number_of_colors = 216;
-	cinfo.dct_method = JDCT_FASTEST;
-	cinfo.do_fancy_upsampling = FALSE;
+	//cinfo.two_pass_quantize = FALSE;
+	//cinfo.dither_mode = JDITHER_ORDERED;
+	//cinfo.desired_number_of_colors = 216;
+	//cinfo.dct_method = JDCT_FASTEST;
+	//cinfo.do_fancy_upsampling = FALSE;
 
 	/* call my error handler if there is an error */
 	cinfo.err = jpeg_std_error(&jerr.pub);
 	jerr.pub.error_exit = my_error_exit;
 	if (setjmp(jerr.setjmp_buffer)) {
 		/* if we are here, we have a JPEG error */
-		printf("FreeWRL Image problem - could not read %s\n", filename);
+		ConsoleMessage("FreeWRL Image problem - could not read %s\n", filename);
 		jpeg_destroy_compress((j_compress_ptr)&cinfo);
 		fclose(infile);
-		releaseTexture(loadThisTexture->scenegraphNode);
-		return;
+		return ERROR;
 	}
 
 
@@ -479,6 +503,7 @@ static void loadImageTexture_jpeg(textureTableIndexStruct_s* this_tex, char *fil
 
 	/* Read file header, set default decompression parameters */
 	/* (void) jpeg_read_header(&cinfo, TRUE); */
+	// https://www4.cs.fau.de/Services/Doc/graphics/doc/jpeg/libjpeg.html
 	tempInt = jpeg_read_header(&cinfo, TRUE);
 
 
@@ -487,9 +512,9 @@ static void loadImageTexture_jpeg(textureTableIndexStruct_s* this_tex, char *fil
 
 
 
-	row = (JSAMPLE*)MALLOC(cinfo.output_width * sizeof(JSAMPLE)*cinfo.output_components);
+	row = (JSAMPLE*)MALLOCV(cinfo.output_width * sizeof(JSAMPLE)*cinfo.output_components);
 	rowptr[0] = row;
-	image_data = (unsigned char *)MALLOC(cinfo.output_width * sizeof(JSAMPLE) * cinfo.output_height * cinfo.output_components);
+	image_data = (unsigned char *)MALLOCV(cinfo.output_width * sizeof(JSAMPLE) * cinfo.output_height * cinfo.output_components);
 	/* Process data */
 	for (rowcount = 0; rowcount < cinfo.output_height; rowcount++) {
 		nrows = jpeg_read_scanlines(&cinfo, rowptr, 1);
@@ -507,20 +532,40 @@ static void loadImageTexture_jpeg(textureTableIndexStruct_s* this_tex, char *fil
 		}
 	}
 
-
+	int iret = JPEG_SUCCESS;
 	if (jpeg_finish_decompress(&cinfo) != TRUE) {
 		printf("warning: jpeg_finish_decompress error\n");
-		releaseTexture(loadThisTexture->scenegraphNode);
+		//releaseTexture(loadThisTexture->scenegraphNode);
+		iret = ERROR;
 	}
+
+
+	//store_tex_info(loadThisTexture,
+	//	cinfo.output_components,
+	//	(int)cinfo.output_width,
+	//	(int)cinfo.output_height, image_data, cinfo.output_components == 4);
+	fclose(infile);
+
+	this_tex->x = (int)cinfo.output_width;
+	this_tex->y = (int)cinfo.output_height;
+	this_tex->hasAlpha = 0; //jpeg doesn't have alpha?
+	
+	//int bpp = this_tex->hasAlpha ? 4 :  3; //bytes per pixel
+	int bpp = cinfo.output_components; //4
+	//char *dataflipped = flipImageVerticallyB(image_data, this_tex->y, this_tex->x, bpp);
+	char *data4bpp = expandto4bpp(image_data,this_tex->y,this_tex->x,bpp);
+	//free(image_data);
+	this_tex->frames = 1;
+	this_tex->texdata = data4bpp;
+	FREE_IF_NZ(image_data);
+	this_tex->filename = filename;
+
 	jpeg_destroy_decompress(&cinfo);
 	FREE_IF_NZ(row);
 
-	store_tex_info(loadThisTexture,
-		cinfo.output_components,
-		(int)cinfo.output_width,
-		(int)cinfo.output_height, image_data, cinfo.output_components == 4);
-	fclose(infile);
+	return JPEG_SUCCESS;
 }
+
 
 
 #endif //HAVE_LIBJPEG_H
@@ -671,6 +716,10 @@ static int loadImageTexture_png(textureTableIndexStruct_s* this_tex, char *filen
 		fread(header, 1, 8, fp);
 		is_png = !png_sig_cmp(png_data, 0, 8);
 		fclose(fp);
+		if (!is_png)
+		{
+			return (NOT_PNG);
+		}
 		fp = fopen(filename,"rb");
 		png_init_io(png_ptr, fp);
 	} else if(tactic == TACTIC_FROM_BLOB){
@@ -690,6 +739,7 @@ static int loadImageTexture_png(textureTableIndexStruct_s* this_tex, char *filen
 	{
 		png_destroy_read_struct(&png_ptr, &info_ptr,
 			(png_infopp)NULL);
+		if (tactic == TACTIC_FROM_FILE) fclose(fp);
 		return (ERROR);
 	}
 
@@ -717,7 +767,7 @@ static int loadImageTexture_png(textureTableIndexStruct_s* this_tex, char *filen
 
 	//readpng_cleanup(FALSE);
 
-	fclose(fp);
+	if (tactic == TACTIC_FROM_FILE) fclose(fp);
 	return PNG_SUCCESS;
 }
 
