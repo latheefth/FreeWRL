@@ -773,14 +773,129 @@ static int loadImageTexture_png(textureTableIndexStruct_s* this_tex, char *filen
 
 #endif //HAVE_LIBPNG_H
 
+#define HAVE_LIBGIF_H 1
+#ifdef HAVE_LIBGIF_H
+#include <gif_lib.h>  //loads stdbool.h
+// http://cd.textfiles.com/amigaplus/lesercd16/Tools/Development/ming0_2/util/gif2dbl.c
+
+int getTransparentColor(GifFileType * file)
+{
+	//get the color index of transparent 
+	int i;
+	ExtensionBlock * ext = file->SavedImages[0].ExtensionBlocks;
+
+	for (i = 0; i < file->SavedImages[0].ExtensionBlockCount; i++, ext++) {
+
+		if (ext->Function == GRAPHICS_EXT_FUNC_CODE) {
+			if (ext->Bytes[0] & 1)	// there is a transparent color 
+				return ext->Bytes[3];	// here it is
+		}
+	}
+
+	return -1;
+}
+
+
+//#define GIF_ERROR -1
+#define NOT_GIF -2
+#define GIF_SUCCESS 0
+
+static int loadImageTexture_gif(textureTableIndexStruct_s* this_tex, char *filename) {
+// http://giflib.sourceforge.net/gif_lib.html#idm46571690371280
+
+	int ErrorCode, alpha, iret;
+	int
+	InterlacedOffset[] = { 0, 4, 2, 1 }, /* The way Interlaced image should. */
+	InterlacedJumps[] = { 8, 8, 4, 2 };    /* be read - offsets and jumps... */
+	ColorMapObject *ColorMap;
+	GifRowType *ScreenBuffer;
+	int Error;
+
+	GifFileType *GifFile = DGifOpenFileName(filename, &ErrorCode);
+	if(!GifFile){
+		return GIF_ERROR;
+	}
+	if (GifFile->SHeight == 0 || GifFile->SWidth == 0) {
+		return GIF_ERROR;
+	}
+
+	ErrorCode = DGifSlurp(GifFile);
+	if(ErrorCode != GIF_OK)
+		return GIF_ERROR;
+	alpha = getTransparentColor(GifFile);
+	iret = GIF_ERROR;
+	ColorMap = (GifFile->Image.ColorMap
+		? GifFile->Image.ColorMap
+		: GifFile->SColorMap);
+	if (ColorMap == NULL) {
+		return GIF_ERROR;
+	}
+
+	if(GifFile->ImageCount){
+		unsigned char *pixel;
+		int i,j,ipix;
+		
+		char * raw = GifFile->SavedImages[0].RasterBits;
+		int width = GifFile->SavedImages[0].ImageDesc.Width;
+		int height = GifFile->SavedImages[0].ImageDesc.Height;
+		GifColorType *Colors = ColorMap->Colors;
+		unsigned char *rgba = MALLOCV(width * height * 4);
+		GifColorType color;
+
+		for(i=0;i<height;i++){
+			for(j=0;j<width;j++){
+				ipix = i*width + j;
+				pixel = &rgba[ipix*4];
+				color = Colors[raw[ipix]];
+				pixel[0] = color.Red;
+				pixel[1] = color.Green;
+				pixel[2] = color.Blue;
+				pixel[3] = ipix == alpha ? 0 : 255;
+			}
+		}
+		this_tex->x = width;
+		this_tex->y = height;
+		this_tex->hasAlpha = 1; //jpeg doesn't have alpha?
+		this_tex->frames = 1;
+		int bpp = 4;
+		char *dataflipped = flipImageVerticallyB(rgba, this_tex->y, this_tex->x, bpp);
+		FREE_IF_NZ(rgba);
+		this_tex->texdata = dataflipped;
+		this_tex->filename = filename;
+		iret = GIF_SUCCESS;
+	}
+	return iret;
+	
+}
+#define bool int //set back to freewrl convention
+#endif //HAVE_LIBGIF_H
+
+
 static void __reallyloadImageTexture(textureTableIndexStruct_s* this_tex, char *filename) {
 //filenames coming in can be temp file names - scrambled
+//there are 3 ways to tell in the backend what type of image file:
+//a) .xxx original filename suffix
+//b) MIME type 
+//c) file signature https://en.wikipedia.org/wiki/List_of_file_signatures
+// right now we aren't passing in the .xxx or mime or signature bytes
+// except through the file conents we can get the signature
+	char header[20];
+	FILE* fp = fopen(filename,"rb");
+	fread(header,20,1,fp);
+	fclose(fp);
+
 #ifdef HAVE_LIBPNG_H
-	if (loadImageTexture_png(this_tex, filename) == NOT_PNG)
+	if(!strncmp(&header[1],"PNG",3))
+		loadImageTexture_png(this_tex, filename);
 #endif
 #ifdef HAVE_LIBJPEG_H
+	if(!strncmp(header,"ÿØÿ",3))
 		loadImageTexture_jpeg(this_tex, filename);
 #endif
+#ifdef HAVE_LIBGIF_H
+	if(!strncmp(header,"GIF",3))
+		loadImageTexture_gif(this_tex, filename);
+#endif 
 	return;
 }
 
@@ -794,7 +909,7 @@ static void __reallyloadImageTexture(textureTableIndexStruct_s* this_tex, char *
  *   texture_load_from_file: a local filename has been found / downloaded,
  *                           load it now.
  */
-
+ 
 bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 {
 
