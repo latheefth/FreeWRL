@@ -840,16 +840,16 @@ static int loadImageTexture_gif(textureTableIndexStruct_s* this_tex, char *filen
 		int height = GifFile->SavedImages[0].ImageDesc.Height;
 		GifColorType *Colors = ColorMap->Colors;
 		unsigned char *rgba = MALLOCV(width * height * 4);
-		GifColorType color;
+		GifColorType *color;
 
 		for(i=0;i<height;i++){
 			for(j=0;j<width;j++){
 				ipix = i*width + j;
 				pixel = &rgba[ipix*4];
-				color = Colors[raw[ipix]];
-				pixel[0] = color.Red;
-				pixel[1] = color.Green;
-				pixel[2] = color.Blue;
+				color = &Colors[raw[ipix]];
+				pixel[0] = color->Red;
+				pixel[1] = color->Green;
+				pixel[2] = color->Blue;
 				pixel[3] = ipix == alpha ? 0 : 255;
 			}
 		}
