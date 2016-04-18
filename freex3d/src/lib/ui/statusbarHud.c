@@ -2351,14 +2351,19 @@ int handleButtonRelease(int mouseX, int mouseY)
 				case ACTION_NEXT:	fwl_Next_ViewPoint(); break;
 				case ACTION_HELP:		
 					//p->showHelp = p->pmenu.items[i].butStatus; 
+					if(!p->pmenu.bitems[i].item->butStatus)
+						//just turned off, clear statusbar help string
+						update_status(NULL);
 					showConsoleText(0);
 					break;
 				case ACTION_MESSAGES:	
 					//p->showConText = p->pmenu.items[i].butStatus; 
+					update_status(NULL);
 					showConsoleText(p->pmenu.bitems[i].item->butStatus);
 					break;
 				case ACTION_OPTIONS: 
 					//p->showOptions = p->pmenu.items[i].butStatus; 
+					update_status(NULL);
 					showConsoleText(0);
 					break;
 				//case ACTION_RELOAD:  fwl_reload(); break;
