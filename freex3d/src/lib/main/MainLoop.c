@@ -7437,7 +7437,7 @@ void fwl_init_EaiVerbose() {
 
 }
 
-#if defined (_ANDROID) && !defined(ANDROIDNDK)
+#if defined (_ANDROID)
 
 void fwl_Android_replaceWorldNeeded() {
 	int i;
