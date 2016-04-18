@@ -57,6 +57,13 @@ DLLFREEWRL_API void * dllFreeWRL_dllFreeWRL()
 	//this->globalcontexthandle = 0;
 	return fwl_init_instance(); //before setting any structs we need a struct allocated
 }
+DLLFREEWRL_API void dllFreeWRL_setDensityFactor(void *fwctx, float density_factor){
+	fwl_setCurrentHandle(fwctx, __FILE__, __LINE__);
+	fwl_setDensityFactor(density_factor);
+	fwl_clearCurrentHandle();
+	return;
+}
+
 //	handle - window handle or null
 //		- if you have a window already created, you should pass in the handle, 
 //		- else pass null and a window will be created for you

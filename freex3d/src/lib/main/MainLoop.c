@@ -792,7 +792,7 @@ typedef struct contenttype_textpanel {
 } contenttype_textpanel;
 void textpanel_render(void *self);
 contenttype *new_contenttype_textpanel(char* fontname, int EMpixels, int maxlines, int maxlen, int wrap){
-	int i;
+	int i, iem;
 	contenttype_textpanel *self = MALLOCV(sizeof(contenttype_textpanel));
 	register_contenttype(self);
 	init_tcontenttype(&self->t1);
@@ -835,12 +835,13 @@ contenttype *new_contenttype_textpanel(char* fontname, int EMpixels, int maxline
 	self->added = 0;
 	//ouch
 	self->fontname = fontname;
-	self->fontSize = EMpixels;
-	self->maxadvancepx = EMpixels/2; //use the one in atlasEntry which is more specific
+	iem = (int)(EMpixels * fwl_getDensityFactor());
+	self->fontSize = iem;
+	self->maxadvancepx = iem/2; //use the one in atlasEntry which is more specific
 	self->initialized = FALSE; 
 	//self->font = 
 	self->fontname = fontname;
-	self->font = (AtlasFont*)searchAtlasTableOrLoad(fontname,EMpixels);
+	self->font = (AtlasFont*)searchAtlasTableOrLoad(fontname,iem);
 	if(!self->font){
 		printf("dug9gui: Can't find font %s do you have the wrong name?\n",fontname);
 	}
