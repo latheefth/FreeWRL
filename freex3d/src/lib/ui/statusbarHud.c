@@ -579,7 +579,7 @@ void initProgramObject(){
    p->textureLoc = glGetUniformLocation ( p->programObject, "Texture0" );
    p->color4fLoc = glGetUniformLocation ( p->programObject, "Color4f" );
 }
-static int lenOptions   = 23;
+static int lenOptions   = 24;
 void statusbar_clear(struct tstatusbar *t){
 	//public
 	//private
@@ -857,6 +857,7 @@ void render_init(void);
 /* start cheapskate widgets >>>> */
 //static int lenOptions   = 16;
 char * optionsText[] = {
+"",
 "  mono",
 "  side-by-side",
 "  up-down",
@@ -920,45 +921,45 @@ void initOptionsVal()
 		for(j=0;j<30;j++) p->optionsVal[i][j] = ' ';
 		p->optionsVal[i][29] = '\0';
 	}
-	p->optionsVal[0][0] = 034; //[]
 	p->optionsVal[1][0] = 034; //[]
 	p->optionsVal[2][0] = 034; //[]
 	p->optionsVal[3][0] = 034; //[]
 	p->optionsVal[4][0] = 034; //[]
+	p->optionsVal[5][0] = 034; //[]
 
 	if(!(viewer->sidebyside || viewer->updown || viewer->anaglyph || viewer->shutterGlasses))
-		p->optionsVal[0][0] = 035; //[*] '*';
-	if(viewer->sidebyside)
 		p->optionsVal[1][0] = 035; //[*] '*';
-	if(viewer->updown)
+	if(viewer->sidebyside)
 		p->optionsVal[2][0] = 035; //[*] '*';
-	if(viewer->anaglyph)
+	if(viewer->updown)
 		p->optionsVal[3][0] = 035; //[*] '*';
-	if(viewer->shutterGlasses)
+	if(viewer->anaglyph)
 		p->optionsVal[4][0] = 035; //[*] '*';
-	sprintf(p->optionsVal[6],"  %4.3f",viewer->eyedist); //.eyebase); //.060f);
-	sprintf(p->optionsVal[8],"  %4.3f",viewer->screendist); //.6f);
+	if(viewer->shutterGlasses)
+		p->optionsVal[5][0] = 035; //[*] '*';
+	sprintf(p->optionsVal[7],"  %4.3f",viewer->eyedist); //.eyebase); //.060f);
+	sprintf(p->optionsVal[9],"  %4.3f",viewer->screendist); //.6f);
 	//sprintf(p->optionsVal[7],"  %4.3f",viewer->stereoParameter); //.toein.4f);
 	for(i=0;i<3;i++){
 		for(j=0;j<3;j++){
 			k = getAnaglyphPrimarySide(j,i);
-			p->optionsVal[11+i][j+1] = (k ? 035 : ' ');
+			p->optionsVal[12+i][j+1] = (k ? 035 : ' ');
 		}
 	}
 	fwl_get_sbh_pin(&p->statusbar_pinned,&p->menubar_pinned);
-	p->optionsVal[14][0] = p->statusbar_pinned ? 035 : 034; 
-	p->optionsVal[15][0] = p->menubar_pinned ? 035 : 034; 
-	sprintf(p->optionsVal[17]," %s ",fwl_get_ui_colorschemename());
-	sprintf(p->optionsVal[18],"            %4d",fwl_get_target_fps());
-	p->optionsVal[19][0] = 034; //[]
+	p->optionsVal[15][0] = p->statusbar_pinned ? 035 : 034; 
+	p->optionsVal[16][0] = p->menubar_pinned ? 035 : 034; 
+	sprintf(p->optionsVal[18]," %s ",fwl_get_ui_colorschemename());
+	sprintf(p->optionsVal[19],"            %4d",fwl_get_target_fps());
+	p->optionsVal[20][0] = 034; //[]
 	if(fwl_get_emulate_multitouch())
-		p->optionsVal[19][0] = 035; //[*] '*';
+		p->optionsVal[20][0] = 035; //[*] '*';
 	fwl_getPickraySide(&iside,&ieither);
-	p->optionsVal[21][1] = p->optionsVal[21][7] = p->optionsVal[21][14] = 034;
-	if(iside==0) p->optionsVal[21][1] = 035;
-	else p->optionsVal[21][7] = 035;
-	if(ieither) p->optionsVal[21][14] = 035;
-	sprintf(p->optionsVal[22],"                    %4d",fwl_getOrientation2());
+	p->optionsVal[22][1] = p->optionsVal[22][7] = p->optionsVal[22][14] = 034;
+	if(iside==0) p->optionsVal[22][1] = 035;
+	else p->optionsVal[22][7] = 035;
+	if(ieither) p->optionsVal[22][14] = 035;
+	sprintf(p->optionsVal[23],"                    %4d",fwl_getOrientation2());
 
 	p->optionsLoaded = 1;
 }
@@ -970,6 +971,7 @@ void updateOptionsVal()
 }
 /* the optionsCase char is used in a switch case later to involk the appropriate function */
 char * optionsCase[] = {
+"",
 "00000000",
 "22222222222222",
 "44444444",
