@@ -705,8 +705,9 @@ void fwMakeRasterFonts()
     glGenTextures(1, &(p->pfont.textureID));
 	//p->pfont.textureID = LoadTexture ( "basemap.tga" );
     glBindTexture(GL_TEXTURE_2D, p->pfont.textureID);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST); //GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST); //GL_LINEAR);
+
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER, GL_LINEAR); //GL_NEAREST); //GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER, GL_LINEAR); //GL_NEAREST); //GL_LINEAR);
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, iwidth, iheight, 0, GL_LUMINANCE_ALPHA , GL_UNSIGNED_BYTE, p->pfont.lumalpha);
     //glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, 16*16, irowheight*16, 0, GL_LUMINANCE_ALPHA , GL_UNSIGNED_BYTE, p->pfont.lumalpha);
@@ -1339,14 +1340,15 @@ char * keyboardShortcutHelp[] = {
 NULL,
 };
 #else
-int lenhelp = 24;
+int lenhelp = 25;
 char * keyboardShortcutHelp[] = {
 "Keyboard commands:",
 "  / Print current viewpoint pose", 
 "  x Snapshot",
 "  q Quit browser",
 "Keyboard navigation:",
-" - use arrow keys. to change keychord: press SHIFT> or SHIFT<",
+" use arrow keys.",
+" to change keychord: press SHIFT> or SHIFT<",
 "Menubar:",
 " WALK",
 " |   FLY {yaw-z,xy,yaw-pitch,roll}",
@@ -1390,6 +1392,7 @@ void printKeyboardHelp(ppstatusbar p)
 
 	//font size:
 	fxy2 = screen2normalizedScreenScale((GLfloat)p->bmWH.x, (GLfloat)p->bmWH.y);
+	fxy2.y *= p->bmScale;
 	side_bottom_f = -1.0f;
 
 	//draw bottom up, to explain buttons
@@ -1400,7 +1403,7 @@ void printKeyboardHelp(ppstatusbar p)
 		//	if(iside == 0) side_bottom_f = 0.0f;
 		printString2(-1.0f, side_bottom_f + (lenhelp-j+1)*fxy2.y, keyboardShortcutHelp[j]);
 		j++;
-		if(p->show_status && j > 5) break; //they can see button help on the statusbar on mouse-over button
+		if(p->show_status && j > 6) break; //they can see button help on the statusbar on mouse-over button
 	}
 }
 
@@ -2739,11 +2742,17 @@ int handleStatusbarHud1(int mev, int butnum, int mouseX, int mouseY, int windex)
 						p->showStatus = 1; //turn menubar back on if not pinned, not showing, and menubar is pinned
 				}
 			}
-			if (mev == ButtonPress)
-				
-
-			ihit = 1; //ButtonPress or release, swallow click so scene doesn't get it
-
+			if (mev == ButtonPress){
+				if (showAction(p, ACTION_HELP)) {
+					int ib_over;
+					ib_over = handleButtonOver(mouseX, mouseYY);
+					if (ib_over > -1)
+						update_status(p->pmenu.bitems[ib_over].item->help);
+					else
+						update_status(NULL);
+				}
+				ihit = 1; //ButtonPress or release, swallow click so scene doesn't get it
+			}
 		}else if(overStatusbar(p,mouseY)){
 			//someone may be touching the statusbar (or statusbar zone) to bring up the menubar and/or statusbar
 			if(mev == ButtonRelease){
@@ -2885,6 +2894,22 @@ void update_pinned(){
 	p->wantButtons = fwl_get_sbh_wantMenubar();
 	p->wantStatusbar = fwl_get_sbh_wantStatusbar();
 }
+void update_density(){
+	float density_factor;
+	int ifactor;
+	ppstatusbar p;
+	ttglobal tg = gglobal();
+	p = (ppstatusbar)tg->statusbar.prv;
+	density_factor = fwl_getDensityFactor();
+	ifactor = (int)(density_factor + .5f);
+	ifactor = max(1,ifactor);
+	p->bmScaleRegular = ifactor;
+	p->bmScale = ifactor;
+	p->bmScaleForOptions = ifactor;
+	//Q. what do I need to recompute?
+	p->statusBarSize = p->bmScaleRegular * 16;
+	p->buttonSize = (int)(density_factor * 32);
+}
 int statusbar_getClipPlane(){
 	int vrml_clipplane;
 	int statusbar_height, menubar_height;
@@ -2938,6 +2963,7 @@ M       void toggle_collision()                             //"
 
 	update_ui_colors();
 	update_pinned();
+	update_density();
 //	if(!p->wantStatusbar) return;
 	//init-once things are done everytime for convenience
 	//fwl_setClipPlane(p->statusBarSize);

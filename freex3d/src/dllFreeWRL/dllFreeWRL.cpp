@@ -53,6 +53,11 @@ void CdllFreeWRL::onInit(int width, int height, void* windowhandle, bool bEai, b
 	dllFreeWRL_onInit(this->globalcontexthandle, width, height, windowhandle, BEai, FEHDT);
 	return;
 }
+void CdllFreeWRL::setDensityFactor(float density_factor)
+{
+	dllFreeWRL_setDensityFactor(this->globalcontexthandle, density_factor);
+	return;
+}
 void CdllFreeWRL::setTempFolder(char *tmpFolder)
 {
 	dllFreeWRL_setTempFolder(this->globalcontexthandle, tmpFolder);

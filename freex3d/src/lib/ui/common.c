@@ -73,6 +73,7 @@ typedef struct pcommon{
 	int want_menubar;
 	int want_statusbar;
 	struct Vector *keyvals;
+	float density_factor;
 }*ppcommon;
 void *common_constructor(){
 	void *v = MALLOCV(sizeof(struct pcommon));
@@ -97,6 +98,7 @@ void common_init(struct tcommon *t){
 		p->keyvals = NULL;
 		p->showConsoleText = 0;  //in the UI, if a callback is registered with ConsoleMessage. Won't affect old fashioned console, 
 		p->target_frames_per_second = 120;  //is 120 FPS a good target FPS?
+		p->density_factor = 1.0f;  //how much to scale up UI elements for small high res screens ie mobile, see fwl_setDensityFactor
 	}
 }
 void common_clear(struct tcommon *t){
@@ -755,3 +757,17 @@ int fwl_commandline(char *cmdline){
 }
 
 // fwl_command() <<<<<<<<<<
+
+void fwl_setDensityFactor(float density_factor){
+	// mobile device APIs sometimes can give you a hint 
+	// you can use to scale UI elements to human size
+	// for example a human finger tip has a constant size in the physical world
+	// as screen resolutions DPI have increased, its been necessary to scale buttons
+	// up by some factor depending on the DPI relative to good old fashioned 160 DPI
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	p->density_factor = density_factor;
+}
+float fwl_getDensityFactor(){
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	return p->density_factor;
+}

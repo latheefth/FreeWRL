@@ -36,6 +36,7 @@ enum MouseAction {MOUSEMOVE=6,MOUSEDOWN=4,MOUSEUP=5};
 enum MouseButton {LEFT=1,MIDDLE=2,RIGHT=3,NONE=0}; 		
 /* butnum=1 left butnum=3 right (butnum=2 middle, not used by freewrl) */
 
+DLLFREEWRL_API void dllFreeWRL_setDensityFactor(void *fwctx, float density_factor);
 DLLFREEWRL_API void dllFreeWRL_onInit(void *fwctx, int width, int height, void* windowhandle, int bEai, int frontend_handles_display_thread);
 DLLFREEWRL_API void dllFreeWRL_onLoad(void *fwctx, char* scene_url);
 DLLFREEWRL_API void dllFreeWRL_onResize(void *fwctx, int width, int height);
