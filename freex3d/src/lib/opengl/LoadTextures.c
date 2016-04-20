@@ -833,9 +833,9 @@ static int loadImageTexture_gif(textureTableIndexStruct_s* this_tex, char *filen
 
 	if(GifFile->ImageCount){
 		unsigned char *pixel;
-		int i,j,ipix;
+		int i,j,ipix,icolor;
 		
-		char * raw = GifFile->SavedImages[0].RasterBits;
+		unsigned char * raw = GifFile->SavedImages[0].RasterBits;
 		int width = GifFile->SavedImages[0].ImageDesc.Width;
 		int height = GifFile->SavedImages[0].ImageDesc.Height;
 		GifColorType *Colors = ColorMap->Colors;
@@ -846,11 +846,12 @@ static int loadImageTexture_gif(textureTableIndexStruct_s* this_tex, char *filen
 			for(j=0;j<width;j++){
 				ipix = i*width + j;
 				pixel = &rgba[ipix*4];
-				color = &Colors[raw[ipix]];
+				icolor = raw[ipix];
+				color = &Colors[icolor];
 				pixel[0] = color->Red;
 				pixel[1] = color->Green;
 				pixel[2] = color->Blue;
-				pixel[3] = ipix == alpha ? 0 : 255;
+				pixel[3] = icolor == alpha ? 0 : 255;
 			}
 		}
 		this_tex->x = width;
