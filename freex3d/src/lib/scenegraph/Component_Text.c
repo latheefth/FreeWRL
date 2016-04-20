@@ -302,6 +302,16 @@ typedef struct pComponent_Text{
 	int textpanel_ind_size;
 	struct Vector *font_table; 
 	struct Vector *atlas_table;
+	//bitmap font shader variables
+	GLuint positionLoc;
+	GLuint texCoordLoc;
+	GLuint textureLoc;
+	GLuint color4fLoc;
+	GLuint textureID; // = 0;
+	GLuint blendLoc;
+	GLuint modelviewLoc;
+	GLuint projectionLoc;
+	GLuint programObject;// = 0;
 
 
 }* ppComponent_Text;
@@ -330,7 +340,8 @@ void Component_Text_init(struct tComponent_Text *t){
 		p->textpanel_size = 0;
 		p->font_table = NULL; 
 		p->atlas_table = NULL;
-
+		p->textureID = 0;
+		p->programObject = 0;
 	}
 }
 void GUItablefree(struct Vector **guitable);
@@ -2959,87 +2970,34 @@ static GLfloat projectionIdentityf[] = {
 	0.0f, 0.0f, 1.0f, 0.0f,
 	0.0f, 0.0f, 0.0f, 1.0f
 };
-static GLuint positionLoc;
-static GLuint texCoordLoc;
-static GLuint textureLoc;
-static GLuint color4fLoc;
-//static GLuint programObject;
-static GLuint textureID = 0;
-//static GLuint indexBufferID;
-static GLuint blendLoc;
-static GLuint modelviewLoc;
-static GLuint projectionLoc;
-static GLuint programObject = 0;
+//static GLuint positionLoc;
+//static GLuint texCoordLoc;
+//static GLuint textureLoc;
+//static GLuint color4fLoc;
+//static GLuint textureID = 0;
+//static GLuint blendLoc;
+//static GLuint modelviewLoc;
+//static GLuint projectionLoc;
+//static GLuint programObject = 0;
 GLuint esLoadProgram ( const char *vertShaderSrc, const char *fragShaderSrc ); //defined in statuasbarHud.c
 static void initProgramObject(){
+	ppComponent_Text p;
+	ttglobal tg = gglobal();
+	p = (ppComponent_Text)tg->Component_Text.prv;
+
    // Load the shaders and get a linked program object
-   programObject = esLoadProgram ( (const char*) vShaderStr, (const char *)fShaderStr );
+   p->programObject = esLoadProgram ( (const char*) vShaderStr, (const char *)fShaderStr );
    // Get the attribute locations
-   positionLoc = glGetAttribLocation ( programObject, "a_position" );
-   texCoordLoc = glGetAttribLocation ( programObject, "a_texCoord" );
+   p->positionLoc = glGetAttribLocation ( p->programObject, "a_position" );
+   p->texCoordLoc = glGetAttribLocation ( p->programObject, "a_texCoord" );
    // Get the sampler location
-   textureLoc = glGetUniformLocation ( programObject, "Texture0" );
-   color4fLoc = glGetUniformLocation ( programObject, "Color4f" );
-   blendLoc = glGetUniformLocation ( programObject, "blend" );
-   modelviewLoc =  glGetUniformLocation ( programObject, "u_ModelViewMatrix" );
-   projectionLoc = glGetUniformLocation ( programObject, "u_ProjectionMatrix" );
+   p->textureLoc = glGetUniformLocation ( p->programObject, "Texture0" );
+   p->color4fLoc = glGetUniformLocation ( p->programObject, "Color4f" );
+   p->blendLoc = glGetUniformLocation ( p->programObject, "blend" );
+   p->modelviewLoc =  glGetUniformLocation ( p->programObject, "u_ModelViewMatrix" );
+   p->projectionLoc = glGetUniformLocation ( p->programObject, "u_ProjectionMatrix" );
 
 }
-
-
-/* This shader uses alpha images, _and_ modelview, projection matrices
-		// also see (faulty) CursorDraw function elsewhere
-		loc =  glGetAttribLocation ( shader, "fw_ModelViewMatrix" );
-		glUniformMatrix4fv(loc, 1, GL_FALSE, cursIdentity);
-		loc =  glGetAttribLocation ( shader, "fw_ProjectionMatrix" );
-		glUniformMatrix4fv(loc, 1, GL_FALSE, cursIdentity);
-static const GLchar *vertPosDec = "\
-    attribute      vec4 fw_Vertex; \n \
-    uniform         mat4 fw_ModelViewMatrix; \n \
-    uniform         mat4 fw_ProjectionMatrix; \n ";
-static const GLchar *vertPos = "gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;\n ";
-
-*/
-/*
-static   GLbyte vShaderTransStr[] =  
-      "attribute vec4 a_position;   \n"
-      "attribute vec2 a_texCoord;   \n"
-      "uniform mat4 u_ModelViewMatrix; \n"
-      "uniform mat4 u_ProjectionMatrix; \n"
-      "varying vec2 v_texCoord;     \n"
-      "void main()                  \n"
-      "{                            \n"
-      "   gl_Position = u_ProjectionMatrix * u_ModelViewMatrix * a_position; \n"
-      "   v_texCoord = a_texCoord;  \n"
-      "}                            \n";
-
-static GLuint positionLocT;
-static GLuint texCoordLocT;
-static GLuint textureLocT;
-static GLuint color4fLocT;
-//static GLuint programObject;
-static GLuint textureID;
-//static GLuint indexBufferID;
-static GLuint blendLocT;
-static GLuint modelviewLocT;
-static GLuint projectionLocT;
-static GLuint programObjectTrans = 0;
-
-static void initProgramObjectTrans(){
-   // Load the shaders and get a linked program object
-   programObjectTrans = esLoadProgram ( (const char*) vShaderTransStr, (const char *)fShaderStr );
-   // Get the attribute locations
-   positionLocT = glGetAttribLocation ( programObjectTrans, "a_position" );
-   texCoordLocT = glGetAttribLocation ( programObjectTrans, "a_texCoord" );
-   // Get the sampler location
-   textureLocT = glGetUniformLocation ( programObjectTrans, "Texture0" );
-   color4fLocT = glGetUniformLocation ( programObjectTrans, "Color4f" );
-   blendLocT = glGetUniformLocation ( programObjectTrans, "blend" );
-   modelviewLocT =  glGetUniformLocation ( programObjectTrans, "u_ModelViewMatrix" );
-   projectionLocT = glGetUniformLocation ( programObjectTrans, "u_ProjectionMatrix" );
-
-}
-*/
 
 void dug9gui_DrawImage(int xpos,int ypos, int width, int height, char *buffer){
 //xpos, ypos upper left location of image in pixels, on the screen
@@ -3047,16 +3005,7 @@ void dug9gui_DrawImage(int xpos,int ypos, int width, int height, char *buffer){
 //  1 - 2 4
 //  | / / |    2 triangles, 6 points, in y-up coords
 //  0 3 - 5
-/*
-GLfloat cursorVert[] = {
-	  0.0f,  1.0f, 0.0f,
-	  0.0f,  0.0f, 0.0f,
-	  1.0f,  0.0f, 0.0f,
-	  0.0f,  1.0f, 0.0f,
-	  1.0f,  0.0f, 0.0f,
-	  1.0f,  1.0f, 0.0f,
-	  };
-*/
+
 GLfloat cursorVert[] = {
 	  0.0f,  0.0f, 0.0f,
 	  0.0f,  1.0f, 0.0f,
@@ -3081,13 +3030,16 @@ GLfloat cursorTex[] = {
 	int i; //,j;
 	GLfloat cursorVert2[18];
 	//unsigned char buffer2[1024];
+	ppComponent_Text p;
+	ttglobal tg = gglobal();
+	p = (ppComponent_Text)tg->Component_Text.prv;
 
 
     if(0) glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, width, height, 0, GL_LUMINANCE , GL_UNSIGNED_BYTE, buffer);
 	//for(int i=0;i<width*height;i++)
 	//	buffer2[i] = 255 - (unsigned char)(buffer[i]); //change from (1-alpha) to alpha image
     if(1) glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, width, height, 0, GL_ALPHA , GL_UNSIGNED_BYTE, buffer);
-	glUniform4f(blendLoc,0.0f,0.0f,0.0f,1.0f); //-1 is because glyph grayscale are really (1.0 - alpha)
+	glUniform4f(p->blendLoc,0.0f,0.0f,0.0f,1.0f); //-1 is because glyph grayscale are really (1.0 - alpha)
 
 	if(0){
 		//upper left
@@ -3124,15 +3076,15 @@ GLfloat cursorTex[] = {
 	// Set the base map sampler to texture unit to 0
 	// Bind the base map - see above
 	glActiveTexture ( GL_TEXTURE0 );
-	glBindTexture ( GL_TEXTURE_2D, textureID );
-	glUniform1i ( textureLoc, 0 );
+	glBindTexture ( GL_TEXTURE_2D, p->textureID );
+	glUniform1i ( p->textureLoc, 0 );
 
-	glVertexAttribPointer (positionLoc, 3, GL_FLOAT, 
+	glVertexAttribPointer (p->positionLoc, 3, GL_FLOAT, 
 						   GL_FALSE, 0, cursorVert2 );
 	// Load the texture coordinate
-	glVertexAttribPointer (texCoordLoc, 2, GL_FLOAT, GL_FALSE, 0, cursorTex );  
-	glEnableVertexAttribArray (positionLoc );
-	glEnableVertexAttribArray (texCoordLoc);
+	glVertexAttribPointer (p->texCoordLoc, 2, GL_FLOAT, GL_FALSE, 0, cursorTex );  
+	glEnableVertexAttribArray (p->positionLoc );
+	glEnableVertexAttribArray (p->texCoordLoc);
 	
 
 	//Q do I need to bind a buffer for indexes, just for glew config?
@@ -3186,22 +3138,25 @@ GLfloat cursorTex[] = {
 	int i,j;
 	GLfloat cursorVert2[18];
 	GLfloat cursorTex2[12];
+	ppComponent_Text p;
+	ttglobal tg = gglobal();
+	p = (ppComponent_Text)tg->Component_Text.prv;
 
 
 	// Bind the base map - see above
 	glActiveTexture ( GL_TEXTURE0 );
-	glBindTexture ( GL_TEXTURE_2D, textureID );
+	glBindTexture ( GL_TEXTURE_2D, p->textureID );
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); //GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); //GL_LINEAR);
 
 	// Set the base map sampler to texture unit to 0
-	glUniform1i ( textureLoc, 0 );
+	glUniform1i ( p->textureLoc, 0 );
 
 	switch(bpp){
 		case 1:
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, width, height, 0, GL_ALPHA , GL_UNSIGNED_BYTE, buffer);
 		//glUniform4f(color4fLoc,1.0f,1.0f,1.0f,0.0f);
-		glUniform4f(blendLoc,0.0f,0.0f,0.0f,1.0f); // take color from vector, take alpha from texture2D
+		glUniform4f(p->blendLoc,0.0f,0.0f,0.0f,1.0f); // take color from vector, take alpha from texture2D
 		break;
 		case 2:
 		//doesn't seem to come in here if my .png is gray+alpha on win32
@@ -3209,7 +3164,7 @@ GLfloat cursorTex[] = {
 		break;
 		case 4:
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA , GL_UNSIGNED_BYTE, buffer);
-		glUniform4f(blendLoc,1.0f,1.0f,1.0f,1.0f); //trust the texture2D color and alpha
+		glUniform4f(p->blendLoc,1.0f,1.0f,1.0f,1.0f); //trust the texture2D color and alpha
 		break;
 		default:
 			return;
@@ -3226,7 +3181,7 @@ GLfloat cursorTex[] = {
 		cursorVert2[i*3 +1] += ypos; //fxy.Y;
 	}
 
-	glVertexAttribPointer (positionLoc, 3, GL_FLOAT, 
+	glVertexAttribPointer (p->positionLoc, 3, GL_FLOAT, 
 						   GL_FALSE, 0, cursorVert2 );
 	// Load the texture coordinate
 	fixy.X = (float)ix/(float)width;
@@ -3245,9 +3200,9 @@ GLfloat cursorTex[] = {
 		cursorTex2[i*2 +1] *= fiwh.Y;
 		cursorTex2[i*2 +1] += fixy.Y;
 	}
-	glVertexAttribPointer (texCoordLoc, 2, GL_FLOAT, GL_FALSE, 0, cursorTex2 );  
-	glEnableVertexAttribArray (positionLoc );
-	glEnableVertexAttribArray (texCoordLoc);
+	glVertexAttribPointer (p->texCoordLoc, 2, GL_FLOAT, GL_FALSE, 0, cursorTex2 );  
+	glEnableVertexAttribArray (p->positionLoc );
+	glEnableVertexAttribArray (p->texCoordLoc);
 
 	//// Bind the base map - see above
 	//glActiveTexture ( GL_TEXTURE0 );
@@ -3273,8 +3228,9 @@ int render_captiontext(AtlasFont *font, int *utf32, int len32, vec4 color){
 	Stack *vportstack;
 	ivec4 ivport;
 	AtlasEntrySet* set;
-
+	ppComponent_Text p;
 	ttglobal tg = gglobal();
+	p = (ppComponent_Text)tg->Component_Text.prv;
 
 
 	if(len32 == 0) return FALSE;
@@ -3285,20 +3241,20 @@ int render_captiontext(AtlasFont *font, int *utf32, int len32, vec4 color){
 	finishedWithGlobalShader();
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
-	if(!programObject) initProgramObject();
+	if(!p->programObject) initProgramObject();
 
-	glUseProgram ( programObject );
-	if(!textureID)
-		glGenTextures(1, &textureID);
+	glUseProgram ( p->programObject );
+	if(!p->textureID)
+		glGenTextures(1, &p->textureID);
 
-	glBindTexture(GL_TEXTURE_2D, textureID);
+	glBindTexture(GL_TEXTURE_2D, p->textureID);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST); //GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST); //GL_LINEAR);
 
-	glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewIdentityf);
-	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionIdentityf);
+	glUniformMatrix4fv(p->modelviewLoc, 1, GL_FALSE,modelviewIdentityf);
+	glUniformMatrix4fv(p->projectionLoc, 1, GL_FALSE, projectionIdentityf);
 
-	glUniform4f(color4fLoc,color.X,color.Y,color.Z,color.W); //0.7f,0.7f,0.9f,1.0f);
+	glUniform4f(p->color4fLoc,color.X,color.Y,color.Z,color.W); //0.7f,0.7f,0.9f,1.0f);
 
 	vportstack = (Stack*)tg->Mainloop._vportstack;
 	ivport = stack_top(ivec4,vportstack);
@@ -3352,6 +3308,9 @@ void atlasfont_get_rowheight_charwidth_px(AtlasFont *font, int *rowheight, int *
 int before_textpanel_render_rows(AtlasFont *font, vec4 color){
 	AtlasEntrySet *entryset;
 	Atlas *atlas;
+	ppComponent_Text p;
+	ttglobal tg = gglobal();
+	p = (ppComponent_Text)tg->Component_Text.prv;
 
 	if(font == NULL) return FALSE;
 	entryset = font->set; //GUIFont_getMatchingAtlasEntrySet(self->font,self->fontSize);
@@ -3363,16 +3322,16 @@ int before_textpanel_render_rows(AtlasFont *font, vec4 color){
 	finishedWithGlobalShader();
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
-	if(!programObject) initProgramObject();
+	if(!p->programObject) initProgramObject();
 
-	glUseProgram ( programObject );
-	if(!textureID)
-		glGenTextures(1, &textureID);
+	glUseProgram ( p->programObject );
+	if(!p->textureID)
+		glGenTextures(1, &p->textureID);
 
 	// Set the base map sampler to texture unit to 0
 	glActiveTexture ( GL_TEXTURE0 );
-	glBindTexture ( GL_TEXTURE_2D, textureID );
-	glUniform1i ( textureLoc, 0 );
+	glBindTexture ( GL_TEXTURE_2D, p->textureID );
+	glUniform1i ( p->textureLoc, 0 );
 
 	if (atlas->bytesperpixel == 1){
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); //GL_LINEAR);
@@ -3392,11 +3351,11 @@ int before_textpanel_render_rows(AtlasFont *font, vec4 color){
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, atlas->size.X, atlas->size.Y, 0, GL_RGBA , GL_UNSIGNED_BYTE, atlas->texture);
 	}
 
-	glUniform4f(color4fLoc,color.X,color.Y,color.Z,color.W); //0.7f,0.7f,0.9f,1.0f);
-	glUniform4f(blendLoc,0.0f,0.0f,0.0f,1.0f);
+	glUniform4f(p->color4fLoc,color.X,color.Y,color.Z,color.W); //0.7f,0.7f,0.9f,1.0f);
+	glUniform4f(p->blendLoc,0.0f,0.0f,0.0f,1.0f);
 
-	glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewIdentityf);
-	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionIdentityf);
+	glUniformMatrix4fv(p->modelviewLoc, 1, GL_FALSE,modelviewIdentityf);
+	glUniformMatrix4fv(p->projectionLoc, 1, GL_FALSE, projectionIdentityf);
 
 	return TRUE;
 }
@@ -3406,6 +3365,8 @@ int textpanel_render_row(AtlasFont *font, char * cText, int len, int *pen_x, int
 	//potential optimizatio: in theory its the y that changes for a row, 
 	// and tex for each char, with mono-spaced fonts, if we could guarantee that
 	AtlasEntrySet *entryset;
+
+
 	if(cText == NULL) return FALSE;
 	if(len == 0) return FALSE;
 	if(font == NULL) return FALSE;
@@ -3537,13 +3498,13 @@ int textpanel_render_row(AtlasFont *font, char * cText, int len, int *pen_x, int
 			}
 		}
 
-if(0) glEnableVertexAttribArray (positionLoc );
-if(0) glEnableVertexAttribArray (texCoordLoc );
+if(0) glEnableVertexAttribArray (p->positionLoc );
+if(0) glEnableVertexAttribArray (p->texCoordLoc );
 		// Load the vertex position
-		glVertexAttribPointer (positionLoc, 3, GL_FLOAT, 
+		glVertexAttribPointer (p->positionLoc, 3, GL_FLOAT, 
 							   GL_FALSE, 0, vert );
 		// Load the texture coordinate
-		glVertexAttribPointer ( texCoordLoc, 2, GL_FLOAT,
+		glVertexAttribPointer ( p->texCoordLoc, 2, GL_FLOAT,
 							   GL_FALSE, 0, tex ); 
 
 		glDrawElements ( GL_TRIANGLES, len*3*2, GL_UNSIGNED_SHORT, ind );
@@ -3573,21 +3534,24 @@ void render_screentext0(struct X3D_Text *tnode){
 		int nrow, row,i;
 		row32 *rowvec;
 		static int once = 0;
+		ppComponent_Text p;
+		ttglobal tg = gglobal();
+		p = (ppComponent_Text)tg->Component_Text.prv;
 
 		finishedWithGlobalShader();
 		glDepthMask(GL_FALSE);
 		glDisable(GL_DEPTH_TEST);
-		if(!programObject) initProgramObject();
+		if(!p->programObject) initProgramObject();
 
-		glUseProgram ( programObject );
-		if(!textureID)
-			glGenTextures(1, &textureID);
+		glUseProgram ( p->programObject );
+		if(!p->textureID)
+			glGenTextures(1, &p->textureID);
 
-		glBindTexture(GL_TEXTURE_2D, textureID);
+		glBindTexture(GL_TEXTURE_2D, p->textureID);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST); //GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST); //GL_LINEAR);
-		glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewIdentityf);
-		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionIdentityf);
+		glUniformMatrix4fv(p->modelviewLoc, 1, GL_FALSE,modelviewIdentityf);
+		glUniformMatrix4fv(p->projectionLoc, 1, GL_FALSE, projectionIdentityf);
 
 
 		sdata = (screentextdata*)tnode->_screendata;
@@ -3699,21 +3663,23 @@ GLfloat cursorTex[] = {
 	int i; //,j;
 	GLfloat cursorVert2[18];
 	GLfloat cursorTex2[12];
-	//ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
+	ppComponent_Text p;
+	ttglobal tg = gglobal();
+	p = (ppComponent_Text)tg->Component_Text.prv;
 
 
 	// Bind the base map - see above
 	glActiveTexture ( GL_TEXTURE0 );
-	glBindTexture ( GL_TEXTURE_2D, textureID );
+	glBindTexture ( GL_TEXTURE_2D, p->textureID );
 
 	// Set the base map sampler to texture unit to 0
-	glUniform1i ( textureLoc, 0 );
+	glUniform1i ( p->textureLoc, 0 );
 
 	switch(bpp){
 		case 1:
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, width, height, 0, GL_ALPHA , GL_UNSIGNED_BYTE, buffer);
 		//glUniform4f(color4fLoc,1.0f,1.0f,1.0f,0.0f);
-		glUniform4f(blendLoc,0.0f,0.0f,0.0f,1.0f); // take color from vector, take alpha from texture2D
+		glUniform4f(p->blendLoc,0.0f,0.0f,0.0f,1.0f); // take color from vector, take alpha from texture2D
 		break;
 		case 2:
 		//doesn't seem to come in here if my .png is gray+alpha on win32
@@ -3721,7 +3687,7 @@ GLfloat cursorTex[] = {
 		break;
 		case 4:
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA , GL_UNSIGNED_BYTE, buffer);
-		glUniform4f(blendLoc,1.0f,1.0f,1.0f,1.0f); //trust the texture2D color and alpha
+		glUniform4f(p->blendLoc,1.0f,1.0f,1.0f,1.0f); //trust the texture2D color and alpha
 		break;
 		default:
 			return;
@@ -3739,7 +3705,7 @@ GLfloat cursorTex[] = {
 		cursorVert2[i*3 +1] += ypos; //fxy.Y;
 	}
 
-	glVertexAttribPointer (positionLoc, 3, GL_FLOAT, 
+	glVertexAttribPointer (p->positionLoc, 3, GL_FLOAT, 
 						   GL_FALSE, 0, cursorVert2 );
 	// Load the texture coordinate
 	fixy.X = (float)ix/(float)width;
@@ -3758,9 +3724,9 @@ GLfloat cursorTex[] = {
 		cursorTex2[i*2 +1] *= fiwh.Y;
 		cursorTex2[i*2 +1] += fixy.Y;
 	}
-	glVertexAttribPointer (texCoordLoc, 2, GL_FLOAT, GL_FALSE, 0, cursorTex2 );  
-	glEnableVertexAttribArray (positionLoc );
-	glEnableVertexAttribArray (texCoordLoc);
+	glVertexAttribPointer (p->texCoordLoc, 2, GL_FLOAT, GL_FALSE, 0, cursorTex2 );  
+	glEnableVertexAttribArray (p->positionLoc );
+	glEnableVertexAttribArray (p->texCoordLoc);
 
 	//// Bind the base map - see above
 	//glActiveTexture ( GL_TEXTURE0 );
@@ -3789,17 +3755,20 @@ void render_screentext_aligned(struct X3D_Text *tnode, int screenAligned){
 		static int once = 0;
 		GLfloat modelviewf[16], projectionf[16];
 		GLdouble modelviewd[16], projectiond[16];
+		ppComponent_Text p;
+		ttglobal tg = gglobal();
+		p = (ppComponent_Text)tg->Component_Text.prv;
 
 		finishedWithGlobalShader();
 		glDepthMask(GL_FALSE);
 		glDisable(GL_DEPTH_TEST);
-		if(!programObject) initProgramObject();
+		if(!p->programObject) initProgramObject();
 
-		glUseProgram ( programObject );
-		if(!textureID)
-			glGenTextures(1, &textureID);
+		glUseProgram ( p->programObject );
+		if(!p->textureID)
+			glGenTextures(1, &p->textureID);
 
-		glBindTexture(GL_TEXTURE_2D, textureID);
+		glBindTexture(GL_TEXTURE_2D, p->textureID);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST); //GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST); //GL_LINEAR);
 
@@ -3807,11 +3776,11 @@ void render_screentext_aligned(struct X3D_Text *tnode, int screenAligned){
 		{
 			struct matpropstruct *myap = getAppearanceProperties();
 			if (!myap) {
-				glUniform4f(color4fLoc,.5f,.5f,.5f,1.0f); //default
+				glUniform4f(p->color4fLoc,.5f,.5f,.5f,1.0f); //default
 			}else{
 				float *dc;
 				dc = myap->fw_FrontMaterial.diffuse;
-				glUniform4f(color4fLoc,dc[0],dc[1],dc[2],dc[3]); //0.7f,0.7f,0.9f,1.0f);
+				glUniform4f(p->color4fLoc,dc[0],dc[1],dc[2],dc[3]); //0.7f,0.7f,0.9f,1.0f);
 			}
 		}
 
@@ -3820,14 +3789,14 @@ void render_screentext_aligned(struct X3D_Text *tnode, int screenAligned){
 			// Text -> screenFontStyle should come in here
 			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewd);
 			matdouble2float4(modelviewf, modelviewd);
-			glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewf);
+			glUniformMatrix4fv(p->modelviewLoc, 1, GL_FALSE,modelviewf);
 			FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projectiond);
 			matdouble2float4(projectionf,projectiond);
-			glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionf);
+			glUniformMatrix4fv(p->projectionLoc, 1, GL_FALSE, projectionf);
 		}else{
 			//EXPERIMENTAL - for testing, don't use for Text -> screenFontStyle
-			glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE,modelviewIdentityf);
-			glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionIdentityf);
+			glUniformMatrix4fv(p->modelviewLoc, 1, GL_FALSE,modelviewIdentityf);
+			glUniformMatrix4fv(p->projectionLoc, 1, GL_FALSE, projectionIdentityf);
 		}
 
 		sdata = (screentextdata*)tnode->_screendata;
