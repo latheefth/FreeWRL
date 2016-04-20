@@ -1244,6 +1244,10 @@ char* fwl_resitem_getURL(void *resp){
 	resource_item_t *res = (resource_item_t *)resp;
 	return res->parsed_request;
 }
+void void fwl_resitem_setActualFile(void *resp, char *fname){
+	resource_item_t *res = (resource_item_t *)resp;
+	res->actual_file = STRDUP(fname);
+}
 void fwl_resitem_enqueuNextMulti(void *resp){
 	resource_item_t *res = (resource_item_t *)resp;
 	int more_multi = (res->status == ress_failed) && (res->m_request != NULL);

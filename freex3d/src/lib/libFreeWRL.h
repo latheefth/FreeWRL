@@ -418,6 +418,7 @@ int statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY);
 int getCursorStyle();
 void *fwl_frontenditem_dequeue();
 char* fwl_resitem_getURL(void *res);
+void fwl_resitem_setActualFile(void *res, char *fname);
 int	fwl_resitem_getStatus(void *res);
 int	fwl_resitem_getType(void *res);
 void fwl_resitem_enqueuNextMulti(void *res);
@@ -426,6 +427,7 @@ void fwl_resitem_enqueue(void *res);
 void fwl_resitem_setDownloadThread(void *res, void *thread);
 void *fwl_resitem_getDownloadThread(void *res);
 void *fwl_resitem_getGlobal(void *res);
+
 int file2blob(void *res);
 #ifdef SSR_SERVER
 //SSR (Server-side rendering)

@@ -134,25 +134,28 @@ w3dx.manifest:
 
  */
 //#define DEBUG_RES printf
-bool resource_fetch(resource_item_t *res)
+bool resource_fetch(void *res)
 {
 	int type, status;
+	char *url;
 	//char* pound;
 	DEBUG_RES("fetching resource: %s, %s resource %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status) ,res->URLrequest);
 
 	ASSERT(res);
 	type = fwl_resitem_getType(res);
+	url = fwl_resitem_getURL(res);
+	status = fwl_resitem_getStatus(res);
+
 	//switch (res->type) {
 	switch(type) {
 
 	case rest_invalid:
 		//res->status = ress_invalid;
-		ERROR_MSG("resource_fetch: can't fetch an invalid resource: %s\n", res->URLrequest);
+		ERROR_MSG("resource_fetch: can't fetch an invalid resource: %s\n", url); //res->URLrequest);
 		fwl_resitem_setStatus(ress_invalid);
 		break;
 
 	case rest_url:
-		status = fwl_resitem_getStatus(res);
 		switch (status) {
 		case ress_none:
 		case ress_starts_good:
@@ -179,20 +182,21 @@ bool resource_fetch(resource_item_t *res)
 		switch (status) {
 		case ress_none:
 		case ress_starts_good:
-			if (do_file_exists(res->parsed_request)) {
-				if (do_file_readable(res->parsed_request)) {
+			if (do_file_exists(url)){ //res->parsed_request)) {
+				if (do_file_readable(url)){ //res->parsed_request)) {
 					//res->status = ress_downloaded;
 					fwl_resitem_setStatus(ress_downloaded);
-					res->actual_file = STRDUP(res->parsed_request);
+					//res->actual_file = STRDUP(url); //res->parsed_request);
+					fwl_resitem_setActualFile(res,url);
 				} else {
 					//res->status = ress_failed;
 					fwl_resitem_setStatus(ress_failed);
-					ERROR_MSG("resource_fetch: wrong permission to read file: %s\n", res->parsed_request);
+					ERROR_MSG("resource_fetch: wrong permission to read file: %s\n", url); //res->parsed_request);
 				}
 			} else {
 				//res->status = ress_failed;
 				fwl_resitem_setStatus(ress_failed);
-				ERROR_MSG("resource_fetch: can't find file: %s\n", res->parsed_request);
+				ERROR_MSG("resource_fetch: can't find file: %s\n", url); //res->parsed_request);
 			}
 
 			break;
