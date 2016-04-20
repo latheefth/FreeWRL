@@ -1290,3 +1290,15 @@ int	fwl_resitem_getType(void *resp){
 	resource_item_t *res = (resource_item_t *)resp;
 	return res->type;
 }
+void fwl_resitem_setDownloadThread(void *resp, void *thread){
+	resource_item_t *res = (resource_item_t *)resp;
+	res->_loadThread = (pthread_t*)thread;
+}
+void * fwl_resitem_getDownloadThread(void *resp){
+	resource_item_t *res = (resource_item_t *)resp;
+	return res->_loadThread;
+}
+void * fwl_resitem_getGlobal(void *resp){
+	resource_item_t *res = (resource_item_t *)resp;
+	return res->tg;
+}

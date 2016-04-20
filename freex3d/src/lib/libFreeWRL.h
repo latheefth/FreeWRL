@@ -410,4 +410,26 @@ void fwl_setShift(int ishift);
 int fwl_getCtrl();
 void fwl_set_emulate_multitouch(int ion);
 int fwl_get_emulate_multitouch();
+
+// a few function prototypes from around libfreewrl
+void fwl_setConsole_writePrimitive(int ibool);
+void statusbar_set_window_size(int width, int height);
+int statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY);
+int getCursorStyle();
+void *fwl_frontenditem_dequeue();
+char* fwl_resitem_getURL(void *res);
+int	fwl_resitem_getStatus(void *res);
+int	fwl_resitem_getType(void *res);
+void fwl_resitem_enqueuNextMulti(void *res);
+void fwl_resitem_setLocalPath(void *res, char* path);
+void fwl_resitem_enqueue(void *res);
+void fwl_resitem_setDownloadThread(void *res, void *thread);
+void *fwl_resitem_getDownloadThread(void *res);
+void *fwl_resitem_getGlobal(void *res);
+int file2blob(void *res);
+#ifdef SSR_SERVER
+//SSR (Server-side rendering)
+void SSRserver_enqueue_request_and_wait(void *fwctx, void *request);
+#endif //SSR_SERVER
+
 #endif /* __LIBFREEWRL_API_H__ */
