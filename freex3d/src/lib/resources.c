@@ -1281,6 +1281,11 @@ int	fwl_resitem_getStatus(void *resp){
 	resource_item_t *res = (resource_item_t *)resp;
 	return res->status;
 }
+void fwl_resitem_setStatus(void *resp, int status) {
+	resource_item_t *res = (resource_item_t *)resp;
+	res->status = status;
+}
+
 int	fwl_resitem_getType(void *resp){
 	resource_item_t *res = (resource_item_t *)resp;
 	return res->type;

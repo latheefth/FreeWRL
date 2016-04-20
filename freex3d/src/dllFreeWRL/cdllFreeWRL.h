@@ -51,6 +51,7 @@ DLLFREEWRL_API int dllFreeWRL_getUpdatedCursorStyle(void *fwctx);
 DLLFREEWRL_API void* dllFreeWRL_frontenditem_dequeue(void *fwctx);
 DLLFREEWRL_API char* dllFreeWRL_resitem_getURL(void *fwctx, void *res);
 DLLFREEWRL_API int dllFreeWRL_resitem_getStatus(void *fwctx, void *res);
+DLLFREEWRL_API void dllFreeWRL_resitem_setStatus(void *fwctx, void *res, int status);
 DLLFREEWRL_API int dllFreeWRL_resitem_getType(void *fwctx, void *res);
 DLLFREEWRL_API void dllFreeWRL_resitem_enqueuNextMulti(void *fwctx, void *res);
 DLLFREEWRL_API void dllFreeWRL_resitem_setLocalPath(void *fwctx, void *res, char* path);

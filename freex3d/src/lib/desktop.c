@@ -248,17 +248,20 @@ int url2file(resource_item_t *res){
 	int retval = 0;
 	int more_multi;
 	resource_fetch(res); //URL2FILE
-	//Multi_URL loop moved here (middle layer ML), 
-	more_multi = (res->status == ress_failed) && (res->m_request != NULL);
-	if(more_multi){
-		//still some hope via multi_string url, perhaps next one
-		res->status = ress_invalid; //downgrade ress_fail to ress_invalid
-		res->type = rest_multi; //should already be flagged
-		//must consult BE to convert relativeURL to absoluteURL via baseURL 
-		//(or could we absolutize in a batch in resource_create_multi0()?)
-		resource_identify(res->parent, res); //should increment multi pointer/iterator
-		retval = 1;
-	}else if(res->status == ress_downloaded){
+	if(0){
+		//Multi_URL loop moved here (middle layer ML), 
+		more_multi = (res->status == ress_failed) && (res->m_request != NULL);
+		if(more_multi){
+			//still some hope via multi_string url, perhaps next one
+			res->status = ress_invalid; //downgrade ress_fail to ress_invalid
+			res->type = rest_multi; //should already be flagged
+			//must consult BE to convert relativeURL to absoluteURL via baseURL 
+			//(or could we absolutize in a batch in resource_create_multi0()?)
+			resource_identify(res->parent, res); //should increment multi pointer/iterator
+			retval = 1;
+		}
+	}
+	if(res->status == ress_downloaded){
 		//queue for loading
 		retval = 1;
 	}
@@ -310,16 +313,21 @@ void frontend_dequeue_get_enqueue(void *tg){
 			if(tactic == url2file_task_chain){
 				int more_multi;
 				resource_fetch(res); //URL2FILE
-				//Multi_URL loop moved here (middle layer ML), 
-				more_multi = (res->status == ress_failed) && (res->m_request != NULL);
-				if(more_multi){
-					//still some hope via multi_string url, perhaps next one
-					res->status = ress_invalid; //downgrade ress_fail to ress_invalid
-					res->type = rest_multi; //should already be flagged
-					//must consult BE to convert relativeURL to absoluteURL via baseURL 
-					//(or could we absolutize in a batch in resource_create_multi0()?)
-					resource_identify(res->parent, res); //should increment multi pointer/iterator
-					frontenditem_enqueue(item);
+				if(1){
+					//Multi_URL in backend 
+					resitem_enqueue(item);
+				}else{
+					//Multi_URL loop moved here (middle layer ML), 
+					more_multi = (res->status == ress_failed) && (res->m_request != NULL);
+					if(more_multi){
+						//still some hope via multi_string url, perhaps next one
+						res->status = ress_invalid; //downgrade ress_fail to ress_invalid
+						res->type = rest_multi; //should already be flagged
+						//must consult BE to convert relativeURL to absoluteURL via baseURL 
+						//(or could we absolutize in a batch in resource_create_multi0()?)
+						resource_identify(res->parent, res); //should increment multi pointer/iterator
+						frontenditem_enqueue(item);
+					}
 				}
 			}else if(tactic == url2file_task_spawn){
 				downloadAsync(item); //res already has res->tg with global context

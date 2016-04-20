@@ -253,6 +253,13 @@ DLLFREEWRL_API int dllFreeWRL_resitem_getStatus(void *fwctx, void *res){
 	fwl_clearCurrentHandle();
 	return status;
 }
+DLLFREEWRL_API void dllFreeWRL_resitem_setStatus(void *fwctx, void *res, int status){
+	if (fwl_setCurrentHandle(fwctx, __FILE__, __LINE__)) {
+		fwl_resitem_setStatus(res, status);
+	}
+	fwl_clearCurrentHandle();
+
+}
 DLLFREEWRL_API int dllFreeWRL_resitem_getType(void *fwctx, void *res){
 	int status;
 	if (fwl_setCurrentHandle(fwctx, __FILE__, __LINE__)){

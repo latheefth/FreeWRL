@@ -33,6 +33,19 @@ public:
 	enum MouseButton {LEFT=1,MIDDLE=2,RIGHT=3,NONE=0}; 		
 	/* butnum=1 left butnum=3 right (butnum=2 middle, not used by freewrl) */
 
+	enum resource_status {
+		ress_none,        /* never processed */
+		ress_starts_good, /* path/url identification succeeded */
+		ress_invalid,     /* path/url identification failed */
+		ress_downloaded,  /* download succeeded (or local file available) */
+		ress_failed,      /* download failed */
+		ress_loaded,      /* loader succeeded */
+		ress_not_loaded,  /* loader failed */
+		ress_parsed,      /* parser succeeded */
+		ress_not_parsed   /* parser failed */
+	};
+
+
 	void setDensityFactor(float density_factor);
 	void onInit(int width, int height, void* windowhandle=0, bool bEai = false, bool frontend_handles_display_thread = false);
 	void onLoad(char* scene_url);
@@ -48,6 +61,7 @@ public:
 	void* frontenditem_dequeue();
 	char* resitem_getURL(void *res);
 	int resitem_getStatus(void *res);
+	void resitem_setStatus(void *res, int status);
 	int resitem_getType(void *res);
 	void resitem_enqueuNextMulti(void *res);
 	void resitem_setLocalPath(void *res, char* path);
