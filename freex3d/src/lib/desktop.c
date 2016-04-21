@@ -152,7 +152,7 @@ bool resource_fetch(void *res)
 	case rest_invalid:
 		//res->status = ress_invalid;
 		ERROR_MSG("resource_fetch: can't fetch an invalid resource: %s\n", url); //res->URLrequest);
-		fwl_resitem_setStatus(ress_invalid);
+		fwl_resitem_setStatus(res,ress_invalid);
 		break;
 
 	case rest_url:
@@ -185,17 +185,17 @@ bool resource_fetch(void *res)
 			if (do_file_exists(url)){ //res->parsed_request)) {
 				if (do_file_readable(url)){ //res->parsed_request)) {
 					//res->status = ress_downloaded;
-					fwl_resitem_setStatus(ress_downloaded);
+					fwl_resitem_setStatus(res,ress_downloaded);
 					//res->actual_file = STRDUP(url); //res->parsed_request);
 					fwl_resitem_setActualFile(res,url);
 				} else {
 					//res->status = ress_failed;
-					fwl_resitem_setStatus(ress_failed);
+					fwl_resitem_setStatus(res,ress_failed);
 					ERROR_MSG("resource_fetch: wrong permission to read file: %s\n", url); //res->parsed_request);
 				}
 			} else {
 				//res->status = ress_failed;
-				fwl_resitem_setStatus(ress_failed);
+				fwl_resitem_setStatus(res,ress_failed);
 				ERROR_MSG("resource_fetch: can't find file: %s\n", url); //res->parsed_request);
 			}
 
