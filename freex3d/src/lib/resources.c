@@ -1244,9 +1244,22 @@ char* fwl_resitem_getURL(void *resp){
 	resource_item_t *res = (resource_item_t *)resp;
 	return res->parsed_request;
 }
-void void fwl_resitem_setActualFile(void *resp, char *fname){
+void fwl_resitem_setActualFile(void *resp, char *fname){
 	resource_item_t *res = (resource_item_t *)resp;
 	res->actual_file = STRDUP(fname);
+	if(strcmp(res->actual_file,res->parsed_request)){
+		//it's a temp file 
+		s_list_t *item;
+		item = ml_new(res->actual_file);
+		if (!res->cached_files)
+			res->cached_files = (void *)item;
+		else
+			res->cached_files = ml_append(res->cached_files,item);
+	}
+}
+char* fwl_resitem_getTempDir(void *resp){
+	resource_item_t *res = (resource_item_t *)resp;
+	return res->temp_dir;
 }
 void fwl_resitem_enqueuNextMulti(void *resp){
 	resource_item_t *res = (resource_item_t *)resp;
@@ -1262,7 +1275,7 @@ void fwl_resitem_enqueuNextMulti(void *resp){
 	}
 }
 char *strBackslash2fore(char *);
-int file2blob(resource_item_t *res);
+//int file2blob(resource_item_t *res);
 void fwl_resitem_setLocalPath(void *resp, char* path){
 	int delete_after_load;
 	resource_item_t *res = (resource_item_t *)resp;

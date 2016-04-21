@@ -418,6 +418,7 @@ int statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY);
 int getCursorStyle();
 void *fwl_frontenditem_dequeue();
 char* fwl_resitem_getURL(void *res);
+char* fwl_resitem_getTempDir(void *res);
 void fwl_resitem_setActualFile(void *res, char *fname);
 int	fwl_resitem_getStatus(void *res);
 int	fwl_resitem_getType(void *res);

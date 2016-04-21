@@ -1225,8 +1225,11 @@ void delete_temp_file(resource_item_t *res){
 	}
 }
 
-int file2blob(resource_item_t *res){
+int file2blob(void *resp){
+	resource_item_t *res;
 	int retval;
+
+	res = (resource_item_t*)resp;
 	if(res->media_type == resm_image){
 #ifdef DISABLER	
 		printf("FREEWRL LOADING IMAGERY: %s", res->actual_file);
