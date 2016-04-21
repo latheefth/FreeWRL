@@ -161,7 +161,7 @@ static char *replace_unsafe(char *str){
 
 int with_libcurl = TRUE;
 
-int curl_initialized = 0;
+static int curl_initialized = 0;
 
 /*
   libCurl needs to be initialized once.
@@ -173,9 +173,9 @@ void init_curl()
     CURLcode c;
 
     if ( (c=curl_global_init(CURL_GLOBAL_ALL)) != 0 ) {
-	ERROR_MSG("Curl init failed: %d\n", (int)c);
+		ERROR_MSG("Curl init failed: %d\n", (int)c);
         curl_initialized = 0;
-	exit(1);
+		exit(1);
     } else {
         curl_initialized = 1;
     }
@@ -183,7 +183,7 @@ void init_curl()
 
 /* return the temp file where we got the contents of the URL requested */
 /* old char* download_url_curl(const char *url, const char *tmp) */
-char* download_url_curl(char *parsed_request, char *temp_dir)
+char* download_url_curl_OLD(char *parsed_request, char *temp_dir)
 {
     CURL *curl_h = NULL;
     CURLcode success;
@@ -238,6 +238,71 @@ char* download_url_curl(char *parsed_request, char *temp_dir)
 	return temp;
     }
 }
+
+char* download_url_curl(char *parsed_request, char *temp_dir)
+{
+    static CURL *curl_h = NULL;
+    CURLcode success;
+    char *temp, *safe_url;
+    FILE *file;
+
+    if (temp_dir) {
+	    temp = STRDUP(temp_dir);
+    } else {
+	    temp = tempnam(gglobal()->Mainloop.tmpFileLocation, "freewrl_download_curl_XXXXXXXX");
+	    if (!temp) {
+		    PERROR_MSG("download_url_curl: can't create temporary name.\n");
+		    return NULL;	
+	    }
+    }
+
+    file = fopen(temp, "w");
+    if (!file) {
+	FREE(temp);
+	ERROR_MSG("Cannot create temp file (fopen)\n");
+	return NULL;	
+    }   
+
+    if (curl_initialized == 0) {
+		init_curl();
+		curl_h = curl_easy_init();
+    }
+
+   // curl_h = curl_easy_init();
+   	safe_url = replace_unsafe(parsed_request);
+    /*
+      Ask libCurl to download one url at once,
+      and to write it to the specified file.
+    */
+    curl_easy_setopt(curl_h, CURLOPT_URL, safe_url);
+
+    curl_easy_setopt(curl_h, CURLOPT_WRITEDATA, file);
+
+    success = curl_easy_perform(curl_h); 
+
+ 	if(success == CURLE_OK){
+		// easy_perform returns CURLE_OK even if it couldn't download the file
+		// https://curl.haxx.se/docs/faq.html#Why_do_I_get_downloaded_data_eve
+		// 
+		// https://curl.haxx.se/libcurl/c/curl_easy_getinfo.html
+		// CURLcode curl_easy_getinfo(CURL *curl, CURLINFO info, ... ); where ... is int, double ... as per the request
+		long response_code; 
+		curl_easy_getinfo(curl_h, CURLINFO_RESPONSE_CODE, &response_code);
+		if(response_code == 200){
+			fclose(file);
+			free(safe_url);
+			return temp;
+		}
+	}
+	//else if (success != CURLE_OK) or response == 404
+	//if (success != CURLE_OK) fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(success));
+	fclose(file);
+	unlink(temp);
+	free(safe_url);
+	free(temp);
+	return NULL;
+}
+
 
 #endif /* HAVE_LIBCURL */
 
