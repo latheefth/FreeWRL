@@ -126,6 +126,10 @@ int CdllFreeWRL::resitem_getStatus(void *res)
 {
 	return dllFreeWRL_resitem_getStatus(this->globalcontexthandle, res);
 }
+void CdllFreeWRL::resitem_setStatus(void *res, int status){
+	dllFreeWRL_resitem_setStatus(this->globalcontexthandle, res, status);
+}
+
 int CdllFreeWRL::resitem_getType(void *res)
 {
 	return dllFreeWRL_resitem_getType(this->globalcontexthandle, res);

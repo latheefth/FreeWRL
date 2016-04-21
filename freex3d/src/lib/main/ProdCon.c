@@ -1246,6 +1246,7 @@ bool process_res_audio(resource_item_t *res);
  */
 static bool parser_process_res(s_list_t *item)
 {
+	int more_multi;
 	bool remove_it = FALSE;
 	bool destroy_it = FALSE;
 	bool retval = TRUE;
@@ -1309,10 +1310,21 @@ static bool parser_process_res(s_list_t *item)
 		break;
 
 	case ress_failed:
-		retval = FALSE;
+		more_multi = (res->status == ress_failed) && (res->m_request != NULL);
+		if(more_multi){
+			//still some hope via multi_string url, perhaps next one
+			res->status = ress_invalid; //downgrade ress_fail to ress_invalid
+			res->type = rest_multi; //should already be flagged
+			//must consult BE to convert relativeURL to absoluteURL via baseURL 
+			//(or could we absolutize in a batch in resource_create_multi0()?)
+			resource_identify(res->parent, res); //should increment multi pointer/iterator
+			frontenditem_enqueue(ml_new(res));
+		}else{
+			retval = FALSE;
+			res->complete = TRUE; //J30
+			destroy_it = TRUE;
+		}
 		remove_it = TRUE;
-		res->complete = TRUE; //J30
-		destroy_it = TRUE;
 		break;
 
 	case ress_loaded:

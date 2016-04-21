@@ -123,7 +123,8 @@ w3dx.manifest:
 #include <config.h>
 #include <system.h>
 #include <system_threads.h>
-#include <resources.h>
+//#include <resources.h>
+#include <libFreeWRL.h>
 #include <internal.h>
 #include <io_http.h>
 #include "main/MainLoop.h"
@@ -133,22 +134,29 @@ w3dx.manifest:
 
  */
 //#define DEBUG_RES printf
-bool resource_fetch(resource_item_t *res)
+bool resource_fetch(void *res)
 {
+	int type, status;
+	char *url;
 	//char* pound;
 	DEBUG_RES("fetching resource: %s, %s resource %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status) ,res->URLrequest);
 
 	ASSERT(res);
+	type = fwl_resitem_getType(res);
+	url = fwl_resitem_getURL(res);
+	status = fwl_resitem_getStatus(res);
 
-	switch (res->type) {
+	//switch (res->type) {
+	switch(type) {
 
 	case rest_invalid:
-		res->status = ress_invalid;
-		ERROR_MSG("resource_fetch: can't fetch an invalid resource: %s\n", res->URLrequest);
+		//res->status = ress_invalid;
+		ERROR_MSG("resource_fetch: can't fetch an invalid resource: %s\n", url); //res->URLrequest);
+		fwl_resitem_setStatus(ress_invalid);
 		break;
 
 	case rest_url:
-		switch (res->status) {
+		switch (status) {
 		case ress_none:
 		case ress_starts_good:
 			DEBUG_RES ("resource_fetch, calling download_url\n");
@@ -170,38 +178,26 @@ bool resource_fetch(resource_item_t *res)
 		break;
 
 	case rest_file:
-		switch (res->status) {
+		status = fwl_resitem_getStatus(res);
+		switch (status) {
 		case ress_none:
 		case ress_starts_good:
-			/* SJD If this is a PROTO expansion, need to take of trailing part after # */
-			//pound = NULL;
-			//pound = strchr(res->parsed_request, '#');
-			//if (pound != NULL) {
-			//	*pound = '\0';
-			//}
-				
-//#if defined(FRONTEND_GETS_FILES)
-//ConsoleMessage ("ERROR, should not be here in rest_file");
-//#else
-
-			if (do_file_exists(res->parsed_request)) {
-				if (do_file_readable(res->parsed_request)) {
-					res->status = ress_downloaded;
-					res->actual_file = STRDUP(res->parsed_request);
-					//if (pound != NULL) {
-					//	/* copy the name out, so that Anchors can go to correct Viewpoint */
-					//	pound ++;
-					//	res->afterPoundCharacters = STRDUP(pound);
-					//}
+			if (do_file_exists(url)){ //res->parsed_request)) {
+				if (do_file_readable(url)){ //res->parsed_request)) {
+					//res->status = ress_downloaded;
+					fwl_resitem_setStatus(ress_downloaded);
+					//res->actual_file = STRDUP(url); //res->parsed_request);
+					fwl_resitem_setActualFile(res,url);
 				} else {
-					res->status = ress_failed;
-					ERROR_MSG("resource_fetch: wrong permission to read file: %s\n", res->parsed_request);
+					//res->status = ress_failed;
+					fwl_resitem_setStatus(ress_failed);
+					ERROR_MSG("resource_fetch: wrong permission to read file: %s\n", url); //res->parsed_request);
 				}
 			} else {
-				res->status = ress_failed;
-				ERROR_MSG("resource_fetch: can't find file: %s\n", res->parsed_request);
+				//res->status = ress_failed;
+				fwl_resitem_setStatus(ress_failed);
+				ERROR_MSG("resource_fetch: can't find file: %s\n", url); //res->parsed_request);
 			}
-//#endif //FRONTEND_GETS_FILES
 
 			break;
 		default:
@@ -221,7 +217,8 @@ bool resource_fetch(resource_item_t *res)
 		  resourceStatusToString(res->status), res->URLrequest, 
 		  res->URLbase, res->parsed_request,
 		  res->parent, (res->parent ? res->parent->URLbase : "N/A"));
-	return (res->status == ress_downloaded);
+	//return (res->status == ress_downloaded);
+	return fwl_resitem_getStatus(res) == ress_downloaded;
 }
 
 
@@ -243,22 +240,13 @@ enum {
 } file2blob_task_tactic;
 
 
-int file2blob(resource_item_t *res);
-int url2file(resource_item_t *res){
-	int retval = 0;
+//int file2blob(resource_item_t *res);
+int url2file(void *res){
+	int status, retval = 0;
 	int more_multi;
 	resource_fetch(res); //URL2FILE
-	//Multi_URL loop moved here (middle layer ML), 
-	more_multi = (res->status == ress_failed) && (res->m_request != NULL);
-	if(more_multi){
-		//still some hope via multi_string url, perhaps next one
-		res->status = ress_invalid; //downgrade ress_fail to ress_invalid
-		res->type = rest_multi; //should already be flagged
-		//must consult BE to convert relativeURL to absoluteURL via baseURL 
-		//(or could we absolutize in a batch in resource_create_multi0()?)
-		resource_identify(res->parent, res); //should increment multi pointer/iterator
-		retval = 1;
-	}else if(res->status == ress_downloaded){
+	status = fwl_resitem_getStatus(res);
+	if(status == ress_downloaded){
 		//queue for loading
 		retval = 1;
 	}
@@ -269,26 +257,36 @@ void file2blob_task(s_list_t *item);
 extern int async_thread_count;
 static void *thread_download_async (void *args){
 	int downloaded; //, tactic;
+	void *tg;
 	s_list_t *item = (s_list_t *)args;
-	resource_item_t *res = (resource_item_t *)item->elem;
+	//resource_item_t *res = (resource_item_t *)item->elem;
+	void *res = (void*)item->elem;
 	async_thread_count++;
 	printf("{%d}",async_thread_count);
-	if(fwl_setCurrentHandle(res->tg, __FILE__, __LINE__));
+	tg = fwl_resitem_getGlobal(res);
+	if(fwl_setCurrentHandle(tg, __FILE__, __LINE__));
 
 	downloaded = url2file(res);
 
 	//tactic = file2blob_task_chain;
 	if(downloaded)
 		file2blob_task(item); //ml_new(res));
-	else
+	else{
 		resitem_enqueue(item); //for garbage collection
+	}
 	async_thread_count--;
 	return NULL;
 }
 void downloadAsync (s_list_t *item) {
-	resource_item_t *res = (resource_item_t *)item->elem;
-	if(!res->_loadThread) res->_loadThread = malloc(sizeof(pthread_t));
-	pthread_create ((pthread_t*)res->_loadThread, NULL,&thread_download_async, (void *)item);
+	//resource_item_t *res = (resource_item_t *)item->elem;
+	void *res = (void *)item->elem;
+	pthread_t * thread;
+	thread = fwl_resitem_getDownloadThread(res);
+	//if(!res->_loadThread) res->_loadThread = malloc(sizeof(pthread_t));
+	if(!thread) thread = malloc(sizeof(pthread_t));
+	//pthread_create ((pthread_t*)res->_loadThread, NULL,&thread_download_async, (void *)item);
+	fwl_resitem_setDownloadThread(res,thread);
+	pthread_create (thread, NULL,&thread_download_async, (void *)item);
 }
 
 
@@ -298,34 +296,39 @@ void downloadAsync (s_list_t *item) {
 void frontend_dequeue_get_enqueue(void *tg){
 	int count_this_pass;
 	s_list_t *item = NULL;
-	resource_item_t *res = NULL;
+	void *res = NULL;
 	fwl_setCurrentHandle(tg, __FILE__, __LINE__); //set the freewrl instance - will apply to all following calls into the backend. This allows you to call from any thread.
 	count_this_pass = 0; //approximately == number of spawned threads running at one time when doing file2blob_task_spawn
 	while( max(count_this_pass,async_thread_count) < MAX_SPAWNED_PER_PASS && !checkExitRequest() && !checkReplaceWorldRequest() && (item = frontenditem_dequeue()) != NULL ){
 		count_this_pass++;
 		//download_url((resource_item_t *) item->elem);
 		res = item->elem;
-		if(res->status != ress_downloaded){
+		if(fwl_resitem_getStatus(res) != ress_downloaded){
 			int tactic = url2file_task_spawn;//url2file_task_spawn;
 			if(tactic == url2file_task_chain){
 				int more_multi;
 				resource_fetch(res); //URL2FILE
-				//Multi_URL loop moved here (middle layer ML), 
-				more_multi = (res->status == ress_failed) && (res->m_request != NULL);
-				if(more_multi){
-					//still some hope via multi_string url, perhaps next one
-					res->status = ress_invalid; //downgrade ress_fail to ress_invalid
-					res->type = rest_multi; //should already be flagged
-					//must consult BE to convert relativeURL to absoluteURL via baseURL 
-					//(or could we absolutize in a batch in resource_create_multi0()?)
-					resource_identify(res->parent, res); //should increment multi pointer/iterator
-					frontenditem_enqueue(item);
-				}
+				//if(1){
+					//Multi_URL in backend 
+					resitem_enqueue(item);
+				//}else{
+				//	//Multi_URL loop moved here (middle layer ML), 
+				//	more_multi = (res->status == ress_failed) && (res->m_request != NULL);
+				//	if(more_multi){
+				//		//still some hope via multi_string url, perhaps next one
+				//		res->status = ress_invalid; //downgrade ress_fail to ress_invalid
+				//		res->type = rest_multi; //should already be flagged
+				//		//must consult BE to convert relativeURL to absoluteURL via baseURL 
+				//		//(or could we absolutize in a batch in resource_create_multi0()?)
+				//		resource_identify(res->parent, res); //should increment multi pointer/iterator
+				//		frontenditem_enqueue(item);
+				//	}
+				//}
 			}else if(tactic == url2file_task_spawn){
 				downloadAsync(item); //res already has res->tg with global context
 			}
 		}
-		if(res->status == ress_downloaded){
+		if(fwl_resitem_getStatus(res) == ress_downloaded){
 			file2blob_task(item);
 		}
 	}

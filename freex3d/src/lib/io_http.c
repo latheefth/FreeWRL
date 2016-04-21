@@ -28,11 +28,11 @@
 
 #include <config.h>
 #include <system.h>
-#include <resources.h>
+//#include <resources.h>
 //#include <display.h>
 #include <internal.h>
 
-//#include <libFreeWRL.h>
+#include <libFreeWRL.h>
 //#include <list.h>
 //
 //#include <io_files.h>
@@ -73,6 +73,60 @@ bool is_url(const char *url)
 	return FALSE;
 }
 
+// we need to substitute %20 for ' ', as well replace other unsafe chars
+// ftp://ftp.gnu.org/old-gnu/Manuals/wget-1.8.1/html_chapter/wget_2.html#SEC3
+// http://www.rfc-base.org/txt/rfc-1738.txt
+
+static char *RFC1738_unsafe = " <>{}|\\^~[]`#%";
+static int is_unsafe(char c){
+	int j, unsafe = 0;
+	if(c < 32 || c > 126) 
+		unsafe = 1;
+	else{
+		for(j=0;j<strlen(RFC1738_unsafe);j++){
+			if( c == RFC1738_unsafe[j]){
+				unsafe = 1;
+				break; //from j loop
+			}
+		}
+	}
+	return unsafe;
+}
+static int count_unsafe(char *str){
+	int i, count, len;
+	len = (int)strlen(str);
+	count = 0;
+	for(i=0;i<len;i++)
+		if(is_unsafe(str[i])) 
+			count++;
+	return count;
+}
+static char *hexdigits = "0123456789ABCDEF";
+static char *replace_unsafe(char *str){
+	int i,j,n, len;
+	char *s;
+	len = (int)strlen(str);
+	n = count_unsafe(str);
+	if(n == 0) return strdup(str);
+	//printf("unsafe string=[%s]\n",str);
+	s = malloc(n*3 + len - n +1);
+	j = 0;
+	for(i=0;i<len;i++){
+		if(is_unsafe(str[i])){
+			s[j] = '%';
+			s[j+1] = hexdigits[str[i] >> 4];
+			s[j+2] = hexdigits[str[i] & 0x0f];
+			//if(str[i] != ' ') 
+				//printf("unsafe char=%d %c\n",(int)str[i],str[i]);
+			j += 3;
+		}else{
+			s[j] = str[i];
+			j++;
+		}
+	}
+	s[j] = 0;
+	return s;
+}
 
 /*
   New FreeWRL internal API for HTTP[S] downloads
@@ -107,7 +161,7 @@ bool is_url(const char *url)
 
 int with_libcurl = TRUE;
 
-int curl_initialized = 0;
+static int curl_initialized = 0;
 
 /*
   libCurl needs to be initialized once.
@@ -119,9 +173,9 @@ void init_curl()
     CURLcode c;
 
     if ( (c=curl_global_init(CURL_GLOBAL_ALL)) != 0 ) {
-	ERROR_MSG("Curl init failed: %d\n", (int)c);
+		ERROR_MSG("Curl init failed: %d\n", (int)c);
         curl_initialized = 0;
-	exit(1);
+		exit(1);
     } else {
         curl_initialized = 1;
     }
@@ -129,15 +183,15 @@ void init_curl()
 
 /* return the temp file where we got the contents of the URL requested */
 /* old char* download_url_curl(const char *url, const char *tmp) */
-char* download_url_curl(resource_item_t *res)
+char* download_url_curl_OLD(char *parsed_request, char *temp_dir)
 {
     CURL *curl_h = NULL;
     CURLcode success;
     char *temp;
     FILE *file;
 
-    if (res->temp_dir) {
-	    temp = STRDUP(res->temp_dir);
+    if (temp_dir) {
+	    temp = STRDUP(temp_dir);
     } else {
 	    temp = tempnam(gglobal()->Mainloop.tmpFileLocation, "freewrl_download_curl_XXXXXXXX");
 	    if (!temp) {
@@ -163,7 +217,7 @@ char* download_url_curl(resource_item_t *res)
       Ask libCurl to download one url at once,
       and to write it to the specified file.
     */
-    curl_easy_setopt(curl_h, CURLOPT_URL, res->parsed_request);
+    curl_easy_setopt(curl_h, CURLOPT_URL, parsed_request);
 
     curl_easy_setopt(curl_h, CURLOPT_WRITEDATA, file);
 
@@ -178,12 +232,77 @@ char* download_url_curl(resource_item_t *res)
         return NULL;
     } else {
 #ifdef TRACE_DOWNLOADS
-	TRACE_MSG("Download sucessfull [curl] for url %s\n", res->parsed_request);
+	TRACE_MSG("Download sucessfull [curl] for url %s\n", parsed_request);
 #endif
 	fclose(file);
 	return temp;
     }
 }
+
+char* download_url_curl(char *parsed_request, char *temp_dir)
+{
+    static CURL *curl_h = NULL;
+    CURLcode success;
+    char *temp, *safe_url;
+    FILE *file;
+
+    if (temp_dir) {
+	    temp = STRDUP(temp_dir);
+    } else {
+	    temp = tempnam(gglobal()->Mainloop.tmpFileLocation, "freewrl_download_curl_XXXXXXXX");
+	    if (!temp) {
+		    PERROR_MSG("download_url_curl: can't create temporary name.\n");
+		    return NULL;	
+	    }
+    }
+
+    file = fopen(temp, "w");
+    if (!file) {
+	FREE(temp);
+	ERROR_MSG("Cannot create temp file (fopen)\n");
+	return NULL;	
+    }   
+
+    if (curl_initialized == 0) {
+		init_curl();
+		curl_h = curl_easy_init();
+    }
+
+   // curl_h = curl_easy_init();
+   	safe_url = replace_unsafe(parsed_request);
+    /*
+      Ask libCurl to download one url at once,
+      and to write it to the specified file.
+    */
+    curl_easy_setopt(curl_h, CURLOPT_URL, safe_url);
+
+    curl_easy_setopt(curl_h, CURLOPT_WRITEDATA, file);
+
+    success = curl_easy_perform(curl_h); 
+
+ 	if(success == CURLE_OK){
+		// easy_perform returns CURLE_OK even if it couldn't download the file
+		// https://curl.haxx.se/docs/faq.html#Why_do_I_get_downloaded_data_eve
+		// 
+		// https://curl.haxx.se/libcurl/c/curl_easy_getinfo.html
+		// CURLcode curl_easy_getinfo(CURL *curl, CURLINFO info, ... ); where ... is int, double ... as per the request
+		long response_code; 
+		curl_easy_getinfo(curl_h, CURLINFO_RESPONSE_CODE, &response_code);
+		if(response_code == 200){
+			fclose(file);
+			free(safe_url);
+			return temp;
+		}
+	}
+	//else if (success != CURLE_OK) or response == 404
+	//if (success != CURLE_OK) fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(success));
+	fclose(file);
+	unlink(temp);
+	free(safe_url);
+	free(temp);
+	return NULL;
+}
+
 
 #endif /* HAVE_LIBCURL */
 
@@ -222,7 +341,7 @@ void closeWinInetHandle()
 //#define PERROR_MSG ConsoleMessage
    /* return the temp file where we got the contents of the URL requested */
 /* char* download_url_WinInet(const char *url, const char *tmp) */
-char* download_url_WinInet(resource_item_t *res)
+char* download_url_WinInet(char *parsed_request, char *temp_dir)
 {
 	char *temp;
 	temp = NULL;
@@ -244,9 +363,9 @@ char* download_url_WinInet(resource_item_t *res)
 		if(0){
 			static FILE* fp = NULL;
 			if (!fp) fp = fopen("http_log.txt", "w+");
-			fprintf(fp,"[%s]\n", res->parsed_request);
+			fprintf(fp,"[%s]\n", parsed_request);
 		}
-		hOpenUrl=InternetOpenUrl(hWinInet,res->parsed_request,NULL,0,0,0); //INTERNET_FLAG_NO_UI|INTERNET_FLAG_RELOAD/*|INTERNET_FLAG_IGNORE_CERT_CN_INVALID install the cert instead*/,0);
+		hOpenUrl=InternetOpenUrl(hWinInet,parsed_request,NULL,0,0,0); //INTERNET_FLAG_NO_UI|INTERNET_FLAG_RELOAD/*|INTERNET_FLAG_IGNORE_CERT_CN_INVALID install the cert instead*/,0);
 		buflen = 1023;
 		//if(InternetGetLastResponseInfo(&dwError,buffer,&buflen)){
 		//	printf("error=%s\n",buffer);
@@ -268,7 +387,7 @@ char* download_url_WinInet(resource_item_t *res)
 			//printf("query buffer=%s\n",buffer);
 			if(strstr(buffer,"404 Not Found")){
 				//HTTP/1.1 404 Not Found
-				ERROR_MSG("Download failed1 for url %s\n", res->parsed_request);
+				ERROR_MSG("Download failed1 for url %s\n", parsed_request);
 				return temp;
 			}
 			//else 200 OK
@@ -281,15 +400,15 @@ char* download_url_WinInet(resource_item_t *res)
 		//DWORD err = GetLastError();
 		if (!(hOpenUrl))
 		{
-			ERROR_MSG("Download failed2 for url %s\n", res->parsed_request);
+			ERROR_MSG("Download failed2 for url %s\n", parsed_request);
 			return temp;
 		}
 		else
 		{
 			FILE *file;
 
-			if (res->temp_dir) {
-				temp = STRDUP(res->temp_dir);
+			if (temp_dir) {
+				temp = STRDUP(temp_dir);
 			} else {
 				//temp = _tempnam(gglobal()->Mainloop.tmpFileLocation, "freewrl_download_XXXXXXXX");
 				char *tmp1;
@@ -339,66 +458,13 @@ char* download_url_WinInet(resource_item_t *res)
 
 #ifdef HAVE_WGET
 
-// we need to substitute %20 for ' ', as well replace other unsafe chars
-// ftp://ftp.gnu.org/old-gnu/Manuals/wget-1.8.1/html_chapter/wget_2.html#SEC3
-// http://www.rfc-base.org/txt/rfc-1738.txt
 
-static char *RFC1738_unsafe = " <>{}|\\^~[]`#%";
-int is_unsafe(char c){
-	int j, unsafe = 0;
-	if(c < 32 || c > 126) 
-		unsafe = 1;
-	else{
-		for(j=0;j<strlen(RFC1738_unsafe);j++){
-			if( c == RFC1738_unsafe[j]){
-				unsafe = 1;
-				break; //from j loop
-			}
-		}
-	}
-	return unsafe;
-}
-int count_unsafe(char *str){
-	int i, count, len;
-	len = (int)strlen(str);
-	count = 0;
-	for(i=0;i<len;i++)
-		if(is_unsafe(str[i])) 
-			count++;
-	return count;
-}
-char *hexdigits = "0123456789ABCDEF";
-char *replace_unsafe(char *str){
-	int i,j,n, len;
-	char *s;
-	len = (int)strlen(str);
-	n = count_unsafe(str);
-	if(n == 0) return strdup(str);
-	//printf("unsafe string=[%s]\n",str);
-	s = malloc(n*3 + len - n +1);
-	j = 0;
-	for(i=0;i<len;i++){
-		if(is_unsafe(str[i])){
-			s[j] = '%';
-			s[j+1] = hexdigits[str[i] >> 4];
-			s[j+2] = hexdigits[str[i] & 0x0f];
-			//if(str[i] != ' ') 
-				//printf("unsafe char=%d %c\n",(int)str[i],str[i]);
-			j += 3;
-		}else{
-			s[j] = str[i];
-			j++;
-		}
-	}
-	s[j] = 0;
-	return s;
-}
 /**
  *   launch wget to download requested url
  *   if tmp is not NULL then use that tempnam
  *   return the temp file where we got the contents of the URL requested
  */
-char* download_url_wget(resource_item_t *res)
+char* download_url_wget(char *parsed_request, char *temp_dir)
 {
     char *temp, *wgetcmd, *safe;
     int ret;
@@ -413,8 +479,8 @@ char* download_url_wget(resource_item_t *res)
 #endif
 
     // create temp filename
-    if (res->temp_dir) {
-	    temp = STRDUP(res->temp_dir);
+    if (temp_dir) {
+	    temp = STRDUP(temp_dir);
     } else {
 	    temp = tempnam(gglobal()->Mainloop.tmpFileLocation, "freewrl_download_wget_XXXXXXXX");
 	    if (!temp) {
@@ -424,7 +490,7 @@ char* download_url_wget(resource_item_t *res)
     }
 
     // create wget command line
-	safe = replace_unsafe(res->parsed_request);
+	safe = replace_unsafe(parsed_request);
     wgetcmd = MALLOC(void *, strlen(WGET) +
 	                    strlen(WGET_OPTIONS) + 
 	                    strlen(safe) +
@@ -465,41 +531,48 @@ void close_internetHandles()
 	closeWinInetHandle();
 #endif
 }
-void download_url(resource_item_t *res)
+void download_url(void *res)
 {
+	char *temp_dir, *parsed_request, *actual_file;
+	parsed_request = fwl_resitem_getURL(res);
+	temp_dir = fwl_resitem_getTempDir(res);
 
 
 #if defined(HAVE_LIBCURL)
 	if (with_libcurl) {
-		res->actual_file = download_url_curl(res);
+		actual_file = download_url_curl(parsed_request,temp_dir);
 	} else {
-		res->actual_file = download_url_wget(res);
+		actual_file = download_url_wget(parsed_request,temp_dir);
 	}
 
 #elif defined (HAVE_WGET) 
-	res->actual_file = download_url_wget(res);
+	actual_file = download_url_wget(parsed_request,temp_dir);
 
 
 #elif defined (HAVE_WININET)
-	res->actual_file = download_url_WinInet(res);
+	actual_file = download_url_WinInet(parsed_request,temp_dir);
 #endif 
 
 	/* status indication now */
-	if (res->actual_file) {
+	if (actual_file) {
 		/* download succeeded */
-		res->status = ress_downloaded;
-		if(strcmp(res->actual_file,res->parsed_request)){
-			//it's a temp file 
-			s_list_t *item;
-			item = ml_new(res->actual_file);
-			if (!res->cached_files)
-				res->cached_files = (void *)item;
-			else
-				res->cached_files = ml_append(res->cached_files,item);
-		}
+		//res->status = ress_downloaded;
+		fwl_resitem_setStatus(res,ress_downloaded);
+		fwl_resitem_setActualFile(res,actual_file);
+		//moved inside setActualFile:
+		//if(strcmp(actual_file,parsed_request)){
+		//	//it's a temp file 
+		//	s_list_t *item;
+		//	item = ml_new(res->actual_file);
+		//	if (!res->cached_files)
+		//		res->cached_files = (void *)item;
+		//	else
+		//		res->cached_files = ml_append(res->cached_files,item);
+		//}
 	} else {
 		/* download failed */
-		res->status = ress_failed;
-		ERROR_MSG("resource_fetch: download failed for url: %s\n", res->parsed_request);
+		//res->status = ress_failed;
+		fwl_resitem_setStatus(res,ress_failed);
+		ERROR_MSG("resource_fetch: download failed for url: %s\n", parsed_request);
 	}
 }
