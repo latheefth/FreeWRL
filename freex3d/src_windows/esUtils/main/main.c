@@ -42,7 +42,7 @@ void fwOnKey( ESContext* esContext, unsigned char c, int updown, int ishift)
 		fwl_do_keyPress(c, updown); 
 }
 void statusbar_set_window_size(int width, int height);
-void statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY);
+int statusbar_handle_mouse(int mev, int butnum, int mouseX, int mouseY);
 int fwl_handle_mouse(int mev, int butnum, int mouseX, int mouseY, int windex);
 void fwl_setScreenDim(int wi, int he);
 void fwOnMouse( ESContext* esContext, int mev, int button, int ix, int iy)
