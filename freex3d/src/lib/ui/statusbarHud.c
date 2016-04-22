@@ -1342,8 +1342,10 @@ char * keyboardShortcutHelp[] = {
 NULL,
 };
 #else
-int lenhelp = 25;
+int lenhelp = 9;
 char * keyboardShortcutHelp[] = {
+" ",
+" ",
 "Keyboard commands:",
 "  / Print current viewpoint pose", 
 "  x Snapshot",
@@ -1351,24 +1353,6 @@ char * keyboardShortcutHelp[] = {
 "Keyboard navigation:",
 " use arrow keys.",
 " to change keychord: press SHIFT> or SHIFT<",
-"Menubar:",
-" WALK",
-" |   FLY {yaw-z,xy,yaw-pitch,roll}",
-" |   |   EXAMINE",
-" |   |   |   EXPLORE {examine,recenter}",
-" |   |   |   |   SPHERICAL {pan,zoom}", 
-" |   |   |   |   |   TURNTABLE",
-" |   |   |   |   |   |   LOOKAT",
-" |   |   |   |   |   |   |   DIST (for examine,explore,turntable)",
-" |   |   |   |   |   |   |   |   SHIFT Key (turns off sensors)",
-" |   |   |   |   |   |   |   |   |   LEVEL to bound VP (ViewPoint)",
-" |   |   |   |   |   |   |   |   |   |   HEADLIGHT",
-" |   |   |   |   |   |   |   |   |   |   |   COLLISION (and gravity)",
-" |   |   |   |   |   |   |   |   |   |   |   |   Prev VP",
-" |   |   |   |   |   |   |   |   |   |   |   |   |   Next VP",
-" |   |   |   |   |   |   |   |   |   |   |   |   |   |   Help",
-" |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   Console", 
-" |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   Options",
 NULL,
 };
 #endif
@@ -1403,9 +1387,9 @@ void printKeyboardHelp(ppstatusbar p)
 	{
 		//if (Viewer()->updown){
 		//	if(iside == 0) side_bottom_f = 0.0f;
-		printString2(-1.0f, side_bottom_f + (lenhelp-j+1)*fxy2.y, keyboardShortcutHelp[j]);
+		printString2(-1.0f, side_bottom_f + (lenhelp-j+2)*fxy2.y, keyboardShortcutHelp[j]);
 		j++;
-		if(p->show_status && j > 6) break; //they can see button help on the statusbar on mouse-over button
+		if(p->show_status && j > lenhelp) break; //they can see button help on the statusbar on mouse-over button
 	}
 }
 
@@ -3060,6 +3044,8 @@ M       void toggle_collision()                             //"
 			//glUniform4f(p->color4fLoc, .2f, .2f, .2f, 1.0f);
 			glUniform4f(p->color4fLoc,colorStatusbarText[0],colorStatusbarText[1],colorStatusbarText[2],colorStatusbarText[3]);
 			xy = screen2normalizedScreenScale((GLfloat)p->bmWH.x, (GLfloat)p->bmWH.y);
+			xy.x *= p->bmScale; //apply density_factor scale
+			xy.y *= p->bmScale;
 			sblen = (int)(2.0f/xy.x);
 			sblen -= 4; //FPS chars - (9+7); //get number of chars left after touch status and vp status
 			sslen = 0;
