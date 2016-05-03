@@ -1,8 +1,23 @@
 /*
 this version is for windows  vista,7,8 (see gdiPlusImageLoader.cpp forXP and lower )
 */
+#define HAVE_WICIMAGE 1
+#ifndef HAVE_WICIMAGE
+extern "C"
+{
+#include "ImageLoader.h"
+}
+int initImageLoader(){
+	return 0;
+}
+int loadImage(struct textureTableIndexStruct *tti, char *fname){
+	return 0;
+}
+int shutdownImageLoader(){
+	return 0;
+}
 
-
+#else
 
 #define WIN32_LEAN_AND_MEAN     // Exclude rarely-used stuff from Windows headers
 #include <windows.h>
@@ -304,3 +319,4 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
 
 }
 
+#endif //HAVE_WICIMAGE

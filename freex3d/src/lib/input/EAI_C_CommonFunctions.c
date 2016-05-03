@@ -706,7 +706,7 @@ void Parser_scanStringValueToMem_B(union anyVrml* any, indexT ctype, char *value
 	union anyVrml myVal;
 	char *mfstringtmp = NULL;
 	int oldXMLflag;
-	struct X3D_Node *np;
+	struct X3D_Node *np = NULL;
 	struct VRMLParser *parser = ((ppEAI_C_CommonFunctions)gglobal()->EAI_C_CommonFunctions.prv)->parser;
 	#ifdef SETFIELDVERBOSE
 	printf ("\nPST, for %s we have %s strlen %lu\n",stringFieldtypeType(ctype), value, strlen(value));
