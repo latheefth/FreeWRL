@@ -137,7 +137,8 @@ struct Touch
 	int buttonState[4]; /*none down=0, LMB =1, MMB=2, RMB=3*/
 	//bool isDown; /* false = up, true = down */
 	int mev; /* down/press=4, move/drag=6, up/release=5 */
-	int ID;  /* for multitouch: 0-20, represents one finger drag. Recycle after an up */
+	unsigned int ID;  /* for multitouch: 0-20, represents one finger drag. Recycle after an up */
+	int inUse; //flag for recycling = 0 not in use, else in use
 	float angle; /*some multitouch -like smarttech- track the angle of the finger */
 	int x; //coordinates as registered at scene level, after transformations in the contenttype stack
 	int y; //y-up
@@ -145,6 +146,14 @@ struct Touch
 	void* stageId; //unique ID for a stage, should be same for pick and render passes, otherwise in render not-for-me
 	int rx,ry; //raw input coords at emulation level, for finding and dragging and rendering
 	int handled; //==FALSE when message pump first delivers message, then when setup_picking handles it, set to TRUE. a hack instead of a queue.
+	
+	struct X3D_Node* CursorOverSensitive;//=NULL;      /*  is Cursor over a Sensitive node?*/
+	struct X3D_Node* oldCOS;//=NULL;                   /*  which node was cursor over before this node?*/
+	int NavigationMode;//=FALSE;               /*  are we navigating or sensing?*/
+	struct X3D_Node* lastPressedOver;// = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
+	struct X3D_Node* lastOver;// = NULL;       /*  the sensitive node that the mouse was last moused over.*/
+	int lastOverButtonPressed;// = FALSE;      /*  catch the 1 to 0 transition for button presses and isOver in TouchSensors */
+	
 };
 
 //#ifdef ANGLEPROJECT
@@ -401,7 +410,7 @@ typedef struct tcontenttype {
 	float viewport[4]; //fraction relative to parent, L,R,B,T as per x3d specs > Layering > Viewport > clipBoundary: "fractions of (parent surface) in the sequence left/right/bottom/top default 0 1 0 1
 	//ivec4 ipixels; //offset pixels left, right, bottom, top relative to parent, +right and +up
 	void (*render)(void *self); 
-	int (*pick)(void *self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex);  // a generalization of mouse. HMD IMU vs mouse?
+	int (*pick)(void *self, int mev, int butnum, int mouseX, int mouseY, unsigned int ID, int windex);  // a generalization of mouse. HMD IMU vs mouse?
 } tcontenttype;
 typedef struct contenttype {
 	tcontenttype t1; //superclass in abstract derived class
@@ -420,7 +429,7 @@ void content_render(void *_self){
 	}
 	popnset_viewport();
 }
-int content_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+int content_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, unsigned int ID, int windex){
 	//generic render for intermediate level content types (leaf/terminal content types will have their own render())
 	int iret;
 	contenttype *c, *self;
@@ -461,8 +470,8 @@ void scene_render(void *self){
 	render();
 }
 void setup_picking();
-void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x, int y, int ID, int windex);
-int scene_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x, int y, unsigned int ID, int windex);
+int scene_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, unsigned int ID, int windex){
 	int iret;
 	contenttype *self;
 
@@ -536,7 +545,7 @@ void statusbar_render(void *_self){
 	render_statusbar0(); //draw statusbarHud
 	popnset_viewport();
 }
-int statusbar_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+int statusbar_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, unsigned int ID, int windex){
 	contenttype *c;
 	contenttype_statusbar *self;
 	int iret = 0;
@@ -618,7 +627,7 @@ void switch_render(void *_self){
 	}
 	popnset_viewport();
 }
-int switch_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+int switch_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, unsigned int ID, int windex){
 	contenttype *c;
 	contenttype_switch *self;
 	int iret = 0;
@@ -702,7 +711,7 @@ void captiontext_render(void *_self){
 	render_captiontext(self->font, self->utf32, self->len32, self->color);
 	popnset_viewport();
 }
-int captiontext_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+int captiontext_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, unsigned int ID, int windex){
 	int iret = 0;
 	return iret;
 }
@@ -1234,7 +1243,7 @@ void layer_render(void *_self){
 	}
 	popnset_viewport();
 }
-int layer_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+int layer_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, unsigned int ID, int windex){
 	//layer pick works backward through layers
 	int iret, n,i;
 	contenttype *c, *self, *reverse[10];
@@ -1301,7 +1310,7 @@ void multitouch_render(void *_self){
 	render_multitouch2(self->touchlist,self->ntouch);
 	popnset_viewport();
 }
-int multitouch_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+int multitouch_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, unsigned int ID, int windex){
 	//layer pick works backward through layers
 	int iret;
 	contenttype *c;
@@ -1375,7 +1384,7 @@ void e3dmouse_render(void *_self){
 		fiducialDraw(0, x, y, 0.0f);
 	}
 }
-int e3dmouse_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+int e3dmouse_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, unsigned int ID, int windex){
 	//this messy thing is supposed to emulate the case of an HMD scenario:
 	// 1. the user looks at a drag sensor - centering it in their field of view 
 	// 2. pushing a button on a hand held device to signal 'select'
@@ -1386,7 +1395,8 @@ int e3dmouse_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int 
 	//RMB - toggle on/off spherical 
 	//NONE - spherical navigation, mouseXY = .5
 	//LMB - in spherical mode: click, with mousexy = .5
-	int iret, mev2, but2, ID0, ID1, x,y;
+	int iret, mev2, but2, x,y;
+	unsigned int ID0, ID1;
 	ivec4 ivport;
 	Stack *vportstack;
 	ttglobal tg;
@@ -1533,7 +1543,7 @@ void quadrant_render(void *_self){
 	}
 	popnset_viewport();
 }
-int quadrant_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+int quadrant_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, unsigned int ID, int windex){
 	//
 	int iret;
 	int i;
@@ -1680,7 +1690,7 @@ void stereo_sidebyside_render(void *_self){
 	viewer->isStereoB = 0;
 	popnset_viewport();
 }
-int stereo_sidebyside_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+int stereo_sidebyside_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, unsigned int ID, int windex){
 	//
 	int iret;
 	int i;
@@ -1789,7 +1799,7 @@ void stereo_anaglyph_render(void *_self){
 	viewer->isStereoB = 0;
 	popnset_viewport();
 }
-int stereo_anaglyph_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+int stereo_anaglyph_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, unsigned int ID, int windex){
 	//
 	int iret;
 	int i;
@@ -1878,7 +1888,7 @@ void stereo_updown_render(void *_self){
 	viewer->isStereoB = 0;
 	popnset_viewport();
 }
-int stereo_updown_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+int stereo_updown_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, unsigned int ID, int windex){
 	//
 	int iret;
 	int i;
@@ -1995,7 +2005,7 @@ void stereo_shutter_render(void *_self){
 	viewer->isStereoB = 0;
 	popnset_viewport();
 }
-int stereo_shutter_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+int stereo_shutter_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, unsigned int ID, int windex){
 	//
 	int iret;
 	int i;
@@ -2128,7 +2138,7 @@ void stage_render(void *_self){
 	popnset_viewport();
 	popnset_framebuffer();
 }
-int stage_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+int stage_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, unsigned int ID, int windex){
 	Stack *vportstack;
 	ivec4 ivport_parent;
 	int x,y;
@@ -2304,7 +2314,7 @@ static GLfloat matrixIdentity[] = {
 	0.0f, 0.0f, 1.0f, 0.0f,
 	0.0f, 0.0f, 0.0f, 1.0f
 };
-int texturegrid_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex);
+int texturegrid_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, unsigned int ID, int windex);
 contenttype *new_contenttype_texturegrid(int nx, int ny){
 	contenttype_texturegrid *self = MALLOCV(sizeof(contenttype_texturegrid));
 	register_contenttype(self);
@@ -2488,7 +2498,7 @@ void texturegrid_barrel_undistort2(void *_self, ivec4 vport, ivec2 *xy){
 	xy->X = (int)(x*vport.W) + vport.X;
 	xy->Y = (int)(y*vport.H) + vport.Y;
 }
-int texturegrid_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+int texturegrid_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, unsigned int ID, int windex){
 	//convert windoow to fbo
 	int iret;
 	contenttype *c;
@@ -2689,7 +2699,7 @@ void orientation_render(void *_self){
 }
 
 
-int orientation_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+int orientation_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, unsigned int ID, int windex){
 	//generic render for intermediate level content types (leaf/terminal content types will have their own render())
 	int iret;
 	contenttype *c, *self;
@@ -2942,16 +2952,16 @@ typedef struct pMainloop{
 	GLint viewPort2[10];
 	GLint viewpointScreenX[2], viewpointScreenY[2]; /*for stereo where we can adjust the viewpoint position on the screen */
 	/* screen width and height. */
-	struct X3D_Node* CursorOverSensitive[20];//=NULL;      /*  is Cursor over a Sensitive node?*/
-	struct X3D_Node* oldCOS[20];//=NULL;                   /*  which node was cursor over before this node?*/
-	int NavigationMode[20];//=FALSE;               /*  are we navigating or sensing?*/
-	//int ButDown[20][8];// = {{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE}};
+	//struct X3D_Node* CursorOverSensitive[20];//=NULL;      /*  is Cursor over a Sensitive node?*/
+	//struct X3D_Node* oldCOS[20];//=NULL;                   /*  which node was cursor over before this node?*/
+	//int NavigationMode[20];//=FALSE;               /*  are we navigating or sensing?*/
+	////int ButDown[20][8];// = {{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE}};
 
-	//int currentCursor;// = 0;
-	//int lastMouseEvent[20];// = 0/*MapNotify*/;         /*  last event a mouse did; care about Button and Motion events only.*/
-	struct X3D_Node* lastPressedOver[20];// = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
-	struct X3D_Node* lastOver[20];// = NULL;       /*  the sensitive node that the mouse was last moused over.*/
-	int lastOverButtonPressed[20];// = FALSE;      /*  catch the 1 to 0 transition for button presses and isOver in TouchSensors */
+	////int currentCursor;// = 0;
+	////int lastMouseEvent[20];// = 0/*MapNotify*/;         /*  last event a mouse did; care about Button and Motion events only.*/
+	//struct X3D_Node* lastPressedOver[20];// = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
+	//struct X3D_Node* lastOver[20];// = NULL;       /*  the sensitive node that the mouse was last moused over.*/
+	//int lastOverButtonPressed[20];// = FALSE;      /*  catch the 1 to 0 transition for button presses and isOver in TouchSensors */
 
 	int maxbuffers;// = 1;                     /*  how many active indexes in bufferarray*/
 	int bufferarray[2];// = {GL_BACK,0};
@@ -2976,7 +2986,7 @@ typedef struct pMainloop{
 	int lastxx;
 	int lastyy;
 	int ntouch;// =0;
-	int currentTouch;// = -1;
+	unsigned int currentTouch;// = -1;
 	struct Touch touchlist[20];
 	int EMULATE_MULTITOUCH;// = 1;
 
@@ -3056,22 +3066,22 @@ void Mainloop_init(struct tMainloop *t){
 
 		/* screen width and height. */
 		//p->CursorOverSensitive = NULL;      /*  is Cursor over a Sensitive node?*/
-		memset(p->CursorOverSensitive,0,20*sizeof(void*)); //=NULL;      /*  is Cursor over a Sensitive node?*/
-		//p->oldCOS=NULL;                   /*  which node was cursor over before this node?*/
-		memset(p->oldCOS,0,sizeof(void*));
-		//p->NavigationMode=FALSE;               /*  are we navigating or sensing?*/
-		memset(p->NavigationMode,0,20*sizeof(int));
-		//p->ButDown[20][8] = {{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE}}; nulls
+		//memset(p->CursorOverSensitive,0,20*sizeof(void*)); //=NULL;      /*  is Cursor over a Sensitive node?*/
+		////p->oldCOS=NULL;                   /*  which node was cursor over before this node?*/
+		//memset(p->oldCOS,0,sizeof(void*));
+		////p->NavigationMode=FALSE;               /*  are we navigating or sensing?*/
+		//memset(p->NavigationMode,0,20*sizeof(int));
+		////p->ButDown[20][8] = {{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE}}; nulls
 
-		//p->currentCursor = 0;
-		//p->lastMouseEvent = 0/*MapNotify*/;         /*  last event a mouse did; care about Button and Motion events only.*/
-		//memset(p->lastMouseEvent,0,20*sizeof(int));
-		//p->lastPressedOver = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
-		memset(p->lastPressedOver,0,20*sizeof(void*));
-		//p->lastOver = NULL;       /*  the sensitive node that the mouse was last moused over.*/
-		memset(p->lastOver,0,20*sizeof(void*));
-		//p->lastOverButtonPressed = FALSE;      /*  catch the 1 to 0 transition for button presses and isOver in TouchSensors */
-		memset(p->lastOverButtonPressed,0,20*sizeof(int));
+		////p->currentCursor = 0;
+		////p->lastMouseEvent = 0/*MapNotify*/;         /*  last event a mouse did; care about Button and Motion events only.*/
+		////memset(p->lastMouseEvent,0,20*sizeof(int));
+		////p->lastPressedOver = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
+		//memset(p->lastPressedOver,0,20*sizeof(void*));
+		////p->lastOver = NULL;       /*  the sensitive node that the mouse was last moused over.*/
+		//memset(p->lastOver,0,20*sizeof(void*));
+		////p->lastOverButtonPressed = FALSE;      /*  catch the 1 to 0 transition for button presses and isOver in TouchSensors */
+		//memset(p->lastOverButtonPressed,0,20*sizeof(int));
 
 		p->maxbuffers = 1;                     /*  how many active indexes in bufferarray*/
 		p->bufferarray[0] = FW_GL_BACK;
@@ -3102,7 +3112,7 @@ void Mainloop_init(struct tMainloop *t){
 		//p->touchlist[20];
 		p->EMULATE_MULTITOUCH = 0;
 		memset(p->touchlist,0,20*sizeof(struct Touch));
-		for(i=0;i<p->ntouch;i++) p->touchlist[i].ID = -1;
+		// .inUse flag 0 //for(i=0;i<p->ntouch;i++) p->touchlist[i].ID = -1;
 
 		p->logfile = NULL;
 		p->logerr = NULL;
@@ -3221,14 +3231,6 @@ void fwl_getWindowSize1(int windex, int *width, int *height){
 	*height = ivport.H;	
 }
 
-struct Touch *currentTouch(){
-	ppMainloop p;
-	ttglobal tg = gglobal();
-	p = (ppMainloop)tg->Mainloop.prv;
-	//printf("currentTouch %d\n",p->currentTouch);
-	//if(p->currentTouch == -1) p->currentTouch = 0;
-	return &p->touchlist[p->currentTouch];
-}
 
 //true statics:
 int isBrowserPlugin = FALSE; //I can't think of a scenario where sharing this across instances would be a problem
@@ -3958,7 +3960,7 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 }
 
 //<<<<<=====NEW=====
-int fwl_handle_mouse_multi_yup(int mev, int butnum, int mouseX, int yup, int ID, int windex){
+int fwl_handle_mouse_multi_yup(int mev, int butnum, int mouseX, int yup, unsigned int ID, int windex){
 	//this is the pick() for the twindow level
 	int ihit;
 	Stack *vportstack;
@@ -4210,7 +4212,7 @@ int emulate_multitouch2(struct Touch *touchlist, int ntouch, int *IDD, int *last
 }
 
 
-int fwl_handle_mouse_multi(int mev, int butnum, int mouseX, int mouseY, int ID, int windex){
+int fwl_handle_mouse_multi(int mev, int butnum, int mouseX, int mouseY, unsigned int ID, int windex){
 	//this is the pick() for the twindow level
 	int yup;
 	targetwindow *t;
@@ -4229,7 +4231,7 @@ int fwl_handle_mouse(int mev, int butnum, int mouseX, int mouseY, int windex){
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
-	cstyle = fwl_handle_mouse_multi(mev,butnum,mouseX,mouseY,0,windex);
+	cstyle = fwl_handle_mouse_multi(mev,butnum,mouseX,mouseY,1,windex);
 	return cstyle;
 }
 
@@ -4560,6 +4562,7 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 
 }
 void set_viewmatrix0(int iplace);
+struct Touch *currentTouch();
 void setup_picking(){
 	/*	Dec 15, 2015 update: variables have been vectorized in this function to match multi-touch, 
 		however multitouch with touch sensors doesn't work yet - you can have ID=0 for navigation
@@ -4582,8 +4585,9 @@ void setup_picking(){
 		//touch = currentTouch();
 		for(ktouch=0;ktouch<p->ntouch;ktouch++){
 			touch = &p->touchlist[ktouch];
-			ID = touch->ID;
-			if(ID < 0) continue; //return;
+			if(!touch->inUse) continue;
+			//ID = touch->ID;
+			//if(ID < 0) continue; //return;
 
 	//	if(ID == 0) continue; //for testing e3dmouse only
 			if(touch->windex != windex) continue; //return;
@@ -4596,7 +4600,7 @@ void setup_picking(){
 			//if(justpressed)
 			//	ConsoleMessage("setup_picking justpressed mev %d x%d y%d\n",touch->mev,x,yup);
 			//ConsoleMessage("setup_picking ID %d navmode %d\n",ID,p->NavigationMode[ID]);
-			if(!p->NavigationMode[ID] || justpressed) {
+			if(!touch->NavigationMode || justpressed) {
 				//ConsoleMessage("setup_picking x %d y %d ID %d but %d mev %d\n",touch->x,touch->y,touch->ID,touch->buttonState[LMB],touch->mev);
 				if(setup_pickside(x,yup)){
 					setup_projection();
@@ -4605,22 +4609,22 @@ void setup_picking(){
 					set_viewmatrix0(1);
 					render_hier(rootNode(),VF_Sensitive  | VF_Geom);
 
-					p->CursorOverSensitive[ID] = getRayHit();
+					touch->CursorOverSensitive = getRayHit();
 					//double-check navigation, which may have already started
-					if(p->CursorOverSensitive[ID] && p->NavigationMode[ID] ){
+					if(touch->CursorOverSensitive && touch->NavigationMode ){
 						//if(!tg->Mainloop.AllowNavDrag) 
-						p->NavigationMode[ID] = FALSE; //rollback start of navigation
+						touch->NavigationMode = FALSE; //rollback start of navigation
 						ConsoleMessage("setup_picking rolling back startofNavigation\n");
 					}
 					//if (p->CursorOverSensitive)
 					//	ConsoleMessage("setup_picking x %d y %d ID %d but %d mev %d\n", touch->x, touch->y, touch->ID, touch->buttonState[LMB], touch->mev);
 
 					/* for nodes that use an "isOver" eventOut... */
-					if (p->lastOver[ID] != p->CursorOverSensitive[ID]) {
+					if (touch->lastOver != touch->CursorOverSensitive) {
 						#ifdef VERBOSE
 							printf ("%lf over changed, p->lastOver %u p->cursorOverSensitive %u, p->butDown1 %d\n",
-								TickTime(), (unsigned int) p->lastOver[ID], (unsigned int) p->CursorOverSensitive[ID],
-								p->ButDown[p->currentCursor][1]);
+								TickTime(), (unsigned int) touch->lastOver, (unsigned int) touch->CursorOverSensitive,
+								touch->ButDown[p->currentCursor][1]);
 						#endif
 						//ConsoleMessage("isOver changing\n");
 						//if (p->ButDown[p->currentCursor][1]==0) {
@@ -4629,14 +4633,14 @@ void setup_picking(){
 							/* ok, when the user releases a button, cursorOverSensitive WILL BE NULL
 								until it gets sensed again. So, we use the lastOverButtonPressed flag to delay
 								sending this flag by one event loop loop. */
-							if (!p->lastOverButtonPressed[ID]) {
-								sendSensorEvents(p->lastOver[ID], overMark, 0, FALSE);
-								sendSensorEvents(p->CursorOverSensitive[ID], overMark, 0, TRUE);
-								p->lastOver[ID] = p->CursorOverSensitive[ID];
+							if (!touch->lastOverButtonPressed) {
+								sendSensorEvents(touch->lastOver, overMark, 0, FALSE);
+								sendSensorEvents(touch->CursorOverSensitive, overMark, 0, TRUE);
+								touch->lastOver = touch->CursorOverSensitive;
 							}
-							p->lastOverButtonPressed[ID] = FALSE;
+							touch->lastOverButtonPressed = FALSE;
 						} else {
-							p->lastOverButtonPressed[ID] = TRUE;
+							touch->lastOverButtonPressed = TRUE;
 						}
 					}
 					#ifdef VERBOSE
@@ -4646,19 +4650,19 @@ void setup_picking(){
 
 					/* did we have a click of button 1? */
 					//if (p->ButDown[p->currentCursor][1] && (p->lastPressedOver==NULL)) {
-					if (touch->buttonState[LMB] && (p->lastPressedOver[ID]==NULL)) {
+					if (touch->buttonState[LMB] && (touch->lastPressedOver==NULL)) {
 						//ConsoleMessage("Not Navigation and 1 down\n"); 
 						/* send an event of ButtonPress and isOver=true */
-						p->lastPressedOver[ID] = p->CursorOverSensitive[ID];
-						sendSensorEvents(p->lastPressedOver[ID], ButtonPress, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
+						touch->lastPressedOver = touch->CursorOverSensitive;
+						sendSensorEvents(touch->lastPressedOver, ButtonPress, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
 					}
 					//if ((p->ButDown[p->currentCursor][1]==0) && p->lastPressedOver!=NULL) {
-					if ((touch->buttonState[LMB]==0) && p->lastPressedOver[ID]!=NULL) {
+					if ((touch->buttonState[LMB]==0) && touch->lastPressedOver!=NULL) {
 						//ConsoleMessage ("Not Navigation and 1 up\n");
 						/* send an event of ButtonRelease and isOver=true;
 							an isOver=false event will be sent below if required */
-						sendSensorEvents(p->lastPressedOver[ID], ButtonRelease, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
-						p->lastPressedOver[ID] = NULL;
+						sendSensorEvents(touch->lastPressedOver, ButtonRelease, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
+						touch->lastPressedOver = NULL;
 					}
 					if (TRUE) { // || p->lastMouseEvent[ID] == MotionNotify) {
 						//ConsoleMessage ("Not Navigation and motion - going into sendSensorEvents\n");
@@ -4668,43 +4672,43 @@ void setup_picking(){
 						//  we won't have a mouse event but the view matrix will change, causing the pickray
 						//  to move with respect to the dragsensor - in which case the sensor should emit events.
 						/* TouchSensor hitPoint_changed needs to know if we are over a sensitive node or not */
-						sendSensorEvents(p->CursorOverSensitive[ID],MotionNotify, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
+						sendSensorEvents(touch->CursorOverSensitive,MotionNotify, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
 
 						/* PlaneSensors, etc, take the last sensitive node pressed over, and a mouse movement */
-						sendSensorEvents(p->lastPressedOver[ID],MotionNotify, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
+						sendSensorEvents(touch->lastPressedOver,MotionNotify, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
 						//p->lastMouseEvent[ID] = 0 ;
 					}
 
 					/* do we need to re-define cursor style? */
 					/* do we need to send an isOver event? */
-					if (p->CursorOverSensitive[ID]!= NULL) {
+					if (touch->CursorOverSensitive!= NULL) {
 						setSensorCursor();
 
 						/* is this a new node that we are now over?
 							don't change the node pointer if we are clicked down */
-						if ((p->lastPressedOver[ID]==NULL) && (p->CursorOverSensitive[ID] != p->oldCOS[ID])) {
+						if ((touch->lastPressedOver==NULL) && (touch->CursorOverSensitive != touch->oldCOS)) {
 							//sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
-							sendSensorEvents(p->oldCOS[ID],MapNotify,touch->buttonState[LMB], FALSE);
+							sendSensorEvents(touch->oldCOS,MapNotify,touch->buttonState[LMB], FALSE);
 							//sendSensorEvents(p->CursorOverSensitive,MapNotify,p->ButDown[p->currentCursor][1], TRUE);
-							sendSensorEvents(p->CursorOverSensitive[ID],MapNotify,touch->buttonState[LMB], TRUE);
-							 p->oldCOS[ID] =p->CursorOverSensitive[ID];
-							sendDescriptionToStatusBar(p->CursorOverSensitive[ID]);
+							sendSensorEvents(touch->CursorOverSensitive,MapNotify,touch->buttonState[LMB], TRUE);
+							 touch->oldCOS = touch->CursorOverSensitive;
+							sendDescriptionToStatusBar(touch->CursorOverSensitive);
 							//ConsoleMessage("in oldCOS A\n");
 						}
 					} else {
 						/* hold off on cursor change if dragging a sensor */
-						if (p->lastPressedOver[ID]!=NULL) {
+						if (touch->lastPressedOver != NULL) {
 							setSensorCursor();
 						} else {
 							setArrowCursor();
 						}
 						/* were we over a sensitive node? */
 						//if ((p->oldCOS!=NULL)  && (p->ButDown[p->currentCursor][1]==0)) {
-						if ((p->oldCOS[ID]!=NULL)  && (touch->buttonState[LMB]==0)) {
-							sendSensorEvents(p->oldCOS[ID],MapNotify, touch->buttonState[LMB], FALSE); //p->ButDown[p->currentCursor][1], FALSE);
+						if ((touch->oldCOS != NULL)  && (touch->buttonState[LMB]==0)) {
+							sendSensorEvents(touch->oldCOS, MapNotify, touch->buttonState[LMB], FALSE); //p->ButDown[p->currentCursor][1], FALSE);
 							/* remove any display on-screen */
 							sendDescriptionToStatusBar(NULL);
-							p->oldCOS[ID]=NULL;
+							touch->oldCOS = NULL;
 							//ConsoleMessage("in oldCOS B\n");
 						}
 					}
@@ -5305,7 +5309,7 @@ static void render()
 	} /* for loop */
 	if(1){
 		//render last know mouse position as seen by the backend
-		struct Touch *touch = &p->touchlist[0];
+		struct Touch *touch = currentTouch(); //&p->touchlist[0];
 		if(touch->stageId == current_stageId())
 			fiducialDraw(0, touch->x, touch->y, 0.0f);
 	}
@@ -7174,10 +7178,92 @@ void freewrlDie (const char *format) {
         ConsoleMessage ("Catastrophic error: %s\n",format);
         fwl_doQuit();
 }
-void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x, int y, int ID, int windex) {
+
+//with multi-touch, touches are flowing in and around, but you normally have 20 or fewer fingers on the screen
+//at one time (IIRC smarttech has a touch table for kids that takes 20)
+//rather than fragment memory with a lot of malloc and free, these functions recycle touches
+struct Touch * AllocTouch(unsigned int ID){
+	//call on mouse/touch DOWN
+	int i;
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+	for(i=0;i<20;i++)
+		if(p->touchlist[i].ID == ID && p->touchlist[i].inUse){
+			//memset(&p->touchlist[i],0,sizeof(struct Touch));
+			p->touchlist[i].inUse = 2; //2 == dragging
+			return &p->touchlist[i];
+		}
+	for(i=0;i<20;i++)
+		if(!p->touchlist[i].inUse){
+			p->touchlist[i].inUse = 2; //2 == dragging
+			p->touchlist[i].ID = ID;
+			return &p->touchlist[i];
+		}
+	return NULL;
+}
+struct Touch * GetTouch(unsigned int ID){
+	//call on mouse/touch MOVE
+	int i;
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+	for(i=0;i<20;i++)
+		if(p->touchlist[i].ID == ID){
+			return &p->touchlist[i];
+		}
+	return NULL;
+}
+void ReleaseTouch(unsigned int ID){
+	//call on mouse/touch UP
+	//it needs to hang around for a frame for logic setup_picking
+	int i;
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+	for(i=0;i<20;i++)
+		if(p->touchlist[i].ID == ID){
+			p->touchlist[i].inUse = 1; //1= hang around for a frame
+			return;
+		}
+}
+void FreeTouches(){
+	//call a frame after touch UP
+	//cleans up released drags that hung around for a frame for setup_picking
+	int i;
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+	for(i=0;i<20;i++)
+		if(p->touchlist[i].inUse == 1){
+			memset(&p->touchlist[i],0,sizeof(struct Touch));
+		}
+}
+// Definition of current touch:
+// when the event is DOWN / PRESS and there is no currentTouch, then the ID
+// of this DOWN event becomes the currentTouch until RELEASE/UP for its ID.
+// then currentTouch is free'ed up (set to 0)
+// ID is unsigned, and 0 means no touch is occuring, 1 to MAXINT (4 billion) is a valid touch ID
+void setCurrentTouchID(unsigned int ID){
+	int i;
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+	p->currentTouch = ID;
+}
+struct Touch *currentTouch(){
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+	//printf("currentTouch %d\n",p->currentTouch);
+	//if(p->currentTouch == -1) p->currentTouch = 0;
+	return GetTouch(p->currentTouch);
+}
+
+void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x, int y, unsigned int ID, int windex) {
 	int count, ibutton;
 	float fx, fy;
-	struct Touch *touch;
+	struct Touch *touch, *curTouch;
 	Stack *vportstack;
 	ivec4 vport;
 	ppMainloop p;
@@ -7210,26 +7296,45 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 		else if (mev == MotionNotify) ConsoleMessage("MotionNotify\n");
 		else ConsoleMessage("event %d\n", mev);
 	}
+	FreeTouches();
 	/* save the current x and y positions for picking. */
-	touch = &p->touchlist[ID];
+	if(mev == ButtonPress){
+		//welcome, a new touch / start of drag
+		touch = AllocTouch(ID);
+		if(currentTouch()->ID == 0) {
+			//there is no other current touch that we are in the middle of,
+			//so this becomes the current touch
+			setCurrentTouchID(ID);
+		}
+		touch->windex = windex;
+		touch->stageId = current_stageId();
+	}else{
+		touch = GetTouch(ID);
+	}
+	if(touch == NULL){
+		//May 4, 2016 change: we now ignore mouse-up mouse moves / hovers / isOver
+		ConsoleMessage("null touch ");
+		return; 
+	}
+
+	//touch = &p->touchlist[ID];
 	touch->x = x;
 	touch->y = y;
-	touch->windex = windex;
-	touch->stageId = current_stageId();
 	touch->buttonState[ibutton] = mev == ButtonPress;
-	touch->ID = ID; //will come in handy if we change from array[] to accordian list
 	touch->mev = mev;
 	touch->angle = 0.0f;
 	touch->handled = 0;
-	p->currentTouch = ID; // pick/dragsensors can use 0-19
+	// this isn't necessarily the current touch if there are multiple touches //p->currentTouch = ID; // pick/dragsensors can use 0-19
 
-	if(ID == 0){
-		//nav always uses ID==0
+	curTouch = currentTouch();
+	if(ID == curTouch->ID){
+		//yes incoming touch _is_ the current touch
+		//nav always uses current touch //ID==0
 		if ((mev == ButtonPress) || (mev == ButtonRelease)) {
 			/* if we are Not over an enabled sensitive node, and we do NOT already have a
 				button down from a sensitive node... */
-			if (((p->CursorOverSensitive[ID] ==NULL) && (p->lastPressedOver[ID] ==NULL)) || Viewer()->LookatMode || tg->Mainloop.SHIFT ) { //|| tg->Mainloop.AllowNavDrag
-				p->NavigationMode[ID] = touch->buttonState[LMB] || touch->buttonState[RMB];
+			if (((touch->CursorOverSensitive ==NULL) && (touch->lastPressedOver ==NULL)) || Viewer()->LookatMode || tg->Mainloop.SHIFT ) { //|| tg->Mainloop.AllowNavDrag
+				touch->NavigationMode = touch->buttonState[LMB] || touch->buttonState[RMB];
 				//ConsoleMessage("pNM %d \n", p->NavigationMode);
 				//if(mev == ButtonPress)   ConsoleMessage("starting navigation drag\n");
 				//if(mev == ButtonRelease) ConsoleMessage("ending   navigation drag\n");
@@ -7238,7 +7343,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 		}
 
 		if (mev == MotionNotify) {
-			if (p->NavigationMode[ID]) {
+			if (touch->NavigationMode) {
 				/* find out what the first button down is */
 				count = 0;
 				while ((count < 4) && (!touch->buttonState[count])) count++;
@@ -7247,6 +7352,11 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 				handle (mev, (unsigned) count, fx, fy); 
 			}
 		}
+	}
+	if(mev == ButtonRelease){
+		if(curTouch->ID == ID)
+			p->currentTouch = 0;
+		ReleaseTouch(ID);
 	}
 }
 
@@ -7607,21 +7717,20 @@ void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive) {
 
 /* We have a new file to load, lets get rid of the old world sensor events, and run with it */
 void resetSensorEvents(void) {
-	int ID;
+	int ktouch;
 	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 
-	for(ID=0;ID<20;ID++){
-		if (p->oldCOS[ID] != NULL)
-			sendSensorEvents(p->oldCOS[ID],MapNotify,p->touchlist[p->currentTouch].buttonState[LMB], FALSE);
+	for(ktouch=0;ktouch<20;ktouch++){
+		struct Touch *touch;
+		touch = &p->touchlist[ktouch];
+		if(touch->inUse){
+			if (touch->oldCOS != NULL)
+			sendSensorEvents(touch->oldCOS,MapNotify,touch->buttonState[LMB], FALSE);
 			//sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
+		}
 		/* remove any display on-screen */
 		sendDescriptionToStatusBar(NULL);
-		p->CursorOverSensitive[ID]=NULL;
-
-		p->oldCOS[ID]=NULL;
-		//p->lastMouseEvent[ID] = 0;
-		p->lastPressedOver[ID] = NULL;
-		p->lastOver[ID] = NULL;
+		memset(touch,0,sizeof(struct Touch));
 		FREE_IF_NZ(p->SensorEvents);
 	}
 	p->num_SensorEvents = 0;
