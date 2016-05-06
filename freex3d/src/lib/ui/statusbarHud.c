@@ -1476,6 +1476,7 @@ ACTION_ROLL,
 ACTION_XY,
 ACTION_DIST,
 ACTION_SHIFT,
+ACTION_PEDAL,
 ACTION_LEVEL,
 ACTION_HEADLIGHT,
 ACTION_COLLISION,
@@ -1511,6 +1512,7 @@ ACTION_ROLL, "FLY roll",
 ACTION_XY, "FLY xy",
 ACTION_DIST, "DIST (for examine,explore,turntable)",
 ACTION_SHIFT, "SHIFT Key (turns off sensors)",
+ACTION_PEDAL, "PEDAL drags in-scene cursor",
 ACTION_LEVEL, "LEVEL to bound VP (ViewPoint)",
 ACTION_HEADLIGHT, "HEADLIGHT",
 ACTION_COLLISION, "COLLISION (and gravity)",
@@ -1551,8 +1553,8 @@ void convertPng2hexAlpha()
 		10. tinker with code in statusbarhud.c in several places to get the button to show and do things
 	*/
 	int w,h,ii,size;
-	static int mbuts = 2; //8; // 17;
-	static char * butFnames[] = {"shift.png","sensor.png"}; //{"YAWZ.png"}; // {"lookat.png","explore.png","spherical.png","turntable.png","XY.png","ROLL.png","YAWPITCH.png","YAWZ.png"}; //{"tilt.png"}; //{"tplane.png","rplane.png","walk.png","fly.png","examine.png","level.png","headlight.png","collision.png","prev.png","next.png","help.png","messages.png","options.png","reload.png","url.png","file.png","blank.png"};//"flyEx.png",
+	static int mbuts = 1; //2; //8; // 17;
+	static char * butFnames[] = {"pedal.png"}; //{"shift.png","sensor.png"}; //{"YAWZ.png"}; // {"lookat.png","explore.png","spherical.png","turntable.png","XY.png","ROLL.png","YAWPITCH.png","YAWZ.png"}; //{"tilt.png"}; //{"tplane.png","rplane.png","walk.png","fly.png","examine.png","level.png","headlight.png","collision.png","prev.png","next.png","help.png","messages.png","options.png","reload.png","url.png","file.png","blank.png"};//"flyEx.png",
 	textureTableIndexStruct_s butts;
 
 	FILE* out = fopen("hudIcons_octalpha_h","w+");
@@ -1672,7 +1674,7 @@ void initButtons()
 	ppstatusbar p = (ppstatusbar)tg->statusbar.prv;
 	p->clipPlane = p->statusBarSize; //16;
 	
-	///p->buttonType = 0; //uncomment this line to convert png buttons to hudIcons_octalpha_h header format
+	//p->buttonType = 0; //uncomment this line to convert png buttons to hudIcons_octalpha_h header format
 	if(p->buttonType == 0){
 		convertPng2hexAlpha();
 		exit(0);
@@ -1686,14 +1688,14 @@ void initButtons()
 			walk, fly, examine,
 			yawz, xy, yawpitch, roll,
 			explore, spherical, turntable, lookat, distance, 
-			shift, level, headlight,
+			shift, pedal, level, headlight,
 			collision, prev, next, help, messages, options, reload, url, file, blank
 			};
 		static int actionlist [] = {
 			ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
 			ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL,
 			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, ACTION_DIST, 
-			ACTION_SHIFT, ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
+			ACTION_SHIFT, ACTION_PEDAL, ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
 			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS,
 			ACTION_RELOAD, ACTION_URL, ACTION_FILE, ACTION_BLANK,
 			};
@@ -1708,7 +1710,7 @@ void initButtons()
 		//not sure we need to toggle in the View, the Model holds the state, and
 		//controller checks once per frame
 		static int toggles [] = {
-			ACTION_COLLISION,ACTION_HEADLIGHT,ACTION_SHIFT,
+			ACTION_COLLISION,ACTION_HEADLIGHT,ACTION_SHIFT,ACTION_PEDAL,
 			ACTION_HELP,ACTION_MESSAGES,ACTION_OPTIONS,0
 			}; 
 		static int togglesets [][8] = {{ACTION_FLY,4,ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL},{0}};
@@ -1716,7 +1718,7 @@ void initButtons()
 		static int mainbar_withFileOpen [] = {
 			ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
 			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, ACTION_DIST, 
-			ACTION_SHIFT, ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
+			ACTION_SHIFT, ACTION_PEDAL, ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
 			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS, 
 			//ACTION_RELOAD, ACTION_URL, 
 			ACTION_FILE,
@@ -1725,7 +1727,7 @@ void initButtons()
 		static int mainbar_linux [] = {
 			ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
 			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, ACTION_DIST,
-			ACTION_SHIFT, ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
+			ACTION_SHIFT, ACTION_PEDAL, ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
 			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS, 
 			//ACTION_RELOAD, ACTION_URL, 
 			//ACTION_FILE,
@@ -2034,6 +2036,13 @@ void setMenuButton_shift(int val){
 	if(i > -1)
 		p->pmenu.items[i].butStatus = val;
 }
+void setMenuButton_pedal(int val){
+	int i;
+	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
+	i = getMenuItemByAction(ACTION_PEDAL);
+	if(i > -1)
+		p->pmenu.items[i].butStatus = val;
+}
 void setMenuButton_ctrl(ctrl){
 	//not used yet - ctrl affects 3-state buttons like Explore (goes into pick mode when pressed 2x), 
 	//and examine, spherical (ctrl + LMB == RMB)
@@ -2136,18 +2145,20 @@ void updateButtonStatus()
 	// Here we take our UI current state from the scene state. 
 	// For FRONTEND_HANDLES_DISPLAY_THREAD configurations, the frontend should do 
 	// the equivalent of the following once per frame (poll state and set UI)
-	int headlight, collision, navmode, dragchord, ctrl, shift, consoletext;
+	int headlight, collision, navmode, dragchord, ctrl, shift, pedal, consoletext;
 	//poll model state:
 	headlight = fwl_get_headlight();
 	collision = fwl_getCollision();
 	navmode = fwl_getNavMode();
 	dragchord = viewer_getDragChord();
 	shift = fwl_getShift();
+	pedal = fwl_getPedal();
 	ctrl = fwl_getCtrl();
 	consoletext = getShowConsoleText();
 	//lookatMode = fwl_getLookatMode();
 	//update UI(view):
 	setMenuButton_shift(shift);
+	setMenuButton_pedal(pedal);
 	setMenuButton_ctrl(ctrl);
 	setMenuButton_navModes(navmode,dragchord);
 	setMenuButton_headlight(headlight);
@@ -2328,6 +2339,7 @@ int handleButtonRelease(int mouseX, int mouseY)
 				case ACTION_DIST:
 					fwl_set_viewer_type(VIEWER_DIST); break;
 				case ACTION_SHIFT:	 fwl_setShift(p->pmenu.bitems[i].item->butStatus); break;
+				case ACTION_PEDAL:	 fwl_setPedal(p->pmenu.bitems[i].item->butStatus); break;
 				case ACTION_LEVEL:	 viewer_level_to_bound(); break;
 				case ACTION_HEADLIGHT: fwl_toggle_headlight(); break;
 				case ACTION_COLLISION: toggle_collision(); break; 
