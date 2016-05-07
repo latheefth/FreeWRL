@@ -2936,7 +2936,11 @@ void init_targetwindow(void *_self){
 
 
 //<<<<=====NEW==Nov27,2015=========
-
+struct pedal_state {
+	int x,y;
+	int rx,ry;
+	int inUse;
+};
 
 typedef struct pMainloop{
 	//browser
@@ -3021,6 +3025,7 @@ typedef struct pMainloop{
 	struct Vector *contenttype_registry;
 	int mouseDown;
 	int mouseOver;
+	struct pedal_state pedalstate;
 }* ppMainloop;
 void *Mainloop_constructor(){
 	void *v = MALLOCV(sizeof(struct pMainloop));
@@ -3146,6 +3151,7 @@ void Mainloop_init(struct tMainloop *t){
 		p->contenttype_registry = NULL;
 		p->mouseDown = 0;
 		p->mouseOver = 0;
+		memset(&p->pedalstate,0,sizeof(struct pedal_state));
 	}
 }
 void Mainloop_clear(struct tMainloop *t){
@@ -5373,7 +5379,7 @@ static void render()
 	} /* for loop */
 	if(1){
 		//render last know mouse position as seen by the backend
-		struct Touch *touch = currentTouch(); //&p->touchlist[0];
+		struct Touch *touch =  currentTouch(); //&p->touchlist[0];
 		if(touch->stageId == current_stageId()){
 			float angleDeg = fwl_getHover() ? 180.0f : 0.0f;
 			fiducialDraw(0, touch->x, touch->y, angleDeg);
@@ -7326,6 +7332,32 @@ struct Touch *currentTouch(){
 	return GetTouch(p->currentTouch);
 }
 
+void handle_pedal(int mev, int x, int y, ivec4 vport){
+	ppMainloop p;
+	struct pedal_state *pstate;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+	pstate = &p->pedalstate;
+	if(mev == ButtonPress) {
+		pstate->rx = x;
+		pstate->ry = y;
+		if(FALSE && !pstate->inUse){
+			pstate->x = 0; //x;
+			pstate->y = 0; //y;
+		}
+		pstate->inUse = TRUE;
+	} else if (mev == MotionNotify) {
+		if(pstate->inUse){
+			pstate->x -= x - pstate->rx;
+			pstate->y -= y - pstate->ry;
+			pstate->rx = x;
+			pstate->ry = y;
+		}
+	} else if(mev == ButtonRelease) {
+		pstate->inUse = FALSE;
+		fwl_setPedal(0); //just one pedal, then turn off automatically. User must re-click the pedal button if they want another drag to accumulate.
+	}
+}
 void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x, int y, unsigned int ID, int windex) {
 	int count, ibutton;
 	float fx, fy;
@@ -7365,6 +7397,13 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 		else ConsoleMessage("event %d\n", mev);
 	}
 	FreeTouches(); //call once after setup_picking
+	if (fwl_getPedal()) {
+		handle_pedal(mev, x, y, vport);
+		ibutton = 0;
+	}else{
+		p->pedalstate.inUse = FALSE;
+	}
+
 	/* save the current x and y positions for picking. */
 	if(mev == ButtonPress){
 		//welcome, a new touch / start of drag
@@ -7386,8 +7425,8 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	}
 
 	//touch = &p->touchlist[ID];
-	touch->x = x;
-	touch->y = y;
+	touch->x = x + p->pedalstate.x;
+	touch->y = y + p->pedalstate.y;
 	touch->buttonState[ibutton] = mev == ButtonPress;
 	touch->mev = mev;
 	touch->angle = 0.0f;
@@ -7406,7 +7445,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 				//ConsoleMessage("pNM %d \n", p->NavigationMode);
 				//if(mev == ButtonPress)   ConsoleMessage("starting navigation drag\n");
 				//if(mev == ButtonRelease) ConsoleMessage("ending   navigation drag\n");
-				handle(mev, ibutton, fx, fy);
+					handle(mev, ibutton, fx, fy);
 			}
 		}
 

@@ -239,7 +239,6 @@ void fiducialDraw(int ID, int x, int y, float angleDeg)
 	FXY fxy;
 	int i;
 	GLfloat p[3][2];
-	GLfloat mark[3][2];
 	GLint  positionLoc;
 	s_shader_capabilities_t *scap;
 	ttglobal tg = gglobal();
