@@ -132,6 +132,12 @@ struct SensStruct {
 #define LMB 1
 #define MMB 2
 #define RMB 3
+//conceptually a Touch isa Drag. A touch device will send in multiple coordinates, with the same ID,
+// and what that means is you are updating the terminal endpoint of a Touch or Drag. 
+// If its a new touch/drag ID then of course you also are setting the start point.
+//Drags don't inherently have a concept of isOver. Our backend needs to create that. 
+// For example the SHIFT key.
+//Funny as of May 2016 we don't store startpoint in the touch - it's state seems to be scattered
 struct Touch
 {
 	int buttonState[4]; /*none down=0, LMB =1, MMB=2, RMB=3*/
@@ -3013,6 +3019,8 @@ typedef struct pMainloop{
 	Stack *_stagestack;
 	Stack *_framebufferstack;
 	struct Vector *contenttype_registry;
+	int mouseDown;
+	int mouseOver;
 }* ppMainloop;
 void *Mainloop_constructor(){
 	void *v = MALLOCV(sizeof(struct pMainloop));
@@ -3136,6 +3144,8 @@ void Mainloop_init(struct tMainloop *t){
 		t->_framebufferstack = (void*)p->_framebufferstack;
 		stack_push(int,p->_framebufferstack,FW_GL_BACK);
 		p->contenttype_registry = NULL;
+		p->mouseDown = 0;
+		p->mouseOver = 0;
 	}
 }
 void Mainloop_clear(struct tMainloop *t){
@@ -4227,11 +4237,61 @@ int fwl_handle_mouse_multi(int mev, int butnum, int mouseX, int mouseY, unsigned
 	return getCursorStyle();
 }
 int fwl_handle_mouse(int mev, int butnum, int mouseX, int mouseY, int windex){
+	int cstyle, tactic_up_drag;
+	unsigned int ID;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+	
+	//ConsoleMessage("mev %d butnum %d\n",mev,butnum);
+	ID = 1; //normal, 2=over
+	tactic_up_drag = 0;
+	if(tactic_up_drag){
+		switch(mev){
+			case MotionNotify:
+			if(!p->mouseDown && !p->mouseOver){
+				//we are moving. Turn it into an up-drag
+				p->mouseOver = TRUE;
+				ID = 2;
+				mev = ButtonPress;
+				butnum = 0;
+			}
+			if(p->mouseOver){
+				ID = 2;
+				butnum = 0;
+			}
+			break;
+			case ButtonPress:
+			if(p->mouseOver){
+				//clean up up-drag
+				fwl_handle_mouse_multi(ButtonRelease, 0, mouseX, mouseY, 2, windex);
+				p->mouseOver = FALSE;
+			}
+			p->mouseDown = TRUE;
+			break;
+			default:
+			break;
+		}
+		cstyle = fwl_handle_mouse_multi(mev,butnum,mouseX,mouseY,ID,windex);
+		if(mev == ButtonRelease){
+			p->mouseDown = FALSE;
+		}
+	}else{
+		//no tactic up-drag, just normal
+		cstyle = fwl_handle_mouse_multi(mev,butnum,mouseX,mouseY,ID,windex);
+	}
+	return cstyle;
+}
+int fwl_handle_touch(int mev, unsigned int ID, int mouseX, int mouseY, int windex) {
 	int cstyle;
+	int ibut;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
-	cstyle = fwl_handle_mouse_multi(mev,butnum,mouseX,mouseY,1,windex);
+	//mobile: touch drags only occur when something is down, so LMB is constant
+	//localhost: touch drags can have mev = move, with no Press preceding, for a mouse up drag
+	ibut = LMB;
+	if(fwl_getHover()) ibut = 0;
+	cstyle = fwl_handle_mouse_multi(mev, ibut, mouseX, mouseY, ID, windex);
 	return cstyle;
 }
 
@@ -7313,7 +7373,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	}
 	if(touch == NULL){
 		//May 4, 2016 change: we now ignore mouse-up mouse moves / hovers / isOver
-		ConsoleMessage("null touch ");
+		//ConsoleMessage("null touch ");
 		return; 
 	}
 

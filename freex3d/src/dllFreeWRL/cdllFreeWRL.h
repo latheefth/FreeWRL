@@ -41,6 +41,7 @@ DLLFREEWRL_API void dllFreeWRL_onInit(void *fwctx, int width, int height, void* 
 DLLFREEWRL_API void dllFreeWRL_onLoad(void *fwctx, char* scene_url);
 DLLFREEWRL_API void dllFreeWRL_onResize(void *fwctx, int width, int height);
 DLLFREEWRL_API int dllFreeWRL_onMouse(void *fwctx, int mouseAction,int mouseButton,int x, int y);
+DLLFREEWRL_API int dllFreeWRL_onTouch(void *fwctx, int touchAction, unsigned int ID, int x, int y);
 DLLFREEWRL_API void dllFreeWRL_onKey(void *fwctx, int keyAction,int keyValue);
 DLLFREEWRL_API void dllFreeWRL_onDraw(void *fwctx); //use when FRONTEND_HANDLES_DISPLAY_THREAD
 DLLFREEWRL_API void dllFreeWRL_onClose(void *fwctx);

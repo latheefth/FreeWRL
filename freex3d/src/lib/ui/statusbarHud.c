@@ -363,6 +363,7 @@ GLubyte fwLetters8x15[][22] = {
 #else
 #define BUTSIZE 32
 #endif
+#define MAXBUT 32
 /* <<< bitmap fonts */
 typedef struct {
 	int cwidth;
@@ -549,10 +550,10 @@ void statusbar_init(struct tstatusbar *t){
 		p->pfont.cheight = 0;
 		p->pfont.cwidth = 0;
 		p->pfont.lumalpha = NULL;
-		p->pmenu.items = MALLOC(pmenuItem_t *, 25 * sizeof(pmenuItem_t));
-		for(i=0;i<25;i++) p->pmenu.items[i].butStatus = 0;
-		p->pmenu.bitems = (barItem *)malloc(25 * sizeof(barItem));
-		bzero(p->pmenu.bitems,25 * sizeof(barItem));
+		p->pmenu.items = MALLOC(pmenuItem_t *, MAXBUT * sizeof(pmenuItem_t));
+		for(i=0;i<MAXBUT;i++) p->pmenu.items[i].butStatus = 0;
+		p->pmenu.bitems = (barItem *)malloc(MAXBUT * sizeof(barItem));
+		bzero(p->pmenu.bitems,MAXBUT * sizeof(barItem));
 
 		//p->showOptions = p->butStatus[10] = 1; //for debugging hud text
 		p->buttonSize = BUTSIZE;
@@ -1476,6 +1477,7 @@ ACTION_ROLL,
 ACTION_XY,
 ACTION_DIST,
 ACTION_SHIFT,
+ACTION_HOVER,
 ACTION_PEDAL,
 ACTION_LEVEL,
 ACTION_HEADLIGHT,
@@ -1512,6 +1514,7 @@ ACTION_ROLL, "FLY roll",
 ACTION_XY, "FLY xy",
 ACTION_DIST, "DIST (for examine,explore,turntable)",
 ACTION_SHIFT, "SHIFT Key (turns off sensors)",
+ACTION_HOVER, "HOVER up-drag isOver mode",
 ACTION_PEDAL, "PEDAL drags in-scene cursor",
 ACTION_LEVEL, "LEVEL to bound VP (ViewPoint)",
 ACTION_HEADLIGHT, "HEADLIGHT",
@@ -1554,7 +1557,7 @@ void convertPng2hexAlpha()
 	*/
 	int w,h,ii,size;
 	static int mbuts = 1; //2; //8; // 17;
-	static char * butFnames[] = {"pedal.png"}; //{"shift.png","sensor.png"}; //{"YAWZ.png"}; // {"lookat.png","explore.png","spherical.png","turntable.png","XY.png","ROLL.png","YAWPITCH.png","YAWZ.png"}; //{"tilt.png"}; //{"tplane.png","rplane.png","walk.png","fly.png","examine.png","level.png","headlight.png","collision.png","prev.png","next.png","help.png","messages.png","options.png","reload.png","url.png","file.png","blank.png"};//"flyEx.png",
+	static char * butFnames[] = {"hover.png"}; //{"pedal.png"}; //{"shift.png","sensor.png"}; //{"YAWZ.png"}; // {"lookat.png","explore.png","spherical.png","turntable.png","XY.png","ROLL.png","YAWPITCH.png","YAWZ.png"}; //{"tilt.png"}; //{"tplane.png","rplane.png","walk.png","fly.png","examine.png","level.png","headlight.png","collision.png","prev.png","next.png","help.png","messages.png","options.png","reload.png","url.png","file.png","blank.png"};//"flyEx.png",
 	textureTableIndexStruct_s butts;
 
 	FILE* out = fopen("hudIcons_octalpha_h","w+");
@@ -1688,18 +1691,19 @@ void initButtons()
 			walk, fly, examine,
 			yawz, xy, yawpitch, roll,
 			explore, spherical, turntable, lookat, distance, 
-			shift, pedal, level, headlight,
-			collision, prev, next, help, messages, options, reload, url, file, blank
+			shift, hover, pedal, level, headlight,
+			collision, prev, next, help, messages, 
+			options, reload, url, file, blank
 			};
 		static int actionlist [] = {
 			ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
 			ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL,
 			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, ACTION_DIST, 
-			ACTION_SHIFT, ACTION_PEDAL, ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
-			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS,
-			ACTION_RELOAD, ACTION_URL, ACTION_FILE, ACTION_BLANK,
+			ACTION_SHIFT, ACTION_HOVER, ACTION_PEDAL, ACTION_LEVEL, ACTION_HEADLIGHT, 
+			ACTION_COLLISION, ACTION_PREV,ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, 
+			ACTION_OPTIONS,ACTION_RELOAD, ACTION_URL, ACTION_FILE, ACTION_BLANK,
 			};
-		static int NACTION = 25; //must match buttonlist and actionlist count
+		static int NACTION = 27; //must match buttonlist and actionlist count, and be <= MAXBUT defined above
 		//radiosets are to indicate what things are deselected (if any) when another thing is selected
 		static int radiosets [][9] = {
 			{8,ACTION_FLY,ACTION_WALK,ACTION_EXAMINE,ACTION_EXPLORE,ACTION_SPHERICAL,ACTION_TURNTABLE,ACTION_LOOKAT,ACTION_DIST},
@@ -1710,7 +1714,7 @@ void initButtons()
 		//not sure we need to toggle in the View, the Model holds the state, and
 		//controller checks once per frame
 		static int toggles [] = {
-			ACTION_COLLISION,ACTION_HEADLIGHT,ACTION_SHIFT,ACTION_PEDAL,
+			ACTION_COLLISION,ACTION_HEADLIGHT,ACTION_SHIFT,ACTION_HOVER,ACTION_PEDAL,
 			ACTION_HELP,ACTION_MESSAGES,ACTION_OPTIONS,0
 			}; 
 		static int togglesets [][8] = {{ACTION_FLY,4,ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL},{0}};
@@ -1718,7 +1722,7 @@ void initButtons()
 		static int mainbar_withFileOpen [] = {
 			ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
 			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, ACTION_DIST, 
-			ACTION_SHIFT, ACTION_PEDAL, ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
+			ACTION_SHIFT, ACTION_HOVER, ACTION_PEDAL, ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
 			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS, 
 			//ACTION_RELOAD, ACTION_URL, 
 			ACTION_FILE,
@@ -1727,7 +1731,7 @@ void initButtons()
 		static int mainbar_linux [] = {
 			ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
 			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, ACTION_DIST,
-			ACTION_SHIFT, ACTION_PEDAL, ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
+			ACTION_SHIFT, ACTION_HOVER, ACTION_PEDAL, ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
 			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS, 
 			//ACTION_RELOAD, ACTION_URL, 
 			//ACTION_FILE,
@@ -2036,6 +2040,13 @@ void setMenuButton_shift(int val){
 	if(i > -1)
 		p->pmenu.items[i].butStatus = val;
 }
+void setMenuButton_hover(int val){
+	int i;
+	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
+	i = getMenuItemByAction(ACTION_HOVER);
+	if(i > -1)
+		p->pmenu.items[i].butStatus = val;
+}
 void setMenuButton_pedal(int val){
 	int i;
 	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
@@ -2145,19 +2156,21 @@ void updateButtonStatus()
 	// Here we take our UI current state from the scene state. 
 	// For FRONTEND_HANDLES_DISPLAY_THREAD configurations, the frontend should do 
 	// the equivalent of the following once per frame (poll state and set UI)
-	int headlight, collision, navmode, dragchord, ctrl, shift, pedal, consoletext;
+	int headlight, collision, navmode, dragchord, ctrl, shift, hover, pedal, consoletext;
 	//poll model state:
 	headlight = fwl_get_headlight();
 	collision = fwl_getCollision();
 	navmode = fwl_getNavMode();
 	dragchord = viewer_getDragChord();
 	shift = fwl_getShift();
+	hover = fwl_getHover();
 	pedal = fwl_getPedal();
 	ctrl = fwl_getCtrl();
 	consoletext = getShowConsoleText();
 	//lookatMode = fwl_getLookatMode();
 	//update UI(view):
 	setMenuButton_shift(shift);
+	setMenuButton_hover(hover);
 	setMenuButton_pedal(pedal);
 	setMenuButton_ctrl(ctrl);
 	setMenuButton_navModes(navmode,dragchord);
@@ -2339,6 +2352,8 @@ int handleButtonRelease(int mouseX, int mouseY)
 				case ACTION_DIST:
 					fwl_set_viewer_type(VIEWER_DIST); break;
 				case ACTION_SHIFT:	 fwl_setShift(p->pmenu.bitems[i].item->butStatus); break;
+				case ACTION_HOVER:	 fwl_setHover(p->pmenu.bitems[i].item->butStatus); 
+				break;
 				case ACTION_PEDAL:	 fwl_setPedal(p->pmenu.bitems[i].item->butStatus); break;
 				case ACTION_LEVEL:	 viewer_level_to_bound(); break;
 				case ACTION_HEADLIGHT: fwl_toggle_headlight(); break;
@@ -2726,7 +2741,8 @@ int handleStatusbarHud1(int mev, int butnum, int mouseX, int mouseY, int windex)
 	//printf("in handleStatusbarHud1 mev %d butnum %d x %d y %d wx %d\n",mev,butnum,mouseX,mouseY,windex);
 	//updateWindowSize1(windex);
 	mouseYY = mouseY; // - p->pmenu.yoffset;
-	if ((mev == ButtonPress) || (mev == ButtonRelease))
+	//if butnum == 0 for press or release, it means we are in a so-called up-drag
+	if ((mev == ButtonPress) || (mev == ButtonRelease) )
 	{
 		/* record which button is down */
 		/* >>> statusbar hud */
@@ -2739,9 +2755,14 @@ int handleStatusbarHud1(int mev, int butnum, int mouseX, int mouseY, int windex)
 				if(!ihit){
 					//if its over the menubar on mouseup, but no button hit...
 					//.. then we toggle menu and or statusbar
-					if(!p->menubar_pinned) 
+					p->menubar_pinned = 1 - p->menubar_pinned;
+					fwl_get_sbh_pin(&p->statusbar_pinned, &p->menubar_pinned);
+					p->menubar_pinned = 1 - p->menubar_pinned;
+					fwl_set_sbh_pin(p->statusbar_pinned, p->menubar_pinned);
+					if(!p->menubar_pinned)
 						toggleMenu(0); //toggle self off
-					else if(!p->statusbar_pinned && !p->showStatus)
+					else 
+					if(!p->statusbar_pinned && !p->showStatus)
 						p->showStatus = 1; //turn menubar back on if not pinned, not showing, and menubar is pinned
 				}
 			}

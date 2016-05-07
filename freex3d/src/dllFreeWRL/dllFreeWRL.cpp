@@ -93,6 +93,10 @@ int CdllFreeWRL::onMouse(int mouseAction,int mouseButton,int x, int y)
 {
 	return dllFreeWRL_onMouse(this->globalcontexthandle, mouseAction,mouseButton, x, y);
 }
+int CdllFreeWRL::onTouch(int touchAction, unsigned int ID, int x, int y)
+{
+	return dllFreeWRL_onTouch(this->globalcontexthandle, touchAction, ID, x, y);
+}
 void CdllFreeWRL::onKey(int keyAction,int keyValue)
 {
 	dllFreeWRL_onKey(this->globalcontexthandle, keyAction, keyValue);

@@ -407,6 +407,8 @@ int fwl_get_sbh_wantStatusbar();
 int fwl_commandline(char *cmdline);
 int fwl_getShift();
 void fwl_setShift(int ishift);
+int fwl_getHover();
+void fwl_setHover(int hover);
 int fwl_getPedal();
 void fwl_setPedal(int pedal);
 int fwl_getCtrl();
