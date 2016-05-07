@@ -233,11 +233,13 @@ static GLfloat cursIdentity[] = {
 };
 /* attempt to draw fiducials with lines - draws wrong place */
 s_shader_capabilities_t *getMyShader(unsigned int rq_cap0);
-void fiducialDraw(int ID, int x, int y, float angle)
+void fiducialDraw(int ID, int x, int y, float angleDeg)
 {
 	XY xy;
 	FXY fxy;
+	int i;
 	GLfloat p[3][2];
+	GLfloat mark[3][2];
 	GLint  positionLoc;
 	s_shader_capabilities_t *scap;
 	ttglobal tg = gglobal();
@@ -245,19 +247,36 @@ void fiducialDraw(int ID, int x, int y, float angle)
 	xy = mouse2screen2(x,y);
 	FW_GL_VIEWPORT(0, 0, tg->display.screenWidth, tg->display.screenHeight);
 	fxy = screen2normalized((GLfloat)xy.x,(GLfloat)xy.y);
-
 	//I was hoping for a little v at the top
-	p[0][0] = fxy.x - .01f;
-	p[0][1] = fxy.y;
-	p[1][0] = fxy.x ;
-	p[1][1] = fxy.y - .01f;
-	p[2][0] = fxy.x + .01f;
-	p[2][1] = fxy.y;
+
+	p[0][0] = -.01f;
+	p[0][1] =  .01f;
+	p[1][0] =  .00f;
+	p[1][1] =  .00f;
+	p[2][0] =  .01f;
+	p[2][1] =  .01f;
+	if(angleDeg != 0.0f){
+		GLfloat cosine, sine, angleRad, xx,yy;
+		angleRad = angleDeg * PI / 180.0f;
+		cosine = cos(angleRad);
+		sine = sin(angleRad);
+		for(i=0;i<3;i++){
+			xx = cosine*p[i][0] + sine*p[i][1];
+			yy = -sine*p[i][0] + cosine*p[i][1];
+			p[i][0]=xx;
+			p[i][1]=yy;
+		}
+	}
+	for(i=0;i<3;i++){
+		p[i][0] += fxy.x;
+		p[i][1] += fxy.y;
+	}
+
 	FW_GL_DEPTHMASK(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
 	scap = getMyShader(NO_APPEARANCE_SHADER);
 	enableGlobalShader(scap);
-	glUniformMatrix4fv(scap->ModelViewMatrix, 1, GL_FALSE, cursIdentity);
+	glUniformMatrix4fv(scap->ModelViewMatrix, 1, GL_FALSE, cursIdentity); 
 	glUniformMatrix4fv(scap->ProjectionMatrix, 1, GL_FALSE, cursIdentity);
 
 

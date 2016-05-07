@@ -4246,6 +4246,11 @@ int fwl_handle_mouse(int mev, int butnum, int mouseX, int mouseY, int windex){
 	ID = 1; //normal, 2=over
 	tactic_up_drag = 0;
 	if(tactic_up_drag){
+		//this was an attempt to restore isOver for desktop, by 
+		//creating a Touch/Drag for when the mouse buttons are up
+		// but didn't work well (H: can't send 2 mouse events on the same frame
+		// because we are flushing once per event rather than once per frame)
+		// Use the Hover button.
 		switch(mev){
 			case MotionNotify:
 			if(!p->mouseDown && !p->mouseOver){
@@ -4290,7 +4295,7 @@ int fwl_handle_touch(int mev, unsigned int ID, int mouseX, int mouseY, int winde
 	//mobile: touch drags only occur when something is down, so LMB is constant
 	//localhost: touch drags can have mev = move, with no Press preceding, for a mouse up drag
 	ibut = LMB;
-	if(fwl_getHover()) ibut = 0;
+	//if(fwl_getHover()) ibut = 0;
 	cstyle = fwl_handle_mouse_multi(mev, ibut, mouseX, mouseY, ID, windex);
 	return cstyle;
 }
@@ -5286,7 +5291,6 @@ static void render()
 	setup_projection();
 	set_viewmatrix();
 	setup_picking();
-
 	viewer = Viewer();
 	doglClearColor();
 
@@ -5370,8 +5374,10 @@ static void render()
 	if(1){
 		//render last know mouse position as seen by the backend
 		struct Touch *touch = currentTouch(); //&p->touchlist[0];
-		if(touch->stageId == current_stageId())
-			fiducialDraw(0, touch->x, touch->y, 0.0f);
+		if(touch->stageId == current_stageId()){
+			float angleDeg = fwl_getHover() ? 180.0f : 0.0f;
+			fiducialDraw(0, touch->x, touch->y, angleDeg);
+		}
 	}
 
 }
@@ -7337,6 +7343,8 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	//winRT but =1 when mev = motion, others but = 0 when mev = motion. 
 	//make winRT the same as the others:
 	ibutton = button;
+	if(fwl_getHover()) ibutton = 0; //so called up-drag or isOver / hover mode
+
 	//if (mev == MotionNotify && ibutton !=0) 
 	//	ibutton = 0; //moved to fw_handle_mouse_multi_yup for winRT mouse
 
@@ -7356,7 +7364,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 		else if (mev == MotionNotify) ConsoleMessage("MotionNotify\n");
 		else ConsoleMessage("event %d\n", mev);
 	}
-	FreeTouches();
+	FreeTouches(); //call once after setup_picking
 	/* save the current x and y positions for picking. */
 	if(mev == ButtonPress){
 		//welcome, a new touch / start of drag
