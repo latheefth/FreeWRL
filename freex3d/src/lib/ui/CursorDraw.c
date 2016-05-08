@@ -231,10 +231,105 @@ static GLfloat cursIdentity[] = {
 	0.0f, 0.0f, 1.0f, 0.0f,
 	0.0f, 0.0f, 0.0f, 1.0f
 };
+struct cline {
+	int n;  //0 means no more lines
+	GLfloat p[6]; //max 3 xy points, fill unused with 0f
+};
+static struct cline cur_fiducials [] = {
+	{3,{-.01f,.0f, 0.0f,-.01f, .01f,.0f}}, // v offset downward a bit to get on the screen at the top
+	{0,{0.0f,0.0f,0.0f,0.0f,0.0f,0.0f}},
+};
+static struct cline cur_down [] = {
+	{3,{-.01f,.01f, .0f,.0f, .01f,.01f}}, // v
+	{0,{.0f,.0f,.0f,.0f,.0f,.0f}},
+};
+static struct cline cur_up [] = {
+	{3,{-.01f,-.01f, .0f,.0f, .01f,-.01f}}, // ^
+	{0,{.0f,.0f,.0f,.0f,.0f,.0f}},
+};
+static struct cline cur_hover [] = {
+	{2,{-.01f,.0f, .01f,.0f, .0f,.0f}}, // +
+	{2,{.0f,-.01f, .01f,.01f, .0f,.0f}},
+	{0,{.0f,.0f,.0f,.0f,.0f,.0f}},
+};
+static struct cline cur_over [] = {
+	{2,{.0f,.0f, .0f,.002f, .0f,.0f}}, // !
+	{2,{.0f,.003f, .0f,.02f, .0f,.0f}},
+	{0,{.0f,.0f,.0f,.0f,.0f,.0f}},
+};
+/* - in CursorDraw.h
+enum cursor_type {
+	CURSOR_UP = 0,
+	CURSOR_DOWN,
+	CURSOR_HOVER,
+	CURSOR_OVER,
+	CURSOR_FIDUCIALS
+};
+*/
+static struct cline *cursor_array [] = {
+	cur_up,
+	cur_down,
+	cur_hover,
+	cur_over,
+	cur_fiducials,
+	NULL,
+};
 /* attempt to draw fiducials with lines - draws wrong place */
 s_shader_capabilities_t *getMyShader(unsigned int rq_cap0);
+void fiducialDrawB(int cursortype, int x, int y)
+{
+	XY xy;
+	FXY fxy;
+	int i,k;
+	GLfloat p[3][2];
+	GLint  positionLoc;
+	struct cline *cur, *line;
+	s_shader_capabilities_t *scap;
+	ttglobal tg = gglobal();
+
+	xy = mouse2screen2(x,y);
+	FW_GL_VIEWPORT(0, 0, tg->display.screenWidth, tg->display.screenHeight);
+	fxy = screen2normalized((GLfloat)xy.x,(GLfloat)xy.y);
+
+
+	FW_GL_DEPTHMASK(GL_FALSE);
+	glDisable(GL_DEPTH_TEST);
+	scap = getMyShader(NO_APPEARANCE_SHADER);
+	enableGlobalShader(scap);
+	glUniformMatrix4fv(scap->ModelViewMatrix, 1, GL_FALSE, cursIdentity); 
+	glUniformMatrix4fv(scap->ProjectionMatrix, 1, GL_FALSE, cursIdentity);
+
+
+	//FW_GL_VERTEX_POINTER(2, GL_FLOAT, 0, (GLfloat *)p);
+	//sendArraysToGPU(GL_LINE_STRIP, 0, 3);
+	positionLoc =  scap->Vertices; //glGetAttribLocation ( shader, "fw_Vertex" );
+
+	cur = cursor_array[cursortype];
+	k = 0;
+	line = &cur[k];
+	while(line->n){
+		for(i=0;i<line->n;i++){
+			p[i][0] = line->p[i*2] + fxy.x;
+			p[i][1] = line->p[i*2 + 1] + fxy.y;
+		}
+		glVertexAttribPointer (positionLoc, 2, GL_FLOAT, 
+							   GL_FALSE, 0, p );
+		glDrawArrays(GL_LINE_STRIP,0,line->n);
+		k++;
+		line = &cur[k];
+	}
+	
+	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
+	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+
+	glEnable(GL_DEPTH_TEST);
+	FW_GL_DEPTHMASK(GL_TRUE);
+	restoreGlobalShader();
+}
 void fiducialDraw(int ID, int x, int y, float angleDeg)
 {
+	//pre- may 8, 2016
 	XY xy;
 	FXY fxy;
 	int i;
@@ -265,6 +360,10 @@ void fiducialDraw(int ID, int x, int y, float angleDeg)
 			p[i][0]=xx;
 			p[i][1]=yy;
 		}
+	}
+	if(ID == 1){
+		for(i=0;i<3;i++)
+			p[i][1] -= .01f;
 	}
 	for(i=0;i<3;i++){
 		p[i][0] += fxy.x;

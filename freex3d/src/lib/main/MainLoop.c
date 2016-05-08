@@ -1387,7 +1387,9 @@ void e3dmouse_render(void *_self){
 		ivport = stack_top(ivec4,vportstack);
 		x = ivport.W/2 + ivport.X;
 		y = ivport.H/2 + ivport.Y;
-		fiducialDraw(0, x, y, 0.0f);
+		//fiducialDraw(0, x, y, 0.0f);
+		fiducialDrawB(CURSOR_DOWN,x,y);
+
 	}
 }
 int e3dmouse_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, unsigned int ID, int windex){
@@ -1685,8 +1687,8 @@ void stereo_sidebyside_render(void *_self){
 		setcurrentviewport(vportstack); //does opengl call
 
 		c->t1.render(c);
-		fiducialDraw(1,fidcenter.X,fidcenter.Y,0.0f); //draw a fiducial mark where centre of viewpoint is
-
+		//fiducialDraw(1,fidcenter.X,fidcenter.Y,0.0f); //draw a fiducial mark where centre of viewpoint is
+		fiducialDrawB(CURSOR_FIDUCIALS,fidcenter.X,fidcenter.Y);
 		//pop stereo_sidebyside subviewport
 		popnset_viewport();
 		viewer->xcenter = 0.0;
@@ -5370,7 +5372,8 @@ static void render()
 #ifndef DISABLER
 			if (viewer->sidebyside){
 				//cursorDraw(1, p->viewpointScreenX[count], p->viewpointScreenY[count], 0.0f); //draw a fiducial mark where centre of viewpoint is
-				fiducialDraw(1,p->viewpointScreenX[count],p->viewpointScreenY[count],0.0f); //draw a fiducial mark where centre of viewpoint is
+				//fiducialDraw(1,p->viewpointScreenX[count],p->viewpointScreenY[count],0.0f); //draw a fiducial mark where centre of viewpoint is
+				fiducialDrawB(CURSOR_FIDUCIALS,p->viewpointScreenX[count],p->viewpointScreenY[count]); //draw a fiducial mark where centre of viewpoint is
 			}
 #endif
 			if (viewer->anaglyph)
@@ -5381,8 +5384,9 @@ static void render()
 		//render last know mouse position as seen by the backend
 		struct Touch *touch =  currentTouch(); //&p->touchlist[0];
 		if(touch->stageId == current_stageId()){
-			float angleDeg = fwl_getHover() ? 180.0f : 0.0f;
-			fiducialDraw(0, touch->x, touch->y, angleDeg);
+			//float angleDeg = fwl_getHover() ? 180.0f : 0.0f;
+			//fiducialDraw(0, touch->x, touch->y, angleDeg);
+			fiducialDrawB(CURSOR_DOWN,touch->x,touch->y);
 		}
 	}
 
