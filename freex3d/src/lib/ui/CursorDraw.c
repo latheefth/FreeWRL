@@ -236,25 +236,25 @@ struct cline {
 	GLfloat p[6]; //max 3 xy points, fill unused with 0f
 };
 static struct cline cur_fiducials [] = {
-	{3,{-.01f,.0f, 0.0f,-.01f, .01f,.0f}}, // v offset downward a bit to get on the screen at the top
+	{3,{-.02f,.0f, 0.0f,-.02f, .02f,.0f}}, // v offset downward a bit to get on the screen at the top
 	{0,{0.0f,0.0f,0.0f,0.0f,0.0f,0.0f}},
 };
 static struct cline cur_down [] = {
-	{3,{-.01f,.01f, .0f,.0f, .01f,.01f}}, // v
+	{3,{-.02f,.02f, .0f,.0f, .02f,.02f}}, // v
 	{0,{.0f,.0f,.0f,.0f,.0f,.0f}},
 };
 static struct cline cur_up [] = {
-	{3,{-.01f,-.01f, .0f,.0f, .01f,-.01f}}, // ^
+	{3,{-.02f,-.02f, .0f,.0f, .02f,-.02f}}, // ^
 	{0,{.0f,.0f,.0f,.0f,.0f,.0f}},
 };
 static struct cline cur_hover [] = {
-	{2,{-.01f,.0f, .01f,.0f, .0f,.0f}}, // +
-	{2,{.0f,-.01f, .01f,.01f, .0f,.0f}},
+	{2,{-.02f,.0f, .02f,.0f, .0f,.0f}}, // +
+	{2,{.0f,-.02f, .0f,.02f, .0f,.0f}},
 	{0,{.0f,.0f,.0f,.0f,.0f,.0f}},
 };
 static struct cline cur_over [] = {
-	{2,{.0f,.0f, .0f,.002f, .0f,.0f}}, // !
-	{2,{.0f,.003f, .0f,.02f, .0f,.0f}},
+	{2,{.0f,.0f, .0f,.005f, .0f,.0f}}, // !
+	{2,{.0f,.008f, .0f,.02f, .0f,.0f}},
 	{0,{.0f,.0f,.0f,.0f,.0f,.0f}},
 };
 /* - in CursorDraw.h
@@ -351,9 +351,9 @@ void fiducialDraw(int ID, int x, int y, float angleDeg)
 	p[2][1] =  .01f;
 	if(angleDeg != 0.0f){
 		GLfloat cosine, sine, angleRad, xx,yy;
-		angleRad = angleDeg * PI / 180.0f;
-		cosine = cos(angleRad);
-		sine = sin(angleRad);
+		angleRad = angleDeg * (float)PI / 180.0f;
+		cosine = cosf(angleRad);
+		sine = sinf(angleRad);
 		for(i=0;i<3;i++){
 			xx = cosine*p[i][0] + sine*p[i][1];
 			yy = -sine*p[i][0] + cosine*p[i][1];
