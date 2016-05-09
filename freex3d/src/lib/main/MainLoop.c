@@ -157,6 +157,7 @@ struct Touch
 	int y; //y-up
 	float fx,fy; //normalized coordinates ie -1 to 1 or 0 to 1 
 	int dragStart; //flag set generically on mouse down, and cleared by claimant when they've applied mousedown
+	int dragEnd; //flag set generically on mouse up, and cleared by claimant after cleaning up their drag state
 	int windex; //multi_window window index 0=default for regular freewrl
 	void* stageId; //unique ID for a stage, should be same for pick and render passes, otherwise in render not-for-me
 	int rx,ry; //raw input coords at emulation level, for finding and dragging and rendering
@@ -4689,7 +4690,6 @@ void setup_picking(){
 		//	if(!touch->NavigationMode || justpressed) {
 			if(touch->claimant == TOUCHCLAIMANT_SENSOR || (touch->claimant == TOUCHCLAIMANT_UNCLAIMED && touch->passed == priorclaimants)) {
 				//ConsoleMessage("setup_picking x %d y %d ID %d but %d mev %d\n",touch->x,touch->y,touch->ID,touch->buttonState[LMB],touch->mev);
-				int should_claim = FALSE;
 				if(setup_pickside(x,yup)){
 					setup_projection();
 					setup_pickray(x,yup);
@@ -4707,15 +4707,17 @@ void setup_picking(){
 							//touch->claimant = TOUCHCLAIMANT_SENSOR;
 							//ConsoleMessage("setup_picking rolling back startofNavigation\n");
 							touch->claimant = TOUCHCLAIMANT_SENSOR;
-							printf("xy=%d %d ",x,yup);
+							printf("xy=%d %d hyper %d ",x,yup, tg->RenderFuncs.hypersensitive);
 							printf("claim %d\n",touch->ID);
-							touch->dragStart = 0;
+							//touch->dragStart = 0;
+							//dragStart = 1; //for if() blocks below
 						}else{
 							touch->passed |= TOUCHCLAIMANT_SENSOR;
-							printf("xy=%d %d ",x,yup);
+							printf("xy=%d %d hyper %d ",x,yup,tg->RenderFuncs.hypersensitive);
 							printf("pass %d\n",touch->ID);
 						}
 					}
+					if(touch->claimant != TOUCHCLAIMANT_SENSOR) continue; //navigation touch
 					//if (p->CursorOverSensitive)
 					//	ConsoleMessage("setup_picking x %d y %d ID %d but %d mev %d\n", touch->x, touch->y, touch->ID, touch->buttonState[LMB], touch->mev);
 
@@ -4728,7 +4730,7 @@ void setup_picking(){
 						#endif
 						//ConsoleMessage("isOver changing\n");
 						//if (p->ButDown[p->currentCursor][1]==0) {
-						if (touch->buttonState[LMB]==0) {
+						if (touch->dragEnd) {  //touch->buttonState[LMB]==0) {
 
 							/* ok, when the user releases a button, cursorOverSensitive WILL BE NULL
 								until it gets sensed again. So, we use the lastOverButtonPressed flag to delay
@@ -4750,14 +4752,17 @@ void setup_picking(){
 
 					/* did we have a click of button 1? */
 					//if (p->ButDown[p->currentCursor][1] && (p->lastPressedOver==NULL)) {
-					if (touch->buttonState[LMB] && (touch->lastPressedOver==NULL)) {
+					//if (touch->buttonState[LMB] && (touch->lastPressedOver==NULL)) {
+					if (touch->dragStart && (touch->lastPressedOver==NULL)) {
 						//ConsoleMessage("Not Navigation and 1 down\n"); 
 						/* send an event of ButtonPress and isOver=true */
 						touch->lastPressedOver = touch->CursorOverSensitive;
-						sendSensorEvents(touch->lastPressedOver, ButtonPress, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
+						sendSensorEvents(touch->lastPressedOver, ButtonPress, touch->dragStart, TRUE); //p->ButDown[p->currentCursor][1], TRUE);
 					}
 					//if ((p->ButDown[p->currentCursor][1]==0) && p->lastPressedOver!=NULL) {
-					if ((touch->buttonState[LMB]==0) && touch->lastPressedOver!=NULL) {
+					//if ((touch->buttonState[LMB]==0) && touch->lastPressedOver!=NULL) {
+					if(touch->dragEnd && touch->lastPressedOver!=NULL) {
+						//this shuts off hypersensitive
 						//ConsoleMessage ("Not Navigation and 1 up\n");
 						/* send an event of ButtonRelease and isOver=true;
 							an isOver=false event will be sent below if required */
@@ -4804,7 +4809,8 @@ void setup_picking(){
 						}
 						/* were we over a sensitive node? */
 						//if ((p->oldCOS!=NULL)  && (p->ButDown[p->currentCursor][1]==0)) {
-						if ((touch->oldCOS != NULL)  && (touch->buttonState[LMB]==0)) {
+						//if ((touch->oldCOS != NULL)  && (touch->buttonState[LMB]==0)) {
+						if ((touch->oldCOS != NULL)  && touch->dragEnd) {
 							sendSensorEvents(touch->oldCOS, MapNotify, touch->buttonState[LMB], FALSE); //p->ButDown[p->currentCursor][1], FALSE);
 							/* remove any display on-screen */
 							sendDescriptionToStatusBar(NULL);
@@ -4813,7 +4819,14 @@ void setup_picking(){
 						}
 					}
 				} //setup_pickside
-			} //unclaimed
+				if(touch->dragStart){
+					touch->dragStart = FALSE; //handled buttonPress above
+				}
+				if(touch->dragEnd){
+					touch->dragEnd = FALSE; //handled buttonRelease above
+					touch->inUse = FALSE; //garbage collect
+				}
+			} //unclaimed or pick claimed
 		} //ktouch loop
 	} /* (!NavigationMode && HaveSensitive) */
 	else if(Viewer()->LookatMode){
@@ -7481,7 +7494,8 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	if(mev == ButtonRelease){
 		if(touch->ID == ID)
 			p->currentTouch = 0;
-		ReleaseTouch(ID);
+		//ReleaseTouch(ID);
+		touch->dragEnd = TRUE;
 	}
 
 	//update_navigation - this will be for unclaimed touches from last iteration
