@@ -4666,7 +4666,7 @@ void setup_picking(){
 	//if (!p->NavigationMode && tg->Mainloop.HaveSensitive && !Viewer()->LookatMode && !tg->Mainloop.SHIFT) {
 	if (tg->Mainloop.HaveSensitive && !Viewer()->LookatMode && !tg->Mainloop.SHIFT) {
 		//p->currentCursor = 0;
-		int x,yup,justpressed,ktouch,priorclaimants;
+		int x,yup,ktouch,priorclaimants;
 		struct Touch *touch;
 		//touch = currentTouch();
 		priorclaimants = TOUCHCLAIMANT_PEDAL;
@@ -4683,7 +4683,7 @@ void setup_picking(){
 			touch->handled = TRUE;
 			x = touch->x;
 			yup = touch->y;
-			justpressed = touch->buttonState[LMB] && touch->dragStart; //touch->mev == ButtonPress;
+			//justpressed = touch->buttonState[LMB] && touch->dragStart; //touch->mev == ButtonPress;
 			//if(justpressed)
 			//	ConsoleMessage("setup_picking justpressed mev %d x%d y%d\n",touch->mev,x,yup);
 			//ConsoleMessage("setup_picking ID %d navmode %d\n",ID,p->NavigationMode[ID]);
@@ -4855,6 +4855,15 @@ void setup_picking(){
 			setArrowCursor();
 	}else{
 		//normal or navigation mode
+		int ktouch, priorclaimants;
+		struct Touch *touch;
+		priorclaimants = TOUCHCLAIMANT_PEDAL;
+		for(ktouch=0;ktouch<p->ntouch;ktouch++){
+			touch = &p->touchlist[ktouch];
+			if(!touch->inUse) continue;
+			if(touch->claimant == TOUCHCLAIMANT_UNCLAIMED && touch->passed == priorclaimants)
+				touch->passed |= TOUCHCLAIMANT_SENSOR;
+		}
 		setArrowCursor();
 	}
 
@@ -7304,13 +7313,13 @@ struct Touch * AllocTouch(unsigned int ID){
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
-	for(i=0;i<20;i++)
+	for(i=0;i<p->ntouch;i++)
 		if(p->touchlist[i].ID == ID && p->touchlist[i].inUse){
 			//memset(&p->touchlist[i],0,sizeof(struct Touch));
 			p->touchlist[i].inUse = 2; //2 == dragging
 			return &p->touchlist[i];
 		}
-	for(i=0;i<20;i++)
+	for(i=0;i<p->ntouch;i++)
 		if(!p->touchlist[i].inUse){
 			memset(&p->touchlist[i],0,sizeof(struct Touch));
 			p->touchlist[i].inUse = 2; //2 == dragging
@@ -7325,7 +7334,7 @@ struct Touch * GetTouch(unsigned int ID){
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
-	for(i=0;i<20;i++)
+	for(i=0;i<p->ntouch;i++)
 		if(p->touchlist[i].ID == ID){
 			return &p->touchlist[i];
 		}
@@ -7338,7 +7347,7 @@ void ReleaseTouch(unsigned int ID){
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
-	for(i=0;i<20;i++)
+	for(i=0;i<p->ntouch;i++)
 		if(p->touchlist[i].ID == ID){
 			p->touchlist[i].inUse = 1; //1= hang around for a frame
 			return;
@@ -7351,7 +7360,7 @@ void FreeTouches(){
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
-	for(i=0;i<20;i++)
+	for(i=0;i<p->ntouch;i++)
 		if(p->touchlist[i].inUse == 1){
 			memset(&p->touchlist[i],0,sizeof(struct Touch));
 		}
@@ -7494,14 +7503,13 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	if(mev == ButtonRelease){
 		if(touch->ID == ID)
 			p->currentTouch = 0;
-		//ReleaseTouch(ID);
 		touch->dragEnd = TRUE;
 	}
 
 	//update_navigation - this will be for unclaimed touches from last iteration
-	for(i=0;i<20;i++){
-		//curTouch = currentTouch();
-		//if(ID == curTouch->ID){
+	//this code should be called from a function once per frame, not here once per event 
+	// (need to process ButtonRelease from previous event)
+	for(i=0;i<p->ntouch;i++){
 		curTouch = &p->touchlist[i];
 		if(curTouch->inUse){
 			//yes incoming touch _is_ the current touch
@@ -7509,36 +7517,24 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 			int priorclaimants = TOUCHCLAIMANT_PEDAL | TOUCHCLAIMANT_SENSOR;
 			if(curTouch->claimant == TOUCHCLAIMANT_UNCLAIMED && curTouch->passed == priorclaimants ){
 				//see if we want to claim it for navigation
-				if(!tg->Mainloop.SHIFT)
+				if(!fwl_getHover())
 					curTouch->claimant = TOUCHCLAIMANT_NAVIGATION;
 				else
 					curTouch->passed |= TOUCHCLAIMANT_NAVIGATION;
 			}
 			if(curTouch->claimant == TOUCHCLAIMANT_NAVIGATION){
-				if (curTouch->dragStart || (curTouch->mev == ButtonRelease)) {
-					int imev = curTouch->mev;
+				int imev, ibut;
+				ibut = 1;
+				if (curTouch->dragStart || (curTouch->dragEnd)) {
 					if(curTouch->dragStart) imev = ButtonPress;
-					curTouch->dragStart = 0;
-					/* if we are Not over an enabled sensitive node, and we do NOT already have a
-						button down from a sensitive node... */
-					if (((curTouch->CursorOverSensitive ==NULL) && (curTouch->lastPressedOver ==NULL)) || Viewer()->LookatMode || tg->Mainloop.SHIFT ) { //|| tg->Mainloop.AllowNavDrag
-						curTouch->NavigationMode = curTouch->buttonState[LMB] || curTouch->buttonState[RMB];
-						//ConsoleMessage("pNM %d \n", p->NavigationMode);
-						//if(mev == ButtonPress)   ConsoleMessage("starting navigation drag\n");
-						//if(mev == ButtonRelease) ConsoleMessage("ending   navigation drag\n");
-							handle(imev, curTouch->buttonState[LMB], curTouch->fx,curTouch->fy);
-					}
-				}
-
-				if (curTouch->mev == MotionNotify) {
-					if (curTouch->NavigationMode) {
-						/* find out what the first button down is */
-						count = 0;
-						while ((count < 4) && (!curTouch->buttonState[count])) count++;
-						if (count == 4) return; /* no buttons down???*/
-						//ConsoleMessage("nav dragging\n");
-						handle (curTouch->mev, (unsigned) count, curTouch->fx, curTouch->fy); 
-					}
+					if(curTouch->dragEnd) imev = ButtonRelease;
+					handle(imev, ibut, curTouch->fx,curTouch->fy);
+					curTouch->dragStart = FALSE;
+					if(curTouch->dragEnd) touch->inUse = FALSE; //garbage collect
+					curTouch->dragEnd = FALSE;
+				} else {
+					imev = MotionNotify;
+					handle (imev, ibut, curTouch->fx, curTouch->fy); 
 				}
 			}
 		}
