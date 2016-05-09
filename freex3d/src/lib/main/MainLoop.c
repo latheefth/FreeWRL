@@ -147,7 +147,8 @@ enum {
 };
 struct Touch
 {
-	int buttonState[4]; /*none down=0, LMB =1, MMB=2, RMB=3*/
+	//int buttonState[4]; /*none down=0, LMB =1, MMB=2, RMB=3*/
+	int buttonState; //0 up, 1 down
 	//bool isDown; /* false = up, true = down */
 	int mev; /* down/press=4, move/drag=6, up/release=5 */
 	unsigned int ID;  /* for multitouch: 0-20, represents one finger drag. Recycle after an up */
@@ -4139,7 +4140,7 @@ void record_multitouch(struct Touch *touchlist, int mev, int butnum, int mouseX,
 		touch->ry = mouseY;
 		touch->windex = windex;
 		touch->stageId = current_stageId();
-		touch->buttonState[butnum] = mev == ButtonPress;
+		touch->buttonState = mev == ButtonPress;
 		touch->ID = ID; /*will come in handy if we change from array[] to accordian list*/
 		touch->mev = mev;
 		touch->angle = 0.0f;
@@ -4701,7 +4702,7 @@ void setup_picking(){
 					//double-check navigation, which may have already started
 					//if(touch->CursorOverSensitive && touch->NavigationMode ){
 					if(touch->dragStart){
-						if(touch->CursorOverSensitive){
+						if(touch->CursorOverSensitive || fwl_getHover()){
 							//if(!tg->Mainloop.AllowNavDrag) 
 							touch->NavigationMode = FALSE; //rollback start of navigation
 							//touch->claimant = TOUCHCLAIMANT_SENSOR;
@@ -4717,7 +4718,6 @@ void setup_picking(){
 							printf("pass %d\n",touch->ID);
 						}
 					}
-					if(touch->claimant != TOUCHCLAIMANT_SENSOR) continue; //navigation touch
 					//if (p->CursorOverSensitive)
 					//	ConsoleMessage("setup_picking x %d y %d ID %d but %d mev %d\n", touch->x, touch->y, touch->ID, touch->buttonState[LMB], touch->mev);
 
@@ -4730,7 +4730,7 @@ void setup_picking(){
 						#endif
 						//ConsoleMessage("isOver changing\n");
 						//if (p->ButDown[p->currentCursor][1]==0) {
-						if (touch->dragEnd) {  //touch->buttonState[LMB]==0) {
+						if (touch->buttonState == 0) {  //touch->buttonState[LMB]==0) {
 
 							/* ok, when the user releases a button, cursorOverSensitive WILL BE NULL
 								until it gets sensed again. So, we use the lastOverButtonPressed flag to delay
@@ -4749,11 +4749,12 @@ void setup_picking(){
 					if (p->CursorOverSensitive != NULL)
 						printf("COS %d (%s)\n", (unsigned int) p->CursorOverSensitive, stringNodeType(p->CursorOverSensitive->_nodeType));
 					#endif /* VERBOSE */
+					if(touch->claimant != TOUCHCLAIMANT_SENSOR) continue; //navigation touch
 
 					/* did we have a click of button 1? */
 					//if (p->ButDown[p->currentCursor][1] && (p->lastPressedOver==NULL)) {
 					//if (touch->buttonState[LMB] && (touch->lastPressedOver==NULL)) {
-					if (touch->dragStart && (touch->lastPressedOver==NULL)) {
+					if (touch->dragStart && touch->buttonState && (touch->lastPressedOver==NULL)) {
 						//ConsoleMessage("Not Navigation and 1 down\n"); 
 						/* send an event of ButtonPress and isOver=true */
 						touch->lastPressedOver = touch->CursorOverSensitive;
@@ -4766,9 +4767,10 @@ void setup_picking(){
 						//ConsoleMessage ("Not Navigation and 1 up\n");
 						/* send an event of ButtonRelease and isOver=true;
 							an isOver=false event will be sent below if required */
-						sendSensorEvents(touch->lastPressedOver, ButtonRelease, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
+						sendSensorEvents(touch->lastPressedOver, ButtonRelease, touch->buttonState, TRUE); //p->ButDown[p->currentCursor][1], TRUE);
 						touch->lastPressedOver = NULL;
 					}
+
 					if (TRUE) { // || p->lastMouseEvent[ID] == MotionNotify) {
 						//ConsoleMessage ("Not Navigation and motion - going into sendSensorEvents\n");
 						//Dec 18, 2015: we should _always_ come through here even when no mouse motion or events
@@ -4777,10 +4779,10 @@ void setup_picking(){
 						//  we won't have a mouse event but the view matrix will change, causing the pickray
 						//  to move with respect to the dragsensor - in which case the sensor should emit events.
 						/* TouchSensor hitPoint_changed needs to know if we are over a sensitive node or not */
-						sendSensorEvents(touch->CursorOverSensitive,MotionNotify, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
+						sendSensorEvents(touch->CursorOverSensitive,MotionNotify, touch->buttonState, TRUE); //p->ButDown[p->currentCursor][1], TRUE);
 
 						/* PlaneSensors, etc, take the last sensitive node pressed over, and a mouse movement */
-						sendSensorEvents(touch->lastPressedOver,MotionNotify, touch->buttonState[LMB], TRUE); //p->ButDown[p->currentCursor][1], TRUE);
+						sendSensorEvents(touch->lastPressedOver,MotionNotify, touch->buttonState, TRUE); //p->ButDown[p->currentCursor][1], TRUE);
 						//p->lastMouseEvent[ID] = 0 ;
 					}
 
@@ -4793,9 +4795,9 @@ void setup_picking(){
 							don't change the node pointer if we are clicked down */
 						if ((touch->lastPressedOver==NULL) && (touch->CursorOverSensitive != touch->oldCOS)) {
 							//sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
-							sendSensorEvents(touch->oldCOS,MapNotify,touch->buttonState[LMB], FALSE);
+							sendSensorEvents(touch->oldCOS,MapNotify,touch->buttonState, FALSE);
 							//sendSensorEvents(p->CursorOverSensitive,MapNotify,p->ButDown[p->currentCursor][1], TRUE);
-							sendSensorEvents(touch->CursorOverSensitive,MapNotify,touch->buttonState[LMB], TRUE);
+							sendSensorEvents(touch->CursorOverSensitive,MapNotify,touch->buttonState, TRUE);
 							 touch->oldCOS = touch->CursorOverSensitive;
 							sendDescriptionToStatusBar(touch->CursorOverSensitive);
 							//ConsoleMessage("in oldCOS A\n");
@@ -4810,14 +4812,15 @@ void setup_picking(){
 						/* were we over a sensitive node? */
 						//if ((p->oldCOS!=NULL)  && (p->ButDown[p->currentCursor][1]==0)) {
 						//if ((touch->oldCOS != NULL)  && (touch->buttonState[LMB]==0)) {
-						if ((touch->oldCOS != NULL)  && touch->dragEnd) {
-							sendSensorEvents(touch->oldCOS, MapNotify, touch->buttonState[LMB], FALSE); //p->ButDown[p->currentCursor][1], FALSE);
+						if ((touch->oldCOS != NULL)  && touch->buttonState == 0) {  // touch->dragEnd) {
+							sendSensorEvents(touch->oldCOS, MapNotify, touch->buttonState, FALSE); //p->ButDown[p->currentCursor][1], FALSE);
 							/* remove any display on-screen */
 							sendDescriptionToStatusBar(NULL);
 							touch->oldCOS = NULL;
 							//ConsoleMessage("in oldCOS B\n");
 						}
 					}
+
 				} //setup_pickside
 				if(touch->dragStart){
 					touch->dragStart = FALSE; //handled buttonPress above
@@ -7412,6 +7415,7 @@ void handle_pedal(int mev, int x, int y, ivec4 vport){
 		fwl_setPedal(0); //just one pedal, then turn off automatically. User must re-click the pedal button if they want another drag to accumulate.
 	}
 }
+void viewer_setNextDragChord();
 void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x, int y, unsigned int ID, int windex) {
 	int count, ibutton,i, passed, claimant;
 	float fx, fy;
@@ -7428,6 +7432,14 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 
 	//winRT but =1 when mev = motion, others but = 0 when mev = motion. 
 	//make winRT the same as the others:
+	if(button == RMB){
+		//May 2016 - officially no more RMB for any kind of navigation
+		//for fun, lets use desktop RMB to change fly chord
+		if(mev == ButtonPress){
+			viewer_setNextDragChord();
+		}
+		return;
+	}
 	ibutton = button;
 	if(fwl_getHover()) ibutton = 0; //so called up-drag or isOver / hover mode
 
@@ -7450,7 +7462,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 		else if (mev == MotionNotify) ConsoleMessage("MotionNotify\n");
 		else ConsoleMessage("event %d\n", mev);
 	}
-	FreeTouches(); //call once after setup_picking
+	FreeTouches(); //call often, once per event OK, or once per frame
 	// Order of new touch claimants: pedal, sensor, navigation, none/hover
 	//
 	//
@@ -7478,7 +7490,8 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 		}
 		touch->windex = windex;
 		touch->stageId = current_stageId();
-		touch->claimant = claimant;
+		touch->buttonState = ibutton ? 1 : 0; //mev == ButtonPress; 0=hover/isOver/up-drag mode, 1=normal down-drag, stays constant for whole drag
+		touch->claimant = claimant; 
 		touch->passed = passed;
 		touch->dragStart = TRUE; //cleared by claimant when they've consumed the start
 		//touch->handled = 0;
@@ -7496,7 +7509,6 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	touch->y = y + p->pedalstate.y;
 	touch->fx = fx;
 	touch->fy = fy;
-	touch->buttonState[ibutton] = mev == ButtonPress;
 	touch->mev = mev;
 	touch->angle = 0.0f;
 	// this isn't necessarily the current touch if there are multiple touches //p->currentTouch = ID; // pick/dragsensors can use 0-19
@@ -7524,7 +7536,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 			}
 			if(curTouch->claimant == TOUCHCLAIMANT_NAVIGATION){
 				int imev, ibut;
-				ibut = 1;
+				ibut = curTouch->buttonState;
 				if (curTouch->dragStart || (curTouch->dragEnd)) {
 					if(curTouch->dragStart) imev = ButtonPress;
 					if(curTouch->dragEnd) imev = ButtonRelease;
@@ -7906,7 +7918,7 @@ void resetSensorEvents(void) {
 		touch = &p->touchlist[ktouch];
 		if(touch->inUse){
 			if (touch->oldCOS != NULL)
-			sendSensorEvents(touch->oldCOS,MapNotify,touch->buttonState[LMB], FALSE);
+			sendSensorEvents(touch->oldCOS,MapNotify,touch->buttonState, FALSE);
 			//sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
 		}
 		/* remove any display on-screen */

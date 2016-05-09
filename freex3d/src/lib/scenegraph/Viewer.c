@@ -1858,6 +1858,10 @@ void viewer_setDragChord(int chord){
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	p->dragchord = chord;
 }
+void viewer_setNextDragChord(){
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	p->dragchord = p->dragchord == CHORD_XY ? CHORD_YAWZ : p->dragchord + 1;
+}
 char *fwl_getDragChord(){
 	return chordnames[viewer_getDragChord()];
 }
