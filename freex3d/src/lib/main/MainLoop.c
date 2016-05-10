@@ -3926,7 +3926,7 @@ void initialize_targets_simple(){
 	p->targets_initialized = 1;
 
 }
-
+void update_navigation();
 void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 	double dtime;
 	int i;
@@ -3943,6 +3943,7 @@ void fwl_RenderSceneUpdateSceneTARGETWINDOWS() {
 	vportstack = (Stack *)tg->Mainloop._vportstack;
 	defaultvport = ivec4_init(0,0,100,100);
 	pushviewport(vportstack,defaultvport);
+	//update_navigation();
 	fwl_RenderSceneUpdateScene0(dtime);
 	popviewport(vportstack);
 
@@ -4833,9 +4834,40 @@ void setup_picking(){
 		} //ktouch loop
 	} /* (!NavigationMode && HaveSensitive) */
 	else if(Viewer()->LookatMode){
+		//we need navigation to claim, so viewer_handle_lookat is called
+		int ktouch, kcount, priorclaimants;
+		int x, yup;
+		struct Touch *touch;
+		priorclaimants = TOUCHCLAIMANT_PEDAL;
+		kcount = 0;
 		//pick a target object to travel to
 		if(Viewer()->LookatMode < 3)
 			setLookatCursor();
+		for(ktouch=0;ktouch<p->ntouch;ktouch++){
+			touch = &p->touchlist[ktouch];
+			if(!touch->inUse) continue;
+			if(touch->windex != windex) continue;
+			if(touch->stageId != current_stageId()) continue;
+			kcount++;
+			if(touch->claimant == TOUCHCLAIMANT_UNCLAIMED && touch->passed == priorclaimants)
+				touch->passed |= TOUCHCLAIMANT_SENSOR;
+			
+			if(Viewer()->LookatMode == 2 ){
+				//p->currentCursor = 0;
+				x = touch->x;
+				yup = touch->y;
+				if(setup_pickside(x,yup)){ //tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor])){
+					setup_projection();
+					setup_pickray(x,yup); //tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
+					setup_viewpoint();
+					set_viewmatrix();
+					render_hier(rootNode(),VF_Sensitive  | VF_Geom);
+					getRayHitAndSetLookatTarget();
+				}
+			}
+		}
+		/*
+		printf("kcount = %d ",kcount);
 		if(Viewer()->LookatMode == 2){
 			//p->currentCursor = 0;
 			int x, yup;
@@ -4854,6 +4886,7 @@ void setup_picking(){
 				getRayHitAndSetLookatTarget();
 			}
 		}
+		*/
 		if(Viewer()->LookatMode == 0) ///> 2)
 			setArrowCursor();
 	}else{
@@ -5350,6 +5383,7 @@ static void render()
 
 	setup_projection();
 	set_viewmatrix();
+	update_navigation();
 	setup_picking();
 	viewer = Viewer();
 	doglClearColor();
@@ -5441,7 +5475,7 @@ static void render()
 			fiducialDrawB(CURSOR_DOWN,touch->x,touch->y);
 		}
 	}
-
+	//update_navigation();
 }
 
 
@@ -7517,10 +7551,19 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 			p->currentTouch = 0;
 		touch->dragEnd = TRUE;
 	}
-
+	return;
+}
+void update_navigation(){
 	//update_navigation - this will be for unclaimed touches from last iteration
-	//this code should be called from a function once per frame, not here once per event 
+	//this code should be called from a function once per frame (not once per event)
 	// (need to process ButtonRelease from previous event)
+	// Q. why is there no windex or stageId filtering in here?
+	int i;
+	struct Touch *curTouch;
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+
 	for(i=0;i<p->ntouch;i++){
 		curTouch = &p->touchlist[i];
 		if(curTouch->inUse){
@@ -7542,7 +7585,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 					if(curTouch->dragEnd) imev = ButtonRelease;
 					handle(imev, ibut, curTouch->fx,curTouch->fy);
 					curTouch->dragStart = FALSE;
-					if(curTouch->dragEnd) touch->inUse = FALSE; //garbage collect
+					if(curTouch->dragEnd) curTouch->inUse = FALSE; //garbage collect
 					curTouch->dragEnd = FALSE;
 				} else {
 					imev = MotionNotify;

@@ -1483,12 +1483,24 @@ void handle_lookat(const int mev, const unsigned int button, float x, float y) {
 	
 	switch(mev){
 		case  ButtonPress:
-		case MotionNotify:
-		//do nothing
-		break;
-		case ButtonRelease:
 		//trigger a node pick in mainloop, followed by viewpoint transition
 		viewer->LookatMode = 2;
+		//printf("lookat press\n");
+		break;
+		case MotionNotify:
+		//do nothing
+		//printf("lookat motion\n");
+		break;
+		case ButtonRelease:
+		//printf("looat release\n");
+		//viewer->lookatmode should == 3 coming in here
+		if(viewer->type == VIEWER_LOOKAT)
+			fwl_set_viewer_type(VIEWER_LOOKAT); //toggle off LOOKAT
+		if(viewer->type == VIEWER_EXPLORE)
+			fwl_set_viewer_type(VIEWER_EXPLORE); //toggle off LOOKAT
+		viewer->LookatMode = 0; //VIEWER_EXPLORE
+
+		break;
 	}
 	
 }
@@ -3383,13 +3395,13 @@ void setup_viewpoint_slerp(double* center, double pivot_radius, double vp_radius
 	//quatEnd = quatPitch*quatYaw*quatStart
 	quaternion_multiply(&qtmp,&qyaw,&qpitch);
 	quaternion_multiply(&viewer->endSLERPQuat,&qtmp,&viewer->startSLERPQuat);
-	if(viewer->LookatMode == 3){
-		if(viewer->type == VIEWER_LOOKAT)
-			fwl_set_viewer_type(VIEWER_LOOKAT); //toggle off LOOKAT
-		if(viewer->type == VIEWER_EXPLORE)
-			fwl_set_viewer_type(VIEWER_EXPLORE); //toggle off LOOKAT
-		viewer->LookatMode = 0; //VIEWER_EXPLORE
-	}
+	//if(0) if(viewer->LookatMode == 3){ moved to handle_lookat
+	//	if(viewer->type == VIEWER_LOOKAT)
+	//		fwl_set_viewer_type(VIEWER_LOOKAT); //toggle off LOOKAT
+	//	if(viewer->type == VIEWER_EXPLORE)
+	//		fwl_set_viewer_type(VIEWER_EXPLORE); //toggle off LOOKAT
+	//	viewer->LookatMode = 0; //VIEWER_EXPLORE
+	//}
 	//viewer_lastP_clear(); //not sure I need this - its for wall penetration
 }
 
