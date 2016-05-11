@@ -74,6 +74,8 @@ typedef struct pcommon{
 	int want_statusbar;
 	struct Vector *keyvals;
 	float density_factor;
+	int pedal;
+	int hover;
 }*ppcommon;
 void *common_constructor(){
 	void *v = MALLOCV(sizeof(struct pcommon));
@@ -99,6 +101,8 @@ void common_init(struct tcommon *t){
 		p->showConsoleText = 0;  //in the UI, if a callback is registered with ConsoleMessage. Won't affect old fashioned console, 
 		p->target_frames_per_second = 120;  //is 120 FPS a good target FPS?
 		p->density_factor = 1.0f;  //how much to scale up UI elements for small high res screens ie mobile, see fwl_setDensityFactor
+		p->pedal = 0; //pedal mode moves in-scene cursor by drag amount ie indirect/offset drag
+		p->hover = 0; //hover mode means your drags only do isOver -no navigation or sensor click
 	}
 }
 void common_clear(struct tcommon *t){
@@ -770,4 +774,20 @@ void fwl_setDensityFactor(float density_factor){
 float fwl_getDensityFactor(){
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 	return p->density_factor;
+}
+int fwl_getPedal(){
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	return p->pedal;
+}
+void fwl_setPedal(int pedal){
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	p->pedal = pedal; //0 means off, 1 means on
+}
+int fwl_getHover(){
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	return p->hover;
+}
+void fwl_setHover(int hover){
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	p->hover = hover; //0 means off, 1 means on
 }

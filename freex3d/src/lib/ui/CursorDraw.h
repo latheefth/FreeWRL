@@ -33,7 +33,14 @@ extern "C" {
 
 void cursorDraw(int ID, int x, int y, float angle);
 void fiducialDraw(int ID, int x, int y, float angle);
-
+void fiducialDrawB(int cursortype, int x, int y);
+enum cursor_type {
+	CURSOR_UP = 0,
+	CURSOR_DOWN,
+	CURSOR_HOVER,
+	CURSOR_OVER,
+	CURSOR_FIDUCIALS
+};
 #ifdef __cplusplus
 }
 #endif

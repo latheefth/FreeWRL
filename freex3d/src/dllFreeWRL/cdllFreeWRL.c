@@ -161,6 +161,17 @@ DLLFREEWRL_API int dllFreeWRL_onMouse(void *fwctx, int mouseAction,int mouseButt
 	fwl_clearCurrentHandle();
 	return cursorStyle;
 }
+DLLFREEWRL_API int dllFreeWRL_onTouch(void *fwctx, int touchAction, unsigned int ID, int x, int y) {
+
+	/*void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);*/
+	/* butnum=1 left butnum=3 right (butnum=2 middle, not used by freewrl) */
+	int cursorStyle = 0;
+	if (fwl_setCurrentHandle(fwctx, __FILE__, __LINE__)) {
+		cursorStyle = fwl_handle_touch(touchAction, ID, x, y, 0);
+	}
+	fwl_clearCurrentHandle();
+	return cursorStyle;
+}
 DLLFREEWRL_API void dllFreeWRL_onKey(void *fwctx, int keyAction,int keyValue){
 	int kp = keyValue;
 	int ka = keyAction;
